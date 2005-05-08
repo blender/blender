@@ -108,6 +108,8 @@ typedef struct ScrArea {
 	short headbutlen, headbutofs;
 	short cursor, flag;
 
+	ScriptLink scriptlink;
+
 	ListBase spacedata;
 	ListBase uiblocks;
 	ListBase panels;

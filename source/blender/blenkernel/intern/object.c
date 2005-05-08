@@ -1365,7 +1365,7 @@ void where_is_object_time(Object *ob, float ctime)
 	solve_constraints (ob, TARGET_OBJECT, NULL, ctime);
 
 	if(ob->scriptlink.totscript && !during_script()) {
-		BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
+		if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
 	}
 	
 	/* set negative scale flag in object */

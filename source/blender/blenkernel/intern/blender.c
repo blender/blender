@@ -326,15 +326,14 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		G.scene= G.main->scene.first;
 		G.curscreen->scene= G.scene;
 	}
-	
+
 	/* special cases, override loaded flags: */
 	if (G.f & G_DEBUG) bfd->globalf |= G_DEBUG;
 	else bfd->globalf &= ~G_DEBUG;
-	if (G.f & G_SCENESCRIPT) bfd->globalf |= G_SCENESCRIPT;
-	else bfd->globalf &= ~G_SCENESCRIPT;
+	if (!(G.f & G_DOSCRIPTLINKS)) bfd->globalf &= ~G_DOSCRIPTLINKS;
 
 	G.f= bfd->globalf;
-	
+
 	/* check posemode */
 	for(base= G.scene->base.first; base; base=base->next) {
 		ob= base->object;
@@ -358,7 +357,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		/* baseflags */
 	set_scene_bg(G.scene);
 
-	if (G.f & G_SCENESCRIPT) {
+	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */
 		mainqenter(ONLOAD_SCRIPT, 1);
 	}

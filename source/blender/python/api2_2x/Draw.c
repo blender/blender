@@ -70,6 +70,9 @@
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
 
+/* pointer to main dictionary defined in Blender.c */
+extern PyObject *g_blenderdict;
+
 /*@ hack to flag that window redraw has happened inside slider callback: */
 int EXPP_disable_force_draw = 0;
 
@@ -505,7 +508,7 @@ static void spacescript_do_pywin_buttons( SpaceScript * sc,
 }
 
 void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
-				     short val )
+	short val, char ascii )
 {
 	static int menu_hack = 0;
 
@@ -546,9 +549,20 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 		}
 	}
 
-	if( sc->script->py_event )
+	/* Using the "event" main module var, used by scriptlinks, to pass the ascii
+	 * value to event callbacks (gui/event/button callbacks are not allowed
+	 * inside scriptlinks, so this is ok) */
+	if( sc->script->py_event ) {
+		int pass_ascii = 0;
+		if (ascii > 31 && ascii != 127) {
+			pass_ascii = 1;
+			PyDict_SetItemString(g_blenderdict, "event", PyInt_FromLong((long)ascii));
+		}
 		exec_callback( sc, sc->script->py_event,
-			       Py_BuildValue( "(ii)", event, val ) );
+			Py_BuildValue( "(ii)", event, val ) );
+		if (pass_ascii)
+			PyDict_SetItemString(g_blenderdict, "event", PyString_FromString(""));
+	}
 }
 
 static PyObject *Method_Exit( PyObject * self, PyObject * args )
@@ -635,7 +649,7 @@ static PyObject *Method_Register( PyObject * self, PyObject * args )
  		script = sc->script;
 		if( !script ) {
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"Draw.Register: couldn't get pointer to script struct" );
+				"Draw.Register can't be used inside script links" );
 		}
 	}
 	else sc->script = script;

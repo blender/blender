@@ -1208,6 +1208,9 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				pa= pa->next;
 			}
 
+			/* space handler scriptlinks */
+			write_scriptlink(wd, &sa->scriptlink);
+
 			sl= sa->spacedata.first;
 			while(sl) {
 				if(sl->spacetype==SPACE_VIEW3D) {

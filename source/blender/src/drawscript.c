@@ -112,11 +112,12 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 {
 	unsigned short event = evt->event;
 	short val = evt->val;
+	char ascii = evt->ascii;
 	SpaceScript *sc = curarea->spacedata.first;
 	Script *script = sc->script;
 
 	if (script) {
-		BPY_spacescript_do_pywin_event(sc, event, val);
+		BPY_spacescript_do_pywin_event(sc, event, val, ascii);
 
 		if (!script->flags) {/* finished with this script, let's free it */
 			if (script->lastspace != SPACE_SCRIPT)

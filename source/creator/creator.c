@@ -188,7 +188,7 @@ static void print_help(void)
 	printf ("  -d\t\tTurn debugging on\n");
 	printf ("  -noaudio\tDisable audio on systems that support audio\n");
 	printf ("  -h\t\tPrint this help text\n");
-	printf ("  -y\t\tDisable OnLoad scene scripts, use -Y to find out why its -y\n");
+	printf ("  -y\t\tDisable script links, use -Y to find out why its -y\n");
 	printf ("  -P <filename>\tRun the given Python script (filename or Blender Text)\n");
 #ifdef WIN32
 	printf ("  -R\t\tRegister .blend extension\n");
@@ -276,7 +276,7 @@ int main(int argc, char **argv)
 
 	/* first test for background */
 
-	G.f |= G_SCENESCRIPT; /* scenescript always set! */
+	G.f |= G_DOSCRIPTLINKS; /* script links enabled by default */
 
 	for(a=1; a<argc; a++) {
 
@@ -306,11 +306,11 @@ int main(int argc, char **argv)
 				break;
 
 			case 'y':
-				G.f &= ~G_SCENESCRIPT;
+				G.f &= ~G_DOSCRIPTLINKS;
 				break;
 
 			case 'Y':
-				printf ("-y was used to disable scene scripts because,\n");
+				printf ("-y was used to disable script links because,\n");
 				printf ("\t-p being taken, Ton was of the opinion that Y\n");
 				printf ("\tlooked like a split (disabled) snake, and also\n");
 				printf ("\twas similar to a python's tongue (unproven).\n\n");

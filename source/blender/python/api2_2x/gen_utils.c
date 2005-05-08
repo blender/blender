@@ -155,6 +155,10 @@ char *event_to_name( short event )
 		return "OnSave";
 	case SCRIPT_REDRAW:
 		return "Redraw";
+	case SCRIPT_RENDER:
+		return "Render";
+	case SCRIPT_POSTRENDER:
+		return "PostRender";
 	default:
 		return "Unknown";
 	}
@@ -314,6 +318,8 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 		event = SCRIPT_FRAMECHANGED;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
+	else if( !strcmp( eventname, "Render" ) )
+		event = SCRIPT_RENDER;
 	else if( is_scene && !strcmp( eventname, "OnLoad" ) )
 		event = SCRIPT_ONLOAD;
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
@@ -465,6 +471,8 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 		event = SCRIPT_FRAMECHANGED;
 	else if( !strcmp( eventname, "Redraw" ) )
 		event = SCRIPT_REDRAW;
+	else if( !strcmp( eventname, "Render" ) )
+		event = SCRIPT_RENDER;
 	else if( is_scene && !strcmp( eventname, "OnLoad" ) )
 		event = SCRIPT_ONLOAD;
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )

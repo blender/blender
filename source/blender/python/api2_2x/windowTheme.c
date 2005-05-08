@@ -39,10 +39,12 @@
 
 #define EXPP_THEME_VTX_SIZE_MIN 1
 #define EXPP_THEME_VTX_SIZE_MAX 10
+#define EXPP_THEME_FDOT_SIZE_MIN 1
+#define EXPP_THEME_FDOT_SIZE_MAX 10
 #define EXPP_THEME_DRAWTYPE_MIN 1
 #define EXPP_THEME_DRAWTYPE_MAX 4
 
-#define EXPP_THEME_NUMBEROFTHEMES 14
+#define EXPP_THEME_NUMBEROFTHEMES 15
 static const EXPP_map_pair themes_map[] = {
 	{"ui", -1},
 	{"buts", SPACE_BUTS},
@@ -58,6 +60,7 @@ static const EXPP_map_pair themes_map[] = {
 	{"imasel", SPACE_IMASEL},
 	{"text", SPACE_TEXT},
 	{"oops", SPACE_OOPS},
+	{"time", SPACE_TIME},
 	{NULL, 0}
 };
 
@@ -164,18 +167,21 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( edge_facesel )
 		ELSEIF_TSP_RGBA( face )
 		ELSEIF_TSP_RGBA( face_select )
+		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
 		else if( !strcmp( name, "vertex_size" ) )
 		attrib = Py_BuildValue( "i", tsp->vertex_size );
+		else if( !strcmp( name, "facedot_size" ) )
+		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue( "[ssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue( "[ssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
 					"grid", "wire", "select", "active",
 					"transform", "vertex", "vertex_select",
 					"edge", "edge_select", "edge_seam",
 					"edge_facesel", "face", "face_select",
-					"normal", "vertex_size" );
+					"face_dot", "normal", "vertex_size", "facedot_size" );
 
 	if( attrib != Py_None )
 		return attrib;
@@ -214,6 +220,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( edge_facesel )
 		ELSEIF_TSP_RGBA( face )
 		ELSEIF_TSP_RGBA( face_select )
+		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
 		else if( !strcmp( name, "vertex_size" ) ) {
 		int val;
@@ -226,6 +233,19 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		tsp->vertex_size = EXPP_ClampInt( val,
 						  EXPP_THEME_VTX_SIZE_MIN,
 						  EXPP_THEME_VTX_SIZE_MAX );
+		ret = 0;
+	}
+	else if( !strcmp( name, "facedot_size" ) ) {
+		int val;
+
+		if( !PyInt_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+						    "expected integer value" );
+
+		val = ( int ) PyInt_AsLong( value );
+		tsp->vertex_size = EXPP_ClampInt( val,
+						  EXPP_THEME_FDOT_SIZE_MIN,
+						  EXPP_THEME_FDOT_SIZE_MAX );
 		ret = 0;
 	} else
 		return EXPP_ReturnIntError( PyExc_AttributeError,
@@ -661,6 +681,9 @@ static PyObject *Theme_get( BPy_Theme * self, PyObject * args )
 		break;
 	case SPACE_OOPS:
 		tsp = &btheme->toops;
+		break;
+	case SPACE_TIME:
+		tsp = &btheme->ttime;
 		break;
 	}
 

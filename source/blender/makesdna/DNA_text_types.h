@@ -72,8 +72,8 @@ typedef struct Text {
 #define TXT_ISTMP               0x0002
 #define TXT_ISMEM               0x0004
 #define TXT_ISEXT               0x0008
-#define TXT_ISSCRIPT            0x0010
+#define TXT_ISSCRIPT            0x0010 /* used by space handler scriptlinks */
 #define TXT_READONLY            0x0100
-#define TXT_FOLLOW              0x0200 	// always follow cursor (console)
+#define TXT_FOLLOW              0x0200 /* always follow cursor (console) */
 
 #endif

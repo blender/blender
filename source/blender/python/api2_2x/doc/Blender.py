@@ -10,20 +10,30 @@
 """
 The main Blender module.
 
-B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}, L{ShowHelp}.
+B{New}: L{Run}, L{UpdateMenus}, new options to L{Get}, L{ShowHelp},
+L{SpaceHandlers} dictionary.
 
 Blender
 =======
 
 @type bylink: bool
 @var bylink: True if the current script is being executed as a script link.
-@type link: Blender Object or None
-@var link: if this script is a running script link, 'link' points to the
-    linked Object (can be a scene, object (mesh, camera, lamp), material or
-    world).  If this is not a script link, 'link' is None.
-@type event: string
-@var event: if this script is a running script link, 'event' tells what
-    kind of link triggered it (ex: OnLoad, FrameChanged, Redraw, etc.).
+@type link: Blender Object or None; integer (space handlers)
+@var link: for normal script links, 'link' points to the linked Object (can be
+    a scene, object (mesh, camera, lamp), material or
+    world).  For space handler script links, 'link' is an integer from the
+    Blender.L{SpaceHandlers} dictionary.  For script not running as script
+    links, 'link' is None.
+@type event: string or int
+@var event: this has three possible uses: script link type or events callback
+    ascii value:
+      - for normal script links it is a string representing the link type
+        (OnLoad, FrameChanged, Redraw, etc.).
+      - for EVENT space handler script links it is the passed event.
+      - for normal L{GUI<Draw.Register>} scripts I{during the events callback},
+        it holds the ascii value of the current event, if it is a valid one.
+        Users interested in this should also check the builtin 'ord' and 'chr'
+        Python functions. 
 @type mode: string
 @var mode: Blender's current mode:
     - 'interactive': normal mode, with an open window answering to user input;
@@ -31,6 +41,10 @@ Blender
       will exit as soon as it finishes rendering or executing a script
       (ex: 'C{blender -b <blender file> -P <script>}').  Try 'C{blender -h}'
       for more detailed informations.
+@type SpaceHandlers: constant dictionary
+@var SpaceHandlers: dictionary with space handler types.
+    - VIEW3D_EVENT;
+    - VIEW3D_DRAW.
 """
 
 def Set (request, data):

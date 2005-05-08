@@ -43,6 +43,7 @@
 #include <MEM_guardedalloc.h>
 #include <BLI_blenlib.h>	/* for BLI_last_slash() */
 
+#include "BIF_gl.h" /* glPushAttrib, glPopAttrib for DRAW space handlers */
 #include <BIF_interface.h>	/* for pupmenu() */
 #include <BIF_space.h>
 #include <BIF_screen.h>
@@ -1062,6 +1063,8 @@ void BPY_do_pyscript( ID * id, short event )
 				      PyString_FromString( event_to_name
 							   ( event ) ) );
 
+		if (event == SCRIPT_POSTRENDER) event = SCRIPT_RENDER;
+
 		for( index = 0; index < scriptlink->totscript; index++ ) {
 			if( ( scriptlink->flag[index] == event ) &&
 			    ( scriptlink->scripts[index] != NULL ) ) {
@@ -1103,6 +1106,249 @@ void BPY_do_pyscript( ID * id, short event )
 	}
 }
 
+/* SPACE HANDLERS */
+
+/* These are special script links that can be assigned to ScrArea's to
+ * (EVENT type) receive events sent to a given space (and use or ignore them) or
+ * (DRAW type) be called after the space is drawn, to draw anything on top of
+ * the space area. */
+
+/* How to add space handlers to other spaces:
+ * - add the space event defines to DNA_scriptlink_types.h, as done for
+ *   3d view: SPACEHANDLER_VIEW3D_EVENT, for example;
+ * - add the new defines to Blender.SpaceHandler dictionary in Blender.c;
+ * - check space.c for how to call the event handlers;
+ * - check drawview.c for how to call the draw handlers;
+ * - check header_view3d.c for how to add the "Space Handler Scripts" menu.
+ * Note: DRAW handlers should be called with 'event = 0', chech drawview.c */
+
+int BPY_has_spacehandler(Text *text, ScrArea *sa)
+{
+	ScriptLink *slink;
+	int index;
+
+	if (!sa || !text) return 0;
+
+	slink = &sa->scriptlink;
+
+	for (index = 0; index < slink->totscript; index++) {
+		if (slink->scripts[index] && (slink->scripts[index] == (ID *)text))
+			return 1;
+	}
+
+	return 0;	
+}
+
+int BPY_is_spacehandler(Text *text, char spacetype)
+{
+	TextLine *tline = text->lines.first;
+	unsigned short type = 0;
+
+	if (tline && (tline->len > 10)) {
+		char *line = tline->line;
+
+		/* Expected format: # SPACEHANDLER.SPACE.TYPE
+		 * Ex: # SPACEHANDLER.VIEW3D.DRAW
+		 * The actual checks are forgiving, so slight variations also work. */
+		if (line && line[0] == '#' && strstr(line, "HANDLER")) {
+			line++; /* skip '#' */
+
+			/* only done for 3D View right now, trivial to add for others: */
+			switch (spacetype) {
+				case SPACE_VIEW3D:
+					if (strstr(line, "3D")) { /* VIEW3D, 3DVIEW */
+						if (strstr(line, "DRAW")) type = SPACEHANDLER_VIEW3D_DRAW;
+						else if (strstr(line, "EVENT")) type = SPACEHANDLER_VIEW3D_EVENT;
+					}
+					break;
+			}
+		}
+	}
+	return type; /* 0 if not a space handler */
+}
+
+int BPY_del_spacehandler(Text *text, ScrArea *sa)
+{
+	ScriptLink *slink;
+	int i, j;
+
+	if (!sa || !text) return -1;
+
+	slink = &sa->scriptlink;
+	if (slink->totscript < 1) return -1;
+
+	for (i = 0; i < slink->totscript; i++) {
+		if (text == (Text *)slink->scripts[i]) {
+
+			for (j = i; j < slink->totscript - 1; j++) {
+				slink->flag[j] = slink->flag[j+1];
+				slink->scripts[j] = slink->scripts[j+1];
+			}
+			slink->totscript--;
+			/* like done in buttons_script.c we just free memory
+			 * if all slinks have been removed -- less fragmentation,
+			 * these should be quite small arrays */
+			if (slink->totscript == 0) {
+				if (slink->scripts) MEM_freeN(slink->scripts);
+				if (slink->flag) MEM_freeN(slink->flag);
+				break;
+			}
+		}
+	}
+	return 0;
+}
+
+int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
+{
+	unsigned short handlertype;
+
+	if (!sa || !text) return -1;
+
+	handlertype = BPY_is_spacehandler(text, spacetype);
+
+	if (handlertype) {
+		ScriptLink *slink = &sa->scriptlink;
+		void *stmp, *ftmp;
+		unsigned short space_event = SPACEHANDLER_VIEW3D_EVENT;
+
+		/* extend slink */
+
+		stmp= slink->scripts;		
+		slink->scripts= MEM_mallocN(sizeof(ID*)*(slink->totscript+1),
+			"spacehandlerscripts");
+	
+		ftmp= slink->flag;		
+		slink->flag= MEM_mallocN(sizeof(short*)*(slink->totscript+1),
+			"spacehandlerflags");
+	
+		if (slink->totscript) {
+			memcpy(slink->scripts, stmp, sizeof(ID*)*(slink->totscript));
+			MEM_freeN(stmp);
+
+			memcpy(slink->flag, ftmp, sizeof(short)*(slink->totscript));
+			MEM_freeN(ftmp);
+		}
+
+		switch (spacetype) {
+			case SPACE_VIEW3D:
+				if (handlertype == 1) space_event = SPACEHANDLER_VIEW3D_EVENT;
+				else space_event = SPACEHANDLER_VIEW3D_DRAW;
+				break;
+			default:
+				break;
+		}
+
+		slink->scripts[slink->totscript] = (ID *)text;
+		slink->flag[slink->totscript]= space_event;
+
+		slink->totscript++;
+		slink->actscript = slink->totscript;
+
+	}
+	return 0;
+}
+
+int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
+	unsigned short space_event )
+{
+	ScriptLink *scriptlink;
+	int retval = 0;
+
+	if (!sa) return 0;
+
+	scriptlink = &sa->scriptlink;
+
+	if (scriptlink->totscript > 0) {
+		PyObject *dict;
+		PyObject *ret;
+		int index, during_slink = during_scriptlink();
+
+		/* invalid scriptlinks (new .blend was just loaded), return */
+		if (during_slink < 0) return 0;
+
+		/* tell we're running a scriptlink.  The sum also tells if this script
+		 * is running nested inside another.  Blender.Load needs this info to
+		 * avoid trouble with invalid slink pointers. */
+		during_slink++;
+		disable_where_scriptlink( during_slink );
+
+		/* set globals in Blender module to identify space handler scriptlink */
+		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_True());
+		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
+		PyDict_SetItemString(g_blenderdict, "link", PyInt_FromLong(space_event));
+		/* note: DRAW space_events set event to 0 */
+		PyDict_SetItemString(g_blenderdict, "event", PyInt_FromLong(event));
+
+		/* now run all assigned space handlers for this space and space_event */
+		for( index = 0; index < scriptlink->totscript; index++ ) {
+
+			/* for DRAW handlers: */
+			if (event == 0) {
+				glPushAttrib(GL_ALL_ATTRIB_BITS);
+				glMatrixMode(GL_PROJECTION);
+				glPushMatrix();
+				glMatrixMode(GL_MODELVIEW);
+				glPushMatrix();
+			}
+
+			if( ( scriptlink->flag[index] == space_event ) &&
+			    ( scriptlink->scripts[index] != NULL ) ) {
+				dict = CreateGlobalDictionary();
+				ret = RunPython( ( Text * ) scriptlink->scripts[index], dict );
+				ReleaseGlobalDictionary( dict );
+
+				if (!ret) { /* Failed execution of the script */
+					BPY_Err_Handle( scriptlink->scripts[index]->name+2 );
+				} else {
+					Py_DECREF(ret);
+
+					/* an EVENT type (event != 0) script can either accept an event or
+					 * ignore it:
+					 * if the script sets Blender.event to None it accepted it;
+					 * otherwise the space's event handling callback that called us
+					 * can go on processing the event */
+					if (event && (PyDict_GetItemString(g_blenderdict,"event") == Py_None))
+						retval = 1; /* event was swallowed */
+				}
+
+				/* If a scriptlink has just loaded a new .blend file, the
+				 * scriptlink pointer became invalid (see api2_2x/Blender.c),
+				 * so we stop here. */
+				if( during_scriptlink(  ) == -1 ) {
+					during_slink = 1;
+					if (event == 0) glPopAttrib();
+					break;
+				}
+			}
+
+			/* for DRAW handlers: */
+			if (event == 0) {
+				glMatrixMode(GL_PROJECTION);
+				glPopMatrix();
+				glMatrixMode(GL_MODELVIEW);
+				glPopMatrix();
+				glPopAttrib();
+			}
+
+		}
+
+		disable_where_scriptlink( during_slink - 1 );
+
+		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_False());
+		PyDict_SetItemString(g_blenderdict, "link", EXPP_incr_ret(Py_None));
+		PyDict_SetItemString(g_blenderdict, "event", PyString_FromString(""));
+	}
+	
+	/* retval:
+	 * space_event is of type EVENT:
+	 * 0 - event was returned,
+	 * 1 - event was processed;
+	 * space_event is of type DRAW:
+	 * 0 always */
+
+	return retval;
+}
+
 /*****************************************************************************
 * Description:	
 * Notes:
@@ -1117,6 +1363,31 @@ void BPY_free_scriptlink( struct ScriptLink *slink )
 	}
 
 	return;
+}
+
+void BPY_free_screen_spacehandlers(struct bScreen *sc)
+{
+	ScrArea *sa;
+
+	for (sa = sc->areabase.first; sa; sa = sa->next)
+		BPY_free_scriptlink(&sa->scriptlink);
+}
+
+static int CheckAllSpaceHandlers(Text *text)
+{
+	bScreen *screen;
+	ScrArea *sa;
+	ScriptLink *slink;
+	int fixed = 0;
+
+	for (screen = G.main->screen.first; screen; screen = screen->id.next) {
+		for (sa = screen->areabase.first; sa; sa = sa->next) {
+			slink = &sa->scriptlink;
+			if (!slink->totscript) continue;
+			if (BPY_del_spacehandler(text, sa) == 0) fixed++;
+		}
+	}
+	return fixed;
 }
 
 static int CheckAllScriptsFromList( ListBase * list, Text * text )
@@ -1154,10 +1425,10 @@ int BPY_check_all_scriptlinks( Text * text )
 	fixed += CheckAllScriptsFromList( &( G.main->mat ), text );
 	fixed += CheckAllScriptsFromList( &( G.main->world ), text );
 	fixed += CheckAllScriptsFromList( &( G.main->scene ), text );
+	fixed += CheckAllSpaceHandlers(text);
 
 	return fixed;
 }
-
 
 /*****************************************************************************
 * Description: 

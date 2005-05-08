@@ -58,8 +58,11 @@ void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totse
 
 struct ID;
 struct Script;
+struct Text;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
+void BPY_free_compiled_text (struct Text *text);
+void BPY_free_screen_spacehandlers (struct bScreen *sc);
 
 /* writefile.c */
 struct Oops;

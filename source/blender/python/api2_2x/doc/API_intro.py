@@ -4,6 +4,8 @@
 The Blender Python API Reference
 ================================
 
+ An asterisk (*) means the module has been updated.
+
  Top Module:
  -----------
 
@@ -17,7 +19,7 @@ The Blender Python API Reference
   - L{BGL}
   - L{Camera} (*)
   - L{Curve} (*)
-  - L{Draw}
+  - L{Draw} (*)
   - L{Effect}
   - L{Image} (*)
   - L{Ipo}
@@ -47,11 +49,10 @@ The Blender Python API Reference
  Additional information:
  -----------------------
 
-  - L{Misc facilities<API_related>}:
+  - L{Special features<API_related>}:
     - scripts: registering in menus, documenting, configuring (new);
-    - command line examples (new).
-
- (*) - marks updated.
+    - command line examples (new);
+    - script links (*), space handler script links (new).
 
 Introduction:
 =============

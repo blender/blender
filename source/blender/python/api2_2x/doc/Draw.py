@@ -6,7 +6,7 @@ The Blender.Draw submodule.
 Draw
 ====
 
-B{New}: L{PupIntInput}, L{PupFloatInput}, L{PupStrInput}, mouse wheel events.
+B{New}: access to ascii values in L{events<Register>} callbacks.
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
@@ -240,6 +240,8 @@ def Register(draw = None, event = None, button = None):
       is called only once.  It's not necessary to re-register the callbacks,
       they will stay until Draw.Exit is called.  It's enough to redraw the
       screen, when a relevant event is caught.
+  @note: only during the B{event} callback: the L{Blender}.ascii variable holds
+      the ascii integer value (if it exists and is valid) of the current event.
   """
 
 def Redraw(after = 0):

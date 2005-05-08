@@ -47,6 +47,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
+#include "DNA_ID.h"
 #include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
@@ -59,6 +60,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_text_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
@@ -77,6 +79,7 @@
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
@@ -87,6 +90,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_dynstr.h"
 
 #include "BSE_filesel.h"
 
@@ -110,10 +114,6 @@
 
 /* ************************ function prototypes ********************** */
 void draw_scriptlink(uiBlock *, ScriptLink *, int , int , int ) ;
-
-
-
-
 
 /* *************************** SCRIPT ******************************** */
 
@@ -141,8 +141,7 @@ static void extend_scriptlink(ScriptLink *slink)
 	slink->flag[slink->totscript]= SCRIPT_FRAMECHANGED;
 
 	slink->totscript++;
-				
-	if(slink->actscript<1) slink->actscript=1;
+	slink->actscript = slink->totscript;
 }
 
 static void delete_scriptlink(ScriptLink *slink)
@@ -172,16 +171,55 @@ static void delete_scriptlink(ScriptLink *slink)
 	}
 }
 
+static char *scriptlinks_menu_string(void)
+{
+	char *menu = NULL;
+	DynStr *ds = BLI_dynstr_new();
+	Text *text = G.main->text.first;
+	int txtcounter = 0;
+
+	if (text) {
+		BLI_dynstr_append(ds, "Select Script Link%t");
+		while (text) {
+			BLI_dynstr_append(ds, "|");
+			BLI_dynstr_append(ds, text->id.name+2);
+			txtcounter += 1;
+			text = text->id.next;
+		}
+		if (txtcounter) menu = BLI_dynstr_get_cstring(ds);
+	}
+	BLI_dynstr_free(ds);
+	return menu;
+}
+
+static void scriptlinks_pupmenu(ScriptLink *slink)
+{
+	short menuitem;
+	char *menustr = scriptlinks_menu_string();
+
+	if (menustr) {
+		menuitem = pupmenu_col(menustr, 20);
+		MEM_freeN(menustr);
+		if (menuitem > 0) {
+			Text *text = G.main->text.first;
+			while (--menuitem) text = text->id.next;
+			if (text) slink->scripts[slink->totscript - 1]= (ID *)text;
+		}
+	}
+}
+
 void do_scriptbuts(unsigned short event)
 {
 	Object *ob=NULL;
-	ScriptLink *script=NULL;
+	ScriptLink *slink=NULL;
 	Material *ma;
 	
 	switch (event) {
 	case B_SSCRIPT_ADD:
-		extend_scriptlink(&G.scene->scriptlink);
+		slink = &G.scene->scriptlink;
+		extend_scriptlink(slink);
 		BIF_undo_push("Add scriptlink");
+		scriptlinks_pupmenu(slink);
 		break;
 	case B_SSCRIPT_DEL:
 		BIF_undo_push("Delete scriptlink");
@@ -193,31 +231,32 @@ void do_scriptbuts(unsigned short event)
 		ob= OBACT;
 
 		if (ob && G.buts->scriptblock==ID_OB) {
-				script= &ob->scriptlink;
+				slink= &ob->scriptlink;
 
 		} else if (ob && G.buts->scriptblock==ID_MA) {
 			ma= give_current_material(ob, ob->actcol);
-			if (ma)	script= &ma->scriptlink;
+			if (ma)	slink= &ma->scriptlink;
 
 		} else if (ob && G.buts->scriptblock==ID_CA) {
 			if (ob->type==OB_CAMERA)
-				script= &((Camera *)ob->data)->scriptlink;
+				slink= &((Camera *)ob->data)->scriptlink;
 
 		} else if (ob && G.buts->scriptblock==ID_LA) {
 			if (ob->type==OB_LAMP)
-				script= &((Lamp *)ob->data)->scriptlink;
+				slink= &((Lamp *)ob->data)->scriptlink;
 
 		} else if (G.buts->scriptblock==ID_WO) {
 			if (G.scene->world) 
-				script= &(G.scene->world->scriptlink);
+				slink= &(G.scene->world->scriptlink);
 		}
 		
 		if (event==B_SCRIPT_ADD) {
-			extend_scriptlink(script);
+			extend_scriptlink(slink);
 			BIF_undo_push("Add scriptlink");
+			scriptlinks_pupmenu(slink);
 		}
 		else {
-			delete_scriptlink(script);
+			delete_scriptlink(slink);
 			BIF_undo_push("Delete scriptlink");
 		}
 		break;
@@ -235,6 +274,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 	if (script->totscript) {
 		strcpy(str, "FrameChanged%x 1|");
 		strcat(str, "Redraw%x 4|");
+		strcat(str, "Render%x 16|");
 		if (scene) {
 			strcat(str, "OnLoad%x 2|");
 			strcat(str, "OnSave%x 8");
@@ -254,7 +294,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		if (script->totscript) 
 			uiDefBut(block, BUT, B_SSCRIPT_DEL, "Del", (short)(sx+200), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Delete the current Script link");
 
-		uiDefBut(block, LABEL, 0, "Scene scriptlink",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Scene Script link",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
 
 	} 
 	else {
@@ -263,7 +303,7 @@ void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int sce
 		if (script->totscript) 
 			uiDefBut(block, BUT, B_SCRIPT_DEL, "Del", (short)(sx+200), (short)sy-20, 40, 19, 0, 0, 0, 0, 0, "Delete the current Script link");
 
-		uiDefBut(block, LABEL, 0, "Selected scriptlink",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Selected Script link",	sx,sy-20,140,20, 0, 0, 0, 0, 0, "");
 	}		
 }
 
@@ -276,53 +316,58 @@ static void  script_panel_scriptlink(void)
 	ScriptLink *script=NULL;
 	Material *ma;
 	int xco = 10;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "script_panel_scriptlink", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Scriptlinks", "Script", 0, 0, 318, 204)==0) return;
-	
-	
-	ob= OBACT;
-	if(ob) 
-		uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,180,25,20, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Displays Object script links");
 
-	if(ob && give_current_material(ob, ob->actcol))
-		uiDefIconButS(block, ROW, B_REDR, ICON_MATERIAL,	xco+=25,180,25,20, &G.buts->scriptblock, 2.0, (float)ID_MA, 0, 0, "Displays Material script links ");
+	uiDefButI(block, TOG|BIT|13, REDRAWBUTSSCRIPT,
+			"Enable Script Links", xco, 200, 150, 20, &G.f, 0, 0, 0, 0,
+			"Enable execution of all assigned Script links");
+	/* for proper alignment: */
+	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");
 
-	if(G.scene->world) 
-		uiDefIconButS(block, ROW, B_REDR, ICON_WORLD,	xco+=25,180,25,20, &G.buts->scriptblock, 2.0, (float)ID_WO, 0, 0, "Displays World script links");
+	if (G.f & G_DOSCRIPTLINKS) {
+		ob= OBACT;
+		if(ob) 
+			uiDefIconButS(block, ROW, B_REDR, ICON_OBJECT, xco,175,25,20, &G.buts->scriptblock,  2.0, (float)ID_OB, 0, 0, "Displays Object script links");
 
-	if(ob && ob->type==OB_CAMERA)
-		uiDefIconButS(block, ROW, B_REDR, ICON_CAMERA,	xco+=25,180,25,20, &G.buts->scriptblock, 2.0, (float)ID_CA, 0, 0, "Displays Camera script links");
+		if(ob && give_current_material(ob, ob->actcol))
+			uiDefIconButS(block, ROW, B_REDR, ICON_MATERIAL,	xco+=25,175,25,20, &G.buts->scriptblock, 2.0, (float)ID_MA, 0, 0, "Displays Material script links ");
 
-	if(ob && ob->type==OB_LAMP)
-		uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=25,180,25,20, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Displays Lamp script links");
+		if(G.scene->world) 
+			uiDefIconButS(block, ROW, B_REDR, ICON_WORLD,	xco+=25,175,25,20, &G.buts->scriptblock, 2.0, (float)ID_WO, 0, 0, "Displays World script links");
+
+		if(ob && ob->type==OB_CAMERA)
+			uiDefIconButS(block, ROW, B_REDR, ICON_CAMERA,	xco+=25,175,25,20, &G.buts->scriptblock, 2.0, (float)ID_CA, 0, 0, "Displays Camera script links");
+
+		if(ob && ob->type==OB_LAMP)
+			uiDefIconButS(block, ROW, B_REDR, ICON_LAMP,	xco+=25,175,25,20, &G.buts->scriptblock, 2.0, (float)ID_LA, 0, 0, "Displays Lamp script links");
 
 
-	if (ob && G.buts->scriptblock==ID_OB) {
-		script= &ob->scriptlink;
+		if (ob && G.buts->scriptblock==ID_OB) {
+			script= &ob->scriptlink;
 		
-	} else if (ob && G.buts->scriptblock==ID_MA) {
-		ma= give_current_material(ob, ob->actcol);
-		if (ma)	script= &ma->scriptlink;
+		} else if (ob && G.buts->scriptblock==ID_MA) {
+			ma= give_current_material(ob, ob->actcol);
+			if (ma)	script= &ma->scriptlink;
 		
-	} else if (ob && G.buts->scriptblock==ID_CA) {
-		if (ob->type==OB_CAMERA)
-			script= &((Camera *)ob->data)->scriptlink;
+		} else if (ob && G.buts->scriptblock==ID_CA) {
+			if (ob->type==OB_CAMERA)
+				script= &((Camera *)ob->data)->scriptlink;
 			
-	} else if (ob && G.buts->scriptblock==ID_LA) {
-		if (ob->type==OB_LAMP)
-			script= &((Lamp *)ob->data)->scriptlink;
+		} else if (ob && G.buts->scriptblock==ID_LA) {
+			if (ob->type==OB_LAMP)
+				script= &((Lamp *)ob->data)->scriptlink;
 
-	} else if (G.buts->scriptblock==ID_WO) {
-		if (G.scene->world)
-			script= &(G.scene->world->scriptlink);
+		} else if (G.buts->scriptblock==ID_WO) {
+			if (G.scene->world)
+				script= &(G.scene->world->scriptlink);
+		}
+
+		if (script) draw_scriptlink(block, script, 10, 140, 0);			
+
+		draw_scriptlink(block, &G.scene->scriptlink, 10, 80, 1);
 	}
-
-	if (script) draw_scriptlink(block, script, 10, 140, 0);			
-
-	draw_scriptlink(block, &G.scene->scriptlink, 10, 80, 1);
-
-
 }
 
 

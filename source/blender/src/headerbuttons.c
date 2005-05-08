@@ -507,7 +507,7 @@ static void do_update_for_newframe(int mute)
 
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();
-	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	clear_all_constraints();
 	do_all_keys();
 

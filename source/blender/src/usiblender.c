@@ -460,10 +460,8 @@ void BIF_write_file(char *target)
 	
 	if (BLI_streq(target, "")) return;
  
-	/*Send the OnSave event*/
-	if (G.f & G_SCENESCRIPT) {
-		BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
-	}
+	/* send the OnSave event */
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
 
 	for (li= G.main->library.first; li; li= li->id.next) {
 		if (BLI_streq(li->name, target)) {

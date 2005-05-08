@@ -55,6 +55,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_image_types.h"
+#include "DNA_text_types.h" /* for space handlers */
 #include "DNA_texture_types.h"
 
 #include "BKE_library.h"
@@ -335,6 +336,94 @@ static uiBlock *view3d_view_alignviewmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_view_spacehandlers(void *arg, int event)
+{
+	Text *text = G.main->text.first;
+	unsigned short menu_evt_num = 0;
+
+	if (event > 0) {
+		while (text) {
+			if (++menu_evt_num == event) {
+
+				if (BPY_has_spacehandler(text, curarea))
+					BPY_del_spacehandler(text, curarea);
+				else
+					BPY_add_spacehandler(text, curarea, SPACE_VIEW3D);
+
+				break;
+			}
+			text = text->id.next;
+		}
+	}
+
+	allqueue(REDRAWVIEW3D, 1);
+}
+
+static uiBlock *view3d_view_spacehandlers(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+	Text *text = G.main->text.first;
+	ScrArea *sa = curarea;
+	unsigned short handlertype;
+	int icontype, slinks_num = 0;
+	unsigned short menu_evt_num = 0;
+	char menustr[64];
+	static char msg_tog_on[] = "Click to enable";
+	static char msg_tog_off[]= "Click to disable";
+	char *tip = NULL;
+	
+	block= uiNewBlock(&curarea->uiblocks, "view3d_view_spacehandlers", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_view_spacehandlers, NULL);
+
+	while (text) {
+		menu_evt_num++;
+		handlertype = BPY_is_spacehandler(text, SPACE_VIEW3D);
+
+		if (handlertype) {
+			slinks_num++;
+
+			/* mark text as script, so we can remove its link if its header
+			 * becomes corrupt and it's not recognized anymore */
+			if (!(text->flags & TXT_ISSCRIPT)) text->flags |= TXT_ISSCRIPT;
+
+			if (handlertype == SPACEHANDLER_VIEW3D_EVENT)
+				BLI_strncpy(menustr, "Event: ", 8);
+			else
+				BLI_strncpy(menustr, "Draw:  ", 8);
+			BLI_strncpy(menustr+7, text->id.name+2, 22);
+
+			if (BPY_has_spacehandler(text, sa)) {
+				icontype = ICON_CHECKBOX_HLT;
+				tip = msg_tog_off;
+			}
+			else {
+				icontype = ICON_CHECKBOX_DEHLT;
+				tip = msg_tog_on;
+			}
+
+			uiDefIconTextBut(block, BUTM, 1, icontype, menustr,		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, menu_evt_num, tip);
+		}
+		else if (text->flags & TXT_ISSCRIPT) {
+			/* if bit set, text was a space handler, but its header got corrupted,
+			 * so we need to remove the link here */
+			BPY_del_spacehandler(text, sa);
+			text->flags &=~TXT_ISSCRIPT;
+		}
+
+		text = text->id.next;
+	}
+
+	if (slinks_num == 0) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_SCRIPT, "None Available", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, -1, "None of the texts in the Text Editor is a 3D View space handler");
+	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
+
 static void do_view3d_viewmenu(void *arg, int event)
 {
 	extern int play_anim(int mode);
@@ -443,6 +532,9 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBlockBut(block, view3d_view_spacehandlers, NULL, ICON_RIGHTARROW_THIN, "Space Handler Scripts", 0, yco-=20, 120, 19, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

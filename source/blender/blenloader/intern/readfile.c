@@ -2623,6 +2623,9 @@ static void lib_link_screen(FileData *fd, Main *main)
 
 				sa->full= newlibadr(fd, sc->id.lib, sa->full);
 
+				/* space handler scriptlinks */
+				lib_link_scriptlink(fd, &sc->id, &sa->scriptlink);
+
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
 					if(sl->spacetype==SPACE_VIEW3D) {
 						View3D *v3d= (View3D*) sl;
@@ -2955,6 +2958,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
 
+		/* space handler scriptlinks */
+		direct_link_scriptlink(fd, &sa->scriptlink);
+
 		sa= sa->next;
 	}
 }
@@ -3132,7 +3138,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	case ID_SEQ: str= "ID_SEQ"; break;
 	case ID_AR: str= "ID_AR"; break;
 	case ID_AC: str= "ID_AC"; break;
-	case ID_SCRIPT: str= "ID_SCRIPT"; break;
 	}
 		/* read all data */
 	while(bhead && bhead->code==DATA) {

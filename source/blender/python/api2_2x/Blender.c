@@ -57,6 +57,7 @@
 #include <DNA_scene_types.h>
 #include <DNA_screen_types.h>	/* for SPACE_VIEW3D */
 #include <DNA_space_types.h>	/* for SPACE_VIEW3D */
+#include <DNA_scriptlink_types.h>
 #include <DNA_userdef_types.h>
 #include <BKE_ipo.h>
 #include <blendef.h>
@@ -64,6 +65,7 @@
 #include "EXPP_interface.h" /* for bpy_gethome() */
 #include "gen_utils.h"
 #include "modules.h"
+#include "constant.h"
 #include "../BPY_extern.h" /* BPY_txt_do_python_Text */
 #include "../BPY_menus.h"	/* to update menus */
 
@@ -737,7 +739,7 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 void M_Blender_Init( void )
 {
 	PyObject *module;
-	PyObject *dict, *smode;
+	PyObject *dict, *smode, *SpaceHandlers;
 
 	g_blenderdict = NULL;
 
@@ -745,6 +747,16 @@ void M_Blender_Init( void )
 		"The main Blender module" );
 
 	types_InitAll(  );	/* set all our pytypes to &PyType_Type */
+
+	SpaceHandlers = M_constant_New();
+	if (SpaceHandlers) {
+		BPy_constant *d = (BPy_constant *)SpaceHandlers;
+
+		constant_insert(d,"VIEW3D_EVENT",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT));
+		constant_insert(d,"VIEW3D_DRAW", PyInt_FromLong(SPACEHANDLER_VIEW3D_DRAW));
+
+		PyModule_AddObject(module, "SpaceHandlers", SpaceHandlers);
+	}
 
 	if (G.background)
 		smode = PyString_FromString("background");

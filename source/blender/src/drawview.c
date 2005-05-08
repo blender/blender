@@ -2030,9 +2030,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
+	/* run any view3d draw handler script links */
+	if (sa->scriptlink.totscript)
+		BPY_do_spacehandlers(sa, 0, SPACEHANDLER_VIEW3D_DRAW);
 
-	/* scene redraw script link */
-	if(G.scene->scriptlink.totscript && !during_script()) {
+	/* run scene redraw script links */
+	if((G.f & G_DOSCRIPTLINKS) && G.scene->scriptlink.totscript &&
+			!during_script()) {
 		BPY_do_pyscript((ID *)G.scene, SCRIPT_REDRAW);
 	}
 
@@ -2084,7 +2088,7 @@ void drawview3d_render(struct View3D *v3d)
 
 	clear_all_constraints();
 	do_all_ipos();
-	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
 	do_all_actions(NULL);
 	do_all_ikas();

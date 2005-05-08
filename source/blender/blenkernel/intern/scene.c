@@ -361,7 +361,9 @@ void set_scene_bg(Scene *sce)
 
 	do_all_ipos();	/* layers/materials */
 
-	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	/* do we need FRAMECHANGED in set_scene? */
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+
 	do_all_keys();
 #ifdef __NLA
 	do_all_actions(NULL);

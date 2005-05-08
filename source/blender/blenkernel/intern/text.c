@@ -73,7 +73,8 @@ A text should relate to a file as follows -
 	TXT_ISEXT - should always be set if the Text is not to be written into
 					the .blend
 	TXT_ISSCRIPT - should be set if the user has designated the text
-					as a script.
+					as a script. (NEW: this was unused, but now it is needed by
+					space handler script links (see header_view3d.c, for example)
 
 ->>> see also: /makesdna/DNA_text_types.h
 

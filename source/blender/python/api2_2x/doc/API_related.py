@@ -15,6 +15,10 @@ Introduction:
    - Command line mode is accessible with the '-P' and '-b' Blender options.
    - Registration allows scripts to become available from some pre-defined menus
      in Blender, like Import, Export, Wizards and so on.
+   - Script links are Blender Texts (scripts) executed when a particular event
+     (redraws, .blend file loading, saving, frame changed, etc.) occurs.  Now
+     there are also "Space Handlers" to draw onto or get events from a given
+     space (only 3D View now) in some window.
    - Proper documentation data is used by the 'Scripts Help Browser' script to
      show help information for any registered script.  Your own GUI can use
      this facility with the L{Blender.ShowHelp} function.
@@ -25,9 +29,10 @@ Introduction:
 
 
  Command line usage:
- -------------------
+ ===================
 
- B{Specifying scripts}:
+ Specifying scripts:
+ -------------------
 
  The '-P' option followed either by:
    - a script filename (full pathname if not in the same folder where you run
@@ -40,7 +45,8 @@ Introduction:
   # open Blender and execute the given script:
   blender -P script.py
 
- B{Passing parameters}:
+ Passing parameters:
+ -------------------
 
  To pass parameters to the script you can:
 	- write them to a file before running Blender, then make your script parse that file;
@@ -64,7 +70,8 @@ Introduction:
 
   myvar1=value1 myvar2=value2 mystr="some string data" blender -P script.py
 
- B{Background mode}:
+ Background mode:
+ ----------------
 
  In '-b' mode no windows will be opened: the program will run as a command
  line tool able to render stills and animations and execute any working Python
@@ -108,8 +115,140 @@ Introduction:
   - an animation from frame 1 to 10: blender -b myfile.blend -s 1 -e 10 -a
 
 
- Registering scripts:
+ Script links:
+ =============
+
+ Object script links:
  --------------------
+
+ Users can link Blender Text scripts to some kinds of objects to have the script
+ code executed when specific events occur.  For example, if a Camera has an
+ script link set to "FrameChanged", the script will be executed whenever the
+ current frame is changed.  Links can either be manually added by users on the
+ Buttons window -> Scripts tab or created by another script (see, for example,
+ L{Object.addScriptLink<Object.Object.addScriptLink>}). 
+
+ These are the types which can be linked to scripts:
+  - Camera Data;
+  - Lamp Data;
+  - Materials;
+  - Objects;
+  - Scenes;
+  - Worlds.
+
+ And these are the available event choices:
+  - Redraw;
+  - FrameChanged;
+  - Render;
+  - OnLoad (*);
+  - OnSave (*).
+
+ (*) only available for scenes
+
+ There are three L{Blender} module variables that script link authors should
+ be aware of:
+  - B{bylink}: True if the script is running as a script link;
+  - B{link}: the object the running script was linked to (None if this is
+    not a script link);
+  - B{event}: the event type, if the running script is being executed as a
+    script link.
+
+ B{Important note about "Render" events}:
+
+ Each "Render" script link is executed twice: before rendering and after, for
+ reverting changes and for possible clean up actions.  Before rendering,
+ 'Blender.event' will be "Render" and after rendering it will be "PostRender".
+ 
+ This is specially useful for script links that need to generate data only
+ useful while rendering, or in case they need to switch between two mesh data
+ objects, one meant for realtime display and the other, more detailed, for
+ renders.  This pseudo-code is an example of how such scripts could be written::
+
+  import Blender
+
+  if Blender.event == "Render":
+    # prepare for rendering
+
+  elif Blender.event == "PostRender":
+    # revert changes / clean up for realtime display
+
+ Space Handler script links:
+ ---------------------------
+
+ This is a new kind of script linked to spaces in a given window.  Right now
+ only the 3D View has the necessary hooks, but the plan is to add access to
+ other types, too.  Just to clarify: in Blender, a screen is partitioned in
+ windows and each window can show any space.  Spaces are: 3D View, Text Editor,
+ Scripts, Buttons, User Preferences, Oops, etc. 
+
+ Space handlers are texts in the Text Editor, like other script links, but they
+ need to have a special header to be recognized -- B{I{the first line in the
+ text file}} must inform 1) that they are space handlers; 2) the space they
+ belong to; 3) whether they are EVENT or DRAW handlers.
+
+ Example header for a 3D View EVENT handler::
+
+  # SPACEHANDLER.VIEW3D.EVENT
+
+ Example header for a 3D View DRAW handler::
+
+  # SPACEHANDLER.VIEW3D.DRAW
+
+ EVENT space handler scripts are called by that space's event handling callback
+ in Blender.  The script receives the event B{before} it is further processed
+ by the program.  An EVENT handler script should check Blender.event (compare
+ it against L{Draw} events) and either:
+  - process it (then set Blender.event to None);
+  - ignore it.
+
+ Setting C{Blender.event = None} tells Blender not to go on processing itself
+ the event, because it was grabbed by the script.
+
+ Example::
+
+  # SPACEHANDLER.VIEW3D.EVENT
+
+  import Blender
+  from Blender import DRAW
+  evt = Blender.event
+
+  if evt == DRAW.LEFTMOUSE:
+    print "Swallowing the left mouse button press"
+  elif evt == DRAW.AKEY:
+    print "Swallowing an 'a' character"
+  else:
+    print "Let the 3D View itself process this event:", evt
+    return
+
+  # if Blender should not process itself the passed event:
+  Blender.event = None
+
+ DRAW space handlers are called by that space's drawing callback in Blender.
+ The script is called B{after} the space has been drawn.
+
+ Two of the L{Blender} module variables related to script links assume
+ different roles for space handlers:
+  - B{bylink} is the same: True if the script is running as a script link;
+  - B{link}: integer from the L{Blender}.SpaceHandlers constant dictionary,
+    tells what space this handler belongs to and the handler's type
+    (EVENT, DRAW);
+  - B{event}:
+     - EVENT handlers: an input event (check keys and mouse events in L{Draw})
+       to be processed or ignored.
+     - DRAW handlers: 0 always.
+
+ B{Guidelines}:
+  - EVENT handlers can access and change Blender objects just like any other
+    script, but they should not draw (images, polygons, etc.) to the screen,
+    use a DRAW handler to do that and if both scripts need to pass information
+    to each other, use the L{Registry} module.
+  - DRAW handlers should leave the space in the same state it was before they
+    executed.  OpenGL attributes are automatically saved (pushed) before a DRAW
+    handler runs and restored (poped) after it finishes, no need to worry about
+    that. 
+
+ Registering scripts:
+ ====================
 
  To be registered a script needs two things:
    - to be either in the default scripts dir or in the user defined scripts
@@ -163,7 +302,7 @@ Introduction:
 
 
  Documenting scripts:
- --------------------
+ ====================
 
  The "Scripts Help Browser" script in the Help menu can parse special variables
  from registered scripts and display help information for users.  For that,
@@ -236,7 +375,7 @@ Introduction:
  help browser with the L{Blender.ShowHelp} function.
 
  Configuring scripts:
- --------------------
+ ====================
 
  The L{Blender.Registry<Registry>} module provides a simplified way to keep
  scripts configuration options in memory and also saved in config files.
@@ -328,7 +467,8 @@ Introduction:
  itself is limited to 60.
 
 
- B{Scripts Configuration Editor}:
+ Scripts Configuration Editor:
+ -----------------------------
 
  This script should be available from the System menu in the Scripts window.
  It provides a GUI to view and edit saved configuration data, both from the
@@ -398,4 +538,5 @@ Introduction:
  in your script's help info, as done in the ac3d ones.
 
  L{Back to Main Page<API_intro>}
+ ===============================
 """

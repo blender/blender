@@ -56,10 +56,22 @@ typedef struct ScriptLink {
 #define SCRIPT_ONLOAD 2
 #define SCRIPT_REDRAW	4
 #define SCRIPT_ONSAVE	8
+#define SCRIPT_RENDER 16
+/* POSTRENDER is not meant for the UI, it simply calls the
+ * RENDER script links for clean-up actions */
+#define SCRIPT_POSTRENDER 32
+
+/* **************** SPACE HANDLERS ********************* */
+/* these are special scriptlinks that can be assigned to
+ * a given space in a given ScrArea to:
+ * - (EVENT type) handle events sent to that space;
+ * - (DRAW type) draw on the space after its own drawing function finishes
+ */
+#define SPACEHANDLER_VIEW3D_EVENT 1
+#define SPACEHANDLER_VIEW3D_DRAW 2
+
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-

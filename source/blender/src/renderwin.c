@@ -80,6 +80,7 @@
 #include "BIF_toets.h"
 
 #include "BDR_editobject.h"
+#include "BPY_extern.h" /* for BPY_do_all_scripts */
 
 #include "BSE_view.h"
 #include "BSE_drawview.h"
@@ -1143,6 +1144,16 @@ void BIF_renderwin_make_active(void)
 /* set up display, render an image or scene */
 void BIF_do_render(int anim)
 {
+	int slink_flag = 0;
+
+	if (G.f & G_DOSCRIPTLINKS) {
+		BPY_do_all_scripts(SCRIPT_RENDER);
+		if (!anim) { /* avoid FRAMECHANGED slink in render callback */
+			G.f &= ~G_DOSCRIPTLINKS;
+			slink_flag = 1;
+		}
+	}
+
 	/* if start render in 3d win, use layer from window (e.g also local view) */
 	if(curarea && curarea->spacetype==SPACE_VIEW3D) {
 		int lay= G.scene->lay;
@@ -1155,6 +1166,9 @@ void BIF_do_render(int anim)
 		G.scene->lay= lay;
 	}
 	else do_render(NULL, anim, 0);
+
+	if (slink_flag) G.f |= G_DOSCRIPTLINKS;
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }
 
 /* set up display, render the current area view in an image */

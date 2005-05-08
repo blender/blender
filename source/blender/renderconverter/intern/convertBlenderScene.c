@@ -2941,7 +2941,7 @@ void RE_rotateBlenderScene(void)
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 
 	do_all_ipos();
-	BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 	do_all_keys();
 #ifdef __NLA
 	do_all_actions(NULL);
