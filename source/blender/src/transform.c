@@ -1406,12 +1406,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
 			}
 			else {
+				Mat3MulMat3(totmat, mat, td->mtx);
+				Mat3MulMat3(smat, td->smtx, totmat);
 				
 				/* calculate the total rotatation in eulers */
 				VecAddf(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
 				EulToMat3(eul, obmat);
 				/* mat = transform, obmat = object rotation */
-				Mat3MulMat3(fmat, mat, obmat);
+				Mat3MulMat3(fmat, smat, obmat);
 				Mat3ToEul(fmat, eul);
 				compatible_eul(eul, td->ext->irot);
 				

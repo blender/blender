@@ -472,7 +472,12 @@ static void drawObjectConstraint(TransInfo *t) {
 	int i;
 	TransData * td = t->data;
 
-	/* cannot find any reason for drawing first constraint this way... (ton)
+	/* Draw the first one lighter because that's the one who controls the others.
+	   Meaning the transformation is projected on that one and just copied on the others
+	   constraint space.
+	   In a nutshell, the object with light axis is controlled by the user and the others follow.
+	   Without drawing the first light, users have little clue what they are doing.
+	 */
 	if (t->con.mode & CON_AXIS0) {
 		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
 	}
@@ -484,8 +489,8 @@ static void drawObjectConstraint(TransInfo *t) {
 	}
 	
 	td++;
-	*/
-	for(i=0;i<t->total;i++,td++) {
+
+	for(i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
 			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
 		}
