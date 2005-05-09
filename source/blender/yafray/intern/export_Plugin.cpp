@@ -363,6 +363,9 @@ void yafrayPluginRender_t::writeTextures()
 	for (map<string, MTex*>::const_iterator blendtex=used_textures.begin();
 						blendtex!=used_textures.end();++blendtex) 
 	{
+		lparams.clear();
+		params.clear();
+		
 		MTex* mtex = blendtex->second;
 		Tex* tex = mtex->tex;
 		// name is image name instead of texture name when type is image (see TEX_IMAGE case below)
@@ -549,6 +552,7 @@ void yafrayPluginRender_t::writeTextures()
 			ColorBand* cb = tex->coba;
 			if (cb) 
 			{
+				lparams.clear();
 				params.clear();
 				params["type"]=yafray::parameter_t("colorband");
 				params["name"]=yafray::parameter_t(blendtex->first + "_coba");
@@ -1007,18 +1011,12 @@ void yafrayPluginRender_t::genVcol(vector<yafray::CFLOAT> &vcol, VlakRen *vlr, b
 			ui2 = (ui2+2) & 3;
 			ui3 = (ui3+2) & 3;
 		}
-		float vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
-		float vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
-		float vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
-		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
-		vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
-		vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
-		vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
-		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
-		vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
-		vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
-		vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
-		vcol.push_back(vr);  vcol.push_back(vg);  vcol.push_back(vb);
+		unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
+		pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
+		pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+		vcol.push_back((float)pt[3]/255.f);  vcol.push_back((float)pt[2]/255.f);  vcol.push_back((float)pt[1]/255.f);
 	}
 	else
 	{
@@ -1514,8 +1512,10 @@ void yafrayPluginRender_t::writeCamera()
 	params["aspect_ratio"] = yafray::parameter_t(R.ycor);
 
 	// dof params, only valid for real camera
+	float fdist = 1;	// only changes for ortho
 	if (maincam_obj->type==OB_CAMERA) {
 		Camera* cam = (Camera*)maincam_obj->data;
+		if (R.r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
 		params["dof_distance"] = yafray::parameter_t(cam->YF_dofdist);
 		params["aperture"] = yafray::parameter_t(cam->YF_aperture);
 		if (cam->flag & CAM_YF_NO_QMC)
@@ -1548,8 +1548,6 @@ void yafrayPluginRender_t::writeCamera()
 
 	params["from"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0], maincam_obj->obmat[3][1], maincam_obj->obmat[3][2]));
-	float fdist = fabs(R.viewmat[3][2]);
-	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
 	params["to"]=yafray::parameter_t(
 			yafray::point3d_t(maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2],
 												maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2],

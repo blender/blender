@@ -1191,19 +1191,15 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
 		if ((EXPORT_VCOL) && (vlr->vcol)) {
 			// vertex colors
-			float vr, vg, vb;
-			vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
-			ostr << " vcol_a_r=\"" << vr << "\" vcol_a_g=\"" << vg << "\" vcol_a_b=\"" << vb << "\"";
-			vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
-			ostr << " vcol_b_r=\"" << vr << "\" vcol_b_g=\"" << vg << "\" vcol_b_b=\"" << vb << "\"";
-			vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
-			vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
-			vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
-			ostr << " vcol_c_r=\"" << vr << "\" vcol_c_g=\"" << vg << "\" vcol_c_b=\"" << vb << "\"";
+			unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+			ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
+					 << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
+			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+			ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
+					 << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
+			pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+			ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
+					 << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 		}
 		ostr << " shader_name=\"" << fmatname << "\" />\n";
 
@@ -1535,8 +1531,10 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\" aspect_ratio=\"" << R.ycor << "\"";
 
 	// dof params, only valid for real camera
+	float fdist = 1;	// only changes for ortho
 	if (maincam_obj->type==OB_CAMERA) {
 		Camera* cam = (Camera*)maincam_obj->data;
+		if (R.r.mode & R_ORTHO) fdist = cam->ortho_scale*(mainCamLens/32.f);
 		ostr << "\n\tdof_distance=\"" << cam->YF_dofdist << "\"";
 		ostr << " aperture=\"" << cam->YF_aperture << "\"";
 		string st = "on";
@@ -1573,8 +1571,6 @@ void yafrayFileRender_t::writeCamera()
 	ostr << "\t<from x=\"" << maincam_obj->obmat[3][0] << "\""
 							<< " y=\"" << maincam_obj->obmat[3][1] << "\""
 							<< " z=\"" << maincam_obj->obmat[3][2] << "\" />\n";
-	float fdist = fabs(R.viewmat[3][2]);
-	if (R.r.mode & R_ORTHO) fdist *= 0.01f;
 	ostr << "\t<to x=\"" << maincam_obj->obmat[3][0] - fdist * R.viewmat[0][2]
 					<< "\" y=\"" << maincam_obj->obmat[3][1] - fdist * R.viewmat[1][2]
 					<< "\" z=\"" << maincam_obj->obmat[3][2] - fdist * R.viewmat[2][2] << "\" />\n";
