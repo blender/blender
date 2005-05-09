@@ -4,7 +4,7 @@
 The Blender.Text3d.Font subsubmodule.
 
 Text3d.Font Objects
-==============
+===================
 
 This module provides access to B{Font} objects in Blender.
 
@@ -45,7 +45,7 @@ def Get (name = None):
 class Font:
   """
   The Text3d.Font object
-  =================
+  ======================
     This object gives access  Blender's B{Font} objects
   @cvar name: The Text3d name.
   @cvar filename: The filename of the file loaded into this Text.
