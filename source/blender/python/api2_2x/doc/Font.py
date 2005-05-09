@@ -42,7 +42,7 @@ def Get (name = None):
       - (name): The Text3d object with the given name;
       - ():     A list with all Text3d objects in the current scene.
   """
-class Text3d.Font:
+class Font:
   """
   The Text3d.Font object
   =================
