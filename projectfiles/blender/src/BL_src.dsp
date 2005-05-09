@@ -211,6 +211,10 @@ SOURCE=..\..\..\source\blender\src\drawtext.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\drawtime.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\drawview.c
 # End Source File
 # Begin Source File
@@ -331,6 +335,10 @@ SOURCE=..\..\..\source\blender\src\editsound.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\edittime.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\editview.c
 # End Source File
 # Begin Source File
@@ -400,6 +408,10 @@ SOURCE=..\..\..\source\blender\src\header_sound.c
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\src\header_text.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\header_time.c
 # End Source File
 # Begin Source File
 
@@ -636,6 +648,10 @@ SOURCE=..\..\..\source\blender\include\blendef.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BSE_filesel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_time.h
 # End Source File
 # Begin Source File
 
