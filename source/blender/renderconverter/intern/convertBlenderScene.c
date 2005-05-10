@@ -3125,8 +3125,10 @@ void RE_rotateBlenderScene(void)
 				else {
 					/* yafray: if there are linked data objects (except lamps, empties or armatures),
 					   yafray only needs to know about one, the rest can be instanciated.
-					   The dupliMtx list is used for this purpose */
-					if (R.r.renderer==R_YAFRAY) {
+					   The dupliMtx list is used for this purpose.
+					   Exception: objects which have object linked materials, these cannot be instanciated. */
+					if ((R.r.renderer==R_YAFRAY) && (ob->colbits==0))
+					{
 						/* Special case, parent object dupli's: ignore if object itself is lamp or parent is lattice or empty */
 						if (ob->parent) {
 							if ((ob->type!=OB_LAMP) && (ob->parent->type!=OB_EMPTY) &&

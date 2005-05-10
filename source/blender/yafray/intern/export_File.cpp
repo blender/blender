@@ -1055,7 +1055,7 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		// or flat shaded, the smooth flag of the first face is used to determine
 		// the shading for the whole mesh
 		if (face0->flag & ME_SMOOTH)
-			xmlfile << "\t<mesh autosmooth=\"90\" has_orco=\"" << has_orco << "\" >\n";
+			xmlfile << "\t<mesh autosmooth=\"180\" has_orco=\"" << has_orco << "\" >\n";
 		else
 			xmlfile << "\t<mesh autosmooth=\"0.1\" has_orco=\"" << has_orco << "\" >\n";	//0 shows artefacts
 	}
@@ -1226,19 +1226,15 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 			}
 			if ((EXPORT_VCOL) && (vlr->vcol)) {
 				// vertex colors
-				float vr, vg, vb;
-				vr = ((vlr->vcol[ui1] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[ui1] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[ui1] >> 8) & 255)/255.0;
-				ostr << " vcol_a_r=\"" << vr << "\" vcol_a_g=\"" << vg << "\" vcol_a_b=\"" << vb << "\"";
-				vr = ((vlr->vcol[ui2] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[ui2] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[ui2] >> 8) & 255)/255.0;
-				ostr << " vcol_b_r=\"" << vr << "\" vcol_b_g=\"" << vg << "\" vcol_b_b=\"" << vb << "\"";
-				vr = ((vlr->vcol[ui3] >> 24) & 255)/255.0;
-				vg = ((vlr->vcol[ui3] >> 16) & 255)/255.0;
-				vb = ((vlr->vcol[ui3] >> 8) & 255)/255.0;
-				ostr << " vcol_c_r=\"" << vr << "\" vcol_c_g=\"" << vg << "\" vcol_c_b=\"" << vb << "\"";
+				unsigned char* pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui1]);
+				ostr << " vcol_a_r=\"" << (float)pt[3]/255.f << "\" vcol_a_g=\"" << (float)pt[2]/255.f
+						 << "\" vcol_a_b=\"" << (float)pt[1]/255.f << "\"";
+				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui2]);
+				ostr << " vcol_b_r=\"" << (float)pt[3]/255.f << "\" vcol_b_g=\"" << (float)pt[2]/255.f
+						 << "\" vcol_b_b=\"" << (float)pt[1]/255.f << "\"";
+				pt = reinterpret_cast<unsigned char*>(&vlr->vcol[ui3]);
+				ostr << " vcol_c_r=\"" << (float)pt[3]/255.f << "\" vcol_c_g=\"" << (float)pt[2]/255.f
+						 << "\" vcol_c_b=\"" << (float)pt[1]/255.f << "\"";
 			}
 			ostr << " shader_name=\"" << fmatname << "\" />\n";
 

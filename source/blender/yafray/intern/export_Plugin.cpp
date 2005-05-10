@@ -1193,7 +1193,7 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	if (no_auto) {
 		// no per face smooth flag in yafray, if AutoSmooth not used, 
 		// use smooth flag of the first face instead
-		if (face0->flag & ME_SMOOTH) sm_angle=90;
+		if (face0->flag & ME_SMOOTH) sm_angle=180;
 	}
 	vector<yafray::point3d_t> verts;
 	vector<yafray::CFLOAT> vcol;
