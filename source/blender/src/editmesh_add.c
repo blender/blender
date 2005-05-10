@@ -438,7 +438,8 @@ void adduplicate_mesh(void)
 	waitcursor(0);
 	countall(); 
 	BIF_TransformSetUndo("Add Duplicate");
-	Transform(TFM_TRANSLATION, CTX_NO_PET);
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
 }
 
 

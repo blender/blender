@@ -124,9 +124,6 @@ extern void helpline(float *vec);
 TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
 int	LastMode = TFM_TRANSLATION;
 
-#define TRANS_CANCEL	2
-#define TRANS_CONFIRM	1
-
 /* ************************** TRANSFORMATIONS **************************** */
 
 static void view_editmove(unsigned short event)
@@ -219,20 +216,224 @@ static char *transform_to_undostr(TransInfo *t)
 
 /* ************************************************* */
 
-void Transform(int mode, int context) 
-{
-	int ret_val = 0;
-	short pmval[2] = {0, 0}, mval[2], val;
+void transformEvent(unsigned short event, short val) {
 	float mati[3][3];
-	unsigned short event;
-	/* constraint mode THIS IS A HACK will have to use con.mode eventually */
-	char cmode = '\0';
-	/* If MMB is pressed or not */
-	char mmb_press = 0;
+	char cmode = constraintModeToChar(&Trans);
+	Mat3One(mati);
+	
 
+	if (val) {
+		switch (event){
+		/* enforce redraw of transform when modifiers are used */
+		case LEFTCTRLKEY:
+		case RIGHTCTRLKEY:
+			Trans.redraw = 1;
+			break;
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			/* shift is modifier for higher resolution transform, works nice to store this mouse position */
+			getmouseco_areawin(Trans.shiftmval);
+			Trans.flag |= T_SHIFT_MOD;
+			Trans.redraw = 1;
+			break;
+			
+		case MIDDLEMOUSE:
+			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+				/* exception for switching to dolly, or trackball, in camera view */
+				if (Trans.flag & T_CAMERA) {
+					if (Trans.mode==TFM_TRANSLATION)
+						setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+					else if (Trans.mode==TFM_ROTATION) {
+						restoreTransObjects(&Trans);
+						initTransModeFlags(&Trans, TFM_TRACKBALL);
+						initTrackball(&Trans);
+					}
+				}
+				else {
+					Trans.flag |= T_MMB_PRESSED;
+					if (Trans.con.mode & CON_APPLY) {
+						stopConstraint(&Trans);
+					}
+					else {
+						initSelectConstraint(&Trans, mati);
+						postSelectConstraint(&Trans);
+					}
+				}
+				Trans.redraw = 1;
+			}
+			break;
+		case ESCKEY:
+		case RIGHTMOUSE:
+			Trans.state = TRANS_CANCEL;
+			break;
+		case LEFTMOUSE:
+		case SPACEKEY:
+		case PADENTER:
+		case RETKEY:
+			Trans.state = TRANS_CONFIRM;
+			break;
+		case GKEY:
+			restoreTransObjects(&Trans);
+			initTransModeFlags(&Trans, TFM_TRANSLATION);
+			initTranslation(&Trans);
+			Trans.redraw = 1;
+			break;
+		case SKEY:
+			restoreTransObjects(&Trans);
+			initTransModeFlags(&Trans, TFM_RESIZE);
+			initResize(&Trans);
+			Trans.redraw = 1;
+			break;
+		case RKEY:
+			if (Trans.mode == TFM_ROTATION) {
+				restoreTransObjects(&Trans);
+				initTransModeFlags(&Trans, TFM_TRACKBALL);
+				initTrackball(&Trans);
+			}
+			else {
+				restoreTransObjects(&Trans);
+				initTransModeFlags(&Trans, TFM_ROTATION);
+				initRotation(&Trans);
+			}
+			Trans.redraw = 1;
+			break;
+		case CKEY:
+			if (G.qual & LR_ALTKEY) {
+				Trans.flag ^= T_PROP_CONNECTED;
+				sort_trans_data_dist(&Trans);
+				calculatePropRatio(&Trans);
+				Trans.redraw= 1;
+			}
+			else {
+				stopConstraint(&Trans);
+				Trans.redraw = 1;
+			}
+			break;
+		case XKEY:
+			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+				if (cmode == 'X') {
+					if (Trans.con.mode & CON_LOCAL) {
+						stopConstraint(&Trans);
+					}
+					else {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
+						else if (G.qual == LR_SHIFTKEY)
+							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
+					}
+				}
+				else {
+					if (G.qual == 0)
+						setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
+					else if (G.qual == LR_SHIFTKEY)
+						setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+				}
+				Trans.redraw = 1;
+			}
+			break;
+		case YKEY:
+			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+				if (cmode == 'Y') {
+					if (Trans.con.mode & CON_LOCAL) {
+						stopConstraint(&Trans);
+					}
+					else {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_AXIS1), "along local Y");
+						else if (G.qual == LR_SHIFTKEY)
+							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking local Y");
+					}
+				}
+				else {
+					if (G.qual == 0)
+						setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
+					else if (G.qual == LR_SHIFTKEY)
+						setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+				}
+				Trans.redraw = 1;
+			}
+			break;
+		case ZKEY:
+			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+				if (cmode == 'Z') {
+					if (Trans.con.mode & CON_LOCAL) {
+						stopConstraint(&Trans);
+					}
+					else {
+						if (G.qual == 0)
+							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+						else if (G.qual == LR_SHIFTKEY)
+							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
+					}
+				}
+				else {
+					if (G.qual == 0)
+						setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
+					else if (G.qual == LR_SHIFTKEY)
+						setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
+				}
+				Trans.redraw = 1;
+			}
+			break;
+		case OKEY:
+			if (Trans.flag & T_PROP_EDIT && G.qual==LR_SHIFTKEY) {
+				G.scene->prop_mode = (G.scene->prop_mode+1)%6;
+				calculatePropRatio(&Trans);
+				Trans.redraw= 1;
+			}
+			break;
+		case WHEELDOWNMOUSE:
+		case PADPLUSKEY:
+			if(Trans.flag & T_PROP_EDIT) {
+				Trans.propsize*= 1.1f;
+				calculatePropRatio(&Trans);
+			}
+			else view_editmove(event);
+			Trans.redraw= 1;
+			break;
+		case WHEELUPMOUSE:
+		case PADMINUS:
+			if(Trans.flag & T_PROP_EDIT) {
+				Trans.propsize*= 0.90909090f;
+				calculatePropRatio(&Trans);
+			}
+			else view_editmove(event);
+			Trans.redraw= 1;
+			break;
+		}
+		Trans.redraw |= handleNumInput(&(Trans.num), event);
+		arrows_move_cursor(event);
+	}
+	else {
+		switch (event){
+		/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
+		   after releasing modifer key */
+		case MIDDLEMOUSE:
+			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
+				Trans.flag &= ~T_MMB_PRESSED;
+				postSelectConstraint(&Trans);
+				Trans.redraw = 1;
+			}
+			break;
+		case LEFTMOUSE:
+		case RIGHTMOUSE:
+			/* commented out, doesn't work for actions started with menu */
+			// Trans.state = TRANS_CONFIRM;
+			break;
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			/* shift is modifier for higher resolution transform */
+			Trans.flag &= ~T_SHIFT_MOD;
+			break;
+		}
+	}
+}
+
+void initTransform(int mode, int context) {
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
-	Mat3One(mati);
+
+	Trans.state = TRANS_RUNNING;
 
 	/* stupid PET initialisation code */
 	/* START */
@@ -259,16 +460,6 @@ void Transform(int mode, int context)
 	if (Trans.total == 0) {
 		postTrans(&Trans);
 		return;
-	}
-
-	/* CHECKING FOR CTX_SETLOCALCONST CONTEXT FLAG */
-	/* EVIL, best would be to split off init, this way all the external constraint call could work like that:
-		initTransform(mode)
-		initconstraint(setup)
-		Transform()
-	*/
-	if (Trans.context & CTX_SETLOCALCONST) {
-		setLocalConstraint(&Trans, Trans.con.mode, Trans.con.text);
 	}
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
@@ -315,6 +506,15 @@ void Transform(int mode, int context)
 	}
 
 	initConstraint(&Trans);
+}
+
+void Transform() 
+{
+	float mati[3][3];
+	short pmval[2] = {0, 0}, mval[2], val;
+	unsigned short event;
+
+	Mat3One(mati);
 
 	// Emptying event queue
 	while( qtest() ) {
@@ -323,12 +523,12 @@ void Transform(int mode, int context)
 
 	Trans.redraw = 1;
 
-	while (ret_val == 0) {
+	while (Trans.state == TRANS_RUNNING) {
 
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
-			if (mmb_press) {
+			if (Trans.flag & T_MMB_PRESSED) {
 				initSelectConstraint(&Trans, mati);
 			}
 			Trans.redraw = 1;
@@ -349,228 +549,13 @@ void Transform(int mode, int context)
 
 		while( qtest() ) {
 			event= extern_qread(&val);
-
-			if (val) {
-				switch (event){
-				/* enforce redraw of transform when modifiers are used */
-				case LEFTCTRLKEY:
-				case RIGHTCTRLKEY:
-					Trans.redraw = 1;
-					break;
-				case LEFTSHIFTKEY:
-				case RIGHTSHIFTKEY:
-					/* shift is modifier for higher resolution transform, works nice to store this mouse position */
-					getmouseco_areawin(Trans.shiftmval);
-					Trans.flag |= T_SHIFT_MOD;
-					Trans.redraw = 1;
-					break;
-					
-				case MIDDLEMOUSE:
-					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
-						/* exception for switching to dolly, or trackball, in camera view */
-						if (Trans.flag & T_CAMERA) {
-							if (Trans.mode==TFM_TRANSLATION)
-								setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-							else if (Trans.mode==TFM_ROTATION) {
-								restoreTransObjects(&Trans);
-								initTransModeFlags(&Trans, TFM_TRACKBALL);
-								initTrackball(&Trans);
-							}
-						}
-						else {
-							mmb_press = 1;
-							if (Trans.con.mode & CON_APPLY) {
-								stopConstraint(&Trans);
-							}
-							else {
-								initSelectConstraint(&Trans, mati);
-								postSelectConstraint(&Trans);
-							}
-						}
-						Trans.redraw = 1;
-					}
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					ret_val = TRANS_CANCEL;
-					break;
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case PADENTER:
-				case RETKEY:
-					ret_val = TRANS_CONFIRM;
-					break;
-				case GKEY:
-					restoreTransObjects(&Trans);
-					initTransModeFlags(&Trans, TFM_TRANSLATION);
-					initTranslation(&Trans);
-					Trans.redraw = 1;
-					break;
-				case SKEY:
-					restoreTransObjects(&Trans);
-					initTransModeFlags(&Trans, TFM_RESIZE);
-					initResize(&Trans);
-					Trans.redraw = 1;
-					break;
-				case RKEY:
-					if (Trans.mode == TFM_ROTATION) {
-						restoreTransObjects(&Trans);
-						initTransModeFlags(&Trans, TFM_TRACKBALL);
-						initTrackball(&Trans);
-					}
-					else {
-						restoreTransObjects(&Trans);
-						initTransModeFlags(&Trans, TFM_ROTATION);
-						initRotation(&Trans);
-					}
-					Trans.redraw = 1;
-					break;
-				case CKEY:
-					if (G.qual & LR_ALTKEY) {
-						Trans.flag ^= T_PROP_CONNECTED;
-						sort_trans_data_dist(&Trans);
-						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
-					}
-					else {
-						cmode = '\0';
-						stopConstraint(&Trans);
-						Trans.redraw = 1;
-					}
-					break;
-				case XKEY:
-					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
-						if (cmode == 'X') {
-							stopConstraint(&Trans);
-							cmode = '\0';
-						}
-						else if(cmode == 'x') {
-							if (G.qual == 0)
-								setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
-							else if (G.qual == LR_SHIFTKEY)
-								setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
-
-							cmode = 'X';
-						}
-						else {
-							if (G.qual == 0)
-								setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-							else if (G.qual == LR_SHIFTKEY)
-								setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
-
-							cmode = 'x';
-						}
-						Trans.redraw = 1;
-					}
-					break;
-				case YKEY:
-					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
-						if (cmode == 'Y') {
-							stopConstraint(&Trans);
-							cmode = '\0';
-						}
-						else if(cmode == 'y') {
-							if (G.qual == 0)
-								setLocalConstraint(&Trans, (CON_AXIS1), "along local Y");
-							else if (G.qual == LR_SHIFTKEY)
-								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking local Y");
-
-							cmode = 'Y';
-						}
-						else {
-							if (G.qual == 0)
-								setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
-							else if (G.qual == LR_SHIFTKEY)
-								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
-
-							cmode = 'y';
-						}
-						Trans.redraw = 1;
-					}
-					break;
-				case ZKEY:
-					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
-						if (cmode == 'Z') {
-							stopConstraint(&Trans);
-							cmode = '\0';
-						}
-						else if(cmode == 'z') {
-							if (G.qual == 0)
-								setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
-							else if (G.qual == LR_SHIFTKEY)
-								setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
-
-							cmode = 'Z';
-						}
-						else {
-							if (G.qual == 0)
-								setConstraint(&Trans, mati, (CON_AXIS2), "along global Z");
-							else if (G.qual == LR_SHIFTKEY)
-								setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS1), "locking global Z");
-
-							cmode = 'z';
-						}
-						Trans.redraw = 1;
-					}
-					break;
-				case OKEY:
-					if (Trans.flag & T_PROP_EDIT && G.qual==LR_SHIFTKEY) {
-						G.scene->prop_mode = (G.scene->prop_mode+1)%6;
-						calculatePropRatio(&Trans);
-						Trans.redraw= 1;
-					}
-					break;
-				case WHEELDOWNMOUSE:
-				case PADPLUSKEY:
-					if(Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 1.1f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				case WHEELUPMOUSE:
-				case PADMINUS:
-					if(Trans.flag & T_PROP_EDIT) {
-						Trans.propsize*= 0.90909090f;
-						calculatePropRatio(&Trans);
-					}
-					else view_editmove(event);
-					Trans.redraw= 1;
-					break;
-				}
-				Trans.redraw |= handleNumInput(&(Trans.num), event);
-				arrows_move_cursor(event);
-			}
-			else {
-				switch (event){
-				/* no redraw on release modifier keys! this makes sure you can assign the 'grid' still 
-				   after releasing modifer key */
-				case MIDDLEMOUSE:
-					if ((Trans.flag & T_NO_CONSTRAINT)==0) {
-						mmb_press = 0;
-						postSelectConstraint(&Trans);
-						Trans.redraw = 1;
-					}
-					break;
-				case LEFTMOUSE:
-				case RIGHTMOUSE:
-					/* commented out, doesn't work for actions started with menu */
-					// ret_val = TRANS_CONFIRM;
-					break;
-				case LEFTSHIFTKEY:
-				case RIGHTSHIFTKEY:
-					/* shift is modifier for higher resolution transform */
-					Trans.flag &= ~T_SHIFT_MOD;
-					break;
-				}
-			}
+			transformEvent(event, val);
 		}
 	}
 	
 	
 	/* handle restoring objects and Undo */
-	if(ret_val == TRANS_CANCEL) {
+	if(Trans.state == TRANS_CANCEL) {
 		restoreTransObjects(&Trans);
 		if(Trans.undostr) BIF_undo_push(Trans.undostr);
 	}
@@ -587,11 +572,11 @@ void Transform(int mode, int context)
 	{
 		char cmode='g';
 		
-		if(mode==TFM_RESIZE) cmode= 's';
-		else if(mode==TFM_ROTATION) cmode= 'r';
+		if(Trans.mode==TFM_RESIZE) cmode= 's';
+		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
 		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
-		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 7);
+		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL), 7);
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();
@@ -605,13 +590,15 @@ void Transform(int mode, int context)
 
 void ManipulatorTransform(int mode) 
 {
-	int ret_val = 0, mouse_moved = 0;
+	int mouse_moved = 0;
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
 
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
-	
+
+	Trans.state = TRANS_RUNNING;
+
 	/* stupid PET initialisation code */
 	/* START */
 	if (Trans.propsize == 0.0f) {
@@ -658,7 +645,7 @@ void ManipulatorTransform(int mode)
 	Trans.flag |= T_USES_MANIPULATOR;
 	Trans.redraw = 1;
 
-	while (ret_val == 0) {
+	while (Trans.state == TRANS_RUNNING) {
 		
 		getmouseco_areawin(mval);
 		
@@ -705,7 +692,7 @@ void ManipulatorTransform(int mode)
 				
 			case ESCKEY:
 			case RIGHTMOUSE:
-				ret_val = TRANS_CANCEL;
+				Trans.state = TRANS_CANCEL;
 				break;
 			case LEFTMOUSE:
 				if(mouse_moved==0 && val==0) break;
@@ -713,7 +700,7 @@ void ManipulatorTransform(int mode)
 			case SPACEKEY:
 			case PADENTER:
 			case RETKEY:
-				ret_val = TRANS_CONFIRM;
+				Trans.state = TRANS_CONFIRM;
 				break;
 			}
 			if(val) {
@@ -739,7 +726,7 @@ void ManipulatorTransform(int mode)
 		}
 	}
 	
-	if(ret_val == TRANS_CANCEL) {
+	if(Trans.state == TRANS_CANCEL) {
 		restoreTransObjects(&Trans);
 	}
 	else {
@@ -757,7 +744,7 @@ void ManipulatorTransform(int mode)
 		else if(mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
 		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
-		special_aftertrans_update(cmode, 0, (short)(ret_val == TRANS_CANCEL), 7);
+		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL), 7);
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();

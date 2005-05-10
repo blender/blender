@@ -2795,7 +2795,8 @@ void addvert_Nurb(int mode)
 
 	if(mode=='e') {
 		BIF_TransformSetUndo("Extrude");
-		Transform(TFM_TRANSLATION, CTX_NO_PET);
+		initTransform(TFM_TRANSLATION, CTX_NO_PET);
+		Transform();
 	}
 	else while(get_mbut()&R_MOUSE) BIF_wait_for_statechange();
 
@@ -2833,7 +2834,8 @@ void extrude_nurb()
 				makeDispList(G.obedit);
 				countall();
 				BIF_TransformSetUndo("Extrude");
-				Transform(TFM_TRANSLATION, CTX_NO_PET);
+				initTransform(TFM_TRANSLATION, CTX_NO_PET);
+				Transform();
 			}
 		}
 	}
@@ -3062,7 +3064,8 @@ void adduplicate_nurb()
 
 	countall();
 	BIF_TransformSetUndo("Add Duplicate");
-	Transform(TFM_TRANSLATION, CTX_NO_PET);
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
 }
 
 void delNurb()

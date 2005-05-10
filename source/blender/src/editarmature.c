@@ -1997,7 +1997,8 @@ void extrude_armature(void)
 	/* Transform the endpoints */
 	countall();
 	BIF_TransformSetUndo("Extrude");
-	Transform(TFM_TRANSLATION, CTX_NO_PET);
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
@@ -2161,7 +2162,8 @@ void adduplicate_armature(void)
 	}
 
 	BIF_TransformSetUndo("Add Duplicate");
-	Transform(TFM_TRANSLATION, CTX_NO_PET);
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);

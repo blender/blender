@@ -3265,8 +3265,10 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 	while(get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
-			if(curarea->spacetype==SPACE_VIEW3D)
-				Transform(TFM_TRANSLATION, CTX_NONE);
+			if(curarea->spacetype==SPACE_VIEW3D) {
+				initTransform(TFM_TRANSLATION, CTX_NONE);
+				Transform();
+			}
 			else
 				xf_func('g', 0);
 
@@ -4134,7 +4136,8 @@ void adduplicate(float *dtrans)
 	countall();
 	if(dtrans==0) {
 		BIF_TransformSetUndo("Add Duplicate");
-		Transform(TFM_TRANSLATION, CTX_NONE);
+		initTransform(TFM_TRANSLATION, CTX_NONE);
+		Transform();
 	}
 	set_active_base(BASACT);
 	
@@ -4480,9 +4483,18 @@ void texspace_edit(void)
 	}
 	
 
-	if(nr==1) Transform(TFM_TRANSLATION, CTX_TEXTURE);
-	else if(nr==2) Transform(TFM_RESIZE, CTX_TEXTURE);
-	else if(nr==3) Transform(TFM_ROTATION, CTX_TEXTURE);
+	if(nr==1) {
+		initTransform(TFM_TRANSLATION, CTX_TEXTURE);
+		Transform();
+	}
+	else if(nr==2) {
+		initTransform(TFM_RESIZE, CTX_TEXTURE);
+		Transform();
+	}
+	else if(nr==3) {
+		initTransform(TFM_ROTATION, CTX_TEXTURE);
+		Transform();
+	}
 }
 
 void first_base(void)

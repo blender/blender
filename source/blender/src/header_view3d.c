@@ -1234,28 +1234,34 @@ void do_view3d_transform_moveaxismenu(void *arg, int event)
 	switch(event)
 	{
 	    case 0: /* X Global */
+			initTransform(TFM_TRANSLATION, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[0], " X");
-			Transform(TFM_TRANSLATION, CTX_NONE);
+			Transform();
 			break;
 		case 1: /* Y Global */
-			BIF_setSingleAxisConstraint(mat[0], " Y");
-			Transform(TFM_TRANSLATION, CTX_NONE);
+			initTransform(TFM_TRANSLATION, CTX_NONE);
+			BIF_setSingleAxisConstraint(mat[1], " Y");
+			Transform();
 			break;
 		case 2: /* Z Global */
-			BIF_setSingleAxisConstraint(mat[0], " Z");
-			Transform(TFM_TRANSLATION, CTX_NONE);
+			initTransform(TFM_TRANSLATION, CTX_NONE);
+			BIF_setSingleAxisConstraint(mat[2], " Z");
+			Transform();
 			break;
 		case 3: /* X Local */
+			initTransform(TFM_TRANSLATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('X', " X");
-			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 4: /* Y Local */
+			initTransform(TFM_TRANSLATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('Y', " Y");
-			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 5: /* Z Local */
+			initTransform(TFM_TRANSLATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('Z', " Z");
-			Transform(TFM_TRANSLATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1294,28 +1300,34 @@ void do_view3d_transform_rotateaxismenu(void *arg, int event)
 	switch(event)
 	{
 	    case 0: /* X Global */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[0], " X");
-			Transform(TFM_ROTATION, CTX_NONE);
+			Transform();
 			break;
 		case 1: /* Y Global */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[1], " Y");
-			Transform(TFM_ROTATION, CTX_NONE);
+			Transform();
 			break;
 		case 2: /* Z Global */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[2], " Z");
-			Transform(TFM_ROTATION, CTX_NONE);
-			break;
+			Transform();
+ 			break;
 		case 3: /* X Local */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('X', " X");
-			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 4: /* Y Local */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('Y', " Y");
-			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 5: /* Z Local */
+			initTransform(TFM_ROTATION, CTX_NONE);
 			BIF_setLocalAxisConstraint('Z', " Z");
-			Transform(TFM_ROTATION, CTX_SETLOCALCONST);
+			Transform();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1354,28 +1366,34 @@ void do_view3d_transform_scaleaxismenu(void *arg, int event)
 	switch(event)
 	{
 	    case 0: /* X Global */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[0], " X");
-			Transform(TFM_RESIZE, CTX_NONE);
+			Transform();
 			break;
 		case 1: /* Y Global */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[1], " Y");
-			Transform(TFM_RESIZE, CTX_NONE);
+			Transform();
 			break;
 		case 2: /* Z Global */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setSingleAxisConstraint(mat[2], " Z");
-			Transform(TFM_RESIZE, CTX_NONE);
+			Transform();
 			break;
 		case 3: /* X Local */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setLocalAxisConstraint('X', " X");
-			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 4: /* Y Local */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setLocalAxisConstraint('X', " X");
-			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
+			Transform();
 			break;
 		case 5: /* Z Local */
+			initTransform(TFM_RESIZE, CTX_NONE);
 			BIF_setLocalAxisConstraint('X', " X");
-			Transform(TFM_RESIZE, CTX_SETLOCALCONST);
+			Transform();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1409,13 +1427,16 @@ static void do_view3d_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 1:
-		Transform(TFM_TRANSLATION, CTX_NONE);
+		initTransform(TFM_TRANSLATION, CTX_NONE);
+		Transform();
 		break;
 	case 2:
-		Transform(TFM_ROTATION, CTX_NONE);
+		initTransform(TFM_ROTATION, CTX_NONE);
+		Transform();
 		break;
 	case 3:
-		Transform(TFM_RESIZE, CTX_NONE);
+		initTransform(TFM_RESIZE, CTX_NONE);
+		Transform();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2056,7 +2077,8 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		editmesh_mark_seam(1);
 		break;
 	case 9: /* Cease SubSurf */
-		Transform(TFM_CREASE, CTX_EDGE);
+		initTransform(TFM_CREASE, CTX_EDGE);
+		Transform();
 		break;
 	case 10: /* Rotate Edge */
 		edge_rotate_selected(2);
@@ -2336,13 +2358,16 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 9: /* Shrink/Fatten Along Normals */
-		Transform(TFM_SHRINKFATTEN, CTX_NONE);
+		initTransform(TFM_SHRINKFATTEN, CTX_NONE);
+		Transform();
 		break;
 	case 10: /* Shear */
-		Transform(TFM_SHEAR, CTX_NONE);
+		initTransform(TFM_SHEAR, CTX_NONE);
+		Transform();
 		break;
 	case 11: /* Warp */
-		Transform(TFM_WARP, CTX_NONE);
+		initTransform(TFM_WARP, CTX_NONE);
+		Transform();
 		break;
 	case 12: /* proportional edit (toggle) */
 		if(G.scene->proportional) G.scene->proportional= 1;
@@ -2433,7 +2458,8 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* tilt */
-		Transform(TFM_TILT, CTX_NONE);
+		initTransform(TFM_TILT, CTX_NONE);
+		Transform();
 		break;
 	case 1: /* clear tilt */
 		clear_tilt();
@@ -2592,10 +2618,12 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		else G.scene->proportional= 1;
 		break;
 	case 13: /* Shear */
-		Transform(TFM_SHEAR, CTX_NONE);
+		initTransform(TFM_SHEAR, CTX_NONE);
+		Transform();
 		break;
 	case 14: /* Warp */
-		Transform(TFM_WARP, CTX_NONE);
+		initTransform(TFM_WARP, CTX_NONE);
+		Transform();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2713,10 +2741,12 @@ static void do_view3d_edit_metaballmenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 5: /* Shear */
-		Transform(TFM_SHEAR, CTX_NONE);
+		initTransform(TFM_SHEAR, CTX_NONE);
+		Transform();
 		break;
 	case 6: /* Warp */
-		Transform(TFM_WARP, CTX_NONE);
+		initTransform(TFM_WARP, CTX_NONE);
+		Transform();
 		break;
 	case 7: /* Transform Properties */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
@@ -2920,10 +2950,12 @@ static void do_view3d_edit_latticemenu(void *arg, int event)
 		common_insertkey();
 		break;
 	case 3: /* Shear */
-		Transform(TFM_SHEAR, CTX_NONE);
+		initTransform(TFM_SHEAR, CTX_NONE);
+		Transform();
 		break;
 	case 4: /* Warp */
-		Transform(TFM_WARP, CTX_NONE);
+		initTransform(TFM_WARP, CTX_NONE);
+		Transform();
 		break;
 	case 5: /* proportional edit (toggle) */
 		if(G.scene->proportional) G.scene->proportional= 0;
@@ -2998,10 +3030,12 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		delete_context_selected();
 		break;
 	case 6: /* Shear */
-		Transform(TFM_SHEAR, CTX_NONE);
+		initTransform(TFM_SHEAR, CTX_NONE);
+		Transform();
 		break;
 	case 7: /* Warp */
-		Transform(TFM_WARP, CTX_NONE);
+		initTransform(TFM_WARP, CTX_NONE);
+		Transform();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

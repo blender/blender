@@ -58,10 +58,9 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_NO_NOR_RECALC	8
-#define CTX_SETLOCALCONST	16
 
-
-void Transform(int mode, int context);
+void initTransform(int mode, int context);
+void Transform(void);
 void Mirror(short mode);
 
 struct TransInfo;

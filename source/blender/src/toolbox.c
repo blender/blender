@@ -1991,13 +1991,16 @@ static void tb_do_transform(void *arg, int event)
 	switch(event)
 	{
 		case 0: /* Grab/move */
-			Transform(TFM_TRANSLATION, CTX_NONE);
+			initTransform(TFM_TRANSLATION, CTX_NONE);
+			Transform();
 			break;
 		case 1: /* Rotate */
-			Transform(TFM_ROTATION, CTX_NONE);
+			initTransform(TFM_ROTATION, CTX_NONE);
+			Transform();
 			break;
 		case 2: /* Scale */
-			Transform(TFM_RESIZE,CTX_NONE);
+			initTransform(TFM_RESIZE,CTX_NONE);
+			Transform();
 			break;
 		case 3: /* transform properties */
 			add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, UI_PNL_UNSTOW);
@@ -2006,13 +2009,16 @@ static void tb_do_transform(void *arg, int event)
 			snapmenu();
 			break;
 		case 5: /* Shrink/Fatten Along Normals */
-			Transform(TFM_SHRINKFATTEN, CTX_NONE);
+			initTransform(TFM_SHRINKFATTEN, CTX_NONE);
+			Transform();
 			break;
 		case 6: /* Shear */
-			Transform(TFM_SHEAR, CTX_NONE);
+			initTransform(TFM_SHEAR, CTX_NONE);
+			Transform();
 			break;
 		case 7: /* Warp */
-			Transform(TFM_WARP, CTX_NONE);
+			initTransform(TFM_WARP, CTX_NONE);
+			Transform();
 			break;
 		case 8: /* proportional edit (toggle) */
 			if(G.scene->proportional) G.scene->proportional= 0;

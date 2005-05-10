@@ -313,7 +313,8 @@ void adduplicate_mball()
 	}
 	
 	BIF_TransformSetUndo("Add Duplicate");
-	Transform(TFM_TRANSLATION, CTX_NO_PET);
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 

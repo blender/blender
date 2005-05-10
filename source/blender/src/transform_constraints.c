@@ -552,17 +552,15 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 void BIF_setLocalAxisConstraint(char axis, char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 
-	strncpy(t->con.text, text, 48);
-
 	switch (axis) {
 	case 'X':
-		t->con.mode = (CON_AXIS0|CON_APPLY);
+		setLocalConstraint(t, CON_AXIS0, text);
 		break;
 	case 'Y':
-		t->con.mode = (CON_AXIS1|CON_APPLY);
+		setLocalConstraint(t, CON_AXIS1, text);
 		break;
 	case 'Z':
-		t->con.mode = (CON_AXIS2|CON_APPLY);
+		setLocalConstraint(t, CON_AXIS2, text);
 		break;
 	}
 }
@@ -570,17 +568,15 @@ void BIF_setLocalAxisConstraint(char axis, char *text) {
 void BIF_setLocalLockConstraint(char axis, char *text) {
 	TransInfo *t = BIF_GetTransInfo();
 
-	strncpy(t->con.text, text, 48);
-
 	switch (axis) {
 	case 'x':
-		t->con.mode = (CON_AXIS1|CON_AXIS2|CON_APPLY);
+		setLocalConstraint(t, (CON_AXIS1|CON_AXIS2), text);
 		break;
 	case 'y':
-		t->con.mode = (CON_AXIS0|CON_AXIS2|CON_APPLY);
+		setLocalConstraint(t, (CON_AXIS0|CON_AXIS2), text);
 		break;
 	case 'z':
-		t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
+		setLocalConstraint(t, (CON_AXIS0|CON_AXIS1), text);
 		break;
 	}
 }
@@ -589,11 +585,11 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	if (t->flag & T_EDIT) {
 		float obmat[3][3];
 		Mat3CpyMat4(obmat, G.obedit->obmat);
-		setConstraint(t, obmat, mode, text);
+		setConstraint(t, obmat, mode|CON_LOCAL, text);
 	}
 	else {
 		if (t->total == 1) {
-			setConstraint(t, t->data->axismtx, mode, text);
+			setConstraint(t, t->data->axismtx, mode|CON_LOCAL, text);
 		}
 		else {
 			strncpy(t->con.text + 1, text, 48);
@@ -625,8 +621,6 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 
 	Crossf(space[1], vec, v);
 	Crossf(space[2], vec, space[1]);
-	Mat3Ortho(space);
-
 	Mat3Ortho(space);
 
 	Mat3CpyMat3(t->con.mtx, space);
@@ -796,6 +790,7 @@ void initSelectConstraint(TransInfo *t, float mtx[3][3])
 	Mat3CpyMat3(t->con.mtx, mtx);
 	t->con.mode |= CON_APPLY;
 	t->con.mode |= CON_SELECT;
+	t->con.mode &= ~CON_LOCAL;
 
 	setNearestAxis(t);
 	t->con.drawExtra = NULL;
@@ -892,4 +887,23 @@ void setNearestAxis(TransInfo *t)
 		}
 	}
 	getConstraintMatrix(t);
+}
+
+char constraintModeToChar(TransInfo *t) {
+	if ((t->con.mode & CON_APPLY)==0) {
+		return '\0';
+	}
+	switch (t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2)) {
+	case (CON_AXIS0):
+	case (CON_AXIS1|CON_AXIS2):
+		return 'X';
+	case (CON_AXIS1):
+	case (CON_AXIS0|CON_AXIS2):
+		return 'Y';
+	case (CON_AXIS2):
+	case (CON_AXIS0|CON_AXIS1):
+		return 'Z';
+	default:
+		return '\0';
+	}
 }

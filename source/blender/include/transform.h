@@ -125,11 +125,12 @@ typedef struct TransData {
 
 typedef struct TransInfo {
     int         mode;           /* current mode                         */
+	short		state;			/* current state (running, canceled,...)*/
     int         context;        /* current context                      */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
     char        redraw;         /* redraw flag                          */
-    int	        flag;          /* generic flags for special behaviors  */
+    int	        flag;           /* generic flags for special behaviors  */
     int         total;          /* total number of transformed data     */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
@@ -166,6 +167,11 @@ typedef struct TransInfo {
 #define NUM_NO_FRACTION		16
 #define	NUM_AFFECT_ALL		32
 
+/* transinfo->state */
+#define TRANS_RUNNING	0
+#define TRANS_CONFIRM	1
+#define TRANS_CANCEL	2
+
 /* transinfo->flag */
 #define T_OBJECT		1
 #define T_EDIT			2
@@ -186,6 +192,8 @@ typedef struct TransInfo {
 #define T_PROP_EDIT		 2048
 #define T_PROP_CONNECTED 4096
 
+/* if MMB is pressed or not */
+#define	T_MMB_PRESSED	8192
 
 /* transinfo->con->mode */
 #define CON_APPLY		1
@@ -279,6 +287,7 @@ int getConstraintSpaceDimension(TransInfo *t);
 
 void setNearestAxis(TransInfo *t);
 
+char constraintModeToChar(TransInfo *t);
 
 /*********************** Generics ********************************/
 void recalcData(TransInfo *t);
