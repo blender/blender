@@ -68,6 +68,7 @@
 #define MAXQUAL R.r.quality
 #define MINQUAL 30
 
+
 /* globals */
 
 static CL_Handle	compr, soft_compr;
