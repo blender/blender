@@ -417,7 +417,7 @@ void time_buttons(ScrArea *sa)
 	xco+= XIC+4;
 	
 	if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
-	   uiDefIconBut(block, BUT, B_TL_STOP, ICON_MAN_SCALE,
+	   uiDefIconBut(block, BUT, B_TL_STOP, ICON_PAUSE,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
 	else 	   
 		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
