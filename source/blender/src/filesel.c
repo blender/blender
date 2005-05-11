@@ -1054,28 +1054,8 @@ static void set_active_file(SpaceFile *sfile, int act)
 		}
 			
 	}
-	
-	if(redraw==2) {
-		int x, y;
-		
-		glDrawBuffer(GL_FRONT);
-
-		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx-12, curarea->winy);
-
-		if( calc_filesel_line(sfile, old, &x, &y) ) {
-			linerect(0, x, y);
-			print_line(sfile, sfile->filelist+old, x, y);
-		}
-		if( calc_filesel_line(sfile, newi, &x, &y) ) {
-			print_line(sfile, sfile->filelist+newi, x, y);
-		}
-		
-		glScissor(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
-
-		glFlush();		/* for geforce, to show it in the frontbuffer */
-		glDrawBuffer(GL_BACK);
-	}
-	else if(redraw) {
+	// removed frontbuffer draw here
+	if(redraw) {
 		scrarea_queue_winredraw(curarea);
 	}
 }
@@ -1206,11 +1186,10 @@ static void do_filescroll(SpaceFile *sfile)
 	calc_file_rcts(sfile);
 	
 	filescrollselect= 1;
+	
 	/* for beauty */
-
-	glDrawBuffer(GL_FRONT);
-	draw_filescroll(sfile);
-	glDrawBuffer(GL_BACK);
+	scrarea_do_windraw(curarea);
+	screen_swapbuffers();
 	
 	getmouseco_areawin(mval);
 	oldy= yo= mval[1];
@@ -1241,9 +1220,8 @@ static void do_filescroll(SpaceFile *sfile)
 	filescrollselect= 0;
 
 	/* for beauty */
-	glDrawBuffer(GL_FRONT);
-	draw_filescroll(sfile);
-	glDrawBuffer(GL_BACK);
+	scrarea_do_windraw(curarea);
+	screen_swapbuffers();
 	
 }
 
@@ -1822,14 +1800,6 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	sfile= curarea->spacedata.first;
 	if(sfile==0) return;
 	if(sfile->filelist==0) {
-		/* but do buttons */
-		if(val && event==LEFTMOUSE) {
-			/* FrontbufferButs(TRUE); */
-			/* event= DoButtons(); */
-			/* FrontbufferButs(FALSE); */
-					/*  NIET de headerbuttons! */
-			/* if(event) do_filesel_buttons(event, sfile); */
-		}
 		return;
 	}
 	
@@ -1892,13 +1862,6 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}
 				}
-			}
-			else {
-				/* FrontbufferButs(TRUE); */
-				/* event= DoButtons(); */
-				/* FrontbufferButs(FALSE); */
-					/*  NOT the headerbuttons! */
-				/* if(event) do_filesel_buttons(event, sfile);	 */
 			}
 			break;
 		case RIGHTMOUSE:
