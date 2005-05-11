@@ -2281,10 +2281,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx<=1280.0) {
 		fac= ((float)curarea->winx)/1280.0f;
-		myortho2(0.0, 1280.0, 0.0, curarea->winy/fac);
+		myortho2(0.375, 1280.375, 0.375, curarea->winy/fac + 0.375);
 	}
 	else {
-		myortho2(0.0, (float)curarea->winx, 0.0, (float)curarea->winy);
+		myortho2(0.375, (float)curarea->winx + 0.375, 0.375, (float)curarea->winy + 0.375);
 	}
 	
 	sprintf(naam, "infowin %d", curarea->win);

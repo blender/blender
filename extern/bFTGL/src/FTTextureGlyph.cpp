@@ -54,27 +54,32 @@ FTTextureGlyph::FTTextureGlyph( FT_GlyphSlot glyph, int id, int xOffset, int yOf
 FTTextureGlyph::~FTTextureGlyph()
 {}
 
+#include <math.h>
 
 float FTTextureGlyph::Render( const FTPoint& pen)
 {
+	float dx;
+	
     glGetIntegerv( GL_TEXTURE_2D_BINDING_EXT, &activeTextureID);
     if( activeTextureID != glTextureID)
     {
         glBindTexture( GL_TEXTURE_2D, (GLuint)glTextureID);
     }
     
+	dx= floor( (pen.x + pos.x ) );
+	
     glBegin( GL_QUADS);
         glTexCoord2f( uv[0].x, uv[0].y);
-        glVertex2f( pen.x + pos.x,             pen.y + pos.y);
+        glVertex2f( dx,             pen.y + pos.y);
 
         glTexCoord2f( uv[0].x, uv[1].y);
-        glVertex2f( pen.x + pos.x,             pen.y + pos.y - destHeight);
+        glVertex2f( dx,             pen.y + pos.y - destHeight);
 
         glTexCoord2f( uv[1].x, uv[1].y);
-        glVertex2f( pen.x + destWidth + pos.x, pen.y + pos.y - destHeight);
+        glVertex2f( dx + destWidth, pen.y + pos.y - destHeight);
         
         glTexCoord2f( uv[1].x, uv[0].y);
-        glVertex2f( pen.x + destWidth + pos.x, pen.y + pos.y);
+        glVertex2f( dx + destWidth, pen.y + pos.y);
     glEnd();
 
     return advance;
