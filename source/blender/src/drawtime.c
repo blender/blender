@@ -117,43 +117,56 @@ static void draw_cfra_time(SpaceTime *stime)
 	
 }
 
-static void draw_markers_time(SpaceTime *stime)
+static void draw_marker(TimeMarker *marker)
 {
-	TimeMarker *marker;
 	float xpos, col[3];
 	float xspace, yspace, xpixels, ypixels;
 
+	xpos = marker->frame;
+	/* no time correction for framelen! space is drawn with old values */
+	
+	xspace= G.v2d->cur.xmax - G.v2d->cur.xmin;
+	yspace= G.v2d->cur.ymax - G.v2d->cur.ymin;
+	xpixels= G.v2d->mask.xmax-G.v2d->mask.xmin;
+	ypixels= G.v2d->mask.ymax-G.v2d->mask.ymin;
+
+	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
+	glRasterPos2f(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels);
+
+	BIF_GetThemeColor3fv(TH_BACK, col);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
+	
+	if(marker->flag & SELECT)
+		BIF_draw_icon_blended(ICON_MARKER_HLT, (int)col, 0);
+	else
+		BIF_draw_icon_blended(ICON_MARKER, (int)col, 0);
+	
+	glBlendFunc(GL_ONE, GL_ZERO);
+	glDisable(GL_BLEND);		
+
+	/* and the marker name too, shifted slightly to the top-right */
+	BIF_ThemeColor(TH_TEXT);
+	glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
+		
+	BMF_DrawString(G.font, marker->name);
+}
+
+static void draw_markers_time(SpaceTime *stime)
+{
+	TimeMarker *marker;
+
+	/* unselected markers are drawn at the first time */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		xpos = marker->frame;
-		/* no time correction for framelen! space is drawn with old values */
-		
-		xspace= G.v2d->cur.xmax - G.v2d->cur.xmin;
-		yspace= G.v2d->cur.ymax - G.v2d->cur.ymin;
-		xpixels= G.v2d->mask.xmax-G.v2d->mask.xmin;
-		ypixels= G.v2d->mask.ymax-G.v2d->mask.ymin;
+		if(!(marker->flag & SELECT)) draw_marker(marker);
+	}
 
-		/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
-		glRasterPos2f(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels);
-
-		BIF_GetThemeColor3fv(TH_BACK, col);
-
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
-		
-		if(marker->flag & SELECT)
-			BIF_draw_icon_blended(ICON_MARKER_HLT, (int)col, 0);
-		else
-			BIF_draw_icon_blended(ICON_MARKER, (int)col, 0);
-		
-		glBlendFunc(GL_ONE, GL_ZERO);
-		glDisable(GL_BLEND);		
-
-		/* and the marker name too, shifted slightly to the top-right */
-		BIF_ThemeColor(TH_TEXT);
-		glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
-			
-		BMF_DrawString(G.font, marker->name);
-
+	/* selected markers are drawn later ... selected markers have to cover unselected
+	 * markers laying at the same position as selected markers
+	 * (jiri: it is hack, it could be solved better) */
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT) draw_marker(marker);
 	}
 }
 

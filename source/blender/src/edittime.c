@@ -148,16 +148,18 @@ static int find_nearest_marker(float dx)
 static void select_timeline_marker_frame(int frame, unsigned char shift)
 {
 	TimeMarker *marker;
+	int select=0;
 	
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		/* if Shift is not set, then deselect Markers */
 		if(!shift) marker->flag &= ~SELECT;
 		/* this way a not-shift select will allways give 1 selected marker */
-		if(marker->frame == frame) {
+		if((marker->frame == frame) && (!select)) {
 			if(marker->flag & SELECT) 
 				marker->flag &= ~SELECT;
 			else
 				marker->flag |= SELECT;
+			select = 1;
 		}
 	}
 }
