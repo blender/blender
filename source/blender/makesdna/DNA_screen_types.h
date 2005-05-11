@@ -49,10 +49,10 @@ typedef struct bScreen {
 	short startx, endx, starty, endy;	/* framebuffer coords */
 	short sizex, sizey;
 	short scenenr, screennr;			/* only for pupmenu */
-	short full, rt;
+	short full, pad;
 	short mainwin, winakt;
+	short handler[8];					/* similar to space handler now */
 } bScreen;
-
 
 typedef struct ScrVert {
 	struct ScrVert *next, *prev, *newv;
@@ -146,6 +146,9 @@ typedef struct ScrArea {
 #define T_SCROLL 4
 #define B_SCROLL 8
 #define HOR_SCROLL 12
+
+/* screen->flag */
+
 
 /* dunno who thought this below is nice code, but be warned, the values are written in
    a file, and cannot be switched or altered. enum here is out of focus (ton) */

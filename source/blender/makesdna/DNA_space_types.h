@@ -284,7 +284,7 @@ typedef struct SpaceTime {
 	
 	View2D v2d;
 	
-	int flag, pad;
+	int flag, redraws;
 	
 } SpaceTime;
 
@@ -534,9 +534,14 @@ typedef struct SpaceImaSel {
 #define IMS_INFILESLI		4
 
 /* time->flag */
-
 #define TIME_DRAWFRAMES		1
 #define TIME_CFRA_NUM		2
+
+/* time->redraws */
+#define TIME_LEFTMOST_3D_WIN	1
+#define TIME_ALL_3D_WIN			2
+#define TIME_ALL_ANIM_WIN		4
+#define TIME_ALL_BUTS_WIN		8
 
 
 #endif

@@ -5105,7 +5105,7 @@ void ipo_record()
 	waitcursor(1);
 	
 	tottime= 0.0;
-	swaptime= speed_to_swaptime(G.animspeed);
+	swaptime= G.scene->r.framelen;
 	cfrao= CFRA;
 	cfra=efra= SFRA;
 	sfra= EFRA;

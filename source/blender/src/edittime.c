@@ -418,6 +418,53 @@ void timeline_grab(int mode, int smode)	// mode and smode unused here, for callb
 	allqueue(REDRAWTIME, 0);
 }
 
+/* copy of this is actually in editscreen.c, but event based */
+static void timeline_force_draw(short val)
+{
+	ScrArea *sa, *tempsa, *samin= NULL;
+	int dodraw;
+	
+	if(val & TIME_LEFTMOST_3D_WIN) {
+		ScrArea *sa= G.curscreen->areabase.first;
+		int min= 10000;
+		for(; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_VIEW3D) {
+				if(sa->winrct.xmin - sa->winrct.ymin < min) {
+					samin= sa;
+					min= sa->winrct.xmin - sa->winrct.ymin;
+				}
+			}
+		}
+	}
+	
+	tempsa= curarea;
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		dodraw= 0;
+		if(sa->spacetype==SPACE_VIEW3D) {
+			if(sa==samin || (val & TIME_ALL_3D_WIN)) dodraw= 1;
+		}
+		else if(ELEM6(sa->spacetype, SPACE_NLA, SPACE_IPO, SPACE_SEQ, SPACE_BUTS, SPACE_ACTION, SPACE_SOUND)) {
+			if(val & TIME_ALL_ANIM_WIN) dodraw= 1;
+		}
+		else if(sa->spacetype==SPACE_BUTS) {
+			if(val & TIME_ALL_BUTS_WIN) dodraw= 1;
+		}
+		else if(sa->spacetype==SPACE_TIME) dodraw= 2;
+		
+		if(dodraw) {
+			areawinset(sa->win);
+			scrarea_do_windraw(sa);
+			if(dodraw==2) scrarea_do_headdraw(sa);
+		}
+		sa= sa->next;
+	}
+	areawinset(tempsa->win);
+	
+	screen_swapbuffers();
+
+}
+
 /* ***************************** */
 
 /* Right. Now for some implementation: */
@@ -462,16 +509,15 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				{
 					first= 0;
 					CFRA= cfra;
-					update_for_newframe();
-					force_draw_plus(SPACE_VIEW3D, 1);
+					update_for_newframe_nodraw();
+					timeline_force_draw(stime->redraws);
 				}
 				else PIL_sleep_ms(30);
 			
 			} while(get_mbut() & mousebut);
 			
 			stime->flag &= ~TIME_CFRA_NUM;
-			
-			doredraw= 1;
+			allqueue(REDRAWALL, 0);
 			break;
 			
 		case RIGHTMOUSE: /* select/deselect marker */

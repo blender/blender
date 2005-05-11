@@ -4682,6 +4682,7 @@ static void do_versions(Main *main)
 		}
 		/* set manipulator type */
 		/* force oops draw if depgraph was set*/
+		/* set time line var */
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
 			ScrArea *sa;
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
@@ -4696,7 +4697,11 @@ static void do_versions(Main *main)
 						if ( ((SpaceOops *)sl)->type==SO_DEPSGRAPH)
 							 ((SpaceOops *)sl)->type=SO_OOPS;
 					}
-#endif						
+#endif				
+					if(sl->spacetype==SPACE_TIME) {
+						SpaceTime *stime= (SpaceTime *)sl;
+						stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
+					}
 				}
 			}
 		}

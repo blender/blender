@@ -432,7 +432,8 @@ void viewmove(int mode)
 	while(TRUE) {
 		getmouseco_sc(mval);
 		
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || (G.f & G_PLAYANIM)) {
+		// if playanim = alt+A, screenhandlers are for animated UI, python, etc
+		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1] || (G.f & G_PLAYANIM) || do_screenhandlers(G.curscreen)) {
 			
 			if(firsttime) {
 				

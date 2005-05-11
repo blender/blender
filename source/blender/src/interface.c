@@ -885,22 +885,38 @@ static void ui_draw_links(uiBlock *block)
 void uiDrawBlock(uiBlock *block)
 {
 	uiBut *but;
-
+	short testmouse=0, mouse[2];
+	
 	/* handle pending stuff */
 	if(block->autofill) ui_autofill(block);
 	if(block->minx==0.0 && block->maxx==0.0) uiBoundsBlock(block, 0);
 	if(block->flag & UI_BUT_ALIGN) uiBlockEndAlign(block);
+	
+	/* we set active flag on a redraw again */
+	if((block->flag & UI_BLOCK_LOOP)==0) {
+		testmouse= 1;  
+		Mat4CpyMat4(UIwinmat, block->winmat);
+		uiGetMouse(block->win, mouse);
+	}
 	
 	uiPanelPush(block); // panel matrix
 	
 	if(block->flag & UI_BLOCK_LOOP) {
 		uiDrawMenuBox(block->minx, block->miny, block->maxx, block->maxy, block->flag);
 	}
-	else if(block->panel) ui_draw_panel(block);
-	
+	else {
+		if(block->panel) ui_draw_panel(block);
+	}		
+
 	if(block->drawextra) block->drawextra();
 
 	for (but= block->buttons.first; but; but= but->next) {
+		
+		if(testmouse && uibut_contains_pt(but, mouse))
+			but->flag |= UI_ACTIVE;
+		else 
+			but->flag &= ~UI_ACTIVE;
+		
 		ui_draw_but(but);
 	}
 

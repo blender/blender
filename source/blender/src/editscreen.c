@@ -405,9 +405,9 @@ void scrarea_do_headchange(ScrArea *area)
 	float ofs= area->headbutofs;
 
 	if (area->headertype==HEADERDOWN) {
-		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -3.375, area->headrct.ymax-area->headrct.ymin-3.375);
+		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -3.375, area->headrct.ymax-area->headrct.ymin-3.375+1.0);
 	} else if (area->headertype==HEADERTOP) {
-		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -2.375, area->headrct.ymax-area->headrct.ymin-2.375);
+		bwin_ortho2(area->headwin, -0.375+ofs, area->headrct.xmax-area->headrct.xmin-0.375+ofs, -2.375-1.0, area->headrct.ymax-area->headrct.ymin-2.375);
 	}
 }
 
@@ -956,6 +956,132 @@ void reset_autosave(void) {
 	window_set_timer(mainwin, U.savetime*60*1000, AUTOSAVE_FILE);
 }
 
+/* ************ handlers ************** */
+
+/* don't know yet how the handlers will evolve, for simplicity
+i choose for an array with eventcodes, this saves in a file!
+*/
+void add_screenhandler(bScreen *sc, short eventcode, short val)
+{
+	short a;
+	
+	// find empty spot
+	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+		if( sc->handler[a]==eventcode ) {
+			sc->handler[a+1]= val;
+			break;
+		}
+		else if( sc->handler[a]==0) {
+			sc->handler[a]= eventcode;
+			sc->handler[a+1]= val;
+			break;
+		}
+	}
+	if(a==SCREEN_MAXHANDLER) printf("error; max (4) screen handlers reached!\n");
+}
+
+void rem_screenhandler(bScreen *sc, short eventcode)
+{
+	short a;
+	
+	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+		if( sc->handler[a]==eventcode) {
+			sc->handler[a]= 0;
+			break;
+		}
+	}
+}
+
+int has_screenhandler(bScreen *sc, short eventcode)
+{
+	short a;
+	
+	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+		if( sc->handler[a]==eventcode) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+static void animated_screen(bScreen *sc, short val)
+{
+	CFRA++;
+	if(CFRA > EFRA) CFRA= SFRA;
+	update_for_newframe_nodraw();
+	
+	if(val & TIME_ALL_3D_WIN)
+		allqueue(REDRAWVIEW3D, 0);
+	else if(val & TIME_LEFTMOST_3D_WIN) {
+		ScrArea *sa= sc->areabase.first, *samin=NULL;
+		int min= 10000;
+		for(; sa; sa= sa->next) {
+			if(sa->spacetype==SPACE_VIEW3D) {
+				if(sa->winrct.xmin - sa->winrct.ymin < min) {
+					samin= sa;
+					min= sa->winrct.xmin - sa->winrct.ymin;
+				}
+			}
+		}
+		if(samin) scrarea_queue_winredraw(samin);
+	}
+	if(val & TIME_ALL_ANIM_WIN) allqueue(REDRAWANIM, 0);
+	if(val & TIME_ALL_BUTS_WIN) allqueue(REDRAWBUTSALL, 0);
+	
+	allqueue(REDRAWTIME, 0);
+}
+
+/* because we still have to cope with subloops, this function is called
+in viewmove() for example too */
+
+/* returns 1 if something was handled */
+/* restricts to frames-per-second setting for frequency of updates */
+int do_screenhandlers(bScreen *sc)
+{
+	static double ltime=0.0;
+	double swaptime, time;
+	short a, done= 0;
+	
+	time = PIL_check_seconds_timer();
+	swaptime= 1.0/(float)G.scene->r.frs_sec;
+	
+	/* only now do the handlers */
+	if(swaptime < time-ltime || ltime==0.0) {
+		
+		ltime= time;
+
+		for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+			switch(sc->handler[a]) {
+				case SCREEN_HANDLER_ANIM:
+					animated_screen(sc, sc->handler[a+1]);
+					done= 1;
+					break;
+				case SCREEN_HANDLER_PYTHON:
+					done= 1;
+					break;
+				case SCREEN_HANDLER_VERSE:
+					done= 1;
+					break;
+			}
+		}
+	}
+	else if( qtest()==0) PIL_sleep_ms(5);   // 5 milliseconds pause, for idle
+
+	/* separate check for if we need to add to afterqueue */
+	/* is only to keep mainqueue awqke */
+	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+		if(sc->handler[a]) {
+			ScrArea *sa= sc->areabase.first;
+			if(sa->headwin) addafterqueue(sa->headwin, SCREEN_HANDLER, 1);
+			else addafterqueue(sa->win, SCREEN_HANDLER, 1);
+		}
+	}
+	
+	return done;
+}
+
+/* ****** end screen handlers ************ */
+
 static void screen_dispatch_events(void) {
 	int events_remaining= 1;
 	ScrArea *sa;
@@ -990,6 +1116,7 @@ static void screen_dispatch_events(void) {
 	}
 	
 	screen_swapbuffers();
+	do_screenhandlers(G.curscreen);
 }
 
 static ScrArea *screen_find_area_for_pt(bScreen *sc, short *mval) 

@@ -1214,7 +1214,7 @@ static void render_panel_format(void)
 	} else {
 		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,B_RTCHANGED,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
 
 
 	uiBlockBeginAlign(block);
@@ -1399,15 +1399,18 @@ void anim_panels()
 	block= uiNewBlock(&curarea->uiblocks, "anim_panel", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim", "Anim", 0, 0, 318, 204)==0) return;
 
-	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	320,17,93,27,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
-	uiDefButS(block, NUM,REDRAWSEQ,"End:",	416,17,95,27,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	10,160,150,20,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
+	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	160,160,150,20,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map Old:",	320,69,93,22,&G.scene->r.framapto,1.0,900.0, 0, 0, "Specify old mapping value in frames");
-	uiDefButS(block, NUM,B_FRAMEMAP,"Map New:",	416,69,95,22,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",  10,130,150,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");
+	uiDefButS(block, NUM,REDRAWSEQ,"End:",	160,100,150,20,&G.scene->r.efra,1.0,MAXFRAMEF, 0, 0, "Specify the end frame of the animation");
 
-	uiDefButS(block, NUM,B_RTCHANGED,"Frs/sec:",   320,47,93,19, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
-
-	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	416,47,95,19, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 
 
 }

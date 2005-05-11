@@ -69,7 +69,8 @@
 
 void do_time_buttons(ScrArea *sa, unsigned short event)
 {
-
+	SpaceTime *stime= sa->spacedata.first;
+	
 	switch(event) {
 
 	case B_TL_REW:
@@ -77,7 +78,11 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 		update_for_newframe();
 		break;
 	case B_TL_PLAY:
-		play_anim(1);
+		add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+		break;
+	case B_TL_STOP:
+		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+		allqueue(REDRAWALL, 0);
 		break;
 	case B_TL_FF:
 		/* end frame */
@@ -95,17 +100,79 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 	}
 }
 
+static void do_time_redrawmenu(void *arg, int event)
+{
+	SpaceTime *stime= curarea->spacedata.first;
+	
+	if(event < 1001) {
+		
+		stime->redraws ^= event;
+		/* update handler when it's running */
+		if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
+			add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+	}
+	else {
+		if(event==1001) {
+			button(&G.scene->r.frs_sec,1,120,"Frames/Second:");
+		}
+	}
+}
+			
+
+static uiBlock *time_redrawmenu(void *arg_unused)
+{
+	SpaceTime *stime= curarea->spacedata.first;
+	uiBlock *block;
+	short yco= 0, menuwidth=120, icon;
+	char str[32];
+	
+	block= uiNewBlock(&curarea->uiblocks, "time_redrawmenu", 
+					  UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_time_redrawmenu, NULL);
+	
+	if(stime->redraws & TIME_LEFTMOST_3D_WIN) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Top-Left 3D Window",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_LEFTMOST_3D_WIN, "");
+
+	if(stime->redraws & TIME_ALL_3D_WIN) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "All 3D Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_3D_WIN, "");
+	
+	if(stime->redraws & TIME_ALL_ANIM_WIN) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Animation Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_ANIM_WIN, "");
+	
+	if(stime->redraws & TIME_ALL_BUTS_WIN) icon= ICON_CHECKBOX_HLT;
+	else icon= ICON_CHECKBOX_DEHLT;
+	uiDefIconTextBut(block, BUTM, 1, icon, "Buttons Windows",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, TIME_ALL_BUTS_WIN, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	sprintf(str, "Set Frames/Sec (%d)", G.scene->r.frs_sec);
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
+	
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	
+	return block;
+}
+
 static void do_time_viewmenu(void *arg, int event)
 {
 	SpaceTime *stime= curarea->spacedata.first;
 	int first;
 	
 	switch(event) {
-		case 1: /* Play Back Animation */
-			play_anim(0);
-			break;
-		case 2: /* Play Back Animation in All */
-			play_anim(1);
+		case 2: /* Play Back Animation */
+			add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
 			break;
 		case 3: /* View All */
 			first= G.scene->r.sfra;
@@ -151,7 +218,7 @@ static uiBlock *time_viewmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_time_viewmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -311,10 +378,13 @@ void time_buttons(ScrArea *sa)
 					  "Frame", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 
+		xmax= GetButStringLength("Playback");
+		uiDefPulldownBut(block, time_redrawmenu, NULL, 
+						 "Playback", xco, -2, xmax-3, 24, "");
+		xco+= xmax;
 	}
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
-	xco += XIC;
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, REDRAWALL,"Start:",	
@@ -345,8 +415,14 @@ void time_buttons(ScrArea *sa)
 	uiDefIconBut(block, BUT, B_TL_PREVKEY, ICON_PREV_KEYFRAME,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to previous keyframe (Ctrl PageDown)");
 	xco+= XIC+4;
-	uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
-			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline (Alt Shift A)");
+	
+	if(has_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM))
+	   uiDefIconBut(block, BUT, B_TL_STOP, ICON_MAN_SCALE,
+			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Stop Playing Timeline");
+	else 	   
+		uiDefIconBut(block, BUT, B_TL_PLAY, ICON_PLAY,
+			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Play Timeline ");
+	
 	xco+= XIC+4;
 	uiDefIconBut(block, BUT, B_TL_NEXTKEY, ICON_NEXT_KEYFRAME,
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to next keyframe (Ctrl PageUp)");

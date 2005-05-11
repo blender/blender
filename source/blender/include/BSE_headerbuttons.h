@@ -56,6 +56,7 @@ void load_sound_buttons(char *str);
 /* end of declarations moved from old headerbuttons.c */
 
 void update_for_newframe_muted(void);
+void update_for_newframe_nodraw(void);
 void free_matcopybuf(void);
 void clear_matcopybuf(void);
 void write_videoscape_fs(void);

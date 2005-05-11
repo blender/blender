@@ -2229,75 +2229,6 @@ int update_time(void)
 	return (tottime < 0.0);
 }
 
-double speed_to_swaptime(int speed)
-{
-	switch(speed) {
-	case 1:
-		return 1.0/60.0;
-	case 2:
-		return 1.0/50.0;
-	case 3:
-		return 1.0/30.0;
-	case 4:
-		return 1.0/25.0;
-	case 5:
-		return 1.0/20.0;
-	case 6:
-		return 1.0/15.0;
-	case 7:
-		return 1.0/12.5;
-	case 8:
-		return 1.0/10.0;
-	case 9:
-		return 1.0/6.0;
-	}
-	return 1.0/4.0;
-}
-
-double key_to_swaptime(int key)
-{
-	switch(key) {
-	case PAD1:
-		G.animspeed= 1;
-		tottime= 0;
-		return speed_to_swaptime(1);
-	case PAD2:
-		G.animspeed= 2;
-		tottime= 0;
-		return speed_to_swaptime(2);
-	case PAD3:
-		G.animspeed= 3;
-		tottime= 0;
-		return speed_to_swaptime(3);
-	case PAD4:
-		G.animspeed= 4;
-		tottime= 0;
-		return speed_to_swaptime(4);
-	case PAD5:
-		G.animspeed= 5;
-		tottime= 0;
-		return speed_to_swaptime(5);
-	case PAD6:
-		G.animspeed= 6;
-		tottime= 0;
-		return speed_to_swaptime(6);
-	case PAD7:
-		G.animspeed= 7;
-		tottime= 0;
-		return speed_to_swaptime(7);
-	case PAD8:
-		G.animspeed= 8;
-		tottime= 0;
-		return speed_to_swaptime(8);
-	case PAD9:
-		G.animspeed= 9;
-		tottime= 0;
-		return speed_to_swaptime(9);
-	}
-	
-	return speed_to_swaptime(G.animspeed);
-}
-
 void inner_play_anim_loop(int init, int mode)
 {
 	ScrArea *sa;
@@ -2308,7 +2239,7 @@ void inner_play_anim_loop(int init, int mode)
 	/* init */
 	if(init) {
 		oldsa= curarea;
-		swaptime= speed_to_swaptime(G.animspeed);
+		swaptime= 1.0/(float)G.scene->r.frs_sec;
 		tottime= 0.0;
 		curmode= mode;
 
@@ -2452,8 +2383,6 @@ int play_anim(int mode)
 		sa= sa->next;	
 	}
 	
-	/* speed button */
-	// allqueue(REDRAWBUTSOBJECT, 0);
 	/* groups could have changed ipo */
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);

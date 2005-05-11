@@ -1732,6 +1732,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				handle_view3d_around();
 				
 				scrarea_queue_headredraw(curarea);
+				scrarea_queue_winredraw(curarea);
 				break;
 				
 			case PERIODKEY:
@@ -1743,6 +1744,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				handle_view3d_around();
 				
 				scrarea_queue_headredraw(curarea);
+				scrarea_queue_winredraw(curarea);
 				break;
 			
 			case PADSLASHKEY:
@@ -4282,16 +4284,14 @@ static void init_timespace(ScrArea *sa)
 	
 	stime->spacetype= SPACE_TIME;
 	stime->blockscale= 0.7;
+	stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 	
 	stime->v2d.tot.xmin= -4.0;
 	stime->v2d.tot.ymin=  0.0;
-	stime->v2d.tot.xmax= 250.0;
+	stime->v2d.tot.xmax= (float)EFRA + 4.0;
 	stime->v2d.tot.ymax= (float)sa->winy;
 	
-	stime->v2d.cur.xmin= -4.0;
-	stime->v2d.cur.ymin= 0.0;
-	stime->v2d.cur.xmax= 50.0;
-	stime->v2d.cur.ymax= (float)sa->winy;
+	stime->v2d.cur= stime->v2d.tot;
 	
 	stime->v2d.min[0]= 1.0;
 	stime->v2d.min[1]= (float)sa->winy;
@@ -4763,6 +4763,11 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_winredraw(sa);
 				}
 				break;
+			case REDRAWANIM:
+				if ELEM6(sa->spacetype, SPACE_IPO, SPACE_SOUND, SPACE_TIME, SPACE_NLA, SPACE_ACTION, SPACE_SEQ) {
+					scrarea_queue_winredraw(sa);
+					if(val) scrarea_queue_headredraw(sa);
+				}
 			}
 		}
 		sa= sa->next;
@@ -4870,7 +4875,7 @@ void force_draw(int header)
 	
 }
 
-/* if header==1, then draw header for curarea too. Excepption for headerprint()... */
+/* if header==1, then draw header for curarea too. Exception for headerprint()... */
 void force_draw_plus(int type, int header)
 {
 	/* draws all areas that show something like curarea AND areas of 'type' */

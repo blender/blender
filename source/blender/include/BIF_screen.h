@@ -119,6 +119,19 @@ void draw_area_emboss(struct ScrArea *sa);
 
 void headerprint(char *str);
 
+/* ******* handlers ****** */
+
+#define SCREEN_MAXHANDLER		8
+
+#define SCREEN_HANDLER_ANIM		1
+#define SCREEN_HANDLER_PYTHON   2
+#define SCREEN_HANDLER_VERSE	3
+
+void add_screenhandler(struct bScreen *sc, short eventcode, short val);
+void rem_screenhandler(struct bScreen *sc, short eventcode);
+int do_screenhandlers(struct bScreen *sc);
+int has_screenhandler(struct bScreen *sc, short eventcode);
+
 	/***/
 	
 /**

@@ -53,8 +53,6 @@ int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rcti *viewborder_r);
 void view3d_set_1_to_1_viewborder(struct View3D *v3d);
 void timestr(double time, char *str);
-double speed_to_swaptime(int speed);
-double key_to_swaptime(int key);
 
 void sumo_callback(void *obp);
 void init_anim_sumo(void);

@@ -488,23 +488,27 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	return xco;
 }
 
-static void do_update_for_newframe(int mute)
+
+
+static void do_update_for_newframe(int mute, int events)
 {
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	ScrArea *sa;
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWACTION,0);
-	allqueue(REDRAWNLA,0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWINFO, 1);
-	allqueue(REDRAWSEQ, 1);
-	allqueue(REDRAWSOUND, 1);
-	allqueue(REDRAWTIME, 1);
-	allqueue(REDRAWBUTSHEAD, 0);
-	allqueue(REDRAWBUTSSHADING, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-
+	if(events) {
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION,0);
+		allqueue(REDRAWNLA,0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWINFO, 1);
+		allqueue(REDRAWSEQ, 1);
+		allqueue(REDRAWSOUND, 1);
+		allqueue(REDRAWTIME, 1);
+		allqueue(REDRAWBUTSHEAD, 0);
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+	}
+	
 	/* layers/materials, object ipos are calculted in where_is_object (too) */
 	do_all_ipos();
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
@@ -536,13 +540,20 @@ static void do_update_for_newframe(int mute)
 
 void update_for_newframe(void)
 {
-	do_update_for_newframe(0);
+	do_update_for_newframe(0, 1);
 }
 
 void update_for_newframe_muted(void)
 {
-	do_update_for_newframe(1);
+	do_update_for_newframe(1, 1);
 }
+
+
+void update_for_newframe_nodraw(void)
+{
+	do_update_for_newframe(1, 0);
+}
+
 
 static void show_splash(void)
 {

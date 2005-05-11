@@ -366,6 +366,7 @@
 #define B_TL_FF			753
 #define B_TL_PREVKEY	754
 #define B_TL_NEXTKEY	755
+#define B_TL_STOP		756
 
 /* NLA: 801-900 */
 #define B_NLAHOME		801
