@@ -1066,7 +1066,8 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 
 	/* local constraint shouldn't alter center */
 	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
-		VECCOPY(center, td->center);
+		if (t->flag & T_OBJECT)
+			VECCOPY(center, td->center);	// not supported in editmode yet
 	}
 	else {
 		VECCOPY(center, t->center);
@@ -1433,7 +1434,8 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		/* local constraint shouldn't alter center */
 		if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
-			VECCOPY(t->center, td->center);
+			if (t->flag & T_OBJECT)
+				VECCOPY(t->center, td->center);		// not supported in editmode yet
 		}
 		
 		if (t->con.applyRot) {
@@ -1572,7 +1574,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			break;
 		
 		if (G.vd->around == V3D_LOCAL) {
-			VECCOPY(t->center, td->center);
+			if (t->flag & T_OBJECT)
+				VECCOPY(t->center, td->center);	// not supported in editmode yet
 		}
 		
 		if (t->flag & T_PROP_EDIT) {
