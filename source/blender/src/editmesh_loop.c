@@ -78,6 +78,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "PIL_time.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -289,16 +290,18 @@ void vertex_loop_select()
 
 				glPopMatrix();
 			}
-		}
 
-		screen_swapbuffers();
+			screen_swapbuffers();
 
 		/* backbuffer refresh for non-apples (no aux) */
 #ifndef __APPLE__
-		if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-			backdrawview3d(0);
-		}
+			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+				backdrawview3d(0);
+			}
 #endif
+		}
+		else PIL_sleep_ms(10);	// idle
+		
 		while(qtest()) 
 		{
 			val=0;
@@ -470,6 +473,7 @@ static CutCurve *get_mouse_trail(int *len, char mode){
 				ldown=0;
 			}
 		}
+		else PIL_sleep_ms(10);	// idle
 		
 		if ((event==MIDDLEMOUSE)&&(get_mbut()&M_MOUSE)&&(i)){/*MMB Down*/
 		/*determine which axis to lock to, or clear if locked */
@@ -1155,6 +1159,7 @@ void loopoperations(char mode)
 			/*--------- END Preview Lines------------*/
 				
 		}/*if(start!=NULL){ */
+		else PIL_sleep_ms(10);	// idle
 		
 		while(qtest()) {
 			unsigned short val=0;			
