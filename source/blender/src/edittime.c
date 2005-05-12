@@ -332,7 +332,7 @@ void timeline_grab(int mode, int smode)	// mode and smode unused here, for callb
 	float dx, fac;
 	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
 	unsigned short event;
-	short val, pmval[2], mval[2];
+	short val, pmval[2], mval[2], mvalo[2];
 	char str[32];
 	
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
@@ -353,12 +353,14 @@ void timeline_grab(int mode, int smode)	// mode and smode unused here, for callb
 	dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/dx;
 	
 	getmouseco_areawin(pmval);
+	mvalo[0]= pmval[0];
 	
 	while(ret_val == 0) {
 		
 		getmouseco_areawin(mval);
 		
-		if (mval[0] != pmval[0] || firsttime) {
+		if (mval[0] != mvalo[0] || firsttime) {
+			mvalo[0]= mval[0];
 			firsttime= 0;
 			
 			fac= (((float)(mval[0] - pmval[0]))*dx);
@@ -389,9 +391,7 @@ void timeline_grab(int mode, int smode)	// mode and smode unused here, for callb
 			
 			force_draw(0);	// areas identical to this, 0 = no header
 		}
-		
-		/* essential for idling subloop */
-		if( qtest()==0) PIL_sleep_ms(2);
+		else PIL_sleep_ms(10);	// idle
 		
 		/* emptying queue and reading events */
 		while( qtest() ) {
