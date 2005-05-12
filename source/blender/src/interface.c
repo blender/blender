@@ -431,7 +431,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	static float rgb[3];
 	void *poin;
 	
-	if(mode=='v' && but->lock) return;
+	if(mode=='v' && but->lock) return 0;
 	
 	poin= but->poin;
 		
@@ -704,11 +704,19 @@ static void ui_positionblock(uiBlock *block, uiBut *but)
 			}
 		}
 
-		/* and now we handle the exception; no space below or to right */
+		/* and now we handle the exception; no space below or to top */
 		if(top==0 && down==0) {
 			if(dir1==UI_LEFT || dir1==UI_RIGHT) {
 				// align with bottom of screen 
 				yof= ysize;
+			}
+		}
+		
+		/* or no space left or right */
+		if(left==0 && right==0) {
+			if(dir1==UI_TOP || dir1==UI_DOWN) {
+				// align with left size of screen 
+				xof= -block->minx+5;
 			}
 		}
 		
@@ -1100,6 +1108,8 @@ static int ui_do_but_MENU(uiBut *but)
 	/* columns and row calculation */
 	columns= (md->nitems+20)/20;
 	if (columns<1) columns= 1;
+	
+	if(columns>8) columns= (md->nitems+25)/25;
 	
 	rows= (int) md->nitems/columns;
 	if (rows<1) rows= 1;
@@ -5111,6 +5121,11 @@ short pupmenu_col(char *instr, int maxrow)
 	/* collumns and row calculation */
 	columns= (md->nitems+maxrow)/maxrow;
 	if (columns<1) columns= 1;
+	
+	if(columns > 8) {
+		maxrow += 5;
+		columns= (md->nitems+maxrow)/maxrow;
+	}
 	
 	rows= (int) md->nitems/columns;
 	if (rows<1) rows= 1;
