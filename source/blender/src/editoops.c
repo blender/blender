@@ -111,7 +111,6 @@ static void oops_to_select_objects(void)
 	while(base) {
 		if(base->flag != base->object->flag) {
 			base->flag= base->object->flag;
-			if(G.obedit==NULL && G.obpose==NULL) set_active_base(base);
 		}
 		base= base->next;
 	}
