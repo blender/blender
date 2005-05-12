@@ -4307,6 +4307,8 @@ static void init_timespace(ScrArea *sa)
 	stime->v2d.keepzoom= 0;
 	stime->v2d.keeptot= 0;
 	
+	stime->flag |= TIME_DRAWFRAMES;
+	
 }
 
 
