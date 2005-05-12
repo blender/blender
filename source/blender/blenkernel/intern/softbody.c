@@ -1189,6 +1189,8 @@ void sbObjectReset(Object *ob)
 	int a;
 	
 	if(sb==NULL) return;
+	if(sb->keys && sb->totkey) return; // only as cpu time saver
+	
 	sb->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
 	
 	object_update_softbody(ob);
