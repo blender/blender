@@ -514,6 +514,8 @@ void Transform()
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
 
+	if(Trans.total==0) return;	// added, can happen now! (ton)
+	
 	Mat3One(mati);
 
 	// Emptying event queue

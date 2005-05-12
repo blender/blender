@@ -3374,7 +3374,7 @@ void join_curve(int type)
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(base->object->type==type) {
 				if(base->object != ob) {
 				

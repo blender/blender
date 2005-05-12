@@ -329,6 +329,8 @@ void clear_vpaint()
 
 	ob= OBACT;
 	me= get_mesh(ob);
+	if(ob->id.lib) return;
+
 	if(me==0 || me->totface==0) return;
 
 	if(me->tface) tface_to_mcol(me);
@@ -793,6 +795,8 @@ void weight_paint(void)
 	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
+	if(ob->id.lib) return;
+
 	me= get_mesh(ob);
 	if (!me->dvert){
 		return;
@@ -957,8 +961,10 @@ void vertex_paint()
 	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
+	if(ob->id.lib) return;
+
 	me= get_mesh(ob);
-	if(me==0 || me->totface==0) return;
+	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
 	if(me->tface==NULL && me->mcol==NULL) make_vertexcol();
@@ -1119,6 +1125,7 @@ void set_wpaint(void)		/* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	ob= OBACT;
+	if(ob->id.lib) return;
 	me= get_mesh(ob);
 		
 	if(me && me->totface>=MAXINDEX) {
@@ -1155,6 +1162,11 @@ void set_vpaint(void)		/* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	ob= OBACT;
+	if(ob->id.lib) {
+		G.f &= ~G_VERTEXPAINT;
+		return;
+	}
+	
 	me= get_mesh(ob);
 	
 	if(me && me->totface>=MAXINDEX) {

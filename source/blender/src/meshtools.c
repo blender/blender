@@ -140,7 +140,7 @@ void join_mesh(void)
 	/* count */
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(base->object->type==OB_MESH) {
 				me= base->object->data;
 				totvert+= me->totvert;
@@ -173,7 +173,7 @@ void join_mesh(void)
 	/* if needed add edges to other meshes */
 	if(hasedges) {
 		for(base= FIRSTBASE; base; base= base->next) {
-			if TESTBASE(base) {
+			if TESTBASELIB(base) {
 				if(base->object->type==OB_MESH) {
 					me= base->object->data;
 					if(me->medge==NULL) make_edges(me);
@@ -196,7 +196,7 @@ void join_mesh(void)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(ob!=base->object && base->object->type==OB_MESH) {
 				me= base->object->data;
 
@@ -272,7 +272,7 @@ void join_mesh(void)
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(base->object->type==OB_MESH) {
 				
 				me= base->object->data;

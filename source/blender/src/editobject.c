@@ -1958,12 +1958,13 @@ void special_editmenu(void)
 		}
 		else {
 			Base *base, *base_select= NULL;
-
+			Object *ob= OBACT;
+			
 			// Get the active object mesh.
-			Mesh *me= get_mesh(OBACT);
+			Mesh *me= get_mesh(ob);
 
 			// If the active object is a mesh...
-			if (me) {
+			if (me && ob->id.lib==NULL) {
 				// Bring up a little menu with the boolean operation choices on.
 				nr= pupmenu("Boolean %t|Intersect%x1|Union%x2|Difference%x3");
 
@@ -1975,7 +1976,7 @@ void special_editmenu(void)
 
 					base= FIRSTBASE;
 					while(base) {
-						if(base->flag & SELECT) {
+						if TESTBASELIB(base) {
 							if(base->object != OBACT) base_select= base;
 						}
 
@@ -3269,7 +3270,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 				initTransform(TFM_TRANSLATION, CTX_NONE);
 				Transform();
 			}
-			else
+			else if(xf_func)
 				xf_func('g', 0);
 
 			while(get_mbut() & mousebut) BIF_wait_for_statechange();
@@ -3290,7 +3291,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 
 void rightmouse_transform(void)
 {
-	std_rmouse_transform(Transform);
+	std_rmouse_transform(NULL);
 }
 
 
@@ -3311,7 +3312,7 @@ void single_object_users(int flag)
 		
 		if( (base->flag & flag)==flag) {
 
-			if(ob->id.lib==0 && ob->id.us>1) {
+			if(ob->id.lib==NULL && ob->id.us>1) {
 			
 				obn= copy_object(ob);
 				ob->id.us--;
@@ -3328,7 +3329,7 @@ void single_object_users(int flag)
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
-		if(ob->id.lib==0) {
+		if(ob->id.lib==NULL) {
 			if( (base->flag & flag)==flag) {
 				
 				relink_constraints(&base->object->constraints);
@@ -3395,7 +3396,7 @@ void single_obdata_users(int flag)
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
-		if(ob->id.lib==0 && (base->flag & flag)==flag ) {
+		if(ob->id.lib==NULL && (base->flag & flag)==flag ) {
 			id= ob->data;
 			
 			if(id && id->us>1 && id->lib==0) {
@@ -3527,7 +3528,7 @@ void single_mat_users(int flag)
 	base= FIRSTBASE;
 	while(base) {
 		ob= base->object;
-		if(ob->id.lib==0 && (flag==0 || (base->flag & SELECT)) ) {
+		if(ob->id.lib==NULL && (flag==0 || (base->flag & SELECT)) ) {
 	
 			for(a=1; a<=ob->totcol; a++) {
 				ma= give_current_material(ob, a);
@@ -3764,7 +3765,7 @@ void make_local(void)
 	while(base) {
 		ob= base->object;
 		if( (base->flag & SELECT)) {
-			if(ob->id.lib==0) {
+			if(ob->id.lib==NULL) {
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
 			}

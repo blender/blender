@@ -353,13 +353,10 @@ int calc_manipulator_stats(ScrArea *sa)
 		
 		base= (G.scene->base.first);
 		while(base) {
-			if(v3d->lay & base->lay) {
-				
-				if(base->flag & SELECT) {
-					if(ob==NULL) ob= base->object;
-					calc_tw_center(base->object->obmat[3]);
-					totsel++;
-				}
+			if TESTBASELIB(base) {
+				if(ob==NULL) ob= base->object;
+				calc_tw_center(base->object->obmat[3]);
+				totsel++;
 			}
 			base= base->next;
 		}

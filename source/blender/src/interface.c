@@ -431,8 +431,9 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 	static float rgb[3];
 	void *poin;
 	
+	if(mode=='v' && but->lock) return;
+	
 	poin= but->poin;
-		
 		
 	if ELEM3(but->type, NUM, NUMSLI, HSVSLI) {
 	

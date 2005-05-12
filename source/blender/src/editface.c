@@ -1202,7 +1202,8 @@ void set_faceselect()	/* toggle */
 	Mesh *me = 0;
 	
 	scrarea_queue_headredraw(curarea);
-
+	if(ob->id.lib) return;
+	
 	if(G.f & G_FACESELECT) G.f &= ~G_FACESELECT;
 	else {
 		if (ob && ob->type == OB_MESH) G.f |= G_FACESELECT;

@@ -1565,6 +1565,8 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 
 	if(uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204)==0) return;
 	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw
 	}
@@ -1610,6 +1612,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 100, 3, "");
 		uiBlockEndAlign(block);
 	}
+	uiClearButLock();
 }
 
 static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND

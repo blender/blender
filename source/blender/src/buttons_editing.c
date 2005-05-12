@@ -2739,7 +2739,8 @@ void editing_panels()
 
 	ob= OBACT;
 	if(ob==NULL) return;
-
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	switch(ob->type) {
 	case OB_MESH:
 		editing_panel_links(ob); // no editmode!
@@ -2818,5 +2819,5 @@ void editing_panels()
 		}
 		break;
 	}
-
+	uiClearButLock();
 }
