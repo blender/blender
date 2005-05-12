@@ -400,8 +400,11 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 
 	/*
 	   do we have a list of four floats or a BezTriple?
-	 */
-	PyArg_ParseTuple( args, "O", &pyOb );
+	*/
+	if( !PyArg_ParseTuple( args, "O", &pyOb ))
+		return( EXPP_ReturnPyObjError
+				( PyExc_RuntimeError,
+				  "Internal error parsing arguments" ) );
 
 	if( BezTriple_CheckPyObject( pyOb ) ) {
 		BezTriple *tmp;

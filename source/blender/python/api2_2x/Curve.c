@@ -1152,6 +1152,8 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 	int i;
 	int nurb_num;		/* index of curve we append to */
 	PyObject *coord_args;	/* coords for new point */
+	PyObject *retval = NULL;
+	PyObject *valtuple;
 	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
 
 /* fixme - need to malloc new Nurb */
@@ -1175,8 +1177,13 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 				   "curve index out of range" ) );
 	}
 
-	return CurNurb_appendPointToNurb( nurb, coord_args );
+	/* rebuild our arg tuple for appendPointToNurb() */
+	valtuple = Py_BuildValue( "(O)", coord_args );
+	
+	retval =  CurNurb_appendPointToNurb( nurb, valtuple );
+	Py_DECREF( valtuple );
 
+	return retval;
 }
 
 
