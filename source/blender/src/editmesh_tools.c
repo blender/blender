@@ -2256,98 +2256,100 @@ void beauty_fill(void)
                 if(ok) {
                     /* test convex */
                     givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
-                    if( convex(v1->co, v2->co, v3->co, v4->co) ) {
+					if(v1 && v2 && v3 && v4) {
+						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 
-                        /* test edges */
-                        if( ((long)v1) > ((long)v3) ) {
-                            dia1.v1= v3;
-                            dia1.v2= v1;
-                        }
-                        else {
-                            dia1.v1= v1;
-                            dia1.v2= v3;
-                        }
+							/* test edges */
+							if( ((long)v1) > ((long)v3) ) {
+								dia1.v1= v3;
+								dia1.v2= v1;
+							}
+							else {
+								dia1.v1= v1;
+								dia1.v2= v3;
+							}
 
-                        if( ((long)v2) > ((long)v4) ) {
-                            dia2.v1= v4;
-                            dia2.v2= v2;
-                        }
-                        else {
-                            dia2.v1= v2;
-                            dia2.v2= v4;
-                        }
+							if( ((long)v2) > ((long)v4) ) {
+								dia2.v1= v4;
+								dia2.v2= v2;
+							}
+							else {
+								dia2.v1= v2;
+								dia2.v2= v4;
+							}
 
-                        /* testing rule:
-                         * the area divided by the total edge lengths
-                         */
+							/* testing rule:
+							 * the area divided by the total edge lengths
+							 */
 
-                        len1= VecLenf(v1->co, v2->co);
-                        len2= VecLenf(v2->co, v3->co);
-                        len3= VecLenf(v3->co, v4->co);
-                        len4= VecLenf(v4->co, v1->co);
-                        len5= VecLenf(v1->co, v3->co);
-                        len6= VecLenf(v2->co, v4->co);
+							len1= VecLenf(v1->co, v2->co);
+							len2= VecLenf(v2->co, v3->co);
+							len3= VecLenf(v3->co, v4->co);
+							len4= VecLenf(v4->co, v1->co);
+							len5= VecLenf(v1->co, v3->co);
+							len6= VecLenf(v2->co, v4->co);
 
-                        opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
-                        opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
+							opp1= AreaT3Dfl(v1->co, v2->co, v3->co);
+							opp2= AreaT3Dfl(v1->co, v3->co, v4->co);
 
-                        fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
+							fac1= opp1/(len1+len2+len5) + opp2/(len3+len4+len5);
 
-                        opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
-                        opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
+							opp1= AreaT3Dfl(v2->co, v3->co, v4->co);
+							opp2= AreaT3Dfl(v2->co, v4->co, v1->co);
 
-                        fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
+							fac2= opp1/(len2+len3+len6) + opp2/(len4+len1+len6);
 
-                        ok= 0;
-                        if(fac1 > fac2) {
-                            if(dia2.v1==eed->v1 && dia2.v2==eed->v2) {
-                                eed->f1= 1;
-                                efa= efaa[0];
-                                efa->f1= 1;
-                                efa= efaa[1];
-                                efa->f1= 1;
+							ok= 0;
+							if(fac1 > fac2) {
+								if(dia2.v1==eed->v1 && dia2.v2==eed->v2) {
+									eed->f1= 1;
+									efa= efaa[0];
+									efa->f1= 1;
+									efa= efaa[1];
+									efa->f1= 1;
 
-                                w= addfacelist(v1, v2, v3, 0, efa, NULL);
+									w= addfacelist(v1, v2, v3, 0, efa, NULL);
 
-								UVCOPY(w->tf.uv[0], uv[0]);
-								UVCOPY(w->tf.uv[1], uv[1]);
-								UVCOPY(w->tf.uv[2], uv[2]);
+									UVCOPY(w->tf.uv[0], uv[0]);
+									UVCOPY(w->tf.uv[1], uv[1]);
+									UVCOPY(w->tf.uv[2], uv[2]);
 
-                                w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
-                                w= addfacelist(v1, v3, v4, 0, efa, NULL);
+									w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
+									w= addfacelist(v1, v3, v4, 0, efa, NULL);
 
-								UVCOPY(w->tf.uv[0], uv[0]);
-								UVCOPY(w->tf.uv[1], uv[2]);
-								UVCOPY(w->tf.uv[2], uv[3]);
+									UVCOPY(w->tf.uv[0], uv[0]);
+									UVCOPY(w->tf.uv[1], uv[2]);
+									UVCOPY(w->tf.uv[2], uv[3]);
 
-                                w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3];
+									w->tf.col[0] = col[0]; w->tf.col[1] = col[2]; w->tf.col[2] = col[3];
 
-                                onedone= 1;
-                            }
-                        }
-                        else if(fac1 < fac2) {
-                            if(dia1.v1==eed->v1 && dia1.v2==eed->v2) {
-                                eed->f1= 1;
-                                efa= efaa[0];
-                                efa->f1= 1;
-                                efa= efaa[1];
-                                efa->f1= 1;
+									onedone= 1;
+								}
+							}
+							else if(fac1 < fac2) {
+								if(dia1.v1==eed->v1 && dia1.v2==eed->v2) {
+									eed->f1= 1;
+									efa= efaa[0];
+									efa->f1= 1;
+									efa= efaa[1];
+									efa->f1= 1;
 
-                                w= addfacelist(v2, v3, v4, 0, efa, NULL);
+									w= addfacelist(v2, v3, v4, 0, efa, NULL);
 
-								UVCOPY(w->tf.uv[0], uv[1]);
-								UVCOPY(w->tf.uv[1], uv[3]);
-								UVCOPY(w->tf.uv[2], uv[4]);
+									UVCOPY(w->tf.uv[0], uv[1]);
+									UVCOPY(w->tf.uv[1], uv[3]);
+									UVCOPY(w->tf.uv[2], uv[4]);
 
-                                w= addfacelist(v1, v2, v4, 0, efa, NULL);
+									w= addfacelist(v1, v2, v4, 0, efa, NULL);
 
-								UVCOPY(w->tf.uv[0], uv[0]);
-								UVCOPY(w->tf.uv[1], uv[1]);
-								UVCOPY(w->tf.uv[2], uv[3]);
+									UVCOPY(w->tf.uv[0], uv[0]);
+									UVCOPY(w->tf.uv[1], uv[1]);
+									UVCOPY(w->tf.uv[2], uv[3]);
 
-                                onedone= 1;
-                            }
-                        }
+									onedone= 1;
+								}
+							}
+						}
                     }
                 }
 

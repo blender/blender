@@ -4163,13 +4163,13 @@ void view3d_buttons(void)
 	xco+= XIC;
 	
 	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate widget mode (CTRL click cycles)");
+		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate widget mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate widget mode (CTRL click cycles)");
+		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate widget mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode (CTRL click cycles)");
+		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefButS(block, MENU, REDRAWVIEW3D, "Orientation%t|Global%x0|Local%x1|Normal%x2",                    xco,0,60,YIC, &G.vd->twmode, 0, 0, 0, 0, "Current color");
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Orientation%t|Global%x0|Local%x1|Normal%x2",                    xco,0,60,YIC, &G.vd->twmode, 0, 0, 0, 0, "Widget orientation (ALT+Space)");
 		xco+= 60;
 	}
 	uiBlockEndAlign(block);
