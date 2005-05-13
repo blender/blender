@@ -140,9 +140,12 @@ int txt_get_undostate(void)
 void free_text(Text *text)
 {
 	TextLine *tmp;
-	
-	for (tmp= text->lines.first; tmp; tmp= tmp->next)
+
+	for (tmp= text->lines.first; tmp; tmp= tmp->next) {
 		MEM_freeN(tmp->line);
+		if (tmp->format)
+		  MEM_freeN(tmp->format);
+	}
 	
 	BLI_freelistN(&text->lines);
 
@@ -172,7 +175,8 @@ Text *add_empty_text(void)
 
 	tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= (char*) MEM_mallocN(1, "textline_string");
-
+	tmp->format= (char*) MEM_mallocN(2, "Syntax_format");
+	
 	tmp->line[0]=0;
 	tmp->len= 0;
 				
@@ -223,9 +227,11 @@ int reopen_text(Text *text)
 
 	/* free memory: */
 
-	for (tmp= text->lines.first; tmp; tmp= tmp->next)
+	for (tmp= text->lines.first; tmp; tmp= tmp->next) {
 		MEM_freeN(tmp->line);
-
+		MEM_freeN(tmp->format);
+	}
+	
 	BLI_freelistN(&text->lines);
 
 	text->lines.first= text->lines.last= NULL;
@@ -259,7 +265,8 @@ int reopen_text(Text *text)
 		if (buffer[i]=='\n') {
 			tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 			tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-				
+			tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+			
 			if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 			tmp->line[llen]=0;
 			tmp->len= llen;
@@ -278,6 +285,7 @@ int reopen_text(Text *text)
 	if (llen!=0 || text->nlines==0) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
+		tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
 		
 		if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 
@@ -346,7 +354,8 @@ Text *add_text(char *file)
 		if (buffer[i]=='\n') {
 			tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 			tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
-				
+			tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
+			
 			if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 			tmp->line[llen]=0;
 			tmp->len= llen;
@@ -365,6 +374,7 @@ Text *add_text(char *file)
 	if (llen!=0 || ta->nlines==0) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= (char*) MEM_mallocN(llen+1, "textline_string");
+		tmp->format= (char*) MEM_mallocN(llen+2, "Syntax_format");
 		
 		if(llen) memcpy(tmp->line, &buffer[i-llen], llen);
 
@@ -407,8 +417,10 @@ Text *copy_text(Text *ta)
 	while (line) {
 		tmp= (TextLine*) MEM_mallocN(sizeof(TextLine), "textline");
 		tmp->line= MEM_mallocN(line->len+1, "textline_string");
-		strcpy(tmp->line, line->line);
+		tmp->format= MEM_mallocN(line->len+2, "Syntax_format");
 		
+		strcpy(tmp->line, line->line);
+
 		tmp->len= line->len;
 		
 		BLI_addtail(&tan->lines, tmp);
@@ -426,12 +438,14 @@ Text *copy_text(Text *ta)
 /* Editing utility functions */
 /*****************************/
 
-static void make_new_line (TextLine *line, char *newline) 
+static void make_new_line (TextLine *line, char *newline, char *newformat) 
 {
 	MEM_freeN(line->line);
+	MEM_freeN(line->format);
 	
 	line->line= newline;
-	line->len= strlen(newline);	
+	line->len= strlen(newline);
+	line->format= newformat;
 }
 
 static TextLine *txt_new_line(char *str)
@@ -442,6 +456,8 @@ static TextLine *txt_new_line(char *str)
 	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(strlen(str)+1, "textline_string");
+	tmp->format= MEM_mallocN(strlen(str)+2, "Syntax_format");
+	
 	strcpy(tmp->line, str);
 	
 	tmp->len= strlen(str);
@@ -458,6 +474,8 @@ static TextLine *txt_new_linen(char *str, int n)
 	
 	tmp= (TextLine *) MEM_mallocN(sizeof(TextLine), "textline");
 	tmp->line= MEM_mallocN(n+1, "textline_string");
+	tmp->format= MEM_mallocN(n+2, "Syntax_format");
+	
 	BLI_strncpy(tmp->line, str, n+1);
 	
 	tmp->len= strlen(tmp->line);
@@ -852,7 +870,7 @@ int txt_has_sel(Text *text)
 static void txt_delete_sel (Text *text)
 {
 	TextLine *tmpl;
-	char *buf;
+	char *buf, *format;
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -869,12 +887,13 @@ static void txt_delete_sel (Text *text)
 	}
 
 	buf= MEM_mallocN(text->curc+(text->sell->len - text->selc)+1, "textline_string");
+	format= MEM_mallocN(text->curc+(text->sell->len - text->selc)+2, "Syntax_format");
 	
 	strncpy(buf, text->curl->line, text->curc);
 	strcpy(buf+text->curc, text->sell->line + text->selc);
 	buf[text->curc+(text->sell->len - text->selc)]=0;
-	
-	make_new_line(text->curl, buf);
+
+	make_new_line(text->curl, buf, format);
 	
 	tmpl= text->sell;
 	while (tmpl != text->curl) {
@@ -1807,7 +1826,7 @@ void txt_do_redo(Text *text)
 
 void txt_split_curline (Text *text) {
 	TextLine *ins;
-	char *left, *right;
+	char *left, *right, *fleft, *fright;
 	
 	if (!text) return;
 	if (!text->curl) return;
@@ -1817,22 +1836,27 @@ void txt_split_curline (Text *text) {
 	/* Make the two half strings */
 
 	left= MEM_mallocN(text->curc+1, "textline_string");
+	fleft= MEM_mallocN(text->curc+2, "Syntax_format");
 	if (text->curc) memcpy(left, text->curl->line, text->curc);
 	left[text->curc]=0;
 	
 	right= MEM_mallocN(text->curl->len - text->curc+1, "textline_string");
+	fright= MEM_mallocN(text->curl->len - text->curc+2, "Syntax_format");
 	if (text->curl->len - text->curc) memcpy(right, text->curl->line+text->curc, text->curl->len-text->curc);
 	right[text->curl->len - text->curc]=0;
 
 	MEM_freeN(text->curl->line);
+	MEM_freeN(text->curl->format);
 
 	/* Make the new TextLine */
 	
 	ins= MEM_mallocN(sizeof(TextLine), "textline");
 	ins->line= left;
+	ins->format= fleft;
 	ins->len= text->curc;
 	
 	text->curl->line= right;
+	text->curl->format= fright;
 	text->curl->len= text->curl->len - text->curc;
 	
 	BLI_insertlinkbefore(&text->lines, text->curl, ins);	
@@ -1854,6 +1878,8 @@ static void txt_delete_line (Text *text, TextLine *line)
 	BLI_remlink (&text->lines, line);
 	
 	if (line->line) MEM_freeN(line->line);
+	if (line->format) MEM_freeN(line->format);
+
 	MEM_freeN(line);
 
 	txt_make_dirty(text);
@@ -1862,18 +1888,19 @@ static void txt_delete_line (Text *text, TextLine *line)
 
 static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 {
-	char *tmp;
+	char *tmp, *format;
 	
 	if (!text) return;
 	
 	if(!linea || !lineb) return;
 	
 	tmp= MEM_mallocN(linea->len+lineb->len+1, "textline_string");
+	format= MEM_mallocN(linea->len+lineb->len+1, "Syntax_format");
 	
 	strcpy(tmp, linea->line);
 	strcat(tmp, lineb->line);
-	
-	make_new_line(linea, tmp);
+
+	make_new_line(linea, tmp, format);
 	
 	txt_delete_line(text, lineb); 
 	
@@ -1955,7 +1982,7 @@ void txt_backspace_char (Text *text) {
 
 int txt_add_char (Text *text, char add) {
 	int len;
-	char *tmp;
+	char *tmp, *format;
 	
 	if (!text) return 0;
 	if (!text->curl) return 0;
@@ -1970,6 +1997,7 @@ int txt_add_char (Text *text, char add) {
 	txt_delete_sel(text);
 	
 	tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+	format= MEM_mallocN(text->curl->len+4, "Syntax_format");
 	
 	if(text->curc) memcpy(tmp, text->curl->line, text->curc);
 	tmp[text->curc]= add;
@@ -1977,8 +2005,8 @@ int txt_add_char (Text *text, char add) {
 	len= text->curl->len - text->curc;
 	if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 	tmp[text->curl->len+1]=0;
-	
-	make_new_line(text->curl, tmp);
+
+	make_new_line(text->curl, tmp, format);
 		
 	text->curc++;
 
@@ -1994,7 +2022,7 @@ int txt_add_char (Text *text, char add) {
 void indent(Text *text)
 {
 	int len, num;
-	char *tmp;
+	char *tmp, *format;
 	char add = '\t';
 	
 	if (!text) return;
@@ -2004,6 +2032,8 @@ void indent(Text *text)
 	while (TRUE)
 	{
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+		format= MEM_mallocN(text->curl->len+3, "Syntax_format");
+		
 		text->curc = 0; 
 		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
 		tmp[text->curc]= add;
@@ -2011,8 +2041,8 @@ void indent(Text *text)
 		len= text->curl->len - text->curc;
 		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 		tmp[text->curl->len+1]=0;
-		
-		make_new_line(text->curl, tmp);
+
+		make_new_line(text->curl, tmp, format);
 			
 		text->curc++;
 		
@@ -2082,7 +2112,7 @@ void unindent(Text *text)
 void comment(Text *text)
 {
 	int len, num;
-	char *tmp;
+	char *tmp, *format;
 	char add = '#';
 	
 	if (!text) return;
@@ -2092,6 +2122,8 @@ void comment(Text *text)
 	while (TRUE)
 	{
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
+		format = MEM_mallocN(text->curl->len+3, "Syntax_format");
+		
 		text->curc = 0; 
 		if(text->curc) memcpy(tmp, text->curl->line, text->curc);
 		tmp[text->curc]= add;
@@ -2099,8 +2131,8 @@ void comment(Text *text)
 		len= text->curl->len - text->curc;
 		if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 		tmp[text->curl->len+1]=0;
-		
-		make_new_line(text->curl, tmp);
+
+		make_new_line(text->curl, tmp, format);
 			
 		text->curc++;
 		
@@ -2193,8 +2225,8 @@ int setcurr_tab (Text *text)
 		if(strcspn(text->curl->line, word) < strcspn(text->curl->line, comm))
 		{
 			i++;
-		}
 
+		}
 	}
 
 	while(test < 3)

@@ -41,6 +41,7 @@ typedef struct TextLine {
 	struct TextLine *next, *prev;
 
 	char *line;
+	char *format;
 	int len, blen;
 } TextLine;
 

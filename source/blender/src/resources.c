@@ -509,8 +509,17 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
-			case TH_BRACKET:
-				cp= ts->bracket; break;
+
+			case TH_SYNTAX_B:
+				cp= ts->syntaxb; break;
+			case TH_SYNTAX_V:
+				cp= ts->syntaxv; break;
+			case TH_SYNTAX_C:
+				cp= ts->syntaxc; break;
+			case TH_SYNTAX_L:
+				cp= ts->syntaxl; break;
+			case TH_SYNTAX_N:
+				cp= ts->syntaxn; break;
 
 			}
 
@@ -672,8 +681,12 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->text.shade2, 	0xc6, 0x77, 0x77, 255);
 	SETCOL(btheme->text.hilite, 	255, 0, 0, 255);
 	
-	/* Bracket matching */
-	SETCOL(btheme->text.bracket,	0xff, 0xff, 0x0, 100);
+	/* syntax highlighting */
+	SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
+	SETCOL(btheme->text.syntaxl,	100, 0, 0, 255);	/* Strings  red */
+	SETCOL(btheme->text.syntaxc,	0, 100, 50, 255);	/* Comments greenish */
+	SETCOL(btheme->text.syntaxv,	95, 95, 0, 255);	/* Special */
+	SETCOL(btheme->text.syntaxb,	128, 0, 80, 255);	/* Builtin, red-purple */
 	
 	/* space oops */
 	btheme->toops= btheme->tv3d;
@@ -803,7 +816,11 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Selected Text %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Cursor %%x%d|", TH_HILITE); strcat(cp, str);
 			strcat(cp,"%l|");
-			sprintf(str, "Bracket Matching %%x%d|", TH_BRACKET); strcat(cp, str);
+			sprintf(str, "Syntax Builtin %%x%d|", TH_SYNTAX_B); strcat(cp, str);
+			sprintf(str, "Syntax Special %%x%d|", TH_SYNTAX_V); strcat(cp, str);
+			sprintf(str, "Syntax Comment %%x%d|", TH_SYNTAX_C); strcat(cp, str);
+			sprintf(str, "Syntax Strings %%x%d|", TH_SYNTAX_L); strcat(cp, str);
+			sprintf(str, "Syntax Numbers %%x%d|", TH_SYNTAX_N); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_TIME) {
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);

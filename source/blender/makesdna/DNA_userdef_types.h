@@ -88,8 +88,10 @@ typedef struct ThemeSpace {
 	char normal[4];
 	
 	char vertex_size, facedot_size;
-	char bracket[4]; /* bracket matching */
-	char pad1[2], bpad2[4];
+	char bpad[2];
+
+	char syntaxl[4], syntaxn[4], syntaxb[4]; //syn-
+	char syntaxv[4], syntaxc[4];             //tax
 	
 } ThemeSpace;
 

@@ -256,7 +256,8 @@ typedef struct SpaceText {
 	
 	int tabnumber;
 	int currtab_set; 
-	/* had to make my 64 bits some how */
+	int showsyntax;
+	int unused_padd;
 	
 	float pix_per_line;
 

@@ -126,7 +126,7 @@ void do_text_buttons(unsigned short event)
 				st->top= 0;
 				
 				pop_space_text(st);
-			
+				if (st->showsyntax) get_format_string();
 				allqueue(REDRAWTEXT, 0);
 				allqueue(REDRAWHEADERS, 0);
 			}
@@ -154,11 +154,6 @@ void do_text_buttons(unsigned short event)
 		break;
 */		 
 	case B_TEXTLINENUM:
-		if(st->showlinenrs)
-			st->showlinenrs = 0;
-		else
-			st->showlinenrs = 1;
-
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -177,6 +172,14 @@ void do_text_buttons(unsigned short event)
 
 		break;
 	case B_TAB_NUMBERS:
+		if (st->showsyntax) get_format_string();
+		allqueue(REDRAWTEXT, 0);
+		allqueue(REDRAWHEADERS, 0);
+		break;
+	case B_SYNTAX:
+		if (st->showsyntax) {
+			get_format_string();
+		}
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -208,6 +211,7 @@ static void do_text_filemenu(void *arg, int event)
 				if (!reopen_text(text)) {
 					error("Could not reopen file");
 				}
+			if (st->showsyntax) get_format_string();
 			}
 		break;
 	case 5:
@@ -252,6 +256,7 @@ static void do_text_editmenu(void *arg, int event)
 		break;
 	case 5:
 		txt_paste(text);
+		if (st->showsyntax) get_format_string();
 		break;
 	case 6:
 		txt_print_cutbuffer();
@@ -611,11 +616,9 @@ void text_buttons(void)
 	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
 	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
 		
-	if(st->showlinenrs)
-		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_SHORTDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Hides line numbers");
-	else
-		uiDefIconBut(block, BUT, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Displays line numbers");
+	uiDefIconButI(block, ICONTOG, B_TEXTLINENUM, ICON_LONGDISPLAY, xco+=XIC,0,XIC,YIC, &st->showlinenrs, 0, 0, 0, 0, "Displays line numbers");
 
+	uiDefIconButI(block, ICONTOG, B_SYNTAX, ICON_SYNTAX, xco+=XIC,0,XIC,YIC, &st->showsyntax, 0, 0, 0, 0, "Enables Syntax Highlighting");
 
 	/* STD TEXT BUTTONS */
 	xco+= 2*XIC;

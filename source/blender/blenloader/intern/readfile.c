@@ -1822,7 +1822,8 @@ static void direct_link_text(FileData *fd, Text *text)
 	ln= text->lines.first;
 	while(ln) {
 		ln->line= newdataadr(fd, ln->line);
-
+		ln->format= NULL;
+		
 		if (ln->len != (int) strlen(ln->line)) {
 			printf("Error loading text, line lengths differ\n");
 			ln->len = strlen(ln->line);

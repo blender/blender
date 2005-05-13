@@ -125,6 +125,9 @@
 
 /***/
 
+/* define for setting colors in theme below */
+#define SETCOL(col, r, g, b, a)  col[0]=r; col[1]=g; col[2]= b; col[3]= a;
+
 /* patching UserDef struct, set globals for UI stuff */
 static void init_userdef_file(void)
 {
@@ -189,22 +192,13 @@ static void init_userdef_file(void)
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			/* check for alpha==0 is safe, then color was never set */
 			if(btheme->tv3d.edge_seam[3]==0) {
-				btheme->tv3d.edge_seam[0]= 230;
-				btheme->tv3d.edge_seam[1]= 150;
-				btheme->tv3d.edge_seam[2]= 50;
-				btheme->tv3d.edge_seam[3]= 255;
+				SETCOL(btheme->tv3d.edge_seam, 230, 150, 50, 255);
 			}
 			if(btheme->tv3d.normal[3]==0) {
-				btheme->tv3d.normal[0]= 0x22;
-				btheme->tv3d.normal[1]= 0xDD;
-				btheme->tv3d.normal[2]= 0xDD;
-				btheme->tv3d.normal[3]= 255;
+				SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 			}
 			if(btheme->tv3d.face_dot[3]==0) {
-				btheme->tv3d.face_dot[0]= 255;
-				btheme->tv3d.face_dot[1]= 138;
-				btheme->tv3d.face_dot[2]= 48;
-				btheme->tv3d.face_dot[3]= 255;
+				SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
 				btheme->tv3d.facedot_size= 4;
 			}
 		}
@@ -222,10 +216,15 @@ static void init_userdef_file(void)
 			if(btheme->ttime.back[3]==0) {
 				btheme->ttime = btheme->tsnd;	// copy from sound
 			}
+			if(btheme->text.syntaxn[3]==0) {
+				SETCOL(btheme->text.syntaxn,	0, 0, 200, 255);	/* Numbers  Blue*/
+				SETCOL(btheme->text.syntaxl,	100, 0, 0, 255);	/* Strings  red */
+				SETCOL(btheme->text.syntaxc,	0, 100, 50, 255);	/* Comments greenish */
+				SETCOL(btheme->text.syntaxv,	95, 95, 0, 255);	/* Special */
+				SETCOL(btheme->text.syntaxb,	128, 0, 80, 255);	/* Builtin, red-purple */
+			}
 		}
 	}
-	
-	
 	
 	if (U.undosteps==0) U.undosteps=32;
 	
