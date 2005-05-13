@@ -824,24 +824,37 @@ void postSelectConstraint(TransInfo *t)
 
 void setNearestAxis(TransInfo *t)
 {
-	short coord[2];
+	float zfac, coord[2];
 	float mvec[3], axis[3], proj[3];
 	float len[3];
+	short mval[2];
 	int i;
 
 	t->con.mode &= ~CON_AXIS0;
 	t->con.mode &= ~CON_AXIS1;
 	t->con.mode &= ~CON_AXIS2;
 
-	getmouseco_areawin(coord);
-	mvec[0] = (float)(coord[0] - t->con.imval[0]);
-	mvec[1] = (float)(coord[1] - t->con.imval[1]);
+	getmouseco_areawin(mval);
+	mvec[0] = (float)(mval[0] - t->con.imval[0]);
+	mvec[1] = (float)(mval[1] - t->con.imval[1]);
 	mvec[2] = 0.0f;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
+		
+		/* we need to correct axis length for the current zoomlevel of view,
+		   this to prevent projected values to be clipped behind the camera.
+		   code is actually a copy of initgrabz() in view.c. 
+		   Vector is made 30 pixels long, which is fine for accurate axis choosing. (ton)
+		*/
+		zfac= G.vd->persmat[0][3]*axis[0]+ G.vd->persmat[1][3]*axis[1]+ G.vd->persmat[2][3]*axis[2]+ G.vd->persmat[3][3];
+		zfac= 30.0*zfac/(float)curarea->winx;
+		VecMulf(axis, zfac);
+		
+		/* now we can project to get window coordinate */
 		VecAddf(axis, axis, t->con.center);
-		project_short_noclip(axis, coord);
+		project_float(axis, coord);
+		
 		axis[0] = (float)(coord[0] - t->center2d[0]);
 		axis[1] = (float)(coord[1] - t->center2d[1]);
 		axis[2] = 0.0f;

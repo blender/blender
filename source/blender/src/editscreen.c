@@ -3020,12 +3020,12 @@ static void moveareas(ScrEdge *edge)
 				if((dir=='h') && v1->vec.y>0 && v1->vec.y<G.curscreen->sizey-1) {
 					v1->vec.y+= delta;
 					
-					/* with these lines commented out you can pull the top bar exact to the screen border. */
-					/* if(delta != bigger && delta != -smaller) { */
-						v1->vec.y+= AREAGRID-1;
-						v1->vec.y-= (v1->vec.y % AREAGRID);
+					v1->vec.y+= AREAGRID-1;
+					v1->vec.y-= (v1->vec.y % AREAGRID);
 					
-					/* } */
+					/* prevent too small top header */
+					if(v1->vec.y > G.curscreen->sizey-HEADERY)
+						v1->vec.y= G.curscreen->sizey-HEADERY;
 				}
 			}
 			v1->flag= 0;

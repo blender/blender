@@ -1347,9 +1347,9 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 140, 19, bone->loc+1, -lim, lim, 100, 3, "");
 	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 30, 140, 19, bone->loc+2, -lim, lim, 100, 3, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, bone->size, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	160, 50, 140, 19, bone->size+1, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, bone->size+2, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, bone->size, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	160, 50, 140, 19, bone->size+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, bone->size+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
 }
 
@@ -1607,9 +1607,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 140, 19, &(ob_eul[1]), -lim, lim, 1000, 3, "");
 		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 140, 19, &(ob_eul[2]), -lim, lim, 1000, 3, "");
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 	}
 	uiClearButLock();
