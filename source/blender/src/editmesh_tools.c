@@ -217,11 +217,11 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 				v1= sb1->v1;
 				if( (v1->f & 128)==0 ) {
 					
-					dist= fabs(v1->co[0]-eve->co[0]);
+					dist= (float)fabs(v1->co[0]-eve->co[0]);
 					if(dist<=limit) {
-						dist= fabs(v1->co[1]-eve->co[1]);
+						dist= (float)fabs(v1->co[1]-eve->co[1]);
 						if(dist<=limit) {
-							dist= fabs(v1->co[2]-eve->co[2]);
+							dist= (float)fabs(v1->co[2]-eve->co[2]);
 							if(dist<=limit) {
 								v1->f|= 128;
 								v1->vn= eve;
@@ -504,7 +504,7 @@ void hashvert_flag(int flag)
 	
 	sb= sortblock;
 	for(a=0; a<amount; a++, sb++) {
-		b= amount*BLI_drand();
+		b= (int)(amount*BLI_drand());
 		if(b>=0 && b<amount) {
 			newsort= sortblock+b;
 			onth= *sb;
@@ -687,7 +687,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	cent[2]-= G.obedit->obmat[3][2];
 	Mat3MulVecfl(imat, cent);
 
-	phi= degr*M_PI/360.0;
+	phi= (float)(degr*M_PI/360.0);
 	phi/= steps;
 	if(editbutflag & B_CLOCKWISE) phi= -phi;
 
@@ -701,8 +701,8 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 		Normalise(n);
 	}
 
-	q[0]= cos(phi);
-	si= sin(phi);
+	q[0]= (float)cos(phi);
+	si= (float)sin(phi);
 	q[1]= n[0]*si;
 	q[2]= n[1]*si;
 	q[3]= n[2]*si;
@@ -1155,18 +1155,18 @@ static unsigned int cpack_fact(unsigned int col1, unsigned int col2, float fact)
 {
 	char *cp1, *cp2, *cp;
 	unsigned int col=0;
-	float fact1;
+	float facti;
 	
-	fact1=1-fact; /*result is fact% col1 and (1-fact) % col2 */
+	facti=1-fact; /*result is (1-fact) * col1 and fact * col2 */
 		
 	cp1= (char *)&col1;
 	cp2= (char *)&col2;
 	cp=  (char *)&col;
 	
-	cp[0]= fact*cp1[0]+fact1*cp2[0];
-	cp[1]= fact*cp1[1]+fact1*cp2[1];
-	cp[2]= fact*cp1[2]+fact1*cp2[2];
-	cp[3]= fact*cp1[3]+fact1*cp2[3];
+	cp[0]= (char)(facti*cp1[0]+fact*cp2[0]);
+	cp[1]= (char)(facti*cp1[1]+fact*cp2[1]);
+	cp[2]= (char)(facti*cp1[2]+fact*cp2[2]);
+	cp[3]= (char)(facti*cp1[3]+fact*cp2[3]);
 	
 	return col;
 }
@@ -1174,15 +1174,22 @@ static unsigned int cpack_fact(unsigned int col1, unsigned int col2, float fact)
 
 static void uv_half(float *uv, float *uv1, float *uv2)
 {
-	uv[0]= (uv1[0]+uv2[0])/2.0;
-	uv[1]= (uv1[1]+uv2[1])/2.0;
+	uv[0]= (uv1[0]+uv2[0])/2.0f;
+	uv[1]= (uv1[1]+uv2[1])/2.0f;
 	
+}
+
+static void uv_fact(float *uv, float *uv1, float *uv2, float fact)
+{
+	float facti = 1.0f - fact;
+	uv[0] = facti * uv1[0] + fact * uv2[0];
+	uv[1] = facti * uv1[1] + fact * uv2[1];
 }
 
 static void uv_quart(float *uv, float *uv1)
 {
-	uv[0]= (uv1[0]+uv1[2]+uv1[4]+uv1[6])/4.0;
-	uv[1]= (uv1[1]+uv1[3]+uv1[5]+uv1[7])/4.0;
+	uv[0]= (uv1[0]+uv1[2]+uv1[4]+uv1[6])/4.0f;
+	uv[1]= (uv1[1]+uv1[3]+uv1[5]+uv1[7])/4.0f;
 }
 
 static void face_pin_vertex(EditFace *efa, EditVert *vertex)
@@ -1193,8 +1200,19 @@ static void face_pin_vertex(EditFace *efa, EditVert *vertex)
 	else if(efa->v4 && vertex && efa->v4 == vertex) efa->tf.unwrap |= TF_PIN4;
 }
 
-
-
+static int vert_offset(EditFace *efa, EditVert *eve)
+{
+	if (efa->v1 == eve)
+		return 0;
+	if (efa->v2 == eve)
+		return 1;
+	if (efa->v3 == eve)
+		return 2;
+	if (efa->v4)
+		if (efa->v4 == eve)
+			return 3;
+	return -1;
+}
 
 static void set_wuv(int tot, EditFace *efa, int v1, int v2, int v3, int v4, EditFace *efapin)
 {
@@ -1212,93 +1230,171 @@ static void set_wuv(int tot, EditFace *efa, int v1, int v2, int v3, int v4, Edit
 		if(efapin->tf.unwrap & TF_PIN4) face_pin_vertex(efa, efapin->v4);
 	}
 
-						/* Numbers corespond to verts (corner points), 	*/
-						/* edge->vn's (center edges), the Center 	*/
-	memcpy(uvo, efa->tf.uv, sizeof(uvo));	/* And the quincunx points of a face 		*/
-	uv= efa->tf.uv[0];                            /* as shown here:     				*/
-	                                              /*           2         5          1   */
-	memcpy(colo, efa->tf.col, sizeof(colo));      /*               10         13        */
-	col= efa->tf.col;                             /*           6         9          8   */
-                                                  /*               11         12        */
-	if(tot==4) {                                  /*           3         7          4   */
-		for(a=0; a<4; a++, uv+=2, col++) {
-			if(a==0) v= v1;
-			else if(a==1) v= v2;
-			else if(a==2) v= v3;
-			else v= v4;
-			
-			if(a==3 && v4==0) break;
-			
-			if(v<=4) {
-				uv[0]= uvo[v-1][0];
-				uv[1]= uvo[v-1][1];
-				*col= colo[v-1];
-			}
-			else if(v==8) {
-				uv_half(uv, uvo[3], uvo[0]);
-				*col= cpack_fact(colo[3], colo[0], 0.5);
-			}
-			else if(v==9) {
-				uv_quart(uv, uvo[0]);
-				col1= cpack_fact(colo[1], colo[0], 0.5);
-				col2= cpack_fact(colo[2], colo[3], 0.5);
-				*col= cpack_fact(col1, col2, 0.5);
-			}
-			/* Cases for adjacent edge square subdivide  Real voodoo */
-			/* 1/2 closest corner + 1/4 adjacent corners */
-			else if (v==10){ /* case test==3 in subdivideflag() */	
-				uv[0]=(2*uvo[1][0]+uvo[0][0]+uvo[2][0])/4;
-				uv[1]=(2*uvo[1][1]+uvo[0][1]+uvo[2][1])/4;
-				col1= cpack_fact(colo[1], colo[0], 0.75);
-				col2= cpack_fact(colo[2], colo[3], 0.75);
-				*col= cpack_fact(col1, col2, 0.75);	
-			}
-			else if (v==11) { /* case of test==6 */
-				uv[0]=(2*uvo[2][0]+uvo[1][0]+uvo[3][0])/4;
-				uv[1]=(2*uvo[2][1]+uvo[1][1]+uvo[3][1])/4;
-				col1= cpack_fact(colo[1], colo[0], 0.75);
-				col2= cpack_fact(colo[2], colo[3], 0.75);
-				*col= cpack_fact(col1, col2, 0.25);	
-			}
-			else if (v==12) { /* case of test==12 */
-				uv[0]=(2*uvo[3][0]+uvo[2][0]+uvo[0][0])/4;
-				uv[1]=(2*uvo[3][1]+uvo[2][1]+uvo[0][1])/4;
-				col1= cpack_fact(colo[1], colo[0], 0.25);
-				col2= cpack_fact(colo[2], colo[3], 0.25);
-				*col= cpack_fact(col1, col2, 0.25);
-			}
-			else if (v==13) { /* case of test==9 */
-				uv[0]=(2*uvo[0][0]+uvo[1][0]+uvo[3][0])/4;
-				uv[1]=(2*uvo[0][1]+uvo[1][1]+uvo[3][1])/4;
-				col1= cpack_fact(colo[1], colo[0], 0.25);
-				col2= cpack_fact(colo[2], colo[3], 0.25);
-				*col= cpack_fact(col1, col2, 0.75);
-			}
-			/* default for consecutive verts*/
-			else { 
-				uv_half(uv, uvo[v-5], uvo[v-4]);
-				*col= cpack_fact(colo[v-5], colo[v-4], 0.5);
-			}
-		}
-	}
-	else {
-		for(a=0; a<3; a++, uv+=2, col++) {
-			if(a==0) v= v1;
-			else if(a==1) v= v2;
-			else v= v3;
+	memcpy(uvo, efa->tf.uv, sizeof(uvo));	
+	uv= efa->tf.uv[0];
+	memcpy(colo, efa->tf.col, sizeof(colo));
+	col= efa->tf.col;
+
+	/* 
+		Quads and Triangles reuse the same cases numbers, so we migh as well do both in the
+		same loop. Especially now that the offsets are calculated and not hardcoded, it's
+		much easier to reduce the code size (and make it less buggy).
+	*/
+
+	/* ******************************************** */
+	/*                                              */
+	/* Numbers corespond to verts (corner points), 	*/
+	/* edge->vn's (center edges), the Center 	    */
+	/* And the quincunx points of a face 		    */
+	/*                                              */
+	/* ******************************************** */
+
+	/* ******************************************** */
+	/* as shown here for quads:                     */
+	/*                                              */
+	/*           2 ------- 5 -------- 1             */
+	/*           | \    /  |  \    /  |             */
+	/*           |   10    |    13    |             */
+	/*           | /    \  |  /    \  |             */
+	/*           6 ------- 9 -------- 8             */
+	/*           | \    /  |  \    /  |             */
+	/*           |   11    |    12    |             */
+	/*           | /    \  |  /    \  |             */
+	/*           3 ------- 7 -------- 4             */
+	/*                                              */
+	/* ******************************************** */
+
+	/* ******************************************** */
+	/* and for triangles:                           */
+	/*                     1                        */
+	/*                   /   \                      */
+	/*                 /       \                    */
+	/*               5           7                  */
+	/*             /              \                 */
+	/*           /                  \               */
+	/*         2 --------- 6 -------- 3             */
+	/*                                              */
+	/* ******************************************** */
+
+	/* ******************************************** */
+	/*                                              */
+	/* My talents in ascii arts are minimal so the  */
+	/* drawings don't show all possible subdivision */
+	/* just draw them on paper if you need to.      */
+	/*                                              */
+	/* ******************************************** */
+
+	for(a=0; a<tot; a++, uv+=2, col++) {
+		/* edges that are subdivided, if any */
+		EditEdge *e1 = NULL, *e2 = NULL;
+
+		if(a==0) v= v1;
+		else if(a==1) v= v2;
+		else if(a==2) v= v3;
+		else v= v4;
 		
-			if(v<=4) {
-				uv[0]= uvo[v-1][0];
-				uv[1]= uvo[v-1][1];
-				*col= colo[v-1];
+		if(a==3 && v4==0) break;
+
+		switch (v) {
+		/* Face corners, direct copy of the UVs and VCol */
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+			uv[0]= uvo[v-1][0];
+			uv[1]= uvo[v-1][1];
+			*col= colo[v-1];
+			break;
+		/* Face sides (cutting an edge) */
+		/*
+			set the edge pointer accordingly, it's used latter to do the
+			actual calculations of the new UV and VCol 
+		*/
+		case 5:
+			e1 = efapin->e1;
+			break;
+		case 6:
+			e1 = efapin->e2;
+			break;
+		case 7:
+			e1 = efapin->e3;
+			break;
+		case 8:
+			e1 = efapin->e4;
+			break;
+
+		/* The following applies to Quads only */
+
+		/* Quad middle, just used when subdividing a quad as a whole */
+		/* (not knife nor loop cut) */
+		/* UVs and VCol is just the average of the four corners */
+		case 9:
+			uv_quart(uv, uvo[0]);
+			col1= cpack_fact(colo[1], colo[0], 0.5f);
+			col2= cpack_fact(colo[2], colo[3], 0.5f);
+			*col= cpack_fact(col1, col2, 0.5f);
+			break;
+		/* Quad corner cuts */
+		/* only when two adjacent edges are subdivided (and no others) */
+		/* Set both edge pointers accordingly, used later for calculations */
+		case 10: // case test==3 in subdivideflag() 	
+			e1 = efapin->e1;
+			e2 = efapin->e2;
+			break;
+		case 11: // case of test==6
+			e1 = efapin->e2;
+			e2 = efapin->e3;
+			break;
+		case 12: // case of test==12
+			e1 = efapin->e3;
+			e2 = efapin->e4;
+			break;
+		case 13: // case of test==9
+			e1 = efapin->e4;
+			e2 = efapin->e1;
+			break;
+		}
+		/* if splitting at least an edge */
+		if (e1) {
+			float percent;
+			int off1, off2;
+			/* if splitting two edges */
+			if (e2) {
+				float uv1[2], uv2[2];
+				/*
+					UV and VCol is obtained by using the middle ground of the weighted
+					average for both edges (weighted with Percent cut flag).
+					In a nutshell, the average of the cuts on both edges.
+				*/
+				/* first cut */
+				off1 = vert_offset(efapin, e1->v1);
+				off2 = vert_offset(efapin, e1->v2);
+				percent = e1->f1 / 32768.0f;
+				uv_fact(uv1, uvo[off1], uvo[off2], percent);
+				col1= cpack_fact(colo[off1], colo[off2], percent);
+
+				/* second cut */
+				off1 = vert_offset(efapin, e2->v1);
+				off2 = vert_offset(efapin, e2->v2);
+				percent = e2->f1 / 32768.0f;
+				uv_fact(uv2, uvo[off1], uvo[off2], percent);
+				col2= cpack_fact(colo[off1], colo[off1], percent);
+
+				/* average the two */
+				uv_half(uv, uv1, uv2);
+				*col= cpack_fact(col1, col2, 0.5f);
 			}
-			else if(v==7) {
-				uv_half(uv, uvo[2], uvo[0]);
-				*col= cpack_fact(colo[2], colo[0], 0.5);
-			}
+			/* or only one */
 			else {
-				uv_half(uv, uvo[v-5], uvo[v-4]);
-				*col= cpack_fact(colo[v-5], colo[v-4], 0.5);
+				/*
+					UV and VCol is obtained by using the weighted average 
+					of both vertice (weighted with Percent cut flag).
+				*/
+				off1 = vert_offset(efapin, e1->v1);
+				off2 = vert_offset(efapin, e1->v2);
+				percent = e1->f1 / 32768.0f;
+				uv_fact(uv, uvo[off1], uvo[off2], percent);
+				*col= cpack_fact(colo[off1], colo[off2], percent);
 			}
 		}
 	}
@@ -1361,7 +1457,7 @@ static void smooth_subdiv_vec(float *v1, float *v2, float *n1, float *n2, float 
 	float len, fac, nor[3], nor1[3], nor2[3];
 	
 	VecSubf(nor, v1, v2);
-	len= 0.5*Normalise(nor);
+	len= 0.5f*Normalise(nor);
 
 	VECCOPY(nor1, n1);
 	VECCOPY(nor2, n2);
@@ -1432,7 +1528,7 @@ void subdivideflag(int flag, float rad, int beauty)
 
 		if(button(&perc, 10, 500, "Percentage:")==0) return;
 		
-		smoothperc= 0.292*perc/100.0;
+		smoothperc= 0.292f*perc/100.0f;
 	}
 
 	/* edgeflags */
@@ -1517,8 +1613,11 @@ void subdivideflag(int flag, float rad, int beauty)
 			eed->h &= ~EM_FGON;
 		
 			/* Subdivide percentage is stored in 1/32768ths in eed->f1 */
-			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0;
-			else percent=0.5;
+			if (beauty & B_PERCENTSUBD) percent=(float)(eed->f1)/32768.0f;
+			else {
+				eed->f1 = 32768 / 2;
+				percent=0.5f;
+			}
 			
 			vec[0]= (1-percent)*eed->v1->co[0] + percent*eed->v2->co[0];
 			vec[1]= (1-percent)*eed->v1->co[1] + percent*eed->v2->co[1];
@@ -1532,9 +1631,9 @@ void subdivideflag(int flag, float rad, int beauty)
 			}
 			else if(rad< 0.0) {  /* fractal subdivide */
 				fac= rad* VecLenf(eed->v1->co, eed->v2->co);
-				vec1[0]= fac*(0.5-BLI_drand());
-				vec1[1]= fac*(0.5-BLI_drand());
-				vec1[2]= fac*(0.5-BLI_drand());
+				vec1[0]= fac*(float)(0.5-BLI_drand());
+				vec1[1]= fac*(float)(0.5-BLI_drand());
+				vec1[2]= fac*(float)(0.5-BLI_drand());
 				VecAddf(vec, vec, vec1);
 			}
 			
@@ -1662,6 +1761,7 @@ void subdivideflag(int flag, float rad, int beauty)
 						set_weights(eve, efa->v1,efa->v2,efa->v3,efa->v4);
 						eve->f |= flag;
 
+						printf("e1 %d, e2 %d, e3 %d, e4 %d\n", efapin.e1->f1, efapin.e2->f1, efapin.e3->f1, efapin.e4->f1);
 						addface_subdiv(efa, 2, 2+4, 9, 1+4, eve, &efapin);
 						addface_subdiv(efa, 3, 3+4, 9, 2+4, eve, &efapin);
 						addface_subdiv(efa, 4, 4+4, 9, 3+4, eve, &efapin);
@@ -1815,7 +1915,7 @@ void subdivideflag(int flag, float rad, int beauty)
 							addface_subdiv(efa, 3+4, 4+4, 1+4, 0, 0, &efapin);
 							efa->v4= e3->vn;
 							efa->v1= e1->vn;
-							set_wuv(4, efa, 1+4, 3, 3, 3+4, &efapin);
+							set_wuv(4, efa, 1+4, 2, 3, 3+4, &efapin);
 						}
 						else if(test==11) { /* 1,2,&4 */
 							addface_subdiv(efa, 4+4, 1+4, 2+4, 0, 0, &efapin);
@@ -2953,7 +3053,7 @@ static void bevel_displace_vec(float *midvec, float *v1, float *v2, float *v3, f
 		return;
 	}
 	ac2 = ac * ac;
-	fac = sqrt((ac2 + 2*ac + 1)/(1 - ac2) + 1);
+	fac = (float)sqrt((ac2 + 2*ac + 1)/(1 - ac2) + 1);
 	VecAddf(mid, n_c, n_a);
 	Normalise(mid);
 	VecMulf(mid, d * fac);
@@ -2977,12 +3077,12 @@ static void fix_bevel_wrap(float *midvec, float *v1, float *v2, float *v3, float
 	Normalise(c);
 
 	s_b = Inpf(a, c);
-	s_b = sqrt(1 - (s_b * s_b));
+	s_b = (float)sqrt(1 - (s_b * s_b));
 	s_a = Inpf(b, c);
-	s_a = sqrt(1 - (s_a * s_a));
+	s_a = (float)sqrt(1 - (s_a * s_a));
 	VecMulf(a, -1);
 	s_c = Inpf(a, b);
-	s_c = sqrt(1 - (s_c * s_c));
+	s_c = (float)sqrt(1 - (s_c * s_c));
 
 	l_b = s_b * l_a / s_a;
 	l_c = s_c * l_a / s_a;
@@ -3099,7 +3199,7 @@ static void fix_bevel_tri_wrap(float *o_v1, float *o_v2, float *o_v3, float *v1,
 		float vec[3];
 		VecAddf(vec, o_v1, o_v2);
 		VecAddf(vec, vec, o_v3);
-		VecMulf(vec, 1.0/3.0);
+		VecMulf(vec, 1.0f/3.0f);
 		VECCOPY(v1, vec);
 		VECCOPY(v2, vec);
 		VECCOPY(v3, vec);
@@ -3231,7 +3331,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	//float f1, f2, f3, f4;
 	float cent[3], min[3], max[3];
 	int a, b, c;
-	float limit= 0.001;
+	float limit= 0.001f;
 
 	waitcursor(1);
 
@@ -3652,7 +3752,7 @@ void bevel_menu()
 	if(button(&recurs, 1, 4, "Recursion:")==0) return;
 
 	for (nr=0; nr<recurs-1; nr++) {
-		if (nr==0) fac += 1.0/3.0; else fac += 1.0/(3 * nr * 2.0);
+		if (nr==0) fac += 1.0f/3.0f; else fac += 1.0f/(3 * nr * 2.0f);
 	}
 
 	SetBlenderCursor(SYSCURSOR);
@@ -3672,7 +3772,7 @@ void bevel_menu()
 
 			drawd = d * fac;
 			if (G.qual & LR_CTRLKEY)
-				drawd = (float) floor(drawd * 10.0)/10.0;
+				drawd = (float) floor(drawd * 10.0f)/10.0f;
 			if (G.qual & LR_SHIFTKEY)
 				drawd /= 10;
 
