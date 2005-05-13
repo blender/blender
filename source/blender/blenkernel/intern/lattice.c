@@ -457,7 +457,7 @@ static int where_on_path_deform(Object *ob, float ctime, float *vec, float *dir)
 static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *cd)
 {
 	Curve *cu= par->data;
-	float fac, loc[4], dir[3], *quat, mat[3][3], cent[3];
+	float fac, loc[4], dir[3], *quat, q[4], mat[3][3], cent[3];
 	short upflag, index;
 	
 	if(axis==OB_POSX || axis==OB_NEGX) {
@@ -495,6 +495,17 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 	if( where_on_path_deform(par, fac, loc, dir)) {	/* returns OK */
 
 		quat= vectoquat(dir, axis, upflag);
+		
+		/* the tilt */
+		if(loc[3]!=0.0) {
+			Normalise(dir);
+			q[0]= (float)cos(0.5*loc[3]);
+			fac= (float)sin(0.5*loc[3]);
+			q[1]= -fac*dir[0];
+			q[2]= -fac*dir[1];
+			q[3]= -fac*dir[2];
+			QuatMul(quat, q, quat);
+		}		
 		QuatToMat3(quat, mat);
 	
 		/* local rotation */
