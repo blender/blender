@@ -1108,10 +1108,12 @@ static void softbody_bake(Object *ob)
 {
 	SoftBody *sb= ob->soft;
 	ScrArea *sa;
+	float frameleno= G.scene->r.framelen;
 	int cfrao= CFRA;
 	unsigned short event=0;
 	short val;
 	
+	G.scene->r.framelen= 1.0;	// baking has to be in uncorrected time
 	CFRA= sb->sfra;
 	sbObjectToSoftbody(ob);
 	ob->softflag |= OB_SB_BAKEDO;
@@ -1144,6 +1146,7 @@ static void softbody_bake(Object *ob)
 	waitcursor(0);
 	ob->softflag &= ~OB_SB_BAKEDO;
 	CFRA= cfrao;
+	G.scene->r.framelen= frameleno;
 	update_for_newframe_muted();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
