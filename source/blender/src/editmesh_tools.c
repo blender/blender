@@ -1761,7 +1761,6 @@ void subdivideflag(int flag, float rad, int beauty)
 						set_weights(eve, efa->v1,efa->v2,efa->v3,efa->v4);
 						eve->f |= flag;
 
-						printf("e1 %d, e2 %d, e3 %d, e4 %d\n", efapin.e1->f1, efapin.e2->f1, efapin.e3->f1, efapin.e4->f1);
 						addface_subdiv(efa, 2, 2+4, 9, 1+4, eve, &efapin);
 						addface_subdiv(efa, 3, 3+4, 9, 2+4, eve, &efapin);
 						addface_subdiv(efa, 4, 4+4, 9, 3+4, eve, &efapin);
