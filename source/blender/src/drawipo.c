@@ -144,8 +144,17 @@ static void step_to_grid(float *step, int *macht)
 		if(rem < 0.2) rem= 0.2;
 		else if(rem < 0.5) rem= 0.5;
 		else rem= 1.0;
-		
+
 		*step= rem*pow(10.0, (float)*macht);
+		
+		// partial of a frame have no meaning
+		if(curarea->spacetype==SPACE_TIME) {
+			SpaceTime *stime= curarea->spacedata.first;
+			if(stime->flag & TIME_DRAWFRAMES) {
+				rem = 1.0;
+				*step = 1.0;
+			}
+		}
 		
 		if(rem==1.0) (*macht)++;	// prevents printing 1.0 2.0 3.0 etc
 	}
