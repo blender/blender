@@ -536,9 +536,9 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 
 	if (draw) {
 		if(st->showsyntax) {
-			format = format+cshift;
 			int amount, a;
 			char out[2];
+			format = format+cshift;
 		
 			amount = strlen(in);
 			
