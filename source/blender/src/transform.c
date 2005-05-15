@@ -216,6 +216,11 @@ static char *transform_to_undostr(TransInfo *t)
 
 /* ************************************************* */
 
+void checkFirstTime() {
+	if(Trans.mode==TFM_INIT)
+		memset(&Trans, 0, sizeof(TransInfo));
+}
+
 void transformEvent(unsigned short event, short val) {
 	float mati[3][3];
 	char cmode = constraintModeToChar(&Trans);
@@ -431,7 +436,7 @@ void transformEvent(unsigned short event, short val) {
 
 void initTransform(int mode, int context) {
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
-	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
+	checkFirstTime();
 
 	Trans.state = TRANS_RUNNING;
 
@@ -595,9 +600,6 @@ void ManipulatorTransform(int mode)
 	int mouse_moved = 0;
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
-
-	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
-	if(Trans.mode==TFM_INIT) memset(&Trans, 0, sizeof(TransInfo));
 
 	Trans.state = TRANS_RUNNING;
 

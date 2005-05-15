@@ -1463,7 +1463,7 @@ int BIF_do_manipulator(ScrArea *sa)
 	// find the hotspots first test narrow hotspot
 	val= manipulator_selectbuf(sa, 0.5f*(float)U.tw_hotspot);
 	if(val) {
-		
+		checkFirstTime(); // TEMPORARY, check this before doing any transform call.
 		// drawflags still global, for drawing call above
 		drawflags= manipulator_selectbuf(sa, 0.2f*(float)U.tw_hotspot);
 		if(drawflags==0) drawflags= val;
