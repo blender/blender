@@ -21,7 +21,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem"
+				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\bsp\include;..\..\..\..\build\msvc_7\intern\bmfont\include;..\..\..\..\build\msvc_7\intern\iksolver\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;&quot;..\..\..\..\Python-23-source\Python&quot;;&quot;..\..\..\..\Python-23-source\Modules&quot;;&quot;..\..\..\..\Python-23-source\Objects&quot;;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender;..\..\..\source\blender\avi;..\..\..\source\blender\img;..\..\..\source\blender\imbuf;..\..\..\source\blender\blenlib;..\..\..\source\blender\python;..\..\..\source\blender\include;..\..\..\source\blender\blenkernel;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenloader;..\..\..\source\blender\renderconverter;..\..\..\source\blender\render\extern\include;..\..\..\source\blender\radiosity\extern\include;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\SoundSystem"
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -123,9 +123,6 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Armature.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\BezTriple.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\BGL.c">
 			</File>
 			<File
@@ -135,25 +132,7 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\BPY_interface.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\BPY_menus.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Build.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\constant.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Curve.c">
@@ -165,22 +144,10 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\euler.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\EXPP_interface.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Ipo.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lamp.c">
@@ -192,22 +159,13 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Library.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\logic.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Material.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Mathutils.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\matrix.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Metaball.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\MTex.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\NLA.c">
@@ -222,16 +180,7 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Particle.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\quat.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Scene.c">
@@ -258,32 +207,87 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Texture.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Types.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\vector.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Wave.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Window.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\World.c">
 			</File>
+			<Filter
+				Name="internal"
+				Filter="">
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\BezTriple.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\BPY_interface.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\BPY_menus.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Build.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\constant.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\euler.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\EXPP_interface.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Font.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\logic.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\matrix.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\MTex.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Particle.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\quat.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Types.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\vector.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Wave.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.c">
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Armature.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\BezTriple.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\BGL.h">
@@ -295,28 +299,7 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\BPY_extern.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\BPY_menus.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_types.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Build.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\constant.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Curve.h">
@@ -328,22 +311,10 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Effect.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\euler.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\EXPP_interface.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Ipo.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lamp.h">
@@ -352,25 +323,13 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lattice.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\logic.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Material.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Mathutils.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\matrix.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Metaball.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\modules.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\MTex.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\NLA.h">
@@ -382,16 +341,7 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Particle.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\quat.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Registry.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Scene.h">
@@ -418,23 +368,87 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Texture.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Types.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\vector.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Wave.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Window.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\World.h">
 			</File>
+			<Filter
+				Name="internal"
+				Filter="">
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\BezTriple.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\BPY_extern.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\BPY_menus.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\bpy_types.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Build.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\constant.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\CurNurb.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\euler.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\EXPP_interface.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Font.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\gen_utils.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\logic.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\matrix.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\modules.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\MTex.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Particle.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\quat.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\rgbTuple.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Types.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\vector.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\Wave.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.h">
+				</File>
+			</Filter>
 		</Filter>
 	</Files>
 	<Globals>

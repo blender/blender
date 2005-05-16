@@ -175,6 +175,9 @@
 				RelativePath="..\..\..\source\blender\src\drawaction.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\drawdeps.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\drawimage.c">
 			</File>
 			<File
@@ -209,6 +212,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\drawtext.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\drawtime.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\drawview.c">
@@ -301,6 +307,9 @@
 				RelativePath="..\..\..\source\blender\src\editsound.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\edittime.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\editview.c">
 			</File>
 			<File
@@ -353,6 +362,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\header_text.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\header_time.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\header_view3d.c">
@@ -448,6 +460,9 @@
 				RelativePath="..\..\..\source\blender\src\transform_constraints.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\transform_conversions.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\transform_generics.c">
 			</File>
 			<File
@@ -527,19 +542,13 @@
 				RelativePath="..\..\..\source\blender\include\BSE_filesel.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\include\BSE_time.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\include\butspace.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\src\transform.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\src\transform_constraints.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\src\transform_generics.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\src\transform_numinput.h">
+				RelativePath="..\..\..\source\blender\include\transform.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\winlay.h">

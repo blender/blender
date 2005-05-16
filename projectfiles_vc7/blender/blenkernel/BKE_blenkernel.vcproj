@@ -356,6 +356,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\deform.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\depsgraph.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\DerivedMesh.c">
 			</File>
 			<File
@@ -431,9 +434,6 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\sound.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\subsurf.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\subsurf_ccg.c">
 			</File>
 			<File
@@ -487,6 +487,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_deform.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_depsgraph.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_DerivedMesh.h">
@@ -598,6 +601,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\CCGSubSurf.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\depsgraph_private.h">
 			</File>
 		</Filter>
 	</Files>

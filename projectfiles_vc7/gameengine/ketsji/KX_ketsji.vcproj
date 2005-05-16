@@ -75,7 +75,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
-				PreprocessorDefinitions="WIN32,_LIB,EXP_PYTHON_EMBEDDING,_DEBUG"
+				PreprocessorDefinitions="WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="TRUE"
@@ -127,7 +127,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
-				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
+				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -233,7 +233,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\build\msvc_7\intern\string\include;..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\build\msvc_7\intern\soundsystem\include;..\..\..\..\build\msvc_7\intern\guardedalloc\include;..\..\..\..\build\msvc_7\extern\solid\include;..\..\..\..\lib\windows\python\include\python2.3;..\..\..\source\blender\imbuf;..\..\..\source\blender\include;..\..\..\source\blender\python;..\..\..\source\blender\makesdna;..\..\..\source\blender\blenkernel;..\..\..\source\kernel\gen_system;..\..\..\source\gameengine\physics;..\..\..\source\gameengine\rasterizer;..\..\..\source\gameengine\network;..\..\..\source\gameengine\Converter;..\..\..\source\gameengine\gamelogic;..\..\..\source\gameengine\scenegraph;..\..\..\source\gameengine\expressions;..\..\..\source\gameengine\physics\sumo;..\..\..\source\gameengine\physics\dummy;..\..\..\source\gameengine\physics\BlOde;..\..\..\source\gameengine\ketsji\kxnetwork;..\..\..\source\gameengine\physics\common;..\..\..\source\gameengine\physics\sumo\include;..\..\..\source\gameengine\physics\common\dummy;..\..\..\source\gameengine\physics\sumo\fuzzics\include;..\..\..\source\sumo\include;..\..\..\source\sumo\fuzzics\include"
-				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG"
+				PreprocessorDefinitions="JANCODEPANCO;WIN32;_LIB;EXP_PYTHON_EMBEDDING;_DEBUG;USE_SUMO_SOLID"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				DefaultCharIsUnsigned="TRUE"
@@ -469,6 +469,9 @@
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ObColorIpoSGController.cpp">
 				</File>
 				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_BoneParentNodeRelationship.cpp">
+				</File>
+				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_WorldIpoController.cpp">
 				</File>
 			</Filter>
@@ -658,6 +661,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_ObColorIpoSGController.h">
+				</File>
+				<File
+					RelativePath="..\..\..\source\gameengine\Ketsji\KX_SG_BoneParentNodeRelationship.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\gameengine\Ketsji\KX_WorldIpoController.h">

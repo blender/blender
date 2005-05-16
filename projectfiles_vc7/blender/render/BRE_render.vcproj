@@ -175,6 +175,9 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\vanillaRenderPipe.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\zblur.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\zbuf.c">
 			</File>
 			<File
@@ -246,6 +249,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\vanillaRenderPipe_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\zblur.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\zbuf.h">

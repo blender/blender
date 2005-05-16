@@ -498,6 +498,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_nla_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_object_force.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_object_types.h">
 			</File>
 			<File
