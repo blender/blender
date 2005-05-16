@@ -1070,8 +1070,12 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 
 	/* local constraint shouldn't alter center */
 	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
-		if (t->flag & T_OBJECT)
+		if (t->flag & T_OBJECT) {
 			VECCOPY(center, td->center);	// not supported in editmode yet
+		}
+		else {
+			VECCOPY(center, t->center);		// Editmode needs to define center too...
+		}
 	}
 	else {
 		VECCOPY(center, t->center);
