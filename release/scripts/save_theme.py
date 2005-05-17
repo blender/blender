@@ -9,7 +9,7 @@ Tooltip: 'Save current theme as a bpython script'
 
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun")
-__version__ = "1.1 2005/13/01"
+__version__ = "1.2 2005/05/17"
 
 __bpydoc__ = """\
 This script saves the current Theme in Blender as a Blender Python script.
@@ -63,7 +63,7 @@ default_fname = default_fname.replace(' ','_')
 def write_theme(filename):
 	"Write the current theme as a bpython script"
 
-	if filename.find('.py', -3) <= 0: filename += '.py'
+	if not filename.endswith('.py'): filename += '.py'
 
 	fout = file(filename, "w")
 
@@ -77,7 +77,7 @@ def write_theme(filename):
 # \"\"\"
 
 __%s__ = "????"
-__%s__ = "1.0"
+__%s__ = "1.2"
 __%s__ = ["blender"]
 __%s__ = \"\"\"\\
 You can edit this section to write something about your script that can

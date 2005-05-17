@@ -21,8 +21,9 @@ Missing:<br>
 Known issues:<br>
 
 Notes:<br>
-   Jean-Michel Soler improved importer to support Poser 3.01 files.
-
+   Jean-Michel Soler improved importer to support Poser 3.01 files;<br>
+   Jean-Baptiste Perin wrote a script to create an armature out of the
+Empties created by this importer, it's in the Scripts window -> Scripts -> Animation menu.
 """
 
 # $Id$

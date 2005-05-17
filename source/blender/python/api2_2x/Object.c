@@ -211,6 +211,7 @@ static PyObject *Object_setPISurfaceDamp( BPy_Object * self, PyObject * args );
 static PyObject *Object_getPIDeflection( BPy_Object * self );
 static PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args );
 
+static PyObject *Object_isSB( BPy_Object * self );
 static PyObject *Object_getSBMass( BPy_Object * self );
 static PyObject *Object_setSBMass( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBGravity( BPy_Object * self );
@@ -348,6 +349,8 @@ automatic when the script finishes."},
      
 /* Softbody */
 
+	{"isSB", ( PyCFunction ) Object_isSB, METH_NOARGS,
+	 "True if object is a soft body"},
 	{"getSBMass", ( PyCFunction ) Object_getSBMass, METH_NOARGS,
 	 "Returns SB Mass"},
 	{"setSBMass", ( PyCFunction ) Object_setSBMass, METH_VARARGS,
@@ -3225,6 +3228,13 @@ PyObject *Object_setPIDeflection( BPy_Object * self, PyObject * args )
 
 /*  SOFTBODY FUNCTIONS */
 
+PyObject *Object_isSB(BPy_Object *self)
+{
+	if (self->object->soft)
+		return EXPP_incr_ret_True();
+	else return EXPP_incr_ret_False();
+}
+
 PyObject *Object_getSBMass( BPy_Object * self )
 {
 	PyObject *attr;
@@ -3678,7 +3688,7 @@ PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args )
 
 PyObject *Object_getSBEnable( BPy_Object * self )
 {
-    short flag =  self->object->softflag;
+    /*short flag =  self->object->softflag;*/
     PyObject *attr = NULL;
     
     if(!self->object->soft){
@@ -3726,7 +3736,7 @@ PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args )
 
 PyObject *Object_getSBPostDef( BPy_Object * self )
 {
-    short flag =  self->object->softflag;
+    /*short flag =  self->object->softflag;*/
     PyObject *attr = NULL;
 
     if(!self->object->soft){
@@ -3769,7 +3779,7 @@ PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args )
 }
 PyObject *Object_getSBUseGoal( BPy_Object * self )
 {
-    short flag =  self->object->softflag;
+    /*short flag =  self->object->softflag;*/
     PyObject *attr = NULL;
     
     if(!self->object->soft){
@@ -3812,7 +3822,7 @@ PyObject *Object_setSBUseGoal( BPy_Object * self, PyObject * args )
 
 PyObject *Object_getSBUseEdges( BPy_Object * self )
 {
-    short flag =  self->object->softflag;
+    /*short flag =  self->object->softflag;*/
     PyObject *attr = NULL;
     
     if(!self->object->soft){
@@ -3855,7 +3865,7 @@ PyObject *Object_setSBUseEdges( BPy_Object * self, PyObject * args )
 
 PyObject *Object_getSBStiffQuads( BPy_Object * self )
 {
-    short flag =  self->object->softflag;
+    /*short flag =  self->object->softflag;*/
     PyObject *attr = NULL;
 
     if(!self->object->soft){

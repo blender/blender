@@ -1734,17 +1734,30 @@ static void del_area(ScrArea *sa)
 static void copy_areadata(ScrArea *sa1, ScrArea *sa2)
 {
 	Panel *pa1, *pa2, *patab;
-	
+	ScriptLink *slink1 = &sa1->scriptlink, *slink2 = &sa2->scriptlink;
+
 	sa1->headertype= sa2->headertype;
 	sa1->spacetype= sa2->spacetype;
 	Mat4CpyMat4(sa1->winmat, sa2->winmat);
-	
+
 	freespacelist(&sa1->spacedata);
 	duplicatespacelist(sa1, &sa1->spacedata, &sa2->spacedata);
 
 	BLI_freelistN(&sa1->panels);
 	duplicatelist(&sa1->panels, &sa2->panels);
-	
+
+	/* space handler script links */
+	if (slink1->totscript) {
+		MEM_freeN(slink1->scripts);
+		MEM_freeN(slink1->flag);
+		slink1->totscript = 0;
+	}
+	if (slink2->totscript) {
+		slink1->scripts = MEM_dupallocN(slink2->scripts);
+		slink1->flag = MEM_dupallocN(slink2->flag);
+		slink1->totscript = slink2->totscript;
+	}
+
 	/* copy pointers */
 	pa1= sa1->panels.first;
 	while(pa1) {

@@ -1,7 +1,7 @@
 #!BPY
 
 """
-Name: 'Blender Knife Tool'
+Name: 'Knife Tool'
 Blender: 232
 Group: 'Object'
 Tooltip: 'Cut selected mesh(es) along an active plane w/o creating doubles'
