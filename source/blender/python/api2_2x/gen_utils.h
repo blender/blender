@@ -51,6 +51,15 @@
 
 #define Py_PI  3.14159265358979323846
 
+/* 
+   Py_RETURN_NONE
+   Python 2.4 macro.  
+   defined here until we switch to 2.4
+*/
+#ifndef Py_RETURN_NONE
+#define Py_RETURN_NONE  Py_INCREF( Py_None ); return Py_None 
+#endif
+
 int StringEqual( const char *string1, const char *string2 );
 char *GetIdName( ID * id );
 ID *GetIdFromList( ListBase * list, char *name );
