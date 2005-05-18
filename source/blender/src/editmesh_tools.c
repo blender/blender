@@ -1994,6 +1994,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 			eed->vn= (EditVert *) (&efaa[i]);
 			i++;
 		}
+		
 		eed= eed->next;
 	}
 		
@@ -2360,6 +2361,8 @@ void beauty_fill(void)
         free_tagged_facelist(em->faces.first);
 
         if(onedone==0) break;
+		
+		EM_select_flush();	// new edges/faces were added
     }
 
     MEM_freeN(efaar);
