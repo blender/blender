@@ -2965,22 +2965,26 @@ void RE_rotateBlenderScene(void)
 	base= G.scene->base.first;
 	while(base) {
 		ob= base->object;
+		
 		clear_object_constraint_status(ob);
+		
 		if (ob->type==OB_ARMATURE) 
 			where_is_armature (ob);
 		else
 			where_is_object(ob);
 
-		if(ob->type==OB_MESH) {
-			Mesh *me= ob->data;
+		if(ob->disp.first==NULL) {
 			/* check for need for displist (it's zero when parent, key, or hook changed) */
 			/* this part was added to mimic drawing code better, will be solved with dep graph! (ton) */
-			if(ob->disp.first==NULL) {
-				if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
-				else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
-				else if(ob->hooks.first) makeDispList(ob);
-				else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
-				else if(me->disp.first==NULL && (me->flag&ME_SUBSURF)) makeDispList(ob);
+			/* added note; this is also needed for curves, for example, deformed with hooks */
+			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
+			else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
+			else if(ob->hooks.first) makeDispList(ob);
+			else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
+		
+			if(ob->type==OB_MESH) {
+				Mesh *me= ob->data;
+				if(me->disp.first==NULL && (me->flag&ME_SUBSURF)) makeDispList(ob);
 				else if(ob->effect.first) {	// as last check
 					Effect *eff= ob->effect.first;
 					if(eff->type==EFF_WAVE) makeDispList(ob);
