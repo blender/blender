@@ -244,27 +244,34 @@ void make_vertexcol()	/* single ob */
 		me->flag &= ~ME_TWOSIDED;
 	}
 	
-	dl= ob->disp.first;
-	
-	if(dl==0 || dl->col1==NULL) {
-		shadeDispList(ob);
-		dl= find_displist(&ob->disp, DL_VERTCOL);
-	}
-	if(dl && dl->col1) {
-		int i;
-		
+	/* but subsurf vertex colors are wrong */
+	if (me->flag & ME_SUBSURF) {
 		if(me->mcol) MEM_freeN(me->mcol);
+		me->mcol= MEM_callocN(4*me->totface*sizeof(MCol), "mcol");
+	}
+	else {
+		dl= ob->disp.first;
 		
-		me->mcol= MEM_dupallocN(dl->col1);
-		if (me->mcol) {
-			for (i=0; i<me->totface*4; i++) {
-				MCol *mcol= &me->mcol[i];
-				mcol->a= 255;
-			}
+		if(dl==NULL || dl->col1==NULL) {
+			shadeDispList(ob);
+			dl= find_displist(&ob->disp, DL_VERTCOL);
+		}
+		if(dl && dl->col1) {
+			if(me->mcol) MEM_freeN(me->mcol);
+			me->mcol= MEM_dupallocN(dl->col1);
+		}
+	}
+	
+	if(me->mcol) {
+		int i;
+		for (i=0; i<me->totface*4; i++) {
+			MCol *mcol= &me->mcol[i];
+			mcol->a= 255;
 		}
 		
 		if(me->tface) mcol_to_tface(me, 1);
 	}
+	
 	freedisplist(&(ob->disp));
 	
 	
