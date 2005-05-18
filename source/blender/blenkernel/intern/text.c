@@ -440,8 +440,8 @@ Text *copy_text(Text *ta)
 
 static void make_new_line (TextLine *line, char *newline, char *newformat) 
 {
-	MEM_freeN(line->line);
-	MEM_freeN(line->format);
+	if (line->line) MEM_freeN(line->line);
+	if (line->format) MEM_freeN(line->format);
 	
 	line->line= newline;
 	line->len= strlen(newline);
@@ -2005,7 +2005,6 @@ int txt_add_char (Text *text, char add) {
 	len= text->curl->len - text->curc;
 	if(len>0) memcpy(tmp+text->curc+1, text->curl->line+text->curc, len);
 	tmp[text->curl->len+1]=0;
-
 	make_new_line(text->curl, tmp, format);
 		
 	text->curc++;
