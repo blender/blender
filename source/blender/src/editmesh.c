@@ -1576,6 +1576,7 @@ void separate_mesh_loose(void)
 			emcopy.allverts= NULL;
 			emcopy.alledges= NULL;
 			emcopy.allfaces= NULL;
+			emcopy.derived= NULL;
 			free_editMesh(&emcopy);
 			
 			em->verts= edve;
