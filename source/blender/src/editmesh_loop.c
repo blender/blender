@@ -473,7 +473,6 @@ static CutCurve *get_mouse_trail(int *len, char mode){
 				ldown=0;
 			}
 		}
-		else PIL_sleep_ms(10);	// idle
 		
 		if ((event==MIDDLEMOUSE)&&(get_mbut()&M_MOUSE)&&(i)){/*MMB Down*/
 		/*determine which axis to lock to, or clear if locked */
