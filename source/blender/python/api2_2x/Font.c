@@ -202,14 +202,18 @@ PyObject *M_Font_New( PyObject * self, PyObject * args )
 	char *name_str = "<builtin>";
 	char *parent_str = "";
 	BPy_Font *py_font = NULL;	/* for Font Data object wrapper in Python */
+	PyObject *tmp; 
 
 	if( !PyArg_ParseTuple( args, "|s", &name_str ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string or empty argument" ) );
 
 	/*create python font*/
-	if( !S_ISDIR(BLI_exist(name_str)) ) 
+	if( !S_ISDIR(BLI_exist(name_str)) )  {
+		tmp= Py_BuildValue("(s)", name_str);
 		py_font= M_Text3d_LoadFont (self, Py_BuildValue("(s)", name_str));
+		Py_DECREF (tmp);
+	}
 	else
 		return EXPP_incr_ret( Py_None );
 	return ( PyObject * ) py_font;
