@@ -2685,7 +2685,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 			rl1.rb2= rowbuf2;
 			rl1.rb3= rowbuf3;
 			
-			if(R.r.mode & R_THREADS) {
+			if( (R.r.mode & R_THREADS) && y!=R.recty-1) {	// odd amount of total y pixels...
 				if((y & 1)==0) {
 					SDL_Thread *thread;
 
