@@ -846,7 +846,7 @@ void setNearestAxis(TransInfo *t)
 	   Vector is made 30 pixels long, which is fine for accurate axis choosing. (ton)
 	*/
 	zfac= G.vd->persmat[0][3]*t->center[0]+ G.vd->persmat[1][3]*t->center[1]+ G.vd->persmat[2][3]*t->center[2]+ G.vd->persmat[3][3];
-	zfac= 30.0*zfac/(float)curarea->winx;
+	zfac= (float)curarea->winx/30.0f*zfac;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
@@ -860,7 +860,7 @@ void setNearestAxis(TransInfo *t)
 		axis[1] = (float)(coord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
-		if (Normalise(axis) != 0.0f) {
+ 		if (Normalise(axis) != 0.0f) {
 			Projf(proj, mvec, axis);
 			VecSubf(axis, mvec, proj);
 			len[i] = Normalise(axis);
