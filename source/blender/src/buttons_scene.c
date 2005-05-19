@@ -1039,6 +1039,23 @@ static void render_panel_output(void)
 
 	uiDefButS(block, TOG|BIT|4, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
+	/* Dither control */
+	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
+	
+	/* Toon shading buttons */
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|5, 0,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
+	
+	/* postprocess render buttons */
+	uiBlockBeginAlign(block);
+	if(R.rectftot)
+		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+	else
+		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
+	uiBlockEndAlign(block);
+	
 	/* removed, for time being unified and normal render will use same gamma for blending (2.0) */
 	//if (G.scene->r.mode & R_GAMMA) {
 	//	uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
@@ -1330,6 +1347,7 @@ static void render_panel_yafrayGlobal()
 	}
 }
 
+#if 0
 static void render_panel_sfx(void)
 {
 	uiBlock *block;
@@ -1364,14 +1382,14 @@ static void render_panel_sfx(void)
 	uiDefButF(block, NUM,B_DIFF, "Dither:",			160,80,150,20, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
 }
-
+#endif
 
 
 void render_panels()
 {
 
 	render_panel_output();
-	render_panel_sfx();
+//	render_panel_sfx();
 	render_panel_render();
 	render_panel_anim();
 	render_panel_format();
