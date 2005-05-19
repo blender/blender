@@ -841,12 +841,14 @@ void setNearestAxis(TransInfo *t)
 
 		
 	/* we need to correct axis length for the current zoomlevel of view,
-	   this to prevent projected values to be clipped behind the camera.
-	   code is actually a copy of initgrabz() in view.c. 
-	   Vector is made 30 pixels long, which is fine for accurate axis choosing. (ton)
+	   this to prevent projected values to be clipped behind the camera
+	   and to overflow the short integers.
+	   The formula used is a bit stupid, just a simplification of the substraction
+	   of two 2D points 30 pixels apart (that's the last factor in the formula) after
+	   projecting them with window_to_3d and then get the length of that vector.
 	*/
 	zfac= G.vd->persmat[0][3]*t->center[0]+ G.vd->persmat[1][3]*t->center[1]+ G.vd->persmat[2][3]*t->center[2]+ G.vd->persmat[3][3];
-	zfac= (float)curarea->winx/30.0f*zfac;
+	zfac = VecLength(G.vd->persinv[0]) * 2.0f/curarea->winx * zfac * 30.0f;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
