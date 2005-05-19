@@ -229,7 +229,7 @@ int reopen_text(Text *text)
 
 	for (tmp= text->lines.first; tmp; tmp= tmp->next) {
 		MEM_freeN(tmp->line);
-		MEM_freeN(tmp->format);
+		if (tmp->format) MEM_freeN(tmp->format);
 	}
 	
 	BLI_freelistN(&text->lines);
@@ -1846,7 +1846,7 @@ void txt_split_curline (Text *text) {
 	right[text->curl->len - text->curc]=0;
 
 	MEM_freeN(text->curl->line);
-	MEM_freeN(text->curl->format);
+	if (text->curl->format) MEM_freeN(text->curl->format);
 
 	/* Make the new TextLine */
 	
