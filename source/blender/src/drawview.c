@@ -2366,13 +2366,15 @@ int play_anim(int mode)
 	do_all_keys();
 	do_all_actions(NULL);
 
-	/* set all objects on current frame... test_all_displists() needs it */
-	base= G.scene->base.first;
-	while(base) {
-		if(G.vd->lay & base->lay) where_is_object(base->object);
-		base= base->next;
+	if(G.vd) {
+		/* set all objects on current frame... test_all_displists() needs it */
+		base= G.scene->base.first;
+		while(base) {
+			if(G.vd->lay & base->lay) where_is_object(base->object);
+			base= base->next;
+		}
+		test_all_displists();
 	}
-	test_all_displists();
 	
 	audiostream_stop();
 

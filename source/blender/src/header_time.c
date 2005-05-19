@@ -62,9 +62,11 @@
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_seqaudio.h"
 #include "BSE_time.h"
 
 #include "blendef.h"
+#include "butspace.h"
 #include "mydevice.h"
 
 void do_time_buttons(ScrArea *sa, unsigned short event)
@@ -79,10 +81,16 @@ void do_time_buttons(ScrArea *sa, unsigned short event)
 		break;
 	case B_TL_PLAY:
 		add_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM, stime->redraws);
+		if(stime->redraws & TIME_WITH_SEQ_AUDIO)
+			audiostream_start( CFRA );
+
 		break;
 	case B_TL_STOP:
 		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+		if(stime->redraws & TIME_WITH_SEQ_AUDIO)
+			audiostream_stop();
 		allqueue(REDRAWALL, 0);
+		
 		break;
 	case B_TL_FF:
 		/* end frame */
@@ -325,6 +333,7 @@ static uiBlock *time_framemenu(void *arg_unused)
 
 void time_buttons(ScrArea *sa)
 {
+	SpaceTime *stime= sa->spacedata.first;
 	uiBlock *block;
 	short xco, xmax;
 	char name[256];
@@ -436,6 +445,9 @@ void time_buttons(ScrArea *sa)
 	
 	xco+= XIC+16;
 
+	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
+					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");
+	
 	/* always as last  */
 	sa->headbutlen= xco+2*XIC;
 

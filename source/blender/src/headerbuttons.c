@@ -548,10 +548,10 @@ void update_for_newframe_muted(void)
 	do_update_for_newframe(1, 1);
 }
 
-
-void update_for_newframe_nodraw(void)
+/* used by new animated UI playback */
+void update_for_newframe_nodraw(int nosound)
 {
-	do_update_for_newframe(1, 0);
+	do_update_for_newframe(nosound, 0);
 }
 
 

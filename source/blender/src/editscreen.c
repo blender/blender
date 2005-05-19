@@ -92,6 +92,7 @@
 #include "BSE_edit.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_seqaudio.h"
 #include "BSE_view.h"
 
 #include "BPY_extern.h"
@@ -1006,9 +1007,23 @@ int has_screenhandler(bScreen *sc, short eventcode)
 
 static void animated_screen(bScreen *sc, short val)
 {
-	CFRA++;
-	if(CFRA > EFRA) CFRA= SFRA;
-	update_for_newframe_nodraw();
+	int mute= 1;
+	
+	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
+		mute= 0;
+		if(CFRA>=EFRA) {
+			CFRA= SFRA;
+			audiostream_stop();
+			audiostream_start( CFRA );
+		}
+		else CFRA = audiostream_pos();
+	}
+	else {
+		CFRA++;
+		if(CFRA > EFRA) CFRA= SFRA;
+	}
+	
+	update_for_newframe_nodraw(mute);
 	
 	if(val & TIME_ALL_3D_WIN)
 		allqueue(REDRAWVIEW3D, 0);

@@ -511,7 +511,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				{
 					first= 0;
 					CFRA= cfra;
-					update_for_newframe_nodraw();
+					update_for_newframe_nodraw(1);	// 1= nosound
 					timeline_force_draw(stime->redraws);
 				}
 				else PIL_sleep_ms(30);
