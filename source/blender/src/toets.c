@@ -91,6 +91,7 @@
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_seqaudio.h"
 
 #include "blendef.h"
 #include "render.h"		// darn schrijfplaatje() (ton)
@@ -733,7 +734,13 @@ int blenderqread(unsigned short event, short val)
 		break;
 
 	case ESCKEY:
-		sound_stop_all_sounds();
+		sound_stop_all_sounds();	// whats this?
+		
+		/* stop playback on ESC always */
+		rem_screenhandler(G.curscreen, SCREEN_HANDLER_ANIM);
+		audiostream_stop();
+		allqueue(REDRAWALL, 0);
+		
 		break;
 	case TABKEY:
 		if(G.qual==0) {
