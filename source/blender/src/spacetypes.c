@@ -43,6 +43,7 @@
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
+#include "BIF_space.h"
 #include "BIF_spacetypes.h"
 
 /***/
@@ -75,11 +76,11 @@ void spacetype_set_winfuncs(SpaceType *st, SpaceDrawFP draw, SpaceChangeFP chang
 	st->winhandle= handle;
 }
 
-	/***/
+	/* gets SpaceType struct, but also has patch to initialize unknown spacetypes */
 
-static SpaceType *spacetype_from_code(int spacecode)
+static SpaceType *spacetype_from_area(ScrArea *area)
 {
-	switch (spacecode) {
+	switch (area->spacetype) {
 	case SPACE_ACTION:	return spaceaction_get_type();
 	case SPACE_BUTS:	return spacebuts_get_type();
 	case SPACE_FILE:	return spacefile_get_type();
@@ -96,13 +97,15 @@ static SpaceType *spacetype_from_code(int spacecode)
 	case SPACE_VIEW3D:	return spaceview3d_get_type();
 	case SPACE_TIME:	return spacetime_get_type();
 	default:
+		newspace(area, SPACE_VIEW3D);
+		return spaceview3d_get_type();
 		return NULL;
 	}
 }
 
 void scrarea_do_windraw(ScrArea *area)
 {
-	SpaceType *st= spacetype_from_code(area->spacetype);
+	SpaceType *st= spacetype_from_area(area);
 	
 	areawinset(area->win);
 
@@ -118,7 +121,7 @@ void scrarea_do_windraw(ScrArea *area)
 }
 void scrarea_do_winchange(ScrArea *area)
 {
-	SpaceType *st= spacetype_from_code(area->spacetype);
+	SpaceType *st= spacetype_from_area(area);
 
 	areawinset(area->win);
 
@@ -133,7 +136,7 @@ void scrarea_do_winchange(ScrArea *area)
 }
 void scrarea_do_winhandle(ScrArea *area, BWinEvent *evt)
 {
-	SpaceType *st= spacetype_from_code(area->spacetype);
+	SpaceType *st= spacetype_from_area(area);
 
 	areawinset(area->win);
 	
