@@ -1617,17 +1617,17 @@ static void object_softbodies(Object *ob)
 		else {
 			/* GENERAL STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General Friction for point movements");
+			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General media friction for point movements");
 			uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
 			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,100,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_DIFF, "RKL:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Runge-Kutta ODE solver error limit");
-			uiDefButF(block, NUM, B_DIFF, "Time:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "PostDef",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Apply Soft AFTER Deform");
+			uiDefButF(block, NUM, B_DIFF, "Prec:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Precision, the Runge-Kutta ODE solver error limit");
+			uiDefButF(block, NUM, B_DIFF, "Speed:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "Apply Deform First",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Softbody is calculated AFTER Deformation");
 			uiBlockEndAlign(block);
 			
 			/* GOAL STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SB_GOAL, B_DIFF, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 			
 			menustr= get_vertexgroup_menustr(ob);
 			defCount=BLI_countlist(&ob->defbase);
@@ -1649,16 +1649,16 @@ static void object_softbodies(Object *ob)
 
 			uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
 			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) friction");
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Min Goal bound");
-			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Max Goal bound");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Min:",		10,60,150,20, &sb->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+			uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "G Max:",		160,60,150,20, &sb->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			uiBlockEndAlign(block);
 			
 			/* EDGE SPRING STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Robust 2nd order solver");
-			uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to have diagonal springs on 4-gons");
+			uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
+			uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		160,30,150,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 			uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,10,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
-			uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge friction");
+			uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,10,150,20, &sb->infrict, 0.0,  10.0, 10, 0, "Edge spring friction");
 			uiBlockEndAlign(block);
 		}
 	}

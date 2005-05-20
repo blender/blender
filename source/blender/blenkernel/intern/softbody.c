@@ -862,8 +862,8 @@ static void mesh_to_softbody(Object *ob)
 		they are normalized [0.0..1.0] so may be we need amplitude for scale
 		which can be done by caller but still .. i'd like it to go this way 
 		*/ 
-
-		if(sb->vertgroup) {
+		
+		if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
 			get_scalar_from_vertexgroup(ob, me->totvert - a, sb->vertgroup-1, &bp->goal);
 			// do this always, regardless successfull read from vertex group
 			bp->goal= sb->mingoal + bp->goal*goalfac;
