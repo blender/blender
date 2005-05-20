@@ -172,10 +172,8 @@ static void draw_markers_time(SpaceTime *stime)
 
 static void draw_sfra_efra()
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-	glColor4ub(0, 0, 0, 25);
-
+	BIF_ThemeColorShade(TH_BACK, -25);
+	
 	if (G.scene->r.sfra < G.scene->r.efra) {
 		glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, G.scene->r.sfra, G.v2d->cur.ymax);
 		
@@ -184,7 +182,7 @@ static void draw_sfra_efra()
 		glRectf(G.v2d->cur.xmin, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);
 	}
 	
-	glColor4ub(0, 0, 0, 90);
+	BIF_ThemeColorShade(TH_BACK, -60);
 	/* thin lines where the actual frames are */
 	fdrawline(G.scene->r.sfra, G.v2d->cur.ymin, G.scene->r.sfra, G.v2d->cur.ymax);
 	fdrawline(G.scene->r.efra, G.v2d->cur.ymin, G.scene->r.efra, G.v2d->cur.ymax);
