@@ -1016,7 +1016,11 @@ static void animated_screen(bScreen *sc, short val)
 			audiostream_stop();
 			audiostream_start( CFRA );
 		}
-		else CFRA = audiostream_pos();
+		else {
+			int cfra = audiostream_pos();
+			if(cfra <= CFRA) CFRA++;
+			else CFRA= cfra;
+		}
 	}
 	else {
 		CFRA++;
