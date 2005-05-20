@@ -33,37 +33,31 @@
 #ifndef EXPP_matrix_h
 #define EXPP_matrix_h
 
-#include "Python.h"
-#include "BLI_arithb.h"
-#include "vector.h"
-#include "gen_utils.h"
-#include "Types.h"
-#include "quat.h"
-#include "euler.h"
+#define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
 
-#define Matrix_CheckPyObject(v) ((v)->ob_type == &matrix_Type)
-
-/*****************************/
-/*    Matrix Python Object   */
-/*****************************/
 typedef float **ptRow;
-
 typedef struct _Matrix {
-	PyObject_VAR_HEAD  /*     standard python macro  */
-	ptRow matrix;
-	float *contigPtr;
+	PyObject_VAR_HEAD 
+	struct{
+		float *py_data;		//python managed
+		float *blend_data;	//blender managed
+	}data;
+	ptRow matrix;			//ptr to the contigPtr (accessor)
+	float *contigPtr;		//1D array of data (alias)
 	int rowSize;
 	int colSize;
-	int flag;
-	//0 - no coercion
-	//1 - coerced from int
-	//2 - coerced from float
+	PyObject *coerced_object;
 } MatrixObject;
+/*coerced_object is a pointer to the object that it was
+coerced from when a dummy vector needs to be created from
+the coerce() function for numeric protocol operations*/
 
-/*****************************************************************************/
-/* Python API function prototypes.					    */
-/*****************************************************************************/
-PyObject *newMatrixObject( float *mat, int rowSize, int colSize );
+/*struct data contains a pointer to the actual data that the
+object uses. It can use either PyMem allocated data (which will
+be stored in py_data) or be a wrapper for data allocated through
+blender (stored in blend_data). This is an either/or struct not both*/
+
+//prototypes
 PyObject *Matrix_Zero( MatrixObject * self );
 PyObject *Matrix_Identity( MatrixObject * self );
 PyObject *Matrix_Transpose( MatrixObject * self );
@@ -74,5 +68,6 @@ PyObject *Matrix_RotationPart( MatrixObject * self );
 PyObject *Matrix_Resize4x4( MatrixObject * self );
 PyObject *Matrix_toEuler( MatrixObject * self );
 PyObject *Matrix_toQuat( MatrixObject * self );
+PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type);
 
 #endif				/* EXPP_matrix_H */

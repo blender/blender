@@ -120,6 +120,31 @@ int EXPP_ReturnIntError( PyObject * type, char *error_msg )
 /* Description: This function increments the reference count of the given   */
 /*			 Python object (usually Py_None) and returns it.    */
 /*****************************************************************************/
+void EXPP_incr2( PyObject * ob1, PyObject * ob2 )
+{
+	Py_INCREF( ob1 );
+	Py_INCREF( ob2 );
+}
+
+void EXPP_incr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 )
+{
+	Py_INCREF( ob1 );
+	Py_INCREF( ob2 );
+	Py_INCREF( ob3 );
+}
+
+void EXPP_decr2( PyObject * ob1, PyObject * ob2 )
+{
+	Py_DECREF( ob1 );
+	Py_DECREF( ob2 );
+}
+
+void EXPP_decr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 )
+{
+	Py_DECREF( ob1 );
+	Py_DECREF( ob2 );
+	Py_DECREF( ob3 );
+}
 
 PyObject *EXPP_incr_ret( PyObject * object )
 {

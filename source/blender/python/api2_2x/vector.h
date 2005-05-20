@@ -33,40 +33,34 @@
 #ifndef EXPP_vector_h
 #define EXPP_vector_h
 
-#include "Python.h"
-#include "gen_utils.h"
-#include "Types.h"
-#include "matrix.h"
-#include "BKE_utildefines.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-/*****************************/
-//    Vector Python Object   
-/*****************************/
-
 #define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD float *vec;
+	PyObject_VAR_HEAD 
+	struct{
+		float *py_data;		//python managed
+		float *blend_data;	//blender managed
+	}data;
+	float *vec;				//1D array of data (alias)
 	int size;
-	int flag;
-	//0 - no coercion
-	//1 - coerced from int
-	//2 - coerced from float
-	int delete_pymem;	/* flag to delete the memory vec points at */
+	PyObject *coerced_object;
 } VectorObject;
+/*coerced_object is a pointer to the object that it was
+coerced from when a dummy vector needs to be created from
+the coerce() function for numeric protocol operations*/
+
+/*struct data contains a pointer to the actual data that the
+object uses. It can use either PyMem allocated data (which will
+be stored in py_data) or be a wrapper for data allocated through
+blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *newVectorObject( float *vec, int size );
-PyObject *newVectorProxy( float *vec, int size );
 PyObject *Vector_Zero( VectorObject * self );
 PyObject *Vector_Normalize( VectorObject * self );
 PyObject *Vector_Negate( VectorObject * self );
 PyObject *Vector_Resize2D( VectorObject * self );
 PyObject *Vector_Resize3D( VectorObject * self );
 PyObject *Vector_Resize4D( VectorObject * self );
+PyObject *newVectorObject(float *vec, int size, int type);
 
 #endif				/* EXPP_vector_h */

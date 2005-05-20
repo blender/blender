@@ -29,14 +29,48 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+//Include this file for access to vector, quat, matrix, euler, etc...
 
 #ifndef EXPP_Mathutils_H
 #define EXPP_Mathutils_H
 
-
-
+#include <Python.h>
+#include "vector.h"
+#include "matrix.h"
+#include "quat.h"
+#include "euler.h"
 #include "Types.h"
 
 PyObject *Mathutils_Init( void );
+PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
+PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
+
+PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CrossVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_Matrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_TranslationMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CrossQuats(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_DotQuats(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args);
+//DEPRECATED	
+PyObject *M_Mathutils_CopyMat(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CopyVec(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CopyQuat(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_CopyEuler(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_MatMultVec(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_VecMultMat(PyObject * self, PyObject * args);
 
 #endif				/* EXPP_Mathutils_H */

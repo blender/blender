@@ -33,7 +33,6 @@
 #ifndef EXPP_OBJECT_H
 #define EXPP_OBJECT_H
 
-#include <Python.h>
 #include <stdio.h>
 #include <BDR_editobject.h>
 #include <BKE_armature.h>
@@ -60,10 +59,7 @@
 #include <DNA_action_types.h>
 
 #include "gen_utils.h"
-#include "vector.h"
-#include "matrix.h"
-#include "euler.h"
-#include "quat.h"
+
 
 /* The Object PyType Object defined in Object.c */
 extern PyTypeObject Object_Type;

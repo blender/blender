@@ -50,6 +50,8 @@
 #include <DNA_listBase.h>
 
 #define Py_PI  3.14159265358979323846
+#define Py_WRAP 1024
+#define Py_NEW  2048
 
 /* 
    Py_RETURN_NONE
@@ -72,6 +74,10 @@ char *event_to_name( short event );
 float EXPP_ClampFloat( float value, float min, float max );
 int EXPP_ClampInt( int value, int min, int max );
 
+void EXPP_incr2( PyObject * ob1, PyObject * ob2 );
+void EXPP_incr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 );
+void EXPP_decr2( PyObject * ob1, PyObject * ob2 );
+void EXPP_decr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 );
 PyObject *EXPP_incr_ret( PyObject * object );
 PyObject *EXPP_incr_ret_True(void);
 PyObject *EXPP_incr_ret_False(void);

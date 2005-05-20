@@ -830,7 +830,7 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 
 	viewmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->viewmat, 4,
-						4 );
+						4, Py_WRAP );
 
 	if( !viewmat )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -854,7 +854,7 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 
 	perspmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
-						4 );
+						4, Py_WRAP);
 
 	if( !perspmat )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,

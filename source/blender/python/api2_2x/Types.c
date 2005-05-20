@@ -57,6 +57,7 @@ void types_InitAll( void )
 	CurNurb_Type.ob_type = &PyType_Type;
 	Curve_Type.ob_type = &PyType_Type;
 	Effect_Type.ob_type = &PyType_Type;
+	Font_Type.ob_type = &PyType_Type;
 	Image_Type.ob_type = &PyType_Type;
 	Ipo_Type.ob_type = &PyType_Type;
 	IpoCurve_Type.ob_type = &PyType_Type;
