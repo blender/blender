@@ -441,7 +441,8 @@ static Sequence *alloc_sequence(int cfra, int machine)
 	seq->flag= SELECT;
 	seq->start= cfra;
 	seq->machine= machine;
-
+	seq->mul= 1.0;
+	
 	return seq;
 }
 
