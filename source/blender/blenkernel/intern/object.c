@@ -1326,7 +1326,7 @@ void where_is_object_time(Object *ob, float ctime)
 		pop= 0;
 		if(no_parent_ipo==0 && ctime != par->ctime) {
 		
-			// alleen voor ipo systemen? 
+			// only for ipo systems? 
 			pushdata(par, sizeof(Object));
 			pop= 1;
 			
@@ -1340,7 +1340,7 @@ void where_is_object_time(Object *ob, float ctime)
 		}
 		
 		if(ob->partype & PARSLOW) {
-			// framerate meetellen 
+			// include framerate
 
 			fac1= (float)(timefac/(1.0+ fabs(ob->sf)));
 			if(fac1>=1.0) return;
@@ -1445,7 +1445,7 @@ static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int si
 #endif
 	}
 	
-	// totaal 
+	// total 
 	Mat4MulSerie(tmat, totmat, ob->parentinv,         
 		NULL, NULL, NULL, NULL, NULL, NULL);
 	Mat4MulSerie(ob->obmat, tmat, obmat,         
@@ -1455,11 +1455,10 @@ static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int si
 
 	}
 	else{
-		// >>>>>>>>>>>>>>>>>>
-		// dit is een extern bruikbare originmat 
+		// external usable originmat 
 		Mat3CpyMat4(originmat, tmat);
 		
-		// origin, voor hulplijntje 
+		// origin, voor help line
 		if( (ob->partype & 15)==PARSKEL ) {
 			VECCOPY(ob->orig, par->obmat[3]);
 		}

@@ -2334,7 +2334,10 @@ void test_all_displists(void)
 	while(base) {
 		if(base->lay & lay) {
 			ob= base->object;
-			if(ob->flag & BA_DISP_UPDATE) makeDispList(ob);
+			if(ob->flag & BA_DISP_UPDATE) {
+				where_is_object(ob);
+				makeDispList(ob);
+			}
 			else if(ob->flag & BA_WHERE_UPDATE) freedisplist_object(ob);
 		}
 		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
