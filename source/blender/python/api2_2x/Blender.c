@@ -33,6 +33,10 @@
 #include <Python.h>
 #include <stdio.h>
 
+#ifndef O_BINARY
+# define O_BINARY 0
+#endif
+
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #ifndef WIN32
