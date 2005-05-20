@@ -452,6 +452,7 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	Strip *strip;
 	StripElem *se;
 	int totsel, a;
+	char name[160], rel[160];
 
 	/* are there selected files? */
 	totsel= 0;
@@ -480,12 +481,20 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	}
 
 	calc_sequence(seq);
+	
+	if(sfile->flag & FILE_STRINGCODE) {
+		strcpy(name, sfile->dir);
+		strcpy(rel, G.sce);
+		BLI_makestringcode(rel, name);
+	} else {
+		strcpy(name, sfile->dir);
+	}
 
 	/* strip and stripdata */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totsel;
 	strip->us= 1;
-	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
+	strncpy(strip->dir, name, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totsel*sizeof(StripElem), "stripelem");
 
 	for(a=0; a<sfile->totfile; a++) {
@@ -516,6 +525,7 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	Strip *strip;
 	StripElem *se;
 	int totframe, a;
+	char name[160], rel[160];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	totframe= 0;
@@ -539,12 +549,20 @@ static void sfile_to_mv_sequence(SpaceFile *sfile, int cfra, int machine)
 	seq->anim= anim;
 
 	calc_sequence(seq);
+	
+	if(sfile->flag & FILE_STRINGCODE) {
+		strcpy(name, sfile->dir);
+		strcpy(rel, G.sce);
+		BLI_makestringcode(rel, name);
+	} else {
+		strcpy(name, sfile->dir);
+	}
 
 	/* strip and stripdata */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totframe;
 	strip->us= 1;
-	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
+	strncpy(strip->dir, name, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
@@ -567,6 +585,7 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 	StripElem *se;
 	double totframe;
 	int a;
+	char name[160], rel[160];
 	char str[256];
 
 	totframe= 0.0;
@@ -596,12 +615,20 @@ static Sequence *sfile_to_snd_sequence(SpaceFile *sfile, int cfra, int machine)
 	seq->sound = sound;
 
 	calc_sequence(seq);
+	
+	if(sfile->flag & FILE_STRINGCODE) {
+		strcpy(name, sfile->dir);
+		strcpy(rel, G.sce);
+		BLI_makestringcode(rel, name);
+	} else {
+		strcpy(name, sfile->dir);
+	}
 
 	/* strip and stripdata */
 	seq->strip= strip= MEM_callocN(sizeof(Strip), "strip");
 	strip->len= totframe;
 	strip->us= 1;
-	strncpy(strip->dir, sfile->dir, FILE_MAXDIR-1);
+	strncpy(strip->dir, name, FILE_MAXDIR-1);
 	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
 
 	/* name sound in first strip */

@@ -262,6 +262,51 @@ static void clear_global(void)
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT);
 }
 
+/* make sure path names are correct for OS */
+static void clean_paths(Main *main)
+{
+	Image *image= main->image.first;
+	bSound *sound= main->sound.first;
+	Scene *scene= main->scene.first;
+	Editing *ed;
+	Sequence *seq;
+	Strip *strip;
+	
+	
+	while(image) {
+		BLI_clean(image->name);
+		image= image->id.next;
+	}
+	
+	while(sound) {
+		BLI_clean(sound->name);
+		sound= sound->id.next;
+	}
+	
+	while(scene) {
+		ed= scene->ed;
+		if(ed) {
+			seq= ed->seqbasep->first;
+			while(seq) {
+				if(seq->plugin) {
+					BLI_clean(seq->plugin->name);
+				}
+				strip= seq->strip;
+				while(strip) {
+					BLI_clean(strip->dir);
+					strip= strip->next;
+				}
+				seq= seq->next;
+			}
+		}
+		BLI_clean(scene->r.backbuf);
+		BLI_clean(scene->r.pic);
+		BLI_clean(scene->r.ftype);
+		
+		scene= scene->id.next;
+	}
+}
+
 static void setup_app_data(BlendFileData *bfd, char *filename) 
 {
 	Object *ob;
@@ -274,6 +319,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	if(bfd->main->screen.first==NULL) mode= 'u';
 	else if(G.fileflags & G_FILE_NO_UI) mode= 'n';
 	else mode= 0;
+	
+	clean_paths(bfd->main);
 	
 	/* no load screens? */
 	if(mode) {

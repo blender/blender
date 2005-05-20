@@ -172,7 +172,7 @@ void makepicstring(char *string, int frame)
 	strcpy(string, G.scene->r.pic);
 	BLI_convertstringcode(string, G.sce, G.scene->r.cfra);
 
-			len= strlen(string);
+	len= strlen(string);
 			
 	/* can also: sprintf(num, "%04d", frame); */
 
@@ -205,7 +205,6 @@ void makepicstring(char *string, int frame)
 	else if(G.scene->r.imtype==R_BMP) {
 		extension= ".bmp";
 	}
-	
 	if(G.scene->r.scemode & R_EXTENSION) strcat(string, extension);
 		
 }

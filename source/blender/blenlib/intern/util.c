@@ -74,6 +74,16 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
+
+// copies from BKE_utildefines
+#ifndef FILE_MAXDIR
+#define FILE_MAXDIR  160
+#endif
+
+#ifndef FILE_MAXFILE
+#define FILE_MAXFILE 80
+#endif
+
 /* local */
 
 static int add_win32_extension(char *name);
@@ -421,10 +431,12 @@ void BLI_makestringcode(char *fromfile, char *str)
 	char *slash, len, temp[512];
 
 	strcpy(temp, fromfile);
+	
+	BLI_char_switch(temp, '\\', '/');
+	BLI_char_switch(str, '\\', '/');
 
 	/* Find the last slash */
-	slash = (strrchr(temp, '/')>strrchr(temp, '\\'))
-	    ? strrchr(temp, '/') : strrchr(temp, '\\');
+	slash = strrchr(temp, '/');
 	if(slash) {
 		*(slash+1)= 0;
 		len= strlen(temp);
@@ -433,6 +445,9 @@ void BLI_makestringcode(char *fromfile, char *str)
 				temp[0]= '/';
 				temp[1]= '/';
 				strcpy(temp+2, str+len);
+#ifdef			WIN32
+				BLI_char_switch(temp+2, '/', '\\');
+#endif
 				strcpy(str, temp);
 			}
 		}
@@ -441,28 +456,55 @@ void BLI_makestringcode(char *fromfile, char *str)
 
 int BLI_convertstringcode(char *path, char *basepath, int framenum)
 {
-	int len, wasrelative= (strncmp(path, "//", 2)==0);
+	int len, wasrelative;
+	char tmp[FILE_MAXDIR+FILE_MAXFILE];
+	char base[FILE_MAXDIR];
+	
+	strcpy(tmp, path);
+	strcpy(base, basepath);
+	
+	/* push slashes into unix mode - strings entering this part are
+	   potentially messed up: having both back- and forward slashes.
+	   Here we push into one conform direction, and at the end we
+	   push them into the system specific dir. This ensures uniformity
+	   of paths and solving some problems (and prevent potential future
+	   ones) -jesterKing. */
+	BLI_char_switch(tmp, '\\', '/');
+	BLI_char_switch(base, '\\', '/');
+	
+	wasrelative= (strncmp(tmp, "//", 2)==0);
 
-	if (path[0] == '/' && path[1] == '/') {
-		char *filepart= BLI_strdup(path+2); /* skip code */
-		char *lslash= BLI_last_slash(basepath);
+	if (tmp[0] == '/' && tmp[1] == '/') {
+		char *filepart= BLI_strdup(tmp+2); /* skip code */
+		char *lslash= BLI_last_slash(base);
 
 		if (lslash) {
-			int baselen= (int) (lslash-basepath) + 1;
+			int baselen= (int) (lslash-base) + 1;
 
-			memcpy(path, basepath, baselen);
-			strcpy(path+baselen, filepart);
+			memcpy(tmp, base, baselen);
+			strcpy(tmp+baselen, filepart);
 		} else {
-			strcpy(path, filepart);
+			strcpy(tmp, filepart);
 		}
 		
 		MEM_freeN(filepart);
 	}
 
-	len= strlen(path);
-	if(len && path[len-1]=='#') {
-		sprintf(path+len-1, "%04d", framenum);
+	len= strlen(tmp);
+	if(len && tmp[len-1]=='#') {
+		sprintf(tmp+len-1, "%04d", framenum);
 	}
+	
+	strcpy(path, tmp);
+#ifdef WIN32
+	/* skip first two chars, which in case of
+	   absolute path will be drive:/blabla and
+	   in case of relpath //blabla/. So relpath
+	   // will be retained, rest will be nice and
+	   shiny win32 backward slashes :) -jesterKing
+	*/
+	BLI_char_switch(path+2, '/', '\\');
+#endif
 
 	return wasrelative;
 }
@@ -542,7 +584,18 @@ char *BLI_gethome(void) {
 	#endif
 }
 
-static void char_switch(char *string, char from, char to) 
+void BLI_clean(char *path)
+{
+#ifdef WIN32
+	if(path && strlen(path)>2) {
+		BLI_char_switch(path+2, '/', '\\');
+	}
+#else
+	BLI_char_switch(path, '\\', '/');
+#endif
+}
+
+void BLI_char_switch(char *string, char from, char to) 
 {
 	while (*string != 0) {
 		if (*string == from) *string = to;
@@ -550,14 +603,13 @@ static void char_switch(char *string, char from, char to)
 	}
 }
 
-void BLI_make_exist(char *dir)
-{
+void BLI_make_exist(char *dir) {
 	int a;
 
 	#ifdef WIN32
-		char_switch(dir, '/', '\\');
+		BLI_char_switch(dir, '/', '\\');
 	#else
-		char_switch(dir, '\\', '/');
+		BLI_char_switch(dir, '\\', '/');
 	#endif	
 	
 	a = strlen(dir);
@@ -597,6 +649,12 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	if (!string || !dir || !file) return; /* We don't want any NULLs */
 	
 	string[0]= 0; /* ton */
+	
+	/* we first push all slashes into unix mode, just to make sure we don't get
+	   any mess with slashes later on. -jesterKing */
+	BLI_char_switch(relabase, '\\', '/');
+	BLI_char_switch(dir, '\\', '/');
+	BLI_char_switch(file, '\\', '/');
 
 	/* Resolve relative references */	
 	if (relabase && dir[0] == '/' && dir[1] == '/') {
@@ -625,9 +683,9 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	
 	/* Push all slashes to the system preferred direction */
 	#ifdef WIN32
-		char_switch(string, '/', '\\');
+		BLI_char_switch(string, '/', '\\');
 	#else
-		char_switch(string, '\\', '/');
+		BLI_char_switch(string, '\\', '/');
 	#endif	
 }
 
@@ -650,14 +708,7 @@ int BLI_testextensie(char *str, char *ext)
 	return (retval);
 }
 
-// copies from BKE_utildefines
-#ifndef FILE_MAXDIR
-#define FILE_MAXDIR  160
-#endif
 
-#ifndef FILE_MAXFILE
-#define FILE_MAXFILE 80
-#endif
 
 void BLI_split_dirfile(char *string, char *dir, char *file)
 {
@@ -667,7 +718,7 @@ void BLI_split_dirfile(char *string, char *dir, char *file)
 	file[0]= 0;
 
 #ifdef WIN32
-	char_switch(string, '/', '\\'); /* make sure we have a valid path format */
+	BLI_char_switch(string, '/', '\\'); /* make sure we have a valid path format */
 
 	if (strlen(string)) {
 		int len;

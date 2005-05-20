@@ -128,6 +128,22 @@ int BLI_convertstringcode(char *path, char *basepath, int framenum);
 void BLI_makestringcode(char *fromfile, char *str);
 
 	/**
+	 * Change every @a from in @a string into @a to. The
+	 * result will be in @a string
+	 *
+	 * @a string The string to work on
+	 * @a from The character to replace
+	 * @a to The character to replace with
+	 */
+void BLI_char_switch(char *string, char from, char to);
+
+	/**
+	 * Makes sure @a path has platform-specific slashes.
+	 * 
+	 * @a path The path to 'clean'
+	 */
+void BLI_clean(char *path);
+	/**
 	 * Duplicates the cstring @a str into a newly mallocN'd
 	 * string and returns it.
 	 * 
