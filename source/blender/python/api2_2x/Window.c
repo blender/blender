@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Tom Musgrove, Michael Reimpell, Yann Vernier
+ * Contributor(s): Willian P. Germano, Tom Musgrove, Michael Reimpell,
+ * Yann Vernier, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -601,6 +602,7 @@ static PyObject *M_Window_DrawProgressBar( PyObject * self, PyObject * args )
 	float done;
 	char *info = NULL;
 	int retval = 0;
+	ScrArea *sa = curarea;
 
 	if (G.background)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
@@ -612,6 +614,8 @@ static PyObject *M_Window_DrawProgressBar( PyObject * self, PyObject * args )
 
 	if( !G.background )
 		retval = progress_bar( done, info );
+
+	curarea = sa;
 
 	return Py_BuildValue( "i", retval );
 }

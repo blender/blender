@@ -2016,17 +2016,21 @@ PyObject *RenderData_EnableSGICosmo( BPy_RenderData * self, PyObject * args )
 //------------------------------------RenderData.OldMapValue() -----------
 PyObject *RenderData_OldMapValue( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_GetSetAttributeShort( args,
-					      &self->renderContext->framapto,
-					      1, 900 );
+	PyObject *tmp = M_Render_GetSetAttributeShort(args,
+		&self->renderContext->framapto, 1, 900);
+	self->renderContext->framelen =
+		(float)self->renderContext->framapto / self->renderContext->images;
+	return tmp;
 }
 
 //------------------------------------RenderData.NewMapValue() -----------
 PyObject *RenderData_NewMapValue( BPy_RenderData * self, PyObject * args )
 {
-	return M_Render_GetSetAttributeShort( args,
-					      &self->renderContext->images, 1,
-					      900 );
+	PyObject *tmp = M_Render_GetSetAttributeShort(args,
+			&self->renderContext->images, 1, 900);
+	self->renderContext->framelen =
+		(float)self->renderContext->framapto / self->renderContext->images;
+	return tmp;
 }
 
 //------------------------------------RenderData.getTimeCode() -----------

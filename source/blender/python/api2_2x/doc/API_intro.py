@@ -39,6 +39,7 @@ The Blender Python API Reference
   - L{Sound}
   - L{Text}
   - L{Text3d} (new)
+     - L{Font} (new)
   - L{Texture}
   - L{Types}
   - L{Window}
@@ -105,13 +106,16 @@ Interaction with users:
 
  Scripts can:
   - simply run and exit;
-  - grab the main input event queue and process (or pass to Blender) selected
-    keyboard, mouse, redraw events;
   - pop messages, menus and small number and text input boxes;
   - draw graphical user interfaces (guis) with OpenGL calls and native
     program buttons, which stay there accepting user input like any other
     Blender window until the user closes them;
+  - attach themselves to a space's event or drawing code (aka space handlers,
+    L{check here<API_related>});
   - make changes to the 3D View (set visible layer(s), view point, etc);
+  - grab the main input event queue and process (or pass to Blender) selected
+    keyboard, mouse, redraw events -- not considered good practice, but still
+    available for private use;
   - tell Blender to execute other scripts (see L{Blender.Run}());
   - use external Python libraries, if available.
 
@@ -206,8 +210,8 @@ A note to newbie script writers:
  to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
-@requires: Blender 2.36 cvs or newer.
-@version: 2.36 cvs
+@requires: Blender 2.37 or newer.
+@version: 2.37
 @see: U{www.blender3d.org<http://www.blender3d.org>}: main site
 @see: U{www.blender.org<http://www.blender.org>}: documentation and forum
 @see: U{www.elysiun.com<http://www.elysiun.com>}: user forum

@@ -3,9 +3,12 @@
 """
 The Blender.NMesh submodule.
 
-B{New}: edges class (L{NMEdge}) and nmesh methods (L{NMesh.addEdge},
-L{NMesh.addEdgesData}, etc.); new optional arguments to L{NMesh.update};
-L{NMesh.transform}.
+B{New}:
+ - edges class (L{NMEdge}) and nmesh methods (L{NMesh.addEdge},
+L{NMesh.addEdgesData}, etc.);
+ - new optional arguments to L{NMesh.update};
+ - L{NMesh.transform};
+ - L{GetNames}.
 
 Mesh Data
 =========
@@ -133,6 +136,14 @@ def GetRaw(name = None):
       - (name) - The NMesh wrapper of the mesh called I{name},
         None if not found.
       - () - A new (empty) NMesh object.
+  """
+
+def GetNames():
+  """
+  Get a list with the names of all available meshes in Blender.
+  @rtype: list of strings
+  @return: a list of mesh names.
+  @note: to get actual mesh data, pass a mesh name to L{GetRaw}.
   """
 
 def GetRawFromObject(name):

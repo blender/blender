@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Campbell Barton
+ * Contributor(s): Willian P. Germano, Campbell Barton, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -538,10 +538,14 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 			event = 0;
 
 		if( event == UI_BUT_EVENT ) {
-
-			if( menu_hack && ( val == 4 ) ) {	/* "false" event? */
-				menu_hack = 0;	/* if so, discard it and clear menu_hack */
-			} else {
+			if( menu_hack && val == UI_RETURN_OK ) {	/* "false" event? */
+				if ( menu_hack == 2 ) /* was last event UI_RETURN_OUT? */
+					spacescript_do_pywin_buttons( sc, UI_RETURN_OUT );	/* if so, send */
+				menu_hack = 0; /* clear menu_hack */
+			} 
+			else if( val == UI_RETURN_OUT ) /* possible cancel */
+				menu_hack = 2;
+			else {
 				menu_hack = 1;
 				spacescript_do_pywin_buttons( sc, val );
 			}
@@ -1076,13 +1080,15 @@ static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args )
 
 	if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
+	else if( !strcmp( font_str, "large" ) )
+		font = BMF_GetFont(BMF_kScreen15);
 	else if( !strcmp( font_str, "small" ) )
 		font = ( &G )->fonts;
 	else if( !strcmp( font_str, "tiny" ) )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'normal' (default), 'small' or 'tiny'." );
+					      "\"font\" must be: 'large', 'normal' (default), 'small' or 'tiny'." );
 
 	width = PyInt_FromLong( BMF_GetStringWidth( font, text ) );
 
@@ -1105,6 +1111,8 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 
 	if( !font_str )
 		font = ( &G )->font;
+	else if( !strcmp( font_str, "large" ) )
+		font = BMF_GetFont(BMF_kScreen15);
 	else if( !strcmp( font_str, "normal" ) )
 		font = ( &G )->font;
 	else if( !strcmp( font_str, "small" ) )
@@ -1113,7 +1121,7 @@ static PyObject *Method_Text( PyObject * self, PyObject * args )
 		font = ( &G )->fontss;
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "\"font\" must be: 'normal' (default), 'small' or 'tiny'." );
+					      "\"font\" must be: 'normal' (default), 'large', 'small' or 'tiny'." );
 
 	BMF_DrawString( font, text );
 

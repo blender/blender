@@ -26,7 +26,7 @@
  * This is a new part of Blender, but it borrows all the old NMesh code.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
- * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton
+ * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -274,6 +274,10 @@ static char M_NMesh_GetRaw_doc[] = "([name]) - Get a raw mesh from Blender\n\n\
 If name is not specified a new empty mesh is\n\
 returned, otherwise Blender returns an existing\n\
 mesh.";
+
+static char M_NMesh_GetNames_doc[] = "\
+() - Get a list with the names of all available meshes in Blender\n\n\
+Any of these names can be passed to NMesh.GetRaw() for the actual mesh data.";
 
 static char M_NMesh_GetRawFromObject_doc[] =
 	"(name) - Get the raw mesh used by a Blender object\n\n\
@@ -2140,6 +2144,19 @@ static PyObject *M_NMesh_GetRaw( PyObject * self, PyObject * args )
 	return new_NMesh( oldmesh );
 }
 
+static PyObject *M_NMesh_GetNames(PyObject *self)
+{
+	PyObject *names = PyList_New(0);
+	Mesh *me = G.main->mesh.first;
+
+	while (me) {
+		PyList_Append(names, PyString_FromString(me->id.name+2));
+		me = me->id.next;
+	}
+
+	return names;
+}
+
 /* Note: NMesh.GetRawFromObject gets the display list mesh from Blender:
  * the vertices are already transformed / deformed. */
 static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
@@ -2394,6 +2411,8 @@ static int unlink_existingMeshData( Mesh * mesh )
 {
 	freedisplist( &mesh->disp );
 	EXPP_unlink_mesh( mesh );
+	if( mesh->dvert )
+		free_dverts( mesh->dvert, mesh->totvert );
 	if( mesh->mvert )
 		MEM_freeN( mesh->mvert );
 	if( mesh->medge ) {
@@ -2876,6 +2895,8 @@ static struct PyMethodDef M_NMesh_methods[] = {
 	MethodDef( GetRaw ),
 	MethodDef( GetRawFromObject ),
 	MethodDef( PutRaw ),
+	{"GetNames", (PyCFunction)M_NMesh_GetNames, METH_NOARGS,
+		M_NMesh_GetNames_doc},
 	{NULL, NULL, 0, NULL}
 };
 

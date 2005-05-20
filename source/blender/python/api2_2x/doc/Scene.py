@@ -7,6 +7,7 @@ B{New}:
   - L{Scene.clearScriptLinks} accepts a parameter now.
   - L{Scene.getLayers}, L{Scene.setLayers} and the L{layers<Scene.layers>} and
     L{Layers<Scene.Layers>} Scene attributes. 
+  - L{Scene.getActiveObject} method.
 
 Scene
 =====
@@ -187,6 +188,20 @@ class Scene:
        scripts, for example), it's probably better to use this
        scene.GetChildren instead, since it will only access objects from this
        particular scene.
+    """
+
+  def getActiveObject():
+    """
+    Get this scene's active object.
+    @note: the active object, if selected, can also be retrieved with
+      L{Object.GetSelected} -- it is the first item in the returned
+      list.  But even when no object is selected in Blender, there can be
+      an active one (if the user enters editmode, for example, this is the
+      object that should become available for edition).  So what makes this
+      scene method different from C{Object.GetSelected()[0]} is that it can
+      return the active object even when no objects are selected.
+    @rtype: Blender Object or None
+    @return: the active object or None if not available.
     """
 
   def getCurrentCamera():

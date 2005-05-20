@@ -6,7 +6,9 @@ The Blender.Draw submodule.
 Draw
 ====
 
-B{New}: access to ascii values in L{events<Register>} callbacks.
+B{New}:
+ - access to ascii values in L{events<Register>} callbacks;
+ - 'large' fonts for L{Text} and L{GetStringWidth}.
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
 include many kinds of buttons: push, toggle, menu, number, string, slider,
@@ -596,7 +598,7 @@ def GetStringWidth(string, fontsize = 'normal'):
   @type string: string
   @param string: A string.
   @type fontsize: string
-  @param fontsize: The size of the font: 'normal', 'small' or 'tiny'.
+  @param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
   @rtype: int
   @return: The width of I{string} with the chosen I{fontsize}.
   """
@@ -607,7 +609,7 @@ def Text(string, fontsize = 'normal'):
   @type string: string
   @param string: The text string to draw.
   @type fontsize: string
-  @param fontsize: The size of the font: 'normal', 'small' or 'tiny'.
+  @param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
   @rtype: int
   @return: The width of I{string} drawn with the chosen I{fontsize}.
   """

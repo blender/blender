@@ -17,10 +17,11 @@ __bpydoc__ = """\
 This script creates an script link to change cameras during an animation.
 
 The created script link (a Blender Text) is linked to Scene Frame Changed events.
+
 Usage:
 
-Run the script, then name the camera Object with the number of the frame(s) where you
-want this camera to become active.
+Run the script, then name the camera Object with the number of the frame(s)
+where you want this camera to become active.
 
 For example:<br>
   - a camera called "10" will become active at frame 10.<br>
@@ -30,6 +31,8 @@ Notes:<br>
   - This script creates another script named camera.py, which is linked to the current scene.<br>
   - If there is already a text called "camera.py", but it's from an old version or is not recognized,
 you can choose if you want to rename or overwrite it.
+  - Script inspired by Jean-Michel (jms) Soler's:<br>
+    http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_changerdecamera.htm
 """
 
 
@@ -57,7 +60,7 @@ you can choose if you want to rename or overwrite it.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-#Script in the same idea that this one :
+#Script inspired of the idea of this one :
 #http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_changerdecamera.htm
 #
 #----------------------------------------------

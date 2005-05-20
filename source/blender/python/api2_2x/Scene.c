@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert
+ * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert,
+ * Campbell Barton.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -102,6 +103,7 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_link( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getChildren( BPy_Scene * self );
+static PyObject *Scene_getActiveObject(BPy_Scene *self);
 static PyObject *Scene_getCurrentCamera( BPy_Scene * self );
 static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getRenderingContext( BPy_Scene * self );
@@ -125,9 +127,9 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"setName", ( PyCFunction ) Scene_setName, METH_VARARGS,
 	 "(str) - Change Scene name"},
 	{"getLayers", ( PyCFunction ) Scene_getLayers, METH_NOARGS,
-	 "() - Return a list of layers int indices which are set in this Scene "},
+	 "() - Return a list of layers int indices which are set in this scene "},
 	{"setLayers", ( PyCFunction ) Scene_setLayers, METH_VARARGS,
-	 "(layers) - Change layers which are set in this Scene\n"
+	 "(layers) - Change layers which are set in this scene\n"
 	 "(layers) - list of integers in the range [1, 20]."},
 	{"copy", ( PyCFunction ) Scene_copy, METH_VARARGS,
 	 "(duplicate_objects = 1) - Return a copy of this scene\n"
@@ -145,7 +147,9 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"unlink", ( PyCFunction ) Scene_unlink, METH_VARARGS,
 	 "(obj) - Unlink Object obj from this scene"},
 	{"getChildren", ( PyCFunction ) Scene_getChildren, METH_NOARGS,
-	 "() - Return list of all objects linked to scene self"},
+	 "() - Return list of all objects linked to this scene"},
+	{"getActiveObject", (PyCFunction)Scene_getActiveObject, METH_NOARGS,
+	 "() - Return this scene's active object"},
 	{"getCurrentCamera", ( PyCFunction ) Scene_getCurrentCamera,
 	 METH_NOARGS,
 	 "() - Return current active Camera"},
@@ -837,6 +841,36 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	}
 
 	return pylist;
+}
+
+//-----------------------Scene.getActiveObject()------------------------
+static PyObject *Scene_getActiveObject(BPy_Scene *self)
+{
+	Scene *scene = self->scene;
+	PyObject *pyob;
+	Object *ob;
+
+	if (!scene)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"Blender Scene was deleted!");
+
+	ob = ((scene->basact) ? (scene->basact->object) : 0);
+
+	if (ob) {
+		PyObject *arg = Py_BuildValue("(s)", ob->id.name+2);
+
+		pyob = M_Object_Get(Py_None, arg);
+
+		Py_DECREF(arg);
+
+		if (!pyob)
+			return EXPP_ReturnPyObjError(PyExc_MemoryError,
+					"couldn't create new object wrapper!");
+
+		return pyob;
+	}
+
+	return EXPP_incr_ret(Py_None); /* no active object */
 }
 
 //-----------------------Scene.getCurrentCamera()------------------------

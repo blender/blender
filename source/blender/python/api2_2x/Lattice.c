@@ -202,6 +202,7 @@ PyTypeObject Lattice_Type = {
 	0, 0, 0, 0, 0, 0,
 	BPy_Lattice_methods,	/* tp_methods */
 	0,			/* tp_members */
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
 static int Lattice_InLatList( BPy_Lattice * self );
@@ -684,11 +685,11 @@ static PyObject *Lattice_applyDeform( BPy_Lattice * self )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"Lattice must be linked to an object to apply it's deformation!" ) );
 
-	//deform children
+	/* deform children */
 	base = FIRSTBASE;
 	while( base ) {
-		if( ( par = base->object->parent ) ) {
-			if( par->type == OB_LATTICE ) {
+		if( ( par = base->object->parent ) ) { /* checking if object has a parent, assigning if so */
+			if((par->type == OB_LATTICE) && (self->Lattice == par->data)) {
 				object_deform( base->object );
 			}
 		}

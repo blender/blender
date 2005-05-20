@@ -121,12 +121,12 @@ Introduction:
  Object script links:
  --------------------
 
- Users can link Blender Text scripts to some kinds of objects to have the script
- code executed when specific events occur.  For example, if a Camera has an
- script link set to "FrameChanged", the script will be executed whenever the
- current frame is changed.  Links can either be manually added by users on the
- Buttons window -> Scripts tab or created by another script (see, for example,
- L{Object.addScriptLink<Object.Object.addScriptLink>}). 
+ Users can link Blender Text scripts and objects to have the script
+ code executed when specific events occur to the objects.  For example, if a
+ Camera has an script link set to "FrameChanged", the script will be executed
+ whenever the current frame is changed.  Links can either be manually added by
+ users on the Buttons window -> Scripts tab or created by another script (see,
+ for example, L{Object.addScriptLink<Object.Object.addScriptLink>}). 
 
  These are the types which can be linked to scripts:
   - Camera Data;
@@ -153,38 +153,50 @@ Introduction:
   - B{event}: the event type, if the running script is being executed as a
     script link.
 
+ Example::
+  #script link
+  import Blender
+  if Blender.bylink: # we're running as a script link
+    print "Event: %s for %s" % (Blender.event, Blender.link)
+
  B{Important note about "Render" events}:
 
  Each "Render" script link is executed twice: before rendering and after, for
  reverting changes and for possible clean up actions.  Before rendering,
  'Blender.event' will be "Render" and after rendering it will be "PostRender".
- 
- This is specially useful for script links that need to generate data only
- useful while rendering, or in case they need to switch between two mesh data
- objects, one meant for realtime display and the other, more detailed, for
- renders.  This pseudo-code is an example of how such scripts could be written::
 
+ Example::
+  # render script link
   import Blender
-
-  if Blender.event == "Render":
+  event = Blender.event
+  if event == "Render":
     # prepare for rendering
+    create_my_very_detailed_mesh_data()
+  elif event == "PostRender":
+    # done rendering, clean up
+    delete_my_very_detailed_mesh_data()
 
-  elif Blender.event == "PostRender":
-    # revert changes / clean up for realtime display
+ As suggested by the example above, this is specially useful for script links
+ that need to generate data only useful while rendering, or in case they need
+ to switch between two mesh data objects, one meant for realtime display and
+ the other, more detailed, for renders.
 
  Space Handler script links:
  ---------------------------
 
  This is a new kind of script linked to spaces in a given window.  Right now
  only the 3D View has the necessary hooks, but the plan is to add access to
- other types, too.  Just to clarify: in Blender, a screen is partitioned in
- windows and each window can show any space.  Spaces are: 3D View, Text Editor,
- Scripts, Buttons, User Preferences, Oops, etc. 
+ other types, too.  Just to clarify naming conventions: in Blender, a screen
+ is partitioned in windows (also called areas) and each window can show any
+ space.  Spaces are: 3D View, Text Editor, Scripts, Buttons, User Preferences,
+ Oops, etc. 
 
  Space handlers are texts in the Text Editor, like other script links, but they
  need to have a special header to be recognized -- B{I{the first line in the
- text file}} must inform 1) that they are space handlers; 2) the space they
- belong to; 3) whether they are EVENT or DRAW handlers.
+ text file}} must inform:
+  1. that they are space handlers;
+  2. the space they belong to;
+  3. whether they are EVENT or DRAW handlers.
 
  Example header for a 3D View EVENT handler::
 
@@ -193,6 +205,9 @@ Introduction:
  Example header for a 3D View DRAW handler::
 
   # SPACEHANDLER.VIEW3D.DRAW
+
+ Available space handlers can be toggled "on" or "off" in the space header's
+ B{View->Space Handler Scripts} submenu, by the user.
 
  EVENT space handler scripts are called by that space's event handling callback
  in Blender.  The script receives the event B{before} it is further processed
@@ -237,15 +252,19 @@ Introduction:
        to be processed or ignored.
      - DRAW handlers: 0 always.
 
- B{Guidelines}:
+ B{Guidelines (important)}:
   - EVENT handlers can access and change Blender objects just like any other
     script, but they should not draw (images, polygons, etc.) to the screen,
-    use a DRAW handler to do that and if both scripts need to pass information
-    to each other, use the L{Registry} module.
+    B{use a DRAW handler to do that} and, if both scripts need to pass
+    information to each other, use the L{Registry} module.
   - DRAW handlers should leave the space in the same state it was before they
-    executed.  OpenGL attributes are automatically saved (pushed) before a DRAW
-    handler runs and restored (poped) after it finishes, no need to worry about
-    that. 
+    executed.  OpenGL attributes and the modelview and projection matrices are
+    automatically saved (pushed) before a DRAW handler runs and restored (poped)
+    after it finishes, no need to worry about that.  Draw handlers should not
+    grab events;
+  - in short: use the event handler to deal with events and the draw handler to
+    draw and your script will be following the recommended practices for
+    Blender code.
 
  Registering scripts:
  ====================
