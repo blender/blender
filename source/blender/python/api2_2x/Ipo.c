@@ -25,7 +25,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot, Nathan Letwory
+ * Contributor(s): Jacques Guignot RIP 2005, Nathan Letwory, 
+ *  Stephen Swaney, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -449,236 +450,101 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
 	return ( PyInt_FromLong( i ) );
 }
 
-/* 
-   fixme:  all these name validation routines need attention.
-   I just hacked in lots of 'return 1;'s as a temp fix.
-   stiv 6-jan-2004
+
+/*
+  Lamp Name to Channel
 */
 
 static int Ipo_laIcuName( char *s, int *param )
 {
-	int ok = 0;
-	if( !strcmp( s, "Energy" ) ) {
-		*param = LA_ENERGY;
-		return 1;
+	extern int la_ar[];
+
+	int not_ok = 0;
+	int i;
+	char *lamp_names[LA_TOTIPO] =
+		{ "Energ", "R", "G", "B", "Dist", "SpoSi",
+		"SpoBl", "Quad1", "Quad2", "HaInt",
+		/* lamp texture names */
+		"OfsX", "OfsY", "OfsZ", "SizeX", "SizeY",
+		"SizeZ", "texR", "texG", "texB", "DefVar",
+		"Col"
+	};
+
+	for( i = 0; i < LA_TOTIPO; i++ ) {
+		if( !strcmp( s, lamp_names[i] ) ) {	/* found it! */
+			*param = la_ar[i];
+			return 1;
+		}
 	}
-	if( !strcmp( s, "R" ) ) {
-		*param = LA_COL_R;
-		return 1;
-	}
-	if( !strcmp( s, "G" ) ) {
-		*param = LA_COL_G;
-		return 1;
-	}
-	if( !strcmp( s, "B" ) ) {
-		*param = LA_COL_B;
-		return 1;
-	}
-	if( !strcmp( s, "Dist" ) ) {
-		*param = LA_DIST;
-		return 1;
-	}
-	if( !strcmp( s, "SpoSi" ) ) {
-		*param = LA_SPOTSI;
-		return 1;
-	}
-	if( !strcmp( s, "SpoBl" ) ) {
-		*param = LA_SPOTBL;
-		return 1;
-	}
-	if( !strcmp( s, "Quad1" ) ) {
-		*param = LA_QUAD1;
-		return 1;
-	}
-	if( !strcmp( s, "Quad2" ) ) {
-		*param = LA_QUAD2;
-		return 1;
-	}
-	if( !strcmp( s, "HaInt" ) ) {
-		*param = LA_HALOINT;
-		return 1;
-	}
-	return ok;
+
+	return not_ok;
 }
+
+
+/* 
+ World Ipo Name to Channel
+*/
 
 static int Ipo_woIcuName( char *s, int *param )
 {
-	int ok = 0;
-	if( !strcmp( s, "HorR" ) ) {
-		*param = WO_HOR_R;
-		return 1;
+	extern int wo_ar[];	/* channel values from ipo.c */
+	int not_ok = 0;
+	int i;
+	char *world_names[WO_TOTIPO] = { "HorR", "HorG", "HorB",
+		"ZenR", "ZenG", "ZenB",
+		"Expos",
+		"Misi", "MisDi", "MisSta", "MisHi",
+		"StarR", "StarB", "StarG",
+		"StarDi", "StarSi",
+		/* world textures names */
+		"OfsX", "OfsY", "OfsZ",
+		"SizeX", "SizeY", "SizeZ",
+		"texR", "texG", "texB",
+		"DefVar", "Col", "Nor", "Var",
+	};
+
+	for( i = 0; i < WO_TOTIPO; i++ ) {
+		if( !strcmp( s, world_names[i] ) ) {	/* found it! */
+			*param = wo_ar[i];
+			return 1;
+		}
 	}
-	if( !strcmp( s, "HorG" ) ) {
-		*param = WO_HOR_G;
-		return 1;
-	}
-	if( !strcmp( s, "HorB" ) ) {
-		*param = WO_HOR_B;
-		return 1;
-	}
-	if( !strcmp( s, "ZenR" ) ) {
-		*param = WO_ZEN_R;
-		return 1;
-	}
-	if( !strcmp( s, "ZenG" ) ) {
-		*param = WO_ZEN_G;
-		return 1;
-	}
-	if( !strcmp( s, "ZenB" ) ) {
-		*param = WO_ZEN_B;
-		return 1;
-	}
-	if( !strcmp( s, "Expos" ) ) {
-		*param = WO_EXPOS;
-		return 1;
-	}
-	if( !strcmp( s, "Misi" ) ) {
-		*param = WO_MISI;
-		return 1;
-	}
-	if( !strcmp( s, "MisDi" ) ) {
-		*param = WO_MISTDI;
-		return 1;
-	}
-	if( !strcmp( s, "MisHi" ) ) {
-		*param = WO_MISTHI;
-		return 1;
-	}
-	if( !strcmp( s, "StarR" ) ) {
-		*param = WO_STAR_R;
-		return 1;
-	}
-	if( !strcmp( s, "StarB" ) ) {
-		*param = WO_STAR_B;
-		return 1;
-	}
-	if( !strcmp( s, "StarG" ) ) {
-		*param = WO_STAR_G;
-		return 1;
-	}
-	if( !strcmp( s, "ClSta" ) ) {
-		*param = WO_MISTSTA;
-		return 1;
-	}
-	if( !strcmp( s, "StarDi" ) ) {
-		*param = WO_STARDIST;
-		return 1;
-	}
-	if( !strcmp( s, "StarSi" ) ) {
-		*param = WO_STARSIZE;
-		return 1;
-	}
-	return ok;
+
+	return not_ok;
 }
 
 static int Ipo_maIcuName( char *s, int *param )
 {
-	int ok = 0;
-	if( !strcmp( s, "R" ) ) {
-		*param = MA_COL_R;
-		return 1;
+	extern int ma_ar[];
+
+	int not_ok = 0;
+	int i;
+
+	char *material_names[MA_TOTIPO] = { "R", "G", "B",
+		"SpecR", "SpecG", "SpecB",
+		"MirR", "MirG", "MirB", "Ref", "Alpha",
+		"Emit", "Amb", "Spec",
+		"Hard", "SpTra", "Ior", "Mode",
+		"HaSize", "Translu",
+		"RayMir", "FresMir", "FresMirI",
+		"FresTra", "FresTraI",
+		"TraGlow",
+		"OfsX", "OfsY", "OfsZ",
+		"SizeX", "SizeY", "SizeZ",
+		"texR", "texG", "texB",
+		"DefVar", "Col", "Nor", "Var",
+		"Disp"
+	};
+
+
+	for( i = 0; i < MA_TOTIPO; i++ ) {
+		if( !strcmp( s, material_names[i] ) ) {	/* found it! */
+			*param = ma_ar[i];
+			return 1;
+		}
 	}
-	if( !strcmp( s, "G" ) ) {
-		*param = MA_COL_G;
-		return 1;
-	}
-	if( !strcmp( s, "B" ) ) {
-		*param = MA_COL_B;
-		return 1;
-	}
-	if( !strcmp( s, "SpecR" ) ) {
-		*param = MA_SPEC_R;
-		return 1;
-	}
-	if( !strcmp( s, "SpecG" ) ) {
-		*param = MA_SPEC_G;
-		return 1;
-	}
-	if( !strcmp( s, "SpecB" ) ) {
-		*param = MA_SPEC_B;
-		return 1;
-	}
-	if( !strcmp( s, "MirR" ) ) {
-		*param = MA_MIR_R;
-		return 1;
-	}
-	if( !strcmp( s, "MirG" ) ) {
-		*param = MA_MIR_G;
-		return 1;
-	}
-	if( !strcmp( s, "MirB" ) ) {
-		*param = MA_MIR_B;
-		return 1;
-	}
-	if( !strcmp( s, "Ref" ) ) {
-		*param = MA_REF;
-		return 1;
-	}
-	if( !strcmp( s, "Alpha" ) ) {
-		*param = MA_ALPHA;
-		return 1;
-	}
-	if( !strcmp( s, "Emit" ) ) {
-		*param = MA_EMIT;
-		return 1;
-	}
-	if( !strcmp( s, "Amb" ) ) {
-		*param = MA_AMB;
-		return 1;
-	}
-	if( !strcmp( s, "Spec" ) ) {
-		*param = MA_SPEC;
-		return 1;
-	}
-	if( !strcmp( s, "Hard" ) ) {
-		*param = MA_HARD;
-		return 1;
-	}
-	if( !strcmp( s, "SpTra" ) ) {
-		*param = MA_SPTR;
-		return 1;
-	}
-	if( !strcmp( s, "Ior" ) ) {
-		*param = MA_IOR;
-		return 1;
-	}
-	if( !strcmp( s, "Mode" ) ) {
-		*param = MA_MODE;
-		return 1;
-	}
-	if( !strcmp( s, "HaSize" ) ) {
-		*param = MA_HASIZE;
-		return 1;
-	}
-	if( !strcmp( s, "Translu" ) ) {
-		*param = MA_TRANSLU;
-		return 1;
-	}
-	if( !strcmp( s, "RayMir" ) ) {
-		*param = MA_RAYM;
-		return 1;
-	}
-	if( !strcmp( s, "FresMir" ) ) {
-		*param = MA_FRESMIR;
-		return 1;
-	}
-	if( !strcmp( s, "FresMirI" ) ) {
-		*param = MA_FRESMIRI;
-		return 1;
-	}
-	if( !strcmp( s, "FresTra" ) ) {
-		*param = MA_FRESTRA;
-		return 1;
-	}
-	if( !strcmp( s, "FresTraI" ) ) {
-		*param = MA_FRESTRAI;
-		return 1;
-	}
-	if( !strcmp( s, "TraGlow" ) ) {
-		*param = MA_ADD;
-		return 1;
-	}
-	return ok;
+
+	return not_ok;
 }
 
 static int Ipo_keIcuName( char *s, int *param )
@@ -781,22 +647,30 @@ static int Ipo_acIcuName( char *s, int *param )
 	return ok;
 }
 
+
+/*
+  Camera name to channel
+*/
+
 static int Ipo_caIcuName( char *s, int *param )
 {
-	int ok = 0;
-	if( !strcmp( s, "Lens" ) ) {
-		*param = CAM_LENS;
-		return 1;
+	/* for Camera ipos CAM_TOTNAM == CAM_TOTIPO 
+	   and cam_ic_names[] holds the complete set of names, so we use that.
+	 */
+	extern int cam_ar[];
+	extern char *cam_ic_names[];
+
+	int not_ok = 0;
+	int i;
+
+	for( i = 0; i < CAM_TOTIPO; i++ ) {
+		if( !strcmp( s, cam_ic_names[i] ) ) {	/* found it! */
+			*param = cam_ar[i];
+			return 1;
+		}
 	}
-	if( !strcmp( s, "ClSta" ) ) {
-		*param = CAM_STA;
-		return 1;
-	}
-	if( !strcmp( s, "ClEnd" ) ) {
-		*param = CAM_END;
-		return 1;
-	}
-	return ok;
+
+	return not_ok;
 }
 
 static int Ipo_texIcuName( char *s, int *param )
@@ -1141,16 +1015,16 @@ static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "s", &strname ) )
 		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "string argument" ) );
+			 ( PyExc_TypeError, "string argument" ) );
 
 	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
 		char *str1 = getIpoCurveName( icu );
 		if( !strcmp( str1, strname ) ) {
-			BLI_remlink( &(self->ipo->curve), icu);
-			if(icu->bezt) MEM_freeN(icu->bezt);
-			MEM_freeN(icu);
-			del_ipoCurve ( icu );
+			BLI_remlink( &( self->ipo->curve ), icu );
+			if( icu->bezt )
+				MEM_freeN( icu->bezt );
+			MEM_freeN( icu );
+			del_ipoCurve( icu );
 			Py_INCREF( Py_None );
 			return Py_None;
 		}
