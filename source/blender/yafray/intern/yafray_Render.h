@@ -82,7 +82,6 @@ class yafrayRender_t
 		Object* maincam_obj;
 		float mainCamLens;
 
-		int maxraydepth;
 		bool hasworld;
 
 		std::map<Object*, std::vector<VlakRen*> > all_objects;

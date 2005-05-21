@@ -32,8 +32,6 @@ bool yafrayRender_t::exportScene()
 	mainCamLens = 35.0;
 	if (maincam_obj->type==OB_CAMERA) mainCamLens=((Camera*)maincam_obj->data)->lens;
 
-	maxraydepth = 5;	// will be set to maximum depth used in blender materials
-
 	// recreate the scene as object data, as well as sorting the material & textures, ignoring duplicates
 	if (!getAllMatTexObs())
 	{

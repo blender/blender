@@ -222,30 +222,37 @@ bool yafrayPluginRender_t::writeRender()
 	{
 		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
 		{
-			params["AA_passes"]=yafray::parameter_t(5);
-			params["AA_minsamples"]=yafray::parameter_t(5);
+			params["AA_passes"] = yafray::parameter_t(5);
+			params["AA_minsamples"] = yafray::parameter_t(5);
 		}
 		else if ((R.r.mode & R_OSA) && (R.r.osa)) 
 		{
-			params["AA_passes"]=yafray::parameter_t((R.r.osa%4)==0 ? R.r.osa/4 : 1);
-			params["AA_minsamples"]=yafray::parameter_t((R.r.osa%4)==0 ? 4 : R.r.osa);
+			params["AA_passes"] = yafray::parameter_t((R.r.osa%4)==0 ? R.r.osa/4 : 1);
+			params["AA_minsamples"] = yafray::parameter_t((R.r.osa%4)==0 ? 4 : R.r.osa);
 		}
 		else 
 		{
-			params["AA_passes"]=yafray::parameter_t(0);
-			params["AA_minsamples"]=yafray::parameter_t(1);
+			params["AA_passes"] = yafray::parameter_t(0);
+			params["AA_minsamples"] = yafray::parameter_t(1);
 		}
-		params["AA_pixelwidth"]=yafray::parameter_t(1.5);
-		params["AA_threshold"]=yafray::parameter_t(0.05f);
+		params["AA_pixelwidth"] = yafray::parameter_t(1.5);
+		params["AA_threshold"] = yafray::parameter_t(0.05f);
 	}
 	if(R.r.mode & R_BORDER) 
 	{
-		params["border_xmin"]=yafray::parameter_t( R.r.border.xmin*2.0-1.0 );
-		params["border_xmax"]=yafray::parameter_t( R.r.border.xmax*2.0-1.0 );
-		params["border_ymin"]=yafray::parameter_t( R.r.border.ymin*2.0-1.0 );
-		params["border_ymax"]=yafray::parameter_t( R.r.border.ymax*2.0-1.0 );
+		params["border_xmin"] = yafray::parameter_t( R.r.border.xmin*2.0-1.0 );
+		params["border_xmax"] = yafray::parameter_t( R.r.border.xmax*2.0-1.0 );
+		params["border_ymin"] = yafray::parameter_t( R.r.border.ymin*2.0-1.0 );
+		params["border_ymax"] = yafray::parameter_t( R.r.border.ymax*2.0-1.0 );
 	}
-	if (hasworld) params["background_name"]=yafray::parameter_t("world_background");
+	if (hasworld) {
+		World *world = G.scene->world;
+		if (world->mode & WO_MIST) {
+			params["fog_density"] = yafray::parameter_t(world->mistdist);
+			params["fog_color"] = yafray::parameter_t(yafray::color_t(world->horr, world->horg, world->horb));
+		}
+		params["background_name"] = yafray::parameter_t("world_background");
+	}
 	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
 	//params["outfile"]=yafray::parameter_t(imgout);
 	blenderYafrayOutput_t output;
@@ -413,6 +420,10 @@ void yafrayPluginRender_t::writeTextures()
 				ts = (tex->stype & 1) ? "rings" : "bands";	//stype 1&3 ringtype
 				params["wood_type"] = yafray::parameter_t(ts);
 				params["noise_type"] = yafray::parameter_t(ntype);
+				// shape parameter, for some reason noisebasis2 is used...
+				ts = "sin";
+				if (tex->noisebasis2==1) ts="saw"; else if (tex->noisebasis2==2) ts="tri";
+				params["shape"] = yafray::parameter_t(ts);
 				break;
 			}
 			case TEX_MARBLE: 
@@ -424,6 +435,9 @@ void yafrayPluginRender_t::writeTextures()
 				params["hard"] = yafray::parameter_t(hardnoise);
 				params["sharpness"] = yafray::parameter_t((float)(1<<tex->stype));
 				params["noise_type"] = yafray::parameter_t(ntype);
+				ts = "sin";
+				if (tex->noisebasis2==1) ts="saw"; else if (tex->noisebasis2==2) ts="tri";
+				params["shape"] = yafray::parameter_t(ts);
 				break;
 			}
 			case TEX_VORONOI:
@@ -538,6 +552,7 @@ void yafrayPluginRender_t::writeTextures()
 					string texpath = ima->name;
 					adjustPath(texpath);
 					params["filename"] = yafray::parameter_t(texpath);
+					params["interpolate"] = yafray::parameter_t((tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none");
 				}
 				break;
 			}
@@ -554,14 +569,14 @@ void yafrayPluginRender_t::writeTextures()
 			{
 				lparams.clear();
 				params.clear();
-				params["type"]=yafray::parameter_t("colorband");
-				params["name"]=yafray::parameter_t(blendtex->first + "_coba");
-				params["input"]=yafray::parameter_t(blendtex->first);
+				params["type"] = yafray::parameter_t("colorband");
+				params["name"] = yafray::parameter_t(blendtex->first + "_coba");
+				params["input"] = yafray::parameter_t(blendtex->first);
 				for (int i=0;i<cb->tot;i++) 
 				{
 					yafray::paramMap_t mparams;
-					mparams["value"]=yafray::parameter_t(cb->data[i].pos);
-					mparams["color"]=yafray::parameter_t(yafray::colorA_t(cb->data[i].r,
+					mparams["value"] = yafray::parameter_t(cb->data[i].pos);
+					mparams["color"] = yafray::parameter_t(yafray::colorA_t(cb->data[i].r,
 																																cb->data[i].g,
 																																cb->data[i].b,
 																																cb->data[i].a));
@@ -580,6 +595,7 @@ void yafrayPluginRender_t::writeTextures()
 		{
 			// skip if already written above
 			if (dupimg.find(imgtex->first)==dupimg.end()) {
+				lparams.clear();
 				params.clear();
 				params["name"] = yafray::parameter_t(imgtex->first->id.name);
 				params["type"] = yafray::parameter_t("image");
@@ -597,15 +613,52 @@ void yafrayPluginRender_t::writeTextures()
 void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr, const string &facetexname)
 {
 	yafray::paramMap_t params;
+	list<yafray::paramMap_t> lparams;
+
+	// if material has ramps, export colorbands first
+	if (matr->mode & (MA_RAMP_COL|MA_RAMP_SPEC))
+	{
+		// both colorbands without input shader
+		ColorBand* cb = matr->ramp_col;
+		if ((matr->mode & MA_RAMP_COL) && (cb!=NULL))
+		{
+			params["type"] = yafray::parameter_t("colorband");
+			params["name"] = yafray::parameter_t(shader_name+"_difframp");
+			for (int i=0;i<cb->tot;i++) {
+				yafray::paramMap_t mparams;
+				mparams["value"] = yafray::parameter_t(cb->data[i].pos);
+				mparams["color"] = yafray::parameter_t(yafray::colorA_t(cb->data[i].r, cb->data[i].g, cb->data[i].b, cb->data[i].a));
+				lparams.push_back(mparams);
+			}
+			yafrayGate->addShader(params, lparams);
+		}
+		cb = matr->ramp_spec;
+		if ((matr->mode & MA_RAMP_SPEC) && (cb!=NULL))
+		{
+			lparams.clear();
+			params.clear();
+			params["type"] = yafray::parameter_t("colorband");
+			params["name"] = yafray::parameter_t(shader_name+"_specramp");
+			for (int i=0;i<cb->tot;i++) {
+				yafray::paramMap_t mparams;
+				mparams["value"] = yafray::parameter_t(cb->data[i].pos);
+				mparams["color"] = yafray::parameter_t(yafray::colorA_t(cb->data[i].r, cb->data[i].g, cb->data[i].b, cb->data[i].a));
+				lparams.push_back(mparams);
+			}
+			yafrayGate->addShader(params, lparams);
+		}
+		lparams.clear();
+		params.clear();
+	}
+
 	params["type"] = yafray::parameter_t("blendershader");
 	params["name"] = yafray::parameter_t(shader_name);
-	float diff = matr->alpha;
+	float diff = 1; //matr->alpha;
 	params["color"] = yafray::parameter_t(yafray::color_t(matr->r*diff, matr->g*diff, matr->b*diff));
 	params["specular_color"] = yafray::parameter_t(yafray::color_t(matr->specr, matr->specg, matr->specb));
 	params["mirror_color"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
 	params["diffuse_reflect"] = yafray::parameter_t(matr->ref);
 	params["specular_amount"] = yafray::parameter_t(matr->spec);
-	params["hard"] = yafray::parameter_t(matr->har);
 	params["alpha"] = yafray::parameter_t(matr->alpha);
 	
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
@@ -615,21 +668,30 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 	// reflection/refraction
 	if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
 		params["IOR"] = yafray::parameter_t(matr->ang);
-	if (matr->mode & MA_RAYMIRROR) 
+	if (matr->mode & MA_RAYMIRROR)
 	{
-		float rf = matr->ray_mirror;
 		// blender uses mir color for reflection as well
-		params["reflected"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
-		params["min_refle"] = yafray::parameter_t(rf);
-		if (matr->ray_depth>maxraydepth) maxraydepth = matr->ray_depth;
+		//params["reflected"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
+		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
+		// has been mapped to Blender's ray_mirror parameter.
+		// This causes it be be misinterpreted and misused as a reflection amount control however.
+		// Besides that, it also causes extra complications for the yafray Blendershader.
+		// So added an actual amount of reflection parameter instead, and another
+		// extra parameter to actually control fresnel offset (re-uses Blender fresnel_mir_i param)
+		// Hopefully that clears things up a bit...
+		params["reflect"] = yafray::parameter_t("on");
+		params["reflect_amount"] = yafray::parameter_t(matr->ray_mirror);
+		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
+		params["fresnel_offset"] = yafray::parameter_t(fo);
 	}
 	if (matr->mode & MA_RAYTRANSP) 
 	{
-		float tr = 1.0-matr->alpha;
-		params["transmitted"]=yafray::parameter_t(yafray::color_t(matr->r*tr, matr->g*tr, matr->b*tr));
+		//float tr = 1.0-matr->alpha;
+		//params["transmitted"]=yafray::parameter_t(yafray::color_t(matr->r*tr, matr->g*tr, matr->b*tr));
+		params["refract"] = yafray::parameter_t("on");
+		params["transmit_filter"] = yafray::parameter_t(matr->filter);
 		// tir on by default
 		params["tir"] = yafray::parameter_t("on");
-		if (matr->ray_depth_tra>maxraydepth) maxraydepth = matr->ray_depth_tra;
 	}
 
 	string Mmode = "";
@@ -642,9 +704,70 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 	if (matr->mode & MA_ONLYSHADOW) Mmode += " onlyshadow";
 	if (Mmode!="") params["matmodes"] = yafray::parameter_t(Mmode);
 
-	// modulators
-	list<yafray::paramMap_t> lparams;
+	// diffuse & specular brdf, lambert/cooktorr defaults
+	// diffuse
+	if (matr->diff_shader==MA_DIFF_ORENNAYAR) {
+		params["diffuse_brdf"] = yafray::parameter_t("oren_nayar");
+		params["roughness"] = yafray::parameter_t(matr->roughness);
+	}
+	else if (matr->diff_shader==MA_DIFF_TOON) {
+		params["diffuse_brdf"] = yafray::parameter_t("toon");
+		params["toondiffuse_size"] = yafray::parameter_t(matr->param[0]);
+		params["toondiffuse_smooth"] = yafray::parameter_t(matr->param[1]);
+	}
+	else if (matr->diff_shader==MA_DIFF_MINNAERT) {
+		params["diffuse_brdf"] = yafray::parameter_t("minnaert");
+		params["darkening"] = yafray::parameter_t(matr->darkness);
+	}
+	else params["diffuse_brdf"] = yafray::parameter_t("lambert");
+	// specular
+	if (matr->spec_shader==MA_SPEC_PHONG) {
+		params["specular_brdf"] = yafray::parameter_t("phong");
+		params["hard"] = yafray::parameter_t(matr->har);
+	}
+	else if (matr->spec_shader==MA_SPEC_BLINN) {
+		params["specular_brdf"] = yafray::parameter_t("blinn");
+		params["blinn_ior"] = yafray::parameter_t(matr->refrac);
+		params["hard"] = yafray::parameter_t(matr->har);
+	}
+	else if (matr->spec_shader==MA_SPEC_TOON) {
+		params["specular_brdf"] = yafray::parameter_t("toon");
+		params["toonspecular_size"] = yafray::parameter_t(matr->param[2]);
+		params["toonspecular_smooth"] = yafray::parameter_t(matr->param[3]);
+	}
+	else if (matr->spec_shader==MA_SPEC_WARDISO) {
+		params["specular_brdf"] = yafray::parameter_t("ward");
+		params["u_roughness"] = yafray::parameter_t(matr->rms);
+		params["v_roughness"] = yafray::parameter_t(matr->rms);
+	}
+	else {
+		params["specular_brdf"] = yafray::parameter_t("blender_cooktorr");
+		params["hard"] = yafray::parameter_t(matr->har);
+	}
 
+	// ramps, if used
+	if (matr->mode & (MA_RAMP_COL|MA_RAMP_SPEC))
+	{
+		const string rm_blend[9] = {"mix", "add", "mul", "sub", "screen", "divide", "difference", "darken", "lighten"};
+		const string rm_mode[4] = {"shader", "energy", "normal", "result"};
+		// diffuse
+		if ((matr->mode & MA_RAMP_COL) && (matr->ramp_col!=NULL))
+		{
+			params["diffuse_ramp"] = yafray::parameter_t(shader_name+"_difframp");
+			params["diffuse_ramp_mode"] = yafray::parameter_t(rm_mode[(int)matr->rampin_col]);
+			params["diffuse_ramp_blend"] = yafray::parameter_t(rm_blend[(int)matr->rampblend_col]);
+			params["diffuse_ramp_factor"] = yafray::parameter_t(matr->rampfac_col);
+		}
+		// specular
+		if ((matr->mode & MA_RAMP_SPEC) && (matr->ramp_spec!=NULL)) {
+			params["specular_ramp"] = yafray::parameter_t(shader_name+"_specramp");
+			params["specular_ramp_mode"] = yafray::parameter_t(rm_mode[(int)matr->rampin_spec]);
+			params["specular_ramp_blend"] = yafray::parameter_t(rm_blend[(int)matr->rampblend_spec]);
+			params["specular_ramp_factor"] = yafray::parameter_t(matr->rampfac_spec);
+		}
+	}
+
+	// modulators
 	// first modulator is the texture of the face, if used (TexFace mode)
 	if (facetexname.length()!=0) {
 			yafray::paramMap_t mparams;
@@ -679,7 +802,12 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			if (mtex->blendtype==MTEX_MUL) ts="mul";
 			else if (mtex->blendtype==MTEX_ADD) ts="add";
 			else if (mtex->blendtype==MTEX_SUB) ts="sub";
-			mparams["mode"]=yafray::parameter_t(ts);
+			else if (mtex->blendtype==MTEX_DIV) ts="divide";
+			else if (mtex->blendtype==MTEX_DARK) ts="darken";
+			else if (mtex->blendtype==MTEX_DIFF) ts="difference";
+			else if (mtex->blendtype==MTEX_LIGHT) ts="lighten";
+			else if (mtex->blendtype==MTEX_SCREEN) ts="screen";
+			mparams["mode"] = yafray::parameter_t(ts);
 
 			// texture color (for use with MUL and/or no_rgb etc..)
 			mparams["texcol"]=yafray::parameter_t(yafray::color_t(mtex->r,mtex->g,mtex->b));
@@ -707,17 +835,17 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			// all blender texture modulation as switches, either 1 or -1 (negative state of button)
 			// Csp, specular color modulation
 			if (mtex->mapto & MAP_COLSPEC)
-				mparams["colspec"]=yafray::parameter_t(1.0);
+				mparams["colspec"] = yafray::parameter_t(1.0);
 			// CMir, mirror color  modulation
 			if (mtex->mapto & MAP_COLMIR)
-				mparams["colmir"]=yafray::parameter_t(1.0);
+				mparams["colmir"] = yafray::parameter_t(1.0);
 
 			// Ref, diffuse reflection amount  modulation
 			if ((mtex->mapto & MAP_REF) || (mtex->maptoneg & MAP_REF)) 
 			{
 				int t = 1;
 				if (mtex->maptoneg & MAP_REF) t = -1;
-				mparams["difref"]=yafray::parameter_t(t);
+				mparams["difref"] = yafray::parameter_t(t);
 			}
 
 			// Spec, specular amount mod
@@ -725,7 +853,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			{
 				int t = 1;
 				if (mtex->maptoneg & MAP_SPEC) t = -1;
-				mparams["specular"]=yafray::parameter_t(t);
+				mparams["specular"] = yafray::parameter_t(t);
 			}
 
 			// hardness modulation
@@ -733,7 +861,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			{
 				int t = 1;
 				if (mtex->maptoneg & MAP_HAR) t = -1;
-				mparams["hard"]=yafray::parameter_t(t);
+				mparams["hard"] = yafray::parameter_t(t);
 			}
 
 			// alpha modulation
@@ -741,14 +869,21 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			{
 				int t = 1;
 				if (mtex->maptoneg & MAP_ALPHA) t = -1;
-				mparams["alpha"]=yafray::parameter_t(t);
+				mparams["alpha"] = yafray::parameter_t(t);
 			}
 
 			// emit modulation
 			if ((mtex->mapto & MAP_EMIT) || (mtex->maptoneg & MAP_EMIT)) {
 				int t = 1;
 				if (mtex->maptoneg & MAP_EMIT) t = -1;
-				mparams["emit"]=yafray::parameter_t(t);
+				mparams["emit"] = yafray::parameter_t(t);
+			}
+
+			// raymir modulation
+			if ((mtex->mapto & MAP_RAYMIRR) || (mtex->maptoneg & MAP_RAYMIRR)) {
+				int t = 1;
+				if (mtex->maptoneg & MAP_RAYMIRR) t = -1;
+				mparams["raymir"] = yafray::parameter_t(t);
 			}
 
 			// texture flag, combination of strings
@@ -782,7 +917,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			lparams.push_back(mparams);
 		}
 	}
-	yafrayGate->addShader(params,lparams);
+	yafrayGate->addShader(params, lparams);
 
 }
 
@@ -818,9 +953,9 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 				sprintf(temp, "_map%d", m);
 				params["type"] = yafray::parameter_t("blendermapper");
 				params["name"] = yafray::parameter_t(blendmat->first + string(temp));
-				if ((mtex->texco & TEXCO_OBJECT) || (mtex->texco & TEXCO_REFL))
+				if ((mtex->texco & TEXCO_OBJECT) || (mtex->texco & TEXCO_REFL) || (mtex->texco & TEXCO_NORM))
 				{
-					// For object & reflection mapping, add the object matrix to the modulator,
+					// For object, reflection & normal mapping, add the object matrix to the modulator,
 					// as in LF script, use camera matrix if no object specified.
 					// In this case this means the inverse of that matrix
 					float texmat[4][4], itexmat[4][4];
@@ -1380,8 +1515,9 @@ void yafrayPluginRender_t::writeLamps()
 		char temp[16];
 		sprintf(temp,"LAMP%d",i+1);
 		params["name"] = yafray::parameter_t(temp);
+
 		// color already premultiplied by energy, so only need distance here
-		float pwr = 1;	// default for sun/hemi, distance irrelevant
+		float pwr = 1;
 		if ((lamp->type!=LA_SUN) && (lamp->type!=LA_HEMI)) {
 			if (lamp->mode & LA_SPHERE) {
 				// best approx. as used in LFexport script (LF d.f.m. 4pi?)
@@ -1562,6 +1698,19 @@ void yafrayPluginRender_t::writeCamera()
 
 void yafrayPluginRender_t::writeHemilight()
 {
+	// updated to use Blender AO params
+	World *world = G.scene->world;
+	if (world==NULL) return;
+	yafray::paramMap_t params;
+	params["type"] = yafray::parameter_t("hemilight");
+	params["name"] = yafray::parameter_t("hemi_LT");
+	params["power"] = yafray::parameter_t(R.r.GIpower);
+	params["samples"] = yafray::parameter_t(world->aosamp*world->aosamp);
+	params["maxdistance"] = yafray::parameter_t(world->aodist);
+	params["use_QMC"] = yafray::parameter_t((world->aomode & WO_AORNDSMP) ? "off" : "on");
+	yafrayGate->addLight(params);
+
+	/*
 	yafray::paramMap_t params;
 	params["type"] = yafray::parameter_t("hemilight");
 	params["name"] = yafray::parameter_t("hemi_LT");
@@ -1576,6 +1725,7 @@ void yafrayPluginRender_t::writeHemilight()
 		default: params["samples"]=yafray::parameter_t(25);
 	}
 	yafrayGate->addLight(params);
+	*/
 }
 
 void yafrayPluginRender_t::writePathlight()
@@ -1658,12 +1808,13 @@ bool yafrayPluginRender_t::writeWorld()
 			string wt_path = wimg->name;
 			adjustPath(wt_path);
 			if (BLI_testextensie(wimg->name, ".hdr")) {
-				params["type"] = yafray::parameter_t("HDRI");
+				params["type"] = yafray::parameter_t("image");
 				params["name"] = yafray::parameter_t("world_background");
 				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
-				params["exposure_adjust"] = yafray::parameter_t(int(world->mtex[i]->tex->bright-1));
+				params["exposure_adjust"] = yafray::parameter_t(wtex->tex->bright-1.f);
 				params["mapping"] = yafray::parameter_t("probe");
 				params["filename"] = yafray::parameter_t(wt_path);
+				params["interpolate"] = yafray::parameter_t((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none");
 				yafrayGate->addBackground(params);
 				return true;
 			}
@@ -1737,12 +1888,12 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	zbuf[x] = (int)(depth*mz);
 
 	out++;
-	if(out==4096)
+	if (out==4096)
 	{
 		RE_local_render_display(0,R.recty-1, R.rectx, R.recty, R.rectot);
-		out=0;
+		out = 0;
 	}
-	if(RE_local_test_break())
+	if (RE_local_test_break())
 		return false;
 	return true;
 }

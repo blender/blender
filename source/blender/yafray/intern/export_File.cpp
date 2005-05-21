@@ -224,7 +224,14 @@ bool yafrayFileRender_t::writeRender()
 		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"\n";
 	}
 
-	if (hasworld) ostr << "\tbackground_name=\"world_background\"\n";
+	if (hasworld) {
+		World *world = G.scene->world;
+		if (world->mode & WO_MIST) {
+			ostr << "\tfog_density=\"" << world->mistdist << "\" ";
+			ostr << "fog_color r=\"" << world->horr << "\" g=\"" << world->horg << "\" b=\"" << world->horb << "\"\n";
+		}
+		ostr << "\tbackground_name=\"world_background\"\n";
+	}
  
 	// alpha channel render when RGBA button enabled
 	if (R.r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
@@ -398,6 +405,10 @@ void yafrayFileRender_t::writeTextures()
 				ts = (tex->stype & 1) ? "rings" : "bands";	//stype 1&3 ringtype
 				ostr << "\t\t<wood_type value=\"" << ts << "\" />\n";
 				ostr << "\t\t<noise_type value=\"" << ntype << "\" />\n";
+				// shape parameter, for some reason noisebasis2 is used...
+				ts = "sin";
+				if (tex->noisebasis2==1) ts="saw"; else if (tex->noisebasis2==2) ts="tri";
+				ostr << "\t\t<shape value=\"" << ts << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
 				xmlfile << ostr.str();
 				break;
@@ -412,6 +423,9 @@ void yafrayFileRender_t::writeTextures()
 				ostr << "\t\t<hard value=\"" << hardnoise << "\" />\n";
 				ostr << "\t\t<sharpness value=\"" << (float)(1<<tex->stype) << "\" />\n";
 				ostr << "\t\t<noise_type value=\"" << ntype << "\" />\n";
+				ts = "sin";
+				if (tex->noisebasis2==1) ts="saw"; else if (tex->noisebasis2==2) ts="tri";
+				ostr << "\t\t<shape value=\"" << ts << "\" />\n";
 				ostr << "\t</attributes>\n</shader>\n\n";
 				xmlfile << ostr.str();
 				break;
@@ -544,6 +558,7 @@ void yafrayFileRender_t::writeTextures()
 					string texpath(ima->name);
 					adjustPath(texpath);
 					ostr << "\t\t<filename value=\"" << texpath << "\" />\n";
+					ostr << "\t\t<interpolate value=\"" << ((tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
 					ostr << "\t</attributes>\n</shader>\n\n";
 					xmlfile << ostr.str();
 				}
@@ -601,16 +616,55 @@ void yafrayFileRender_t::writeTextures()
 
 void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, const string &facetexname)
 {
+	// if material has ramps, export colorbands first
+	if (matr->mode & (MA_RAMP_COL|MA_RAMP_SPEC))
+	{
+		// both colorbands without input shader
+		ColorBand* cb = matr->ramp_col;
+		if ((matr->mode & MA_RAMP_COL) && (cb!=NULL))
+		{
+			ostr.str("");
+			ostr << "<shader type=\"colorband\" name=\"" << shader_name+"_difframp" << "\" >\n";
+			ostr << "\t<attributes>\n\t</attributes>\n";
+			for (int i=0;i<cb->tot;i++) {
+				ostr << "\t<modulator value=\"" << cb->data[i].pos << "\" >\n";
+				ostr << "\t\t<color r=\"" << cb->data[i].r << "\"" <<
+													" g=\"" << cb->data[i].g << "\"" <<
+													" b=\"" << cb->data[i].b << "\"" <<
+													" a=\"" << cb->data[i].a << "\" />\n";
+				ostr << "\t</modulator>\n";
+			}
+			ostr << "</shader>\n\n";
+			xmlfile << ostr.str();
+		}
+		cb = matr->ramp_spec;
+		if ((matr->mode & MA_RAMP_SPEC) && (cb!=NULL))
+		{
+			ostr.str("");
+			ostr << "<shader type=\"colorband\" name=\"" << shader_name+"_specramp" << "\" >\n";
+			ostr << "\t<attributes>\n\t</attributes>\n";
+			for (int i=0;i<cb->tot;i++) {
+				ostr << "\t<modulator value=\"" << cb->data[i].pos << "\" >\n";
+				ostr << "\t\t<color r=\"" << cb->data[i].r << "\"" <<
+													" g=\"" << cb->data[i].g << "\"" <<
+													" b=\"" << cb->data[i].b << "\"" <<
+													" a=\"" << cb->data[i].a << "\" />\n";
+				ostr << "\t</modulator>\n";
+			}
+			ostr << "</shader>\n\n";
+			xmlfile << ostr.str();
+		}
+	}
+
 	ostr.str("");
 	ostr << "<shader type=\"blendershader\" name=\"" << shader_name << "\" >\n";
 	ostr << "\t<attributes>\n";
-	float diff = matr->alpha;
+	float diff = 1; //matr->alpha;
 	ostr << "\t\t<color r=\"" << matr->r*diff << "\" g=\"" << matr->g*diff << "\" b=\"" << matr->b*diff << "\" />\n";
 	ostr << "\t\t<specular_color r=\"" << matr->specr << "\" g=\"" << matr->specg << "\" b=\"" << matr->specb << "\" />\n";
 	ostr << "\t\t<mirror_color r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 	ostr << "\t\t<diffuse_reflect value=\"" << matr->ref << "\" />\n";
 	ostr << "\t\t<specular_amount value=\"" << matr->spec << "\" />\n";
-	ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
 	ostr << "\t\t<alpha value=\"" << matr->alpha << "\" />\n";
 	// if no GI used, the GIpower parameter is not always initialized, so in that case ignore it
 	float bg_mult = (R.r.GImethod==0) ? 1 : R.r.GIpower;
@@ -620,19 +674,27 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
 		ostr << "\t\t<IOR value=\"" << matr->ang << "\" />\n";
 	if (matr->mode & MA_RAYMIRROR) {
-		float rf = matr->ray_mirror;
 		// blender uses mir color for reflection as well
-		ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
-		ostr << "\t\t<min_refle value=\""<< rf << "\" />\n";
-		if (matr->ray_depth>maxraydepth) maxraydepth = matr->ray_depth;
+		//ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
+		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
+		// has been mapped to Blender's ray_mirror parameter.
+		// This causes it be be misinterpreted and misused as a reflection amount control however.
+		// Besides that, it also causes extra complications for the yafray Blendershader.
+		// So added an actual amount of reflection parameter instead, and another
+		// extra parameter 'frsOfs' to actually control fresnel offset (re-uses Blender fresnel_mir_i param).
+		ostr << "\t\t<reflect value=\"on\" />\n";
+		ostr << "\t\t<reflect_amount value=\""<< matr->ray_mirror << "\" />\n";
+		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
+		ostr << "\t\t<fresnel_offset value=\""<< fo << "\" />\n";
 	}
 	if (matr->mode & MA_RAYTRANSP) 
 	{
-		float tr=1.0-matr->alpha;
-		ostr << "\t\t<transmitted r=\"" << matr->r * tr << "\" g=\"" << matr->g * tr << "\" b=\"" << matr->b * tr << "\" />\n";
+		//float tr=1.0-matr->alpha;
+		//ostr << "\t\t<transmitted r=\"" << matr->r*tr << "\" g=\"" << matr->g*tr << "\" b=\"" << matr->b*tr << "\" />\n";
+		ostr << "\t\t<refract value=\"on\" />\n";
+		ostr << "\t\t<transmit_filter value=\"" << matr->filter << "\" />\n";
 		// tir on by default
 		ostr << "\t\t<tir value=\"on\" />\n";
-		if (matr->ray_depth_tra>maxraydepth) maxraydepth = matr->ray_depth_tra;
 	}
 
 	string Mmode = "";
@@ -644,6 +706,70 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	if (matr->mode & MA_ZTRA) Mmode += " ztransp";
 	if (matr->mode & MA_ONLYSHADOW) Mmode += " onlyshadow";
 	if (Mmode!="") ostr << "\t\t<matmodes value=\"" << Mmode << "\" />\n";
+
+	// diffuse & specular brdf, lambert/cooktorr defaults
+	// diffuse
+	if (matr->diff_shader==MA_DIFF_ORENNAYAR) {
+		ostr << "\t\t<diffuse_brdf value=\"oren_nayar\" />\n";
+		ostr << "\t\t<roughness value=\"" << matr->roughness << "\" />\n";
+	}
+	else if (matr->diff_shader==MA_DIFF_TOON) {
+		ostr << "\t\t<diffuse_brdf value=\"toon\" />\n";
+		ostr << "\t\t<toondiffuse_size value=\"" << matr->param[0] << "\" />\n";
+		ostr << "\t\t<toondiffuse_smooth value=\"" << matr->param[1] << "\" />\n";
+	}
+	else if (matr->diff_shader==MA_DIFF_MINNAERT) {
+		ostr << "\t\t<diffuse_brdf value=\"minnaert\" />\n";
+		ostr << "\t\t<darkening value=\"" << matr->darkness << "\" />\n";
+	}
+	else ostr << "\t\t<diffuse_brdf value=\"lambert\" />\n";
+	// specular
+	if (matr->spec_shader==MA_SPEC_PHONG) {
+		ostr << "\t\t<specular_brdf value=\"phong\" />\n";
+		ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
+	}
+	else if (matr->spec_shader==MA_SPEC_BLINN) {
+		ostr << "\t\t<specular_brdf value=\"blinn\" />\n";
+		ostr << "\t\t<blinn_ior value=\"" << matr->refrac << "\" />\n";
+		ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
+	}
+	else if (matr->spec_shader==MA_SPEC_TOON) {
+		ostr << "\t\t<specular_brdf value=\"toon\" />\n";
+		ostr << "\t\t<toonspecular_size value=\"" << matr->param[2] << "\" />\n";
+		ostr << "\t\t<toonspecular_smooth value=\"" << matr->param[3] << "\" />\n";
+	}
+	else if (matr->spec_shader==MA_SPEC_WARDISO) {
+		ostr << "\t\t<specular_brdf value=\"ward\" />\n";
+		ostr << "\t\t<u_roughness value=\"" << matr->rms << "\" />\n";
+		ostr << "\t\t<v_roughness value=\"" << matr->rms << "\" />\n";
+	}
+	else {
+		ostr << "\t\t<specular_brdf value=\"blender_cooktorr\" />\n";
+		ostr << "\t\t<hard value=\"" << matr->har << "\" />\n";
+	}
+
+	// ramps, if used
+	if (matr->mode & (MA_RAMP_COL|MA_RAMP_SPEC))
+	{
+		const string rm_blend[9] = {"mix", "add", "mul", "sub", "screen", "divide", "difference", "darken", "lighten"};
+		const string rm_mode[4] = {"shader", "energy", "normal", "result"};
+		// diffuse
+		if ((matr->mode & MA_RAMP_COL) && (matr->ramp_col!=NULL))
+		{
+			ostr << "\t\t<diffuse_ramp value=\"" << shader_name+"_difframp" << "\" />\n";
+			ostr << "\t\t<diffuse_ramp_mode value=\"" << rm_mode[(int)matr->rampin_col] << "\" />\n";
+			ostr << "\t\t<diffuse_ramp_blend value=\"" << rm_blend[(int)matr->rampblend_col] << "\" />\n";
+			ostr << "\t\t<diffuse_ramp_factor value=\"" << matr->rampfac_col << "\" />\n";
+		}
+		// specular
+		if ((matr->mode & MA_RAMP_SPEC) && (matr->ramp_spec!=NULL)) {
+			ostr << "\t\t<specular_ramp value=\"" << shader_name+"_specramp" << "\" />\n";
+			ostr << "\t\t<specular_ramp_mode value=\"" << rm_mode[(int)matr->rampin_spec] << "\" />\n";
+			ostr << "\t\t<specular_ramp_blend value=\"" << rm_blend[(int)matr->rampblend_spec] << "\" />\n";
+			ostr << "\t\t<specular_ramp_factor value=\"" << matr->rampfac_spec << "\" />\n";
+		}
+	}
+
 	ostr << "\t</attributes>\n";
 	xmlfile << ostr.str();
 	
@@ -681,12 +807,9 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 			else
 				ostr << "\t\t<input value=\"" << shader_name << "_map" << m2 << "\" />\n";
 
-			// blendtype
-			string ts = "mix";
-			if (mtex->blendtype==MTEX_MUL) ts="mul";
-			else if (mtex->blendtype==MTEX_ADD) ts="add";
-			else if (mtex->blendtype==MTEX_SUB) ts="sub";
-			ostr << "\t\t<mode value=\"" << ts << "\" />\n";
+			// blendtype, would have been nice if the order would have been the same as for ramps...
+			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			ostr << "\t\t<mode value=\"" << blendtype[(int)mtex->blendtype] << "\" />\n";
 
 			// texture color (for use with MUL and/or no_rgb etc..)
 			ostr << "\t\t<texcol r=\"" << mtex->r << "\" g=\"" << mtex->g << "\" b=\"" << mtex->b << "\" />\n";
@@ -749,7 +872,6 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				int t = 1;
 				if (mtex->maptoneg & MAP_ALPHA) t = -1;
 				ostr << "\t\t<alpha value=\"" << t << "\" />\n";
-
 			}
 
 			// emit modulation
@@ -759,9 +881,16 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 				ostr << "\t\t<emit value=\"" << t << "\" />\n";
 			}
 
+			// raymir modulation
+			if ((mtex->mapto & MAP_RAYMIRR) || (mtex->maptoneg & MAP_RAYMIRR)) {
+				int t = 1;
+				if (mtex->maptoneg & MAP_RAYMIRR) t = -1;
+				ostr << "\t\t<raymir value=\"" << t << "\" />\n";
+			}
+
 			// texture flag, combination of strings
+			string ts = "";
 			if (mtex->texflag & (MTEX_RGBTOINT | MTEX_STENCIL | MTEX_NEGATIVE)) {
-				ts = "";
 				if (mtex->texflag & MTEX_RGBTOINT) ts += "no_rgb ";
 				if (mtex->texflag & MTEX_STENCIL) ts += "stencil ";
 				if (mtex->texflag & MTEX_NEGATIVE) ts += "negative";
@@ -827,9 +956,9 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 			if (mtexL!=used_textures.end()) {
 				ostr.str("");
 				ostr << "<shader type=\"blendermapper\" name=\"" << blendmat->first + "_map" << m <<"\"";
-				if ((mtex->texco & TEXCO_OBJECT) || (mtex->texco & TEXCO_REFL))
+				if ((mtex->texco & TEXCO_OBJECT) || (mtex->texco & TEXCO_REFL) || (mtex->texco & TEXCO_NORM))
 				{
-					// For object & reflection mapping, add the object matrix to the modulator,
+					// For object, reflection & normal mapping, add the object matrix to the modulator,
 					// as in LF script, use camera matrix if no object specified.
 					// In this case this means the inverse of that matrix
 					float texmat[4][4], itexmat[4][4];
@@ -839,13 +968,13 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 						MTC_Mat4CpyMat4(texmat, maincam_obj->obmat);
 					MTC_Mat4Invert(itexmat, texmat);
 					ostr << "\n\t\tm00=\"" << itexmat[0][0] << "\" m01=\"" << itexmat[1][0]
-							<< "\" m02=\"" << itexmat[2][0] << "\" m03=\"" << itexmat[3][0] << "\"\n";
+							 << "\" m02=\"" << itexmat[2][0] << "\" m03=\"" << itexmat[3][0] << "\"\n";
 					ostr << "\t\tm10=\"" << itexmat[0][1] << "\" m11=\"" << itexmat[1][1]
-							<< "\" m12=\"" << itexmat[2][1] << "\" m13=\"" << itexmat[3][1] << "\"\n";
+							 << "\" m12=\"" << itexmat[2][1] << "\" m13=\"" << itexmat[3][1] << "\"\n";
 					ostr << "\t\tm20=\"" << itexmat[0][2] << "\" m21=\"" << itexmat[1][2]
-							<< "\" m22=\"" << itexmat[2][2] << "\" m23=\"" << itexmat[3][2] << "\"\n";
+							 << "\" m22=\"" << itexmat[2][2] << "\" m23=\"" << itexmat[3][2] << "\"\n";
 					ostr << "\t\tm30=\"" << itexmat[0][3] << "\" m31=\"" << itexmat[1][3]
-							<< "\" m32=\"" << itexmat[2][3] << "\" m33=\"" << itexmat[3][3] << "\">\n";
+							 << "\" m32=\"" << itexmat[2][3] << "\" m33=\"" << itexmat[3][3] << "\">\n";
 				}
 				else ostr << ">\n";
 				ostr << "\t<attributes>\n";
@@ -1662,11 +1791,12 @@ bool yafrayFileRender_t::writeWorld()
 			adjustPath(wt_path);
 			if (BLI_testextensie(wimg->name, ".hdr")) {
 				ostr.str("");
-				ostr << "<background type=\"HDRI\" name=\"world_background\" ";
+				ostr << "<background type=\"image\" name=\"world_background\" ";
 				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
 				// GIpower could be used, but is only active for GI
-				ostr << "exposure_adjust=\"" << int(world->mtex[i]->tex->bright-1) << "\" mapping=\"probe\" >\n";
+				ostr << "exposure_adjust=\"" << wtex->tex->bright-1.f << "\" mapping=\"probe\" >\n";
 				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
+				ostr << "\t<interpolate value=\"" << ((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
 				ostr << "</background>\n\n";
 				xmlfile << ostr.str();
 				return true;
