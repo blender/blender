@@ -259,7 +259,7 @@ PyObject *Matrix_Determinant(MatrixObject * self)
 		det = Det4x4((float (*)[4]) *self->matrix);
 	}
 
-	return (PyObject*)self;
+	return PyFloat_FromDouble( (double) det );
 }
 //---------------------------Matrix.transpose() ------------------
 PyObject *Matrix_Transpose(MatrixObject * self)
