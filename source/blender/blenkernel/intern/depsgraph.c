@@ -999,6 +999,14 @@ void topo_sort_baselist(struct Scene *sce){
 		}
 	}
 	
+	// temporal correction for circular dependancies
+	base = sce->base.first;
+	while (base) {
+		BLI_remlink(&sce->base,base);
+		BLI_addhead(&tempbase,base);
+		base = sce->base.first;
+	}
+	
 	sce->base = tempbase;
 	queue_delete(nqueue);
 }
