@@ -213,12 +213,13 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 
 
 /**
- * getPixel( x, y )
- *  returns float list of pixel colors in rgba order
+ * getPixelF( x, y )
+ *  returns float list of pixel colors in rgba order.
+ *  returned values are floats normalized to 0.0 - 1.0.
  *  blender images are all 4x8 bit at the moment apr-2005
  */
 
-static PyObject *Image_getPixel( BPy_Image * self, PyObject * args )
+static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 {
 
 	PyObject *attr;
@@ -329,7 +330,7 @@ static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
 static PyObject *Image_reload( BPy_Image * self );
 static PyObject *Image_glLoad( BPy_Image * self );
 static PyObject *Image_glFree( BPy_Image * self );
-static PyObject *Image_getPixel( BPy_Image * self, PyObject * args );
+static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args );
 static PyObject *Image_getMaxXY( BPy_Image * self );
 
 /*****************************************************************************/
@@ -337,7 +338,7 @@ static PyObject *Image_getMaxXY( BPy_Image * self );
 /*****************************************************************************/
 static PyMethodDef BPy_Image_methods[] = {
 	/* name, method, flags, doc */
-	{"getPixel", ( PyCFunction ) Image_getPixel, METH_VARARGS,
+	{"getPixelF", ( PyCFunction ) Image_getPixelF, METH_VARARGS,
 	 "(float, float) - Get colors of specified pixel as [r,g,b,a]"},
 	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_VARARGS,
 	 "() - Get maximum x & y coordinates of current image as [x, y]"},

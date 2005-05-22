@@ -94,9 +94,10 @@ class Image:
     @rtype: int
     """
 
-  def getPixel(x, y):
+  def getPixelF(x, y):
     """
 	Get the the colors of the current pixel in the form [r,g,b,a].
+	Returned values are floats normalized to 0.0 - 1.0.
 	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
 	@returns: [ r, g, b, a]
 	@rtype: list of 4 floats
