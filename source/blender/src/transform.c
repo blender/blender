@@ -1069,7 +1069,7 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 
 	/* local constraint shouldn't alter center */
-	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
+	if (G.vd->around == V3D_LOCAL) {
 		if (t->flag & T_OBJECT) {
 			VECCOPY(center, td->center);	// not supported in editmode yet
 		}
@@ -1429,7 +1429,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	int i;
 
 	/* saving original center */
-	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
+	if (G.vd->around == V3D_LOCAL) {
 		VECCOPY(center, t->center);
 	}
 
@@ -1441,7 +1441,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 			break;
 		
 		/* local constraint shouldn't alter center */
-		if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
+		if (G.vd->around == V3D_LOCAL) {
 			if (t->flag & T_OBJECT)
 				VECCOPY(t->center, td->center);		// not supported in editmode yet
 		}
@@ -1458,7 +1458,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	}
 
 	/* restoring original center */
-	if (G.vd->around == V3D_LOCAL || (t->con.mode & CON_LOCAL)) {
+	if (G.vd->around == V3D_LOCAL) {
 		VECCOPY(t->center, center);
 	}
 }
