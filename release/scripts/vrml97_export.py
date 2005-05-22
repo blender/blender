@@ -5,7 +5,7 @@ Blender: 235
 Group: 'Export'
 Submenu: 'All Objects...' all
 Submenu: 'Selected Objects...' selected
-Tooltip: 'Export to VRML97 (VRML2) file format (.wrl)'
+Tooltip: 'Export to VRML97 file (.wrl)'
 """
 
 __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews", "Bart")
@@ -13,10 +13,10 @@ __url__ = ["blender", "elysiun",
 "Author's (Rick) homepage, http://kimballsoftware.com/blender",
 "Author's (Bart) homepage, http://www.neeneenee.de/vrml",
 "Complete online documentation, http://www.neeneenee.de/blender/x3d/exporting_web3d.html"]
-__version__ = "2005/04/09"
+__version__ = "2005/04/20"
 
 __bpydoc__ = """\
-This script exports to VRML97 format, which used to be called VRML2.
+This script exports to VRML97 format.
 
 Usage:
 
@@ -34,7 +34,7 @@ for each texture);<br>
 # $Id$
 #
 #------------------------------------------------------------------------
-# VRML97 exporter for blender 2.33 or above
+# VRML97 exporter for blender 2.36 or above
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -64,8 +64,12 @@ for each texture);<br>
 import Blender
 from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text
 from Blender.Scene import Render
-from os.path import exists, join
-pytinst = 1
+try:
+    from os.path import exists, join
+    pytinst = 1
+except:
+    print "No Python installed, for full features install Python (http://www.python.org/)."
+    pytinst = 0
 import math
 
 ####################################
@@ -75,6 +79,7 @@ import math
 scene = Blender.Scene.getCurrent()
 world = Blender.World.Get() 
 worldmat = Blender.Texture.Get()
+filename = Blender.Get('filename')
 _safeOverwrite = True
 radD=math.pi/180.0
 ARG=''
@@ -109,6 +114,8 @@ class VRML2Export:
 
     def __init__(self, filename):
         #--- public you can change these ---
+        self.wire = 0
+        self.proto = 1
         self.matonly = 0
         self.share = 0
         self.billnode = 0
@@ -123,7 +130,8 @@ class VRML2Export:
         
         #--- class private don't touch ---
         self.texNames={}   # dictionary of textureNames
-        self.matNames={}   # dictionary of materiaNames
+        self.matNames={}   # dictionary of materialNames
+        self.meshNames={}   # dictionary of meshNames
         self.indentLevel=0 # keeps track of current indenting
         self.filename=filename
         self.file = open(filename, "w")
@@ -147,6 +155,7 @@ class VRML2Export:
                              "Scene.001","Scene.002","Scene.003","Scene.004","Scene.005","Scene.06","Scene.013",
                              "Scene.006","Scene.007","Scene.008","Scene.009","Scene.010","Scene.011","Scene.012",
                              "World","World.000","World.001","World.002","World.003","World.004","World.005" ]
+        self.namesFog=[ "","LINEAR","EXPONENTIAL","" ]
 
 ##########################################################
 # Writing nodes routines
@@ -155,7 +164,9 @@ class VRML2Export:
     def writeHeader(self):
         self.file.write("#VRML V2.0 utf8\n\n")
         self.file.write("# This file was authored with Blender (http://www.blender.org/)\n")
-        self.file.write("# Exported using VRML97 exporter v1.50\n\n")
+        self.file.write("# Blender version %s\n" % Blender.Get('version'))
+        self.file.write("# Blender file %s\n" % filename)
+        self.file.write("# Exported using VRML97 exporter v1.50 (2005/04/20)\n\n")
 
     def writeInline(self):
         inlines = Blender.Scene.Get()
@@ -177,12 +188,19 @@ class VRML2Export:
         alltext = len(textEditor)
         for i in range(alltext):
             nametext = textEditor[i].getName()
-            nlines = textEditor[i].getNLines()	
-            if (nametext == "web3d" or nametext == "web3d.js" or nametext == "web3d.txt") and (nlines != None):
-                nalllines = len(textEditor[i].asLines())
-                alllines = textEditor[i].asLines()
-                for j in range(nalllines):
-                    self.writeIndented(alllines[j] + "\n")
+            nlines = textEditor[i].getNLines()
+            if (self.proto == 1):
+                if (nametext == "proto" or nametext == "proto.js" or nametext == "proto.txt") and (nlines != None):
+                    nalllines = len(textEditor[i].asLines())
+                    alllines = textEditor[i].asLines()
+                    for j in range(nalllines):
+                        self.writeIndented(alllines[j] + "\n")
+            elif (self.proto == 0):
+                if (nametext == "route" or nametext == "route.js" or nametext == "route.txt") and (nlines != None):
+                    nalllines = len(textEditor[i].asLines())
+                    alllines = textEditor[i].asLines()
+                    for j in range(nalllines):
+                        self.writeIndented(alllines[j] + "\n")
         self.writeIndented("\n")
 
     def writeViewpoint(self, thisObj):
@@ -191,8 +209,6 @@ class VRML2Export:
         lens = (360* (math.atan(ratio *16 / thisObj.data.getLens()) / 3.141593))*(3.141593/180)
         if lens > 3.14:
             lens = 3.14
-        self.writeIndented("DEF %s Viewpoint {\n" % (self.cleanStr(thisObj.name)), 1)
-        self.writeIndented("description \"%s\" \n" % (thisObj.name))
         # get the camera location, subtract 90 degress from X to orient like VRML does
         loc = self.rotatePointForVRML(thisObj.loc)
         rot = [thisObj.RotX - 1.57, thisObj.RotY, thisObj.RotZ]
@@ -202,10 +218,10 @@ class VRML2Export:
         Q1 = self.multiplyQuaternions(Q[0], Q[1])
         Qf = self.multiplyQuaternions(Q1, Q[2])
         angleAxis = self.quaternionToAngleAxis(Qf)
-        # write orientation statement
-        self.writeIndented("orientation %3.2f %3.2f %3.2f %3.2f\n" % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
-        # write position statement
+        self.writeIndented("DEF %s Viewpoint {\n" % (self.cleanStr(thisObj.name)), 1)
+        self.writeIndented("description \"%s\" \n" % (thisObj.name))
         self.writeIndented("position %3.2f %3.2f %3.2f\n" % (loc[0], loc[1], loc[2]))
+        self.writeIndented("orientation %3.2f %3.2f %3.2f %3.2f\n" % (angleAxis[0], angleAxis[1], -angleAxis[2], angleAxis[3]))
         self.writeIndented("fieldOfView %.3f\n" % (lens))
         self.writeIndented("}\n", -1)
         self.writeIndented("\n")
@@ -218,20 +234,13 @@ class VRML2Export:
             grd0, grd1, grd2 = grd[0], grd[1], grd[2]
         else:
             return
-        if (mtype == 1):
+        if (mtype == 1 or mtype == 2):
             self.writeIndented("Fog {\n",1)
-            self.writeIndented("fogType \"LINEAR\"\n")						
+            self.writeIndented("fogType \"%s\"\n" % self.namesFog[mtype])						
             self.writeIndented("color %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
-            self.writeIndented("visibilityRange " + str(round(mparam[2],self.cp)) + "\n")  
+            self.writeIndented("visibilityRange %s\n" % round(mparam[2],self.cp))  
             self.writeIndented("}\n",-1)
             self.writeIndented("\n")   
-        elif (mtype == 2):
-            self.writeIndented("Fog {\n",1)
-            self.writeIndented("fogType \"EXPONENTIAL\"\n")						
-            self.writeIndented("color %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
-            self.writeIndented("visibilityRange " + str(round(mparam[2],self.cp)) + "\n")  
-            self.writeIndented("}\n",-1) 
-            self.writeIndented("\n")  
         else:
             return
 
@@ -255,7 +264,6 @@ class VRML2Export:
         self.writeIndented(" \n")
 
     def writeSpotLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
         if len(world) > 0:
             ambi = world[0].getAmb()
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -276,24 +284,19 @@ class VRML2Export:
             
         location=self.rotVertex(om, (0,0,0));
         radius = lamp.dist*math.cos(beamWidth)
-        self.writeIndented("DEF %s SpotLight {\n" % safeName,1)
+        self.writeIndented("DEF %s SpotLight {\n" % self.cleanStr(object.name),1)
         self.writeIndented("radius %s\n" % (round(radius,self.cp)))
         self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
         self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
-        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp),
-                                                    round(lamp.col[1],self.cp),
-                                                    round(lamp.col[2],self.cp)))
+        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
         self.writeIndented("beamWidth %s\n" % (round(beamWidth,self.cp)))
         self.writeIndented("cutOffAngle %s\n" % (round(cutOffAngle,self.cp)))
         self.writeIndented("direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
-        self.writeIndented("location %s %s %s\n" % (round(location[0],3),
-                                                    round(location[1],3),
-                                                    round(location[2],3)))
+        self.writeIndented("location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
         self.writeIndented("}\n",-1)
         self.writeIndented("\n")
         
     def writeDirectionalLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
         if len(world) > 0:
             ambi = world[0].getAmb()
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -303,18 +306,15 @@ class VRML2Export:
 
         intensity=min(lamp.energy/1.5, 1.0) 
         (dx,dy,dz)=self.computeDirection(object)
-        self.writeIndented("DEF %s DirectionalLight {\n" % safeName,1)
+        self.writeIndented("DEF %s DirectionalLight {\n" % self.cleanStr(object.name),1)
         self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
-        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp),
-                                                    round(lamp.col[1],self.cp),
-                                                    round(lamp.col[2],self.cp)))
+        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
         self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
         self.writeIndented("direction %s %s %s\n" % (round(dx,4),round(dy,4),round(dz,4)))
         self.writeIndented("}\n",-1)
         self.writeIndented("\n")
 
     def writePointLight(self, object, lamp):
-        safeName = self.cleanStr(object.name)
         if len(world) > 0:
             ambi = world[0].getAmb()
             ambientIntensity = ((float(ambi[0] + ambi[1] + ambi[2]))/3)/2.5
@@ -325,15 +325,11 @@ class VRML2Export:
         location=self.rotVertex(om, (0,0,0));
         intensity=min(lamp.energy/1.5,1.0)
         radius = lamp.dist
-        self.writeIndented("DEF %s PointLight {\n" % safeName,1)
+        self.writeIndented("DEF %s PointLight {\n" % self.cleanStr(object.name),1)
         self.writeIndented("ambientIntensity %s\n" % (round(ambientIntensity,self.cp)))
-        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp),
-                                                    round(lamp.col[1],self.cp),
-                                                    round(lamp.col[2],self.cp)))
+        self.writeIndented("color %s %s %s\n" % (round(lamp.col[0],self.cp), round(lamp.col[1],self.cp), round(lamp.col[2],self.cp)))
         self.writeIndented("intensity %s\n" % (round(intensity,self.cp)))
-        self.writeIndented("location %s %s %s\n" % (round(location[0],3),
-                                                    round(location[1],3),
-                                                    round(location[2],3)))
+        self.writeIndented("location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
         self.writeIndented("radius %s\n" % radius )
         self.writeIndented("}\n",-1)
         self.writeIndented("\n")
@@ -348,9 +344,7 @@ class VRML2Export:
             location=self.rotVertex(om, (0,0,0));
             self.writeIndented("%s {\n" % objectname,1)
             self.writeIndented("# direction %s %s %s\n" % (round(dx,3),round(dy,3),round(dz,3)))
-            self.writeIndented("# location %s %s %s\n" % (round(location[0],3),
-                                                        round(location[1],3),
-                                                        round(location[2],3)))
+            self.writeIndented("# location %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)))
             self.writeIndented("}\n",-1)
             self.writeIndented("\n")
     def createDef(self, name):
@@ -398,6 +392,7 @@ class VRML2Export:
         vColors={}    # 'multi':1
         meshName = self.cleanStr(object.name)
         mesh=object.getData()
+        meshME = self.cleanStr(mesh.name)
         for face in mesh.faces:
             if face.mode & Blender.NMesh.FaceModes['HALO'] and self.halonode == 0:
                 self.writeIndented("Billboard {\n",1)
@@ -434,9 +429,7 @@ class VRML2Export:
         om = object.getMatrix();
         location=self.rotVertex(om, (0,0,0));
         self.writeIndented("Transform {\n",1)
-        self.writeIndented("translation %s %s %s\n" % (round(location[0],3),
-                                                    round(location[1],3),
-                                                    round(location[2],3)),1)
+        self.writeIndented("translation %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)),1)
         self.writeIndented("children [\n")
         self.writeIndented("DEF %s Shape {\n" % meshName,1)
             
@@ -450,7 +443,7 @@ class VRML2Export:
             # right now this script can only handle a single material per mesh.
             if len(maters) >= 1:
                 mat=Blender.Material.Get(maters[0].name)
-                self.writeMaterial(mat, self.createDef(maters[0].name))
+                self.writeMaterial(mat, self.cleanStr(maters[0].name,''))
                 if len(maters) > 1:
                     print "Warning: mesh named %s has multiple materials" % meshName
                     print "Warning: only one material per object handled"
@@ -474,45 +467,54 @@ class VRML2Export:
         if object.drawType == Blender.Object.DrawTypes.WIRE:
             # user selected WIRE=2 on the Drawtype=Wire on (F9) Edit page
             ifStyle="IndexedLineSet"
+            self.wire = 1
         else:
             # user selected BOUNDS=1, SOLID=3, SHARED=4, or TEXTURE=5
             ifStyle="IndexedFaceSet"
-
-        
-        self.writeIndented("geometry %s {\n" % ifStyle, 1)
-        if object.drawType != Blender.Object.DrawTypes.WIRE:
-            if bTwoSided == 1:
-                self.writeIndented("solid FALSE\n")
+        # look up mesh name, use it if available
+        if self.meshNames.has_key(meshME):
+            self.writeIndented("geometry USE ME_%s\n" % meshME)
+            self.meshNames[meshME]+=1
+        else:
+            if int(mesh.users) > 1:
+                self.writeIndented("geometry DEF ME_%s %s {\n" % (meshME, ifStyle), 1)
+                self.meshNames[meshME]=1
             else:
-                self.writeIndented("solid TRUE\n")
+                self.writeIndented("geometry %s {\n" % ifStyle, 1)
+            if object.drawType != Blender.Object.DrawTypes.WIRE:
+                if bTwoSided == 1:
+                    self.writeIndented("solid FALSE\n")
+                else:
+                    self.writeIndented("solid TRUE\n")
 
-        #--- output coordinates
-        self.writeCoordinates(object, mesh, meshName)
+            #--- output coordinates
+            self.writeCoordinates(object, mesh, meshName)
         
-        if object.drawType != Blender.Object.DrawTypes.WIRE:
-            #--- output textureCoordinates if UV texture used
-            if mesh.hasFaceUV():
-                if hasImageTexture == 1:
-                    self.writeTextureCoordinates(mesh)
-                elif self.matonly == 1 and self.share == 1:
-                    self.writeFaceColors(mesh)
+            if object.drawType != Blender.Object.DrawTypes.WIRE:
+                #--- output textureCoordinates if UV texture used
+                if mesh.hasFaceUV():
+                    if hasImageTexture == 1:
+                        self.writeTextureCoordinates(mesh)
+                    elif self.matonly == 1 and self.share == 1:
+                        self.writeFaceColors(mesh)
 
-        for face in mesh.faces:
-            if face.smooth:
-                 issmooth=1
-        if issmooth==1:
-            creaseAngle=(mesh.getMaxSmoothAngle())*radD
-            self.writeIndented("creaseAngle %s\n" % (round(creaseAngle,self.cp)))
+            for face in mesh.faces:
+                if face.smooth:
+                     issmooth=1
+            if issmooth==1 and self.wire == 0:
+                creaseAngle=(mesh.getMaxSmoothAngle())*radD
+                self.writeIndented("creaseAngle %s\n" % (round(creaseAngle,self.cp)))
 
-        #--- output vertexColors
-        if self.share == 1 and self.matonly == 0:
-            self.writeVertexColors(mesh)
-        self.matonly = 0
-        self.share = 0
-        #--- output closing braces
-        self.writeIndented("}\n", -1)
+            #--- output vertexColors
+            if self.share == 1 and self.matonly == 0:
+                self.writeVertexColors(mesh)
+            #--- output closing braces
+            self.writeIndented("}\n", -1)
         self.writeIndented("}\n", -1)
         self.writeIndented("]\n", -1)
+        self.matonly = 0
+        self.share = 0
+        self.wire = 0
         self.writeIndented("}\n", -1)
 
         if self.halonode == 1:
@@ -547,10 +549,7 @@ class VRML2Export:
         location=self.rotVertex(mm, (0,0,0));
         for vertex in meshVertexList:
             v=self.rotVertex(mm, vertex);
-            self.file.write("%s %s %s, " %
-                               (round((v[0]-location[0]),self.vp),
-                                round((v[1]-location[1]),self.vp),
-                                round((v[2]-location[2]),self.vp) ))
+            self.file.write("%s %s %s, " % (round((v[0]-location[0]),self.vp), round((v[1]-location[1]),self.vp), round((v[2]-location[2]),self.vp) ))
         self.writeIndented("\n", 0)
         self.writeIndented("]\n", -1)
         self.writeIndented("}\n", -1)
@@ -581,9 +580,7 @@ class VRML2Export:
         self.writeIndented("texCoord TextureCoordinate {\n", 1)
         self.writeIndented("point [\n\t\t\t\t\t\t", 1)
         for i in range(len(texCoordList)):
-            self.file.write("%s %s, " %
-                               (round(texCoordList[i][0],self.tp), 
-                                round(texCoordList[i][1],self.tp)))
+            self.file.write("%s %s, " % (round(texCoordList[i][0],self.tp), round(texCoordList[i][1],self.tp)))
         self.writeIndented("\n", 0)
         self.writeIndented("]\n", -1)
         self.writeIndented("}\n", -1)
@@ -634,10 +631,10 @@ class VRML2Export:
     def writeMaterial(self, mat, matName):
         # look up material name, use it if available
         if self.matNames.has_key(matName):
-            self.writeIndented("material USE %s\n" % matName)
+            self.writeIndented("material USE MA_%s\n" % matName)
             self.matNames[matName]+=1
             return;
-
+	
         self.matNames[matName]=1
 
         ambient = mat.amb/2
@@ -656,25 +653,13 @@ class VRML2Export:
         specB = (mat.specCol[2]+0.001)/(1.05/(mat.getSpec()+0.001))
         transp = 1-mat.alpha
 
-        self.writeIndented("material DEF %s Material {\n" % matName, 1)
-        self.writeIndented("diffuseColor %s %s %s" %
-                           (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)) +
-                           "\n")
-        self.writeIndented("ambientIntensity %s" %
-                           (round(ambient,self.cp))+
-                           "\n")
-        self.writeIndented("specularColor %s %s %s" %
-                           (round(specR,self.cp), round(specG,self.cp), round(specB,self.cp)) +
-                           "\n" )
-        self.writeIndented("emissiveColor  %s %s %s" %
-                           (round(emisR,self.cp), round(emisG,self.cp), round(emisB,self.cp)) +
-                           "\n" )
-        self.writeIndented("shininess %s" %
-                           (round(shininess,self.cp)) +
-                           "\n" )
-        self.writeIndented("transparency %s" %
-                           (round(transp,self.cp)) +
-                           "\n")
+        self.writeIndented("material DEF MA_%s Material {\n" % matName, 1)
+        self.writeIndented("diffuseColor %s %s %s\n" % (round(diffuseR,self.cp), round(diffuseG,self.cp), round(diffuseB,self.cp)))
+        self.writeIndented("ambientIntensity %s\n" % (round(ambient,self.cp)))
+        self.writeIndented("specularColor %s %s %s\n" % (round(specR,self.cp), round(specG,self.cp), round(specB,self.cp)))
+        self.writeIndented("emissiveColor  %s %s %s\n" % (round(emisR,self.cp), round(emisG,self.cp), round(emisB,self.cp)))
+        self.writeIndented("shininess %s\n" % (round(shininess,self.cp)))
+        self.writeIndented("transparency %s\n" % (round(transp,self.cp)))
         self.writeIndented("}\n",-1)
 
     def writeImageTexture(self, name):
@@ -706,56 +691,56 @@ class VRML2Export:
             self.writeIndented("DEF %s Background {\n" % self.createDef(worldname),1)
         # No Skytype - just Hor color
         if blending == 0:
-            self.writeIndented("groundColor %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
-            self.writeIndented("skyColor %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
+            self.writeIndented("groundColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+            self.writeIndented("skyColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
         # Blend Gradient
         elif blending == 1:
-            self.writeIndented("groundColor [ %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + ",")
-            self.writeIndented("%s %s %s" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)) + " ]\n")
+            self.writeIndented("groundColor [ %s %s %s, " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
             self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-            self.writeIndented("skyColor [ %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + ",")
-            self.writeIndented("%s %s %s" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)) + " ]\n")
+            self.writeIndented("skyColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
             self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
         # Blend+Real Gradient Inverse
         elif blending == 3:
-            self.writeIndented("groundColor [ %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + ", ")
-            self.writeIndented("%s %s %s" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)) + " ]\n")
+            self.writeIndented("groundColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
             self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-            self.writeIndented("skyColor [ %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + ", ")
-            self.writeIndented("%s %s %s" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)) + " ]\n")
+            self.writeIndented("skyColor [ %s %s %s, " % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(mix0,self.cp), round(mix1,self.cp), round(mix2,self.cp)))
             self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
         # Paper - just Zen Color
         elif blending == 4:
-            self.writeIndented("groundColor %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + "\n")
-            self.writeIndented("skyColor %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + "\n")
+            self.writeIndented("groundColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+            self.writeIndented("skyColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
         # Blend+Real+Paper - komplex gradient
         elif blending == 7:
-            self.writeIndented("groundColor [ %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + ", ")
-            self.writeIndented("%s %s %s" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + " ]\n")
+            self.writeIndented("groundColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
             self.writeIndented("groundAngle [ 1.57, 1.57 ]\n")
-            self.writeIndented("skyColor [ %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + ",")
-            self.writeIndented("%s %s %s" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + " ]\n")
+            self.writeIndented("skyColor [ %s %s %s, " % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
+            self.writeIndented("%s %s %s ]\n" %(round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
             self.writeIndented("skyAngle [ 1.57, 1.57 ]\n")
         # Any Other two colors
         else:
-            self.writeIndented("groundColor %s %s %s" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)) + "\n")
-            self.writeIndented("skyColor %s %s %s" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)) + "\n")
+            self.writeIndented("groundColor %s %s %s\n" % (round(grd0,self.cp), round(grd1,self.cp), round(grd2,self.cp)))
+            self.writeIndented("skyColor %s %s %s\n" % (round(sky0,self.cp), round(sky1,self.cp), round(sky2,self.cp)))
         alltexture = len(worldmat)
         for i in range(alltexture):
             namemat = worldmat[i].getName()
             pic = worldmat[i].getImage()	
             if (namemat == "back") and (pic != None):
-                self.writeIndented("backUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("backUrl \"%s\"\n" % str(pic.getName()))
             elif (namemat == "bottom") and (pic != None):
-                self.writeIndented("bottomUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("bottomUrl \"%s\"\n" % str(pic.getName()))
             elif (namemat == "front") and (pic != None):
-                self.writeIndented("frontUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("frontUrl \"%s\"\n" % str(pic.getName()))
             elif (namemat == "left") and (pic != None):
-                self.writeIndented("leftUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("leftUrl \"%s\"\n" % str(pic.getName()))
             elif (namemat == "right") and (pic != None):
-                self.writeIndented("rightUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("rightUrl \"%s\"\n" % str(pic.getName()))
             elif (namemat == "top") and (pic != None):
-                self.writeIndented("topUrl \"" + str(pic.getName()) + "\"\n")
+                self.writeIndented("topUrl \"%s\"\n" % str(pic.getName()))
         self.writeIndented("}",-1)
         self.writeIndented("\n\n")
 
@@ -766,9 +751,11 @@ class VRML2Export:
     def export(self, scene, world, worldmat):
         print "Info: starting VRML97 export to " + self.filename + "..."
         self.writeHeader()
+        self.writeScript()
         self.writeNavigationInfo(scene)
         self.writeBackground()
         self.writeFog()
+        self.proto = 0
         allObj = []
         if ARG == 'selected':
             allObj = Blender.Object.GetSelected()
@@ -1033,7 +1020,7 @@ def select_file(filename):
       if(result != 1):
         return
 
-  if not filename.endswith('.wrl'): filename += '.wrl'
+  if filename.find('.wrl', -4) < 0: filename += '.wrl'
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
@@ -1060,6 +1047,6 @@ except:
 if Blender.Get('version') < 235:
     print "Warning: VRML97 export failed, wrong blender version!"
     print " You aren't running blender version 2.35 or greater"
-    print " download a newer version from http://blender.org/"
+    print " download a newer version from http://blender3d.org/"
 else:
     Blender.Window.FileSelector(select_file,"Export VRML97",createWRLPath())

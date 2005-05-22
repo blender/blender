@@ -5,7 +5,7 @@ Blender: 235
 Group: 'Export'
 Submenu: 'All Objects...' all
 Submenu: 'Selected Objects...' selected
-Tooltip: 'Export to Extensible 3D file format (.x3d)'
+Tooltip: 'Export to Extensible 3D file (.x3d)'
 """
 
 __author__ = ("Bart")
@@ -16,7 +16,7 @@ __version__ = "2005/05/10"
 
 
 __bpydoc__ = """\
-This script exports to X3D file format.
+This script exports to X3D format.
 
 Usage:
 
@@ -64,8 +64,12 @@ for each texture);<br>
 import Blender
 from Blender import Object, NMesh, Lamp, Draw, BGL, Image, Text
 from Blender.Scene import Render
-from os.path import exists, join
-pytinst = 1
+try:
+    from os.path import exists, join
+    pytinst = 1
+except:
+    print "No Python installed, for full features install Python (http://www.python.org/)."
+    pytinst = 0
 import math, sys, datetime
 
 ####################################
@@ -1013,7 +1017,7 @@ def select_file(filename):
       if(result != 1):
         return
 
-  if not filename.endswith('.x3d'): filename += '.x3d'
+  if filename.find('.x3d', -4) < 0: filename += '.x3d'
   wrlexport=VRML2Export(filename)
   wrlexport.export(scene, world, worldmat)
 
