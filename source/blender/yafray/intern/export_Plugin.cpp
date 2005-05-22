@@ -220,12 +220,8 @@ bool yafrayPluginRender_t::writeRender()
 	}
 	else
 	{
-		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
-		{
-			params["AA_passes"] = yafray::parameter_t(5);
-			params["AA_minsamples"] = yafray::parameter_t(5);
-		}
-		else if ((R.r.mode & R_OSA) && (R.r.osa)) 
+		// removed the default AA settings for midquality GI, better leave it to user
+		if ((R.r.mode & R_OSA) && (R.r.osa)) 
 		{
 			params["AA_passes"] = yafray::parameter_t((R.r.osa%4)==0 ? R.r.osa/4 : 1);
 			params["AA_minsamples"] = yafray::parameter_t((R.r.osa%4)==0 ? 4 : R.r.osa);
@@ -248,7 +244,10 @@ bool yafrayPluginRender_t::writeRender()
 	if (hasworld) {
 		World *world = G.scene->world;
 		if (world->mode & WO_MIST) {
-			params["fog_density"] = yafray::parameter_t(world->mistdist);
+			// basic fog
+			float fd = world->mistdist;
+			if (fd>0) fd=1.f/fd; else fd=1;
+			params["fog_density"] = yafray::parameter_t(fd);
 			params["fog_color"] = yafray::parameter_t(yafray::color_t(world->horr, world->horg, world->horb));
 		}
 		params["background_name"] = yafray::parameter_t("world_background");
@@ -653,8 +652,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 
 	params["type"] = yafray::parameter_t("blendershader");
 	params["name"] = yafray::parameter_t(shader_name);
-	float diff = 1; //matr->alpha;
-	params["color"] = yafray::parameter_t(yafray::color_t(matr->r*diff, matr->g*diff, matr->b*diff));
+	params["color"] = yafray::parameter_t(yafray::color_t(matr->r, matr->g, matr->b));
 	params["specular_color"] = yafray::parameter_t(yafray::color_t(matr->specr, matr->specg, matr->specb));
 	params["mirror_color"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
 	params["diffuse_reflect"] = yafray::parameter_t(matr->ref);
@@ -670,24 +668,25 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 		params["IOR"] = yafray::parameter_t(matr->ang);
 	if (matr->mode & MA_RAYMIRROR)
 	{
-		// blender uses mir color for reflection as well
-		//params["reflected"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
 		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
 		// has been mapped to Blender's ray_mirror parameter.
 		// This causes it be be misinterpreted and misused as a reflection amount control however.
 		// Besides that, it also causes extra complications for the yafray Blendershader.
 		// So added an actual amount of reflection parameter instead, and another
-		// extra parameter to actually control fresnel offset (re-uses Blender fresnel_mir_i param)
-		// Hopefully that clears things up a bit...
+		// extra parameter 'frsOfs' to actually control fresnel offset (re-uses Blender fresnel_mir_i param).
 		params["reflect"] = yafray::parameter_t("on");
 		params["reflect_amount"] = yafray::parameter_t(matr->ray_mirror);
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		params["fresnel_offset"] = yafray::parameter_t(fo);
+		// transmit extinction color
+		params["extinction"] = yafray::parameter_t(yafray::color_t(matr->YF_er, matr->YF_eg, matr->YF_eb));
+		// dispersion
+		params["dispersion_power"] = yafray::parameter_t(matr->YF_dpwr);
+		params["dispersion_samples"] = yafray::parameter_t(matr->YF_dsmp);
+		params["dispersion_jitter"] = yafray::parameter_t(matr->YF_djit ? "on" : "off");
 	}
 	if (matr->mode & MA_RAYTRANSP) 
 	{
-		//float tr = 1.0-matr->alpha;
-		//params["transmitted"]=yafray::parameter_t(yafray::color_t(matr->r*tr, matr->g*tr, matr->b*tr));
 		params["refract"] = yafray::parameter_t("on");
 		params["transmit_filter"] = yafray::parameter_t(matr->filter);
 		// tir on by default
@@ -797,17 +796,10 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 				mparams["input"] = yafray::parameter_t(string(matr->id.name) + string(temp));
 			else
 				mparams["input"] = yafray::parameter_t(shader_name + temp);
-			// blendtype
-			string ts = "mix";
-			if (mtex->blendtype==MTEX_MUL) ts="mul";
-			else if (mtex->blendtype==MTEX_ADD) ts="add";
-			else if (mtex->blendtype==MTEX_SUB) ts="sub";
-			else if (mtex->blendtype==MTEX_DIV) ts="divide";
-			else if (mtex->blendtype==MTEX_DARK) ts="darken";
-			else if (mtex->blendtype==MTEX_DIFF) ts="difference";
-			else if (mtex->blendtype==MTEX_LIGHT) ts="lighten";
-			else if (mtex->blendtype==MTEX_SCREEN) ts="screen";
-			mparams["mode"] = yafray::parameter_t(ts);
+
+			// blendtype, would have been nice if the order would have been the same as for ramps...
+			const string blendtype[9] = {"mix", "mul", "add", "sub", "divide", "darken", "difference", "lighten", "screen"};
+			mparams["mode"] = yafray::parameter_t(blendtype[(int)mtex->blendtype]);
 
 			// texture color (for use with MUL and/or no_rgb etc..)
 			mparams["texcol"]=yafray::parameter_t(yafray::color_t(mtex->r,mtex->g,mtex->b));
@@ -887,6 +879,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 			}
 
 			// texture flag, combination of strings
+			string ts;
 			if (mtex->texflag & (MTEX_RGBTOINT | MTEX_STENCIL | MTEX_NEGATIVE)) {
 				ts = "";
 				if (mtex->texflag & MTEX_RGBTOINT) ts += "no_rgb ";
@@ -1038,6 +1031,14 @@ void yafrayPluginRender_t::writeMaterialsAndModulators()
 						params["clipping"] = yafray::parameter_t("clip");
 					else if (tex->extend==TEX_CLIPCUBE)
 						params["clipping"] = yafray::parameter_t("clipcube");
+					else if (tex->extend==TEX_CHECKER) {
+						params["clipping"] = yafray::parameter_t("checker");
+						string ts = "";
+						if (tex->flag & TEX_CHECKER_ODD) ts += "odd";
+						if (tex->flag & TEX_CHECKER_EVEN) ts += " even";
+						params["checker_mode"] = yafray::parameter_t(ts);
+						params["checker_dist"] = yafray::parameter_t(tex->checkerdist);
+					}
 					else
 						params["clipping"] = yafray::parameter_t("repeat");
 
@@ -1498,6 +1499,8 @@ void yafrayPluginRender_t::writeLamps()
 				is_sphereL = true;
 			}
 			else params["type"] = yafray::parameter_t("pointlight");
+			params["glow_intensity"] = yafray::parameter_t(lamp->YF_glowint);
+			params["glow_type"] = yafray::parameter_t(lamp->YF_glowtype);
 		}
 		else if (lamp->type==LA_SPOT)
 			params["type"] = yafray::parameter_t("spotlight");
@@ -1517,7 +1520,7 @@ void yafrayPluginRender_t::writeLamps()
 		params["name"] = yafray::parameter_t(temp);
 
 		// color already premultiplied by energy, so only need distance here
-		float pwr = 1;
+		float pwr = 1;	// default for sun/hemi, distance irrelevant
 		if ((lamp->type!=LA_SUN) && (lamp->type!=LA_HEMI)) {
 			if (lamp->mode & LA_SPHERE) {
 				// best approx. as used in LFexport script (LF d.f.m. 4pi?)
@@ -1698,34 +1701,70 @@ void yafrayPluginRender_t::writeCamera()
 
 void yafrayPluginRender_t::writeHemilight()
 {
-	// updated to use Blender AO params
+	yafray::paramMap_t params;
 	World *world = G.scene->world;
-	if (world==NULL) return;
-	yafray::paramMap_t params;
-	params["type"] = yafray::parameter_t("hemilight");
-	params["name"] = yafray::parameter_t("hemi_LT");
-	params["power"] = yafray::parameter_t(R.r.GIpower);
-	params["samples"] = yafray::parameter_t(world->aosamp*world->aosamp);
-	params["maxdistance"] = yafray::parameter_t(world->aodist);
-	params["use_QMC"] = yafray::parameter_t((world->aomode & WO_AORNDSMP) ? "off" : "on");
-	yafrayGate->addLight(params);
-
-	/*
-	yafray::paramMap_t params;
-	params["type"] = yafray::parameter_t("hemilight");
-	params["name"] = yafray::parameter_t("hemi_LT");
-	params["power"] = yafray::parameter_t(R.r.GIpower);
-	switch (R.r.GIquality)
-	{
-		case 1 :
-		case 2 : params["samples"]=yafray::parameter_t(16);  break;
-		case 3 : params["samples"]=yafray::parameter_t(36);  break;
-		case 4 : params["samples"]=yafray::parameter_t(64);  break;
-		case 5 : params["samples"]=yafray::parameter_t(128);  break;
-		default: params["samples"]=yafray::parameter_t(25);
+	bool fromAO = false;
+	if (R.r.GIquality==6){
+		// use Blender AO params is possible
+		if (world==NULL) return;
+		if ((world->mode & WO_AMB_OCC)==0) {
+			// no AO, use default GIquality
+			cout << "[Warning]: Can't use AO parameters\nNo ambient occlusion enabled, using default values instead" << endl;
+		}
+		else fromAO = true;
+	}
+	if (R.r.GIcache) {
+		params["type"] = yafray::parameter_t("pathlight");
+		params["name"] = yafray::parameter_t("path_LT");
+		params["power"] = yafray::parameter_t(R.r.GIpower);
+		params["mode"] = yafray::parameter_t("occlusion");
+		params["ignore_bumpnormals"] = yafray::parameter_t(R.r.YF_nobump ? "on" : "off");
+		if (fromAO) {
+			// for AO, with cache, using range of 32*1 to 32*16 seems good enough
+			params["samples"] = yafray::parameter_t(32*world->aosamp);
+			params["maxdistance"] = yafray::parameter_t(world->aodist);
+		}
+		else {
+			switch (R.r.GIquality)
+			{
+				case 1 : params["samples"] = yafray::parameter_t(128);  break;
+				case 2 : params["samples"] = yafray::parameter_t(256);  break;
+				case 3 : params["samples"] = yafray::parameter_t(512);  break;
+				case 4 : params["samples"] = yafray::parameter_t(1024); break;
+				case 5 : params["samples"] = yafray::parameter_t(2048); break;
+				default: params["samples"] = yafray::parameter_t(256);
+			}
+		}
+		params["cache"] = yafray::parameter_t("on");
+		params["use_QMC"] = yafray::parameter_t("on");
+		params["threshold"] = yafray::parameter_t(R.r.GIrefinement);
+		params["cache_size"] = yafray::parameter_t((2.0/float(R.r.xsch))*R.r.GIpixelspersample);
+		params["shadow_threshold"] = yafray::parameter_t(1.0 - R.r.GIshadowquality);
+		params["grid"] = yafray::parameter_t(82);
+		params["search"] = yafray::parameter_t(35);
+	}
+	else {
+		params["type"] = yafray::parameter_t("hemilight");
+		params["name"] = yafray::parameter_t("hemi_LT");
+		params["power"] = yafray::parameter_t(R.r.GIpower);
+		if (fromAO) {
+			params["samples"] = yafray::parameter_t(world->aosamp*world->aosamp);
+			params["maxdistance"] = yafray::parameter_t(world->aodist);
+			params["use_QMC"] = yafray::parameter_t((world->aomode & WO_AORNDSMP) ? "off" : "on");
+		}
+		else {
+			switch (R.r.GIquality)
+			{
+				case 1 :
+				case 2 : params["samples"]=yafray::parameter_t(16);  break;
+				case 3 : params["samples"]=yafray::parameter_t(36);  break;
+				case 4 : params["samples"]=yafray::parameter_t(64);  break;
+				case 5 : params["samples"]=yafray::parameter_t(128);  break;
+				default: params["samples"]=yafray::parameter_t(25);
+			}
+		}
 	}
 	yafrayGate->addLight(params);
-	*/
 }
 
 void yafrayPluginRender_t::writePathlight()
@@ -1733,54 +1772,52 @@ void yafrayPluginRender_t::writePathlight()
 	if (R.r.GIphotons)
 	{
 		yafray::paramMap_t params;
-		params["type"]=yafray::parameter_t("globalphotonlight");
-		params["name"]=yafray::parameter_t("gpm");
-		params["photons"]=yafray::parameter_t(R.r.GIphotoncount);
-		params["radius"]=yafray::parameter_t(R.r.GIphotonradius);
-		params["depth"]=yafray::parameter_t(((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1));
-		params["caus_depth"]=yafray::parameter_t(R.r.GIcausdepth);
-		params["search"]=yafray::parameter_t(R.r.GImixphotons);
+		params["type"] = yafray::parameter_t("globalphotonlight");
+		params["name"] = yafray::parameter_t("gpm");
+		params["photons"] = yafray::parameter_t(R.r.GIphotoncount);
+		params["radius"] = yafray::parameter_t(R.r.GIphotonradius);
+		params["depth"] = yafray::parameter_t(((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1));
+		params["caus_depth"] = yafray::parameter_t(R.r.GIcausdepth);
+		params["search"] = yafray::parameter_t(R.r.GImixphotons);
 		yafrayGate->addLight(params);
 	}
 	yafray::paramMap_t params;
-	params["type"]=yafray::parameter_t("pathlight");
-	params["name"]=yafray::parameter_t("path_LT");
-	params["power"]=yafray::parameter_t(R.r.GIindirpower);
-	params["depth"]=yafray::parameter_t(((R.r.GIphotons) ? 1 : R.r.GIdepth));
-	params["caus_depth"]=yafray::parameter_t(R.r.GIcausdepth);
-	if(R.r.GIdirect && R.r.GIphotons) params["direct"]=yafray::parameter_t("on");
-	if (R.r.GIcache && ! (R.r.GIdirect && R.r.GIphotons))
+	params["type"] = yafray::parameter_t("pathlight");
+	params["name"] = yafray::parameter_t("path_LT");
+	params["power"] = yafray::parameter_t(R.r.GIindirpower);
+	params["depth"] = yafray::parameter_t(((R.r.GIphotons) ? 1 : R.r.GIdepth));
+	params["caus_depth"] = yafray::parameter_t(R.r.GIcausdepth);
+	if (R.r.GIdirect && R.r.GIphotons) params["direct"] = yafray::parameter_t("on");
+	if (R.r.GIcache && !(R.r.GIdirect && R.r.GIphotons))
 	{
 		switch (R.r.GIquality)
 		{
-			case 1 : params["samples"]=yafray::parameter_t(128);break;
-			case 2 : params["samples"]=yafray::parameter_t(256);break;
-			case 3 : params["samples"]=yafray::parameter_t(512);break;
-			case 4 : params["samples"]=yafray::parameter_t(1024);break;
-			case 5 : params["samples"]=yafray::parameter_t(2048);break;
-			default: params["samples"]=yafray::parameter_t(256);
+			case 1 : params["samples"] = yafray::parameter_t(128);  break;
+			case 2 : params["samples"] = yafray::parameter_t(256);  break;
+			case 3 : params["samples"] = yafray::parameter_t(512);  break;
+			case 4 : params["samples"] = yafray::parameter_t(1024); break;
+			case 5 : params["samples"] = yafray::parameter_t(2048); break;
+			default: params["samples"] = yafray::parameter_t(256);
 		}
-		float aspect = 1;
-		if (R.r.xsch < R.r.ysch) aspect = float(R.r.xsch)/float(R.r.ysch);
-		float sbase = 2.0/float(R.r.xsch);
-		params["cache"]=yafray::parameter_t("on");
-		params["use_QMC"]=yafray::parameter_t("on");
-		params["threshold"]=yafray::parameter_t(R.r.GIrefinement);
-		params["cache_size"]=yafray::parameter_t(sbase*R.r.GIpixelspersample);
-		params["shadow_threshold"]=yafray::parameter_t(1.0 - R.r.GIshadowquality);
-		params["grid"]=yafray::parameter_t(82);
-		params["search"]=yafray::parameter_t(35);
+		params["cache"] = yafray::parameter_t("on");
+		params["use_QMC"] = yafray::parameter_t("on");
+		params["threshold"] = yafray::parameter_t(R.r.GIrefinement);
+		params["cache_size"] = yafray::parameter_t((2.0/float(R.r.xsch))*R.r.GIpixelspersample);
+		params["shadow_threshold"] = yafray::parameter_t(1.0 - R.r.GIshadowquality);
+		params["grid"] = yafray::parameter_t(82);
+		params["search"] = yafray::parameter_t(35);
+		params["ignore_bumpnormals"] = yafray::parameter_t(R.r.YF_nobump ? "on" : "off");
 	}
 	else
 	{
 		switch (R.r.GIquality)
 		{
-			case 1 : params["samples"]=yafray::parameter_t(16);break;
-			case 2 : params["samples"]=yafray::parameter_t(36);break;
-			case 3 : params["samples"]=yafray::parameter_t(64);break;
-			case 4 : params["samples"]=yafray::parameter_t(128);break;
-			case 5 : params["samples"]=yafray::parameter_t(256);break;
-			default: params["samples"]=yafray::parameter_t(25);break;
+			case 1 : params["samples"] = yafray::parameter_t(16);  break;
+			case 2 : params["samples"] = yafray::parameter_t(36);  break;
+			case 3 : params["samples"] = yafray::parameter_t(64);  break;
+			case 4 : params["samples"] = yafray::parameter_t(128); break;
+			case 5 : params["samples"] = yafray::parameter_t(256); break;
+			default: params["samples"] = yafray::parameter_t(25);
 		}
 	}
 	yafrayGate->addLight(params);
@@ -1796,9 +1833,8 @@ bool yafrayPluginRender_t::writeWorld()
 		}
 		else if (R.r.GImethod==2) writePathlight();
 	}
-
 	if (world==NULL) return false;
-
+	
 	yafray::paramMap_t params;
 	for (int i=0;i<MAX_MTEX;i++) {
 		MTex* wtex = world->mtex[i];
@@ -1810,7 +1846,7 @@ bool yafrayPluginRender_t::writeWorld()
 			if (BLI_testextensie(wimg->name, ".hdr")) {
 				params["type"] = yafray::parameter_t("image");
 				params["name"] = yafray::parameter_t("world_background");
-				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
+				// exposure_adjust not restricted to integer range anymore
 				params["exposure_adjust"] = yafray::parameter_t(wtex->tex->bright-1.f);
 				params["mapping"] = yafray::parameter_t("probe");
 				params["filename"] = yafray::parameter_t(wt_path);

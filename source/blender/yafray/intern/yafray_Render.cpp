@@ -76,6 +76,15 @@ bool yafrayRender_t::getAllMatTexObs()
 
 	VlakRen* vlr;
 
+	// Blender does not include object which have total 0 alpha materials,
+	// however, the objects might have been included in the dupliMtx list,
+	// so this will cause a 'Duplilist non-empty...'  error after going through the renderlist.
+	// To solve this, keep track of all render objects included sofar,
+	// and remove from dupliMtx_list if object not found.
+	// This should also help to solve some other yet undetected 'dupli..' errors,
+	// but on the other hand that could also hide the real problem of course...
+	map<string, Object*> renderobs;
+
 	for (int i=0;i<R.totvlak;i++) {
 
 		if ((i & 255)==0) vlr=R.blovl[i>>8]; else vlr++;
@@ -121,6 +130,7 @@ bool yafrayRender_t::getAllMatTexObs()
 			int nv = 0;	// number of vertices
 			if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
 			if (nv) {
+				renderobs[vlr->ob->id.name] = vlr->ob;
 				all_objects[vlr->ob].push_back(vlr);
 				if (vlr->tface) {
 					Image* fc_img = (Image*)vlr->tface->tpage;
@@ -133,6 +143,18 @@ bool yafrayRender_t::getAllMatTexObs()
 			}
 		}
 
+	}
+
+	// now remove any objects from dupliMtx_list which are not in the renderlist
+	for (map<string, vector<float> >::iterator dL=dupliMtx_list.begin();
+				dL!=dupliMtx_list.end();++dL)
+	{
+		string ro_name = dL->first;
+		if (renderobs.find(ro_name)==renderobs.end()) {
+			cout << "Object " << ro_name << " not in renderlist, removing from dupliMtx_list" << endl;
+			dL->second.clear();
+			dupliMtx_list.erase(ro_name);
+		}
 	}
 
 	// in case dupliMtx_list not empty, make sure that there is at least one source object

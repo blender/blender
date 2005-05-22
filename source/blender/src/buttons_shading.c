@@ -2295,8 +2295,11 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 	
 	/* in yafray the regular lamp can use shadowbuffers (softlight), used by spot with halo as well */
 	/* to prevent clash with blender shadowbuf flag, a special flag is used for yafray */
-	if (la->type==LA_LOCAL)
+	if (la->type==LA_LOCAL) {
 		uiDefButS(block, TOG|BIT|14, B_SHADBUF, "Buf.Shadow",10,160,80,19,&la->mode, 0, 0, 0, 0, "Lets light produce shadows using shadow buffer");
+		uiDefButF(block, NUM, B_DIFF, "GlowInt:", 100,155,200,19, &la->YF_glowint, 0.0, 1.0, 1, 0, "Sets light glow intensity, 0 is off");
+		uiDefButS(block, NUM, B_DIFF, "GlowType:", 100,135,200,19, &la->YF_glowtype, 0, 1, 1, 0, "Sets light glow type");
+	}
 	
 	/* shadowbuffers used only for 'softlight' & spotlight with halo */
 	if (((la->type==LA_LOCAL) && (la->mode & LA_YF_SOFT)) || ((la->type==LA_SPOT) && (la->mode & LA_HALO))) {
@@ -2453,7 +2456,62 @@ void do_matbuts(unsigned short event)
 	Material *ma;
 	MTex *mtex;
 
-	switch(event) {		
+	switch(event) {
+	case B_MAT_YF_PRESET: {
+		ma = G.buts->lockpoin;
+		switch (ma->YF_preset) {
+			case 0:
+				/* normal mode, no reflection/refraction */
+				ma->alpha = 1;
+				ma->mode &= ~(MA_RAYMIRROR+MA_RAYTRANSP+MA_ZTRA);
+				break;
+			case 1: {
+				/* clear glass */
+				ma->alpha = 0.001;
+				ma->ray_mirror = 1;
+				ma->fresnel_mir_i = 5;
+				ma->mode |= (MA_RAYMIRROR+MA_RAYTRANSP);
+				ma->mode &= ~MA_ZTRA;
+				ma->filter = 0;
+				ma->ang = 1.5;
+				break;
+			}
+			case 2: {
+				/* color glass */
+				ma->alpha = 0.001;
+				ma->ray_mirror = 1;
+				ma->fresnel_mir_i = 5;
+				ma->mode |= (MA_RAYMIRROR+MA_RAYTRANSP);
+				ma->mode &= ~MA_ZTRA;
+				ma->filter = 1;
+				ma->ang = 1.5;
+				break;
+			}
+			case 3: {
+				/* uniform reflect */
+				ma->alpha = 1;
+				ma->ray_mirror = 1;
+				ma->fresnel_mir_i = 1;
+				ma->mode |= MA_RAYMIRROR;
+				ma->mode &= ~(MA_RAYTRANSP+MA_ZTRA);
+				break;
+			}
+			case 4: {
+				/* fresnel reflect */
+				ma->alpha = 1;
+				ma->ray_mirror = 1;
+				ma->fresnel_mir_i = 5;
+				ma->mode |= MA_RAYMIRROR;
+				ma->mode &= ~(MA_RAYTRANSP+MA_ZTRA);
+				ma->ang = 3;
+				break;
+			}
+		}
+		BIF_preview_changed(G.buts);
+		allqueue(REDRAWBUTSSHADING, 0);
+		shade_buttons_change_3d();
+		break;
+	}
 	case B_ACTCOL:
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWBUTSSHADING, 0);
@@ -2833,6 +2891,55 @@ static void material_panel_tramir(Material *ma)
 
 }
 
+
+/* yafray: adapted version of Blender's tramir panel.
+ * Only removed the buttons not needed, so only the ones that are important for yafray are left.
+ * Also re-arranged buttons for more room for extra parameters.
+ * With the exception of the material preset menu and the new parameters,
+ * most of blender's parameters are re-used without interfering with them.
+ */
+static void material_panel_tramir_yafray(Material *ma)
+{
+	uiBlock *block;
+
+	/* better to use same name as original panel */
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Shaders", "Material");
+	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
+
+	/* material preset menu */
+	uiDefBut(block, LABEL, 0, "Mat.Preset", 20, 182, 100, 20, 0, 0.0, 0.0, 0, 0, "");
+	char *mstr = "Material presets %t|No Reflect/Transmit %x0|Clear Glass %x1|Color Glass %x2|Uniform Reflect %x3|Fresnel Reflect %x4";
+	uiDefButS(block, MENU, B_MAT_YF_PRESET, mstr, 110, 182, 200, 20, &ma->YF_preset, 0.0, 0.0, 0, 0, "Quick material presets to start with");
+
+	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror", 10,160,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+	uiDefButI(block, TOG|BIT|17, B_MATRAYTRANSP,"Ray Transp", 110,160,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
+	uiDefButI(block, TOG|BIT|6, B_MATZTRANSP,"ZTransp", 210,160,100,20, &(ma->mode), 0, 0, 0, 0, "Use for objects with alphamap textures");
+
+	uiDefButF(block, NUMSLI, B_MATPRV, "rayMir ", 10,140,150,20, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButF(block, NUMSLI, B_MATPRV, "frsOfs ", 160,140,150,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Fresnel offset, 1 is uniform mirror, 5 is fresnel mirror (IOR>1)");
+
+	/* ior has extended range up to 30, for use with total fresnel reflection */
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ", 10,110,150,20, &(ma->ang), 1.0, 30.0, 100, 2, "Sets the angular index of refraction for raytrace");
+	if(ma->mode & MA_RAYTRANSP)
+		uiDefButF(block, NUM, B_MATPRV, "Filt:", 160,110,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
+
+	/* extinction color */
+	uiDefBut(block, LABEL, 0, "Ext.Color", 10, 80, 150, 19, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButF(block, COL, B_MATPRV_DRAW, "", 10, 20, 30, 58, &ma->YF_er, 0, 0, 0, B_MATCOL, "transmit extinction color, black is no extinction");
+	uiDefButF(block, NUMSLI, B_MATPRV, "eR ", 40, 60, 120, 18, &ma->YF_er, 0.0, 1.0, B_MATCOL, 0, "");
+	uiDefButF(block, NUMSLI, B_MATPRV, "eG ", 40, 40, 120, 18, &ma->YF_eg, 0.0, 1.0, B_MATCOL, 0, "");
+	uiDefButF(block, NUMSLI, B_MATPRV, "eB ", 40, 20, 120, 18, &ma->YF_eb, 0.0, 1.0, B_MATCOL, 0, "");
+
+	/* disperions parameters */
+	uiDefBut(block, LABEL, 0, "Dispersion", 160, 80, 150, 18, 0, 0.0, 0.0, 0, 0, "");
+	uiDefButF(block, NUM, B_MATPRV, "Pwr ", 160, 60, 150, 18, &ma->YF_dpwr, 0.0, 1.0, 0.25, 0, "Dispersion power, the higher, the more dispersion, 0 is no dispersion");
+	uiDefButS(block, NUM, B_MATPRV, "Samples ", 160, 40, 150, 18, &ma->YF_dsmp, 1.0, 100.0, 0, 0, "Dispersion samples, minimum at least 10, unless using jitter ");
+	uiDefButS(block, TOG|BIT|0, B_MATPRV, "Jitter", 160, 20, 150, 18, &ma->YF_djit, 0.0, 1.0, 0, 0, "Enable jittering of wavelenghts, adds noise");
+
+}
+
+
 static void material_panel_shading(Material *ma)
 {
 	uiBlock *block;
@@ -3153,7 +3260,10 @@ void material_panels()
 		if(ma) {
 			material_panel_ramps(ma);
 			material_panel_shading(ma);
-			material_panel_tramir(ma);
+			if (G.scene->r.renderer==R_INTERN)
+				material_panel_tramir(ma);
+			else
+				material_panel_tramir_yafray(ma);
 			material_panel_texture(ma);
 			
 			mtex= ma->mtex[ ma->texact ];

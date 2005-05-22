@@ -167,6 +167,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_MATZTRANSP	1214
 #define B_MATRAYTRANSP	1215
 #define B_MATCOLORBAND	1216
+/* yafray: material preset menu event */
+#define B_MAT_YF_PRESET	1217
 
 /* *********************** */
 #define B_TEXBUTS		1400

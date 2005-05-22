@@ -94,7 +94,7 @@ typedef struct Material {
 	char rampblend_col, rampblend_spec;
 	short ramp_show, pad3;
 	float rampfac_col, rampfac_spec;
-	
+
 	struct MTex *mtex[10];
 	struct Ipo *ipo;
 	
@@ -102,7 +102,14 @@ typedef struct Material {
 	float friction, fh, reflect;
 	float fhdist, xyfrict;
 	short dynamode, pad2;
-	
+
+	/* yafray: dispersion parameters */
+	float YF_er, YF_eg, YF_eb;
+	float YF_dpwr;
+	short YF_dsmp, YF_djit;
+	/* yafray: material preset menu */
+	short YF_preset, pad6;
+
 	ScriptLink scriptlink;
 } Material;
 

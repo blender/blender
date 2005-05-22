@@ -213,9 +213,8 @@ bool yafrayFileRender_t::writeRender()
 		ostr << "\tAA_pixelwidth=\"" << R.r.YF_AApixelsize << "\" AA_threshold=\"" << R.r.YF_AAthreshold << "\"\n";
 	}
 	else {
-		if ((R.r.GImethod!=0) && (R.r.GIquality>1) && (!R.r.GIcache))
-			ostr << "\tAA_passes=\"5\" AA_minsamples=\"5\"\n";
-		else if ((R.r.mode & R_OSA) && (R.r.osa)) {
+		// removed the default AA settings for midquality GI, better leave it to user
+		if ((R.r.mode & R_OSA) && (R.r.osa)) {
 			int passes=(R.r.osa%4)==0 ? R.r.osa/4 : 1;
 			int minsamples=(R.r.osa%4)==0 ? 4 : R.r.osa;
 			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"\n";
@@ -224,19 +223,20 @@ bool yafrayFileRender_t::writeRender()
 		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"\n";
 	}
 
-	if (hasworld) {
-		World *world = G.scene->world;
-		if (world->mode & WO_MIST) {
-			ostr << "\tfog_density=\"" << world->mistdist << "\" ";
-			ostr << "fog_color r=\"" << world->horr << "\" g=\"" << world->horg << "\" b=\"" << world->horb << "\"\n";
-		}
-		ostr << "\tbackground_name=\"world_background\"\n";
-	}
+	World *world = G.scene->world;
+	if (world) ostr << "\tbackground_name=\"world_background\"\n";
  
 	// alpha channel render when RGBA button enabled
 	if (R.r.planes==R_PLANES32) ostr << "\n\tsave_alpha=\"on\"";
 	ostr << " >\n";
 
+	// basic fog
+	if (world && (world->mode & WO_MIST)) {
+		float fd = world->mistdist;
+		if (fd>0) fd=1.f/fd; else fd=1;
+		ostr << "\t<fog_density value=\"" << fd << "\" />\n";
+		ostr << "\t<fog_color r=\"" << world->horr << "\" g=\"" << world->horg << "\" b=\"" << world->horb << "\" />\n";
+	}
 	ostr << "\t<outfile value=\"" << imgout << "\" />\n";
 
 	ostr << "</render>\n\n";
@@ -659,8 +659,7 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	ostr.str("");
 	ostr << "<shader type=\"blendershader\" name=\"" << shader_name << "\" >\n";
 	ostr << "\t<attributes>\n";
-	float diff = 1; //matr->alpha;
-	ostr << "\t\t<color r=\"" << matr->r*diff << "\" g=\"" << matr->g*diff << "\" b=\"" << matr->b*diff << "\" />\n";
+	ostr << "\t\t<color r=\"" << matr->r << "\" g=\"" << matr->g << "\" b=\"" << matr->b << "\" />\n";
 	ostr << "\t\t<specular_color r=\"" << matr->specr << "\" g=\"" << matr->specg << "\" b=\"" << matr->specb << "\" />\n";
 	ostr << "\t\t<mirror_color r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 	ostr << "\t\t<diffuse_reflect value=\"" << matr->ref << "\" />\n";
@@ -674,8 +673,6 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
 		ostr << "\t\t<IOR value=\"" << matr->ang << "\" />\n";
 	if (matr->mode & MA_RAYMIRROR) {
-		// blender uses mir color for reflection as well
-		//ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
 		// has been mapped to Blender's ray_mirror parameter.
 		// This causes it be be misinterpreted and misused as a reflection amount control however.
@@ -686,11 +683,15 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 		ostr << "\t\t<reflect_amount value=\""<< matr->ray_mirror << "\" />\n";
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		ostr << "\t\t<fresnel_offset value=\""<< fo << "\" />\n";
+		// transmit extinction color
+		ostr << "\t\t<extinction r=\"" << matr->YF_er << "\" g=\"" << matr->YF_eg << "\" b=\"" << matr->YF_eb << "\" />\n";
+		// dispersion
+		ostr << "\t\t<dispersion_power value=\"" << matr->YF_dpwr << "\" />\n";
+		ostr << "\t\t<dispersion_samples value=\"" << matr->YF_dsmp << "\" />\n";
+		ostr << "\t\t<dispersion_jitter value=\"" << (matr->YF_djit ? "on" : "off") << "\" />\n";
 	}
 	if (matr->mode & MA_RAYTRANSP) 
 	{
-		//float tr=1.0-matr->alpha;
-		//ostr << "\t\t<transmitted r=\"" << matr->r*tr << "\" g=\"" << matr->g*tr << "\" b=\"" << matr->b*tr << "\" />\n";
 		ostr << "\t\t<refract value=\"on\" />\n";
 		ostr << "\t\t<transmit_filter value=\"" << matr->filter << "\" />\n";
 		// tir on by default
@@ -1040,6 +1041,14 @@ void yafrayFileRender_t::writeMaterialsAndModulators()
 						ostr << "\t\t<clipping value=\"clip\" />\n";
 					else if (tex->extend==TEX_CLIPCUBE)
 						ostr << "\t\t<clipping value=\"clipcube\" />\n";
+					else if (tex->extend==TEX_CHECKER) {
+						ostr << "\t\t<clipping value=\"checker\" />\n";
+						string ts = "";
+						if (tex->flag & TEX_CHECKER_ODD) ts += "odd";
+						if (tex->flag & TEX_CHECKER_EVEN) ts += " even";
+						ostr << "\t\t<checker_mode value=\"" << ts << "\" />\n";
+						ostr << "\t\t<checker_dist value=\"" << tex->checkerdist << "\" />\n";
+					}
 					else
 						ostr << "\t\t<clipping value=\"repeat\" />\n";
 
@@ -1509,6 +1518,7 @@ void yafrayFileRender_t::writeLamps()
 				is_sphereL = true;
 			}
 			else ostr << "pointlight";
+			ostr << "\" glow_intensity=\"" << lamp->YF_glowint << "\" glow_type=\"" << lamp->YF_glowtype << "\"";
 		}
 		else if (lamp->type==LA_SPOT)
 			ostr << "spotlight";
@@ -1523,7 +1533,7 @@ void yafrayFileRender_t::writeLamps()
 		}
 		
 		//no name available here, create one
-		ostr << "\" name=\"LAMP" << i+1;
+		ostr << " name=\"LAMP" << i+1;
 		// color already premultiplied by energy, so only need distance here
 		float pwr = 1;	// default for sun/hemi, distance irrelevant
 		if ((lamp->type!=LA_SUN) && (lamp->type!=LA_HEMI)) {
@@ -1709,16 +1719,58 @@ void yafrayFileRender_t::writeCamera()
 
 void yafrayFileRender_t::writeHemilight()
 {
+	World *world = G.scene->world;
+	bool fromAO = false;
+	if (R.r.GIquality==6){
+		// use Blender AO params is possible
+		if (world==NULL) return;
+		if ((world->mode & WO_AMB_OCC)==0) {
+			// no AO, use default GIquality
+			cout << "No ambient occlusion enabled\nUsing defaults of 25 samples & infinite distance instead" << endl;
+		}
+		else fromAO = true;
+	}
 	ostr.str("");
-	ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << R.r.GIpower << "\"";
-	switch (R.r.GIquality)
-	{
-		case 1 :
-		case 2 : ostr << " samples=\"16\" >\n";  break;
-		case 3 : ostr << " samples=\"36\" >\n";  break;
-		case 4 : ostr << " samples=\"64\" >\n";  break;
-		case 5 : ostr << " samples=\"128\" >\n";  break;
-		default: ostr << " samples=\"25\" >\n";
+	if (R.r.GIcache) {
+		ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIpower << "\" mode=\"occlusion\"";
+		ostr << "\n\tcache=\"on\" use_QMC=\"on\" threshold=\"" << R.r.GIrefinement << "\" "
+				 << "cache_size=\"" << ((2.0/float(R.r.xsch))*R.r.GIpixelspersample) << "\"";
+		ostr << "\n\tshadow_threshold=\"" << (1.0-R.r.GIshadowquality) << "\" grid=\"82\" search=\"35\"";
+		ostr << "\n\tignore_bumpnormals=\"" << (R.r.YF_nobump ? "on" : "off") << "\"";
+		if (fromAO) {
+			// for AO, with cache, using range of 32*1 to 32*16 seems good enough
+			ostr << "\n\tsamples=\"" << 32*world->aosamp << "\" maxdistance=\"" << world->aodist << "\" >\n";
+		}
+		else {
+			switch (R.r.GIquality)
+			{
+				case 1 : ostr << " samples=\"128\" >\n";  break;
+				case 2 : ostr << " samples=\"256\" >\n";  break;
+				case 3 : ostr << " samples=\"512\" >\n";  break;
+				case 4 : ostr << " samples=\"1024\" >\n"; break;
+				case 5 : ostr << " samples=\"2048\" >\n"; break;
+				default: ostr << " samples=\"256\" >\n";
+			}
+		}
+	}
+	else {
+		ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << R.r.GIpower << "\"";
+		if (fromAO) {
+			ostr << "\n\tsamples=\"" << world->aosamp*world->aosamp
+					 << "\" maxdistance=\"" << world->aodist
+					 << "\" use_QMC=\"" << ((world->aomode & WO_AORNDSMP) ? "off" : "on") << "\" >\n";
+		}
+		else {
+			switch (R.r.GIquality)
+			{
+				case 1 :
+				case 2 : ostr << " samples=\"16\" >\n";  break;
+				case 3 : ostr << " samples=\"36\" >\n";  break;
+				case 4 : ostr << " samples=\"64\" >\n";  break;
+				case 5 : ostr << " samples=\"128\" >\n";  break;
+				default: ostr << " samples=\"25\" >\n";
+			}
+		}
 	}
 	ostr << "</light>\n\n";
 	xmlfile << ostr.str();
@@ -1729,15 +1781,15 @@ void yafrayFileRender_t::writePathlight()
 	ostr.str("");
 	if (R.r.GIphotons)
 	{
-		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\""<<R.r.GIphotoncount<<"\""<<endl;
-		ostr << "\tradius=\"" <<R.r.GIphotonradius << "\" depth=\""<< ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
-				 << "\" caus_depth=\""<<R.r.GIcausdepth<< "\" search=\""<< R.r.GImixphotons<<"\" >"<<endl;
+		ostr << "<light type=\"globalphotonlight\" name=\"gpm\" photons=\"" << R.r.GIphotoncount << "\"" << endl;
+		ostr << "\tradius=\"" << R.r.GIphotonradius << "\" depth=\"" << ((R.r.GIdepth>2) ? (R.r.GIdepth-1) : 1)
+				 << "\" caus_depth=\"" << R.r.GIcausdepth << "\" search=\"" << R.r.GImixphotons << "\" >"<<endl;
 		ostr << "</light>"<<endl;
 	}
 	ostr << "<light type=\"pathlight\" name=\"path_LT\" power=\"" << R.r.GIindirpower << "\"";
 	ostr << " depth=\"" << ((R.r.GIphotons) ? 1 : R.r.GIdepth) << "\" caus_depth=\"" << R.r.GIcausdepth <<"\"\n";
-	if(R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
-	if (R.r.GIcache && ! (R.r.GIdirect && R.r.GIphotons))
+	if (R.r.GIdirect && R.r.GIphotons) ostr << "direct=\"on\"" << endl;
+	if (R.r.GIcache && !(R.r.GIdirect && R.r.GIphotons))
 	{
 		switch (R.r.GIquality)
 		{
@@ -1748,10 +1800,11 @@ void yafrayFileRender_t::writePathlight()
 			case 5 : ostr << " samples=\"2048\" \n";  break;
 			default: ostr << " samples=\"512\" \n";
 		}
-		float sbase = 2.0/float(R.r.xsch);
 		ostr << " cache=\"on\" use_QMC=\"on\" threshold=\"" << R.r.GIrefinement << "\"" << endl;
-		ostr << " cache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
-			1.0 - R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
+		ostr << "\tignore_bumpnormals=\"" << (R.r.YF_nobump ? "on" : "off") << "\"\n";
+		float sbase = 2.0/float(R.r.xsch);
+		ostr << "\tcache_size=\"" << sbase*R.r.GIpixelspersample << "\" shadow_threshold=\"" <<
+			1.0-R.r.GIshadowquality << "\" grid=\"82\" search=\"35\" >\n";
 	}
 	else
 	{
@@ -1792,8 +1845,7 @@ bool yafrayFileRender_t::writeWorld()
 			if (BLI_testextensie(wimg->name, ".hdr")) {
 				ostr.str("");
 				ostr << "<background type=\"image\" name=\"world_background\" ";
-				// since exposure adjust is an integer, using the texbri slider isn't actually very useful here (result either -1/0/1)
-				// GIpower could be used, but is only active for GI
+				// exposure_adjust not restricted to integer range anymore
 				ostr << "exposure_adjust=\"" << wtex->tex->bright-1.f << "\" mapping=\"probe\" >\n";
 				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
 				ostr << "\t<interpolate value=\"" << ((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
