@@ -3038,8 +3038,8 @@ static void drawmball(Object *ob, int dt)
 				ml->selcol2= code;
 				glLoadName(code++);
 			}
+			drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad*atan(ml->s)/M_PI_2, imat);
 		}
-		drawcircball(GL_LINE_LOOP, &(ml->x), ml->rad*atan(ml->s)/M_PI_2, imat);
 		
 		ml= ml->next;
 	}
