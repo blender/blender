@@ -333,6 +333,7 @@ ifeq ($(OS),linux)
   ifeq ($(CPU),powerpc)
     BINTARGETS = blenderdynamic
     BINTARGETS += blenderstatic
+    BINTARGETS += blenderplayer
   endif
     PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     PYLIB += $(NAN_MXTEXTTOOLS)
@@ -521,14 +522,26 @@ link: $(BINTARGETS)
     endif
 
 linkclean:
+ifeq ($(OS),darwin)
+	@$(RM) -r $(DIR)/blenderstatic* \
+		  $(DIR)/blenderplayer* \
+		  $(DIR)/bin/*
+else
 	@$(RM) $(DIR)/blenderstatic* \
 		$(DIR)/blenderplayer* \
 		$(DIR)/bin/*
+endif
 
 debuglinkclean:
+ifeq ($(OS),darwin)
+	@$(RM) -r $(DIR)/debug/blenderstatic* \
+		  $(DIR)/debug/blenderplayer* \
+		  $(DIR)/debug/bin/*
+else
 	@$(RM) $(DIR)/debug/blenderstatic* \
 		$(DIR)/debug/blenderplayer* \
 		$(DIR)/debug/bin/*
+endif
 
 # Shortcut for Tinderbox release builds. Mortals don't use this.
 release:
