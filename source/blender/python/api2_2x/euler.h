@@ -1,3 +1,4 @@
+
 /* 
  * $Id$
  *
@@ -34,28 +35,33 @@
 #ifndef EXPP_euler_h
 #define EXPP_euler_h
 
+#include "Python.h"
+#include "gen_utils.h"
+#include "Types.h"
+#include <BLI_arithb.h>
+#include "quat.h"
+#include "matrix.h"
+#include "BKE_utildefines.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+/*****************************/
+//    Euler Python Object   
+/*****************************/
+
 #define EulerObject_Check(v) ((v)->ob_type == &euler_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD 
-	struct{
-		float *py_data;		//python managed
-		float *blend_data;	//blender managed
-	}data;
-	float *eul;				//1D array of data (alias)
+	PyObject_VAR_HEAD float *eul;
 } EulerObject;
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
-
 //prototypes
+PyObject *newEulerObject( float *eul );
 PyObject *Euler_Zero( EulerObject * self );
 PyObject *Euler_Unique( EulerObject * self );
 PyObject *Euler_ToMatrix( EulerObject * self );
 PyObject *Euler_ToQuat( EulerObject * self );
-PyObject *Euler_Rotate( EulerObject * self, PyObject *args );
-PyObject *newEulerObject( float *eul, int type );
 
 #endif				/* EXPP_euler_h */

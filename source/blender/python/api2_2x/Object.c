@@ -59,7 +59,6 @@
 #include "Ipo.h"
 #include "Lattice.h"
 #include "modules.h"
-#include "Mathutils.h"
 
 #include "constant.h"
 /* only used for oops location get/set at the moment */
@@ -647,14 +646,14 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	object->dupend = 100;
 
 	/* Gameengine defaults */
-	object->mass = 1.0f;
-	object->inertia = 1.0f;
-	object->formfactor = 0.4f;
-	object->damping = 0.04f;
-	object->rdamping = 0.1f;
-	object->anisotropicFriction[0] = 1.0f;
-	object->anisotropicFriction[1] = 1.0f;
-	object->anisotropicFriction[2] = 1.0f;
+	object->mass = 1.0;
+	object->inertia = 1.0;
+	object->formfactor = 0.4;
+	object->damping = 0.04;
+	object->rdamping = 0.1;
+	object->anisotropicFriction[0] = 1.0;
+	object->anisotropicFriction[1] = 1.0;
+	object->anisotropicFriction[2] = 1.0;
 	object->gameflag = OB_PROP;
 
 	object->lay = 1;	// Layer, by default visible
@@ -1115,20 +1114,21 @@ static PyObject *Object_getDrawType( BPy_Object * self )
 
 static PyObject *Object_getEuler( BPy_Object * self )
 {
-	float eul[3];
+	EulerObject *eul;
 
-	eul[0] = self->object->rot[0];
-	eul[1] = self->object->rot[1];
-	eul[2] = self->object->rot[2];
+	eul = ( EulerObject * ) newEulerObject( NULL );
+	eul->eul[0] = self->object->rot[0];
+	eul->eul[1] = self->object->rot[1];
+	eul->eul[2] = self->object->rot[2];
 
-	return ( PyObject * ) newEulerObject( eul, Py_WRAP );
+	return ( PyObject * ) eul;
 
 }
 
 static PyObject *Object_getInverseMatrix( BPy_Object * self )
 {
 	MatrixObject *inverse =
-		( MatrixObject * ) newMatrixObject( NULL, 4, 4, Py_NEW);
+		( MatrixObject * ) newMatrixObject( NULL, 4, 4 );
 	Mat4Invert( (float ( * )[4])*inverse->matrix, self->object->obmat );
 
 	return ( ( PyObject * ) inverse );
@@ -1175,29 +1175,35 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 {
-	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	PyObject *matrix;
 	char *space = "worldspace";	/* default to world */
 
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected a string or nothing" ) );
 	}
+	//new matrix
+	matrix = newMatrixObject( NULL, 4, 4 );
+
 	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		disable_where_script( 0 );
+		Mat4CpyMat4((float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
+			     self->object->obmat );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		object_to_mat4( self->object, (float (*)[4])matrix );
-		return newMatrixObject(matrix,4,4,Py_NEW);
-	} else if( BLI_streq( space, "old_worldspace" ) ) {
+		object_to_mat4( self->object,
+				( float ( * )[4] ) *( ( MatrixObject * ) matrix )->matrix );
 		/* old behavior, prior to 2.34, check this method's doc string: */
+	} else if( BLI_streq( space, "old_worldspace" ) ) {
+		Mat4CpyMat4( (float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
+			     self->object->obmat );
 	} else {
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"wrong parameter, expected nothing or either 'worldspace' (default),\n\
 'localspace' or 'old_worldspace'" ) );
 	}
-	return newMatrixObject((float*)self->object->obmat,4,4,Py_WRAP);
+	return matrix;
 }
 
 static PyObject *Object_getName( BPy_Object * self )
@@ -1379,7 +1385,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 				   does not have its own memory,
 				   we must create vectors that allocate space */
 
-				vector = newVectorObject( NULL, 3, Py_NEW);
+				vector = newVectorObject( NULL, 3 );
 				memcpy( ( ( VectorObject * ) vector )->vec,
 					tmpvec, 3 * sizeof( float ) );
 				PyList_SET_ITEM( bbox, i, vector );
@@ -1400,7 +1406,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 
 		/* create vectors referencing object bounding box coords */
 		for( i = 0; i < 8; i++ ) {
-			vector = newVectorObject( vec, 3, Py_WRAP );
+			vector = newVectorObject( vec, 3 );
 			PyList_SET_ITEM( bbox, i, vector );
 			vec += 3;
 		}
@@ -3917,18 +3923,17 @@ int setupSB(Object* ob){
 	}
 
 	if(ob->soft){	
-    	ob->soft->nodemass   = 1.0f;		
-    	ob->soft->grav       = 0.0f;			
-    	ob->soft->mediafrict = 0.5f;	
-    	ob->soft->rklimit    = 0.1f;		
-    	ob->soft->goalspring = 0.5f;	
-    	ob->soft->goalfrict  = 0.0f;	
-    	ob->soft->mingoal    = 0.0f;		
-    	ob->soft->maxgoal    = 1.0f;		
-    	ob->soft->inspring   = 0.5f;	
-    	ob->soft->infrict    = 0.5f;	
-    	ob->soft->defgoal    = 0.7f;		
-
+    	ob->soft->nodemass   = 1.0;		
+    	ob->soft->grav       = 0.0;			
+    	ob->soft->mediafrict = 0.5;	
+    	ob->soft->rklimit    = 0.1;		
+    	ob->soft->goalspring = 0.5;	
+    	ob->soft->goalfrict  = 0.0;	
+    	ob->soft->mingoal    = 0.0;		
+    	ob->soft->maxgoal    = 1.0;		
+    	ob->soft->inspring   = 0.5;	
+    	ob->soft->infrict    = 0.5;	
+    	ob->soft->defgoal    = 0.7;		
 	    return 1;
     }
 	else {

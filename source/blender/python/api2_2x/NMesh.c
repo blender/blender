@@ -58,15 +58,14 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
-#include "BKE_utildefines.h"
 
 #include "blendef.h"
 #include "mydevice.h"
 
 #include "Object.h"
+#include "vector.h"
 #include "constant.h"
 #include "gen_utils.h"
-#include "Mathutils.h"
 
 /* only used for ob.oopsloc at the moment */
 #include "DNA_oops_types.h"
@@ -760,11 +759,12 @@ static PyObject *NMVert_getattr( PyObject * self, char *name )
 	BPy_NMVert *mv = ( BPy_NMVert * ) self;
 
 	if( !strcmp( name, "co" ) || !strcmp( name, "loc" ) )
-		return newVectorObject(mv->co,3,Py_WRAP);
+		return newVectorProxy( mv->co, 3 );
+
 	else if( strcmp( name, "no" ) == 0 )
-		return newVectorObject(mv->no,3,Py_WRAP);
+		return newVectorProxy( mv->no, 3 );
 	else if( strcmp( name, "uvco" ) == 0 )
-		return newVectorObject(mv->uvco,3,Py_WRAP);
+		return newVectorProxy( mv->uvco, 3 );
 	else if( strcmp( name, "index" ) == 0 )
 		return PyInt_FromLong( mv->index );
 	else if( strcmp( name, "sel" ) == 0 )

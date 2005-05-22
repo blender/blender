@@ -1523,7 +1523,7 @@ PyObject *CreateGlobalDictionary( void )
 	PyDict_SetItemString( dict, "__name__",
 			      PyString_FromString( "__main__" ) );
 
-	return EXPP_incr_ret(dict);
+	return dict;
 }
 
 /*****************************************************************************

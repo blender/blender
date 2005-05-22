@@ -34,27 +34,34 @@
 #ifndef EXPP_quat_h
 #define EXPP_quat_h
 
+#include "Python.h"
+#include "gen_utils.h"
+#include "Types.h"
+#include <BLI_arithb.h>
+#include "euler.h"
+#include "matrix.h"
+
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+/*****************************/
+//    Quaternion Python Object   
+/*****************************/
+
 #define QuaternionObject_Check(v) ((v)->ob_type == &quaternion_Type)
 
 typedef struct {
-	PyObject_VAR_HEAD 
-	struct{
-		float *py_data;		//python managed
-		float *blend_data;	//blender managed
-	}data;
-	float *quat;				//1D array of data (alias)
-	PyObject *coerced_object;
+	PyObject_VAR_HEAD float *quat;
+	int flag;
+	//0 - no coercion
+	//1 - coerced from int
+	//2 - coerced from float
 } QuaternionObject;
-/*coerced_object is a pointer to the object that it was
-coerced from when a dummy vector needs to be created from
-the coerce() function for numeric protocol operations*/
 
-/*struct data contains a pointer to the actual data that the
-object uses. It can use either PyMem allocated data (which will
-be stored in py_data) or be a wrapper for data allocated through
-blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
+PyObject *newQuaternionObject( float *quat );
 PyObject *Quaternion_Identity( QuaternionObject * self );
 PyObject *Quaternion_Negate( QuaternionObject * self );
 PyObject *Quaternion_Conjugate( QuaternionObject * self );
@@ -62,6 +69,5 @@ PyObject *Quaternion_Inverse( QuaternionObject * self );
 PyObject *Quaternion_Normalize( QuaternionObject * self );
 PyObject *Quaternion_ToEuler( QuaternionObject * self );
 PyObject *Quaternion_ToMatrix( QuaternionObject * self );
-PyObject *newQuaternionObject( float *quat, int type );
 
 #endif				/* EXPP_quat_h */
