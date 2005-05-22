@@ -752,7 +752,7 @@ static PyObject *Scene_link( BPy_Scene * self, PyObject * args )
 
 		/* not linked, go get mem for a new base object */
 
-		base = MEM_callocN( sizeof( Base ), "newbase" );
+		base = MEM_callocN( sizeof( Base ), "pynewbase" );
 
 		if( !base )
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,

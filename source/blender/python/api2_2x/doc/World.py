@@ -293,7 +293,7 @@ class World:
     """
     Get a list with this World's script links of type 'event'.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw", "Render".
     @rtype: list
     @return: a list with Blender L{Text} names (the script links of the given
         'event' type) or None if there are no script links at all.
@@ -313,7 +313,7 @@ class World:
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw" or "Render".
     """
   
   def setCurrent ():

@@ -236,7 +236,7 @@ class Scene:
     """
     Get a list with this Scene's script links of type 'event'.
     @type event: string
-    @param event: "FrameChanged", "OnLoad", "OnSave" or "Redraw".
+    @param event: "FrameChanged", "OnLoad", "OnSave", "Redraw" or "Render".
     @rtype: list
     @return: a list with Blender L{Text} names (the script links of the given
         'event' type) or None if there are no script links at all.
@@ -256,7 +256,7 @@ class Scene:
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string
-    @param event: "FrameChanged", "OnLoad", "OnSave" or "Redraw".
+    @param event: "FrameChanged", "OnLoad", "OnSave", "Redraw" or "Render".
     """
 
   def play (mode = 0, win = '<VIEW3D>'):

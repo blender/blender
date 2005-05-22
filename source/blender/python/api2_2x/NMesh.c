@@ -93,6 +93,7 @@ static PyObject *g_nmeshmodule = NULL;
 
 static int unlink_existingMeshData( Mesh * mesh );
 static int convert_NMeshToMesh( Mesh *mesh, BPy_NMesh *nmesh, int store_edges );
+static void check_dverts(Mesh *me, int old_totverts);
 static PyObject *NMesh_printDebug( PyObject * self );
 static PyObject *NMesh_addEdge( PyObject * self, PyObject * args );
 static PyObject *NMesh_findEdge( PyObject * self, PyObject * args );
@@ -1292,6 +1293,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	static char *kwlist[] = {"recalc_normals", "store_edges",
 		"vertex_shade", NULL};
 	int needs_redraw = 1;
+	int old_totvert = 0;
 
 	if (!PyArg_ParseTupleAndKeywords(a, kwd, "|iii", kwlist, &recalc_normals,
 		&store_edges, &vertex_shade ) )
@@ -1299,8 +1301,10 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	    "expected nothing or one to three bool(s) (0 or 1) as argument" );
 
 	if( mesh ) {
+		old_totvert = mesh->totvert;
 		unlink_existingMeshData( mesh );
 		convert_NMeshToMesh( mesh, nmesh, store_edges );
+		if (mesh->dvert) check_dverts(mesh, old_totvert);
 	} else {
 		nmesh->mesh = Mesh_fromNMesh( nmesh, store_edges );
 		mesh = nmesh->mesh;
@@ -2411,8 +2415,6 @@ static int unlink_existingMeshData( Mesh * mesh )
 {
 	freedisplist( &mesh->disp );
 	EXPP_unlink_mesh( mesh );
-	if( mesh->dvert )
-		free_dverts( mesh->dvert, mesh->totvert );
 	if( mesh->mvert )
 		MEM_freeN( mesh->mvert );
 	if( mesh->medge ) {
@@ -2601,6 +2603,39 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
   MEM_freeN( faces_edges );
 }
 
+/* this should ensure meshes don't end up with wrongly sized
+ * me->dvert arrays, which can cause hangs; it's not ideal,
+ * it's better to wrap dverts in NMesh, but it should do for now
+ * since there are also methods in NMesh to edit dverts in the actual
+ * mesh in Blender and anyway this is memory friendly */
+static void check_dverts(Mesh *me, int old_totvert)
+{
+	int totvert = me->totvert;
+
+	/* if vert count didn't change or there are no dverts, all is fine */
+	if ((totvert == old_totvert) || (!me->dvert)) return;
+	/* if all verts have been deleted, free old dverts */
+	else if (totvert == 0) free_dverts(me->dvert, old_totvert);
+	/* if verts have been added, expand me->dvert */
+	else if (totvert > old_totvert) {
+		MDeformVert *mdv = me->dvert;
+		me->dvert = NULL;
+		create_dverts(me);
+		copy_dverts(me->dvert, mdv, old_totvert);
+		free_dverts(mdv, old_totvert);
+	}
+	/* if verts have been deleted, shrink me->dvert */
+	else {
+		MDeformVert *mdv = me->dvert;
+		me->dvert = NULL;
+		create_dverts(me);
+		copy_dverts(me->dvert, mdv, totvert);
+		free_dverts(mdv, old_totvert);
+	}
+
+	return;
+}
+
 static int convert_NMeshToMesh( Mesh * mesh, BPy_NMesh * nmesh, int store_edges)
 {
 	MFace *newmf;
@@ -2782,6 +2817,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	BPy_NMesh *nmesh;
 	int recalc_normals = 1;
   int store_edges = 0;
+	int old_totvert = 0;
 
 	if( !PyArg_ParseTuple( args, "O!|sii",
 			       &NMesh_Type, &nmesh, &name, &recalc_normals, &store_edges ) )
@@ -2830,9 +2866,13 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 		new_id( &( G.main->mesh ), &mesh->id,
 			PyString_AsString( nmesh->name ) );
 
+	old_totvert = mesh->totvert;
+
 	unlink_existingMeshData( mesh );
 	convert_NMeshToMesh( mesh, nmesh, store_edges );
 	nmesh->mesh = mesh;
+
+	if (mesh->dvert) check_dverts(mesh, old_totvert);
 
 	if( recalc_normals )
 		vertexnormals_mesh( mesh, 0 );

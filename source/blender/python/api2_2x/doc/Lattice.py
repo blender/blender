@@ -171,10 +171,22 @@ class Lattice:
     @param position: The x,y,z coordinates that you want the point to be: [x,y,z]
     """
 
-  def applyDeform():
+  def applyDeform(force = False):
     """
+    @type force: bool
+    @param force: if True, meshes are not ignored.
     Applies the current Lattice deformation to any child objects that have this 
     Lattice as the parent.
+    @note: simply parenting to a Lattice and redrawing the screen is enough to
+      get the deformation done, this applyDeform method is useful when the
+      script won't call a redraw, like in command line background (GUI-less)
+      mode.
+    @note: by default, this method doesn't apply deformations to meshes.  This
+      is because unlike other kinds of objects, meshes store lattice
+      deformation directly in their vertices and calling this applyDeform
+      method will apply the deformation a second time, giving double
+      deformation, which can be a feature (set force = True if you want it) or
+      much probably an undesired effect.
     """
 
   def insertKey(frame):

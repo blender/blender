@@ -205,7 +205,7 @@ class Camera:
     """
     Get a list with this Camera's script links of type 'event'.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw" or "Render".
     @rtype: list
     @return: a list with Blender L{Text} names (the script links of the given
         'event' type) or None if there are no script links at all.
@@ -225,7 +225,7 @@ class Camera:
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw" or "Render".
     """
 
   def insertIpoKey(keytype):

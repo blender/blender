@@ -443,6 +443,9 @@ class Object:
         0 - update scene hierarchy automatically
         1 - don't update scene hierarchy (faster). In this case, you must
         explicitely update the Scene hierarchy.
+    @warn: objects must first be linked to a scene before they can become
+        parents of other objects.  Calling this makeParent method for an
+        unlinked object will result in an error.
     """
 
   def setDeltaLocation(delta_location):
@@ -595,7 +598,7 @@ class Object:
     """
     Get a list with this Object's script links of type 'event'.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw" or "Render".
     @rtype: list
     @return: a list with Blender L{Text} names (the script links of the given
         'event' type) or None if there are no script links at all.
@@ -615,7 +618,7 @@ class Object:
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string
-    @param event: "FrameChanged" or "Redraw".
+    @param event: "FrameChanged", "Redraw" or "Render".
     """
 
   def makeTrack (tracked, fast = 0):

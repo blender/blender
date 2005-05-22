@@ -96,7 +96,7 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getMode( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_applyDeform( BPy_Lattice * self );
+static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args );
 static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args );
 
 /*****************************************************************************/
@@ -132,7 +132,12 @@ static char Lattice_getPoint_doc[] =
 	"(str) - Get the coordinates of a point on the lattice";
 
 static char Lattice_applyDeform_doc[] =
-	"(str) - Apply the new lattice deformation to children";
+	"(force = False) - Apply the new lattice deformation to children\n\n\
+(force = False) - if given and True, children of mesh type are not ignored.\n\
+Meshes are treated differently in Blender, deformation is stored directly in\n\
+their vertices when first redrawn (ex: with Blender.Redraw) after getting a\n\
+Lattice parent, without needing this method (except for command line bg\n\
+mode). If forced, the deformation will be applied over any previous one(s).";
 
 static char Lattice_insertKey_doc[] =
 	"(str) - Set a new key for the lattice at specified frame";
@@ -162,7 +167,7 @@ static PyMethodDef BPy_Lattice_methods[] = {
 	 Lattice_setPoint_doc},
 	{"getPoint", ( PyCFunction ) Lattice_getPoint, METH_VARARGS,
 	 Lattice_getPoint_doc},
-	{"applyDeform", ( PyCFunction ) Lattice_applyDeform, METH_NOARGS,
+	{"applyDeform", ( PyCFunction ) Lattice_applyDeform, METH_VARARGS,
 	 Lattice_applyDeform_doc},
 	{"insertKey", ( PyCFunction ) Lattice_insertKey, METH_VARARGS,
 	 Lattice_insertKey_doc},
@@ -675,22 +680,35 @@ static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args )
 }
 
 //This function will not do anything if there are no children
-static PyObject *Lattice_applyDeform( BPy_Lattice * self )
+static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args )
 {
 	//Object* ob; unused
 	Base *base;
 	Object *par;
+	int forced = 0;
 
 	if( !Lattice_IsLinkedToObject( self ) )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"Lattice must be linked to an object to apply it's deformation!" ) );
 
+	if( !PyArg_ParseTuple( args, "|i", &forced ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected nothing or True or False argument" ) );
+
 	/* deform children */
 	base = FIRSTBASE;
 	while( base ) {
-		if( ( par = base->object->parent ) ) { /* checking if object has a parent, assigning if so */
-			if((par->type == OB_LATTICE) && (self->Lattice == par->data)) {
-				object_deform( base->object );
+		if( ( par = base->object->parent ) ) { /* check/assign if ob has parent */
+			/* meshes have their mverts deformed, others ob types use displist,
+			 * so we're not doing meshes here (unless forced), or else they get
+			 * deformed twice, since parenting a Lattice to an object and redrawing
+			 * already applies lattice deformation. 'forced' is useful for
+			 * command line background mode, when no redraws occur and so this
+			 * method is needed.  Or for users who actually want to apply the
+			 * deformation n times. */
+			if((self->Lattice == par->data)) {
+				if ((base->object->type != OB_MESH) || forced)
+					object_deform( base->object );
 			}
 		}
 		base = base->next;

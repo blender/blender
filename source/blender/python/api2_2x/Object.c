@@ -1553,6 +1553,12 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 						"expected a list of objects" ) );
 	}
 
+	parent = ( Object * ) self->object;
+
+	if (parent->id.us == 0)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"object must be linked to a scene before it can become a parent");
+
 	/* Check if the PyObject passed in list is a Blender object. */
 	for( i = 0; i < PySequence_Length( list ); i++ ) {
 		child = NULL;
@@ -1561,12 +1567,13 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 			child = ( Object * ) Object_FromPyObject( py_child );
 
 		if( child == NULL ) {
+			Py_DECREF (py_child);
 			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 							"Object Type expected" ) );
 		}
 
-		parent = ( Object * ) self->object;
 		if( test_parent_loop( parent, child ) ) {
+			Py_DECREF (py_child);
 			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 							"parenting loop detected - parenting failed" ) );
 		}
@@ -1587,7 +1594,7 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 			sort_baselist( G.scene );
 		}
 		// We don't need the child object anymore.
-		//Py_DECREF ((PyObject *) child);
+			Py_DECREF (py_child);
 	}
 	return EXPP_incr_ret( Py_None );
 }
