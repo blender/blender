@@ -62,6 +62,11 @@ struct Mdec;
  * This is the abstraction of an image.  ImBuf is the basic type used for all
  * imbuf operations.
  *
+ * REMINDER: if any changes take place, they need to be carried over
+ * to source/blender/blenpluginapi/iff.h too, OTHERWISE PLUGINS WON'T
+ * WORK CORRECTLY!
+ *
+ * Also, that iff.h needs to be in the final release "plugins/include" dir, too!
  */
 typedef struct ImBuf{
 		/** Width in pixels */
