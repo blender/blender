@@ -308,6 +308,8 @@ Scene *copy_scene(Scene *sce, int level)
 
 	scen->ed= 0;
 	scen->radio= 0;
+	scen->theDag= NULL;
+	scen->dagisvalid= 0;
 
 	obase= sce->base.first;
 	base= scen->base.first;
