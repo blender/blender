@@ -2901,6 +2901,7 @@ static void material_panel_tramir(Material *ma)
 static void material_panel_tramir_yafray(Material *ma)
 {
 	uiBlock *block;
+	char *mstr = "Material presets %t|No Reflect/Transmit %x0|Clear Glass %x1|Color Glass %x2|Uniform Reflect %x3|Fresnel Reflect %x4";
 
 	/* better to use same name as original panel */
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2909,7 +2910,6 @@ static void material_panel_tramir_yafray(Material *ma)
 
 	/* material preset menu */
 	uiDefBut(block, LABEL, 0, "Mat.Preset", 20, 182, 100, 20, 0, 0.0, 0.0, 0, 0, "");
-	char *mstr = "Material presets %t|No Reflect/Transmit %x0|Clear Glass %x1|Color Glass %x2|Uniform Reflect %x3|Fresnel Reflect %x4";
 	uiDefButS(block, MENU, B_MAT_YF_PRESET, mstr, 110, 182, 200, 20, &ma->YF_preset, 0.0, 0.0, 0, 0, "Quick material presets to start with");
 
 	uiDefButI(block, TOG|BIT|18, B_MATPRV,"Ray Mirror", 10,160,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
