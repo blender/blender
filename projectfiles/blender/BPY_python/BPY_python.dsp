@@ -155,6 +155,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\EXPP_interface.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Font.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\gen_utils.c
 # End Source File
 # Begin Source File
@@ -368,6 +372,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\euler.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\EXPP_interface.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Font.h
 # End Source File
 # Begin Source File
 
