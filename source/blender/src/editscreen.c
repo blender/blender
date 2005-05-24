@@ -1007,10 +1007,7 @@ int has_screenhandler(bScreen *sc, short eventcode)
 
 static void animated_screen(bScreen *sc, short val)
 {
-	int mute= 1;
-	
 	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
-		mute= 0;
 		if(CFRA>=EFRA) {
 			CFRA= SFRA;
 			audiostream_stop();
@@ -1027,7 +1024,7 @@ static void animated_screen(bScreen *sc, short val)
 		if(CFRA > EFRA) CFRA= SFRA;
 	}
 	
-	update_for_newframe_nodraw(mute);
+	update_for_newframe_nodraw(1);
 	
 	if(val & TIME_ALL_3D_WIN)
 		allqueue(REDRAWVIEW3D, 0);
