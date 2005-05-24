@@ -4045,6 +4045,8 @@ uiBlock *uiNewBlock(ListBase *lb, char *name, short dt, short font, short win)
 
 	uiSetCurFont(block, font);
 
+	UIbuttip= NULL;	
+	
 	return block;
 }
 
@@ -4298,7 +4300,7 @@ static int ui_auto_themecol(uiBut *but)
 	case MENU:
 	case BUTM:
 		// (weak!) detect if it is a blockloop
-		if(UIbuttip) return TH_MENU_ITEM;
+		if(but->block->dt == UI_EMBOSSP) return TH_MENU_ITEM;
 		return TH_BUT_POPUP;
 	default:
 		return TH_BUT_NEUTRAL;
