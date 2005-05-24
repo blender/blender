@@ -1,75 +1,42 @@
 /**
- * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
+* $Id$
+* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version. The Blender
+* Foundation also sells licenses for use in proprietary software under
+* the Blender License.  See http://www.blender.org/BL/ for information
+* about this.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+*
+* The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+* All rights reserved.
+*
+* The Original Code is: all of this file.
+*
+* Contributor(s): none yet.
+*
+* ***** END GPL/BL DUAL LICENSE BLOCK *****
+*/
 
 #ifndef MT_ASSERT_H
 #define MT_ASSERT_H
-
-#ifdef	MT_NDEBUG
-
-#define MT_assert(predicate) ((void)0)
-#define BREAKPOINT() ((void)0)
-
-#else 
 
 #include <signal.h>
 #include <stdlib.h>
 #include <assert.h>
 
-// BREAKPOINT() will cause a break into the debugger
-#if defined(__i386) && defined(__GNUC__)
-// gcc on intel...
-#define BREAKPOINT() \
-	asm("int $3")
-#elif defined(_MSC_VER)
-// Visual C++ (on Intel)
-#define BREAKPOINT() \
-	{ _asm int 3 }
-#elif defined(SIGTRAP)
-// POSIX compatible...
-#define BREAKPOINT() \
-	raise(SIGTRAP);
-#else
-// FIXME: Don't know how to do a decent break!
-// Add some code for your cpu type, or get a posix
-// system.
-// abort instead
-#define BREAKPOINT() \
-	abort();
-#endif
 
-
-#if defined(WIN32) && !defined(__GNUC__)
-#define MT_assert(predicate) assert(predicate)
-#else
-	
 // So it can be used from C
 #ifdef __cplusplus
 #define MT_CDECL extern "C"
@@ -83,6 +50,41 @@
 // returns 1 to break, false to ignore
 MT_CDECL int MT_QueryAssert(char *file, int line, char *predicate, int *do_assert);
 
+
+#ifdef	NDEBUG
+#define MT_assert(predicate) ((void)0)
+#define BREAKPOINT() ((void)0)
+#else 
+
+// BREAKPOINT() will cause a break into the debugger
+#if defined(__i386) && defined(__GNUC__)
+// gcc on intel...
+#define BREAKPOINT() \
+asm("int $3")
+#elif defined(_MSC_VER)
+// Visual C++ (on Intel)
+#define BREAKPOINT() \
+{ _asm int 3 }
+#elif defined(SIGTRAP)
+// POSIX compatible...
+#define BREAKPOINT() \
+raise(SIGTRAP);
+#else
+// FIXME: Don't know how to do a decent break!
+// Add some code for your cpu type, or get a posix
+// system.
+// abort instead
+#define BREAKPOINT() \
+abort();
+#endif /* breakpoint */
+
+
+#if defined(WIN32) && !defined(__GNUC__)
+#define MT_assert(predicate) assert(predicate)
+#else
+
+
+
 // Abort the program if predicate is not true
 #define MT_assert(predicate) 									\
 { 												\
@@ -94,7 +96,7 @@ MT_CDECL int MT_QueryAssert(char *file, int line, char *predicate, int *do_asser
 }
 #endif /* windows */
 
-#endif /* MT_NDEBUG */
+#endif /* NDEBUG */
 
 #endif
 
