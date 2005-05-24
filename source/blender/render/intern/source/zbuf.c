@@ -144,12 +144,16 @@ static short cliptestf(float p, float q, float *u1, float *u2)
 	return 1;
 }
 
+#define FLT_EPSILON 1.19209290e-07F
+
 int RE_testclip(float *v)
 {
 	float abs4;	/* WATCH IT: this function should do the same as cliptestf, otherwise troubles in zbufclip()*/
 	short c=0;
 	
-	abs4= fabs(v[3]);
+	/* if we set clip flags, the clipping should be at least larger than epsilon. 
+	   prevents issues with vertices lying exact on borders */
+	abs4= fabs(v[3]) + FLT_EPSILON;
 	
 	if(v[2]< -abs4) c=16;			/* this used to be " if(v[2]<0) ", see clippz() */
 	else if(v[2]> abs4) c+= 32;
