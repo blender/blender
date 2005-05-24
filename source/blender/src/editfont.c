@@ -389,6 +389,16 @@ void txt_export_to_objects(struct Text *text)
 }
 
 
+static void text_makedisplist(Object *ob)
+{
+	Base *base;
+	// free displists of other users...
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->object->data==ob->data) freedisplist(&base->object->disp);
+	}
+	makeDispList(ob);
+}
+
 void do_textedit(unsigned short event, short val, char _ascii)
 {
 	Curve *cu;
@@ -570,7 +580,9 @@ void do_textedit(unsigned short event, short val, char _ascii)
 	}
 	if(doit || cursmove) {
 		text_to_curve(G.obedit, cursmove);
-		if(cursmove==0) makeDispList(G.obedit);
+		if(cursmove==0) {
+			text_makedisplist(G.obedit);
+		}			
 		BIF_undo_push("Textedit");
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -623,7 +635,7 @@ void paste_editText(void)
 	}
 	if(doit) {
 		text_to_curve(G.obedit, 0);
-		makeDispList(G.obedit);
+		text_makedisplist(G.obedit);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Paste text");
 	}
@@ -644,7 +656,7 @@ void make_editText(void)
 	if(cu->pos>cu->len) cu->pos= cu->len;
 	
 	text_to_curve(G.obedit, 0);
-	makeDispList(G.obedit);
+	text_makedisplist(G.obedit);
 	
 	textediting= 1;
 	BIF_undo_push("Original");
@@ -660,7 +672,7 @@ void load_editText(void)
 	MEM_freeN(oldstr);
 	oldstr= NULL;
 	
-	cu->str= MEM_mallocN(cu->len+4, "tekstedit");
+	cu->str= MEM_mallocN(cu->len+4, "textedit");
 	strcpy(cu->str, textbuf);
 	
 	/* this memory system is weak... */
@@ -669,6 +681,9 @@ void load_editText(void)
 	
 	cu->len= strlen(cu->str);
 	textediting= 0;
+	
+	text_makedisplist(G.obedit);
+
 }
 
 
@@ -684,7 +699,7 @@ void remake_editText(void)
 	if(cu->pos>cu->len) cu->pos= cu->len;
 	
 	text_to_curve(G.obedit, 0);
-	makeDispList(G.obedit);
+	text_makedisplist(G.obedit);
 	
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Reload");
@@ -760,7 +775,7 @@ void to_upper(void)
 		}
 	}
 	text_to_curve(G.obedit, 0);
-	makeDispList(G.obedit);
+	text_makedisplist(G.obedit);
 
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("To upper");
@@ -778,7 +793,7 @@ static void undoFont_to_editFont(void *strv)
 	cu->pos= *((short *)str);
 	cu->len= strlen(textbuf);
 	text_to_curve(G.obedit, 0);
-	makeDispList(G.obedit);
+	text_makedisplist(G.obedit);
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
