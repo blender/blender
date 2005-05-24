@@ -754,7 +754,13 @@ static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
 	
 	bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0;
 	bp->weight= 1.0;
-	bp->goal= ob->soft->defgoal;
+	if(ob->softflag & OB_SB_GOAL) {
+		bp->goal= ob->soft->defgoal;
+	}
+	else { 
+		bp->goal= 0.0f; 
+		/* so this will definily be below SOFTGOALSNAP */
+	}
 	
 	bp->nofsprings= 0;
 	bp->springs= NULL;
