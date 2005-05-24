@@ -265,8 +265,8 @@ class Curve:
   def appendNurb( new_point ):
       """
       add a new curve to this Curve.  The new point is added to the new curve.  Blender does not support a curve with zero points.  The new curve is added to the end of the list of curves in the Curve.
-      @rtype: PyNone
-      @return: PyNone
+      @rtype: CurNurb
+      @return: the newly added spline
       @type new_point: BezTriple or list of xyzw coordinates for a Nurb curve.
       @param new_point: see L{CurNurb.append} for description of parameter.
       """
@@ -347,7 +347,7 @@ class Curve:
     @return: PyNone
     """
 
-  def isNurb( curve_num):
+  def isNurb( curve_num ):
       """
       method used to determine whether a CurNurb is of type Bezier or of type Nurb.
       @rtype: integer
@@ -366,6 +366,20 @@ class Curve:
       @type curve_num: integer
       @param curve_num: zero-based index into list of curves in this Curve
       @raise AttributeError:  throws exception if curve_num is out of range.
+      """
+
+  def getNumCurves():
+      """
+      Get the number of curves in this Curve Data object.
+      @rtype: integer
+      """
+
+  def getNumPoints( curve_num ):
+      """
+      Get the number of control points in the curve.
+      @type curve_num: integer
+      @param curve_num: zero-based index into list of curves in this Curve
+      @rtype: integer
       """
 
 class CurNurb:
@@ -453,5 +467,3 @@ class CurNurb:
       @rtype: PyNone
       @return: PyNone
       """
-
-    

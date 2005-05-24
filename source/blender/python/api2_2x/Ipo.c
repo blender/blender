@@ -452,7 +452,7 @@ static PyObject *Ipo_getNcurves( BPy_Ipo * self )
 
 
 /*
-  Lamp Name to Channel
+  Lamp ipo Name to Channel
 */
 
 static int Ipo_laIcuName( char *s, int *param )
@@ -649,7 +649,7 @@ static int Ipo_acIcuName( char *s, int *param )
 
 
 /*
-  Camera name to channel
+  Camera ipo name to channel
 */
 
 static int Ipo_caIcuName( char *s, int *param )
@@ -673,95 +673,29 @@ static int Ipo_caIcuName( char *s, int *param )
 	return not_ok;
 }
 
+
+/*
+  texture ipo name to channel
+*/
+
 static int Ipo_texIcuName( char *s, int *param )
 {
-	int ok = 0;
-	if( !strcmp( s, "NSize" ) ) {
-		*param = TE_NSIZE;
-		return 1;
-	}
-	if( !strcmp( s, "NDepth" ) ) {
-		*param = TE_NDEPTH;
-		return 1;
-	}
-	if( !strcmp( s, "NType" ) ) {
-		*param = TE_NTYPE;
-		return 1;
-	}
-	if( !strcmp( s, "Turb" ) ) {
-		*param = TE_TURB;
-		return 1;
-	}
-	if( !strcmp( s, "Vnw1" ) ) {
-		*param = TE_VNW1;
-		return 1;
-	}
-	if( !strcmp( s, "Vnw2" ) ) {
-		*param = TE_VNW2;
-		return 1;
-	}
-	if( !strcmp( s, "Vnw3" ) ) {
-		*param = TE_VNW3;
-		return 1;
-	}
-	if( !strcmp( s, "Vnw4" ) ) {
-		*param = TE_VNW4;
-		return 1;
-	}
-	if( !strcmp( s, "MinkMExp" ) ) {
-		*param = TE_VNMEXP;
-		return 1;
-	}
-	if( !strcmp( s, "DistM" ) ) {
-		*param = TE_VN_DISTM;
-		return 1;
-	}
-	if( !strcmp( s, "ColT" ) ) {
-		*param = TE_VN_COLT;
-		return 1;
-	}
-	if( !strcmp( s, "iScale" ) ) {
-		*param = TE_ISCA;
-		return 1;
-	}
-	if( !strcmp( s, "DistA" ) ) {
-		*param = TE_DISTA;
-		return 1;
-	}
-	if( !strcmp( s, "MgType" ) ) {
-		*param = TE_MG_TYP;
-		return 1;
-	}
-	if( !strcmp( s, "MgH" ) ) {
-		*param = TE_MGH;
-		return 1;
-	}
-	if( !strcmp( s, "Lacu" ) ) {
-		*param = TE_MG_LAC;
-		return 1;
-	}
-	if( !strcmp( s, "Oct" ) ) {
-		*param = TE_MG_OCT;
-		return 1;
-	}
-	if( !strcmp( s, "MgOff" ) ) {
-		*param = TE_MG_OFF;
-		return 1;
-	}
-	if( !strcmp( s, "MgGain" ) ) {
-		*param = TE_MG_GAIN;
-		return 1;
-	}
-	if( !strcmp( s, "NBase1" ) ) {
-		*param = TE_N_BAS1;
-		return 1;
-	}
-	if( !strcmp( s, "NBase2" ) ) {
-		*param = TE_N_BAS2;
-		return 1;
+	/* this is another case where TE_TOTIPO == TE_TOTNAM.
+	   te_ic_names[] has all our names so use that.
+	*/
+	extern int te_ar[];
+	extern char *tex_ic_names[];
+	int not_ok = 0;
+	int i;
+
+	for( i = 0; i < TE_TOTIPO; i++){
+		if( !strcmp( s, tex_ic_names[i] ) ){
+			*param = te_ar[i];
+			return 1;
+		}
 	}
 
-	return ok;
+	return not_ok;
 }
 
 static int Ipo_obIcuName( char *s, int *param )

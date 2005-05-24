@@ -3,10 +3,10 @@
 """
 The Blender.Ipo submodule
 
-B{New}: Ipo updates to both the program and bpython acess.
+B{New}: Ipo updates to both the program and bpython access.
 
 This module provides access to the Ipo Data in Blender. An Ipo is composed of
-several Ipocurves.
+several IpoCurves.
 
 A datatype is defined : IpoCurve type. The member functions of this data type
 are given below.
@@ -258,17 +258,17 @@ class IpoCurve:
   This object gives access to generic data from all ipocurves objects in Blender.
 
   Important Notes for Rotation Curves:\n
-  For the rotation IpoCurves, the y values for points are in units of 10 degrees.  example:  45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
+  For the rotation IpoCurves, the y values for points are in units of 10 degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
   
   @cvar name: The Curve Data name.
   @cvar bezierPoints : The list of the Bezier points.
   """
 
-  def setExtrapolation(extrapolationtype):
+  def setExtrapolation(extendmode):
     """
-    Sets the extrapolation type  of the curve.
-    @type extrapolationtype: string
-    @param extrapolationtype: the extrapolatrion type of the curve.
+    Sets the extend mode of the curve.
+    @type extendmode: string
+    @param extendmode: the extend mode of the curve.
         Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
     @rtype: None
     @return: None
@@ -276,25 +276,25 @@ class IpoCurve:
 
   def getExtrapolation():
     """
-    Gets the extrapolation type  of the curve.
+    Gets the extend mode of the curve.
     @rtype: string
-    @return: the extrapolation type  of the curve.Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
+    @return: the extend mode of the curve. Can be Constant, Extrapolation, Cyclic or Cyclic_extrapolation.
     """
     
 
   def setInterpolation(interpolationtype):
     """
-    Sets the interpolation type  of the curve.
+    Sets the interpolation type of the curve.
     @type interpolationtype: string
-    @param interpolationtype: the interpolatrion type of the curve. Can be Constant, Bezier, or Linear.
+    @param interpolationtype: the interpolation type of the curve. Can be Constant, Bezier, or Linear.
     @rtype: None
     @return: None
     """
   def getInterpolation():
     """
-    Gets the interpolation type  of the curve.
+    Gets the interpolation type of the curve.
     @rtype: string
-    @return: the interpolation type  of the curve.Can be Constant, Bezier, or Linear.
+    @return: the interpolation type of the curve. Can be Constant, Bezier, or Linear.
     """
     
   def addBezier(coordlist):
@@ -315,9 +315,9 @@ class IpoCurve:
     @return: None
     """
 
-  def Recalc():
+  def recalc():
     """
-    Recomputes the curent value of the curve.
+    Recomputes the curve after changes to control points.
     @rtype: None
     @return: None
     """

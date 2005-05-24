@@ -78,7 +78,6 @@ struct PyMethodDef M_IpoCurve_methods[] = {
 /*****************************************************************************/
 static PyObject *IpoCurve_getName( C_IpoCurve * self );
 static PyObject *IpoCurve_Recalc( C_IpoCurve * self );
-static PyObject *IpoCurve_setName( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args );
 static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self,
@@ -97,31 +96,27 @@ static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args );
 static PyMethodDef C_IpoCurve_methods[] = {
 	/* name, method, flags, doc */
 	{"getName", ( PyCFunction ) IpoCurve_getName, METH_NOARGS,
-	 "() - Return IpoCurve Data name"},
+	 "() - Return IpoCurve name"},
 	{"Recalc", ( PyCFunction ) IpoCurve_Recalc, METH_NOARGS,
-	 "() - Return IpoCurve Data name"},
+	 "() - deprecated method.  use recalc() instead"},
+	{"recalc", ( PyCFunction ) IpoCurve_Recalc, METH_NOARGS,
+	 "() - Recomputes the curve after changes"},
 	{"update", ( PyCFunction ) IpoCurve_Recalc, METH_NOARGS,
-	 "() - Return IpoCurve Data name"},
-	{"setName", ( PyCFunction ) IpoCurve_setName, METH_VARARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 "() - obsolete: use recalc method instead."},
 	{"addBezier", ( PyCFunction ) IpoCurve_addBezier, METH_VARARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 "(coordlist) -  Adds a Bezier point to a curve"},
 	{"delBezier", ( PyCFunction ) IpoCurve_delBezier, METH_VARARGS,
-	 "(int) - delete Bezier point at index"},
+	 "(int) - delete Bezier point at specified index"},
 	{"setInterpolation", ( PyCFunction ) IpoCurve_setInterpolation,
-	 METH_VARARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 METH_VARARGS, "(str) - Sets the interpolation type of the curve"},
 	{"getInterpolation", ( PyCFunction ) IpoCurve_getInterpolation,
-	 METH_NOARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 METH_NOARGS, "() - Gets the interpolation type of the curve"},
 	{"setExtrapolation", ( PyCFunction ) IpoCurve_setExtrapolation,
-	 METH_VARARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 METH_VARARGS, "(str) - Sets the extend mode of the curve"},
 	{"getExtrapolation", ( PyCFunction ) IpoCurve_getExtrapolation,
-	 METH_NOARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 METH_NOARGS, "() - Gets the extend mode of the curve"},
 	{"getPoints", ( PyCFunction ) IpoCurve_getPoints, METH_NOARGS,
-	 "(str) - Change IpoCurve Data name"},
+	 "() - Returns list of all bezTriples of the curve"},
 	{"evaluate", ( PyCFunction ) IpoCurve_evaluate, METH_VARARGS,
 	 "(float) - Evaluate curve at given time"},
 	{NULL, NULL, 0, NULL}
@@ -394,11 +389,6 @@ static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args )
 
 	Py_INCREF( Py_None );
 	return Py_None;
-}
-
-static PyObject *IpoCurve_setName( C_IpoCurve * self, PyObject * args )
-{
-	return 0;
 }
 
 
