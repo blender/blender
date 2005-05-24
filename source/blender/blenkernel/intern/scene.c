@@ -184,7 +184,7 @@ Scene *add_scene(char *name)
 	sce->r.frs_sec= 25;
 
 	sce->r.postgamma= 1.0;
-	sce->r.posthue= 1.0;
+	sce->r.postsat= 1.0;
 	sce->r.postmul= 1.0;
 	
 	sce->r.focus= 0.9;
