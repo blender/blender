@@ -81,25 +81,29 @@ class Text3d:
   
   def getDrawMode():
     """
-    Get the drawing mode (3d, front, back)
-    This item is a bitfield whose value is a combination of the following parameters.
-       - Bit 0 :  "3D" is set
-       - Bit 1 :  "Front" is set
-       - Bit 2 :  "Back" is set      
-    @rtype: integer bitfield
+    Get the drawing mode (3d, front, and/or back)
+    Gets the text3d's drawing modes.  Uses module constants
+       - DRAW3D    :  "3D" is set
+       - DRAWFRONT :  "Front" is set
+       - DRAWBACK  :  "Back" is set      
+    @rtype: tuple of module constants
     """
 
   def setDrawMode(val):
     """
-    Set the drawing mode.  The flag corresponds to the Blender settings for 3D, Front, Back. This parameter is a bitfield.
+    Set the text3d's drawing mode. Uses module constants
+        - DRAW3D
+	- DRAWFRONT
+	- DRAWBACK
     @rtype: PyNone
-    @type val: integer bitfield
-    @param val : The Text3d's mode bits.  See L{getDrawMode} for the meaning of the individual bits.
+    @type val: single module constant or tuple of module constants
+    @param val : The Text3d's modes.  See L{getDrawMode} for the meaning of
+    the constants.
     """
 
   def getUVordco():
     """
-    Return wether UV coords are used for Texture mapping 
+    Return whether UV coords are used for Texture mapping 
     """
      
   def setUVordco(val):
@@ -268,7 +272,7 @@ class Text3d:
         - RIGHT
         - MIDDLE
         - FLUSH
-    @rtype: int
+    @rtype: module constant
     """
 
   def setAlignment(align):
@@ -279,7 +283,7 @@ class Text3d:
         - MIDDLE
         - FLUSH
     @rtype: PyNone 
-    @type align: int
+    @type align: module constant
     @param align: The new text3d's Alignment value. 
     """
 
