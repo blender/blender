@@ -66,6 +66,8 @@ struct Mdec;
  * to source/blender/blenpluginapi/iff.h too, OTHERWISE PLUGINS WON'T
  * WORK CORRECTLY!
  *
+ * Also; add new variables to the end to save pain!
+ *
  * Also, that iff.h needs to be in the final release "plugins/include" dir, too!
  */
 typedef struct ImBuf{
@@ -80,7 +82,6 @@ typedef struct ImBuf{
 	int	ftype;		/**< File type */
 	unsigned int	*cmap;		/**< Color map data. */
 	unsigned int	*rect;		/**< databuffer */
-	float *rect_float;		/**< databuffer in Float format, unclampled !! */
 	unsigned int	**planes;	/**< bitplanes */
 	int	flags;		/**< Controls which components should exist. */
 	int	mall;		/**< what is malloced internal, and can be freed */

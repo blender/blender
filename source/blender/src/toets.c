@@ -174,7 +174,7 @@ void schrijfplaatje(char *name)
 
 	if(ibuf) {
 		ibuf->rect= (unsigned int *) R.rectot;
-		ibuf->rect_float = R.rectftot;
+//		ibuf->rect_float = R.rectftot;
 
 		if(R.r.planes == 8) IMB_cspace(ibuf, rgb_to_bw);
 
