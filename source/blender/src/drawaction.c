@@ -428,12 +428,12 @@ static void draw_channel_strips(SpaceAction *saction)
 		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 
 		glEnable(GL_BLEND);
-		if (chan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x22);
-		else glColor4b(col2[0], col2[1], col2[2], 0x22);
+		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
 		glRectf(0,  channel_y-CHANNELHEIGHT/2,  frame1_x,  channel_y+CHANNELHEIGHT/2);
 
-		if (chan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x44);
-		else glColor4b(col2[0], col2[1], col2[2], 0x44);
+		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
+		else glColor4ub(col2[0], col2[1], col2[2], 0x44);
 		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
 	
@@ -447,12 +447,12 @@ static void draw_channel_strips(SpaceAction *saction)
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			glEnable(GL_BLEND);
-			if (conchan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x22);
-			else glColor4b(col2[0], col2[1], col2[2], 0x22);
+			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
 			glRectf(0,  channel_y-CHANNELHEIGHT/2+4,  frame1_x,  channel_y+CHANNELHEIGHT/2-4);
 			
-			if (conchan->flag & ACHAN_SELECTED) glColor4b(col1[0], col1[1], col1[2], 0x44);
-			else glColor4b(col2[0], col2[1], col2[2], 0x44);
+			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
+			else glColor4ub(col2[0], col2[1], col2[2], 0x44);
 			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
 			glDisable(GL_BLEND);
 			
@@ -502,13 +502,13 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 		 * get a desaturated orange background
 		 */
 		glEnable(GL_BLEND);
-		glColor4b(col2[0], col2[1], col2[2], 0x22);
+		glColor4ub(col2[0], col2[1], col2[2], 0x22);
 		glRectf(0,        channel_y-CHANNELHEIGHT/2,  
 				frame1_x, channel_y+CHANNELHEIGHT/2);
 
 		/* frames one and higher get a saturated orange background
 		 */
-		glColor4b(col2[0], col2[1], col2[2], 0x44);
+		glColor4ub(col2[0], col2[1], col2[2], 0x44);
 		glRectf(frame1_x,         channel_y-CHANNELHEIGHT/2,  
 				G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
