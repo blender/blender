@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): Joseph Gilbert, Campbell Barton
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -369,8 +369,19 @@ static PyObject *M_Mathutils_DotVecs( PyObject * self, PyObject * args )
 static PyObject *M_Mathutils_AngleBetweenVecs( PyObject * self,
 					       PyObject * args )
 {
+	// original vectors, makea copy of these
 	VectorObject *vec1;
 	VectorObject *vec2;
+	
+	/* copy of the 2 input vectors, these can be normalized
+	without input vectors being normalized. bugfix 
+	no need to use vector objects, just use floats
+	No Chance of 4D vectors getting in.
+	
+	Use doubles, since floats will return nan when input vecs are large.*/
+	double vec1copy[3];
+	double vec2copy[3];
+	
 	float norm;
 	double dot, angleRads;
 	int x;
@@ -386,30 +397,43 @@ static PyObject *M_Mathutils_AngleBetweenVecs( PyObject * self,
 	if( vec1->size > 3 || vec2->size > 3 )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"only 2D,3D vectors are supported\n" ) );
-
-	//normalize vec1
+	
+	/* Check for 2 vectors being the same */
+	if (vec1->size == 3 &&
+		vec1->vec[0] == vec2->vec[0] &&
+		vec1->vec[1] == vec2->vec[1] &&
+		vec1->vec[2] == vec2->vec[2])
+			return PyFloat_FromDouble( dot ); /* 2 points are the same, return zero */
+	else if (vec1->size == 2 &&
+		vec1->vec[0] == vec2->vec[0] &&
+		vec1->vec[1] == vec2->vec[1])
+			return PyFloat_FromDouble( dot ); /* 2 points are the same, return zero */
+	
+	//normalize vec1copy
 	norm = 0.0f;
 	for( x = 0; x < vec1->size; x++ ) {
-		norm += vec1->vec[x] * vec1->vec[x];
+		vec1copy[x] = vec1->vec[x]; /* Assign new vector in the loop */
+		norm += vec1copy[x] * vec1copy[x];
 	}
 	norm = ( float ) sqrt( norm );
 	for( x = 0; x < vec1->size; x++ ) {
-		vec1->vec[x] /= norm;
+		vec1copy[x] /= norm;
 	}
 
-	//normalize vec2
+	//normalize vec2copy
 	norm = 0.0f;
 	for( x = 0; x < vec2->size; x++ ) {
-		norm += vec2->vec[x] * vec2->vec[x];
+		vec2copy[x] = vec2->vec[x]; /* Assign new vector in the loop */
+		norm += vec2copy[x] * vec2copy[x];
 	}
 	norm = ( float ) sqrt( norm );
 	for( x = 0; x < vec2->size; x++ ) {
-		vec2->vec[x] /= norm;
+		vec2copy[x] /= norm;
 	}
 
 	//dot product
 	for( x = 0; x < vec1->size; x++ ) {
-		dot += vec1->vec[x] * vec2->vec[x];
+		dot += vec1copy[x] * vec2copy[x];
 	}
 
 	//I believe saacos checks to see if the vectors are normalized

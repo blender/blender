@@ -23,7 +23,7 @@
  * All rights reserved.
  *
  * 
- * Contributor(s): Willian P. Germano & Joseph Gilbert
+ * Contributor(s): Willian P. Germano, Joseph Gilbert, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -550,6 +550,10 @@ int Vector_coerce( PyObject ** v1, PyObject ** v2 )
 				printf( "vector/matrix numeric protocols unsupported...\n" );
 				Py_INCREF( *v1 );
 				return 0;	//operation will type check
+			} else if( *v2 == Py_None ) {
+				Py_INCREF(*v1);
+				Py_INCREF(Py_None);
+				return 0;
 			} else if( PyNumber_Check( *v2 ) ) {
 				if( PyInt_Check( *v2 ) ) {	//cast scalar to vector
 					tempI = PyMem_Malloc( 1 *
@@ -596,6 +600,7 @@ int Vector_coerce( PyObject ** v1, PyObject ** v2 )
 			//unknown type or numeric cast failure
 			printf( "attempting vector operation with unsupported type...\n" );
 			Py_INCREF( *v1 );
+			Py_INCREF( *v2 );
 			return 0;	//operation will type check
 		}
 	} else {

@@ -1045,6 +1045,11 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 			"expected a string, five ints, a string, an int and\n\
 	optionally another string as arguments" );
 
+	if (len > (UI_MAX_DRAW_STR - 1)) {
+		len = UI_MAX_DRAW_STR - 1;
+		newstr[len] = '\0';
+	}
+
 	real_len = strlen(newstr);
 	if (real_len > len) real_len = len;
 
@@ -1053,7 +1058,7 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	but->slen = len;
 	but->val.asstr = MEM_mallocN( len + 1, "pybutton str" );
 
-	BLI_strncpy( but->val.asstr, newstr, len + 1 ); /* adds '\0' */
+	BLI_strncpy( but->val.asstr, newstr, len + 1); /* adds '\0' */
 	but->val.asstr[real_len] = '\0';
 
 	if (info_arg[0] == '\0') info_str = info_str0;
@@ -1244,7 +1249,7 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	float originX, originY;
 	float zoomX = 1.0, zoomY = 1.0;
 	int clipX = 0, clipY = 0, clipW = -1, clipH = -1;
-	GLfloat scissorBox[4];
+	/*GLfloat scissorBox[4];*/
 
 	/* parse the arguments passed-in from Python */
 	if( !PyArg_ParseTuple( args, "Off|ffiiii", &pyObjImage, 
@@ -1301,10 +1306,28 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 	 * This particular technique is documented in the glRasterPos() man
 	 * page, although I haven't seen it used elsewhere in Blender.
 	 */
+
+	/* update (W): to fix a bug where images wouldn't get drawn if the bottom
+	 * left corner of the Scripts win were above a given height or to the right
+	 * of a given width, the code below is being commented out.  It should not
+	 * be needed anyway, because spaces in Blender are projected to lie inside
+	 * their areas, see src/drawscript.c for example.  Note: the
+	 * glaRasterPosSafe2i function in src/glutil.c does use the commented out
+	 * technique, but with 0,0 instead of scissorBox.  This function can be
+	 * a little optimized, based on glaDrawPixelsSafe in that same fine, but
+	 * we're too close to release 2.37 right now. */
+	/*
 	glGetFloatv( GL_SCISSOR_BOX, scissorBox );
 	glRasterPos2i( scissorBox[0], scissorBox[1] );
 	glBitmap( 0, 0, 0.0, 0.0, 
 		originX-scissorBox[0], originY-scissorBox[1], NULL );
+	*/
+
+	/* update (cont.): using these two lines instead:
+	 * (based on glaRasterPosSafe2i, but Ken Hughes deserves credit
+	 * for suggesting this exact fix in the bug tracker) */
+	glRasterPos2i(0, 0);
+	glBitmap( 0, 0, 0.0, 0.0, originX, originY, NULL );
 
 	/* set the zoom */
 	glPixelZoom( zoomX, zoomY );
