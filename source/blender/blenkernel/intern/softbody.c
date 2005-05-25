@@ -1061,7 +1061,8 @@ static int softbody_baked_step(Object *ob, float framenr)
 
 		if(ofs1>0) key0= *(sb->keys+ofs1-1);
 		else key0= key1;
-		if(ofs1<sb->totkey-1) key3= *(sb->keys+ofs1+1);
+		
+		if(ofs1<sb->totkey-2) key3= *(sb->keys+ofs1+2);
 		else key3= key2;
 	}
 	
