@@ -1571,8 +1571,8 @@ static void init_render_mesh(Object *ob)
 			for(a1=0; a1<end; a1++, medge++) {
 				
 				if( (me->flag & ME_OPT_EDGES)==0 || (medge->flag & ME_EDGEDRAW)) {
-					MVert *v0 = &mvert[vertofs+medge->v1];
-					MVert *v1 = &mvert[vertofs+medge->v2];
+					MVert *v0 = &mvert[medge->v1];
+					MVert *v1 = &mvert[medge->v2];
 
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= vlr_set_ob(ob);
