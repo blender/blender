@@ -4664,8 +4664,10 @@ static void do_versions(Main *main)
 			sce->theDag = NULL;
 			sce->dagisvalid = 0;
 			
+			sce->r.mode &= ~R_ZBLUR;	// disabled for release
+			
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
-
+			
 			if(sce->r.zgamma==0.0) {
 				sce->r.focus= 0.9;
 				sce->r.zgamma= 1.0;
