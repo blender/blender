@@ -446,7 +446,7 @@ void blo_split_main(ListBase *mainlist)
 	int i;
 
 	for (lib= mainl->library.first; lib; lib= lib->id.next) {
-		Main *libmain= MEM_callocN(sizeof(*libmain), "libmain");
+		Main *libmain= MEM_callocN(sizeof(Main), "libmain");
 		libmain->curlib= lib;
 
 		BLI_addtail(mainlist, libmain);
@@ -478,7 +478,7 @@ static Main *blo_find_main(ListBase *mainlist, char *name)
 			return m;
 	}
 
-	m= MEM_callocN(sizeof(*m), "find_main");
+	m= MEM_callocN(sizeof(Main), "find_main");
 	BLI_addtail(mainlist, m);
 
 	lib= alloc_libblock(&m->library, ID_LI, "lib");
@@ -835,7 +835,7 @@ static FileData *filedata_new(void)
 {
 	extern char DNAstr[];	/* DNA.c */
 	extern int DNAlen;
-	FileData *fd = MEM_callocN(sizeof(*fd), "FileData");
+	FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 
 	fd->filedes = -1;
 
@@ -859,7 +859,10 @@ FileData *blo_openblenderfile(char *name)
 	
 	/* library files can have stringcodes */
 	strcpy(name1, name);
-	BLI_convertstringcode(name1, G.sce, 0);
+	if(name[0]=='/' && name[1]=='/')
+		BLI_convertstringcode(name1, G.sce, 0);
+	else
+		strcpy(G.sce, name);	// global... is set in blender.c setup_app_data too. should be part of Main immediate?
 	
 	file= open(name1, O_BINARY|O_RDONLY);
 
@@ -4793,8 +4796,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	BlendFileData *bfd;
 	FileGlobal *fg = (FileGlobal *)NULL;
 
-	bfd= MEM_callocN(sizeof(*bfd), "blendfiledata");
-	bfd->main= MEM_callocN(sizeof(*bfd->main), "main");
+	bfd= MEM_callocN(sizeof(BlendFileData), "blendfiledata");
+	bfd->main= MEM_callocN(sizeof(Main), "main");
 	BLI_addtail(&fd->mainlist, bfd->main);
 
 	bfd->main->versionfile= fd->fileversion;
@@ -5022,7 +5025,7 @@ static void expand_mesh(FileData *fd, Main *mainvar, Mesh *me)
 {
 	int a;
 	TFace *tface;
-
+	
 	for(a=0; a<me->totcol; a++) {
 		expand_doit(fd, mainvar, me->mat[a]);
 	}
@@ -5450,9 +5453,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 			ID *idread= (ID *)(bhead+1); /*  BHEAD+DATA dependancy */
 
 			if (BLI_streq(id->name, idread->name)) {
-				id->flag -= LIB_READ;
+				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
-
 				read_libblock(fd, mainvar, bhead, id->flag, id_r);
 
 				break;
@@ -5499,7 +5501,6 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
-	ListBase mainlist;
 	Main *mainl;
 	int a, totsel=0,count=0;
 	float *curs,centerloc[3],vec[3],min[3],max[3];
@@ -5535,14 +5536,14 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	mainlist.first= mainlist.last= G.main;
+	fd->mainlist.first= fd->mainlist.last= G.main;
 	G.main->next= NULL;
 
 	/* make mains */
-	blo_split_main(&mainlist);
+	blo_split_main(&fd->mainlist);
 
 	/* which one do we need? */
-	mainl = blo_find_main(&mainlist, dir);
+	mainl = blo_find_main(&fd->mainlist, dir);
 	mainl->versionfile= fd->fileversion;	// needed for do_version
 	
 	if(totsel==0) {
@@ -5560,10 +5561,10 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	expand_main(fd, mainl);
 
 	/* do this when expand found other libs */
-	read_libraries(fd, &mainlist);
+	read_libraries(fd, &fd->mainlist);
 
-	blo_join_main(&mainlist);
-	G.main= mainlist.first;
+	blo_join_main(&fd->mainlist);
+	G.main= fd->mainlist.first;
 
 	lib_link_all(fd, G.main);
 
@@ -5643,10 +5644,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 		/* test 1: read libdata */
 		mainptr= mainl->next;
-
 		while(mainptr) {
 			int tot= mainvar_count_libread_blocks(mainptr);
-
 			if(tot) {
 				FileData *fd= mainptr->curlib->filedata;
 
