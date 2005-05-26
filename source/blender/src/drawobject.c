@@ -1736,6 +1736,8 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 	float *obExtVerts;
 	DerivedMesh *dm = realDM?realDM:baseDM;
 
+	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+
 	dl = find_displist(&ob->disp, DL_VERTS);
 	obExtVerts = dl?dl->verts:NULL;
 
