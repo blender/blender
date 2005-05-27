@@ -237,6 +237,52 @@ static unsigned int sample_backbuf_rect(unsigned int *buf, int size, int min, in
 /* facilities for border select and circle select */
 static char *selbuf= NULL;
 
+/* opengl doesn't support concave... */
+static void draw_triangulated(short mcords[][2], short tot)
+{
+	ListBase lb={NULL, NULL};
+	DispList *dl;
+	float *fp;
+	int a;
+	
+	/* make displist */
+	dl= MEM_callocN(sizeof(DispList), "poly disp");
+	dl->type= DL_POLY;
+	dl->parts= 1;
+	dl->nr= tot;
+	dl->verts= fp=  MEM_callocN(tot*3*sizeof(float), "poly verts");
+	BLI_addtail(&lb, dl);
+	
+	for(a=0; a<tot; a++, fp+=3) {
+		fp[0]= (float)mcords[a][0];
+		fp[1]= (float)mcords[a][1];
+	}
+	
+	/* do the fill */
+	filldisplist(&lb, &lb);
+
+	/* do the draw */
+	dl= lb.first;	// filldisplist adds in head of list
+	if(dl->type==DL_INDEX3) {
+		int *index;
+		
+		a= dl->parts;
+		fp= dl->verts;
+		index= dl->index;
+		glBegin(GL_TRIANGLES);
+		while(a--) {
+			glVertex3fv(fp+3*index[0]);
+			glVertex3fv(fp+3*index[1]);
+			glVertex3fv(fp+3*index[2]);
+			index+= 3;
+		}
+		glEnd();
+	}
+	
+	freedisplist(&lb);
+}
+
+
 /* reads rect, and builds selection array for quick lookup */
 /* returns if all is OK */
 int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
@@ -307,9 +353,10 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	
 	persp(PERSP_WIN);
 	glColor3ub(0, 0, 0);
-	glBegin(GL_POLYGON);
-	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
-	glEnd();
+	
+	/* yah, opengl doesn't do concave... tsk! */
+ 	draw_triangulated(mcords, tot);	
+	
 	glBegin(GL_LINE_LOOP);	// for zero sized masks, lines
 	for(a=0; a<tot; a++) glVertex2s(mcords[a][0], mcords[a][1]);
 	glEnd();

@@ -147,6 +147,7 @@ void boundbox_displist(struct Object *ob);
 void imagestodisplist(void);
 void reshadeall_displist(void);
 void test_all_displists(void);
+void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
 #endif
 
