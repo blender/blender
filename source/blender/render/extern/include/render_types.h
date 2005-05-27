@@ -302,7 +302,7 @@ typedef struct LampRen
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize;
 	float YF_causticblur, YF_ltradius;
-	float YF_glowint;
+	float YF_glowint, YF_glowofs;
 	short YF_glowtype;
 	
 	/* ray optim */

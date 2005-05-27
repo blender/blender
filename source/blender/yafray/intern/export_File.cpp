@@ -220,7 +220,8 @@ bool yafrayFileRender_t::writeRender()
 			ostr << "\tAA_passes=\"" << passes << "\" AA_minsamples=\"" << minsamples << "\"\n";
 		}
 		else ostr << "\tAA_passes=\"0\" AA_minsamples=\"1\"\n";
-		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias << "\"\n";
+		ostr << "\tAA_pixelwidth=\"1.5\" AA_threshold=\"0.05\" bias=\"" << R.r.YF_raybias
+				 << "\" clamp_rgb=\"" << ((R.r.YF_clamprgb==0) ? "on" : "off") << "\"\n";
 	}
 
 	World *world = G.scene->world;
@@ -277,6 +278,12 @@ void yafrayFileRender_t::displayImage()
 	fread(&header, 1, 18, fp);
 	unsigned short width = (unsigned short)(header[12] + (header[13]<<8));
 	unsigned short height = (unsigned short)(header[14] + (header[15]<<8));
+	// don't do anything if resolution doesn't match that of rectot
+	if ((width!=R.rectx) || (height!=R.recty)) {
+		fclose(fp);
+		fp = NULL;
+		return;
+	}
 	unsigned char byte_per_pix = (unsigned char)(header[16]>>3);
 	// read past any id (none in this case though)
 	unsigned int idlen = (unsigned int)header[0];
@@ -672,7 +679,9 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	// reflection/refraction
 	if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
 		ostr << "\t\t<IOR value=\"" << matr->ang << "\" />\n";
-	if (matr->mode & MA_RAYMIRROR) {
+
+	if (matr->mode & MA_RAYMIRROR)
+	{
 		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
 		// has been mapped to Blender's ray_mirror parameter.
 		// This causes it be be misinterpreted and misused as a reflection amount control however.
@@ -683,19 +692,37 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 		ostr << "\t\t<reflect_amount value=\""<< matr->ray_mirror << "\" />\n";
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		ostr << "\t\t<fresnel_offset value=\""<< fo << "\" />\n";
-		// transmit extinction color
-		ostr << "\t\t<extinction r=\"" << matr->YF_er << "\" g=\"" << matr->YF_eg << "\" b=\"" << matr->YF_eb << "\" />\n";
+		// transmit absorption color
+		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
+		const float maxlog = -log(1e-38);
+		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
+		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
+		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
+		float sc = matr->YF_dscale;
+		if (sc!=0.f) sc=1.f/sc;
+		ostr << "\t\t<absorption r=\"" << ar*sc << "\" g=\"" << ag*sc << "\" b=\"" << ab*sc << "\" />\n";
 		// dispersion
 		ostr << "\t\t<dispersion_power value=\"" << matr->YF_dpwr << "\" />\n";
 		ostr << "\t\t<dispersion_samples value=\"" << matr->YF_dsmp << "\" />\n";
 		ostr << "\t\t<dispersion_jitter value=\"" << (matr->YF_djit ? "on" : "off") << "\" />\n";
+
+		// for backward compatibility, also add old 'reflected' parameter, copy of mirror_color
+		ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
+		// same for 'min_refle' param. Instead of the ray_mirror parameter that was used before, since now
+		// the parameter's function is taken over by the fresnel offset parameter, use that instead.
+		ostr << "\t\t<min_refle value=\"" << fo << "\" />\n";
+
 	}
+
 	if (matr->mode & MA_RAYTRANSP) 
 	{
 		ostr << "\t\t<refract value=\"on\" />\n";
 		ostr << "\t\t<transmit_filter value=\"" << matr->filter << "\" />\n";
 		// tir on by default
 		ostr << "\t\t<tir value=\"on\" />\n";
+		// for backward compatibility, also add old 'transmitted' parameter, copy of 'color' * (1-alpha)
+		float na = 1.f-matr->alpha;
+		ostr << "\t\t<transmitted r=\"" << matr->r*na << "\" g=\"" << matr->g*na << "\" b=\"" << matr->b*na << "\" />\n";
 	}
 
 	string Mmode = "";
@@ -1509,23 +1536,24 @@ void yafrayFileRender_t::writeLamps()
 		if (lamp->type==LA_LOCAL) {
 			if (lamp->mode & LA_YF_SOFT) {
 				// shadowmapped omnidirectional light
-				ostr << "softlight";
+				ostr << "softlight\"";
 				is_softL = true;
 			}
 			else if ((lamp->mode & LA_SHAD_RAY) && (lamp->YF_ltradius>0.0)) {
 				// area sphere, only when ray shadows enabled and radius>0.0
-				ostr << "spherelight";
+				ostr << "spherelight\"";
 				is_sphereL = true;
 			}
-			else ostr << "pointlight";
-			ostr << "\" glow_intensity=\"" << lamp->YF_glowint << "\" glow_type=\"" << lamp->YF_glowtype << "\"";
+			else ostr << "pointlight\"";
+			ostr << " glow_intensity=\"" << lamp->YF_glowint << "\" glow_offset=\"" << lamp->YF_glowofs
+					 << "\" glow_type=\"" << lamp->YF_glowtype << "\"";
 		}
 		else if (lamp->type==LA_SPOT)
-			ostr << "spotlight";
+			ostr << "spotlight\"";
 		else if ((lamp->type==LA_SUN) || (lamp->type==LA_HEMI))	// hemi exported as sun
-			ostr << "sunlight";
+			ostr << "sunlight\"";
 		else if (lamp->type==LA_YF_PHOTON)
-			ostr << "photonlight";
+			ostr << "photonlight\"";
 		else {
 			// possibly unknown type, ignore
 			cout << "Unknown Blender lamp type: " << lamp->type << endl;
@@ -1839,36 +1867,25 @@ bool yafrayFileRender_t::writeWorld()
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;
+		// now always exports if image used as world texture
 		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
 			string wt_path = wimg->name;
 			adjustPath(wt_path);
-			if (BLI_testextensie(wimg->name, ".hdr")) {
-				ostr.str("");
-				ostr << "<background type=\"image\" name=\"world_background\" ";
-				// exposure_adjust not restricted to integer range anymore
-				ostr << "exposure_adjust=\"" << wtex->tex->bright-1.f << "\" mapping=\"probe\" >\n";
-				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
-				ostr << "\t<interpolate value=\"" << ((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
-				ostr << "</background>\n\n";
-				xmlfile << ostr.str();
-				return true;
-			}
-			else if (BLI_testextensie(wimg->name, ".jpg") || BLI_testextensie(wimg->name, ".jpeg") || BLI_testextensie(wimg->name, ".tga")) {
-				ostr.str("");
-				ostr << "<background type=\"image\" name=\"world_background\" >\n";
-				/*
-				// not yet in yafray, always assumes spheremap for now, not the same as in Blender,
-				// which for some reason is scaled by 2 in Blender???
-				if (wtex->texco & TEXCO_ANGMAP)
-					ostr << " mapping=\"probe\" >\n";
-				else
-					ostr << " mapping=\"sphere\" >\n";
-				*/
-				ostr << "\t<filename value=\"" << wt_path << "\" />\n";
-				ostr << "</background>\n\n";
-				xmlfile << ostr.str();
-				return true;
-			}
+			ostr.str("");
+			ostr << "<background type=\"image\" name=\"world_background\" ";
+			// exposure_adjust not restricted to integer range anymore
+			ostr << "exposure_adjust=\"" << wtex->tex->bright-1.f << "\"";
+			if (wtex->texco & TEXCO_ANGMAP)
+				ostr << " mapping=\"probe\" >\n";
+			else if (wtex->texco & TEXCO_H_SPHEREMAP)	// in yafray full sphere
+				ostr << " mapping=\"sphere\" >\n";
+			else	// assume 'tube' for anything else
+				ostr << " mapping=\"tube\" >\n";
+			ostr << "\t<filename value=\"" << wt_path << "\" />\n";
+			ostr << "\t<interpolate value=\"" << ((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
+			ostr << "</background>\n\n";
+			xmlfile << ostr.str();
+			return true;
 		}
 	}
 

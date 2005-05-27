@@ -103,12 +103,9 @@ typedef struct Material {
 	float fhdist, xyfrict;
 	short dynamode, pad2;
 
-	/* yafray: dispersion parameters */
-	float YF_er, YF_eg, YF_eb;
-	float YF_dpwr;
-	short YF_dsmp, YF_djit;
-	/* yafray: material preset menu */
-	short YF_preset, pad6;
+	/* yafray: absorption color, dispersion parameters and material preset menu */
+	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
+	int YF_dsmp, YF_preset, YF_djit;
 
 	ScriptLink scriptlink;
 } Material;

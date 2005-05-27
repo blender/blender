@@ -1279,16 +1279,17 @@ static void render_panel_yafrayGI()
 	if (G.scene->r.GImethod>0)
 	{
 		if (G.scene->r.GIdepth==0) G.scene->r.GIdepth=2;
+
 		if (G.scene->r.GImethod==2) {
 			uiDefButI(block, NUM, B_DIFF, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 100.0, 10, 10, "Number of bounces of the indirect light");
 			uiDefButI(block, NUM, B_DIFF, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 100.0, 10, 10, "Number of bounces inside objects (for caustics)");
-			uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",240,125,89,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
+			uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",210,125,100,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
 		}
-		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",125,125,89,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache occlusion/irradiance samples (faster)");
-		if (G.scene->r.GIcache)
-			uiDefButS(block,TOG|BIT|0, B_REDR, "NoBump",15,125,89,20, &G.scene->r.YF_nobump, 0, 0, 0, 0, "Don't use bumpnormals for cache (faster, but no bumpmapping in total indirectly lit areas)");
+
+		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",6,125,95,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache occlusion/irradiance samples (faster)");
 		if (G.scene->r.GIcache) 
 		{
+			uiDefButS(block,TOG|BIT|0, B_REDR, "NoBump",108,125,95,20, &G.scene->r.YF_nobump, 0, 0, 0, 0, "Don't use bumpnormals for cache (faster, but no bumpmapping in total indirectly lit areas)");
 			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
 			uiDefButF(block, NUM, B_DIFF,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
@@ -1297,6 +1298,7 @@ static void render_panel_yafrayGI()
 			if (G.scene->r.GIrefinement==0) G.scene->r.GIrefinement=1.0;
 			uiDefButF(block, NUM, B_DIFF, "Ref:", 84,60,75,20, &G.scene->r.GIrefinement, 0.001, 1.0, 1, 0, "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement");
 		}
+
 		if (G.scene->r.GImethod==2) {
 			if (G.scene->r.GIphotons)
 			{
@@ -1314,6 +1316,7 @@ static void render_panel_yafrayGI()
 						0, 0, 0, 0, "Show the photonmap directly in the render for tuning");
 			}
 		}
+
 	}
 }
 
@@ -1329,6 +1332,9 @@ static void render_panel_yafrayGlobal()
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
 
+	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml", 5,180,75,20, &G.scene->r.YFexportxml,
+					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
+
 	uiDefButF(block, NUMSLI, B_DIFF,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
 				0.0, 10.0 ,0,0, "Shadow ray bias to avoid self shadowing");
 	uiDefButI(block, NUM, B_DIFF, "Raydepth ", 5,60,150,20,
@@ -1336,15 +1342,12 @@ static void render_panel_yafrayGlobal()
 	uiDefButF(block, NUMSLI, B_DIFF, "Gam ", 5,10,150,20, &G.scene->r.YF_gamma, 0.001, 5.0, 0, 0, "Gamma correction, 1 is off");
 	uiDefButF(block, NUMSLI, B_DIFF, "Exp ", 160,10,150,20,&G.scene->r.YF_exposure, 0.0, 10.0, 0, 0, "Exposure adjustment, 0 is off");
         
-	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,35,150,20,
-				&G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
+	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,60,150,20, &G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	/*AA Settings*/
-
 	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
-	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml", 175,140,75,20, &G.scene->r.YFexportxml,
-					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
+	uiDefButS(block, TOGN|BIT|0, B_DIFF, "Clamp RGB", 160,140,150,20, &G.scene->r.YF_clamprgb, 1.0, 8.0, 10, 10, "For AA on fast high contrast changes. Not advisable for Bokeh! Dulls lens shape detail.");
  	if(G.scene->r.YF_AA){
 		uiDefButI(block, NUM, B_DIFF, "AA Passes ", 5,115,150,20, &G.scene->r.YF_AApasses, 0, 64, 10, 10, "Number of AA passes (0 is no AA)");
 		uiDefButI(block, NUM, B_DIFF, "AA Samples ", 160,115,150,20, &G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "Number of samples per pass");

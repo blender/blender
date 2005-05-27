@@ -850,6 +850,10 @@ static void yafrayRender(void)
 	else
 		YAF_switchPlugin();
 
+	RE_local_init_render_display();
+	RE_local_clear_render_display(R.win);
+	RE_local_timecursor((G.scene->r.cfra));
+
 	printf("Starting scene conversion.\n");
 	prepareScene();
 	printf("Scene conversion done.\n");

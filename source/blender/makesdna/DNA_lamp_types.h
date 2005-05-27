@@ -72,7 +72,7 @@ typedef struct Lamp {
 	short YF_phdepth, YF_useqmc, YF_bufsize, YF_pad;
 	float YF_causticblur, YF_ltradius;
 	/* yafray: glow params */
-	float YF_glowint;
+	float YF_glowint, YF_glowofs, YF_pad3;
 	short YF_glowtype, YF_pad2;
 	
 	struct MTex *mtex[10];

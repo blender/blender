@@ -1758,6 +1758,7 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		lar->YF_ltradius = la->YF_ltradius;
 		lar->YF_bufsize = la->YF_bufsize;
 		lar->YF_glowint = la->YF_glowint;
+		lar->YF_glowofs = la->YF_glowofs;
 		lar->YF_glowtype = la->YF_glowtype;
 	}
 

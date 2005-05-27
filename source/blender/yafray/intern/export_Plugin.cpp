@@ -253,7 +253,7 @@ bool yafrayPluginRender_t::writeRender()
 		params["background_name"] = yafray::parameter_t("world_background");
 	}
 	params["bias"]=yafray::parameter_t(R.r.YF_raybias);
-	//params["outfile"]=yafray::parameter_t(imgout);
+	params["clamp_rgb"] = yafray::parameter_t((R.r.YF_clamprgb==0) ? "on" : "off");
 	blenderYafrayOutput_t output;
 	yafrayGate->render(params,output);
 	cout<<"render finished"<<endl;
@@ -666,6 +666,7 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 	// reflection/refraction
 	if ( (matr->mode & MA_RAYMIRROR) || (matr->mode & MA_RAYTRANSP) )
 		params["IOR"] = yafray::parameter_t(matr->ang);
+
 	if (matr->mode & MA_RAYMIRROR)
 	{
 		// Sofar yafray's min_refle parameter (which misleadingly actually controls fresnel reflection offset)
@@ -678,19 +679,37 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 		params["reflect_amount"] = yafray::parameter_t(matr->ray_mirror);
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		params["fresnel_offset"] = yafray::parameter_t(fo);
-		// transmit extinction color
-		params["extinction"] = yafray::parameter_t(yafray::color_t(matr->YF_er, matr->YF_eg, matr->YF_eb));
+		// transmit absorption color
+		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
+		const float maxlog = -log(1e-38);
+		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
+		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
+		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
+		float sc = matr->YF_dscale;
+		if (sc!=0.f) sc=1.f/sc;
+		params["absorption"] = yafray::parameter_t(yafray::color_t(ar*sc, ag*sc, ab*sc));
 		// dispersion
 		params["dispersion_power"] = yafray::parameter_t(matr->YF_dpwr);
 		params["dispersion_samples"] = yafray::parameter_t(matr->YF_dsmp);
 		params["dispersion_jitter"] = yafray::parameter_t(matr->YF_djit ? "on" : "off");
+
+		// for backward compatibility, also add old 'reflected' parameter, copy of mirror_color
+		params["reflected"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
+		// same for 'min_refle' param. Instead of the ray_mirror parameter that was used before, since now
+		// the parameter's function is taken over by the fresnel offset parameter, use that instead.
+		params["min_refle"] = yafray::parameter_t(fo);
+
 	}
+
 	if (matr->mode & MA_RAYTRANSP) 
 	{
 		params["refract"] = yafray::parameter_t("on");
 		params["transmit_filter"] = yafray::parameter_t(matr->filter);
 		// tir on by default
 		params["tir"] = yafray::parameter_t("on");
+		// for backward compatibility, also add old 'transmitted' parameter, copy of 'color' * (1-alpha)
+		float na = 1.f-matr->alpha;
+		params["transmitted"] = yafray::parameter_t(yafray::color_t(matr->r*na, matr->g*na, matr->b*na));
 	}
 
 	string Mmode = "";
@@ -1500,6 +1519,7 @@ void yafrayPluginRender_t::writeLamps()
 			}
 			else params["type"] = yafray::parameter_t("pointlight");
 			params["glow_intensity"] = yafray::parameter_t(lamp->YF_glowint);
+			params["glow_offset"] = yafray::parameter_t(lamp->YF_glowofs);
 			params["glow_type"] = yafray::parameter_t(lamp->YF_glowtype);
 		}
 		else if (lamp->type==LA_SPOT)
@@ -1840,35 +1860,24 @@ bool yafrayPluginRender_t::writeWorld()
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;
+		// now always exports if image used as world texture
 		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
 			string wt_path = wimg->name;
 			adjustPath(wt_path);
-			if (BLI_testextensie(wimg->name, ".hdr")) {
-				params["type"] = yafray::parameter_t("image");
-				params["name"] = yafray::parameter_t("world_background");
-				// exposure_adjust not restricted to integer range anymore
-				params["exposure_adjust"] = yafray::parameter_t(wtex->tex->bright-1.f);
+			params["type"] = yafray::parameter_t("image");
+			params["name"] = yafray::parameter_t("world_background");
+			// exposure_adjust not restricted to integer range anymore
+			params["exposure_adjust"] = yafray::parameter_t(wtex->tex->bright-1.f);
+			if (wtex->texco & TEXCO_ANGMAP)
 				params["mapping"] = yafray::parameter_t("probe");
-				params["filename"] = yafray::parameter_t(wt_path);
-				params["interpolate"] = yafray::parameter_t((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none");
-				yafrayGate->addBackground(params);
-				return true;
-			}
-			else if (BLI_testextensie(wimg->name, ".jpg") || BLI_testextensie(wimg->name, ".jpeg") || BLI_testextensie(wimg->name, ".tga")) {
-				params["type"] = yafray::parameter_t("image");
-				params["name"] = yafray::parameter_t("world_background");
-				/*
-				// not yet in yafray, always assumes spheremap for now, not the same as in Blender,
-				// which for some reason is scaled by 2 in Blender???
-				if (wtex->texco & TEXCO_ANGMAP)
-					params["mapping"] = yafray::parameter_t("probe");
-				else
-					params["mapping"] = yafray::parameter_t("sphere");
-				*/
-				params["filename"] = yafray::parameter_t(wt_path);
-				yafrayGate->addBackground(params);
-				return true;
-			}
+			else if (wtex->texco & TEXCO_H_SPHEREMAP)	// in yafray full sphere
+				params["mapping"] = yafray::parameter_t("sphere");
+			else	// assume 'tube' for anything else
+				params["mapping"] = yafray::parameter_t("tube");
+			params["filename"] = yafray::parameter_t(wt_path);
+			params["interpolate"] = yafray::parameter_t((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none");
+			yafrayGate->addBackground(params);
+			return true;
 		}
 	}
 
@@ -1926,10 +1935,10 @@ bool blenderYafrayOutput_t::putPixel(int x, int y, const yafray::color_t &c,
 	out++;
 	if (out==4096)
 	{
-		RE_local_render_display(0,R.recty-1, R.rectx, R.recty, R.rectot);
+		RE_local_render_display(0, R.recty-1, R.rectx, R.recty, R.rectot);
 		out = 0;
 	}
-	if (RE_local_test_break())
-		return false;
+
+	if (RE_local_test_break()) return false;
 	return true;
 }

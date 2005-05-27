@@ -115,6 +115,8 @@ bool yafrayRender_t::getAllMatTexObs()
 						(txtp==TEX_MAGIC) ||
 						(txtp==TEX_PLUGIN) ||
 						(txtp==TEX_ENVMAP)) continue;
+				// if texture is stucci, only export if 'nor' enabled
+				if ((txtp==TEX_STUCCI) && !((mx->mapto & MAP_NORM) || (mx->maptoneg & MAP_NORM))) continue;
 				// In the case of an image texture, check that there is an actual image, otherwise ignore.
 				// Stupid error was here (...if (txtp & TEX_IMAGE)...),
 				// which happened to work sofar, but not anymore with the extended texture support..

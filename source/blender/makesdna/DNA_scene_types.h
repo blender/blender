@@ -225,7 +225,7 @@ typedef struct RenderData {
 
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
-	short YF_AA, YFexportxml, YF_nobump, yfpad1[2];
+	short YF_AA, YFexportxml, YF_nobump, YF_clamprgb, yfpad1;
 	int GIdepth, GIcausdepth, GIpixelspersample;
 	int GIphotoncount, GImixphotons;
 	float GIphotonradius;
