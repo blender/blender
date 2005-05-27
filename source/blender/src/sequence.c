@@ -1939,6 +1939,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 					}
 					else if(seq->type==SEQ_SCENE && se->ibuf==0 && seq->scene) {	// scene can be NULL after deletions
 						View3D *vd;
+						int redisplay= (!G.background && !(R.flag & R_RENDERING));
 						
 						oldsce= G.scene;
 						set_scene_bg(seq->scene);
@@ -1958,7 +1959,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						G.vd= NULL;
 
 						RE_initrender(NULL);
-						if (!G.background) {
+						if (redisplay) {
 							mainwindow_make_active();
 							if(R.r.mode & R_FIELDS) update_for_newframe_muted();
 							R.flag= 0;
