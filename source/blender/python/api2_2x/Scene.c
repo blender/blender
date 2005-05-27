@@ -156,11 +156,11 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"getScriptLinks", ( PyCFunction ) Scene_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this scene's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged, OnLoad or Redraw."},
+	 "(eventname) - string: FrameChanged, OnLoad, OnSave, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) Scene_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new scene scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged, OnLoad or Redraw."},
+	 "(evt) string: FrameChanged, OnLoad, OnSave, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) Scene_clearScriptLinks,
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this scene.\n"

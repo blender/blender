@@ -504,11 +504,11 @@ works only if self and the object specified are of the same type."},
 	{"getScriptLinks", ( PyCFunction ) Object_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this object's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged or Redraw."},
+	 "(eventname) - string: FrameChanged, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) Object_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new object scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged or Redraw."},
+	 "(evt) string: FrameChanged, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) Object_clearScriptLinks,
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this object.\n"

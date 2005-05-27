@@ -196,14 +196,27 @@ class Material:
             print "Not a halo"
     """
 
-  def setMode(m = None, m2 = None, m3 = None, and_so_on = None,
-              up_to_21 = None):
+  def setMode(param, stringN=None):
     """
-    Set this Material's mode flags. Mode strings given are turned 'on'.
-    Those not provided are turned 'off', so mat.setMode() -- without 
-    arguments -- turns off all mode flags for Material mat.
-    @type m: string
-    @param m: A mode flag. From 1 to 21 can be set at the same time.
+    Set this Material's mode flags. Up to 22 mode strings can be given
+    and specify the modes which are turned 'on'.  Those not provided are 
+    turned 'off', so mat.setMode() -- without arguments -- turns off all 
+    mode flags for Material mat.  Valid mode strings are "Traceable", 
+    "Shadow", "Shadeless", "Wire", "VColLight", "VColPaint", "Halo",
+    "ZTransp", "ZInvert", "HaloRings", "HaloLines", "OnlyShadow",
+    "HaloXAlpha", "HaloStar", "TexFace", "HaloTex", "HaloPuno", "NoMist",
+    "HaloShaded", "HaloFlare", "Radio", "RayMirr", "ZTransp", "RayTransp",
+    "OnlyShadow", "NoMist", "Env"
+
+    An integer can also be given, which directly sets the mode flag.  The
+    Modes dictionary keys can (and should) be added or ORed to specify
+    which modes to turn 'on'.  The value returned from getMode() can
+    also be modified and input to this method.
+
+    @type param: string, None or int
+    @param param: A mode value (int) or flag (string).  Can also be None.
+    @type stringN: string
+    @param stringN: A mode flag. Up to 22 flags can be set at the same time.
     """
 
   def getRGBCol():

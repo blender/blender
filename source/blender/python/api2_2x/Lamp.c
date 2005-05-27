@@ -298,11 +298,11 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	{"getScriptLinks", ( PyCFunction ) Lamp_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this lamp's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged or Redraw."},
+	 "(eventname) - string: FrameChanged, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) Lamp_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new lamp scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged or Redraw."},
+	 "(evt) string: FrameChanged, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) Lamp_clearScriptLinks,
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this lamp.\n"

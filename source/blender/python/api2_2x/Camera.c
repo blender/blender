@@ -180,11 +180,11 @@ static PyMethodDef BPy_Camera_methods[] = {
 	{"getScriptLinks", ( PyCFunction ) Camera_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this camera's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged or Redraw."},
+	 "(eventname) - string: FrameChanged, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) Camera_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new camera scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged or Redraw."},
+	 "(evt) string: FrameChanged, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) Camera_clearScriptLinks,
 	 METH_NOARGS,
 	 "() - Delete all scriptlinks from this camera.\n"

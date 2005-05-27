@@ -211,11 +211,11 @@ static PyMethodDef BPy_World_methods[] = {
 	{"getScriptLinks", ( PyCFunction ) World_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this world's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged or Redraw."},
+	 "(eventname) - string: FrameChanged, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) World_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new world scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged or Redraw."},
+	 "(evt) string: FrameChanged, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) World_clearScriptLinks,
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this world.\n"

@@ -660,11 +660,11 @@ static PyMethodDef BPy_Material_methods[] = {
 	 METH_VARARGS,
 	 "(eventname) - Get a list of this material's scriptlinks (Text names) "
 	 "of the given type\n"
-	 "(eventname) - string: FrameChanged or Redraw."},
+	 "(eventname) - string: FrameChanged, Redraw or Render."},
 	{"addScriptLink", ( PyCFunction ) Material_addScriptLink, METH_VARARGS,
 	 "(text, evt) - Add a new material scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
-	 "(evt) string: FrameChanged or Redraw."},
+	 "(evt) string: FrameChanged, Redraw or Render."},
 	{"clearScriptLinks", ( PyCFunction ) Material_clearScriptLinks,
 	 METH_VARARGS,
 	 "() - Delete all scriptlinks from this material.\n"
@@ -1363,89 +1363,109 @@ static PyObject *Material_setName( BPy_Material * self, PyObject * args )
  * haloShaded, haloFlare */
 static PyObject *Material_setMode( BPy_Material * self, PyObject * args )
 {
-	int i, flag = 0;
+	unsigned int i, flag = 0, ok = 0;
+
 	char *m[28] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 		NULL, NULL, NULL, NULL, NULL, NULL
 	};
 
-	if( !PyArg_ParseTuple( args, "|ssssssssssssssssssssssssssss",
+	/* 
+	 * check for a single integer argument; do a quick check for now
+	 * that the value is not larger than double the highest flag bit
+	 */
+
+	if ( (PySequence_Size( args ) == 1)
+		    && PyInt_Check ( PySequence_Fast_GET_ITEM ( args , 0 ) )
+		    && PyArg_ParseTuple( args, "i", &flag ) 
+		    && flag < (EXPP_MAT_MODE_RAYMIRROR >> 1) ) {
+			ok = 1;
+
+	/*
+	 * check for either an empty argument list, or up to 22 strings
+	 */
+
+	} else if( PyArg_ParseTuple( args, "|ssssssssssssssssssssssssssss",
 			       &m[0], &m[1], &m[2], &m[3], &m[4], &m[5], &m[6],
 			       &m[7], &m[8], &m[9], &m[10], &m[11], &m[12],
 			       &m[13], &m[14], &m[15], &m[16], &m[17], &m[18],
 			       &m[19], &m[20], &m[21], &m[22], &m[23], &m[24],
 			       &m[25], &m[26], &m[27] ) ) {
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected from none to 22 string argument(s)" ) );
+		for( i = 0; i < 28; i++ ) {
+			if( m[i] == NULL )
+				break;
+			if( strcmp( m[i], "Traceable" ) == 0 )
+				flag |= EXPP_MAT_MODE_TRACEABLE;
+			else if( strcmp( m[i], "Shadow" ) == 0 )
+				flag |= EXPP_MAT_MODE_SHADOW;
+			else if( strcmp( m[i], "Shadeless" ) == 0 )
+				flag |= EXPP_MAT_MODE_SHADELESS;
+			else if( strcmp( m[i], "Wire" ) == 0 )
+				flag |= EXPP_MAT_MODE_WIRE;
+			else if( strcmp( m[i], "VColLight" ) == 0 )
+				flag |= EXPP_MAT_MODE_VCOL_LIGHT;
+			else if( strcmp( m[i], "VColPaint" ) == 0 )
+				flag |= EXPP_MAT_MODE_VCOL_PAINT;
+			else if( strcmp( m[i], "Halo" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALO;
+			else if( strcmp( m[i], "ZTransp" ) == 0 )
+				flag |= EXPP_MAT_MODE_ZTRANSP;
+			else if( strcmp( m[i], "ZInvert" ) == 0 )
+				flag |= EXPP_MAT_MODE_ZINVERT;
+			else if( strcmp( m[i], "HaloRings" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALORINGS;
+			else if( strcmp( m[i], "HaloLines" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOLINES;
+			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
+				flag |= EXPP_MAT_MODE_ONLYSHADOW;
+			else if( strcmp( m[i], "HaloXAlpha" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOXALPHA;
+			else if( strcmp( m[i], "HaloStar" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOSTAR;
+			else if( strcmp( m[i], "TexFace" ) == 0 )
+				flag |= EXPP_MAT_MODE_TEXFACE;
+			else if( strcmp( m[i], "HaloTex" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOTEX;
+			else if( strcmp( m[i], "HaloPuno" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOPUNO;
+			else if( strcmp( m[i], "NoMist" ) == 0 )
+				flag |= EXPP_MAT_MODE_NOMIST;
+			else if( strcmp( m[i], "HaloShaded" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOSHADE;
+			else if( strcmp( m[i], "HaloFlare" ) == 0 )
+				flag |= EXPP_MAT_MODE_HALOFLARE;
+			else if( strcmp( m[i], "Radio" ) == 0 )
+				flag |= EXPP_MAT_MODE_RADIO;
+			/* ** Mirror ** */
+			else if( strcmp( m[i], "RayMirr" ) == 0 )
+				flag |= EXPP_MAT_MODE_RAYMIRROR;
+			else if( strcmp( m[i], "ZTransp" ) == 0 )
+				flag |= EXPP_MAT_MODE_ZTRA;
+			else if( strcmp( m[i], "RayTransp" ) == 0 )
+				flag |= EXPP_MAT_MODE_RAYTRANSP;
+			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
+				flag |= EXPP_MAT_MODE_ONLYSHADOW;
+			else if( strcmp( m[i], "NoMist" ) == 0 )
+				flag |= EXPP_MAT_MODE_NOMIST;
+			else if( strcmp( m[i], "Env" ) == 0 )
+				flag |= EXPP_MAT_MODE_ENV;
+			/* ** */
+			else
+				return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+								"unknown Material mode argument" ) );
+		}
+	    	ok = 1;
 	}
 
-	for( i = 0; i < 28; i++ ) {
-		if( m[i] == NULL )
-			break;
-		if( strcmp( m[i], "Traceable" ) == 0 )
-			flag |= EXPP_MAT_MODE_TRACEABLE;
-		else if( strcmp( m[i], "Shadow" ) == 0 )
-			flag |= EXPP_MAT_MODE_SHADOW;
-		else if( strcmp( m[i], "Shadeless" ) == 0 )
-			flag |= EXPP_MAT_MODE_SHADELESS;
-		else if( strcmp( m[i], "Wire" ) == 0 )
-			flag |= EXPP_MAT_MODE_WIRE;
-		else if( strcmp( m[i], "VColLight" ) == 0 )
-			flag |= EXPP_MAT_MODE_VCOL_LIGHT;
-		else if( strcmp( m[i], "VColPaint" ) == 0 )
-			flag |= EXPP_MAT_MODE_VCOL_PAINT;
-		else if( strcmp( m[i], "Halo" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALO;
-		else if( strcmp( m[i], "ZTransp" ) == 0 )
-			flag |= EXPP_MAT_MODE_ZTRANSP;
-		else if( strcmp( m[i], "ZInvert" ) == 0 )
-			flag |= EXPP_MAT_MODE_ZINVERT;
-		else if( strcmp( m[i], "HaloRings" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALORINGS;
-		else if( strcmp( m[i], "Env" ) == 0 )
-			flag |= EXPP_MAT_MODE_ENV;
-		else if( strcmp( m[i], "HaloLines" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOLINES;
-		else if( strcmp( m[i], "OnlyShadow" ) == 0 )
-			flag |= EXPP_MAT_MODE_ONLYSHADOW;
-		else if( strcmp( m[i], "HaloXAlpha" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOXALPHA;
-		else if( strcmp( m[i], "HaloStar" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOSTAR;
-		else if( strcmp( m[i], "TexFace" ) == 0 )
-			flag |= EXPP_MAT_MODE_TEXFACE;
-		else if( strcmp( m[i], "HaloTex" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOTEX;
-		else if( strcmp( m[i], "HaloPuno" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOPUNO;
-		else if( strcmp( m[i], "NoMist" ) == 0 )
-			flag |= EXPP_MAT_MODE_NOMIST;
-		else if( strcmp( m[i], "HaloShaded" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOSHADE;
-		else if( strcmp( m[i], "HaloFlare" ) == 0 )
-			flag |= EXPP_MAT_MODE_HALOFLARE;
-		else if( strcmp( m[i], "Radio" ) == 0 )
-			flag |= EXPP_MAT_MODE_RADIO;
-		/* ** Mirror ** */
-		else if( strcmp( m[i], "RayMirr" ) == 0 )
-			flag |= EXPP_MAT_MODE_RAYMIRROR;
-		else if( strcmp( m[i], "ZTransp" ) == 0 )
-			flag |= EXPP_MAT_MODE_ZTRA;
-		else if( strcmp( m[i], "RayTransp" ) == 0 )
-			flag |= EXPP_MAT_MODE_RAYTRANSP;
-		else if( strcmp( m[i], "OnlyShadow" ) == 0 )
-			flag |= EXPP_MAT_MODE_ONLYSHADOW;
-		else if( strcmp( m[i], "NoMist" ) == 0 )
-			flag |= EXPP_MAT_MODE_NOMIST;
-		else if( strcmp( m[i], "Env" ) == 0 )
-			flag |= EXPP_MAT_MODE_ENV;
-		/* ** */
-		else
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"unknown Material mode argument" ) );
-	}
+	/* if neither input method worked, then throw an exception */
+
+	if ( ok == 0 )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError,
+			   "expected nothing, an integer or up to 22 string argument(s)" ) );
+
+	/* update the mode flag, return None */
 
 	self->material->mode = flag;
 
