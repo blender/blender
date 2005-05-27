@@ -592,7 +592,7 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 
 	/* 1. Do a backbuffer image: */ 
 	if(R.r.bufflag & 1) {
-		if(R.backbuf) fillBackgroundImage(collector, fx, fy);
+		fillBackgroundImage(collector, fx, fy);
 		return;
 	} else if((R.wrld.skytype & (WO_SKYBLEND+WO_SKYTEX))==0) {
 		/*
@@ -731,9 +731,9 @@ void fillBackgroundImageChar(char *col, float x, float y)
 	int iy, ix;
 	unsigned int* imBufPtr;
 	
-	/* This double check is bad... */
-	if (!(R.backbuf->ok)) {
-		/* Something went sour here... bail... */
+	/* check to be sure... */
+	if (R.backbuf==NULL || R.backbuf->ok==0) {
+		/* bail out */
 		col[0] = 0;
 		col[1] = 0;
 		col[2] = 0;
