@@ -248,48 +248,63 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 		out[3]= cbd1->a;
 	}
 	else {
-		if(in < cbd1->pos) in= cbd1->pos;
-
-		/* we're looking for first pos > in */
-		for(a=0; a<coba->tot; a++, cbd1++) if(cbd1->pos > in) break;
-			
-		if(a==coba->tot) cbd1--;
-		if(in > cbd1->pos) in= cbd1->pos;
-		
-		cbd2= cbd1-1;
-		fac= (in-cbd1->pos)/(cbd2->pos-cbd1->pos);
-		
-		if(coba->ipotype==2) {
-			/* ipo from right to left: 3 2 1 0 */
-			
-			if(a>=coba->tot-1) cbd0= cbd1;
-			else cbd0= cbd1+1;
-			if(a<2) cbd3= cbd2;
-			else cbd3= cbd2-1;
-			
-			set_four_ipo(fac, t, KEY_BSPLINE);
-
-			out[0]= t[3]*cbd3->r +t[2]*cbd2->r +t[1]*cbd1->r +t[0]*cbd0->r;
-			out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
-			out[2]= t[3]*cbd3->b +t[2]*cbd2->b +t[1]*cbd1->b +t[0]*cbd0->b;
-			out[3]= t[3]*cbd3->a +t[2]*cbd2->a +t[1]*cbd1->a +t[0]*cbd0->a;
-			CLAMP(out[0], 0.0, 1.0);
-			CLAMP(out[1], 0.0, 1.0);
-			CLAMP(out[2], 0.0, 1.0);
-			CLAMP(out[3], 0.0, 1.0);
+		if(in < cbd1->pos) {
+			out[0]= cbd1->r;
+			out[1]= cbd1->g;
+			out[2]= cbd1->b;
+			out[3]= cbd1->a;
 		}
 		else {
-		
-			if(coba->ipotype==1) {	/* EASE */
-				mfac= fac*fac;
-				fac= 3.0f*mfac-2.0f*mfac*fac;
-			}
-			mfac= 1.0f-fac;
+
+			/* we're looking for first pos > in */
+			for(a=0; a<coba->tot; a++, cbd1++) if(cbd1->pos > in) break;
+				
+			if(a==coba->tot) cbd1--;
 			
-			out[0]= mfac*cbd1->r + fac*cbd2->r;
-			out[1]= mfac*cbd1->g + fac*cbd2->g;
-			out[2]= mfac*cbd1->b + fac*cbd2->b;
-			out[3]= mfac*cbd1->a + fac*cbd2->a;
+			if(in > cbd1->pos) {
+				out[0]= cbd1->r;
+				out[1]= cbd1->g;
+				out[2]= cbd1->b;
+				out[3]= cbd1->a;
+			}
+			else {
+		
+				cbd2= cbd1-1;
+				fac= (in-cbd1->pos)/(cbd2->pos-cbd1->pos);
+				
+				if(coba->ipotype==2) {
+					/* ipo from right to left: 3 2 1 0 */
+					
+					if(a>=coba->tot-1) cbd0= cbd1;
+					else cbd0= cbd1+1;
+					if(a<2) cbd3= cbd2;
+					else cbd3= cbd2-1;
+					
+					set_four_ipo(fac, t, KEY_BSPLINE);
+
+					out[0]= t[3]*cbd3->r +t[2]*cbd2->r +t[1]*cbd1->r +t[0]*cbd0->r;
+					out[1]= t[3]*cbd3->g +t[2]*cbd2->g +t[1]*cbd1->g +t[0]*cbd0->g;
+					out[2]= t[3]*cbd3->b +t[2]*cbd2->b +t[1]*cbd1->b +t[0]*cbd0->b;
+					out[3]= t[3]*cbd3->a +t[2]*cbd2->a +t[1]*cbd1->a +t[0]*cbd0->a;
+					CLAMP(out[0], 0.0, 1.0);
+					CLAMP(out[1], 0.0, 1.0);
+					CLAMP(out[2], 0.0, 1.0);
+					CLAMP(out[3], 0.0, 1.0);
+				}
+				else {
+				
+					if(coba->ipotype==1) {	/* EASE */
+						mfac= fac*fac;
+						fac= 3.0f*mfac-2.0f*mfac*fac;
+					}
+					mfac= 1.0f-fac;
+					
+					out[0]= mfac*cbd1->r + fac*cbd2->r;
+					out[1]= mfac*cbd1->g + fac*cbd2->g;
+					out[2]= mfac*cbd1->b + fac*cbd2->b;
+					out[3]= mfac*cbd1->a + fac*cbd2->a;
+				}
+			}
 		}
 	}
 	return 1;	/* OK */
