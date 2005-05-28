@@ -252,7 +252,11 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 		useTwoSide= 0;
 	}
 
-	glEnable(GL_CULL_FACE);
+	/* there's a conflict here... twosided colors versus culling...? */
+	/* defined by history, only texture faces have culling option */
+	/* we need that as mesh option builtin, next to double sided lighting */
+	// glEnable(GL_CULL_FACE);
+	
 	glShadeModel(GL_SMOOTH);
 	glBegin(glmode=GL_QUADS);
 	for(a=start; a<end; a++, mface++, cp1+= 16) {
