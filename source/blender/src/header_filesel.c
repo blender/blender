@@ -156,9 +156,10 @@ void file_buttons(void)
 		sprintf(naam, "Free: %.3f MB   Files: (%d) %d    (%.3f) %.3f MB", df, selfile,totfile, sellen, totlen);
 
 		cpack(0x0);
-		glRasterPos2i(xco,	5);
-
-		BIF_DrawString(uiBlockGetCurFont(block), naam, 0);
+		glRasterPos2f((float)xco, 5.0);
+		BIF_RasterPos((float)xco, 5.0);
+	
+		BIF_DrawString(G.font, naam, 0);
 	}
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
