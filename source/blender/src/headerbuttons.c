@@ -1613,11 +1613,6 @@ void do_global_buttons(unsigned short event)
 		break;
 		
 	case B_USETEXTUREFONT:		/* is button from space.c  *info* */
-		if(U.transopts & USER_USETEXTUREFONT)
-			FTF_SetMode(FTF_TEXTUREFONT);
-		else
-			FTF_SetMode(FTF_PIXMAPFONT);
-
 		refresh_interface_font();
 		allqueue(REDRAWALL, 0);
 		break;

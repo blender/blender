@@ -239,6 +239,11 @@ void start_interface_font(void)
 {
 	int result = 0;
 
+	if(U.transopts & USER_USETEXTUREFONT)
+		FTF_SetMode(FTF_TEXTUREFONT);
+	else
+		FTF_SetMode(FTF_PIXMAPFONT);
+	
 	if(U.fontsize && U.fontname[0] ) { // we have saved user settings + fontpath
 		
 		// try loading font from U.fontname = full path to font in usersettings
@@ -257,6 +262,7 @@ void start_interface_font(void)
 	}
 
 	if(result) {
+		
 		lang_setlanguage();
 
 		G.ui_international = TRUE;
