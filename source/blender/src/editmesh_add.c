@@ -725,7 +725,6 @@ void add_primitiveMesh(int type)
 			extrudeflag_vert(2, nor);	// nor unused
 			translateflag(2, vec);
 		}
-		recalc_editnormals();	// does face centers too
 	}
 	else if(type==11) {	/*  UVsphere */
 		
@@ -845,7 +844,7 @@ void add_primitiveMesh(int type)
 	// simple selection flush OK, based on fact it's a single model
 	EM_select_flush(); // flushes vertex -> edge -> face selection
 	
-	if(type!=0 && type!=10 && type!=13) righthandfaces(1);	// otherwise monkey has eyes in wrong direction...
+	if(type!=0 && type!=13) righthandfaces(1);	// otherwise monkey has eyes in wrong direction...
 	countall();
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
