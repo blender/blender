@@ -1768,7 +1768,8 @@ void yafrayPluginRender_t::writeHemilight()
 		params["name"] = yafray::parameter_t("hemi_LT");
 		params["power"] = yafray::parameter_t(R.r.GIpower);
 		if (fromAO) {
-			params["samples"] = yafray::parameter_t(world->aosamp*world->aosamp);
+			// use minimum of 4 samples for lowest sample setting, single sample way too noisy
+			params["samples"] = yafray::parameter_t(3 + world->aosamp*world->aosamp);
 			params["maxdistance"] = yafray::parameter_t(world->aodist);
 			params["use_QMC"] = yafray::parameter_t((world->aomode & WO_AORNDSMP) ? "off" : "on");
 		}
@@ -1860,8 +1861,8 @@ bool yafrayPluginRender_t::writeWorld()
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;
-		// now always exports if image used as world texture
-		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
+		// now always exports if image used as world texture (and 'Hori' mapping enabled)
+		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL) && (wtex->mapto & WOMAP_HORIZ)) {
 			string wt_path = wimg->name;
 			adjustPath(wt_path);
 			params["type"] = yafray::parameter_t("image");

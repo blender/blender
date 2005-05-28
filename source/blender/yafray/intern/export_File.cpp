@@ -1784,7 +1784,8 @@ void yafrayFileRender_t::writeHemilight()
 	else {
 		ostr << "<light type=\"hemilight\" name=\"hemi_LT\" power=\"" << R.r.GIpower << "\"";
 		if (fromAO) {
-			ostr << "\n\tsamples=\"" << world->aosamp*world->aosamp
+			// use minimum of 4 samples for lowest sample setting, single sample way too noisy
+			ostr << "\n\tsamples=\"" << 3 + world->aosamp*world->aosamp
 					 << "\" maxdistance=\"" << world->aodist
 					 << "\" use_QMC=\"" << ((world->aomode & WO_AORNDSMP) ? "off" : "on") << "\" >\n";
 		}
@@ -1867,8 +1868,8 @@ bool yafrayFileRender_t::writeWorld()
 		MTex* wtex = world->mtex[i];
 		if (!wtex) continue;
 		Image* wimg = wtex->tex->ima;
-		// now always exports if image used as world texture
-		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL)) {
+		// now always exports if image used as world texture (and 'Hori' mapping enabled)
+		if ((wtex->tex->type==TEX_IMAGE) && (wimg!=NULL) && (wtex->mapto & WOMAP_HORIZ)) {
 			string wt_path = wimg->name;
 			adjustPath(wt_path);
 			ostr.str("");
