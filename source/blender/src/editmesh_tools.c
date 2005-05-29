@@ -545,7 +545,7 @@ void extrude_mesh(void)
 		else if(G.totfacesel==0) 
 			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
 		else if(G.totfacesel==1)
-			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
 		else 
 			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
