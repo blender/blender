@@ -4706,7 +4706,8 @@ static void do_versions(Main *main)
 #endif				
 					if(sl->spacetype==SPACE_TIME) {
 						SpaceTime *stime= (SpaceTime *)sl;
-						stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
+						if(stime->redraws==0)
+							stime->redraws= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
 					}
 				}
 			}
