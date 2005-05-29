@@ -1093,13 +1093,14 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 	/* axis */
 	glLoadName(-1);
 	
-	// translate drawn as last, only axis when no combo
-	if(combo==V3D_MANIP_TRANSLATE)
+	// translate drawn as last, only axis when no combo with scale, or for ghosting
+	if((combo & V3D_MANIP_SCALE)==0 || colcode==MAN_GHOST)
 		draw_manipulator_axes(colcode, drawflags & MAN_TRANS_X, drawflags & MAN_TRANS_Y, drawflags & MAN_TRANS_Z);
 
 	
-	/* offset in combo mode */
-	if(combo & (V3D_MANIP_ROTATE|V3D_MANIP_SCALE)) dz= 1.0f+2.0*cylen;
+	/* offset in combo mode, for rotate a bit more */
+	if(combo & (V3D_MANIP_ROTATE)) dz= 1.0f+2.0*cylen;
+	else if(combo & (V3D_MANIP_SCALE)) dz= 1.0f+0.5*cylen;
 	else dz= 1.0f;
 	
 	/* Z Cone */

@@ -742,13 +742,13 @@ void BIF_drawPropCircle()
 int isLockConstraint(TransInfo *t) {
 	int mode = t->con.mode;
 
-	if (mode & (CON_AXIS0|CON_AXIS1) == (CON_AXIS0|CON_AXIS1))
+	if ( (mode & (CON_AXIS0|CON_AXIS1)) == (CON_AXIS0|CON_AXIS1))
 		return 1;
 
-	if (mode & (CON_AXIS1|CON_AXIS2) == (CON_AXIS1|CON_AXIS2))
+	if ( (mode & (CON_AXIS1|CON_AXIS2)) == (CON_AXIS1|CON_AXIS2))
 		return 1;
 
-	if (mode & (CON_AXIS0|CON_AXIS2) == (CON_AXIS0|CON_AXIS2))
+	if ( (mode & (CON_AXIS0|CON_AXIS2)) == (CON_AXIS0|CON_AXIS2))
 		return 1;
 
 	return 0;
