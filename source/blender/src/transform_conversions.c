@@ -2087,6 +2087,8 @@ static void createTransObject(TransInfo *t)
 						do_ob_ipo(ob);
 						ObjectToTransData(td, ob);	// does where_is_object()
 						
+						td->flag= TD_SELECTED;
+						
 						td->tdi= MEM_callocN(sizeof(TransDataIpokey), "TransDataIpokey");
 						/* also does tdi->flag and oldvals, needs to be after ob_to_transob()! */
 						ipokey_to_transdata(ik, td);
@@ -2102,6 +2104,8 @@ static void createTransObject(TransInfo *t)
 					
 					CFRA= (short)cfraont;
 					ob->ipoflag= ipoflag;
+					
+					where_is_object(ob);	// restore 
 				}
 				else {
 					ObjectToTransData(td, ob);

@@ -1150,7 +1150,13 @@ void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		Mat3MulVecfl(td->smtx, vec);
 	}
 
-	VecAddf(td->loc, td->iloc, vec);
+	if(td->tdi) {
+		TransDataIpokey *tdi= td->tdi;
+		add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
+		add_tdi_poin(tdi->locy, tdi->oldloc+1, vec[1]);
+		add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
+	}
+	else VecAddf(td->loc, td->iloc, vec);
 }
 
 int Resize(TransInfo *t, short mval[2]) 
@@ -1356,6 +1362,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 	}
 	else {
 		/* translation */
+		
 		VecSubf(vec, td->center, t->center);
 		Mat3MulVecfl(mat, vec);
 		VecAddf(vec, vec, t->center);
@@ -1363,7 +1370,13 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		VecSubf(vec, vec, td->center);
 		Mat3MulVecfl(td->smtx, vec);
 		
-		VecAddf(td->loc, td->iloc, vec);
+		if(td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
+			add_tdi_poin(tdi->locy, tdi->oldloc+1, vec[1]);
+			add_tdi_poin(tdi->locz, tdi->oldloc+2, vec[2]);
+		}
+		else VecAddf(td->loc, td->iloc, vec);
 		
 		if(td->flag & TD_USEQUAT) {
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
