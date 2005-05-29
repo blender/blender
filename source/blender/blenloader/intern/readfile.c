@@ -2474,6 +2474,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	StripElem *se;
 	int a;
 
+	sce->theDag = NULL;
+	sce->dagisvalid = 0;
+	
 	link_list(fd, &(sce->base));
 
 	sce->basact= newdataadr(fd, sce->basact);
@@ -4661,9 +4664,6 @@ static void do_versions(Main *main)
 		bScreen *sc;
 		
 		while(sce) {
-			sce->theDag = NULL;
-			sce->dagisvalid = 0;
-			
 			sce->r.mode &= ~R_ZBLUR;	// disabled for release
 			
 			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
