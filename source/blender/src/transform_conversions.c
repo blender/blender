@@ -2050,8 +2050,8 @@ static void createTransObject(TransInfo *t)
 		return;
 	}
 	
-	td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransOb");
-	tx = t->ext = MEM_mallocN(t->total*sizeof(TransDataExtension), "TransObExtension");
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransOb");
+	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
