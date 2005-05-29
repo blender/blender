@@ -2084,6 +2084,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 	
 #ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
+	BIF_SetScale(1.0);
 #endif
 	
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
