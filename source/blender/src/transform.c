@@ -1804,10 +1804,7 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 
 	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 	Projf(vec, t->vec, G.vd->viewinv[1]);
-	ratio = Normalise(vec);
-
-	if (mval[1] < t->imval[1])
-		ratio *= -1;
+	ratio = Inpf(G.vd->viewinv[1], vec) * -2.0f;
 
 	snapGrid(t, &ratio);
 
@@ -1958,7 +1955,7 @@ int PushPull(TransInfo *t, short mval[2])
 
 	window_to_3d(t->vec, (short)(mval[0] - t->imval[0]), (short)(mval[1] - t->imval[1]));
 	Projf(vec, t->vec, G.vd->viewinv[1]);
-	distance = Inpf(t->viewinv[1], vec) * 2.0f;
+	distance = Inpf(G.vd->viewinv[1], vec) * 2.0f;
 
 	snapGrid(t, &distance);
 
