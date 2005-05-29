@@ -2131,6 +2131,11 @@ void Mirror(short mode)
 
 	initConstraint(&Trans);
 
+	if (Trans.total == 0) {
+		postTrans(&Trans);
+		return;
+	}
+
 	size[0] = size[1] = size[2] = 1.0f;
 	td = Trans.data;
 
