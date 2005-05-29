@@ -2107,15 +2107,17 @@ static void createTransObject(TransInfo *t)
 					ObjectToTransData(td, ob);
 					td->tdi = NULL;
 					td->val = NULL;
+					td++;
+					tx++;
 				}
 			}
 			else {
 				ObjectToTransData(td, ob);
 				td->tdi = NULL;
 				td->val = NULL;
+				td++;
+				tx++;
 			}
-			td++;
-			tx++;
 		}
 	}
 }
