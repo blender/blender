@@ -1118,7 +1118,7 @@ static void softbody_bake(Object *ob)
 	sbObjectToSoftbody(ob);
 	ob->softflag |= OB_SB_BAKEDO;
 	
-	curarea->win_swap= WIN_BACK_OK;		// clean swapbuffers
+	curarea->win_swap= 0;		// clean swapbuffers
 	
 	for(; CFRA <= sb->efra; CFRA++) {
 		set_timecursor(CFRA);
@@ -1507,45 +1507,50 @@ static void object_panel_deflectors(Object *ob)
 	if(ob->pd) {
 		PartDeflect *pd= ob->pd;
 		
+		uiDefBut(block, LABEL, 0, "Fields",		10,180,140,20, NULL, 0.0, 0, 0, 0, "");
+		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, REDRAWVIEW3D, "None",			10,160,50,20, &pd->forcefield, 1.0, 0, 0, 0, "No force");
-		uiDefButS(block, ROW, REDRAWVIEW3D, "Wind",			60,160,50,20, &pd->forcefield, 1.0, PFIELD_WIND, 0, 0, "Constant force applied in direction of Object Z axis");
-		uiDefButS(block, ROW, REDRAWVIEW3D, "Force field",	110,160,100,20, &pd->forcefield, 1.0, PFIELD_FORCE, 0, 0, "Object center attracts or repels particles");
-		uiDefButS(block, ROW, REDRAWVIEW3D, "Vortex field",	210,160,100,20, &pd->forcefield, 1.0, PFIELD_VORTEX, 0, 0, "Particles swirl around Z-axis of the object");
+		uiDefButS(block, ROW, REDRAWVIEW3D, "Force field",	60,160,90,20, &pd->forcefield, 1.0, PFIELD_FORCE, 0, 0, "Object center attracts or repels particles");
+		uiDefButS(block, ROW, REDRAWVIEW3D, "Wind",			10,140,50,20, &pd->forcefield, 1.0, PFIELD_WIND, 0, 0, "Constant force applied in direction of Object Z axis");
+		uiDefButS(block, ROW, REDRAWVIEW3D, "Vortex field",	60,140,90,20, &pd->forcefield, 1.0, PFIELD_VORTEX, 0, 0, "Particles swirl around Z-axis of the object");
 
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Strength: ",	10,130,150,20, &pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Fall-off: ",	160,130,150,20, &pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
-		uiDefButBitS(block, TOG, PFIELD_USEMAX, REDRAWVIEW3D, "Use MaxDist",	10,110,150,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "MaxDist: ",	160,110,150,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Strength: ",	10,110,140,20, &pd->f_strength, -1000, 1000, 1000, 0, "Strength of force field");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Fall-off: ",	10,90,140,20, &pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PFIELD_USEMAX, REDRAWVIEW3D, "Use MaxDist",	10,60,140,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
 		uiBlockEndAlign(block);
 
 		if(ob->softflag & OB_SB_ENABLE) {
-			uiDefBut(block, LABEL, 0, "Object is Softbody,",		10,70,300,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "no Deflection possible",		10,50,300,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Object is Softbody,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "no Deflection possible",		160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 			pd->deflect= 0;
 		}
 		else {
 			
+			uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
+			
 			/* only meshes collide now */
 			if(ob->type==OB_MESH) {
+				uiDefButS(block, TOG|BIT|0, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+				uiDefBut(block, LABEL, 0, "Particles",			160,140,150,20, NULL, 0.0, 0, 0, 0, "");
+				
 				uiBlockBeginAlign(block);
-				uiDefButS(block, TOG|BIT|0, B_DIFF, "Deflection",10,50,200,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
-				uiDefButF(block, NUM, B_DIFF, "Damping: ",	10,30,200,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
-				uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	10,10,200,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
-				uiDefButF(block, NUM, B_DIFF, "Permeability: ",		10,-10,200,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
-			}
-			uiBlockEndAlign(block);
+				uiDefButF(block, NUM, B_DIFF, "Damping: ",		160,120,150,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
+				uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	160,100,150,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
+				uiDefButF(block, NUM, B_DIFF, "Permeability: ",	160,80,150,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+				uiBlockEndAlign(block);
+				
+				uiDefBut(block, LABEL, 0, "Soft Body",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
 
-			if(ob->type==OB_MESH) {
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, 0, "Softbody",	210, 50,110,20, NULL, 0.0, 0.0, 0, 0, "");	
-				uiDefButF(block, NUM, B_DIFF, "D",	210,30,110,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
-				uiDefButF(block, NUM, B_DIFF, "I",	210,10,110,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-				uiDefButF(block, NUM, B_DIFF, "O",		210,-10,110,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-			}
-			uiBlockEndAlign(block);
-		
+				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
+				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+			}		
 		}	
 	}
 }
