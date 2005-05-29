@@ -739,6 +739,21 @@ void BIF_drawPropCircle()
 	}
 }
 
+int isLockConstraint(TransInfo *t) {
+	int mode = t->con.mode;
+
+	if (mode & (CON_AXIS0|CON_AXIS1) == (CON_AXIS0|CON_AXIS1))
+		return 1;
+
+	if (mode & (CON_AXIS1|CON_AXIS2) == (CON_AXIS1|CON_AXIS2))
+		return 1;
+
+	if (mode & (CON_AXIS0|CON_AXIS2) == (CON_AXIS0|CON_AXIS2))
+		return 1;
+
+	return 0;
+}
+
 void initConstraint(TransInfo *t) {
 	if (t->con.mode & CON_APPLY) {
 		startConstraint(t);

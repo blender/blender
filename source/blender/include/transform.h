@@ -275,6 +275,8 @@ void drawConstraint();
 //void drawPropCircle(TransInfo *t);
 void drawPropCircle();
 
+int isLockConstraint(TransInfo *t);
+
 void initConstraint(TransInfo *t);
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);

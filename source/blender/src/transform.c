@@ -1988,7 +1988,14 @@ int PushPull(TransInfo *t, short mval[2])
 		VecSubf(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
 			t->con.applyRot(t, td, axis);
-			Projf(vec, vec, axis);
+			if (isLockConstraint(t)) {
+				float dvec[3];
+				Projf(dvec, vec, axis);
+				VecSubf(vec, vec, dvec);
+			}
+			else {
+				Projf(vec, vec, axis);
+			}
 		}
 		Normalise(vec);
 		VecMulf(vec, distance);
