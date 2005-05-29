@@ -624,7 +624,7 @@ elif sys.platform=='openbsd3':
 	# png library information
 	png_lib = ['png']
 	png_libpath = ['/usr/local/lib']
-	png_include = ['/usr/local/include']
+	png_include = ['/usr/local/include/libpng']
 	# jpeg library information
 	jpeg_lib = ['jpeg']
 	jpeg_libpath = ['/usr/local/lib']
