@@ -1724,10 +1724,10 @@ void do_material_tex(ShadeInput *shi)
 				}
 
 				if(mtex->maptoneg & MAP_DISPLACE) {
-					factt= (texres.tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (0.5-texres.tin)*mtex->dispfac; facmm= 1.0-factt;
 				}
 				else {
-					factt= (0.5-texres.tin)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (texres.tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
 				}
 
 				if(mtex->blendtype==MTEX_BLEND) {
