@@ -1479,6 +1479,7 @@ static void ui_draw_text_icon(uiBut *but)
 		}
 		if(but->drawstr[0]!=0) {
 			int transopts;
+			int tog3= 0;
 			
 			// cut string in 2 parts
 			cpoin= strchr(but->drawstr, '|');
@@ -1498,8 +1499,24 @@ static void ui_draw_text_icon(uiBut *but)
 				else x= (but->x1+but->x2-but->strwidth+1)/2.0;
 			}
 			
+			/* tog3 button exception; draws with glColor! */
+			if(but->type==TOG3 && (but->flag & UI_SELECT)) {
+				
+				if( but->pointype==CHA ) {
+					if( BTST( *(but->poin+2), but->bitnr )) tog3= 1;
+				}
+				else if( but->pointype ==SHO ) {
+					short *sp= (short *)but->poin;
+					if( BTST( sp[1], but->bitnr )) tog3= 1;
+				}
+				
+				ui_tog3_invert(but->x1,but->y1,but->x2,but->y2, tog3);
+				if (tog3) glColor3ub(255, 255, 0);
+			}
+			
 			/* text color, with pulldown item exception */
-			if(but->dt==UI_EMBOSSP) {
+			if(tog3);	// color already set
+			else if(but->dt==UI_EMBOSSP) {
 				if((but->flag & (UI_SELECT|UI_ACTIVE)) && but->type!=LABEL) {	// LABEL = title in pulldowns
 					BIF_ThemeColor(TH_MENU_TEXT_HI);
 				} else {
@@ -1514,22 +1531,6 @@ static void ui_draw_text_icon(uiBut *but)
 				}
 			}
 
-			/* tog3 button exception */
-			if(but->type==TOG3 && (but->flag & UI_SELECT)) {
-				int ok= 0;
-				
-				if( but->pointype==CHA ) {
-					if( BTST( *(but->poin+2), but->bitnr )) ok= 1;
-				}
-				else if( but->pointype ==SHO ) {
-					short *sp= (short *)but->poin;
-					if( BTST( sp[1], but->bitnr )) ok= 1;
-				}
-				
-				ui_tog3_invert(but->x1,but->y1,but->x2,but->y2, ok);
-				if (ok) glColor3ub(255, 255, 0);
-			}
-			
 			/* LABEL button exception */
 			if(but->type==LABEL && but->min!=0.0) BIF_ThemeColor(TH_BUT_TEXT_HI);
 		
