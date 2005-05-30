@@ -678,6 +678,8 @@ static void outliner_build_tree(SpaceOops *soops)
 				ten->directdata= base;
 			}
 			outliner_make_hierarchy(soops, &te->subtree);
+			/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
+			for(base= sce->base.first; base; base= base->next) base->object->id.newid= NULL;
 		}
 	}
 	else if(soops->outlinevis == SO_CUR_SCENE) {
