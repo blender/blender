@@ -385,7 +385,10 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	for(base= G.scene->base.first; base; base=base->next) {
 		ob= base->object;
 		if(ob->flag & OB_POSEMODE) {
-			if(ob->type==OB_ARMATURE) G.obpose= ob;
+			if(ob->type==OB_ARMATURE && G.scene->basact && G.scene->basact->object==ob) 
+				G.obpose= ob;
+			else
+				ob->flag &= ~OB_POSEMODE;
 		}
 	}
 	
