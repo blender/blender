@@ -2,7 +2,7 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 232
+Blender: 237
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
@@ -46,39 +46,13 @@ Run this script from "File->Export" menu to export all meshes.
 # New name based on old with a different extension #
 #==================================================#
 def newFName(ext):
-  return Get('filename')[: -len(Get('filename').split('.', -1)[-1]) ] + ext
+	return Get('filename')[: -len(Get('filename').split('.', -1)[-1]) ] + ext
 
-
-#===============================================#
-# Strips the slashes from the front of a string #
-#===============================================#
-def stripPath(path):
-	for CH in range(len(path), 0, -1):
-		if path[CH-1] == "/" or path[CH-1] == "\\":
-			path = path[CH:]
-			break
-	return path
-
-#==================#
-# Apply Transform  #
-#==================#
-def apply_transform(vert, matrix_4x4):
-	vertCopy = Mathutils.CopyVec(vert)
-	vertCopy.resize4D()
-	return Mathutils.VecMultMat(vertCopy, matrix_4x4)
-
-#=================================#
-# Apply Transform (normal vector) #
-#=================================#
-def apply_normal_transform(norm, matrix_3x3):
-	vertCopy = Mathutils.CopyVec(norm)
-	vertCopy.resize3D()
-	return Mathutils.VecMultMat(vertCopy, matrix_3x3)
 
 from Blender import *
 
 NULL_MAT = '(null)'
-NULL_IMG = '(null)'
+NULL_IMG = '(null)' # from docs at http://astronomy.swin.edu.au/~pbourke/geomformats/obj/ also could be 'off'
 
 def save_mtl(filename):
 	file = open(filename, "w")
@@ -117,8 +91,9 @@ def save_mtl(filename):
 
 def save_obj(filename):
 	time1 = sys.time()
+	scn = Scene.GetCurrent()
 	# First output all material
-	mtlfilename = filename[:-4] + '.mtl'
+	mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
 	save_mtl(mtlfilename)
 
 	file = open(filename, "w")
@@ -128,63 +103,48 @@ def save_obj(filename):
 	file.write('# www.blender.org\n')
 
 	# Tell the obj file what material file to use.
-	file.write('mtllib %s\n' % (stripPath(mtlfilename)))
+	file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
 	# Initialize totals, these are updated each object
 	totverts = totuvco = 0
-
+	
 	# Get all meshs
-	for ob in Object.Get():
+	for ob in scn.getChildren():
 		if ob.getType() != 'Mesh':
 			continue
 		m = NMesh.GetRawFromObject(ob.name)
-    
-		# remove any edges, is not written back to the mesh so its not going to
-		# modify the open file.
-		for f in m.faces:
-			if len(f.v) < 3:
-				m.faces.remove(f)
-  
-		if len(m.faces) == 0: # Make sure there is somthing to write.
+		m.transform(ob.matrix)
+		
+		if not m.faces: # Make sure there is somthing to write
 			continue #dont bother with this mesh.
-  
+	
 		# Set the default mat
 		currentMatName = NULL_MAT
 		currentImgName = NULL_IMG
-  
-		#file.write('o ' + ob.getName() + '_' + m.name + '\n') # Write Object name
+		
 		file.write('o %s_%s\n' % (ob.getName(), m.name)) # Write Object name
-  
-		# Works 100% Yay
-		matrix_4x4 = ob.getMatrix('worldspace')
-
-		# matrix for transformation of normal vectors
-		matrix_3x3 = Mathutils.Matrix([matrix_4x4[0][0], matrix_4x4[0][1], matrix_4x4[0][2]],
-			[matrix_4x4[1][0], matrix_4x4[1][1], matrix_4x4[1][2]],
-			[matrix_4x4[2][0], matrix_4x4[2][1], matrix_4x4[2][2]])
-  
+		
 		# Vert
 		for v in m.verts:
-			# Transform the vert
-			vTx = apply_transform(v.co, matrix_4x4)
-			file.write('v %s %s %s\n' % (vTx[0], vTx[1], vTx[2]))
-  
+			file.write('v %s %s %s\n' % (v.co.x, v.co.y, v.co.z))
+	
 		# UV
 		for f in m.faces:
+			''' # Export edges?
+			if len(f.v) < 3:
+				continue
+			'''
 			for uvIdx in range(len(f.v)):
 				if f.uv:
 					file.write('vt %s %s 0.0\n' % (f.uv[uvIdx][0], f.uv[uvIdx][1]))
 				else:
 					file.write('vt 0.0 0.0 0.0\n')
-  
+		
 		# NORMAL
 		for f1 in m.faces:
 			for v in f1.v:
-				# Transform the normal
-				noTx = apply_normal_transform(v.no, matrix_3x3)
-				noTx.normalize()
-				file.write('vn %s %s %s\n' % (noTx[0], noTx[1], noTx[2]))
-
+				file.write('vn %s %s %s\n' % (v.no.x, v.no.y, v.no.z))
+		
 		uvIdx = 0
 		for f in m.faces:
 			# Check material and change if needed.
@@ -192,23 +152,23 @@ def save_obj(filename):
 				if currentMatName != m.materials[f.mat].getName():
 					currentMatName = m.materials[f.mat].getName()
 					file.write('usemtl %s\n' % (currentMatName))
-      
+			
 			elif currentMatName != NULL_MAT:
 				currentMatName = NULL_MAT
 				file.write('usemtl %s\n' % (currentMatName))
-    
+		
 			# UV IMAGE
 			# If the face uses a different image from the one last set then add a usemap line.
 			if f.image:
 				if f.image.filename != currentImgName:
 					currentImgName = f.image.filename
 					# Set a new image for all following faces
-					file.write( 'usemat %s\n' % (stripPath(currentImgName)))
-        
+					file.write( 'usemapusemap %s\n' % currentImgName.split('\\')[-1].split('/')[-1] )
+				
 			elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
 				currentImgName = NULL_IMG
 				# Set a new image for all following faces
-				file.write( 'usemat %s\n' % (stripPath(currentImgName)))
+				file.write( 'usemap %s\n' % currentImgName) # No splitting needed.
 
 			file.write('f ')
 			for v in f.v:
@@ -216,7 +176,7 @@ def save_obj(filename):
 
 				uvIdx+=1
 			file.write('\n')
-    
+		
 		# Make the indicies global rather then per mesh
 		totverts += len(m.verts)
 		totuvco += uvIdx

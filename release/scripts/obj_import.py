@@ -2,7 +2,7 @@
  
 """
 Name: 'Wavefront (.obj)...'
-Blender: 232
+Blender: 237
 Group: 'Import'
 Tooltip: 'Load a Wavefront OBJ File'
 """
@@ -65,11 +65,7 @@ def pathName(path,name):
 # Strips the slashes from the back of a string #
 #==============================================#
 def stripPath(path):
-	for CH in range(len(path), 0, -1):
-		if path[CH-1] == "/" or path[CH-1] == "\\":
-			path = path[CH:]
-			break
-	return path
+	return path.split('/')[-1].split('\\')[-1]
 	
 #====================================================#
 # Strips the prefix off the name before writing      #
@@ -146,7 +142,7 @@ def load_mat_image(mat, img_fileName, type, mesh):
 #==================================================================================#
 def load_mtl(dir, mtl_file, mesh):
 	# Remove ./
-	if mtl_file[:2] == './':
+	if mtl_file.endswith('./'):
 		mtl_file= mtl_file[2:]
 	
 	mtl_fileName = dir + mtl_file
@@ -190,22 +186,22 @@ def load_mtl(dir, mtl_file, mesh):
 			load_mat_image(currentMat, img_fileName, 'Kd', mesh)
 		lIdx+=1
 
-#======================================================================#
-# Returns unique name of object (preserve overwriting existing meshes) #
-#======================================================================#
+#===========================================================================#
+# Returns unique name of object/mesh (preserve overwriting existing meshes) #
+#===========================================================================#
 def getUniqueName(name):
 	uniqueInt = 0
 	while 1:
 		try:
 			ob = Object.Get(name)
 			# Okay, this is working, so lets make a new name
-			name += '.' + str(uniqueInt)
+			name = '%s.%d' % (name, uniqueInt)
 			uniqueInt +=1
 		except:
-			if NMesh.GetRaw(name) == None:
+			if name not in NMesh.GetNames():
 				return name
 			else:
-				name += '.' + str(uniqueInt)
+				name = '%s.%d' % (name, uniqueInt)
 				uniqueInt +=1
 
 #==================================================================================#
@@ -246,7 +242,7 @@ def load_obj(file):
 
 	# This dummy vert makes life a whole lot easier-
 	# pythons index system then aligns with objs, remove later
-	vertList = [NMesh.Vert(0, 0, 0)] # store tuple uv pairs here
+	vertList = [NMesh.Vert(0, 0, 0)]
 
 	nullMat = getMat(NULL_MAT)
 	
@@ -266,7 +262,7 @@ def load_obj(file):
 	# Load all verts first (texture verts too)                                         #
 	#==================================================================================#
 	lIdx = 0
-	print len(fileLines)
+	print 'file length: %d' % len(fileLines)
 	while lIdx < len(fileLines):
 		
 		l = fileLines[lIdx]
@@ -442,7 +438,7 @@ def load_obj(file):
 					
 					unique_count = 0
 					while newObjectName in meshList.keys():
-						newObjectName = l[0] + '_' + str(unique_count)
+						newObjectName = '%s_%d' % (l[0], unique_count)
 						unique_count +=1
 				else: # The the object/group name given
 					newObjectName += '_'.join(l[1:])
@@ -460,17 +456,17 @@ def load_obj(file):
 
 		# MATERIAL
 		elif l[0] == 'usemtl':
-			if l[1] == '(null)':
+			if len(l) == 1 or l[1] == '(null)':
 				currentMat = getMat(NULL_MAT)
 			else:
 				currentMat = getMat(' '.join(l[1:])) # Use join in case of spaces
 		
 		# MATERIAL
-		elif l[0] == 'usemat':
-			if l[1] == '(null)':
+		elif l[0] == 'usemat' or l[0] == 'usemap':
+			if len(l) == 1 or l[1] == '(null)' or l[1] == 'off':
 				currentImg = NULL_IMG
 			else:
-				currentImg = getImg(DIR + ' '.join(l[1:])) # Use join in case of spaces 
+				currentImg = getImg('%s%s' % (DIR, ' '.join(l[1:]).replace('./', '') ) ) # Use join in case of spaces 
 		
 		# MATERIAL FILE
 		elif l[0] == 'mtllib':
@@ -481,29 +477,43 @@ def load_obj(file):
 	
 	#==============================================#
 	# Write all meshs in the dictionary            #
-	#==============================================#  
+	#==============================================# 
+	for ob in Scene.GetCurrent().getChildren(): # Deselect all
+		ob.sel = 0
+	
+	importedObjects = []
 	for mk in meshList.keys():
 		# Applies material properties to materials alredy on the mesh as well as Textures.
 		if mtl_fileName != '':
 			load_mtl(DIR, mtl_fileName, meshList[mk][0])
-		if len(meshList[mk][0].verts) >1:
-			meshList[mk][0].verts.pop(0)
-			
-			name = getUniqueName(mk)
-			ob = NMesh.PutRaw(meshList[mk][0], name)
-			ob.name = name
+		
+		meshList[mk][0].verts.pop(0)
+		
+		# Ignore no vert meshes.
+		if not meshList[mk][0].verts:
+			continue
+		
+		name = getUniqueName(mk)
+		ob = NMesh.PutRaw(meshList[mk][0], name)
+		ob.name = name
+		
+		importedObjects.append(ob)
+	
+	# Select all imported objects.
+	for ob in importedObjects:
+		ob.sel = 1
 
 	print "obj import time: ", sys.time() - time1
 
 Window.FileSelector(load_obj, 'Import Wavefront OBJ')
 
-
+'''
 # For testing compatibility
-#import os
-#for obj in os.listdir('/obj/'):
-#	if obj[-3:] == 'obj':
-#		print obj
-#		newScn = Scene.New(obj)
-#		newScn.makeCurrent()
-#		load_obj('/obj/' + obj)
-
+import os
+for obj in os.listdir('/obj/'):
+	if obj.lower().endswith('obj'):
+		print obj
+		newScn = Scene.New(obj)
+		newScn.makeCurrent()
+		load_obj('/obj/' + obj)
+'''

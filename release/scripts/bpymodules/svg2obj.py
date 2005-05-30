@@ -1,7 +1,7 @@
 """
-SVG 2 OBJ translater, 0.2.6
+SVG 2 OBJ translater, 0.2.7
 (c) jm soler juillet/novembre 2004, released under Blender Artistic Licence 
-    for the Blender 2.34/35 Python Scripts Bundle.
+    for the Blender 2.34/33 Python Scripts Bundle.
 #---------------------------------------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg.htm
@@ -56,7 +56,8 @@ Changelog:
       0.2.4 : - better hash for command with followed by a lone data 
                 (h,v) or uncommun number (a) 
       0.2.5 : - correction for gimp import 
-      0.2.6 : - correction for illustrator 10 SVG  
+      0.2.6 : - correction for illustrator 10 SVG
+      0.2.7 : - correction for inskape 0.40 cvs  SVG
                 
 ==================================================================================   
 =================================================================================="""
@@ -118,11 +119,11 @@ def filtreFICHIER(nom):
      t=t.replace('\n','')
      
      if t.upper().find('<SVG')==-1 :
-         name = "OK?%t| Not a valid file or an empty file ... "  # if no %xN int is set, indices start from 1
+         name = "ERROR: invalid or empty file ... "  # if no %xN int is set, indices start from 1
          result = Blender.Draw.PupMenu(name)
          return "false"
      elif  t.upper().find('<PATH')==-1:
-         name = "OK?%t| Sorry, no Path in this file ... "  # if no %xN int is set, indices start from 1
+         name = "ERROR: there's no Path in this file ... "  # if no %xN int is set, indices start from 1
          result = Blender.Draw.PupMenu(name)
          return "false"
      else:
@@ -484,21 +485,32 @@ def get_tag(val,t):
     
 def get_val(val,t):
     d=""
+    #print t
     for l in t:
         if l.find(val+'="')!=-1:
+            #print 'l', l
+            # 0.2.7 : - correction for inskape 0.40 cvs  SVG
+            l=l.replace('>','')
+            # 0.2.7 : -- end 
             d=l[l[:-1].rfind('"')+1:-1]
-            for nn in d  :
-                if '012345670.'.find(nn)==-1:
+            #print 'd', d   
+            for nn in d:
+                if '0123456789.'.find(nn)==-1:
                      d=d.replace(nn,"")
+                     #print d
             d=float(d)
             break
+        #else:
+	    #  print l
         d=0.0 
     return d
 
 def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
     if viewbox==0:
         h=get_val('height',SVG)
+        print 'h : ',h
         w=get_val('width',SVG)
+        print 'w :',w
         BOUNDINGBOX['rec']=[0.0,0.0,w,h]
         r=BOUNDINGBOX['rec']
         BOUNDINGBOX['coef']=w/h       
@@ -609,6 +621,7 @@ def scan_FILE(nom):
      SVG,viewbox=get_content('viewBox',SVG)
 
      SVG=SVG.split(' ')
+     print SVG
      if viewbox==0:
           BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,0)
      else:
