@@ -1624,10 +1624,10 @@ static void object_softbodies(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_DIFF, "Friction:",		10, 170,150,20, &sb->mediafrict, 0.0, 10.0, 10, 0, "General media friction for point movements");
 			uiDefButF(block, NUM, B_DIFF, "Mass:",			160, 170,150,20, &sb->nodemass , 0.001, 50.0, 10, 0, "Point Mass, the heavier the slower");
-			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,100,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_DIFF, "Prec:",			110,150,100,20, &sb->rklimit , 0.01, 1.0, 10, 0, "Precision, the Runge-Kutta ODE solver error limit");
-			uiDefButF(block, NUM, B_DIFF, "Speed:",			210,150,100,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
-			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "Apply Deform First",	10,130,300,20, &ob->softflag, 0, 0, 0, 0, "Softbody is calculated AFTER Deformation");
+			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
+			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 1.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
+			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "Apply Deform First",	160,130,150,20, &ob->softflag, 0, 0, 0, 0, "Softbody is calculated AFTER Deformation");
 			uiBlockEndAlign(block);
 			
 			/* GOAL STUFF */
