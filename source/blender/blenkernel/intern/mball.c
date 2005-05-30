@@ -1485,6 +1485,16 @@ float init_meta(Object *ob)	/* return totsize */
 			}
 			while(ml) {
 				if(!(ml->flag & MB_HIDE)) {
+					int i;
+					float max_x, max_y, max_z, min_x, min_y, min_z;
+
+					max_x = max_y = max_z = -3.4e38;
+					min_x = min_y = min_z =  3.4e38;
+
+					/* too big stiffness seems only ugly due to linear interpolation
+					 * no need to have possibility for too big stiffness */
+					if(ml->s > 10.0) ml->s = 10.0;
+					
 					/* Rotation of MetaElem is stored in quat */
  					QuatToMat4(ml->quat, temp3);
 
@@ -1500,7 +1510,7 @@ float init_meta(Object *ob)	/* return totsize */
 					mainb[a]= new_pgn_element(sizeof(MetaElem));
 					*(mainb[a])= *ml;
 					mainb[a]->bb = new_pgn_element(sizeof(BoundBox));
-					
+				
 					mat= new_pgn_element(4*4*sizeof(float));
 					imat= new_pgn_element(4*4*sizeof(float));
 					
@@ -1516,29 +1526,66 @@ float init_meta(Object *ob)	/* return totsize */
         
 					mainb[a]->mat= (float*) mat;
 					mainb[a]->imat= (float*) imat;
-        
-					if(ml->type==MB_BALL){
-						max= 0.0;
+
+					/* untransformed Bounding Box of MetaElem */
+					/* 0 */
+					mainb[a]->bb->vec[0][0]= -ml->expx;
+					mainb[a]->bb->vec[0][1]= -ml->expy;
+					mainb[a]->bb->vec[0][2]= -ml->expz;
+					/* 1 */
+					mainb[a]->bb->vec[1][0]=  ml->expx;
+					mainb[a]->bb->vec[1][1]= -ml->expy;
+					mainb[a]->bb->vec[1][2]= -ml->expz;
+					/* 2 */
+					mainb[a]->bb->vec[2][0]=  ml->expx;
+					mainb[a]->bb->vec[2][1]=  ml->expy;
+					mainb[a]->bb->vec[2][2]= -ml->expz;
+					/* 3 */
+					mainb[a]->bb->vec[3][0]= -ml->expx;
+					mainb[a]->bb->vec[3][1]=  ml->expy;
+					mainb[a]->bb->vec[3][2]= -ml->expz;
+					/* 4 */
+					mainb[a]->bb->vec[4][0]= -ml->expx;
+					mainb[a]->bb->vec[4][1]= -ml->expy;
+					mainb[a]->bb->vec[4][2]=  ml->expz;
+					/* 5 */
+					mainb[a]->bb->vec[5][0]=  ml->expx;
+					mainb[a]->bb->vec[5][1]= -ml->expy;
+					mainb[a]->bb->vec[5][2]=  ml->expz;
+					/* 6 */
+					mainb[a]->bb->vec[6][0]=  ml->expx;
+					mainb[a]->bb->vec[6][1]=  ml->expy;
+					mainb[a]->bb->vec[6][2]=  ml->expz;
+					/* 7 */
+					mainb[a]->bb->vec[7][0]= -ml->expx;
+					mainb[a]->bb->vec[7][1]=  ml->expy;
+					mainb[a]->bb->vec[7][2]=  ml->expz;
+
+					/* transformation of Metalem bb */
+					for(i=0; i<8; i++)
+						Mat4MulVecfl((float ( * )[4])mat, mainb[a]->bb->vec[i]);
+
+					/* find max and min of transformed bb */
+					for(i=0; i<8; i++){
+						/* find maximums */
+						if(mainb[a]->bb->vec[i][0] > max_x) max_x = mainb[a]->bb->vec[i][0];
+						if(mainb[a]->bb->vec[i][1] > max_y) max_y = mainb[a]->bb->vec[i][1];
+						if(mainb[a]->bb->vec[i][2] > max_z) max_z = mainb[a]->bb->vec[i][2];
+						/* find  minimums */
+						if(mainb[a]->bb->vec[i][0] < min_x) min_x = mainb[a]->bb->vec[i][0];
+						if(mainb[a]->bb->vec[i][1] < min_y) min_y = mainb[a]->bb->vec[i][1];
+						if(mainb[a]->bb->vec[i][2] < min_z) min_z = mainb[a]->bb->vec[i][2];
 					}
-					else if((ml->type==MB_TUBE)){
-						max= bob->size[0]*ml->expx;
-					}
-					else if((ml->type==MB_PLANE)){
-						max= MAX2(bob->size[0]*ml->expx, bob->size[1]*ml->expy);
-					}
-					else if((ml->type==MB_CUBE)||(ml->type==MB_ELIPSOID)){
-						max= MAX3(bob->size[0]*ml->expx,
-							bob->size[1]*ml->expy,
-							bob->size[2]*ml->expz);
-					}
-					
-					mainb[a]->bb->vec[0][0]= mat[3][0] - bob->size[0]*(max+ml->rad)/ob->size[0];
-					mainb[a]->bb->vec[0][1]= mat[3][1] - bob->size[1]*(max+ml->rad)/ob->size[1];
-					mainb[a]->bb->vec[0][2]= mat[3][2] - bob->size[2]*(max+ml->rad)/ob->size[2];
-					                                                                           
-					mainb[a]->bb->vec[6][0]= mat[3][0] + bob->size[0]*(max+ml->rad)/ob->size[0];
-					mainb[a]->bb->vec[6][1]= mat[3][1] + bob->size[1]*(max+ml->rad)/ob->size[1];
-					mainb[a]->bb->vec[6][2]= mat[3][2] + bob->size[2]*(max+ml->rad)/ob->size[2];
+
+					/* create "new" bb, only point 0 and 6, which are
+					 * neccesary for octal tree filling */
+					mainb[a]->bb->vec[0][0] = min_x - ml->rad;
+					mainb[a]->bb->vec[0][1] = min_y - ml->rad;
+					mainb[a]->bb->vec[0][2] = min_z - ml->rad;
+
+					mainb[a]->bb->vec[6][0] = max_x + ml->rad;
+					mainb[a]->bb->vec[6][1] = max_y + ml->rad;
+					mainb[a]->bb->vec[6][2] = max_z + ml->rad;
 					
 					a++;
 				}
