@@ -679,19 +679,6 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 		params["reflect_amount"] = yafray::parameter_t(matr->ray_mirror);
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		params["fresnel_offset"] = yafray::parameter_t(fo);
-		// transmit absorption color
-		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
-		const float maxlog = -log(1e-38);
-		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
-		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
-		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
-		float sc = matr->YF_dscale;
-		if (sc!=0.f) sc=1.f/sc;
-		params["absorption"] = yafray::parameter_t(yafray::color_t(ar*sc, ag*sc, ab*sc));
-		// dispersion
-		params["dispersion_power"] = yafray::parameter_t(matr->YF_dpwr);
-		params["dispersion_samples"] = yafray::parameter_t(matr->YF_dsmp);
-		params["dispersion_jitter"] = yafray::parameter_t(matr->YF_djit ? "on" : "off");
 
 		// for backward compatibility, also add old 'reflected' parameter, copy of mirror_color
 		params["reflected"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
@@ -707,6 +694,21 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 		params["transmit_filter"] = yafray::parameter_t(matr->filter);
 		// tir on by default
 		params["tir"] = yafray::parameter_t("on");
+
+		// transmit absorption color
+		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
+		const float maxlog = -log(1e-38);
+		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
+		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
+		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
+		float sc = matr->YF_dscale;
+		if (sc!=0.f) sc=1.f/sc;
+		params["absorption"] = yafray::parameter_t(yafray::color_t(ar*sc, ag*sc, ab*sc));
+		// dispersion
+		params["dispersion_power"] = yafray::parameter_t(matr->YF_dpwr);
+		params["dispersion_samples"] = yafray::parameter_t(matr->YF_dsmp);
+		params["dispersion_jitter"] = yafray::parameter_t(matr->YF_djit ? "on" : "off");
+
 		// for backward compatibility, also add old 'transmitted' parameter, copy of 'color' * (1-alpha)
 		float na = 1.f-matr->alpha;
 		params["transmitted"] = yafray::parameter_t(yafray::color_t(matr->r*na, matr->g*na, matr->b*na));

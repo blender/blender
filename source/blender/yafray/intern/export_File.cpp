@@ -692,19 +692,6 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 		ostr << "\t\t<reflect_amount value=\""<< matr->ray_mirror << "\" />\n";
 		float fo = 1.f-(matr->fresnel_mir_i-1.f)*0.25f;	// blender param range [1,5], also here reversed (1 in Blender -> no fresnel)
 		ostr << "\t\t<fresnel_offset value=\""<< fo << "\" />\n";
-		// transmit absorption color
-		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
-		const float maxlog = -log(1e-38);
-		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
-		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
-		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
-		float sc = matr->YF_dscale;
-		if (sc!=0.f) sc=1.f/sc;
-		ostr << "\t\t<absorption r=\"" << ar*sc << "\" g=\"" << ag*sc << "\" b=\"" << ab*sc << "\" />\n";
-		// dispersion
-		ostr << "\t\t<dispersion_power value=\"" << matr->YF_dpwr << "\" />\n";
-		ostr << "\t\t<dispersion_samples value=\"" << matr->YF_dsmp << "\" />\n";
-		ostr << "\t\t<dispersion_jitter value=\"" << (matr->YF_djit ? "on" : "off") << "\" />\n";
 
 		// for backward compatibility, also add old 'reflected' parameter, copy of mirror_color
 		ostr << "\t\t<reflected r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
@@ -720,6 +707,21 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 		ostr << "\t\t<transmit_filter value=\"" << matr->filter << "\" />\n";
 		// tir on by default
 		ostr << "\t\t<tir value=\"on\" />\n";
+
+		// transmit absorption color
+		// to make things easier(?) for user it now specifies the actual color at 1 unit / YF_dscale of distance
+		const float maxlog = -log(1e-38);
+		float ar = (matr->YF_ar>0) ? -log(matr->YF_ar) : maxlog;
+		float ag = (matr->YF_ag>0) ? -log(matr->YF_ag) : maxlog;
+		float ab = (matr->YF_ab>0) ? -log(matr->YF_ab) : maxlog;
+		float sc = matr->YF_dscale;
+		if (sc!=0.f) sc=1.f/sc;
+		ostr << "\t\t<absorption r=\"" << ar*sc << "\" g=\"" << ag*sc << "\" b=\"" << ab*sc << "\" />\n";
+		// dispersion
+		ostr << "\t\t<dispersion_power value=\"" << matr->YF_dpwr << "\" />\n";
+		ostr << "\t\t<dispersion_samples value=\"" << matr->YF_dsmp << "\" />\n";
+		ostr << "\t\t<dispersion_jitter value=\"" << (matr->YF_djit ? "on" : "off") << "\" />\n";
+
 		// for backward compatibility, also add old 'transmitted' parameter, copy of 'color' * (1-alpha)
 		float na = 1.f-matr->alpha;
 		ostr << "\t\t<transmitted r=\"" << matr->r*na << "\" g=\"" << matr->g*na << "\" b=\"" << matr->b*na << "\" />\n";
