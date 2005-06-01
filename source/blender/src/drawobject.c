@@ -1513,7 +1513,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 			if((efa->f & SELECT) || (G.moving && faceselectedOR(efa, SELECT)) ) {
 				VECCOPY(v1, efa->v1->co);
 				VECCOPY(v2, efa->v2->co);
-				VECCOPY(v3, efa->v2->co);
+				VECCOPY(v3, efa->v3->co);
 				if (efa->v4) {
 					VECCOPY(v4, efa->v4->co);
 				}
