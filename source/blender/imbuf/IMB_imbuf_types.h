@@ -71,39 +71,37 @@ struct Mdec;
  * Also, that iff.h needs to be in the final release "plugins/include" dir, too!
  */
 typedef struct ImBuf{
-		/** Width in pixels */
-	short	x, y;		/**< Height in scanlines */
-	short	skipx;		/**< Width in ints to get to the next scanline */
+	short	x, y;			/**< width and Height of our image buffer */
+	short	skipx;			/**< Width in ints to get to the next scanline */
 	unsigned char	depth;		/**< Active amount of bits/bitplanes */
 	unsigned char	cbits;		/**< Amount of active bits in cmap */
-	unsigned short	mincol;		/**< First active color?*/
-	unsigned short	maxcol;		/**< Last active color?*/
-	int	type;		/**< 0=abgr, 1=bitplanes */
-	int	ftype;		/**< File type */
+	unsigned short	mincol;		/**< smallest color in colormap */
+	unsigned short	maxcol;		/**< Largest color in colormap */
+	int	type;			/**< 0=abgr, 1=bitplanes */
+	int	ftype;			/**< File type we are going to save as */
 	unsigned int	*cmap;		/**< Color map data. */
-	unsigned int	*rect;		/**< databuffer */
+	unsigned int	*rect;		/**< pixel values stored here */
 	unsigned int	**planes;	/**< bitplanes */
-	int	flags;		/**< Controls which components should exist. */
-	int	mall;		/**< what is malloced internal, and can be freed */
-		/** X origin.  What is this relative to? */
-	short	xorig, yorig;		/**< Y origin.  What is this relative to? */
-	char	name[1023];		/**< The file name */
-	char	namenull;		/**< What does this do?*/
-	int	userflags;		/**< What does this do? Holds an enum ImBuf_userflagsMask?*/
-	int	*zbuf;		/**< A z buffer */
-	void *userdata;		/**< What does this do?*/
-	unsigned char *encodedbuffer; 		/**< Does encoded mean compressed? */
-	unsigned int   encodedsize;		/**< Compressed size?? */
-	unsigned int   encodedbuffersize;		/**< Uncompressed size?? */
+	int	flags;			/**< Controls which components should exist. */
+	int	mall;			/**< what is malloced internal, and can be freed */
+	short	xorig, yorig;		/**< Cordinates of first pixel of an image used in some formats (example: targa) */
+	char	name[1023];		/**< The file name assocated with this image */
+	char	namenull;		/**< Unused don't want to remove it thought messes things up */
+	int	userflags;		/**< Used to set imbuf to Dirty and other stuff */
+	int	*zbuf;			/**< z buffer data */
+	void *userdata;	
+	unsigned char *encodedbuffer;     /**< Compressed image only used with png currently */
+	unsigned int   encodedsize;       /**< Size of data written to encodedbuffer */
+	unsigned int   encodedbuffersize; /**< Size of encodedbuffer */
 } ImBuf;
 
 /* Moved from BKE_bmfont_types.h because it is a userflag bit mask. */
 /**
- * \brief Flags for the user?
+ * \brief Flags used internally by blender for imagebuffers
  */
 typedef enum {
-	IB_BITMAPFONT = 1 << 0,
-	IB_BITMAPDIRTY = 1 << 1
+	IB_BITMAPFONT = 1 << 0,		/* This image is a font */
+	IB_BITMAPDIRTY = 1 << 1		/* Image needs to be saved is not the same as filename */
 } ImBuf_userflagsMask;
 
 
