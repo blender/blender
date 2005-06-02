@@ -1686,7 +1686,7 @@ static TBitem tb_curve_edit_cv[]= {
 {	0, "SEPR", 								0, NULL},
 {	0, "Automatic|Shift H", 		'H', NULL},
 {	0, "Toggle Free/Aligned|H", 	'h', NULL},
-{	0, "Vector|V", 					TB_ALT|'t', NULL},
+{	0, "Vector|V", 					'v', NULL},
 {	0, "SEPR", 								0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", TB_CTRL|'p', NULL},
 {	0, "Add Hook|Ctrl H",			TB_CTRL|'h', NULL},
@@ -1833,7 +1833,7 @@ static TBitem tb_curve_hide[]= {
 static TBitem tb_curve[]= {
 {	0, "Insert Keyframe|I", 		'i', 		NULL},
 {	0, "SEPR", 						0, NULL},
-{	0, "Show/Hide Control Points", 	0, 		tb_curve_hide},
+{	0, "Show/Hide Points", 	0, 		tb_curve_hide},
 {  -1, "", 			0, tb_do_hotkey}};
 
 static TBitem tb_obdata[]= {
