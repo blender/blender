@@ -5458,6 +5458,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 			if (BLI_streq(id->name, idread->name)) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
+//				printf("read lib block %s\n", id->name);
 				read_libblock(fd, mainvar, bhead, id->flag, id_r);
 
 				break;
@@ -5649,10 +5650,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		mainptr= mainl->next;
 		while(mainptr) {
 			int tot= mainvar_count_libread_blocks(mainptr);
+			
+			//printf("found LIB_READ %s\n", mainptr->curlib->name);
 			if(tot) {
 				FileData *fd= mainptr->curlib->filedata;
 
-				if(fd==0) {
+				if(fd==NULL) {
 					printf("read lib %s\n", mainptr->curlib->name);
 					fd= blo_openblenderfile(mainptr->curlib->name);
 					if (fd) {
@@ -5667,7 +5670,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					else mainptr->curlib->filedata= NULL;
 
-					if (!fd)
+					if (fd==NULL)
 						printf("ERROR: can't find lib %s \n", mainptr->curlib->name);
 				}
 				if(fd) {
@@ -5694,6 +5697,13 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 
 					expand_main(fd, mainptr);
+					
+					/* dang FileData... now new libraries need to be appended to original filedata, it is not a good replacement for the old global (ton) */
+					while( fd->mainlist.first ) {
+						Main *mp= fd->mainlist.first;
+						BLI_remlink(&fd->mainlist, mp);
+						BLI_addtail(&basefd->mainlist, mp);
+					}
 				}
 			}
 
