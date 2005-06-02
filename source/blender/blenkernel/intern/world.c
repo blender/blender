@@ -199,6 +199,7 @@ void init_render_world()
 		for(a=0; a<MAX_MTEX; a++) 
 			if(R.wrld.mtex[a] && R.wrld.mtex[a]->tex) R.wrld.skytype |= WO_SKYTEX;
 		
+		while(R.wrld.aosamp*R.wrld.aosamp < R.osa) R.wrld.aosamp++;
 	}
 	else {
 		memset(&R.wrld, 0, sizeof(World));
