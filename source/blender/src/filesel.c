@@ -2236,9 +2236,10 @@ static void do_library_append(SpaceFile *sfile)
 
 static void library_to_filelist(SpaceFile *sfile)
 {
-	char dir[FILE_MAXDIR], group[24];
-	int ok, i, nnames, idcode;
 	LinkNode *l, *names;
+	int ok, i, nnames, idcode;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	char dir[FILE_MAXDIR], group[24];
 	
 	/* name test */
 	ok= is_a_library(sfile, dir, group);
@@ -2249,10 +2250,13 @@ static void library_to_filelist(SpaceFile *sfile)
 		return;
 	}
 	
+	BLI_strncpy(filename, G.sce, sizeof(filename));	// G.sce = last file loaded, for UI
+	
 	/* there we go */
 	/* for the time being only read filedata when libfiledata==0 */
 	if (sfile->libfiledata==0) {
-		sfile->libfiledata= BLO_blendhandle_from_file(dir);
+		sfile->libfiledata= BLO_blendhandle_from_file(dir);	// this sets G.sce, we dont want it
+		
 		if(sfile->libfiledata==0) return;
 	}
 	
@@ -2295,6 +2299,9 @@ static void library_to_filelist(SpaceFile *sfile)
 		if (len > sfile->maxnamelen)
 			sfile->maxnamelen = len;
 	}
+	
+	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+
 }
 
 /* ******************* DATA SELECT ********************* */

@@ -3013,7 +3013,7 @@ void RE_rotateBlenderScene(void)
 		ob= ob->id.next;
 	}
 
-	init_render_world();	/* do first, because of ambient */
+	init_render_world();	/* do first, because of ambient. also requires R.osa set correct */
 	init_render_textures();
 	init_render_materials();
 

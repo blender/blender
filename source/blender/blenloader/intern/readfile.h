@@ -52,7 +52,9 @@ typedef struct FileData {
 
 	// variables needed for reading from file
 	int filedes;
-
+	// now only in use for library appending
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
+	
 	// variables needed for reading from stream
 	char headerdone;
 	int inbuffer;

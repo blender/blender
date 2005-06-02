@@ -871,6 +871,7 @@ FileData *blo_openblenderfile(char *name)
 	} else {
 		FileData *fd = filedata_new();
 		fd->filedes = file;
+		BLI_strncpy(fd->filename, name, sizeof(fd->filename));	// now only in use by library append
 		fd->buffersize = BLI_filesize(file);
 		fd->read = fd_read_from_file;
 
@@ -5506,10 +5507,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
 	FileData *fd= (FileData*) sfile->libfiledata;
 	Main *mainl;
-	int a, totsel=0,count=0;
-	float *curs,centerloc[3],vec[3],min[3],max[3];
 	Base *centerbase;
 	Object *ob;
+	float *curs,centerloc[3],vec[3],min[3],max[3];
+	int a, totsel=0,count=0;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	
 	INIT_MINMAX(min, max);
 
@@ -5537,6 +5539,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		}
 	}
 	/* now we have or selected, or an indicated file */
+	
+	/* make copy of the 'last loaded filename', we need to restore it */
+	BLI_strncpy(filename, G.sce, sizeof(filename));
+	BLI_strncpy(G.sce, fd->filename, sizeof(filename));		// already opened file, to reconstruct relative paths
+	
 	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
@@ -5614,8 +5621,11 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 				centerbase= centerbase->next;
 			}
 		}
-		
 	}
+	
+	/* restore the 'last loaded filename' */
+	BLI_strncpy(G.sce, filename, sizeof(filename));
+
 }
 
 /* ************* READ LIBRARY ************** */
