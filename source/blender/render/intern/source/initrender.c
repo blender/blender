@@ -872,7 +872,7 @@ static void yafrayRender(void)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // exported to other files, belongs in include... later
-SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL;
+SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL, *make_table_lock= NULL;
 
 
 static void renderloop_setblending(void)
@@ -916,7 +916,8 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	/* create mutexes for threaded render */
 	render_abuf_lock = SDL_CreateMutex();
 	load_ibuf_lock = SDL_CreateMutex();
-
+	make_table_lock = SDL_CreateMutex();
+	
 	if(R.rectz) MEM_freeN(R.rectz);
 	R.rectz = NULL;
 	if(R.rectftot) MEM_freeN(R.rectftot);
@@ -1170,8 +1171,10 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	/* mutexes free */
 	SDL_DestroyMutex(load_ibuf_lock);
 	SDL_DestroyMutex(render_abuf_lock);
+	SDL_DestroyMutex(make_table_lock);
 	load_ibuf_lock= NULL;
 	render_abuf_lock= NULL;
+	make_table_lock= NULL;
 }
 
 void render() {

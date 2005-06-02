@@ -51,6 +51,8 @@
 #include "jitter.h"
 #include "texture.h"
 
+#include "SDL_thread.h"
+
 #define DDA_SHADOW 0
 #define DDA_MIRROR 1
 #define DDA_SHADOW_TRA 2
@@ -1636,25 +1638,34 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 	tot= lar->ray_totsamp;
 	
 	if(lar->jitter==NULL) {
-		lar->jitter= (float *)4;	// mislead thread quickly (tsk!)
-		fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
+		extern SDL_mutex *make_table_lock; // initrender.c
+		if(make_table_lock) SDL_mutexP(make_table_lock);
 		
-		/* fill table with random locations, area_size large */
-		for(x=0; x<tot; x++, fp+=2) {
-			fp[0]= (BLI_frand()-0.5)*lar->area_size;
-			fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
-		}
-		
-		while(iter--) {
-			fp= lar->jitter;
-			for(x=tot; x>0; x--, fp+=2) {
-				DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+		/* check again, since other thread could have entered */
+		if(lar->jitter==NULL) {
+			
+			
+			fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
+			
+			/* fill table with random locations, area_size large */
+			for(x=0; x<tot; x++, fp+=2) {
+				fp[0]= (BLI_frand()-0.5)*lar->area_size;
+				fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
 			}
+			
+			while(iter--) {
+				fp= lar->jitter;
+				for(x=tot; x>0; x--, fp+=2) {
+					DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+				}
+			}
+			
+			jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
+			jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
+			jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
 		}
 		
-		jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
-		jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
-		jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
+		if(make_table_lock) SDL_mutexV(make_table_lock);
 	}
 		
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
