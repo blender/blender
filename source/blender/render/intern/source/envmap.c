@@ -64,6 +64,10 @@
 
 #include "MTC_matrixops.h"
 
+#include "SDL_thread.h"
+#undef main 
+#define main main /* stupid SDL_main redefines main as SDL_main */
+
 /* this module */
 #include "RE_callbacks.h"
 #include "render.h"
@@ -634,6 +638,7 @@ static void set_dxtdyt(float *dxts, float *dyts, float *dxt, float *dyt, int fac
 
 int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
 {
+	extern SDL_mutex *load_ibuf_lock; // initrender.c
 	/* texvec should be the already reflected normal */
 	EnvMap *env;
 	Image *ima;
@@ -648,8 +653,10 @@ int envmaptex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexRe
 	if(env->stype==ENV_LOAD) {
 		env->ima= tex->ima;
 		if(env->ima && env->ima->ok) {
-			// not threadsafe yet!
+			// Now thread safe
+			if(load_ibuf_lock) SDL_mutexP(load_ibuf_lock);
 			if(env->ima->ibuf==NULL) ima_ibuf_is_nul(tex, tex->ima);
+			if(load_ibuf_lock) SDL_mutexV(load_ibuf_lock);
 			if(env->ima->ok && env->ok==0) envmap_split_ima(env);
 		}
 	}
