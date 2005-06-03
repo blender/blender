@@ -1408,7 +1408,8 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 	/* START ANIMLOOP, everywhere NOT the cfra from R.r is gebruikt: because of rest blender */
 	cfrao= (G.scene->r.cfra);
 
-	if(G.scene->r.scemode & R_OGL) R.r.mode &= ~R_PANORAMA;
+	/* disable options for ogl render */
+	if(G.scene->r.scemode & R_OGL) R.r.mode &= ~(R_PANORAMA|R_MOVIECROP);
 	
 	// these calculations apply for all movie formats
 	R.rectx= (R.r.size*R.r.xsch)/100;
