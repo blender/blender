@@ -1671,16 +1671,16 @@ static float *jitter_plane(LampRen *lar, int xs, int ys)
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
 		/* made it threadsafe */
 		if(ys & 1) {
-			if(lar->xold!=xs || lar->yold!=ys) {
+			if(lar->xold1!=xs || lar->yold1!=ys) {
 				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
-				lar->xold= xs; lar->yold= ys;
+				lar->xold1= xs; lar->yold1= ys;
 			}
 			return lar->jitter+2*tot;
 		}
 		else {
-			if(lar->xold!=xs || lar->yold!=ys) {
+			if(lar->xold2!=xs || lar->yold2!=ys) {
 				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
-				lar->xold= xs; lar->yold= ys;
+				lar->xold2= xs; lar->yold2= ys;
 			}
 			return lar->jitter+4*tot;
 		}
@@ -2109,9 +2109,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	/* only when not mir tracing, first hit optimm */
 	if(shi->depth==0) isec.vlr_last= lar->vlr_last;
 	else isec.vlr_last= NULL;
-	isec.vlrorig= shi->vlr;
 	
-	shadfac[3]= 1.0;	// 1=full light
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		lampco[0]= shi->co[0] - g_oc.ocsize*lar->vec[0];
@@ -2122,8 +2120,10 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		VECCOPY(lampco, lar->co);
 	}
 	
-	/* transp-shadow and soft not implemented yet */
-	if(lar->ray_totsamp<2 ||  isec.mode == DDA_SHADOW_TRA) {
+	if(lar->ray_totsamp<2) {
+		
+		isec.vlrorig= shi->vlr;
+		shadfac[3]= 1.0; // 1.0=full light
 		
 		/* set up isec vec */
 		VECCOPY(isec.start, shi->co);
@@ -2146,6 +2146,11 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		float fac=0.0, div=0.0, vec[3];
 		int a, j= -1, mask;
 		
+		if(isec.mode==DDA_SHADOW_TRA) {
+			shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0;
+		}
+		else shadfac[3]= 1.0;							// 1.0=full light
+		
 		fac= 0.0;
 		jitlamp= jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
 
@@ -2166,7 +2171,9 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 					continue;
 				}
 			}
-
+			
+			isec.vlrorig= shi->vlr;	// ray_trace_shadow_tra changes it
+			
 			vec[0]= jitlamp[0];
 			vec[1]= jitlamp[1];
 			vec[2]= 0.0;
@@ -2178,16 +2185,36 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 			isec.end[1]= lampco[1]+vec[1];
 			isec.end[2]= lampco[2]+vec[2];
 			
-			if( d3dda(&isec) ) fac+= 1.0;
+			if(isec.mode==DDA_SHADOW_TRA) {
+				/* isec.col is like shadfac, so defines amount of light (0.0 is full shadow) */
+				isec.col[0]= isec.col[1]= isec.col[2]=  1.0;
+				isec.col[3]= 1.0;
+				
+				ray_trace_shadow_tra(&isec, DEPTH_SHADOW_TRA);
+				shadfac[0] += isec.col[0];
+				shadfac[1] += isec.col[1];
+				shadfac[2] += isec.col[2];
+				shadfac[3] += isec.col[3];
+			}
+			else if( d3dda(&isec) ) fac+= 1.0;
+			
 			div+= 1.0;
 			jitlamp+= 2;
 		}
 		
-		// sqrt makes nice umbra effect
-		if(lar->ray_samp_type & LA_SAMP_UMBRA)
-			shadfac[3]= sqrt(1.0-fac/div);
-		else
-			shadfac[3]= 1.0-fac/div;
+		if(isec.mode==DDA_SHADOW_TRA) {
+			shadfac[0] /= div;
+			shadfac[1] /= div;
+			shadfac[2] /= div;
+			shadfac[3] /= div;
+		}
+		else {
+			// sqrt makes nice umbra effect
+			if(lar->ray_samp_type & LA_SAMP_UMBRA)
+				shadfac[3]= sqrt(1.0-fac/div);
+			else
+				shadfac[3]= 1.0-fac/div;
+		}
 	}
 
 	/* for first hit optim, set last interesected shadow face */

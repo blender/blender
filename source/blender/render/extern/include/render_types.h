@@ -285,7 +285,7 @@ typedef struct LampRen
 	float bias;
 	
 	short ray_samp, ray_sampy, ray_sampz, ray_samp_type, area_shape, ray_totsamp;
-	short xold, yold;	/* last jitter table for area lights */
+	short xold1, yold1, xold2, yold2;	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
 	
 	struct ShadBuf *shb;
