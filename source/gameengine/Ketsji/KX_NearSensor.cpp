@@ -137,7 +137,7 @@ KX_NearSensor::~KX_NearSensor()
 bool KX_NearSensor::Evaluate(CValue* event)
 {
 	bool result = false;
-	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
+//	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 
 	if (m_bTriggered != m_bLastTriggered)
 	{
@@ -166,7 +166,7 @@ bool KX_NearSensor::Evaluate(CValue* event)
 
 bool	KX_NearSensor::NewHandleCollision(void* obj1,void* obj2,const PHY_CollData * coll_data)
 {
-	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
+//	KX_TouchEventManager* toucheventmgr = static_cast<KX_TouchEventManager*>(m_eventmgr);
 	KX_GameObject* parent = static_cast<KX_GameObject*>(GetParent());
 	
 	// need the mapping from PHY_IPhysicsController to gameobjects now

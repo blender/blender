@@ -472,7 +472,7 @@ void postTrans (TransInfo *t)
 	
 }
 
-void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3)
+static void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3)
 {
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
 	int invert = U.flag & USER_AUTOGRABGRID;
@@ -541,7 +541,7 @@ static void restore_ipokey(float *poin, float *old)
 	}
 }
 
-void restoreElement(TransData *td) {
+static void restoreElement(TransData *td) {
 	/* TransData for crease has no loc */
 	if (td->loc) {
 		VECCOPY(td->loc, td->iloc);

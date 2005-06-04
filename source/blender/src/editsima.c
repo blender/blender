@@ -945,7 +945,7 @@ static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid,
 	return 0;
 }
 
-void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
+static void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
 {
 	Mesh *me;
 	TFace *tf;
@@ -987,7 +987,7 @@ void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
 	}
 }
 
-int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, short *uval)
+static int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, short *uval)
 {
 	float m[3], v1[3], v2[3], c1, c2;
 	int id1, id2;
@@ -1014,7 +1014,7 @@ int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, short *uval)
 	return (c1*c2 >= 0.0f);
 }
 
-void find_nearest_uv(TFace **nearesttf, unsigned int *nearestv, int *nearestuv)
+static void find_nearest_uv(TFace **nearesttf, unsigned int *nearestv, int *nearestuv)
 {
 	Mesh *me;
 	TFace *tf;

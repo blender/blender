@@ -114,6 +114,10 @@ char cmask[256], *centmask;
 
 Material defmaterial;
 
+/* ------- prototypes ----------- */ 
+void init_filt_mask(void);
+
+
 /* ****************** GAMMA, MASKS and LUTS **************** */
 
 static float calc_weight(float *weight, int i, int j)

@@ -458,7 +458,7 @@ void qh_initstatistics (void) {
   qh_allstatI();
   if (qhstat next > sizeof(qhstat id)) {
     fprintf (qhmem.ferr, "qhull error (qh_initstatistics): increase size of qhstat.id[].\n\
-      qhstat.next %d should be <= sizeof(qhstat id) %d\n", qhstat next, sizeof(qhstat id));
+      qhstat.next %d should be <= sizeof(qhstat id) %ld\n", qhstat next, sizeof(qhstat id));
 #if 0 /* for locating error, Znumridges should be duplicated */
     for (i=0; i < ZEND; i++) {
       int j;

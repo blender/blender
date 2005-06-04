@@ -396,14 +396,14 @@ void BLI_adddirstrings()
 		strftime(datum, 32, "%d-%b-%y %R", tm);
 
 		if (st_size < 1000) {
-			sprintf(size, "%10d", st_size);
+			sprintf(size, "%10d", (int) st_size);
 		} else if (st_size < 1000 * 1000) {
-			sprintf(size, "%6d %03d", st_size / 1000, st_size % 1000);
+			sprintf(size, "%6d %03d", (int) (st_size / 1000), (int) (st_size % 1000));
 		} else if (st_size < 100 * 1000 * 1000) {
-			sprintf(size, "%2d %03d %03d", st_size / (1000 * 1000), (st_size / 1000) % 1000, st_size % 1000);
+			sprintf(size, "%2d %03d %03d", (int) (st_size / (1000 * 1000)), (int) ((st_size / 1000) % 1000), (int) ( st_size % 1000));
 		} else {
-			sprintf(size, "> %4.1f M", st_size / (1024.0 * 1024.0));
-			sprintf(size, "%10d", st_size);
+			sprintf(size, "> %4.1f M", (double) (st_size / (1024.0 * 1024.0)));
+			sprintf(size, "%10d", (int) st_size);
 		}
 
 		sprintf(buf,"%s %s %10s %s", files[num].date, files[num].time, size,

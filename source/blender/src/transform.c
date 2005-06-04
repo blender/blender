@@ -221,7 +221,7 @@ void checkFirstTime() {
 		memset(&Trans, 0, sizeof(TransInfo));
 }
 
-void transformEvent(unsigned short event, short val) {
+static void transformEvent(unsigned short event, short val) {
 	float mati[3][3];
 	char cmode = constraintModeToChar(&Trans);
 	Mat3One(mati);
@@ -1052,7 +1052,7 @@ static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
 }
 
 
-void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
+static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	float tmat[3][3], smat[3][3], center[3];
 	float vec[3];
 

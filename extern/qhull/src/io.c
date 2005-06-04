@@ -73,8 +73,8 @@ void qh_produce_output(void) {
     qh_memstatistics (qh ferr);
     d_1= sizeof(setT) + (qh hull_dim - 1) * SETelemsize;
     fprintf(qh ferr, "\
-    size in bytes: merge %d ridge %d vertex %d facet %d\n\
-         normal %d ridge vertices %d facet vertices or neighbors %d\n",
+    size in bytes: merge %ld ridge %ld vertex %ld facet %ld\n\
+         normal %d ridge vertices %d facet vertices or neighbors %ld\n",
 	    sizeof(mergeT), sizeof(ridgeT),
 	    sizeof(vertexT), sizeof(facetT),
 	    qh normal_size, d_1, d_1 + SETelemsize);

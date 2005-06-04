@@ -79,6 +79,9 @@
 
 #include "PIL_time.h"
 
+/* declarations */
+void winqreadtimespace(ScrArea *, void *, BWinEvent *);
+
 /* ************* Timeline marker code **************** */
 
 /* add TimeMarker at curent frame */

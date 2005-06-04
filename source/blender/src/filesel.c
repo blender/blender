@@ -1020,7 +1020,8 @@ static int calc_filesel_line(SpaceFile *sfile, int nr, int *valx, int *valy)
 static void set_active_file(SpaceFile *sfile, int act)
 {
 	struct direntry *file;
-	int num, redraw= 0, newflag;
+	int num, redraw= 0;
+	unsigned int newflag;
 	int old=0, newi=0;
 	
 	file= sfile->filelist;

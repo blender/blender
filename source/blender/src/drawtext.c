@@ -1378,7 +1378,7 @@ void run_python_script(SpaceText *st)
 	}
 }
 
-void set_tabs(Text *text)
+static void set_tabs(Text *text)
 {
 	SpaceText *st = curarea->spacedata.first;
 	st->currtab_set = setcurr_tab(text);

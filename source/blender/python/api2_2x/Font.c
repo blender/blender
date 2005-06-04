@@ -200,7 +200,7 @@ struct VFont *Font_FromPyObject( PyObject * py_obj )
 PyObject *M_Font_New( PyObject * self, PyObject * args )
 {
 	char *name_str = "<builtin>";
-	char *parent_str = "";
+//	char *parent_str = "";
 	BPy_Font *py_font = NULL;	/* for Font Data object wrapper in Python */
 	PyObject *tmp; 
 
@@ -211,7 +211,7 @@ PyObject *M_Font_New( PyObject * self, PyObject * args )
 	/*create python font*/
 	if( !S_ISDIR(BLI_exist(name_str)) )  {
 		tmp= Py_BuildValue("(s)", name_str);
-		py_font= M_Text3d_LoadFont (self, Py_BuildValue("(s)", name_str));
+		py_font= (BPy_Font *) M_Text3d_LoadFont (self, Py_BuildValue("(s)", name_str));
 		Py_DECREF (tmp);
 	}
 	else

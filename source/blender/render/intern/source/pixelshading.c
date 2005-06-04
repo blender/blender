@@ -89,7 +89,7 @@ static int calcHaloZ(HaloRen *har, int zz)
 	return zz;
 }
 
-void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
+static void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int haloNr) 
 {
     HaloRen *har = NULL;
     float dist = 0.0;

@@ -169,6 +169,7 @@ extern ListBase editNurb;
 
 /* *************************** static functions prototypes ****************** */
 void validate_editbonebutton(EditBone *);
+VFont *exist_vfont(char *str);
 
 /* *************************** MESH DECIMATE ******************************** */
 

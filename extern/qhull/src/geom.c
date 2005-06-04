@@ -139,7 +139,7 @@ facetT *qh_findbest (pointT *point, facetT *startfacet,
 		     realT *dist, boolT *isoutside, int *numpart) {
   realT bestdist= -REALmax/2 /* avoid underflow */;
   facetT *facet, *neighbor, **neighborp, *bestfacet= NULL;
-  facetT *bestfacet_all= startfacet;
+ // facetT *bestfacet_all= startfacet;
   int oldtrace= qh IStracing;
   unsigned int visitid= ++qh visit_id;
   int numpartnew=0;
@@ -409,7 +409,7 @@ facetT *qh_findbesthorizon (boolT ischeckmax, pointT* point, facetT *startfacet,
 */
 facetT *qh_findbestnew (pointT *point, facetT *startfacet,
 	   realT *dist, boolT bestoutside, boolT *isoutside, int *numpart) {
-  realT bestdist= -REALmax/2, minsearch= -REALmax/2;
+  realT bestdist= -REALmax/2; //, minsearch= -REALmax/2;
   facetT *bestfacet= NULL, *facet;
   int oldtrace= qh IStracing, i;
   unsigned int visitid= ++qh visit_id;

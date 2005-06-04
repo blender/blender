@@ -115,6 +115,9 @@ int BPY_txt_do_python_Text( struct Text *text );
 void BPY_Err_Handle( char *script_name );
 PyObject *traceback_getFilename( PyObject * tb );
 
+void BPY_free_screen_spacehandlers(struct bScreen *sc);
+
+
 /****************************************************************************
 * Description: This function will initialise Python and all the implemented 
 *	          api variations.

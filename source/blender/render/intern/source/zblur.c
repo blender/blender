@@ -47,6 +47,7 @@
 #include "pixelblending.h"
 
 #include "blendef.h"
+#include "zblur.h"
 
 //#include "BIF_gl.h"
 

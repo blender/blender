@@ -461,7 +461,7 @@ ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 	sc= (ScFillVert *)bsearch(&scsearch,scdata,len,
 	    sizeof(ScFillVert), vergscdata);
 
-	if(sc==0) printf("Error in search edge: %x\n",eed);
+	if(sc==0) printf("Error in search edge: %lx\n",eed);
 	else if(addedgetoscanvert(sc,eed)==0) return sc;
 
 	return 0;

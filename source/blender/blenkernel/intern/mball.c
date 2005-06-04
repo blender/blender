@@ -1446,7 +1446,7 @@ float init_meta(Object *ob)	/* return totsize */
 	MetaBall *mb;
 	MetaElem *ml;
 	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], vec[3];
-	float temp1[4][4], temp2[4][4], temp3[4][4], max=0.0;
+	float temp1[4][4], temp2[4][4], temp3[4][4]; //max=0.0;
 	int a, obnr;
 	char obname[32];
 	

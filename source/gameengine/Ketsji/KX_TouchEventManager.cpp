@@ -114,7 +114,7 @@ void KX_TouchEventManager::NextFrame()
 		for (std::set<NewCollision>::iterator cit = m_newCollisions.begin(); cit != m_newCollisions.end(); ++cit)
 		{
 			PHY_IPhysicsController* ctrl1 = (*cit).first;
-			PHY_IPhysicsController* ctrl2 = (*cit).second;
+//			PHY_IPhysicsController* ctrl2 = (*cit).second;
 //			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
 //			KX_GameObject* gameOb1 = ctrl1->getClientInfo();
 

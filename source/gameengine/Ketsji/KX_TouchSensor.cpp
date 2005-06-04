@@ -94,7 +94,7 @@ m_bCollision(false),
 m_bTriggered(false),
 m_bLastTriggered(false)
 {
-	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
+//	KX_TouchEventManager* touchmgr = (KX_TouchEventManager*) eventmgr;
 //	m_resptable = touchmgr->GetResponseTable();
 	
 //	m_solidHandle = m_sumoObj->getObjectHandle();
@@ -159,7 +159,7 @@ void KX_TouchSensor::RegisterSumo(KX_TouchEventManager *touchman)
 
 bool	KX_TouchSensor::NewHandleCollision(void*object1,void*object2,const PHY_CollData* colldata)
 {
-	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
+//	KX_TouchEventManager* toucheventmgr = (KX_TouchEventManager*)m_eventmgr;
 	KX_GameObject* parent = (KX_GameObject*)GetParent();
 
 	// need the mapping from PHY_IPhysicsController to gameobjects now

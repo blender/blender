@@ -115,7 +115,7 @@ EnvMap *RE_copy_envmap(EnvMap *env)
 void RE_free_envmapdata(EnvMap *env)
 {
 	Image *ima;
-	int a, part;
+	unsigned int a, part;
 	
 	for(part=0; part<6; part++) {
 		ima= env->cube[part];

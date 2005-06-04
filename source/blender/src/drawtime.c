@@ -65,6 +65,9 @@
 
 #include "blendef.h"
 
+/* ---- prototypes ------ */
+void drawtimespace(ScrArea *, void *);
+
 
 static void draw_cfra_time(SpaceTime *stime)
 {
