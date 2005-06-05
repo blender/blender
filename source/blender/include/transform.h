@@ -135,7 +135,7 @@ typedef struct TransInfo {
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
     float       center[3];      /* center of transformation             */
-    short       center2d[2];    /* center in screen coordinates         */
+    int         center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
 	short		shiftmval[2];	/* mouse position when shift was pressed */
 	short       idx_max;

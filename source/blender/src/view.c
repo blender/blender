@@ -192,6 +192,30 @@ void project_short(float *vec, short *adr)	/* clips */
 	}
 }
 
+void project_int(float *vec, int *adr)
+{
+	float fx, fy, vec4[4];
+
+	adr[0]= 2140000000.0f;
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(G.vd->persmat, vec4);
+
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
+		fx= (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
+		
+		if( fx>-2140000000.0f && fx<2140000000.0f) {
+			fy= (curarea->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+			if(fy>-2140000000.0f && fy<2140000000.0f) {
+				adr[0]= floor(fx); 
+				adr[1]= floor(fy);
+			}
+		}
+	}
+}
+
 void project_short_noclip(float *vec, short *adr)
 {
 	float fx, fy, vec4[4];

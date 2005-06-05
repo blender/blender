@@ -608,10 +608,10 @@ void calculateCenterCursor(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_short_noclip(vec, t->center2d);
+		project_int(vec, t->center2d);
 	}
 	else {
-		project_short_noclip(t->center, t->center2d);
+		project_int(t->center, t->center2d);
 	}
 }
 
@@ -640,10 +640,10 @@ void calculateCenterMedian(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_short_noclip(vec, t->center2d);
+		project_int(vec, t->center2d);
 	}
 	else {
-		project_short_noclip(t->center, t->center2d);
+		project_int(t->center, t->center2d);
 	}
 }
 
@@ -679,10 +679,10 @@ void calculateCenterBound(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_short_noclip(vec, t->center2d);
+		project_int(vec, t->center2d);
 	}
 	else {
-		project_short_noclip(t->center, t->center2d);
+		project_int(t->center, t->center2d);
 	}
 }
 
@@ -709,7 +709,7 @@ void calculateCenter(TransInfo *t)
 			Object *ob= OBACT;
 			if(ob) {
 				VECCOPY(t->center, ob->obmat[3]);
-				project_short_noclip(t->center, t->center2d);
+				project_int(t->center, t->center2d);
 			}
 		}
 		
@@ -735,7 +735,7 @@ void calculateCenter(TransInfo *t)
 			axis[1]= t->center[1]- 6.0f*axis[1];
 			axis[2]= t->center[2]- 6.0f*axis[2];
 			
-			project_short_noclip(axis, t->center2d);
+			project_int(axis, t->center2d);
 			
 			/* rotate only needs correct 2d center, grab needs initgrabz() value */
 			if(t->mode==TFM_TRANSLATION) VECCOPY(t->center, axis);

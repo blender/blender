@@ -842,8 +842,8 @@ void setNearestAxis(TransInfo *t)
 	float zfac;
 	float mvec[3], axis[3], proj[3];
 	float len[3];
+	int i, icoord[2];
 	short coord[2];
-	int i;
 
 	t->con.mode &= ~CON_AXIS0;
 	t->con.mode &= ~CON_AXIS1;
@@ -871,10 +871,10 @@ void setNearestAxis(TransInfo *t)
 		VecMulf(axis, zfac);
 		/* now we can project to get window coordinate */
 		VecAddf(axis, axis, t->con.center);
-		project_short_noclip(axis, coord);
+		project_int(axis, icoord);
 		
-		axis[0] = (float)(coord[0] - t->center2d[0]);
-		axis[1] = (float)(coord[1] - t->center2d[1]);
+		axis[0] = (float)(icoord[0] - t->center2d[0]);
+		axis[1] = (float)(icoord[1] - t->center2d[1]);
 		axis[2] = 0.0f;
 
  		if (Normalise(axis) != 0.0f) {
