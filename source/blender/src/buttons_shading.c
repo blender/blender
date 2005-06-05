@@ -1910,18 +1910,18 @@ static void world_panel_amb_occ(World *wrld)
 
 		/* aolight: samples */
 		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, 0, "Samples:", 10, 120, 150, 19, &wrld->aosamp, 1.0, 16.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
+		uiDefButS(block, NUM, B_REDR, "Samples:", 10, 120, 150, 19, &wrld->aosamp, 1.0, 16.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
 		/* enable/disable total random sampling */
 		uiDefButS(block, TOG|BIT|1, 0, "Random Sampling", 160, 120, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, total random sampling will be used for an even noisier effect");
 		uiBlockEndAlign(block);
 
-		uiDefButF(block, NUM, 0, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
+		uiDefButF(block, NUM, B_REDR, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, TOG|BIT|0, B_REDR, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows");
 		/* distance attenuation factor */
 		if (wrld->aomode & WO_AODIST)
-			uiDefButF(block, NUM, 0, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
+			uiDefButF(block, NUM, B_REDR, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
 
 		/* result mix modes */
 		uiBlockBeginAlign(block);
@@ -1936,8 +1936,8 @@ static void world_panel_amb_occ(World *wrld)
 		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, 0, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
-		uiDefButF(block, NUMSLI, 0, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		uiDefButF(block, NUMSLI, B_REDR, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
+		uiDefButF(block, NUMSLI, B_REDR, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
 	}
 
 }
@@ -1981,8 +1981,8 @@ static void world_panel_world(World *wrld)
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButF(block, NUMSLI,0, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
-	uiDefButF(block, NUMSLI,0, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
+	uiDefButF(block, NUMSLI,B_MATPRV, "Exp ",			160,30,145,19,	&(wrld->exp), 0.0, 1.0, 0, 2, "Sets amount of exponential color correction for light");
+	uiDefButF(block, NUMSLI,B_MATPRV, "Range ",		160,10,145,19,	&(wrld->range), 0.2, 5.0, 0, 2, "Sets the color amount that will be mapped on color 1.0");
 
 
 }

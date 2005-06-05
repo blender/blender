@@ -3468,7 +3468,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			
 						if( (block->flag & UI_BLOCK_LOOP) && but->type==BLOCK);
 						else	
-							retval= UI_RETURN_OK; /* event handled, so return */
+							if (butevent) retval= UI_RETURN_OK;
 					}
 				}
 			}
