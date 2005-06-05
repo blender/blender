@@ -46,6 +46,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_global.h" /* for G */
+
 #include "blendef.h"
 
 #include "mydevice.h"
@@ -176,6 +178,9 @@ char handleNumInput(NumInput *n, unsigned short event)
 			n->ctrl[idx] = -10;
 		}
 		break;
+	case PADMINUS:
+		if(G.qual & LR_ALTKEY)
+			break;
 	case MINUSKEY:
 		if (n->flag & NUM_NO_NEGATIVE)
 			break;

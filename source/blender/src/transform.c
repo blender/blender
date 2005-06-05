@@ -387,8 +387,14 @@ static void transformEvent(unsigned short event, short val) {
 				Trans.redraw= 1;
 			}
 			break;
-		case WHEELDOWNMOUSE:
 		case PADPLUSKEY:
+			if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
+				Trans.propsize*= 1.1f;
+				calculatePropRatio(&Trans);
+			}
+			Trans.redraw= 1;
+			break;
+		case WHEELDOWNMOUSE:
 			if(Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 1.1f;
 				calculatePropRatio(&Trans);
@@ -396,8 +402,14 @@ static void transformEvent(unsigned short event, short val) {
 			else view_editmove(event);
 			Trans.redraw= 1;
 			break;
-		case WHEELUPMOUSE:
 		case PADMINUS:
+			if(G.qual & LR_ALTKEY && Trans.flag & T_PROP_EDIT) {
+				Trans.propsize*= 0.90909090f;
+				calculatePropRatio(&Trans);
+			}
+			Trans.redraw= 1;
+			break;
+		case WHEELUPMOUSE:
 			if(Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 0.90909090f;
 				calculatePropRatio(&Trans);
