@@ -56,7 +56,7 @@ FTGLTextureFont::~FTGLTextureFont()
 
 FTGlyph* FTGLTextureFont::MakeGlyph( unsigned int glyphIndex)
 {
-    FT_GlyphSlot ftGlyph = face.Glyph( glyphIndex, FT_LOAD_NO_HINTING);
+    FT_GlyphSlot ftGlyph = face.Glyph( glyphIndex, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP);
     
     if( ftGlyph)
     {
