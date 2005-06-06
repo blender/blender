@@ -1022,6 +1022,7 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	
 	/* we set this flag to prevent renderwindow queue to execute another render */
 	R.flag= R_RENDERING;
+	G.afbreek= 0;
 
 	if (G.displaymode == R_DISPLAYWIN || force_dispwin) {
 		RE_set_initrenderdisplay_callback(NULL);
@@ -1051,7 +1052,6 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 	}
 	waitcursor(1);
 
-	G.afbreek= 0;
 	if(G.obedit && !(G.scene->r.scemode & R_OGL)) {
 		exit_editmode(0);	/* 0 = no free data */
 	}

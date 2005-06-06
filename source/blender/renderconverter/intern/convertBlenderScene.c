@@ -317,15 +317,9 @@ void RE_make_stars(void (*initfunc)(void),
 					}
 				}
 			}
-//			if(done > MAXVERT) {
-//				printf("Too many stars\n");
-//				break;
-//			}
-			if(blender_test_break()) break;
+			/* do not call blender_test_break() here, since it is used in UI as well, confusing the callback system */
+			/* main cause is G.afbreek of course, a global again... (ton) */
 		}
-//		if(done > MAXVERT) break;
-
-		if(blender_test_break()) break;
 	}
 	if (termfunc) termfunc();
 }
