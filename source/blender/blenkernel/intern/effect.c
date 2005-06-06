@@ -1519,8 +1519,8 @@ int object_wave(Object *ob)
 }
 
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
-        float facenormal[3], float *damp, float force[3], int mode,
-        float cur_time, unsigned int par_layer,struct Object *vertexowner)
+							float facenormal[3], float *damp, float force[3], int mode,
+							float cur_time, unsigned int par_layer,struct Object *vertexowner)
 {
 	Base *base;
 	Object *ob, *deflection_object = NULL;
@@ -1534,17 +1534,16 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	int a, deflected=0, deflected_now=0;
 	short cur_frame;
 	int d_object=0, d_face=0, ds_object=0, ds_face=0;
-
-// i'm going to rearrange it to declaration rules when WIP is finished (BM)
-	float u,v,len_u,len_v;
+	
+	// i'm going to rearrange it to declaration rules when WIP is finished (BM)
 	float innerfacethickness = -0.5f;
 	float outerfacethickness = 0.2f;
 	float ee = 5.0f;
 	float ff = 0.1f;
 	float fa;
-
+	
 	min_t = 200000;
-
+	
 	/* The first part of the code, finding the first intersected face*/
 	base= G.scene->base.first;
 	while (base) {
@@ -1552,27 +1551,27 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
 			ob= base->object;
 			if((vertexowner) && (ob == vertexowner)){ 
-				/* if vertexowner is given 
-				 * we don't want to check collision with owner object */ 
+			/* if vertexowner is given 
+				* we don't want to check collision with owner object */ 
 				base = base->next;
 				continue;
 			}
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
 				def_mesh= ob->data;
-			
+				
 				d_object = d_object + 1;
-
+				
 				d_face = d_face + 1;
 				mface= def_mesh->mface;
 				a = def_mesh->totface;
-/* need to have user control for that since it depends on model scale */
+				/* need to have user control for that since it depends on model scale */
 				
 				innerfacethickness =-ob->pd->pdef_sbift;
 				outerfacethickness =ob->pd->pdef_sboft;
-						fa = (ff*outerfacethickness-outerfacethickness);
-						fa *= fa;
-						fa = 1.0f/fa;
+				fa = (ff*outerfacethickness-outerfacethickness);
+				fa *= fa;
+				fa = 1.0f/fa;
 				
 				if(ob->parent==NULL && ob->ipo==NULL) {	// static
 					if(ob->sumohandle==NULL) cache_object_vertices(ob);
@@ -1593,11 +1592,11 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 					obloc[2] = ob->obmat[3][2];
 					/* not cachable */
 					vcache= NULL;
-
+					
 				}
 				
 				while (a--) {
-
+					
 					if(vcache) {
 						v1= vcache+ 3*(mface->v1);
 						VECCOPY(nv1, v1);
@@ -1614,18 +1613,18 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 						v2= (def_mesh->mvert+(mface->v2))->co;
 						v3= (def_mesh->mvert+(mface->v3))->co;
 						v4= (def_mesh->mvert+(mface->v4))->co;
-	
+						
 						VECCOPY(nv1, v1);
 						VECCOPY(nv2, v2);
 						VECCOPY(nv3, v3);
 						VECCOPY(nv4, v4);
-	
+						
 						/*Apply the objects deformation matrix*/
 						Mat3MulVecfl(mat, nv1);
 						Mat3MulVecfl(mat, nv2);
 						Mat3MulVecfl(mat, nv3);
 						Mat3MulVecfl(mat, nv4);
-	
+						
 						VECADD(nv1, nv1, obloc);
 						VECADD(nv2, nv2, obloc);
 						VECADD(nv3, nv3, obloc);
@@ -1633,39 +1632,31 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 					}
 					
 					deflected_now = 0;
-
+					
 					if (mode == 1){ // face intrusion test
 						// switch origin to be nv2
 						VECSUB(edge1, nv1, nv2);
 						VECSUB(edge2, nv3, nv2);
 						VECSUB(dv1,opco,nv2); // abuse dv1 to have vertex in question at *origin* of triangle
 						
-						len_u=Normalise(edge1);
-						len_v=Normalise(edge2);
+						Crossf(d_nvect, edge2, edge1);
+						n_mag = Normalise(d_nvect);
+						facedist = Inpf(dv1,d_nvect);
 						
-						u = Inpf(dv1,edge1)/len_u;
-						v = Inpf(dv1,edge2)/len_v;
-						if ( (u >= 0.0f) && (v >= 0.0f) && ((u+v) <= 1.0)){ // inside prims defined by triangle and normal
-							Crossf(d_nvect, edge2, edge1);
-							n_mag = Normalise(d_nvect);
-							// ok lets  add force 
-							facedist = Inpf(dv1,d_nvect);
-							if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-								//force_mag_norm =ee*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
+							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+							if ( linetriangle( opco, dv2, nv1, nv2, nv3, &t)){
 								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
-								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-
+									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+								
 								force[0] += force_mag_norm*d_nvect[0] ;
 								force[1] += force_mag_norm*d_nvect[1] ;
 								force[2] += force_mag_norm*d_nvect[2] ;
 								*damp=ob->pd->pdef_sbdamp;
 								deflected = 2;
-
-								colco[0] = nv2[0] + len_u*u*edge1[0] + len_v*v*edge2[0];
-								colco[1] = nv2[1] + len_u*u*edge1[1] + len_v*v*edge2[1];
-								colco[2] = nv2[2] + len_u*u*edge1[2] + len_v*v*edge2[2];
-
 							}
 						}		
 						if (mface->v4){ // quad
@@ -1674,31 +1665,24 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 							VECSUB(edge2, nv1, nv4);
 							VECSUB(dv1,opco,nv4); // abuse dv1 to have vertex in question at *origin* of triangle
 							
-							len_u=Normalise(edge1);
-							len_v=Normalise(edge2);
+							Crossf(d_nvect, edge2, edge1);
+							n_mag = Normalise(d_nvect);
+							facedist = Inpf(dv1,d_nvect);
 							
-							u = Inpf(dv1,edge1)/len_u;
-							v = Inpf(dv1,edge2)/len_v;
-							if ( (u >= 0.0f) && (v >= 0.0f) && ((u+v) <= 1.0)){ // inside prims defined by triangle and normal
-								Crossf(d_nvect, edge2, edge1);
-								n_mag = Normalise(d_nvect);
-								// ok lets  add force 
-								facedist = Inpf(dv1,d_nvect);
-								if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
-									//force_mag_norm =ee*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								force_mag_norm =(float)exp(-ee*facedist);
-								if (facedist > outerfacethickness*ff)
-								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-
+							if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
+								dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+								dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+								dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+								if ( linetriangle( opco, dv2, nv1, nv3, nv4, &t)){
+									force_mag_norm =(float)exp(-ee*facedist);
+									if (facedist > outerfacethickness*ff)
+										force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+									
 									force[0] += force_mag_norm*d_nvect[0] ;
 									force[1] += force_mag_norm*d_nvect[1] ;
 									force[2] += force_mag_norm*d_nvect[2] ;
 									*damp=ob->pd->pdef_sbdamp;
 									deflected = 2;
-								colco[0] = nv4[0] + len_u*u*edge1[0] + len_v*v*edge2[0];
-								colco[1] = nv4[1] + len_u*u*edge1[1] + len_v*v*edge2[1];
-								colco[2] = nv4[2] + len_u*u*edge1[2] + len_v*v*edge2[2];
-
 								}
 							}
 							
@@ -1707,58 +1691,58 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 					if (mode == 2){ // edge intrusion test
 						
 						
-//					t= 0.5;	// this is labda of line, can use it optimize quad intersection
-// sorry but no .. see below (BM)					
-					if( linetriangle(opco, npco, nv1, nv2, nv3, &t) ) {
-						if (t < min_t) {
-							deflected = 1;
-							deflected_now = 1;
-						}
-					}
-//					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
-// no, you can't skip testing the other triangle
-// it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
-// note: the 2 triangles don't need to share a plane ! (BM)
-					if (mface->v4) {
-						if( linetriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
-							if (t2 < min_t) {
+						//t= 0.5;	// this is labda of line, can use it optimize quad intersection
+						// sorry but no .. see below (BM)					
+						if( linetriangle(opco, npco, nv1, nv2, nv3, &t) ) {
+							if (t < min_t) {
 								deflected = 1;
-								deflected_now = 2;
+								deflected_now = 1;
 							}
-	  					}
-					}
-					
-					if ((deflected_now > 0) && ((t < min_t) ||(t2 < min_t))) {
-                    	min_t = t;
-                    	ds_object = d_object;
-						ds_face = d_face;
-						deflection_object = ob;
-						deflection_face = mface;
-						if (deflected_now==1) {
-                    	min_t = t;
-							VECCOPY(dv1, nv1);
-							VECCOPY(dv2, nv2);
-							VECCOPY(dv3, nv3);
 						}
-						else {
-                    	min_t = t2;
-							VECCOPY(dv1, nv1);
-							VECCOPY(dv2, nv3);
-							VECCOPY(dv3, nv4);
+						//					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
+						// no, you can't skip testing the other triangle
+						// it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
+						// note: the 2 triangles don't need to share a plane ! (BM)
+						if (mface->v4) {
+							if( linetriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
+								if (t2 < min_t) {
+									deflected = 1;
+									deflected_now = 2;
+								}
+							}
 						}
-					}
-					} // not -100
+						
+						if ((deflected_now > 0) && ((t < min_t) ||(t2 < min_t))) {
+							min_t = t;
+							ds_object = d_object;
+							ds_face = d_face;
+							deflection_object = ob;
+							deflection_face = mface;
+							if (deflected_now==1) {
+								min_t = t;
+								VECCOPY(dv1, nv1);
+								VECCOPY(dv2, nv2);
+								VECCOPY(dv3, nv3);
+							}
+							else {
+								min_t = t2;
+								VECCOPY(dv1, nv1);
+								VECCOPY(dv2, nv3);
+								VECCOPY(dv3, nv4);
+							}
+						}
+					}  
 					mface++;
 				}
 			}
 		}
 		base = base->next;
 	} // while (base)
-
+	
 	if (mode == 1){ // face 
 		return deflected;
-						}
-
+	}
+	
 	if (mode == 2){ // edge intrusion test
 		if (deflected) {
 			VECSUB(edge1, dv1, dv2);
@@ -1770,14 +1754,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 			colco[1] = opco[1] + (min_t * (npco[1] - opco[1]));
 			colco[2] = opco[2] + (min_t * (npco[2] - opco[2]));
 			
-			VECCOPY(facenormal,d_nvect);
-			{
-				facenormal[0] *= -1.0f;			
-				facenormal[1] *= -1.0f;			
-				facenormal[2] *= -1.0f;			
-			}
-			
-			
+			VECCOPY(facenormal,d_nvect);					
 		}
 	}
 	return deflected;
