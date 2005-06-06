@@ -1203,6 +1203,10 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	Object *tr;
 	void *cfirst, *clast;
 
+	/* set axismtx BEFORE clearing constraints to have the real orientation */
+	Mat3CpyMat4(td->axismtx, ob->obmat);
+	Mat3Ortho(td->axismtx);
+
 	cfirst = ob->constraints.first;
 	clast = ob->constraints.last;
 	ob->constraints.first=ob->constraints.last=NULL;
@@ -1231,9 +1235,6 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	VECCOPY(td->ext->dsize, ob->dsize);
 
 	VECCOPY(td->center, ob->obmat[3]);
-
-	Mat3CpyMat4(td->axismtx, ob->obmat);
-	Mat3Ortho(td->axismtx);
 
 	if (ob->parent)
 	{
