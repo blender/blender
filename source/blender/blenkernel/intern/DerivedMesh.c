@@ -40,6 +40,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -846,13 +847,13 @@ static void build_mesh_data(Object *ob, int inEditMode)
 		if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
 		else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
 		else if(ob->hooks.first) makeDispList(ob);
-		else if(ob->softflag & 0x01) makeDispList(ob);
+		else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
 		else if(ob->effect.first) {
 			Effect *eff= ob->effect.first;
 			if(eff->type==EFF_WAVE) makeDispList(ob);
 		}
 	}
-	if(me->flag&ME_SUBSURF) {
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if(inEditMode && !G.editMesh->derived) {
 			makeDispList(ob);
 		} else if (!inEditMode && !me->derived) {
