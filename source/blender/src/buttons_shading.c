@@ -1882,7 +1882,7 @@ static void world_panel_mistaph(World *wrld)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|1,B_DIFF,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
+	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
 	uiBlockSetCol(block, TH_AUTO);
 	
 	uiBlockBeginAlign(block);

@@ -1836,9 +1836,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		drawfloor();
 		if(G.vd->persp==2) {
 			if(G.scene->world) {
-				if(G.scene->world->mode & WO_STARS) RE_make_stars(star_stuff_init_func,
-																  star_stuff_vertex_func,
-																  star_stuff_term_func);
+				if(G.scene->world->mode & WO_STARS) {
+					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
+								  star_stuff_term_func);
+					G.afbreek= 0; /* silly, stars draw uses blender_test_break(), can cause render to stop */
+				}
 			}
 			if(G.vd->flag & V3D_DISPBGPIC) draw_bgpic();
 		}
