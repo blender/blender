@@ -11,9 +11,8 @@ Tooltip: 'Export to VRML97 file (.wrl)'
 __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews", "Bart")
 __url__ = ["blender", "elysiun",
 "Author's (Rick) homepage, http://kimballsoftware.com/blender",
-"Author's (Bart) homepage, http://www.neeneenee.de/vrml",
-"Complete online documentation, http://www.neeneenee.de/blender/x3d/exporting_web3d.html"]
-__version__ = "2005/04/20"
+"Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
+__version__ = "2005/06/03"
 
 __bpydoc__ = """\
 This script exports to VRML97 format.
@@ -166,7 +165,7 @@ class VRML2Export:
         self.file.write("# This file was authored with Blender (http://www.blender.org/)\n")
         self.file.write("# Blender version %s\n" % Blender.Get('version'))
         self.file.write("# Blender file %s\n" % filename)
-        self.file.write("# Exported using VRML97 exporter v1.50 (2005/04/20)\n\n")
+        self.file.write("# Exported using VRML97 exporter v1.50 (2005/06/03)\n\n")
 
     def writeInline(self):
         inlines = Blender.Scene.Get()
@@ -428,10 +427,10 @@ class VRML2Export:
             bTwoSided=0
         om = object.getMatrix();
         location=self.rotVertex(om, (0,0,0));
-        self.writeIndented("Transform {\n",1)
+        self.writeIndented("DEF %s Transform {\n" % meshName,1)
         self.writeIndented("translation %s %s %s\n" % (round(location[0],3), round(location[1],3), round(location[2],3)),1)
         self.writeIndented("children [\n")
-        self.writeIndented("DEF %s Shape {\n" % meshName,1)
+        self.writeIndented("Shape {\n",1)
             
         maters=mesh.materials
         hasImageTexture=0
@@ -909,10 +908,7 @@ class VRML2Export:
         print "Debug: mesh.materials=%d" % len(mesh.materials)
 
     def rgbToFS(self, c):
-        s="%s %s %s" % (
-            round(c.r/255.0,self.cp),
-            round(c.g/255.0,self.cp),
-            round(c.b/255.0,self.cp))
+        s="%s %s %s" % (round(c.r/255.0,self.cp), round(c.g/255.0,self.cp), round(c.b/255.0,self.cp))
         return s
 
     def computeDirection(self, object):
@@ -1026,12 +1022,12 @@ def select_file(filename):
 
 def createWRLPath():
   filename = Blender.Get('filename')
-  #print filename
+  print filename
   
   if filename.find('.') != -1:
     filename = filename.split('.')[0]
     filename += ".wrl"
-    #print filename
+    print filename
 
   return filename
 

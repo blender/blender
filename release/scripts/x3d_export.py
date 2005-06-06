@@ -9,9 +9,8 @@ Tooltip: 'Export to Extensible 3D file (.x3d)'
 """
 
 __author__ = ("Bart")
-__url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml",
-"Complete online documentation, http://www.neeneenee.de/blender/x3d/exporting_web3d.html"]
-__version__ = "2005/05/10"
+__url__ = ["Author's (Bart) homepage, http://www.neeneenee.de/vrml"]
+__version__ = "2005/06/06"
 
 
 
@@ -70,7 +69,7 @@ try:
 except:
     print "No Python installed, for full features install Python (http://www.python.org/)."
     pytinst = 0
-import math, sys, datetime
+import math
 
 ####################################
 # Global Variables
@@ -184,7 +183,7 @@ class VRML2Export:
         self.file.write("<head>\n")
         self.file.write("\t<meta name=\"filename\" content=\"%s\" />\n" % filename)
         self.file.write("\t<meta name=\"generator\" content=\"Blender %s\" />\n" % Blender.Get('version'))
-        self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.50 (2005/05/10)\" />\n")
+        self.file.write("\t<meta name=\"translator\" content=\"X3D exporter v1.50 (2005/06/06)\" />\n")
         self.file.write("</head>\n")
         self.file.write("<Scene>\n")
 
@@ -429,8 +428,8 @@ class VRML2Export:
             bTwoSided=0
         om = object.getMatrix();
         location=self.rotVertex(om, (0,0,0));
-        self.writeIndented("<Transform translation=\"%s %s %s\">\n" % (round(location[0],3), round(location[1],3), round(location[2],3)),1)
-        self.writeIndented("<Shape DEF=\"%s\">\n" % meshName,1)
+        self.writeIndented("<Transform DEF=\"%s\" translation=\"%s %s %s\">\n" % (meshName, round(location[0],3), round(location[1],3), round(location[2],3)),1)
+        self.writeIndented("<Shape>\n",1)
             
         maters=mesh.materials
         hasImageTexture=0
@@ -1023,12 +1022,12 @@ def select_file(filename):
 
 def createWRLPath():
   filename = Blender.Get('filename')
-  #print filename
+  print filename
   
   if filename.find('.') != -1:
     filename = filename.split('.')[0]
     filename += ".x3d"
-    #print filename
+    print filename
 
   return filename
 
