@@ -184,7 +184,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	amount= 0;
 	while(eve) {
 		eve->f &= ~128;
-		if(eve->f & flag) amount++;
+		if(eve->h==0 && (eve->f & flag)) amount++;
 		eve= eve->next;
 	}
 	if(amount==0) return 0;
@@ -193,7 +193,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
-		if(eve->f & flag) {
+		if(eve->h==0 && (eve->f & flag)) {
 			sb->x= eve->co[0]+eve->co[1]+eve->co[2];
 			sb->v1= eve;
 			sb++;
