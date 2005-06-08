@@ -846,7 +846,7 @@ float WardIso_Spec( float *n, float *l, float *v, float rms)
 	angle = tan(saacos(nh));
 	alpha = MAX2(rms,0.001);
 
-	i=(1.0/(4*PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
+	i= nl * (1.0/(4*PI*alpha*alpha)) * (exp( -(angle*angle)/(alpha*alpha))/(sqrt(nv*nl)));
 
 	return i;
 }
