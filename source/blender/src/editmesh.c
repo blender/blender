@@ -46,6 +46,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_screen_types.h"
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
@@ -1243,11 +1244,14 @@ void load_editMesh(void)
 		eve= eve->next;
 	}
 	
-	/* clear deform or shade displists of all users */
+	/* remake softbody, clear deform or shade displists of all users */
 	if(me->id.us>1) {
 		Base *base;
 		for(base= G.scene->base.first; base; base= base->next) {
-			if(base->object->data==me) freedisplist(&base->object->disp);
+			if(base->object->data==me) {
+				base->object->softflag |= OB_SB_REDO;
+				freedisplist(&base->object->disp);
+			}
 		}
 	}
 	/* we do make displist here for dependencies (like particles) */
