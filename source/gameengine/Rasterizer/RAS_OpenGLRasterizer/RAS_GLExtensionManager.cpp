@@ -110,32 +110,32 @@ static OSStatus bglInitEntryPoints (void)
     err = FindFolder (kSystemDomain, kFrameworksFolderType, false,
                       &fileRefParam.ioVRefNum, &fileRefParam.ioDirID);
     if (noErr != err) {
-        DebugStr ("\pCould not find frameworks folder");
+        DebugStr ((unsigned char *)"\pCould not find frameworks folder");
         return err;
     }
     err = PBMakeFSRefSync (&fileRefParam); // make FSRef for folder
     if (noErr != err) {
-        DebugStr ("\pCould make FSref to frameworks folder");
+        DebugStr ((unsigned char *)"\pCould make FSref to frameworks folder");
         return err;
     }
     // create URL to folder
     bundleURLOpenGL = CFURLCreateFromFSRef (kCFAllocatorDefault,
                                             &fileRef);
     if (!bundleURLOpenGL) {
-        DebugStr ("\pCould create OpenGL Framework bundle URL");
+        DebugStr ((unsigned char *)"\pCould create OpenGL Framework bundle URL");
         return paramErr;
     }
     // create ref to GL's bundle
     gBundleRefOpenGL = CFBundleCreate (kCFAllocatorDefault,
                                        bundleURLOpenGL);
     if (!gBundleRefOpenGL) {
-        DebugStr ("\pCould not create OpenGL Framework bundle");
+        DebugStr ((unsigned char *)"\pCould not create OpenGL Framework bundle");
         return paramErr;
     }
     CFRelease (bundleURLOpenGL); // release created bundle
     // if the code was successfully loaded, look for our function.
     if (!CFBundleLoadExecutable (gBundleRefOpenGL)) {
-        DebugStr ("\pCould not load MachO executable");
+        DebugStr ((unsigned char *)"\pCould not load MachO executable");
         return paramErr;
     }
     return err;

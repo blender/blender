@@ -115,8 +115,14 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
 	
 	//fprintf(stderr," main screen top %i left %i height %i width %i\n", top, left, height, width);
 	
-	if (state >= 8 ) {
-		state = state - 8;
+	if (state >= GHOST_kWindowState8Normal ) {
+		if(state == GHOST_kWindowState8Normal) state= GHOST_kWindowStateNormal;
+		else if(state == GHOST_kWindowState8Maximized) state= GHOST_kWindowStateMaximized;
+		else if(state == GHOST_kWindowState8Minimized) state= GHOST_kWindowStateMinimized;
+		else if(state == GHOST_kWindowState8FullScreen) state= GHOST_kWindowStateFullScreen;
+		
+		// state = state - 8;	this was the simple version of above code, doesnt work in gcc 4.0
+		
 		setMac_windowState(1);
 	} else 
 		setMac_windowState(0);
