@@ -69,6 +69,7 @@
 
 #include "BDR_editcurve.h"
 
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -739,6 +740,9 @@ void playanim(int argc, char **argv)
 			anim = picture->anim;
 			IMB_close_anim(anim);
 		}
+		if(picture->ibuf) IMB_freeImBuf(picture->ibuf);
+		if(picture->mem) MEM_freeN(picture->mem);
+		
 		picture = picture->next;
 	}
 #ifdef WITH_QUICKTIME
@@ -751,4 +755,15 @@ void playanim(int argc, char **argv)
 	}
 #endif /* _WIN32 || __APPLE__ */
 #endif /* WITH_QUICKTIME */
+
+	/* cleanup */
+	if(ibuf) IMB_freeImBuf(ibuf); 
+	BLI_freelistN(picsbase);
+	free_blender();
+	window_destroy(g_window);
+
+	if(totblock!=0) {
+		printf("Error Totblock: %d\n",totblock);
+		MEM_printmemlist();
+	}
 }
