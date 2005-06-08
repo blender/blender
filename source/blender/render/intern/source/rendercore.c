@@ -2125,8 +2125,8 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 				float fx= 2.0/(R.rectx*R.winmat[0][0]);
 				float fy= 2.0/(R.recty*R.winmat[1][1]);
 				
-				shi.co[0]= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
-				shi.co[1]= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+				shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+				shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
 				
 				/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 				shi.co[2]= (dface - shi.facenor[0]*shi.co[0] - shi.facenor[1]*shi.co[1])/shi.facenor[2];

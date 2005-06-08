@@ -641,9 +641,15 @@ static int composeStack(int zrow[][RE_PIXELFIELDSIZE], RE_COLBUFTYPE *collector,
 			stack[ptr].data= vlr;
 		}
 		else {
-			i= centmask[ zrow[totvlak][RE_MASK] ]; /* recenter sample position - */
-			xs= (float)x+centLut[i &  15];
-			ys= (float)y+centLut[i >> 4];
+			if(R.osa) {
+				i= centmask[ zrow[totvlak][RE_MASK] ]; /* recenter sample position - */
+				xs= (float)x+centLut[i &  15];
+				ys= (float)y+centLut[i >> 4];
+			}
+			else {
+				xs= (float)x;
+				ys= (float)y;
+			}
 			
 			/* stack face ----------- */
 			stack[ptr].mask     = zrow[totvlak][RE_MASK];
@@ -771,8 +777,8 @@ static int calcDepth(float x, float y, void *data, int type)
 			float fx= 2.0/(R.rectx*R.winmat[0][0]);
 			float fy= 2.0/(R.recty*R.winmat[1][1]);
 			
-			fx= (x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
-			fy= (y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+			fx= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+			fy= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
 			
 			/* using a*x + b*y + c*z = d equation, (a b c) is normal */
 			zco= (dface - vlr->n[0]*fx - vlr->n[1]*fy)/vlr->n[2];
