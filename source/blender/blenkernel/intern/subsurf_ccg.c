@@ -145,6 +145,7 @@ static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels) 
 	SubSurf *ss = MEM_mallocN(sizeof(*ss), "ss");
 
 	ss->controlType = SUBSURF_CONTROLTYPE_MESH;
+	ss->useAging=0;
 	ss->subSurf = _getSubSurf(ss, subdivLevels, 1);
 	ss->me = me;
 
