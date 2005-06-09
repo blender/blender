@@ -1317,7 +1317,20 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	
 	start_time= PIL_check_seconds_timer();
 	
-	if(R.r.scemode & R_DOSEQ) {
+	if(R.r.scemode & R_OGL) {
+		R.rectx= R.r.xsch;
+		R.recty= R.r.ysch;
+		
+		if(R.rectot) MEM_freeN(R.rectot);
+		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
+		
+		if(R.rectftot) MEM_freeN(R.rectftot);
+		R.rectftot= NULL;
+		
+		RE_local_init_render_display();
+		drawview3d_render(ogl_render_view3d);
+	}
+	else if(R.r.scemode & R_DOSEQ) {
 		R.rectx= R.r.xsch;
 		R.recty= R.r.ysch;
 		if(R.r.mode & R_PANORAMA) {
@@ -1336,19 +1349,6 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		
 		/* display */
 		if(R.rectot) RE_local_render_display(0, R.recty-1, R.rectx, R.recty,R.rectot);
-	}
-	else if(R.r.scemode & R_OGL) {
-		R.rectx= R.r.xsch;
-		R.recty= R.r.ysch;
-		
-		if(R.rectot) MEM_freeN(R.rectot);
-		R.rectot= (unsigned int *)MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-		
-		if(R.rectftot) MEM_freeN(R.rectftot);
-		R.rectftot= NULL;
-		
-		RE_local_init_render_display();
-		drawview3d_render(ogl_render_view3d);
 	}
 	else {
 		if(G.scene->camera==0) {
