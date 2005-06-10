@@ -2922,22 +2922,26 @@ static void material_panel_tramir_yafray(Material *ma)
 
 	/* ior has extended range up to 30, for use with total fresnel reflection */
 	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ", 10,115,150,20, &(ma->ang), 1.0, 30.0, 100, 2, "Sets the angular index of refraction for raytrace");
-	if(ma->mode & MA_RAYTRANSP)
+
+	// parameters only used in ray_transp mode
+	if(ma->mode & MA_RAYTRANSP) {
+		// Filter
 		uiDefButF(block, NUM, B_MATPRV, "Filt:", 160,115,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
 
-	/* absorption color */
-	uiDefBut(block, LABEL, 0, "Absorption Color", 10, 98, 150, 18, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButF(block, COL, B_MATPRV_DRAW, "", 10, 38, 30, 58, &ma->YF_ar, 0, 0, 0, B_MATCOL, "transmit absorption color, white is no absorption");
-	uiDefButF(block, NUMSLI, B_MATPRV, "aR ", 40, 78, 120, 18, &ma->YF_ar, 1e-7f, 1.0, B_MATCOL, 0, "");
-	uiDefButF(block, NUMSLI, B_MATPRV, "aG ", 40, 58, 120, 18, &ma->YF_ag, 1e-7f, 1.0, B_MATCOL, 0, "");
-	uiDefButF(block, NUMSLI, B_MATPRV, "aB ", 40, 38, 120, 18, &ma->YF_ab, 1e-7f, 1.0, B_MATCOL, 0, "");
-	uiDefButF(block, NUM, B_MATPRV, "Ds", 10, 18, 150, 18, &ma->YF_dscale, 1e-7f, 100.0, 10.0, 0, "absorption distance scale, 1 is one blender (world) unit of distance");
+		/* absorption color */
+		uiDefBut(block, LABEL, 0, "Absorption Color", 10, 98, 150, 18, 0, 0.0, 0.0, 0, 0, "");
+		uiDefButF(block, COL, B_MATPRV_DRAW, "", 10, 38, 30, 58, &ma->YF_ar, 0, 0, 0, B_MATCOL, "transmit absorption color, white is no absorption");
+		uiDefButF(block, NUMSLI, B_MATPRV, "aR ", 40, 78, 120, 18, &ma->YF_ar, 1e-7f, 1.0, B_MATCOL, 0, "");
+		uiDefButF(block, NUMSLI, B_MATPRV, "aG ", 40, 58, 120, 18, &ma->YF_ag, 1e-7f, 1.0, B_MATCOL, 0, "");
+		uiDefButF(block, NUMSLI, B_MATPRV, "aB ", 40, 38, 120, 18, &ma->YF_ab, 1e-7f, 1.0, B_MATCOL, 0, "");
+		uiDefButF(block, NUM, B_MATPRV, "Ds", 10, 18, 150, 18, &ma->YF_dscale, 1e-7f, 100.0, 10.0, 0, "absorption distance scale, 1 is one blender (world) unit of distance");
 
-	/* disperions parameters */
-	uiDefBut(block, LABEL, 0, "Dispersion", 160, 98, 150, 18, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButF(block, NUM, B_MATPRV, "Pwr ", 160, 78, 150, 18, &ma->YF_dpwr, 0.0, 1.0, 0.25, 0, "Dispersion power, the higher, the more dispersion, 0 is no dispersion");
-	uiDefButI(block, NUM, B_MATPRV, "Samples ", 160, 58, 150, 18, &ma->YF_dsmp, 1.0, 100.0, 0, 0, "Dispersion samples, minimum at least 10, unless using jitter ");
-	uiDefButI(block, TOG|BIT|0, B_MATPRV, "Jitter", 160, 38, 150, 18, &ma->YF_djit, 0.0, 1.0, 0, 0, "Enable jittering of wavelenghts, adds noise");
+		/* disperions parameters */
+		uiDefBut(block, LABEL, 0, "Dispersion", 160, 98, 150, 18, 0, 0.0, 0.0, 0, 0, "");
+		uiDefButF(block, NUM, B_MATPRV, "Pwr ", 160, 78, 150, 18, &ma->YF_dpwr, 0.0, 1.0, 0.25, 0, "Dispersion power, the higher, the more dispersion, 0 is no dispersion");
+		uiDefButI(block, NUM, B_MATPRV, "Samples ", 160, 58, 150, 18, &ma->YF_dsmp, 1.0, 100.0, 0, 0, "Dispersion samples, minimum at least 10, unless using jitter ");
+		uiDefButI(block, TOG|BIT|0, B_MATPRV, "Jitter", 160, 38, 150, 18, &ma->YF_djit, 0.0, 1.0, 0, 0, "Enable jittering of wavelenghts, adds noise");
+	}
 
 }
 

@@ -653,7 +653,14 @@ void yafrayPluginRender_t::writeShader(const string &shader_name, Material* matr
 	params["type"] = yafray::parameter_t("blendershader");
 	params["name"] = yafray::parameter_t(shader_name);
 	params["color"] = yafray::parameter_t(yafray::color_t(matr->r, matr->g, matr->b));
-	params["specular_color"] = yafray::parameter_t(yafray::color_t(matr->specr, matr->specg, matr->specb));
+	float sr=matr->specr, sg=matr->specg, sb=matr->specb;
+	if (matr->spec_shader==MA_SPEC_WARDISO) {
+		// ........
+		sr /= M_PI;
+		sg /= M_PI;
+		sb /= M_PI;
+	}
+	params["specular_color"] = yafray::parameter_t(yafray::color_t(sr, sg, sb));
 	params["mirror_color"] = yafray::parameter_t(yafray::color_t(matr->mirr, matr->mirg, matr->mirb));
 	params["diffuse_reflect"] = yafray::parameter_t(matr->ref);
 	params["specular_amount"] = yafray::parameter_t(matr->spec);
@@ -1593,7 +1600,9 @@ void yafrayPluginRender_t::writeLamps()
 				params["res"] = yafray::parameter_t(lamp->YF_bufsize);
 				int hsmp = ((12-lamp->shadhalostep)*16)/12;
 				hsmp = (hsmp+1)*16;	// makes range (16, 272) for halostep(12, 0), good enough?
-				params["samples"] = yafray::parameter_t(hsmp);
+				// halo 'samples' now 'stepsize'
+				// convert from old integer samples value to some reasonable stepsize
+				params["stepsize"] = yafray::parameter_t(1.0/sqrt((float)hsmp));
 				params["shadow_samples"] = yafray::parameter_t(lamp->samp*lamp->samp);
 				params["halo_blur"] = yafray::parameter_t(0.0);
 				params["shadow_blur"] = yafray::parameter_t(lamp->soft*0.01f);
@@ -1879,6 +1888,7 @@ bool yafrayPluginRender_t::writeWorld()
 				params["mapping"] = yafray::parameter_t("tube");
 			params["filename"] = yafray::parameter_t(wt_path);
 			params["interpolate"] = yafray::parameter_t((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none");
+			if (wtex->tex->filtersize>1.f) params["prefilter"] = yafray::parameter_t("on");
 			yafrayGate->addBackground(params);
 			return true;
 		}

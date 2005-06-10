@@ -667,7 +667,14 @@ void yafrayFileRender_t::writeShader(const string &shader_name, Material* matr, 
 	ostr << "<shader type=\"blendershader\" name=\"" << shader_name << "\" >\n";
 	ostr << "\t<attributes>\n";
 	ostr << "\t\t<color r=\"" << matr->r << "\" g=\"" << matr->g << "\" b=\"" << matr->b << "\" />\n";
-	ostr << "\t\t<specular_color r=\"" << matr->specr << "\" g=\"" << matr->specg << "\" b=\"" << matr->specb << "\" />\n";
+	float sr=matr->specr, sg=matr->specg, sb=matr->specb;
+	if (matr->spec_shader==MA_SPEC_WARDISO) {
+		// ........
+		sr /= M_PI;
+		sg /= M_PI;
+		sb /= M_PI;
+	}
+	ostr << "\t\t<specular_color r=\"" << sr << "\" g=\"" << sg << "\" b=\"" << sb << "\" />\n";
 	ostr << "\t\t<mirror_color r=\"" << matr->mirr << "\" g=\"" << matr->mirg << "\" b=\"" << matr->mirb << "\" />\n";
 	ostr << "\t\t<diffuse_reflect value=\"" << matr->ref << "\" />\n";
 	ostr << "\t\t<specular_amount value=\"" << matr->spec << "\" />\n";
@@ -1615,7 +1622,9 @@ void yafrayFileRender_t::writeLamps()
 				ostr << "\n\thalo=\"on\" " << "res=\"" << lamp->YF_bufsize << "\"\n";
 				int hsmp = ((12-lamp->shadhalostep)*16)/12;
 				hsmp = (hsmp+1)*16;	// makes range (16, 272) for halostep(12, 0), good enough?
-				ostr << "\tsamples=\"" << hsmp <<  "\" shadow_samples=\"" << (lamp->samp*lamp->samp) << "\"\n";
+				// halo 'samples' now 'stepsize'
+				// convert from old integer samples value to some reasonable stepsize
+				ostr << "\tstepsize=\"" << (1.0/sqrt((float)hsmp)) <<  "\" shadow_samples=\"" << (lamp->samp*lamp->samp) << "\"\n";
 				ostr << "\thalo_blur=\"0\" shadow_blur=\"" << (lamp->soft*0.01f) << "\"\n";
 				ostr << "\tfog_density=\"" << (lamp->haint*0.2f) << "\"";
 			}
@@ -1886,6 +1895,7 @@ bool yafrayFileRender_t::writeWorld()
 				ostr << " mapping=\"tube\" >\n";
 			ostr << "\t<filename value=\"" << wt_path << "\" />\n";
 			ostr << "\t<interpolate value=\"" << ((wtex->tex->imaflag & TEX_INTERPOL) ? "bilinear" : "none") << "\" />\n";
+			if (wtex->tex->filtersize>1.f) ostr << "\t<prefilter value=\"on\" />\n";
 			ostr << "</background>\n\n";
 			xmlfile << ostr.str();
 			return true;
