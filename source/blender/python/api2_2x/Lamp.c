@@ -1513,7 +1513,7 @@ static PyObject *Lamp_setIpo( BPy_Lamp * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "null ipo!" );
 
-	if( ipo->blocktype != ID_TE )
+	if( ipo->blocktype != ID_LA )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "this ipo is not a lamp data ipo" );
 
