@@ -274,6 +274,9 @@ int BIF_read_homefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
+	
+	BLI_clean(home);
+
 #if 0
 //#ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
@@ -292,6 +295,7 @@ int BIF_read_homefile(void)
 	} else {
 		success = BKE_read_file_from_memory(datatoc_B_blend, datatoc_B_blend_size, NULL);
 	}
+	BLI_clean(scestr);
 	strcpy(G.sce, scestr);
 	
 #if 0

@@ -651,7 +651,7 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	if (!string || !dir || !file) return; /* We don't want any NULLs */
 	
 	string[0]= 0; /* ton */
-	
+
 	/* we first push all slashes into unix mode, just to make sure we don't get
 	   any mess with slashes later on. -jesterKing */
 	BLI_char_switch(relabase, '\\', '/');
@@ -684,11 +684,7 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	strcat (string, file);
 	
 	/* Push all slashes to the system preferred direction */
-	#ifdef WIN32
-		BLI_char_switch(string, '/', '\\');
-	#else
-		BLI_char_switch(string, '\\', '/');
-	#endif	
+	BLI_clean(string);
 }
 
 int BLI_testextensie(char *str, char *ext)
