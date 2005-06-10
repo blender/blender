@@ -1849,7 +1849,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			*/
 		clear_bone_nocalc_ob(G.obpose);
 		
-		if ((G.flags & G_RECORDKEYS) && !canceled){
+		if ((U.flag & USER_RECORDKEYS) && !canceled){
 			act=G.obpose->action;
 			pose=G.obpose->pose;
 			
@@ -1957,7 +1957,7 @@ void special_aftertrans_update(char mode, int flip, short canceled, int keyflags
 			where_is_object(ob);	/* always do, for track etc. */
 			
 			/* Set autokey if necessary */
-			if ((G.flags & G_RECORDKEYS) && (!canceled) && (base->flag & SELECT)){
+			if ((U.flag & USER_RECORDKEYS) && (!canceled) && (base->flag & SELECT)){
 				if (keyflags){
 					insertkey(&base->object->id, OB_ROT_X);
 					insertkey(&base->object->id, OB_ROT_Y);

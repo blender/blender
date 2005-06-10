@@ -440,8 +440,8 @@ void time_buttons(ScrArea *sa)
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	xco+= XIC+8;
 	
-	uiDefIconButBitI(block, TOG, G_RECORDKEYS, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(G.flags), 0, 0, 0, 0, "Automatically insert keyframes in Object and Action Ipo curves");
+	uiDefIconButBitI(block, TOG, USER_RECORDKEYS, REDRAWINFO, ICON_REC,
+			xco, 0, XIC, YIC, &(U.flag), 0, 0, 0, 0, "Automatically insert keyframes in Object and Action Ipo curves");
 	
 	xco+= XIC+16;
 
