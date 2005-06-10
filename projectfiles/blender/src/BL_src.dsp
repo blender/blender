@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDER" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /J /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\sdl\include\\" /I "..\..\..\source\blender\img" /I "..\..\..\source\blender\renderui" /I "..\..\..\..\lib\windows\soundsystem\include\\" /I "..\..\..\..\lib\windows\python\include\python2.0\\" /I "..\..\..\..\lib\windows\bmfont\include" /I "..\..\..\source\blender\ftfont" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\renderconverter" /I "..\..\..\source\blender\verify" /I "..\..\..\source\blender\readstreamglue" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\misc" /I "..\..\..\source\blender\python" /I "..\..\..\source\blender\radiosity\extern\include" /I "..\..\..\source\blender\render\extern\include" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\..\lib\windows\decimation\include" /I "..\..\..\source\blender\blenpluginapi\\" /I "..\..\..\..\lib\windows\blenkey\include" /I "..\..\..\..\lib\windows\ghost\include" /I "..\..\..\..\lib\windows\bsp\include" /I "..\..\..\..\lib\windows\opennl\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CONSOLE" /D "GAMEBLENDER" /D "WITH_QUICKTIME" /D "INTERNATIONAL" /FR /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -587,6 +587,42 @@ SOURCE=..\..\..\source\blender\src\writemovie.c
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BDR_drawaction.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_drawmesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_drawobject.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_editcurve.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_editface.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_editmball.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_editobject.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_unwrapper.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BDR_vpaint.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_butspace.h
 # End Source File
 # Begin Source File
@@ -595,11 +631,63 @@ SOURCE=..\..\..\source\blender\include\BIF_cursors.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_drawimage.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_drawoops.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_drawscene.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_drawscript.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_drawseq.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_drawtext.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editaction.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editarmature.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editconstraint.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editdeform.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_editfont.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editgroup.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editika.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editkey.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editlattice.h
 # End Source File
 # Begin Source File
 
@@ -611,7 +699,47 @@ SOURCE=..\..\..\source\blender\include\BIF_editmode_undo.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_editnla.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_editoops.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editsca.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editseq.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editsima.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editsound.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_editview.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_fsmenu.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_gl.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_glutil.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_graphics.h
 # End Source File
 # Begin Source File
 
@@ -619,7 +747,39 @@ SOURCE=..\..\..\source\blender\include\BIF_imasel.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_interface.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_keyval.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_language.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_mainqueue.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_meshtools.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_mywindow.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_oops.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_outliner.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_poseobject.h
 # End Source File
 # Begin Source File
 
@@ -627,7 +787,23 @@ SOURCE=..\..\..\source\blender\include\BIF_previewrender.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_renderwin.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_resources.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_scrarea.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_screen.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_space.h
 # End Source File
 # Begin Source File
 
@@ -635,7 +811,23 @@ SOURCE=..\..\..\source\blender\include\BIF_spacetypes.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_tbcallback.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_toets.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_toolbox.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BIF_transform.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_usiblender.h
 # End Source File
 # Begin Source File
 
@@ -643,7 +835,67 @@ SOURCE=..\..\..\source\blender\include\BIF_writeavicodec.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BIF_writeimage.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BIF_writemovie.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\blendef.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BPI_script.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_buttons.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_drawimasel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_drawipo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_drawnla.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_drawoops.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_drawview.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_edit.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_editaction.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_editaction_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_editipo.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_editipo_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_editnla_types.h
 # End Source File
 # Begin Source File
 
@@ -651,7 +903,31 @@ SOURCE=..\..\..\source\blender\include\BSE_filesel.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\include\BSE_headerbuttons.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_seqaudio.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_sequence.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\include\BSE_time.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_trans_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_types.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\include\BSE_view.h
 # End Source File
 # Begin Source File
 
