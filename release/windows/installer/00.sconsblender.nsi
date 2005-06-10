@@ -251,6 +251,9 @@ Section "Blender-VERSION (required)" SecCopyUI
   SetOutPath $BLENDERHOME\.blender\scripts\bpydata\config
   [SCRIPTDATACFGCONTS]
   
+  SetOutPath $BLENDERHOME\plugins\include
+  [PLUGINCONTS]
+  
   ; Language files
   [LANGUAGECONTS]
   
@@ -313,6 +316,8 @@ Section "Uninstall"
   RMDir /r $INSTDIR\.blender\scripts\bpymodules
   RMDir /r $INSTDIR\.blender\scripts\bpydata
   RMDir /r $INSTDIR\.blender\scripts\bpydata\config
+  RMDir /r $INSTDIR\plugins\include
+  RMDir /r $INSTDIR\plugins
   RMDir $INSTDIR\.blender
   RMDir "$SMPROGRAMS\Blender Foundation\Blender"
   RMDir "$SMPROGRAMS\Blender Foundation"

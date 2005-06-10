@@ -95,6 +95,18 @@ def donsis(env, target, source):
 	cfgstring = string.join(cfglist, "\n  ")
 	cfgstring += "\n\n"
 	nsis_cnt = string.replace(nsis_cnt, "[SCRIPTDATACFGCONTS]", cfgstring)
+	
+	# do plugins\include
+	plugincludelist = []
+	plugincludepath = "%s%s" % (startdir, "\\dist\\plugins\\include")
+	plugincludedir = os.listdir(plugincludepath)
+	for plugincludeitem in plugincludedir:
+		plugincludefile = "%s\\%s" % (plugincludepath, plugincludeitem)
+		if os.path.isdir(plugincludefile) == 0:
+			plugincludelist.append("File %s" % plugincludefile)
+	plugincludestring = string.join(plugincludelist, "\n  ")
+	plugincludestring += "\n\n"
+	nsis_cnt = string.replace(nsis_cnt, "[PLUGINCONTS]", plugincludestring)
 
 	# do dotblender
 	dotblendlist = []
