@@ -42,8 +42,19 @@ Yet done:
    c : relative curve to    2004/08/03
    s : relative curve to with only one handle  
 
-To do:  A,S,V,H,Q,T, 
-        a,s, m, v, h, q,t
+
+   A : courbe_vers_a, 
+   V : ligne_tracee_v,
+   H : ligne_tracee_h, 
+   Z : boucle_z,
+   Q : courbe_vers_q,
+   T : courbe_vers_t,
+   a : courbe_vers_a, 
+   v : ligne_tracee_v,
+   h : ligne_tracee_h, 
+   z : boucle_z,
+   q : courbe_vers_q,
+	
 
 Changelog:
       0.1.1 : - control file without extension
@@ -53,11 +64,13 @@ Changelog:
                 instead of x,y,width and height              
       0.2.2 : - read compact path data from Illustrator 10             
       0.2.3 : - read a few new relative displacements
-      0.2.4 : - better hash for command with followed by a lone data 
+      0.2.4 : - better hash for command followed by a lone data 
                 (h,v) or uncommun number (a) 
       0.2.5 : - correction for gimp import 
       0.2.6 : - correction for illustrator 10 SVG
       0.2.7 : - correction for inskape 0.40 cvs  SVG
+      0.2.8 : - correction for inskape plain SVG
+
                 
 ==================================================================================   
 =================================================================================="""
@@ -290,15 +303,17 @@ def contruit_SYMETRIC(l):
 
 def mouvement_vers(c, D, n0,CP):
     global DEBUG,TAGcourbe
-    #print c,D[c[1]+1]
+    print 'c',c,'D[c[1]+1]',D[c[1]+1]
 
     l=filtre_DATA(c,D,1)
-    #print l
+    print 'l',l
     if n0 in courbes.ITEM.keys():
        n0+=1
-       CP=[l[0],l[1]]        
-    else:
-       CP=[l[0],l[1]] 
+    #
+    #   CP=[l[0],l[1]]        
+    #else:
+    #   CP=[l[0],l[1]] 
+    CP=[l[0],l[1]] 
 
     courbes.ITEM[n0]=ITEM() 
     courbes.ITEM[n0].Origine=[l[0],l[1]] 
@@ -522,10 +537,19 @@ def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
 
     return BOUNDINGBOX
 
+# 0.2.8 : - correction for inskape 0.40 cvs  SVG
+def repack_DATA(DATA):   
+    for d in Actions.keys():
+        DATA=DATA.replace(d,d+' ')
+    return DATA    
+
+
 def unpack_DATA(DATA):
     DATA[0]=DATA[0].replace('-',',-')
+    
     for d in Actions.keys():
         DATA[0]=DATA[0].replace(d,','+d+',')
+
     DATA[0]=DATA[0].replace(',,',',')
     if DATA[0][0]==',':DATA[0]=DATA[0][1:]
     if DATA[0][-1]==',':DATA[0]=DATA[0][:-1]
@@ -575,9 +599,12 @@ def format_PATH(t):
 
     if PATH.find(' d="')!=-1:
        PATH,D=get_content('d',PATH)
-       
-    #print "D0= :",D
-       
+
+    # 0.2.8 : - correction for inskape plain SVG    
+    if D.find(',')==-1:
+        D=repack_DATA(D)
+    # 0.2.8 : end
+        
     D=D.split(' ')
     
     try:
@@ -586,17 +613,12 @@ def format_PATH(t):
     except:
       pass
     
-    #print len(D)
-    #for D0 in D:
-        #print "  ---->  D  = :", D0
-
     if len(D)==1 or len(D[0])>1:
        D1=[]     
        for D0 in D:
            D1+=unpack_DATA([D0])[:]
        D=D1
-
-    #print "D2= :",D
+       
     return t,D
 
 
@@ -626,8 +648,6 @@ def scan_FILE(nom):
           BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,0)
      else:
           BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox)     
-
-     #print t
 
      while t.find('path')!=-1:
          t,D=format_PATH(t)
@@ -670,4 +690,3 @@ def fonctionSELECT(nom):
 
 if DEVELOPPEMENT==1:
    Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .SVG FILE')
-   #sys.path=oldpath

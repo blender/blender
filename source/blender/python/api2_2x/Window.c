@@ -68,9 +68,6 @@
 /* See Draw.c */
 extern int EXPP_disable_force_draw;
 
-/* Callback used by the file and image selector access functions */
-static PyObject *EXPP_FS_PyCallback = NULL;
-
 /*****************************************************************************/
 /* Python API function prototypes for the Window module.		*/
 /*****************************************************************************/
@@ -453,24 +450,42 @@ static PyObject *M_Window_QRedrawAll( PyObject * self, PyObject * args )
 
 static void getSelectedFile( char *name )
 {
-	PyObject *callback;
-	PyObject *result; 
-	
-	callback = EXPP_FS_PyCallback;
-	result = PyObject_CallFunction( EXPP_FS_PyCallback, "s", name );
-	if ((!result) && (G.f & G_DEBUG)) {
-		fprintf(stderr, "BPy error: Callback call failed!\n");
+	PyObject *pycallback;
+	PyObject *result;
+	Script *script;
+
+	/* let's find the script that owns this callback */
+	script = G.main->script.first;
+	while (script) {
+		if (script->flags & SCRIPT_RUNNING) break;
+		script = script->id.next;
 	}
-	Py_XDECREF(result);
-	/* Catch changes of EXPP_FS_PyCallback during the callback call
-	 * due to calls to Blender.Window.FileSelector or
-	 * Blender.Window.ImageSelector inside the python callback. */
-    if (callback == EXPP_FS_PyCallback) {
-        Py_DECREF(EXPP_FS_PyCallback);
-        EXPP_FS_PyCallback = NULL;
-    } else {
-        Py_DECREF(callback);
-    }
+
+	if (!script) {
+		if (curarea->spacetype == SPACE_SCRIPT) {
+			SpaceScript *sc = curarea->spacedata.first;
+			script = sc->script;
+		}
+	}
+
+	pycallback = script->py_browsercallback;
+
+	if (pycallback) {
+		result = PyObject_CallFunction( pycallback, "s", name );
+
+		if (!result) {
+			if (G.f & G_DEBUG)
+				fprintf(stderr, "BPy error: Callback call failed!\n");
+		}
+		else Py_DECREF(result);
+
+		if (script->py_browsercallback == pycallback)
+			script->py_browsercallback = NULL;
+		/* else another call to selector was made inside pycallback */
+
+		Py_DECREF(pycallback);
+	}
+
 	return;
 }
 
@@ -480,6 +495,7 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = NULL;
+	PyObject *pycallback = NULL;
 	int startspace = 0;
 
 	if (during_scriptlink())
@@ -490,13 +506,13 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"the file selector is not available in background mode");
 
-	if((!PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename))
-		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
+	if((!PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename))
+		|| (!PyCallable_Check(pycallback)))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"\nexpected a callback function (and optionally one or two strings) "
 			"as argument(s)" );
 
-	Py_XINCREF(EXPP_FS_PyCallback);
+	Py_INCREF(pycallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -527,6 +543,12 @@ static PyObject *M_Window_FileSelector( PyObject * self, PyObject * args )
 
 	script->flags |= SCRIPT_FILESEL;
 
+	/* clear any previous callback (nested calls to selector) */
+	if (script->py_browsercallback) {
+		Py_DECREF((PyObject *)script->py_browsercallback);
+	}
+	script->py_browsercallback = pycallback;
+
 	activate_fileselect( FILE_BLENDER, title, filename, getSelectedFile );
 
 	Py_INCREF( Py_None );
@@ -539,6 +561,7 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 	char *filename = G.sce;
 	SpaceScript *sc;
 	Script *script = NULL;
+	PyObject *pycallback = NULL;
 	int startspace = 0;
 
 	if (during_scriptlink())
@@ -549,14 +572,13 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"the image selector is not available in background mode");
 
-	if( !PyArg_ParseTuple( args, "O|ss", &EXPP_FS_PyCallback, &title, &filename ) 
-		|| (!PyCallable_Check(EXPP_FS_PyCallback)))
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "\nexpected a callback function (and optionally one or two strings) "
-			   "as argument(s)" ) );
+	if( !PyArg_ParseTuple( args, "O|ss", &pycallback, &title, &filename ) 
+		|| (!PyCallable_Check(pycallback)))
+		return EXPP_ReturnPyObjError ( PyExc_AttributeError,
+			"\nexpected a callback function (and optionally one or two strings) "
+			"as argument(s)" );
 
-	Py_XINCREF(EXPP_FS_PyCallback);
+	Py_INCREF(pycallback);
 
 /* trick: we move to a spacescript because then the fileselector will properly
  * unset our SCRIPT_FILESEL flag when the user chooses a file or cancels the
@@ -586,6 +608,11 @@ static PyObject *M_Window_ImageSelector( PyObject * self, PyObject * args )
 	}
 
 	script->flags |= SCRIPT_FILESEL;	/* same flag as filesel */
+	/* clear any previous callback (nested calls to selector) */
+	if (script->py_browsercallback) {
+		Py_DECREF((PyObject *)script->py_browsercallback);
+	}
+	script->py_browsercallback = pycallback;
 
 	activate_imageselect( FILE_BLENDER, title, filename, getSelectedFile );
 
@@ -610,12 +637,11 @@ static PyObject *M_Window_DrawProgressBar( PyObject * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "fs", &done, &info ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected a float and a string as arguments" ) );
+			"expected a float and a string as arguments" ) );
 
-	if( !G.background )
-		retval = progress_bar( done, info );
+	retval = progress_bar( done, info );
 
-	curarea = sa;
+	areawinset(sa->win);
 
 	return Py_BuildValue( "i", retval );
 }

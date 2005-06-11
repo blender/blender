@@ -134,9 +134,9 @@ static void ThemeSpace_dealloc( BPy_ThemeSpace * self )
 	else if (!strcmp(name, #attr))\
 		attrib = charRGBA_New(&tsp->attr[0]);
 
-/* Example: ELSEIF_TSP_RGBA(outline) becomes:
+/* Example: ELSEIF_TSP_RGBA(back) becomes:
  * else if (!strcmp(name, "back")
- * 	attr = charRGBA_New(&tsp->back[0])
+ * 	attrib = charRGBA_New(&tsp->back[0])
  */
 
 static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
@@ -146,7 +146,7 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 
 	if( !strcmp( name, "theme" ) )
 		attrib = PyString_FromString( self->theme->name );
-	ELSEIF_TSP_RGBA( back )
+		ELSEIF_TSP_RGBA( back )
 		ELSEIF_TSP_RGBA( text )
 		ELSEIF_TSP_RGBA( text_hi )
 		ELSEIF_TSP_RGBA( header )
@@ -169,19 +169,26 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( face_select )
 		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
+		ELSEIF_TSP_RGBA( syntaxl )
+		ELSEIF_TSP_RGBA( syntaxn )
+		ELSEIF_TSP_RGBA( syntaxb )
+		ELSEIF_TSP_RGBA( syntaxv )
+		ELSEIF_TSP_RGBA( syntaxc )
 		else if( !strcmp( name, "vertex_size" ) )
 		attrib = Py_BuildValue( "i", tsp->vertex_size );
 		else if( !strcmp( name, "facedot_size" ) )
 		attrib = Py_BuildValue( "i", tsp->facedot_size );
 	else if( !strcmp( name, "__members__" ) )
-		attrib = Py_BuildValue( "[ssssssssssssssssssssssssss]", "theme",
+		attrib = Py_BuildValue( "[sssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
 					"grid", "wire", "select", "active",
 					"transform", "vertex", "vertex_select",
 					"edge", "edge_select", "edge_seam",
 					"edge_facesel", "face", "face_select",
-					"face_dot", "normal", "vertex_size", "facedot_size" );
+					"face_dot", "normal",
+					"syntaxl", "syntaxn", "syntaxb", "syntaxv", "syntaxc",
+					"vertex_size", "facedot_size" );
 
 	if( attrib != Py_None )
 		return attrib;
@@ -199,7 +206,6 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 
 	if( !strcmp( name, "back" ) )
 		attrib = charRGBA_New( &tsp->back[0] );
-	ELSEIF_TSP_RGBA( back )
 		ELSEIF_TSP_RGBA( text )
 		ELSEIF_TSP_RGBA( text_hi )
 		ELSEIF_TSP_RGBA( header )
@@ -222,6 +228,11 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( face_select )
 		ELSEIF_TSP_RGBA( face_dot )
 		ELSEIF_TSP_RGBA( normal )
+		ELSEIF_TSP_RGBA( syntaxl )
+		ELSEIF_TSP_RGBA( syntaxn )
+		ELSEIF_TSP_RGBA( syntaxb )
+		ELSEIF_TSP_RGBA( syntaxv )
+		ELSEIF_TSP_RGBA( syntaxc )
 		else if( !strcmp( name, "vertex_size" ) ) {
 		int val;
 

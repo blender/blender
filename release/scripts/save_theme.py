@@ -2,14 +2,14 @@
 
 """
 Name: 'Save Current Theme...'
-Blender: 236
+Blender: 237
 Group: 'Export'
 Tooltip: 'Save current theme as a bpython script'
 """
 
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun")
-__version__ = "1.2 2005/05/17"
+__version__ = "2.37 2005/06/06"
 
 __bpydoc__ = """\
 This script saves the current Theme in Blender as a Blender Python script.
@@ -39,7 +39,6 @@ some information on it before sharing it with others.
 # $Id$
 #
 # --------------------------------------------------------------------------
-# save_theme version 2.34 Sep 20, 2004
 # Copyright (C) 2004: Willian P. Germano, wgermano _at_ ig.com.br
 # --------------------------------------------------------------------------
 # Released under the Blender Artistic License (BAL):
@@ -71,13 +70,13 @@ def write_theme(filename):
 
 # \"\"\"
 # Name: '%s'
-# Blender: 236
+# Blender: 237
 # Group: 'Themes'
 # Tooltip: 'Change current theme'
 # \"\"\"
 
 __%s__ = "????"
-__%s__ = "1.2"
+__%s__ = "2.37"
 __%s__ = ["blender"]
 __%s__ = \"\"\"\\
 You can edit this section to write something about your script that can

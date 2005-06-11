@@ -183,6 +183,11 @@ class Theme:
     @cvar face_select: theme rgba var.
     @cvar face_dot: theme rgba var.
     @cvar normal: theme rgba var.
+    @cvar syntaxl: theme rgba var.
+    @cvar syntaxn: theme rgba var.
+    @cvar syntaxb: theme rgba var.
+    @cvar syntaxv: theme rgba var.
+    @cvar syntaxc: theme rgba var.
     @type vertex_size: int
     @cvar vertex_size: size of the vertices dots on screen in the range [1, 10].
     @type facedot_size: int

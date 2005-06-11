@@ -527,6 +527,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 	script->py_draw = NULL;
 	script->py_event = NULL;
 	script->py_button = NULL;
+	script->py_browsercallback = NULL;
 
 	py_dict = CreateGlobalDictionary(  );
 
@@ -756,6 +757,7 @@ int BPY_menu_do_python( short menutype, int event )
 	script->py_draw = NULL;
 	script->py_event = NULL;
 	script->py_button = NULL;
+	script->py_browsercallback = NULL;
 
 	py_dict = CreateGlobalDictionary(  );
 
@@ -915,6 +917,7 @@ void BPY_clear_script( Script * script )
 	Py_XDECREF( ( PyObject * ) script->py_draw );
 	Py_XDECREF( ( PyObject * ) script->py_event );
 	Py_XDECREF( ( PyObject * ) script->py_button );
+	Py_XDECREF( ( PyObject * ) script->py_browsercallback );
 
 	dict = script->py_globaldict;
 

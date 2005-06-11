@@ -47,6 +47,7 @@ typedef struct Script {
 	void *py_draw;
 	void *py_event;
 	void *py_button;
+	void *py_browsercallback;
 	void *py_globaldict;
 
 	int flags, lastspace;

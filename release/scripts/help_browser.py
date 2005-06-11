@@ -71,7 +71,7 @@ Hotkeys:<br>
 # --------------------------------------------------------------------------
 
 import Blender
-from Blender import sys as bsys, Draw, Window
+from Blender import sys as bsys, Draw, Window, Registry
 
 WEBBROWSER = True
 try:
@@ -390,7 +390,7 @@ def parse_help_info(script):
 	fname = bsys.join(path, script.fname)
 
 	if not bsys.exists(fname):
-		Draw.PupMenu('IO Error: Couldn\'t find script %s' % fname)
+		Draw.PupMenu('IO Error: couldn\'t find script %s' % fname)
 		return None
 
 	f = file(fname, 'r')
@@ -545,7 +545,7 @@ def gui(): # drawing the screen
 	global SCRIPT_INFO, AllGroups, GROUP_MENUS
 	global BEVT_EMAIL, BEVT_LINK
 	global BEVT_VIEWSOURCE, BEVT_EXIT, BEVT_BACK, BEVT_GMENU, BUT_GMENU
-	global PADDING, WIN_W, WIN_H, SCROLL_DOWN, COLUMNS
+	global PADDING, WIN_W, WIN_H, SCROLL_DOWN, COLUMNS, FMODE
 
 	theme = Theme.Get()[0]
 	tui = theme.get('ui')
@@ -667,7 +667,7 @@ def gui(): # drawing the screen
 				'View this script\'s source code in the Text Editor (hotkey: S)')
 			Draw.PushButton('exit', BEVT_EXIT, x + 45, 17, 45, bh,
 				'Exit from Scripts Help Browser (hotkey: Q)')
-			Draw.PushButton('back', BEVT_BACK, x + 2*45, 17, 45, bh,
+			if not FMODE: Draw.PushButton('back', BEVT_BACK, x + 2*45, 17, 45, bh,
 				'Back to scripts selection screen (hotkey: ESC)')
 			BGL.glColor3ub(COL_TXTHI[0],COL_TXTHI[1], COL_TXTHI[2])
 			BGL.glRasterPos2i(x, 5)
@@ -686,12 +686,12 @@ def fit_scroll():
 def event(evt, val): # input events
 
 	global SCREEN, START_SCREEN, SCRIPT_SCREEN
-	global SCROLL_DOWN
+	global SCROLL_DOWN, FMODE
 
 	if not val: return
 
 	if evt == Draw.ESCKEY:
-		if SCREEN == START_SCREEN: Draw.Exit()
+		if SCREEN == START_SCREEN or FMODE: Draw.Exit()
 		else:
 			SCREEN = START_SCREEN
 			SCROLL_DOWN = 0
@@ -719,7 +719,7 @@ def button_event(evt): # gui button events
 
 	global SCREEN, START_SCREEN, SCRIPT_SCREEN
 	global BEVT_LINK, BEVT_EMAIL, BEVT_GMENU, BUT_GMENU, SCRIPT_INFO
-	global SCROLL_DOWN
+	global SCROLL_DOWN, FMODE
 
 	if evt >= 100: # group menus
 		for i in range(len(BUT_GMENU)):
@@ -754,10 +754,36 @@ def button_event(evt): # gui button events
 		Draw.Exit()
 		return
 	elif evt == BEVT_BACK:
-		if SCREEN == SCRIPT_SCREEN:
+		if SCREEN == SCRIPT_SCREEN and not FMODE:
 			SCREEN = START_SCREEN
 			SCRIPT_INFO = None
 			SCROLL_DOWN = 0
 			Draw.Redraw()
 
-Draw.Register(gui, event, button_event)
+keepon = True
+FMODE = False # called by Blender.ShowHelp(name) API function ?
+
+KEYNAME = '__help_browser'
+rd = Registry.GetKey(KEYNAME)
+if rd:
+	rdscript = rd['script']
+	keepon = False
+	Registry.RemoveKey(KEYNAME)
+	for group in AllGroups:
+		for script in group.get_scripts():
+			if rdscript == script.fname:
+				parseit = parse_help_info(script)
+				if parseit == True:
+					keepon = True
+					SCREEN = SCRIPT_SCREEN
+					BEVT_LINK = range(20, len(SCRIPT_INFO.d['__url__']) + 20)
+					BEVT_EMAIL = range(50, len(SCRIPT_INFO.d['__email__']) + 50)
+					FMODE = True
+				elif parseit == False:
+					Draw.PupMenu("ERROR: script doesn't have proper help data")
+				break
+
+if not keepon:
+	Draw.PupMenu("ERROR: couldn't find script")
+else:
+	Draw.Register(gui, event, button_event)

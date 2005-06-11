@@ -2,22 +2,24 @@
 
 """
 Name: 'Interactive Console'
-Blender: 236
+Blender: 237
 Group: 'System'
 Tooltip: 'Interactive Python Console'
 """
+
 __author__ = "Campbell Barton AKA Ideasman"
-__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun", "Official Python site, http://www.python.org"]
+__url__ = ["Author's homepage, http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun", "Official Python site, http://www.python.org"]
 __bpydoc__ = """\
 This is an interactive console, similar to Python's own command line interpreter.  Since it is embedded in Blender, it has access to all Blender Python modules.
 
-Those completely new to Python can check the link button above that points to
-its official homepage, with news, downloads and documentation.
+Those completely new to Python are recommended to check the link button above
+that points to its official homepage, with news, downloads and documentation.
 
 Usage:<br>
   Type your code and hit "Enter" to get it executed.<br>
-  - Right mouse click:  Save output;<br>
+  - Right mouse click: Console Menu (Save output, etc);<br>
   - Arrow keys: command history and cursor;<br>
+  - Shift + arrow keys: jump words;<br>
   - Ctrl + Tab: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
   - Ctrl + Enter: multiline functions -- delays executing code until only Enter is pressed.
 """
@@ -31,8 +33,12 @@ import types
 # Constants
 __DELIMETERS__ = '. ,=+-*/%<>&~][{}():'
 __LINE_HISTORY__ = 200
+
+global __LINE_HEIGHT__
 __LINE_HEIGHT__ = 14
+global __FONT_SIZE__
 __FONT_SIZE__ = "normal"
+
 
 '''
 # Generic Blender functions
@@ -255,8 +261,10 @@ def handle_event(evt, val):
 			cmdBuffer[-1].cmd = cmdBuffer[histIndex].cmd
 	
 	def actionRightMouse():
-		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Quit')
-		print choice
+		global __FONT_SIZE__
+		global __LINE_HEIGHT__
+		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Font Size|%l|Help|%l|Quit')
+		# print choice
 		if choice == 1:
 			writeCmdData(cmdBuffer, 0) # type 0 user
 		elif choice == 2:
@@ -267,7 +275,26 @@ def handle_event(evt, val):
 			writeCmdData(cmdBuffer, 3) # All
 		elif choice == 6:
 			insertCmdData(cmdBuffer) # All
-		elif choice == 8: # Exit
+		elif choice == 8:
+			# Fontsize.
+			font_choice = Draw.PupMenu('Font Size%t|Large|Normal|Small|Tiny')
+			if font_choice != -1:
+				if font_choice == 1:
+					__FONT_SIZE__ = 'large'
+					__LINE_HEIGHT__ = 16
+				elif font_choice == 2:
+					__FONT_SIZE__ = 'normal'
+					__LINE_HEIGHT__ = 14
+				elif font_choice == 3:
+					__FONT_SIZE__ = 'small'
+					__LINE_HEIGHT__ = 12
+				elif font_choice == 4:
+					__FONT_SIZE__ = 'tiny'
+					__LINE_HEIGHT__ = 10
+				Draw.Redraw()
+		elif choice == 10:
+			Blender.ShowHelp('console.py')
+		elif choice == 12: # Exit
 			Draw.Exit()
 	
 	
@@ -356,12 +383,52 @@ def handle_event(evt, val):
 	if (evt == Draw.UPARROWKEY and val): actionUpKey()
 	elif (evt == Draw.DOWNARROWKEY and val): actionDownKey()
 	
-	elif (evt == Draw.RIGHTARROWKEY and val): 
-		cursor +=1
-		if cursor > -1:
-			cursor = -1
+	elif (evt == Draw.RIGHTARROWKEY and val):
+		if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+			wordJump = False
+			newCursor = cursor+1
+			while newCursor<0:
+				
+				if cmdBuffer[-1].cmd[newCursor] not in __DELIMETERS__:
+					newCursor+=1
+				else:
+					wordJump = True
+					break
+			if wordJump: # Did we find a new cursor pos?
+				cursor = newCursor
+			else:
+				cursor = -1 # end of line
+		else:
+			cursor +=1
+			if cursor > -1:
+				cursor = -1
+	
 	elif (evt == Draw.LEFTARROWKEY and val):
-		cursor -=1
+		if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+			wordJump = False
+			newCursor = cursor-1
+			while abs(newCursor) < len(cmdBuffer[-1].cmd):
+				
+				if cmdBuffer[-1].cmd[newCursor] not in __DELIMETERS__ or\
+				newCursor == cursor:
+					newCursor-=1
+				else:
+					wordJump = True
+					break
+			if wordJump: # Did we find a new cursor pos?
+				cursor = newCursor
+			else: 
+				cursor = -len(cmdBuffer[-1].cmd) # Start of line
+			
+		else:
+			if len(cmdBuffer[-1].cmd) > abs(cursor):
+				cursor -=1
+	
+	elif (evt == Draw.HOMEKEY and val):
+		cursor  = -len(cmdBuffer[-1].cmd)
+	
+	elif (evt == Draw.ENDKEY and val):
+		cursor = -1
 	
 	elif (evt == Draw.TABKEY and val):
 		if Window.GetKeyQualifiers() & Window.Qual.CTRL:
@@ -391,7 +458,6 @@ def draw_gui():
 	BGL.glGetFloatv(BGL.GL_SCISSOR_BOX, __CONSOLE_RECT__) 
 	__CONSOLE_RECT__= __CONSOLE_RECT__.list
 	
-	
 	# Clear the screen
 	BGL.glClearColor(0.0, 0.0, 0.0, 1.0)
 	BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)         # use it to clear the color buffer
@@ -399,7 +465,10 @@ def draw_gui():
 	# Draw cursor location colour
 	cmd2curWidth = Draw.GetStringWidth(cmdBuffer[-1].cmd[:cursor], __FONT_SIZE__)
 	BGL.glColor3f(0.8, 0.2, 0.2)
-	BGL.glRecti(cmd2curWidth-1,4,cmd2curWidth+1, 20)
+	if cmd2curWidth == 0:
+		BGL.glRecti(0,2,2, __LINE_HEIGHT__+2)
+	else:
+		BGL.glRecti(cmd2curWidth-2,2,cmd2curWidth, __LINE_HEIGHT__+2)
 	
 	BGL.glColor3f(1,1,1)
 	# Draw the set of cammands to the buffer
@@ -469,8 +538,9 @@ __CONSOLE_VAR_DICT__ = {} # Initialize var dict
 
 # Print Startup lines
 cmdBuffer = [cmdLine("Welcome to Ideasman's Blender Console", 1, None),\
-	cmdLine(' * Right Click:  Save output', 1, None),\
+	cmdLine(' * Right Click:  Console Menu (Save output, etc.)', 1, None),\
 	cmdLine(' * Arrow Keys:  Command history and cursor', 1, None),\
+	cmdLine(' * Shift With Arrow Keys:  Jump words', 1, None),\
 	cmdLine(' * Ctrl + Tab:  Auto compleate based on variable names and modules loaded, multiple choices popup a menu', 1, None),\
 	cmdLine(' * Ctrl + Enter:  Multiline functions, delays executing code until only Enter is pressed.', 1, None)]
 	

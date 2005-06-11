@@ -85,13 +85,14 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 void drawscriptspace(ScrArea *sa, void *spacedata)
 {
 	SpaceScript *sc = curarea->spacedata.first;
+	Script *script = NULL;
 
 	glClearColor(0.6, 0.6,	0.6, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT);
 	myortho2(-0.5, curarea->winrct.xmax-curarea->winrct.xmin-0.5, -0.5, curarea->winrct.ymax-curarea->winrct.ymin-0.5);
 
 	if (!sc->script) {
-		Script *script = G.main->script.first;
+		script = G.main->script.first;
 
 		while (script) {
 
@@ -105,7 +106,16 @@ void drawscriptspace(ScrArea *sa, void *spacedata)
 
 	if (!sc->script) return;
 
-	BPY_spacescript_do_pywin_draw(sc);
+	script = sc->script;
+
+	if (script->py_draw) {
+		BPY_spacescript_do_pywin_draw(sc);
+	}
+	/* quick hack for 2.37a for scripts that call the progress bar inside a
+	 * file selector callback, to show previous space after finishing, w/o
+	 * needing an event */
+	else if (!script->flags && !script->py_event && !script->py_button)
+		addqueue(curarea->win, MOUSEX, 0); 
 }
 
 void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt)
@@ -117,7 +127,15 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 	Script *script = sc->script;
 
 	if (script) {
-		BPY_spacescript_do_pywin_event(sc, event, val, ascii);
+		if (script->py_event || script->py_button)
+			BPY_spacescript_do_pywin_event(sc, event, val, ascii);
+
+		/* for file/image sel scripts: if user leaves file/image selection space,
+		 * this frees the script (since it can't be accessed anymore): */
+		else if (script->flags == SCRIPT_FILESEL) {
+			script->flags = 0;
+			script->lastspace = SPACE_SCRIPT;
+		}
 
 		if (!script->flags) {/* finished with this script, let's free it */
 			if (script->lastspace != SPACE_SCRIPT)

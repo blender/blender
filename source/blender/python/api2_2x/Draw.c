@@ -70,6 +70,11 @@
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
 
+/* these delimit the free range for button events */
+#define EXPP_BUTTON_EVENTS_OFFSET 1001
+#define EXPP_BUTTON_EVENTS_MIN 0
+#define EXPP_BUTTON_EVENTS_MAX 15382 /* 16384 - 1 - OFFSET */
+
 /* pointer to main dictionary defined in Blender.c */
 extern PyObject *g_blenderdict;
 
@@ -510,18 +515,6 @@ static void spacescript_do_pywin_buttons( SpaceScript * sc,
 void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	short val, char ascii )
 {
-	static int menu_hack = 0;
-
-	/* about menu_hack above: when a menu returns after an entry is chosen,
-	 * two events are generated, the second one with val = 4.  We don't want
-	 * this second one to be passed to Python, because it can be confused with
-	 * some event with same number defined by the script.
-	 * What we do is set menu_hack to 1 if a button event occurs.
-	 * Then if the next one is also a button event, w/ val = 4, we discard it. */
-
-	if( event != UI_BUT_EVENT || !val )
-		menu_hack = 0;
-
 	if( event == QKEY && G.qual & ( LR_ALTKEY | LR_CTRLKEY ) ) {
 		/* finish script: user pressed ALT+Q or CONTROL+Q */
 		Script *script = sc->script;
@@ -533,27 +526,20 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 		return;
 	}
 
-	if( val ) {
-		if( uiDoBlocks( &curarea->uiblocks, event ) != UI_NOTHING )
-			event = 0;
+	if (val) {
 
-		if( event == UI_BUT_EVENT ) {
-			if( menu_hack && val == UI_RETURN_OK ) {	/* "false" event? */
-				if ( menu_hack == 2 ) /* was last event UI_RETURN_OUT? */
-					spacescript_do_pywin_buttons( sc, UI_RETURN_OUT );	/* if so, send */
-				menu_hack = 0; /* clear menu_hack */
-			} 
-			else if( val == UI_RETURN_OUT ) /* possible cancel */
-				menu_hack = 2;
-			else {
-				menu_hack = 1;
-				spacescript_do_pywin_buttons( sc, val );
-			}
+		if (uiDoBlocks( &curarea->uiblocks, event ) != UI_NOTHING) event = 0;
 
+		if (event == UI_BUT_EVENT) {
+			/* check that event is in free range for script button events;
+			 * read the comment before check_button_event() below to understand */
+			if (val >= EXPP_BUTTON_EVENTS_OFFSET && val < 0x4000)
+				spacescript_do_pywin_buttons(sc, val - EXPP_BUTTON_EVENTS_OFFSET);
+			return;
 		}
 	}
 
-	/* Using the "event" main module var, used by scriptlinks, to pass the ascii
+	/* We use the "event" main module var, used by scriptlinks, to pass the ascii
 	 * value to event callbacks (gui/event/button callbacks are not allowed
 	 * inside scriptlinks, so this is ok) */
 	if( sc->script->py_event ) {
@@ -756,6 +742,21 @@ static uiBlock *Get_uiBlock( void )
 	return uiGetBlock( butblock, curarea );
 }
 
+/* We restrict the acceptable event numbers to a proper "free" range
+ * according to other spaces in Blender.
+ * winqread***space() (space events callbacks) use short for events
+ * (called 'val' there) and we also translate by EXPP_BUTTON_EVENTS_OFFSET
+ * to get rid of unwanted events (check BPY_do_pywin_events above for
+ * explanation). This function takes care of that and proper checking: */
+static int check_button_event(int *event) {
+	if ((*event < EXPP_BUTTON_EVENTS_MIN) ||
+			(*event > EXPP_BUTTON_EVENTS_MAX)) {
+		return -1;
+	}
+	*event += EXPP_BUTTON_EVENTS_OFFSET;
+	return 0;
+}
+
 static PyObject *Method_Button( PyObject * self, PyObject * args )
 {
 	uiBlock *block;
@@ -767,6 +768,10 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 			       &x, &y, &w, &h, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, five ints and optionally another string as arguments" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	block = Get_uiBlock(  );
 
@@ -789,6 +794,10 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 			       &x, &y, &w, &h, &def, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, six ints and optionally another string as arguments" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
 	but->type = 1;
@@ -814,6 +823,10 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 			       &x, &y, &w, &h, &def, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, six ints and optionally another string as arguments" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
 	but->type = 1;
@@ -872,6 +885,10 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, five ints, three PyObjects\n\
 			and optionally another int and string as arguments" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
 
@@ -932,13 +949,17 @@ static PyObject *Method_Scrollbar( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "iiiiiOOO|is", &event, &x, &y, &w, &h,
 			       &inio, &mino, &maxo, &realtime, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected five ints, three PyObjects and optionally\n\
-			another int and string as arguments" );
+			"expected five ints, three PyObjects and optionally\n\
+another int and string as arguments" );
 
 	if( !PyNumber_Check( inio ) || !PyNumber_Check( inio )
 	    || !PyNumber_Check( inio ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected numbers for initial, min, and max" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
 
@@ -995,6 +1016,10 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 					      "expected a string, five ints, three PyObjects and\n\
 			optionally another string as arguments" );
 
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
+
 	but = newbutton(  );
 
 	if( PyFloat_Check( inio ) ) {
@@ -1044,6 +1069,10 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a string, five ints, a string, an int and\n\
 	optionally another string as arguments" );
+
+	if (check_button_event(&event) == -1)
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"button event argument must be in the range [0, 16382]");
 
 	if (len > (UI_MAX_DRAW_STR - 1)) {
 		len = UI_MAX_DRAW_STR - 1;

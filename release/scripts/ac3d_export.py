@@ -10,7 +10,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.36 2005-04-14"
+__version__ = "2.37a 2005-06-09"
 
 __bpydoc__ = """\
 This script exports selected Blender meshes to AC3D's .ac file format.
@@ -47,6 +47,8 @@ left without mats -- it's better to always add your own materials;<br>
     - set texture dir: override the actual textures path with a given default
 path (or simply export the texture names, without dir info, if the path is
 empty);<br>
+    - only selected: only consider selected objects when looking for meshes
+to export (read notes below about tokens, too);<br>
     strings:
     - export dir: default dir to export to;<br>
     - texture dir: override textures path with this path if 'set texture dir'
@@ -118,6 +120,7 @@ SET_TEX_DIR = True
 TEX_DIR = ''
 AC3D_4 = True # export crease value, compatible with AC3D 4 loaders
 NO_SPLIT = False
+ONLY_SELECTED = True
 EXPORT_DIR = ''
 
 tooltips = {
@@ -130,6 +133,7 @@ tooltips = {
 	'TEX_DIR': "(see \"set tex dir\") dir to prepend to all exported texture names (leave empty for no dir)",
 	'AC3D_4': "compatibility mode, adds 'crease' tag and slightly better material support",
 	'NO_SPLIT': "don't split meshes with multiple textures (or both textured and non textured polygons)",
+	'ONLY_SELECTED': "export only selected objects"
 }
 
 def update_RegistryInfo():
@@ -143,6 +147,7 @@ def update_RegistryInfo():
 	d['AC3D_4'] = AC3D_4
 	d['NO_SPLIT'] = NO_SPLIT
 	d['EXPORT_DIR'] = EXPORT_DIR
+	d['ONLY_SELECTED'] = ONLY_SELECTED
 	d['tooltips'] = tooltips
 	Blender.Registry.SetKey(REG_KEY, d, True)
 
@@ -159,6 +164,7 @@ if rd:
 		SET_TEX_DIR = rd['SET_TEX_DIR']
 		TEX_DIR = rd['TEX_DIR']
 		EXPORT_DIR = rd['EXPORT_DIR']
+		ONLY_SELECTED = rd['ONLY_SELECTED']
 		NO_SPLIT = rd['NO_SPLIT']
 	except KeyError: update_RegistryInfo()
 
@@ -673,10 +679,13 @@ def fs_callback(filename):
 
 # -- End of definitions
 
-OBJS = Blender.Object.GetSelected()
+if ONLY_SELECTED:
+	OBJS = Blender.Object.GetSelected()
+else:
+	OBJS = Blender.Scene.GetCurrent().getChildren()
 
 if not OBJS:
-	Blender.Draw.PupMenu('ERROR: No objects selected')
+	Blender.Draw.PupMenu('ERROR: no objects selected')
 else:
 	fname = bsys.makename(ext=".ac")
 	if EXPORT_DIR:

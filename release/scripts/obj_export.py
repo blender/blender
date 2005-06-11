@@ -57,10 +57,10 @@ NULL_IMG = '(null)' # from docs at http://astronomy.swin.edu.au/~pbourke/geomfor
 def save_mtl(filename):
 	file = open(filename, "w")
 	for mat in Material.Get():
-		
+
 		file.write('newmtl %s\n' % (mat.getName())) # Define a new material
 
-		# Hardness, convert blenders 1-511 to MTL's 
+		# Hardness, convert blenders 1-511 to MTL's
 		file.write('Ns %s\n' % ((mat.getHardness()-1) * 1.9607843137254901 ) )
 		
 		col = mat.getRGBCol()
@@ -163,7 +163,7 @@ def save_obj(filename):
 				if f.image.filename != currentImgName:
 					currentImgName = f.image.filename
 					# Set a new image for all following faces
-					file.write( 'usemapusemap %s\n' % currentImgName.split('\\')[-1].split('/')[-1] )
+					file.write( 'usemap %s\n' % currentImgName.split('\\')[-1].split('/')[-1] )
 				
 			elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
 				currentImgName = NULL_IMG
