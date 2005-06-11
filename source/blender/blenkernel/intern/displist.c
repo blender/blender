@@ -468,7 +468,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			col1[3]= fac>=1.0?255:(char)fac;
 			fac= vertcol[2]*shi.g;
 			col1[2]= fac>=1.0?255:(char)fac;
-			fac= vertcol[2]*shi.b;
+			fac= vertcol[1]*shi.b;
 			col1[1]= fac>=1.0?255:(char)fac;
 		}
 		else {
