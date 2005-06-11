@@ -568,10 +568,10 @@ static void edge_drawflags(void)
 		e2= efa->e2;
 		e3= efa->e3;
 		e4= efa->e4;
-		if(e1->f2<3) e1->f2+= 1;
-		if(e2->f2<3) e2->f2+= 1;
-		if(e3->f2<3) e3->f2+= 1;
-		if(e4 && e4->f2<3) e4->f2+= 1;
+		if(e1->f2<4) e1->f2+= 1;
+		if(e2->f2<4) e2->f2+= 1;
+		if(e3->f2<4) e3->f2+= 1;
+		if(e4 && e4->f2<4) e4->f2+= 1;
 		
 		if(e1->vn==0) e1->vn= (EditVert *)efa;
 		if(e2->vn==0) e2->vn= (EditVert *)efa;
@@ -606,10 +606,15 @@ static void edge_drawflags(void)
 		efa= em->faces.first;
 		while(efa) {
 			if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
+			else efa->e1->f2= 1;
 			if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
+			else efa->e2->f2= 1;
 			if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
-			if(efa->e4 && efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
-			
+			else efa->e3->f2= 1;
+			if(efa->e4) {
+				if(efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
+				else efa->e4->f2= 1;
+			}
 			efa= efa->next;
 		}
 		
