@@ -394,6 +394,7 @@ static void transformEvent(unsigned short event, short val) {
 			}
 			Trans.redraw= 1;
 			break;
+		case PAGEUPKEY:
 		case WHEELDOWNMOUSE:
 			if(Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 1.1f;
@@ -409,6 +410,7 @@ static void transformEvent(unsigned short event, short val) {
 			}
 			Trans.redraw= 1;
 			break;
+		case PAGEDOWNKEY:
 		case WHEELUPMOUSE:
 			if(Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 0.90909090f;
