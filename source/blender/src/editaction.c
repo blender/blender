@@ -970,7 +970,7 @@ void paste_posebuf (int flip){
 
 				temp = set_pose_channel (ob->pose, temp);
 
-				if (U.flag & USER_RECORDKEYS){
+				if (G.flags & G_RECORDKEYS){
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
 						set_action_key(ob->action, temp, AC_QUAT_X, newchan);
@@ -992,7 +992,7 @@ void paste_posebuf (int flip){
 			}
 		}
 
-		if (U.flag & USER_RECORDKEYS) {
+		if (G.flags & G_RECORDKEYS) {
 			remake_action_ipos(ob->action);
 			allqueue (REDRAWIPO, 0);
 			allqueue (REDRAWVIEW3D, 0);

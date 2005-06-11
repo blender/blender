@@ -2589,9 +2589,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Auto keyframe",
 			(xpos+(2*edgsp)+(2*mpref)+midsp),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButBitI(block, TOG, USER_RECORDKEYS, REDRAWTIME, "Action and Object", 
+		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
 					(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
-					 &(U.flag), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
+					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
 
 //		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
 //			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,

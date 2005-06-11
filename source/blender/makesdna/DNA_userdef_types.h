@@ -178,7 +178,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_TWOBUTTONMOUSE		4096
 #define USER_NONUMPAD			8192
 #define USER_LMOUSESELECT		16384
-#define USER_RECORDKEYS			32768
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
