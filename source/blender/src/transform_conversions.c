@@ -733,6 +733,8 @@ static void createTransCurveVerts(TransInfo *t)
     td = t->data;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
+			TransData *head, *tail;
+			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
 					if(propmode || (bezt->f1 & 1)) {
@@ -750,6 +752,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 						td++;
 						count++;
+						tail++;
 					}
 					/* THIS IS THE CV, the other two are handles */
 					if(propmode || (bezt->f2 & 1)) {
@@ -768,6 +771,7 @@ static void createTransCurveVerts(TransInfo *t)
 
 						td++;
 						count++;
+						tail++;
 					}
 					if(propmode || (bezt->f3 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[2]);
@@ -784,13 +788,20 @@ static void createTransCurveVerts(TransInfo *t)
 
 						td++;
 						count++;
+						tail++;
 					}
 				}
+				else if (propmode && head != tail) {
+					calc_distanceCurveVerts(head, tail-1);
+					head = tail;
+				}
 			}
-			if (propmode)
-				calc_distanceCurveVerts(td-(nu->pntsu*3), td-1);
+			if (propmode && head != tail)
+				calc_distanceCurveVerts(head, tail);
 		}
 		else {
+			TransData *head, *tail;
+			head = tail = td;
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
 					if(propmode || (bp->f1 & 1)) {
@@ -809,11 +820,16 @@ static void createTransCurveVerts(TransInfo *t)
 
 						td++;
 						count++;
+						tail++;
 					}
 				}
+				else if (propmode && head != tail) {
+					calc_distanceCurveVerts(head, tail-1);
+					head = tail;
+				}
 			}
-			if (propmode)
-				calc_distanceCurveVerts(td-(nu->pntsu*nu->pntsv), td-1);
+			if (propmode && head != tail)
+				calc_distanceCurveVerts(head, tail-1);
 		}
 	}
 }
