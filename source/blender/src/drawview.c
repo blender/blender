@@ -96,6 +96,7 @@
 #include "BIF_drawimage.h"
 #include "BIF_editgroup.h"
 #include "BIF_editarmature.h"
+#include "BIF_editmesh.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
@@ -1257,6 +1258,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					CLAMP(eed->crease, 0.0, 1.0);
 				}
 			}
+			
+			recalc_editnormals();
 		}
 		else if(ob->type==OB_CURVE || ob->type==OB_SURF) {
 			extern ListBase editNurb; /* editcurve.c */

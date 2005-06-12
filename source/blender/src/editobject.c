@@ -1624,6 +1624,8 @@ void docentre(int centremode)
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				VecSubf(eve->co, eve->co, cent);			
 			}
+			
+			recalc_editnormals();
 		}
 	}
 	
