@@ -32,8 +32,7 @@ Usage:
 pop-up menu and select the file to open.
 
 Notes:<br>
-    Mac AI files have different line endings.  The author wrote a version of
-the importer that supports them, check forum or site links above.
+    If the imported curve looks "messy", you may need to enter edit mode with the imported curve selected and toggle cyclic mode for it, by selecting all its points and pressing "c" or using the Curve menu in the 3d view header.
 """
 
 #----------------------------------------------

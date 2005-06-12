@@ -1,11 +1,11 @@
 #!BPY
 """ Registration info for Blender menus:
-Name: 'VRML 2.0 (.wrl)...'
+Name: 'VRML 97 (old version)...'
 Blender: 232
 Group: 'Export'
 Submenu: 'All Objects...' all
 Submenu: 'Selected Objects...' selected
-Tooltip: 'Export to VRML2 (.wrl) file.'
+Tooltip: 'Old version of VRML2 exporter, please try the newer one'
 """
 
 __author__ = ("Rick Kimball", "Ken Miller", "Steve Matthews")
@@ -984,6 +984,9 @@ def file_callback(filename):
 #------------------------------------------------------------------------
 # main routine
 #------------------------------------------------------------------------
+print "\nThis is the old version of the vrml 2 (or 97) exporter."
+print "It should be removed soon, please try the updated 'VRML 97' version.\n"
+
 try:
     ARG = __script__['arg'] # user selected argument
 except:

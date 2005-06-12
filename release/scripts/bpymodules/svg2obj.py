@@ -1,5 +1,5 @@
 """
-SVG 2 OBJ translater, 0.2.7
+SVG 2 OBJ translater, 0.3.1
 (c) jm soler juillet/novembre 2004, released under Blender Artistic Licence 
     for the Blender 2.34/33 Python Scripts Bundle.
 #---------------------------------------------------------------------------
@@ -54,7 +54,9 @@ Yet done:
    h : ligne_tracee_h, 
    z : boucle_z,
    q : courbe_vers_q,
-	
+
+   transfrom for <g> tag 
+   transform for <path> tag
 
 Changelog:
       0.1.1 : - control file without extension
@@ -70,7 +72,8 @@ Changelog:
       0.2.6 : - correction for illustrator 10 SVG
       0.2.7 : - correction for inskape 0.40 cvs  SVG
       0.2.8 : - correction for inskape plain SVG
-
+      0.3   : - transform properties added
+      0.3.1 : - compatibility restored with gimp 
                 
 ==================================================================================   
 =================================================================================="""
@@ -268,14 +271,11 @@ def save_GEOfile(dir,nom,t):
      f=open(dir+nom+'OOO.obj','w')
      f.writelines(t)
      f.close()
-     #warning = "REMINDER : %t | Do not forget to rename your blender file NOW ! %x1"
-     #result = Blender.Draw.PupMenu(warning)
 
 
 def filtre_DATA(c,D,n):
     global DEBUG,TAGcourbe
     l=[] 
-
     if len(c[0])==1 and D[c[1]+1].find(',')!=-1:
         for n2 in range(1,n+1): 
            ld=D[c[1]+n2].split(',')
@@ -303,10 +303,10 @@ def contruit_SYMETRIC(l):
 
 def mouvement_vers(c, D, n0,CP):
     global DEBUG,TAGcourbe
-    print 'c',c,'D[c[1]+1]',D[c[1]+1]
+    #print 'c',c,'D[c[1]+1]',D[c[1]+1]
 
     l=filtre_DATA(c,D,1)
-    print 'l',l
+    #print 'l',l
     if n0 in courbes.ITEM.keys():
        n0+=1
     #
@@ -404,8 +404,8 @@ def courbe_vers_c(c, D, n0,CP): #c,C
 
     CP=[l[4],l[5]]
     if DEBUG==1:
-       print 'D[c[1]]', D[c[1]], c
-       print D
+       pass #print 'D[c[1]]', D[c[1]], c
+       #print D
     if len(D)<c[1]+4 and D[c[1]+4] not in TAGcourbe :
         c[1]+=3
         courbe_vers_c(c, D, n0,CP)
@@ -436,12 +436,41 @@ def ligne_tracee_l(c, D, n0,CP): #L,l
     
     
 def ligne_tracee_h(c,D,n0,CP): #H,h
-         
+    #print '|',c[0],'|',len(c[0]),'  --> ',CP[0]
+    if c[0]=='h':
+       l=["%4s"%(float(D[c[1]+1])+float(CP[0])),
+          "%4s"%float(CP[1])]
+    else:
+       l=["%4s"%float(D[c[1]+1]),
+          "%4s"%float(CP[1])]        
+    B=Bez()
+    B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
+    B.ha=[0,0]
+    courbes.ITEM[n0].beziers_knot.append(B)    
+
+    CP=[l[0],l[1]]
+    #print 'CP', CP    
     return  courbes,n0,CP    
 
-def ligne_tracee_v(c,D,n0,CP): #V
-    #print c
-    #CP=[]
+def ligne_tracee_v(c,D,n0,CP): #V, v
+    #l=filtre_DATA(c,D,0)
+    
+    if c[0]=='v':
+       l=["%4s"%float(CP[0]),
+          "%4s"%(float(D[c[1]+1])+float(CP[1]))]
+       #print '|',c[0],'|', len(c[0]) ,'  --> ',CP
+    else:
+       l=["%4s"%float(CP[0]),
+          "%4s"%float(D[c[1]+1])]        
+       #print '|',c[0],'|', len(c[0]) ,'  --> ',CP
+
+    B=Bez()
+    B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
+    B.ha=[0,0]
+    courbes.ITEM[n0].beziers_knot.append(B)    
+
+    CP=[l[0],l[1]]
+    #print 'CP', CP
     return  courbes,n0,CP    
 
 def boucle_tracee_z(c,D,n0,CP): #Z
@@ -473,6 +502,8 @@ Actions=   {     "C" : courbe_vers_c,
 }
      
 TAGcourbe=Actions.keys()
+TAGtransform=['M','L','C','S','H','V','T','Q']
+tagTRANSFORM=0
 
 def get_content(val,t0):
     t=t0[:] 
@@ -497,6 +528,16 @@ def get_tag(val,t):
     if DEBUG==3 : print t[:10], val
 
     return t,val
+
+def get_data(val,t):
+
+    t=t[t.find('<'+val):]
+    val=t[:t.find('</'+val+'>')]
+    t=t[t.find('</'+val+'>')+3+len(val):]
+    
+    if DEBUG==3 : print t[:10], val
+
+    return t,val
     
 def get_val(val,t):
     d=""
@@ -516,16 +557,16 @@ def get_val(val,t):
             d=float(d)
             break
         #else:
-	    #  print l
+        #  print l
         d=0.0 
     return d
 
 def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
     if viewbox==0:
         h=get_val('height',SVG)
-        print 'h : ',h
+        if DEBUG==1 : print 'h : ',h
         w=get_val('width',SVG)
-        print 'w :',w
+        if DEBUG==1 : print 'w :',w
         BOUNDINGBOX['rec']=[0.0,0.0,w,h]
         r=BOUNDINGBOX['rec']
         BOUNDINGBOX['coef']=w/h       
@@ -548,14 +589,17 @@ def unpack_DATA(DATA):
     DATA[0]=DATA[0].replace('-',',-')
     
     for d in Actions.keys():
-        DATA[0]=DATA[0].replace(d,','+d+',')
+        DATA[0]=DATA[0].replace(d,', '+d+',')
 
     DATA[0]=DATA[0].replace(',,',',')
+    
     if DATA[0][0]==',':DATA[0]=DATA[0][1:]
     if DATA[0][-1]==',':DATA[0]=DATA[0][:-1]
+
     DATA[0]=DATA[0].replace('\n','')
     DATA[0]=DATA[0].replace('\t','')
     DATA[0]=DATA[0].split(',')
+
     D2=[]
     D1=DATA[0]
     
@@ -581,10 +625,70 @@ def unpack_DATA(DATA):
                  n+=7
     return D2
 
-def format_PATH(t):
+def translate(a,b):
+    return [a,b]
 
+def get_TRANSFORM(STRING):
+    STRING,TRANSFORM=get_content('transform',STRING)
+    if TRANSFORM.find('translate')!=-1:
+       exec "TRANSFORM=%s"%TRANSFORM
+    return  TRANSFORM
+
+def G_move(l,a,t):
+    if a!=-1:
+       return str(float(l)+float(t[a]))
+    else :
+       l=l.split(',')
+       return str(float(l[0])+float(t[0]))+','+str(float(l[1])+float(t[1]))
+    
+def transform_DATA(D1,TRANSFORM):   
+    for cell in range(len(D1)):
+        if D1[cell] in TAGtransform:
+           try:       
+                if D1[cell] == 'C': #6 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
+                    D1[cell+3]=G_move(D1[cell+3],0,TRANSFORM)
+                    D1[cell+4]=G_move(D1[cell+4],1,TRANSFORM)
+                    D1[cell+5]=G_move(D1[cell+5],0,TRANSFORM)
+                    D1[cell+6]=G_move(D1[cell+6],1,TRANSFORM)
+                elif D1[cell] in ['M','L','T']: #2 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
+                elif D1[cell] == ['S','Q']: #4 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
+                    D1[cell+3]=G_move(D1[cell+3],0,TRANSFORM)
+                    D1[cell+4]=G_move(D1[cell+4],1,TRANSFORM)
+           except :
+                if D1[cell] == 'C': #6 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],-1,TRANSFORM)
+                    D1[cell+3]=G_move(D1[cell+3],-1,TRANSFORM)
+                elif D1[cell] in ['M','L','T']: #2 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                elif D1[cell] == ['S','Q']: #4 valeurs
+                    D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
+                    D1[cell+2]=G_move(D1[cell+2],-1,TRANSFORM)
+           if D1[cell] == 'H': #1 valeurs x
+                n=0
+                D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
+           elif D1[cell] == 'V': #1 valeurs y
+                n=0
+                D1[cell+1]=G_move(D1[cell+1],1,TRANSFORM)
+    return D1            
+                
+def format_PATH(t,TRANSFORM):
+    global tagTRANSFORM
+    
     t,PATH=get_tag('path',t)
 
+    if PATH.find(' transform="')!=-1:
+       TRANSFORM2=get_TRANSFORM(PATH)
+       TRANSFORM[0]+=TRANSFORM2[0]
+       TRANSFORM[1]+=TRANSFORM2[1]
+       tagTRANSFORM+=1
+       
     if PATH.find(' id="')!=-1:
        PATH,ID=get_content('id',PATH)
        #print 'ident = ', ID
@@ -606,6 +710,8 @@ def format_PATH(t):
     # 0.2.8 : end
         
     D=D.split(' ')
+
+    if  tagTRANSFORM in [1,2] : D=transform_DATA(D,TRANSFORM)
     
     try:
       while D.index(''):
@@ -613,17 +719,20 @@ def format_PATH(t):
     except:
       pass
     
-    if len(D)==1 or len(D[0])>1:
+    if len(D)==1 or len(D[0])>1 :
        D1=[]     
        for D0 in D:
            D1+=unpack_DATA([D0])[:]
        D=D1
-       
+
+
     return t,D
 
 
+
+                        
 def scan_FILE(nom):
-  global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale
+  global CP, courbes, SCALE, DEBUG, BOUNDINGBOX, scale, tagTRANSFORM
   dir,name=split(nom)
   name=name.split('.')
   n0=0
@@ -643,20 +752,37 @@ def scan_FILE(nom):
      SVG,viewbox=get_content('viewBox',SVG)
 
      SVG=SVG.split(' ')
-     print SVG
+     if DEBUG==1 : print SVG
      if viewbox==0:
           BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,0)
      else:
-          BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox)     
+          BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox)
+          
+     while t.find('<g')!=-1:
+         t,G=get_data('g',t)
+         TRANSFORM=[0.0,0.0]
+         tagTRANSFORM=0
+         if G.find(' transform="')!=-1:  
+            TRANSFORM=get_TRANSFORM(G)
+            tagTRANSFORM=1
+         while G.find('path')!=-1: 
+            G,D=format_PATH(G,TRANSFORM)
+            cursor=0
+            for cell in D: 
+              if DEBUG==2 : print 'cell : ',cell ,' --'                   
+              if len(cell)>=1 and cell[0] in TAGcourbe:
+                   courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
+              cursor+=1
 
      while t.find('path')!=-1:
-         t,D=format_PATH(t)
-         cursor=0
-         for cell in D: 
-            if DEBUG==2 : print 'cell : ',cell ,' --'                   
-            if len(cell)>=1 and cell[0] in TAGcourbe:
+            TRANSFORM=[0.0,0.0]
+            t,D=format_PATH(t,TRANSFORM)
+            cursor=0
+            for cell in D: 
+              if DEBUG==2 : print 'cell : ',cell ,' --'                   
+              if len(cell)>=1 and cell[0] in TAGcourbe:
                    courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
-            cursor+=1
+              cursor+=1
 
   courbes.number_of_items=len(courbes.ITEM.keys())
 
@@ -688,5 +814,5 @@ def  ajustement(v,s):
 def fonctionSELECT(nom):
     scan_FILE(nom)
 
-if DEVELOPPEMENT==1:
+if __name__=='__main__':
    Blender.Window.FileSelector (fonctionSELECT, 'SELECT a .SVG FILE')
