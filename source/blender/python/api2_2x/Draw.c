@@ -850,6 +850,8 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 static void py_slider_update( void *butv, void *data2_unused )
 {
 	uiBut *but = butv;
+	PyObject *ref = Py_BuildValue( "(i)", SPACE_VIEW3D );
+	PyObject *ret = NULL;
 
 	EXPP_disable_force_draw = 1;
 	/*@ Disable forced drawing, otherwise the button object which
@@ -862,8 +864,12 @@ static void py_slider_update( void *butv, void *data2_unused )
 
 	spacescript_do_pywin_buttons( curarea->spacedata.first,
 		uiButGetRetVal( but ) );
-	/* XXX useless right now: */
-	M_Window_Redraw( 0, Py_BuildValue( "(i)", SPACE_VIEW3D ) );
+
+	/* XXX useless right now, investigate better before a bcon 5 */
+	ret = M_Window_Redraw( 0, ref );
+
+	Py_DECREF(ref);
+	if (ret) { Py_DECREF(ret); }
 
 	disable_where_script( 0 );
 

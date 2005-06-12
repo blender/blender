@@ -1,20 +1,22 @@
 #----------------------------------------------
-# (c) jm soler juillet 2004, released under Blender Artistic Licence 
-#    for the Blender 2.34 Python Scripts Bundle.
+# (c) jm soler juillet 2004-juin 2005 , released under Blender Artistic Licence 
+#    for the Blender 2.34-2.37 Python Scripts Bundle.
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_eps.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #----------------------------------------------
-
-SHARP_IMPORT=0
-SCALE=1
-scale=1
+DEVELOPPEMENT   =   0
+SHARP_IMPORT    =   0
+SCALE           =   1.0
+scale           =   1
 
 import sys
 #oldpath=sys.path
+
 import Blender
+from Blender import Draw
 BLversion=Blender.Get('version')
 
 try:
@@ -55,16 +57,16 @@ os.split=split
 os.join=join
 
 def filtreFICHIER(nom):
-     f=open(nom,'r')
+     f=open(nom,'rU')
      t=f.readlines()
      f.close()
      if len(t)==1 and t[0].find('\r'):
               t=t[0].split('\r')
-     if len(t)>1: 
+     if len(t)>1 and t[0].find('PS-Adobe-3.0')==-1 and t[0].find('EPSF')==-1: 
           return t   
      else:
-         name = "OK?%t| Not a valid file or an empty file ... "  # if no %xN int is set, indices start from 1
-         result = Draw.PupMenu(name)
+         name = "OK?%t| Not a valid file or an empty file or... %x1| not a pure PS-Adobe-2.0 file %x2 "  
+         result = Blender.Draw.PupMenu(name)
          return 'false'
         
 #===============================
@@ -118,6 +120,28 @@ n0=0
 #====================== current Point ================================
 #=====================================================================
 CP=[0.0,0.0] #currentPoint
+
+# modifs 12/06/2005       
+#=====================================================================
+#====================== current transform ============================
+#=====================================================================
+class transform:
+      def __init__(self,matrix=[1,0,01],x=0.0,y=0.0):
+          self.matrix=matrix[:]
+          self.xy=[x,y]          
+
+GSTACK          =   []
+stack=transform()
+GSTACK.append(stack)
+
+GSCALE          =   [1.0,1.0]
+GTRANSLATE       =   [0.0,0.0]
+
+def G_move(l,a):
+    global GSCALE, GTRANSLATE, GSTACK
+    #print GSCALE, GTRANSLATE, GSTACK
+    return str((float(l)+GTRANSLATE[a]+GSTACK[-1].xy[a])*GSCALE[a])
+# modifs 12/06/2005
 
 #=====================================================================
 #===== to compare last position to the original move to displacement =
@@ -209,7 +233,13 @@ def mouvement_vers(l,n0,CP):
     courbes.ITEM[n0].Origine=[l[-3].replace('d',''),l[-2]] 
     
     B=Bez()
-    B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
+    B.co=[G_move(CP[0],0),
+          G_move(CP[1],1),
+          G_move(CP[0],0),
+          G_move(CP[1],1),
+          G_move(CP[0],0),
+          G_move(CP[1],1)]
+    
     B.ha=[0,0]    
     courbes.ITEM[n0].beziers_knot.append(B)       
 
@@ -242,7 +272,12 @@ def courbe_vers_c(l, l2, n0,CP): #c,C
     courbes.ITEM[n0].beziers_knot.append(B)
     """
     B=Bez()
-    B.co=[l[2],l[3],l[4],l[5],l[0],l[1]]
+    B.co=[G_move(l[2],0),
+          G_move(l[3],1),
+          G_move(l[4],0),
+          G_move(l[5],1),
+          G_move(l[0],0),
+          G_move(l[1],1)]
     if len(courbes.ITEM[n0].beziers_knot)==1:
        CP=[l[0],l[1]]
        courbes.ITEM[n0].Origine=[l[0],l[1]]
@@ -252,16 +287,21 @@ def courbe_vers_c(l, l2, n0,CP): #c,C
         B.ha=[0,0]
     courbes.ITEM[n0].beziers_knot.append(B)
     if len(l2)>1 and l2[-1] in Actions.keys():
-       B.co[-2]=l2[0]
-       B.co[-1]=l2[1]
+       B.co[-2]=G_move(l2[0],0)
+       B.co[-1]=G_move(l2[1],1)
     else:
-       B.co[-2]=CP[0]
-       B.co[-1]=CP[1]
+       B.co[-2]=G_move(CP[0],0)
+       B.co[-1]=G_move(CP[1],1)
     return  courbes,n0,CP
       
 def ligne_tracee_l(l,n0,CP):
     B=Bez()
-    B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
+    B.co=[G_move(l[0],0),
+          G_move(l[1],1),
+          G_move(l[0],0),
+          G_move(l[1],1),
+          G_move(l[0],0),
+          G_move(l[1],1)]
     B.ha=[0,0]
     courbes.ITEM[n0].beziers_knot.append(B)    
     CP=[l[0],l[1]]
@@ -315,14 +355,14 @@ def pik_pattern(t,l):
 """
              
 def scan_FILE(nom):
-  global CP, courbes, SCALE, scale
+  global CP, courbes, SCALE, scale, GSTACK, GSCALE, GTRANSLATE
   dir,name=split(nom)
   name=name.split('.')
   n0=0
   result=0
   t=filtreFICHIER(nom)
-
-  if nom.upper().find('.EPS')!=-1 or nom.upper().find('.PS')!=-1 and t!='false':
+  #print t
+  if t!='false' and (nom.upper().find('.EPS')!=-1 or nom.upper().find('.PS')!=-1 ):
      if not SHARP_IMPORT:
          warning = "Select Size : %t| As is %x1 | Scale on Height %x2| Scale on Width %x3" 
          scale = Blender.Draw.PupMenu(warning)
@@ -349,7 +389,22 @@ def scan_FILE(nom):
                    courbes,n0,CP=Actions[l0[-1]](l0,l2,n0,CP)
                 else: 
                    courbes,n0,CP=Actions[l0[-1]](l0,n0,CP)
-
+            # modifs 10/06/2005       
+            elif l0!=[] and l0[-1] in ['scale']:
+                GSCALE=[float(l0[-3]),float(l0[-2])]
+            elif l0!=[] and l0[-1] in ['translate']:
+                GTRANSLATE=[float(l0[-3]),float(l0[-2])]
+            elif l0!=[] and l0[-1] in ['concat'] and l0[0] in ['gsave']:
+                l0[1]=l0[1].replace('[','')
+                l0[-2]=l0[-2].replace(']','')
+                stack=transform([float(l0[1]),float(l0[2]),float(l0[3]),float(l0[4])],float(l0[5]),float(l0[6]))
+                GSTACK.append(stack)
+                #print GSTACK
+            elif l0!=[] and l0[-1] in ['concat'] and l0[0] in ['grestore']:
+                del GSTACK[-1]              
+            # modifs 12/06/2005 : end    
+                
+                
        l=l+1#; print l                    
      t=[]
      
@@ -386,5 +441,5 @@ def scan_FILE(nom):
 def fonctionSELECT(nom):
     scan_FILE(nom)
 
-#Blender.Window.FileSelector (fonctionSELECT, 'SELECT .EPS/.PS FILE')
+if DEVELOPPEMENT==1 : Blender.Window.FileSelector (fonctionSELECT, 'SELECT .EPS/.PS FILE')
 #sys.path=oldpath       

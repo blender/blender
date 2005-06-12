@@ -14,7 +14,7 @@ Example::
   import Blender
   from Blender import Material
   mat = Material.New('newMat')          # create a new Material called 'newMat'
-  print mat.rgbCol                      # print its rgb color triplet
+  print mat.rgbCol                      # print its rgb color triplet sequence
   mat.rgbCol = [0.8, 0.2, 0.2]          # change its color
   mat.setAlpha(0.2)                     # mat.alpha = 0.2 -- almost transparent
   mat.emit = 0.7                        # equivalent to mat.setEmit(0.8)
@@ -87,9 +87,9 @@ class Material:
   @type mode: int
   @cvar mode: Mode flags as an or'ed int value.  See the Modes dictionary keys
       and descriptions in L{Modes}.
-  @cvar rgbCol: Material's RGB color triplet.
-  @cvar specCol: Specular color rgb triplet.
-  @cvar mirCol: Mirror color rgb triplet.
+  @cvar rgbCol: Material's RGB color triplet sequence.
+  @cvar specCol: Specular color rgb triplet sequence.
+  @cvar mirCol: Mirror color rgb triplet sequence.
   @cvar R: Red component of L{rgbCol} - [0.0, 1.0].
   @cvar G: Green component of L{rgbCol} - [0.0, 1.0].
   @cvar B: Blue component of L{rgbCol} - [0.0, 1.0].
@@ -221,14 +221,14 @@ class Material:
 
   def getRGBCol():
     """
-    Get the rgb color triplet.
+    Get the rgb color triplet sequence.
     @rtype: list of 3 floats
     @return: [r, g, b]
     """
 
   def setRGBCol(rgb = None):
     """
-    Set the rgb color triplet.  If B{rgb} is None, set the color to black.
+    Set the rgb color triplet sequence.  If B{rgb} is None, set the color to black.
     @type rgb: three floats or a list of three floats
     @param rgb: The rgb color values in [0.0, 1.0] as:
         - a list of three floats: setRGBCol ([r, g, b]) B{or}
@@ -237,14 +237,14 @@ class Material:
  
   def getSpecCol():
     """
-    Get the specular color triplet.
+    Get the specular color triplet sequence.
     @rtype: list of 3 floats
     @return: [specR, specG, specB]
     """
 
   def setSpecCol(rgb = None):
     """
-    Set the specular color triplet.  If B{rgb} is None, set the color to black.
+    Set the specular color triplet sequence.  If B{rgb} is None, set the color to black.
     @type rgb: three floats or a list of three floats
     @param rgb: The rgb color values in [0.0, 1.0] as:
         - a list of three floats: setSpecCol ([r, g, b]) B{or}
@@ -253,14 +253,14 @@ class Material:
 
   def getMirCol():
     """
-    Get the mirror color triplet.
+    Get the mirror color triplet sequence.
     @rtype: list of 3 floats
     @return: [mirR, mirG, mirb]
     """
 
   def setMirCol(rgb = None):
     """
-    Set the mirror color triplet.  If B{rgb} is None, set the color to black.
+    Set the mirror color triplet sequence.  If B{rgb} is None, set the color to black.
     @type rgb: three floats or a list of three floats
     @param rgb: The rgb color values in [0.0, 1.0] as:
         - a list of three floats: setMirCol ([r, g, b]) B{or}
@@ -459,7 +459,7 @@ class Material:
     """
     Set the hardness of the specularity.
     @type hardness: int
-    @param hardness: The new value in [1, 255].
+    @param hardness: The new value in [1, 511].
     """
 
   def getNFlares():
@@ -622,7 +622,7 @@ class Material:
     """
     Assign a Blender Texture object to slot number 'number'.
     @type index: int
-    @param index: material's texture index in [0, 7].
+    @param index: material's texture index in [0, 9].
     @type texture: Blender Texture
     @param texture: a Blender Texture object.
     @type texco: int
@@ -635,7 +635,7 @@ class Material:
     """
     Clear the ith (given by 'index') texture channel of this material.
     @type index: int
-    @param index: material's texture channel index in [0, 7].
+    @param index: material's texture channel index in [0, 9].
     """
 
   def getTextures ():

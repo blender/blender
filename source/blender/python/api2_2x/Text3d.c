@@ -491,11 +491,12 @@ static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "s", &text  ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string argument" ) );
-	if (self) {
-		MEM_freeN (self->curve->str);
-		self->curve->str= MEM_mallocN (strlen (text)+1, "str");
-		strcpy (self->curve->str, text);
-		self->curve->pos= strlen (text);
+	if( self ) {
+		MEM_freeN( self->curve->str );
+		self->curve->str = MEM_mallocN( strlen (text)+1, "str" );
+		strcpy( self->curve->str, text );
+		self->curve->pos = strlen ( text );
+		self->curve->len = strlen ( text );
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
