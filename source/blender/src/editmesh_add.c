@@ -351,6 +351,7 @@ void addedgeface_mesh(void)
 		EM_select_edge(eed, 1);
 		BIF_undo_push("Add edge");
 		allqueue(REDRAWVIEW3D, 0);
+		countall();
 		makeDispList(G.obedit);
 		return;
 	}
