@@ -46,8 +46,8 @@ if os.path.isdir (bs_globals.root_build_dir) == 0:
 	os.makedirs (bs_globals.root_build_dir)
 
 # Blender version.
-version='2.37'
-shortversion = '237' # for wininst target -> nsis installer creation
+version='2.37a'
+shortversion = '237a' # for wininst target -> nsis installer creation
 
 sdl_env = Environment (ENV = os.environ)
 freetype_env = Environment (ENV = os.environ)
