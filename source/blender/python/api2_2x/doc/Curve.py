@@ -394,16 +394,36 @@ class CurNurb:
 
     @cvar flagU: The CurNurb knot flag U (0: uniform, 1: endpoints, 2: bezier)
     @cvar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
+    @cvar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
     """
+	
+    def __setitem__( n, point ):
+      """
+	  Replace the Nth point in the curve. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
+      @rtype: PyNone
+      @return: PyNone
+      @type n: integer
+      @param n: the index of the element to replace
+      @type point: BezTriple or list of 4 floats (optional 5th float is the tilt value in radians)
+      @param point: the point that will replace the one in the curve.  The point can be either a BezTriple type or a list of 4 floats in x,y,z,w (optionally tilt in radians as 5th value) format for a Nurb curve.
+      """
 
+    def __getitem__( n ):
+      """
+	  Get the Nth element in the curve. For Bezier curves, that element is a BezTriple. For the rest (Poly and Nurbs), it is a list of 5 floats: x, y, z, weight, tilt (in radians). NOTE 1: This element element is independant on the curve, modifying it will not affect the curve. NOTE 2: Each successive call returns a new object.
+      @rtype: BezTriple (Bezier Curve) or List of 5 floats [x, y, z, w, t] for Poly or Nurbs
+      @return: The Nth element in the curve
+      @type n: integer
+      @param n: the index of the element to return
+      """
 
     def append( new_point ):
       """
-      Appends a new point to a curve.  This method appends points to both Bezier and Nurb curves.  The type of the argument must match the type of the curve.  An empty curve will assume the type of the first appended point.
+      Appends a new point to a curve.  This method appends points to both Bezier and Nurb curves. The type of the argument must match the type of the curve. List of 4 floats (optional 5th float is the tilt value in radians) for Nurbs or BezTriple for Bezier.
       @rtype: PyNone
       @return: PyNone
-      @type new_point: BezTriple or list of 4 floats
-      @param new_point: the new point to be appended to the curve.  The new point can be either a BezTriple type or a list of 4 floats in x,y,z,w format for a Nurb curve.
+      @type new_point: BezTriple or list of 4 floats (optional 5th float is the tilt value in radians)
+      @param new_point: the new point to be appended to the curve.  The new point can be either a BezTriple type or a list of 4 floats in x,y,z,w (optionally tilt in radians as 5th value) format for a Nurb curve.
       """
 
     def setMatIndex( index ):
@@ -464,6 +484,22 @@ class CurNurb:
       Set the CurNurb knot flag V (knots are recalculated automatically)
       @type value: integer
       @param value: CurNurb knot flag (0 - uniform, 1 - endpoints, 2 - bezier)
+      @rtype: PyNone
+      @return: PyNone
+      """
+
+    def getType():
+      """
+      Get the type of the curve 
+      @rtype: integer
+      @return:  0 - Poly, 1 - Bezier, 4 - NURBS
+      """
+
+    def getType( value ):
+      """
+      Set the type of the curve and converts the curve to its new type if needed
+      @type value: integer
+      @param value: CurNurb type flag (0 - Poly, 1 - Bezier, 4 - NURBS)
       @rtype: PyNone
       @return: PyNone
       """

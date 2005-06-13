@@ -45,6 +45,7 @@ Their *_Init() method declarations are hacked in down below.
 
 
 #include "Armature.h"
+#include "BezTriple.h"
 #include "BGL.h" 
 #include "Blender.h"
 #include "Camera.h"

@@ -24,7 +24,8 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot RIP 2005,
+ *    Stephen Swaney
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -39,48 +40,57 @@
 #include <BKE_library.h>
 #include <BLI_blenlib.h>
 #include <DNA_ipo_types.h>
+#include <MEM_guardedalloc.h>
 
 #include "constant.h"
 #include "gen_utils.h"
 
 
-/*****************************************************************************/
-/* Python API function prototypes for the BezTriple module.                  */
-/*****************************************************************************/
+/***************************************************************************
+  Python API function prototypes for the BezTriple module.                  
+***************************************************************************/
 static PyObject *M_BezTriple_New( PyObject * self, PyObject * args );
 static PyObject *M_BezTriple_Get( PyObject * self, PyObject * args );
 
-/*****************************************************************************/
-/* Python C_BezTriple instance methods declarations:                        */
-/*****************************************************************************/
-static PyObject *BezTriple_setPoints( C_BezTriple * self, PyObject * args );
-static PyObject *BezTriple_getPoints( C_BezTriple * self );
-static PyObject *BezTriple_getTriple( C_BezTriple * self );
+/*************************************
+ Doc strings for the BezTriple module
+*************************************/
 
-/*****************************************************************************/
-/* Python BezTriple_Type callback function prototypes:                      */
-/*****************************************************************************/
-static void BezTripleDeAlloc( C_BezTriple * self );
-static int BezTripleSetAttr( C_BezTriple * self, char *name, PyObject * v );
-static PyObject *BezTripleGetAttr( C_BezTriple * self, char *name );
-static PyObject *BezTripleRepr( C_BezTriple * self );
+static char M_BezTriple_doc[] = "The Blender BezTriple module\n";
 
-/*****************************************************************************/
-/* Python method structure definition for Blender.BezTriple module:          */
-/*****************************************************************************/
+/****************************************************************************
+  Python BPy_BezTriple instance methods declarations:                        
+****************************************************************************/
+static PyObject *BezTriple_setPoints( BPy_BezTriple * self, PyObject * args );
+static PyObject *BezTriple_getPoints( BPy_BezTriple * self );
+static PyObject *BezTriple_getTriple( BPy_BezTriple * self );
+
+/****************************************************************************
+ Python BezTriple_Type callback function prototypes:                      
+*****************************************************************************/
+static void BezTripleDeAlloc( BPy_BezTriple * self );
+static int BezTripleSetAttr( BPy_BezTriple * self, char *name, PyObject * v );
+static PyObject *BezTripleGetAttr( BPy_BezTriple * self, char *name );
+static PyObject *BezTripleRepr( BPy_BezTriple * self );
+static PyObject *BezTriple_Str( BPy_BezTriple * self );
+
+/****************************************************************************
+ Python method structure definition for Blender.BezTriple module:          
+****************************************************************************/
 
 struct PyMethodDef M_BezTriple_methods[] = {
 	{"New", ( PyCFunction ) M_BezTriple_New, METH_VARARGS | METH_KEYWORDS,
 	 0},
+/*	{"New", ( PyCFunction ) M_BezTriple_New, METH_O, 0}, */
 	{"Get", M_BezTriple_Get, METH_VARARGS, 0},
 	{"get", M_BezTriple_Get, METH_VARARGS, 0},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
-/* Python C_BezTriple methods table:                                        */
+/* Python BPy_BezTriple methods table:                                        */
 /*****************************************************************************/
-static PyMethodDef C_BezTriple_methods[] = {
+static PyMethodDef BPy_BezTriple_methods[] = {
 	/* name, method, flags, doc */
 	{"setPoints", ( PyCFunction ) BezTriple_setPoints, METH_VARARGS,
 	 "(str) - Change BezTriple point coordinates"},
@@ -96,10 +106,10 @@ static PyMethodDef C_BezTriple_methods[] = {
 /* Python BezTriple_Type structure definition:                              */
 /*****************************************************************************/
 PyTypeObject BezTriple_Type = {
-	PyObject_HEAD_INIT( NULL )  /* required python macro */
-	0,	/* ob_size */
+	PyObject_HEAD_INIT( NULL )	/*    required python macro            */
+		0,		/* ob_size */
 	"BezTriple",		/* tp_name */
-	sizeof( C_BezTriple ),	/* tp_basicsize */
+	sizeof( BPy_BezTriple ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor ) BezTripleDeAlloc,	/* tp_dealloc */
@@ -112,49 +122,71 @@ PyTypeObject BezTriple_Type = {
 	0,			/* tp_as_sequence */
 	0,			/* tp_as_mapping */
 	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
+	0,			/* tp_call */
+	0,  /*  ( reprfunc) BezTriple_Str,	 tp_str */
+	0,			/* tp_getattro */
+	0,			/* tp_setattro */
+	0,			/* tp_as_buffer */
+	0,                      /* tp_flags */
 	0,			/* tp_doc */
 	0, 0, 0, 0, 0, 0,
-	C_BezTriple_methods,	/* tp_methods */
+	BPy_BezTriple_methods,	/* tp_methods */
 	0,			/* tp_members */
 	0,			/* tm_getset */
 	0
 };
 
 
-/*****************************************************************************/
-/* Function:              M_BezTriple_New                                   */
-/* Python equivalent:     Blender.BezTriple.New                             */
-/*****************************************************************************/
-static PyObject *M_BezTriple_New( PyObject * self, PyObject * args )
+/****************************************************************************
+ Function:              M_BezTriple_New                                   
+ Python equivalent:     Blender.BezTriple.New                             
+****************************************************************************/
+
+static PyObject *M_BezTriple_New( PyObject* self, PyObject * args )
 {
-	return 0;
+	PyObject* in_args = NULL;
+
+	if( !PyArg_ParseTuple( args, "|O", &in_args) ) {
+		return( EXPP_ReturnPyObjError
+				( PyExc_AttributeError,
+				  "expected sequence of 3 or 9 floats or nothing"));
+	}
+
+	if( !in_args ) {
+		in_args = Py_BuildValue( "(fff)", 0.0, 0.0, 0.0 );
+	}
+		
+	return newBezTriple( in_args );
 }
 
-/*****************************************************************************/
-/* Function:              M_BezTriple_Get                                   */
-/* Python equivalent:     Blender.BezTriple.Get                             */
-/* Description:           Receives a string and returns the ipo data obj  */
-/*                        whose name matches the string.  If no argument is  */
-/*                        passed in, a list of all ipo data names in the  */
-/*                        current scene is returned.                         */
-/*****************************************************************************/
+/****************************************************************************
+ Function:              M_BezTriple_Get                                   
+ Python equivalent:     Blender.BezTriple.Get                             
+ Description:           Receives a string and returns the ipo data obj  
+                        whose name matches the string.  If no argument is  
+                        passed in, a list of all ipo data names in the  
+                        current scene is returned.                         
+****************************************************************************/
 static PyObject *M_BezTriple_Get( PyObject * self, PyObject * args )
 {
 	return 0;
 }
 
-/*****************************************************************************/
-/* Function:    BezTripleDeAlloc                                            */
-/* Description: This is a callback function for the C_BezTriple type. It is  */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void BezTripleDeAlloc( C_BezTriple * self )
+/****************************************************************************
+ Function:    BezTripleDeAlloc                                            
+ Description: This is a callback function for the BPy_BezTriple type. It is  
+              the destructor function.                                     
+****************************************************************************/
+static void BezTripleDeAlloc( BPy_BezTriple * self )
 {
+
+	if( self->own_memory)
+		MEM_freeN( self->beztriple );
+	
 	PyObject_DEL( self );
 }
 
-static PyObject *BezTriple_getPoints( C_BezTriple * self )
+static PyObject *BezTriple_getPoints( BPy_BezTriple * self )
 {
 	struct BezTriple *bezt = self->beztriple;
 	PyObject *l = PyList_New( 0 );
@@ -175,7 +207,7 @@ static PyObject *BezTriple_getPoints( C_BezTriple * self )
  *  each point consists of a list of x,y,z float values.
  */
 
-static PyObject *BezTriple_getTriple( C_BezTriple * self )
+static PyObject *BezTriple_getTriple( BPy_BezTriple * self )
 {
 	int i;
 	struct BezTriple *bezt = self->beztriple;
@@ -194,7 +226,7 @@ static PyObject *BezTriple_getTriple( C_BezTriple * self )
 }
 
 
-static PyObject *BezTriple_setPoints( C_BezTriple * self, PyObject * args )
+static PyObject *BezTriple_setPoints( BPy_BezTriple * self, PyObject * args )
 {
 
 	int i;
@@ -245,26 +277,30 @@ static PyObject *BezTriple_setPoints( C_BezTriple * self, PyObject * args )
 
 /*****************************************************************************/
 /* Function:    BezTripleGetAttr                                            */
-/* Description: This is a callback function for the C_BezTriple type. It   */
-/*              taccesses C_BezTriple "member variables" and    methods.    */
+/* Description: This is a callback function for the BPy_BezTriple type. It   */
+/*              taccesses BPy_BezTriple "member variables" and    methods.    */
 /*****************************************************************************/
-static PyObject *BezTripleGetAttr( C_BezTriple * self, char *name )
+static PyObject *BezTripleGetAttr( BPy_BezTriple * self, char *name )
 {
 	if( strcmp( name, "pt" ) == 0 )
 		return BezTriple_getPoints( self );
 	else if( strcmp( name, "vec" ) == 0 )
 		return BezTriple_getTriple( self );
+	else if( strcmp( name, "tilt" ) == 0 )
+		return PyFloat_FromDouble(self->beztriple->alfa);
+	else if( strcmp( name, "__members__" ) == 0 )
+		return Py_BuildValue( "[s,s,s]", "pt", "vec", "tilt" );
 
 	/* look for default methods */
-	return Py_FindMethod( C_BezTriple_methods, ( PyObject * ) self, name );
+	return Py_FindMethod( BPy_BezTriple_methods, ( PyObject * ) self, name );
 }
 
 /*****************************************************************************/
 /* Function:    BezTripleSetAttr                                            */
-/* Description: This is a callback function for the C_BezTriple type. It */
+/* Description: This is a callback function for the BPy_BezTriple type. It */
 /*               sets BezTriple Data attributes (member variables).  */
 /*****************************************************************************/
-static int BezTripleSetAttr( C_BezTriple * self, char *name, PyObject * value )
+static int BezTripleSetAttr( BPy_BezTriple * self, char *name, PyObject * value )
 {
 #if 0
 	/*
@@ -278,6 +314,13 @@ static int BezTripleSetAttr( C_BezTriple * self, char *name, PyObject * value )
 
 	return 0;		/* normal exit */
 #endif
+	if( strcmp( name, "tilt" ) == 0 ) {
+		if (!PyFloat_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, "expected a float" );
+
+		self->beztriple->alfa = (float)PyFloat_AsDouble( value );
+		return 0;
+	}
 
 	return ( EXPP_ReturnIntError( PyExc_AttributeError,
 				      "cannot set a read-only attribute" ) );
@@ -285,10 +328,10 @@ static int BezTripleSetAttr( C_BezTriple * self, char *name, PyObject * value )
 
 /*****************************************************************************/
 /* Function:    BezTripleRepr                                                */
-/* Description: This is a callback function for the C_BezTriple type. It     */
+/* Description: This is a callback function for the BPy_BezTriple type. It     */
 /*              builds a meaninful string to represent  BezTriple objects.   */
 /*****************************************************************************/
-static PyObject *BezTripleRepr( C_BezTriple * self )
+static PyObject *BezTripleRepr( BPy_BezTriple * self )
 {
 	/*      float vec[3][3];
 	   float alfa;
@@ -313,28 +356,74 @@ static PyObject *BezTripleRepr( C_BezTriple * self )
 	return PyString_FromString( str );
 }
 
+
+/*
+ BezTriple_Str
+ display object as string.
+ equivalent to python str(o)
+*/
+
+static PyObject *BezTriple_Str( BPy_BezTriple * self )
+{
+	BezTriple *p = self->beztriple;
+
+/* fixme: */
+	return PyString_FromFormat(
+		 "BezTriple (%f %f %f) (%f %f %f) (%f %f %f) alpha %f\n (%d %d) (%d %d) (%d %d) h1:%d h2:%d f1:%d f2:%d f3:%d hide:%d",
+		 p->vec[0][0], p->vec[0][1],  p->vec[0][2], 
+		 p->vec[1][0],  p->vec[1][1], p->vec[1][2],
+		 p->vec[2][0], p->vec[2][1],  p->vec[2][2],
+		 p->alfa,
+		 p->s[0][0], p->s[0][1],
+		 p->s[1][0], p->s[1][1],
+		 p->s[2][0], p->s[1][1],
+		 p->h1, p->h2, p->f1,
+		 p->f2, p->f3,
+		 p->hide );
+
+}
+
+
+/*
+  BezTriple_Init
+*/
+
+PyObject *BezTriple_Init( void )
+{
+	PyObject *submodule;
+
+	BezTriple_Type.ob_type = &PyType_Type;
+
+	submodule = Py_InitModule3( "Blender.BezTriple",
+								M_BezTriple_methods,
+								M_BezTriple_doc );
+
+	return submodule;
+}
+
 /* Three Python BezTriple_Type helper functions needed by the Object module: */
 
-/*****************************************************************************/
-/* Function:    BezTriple_CreatePyObject                                    */
-/* Description: This function will create a new C_BezTriple from an existing */
-/*              Blender ipo structure.                                       */
-/*****************************************************************************/
+/****************************************************************************
+ Function:    BezTriple_CreatePyObject                                    
+ Description: This function will create a new BPy_BezTriple from an existing 
+              Blender ipo structure.                                       
+****************************************************************************/
 PyObject *BezTriple_CreatePyObject( BezTriple * bzt )
 {
-	C_BezTriple *pybeztriple;
+	BPy_BezTriple *pybeztriple;
 
 	pybeztriple =
-		( C_BezTriple * ) PyObject_NEW( C_BezTriple, &BezTriple_Type );
+		( BPy_BezTriple * ) PyObject_NEW( BPy_BezTriple, &BezTriple_Type );
 
 	if( !pybeztriple )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create C_BezTriple object" );
+					      "couldn't create BPy_BezTriple object" );
 
 	pybeztriple->beztriple = bzt;
 
 	return ( PyObject * ) pybeztriple;
 }
+
 
 /*****************************************************************************/
 /* Function:    BezTriple_CheckPyObject                                     */
@@ -353,5 +442,100 @@ int BezTriple_CheckPyObject( PyObject * pyobj )
 /*****************************************************************************/
 BezTriple *BezTriple_FromPyObject( PyObject * pyobj )
 {
-	return ( ( C_BezTriple * ) pyobj )->beztriple;
+	return ( ( BPy_BezTriple * ) pyobj )->beztriple;
+}
+
+
+/*
+  Create a new BezTriple
+  input args is a sequence - either 3 or 9 floats
+*/
+
+PyObject *newBezTriple( PyObject *args)
+{
+	BPy_BezTriple *pybez = NULL;
+	int length;
+	float numbuf[9];
+/*
+  check input args:
+    sequence of nine floats - x,y,z for h1, pt, h2
+    sequence of 3 floats - x,y,z for pt with zero len handles in AUTO mode
+*/
+
+	/* do we have a sequence of the right length? */
+
+	if( ! PySequence_Check( args )) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected better stuff"));
+	}
+	
+	length = PySequence_Length( args );
+	if( length != 9 && length != 3 )
+		return  EXPP_ReturnPyObjError( PyExc_AttributeError,
+					       "wrong number of points");
+	{
+		int i;
+		PyObject *pyo;
+		for( i = 0; i < length; i++) {
+			pyo = PySequence_GetItem( args, i );
+			if( !pyo )
+				return EXPP_ReturnPyObjError
+					( PyExc_AttributeError,
+					  "wrong number of points");
+			if( !PyFloat_Check( pyo ))
+				return EXPP_ReturnPyObjError
+					( PyExc_AttributeError,
+					  "sequence item not number");
+
+			numbuf[i] = (float) PyFloat_AsDouble( pyo );
+			Py_DECREF( pyo );  /* from GetItem() */
+		}
+	}
+				
+
+	/* create our bpy object */
+	pybez = ( BPy_BezTriple* ) PyObject_New( BPy_BezTriple,
+					       &BezTriple_Type );
+	if( ! pybez )
+		return  EXPP_ReturnPyObjError( PyExc_MemoryError,
+					       "PyObject_New failed");
+	pybez->beztriple = MEM_callocN( sizeof( BezTriple ), "new bpytriple");
+	/* check malloc */
+
+	pybez->own_memory = 1;  /* we own it. must free later */
+
+	
+	switch( length ) {
+	case 9: {
+		int i,j;
+		int num = 0;
+		for( i = 0; i < 3; i++ ){
+			for( j = 0; j < 3; j++){
+				pybez->beztriple->vec[i][j] = numbuf[num ++];
+			}
+		}
+	}
+		break;
+	case 3: {
+		int i;
+		int num = 0;
+		/* set h1, pt, and h2 to the same values. */
+		for( i = 0; i < 3; i++ ) {
+			pybez->beztriple->vec[0][i] = numbuf[num];
+			pybez->beztriple->vec[1][i] = numbuf[num];
+			pybez->beztriple->vec[2][i] = numbuf[num];
+			++num;
+		}
+	}
+		break;
+	default:
+		/* we should not be here! */
+		break;
+	}
+
+
+	pybez->beztriple->h1 = HD_AUTO;
+	pybez->beztriple->h2 = HD_AUTO;
+
+	return ( PyObject* ) pybez;
 }

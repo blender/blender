@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Stephen Swaney
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -36,14 +36,21 @@
 #include <Python.h>
 #include <DNA_curve_types.h>
 
-/*****************************************************************************/
-/* Python C_BezTriple structure definition:              */
-/*****************************************************************************/
+extern PyTypeObject BezTriple_Type;
+
+/* type check macro */
+#define BPy_BezTriple_Check(o) \
+ ( (o)->ob_type == &BezTriple_Type)
+
+/****************************************************************************
+ Python BPy_BezTriple structure definition:              
+****************************************************************************/
 
 typedef struct {
 	PyObject_HEAD		/* required python macro */
 	BezTriple * beztriple;
-} C_BezTriple;
+	int own_memory;   /* true == we own this memory and must delete. */
+} BPy_BezTriple;
 
 /*
  *    prototypes
@@ -52,5 +59,7 @@ typedef struct {
 PyObject *BezTriple_CreatePyObject( BezTriple * bzt );
 int BezTriple_CheckPyObject( PyObject * pyobj );
 BezTriple *BezTriple_FromPyObject( PyObject * pyobj );
+PyObject *newBezTriple( PyObject *args );
+PyObject *BezTriple_Init( void );
 
 #endif				/* EXPP_BEZTRIPLE_H */

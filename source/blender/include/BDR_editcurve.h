@@ -66,6 +66,8 @@ short findnearestNurbvert(short sel, struct Nurb **nurb,
 						  struct BezTriple **bezt, struct BPoint **bp);
 void findselectedNurbvert(struct Nurb **nu, struct BezTriple **bezt, 
 						  struct BPoint **bp);
+
+int convertspline(short type, struct Nurb *nu);
 void setsplinetype(short type);
 void rotate_direction_nurb(struct Nurb *nu);
 int is_u_selected(struct Nurb *nu, int u);

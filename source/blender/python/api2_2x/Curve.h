@@ -56,6 +56,7 @@ PyObject *Curve_Init( void );
 PyObject *Curve_CreatePyObject( struct Curve * curve );
 int Curve_CheckPyObject( PyObject * py_obj );
 struct Curve *Curve_FromPyObject( PyObject * py_obj );
+PyObject *Curve_update( BPy_Curve * self );
 
 PyObject *Curve_getName( BPy_Curve * self );
 PyObject *Curve_setName( BPy_Curve * self, PyObject * args );

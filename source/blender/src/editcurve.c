@@ -1853,12 +1853,140 @@ void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
 	}
 }
 
-void setsplinetype(short type)
+int convertspline(short type, Nurb *nu)
 {
-	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	int a, c, nr;
+
+	if((nu->type & 7)==0) {		/* Poly */
+		if(type==CU_BEZIER) {			    /* to Bezier with vecthandles  */
+			nr= nu->pntsu;
+			bezt =
+				(BezTriple*)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+			nu->bezt= bezt;
+			a= nr;
+			bp= nu->bp;
+			while(a--) {
+				VECCOPY(bezt->vec[1], bp->vec);
+				bezt->f1=bezt->f2=bezt->f3= bp->f1;
+				bezt->h1= bezt->h2= HD_VECT;
+				bp++;
+				bezt++;
+			}
+			MEM_freeN(nu->bp);
+			nu->bp= 0;
+			nu->pntsu= nr;
+			nu->type &= ~7;
+			nu->type |= 1;
+			calchandlesNurb(nu);
+		}
+		else if(type==4) {		    /* to Nurb */
+			nu->type &= ~7;
+			nu->type+= 4;
+			nu->orderu= 4;
+			nu->flagu &= 1;
+			nu->flagu += 4;
+			makeknots(nu, 1, nu->flagu>>1);
+			a= nu->pntsu*nu->pntsv;
+			bp= nu->bp;
+			while(a--) {
+				bp->vec[3]= 1.0;
+				bp++;
+			}
+		}
+	}
+	else if((nu->type & 7)==CU_BEZIER) {	/* Bezier */
+		if(type==0 || type==4) {	    /* to Poly or Nurb */
+			nr= 3*nu->pntsu;
+			nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
+			a= nu->pntsu;
+			bezt= nu->bezt;
+			bp= nu->bp;
+			while(a--) {
+				if(type==0 && bezt->h1==HD_VECT && bezt->h2==HD_VECT) {
+					/* vector handle becomes 1 poly vertice */
+					VECCOPY(bp->vec, bezt->vec[1]);
+					bp->vec[3]= 1.0;
+					bp->f1= bezt->f2;
+					nr-= 2;
+					bp++;
+				}
+				else {
+					for(c=0;c<3;c++) {
+						VECCOPY(bp->vec, bezt->vec[c]);
+						bp->vec[3]= 1.0;
+						if(c==0) bp->f1= bezt->f1;
+						else if(c==1) bp->f1= bezt->f2;
+						else bp->f1= bezt->f3;
+						bp++;
+					}
+				}
+				bezt++;
+			}
+			MEM_freeN(nu->bezt); 
+			nu->bezt= 0;
+			nu->pntsu= nr;
+			nu->pntsv= 1;
+			nu->orderu= 4;
+			nu->orderv= 1;
+			nu->type &= ~7;
+			nu->type+= type;
+			if(nu->flagu & 1) c= nu->orderu-1; 
+			else c= 0;
+			if(type== 4) {
+				nu->flagu &= 1;
+				nu->flagu += 4;
+				makeknots(nu, 1, nu->flagu>>1);
+			}
+		}
+	}
+	else if( (nu->type & 7)==CU_NURBS) {
+		if(type==0) {			/* to Poly */
+			nu->type &= ~7;
+			MEM_freeN(nu->knotsu);
+			nu->knotsu= 0;
+			if(nu->knotsv) MEM_freeN(nu->knotsv);
+			nu->knotsv= 0;
+		}
+		else if(type==CU_BEZIER) {		/* to Bezier */
+			nr= nu->pntsu/3;
+
+			if(nr<2) 
+				return 1;	/* conversion impossible */
+			else {
+				bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
+				nu->bezt= bezt;
+				a= nr;
+				bp= nu->bp;
+				while(a--) {
+					VECCOPY(bezt->vec[0], bp->vec);
+					bezt->f1= bp->f1;
+					bp++;
+					VECCOPY(bezt->vec[1], bp->vec);
+					bezt->f2= bp->f1;
+					bp++;
+					VECCOPY(bezt->vec[2], bp->vec);
+					bezt->f3= bp->f1;
+					bp++;
+					bezt++;
+				}
+				MEM_freeN(nu->bp);
+				nu->bp= 0;
+				MEM_freeN(nu->knotsu);
+				nu->knotsu= 0;
+				nu->pntsu= nr;
+				nu->type &= ~7;
+				nu->type+= 1;
+			}
+		}
+	}
+	return 0;
+}
+
+void setsplinetype(short type)
+{
+	Nurb *nu;
 
 	if(type==CU_CARDINAL || type==CU_BSPLINE) {
 		error("Not implemented yet");
@@ -1868,128 +1996,8 @@ void setsplinetype(short type)
 	nu= editNurb.first;
 	while(nu) {
 		if(isNurbsel(nu)) {
-
-			if((nu->type & 7)==0) {		/* Poly */
-				if(type==CU_BEZIER) {			    /* to Bezier with vecthandles  */
-					nr= nu->pntsu;
-					bezt =
-						(BezTriple*)MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
-					nu->bezt= bezt;
-					a= nr;
-					bp= nu->bp;
-					while(a--) {
-						VECCOPY(bezt->vec[1], bp->vec);
-						bezt->f1=bezt->f2=bezt->f3= bp->f1;
-						bezt->h1= bezt->h2= HD_VECT;
-						bp++;
-						bezt++;
-					}
-					MEM_freeN(nu->bp);
-					nu->bp= 0;
-					nu->pntsu= nr;
-					nu->type &= ~7;
-					nu->type |= 1;
-					calchandlesNurb(nu);
-				}
-				else if(type==4) {		    /* to Nurb */
-					nu->type &= ~7;
-					nu->type+= 4;
-					nu->orderu= 4;
-					nu->flagu &= 1;
-					nu->flagu += 4;
-					makeknots(nu, 1, nu->flagu>>1);
-					a= nu->pntsu*nu->pntsv;
-					bp= nu->bp;
-					while(a--) {
-						bp->vec[3]= 1.0;
-						bp++;
-					}
-				}
-			}
-			else if((nu->type & 7)==CU_BEZIER) {	/* Bezier */
-				if(type==0 || type==4) {	    /* to Poly or Nurb */
-					nr= 3*nu->pntsu;
-					nu->bp = MEM_callocN(nr * sizeof(BPoint), "setsplinetype");
-					a= nu->pntsu;
-					bezt= nu->bezt;
-					bp= nu->bp;
-					while(a--) {
-						if(type==0 && bezt->h1==HD_VECT && bezt->h2==HD_VECT) {
-							/* vector handle becomes 1 poly vertice */
-							VECCOPY(bp->vec, bezt->vec[1]);
-							bp->vec[3]= 1.0;
-							bp->f1= bezt->f2;
-							nr-= 2;
-							bp++;
-						}
-						else {
-							for(c=0;c<3;c++) {
-								VECCOPY(bp->vec, bezt->vec[c]);
-								bp->vec[3]= 1.0;
-								if(c==0) bp->f1= bezt->f1;
-								else if(c==1) bp->f1= bezt->f2;
-								else bp->f1= bezt->f3;
-								bp++;
-							}
-						}
-						bezt++;
-					}
-					MEM_freeN(nu->bezt); 
-					nu->bezt= 0;
-					nu->pntsu= nr;
-					nu->pntsv= 1;
-					nu->orderu= 4;
-					nu->orderv= 1;
-					nu->type &= ~7;
-					nu->type+= type;
-					if(nu->flagu & 1) c= nu->orderu-1; 
-					else c= 0;
-					if(type== 4) {
-						nu->flagu &= 1;
-						nu->flagu += 4;
-						makeknots(nu, 1, nu->flagu>>1);
-					}
-				}
-			}
-			else if( (nu->type & 7)==CU_NURBS && G.obedit->type==OB_CURVE) {
-				if(type==0) {			/* to Poly */
-					nu->type &= ~7;
-					MEM_freeN(nu->knotsu);
-					nu->knotsu= 0;
-					if(nu->knotsv) MEM_freeN(nu->knotsv);
-					nu->knotsv= 0;
-				}
-				else if(type==CU_BEZIER) {		/* to Bezier */
-					nr= nu->pntsu/3;
-
-					if(nr<2) error("no conversion possible");
-					else {
-						bezt = MEM_callocN(nr * sizeof(BezTriple), "setsplinetype2");
-						nu->bezt= bezt;
-						a= nr;
-						bp= nu->bp;
-						while(a--) {
-							VECCOPY(bezt->vec[0], bp->vec);
-							bezt->f1= bp->f1;
-							bp++;
-							VECCOPY(bezt->vec[1], bp->vec);
-							bezt->f2= bp->f1;
-							bp++;
-							VECCOPY(bezt->vec[2], bp->vec);
-							bezt->f3= bp->f1;
-							bp++;
-							bezt++;
-						}
-						MEM_freeN(nu->bp);
-						nu->bp= 0;
-						MEM_freeN(nu->knotsu);
-						nu->knotsu= 0;
-						nu->pntsu= nr;
-						nu->type &= ~7;
-						nu->type+= 1;
-					}
-				}
-			}
+			if (convertspline(type, nu))
+				error("no conversion possible");
 		}
 		nu= nu->next;
 	}

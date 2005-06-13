@@ -77,6 +77,7 @@ static PyObject *M_Curve_Get( PyObject * self, PyObject * args );
 /*****************************************************************************/
 /*  Python BPy_Curve instance methods declarations:                          */
 /*****************************************************************************/
+
 PyObject *Curve_getName( BPy_Curve * self );
 PyObject *Curve_setName( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getPathLen( BPy_Curve * self );
@@ -121,7 +122,7 @@ static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
 
 static PyObject *Curve_getIter( BPy_Curve * self );
 static PyObject *Curve_iterNext( BPy_Curve * self );
-static PyObject *Curve_update( BPy_Curve * self );
+
 PyObject *Curve_getNurb( BPy_Curve * self, int n );
 static int Curve_length( PyInstanceObject * inst );
 void update_displists( void *data );
@@ -475,6 +476,8 @@ PyObject *Curve_setName( BPy_Curve * self, PyObject * args )
 						"expected string argument" ) );
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 	rename_id( &self->curve->id, buf );	/* proper way in Blender */
+
+	Curve_update( self );
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1187,6 +1190,12 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 }
 
 
+/****
+  appendNurb( new_point )
+  create a new nurb in the Curve and add the point param to it.
+  returns a refernce to the newly created nurb.
+*****/
+
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 {
 	Nurb *nurb_ptr = self->curve->nurb.first;
@@ -1210,8 +1219,11 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 
 	if( CurNurb_appendPointToNurb( new_nurb, args ) ) {
 		*pptr = new_nurb;
-		new_nurb->resolu = 12;
-		new_nurb->resolv = 12;
+		new_nurb->resolu = self->curve->resolu;
+		new_nurb->resolv = self->curve->resolv;
+		new_nurb->hide = 0;
+		new_nurb->flag = 1;
+
 
 		if( new_nurb->bezt ) {	/* do setup for bezt */
 			new_nurb->type = CU_BEZIER;
@@ -1220,6 +1232,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 			new_nurb->bezt->f1 = 1;
 			new_nurb->bezt->f2 = 1;
 			new_nurb->bezt->f3 = 1;
+			new_nurb->bezt->hide = 0;
 			/* calchandlesNurb( new_nurb ); */
 		} else {	/* set up bp */
 			new_nurb->pntsv = 1;
@@ -1228,6 +1241,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 			new_nurb->flagu = 0;
 			new_nurb->flagv = 0;
 			new_nurb->bp->f1 = 0;
+			new_nurb->bp->hide = 0;
 			new_nurb->knotsu = 0;
 			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
 		}
@@ -1237,7 +1251,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 		return NULL;	/* with PyErr already set */
 	}
 
-	return EXPP_incr_ret( Py_None );
+	return CurNurb_CreatePyObject( new_nurb );
 }
 
 
@@ -1247,10 +1261,10 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
  *   used. after messing with control points
  */
 
-static PyObject *Curve_update( BPy_Curve * self )
+PyObject *Curve_update( BPy_Curve * self )
 {
-/*	update_displists( ( void * ) self->curve ); */
-	freedisplist( &self->curve->disp );
+/*	update_displists( ( void * ) self->curve );  */
+	freedisplist( &self->curve->disp ); 
 
 	Py_INCREF( Py_None );
 	return Py_None;
