@@ -1,19 +1,15 @@
 #!BPY
 
 """
-Name: 'Skin Two Vert-loops / Loft Multiple'
+Name: 'Bridge/Skin/Loft'
 Blender: 234
 Group: 'Mesh'
-Submenu: 'Loft-loop - shortest edge method' A1
-Submenu: 'Loft-loop - even method' A2
-Submenu: 'Loft-segment - shortest edge' B1
-Submenu: 'Loft-segment - even method' B2
 Tooltip: 'Select 2 or more vert loops, then run this script'
 """
 
-__author__ = "Campbell Barton"
-__url__ = ["blender", "elysiun"]
-__version__ = "1.0 2004/04/25"
+__author__ = "Campbell Barton AKA Ideasman"
+__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
+__version__ = "1.1 2005/06/13"
 
 __bpydoc__ = """\
 With this script vertex loops can be skinned: faces are created to connect the
@@ -23,7 +19,11 @@ Usage:
 
 In mesh Edit mode select the vertices of the loops (closed paths / curves of
 vertices: circles, for example) that should be skinned, then run this script.
-A pop-up will provide further options, if the results of a method are not adequate try one of the others.
+A pop-up will provide further options.
+
+Notes:
+
+If the results of a method chosen from the pop-up are not adequate, undo and try one of the others.
 """
 
 
@@ -59,7 +59,23 @@ import Blender
 from Blender import *
 import math
 from math import *
-arg = __script__['arg']
+
+
+choice = Draw.PupMenu(\
+'Loft-loop - shortest edge method|\
+Loft-loop - even method|\
+Loft-segment - shortest edge|\
+Loft-segment - even method')
+
+if choice == 1:
+	arg='A1'
+elif choice == 2:
+	arg='A2'
+elif choice == 3:
+	arg='B1'
+elif choice == 4:
+	arg='B2'
+
 
 
 #================#
@@ -80,7 +96,7 @@ def clamp(max, number):
 # List func that takes the last item and adds it to the front #
 #=============================================================#
 def listRotate(ls):
-	return [ls[-1]] + ls[:-1]
+	ls.append(ls.pop(0))
 
 #=================================================================#
 # Recieve a list of locs: [x,y,z] and return the average location #
@@ -134,22 +150,26 @@ def selVertBetween2Faces(face1, face2):
 # Measure the total distance between all the edges in   #
 # 2 vertex loops                                        #
 #=======================================================#
-def measureVloop(mesh, v1loop, v2loop, surplusFaces):
+def measureVloop(mesh, v1loop, v2loop, surplusFaces, bestSoFar):
 	totalDist = 0
 	
 	# Rotate the vertloops to cycle through each pair.
 	# of faces to compate the distance between the 2 poins
 	for ii in range(len(v1loop)):
 		if ii not in surplusFaces:
-			V1 = selVertBetween2Faces(mesh.faces[v1loop[0]], mesh.faces[v1loop[1]])
-			V2 = selVertBetween2Faces(mesh.faces[v2loop[0]], mesh.faces[v2loop[1]])
+			# Clamp
+			v2clampii = ii
+			while v2clampii >= len(v2loop):
+				v2clampii -= len(v2loop)
+			print v2clampii
 			
-			P1 = (V1[0],V1[1],V1[2])
-			P2 = (V2[0],V2[1],V2[2])
-	
-			totalDist += measure(P1,P2)
-			v1loop = listRotate(v1loop)
-			v2loop = listRotate(v2loop)
+			V1 = selVertBetween2Faces(mesh.faces[v1loop[ii-1]], mesh.faces[v1loop[ii]])
+			V2 = selVertBetween2Faces(mesh.faces[v2loop[v2clampii-1]], mesh.faces[v2loop[v2clampii]])
+			
+			totalDist += measure(V1, V2)
+			# Bail out early if not an improvement on previously measured.
+			if bestSoFar != None and totalDist > bestSoFar:
+				return totalDist
 	
 	#selVertBetween2Faces(mesh.faces[v2loop[0]], mesh.faces[v2loop[1]])
 	return totalDist
@@ -192,7 +212,7 @@ def skinVertLoops(mesh, v1loop, v2loop):
 	
 	# Work out if the vert loops are equel or not, if not remove the extra faces from the larger
 	surplusFaces = []
-	tempv1loop = eval(str(v1loop)) # strip faces off this one, use it to keep track of which we have taken faces from.
+	tempv1loop = v1loop[:]	# strip faces off this one, use it to keep track of which we have taken faces from.
 	if len(v1loop) > len(v2loop):
 		
 		# Even face method.
@@ -231,20 +251,20 @@ def skinVertLoops(mesh, v1loop, v2loop):
 			# Copy old faces properties
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
+				mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
 			
 			#face.v.append( selVertBetween2Faces(\
 			#mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset +1 ))]],\
 			#mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset + 2))]]) )
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
 			
 			mesh.faces.append(face)			
 			
@@ -256,20 +276,20 @@ def skinVertLoops(mesh, v1loop, v2loop):
 			# Draw a normal quad between the 2 edges/faces
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
+				mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
-			mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
+				mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset +1 ))]],\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset + 2))]]) )
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset +1 ))]],\
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset + 2))]]) )
 			
 			face.v.append( selVertBetween2Faces(\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
-			mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
+				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
 			
 			mesh.faces.append(face)
 			
@@ -348,22 +368,17 @@ def optimizeLoopOrded(mesh, v1loop, v2loop):
 	for ii in range(len(v1loop)):
 		
 		# Loop twice , Once for the forward test, and another for the revearsed
-		for iii in [0, 0]:
-			dist = measureVloop(mesh, v1loop, v2loop)
+		for iii in [None, None]:
+			dist = measureVloop(mesh, v1loop, v2loop, bestSoFar)
 			# Initialize the Best distance recorded
-			if bestSoFar == None:
+			if bestSoFar == None or dist < bestSoFar:
 				bestSoFar = dist
-				bestv2Loop = eval(str(v2loop))
-				
-			elif dist < bestSoFar: # Update the info if a better vloop rotation is found.
-				bestSoFar = dist
-				bestv2Loop = eval(str(v2loop))
+				bestv2Loop = v2loop[:]
 			
 			# We might have got the vert loop backwards, try the other way
 			v2loop.reverse()
-		v2loop = listRotate(v2loop)
+		listRotate(v2loop)
 	return bestv2Loop
-	
 	
 	
 #================================================================#
@@ -381,28 +396,22 @@ def optimizeLoopOrdedShortEdge(mesh, v1loop, v2loop, surplusFaces):
 	for ii in range(len(v2loop)):
 		
 		# Loop twice , Once for the forward test, and another for the revearsed
-		for iii in [0, 0]:
-			dist = measureVloop(mesh, v1loop, v2loop, surplusFaces)
+		for iii in [None, None]:
+			dist = measureVloop(mesh, v1loop, v2loop, surplusFaces, bestSoFar)
 			print 'dist', dist 
 			# Initialize the Best distance recorded
-			if bestSoFar == None:
+			if bestSoFar == None or dist < bestSoFar:
 				bestSoFar = dist
-				bestv2Loop = eval(str(v2loop))
+				bestv2Loop = v2loop[:]
 				
-			elif dist < bestSoFar: # Update the info if a better vloop rotation is found.
-				bestSoFar = dist
-				bestv2Loop = eval(str(v2loop))
 			
 			# We might have got the vert loop backwards, try the other way
 			v2loop.reverse()
-		v2loop = listRotate(v2loop)
+		#v2loop = listRotate(v2loop)
+		listRotate(v2loop)
 	print 'best so far ', bestSoFar
 	return bestv2Loop	
 	
-	
-	
-	
-
 
 #==============================#
 #  Find our     vert loop list #
@@ -511,12 +520,10 @@ def reorderCircularVLoops(mesh, allVLoops):
 	bestSoFar = 0
 	while vLoopIdx < len(reorderedVLoopLocs):
 		
-		
 		# Skin back to the start if needs be, becuase this is a crcular loft
 		toSkin2 = vLoopIdx + 1
 		if toSkin2 == len(reorderedVLoopLocs):
 			toSkin2 = 0
-			
 		
 		newDist  = measure( reorderedVLoopLocs[vLoopIdx], reorderedVLoopLocs[toSkin2] )
 		
@@ -534,7 +541,9 @@ if is_editmode: Window.EditMode(0)
 
 # Get a mesh and raise errors if we cant
 mesh = None
-if len(Object.GetSelected()) > 0:
+if choice == -1:
+	pass
+elif len(Object.GetSelected()) > 0:
   if Object.GetSelected()[0].getType() == 'Mesh':
     mesh = Object.GetSelected()[0].getData()
   else:
@@ -542,8 +551,9 @@ if len(Object.GetSelected()) > 0:
 else:
   error('no mesh object selected')
 
-
+time1 = sys.time()
 if mesh != None:
+  Window.WaitCursor(1)
   allVLoops = getAllVertLoops(mesh)
   
   # Re order the vert loops
@@ -559,7 +569,7 @@ if mesh != None:
     toSkin2 = vloopIdx + 1
     if toSkin2 == len(allVLoops):
       toSkin2 = 0
-    
+
     # Circular loft or not?
     if arg[0] == 'B': # B for open
       if vloopIdx != vLoopIdxNotToSkin:
@@ -569,6 +579,8 @@ if mesh != None:
     
     vloopIdx +=1	
   
-  mesh.update()
+  mesh.update(1,(mesh.edges != []),0)
 
 if is_editmode: Window.EditMode(1)
+Window.WaitCursor(0)
+print "skinning time: %.2f" % (sys.time() - time1)

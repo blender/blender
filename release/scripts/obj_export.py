@@ -2,7 +2,7 @@
 
 """
 Name: 'Wavefront (.obj)...'
-Blender: 237
+Blender: 232
 Group: 'Export'
 Tooltip: 'Save a Wavefront OBJ File'
 """
@@ -56,37 +56,20 @@ NULL_IMG = '(null)' # from docs at http://astronomy.swin.edu.au/~pbourke/geomfor
 
 def save_mtl(filename):
 	file = open(filename, "w")
+	file.write('# Blender MTL File: %s\n' % (Get('filename')))
 	for mat in Material.Get():
-
 		file.write('newmtl %s\n' % (mat.getName())) # Define a new material
-
-		# Hardness, convert blenders 1-511 to MTL's
-		file.write('Ns %s\n' % ((mat.getHardness()-1) * 1.9607843137254901 ) )
-		
-		col = mat.getRGBCol()
-		# Diffuse
-		file.write('Kd %s %s %s\n' % (col[0], col[1], col[2]))
-		
-		col = mat.getMirCol()
-		# Ambient, uses mirror colour,
-		file.write('Ka %s %s %s\n' % (col[0], col[1], col[2]))
-		
-		col = mat.getSpecCol()
-		# Specular
-		file.write('Ks %s %s %s\n' % (col[0],col[1], col[2]))
-
-		# Alpha (dissolve)
-		file.write('d %s\n' % (mat.getAlpha()))
+		file.write('Ns %s\n' % ((mat.getHardness()-1) * 1.9607843137254901 ) ) # Hardness, convert blenders 1-511 to MTL's 
+		file.write('Kd %.6f %.6f %.6f\n' % tuple(mat.getRGBCol())) # Diffuse
+		file.write('Ka %.6f %.6f %.6f\n' % tuple(mat.getMirCol())) # Ambient, uses mirror colour,
+		file.write('Ks %.6f %.6f %.6f\n' % tuple(mat.getSpecCol())) # Specular
+		file.write('d %.6f\n' % mat.getAlpha()) # Alpha (obj uses 'd' for dissolve)
 		
 		# illum, 0 to disable lightng, 2 is normal.
 		if mat.getMode() & Material.Modes['SHADELESS']:
-			file.write('illum 0\n') # ignore lighting
+			file.write('illum 0\n\n') # ignore lighting
 		else:
-			file.write('illum 2\n') # light normaly
-		
-		# End OF Mat
-		file.write('\n') # new line
-		
+			file.write('illum 2\n\n') # light normaly		
 	file.close()
 
 def save_obj(filename):
@@ -126,24 +109,20 @@ def save_obj(filename):
 		
 		# Vert
 		for v in m.verts:
-			file.write('v %s %s %s\n' % (v.co.x, v.co.y, v.co.z))
+			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 	
 		# UV
 		for f in m.faces:
-			''' # Export edges?
-			if len(f.v) < 3:
-				continue
-			'''
 			for uvIdx in range(len(f.v)):
 				if f.uv:
-					file.write('vt %s %s 0.0\n' % (f.uv[uvIdx][0], f.uv[uvIdx][1]))
+					file.write('vt %.6f %.6f 0.0\n' % f.uv[uvIdx])
 				else:
 					file.write('vt 0.0 0.0 0.0\n')
 		
 		# NORMAL
-		for f1 in m.faces:
-			for v in f1.v:
-				file.write('vn %s %s %s\n' % (v.no.x, v.no.y, v.no.z))
+		for f in m.faces:
+			for v in f.v:
+				file.write('vn %.6f %.6f %.6f\n' % tuple(v.no))
 		
 		uvIdx = 0
 		for f in m.faces:
@@ -172,7 +151,7 @@ def save_obj(filename):
 
 			file.write('f ')
 			for v in f.v:
-				file.write( '%s/%s/%s ' % (m.verts.index(v) + totverts+1, uvIdx+totuvco+1, uvIdx+totuvco+1))
+				file.write( '%s/%s/%s ' % (v.index + totverts+1, uvIdx+totuvco+1, uvIdx+totuvco+1))
 
 				uvIdx+=1
 			file.write('\n')
@@ -181,6 +160,6 @@ def save_obj(filename):
 		totverts += len(m.verts)
 		totuvco += uvIdx
 	file.close()
-	print "obj export time: ", sys.time() - time1
+	print "obj export time: %.2f" % (sys.time() - time1)
 
 Window.FileSelector(save_obj, 'Export Wavefront OBJ', newFName('obj'))
