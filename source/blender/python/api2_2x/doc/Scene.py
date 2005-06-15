@@ -80,9 +80,9 @@ class Scene:
   ================
     This object gives access to Scene data in Blender.
   @type name: string
-  @cvar name: The Scene name.
+  @ivar name: The Scene name.
   @type Layers: integer (bitmask)
-  @cvar Layers: The Scene layers (check also the easier to use
+  @ivar Layers: The Scene layers (check also the easier to use
         L{layers<Scene.Scene.layers>}).  This value is a bitmask with at least
         one position set for the 20 possible layers starting from the low order
         bit.  The easiest way to deal with these values in in hexadecimal 
@@ -94,7 +94,7 @@ class Scene:
         After setting the Layers value, the interface (at least the 3d View and
         the Buttons window) needs to be redrawn to show the changes.
   @type layers: list of integers
-  @cvar layers: The Scene layers (check also L{Layers<Scene.Scene.Layers>}).
+  @ivar layers: The Scene layers (check also L{Layers<Scene.Scene.Layers>}).
         This attribute accepts and returns a list of integer values in the
         range [1, 20].
         Example::

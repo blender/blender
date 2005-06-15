@@ -34,7 +34,7 @@ Iterator Example::
 
 """
 
-def New ( name = 'CurData'):
+def New ( name):
     """
   Create a new Curve Data object.
   @type name: string
@@ -60,20 +60,20 @@ class Curve:
   =====================
   This object gives access to Curve-specific data in Blender.
   
-  @cvar name: The Curve Data name.
-  @cvar pathlen: The Curve Data path length.
-  @cvar totcol: The Curve Data maximal number of linked materials.
-  @cvar flag: The Curve Data flag value; see function getFlag for the semantics.
-  @cvar bevresol: The Curve Data bevel resolution.
-  @cvar resolu: The Curve Data U-resolution.
-  @cvar resolv: The Curve Data V-resolution.
-  @cvar width: The Curve Data width.
-  @cvar ext1: The Curve Data extent 1(for bevels).
-  @cvar ext2: The Curve Data extent2 (for bevels).
-  @cvar loc: The Curve Data location(from the center).
-  @cvar rot: The Curve Data rotation(from the center).
-  @cvar size: The Curve Data size(from the center).
-  @cvar bevob: The Curve Bevel Object
+  @ivar name: The Curve Data name.
+  @ivar pathlen: The Curve Data path length.
+  @ivar totcol: The Curve Data maximal number of linked materials.
+  @ivar flag: The Curve Data flag value; see function getFlag for the semantics.
+  @ivar bevresol: The Curve Data bevel resolution.
+  @ivar resolu: The Curve Data U-resolution.
+  @ivar resolv: The Curve Data V-resolution.
+  @ivar width: The Curve Data width.
+  @ivar ext1: The Curve Data extent 1(for bevels).
+  @ivar ext2: The Curve Data extent2 (for bevels).
+  @ivar loc: The Curve Data location(from the center).
+  @ivar rot: The Curve Data rotation(from the center).
+  @ivar size: The Curve Data size(from the center).
+  @ivar bevob: The Curve Bevel Object
   """
 
   def getName():
@@ -392,9 +392,9 @@ class CurNurb:
 
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
 
-    @cvar flagU: The CurNurb knot flag U (0: uniform, 1: endpoints, 2: bezier)
-    @cvar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
-    @cvar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
+    @ivar flagU: The CurNurb knot flag U (0: uniform, 1: endpoints, 2: bezier)
+    @ivar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
+    @ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
     """
 	
     def __setitem__( n, point ):

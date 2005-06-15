@@ -1716,8 +1716,8 @@ class Buffer:
     sliceBuffer = myByteBuffer[0:16]
     print sliceBuffer 
 
-  @cvar list: The contents of the Buffer.
-  @cvar dimensions: The size of the Buffer.
+  @ivar list: The contents of the Buffer.
+  @ivar dimensions: The size of the Buffer.
   """
 
   def __init__(type, dimensions, template = None):

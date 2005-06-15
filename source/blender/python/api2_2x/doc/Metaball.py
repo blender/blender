@@ -43,10 +43,10 @@ class Metaball:
   The Metaball object
   ===================
   This metaball gives access to generic data from all metaballs in Blender.
-  @cvar name: The name of the metaball.
-  @cvar loc: The location of the metaball.
-  @cvar rot: The rotation of the metaball.
-  @cvar size: The size of the metaball.
+  @ivar name: The name of the metaball.
+  @ivar loc: The location of the metaball.
+  @ivar rot: The rotation of the metaball.
+  @ivar size: The size of the metaball.
   """
 
   def addMetaelem(paramslist):

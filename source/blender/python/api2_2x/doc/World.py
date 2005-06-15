@@ -72,17 +72,17 @@ class World:
   This object gives access to generic data from all worlds in Blender.
   Its attributes depend upon its type.
 
-  @cvar name: the name of the world.
-  @cvar skytype: type of the sky. Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
-  @cvar mode:
-  @cvar mistype: type of mist : O : quadratic; 1 : linear; 2 : square
-  @cvar hor:   the horizon color  of a world object.
-  @cvar zen: the zenith color  of a world object.
-  @cvar amb: the ambient color  of a world object.
-  @cvar star: the star parameters  of a world object. See getStar for the semantics of these parameters. 
-  @cvar mist: the mist parameters  of a world object. See getMist for the semantics of these parameters. 
+  @ivar name: the name of the world.
+  @ivar skytype: type of the sky. Bit 0 : Blend; Bit 1 : Real; Bit 2 : paper.
+  @ivar mode:
+  @ivar mistype: type of mist : O : quadratic; 1 : linear; 2 : square
+  @ivar hor:   the horizon color  of a world object.
+  @ivar zen: the zenith color  of a world object.
+  @ivar amb: the ambient color  of a world object.
+  @ivar star: the star parameters  of a world object. See getStar for the semantics of these parameters. 
+  @ivar mist: the mist parameters  of a world object. See getMist for the semantics of these parameters. 
   @type ipo: Blender Ipo
-  @cvar ipo: The world type ipo linked to this world object.
+  @ivar ipo: The world type ipo linked to this world object.
   """
  
   def getRange():

@@ -47,10 +47,10 @@ class Font:
   The Text3d.Font object
   ======================
     This object gives access  Blender's B{Font} objects
-  @cvar name: The Text3d name.
-  @cvar filename: The filename of the file loaded into this Text.
-  @cvar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
-  @cvar nlines: The number of lines in this Text.
+  @ivar name: The Text3d name.
+  @ivar filename: The filename of the file loaded into this Text.
+  @ivar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
+  @ivar nlines: The number of lines in this Text.
   """
 
   def getName():

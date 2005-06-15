@@ -304,11 +304,11 @@ class Vector:
   The Vector object
   =================
     This object gives access to Vectors in Blender.
-  @cvar x: The x value.
-  @cvar y: The y value.
-  @cvar z: The z value (if any).
-  @cvar w: The w value (if any).
-  @cvar length: The magnitude of the vector.
+  @ivar x: The x value.
+  @ivar y: The y value.
+  @ivar z: The z value (if any).
+  @ivar w: The w value (if any).
+  @ivar length: The magnitude of the vector.
   """
 
   def __init__(list = None):
@@ -361,9 +361,9 @@ class Euler:
   The Euler object
   ================
     This object gives access to Eulers in Blender.
-  @cvar x: The heading value in degrees.
-  @cvar y: The pitch value in degrees.
-  @cvar z: The roll value in degrees.
+  @ivar x: The heading value in degrees.
+  @ivar y: The pitch value in degrees.
+  @ivar z: The roll value in degrees.
   """
 
   def __init__(list = None):
@@ -410,13 +410,13 @@ class Quaternion:
   The Quaternion object
   =====================
     This object gives access to Quaternions in Blender.
-  @cvar w: The w value.
-  @cvar x: The x value.
-  @cvar y: The y value.
-  @cvar z: The z value.
-  @cvar magnitude: The magnitude of the quaternion.
-  @cvar axis: Vector representing the axis of rotation.
-  @cvar angle: A scalar representing the amount of rotation
+  @ivar w: The w value.
+  @ivar x: The x value.
+  @ivar y: The y value.
+  @ivar z: The z value.
+  @ivar magnitude: The magnitude of the quaternion.
+  @ivar axis: Vector representing the axis of rotation.
+  @ivar angle: A scalar representing the amount of rotation
   in degrees.
   """
 
@@ -485,8 +485,8 @@ class Matrix:
   The Matrix Object
   =================
     This object gives access to Matrices in Blender.
-  @cvar rowsize: The row size of the matrix.
-  @cvar colsize: The column size of the matrix.
+  @ivar rowsize: The row size of the matrix.
+  @ivar colsize: The column size of the matrix.
   """
 
   def __init__(list1 = None, list2 = None, list3 = None, list4 = None):

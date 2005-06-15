@@ -65,10 +65,10 @@ class Text:
   The Text object
   ===============
     This object gives access to Texts in Blender.
-  @cvar name: The Text name.
-  @cvar filename: The filename of the file loaded into this Text.
-  @cvar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
-  @cvar nlines: The number of lines in this Text.
+  @ivar name: The Text name.
+  @ivar filename: The filename of the file loaded into this Text.
+  @ivar mode: The follow_mode flag: if 1 it is 'on'; if 0, 'off'.
+  @ivar nlines: The number of lines in this Text.
   """
 
   def getName():

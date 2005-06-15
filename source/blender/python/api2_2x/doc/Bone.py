@@ -76,18 +76,18 @@ class Bone:
   The Bone object
   ===============
     This object gives access to Bone-specific data in Blender.
-  @cvar name: The name of this Bone.
-  @cvar roll: This Bone's roll value.
-  @cvar head: This Bone's "head" ending position when in rest state.
-  @cvar tail: This Bone's "tail" ending position when in rest state.
-  @cvar loc: This Bone's location.
-  @cvar size: This Bone's size.
-  @cvar quat: This Bone's quaternion.
-  @cvar parent: The parent Bone.
-  @cvar children: The children bones.
-  @cvar weight: The bone's weight.
-  @cvar ik: Whether the bone is set to IK.
-  @cvar boneclass: The boneclass of this bone.
+  @ivar name: The name of this Bone.
+  @ivar roll: This Bone's roll value.
+  @ivar head: This Bone's "head" ending position when in rest state.
+  @ivar tail: This Bone's "tail" ending position when in rest state.
+  @ivar loc: This Bone's location.
+  @ivar size: This Bone's size.
+  @ivar quat: This Bone's quaternion.
+  @ivar parent: The parent Bone.
+  @ivar children: The children bones.
+  @ivar weight: The bone's weight.
+  @ivar ik: Whether the bone is set to IK.
+  @ivar boneclass: The boneclass of this bone.
   """
 
   def getName():

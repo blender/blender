@@ -104,44 +104,44 @@ class Object:
   The Object object
   =================
     This object gives access to generic data from all objects in Blender.
-    @cvar LocX: The X location coordinate of the object.
-    @cvar LocY: The Y location coordinate of the object.
-    @cvar LocZ: The Z location coordinate of the object.
-    @cvar loc: The (X,Y,Z) location coordinates of the object (vector).
-    @cvar dLocX: The delta X location coordinate of the object.
+    @ivar LocX: The X location coordinate of the object.
+    @ivar LocY: The Y location coordinate of the object.
+    @ivar LocZ: The Z location coordinate of the object.
+    @ivar loc: The (X,Y,Z) location coordinates of the object (vector).
+    @ivar dLocX: The delta X location coordinate of the object.
         This variable applies to IPO Objects only.
-    @cvar dLocY: The delta Y location coordinate of the object.
+    @ivar dLocY: The delta Y location coordinate of the object.
         This variable applies to IPO Objects only.
-    @cvar dLocZ: The delta Z location coordinate of the object.
+    @ivar dLocZ: The delta Z location coordinate of the object.
         This variable applies to IPO Objects only.
-    @cvar dloc: The delta (X,Y,Z) location coordinates of the object (vector).
+    @ivar dloc: The delta (X,Y,Z) location coordinates of the object (vector).
         This variable applies to IPO Objects only.
-    @cvar RotX: The X rotation angle (in radians) of the object.
-    @cvar RotY: The Y rotation angle (in radians) of the object.
-    @cvar RotZ: The Z rotation angle (in radians) of the object.
-    @cvar rot: The (X,Y,Z) rotation angles (in radians) of the object (vector).
-    @cvar dRotX: The delta X rotation angle (in radians) of the object.
+    @ivar RotX: The X rotation angle (in radians) of the object.
+    @ivar RotY: The Y rotation angle (in radians) of the object.
+    @ivar RotZ: The Z rotation angle (in radians) of the object.
+    @ivar rot: The (X,Y,Z) rotation angles (in radians) of the object (vector).
+    @ivar dRotX: The delta X rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
-    @cvar dRotY: The delta Y rotation angle (in radians) of the object.
+    @ivar dRotY: The delta Y rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
-    @cvar dRotZ: The delta Z rotation angle (in radians) of the object.
+    @ivar dRotZ: The delta Z rotation angle (in radians) of the object.
         This variable applies to IPO Objects only.
-    @cvar drot: The delta (X,Y,Z) rotation angles (in radians) of the object
+    @ivar drot: The delta (X,Y,Z) rotation angles (in radians) of the object
         (vector).
         This variable applies to IPO Objects only.
-    @cvar SizeX: The X size of the object.
-    @cvar SizeY: The Y size of the object.
-    @cvar SizeZ: The Z size of the object.
-    @cvar size: The (X,Y,Z) size of the object (vector).
-    @cvar dSizeX: The delta X size of the object.
-    @cvar dSizeY: The delta Y size of the object.
-    @cvar dSizeZ: The delta Z size of the object.
-    @cvar dsize: The delta (X,Y,Z) size of the object.
-    @cvar EffX: The X effector coordinate of the object. Only applies to IKA.
-    @cvar EffY: The Y effector coordinate of the object. Only applies to IKA.
-    @cvar EffZ: The Z effector coordinate of the object. Only applies to IKA.
+    @ivar SizeX: The X size of the object.
+    @ivar SizeY: The Y size of the object.
+    @ivar SizeZ: The Z size of the object.
+    @ivar size: The (X,Y,Z) size of the object (vector).
+    @ivar dSizeX: The delta X size of the object.
+    @ivar dSizeY: The delta Y size of the object.
+    @ivar dSizeZ: The delta Z size of the object.
+    @ivar dsize: The delta (X,Y,Z) size of the object.
+    @ivar EffX: The X effector coordinate of the object. Only applies to IKA.
+    @ivar EffY: The Y effector coordinate of the object. Only applies to IKA.
+    @ivar EffZ: The Z effector coordinate of the object. Only applies to IKA.
     @type Layers: integer (bitmask)
-    @cvar Layers: The object layers (also check the newer attribute
+    @ivar Layers: The object layers (also check the newer attribute
         L{layers<Object.Object.layers>}).  This value is a bitmask with at 
         least one position set for the 20 possible layers starting from the low
         order bit.  The easiest way to deal with these values in in hexadecimal
@@ -151,7 +151,7 @@ class Object:
         After setting the Layer value, call Blender.Redraw( -1 ) to update
         the interface.
     @type layers: list of integers
-    @cvar layers: The layers this object is visible in (also check the older
+    @ivar layers: The layers this object is visible in (also check the older
         attribute L{Layers<Object.Object.Layers>}).  This returns a list of
         integers in the range [1, 20], each number representing the respective
         layer.  Setting is done by passing a list of ints or an empty list for
@@ -165,24 +165,24 @@ class Object:
           print ob.layers # will print: [1, 4, 10]
         B{Note}: changes will only be visible after the screen (at least
         the 3d View and Buttons windows) is redrawn.
-    @cvar parent: The parent object of the object. (Read-only)
-    @cvar track: The object tracking this object. (Read-only)
-    @cvar data: The data of the object. (Read-only)
-    @cvar ipo: The ipo data associated with the object. (Read-only)
-    @cvar mat: The matrix of the object relative to its parent. (Read-only)
-    @cvar matrix: The matrix of the object in world space. (Read-only)
-    @cvar matrixLocal: The matrix of the object relative to its parent. (Read-only)
-    @cvar matrixWorld: The matrix of the object in world space. (Read-only)
-    @cvar colbits: The Material usage mask. A set bit #n means: the Material
+    @ivar parent: The parent object of the object. (Read-only)
+    @ivar track: The object tracking this object. (Read-only)
+    @ivar data: The data of the object. (Read-only)
+    @ivar ipo: The ipo data associated with the object. (Read-only)
+    @ivar mat: The matrix of the object relative to its parent. (Read-only)
+    @ivar matrix: The matrix of the object in world space. (Read-only)
+    @ivar matrixLocal: The matrix of the object relative to its parent. (Read-only)
+    @ivar matrixWorld: The matrix of the object in world space. (Read-only)
+    @ivar colbits: The Material usage mask. A set bit #n means: the Material
         #n in the Object's material list is used. Otherwise, the Material #n
         of the Objects Data material list is displayed.
-    @cvar drawType: The object's drawing type used. 1 - Bounding box,
+    @ivar drawType: The object's drawing type used. 1 - Bounding box,
         2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
-    @cvar drawMode: The object's drawing mode used. The value can be a sum
+    @ivar drawMode: The object's drawing mode used. The value can be a sum
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
         32 - drawwire.
-    @cvar name: The name of the object.
-    @cvar sel: The selection state of the object, 1/0.  
+    @ivar name: The name of the object.
+    @ivar sel: The selection state of the object, 1/0.  
   """
 
   def buildParts():
@@ -730,9 +730,9 @@ class Property:
   The Property object
   ===================
     This property gives access to object property data in Blender.
-    @cvar name: The property name.
-    @cvar data: Data for this property. Depends on property type.
-    @cvar type: The property type.
+    @ivar name: The property name.
+    @ivar data: Data for this property. Depends on property type.
+    @ivar type: The property type.
     @warn:  Comparisons between properties will only be true when
     both the name and data pairs are the same.
   """

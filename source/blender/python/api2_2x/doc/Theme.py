@@ -74,7 +74,7 @@ class Theme:
     This object gives access to Themes in Blender.  Each Theme object is
     composed of one UI (Use Interface) theme and many Space themes
     (3d view, Text Editor, Buttons window, etc).
-  @cvar name: The name of this Theme object.
+  @ivar name: The name of this Theme object.
   """
 
   def getName():
@@ -121,25 +121,25 @@ class Theme:
         outline[0] = 94 # 0 for red, 1 for green, ...
         outline = [200, 200, 200, 255] # setting all components at once
     @type theme: string
-    @cvar theme: the parent Theme for this object.
-    @cvar outline: theme rgba var.
-    @cvar neutral: theme rgba var.
-    @cvar action: theme rgba var.
-    @cvar setting: theme rgba var.
-    @cvar setting1: theme rgba var.
-    @cvar setting2: theme rgba var.
-    @cvar num: theme rgba var.
-    @cvar textfield: theme rgba var.
-    @cvar popup: theme rgba var.
-    @cvar text: theme rgba var.
-    @cvar text_hi: theme rgba var.
-    @cvar menu_back: theme rgba var.
-    @cvar menu_item: theme rgba var.
-    @cvar menu_hilite: theme rgba var.
-    @cvar menu_text: theme rgba var.
-    @cvar menu_text_hi: theme rgba var.
+    @ivar theme: the parent Theme for this object.
+    @ivar outline: theme rgba var.
+    @ivar neutral: theme rgba var.
+    @ivar action: theme rgba var.
+    @ivar setting: theme rgba var.
+    @ivar setting1: theme rgba var.
+    @ivar setting2: theme rgba var.
+    @ivar num: theme rgba var.
+    @ivar textfield: theme rgba var.
+    @ivar popup: theme rgba var.
+    @ivar text: theme rgba var.
+    @ivar text_hi: theme rgba var.
+    @ivar menu_back: theme rgba var.
+    @ivar menu_item: theme rgba var.
+    @ivar menu_hilite: theme rgba var.
+    @ivar menu_text: theme rgba var.
+    @ivar menu_text_hi: theme rgba var.
     @type drawType: int
-    @cvar drawType: the draw type (minimal, rounded, etc) in the range [1, 4].
+    @ivar drawType: the draw type (minimal, rounded, etc) in the range [1, 4].
     """
 
   class ThemeSpace:
@@ -159,38 +159,38 @@ class Theme:
       on the top of this page) can help you finding out any specific info you
       may need.
     @type theme: string
-    @cvar theme: the parent Theme for this object.
-    @cvar back: theme rgba var.
-    @cvar text: theme rgba var.
-    @cvar text_hi: theme rgba var.
-    @cvar header: theme rgba var.
-    @cvar panel: theme rgba var.
-    @cvar shade1: theme rgba var.
-    @cvar shade2: theme rgba var.
-    @cvar hilite: theme rgba var.
-    @cvar grid: theme rgba var.
-    @cvar wire: theme rgba var.
-    @cvar select: theme rgba var.
-    @cvar active: theme rgba var.
-    @cvar transform: theme rgba var.
-    @cvar vertex: theme rgba var.
-    @cvar vertex_select: theme rgba var.
-    @cvar edge: theme rgba var.
-    @cvar edge_select: theme rgba var.
-    @cvar edge_seam: theme rgba var.
-    @cvar edge_facesel: theme rgba var.
-    @cvar face: theme rgba var.
-    @cvar face_select: theme rgba var.
-    @cvar face_dot: theme rgba var.
-    @cvar normal: theme rgba var.
-    @cvar syntaxl: theme rgba var.
-    @cvar syntaxn: theme rgba var.
-    @cvar syntaxb: theme rgba var.
-    @cvar syntaxv: theme rgba var.
-    @cvar syntaxc: theme rgba var.
+    @ivar theme: the parent Theme for this object.
+    @ivar back: theme rgba var.
+    @ivar text: theme rgba var.
+    @ivar text_hi: theme rgba var.
+    @ivar header: theme rgba var.
+    @ivar panel: theme rgba var.
+    @ivar shade1: theme rgba var.
+    @ivar shade2: theme rgba var.
+    @ivar hilite: theme rgba var.
+    @ivar grid: theme rgba var.
+    @ivar wire: theme rgba var.
+    @ivar select: theme rgba var.
+    @ivar active: theme rgba var.
+    @ivar transform: theme rgba var.
+    @ivar vertex: theme rgba var.
+    @ivar vertex_select: theme rgba var.
+    @ivar edge: theme rgba var.
+    @ivar edge_select: theme rgba var.
+    @ivar edge_seam: theme rgba var.
+    @ivar edge_facesel: theme rgba var.
+    @ivar face: theme rgba var.
+    @ivar face_select: theme rgba var.
+    @ivar face_dot: theme rgba var.
+    @ivar normal: theme rgba var.
+    @ivar syntaxl: theme rgba var.
+    @ivar syntaxn: theme rgba var.
+    @ivar syntaxb: theme rgba var.
+    @ivar syntaxv: theme rgba var.
+    @ivar syntaxc: theme rgba var.
     @type vertex_size: int
-    @cvar vertex_size: size of the vertices dots on screen in the range [1, 10].
+    @ivar vertex_size: size of the vertices dots on screen in the range [1, 10].
     @type facedot_size: int
-    @cvar facedot_size: size of the face dots on screen in the range [1, 10].
+    @ivar facedot_size: size of the face dots on screen in the range [1, 10].
     """
 

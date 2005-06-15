@@ -63,34 +63,34 @@ class Effect:
   This object gives access to generic data from all effects in Blender.
   Its attributes depend upon its type.
 	
-  @cvar seed: (Particle effects) seed of the RNG.
-  @cvar nabla: (Particle effects) The nabla value .
-  @cvar sta: (Particle effects) start time of the effect.
-  @cvar end: (Particle effects) end time of the effect
-  @cvar lifetime: (Particle and Wave effects)lifetime of the effect
-  @cvar normfac: (Particle effects) normal strength of the particles (relatively to mesh).
-  @cvar obfac: (Particle effects)initial strength of the particles relatively to objects.
-  @cvar randfac: (Particle effects) initial random speed of the particles.
-  @cvar texfac: (Particle effects) initial speed of the particles caused by the texture.
-  @cvar randlife: (Particle effects) variability of the life of the particles.
-  @cvar vectsize: (Particle effects) size of vectors associated to the particles (if any).
-  @cvar totpart: (Particle effects) total number of particles.
-  @cvar force: (Particle effects) constant force applied to the parts.
-  @cvar mult: (Particle effects) probabilities of a particle having a child.
-  @cvar child: (Particle effects) number of children a particle may have.
-  @cvar mat: (Particle effects) materials used by the 4 generation particles.
-  @cvar defvec: (Particle effects)x, y and z axis of the force defined by the texture.
-  @cvar sfra: (Build effects)  starting frame of the build effect.
-  @cvar len: (Build effects)  length     of the build effect. 
-  @cvar timeoffs: (Wave effects)  time offset of the wave effect.  
-  @cvar damp: (Wave effects)    damp factor  of the wave effect.   
-  @cvar minfac: (Wave effects)   
-  @cvar speed: (Wave effects)  speed of the wave effect.    
-  @cvar narrow: (Wave effects)narrowness   of the wave effect.   
-  @cvar width: (Wave effects) width of the wave effect.  
-  @cvar height: (Wave effects)  height of the wave effect.    
-  @cvar startx: (Wave effects) x-position of the origin  of the wave effect.   
-  @cvar starty: (Wave effects) y-position of the origin  of the wave effect. 
+  @ivar seed: (Particle effects) seed of the RNG.
+  @ivar nabla: (Particle effects) The nabla value .
+  @ivar sta: (Particle effects) start time of the effect.
+  @ivar end: (Particle effects) end time of the effect
+  @ivar lifetime: (Particle and Wave effects)lifetime of the effect
+  @ivar normfac: (Particle effects) normal strength of the particles (relatively to mesh).
+  @ivar obfac: (Particle effects)initial strength of the particles relatively to objects.
+  @ivar randfac: (Particle effects) initial random speed of the particles.
+  @ivar texfac: (Particle effects) initial speed of the particles caused by the texture.
+  @ivar randlife: (Particle effects) variability of the life of the particles.
+  @ivar vectsize: (Particle effects) size of vectors associated to the particles (if any).
+  @ivar totpart: (Particle effects) total number of particles.
+  @ivar force: (Particle effects) constant force applied to the parts.
+  @ivar mult: (Particle effects) probabilities of a particle having a child.
+  @ivar child: (Particle effects) number of children a particle may have.
+  @ivar mat: (Particle effects) materials used by the 4 generation particles.
+  @ivar defvec: (Particle effects)x, y and z axis of the force defined by the texture.
+  @ivar sfra: (Build effects)  starting frame of the build effect.
+  @ivar len: (Build effects)  length     of the build effect. 
+  @ivar timeoffs: (Wave effects)  time offset of the wave effect.  
+  @ivar damp: (Wave effects)    damp factor  of the wave effect.   
+  @ivar minfac: (Wave effects)   
+  @ivar speed: (Wave effects)  speed of the wave effect.    
+  @ivar narrow: (Wave effects)narrowness   of the wave effect.   
+  @ivar width: (Wave effects) width of the wave effect.  
+  @ivar height: (Wave effects)  height of the wave effect.    
+  @ivar startx: (Wave effects) x-position of the origin  of the wave effect.   
+  @ivar starty: (Wave effects) y-position of the origin  of the wave effect. 
   """
 
   def getType():

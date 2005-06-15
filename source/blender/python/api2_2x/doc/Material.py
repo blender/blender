@@ -83,47 +83,47 @@ class Material:
   The Material object
   ===================
    This object gives access to Materials in Blender.
-  @cvar name: Material's name.
+  @ivar name: Material's name.
   @type mode: int
-  @cvar mode: Mode flags as an or'ed int value.  See the Modes dictionary keys
+  @ivar mode: Mode flags as an or'ed int value.  See the Modes dictionary keys
       and descriptions in L{Modes}.
-  @cvar rgbCol: Material's RGB color triplet sequence.
-  @cvar specCol: Specular color rgb triplet sequence.
-  @cvar mirCol: Mirror color rgb triplet sequence.
-  @cvar R: Red component of L{rgbCol} - [0.0, 1.0].
-  @cvar G: Green component of L{rgbCol} - [0.0, 1.0].
-  @cvar B: Blue component of L{rgbCol} - [0.0, 1.0].
-  @cvar alpha: Alpha (translucency) component of the Material - [0.0, 1.0].
-  @cvar amb: Ambient factor - [0.0, 1.0].
-  @cvar emit: Emitting light intensity - [0.0, 1.0].
-  @cvar ref:  Reflectivity - [0.0, 1.0].
-  @cvar spec: Specularity - [0.0, 2.0].
-  @cvar specTransp: Specular transparency - [0.0, 1.0].
-  @cvar add: Glow factor - [0.0, 1.0].
-  @cvar zOffset: Artificial Z offset for faces - [0.0, 10.0].
-  @cvar haloSize: Dimension of the halo - [0.0, 100.0].
-  @cvar flareSize: Factor the flare is larger than the halo - [0.1, 25.0].
-  @cvar flareBoost: Flare's extra strength - [0.1, 10.0].
-  @cvar haloSeed: To use random values for ring dimension and line location -
+  @ivar rgbCol: Material's RGB color triplet sequence.
+  @ivar specCol: Specular color rgb triplet sequence.
+  @ivar mirCol: Mirror color rgb triplet sequence.
+  @ivar R: Red component of L{rgbCol} - [0.0, 1.0].
+  @ivar G: Green component of L{rgbCol} - [0.0, 1.0].
+  @ivar B: Blue component of L{rgbCol} - [0.0, 1.0].
+  @ivar alpha: Alpha (translucency) component of the Material - [0.0, 1.0].
+  @ivar amb: Ambient factor - [0.0, 1.0].
+  @ivar emit: Emitting light intensity - [0.0, 1.0].
+  @ivar ref:  Reflectivity - [0.0, 1.0].
+  @ivar spec: Specularity - [0.0, 2.0].
+  @ivar specTransp: Specular transparency - [0.0, 1.0].
+  @ivar add: Glow factor - [0.0, 1.0].
+  @ivar zOffset: Artificial Z offset for faces - [0.0, 10.0].
+  @ivar haloSize: Dimension of the halo - [0.0, 100.0].
+  @ivar flareSize: Factor the flare is larger than the halo - [0.1, 25.0].
+  @ivar flareBoost: Flare's extra strength - [0.1, 10.0].
+  @ivar haloSeed: To use random values for ring dimension and line location -
      [0, 255].
-  @cvar flareSeed: Offset in the seed table - [0, 255].
-  @cvar subSize:  Dimension of subflares, dots and circles - [0.1, 25.0].
-  @cvar hard: Hardness of the specularity - [1, 255].
-  @cvar nFlares: Number of halo subflares - [1, 32].
-  @cvar nStars: Number of points on the halo stars - [3, 50].
-  @cvar nLines: Number of star shaped lines on each halo - [0, 250].
-  @cvar nRings: Number of halo rings - [0, 24].
+  @ivar flareSeed: Offset in the seed table - [0, 255].
+  @ivar subSize:  Dimension of subflares, dots and circles - [0.1, 25.0].
+  @ivar hard: Hardness of the specularity - [1, 255].
+  @ivar nFlares: Number of halo subflares - [1, 32].
+  @ivar nStars: Number of points on the halo stars - [3, 50].
+  @ivar nLines: Number of star shaped lines on each halo - [0, 250].
+  @ivar nRings: Number of halo rings - [0, 24].
   @type ipo: Blender Ipo
-  @cvar ipo: This Material's ipo.
-  @cvar rayMirr: Amount mirror reflection for raytrace.
-  @cvar rayMirrDepth: Amount of inter-reflections calculated maximal.
-  @cvar fresnelDepth: Power of Fresnel for mirror reflection. 
-  @cvar fresnelDepthFac: Blending factor for Fresnel. 
-  @cvar IOR: Sets the angular index of refraction for raytrace. 
-  @cvar transDepth: Amount of refractions calculated maximal. 
-  @cvar fresnelTrans: Power of Fresnel for transparency.
-  @cvar fresnelTransFac: Blending factor for Fresnel.
-  @cvar specTrans: Makes specular areas opaque on transparent materials.
+  @ivar ipo: This Material's ipo.
+  @ivar rayMirr: Amount mirror reflection for raytrace.
+  @ivar rayMirrDepth: Amount of inter-reflections calculated maximal.
+  @ivar fresnelDepth: Power of Fresnel for mirror reflection. 
+  @ivar fresnelDepthFac: Blending factor for Fresnel. 
+  @ivar IOR: Sets the angular index of refraction for raytrace. 
+  @ivar transDepth: Amount of refractions calculated maximal. 
+  @ivar fresnelTrans: Power of Fresnel for transparency.
+  @ivar fresnelTransFac: Blending factor for Fresnel.
+  @ivar specTrans: Makes specular areas opaque on transparent materials.
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.

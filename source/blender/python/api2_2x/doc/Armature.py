@@ -45,8 +45,8 @@ class Armature:
   The Armature object
   ===================
     This object gives access to Armature-specific data in Blender.
-  @cvar name: The Armature name.
-  @cvar bones: A List of Bones that make up this armature.
+  @ivar name: The Armature name.
+  @ivar bones: A List of Bones that make up this armature.
   """
 
   def getName():

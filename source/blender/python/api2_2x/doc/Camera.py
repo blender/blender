@@ -49,18 +49,18 @@ class Camera:
   The Camera Data object
   ======================
     This object gives access to Camera-specific data in Blender.
-  @cvar name: The Camera Data name.
-  @cvar type: The Camera type: 'persp':0 or 'ortho':1.
-  @cvar mode: The mode flags: B{or'ed value}: 'showLimits':1, 'showMist':2.
-  @cvar lens: The lens value in [1.0, 250.0], only relevant to *persp*
+  @ivar name: The Camera Data name.
+  @ivar type: The Camera type: 'persp':0 or 'ortho':1.
+  @ivar mode: The mode flags: B{or'ed value}: 'showLimits':1, 'showMist':2.
+  @ivar lens: The lens value in [1.0, 250.0], only relevant to *persp*
       cameras.
-  @cvar scale: The scale value in [0.01, 1000.00], only relevant to *ortho*
+  @ivar scale: The scale value in [0.01, 1000.00], only relevant to *ortho*
       cameras.
-  @cvar clipStart: The clip start value in [0.0, 100.0].
-  @cvar clipEnd: The clip end value in [1.0, 5000.0].
-  @cvar drawSize: The draw size value in [0.1, 10.0].
+  @ivar clipStart: The clip start value in [0.0, 100.0].
+  @ivar clipEnd: The clip end value in [1.0, 5000.0].
+  @ivar drawSize: The draw size value in [0.1, 10.0].
   @type ipo: Blender Ipo
-  @cvar ipo: The "camera data" ipo linked to this camera data object.
+  @ivar ipo: The "camera data" ipo linked to this camera data object.
   @warning: Most member variables assume values in some [Min, Max] interval.
       When trying to set them, the given parameter will be clamped to lie in
       that range: if val < Min, then val = Min, if val > Max, then val = Max.

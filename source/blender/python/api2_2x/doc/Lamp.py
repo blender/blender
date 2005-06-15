@@ -46,8 +46,8 @@ class Lamp:
   The Lamp Data object
   ====================
     This object gives access to Lamp-specific data in Blender.
-  @cvar name: The Lamp Data name.
-  @cvar type: The Lamp type (see the Types dict).
+  @ivar name: The Lamp Data name.
+  @ivar type: The Lamp type (see the Types dict).
   @cvar Types: The Types dictionary.
       - 'Lamp': 0
       - 'Sun' : 1
@@ -55,7 +55,7 @@ class Lamp:
       - 'Hemi': 3
       - 'Area': 4
       - 'Photon': 5
-  @cvar mode: The mode flags: B{or'ed value} of the flags in the Modes dict.
+  @ivar mode: The mode flags: B{or'ed value} of the flags in the Modes dict.
   @cvar Modes: The Modes dictionary.
       - 'Shadows'
       - 'Halo'
@@ -65,21 +65,21 @@ class Lamp:
       - 'OnlyShadow'
       - 'Sphere'
       - 'Square'
-  @cvar samples: The number of shadow map samples in [1, 16].
-  @cvar bufferSize: The size of the shadow buffer in [512, 5120].
-  @cvar haloStep: Volumetric halo sampling frequency in [0, 12].
-  @cvar energy: The intensity of the light in [0.0, 10.0].
-  @cvar dist: The distance value in [0.1, 5000.0].
-  @cvar spotSize: The angle of the spot beam in degrees in [1.0, 180.0].
-  @cvar spotBlend: The softness of the spot edge in [0.0, 1.0].
-  @cvar clipStart: The shadow map clip start in [0.1, 1000.0].
-  @cvar clipEnd: The shadow map clip end in [1.0, 5000.0].
-  @cvar bias: The shadow map sampling bias in [0.01, 5.00].
-  @cvar softness: The size of the shadow sample area in [1.0, 100.0].
-  @cvar haloInt: The intensity of the spot halo in [0.0, 5.0].
-  @cvar quad1: Light intensity value 1 for a Quad lamp in [0.0, 1.0].
-  @cvar quad2: Light intensity value 2 for a Quad lamp in [0.0, 1.0].
-  @cvar col: The color of the light, with each rgb component in [0.0, 1.0].
+  @ivar samples: The number of shadow map samples in [1, 16].
+  @ivar bufferSize: The size of the shadow buffer in [512, 5120].
+  @ivar haloStep: Volumetric halo sampling frequency in [0, 12].
+  @ivar energy: The intensity of the light in [0.0, 10.0].
+  @ivar dist: The distance value in [0.1, 5000.0].
+  @ivar spotSize: The angle of the spot beam in degrees in [1.0, 180.0].
+  @ivar spotBlend: The softness of the spot edge in [0.0, 1.0].
+  @ivar clipStart: The shadow map clip start in [0.1, 1000.0].
+  @ivar clipEnd: The shadow map clip end in [1.0, 5000.0].
+  @ivar bias: The shadow map sampling bias in [0.01, 5.00].
+  @ivar softness: The size of the shadow sample area in [1.0, 100.0].
+  @ivar haloInt: The intensity of the spot halo in [0.0, 5.0].
+  @ivar quad1: Light intensity value 1 for a Quad lamp in [0.0, 1.0].
+  @ivar quad2: Light intensity value 2 for a Quad lamp in [0.0, 1.0].
+  @ivar col: The color of the light, with each rgb component in [0.0, 1.0].
       This is an rgb tuple whose values can be accessed in many ways:
         - as a tuple: lamp.col, lamp.col[0], same for 1 and 2.
         - as a dictionary: lamp.col['R'], same for 'G' and 'B'.

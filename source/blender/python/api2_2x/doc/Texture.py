@@ -169,32 +169,32 @@ class Texture:
     Note that many of the attributes of this object are only relevant if
     specific modes are enabled.
   
-    @cvar name: The Texture name.
-    @cvar type: The Texture type. See L{Types}
-    @cvar flags: The texture flags (OR'd together). See L{Flags}
-    @cvar imageFlags: The texture image flags (OR'd tegether). 
+    @ivar name: The Texture name.
+    @ivar type: The Texture type. See L{Types}
+    @ivar flags: The texture flags (OR'd together). See L{Flags}
+    @ivar imageFlags: The texture image flags (OR'd tegether). 
         See L{ImageFlags}
-    @cvar stype: Texture-type specific data. See L{STypes}
-    @cvar image: The image associated with this texture, or None.
+    @ivar stype: Texture-type specific data. See L{STypes}
+    @ivar image: The image associated with this texture, or None.
     @type image: Blender Image
-    @cvar rgbCol: The texture's RGB color triplet.
-    @cvar brightness: The brightness in range [0,2].
-    @cvar contrast: The contrast in range [0,2].
-    @cvar filterSize: The filter size for the image.
-    @cvar extend: Texture extend/repeat mode. See L{ExtendModes}
-    @cvar crop: Tuple of image crop values as floats, 
+    @ivar rgbCol: The texture's RGB color triplet.
+    @ivar brightness: The brightness in range [0,2].
+    @ivar contrast: The contrast in range [0,2].
+    @ivar filterSize: The filter size for the image.
+    @ivar extend: Texture extend/repeat mode. See L{ExtendModes}
+    @ivar crop: Tuple of image crop values as floats, 
         like C{(xmin, ymin, xmax, ymax)}
-    @cvar repeat: Tuple of image repeat values as ints, like 
+    @ivar repeat: Tuple of image repeat values as ints, like 
         C{(xrepeat, yrepeat)}
-    @cvar noiseSize: The noise size.
-    @cvar noiseDepth: The noise depth.
-    @cvar noiseType: The noise type: 'soft' or 'hard'.
-    @cvar animLength: Length of the animation.
-    @cvar animFrames: Frames of the animation.
-    @cvar animOffset: The number of the first picture of the animation.
-    @cvar animStart: Start frame of the animation.
-    @cvar fieldsPerImage: The number of fields per rendered frame.
-    @cvar animMontage: Montage mode data as a tuple of tuples, like
+    @ivar noiseSize: The noise size.
+    @ivar noiseDepth: The noise depth.
+    @ivar noiseType: The noise type: 'soft' or 'hard'.
+    @ivar animLength: Length of the animation.
+    @ivar animFrames: Frames of the animation.
+    @ivar animOffset: The number of the first picture of the animation.
+    @ivar animStart: Start frame of the animation.
+    @ivar fieldsPerImage: The number of fields per rendered frame.
+    @ivar animMontage: Montage mode data as a tuple of tuples, like
         C{( (fra1,dur1), (fra2,dur2), (fra3,dur3), (fra4,dur4) )}
     """
     
@@ -297,10 +297,10 @@ class MTex:
     This object links a material to a texture. It allows the same texture to be
     used in several different ways.
 
-    @cvar tex: The Texture this is linked to.
+    @ivar tex: The Texture this is linked to.
     @type tex: Blender Texture
-    @cvar texco: Texture coordinates ("Map input"). See L{TexCo}
-    @cvar mapto: "Map to" field of texture. OR'd values of L{MapTo}
+    @ivar texco: Texture coordinates ("Map input"). See L{TexCo}
+    @ivar mapto: "Map to" field of texture. OR'd values of L{MapTo}
     """
 
     def getIpo():

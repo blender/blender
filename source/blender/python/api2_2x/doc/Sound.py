@@ -44,8 +44,8 @@ class Sound:
   The Sound object
   ================
     This object gives access to Sounds in Blender.
-  @cvar name: The name of this Sound object.
-  @cvar filename: The filename (path) to the sound file loaded into this Sound
+  @ivar name: The name of this Sound object.
+  @ivar filename: The filename (path) to the sound file loaded into this Sound
      object.
   """
 

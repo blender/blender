@@ -197,10 +197,10 @@ class NMCol:
   ================
     This object is a list of ints: [r, g, b, a] representing an
     rgba color.
-  @cvar r: The Red component in [0, 255].
-  @cvar g: The Green component in [0, 255].
-  @cvar b: The Blue component in [0, 255].
-  @cvar a: The Alpha (transparency) component in [0, 255].
+  @ivar r: The Red component in [0, 255].
+  @ivar g: The Green component in [0, 255].
+  @ivar b: The Blue component in [0, 255].
+  @ivar a: The Alpha (transparency) component in [0, 255].
   """
 
 class NMVert:
@@ -209,15 +209,15 @@ class NMVert:
   =================
     This object holds mesh vertex data.
   @type co: 3D Vector object.
-  @cvar co: The vertex coordinates (x, y, z).
+  @ivar co: The vertex coordinates (x, y, z).
   @type no: 3D Vector object. (unit length)
-  @cvar no: The vertex normal vector (x, y, z).
+  @ivar no: The vertex normal vector (x, y, z).
   @type uvco: 3D Vector object.
-  @cvar uvco: The vertex texture "sticky" coordinates. The Z value of the Vector is ignored.
+  @ivar uvco: The vertex texture "sticky" coordinates. The Z value of the Vector is ignored.
   @type index: int
-  @cvar index: The vertex index, if owned by a mesh.
+  @ivar index: The vertex index, if owned by a mesh.
   @type sel: int
-  @cvar sel: The selection state (selected:1, unselected:0) of this vertex.\n
+  @ivar sel: The selection state (selected:1, unselected:0) of this vertex.\n
   Note: An NMesh will return the selection state of the mesh when EditMod was last exited. A python script operating in EditMode must exit edit mode, before getting the current selection state of the mesh.
   @warn:  There are two kinds of uv texture coordinates in Blender: per vertex
      ("sticky") and per face vertex (uv in L{NMFace}).  In the first, there's
@@ -234,13 +234,13 @@ class NMEdge:
   =================
     This object holds mesh edge data.
   @type v1: NMVert
-  @cvar v1: The first vertex of the edge.
+  @ivar v1: The first vertex of the edge.
   @type v2: NMVert
-  @cvar v2: The second vertex of the edge.
+  @ivar v2: The second vertex of the edge.
   @type crease: int
-  @cvar crease: The crease value of the edge. It is in the range [0,255].
+  @ivar crease: The crease value of the edge. It is in the range [0,255].
   @type flag: int
-  @cvar flag: The bitmask describing edge properties. See L{NMesh.EdgeFlags<EdgeFlags>}.
+  @ivar flag: The bitmask describing edge properties. See L{NMesh.EdgeFlags<EdgeFlags>}.
   """
 
 class NMFace:
@@ -286,30 +286,30 @@ class NMFace:
    Blender.Redraw()
 
   @type v: list
-  @cvar v: The list of face vertices (B{up to 4}).
+  @ivar v: The list of face vertices (B{up to 4}).
   @type sel: bool
-  @cvar sel: The selection state (1: selected, 0: unselected) of this NMesh's
+  @ivar sel: The selection state (1: selected, 0: unselected) of this NMesh's
       faces *in edit mode*.  This is not the same as the selection state of
       the textured faces (see L{NMesh.NMFace.flag}).
   @type hide: bool
-  @cvar hide: The visibility state (1: hidden, 0: visible) of this NMesh's
+  @ivar hide: The visibility state (1: hidden, 0: visible) of this NMesh's
       faces *in edit mode*.  This is not the same as the visibility state of
       the textured faces (see L{NMesh.NMFace.flag}).
-  @cvar col: The list of vertex colours.
-  @cvar mat: Same as I{materialIndex} below.
-  @cvar materialIndex: The index of this face's material in its NMesh materials
+  @ivar col: The list of vertex colours.
+  @ivar mat: Same as I{materialIndex} below.
+  @ivar materialIndex: The index of this face's material in its NMesh materials
       list.
-  @cvar smooth: If non-zero, the vertex normals are averaged to make this
+  @ivar smooth: If non-zero, the vertex normals are averaged to make this
      face look smooth.
-  @cvar image: The Image used as a texture for this face.
-  @cvar mode: The display mode (see L{Mesh.FaceModes<FaceModes>})
-  @cvar flag: Bit vector specifying selection / visibility flags for uv
+  @ivar image: The Image used as a texture for this face.
+  @ivar mode: The display mode (see L{Mesh.FaceModes<FaceModes>})
+  @ivar flag: Bit vector specifying selection / visibility flags for uv
      textured faces (visible in Face Select mode, see
      L{NMesh.FaceFlags<FaceFlags>}).
-  @cvar transp: Transparency mode bit vector
+  @ivar transp: Transparency mode bit vector
      (see L{NMesh.FaceTranspModes<FaceTranspModes>}).
-  @cvar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
-  @cvar normal: (or just B{no}) The normal vector for this face: [x,y,z].
+  @ivar uv: List of per-face UV coordinates: [(u0, v0), (u1, v1), ...].
+  @ivar normal: (or just B{no}) The normal vector for this face: [x,y,z].
   @note: there are normal faces and textured faces in Blender, both currently
     with their own selection and visibility states, due to a mix of old and new
     code.  To (un)select or (un)hide normal faces (visible in editmode), use
@@ -340,17 +340,17 @@ class NMesh:
   =====================
     This object gives access to mesh data in Blender.  We refer to mesh as the
     object in Blender and NMesh as its Python counterpart.
-  @cvar name: The NMesh name.  It's common to use this field to store extra
+  @ivar name: The NMesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
-  @cvar materials: The list of materials used by this NMesh.  See
+  @ivar materials: The list of materials used by this NMesh.  See
      L{NMesh.getMaterials} for important details.
-  @cvar verts: The list of NMesh vertices (NMVerts).
-  @cvar users: The number of Objects using (linked to) this mesh.
-  @cvar faces: The list of NMesh faces (NMFaces).
-  @cvar edges: None if mesh has no edge data, else a list of L{NMEdge} edges. Use L{addEdgesData} to create edge data if it do not exist.
-  @cvar mode:  The mode flags for this mesh.  See L{setMode}.
-  @cvar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
-  @cvar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
+  @ivar verts: The list of NMesh vertices (NMVerts).
+  @ivar users: The number of Objects using (linked to) this mesh.
+  @ivar faces: The list of NMesh faces (NMFaces).
+  @ivar edges: None if mesh has no edge data, else a list of L{NMEdge} edges. Use L{addEdgesData} to create edge data if it do not exist.
+  @ivar mode:  The mode flags for this mesh.  See L{setMode}.
+  @ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
+  @ivar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
   """
 
   def addEdge(v1, v2):

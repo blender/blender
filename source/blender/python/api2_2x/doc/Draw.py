@@ -681,5 +681,5 @@ class Button:
   =================
     This object represents a button in Blender's GUI.
   @type val: int or float or string (depends on button type).
-  @cvar val: The button's value.
+  @ivar val: The button's value.
   """

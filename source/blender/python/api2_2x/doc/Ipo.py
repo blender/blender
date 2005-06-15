@@ -260,8 +260,8 @@ class IpoCurve:
   Important Notes for Rotation Curves:\n
   For the rotation IpoCurves, the y values for points are in units of 10 degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
   
-  @cvar name: The Curve Data name.
-  @cvar bezierPoints : The list of the Bezier points.
+  @ivar name: The Curve Data name.
+  @ivar bezierPoints : The list of the Bezier points.
   """
 
   def setExtrapolation(extendmode):
@@ -378,8 +378,8 @@ class BezTriple:
   The BezTriple object
   ====================
   This object gives access to generic data from all beztriple objects in Blender.  If an attribute is listed as being 'read-only' that means you cannot write to it.  Use the set*() methods instead.
-  @cvar pt : a list of the [x,y] coordinates for knot point of this BezTriple.  read-only.
-  @cvar vec : a list of the 3 points [ handle, knot, handle ] that comprise a BezTriple.  See the getTriple() method for an example of the format.  read-only.
+  @ivar pt : a list of the [x,y] coordinates for knot point of this BezTriple.  read-only.
+  @ivar vec : a list of the 3 points [ handle, knot, handle ] that comprise a BezTriple.  See the getTriple() method for an example of the format.  read-only.
   """
 
   def getPoints():

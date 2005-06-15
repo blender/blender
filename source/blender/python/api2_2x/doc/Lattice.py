@@ -67,15 +67,15 @@ class Lattice:
   The Lattice object
   ==================
     This object gives access to Lattices in Blender.
-  @cvar name: The Lattice name.
-  @cvar width: The number of x dimension partitions.
-  @cvar height: The number of y dimension partitions.
-  @cvar depth: The number of z dimension partitions.
-  @cvar widthType: The x dimension key type.
-  @cvar heightType: The y dimension key type.
-  @cvar depthType: The z dimension key type.
-  @cvar mode: The current mode of the Lattice.
-  @cvar latSize: The number of points in this Lattice.
+  @ivar name: The Lattice name.
+  @ivar width: The number of x dimension partitions.
+  @ivar height: The number of y dimension partitions.
+  @ivar depth: The number of z dimension partitions.
+  @ivar widthType: The x dimension key type.
+  @ivar heightType: The y dimension key type.
+  @ivar depthType: The z dimension key type.
+  @ivar mode: The current mode of the Lattice.
+  @ivar latSize: The number of points in this Lattice.
   """
 
   def getName():

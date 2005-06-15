@@ -58,16 +58,16 @@ class Image:
   The Image object
   ================
     This object gives access to Images in Blender.
-  @cvar name: The name of this Image object.
-  @cvar filename: The filename (path) to the image file loaded into this Image
+  @ivar name: The name of this Image object.
+  @ivar filename: The filename (path) to the image file loaded into this Image
      object.
-  @cvar size: The [width, height] dimensions of the image (in pixels).
-  @cvar depth: The pixel depth of the image.
-  @cvar xrep: Texture tiling: the number of repetitions in the x (horizontal)
+  @ivar size: The [width, height] dimensions of the image (in pixels).
+  @ivar depth: The pixel depth of the image.
+  @ivar xrep: Texture tiling: the number of repetitions in the x (horizontal)
      axis.
-  @cvar yrep: Texture tiling: the number of repetitions in the y (vertical)
+  @ivar yrep: Texture tiling: the number of repetitions in the y (vertical)
      axis.
-  @cvar bindcode: Texture's bind code (readonly).
+  @ivar bindcode: Texture's bind code (readonly).
   """
 
   def getName():
