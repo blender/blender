@@ -2003,7 +2003,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 	Isect isec;
 	float *vec, *nrm, div, bias, sh=0;
 	float maxdist = wrld->aodist;
-	int j=0, tot, actual=0, skyadded=0;
+	int j= -1, tot, actual=0, skyadded=0;
 
 	isec.vlrorig= shi->vlr;
 	isec.vlr_last= NULL;
@@ -2081,7 +2081,8 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 		vec+= 3;
 	}
 	
-	shadfac[3] = 1.0 - sh/((float)actual);
+	if(actual==0) shadfac[3]= 1.0;
+	else shadfac[3] = 1.0 - sh/((float)actual);
 	
 	if(wrld->aocolor!=WO_AOPLAIN && skyadded) {
 		div= shadfac[3]/((float)skyadded);
