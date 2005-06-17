@@ -406,10 +406,10 @@ static PyObject *CurNurb_getType( BPy_CurNurb * self )
 static PyObject *CurNurb_setType( BPy_CurNurb * self, PyObject * args )
 {
 	Nurb *nurb = self->nurb;
-	int type;
+	short type;
 
 	/* parameter type checking */
-	if( !PyArg_ParseTuple( args, "i", &type ) )
+	if( !PyArg_ParseTuple( args, "h", &type ) )
 		return EXPP_ReturnPyObjError
 			( PyExc_TypeError, "expected integer argument" );
 
@@ -536,15 +536,24 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 				sizeof( BPoint ) );
 
 			for( i = 0; i < 4; ++i ) {
-				float tmpx =
-					( float ) PyFloat_AsDouble
-					( PySequence_GetItem( pyOb, i ) );
-				nurb->bp[npoints].vec[i] = tmpx;
+				PyObject *item = PySequence_GetItem( pyOb, i );
 
+				if (item == NULL)
+					return NULL;
+
+
+				nurb->bp[npoints].vec[i] = ( float ) PyFloat_AsDouble( item );
+				Py_DECREF( item );
 			}
 
 			if (size == 5) {
-				nurb->bp[npoints].alfa = (float)PyFloat_AsDouble( PySequence_GetItem( pyOb, 4 ) );
+				PyObject *item = PySequence_GetItem( pyOb, i );
+
+				if (item == NULL)
+					return NULL;
+
+				nurb->bp[npoints].alfa = ( float ) PyFloat_AsDouble( item );
+				Py_DECREF( item );
 			}
 			else {
 				nurb->bp[npoints].alfa = 0.0f;
@@ -890,15 +899,23 @@ static int CurNurb_setPoint( BPy_CurNurb * self, int index, PyObject * pyOb )
 
 		/* copy x, y, z, w */
 		for( i = 0; i < 4; ++i ) {
-			float tmpx =
-				( float ) PyFloat_AsDouble
-				( PySequence_GetItem( pyOb, i ) );
-			nurb->bp[index].vec[i] = tmpx;
+			PyObject *item = PySequence_GetItem( pyOb, i );
 
+			if (item == NULL)
+				return -1;
+
+			nurb->bp[index].vec[i] = ( float ) PyFloat_AsDouble( item );
+			Py_DECREF( item );
 		}
 
 		if (size == 5) {	/* set tilt, if present */
-			nurb->bp[index].alfa = (float)PyFloat_AsDouble( PySequence_GetItem( pyOb, 4 ) );
+			PyObject *item = PySequence_GetItem( pyOb, i );
+
+			if (item == NULL)
+				return -1;
+
+			nurb->bp[index].alfa = ( float ) PyFloat_AsDouble( item );
+			Py_DECREF( item );
 		}
 		else {				/* if not, set default	*/
 			nurb->bp[index].alfa = 0.0f;
