@@ -127,6 +127,8 @@ typedef struct DispList {
 	float *verts, *nors;
 	int *index;
 	unsigned int *col1, *col2;
+	int charidx;
+	int pad;
 } DispList;
 
 extern void copy_displist(struct ListBase *lbn, struct ListBase *lb);

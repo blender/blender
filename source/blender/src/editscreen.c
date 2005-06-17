@@ -133,6 +133,8 @@ static void drawscredge_area(ScrArea *sa);
 
 /**********************************************************************/
 
+extern int textediting;
+
 static void screen_set_cursor(bScreen *sc) 
 {
 	if (sc->winakt>3) {
@@ -1286,7 +1288,7 @@ void screenmain(void)
 			}
 		}
 		else if(ELEM(event, LEFTARROWKEY, RIGHTARROWKEY)) {
-			if(val && (G.qual & LR_CTRLKEY)) {
+			if(textediting==0 && val && (G.qual & LR_CTRLKEY)) {
 				bScreen *sc= (event==LEFTARROWKEY)?G.curscreen->id.prev:G.curscreen->id.next;
 				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;

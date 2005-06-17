@@ -76,6 +76,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -3408,6 +3409,11 @@ void draw_object(Base *base)
 	static int warning_recursive= 0;
 	int sel, drawtype, colindex= 0, ipoflag;
 	short dt, dtx, zbufoff= 0;
+	Material *ma;
+	float vec1[3], vec2[3];
+	int i, selstart, selend;
+	SelBox *sb;
+	float selboxw;
 
 	ob= base->object;
 
@@ -3592,8 +3598,79 @@ void draw_object(Base *base)
 		cu= ob->data;
 		if(ob==G.obedit) {
 			tekentextcurs();
-			cpack(0xFFFF90);
-			drawDispList(ob, OB_WIRE);
+
+			if (cu->flag & CU_FAST) {
+				cpack(0xFFFFFF);
+				set_inverted_drawing(1);
+				drawDispList(ob, OB_WIRE);
+				set_inverted_drawing(0);
+			}
+
+			if (cu->linewidth != 0.0) {
+				BIF_ThemeColor(TH_WIRE);
+				VECCOPY(vec1, ob->orig);
+				VECCOPY(vec2, ob->orig);
+				vec1[0] += cu->linewidth;
+				vec2[0] += cu->linewidth;
+				vec1[1] += cu->linedist * cu->fsize;
+				vec2[1] -= cu->lines * cu->linedist * cu->fsize;
+	    		setlinestyle(3);
+	    		glBegin(GL_LINE_STRIP); 
+	   			glVertex2fv(vec1); 
+	   			glVertex2fv(vec2); 
+	    		glEnd();
+	    		setlinestyle(0);
+	    	}
+	    	
+	    	setlinestyle(3);
+	    	for (i=0; i<cu->totbox; i++) {
+	    		if (cu->tb[i].w != 0.0) {
+		    		if (i == (cu->actbox-1))
+		    			BIF_ThemeColor(TH_ACTIVE);
+		    		else
+		    			BIF_ThemeColor(TH_WIRE);
+		    		VECCOPY(vec1, ob->orig);
+		    		vec1[0] += cu->tb[i].x;
+		    		vec1[1] += cu->tb[i].y + cu->linedist*cu->fsize;
+		    		glBegin(GL_LINE_STRIP);
+		    		glVertex2fv(vec1);
+		    		vec1[0] += cu->tb[i].w;
+		    		glVertex2fv(vec1);
+		    		vec1[1] -= (cu->tb[i].h + cu->linedist*cu->fsize);
+		    		glVertex2fv(vec1);
+		    		vec1[0] -= cu->tb[i].w;
+		    		glVertex2fv(vec1);
+		    		vec1[1] += cu->tb[i].h + cu->linedist*cu->fsize;
+		    		glVertex2fv(vec1);
+		    		glEnd();
+		    	}
+	    	}
+	    	setlinestyle(0);
+	    	
+
+	    	if (getselection(&selstart, &selend) && selboxes) {
+		    	cpack(0xffffff);
+		    	set_inverted_drawing(1);	    	
+	    		for (i=0; i<(selend-selstart+1); i++) {
+	    			sb = &(selboxes[i]);
+	    			if (i<(selend-selstart)) {
+	    				if (selboxes[i+1].y == sb->y)
+	    					selboxw= selboxes[i+1].x - sb->x;
+	    				else
+	    					selboxw= sb->w;
+	    			}
+    				else {
+    					selboxw= sb->w;
+    				}
+	    			glBegin(GL_QUADS);
+	    			glVertex3f(sb->x, sb->y, 0.001);
+	    			glVertex3f(sb->x+selboxw, sb->y, 0.001);	    			
+	    			glVertex3f(sb->x+selboxw, sb->y+sb->h, 0.001);
+	    			glVertex3f(sb->x, sb->y+sb->h, 0.001);
+	    			glEnd();
+	    		}
+		    	set_inverted_drawing(0);	    		
+	    	}
 		}
 		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
 		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);

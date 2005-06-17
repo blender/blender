@@ -40,6 +40,8 @@
 #include "DNA_vec_types.h"
 #include "DNA_ID.h"
 
+#define MAXTEXTBOX 256  /* used in readfile.c and editfont.c */
+
 struct BoundBox;
 struct Object;
 struct Ipo;
@@ -101,8 +103,21 @@ typedef struct Nurb {
 	BPoint *bp;
 	BezTriple *bezt;
 	
+	int charidx;
+	int pad;
 } Nurb;
 
+typedef struct CharInfo {
+	short kern;
+	short mat_nr;
+	char flag;
+	char pad;
+	short pad2;
+} CharInfo;
+
+typedef struct TextBox {
+	float x, y, w, h;
+} TextBox;
 
 typedef struct Curve {
 	ID id;
@@ -135,12 +150,26 @@ typedef struct Curve {
 	
 	/* font part */
 	short len, lines, pos, spacemode;
-	float spacing, linedist, shear, fsize;
+	float spacing, linedist, shear, fsize, wordspace;
 	float xof, yof;
-	
-	char *str, family[24];
-	struct VFont *vfont;
+	float linewidth;
 
+	char *str;
+	char family[24];
+	struct VFont *vfont;
+	struct VFont *vfontb;
+	struct VFont *vfonti;
+	struct VFont *vfontbi;
+
+	int sepchar;
+	
+	int totbox, actbox, pad;
+	struct TextBox *tb;	
+	
+	int selstart, selend;	
+	
+	struct CharInfo *strinfo;	
+	struct CharInfo curinfo;	
 } Curve;
 
 typedef struct IpoCurve {
@@ -177,6 +206,7 @@ typedef struct IpoCurve {
 #define CU_NOPUNOFLIP	64
 #define CU_STRETCH		128
 #define CU_OFFS_PATHDIST	256
+#define CU_FAST			512 /* Font: no filling inside editmode */
 
 /* spacemode */
 #define CU_LEFT			0
@@ -203,6 +233,17 @@ typedef struct IpoCurve {
 #define HD_AUTO		1
 #define HD_VECT		2
 #define HD_ALIGN	3
+
+/* *************** CHARINFO **************** */
+
+/* flag */
+#define CU_STYLE		(1+2)
+#define CU_BOLD			1
+#define CU_ITALIC		2
+#define CU_UNDERLINE	4
+#define CU_WRAP			8	/* wordwrap occured here */
+
+
 
 #endif
 

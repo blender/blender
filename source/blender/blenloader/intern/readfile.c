@@ -1888,6 +1888,9 @@ static void lib_link_curve(FileData *fd, Main *main)
 			cu->taperobj= newlibadr(fd, cu->id.lib, cu->taperobj);
 			cu->textoncurve= newlibadr(fd, cu->id.lib, cu->textoncurve);
 			cu->vfont= newlibadr_us(fd, cu->id.lib, cu->vfont);
+			cu->vfontb= newlibadr_us(fd, cu->id.lib, cu->vfontb);			
+			cu->vfonti= newlibadr_us(fd, cu->id.lib, cu->vfonti);
+			cu->vfontbi= newlibadr_us(fd, cu->id.lib, cu->vfontbi);
 
 			cu->ipo= newlibadr_us(fd, cu->id.lib, cu->ipo);
 			cu->key= newlibadr_us(fd, cu->id.lib, cu->key);
@@ -1920,6 +1923,7 @@ static void switch_endian_knots(Nurb *nu)
 static void direct_link_curve(FileData *fd, Curve *cu)
 {
 	Nurb *nu;
+	TextBox *tb;
 
 	cu->mat= newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
@@ -1928,6 +1932,19 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	if(cu->vfont==0) link_list(fd, &(cu->nurb));
 	else {
 		cu->nurb.first=cu->nurb.last= 0;
+		cu->strinfo= newdataadr(fd, cu->strinfo);		
+		cu->tb= newdataadr(fd, cu->tb);
+		tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBoxread");
+		if (cu->tb) {
+			memcpy(tb, cu->tb, cu->totbox*sizeof(TextBox));
+			MEM_freeN(cu->tb);
+			cu->tb= tb;			
+		} else {
+			cu->totbox = 1;
+			cu->actbox = 1;
+			cu->tb = tb;
+			cu->tb[0].w = cu->linewidth;
+		}		
 	}
 
 	cu->bev.first=cu->bev.last= 0;
@@ -5018,6 +5035,9 @@ static void expand_curve(FileData *fd, Main *mainvar, Curve *cu)
 		expand_doit(fd, mainvar, cu->mat[a]);
 	}
 	expand_doit(fd, mainvar, cu->vfont);
+	expand_doit(fd, mainvar, cu->vfontb);	
+	expand_doit(fd, mainvar, cu->vfonti);
+	expand_doit(fd, mainvar, cu->vfontbi);
 	expand_doit(fd, mainvar, cu->key);
 	expand_doit(fd, mainvar, cu->ipo);
 	expand_doit(fd, mainvar, cu->bevobj);

@@ -39,13 +39,22 @@ struct Object;
 struct Curve;
 struct objfnt;
 
+typedef struct SelBox {
+	float x, y, w, h;
+} SelBox;
+
 void BKE_font_register_builtin(void *mem, int size);
 
 void free_vfont(struct VFont *sc); 
 struct VFont *load_vfont(char *name);
 
 struct chartrans *text_to_curve(struct Object *ob, int mode);
+int style_to_sel(void);
+int mat_to_sel(void);
 void font_duplilist(struct Object *par);
+struct SelBox *selboxes;
+int getselection(int *start, int *end);
+
 
 #endif
 

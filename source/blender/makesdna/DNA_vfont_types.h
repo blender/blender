@@ -55,6 +55,9 @@ typedef struct VFont {
 #define FO_CURSUP		2
 #define FO_CURSDOWN		3
 #define FO_DUPLI		4
+#define FO_PAGEUP		8
+#define FO_PAGEDOWN		9
+#define FO_SELCHANGE	10
 
 #endif
 

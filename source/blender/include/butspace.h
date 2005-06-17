@@ -317,7 +317,7 @@ enum {
 #define B_DOCENTRECURSOR	2017
 
 	/* 32 values! */
-#define B_OBLAY			2018
+#define B_OBLAY			2019
 
 #define B_MESHBUTS		2100
 
@@ -397,6 +397,12 @@ enum {
 #define B_LOADFONT		2204
 #define B_TEXTONCURVE	2205
 #define B_PACKFONT		2206
+#define B_LOAD3DTEXT	2207
+#define B_LOREM			2208
+#define B_FASTFONT		2209
+#define B_INSTB			2210
+#define B_DELTB			2211
+#define B_STYLETOSEL	2212
 
 /* *********************** */
 #define B_IKABUTS		2400

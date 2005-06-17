@@ -983,7 +983,7 @@ int blenderqread(unsigned short event, short val)
 		break;
 		
 	case XKEY:
-		if(textspace==0) {
+		if(textspace==0 && textediting==0) {
 			if(G.qual==LR_CTRLKEY) {
 				if(okee("Erase all")) {
 					strcpy(G.sce, BLI_gethome());

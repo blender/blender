@@ -119,8 +119,8 @@ typedef struct pschar {
 #define NOTHEX		(100)
 #define MC1 52845
 #define MC2 22719
-#define MAXSUBRS 1000
-#define MAXCHARS 1000
+#define MAXSUBRS 4000
+#define MAXCHARS 4000
 #define MAXTRIES 30
 
 /* some local thingies */
@@ -215,7 +215,7 @@ static unsigned short int mr;
 static char *bindat;
 static int datbytes;
 static int firsted;
-static short chardata[2000];
+static short chardata[20000];
 static int nshorts;
 
 static int thecharwidth, thesidebearing;
@@ -763,10 +763,12 @@ static int decryptprogram(char *buf, int len)
 
 	resetdecrypt(4330);
 	for(i=0; i<len; i++) {
-		if(i<SKIP)
+		if(i<SKIP) {
 			mdecrypt(buf[i]);
-		else
+		}
+		else {
 			buf[i-SKIP] = mdecrypt(buf[i]);
+		}
 	}
 	return len-SKIP;
 }
@@ -1447,10 +1449,10 @@ static void spline_line(float x0, float y0, float x1, float y1)
 static void spline_curveto(float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3)
 {
 	applymat(mat,&x0,&y0);
+
 	applymat(mat,&x1,&y1);
 	applymat(mat,&x2,&y2);
 	applymat(mat,&x3,&y3);
-
 	if(sp_npnts == 0) {
 		chardata[nshorts++] = SP_MOVETO;
 		chardata[nshorts++] = floor(x0);

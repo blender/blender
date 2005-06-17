@@ -145,8 +145,10 @@ void free_curve(Curve *cu)
 	
 	if(cu->mat) MEM_freeN(cu->mat);
 	if(cu->str) MEM_freeN(cu->str);
+	if(cu->strinfo) MEM_freeN(cu->strinfo);
 	if(cu->bb) MEM_freeN(cu->bb);
 	if(cu->path) free_path(cu->path);
+	if(cu->tb) MEM_freeN(cu->tb);
 }
 
 Curve *add_curve(int type)
@@ -165,6 +167,7 @@ Curve *add_curve(int type)
 	cu->pathlen= 100;
 	cu->resolu= cu->resolv= 6;
 	cu->width= 1.0;
+	cu->wordspace = 1.0;
 	cu->spacing= cu->linedist= 1.0;
 	cu->fsize= 1.0;
 	cu->texflag= CU_AUTOSPACE;
@@ -189,6 +192,8 @@ Curve *copy_curve(Curve *cu)
 	}
 	
 	cun->str= MEM_dupallocN(cu->str);
+	cun->strinfo= MEM_dupallocN(cu->strinfo);	
+	cun->tb= MEM_dupallocN(cu->tb);
 	cun->bb= MEM_dupallocN(cu->bb);
 	
 	cun->key= copy_key(cu->key);
@@ -202,6 +207,9 @@ Curve *copy_curve(Curve *cu)
 	if(cun->ipo) cun->ipo= copy_ipo(cun->ipo);
 
 	id_us_plus((ID *)cun->vfont);
+	id_us_plus((ID *)cun->vfontb);	
+	id_us_plus((ID *)cun->vfonti);
+	id_us_plus((ID *)cun->vfontbi);
 	
 	return cun;
 }

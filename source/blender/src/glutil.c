@@ -52,7 +52,7 @@
 	
 #define glToggle(mode, onoff)	(((onoff)?glEnable:glDisable)(mode))
 
-static void set_inverted_drawing(int enable) 
+void set_inverted_drawing(int enable) 
 {
 	glLogicOp(enable?GL_INVERT:GL_COPY);
 

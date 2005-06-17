@@ -1272,6 +1272,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 				dl->parts= 1;
 				dl->nr= len;
 				dl->col= nu->mat_nr;
+				dl->charidx= nu->charidx;
 
 				data= dl->verts;
 
@@ -1359,11 +1360,16 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 	EditFace *efa;
 	DispList *dlnew=0, *dl;
 	float *f1;
-	int colnr=0, cont=1, tot, a, *index;
+	int colnr=0, charidx=0, cont=1, tot, a, *index;
 	long totvert;
 	
 	if(dispbase==0) return;
 	if(dispbase->first==0) return;
+
+	/* tijd= clock(); */
+	/* bit-wise and comes after == .... so this doesn't work...  */
+/*  	if(G.f & G_PLAYANIM == 0) waitcursor(1); */
+	if( !(G.f & G_PLAYANIM) ) waitcursor(1);
 
 	while(cont) {
 		cont= 0;
@@ -1373,10 +1379,11 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 		while(dl) {
 	
 			if(dl->type==DL_POLY) {
-				if(colnr<dl->col) cont= 1;
-				else if(colnr==dl->col) {
+				if(charidx<dl->charidx) cont= 1;
+				else if(charidx==dl->charidx) {
 			
 					colnr= dl->col;
+					charidx= dl->charidx;
 		
 					/* make editverts and edges */
 					f1= dl->verts;
@@ -1464,10 +1471,16 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 		}
 		BLI_end_edgefill();
 
-		colnr++;
+		charidx++;
 	}
 	
 	/* do not free polys, needed for wireframe display */
+	
+	/* same as above ... */
+/*  	if(G.f & G_PLAYANIM == 0) waitcursor(0); */
+	if( !(G.f & G_PLAYANIM) ) waitcursor(0);
+	/* printf("time: %d\n",(clock()-tijd)/1000); */
+
 }
 
 static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)

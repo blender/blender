@@ -35,6 +35,8 @@
 
 struct Text;
 
+char *BIF_lorem;
+
 void do_textedit(unsigned short event, short val, char _ascii);
 void make_editText(void);
 void load_editText(void);
@@ -44,6 +46,9 @@ void paste_editText(void);
 void txt_export_to_object(struct Text *text);
 void txt_export_to_objects(struct Text *text);
 void undo_push_font(char *);
+void load_3dtext_fs(char *);
+void add_lorem(void);
+void text_makedisplist(struct Object *ob);
 
 /**
  * @attention The argument is discarded. It is there for

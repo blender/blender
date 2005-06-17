@@ -479,6 +479,13 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 			}
+			else if (G.obedit->type == OB_FONT) {
+        		if (mat_to_sel()) {
+        			text_to_curve(G.obedit, 0);
+        			text_makedisplist(G.obedit);
+        			allqueue(REDRAWVIEW3D, 0);
+        		}
+			}
 			allqueue(REDRAWVIEW3D_Z, 0);
 			makeDispList(G.obedit);
 			BIF_undo_push("Assign material index");
@@ -840,9 +847,25 @@ static void load_buts_vfont(char *name)
 		if(vf==0) return;
 	}
 	else id_us_plus((ID *)vf);
-
-	if(cu->vfont) cu->vfont->id.us--;
-	cu->vfont= vf;
+	
+	switch(cu->curinfo.flag & CU_STYLE) {
+		case CU_BOLD:
+			if(cu->vfontb) cu->vfontb->id.us--;
+			cu->vfontb= vf;
+			break;
+		case CU_ITALIC:
+			if(cu->vfonti) cu->vfonti->id.us--;		
+			cu->vfonti= vf;
+			break;						
+		case (CU_BOLD|CU_ITALIC):
+			if(cu->vfontbi) cu->vfontbi->id.us--;
+			cu->vfontbi= vf;
+			break;
+		default:
+			if(cu->vfont) cu->vfont->id.us--;
+			cu->vfont= vf;
+			break;						
+	}	
 
 	text_to_curve(OBACT, 0);
 	makeDispList(OBACT);
@@ -858,6 +881,7 @@ void do_fontbuts(unsigned short event)
 	Object *ob;
 	ScrArea *sa;
 	char str[80];
+	int i;
 
 	ob= OBACT;
 
@@ -866,6 +890,51 @@ void do_fontbuts(unsigned short event)
 		text_to_curve(ob, 0);
 		makeDispList(ob);
 		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	case B_STYLETOSEL:
+		if (style_to_sel()) {
+			text_to_curve(ob, 0);
+			text_makedisplist(ob);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+		
+	case B_FASTFONT:
+		if (G.obedit) {
+			cu= G.obedit->data;
+			cu->flag ^= CU_FAST;
+			error("Not in editmode!");
+		}
+		break;
+	case B_INSTB:
+		cu= ob->data;
+		if (cu->totbox < 256) {
+			for (i = cu->totbox; i>cu->actbox; i--) cu->tb[i]= cu->tb[i-1];
+			cu->tb[cu->actbox]= cu->tb[cu->actbox-1];
+			cu->actbox++;
+			cu->totbox++;
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			text_to_curve(ob, 0);
+			makeDispList(ob);
+		}
+		else {
+			error("Do you really need that many text frames?");
+		}
+		break;
+	case B_DELTB:
+		cu= ob->data;
+		if (cu->totbox > 1) {
+			for (i = cu->actbox-1; i < cu->totbox; i++) cu->tb[i]= cu->tb[i+1];
+			cu->totbox--;
+			cu->actbox--;
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			text_to_curve(ob, 0);
+			makeDispList(ob);			
+		}
 		break;
 	case B_TOUPPER:
 		to_upper();
@@ -908,6 +977,19 @@ void do_fontbuts(unsigned short event)
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 
+	case B_LOAD3DTEXT:
+		if (!G.obedit) { error("Only in editmode!"); return; }
+		if (G.obedit->type != OB_FONT) return;	
+		activate_fileselect(FILE_SPECIAL, "Open Text File", G.sce, load_3dtext_fs);
+		break;
+		
+	case B_LOREM:
+		if (!G.obedit) { error("Only in editmode!"); return; }
+		if (G.obedit->type != OB_FONT) return;	
+		add_lorem();
+		
+		break;		
+
 	case B_SETFONT:
 		if(ob) {
 			cu= ob->data;
@@ -915,8 +997,24 @@ void do_fontbuts(unsigned short event)
 			vf= give_vfontpointer(G.buts->texnr);
 			if(vf) {
 				id_us_plus((ID *)vf);
-				cu->vfont->id.us--;
-				cu->vfont= vf;
+				switch(cu->curinfo.flag & CU_STYLE) {
+					case CU_BOLD:
+						cu->vfontb->id.us--;
+						cu->vfontb= vf;
+						break;
+					case CU_ITALIC:
+						cu->vfonti->id.us--;
+						cu->vfonti= vf;
+						break;						
+					case (CU_BOLD|CU_ITALIC):
+						cu->vfontbi->id.us--;
+						cu->vfontbi= vf;
+						break;
+					default:
+						cu->vfont->id.us--;
+						cu->vfont= vf;
+						break;						
+				}
 				text_to_curve(ob, 0);
 				makeDispList(ob);
 				BIF_undo_push("Set vector font");
@@ -944,14 +1042,28 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiBlock *block;
 	char *strp;
 	static int packdummy = 0;
-	VFontData *vfd;
+	char str[32];
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_font_type", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Font", "Editing", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Font", "Editing", 640, 0, 470, 204)==0) return;
 
-	G.buts->texnr= give_vfontnr(cu->vfont);
+	switch(cu->curinfo.flag & CU_STYLE) {
+		case CU_BOLD:
+			G.buts->texnr= give_vfontnr(cu->vfontb);
+			break;
+		case CU_ITALIC:
+			G.buts->texnr= give_vfontnr(cu->vfonti);
+			break;						
+		case (CU_BOLD|CU_ITALIC):
+			G.buts->texnr= give_vfontnr(cu->vfontbi);
+			break;
+		default:
+			G.buts->texnr= give_vfontnr(cu->vfont);
+			break;						
+	}	
+
 	strp= give_vfontbutstr();
-	vfd= cu->vfont->data;
+//	vfd= cu->vfont->data;
 
 	uiDefBut(block, BUT,B_LOADFONT, "Load",	480,188,68,20, 0, 0, 0, 0, 0, "Load a new font");
 	uiDefButS(block, MENU, B_SETFONT, strp, 550,188,220,20, &G.buts->texnr, 0, 0, 0, 0, "Change font for object");
@@ -962,7 +1074,16 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 		packdummy = 0;
 	}
 	uiDefIconButI(block, TOG|BIT|0, B_PACKFONT, ICON_PACKAGE,	772,188,20,20, &packdummy, 0, 0, 0, 0, "Pack/Unpack this font");
-	uiDefBut(block, LABEL, 0, vfd->name,  480, 165,314,20, 0, 0, 0, 0, 0, "Postscript name of the font");
+
+	/* This doesn't work anyway */
+//	uiDefBut(block, LABEL, 0, vfd->name,  480, 165,314,20, 0, 0, 0, 0, 0, "Postscript name of the font");
+
+	uiDefBut(block, BUT, B_LOAD3DTEXT, "Insert Text", 480, 165, 90, 20, 0, 0, 0, 0, 0, "Insert text file at cursor");
+	uiDefBut(block, BUT, B_LOREM, "Lorem", 575, 165, 70, 20, 0, 0, 0, 0, 0, "Insert a paragraph of Lorem Ipsum at cursor");	
+	uiBlockBeginAlign(block);
+	uiDefButC(block, TOG|BIT|0,B_STYLETOSEL, "B",		752,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");
+	uiDefButC(block, TOG|BIT|1,B_STYLETOSEL, "i",		772,165,20,20, &(cu->curinfo.flag), 0, 0, 0, 0, "");	
+	uiBlockEndAlign(block);
 
 	MEM_freeN(strp);
 
@@ -974,16 +1095,30 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);
 
+	uiDefButS(block, TOG|BIT|9,B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
+
 	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
 	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	480,84,220,19, cu->family, 0.0, 20.0, 0, 0, "Blender uses font from selfmade objects");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,B_MAKEFONT, "Size:",		480,56,155,20, &cu->fsize, 0.1,10.0, 10, 0, "Size of the text");
 	uiDefButF(block, NUM,B_MAKEFONT, "Linedist:",	640,56,155,20, &cu->linedist, 0.0,10.0, 10, 0, "Distance between text lines");
+	uiDefButF(block, NUM,B_MAKEFONT, "Word spacing:",	795,56,155,20, &cu->wordspace, 0.0,10.0, 10, 0, "Distance factor between words");		
 	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	480,34,155,20, &cu->spacing, 0.0,10.0, 10, 0, "Spacing of individual characters");
 	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	640,34,155,20, &cu->xof, -50.0,50.0, 10, 0, "Horizontal position from object centre");
 	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",		480,12,155,20, &cu->shear, -1.0,1.0, 10, 0, "Italic angle of the characters");
 	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	640,12,155,20, &cu->yof, -50.0,50.0, 10, 0, "Vertical position from object centre");
+	uiBlockEndAlign(block);
+	
+	sprintf(str, "%d TextFrame: ", cu->totbox);
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM, REDRAWVIEW3D, str, 805, 188, 145, 20, &cu->actbox, 1.0, cu->totbox, 0, 10, "Textbox to show settings for");
+	uiDefBut(block, BUT,B_INSTB, "Insert", 805, 168, 72, 20, 0, 0, 0, 0, 0, "Insert a new text frame after the current one");
+	uiDefBut(block, BUT,B_DELTB, "Delete", 877, 168, 73, 20, 0, 0, 0, 0, 0, "Delete current text frame and shift the others up");	
+	uiDefButF(block, NUM,B_MAKEFONT, "X:", 805, 148, 72, 20, &(cu->tb[cu->actbox-1].x), -50.0, 50.0, 10, 0, "Horizontal offset of text frame");
+	uiDefButF(block, NUM,B_MAKEFONT, "Y:", 877, 148, 73, 20, &(cu->tb[cu->actbox-1].y), -50.0, 50.0, 10, 0, "Horizontal offset of text frame");	
+	uiDefButF(block, NUM,B_MAKEFONT, "Width:", 805, 128, 145, 20, &(cu->tb[cu->actbox-1].w), 0.0, 50.0, 10, 0, "Horizontal offset of text frame");
+	uiDefButF(block, NUM,B_MAKEFONT, "Height:", 805, 108, 145, 20, &(cu->tb[cu->actbox-1].h), 0.0, 50.0, 10, 0, "Horizontal offset of text frame");		
 	uiBlockEndAlign(block);
 }
 
@@ -2299,7 +2434,7 @@ static void editing_panel_links(Object *ob)
 	else poin= &( ((Curve *)ob->data)->texflag );
 	uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,15,140,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
-	sprintf(str,"%d Mat:", ob->totcol);
+	sprintf(str,"%d Mat ", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
 	ma= give_current_material(ob, ob->actcol);
 

@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
 
@@ -76,12 +77,14 @@
 
 #include "blendef.h"
 
-#define MAXTEXT	1000
+#define MAXTEXT	50000
 
 /* -- prototypes --------*/
 VFont *get_builtin_font(void);
 
 int textediting=0;
+
+extern struct SelBox *selboxes;		/* from blenkernel/font.c */
 
 static char findaccent(char char1, char code)
 {
@@ -214,9 +217,13 @@ static char findaccent(char char1, char code)
 	else return char1;
 }
 
+static char *copybuf=NULL;
+static char *copybufinfo=NULL;
 
 static char *textbuf=NULL;
+static CharInfo *textbufinfo=NULL;
 static char *oldstr=NULL;
+static CharInfo *oldstrinfo=NULL;
 
 static int insert_into_textbuf(Curve *cu, char c)
 {
@@ -224,7 +231,14 @@ static int insert_into_textbuf(Curve *cu, char c)
 		int x;
 
 		for(x= cu->len; x>cu->pos; x--) textbuf[x]= textbuf[x-1];
+		for(x= cu->len; x>cu->pos; x--) textbufinfo[x]= textbufinfo[x-1];		
 		textbuf[cu->pos]= c;
+		textbufinfo[cu->pos] = cu->curinfo;
+		textbufinfo[cu->pos].kern = 0;
+		if (G.obedit->actcol>0)
+			textbufinfo[cu->pos].mat_nr = G.obedit->actcol;
+		else
+			textbufinfo[cu->pos].mat_nr = 0;
 					
 		cu->pos++;
 		cu->len++;
@@ -236,6 +250,52 @@ static int insert_into_textbuf(Curve *cu, char c)
 	}
 }
 
+void add_lorem(void)
+{
+	char *p, *p2;
+	int i;
+	Curve *cu=G.obedit->data;
+	static char* lastlorem;
+	
+	if (lastlorem)
+		p= lastlorem;
+	else
+		p= BIF_lorem;
+	
+	i= rand()/(RAND_MAX/6)+4;	
+		
+	for (p2=p; *p2 && i; p2++) {
+		insert_into_textbuf(cu, *p2);
+		if (*p2=='.') i--;
+	}
+	lastlorem = p2+1;
+	if (strlen(lastlorem)<5) lastlorem = BIF_lorem;
+	
+	insert_into_textbuf(cu, '\n');
+	insert_into_textbuf(cu, '\n');	
+	text_to_curve(G.obedit, 0);
+	text_makedisplist(G.obedit);
+	allqueue(REDRAWVIEW3D, 0);	
+}
+
+void load_3dtext_fs(char *file) 
+{
+	FILE *fp;
+	int c;
+
+	fp= fopen(file, "r");
+	if (!fp) return;
+	
+	while (!feof(fp)) {
+		c = fgetc(fp);
+		if (c!=EOF) insert_into_textbuf(OBACT->data, c);
+	}
+	fclose(fp);
+
+	text_to_curve(G.obedit, 0);
+	text_makedisplist(G.obedit);
+	allqueue(REDRAWVIEW3D, 0);	
+}
 
 VFont *get_builtin_font(void)
 {
@@ -294,8 +354,10 @@ void txt_export_to_object(struct Text *text)
 	}
 
 	if(cu->str) MEM_freeN(cu->str);
+	if(cu->strinfo) MEM_freeN(cu->strinfo);	
 
 	cu->str= MEM_mallocN(nchars+4, "str");
+	cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
 	
 	tmp= text->lines.first;
 	strcpy(cu->str, tmp->line);
@@ -371,8 +433,10 @@ void txt_export_to_objects(struct Text *text)
 		nchars = strlen(curline->line) + 1;
 	
 		if(cu->str) MEM_freeN(cu->str);
+		if(cu->strinfo) MEM_freeN(cu->strinfo);		
 	
 		cu->str= MEM_mallocN(nchars+4, "str");
+		cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
 		
 		strcpy(cu->str, curline->line);
 		cu->len= strlen(curline->line);
@@ -389,7 +453,7 @@ void txt_export_to_objects(struct Text *text)
 }
 
 
-static void text_makedisplist(Object *ob)
+void text_makedisplist(Object *ob)
 {
 	Base *base;
 	// free displists of other users...
@@ -399,12 +463,123 @@ static void text_makedisplist(Object *ob)
 	makeDispList(ob);
 }
 
+static short next_word(Curve *cu)
+{
+	short s;
+	for (s=cu->pos; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
+	                (cu->str[s]!=1) && (cu->str[s]!='\r'); s++);
+	if (cu->str[s]) return(s+1); else return(s);
+}
+
+static short prev_word(Curve *cu)
+{
+	short s;
+	
+	if (cu->pos==0) return(0);
+	for (s=cu->pos-2; (cu->str[s]) && (cu->str[s]!=' ') && (cu->str[s]!='\n') &&
+	                (cu->str[s]!=1) && (cu->str[s]!='\r'); s--);
+	if (cu->str[s]) return(s+1); else return(s);
+}
+
+
+
+static int killselection(int ins)	/* 1 == new character */
+{
+	int selend, selstart, direction;
+	Curve *cu= G.obedit->data;
+	int offset = 0;
+	int getfrom;
+
+	direction = getselection(&selstart, &selend);
+	if (direction) {
+		if (ins) offset = 1;
+		if (cu->pos >= selstart) cu->pos = selstart+offset;
+		if ((direction == -1) && ins) {
+			selstart++;
+			selend++;
+		}
+		getfrom = selend+offset;
+		if (ins==0) getfrom++;
+		memmove(textbuf+selstart, textbuf+getfrom, (cu->len-selstart)+offset);
+		memmove(textbufinfo+selstart, textbufinfo+getfrom, ((cu->len-selstart)+offset)*sizeof(CharInfo));
+		cu->len -= (selend-selstart)+offset;
+		cu->selstart = cu->selend = 0;
+	}
+	return(direction);
+}
+
+static void copyselection(void)
+{
+	int selstart, selend;
+	
+	if (getselection(&selstart, &selend)) {
+		memcpy(copybuf, textbuf+selstart, (selend-selstart)+1);
+		copybuf[(selend-selstart)+1]=0;
+		memcpy(copybufinfo, textbufinfo+selstart, ((selend-selstart)+1)*sizeof(CharInfo));	
+	}
+}
+
+static void pasteselection(void)
+{
+	Curve *cu= G.obedit->data;
+	int len= strlen(copybuf);
+	
+	if (len) {
+		memmove(textbuf+cu->pos+len, textbuf+cu->pos, cu->len-cu->pos+1);
+		memcpy(textbuf+cu->pos, copybuf, len);
+		
+		memmove(textbufinfo+cu->pos+len, textbufinfo+cu->pos, (cu->len-cu->pos+1)*sizeof(CharInfo));
+		memcpy(textbufinfo+cu->pos, copybufinfo, len*sizeof(CharInfo));	
+		
+		cu->len += len;
+		cu->pos += len;
+	}
+}
+
+int style_to_sel(void) {
+	int selstart, selend;
+	int i;
+	Curve *cu;
+	
+	if (G.obedit && (G.obedit->type == OB_FONT)) {
+		cu= G.obedit->data;
+		
+		if (getselection(&selstart, &selend)) {
+			for (i=selstart; i<=selend; i++) {
+				textbufinfo[i].flag &= ~CU_STYLE;
+				textbufinfo[i].flag |= (cu->curinfo.flag & CU_STYLE);
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+
+int mat_to_sel(void) {
+	int selstart, selend;
+	int i;
+	Curve *cu;
+	
+	if (G.obedit && (G.obedit->type == OB_FONT)) {
+		cu= G.obedit->data;
+		
+		if (getselection(&selstart, &selend)) {
+			for (i=selstart; i<=selend; i++) {
+				textbufinfo[i].mat_nr = G.obedit->actcol;
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+
 void do_textedit(unsigned short event, short val, char _ascii)
 {
 	Curve *cu;
 	static int accentcode= 0;
 	int x, doit=0, cursmove=0;
 	int ascii = _ascii;
+	short kern;
 
 	cu= G.obedit->data;
 
@@ -474,6 +649,8 @@ void do_textedit(unsigned short event, short val, char _ascii)
 				}
 			}
 			
+			killselection(1);
+			
 			doit= 1;
 		}
 	}
@@ -481,45 +658,81 @@ void do_textedit(unsigned short event, short val, char _ascii)
 		cursmove= 0;
 		
 		switch(event) {
-		case RETKEY:
-			insert_into_textbuf(cu, '\n');
-			doit= 1;
-			break;
-
-		case RIGHTARROWKEY:	
-			if(G.qual & LR_SHIFTKEY) {
-				while(cu->pos<cu->len) {
-					if( textbuf[cu->pos]==0) break;
-					if( textbuf[cu->pos]=='\n') break;
-					cu->pos++;
-				}
-			}
-			else {
+		case ENDKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;		
+			while(cu->pos<cu->len) {
+				if( textbuf[cu->pos]==0) break;
+				if( textbuf[cu->pos]=='\n') break;
+				if( textbufinfo[cu->pos].flag & CU_WRAP ) break;
 				cu->pos++;
-			}
-			cursmove= FO_CURS;
-			break;
-			
-		case LEFTARROWKEY:
-			
-			if(G.qual & LR_SHIFTKEY) {
-				while(cu->pos>0) {
-					if( textbuf[cu->pos-1]=='\n') break;
-					cu->pos--;
-				}
-			}
-			else {
-				cu->pos--;
 			}
 			cursmove=FO_CURS;
 			break;
 
-		case UPARROWKEY:
-			if(G.qual & LR_SHIFTKEY) {
-				cu->pos= 0;
-				cursmove= FO_CURS;
+		case HOMEKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			while(cu->pos>0) {
+				if( textbuf[cu->pos-1]=='\n') break;
+				if( textbufinfo[cu->pos-1].flag & CU_WRAP ) break;				
+				cu->pos--;
+			}		
+			cursmove=FO_CURS;
+			break;
+			
+		case RETKEY:
+			if(G.qual & LR_CTRLKEY) {
+				insert_into_textbuf(cu, 1);
+				if (textbuf[cu->pos]!='\n') insert_into_textbuf(cu, '\n');				
 			}
-			else if(G.qual & LR_ALTKEY) {
+			else {
+				insert_into_textbuf(cu, '\n');
+			}
+			cu->selstart = cu->selend = 0;
+			doit= 1;
+			break;
+
+		case RIGHTARROWKEY:	
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			if (G.qual & LR_CTRLKEY) {
+				cu->pos= next_word(cu);
+				cursmove= FO_CURS;				
+			} 
+   			else if (G.qual & LR_ALTKEY) {
+   				kern = textbufinfo[cu->pos-1].kern;
+   				kern += 1;
+   				if (kern>10) kern = 10;
+   				textbufinfo[cu->pos-1].kern = kern;
+   				doit = 1;
+   			}
+			else {
+				cu->pos++;
+				cursmove= FO_CURS;				
+			}
+
+			break;
+			
+		case LEFTARROWKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			if (G.qual & LR_CTRLKEY) {
+				cu->pos= prev_word(cu);
+				cursmove= FO_CURS;
+			} 
+   			else if (G.qual & LR_ALTKEY) {
+   				kern = textbufinfo[cu->pos-1].kern;
+   				kern -= 1;
+   				if (kern<-10) kern = -10;
+   				textbufinfo[cu->pos-1].kern = kern;
+   				doit = 1;
+   			}
+			else {
+				cu->pos--;
+				cursmove=FO_CURS;
+			}
+			break;
+
+		case UPARROWKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			if(G.qual & LR_ALTKEY) {
 				if (cu->pos && textbuf[cu->pos - 1] < 255) {
 					textbuf[cu->pos - 1]++;
 					doit= 1;
@@ -528,12 +741,14 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			else cursmove=FO_CURSUP;
 			break;
 			
+		case PAGEUPKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			cursmove=FO_PAGEUP;
+			break;
+			
 		case DOWNARROWKEY:
-			if(G.qual & LR_SHIFTKEY) {
-				cu->pos= cu->len;
-				cursmove= FO_CURS;
-			}
-			else if(G.qual & LR_ALTKEY) {
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			if(G.qual & LR_ALTKEY) {
 				if (cu->pos && textbuf[cu->pos - 1] > 1) {
 					textbuf[cu->pos - 1]--;
 					doit= 1;
@@ -541,45 +756,107 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			}
 			else cursmove= FO_CURSDOWN;
 			break;
+
+		case PAGEDOWNKEY:
+			if ((G.qual & LR_SHIFTKEY) && (cu->selstart==0)) cu->selstart = cu->selend = cu->pos+1;
+			cursmove=FO_PAGEDOWN;
+			break;
 			
 		case BACKSPACEKEY:
 			if(cu->len!=0) {
 				if(G.qual & LR_ALTKEY) {
 					if(cu->pos>0) accentcode= 1;
 				}
-				else if(G.qual & LR_SHIFTKEY) {
-					cu->pos= 0;
-					textbuf[0]= 0;
-					cu->len= 0;
-				}
-				else if(cu->pos>0) {
-					for(x=cu->pos;x<=cu->len;x++) textbuf[x-1]= textbuf[x];
-					cu->pos--;
-					textbuf[--cu->len]='\0';
+				else {
+					if (killselection(0)==0) {
+						if (cu->pos>0) {
+							for(x=cu->pos;x<=cu->len;x++) textbuf[x-1]= textbuf[x];
+							for(x=cu->pos;x<=cu->len;x++) textbufinfo[x-1]= textbufinfo[x];					
+							cu->pos--;
+							textbuf[--cu->len]='\0';
+							doit=1;
+						}
+					} else doit=1;
 				}
 			}
-			doit= 1;
 			break;
 
 		case DELKEY:
 			if(cu->len!=0) {
-				if(cu->pos<cu->len) {
-					for(x=cu->pos;x<cu->len;x++) textbuf[x]= textbuf[x+1];
-					textbuf[--cu->len]='\0';
-				}
+				if (killselection(0)==0) {
+					if(cu->pos<cu->len) {					
+						for(x=cu->pos;x<cu->len;x++) textbuf[x]= textbuf[x+1];
+						for(x=cu->pos;x<cu->len;x++) textbufinfo[x]= textbufinfo[x+1];					
+						textbuf[--cu->len]='\0';
+						doit=1;
+					}
+				} else doit=1;
 			}
-			doit= 1;
 			break;
-		}
+		
+   		case IKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				cu->curinfo.flag ^= CU_ITALIC;
+   				if (style_to_sel()) doit= 1;   				
+   				allqueue(REDRAWBUTSEDIT, 0);
+   			}
+   			break;
+
+   		case BKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				cu->curinfo.flag ^= CU_BOLD;
+   				if (style_to_sel()) doit= 1;
+   				allqueue(REDRAWBUTSEDIT, 0);
+   			}
+   			break;			
+   			
+   		case XKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				copyselection();
+   				killselection(0);
+   				doit= 1;
+   			}
+   			break;
+   			
+   		case CKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				copyselection();
+   			}
+   			break;   			
+   			
+   		case VKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				pasteselection();
+   				doit= 1;
+   			}
+   			break;   			   			
+   		
+   		}
 			
 		if(cursmove) {
+			if ((G.qual & LR_SHIFTKEY)==0) {
+				if (cu->selstart) {
+					cu->selstart = cu->selend = 0;
+					text_to_curve(G.obedit, FO_SELCHANGE);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
 			if(cu->pos>cu->len) cu->pos= cu->len;
 			else if(cu->pos>=MAXTEXT) cu->pos= MAXTEXT;
 			else if(cu->pos<0) cu->pos= 0;
 		}
 	}
 	if(doit || cursmove) {
+		if (cu->pos) cu->curinfo = textbufinfo[cu->pos-1];
+		if (G.obedit->totcol>0) {
+			G.obedit->actcol = textbufinfo[cu->pos-1].mat_nr;
+		}
+		allqueue(REDRAWBUTSEDIT, 0);
 		text_to_curve(G.obedit, cursmove);
+		if (cursmove && (G.qual & LR_SHIFTKEY)) {
+			cu->selend = cu->pos;
+			text_to_curve(G.obedit, FO_SELCHANGE);
+		}
 		if(cursmove==0) {
 			text_makedisplist(G.obedit);
 		}			
@@ -648,11 +925,18 @@ void make_editText(void)
 
 	cu= G.obedit->data;
 	if(textbuf==NULL) textbuf= MEM_mallocN(MAXTEXT+4, "texteditbuf");
+	if(textbufinfo==NULL) textbufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditbufinfo");
+	if(copybuf==NULL) copybuf= MEM_callocN(MAXTEXT+4, "texteditcopybuf");
+	if(copybufinfo==NULL) copybufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditcopybufinfo");	
 	BLI_strncpy(textbuf, cu->str, MAXTEXT);
-	oldstr= cu->str;
-	cu->str= textbuf;
-
 	cu->len= strlen(textbuf);
+	
+	memcpy(textbufinfo, cu->strinfo, (cu->len)*sizeof(CharInfo));
+	oldstr= cu->str;
+	oldstrinfo= cu->strinfo;
+	cu->str= textbuf;
+	cu->strinfo= textbufinfo;
+
 	if(cu->pos>cu->len) cu->pos= cu->len;
 	
 	text_to_curve(G.obedit, 0);
@@ -671,15 +955,32 @@ void load_editText(void)
 
 	MEM_freeN(oldstr);
 	oldstr= NULL;
+	MEM_freeN(oldstrinfo);
+	oldstrinfo= NULL;
 	
 	cu->str= MEM_mallocN(cu->len+4, "textedit");
 	strcpy(cu->str, textbuf);
+	cu->strinfo= MEM_callocN((cu->len+4)*sizeof(CharInfo), "texteditinfo");
+	memcpy(cu->strinfo, textbufinfo, (cu->len)*sizeof(CharInfo));
+
+	cu->len= strlen(cu->str);
 	
 	/* this memory system is weak... */
 	MEM_freeN(textbuf);
+	MEM_freeN(textbufinfo);
 	textbuf= NULL;
+	textbufinfo= NULL;
 	
-	cu->len= strlen(cu->str);
+	if (selboxes) {
+		MEM_freeN(selboxes);
+		selboxes= NULL;
+	}
+	
+	MEM_freeN(copybuf);
+	MEM_freeN(copybufinfo);
+	copybuf= NULL;
+	copybufinfo= NULL;	
+	
 	textediting= 0;
 	
 	text_makedisplist(G.obedit);
@@ -709,7 +1010,8 @@ void remake_editText(void)
 void free_editText(void)
 {
 	if(oldstr) MEM_freeN(oldstr);
-	textbuf= oldstr= NULL;
+	if(oldstrinfo) MEM_freeN(oldstrinfo);
+	textbuf= textbufinfo= oldstr= oldstrinfo= NULL;
 	textediting= 0;
 }
 
@@ -723,18 +1025,22 @@ void add_primitiveFont(int dummy_argument)
 	
 	add_object_draw(OB_FONT);
 	base_init_from_view3d(BASACT, G.vd);
-	G.obedit= BASACT->object;
-	where_is_object(G.obedit);
 	
-	cu= G.obedit->data;
+	where_is_object(BASACT->object);
 	
-	cu->vfont= get_builtin_font();
-	cu->vfont->id.us++;
+	cu= BASACT->object->data;
+	
+	cu->vfont= cu->vfontb= cu->vfonti= cu->vfontbi= get_builtin_font();
+	cu->vfont->id.us+=4;
 	cu->str= MEM_mallocN(12, "str");
 	strcpy(cu->str, "Text");
 	cu->pos= 4;
+	cu->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo");
+	cu->totbox= cu->actbox= 1;
+	cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+	cu->tb[0].w = cu->tb[0].h = 0.0;
 	
-	make_editText();
+	enter_editmode();
 
 	allqueue(REDRAWALL, 0);
 }
@@ -792,6 +1098,8 @@ static void undoFont_to_editFont(void *strv)
 	strncpy(textbuf, str+2, MAXTEXT);
 	cu->pos= *((short *)str);
 	cu->len= strlen(textbuf);
+	memcpy(textbufinfo, str+2+cu->len+1, cu->len*sizeof(CharInfo));
+	cu->selstart = cu->selend = 0;
 	text_to_curve(G.obedit, 0);
 	text_makedisplist(G.obedit);
 	
@@ -803,10 +1111,11 @@ static void *editFont_to_undoFont(void)
 	Curve *cu= G.obedit->data;
 	char *str;
 	
-	str= MEM_callocN(MAXTEXT+4, "string undo");
+	str= MEM_callocN(MAXTEXT+4+(MAXTEXT+4)*sizeof(CharInfo), "string undo");
 	
 	strncpy(str+2, textbuf, MAXTEXT);
 	*((short *)str)= cu->pos;
+	memcpy(str+2+cu->len+1, textbufinfo, cu->len*sizeof(CharInfo));
 	
 	return str;
 }

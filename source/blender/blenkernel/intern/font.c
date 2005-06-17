@@ -69,11 +69,15 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
+#define callocstructN(x,y,name) (x*)MEM_callocN((y)* sizeof(x),name)
+ 
+struct SelBox *selboxes= NULL;
 
 struct chartrans {
 	float xof, yof;
 	float rot;
 	short linenr,charnr;
+	char dobreak;
 };
 
 void free_vfont(struct VFont *vf)
@@ -215,17 +219,40 @@ VFont *load_vfont(char *name)
 	return vfont;
 }
 
-static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, float rot)
+static VFont *which_vfont(Curve *cu, CharInfo *info)
+{
+   	switch(info->flag & CU_STYLE) {
+   		case CU_BOLD:
+   			return(cu->vfontb);
+   		case CU_ITALIC:
+   			return(cu->vfonti);
+   		case (CU_BOLD|CU_ITALIC):
+   			return(cu->vfontbi);
+   		default:
+   			return(cu->vfont);
+   	}			
+}
+
+static void buildchar(Curve *cu, unsigned char ascii, CharInfo *info, float ofsx, float ofsy, float rot, int charidx)
 {
 	BezTriple *bezt1, *bezt2;
 	Nurb *nu1, *nu2;
 	float *fp, fsize, shear, x, si, co;
 	VFontData *vfd;
-	int i;
+	int i, sel=0;
 
-	vfd= vfont_get_data(cu->vfont);	
+	vfd= vfont_get_data(which_vfont(cu, info));	
 	if (!vfd) return;
-	
+
+	if (cu->selend < cu->selstart) {
+		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
+			sel= 1;
+	}
+	else {
+		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
+			sel= 1;
+	}
+
 	/* make a copy at distance ofsx,ofsy with shear*/
 	fsize= cu->fsize;
 	shear= cu->shear;
@@ -244,6 +271,8 @@ static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, fl
 			nu2->bp = 0;
 			nu2->knotsu = nu2->knotsv = 0;
 			nu2->flag= CU_SMOOTH;
+			nu2->charidx = charidx;
+			if (info->mat_nr) nu2->mat_nr= info->mat_nr-1;
 			/* nu2->trim.first = 0; */
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;
@@ -285,7 +314,7 @@ static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, fl
 				}
 			}
 			bezt2 = nu2->bezt;
-			
+
 			for (i= nu2->pntsu; i > 0; i--) {
 				fp= bezt2->vec[0];
 
@@ -300,23 +329,52 @@ static void buildchar(Curve *cu, unsigned char ascii, float ofsx, float ofsy, fl
 			
 			BLI_addtail(&(cu->nurb), nu2);
 		}
+		
 		nu1 = nu1->next;
 	}
 }
 
+int getselection(int *start, int *end)
+{
+	Curve *cu;
+	
+	if (G.obedit==NULL || G.obedit->type != OB_FONT) return 0;
+	
+	cu= G.obedit->data;
+
+	if (cu->selstart == 0) return 0;
+	if (cu->selstart <= cu->selend) {
+		*start = cu->selstart-1;
+		*end = cu->selend-1;
+		return 1;
+	}
+	else {
+		*start = cu->selend;
+		*end = cu->selstart-2;
+		return -1;
+	}
+}
 
 struct chartrans *text_to_curve(Object *ob, int mode) 
 {
-	VFont *vfont;
+	VFont *vfont, *oldvfont;
 	VFontData *vfd;
 	Curve *cu, *cucu;
 	struct chartrans *chartransdata, *ct;
 	float distfac, tabfac, ctime, dtime, tvec[4], vec[4], rotvec[3], minx, maxx, miny, maxy;
 	float cmat[3][3], timeofs, si, co, sizefac;
-	float *f, maxlen=0, xof, yof, xtrax, linedist, *linedata, *linedata2;
-	int i, slen, oldflag;
+	float *f, maxlen=0, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3;
+	int i, slen, oldflag, j;
 	short cnr=0, lnr=0;
 	char ascii, *mem;
+	int outta;
+	float vecyo[3];
+	CharInfo *info;
+	float wsfac;
+	TextBox *tb;
+	int curbox;
+	int selstart, selend;
+	SelBox *sb;
 
 	/* renark: do calculations including the trailing '\0' of a string
 	   because the cursor can be at that location */
@@ -324,54 +382,101 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	if(ob->type!=OB_FONT) return 0;
 
 	cu= ob->data;
-
-	vfont= cu->vfont;
-	if (vfont==0) return 0;
-	if (cu->str==0) return 0;
-
-	vfd= vfont_get_data(vfont);
-	if (!vfd) return 0;
-	
-	/* count number of lines */
 	mem= cu->str;
-	slen = strlen(mem);
-	cu->lines= 1;
-	for (i= 0; i<=slen; i++, mem++) {
-		ascii = *mem;
-		if(ascii== '\n' || ascii== '\r') cu->lines++;
+	slen = strlen(mem);	
+
+	if (cu->str==0) return 0;
+	if (cu->strinfo==NULL) {	/* old file */
+		fprintf(stderr, "old file\n");
+		cu->strinfo = MEM_callocN((slen+1) * sizeof(CharInfo), "strinfo compat");
 	}
 
 	/* calc offset and rotation of each char */
 	ct = chartransdata =
 		(struct chartrans*)MEM_callocN((slen+1)* sizeof(struct chartrans),"buildtext");
-	linedata= MEM_mallocN(sizeof(float)*cu->lines,"buildtext2");
-	linedata2= MEM_mallocN(sizeof(float)*cu->lines,"buildtext2");
-	xof= cu->xof;
-	yof= cu->yof;
+
+	/* We assume the worst case: 1 character per line (is freed at end anyway) */
+
+	linedata= MEM_mallocN(sizeof(float)*(slen+2),"buildtext2");
+	linedata2= MEM_mallocN(sizeof(float)*(slen+2),"buildtext3");
+	linedata3= MEM_mallocN(sizeof(float)*(slen+2),"buildtext4");	
+	
+	linedist= cu->linedist;
+	
+	xof= cu->xof + (cu->tb[0].x/cu->fsize);
+	yof= cu->yof + (cu->tb[0].y/cu->fsize);
 
 	xtrax= 0.5f*cu->spacing-0.5f;
-	linedist= cu->linedist;
 
+	oldvfont = NULL;
+
+	for (i=0; i<slen; i++) cu->strinfo[i].flag &= ~CU_WRAP;
+
+	if (selboxes) MEM_freeN(selboxes);
+	selboxes = NULL;
+	if (getselection(&selstart, &selend))
+		selboxes = MEM_callocN((selend-selstart+1)*sizeof(SelBox), "font selboxes");
+
+	tb = &(cu->tb[0]);
+	curbox= 0;
 	for (i = 0 ; i<=slen ; i++) {
+	makebreak:
 		ascii = cu->str[i];
-		if(ascii== '\n' || ascii== '\r' || ascii==0) {
+		info = &(cu->strinfo[i]);
+		vfont = which_vfont(cu, info);
+    	if (vfont==0) return 0;
+    	if (vfont != oldvfont) {
+    		vfd= vfont_get_data(vfont);
+    		oldvfont = vfont;
+    	}
+    	if (!vfd) return 0;    	
+    	if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+vfd->width[ascii])*cu->fsize) > tb->w) {
+//     		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", cu->str[i], cu->str[i+1], cu->str[i+2]);
+    		for (j=i; j && (cu->str[j] != '\n') && (cu->str[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
+    			if (cu->str[j]==' ') {
+					ct -= (i-(j-1));
+					cnr -= (i-(j-1));
+					i = j-1;
+					xof = ct->xof;
+					ct[1].dobreak = 1;
+					cu->strinfo[i+1].flag |= CU_WRAP;
+					goto makebreak;
+    			}
+    			if (chartransdata[j].dobreak) {
+//    				fprintf(stderr, "word too long: %c%c%c...\n", cu->str[j], cu->str[j+1], cu->str[j+2]);
+    				ct->dobreak= 1;
+    				cu->strinfo[i+1].flag |= CU_WRAP;
+    				ct -= 1;
+    				cnr -= 1;
+    				i--;
+    				xof = ct->xof;
+    				goto makebreak;
+    			}
+    		}
+    	}
+		if(ascii== '\n' || ascii== '\r' || ascii==0 || ct->dobreak) {
 			ct->xof= xof;
 			ct->yof= yof;
 			ct->linenr= lnr;
 			ct->charnr= cnr;
 			
-			/* only empty lines are allowed smaller than 1 */
-//			if( linedist<1.0) {
-//				if(i<slen && (cu->str[i+1]=='\r' || cu->str[i+1]=='\n')) yof-= linedist;
-//				else yof-= 1.0;
-//			}
-//			else
 			yof-= linedist;
 			
-			maxlen= MAX2(maxlen, xof);
-			linedata[lnr]= xof;
+			maxlen= MAX2(maxlen, (xof-tb->x/cu->fsize));
+			linedata[lnr]= xof-tb->x/cu->fsize;
 			linedata2[lnr]= cnr;
-			xof= cu->xof;
+			linedata3[lnr]= tb->w/cu->fsize;
+			
+			if ( (tb->h != 0.0) &&
+			     ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
+			     (cu->totbox > (curbox+1)) ) {
+				maxlen= 0;
+				tb++;
+				curbox++;
+				yof= cu->yof + tb->y/cu->fsize;
+			}
+			
+			xof= cu->xof + (tb->x/cu->fsize);
 			lnr++;
 			cnr= 0;
 		}
@@ -391,51 +496,45 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct->linenr= lnr;
 			ct->charnr= cnr++;
 
-			xof += vfd->width[ascii] + xtrax;
+   			if (selboxes && (i>=selstart) && (i<=selend)) {
+    			sb = &(selboxes[i-selstart]);
+    			sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
+    			sb->h = linedist*cu->fsize;
+    			sb->w = xof*cu->fsize;
+    		}
+	
+			if (ascii==32) wsfac = cu->wordspace; else wsfac = 1.0;
+			xof += (vfd->width[ascii]*wsfac*(1.0+(info->kern/20.0)) ) + xtrax;
+			
+			if (selboxes && (i>=selstart) && (i<=selend)) sb->w = (xof*cu->fsize) - sb->w;
 		}
 		ct++;
 	}
+	
 
-	/* met alle fontsettings plekken letters berekenen */
-	if(cu->spacemode!=CU_LEFT/* && lnr>1*/) {
-		ct= chartransdata;
+	
+	cu->lines= 1;
+	ct= chartransdata;
+	for (i= 0; i<=slen; i++, mem++, ct++) {
+		ascii = *mem;
+		if(ascii== '\n' || ascii== '\r' || ct->dobreak) cu->lines++;
+	}	
 
-		if(cu->spacemode==CU_RIGHT) {
-			for(i=0;i<lnr;i++) linedata[i]= -linedata[i];
-			for (i=0; i<=slen; i++) {
-				ct->xof+= linedata[ct->linenr];
-				ct++;
-			}
-		} else if(cu->spacemode==CU_MIDDLE) {
-			for(i=0;i<lnr;i++) linedata[i]= -linedata[i]/2;
-			for (i=0; i<=slen; i++) {
-				ct->xof+= linedata[ct->linenr];
-				ct++;
-			}
-		} else if(cu->spacemode==CU_FLUSH) {
-			for(i=0;i<lnr;i++)
-				if(linedata2[i]>1)
-					linedata[i]= ((maxlen-linedata[i])/(linedata2[i]-1));
-			for (i=0; i<=slen; i++) {
-				ct->xof+= (ct->charnr*linedata[ct->linenr])-maxlen/2;
-				ct++;
-			}
-		}
-	}
+	// linedata is now: width of line
+	// linedata2 is now: number of characters
+	// linedata3 is now: maxlen of that line
 
-	/* old alignment here, to spot the differences */
-/*
 	if(cu->spacemode!=CU_LEFT && lnr>1) {
 		ct= chartransdata;
 
 		if(cu->spacemode==CU_RIGHT) {
-			for(i=0;i<lnr;i++) linedata[i]= maxlen-linedata[i];
+			for(i=0;i<lnr;i++) linedata[i]= linedata3[i]-linedata[i];
 			for (i=0; i<=slen; i++) {
 				ct->xof+= linedata[ct->linenr];
 				ct++;
 			}
 		} else if(cu->spacemode==CU_MIDDLE) {
-			for(i=0;i<lnr;i++) linedata[i]= (maxlen-linedata[i])/2;
+			for(i=0;i<lnr;i++) linedata[i]= (linedata3[i]-linedata[i])/2;
 			for (i=0; i<=slen; i++) {
 				ct->xof+= linedata[ct->linenr];
 				ct++;
@@ -443,14 +542,18 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		} else if(cu->spacemode==CU_FLUSH) {
 			for(i=0;i<lnr;i++)
 				if(linedata2[i]>1)
-					linedata[i]= (maxlen-linedata[i])/(linedata2[i]-1);
+					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
 			for (i=0; i<=slen; i++) {
-				ct->xof+= ct->charnr*linedata[ct->linenr];
+				for (j=i; (cu->str[j]) && (cu->str[j]!='\n') && 
+				          (cu->str[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+				if ((cu->str[j]!='\r') && (cu->str[j]!='\n')) {
+					ct->xof+= ct->charnr*linedata[ct->linenr];
+				}
 				ct++;
 			}
 		}
 	}
-*/	
+	
 	/* TEXT ON CURVE */
 	if(cu->textoncurve) {
 		cucu= cu->textoncurve->data;
@@ -533,17 +636,29 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		}
 	}
 
+	if (selboxes) {
+		ct= chartransdata;
+		for (i=0; i<=selend; i++, ct++) {
+			if (i>=selstart) {
+				selboxes[i-selstart].x = ct->xof*cu->fsize;
+			}
+		}
+	}
 
-	if(mode==FO_CURSUP || mode==FO_CURSDOWN) {
+	if(mode==FO_CURSUP || mode==FO_CURSDOWN || mode==FO_PAGEUP || mode==FO_PAGEDOWN) {
 		/* 2: curs up
 		   3: curs down */
 		ct= chartransdata+cu->pos;
 		
-		if(mode==FO_CURSUP && ct->linenr==0);
-		else if(mode==FO_CURSDOWN && ct->linenr==lnr);
+		if((mode==FO_CURSUP || mode==FO_PAGEUP) && ct->linenr==0);
+		else if((mode==FO_CURSDOWN || mode==FO_PAGEDOWN) && ct->linenr==lnr);
 		else {
-			if(mode==FO_CURSUP) lnr= ct->linenr-1;
-			else lnr= ct->linenr+1;
+			switch(mode) {
+				case FO_CURSUP:		lnr= ct->linenr-1; break;
+				case FO_CURSDOWN:	lnr= ct->linenr+1; break;
+				case FO_PAGEUP:		lnr= ct->linenr-10; break;
+				case FO_PAGEDOWN:	lnr= ct->linenr+10; break;
+			}
 			cnr= ct->charnr;
 			/* seek for char with lnr en cnr */
 			cu->pos= 0;
@@ -582,21 +697,55 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		
 	}
 
+	if (mode == FO_SELCHANGE) {
+		MEM_freeN(chartransdata);
+		MEM_freeN(linedata);
+		MEM_freeN(linedata2);		
+		MEM_freeN(linedata3);
+		return NULL;
+	}
+
 	if(mode==0) {
 		/* make nurbdata */
 		
 		freeNurblist(&cu->nurb);
 		
 		ct= chartransdata;
-		for (i= 0; i<slen; i++) {
-			ascii = cu->str[i];
-			buildchar(cu, ascii, ct->xof, ct->yof, ct->rot);
-			ct++;
+		if (cu->sepchar==0) {
+    		for (i= 0; i<slen; i++) {
+    			ascii = cu->str[i];
+    			info = &(cu->strinfo[i]);
+   				buildchar(cu, ascii, info, ct->xof, ct->yof, ct->rot, i);
+    			ct++;
+    		}
 		}
+		else {
+    		outta = 0;
+    		for (i= 0; (i<slen) && (outta==0); i++) {
+    			ascii = cu->str[i];
+    			info = &(cu->strinfo[i]);
+				if (cu->sepchar == (i+1)) {
+					cu->str[0] = ascii;
+					cu->str[1] = 0;
+					cu->strinfo[0]= *info;
+					cu->pos = 1;
+					cu->len = 1;
+					vecyo[0] = ct->xof;
+					vecyo[1] = ct->yof;
+					vecyo[2] = 0;
+					Mat4MulVecfl(ob->obmat, vecyo);
+					VECCOPY(ob->loc, vecyo);
+ 					outta = 1;
+ 					cu->sepchar = 0;
+				}
+    			ct++;
+    		}
+    	}
 	}
 
 	MEM_freeN(linedata);
 	MEM_freeN(linedata2);
+	MEM_freeN(linedata3);	
 
 	if(mode==FO_DUPLI) {
 		return chartransdata;

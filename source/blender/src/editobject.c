@@ -173,6 +173,8 @@
 
 /* --------------------------------- */
 
+Base *dupfontbase;
+
 void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff */
 {
 	Object *ob;
@@ -1363,6 +1365,7 @@ void enter_editmode(void)
 	Mesh *me;
 	int ok= 0;
 	bArmature *arm;
+	Curve *cu;
 	
 	if(G.scene->id.lib) return;
 	base= BASACT;
@@ -1418,6 +1421,20 @@ void enter_editmode(void)
 		allqueue(REDRAWVIEW3D, 0);
 	}
 	else if(ob->type==OB_FONT) {
+		cu= ob->data;
+		if ((cu->flag & CU_FAST)==0) { 
+			base->flag |= SELECT;
+			ob->flag |= SELECT;
+			G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
+			adduplicate(1);
+			G.qual &= ~LR_ALTKEY;
+			dupfontbase = BASACT;
+			BASACT->flag &= ~SELECT;
+			BASACT->object->flag &= ~SELECT;
+			set_active_base(base);
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+		}
 		G.obedit= ob;
 		ok= 1;
 		make_editText();
@@ -1463,7 +1480,7 @@ void make_displists_by_parent(Object *ob) {
 
 void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
-	Base *base;
+	Base *base, *oldbase;
 	Object *ob;
 	Curve *cu;
 
@@ -1551,6 +1568,22 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 	}
 	else if(ob->type==OB_LATTICE) {
 		make_displists_by_parent(ob);
+	}
+
+	if ((ob->type == OB_FONT) && (freedata)) {
+		cu= ob->data;
+		if ((cu->flag & CU_FAST)==0) {
+			oldbase = BASACT;
+			BASACT->flag &= ~SELECT;
+			BASACT->object->flag &= ~SELECT;
+			set_active_base(dupfontbase);
+			BASACT->flag |= SELECT;
+			BASACT->object->flag |= SELECT;
+			delete_obj(1);
+			oldbase->flag |= SELECT;
+			oldbase->object->flag |= SELECT;
+			set_active_base(oldbase);
+		}
 	}
 
 	if(freedata) {
@@ -1890,6 +1923,31 @@ void movetolayer(void)
 	BIF_undo_push("Move to layer");
 }
 
+void split_font()
+{
+	Object *ob = OBACT;
+	Base *oldbase = BASACT;
+	Curve *cu= ob->data;
+	char *p= cu->str;
+	int slen= strlen(p);
+	int i;
+
+	for (i = 0; i<=slen; p++, i++) {
+		adduplicate(1);
+		cu= OBACT->data;
+		cu->sepchar = i+1;
+		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
+		text_to_curve(OBACT, 0);	// pass 2: remake
+		freedisplist(&OBACT->disp);
+		makeDispList(OBACT);
+		
+		OBACT->flag &= ~SELECT;
+		BASACT->flag &= ~SELECT;
+		oldbase->flag |= SELECT;
+		oldbase->object->flag |= SELECT;
+		set_active_base(oldbase);		
+	}
+}
 
 void special_editmenu(void)
 {
@@ -2007,6 +2065,14 @@ void special_editmenu(void)
 
 				allqueue(REDRAWVIEW3D, 0);
 			}
+			else if (OBACT->type == OB_FONT) {
+				nr= pupmenu("Split %t|Characters%x1");
+				if (nr > 0) {
+					switch(nr) {
+						case 1: split_font();
+					}
+				}
+			}			
 		}
 	}
 	else if(G.obedit->type==OB_MESH) {
