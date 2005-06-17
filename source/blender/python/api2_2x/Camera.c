@@ -843,12 +843,9 @@ static PyObject *Camera_getAttr( BPy_Camera * self, char *name )
 		attr = PyFloat_FromDouble( self->camera->drawsize );
 	else if( strcmp( name, "users" ) == 0 )
 		attr = PyInt_FromLong( self->camera->id.us );
-	else if( strcmp( name, "ipo" ) == 0 ) {
-		Ipo *ipo = self->camera->ipo;
-		if( ipo )
-			attr = Ipo_CreatePyObject( ipo );
-	}
-
+	else if( strcmp( name, "ipo" ) == 0 )
+		/* getIpo can return None and that is a valid value, so need to return straightaway */
+		return Camera_getIpo(self);
 	else if( strcmp( name, "Types" ) == 0 ) {
 		attr = Py_BuildValue( "{s:h,s:h}", "persp",
 				      EXPP_CAM_TYPE_PERSP, "ortho",

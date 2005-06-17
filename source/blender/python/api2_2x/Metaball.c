@@ -1105,6 +1105,7 @@ static PyObject *MetaballGetAttr( BPy_Metaball * self, char *name )
 /****************************************************************************/
 static int MetaballSetAttr( BPy_Metaball * self, char *name, PyObject * value )
 {
+	PyObject *result = NULL;
 	PyObject *valtuple = Py_BuildValue( "(O)", value );
 
 	if( !valtuple )
@@ -1112,25 +1113,29 @@ static int MetaballSetAttr( BPy_Metaball * self, char *name, PyObject * value )
 					    "MetaballSetAttr: couldn't create PyTuple" );
 
 	if( strcmp( name, "name" ) == 0 ) {
-		Metaball_setName( self, valtuple );
-		return 0;
+		result = Metaball_setName( self, valtuple );
+	}
+	else if( strcmp( name, "rot" ) == 0 ) {
+		result = Metaball_setrot( self, valtuple );
+	}
+	else if( strcmp( name, "loc" ) == 0 ) {
+		result = Metaball_setloc( self, valtuple );
 	}
 
-	if( strcmp( name, "rot" ) == 0 ) {
-		Metaball_setrot( self, valtuple );
-		return 0;
+	else if( strcmp( name, "size" ) == 0 ) {
+		result = Metaball_setsize( self, valtuple );
 	}
-	if( strcmp( name, "loc" ) == 0 ) {
-		Metaball_setloc( self, valtuple );
-		return 0;
+	else {
+		Py_DECREF(valtuple);
+		return ( EXPP_ReturnIntError
+			 ( PyExc_KeyError, "attribute not found" ) );
 	}
-
-	if( strcmp( name, "size" ) == 0 ) {
-		Metaball_setsize( self, valtuple );
-		return 0;
+	Py_DECREF(valtuple);
+	if (result != Py_None) {
+		return -1;
 	}
-	return ( EXPP_ReturnIntError
-		 ( PyExc_KeyError, "attribute not found" ) );
+	Py_DECREF(Py_None);
+	return 0;
 }
 
 

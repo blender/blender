@@ -867,7 +867,7 @@ static int Lattice_setAttr( BPy_Lattice * self, char *name, PyObject * value )
 	if( strcmp( name, "name" ) == 0 )
 		error = Lattice_setName( self, valtuple );
 	else {			// Error: no such member in the Lattice Data structure 
-		Py_DECREF( value );
+		/*Py_DECREF( value ); borrowed reference, no need to decref */
 		Py_DECREF( valtuple );
 		return ( EXPP_ReturnIntError( PyExc_KeyError,
 					      "attribute not found or immutable" ) );

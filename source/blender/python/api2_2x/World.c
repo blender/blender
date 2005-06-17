@@ -957,30 +957,43 @@ static PyObject *World_GetAttr( BPy_World * self, char *name )
 
 static int World_SetAttr( BPy_World * self, char *name, PyObject * value )
 {
+	PyObject *error=NULL;
 	PyObject *valtuple = Py_BuildValue( "(O)", value );
 
 	if( !valtuple )
 		return EXPP_ReturnIntError( PyExc_MemoryError,
 					    "WorldSetAttr: couldn't parse args" );
-	if( strcmp( name, "name" ) == 0 )
-		World_setName( self, valtuple );
-	if( strcmp( name, "skytype" ) == 0 )
-		World_setSkytype( self, valtuple );
-	if( strcmp( name, "mode" ) == 0 )
-		World_setMode( self, valtuple );
-	if( strcmp( name, "mistype" ) == 0 )
-		World_setMistype( self, valtuple );
-	if( strcmp( name, "hor" ) == 0 )
-		World_setHor( self, valtuple );
-	if( strcmp( name, "zen" ) == 0 )
-		World_setZen( self, valtuple );
-	if( strcmp( name, "amb" ) == 0 )
-		World_setAmb( self, valtuple );
-	if( strcmp( name, "star" ) == 0 )
-		World_setStar( self, valtuple );
-	if( strcmp( name, "mist" ) == 0 )
-		World_setMist( self, valtuple );
-	return 0;		/* normal exit */
+	else if( strcmp( name, "name" ) == 0 )
+		error = World_setName( self, valtuple );
+	else if( strcmp( name, "skytype" ) == 0 )
+		error = World_setSkytype( self, valtuple );
+	else if( strcmp( name, "mode" ) == 0 )
+		error = World_setMode( self, valtuple );
+	else if( strcmp( name, "mistype" ) == 0 )
+		error = World_setMistype( self, valtuple );
+	else if( strcmp( name, "hor" ) == 0 )
+		error = World_setHor( self, valtuple );
+	else if( strcmp( name, "zen" ) == 0 )
+		error = World_setZen( self, valtuple );
+	else if( strcmp( name, "amb" ) == 0 )
+		error = World_setAmb( self, valtuple );
+	else if( strcmp( name, "star" ) == 0 )
+		error = World_setStar( self, valtuple );
+	else if( strcmp( name, "mist" ) == 0 )
+		error = World_setMist( self, valtuple );
+	else {
+		Py_DECREF( valtuple );
+		return ( EXPP_ReturnIntError( PyExc_KeyError,
+						  "attribute not found" ) );
+	}
+
+	Py_DECREF(valtuple);
+
+	if( error != Py_None )
+		return -1;
+
+	Py_DECREF( Py_None );
+	return 0;
 }
 
 /**

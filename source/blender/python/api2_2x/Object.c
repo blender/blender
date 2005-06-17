@@ -2475,6 +2475,7 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ( Py_BuildValue
 			 ( "fff", object->dsize[0], object->dsize[1],
 			   object->dsize[2] ) );
+	/* no IKA anymore, I think we can remove this. (theeth)
 	if( strncmp( name, "Eff", 3 ) == 0 ) {
 		if( ( object->type == OB_IKA ) && ( object->data != NULL ) ) {
 			ika = object->data;
@@ -2486,12 +2487,13 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 			case 'Z':
 				return ( PyFloat_FromDouble( ika->effg[2] ) );
 			default:
-				/* Do we need to display a sensible error message here? */
+				// Do we need to display a sensible error message here?
 				return ( NULL );
 			}
 		}
 		return ( NULL );
 	}
+	*/
 	/* accept both Layer (old, for compatibility) and Layers */
 	if( strncmp( name, "Layer", 5 ) == 0)
 		return ( PyInt_FromLong( object->lay ) );
@@ -2567,6 +2569,20 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ( Py_BuildValue( "s", object->id.name + 2 ) );
 	if( StringEqual( name, "sel" ) )
 		return ( Object_isSelected( obj ) );
+	if( StringEqual( name, "DupSta" ) )
+		return PyInt_FromLong( obj->object->dupsta );
+	if( StringEqual( name, "DupEnd" ) )
+		return PyInt_FromLong( obj->object->dupend );
+	if( StringEqual( name, "DupOn" ) )
+		return PyInt_FromLong( obj->object->dupon );
+	if( StringEqual( name, "DupOff" ) )
+		return PyInt_FromLong( obj->object->dupoff );
+	if( StringEqual( name, "Dupliframes" ) ){
+		if (obj->object->transflag & OB_DUPLIFRAMES)
+			return EXPP_incr_ret_True();
+		else
+			return EXPP_incr_ret_False();
+	}
 	if (StringEqual (name, "oopsLoc")) {
 		if (G.soops) {
       Oops *oops= G.soops->oops.first;
@@ -2594,56 +2610,48 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 /*****************************************************************************/
 static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 {
-	PyObject *valtuple;
+	PyObject *valtuple, *result=NULL;
 	struct Object *object;
 	struct Ika *ika;
 
-	/* First put the value(s) in a tuple. For some variables, we want to */
-	/* pass the values to a function, and these functions only accept */
-	/* PyTuples. */
-	valtuple = Py_BuildValue( "(O)", value );
-	if( !valtuple ) {
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "Object_setAttr: couldn't create PyTuple" );
-	}
-
 	object = obj->object;
+
+	/* Handle all properties which are Read Only */
+	if( StringEqual( name, "parent" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				       "Setting the parent is not allowed." );
+	if( StringEqual( name, "data" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				       "Setting the data is not allowed." );
+	if( StringEqual( name, "ipo" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				       "Setting the ipo is not allowed." );
+	if( StringEqual( name, "mat" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				       "Not allowed. Please use .setMatrix(matrix)" );
+	if( StringEqual( name, "matrix" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+				       "Not allowed. Please use .setMatrix(matrix)" );
+
+	/* FIRST, do attributes that are diretly changed */
 	if( StringEqual( name, "LocX" ) )
 		return ( !PyArg_Parse( value, "f", &( object->loc[0] ) ) );
 	if( StringEqual( name, "LocY" ) )
 		return ( !PyArg_Parse( value, "f", &( object->loc[1] ) ) );
 	if( StringEqual( name, "LocZ" ) )
 		return ( !PyArg_Parse( value, "f", &( object->loc[2] ) ) );
-	if( StringEqual( name, "loc" ) ) {
-		if( Object_setLocation( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
 	if( StringEqual( name, "dLocX" ) )
 		return ( !PyArg_Parse( value, "f", &( object->dloc[0] ) ) );
 	if( StringEqual( name, "dLocY" ) )
 		return ( !PyArg_Parse( value, "f", &( object->dloc[1] ) ) );
 	if( StringEqual( name, "dLocZ" ) )
 		return ( !PyArg_Parse( value, "f", &( object->dloc[2] ) ) );
-	if( StringEqual( name, "dloc" ) ) {
-		if( Object_setDeltaLocation( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
 	if( StringEqual( name, "RotX" ) )
 		return ( !PyArg_Parse( value, "f", &( object->rot[0] ) ) );
 	if( StringEqual( name, "RotY" ) )
 		return ( !PyArg_Parse( value, "f", &( object->rot[1] ) ) );
 	if( StringEqual( name, "RotZ" ) )
 		return ( !PyArg_Parse( value, "f", &( object->rot[2] ) ) );
-	if( StringEqual( name, "rot" ) ) {
-		if( Object_setEuler( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
 	if( StringEqual( name, "dRotX" ) )
 		return ( !PyArg_Parse( value, "f", &( object->drot[0] ) ) );
 	if( StringEqual( name, "dRotY" ) )
@@ -2674,26 +2682,33 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		return ( !PyArg_ParseTuple
 			 ( value, "fff", &( object->dsize[0] ),
 			   &( object->dsize[1] ), &( object->dsize[2] ) ) );
-	if( strncmp( name, "Eff", 3 ) == 0 ) {
-		if( ( object->type == OB_IKA ) && ( object->data != NULL ) ) {
-			ika = object->data;
-			switch ( name[3] ) {
-			case 'X':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[0] ) ) );
-			case 'Y':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[1] ) ) );
-			case 'Z':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[2] ) ) );
-			default:
-				/* Do we need to display a sensible error message here? */
-				return ( 0 );
-			}
-		}
-		return ( 0 );
+	if( StringEqual( name, "DupSta" ) )
+		return ( !PyArg_Parse( value, "h", &( object->dupsta ) ) );
+
+	if( StringEqual( name, "DupEnd" ) )
+		return ( !PyArg_Parse( value, "h", &( object->dupend ) ) );
+
+	if( StringEqual( name, "DupOn" ) )
+		return ( !PyArg_Parse( value, "h", &( object->dupon ) ) );
+
+	if( StringEqual( name, "DupOff" ) )
+		return ( !PyArg_Parse( value, "h", &( object->dupoff ) ) );
+
+	if( StringEqual( name, "Dupliframes" ) ) {
+		short dupli;
+		if ( !PyArg_Parse( value, "h", &dupli ) )
+			return -1;
+
+		if (dupli)
+			obj->object->transflag |= OB_DUPLIFRAMES;
+		else
+			obj->object->transflag &= ~OB_DUPLIFRAMES;
+
+		return 0;
 	}
+	if( StringEqual( name, "colbits" ) )
+		return ( !PyArg_Parse( value, "h", &( object->colbits ) ) );
+
 	/* accept both Layer (for compatibility) and Layers */
 	if( strncmp( name, "Layer", 5 ) == 0 ) {
 		/*  usage note: caller of this func needs to do a 
@@ -2710,9 +2725,10 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 
 		/* uppper 2 nibbles are for local view */
 		newLayer &= 0x00FFFFFF;
-		if( newLayer == 0 )
+		if( newLayer == 0 ) {
 			return EXPP_ReturnIntError( PyExc_AttributeError,
 				"bitmask must have from 1 up to 20 bits set");
+		}
 
 		/* update any bases pointing to our object */
 		base = FIRSTBASE;  /* first base in current scene */
@@ -2777,63 +2793,6 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 
 		return ( 0 );
 	}
-	if( StringEqual( name, "parent" ) ) {
-		/* This is not allowed. */
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				       "Setting the parent is not allowed." );
-	}
-	if( StringEqual( name, "track" ) ) {
-		if( Object_makeTrack( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
-	if( StringEqual( name, "data" ) ) {
-		/* This is not allowed. */
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				       "Setting the data is not allowed." );
-	}
-	if( StringEqual( name, "ipo" ) ) {
-		/* This is not allowed. */
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				       "Setting the ipo is not allowed." );
-	}
-	if( StringEqual( name, "mat" ) ) {
-		/* This is not allowed. */
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				       "Setting the matrix is not allowed." );
-	}
-	if( StringEqual( name, "matrix" ) ) {
-		/* This is not allowed. */
-		return EXPP_ReturnIntError( PyExc_AttributeError,
-				       "Please use .setMatrix(matrix)" );
-	}
-	if( StringEqual( name, "colbits" ) )
-		return ( !PyArg_Parse( value, "h", &( object->colbits ) ) );
-	if( StringEqual( name, "drawType" ) ) {
-		if( Object_setDrawType( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
-	if( StringEqual( name, "drawMode" ) ) {
-		if( Object_setDrawMode( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
-	if( StringEqual( name, "name" ) ) {
-		if( Object_setName( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
-	if( StringEqual( name, "sel" ) ) {
-		if( Object_Select( obj, valtuple ) != Py_None )
-			return ( -1 );
-		else
-			return ( 0 );
-	}
 	if (StringEqual (name, "oopsLoc")) {
 		if (G.soops) {
 			Oops *oops= G.soops->oops.first;
@@ -2848,8 +2807,73 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		}
 		return 0;
 	}
+	/*
+	IKA isn't even in Blender anymore, I think we can remove this... (theeth)
+	if( strncmp( name, "Eff", 3 ) == 0 ) {
+		if( ( object->type == OB_IKA ) && ( object->data != NULL ) ) {
+			ika = object->data;
+			switch ( name[3] ) {
+			case 'X':
+				return ( !PyArg_Parse
+					 ( value, "f", &( ika->effg[0] ) ) );
+			case 'Y':
+				return ( !PyArg_Parse
+					 ( value, "f", &( ika->effg[1] ) ) );
+			case 'Z':
+				return ( !PyArg_Parse
+					 ( value, "f", &( ika->effg[2] ) ) );
+			default:
+				// Do we need to display a sensible error message here?
+				return ( 0 );
+			}
+		}
+		return ( 0 );
+	}
+	*/
 
-	return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
+	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
+
+	/* Put the value(s) in a tuple. For some variables, we want to */
+	/* pass the values to a function, and these functions only accept */
+	/* PyTuples. */
+	valtuple = Py_BuildValue( "(O)", value );
+	if( !valtuple ) {
+		return EXPP_ReturnIntError( PyExc_MemoryError,
+					    "Object_setAttr: couldn't create PyTuple" );
+	}
+	/* Call the setFunctions to handle it */
+	if( StringEqual( name, "loc" ) )
+		result = Object_setLocation( obj, valtuple );
+	else if( StringEqual( name, "dloc" ) )
+		result = Object_setDeltaLocation( obj, valtuple );
+	else if( StringEqual( name, "rot" ) )
+		result = Object_setEuler( obj, valtuple );
+	else if( StringEqual( name, "track" ) )
+		result = Object_makeTrack( obj, valtuple );
+	else if( StringEqual( name, "drawType" ) )
+		result = Object_setDrawType( obj, valtuple );
+	else if( StringEqual( name, "drawMode" ) )
+		result = Object_setDrawMode( obj, valtuple );
+	else if( StringEqual( name, "name" ) )
+		result = Object_setName( obj, valtuple );
+	else if( StringEqual( name, "sel" ) )
+		result = Object_Select( obj, valtuple );
+	else { /* if it turns out here, it's not an attribute*/
+		Py_DECREF(valtuple);
+		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
+	}
+
+/* valtuple won't be returned to the caller, so we need to DECREF it */
+	Py_DECREF(valtuple);
+
+	if( result != Py_None )
+		return -1;	/* error return */
+
+/* Py_None was incref'ed by the called Scene_set* function. We probably
+ * don't need to decref Py_None (!), but since Python/C API manual tells us
+ * to treat it like any other PyObject regarding ref counting ... */
+	Py_DECREF( Py_None );
+	return 0;		/* normal return */
 }
 
 /*****************************************************************************/
@@ -3923,17 +3947,17 @@ int setupSB(Object* ob){
 	}
 
 	if(ob->soft){	
-    	ob->soft->nodemass   = 1.0;		
-    	ob->soft->grav       = 0.0;			
-    	ob->soft->mediafrict = 0.5;	
-    	ob->soft->rklimit    = 0.1;		
-    	ob->soft->goalspring = 0.5;	
-    	ob->soft->goalfrict  = 0.0;	
-    	ob->soft->mingoal    = 0.0;		
-    	ob->soft->maxgoal    = 1.0;		
-    	ob->soft->inspring   = 0.5;	
-    	ob->soft->infrict    = 0.5;	
-    	ob->soft->defgoal    = 0.7;		
+    	ob->soft->nodemass   = 1.0f;		
+    	ob->soft->grav       = 0.0f;			
+    	ob->soft->mediafrict = 0.5f;	
+    	ob->soft->rklimit    = 0.1f;		
+    	ob->soft->goalspring = 0.5f;	
+    	ob->soft->goalfrict  = 0.0f;	
+    	ob->soft->mingoal    = 0.0f;		
+    	ob->soft->maxgoal    = 1.0f;		
+    	ob->soft->inspring   = 0.5f;	
+    	ob->soft->infrict    = 0.5f;	
+    	ob->soft->defgoal    = 0.7f;		
 	    return 1;
     }
 	else {

@@ -880,7 +880,7 @@ int ParticleSetAttr( BPy_Particle * self, char *name, PyObject * value )
 						      "attribute not found" ) );
 	}
 
-	/*Py_DECREF(valtuple); */
+	Py_DECREF(valtuple);
 	if( error != Py_None )
 		return -1;
 

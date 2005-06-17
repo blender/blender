@@ -309,7 +309,7 @@ int BuildSetAttr( BPy_Build * self, char *name, PyObject * value )
 			 ( PyExc_KeyError, "attribute not found" ) );
 	}
 
-	/*  Py_DECREF(valtuple); */
+	Py_DECREF(valtuple);
 
 	if( error != Py_None )
 		return -1;

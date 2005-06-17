@@ -1514,6 +1514,8 @@ static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
 		error = Curve_setName( self, valtuple );
 	else if( strcmp( name, "pathlen" ) == 0 )
 		error = Curve_setPathLen( self, valtuple );
+	else if( strcmp( name, "bevresol" ) == 0 )
+		error = Curve_setBevresol( self, valtuple );
 	else if( strcmp( name, "resolu" ) == 0 )
 		error = Curve_setResolu( self, valtuple );
 	else if( strcmp( name, "resolv" ) == 0 )
