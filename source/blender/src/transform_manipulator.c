@@ -293,15 +293,33 @@ int calc_manipulator_stats(ScrArea *sa)
 		else if(G.obedit->type==OB_MBALL) {
 			/* editmball.c */
 			extern ListBase editelems;  /* go away ! */
-			MetaElem *ml;
+			MetaElem *ml, *ml_sel=NULL;
 		
 			ml= editelems.first;
 			while(ml) {
 				if(ml->flag & SELECT) {
 					calc_tw_center(&ml->x);
+					ml_sel = ml;
 					totsel++;
 				}
 				ml= ml->next;
+			}
+			/* normal manipulator */
+			if(totsel==1){	
+				float mat1[4][4];
+
+				/* Rotation of MetaElem is stored in quat */
+ 				QuatToMat4(ml_sel->quat, mat1);
+
+				/* Translation of MetaElem */
+				mat1[3][0]= ml_sel->x;
+				mat1[3][1]= ml_sel->y;
+				mat1[3][2]= ml_sel->z;
+
+				VECCOPY(normal, mat1[2]);
+				VECCOPY(plane, mat1[1]);
+
+				VecMulf(plane, -1.0);
 			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
