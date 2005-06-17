@@ -1366,11 +1366,6 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 	if(dispbase==0) return;
 	if(dispbase->first==0) return;
 
-	/* tijd= clock(); */
-	/* bit-wise and comes after == .... so this doesn't work...  */
-/*  	if(G.f & G_PLAYANIM == 0) waitcursor(1); */
-	if( !(G.f & G_PLAYANIM) ) waitcursor(1);
-
 	while(cont) {
 		cont= 0;
 		totvert=0;
@@ -1476,11 +1471,6 @@ void filldisplist(ListBase *dispbase, ListBase *to)
 	
 	/* do not free polys, needed for wireframe display */
 	
-	/* same as above ... */
-/*  	if(G.f & G_PLAYANIM == 0) waitcursor(0); */
-	if( !(G.f & G_PLAYANIM) ) waitcursor(0);
-	/* printf("time: %d\n",(clock()-tijd)/1000); */
-
 }
 
 static void bevels_to_filledpoly(Curve *cu, ListBase *dispbase)

@@ -358,7 +358,7 @@ int getselection(int *start, int *end)
 struct chartrans *text_to_curve(Object *ob, int mode) 
 {
 	VFont *vfont, *oldvfont;
-	VFontData *vfd;
+	VFontData *vfd= NULL;
 	Curve *cu, *cucu;
 	struct chartrans *chartransdata, *ct;
 	float distfac, tabfac, ctime, dtime, tvec[4], vec[4], rotvec[3], minx, maxx, miny, maxy;
@@ -374,7 +374,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	TextBox *tb;
 	int curbox;
 	int selstart, selend;
-	SelBox *sb;
+	SelBox *sb= NULL;
 
 	/* renark: do calculations including the trailing '\0' of a string
 	   because the cursor can be at that location */
@@ -546,7 +546,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			for (i=0; i<=slen; i++) {
 				for (j=i; (cu->str[j]) && (cu->str[j]!='\n') && 
 				          (cu->str[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
-				if ((cu->str[j]!='\r') && (cu->str[j]!='\n')) {
+				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') && (chartransdata[j].dobreak!=0)) {
 					ct->xof+= ct->charnr*linedata[ct->linenr];
 				}
 				ct++;

@@ -77,7 +77,7 @@
 
 #include "blendef.h"
 
-#define MAXTEXT	50000
+#define MAXTEXT	32766
 
 /* -- prototypes --------*/
 VFont *get_builtin_font(void);
