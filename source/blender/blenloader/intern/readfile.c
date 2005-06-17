@@ -1945,6 +1945,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 			cu->tb = tb;
 			cu->tb[0].w = cu->linewidth;
 		}		
+		if (cu->wordspace == 0.0) cu->wordspace = 1.0;
 	}
 
 	cu->bev.first=cu->bev.last= 0;
