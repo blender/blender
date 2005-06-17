@@ -765,7 +765,7 @@ static int Image_setAttr( BPy_Image * self, char *name, PyObject * value )
 	else if( strcmp( name, "yrep" ) == 0 )
 		error = Image_setYRep( self, valtuple );
 	else {			/* Error: no such member in the Image object structure */
-		Py_DECREF( value );
+		/*Py_DECREF( value ); borrowed ref, no need to decref */
 		Py_DECREF( valtuple );
 		return ( EXPP_ReturnIntError( PyExc_KeyError,
 					      "attribute not found or immutable" ) );
