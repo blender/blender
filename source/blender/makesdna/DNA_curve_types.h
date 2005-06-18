@@ -213,6 +213,7 @@ typedef struct IpoCurve {
 #define CU_MIDDLE		1
 #define CU_RIGHT		2
 #define CU_FLUSH		3
+#define CU_FORCEFLUSH	4
 
 /* flag (nurb) */
 #define CU_SMOOTH		1

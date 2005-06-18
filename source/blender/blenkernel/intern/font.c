@@ -374,7 +374,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	TextBox *tb;
 	int curbox;
 	int selstart, selend;
-	SelBox *sb= NULL;
+	SelBox *sb= NULL;	/* to please gcc */
 
 	/* renark: do calculations including the trailing '\0' of a string
 	   because the cursor can be at that location */
@@ -399,7 +399,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	linedata= MEM_mallocN(sizeof(float)*(slen+2),"buildtext2");
 	linedata2= MEM_mallocN(sizeof(float)*(slen+2),"buildtext3");
-	linedata3= MEM_mallocN(sizeof(float)*(slen+2),"buildtext4");	
+	linedata3= MEM_callocN(sizeof(float)*(slen+2),"buildtext4");	
 	
 	linedist= cu->linedist;
 	
@@ -539,14 +539,16 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				ct->xof+= linedata[ct->linenr];
 				ct++;
 			}
-		} else if(cu->spacemode==CU_FLUSH) {
+		} else if((cu->spacemode==CU_FLUSH || cu->spacemode==CU_FORCEFLUSH) &&
+		          (cu->tb[0].w != 0.0)) {
 			for(i=0;i<lnr;i++)
 				if(linedata2[i]>1)
 					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
 			for (i=0; i<=slen; i++) {
 				for (j=i; (cu->str[j]) && (cu->str[j]!='\n') && 
 				          (cu->str[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
-				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') && (chartransdata[j].dobreak!=0)) {
+				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') && 
+				    (cu->spacemode==CU_FORCEFLUSH || (chartransdata[j].dobreak!=0))) {
 					ct->xof+= ct->charnr*linedata[ct->linenr];
 				}
 				ct++;
@@ -594,7 +596,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				else if(cu->spacemode==CU_MIDDLE) {
 					timeofs= (1.0f-distfac)/2.0f;
 				}
-				else if(cu->spacemode==CU_FLUSH) distfac= 1.0f;
+				else if(cu->spacemode==CU_FLUSH || cu->spacemode==CU_FORCEFLUSH) distfac= 1.0f;
 				
 			}
 			else distfac= 1.0;

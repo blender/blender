@@ -1088,13 +1088,13 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	MEM_freeN(strp);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,53,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Middle",		535,135,55,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Right",		592,135,53,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		647,135,53,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill characters to maximum linewidth. (Multiple lines required)");
+	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,47,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Center",		527,135,47,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Right",		574,135,47,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object centre");
+	uiDefButS(block, ROW,B_MAKEFONT, "Justify",		621,135,47,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill completed lines to maximum textframe width");
+	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		668,135,47,20, &cu->spacemode, 0.0,4.0, 0, 0, "Always fill to maximum textframe width");	
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);
-
 	uiDefButS(block, TOG|BIT|9,B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
 
 	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
