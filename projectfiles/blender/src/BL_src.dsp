@@ -447,6 +447,10 @@ SOURCE=..\..\..\source\blender\src\language.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\lorem.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\mainqueue.c
 # End Source File
 # Begin Source File
