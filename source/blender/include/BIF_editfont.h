@@ -35,7 +35,7 @@
 
 struct Text;
 
-char *BIF_lorem;
+extern char *BIF_lorem;
 
 void do_textedit(unsigned short event, short val, char _ascii);
 void make_editText(void);
