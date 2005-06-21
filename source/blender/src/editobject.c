@@ -3962,7 +3962,7 @@ void make_local(void)
 }
 
 
-void adduplicate(float *dtrans)
+void adduplicate(int noTrans)
 /* dtrans is 3 x 3xfloat dloc, drot en dsize */
 {
 	Base *base, *basen;
@@ -4212,7 +4212,7 @@ void adduplicate(float *dtrans)
 	clear_id_newpoins();
 	
 	countall();
-	if(dtrans==0) {
+	if(!noTrans) {
 		BIF_TransformSetUndo("Add Duplicate");
 		initTransform(TFM_TRANSLATION, CTX_NONE);
 		Transform();

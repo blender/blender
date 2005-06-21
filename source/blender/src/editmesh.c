@@ -1320,7 +1320,6 @@ void separate_mesh(void)
 	Mesh *me, *men;
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
-	float trans[9];
 	
 	TEST_EDITMESH	
 
@@ -1394,10 +1393,8 @@ void separate_mesh(void)
 	oldob= G.obedit;
 	oldbase= BASACT;
 	
-	trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
-	trans[6]=trans[7]=trans[8]= 1.0;
 	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
-	adduplicate(trans);
+	adduplicate(1);
 	G.qual &= ~LR_ALTKEY;
 	
 	G.obedit= BASACT->object;	/* basact was set in adduplicate()  */
@@ -1449,7 +1446,6 @@ void separate_mesh_loose(void)
 	Mesh *me, *men;
 	Base *base, *oldbase;
 	ListBase edve, eded, edvl;
-	float trans[9];
 	int vertsep=0;	
 	short done=0, check=1;
 		
@@ -1563,10 +1559,8 @@ void separate_mesh_loose(void)
 			oldob= G.obedit;
 			oldbase= BASACT;
 			
-			trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
-			trans[6]=trans[7]=trans[8]= 1.0;
 			G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
-			adduplicate(trans);
+			adduplicate(1);
 			G.qual &= ~LR_ALTKEY;
 			
 			G.obedit= BASACT->object;	/* basact was set in adduplicate()  */

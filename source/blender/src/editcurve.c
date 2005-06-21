@@ -361,7 +361,6 @@ void separate_nurb()
 	Base *base, *oldbase;
 	Curve *cu;
 	ListBase editnurbo;
-	float trans[9];
 
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
@@ -407,10 +406,8 @@ void separate_nurb()
 	oldob= G.obedit;
 	oldbase= BASACT;
 
-	trans[0]=trans[1]=trans[2]=trans[3]=trans[4]=trans[5]= 0.0;
-	trans[6]=trans[7]=trans[8]= 1.0;
 	G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked dupli */
-	adduplicate(trans);
+	adduplicate(1);
 	G.qual &= ~LR_ALTKEY;
 	
 	G.obedit= BASACT->object;	/* basact is set in adduplicate() */

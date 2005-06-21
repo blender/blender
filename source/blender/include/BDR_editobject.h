@@ -97,7 +97,7 @@ void single_tex_users_expand(void);
 void single_mat_users_expand(void);
 void single_user(void);
 void make_local(void);
-void adduplicate(float *dtrans);
+void adduplicate(int noTrans);
 void selectlinks_menu(void);
 void selectlinks(int nr);
 void image_aspect(void);
