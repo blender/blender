@@ -665,6 +665,9 @@ void exit_usiblender(void)
 	FTF_End();
 #endif
 
+	if (copybuf) MEM_freeN(copybuf);
+	if (copybufinfo) MEM_freeN(copybufinfo);
+
 	/* undo free stuff */
 	undo_editmode_clear();
 	

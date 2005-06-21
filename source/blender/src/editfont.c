@@ -217,8 +217,8 @@ static char findaccent(char char1, char code)
 	else return char1;
 }
 
-static char *copybuf=NULL;
-static char *copybufinfo=NULL;
+char *copybuf=NULL;
+char *copybufinfo=NULL;
 
 static char *textbuf=NULL;
 static CharInfo *textbufinfo=NULL;
@@ -975,11 +975,6 @@ void load_editText(void)
 		MEM_freeN(selboxes);
 		selboxes= NULL;
 	}
-	
-	MEM_freeN(copybuf);
-	MEM_freeN(copybufinfo);
-	copybuf= NULL;
-	copybufinfo= NULL;	
 	
 	textediting= 0;
 	

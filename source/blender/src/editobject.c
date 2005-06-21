@@ -2609,6 +2609,15 @@ void copy_attr(short event)
 						if(cu1->vfont) cu1->vfont->id.us--;
 						cu1->vfont= cu->vfont;
 						id_us_plus((ID *)cu1->vfont);
+						if(cu1->vfontb) cu1->vfontb->id.us--;
+						cu1->vfontb= cu->vfontb;
+						id_us_plus((ID *)cu1->vfontb);
+						if(cu1->vfonti) cu1->vfonti->id.us--;
+						cu1->vfonti= cu->vfonti;
+						id_us_plus((ID *)cu1->vfonti);
+						if(cu1->vfontbi) cu1->vfontbi->id.us--;
+						cu1->vfontbi= cu->vfontbi;
+						id_us_plus((ID *)cu1->vfontbi);						
 						text_to_curve(base->object, 0);
 						
 						strcpy(cu1->family, cu->family);
