@@ -33,16 +33,16 @@
 #include <Python.h>
 #include <stdio.h>
 
-#ifndef O_BINARY
-# define O_BINARY 0
-#endif
-
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #ifndef WIN32
 #include <unistd.h>
 #else
 #include <io.h>
+#endif
+
+#ifndef O_BINARY
+# define O_BINARY 0
 #endif
 
 #include <BDR_editobject.h>	/* exit_editmode() */
