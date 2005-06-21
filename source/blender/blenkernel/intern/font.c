@@ -387,7 +387,6 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	if (cu->str==0) return 0;
 	if (cu->strinfo==NULL) {	/* old file */
-		fprintf(stderr, "old file\n");
 		cu->strinfo = MEM_callocN((slen+1) * sizeof(CharInfo), "strinfo compat");
 	}
 
