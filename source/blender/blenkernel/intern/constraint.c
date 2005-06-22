@@ -712,7 +712,11 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 
 				if(!(cu->flag & CU_PATH)) cu->flag += CU_PATH;
 
-				if(cu->path==NULL || cu->path->data==NULL) calc_curvepath(data->tar);
+				if(cu->path==NULL)
+					calc_curvepath(data->tar);
+				else if (cu->path->data==NULL)
+					calc_curvepath(data->tar);
+
 				if(cu->path && cu->path->data) {
 					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
