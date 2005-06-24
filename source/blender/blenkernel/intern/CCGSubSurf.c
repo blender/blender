@@ -1848,24 +1848,27 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 		}
 		for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
 			CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
-			CCGFace *fLast = e->faces[e->numFaces-1];
-			int x;
 
-			for (i=0; i<e->numFaces-1; i++) {
-				CCGFace *f = e->faces[i];
+			if (e->numFaces) {
+				CCGFace *fLast = e->faces[e->numFaces-1];
+				int x;
 
-				for (x=1; x<edgeSize-1; x++) {
-					NormAdd(_face_getIFNoEdge(fLast, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset),
-							_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
+				for (i=0; i<e->numFaces-1; i++) {
+					CCGFace *f = e->faces[i];
+
+					for (x=1; x<edgeSize-1; x++) {
+						NormAdd(_face_getIFNoEdge(fLast, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset),
+								_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
+					}
 				}
-			}
 
-			for (i=0; i<e->numFaces-1; i++) {
-				CCGFace *f = e->faces[i];
+				for (i=0; i<e->numFaces-1; i++) {
+					CCGFace *f = e->faces[i];
 
-				for (x=1; x<edgeSize-1; x++) {
-					NormCopy(_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset),
-							 _face_getIFNoEdge(fLast, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
+					for (x=1; x<edgeSize-1; x++) {
+						NormCopy(_face_getIFNoEdge(f, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset),
+								_face_getIFNoEdge(fLast, e, lvl, x, 0, subdivLevels, vertDataSize, normalDataOffset));
+					}
 				}
 			}
 		}
