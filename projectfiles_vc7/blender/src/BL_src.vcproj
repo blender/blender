@@ -391,6 +391,9 @@
 				RelativePath="..\..\..\source\blender\src\language.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\lorem.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\mainqueue.c">
 			</File>
 			<File
