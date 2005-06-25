@@ -744,7 +744,10 @@ void delete_material_index()
 		nu= cu->nurb.first;
 		
 		while(nu) {
-			if(nu->mat_nr && nu->mat_nr>=actcol-1) nu->mat_nr--;
+			if(nu->mat_nr && nu->mat_nr>=actcol-1) {
+				nu->mat_nr--;
+				if (ob->type == OB_CURVE) nu->charidx--;
+			}
 			nu= nu->next;
 		}
 		makeDispList(ob);

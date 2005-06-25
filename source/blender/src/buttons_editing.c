@@ -475,7 +475,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				nu= editNurb.first;
 				while(nu) {
 					if( isNurbsel(nu) )
-						nu->mat_nr= G.obedit->actcol-1;
+						nu->mat_nr= nu->charidx= G.obedit->actcol-1;
 					nu= nu->next;
 				}
 			}

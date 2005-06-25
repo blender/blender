@@ -503,7 +503,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
     		}
 	
 			if (ascii==32) wsfac = cu->wordspace; else wsfac = 1.0;
-			xof += (vfd->width[ascii]*wsfac*(1.0+(info->kern/20.0)) ) + xtrax;
+			xof += (vfd->width[ascii]*wsfac*(1.0+(info->kern/40.0)) ) + xtrax;
 			
 			if (selboxes && (i>=selstart) && (i<=selend)) sb->w = (xof*cu->fsize) - sb->w;
 		}

@@ -1958,6 +1958,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 		nu->bp= newdataadr(fd, nu->bp);
 		nu->knotsu= newdataadr(fd, nu->knotsu);
 		nu->knotsv= newdataadr(fd, nu->knotsv);
+		if (cu->vfont==0) nu->charidx= nu->mat_nr;
 
 		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 			switch_endian_knots(nu);

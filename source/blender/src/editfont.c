@@ -700,7 +700,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
    			else if (G.qual & LR_ALTKEY) {
    				kern = textbufinfo[cu->pos-1].kern;
    				kern += 1;
-   				if (kern>10) kern = 10;
+   				if (kern>20) kern = 20;
    				textbufinfo[cu->pos-1].kern = kern;
    				doit = 1;
    			}
@@ -720,7 +720,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
    			else if (G.qual & LR_ALTKEY) {
    				kern = textbufinfo[cu->pos-1].kern;
    				kern -= 1;
-   				if (kern<-10) kern = -10;
+   				if (kern<-20) kern = -20;
    				textbufinfo[cu->pos-1].kern = kern;
    				doit = 1;
    			}
