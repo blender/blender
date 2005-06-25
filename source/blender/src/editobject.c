@@ -2266,6 +2266,18 @@ void convertmenu(void)
 						cu->vfont->id.us--;
 						cu->vfont= 0;
 					}
+					if(cu->vfontb) {
+						cu->vfontb->id.us--;
+						cu->vfontb= 0;
+					}
+					if(cu->vfonti) {
+						cu->vfonti->id.us--;
+						cu->vfonti= 0;
+					}
+					if(cu->vfontbi) {
+						cu->vfontbi->id.us--;
+						cu->vfontbi= 0;
+					}					
 					/* other users */
 					if(cu->id.us>1) {
 						ob1= G.main->object.first;
