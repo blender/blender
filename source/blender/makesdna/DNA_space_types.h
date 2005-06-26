@@ -455,8 +455,10 @@ typedef struct SpaceImaSel {
 #define SI_STICKYUVS    16
 #define SI_DRAWSHADOW   32
 #define SI_SELACTFACE   64
-#define SI_NOPIXELSNAP  128
+#define SI_DEPRECATED	128
 #define SI_LOCALSTICKY  256
+#define SI_COORDFLOATS  512
+#define SI_PIXELSNAP	1024
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

@@ -444,6 +444,10 @@ static void do_image_viewmenu(void *arg, int event)
 		break;
 	case 9:
 		image_viewcentre();
+	case 10: /* Display Normalized Coordinates */
+		G.sima->flag ^= SI_COORDFLOATS;
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -460,12 +464,13 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Paint Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 
-	
+	if(G.sima->flag & SI_COORDFLOATS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Display Normalized Coordinates|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	if(G.f & G_DRAWFACES) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Faces", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Faces|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	if(G.sima->flag & SI_DRAWSHADOW) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Draw Shadow Mesh", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	
+
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, image_view_viewnavmenu, NULL, ICON_RIGHTARROW_THIN, "View Navigation", 0, yco-=20, 120, 19, "");
 
@@ -956,8 +961,7 @@ static void do_image_uvsmenu(void *arg, int event)
 			G.scene->proportional= 1;
 		break;
 	case 7: /* UVs Snap to Pixel */
-		if(G.sima->flag & SI_NOPIXELSNAP) G.sima->flag &= ~SI_NOPIXELSNAP;
-		else G.sima->flag |= SI_NOPIXELSNAP;
+		G.sima->flag ^= SI_PIXELSNAP;
 		break;
     case 8:
 		pin_tface_uv(1);
@@ -983,8 +987,8 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	if(G.sima->flag & SI_NOPIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	if(G.sima->flag & SI_PIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 
 	if(G.sima->flag & SI_BE_SQUARE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Quads Constrained Rectangular|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");

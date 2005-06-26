@@ -571,7 +571,7 @@ static void image_editvertex_buts(uiBlock *block)
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
 	int imx, imy;
-	int i, nactive= 0;
+	int i, nactive= 0, step, digits;
 	Mesh *me;
 	
 	if( is_uv_tface_editing_allowed_silent()==0 ) return;
@@ -614,32 +614,46 @@ static void image_editvertex_buts(uiBlock *block)
 		
 	if(block) {	// do the buttons
 		if (nactive) {
-			ocent[0]= (cent[0]*imx)/nactive;
-			ocent[1]= (cent[1]*imy)/nactive;
-			
-			uiDefBut(block, LABEL, 0, "UV Vertex:",10,55,302,19,0,0,0,0,0,"");
-			if(nactive==1) {
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
-				uiBlockEndAlign(block);
+			ocent[0]= cent[0]/nactive;
+			ocent[1]= cent[1]/nactive;
+			if (G.sima->flag & SI_COORDFLOATS) {
+				step= 1;
+				digits= 3;
 			}
 			else {
-				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, 100, 0, "");
-				uiBlockEndAlign(block);
+				ocent[0] *= imx;
+				ocent[1] *= imy;
+				step= 100;
+				digits= 2;
 			}
+			
+			uiDefBut(block, LABEL, 0, "UV Vertex:",10,55,302,19,0,0,0,0,0,"");
+			uiBlockBeginAlign(block);
+			if(nactive==1) {
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+			}
+			else {
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+			}
+			uiBlockEndAlign(block);
 		}
 	}
 	else {	// apply event
 		float delta[2];
 		
-		cent[0]= (cent[0]*imx)/nactive;
-		cent[1]= (cent[1]*imy)/nactive;
+		cent[0]= cent[0]/nactive;
+		cent[1]= cent[1]/nactive;
 			
-		delta[0]= (ocent[0]-cent[0])/imx;
-		delta[1]= (ocent[1]-cent[1])/imy;
+		if (G.sima->flag & SI_COORDFLOATS) {
+			delta[0]= ocent[0]-cent[0];
+			delta[1]= ocent[1]-cent[1];
+		}
+		else {
+			delta[0]= ocent[0]/imx - cent[0];
+			delta[1]= ocent[1]/imy - cent[1];
+		}
 
 		for (i=0; i<me->totface; i++) {
 			MFace *mf= &((MFace*) me->mface)[i];

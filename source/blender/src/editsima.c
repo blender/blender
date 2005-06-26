@@ -229,12 +229,8 @@ static void sima_pixelgrid(float *loc, float sx, float sy)
 {
 	float y;
 	float x;
-	
-	if(G.sima->flag & SI_NOPIXELSNAP) {
-		loc[0]= sx;
-		loc[1]= sy;
-	}
-	else {
+
+	if(G.sima->flag & SI_PIXELSNAP) {
 		if(G.sima->image && G.sima->image->ibuf) {
 			x= G.sima->image->ibuf->x;
 			y= G.sima->image->ibuf->y;
@@ -255,6 +251,10 @@ static void sima_pixelgrid(float *loc, float sx, float sy)
 			loc[0]= sx;
 			loc[1]= sy;
 		}
+	}
+	else {
+		loc[0]= sx;
+		loc[1]= sy;
 	}
 }
 
@@ -539,11 +539,17 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 					}
 				}
 					
-				ivec[0]= (vec[0]*xim);
-				ivec[1]= (vec[1]*yim);
-
 				if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
-			
+	
+				if (G.sima->flag & SI_COORDFLOATS) {
+					ivec[0]= vec[0];
+					ivec[1]= vec[1];
+				}
+				else {
+					ivec[0]= (vec[0]*xim);
+					ivec[1]= (vec[1]*yim);
+				}
+		
 				sprintf(str, "X: %.4f   Y: %.4f  ", ivec[0], ivec[1]);
 				headerprint(str);
 			}
