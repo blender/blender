@@ -474,13 +474,13 @@ def loadBVH(filename):
             objectList[obIdx].getIpo().getCurve('LocX').addBezier((currentFrame, scale * float(VAL0)))
 
           if channelList[obIdx][1] != -1:
-            VAL1=lines[lineIdx][channelList[obIdx][0]]  
+            VAL1=lines[lineIdx][channelList[obIdx][1]]  
             if VAL1.find('.')==-1:
                VAL1=VAL1[:len(VAL1)-6]+'.'+VAL1[-6:] 
             objectList[obIdx].getIpo().getCurve('LocY').addBezier((currentFrame, scale * float(VAL1)))
 
           if channelList[obIdx][2] != -1:
-            VAL2=lines[lineIdx][channelList[obIdx][0]]  
+            VAL2=lines[lineIdx][channelList[obIdx][2]]  
             if VAL2.find('.')==-1:
                VAL2=VAL2[:len(VAL2)-6]+'.'+VAL2[-6:] 
             objectList[obIdx].getIpo().getCurve('LocZ').addBezier((currentFrame, scale * float(VAL2)))
