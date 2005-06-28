@@ -32,7 +32,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -44,58 +43,24 @@
 #include <io.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_ika_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_property_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_constraint_types.h"
 
 #include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_editview.h"
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
-#include "BIF_editlattice.h"
-#include "BIF_editarmature.h"
-#include "BIF_editmesh.h"
 
 #include "BKE_global.h"
-#include "BKE_object.h"
 #include "BKE_utildefines.h"
-#include "BKE_lattice.h"
-#include "BKE_armature.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
 
 #include "BSE_view.h"
-#include "BSE_edit.h"
 
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
-#include "BDR_drawobject.h"
+#include "BDR_drawobject.h"	/* drawcircball	*/
 
 #include "blendef.h"
 
@@ -188,22 +153,12 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
-	float norm[3], n[3], vec[3], factor;
-
-	VecAddf(vec, in, t->con.center);
-	getViewVector(vec, norm);
-
-	Normalise(axis);
-
-	VECCOPY(n, axis);
-	Mat4MulVecfl(t->viewmat, n);
-	n[2] = t->viewmat[3][2];
-	Mat4MulVecfl(t->viewinv, n);
+	float norm[3], n[3], n2[3], vec[3], factor;
 
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
-	if(n[0]*n[0] + n[1]*n[1] + n[2]*n[2] < 0.000001f) {
+	if(1.0f - Inpf(axis, t->viewinv[2]) < 0.000001f) {
 		Projf(vec, in, t->viewinv[1]);
 		factor = Inpf(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
@@ -217,11 +172,24 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	else {
 		// prevent division by zero, happens on constrainting without initial delta transform */
 		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0) {
-			Projf(vec, in, n);
-			factor = Normalise(vec);
-			// prevent NaN for 0.0/0.0
-			if(factor!=0.0f)
-				factor /= Inpf(axis, vec);
+			/* project axis on viewplane		*/
+			Projf(vec, axis, t->viewinv[2]);
+			VecSubf(vec, axis, vec);
+			/* project input on the new axis	*/
+			Projf(vec, in, vec);
+			/* get view vector on that point (account for perspective)	*/
+			VecAddf(vec, vec, t->con.center);
+			getViewVector(vec, norm);
+
+			/* cross product twice to get a full space definition */
+			Crossf(n, axis, norm);
+			Crossf(n2, norm, n);
+
+			/* Project input on plane perpendicular to the axis (as drawn on screen) */
+			Projf(vec, in, n2);
+
+			/* Adjust output */
+			factor = Inpf(vec, vec) / Inpf(axis, vec);
 
 			VecMulf(axis, factor);
 			VECCOPY(out, axis);
@@ -230,23 +198,19 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 }
 
 static void planeProjection(TransInfo *t, float in[3], float out[3]) {
-	float vec[3], factor, angle, norm[3];
+	float vec[3], factor, norm[3];
 
 	VecAddf(vec, in, t->con.center);
 	getViewVector(vec, norm);
 
 	VecSubf(vec, out, in);
-	factor = Normalise(vec);
-	angle = Inpf(vec, norm);
 
-	if (angle * angle >= 0.000001f) {
-		factor /= angle;
+	factor = Inpf(vec, vec) / Inpf(vec, norm);
 
-		VECCOPY(vec, norm);
-		VecMulf(vec, factor);
+	VECCOPY(vec, norm);
+	VecMulf(vec, factor);
 
-		VecAddf(out, in, vec);
-	}
+	VecAddf(out, in, vec);
 }
 
 /*
@@ -326,6 +290,18 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, float in[3], f
 			VECCOPY(out, pvec);
 		}
 		else {
+			int i=0;
+
+			out[0] = out[1] = out[2] = 0.0f;
+			if (t->con.mode & CON_AXIS0) {
+				out[0] = in[i++];
+			}
+			if (t->con.mode & CON_AXIS1) {
+				out[1] = in[i++];
+			}
+			if (t->con.mode & CON_AXIS2) {
+				out[2] = in[i++];
+			}
 			Mat3MulVecfl(td->axismtx, out);
 		}
 	}

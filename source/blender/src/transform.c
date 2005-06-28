@@ -46,74 +46,34 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_ika_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
+#include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
-#include "DNA_property_types.h"
-#include "DNA_vfont_types.h"
-#include "DNA_constraint_types.h"
+#include "DNA_scene_types.h"	/* PET modes	*/
+#include "DNA_screen_types.h"	/* area dimensions	*/
+#include "DNA_object_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
 
-#include "BIF_editview.h"
-#include "BIF_resources.h"
-#include "BIF_mywindow.h"
-#include "BIF_gl.h"
-#include "BIF_editlattice.h"
-#include "BIF_editarmature.h"
-#include "BIF_editmesh.h"
+#include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_toets.h"
-#include "BIF_toolbox.h"
+#include "BIF_space.h"			/* undo	*/
+#include "BIF_toets.h"		/* persptoetsen	*/
 
-#include "BKE_action.h"
-#include "BKE_armature.h"
 #include "BKE_blender.h"
-#include "BKE_curve.h"
-#include "BKE_displist.h"
-#include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_ipo.h"
-#include "BKE_lattice.h"
-#include "BKE_mball.h"
-#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BDR_editobject.h"
+
 #include "BSE_view.h"
-#include "BSE_edit.h"
-#include "BSE_editipo.h"
-#include "BSE_editipo_types.h"
-#include "BDR_editobject.h"		// reset_slowparents()
 
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
-#include "BLI_ghash.h"
 
 #include "PIL_time.h"
 
 #include "blendef.h"
 
 #include "mydevice.h"
-
-extern ListBase editNurb;
-extern ListBase editelems;
 
 extern void helpline(float *vec);
 
@@ -122,12 +82,14 @@ extern void helpline(float *vec);
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
 TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
-int	LastMode = TFM_TRANSLATION;
+ListBase CSpaces = {0,0};
+float MatSpace[3][3];
 
 /* ************************** TRANSFORMATIONS **************************** */
 
 static void view_editmove(unsigned short event)
 {
+	int refresh = 0;
 	/* Regular:   Zoom in */
 	/* Shift:     Scroll up */
 	/* Ctrl:      Scroll right */
@@ -158,6 +120,7 @@ static void view_editmove(unsigned short event)
 			else
 				persptoetsen(PADPLUSKEY);
 			
+			refresh = 1;
 			break;
 		case WHEELDOWNMOUSE:
 			if( G.qual & LR_SHIFTKEY ) {
@@ -181,7 +144,14 @@ static void view_editmove(unsigned short event)
 			else
 				persptoetsen(PADMINUS);
 			
+			refresh = 1;
 			break;
+	}
+
+	if (refresh) {
+		Mat4CpyMat4(Trans.viewmat, G.vd->viewmat);
+		Mat4CpyMat4(Trans.viewinv, G.vd->viewinv);
+		Mat4CpyMat4(Trans.persinv, G.vd->persinv);
 	}
 }
 
@@ -217,15 +187,16 @@ static char *transform_to_undostr(TransInfo *t)
 /* ************************************************* */
 
 void checkFirstTime() {
-	if(Trans.mode==TFM_INIT)
+	if(Trans.mode==TFM_INIT) {
 		memset(&Trans, 0, sizeof(TransInfo));
+		Trans.propsize = 1.0;
+		Mat3One(MatSpace);
+	}
 }
 
 static void transformEvent(unsigned short event, short val) {
-	float mati[3][3];
+	float mati[3][3] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	char cmode = constraintModeToChar(&Trans);
-	Mat3One(mati);
-	
 
 	if (val) {
 		switch (event){
@@ -260,7 +231,7 @@ static void transformEvent(unsigned short event, short val) {
 						stopConstraint(&Trans);
 					}
 					else {
-						initSelectConstraint(&Trans, mati);
+						initSelectConstraint(&Trans, MatSpace);
 						postSelectConstraint(&Trans);
 					}
 				}
@@ -454,20 +425,6 @@ void initTransform(int mode, int context) {
 
 	Trans.state = TRANS_RUNNING;
 
-	/* stupid PET initialisation code */
-	/* START */
-	if (Trans.propsize == 0.0f) {
-		Trans.propsize = 1.0;
-	}
-	/* END */
-
-	if (mode == TFM_REPEAT) {
-		mode = LastMode;
-	}
-	else {
-		LastMode = mode;
-	}
-
 	Trans.context = context;
 
 	initTrans(&Trans);					// internal data, mouse, vectors
@@ -542,7 +499,7 @@ void Transform()
 		event= extern_qread(&val);
 	}
 
-	Trans.redraw = 1;
+	Trans.redraw = 1; /* initial draw */
 
 	while (Trans.state == TRANS_RUNNING) {
 
@@ -609,20 +566,9 @@ void Transform()
 	scrarea_queue_headredraw(curarea);
 }
 
-void ManipulatorTransform(int mode) 
+void initManipulator(int mode)
 {
-	int mouse_moved = 0;
-	short pmval[2] = {0, 0}, mval[2], val;
-	unsigned short event;
-
 	Trans.state = TRANS_RUNNING;
-
-	/* stupid PET initialisation code */
-	/* START */
-	if (Trans.propsize == 0.0f) {
-		Trans.propsize = 1.0;
-	}
-	/* END */
 
 	Trans.context = CTX_NONE;
 
@@ -658,10 +604,20 @@ void ManipulatorTransform(int mode)
 		break;
 	}
 
-	initConstraint(&Trans);
-	
 	Trans.flag |= T_USES_MANIPULATOR;
-	Trans.redraw = 1;
+	initConstraint(&Trans);
+}
+
+void ManipulatorTransform() 
+{
+	int mouse_moved = 0;
+	short pmval[2] = {0, 0}, mval[2], val;
+	unsigned short event;
+
+	if (Trans.total == 0)
+		return;
+
+	Trans.redraw = 1; /* initial draw */
 
 	while (Trans.state == TRANS_RUNNING) {
 		
@@ -758,8 +714,8 @@ void ManipulatorTransform(int mode)
 	{
 		char cmode='g';
 		
-		if(mode==TFM_RESIZE) cmode= 's';
-		else if(mode==TFM_ROTATION) cmode= 'r';
+		if(Trans.mode==TFM_RESIZE) cmode= 's';
+		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
 		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
 		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL), 7);

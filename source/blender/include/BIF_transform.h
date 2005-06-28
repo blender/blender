@@ -37,7 +37,6 @@
 
 /* MODE AND NUMINPUT FLAGS */
 #define TFM_INIT			-1
-#define TFM_REPEAT			0
 #define TFM_TRANSLATION		1
 #define TFM_ROTATION		2
 #define TFM_RESIZE			3
@@ -77,7 +76,8 @@ void BIF_drawPropCircle(void);
 void BIF_TransformSetUndo(char *str);
 
 /* view3d manipulators */
-void ManipulatorTransform(int mode);
+void initManipulator(int mode);
+void ManipulatorTransform();
 
 int BIF_do_manipulator(struct ScrArea *sa);
 void BIF_draw_manipulator(struct ScrArea *sa);
