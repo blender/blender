@@ -73,9 +73,9 @@
 #define MAX3(x,y,z)             MAX2( MAX2((x),(y)) , (z) )
 #define MAX4(x,y,z,a)           MAX2( MAX2((x),(y)) , MAX2((z),(a)) )
 
-#define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30; (max)[0]= (max)[1]= (max)[2]= -1.0e30;
+#define INIT_MINMAX(min, max) (min)[0]= (min)[1]= (min)[2]= 1.0e30f; (max)[0]= (max)[1]= (max)[2]= -1.0e30f;
 
-#define INIT_MINMAX2(min, max) (min)[0]= (min)[1]= 1.0e30; (max)[0]= (max)[1]= -1.0e30;
+#define INIT_MINMAX2(min, max) (min)[0]= (min)[1]= 1.0e30f; (max)[0]= (max)[1]= -1.0e30f;
 
 #define DO_MINMAX(vec, min, max) if( (min)[0]>(vec)[0] ) (min)[0]= (vec)[0]; \
 							  if( (min)[1]>(vec)[1] ) (min)[1]= (vec)[1]; \
