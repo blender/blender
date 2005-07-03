@@ -176,7 +176,8 @@ typedef struct Object {
 	 * bit 15: Always ignore activity culling 
 	 */
 	int gameflag2;
-	short softflag, dummy;			/* temporal stuff softbody experiment */
+	short softflag;			/* softboday settings */
+	short recalc;			/* dependency flag */
 	float anisotropicFriction[3];
 
 	ListBase constraints;
@@ -232,19 +233,18 @@ extern Object workob;
 #define OB_LAMP			10
 #define OB_CAMERA		11
 
-#define OB_IKA			20
 #define OB_WAVE			21
 #define OB_LATTICE		22
 
 /* 23 and 24 are for life and sector (old file compat.) */
 #define	OB_ARMATURE		25
 
-/* partype: eerste 5 bits: type */
+/* partype: first 4 bits: type */
 #define PARTYPE			15
 #define PAROBJECT		0
 #define PARCURVE		1
 #define PARKEY			2
-#define PARLIMB			3
+
 #define PARSKEL			4
 #define PARVERT1		5
 #define PARVERT3		6
@@ -313,12 +313,13 @@ extern Object workob;
 
 /* also needed for base!!!!! or rather, thy interfere....*/
 /* base->flag and ob->flag */
-#define BA_WASSEL			2
-#define BA_PARSEL			4
-#define BA_WHERE_UPDATE		8
-#define BA_DISP_UPDATE		16
+#define BA_WAS_SEL			2
+#define BA_HAS_RECALC_OB	4
+#define BA_HAS_RECALC_DATA	8
+
 #define BA_DO_IPO			32
 #define OB_GONNA_MOVE		32
+
 #define BA_FROMSET			128
 #define OB_DO_IMAT			256
 #define OB_FROMDUPLI		512
@@ -326,6 +327,12 @@ extern Object workob;
 #define OB_RADIO			2048
 #define OB_FROMGROUP		4096
 #define OB_POSEMODE			8192
+
+/* ob->recalc (flag bits!) */
+#define OB_RECALC_OB		1
+#define OB_RECALC_DATA		2
+#define OB_RECALC			3
+
 
 /* ob->gameflag */
 #define OB_DYNAMIC		1

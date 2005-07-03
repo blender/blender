@@ -58,7 +58,6 @@
 #include "DNA_material_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -82,7 +81,6 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
-#include "BKE_ika.h"
 #include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
@@ -1876,7 +1874,7 @@ static void init_render_surf(Object *ob)
 		}
 	}
 
-	if(ob->parent && (ob->parent->type==OB_IKA || ob->parent->type==OB_LATTICE)) need_orco= 1;
+	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
 	if(cu->orco==0 && need_orco) make_orco_surf(cu);
 	orco= cu->orco;
@@ -1939,21 +1937,6 @@ static void init_render_surf(Object *ob)
 			len= dl->nr*dl->parts;
 			for(a=0; a<len; a++, fp+=3)
 				calc_armature_deform(ob->parent, fp, a);
-
-			dl= dl->next;
-		}
-	}
-
-	if(ob->parent && ob->parent->type==OB_IKA) {
-		Ika *ika= ob->parent->data;
-		
-		init_skel_deform(ob->parent, ob);
-		dl= displist.first;
-		while(dl) {
-
-			fp= dl->verts;
-			len= dl->nr*dl->parts;
-			for(a=0; a<len; a++, fp+=3)  calc_skel_deform(ika, fp);
 
 			dl= dl->next;
 		}
@@ -2216,7 +2199,6 @@ static void init_render_surf(Object *ob)
 static void init_render_curve(Object *ob)
 {
 	extern Material defmaterial;	// initrender.c
-	Ika *ika=0;
 	Lattice *lt=0;
 	Curve *cu;
 	VertRen *ver;
@@ -2314,12 +2296,6 @@ static void init_render_curve(Object *ob)
 		need_orco= 1;
 	}
 	
-	if(ob->parent && ob->parent->type==OB_IKA) {
-		ika= ob->parent->data;
-		init_skel_deform(ob->parent, ob);
-		need_orco= 1;
-	}
-
 	if(ob->parent && ob->parent->type==OB_ARMATURE) {
 		init_armature_deform(ob->parent, ob);
 		need_orco= 1;
@@ -2390,7 +2366,6 @@ static void init_render_curve(Object *ob)
 					ver= RE_findOrAddVert(R.totvert++);
 					
 					if(lt) calc_latt_deform(fp);
-					else if(ika) calc_skel_deform(ika, fp);
 					
 					VECCOPY(ver->co, fp);
 					MTC_Mat4MulVecfl(mat, ver->co);
@@ -2937,62 +2912,12 @@ void RE_rotateBlenderScene(void)
 
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 
-	do_all_ipos();
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	do_all_keys();
-#ifdef __NLA
-	do_all_actions(NULL);
-	rebuild_all_armature_displists();
-	/* so nice, better do it twice */
-	do_all_actions(NULL);
-	rebuild_all_armature_displists();
-#endif
-	do_all_ikas();
-	test_all_displists();
-
-	/* not really neat forcing of calc_ipo and where_is */
-	ob= G.main->object.first;
-	while(ob) {
-		ob->ctime= -123.456;
-		ob= ob->id.next;
-	}
-
-	/* because of optimal calculation tracking/lattices/etc: and extra where_is_ob here */
-
-	base= G.scene->base.first;
-	while(base) {
-		ob= base->object;
-		
-		clear_object_constraint_status(ob);
-		
-		if (ob->type==OB_ARMATURE) 
-			where_is_armature (ob);
-		else
-			where_is_object(ob);
-
-		if(ob->disp.first==NULL) {
-			/* check for need for displist (it's zero when parent, key, or hook changed) */
-			/* this part was added to mimic drawing code better, will be solved with dep graph! (ton) */
-			/* added note; this is also needed for curves, for example, deformed with hooks */
-			if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
-			else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
-			else if(ob->hooks.first) makeDispList(ob);
-			else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
-		
-			if(ob->type==OB_MESH) {
-				Mesh *me= ob->data;
-				if(me->disp.first==NULL && (me->flag&ME_SUBSURF)) makeDispList(ob);
-				else if(ob->effect.first) {	// as last check
-					Effect *eff= ob->effect.first;
-					if(eff->type==EFF_WAVE) makeDispList(ob);
-				}
-			}
-		}
-		
-		
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
-		else base= base->next;
-	}
+	/* in localview, lamps are using normal layers, objects only local bits */
+	if(G.scene->lay & 0xFF000000) lay= G.scene->lay & 0xFF000000;
+	else lay= G.scene->lay;
+	
+	/* applies changes fully */
+	scene_update_for_newframe(G.scene, lay);
 
 	MTC_Mat4CpyMat4(R.viewinv, G.scene->camera->obmat);
 	MTC_Mat4Ortho(R.viewinv);
@@ -3032,10 +2957,6 @@ void RE_rotateBlenderScene(void)
 		ob= ob->id.next;
 	}
 	
-	/* in localview, lamps are using normal layers, objects only local bits */
-	if(G.scene->lay & 0xFF000000) lay= G.scene->lay & 0xFF000000;
-	else lay= G.scene->lay;
-	
 	sce= G.scene;
 
 	base= G.scene->base.first;
@@ -3060,7 +2981,7 @@ void RE_rotateBlenderScene(void)
 			}
 		}
 		else {
-			where_is_object(ob);
+			where_is_object(ob);	// too many? we got depgraph now... (ton)
 
 			if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & G.scene->lay)) ) {
 
@@ -3094,7 +3015,7 @@ void RE_rotateBlenderScene(void)
 								Curve *cu;
 
 								cu= obd->data;
-								if(cu->disp.first==0) {
+								if(cu->disp.first==NULL) {
 									obd->flag &= ~OB_FROMDUPLI;
 									makeDispList(obd);
 									obd->flag |= OB_FROMDUPLI;

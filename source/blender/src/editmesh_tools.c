@@ -60,7 +60,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 #include "BLI_editVert.h"
 #include "BLI_rand.h"
 
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -616,7 +616,7 @@ void split_mesh(void)
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Split");
 
 }
@@ -655,7 +655,7 @@ void extrude_repeat_mesh(int steps, float offs)
 	EM_fgon_flags();
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	waitcursor(0);
 	BIF_undo_push("Extrude Repeat");
 
@@ -746,7 +746,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	countall();
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	if(dvec==NULL) BIF_undo_push("Spin");
 }
@@ -1002,7 +1002,7 @@ void delete_mesh(void)
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push(str);
 }
 
@@ -1094,7 +1094,7 @@ void fill_mesh(void)
 	EM_select_flush();
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Fill");
 }
 
@@ -1957,7 +1957,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 static int count_selected_edges(EditEdge *ed)
@@ -2370,7 +2370,7 @@ void beauty_fill(void)
 	EM_select_flush();
 	
     allqueue(REDRAWVIEW3D, 0);
-    makeDispList(G.obedit);
+    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Beauty Fill");
 }
 
@@ -2464,7 +2464,7 @@ void join_triangles(void)
 	MEM_freeN(efaar);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Convert Triangles to Quads");
 }
 
@@ -2575,7 +2575,7 @@ void edge_flip(void)
 	MEM_freeN(efaar);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Flip Triangle Edges");
 	
 }
@@ -3029,7 +3029,7 @@ void edge_rotate_selected(int dir)
 	EM_select_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	BIF_undo_push("Rotate Edge");	
 }
@@ -3716,7 +3716,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	waitcursor(0);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	removedoublesflag(1, limit);
 

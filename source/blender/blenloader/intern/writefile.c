@@ -110,7 +110,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
 #include "DNA_image_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_key_types.h"
@@ -1052,30 +1051,6 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static void write_ikas(WriteData *wd, ListBase *idbase)
-{
-	Ika *ika;
-	Limb *li;
-
-	ika= idbase->first;
-	while(ika) {
-		if(ika->id.us>0 || wd->current) {
-			/* write LibData */
-			writestruct(wd, ID_IK, "Ika", 1, ika);
-
-			/* direct data */
-			li= ika->limbbase.first;
-			while(li) {
-				writestruct(wd, DATA, "Limb", 1, li);
-				li= li->next;
-			}
-
-			writestruct(wd, DATA, "Deform", ika->totdef, ika->def);
-		}
-		ika= ika->id.next;
-	}
-}
-
 static void write_scenes(WriteData *wd, ListBase *scebase)
 {
 	Scene *sce;
@@ -1565,7 +1540,6 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_cameras  (wd, &G.main->camera);
 	write_lamps    (wd, &G.main->lamp);
 	write_lattices (wd, &G.main->latt);
-	write_ikas     (wd, &G.main->ika);
 	write_vfonts   (wd, &G.main->vfont);
 	write_ipos     (wd, &G.main->ipo);
 	write_keys     (wd, &G.main->key);

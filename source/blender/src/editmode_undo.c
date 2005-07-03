@@ -48,7 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 
@@ -243,10 +243,7 @@ void undo_editmode_step(int step)
 		}
 	}
 
-	makeDispList(G.obedit);
-	// type specific redraw events...
-	if(G.obedit->type==OB_CURVE) curve_changes_other_objects(G.obedit);
-
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWIMAGE, 0);

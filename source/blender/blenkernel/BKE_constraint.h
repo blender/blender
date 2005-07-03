@@ -50,9 +50,7 @@ void *copy_constraint_channels (ListBase *dst, ListBase *src);
 struct bConstraintChannel *clone_constraint_channels (struct ListBase *dst, struct ListBase *src, struct bConstraintChannel *oldact);
 void relink_constraints (struct ListBase *list);
 void free_constraint_data (struct bConstraint *con);
-void clear_object_constraint_status (struct Object *ob);
-void clear_all_constraints(void);
-void rebuild_all_armature_displists(void);
+
 void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
 short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
 struct bConstraintChannel *find_constraint_channel (ListBase *list, const char *name);
@@ -61,7 +59,9 @@ void free_constraint_channels (ListBase *chanbase);
 /* Gemeric functions */
 
 char constraint_has_target (struct bConstraint *con);
-struct Object *get_constraint_target(struct bConstraint *con);
+struct Object *get_constraint_target(struct bConstraint *con, char **subtarget);
+void set_constraint_target(struct bConstraint *con, struct Object *ob);
+
 
 /* Constraint target/owner types */
 #define TARGET_OBJECT			1	//	string is ""

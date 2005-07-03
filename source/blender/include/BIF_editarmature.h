@@ -45,7 +45,6 @@ typedef struct EditBone
 	void	*temp;		/*	Used to store temporary data */
 
 	char	name[32];
-	char	oldname[32];
 	float	roll;			/*	Roll along axis.  We'll ultimately use the axis/angle method
 								for determining the transformation matrix of the bone.  The axis
 								is tail-head while roll provides the angle. Refer to Graphics
@@ -56,8 +55,6 @@ typedef struct EditBone
 							/*	All joints are considered to have zero rotation with respect to
 							their parents.	Therefore any rotations specified during the
 							animation are automatically relative to the bones' rest positions*/
-	short	sHead[2];
-	short	sTail[2];
 	int		flag;
 
 	int		parNr;		/* Used for retrieving values from the menu system */
@@ -67,12 +64,7 @@ typedef struct EditBone
 		for pose element, rather than trying to use the existing transObject
 		system?
 	*/
-	float dist, weight;
-	float loc[3], dloc[3];
-	float size[3], dsize[3];
-	float rot[3], drot[3];
-	float quat[4], dquat[4];
-	float obmat[4][4];
+	float dist, weight, length;
 	short boneclass;
 
 
@@ -85,8 +77,7 @@ void	add_primitiveArmature(int type);
 void	apply_rot_armature (struct Object *ob, float mat[3][3]);
 
 void	clear_armature(struct Object *ob, char mode);
-void	clever_numbuts_armature (void);
-void	clever_numbuts_posearmature (void);
+
 void	delete_armature(void);
 void	deselectall_armature(void);
 void	deselectall_posearmature (int test);
@@ -97,6 +88,8 @@ void	join_armature(void);
 void	load_editArmature(void);
 char*	make_bone_menu(struct bArmature *arm);
 void	make_bone_parent(void);
+void    clear_bone_parent(void);
+
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
 void	mousepose_armature(void);
@@ -109,7 +102,7 @@ void    unique_editbone_name (char* name);
 void    attach_bone_to_parent(EditBone *bone);
 void    attach_bone_to_parent_cb(void *bonev, void *arg2_unused);
 
-struct	Bone *get_first_selected_bone (void);
+
 void auto_align_armature(void);
 void create_vgroups_from_armature(Object *ob, Object *par);
 
@@ -123,9 +116,15 @@ int ik_chain_looper(Object *ob, struct Bone *bone, void *data,
 				   int (*bone_func)(Object *, struct Bone *, void *));
 int is_delay_deform(void);
 
-#define	BONESEL_TIP		0x08000000
-#define	BONESEL_ROOT	0x04000000
-#define BONESEL_BONE	(BONESEL_TIP|BONESEL_ROOT)
+void undo_push_armature(char *name);
+void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
+
+
+#define	BONESEL_ROOT	0x02000000
+#define	BONESEL_TIP		0x04000000
+#define	BONESEL_BONE	0x08000000
+#define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
+
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
 #endif

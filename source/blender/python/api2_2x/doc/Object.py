@@ -137,9 +137,6 @@ class Object:
     @ivar dSizeY: The delta Y size of the object.
     @ivar dSizeZ: The delta Z size of the object.
     @ivar dsize: The delta (X,Y,Z) size of the object.
-    @ivar EffX: The X effector coordinate of the object. Only applies to IKA.
-    @ivar EffY: The Y effector coordinate of the object. Only applies to IKA.
-    @ivar EffZ: The Z effector coordinate of the object. Only applies to IKA.
     @type Layers: integer (bitmask)
     @ivar Layers: The object layers (also check the newer attribute
         L{layers<Object.Object.layers>}).  This value is a bitmask with at 

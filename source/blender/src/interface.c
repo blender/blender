@@ -1564,8 +1564,13 @@ static int ui_do_but_TEX(uiBut *but)
 	but->pos= -1;
 	but->flag &= ~UI_SELECT;
 
-	uibut_do_func(but);
-
+	if(dev!=ESCKEY) {
+		/* give butfunc the original text too */
+		/* feature used for bone renaming, channels, etc */
+		if(but->func_arg2==NULL) but->func_arg2= backstr;
+		uibut_do_func(but);
+	}
+	
 	ui_check_but(but);
 	ui_draw_but(but);
 	

@@ -66,7 +66,6 @@
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
-#include "BKE_ika.h"
 #include "BKE_action.h"
 #include "BKE_writeavi.h"
 #include "BKE_scene.h"
@@ -1492,10 +1491,9 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	/* restore time */
 	if(R.r.mode & (R_FIELDS|R_MBLUR)) {
-		do_all_ipos();
-		do_all_keys();
-		do_all_actions(NULL);
-		do_all_ikas();
+//		do_all_ipos();
+//		do_all_keys();
+//		do_all_actions(NULL);
 	}
 
 	if (0) {

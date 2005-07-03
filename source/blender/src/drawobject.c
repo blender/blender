@@ -91,7 +91,6 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_editarmature.h"
-#include "BIF_editika.h"
 #include "BIF_editmesh.h"
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
@@ -3409,7 +3408,6 @@ void draw_object(Base *base)
 	static int warning_recursive= 0;
 	int sel, drawtype, colindex= 0, ipoflag;
 	short dt, dtx, zbufoff= 0;
-	Material *ma;
 	float vec1[3], vec2[3];
 	int i, selstart, selend;
 	SelBox *sb;
@@ -3418,7 +3416,7 @@ void draw_object(Base *base)
 	ob= base->object;
 
 	/* draw keys? */
-	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WASSEL))) {
+	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(warning_recursive==0 && ob!=G.obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				float temp[7][3];
@@ -3497,24 +3495,24 @@ void draw_object(Base *base)
 	if((G.f & G_PICKSEL) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
-		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_PARSEL))) BIF_ThemeColor(TH_TRANSFORM);
+		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) BIF_ThemeColor(TH_TRANSFORM);
 		else {
 		
 			BIF_ThemeColor(TH_WIRE);
 			if((G.scene->basact)==base) {
-				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(TH_ACTIVE);
+				if(base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_ACTIVE);
 			}
 			else {
-				if(base->flag & (SELECT+BA_WASSEL)) BIF_ThemeColor(TH_SELECT);
+				if(base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_SELECT);
 			}
 			
 			// no theme yet
 			if(ob->id.lib) {
-				if(base->flag & (SELECT+BA_WASSEL)) colindex = 4;
+				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 4;
 				else colindex = 3;
 			}
 			else if(warning_recursive==1) {
-				if(base->flag & (SELECT+BA_WASSEL)) colindex = 7;
+				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 7;
 				else colindex = 6;
 			}
 
@@ -3581,7 +3579,7 @@ void draw_object(Base *base)
 			draw_mesh_object(ob, dt);
 			dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
-			{
+			if(G.obedit!=ob && warning_recursive==0) {
 				PartEff *paf = give_parteff(ob);
 
 				if(paf) {

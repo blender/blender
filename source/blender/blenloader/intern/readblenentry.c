@@ -85,7 +85,6 @@ static IDType idtypes[]= {
 	{ ID_CU,		"Curve",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_GR,		"Group",	0}, 
 	{ ID_ID,		"ID",		0}, 
-	{ ID_IK,		"Ika",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_IM,		"Image",	IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_IP,		"Ipo",		IDTYPE_FLAGS_ISLINKABLE}, 
 	{ ID_KE,		"Key",		0}, 

@@ -40,31 +40,26 @@ struct DagNodeQueue;
 struct DagForest;
 struct DagNode;
 
-typedef enum { 
-	DAG_RL_SCENE				= 1,
-	DAG_RL_DATA					= 2,
-	DAG_RL_PARENT				= 4,
-	DAG_RL_TRACK				= 8,
-	DAG_RL_PATH					= 16,
-	DAG_RL_CONSTRAINT			= 32,
-	DAG_RL_HOOK					= 64,
-	DAG_RL_DATA_CONSTRAINT		= 128,
-	DAG_NO_RELATION				= 256
-} dag_rel_type;
+/* **** DAG relation types *** */
 
+	/* scene link to object */
+#define DAG_RL_SCENE		1
+	/* object link to data */
+#define DAG_RL_DATA			2
 
-typedef enum {
-	DAG_RL_SCENE_MASK			= 1,
-	DAG_RL_DATA_MASK			= 2,
-	DAG_RL_PARENT_MASK			= 4,
-	DAG_RL_TRACK_MASK			= 8,
-	DAG_RL_PATH_MASK			= 16,
-	DAG_RL_CONSTRAINT_MASK		= 32,
-	DAG_RL_HOOK_MASK			= 64,
-	DAG_RL_DATA_CONSTRAINT_MASK	= 128,
-	DAG_RL_ALL_BUT_DATA_MASK	= 253,
-	DAG_RL_ALL_MASK				= 255
-} dag_rel_type_mask;
+	/* object changes object (parent, track, constraints) */
+#define DAG_RL_OB_OB		4
+	/* object changes obdata (hooks, constraints) */
+#define DAG_RL_OB_DATA		8
+	/* data changes object (vertex parent) */
+#define DAG_RL_DATA_OB		16
+	/* data changes data (deformers) */
+#define DAG_RL_DATA_DATA	32
+
+#define DAG_NO_RELATION		64
+#define DAG_RL_ALL			63
+#define DAG_RL_ALL_BUT_DATA 61
+
 
 typedef void (*graph_action_func)(void * ob, void **data);
 
@@ -91,13 +86,19 @@ int pre_and_post_source_DFS(struct DagForest *dag, short mask, struct DagNode *s
 struct DagNodeQueue *get_obparents(struct DagForest	*dag, void *ob); 
 struct DagNodeQueue *get_first_ancestors(struct DagForest	*dag, void *ob); 
 struct DagNodeQueue *get_all_childs(struct DagForest	*dag, void *ob); //
-dag_rel_type		are_obs_related(struct DagForest	*dag, void *ob1, void *ob2);
+short		are_obs_related(struct DagForest	*dag, void *ob1, void *ob2);
 int					is_acyclic(struct DagForest	*dag); //
 //int					get_cycles(struct DagForest	*dag, struct DagNodeQueue **queues, int *count); //
-void				topo_sort_baselist(struct Scene *sce);
 
 void	boundbox_deps(void);
 void	draw_all_deps(void);
 
+/* ********** API *************** */
+
+void	DAG_scene_sort(struct Scene *sce);
+void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
+void	DAG_scene_flush_update(struct Scene *sce);
+void	DAG_object_flush_update(struct Scene *sce, struct Object *ob, short flag);
+void	DAG_pose_sort(struct Object *ob);
 
 #endif

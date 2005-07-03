@@ -46,15 +46,15 @@
 #include "DNA_object_force.h"
 #include <DNA_property_types.h>
 
-#include <BSE_edit.h>
-
+#include <BKE_depsgraph.h>
+#include <BKE_font.h>
 #include <BKE_property.h>
 #include <BKE_mball.h>
-#include <BKE_font.h>
 #include <BKE_softbody.h>
 
 #include <BIF_editview.h>
 #include <BSE_editipo.h>
+#include <BSE_edit.h>
 
 #include "Ipo.h"
 #include "Lattice.h"
@@ -581,7 +581,6 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 		type = OB_CURVE;
 	else if (strcmp (str_type, "Text") == 0)	
 		type = OB_FONT;
-/*	else if (strcmp (str_type, "Ika") == 0)		type = OB_IKA; */
 	else if( strcmp( str_type, "Lamp" ) == 0 )
 		type = OB_LAMP;
 	else if( strcmp( str_type, "Lattice" ) == 0 )
@@ -865,7 +864,7 @@ static PyObject *Object_clrParent( BPy_Object * self, PyObject * args )
 	}
 
 	if( !fast ) {
-		sort_baselist( G.scene );
+		DAG_scene_sort( G.scene );
 	}
 
 	Py_INCREF( Py_None );
@@ -891,7 +890,7 @@ static PyObject *Object_clearTrack( BPy_Object * self, PyObject * args )
 	}
 
 	if( !fast ) {
-		sort_baselist( G.scene );
+		DAG_scene_sort( G.scene );
 	}
 
 	Py_INCREF( Py_None );
@@ -940,10 +939,6 @@ int EXPP_add_obdata( struct Object *object )
 		   break;
 		   case OB_FONT:
 		   object->data = add_curve(OB_FONT);
-		   break;
-		   case OB_IKA:
-		   object->data = add_ika();
-		   object->dt = OB_WIRE;
 		   break;
 		   case OB_WAVE:
 		   object->data = add_wave();
@@ -1290,8 +1285,6 @@ static PyObject *Object_getType( BPy_Object * self )
 		return ( Py_BuildValue( "s", "Empty" ) );
 	case OB_FONT:
 		return ( Py_BuildValue( "s", "Text" ) );
-	case OB_IKA:
-		return ( Py_BuildValue( "s", "Ika" ) );
 	case OB_LAMP:
 		return ( Py_BuildValue( "s", "Lamp" ) );
 	case OB_LATTICE:
@@ -1597,7 +1590,7 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 		}
 
 		if( !fast ) {
-			sort_baselist( G.scene );
+			DAG_scene_sort( G.scene );
 		}
 		// We don't need the child object anymore.
 			Py_DECREF (py_child);
@@ -1984,7 +1977,7 @@ static PyObject *Object_makeTrack( BPy_Object * self, PyObject * args )
 	ob->track = tracked->object;
 
 	if( !fast )
-		sort_baselist( G.scene );
+		DAG_scene_sort( G.scene );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -2414,7 +2407,6 @@ static void Object_dealloc( BPy_Object * obj )
 static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 {
 	struct Object *object;
-	struct Ika *ika;
 
 	object = obj->object;
 	if( StringEqual( name, "LocX" ) )
@@ -2475,25 +2467,7 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return ( Py_BuildValue
 			 ( "fff", object->dsize[0], object->dsize[1],
 			   object->dsize[2] ) );
-	/* no IKA anymore, I think we can remove this. (theeth)
-	if( strncmp( name, "Eff", 3 ) == 0 ) {
-		if( ( object->type == OB_IKA ) && ( object->data != NULL ) ) {
-			ika = object->data;
-			switch ( name[3] ) {
-			case 'X':
-				return ( PyFloat_FromDouble( ika->effg[0] ) );
-			case 'Y':
-				return ( PyFloat_FromDouble( ika->effg[1] ) );
-			case 'Z':
-				return ( PyFloat_FromDouble( ika->effg[2] ) );
-			default:
-				// Do we need to display a sensible error message here?
-				return ( NULL );
-			}
-		}
-		return ( NULL );
-	}
-	*/
+
 	/* accept both Layer (old, for compatibility) and Layers */
 	if( strncmp( name, "Layer", 5 ) == 0)
 		return ( PyInt_FromLong( object->lay ) );
@@ -2612,7 +2586,6 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 {
 	PyObject *valtuple, *result=NULL;
 	struct Object *object;
-	struct Ika *ika;
 
 	object = obj->object;
 
@@ -2682,6 +2655,7 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		return ( !PyArg_ParseTuple
 			 ( value, "fff", &( object->dsize[0] ),
 			   &( object->dsize[1] ), &( object->dsize[2] ) ) );
+	
 	if( StringEqual( name, "DupSta" ) )
 		return ( !PyArg_Parse( value, "h", &( object->dupsta ) ) );
 

@@ -246,9 +246,9 @@ int PushPull(TransInfo *t, short mval[2]);
 void initCrease(TransInfo *t);
 int Crease(TransInfo *t, short mval[2]);
 
-/* exported from transform.c */
+/*********************** transform_conversions.c ********** */
 struct ListBase;
-void count_bone_select(TransInfo *t, struct ListBase *lb, int *counter);
+void count_bone_select(TransInfo *t, struct ListBase *lb, int do_it);
 
 /*********************** exported from transform_manipulator.c ********** */
 struct ScrArea;
@@ -260,7 +260,7 @@ void createTransData(TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void clear_trans_object_base_flags(void);
 void add_tdi_poin(float *poin, float *old, float delta);
-void special_aftertrans_update(char mode, int flip, short canceled, int keyflags);
+void special_aftertrans_update(char mode, int flip, short canceled);
 
 /*********************** Constraints *****************************/
 void getConstraintMatrix(TransInfo *t);

@@ -92,11 +92,10 @@
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_ika.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -489,42 +488,19 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 }
 
 
-
+/* results in fully updated anim system */
 static void do_update_for_newframe(int mute, int events)
 {
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	ScrArea *sa;
 	
 	if(events) {
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION,0);
-		allqueue(REDRAWNLA,0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWINFO, 1);
-		allqueue(REDRAWSEQ, 1);
-		allqueue(REDRAWSOUND, 1);
-		allqueue(REDRAWTIME, 1);
-		allqueue(REDRAWBUTSHEAD, 0);
-		allqueue(REDRAWBUTSSHADING, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWALL, 0);
 	}
 	
-	/* layers/materials, object ipos are calculted in where_is_object (too) */
-	do_all_ipos();
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	clear_all_constraints();
-	do_all_keys();
-
-	do_all_actions(NULL);
-	rebuild_all_armature_displists();
-	/* so nice, better do it twice */
-	do_all_actions(NULL);
-	rebuild_all_armature_displists();
-
-	do_all_ikas();
-
-	test_all_displists();
-	
+	/* this one applies changes */
+	scene_update_for_newframe(G.scene, G.vd->lay); /* BKE_scene.h */
+		
 	/* manipulators like updates too */
 	for(sa=G.curscreen->areabase.first; sa; sa=sa->next) {
 		if(sa->spacetype==SPACE_VIEW3D) {
@@ -728,12 +704,11 @@ void do_global_buttons(unsigned short event)
 					
 					if( GS(idtest->name)==ID_CU ) {
 						test_curve_type(ob);
-						allqueue(REDRAWBUTSEDIT, 0);
-						makeDispList(ob);
 					}
-					else if( ob->type==OB_MESH ) {
-						makeDispList(ob);
+					else if( ob->type==OB_ARMATURE) {
+						armature_rebuild_pose(ob, ob->data);
 					}
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 					
 					allqueue(REDRAWBUTSEDIT, 0);
 					allqueue(REDRAWVIEW3D, 0);
@@ -1637,8 +1612,8 @@ void do_global_buttons(unsigned short event)
 			 * can require it to be updated because its
 			 * basis might have changed... -zr
 			 */
-		if (OBACT && OBACT->type==OB_MBALL)
-			makeDispList(OBACT);
+		if (ob && ob->type==OB_MBALL)
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			
 		/* redraw because name has changed: new pup */
 		scrarea_queue_headredraw(curarea);
@@ -1901,7 +1876,7 @@ void do_global_buttons2(short event)
 				if(okee("Single user")) {
 					ob->data= copy_curve(cu);
 					cu->id.us--;
-					makeDispList(ob);
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 					if(ob==G.obedit) allqueue(REDRAWVIEW3D, 0);
 				}
 			}
@@ -1914,7 +1889,7 @@ void do_global_buttons2(short event)
 				if(okee("Make local")) {
 					make_local_curve(cu);
 					make_local_key( cu->key );
-					makeDispList(ob);
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				}
 			}
 		}

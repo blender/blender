@@ -1314,7 +1314,7 @@ void build_particle_system(Object *ob)
 					do_ob_key(par);
 					if(par->type==OB_ARMATURE) {
 						do_all_actions(par);	// only does this object actions
-						clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+//						clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
 					}
 					par= par->parent;
 				}
@@ -1394,7 +1394,7 @@ void build_particle_system(Object *ob)
 		
 		if(par->type==OB_ARMATURE) {
 			do_all_actions(par);	// only does this object actions
-			clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+//			clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
 		}
 		par= par->parent;
 	}

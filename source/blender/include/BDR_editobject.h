@@ -53,8 +53,6 @@ void make_vertex_parent(void);
 int test_parent_loop(struct Object *par, struct Object *ob);
 void make_parent(void);
 
-void make_displists_by_parent(struct Object *ob);
-
 void exit_editmode(int freedata);
 void check_editmode(int type);
 void enter_editmode(void);
@@ -106,8 +104,6 @@ void select_select_keys(void);
 int vergbaseco(const void *a1, const void *a2);
 void auto_timeoffs(void);
 void texspace_edit(void);
-void first_base(void);
-void make_displists_by_obdata(void *obdata);
 void flip_subdivison(struct Object *ob, int);
 void mirrormenu(void);
 

@@ -59,7 +59,6 @@ typedef short IPO_Channel;
 
 #define TOB_IPO	1
 #define TOB_IPODROT	2
-#define TOB_IKA	4
 
 /* disptype */
 #define IPO_DISPDEGR	1
@@ -95,10 +94,6 @@ typedef short IPO_Channel;
 #define OB_LAY		19
 
 #define OB_TIME		20
-
-#define OB_EFF_X	21
-#define OB_EFF_Y	22
-#define OB_EFF_Z	23
 
 #define OB_COL_R	21
 #define OB_COL_G	22

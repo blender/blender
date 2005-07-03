@@ -31,19 +31,26 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BKE_main.h>
+#include <MEM_guardedalloc.h>	/* for MEM_callocN */
+
+#include <DNA_screen_types.h>	/* SPACE_VIEW3D, SPACE_SEQ */
+#include <DNA_scriptlink_types.h>
+
+#include <BKE_depsgraph.h>
 #include <BKE_global.h>
-#include <BKE_scene.h>
 #include <BKE_library.h>
+#include <BKE_main.h>
+#include <BKE_scene.h>
+
 #include <BLI_blenlib.h>
+
 #include <BSE_drawview.h>	/* for play_anim */
 #include <BSE_headerbuttons.h>	/* for copy_scene */
+
 #include <BIF_drawscene.h>	/* for set_scene */
 #include <BIF_space.h>		/* for copy_view3d_lock() */
 #include <BIF_screen.h>		/* curarea */
-#include <DNA_screen_types.h>	/* SPACE_VIEW3D, SPACE_SEQ */
-#include <DNA_scriptlink_types.h>
-#include <MEM_guardedalloc.h>	/* for MEM_callocN */
+
 #include <mydevice.h>		/* for #define REDRAW */
 
 #include "Object.h"
@@ -141,7 +148,7 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"update", ( PyCFunction ) Scene_update, METH_VARARGS,
 	 "(full = 0) - Update scene self.\n"
 	 "full = 0: sort the base list of objects."
-	 "full = 1: full update -- also regroups, does ipos, ikas, keys"},
+	 "full = 1: full update -- also regroups, does ipos, keys"},
 	{"link", ( PyCFunction ) Scene_link, METH_VARARGS,
 	 "(obj) - Link Object obj to this scene"},
 	{"unlink", ( PyCFunction ) Scene_unlink, METH_VARARGS,
@@ -702,12 +709,12 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected nothing or int (0 or 1) argument" );
 
-/* Under certain circunstances, sort_baselist *here* can crash Blender.
+/* Under certain circunstances, DAG_scene_sort *here* can crash Blender.
  * A "RuntimeError: max recursion limit" happens when a scriptlink
  * on frame change has scene.update(1).
  * Investigate better how to avoid this. */
 	if( !full )
-		sort_baselist( scene );
+		DAG_scene_sort( scene );
 
 	else if( full == 1 )
 		set_scene_bg( scene );
@@ -716,7 +723,7 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "in method scene.update(full), full should be:\n"
 					      "0: to only sort scene elements (old behavior); or\n"
-					      "1: for a full update (regroups, does ipos, ikas, keys, etc.)" );
+					      "1: for a full update (regroups, does ipos, keys, etc.)" );
 
 	Py_INCREF( Py_None );
 	return Py_None;

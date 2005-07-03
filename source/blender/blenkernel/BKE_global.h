@@ -88,7 +88,7 @@ typedef struct Global {
     char ima[160], sce[160], lib[160];
     
     /* totals */
-    short totobj, totlamp, totobjsel, totcurve, totmesh, totmat;
+    short totobj, totlamp, totobjsel, totcurve, totmesh, totbone, totbonesel;
     int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
     
     short machine, afbreek, moving, colact, zbuf;

@@ -70,14 +70,18 @@ typedef struct Key {
 
 	short type, totkey;
 	short slurph, actkey;
+	short flag, pad1;
+	int pad2;
 	
 } Key;
 
 /* **************** KEY ********************* */
 
-/* type */
+/* key->type */
 #define KEY_NORMAL      0
 #define KEY_RELATIVE    1
+/* key->flag */
+#define KEY_LOCKED		1
 
 /* keyblock->type */
 #define KEY_LINEAR      0

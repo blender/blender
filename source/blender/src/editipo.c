@@ -64,7 +64,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -80,17 +79,16 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
-#include "BKE_material.h"
-#include "BKE_texture.h"
-#include "BKE_ipo.h"
-#include "BKE_key.h"
-#include "BKE_ika.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
+#include "BKE_ipo.h"
+#include "BKE_key.h"
+#include "BKE_material.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editkey.h"
@@ -145,7 +143,7 @@ char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLoc
 						 "SizeX", "SizeY", "SizeZ", "dSizeX", "dSizeY", "dSizeZ",
 						 "Layer", "Time", "ColR", "ColG", "ColB", "ColA",
 						 "FStreng", "FFall", "RDamp", "Damping", "Perm" };
-char *obeff_ic_names[3] = { "EffX", "EffY", "EffZ" };
+
 char *co_ic_names[CO_TOTNAM] = { "Inf" };
 char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
 						  "texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
@@ -217,11 +215,8 @@ char *getname_co_ei(int nr)
 
 char *getname_ob_ei(int nr, int colipo)
 {
-	if(!colipo && (nr>=OB_EFF_X && nr <=OB_EFF_Z)) {
-		return obeff_ic_names[nr-OB_EFF_X];
-	} else {
-		if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
-	}
+	if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
+
 	return ic_name_empty[0];
 }
 
@@ -467,7 +462,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		
 		if(si->blocktype==ID_OB) {
 			Object *ob= (Object *)si->from;			
-			if(ob && ob->type==OB_IKA) itterate_ika(ob);
+			if(ob) DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWNLA, 0);
 		}
@@ -489,10 +484,11 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		}
 		else if(si->blocktype==ID_KE) {
 			do_spec_key((Key *)si->from);
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_CU) {
-			calc_curvepath(OBACT);
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
@@ -3871,7 +3867,6 @@ void common_insertkey()
 			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
 			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
 			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
-			else if(ob->type==OB_IKA) strcat(menustr, "| %x6|Effector%x8");
 			if(ob->flag & OB_FROMGROUP)	strcat(menustr, "| %x6|Entire Group%x10");
 		}
 		
@@ -3911,8 +3906,6 @@ void common_insertkey()
 			act=ob->action;
 			pose=ob->pose;
 
-			collect_pose_garbage(ob);
-
 			if (!act){
 				act= G.obpose->action=add_empty_action();
 				/* this sets the non-pinned open ipowindow(s) to show the action curve */
@@ -3931,7 +3924,7 @@ void common_insertkey()
 				error ("Can't key libactions");
 				return;
 			}
-			filter_pose_keys ();
+			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 			for (chan=pose->chanbase.first; chan; chan=chan->next)
 			{
 				if (chan->flag & POSE_KEY){
@@ -3963,9 +3956,10 @@ void common_insertkey()
 						}
 					}
 				}
-
 				remake_action_ipos(act);
 			}
+
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
@@ -4007,15 +4001,6 @@ void common_insertkey()
 						base->object->lay &= 0xFFFFFF;
 						insertkey(id, OB_LAY);
 						base->object->lay= tlay;
-					}
-					if(event==8) {
-						/* a patch, can be removed (old ika) */
-						Ika *ika= ob->data;
-						VecMat4MulVecfl(ika->effg, ob->obmat, ika->effn);
-						
-						insertkey(id, OB_EFF_X);
-						insertkey(id, OB_EFF_Y);
-						insertkey(id, OB_EFF_Z);
 					}
 				}
 				base= base->next;
@@ -4847,8 +4832,7 @@ void transform_ipo(int mode)
 					force_draw_plus(SPACE_BUTS, 0);
 				}
 				else if(G.sipo->blocktype==ID_KE) {
-					do_ob_key(OBACT);
-					makeDispList(OBACT);
+					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_AC) {
@@ -4859,9 +4843,13 @@ void transform_ipo(int mode)
 					Base *base= FIRSTBASE;
 					
 					while(base) {
-						if(base->object->ipo==G.sipo->ipo) do_ob_ipo(base->object);
+						if(base->object->ipo==G.sipo->ipo) {
+							do_ob_ipo(base->object);
+							base->object->recalc |= OB_RECALC_OB;
+						}
 						base= base->next;
 					}
+					DAG_scene_flush_update(G.scene);
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else force_draw(0);
@@ -5020,6 +5008,7 @@ void ipo_record()
 	EditIpo *ei, *ei1=0, *ei2=0;
 	ScrArea *sa, *oldarea;
 	Ipo *ipo;
+	Object *ob;
 	void *poin;
 	double swaptime;
 	float or1, or2 = 0.0, fac, *data1, *data2;
@@ -5037,7 +5026,8 @@ void ipo_record()
 
 	ipo= get_ipo(G.sipo->from, G.sipo->blocktype, 1);	/* 1= make */
 	if(G.sipo) G.sipo->ipo= ipo;
-
+	
+	ob= OBACT;
 	/* find the curves... */
 	
 	ei= G.sipo->editipo;
@@ -5105,7 +5095,8 @@ void ipo_record()
 	waitcursor(1);
 	
 	tottime= 0.0;
-	swaptime= G.scene->r.framelen;
+	swaptime= 1.0/(float)G.scene->r.frs_sec;
+
 	cfrao= CFRA;
 	cfra=efra= SFRA;
 	sfra= EFRA;
@@ -5122,15 +5113,14 @@ void ipo_record()
 			
 			/* do ipo: first all, then the specific ones */
 			if(anim==2) {
-				do_all_ipos();
-				do_all_keys();
+				do_ob_ipo(ob);
+				do_ob_key(ob);
 			}
 
 			ei1->icu->curval= or1 + fac*(mval[0]-xn);
 			if(ei2) ei2->icu->curval= or2 + fac*(mval[1]-yn);
 
 			do_ipo_nocalc(G.sipo->ipo);
-			do_all_visible_ikas();
 			
 			if(G.qual & LR_CTRLKEY) {
 				sprintf(str, "Recording... %d\n", cfra);
@@ -5142,8 +5132,9 @@ void ipo_record()
 			}
 			else sprintf(str, "Mouse Recording. Use Ctrl to start. LeftMouse or Space to end");
 			
-			do_ob_key(OBACT);
-
+			do_ob_key(ob);
+			ob->recalc |= OB_RECALC;
+			
 			headerprint(str);
 
 			if(sa) scrarea_do_windraw(sa);

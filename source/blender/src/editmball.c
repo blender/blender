@@ -48,7 +48,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 
@@ -137,8 +137,8 @@ void add_primitiveMball(int dummy_argument)
 		base_init_from_view3d(BASACT, G.vd);
 		G.obedit= BASACT->object;
 		
-		where_is_object(G.obedit);
-
+		where_is_object(G.obedit);  // need now, for imat
+		
 		make_editMball();
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	}
@@ -180,37 +180,38 @@ void add_primitiveMball(int dummy_argument)
 	ml->s= 2.0;
 	ml->flag= SELECT | MB_SCALE_RAD;
 
-        switch(dummy_argument) {
-                case 1:
-                        ml->type = MB_BALL;
-                        ml->expx= ml->expy= ml->expz= 1.0;
-                        break;
-                case 2:
-                        ml->type = MB_TUBE;
-                        ml->expx= ml->expy= ml->expz= 1.0;
-                        break;
-                case 3:
-                        ml->type = MB_PLANE;
-                        ml->expx= ml->expy= ml->expz= 1.0;
-                        break;
-                case 4:
-                        ml->type = MB_ELIPSOID;
-                        ml->expx= 1.2f;
-                        ml->expy= 0.8f;
-                        ml->expz= 1.0;
-                        break;
-                case 5:
-                        ml->type = MB_CUBE;
-                        ml->expx= ml->expy= ml->expz= 1.0;
-                        break;
-                default:
-                        break;
-        }
+	switch(dummy_argument) {
+	case 1:
+		ml->type = MB_BALL;
+		ml->expx= ml->expy= ml->expz= 1.0;
+		break;
+	case 2:
+		ml->type = MB_TUBE;
+		ml->expx= ml->expy= ml->expz= 1.0;
+		break;
+	case 3:
+		ml->type = MB_PLANE;
+		ml->expx= ml->expy= ml->expz= 1.0;
+		break;
+	case 4:
+		ml->type = MB_ELIPSOID;
+		ml->expx= 1.2f;
+		ml->expy= 0.8f;
+		ml->expz= 1.0;
+		break;
+	case 5:
+		ml->type = MB_CUBE;
+		ml->expx= ml->expy= ml->expz= 1.0;
+		break;
+	default:
+		break;
+	}
 	
 	lastelem= ml;
 	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  // added ball can influence others
+		
 	allqueue(REDRAWALL, 0);
-	makeDispList(G.obedit);
 	BIF_undo_push("Add MetaElem");
 }
 
@@ -336,7 +337,8 @@ void delete_mball()
 		ml= next;
 	}
 	
-	makeDispList(G.obedit);
+	DAG_scene_sort(G.scene);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 
@@ -443,7 +445,7 @@ void hide_mball(char hide)
 		ml= ml->next;
 	}
 
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 
@@ -462,7 +464,7 @@ void reveal_mball(void)
 		ml= ml->next;
 	}
 
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 

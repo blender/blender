@@ -48,7 +48,6 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
@@ -81,24 +80,24 @@
 #include "BKE_main.h"
 #include "BKE_global.h"
 
-#include "BKE_object.h"
+#include "BKE_anim.h"
 #include "BKE_blender.h"
-#include "BKE_screen.h"
+#include "BKE_constraint.h"
+#include "BKE_curve.h"
+#include "BKE_displist.h"
+#include "BKE_effect.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
-#include "BKE_ika.h"
+#include "BKE_key.h"
+#include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
-#include "BKE_curve.h"
 #include "BKE_mball.h"
-#include "BKE_effect.h"
-#include "BKE_sca.h"
-#include "BKE_displist.h"
+#include "BKE_object.h"
 #include "BKE_property.h"
-#include "BKE_anim.h"
-#include "BKE_group.h"
-#include "BKE_lattice.h"
-#include "BKE_constraint.h"
+#include "BKE_sca.h"
 #include "BKE_scene.h"
+#include "BKE_screen.h"
 #include "BKE_softbody.h"
 
 #include "BPY_extern.h"
@@ -201,7 +200,7 @@ void free_object(Object *ob)
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose) {
-		clear_pose(ob->pose);
+		free_pose_channels(ob->pose);
 		MEM_freeN(ob->pose);
 	}
 	free_effects(&ob->effect);
@@ -237,8 +236,10 @@ void unlink_object(Object *ob)
 	Tex *tex;
 	ObHook *hook;
 	Group *group;
+	bConstraint *con;
 	int a;
-
+	char *str;
+	
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
 	
@@ -246,37 +247,48 @@ void unlink_object(Object *ob)
 	obt= G.main->object.first;
 	while(obt) {
 		if(obt->id.lib==NULL) {
+			
 			if(obt->parent==ob) {
 				obt->parent= NULL;
-				if(ob->type==OB_LATTICE) freedisplist(&obt->disp);
+				obt->recalc |= OB_RECALC;
 			}
-			if(obt->track==ob) obt->track= NULL;
+			
+			if(obt->track==ob) {
+				obt->track= NULL;
+				obt->recalc |= OB_RECALC_OB;
+			}
+			
 			for(hook=obt->hooks.first; hook; hook= hook->next) {
-				if(hook->parent==ob) hook->parent= NULL;
-			}
-			if ELEM(obt->type, OB_CURVE, OB_FONT) {
-				cu= obt->data;
-				if(cu->bevobj==ob) cu->bevobj= NULL;
-				if(cu->taperobj==ob) cu->taperobj= NULL;
-				if(cu->textoncurve==ob) cu->textoncurve= NULL;
-			}
-			if(obt->type==OB_IKA) {
-				Ika *ika= obt->data;
-				Deform *def= ika->def;
-				
-				if(ika->parent==ob) ika->parent= NULL;
-				a= ika->totdef;
-				while(a--) {
-					if(def->ob==ob) {
-						ika->totdef= 0;
-						MEM_freeN(ika->def);
-						ika->def= NULL;
-						break;
-					}
-					def++;
+				if(hook->parent==ob) {
+					hook->parent= NULL;
+					obt->recalc |= OB_RECALC;
 				}
 			}
+			
+			if ELEM(obt->type, OB_CURVE, OB_FONT) {
+				cu= obt->data;
+				if(cu->bevobj==ob) {
+					cu->bevobj= NULL;
+					obt->recalc |= OB_RECALC;
+				}
+				if(cu->taperobj==ob) {
+					cu->taperobj= NULL;
+					obt->recalc |= OB_RECALC;
+				}
+				if(cu->textoncurve==ob) {
+					cu->textoncurve= NULL;
+					obt->recalc |= OB_RECALC;
+				}
+			}
+			
 			sca_remove_ob_poin(obt, ob);
+			
+			for (con = obt->constraints.first; con; con=con->next) {
+				if(ob==get_constraint_target(con, &str)) {
+					set_constraint_target(con, NULL);
+					obt->recalc |= OB_RECALC_OB;
+				}
+			}
 		}
 		obt= obt->id.next;
 	}
@@ -625,7 +637,6 @@ static void *add_obdata_from_type(int type)
 	case OB_MBALL: return add_mball();
 	case OB_CAMERA: return add_camera();
 	case OB_LAMP: G.totlamp++; return add_lamp();
-	case OB_IKA: return add_ika();
 	case OB_LATTICE: return add_lattice();
 	case OB_WAVE: return add_wave();
 	case OB_ARMATURE: return add_armature();
@@ -646,7 +657,6 @@ static char *get_obdata_defname(int type)
 	case OB_MBALL: return "Mball";
 	case OB_CAMERA: return "Camera";
 	case OB_LAMP: return "Lamp";
-	case OB_IKA: return "Ika";
 	case OB_LATTICE: return "Lattice";
 	case OB_WAVE: return "Wave";
 	case OB_ARMATURE: return "Armature";
@@ -721,7 +731,8 @@ Object *add_object(int type)
 
 	base= scene_add_base(G.scene, ob);
 	scene_select_base(G.scene, base);
-
+	ob->recalc |= OB_RECALC;
+	
 	return ob;
 }
 
@@ -1071,57 +1082,31 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 
 void ob_parbone(Object *ob, Object *par, float mat[][4])
 {	
-	Bone *bone;
+	bPoseChannel *pchan;
 	bArmature *arm;
-
-	Mat4One(mat);
+	float vec[3];
+	
 	arm=get_armature(par);
-	if (!arm)
+	if (!arm) {
+		Mat4One(mat);
 		return;
-
+	}
+	
 	/* Make sure the bone is still valid */
-	bone = get_named_bone(arm, ob->parsubstr);
-	if (!bone){
+	pchan= get_pose_channel(par->pose, ob->parsubstr);
+	if (!pchan){
 		printf ("Lost bone %s\n", ob->parsubstr);
+		Mat4One(mat);
 		return;
 	}
 
-	apply_pose_armature(arm, par->pose, 1);	/* Hopefully can set doit parameter in the future */
-	where_is_bone (par, bone); 
+	/* get bone transform */
+	Mat4CpyMat4(mat, pchan->pose_mat);
 
-	/* Translate by negative bone */
-	get_objectspace_bone_matrix(bone, mat, 0, 1);
-
-}
-
-void ob_parlimb(Object *ob, Object *par, float mat[][4])
-{	
-	Ika *ika;
-	Limb *li;
-	float ang=0.0;
-	int cur=0;
-	
-	/* in local ob space */
-	Mat4One(mat);
-	
-	ika= par->data;
-	li= ika->limbbase.first;
-	while(li) {
-		ang+= li->alpha;
-		if(cur==ob->par1 || li->next==0) break;
-		
-		cur++;
-		li= li->next;
-	}
-	
-	mat[0][0]= (float)cos(ang);
-	mat[1][0]= (float)-sin(ang);
-	mat[0][1]= (float)sin(ang);
-	mat[1][1]= (float)cos(ang);
-	
-	mat[3][0]= li->eff[0];
-	mat[3][1]= li->eff[1];
-	
+	/* but for backwards compatibility, the child has to move to the tail */
+	VECCOPY(vec, mat[1]);
+	VecMulf(vec, pchan->bone->length);
+	VecAddf(mat[3], mat[3], vec);
 }
 
 void give_parvert(Object *par, int nr, float *vec)
@@ -1141,7 +1126,7 @@ void give_parvert(Object *par, int nr, float *vec)
 	vec[0]=vec[1]=vec[2]= 0.0;
 	
 	if(par->type==OB_MESH) {
-		if(par==G.obedit) {
+		if(G.obedit && (par->data==G.obedit->data)) {
 			if(nr >= G.totvert) nr= 0;
 
 			count= 0;
@@ -1208,20 +1193,6 @@ void give_parvert(Object *par, int nr, float *vec)
 			nu= nu->next;
 		}
 
-	}
-	else if(par->type==OB_IKA) {
-		Ika *ika= par->data;
-		Limb *li= ika->limbbase.first;
-		int cur= 1;
-		if(nr) {
-			while(li) {
-				if(cur==nr || li->next==0) break;
-				cur++;
-				li= li->next;
-			}
-			vec[0]= li->eff[0];
-			vec[1]= li->eff[1];
-		}
 	}
 	else return;
 }
@@ -1309,13 +1280,9 @@ void where_is_object_time(Object *ob, float ctime)
 
 			calc_ipo(ob->ipo, stime);
 			execute_ipo((ID *)ob, ob->ipo);
-		}			
-	}
-
-
-	if(ob->type==OB_IKA) {
-		Ika *ika= ob->data;
-		if(ika->parent) where_is_object_time(ika->parent, ctime);
+		}
+		/* do constraint ipos ... what the heck is a channel for! */
+		do_constraint_channels(&ob->constraints, &ob->constraintChannels, ctime);
 	}
 
 	if(ob->parent) {
@@ -1323,6 +1290,7 @@ void where_is_object_time(Object *ob, float ctime)
 
 		if(ob->ipoflag & OB_OFFS_PARENT) ctime-= ob->sf;
 		
+		/* hurms, code below conflicts with depgraph... (ton) */
 		pop= 0;
 		if(no_parent_ipo==0 && ctime != par->ctime) {
 		
@@ -1407,11 +1375,6 @@ static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int si
 		break;
 	case PARBONE:
 		ob_parbone(ob, par, tmat);
-		Mat4MulSerie(totmat, par->obmat, tmat,         
-			NULL, NULL, NULL, NULL, NULL, NULL);
-		break;
-	case PARLIMB:	
-		ob_parlimb(ob, par, tmat);
 		Mat4MulSerie(totmat, par->obmat, tmat,         
 			NULL, NULL, NULL, NULL, NULL, NULL);
 		break;
@@ -1569,24 +1532,29 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 	float	smat[3][3], rmat[3][3], mat[3][3];
 	float enf;
 
-	for (con = ob->constraints.first; con; con=con->next){
+	for (con = ob->constraints.first; con; con=con->next) {
+		// inverse kinematics is solved seperate 
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC) continue;
+		
 		/* Clear accumulators if necessary*/
-		if (clear){
-			clear=0;
-			a=0;
-			tot=0;
+		if (clear) {
+			clear= 0;
+			a= 0;
+			tot= 0;
 			memset(aquat, 0, sizeof(float)*4);
 			memset(aloc, 0, sizeof(float)*3);
 			memset(asize, 0, sizeof(float)*3);
 		}
 		
 		/* Check this constraint only if it has some enforcement */
-		if (!(con->flag & CONSTRAINT_DISABLE))
-		{
-			if (con->enforce==0)
+		if (!(con->flag & CONSTRAINT_DISABLE)) {
+			/* weird code was here (ton)
+			if (con->enforce==0.0)
 				enf = 0.001f;
 				enf = con->enforce;
-
+			*/
+			enf = con->enforce;
+			
 			/* Get the targetmat */
 			get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
 			
@@ -1598,10 +1566,10 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 			Mat3CpyMat4(mat, focusmat);
 			Mat3ToSize(mat, size);
 			
-			a+=enf;
+			a+= enf;
 			tot++;
 			
-			for(i=0; i<3; i++){
+			for(i=0; i<3; i++) {
 				aquat[i+1]+=(quat[i+1]) * enf;
 				aloc[i]+=(loc[i]) * enf;
 				asize[i]+=(size[i]-1.0f) * enf;
@@ -1612,16 +1580,15 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		
 		/* If the next constraint is not the same type (or there isn't one),
 		 *	then evaluate the accumulator & request a clear */
-		if ((!con->next)||(con->next && con->next->type!=con->type))
-		{
-			clear=1;
+		if ((!con->next)||(con->next && con->next->type!=con->type)) {
+			clear= 1;
 			Mat4CpyMat4(oldmat, ob->obmat);
 
 			/*	If we have several inputs, do a blend of them */
-			if (tot){
-				if (tot>1){
-					if (a){
-						for (i=0; i<3; i++){
+			if (tot) {
+				if (tot>1) {
+					if (a) {
+						for (i=0; i<3; i++) {
 							asize[i]=1.0f + (asize[i]/(a));
 							aloc[i]=(aloc[i]/a);
 						}
@@ -1639,14 +1606,14 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 					
 				}	
 				/* If we only have one, blend with the current obmat */
-				else{
+				else {
 					float solution[4][4];
 					float delta[4][4];
 					float imat[4][4];
 					float identity[4][4];
 					float worldmat[4][4];
 					
-					if (con->type!=CONSTRAINT_TYPE_KINEMATIC){
+					if (con->type!=CONSTRAINT_TYPE_KINEMATIC) {
 						/* If we're not an IK constraint, solve the constraint then blend it to the previous one */
 						evaluate_constraint(con, ob, obtype, obdata, lastmat);
 						
@@ -1665,7 +1632,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 					}
 					else{
 						/* Interpolate the target between the chain's unconstrained endpoint and the effector loc */
-						if (obtype==TARGET_BONE){
+						if (obtype==TARGET_BONE) {
 							get_objectspace_bone_matrix(obdata, oldmat, 1, 1);
 							
 							Mat4MulMat4(worldmat, oldmat, ob->parent->obmat);
@@ -1681,28 +1648,7 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 	}	
 }
 
-void what_does_parent1(Object *par, int partype, int par1, int par2, int par3)
-{
-
-	clear_workob();
-	Mat4One(workob.parentinv);
-	workob.parent= par;
-	if(par) 
-		workob.track= par->track;	/* WATCH IT: THATS NOT NICE CODE */
-	workob.partype= partype;
-	workob.par1= par1;
-	workob.par2= par2;
-	workob.par3= par3;
-
-	if (par){
-		workob.constraints.first = par->constraints.first;
-		workob.constraints.last = par->constraints.last;
-	}
-
-	where_is_object(&workob);
-}
-
-
+/* for calculation of the inverse parent transform, only used for editor */
 void what_does_parent(Object *ob)
 {
 
@@ -1797,6 +1743,34 @@ void minmax_object(Object *ob, float *min, float *max)
 		VecSubf(vec, vec, ob->size);
 		DO_MINMAX(vec, min, max);
 		break;
+	}
+}
+
+/* the main object update call, for object matrix, constraints, keys and displist (modifiers) */
+/* requires flags to be set! */
+void object_handle_update(Object *ob)
+{
+	if(ob->recalc & OB_RECALC) {
+		
+		if(ob->recalc & OB_RECALC_OB) where_is_object(ob);
+		
+		if(ob->recalc & OB_RECALC_DATA) {
+			
+			/* includes all keys and modifiers */
+			if(ob->type && ob->type<OB_LAMP) {
+//				printf("recalcdata %s\n", ob->id.name+2);
+				makeDispList(ob);
+			}
+			else if(ob->type==OB_ARMATURE) {
+				/* this actually only happens for reading old files... */
+				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
+					armature_rebuild_pose(ob, ob->data);
+				do_all_actions(ob);
+				where_is_pose(ob);
+			}
+		}
+		
+		ob->recalc &= ~OB_RECALC;
 	}
 }
 

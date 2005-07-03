@@ -51,7 +51,6 @@
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -85,7 +84,9 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -140,99 +141,34 @@ void getViewVector(float coord[3], float vec[3]) {
 
 /* ************************** GENERICS **************************** */
 
-static int pose_flags_reset_done(Object *ob) {
-	/* Clear the constraint done status for every pose channe;
-	* that has been flagged as needing constant updating
-	*/
-	bPoseChannel *chan;
-	int numreset = 0;
-	
-	if (ob->pose) {
-		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-			if (chan->flag & PCHAN_TRANS_UPDATE) {
-				chan->flag &= ~PCHAN_DONE;
-				numreset++;
-			}
-			
-		}
-	}
-	return numreset;
-}
-
-
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
 	Base *base;
 	
 	if(G.obpose) {
-		TransData *td= t->data;
-		bPoseChannel	*chan;
-		int	i;
-		
-		if (!G.obpose->pose) G.obpose->pose= MEM_callocN(sizeof(bPose), "pose");
-		
-		/*	Make channels for the transforming bones (in posemode) */
-		for (i=0; i<t->total; i++, td++) {
-			chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
-			
-			if (t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) {
-				chan->flag |= POSE_ROT;
-				memcpy (chan->quat, td->ext->quat, sizeof (chan->quat));
-			}
-			if (t->mode == TFM_TRANSLATION) {
-				chan->flag |= POSE_LOC;
-				memcpy (chan->loc, td->loc, sizeof (chan->loc));
-			}
-			if (t->mode == TFM_RESIZE) {
-				chan->flag |= POSE_SIZE;
-				memcpy (chan->size, td->ext->size, sizeof (chan->size));
-			}
-			
-			strcpy (chan->name, ((Bone*) td->ext->bone)->name);
-			
-			set_pose_channel (G.obpose->pose, chan);
-
-		}
-		
-		clear_pose_constraint_status(G.obpose);
-		
-		if (!is_delay_deform()) make_displists_by_armature(G.obpose);
-		
+		if (!is_delay_deform()) 
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);  /* sets recalc flags */
+	
 	}
 	else if (G.obedit) {
+		
 		if (G.obedit->type == OB_MESH) {
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			
 			recalc_editnormals();
-			makeDispList(G.obedit);
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+			
 			Nurb *nu= editNurb.first;
 			while(nu) {
 				test2DNurb(nu);
 				testhandlesNurb(nu); /* test for bezier too */
 				nu= nu->next;
 			}
-			makeDispList(G.obedit);
-
-			makeBevelList(G.obedit); // might be needed for deform
-			calc_curvepath(G.obedit);
-			
-			// deform, bevel, taper
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					if(base->object->parent==G.obedit && base->object->partype==PARSKEL)
-						makeDispList(base->object);
-					else if(base->object->type==OB_CURVE) {
-						Curve *cu= base->object->data;
-						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
-							makeDispList(base->object);
-					}
-				}
-				base= base->next;
-			}
 		}
-		else if(G.obedit->type==OB_ARMATURE){
+		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
 			EditBone *ebo;
 			
 			/* Ensure all bones are correctly adjusted */
@@ -251,27 +187,23 @@ void recalcData(TransInfo *t)
 			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
 			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					if(base->object->parent==G.obedit) {
-						makeDispList(base->object);
-					}
-				}
-				base= base->next;
-			}
 		}
-		else if (G.obedit->type == OB_MBALL) {
-	 		makeDispList(G.obedit);	
-  		}   	
 	}
 	else {
 		
 		base= FIRSTBASE;
 		while(base) {
+			/* this flag is from depgraph, was stored in nitialize phase, handled in drawview.c */
+			if(base->flag & BA_HAS_RECALC_OB)
+				base->object->recalc |= OB_RECALC_OB;
+			if(base->flag & BA_HAS_RECALC_DATA)
+				base->object->recalc |= OB_RECALC_DATA;
+			
+			/* thanks to ob->ctime usage, ipos are not called in where_is_object,
+			   unless we edit ipokeys */
 			if(base->flag & BA_DO_IPO) {
 				if(base->object->ipo) {
 					IpoCurve *icu;
@@ -285,44 +217,10 @@ void recalcData(TransInfo *t)
 					}
 				}				
 			}
-			if(base->object->partype & PARSLOW) {
-				base->object->partype -= PARSLOW;
-				where_is_object(base->object);
-				base->object->partype |= PARSLOW;
-			}
-			else if(base->flag & BA_WHERE_UPDATE) {
-				where_is_object(base->object);
-			}
 			
 			base= base->next;
 		} 
-		
-		base= FIRSTBASE;
-		while(base) {
-			
-			if(base->flag & BA_DISP_UPDATE) makeDispList(base->object);
-			
-			base= base->next;
-		}
 	}
-	
-	/* ugly stuff for posemode, copied from old system */
-	base= FIRSTBASE;
-	while(base) {
-		
-		if (pose_flags_reset_done(base->object)) {
-			if (!is_delay_deform())
-				make_displists_by_armature(base->object);
-		}
-		
-		base= base->next;
-	}
-	
-	if (G.obpose && G.obpose->type == OB_ARMATURE)
-		clear_pose_constraint_status(G.obpose);
-	
-	if (!is_delay_deform()) make_displists_by_armature(G.obpose);
-
 	
 	/* update shaded drawmode while transform */
 	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();

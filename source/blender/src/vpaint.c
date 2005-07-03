@@ -274,7 +274,6 @@ void make_vertexcol()	/* single ob */
 	
 	freedisplist(&(ob->disp));
 	
-	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -793,7 +792,6 @@ void weight_paint(void)
 	MDeformWeight	*dw, *uw;
 	extern float editbutvweight;
 	DispList *dl;
-
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;

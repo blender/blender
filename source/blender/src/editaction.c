@@ -61,7 +61,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -166,10 +166,11 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		return NULL;
 	}
 
-	if (!arm){
+	if (!arm || armob->pose==NULL){
 		error ("Select an armature before baking");
 		return NULL;
 	}
+	
 	/* Get a new action */
 	result = add_empty_action();
 
@@ -191,10 +192,9 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		G.scene->r.cfra = curframe;
 
 		/* Apply the object ipo */
-		get_pose_from_action(&armob->pose, act, curframe);
-		apply_pose_armature(arm, armob->pose, 1);
-		clear_object_constraint_status(armob);
-		where_is_armature_time(armob, curframe);
+		extract_pose_from_action(armob->pose, act, curframe);
+
+//		where_is_armature_time(armob, curframe);
 		
 		/* For each channel: set quats and locs if channel is a bone */
 		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
@@ -206,9 +206,9 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 				VECCOPY(tmp_loc, pchan->loc);
 				VECCOPY(tmp_size, pchan->size);
 
-				Mat4ToQuat(pchan->obmat, pchan->quat);
-				Mat4ToSize(pchan->obmat, pchan->size);
-				VECCOPY(pchan->loc, pchan->obmat[3]);
+//				Mat4ToQuat(pchan->obmat, pchan->quat);
+//				Mat4ToSize(pchan->obmat, pchan->size);
+//				VECCOPY(pchan->loc, pchan->obmat[3]);
 
 				/* Apply to keys */
 				set_action_key_time (result, pchan, AC_QUAT_X, 1, curframe);
@@ -309,8 +309,7 @@ static void remake_meshaction_ipos(Ipo *ipo)
 static void meshkey_do_redraw(Key *key)
 {
 	remake_meshaction_ipos(key->ipo);
-    do_all_ipos();
-    do_spec_key(key);
+	do_spec_key(key);
 
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -794,8 +793,9 @@ void set_exprap_action(int mode)
 
 void free_posebuf(void) 
 {
-	if (g_posebuf){
-		clear_pose(g_posebuf);
+	if (g_posebuf) {
+		// was copied without constraints
+		BLI_freelistN (&g_posebuf->chanbase);
 		MEM_freeN (g_posebuf);
 	}
 	g_posebuf=NULL;
@@ -813,7 +813,7 @@ void copy_posebuf (void)
 		return;
 	}
 
-	filter_pose_keys();
+	set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 	copy_pose(&g_posebuf, ob->pose, 0);
 
 }
@@ -934,13 +934,14 @@ static void flip_name (char *name)
 	sprintf (name, "%s%s%s", prefix, replace, suffix);
 }
 
-void paste_posebuf (int flip){
+void paste_posebuf (int flip)
+{
 	Object *ob;
-	bPoseChannel *temp, *chan;
+	bPoseChannel *chan, *pchan;
 	float eul[4];
-	Base	*base;
-	int		newchan = 0;
-
+	int newchan = 0;
+	char name[32];
+	
 	ob=G.obpose;
 	if (!ob)
 		return;
@@ -950,44 +951,54 @@ void paste_posebuf (int flip){
 		return;
 	};
 	
-	collect_pose_garbage(ob);
-
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
 	if (ob->pose){
 		for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
-			if (chan->flag & POSE_KEY){
-				temp = copy_pose_channel (chan);
-				if (flip){
-					flip_name (temp->name);
-					temp->loc[0]*=-1;
+			if (chan->flag & POSE_KEY) {
+				BLI_strncpy(name, chan->name, sizeof(name));
+				if (flip)
+					flip_name (name);
+					
+				/* only copy when channel exists, poses are not meant to add random channels to anymore */
+				pchan= get_pose_channel(ob->pose, name);
+				
+				if(pchan) {
+					/* only loc rot size */
+					/* only copies transform info for the pose */
+					VECCOPY(pchan->loc, chan->loc);
+					VECCOPY(pchan->size, chan->size);
+					QUATCOPY(pchan->quat, chan->quat);
+					pchan->flag= chan->flag;
+					
+					if (flip){
+						pchan->loc[0]*= -1;
 
-					QuatToEul(temp->quat, eul);
-					eul[1]*=-1;
-					eul[2]*=-1;
-					EulToQuat(eul, temp->quat);
-				}
+						QuatToEul(pchan->quat, eul);
+						eul[1]*= -1;
+						eul[2]*= -1;
+						EulToQuat(eul, pchan->quat);
+					}
 
-				temp = set_pose_channel (ob->pose, temp);
-
-				if (G.flags & G_RECORDKEYS){
-					/* Set keys on pose */
-					if (chan->flag & POSE_ROT){
-						set_action_key(ob->action, temp, AC_QUAT_X, newchan);
-						set_action_key(ob->action, temp, AC_QUAT_Y, newchan);
-						set_action_key(ob->action, temp, AC_QUAT_Z, newchan);
-						set_action_key(ob->action, temp, AC_QUAT_W, newchan);
-					};
-					if (chan->flag & POSE_SIZE){
-						set_action_key(ob->action, temp, AC_SIZE_X, newchan);
-						set_action_key(ob->action, temp, AC_SIZE_Y, newchan);
-						set_action_key(ob->action, temp, AC_SIZE_Z, newchan);
-					};
-					if (chan->flag & POSE_LOC){
-						set_action_key(ob->action, temp, AC_LOC_X, newchan);
-						set_action_key(ob->action, temp, AC_LOC_Y, newchan);
-						set_action_key(ob->action, temp, AC_LOC_Z, newchan);
-					};					
+					if (G.flags & G_RECORDKEYS){
+						/* Set keys on pose */
+						if (chan->flag & POSE_ROT){
+							set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
+							set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
+							set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
+							set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
+						}
+						if (chan->flag & POSE_SIZE){
+							set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
+							set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
+							set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
+						}
+						if (chan->flag & POSE_LOC){
+							set_action_key(ob->action, pchan, AC_LOC_X, newchan);
+							set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
+							set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
+						}
+					}
 				}
 			}
 		}
@@ -1001,14 +1012,8 @@ void paste_posebuf (int flip){
 		}
 
 		/* Update deformation children */
-		if (G.obpose->type == OB_ARMATURE){
-			for (base= FIRSTBASE; base; base= base->next){
-				if (G.obpose==base->object->parent){
-					if (base->object->partype==PARSKEL)
-						makeDispList(base->object);
-				}
-			}
-		}
+		DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+
 		BIF_undo_push("Paste Action Pose");
 	}
 }
@@ -1028,6 +1033,7 @@ static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, 
 
 	if (!chan)
 		return;
+	
 	/* See if this action channel exists already */	
 	for (achan=act->chanbase.first; achan; achan=achan->next){
 		if (!strcmp (chan->name, achan->name))

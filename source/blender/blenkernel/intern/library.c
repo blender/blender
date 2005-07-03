@@ -56,7 +56,6 @@
 #include "DNA_meta_types.h"
 #include "DNA_material_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_wave_types.h"
 #include "DNA_lamp_types.h"
@@ -91,7 +90,6 @@
 #include "BKE_texture.h"
 #include "BKE_scene.h"
 #include "BKE_image.h"
-#include "BKE_ika.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_world.h"
@@ -149,8 +147,6 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->tex);
 		case ID_IM:
 			return &(mainlib->image);
-		case ID_IK:
-			return &(mainlib->ika);
 		case ID_WV:
 			return &(mainlib->wave);
 		case ID_LT:
@@ -209,26 +205,26 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[8]= &(main->mesh);
 	lb[9]= &(main->curve);
 	lb[10]= &(main->mball);
-	lb[11]= &(main->ika);
-	lb[12]= &(main->wave);
-	lb[13]= &(main->latt);
-	lb[14]= &(main->lamp);
-	lb[15]= &(main->camera);
 
-	lb[16]= &(main->world);
-	lb[17]= &(main->screen);
-	lb[18]= &(main->object);
-	lb[19]= &(main->scene);
-	lb[20]= &(main->library);
-	lb[21]= &(main->text);
-	lb[22]= &(main->sound);
-	lb[23]= &(main->group);
+	lb[11]= &(main->wave);
+	lb[12]= &(main->latt);
+	lb[13]= &(main->lamp);
+	lb[14]= &(main->camera);
 
-	lb[24]= samples;
-	lb[25]= &(main->script);
-	lb[26]=0;
+	lb[15]= &(main->world);
+	lb[16]= &(main->screen);
+	lb[17]= &(main->object);
+	lb[18]= &(main->scene);
+	lb[19]= &(main->library);
+	lb[20]= &(main->text);
+	lb[21]= &(main->sound);
+	lb[22]= &(main->group);
 
-	return 26;
+	lb[23]= samples;
+	lb[24]= &(main->script);
+	lb[25]= NULL;
+
+	return 25;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -272,9 +268,6 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_IM:
 			id= MEM_callocN(sizeof(Image), "image");
-			break;
-		case ID_IK:
-			id= MEM_callocN(sizeof(Ika), "ika");
 			break;
 		case ID_WV:
 			id= MEM_callocN(sizeof(Wave), "wave");
@@ -420,9 +413,6 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_IM:
 			free_image((Image *)id);
-			break;
-		case ID_IK:
-			free_ika((Ika *)id);
 			break;
 		case ID_WV:
 			/* free_wave(id); */

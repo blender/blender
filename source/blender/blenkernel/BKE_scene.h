@@ -57,18 +57,22 @@ struct QuicktimeCodecData;
 
 void free_avicodecdata(struct AviCodecData *acd);
 void free_qtcodecdata(struct QuicktimeCodecData *acd);
+
 void free_scene(struct Scene *me);
 struct Scene *add_scene(char *name);
 int object_in_scene(struct Object *ob, struct Scene *sce);
-void sort_baselist(struct Scene *sce);
+
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);
+
 int next_object(int val, struct Base **base, struct Object **ob);
 struct Object *scene_find_camera(struct Scene *sc);
 
 struct Base *scene_add_base(struct Scene *sce, struct Object *ob);
 void scene_deselect_all(struct Scene *sce);
 void scene_select_base(struct Scene *sce, struct Base *selbase);
+
+void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 
 #endif
 

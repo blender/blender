@@ -64,7 +64,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_library.h"
 #include "BKE_ipo.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -275,7 +275,7 @@ void load_editNurb()
 			/* when amount of vertices differs, becomes unpredictable a bit */
 				
 			/* vertex -> vertex copy! */
-			if(actkey) key_to_curve(actkey, cu, &cu->nurb);		
+			if(actkey) showkeypos(cu->key, actkey);
 		}
 		else {
 			freeNurblist(&(cu->nurb));
@@ -334,7 +334,6 @@ void make_editNurb()
 				key_to_curve(actkey, cu, &editNurb);
 			}
 		}
-		makeDispList(G.obedit);
 	}
 	else G.obedit= NULL;
 	
@@ -425,9 +424,8 @@ void separate_nurb()
 	editNurb= editnurbo;
 	
 	G.obedit= 0;	/* displists behave different in edit mode */
-	makeDispList(OBACT);	/* this is the separated one */
-
-	curve_changes_other_objects(oldob);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	/* this is the separated one */
+	DAG_object_flush_update(G.scene, oldob, OB_RECALC_DATA);	/* this is the separated one */
 	
 	G.obedit= oldob;
 	BASACT= oldbase;
@@ -1028,8 +1026,7 @@ void switchdirectionNurb2(void)
 		nu= nu->next;
 	}
 	
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Switch direction");
@@ -1220,7 +1217,7 @@ void hideNurb(int swap)
 		nu= nu->next;
 	}
 
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -1265,7 +1262,7 @@ void revealNurb()
 		nu= nu->next;
 	}
 
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Reveal");
@@ -1690,8 +1687,7 @@ void subdivideNurb()
 	}
 
 
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -2288,8 +2284,7 @@ void merge_nurb()
 	countall();
 	lastnu= NULL;
 
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -2446,8 +2441,7 @@ void addsegment_nurb()
 		
 		lastnu= NULL;	/* for selected */
 
-		makeDispList(G.obedit);
-		curve_changes_other_objects(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
@@ -2653,24 +2647,6 @@ void spinNurb(float *dvec, short mode)
 	BIF_undo_push("Spin");
 }
 
-void curve_changes_other_objects(Object *ob)
-{
-	Base *base= FIRSTBASE;
-	while(base) {
-		if(base->lay & G.vd->lay) {
-			if(base->object->parent==ob && base->object->partype==PARSKEL)
-				freedisplist(&base->object->disp);
-			
-			if(base->object->type==OB_CURVE) {
-				Curve *cu= base->object->data;
-				if(ob==cu->bevobj || ob==cu->taperobj)
-					makeDispList(base->object);
-			}
-		}
-		base= base->next;
-	}
-}
-
 void addvert_Nurb(int mode)
 {
 	Nurb *nu;
@@ -2793,7 +2769,7 @@ void addvert_Nurb(int mode)
 	}
 
 	test2DNurb(nu);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -2807,7 +2783,6 @@ void addvert_Nurb(int mode)
 
 	if(mode!='e') {
 		/* dependencies with other objects, should become event */
-		curve_changes_other_objects(G.obedit);
 		BIF_undo_push("Add vertex");
 	
 	}
@@ -2836,7 +2811,7 @@ void extrude_nurb()
 			ok= extrudeflagNurb(1); /* '1'= flag */
 		
 			if(ok) {
-				makeDispList(G.obedit);
+				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 				countall();
 				BIF_TransformSetUndo("Extrude");
 				initTransform(TFM_TRANSLATION, CTX_NO_PET);
@@ -2951,8 +2926,7 @@ void makecyclicNurb()
 		}
 		nu= nu->next;
 	}
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Cyclic");
 }
 
@@ -3094,7 +3068,7 @@ void delNurb()
 		else freeNurblist(&editNurb);
 
 		countall();
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		BIF_undo_push("Delete");
@@ -3211,7 +3185,7 @@ void delNurb()
 								bezt2= bezt+(nu->pntsu-1);
 								if( (bezt2->f1 & 1) || (bezt2->f2 & 1) || (bezt2->f3 & 1) ) {
 									nu->flagu--;
-									makeDispList(G.obedit);
+									DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 									allqueue(REDRAWVIEW3D, 0);
 									allqueue(REDRAWBUTSEDIT, 0);
 									BIF_undo_push("Delete");
@@ -3238,7 +3212,7 @@ void delNurb()
 								bp2= bp+(nu->pntsu-1);
 								if( bp2->f1 & 1 ) {
 									nu->flagu--;
-									makeDispList(G.obedit);
+									DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 									allqueue(REDRAWVIEW3D, 0);
 									allqueue(REDRAWBUTSEDIT, 0);
 									BIF_undo_push("Delete");
@@ -3339,8 +3313,7 @@ void delNurb()
 	}
 
 	countall();
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -3897,8 +3870,7 @@ void add_primitiveCurve(int stype)
 	nu= addNurbprim(type, stype, newname);   /* 2D */
 	
 	BLI_addtail(&editNurb, nu);
-	makeDispList(G.obedit);
-	curve_changes_other_objects(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	countall();
 	allqueue(REDRAWALL, 0);
@@ -3933,7 +3905,7 @@ void add_primitiveNurb(int type)
 
 	nu= addNurbprim(4, type, newname);
 	BLI_addtail(&editNurb,nu);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	countall();
 	allqueue(REDRAWALL, 0);

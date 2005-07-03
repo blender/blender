@@ -59,6 +59,8 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -405,7 +407,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					int a= 0;
 					tenla->name= "Scripts";
 					for (a=0; a<sce->scriptlink.totscript; a++) {
-						outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], te, 0, 0);
+						outliner_add_element(soops, &tenla->subtree, sce->scriptlink.scripts[a], tenla, 0, 0);
 					}
 				}
 			}
@@ -422,20 +424,79 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
 				
 				if(ob->constraints.first) {
+					Object *target;
 					bConstraint *con;
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
 					int a= 0;
+					char *str;
 					
 					tenla->name= "Constraints";
 					for(con= ob->constraints.first; con; con= con->next, a++) {
 						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
-						ten->name= con->name;
+						target= get_constraint_target(con, &str);
+						if(str && str[0]) ten->name= str;
+						else if(target) ten->name= target->id.name+2;
+						else ten->name= con->name;
 						ten->directdata= con;
-						outliner_add_element(soops, &ten->subtree, con->ipo, ten, 0, 0);
 						/* possible add all other types links? */
 					}
 				}
+				if(ob->pose && ob!=G.obedit) {
+					bPoseChannel *pchan;
+					TreeElement *ten;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
+					int a= 0;
+					
+					tenla->name= "Pose";
+					for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
+						ten->name= pchan->name;
+						ten->directdata= pchan;
+						pchan->prev= (bPoseChannel *)ten;
+						
+						if(pchan->constraints.first) {
+							Object *target;
+							bConstraint *con;
+							TreeElement *ten1;
+							TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
+							int a= 0;
+							char *str;
+							
+							tenla1->name= "Constraints";
+							for(con= pchan->constraints.first; con; con= con->next, a++) {
+								ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, a);
+								target= get_constraint_target(con, &str);
+								if(str && str[0]) ten1->name= str;
+								else if(target) ten1->name= target->id.name+2;
+								else ten1->name= con->name;
+								ten1->directdata= con;
+								/* possible add all other types links? */
+							}
+						}
+					}
+					/* make hierarchy */
+					ten= tenla->subtree.first;
+					while(ten) {
+						TreeElement *nten= ten->next, *par;
+						tselem= TREESTORE(ten);
+						if(tselem->type==TSE_POSE_CHANNEL) {
+							pchan= (bPoseChannel *)ten->directdata;
+							if(pchan->parent) {
+								BLI_remlink(&tenla->subtree, ten);
+								par= (TreeElement *)pchan->parent->prev;
+								BLI_addtail(&par->subtree, ten);
+							}
+						}
+						ten= nten;
+					}
+					/* restore prev pointers */
+					for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+						if(pchan->next) pchan->next->prev= pchan;
+						else if(pchan==ob->pose->chanbase.first) pchan->prev= NULL;
+					}
+				}
+				
 				if(ob->hooks.first) {
 					ObHook *hook;
 					TreeElement *ten;
@@ -466,7 +527,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					int a= 0;
 					
 					tenla->name= "Scripts";
-					for (a=0; a<ob->scriptlink.totscript; a++) {
+					for (a=0; a<ob->scriptlink.totscript; a++) {							/*  ** */
 						outliner_add_element(soops, &tenla->subtree, ob->scriptlink.scripts[a], te, 0, 0);
 					}
 				}
@@ -597,7 +658,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						}
 						ten= nten;
 					}
-					
 				}
 				else {
 					Bone *curBone;
@@ -1186,6 +1246,29 @@ static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int 
 	return 0;
 }
 
+static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Object *ob= (Object *)tselem->id;
+	bPoseChannel *pchan= te->directdata;
+	
+	if(set) {
+		if(G.qual & LR_SHIFTKEY);
+		else deselectall_posearmature(0);
+		pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
+		allqueue(REDRAWACTION, 0);
+	}
+	else {
+		if(ob==OBACT && ob->pose) {
+			if (pchan->bone->flag & BONE_SELECTED) return 1;
+		}
+	}
+	return 0;
+}
+
+
 /* ebones only draw in editmode armature */
 static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int set)
 {
@@ -1254,6 +1337,21 @@ static int tree_element_active(SpaceOops *soops, TreeElement *te, int set)
 	return 0;
 }
 
+static int tree_element_active_pose(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	Object *ob= (Object *)tselem->id;
+	
+	if(set) {
+		if(G.obedit) exit_editmode(2);
+		if(G.obpose) exit_posemode(1);
+		else enter_posemode();
+	}
+	else {
+		if(ob==G.obpose) return 1;
+	}
+	return 0;
+}
+
 /* generic call for non-id data to make/check active in UI */
 static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
 {
@@ -1270,6 +1368,12 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 		case TSE_HOOK: // actually object
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
+			break;
+		case TSE_POSE_BASE:
+			return tree_element_active_pose(te, tselem, set);
+			break;
+		case TSE_POSE_CHANNEL:
+			return tree_element_active_posechannel(te, tselem, set);
 			break;
 	}
 	return 0;
@@ -1328,18 +1432,13 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 							set_scene((Scene *)tselem->id);
 						}
 					}
-					else if(ELEM4(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT)) {
+					else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
 						if(G.obpose) exit_posemode(1);
 						if(G.obedit) exit_editmode(2);
 						else {
 							enter_editmode();
 							extern_set_butspace(F9KEY);
 						}
-					}
-					else if(te->idcode==ID_AR) {
-						if(G.obedit) exit_editmode(2);
-						if(G.obpose) exit_posemode(1);
-						else enter_posemode();
 					}
 					else {	// rest of types
 						tree_element_active(soops, te, 1);
@@ -1739,11 +1838,11 @@ void outliner_operation_menu(ScrArea *sa)
 			}
 			else if(event==4) {
 				outliner_do_object_operation(soops, &soops->tree, object_delete_cb);
+				DAG_scene_sort(G.scene);
 				str= "Delete Objects";
 			}
 			
 			countall();
-			test_scene_constraints(); // for delete
 			
 			BIF_undo_push(str);
 			allqueue(REDRAWALL, 0); // yah... to be sure :)
@@ -1809,6 +1908,10 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_OBJECT); break;
 			case TSE_SCRIPT_BASE:
 				BIF_draw_icon(ICON_TEXT); break;
+			case TSE_POSE_BASE:
+				BIF_draw_icon(ICON_ARMATURE_DEHLT); break;
+			case TSE_POSE_CHANNEL:
+				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
 			default:
 				BIF_draw_icon(ICON_DOT); break;
 		}
@@ -1840,7 +1943,7 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 			case ID_SO:
 				BIF_draw_icon(ICON_SPEAKER); break;
 			case ID_AR:
-				BIF_draw_icon(ICON_ARMATURE_DEHLT); break;
+				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
 			case ID_CA:
 				BIF_draw_icon(ICON_CAMERA_DEHLT); break;
 			case ID_KE:
@@ -1873,7 +1976,6 @@ static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int
 			active= 0;
 			if(tselem->type==0) {
 				if(te->idcode==ID_OB) active= (OBACT==(Object *)tselem->id);
-				else if(G.obpose && G.obpose->data==tselem->id) active= 1;
 				else if(G.obedit && G.obedit->data==tselem->id) active= 1;
 				else active= tree_element_active(soops, te, 0);
 			}
@@ -1936,10 +2038,6 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					col[3]= 100;
 					glColor4ubv(col);
 				}
-			}
-			else if(G.obpose && G.obpose->data==tselem->id) {
-				glColor4ub(255, 255, 255, 100);
-				active= 2;
 			}
 			else if(G.obedit && G.obedit->data==tselem->id) {
 				glColor4ub(255, 255, 255, 100);
@@ -2125,11 +2223,9 @@ static void outliner_back(SpaceOops *soops)
 	}
 }
 
-static char bone_newname[40];	// temp storage for bone rename, bones are 32 max.
-
-static void namebutton_cb(void *voidp, void *arg2_unused)
+static void namebutton_cb(void *soopsp, void *oldnamep)
 {
-	SpaceOops *soops= voidp;
+	SpaceOops *soops= soopsp;
 	TreeStore *ts= soops->treestore;
 	TreeStoreElem *tselem;
 	int a;
@@ -2154,9 +2250,13 @@ static void namebutton_cb(void *voidp, void *arg2_unused)
 							break;
 						case TSE_EBONE:
 							if(G.obedit && G.obedit->data==(ID *)tselem->id) {
-								extern void validate_editbonebutton(EditBone *);
 								EditBone *ebone= te->directdata;
-								validate_editbonebutton(ebone);
+								char newname[32];
+								
+								/* restore bone name */
+								BLI_strncpy(newname, ebone->name, 32);
+								BLI_strncpy(ebone->name, oldnamep, 32);
+								armature_bone_rename(G.obedit->data, oldnamep, newname);
 							}
 							allqueue(REDRAWOOPS, 0);
 							allqueue(REDRAWVIEW3D, 1);
@@ -2165,11 +2265,12 @@ static void namebutton_cb(void *voidp, void *arg2_unused)
 						case TSE_BONE:
 							{
 								Bone *bone= te->directdata;
-								// always make current object active
-								tree_element_active_object(soops, te);
+								char newname[32];
 
-								// dangerous call, it re-allocs the Armature bones, exits editmode too
-								rename_bone_ext(bone->name, bone_newname);
+								/* restore bone name */
+								BLI_strncpy(newname, bone->name, 32);
+								BLI_strncpy(bone->name, oldnamep, 32);
+								armature_bone_rename((bArmature *)tselem->id, oldnamep, newname);
 							}
 							allqueue(REDRAWOOPS, 0);
 							allqueue(REDRAWVIEW3D, 1);
@@ -2196,11 +2297,8 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_TEXTBUT) {
 			
-			// darn bones have complex renaming conventions... cannot edit name itself in button
 			if(tselem->type==TSE_BONE) {
-				strncpy(bone_newname, te->name, 32); // bone_newname is global
-				te->name= bone_newname;
-				len= 24;
+				len= 32;
 			}
 			else len= 19;
 			

@@ -50,7 +50,6 @@ void txt_export_to_objects(struct Text *text);
 void undo_push_font(char *);
 void load_3dtext_fs(char *);
 void add_lorem(void);
-void text_makedisplist(struct Object *ob);
 
 /**
  * @attention The argument is discarded. It is there for

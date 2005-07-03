@@ -1249,14 +1249,14 @@ void borderselect(void)
 					index = buffer[(4*a)+3];
 					if (val==LEFTMOUSE){
 						if (index != -1){
-							bone = get_indexed_bone(G.obpose->data, index &~(BONESEL_TIP|BONESEL_ROOT));
+							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
 							bone->flag |= BONE_SELECTED;
 							select_actionchannel_by_name(G.obpose->action, bone->name, 1);
 						}
 					}
 					else{	
 						if (index != -1){
-							bone = get_indexed_bone(G.obpose->data, index &~(BONESEL_TIP|BONESEL_ROOT));
+							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
 							bone->flag &= ~BONE_SELECTED;
 							select_actionchannel_by_name(G.obpose->action, bone->name, 0);
 						}
@@ -1438,20 +1438,20 @@ void borderselect(void)
 				for (a=0; a<hits; a++){
 					index = buffer[(4*a)+3];
 					if (val==LEFTMOUSE){
-						if (index!=-1){
-							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_TIP|BONESEL_ROOT));
-							if (index & BONESEL_TIP)
+						if (index!=-1) {
+							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+							if (index & (BONESEL_TIP|BONESEL_BONE))
 								ebone->flag |= BONE_TIPSEL;
-							if (index & BONESEL_ROOT)
+							if (index & (BONESEL_ROOT|BONESEL_BONE))
 								ebone->flag |= BONE_ROOTSEL;
 						}
 					}
 					else{
 						if (index!=-1){
-							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_TIP|BONESEL_ROOT));
-							if (index & BONESEL_TIP)
+							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+							if (index & (BONESEL_TIP|BONESEL_BONE))
 								ebone->flag &= ~BONE_TIPSEL;
-							if (index & BONESEL_ROOT)
+							if (index & (BONESEL_ROOT|BONESEL_BONE))
 								ebone->flag &= ~BONE_ROOTSEL;
 						}
 					}

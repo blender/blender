@@ -62,9 +62,10 @@ void do_cu_key(struct Curve *cu, struct KeyBlock **k, float *t);
 void do_rel_cu_key(struct Curve *cu, float ctime);
 void do_curve_key(struct Curve *cu);
 void do_latt_key(struct Lattice *lt);
-void do_all_keys(void);
 void do_ob_key(struct Object *ob);
 void do_spec_key(struct Key *key);
-	
+
+void unlock_all_keys(void);
+
 #endif
 

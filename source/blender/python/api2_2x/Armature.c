@@ -610,9 +610,9 @@ static PyObject *Armature_addBone( BPy_Armature * self, PyObject * args )
 
 	//rebuild_bone_parent_matrix(py_bone->bone);
 
-	precalc_bonelist_irestmats( &self->armature->bonebase );
-	precalc_armature_posemats( self->armature );
-	precalc_bone_defmat( py_bone->bone );
+	//precalc_bonelist_irestmats( &self->armature->bonebase );
+	//precalc_armature_posemats( self->armature );
+	//precalc_bone_defmat( py_bone->bone );
 
 	Py_INCREF( Py_None );
 	return Py_None;

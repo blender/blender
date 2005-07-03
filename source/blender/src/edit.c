@@ -70,6 +70,7 @@
 #include "BKE_armature.h"
 #include "BKE_anim.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
@@ -526,8 +527,8 @@ void count_object(Object *ob, int sel)
 		G.totcurve++;
 		tot=totf= 0;
 		cu= ob->data;
-		if(cu->disp.first==0) makeDispList(ob);
-		count_displist( &cu->disp, &tot, &totf);
+		if(cu->disp.first)
+			count_displist( &cu->disp, &tot, &totf);
 		G.totvert+= tot;
 		G.totface+= totf;
 		if(sel) {
@@ -565,7 +566,7 @@ void countall()
 	int a;
 
 	G.totvert= G.totvertsel= G.totedge= G.totedgesel= G.totfacesel= G.totface= G.totobj= 
-	    G.totmesh= G.totlamp= G.totcurve= G.totobjsel=  0;
+	    G.totmesh= G.totlamp= G.totcurve= G.totobjsel= G.totbone= G.totbonesel=  0;
 
 	if(G.obedit) {
 		
@@ -590,6 +591,7 @@ void countall()
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
+				G.totbone++;
 				
 				/* Sync selection to parent for ik children */
 				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
@@ -610,15 +612,14 @@ void countall()
 				else
 					ebo->flag &= ~BONE_SELECTED;
 				
+				if(ebo->flag & BONE_SELECTED) G.totbonesel++;
+
 				//	If this is an IK child and it's parent is being moved, remove our root
 				if ((ebo->flag & BONE_IK_TOPARENT)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL)){
 					G.totvertsel--;
 				}
 
 				G.totvert+=2;
-				G.totface++;
-				
-
 			}
 		}
 		else if ELEM3(G.obedit->type, OB_CURVE, OB_SURF, OB_FONT) {
@@ -672,6 +673,17 @@ void countall()
 		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
+	else if(G.obpose) {
+		if(G.obpose->pose) {
+			bPoseChannel *pchan;
+			for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
+				G.totbone++;
+				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) G.totbonesel++;
+			}
+		}
+		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
+		return;
+	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
 		me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
 		if(me) {
@@ -718,90 +730,24 @@ void countall()
 static TransVert *transvmain=NULL;
 static int tottrans= 0;
 
-/* selected things moved, and might need update in displists */
-static void update_select_dependency(void)
+/* copied from editobject.c, now uses (almost) proper depgraph */
+static void special_transvert_update(void)
 {
-	Base *base;
-	Object *ob;
-	for(base= (G.scene->base.first); base; base= base->next) {
-		ob= base->object;
-		if(ob->hooks.first) {
-			ObHook *hook= ob->hooks.first;
-			while(hook) {
-				if(hook->parent && (hook->parent->flag & SELECT)) freedisplist(&ob->disp);
-				hook= hook->next;
-			}
-		}
-	}
-	
-}
-
-static void calc_trans_verts(void)
-{
-	extern ListBase editNurb;
-	
-	if (ELEM(G.obedit->type, OB_MESH, OB_MBALL))
-		makeDispList(G.obedit);
-	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-		Nurb *nu= editNurb.first;
-		while(nu) {
-			test2DNurb(nu);
-			testhandlesNurb(nu); /* test for bezier too */
-			nu= nu->next;
-		}
-		makeDispList(G.obedit);
-	}
-}
-
-static int pose_flags_reset_done(Object *ob) {
-	/* Clear the constraint done status for every pose channe;
-	* that has been flagged as needing constant updating
-	*/
-	bPoseChannel *chan;
-	int numreset = 0;
-	
-	if (ob->pose) {
-		for (chan = ob->pose->chanbase.first; chan; chan=chan->next){
-			if (chan->flag & PCHAN_TRANS_UPDATE) {
-				chan->flag &= ~PCHAN_DONE;
-				numreset++;
-			}
-			
-		}
-	}
-	return numreset;
-}
-
-
-/* copied from editobject.c, should be replaced with proper depgraph */
-static void special_trans_update(void)
-{
-	Base *base;
-	Curve *cu;
-	IpoCurve *icu;
 	
 	if(G.obedit) {
+		
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		
 		if(G.obedit->type==OB_MESH) {
 			recalc_editnormals();	// does face centers too
 		}
-		if(G.obedit->type==OB_CURVE) {
-			cu= G.obedit->data;
-			
-			makeBevelList(G.obedit); // might be needed for deform
-			calc_curvepath(G.obedit);
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					if(base->object->parent==G.obedit && base->object->partype==PARSKEL)
-						makeDispList(base->object);
-					else if(base->object->type==OB_CURVE) {
-						Curve *cu= base->object->data;
-						if(G.obedit==cu->bevobj || G.obedit==cu->taperobj)
-							makeDispList(base->object);
-					}
-				}
-				base= base->next;
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+			extern ListBase editNurb;
+			Nurb *nu= editNurb.first;
+			while(nu) {
+				test2DNurb(nu);
+				testhandlesNurb(nu); /* test for bezier too */
+				nu= nu->next;
 			}
 		}
 		else if(G.obedit->type==OB_ARMATURE){
@@ -823,75 +769,9 @@ static void special_trans_update(void)
 			}
 		}
 		else if(G.obedit->type==OB_LATTICE) {
-			
 			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
-			
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					if(base->object->parent==G.obedit) {
-						makeDispList(base->object);
-					}
-				}
-				base= base->next;
-			}
 		}
 	}
-	else {
-		base= FIRSTBASE;
-		while(base) {
-			if(base->flag & BA_DO_IPO) {
-				
-				base->object->ctime= -1234567.0;
-				
-				icu= base->object->ipo->curve.first;
-				while(icu) {
-					calchandles_ipocurve(icu);
-					icu= icu->next;
-				}
-				
-			}
-			if(base->object->partype & PARSLOW) {
-				base->object->partype -= PARSLOW;
-				where_is_object(base->object);
-				base->object->partype |= PARSLOW;
-			}
-			else if(base->flag & BA_WHERE_UPDATE) {
-				where_is_object(base->object);
-			}
-			
-			base= base->next;
-		} 
-		
-		base= FIRSTBASE;
-		while(base) {
-			
-			if(base->flag & BA_DISP_UPDATE) makeDispList(base->object);
-			
-			base= base->next;
-		}
-		
-	}
-	
-	base= FIRSTBASE;
-	while(base) {
-		if (pose_flags_reset_done(base->object)) {
-			if (!is_delay_deform())
-				make_displists_by_armature(base->object);
-		}
-		
-		base= base->next;
-	}
-	
-#if 1
-	if (G.obpose && G.obpose->type == OB_ARMATURE)
-		clear_pose_constraint_status(G.obpose);
-	
-	if (!is_delay_deform()) make_displists_by_armature(G.obpose);
-#endif
-	
-	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
-	
 }
 
 /* copied from editobject.c, needs to be replaced with new transform code still */
@@ -1133,8 +1013,6 @@ static void make_trans_verts(float *min, float *max, int mode)
 	
 }
 
-
-
 void snap_sel_to_grid()
 {
 	extern float originmat[3][3];	/* object.c */
@@ -1147,80 +1025,76 @@ void snap_sel_to_grid()
 	gridf= G.vd->gridview;
 
 
-		if(G.obedit) {
-			tottrans= 0;
-			
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
+	if(G.obedit) {
+		tottrans= 0;
+		
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
 
-			Mat3CpyMat4(bmat, G.obedit->obmat);
-			Mat3Inv(imat, bmat);
+		Mat3CpyMat4(bmat, G.obedit->obmat);
+		Mat3Inv(imat, bmat);
 
-			tv= transvmain;
-			for(a=0; a<tottrans; a++, tv++) {
+		tv= transvmain;
+		for(a=0; a<tottrans; a++, tv++) {
 
-				VECCOPY(vec, tv->loc);
-				Mat3MulVecfl(bmat, vec);
-				VecAddf(vec, vec, G.obedit->obmat[3]);
-				vec[0]= G.vd->gridview*floor(.5+ vec[0]/gridf);
-				vec[1]= G.vd->gridview*floor(.5+ vec[1]/gridf);
-				vec[2]= G.vd->gridview*floor(.5+ vec[2]/gridf);
-				VecSubf(vec, vec, G.obedit->obmat[3]);
+			VECCOPY(vec, tv->loc);
+			Mat3MulVecfl(bmat, vec);
+			VecAddf(vec, vec, G.obedit->obmat[3]);
+			vec[0]= G.vd->gridview*floor(.5+ vec[0]/gridf);
+			vec[1]= G.vd->gridview*floor(.5+ vec[1]/gridf);
+			vec[2]= G.vd->gridview*floor(.5+ vec[2]/gridf);
+			VecSubf(vec, vec, G.obedit->obmat[3]);
 
-				Mat3MulVecfl(imat, vec);
-				VECCOPY(tv->loc, vec);
+			Mat3MulVecfl(imat, vec);
+			VECCOPY(tv->loc, vec);
 
-			}
-
-			MEM_freeN(transvmain);
-			transvmain= 0;
-			
-			calc_trans_verts(); // does test2d, makedisplist too */
-
-			special_trans_update();
-
-			allqueue(REDRAWVIEW3D, 0);
-			return;
 		}
-#ifdef __NLA
-		if (G.obpose){
-			allqueue(REDRAWVIEW3D, 0);
-			return;
-		}
-#endif
-		base= (G.scene->base.first);
-		while(base) {
-			if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
-				ob= base->object;
 
-				vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
-				vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
-				vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
+		MEM_freeN(transvmain);
+		transvmain= 0;
+		
+		special_transvert_update();
 
-				if(ob->parent) {
-					where_is_object(ob);
-
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-				else {
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-			}
-
-			base= base->next;
-		}
-		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	if (G.obpose){
+		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	base= (G.scene->base.first);
+	while(base) {
+		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
+			ob= base->object;
+			ob->recalc |= OB_RECALC_OB;
+			
+			vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
+			vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
+			vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
+
+			if(ob->parent) {
+				where_is_object(ob);
+
+				Mat3Inv(imat, originmat);
+				Mat3MulVecfl(imat, vec);
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+			else {
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+		}
+
+		base= base->next;
+	}
+	DAG_scene_flush_update(G.scene);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void snap_sel_to_curs()
@@ -1234,77 +1108,71 @@ void snap_sel_to_curs()
 
 	curs= give_cursor();
 
-		if(G.obedit) {
-			tottrans= 0;
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
+	if(G.obedit) {
+		tottrans= 0;
 
-			Mat3CpyMat4(bmat, G.obedit->obmat);
-			Mat3Inv(imat, bmat);
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
 
-			tv= transvmain;
-			for(a=0; a<tottrans; a++, tv++) {
+		Mat3CpyMat4(bmat, G.obedit->obmat);
+		Mat3Inv(imat, bmat);
 
+		tv= transvmain;
+		for(a=0; a<tottrans; a++, tv++) {
 
-				vec[0]= curs[0]-G.obedit->obmat[3][0];
-				vec[1]= curs[1]-G.obedit->obmat[3][1];
-				vec[2]= curs[2]-G.obedit->obmat[3][2];
+			vec[0]= curs[0]-G.obedit->obmat[3][0];
+			vec[1]= curs[1]-G.obedit->obmat[3][1];
+			vec[2]= curs[2]-G.obedit->obmat[3][2];
 
+			Mat3MulVecfl(imat, vec);
+			VECCOPY(tv->loc, vec);
 
-				Mat3MulVecfl(imat, vec);
-				VECCOPY(tv->loc, vec);
-
-			}
-			MEM_freeN(transvmain);
-			transvmain= 0;
-
-			calc_trans_verts(); // does test2d, makedisplist too */
-
-			special_trans_update();
-
-			allqueue(REDRAWVIEW3D, 0);
-			return;
 		}
-#ifdef __NLA
-		if (G.obpose){
-			allqueue(REDRAWVIEW3D, 0);
-			return;
-		}
-#endif
-		base= (G.scene->base.first);
-		while(base) {
-			if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
-				ob= base->object;
+		MEM_freeN(transvmain);
+		transvmain= 0;
 
-				vec[0]= -ob->obmat[3][0] + curs[0];
-				vec[1]= -ob->obmat[3][1] + curs[1];
-				vec[2]= -ob->obmat[3][2] + curs[2];
+		special_transvert_update();
 
-
-				if(ob->parent) {
-					where_is_object(ob);
-
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-				else {
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-			}
-
-			base= base->next;
-		}
-		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	if (G.obpose){
+		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	base= (G.scene->base.first);
+	while(base) {
+		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
+			ob= base->object;
+			ob->recalc |= OB_RECALC_OB;
+			
+			vec[0]= -ob->obmat[3][0] + curs[0];
+			vec[1]= -ob->obmat[3][1] + curs[1];
+			vec[2]= -ob->obmat[3][2] + curs[2];
+
+			if(ob->parent) {
+				where_is_object(ob);
+
+				Mat3Inv(imat, originmat);
+				Mat3MulVecfl(imat, vec);
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+			else {
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+		}
+
+		base= base->next;
+	}
+	DAG_scene_flush_update(G.scene);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void snap_curs_to_grid()
@@ -1335,28 +1203,50 @@ void snap_curs_to_sel()
 	INIT_MINMAX(min, max);
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
-		if(G.obedit) {
-			tottrans=0;
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
+	if(G.obedit) {
+		tottrans=0;
 
-			Mat3CpyMat4(bmat, G.obedit->obmat);
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
 
-			tv= transvmain;
-			for(a=0; a<tottrans; a++, tv++) {
-				VECCOPY(vec, tv->loc);
-				Mat3MulVecfl(bmat, vec);
-				VecAddf(vec, vec, G.obedit->obmat[3]);
+		Mat3CpyMat4(bmat, G.obedit->obmat);
+
+		tv= transvmain;
+		for(a=0; a<tottrans; a++, tv++) {
+			VECCOPY(vec, tv->loc);
+			Mat3MulVecfl(bmat, vec);
+			VecAddf(vec, vec, G.obedit->obmat[3]);
+			VecAddf(centroid, centroid, vec);
+			DO_MINMAX(vec, min, max);
+		}
+
+		if(G.vd->around==V3D_CENTROID) {
+			VecMulf(centroid, 1.0/(float)tottrans);
+			VECCOPY(curs, centroid);
+		}
+		else {
+			curs[0]= (min[0]+max[0])/2;
+			curs[1]= (min[1]+max[1])/2;
+			curs[2]= (min[2]+max[2])/2;
+		}
+		MEM_freeN(transvmain);
+		transvmain= 0;
+	}
+	else {
+		base= (G.scene->base.first);
+		while(base) {
+			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+				VECCOPY(vec, base->object->obmat[3]);
 				VecAddf(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
+				count++;
 			}
-
+			base= base->next;
+		}
+		if(count) {
 			if(G.vd->around==V3D_CENTROID) {
-				VecMulf(centroid, 1.0/(float)tottrans);
+				VecMulf(centroid, 1.0/(float)count);
 				VECCOPY(curs, centroid);
 			}
 			else {
@@ -1364,33 +1254,9 @@ void snap_curs_to_sel()
 				curs[1]= (min[1]+max[1])/2;
 				curs[2]= (min[2]+max[2])/2;
 			}
-			MEM_freeN(transvmain);
-			transvmain= 0;
 		}
-		else {
-			base= (G.scene->base.first);
-			while(base) {
-				if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-					VECCOPY(vec, base->object->obmat[3]);
-					VecAddf(centroid, centroid, vec);
-					DO_MINMAX(vec, min, max);
-					count++;
-				}
-				base= base->next;
-			}
-			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
-					VecMulf(centroid, 1.0/(float)count);
-					VECCOPY(curs, centroid);
-				}
-				else {
-					curs[0]= (min[0]+max[0])/2;
-					curs[1]= (min[1]+max[1])/2;
-					curs[2]= (min[2]+max[2])/2;
-				}
-			}
-		}
-		allqueue(REDRAWVIEW3D, 0);
+	}
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void snap_curs_to_firstsel()
@@ -1406,60 +1272,58 @@ void snap_curs_to_firstsel()
 	INIT_MINMAX(min, max);
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
-		if(G.obedit) {
-			tottrans=0;
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
+	if(G.obedit) {
+		tottrans=0;
 
-			Mat3CpyMat4(bmat, G.obedit->obmat);
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
 
-			tv= transvmain;
-			VECCOPY(vec, tv->loc);
-				/*Mat3MulVecfl(bmat, vec);
-				VecAddf(vec, vec, G.obedit->obmat[3]);
-				VecAddf(centroid, centroid, vec);
-				DO_MINMAX(vec, min, max);*/
+		Mat3CpyMat4(bmat, G.obedit->obmat);
 
-			if(G.vd->around==V3D_CENTROID) {
-				VecMulf(vec, 1.0/(float)tottrans);
-				VECCOPY(curs, vec);
-			}
-			else {
-				curs[0]= vec[0];
-				curs[1]= vec[1];
-				curs[2]= vec[2];
-			}
-			MEM_freeN(transvmain);
-			transvmain= 0;
+		tv= transvmain;
+		VECCOPY(vec, tv->loc);
+			/*Mat3MulVecfl(bmat, vec);
+			VecAddf(vec, vec, G.obedit->obmat[3]);
+			VecAddf(centroid, centroid, vec);
+			DO_MINMAX(vec, min, max);*/
+
+		if(G.vd->around==V3D_CENTROID) {
+			VecMulf(vec, 1.0/(float)tottrans);
+			VECCOPY(curs, vec);
 		}
 		else {
-			base= (G.scene->base.first);
-			while(base) {
-				if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-					VECCOPY(vec, base->object->obmat[3]);
-					VecAddf(centroid, centroid, vec);
-					DO_MINMAX(vec, min, max);
-					count++;
-				}
-				base= base->next;
+			curs[0]= vec[0];
+			curs[1]= vec[1];
+			curs[2]= vec[2];
+		}
+		MEM_freeN(transvmain);
+		transvmain= 0;
+	}
+	else {
+		base= (G.scene->base.first);
+		while(base) {
+			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+				VECCOPY(vec, base->object->obmat[3]);
+				VecAddf(centroid, centroid, vec);
+				DO_MINMAX(vec, min, max);
+				count++;
 			}
-			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
-					VecMulf(centroid, 1.0/(float)count);
-					VECCOPY(curs, centroid);
-				}
-				else {
-					curs[0]= (min[0]+max[0])/2;
-					curs[1]= (min[1]+max[1])/2;
-					curs[2]= (min[2]+max[2])/2;
-				}
+			base= base->next;
+		}
+		if(count) {
+			if(G.vd->around==V3D_CENTROID) {
+				VecMulf(centroid, 1.0/(float)count);
+				VECCOPY(curs, centroid);
+			}
+			else {
+				curs[0]= (min[0]+max[0])/2;
+				curs[1]= (min[1]+max[1])/2;
+				curs[2]= (min[2]+max[2])/2;
 			}
 		}
-		allqueue(REDRAWVIEW3D, 0);
+	}
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 void snap_to_center()
@@ -1471,35 +1335,58 @@ void snap_to_center()
 	float snaploc[3], imat[3][3], bmat[3][3], vec[3], min[3], max[3], centroid[3];
 	int count, a;
 
-
-/*calculate the snaplocation (centerpoint) */
+	/*calculate the snaplocation (centerpoint) */
 	count= 0;
 	INIT_MINMAX(min, max);
 	centroid[0]= centroid[1]= centroid[2]= 0.0;
 
-		if(G.obedit) {
-			tottrans= 0;
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
+	if(G.obedit) {
+		tottrans= 0;
 
-			Mat3CpyMat4(bmat, G.obedit->obmat);
-			Mat3Inv(imat, bmat);
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
 
-			tv= transvmain;
-			for(a=0; a<tottrans; a++, tv++) {
-				VECCOPY(vec, tv->loc);
-				Mat3MulVecfl(bmat, vec);
-				VecAddf(vec, vec, G.obedit->obmat[3]);
+		Mat3CpyMat4(bmat, G.obedit->obmat);
+		Mat3Inv(imat, bmat);
+
+		tv= transvmain;
+		for(a=0; a<tottrans; a++, tv++) {
+			VECCOPY(vec, tv->loc);
+			Mat3MulVecfl(bmat, vec);
+			VecAddf(vec, vec, G.obedit->obmat[3]);
+			VecAddf(centroid, centroid, vec);
+			DO_MINMAX(vec, min, max);
+		}
+
+		if(G.vd->around==V3D_CENTROID) {
+			VecMulf(centroid, 1.0/(float)tottrans);
+			VECCOPY(snaploc, centroid);
+		}
+		else {
+			snaploc[0]= (min[0]+max[0])/2;
+			snaploc[1]= (min[1]+max[1])/2;
+			snaploc[2]= (min[2]+max[2])/2;
+		}
+		
+		MEM_freeN(transvmain);
+		transvmain= 0;
+
+	}
+	else {
+		base= (G.scene->base.first);
+		while(base) {
+			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+				VECCOPY(vec, base->object->obmat[3]);
 				VecAddf(centroid, centroid, vec);
 				DO_MINMAX(vec, min, max);
+				count++;
 			}
-
+			base= base->next;
+		}
+		if(count) {
 			if(G.vd->around==V3D_CENTROID) {
-				VecMulf(centroid, 1.0/(float)tottrans);
+				VecMulf(centroid, 1.0/(float)count);
 				VECCOPY(snaploc, centroid);
 			}
 			else {
@@ -1507,109 +1394,74 @@ void snap_to_center()
 				snaploc[1]= (min[1]+max[1])/2;
 				snaploc[2]= (min[2]+max[2])/2;
 			}
-			
-			MEM_freeN(transvmain);
-			transvmain= 0;
-
 		}
-		else {
-			base= (G.scene->base.first);
-			while(base) {
-				if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-					VECCOPY(vec, base->object->obmat[3]);
-					VecAddf(centroid, centroid, vec);
-					DO_MINMAX(vec, min, max);
-					count++;
-				}
-				base= base->next;
-			}
-			if(count) {
-				if(G.vd->around==V3D_CENTROID) {
-					VecMulf(centroid, 1.0/(float)count);
-					VECCOPY(snaploc, centroid);
-				}
-				else {
-					snaploc[0]= (min[0]+max[0])/2;
-					snaploc[1]= (min[1]+max[1])/2;
-					snaploc[2]= (min[2]+max[2])/2;
-				}
-			}
+	}
+
+	/* Snap the selection to the snaplocation (duh!) */
+	if(G.obedit) {
+		tottrans= 0;
+
+		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
+			make_trans_verts(bmat[0], bmat[1], 0);
+		if(tottrans==0) return;
+
+		Mat3CpyMat4(bmat, G.obedit->obmat);
+		Mat3Inv(imat, bmat);
+
+		tv= transvmain;
+		for(a=0; a<tottrans; a++, tv++) {
+
+			vec[0]= snaploc[0]-G.obedit->obmat[3][0];
+			vec[1]= snaploc[1]-G.obedit->obmat[3][1];
+			vec[2]= snaploc[2]-G.obedit->obmat[3][2];
+
+			Mat3MulVecfl(imat, vec);
+			VECCOPY(tv->loc, vec);
 		}
+		MEM_freeN(transvmain);
+		transvmain= 0;
 
+		special_transvert_update();
 
-/* Snap the selection to the snaplocation (duh!) */
-
-		if(G.obedit) {
-			tottrans= 0;
-#ifdef __NLA
-			if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-			if ELEM5(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
-			if(tottrans==0) return;
-
-			Mat3CpyMat4(bmat, G.obedit->obmat);
-			Mat3Inv(imat, bmat);
-
-			tv= transvmain;
-			for(a=0; a<tottrans; a++, tv++) {
-
-
-				vec[0]= snaploc[0]-G.obedit->obmat[3][0];
-				vec[1]= snaploc[1]-G.obedit->obmat[3][1];
-				vec[2]= snaploc[2]-G.obedit->obmat[3][2];
-
-
-				Mat3MulVecfl(imat, vec);
-				VECCOPY(tv->loc, vec);
-
-			}
-			MEM_freeN(transvmain);
-			transvmain= 0;
-
-			if ELEM4(G.obedit->type, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) makeDispList(G.obedit);
-
-			special_trans_update();
-
-			allqueue(REDRAWVIEW3D, 0);
-			return;
-		}
-#ifdef __NLA
-		if (G.obpose){
-			allqueue(REDRAWVIEW3D, 0);
-			return;
-		}
-#endif
-		base= (G.scene->base.first);
-		while(base) {
-			if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
-				ob= base->object;
-
-				vec[0]= -ob->obmat[3][0] + snaploc[0];
-				vec[1]= -ob->obmat[3][1] + snaploc[1];
-				vec[2]= -ob->obmat[3][2] + snaploc[2];
-
-
-				if(ob->parent) {
-					where_is_object(ob);
-
-					Mat3Inv(imat, originmat);
-					Mat3MulVecfl(imat, vec);
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-				else {
-					ob->loc[0]+= vec[0];
-					ob->loc[1]+= vec[1];
-					ob->loc[2]+= vec[2];
-				}
-			}
-
-			base= base->next;
-		}
-		update_select_dependency();
 		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	if (G.obpose){
+		allqueue(REDRAWVIEW3D, 0);
+		return;
+	}
+
+	base= (G.scene->base.first);
+	while(base) {
+		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
+			ob= base->object;
+			ob->recalc |= OB_RECALC_OB;
+			
+			vec[0]= -ob->obmat[3][0] + snaploc[0];
+			vec[1]= -ob->obmat[3][1] + snaploc[1];
+			vec[2]= -ob->obmat[3][2] + snaploc[2];
+
+			if(ob->parent) {
+				where_is_object(ob);
+
+				Mat3Inv(imat, originmat);
+				Mat3MulVecfl(imat, vec);
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+			else {
+				ob->loc[0]+= vec[0];
+				ob->loc[1]+= vec[1];
+				ob->loc[2]+= vec[2];
+			}
+		}
+
+		base= base->next;
+	}
+	DAG_scene_flush_update(G.scene);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 
@@ -1714,11 +1566,8 @@ void minmax_verts(float *min, float *max)
 	int a;
 
 	tottrans=0;
-#ifdef __NLA
-	if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
-#else
-	if ELEM4(G.obedit->type, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) make_trans_verts(bmat[0], bmat[1], 0);
-#endif
+	if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
+		make_trans_verts(bmat[0], bmat[1], 0);
 	if(tottrans==0) return;
 
 	Mat3CpyMat4(bmat, G.obedit->obmat);

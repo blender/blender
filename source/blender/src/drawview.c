@@ -80,8 +80,8 @@
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_ika.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_image.h"
@@ -1326,49 +1326,86 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	}
 }
 
+/* assumes armature active */
+static void validate_bonebutton_cb(void *bonev, void *namev)
+{
+	Object *ob= OBACT;
+	
+	if(ob && ob->type==OB_ARMATURE) {
+		Bone *bone= bonev;
+		char oldname[32], newname[32];
+		
+		/* need to be on the stack */
+		BLI_strncpy(newname, bone->name, 32);
+		BLI_strncpy(oldname, (char *)namev, 32);
+		/* restore */
+		BLI_strncpy(bone->name, oldname, 32);
+		
+		armature_bone_rename(ob->data, oldname, newname); // editarmature.c
+		allqueue(REDRAWALL, 0);
+	}
+}
+
+
 static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 {
+	uiBut *but;
 	bArmature *arm;
+	bPoseChannel *pchan;
 	Bone *bone;
 
 	arm = get_armature(OBACT);
-	if (!arm)
-		return;
+	if (!arm || !ob->pose) return;
 
-	bone = get_first_selected_bone();
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone = pchan->bone;
+		if(bone && (bone->flag & BONE_ACTIVE)) break;
+	}
+	if (!pchan) return;
+	
+	but= uiDefBut(block, TEX, B_DIFF, "Bone:",				160, 140, 140, 19, bone->name, 1, 31, 0, 0, "");
+	uiButSetFunc(but, validate_bonebutton_cb, bone, NULL);
+	
+	QuatToEul(pchan->quat, ob_eul);
+	ob_eul[0]*= 180.0/M_PI;
+	ob_eul[1]*= 180.0/M_PI;
+	ob_eul[2]*= 180.0/M_PI;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 140, 140, 19, pchan->loc, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 120, 140, 19, pchan->loc+1, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 100, 140, 19, pchan->loc+2, -lim, lim, 100, 3, "");
 
-	if (!bone)
-		return;
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatX:",	10, 120, 140, 19, bone->quat+1, -100.0, 100.0, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatZ:",	10, 100, 140, 19, bone->quat+3, -100.0, 100.0, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotX:",	10, 70, 140, 19, ob_eul, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotY:",	10, 50, 140, 19, ob_eul+1, -1000.0, 1000.0, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotZ:",	10, 30, 140, 19, ob_eul+2, -1000.0, 1000.0, 100, 3, "");
+	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatY:",	160, 120, 140, 19, bone->quat+2, -100.0, 100.0, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "QuatW:",	160, 100, 140, 19, bone->quat, -100.0, 100.0, 10, 3, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 70, 140, 19, bone->loc, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 50, 140, 19, bone->loc+1, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 30, 140, 19, bone->loc+2, -lim, lim, 100, 3, "");
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, bone->size, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	160, 50, 140, 19, bone->size+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, bone->size+2, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, pchan->size, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	160, 50, 140, 19, pchan->size+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, pchan->size+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
 }
 
 static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 {
 	EditBone *ebone;
+	uiBut *but;
 	
 	ebone= G.edbo.first;
 
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if (ebone->flag & BONE_SELECTED)
+		if (ebone->flag & BONE_ACTIVE)
 			break;
 	}
 
 	if (!ebone)
 		return;
+	
+	but= uiDefBut(block, TEX, B_DIFF, "Bone:",			160, 140, 140, 19, ebone->name, 1, 31, 0, 0, "");
+	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
+
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 140, 19, ebone->head, -lim, lim, 100, 3, "");
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 100, 3, "");
@@ -1467,12 +1504,18 @@ void do_viewbuts(unsigned short event)
 		if (vd->bgpic)
 			view3d_change_bgpic_tex(vd, NULL);
 		break;
+	
+	case B_OBJECTPANEL:
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+		allqueue(REDRAWVIEW3D, 1);
+		break;
 		
 	case B_OBJECTPANELROT:
 		if(ob) {
 			ob->rot[0]= M_PI*ob_eul[0]/180.0;
 			ob->rot[1]= M_PI*ob_eul[1]/180.0;
 			ob->rot[2]= M_PI*ob_eul[2]/180.0;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
@@ -1480,7 +1523,7 @@ void do_viewbuts(unsigned short event)
 	case B_OBJECTPANELMEDIAN:
 		if(ob) {
 			v3d_editvertex_buts(NULL, ob, 1.0);
-			makeDispList(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
@@ -1488,7 +1531,11 @@ void do_viewbuts(unsigned short event)
 		if(ob) {
 			if( test_parent_loop(ob->parent, ob) ) 
 				ob->parent= NULL;
-			allqueue(REDRAWVIEW3D, 1);
+			else {
+				DAG_scene_sort(G.scene);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				allqueue(REDRAWVIEW3D, 1);
+			}
 		}
 		break;
 		
@@ -1498,7 +1545,7 @@ void do_viewbuts(unsigned short event)
 			
 			ebone= G.edbo.first;
 			for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-				if (ebone->flag & BONE_SELECTED) break;
+				if (ebone->flag & BONE_ACTIVE) break;
 			}
 			if (ebone) {
 				ebone->roll= M_PI*ob_eul[0]/180.0;
@@ -1517,35 +1564,33 @@ void do_viewbuts(unsigned short event)
 			}
 		}
 		break;
+	case B_ARMATUREPANEL3:  // rotate button on channel
+		{
+			bArmature *arm;
+			bPoseChannel *pchan;
+			Bone *bone;
+			
+			arm = get_armature(OBACT);
+			if (!arm || !ob->pose) return;
+				
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				bone = pchan->bone;
+				if(bone && (bone->flag & BONE_ACTIVE)) break;
+			}
+			if (!pchan) return;
+			
+			ob_eul[0]*= M_PI/180.0;
+			ob_eul[1]*= M_PI/180.0;
+			ob_eul[2]*= M_PI/180.0;
+			EulToQuat(ob_eul, pchan->quat);
+		}
+		/* no break, pass on */
 	case B_ARMATUREPANEL2:
 		{
-			bPoseChannel *chan;
-			bArmature *arm;
-			Bone *bone;
-
-			arm = get_armature(OBACT);
-			if (!arm) return;
-			bone = get_first_selected_bone();
-		
-			if (!bone) return;
-
-			/* This is similar to code in special_trans_update */
-	
-			if (!G.obpose->pose) G.obpose->pose= MEM_callocN(sizeof(bPose), "pose");
-			chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
-		
-			chan->flag |= POSE_LOC|POSE_ROT|POSE_SIZE;
-			memcpy (chan->loc, bone->loc, sizeof (chan->loc));
-			memcpy (chan->quat, bone->quat, sizeof (chan->quat));
-			memcpy (chan->size, bone->size, sizeof (chan->size));
-			strcpy (chan->name, bone->name);
-			
-			set_pose_channel (G.obpose->pose, chan);
-
-			rebuild_all_armature_displists();
-
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 		}
+		break;
 	}
 }
 
@@ -1597,9 +1642,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 	else {
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocX:",		10, 140, 140, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocY:",		10, 120, 140, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "LocZ:",		10, 100, 140, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocX:",		10, 140, 140, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocY:",		10, 120, 140, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocZ:",		10, 100, 140, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
 		
 		ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		ob_eul[1]= 180.0*ob->rot[1]/M_PI;
@@ -1610,9 +1655,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 140, 19, &(ob_eul[1]), -lim, lim, 1000, 3, "");
 		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 140, 19, &(ob_eul[2]), -lim, lim, 1000, 3, "");
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 10, 3, "");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 	}
 	uiClearButLock();
@@ -1797,17 +1842,18 @@ static void view3d_blockhandlers(ScrArea *sa)
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
+	View3D *v3d= spacedata;
 	Base *base;
 	Object *ob;
 	
 	setwinmatrixview3d(0);	/* 0= no pick rect */
 	setviewmatrixview3d();
 
-	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
-	Mat4Invert(G.vd->persinv, G.vd->persmat);
-	Mat4Invert(G.vd->viewinv, G.vd->viewmat);
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, curarea->winmat);
+	Mat4Invert(v3d->persinv, v3d->persmat);
+	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
-	if(G.vd->drawtype > OB_WIRE) {
+	if(v3d->drawtype > OB_WIRE) {
 		G.zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 		if(G.f & G_SIMULATION) {
@@ -1829,40 +1875,32 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	
-	myloadmatrix(G.vd->viewmat);
+	myloadmatrix(v3d->viewmat);
 	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
 	// needs to be done always, gridview is adjusted in drawgrid() now
-	G.vd->gridview= G.vd->grid;
+	v3d->gridview= v3d->grid;
 	
-	if(G.vd->view==0 || G.vd->persp!=0) {
+	if(v3d->view==0 || v3d->persp!=0) {
 		drawfloor();
-		if(G.vd->persp==2) {
+		if(v3d->persp==2) {
 			if(G.scene->world) {
 				if(G.scene->world->mode & WO_STARS) {
 					RE_make_stars(star_stuff_init_func, star_stuff_vertex_func,
 								  star_stuff_term_func);
 				}
 			}
-			if(G.vd->flag & V3D_DISPBGPIC) draw_bgpic();
+			if(v3d->flag & V3D_DISPBGPIC) draw_bgpic();
 		}
 	}
 	else {
 		drawgrid();
 
-		if(G.vd->flag & V3D_DISPBGPIC) {
+		if(v3d->flag & V3D_DISPBGPIC) {
 			draw_bgpic();
 		}
 	}
 	
-#if 0
-	/* Lets be a little more selective about when and where we do this,
-	 * or else armatures/poses/displists get recalculated all of the
-	 * time
-	 */
-	clear_all_constraints();
-#endif
-
 	/* draw set first */
 	if(G.scene->set) {
 	
@@ -1871,9 +1909,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 		base= G.scene->set->base.first;
 		while(base) {
-			if(G.vd->lay & base->lay) {
-				where_is_object(base->object);
+			
+			if(v3d->lay & base->lay) {
 
+				object_handle_update(base->object);
+				
 				cpack(0x404040);
 				draw_object(base);
 
@@ -1901,20 +1941,17 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.f &= ~G_PICKSEL;
 	}
 	
-	/* first calculate positions, we do this in separate loop to make sure displists
-	   (mball, deform, etc) are recaluclated based on correct object (parent/children) positions
-	*/
-	base= G.scene->base.first;
-	while(base) {
-		if(G.vd->lay & base->lay) where_is_object(base->object);
-		base= base->next;
+	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->lay & v3d->lay) 
+			object_handle_update(base->object);   // bke_object.h
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
 	base= G.scene->base.first;
 	while(base) {
 		
-		if(G.vd->lay & base->lay) {
+		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing temporal off here */
 			if(FALSE && base->object->transflag & OB_DUPLI) {
@@ -1953,7 +1990,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	base= G.scene->base.first;
 	while(base) {
 		
-		if(G.vd->lay & base->lay) {
+		if(v3d->lay & base->lay) {
 			if (base->object==G.obedit || ( base->flag & SELECT) ) 
 				draw_object(base);
 		}
@@ -1970,7 +2007,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	base= G.scene->base.first;
 	while(base) {
 		
-		if(G.vd->lay & base->lay) {
+		if(v3d->lay & base->lay) {
 			if(base->object->transflag & OB_DUPLI) {
 				extern ListBase duplilist;
 				Base tbase;
@@ -1996,7 +2033,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		base= base->next;
 	}
 
-	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
+	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	BIF_draw_manipulator(sa);
 		
@@ -2007,7 +2044,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	persp(PERSP_WIN);  // set ortho
 	
-	if(G.vd->persp>1) drawviewborder();
+	if(v3d->persp>1) drawviewborder();
 	drawcursor();
 	draw_view_icon();
 
@@ -2018,20 +2055,20 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	
 	/* it is important to end a view in a transform compatible with buttons */
 
-	bwin_scalematrix(sa->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
+	bwin_scalematrix(sa->win, v3d->blockscale, v3d->blockscale, v3d->blockscale);
 	view3d_blockhandlers(sa);
 
 	curarea->win_swap= WIN_BACK_OK;
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
-		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
+		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		addafterqueue(curarea->win, BACKBUFDRAW, 1);
 	}
 	// test for backbuf select
-	if(G.obedit && G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+	if(G.obedit && v3d->drawtype>OB_WIRE && (v3d->flag & V3D_ZBUF_SELECT)) {
 		extern int afterqtest(short win, unsigned short evt);	//editscreen.c
 
-		G.vd->flag |= V3D_NEEDBACKBUFDRAW;
+		v3d->flag |= V3D_NEEDBACKBUFDRAW;
 		if(afterqtest(curarea->win, BACKBUFDRAW)==0) {
 			addafterqueue(curarea->win, BACKBUFDRAW, 1);
 		}
@@ -2093,21 +2130,7 @@ void drawview3d_render(struct View3D *v3d)
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
 
-	clear_all_constraints();
-	do_all_ipos();
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	do_all_keys();
-	do_all_actions(NULL);
-	do_all_ikas();
-
-	test_all_displists();
-
-	/* not really nice forcing of calc_ipo and where_is */
-	ob= G.main->object.first;
-	while(ob) {
-		ob->ctime= -123.456;
-		ob= ob->id.next;
-	}
+	update_for_newframe_muted();
 
 	/* first draw set */
 	if(G.scene->set) {
@@ -2147,8 +2170,6 @@ void drawview3d_render(struct View3D *v3d)
 		G.f &= ~G_PICKSEL;
 	}
 
-	clear_all_constraints();
-
 	/* first not selected and duplis */
 	base= G.scene->base.first;
 	while(base) {
@@ -2156,7 +2177,6 @@ void drawview3d_render(struct View3D *v3d)
 		if(v3d->lay & base->lay) {
 			if ELEM3(base->object->type, OB_LAMP, OB_CAMERA, OB_LATTICE);
 			else {
-				where_is_object(base->object);
 	
 				if(base->object->transflag & OB_DUPLI) {
 					extern ListBase duplilist;
@@ -2256,14 +2276,9 @@ void inner_play_anim_loop(int init, int mode)
 	set_timecursor(CFRA);
 
 	//clear_all_constraints();
-	//do_all_ipos();
-	//BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	//do_all_keys();
 	//do_all_actions(NULL);
-	//do_all_ikas();
+	
 	update_for_newframe_muted();
-
-	//test_all_displists();
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
@@ -2302,7 +2317,6 @@ void inner_play_anim_loop(int init, int mode)
  * - 3: all view3d and seq areas, no replay */
 int play_anim(int mode)
 {
-	Base *base;
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
@@ -2364,21 +2378,6 @@ int play_anim(int mode)
 
 	if(event==SPACEKEY);
 	else CFRA= cfraont;
-
-	clear_all_constraints();
-	do_all_ipos();
-	do_all_keys();
-	do_all_actions(NULL);
-
-	if(G.vd) {
-		/* set all objects on current frame... test_all_displists() needs it */
-		base= G.scene->base.first;
-		while(base) {
-			if(G.vd->lay & base->lay) where_is_object(base->object);
-			base= base->next;
-		}
-		test_all_displists();
-	}
 	
 	audiostream_stop();
 
@@ -2388,7 +2387,6 @@ int play_anim(int mode)
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if( (mode && sa->spacetype==SPACE_VIEW3D) || sa==curarea) addqueue(sa->win, REDRAW, 1);
-		
 		sa= sa->next;	
 	}
 	
@@ -2397,7 +2395,8 @@ int play_anim(int mode)
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
 	allqueue (REDRAWACTION, 0);
-	/* for the time being */
+	
+	/* restore for cfra */
 	update_for_newframe_muted();
 
 	waitcursor(0);

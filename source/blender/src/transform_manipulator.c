@@ -47,6 +47,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -132,34 +133,20 @@ static void calc_tw_center(float *co)
 	VecAddf(twcent, twcent, co);
 }
 
-/* callback */
-static void stats_pose(ListBase *lb, float *normal, float *plane)
+/* for pose mode */
+static void stats_pose(bPoseChannel *pchan, float *normal, float *plane)
 {
-	Bone *bone;
-	float vec[3], mat[4][4];
+	Bone *bone= pchan->bone;
 	
-	for(bone= lb->first; bone; bone= bone->next) {
-		if (bone->flag & BONE_SELECTED) {
-			/* We don't let IK children get "grabbed" */
-			/* ALERT! abusive global Trans here */
-			if ( (Trans.mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+	if(bone) {
+		if (bone->flag & BONE_TRANSFORM) {
+			calc_tw_center(pchan->pose_head);
 				
-				get_bone_root_pos (bone, vec, 1);
-				
-				calc_tw_center(vec);
-				where_is_bone(G.obpose, bone);
-				get_objectspace_bone_matrix(bone, mat, 1, 1);	// points in negative Y o_O
-					
-				VecAddf(normal, normal, mat[2]);
-				VecAddf(plane, plane, mat[1]);
-				
-				return;	// see above function
-			}
+			VecAddf(normal, normal, pchan->pose_mat[2]);
+			VecAddf(plane, plane, pchan->pose_mat[1]);
 		}
-		stats_pose(&bone->childbase, normal, plane);
 	}
 }
-
 
 /* centroid, boundbox, of selection */
 /* returns total items selected */
@@ -346,18 +333,22 @@ int calc_manipulator_stats(ScrArea *sa)
 	}
 	else if(G.obpose) {
 		bArmature *arm= G.obpose->data;
+		bPoseChannel *pchan;
 		
 		ob= G.obpose;
 		if((ob->lay & G.vd->lay)==0) return 0;
 		
 		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
 		
-		/* count total */
-		count_bone_select(&Trans, &arm->bonebase, &totsel);
+		/* count total, we use same method as transform will do */
+		Trans.total= 0;
+		count_bone_select(&Trans, &arm->bonebase, 1);
+		totsel= Trans.total;
 		if(totsel) {
-			/* recursive get stats */
-			stats_pose(&arm->bonebase, normal, plane);
-			
+			/* use channels to get stats */
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				stats_pose(pchan, normal, plane);
+			}
 			//VecMulf(normal, -1.0);
 			VecMulf(plane, -1.0);
 			

@@ -23,9 +23,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -36,35 +34,37 @@
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
+/* this system works on different transformation space levels;
+
+1) Bone Space;		with each Bone having own (0,0,0) origin
+2) Armature Space;  the rest position, in Object space, Bones Spaces are applied hierarchical
+3) Pose Space;		the animation position, in Object space
+4) World Space;		Object matrix applied to Pose or Armature space
+
+*/
+
 typedef struct Bone {
 	struct Bone		*next, *prev;	/*	Next/prev elements within this list	*/
 	struct Bone		*parent;		/*	Parent (ik parent if appropriate flag is set		*/
 	ListBase		childbase;		/*	Children	*/
-	char			name[32];		/* Name of the bone - must be unique within the armature */
+	char			name[32];		/*  Name of the bone - must be unique within the armature */
 
-	float			roll;				
-	float			head[3];		/*	Orientation & length are implicit now */
-	float			tail[3];		/*	head/tail represents rest state	*/
+	float			roll, length;   /* */
+	float			head[3];		
+	float			tail[3];		/*	head/tail and roll in Bone Space	*/
+	float			bone_mat[3][3]; /*  rotation derived from head/tail/roll */
+	
 	int				flag;
-
-	/*	Transformation data used for posing:
-		The same information stored by other
-		blenderObjects
-	*/
-
-	float dist, weight;
-	float loc[3], dloc[3];
-	float size[3], dsize[3];
-	float quat[4], dquat[4];
-	float obmat[4][4];
-	float parmat[4][4];
-	float defmat[4][4];
-	float irestmat[4][4];	/*	Cached inverse of rest matrix (objectspace)*/
-	float posemat[4][4];	/*	Cached pose matrix (objectspace)*/
+	
+	float			arm_head[3];		
+	float			arm_tail[3];	/*	head/tail and roll in Armature Space (rest pos) */
+	float			arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
+	
+	float dist, weight;				/*  dist for non-deformgroup deforms */
+	
+	float size[3];					/* patch for upward compat, UNUSED! */
 	short boneclass;
-	short filler1;
-	short filler2;
-	short filler3;
+	short pad1;
 }Bone;
 
 typedef struct bArmature {
@@ -77,58 +77,46 @@ typedef struct bArmature {
 	int			res3;			
 }bArmature;
 
-enum {
-		ARM_RESTPOSBIT	=	0,
-		ARM_DRAWXRAYBIT,
-		ARM_DRAWAXESBIT,
-		ARM_DRAWNAMESBIT,
-		ARM_POSEBIT,
-		ARM_EDITBIT,
-		ARM_DELAYBIT
-};
+/* armature->flag */
+#define		ARM_RESTPOSBIT		0
+#define		ARM_DRAWXRAYBIT		1
+#define		ARM_DRAWAXESBIT		2
+#define		ARM_DRAWNAMESBIT	3
+#define		ARM_POSEBIT			4
+#define		ARM_EDITBIT			5
+#define		ARM_DELAYBIT		6
+/* dont use bit 7, was saved in files to disable stuff */
+#define		ARM_NO_ACTIONBIT	8
 
-enum {
-		ARM_RESTPOS		=	0x00000001,
-		ARM_DRAWXRAY	=	0x00000002,
-		ARM_DRAWAXES	=	0x00000004,
-		ARM_DRAWNAMES	=	0x00000008,
-		ARM_POSEMODE	=	0x00000010,
-		ARM_EDITMODE	=	0x00000020,
-		ARM_DELAYDEFORM =       0x00000040
-};
+/* armature->flag */
+#define		ARM_RESTPOS		0x0001
+#define		ARM_DRAWXRAY	0x0002
+#define		ARM_DRAWAXES	0x0004
+#define		ARM_DRAWNAMES	0x0008
+#define		ARM_POSEMODE	0x0010
+#define		ARM_EDITMODE	0x0020
+#define		ARM_DELAYDEFORM 0x0040
+#define		ARM_DONT_USE    0x0080
+#define		ARM_NO_ACTION   0x0100
 
-enum {
-		BONE_SELECTED	=	0x00000001,
-		BONE_ROOTSEL	=	0x00000002,
-		BONE_TIPSEL		=	0x00000004,
+/* bone->flag */
+#define		BONE_SELECTED	1
+#define		BONE_ROOTSEL	2
+#define		BONE_TIPSEL		4
+			/* Used instead of BONE_SELECTED during transform */
+#define		BONE_TRANSFORM  8
+#define		BONE_IK_TOPARENT 16
+			/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
+#define		BONE_HIDDEN		64
+			/* For detecting cyclic dependancies */
+#define		BONE_DONE		128
+			/* active is on mouse clicks only */
+#define		BONE_ACTIVE		256
 
-		BONE_HILIGHTED	=	0x00000008,
-		BONE_IK_TOPARENT=	0x00000010,
-		BONE_QUATROT	=	0x00000020,
-		BONE_HIDDEN		=	0x00000040,
+/* bone->flag  bits */
+#define		BONE_IK_TOPARENTBIT		4
+#define		BONE_HIDDENBIT			6
 
-		BONE_DONE		=	0x00000080,	/* For detecting cyclic dependancies */
-
-		BONE_ISEMPTY	=	0x00000100,
-		BONE_ISMUSCLE	=	0x00000200,
-		BONE_NOCALC     =   0x00000400 /* Don't calculate bone 
-										* transformation, when flagged
-										* (note: this is a temporary flag)
-										*/
-};
-
-enum {
-		BONE_SELECTEDBIT	=	0,
-		BONE_HEADSELBIT,
-		BONE_TAILSELBIT,
-		BONE_HILIGHTEDBIT,
-		BONE_IK_TOPARENTBIT,
-		BONE_QUATROTBIT,
-		BONE_HIDDENBIT,
-		BONE_ISEMPTYBIT,
-		BONE_ISMUSCLEBIT,
-		BONE_NOCALCBIT
-};
 
 enum {
 		BONE_SKINNABLE  =       0,

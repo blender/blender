@@ -1028,7 +1028,6 @@ static void read_videoscape_nurbs(char *str)
 		}
 	}
 	fclose(fp);
-	makeDispList(ob);
 }
 
 static void read_videoscape(char *str)

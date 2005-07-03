@@ -57,7 +57,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -77,10 +76,12 @@
 #include "DNA_world_types.h"
 #include "DNA_packedFile_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_packedFile.h"
+#include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -120,7 +121,6 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
-#include "BKE_ika.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -168,7 +168,6 @@ extern ListBase editNurb;
 
 
 /* *************************** static functions prototypes ****************** */
-void validate_editbonebutton(EditBone *);
 VFont *exist_vfont(char *str);
 
 /* *************************** MESH DECIMATE ******************************** */
@@ -383,10 +382,7 @@ static void decimate_apply(void)
 			free_editMesh(G.editMesh);
 			G.obedit= NULL;
 			tex_space_mesh(me);
-
-			if (mesh_uses_displist(me)) {
-				makeDispList(ob);
-			}
+			
 			BIF_undo_push("Apply decimation");
 		}
 		else error("Not a decimated Mesh");
@@ -481,13 +477,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			}
 			else if (G.obedit->type == OB_FONT) {
         		if (mat_to_sel()) {
-        			text_to_curve(G.obedit, 0);
-        			text_makedisplist(G.obedit);
         			allqueue(REDRAWVIEW3D, 0);
         		}
 			}
 			allqueue(REDRAWVIEW3D_Z, 0);
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			BIF_undo_push("Assign material index");
 		}
 		break;
@@ -635,7 +629,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		else BIF_undo_push("Set Solid");
 
 		break;
-
+	case B_CHANGEDEP:
+		DAG_scene_sort(G.scene); // makes new dag
+		ob= OBACT;
+		if(ob) ob->recalc |= OB_RECALC;
+		break;
 	default:
 		if(event>=B_OBLAY && event<=B_OBLAY+31) {
 			local= BASACT->lay & 0xFF000000;
@@ -867,8 +865,7 @@ static void load_buts_vfont(char *name)
 			break;						
 	}	
 
-	text_to_curve(OBACT, 0);
-	makeDispList(OBACT);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	BIF_undo_push("Load vector font");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -887,15 +884,13 @@ void do_fontbuts(unsigned short event)
 
 	switch(event) {
 	case B_MAKEFONT:
-		text_to_curve(ob, 0);
-		makeDispList(ob);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 
 	case B_STYLETOSEL:
 		if (style_to_sel()) {
-			text_to_curve(ob, 0);
-			text_makedisplist(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		allqueue(REDRAWBUTSEDIT, 0);
@@ -963,8 +958,7 @@ void do_fontbuts(unsigned short event)
 
 					if ((G.fileflags & G_AUTOPACK) == 0) {
 						if (unpackVFont(cu->vfont, PF_ASK) == RET_OK) {
-							text_to_curve(ob, 0);
-							makeDispList(ob);
+							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 							allqueue(REDRAWVIEW3D, 0);
 						}
 					}
@@ -997,6 +991,7 @@ void do_fontbuts(unsigned short event)
 			vf= give_vfontpointer(G.buts->texnr);
 			if(vf) {
 				id_us_plus((ID *)vf);
+
 				switch(cu->curinfo.flag & CU_STYLE) {
 					case CU_BOLD:
 						cu->vfontb->id.us--;
@@ -1015,8 +1010,8 @@ void do_fontbuts(unsigned short event)
 						cu->vfont= vf;
 						break;						
 				}
-				text_to_curve(ob, 0);
-				makeDispList(ob);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
 				BIF_undo_push("Set vector font");
 				allqueue(REDRAWVIEW3D, 0);
 				allqueue(REDRAWBUTSEDIT, 0);
@@ -1031,8 +1026,8 @@ void do_fontbuts(unsigned short event)
 				cu->textoncurve= 0;
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
-			text_to_curve(ob, 0);
-			makeDispList(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }
@@ -1130,7 +1125,6 @@ void do_curvebuts(unsigned short event)
 {
 	extern Nurb *lastnu;
 	extern ListBase editNurb;  /* from editcurve */
-	Base *base;
 	Object *ob;
 	Curve *cu;
 	Nurb *nu;
@@ -1147,7 +1141,7 @@ void do_curvebuts(unsigned short event)
 	case B_CONVERTNURB:
 		if(G.obedit) {
 			setsplinetype(event-B_CONVERTPOLY);
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
@@ -1176,14 +1170,14 @@ void do_curvebuts(unsigned short event)
 				}
 				nu= nu->next;
 			}
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	case B_SETWEIGHT:
 		if(G.obedit) {
 			weightflagNurb(1, editbutweight, 0);
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
@@ -1218,34 +1212,22 @@ void do_curvebuts(unsigned short event)
 				}
 				makeknots(nu, 2, nu->flagv>>1);
 			}
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	case B_SUBSURFTYPE:
 			/* Icky, find better system */
-		if(ob->type==OB_MESH && G.obedit && ob->data==G.obedit->data) {
-			if(G.editMesh->derived) {
-				G.editMesh->derived->release(G.editMesh->derived);
-				G.editMesh->derived= NULL;
-			}
-		}
+		//if(ob->type==OB_MESH && G.obedit && ob->data==G.obedit->data) {
+		//	if(G.editMesh->derived) {
+		//		G.editMesh->derived->release(G.editMesh->derived);
+		//		G.editMesh->derived= NULL;
+		//	}
+		//}
 		/* fallthrough */
 	case B_MAKEDISP:
 		if(G.vd) {
-			if(ob->type==OB_FONT) text_to_curve(ob, 0);
-			makeDispList(ob);
-			if(ob!=G.obedit) { // subsurf with linked dupli will crash
-				/* we need signal to send to other users of same data to recalc... */
-				base= FIRSTBASE;
-				while(base) {
-					if(base->lay & G.vd->lay) {
-						if(base->object->data==ob->data && base->object!=ob)
-							makeDispList(base->object);
-					}
-					base= base->next;
-				}
-			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		}
@@ -1255,13 +1237,11 @@ void do_curvebuts(unsigned short event)
 		subdivideNurb();
 		break;
 	case B_SPINNURB:
-		/* bad bad bad!!! use brackets!!! In case you wondered:
-		  {==,!=} goes before & goes before || */
 		if( (G.obedit==NULL) || (G.obedit->type!=OB_SURF) || (G.vd==NULL) ||
 			((G.obedit->lay & G.vd->lay) == 0) ) return;
 		spinNurb(0, 0);
 		countall();
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_CU3D:	    /* allow 3D curve */
@@ -1285,7 +1265,7 @@ void do_curvebuts(unsigned short event)
 				nu= nu->next;
 			}
 		}
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_SETRESOLU:
@@ -1299,9 +1279,8 @@ void do_curvebuts(unsigned short event)
 				nu= nu->next;
 			}
 		}
-		else if(ob->type==OB_FONT) text_to_curve(ob, 0);
 
-		makeDispList(ob);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 
 		break;
@@ -1440,8 +1419,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "Extrude depth");
 		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "Extrude beveling depth");
 		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "Amount of bevels");
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_MAKEDISP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
+		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -1540,7 +1519,7 @@ void do_mballbuts(unsigned short event)
 {
 	switch(event) {
 	case B_RECALCMBALL:
-		makeDispList(OBACT);
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	}
@@ -1637,7 +1616,7 @@ void do_latticebuts(unsigned short event)
 		lt= ob->data;
 		if(lt->flag & LT_OUTSIDE) outside_lattice(lt);
 
-		make_displists_by_parent(ob);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 		allqueue(REDRAWVIEW3D, 0);
 
@@ -1774,148 +1753,28 @@ static void build_bonestring (char *string, EditBone *bone)
 		MEM_freeN(qsort_ptr);
 }
 
-static void constraint_ebone_name_fix(ListBase *conlist, EditBone *eBone)
+/* assumes armature editmode */
+/* exported to drawview.c via BIF_butspace.h */
+void validate_editbonebutton_cb(void *bonev, void *namev)
 {
-
-	bConstraint *curcon;
-	char *subtarget;
-
-	for (curcon = conlist->first; curcon; curcon=curcon->next){
-		subtarget = get_con_subtarget_name(curcon, G.obedit);
-		if (subtarget)
-			if (!strcmp(subtarget,eBone->oldname) )
-				strcpy(subtarget, eBone->name);
-	}
-}
-
-// called in outliner too...
-void validate_editbonebutton(EditBone *eBone)
-{
-	EditBone	*prev;
-	bAction		*act=NULL;
-	bActionChannel *chan;
-	Base *base;
-	bPose        *pose;
-	bPoseChannel *pchan;
-
-	/* Separate the bone from the G.edbo */
-	prev=eBone->prev;
-	BLI_remlink (&G.edbo, eBone);
-
-	/*	Validate the name */
-	unique_editbone_name (eBone->name);
-
-	/* Re-insert the bone */
-	if (prev)
-		BLI_insertlink(&G.edbo, prev, eBone);
-	else
-		BLI_addhead (&G.edbo, eBone);
-
-	/* Rename *action* channel if necessary */
-	if (G.obedit)
-		act = G.obedit->action;
-
-	if (act && !act->id.lib){
-		/*	Find the appropriate channel
-		 */
-		for (chan = act->chanbase.first; chan; chan=chan->next){
-			if (!strcmp (chan->name, eBone->oldname)){
-				strcpy (chan->name, eBone->name);
-			}
-		}
-		allqueue(REDRAWACTION, 0);
-	}
-
-	/* Rename the *pose* channel, if it exists (thus making sure
-	 * that the constraints are still valid)
-	 */
-	pose = G.obedit->pose;
-	if (pose) {
-		pchan = get_pose_channel(pose, eBone->oldname);
-		if (pchan) {
-			strcpy (pchan->name, eBone->name);
-		}
-	}
-
-	/* Update the parenting info of any users */
-	/*	Yes, I know this is the worst thing you have ever seen. */
-
-	for (base = G.scene->base.first; base; base=base->next){
-		Object *ob = base->object;
-		ListBase *conlist;
-
-		/* See if an object is parented to this armature */
-		if (ob->parent && ob->partype==PARBONE &&
-			(ob->parent->type==OB_ARMATURE) &&
-			(ob->parent->data == G.obedit->data)){
-			if (!strcmp(ob->parsubstr, eBone->oldname))
-				strcpy(ob->parsubstr, eBone->name);
-		}
-
-		/* Update any constraints to use the new bone name */
-		conlist = &ob->constraints;
-		constraint_ebone_name_fix(conlist, eBone);
-
-		switch (ob->type){
-			case OB_ARMATURE:
-				if (ob->pose){
-					for (pchan = ob->pose->chanbase.first; pchan;
-						 pchan=pchan->next){
-						conlist = &pchan->constraints;
-						constraint_ebone_name_fix(conlist, eBone);
-					}
-				}
-				break;
-			default:
-				break;
-        }
-
-	}
-
-	exit_editmode(0);	/* To ensure new names make it to the edit armature */
-
-}
-
-static void validate_editbonebutton_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *curBone= bonev;
-	validate_editbonebutton(curBone);
-}
-
-/* called from outliner now, can be used for buttons in posemode too */
-/* current Armature should be active Object */
-/* after this function, the Bones in Armature are re-allocced! */
-void rename_bone_ext(char *oldname, char *newname)
-{
-	EditBone *ebone;
-	int temp_editmode= 0;
-
-	/* since the naming functions work only on editArmature, we have to... */
-	if(G.obedit!=OBACT) exit_editmode(2);
-	if(G.obedit==NULL) {
-		G.obedit= OBACT;
-		make_editArmature();
-		temp_editmode= 1;
-	}
+	EditBone *eBone= bonev;
+	char oldname[32], newname[32];
 	
-	/* now find the eBone with oldname */
-	for(ebone= G.edbo.first; ebone; ebone= ebone->next)
-		if(strcmp(ebone->name, oldname)==0) break;
-
-	if(ebone) {
-		strcpy(ebone->oldname, oldname);
-		strcpy(ebone->name, newname);
-		validate_editbonebutton(ebone); // does exit_editmode... tsk, so armature bones pointers are invalid now
-	}
-	if(temp_editmode) exit_editmode(2);
+	/* need to be on the stack */
+	BLI_strncpy(newname, eBone->name, 32);
+	BLI_strncpy(oldname, (char *)namev, 32);
+	/* restore */
+	BLI_strncpy(eBone->name, oldname, 32);
 	
+	armature_bone_rename(G.obedit->data, oldname, newname); // editarmature.c
+	allqueue(REDRAWALL, 0);
 }
 
-
-static void armature_rest_pos_func(void *notused1, void *notused2) 
+static void armature_rest_pos_func(void *pointer1, void *pointer2) 
 {
-	clear_object_constraint_status(OBACT);
-	make_displists_by_armature(OBACT);
+	Object *ob= pointer1;
+
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
 
 static void editing_panel_armature_type(Object *ob, bArmature *arm)
@@ -1930,7 +1789,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
 					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0,
 					"Disable all animation for this object");
-	uiButSetFunc(but, armature_rest_pos_func, NULL, NULL);
+	uiButSetFunc(but, armature_rest_pos_func, ob, arm);
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
@@ -1969,7 +1828,6 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-55,by,45,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
 
 			/*	Bone naming button */
-			strcpy (curBone->oldname, curBone->name);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
 
@@ -1980,6 +1838,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			curBone->parNr = editbone_to_parnr(curBone->parent);
 			but = uiDefButI(block, MENU,REDRAWVIEW3D, boneString, bx+180,by,120,18, &curBone->parNr, 0.0, 0.0, 0.0, 0.0, "Parent");
+			/* last arg NULL means button will put old string there */
 			uiButSetFunc(but, parnr_to_editbone_cb, curBone, NULL);
 
 			MEM_freeN(boneString);
@@ -2098,7 +1957,7 @@ void do_meshbuts(unsigned short event)
 			if(me->medge) MEM_freeN(me->medge);
 			me->medge= NULL;
 			me->totedge= 0;
-			makeDispList(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			break;

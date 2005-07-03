@@ -6,10 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,9 +20,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -50,6 +45,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -71,77 +67,192 @@
 #include <config.h>
 #endif
 
-/*	Function prototypes */
-
-static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit);
-static Bone *get_named_bone_bonechildren (Bone *bone, const char *name);
-static Bone *get_indexed_bone_bonechildren (Bone *bone, int *index);
-/*void make_bone_parent_matrix (Bone* bone);*/
-static void copy_bonechildren (Bone* newBone, Bone* oldBone);
-static void calc_armature_deform_bonechildren (Bone *bone, float *vec, float *co, float *contrib, float obmat[][4]);
-static int verify_boneptr_children (Bone *cBone, Bone *tBone);
-static void where_is_bonelist_time (Object *ob, ListBase *base, float ctime);
-static Bone *get_last_ik_bone (Bone *bone);
-static void precalc_bonelist_posemats(ListBase *bonelist, float parlen);
-
-/* Globals */
+/* ugly Globals */
 static float g_premat[4][4];
 static float g_postmat[4][4];
 static MDeformVert *g_dverts;
 static ListBase		*g_defbase;
-static bArmature *g_defarm;
+static Object *g_deform;
 
-/*	Functions */
+/*	**************** Generic Functions, data level *************** */
 
-float get_bone_length (Bone *bone)
+bArmature *get_armature(Object *ob)
 {
-	float result[3];
-
-	VecSubf (result, bone->tail, bone->head);
-	return (float)sqrt(result[0]*result[0] + result[1]*result[1] + result[2]*result[2]);
-
+	if(ob==NULL) return NULL;
+	if(ob->type==OB_ARMATURE) return ob->data;
+	else return NULL;
 }
 
-void apply_bonemat(Bone *bone)
+bArmature *add_armature()
 {
-	float mat[3][3], imat[3][3], tmat[3][3];
+	bArmature *arm;
 	
-	if(!bone)
+	arm= alloc_libblock (&G.main->armature, ID_AR, "Armature");
+	return arm;
+}
+
+
+void free_boneChildren(Bone *bone)
+{ 
+	Bone *child;
+	
+	if (bone) {
+		
+		child=bone->childbase.first;
+		if (child){
+			while (child){
+				free_boneChildren (child);
+				child=child->next;
+			}
+			BLI_freelistN (&bone->childbase);
+		}
+	}
+}
+
+void free_bones (bArmature *arm)
+{
+	Bone *bone;
+	/*	Free children (if any)	*/
+	bone= arm->bonebase.first;
+	if (bone) {
+		while (bone){
+			free_boneChildren (bone);
+			bone=bone->next;
+		}
+	}
+	
+	
+	BLI_freelistN(&arm->bonebase);
+}
+
+void free_armature(bArmature *arm)
+{
+	if (arm) {
+		/*		unlink_armature(arm);*/
+		free_bones(arm);
+	}
+}
+
+void make_local_armature(bArmature *arm)
+{
+	int local=0, lib=0;
+	Object *ob;
+	bArmature *newArm;
+	
+	if (arm->id.lib==0)
 		return;
-
-	Mat3CpyMat4(mat, bone->obmat);
+	if (arm->id.us==1) {
+		arm->id.lib= 0;
+		arm->id.flag= LIB_LOCAL;
+		new_id(0, (ID*)arm, 0);
+		return;
+	}
 	
-	VECCOPY(bone->loc, bone->obmat[3]);
-	
-	Mat3ToQuat(mat, bone->quat);
-	QuatToMat3(bone->quat, tmat);
-
-	Mat3Inv(imat, tmat);
-	
-	Mat3MulMat3(tmat, imat, mat);
-	
-	bone->size[0]= tmat[0][0];
-	bone->size[1]= tmat[1][1];
-	bone->size[2]= tmat[2][2];
-
+	if(local && lib==0) {
+		arm->id.lib= 0;
+		arm->id.flag= LIB_LOCAL;
+		new_id(0, (ID *)arm, 0);
+	}
+	else if(local && lib) {
+		newArm= copy_armature(arm);
+		newArm->id.us= 0;
+		
+		ob= G.main->object.first;
+		while(ob) {
+			if(ob->data==arm) {
+				
+				if(ob->id.lib==0) {
+					ob->data= newArm;
+					newArm->id.us++;
+					arm->id.us--;
+				}
+			}
+			ob= ob->id.next;
+		}
+	}
 }
+
+static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
+{
+	Bone	*curBone, *newChildBone;
+	
+	/*	Copy this bone's list*/
+	duplicatelist (&newBone->childbase, &oldBone->childbase);
+	
+	/*	For each child in the list, update it's children*/
+	newChildBone=newBone->childbase.first;
+	for (curBone=oldBone->childbase.first;curBone;curBone=curBone->next){
+		newChildBone->parent=newBone;
+		copy_bonechildren(newChildBone,curBone);
+		newChildBone=newChildBone->next;
+	}
+}
+
+bArmature *copy_armature(bArmature *arm)
+{
+	bArmature *newArm;
+	Bone		*oldBone, *newBone;
+	
+	newArm= copy_libblock (arm);
+	duplicatelist(&newArm->bonebase, &arm->bonebase);
+	
+	/*	Duplicate the childrens' lists*/
+	newBone=newArm->bonebase.first;
+	for (oldBone=arm->bonebase.first;oldBone;oldBone=oldBone->next){
+		newBone->parent=NULL;
+		copy_bonechildren (newBone, oldBone);
+		newBone=newBone->next;
+	};
+	
+	return newArm;
+}
+
+static Bone *get_named_bone_bonechildren (Bone *bone, const char *name)
+{
+	Bone *curBone, *rbone;
+	
+	if (!strcmp (bone->name, name))
+		return bone;
+	
+	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
+		rbone=get_named_bone_bonechildren (curBone, name);
+		if (rbone)
+			return rbone;
+	}
+	
+	return NULL;
+}
+
+
+Bone *get_named_bone (bArmature *arm, const char *name)
+/*
+	Walk the list until the bone is found
+ */
+{
+	Bone *bone=NULL, *curBone;
+	
+	if (!arm) return NULL;
+	
+	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+		bone = get_named_bone_bonechildren (curBone, name);
+		if (bone)
+			return bone;
+	}
+	
+	return bone;
+}
+
+/* ****************** Game Blender functions, called by engine ************** */
 
 void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4])
 {
 	float obinv[4][4];
-#if 0
-	Mat4Invert(obinv, obmat);
-	Mat4CpyMat4(premat, obmat);
-	Mat4MulMat4(postmat, parmat, obinv);
 
-	Mat4Invert (postmat, premat);
-#else
 	Mat4Invert(obinv, obmat);
 	Mat4CpyMat4(premat, obmat);
 	Mat4MulMat4(postmat, parmat, obinv);
 
 	Mat4Invert (premat, postmat);
-#endif
 }
 
 void GB_init_armature_deform(ListBase *defbase, float premat[][4], float postmat[][4])
@@ -176,7 +287,7 @@ void GB_calc_armature_deform (float *co, MDeformVert *dvert)
 	
 	for (i=0; i<dvert->totweight; i++){
 		bone = dvert->dw[i].data;
-		if (bone) calc_bone_deform (bone, dvert->dw[i].weight, vec, co, &contrib);
+//		if (bone) calc_bone_deform (bone, dvert->dw[i].weight, vec, co, &contrib);
 	}
 	
 	if (contrib){
@@ -189,207 +300,13 @@ void GB_calc_armature_deform (float *co, MDeformVert *dvert)
 	Mat4MulVecfl(g_postmat, co);
 }
 
-static Bone *get_last_ik_bone (Bone *bone)
-{
-	Bone *curBone;
-
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		if (curBone->flag & BONE_IK_TOPARENT){
-			return get_last_ik_bone (curBone);
-		}
-	}
-
-	return bone;
-}
-
-#if 0
-static Bone *get_first_ik_bone (Bone *bone)
-{
-	Bone *curBone;
-
-	for (curBone = bone; curBone; curBone=curBone->parent){
-		if (!bone->parent)
-			return curBone;
-		if (!bone->flag & BONE_IK_TOPARENT)
-			return curBone;
-	}
-
-	return bone;
-/*	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		if (curBone->flag & BONE_IK_TOPARENT){
-			return get_last_ik_bone (curBone);
-		}
-	}
-*/
-	return bone;
-
-}
-#endif
-
-void where_is_bone(Object *ob, Bone *bone)
-{
-	where_is_bone_time (ob, bone, G.scene->r.cfra);
-}
-
-void where_is_bone_time (Object *ob, Bone *bone, float ctime)
-{ 
-	where_is_bone1_time (ob, get_last_ik_bone(bone), ctime);
-}
-
-void rebuild_bone_parent_matrix (Bone *bone)
-{
-	if (!bone)
-		return;
-
-	if (bone->parent)
-		rebuild_bone_parent_matrix(bone->parent);
-
-	/* Get the parent inverse */
-	if (bone->parent)
-		Mat4MulMat4(bone->parmat, bone->parent->obmat, bone->parent->parmat);
-	else
-		Mat4One (bone->parmat);
-
-}
-void where_is_bone1_time (Object *ob, Bone *bone, float ctime)
-/* Assumes the pose has already been retrieved from the action */
-/* Also assumes where_is_object has been called for owner */
-{
-	bPose	*pose;
-	bPoseChannel	*chan;
-	bArmature *arm;
-	float	imat[4][4];
-	float	totmat[4][4];
-	Object conOb;
-
-	pose = ob->pose;
-	if (!pose)
-		return;
-	
-	arm = get_armature(ob);
-
-	/* Ensure there is a channel for this bone*/
-	chan = verify_pose_channel (pose, bone->name);
-	if (!chan) return;
-
-#if 1
-	/* If 1 attempt to use pose caching features */
-	/* Bail out if we've been recalced recently */
-	if (chan->flag & PCHAN_DONE){
-		Mat4CpyMat4 (bone->obmat, chan->obmat);
-		if (bone->parent){
-			if ((bone->flag & BONE_IK_TOPARENT))
-				where_is_bone1_time (ob, bone->parent, ctime);
-			else
-				where_is_bone_time (ob, bone->parent, ctime);
-		}
-		return;
-	}
-	else
-		chan->flag |= PCHAN_DONE;
-#endif
-
-#if 1
-	/* Ensure parents have been evaluated */
-	if (bone->parent){
-		if ((bone->flag & BONE_IK_TOPARENT))
-			where_is_bone1_time (ob, bone->parent, ctime);
-		else
-			where_is_bone_time (ob, bone->parent, ctime);
-	}
-
-#endif
-
-	if (arm){
-		if ((arm->flag & ARM_RESTPOS) || ((G.obedit && (ob->data == G.obedit->data)))){
-			Mat4One (bone->obmat);
-			Mat4One (chan->obmat);
-			return;
-		}
-	}
-
-	/* If the bone has been flagged as 'no calc', let's not
-	 * bother calculating it.
-	 */
-	if (bone->flag & BONE_NOCALC) {
-		return;
-	}
-
-	if (bone->flag & BONE_IK_TOPARENT){
-		bone->loc[0]=bone->loc[1]=bone->loc[2]=0.0F;
-	}
-	bone_to_mat4(bone, bone->obmat);	
-	
-	/* Do constraints */
-	//	clear_workob();
-	
-	memset(&conOb, 0, sizeof(Object));	
-	conOb.size[0]= conOb.size[1]= conOb.size[2]= 1.0;
-	
-	/* Collect the constraints from the pose */
-	conOb.constraints.first = chan->constraints.first;
-	conOb.constraints.last = chan->constraints.last;
-	
-	/* Totmat takes bone's obmat to worldspace */
-	
-	{
-		float parmat[4][4];
-		float temp[4][4];
-		
-		Mat4CpyMat4 (temp, bone->obmat);
-		Mat4One (bone->obmat);
-		get_objectspace_bone_matrix(bone, parmat, 1, 1);
-		Mat4CpyMat4 (bone->obmat, temp);
-		Mat4MulMat4 (totmat, parmat, ob->obmat);
-	}
-	
-	/* Build a workob to pass the bone to the constraint solver */
-	conOb.data = ob->data;
-	conOb.type = ob->type;
-	conOb.parent = ob;	
-	conOb.trackflag = ob->trackflag;
-	conOb.upflag = ob->upflag;
-
-	VECCOPY(conOb.size, bone->size);
-	
-	Mat4MulMat4 (conOb.obmat, bone->obmat, totmat);
-	
-	/* Solve */
-	solve_constraints (&conOb, TARGET_BONE, (void*)bone, ctime);
-	
-	{
-		float parmat[4][4];
-		float temp[4][4];
-		
-		Mat4CpyMat4 (temp, bone->obmat);
-		Mat4One (bone->obmat);
-		get_objectspace_bone_matrix(bone, parmat, 1, 1);
-		Mat4CpyMat4 (bone->obmat, temp);
-		Mat4MulMat4 (totmat, parmat, ob->obmat);
-	}
-
-	VECCOPY(bone->size, conOb.size);
-	
-	/* Take out of worldspace */
-	Mat4Invert (imat, totmat);
-	Mat4MulMat4 (bone->obmat, conOb.obmat, imat);
-	Mat4CpyMat4 (chan->obmat, bone->obmat);
-
-}
-
-
-bArmature *get_armature(Object *ob)
-{
-	if(ob==NULL) return NULL;
-	if(ob->type==OB_ARMATURE) return ob->data;
-	else return NULL;
-}
+/* ****************** END Game Blender functions, called by engine ************** */
+/* ************ Armature Deform ******************* */
 
 void init_armature_deform(Object *parent, Object *ob)
 {
 	bArmature *arm;
 	bDeformGroup *dg;
-	Bone *curBone;
 	MDeformVert *dvert;
 	int	totverts;
 	float	obinv[4][4];
@@ -399,18 +316,8 @@ void init_armature_deform(Object *parent, Object *ob)
 	if (!arm)
 		return;
 
-	if (ob)
-		where_is_object (ob);
-
-#if 1
-	apply_pose_armature (arm, parent->pose, 1);	/* Hopefully doit parameter can be set to 0 in future */
-	where_is_armature (parent);
-#else
-	apply_pose_armature (arm, parent->pose, 0);
-#endif
-
 	g_defbase = &ob->defbase;
-	g_defarm = arm;
+	g_deform = parent;
 
 	Mat4Invert(obinv, ob->obmat);
 	Mat4CpyMat4(g_premat, ob->obmat);
@@ -428,17 +335,12 @@ void init_armature_deform(Object *parent, Object *ob)
 		totverts=0;
 	}
 
-	/* Precalc bone defmats */
-	precalc_armature_posemats (arm);
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		precalc_bone_defmat(curBone);
-	}
+	/* bone defmats are already in the channels, chan_mat */
 	
-	/* Validate bone data in bDeformGroups */
+	/* Validate channel data in bDeformGroups */
 
 	for (dg=g_defbase->first; dg; dg=dg->next)
-		dg->data = (void*)get_named_bone(arm, dg->name);
+		dg->data = (void*)get_pose_channel(parent->pose, dg->name);
 
 	if (g_dverts){
 		for (j=0; j<totverts; j++){
@@ -455,114 +357,6 @@ void init_armature_deform(Object *parent, Object *ob)
 		}
 	}
 }
-
-void get_bone_root_pos (Bone* bone, float vec[3], int posed)
-{
-	Bone	*curBone;
-	float	mat[4][4];
-	
-	get_objectspace_bone_matrix(bone, mat, 1, posed);
-	VECCOPY (vec, mat[3]);
-	return;
-
-	rebuild_bone_parent_matrix(bone);
-	if (posed){
-
-		get_objectspace_bone_matrix(bone, mat, 1, posed);
-		VECCOPY (vec, mat[3]);
-	}
-	else {
-		vec[0]=vec[1]=vec[2]=0.0F;
-		for (curBone=bone; curBone; curBone=curBone->parent){
-			if (curBone==bone)
-				VecAddf (vec, vec, curBone->head);
-			else
-				VecAddf (vec, vec, curBone->tail);
-		}
-	}
-}
-
-void get_bone_tip_pos (Bone* bone, float vec[3], int posed)
-{
-	Bone	*curBone;
-	float	mat[4][4], tmat[4][4], rmat[4][4], bmat[4][4], fmat[4][4];
-
-	get_objectspace_bone_matrix(bone, mat, 0, posed);
-	VECCOPY (vec, mat[3]);
-	return;
-
-	rebuild_bone_parent_matrix(bone);
-	if (posed){
-	
-	Mat4One (mat);
-
-	for (curBone = bone; curBone; curBone=curBone->parent){
-		Mat4One (bmat);
-		/*	[BMAT] This bone's offset */
-		VECCOPY (bmat[3], curBone->head);
-		if (curBone==bone){
-			Mat4One (tmat);
-			VecSubf (tmat[3], curBone->tail, curBone->head);
- 			Mat4MulMat4 (bmat, tmat, curBone->obmat);
-			VecAddf (bmat[3], bmat[3], curBone->head);
-		}
-		else
-			VecAddf (bmat[3], bmat[3], curBone->obmat[3]);	// Test
-
-		/* [RMAT] Parent's bone length = parent rotmat * bone length */
-		if (curBone->parent){
-			Mat4One (tmat);
-			VecSubf (tmat[3], curBone->parent->tail, curBone->parent->head);
-			Mat4MulMat4 (rmat, tmat, curBone->parent->obmat);
-			VecSubf (rmat[3], rmat[3], curBone->parent->obmat[3]);
-		}
-		else
-			Mat4One (rmat);
-
-		Mat4MulSerie (fmat, rmat, bmat, mat, 0, 0, 0, 0, 0);
-		Mat4CpyMat4 (mat, fmat);
-	}
-
-		VECCOPY (vec, mat[3]);
-	}
-	else{
-		vec[0]=vec[1]=vec[2]=0.0F;
-		for (curBone=bone; curBone; curBone=curBone->parent){
-			VecAddf (vec, vec, curBone->tail);
-		}
-	}
-}
-
-int	verify_boneptr (bArmature *arm, Bone *bone)
-{
-	/* Ensures that a given bone exists in an armature */
-	Bone *curBone;
-
-	if (!arm)
-		return 0;
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		if (verify_boneptr_children (curBone, bone))
-			return 1;
-	}
-
-	return 0;
-}
-
-static int verify_boneptr_children (Bone *cBone, Bone *tBone)
-{
-	Bone *curBone;
-
-	if (cBone == tBone)
-		return 1;
-
-	for (curBone=cBone->childbase.first; curBone; curBone=curBone->next){
-		if (verify_boneptr_children (curBone, tBone))
-			return 1;
-	}
-	return 0;
-}
-
 
 float dist_to_bone (float vec[3], float b1[3], float b2[3])
 {
@@ -592,137 +386,41 @@ float dist_to_bone (float vec[3], float b1[3], float b2[3])
 	else {
 		return (hsqr - (a*a));
 	}
-	
-
 }
 
-static void calc_armature_deform_bonechildren (Bone *bone, float *vec, float *co, float *contrib, float obmat[][4])
+static float calc_armature_deform_bone(Bone *bone, bPoseChannel *pchan, float *vec, float *co)
 {
-	Bone *curBone;
-	float	root[3];
-	float	tip[3];
 	float	dist, fac, ifac;
 	float	cop[3];
-	float	bdsqr;
-
-	
-	get_bone_root_pos (bone, root, 0);
-	get_bone_tip_pos (bone, tip, 0);
+	float	bdsqr, contrib=0.0;
 
 	bdsqr = bone->dist*bone->dist;
 	VECCOPY (cop, co);
 
-	dist = dist_to_bone(cop, root, tip);
+	dist = dist_to_bone(cop, bone->arm_head, bone->arm_tail);
 	
 	if ((dist) <= bdsqr){
 		fac = (dist)/bdsqr;
 		ifac = 1.0F-fac;
 		
 		ifac*=bone->weight;
-		
-		if (!vec)
-			(*contrib) +=ifac;
-		else{
-			ifac*=(1.0F/(*contrib));
+		contrib= ifac;
+		if(contrib>0.0) {
 
 			VECCOPY (cop, co);
 			
-			Mat4MulVecfl(bone->defmat, cop);
+			Mat4MulVecfl(pchan->chan_mat, cop);
 			
 			VecSubf (cop, cop, co);	//	Make this a delta from the base position
 			cop[0]*=ifac; cop[1]*=ifac; cop[2]*=ifac;
 			VecAddf (vec, vec, cop);
-
 		}
 	}
 	
-//	calc_bone_deform (bone, bone->weight, vec, co, contrib, obmat);
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next)
-		calc_armature_deform_bonechildren (curBone, vec, co, contrib, obmat);
+	return contrib;
 }
 
-void precalc_bone_irestmat (Bone *bone)
-{
-	float restmat[4][4];
-
-	get_objectspace_bone_matrix(bone, restmat, 1, 0);
-	Mat4Invert (bone->irestmat, restmat);
-}
-
-static void precalc_bonelist_posemats(ListBase *bonelist, float parlen)
-{
-	Bone *curBone;
-	float length;
-	float T_parlen[4][4];
-	float T_root[4][4];
-	float M_obmat[4][4];
-	float R_bmat[4][4];
-	float M_accumulatedMatrix[4][4];
-	float delta[3];
-
-	for (curBone = bonelist->first; curBone; curBone=curBone->next){
-
-		/* Get the length translation (length along y axis) */
-		length = get_bone_length(curBone);
-
-		/* Get the bone's root offset (in the parent's coordinate system) */
-		Mat4One (T_root);
-		VECCOPY (T_root[3], curBone->head);
-
-		/* Compose the restmat */
-		VecSubf(delta, curBone->tail, curBone->head);
-		make_boneMatrixvr(R_bmat, delta, curBone->roll);
-
-		/* Retrieve the obmat (user transformation) */
-		Mat4CpyMat4 (M_obmat, curBone->obmat);
-
-		/* Compose the accumulated matrix (i.e. parent matrix * parent translation ) */
-		if (curBone->parent){
-			Mat4One (T_parlen);
-			T_parlen[3][1] = parlen;
-			Mat4MulMat4 (M_accumulatedMatrix, T_parlen, curBone->parent->posemat);
-		}
-		else
-			Mat4One (M_accumulatedMatrix);
-
-		/* Compose the matrix for this bone  */
-		Mat4MulSerie (curBone->posemat, M_accumulatedMatrix, T_root, R_bmat, M_obmat, NULL, NULL, NULL, NULL);
-
-		precalc_bonelist_posemats(&curBone->childbase, length);
-	}
-}
-
-void precalc_armature_posemats (bArmature *arm)
-{
-	precalc_bonelist_posemats(&arm->bonebase, 0.0);
-}
-
-void precalc_bone_defmat (Bone *bone)
-{
-	Bone *curBone;
-#if 0
-	float restmat[4][4];
-	float posemat[4][4];
-	float imat[4][4];
-	
-	/* Store restmat and restmat inverse - Calculate once when leaving editmode */
-	/* Store all bones' posemats - Do when applied */
-
-	/* EXPENSIVE! Don't do this! */
-	get_objectspace_bone_matrix(bone, restmat, 1, 0);
-	get_objectspace_bone_matrix(bone, posemat, 1, 1);
-	Mat4Invert (imat, restmat);
-	Mat4MulMat4 (bone->defmat, imat, posemat);
-	/* /EXPENSIVE */
-#else
-	Mat4MulMat4 (bone->defmat, bone->irestmat, bone->posemat);
-#endif
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		precalc_bone_defmat(curBone);
-	}
-}
-
-void calc_bone_deform (Bone *bone, float weight, float *vec, float *co, float *contrib)
+void calc_bone_deform (bPoseChannel *pchan, float weight, float *vec, float *co, float *contrib)
 {
 	float	cop[3];
 
@@ -731,7 +429,7 @@ void calc_bone_deform (Bone *bone, float weight, float *vec, float *co, float *c
 
 	VECCOPY (cop, co);
 	
-	Mat4MulVecfl(bone->defmat, cop);
+	Mat4MulVecfl(pchan->chan_mat, cop);
 	
 	vec[0]+=(cop[0]-co[0])*weight;
 	vec[1]+=(cop[1]-co[1])*weight;
@@ -742,540 +440,638 @@ void calc_bone_deform (Bone *bone, float weight, float *vec, float *co, float *c
 
 void calc_armature_deform (Object *ob, float *co, int index)
 {
-	bArmature *arm;
-	Bone *bone;
-	Bone	*curBone;
-	float	vec[3];
-	float	contrib=0;
-	int		i;
+	bPoseChannel *pchan;
 	MDeformVert *dvert = g_dverts+index;
+	float	vec[3];
+	float	contrib=0.0;
+	int		i;
 
-	arm=g_defarm;
 	vec[0]=vec[1]=vec[2]=0;
 
 	/* Apply the object's matrix */
 	Mat4MulVecfl(g_premat, co);
 
+	/* using deform vertex groups */
 	if (g_dverts){
-		for (i=0; i<dvert->totweight; i++){
-			bone = dvert->dw[i].data;
-			if (bone) calc_bone_deform (bone, dvert->dw[i].weight, vec, co, &contrib);
-		}
 		
-		if (contrib){
-			vec[0]/=contrib;
-			vec[1]/=contrib;
-			vec[2]/=contrib;
+		for (i=0; i<dvert->totweight; i++){
+			pchan = (bPoseChannel *)dvert->dw[i].data;
+			if (pchan) calc_bone_deform (pchan, dvert->dw[i].weight, vec, co, &contrib);
 		}
-		VecAddf (co, vec, co);
-		Mat4MulVecfl(g_postmat, co);
-		return;
 	}
+	else {  /* or use bone distances */
+		Bone *bone;
+		
+		for(pchan= g_deform->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			if(bone) {
+				contrib+= calc_armature_deform_bone(bone, pchan, vec, co);
+			}
+		}
 
-
-	//	Count the number of interested bones
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next)
-		calc_armature_deform_bonechildren (curBone, NULL, co, &contrib, ob->obmat);
-
-	//	Do the deformation
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next)
-		calc_armature_deform_bonechildren (curBone, vec, co, &contrib, ob->obmat);
+	}
+	if (contrib>0.0){
+		vec[0]/=contrib;
+		vec[1]/=contrib;
+		vec[2]/=contrib;
+	}
 
 	VecAddf (co, vec, co);
 	Mat4MulVecfl(g_postmat, co);
 }
 
-void apply_pose_armature (bArmature* arm, bPose* pose, int doit)
+/* ************ END Armature Deform ******************* */
+
+void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)
 {
-	Bone	*curBone;
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next){
-		apply_pose_bonechildren (curBone, pose, doit);
-	}
+	Mat4CpyMat4(M_accumulatedMatrix, bone->arm_mat);
 }
 
-void where_is_armature (Object *ob)
-{
-	where_is_object (ob);
-	where_is_armature_time(ob, (float)G.scene->r.cfra);
-}
-
-void where_is_armature_time (Object *ob, float ctime)
-{
-	bArmature *arm;
-
-	arm = get_armature(ob);
-	if (!arm)
-		return;
-
-	where_is_bonelist_time (ob, &arm->bonebase, ctime);
-
-}
-
-static void where_is_bonelist_time (Object *ob, ListBase *base, float ctime)
+#if 0
+/* IK in the sense of; connected directly */
+static Bone *get_last_ik_bone (Bone *bone)
 {
 	Bone *curBone;
-
-	for (curBone=base->first; curBone; curBone=curBone->next){
-		if (!curBone->childbase.first)
-			where_is_bone1_time (ob, curBone, ctime);
-
-		where_is_bonelist_time(ob, &curBone->childbase, ctime);
-	}
-}
-static void apply_pose_bonechildren (Bone* bone, bPose* pose, int doit)
-{
-	Bone	*curBone;
-	bPoseChannel	*chan;
-
-	if (!pose){
-		
-		bone->dsize[0]=bone->dsize[1]=bone->dsize[2]=1.0F;
-		bone->size[0]=bone->size[1]=bone->size[2]=1.0F;
-
-		bone->dquat[0]=bone->dquat[1]=bone->dquat[2]=bone->dquat[3]=0;
-		bone->quat[0]=bone->quat[1]=bone->quat[2]=bone->quat[3]=0.0F;
-		
-		bone->dloc[0]=bone->dloc[1]=bone->dloc[2]=0.0F;
-		bone->loc[0]=bone->loc[1]=bone->loc[2]=0.0F;
-	}
-
-	// Ensure there is a channel for this bone 
-	chan = verify_pose_channel (pose, bone->name);
-
-	/* Only do this crazy stuff if the no calc flag
-	 * is cleared for this bone.
-	 */
-	if (chan && (~bone->flag & BONE_NOCALC)) {
-		if (chan->flag & POSE_LOC) 
-			memcpy (bone->loc, chan->loc, sizeof (bone->loc));
-		if (chan->flag & POSE_SIZE) 
-			memcpy (bone->size, chan->size, sizeof (bone->size));
-		if (chan->flag & POSE_ROT) 
-			memcpy (bone->quat, chan->quat, sizeof (bone->quat));			
-
-		if (doit){
-			bone_to_mat4(bone, bone->obmat);
-		}
-		else{
-			Mat4CpyMat4 (bone->obmat, chan->obmat);
+	
+	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
+		if (curBone->flag & BONE_IK_TOPARENT){
+			return get_last_ik_bone (curBone);
 		}
 	}
 	
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		apply_pose_bonechildren (curBone, pose, doit);
-	}
+	return bone;
 }
 
-void make_boneMatrixvr (float outmatrix[][4],float delta[3], float roll)
+#endif
+
+/* **************** The new & simple (but OK!) armature evaluation ********* */ 
+
+/*  ****************** And how it works! ****************************************
+
+  This is the bone transformation trick; they're hierarchical so each bone(b)
+  is in the coord system of bone(b-1):
+
+  arm_mat(b)= arm_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) 
+  
+  -> yoffs is just the y axis translation in parent's coord system
+  -> d_root is the translation of the bone root, also in parent's coord system
+
+  pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b)
+
+  we then - in init deform - store the deform in chan_mat, such that:
+
+  pose_mat(b)= arm_mat(b) * chan_mat(b)
+  
+  *************************************************************************** */
+
+
 /*	Calculates the rest matrix of a bone based
 	On its vector and a roll around that vector */
+void vec_roll_to_mat3(float *vec, float roll, float mat[][3])
 {
-	float	nor[3],axis[3],target[3]={0,1,0};
+	float	nor[3], axis[3], target[3]={0,1,0};
 	float	theta;
-	float	rMatrix[3][3], bMatrix[3][3], fMatrix[3][3];
-
-	VECCOPY (nor,delta);
+	float	rMatrix[3][3], bMatrix[3][3];
+	
+	VECCOPY (nor, vec);
 	Normalise (nor);
-
+	
 	/*	Find Axis & Amount for bone matrix*/
 	Crossf (axis,target,nor);
-
+	
 	if (Inpf(axis,axis) > 0.0000000000001) {
 		/* if nor is *not* a multiple of target ... */
 		Normalise (axis);
 		theta=(float) acos (Inpf (target,nor));
-
+		
 		/*	Make Bone matrix*/
 		VecRotToMat3(axis, theta, bMatrix);
 	}
 	else {
 		/* if nor is a multiple of target ... */
 		float updown;
-
+		
 		/* point same direction, or opposite? */
 		updown = ( Inpf (target,nor) > 0 ) ? 1.0 : -1.0;
-
+		
 		/* I think this should work ... */
 		bMatrix[0][0]=updown; bMatrix[0][1]=0.0;    bMatrix[0][2]=0.0;
 		bMatrix[1][0]=0.0;    bMatrix[1][1]=updown; bMatrix[1][2]=0.0;
 		bMatrix[2][0]=0.0;    bMatrix[2][1]=0.0;    bMatrix[2][2]=1.0;
 	}
-
+	
 	/*	Make Roll matrix*/
 	VecRotToMat3(nor, roll, rMatrix);
 	
 	/*	Combine and output result*/
-	Mat3MulMat3 (fMatrix,rMatrix,bMatrix);
-	Mat4CpyMat3 (outmatrix,fMatrix);
+	Mat3MulMat3 (mat, rMatrix, bMatrix);
 }
 
-void make_boneMatrix (float outmatrix[][4], Bone *bone)
-/*	Calculates the rest matrix of a bone based
-	On its vector and a roll around that vector */
+
+/* recursive part, calculates restposition of entire tree of children */
+/* used by exiting editmode too */
+void where_is_armature_bone(Bone *bone, Bone *prevbone)
 {
-	float	delta[3];
-	float	parmat[4][4], imat[4][4], obmat[4][4];
-
-	if (bone->parent){
-		VecSubf (delta, bone->parent->tail, bone->parent->head);
-		make_boneMatrixvr(parmat, delta, bone->parent->roll);
-	}
-	else{
-		Mat4One (parmat);
-	}
-
-	Mat4Invert (imat, parmat);
+	float vec[3];
 	
-	VecSubf (delta, bone->tail, bone->head);
-	make_boneMatrixvr(obmat, delta, bone->roll);
+	/* Bone Space */
+	VecSubf (vec, bone->tail, bone->head);
+	vec_roll_to_mat3(vec, bone->roll, bone->bone_mat);
 
-	Mat4MulMat4(outmatrix, obmat, imat);
-
-}
-
-
-bArmature *add_armature()
-{
-	bArmature *arm;
-
-	arm= alloc_libblock (&G.main->armature, ID_AR, "Armature");
-
-	if(arm) {
-
+	bone->length= VecLenf(bone->head, bone->tail);
 	
+	if(prevbone) {
+		float offs_bone[4][4];  // yoffs(b-1) + root(b) + bonemat(b)
+		
+		/* bone transform itself */
+		Mat4CpyMat3(offs_bone, bone->bone_mat);
+				
+		/* The bone's root offset (is in the parent's coordinate system) */
+		VECCOPY(offs_bone[3], bone->head);
+
+		/* Get the length translation of parent (length along y axis) */
+		offs_bone[3][1]+= prevbone->length;
+		
+		/* Compose the matrix for this bone  */
+		Mat4MulMat4(bone->arm_mat, offs_bone, prevbone->arm_mat);
 	}
-	return arm;
+	else {
+		Mat4CpyMat3(bone->arm_mat, bone->bone_mat);
+		VECCOPY(bone->arm_mat[3], bone->head);
+	}
+	
+	/* head */
+	VECCOPY(bone->arm_head, bone->arm_mat[3]);
+	/* tail is in current local coord system */
+	VECCOPY(vec, bone->arm_mat[1]);
+	VecMulf(vec, bone->length);
+	VecAddf(bone->arm_tail, bone->arm_head, vec);
+	
+	/* and the kiddies */
+	prevbone= bone;
+	for(bone= bone->childbase.first; bone; bone= bone->next) {
+		where_is_armature_bone(bone, prevbone);
+	}
 }
 
-
-void free_boneChildren(Bone *bone)
-{ 
-	Bone *child;
-
-	if (bone) {
-
-		child=bone->childbase.first;
-		if (child){
-			while (child){
-				free_boneChildren (child);
-				child=child->next;
-			}
-			BLI_freelistN (&bone->childbase);
-		}
-	}
-}
-
-void free_bones (bArmature *arm)
+/* updates vectors and matrices on rest-position level, only needed 
+   after editing armature itself, now only on reading file */
+void where_is_armature (bArmature *arm)
 {
 	Bone *bone;
-	/*	Free children (if any)	*/
-	bone= arm->bonebase.first;
-	if (bone) {
-		while (bone){
-			free_boneChildren (bone);
-			bone=bone->next;
-		}
-	}
 	
-	
-	BLI_freelistN(&arm->bonebase);
-}
-
-void free_armature(bArmature *arm)
-{
-	if (arm) {
-/*		unlink_armature(arm);*/
-		free_bones(arm);
+	/* hierarchical from root to children */
+	for(bone= arm->bonebase.first; bone; bone= bone->next) {
+		where_is_armature_bone(bone, NULL);
 	}
 }
 
-void make_local_armature(bArmature *arm)
+static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int depth, int counter)
 {
-	int local=0, lib=0;
-	Object *ob;
-	bArmature *newArm;
+	bPoseChannel *pchan = verify_pose_channel (pose, bone->name);   // verify checks and/or adds
 
-	if (arm->id.lib==0)
-		return;
-	if (arm->id.us==1) {
-		arm->id.lib= 0;
-		arm->id.flag= LIB_LOCAL;
-		new_id(0, (ID*)arm, 0);
-		return;
+	pchan->bone= bone;
+	pchan->parent= parchan;
+	pchan->depth= depth;
+	counter++;
+	
+	for(bone= bone->childbase.first; bone; bone= bone->next) {
+		counter= rebuild_pose_bone(pose, bone, pchan, depth+1, counter);
 	}
+	
+	return counter;
+}
 
-	if(local && lib==0) {
-		arm->id.lib= 0;
-		arm->id.flag= LIB_LOCAL;
-		new_id(0, (ID *)arm, 0);
-	}
-	else if(local && lib) {
-		newArm= copy_armature(arm);
-		newArm->id.us= 0;
+/* only after leave editmode, but also for validating older files */
+/* NOTE: pose->flag is set for it */
+void armature_rebuild_pose(Object *ob, bArmature *arm)
+{
+	Bone *bone;
+	bPose *pose;
+	bPoseChannel *pchan, *next;
+	int counter=0;
 		
-		ob= G.main->object.first;
-		while(ob) {
-			if(ob->data==arm) {
-				
-				if(ob->id.lib==0) {
-					ob->data= newArm;
-					newArm->id.us++;
-					arm->id.us--;
-				}
-			}
-			ob= ob->id.next;
+	/* only done here */
+	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
+	pose= ob->pose;
+	
+	/* first step, check if all channels are there, also sets depth */
+	for(bone= arm->bonebase.first; bone; bone= bone->next) {
+		counter= rebuild_pose_bone(pose, bone, NULL, 0, counter);
+	}
+	/* sort channels on dependency order, so we can walk the channel list */
+
+	/* and a check for garbage */
+	for(pchan= pose->chanbase.first; pchan; pchan= next) {
+		next= pchan->next;
+		if(pchan->bone==NULL) {
+			BLI_freelinkN(&pose->chanbase, pchan);  // constraints?
 		}
 	}
+	//printf("rebuild pose, %d bones\n", counter);
+	if(counter<2) return;
+	
+	update_pose_constraint_flags(ob->pose); // for IK detection for example
+	
+	/* the sorting */
+	DAG_pose_sort(ob);
+	
+	ob->pose->flag &= ~POSE_RECALC;
 }
 
-static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
+
+/* ********************** THE IK SOLVER ******************* */
+
+
+/* allocates PoseChain, and links that to root bone/channel */
+/* note; if we got this working, it can become static too? */
+static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 {
-	Bone	*curBone, *newChildBone;
-
-	/*	Copy this bone's list*/
-	duplicatelist (&newBone->childbase, &oldBone->childbase);
-
-	/*	For each child in the list, update it's children*/
-	newChildBone=newBone->childbase.first;
-	for (curBone=oldBone->childbase.first;curBone;curBone=curBone->next){
-		newChildBone->parent=newBone;
-		copy_bonechildren(newChildBone,curBone);
-		newChildBone=newChildBone->next;
+	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256];
+	PoseChain *chain;
+	bConstraint *con;
+	bKinematicConstraint *data;
+	int a, segcount= 0;
+	
+	/* find IK constraint, and validate it */
+	for(con= pchan_tip->constraints.first; con; con= con->next) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
 	}
+	if(con==NULL) return;
+	if(con->flag & CONSTRAINT_DISABLE) return;  // not sure...
+	
+	data=(bKinematicConstraint*)con->data;
+	if(data->tar==NULL) return;
+	
+	/* Find the chain's root & count the segments needed */
+	for (curchan = pchan_tip; curchan; curchan=curchan->parent){
+		pchan_root = curchan;
+		/* tip is not in the chain */
+		if (curchan!=pchan_tip){
+			chanlist[segcount]=curchan;
+			segcount++;
+		}
+		if(segcount>255) break; // also weak
+		
+		if (!(curchan->bone->flag & BONE_IK_TOPARENT))
+			break;
+	}
+	if (!segcount) return;
+	
+	/* setup the chain data */
+	chain = MEM_callocN(sizeof(PoseChain), "posechain");
+	chain->totchannel= segcount;
+	chain->solver = IK_CreateChain();
+	chain->con= con;
+	
+	chain->iterations = data->iterations;
+	chain->tolerance = data->tolerance;
+	
+	chain->pchanchain= MEM_callocN(segcount*sizeof(void *), "channel chain");
+	for(a=0; a<segcount; a++) {
+		chain->pchanchain[a]= chanlist[segcount-a-1];
+	}
+	
+	/* AND! link the chain to the root */
+	BLI_addtail(&pchan_root->chain, chain);
 }
 
-bArmature *copy_armature(bArmature *arm)
+/* called from within the core where_is_pose loop, all animsystems and constraints
+were executed & assigned. Now as last we do an IK pass */
+static void execute_posechain(Object *ob, PoseChain *chain)
 {
-	bArmature *newArm;
-	Bone		*oldBone, *newBone;
-
-	newArm= copy_libblock (arm);
-	duplicatelist(&newArm->bonebase, &arm->bonebase);
-
-	/*	Duplicate the childrens' lists*/
-	newBone=newArm->bonebase.first;
-	for (oldBone=arm->bonebase.first;oldBone;oldBone=oldBone->next){
-		newBone->parent=NULL;
-		copy_bonechildren (newBone, oldBone);
-		newBone=newBone->next;
-	};
-
-	return newArm;
+	IK_Segment_Extern	*segs;
+	bPoseChannel *pchan;
+	float R_parmat[3][3];
+	float iR_parmat[3][3];
+	float R_bonemat[3][3];
+	float rootmat[4][4], imat[4][4];
+	float size[3];
+	int curseg;
+	
+	/* first set the goal inverse transform, assuming the root of chain was done ok! */
+	pchan= chain->pchanchain[0];
+	Mat4One(rootmat);
+	VECCOPY(rootmat[3], pchan->pose_head);
+	
+	Mat4MulMat4 (imat, rootmat, ob->obmat);
+	Mat4Invert (chain->goalinv, imat);
+	
+	/* and set and transform goal */
+	get_constraint_target_matrix(chain->con, TARGET_BONE, NULL, rootmat, size, 1.0);   // 1.0=ctime
+	VECCOPY (chain->goal, rootmat[3]);
+	Mat4MulVecfl (chain->goalinv, chain->goal);
+	
+	/* Now we construct the IK segments */
+	segs = MEM_callocN (sizeof(IK_Segment_Extern)*chain->totchannel, "iksegments");
+	
+	for (curseg=0; curseg<chain->totchannel; curseg++){
+		
+		pchan= chain->pchanchain[curseg];
+		
+		/* Get the matrix that transforms from prevbone into this bone */
+		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
+		
+		if (pchan->parent && (pchan->bone->flag & BONE_IK_TOPARENT)) {
+			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
+		}
+		else
+			Mat3One (R_parmat);
+		
+		Mat3Inv(iR_parmat, R_parmat);
+		
+		/* Mult and Copy the matrix into the basis and transpose (IK lib likes it) */
+		Mat3MulMat3((void *)segs[curseg].basis, iR_parmat, R_bonemat);
+		Mat3Transp((void *)segs[curseg].basis);
+		
+		/* Fill out the IK segment */
+		segs[curseg].length = pchan->bone->length; 
+	}
+	
+	/*	Solve the chain */
+	
+	IK_LoadChain(chain->solver, segs, chain->totchannel);
+	
+	IK_SolveChain(chain->solver, chain->goal, chain->tolerance,  
+				  chain->iterations,  0.1f, chain->solver->segments);
+	
+	
+	/* not yet free! */
 }
 
 
-void bone_to_mat3(Bone *bone, float mat[][3])	/* no parent */
+/* ********************** THE POSE SOLVER ******************* */
+
+
+/* loc/rot/size to mat4 */
+static void chan_calc_mat(bPoseChannel *chan)
 {
 	float smat[3][3];
 	float rmat[3][3];
-/*	float q1[4], vec[3];*/
-	
-	/* size */
-/*	if(bone->ipo) {
-		vec[0]= bone->size[0]+bone->dsize[0];
-		vec[1]= bone->size[1]+bone->dsize[1];
-		vec[2]= bone->size[2]+bone->dsize[2];
-		SizeToMat3(vec, smat);
-	}
-	else 
-*/	{
-		SizeToMat3(bone->size, smat);
-	}
-
-	/* rot */
-	/*if(bone->flag & BONE_QUATROT) {
-		if(bone->ipo) {
-			QuatMul(q1, bone->quat, bone->dquat);
-			QuatToMat3(q1, rmat);
-		}
-		else 
-	*/	{
-			NormalQuat(bone->quat);
-			QuatToMat3(bone->quat, rmat);
-		}
-/*	}
-*/
-	Mat3MulMat3(mat, rmat, smat);
-}
-
-void bone_to_mat4(Bone *bone, float mat[][4])
-{
 	float tmat[3][3];
 	
-	bone_to_mat3(bone, tmat);
+	SizeToMat3(chan->size, smat);
 	
-	Mat4CpyMat3(mat, tmat);
+	NormalQuat(chan->quat);
+	QuatToMat3(chan->quat, rmat);
 	
-	VECCOPY(mat[3], bone->loc);
-//	VecAddf(mat[3], mat[3], bone->loc);
-/*	if(bone->ipo) {
-		mat[3][0]+= bone->dloc[0];
-		mat[3][1]+= bone->dloc[1];
-		mat[3][2]+= bone->dloc[2];
-	}
-*/
-}
-
-Bone *get_indexed_bone (bArmature *arm, int index)
-/*
-	Walk the list until the index is reached
-*/
-{
-	Bone *bone=NULL, *curBone;
-	int	ref=index;
-
-	if (!arm)
-		return NULL;
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		bone = get_indexed_bone_bonechildren (curBone, &ref);
-		if (bone)
-			return bone;
+	Mat3MulMat3(tmat, rmat, smat);
+	
+	Mat4CpyMat3(chan->chan_mat, tmat);
+	
+	/* prevent action channels breaking chains */
+	if (!(chan->bone->flag & BONE_IK_TOPARENT)) {
+		VECCOPY(chan->chan_mat[3], chan->loc);
 	}
 
-	return bone;
 }
 
-Bone *get_named_bone (bArmature *arm, const char *name)
-/*
-	Walk the list until the bone is found
-*/
+/* transform from bone(b) to bone(b+1), store in chan_mat */
+static void make_dmats(bPoseChannel *pchan)
 {
-	Bone *bone=NULL, *curBone;
-
-	if (!arm) return NULL;
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		bone = get_named_bone_bonechildren (curBone, name);
-		if (bone)
-			return bone;
+	if (pchan->parent) {
+		float iR_parmat[4][4];
+		Mat4Invert(iR_parmat, pchan->parent->pose_mat);
+		Mat4MulMat4(pchan->chan_mat,  pchan->pose_mat, iR_parmat);	// delta mat
 	}
-
-	return bone;
+	else Mat4CpyMat4(pchan->chan_mat, pchan->pose_mat);
 }
 
-static Bone *get_indexed_bone_bonechildren (Bone *bone, int *index)
+/* applies IK matrix to pchan, IK is done separated */
+/* formula: pose_mat(b) = pose_mat(b-1) * diffmat(b-1, b) * ik_mat(b) */
+/* to make this work, the diffmats have to be precalculated! Stored in chan_mat */
+static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = to detect if this is first bone
 {
-	Bone *curBone, *rbone;
+	float vec[3], ikmat[4][4];
+	
+	Mat4CpyMat3(ikmat, ik_mat);
+	
+	if (pchan->parent)
+		Mat4MulSerie(pchan->pose_mat, pchan->parent->pose_mat, pchan->chan_mat, ikmat, NULL, NULL, NULL, NULL, NULL);
+	else 
+		Mat4MulMat4(pchan->pose_mat, ikmat, pchan->chan_mat);
 
-	if (!*index)
-		return bone;
+	/* calculate head */
+	VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
+	/* calculate tail */
+	VECCOPY(vec, pchan->pose_mat[1]);
+	VecMulf(vec, pchan->bone->length);
+	VecAddf(pchan->pose_tail, pchan->pose_head, vec);
 
-	(*index)--;
+	pchan->flag |= POSE_DONE;
+}
 
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		rbone=get_indexed_bone_bonechildren (curBone, index);
-		if (rbone)
-			return rbone;
+/* The main armature solver, does all constraints excluding IK */
+/* pchan is validated, as having bone and parent pointer */
+static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
+{
+	Bone *bone, *parbone;
+	bPoseChannel *parchan;
+	float vec[3], ctime= 1.0;   // ctime todo
+
+	/* set up variables for quicker access below */
+	bone= pchan->bone;
+	parbone= bone->parent;
+	parchan= pchan->parent;
+		
+	/* this gives a chan_mat with actions (ipos) results */
+	chan_calc_mat(pchan);
+	
+	/* construct the posemat based on PoseChannels, that we do before applying constraints */
+	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
+	
+	if(parchan) {
+		float offs_bone[4][4];  // yoffs(b-1) + root(b) + bonemat(b)
+		
+		/* bone transform itself */
+		Mat4CpyMat3(offs_bone, bone->bone_mat);
+		
+		/* The bone's root offset (is in the parent's coordinate system) */
+		VECCOPY(offs_bone[3], bone->head);
+		
+		/* Get the length translation of parent (length along y axis) */
+		offs_bone[3][1]+= parbone->length;
+		
+		/* Compose the matrix for this bone  */
+		Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}
-
-	return NULL;
-}
-
-static Bone *get_named_bone_bonechildren (Bone *bone, const char *name)
-{
-	Bone *curBone, *rbone;
-
-	if (!strcmp (bone->name, name))
-		return bone;
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		rbone=get_named_bone_bonechildren (curBone, name);
-		if (rbone)
-			return rbone;
+	else 
+		Mat4MulMat4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
+	
+	
+	/* Do constraints */
+	if(pchan->constraints.first) {
+		static Object conOb;
+		static int initialized= 0;
+		
+		/* Build a workob to pass the bone to the constraint solver */
+		if(initialized==0) {
+			memset(&conOb, 0, sizeof(Object));
+			initialized= 1;
+		}
+		conOb.size[0]= conOb.size[1]= conOb.size[2]= 1.0;
+		conOb.data = ob->data;
+		conOb.type = ob->type;
+		conOb.parent = ob;	// ik solver retrieves the armature that way !?!?!?!
+		conOb.pose= ob->pose;				// needed for retrieving pchan
+		conOb.trackflag = ob->trackflag;
+		conOb.upflag = ob->upflag;
+		
+		/* Collect the constraints from the pose (listbase copy) */
+		conOb.constraints = pchan->constraints;
+		
+		/* conOb.obmat takes bone to worldspace */
+		Mat4MulMat4 (conOb.obmat, pchan->pose_mat, ob->obmat);
+		
+		//VECCOPY(conOb.size, pchan->size);  // stretchto constraint
+		
+		/* Solve */
+		solve_constraints (&conOb, TARGET_BONE, (void*)bone, ctime);	// ctime doesnt alter objects
+		
+		//VECCOPY(bone->size, conOb.size);	// stretchto constraint
+		
+		/* Take out of worldspace */
+		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);
 	}
-
-	return NULL;
+	
+	/* calculate head */
+	VECCOPY(pchan->pose_head, pchan->pose_mat[3]);
+	/* calculate tail */
+	VECCOPY(vec, pchan->pose_mat[1]);
+	VecMulf(vec, bone->length);
+	VecAddf(pchan->pose_tail, pchan->pose_head, vec);
+	
 }
 
-void make_displists_by_armature (Object *ob)
+/* This only reads anim data from channels, and writes to channels */
+/* This is the only function adding poses */
+void where_is_pose (Object *ob)
 {
-	Base *base;
+	bArmature *arm;
+	Bone *bone;
+	bPoseChannel *pchan, *next;
+	float imat[4][4];
+//	float ctime= (float)G.scene->r.cfra;	/* time only applies constraint location on curve path (now) */
 
-	if (ob){
-		if (ob->type != OB_ARMATURE) return;
-		for (base= G.scene->base.first; base; base= base->next){
-			if ((ob==base->object->parent) && (base->lay & G.scene->lay))
-				if ((base->object->partype==PARSKEL) || (base->object->type==OB_MBALL))
-					makeDispList(base->object);
+	arm = get_armature(ob);
+	
+	if(arm==NULL) return;
+	if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC)) 
+	   armature_rebuild_pose(ob, arm);
+	
+//	printf("re-evaluate pose %s\n", ob->id.name);
+	
+	/* In restposition we read the data from the bones */
+	if(arm->flag & ARM_RESTPOS) {
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			bone= pchan->bone;
+			if(bone) {
+				Mat4CpyMat4(pchan->pose_mat, bone->arm_mat);
+				VECCOPY(pchan->pose_head, bone->arm_head);
+				VECCOPY(pchan->pose_tail, pchan->pose_head);
+			}
 		}
 	}
-/*
-(ton) changed this; now a free displist is sufficient, drawobject.c will make disp
-(ton) changed it back... doesnt work yet, do it after release
-*/
+	else {
+		Mat4Invert(ob->imat, ob->obmat);	// imat is needed 
 
-}	
-
-void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)
-/* Gets matrix that transforms the bone to object space */
-/* This function is also used to compute the orientation of the bone for display */
-{
-	Bone	*curBone;
-
-	Bone	*bonelist[256];
-	int		bonecount=0, i;
-
-	Mat4One (M_accumulatedMatrix);
-
-	/* Build a list of bones from tip to root */
-	for (curBone=bone; curBone; curBone=curBone->parent){
-		bonelist[bonecount] = curBone;
-		bonecount++;
+//#if 0
+		/* 1. construct the PoseChains, clear flags */
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			pchan->flag &= ~POSE_DONE;
+			if(pchan->constflag & PCHAN_HAS_IK) // flag is set on editing constraints
+				initialize_posechain(ob, pchan);	// will attach it to root!
+		}
+		
+		/* 2. the main loop, channels are already hierarchical sorted from root to children */
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(!(pchan->flag & POSE_DONE)) {
+				/* 3. if we find an IK root, we handle it separated */
+				if(pchan->chain.first) {
+					while(pchan->chain.first) {
+						PoseChain *chain= pchan->chain.first;
+						int a;
+						
+						/* 4. walk over the chain for regular solving */
+						for(a=0; a<chain->totchannel; a++) {
+							if(!(chain->pchanchain[a]->flag & POSE_DONE))	// successive chains can set the flag
+								where_is_pose_bone(ob, chain->pchanchain[a]);
+						}
+						/* 5. execute the IK solver */
+						execute_posechain(ob, chain);   // calculates 3x3 difference matrices
+						/* 6. apply the differences to the channels, we calculate the original differences first */
+						for(a=0; a<chain->totchannel; a++)
+							make_dmats(chain->pchanchain[a]);
+						for(a=0; a<chain->totchannel; a++)
+							where_is_ik_bone(chain->pchanchain[a], (void *)chain->solver->segments[a].basis_change);
+							// (sets POSE_DONE)
+						
+						/* 6. and free */
+						BLI_remlink(&pchan->chain, chain);
+						free_posechain(chain);
+					}
+				}
+				else where_is_pose_bone(ob, pchan);
+			}
+		}
+//#endif
 	}
 
-	/* Count through the inverted list (i.e. iterate from root to tip)*/
-	for (i=0; i<bonecount; i++){
-		float T_root[4][4];
-		float T_len[4][4];
-		float R_bmat[4][4];
-		float M_obmat[4][4];
-		float M_boneMatrix[4][4];
-		float delta[3];
-
-		curBone = bonelist[bonecount-i-1];
-
-		/* Get the length translation (length along y axis) */
-		Mat4One (T_len);
-		T_len[3][1] = get_bone_length(curBone);
-
-		if ((curBone == bone) && (root))
-			Mat4One (T_len);
-
-		/* Get the bone's root offset (in the parent's coordinate system) */
-		Mat4One (T_root);
-		VECCOPY (T_root[3], curBone->head);
-
-		/* Compose the restmat */
-		VecSubf(delta, curBone->tail, curBone->head);
-		make_boneMatrixvr(R_bmat, delta, curBone->roll);
-
-
-		/* Retrieve the obmat (user transformation) */
-		if (posed)
-			Mat4CpyMat4 (M_obmat, curBone->obmat);
-		else
-			Mat4One (M_obmat);
-
-		/* Compose the matrix for this bone  */
 #if 0
-		Mat4MulSerie (M_boneMatrix, M_accumulatedMatrix, T_root, M_obmat, R_bmat, T_len, NULL, NULL, NULL);
-#else
-		Mat4MulSerie (M_boneMatrix, M_accumulatedMatrix, T_root, R_bmat, M_obmat, T_len, NULL, NULL, NULL);
-#endif
-		Mat4CpyMat4 (M_accumulatedMatrix, M_boneMatrix);
+	doconstraints= 1;
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		where_is_pose_bone(ob, pchan);
 	}
-
-
+	doconstraints= 0;
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		where_is_pose_bone(ob, pchan);
+		pchan->flag &= ~POSE_IK_MAT;
+	}
+#endif
+		
+	/* calculating deform matrices */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= next) {
+		next= pchan->next;
+		
+		if(pchan->bone) {
+			Mat4Invert(imat, pchan->bone->arm_mat);
+			Mat4MulMat4(pchan->chan_mat, imat, pchan->pose_mat);
+		}
+	}
 }
 
+
+/* *************** helper for selection code ****************** */
+
+
+Bone *get_indexed_bone (Object *ob, int index)
+/*
+	Now using pose channel
+*/
+{
+	bPoseChannel *pchan;
+	int a= 0;
+	
+	if(ob->pose==NULL) return NULL;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
+		if(a==index) return pchan->bone;
+	}
+	return NULL;
+}
+
+
+/* *********************** Inverse Kinematics ************* */
+
+#if 0
 void solve_posechain (PoseChain *chain)
 {
 	float	goal[3];
 	int	i;
 	Bone *curBone;
-	float M_obmat[4][4];
-	float M_basischange[4][4];
+//	float M_obmat[4][4];
+//	float M_basischange[4][4];
 	bPoseChannel *chan;
 
 	if (!chain->solver) return;
@@ -1290,7 +1086,6 @@ void solve_posechain (PoseChain *chain)
 
 	VECCOPY (goal, chain->goal);
 	Mat4MulVecfl (chain->goalinv, goal);
-
 	/*	Solve the chain */
 
 	IK_SolveChain(chain->solver,
@@ -1302,30 +1097,41 @@ void solve_posechain (PoseChain *chain)
  
 	/* Copy the results back into the bones */
 	for (i = chain->solver->num_segments-1, curBone=chain->target->parent; i>=0; i--, curBone=curBone->parent){
-
+//	for (i = 0; i<chain->solver->num_segments; i++) {
+		//curBone= bonelist[i];
+		
 		/* Retrieve the delta rotation from the solver */
-		Mat4One(M_basischange);
-		Mat4CpyMat3(M_basischange, (void *)chain->solver->segments[i].basis_change);	//basis_change = array[9]
-	
- 
+//		Mat4One(M_basischange);
+//		Mat4CpyMat3(M_basischange, (void *)chain->solver->segments[i].basis_change);	//basis_change = array[9]
+//		printmatrix3(curBone->name, (void *)chain->solver->segments[i].basis_change);
 		/**
 		 *	Multiply the bone's usertransform by the 
 		 *	basis change to get the new usertransform
 		 */
 
-		Mat4CpyMat4 (M_obmat, curBone->obmat);
-		Mat4MulMat4 (curBone->obmat, M_basischange, M_obmat);
-
+		//Mat4CpyMat4 (M_obmat, curBone->obmat);
+		//Mat4MulMat4 (curBone->obmat, M_basischange, M_obmat);
+		/* store in channel itself */
+		
+		chan= get_pose_channel(chain->pose, curBone->name);
+		Mat3CpyMat3 (chan->ik_mat, (void *)chain->solver->segments[i].basis_change);
+		chan->flag |= POSE_IK_MAT;
+		
 		/* Store the solve results on the childrens' channels */
-		for (chan = chain->pose->chanbase.first; chan; chan=chan->next){
-			if (!strcmp (chan->name, curBone->name)){
-				Mat4CpyMat4 (chan->obmat, curBone->obmat);
-				break;
-			}
-		}
-
+		//for (chan = chain->pose->chanbase.first; chan; chan=chan->next){
+		//	if (!strcmp (chan->name, curBone->name)){
+		//		Mat4CpyMat4 (chan->obmat, curBone->obmat);
+		//		break;
+		//	}
+		//}
 	}
+	/* WARNING! REMOVE LATER !!! */
+	/* flag chain target to recalculate too */
+	chan= get_pose_channel(chain->pose, chain->target->name);
+	Mat3One(chan->ik_mat);
+	chan->flag |= POSE_IK_MAT;
 }
+#endif
 
 void free_posechain (PoseChain *chain)
 {
@@ -1334,9 +1140,13 @@ void free_posechain (PoseChain *chain)
 		chain->solver->segments = NULL;
 		IK_FreeChain(chain->solver);
 	}
-	MEM_freeN (chain);
+	if(chain->pchanchain) MEM_freeN(chain->pchanchain);
+	MEM_freeN(chain);
 }
 
+#if 0
+/* actually; bones to IK_solver data */
+/* Object is its own Armature object */
 PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 {
 	IK_Segment_Extern	*segs;
@@ -1344,15 +1154,16 @@ PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 	Bone		*curBone, *rootBone;
 	int			segcount, curseg, icurseg;
 	float	imat[4][4];
+	bPoseChannel *pchan;
 	Bone *bonelist[256];
 	float rootmat[4][4];
-	float	bonespace[4][4];
+//	float	bonespace[4][4];
 
 	/**
 	 *	Some interesting variables in this function:
 	 *
 	 *	Bone->obmat		Bone's user transformation;
-	 *					It is initialized in where_is_bone1_time
+	 *					It is initialized in where_is_b one1_time
 	 *
 	 *	rootmat			Bone's coordinate system, computed by
 	 *					get_objectspace_bone_matrix.  Takes all
@@ -1395,27 +1206,29 @@ PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 	/* Allocate some IK segments */
 	segs = MEM_callocN (sizeof(IK_Segment_Extern)*segcount, "iksegments");
 
-
+	//printf("segcount %d\n", segcount);
 	/**
 	 * Remove the offset from the first bone in the chain and take the target to chainspace
 	 */
 
-
-	get_objectspace_bone_matrix(rootBone, bonespace, 1, 1);
-	Mat4One (rootmat);
-	VECCOPY (rootmat[3], bonespace[3]);
+	//get_objectspace_bone_matrix(rootBone, bonespace, 1, 1);
+	//Mat4One (rootmat);
+	//VECCOPY (rootmat[3], bonespace[3]);
+	pchan= get_pose_channel(ob->pose, rootBone->name);
+	Mat4One(rootmat);
+	VECCOPY(rootmat[3], pchan->pose_head);
 
 	/* Take the target to bonespace */
+	/* (ton) I think it's the matrix to take a world coordinate into "chainspace" */
 	Mat4MulMat4 (imat, rootmat, ob->obmat);
 	Mat4Invert (chain->goalinv, imat);
-
 
 	/**
 	 *	Build matrices from the root to the tip 
 	 *	We count backwards through the bone list (which is sorted tip to root)
 	 *	and forwards through the ik_segment list
 	 */
-
+	/* that we're going to recode! (ton) */
 	for (curseg = segcount-1; curseg>=0; curseg--){
 		float M_basismat[4][4];
 		float R_parmat[4][4];
@@ -1428,11 +1241,16 @@ PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 		
 		/* Get the basis matrix */
 		Mat4One (R_parmat);
-		get_objectspace_bone_matrix(curBone, R_bonemat, 1, 1);
+		//get_objectspace_bone_matrix(curBone, R_bonemat, 1, 1);
+		//R_bonemat[3][0]=R_bonemat[3][1]=R_bonemat[3][2]=0.0F;
+		pchan= get_pose_channel(ob->pose, curBone->name);
+		Mat4CpyMat4(R_bonemat, pchan->pose_mat);
 		R_bonemat[3][0]=R_bonemat[3][1]=R_bonemat[3][2]=0.0F;
 		
-		if (curBone->parent && (curBone->flag & BONE_IK_TOPARENT)){
-			get_objectspace_bone_matrix(curBone->parent, R_parmat, 1, 1);
+		if (curBone->parent && (curBone->flag & BONE_IK_TOPARENT)) {
+			//get_objectspace_bone_matrix(curBone->parent, R_parmat, 1, 1);
+			Mat4CpyMat4(R_parmat, pchan->parent->pose_mat);
+			
 			R_parmat[3][0]=R_parmat[3][1]=R_parmat[3][2]=0.0F;
 		}
 		
@@ -1444,25 +1262,13 @@ PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
 		Mat3Transp((void *)segs[icurseg].basis);
 
 		/* Fill out the IK segment */
-		segs[icurseg].length = get_bone_length(curBone);
+		segs[icurseg].length = VecLenf(curBone->head, curBone->tail);
 
-	};
+	}
 
 	IK_LoadChain(chain->solver, segs, segcount);
+	
 	return chain;
 }
 
-
-
-void precalc_bonelist_irestmats (ListBase* bonelist)
-{
-	Bone *curbone;
-
-	if (!bonelist)
-		return;
-
-	for (curbone = bonelist->first; curbone; curbone=curbone->next){
-		precalc_bone_irestmat(curbone);
-		precalc_bonelist_irestmats(&curbone->childbase);
-	}
-}
+#endif

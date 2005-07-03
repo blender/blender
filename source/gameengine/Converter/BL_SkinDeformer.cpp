@@ -151,9 +151,10 @@ void BL_SkinDeformer::Update(void)
 		/* Do all of the posing necessary */
 		GB_init_armature_deform (m_defbase, m_premat, m_postmat);
 		m_armobj->ApplyPose();
-		precalc_armature_posemats (m_armobj->GetArmature());
-		for (Bone *curBone=(Bone*)m_armobj->GetArmature()->bonebase.first; curBone; curBone=(Bone*)curBone->next)
-			precalc_bone_defmat(curBone);
+//		precalc_armature_posemats (m_armobj->GetArmature());
+//		for (Bone *curBone=(Bone*)m_armobj->GetArmature()->bonebase.first; curBone; curBone=(Bone*)curBone->next)
+//			precalc_bone_defmat(curBone);
+// note: where_is_pose() does it all...
 		
 		VerifyStorage();
 

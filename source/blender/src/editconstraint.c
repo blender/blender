@@ -64,626 +64,30 @@
 #include "blendef.h"
 #include "nla.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
-static short add_constraint_element (Object *owner, const char *substring, Object *parent, const char *parentstring);
-static short detect_constraint_loop (Object *owner, const char* substring, int disable, char type);
-static void test_bonelist_constraints (Object *owner, ListBase *list);
-static void clear_object_constraint_loop_flags(Object *ob);
-//static int is_child_of(struct Object *owner, struct Object *parent);
-//static int is_bonechild_of(struct Bone *bone, struct Bone *parent);
-static int is_child_of_ex(Object *owner, const char *ownersubstr, Object *parent, const char *parsubstr);
-
-ListBase g_conBase;
-const char *g_conString;
-Object *g_conObj;
-
-
-static int is_child_of_ex(Object *owner, const char *ownersubstr, Object *parent, const char *parsubstr)
+/* called by buttons to find a bone to display/edit values for */
+static bPoseChannel *get_active_posechannel (void)
 {
-	Object *curob;
-	Bone *bone = NULL;
-	Bone *parbone= NULL;
-
-	curob=owner;
-
-	/* If this is a bone */
-	if (strlen(ownersubstr))
-		bone = get_named_bone(get_armature(owner->parent), ownersubstr);
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	bArmature *arm;
 	
-	if (strlen(parsubstr))
-		parbone = get_named_bone(get_armature(parent), parsubstr);
-
-
-	/* Traverse the scene graph */
-	while (curob && !bone){
-		switch (curob->partype){
-		case PARBONE:
-			if (strlen(parsubstr)){
-				bone = get_named_bone(get_armature(curob->parent), curob->parsubstr);
-				break;
-			}
-			/* The break is supposed to be missing */
-		default:
-			if (curob==parent){
-				if (parbone)
-					return 0;
-				else
-					return 1;
-			}
-		}
-		curob=curob->parent;
-	}
-
-
-	/* Descend into the armature scene graph */
-	while (bone){
-		if (bone==parbone)
-			return 1;
-		bone=bone->parent;
+	arm = get_armature(OBACT);
+	if (!arm)
+		return NULL;
+	
+	/* find for active */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE))
+			return pchan;
 	}
 	
-	return 0;
-}
-/*
-static int is_child_of(Object *owner, Object *parent)
-{
-	Object *curpar;
-
-	for (curpar = owner->parent; curpar; curpar=curpar->parent){
-		if (curpar==parent)
-			return 1;
-	}
-
-	return 0;
+	return NULL;
 }
 
-
-static int is_bonechild_of(Bone *bone, Bone *parent)
-{
-	Bone *curpar;
-
-	if (!bone)
-		return 0;
-
-	for (curpar = bone->parent; curpar; curpar=curpar->parent){
-		if (curpar==parent)
-			return 1;
-	}
-	return 0;
-}
-*/
-static short add_constraint_element (Object *owner, const char *substring, Object *parent, const char *parentstring)
-{
-	
-	if (!owner)
-		return 0;
-
-	/* See if this is the original object */
-	if (parent == owner){
-		if (!strcmp (parentstring, substring))
-				return 1;
-	}
-
-	if (owner == g_conObj){
-		if (!strcmp (g_conString, substring))
-			return 1;
-	}
-
-	/* See if this is a child of the adding object */
-	if (parent){
-//		if (is_child_of (owner, parent))
-		if (is_child_of_ex (owner, substring, parent, parentstring))
-			return 1;
-		/* Parent is a bone */
-/*		if ((owner==parent) && (owner->type == OB_ARMATURE)){
-			if (strlen (substring) && strlen(parentstring)){
-				if (is_bonechild_of(get_named_bone(owner->data, substring), get_named_bone(parent->data, parentstring)))
-					return 1;
-			}
-		}
-		*/
-	}
-	return 0;
-}
-
-static void test_bonelist_constraints (Object *owner, ListBase *list)
-{
-	Bone *bone;
-	Base	*base1;
-
-
-	for (bone = list->first; bone; bone=bone->next){
-		for (base1 = G.scene->base.first; base1; base1=base1->next){
-			clear_object_constraint_loop_flags(base1->object);
-		}
-		test_constraints(owner, bone->name, 1);
-		test_bonelist_constraints (owner, &bone->childbase);
-	}
-}
-
-
-static void clear_object_constraint_loop_flags(Object *ob)
-{
-	bConstraint *con;
-
-	if (!ob)
-		return;
-
-	/* Test object constraints */
-	for (con = ob->constraints.first; con; con=con->next){
-		con->flag &= ~CONSTRAINT_LOOPTESTED;
-	}
-
-	switch (ob->type){
-	case OB_ARMATURE:
-		if (ob->pose){
-			bPoseChannel *pchan;
-			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
-				for (con = pchan->constraints.first; con; con=con->next){
-					con->flag &= ~CONSTRAINT_LOOPTESTED;
-				}
-			}
-		}
-		break;
-	default:
-		break;
-	}
-}
-void test_scene_constraints (void)
-{
-	Base *base, *base1;
-
-/*	Clear the "done" flags of all constraints */
-
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_loop_flags(base->object);
-	}
-
-	/*	Test all constraints */
-	for (base = G.scene->base.first; base; base=base->next){
-		/* Test the object */
-		
-		for (base1 = G.scene->base.first; base1; base1=base1->next)
-			clear_object_constraint_loop_flags(base1->object);
-		
-
-		test_constraints (base->object, "", 1);
-
-	
-		/* Test the subobject constraints */
-		switch (base->object->type){
-		case OB_ARMATURE:
-			{
-				bArmature *arm;
-				arm = get_armature(base->object);
-				if (arm)
-					test_bonelist_constraints (base->object, &arm->bonebase);
-			}
-			break;
-		default:
-			break;
-		}
-
-
-	}
-}
-
-int test_constraints (Object *owner, const char *substring, int disable)
-{
-/*	init_constraint_elements();*/
-	g_conObj = owner;
-	g_conString = substring;
-
-	if (detect_constraint_loop (owner, substring, disable, 0))
-		return 1;
-	else
-		return 0;
-
-/*	free_constraint_elements();	*/
-}
-
-static short detect_constraint_loop (Object *owner, const char* substring, int disable, char typefrom)
-{
-
-	bConstraint *curcon;
-	ListBase *conlist;
-	int		type;
-	int		result = 0;
-
-	if (!owner)
-		return result;
-
-	/* Check parents */
-	/* Get the constraint list for this object */
-
-	if (strlen (substring)){
-		switch (owner->type){
-		case OB_ARMATURE:
-			type = TARGET_BONE;
-			break;
-		default:
-			type = TARGET_OBJECT;
-			break;
-		}
-	}
-	else
-		type = TARGET_OBJECT;
-
-
-	switch (type){
-	case TARGET_OBJECT:
-		conlist = &owner->constraints;
-		/* Check parents */
-#if 0
-		if (owner->parent && (ELEM (owner->partype, PAROBJECT, PARBONE))){
-			if (add_constraint_element (owner->parent, "", NULL, NULL)){
-				return 1;
-			}
-		/*	if (detect_constraint_loop (owner->parent, "", disable)){
-				return 1;
-			}
-		*/
-		}
-		/* Check tracking */
-		if (owner->track && (ELEM (owner->partype, PAROBJECT, PARBONE))){
-			if (add_constraint_element (owner->track, "", NULL, NULL)){
-				return 1;
-			}
-		/*	if (detect_constraint_loop (owner->track, "", disable)){
-				return 1;
-			}
-		*/
-		}
-#else
-		if (owner->parent && (owner->partype==PAROBJECT))
-			if (add_constraint_element (owner->parent, "", NULL, NULL))
-				return 1;
-
-		if (owner->parent && (owner->partype==PARBONE))
-			if (add_constraint_element (owner->parent, owner->parsubstr, NULL, NULL))
-				return 1;
-
-		/* Check tracking */
-		if (owner->track)
-			if (add_constraint_element (owner->track, "", NULL, NULL))
-				return 1;
-#endif
-
-		break;
-	case TARGET_BONE:
-		{
-			Bone *bone;
-			bPoseChannel *chan;
-
-			bone = get_named_bone(((bArmature*)owner->data), substring);
-			chan = get_pose_channel (owner->pose, substring);
-			if (bone){
-				conlist = &chan->constraints;
-				if (bone->parent){
-					if (add_constraint_element (owner, bone->parent->name, NULL, NULL))
-						return 1;
-					if (detect_constraint_loop (owner, bone->parent->name, disable, 0))
-						return 1;
-				}
-				else{
-					if (add_constraint_element (owner, "", NULL, NULL))
-						return 1;
-					if (detect_constraint_loop (owner, "", disable, 0))
-						return 1;
-				}
-			}
-			else
-				conlist = NULL;
-		}
-		break;
-	default:
-		conlist = NULL;
-		break;
-	}
-	
-	/* Cycle constraints */
-	if (conlist){
-		for (curcon = conlist->first; curcon; curcon=curcon->next){
-			
-			/* Clear the disable flag */
-			
-			if (curcon->flag & CONSTRAINT_LOOPTESTED){
-				return 0;
-			}
-			else {
-				curcon->flag &= ~CONSTRAINT_DISABLE;
-				curcon->flag |= CONSTRAINT_LOOPTESTED;
-				switch (curcon->type){
-				case CONSTRAINT_TYPE_ACTION:
-					{
-						bActionConstraint *data = curcon->data;
-
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_ACTION)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_LOCLIKE:
-					{
-						bLocateLikeConstraint *data = curcon->data;
-					
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCLIKE)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_ROTLIKE:
-					{
-						bRotateLikeConstraint *data = curcon->data;
-					
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_ROTLIKE)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_KINEMATIC:
-					{
-						bKinematicConstraint *data = curcon->data;
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//	return 1;
-						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_KINEMATIC)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_TRACKTO:
-					{
-						bTrackToConstraint *data = curcon->data;
-						if (!exist_object(data->tar)) {
-							data->tar = NULL;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
-							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-								curcon->flag |= CONSTRAINT_DISABLE;
-								result = 1;
-								break;
-								//	return 1;
-							}
-						}
-						else {
-							curcon->flag |= CONSTRAINT_NOREFRESH;
-						}
-
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_TRACKTO)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->reserved2==data->reserved1){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->reserved2+3==data->reserved1){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_LOCKTRACK:
-					{
-						bLockTrackConstraint *data = curcon->data;
-					
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (typefrom != CONSTRAINT_TYPE_TRACKTO && typefrom != CONSTRAINT_TYPE_LOCKTRACK){
-							if (add_constraint_element (data->tar, data->subtarget, owner, substring)){
-								curcon->flag |= CONSTRAINT_DISABLE;
-								result = 1;
-								break;
-								//		return 1;
-							}
-						}
-						else {
-							curcon->flag |= CONSTRAINT_NOREFRESH;
-						}
-
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->lockflag==data->trackflag){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->lockflag+3==data->trackflag){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_STRETCHTO:
-					{
-						bStretchToConstraint *data = curcon->data;
-					
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-						}
-						if (detect_constraint_loop (data->tar, data->subtarget, disable, CONSTRAINT_TYPE_LOCKTRACK)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				case CONSTRAINT_TYPE_FOLLOWPATH:
-					{
-						bFollowPathConstraint *data = curcon->data;
-					
-						if (!exist_object(data->tar)){
-							data->tar = NULL;
-							break;
-						}
-						if (data->tar->type != OB_CURVE){
-							data->tar = NULL;
-							break;
-						}
-						if (add_constraint_element (data->tar, "", owner, substring)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (detect_constraint_loop (data->tar, "", disable, CONSTRAINT_TYPE_FOLLOWPATH)){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->upflag==data->trackflag){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-						if (data->upflag+3==data->trackflag){
-							curcon->flag |= CONSTRAINT_DISABLE;
-							result = 1;
-							break;
-							//		return 1;
-						}
-					}
-					break;
-				}
-			}
-		}
-	}
-	
-	return result;
-}
 
 ListBase *get_constraint_client_channels (int forcevalid)
 {
-
 	Object *ob;
 	char ipstr[64];
 
@@ -698,10 +102,10 @@ ListBase *get_constraint_client_channels (int forcevalid)
 		case OB_ARMATURE:
 			{
 				bActionChannel *achan;
-				Bone *bone;
+				bPoseChannel *pchan;
 
-				bone = get_first_selected_bone();
-				if (!bone) break;
+				pchan = get_active_posechannel();
+				if (!pchan) break;
 				
 				/* Make sure we have an action */
 				if (!G.obpose->action){
@@ -712,14 +116,14 @@ ListBase *get_constraint_client_channels (int forcevalid)
 				}
 				
 				/* Make sure we have an actionchannel */
-				achan = get_named_actionchannel(G.obpose->action, bone->name);
+				achan = get_named_actionchannel(G.obpose->action, pchan->name);
 				if (!achan){
 					if (!forcevalid)
 						return NULL;
 					
 					achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
 
-					strcpy (achan->name, bone->name);
+					strcpy (achan->name, pchan->name);
 					sprintf (ipstr, "%s.%s", G.obpose->action->id.name+2, achan->name);
 					ipstr[23]=0;
 					achan->ipo=	add_ipo(ipstr, ID_AC);	
@@ -760,25 +164,20 @@ ListBase *get_constraint_client(char *name, short *clientType, void **clientdata
 		switch (G.obpose->type){
 		case OB_ARMATURE:
 			{
-				Bone *bone;
+				bPoseChannel *pchan;
 
-				bone = get_first_selected_bone();
-				if (!bone) break;
+				pchan = get_active_posechannel();
+				if (!pchan) break;
 
-				{
-					bPoseChannel	*chan;
-					
-					/* Is the bone the client? */
-					if (clientType)
-						*clientType = TARGET_BONE;
-					if (clientdata)
-						*clientdata = bone;
-					if (name)
-						sprintf (name, "%s>>%s", name, bone->name);
-					chan = verify_pose_channel(G.obpose->pose, bone->name);
-					list = &chan->constraints;
+				/* Is the bone the client? */
+				if (clientType)
+					*clientType = TARGET_BONE;
+				if (clientdata)
+					*clientdata = pchan->bone;
+				if (name)
+					sprintf (name, "%s>>%s", name, pchan->name);
 
-				}			
+				list = &pchan->constraints;
 			}
 			break;
 		}
@@ -905,4 +304,242 @@ char *get_con_subtarget_name(bConstraint *constraint, Object *target)
 	
 	return NULL;  
 }
+
+/* checks validity of object pointers, and NULLs,
+   if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag */
+static void test_constraints (Object *owner, const char* substring)
+{
+	
+	bConstraint *curcon;
+	ListBase *conlist= NULL;
+	int type;
+	
+	if (owner==NULL) return;
+	
+	/* Check parents */
+	/* Get the constraint list for this object */
+	
+	if (strlen (substring)){
+		switch (owner->type){
+			case OB_ARMATURE:
+				type = TARGET_BONE;
+				break;
+			default:
+				type = TARGET_OBJECT;
+				break;
+		}
+	}
+	else
+		type = TARGET_OBJECT;
+	
+	
+	switch (type){
+		case TARGET_OBJECT:
+			conlist = &owner->constraints;
+			break;
+		case TARGET_BONE:
+			{
+				Bone *bone;
+				bPoseChannel *chan;
+				
+				bone = get_named_bone(((bArmature*)owner->data), substring);
+				chan = get_pose_channel (owner->pose, substring);
+				if (bone && chan){
+					conlist = &chan->constraints;
+				}
+			}
+			break;
+	}
+	
+	/* Cycle constraints */
+	if (conlist){
+		for (curcon = conlist->first; curcon; curcon=curcon->next){
+			curcon->flag &= ~CONSTRAINT_DISABLE;
+			
+			switch (curcon->type){
+				case CONSTRAINT_TYPE_ACTION:
+				{
+					bActionConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_LOCLIKE:
+				{
+					bLocateLikeConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_ROTLIKE:
+				{
+					bRotateLikeConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_KINEMATIC:
+				{
+					bKinematicConstraint *data = curcon->data;
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_TRACKTO:
+				{
+					bTrackToConstraint *data = curcon->data;
+					if (!exist_object(data->tar)) {
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					if (data->reserved2==data->reserved1){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					if (data->reserved2+3==data->reserved1){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_LOCKTRACK:
+				{
+					bLockTrackConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+
+					if (data->lockflag==data->trackflag){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					if (data->lockflag+3==data->trackflag){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_STRETCHTO:
+				{
+					bStretchToConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_FOLLOWPATH:
+				{
+					bFollowPathConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						break;
+					}
+					if (data->tar->type != OB_CURVE){
+						data->tar = NULL;
+						break;
+					}
+					if (data->upflag==data->trackflag){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					if (data->upflag+3==data->trackflag){
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+			}
+		}
+	}
+}
+
+static void test_bonelist_constraints (Object *owner, ListBase *list)
+{
+	Bone *bone;
+
+	for (bone = list->first; bone; bone=bone->next) {
+		
+		test_constraints(owner, bone->name);
+		test_bonelist_constraints (owner, &bone->childbase);
+	}
+}
+
+void object_test_constraints (Object *owner)
+{
+	test_constraints(owner, "");
+
+	if(owner->type==OB_ARMATURE) {
+		bArmature *arm;
+		arm = get_armature(owner);
+		if (arm)
+			test_bonelist_constraints (owner, &arm->bonebase);
+	}
+
+}
+
 

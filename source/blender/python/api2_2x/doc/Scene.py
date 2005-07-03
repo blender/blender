@@ -158,7 +158,7 @@ class Scene:
     @type full: int
     @param full: A bool to control the level of updating:
         - 0: sort the base list of objects.
-        - 1: sort and also regroup, do ipos, ikas, keys, script links, etc.
+        - 1: sort and also regroup, do ipos, keys, script links, etc.
     @warn: When in doubt, try with I{full = 0} first, since it is faster.
         The "full" update is a recent addition to this method.
     """

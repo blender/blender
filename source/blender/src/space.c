@@ -70,6 +70,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
@@ -86,7 +87,6 @@
 #include "BIF_drawscript.h"
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
-#include "BIF_editika.h"
 #include "BIF_editkey.h"
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
@@ -643,6 +643,8 @@ void BIF_undo_push(char *str)
 			undo_push_mball(str);
 		else if (G.obedit->type==OB_LATTICE)
 			undo_push_lattice(str);
+		else if (G.obedit->type==OB_ARMATURE)
+			undo_push_armature(str);
 	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
@@ -653,7 +655,7 @@ void BIF_undo_push(char *str)
 void BIF_undo(void)
 {	
 	if(G.obedit) {
-		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
+		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 			undo_editmode_step(1);
 	}
 	else {
@@ -671,7 +673,7 @@ void BIF_undo(void)
 void BIF_redo(void)
 {
 	if(G.obedit) {
-		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
+		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 			undo_editmode_step(-1);
 	}
 	else {
@@ -689,7 +691,7 @@ void BIF_redo(void)
 void BIF_undo_menu(void)
 {
 	if(G.obedit) {
-		if ELEM6(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE)
+		if ELEM7(G.obedit->type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE)
 			undo_editmode_menu();
 		allqueue(REDRAWALL, 0);
 	}
@@ -1156,7 +1158,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF) ) {
 					makecyclicNurb();
-					makeDispList(G.obedit);
+					DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 					allqueue(REDRAWVIEW3D, 0);
 				}
 				else if((G.qual==0)){
@@ -1202,11 +1204,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							extrude_nurb();
 						else if(G.obedit->type==OB_ARMATURE)
 							extrude_armature();
-					}
-					else {
-						ob= OBACT;
-						if(ob && ob->type==OB_IKA) if(okee("extrude IKA"))
-							extrude_ika(ob, 1);
 					}
 				}
 				else if (G.qual==LR_CTRLKEY) {
@@ -1295,7 +1292,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							else if((G.qual==0))
 								sethandlesNurb(3);
 							
-							makeDispList(G.obedit);
+							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 							BIF_undo_push("Handle change");
 							allqueue(REDRAWVIEW3D, 0);
 						}
@@ -1368,9 +1365,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else
 							select_select_keys();
 					}
-					else if(G.qual==LR_CTRLKEY)
-						make_skeleton();
-/* 					else if(G.qual & LR_ALTKEY) delete_skeleton(); */
 					else if (G.qual==0)
 						set_ob_ipoflags();
 				}
@@ -1413,7 +1407,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.qual==LR_ALTKEY) {
 						if(G.obedit->type==OB_MESH) {
 							mergemenu();
-							makeDispList(G.obedit);
+							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 						}
 					}
 					else if((G.qual==0) || (G.qual==LR_CTRLKEY)) {
@@ -1496,8 +1490,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			case PKEY:
 				if(G.obedit) {
-					if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY))
-						make_parent();
+					if(G.qual==LR_CTRLKEY || G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
+						if(G.obedit->type==OB_ARMATURE)
+							make_bone_parent();
+						else
+							make_parent();
+					}
+					else if(G.qual==LR_ALTKEY && G.obedit->type==OB_ARMATURE)
+						clear_bone_parent();
 					else if((G.qual==0) && G.obedit->type==OB_MESH)
 						separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
@@ -1609,7 +1609,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						convert_to_triface(0);
 						allqueue(REDRAWVIEW3D, 0);
 						countall();
-						makeDispList(G.obedit);
+						DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 					}
 					if (G.obedit->type==OB_CURVE) {
 						if (G.qual==LR_ALTKEY) {
@@ -1637,9 +1637,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.obedit->type==OB_MESH) {
 						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
-					else if(G.obedit->type==OB_ARMATURE)
-						remake_editArmature();
-					else if ELEM4(G.obedit->type, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE) {
+					else if ELEM5(G.obedit->type, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
 						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
 				}
@@ -1672,7 +1670,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.obedit) {
 						if(G.obedit->type==OB_CURVE) {
 							sethandlesNurb(2);
-							makeDispList(G.obedit);
+							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 							allqueue(REDRAWVIEW3D, 0);
 							BIF_undo_push("Handle change");
 						}
@@ -4565,16 +4563,7 @@ void allqueue(unsigned short event, short val)
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
-//#ifdef NAN_DEP_GRAPH
-		/* dependency check.maybe not final pos */
-		if (sa->spacetype==SPACE_VIEW3D) {
-			if (G.scene->dagisvalid == 0) {
-//				fprintf(stderr,"building dag \n");
-				G.scene->theDag = build_dag(G.scene, DAG_RL_ALL_BUT_DATA_MASK);
-				G.scene->dagisvalid = 1;
-			}
-		}
-//#endif
+
 		if(event==REDRAWALL) {
 			scrarea_queue_winredraw(sa);
 			scrarea_queue_headredraw(sa);

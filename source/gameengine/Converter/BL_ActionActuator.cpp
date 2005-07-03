@@ -59,18 +59,18 @@
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose) {
-		clear_pose(m_pose);
+//		clear_pose(m_pose);
 		MEM_freeN(m_pose);
 		m_pose = NULL;
 	};
 	
 	if (m_userpose){
-		clear_pose(m_userpose);
+//		clear_pose(m_userpose);
 		MEM_freeN(m_userpose);
 		m_userpose=NULL;
 	}
 	if (m_blendpose) {
-		clear_pose(m_blendpose);
+//		clear_pose(m_blendpose);
 		MEM_freeN(m_blendpose);
 		m_blendpose = NULL;
 	};
@@ -363,12 +363,12 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 			obj->GetPose(&m_pose);
 			
 			/* Override the necessary channels with ones from the action */
-			get_pose_from_action(&m_pose, m_action, m_localtime);
+			extract_pose_from_action(m_pose, m_action, m_localtime);
 
 			/* Perform the user override (if any) */
 			if (m_userpose){
-				get_pose_from_pose(&m_pose, m_userpose);
-				clear_pose(m_userpose);
+				extract_pose_from_pose(m_pose, m_userpose);
+//				clear_pose(m_userpose);
 				MEM_freeN(m_userpose);
 				m_userpose = NULL;
 			}
@@ -847,10 +847,8 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 	{
 
 /*	DO IT HERE */
-		bPoseChannel *pchan;
+		bPoseChannel *pchan= verify_pose_channel(m_userpose, string);
 
-		pchan = (bPoseChannel*) MEM_callocN(sizeof(bPoseChannel), "userChannel");
-		strcpy(pchan->name, string);
 		Mat4ToQuat(matrix, pchan->quat);
 		Mat4ToSize(matrix, pchan->size);
 		VECCOPY (pchan->loc, matrix[3]);
@@ -860,9 +858,6 @@ PyObject* BL_ActionActuator::PySetChannel(PyObject* self,
 		if (!m_userpose){
 			m_userpose = (bPose*)MEM_callocN(sizeof(bPose), "userPose");
 		}
-
-		verify_pose_channel(m_userpose, string);
-		set_pose_channel(m_userpose, pchan);
 	}
 	
 	Py_INCREF(Py_None);

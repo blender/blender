@@ -63,6 +63,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BLI_rand.h"
 
 #include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -1275,7 +1276,7 @@ void hide_mesh(int swap)
 	}
 		
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Hide");
 }
 
@@ -1314,7 +1315,7 @@ void reveal_mesh(void)
 	EM_selectmode_flush();
 	
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Reveal");
 }
 
@@ -1920,7 +1921,7 @@ void righthandfaces(int select)	/* makes faces righthand turning */
 
 	recalc_editnormals();
 	
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	waitcursor(0);
 }
@@ -2145,7 +2146,7 @@ void vertexsmooth(void)
 	recalc_editnormals();
 
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Vertex Smooth");
 }
 
@@ -2192,7 +2193,7 @@ void vertexnoise(void)
 
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Vertex Noise");
 }
 
@@ -2256,7 +2257,7 @@ void vertices_to_sphere(void)
 	
 	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("To Sphere");
 }
 

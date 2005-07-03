@@ -306,10 +306,9 @@ Scene *copy_scene(Scene *sce, int level)
 	id_us_plus((ID *)scen->world);
 	id_us_plus((ID *)scen->set);
 
-	scen->ed= 0;
-	scen->radio= 0;
+	scen->ed= NULL;
+	scen->radio= NULL;
 	scen->theDag= NULL;
-	scen->dagisvalid= 0;
 
 	obase= sce->base.first;
 	base= scen->base.first;
@@ -1787,10 +1786,18 @@ static void info_text(int x, int y)
 				sprintf(infostr,"Fa:%d-%d | Mem:%.2fM ",
 						G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
 		}
+		else if(G.obedit->type==OB_ARMATURE) {
+			sprintf(infostr,"Ve:%d-%d | Bo:%d-%d | Mem:%.2fM ",
+					G.totvertsel, G.totvert, G.totbonesel, G.totbone, (mem_in_use>>10)/1024.0);
+		}
 		else {
 			sprintf(infostr,"Ve:%d-%d | Mem:%.2fM ",
 					G.totvertsel, G.totvert, (mem_in_use>>10)/1024.0);
 		}
+	}
+	else if(G.obpose) {
+		sprintf(infostr,"Bo:%d-%d | Mem:%.2fM ",
+					G.totbonesel, G.totbone, (mem_in_use>>10)/1024.0);
 	}
 	else {
 		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | Time:%s | ",

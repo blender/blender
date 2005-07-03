@@ -91,12 +91,14 @@ static PyObject *Bone_setName( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setRoll( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setHead( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setTail( BPy_Bone * self, PyObject * args );
+		// note; this can only be done as POSE operation
 static PyObject *Bone_setLoc( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setSize( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setQuat( BPy_Bone * self, PyObject * args );
+static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args );
+
 static PyObject *Bone_setParent( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setWeight( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_setBoneclass( BPy_Bone * self, PyObject * args );
 static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args );
 
@@ -261,7 +263,7 @@ static int updatePyBone( BPy_Bone * self )
 				BLI_strncpy( self->parent, parent_str,
 					     strlen( parent_str ) + 1 );
 		}
-
+#if 0
 		for( x = 0; x < 3; x++ ) {
 			self->head->vec[x] = self->bone->head[x];
 			self->tail->vec[x] = self->bone->tail[x];
@@ -288,6 +290,7 @@ static int updatePyBone( BPy_Bone * self )
 					self->bone->posemat[x][y];
 			}
 		}
+#endif
 		return 1;
 	}
 }
@@ -315,27 +318,27 @@ int updateBoneData( BPy_Bone * self, Bone * parent )
 		for( x = 0; x < 3; x++ ) {
 			self->bone->head[x] = self->head->vec[x];
 			self->bone->tail[x] = self->tail->vec[x];
-			self->bone->loc[x] = self->loc->vec[x];
-			self->bone->dloc[x] = self->dloc->vec[x];
-			self->bone->size[x] = self->size->vec[x];
-			self->bone->dsize[x] = self->dsize->vec[x];
+//			self->bone->loc[x] = self->loc->vec[x];
+//			self->bone->dloc[x] = self->dloc->vec[x];
+//			self->bone->size[x] = self->size->vec[x];
+//			self->bone->dsize[x] = self->dsize->vec[x];
 		}
 		for( x = 0; x < 4; x++ ) {
-			self->bone->quat[x] = self->quat->quat[x];
-			self->bone->dquat[x] = self->dquat->quat[x];
+//			self->bone->quat[x] = self->quat->quat[x];
+//			self->bone->dquat[x] = self->dquat->quat[x];
 		}
 		for( x = 0; x < 4; x++ ) {
 			for( y = 0; y < 4; y++ ) {
-				self->bone->obmat[x][y] =
-					self->obmat->matrix[x][y];
-				self->bone->parmat[x][y] =
-					self->parmat->matrix[x][y];
-				self->bone->defmat[x][y] =
-					self->defmat->matrix[x][y];
-				self->bone->irestmat[x][y] =
-					self->irestmat->matrix[x][y];
-				self->bone->posemat[x][y] =
-					self->posemat->matrix[x][y];
+//				self->bone->obmat[x][y] =
+//					self->obmat->matrix[x][y];
+//				self->bone->parmat[x][y] =
+//					self->parmat->matrix[x][y];
+//				self->bone->defmat[x][y] =
+//					self->defmat->matrix[x][y];
+//				self->bone->irestmat[x][y] =
+//					self->irestmat->matrix[x][y];
+//				self->bone->posemat[x][y] =
+//					self->posemat->matrix[x][y];
 			}
 		}
 		return 1;
@@ -828,9 +831,10 @@ static PyObject *Bone_getLoc( BPy_Bone * self )
 		//use bone datastruct
 		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
 					3 );
-		( ( VectorObject * ) attr )->vec[0] = self->bone->loc[0];
-		( ( VectorObject * ) attr )->vec[1] = self->bone->loc[1];
-		( ( VectorObject * ) attr )->vec[2] = self->bone->loc[2];
+		
+//		( ( VectorObject * ) attr )->vec[0] = self->bone->loc[0];
+//		( ( VectorObject * ) attr )->vec[1] = self->bone->loc[1];
+//		( ( VectorObject * ) attr )->vec[2] = self->bone->loc[2];
 	}
 	if( attr )
 		return attr;
@@ -856,9 +860,9 @@ static PyObject *Bone_getSize( BPy_Bone * self )
 		//use bone datastruct
 		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
 					3 );
-		( ( VectorObject * ) attr )->vec[0] = self->bone->size[0];
-		( ( VectorObject * ) attr )->vec[1] = self->bone->size[1];
-		( ( VectorObject * ) attr )->vec[2] = self->bone->size[2];
+//		( ( VectorObject * ) attr )->vec[0] = self->bone->size[0];
+//		( ( VectorObject * ) attr )->vec[1] = self->bone->size[1];
+//		( ( VectorObject * ) attr )->vec[2] = self->bone->size[2];
 	}
 	if( attr )
 		return attr;
@@ -885,10 +889,10 @@ static PyObject *Bone_getQuat( BPy_Bone * self )
 		//use bone datastruct
 		attr = newQuaternionObject( PyMem_Malloc
 					    ( 4 * sizeof( float ) ) );
-		( ( QuaternionObject * ) attr )->quat[0] = self->bone->quat[0];
-		( ( QuaternionObject * ) attr )->quat[1] = self->bone->quat[1];
-		( ( QuaternionObject * ) attr )->quat[2] = self->bone->quat[2];
-		( ( QuaternionObject * ) attr )->quat[3] = self->bone->quat[3];
+//		( ( QuaternionObject * ) attr )->quat[0] = self->bone->quat[0];
+//		( ( QuaternionObject * ) attr )->quat[1] = self->bone->quat[1];
+//		( ( QuaternionObject * ) attr )->quat[2] = self->bone->quat[2];
+//		( ( QuaternionObject * ) attr )->quat[3] = self->bone->quat[3];
 	}
 
 	return attr;
@@ -1095,9 +1099,9 @@ static PyObject *Bone_setLoc( BPy_Bone * self, PyObject * args )
 		self->loc->vec[2] = f3;
 	} else {
 		//use bone datastruct
-		self->bone->loc[0] = f1;
-		self->bone->loc[1] = f2;
-		self->bone->loc[2] = f3;
+//		self->bone->loc[0] = f1;
+//		self->bone->loc[1] = f2;
+//		self->bone->loc[2] = f3;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1124,9 +1128,9 @@ static PyObject *Bone_setSize( BPy_Bone * self, PyObject * args )
 		self->size->vec[2] = f3;
 	} else {
 		//use bone datastruct
-		self->bone->size[0] = f1;
-		self->bone->size[1] = f2;
-		self->bone->size[2] = f3;
+//		self->bone->size[0] = f1;
+//		self->bone->size[1] = f2;
+//		self->bone->size[2] = f3;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1168,10 +1172,10 @@ static PyObject *Bone_setQuat( BPy_Bone * self, PyObject * args )
 		self->quat->quat[3] = f4;
 	} else {
 		//use bone datastruct
-		self->bone->quat[0] = f1;
-		self->bone->quat[1] = f2;
-		self->bone->quat[2] = f3;
-		self->bone->quat[3] = f4;
+//		self->bone->quat[0] = f1;
+//		self->bone->quat[1] = f2;
+//		self->bone->quat[2] = f3;
+//		self->bone->quat[3] = f4;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1543,19 +1547,22 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 			object->pose = MEM_callocN( sizeof( bPose ), "Pose" );
 
 		//if bone does have a channel create one
-		verify_pose_channel( object->pose, self->bone->name );
+		// do not use anymore! (ton)
+		chan= verify_pose_channel( object->pose, self->bone->name );
+		
 		//create temp Pose Channel
-		chan = MEM_callocN( sizeof( bPoseChannel ), "PoseChannel" );
+		 // chan = MEM_callocN( sizeof( bPoseChannel ), "PoseChannel" );
 		//set the variables for this pose
-		memcpy( chan->loc, self->bone->loc, sizeof( chan->loc ) );
-		memcpy( chan->quat, self->bone->quat, sizeof( chan->quat ) );
-		memcpy( chan->size, self->bone->size, sizeof( chan->size ) );
+//		memcpy( chan->loc, self->bone->loc, sizeof( chan->loc ) );
+//		memcpy( chan->quat, self->bone->quat, sizeof( chan->quat ) );
+//		memcpy( chan->size, self->bone->size, sizeof( chan->size ) );
 		strcpy( chan->name, self->bone->name );
 		chan->flag |= flagValue;
 		//set it to the channel
-		setChan = set_pose_channel( object->pose, chan );
+		// setChan = set_pose_channel( object->pose, chan );
 		//frees unlinked pose/bone channels from object
-		collect_pose_garbage( object );
+/* note; changing an Armature requires building poses again, consult me! (ton) */
+		// collect_pose_garbage( object );
 
 		//create an action if one not already assigned to object
 		if( !py_action && !object->action ) {
@@ -1600,8 +1607,8 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 		//rebuild ipos
 		remake_action_ipos( object->action );
 
-		//rebuild displists
-		rebuild_all_armature_displists(  );
+		//signal to rebuild displists (new! added by ton)
+		object->recalc |= OB_RECALC_DATA;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1667,6 +1674,11 @@ static PyObject *Bone_hasIK( BPy_Bone * self )
 }
 
 //--------------- BPy_Bone.getRestMatrix()-------------------------
+
+/* we now got BoneSpace, ArmatureSpace, PoseSpace, WorldSpace.
+   check DNA_armature.h, only read from data itself, dont use evil calls
+   that evaluate animation system anymore (ton) */
+
 static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 {
 	char *local = "worldspace";
@@ -1691,8 +1703,8 @@ static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 		//use python vars
 		if( BLI_streq( local, worldspace ) ) {
 			VecSubf( delta, self->tail->vec, self->head->vec );
-			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
-					   matrix, delta, self->roll );
+//			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
+//					   matrix, delta, self->roll );
 		} else if( BLI_streq( local, bonespace ) ) {
 			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 							"bone not yet linked to an armature....'" ) );
@@ -1706,12 +1718,13 @@ static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 						     1 );
 		} else if( BLI_streq( local, bonespace ) ) {
 			VecSubf( delta, self->bone->tail, self->bone->head );
-			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
-					   matrix, delta, self->bone->roll );
+//			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
+//					   matrix, delta, self->bone->roll );
 			if( self->bone->parent ) {
-				get_bone_root_pos( self->bone, root, 1 );
-				get_bone_root_pos( self->bone->parent, p_root,
-						   1 );
+				
+//				get_bone_root_pos( self->bone, root, 1 );
+//				get_bone_root_pos( self->bone->parent, p_root,
+//						   1 );
 				VecSubf( delta, root, p_root );
 				VECCOPY( ( ( MatrixObject * ) matrix )->
 					 matrix[3], delta );

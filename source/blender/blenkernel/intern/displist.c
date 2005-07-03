@@ -238,24 +238,6 @@ void freedisplist(ListBase *lb)
 	}
 }
 
-static void freedisplist_object(Object *ob)
-{
-	freedisplist(&ob->disp);
-
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		freedisplist(&me->disp);
-		if (me->derived) {
-			me->derived->release(me->derived);
-			me->derived = NULL;
-		}
-	}
-	else if(ob->type==OB_CURVE || ob->type==OB_SURF || ob->type==OB_FONT) {
-		Curve *cu= ob->data;
-		freedisplist(&cu->disp);
-	}
-}
-
 DispList *find_displist_create(ListBase *lb, int type)
 {
 	DispList *dl;
@@ -1661,12 +1643,12 @@ void makeDispList(Object *ob)
 		if (ob!=G.obedit) mesh_modifier(ob, 'e');
 	}
 	else if(ob->type==OB_MBALL) {
-		ob= find_basis_mball(ob);
+		if(ob==find_basis_mball(ob)) {
+			metaball_polygonize(ob);
+			tex_space_mball(ob);
 
-		metaball_polygonize(ob);
-		tex_space_mball(ob);
-
-		object_deform(ob);
+			object_deform(ob);
+		}
 	}
 	else if(ob->type==OB_SURF) {
 		
@@ -1760,6 +1742,7 @@ void makeDispList(Object *ob)
 		if(ob!=G.obedit) object_deform(ob);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
+		int obedit= (G.obedit && G.obedit->data==ob->data);
 		
 		draw= ob->dt;
 		cu= ob->data;
@@ -1767,21 +1750,23 @@ void makeDispList(Object *ob)
 		if(dl_onlyzero && dispbase->first) return;
 		freedisplist(dispbase);
 		
-		if(cu->path) free_path(cu->path);
-		cu->path= 0;
-		
 		BLI_freelistN(&(cu->bev));
 		
-		if(ob!=G.obedit) curve_modifier(ob, 's');
+		if(cu->path) free_path(cu->path);
+		cu->path= NULL;
 		
-		if(ob==G.obedit) {
+		if(ob->type==OB_FONT) text_to_curve(ob, 0);
+		
+		if(!obedit) curve_modifier(ob, 's');
+		
+		if(obedit) {
 			if(ob->type==OB_CURVE) curve_to_displist(&editNurb, dispbase);
 			else curve_to_displist(&cu->nurb, dispbase);
-			if(cu->flag & CU_PATH) makeBevelList(ob);
+			makeBevelList(ob);  // always needed, so calc_curvepath() can work
 		}
 		else if(cu->ext1==0.0 && cu->ext2==0.0 && cu->bevobj==NULL && cu->width==1.0) {
 			curve_to_displist(&cu->nurb, dispbase);
-			if(cu->flag & CU_PATH) makeBevelList(ob);
+			makeBevelList(ob); // always needed, so calc_curvepath() can work
 		}
 		else {
 			
@@ -1893,10 +1878,12 @@ void makeDispList(Object *ob)
 				freedisplist(&dlbev);
 			}
 		}
+		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
-		if(ob!=G.obedit) curve_modifier(ob, 'e');
-		if(ob!=G.obedit) object_deform(ob);
-
+		if(!obedit) {
+			curve_modifier(ob, 'e');
+			object_deform(ob);
+		}
 		tex_space_curve(cu);
 
 	}
@@ -2202,142 +2189,6 @@ void imagestodisplist(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
-
-/* on frame change */
-/* new method: only frees displists, and relies on 
-   drawobject.c & convertscene.c to build it when needed
-*/
-void test_all_displists(void)
-{
-	Base *base;
-	Object *ob;
-	unsigned int lay;
-	int makedisp, freedisp;
-	
-	/* background */	
-	lay= G.scene->lay;
-	
-	/* clear flags, we use them because parent->parents are evaluated too */
-	base= G.scene->base.first;
-	while(base) {
-		if(base->lay & lay) {
-			base->object->flag &= ~(BA_DISP_UPDATE|BA_WHERE_UPDATE);
-		}
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
-		else base= base->next;
-	}
-	
-	base= G.scene->base.first;
-	while(base) {
-		if(base->lay & lay) {
-			ob= base->object;
-			makedisp= freedisp= 0;
-			
-			if(ob->type==OB_MBALL && (ob->ipo || ob->parent)) {
-				// find metaball object holding the displist
-				// WARNING: if more metaballs have IPO's the displist
-				// is recalculated to often... do we free the displist
-				// and rely on the drawobject.c to build it again when needed
-
-				if(ob->disp.first == NULL) {
-					ob= find_basis_mball(ob);
-				}
-				makedisp= 1;
-			}
-			else if(ob->parent) {
-				
-				if (ob->parent->type == OB_LATTICE)
-					freedisp= 1;
-				else if ((ob->parent->type==OB_ARMATURE) && (ob->partype == PARSKEL))
-					makedisp= 1;
-				else if(ob->softflag & OB_SB_ENABLE)
-					makedisp= 1;
-				else if ((ob->parent->type==OB_CURVE) && (ob->partype == PARSKEL))
-					freedisp= 1;
-				else if(ob->partype==PARVERT1 || ob->partype==PARVERT3) {
-					if(ob->parent->parent) 
-						ob->parent->flag |= BA_DISP_UPDATE;
-					else if(ob->parent->effect.first)	// stupid test for wave
-						ob->parent->flag |= BA_DISP_UPDATE;
-				}
-			}
-
-			if(ob->hooks.first) {
-				ObHook *hook;
-				for(hook= ob->hooks.first; hook; hook= hook->next) {
-					if(hook->parent) 
-						freedisp= 1;
-					break;
-				}
-			}
-			
-			if(ob->softflag & OB_SB_ENABLE) freedisplist_object(ob);
-			/* warn, ob pointer changed in case of OB_MALL */
-
-			if ELEM(ob->type, OB_CURVE, OB_SURF) {
-				if(ob!=G.obedit) {
-					Curve *cu= ob->data;
-					
-					if(cu->key ) makedisp= 1;
-					if(cu->bevobj) {
-						Curve *cu1= cu->bevobj->data;
-						if(cu1->key ) freedisp= 1;
-					}
-					if(cu->taperobj) {
-						Curve *cu1= cu->taperobj->data;
-						if(cu1->key ) freedisp= 1;
-					}
-				}
-			}
-			else if(ob->type==OB_FONT) {
-				Curve *cu= ob->data;
-				if(cu->textoncurve) {
-					if( ((Curve *)cu->textoncurve->data)->key ) {
-						text_to_curve(ob, 0);
-						freedisp= 1;
-					}
-				}
-			}
-			else if(ob->type==OB_MESH) {
-				if(ob->effect.first) {
-					Effect *eff= ob->effect.first;
-					while(eff) {
-						if(eff->type==EFF_WAVE) {
-							freedisp= 1;
-							break;
-						}
-						eff= eff->next;
-					}
-				}
-				if(ob!=G.obedit) {
-					if(( ((Mesh *)(ob->data))->key )) 
-						freedisp= 1;
-				}
-			}
-			if(freedisp) ob->flag |= BA_WHERE_UPDATE;
-			if(makedisp) ob->flag |= BA_DISP_UPDATE;
-		}
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
-		else base= base->next;
-	}
-	
-	/* going over the flags to free or make displists */
-	base= G.scene->base.first;
-	while(base) {
-		if(base->lay & lay) {
-			ob= base->object;
-			if(ob->flag & BA_DISP_UPDATE) {
-				where_is_object(ob);
-				makeDispList(ob);
-			}
-			else if(ob->flag & BA_WHERE_UPDATE) freedisplist_object(ob);
-		}
-		if(base->next==0 && G.scene->set && base==G.scene->base.last) base= G.scene->set->base.first;
-		else base= base->next;
-	}
-	
-}
-
 
 void boundbox_displist(Object *ob)
 {

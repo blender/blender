@@ -46,46 +46,39 @@
 #endif
 #include "MEM_guardedalloc.h"
 
-#include "nla.h"				/* for __NLA : IMPORTANT Do not delete me yet! */
-#ifdef __NLA					/* for __NLA : IMPORTANT Do not delete me yet! */
-#include "DNA_armature_types.h"	/* for __NLA : IMPORTANT Do not delete me yet! */
-#include "BKE_armature.h"		/* for __NLA : IMPORTANT Do not delete me yet! */
-#include "BKE_action.h"			/* for __NLA : IMPORTANT Do not delete me yet! */
-#endif							/* for __NLA : IMPORTANT Do not delete me yet! */
-
+#include "DNA_armature_types.h"	
 #include "DNA_constraint_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_scriptlink_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_ika_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_group_types.h"
-#include "DNA_curve_types.h"
+#include "DNA_meta_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_scriptlink_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_blenlib.h"
-
-#include "BKE_bad_level_calls.h"
-#include "BKE_utildefines.h"
-
-#include "BKE_global.h"
-#include "BKE_main.h"
+#include "BKE_action.h"			
 #include "BKE_anim.h"
+#include "BKE_armature.h"		
+#include "BKE_bad_level_calls.h"
 #include "BKE_constraint.h"
-
+#include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
-
+#include "BKE_main.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_world.h"
-#include "BKE_ipo.h"
-#include "BKE_ika.h"
-#include "BKE_key.h"
+#include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
 
-#include "BKE_depsgraph.h"
+#include "BLI_blenlib.h"
+
+#include "nla.h"
 
 #ifdef WIN32
 #else
@@ -222,95 +215,6 @@ int object_in_scene(Object *ob, Scene *sce)
 	return 0;
 }
 
-void sort_baselist(Scene *sce)
-{
-	 	topo_sort_baselist(sce);
-}
-
-#if 0
-void old_sort_baselist(Scene *sce)
-{
-	/* in order of parent and track */
-	ListBase tempbase, noparentbase, notyetbase;
-	Base *base, *test=NULL;
-	Object *par;
-	int doit, domore= 0, lastdomore=1;
-	
-	/* keep same order when nothing has changed! */
-	
-	while(domore!=lastdomore) {
-
-		lastdomore= domore;
-		domore= 0;
-		tempbase.first= tempbase.last= 0;
-		noparentbase.first= noparentbase.last= 0;
-		notyetbase.first= notyetbase.last= 0;
-		
-		while( (base= sce->base.first) ) {
-			BLI_remlink(&sce->base, base);
-			
-			par= 0;
-			if(base->object->type==OB_IKA) {
-				Ika *ika= base->object->data;
-				par= ika->parent;
-			}
-
-			if(par || base->object->parent || base->object->track) {
-				
-				doit= 0;
-				if(base->object->parent) doit++;
-				if(base->object->track) doit++;
-				
-			/* Count constraints */
-				{
-					bConstraint *con;
-					for (con = base->object->constraints.first; con; con=con->next){
-						if (constraint_has_target(con))
-							doit++;
-					}
-				}
-				
-				if(par) doit++;
-				
-				test= tempbase.first;
-				while(test) {
-					
-					if(test->object==base->object->parent) doit--;
-					if(test->object==base->object->track) doit--;
-					if(test->object==par) doit--;
-					
-					/* Decrement constraints */
-					{
-						bConstraint *con;
-						for (con = base->object->constraints.first; con; con=con->next){
-							if (test->object == get_constraint_target(con) && test->object!=base->object)
-								doit--;
-						}
-					}
-					
-					if(doit==0) break;
-					test= test->next;
-				}
-				
-				if(test) BLI_insertlink(&tempbase, test, base);
-				else {
-					BLI_addhead(&tempbase, base);
-					domore++;
-				}
-				
-			}
-			else BLI_addtail(&noparentbase, base);
-			
-		}
-		sce->base= noparentbase;
-		addlisttolist(&sce->base, &tempbase);
-		addlisttolist(&sce->base, &notyetbase);
-
-	}
-
-}
-#endif
-
 void set_scene_bg(Scene *sce)
 {
 	Base *base;
@@ -340,37 +244,34 @@ void set_scene_bg(Scene *sce)
 	}
 
 	/* sort baselist */
-	sort_baselist(sce);
+	DAG_scene_sort(sce);
 
 	/* copy layers and flags from bases to objects */
 	base= G.scene->base.first;
 	while(base) {
-		
-		base->object->lay= base->lay;
+		ob= base->object;
+		ob->lay= base->lay;
 		
 		/* group patch... */
-		base->flag &= ~OB_FROMGROUP;
-		flag= base->object->flag & OB_FROMGROUP;
+		base->flag &= ~(OB_FROMGROUP);
+		flag= ob->flag & (OB_FROMGROUP);
 		base->flag |= flag;
 		
-		base->object->flag= base->flag;
+		ob->flag= base->flag;
+		ob->recalc= OB_RECALC;
 		
-		base->object->ctime= -1234567.0;	/* force ipo to be calculated later */
+		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;
 	}
-
-	do_all_ipos();	/* layers/materials */
-
+	// full update
+	scene_update_for_newframe(sce, sce->lay);
+	
 	/* do we need FRAMECHANGED in set_scene? */
-	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+//	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
 
-	do_all_keys();
-#ifdef __NLA
-	do_all_actions(NULL);
-	rebuild_all_armature_displists();
-#endif
-	do_all_ikas();
+//	do_all_keys();
 
+//	do_all_actions(NULL);
 
 }
 
@@ -517,4 +418,42 @@ void scene_select_base(Scene *sce, Base *selbase)
 	selbase->object->flag= selbase->flag;
 
 	sce->basact= selbase;
+}
+
+/* applies changes right away */
+void scene_update_for_newframe(Scene *sce, unsigned int lay)
+{
+	Base *base;
+	int setcount=0;
+	
+	/* object ipos are calculated in where_is_object */
+	do_all_data_ipos();
+	
+	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
+	
+//	do_all_actions(NULL);
+	/* so nice, better do it twice */
+//	do_all_actions(NULL);
+	
+	/* if keys were activated, disable the locks */
+	unlock_all_keys();
+	
+	/* for time being; sets otherwise can be cyclic */
+	while(sce && setcount<2) {
+		if(sce->theDag==NULL)
+			DAG_scene_sort(sce);
+		
+		DAG_scene_update_flags(sce, lay);   // only stuff that moves
+		
+		for(base= sce->base.first; base; base= base->next) {
+			object_handle_update(base->object);   // bke_object.h
+			
+			/* only update layer when an ipo */
+			if(base->object->ipo && has_ipo_code(base->object->ipo, OB_LAY) ) {
+				base->lay= base->object->lay;
+			}
+		}
+		sce= sce->set;
+		setcount++;
+	}
 }

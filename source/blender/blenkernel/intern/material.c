@@ -737,7 +737,7 @@ void delete_material_index()
 	if(ob->type==OB_MESH) {
 		Mesh *me= get_mesh(ob);
 		mesh_delete_material_index(me, actcol-1);
-		makeDispList(ob);
+		freedisplist(&ob->disp);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 		cu= ob->data;
@@ -750,6 +750,6 @@ void delete_material_index()
 			}
 			nu= nu->next;
 		}
-		makeDispList(ob);
+		freedisplist(&ob->disp);
 	}
 }

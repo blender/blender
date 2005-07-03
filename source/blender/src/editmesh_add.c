@@ -53,7 +53,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
@@ -159,7 +159,7 @@ void addvert_mesh(void)
 
 	BIF_undo_push("Add vertex");
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	
 	while(get_mbut()&R_MOUSE);
 
@@ -190,7 +190,7 @@ static void make_fgon(void)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		EM_fgon_flags();	// redo flags and indices for fgons
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 		BIF_undo_push("Clear FGon");
 		return;
 	}
@@ -273,7 +273,7 @@ static void make_fgon(void)
 		EM_fgon_flags();	// redo flags and indices for fgons
 
 		allqueue(REDRAWVIEW3D, 0);
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 		BIF_undo_push("Make FGon");
 	}
 }
@@ -352,7 +352,7 @@ void addedgeface_mesh(void)
 		BIF_undo_push("Add edge");
 		allqueue(REDRAWVIEW3D, 0);
 		countall();
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 		return;
 	}
 	else if(amount > 4) {
@@ -423,7 +423,7 @@ void addedgeface_mesh(void)
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 }
 
 
@@ -850,7 +850,7 @@ void add_primitiveMesh(int type)
 
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
 	allqueue(REDRAWALL, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 
 	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
 	if(newob) load_editMesh();	

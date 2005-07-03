@@ -139,7 +139,7 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
 
-    export PY_FRAMEWORK	= 1    
+#    export PY_FRAMEWORK	= 1    
 
     ifdef PY_FRAMEWORK
        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
@@ -164,7 +164,7 @@ endif
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
-    export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa  -framework IOKit
+    export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET

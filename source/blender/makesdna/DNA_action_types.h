@@ -28,9 +28,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -44,22 +42,40 @@
 #include "DNA_view2d_types.h"
 
 struct SpaceLink;
+struct ListBase;
 
-typedef struct bPoseChannel{
+/* PoseChannel stores the results of Actions (ipos) and transform information 
+   with respect to the restposition of Armature bones */
+
+typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
 	ListBase			constraints;
-	int					flag;
-	float loc[3];
-	float size[3];
-	float quat[4];
-	float obmat[4][4];
 	char				name[32];	/* Channels need longer names than normal blender objects */
-	int					reserved1;
+	short				flag;		/* dynamic, for detecting transform changes */
+	short				constflag;  /* for quick detecting which constraints affect this channel */
+	int					depth;		/* dependency sorting help */
+	
+	struct Bone			*bone;		/* set on read file or rebuild pose */
+	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
+	struct ListBase		 chain;		/* only while evaluating pose */
+	
+	float		loc[3];				/* written in by actions or transform */
+	float		size[3];
+	float		quat[4];
+	
+	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
+	float		pose_mat[4][4];		/* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat */
+	float		ik_mat[3][3];		/* for itterative IK */
+	
+	float		pose_head[3];		/* actually pose_mat[3] */
+	float		pose_tail[3];		/* also used for drawing help lines... */
+	int pad;
 } bPoseChannel;
 
 
 typedef struct bPose{
 	ListBase			chanbase;
+	int flag, pad;
 } bPose;
 
 typedef struct bActionChannel {
@@ -99,6 +115,32 @@ typedef struct SpaceAction {
 /* Action Channel flags */
 #define	ACHAN_SELECTED	0x00000001
 #define ACHAN_HILIGHTED	0x00000002
+
+/* Pose->flag */
+
+#define POSE_RECALC		1
+
+/* PoseChannel (transform) flags */
+enum	{
+	POSE_LOC		=	0x0001,
+	POSE_ROT		=	0x0002,
+	POSE_SIZE		=	0x0004,
+	POSE_IK_MAT		=	0x0008,
+	POSE_UNUSED2	=	0x0010,
+	POSE_UNUSED3	=	0x0020,
+	POSE_UNUSED4	=	0x0040,
+	POSE_UNUSED5	=	0x0080,
+	POSE_OBMAT		=	0x0100,
+	POSE_PARMAT		=	0x0200,
+	POSE_DONE		=   0x0400,
+	POSE_KEY		=	0x1000
+};
+
+/* Pose Channel constflag (constraint) */
+#define PCHAN_HAS_IK		1
+#define PCHAN_HAS_TRACK		2
+#define PCHAN_HAS_CONST		4
+
 
 #endif
 

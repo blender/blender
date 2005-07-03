@@ -15,7 +15,6 @@ extern "C" {
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"

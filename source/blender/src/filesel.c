@@ -78,7 +78,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_curve.h"
 #include "BKE_font.h"
@@ -2202,24 +2201,14 @@ static void do_library_append(SpaceFile *sfile)
 		
 		BLO_library_append(sfile, dir, idcode);
 
-		/* DISPLISTS */
+		/* DISPLISTS? */
 		ob= G.main->object.first;
-		set_displist_onlyzero(1);
 		while(ob) {
 			if(ob->id.lib) {
-				if(ob->type==OB_FONT) {
-					Curve *cu= ob->data;
-					if(cu->nurb.first==0) text_to_curve(ob, 0);
-				}
-				makeDispList(ob);
+				ob->recalc |= OB_RECALC;
 			}
-			else if(ob->type==OB_MESH && ob->parent && ob->parent->type==OB_LATTICE ) {
-				makeDispList(ob);
-			}
-			
 			ob= ob->id.next;
 		}
-		set_displist_onlyzero(0);
 	
 		/* in sfile->dir is the whole lib name */
 		strcpy(G.lib, sfile->dir);
@@ -2394,7 +2383,7 @@ void main_to_filelist(SpaceFile *sfile)
 	if( sfile->dir[0]==0) {
 		
 		/* make directories */
-		sfile->totfile= 22;
+		sfile->totfile= 21;
 		sfile->filelist= (struct direntry *)malloc(sfile->totfile * sizeof(struct direntry));
 		
 		for(a=0; a<sfile->totfile; a++) {
@@ -2412,18 +2401,17 @@ void main_to_filelist(SpaceFile *sfile)
 		sfile->filelist[7].relname= BLI_strdup("Material");
 		sfile->filelist[8].relname= BLI_strdup("Texture");
 		sfile->filelist[9].relname= BLI_strdup("Image");
-		sfile->filelist[10].relname= BLI_strdup("Ika");
-		sfile->filelist[11].relname= BLI_strdup("Wave");
-		sfile->filelist[12].relname= BLI_strdup("Lattice");
-		sfile->filelist[13].relname= BLI_strdup("Lamp");
-		sfile->filelist[14].relname= BLI_strdup("Camera");
-		sfile->filelist[15].relname= BLI_strdup("Ipo");
-		sfile->filelist[16].relname= BLI_strdup("World");
-		sfile->filelist[17].relname= BLI_strdup("Screen");
-		sfile->filelist[18].relname= BLI_strdup("VFont");
-		sfile->filelist[19].relname= BLI_strdup("Text");
-		sfile->filelist[20].relname= BLI_strdup("Armature");
-		sfile->filelist[21].relname= BLI_strdup("Action");
+		sfile->filelist[10].relname= BLI_strdup("Wave");
+		sfile->filelist[11].relname= BLI_strdup("Lattice");
+		sfile->filelist[12].relname= BLI_strdup("Lamp");
+		sfile->filelist[13].relname= BLI_strdup("Camera");
+		sfile->filelist[14].relname= BLI_strdup("Ipo");
+		sfile->filelist[15].relname= BLI_strdup("World");
+		sfile->filelist[16].relname= BLI_strdup("Screen");
+		sfile->filelist[17].relname= BLI_strdup("VFont");
+		sfile->filelist[18].relname= BLI_strdup("Text");
+		sfile->filelist[19].relname= BLI_strdup("Armature");
+		sfile->filelist[20].relname= BLI_strdup("Action");
 		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);
 	}
 	else {

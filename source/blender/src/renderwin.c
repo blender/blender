@@ -680,7 +680,15 @@ static void renderwin_init_display_cb(void)
 			else {
 				window_raise(render_win->win);
 				window_make_active(render_win->win);
-				mywinset(2);	// to assign scissor/viewport again in mywindow.c. is hackish yes
+				
+				mywinset(2);	// to assign scissor/viewport again in mywindow.c. is hackish yes, but otherwise it draws in header of button for ogl header
+				{
+					rcti win_rct;
+					win_rct.xmin= win_rct.ymin= 0;
+					window_get_size(render_win->win, &win_rct.xmax, &win_rct.ymax);
+					win_rct.ymax-= RW_HEADERY;
+					glaDefine2DArea(&win_rct);
+				}
 			}
 
 			renderwin_reset_view(render_win);

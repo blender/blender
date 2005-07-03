@@ -71,7 +71,6 @@
 #include "DNA_fileglobal_types.h"
 #include "DNA_group_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -108,11 +107,12 @@
 
 #include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) open_plugin_seq set_rects_butspace check_imasel_copy
 
-#include "BKE_armature.h"	//	for precalc_bonelist_irestmats
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
 #include "BKE_property.h" // for get_property
@@ -1240,42 +1240,6 @@ static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
 	}
 }
 
-/* ************ READ IKA ***************** */
-
-static void lib_link_ika(FileData *fd, Main *main)
-{
-	Ika *ika;
-	int a;
-	Deform *def;
-
-	ika= main->ika.first;
-	while(ika) {
-		if(ika->id.flag & LIB_NEEDLINK) {
-
-			ika->parent= newlibadr(fd, ika->id.lib, ika->parent);
-
-			a= ika->totdef;
-			def= ika->def;
-			while(a--) {
-				def->ob=  newlibadr(fd, ika->id.lib, def->ob);
-				def++;
-			}
-			ika->id.flag -= LIB_NEEDLINK;
-		}
-		ika= ika->id.next;
-	}
-}
-
-static void direct_link_ika(FileData *fd, Ika *ika)
-{
-	link_list(fd, &ika->limbbase);
-
-	ika->def= newdataadr(fd, ika->def);
-
-	/* error from V.138 and older */
-	if(ika->def==0) ika->totdef= 0;
-}
-
 /* ************ READ ARMATURE ***************** */
 
 static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
@@ -1285,7 +1249,7 @@ static void lib_link_nlastrips(FileData *fd, ID *id, ListBase *striplist)
 	for (strip=striplist->first; strip; strip=strip->next){
 		strip->act = newlibadr_us(fd, id->lib, strip->act);
 		strip->ipo = newlibadr(fd, id->lib, strip->ipo);
-	};
+	}
 }
 
 static void lib_link_constraint_channels(FileData *fd, ID *id, ListBase *chanbase)
@@ -1302,7 +1266,8 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 	bConstraint *con;
 
 	for (con = conlist->first; con; con=con->next) {
-		/*  patch for error introduced by changing constraints (dunno how) */
+		/* patch for error introduced by changing constraints (dunno how) */
+		/* if con->data type changes, dna cannot resolve the pointer! (ton) */
 		if(con->data==NULL) {
 			con->type= CONSTRAINT_TYPE_NULL;
 		}
@@ -1386,35 +1351,31 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	link_list(fd, lb);
 	for (cons=lb->first; cons; cons=cons->next) {
 		cons->data = newdataadr(fd, cons->data);
-		switch (cons->type) {
-		default:
-			break;
-		}
-		// Link data
 	}
 }
 
+/* unused */
 static void lib_link_bone(FileData *fd, ID *id, Bone *bone)
 {
-	Bone *curBone;
+//	Bone *curBone;
 
-//	lib_link_constraints(fd, id, &bone->constraints);
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next) {
-		lib_link_bone(fd, id, curBone);
-	}
+//	for (curBone=bone->childbase.first; curBone; curBone=curBone->next) {
+//		lib_link_bone(fd, id, curBone);
+//	}
 }
 
 
-static void lib_link_pose(FileData *fd, ID *id, bPose *pose)
+static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *chan;
-
+	bArmature *arm= ob->data;
 	if (!pose)
 		return;
 
 	for (chan = pose->chanbase.first; chan; chan=chan->next) {
-		lib_link_constraints(fd, id, &chan->constraints);
+		lib_link_constraints(fd, (ID *)ob, &chan->constraints);
+		// hurms... loop in a loop, but yah... later... (ton)
+		chan->bone= get_named_bone(arm, chan->name);
 	}
 }
 
@@ -1430,9 +1391,9 @@ static void lib_link_armature(FileData *fd, Main *main)
 			arm->id.flag -= LIB_NEEDLINK;
 		}
 
-		for (bone=arm->bonebase.first; bone; bone=bone->next) {
-			lib_link_bone(fd, &arm->id, bone);
-		}
+//		for (bone=arm->bonebase.first; bone; bone=bone->next) {
+//			lib_link_bone(fd, &arm->id, bone);
+//		}
 
 		arm= arm->id.next;
 	}
@@ -2188,7 +2149,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			/* if id.us==0 a new base will be created later on */
 
 			/* WARNING! Also check expand_object(), should reflect the stuff below. */
-			lib_link_pose(fd, &ob->id, ob->pose);
+			lib_link_pose(fd, ob, ob->pose);
 			lib_link_constraints(fd, &ob->id, &ob->constraints);
 			lib_link_nlastrips(fd, &ob->id, &ob->nlastrips);
 			lib_link_constraint_channels(fd, &ob->id, &ob->constraintChannels);
@@ -2302,6 +2263,8 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 	link_list(fd, &pose->chanbase);
 
 	for (chan = pose->chanbase.first; chan; chan=chan->next) {
+		chan->bone= NULL;
+		chan->parent= newdataadr(fd, chan->parent);
 		direct_link_constraints(fd, &chan->constraints);
 	}
 
@@ -3224,9 +3187,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		case ID_LT:
 			direct_link_latt(fd, (Lattice *)id);
 			break;
-		case ID_IK:
-			direct_link_ika(fd, (Ika *)id);
-			break;
 		case ID_WO:
 			direct_link_world(fd, (World *)id);
 			break;
@@ -3313,9 +3273,9 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 	}
 }
 
-static void do_versions(Main *main)
+static void do_versions(FileData *fd, Main *main)
 {
-	/* watch it: pointers from libdata have not been converted */
+	/* WATCH IT!!!: pointers from libdata have not been converted */
 
 	if(main->versionfile == 100) {
 		/* tex->extend and tex->imageflag have changed: */
@@ -3524,22 +3484,8 @@ static void do_versions(Main *main)
 	if(main->versionfile <= 165) {
 		Mesh *me= main->mesh.first;
 		TFace *tface;
-		Ika *ika= main->ika.first;
-		Deform *def;
 		int nr;
 		char *cp;
-
-		while(ika) {
-			ika->xyconstraint= .5;
-
-			def= ika->def;
-			nr= ika->totdef;
-			while(nr--) {
-				if(def->fac==0.0) def->fac= 1.0;
-				def++;
-			}
-			ika= ika->id.next;
-		}
 
 		while(me) {
 			if(me->tface) {
@@ -4021,12 +3967,6 @@ static void do_versions(Main *main)
 			ob = ob->id.next;
 		}
 
-			/* Precalculate rest position matrices for old armatures. -rvo
-			 */
-		for (arm= main->armature.first; arm; arm= arm->id.next) {
-			precalc_bonelist_irestmats (&arm->bonebase);
-		}
-
 			/* Began using alpha component of vertex colors, but
 			 * old file vertex colors are undefined, reset them
 			 * to be fully opaque. -zr
@@ -4129,17 +4069,6 @@ static void do_versions(Main *main)
 				sound->packedfile = NULL;
 			}
 		}
-
-		/* Clear some (now) unused pose flags */
-		for (ob=main->object.first; ob; ob=ob->id.next){
-			if (ob->pose){
-				bPoseChannel *pchan;
-				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next){
-					pchan->flag &= ~(POSE_UNUSED1|POSE_UNUSED2|POSE_UNUSED3|POSE_UNUSED4|POSE_UNUSED5);
-				}
-			}
-		}
-
 		/* Make sure that old subsurf meshes don't have zero subdivision level for rendering */
 		for (me=main->mesh.first; me; me=me->id.next){
 			if ((me->flag & ME_SUBSURF) && (me->subdivr==0))
@@ -4761,7 +4690,33 @@ static void do_versions(Main *main)
 			}
 		}
 	}
+	if(main->versionfile <= 237) {
+		bArmature *arm;
+		bPoseChannel *pchan;
+		Object *ob;
+		
+		// armature recode checks 
+		for(arm= main->armature.first; arm; arm= arm->id.next) {
+			where_is_armature(arm);
+		}
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			// btw. armature_rebuild_pose is further only called on leave editmode
+			if(ob->pose) {
+				ob->pose->flag |= POSE_RECALC;
+				ob->recalc |= OB_RECALC;
+
+				/* initialize for IK caching. we check for zero, so new saved files go fine */
+				pchan= ob->pose->chanbase.first;
+				if(pchan && pchan->ik_mat[0][0]==0.0 && pchan->ik_mat[0][1]==0.0 && pchan->ik_mat[0][2]==0.0) {
+					for(; pchan; pchan= pchan->next)
+						Mat3One(pchan->ik_mat);
+				}
+			}
+		}
+	}
 	
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+
 	/* don't forget to set version number in blender.c! */
 }
 
@@ -4780,7 +4735,6 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_world(fd, main);
 	lib_link_lamp(fd, main);
 	lib_link_latt(fd, main);
-	lib_link_ika(fd, main);
 	lib_link_text(fd, main);
 	lib_link_camera(fd, main);
 	lib_link_sound(fd, main);
@@ -4861,7 +4815,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	}
 
 	/* before read_libraries */
-	do_versions(bfd->main);
+	do_versions(fd, bfd->main);
 	read_libraries(fd, &fd->mainlist);
 	blo_join_main(&fd->mainlist);
 
@@ -5141,8 +5095,6 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 {
 	Bone *curBone;
-
-//	expand_constraints(fd, main, &bone->constraints);
 
 	for (curBone = bone->childbase.first; curBone; curBone=curBone->next) {
 		expand_bones(fd, mainvar, curBone);
@@ -5522,6 +5474,8 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	G.main= mainlist.first;
 
 	lib_link_all(fd, G.main);
+	
+	DAG_scene_sort(G.scene);
 }
 
 	/* append to G.scene */
@@ -5647,7 +5601,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	
 	/* restore the 'last loaded filename' */
 	BLI_strncpy(G.sce, filename, sizeof(filename));
-
+	DAG_scene_sort(G.scene);
 }
 
 /* ************* READ LIBRARY ************** */
@@ -5764,10 +5718,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 		/* some mains still have to be read, then
 		 * versionfile is still zero! */
-		if(mainptr->versionfile) do_versions(mainptr);
+		if(mainptr->versionfile) do_versions(mainptr->curlib->filedata, mainptr);
 
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
-		mainptr->curlib->filedata= 0;
+		mainptr->curlib->filedata= NULL;
 
 		mainptr= mainptr->next;
 	}

@@ -42,6 +42,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -49,11 +50,13 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_displist.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
+#include "BIF_interface.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
@@ -66,36 +69,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 
-static void armature_filter_pose_keys (bPose *pose, bArmature* arm);
-static void armature_bonechildren_filter_pose_keys (bPose *pose, Bone *bone);
-
-void collect_pose_garbage(Object *ob)
-{
-	bPoseChannel *pchan, *next;
-	Bone *bone;
-
-	if (!ob)
-		return;
-
-	if (!ob->pose)
-		return;
-
-	switch (ob->type){
-	case OB_ARMATURE:
-			/* Remove unused pose channels */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan=next){
-				next=pchan->next;
-				bone = get_named_bone(ob->data, pchan->name);
-				if (!bone)
-					BLI_freelinkN(&ob->pose->chanbase, pchan);
-			}
-			break;
-	default:
-		break;
-	}
-
-}
-
 void enter_posemode(void)
 {
 	Base *base;
@@ -104,11 +77,11 @@ void enter_posemode(void)
 	
 	if(G.scene->id.lib) return;
 	base= BASACT;
-	if(base==0) return;
+	if(base==NULL) return;
 	if((base->lay & G.vd->lay)==0) return;
 	
 	ob= base->object;
-	if(ob->data==0) return;
+	if(ob->data==NULL) return;
 	
 	if (ob->id.lib){
 		error ("Can't pose libdata");
@@ -118,7 +91,7 @@ void enter_posemode(void)
 	switch (ob->type){
 	case OB_ARMATURE:
 		arm= get_armature(ob);
-		if( arm==0 ) return;
+		if( arm==NULL ) return;
 		
 		G.obpose= ob;
 		ob->flag |= OB_POSEMODE;
@@ -139,71 +112,23 @@ void enter_posemode(void)
 
 }
 
-void filter_pose_keys (void)
+void set_pose_keys (Object *ob)
 {
-
-
-	Object	*ob;
 	bPoseChannel *chan;
 
-	ob=G.obpose;
-	if (!ob)
-		return;
-
-	switch (ob->type){
-	case OB_ARMATURE:
-		armature_filter_pose_keys (ob->pose, (bArmature*)ob->data);
-		break;
-	default:
-		if (ob->pose){
-			for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
-				chan->flag |= POSE_KEY;
+	if (ob->pose){
+		for (chan=ob->pose->chanbase.first; chan; chan=chan->next){
+			Bone *bone= chan->bone;
+			if(bone && (bone->flag & BONE_SELECTED)) {
+				chan->flag |= POSE_KEY;		
+			}
+			else {
+				chan->flag &= ~POSE_KEY;
 			}
 		}
-		break;
 	}
 }
 
-static void armature_filter_pose_keys (bPose *pose, bArmature *arm)
-{
-	Bone *bone;
-
-	if (!pose)
-		return;
-	if (!arm)
-		return;
-
-	for (bone=arm->bonebase.first; bone; bone=bone->next){
-		armature_bonechildren_filter_pose_keys (pose, bone);
-	}
-}
-
-static void armature_bonechildren_filter_pose_keys (bPose *pose, Bone *bone)
-{
-	Bone *curbone;
-	bPoseChannel *chan;
-
-	if (!bone)
-		return;
-
-	for (chan=pose->chanbase.first; chan; chan=chan->next){
-		if (BLI_streq(chan->name, bone->name))
-			break;
-	}
-
-	if (chan){
-		if (bone->flag & BONE_SELECTED){
-			chan->flag |= POSE_KEY;		
-		}
-		else {
-			chan->flag &= ~POSE_KEY;
-		}
-	}
-
-	for (curbone=bone->childbase.first; curbone; curbone=curbone->next){
-		armature_bonechildren_filter_pose_keys (pose, curbone);
-	}
-}
 
 void exit_posemode (int freedata)
 {
@@ -235,3 +160,33 @@ void exit_posemode (int freedata)
 
 	scrarea_queue_headredraw(curarea);
 }
+
+void pose_special_editmenu(void)
+{
+	bPoseChannel *pchan;
+	short nr;
+	
+	for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next)
+		if(pchan->bone->flag & BONE_ACTIVE) break;
+	if(pchan==NULL) return;
+	
+	nr= pupmenu("Specials%t|Select constraint target%x1");
+	if(nr==1) {
+		bConstraint *con;
+		
+		for(con= pchan->constraints.first; con; con= con->next) {
+			char *subtarget;
+			Object *ob= get_constraint_target(con, &subtarget);
+			
+			if(ob==G.obpose) {
+				if(subtarget) {
+					pchan= get_pose_channel(G.obpose->pose, subtarget);
+					pchan->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+				}
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
+

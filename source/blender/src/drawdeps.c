@@ -112,20 +112,16 @@ static unsigned int get_line_color(DagAdjList *child)
 			return 0x00000;
 		case DAG_RL_DATA :
 			return 0xFF0000;
-		case DAG_RL_PARENT :
+		case DAG_RL_OB_OB :
 			return 0x00FF00;
-		case DAG_RL_TRACK :
+		case DAG_RL_OB_DATA :
 			return 0xFFFF00;
-		case DAG_RL_PATH :
+		case DAG_RL_DATA_OB :
 			return 0x000000;
-		case DAG_RL_CONSTRAINT :
-			return 0x0000FF;
-		case DAG_RL_HOOK :
-			return 0x00FFFF;
-		case DAG_RL_DATA_CONSTRAINT :
+		case DAG_RL_DATA_DATA :
 			return 0x0000FF;
 		default :
-			return 0x0000FF;
+			return 0xFF00FF;
 	}
 	//return 0x00000;
 }
@@ -225,7 +221,6 @@ int build_deps(short mask)
 	Object *ob = NULL;
 	DagNode * node = NULL; 
 	DagNode * node2 = NULL ;
-	DagNode * node3 = NULL;
 DagNode * scenenode;
 	DagForest *dag;
 
@@ -270,117 +265,22 @@ DagNode * scenenode;
 	while(base) { // add all objects in any case
 		int addtoroot = 1;
 		
-//				 graph_print_adj_list();
-ob= (Object *) base->object;
+		//				 graph_print_adj_list();
+		ob= (Object *) base->object;
 
 		node = dag_get_node(dag,ob);
 	
-		if ((ob->data) && (mask&DAG_RL_DATA_MASK)) {
+		if ((ob->data) && (mask&DAG_RL_DATA)) {
 			node2 = dag_get_node(dag,ob->data);
 			dag_add_relation(dag,node,node2,DAG_RL_DATA);
 			node2->first_ancestor = ob;
 			node2->ancestor_count += 1;
 			
-			if ((ob->type == OB_ARMATURE) && (mask&DAG_RL_DATA_CONSTRAINT_MASK)) { // add armature constraints to datas
-				if (ob->pose){
-					bPoseChannel *pchan;
-					bConstraint *con;
-					Object * target;
-					
-					for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
-						for (con = pchan->constraints.first; con; con=con->next){
-							if (constraint_has_target(con)) {
-								target = get_constraint_target(con);
-								if (strcmp(target->id.name, ob->id.name) != 0) {
-									//fprintf(stderr,"armature target :%s \n", target->id.name);
-									node3 = dag_get_node(dag,target);
-									dag_add_relation(dag,node3,node2,DAG_RL_CONSTRAINT);
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			if (ob->hooks.first) {
-				ObHook *hook;
-				
-				for(hook= ob->hooks.first; hook; hook= hook->next) {
-					if(hook->parent) {
-						node3 = dag_get_node(dag,hook->parent);
-						dag_add_relation(dag,node3,node2,DAG_RL_HOOK);
-					}
-				}
-			}
-		} else { // add armature constraints to object itself
-			if ((ob->type == OB_ARMATURE) && (mask&DAG_RL_DATA_CONSTRAINT_MASK)) {
-				if (ob->pose){
-					bPoseChannel *pchan;
-					bConstraint *con;
-					Object * target;
-					
-					for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
-						for (con = pchan->constraints.first; con; con=con->next){
-							if (constraint_has_target(con)) {
-								target = get_constraint_target(con);
-								if (strcmp(target->id.name, ob->id.name) != 0) {
-									//fprintf(stderr,"armature target :%s \n", target->id.name);
-									node3 = dag_get_node(dag,target);
-									dag_add_relation(dag,node3,node,DAG_RL_CONSTRAINT);
-								}
-							}
-						}
-					}
-				}
-			}
-			if (ob->hooks.first) {
-				ObHook *hook;
-				
-				for(hook= ob->hooks.first; hook; hook= hook->next) {
-					if(hook->parent) {
-						node3 = dag_get_node(dag,hook->parent);
-						dag_add_relation(dag,node3,node,DAG_RL_HOOK);
-					}
-				}
-			}			
-		}
-
-		if ((ob->parent) && (mask&DAG_RL_PARENT_MASK)){
-			node2 = dag_get_node(dag,ob->parent);
-			dag_add_relation(dag,node2,node,DAG_RL_PARENT);
-			addtoroot = 0;
-		}
-		if ((ob->track) && (mask&DAG_RL_TRACK_MASK)){
-			node2 = dag_get_node(dag,ob->track);
-			dag_add_relation(dag,node2,node,DAG_RL_TRACK);
-			addtoroot = 0;
-
-		}
-		if ((ob->path) && (mask&DAG_RL_PATH_MASK)){
-			node2 = dag_get_node(dag,ob->track);
-			dag_add_relation(dag,node2,node,DAG_RL_PATH);
-			addtoroot = 0;
-
-		}
-
-		/* Count constraints */
-		if (mask & DAG_RL_CONSTRAINT_MASK) {
-			bConstraint *con;
-			for (con = ob->constraints.first; con; con=con->next){
-				if (constraint_has_target(con)) {
-					node2 = dag_get_node(dag,get_constraint_target(con));
-					dag_add_relation(dag,node2,node,DAG_RL_CONSTRAINT);
-					addtoroot = 0;
-					
-				}
-			}
-		}	
-		
+		} 
 		
 		if (addtoroot == 1 )
 			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE);
-
-		addtoroot = 1;
+		
 		base= base->next;
 	}
 

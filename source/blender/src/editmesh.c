@@ -60,17 +60,17 @@
 #include "BLI_editVert.h"
 #include "BLI_dynstr.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_key.h"
-#include "BKE_object.h"
-#include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
@@ -645,8 +645,6 @@ void make_editMesh()
 	EditEdge *eed;
 	int tot, a;
 
-	if(G.obedit==NULL) return;
-
 	/* because of reload */
 	free_editMesh(G.editMesh);
 	
@@ -797,8 +795,6 @@ void make_editMesh()
 	EM_fgon_flags();
 	
 	countall();
-	
-	if (mesh_uses_displist(me)) makeDispList(G.obedit);
 	
 	waitcursor(0);
 }
@@ -1239,8 +1235,9 @@ void load_editMesh(void)
 	}
 
 	if(oldverts) MEM_freeN(oldverts);
-
-	if(actkey) do_spec_key(me->key);
+	
+	/* forces update */
+	if(actkey) showkeypos(me->key, actkey);
 	
 	/* to be sure: clear ->vn pointers */
 	eve= em->verts.first;
@@ -1249,18 +1246,16 @@ void load_editMesh(void)
 		eve= eve->next;
 	}
 	
-	/* remake softbody, clear deform or shade displists of all users */
+	/* remake softbody of all users */
 	if(me->id.us>1) {
 		Base *base;
 		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->object->data==me) {
 				base->object->softflag |= OB_SB_REDO;
-				freedisplist(&base->object->disp);
+				base->object->recalc |= OB_RECALC_DATA;
 			}
 		}
 	}
-	/* we do make displist here for dependencies (like particles) */
-	if (mesh_uses_displist(me)) makeDispList(G.obedit);
 	
 	/* sticky */
 	if(me->msticky) {
@@ -1279,7 +1274,7 @@ void remake_editMesh(void)
 {
 	make_editMesh();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Undo all changes");
 }
 
@@ -1431,7 +1426,7 @@ void separate_mesh(void)
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 
 }
 
@@ -1602,7 +1597,7 @@ void separate_mesh_loose(void)
 	waitcursor(0);
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 }
 
 /* ******************************************** */

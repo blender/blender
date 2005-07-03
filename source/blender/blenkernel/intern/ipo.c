@@ -41,22 +41,21 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ika_types.h"
-#include "DNA_sequence_types.h"
+#include "DNA_action_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_lamp_types.h"
-#include "DNA_view3d_types.h"
+#include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_mesh_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_action_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -64,15 +63,16 @@
 #include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_curve.h"
-#include "BKE_object.h"
+#include "BKE_action.h"
 #include "BKE_blender.h"
-#include "BKE_ipo.h"
+#include "BKE_curve.h"
 #include "BKE_constraint.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 
 #define SMALL -1.0e-10
 
@@ -89,7 +89,7 @@ int ob_ar[OB_TOTIPO]= {
 	OB_LOC_X, OB_LOC_Y, OB_LOC_Z, OB_DLOC_X, OB_DLOC_Y, OB_DLOC_Z, 
 	OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z, 
 	OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z, OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z, 
-	OB_LAY, OB_TIME, OB_EFF_X, OB_EFF_Y, OB_EFF_Z, OB_COL_A,
+	OB_LAY, OB_TIME, OB_COL_R, OB_COL_G, OB_COL_B, OB_COL_A,
 	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM
 };
 
@@ -1080,25 +1080,45 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			return NULL;
 		switch (icu->adrcode){
 		case AC_QUAT_W:
-			poin= &(pchan->quat[0]); break;
+			poin= &(pchan->quat[0]); 
+			pchan->flag |= POSE_ROT;
+			break;
 		case AC_QUAT_X:
-			poin= &(pchan->quat[1]); break;
+			poin= &(pchan->quat[1]); 
+			pchan->flag |= POSE_ROT;
+			break;
 		case AC_QUAT_Y:
-			poin= &(pchan->quat[2]); break;
+			poin= &(pchan->quat[2]); 
+			pchan->flag |= POSE_ROT;
+			break;
 		case AC_QUAT_Z:
-			poin= &(pchan->quat[3]); break;
+			poin= &(pchan->quat[3]); 
+			pchan->flag |= POSE_ROT;
+			break;
 		case AC_LOC_X:
-			poin= &(pchan->loc[0]); break;
+			poin= &(pchan->loc[0]); 
+			pchan->flag |= POSE_LOC;
+			break;
 		case AC_LOC_Y:
-			poin= &(pchan->loc[1]); break;
+			poin= &(pchan->loc[1]); 
+			pchan->flag |= POSE_LOC;
+			break;
 		case AC_LOC_Z:
-			poin= &(pchan->loc[2]); break;			
+			poin= &(pchan->loc[2]); 
+			pchan->flag |= POSE_LOC;
+			break;			
 		case AC_SIZE_X:
-			poin= &(pchan->size[0]); break;
+			poin= &(pchan->size[0]); 
+			pchan->flag |= POSE_SIZE;
+			break;
 		case AC_SIZE_Y:
-			poin= &(pchan->size[1]); break;
+			poin= &(pchan->size[1]); 
+			pchan->flag |= POSE_SIZE;
+			break;
 		case AC_SIZE_Z:
-			poin= &(pchan->size[2]); break;
+			poin= &(pchan->size[2]); 
+			pchan->flag |= POSE_SIZE;
+			break;
 		};
 	}
 
@@ -1800,9 +1820,8 @@ int has_ipo_code(Ipo *ipo, int code)
 	return 0;
 }
 
-void do_all_ipos()
+void do_all_data_ipos()
 {
-	Base *base;
 	Material *ma;
 	Tex *tex;
 	World *wo;
@@ -1813,7 +1832,6 @@ void do_all_ipos()
 	Sequence *seq;
 	Editing *ed;
 	float ctime;
-	int set;
 
 	ctime= frame_to_float(G.scene->r.cfra);
 	
@@ -1823,27 +1841,6 @@ void do_all_ipos()
 			calc_ipo(ipo, ctime);
 		}
 		ipo= ipo->id.next;
-	}
-
-	/* NEW: current scene ob ipo's */
-	base= G.scene->base.first;
-	set= 0;
-	while(base) {
-
-		/* Do object ipos */
-		do_constraint_channels(&base->object->constraints, &base->object->constraintChannels, ctime);
-
-		if(base->object->ipo) {
-			/* do per object ipo the calc_ipo: because of possible timeoffs */
-			do_ob_ipo(base->object);
-			if(base->object->type==OB_MBALL) where_is_object(base->object);
-		}
-		base= base->next;
-		
-		if(base==0 && set==0 && G.scene->set) {
-			set= 1;
-			base= G.scene->set->base.first;
-		}
 	}
 
 	tex= G.main->tex.first;
@@ -1882,39 +1879,14 @@ void do_all_ipos()
 		snd= snd->id.next;
 	}
 
-	/*just in case of...  WATCH IT: 2x */
-	base= G.scene->base.first;
-	while(base) {
-		
-		/* only update layer when an ipo */
-		if( has_ipo_code(base->object->ipo, OB_LAY) ) {
-			base->lay= base->object->lay;
-		}
-		
-		base= base->next;
-	}
-	
-	/* just in case...*/
-	if(G.scene->set) {
-		base= G.scene->set->base.first;
-		while(base) {
-			
-			/* only update layer when an ipo */
-			if( has_ipo_code(base->object->ipo, OB_LAY) ) {
-				base->lay= base->object->lay;
-			}
-			
-			base= base->next;
-		}
-	}
-
-	/* intrr: process FAC Ipos used as volume envelopes */
+	/* process FAC Ipos used as volume envelopes */
 	ed= G.scene->ed;
 	if (ed) {
 		seq= ed->seqbasep->first;
 		while(seq) {
-			if ((seq->type == SEQ_SOUND) && (seq->ipo)
-			  &&(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) do_seq_ipo(seq);
+			if ((seq->type == SEQ_SOUND) && (seq->ipo) && 
+				(seq->startdisp<=G.scene->r.cfra+2) && (seq->enddisp>G.scene->r.cfra)) 
+					do_seq_ipo(seq);
 			seq= seq->next;
 		}
 	}

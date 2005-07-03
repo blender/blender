@@ -62,7 +62,6 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -88,20 +87,19 @@
 #include "BLI_editVert.h"
 #include "BLI_ghash.h"
 
-#include "BKE_constraint.h"
 #include "BKE_action.h"
-#include "BKE_armature.h"
-#include "BKE_utildefines.h"
 #include "BKE_anim.h"
+#include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_ika.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -132,7 +130,6 @@
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
-#include "BIF_editika.h"
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
@@ -205,6 +202,8 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 
 	deselect_all_area_oops();
 	set_select_flag_oops();
+	
+	DAG_scene_sort(G.scene);
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 }
 
@@ -226,7 +225,7 @@ void add_objectLamp(short type)
 	allqueue(REDRAWALL, 0);
 }
 
-// really bad, doesnt do constraints, that has been coded in test_scene_constraints();
+/* note: now unlinks constraints as well */
 void free_and_unlink_base(Base *base)
 {
 	if (base==BASACT)
@@ -266,16 +265,16 @@ void delete_obj(int ok)
 	
 	if(islamp && G.vd->drawtype==OB_SHADED) reshadeall_displist();
 
-	test_scene_constraints(); // do because of delete obj
-	
-	allqueue(REDRAWVIEW3D, 0);
 	redraw_test_buttons(OBACT);
+	allqueue(REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWDATASELECT, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
+	
+	DAG_scene_sort(G.scene);
 	
 	BIF_undo_push("Delete object(s)");
 }
@@ -655,6 +654,8 @@ void add_hook(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+
 	BIF_undo_push("Add hook");
 }
 
@@ -686,7 +687,8 @@ void make_track(void)
 
 					data = con->data;
 					data->tar = BASACT->object;
-
+					base->object->recalc |= OB_RECALC;
+					
 					/* Lamp and Camera track differently by default */
 					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
 						data->reserved1 = TRACK_nZ;
@@ -699,9 +701,6 @@ void make_track(void)
 			base= base->next;
 		}
 
-		test_scene_constraints();
-		allqueue(REDRAWVIEW3D, 0);
-		sort_baselist(G.scene);
 	}
 	else if (mode == 2){
 		bConstraint *con;
@@ -716,7 +715,8 @@ void make_track(void)
 
 					data = con->data;
 					data->tar = BASACT->object;
-
+					base->object->recalc |= OB_RECALC;
+					
 					/* Lamp and Camera track differently by default */
 					if (base->object->type == OB_LAMP || base->object->type == OB_CAMERA) {
 						data->trackflag = TRACK_nZ;
@@ -729,27 +729,24 @@ void make_track(void)
 			base= base->next;
 		}
 
-		test_scene_constraints();
-		allqueue(REDRAWVIEW3D, 0);
-		sort_baselist(G.scene);
 	}
 	else if (mode == 3){
 		base= FIRSTBASE;
 		while(base) {
 			if TESTBASELIB(base) {
 				if(base!=BASACT) {
-
 					base->object->track= BASACT->object;
+					base->object->recalc |= OB_RECALC;
 				}
 			}
 			base= base->next;
 		}
-
-		test_scene_constraints();
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWOOPS, 0);
-		sort_baselist(G.scene);
 	}
+
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	DAG_scene_sort(G.scene);
+	
 	BIF_undo_push("Make Track");
 }
 
@@ -798,32 +795,27 @@ void clear_parent(void)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
-			par= 0;
+			par= NULL;
 			if(mode==1 || mode==2) {
-				if(base->object->type==OB_IKA) {
-					Ika *ika= base->object->data;
-					ika->parent= 0;
-				}
 				par= base->object->parent;
-				base->object->parent= 0;
-			
+				base->object->parent= NULL;
+				base->object->recalc |= OB_RECALC_OB;
+				
 				if(mode==2) {
-					base->object->track= 0;
+					base->object->track= NULL;
 					apply_obmat(base->object);
 				}
 			}
 			else if(mode==3) {
 				Mat4One(base->object->parentinv);
-			}
-			
-			if(par) {
-				makeDispList(base->object);	// just always..., checks are not available well (ton)
+				base->object->recalc |= OB_RECALC_OB;
 			}
 		}
 		base= base->next;
 	}
 
-	test_scene_constraints();
+	DAG_scene_sort(G.scene);
+	DAG_scene_flush_update(G.scene);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
@@ -845,15 +837,17 @@ void clear_track(void)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
-			base->object->track= 0;
-
+			base->object->track= NULL;
+			base->object->recalc |= OB_RECALC;
+			
 			if(mode==2) {
 				apply_obmat(base->object);
 			}			
 		}
 		base= base->next;
 	}
-	test_scene_constraints();
+
+	DAG_scene_sort(G.scene);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
@@ -881,10 +875,6 @@ void clear_object(char mode)
 		switch (G.obpose->type){
 		case OB_ARMATURE:
 			clear_armature (G.obpose, mode);
-#if 1
-			clear_pose_constraint_status(G.obpose);
-			make_displists_by_armature (G.obpose);
-#endif
 			break;
 		}
 
@@ -928,15 +918,14 @@ void clear_object(char mode)
 				}
 			}
 			
-			if(ob->parent && ob->partype==PARSKEL)
-				freedisplist(&ob->disp);
-			else if(ob->hooks.first)
-				freedisplist(&ob->disp);
+			ob->recalc |= OB_RECALC_OB;
+			
 		}
 		base= base->next;
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	DAG_scene_flush_update(G.scene);
 	BIF_undo_push(str);
 }
 
@@ -1048,7 +1037,9 @@ void make_vertex_parent(void)
 	while(base) {
 		if TESTBASELIB(base) {
 			if(base!=BASACT) {
+				
 				ob= base->object;
+				ob->recalc |= OB_RECALC;
 				par= BASACT->object->parent;
 				
 				while(par) {
@@ -1087,6 +1078,7 @@ void make_vertex_parent(void)
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	
+	DAG_scene_sort(G.scene);
 	// BIF_undo_push(str); not, conflicts with editmode undo...
 }
 
@@ -1097,13 +1089,6 @@ int test_parent_loop(Object *par, Object *ob)
 	if(par==0) return 0;
 	if(ob == par) return 1;
 	
-	if(par->type==OB_IKA) {
-		Ika *ika= par->data;
-		
-		if( ob == ika->parent ) return 1;
-		if( test_parent_loop(ika->parent, ob) ) return 1;
-	}
-
 	return test_parent_loop(par->parent, ob);
 
 }
@@ -1112,7 +1097,7 @@ void make_parent(void)
 {
 	Base *base;
 	Object *par;
-	short qual, mode=0, limbnr=0, effchild=0;
+	short qual, mode=0;
 	char *bonestr=NULL;
 	Bone	*bone=NULL;
 	int	bonenr;
@@ -1132,17 +1117,27 @@ void make_parent(void)
 		bConstraint *con;
 		bFollowPathConstraint *data;
 
-		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3");
+		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3|Path Constraint %x4");
 		if(mode<=0){
 			return;
 		}
 		else if(mode==1) {
 			mode= PAROBJECT;
 		}
+		else if(mode==2) {
+			Curve *cu= par->data;
+			
+			mode= PAROBJECT;
+			if((cu->flag & CU_PATH)==0) {
+				cu->flag |= CU_PATH|CU_FOLLOW;
+				makeDispList(par);  // force creation of path data
+			}
+			else cu->flag |= CU_FOLLOW;
+		}
 		else if(mode==3) {
 			mode= PARSKEL;
 		}
-		else if(mode==2) {
+		else if(mode==4) {
 
 			base= FIRSTBASE;
 			while(base) {
@@ -1169,9 +1164,8 @@ void make_parent(void)
 				base= base->next;
 			}
 
-			test_scene_constraints();
 			allqueue(REDRAWVIEW3D, 0);
-			sort_baselist(G.scene);
+			DAG_scene_sort(G.scene);
 			BIF_undo_push("make Parent");
 			return;
 		}
@@ -1212,8 +1206,7 @@ void make_parent(void)
 					return;
 				}
 
-				apply_pose_armature(get_armature(par), par->pose, 0);
-				bone=get_indexed_bone(get_armature(par), bonenr); 
+				bone=get_indexed_bone(par, bonenr); 
 				if (!bone){
 		//			error ("Invalid bone!");
 					allqueue(REDRAWVIEW3D, 0);
@@ -1241,31 +1234,13 @@ void make_parent(void)
 			}
 			else if(okee("Make parent")==0) return;
 
-			/* test effchild */
-			base= FIRSTBASE;
-			while(base) {
-				if TESTBASELIB(base) {
-					if(base->object->type==OB_IKA && base->object != par) {
-						if(effchild==0) {
-							if(okee("Effector as Child")) effchild= 1;
-							else effchild= 2;
-						}
-					}
-				}
-				if(effchild) break;
-				base= base->next;
-			}
-			
 			/* now we'll clearparentandkeeptransform all objects */
 			base= FIRSTBASE;
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT && base->object->parent) {
-						if(base->object->type==OB_IKA && effchild==1);
-						else {
-							base->object->parent= 0;
-							apply_obmat(base->object);
-						}
+						base->object->parent= NULL;
+						apply_obmat(base->object);
 					}
 				}
 				base= base->next;
@@ -1273,6 +1248,7 @@ void make_parent(void)
 		}
 	}
 	
+	par->recalc |= OB_RECALC_OB;
 	
 	base= FIRSTBASE;
 	while(base) {
@@ -1284,13 +1260,11 @@ void make_parent(void)
 				}
 				else {
 					
+					base->object->recalc |= OB_RECALC_OB;
+					
 					/* the ifs below are horrible code (ton) */
 					
-					if(par->type==OB_IKA){
-						base->object->partype= mode;
-						base->object->par1= limbnr;
-					}
-					else if (par->type==OB_ARMATURE){
+					if (par->type==OB_ARMATURE){
 						base->object->partype= mode;
 						if (bone)
 							strcpy (base->object->parsubstr, bone->name);
@@ -1308,6 +1282,7 @@ void make_parent(void)
 							base->object->partype= PAROBJECT;
 						}
 					}
+					
 					base->object->parent= par;
 					
 					/* calculate inverse parent matrix? */
@@ -1335,11 +1310,9 @@ void make_parent(void)
 						Mat4Invert(base->object->parentinv, workob.obmat);
 					}
 					
-					if(par->type==OB_LATTICE) makeDispList(base->object);
-					if(par->type==OB_CURVE && mode==PARSKEL) makeDispList(base->object);
 					if(par->type==OB_ARMATURE && mode == PARSKEL){
 						verify_defgroups(base->object);
-						makeDispList(base->object);
+						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
 			}
@@ -1349,9 +1322,9 @@ void make_parent(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
-	test_scene_constraints();
-	sort_baselist(G.scene);
-
+	DAG_scene_sort(G.scene);
+	DAG_scene_flush_update(G.scene);
+	
 	BIF_undo_push("make Parent");
 }
 
@@ -1360,7 +1333,6 @@ void enter_editmode(void)
 {
 	Base *base;
 	Object *ob;
-	Ika *ika;
 	ID *id;
 	Mesh *me;
 	int ok= 0;
@@ -1406,20 +1378,6 @@ void enter_editmode(void)
 		make_editArmature();
 		allqueue (REDRAWVIEW3D,0);
 	}
-	else if(ob->type==OB_IKA) {	/* grab type */
-		base= FIRSTBASE;
-		while(base) {
-			if TESTBASE(base) {
-				if(base->object->type==OB_IKA) {
-					ika= base->object->data;
-					if(ika->flag & IK_GRABEFF) ika->flag &= ~IK_GRABEFF;
-					else ika->flag |= IK_GRABEFF;
-				}
-			}
-			base= base->next;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-	}
 	else if(ob->type==OB_FONT) {
 		cu= ob->data;
 		if ((cu->flag & CU_FAST)==0) { 
@@ -1462,27 +1420,21 @@ void enter_editmode(void)
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	
 		allqueue(REDRAWVIEW3D, 1);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		
 	}
-	else G.obedit= 0;
+	else G.obedit= NULL;
 
 	if (G.obpose)
 		exit_posemode (1);
-	scrarea_queue_headredraw(curarea);
-}
-
-void make_displists_by_parent(Object *ob) {
-	Base *base;
 	
-	for (base= FIRSTBASE; base; base= base->next)
-		if (ob==base->object->parent)
-			makeDispList(base->object);
+	scrarea_queue_headredraw(curarea);
 }
 
 void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
-	Base *base, *oldbase;
+	Base *oldbase;
 	Object *ob;
-	Curve *cu;
 
 	if(G.obedit==NULL) return;
 
@@ -1495,7 +1447,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 			error("Too many vertices");
 			return;
 		}
-		load_editMesh();	/* makes new displist */
+		load_editMesh();
 
 		if(freedata) free_editMesh(G.editMesh);
 
@@ -1530,7 +1482,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 	ob= G.obedit;
 	
-	/* displist make is different in editmode */
+	/* for example; displist make is different in editmode */
 	if(freedata) G.obedit= NULL;
 
 	/* total remake of softbody data */
@@ -1543,35 +1495,11 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		}
 		else sbObjectToSoftbody(ob);
 	}
-	makeDispList(ob);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
-	/* has this influence at other objects? */
-	if(ob->type==OB_CURVE) {
-
-		/* test if ob is use as bevelcurve r textoncurve */
-		base= FIRSTBASE;
-		while(base) {
-			if ELEM(base->object->type, OB_CURVE, OB_FONT) {
-				cu= base->object->data;
-				
-				if(cu->textoncurve==ob) {
-					text_to_curve(base->object, 0);
-					makeDispList(base->object);
-				}
-				if(cu->bevobj==ob || cu->taperobj==ob) {
-					makeDispList(base->object);
-				}
-			}
-			base= base->next;
-		}
-		
-	}
-	else if(ob->type==OB_LATTICE) {
-		make_displists_by_parent(ob);
-	}
-
+	// evil HACK!
 	if ((ob->type == OB_FONT) && (freedata)) {
-		cu= ob->data;
+		Curve *cu= ob->data;
 		if ((cu->flag & CU_FAST)==0) {
 			oldbase = BASACT;
 			BASACT->flag &= ~SELECT;
@@ -1753,13 +1681,8 @@ void docentre(int centremode)
 							ob= ob->id.next;
 						}
 					}
-				
-					/* displist of all users, also this one */
-					makeDispList(base->object);
-					
 					/* DO: check all users... */
 					tex_space_mesh(me);
-		
 				}
 				else if ELEM(base->object->type, OB_CURVE, OB_SURF) {
 									
@@ -1824,10 +1747,8 @@ void docentre(int centremode)
 					}
 			
 					if(G.obedit) {
-						makeDispList(G.obedit);
 						break;
 					}
-					else makeDispList(base->object);
 	
 				}
 				else if(base->object->type==OB_FONT) {
@@ -1842,18 +1763,17 @@ void docentre(int centremode)
 					/* not really ok, do this better once! */
 					cu->xof /= cu->fsize;
 					cu->yof /= cu->fsize;
-					
-					text_to_curve(base->object, 0);
-					makeDispList(base->object);
-					
+
 					allqueue(REDRAWBUTSEDIT, 0);
 				}
+				base->object->recalc |= OB_RECALC_DATA;
 			}
 		}
 		base= base->next;
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
+	DAG_scene_flush_update(G.scene);
 	BIF_undo_push("Do Centre");	
 }
 
@@ -1957,7 +1877,10 @@ void special_editmenu(void)
 	int nr,ret;
 	short randfac;
 	
-	if(G.obedit==0) {
+	if(G.obpose) {
+		pose_special_editmenu();
+	}
+	else if(G.obedit==0) {
 		if(G.f & G_FACESELECT) {
 			Mesh *me= get_mesh(OBACT);
 			TFace *tface;
@@ -2124,7 +2047,7 @@ void special_editmenu(void)
 			break;
 		}		
 		
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 		if(nr>0) waitcursor(0);
 		
@@ -2141,6 +2064,8 @@ void special_editmenu(void)
 			switchdirectionNurb2();
 			break;
 		}
+		
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 
 	countall();
@@ -2295,7 +2220,7 @@ void convertmenu(void)
 					cu= ob->data;
 					
 					dl= cu->disp.first;
-					if(dl==0) makeDispList(ob);
+					if(dl==0) makeDispList(ob);		// force creation
 
 					nurbs_to_mesh(ob); /* also does users */
 
@@ -2350,8 +2275,6 @@ void convertmenu(void)
 		basedel = NULL;				
 	}
 	
-	test_scene_constraints();	// always call after delete object
-	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
@@ -2375,7 +2298,7 @@ void flip_subdivison(Object *ob, int level)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	makeDispList(ob);
+	makeDispList(ob);   // no dependency?
 	
 	BIF_undo_push("Switch subsurf on/off");
 }
@@ -2551,6 +2474,7 @@ void copy_attr(short event)
 	while(base) {
 		if(base != BASACT) {
 			if(TESTBASELIB(base)) {
+				base->object->recalc |= OB_RECALC_OB;
 				
 				if(event==1) {  /* loc */
 					VECCOPY(base->object->loc, ob->loc);
@@ -2569,7 +2493,7 @@ void copy_attr(short event)
 				else if(event==4) {  /* drawtype */
 					base->object->dt= ob->dt;
 					base->object->dtx= ob->dtx;
-					}
+				}
 				else if(event==5) {  /* time offs */
 					base->object->sf= ob->sf;
 				}
@@ -2630,11 +2554,13 @@ void copy_attr(short event)
 						if(cu1->vfontbi) cu1->vfontbi->id.us--;
 						cu1->vfontbi= cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
-						text_to_curve(base->object, 0);
+
+						text_to_curve(base->object, 0);		// needed?
+
 						
 						strcpy(cu1->family, cu->family);
 						
-						makeDispList(base->object);
+						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
 				else if(event==19) {	/* bevel settings */
@@ -2650,7 +2576,7 @@ void copy_attr(short event)
 						cu1->ext1= cu->ext1;
 						cu1->ext2= cu->ext2;
 						
-						makeDispList(base->object);
+						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
 				else if(event==20) {	/* particle settings */
@@ -2688,7 +2614,7 @@ void copy_attr(short event)
 						targetme->subsurftype = sourceme->subsurftype;
 						targetme->subdiv= sourceme->subdiv;
 						targetme->subdivr= sourceme->subdivr;
-						makeDispList(base->object);
+						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
 				else if(event==22) {
@@ -2717,6 +2643,8 @@ void copy_attr(short event)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
+	DAG_scene_flush_update(G.scene);
+
 	if(event==20) {
 		allqueue(REDRAWBUTSOBJECT, 0);
 	}
@@ -3474,9 +3402,7 @@ void single_obdata_users(int flag)
 	Object *ob;
 	Lamp *la;
 	Curve *cu;
-	Ika *ika;
 	Camera *cam;
-	Deform *def;
 	Base *base;
 	Mesh *me;
 	ID *id;
@@ -3516,28 +3442,12 @@ void single_obdata_users(int flag)
 					ob->data= cu= copy_curve(ob->data);
 					ID_NEW(cu->bevobj);
 					ID_NEW(cu->taperobj);
-					makeDispList(ob);
 					break;
 				case OB_LATTICE:
 					ob->data= copy_lattice(ob->data);
 					break;
 				case OB_ARMATURE:
 					ob->data=copy_armature(ob->data);
-					break;
-				case OB_IKA:
-					/* this never occurs? IK is always single user */
-					ob->data= ika= copy_ika(ob->data);
-					ID_NEW(ika->parent);
-					
-					if(ika->totdef) {
-						a= ika->totdef;
-						def= ika->def;
-						while(a--) {
-							ID_NEW(def->ob);
-							def++;
-						}
-					}
-					
 					break;
 				default:
 					printf("ERROR single_obdata_users: %s\n", id->name);
@@ -3997,6 +3907,7 @@ void adduplicate(int noTrans)
 		
 			ob= base->object;
 			obn= copy_object(ob);
+			obn->recalc |= OB_RECALC_OB;
 			
 			basen= MEM_mallocN(sizeof(Base), "duplibase");
 			*basen= *base;
@@ -4067,7 +3978,6 @@ void adduplicate(int noTrans)
 					ID_NEW_US2(obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
-						makeDispList(ob);
 						didit= 1;
 					}
 					id->us--;
@@ -4078,7 +3988,6 @@ void adduplicate(int noTrans)
 					ID_NEW_US2( obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
-						makeDispList(ob);
 						didit= 1;
 					}
 					id->us--;
@@ -4089,7 +3998,6 @@ void adduplicate(int noTrans)
 					ID_NEW_US2( obn->data )
 					else {
 						obn->data= copy_curve(obn->data);
-						makeDispList(ob);
 						didit= 1;
 					}
 					id->us--;
@@ -4133,11 +4041,6 @@ void adduplicate(int noTrans)
 			case OB_CAMERA:
 				ID_NEW_US2(obn->data )
 				else obn->data= copy_camera(obn->data);
-				id->us--;
-				break;
-			case OB_IKA:
-				ID_NEW_US2(obn->data )
-				else obn->data= copy_ika(obn->data);
 				id->us--;
 				break;
 			}
@@ -4218,7 +4121,8 @@ void adduplicate(int noTrans)
 		}
 	}
 
-	sort_baselist(G.scene);
+	DAG_scene_sort(G.scene);
+	DAG_scene_flush_update(G.scene);
 	set_sca_new_poins();
 
 	clear_id_newpoins();
@@ -4587,39 +4491,8 @@ void texspace_edit(void)
 	}
 }
 
-void first_base(void)
-{
-	/* inserts selected Bases in beginning of list, sometimes useful for operation order */
-	Base *base, *next;
-	
-	if(okee("Make first base")==0) return;
-	
-	base= FIRSTBASE;
-	while(base) {
-		next= base->next;
-		
-		if(base->flag & SELECT) {
-			BLI_remlink(&G.scene->base, base);
-			BLI_addtail(&G.scene->base, base);
-		}
-		
-		base= next;
-	}
-	
-}
-
-void make_displists_by_obdata(void *obdata) {
-	Base *base;
-	
-	for (base= FIRSTBASE; base; base= base->next)
-		if (obdata==base->object->data)
-			makeDispList(base->object);
-}
-
 /* ******************************************************************** */
 /* Mirror function in Edit Mode */
-
-
 
 void mirrormenu(void)
 {

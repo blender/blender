@@ -510,8 +510,6 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		ct++;
 	}
 	
-
-	
 	cu->lines= 1;
 	ct= chartransdata;
 	for (i= 0; i<=slen; i++, mem++, ct++) {
@@ -562,7 +560,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		oldflag= cucu->flag;
 		cucu->flag |= (CU_PATH+CU_FOLLOW);
 		
-		if(cucu->path==0) calc_curvepath(cu->textoncurve);
+		if(cucu->path==NULL) makeDispList(cu->textoncurve);
 		if(cucu->path) {
 			
 

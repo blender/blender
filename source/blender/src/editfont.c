@@ -58,7 +58,7 @@
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_font.h"
 #include "BKE_object.h"
 #include "BKE_global.h"
@@ -273,8 +273,7 @@ void add_lorem(void)
 	
 	insert_into_textbuf(cu, '\n');
 	insert_into_textbuf(cu, '\n');	
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);	
 }
 
@@ -292,8 +291,7 @@ void load_3dtext_fs(char *file)
 	}
 	fclose(fp);
 
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);	
 }
 
@@ -450,17 +448,6 @@ void txt_export_to_objects(struct Text *text)
 	}
 	BIF_undo_push("Add Text as Objects");
 	allqueue(REDRAWVIEW3D, 0);
-}
-
-
-void text_makedisplist(Object *ob)
-{
-	Base *base;
-	// free displists of other users...
-	for(base= G.scene->base.first; base; base= base->next) {
-		if(base->object->data==ob->data) freedisplist(&base->object->disp);
-	}
-	makeDispList(ob);
 }
 
 static short next_word(Curve *cu)
@@ -847,6 +834,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
 		}
 	}
 	if(doit || cursmove) {
+
 		if (cu->pos) cu->curinfo = textbufinfo[cu->pos-1];
 		if (G.obedit->totcol>0) {
 			G.obedit->actcol = textbufinfo[cu->pos-1].mat_nr;
@@ -855,11 +843,12 @@ void do_textedit(unsigned short event, short val, char _ascii)
 		text_to_curve(G.obedit, cursmove);
 		if (cursmove && (G.qual & LR_SHIFTKEY)) {
 			cu->selend = cu->pos;
-			text_to_curve(G.obedit, FO_SELCHANGE);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		}
 		if(cursmove==0) {
-			text_makedisplist(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		}			
+
 		BIF_undo_push("Textedit");
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -911,8 +900,7 @@ void paste_editText(void)
 		doit = 1;
 	}
 	if(doit) {
-		text_to_curve(G.obedit, 0);
-		text_makedisplist(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Paste text");
 	}
@@ -939,8 +927,7 @@ void make_editText(void)
 
 	if(cu->pos>cu->len) cu->pos= cu->len;
 	
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	textediting= 1;
 	BIF_undo_push("Original");
@@ -978,7 +965,7 @@ void load_editText(void)
 	
 	textediting= 0;
 	
-	text_makedisplist(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 }
 
@@ -994,10 +981,9 @@ void remake_editText(void)
 	cu->len= strlen(textbuf);
 	if(cu->pos>cu->len) cu->pos= cu->len;
 	
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
-	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);
+	
 	BIF_undo_push("Reload");
 }
 
@@ -1076,9 +1062,7 @@ void to_upper(void)
 			str++;
 		}
 	}
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
-
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("To upper");
 }
@@ -1094,10 +1078,10 @@ static void undoFont_to_editFont(void *strv)
 	strncpy(textbuf, str+2, MAXTEXT);
 	cu->pos= *((short *)str);
 	cu->len= strlen(textbuf);
+
 	memcpy(textbufinfo, str+2+cu->len+1, cu->len*sizeof(CharInfo));
 	cu->selstart = cu->selend = 0;
-	text_to_curve(G.obedit, 0);
-	text_makedisplist(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
 	allqueue(REDRAWVIEW3D, 0);
 }

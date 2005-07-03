@@ -392,15 +392,6 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		}
 	}
 	
-	/* few DispLists, but do text_to_curve */
-	// this should be removed!!! But first a better displist system (ton)
-	for (ob= G.main->object.first; ob; ob= ob->id.next) {
-		if(ob->type==OB_FONT) {
-			Curve *cu= ob->data;
-			if(cu->nurb.first==0) text_to_curve(ob, 0);
-		}
-	}
-	
 	if (!G.background) {
 		setscreen(G.curscreen);
 	}

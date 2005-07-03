@@ -65,7 +65,7 @@ void sort_faces(void);
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -437,11 +437,10 @@ void join_mesh(void)
 	enter_editmode();
 	exit_editmode(1);	// freedata, but no undo
 	
-	test_scene_constraints(); // always call after delete object (stupid!)
-
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
-	makeDispList(ob);
+	DAG_scene_sort(G.scene);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	BIF_undo_push("Join Mesh");
 }
@@ -817,7 +816,7 @@ void sort_faces(void)
 	MEM_freeN(index);
 
 	allqueue(REDRAWVIEW3D, 0);
-	makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
 
 

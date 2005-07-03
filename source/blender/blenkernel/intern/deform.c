@@ -54,6 +54,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
@@ -237,6 +238,8 @@ int mesh_modifier(Object *ob, char mode)
 	MVert *mv;
 	int a, done=0;
 	
+	do_mesh_key(me);
+	
 	/* conditions if it's needed */
 	if(ob->hooks.first);
 	else if(ob->effect.first);	// weak... particles too
@@ -322,6 +325,8 @@ int curve_modifier(Object *ob, char mode)
 	BPoint *bp;
 	int a, index, done= 0;
 	
+	do_curve_key(cu);
+	
 	/* conditions if it's needed */
 	if(ob->hooks.first);
 	else if(ob->parent && ob->partype==PARSKEL); 
@@ -389,6 +394,8 @@ int lattice_modifier(Object *ob, char mode)
 	Lattice *lt= ob->data;
 	BPoint *bp;
 	int a, index, done= 0;
+	
+	do_latt_key(lt);
 	
 	/* conditions if it's needed */
 	if(ob->hooks.first);

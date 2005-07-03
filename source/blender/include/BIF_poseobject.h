@@ -39,15 +39,10 @@
 void enter_posemode(void);
 
 /**
- * Provides the current object the opportunity to specify
- * which channels to key in the current pose (if any).
- * If an object provides its own filter, it must clear
- * then POSE_KEY flags of unwanted channels, as well as
- * setting the flags for desired channels.
- *
- * Default behaviour is to key all channels.
- */
-void filter_pose_keys(void);
+* If bones are selected, it sets the flags 
+*/
+struct Object;
+void set_pose_keys(struct Object *ob);
 
 /**
  * Deactivates posemode
@@ -55,11 +50,7 @@ void filter_pose_keys(void);
  */
 void exit_posemode(int freedata);
 
-/**
- * Removes unreferenced pose channels from an object 
- * @param ob Object to check
- */
-void collect_pose_garbage(struct Object *ob);
+void pose_special_editmenu(void);
 
 #endif
 

@@ -43,7 +43,7 @@ extern void do_butspace(unsigned short event);
 extern void redraw_test_buttons(struct Object *new);
 
 /* buttons_editing.c */
-extern void rename_bone_ext(char *oldname, char *newname);
+extern void validate_editbonebutton_cb(void *bonev, void *namev);
 
 
 /* buts->mainb old */

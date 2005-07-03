@@ -59,16 +59,16 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_anim.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
-#include "BKE_displist.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
@@ -148,21 +148,22 @@ static BezTriple *get_bezt_icu_time(IpoCurve *icu, float *frame, float *val) {
 	return bezt;
 }
 
-static void rvk_slider_func(void *voidkey, void *voidkeynum) {
+static void rvk_slider_func(void *voidkey, void *voidkeynum) 
+{
 	/* the callback for the rvk sliders ... copies the
 	 * value from the temporary array into a bezier at the
 	 * right frame on the right ipo curve (creating both the
 	 * ipo curve and the bezier if needed).
 	 */
-	int       *keynum = (int *) voidkeynum;
-	Key       *key = (Key *) voidkey;
-	float     cfra, rvkval;
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
+	Key       *key = (Key *) voidkey;
+	float     cfra, rvkval;
+	int       *keynum = (int *) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
-	icu    = get_key_icu(key, *keynum);
+	icu = get_key_icu(key, *keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
@@ -194,27 +195,12 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum) {
 	sort_time_ipocurve(icu);
 	testhandles_ipocurve(icu);
 
-	do_all_ipos();
+	key->flag &= ~KEY_LOCKED;
+	do_ipo(key->ipo);
 	do_spec_key(key);
-	/* if I'm deformed by a lattice, update my
-	 * displists
-	 */
-	makeDispList(OBACT);
-
-	/* if I'm a lattice, update the displists of
-	 * my children
-	 */
-	if (OBACT->type==OB_LATTICE ) {
-		Base *base;
-
-		base= FIRSTBASE;
-		while(base) {
-			if (base->object->parent == OBACT) {
-				makeDispList(base->object);
-			}
-			base= base->next;
-		}
-	}
+	
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue (REDRAWNLA, 0);
@@ -681,32 +667,30 @@ void showkeypos(Key *key, KeyBlock *kb)
 	
 	/* from ipo */
 	ob= OBACT;
-	if(ob==0) return;
+	if(ob==NULL) return;
 	
 	if(key == give_current_key(ob)) {
+		
+		key->flag |= KEY_LOCKED;	// prevents it from calculated
 		
 		if(ob->type==OB_MESH) {
 			me= ob->data;
 
 			cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, kb, 0);
-
-			make_displists_by_obdata(me);
 		}
 		else if(ob->type==OB_LATTICE) {
 			lt= ob->data;
 			tot= lt->pntsu*lt->pntsv*lt->pntsw;
 			
 			cp_key(0, tot, tot, (char *)lt->def->vec, lt->key, kb, 0);
-
-			make_displists_by_parent(ob);
 		}
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 			cu= ob->data;
 			tot= count_curveverts(&cu->nurb);
 			cp_cu_key(cu, kb, 0, tot);
-
-			make_displists_by_obdata(cu);
 		}
+		
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -764,7 +748,10 @@ void delete_key(void)
 		free_libblock_us(&(G.main->key), key);
 		scrarea_queue_headredraw(curarea);	/* ipo remove too */
 	}
-	else do_spec_key(key);
+	else {
+		key->flag &= ~KEY_LOCKED;
+		do_spec_key(key);
+	}
 	
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_winredraw(curarea);
@@ -869,6 +856,7 @@ void move_keys(void)
 	}
 	
 	sort_keys(key);
+	key->flag &= ~KEY_LOCKED;
 	do_spec_key(key);
 	
 	/* for boundbox */

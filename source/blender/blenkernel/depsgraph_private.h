@@ -51,8 +51,9 @@ enum {
 typedef struct DagAdjList
 {
 	struct DagNode *node;
-	dag_rel_type type;
-	int count; // number of identical arcs
+	short type;
+	int count;			// number of identical arcs
+	unsigned int lay;   // for flushing redraw/rebuild events
 	struct DagAdjList *next;
 } DagAdjList;
 
@@ -64,7 +65,9 @@ typedef struct DagNode
 	float x, y, k;	
 	void * ob;
 	void * first_ancestor;
-	int		ancestor_count;
+	int ancestor_count;
+	int lay;			// accumulated layers of its relations + itself
+	int lasttime;		// if lasttime != DagForest->time, this node was not evaluated yet for flushing
 	int BFS_dist;		// BFS distance
 	int DFS_dist;		// DFS distance
 	int DFS_dvtm;		// DFS discovery time
@@ -93,6 +96,7 @@ typedef struct DagForest
 	ListBase DagNode;
 	int numNodes;
 	int is_acyclic;
+	int time;		// for flushing/tagging, compare with node->lasttime
 } DagForest;
 
 
@@ -112,7 +116,7 @@ DagNode * dag_find_node (DagForest *forest,void * fob);
 DagNode * dag_add_node (DagForest *forest,void * fob);
 DagNode * dag_get_node (DagForest *forest,void * fob);
 DagNode * dag_get_sub_node (DagForest *forest,void * fob);
-void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, dag_rel_type rel);
+void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel);
 
 void graph_bfs(void);
 

@@ -89,7 +89,7 @@ void calc_curvepath(Object *ob)
 	/* in a path vertices are with equal differences: path->len = number of verts */
 	/* NOW WITH BEVELCURVE!!! */
 	
-	if(ob==0 || ob->type != OB_CURVE) return;
+	if(ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
 	if(ob==G.obedit) nu= editNurb.first;
 	else nu= cu->nurb.first;
@@ -98,10 +98,6 @@ void calc_curvepath(Object *ob)
 	cu->path= NULL;
 	
 	bl= cu->bev.first;
-	if(bl==NULL) {
-		makeDispList(ob);
-		bl= cu->bev.first;
-	}
 	if(bl==NULL) return;
 
 	cu->path=path= MEM_callocN(sizeof(Path), "path");
@@ -213,11 +209,10 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	float data[4];
 	int cycl=0, s0, s1, s2, s3;
 
-	if(ob==0 || ob->type != OB_CURVE) return 0;
+	if(ob==NULL || ob->type != OB_CURVE) return 0;
 	cu= ob->data;
-	if(cu->path==0 || cu->path->data==0) {
-		calc_curvepath(ob);
-		if(cu->path==0 || cu->path->data==0) return 0;
+	if(cu->path==NULL || cu->path->data==NULL) {
+		printf("no path!\n");
 	}
 	path= cu->path;
 	fp= path->data;
@@ -242,7 +237,8 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	p2= fp + 4*s2;
 	p3= fp + 4*s3;
 
-	if(cu->flag & CU_FOLLOW) {
+	/* note, commented out for follow constraint */
+	//if(cu->flag & CU_FOLLOW) {
 		
 		set_afgeleide_four_ipo(1.0f-fac, data, KEY_BSPLINE);
 		
@@ -254,7 +250,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 		dir[0]= -dir[0];
 		dir[1]= -dir[1];
 		dir[2]= -dir[2];
-	}
+	//}
 	
 	nu= cu->nurb.first;
 

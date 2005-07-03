@@ -46,6 +46,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -58,27 +59,30 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_deform.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
-#include "BKE_deform.h"
+#include "BKE_utildefines.h"
 
+#include "BIF_editmode_undo.h"
+#include "BIF_editdeform.h"
+#include "BIF_editarmature.h"
+#include "BIF_editconstraint.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_poseobject.h"
+#include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
-#include "BIF_editarmature.h"
-#include "BIF_editconstraint.h"
-#include "BIF_poseobject.h"
-#include "BIF_mywindow.h"
-#include "BIF_editdeform.h"
 #include "BIF_transform.h"
 
 #include "BDR_editobject.h"
@@ -97,60 +101,217 @@
 
 /*  >>>>> FIXME: ARG!  Colours should be defined in a header somewhere! */
 /*	Note, these came from drawobject.c  They really should be in a nice header file somewhere */
+#define B_YELLOW_A	0xBBFFFF
 #define B_YELLOW	0x77FFFF
 #define B_PURPLE	0xFF70FF
 
+#define B_CYAN_A	0xFFFF88
 #define B_CYAN		0xFFFF00
-#define	B_AQUA		0xFFBB55 /* 0xFF8833*/
+#define	B_AQUA		0xFFBB55
 
 extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 
 /*	Macros	*/
 #define TEST_EDITARMATURE {if(G.obedit==0) return; if( (G.vd->lay & G.obedit->lay)==0 ) return;}
 
-/* Local Function Prototypes */
-static void editbones_to_armature (ListBase *bones, Object *ob);
 
-static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist);
-static int	select_bonechildren_by_name (struct Bone *bone, char *name, int select);
+/* **************** tools on Editmode Armature **************** */
 
-static void draw_boneverti (float x, float y, float z, float size, int flag);
-static void draw_bone (int armflag, int boneflag, unsigned int id, char *name, float length);
-static void draw_bonechildren (struct Bone *bone, int flag, unsigned int *index);
-static void add_bone_input (struct Object *ob);
-static void make_boneList(struct ListBase* list, struct ListBase *bones, struct EditBone *parent);
-static void make_bone_menu_children (struct Bone *bone, char *str, int *index);
-static void delete_bone(struct EditBone* exBone);
-static void clear_armature_children (struct Bone *bone, struct bPose *pose, char mode);
+/* converts Bones to EditBone list, used for tools as well */
+static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
+{
+	EditBone	*eBone;
+	Bone		*curBone;
+	float delta[3];
+	float premat[3][3];
+	float postmat[3][3];
+	float imat[3][3];
+	float difmat[3][3];
+		
+	for (curBone=bones->first; curBone; curBone=curBone->next){
+		eBone= MEM_callocN(sizeof(EditBone), "make_editbone");
+		
+		/*	Copy relevant data from bone to eBone */
+		eBone->parent=parent;
+		strcpy (eBone->name, curBone->name);
+		eBone->flag = curBone->flag;
+		
+		/* fix selection flags */
+		if(eBone->flag & BONE_SELECTED) {
+			eBone->flag |= BONE_TIPSEL;
+			if(eBone->parent && (eBone->flag & BONE_IK_TOPARENT))
+				eBone->parent->flag |= BONE_TIPSEL;
+			else 
+				eBone->flag |= BONE_ROOTSEL;
+		}
+		
+		VECCOPY(eBone->head, curBone->arm_head);
+		VECCOPY(eBone->tail, curBone->arm_tail);		
+		
+		eBone->roll= 0.0;
+		
+		/* roll fixing */
+		VecSubf (delta, eBone->tail, eBone->head);
+		vec_roll_to_mat3(delta, 0.0, postmat);
+		
+		Mat3CpyMat4(premat, curBone->arm_mat);
+		
+		Mat3Inv(imat, postmat);
+		Mat3MulMat3(difmat, imat, premat);
+		
+		eBone->roll = atan(difmat[2][0]/difmat[2][2]);
+		if (difmat[0][0]<0.0) eBone->roll +=M_PI;
+		
+		/* rest of stuff copy */
+		eBone->length= curBone->length;
+		eBone->dist= curBone->dist;
+		eBone->weight= curBone->weight;
+		eBone->boneclass = curBone->boneclass;		
+		
+		BLI_addtail (list, eBone);
+		
+		/*	Add children if necessary */
+		if (curBone->childbase.first) 
+			make_boneList (list, &curBone->childbase, eBone);
+	}
+}
 
-static int	count_bones (struct bArmature *arm, int flagmask, int allbones);
-static int	count_bonechildren (struct Bone *bone, int incount, int flagmask, int allbones);
+/* nasty stuff for converting roll in editbones into bones */
+/* also sets restposition in armature (arm_mat) */
+static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
+{
+	Bone *curBone;
+	EditBone *ebone;
+	float premat[3][3];
+	float postmat[3][3];
+	float difmat[3][3];
+	float imat[3][3];
+	float delta[3];
+	
+	for (curBone=bonelist->first; curBone; curBone=curBone->next) {
+		/* sets local matrix and arm_mat (restpos) */
+		where_is_armature_bone(curBone, curBone->parent);
+		
+		/* Find the associated editbone */
+		for (ebone = editbonelist->first; ebone; ebone=ebone->next)
+			if ((Bone*)ebone->temp == curBone)
+				break;
+		
+		if (ebone) {
+			/* Get the ebone premat */
+			VecSubf (delta, ebone->tail, ebone->head);
+			vec_roll_to_mat3(delta, ebone->roll, premat);
+			
+			/* Get the bone postmat */
+			Mat3CpyMat4(postmat, curBone->arm_mat);
 
-static void deselect_bonechildren (Object *ob, struct Bone *bone, int mode);
-static void selectconnected_posebonechildren (struct Bone *bone);
+			Mat3Inv(imat, premat);
+			Mat3MulMat3(difmat, imat, postmat);
+#if 0
+			printf ("Bone %s\n", curBone->name);
+			printmatrix4 ("premat", premat);
+			printmatrix4 ("postmat", postmat);
+			printmatrix4 ("difmat", difmat);
+			printf ("Roll = %f\n",  (-atan(difmat[2][0]/difmat[2][2]) * (180.0/M_PI)));
+#endif
+			curBone->roll = -atan(difmat[2][0]/difmat[2][2]);
+			
+			if (difmat[0][0]<0.0) curBone->roll +=M_PI;
+			
+			/* and set restposition again */
+			where_is_armature_bone(curBone, curBone->parent);
+		}
+		fix_bonelist_roll (&curBone->childbase, editbonelist);
+	}
+}
 
-static int	editbone_name_exists (char* name);
+/* converts the editbones back to the armature */
+static void editbones_to_armature (ListBase *list, Object *ob)
+{
+	bArmature *arm;
+	EditBone *eBone;
+	Bone	*newBone;
+	Object *obt;
+	
+	arm = get_armature(ob);
+	if (!list) return;
+	if (!arm) return;
+	
+	/* armature bones */
+	free_bones(arm);
+	
+	/*	Copy the bones from the editData into the armature */
+	for (eBone=list->first;eBone;eBone=eBone->next){
+		newBone= MEM_callocN (sizeof(Bone), "bone");
+		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
+		
+		strcpy (newBone->name, eBone->name);
+		memcpy (newBone->head, eBone->head, sizeof(float)*3);
+		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
+		newBone->flag= eBone->flag;
+		newBone->roll = 0.0f;
+		
+		newBone->weight = eBone->weight;
+		newBone->dist = eBone->dist;
+		newBone->boneclass = eBone->boneclass;
+		
+	}
+	
+	/*	Fix parenting in a separate pass to ensure ebone->bone connections
+		are valid at this point */
+	for (eBone=list->first;eBone;eBone=eBone->next) {
+		newBone= (Bone*) eBone->temp;
+		if (eBone->parent){
+			newBone->parent=(Bone*) eBone->parent->temp;
+			BLI_addtail (&newBone->parent->childbase,newBone);
+			
+			{
+				float M_boneRest[3][3];
+				float M_parentRest[3][3];
+				float iM_parentRest[3][3];
+				float	delta[3];
+				
+				/* Get the parent's  matrix (rotation only) */
+				VecSubf (delta, eBone->parent->tail, eBone->parent->head);
+				vec_roll_to_mat3(delta, eBone->parent->roll, M_parentRest);
+				
+				/* Get this bone's  matrix (rotation only) */
+				VecSubf (delta, eBone->tail, eBone->head);
+				vec_roll_to_mat3(delta, eBone->roll, M_boneRest);
+				
+				/* Invert the parent matrix */
+				Mat3Inv(iM_parentRest, M_parentRest);
+				
+				/* Get the new head and tail */
+				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
+				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
 
-static void *get_nearest_bone (int findunsel);
-static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask);
+				Mat3MulVecfl(iM_parentRest, newBone->head);
+				Mat3MulVecfl(iM_parentRest, newBone->tail);
+			}
+		}
+		/*	...otherwise add this bone to the armature's bonebase */
+		else
+			BLI_addtail (&arm->bonebase,newBone);
+	}
+	
+	/* Make a pass through the new armature to fix rolling */
+	/* also builds restposition again (like where_is_armature) */
+	fix_bonelist_roll (&arm->bonebase, list);
+	
+	/* so all users of this armature should get rebuilt */
+	for(obt= G.main->object.first; obt; obt= obt->id.next) {
+		if(obt->data==arm)
+			armature_rebuild_pose(obt, arm);
+	}
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+}
 
-static Bone *get_first_selected_bonechildren (Bone *bone);
-
-static EditBone *get_named_editbone(char *name);
-static void update_dup_subtarget(EditBone *dupBone);
-static int bone_skinnable(Object *ob, Bone *bone, void *data);
-static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data);
-static int dgroup_skinnable(Object *ob, Bone *bone, void *data);
-static void add_verts_to_closest_dgroup(Object *ob, Object *par);
-static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr);
-static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr);
-static int show_pose_bone(Object *ob, Bone *bone, void *ptr);
-
-/* Functions */
 
 
-
-void apply_rot_armature (Object *ob, float mat[3][3]){
+void apply_rot_armature (Object *ob, float mat[3][3])
+{
 	ListBase	list;
 	EditBone *ebone;
 	bArmature *arm;
@@ -166,47 +327,42 @@ void apply_rot_armature (Object *ob, float mat[3][3]){
 
 	/* Do the rotations */
 	for (ebone = list.first; ebone; ebone=ebone->next){
-	
 		{
-
 			/* Fixme: This is essentially duplicated from join_armature */
-
+			/* Yah, later... :) (ton) */
 			float premat[4][4];
 			float postmat[4][4];
 			float difmat[4][4];
 			float imat[4][4];
-			float temp[4][4];
+			float temp[3][3];
 			float delta[3];
 			float rmat[4][4];
 			
 			Mat4CpyMat3 (rmat, mat);
+			
 			/* Get the premat */
 			VecSubf (delta, ebone->tail, ebone->head);
-			make_boneMatrixvr(temp, delta, ebone->roll);
-			Mat4MulMat4 (premat, temp, rmat);
+			vec_roll_to_mat3(delta, ebone->roll, temp);
+			
+			Mat4MulMat34 (premat, temp, rmat);
 			
 			Mat4MulVecfl(rmat, ebone->head);
 			Mat4MulVecfl(rmat, ebone->tail);
 			
 			/* Get the postmat */
 			VecSubf (delta, ebone->tail, ebone->head);
-			make_boneMatrixvr(postmat, delta, ebone->roll);
+			vec_roll_to_mat3(delta, ebone->roll, temp);
+			Mat4CpyMat3(postmat, temp);
 			
 			/* Find the roll */
 			Mat4Invert (imat, premat);
 			Mat4MulMat4 (difmat, postmat, imat);
 			
-#if 0
-			printmatrix4 ("Difmat", difmat);
-#endif
 			ebone->roll -=atan(difmat[2][0]/difmat[2][2]);
 			
-			if (difmat[0][0]<0)
-				ebone->roll +=M_PI;
+			if (difmat[0][0]<0) ebone->roll +=M_PI;
 			
 		}
-
-		
 	}
 	
 	/* Turn the list into an armature */
@@ -216,146 +372,187 @@ void apply_rot_armature (Object *ob, float mat[3][3]){
 	if (list.first){
 		BLI_freelistN (&list);
 	}
-
 }
 
-
-
-static Bone *get_first_selected_bonechildren (Bone *bone)
+void join_armature(void)
 {
-	Bone *curbone, *result;
-
-	if (bone->flag & BONE_SELECTED)
-		return bone;
-
-	for (curbone = bone->childbase.first; curbone; curbone=curbone->next){
-		result = get_first_selected_bonechildren(curbone);
-		if (result)
-			return result;
-	};
-
-	return NULL;
-}
-
-Bone *get_first_selected_bone (void)
-{
-	Bone *curbone, *result;
-	bArmature *arm;
-
-	arm = get_armature(OBACT);
-	if (!arm)
-		return NULL;
-
-	for (curbone = arm->bonebase.first; curbone; curbone=curbone->next){
-		result = get_first_selected_bonechildren(curbone);
-		if (result)
-			return result;
-	}
-
-	return NULL;
-}
-
-void clever_numbuts_posearmature (void)
-{
-	/* heh -- 'clever numbuts'! */
-	bArmature *arm;
-	Bone *bone;
-	bPoseChannel *chan;
-
-	arm = get_armature(OBACT);
-	if (!arm)
-		return;
-
-	bone = get_first_selected_bone();
-
-	if (!bone)
-		return;
-
-	add_numbut(0, NUM|FLO, "Loc X:", -G.vd->far, G.vd->far, bone->loc, 0);
-	add_numbut(1, NUM|FLO, "Loc Y:", -G.vd->far, G.vd->far, bone->loc+1, 0);
-	add_numbut(2, NUM|FLO, "Loc Z:", -G.vd->far, G.vd->far, bone->loc+2, 0);
-
-	add_numbut(3, NUM|FLO, "Quat X:", -G.vd->far, G.vd->far, bone->quat, 0);
-	add_numbut(4, NUM|FLO, "Quat Y:", -G.vd->far, G.vd->far, bone->quat+1, 0);
-	add_numbut(5, NUM|FLO, "Quat Z:", -G.vd->far, G.vd->far, bone->quat+2, 0);
-	add_numbut(6, NUM|FLO, "Quat W:", -G.vd->far, G.vd->far, bone->quat+3, 0);
-
-	add_numbut(7, NUM|FLO, "Size X:", -G.vd->far, G.vd->far, bone->size, 0);
-	add_numbut(8, NUM|FLO, "Size Y:", -G.vd->far, G.vd->far, bone->size+1, 0);
-	add_numbut(9, NUM|FLO, "Size Z:", -G.vd->far, G.vd->far, bone->size+2, 0);
-
-	do_clever_numbuts("Active Bone", 10, REDRAW);
-
-	/* This is similar to code in special_trans_update */
+	Object	*ob;
+	Base	*base, *nextbase;
+	ListBase eblist;
+	EditBone *curbone, *next;
+	float	mat[4][4], imat[4][4];
 	
-	if (!G.obpose->pose) G.obpose->pose= MEM_callocN(sizeof(bPose), "pose");
-	chan = MEM_callocN (sizeof (bPoseChannel), "transPoseChannel");
-
-	chan->flag |= POSE_LOC|POSE_ROT|POSE_SIZE;
-	memcpy (chan->loc, bone->loc, sizeof (chan->loc));
-	memcpy (chan->quat, bone->quat, sizeof (chan->quat));
-	memcpy (chan->size, bone->size, sizeof (chan->size));
-	strcpy (chan->name, bone->name);
+	/*	Ensure we're not in editmode and that the active object is an armature*/
+	if(G.obedit) return;
 	
-	set_pose_channel (G.obpose->pose, chan);
+	ob= OBACT;
+	if(ob->type!=OB_ARMATURE) return;
 	
-}
-
-void clever_numbuts_armature (void)
-{
-	EditBone *ebone, *child;
+	/*	Make sure the user wants to continue*/
+	if(okee("Join selected armatures")==0) return;
 	
-	ebone= G.edbo.first;
+	/*	Put the active armature into editmode and join the bones from the other one*/
+#if 1
+	enter_editmode();
+#else
+	baselist.first=baselist.last=0;
+	make_boneList(&baselist, &((bArmature*)ob->data)->bonebase, NULL);
+#endif
+	
+	for (base=FIRSTBASE; base; base=nextbase) {
+		nextbase = base->next;
+		if (TESTBASE(base)){
+			if ((base->object->type==OB_ARMATURE) && (base->object!=ob)){
+				/* Make a list of editbones */
+				eblist.first=eblist.last= NULL;
+				make_boneList (&eblist, &((bArmature*)base->object->data)->bonebase,NULL);
+				/* Find the difference matrix */
+				Mat4Invert(imat, ob->obmat);
+				Mat4MulMat4(mat, base->object->obmat, imat);
+				
+				/* Copy bones from the object to the edit armature */
+				for (curbone=eblist.first; curbone; curbone=next){
+					next = curbone->next;
 
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if (ebone->flag & BONE_SELECTED)
-			break;
-	}
-
-	if (!ebone)
-		return;
-
-	add_numbut(0, NUM|FLO, "Root X:", -G.vd->far, G.vd->far, ebone->head, 0);
-	add_numbut(1, NUM|FLO, "Root Y:", -G.vd->far, G.vd->far, ebone->head+1, 0);
-	add_numbut(2, NUM|FLO, "Root Z:", -G.vd->far, G.vd->far, ebone->head+2, 0);
-
-	add_numbut(3, NUM|FLO, "Tip X:", -G.vd->far, G.vd->far, ebone->tail, 0);
-	add_numbut(4, NUM|FLO, "Tip Y:", -G.vd->far, G.vd->far, ebone->tail+1, 0);
-	add_numbut(5, NUM|FLO, "Tip Z:", -G.vd->far, G.vd->far, ebone->tail+2, 0);
-
-	/* Convert roll to degrees */
-	ebone->roll *= (180.0F/M_PI);
-	add_numbut(6, NUM|FLO, "Roll:", -G.vd->far, G.vd->far, &ebone->roll, 0);
-
-	do_clever_numbuts("Active Bone", 7, REDRAW);
-
-	/* Convert roll to radians */
-	ebone->roll /= (180.0F/M_PI);
-
-	//	Update our parent
-	if (ebone->parent && ebone->flag & BONE_IK_TOPARENT){
-		VECCOPY (ebone->parent->tail, ebone->head);
-	}
-
-	//	Update our children if necessary
-	for (child = G.edbo.first; child; child=child->next){
-		if (child->parent == ebone && child->flag & BONE_IK_TOPARENT){
-			VECCOPY (child->head, ebone->tail);
+					unique_editbone_name (curbone->name);
+					
+					/* Transform the bone */
+					{
+						float premat[4][4];
+						float postmat[4][4];
+						float difmat[4][4];
+						float imat[4][4];
+						float temp[3][3];
+						float delta[3];
+						
+						/* Get the premat */
+						VecSubf (delta, curbone->tail, curbone->head);
+						vec_roll_to_mat3(delta, curbone->roll, temp);
+						
+						Mat4MulMat34 (premat, temp, mat);
+						
+						Mat4MulVecfl(mat, curbone->head);
+						Mat4MulVecfl(mat, curbone->tail);
+						
+						/* Get the postmat */
+						VecSubf (delta, curbone->tail, curbone->head);
+						vec_roll_to_mat3(delta, curbone->roll, temp);
+						Mat4CpyMat3(postmat, temp);
+						
+						/* Find the roll */
+						Mat4Invert (imat, premat);
+						Mat4MulMat4 (difmat, postmat, imat);
+						
+						curbone->roll -=atan(difmat[2][0]/difmat[2][2]);
+						
+						if (difmat[0][0]<0)
+							curbone->roll +=M_PI;
+						
+					}
+#if 1
+					BLI_remlink(&eblist, curbone);
+					BLI_addtail(&G.edbo, curbone);
+#else
+					BLI_remlink(&eblist, curbone);
+					BLI_addtail(&baselist, curbone);
+#endif
+				}
+				
+				free_and_unlink_base(base);
+			}
 		}
 	}
+	
+#if 1
+	exit_editmode(1);
+#else
+	editbones_to_armature(&baselist, ob);
+	if (baselist.first){
+		BLI_freelistN (&baselist);
+	}
+#endif
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+
 }
 
-void select_bone_by_name (bArmature *arm, char *name, int select)
+/* **************** END tools on Editmode Armature **************** */
+/* **************** PoseMode & EditMode *************************** */
+
+/* used by posemode as well editmode */
+static void * get_nearest_bone (int findunsel)
 {
+	void		*firstunSel=NULL, *data;
+	unsigned int buffer[MAXPICKBUF];
+	short		hits;
+	int		 i, takeNext=0;
+	int		sel;
+	unsigned int	hitresult;
 	Bone *bone;
-
-	if (!arm)
-		return;
-
-	for (bone=arm->bonebase.first; bone; bone=bone->next)
-		if (select_bonechildren_by_name (bone, name, select))
-			break;
+	EditBone *ebone;
+	
+	persp(PERSP_VIEW);
+	
+	glInitNames();
+	hits= selectprojektie(buffer, 0, 0, 0, 0);
+	
+	/* See if there are any selected bones in this group */
+	if (hits){
+		for (i=0; i< hits; i++){
+			hitresult = buffer[3+(i*4)];
+			if (!(hitresult & BONESEL_NOSEL)){
+				
+				/* Determine which points are selected */
+				hitresult &= ~(BONESEL_ANY);
+				
+				/* Determine what the current bone is */
+				if (!G.obedit){
+					bone = get_indexed_bone(OBACT, hitresult);
+					if (findunsel)
+						sel = (bone->flag & BONE_SELECTED);
+					else
+						sel = !(bone->flag & BONE_SELECTED);					
+					data = bone;
+				}
+				else{
+					ebone = BLI_findlink(&G.edbo, hitresult);
+					if (findunsel)
+						sel = (ebone->flag & BONE_SELECTED);
+					else
+						sel = !(ebone->flag & BONE_SELECTED);
+					
+					data = ebone;
+				}
+				
+				if (sel)
+					takeNext=1;
+				else{
+					if (!firstunSel)
+						firstunSel=data;
+					if (takeNext)
+						return data;
+				}
+			}
+		}
+		
+		if (firstunSel)
+			return firstunSel;
+		
+		else{
+			
+			if (G.obedit)
+				return BLI_findlink(&G.edbo, buffer[3] & ~(BONESEL_ANY));
+			else
+				return get_indexed_bone(OBACT, buffer[3] & ~(BONESEL_ANY));
+		}
+	}
+	
+	return NULL;
 }
+
+
+/* **************** END PoseMode & EditMode *************************** */
+/* **************** Posemode stuff ********************** */
 
 static int select_bonechildren_by_name (Bone *bone, char *name, int select)
 {
@@ -376,6 +573,155 @@ static int select_bonechildren_by_name (Bone *bone, char *name, int select)
 
 	return 0;
 }
+
+/* called in editction.c */
+void select_bone_by_name (bArmature *arm, char *name, int select)
+{
+	Bone *bone;
+	
+	if (!arm)
+		return;
+	
+	for (bone=arm->bonebase.first; bone; bone=bone->next)
+		if (select_bonechildren_by_name (bone, name, select))
+			break;
+}
+
+static void selectconnected_posebonechildren (Bone *bone)
+{
+	Bone *curBone;
+	
+	if (!(bone->flag & BONE_IK_TOPARENT))
+		return;
+	
+	select_actionchannel_by_name (G.obpose->action, bone->name, !(G.qual & LR_SHIFTKEY));
+	
+	if (G.qual & LR_SHIFTKEY)
+		bone->flag &= ~BONE_SELECTED;
+	else
+		bone->flag |= BONE_SELECTED;
+	
+	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
+		selectconnected_posebonechildren (curBone);
+	}
+}
+
+void selectconnected_posearmature(void)
+{
+	Bone *bone, *curBone, *next;
+	
+	if (G.qual & LR_SHIFTKEY)
+		bone= get_nearest_bone(0);
+	else
+		bone = get_nearest_bone(1);
+	
+	if (!bone)
+		return;
+	
+	/* Select parents */
+	for (curBone=bone; curBone; curBone=next){
+		select_actionchannel_by_name (G.obpose->action, curBone->name, !(G.qual & LR_SHIFTKEY));
+		if (G.qual & LR_SHIFTKEY)
+			curBone->flag &= ~BONE_SELECTED;
+		else
+			curBone->flag |= BONE_SELECTED;
+		
+		if (curBone->flag & BONE_IK_TOPARENT)
+			next=curBone->parent;
+		else
+			next=NULL;
+	}
+	
+	/* Select children */
+	for (curBone=bone->childbase.first; curBone; curBone=next){
+		selectconnected_posebonechildren (curBone);
+	}
+	
+	countall(); // flushes selection!
+
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Select connected");
+
+}
+
+static int count_bonechildren (Bone *bone, int incount, int flagmask, int allbones){
+	
+	Bone	*curBone;
+	
+	if (!bone)
+		return incount;
+	
+	if (bone->flag & flagmask || flagmask == 0xFFFFFFFF){
+		incount++;
+		if (!allbones)
+			return incount;
+	}
+	
+	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
+		incount=count_bonechildren (curBone, incount, flagmask, allbones);
+	}
+	
+	return incount;
+}
+
+static int	count_bones (bArmature *arm, int flagmask, int allbones)
+{
+	int	count=0;
+	Bone	*curBone;
+	
+	if (!arm)
+		return 0;
+	
+	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+		count = count_bonechildren (curBone, count, flagmask, allbones);
+	}
+	
+	return count;
+	
+}
+
+static void make_bone_menu_children (Bone *bone, char *str, int *index)
+{
+	Bone *curBone;
+	
+	sprintf (str, "%s|%s%%x%d", str, bone->name, *index);
+	(*index) ++;
+	
+	for (curBone=bone->childbase.first; curBone; curBone=curBone->next)
+		make_bone_menu_children (curBone, str, index);
+}
+
+/* called in editobject.c */
+char *make_bone_menu (bArmature *arm)
+{
+	char *menustr=NULL;
+	Bone *curBone;
+	int		size;
+	int		index=0;
+	
+	
+	//	Count the bones
+	size = (count_bones (arm, 0xFFFFFFFF, 1)*48) + 256;
+	menustr = MEM_callocN(size, "bonemenu");
+	
+	sprintf (menustr, "Select Bone%%t");
+	
+	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+		make_bone_menu_children (curBone, menustr, &index);
+	}
+	
+	return menustr;
+}
+
+
+/* **************** END Posemode stuff ********************** */
+/* **************** EditMode stuff ********************** */
+
+/* called in space.c */
 void selectconnected_armature(void)
 {
 	EditBone *bone, *curBone, *next;
@@ -427,121 +773,26 @@ void selectconnected_armature(void)
 
 	}
 
-	countall();
+	countall(); // flushes selection!
+
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
-
-}
-
-void selectconnected_posearmature(void)
-{
-	Bone *bone, *curBone, *next;
-
-	if (G.qual & LR_SHIFTKEY)
-		bone= get_nearest_bone(0);
-	else
-		bone = get_nearest_bone(1);
-
-	if (!bone)
-		return;
-
-	/* Select parents */
-	for (curBone=bone; curBone; curBone=next){
-		select_actionchannel_by_name (G.obpose->action, curBone->name, !(G.qual & LR_SHIFTKEY));
-		if (G.qual & LR_SHIFTKEY)
-			curBone->flag &= ~BONE_SELECTED;
-		else
-			curBone->flag |= BONE_SELECTED;
-
-		if (curBone->flag & BONE_IK_TOPARENT)
-			next=curBone->parent;
-		else
-			next=NULL;
-	}
-
-	/* Select children */
-	for (curBone=bone->childbase.first; curBone; curBone=next){
-		selectconnected_posebonechildren (curBone);
-	}
 	
-	countall();
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Select connected");
+
 }
 
-static void selectconnected_posebonechildren (Bone *bone)
+/* does bones and points */
+/* note that BONE ROOT only gets drawn for root bones (or without IK) */
+static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 {
-	Bone *curBone;
-
-	if (!(bone->flag & BONE_IK_TOPARENT))
-		return;
-
-	select_actionchannel_by_name (G.obpose->action, bone->name, !(G.qual & LR_SHIFTKEY));
-
-	if (G.qual & LR_SHIFTKEY)
-		bone->flag &= ~BONE_SELECTED;
-	else
-		bone->flag |= BONE_SELECTED;
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		selectconnected_posebonechildren (curBone);
-	}
-}
-
-
-char *make_bone_menu (bArmature *arm)
-{
-	char *menustr=NULL;
-	Bone *curBone;
-	int		size;
-	int		index=0;
-	
-
-	//	Count the bones
-	size = (count_bones (arm, 0xFFFFFFFF, 1)*48) + 256;
-	menustr = MEM_callocN(size, "bonemenu");
-
-	sprintf (menustr, "Select Bone%%t");
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		make_bone_menu_children (curBone, menustr, &index);
-	}
-
-	return menustr;
-}
-
-static void make_bone_menu_children (Bone *bone, char *str, int *index)
-{
-	Bone *curBone;
-
-	sprintf (str, "%s|%s%%x%d", str, bone->name, *index);
-	(*index) ++;
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next)
-		make_bone_menu_children (curBone, str, index);
-}
-
-void free_editArmature(void)
-{
-
-	/*	Clear the editbones list */
-	if (G.edbo.first){
-		BLI_freelistN (&G.edbo);
-	}
-}
-
-static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask){
-	EditBone	*ebone;
+	EditBone *ebone;
 	unsigned int buffer[MAXPICKBUF];
-	short		hits;
-	int		 i, takeNext=0;
-	int		sel;
-	unsigned int	hitresult, hitbone, firstunSel=-1;
+	unsigned int hitresult, besthitresult=BONESEL_NOSEL;
+	int i, mindep= 4;
+	short hits;
 
 	persp(PERSP_VIEW);
 
@@ -549,168 +800,68 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask){
 	hits= selectprojektie(buffer, 0, 0, 0, 0);
 
 	/* See if there are any selected bones in this group */
-	if (hits){
-		for (i=0; i< hits; i++){
-			hitresult = buffer[3+(i*4)];
-			if (!(hitresult&BONESEL_NOSEL)){
-
-				/* Determine which points are selected */
-				hitbone = hitresult & ~(BONESEL_ROOT|BONESEL_TIP);
-
-				/* Determine what the current bone is */
-				ebone = BLI_findlink(&G.edbo, hitbone);
-
-				/* See if it is selected */
-				sel = 0;
-				if ((hitresult & (BONESEL_TIP|BONESEL_ROOT)) == (BONESEL_TIP|BONESEL_ROOT))
-					sel = (ebone->flag & (BONE_TIPSEL| BONE_ROOTSEL)) == (BONE_TIPSEL|BONE_ROOTSEL) ? 1 : 0;
-				else if (hitresult & BONESEL_TIP)
-					sel |= ebone->flag & BONE_TIPSEL;
-				else if (hitresult & BONESEL_ROOT)
-					sel |= ebone->flag & BONE_ROOTSEL;
-				if (!findunsel)
-					sel = !sel;
-			
-				if (sel)
-					takeNext=1;
-				else{
-					if (firstunSel == -1)
-						firstunSel = hitresult;
-					if (takeNext){
-						*selmask =0;
-						if (hitresult & BONESEL_ROOT)
-							*selmask |= BONE_ROOTSEL;
-						if (hitresult & BONESEL_TIP)
-							*selmask |= BONE_TIPSEL;
-						return ebone;
+	if (hits) {
+		
+		if(hits==1) {
+			if (!(buffer[3] & BONESEL_NOSEL)) 
+				besthitresult= buffer[3];
+		}
+		else {
+			for (i=0; i< hits; i++) {
+				hitresult= buffer[3+(i*4)];
+				if (!(hitresult & BONESEL_NOSEL)) {
+					int dep;
+					
+					ebone = BLI_findlink(&G.edbo, hitresult & ~BONESEL_ANY);
+					
+					/* clicks on bone points get advantage */
+					if( hitresult & (BONESEL_ROOT|BONESEL_TIP)) {
+						/* but also the unselected one */
+						if(findunsel) {
+							if( (hitresult & BONESEL_ROOT) && (ebone->flag & BONE_ROOTSEL)==0) 
+								dep= 1;
+							else if( (hitresult & BONESEL_TIP) && (ebone->flag & BONE_TIPSEL)==0) 
+								dep= 1;
+							else 
+								dep= 2;
+						}
+						else dep= 2;
+					}
+					else {
+						/* bone found */
+						if(findunsel) {
+							if((ebone->flag & BONE_SELECTED)==0)
+								dep= 2;
+							else
+								dep= 3;
+						}
+						else dep= 3;
+					}
+					if(dep < mindep) {
+						mindep= dep;
+						besthitresult= hitresult;
 					}
 				}
 			}
 		}
-
-		if (firstunSel != -1){
+		
+		if (!(besthitresult & BONESEL_NOSEL)) {
+			
+			ebone= BLI_findlink(&G.edbo, besthitresult & ~BONESEL_ANY);
+			
 			*selmask = 0;
-			if (firstunSel & BONESEL_ROOT)
+			if (besthitresult & BONESEL_ROOT)
 				*selmask |= BONE_ROOTSEL;
-			if (firstunSel & BONESEL_TIP)
+			if (besthitresult & BONESEL_TIP)
 				*selmask |= BONE_TIPSEL;
-			return BLI_findlink(&G.edbo, firstunSel & ~(BONESEL_ROOT|BONESEL_TIP));
+			if (besthitresult & BONESEL_BONE)
+				*selmask |= BONE_SELECTED;
+			return ebone;
 		}
-#if 1
-		else{
-			*selmask = 0;
-			if (buffer[3] & BONESEL_ROOT)
-				*selmask |= BONE_ROOTSEL;
-			if (buffer[3] & BONESEL_TIP)
-				*selmask |= BONE_TIPSEL;
-#if 1
-			return BLI_findlink(&G.edbo, buffer[3] & ~(BONESEL_ROOT|BONESEL_TIP));
-#else
-			return NULL;
-#endif
-		}
-#endif
 	}
-
 	*selmask = 0;
 	return NULL;
 }
-
-static void * get_nearest_bone (int findunsel){
-	void		*firstunSel=NULL, *data;
-	unsigned int buffer[MAXPICKBUF];
-	short		hits;
-	int		 i, takeNext=0;
-	int		sel;
-	unsigned int	hitresult;
-	Bone *bone;
-	EditBone *ebone;
-
-	persp(PERSP_VIEW);
-
-	glInitNames();
-	hits= selectprojektie(buffer, 0, 0, 0, 0);
-
-
-	/* See if there are any selected bones in this group */
-	if (hits){
-		for (i=0; i< hits; i++){
-			hitresult = buffer[3+(i*4)];
-			if (!(hitresult&BONESEL_NOSEL)){
-
-				/* Determine which points are selected */
-				hitresult &= ~(BONESEL_ROOT|BONESEL_TIP);
-
-				/* Determine what the current bone is */
-				if (!G.obedit){
-					bone = get_indexed_bone(OBACT->data, hitresult);
-					if (findunsel)
-						sel = (bone->flag & BONE_SELECTED);
-					else
-						sel = !(bone->flag & BONE_SELECTED);					
-					data = bone;
-				}
-				else{
-					ebone = BLI_findlink(&G.edbo, hitresult);
-					if (findunsel)
-						sel = (ebone->flag & BONE_SELECTED);
-					else
-						sel = !(ebone->flag & BONE_SELECTED);
-					
-					data = ebone;
-				}
-				
-				if (sel)
-					takeNext=1;
-				else{
-					if (!firstunSel)
-						firstunSel=data;
-					if (takeNext)
-						return data;
-				}
-			}
-		}
-
-		if (firstunSel)
-			return firstunSel;
-#if 1
-		else{
-#if 1
-			if (G.obedit)
-				return BLI_findlink(&G.edbo, buffer[3] & ~(BONESEL_ROOT|BONESEL_TIP));
-			else
-				return get_indexed_bone(OBACT->data, buffer[3] & ~(BONESEL_ROOT|BONESEL_TIP));
-#else
-			return NULL;
-#endif
-		}
-#endif
-	}
-
-	return NULL;
-}
-
-void delete_armature(void)
-{
-	EditBone	*curBone, *next;
-	
-	TEST_EDITARMATURE;
-	if(okee("Erase selected bone")==0) return;
-	
-	for (curBone=G.edbo.first;curBone;curBone=next){
-		next=curBone->next;
-		if (curBone->flag&BONE_SELECTED)
-			delete_bone(curBone);
-	}
-	
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-	countall();
-}
-
 
 static void delete_bone(EditBone* exBone)
 {
@@ -735,14 +886,117 @@ static void delete_bone(EditBone* exBone)
 			}
 		}
 	}
+	BLI_freelinkN (&G.edbo,exBone);
+}
 
-
-	allqueue(REDRAWBUTSOBJECT, 0);
+/* only editmode! */
+void delete_armature(void)
+{
+	EditBone	*curBone, *next;
+	
+	TEST_EDITARMATURE;
+	if(okee("Erase selected bone(s)")==0) return;
+	
+	for (curBone=G.edbo.first;curBone;curBone=next){
+		next=curBone->next;
+		if (curBone->flag&BONE_SELECTED)
+			delete_bone(curBone);
+	}
+	
+	
+	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
+	countall(); // flushes selection!
+	
+	BIF_undo_push("Delete bone(s)");
+}
 
-	BLI_freelinkN (&G.edbo,exBone);
+/* editmode version */
+void mouse_armature(void)
+{
+	EditBone *nearBone = NULL, *ebone;
+	int	selmask;
+
+	nearBone= get_nearest_editbonepoint(1, &selmask);
+	if (nearBone) {
+		
+		if (!(G.qual & LR_SHIFTKEY)) {
+			nearBone->flag |= BONE_TIPSEL;  // fake, but deselectall toggles
+			deselectall_armature();
+		}
+		
+		/* by definition the non-root non-IK bones have no root point drawn,
+	       so a root selection needs to be delivered to the parent tip,
+	       countall() (bad location) flushes these flags */
+		
+		if(selmask & BONE_SELECTED) {
+			if(nearBone->parent && (nearBone->flag & BONE_IK_TOPARENT)) {
+				/* click in a chain */
+				if(G.qual & LR_SHIFTKEY) {
+					/* hold shift inverts this bone's selection */
+					if(nearBone->flag & BONE_SELECTED) {
+						/* deselect this bone */
+						nearBone->flag &= ~(BONE_TIPSEL|BONE_SELECTED);
+						/* only deselect parent tip if it is not selected */
+						if(!(nearBone->parent->flag & BONE_SELECTED))
+							nearBone->parent->flag &= ~BONE_TIPSEL;
+					}
+					else {
+						/* select this bone */
+						nearBone->flag |= BONE_TIPSEL;
+						nearBone->parent->flag |= BONE_TIPSEL;
+					}
+				}
+				else {
+					/* select this bone */
+					nearBone->flag |= BONE_TIPSEL;
+					nearBone->parent->flag |= BONE_TIPSEL;
+				}
+			}
+			else {
+				if(G.qual & LR_SHIFTKEY) {
+					/* hold shift inverts this bone's selection */
+					if(nearBone->flag & BONE_SELECTED)
+					   nearBone->flag &= ~(BONE_TIPSEL|BONE_ROOTSEL);
+					else
+						nearBone->flag |= (BONE_TIPSEL|BONE_ROOTSEL);
+				}
+				else nearBone->flag |= (BONE_TIPSEL|BONE_ROOTSEL);
+			}
+		}
+		else {
+			if ((G.qual & LR_SHIFTKEY) && (nearBone->flag & selmask))
+				nearBone->flag &= ~selmask;
+			else
+				nearBone->flag |= selmask;
+		}
+
+		countall(); // flushes selection!
+	
+		if(nearBone) {
+			/* then now check for active status */
+			for (ebone=G.edbo.first;ebone;ebone=ebone->next) ebone->flag &= ~BONE_ACTIVE;
+			if(nearBone->flag & BONE_SELECTED) nearBone->flag |= BONE_ACTIVE;
+		}
+	   
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWOOPS, 0);
+	}
+
+	rightmouse_transform();
+}
+
+void free_editArmature(void)
+{
+	
+	/*	Clear the editbones list */
+	if (G.edbo.first){
+		BLI_freelistN (&G.edbo);
+	}
 }
 
 void remake_editArmature(void)
@@ -755,40 +1009,17 @@ void remake_editArmature(void)
 	allqueue(REDRAWBUTSHEAD, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	
+//	BIF_undo_push("Delete bone");
+
 }
 
-void mouse_armature(void)
-{
-	EditBone*	nearBone = NULL;
-	int	selmask;
-
-	nearBone=get_nearest_editbonepoint(1, &selmask);
-
-	if (nearBone){
-		if ((G.qual & LR_SHIFTKEY) && (nearBone->flag & selmask))
-			nearBone->flag &= ~selmask;
-		else
-			nearBone->flag |= selmask;
-
-		if (!(G.qual & LR_SHIFTKEY)){
-			deselectall_armature();
-			nearBone->flag |= selmask;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWOOPS, 0);
-	};
-	countall();
-	rightmouse_transform();
-}
-
+/* Put object in EditMode */
 void make_editArmature(void)
 {
 	bArmature	*arm;
 	
-	if (G.obedit==0)
-		return;
+	if (G.obedit==0) return;
 	
 	free_editArmature();
 	
@@ -799,376 +1030,415 @@ void make_editArmature(void)
 	make_boneList (&G.edbo, &arm->bonebase,NULL);
 }
 
-static void editbones_to_armature (ListBase *list, Object *ob)
-{
-	bArmature *arm;
-	EditBone *eBone;
-	Bone	*newBone;
-
-	arm = get_armature(ob);
-	if (!list)
-		return;
-	if (!arm)
-		return;
-
-	free_bones(arm);
-	
-
-	/*	Copy the bones from the editData into the armature*/
-	for (eBone=list->first;eBone;eBone=eBone->next){
-		newBone=MEM_callocN (sizeof(Bone), "bone");
-		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
-		
-		strcpy (newBone->name, eBone->name);
-		memcpy (newBone->head, eBone->head, sizeof(float)*3);
-		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
-		newBone->flag=eBone->flag &~(BONE_SELECTED|BONE_HILIGHTED);
-//		newBone->roll=eBone->roll;
-		newBone->roll = 0.0F;
-
-		/*	>>>>> FIXME: This isn't a very good system: a lot of
-					pointless copying involved.  To be investigated
-					once things are working better.
-		*/
-
-		newBone->weight = eBone->weight;
-		newBone->dist = eBone->dist;
-		newBone->boneclass = eBone->boneclass;
-
-		memcpy (newBone->loc, eBone->loc, sizeof(eBone->loc));
-		memcpy (newBone->dloc, eBone->dloc, sizeof(eBone->dloc));
-/*		memcpy (newBone->orig, eBone->orig, sizeof(eBone->orig));*/
-		memcpy (newBone->size, eBone->size, sizeof(eBone->size));
-		memcpy (newBone->dsize, eBone->dsize, sizeof(eBone->dsize));
-		memcpy (newBone->quat, eBone->quat, sizeof(eBone->quat));
-		memcpy (newBone->dquat, eBone->dquat, sizeof(eBone->dquat));
-		memcpy (newBone->obmat, eBone->obmat, sizeof(eBone->obmat));
-	}
-
-	/*	Fix parenting in a separate pass to ensure ebone->bone connections
-		are valid at this point */
-	for (eBone=list->first;eBone;eBone=eBone->next){
-		newBone= (Bone*) eBone->temp;
-		if (eBone->parent){
-			newBone->parent=(Bone*) eBone->parent->temp;
-			BLI_addtail (&newBone->parent->childbase,newBone);
-
-			{
-				float M_boneRest[4][4];
-				float M_parentRest[4][4];
-				float iM_parentRest[4][4];
-				float	delta[3];
-			
-				/* Get the parent's global matrix (rotation only)*/
-				VecSubf (delta, eBone->parent->tail, eBone->parent->head);
-				make_boneMatrixvr(M_parentRest, delta, eBone->parent->roll);
-
-				/* Get this bone's global matrix (rotation only)*/
-				VecSubf (delta, eBone->tail, eBone->head);
-				make_boneMatrixvr(M_boneRest, delta, eBone->roll);
-
-				/* Invert the parent matrix */
-				Mat4Invert (iM_parentRest, M_parentRest);
-
-				/* Get the new head and tail */
-				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
-				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
-
-				Mat4MulVecfl(iM_parentRest, newBone->head);
-				Mat4MulVecfl(iM_parentRest, newBone->tail);
-	
-
-			}
-
-		}
-		/*	...otherwise add this bone to the armature's bonebase */
-		else
-			BLI_addtail (&arm->bonebase,newBone);
-	}
-
-	/* Make a pass through the new armature to fix rolling */
-	fix_bonelist_roll (&arm->bonebase, list);
-	/* Get rid of pose channels that may have belonged to deleted bones */
-	collect_pose_garbage(ob);
-	/* Ensure all bones have channels */
-	apply_pose_armature(arm, ob->pose, 0);
-
-	/* Calculate and cache the inverse restposition matrices (needed for deformation)*/
-	precalc_bonelist_irestmats(&arm->bonebase);
-}
-
-
+/* put EditMode back in Object */
 void load_editArmature(void)
 {
 	bArmature		*arm;
 
-	arm=get_armature(G.obedit);
-	if (!arm)
-		return;
+	arm= get_armature(G.obedit);
+	if (!arm) return;
 	
-#if 1
 	editbones_to_armature(&G.edbo, G.obedit);
-#else
-	free_bones(arm);
-	
-
-	/*	Copy the bones from the editData into the armature*/
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		newBone=MEM_callocN (sizeof(Bone), "bone");
-		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
-		
-		strcpy (newBone->name, eBone->name);
-		memcpy (newBone->head, eBone->head, sizeof(float)*3);
-		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
-		newBone->flag=eBone->flag &~(BONE_SELECTED|BONE_HILIGHTED);
-	//	newBone->roll=eBone->roll;
-		newBone->roll = 0.0F;
-
-		/*	>>>>> FIXME: This isn't a very good system: a lot of
-					pointless copying involved.  To be investigated
-					once things are working better.
-		*/
-
-		newBone->weight = eBone->weight;
-		newBone->dist = eBone->dist;
-		newBone->boneclass = eBone->boneclass;
-
-		memcpy (newBone->loc, eBone->loc, sizeof(eBone->loc));
-		memcpy (newBone->dloc, eBone->dloc, sizeof(eBone->dloc));
-/*		memcpy (newBone->orig, eBone->orig, sizeof(eBone->orig));*/
-		memcpy (newBone->size, eBone->size, sizeof(eBone->size));
-		memcpy (newBone->dsize, eBone->dsize, sizeof(eBone->dsize));
-		memcpy (newBone->quat, eBone->quat, sizeof(eBone->quat));
-		memcpy (newBone->dquat, eBone->dquat, sizeof(eBone->dquat));
-		memcpy (newBone->obmat, eBone->obmat, sizeof(eBone->obmat));
-	}
-
-	/*	Fix parenting in a separate pass to ensure ebone->bone connections
-		are valid at this point */
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		newBone= (Bone*) eBone->temp;
-		if (eBone->parent){
-			newBone->parent=(Bone*) eBone->parent->temp;
-			BLI_addtail (&newBone->parent->childbase,newBone);
-
-			{
-				float M_boneRest[4][4];
-				float M_parentRest[4][4];
-				float M_relativeBone[4][4];
-				float iM_parentRest[4][4];
-				float	delta[3];
-			
-				/* Get the parent's global matrix (rotation only)*/
-				VecSubf (delta, eBone->parent->tail, eBone->parent->head);
-				make_boneMatrixvr(M_parentRest, delta, eBone->parent->roll);
-
-				/* Get this bone's global matrix (rotation only)*/
-				VecSubf (delta, eBone->tail, eBone->head);
-				make_boneMatrixvr(M_boneRest, delta, eBone->roll);
-
-				/* Invert the parent matrix */
-				Mat4Invert (iM_parentRest, M_parentRest);
-
-				/* Get the new head and tail */
-				VecSubf (newBone->head, eBone->head, eBone->parent->tail);
-				VecSubf (newBone->tail, eBone->tail, eBone->parent->tail);
-
-				Mat4MulVecfl(iM_parentRest, newBone->head);
-				Mat4MulVecfl(iM_parentRest, newBone->tail);
-	
-
-			}
-
-		}
-		/*	...otherwise add this bone to the armature's bonebase */
-		else
-			BLI_addtail (&arm->bonebase,newBone);
-	}
-
-	/* Make a pass through the new armature to fix rolling */
-	fix_bonelist_roll (&arm->bonebase, &G.edbo);
-
-	/* Get rid of pose channels that may have belonged to deleted bones */
-	collect_pose_garbage(G.obedit);
-#endif
 }
 
-static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
-{
-	Bone *curBone;
-	EditBone *ebone;
 
-	for (curBone=bonelist->first; curBone; curBone=curBone->next){
-		
-		/* Fix this bone's roll */
-#if 1
-		{
-			float premat[4][4];
-			float postmat[4][4];
-			float difmat[4][4];
-			float imat[4][4];
-			float delta[3];
-
-			/* Find the associated editbone */
-			for (ebone = editbonelist->first; ebone; ebone=ebone->next)
-				if ((Bone*)ebone->temp == curBone)
-					break;
-			
-				if (ebone){
-					/* Get the premat */
-					VecSubf (delta, ebone->tail, ebone->head);
-					make_boneMatrixvr(premat, delta, ebone->roll);
-					
-					/* Get the postmat */
-					get_objectspace_bone_matrix(curBone, postmat, 1, 0);
-					postmat[3][0]=postmat[3][1]=postmat[3][2]=0.0F;
-#if 1
-					Mat4Invert (imat, premat);
-					Mat4MulMat4 (difmat, postmat, imat);
-#else
-					Mat4Invert (imat, postmat);
-					Mat4MulMat4 (difmat, premat, imat);
-#endif
-#if 0
-					printf ("Bone %s\n", curBone->name);
-					printmatrix4 ("premat", premat);
-					printmatrix4 ("postmat", postmat);
-					printmatrix4 ("difmat", difmat);
-					printf ("Roll = %f\n",  (-atan(difmat[2][0]/difmat[2][2]) * (180.0/M_PI)));
-#endif
-					curBone->roll = -atan(difmat[2][0]/difmat[2][2]);
-					
-					if (difmat[0][0]<0)
-						curBone->roll +=M_PI;
-					
-				}
-		}
-#endif
-		
-		fix_bonelist_roll (&curBone->childbase, editbonelist);
-	}
-}
-
-void make_bone_parent(void)
-{
-/*	error ("Bone Parenting not yet implemented");	*/
-	return;
-}
-
-static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
+void deselectall_armature(void)
+/*	Actually, it toggles selection, deselecting
+everything if anything is selected */
 {
 	EditBone	*eBone;
-	Bone		*curBone;
+	int			sel=1;
 	
-	for (curBone=bones->first; curBone; curBone=curBone->next){
-		eBone=MEM_callocN(sizeof(EditBone),"make_editbone");
-		
-		/*	Copy relevant data from bone to eBone */
-		eBone->parent=parent;
-		strcpy (eBone->name, curBone->name);
-		eBone->flag = curBone->flag & ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-
-		/* Print bone matrix before and after */
-
-		get_bone_root_pos(curBone, eBone->head, 0);
-		get_bone_tip_pos(curBone, eBone->tail, 0);
-//		eBone->roll=curBone->roll;
-		eBone->roll=0;
-
-#if 1
-		{
-			float delta[3];
-			float premat[4][4];
-			float postmat[4][4];
-			float imat[4][4];
-			float difmat[4][4];
-
-			VecSubf (delta, eBone->tail, eBone->head);
-			make_boneMatrixvr(postmat, delta, eBone->roll);
-
-			get_objectspace_bone_matrix(curBone, premat, 1, 0);
-
-#if 0
-			Mat4Invert (imat, premat);
-			Mat4MulMat4 (difmat, postmat, imat);
-#else
-			Mat4Invert (imat, postmat);
-			Mat4MulMat4 (difmat, premat, imat);
-#endif
-#if 0
-			printf ("Bone %s\n", curBone->name);
-			printmatrix4 ("diffmat", difmat);
-			printf ("Roll : atan of %f / %f = %f\n", difmat[2][0], difmat[2][2], (float)atan(difmat[2][0]/difmat[2][2])*(180.0F/M_PI));
-#endif
-			eBone->roll = atan(difmat[2][0]/difmat[2][2]);
-
-			 if (difmat[0][0]<0)
-				eBone->roll +=M_PI;
-		}
-#endif		
-		eBone->dist= curBone->dist;
-		eBone->weight= curBone->weight;
-		eBone->boneclass = curBone->boneclass;
-		memcpy (eBone->loc, curBone->loc, sizeof(curBone->loc));
-		memcpy (eBone->dloc, curBone->dloc, sizeof(curBone->dloc));
-		/*		memcpy (eBone->orig, curBone->orig, sizeof(curBone->orig));*/
-		memcpy (eBone->size, curBone->size, sizeof(curBone->size));
-		memcpy (eBone->dsize, curBone->dsize, sizeof(curBone->dsize));
-		memcpy (eBone->quat, curBone->quat, sizeof(curBone->quat));
-		memcpy (eBone->dquat, curBone->dquat, sizeof(curBone->dquat));
-		memcpy (eBone->obmat, curBone->obmat, sizeof(curBone->obmat));
-		
-
-		BLI_addtail (list, eBone);
-		
-		/*	Add children if necessary */
-		if (curBone->childbase.first) 
-			make_boneList (list, &curBone->childbase, eBone);
-	}
 	
-
+	/*	Determine if there are any selected bones
+		And therefore whether we are selecting or deselecting */
+	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
+		if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
+			sel=0;
+			break;
+		};
+	};
+	
+	/*	Set the flags */
+	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
+		if (sel)
+			eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		else
+			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+	};
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
+	
+	countall(); // flushes selection!
 }
 
-#if 0
-static EditVert*	 add_armatureVert (float *loc)
+void auto_align_armature(void)
+/* Sets the roll value of selected bones so that their zaxes point upwards */
 {
-	EditMesh *em = G.editMesh;
-	EditVert*	vert=NULL;
-
-	vert = MEM_callocN (sizeof (EditVert), "armaturevert");
-	if (vert){
-		VECCOPY (vert->co, loc);
-		BLI_addtail (&em->verts,vert);
-	}
-
-	return vert;
-
-}
-
-static EditVert* get_armatureVert (float *loc)
-{
-	EditMesh *em = G.editMesh;
-	EditVert*	vert;
-
-	for (vert=em->verts.first;vert;vert=vert->next){
-		if ((vert->co[0]==loc[0])&&(vert->co[1]==loc[1])&&(vert->co[2]==loc[2])){
-			return (vert);
+	EditBone *ebone;
+	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
+	float	targetmat[3][3], imat[3][3];
+	float	curmat[3][3], diffmat[3][3];
+	float	delta[3];
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if (ebone->flag & BONE_SELECTED){
+			/* Find the current bone matrix */
+			VecSubf(delta, ebone->tail, ebone->head);
+			vec_roll_to_mat3(delta, 0.0, curmat);
+			
+			/* Make new matrix based on y axis & z-up */
+			VECCOPY (yaxis, curmat[1]);
+			
+			Mat3One(targetmat);
+			VECCOPY (targetmat[0], xaxis);
+			VECCOPY (targetmat[1], yaxis);
+			VECCOPY (targetmat[2], zaxis);
+			Mat3Ortho(targetmat);
+			
+			/* Find the difference between the two matrices */
+			Mat3Inv(imat, targetmat);
+			Mat3MulMat3(diffmat, imat, curmat);
+			
+			ebone->roll = atan(diffmat[2][0]/diffmat[2][2]);
+			
 		}
 	}
-
-	return add_armatureVert (loc);
 }
-#endif
 
+/* **************** undo for armatures ************** */
+
+static void undoBones_to_editBones(void *lbv)
+{
+	ListBase *lb= lbv;
+	EditBone *ebo, *newebo;
+	
+	BLI_freelistN(&G.edbo);
+	
+	/* copy  */
+	for(ebo= lb->first; ebo; ebo= ebo->next) {
+		newebo= MEM_dupallocN(ebo);
+		ebo->temp= newebo;
+		BLI_addtail(&G.edbo, newebo);
+	}
+	
+	/* set pointers */
+	for(newebo= G.edbo.first; newebo; newebo= newebo->next) {
+		if(newebo->parent) newebo->parent= newebo->parent->temp;
+	}
+	/* be sure they dont hang ever */
+	for(newebo= G.edbo.first; newebo; newebo= newebo->next) {
+		newebo->temp= NULL;
+	}
+}
+
+static void *editBones_to_undoBones(void)
+{
+	ListBase *lb;
+	EditBone *ebo, *newebo;
+	
+	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
+	
+	/* copy  */
+	for(ebo= G.edbo.first; ebo; ebo= ebo->next) {
+		newebo= MEM_dupallocN(ebo);
+		ebo->temp= newebo;
+		BLI_addtail(lb, newebo);
+	}
+	
+	/* set pointers */
+	for(newebo= lb->first; newebo; newebo= newebo->next) {
+		if(newebo->parent) newebo->parent= newebo->parent->temp;
+	}
+	
+	return lb;
+}
+
+static void free_undoBones(void *lbv)
+{
+	ListBase *lb= lbv;
+	
+	BLI_freelistN(lb);
+	MEM_freeN(lb);
+}
+
+/* and this is all the undo system needs to know */
+void undo_push_armature(char *name)
+{
+	undo_editmode_push(name, free_undoBones, undoBones_to_editBones, editBones_to_undoBones);
+}
+
+
+
+/* **************** END EditMode stuff ********************** */
+/* *************** Armature drawing ******************* */
+
+static void draw_bonevert(void)
+{
+	static GLuint displist=0;
+	
+	if(displist==0) {
+		GLUquadricObj	*qobj;
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+				
+		glPushMatrix();
+		
+		qobj	= gluNewQuadric(); 
+		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+		gluDisk( qobj, 0.0,  0.05, 16, 1);
+		
+		glRotatef (90, 0, 1, 0);
+		gluDisk( qobj, 0.0,  0.05, 16, 1);
+		
+		glRotatef (90, 1, 0, 0);
+		gluDisk( qobj, 0.0,  0.05, 16, 1);
+		
+		gluDeleteQuadric(qobj);  
+		
+		glPopMatrix();
+		glEndList();
+	}
+	else glCallList(displist);
+}
+
+static void draw_bone_octahedral()
+{
+	static GLuint displist=0;
+	
+	if(displist==0) {
+		float vec[6][3];	
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+
+		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
+		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
+		
+		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
+		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
+		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
+		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
+		
+		/*	Section 1, sides */
+		glBegin(GL_LINE_LOOP);
+		glVertex3fv(vec[0]);
+		glVertex3fv(vec[1]);
+		glVertex3fv(vec[5]);
+		glVertex3fv(vec[3]);
+		glVertex3fv(vec[0]);
+		glVertex3fv(vec[4]);
+		glVertex3fv(vec[5]);
+		glVertex3fv(vec[2]);
+		glEnd();
+		
+		/*	Section 1, square */
+		glBegin(GL_LINE_LOOP);
+		glVertex3fv(vec[1]);
+		glVertex3fv(vec[2]);
+		glVertex3fv(vec[3]);
+		glVertex3fv(vec[4]);
+		glEnd();
+		
+		glEndList();
+	}
+	else glCallList(displist);
+}	
+
+static void draw_bone_solid_octahedral(void)
+{
+	static GLuint displist=0;
+	
+	if(displist==0) {
+		float vec[6][3];	
+		
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+		
+		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
+		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
+		
+		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
+		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
+		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
+		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
+		
+		
+		glBegin(GL_TRIANGLES);
+		/* bottom */
+		glVertex3fv(vec[0]);glVertex3fv(vec[1]);glVertex3fv(vec[2]);
+		
+		glVertex3fv(vec[0]);glVertex3fv(vec[2]);glVertex3fv(vec[3]);
+		
+		glVertex3fv(vec[0]);glVertex3fv(vec[3]);glVertex3fv(vec[4]);
+
+		glVertex3fv(vec[0]);glVertex3fv(vec[4]);glVertex3fv(vec[1]);
+		/* top */
+		glVertex3fv(vec[5]);glVertex3fv(vec[1]);glVertex3fv(vec[2]);
+		
+		glVertex3fv(vec[5]);glVertex3fv(vec[2]);glVertex3fv(vec[3]);
+		
+		glVertex3fv(vec[5]);glVertex3fv(vec[3]);glVertex3fv(vec[4]);
+		
+		glVertex3fv(vec[5]);glVertex3fv(vec[4]);glVertex3fv(vec[1]);
+		
+		glEnd();
+		
+		glEndList();
+	}
+	else glCallList(displist);
+}	
+
+
+static void draw_bone (int armflag, int boneflag, int constflag, unsigned int id, char *name, float length)
+{
+	float	pointsize;
+	
+	/*	Draw a 3d octahedral bone, we use normalized space based on length,
+	    for glDisplayLists */
+	
+	/* pointsize todo! */
+	pointsize = length;
+	if (length<0.1)
+		pointsize=0.1;
+	
+	glScalef(length, length, length);
+	
+	if (id!=-1) glLoadName((GLuint) id );
+	
+	/*	Draw root point if we have no IK parent */
+	if (!(boneflag & BONE_IK_TOPARENT)){
+		if (id != -1)
+			glLoadName (id | BONESEL_ROOT);
+		
+		if (armflag & ARM_EDITMODE) {
+			if (boneflag & BONE_ROOTSEL) cpack (B_YELLOW);
+			else cpack (B_PURPLE);
+		}
+		draw_bonevert();
+	}
+	
+	/*	Draw tip point (for selection only ) */
+	
+	if (id != -1)
+		glLoadName (id | BONESEL_TIP);
+	
+	if (armflag & ARM_EDITMODE) {
+		if (boneflag & BONE_TIPSEL) cpack (B_YELLOW);
+		else cpack (B_PURPLE);
+	}
+	
+	glTranslatef(0.0, 1.0, 0.0);
+	draw_bonevert();
+	
+	/*	Draw additional axes */
+	if (armflag & ARM_DRAWAXES){
+		drawaxes(0.25f);
+	}
+	
+	glTranslatef(0.0, -1.0, 0.0);
+	
+	if (id != -1) {
+		if (armflag & ARM_POSEMODE)
+			glLoadName((GLuint) id);
+		else{
+			glLoadName ((GLuint) id|BONESEL_BONE);
+		}
+	}
+	
+	/* colors */
+	if (armflag & ARM_EDITMODE){
+		if (boneflag & BONE_ACTIVE) cpack (B_YELLOW_A);
+		else if (boneflag & BONE_SELECTED) cpack (B_YELLOW);
+		else cpack (B_PURPLE);
+	}
+	else if (armflag & ARM_POSEMODE){
+	
+		if(constflag) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+			if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 50);
+			else glColor4ub(0, 255, 120, 50);
+			draw_bone_solid_octahedral();
+			glDisable(GL_BLEND);
+		}
+		
+		if (boneflag & BONE_ACTIVE) cpack (B_CYAN_A);
+		else if (boneflag & BONE_SELECTED) cpack (B_CYAN);
+		else cpack (B_AQUA);
+	}		
+	draw_bone_octahedral();
+	
+	/*	Draw the bone name */
+	if (armflag & ARM_DRAWNAMES) {
+		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		if((G.f & G_PICKSEL) == 0) {
+			glRasterPos3f(0,  0.5,  0);
+			BMF_DrawString(G.font, " ");
+			BMF_DrawString(G.font, name);
+		}
+	}
+}
+
+
+/* assumes object is Armature with pose */
+static void draw_pose_channels(Object *ob)
+{
+	bPoseChannel *pchan;
+	Bone *bone;
+	bArmature *arm= ob->data;
+	short flag;
+	int index= -1;
+	
+	if (arm->flag & ARM_POSEMODE) index= 0;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone= pchan->bone;
+		if(bone) {
+			
+			//	Draw a line from our root to the parent's tip
+			if (bone->parent && !(bone->flag & (BONE_IK_TOPARENT|BONE_HIDDEN)) ){
+				
+				if (arm->flag & ARM_POSEMODE) glLoadName (-1);
+				
+				setlinestyle(3);
+				glBegin(GL_LINES);
+				glVertex3fv(pchan->pose_head);
+				glVertex3fv(pchan->parent->pose_tail);
+				glEnd();
+				setlinestyle(0);
+			}
+			if(!(bone->flag & BONE_HIDDEN)) {
+				glPushMatrix();
+				glMultMatrixf(pchan->pose_mat);
+				
+				if (index!= -1) {   // set color for points */
+					if (bone->flag & BONE_ACTIVE) cpack (B_CYAN_A);
+					else if (bone->flag & BONE_SELECTED) cpack (B_CYAN);
+					else cpack (B_AQUA);
+				}
+				/* catch exception for bone with hidden parent */
+				flag= bone->flag;
+				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
+					bone->flag &= ~BONE_IK_TOPARENT;
+				
+				draw_bone(arm->flag, flag, pchan->constflag, index, bone->name, bone->length);
+				
+				glPopMatrix();
+			}
+			if (index!= -1) index++;
+		}
+	}
+	
+}
+
+/* called from drawobject.c */
 void draw_armature(Object *ob)
 {
 	bArmature	*arm;
-	Bone		*bone;
-	EditBone	*eBone;
-	unsigned int	index;
-	float		delta[3],offset[3];
-	float		bmat[4][4];
-	float	length;
 	
 	if (ob==NULL) return;
 	
@@ -1184,17 +1454,17 @@ void draw_armature(Object *ob)
 
 	/* If we're in editmode, draw the Global edit data */
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-		cpack (0x000000);
+		EditBone	*eBone;
+		unsigned int	index;
+		float		delta[3],offset[3];
+		float		mat[3][3], bmat[4][4];
+		float	length;
+		cpack (0);
 		
-		arm->flag |= ARM_EDITMODE;
+		if(ob==G.obedit) arm->flag |= ARM_EDITMODE;
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-			if (ob==G.obedit){
-	//			if ((eBone->flag&(BONE_TIPSEL | BONE_ROOTSEL))==(BONE_TIPSEL|BONE_ROOTSEL))
-	//				cpack (B_YELLOW);
-	//			else
-					cpack (B_PURPLE);
-			}
-			else cpack (0x000000);
+			if (ob==G.obedit) cpack (B_PURPLE);
+			else cpack (0);
 			
 			glPushMatrix();
 			
@@ -1208,13 +1478,16 @@ void draw_armature(Object *ob)
 			delta[2]=eBone->tail[2]-eBone->head[2];
 			
 			length = sqrt (delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
-
-			make_boneMatrixvr(bmat, delta, eBone->roll);
+			
+			vec_roll_to_mat3(delta, eBone->roll, mat);
+			Mat4CpyMat3(bmat, mat);
+				
 			glMultMatrixf (bmat);
-			draw_bone (arm->flag, eBone->flag, index, eBone->name, length);
+			draw_bone (arm->flag, eBone->flag, 0, index, eBone->name, length);
 
 			glPopMatrix();
-			if (eBone->parent){
+			
+			if (eBone->parent) {
 				glLoadName (-1);
 				setlinestyle(3);
 				
@@ -1225,46 +1498,29 @@ void draw_armature(Object *ob)
 
 				setlinestyle(0);
 			}
-		};
+		}
 		arm->flag &= ~ARM_EDITMODE;
 		cpack (B_YELLOW);
 		
 	}
 	else{
-		/*	Draw hierarchical bone list (non-edit data) */
+		/*	Draw Pose */
+		if(ob->pose) {
+			if (G.obpose == ob) arm->flag |= ARM_POSEMODE;
+			draw_pose_channels(ob);
+			arm->flag &= ~ARM_POSEMODE; 
+		}
 
-		/* Ensure we're using the mose recent pose */
-		if (!ob->pose)
-			ob->pose=MEM_callocN (sizeof(bPose), "pose");
-
-#if 1	/* Activate if there are problems with action lag */
-		apply_pose_armature(arm, ob->pose, 0);
-		where_is_armature (ob);
-#endif
-
-		if (G.obpose == ob){
-			arm->flag |= ARM_POSEMODE;
 #if 0	/* Depreciated interactive ik goal drawing */
-			if (arm->chainbase.first){
-				glPushMatrix();
-				glTranslatef(((PoseChain*)arm->chainbase.first)->goal[0],
-					((PoseChain*)arm->chainbase.first)->goal[1],
-					((PoseChain*)arm->chainbase.first)->goal[2]);
-				drawaxes(1.0);
-				glPopMatrix();
-			}
+				if (arm->chainbase.first){
+					glPushMatrix();
+					glTranslatef(((PoseChain*)arm->chainbase.first)->goal[0],
+						((PoseChain*)arm->chainbase.first)->goal[1],
+						((PoseChain*)arm->chainbase.first)->goal[2]);
+					drawaxes(1.0);
+					glPopMatrix();
+				}
 #endif
-		}
-		index = 0;
-		for (bone=arm->bonebase.first; bone; bone=bone->next) {
-			glPushMatrix();
-			draw_bonechildren(bone, arm->flag, &index);
-			glPopMatrix();
-			if (arm->flag & ARM_POSEMODE)
-				cpack (B_CYAN);
-		}
-
-		arm->flag &= ~ARM_POSEMODE; 
 	}
 
 	if (arm->flag & ARM_DRAWXRAY) {
@@ -1272,286 +1528,8 @@ void draw_armature(Object *ob)
 	}
 }
 
-static void draw_boneverti (float x, float y, float z, float size, int flag)
-{
-	GLUquadricObj	*qobj;
-
-	size*=0.05;
-
-/*
-		Ultimately dots should be drawn in screenspace
-		For now we'll just draw them any old way.
-*/
-	glPushMatrix();
-
-	glTranslatef(x, y, z);
-
-	qobj	= gluNewQuadric(); 
-	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	gluPartialDisk( qobj, 0,  1.0F*size, 32, 1, 360.0, 360.0);
-
-	glRotatef (90, 0, 1, 0);
-	gluPartialDisk( qobj, 0,  1.0F*size, 32, 1, 360.0, 360.0);
-
-	glRotatef (90, 1, 0, 0);
-	gluPartialDisk( qobj, 0,  1.0F*size, 32, 1, 360.0, 360.0);
-
-	gluDeleteQuadric(qobj);  
-
-	glPopMatrix();
-}
-
-static void draw_bonechildren (Bone *bone, int flag, unsigned int *index)
-{
-	Bone *cbone;
-	float	delta[3];
-	float	length;
-	float M_objectspacemat[4][4];
-
-	if (bone==NULL) return;
-	
-	if (flag & ARM_POSEMODE){
-		if (bone->flag & BONE_SELECTED)
-			cpack (B_CYAN);
-		else
-			cpack (B_AQUA);
-	}
-	
-	//	Draw a line from our root to the parent's tip
-	if (bone->parent && !(bone->flag & (BONE_IK_TOPARENT|BONE_HIDDEN)) ){
-		float childMat[4][4];
-		float boneMat[4][4];
-		float tip[3], root[3];
-		get_objectspace_bone_matrix(bone->parent, boneMat, 0, 1);
-		get_objectspace_bone_matrix(bone, childMat, 1, 1);
-		
-		VECCOPY (tip, boneMat[3]);
-		VECCOPY	(root, childMat[3]);
-		
-		if (flag & ARM_POSEMODE)
-			glLoadName (-1);
-		setlinestyle(3);
-		glBegin(GL_LINES);
-		glVertex3fv(tip);
-		glVertex3fv(root);
-		glEnd();
-		setlinestyle(0);
-	}
-	
-	
-	/* Draw this bone in objectspace */
-	delta[0]=bone->tail[0]-bone->head[0];
-	delta[1]=bone->tail[1]-bone->head[1];
-	delta[2]=bone->tail[2]-bone->head[2];
-	length = sqrt (delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] );
-	
-	/* Incorporates offset, rest rotation, user rotation and parent coordinates*/
-	get_objectspace_bone_matrix(bone, M_objectspacemat, 1, 1);
-	
-	if (!(bone->flag & BONE_HIDDEN)){
-		glPushMatrix();
-		glMultMatrixf(M_objectspacemat);
-		
-		
-		if (flag & ARM_POSEMODE)
-			draw_bone(flag, (bone->parent && bone->parent->flag & BONE_HIDDEN) ? (bone->flag & ~BONE_IK_TOPARENT) : (bone->flag), *index, bone->name, length);
-		else
-			draw_bone(flag, (bone->parent && bone->parent->flag & BONE_HIDDEN) ? (bone->flag & ~BONE_IK_TOPARENT) : (bone->flag), -1, bone->name, length);
-		glPopMatrix();
-	}
-	(*index)++;
-
-	/* Draw the children */
-	for (cbone= bone->childbase.first; cbone; cbone=cbone->next){
-		draw_bonechildren (cbone, flag, index);
-	}
-}
-
-static void draw_bone (int armflag, int boneflag, unsigned int id, char *name, float length)
-{
-	float vec[2];
-	float	bulge;
-	float	pointsize;
-	/* 
-	FIXME: This routine should probably draw the bones in screenspace using
-	the projected start & end points of the transformed bone 
-	*/
-	
-	pointsize = length;
-	if (pointsize<0.1)
-		pointsize=0.1;
-
-	/*	Draw a 3d octahedral bone	*/
-	
-	bulge=length*0.1;
-
-	if (id!=-1)
-		glLoadName((GLuint) id );
-
-	glPushMatrix();
-
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
-		if (id != -1)
-			glLoadName (id | BONESEL_ROOT);
-		if (armflag & ARM_EDITMODE){
-			if (boneflag & BONE_ROOTSEL)
-				cpack (B_YELLOW);
-			else
-				cpack (B_PURPLE);
-		}
-		draw_boneverti (0, 0, 0, pointsize, 0);
-	}
-
-	/*	Draw tip point (for selection only )*/
-
-	if (id != -1)
-		glLoadName (id | BONESEL_TIP);
-	
-	if (armflag & ARM_EDITMODE){
-		if (boneflag & BONE_TIPSEL)
-		 	cpack (B_YELLOW);
-		else
-			cpack (B_PURPLE);
-	}
-	
-	draw_boneverti (0, length, 0, pointsize, 0);
-
-	if (id != -1){
-		if (armflag & ARM_POSEMODE)
-			glLoadName((GLuint) id);
-		else{
-#if 1	/* Bones not selectable in editmode */	
-			glLoadName((GLuint) -1);
-#else
-			glLoadName ((GLuint) id|BONESEL_TIP|BONESEL_ROOT);
-#endif
-		}
-	}
-	
-	
-	if (armflag & ARM_EDITMODE){
-		if (boneflag & BONE_SELECTED)
-			cpack (B_YELLOW);
-		else
-			cpack (B_PURPLE);
-	}
-	
-	/*	Draw additional axes */
-	if (armflag & ARM_DRAWAXES){
-		drawaxes(length*0.25F);
-	}
-	
-	/*	Section 1*/
-	glBegin(GL_LINE_STRIP);
-	vec[0]= vec[1]= 0;
-	glVertex2fv(vec);
-	
-	vec[0]= -bulge; vec[1]= bulge;
-	glVertex2fv(vec);
-	
-	vec[0]= 0; vec[1]= length;
-	glVertex2fv(vec);
-	
-	vec[0]= bulge; vec[1]= bulge;
-	glVertex2fv(vec);
-	
-	vec[0]= 0; vec[1]= 0;
-	glVertex2fv(vec);
-	glEnd();
-	
-	/*	Section 2*/
-	glRotatef(90,0,1,0);
-	glBegin(GL_LINE_STRIP);
-	vec[0]= vec[1]= 0;
-	glVertex2fv(vec);
-	
-	vec[0]= -bulge; vec[1]= bulge;
-	glVertex2fv(vec);
-	
-	vec[0]= 0; vec[1]= length;
-	glVertex2fv(vec);
-	
-	vec[0]= bulge; vec[1]= bulge;
-	glVertex2fv(vec);
-	
-	vec[0]= 0; vec[1]= 0;
-	glVertex2fv(vec);
-	glEnd();
-	
-	/*	Square*/
-	glTranslatef (0,bulge,0);
-	glRotatef(45,0,1,0);
-	glRotatef(90,1,0,0);
-	glBegin(GL_LINE_STRIP);
-	
-	vec[0]= -bulge*.707;vec[1]=-bulge*.707;
-	glVertex2fv(vec);
-	
-	vec[0]= bulge*.707;vec[1]= -bulge*.707;
-	glVertex2fv(vec);
-	
-	vec[0]= bulge*.707;vec[1]= bulge*.707;
-	glVertex2fv(vec);
-	
-	vec[0]= -bulge*.707;vec[1]= bulge*.707;
-	glVertex2fv(vec);
-	
-	vec[0]= vec[1]= -bulge*.707;
-	glVertex2fv(vec);
-	glEnd();
-	
-
-	glPopMatrix();
-
-	/*	Draw the bone name */
-	if (armflag & ARM_DRAWNAMES) {
-		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
-		if((G.f & G_PICKSEL) == 0) {
-			glRasterPos3f(0,  length/2.0,  0);
-			BMF_DrawString(G.font, " ");
-			BMF_DrawString(G.font, name);
-		}
-	}
-}
-
-
-
-void add_primitiveArmature(int type)
-{
-	if(G.scene->id.lib) return;
-	
-	/* this function also comes from an info window */
-	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
-	if(G.vd==NULL) return;
-	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
-	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-
-	check_editmode(OB_ARMATURE);
-	
-	/* If we're not the "obedit", make a new object and enter editmode */
-	if(G.obedit==NULL) {
-		add_object(OB_ARMATURE);
-		base_init_from_view3d(BASACT, G.vd);
-		G.obedit= BASACT->object;
-		
-		where_is_object(G.obedit);
-		
-		make_editArmature();
-		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
-	}
-	
-	switch (type){
-	default:
-		add_bone_input (G.obedit);	
-		break;
-	};
-	
-	countall();
-
-	allqueue(REDRAWALL, 0);
-}
+/* *************** END Armature drawing ******************* */
+/* *************** Adding stuff in editmode *************** */
 
 static void add_bone_input (Object *ob)
 /*
@@ -1562,8 +1540,8 @@ static void add_bone_input (Object *ob)
 	child of the previous bone.  Pressing ESC
 	cancels the current bone and leaves bone
 	adding mode.
-
-*/
+ 
+ */
 {
 	float		*cursLoc, cent[3], dx, dy;
 	float		mat[3][3], curs[3],	cmat[3][3], imat[3][3], rmat[4][4], itmat[4][4];
@@ -1611,39 +1589,38 @@ static void add_bone_input (Object *ob)
 		
 		strcpy (bone->name,"Bone");
 		unique_editbone_name (bone->name);
-	
+		
 		BLI_addtail(&G.edbo, bone);
-	
-		bone->flag |= BONE_QUATROT;
+		
 		bone->flag |= (BONE_SELECTED);
 		deselectall_armature();
-		bone->flag |= BONE_SELECTED|BONE_HILIGHTED|BONE_TIPSEL|BONE_ROOTSEL;
+		bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		
 		bone->weight= 1.0F;
 		bone->dist= 1.0F;
 		bone->boneclass = BONE_SKINNABLE;
-
+		
 		/*	Project cursor center to screenspace. */
 		getmouseco_areawin(mval);
 		xo= mvalo[0]= mval[0];
 		yo= mvalo[1]= mval[1];
 		window_to_3d(dvecp, xo, yo);
 		drawall= 2;
-
+		
 		while (1) {
-
+			
 			getmouseco_areawin(mval);
 			window_to_3d(dvec, mval[0], mval[1]);
-
+			
 			scale=1000;
-
+			
 			dx=	((float)mval[0]-(float)xo)*scale;
 			dy= ((float)mval[1]-(float)yo)*scale;
-	
+			
 			/*		Calc bone length*/
 			lengths= sqrt((dx*dx)+(dy*dy));
 			length = sqrt(((dvec[0]-dvecp[0])*(dvec[0]-dvecp[0]))+((dvec[1]-dvecp[1])*(dvec[1]-dvecp[1]))+((dvec[2]-dvecp[2])*(dvec[2]-dvecp[2])));
-
+			
 			/*		Find rotation around screen normal */
 			if (lengths>0.0F) {
 				angle= acos(dy/lengths);
@@ -1671,7 +1648,7 @@ static void add_bone_input (Object *ob)
 			rmat[3][3]= 1.0F;
 			
 			/*		Rotate object's inversemat by the bone's rotation
-			to get the coordinate space of the bone */
+				to get the coordinate space of the bone */
 			Mat4CpyMat3	(itmat, imat);
 			Mat4MulMat4 (restmat, rmat, itmat);
 			
@@ -1688,13 +1665,9 @@ static void add_bone_input (Object *ob)
 			/*	IF we're a child of something, add the parents' translates	*/
 			
 			/*	Offset of child is new cursor*/
-
+			
 			VECCOPY (newEnd,bone->tail); newEnd[3]=1;
-
-			/*	Set the bone's transformations	*/
-			Mat4One (bone->obmat);
-			bone->size[0]=bone->size[1]=bone->size[2]=1.0F;
-
+			
 			/* only draw if... */
 			if(drawall) {
 				drawall--;	// draw twice to have 2 identical buffers
@@ -1711,25 +1684,25 @@ static void add_bone_input (Object *ob)
 				event= extern_qread(&val);
 				if(val) {
 					switch(event) {
-					case ESCKEY:
-					case RIGHTMOUSE:
-						BLI_freelinkN (&G.edbo,bone);
-						afbreek=1;
-						addbones=0;
-						break;
-					case LEFTMOUSE:
-					case MIDDLEMOUSE:
-					case SPACEKEY:
-					case RETKEY:
-						afbreek= 1;
-											
-						Mat4MulVec4fl (G.obedit->obmat,newEnd);
-						
-						curs[0]=newEnd[0];
-						curs[1]=newEnd[1];
-						curs[2]=newEnd[2];
-						addbones++;
-						break;
+						case ESCKEY:
+						case RIGHTMOUSE:
+							BLI_freelinkN (&G.edbo,bone);
+							afbreek=1;
+							addbones=0;
+							break;
+						case LEFTMOUSE:
+						case MIDDLEMOUSE:
+						case SPACEKEY:
+						case RETKEY:
+							afbreek= 1;
+							
+							Mat4MulVec4fl (G.obedit->obmat,newEnd);
+							
+							curs[0]=newEnd[0];
+							curs[1]=newEnd[1];
+							curs[2]=newEnd[2];
+							addbones++;
+							break;
 					}	/*	End of case*/
 				}	/*	End of if (val)*/
 				if(afbreek) break;
@@ -1739,11 +1712,52 @@ static void add_bone_input (Object *ob)
 		}/*	End of positioning loop (while)*/
 	}	/*	End of bone adding loop*/
 	
-	countall();
+	countall(); // flushes selection!
 	G.moving= 0;
 
 }
 
+void add_primitiveArmature(int type)
+{
+	if(G.scene->id.lib) return;
+	
+	/* this function also comes from an info window */
+	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
+	if(G.vd==NULL) return;
+	
+	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
+
+	check_editmode(OB_ARMATURE);
+	
+	/* If we're not the "obedit", make a new object and enter editmode */
+	if(G.obedit==NULL) {
+		add_object(OB_ARMATURE);
+		base_init_from_view3d(BASACT, G.vd);
+		G.obedit= BASACT->object;
+		
+		where_is_object(G.obedit);
+		
+		make_editArmature();
+		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+	}
+	
+	switch (type){
+	default:
+		add_bone_input (G.obedit);	
+		break;
+	};
+	
+	countall(); // flushes selection!
+
+	allqueue(REDRAWALL, 0);
+	BIF_undo_push("Add primitive");
+}
+
+/* *************** END Adding stuff in editmode *************** */
+/* *************** Tools in editmode *********** */
+
+/* the "IK" button in editbuttons */
 void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
 	EditBone *curBone= bonev;
@@ -1761,10 +1775,9 @@ void attach_bone_to_parent(EditBone *bone)
 		 */
 		for (curbone = G.edbo.first; curbone; curbone=curbone->next){
 			if (curbone!=bone){
-				if (curbone->parent && 
-					(curbone->parent == bone->parent) && 
+				if (curbone->parent && (curbone->parent == bone->parent) && 
 					(curbone->flag & BONE_IK_TOPARENT))
-					curbone->flag &= ~BONE_IK_TOPARENT;
+						curbone->flag &= ~BONE_IK_TOPARENT;
 			}
 		}
 
@@ -1773,157 +1786,122 @@ void attach_bone_to_parent(EditBone *bone)
 	}
 }
 
-void deselectall_armature(void)
-/*	Actually, it toggles selection, deselecting
-	everything if anything is selected */
+void make_bone_parent(void)
 {
-	EditBone	*eBone;
-	int			sel=1;
+	EditBone *ebone;
+	float offset[3];
+	short val;
 	
+	val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
 	
-	/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
-			sel=0;
-			break;
-		};
-	};
+	if(val<1) return;
 	
-	/*	Set the flags */
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if (sel)
-			eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-		else
-			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-	};
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-	countall();
+	/* find active */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
+		if(ebone->flag & BONE_ACTIVE) break;
+	if(ebone) {
+		EditBone *actbone= ebone, *selbone= NULL;
+		
+		/* find selected */
+		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+			if(ebone->flag & BONE_SELECTED) {
+				if(ebone!=actbone) {
+					if(selbone==NULL) selbone= ebone;
+					else {
+						error("Need one active and one selected bone");
+						return;
+					}
+				}
+			}
+		}
+		if(selbone==NULL) error("Need one active and one selected bone");
+		else {
+			/* if selbone had a parent we clear parent tip */
+			if(selbone->parent && (selbone->flag & BONE_IK_TOPARENT))
+			   selbone->parent->flag &= ~(BONE_TIPSEL);
+			
+			selbone->parent= actbone;
+			
+			/* in actbone tree we cannot have a loop */
+			for(ebone= actbone->parent; ebone; ebone= ebone->parent) {
+				if(ebone->parent==selbone) {
+					ebone->parent= NULL;
+					ebone->flag &= ~BONE_IK_TOPARENT;
+				}
+			}
+			
+			if(val==1) {	// connected
+				selbone->flag |= BONE_IK_TOPARENT;
+				VecSubf(offset, actbone->tail, selbone->head);
+				
+				VECCOPY(selbone->head, actbone->tail);
+				VecAddf(selbone->tail, selbone->tail, offset);
+				
+				// offset for all its children 
+				for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+					EditBone *par;
+					for(par= ebone->parent; par; par= par->parent) {
+						if(par==selbone) {
+							VecAddf(ebone->head, ebone->head, offset);
+							VecAddf(ebone->tail, ebone->tail, offset);
+							break;
+						}
+					}
+				}
+			}
+			else {
+				selbone->flag &= ~BONE_IK_TOPARENT;
+			}
+			
+			countall(); // checks selection
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWOOPS, 0);
+		}
+	}
+	return;
 }
 
-void join_armature(void)
+void clear_bone_parent(void)
 {
+	EditBone *ebone;
+	short val;
 	
-	Object	*ob;
-	Base	*base, *nextbase;
-	ListBase eblist;
-	EditBone *curbone, *next;
-	float	mat[4][4], imat[4][4];
+	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect IK%x2");
 	
-	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if(G.obedit) return;
-	
-	ob= OBACT;
-	if(ob->type!=OB_ARMATURE) return;
-	
-	/*	Make sure the user wants to continue*/
-	if(okee("Join selected armatures")==0) return;
-	
-	/*	Put the active armature into editmode and join the bones from the other one*/
-#if 1
-	enter_editmode();
-#else
-	baselist.first=baselist.last=0;
-	make_boneList(&baselist, &((bArmature*)ob->data)->bonebase, NULL);
-#endif
-	
-	for (base=FIRSTBASE; base; base=nextbase) {
-		nextbase = base->next;
-		if (TESTBASE(base)){
-			if ((base->object->type==OB_ARMATURE) && (base->object!=ob)){
-				/* Make a list of editbones */
-				eblist.first=eblist.last=0;
-				make_boneList (&eblist, &((bArmature*)base->object->data)->bonebase,NULL);
-				/* Find the difference matrix */
-				Mat4Invert(imat, ob->obmat);
-				Mat4MulMat4(mat, base->object->obmat, imat);
+	if(val<1) return;
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if(ebone->flag & BONE_SELECTED) {
+			if(ebone->parent) {
+				/* for nice selection */
+				ebone->parent->flag &= ~(BONE_TIPSEL);
 				
-				/* Copy bones from the object to the edit armature */
-				for (curbone=eblist.first; curbone; curbone=next){
-					next = curbone->next;
-					
-					/* Blank out tranformation data */
-					curbone->loc[0]=curbone->loc[1]=curbone->loc[2]=0.0F;
-					curbone->size[0]=curbone->size[1]=curbone->size[2]=1.0F;
-					curbone->quat[0]=curbone->quat[1]=curbone->quat[2]=curbone->quat[3]=0.0F;
-					
-					unique_editbone_name (curbone->name);
-					
-					/* Transform the bone */
-					{
-						float premat[4][4];
-						float postmat[4][4];
-						float difmat[4][4];
-						float imat[4][4];
-						float temp[4][4];
-						float delta[3];
-
-						/* Get the premat */
-						VecSubf (delta, curbone->tail, curbone->head);
-						make_boneMatrixvr(temp, delta, curbone->roll);
-						Mat4MulMat4 (premat, temp, mat);
-
-						Mat4MulVecfl(mat, curbone->head);
-						Mat4MulVecfl(mat, curbone->tail);
-
-						/* Get the postmat */
-						VecSubf (delta, curbone->tail, curbone->head);
-						make_boneMatrixvr(postmat, delta, curbone->roll);
-						
-						/* Find the roll */
-						Mat4Invert (imat, premat);
-						Mat4MulMat4 (difmat, postmat, imat);
-						
-						curbone->roll -=atan(difmat[2][0]/difmat[2][2]);
-						
-						if (difmat[0][0]<0)
-							curbone->roll +=M_PI;
-
-					}
-#if 1
-					BLI_remlink(&eblist, curbone);
-					BLI_addtail(&G.edbo, curbone);
-#else
-					BLI_remlink(&eblist, curbone);
-					BLI_addtail(&baselist, curbone);
-#endif
-				}
+				if(val==1) ebone->parent= NULL;
+				ebone->flag &= ~BONE_IK_TOPARENT;
 				
-				free_and_unlink_base(base);
 			}
 		}
 	}
-	
-#if 1
-	exit_editmode(1);
-#else
-	editbones_to_armature(&baselist, ob);
-	if (baselist.first){
-		BLI_freelistN (&baselist);
-	}
-#endif
+	countall(); // checks selection
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWOOPS, 0);
-
 }
+	
 
-
-static int	editbone_name_exists (char *name){
+static EditBone *editbone_name_exists (char *name)
+{
 	EditBone	*eBone;
 	
 	for (eBone=G.edbo.first; eBone; eBone=eBone->next){
 		if (!strcmp (name, eBone->name))
-			return 1;
+			return eBone;
 	}
-	
-	return 0;
-		
+	return NULL;
 }
 
-void unique_editbone_name (char *name){
+void unique_editbone_name (char *name)
+{
 	char		tempname[64];
 	int			number;
 	char		*dot;
@@ -1964,13 +1942,10 @@ void extrude_armature(void)
 			VECCOPY (newbone->tail, newbone->head);
 			newbone->parent = curbone;
 			newbone->flag = BONE_TIPSEL;
-			newbone->flag |= BONE_QUATROT;
 			newbone->weight= curbone->weight;
 			newbone->dist= curbone->dist;
 			newbone->boneclass= curbone->boneclass;
 
-			Mat4One(newbone->obmat);
-			
 			/* See if there are any ik children of the parent */
 			for (partest = G.edbo.first; partest; partest=partest->next){
 				if ((partest->parent == curbone) && (partest->flag & BONE_IK_TOPARENT))
@@ -1995,10 +1970,11 @@ void extrude_armature(void)
 	}
 	
 	/* Transform the endpoints */
-	countall();
+	countall(); // flushes selection!
 	BIF_TransformSetUndo("Extrude");
 	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 	Transform();
+	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
@@ -2006,59 +1982,9 @@ void extrude_armature(void)
 
 void addvert_armature(void)
 {
-/*	
-	I haven't decided if it will be possible to add bones in this way.
-	For the moment, we'll use Extrude, or explicit parenting.
-	*/
+	/* the ctrl-click method */
 }
 
-
-static EditBone *get_named_editbone(char *name)
-{
-	EditBone  *eBone;
-
-	if (name)
-		for (eBone=G.edbo.first; eBone; eBone=eBone->next){
-			if (!strcmp (name, eBone->name))
-				return eBone;
-		}
-
-	return NULL;
-}
-
-static void update_dup_subtarget(EditBone *dupBone)
-{
-	/* If an edit bone has been duplicated, lets
-	 * update it's constraints if the subtarget
-	 * they point to has also been duplicated
-	 */
-	EditBone     *oldtarget, *newtarget;
-	bPoseChannel *chan;
-	bConstraint  *curcon;
-	ListBase     *conlist;
-	char         *subname;
-
-
-	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) )
-		if ( (conlist = &chan->constraints) )
-			for (curcon = conlist->first; curcon; curcon=curcon->next) {
-				/* does this constraint have a subtarget in
-				 * this armature?
-				 */
-				subname = get_con_subtarget_name(curcon, G.obedit);
-				oldtarget = get_named_editbone(subname);
-				if (oldtarget)
-					/* was the subtarget bone duplicated too? If
-					 * so, update the constraint to point at the 
-					 * duplicate of the old subtarget.
-					 */
-					if (oldtarget->flag & BONE_SELECTED){
-						newtarget = (EditBone*) oldtarget->temp;
-						strcpy(subname, newtarget->name);
-					}
-			}
-	
-}
 
 void adduplicate_armature(void)
 {
@@ -2066,7 +1992,7 @@ void adduplicate_armature(void)
 	EditBone	*curBone;
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 
-	countall();
+	countall(); // flushes selection!
 
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
@@ -2077,11 +2003,6 @@ void adduplicate_armature(void)
 
 			/*	Copy data from old bone to new bone */
 			memcpy (eBone, curBone, sizeof(EditBone));
-
-			/* Blank out tranformation data */
-			eBone->loc[0]=eBone->loc[1]=eBone->loc[2]=0.0F;
-			eBone->size[0]=eBone->size[1]=eBone->size[2]=1.0F;
-			eBone->quat[0]=eBone->quat[1]=eBone->quat[2]=eBone->quat[3]=0.0F;
 
 			curBone->temp = eBone;
 			eBone->temp = curBone;
@@ -2094,23 +2015,7 @@ void adduplicate_armature(void)
 			/* Lets duplicate the list of constraits that the
 			 * current bone has.
 			 */
-			if (OBACT->pose) {
-				bPoseChannel *chanold, *channew;
-				ListBase     *listold, *listnew;
-
-				chanold = verify_pose_channel (OBACT->pose, curBone->name);
-				if (chanold) {
-					listold = &chanold->constraints;
-					if (listold){
-						channew = 
-							verify_pose_channel(OBACT->pose, eBone->name);
-						if (channew) {
-							listnew = &channew->constraints;
-							copy_constraints (listnew, listold);
-						}
-					}
-				}
-			}
+			/* temporal removed (ton) */
 		}
 	}
 
@@ -2150,7 +2055,7 @@ void adduplicate_armature(void)
 
 			/* Lets try to fix any constraint subtargets that might
 			   have been duplicated */
-			update_dup_subtarget(eBone);
+			/* temporal removed (ton) */
 			 
 		}
 	} 
@@ -2158,103 +2063,97 @@ void adduplicate_armature(void)
 	/*	Deselect the old bones and select the new ones */
 
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-		curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
 
 	BIF_TransformSetUndo("Add Duplicate");
 	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 	Transform();
+	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
 }
 
-/*
- *
- *	POSING FUNCTIONS: Maybe move these to a separate file at some point
- *
- *
- */
+/* ***************** Pose tools ********************* */
 
-
-void clear_armature(Object *ob, char mode){
-	Bone	*curBone;
+void clear_armature(Object *ob, char mode)
+{
+	bPoseChannel *pchan;
 	bArmature	*arm;
 
 	arm=get_armature(ob);
 	
 	if (!arm)
 		return;
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		clear_armature_children (curBone, ob->pose, mode);
-	}
-
-	where_is_armature (ob);
-
-}
-
-static void clear_armature_children (Bone *bone, bPose *pose, char mode){
-	Bone			*curBone;
-	bPoseChannel	*chan;
-	if (!bone)
-		return;
 	
-	chan = verify_pose_channel (pose, bone->name);
-
-	if (!chan)
-		return;
-
-	if (bone->flag & BONE_SELECTED){
-		switch (mode){
-		case 'r':
-			chan->quat[1]=chan->quat[2]=chan->quat[3]=0.0F; chan->quat[0]=1.0F;
-			break;
-		case 'g':
-			chan->loc[0]=chan->loc[1]=chan->loc[2]=0.0F;
-			break;
-		case 's':
-			chan->size[0]=chan->size[1]=chan->size[2]=1.0F;
-			break;
-			
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+			switch (mode){
+				case 'r':
+					pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; pchan->quat[0]=1.0F;
+					break;
+				case 'g':
+					pchan->loc[0]=pchan->loc[1]=pchan->loc[2]=0.0F;
+					break;
+				case 's':
+					pchan->size[0]=pchan->size[1]=pchan->size[2]=1.0F;
+					break;
+					
+			}
 		}
 	}
 
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		clear_armature_children (curBone, pose, mode);
-	}
-
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
 
-void mousepose_armature(void)
+/* helper for function below */
+static int clear_active_flag(Object *ob, Bone *bone, void *data) 
+{
+	bone->flag &= ~BONE_ACTIVE;
+	return 0;
+}
+
 /*
 	Handles right-clicking for selection
 	of bones in armature pose modes.
-*/
+ */
+void mousepose_armature(void)
 {
-	Bone		*nearBone;
+	Bone *nearBone;
 
-	if (!G.obpose)
-		return;
+	if (!G.obpose) return;
 
 	nearBone = get_nearest_bone(1);
 
-	if (nearBone){
+	if (nearBone) {
 		if (!(G.qual & LR_SHIFTKEY)){
 			deselectall_posearmature(0);
-			nearBone->flag|=BONE_SELECTED;
+			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			select_actionchannel_by_name(G.obpose->action, nearBone->name, 1);
 		}
 		else {
-			if (nearBone->flag & BONE_SELECTED){
-				nearBone->flag &= ~BONE_SELECTED;
-				select_actionchannel_by_name(G.obpose->action, nearBone->name, 0);
+			if (nearBone->flag & BONE_SELECTED) {
+				/* if not active, we make it active */
+				if((nearBone->flag & BONE_ACTIVE)==0) {
+					bArmature *arm= G.obpose->data;
+					bone_looper(G.obpose, arm->bonebase.first, NULL, clear_active_flag);
+					
+					nearBone->flag |= BONE_ACTIVE;
+				}
+				else {
+					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
+					select_actionchannel_by_name(G.obpose->action, nearBone->name, 0);
+				}
 			}
 			else{
-				nearBone->flag |= BONE_SELECTED;
+				bArmature *arm= G.obpose->data;
+				bone_looper(G.obpose, arm->bonebase.first, NULL, clear_active_flag);
+				
+				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 				select_actionchannel_by_name(G.obpose->action, nearBone->name, 1);
 			}
-		};
+		}
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -2268,42 +2167,6 @@ void mousepose_armature(void)
 	
 }
 
-static int	count_bones (bArmature *arm, int flagmask, int allbones)
-{
-	int	count=0;
-	Bone	*curBone;
-
-	if (!arm)
-		return 0;
-
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		count = count_bonechildren (curBone, count, flagmask, allbones);
-	}
-
-	return count;
-
-}
-
-static int count_bonechildren (Bone *bone, int incount, int flagmask, int allbones){
-
-	Bone	*curBone;
-
-	if (!bone)
-		return incount;
-
-	if (bone->flag & flagmask || flagmask == 0xFFFFFFFF){
-		incount++;
-		if (!allbones)
-			return incount;
-	}
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		incount=count_bonechildren (curBone, incount, flagmask, allbones);
-	}
-
-	return incount;
-}
-
 
 static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 {
@@ -2313,9 +2176,9 @@ static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 		return;
 
 	if (mode==0)
-		bone->flag &= ~BONE_SELECTED;
+		bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 	else if (!(bone->flag & BONE_HIDDEN))
-		bone->flag |= BONE_SELECTED;
+		bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 
 	select_actionchannel_by_name(ob->action, bone->name, mode);
 
@@ -2325,7 +2188,8 @@ static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 }
 
 
-void deselectall_posearmature (int test){
+void deselectall_posearmature (int test)
+{
 	Object *ob= OBACT;
 	int	selectmode	=	0;
 	Bone*	curBone;
@@ -2351,43 +2215,10 @@ void deselectall_posearmature (int test){
 
 }
 
-void auto_align_armature(void)
-/* Sets the roll value of selected bones so that their zaxes point upwards */
-{
-	EditBone *ebone;
-	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
-	float	targetmat[4][4], imat[4][4];
-	float	curmat[4][4], diffmat[4][4];
-	float	delta[3];
-
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if (ebone->flag & BONE_SELECTED){
-			/* Find the current bone matrix */
-			VecSubf(delta, ebone->tail, ebone->head);
-			make_boneMatrixvr (curmat, delta, 0.0);
-			
-			/* Make new matrix based on y axis & z-up */
-			VECCOPY (yaxis, curmat[1]);
-
-			Mat4One(targetmat);
-			VECCOPY (targetmat[0], xaxis);
-			VECCOPY (targetmat[1], yaxis);
-			VECCOPY (targetmat[2], zaxis);
-			Mat4Ortho(targetmat);
-
-			/* Find the difference between the two matrices */
-
-			Mat4Invert (imat, targetmat);
-			Mat4MulMat4(diffmat, curmat, imat);
-
-			ebone->roll = atan(diffmat[2][0]/diffmat[2][2]);
-			
-		}
-	}
-} 
 
 int bone_looper(Object *ob, Bone *bone, void *data,
-                        int (*bone_func)(Object *, Bone *, void *)) {
+                        int (*bone_func)(Object *, Bone *, void *)) 
+{
 
     /* We want to apply the function bone_func to every bone 
      * in an armature -- feed bone_looper the first bone and 
@@ -2418,7 +2249,8 @@ int bone_looper(Object *ob, Bone *bone, void *data,
 }
 
 int ik_chain_looper(Object *ob, Bone *bone, void *data,
-				   int (*bone_func)(Object *, Bone *, void *)) {
+				   int (*bone_func)(Object *, Bone *, void *)) 
+{
 
     /* We want to apply the function bone_func to every bone 
      * in an ik chain -- feed ikchain_looper a bone in the chain and 
@@ -2491,7 +2323,8 @@ static int bone_skinnable(Object *ob, Bone *bone, void *data)
     return 0;
 }
 
-static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
+static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) 
+{
     /* This group creates a vertex group to ob that has the
      * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
@@ -2505,7 +2338,8 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data) {
     return 0;
 }
 
-static int dgroup_skinnable(Object *ob, Bone *bone, void *data) {
+static int dgroup_skinnable(Object *ob, Bone *bone, void *data) 
+{
     /* Bones that are not of boneclass BONE_UNSKINNABLE
      * are regarded to be "skinnable" and are eligible for
      * auto-skinning.
@@ -2643,12 +2477,12 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
 
             /* get the root of the bone in global coords
              */
-            get_bone_root_pos (bone, root, 0);
-            Mat4MulVecfl(par->obmat, root);
+			VECCOPY(root, bone->arm_head);
+			Mat4MulVecfl(par->obmat, root);
 
             /* get the tip of the bone in global coords
              */
-            get_bone_tip_pos (bone, tip, 0);
+			VECCOPY(tip, bone->arm_tail);
             Mat4MulVecfl(par->obmat, tip);
 
             /* store the distance from the bone to
@@ -2752,7 +2586,8 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 	}
 } 
 
-static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
+{
 	if (bone->flag & BONE_SELECTED) {
 		bone->flag |= BONE_HIDDEN;
 		bone->flag &= ~BONE_SELECTED;
@@ -2760,7 +2595,8 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) {
 	return 0;
 }
 
-void hide_selected_pose_bones(void) {
+void hide_selected_pose_bones(void) 
+{
 	bArmature		*arm;
 
 	arm=get_armature (G.obpose);
@@ -2774,14 +2610,16 @@ void hide_selected_pose_bones(void) {
 	force_draw(1);
 }
 
-static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
+{
 	if (~bone->flag & BONE_SELECTED) {
 		bone->flag |= BONE_HIDDEN;
 	}
 	return 0;
 }
 
-void hide_unselected_pose_bones(void) {
+void hide_unselected_pose_bones(void) 
+{
 	bArmature		*arm;
 
 	arm=get_armature (G.obpose);
@@ -2795,7 +2633,8 @@ void hide_unselected_pose_bones(void) {
 	force_draw(1);
 }
 
-static int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
+static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
+{
 	if (bone->flag & BONE_HIDDEN) {
 		bone->flag &= ~BONE_HIDDEN;
 		bone->flag |= BONE_SELECTED;
@@ -2804,7 +2643,8 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr) {
 	return 0;
 }
 
-void show_all_pose_bones(void) {
+void show_all_pose_bones(void) 
+{
 	bArmature		*arm;
 
 	arm=get_armature (G.obpose);
@@ -2829,3 +2669,137 @@ int is_delay_deform(void)
 
 	return (arm->flag & ARM_DELAYDEFORM);
 }
+
+/* ************* RENAMING DISASTERS ************ */
+
+void unique_bone_name (bArmature *arm, char *name)
+{
+	char		tempname[64];
+	int			number;
+	char		*dot;
+	
+	if (get_named_bone(arm, name)) {
+		/*	Strip off the suffix */
+		dot=strchr(name, '.');
+		if (dot)
+			*dot=0;
+		
+		for (number = 1; number <=999; number++){
+			sprintf (tempname, "%s.%03d", name, number);
+			if (!get_named_bone(arm, tempname)){
+				strcpy (name, tempname);
+				return;
+			}
+		}
+	}
+}
+
+#define MAXBONENAME 32
+/* helper call for below */
+static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
+{
+	bConstraint *curcon;
+	char *subtarget;
+	
+	for (curcon = conlist->first; curcon; curcon=curcon->next){
+		subtarget = get_con_subtarget_name(curcon, ob);
+		if (subtarget)
+			if (!strcmp(subtarget, oldname) )
+				BLI_strncpy(subtarget, newname, MAXBONENAME);
+	}
+}
+
+/* called by UI for renaming a bone */
+/* warning: make sure the original bone was not renamed yet! */
+/* seems messy, but thats what you get with not using pointers but channel names :) */
+void armature_bone_rename(bArmature *arm, char *oldname, char *newnamep)
+{
+	Object *ob;
+	char newname[MAXBONENAME];
+	
+	/* we alter newname string... so make copy */
+	BLI_strncpy(newname, newnamep, MAXBONENAME);
+	
+	/* now check if we're in editmode, we need to find the unique name */
+	if(G.obedit && G.obedit->data==arm) {
+		EditBone	*eBone;
+
+		eBone= editbone_name_exists(oldname);
+		if(eBone) {
+			unique_editbone_name (newname);
+			BLI_strncpy(eBone->name, newname, MAXBONENAME);
+		}
+		else return;
+	}
+	else {
+		Bone *bone= get_named_bone (arm, oldname);
+
+		if(bone) {
+			unique_bone_name (arm, newname);
+			BLI_strncpy(bone->name, newname, MAXBONENAME);
+		}
+		else return;
+	}
+	
+	/* do entire dbase */
+	for(ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* we have the object using the armature */
+		if(arm==ob->data) {
+			Object *cob;
+			bAction  *act;
+			bActionChannel *chan;
+
+			/* Rename action channel if necessary */
+			act = ob->action;
+			if (act && !act->id.lib){
+				/*	Find the appropriate channel */
+				chan= get_named_actionchannel(act, oldname);
+				if(chan) BLI_strncpy(chan->name, newname, MAXBONENAME);
+			}
+	
+			/* Rename the pose channel, if it exists */
+			if (ob->pose) {
+				bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
+				if (pchan) {
+					BLI_strncpy (pchan->name, newname, MAXBONENAME);
+				}
+			}
+			
+			/* and actually do the NLA too */
+			/* (todo) */
+			
+			/* Update any object constraints to use the new bone name */
+			for(cob= G.main->object.first; cob; cob= cob->id.next) {
+				if(cob->constraints.first)
+					constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
+				if (cob->pose) {
+					bPoseChannel *pchan;
+					for (pchan = cob->pose->chanbase.first; pchan; pchan=pchan->next) {
+						constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
+					}
+				}
+			}
+			
+		}
+				
+		/* See if an object is parented to this armature */
+		if (ob->parent && (ob->parent->data == arm)) {
+			if(ob->partype==PARBONE) {
+				/* bone name in object */
+				if (!strcmp(ob->parsubstr, oldname))
+					BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
+			}
+			else if(ob->partype==PARSKEL) {
+				bDeformGroup *dg;
+				/* bone name in defgroup */
+				for (dg=ob->defbase.first; dg; dg=dg->next) {
+					if(!strcmp(dg->name, oldname))
+					   BLI_strncpy(dg->name, newname, MAXBONENAME);
+				}
+			}
+		}
+	}
+}
+
+
+

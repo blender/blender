@@ -897,8 +897,6 @@ void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, flo
 	}
 }
 
-
-
 void do_mesh_key(Mesh *me)
 {
 	KeyBlock *k[4];
@@ -906,8 +904,9 @@ void do_mesh_key(Mesh *me)
 	int a, flag = 0, step;
 	
 	if(me->totvert==0) return;
-	if(me->key==0) return;
-	if(me->key->block.first==0) return;
+	if(me->key==NULL) return;
+	if(me->key->flag & KEY_LOCKED) return;
+	if(me->key->block.first==NULL) return;
 	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
 		delta= me->key->slurph;
@@ -981,6 +980,7 @@ void do_cu_key(Curve *cu, KeyBlock **k, float *t)
 	tot= count_curveverts(&cu->nurb);
 	nu= cu->nurb.first;
 	a= 0;
+	
 	while(nu) {
 		if(nu->bp) {
 			
@@ -1051,8 +1051,9 @@ void do_curve_key(Curve *cu)
 	tot= count_curveverts(&cu->nurb);
 	
 	if(tot==0) return;
-	if(cu->key==0) return;
-	if(cu->key->block.first==0) return;
+	if(cu->key==NULL) return;
+	if(cu->key->flag & KEY_LOCKED) return;
+	if(cu->key->block.first==NULL) return;
 	
 	if(cu->key->slurph) {
 		delta= cu->key->slurph;
@@ -1117,9 +1118,10 @@ void do_latt_key(Lattice *lt)
 	float delta, cfra, ctime, t[4];
 	int a, tot, flag;
 	
-	if(lt->key==0) return;
+	if(lt->key==NULL) return;
+	if(lt->key->flag & KEY_LOCKED) return;
 	if(lt->key->block.first==0) return;
-	
+
 	tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
 	if(lt->key->slurph) {
@@ -1172,21 +1174,14 @@ void do_latt_key(Lattice *lt)
 }
 
 
-
-void do_all_keys()
+/* going to be removed */
+void unlock_all_keys()
 {
 	Key *key;
-	int idcode;
 	
 	key= G.main->key.first;
 	while(key) {
-		if(key->from) {
-			idcode= GS(key->from->name);
-		
-			if(idcode==ID_ME) do_mesh_key( (Mesh *)key->from);
-			else if(idcode==ID_CU) do_curve_key( (Curve *)key->from);
-			else if(idcode==ID_LT) do_latt_key( (Lattice *)key->from);
-		}
+		key->flag &= ~KEY_LOCKED;
 		key= key->id.next;
 	}
 }

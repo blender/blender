@@ -60,10 +60,10 @@
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_blender.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
-#include "BKE_ika.h"
 #include "BKE_key.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
@@ -408,11 +408,7 @@ void persptoetsen(unsigned short event)
 		}
 		else if(event==PAD9) {
 			countall();
-			do_all_ipos();
-			do_all_keys();
-			do_all_actions(NULL);
-			do_all_ikas();
-			test_all_displists();
+			update_for_newframe();
 			
 			reset_slowparents();	/* editobject.c */
 		}
@@ -986,9 +982,6 @@ int blenderqread(unsigned short event, short val)
 		if(textspace==0 && textediting==0) {
 			if(G.qual==LR_CTRLKEY) {
 				if(okee("Erase all")) {
-					strcpy(G.sce, BLI_gethome());
-					strcat(G.sce, "/untitled.blend");
-					BLI_clean(G.sce);
 					if( BIF_read_homefile()==0) error("No file ~/.B.blend");
 				}
 				return 0;

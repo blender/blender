@@ -73,9 +73,178 @@ void Mat4BlendMat4(float [][4], float [][4], float [][4], float );
 
 /* Local function prototypes */
 
-/* Functions */
+/* ********************* Data level ****************** */
 
-char constraint_has_target (bConstraint *con) {
+void free_constraint_data (bConstraint *con)
+{
+	if (con->data){
+		switch (con->type){
+			default:
+				break;
+		};
+		
+		MEM_freeN (con->data);
+	}
+}
+
+void free_constraints (ListBase *conlist)
+{
+	bConstraint *con;
+	
+	/* Do any specific freeing */
+	for (con=conlist->first; con; con=con->next)
+	{
+		free_constraint_data (con);
+	};
+	
+	/* Free the whole list */
+	BLI_freelistN(conlist);
+}
+
+void free_constraint_channels (ListBase *chanbase)
+{
+	bConstraintChannel *chan;
+	
+	for (chan=chanbase->first; chan; chan=chan->next)
+	{
+		if (chan->ipo){
+			chan->ipo->id.us--;
+		}
+	}
+	
+	BLI_freelistN(chanbase);
+}
+
+void relink_constraints (struct ListBase *list)
+{
+	bConstraint *con;
+	
+	for (con = list->first; con; con=con->next){
+		switch (con->type){
+			case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				bKinematicConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_NULL:
+			{
+			}
+				break;
+			case CONSTRAINT_TYPE_TRACKTO:
+			{
+				bTrackToConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_LOCKTRACK:
+			{
+				bLockTrackConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_ACTION:
+			{
+				bActionConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_LOCLIKE:
+			{
+				bLocateLikeConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_ROTLIKE:
+			{
+				bRotateLikeConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_FOLLOWPATH:
+			{
+				bFollowPathConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+			case CONSTRAINT_TYPE_STRETCHTO:
+			{
+				bStretchToConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
+				
+		}
+	}
+}
+
+void *copy_constraint_channels (ListBase *dst, ListBase *src)
+{
+	bConstraintChannel *dchan, *schan;
+	bConstraintChannel *newact=NULL;
+	
+	dst->first=dst->last=NULL;
+	duplicatelist(dst, src);
+	
+	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
+		dchan->ipo = copy_ipo(schan->ipo);
+	}
+	
+	return newact;
+}
+
+bConstraintChannel *clone_constraint_channels (ListBase *dst, ListBase *src, bConstraintChannel *oldact)
+{
+	bConstraintChannel *dchan, *schan;
+	bConstraintChannel *newact=NULL;
+	
+	dst->first=dst->last=NULL;
+	duplicatelist(dst, src);
+	
+	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
+		id_us_plus((ID *)dchan->ipo);
+		if (schan==oldact)
+			newact=dchan;
+	}
+	
+	return newact;
+}
+
+void copy_constraints (ListBase *dst, ListBase *src)
+{
+	bConstraint *con;
+	
+	dst->first= dst->last= NULL;
+	
+	duplicatelist (dst, src);
+	
+	for (con = dst->first; con; con=con->next) {
+		con->data = MEM_dupallocN (con->data);
+		/* removed a whole lot of useless code here (ton) */
+	}
+}
+
+
+/* **************** Editor Functions **************** */
+
+char constraint_has_target (bConstraint *con) 
+{
 	switch (con->type){
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
@@ -137,7 +306,7 @@ char constraint_has_target (bConstraint *con) {
 	return 0;
 }
 
-Object *get_constraint_target(bConstraint *con)
+Object *get_constraint_target(bConstraint *con, char **subtarget)
 {
 /*
 * If the target for this constraint is target, return a pointer 
@@ -147,48 +316,56 @@ Object *get_constraint_target(bConstraint *con)
 	case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
 			bKinematicConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_FOLLOWPATH: 
 		{
 			bFollowPathConstraint *data = con->data;
+			*subtarget= NULL;
 			return data->tar;
 		}
 		break;
 	case CONSTRAINT_TYPE_STRETCHTO:
 		{
 			bStretchToConstraint *data = con->data;
+			*subtarget= data->subtarget;
 			return (data->tar);
 		}
 		break;
@@ -197,7 +374,65 @@ Object *get_constraint_target(bConstraint *con)
 	return NULL;  
 }
 
-void unique_constraint_name (bConstraint *con, ListBase *list){
+void set_constraint_target(bConstraint *con, Object *ob)
+{
+	/*
+	 * Set the target for this constraint  
+	 */
+	switch (con->type) {
+		case CONSTRAINT_TYPE_ACTION:
+		{
+			bActionConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_KINEMATIC:
+		{
+			bKinematicConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_TRACKTO:
+		{
+			bTrackToConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+		{
+			bLockTrackConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH: 
+		{
+			bFollowPathConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+		{
+			bStretchToConstraint *data = con->data;
+			data->tar= ob;
+		}
+			break;
+	}
+}
+
+void unique_constraint_name (bConstraint *con, ListBase *list)
+{
 	char		tempname[64];
 	int			number;
 	char		*dot;
@@ -241,9 +476,9 @@ void unique_constraint_name (bConstraint *con, ListBase *list){
 	}
 }
 
-void	*new_constraint_data (short type)
+void *new_constraint_data (short type)
 {
-	void	*result;
+	void *result;
 	
 	switch (type){
 	case CONSTRAINT_TYPE_KINEMATIC:
@@ -252,7 +487,7 @@ void	*new_constraint_data (short type)
 			data = MEM_callocN(sizeof(bKinematicConstraint), "kinematicConstraint");
 
 			data->tolerance = (float)0.001;
-			data->iterations = 500;
+			data->iterations = 50;
 
 			result = data;
 		}
@@ -344,23 +579,27 @@ void	*new_constraint_data (short type)
 	return result;
 }
 
-bConstraintChannel *find_constraint_channel (ListBase *list, const char *name){
+bConstraintChannel *find_constraint_channel (ListBase *list, const char *name)
+{
 	bConstraintChannel *chan;
 
-	for (chan = list->first; chan; chan=chan->next){
-		if (!strcmp(name, chan->name)){
+	for (chan = list->first; chan; chan=chan->next) {
+		if (!strcmp(name, chan->name)) {
 			return chan;
 		}
 	}
 	return NULL;
 }
 
+/* ***************** Evaluating ********************* */
+
+/* does ipos only */
 void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 {
 	bConstraint *con;
 	bConstraintChannel *chan;
-	IpoCurve *icu;
-
+	IpoCurve *icu=NULL;
+	
 	for (con=conbase->first; con; con=con->next){
 		chan = find_constraint_channel(chanbase, con->name);
 		if (chan && chan->ipo){
@@ -421,94 +660,33 @@ void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweig
 static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], float size[3], float ctime)
 {
 
-	/*	Update the location of the target object */
-	//where_is_object_time (ob, ctime);	
-
 	/*	Case OBJECT */
-	if (!strlen(substring)){
+	if (!strlen(substring)) {
 		Mat4CpyMat4 (mat, ob->obmat);
-		VECCOPY (size, ob->size);
-		return;
+		VECCOPY (size, ob->size);  // whats this for, hack! (ton)
 	}
-
 	/*	Case BONE */
 	else {
-		bArmature *arm;
-		Bone	*bone;
-		float	bmat[4][4];
+		bPoseChannel *pchan;
 		float	bsize[3]={1, 1, 1};
 
-		arm = get_armature(ob);
-
-		/**
-		 *	Locate the bone (if there is one)
-		 *	Ensures that the bone's transformation is fully constrained
-		 *	(Cyclical relationships are disallowed elsewhere)
-		 */
-		bone = get_named_bone(arm, substring);
-		if (bone){
-			where_is_bone_time(ob, bone, ctime);
-			get_objectspace_bone_matrix(bone, bmat, 1, 1);
-			VECCOPY(bsize, bone->size);
+		pchan = get_pose_channel(ob->pose, substring);
+		if (pchan){
+			/**
+			 *	Multiply the objectspace bonematrix by the skeletons's global
+			 *	transform to obtain the worldspace transformation of the target
+			 */
+			Mat4MulMat4 (mat, pchan->pose_mat, ob->obmat);
 		} 
 		else
-			Mat4One (bmat);
+			Mat4CpyMat4 (mat, ob->obmat);
 
-		/**
-		 *	Multiply the objectspace bonematrix by the skeletons's global
-		 *	transform to obtain the worldspace transformation of the target
-		 */
-		VECCOPY(size, bsize);
-		Mat4MulMat4 (mat, bmat, ob->obmat);
-	
-		return;	
+		VECCOPY(size, bsize);   // whats this for, hack! (ton)
 	}
 }
 
-void clear_object_constraint_status (Object *ob)
-{
-	bConstraint *con;
-
-	if (!ob) return;
-
-	/* Clear the object's constraints */
-	for (con = ob->constraints.first; con; con=con->next){
-		con->flag &= ~CONSTRAINT_DONE;
-	}
-
-	/* Clear the object's subdata constraints */
-	switch (ob->type){
-	case OB_ARMATURE:
-		{
-			clear_pose_constraint_status (ob);
-		}
-		break;
-	default:
-		break;
-	}
-}
-
-void clear_all_constraints(void)
-{
-	Base *base;
-
-	/* Clear the constraint "done" flags -- this must be done
-	 * before displists are calculated for objects that are
-	 * deformed by armatures */
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-	}
-}
-
-void rebuild_all_armature_displists(void) {
-	Base *base;
-
-	for (base = G.scene->base.first; base; base=base->next){
-		clear_object_constraint_status(base->object);
-		make_displists_by_armature(base->object);
-	}
-}
-
+/* called during solve_constraints */
+/* also for make_parent, to find correct inverse of "follow path" */
 short get_constraint_target_matrix (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
 {
 	short valid=0;
@@ -531,13 +709,11 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				float s,t;
 				Bone *curBone;
 				Bone tbone;
-				int i;
+//				int i;
 				
 				curBone = (Bone*)ownerdata;
 				
 				if (data->tar){
-					/*	Update the location of the target object */
-					where_is_object_time (data->tar, ctime);	
 					constraint_target_to_mat4(data->tar, data->subtarget, tempmat, size, ctime);
 					valid=1;
 				}
@@ -582,26 +758,26 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				pose = MEM_callocN(sizeof(bPose), "pose");
 				
 				verify_pose_channel(pose, curBone->name);
-				get_pose_from_action (&pose, data->act, t);
+				extract_pose_from_action (pose, data->act, t);
 
 				/* Find the appropriate channel */
 				pchan = get_pose_channel(pose, curBone->name);
 				if (pchan){
 					memset(&tbone, 0x00, sizeof(Bone));
 
-					VECCOPY (tbone.loc, pchan->loc);
-					VECCOPY (tbone.size, pchan->size);				
-					for (i=0; i<4; i++)
-						tbone.quat[i]=pchan->quat[i];
-					
-					bone_to_mat4(&tbone, mat);
+//					VECCOPY (tbone.loc, pchan->loc);
+//					VECCOPY (tbone.size, pchan->size);				
+//					for (i=0; i<4; i++)
+//						tbone.quat[i]=pchan->quat[i];
+//					
+//					bone_to_mat4(&tbone, mat);
 
 				}
 				else{
 					Mat4One(mat);
 				}
 				/* Clean up */
-				clear_pose(pose);
+				free_pose_channels(pose);
 				MEM_freeN(pose);
 			}
 			
@@ -612,8 +788,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bLocateLikeConstraint *data = (bLocateLikeConstraint*)con->data;
 
 			if (data->tar){
-				/*	Update the location of the target object */
-				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -627,8 +801,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bRotateLikeConstraint*)con->data;
 
 			if (data->tar){
-				/*	Update the location of the target object */
-				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -642,9 +814,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bTrackToConstraint*)con->data;
 
 			if (data->tar){
-				// Refresh the object if it isn't a constraint loop
-				if (!(con->flag & CONSTRAINT_NOREFRESH))
-					where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -654,12 +823,10 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 		break;
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
-			bTrackToConstraint *data;
-			data = (bTrackToConstraint*)con->data;
+			bKinematicConstraint *data;
+			data = (bKinematicConstraint*)con->data;
 
 			if (data->tar){
-				/*	Update the location of the target object */
-				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -673,10 +840,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bLockTrackConstraint*)con->data;
 
 			if (data->tar){
-				// Refresh the object if it isn't a constraint loop
-				if (!(con->flag & CONSTRAINT_NOREFRESH))
-					where_is_object_time (data->tar, ctime);	
-
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
 			}
@@ -690,33 +853,17 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bFollowPathConstraint*)con->data;
 
 			if (data->tar){
-				short OldFlag;
 				Curve *cu;
 				float q[4], vec[4], dir[3], *quat, x1, totmat[4][4];
 				float curvetime;
-
-				where_is_object_time (data->tar, ctime);	
 
 				Mat4One (totmat);
 				Mat4One (mat);
 
 				cu= data->tar->data;
-				OldFlag = cu->flag;
-				
-				if(data->followflag) {
-					if(!(cu->flag & CU_FOLLOW)) cu->flag += CU_FOLLOW;
-				}
-				else {
-					if(cu->flag & CU_FOLLOW) cu->flag -= CU_FOLLOW;
-				}
 
-				if(!(cu->flag & CU_PATH)) cu->flag += CU_PATH;
-
-				if(cu->path==NULL)
-					calc_curvepath(data->tar);
-				else if (cu->path->data==NULL)
-					calc_curvepath(data->tar);
-
+				/* note; when creating constraints that follow path, the curve gets the CU_PATH set now,
+					currently for paths to work it needs to go through the bevlist/displist system (ton) */
 				if(cu->path && cu->path->data) {
 					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
@@ -746,7 +893,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 						Mat4MulSerie(mat, data->tar->obmat, totmat, NULL, NULL, NULL, NULL, NULL, NULL);
 					}
 				}
-				cu->flag = OldFlag;
 				valid=1;
 			}
 			else
@@ -759,7 +905,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			data = (bStretchToConstraint*)con->data;
 
 			if (data->tar){
-				where_is_object_time (data->tar, ctime);	
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid = 1;
 			}
@@ -776,209 +921,10 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 	return valid;
 }
 
-void relink_constraints (struct ListBase *list)
-{
-	bConstraint *con;
 
-	for (con = list->first; con; con=con->next){
-		switch (con->type){
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_NULL:
-			{
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data;
-				data = con->data;
-
-				ID_NEW(data->tar);
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-			break;
-			
-		}
-	}
-}
-
-void *copy_constraint_channels (ListBase *dst, ListBase *src)
-{
-	bConstraintChannel *dchan, *schan;
-	bConstraintChannel *newact=NULL;
-
-	dst->first=dst->last=NULL;
-	duplicatelist(dst, src);
-	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
-		dchan->ipo = copy_ipo(schan->ipo);
-	}
-
-	return newact;
-}
-
-bConstraintChannel *clone_constraint_channels (ListBase *dst, ListBase *src, bConstraintChannel *oldact)
-{
-	bConstraintChannel *dchan, *schan;
-	bConstraintChannel *newact=NULL;
-
-	dst->first=dst->last=NULL;
-	duplicatelist(dst, src);
-	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
-		id_us_plus((ID *)dchan->ipo);
-		if (schan==oldact)
-			newact=dchan;
-	}
-
-	return newact;
-}
-
-void copy_constraints (ListBase *dst, ListBase *src)
-{
-	bConstraint *con;
-
-	dst->first=dst->last=NULL;
-
-	duplicatelist (dst, src);
-
-	/* Update specific data */
-	if (!dst->first)
-		return;
-
-	for (con = dst->first; con; con=con->next){
-		switch (con->type){
-		case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data;
-
-				con->data = MEM_dupallocN (con->data);
-				data = (bActionConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data;
-
-				con->data = MEM_dupallocN (con->data);
-				data = (bLocateLikeConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bRotateLikeConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_NULL:
-			{
-				con->data = NULL;
-			}
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bTrackToConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bLockTrackConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bKinematicConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bFollowPathConstraint*) con->data;
-			}
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data;
-				
-				con->data = MEM_dupallocN (con->data);
-				data = (bStretchToConstraint*) con->data;
-			}
-			break;
-		default:
-			con->data = MEM_dupallocN (con->data);
-			break;
-		}
-	}
-}
-
+/* only called during solve_constraints */
+/* bone constraints create a fake object to work on, then ob is a workob */
 void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, void *ownerdata, float targetmat[][4])
-/* ob is likely to be a workob */
 {
 	float	M_oldmat[4][4];
 	float	M_identity[4][4];
@@ -987,11 +933,6 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		return;
 	
 	Mat4One (M_identity);
-	
-	/* We've already been calculated */
-	if (constraint->flag & CONSTRAINT_DONE){
-		return;
-	}
 	
 	switch (constraint->type){
 	case CONSTRAINT_TYPE_ACTION:
@@ -1088,6 +1029,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		break;
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
+#if 0
 			bKinematicConstraint *data;
 			float	imat[4][4];
 			float	temp[4][4];
@@ -1111,15 +1053,19 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				chain->tolerance = data->tolerance;
 				
 				
-				{
+				if(0) {
+					bPoseChannel *pchan= get_pose_channel(armob->pose, curBone->name);
 					float parmat[4][4];
 					
 					/* Take the obmat to objectspace */
-					Mat4CpyMat4 (temp, curBone->obmat);
-					Mat4One (curBone->obmat);
-					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
-					Mat4CpyMat4 (curBone->obmat, temp);
-					Mat4MulMat4 (totmat, parmat, ob->parent->obmat);
+					
+//					Mat4CpyMat4 (temp, curBone->obmat);
+//					Mat4One (curBone->obmat);
+//					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
+					Mat4CpyMat4(parmat, pchan->pose_mat);
+					
+//					Mat4CpyMat4 (curBone->obmat, temp);
+					Mat4MulMat4 (totmat, parmat, armob->obmat);
 					
 					Mat4Invert (imat, totmat);
 					
@@ -1131,26 +1077,31 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				/* Solve it */
 				if (chain->solver){
 					VECCOPY (chain->goal, targetmat[3]);					
-					solve_posechain(chain);
+					solve_posechain(chain); // applies to bones/channels
 				}
 				
 				free_posechain(chain);
 				
-				{
+				if(0) {
 					float parmat[4][4];
+					bPoseChannel *pchan= get_pose_channel(armob->pose, curBone->name);
 					
 					/* Take the obmat to worldspace */
-					Mat4CpyMat4 (temp, curBone->obmat);
-					Mat4One (curBone->obmat);
-					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
-					Mat4CpyMat4 (curBone->obmat, temp);
-					Mat4MulMat4 (totmat, parmat, ob->parent->obmat);
+//					Mat4CpyMat4 (temp, curBone->obmat);
+//					Mat4One (curBone->obmat);
+					
+//					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
+					Mat4CpyMat4(parmat, pchan->pose_mat);
+
+//					Mat4CpyMat4 (curBone->obmat, temp);
+					Mat4MulMat4 (totmat, parmat, armob->obmat);
 					
 					Mat4CpyMat4 (temp, ob->obmat);
 					Mat4MulMat4 (ob->obmat, temp, totmat);
 					
 				}
 			}
+#endif
 		}
 		break;
 	case CONSTRAINT_TYPE_LOCKTRACK:
@@ -1481,7 +1432,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			data=(bFollowPathConstraint*)constraint->data;			
 
 			if (data->tar) {
-
+				// weird, this is needed? doesnt work for workob (ton)
 				object_to_mat4(ob, obmat);
 
 				Mat4MulSerie(ob->obmat, targetmat, obmat, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1617,45 +1568,4 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		printf ("Error: Unknown constraint type\n");
 		break;
 	}
-
-}
-
-void free_constraint_data (bConstraint *con)
-{
-	if (con->data){
-		switch (con->type){
-		default:
-			break;
-		};
-		
-		MEM_freeN (con->data);
-	}
-}
-
-void free_constraints (ListBase *conlist)
-{
-	bConstraint *con;
-
-	/* Do any specific freeing */
-	for (con=conlist->first; con; con=con->next)
-	{
-		free_constraint_data (con);
-	};
-
-	/* Free the whole list */
-	BLI_freelistN(conlist);
-}
-
-void free_constraint_channels (ListBase *chanbase)
-{
-	bConstraintChannel *chan;
-
-	for (chan=chanbase->first; chan; chan=chan->next)
-	{
-		if (chan->ipo){
-			chan->ipo->id.us--;
-		}
-	}
-
-	BLI_freelistN(chanbase);
 }

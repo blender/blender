@@ -46,13 +46,29 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_listBase.h"
-#include "DNA_userdef_types.h"
-#include "DNA_scene_types.h"	/* PET modes	*/
-#include "DNA_screen_types.h"	/* area dimensions	*/
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_effect_types.h"
+#include "DNA_image_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
+#include "DNA_world_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_property_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_screen.h"
@@ -68,6 +84,8 @@
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
+
+#include "BDR_editobject.h"
 
 #include "PIL_time.h"
 
@@ -195,7 +213,7 @@ void checkFirstTime() {
 }
 
 static void transformEvent(unsigned short event, short val) {
-	float mati[3][3] = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(&Trans);
 
 	if (val) {
@@ -517,7 +535,7 @@ void Transform()
 
 			selectConstraint(&Trans);
 			if (Trans.transform) {
-				Trans.transform(&Trans, mval);
+				Trans.transform(&Trans, mval);  // calls recalcData()
 			}
 			Trans.redraw = 0;
 		}
@@ -534,7 +552,7 @@ void Transform()
 	
 	/* handle restoring objects and Undo */
 	if(Trans.state == TRANS_CANCEL) {
-		restoreTransObjects(&Trans);
+		restoreTransObjects(&Trans);	// calls recalcData()
 		if(Trans.undostr) BIF_undo_push(Trans.undostr);
 	}
 	else {
@@ -552,9 +570,9 @@ void Transform()
 		
 		if(Trans.mode==TFM_RESIZE) cmode= 's';
 		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
-		/* aftertrans does displists, ipos and action channels */
-		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
-		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL), 7);
+		
+		/* aftertrans does insert ipos and action channels */
+		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL));
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();
@@ -718,7 +736,7 @@ void ManipulatorTransform()
 		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
 		/* aftertrans does displists, ipos and action channels */
 		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
-		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL), 7);
+		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL));
 		
 		if(G.obedit==NULL && G.obpose==NULL)
 			clear_trans_object_base_flags();

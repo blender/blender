@@ -51,7 +51,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
-#include "DNA_ika_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -59,7 +58,6 @@
 #include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
-#include "BKE_ika.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"

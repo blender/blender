@@ -52,7 +52,6 @@
 #include <DNA_armature_types.h>
 #include <DNA_action_types.h>
 #include <DNA_ID.h>
-#include <DNA_ika_types.h>
 #include <DNA_listBase.h>
 #include <DNA_scene_types.h>
 #include <DNA_userdef_types.h>

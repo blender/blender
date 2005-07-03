@@ -52,7 +52,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_key.h"
-#include "BKE_displist.h"
+#include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -170,7 +170,7 @@ void load_editLatt(void)
 			bp++;
 		}
 		
-		if(actkey) do_spec_key(lt->key);
+		if(actkey) showkeypos(lt->key, actkey);
 	}
 	else {
 
@@ -300,21 +300,9 @@ void mouse_lattice(void)
 
 static void undoLatt_to_editLatt(void *defv)
 {
-	Base *base;
 	int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 
 	memcpy(editLatt->def, defv, a*sizeof(BPoint));
-	
-	base= FIRSTBASE;
-	while(base) {
-		if(base->lay & G.vd->lay) {
-			if(base->object->parent==G.obedit) {
-				makeDispList(base->object);
-			}
-		}
-		base= base->next;
-	}
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 static void *editLatt_to_undoLatt(void)

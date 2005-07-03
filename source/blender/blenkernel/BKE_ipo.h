@@ -82,7 +82,7 @@ void do_mat_ipo(struct Material *ma);
 void do_ob_ipo(struct Object *ob);
 void do_seq_ipo(struct Sequence *seq);
 int has_ipo_code(struct Ipo *ipo, int code);
-void do_all_ipos(void);
+void do_all_data_ipos(void);
 int calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);
 void clear_delta_obipo(struct Ipo *ipo);
 void add_to_cfra_elem(struct ListBase *lb, struct BezTriple *bezt);

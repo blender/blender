@@ -28,9 +28,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Full recode, Ton Roosendaal, Crete 2005
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -55,25 +53,16 @@ struct Object;
 extern "C" {
 #endif
 
-/**
- * Allocate a new pose channel on the heap and binary copy the 
- * contents of the src pose channel.
- */
-struct bPoseChannel *copy_pose_channel(const struct bPoseChannel *src);
-
+	
 /**
  * Removes and deallocates all channels from a pose.
  * Does not free the pose itself.
  */
-void clear_pose(struct bPose *pose);
-
-/* Sets the value of a pose channel */
-struct bPoseChannel *set_pose_channel(struct bPose *pose, 
-									  struct bPoseChannel *chan);
+void free_pose_channels(struct bPose *pose);
 
 /**
  * Allocate a new pose on the heap, and copy the src pose and it's channels
- * into the new pose. *dst is set to the newly allocated structure.
+ * into the new pose. *dst is set to the newly allocated structure, and assumed to be NULL.
  */ 
 void copy_pose(struct bPose **dst, struct bPose *src,
 			   int copyconstraints);
@@ -104,6 +93,9 @@ struct  bPoseChannel *get_pose_channel(const struct bPose *pose,
 struct bPoseChannel *verify_pose_channel(struct bPose* pose, 
 										 const char* name);
 
+/* sets constraint flags */
+void update_pose_constraint_flags(struct bPose *pose);
+
 /**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.
@@ -119,29 +111,10 @@ float calc_action_start(const struct bAction *act);
 float calc_action_end(const struct bAction *act);
 
 /**
- * Evaluate the pose from the given action.
- * If the pose does not exist, a new one is created.
- * Some deep calls into blender are made here.
+ * Set the pose channels from the given action.
  */
-void get_pose_from_action(struct bPose **pose, struct bAction *act,
+void extract_pose_from_action(struct bPose *pose, struct bAction *act,
                                                   float ctime);
-
-/**
- * I think this duplicates the src into *pose.
- * If the pose does not exist, a new one is created.
- * If the pose does not contain channels from src
- * new channels are created.
- */ 
-void get_pose_from_pose(struct bPose **pose, const struct bPose *src);
-
-void clear_pose_constraint_status(struct Object *ob);
-
-/**
- * Blends the common subset of channels from dst and src.
- * and writes result to dst.
- */
-void blend_poses(struct bPose *dst, const struct bPose *src,
-                                 float srcweight, short mode);
 
 /**
  * Iterate through the action channels of the action
@@ -151,29 +124,19 @@ void blend_poses(struct bPose *dst, const struct bPose *src,
 struct bActionChannel *get_named_actionchannel(struct bAction *act,
 											   const char *name);
 
+// exported for game engine
+void blend_poses(struct bPose *dst, const struct bPose *src, float srcweight, short mode);
+void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
+
+
 #ifdef __cplusplus
 };
 #endif
 
+/* nla strip flag */
 enum	{
 			POSE_BLEND		= 0,
 			POSE_ADD
-};
-
-enum	{
-			POSE_KEY		=	0x10000000,
-			POSE_LOC		=	0x00000001,
-			POSE_ROT		=	0x00000002,
-			POSE_SIZE		=	0x00000004,
-			POSE_UNUSED1	=	0x00000008,
-			POSE_UNUSED2	=	0x00000010,
-			POSE_UNUSED3	=	0x00000020,
-			POSE_UNUSED4	=	0x00000040,
-			POSE_UNUSED5	=	0x00000080,
-			POSE_OBMAT		=	0x00000100,
-			POSE_PARMAT		=	0x00000200,
-			PCHAN_DONE		=	0x00000400,
-			PCHAN_TRANS_UPDATE = 0x00000800
 };
 
 #endif

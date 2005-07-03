@@ -60,6 +60,7 @@
 
 #include "BKE_library.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -2189,7 +2190,7 @@ static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 		convert_to_triface(0);
 		allqueue(REDRAWVIEW3D, 0);
 		countall();
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* Tris to Quads */
 		join_triangles();
@@ -2498,15 +2499,15 @@ static void do_view3d_edit_curve_controlpointsmenu(void *arg, int event)
 		break;
 	case 2: /* Free */
 		sethandlesNurb(3);
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* vector */
 		sethandlesNurb(2);
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 4: /* smooth */
 		sethandlesNurb(1);
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 5: /* make vertex parent */
 		make_parent();
@@ -2640,7 +2641,7 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		break;
 	case 7: /* toggle cyclic */
 		makecyclicNurb();
-		makeDispList(G.obedit);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 8: /* delete */
 		delete_context_selected();
@@ -3977,6 +3978,9 @@ void do_view3d_buttons(short event)
 			
 			scrarea_queue_winredraw(curarea);
 			countall();
+			
+			/* new layers might need unflushed events events */
+			DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
 
 			allqueue(REDRAWOOPS, 0);
 		}

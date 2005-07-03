@@ -88,12 +88,14 @@ int during_scriptlink(void);
 void where_is_object_time(struct Object *ob, float ctime);
 void where_is_object(struct Object *ob);
 void where_is_object_simul(struct Object *ob);
-void what_does_parent1(struct Object *par, int partype, int par1, int par2, int par3);
+
 void what_does_parent(struct Object *ob);
 struct BoundBox *unit_boundbox(void);
 void minmax_object(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 void solve_constraints (struct Object *ob, short obtype, void *obdata, float ctime);
+
+void object_handle_update(struct Object *ob);
 
 #ifdef __cplusplus
 }

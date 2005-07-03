@@ -137,6 +137,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_ARMATUREPANEL1 	1009
 #define B_ARMATUREPANEL2 	1010
 #define B_OBJECTPANELPARENT 1011
+#define B_OBJECTPANEL		1012
+#define B_ARMATUREPANEL3 	1013
 
 /* *********************** */
 #define B_LAMPBUTS		1200
@@ -300,6 +302,7 @@ enum {
 /* *********************** */
 #define B_COMMONEDITBUTS	2049
 
+#define B_CHANGEDEP		2002
 #define B_MATWICH		2003
 #define B_MATNEW		2004
 #define B_MATDEL		2005
@@ -405,10 +408,7 @@ enum {
 #define B_STYLETOSEL	2212
 
 /* *********************** */
-#define B_IKABUTS		2400
 
-#define B_IKASETREF		2301
-#define B_IKARECALC		2302
 
 /* *********************** */
 #define B_CAMBUTS		2500

@@ -50,7 +50,6 @@ typedef struct bConstraintChannel{
 typedef struct bConstraint{
 	struct bConstraint *next, *prev;
 	void		*data;		/*	Constraint data	(a valid constraint type) */
-	Ipo			*ipo;		/*	Constraint ipo	*/
 	char		type;		/*	Constraint type	*/
 	char		otype;		/*	Old type - for menu callbacks */
 	short		flag;		/*	Flag */
@@ -179,7 +178,7 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_DONE			0x00000002
 #define CONSTRAINT_DISABLE		0x00000004
 #define CONSTRAINT_LOOPTESTED	0x00000008
-#define CONSTRAINT_NOREFRESH	0x00000010
+
 
 #define CONSTRAINT_EXPAND_BIT	0
 #define CONSTRAINT_DONE_BIT		1

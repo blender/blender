@@ -43,15 +43,15 @@
 #include <config.h>
 #endif
 
-#include "DNA_ID.h"
 #include "DNA_action_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_ID.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_key_types.h"
-#include "DNA_curve_types.h"
 
 #include "BIF_interface.h"
 #include "BIF_resources.h"
@@ -60,10 +60,11 @@
 #include "BIF_editaction.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
+#include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "BKE_constraint.h"
-#include "BKE_armature.h"
 #include "BKE_utildefines.h"
 
 #include "BSE_drawipo.h"
@@ -104,10 +105,11 @@
 
 void do_action_buttons(unsigned short event)
 {
+	Object *ob= OBACT;
 
 	switch(event){
 		case B_ACTBAKE:
-			bake_action_with_client (G.saction->action, OBACT, 0.01);
+			bake_action_with_client (G.saction->action, ob, 0.01);
 			break;
 		case B_ACTCONT:
 			set_exprap_action(IPO_HORIZ);
@@ -159,14 +161,12 @@ void do_action_buttons(unsigned short event)
 			break;
 		case B_ACTPASTE:
 			paste_posebuf(0);
-			clear_object_constraint_status(OBACT);
-			make_displists_by_armature(OBACT);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case B_ACTPASTEFLIP:
 			paste_posebuf(1);
-			clear_object_constraint_status(OBACT);
-			make_displists_by_armature(OBACT);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 

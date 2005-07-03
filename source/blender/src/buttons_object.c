@@ -45,6 +45,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_action.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -87,7 +88,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
-#include "DNA_ika_types.h"
 #include "DNA_image_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -110,10 +110,10 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
-#include "BKE_ika.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -408,7 +408,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_REDRAW, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_DEL, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
 	uiButSetFunc(but, del_constraint_func, con, list);
 
 	uiBlockSetEmboss(block, UI_EMBOSSX);
@@ -797,29 +797,22 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 void do_constraintbuts(unsigned short event)
 {
+	Object *ob= OBACT;
+	
+	object_test_constraints(ob);
+	
 	switch(event) {
 	case B_CONSTRAINT_CHANGENAME:
-		break;
 	case B_CONSTRAINT_TEST:
-		test_scene_constraints();
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWBUTSOBJECT, 0);
-		break;
 	case B_CONSTRAINT_REDRAW:
-		test_scene_constraints();
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWBUTSOBJECT, 0);
-		break;
-	case B_CONSTRAINT_CHANGETARGET:
-		test_scene_constraints();
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWBUTSOBJECT, 0);
-		break;
 	case B_CONSTRAINT_CHANGETYPE:
-		test_scene_constraints();
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWBUTSOBJECT, 0);
+		break;  // no handling
+		
+	case B_CONSTRAINT_DEL:
+	case B_CONSTRAINT_CHANGETARGET:
+		DAG_scene_sort(G.scene);
 		break;
+		
 	case B_CONSTRAINT_ADD_NULL:
 		{
 			bConstraint *con;
@@ -827,10 +820,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_NULL);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_KINEMATIC:
@@ -840,10 +830,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_TRACKTO:
@@ -853,10 +840,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_ROTLIKE:
@@ -866,10 +850,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_ROTLIKE);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_LOCLIKE:
@@ -879,10 +860,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_ACTION:
@@ -892,10 +870,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_LOCKTRACK:
@@ -905,10 +880,7 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
 			BIF_undo_push("Add constraint");
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_FOLLOWPATH:
@@ -918,9 +890,6 @@ void do_constraintbuts(unsigned short event)
 			con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 			add_constraint_to_client(con);
 
-			test_scene_constraints();
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWBUTSOBJECT, 0);
 		}
 		break;
 	case B_CONSTRAINT_ADD_STRETCHTO:
@@ -929,24 +898,21 @@ void do_constraintbuts(unsigned short event)
 		con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
 		add_constraint_to_client(con);
 			
-		test_scene_constraints();
 		BIF_undo_push("Add constraint");
-		allqueue(REDRAWVIEW3D,0);
-		allqueue(REDRAWBUTSOBJECT,0);
 	}
 		break;
 
-	case B_CONSTRAINT_DEL:
-		test_scene_constraints();
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWBUTSOBJECT, 0);
-		break;
 	default:
 		break;
 	}
 
-	clear_object_constraint_status(OBACT);
-	make_displists_by_armature (OBACT);
+	if(ob->pose) update_pose_constraint_flags(ob->pose);
+	
+	if(ob->type==OB_ARMATURE) DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	else DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
 }
 
 static void object_panel_constraint(void)
@@ -1164,7 +1130,7 @@ void do_object_panels(unsigned short event)
 	switch(event) {
 	case B_TRACKBUTS:
 		ob= OBACT;
-		if(ob && ob->parent && ob->parent->type==OB_CURVE) freedisplist(&ob->disp);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_DEL_HOOK:
@@ -1203,7 +1169,7 @@ void do_object_panels(unsigned short event)
 		}
 		break;
 	case B_RECALCPATH:
-		calc_curvepath(OBACT);
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_PRINTSPEED:
@@ -1237,7 +1203,7 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWIPO, 0);
 		break;
 	case B_CURVECHECK:
-		curve_changes_other_objects(OBACT);
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	
