@@ -1261,7 +1261,6 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			case PAROBJECT:
 			case PARCURVE:
 			case PARKEY:
-			case PARLIMB:
 			case PARVERT3:
 			default:
 				// unhandled
