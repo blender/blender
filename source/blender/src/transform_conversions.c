@@ -1359,8 +1359,9 @@ void special_aftertrans_update(char mode, int flip, short canceled)
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
+			/* do not call this always, we dont want actions to update, for inserting keys */
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 		}
-		DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 	}
 	else {
 		base= FIRSTBASE;
