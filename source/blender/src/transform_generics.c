@@ -30,53 +30,23 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <string.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#ifndef WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
 
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_screen_types.h"
-#include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_property_types.h"
-#include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
 
 #include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_editview.h"
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
-#include "BIF_editlattice.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
 
@@ -93,11 +63,9 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BSE_edit.h"
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
-#include "BLI_editVert.h"
 
 #include "blendef.h"
 
@@ -108,8 +76,7 @@
 extern ListBase editNurb;
 extern ListBase editelems;
 
-/* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
-extern TransInfo Trans;
+extern TransInfo Trans;	/* From transform.c */
 
 /* ************************** Functions *************************** */
 
@@ -159,9 +126,9 @@ void recalcData(TransInfo *t)
 			recalc_editnormals();
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+			Nurb *nu= editNurb.first;
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
-			Nurb *nu= editNurb.first;
 			while(nu) {
 				test2DNurb(nu);
 				testhandlesNurb(nu); /* test for bezier too */

@@ -30,10 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -112,8 +108,6 @@
 
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
-
-#include "PIL_time.h"
 
 #include "blendef.h"
 
@@ -398,74 +392,10 @@ void count_bone_select(TransInfo *t, ListBase *lb, int do_it)
 	}
 }
 
-static void get_weird_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed)
-/* Gets matrix that transforms the bone to object space */
-/* This function is also used to compute the orientation of the bone for display */
-{
-	Bone	*curBone;
-	
-	Bone	*bonelist[256];
-	int		bonecount=0, i;
-	
-	Mat4One (M_accumulatedMatrix);
-	
-	/* Build a list of bones from tip to root */
-	for (curBone=bone; curBone; curBone=curBone->parent){
-		bonelist[bonecount] = curBone;
-		bonecount++;
-	}
-	
-	/* Count through the inverted list (i.e. iterate from root to tip)*/
-	for (i=0; i<bonecount; i++){
-		float T_root[4][4];
-		float T_len[4][4];
-		float R_bmat[4][4];
-		float M_obmat[4][4];
-		float M_boneMatrix[4][4];
-		float delta[3];
-		
-		curBone = bonelist[bonecount-i-1];
-		
-		/* Get the length translation (length along y axis) */
-		Mat4One (T_len);
-		T_len[3][1] = (curBone->length);
-		
-		if ((curBone == bone) && (root))
-			Mat4One (T_len);
-		
-		/* Get the bone's root offset (in the parent's coordinate system) */
-		Mat4One (T_root);
-		VECCOPY (T_root[3], curBone->head);
-		
-		/* Compose the restmat */
-		VecSubf(delta, curBone->tail, curBone->head);
-		Mat4CpyMat3(R_bmat, curBone->bone_mat);
-		
-		/* Retrieve the obmat (user transformation) */
-		if (bone!=curBone) {
-			bPoseChannel *pchan= get_pose_channel(G.obpose->pose, curBone->name);
-			Mat4CpyMat4 (M_obmat, pchan->chan_mat);
-		}
-		else
-			Mat4One (M_obmat);
-		
-		/* Compose the matrix for this bone  */
-#if 0
-		Mat4MulSerie (M_boneMatrix, M_accumulatedMatrix, T_root, M_obmat, R_bmat, T_len, NULL, NULL, NULL);
-#else
-		Mat4MulSerie (M_boneMatrix, M_accumulatedMatrix, T_root, R_bmat, M_obmat, T_len, NULL, NULL, NULL);
-#endif
-		Mat4CpyMat4 (M_accumulatedMatrix, M_boneMatrix);
-	}
-	
-	
-}
-
 static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
 	float	parmat[4][4], tempmat[4][4];
-//	float tempobmat[4][4];
 	float vec[3];
 
 	if(bone) {
@@ -488,19 +418,17 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 
 				QUATCOPY(td->ext->iquat, pchan->quat);
 				VECCOPY(td->ext->isize, pchan->size);
-				
-				/* Get the matrix of this bone minus the usertransform */
-//				Mat4CpyMat4 (tempobmat, bone->obmat);
-//				Mat4One (bone->obmat);
-				get_weird_bone_matrix(pchan->bone, tempmat, 1, 1);
-				Mat4MulMat4 (parmat, tempmat, ob->obmat);	
-//				Mat4CpyMat4 (bone->obmat, tempobmat);
 
-//				if(pchan->parent)
-//					Mat4MulMat4 (parmat, pchan->parent->pose_mat, ob->obmat);	
-//				else 
-//					Mat4CpyMat4 (parmat, ob->obmat);
-				
+				if (bone->parent) { /* apply parent transformation if there is one */
+					bPoseChannel *pchan= get_pose_channel(G.obpose->pose, bone->parent->name);
+
+					Mat4MulMat4(tempmat, bone->arm_mat, pchan->chan_mat);
+				}
+				else {
+					Mat4CpyMat4(tempmat, bone->arm_mat);
+				}
+				Mat4MulMat4 (parmat, tempmat, ob->obmat);	
+
 				Mat3CpyMat4 (td->mtx, parmat);
 				Mat3Inv (td->smtx, td->mtx);
 
@@ -1381,7 +1309,7 @@ void clear_trans_object_base_flags(void)
 		if(base->flag & BA_WAS_SEL) base->flag |= SELECT;
 		base->flag &= ~(BA_WAS_SEL|BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA|BA_DO_IPO);
 		
-		base= base->next;
+		base = base->next;
 	}
 }
 
