@@ -687,6 +687,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 
 /* called during solve_constraints */
 /* also for make_parent, to find correct inverse of "follow path" */
+/* warning, ownerdata is void... is not Bone anymore, but posechannel */
 short get_constraint_target_matrix (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
 {
 	short valid=0;
@@ -699,45 +700,29 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 		break;
 	case CONSTRAINT_TYPE_ACTION:
 		{
-			if (ownertype == TARGET_BONE){
+			if (ownertype == TARGET_BONE) {
+				extern void chan_calc_mat(bPoseChannel *chan);
 				bActionConstraint *data = (bActionConstraint*)con->data;
 				bPose *pose=NULL;
-				bPoseChannel *pchan=NULL;
-				float tempmat[4][4], imat[4][4], ans[4][4], restmat[4][4], irestmat[4][4];
+				bPoseChannel *pchan, *tchan;
+				float ans[4][4];
 				float tempmat3[3][3];
-				float eul[3], size[3];
+				float eul[3];
 				float s,t;
-				Bone *curBone;
-				Bone tbone;
-//				int i;
 				
-				curBone = (Bone*)ownerdata;
+				Mat4One(mat);
 				
-				if (data->tar){
-					constraint_target_to_mat4(data->tar, data->subtarget, tempmat, size, ctime);
-					valid=1;
+				if (data->tar==NULL) return 0;
+				
+				/* proper check for bone... (todo) */
+				if(data->subtarget[0]) {
+					//pchan = get_pose_channel(ob->pose, substring);
+					//if (pchan) {
+					//}
 				}
-				else
-					Mat4One (tempmat);
+				constraint_target_to_mat4(data->tar, data->subtarget, ans, size, ctime);
 				
-				/* If this is a bone, undo parent transforms */
-				if (strlen(data->subtarget)){
-					Bone* bone;
-
-					Mat4Invert(imat, data->tar->obmat);
-					bone = get_named_bone(get_armature(data->tar), data->subtarget);
-					if (bone){
-						get_objectspace_bone_matrix(bone, restmat, 1, 0);
-						Mat4Invert(irestmat, restmat);
-					}
-				}
-				else{
-					Mat4One(imat);
-					Mat4One(irestmat);
-				}
-
-				Mat4MulSerie(ans, imat, tempmat, irestmat, NULL, NULL, NULL, NULL, NULL);
-				
+				/* extract rotation */
 				Mat3CpyMat4(tempmat3, ans);
 				Mat3ToEul(tempmat3, eul);
 				
@@ -745,7 +730,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				eul[1]*=(float)(180.0/M_PI);
 				eul[2]*=(float)(180.0/M_PI);
 
-				/* Target is the animation */
+				/* Target defines the animation */
 				s = (eul[data->type]-data->min)/(data->max-data->min);
 				if (s<0)
 					s=0;
@@ -753,29 +738,18 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 					s=1;
 
 				t = ( s * (data->end-data->start)) + data->start;
-				
-				/* Get the appropriate information from the action */
+
+				/* Get the appropriate information from the action, we make temp pose */
 				pose = MEM_callocN(sizeof(bPose), "pose");
 				
-				verify_pose_channel(pose, curBone->name);
+				pchan = ownerdata;
+				tchan= verify_pose_channel(pose, pchan->name);
 				extract_pose_from_action (pose, data->act, t);
+				
+				chan_calc_mat(tchan);
+				
+				Mat4CpyMat4(mat, tchan->chan_mat);
 
-				/* Find the appropriate channel */
-				pchan = get_pose_channel(pose, curBone->name);
-				if (pchan){
-					memset(&tbone, 0x00, sizeof(Bone));
-
-//					VECCOPY (tbone.loc, pchan->loc);
-//					VECCOPY (tbone.size, pchan->size);				
-//					for (i=0; i<4; i++)
-//						tbone.quat[i]=pchan->quat[i];
-//					
-//					bone_to_mat4(&tbone, mat);
-
-				}
-				else{
-					Mat4One(mat);
-				}
 				/* Clean up */
 				free_pose_channels(pose);
 				MEM_freeN(pose);
@@ -1029,79 +1003,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		break;
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
-#if 0
-			bKinematicConstraint *data;
-			float	imat[4][4];
-			float	temp[4][4];
-			float totmat[4][4];
-
-			data=(bKinematicConstraint*)constraint->data;
-
-			if (data->tar && ownertype==TARGET_BONE && ownerdata){
-				Bone *curBone = (Bone*)ownerdata;
-				PoseChain *chain;
-				Object *armob;
-				
-				/* Retrieve the owner armature object from the workob */
-				armob = ob->parent;	
-				
-				/*	Make an IK chain  */				 
-				chain = ik_chain_to_posechain(armob, curBone);
-				if (!chain)
-					return;
-				chain->iterations = data->iterations;
-				chain->tolerance = data->tolerance;
-				
-				
-				if(0) {
-					bPoseChannel *pchan= get_pose_channel(armob->pose, curBone->name);
-					float parmat[4][4];
-					
-					/* Take the obmat to objectspace */
-					
-//					Mat4CpyMat4 (temp, curBone->obmat);
-//					Mat4One (curBone->obmat);
-//					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
-					Mat4CpyMat4(parmat, pchan->pose_mat);
-					
-//					Mat4CpyMat4 (curBone->obmat, temp);
-					Mat4MulMat4 (totmat, parmat, armob->obmat);
-					
-					Mat4Invert (imat, totmat);
-					
-					Mat4CpyMat4 (temp, ob->obmat);
-					Mat4MulMat4 (ob->obmat, temp, imat);
-				}
-				
-				
-				/* Solve it */
-				if (chain->solver){
-					VECCOPY (chain->goal, targetmat[3]);					
-					solve_posechain(chain); // applies to bones/channels
-				}
-				
-				free_posechain(chain);
-				
-				if(0) {
-					float parmat[4][4];
-					bPoseChannel *pchan= get_pose_channel(armob->pose, curBone->name);
-					
-					/* Take the obmat to worldspace */
-//					Mat4CpyMat4 (temp, curBone->obmat);
-//					Mat4One (curBone->obmat);
-					
-//					get_objectspace_bone_matrix(curBone, parmat, 1, 1);
-					Mat4CpyMat4(parmat, pchan->pose_mat);
-
-//					Mat4CpyMat4 (curBone->obmat, temp);
-					Mat4MulMat4 (totmat, parmat, armob->obmat);
-					
-					Mat4CpyMat4 (temp, ob->obmat);
-					Mat4MulMat4 (ob->obmat, temp, totmat);
-					
-				}
-			}
-#endif
+			/* removed */
 		}
 		break;
 	case CONSTRAINT_TYPE_LOCKTRACK:

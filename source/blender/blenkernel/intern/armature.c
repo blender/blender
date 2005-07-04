@@ -799,12 +799,23 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 	/* not yet free! */
 }
 
+void free_posechain (PoseChain *chain)
+{
+	if (chain->solver) {
+		MEM_freeN (chain->solver->segments);
+		chain->solver->segments = NULL;
+		IK_FreeChain(chain->solver);
+	}
+	if(chain->pchanchain) MEM_freeN(chain->pchanchain);
+	MEM_freeN(chain);
+}
 
 /* ********************** THE POSE SOLVER ******************* */
 
 
 /* loc/rot/size to mat4 */
-static void chan_calc_mat(bPoseChannel *chan)
+/* used in constraint.c too */
+void chan_calc_mat(bPoseChannel *chan)
 {
 	float smat[3][3];
 	float rmat[3][3];
@@ -820,7 +831,8 @@ static void chan_calc_mat(bPoseChannel *chan)
 	Mat4CpyMat3(chan->chan_mat, tmat);
 	
 	/* prevent action channels breaking chains */
-	if (!(chan->bone->flag & BONE_IK_TOPARENT)) {
+	/* need to check for bone here, CONSTRAINT_TYPE_ACTION uses this call */
+	if (chan->bone==NULL || !(chan->bone->flag & BONE_IK_TOPARENT)) {
 		VECCOPY(chan->chan_mat[3], chan->loc);
 	}
 
@@ -926,7 +938,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 		//VECCOPY(conOb.size, pchan->size);  // stretchto constraint
 		
 		/* Solve */
-		solve_constraints (&conOb, TARGET_BONE, (void*)bone, ctime);	// ctime doesnt alter objects
+		solve_constraints (&conOb, TARGET_BONE, (void*)pchan, ctime);	// ctime doesnt alter objects
 		
 		//VECCOPY(bone->size, conOb.size);	// stretchto constraint
 		
@@ -1015,20 +1027,7 @@ void where_is_pose (Object *ob)
 				else where_is_pose_bone(ob, pchan);
 			}
 		}
-//#endif
 	}
-
-#if 0
-	doconstraints= 1;
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		where_is_pose_bone(ob, pchan);
-	}
-	doconstraints= 0;
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		where_is_pose_bone(ob, pchan);
-		pchan->flag &= ~POSE_IK_MAT;
-	}
-#endif
 		
 	/* calculating deform matrices */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= next) {
@@ -1061,214 +1060,3 @@ Bone *get_indexed_bone (Object *ob, int index)
 	return NULL;
 }
 
-
-/* *********************** Inverse Kinematics ************* */
-
-#if 0
-void solve_posechain (PoseChain *chain)
-{
-	float	goal[3];
-	int	i;
-	Bone *curBone;
-//	float M_obmat[4][4];
-//	float M_basischange[4][4];
-	bPoseChannel *chan;
-
-	if (!chain->solver) return;
-
-	/**
-	 *	Transform the goal from worldspace
-	 * 	to the coordinate system of the root
-	 *	of the chain.  The matrix for this
-	 *	was computed when the chain was built
-	 *	in ik_chain_to_posechain
-	 */
-
-	VECCOPY (goal, chain->goal);
-	Mat4MulVecfl (chain->goalinv, goal);
-	/*	Solve the chain */
-
-	IK_SolveChain(chain->solver,
-		goal,
-		chain->tolerance,  
-		chain->iterations,
-		0.1f,
-		chain->solver->segments);
- 
-	/* Copy the results back into the bones */
-	for (i = chain->solver->num_segments-1, curBone=chain->target->parent; i>=0; i--, curBone=curBone->parent){
-//	for (i = 0; i<chain->solver->num_segments; i++) {
-		//curBone= bonelist[i];
-		
-		/* Retrieve the delta rotation from the solver */
-//		Mat4One(M_basischange);
-//		Mat4CpyMat3(M_basischange, (void *)chain->solver->segments[i].basis_change);	//basis_change = array[9]
-//		printmatrix3(curBone->name, (void *)chain->solver->segments[i].basis_change);
-		/**
-		 *	Multiply the bone's usertransform by the 
-		 *	basis change to get the new usertransform
-		 */
-
-		//Mat4CpyMat4 (M_obmat, curBone->obmat);
-		//Mat4MulMat4 (curBone->obmat, M_basischange, M_obmat);
-		/* store in channel itself */
-		
-		chan= get_pose_channel(chain->pose, curBone->name);
-		Mat3CpyMat3 (chan->ik_mat, (void *)chain->solver->segments[i].basis_change);
-		chan->flag |= POSE_IK_MAT;
-		
-		/* Store the solve results on the childrens' channels */
-		//for (chan = chain->pose->chanbase.first; chan; chan=chan->next){
-		//	if (!strcmp (chan->name, curBone->name)){
-		//		Mat4CpyMat4 (chan->obmat, curBone->obmat);
-		//		break;
-		//	}
-		//}
-	}
-	/* WARNING! REMOVE LATER !!! */
-	/* flag chain target to recalculate too */
-	chan= get_pose_channel(chain->pose, chain->target->name);
-	Mat3One(chan->ik_mat);
-	chan->flag |= POSE_IK_MAT;
-}
-#endif
-
-void free_posechain (PoseChain *chain)
-{
-	if (chain->solver) {
-		MEM_freeN (chain->solver->segments);
-		chain->solver->segments = NULL;
-		IK_FreeChain(chain->solver);
-	}
-	if(chain->pchanchain) MEM_freeN(chain->pchanchain);
-	MEM_freeN(chain);
-}
-
-#if 0
-/* actually; bones to IK_solver data */
-/* Object is its own Armature object */
-PoseChain *ik_chain_to_posechain (Object *ob, Bone *bone)
-{
-	IK_Segment_Extern	*segs;
-	PoseChain	*chain = NULL;
-	Bone		*curBone, *rootBone;
-	int			segcount, curseg, icurseg;
-	float	imat[4][4];
-	bPoseChannel *pchan;
-	Bone *bonelist[256];
-	float rootmat[4][4];
-//	float	bonespace[4][4];
-
-	/**
-	 *	Some interesting variables in this function:
-	 *
-	 *	Bone->obmat		Bone's user transformation;
-	 *					It is initialized in where_is_b one1_time
-	 *
-	 *	rootmat			Bone's coordinate system, computed by
-	 *					get_objectspace_bone_matrix.  Takes all
-	 *					parents transformations into account.
-	 */
-
-
-
-	/* Ensure that all of the bone parent matrices are correct */
-
-	/* Find the chain's root & count the segments needed */
-	segcount = 0;
-	for (curBone = bone; curBone; curBone=curBone->parent){
-		rootBone = curBone;
-		if (curBone!=bone){
-			bonelist[segcount]=curBone;
-			segcount++;
-		}
-		if (!curBone->parent)
-			break;
-		else if (!(curBone->flag & BONE_IK_TOPARENT))
-			break;
-	}
-
-	if (!segcount)
-		return NULL;
-
-
-	/**
-	 *	Initialize a record to store information about the original bones
-	 *	This will be the return value for this function.
-	 */
-
-	chain = MEM_callocN(sizeof(PoseChain), "posechain");	
-	chain->solver = IK_CreateChain();
-	chain->target = bone;
-	chain->root = rootBone;
-	chain->pose = ob->pose;
-
-	/* Allocate some IK segments */
-	segs = MEM_callocN (sizeof(IK_Segment_Extern)*segcount, "iksegments");
-
-	//printf("segcount %d\n", segcount);
-	/**
-	 * Remove the offset from the first bone in the chain and take the target to chainspace
-	 */
-
-	//get_objectspace_bone_matrix(rootBone, bonespace, 1, 1);
-	//Mat4One (rootmat);
-	//VECCOPY (rootmat[3], bonespace[3]);
-	pchan= get_pose_channel(ob->pose, rootBone->name);
-	Mat4One(rootmat);
-	VECCOPY(rootmat[3], pchan->pose_head);
-
-	/* Take the target to bonespace */
-	/* (ton) I think it's the matrix to take a world coordinate into "chainspace" */
-	Mat4MulMat4 (imat, rootmat, ob->obmat);
-	Mat4Invert (chain->goalinv, imat);
-
-	/**
-	 *	Build matrices from the root to the tip 
-	 *	We count backwards through the bone list (which is sorted tip to root)
-	 *	and forwards through the ik_segment list
-	 */
-	/* that we're going to recode! (ton) */
-	for (curseg = segcount-1; curseg>=0; curseg--){
-		float M_basismat[4][4];
-		float R_parmat[4][4];
-		float iR_parmat[4][4];
-		float R_bonemat[4][4];
-
-		/* Retrieve the corresponding bone for this segment */
-		icurseg=segcount-curseg-1;
-		curBone = bonelist[curseg];
-		
-		/* Get the basis matrix */
-		Mat4One (R_parmat);
-		//get_objectspace_bone_matrix(curBone, R_bonemat, 1, 1);
-		//R_bonemat[3][0]=R_bonemat[3][1]=R_bonemat[3][2]=0.0F;
-		pchan= get_pose_channel(ob->pose, curBone->name);
-		Mat4CpyMat4(R_bonemat, pchan->pose_mat);
-		R_bonemat[3][0]=R_bonemat[3][1]=R_bonemat[3][2]=0.0F;
-		
-		if (curBone->parent && (curBone->flag & BONE_IK_TOPARENT)) {
-			//get_objectspace_bone_matrix(curBone->parent, R_parmat, 1, 1);
-			Mat4CpyMat4(R_parmat, pchan->parent->pose_mat);
-			
-			R_parmat[3][0]=R_parmat[3][1]=R_parmat[3][2]=0.0F;
-		}
-		
-		Mat4Invert(iR_parmat, R_parmat);
-		Mat4MulMat4(M_basismat, R_bonemat, iR_parmat);
-		
-		/* Copy the matrix into the basis and transpose */
-		Mat3CpyMat4((void *)segs[icurseg].basis, M_basismat);	// basis = array[9]
-		Mat3Transp((void *)segs[icurseg].basis);
-
-		/* Fill out the IK segment */
-		segs[icurseg].length = VecLenf(curBone->head, curBone->tail);
-
-	}
-
-	IK_LoadChain(chain->solver, segs, segcount);
-	
-	return chain;
-}
-
-#endif

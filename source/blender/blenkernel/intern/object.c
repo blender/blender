@@ -1095,7 +1095,7 @@ void ob_parbone(Object *ob, Object *par, float mat[][4])
 	/* Make sure the bone is still valid */
 	pchan= get_pose_channel(par->pose, ob->parsubstr);
 	if (!pchan){
-		printf ("Lost bone %s\n", ob->parsubstr);
+		printf ("Bone parent: no bone %s\n", ob->parsubstr);
 		Mat4One(mat);
 		return;
 	}
