@@ -222,10 +222,6 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_ID.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\makesdna\DNA_ika_types.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\makesdna\DNA_image_types.h
 # End Source File
 # Begin Source File

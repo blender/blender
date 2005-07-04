@@ -255,10 +255,6 @@ SOURCE=..\..\..\source\blender\src\editgroup.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\src\editika.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\src\editimasel.c
 # End Source File
 # Begin Source File
@@ -680,10 +676,6 @@ SOURCE=..\..\..\source\blender\include\BIF_editfont.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\include\BIF_editgroup.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\include\BIF_editika.h
 # End Source File
 # Begin Source File
 

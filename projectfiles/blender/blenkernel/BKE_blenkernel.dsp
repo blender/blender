@@ -206,10 +206,6 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\group.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\blenkernel\intern\ika.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\blenkernel\intern\image.c
 # End Source File
 # Begin Source File
@@ -387,10 +383,6 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_global.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_group.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\blenkernel\BKE_ika.h
 # End Source File
 # Begin Source File
 
