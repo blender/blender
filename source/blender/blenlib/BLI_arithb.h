@@ -175,6 +175,11 @@ QuatMul(
 	float *
 );
 	void 
+QuatMulVecf(
+	float *q, 
+	float *v
+);
+	void 
 NormalQuat(
 	float *
 );
@@ -189,6 +194,29 @@ QuatSub(
 	float *q, 
 	float *q1, 
 	float *q2
+);
+	void 
+QuatConj(
+	float *q 
+);
+	void 
+QuatInv(
+	float *q 
+);
+	void 
+QuatMulf(
+	float *q,
+	float f
+);
+	float 
+QuatDot(
+	float *q1, 
+	float *q2
+);
+	void
+printquat(
+	char *str,
+	float q[4]
 );
 
 

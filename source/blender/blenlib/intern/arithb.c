@@ -951,9 +951,13 @@ int FloatCompare( float *v1,  float *v2, float limit)
 
 void printvecf( char *str,  float v[3])
 {
-	printf("%s\n", str);
-	printf("%f %f %f\n",v[0],v[1],v[2]);
-	printf("\n");
+	printf("%s: %.3f %.3f %.3f\n", str, v[0], v[1], v[2]);
+
+}
+
+void printquat( char *str,  float q[4])
+{
+	printf("%s: %.3f %.3f %.3f %.3f\n", str, q[0], q[1], q[2], q[3]);
 
 }
 
@@ -1000,6 +1004,56 @@ void QuatMul(float *q, float *q1, float *q2)
 	q[0]=t0; 
 	q[1]=t1; 
 	q[2]=t2;
+}
+
+/* Assumes a unit quaternion */
+void QuatMulVecf(float *q, float *v)
+{
+	float t0, t1, t2;
+
+	t0=  -q[1]*v[0]-q[2]*v[1]-q[3]*v[2];
+	t1=   q[0]*v[0]+q[2]*v[2]-q[3]*v[1];
+	t2=   q[0]*v[1]+q[3]*v[0]-q[1]*v[2];
+	v[2]= q[0]*v[2]+q[1]*v[1]-q[2]*v[0];
+	v[0]=t1; 
+	v[1]=t2;
+
+	t1=   t0*-q[1]+v[0]*q[0]-v[1]*q[3]+v[2]*q[2];
+	t2=   t0*-q[2]+v[1]*q[0]-v[2]*q[1]+v[0]*q[3];
+	v[2]= t0*-q[3]+v[2]*q[0]-v[0]*q[2]+v[1]*q[1];
+	v[0]=t1; 
+	v[1]=t2;
+}
+
+void QuatConj(float *q)
+{
+	q[1] = -q[1];
+	q[2] = -q[2];
+	q[3] = -q[3];
+}
+
+float QuatDot(float *q1, float *q2)
+{
+	return q1[0]*q2[0] + q1[1]*q2[1] + q1[2]*q2[2] + q1[3]*q2[3];
+}
+
+void QuatInv(float *q)
+{
+	float f = QuatDot(q, q);
+
+	if (f == 0.0f)
+		return;
+
+	QuatConj(q);
+	QuatMulf(q, 1.0f/f);
+}
+
+void QuatMulf(float *q, float f)
+{
+	q[0] *= f;
+	q[1] *= f;
+	q[2] *= f;
+	q[3] *= f;
 }
 
 void QuatSub(float *q, float *q1, float *q2)
