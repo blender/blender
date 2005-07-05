@@ -86,6 +86,10 @@ Setting big_bm=NULL disables the large version of the cursor.
 static BCursor *BlenderCursor[BC_NUMCURSORS]; /*Points to static BCursor Structs */
 static short CurrentCursor=-1, LastCursor=-1;
 
+short GetBlenderCursor(void) {
+	return CurrentCursor;
+}
+
 void SetBlenderCursor(short curs){
 	Window *win;
 
@@ -101,7 +105,8 @@ void SetBlenderCursor(short curs){
 	if (curs==LASTCURSOR) curs=LastCursor;
 
 	if (curs==SYSCURSOR) {  /* System default Cursor */
-		set_cursor(CURSOR_STD);
+		window_set_cursor(win, CURSOR_STD);
+		//set_cursor(CURSOR_STD);
 	}
 	else if ( (U.curssize==0) || (BlenderCursor[curs]->big_bm == NULL) ) {
 		window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
