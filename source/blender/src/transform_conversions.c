@@ -1335,7 +1335,7 @@ void special_aftertrans_update(char mode, int flip, short canceled)
 			if (!act)
 				act=G.obpose->action=add_empty_action();
 			
-			set_pose_keys(G.obpose);  // sets chan->flag to POSE_KEY is bone selected
+			set_pose_keys(G.obpose);  // sets chan->flag to POSE_KEY if bone selected
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->flag & POSE_KEY){
 					
@@ -1362,6 +1362,9 @@ void special_aftertrans_update(char mode, int flip, short canceled)
 			/* do not call this always, we dont want actions to update, for inserting keys */
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 		}
+		else if(canceled)	/* but if cancelled we do the update */
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+
 	}
 	else {
 		base= FIRSTBASE;
