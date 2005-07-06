@@ -139,7 +139,7 @@ endif
     export ID = $(shell whoami)
     export HOST = $(shell hostname -s)
 
-#    export PY_FRAMEWORK	= 1    
+    export PY_FRAMEWORK	= 1    
 
     ifdef PY_FRAMEWORK
        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
