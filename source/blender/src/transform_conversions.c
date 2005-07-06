@@ -1328,7 +1328,7 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 
 		arm->flag &= ~ARM_NO_ACTION;
 		
-		if ((G.flags & G_RECORDKEYS) && !canceled){
+		if ((G.flags & G_RECORDKEYS) && !cancelled){
 			act=G.obpose->action;
 			pose=G.obpose->pose;
 			
@@ -1376,7 +1376,7 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob);
 			
 			/* Set autokey if necessary */
-			if ((G.flags & G_RECORDKEYS) && (!canceled) && (base->flag & SELECT)){
+			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
 			
 				insertkey(&base->object->id, OB_ROT_X);
 				insertkey(&base->object->id, OB_ROT_Y);
