@@ -1314,7 +1314,7 @@ void clear_trans_object_base_flags(void)
 }
 
 /* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
-void special_aftertrans_update(char mode, int flip, short canceled)
+void special_aftertrans_update(char mode, int flip, short cancelled)
 {
 	Object *ob;
 	Base *base;
@@ -1362,7 +1362,7 @@ void special_aftertrans_update(char mode, int flip, short canceled)
 			/* do not call this always, we dont want actions to update, for inserting keys */
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 		}
-		else if(canceled)	/* but if cancelled we do the update */
+		else if(cancelled)	/* but if cancelled we do the update */
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 
 	}
