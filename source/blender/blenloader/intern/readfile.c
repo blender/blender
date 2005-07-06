@@ -4612,10 +4612,6 @@ static void do_versions(FileData *fd, Main *main)
 		Material *ma;
 		bScreen *sc;
 
-		/* GL Texture Garbage Collection */
-		U.texcollectrate = 60;
-		U.textimeout = 120;
-		
 		while(sce) {
 			sce->r.mode &= ~R_ZBLUR;	// disabled for release
 			
@@ -4698,6 +4694,10 @@ static void do_versions(FileData *fd, Main *main)
 		bArmature *arm;
 		bPoseChannel *pchan;
 		Object *ob;
+		
+		/* GL Texture Garbage Collection */
+		U.texcollectrate = 60;
+		U.textimeout = 120;
 		
 		// armature recode checks 
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
