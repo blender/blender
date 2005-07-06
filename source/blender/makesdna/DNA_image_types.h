@@ -62,8 +62,10 @@ typedef struct Image {
 	struct PackedFile * packedfile;
 
 	float lastupdate;
+	long  lastused;
 	short animspeed;
 	short reserved1;
+	int   reserved2;
 } Image;
 
 /*  in Image struct */
@@ -77,6 +79,7 @@ typedef struct Image {
 #define IMA_FROMANIM	4
 #define IMA_USED		8
 #define	IMA_REFLECT		16
+#define IMA_NOCOLLECT   32
 
 /* tpageflag */
 #define IMA_TILES		1

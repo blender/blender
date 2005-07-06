@@ -41,6 +41,8 @@
 #include <io.h>
 #endif
 
+#include <time.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf_types.h"
@@ -49,6 +51,7 @@
 #include "DNA_image_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 
@@ -143,6 +146,60 @@ Image *add_image(char *name)
 	return ima;
 }
 
+void tag_image_time(Image *ima)
+{
+	if (ima)
+		ima->lastused = clock() / CLOCKS_PER_SEC;
+}
+
+void tag_all_images_time() {
+	Image *ima;
+	long ctime = clock() / CLOCKS_PER_SEC;
+
+	ima= G.main->image.first;
+	while(ima) {
+		if(ima->bindcode || ima->repbind || ima->ibuf) {
+			ima->lastused = ctime;
+		}
+	}
+}
+
+void free_old_images()
+{
+	Image *ima;
+	static long lasttime = 0;
+	long ctime = clock() / CLOCKS_PER_SEC;
+	
+	/* 
+	   Run garbage collector once for every collecting period of time 
+	   if textimeout is 0, that's the option to NOT run the collector
+	*/
+	if (U.textimeout == 0 || ctime % U.texcollectrate || ctime == lasttime)
+		return;
+
+	lasttime = ctime;
+
+	ima= G.main->image.first;
+	while(ima) {
+		/* lastused == 0 is the tag for non removable images */
+		if(ima->flag & IMA_NOCOLLECT && ctime - ima->lastused > U.textimeout) {
+			/*
+			   If it's in GL memory, deallocate and set time tag to current time
+			   This gives textures a "second chance" to be used before dying.
+			*/
+			if(ima->bindcode || ima->repbind) {
+				free_realtime_image(ima);
+				ima->lastused = ctime;
+			}
+			/* Otherwise, just kill the buffers */
+			else if (ima->ibuf) {
+				free_image_buffers(ima);
+			}
+		}
+		ima = ima->id.next;
+	}
+}
+
 void free_unused_animimages()
 {
 	Image *ima, *nima;
@@ -208,6 +265,35 @@ void makepicstring(char *string, int frame)
 	if(G.scene->r.scemode & R_EXTENSION) strcat(string, extension);
 		
 }
+
+void addImageExtension(char *string)
+{
+	char *extension;
+
+	if(G.scene->r.imtype== R_IRIS) {
+		extension= ".rgb";
+	}
+	else if(G.scene->r.imtype==R_IRIZ) {
+		extension= ".rgb";
+	}
+	else if(G.scene->r.imtype==R_PNG) {
+		extension= ".png";
+	}
+	else if(G.scene->r.imtype==R_TARGA) {
+		extension= ".tga";
+	}
+	else if(G.scene->r.imtype==R_RAWTGA) {
+		extension= ".tga";
+	}
+	else if(G.scene->r.imtype==R_JPEG90) {
+		extension= ".jpg";
+	}
+	else if(G.scene->r.imtype==R_BMP) {
+		extension= ".bmp";
+	}
+	strcat(string, extension);
+}
+
 
 /* ******** IMAGE WRAPPING INIT ************* */
 
@@ -437,13 +523,16 @@ void ima_ibuf_is_nul(Tex *tex, Image *ima)
 		}
 	}
 	
-	if(ima->ibuf==0) ima->ok= 0;
+	if(ima->ibuf)
+		ima->lastused = clock() / CLOCKS_PER_SEC;
+	else
+		ima->ok= 0;
 	
 	for(a=0; a<BLI_ARRAY_NELEMS(ima->mipmap); a++) {
 		if(ima->mipmap[a]) IMB_freeImBuf(ima->mipmap[a]);
 		ima->mipmap[a]= 0;
 	}
-	
+
 }
 
 

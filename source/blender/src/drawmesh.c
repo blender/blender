@@ -289,7 +289,7 @@ int set_tpage(TFace *tface)
 
 	if(ima->ibuf==0) {
 		load_image(ima, IB_rect, G.sce, G.scene->r.cfra);
-		
+
 		if(ima->ibuf==0) {
 			ima->ok= 0;
 
@@ -417,6 +417,8 @@ int set_tpage(TFace *tface)
 	}
 	else glBindTexture( GL_TEXTURE_2D, *bind);
 	
+	tag_image_time(ima);
+
 	glEnable(GL_TEXTURE_2D);
 
 	fCurpage= ima;

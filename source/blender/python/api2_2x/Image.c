@@ -580,6 +580,8 @@ static PyObject *Image_glFree( BPy_Image * self )
 	Image *img = self->image;
 
 	free_realtime_image( img );
+	/* remove the nocollect flag, image is available for garbage collection again */
+	img->flag &= ~IMA_NOCOLLECT;
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -612,6 +614,11 @@ static PyObject *Image_glLoad( BPy_Image * self )
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, img->ibuf->x,
 			      img->ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 			      img->ibuf->rect );
+
+		/* raise the nocollect flag, image is not available for garbage collection 
+		   (python GL might use it directly)
+		*/
+		img->flag |= IMA_NOCOLLECT;
 	}
 
 	return PyLong_FromUnsignedLong( img->bindcode );

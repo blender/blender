@@ -1850,9 +1850,9 @@ static void initview3d(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, vd);	/* addhead! not addtail */
 
 	vd->spacetype= SPACE_VIEW3D;
-	vd->blockscale= 0.7;
-	vd->viewquat[0]= 1.0;
-	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0;
+	vd->blockscale= 0.7f;
+	vd->viewquat[0]= 1.0f;
+	vd->viewquat[1]= vd->viewquat[2]= vd->viewquat[3]= 0.0f;
 	vd->persp= 1;
 	vd->drawtype= OB_WIRE;
 	vd->view= 7;
@@ -1961,11 +1961,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			view2dmove(event);	/* in drawipo.c */
 			break;
 		case PADPLUSKEY:
-			view2d_zoom(v2d, 0.1154, sa->winx, sa->winy);
+			view2d_zoom(v2d, 0.1154f, sa->winx, sa->winy);
 			doredraw= 1;
 			break;
 		case PADMINUS:
-			view2d_zoom(v2d, -0.15, sa->winx, sa->winy);
+			view2d_zoom(v2d, -0.15f, sa->winx, sa->winy);
 			doredraw= 1;
 			break;
 		case PAGEUPKEY:
@@ -2075,7 +2075,7 @@ void initipo(ScrArea *sa)
 	BLI_addhead(&sa->spacedata, sipo);
 
 	sipo->spacetype= SPACE_IPO;
-	sipo->blockscale= 0.7;
+	sipo->blockscale= 0.7f;
 	
 	/* sipo space loopt van (0,-?) tot (??,?) */
 	sipo->v2d.tot.xmin= 0.0;
@@ -2279,10 +2279,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 	if(curarea->winx<=1280.0) {
 		fac= ((float)curarea->winx)/1280.0f;
-		myortho2(0.375, 1280.375, 0.375, curarea->winy/fac + 0.375);
+		myortho2(0.375f, 1280.375f, 0.375f, curarea->winy/fac + 0.375f);
 	}
 	else {
-		myortho2(0.375, (float)curarea->winx + 0.375, 0.375, (float)curarea->winy + 0.375);
+		myortho2(0.375f, (float)curarea->winx + 0.375f, 0.375f, (float)curarea->winy + 0.375f);
 	}
 	
 	sprintf(naam, "infowin %d", curarea->win);
@@ -2370,15 +2370,16 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Display:",
 			xpos,y6label,spref,buth,
 			0, 0, 0, 0, 0, "");	
-		uiDefButBitS(block, TOG, USER_TOOLTIPS, 0, "ToolTips",
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_TOOLTIPS, 0, "ToolTips",
 			(xpos+edgsp),y5,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Display tooltips (help tags) over buttons");
-		uiDefButBitS(block, TOG, USER_DRAWVIEWINFO, B_DRAWINFO, "Object Info",
+		uiDefButBitI(block, TOG, USER_DRAWVIEWINFO, B_DRAWINFO, "Object Info",
 			(xpos+edgsp),y4,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Display active object name and frame number in the 3D View");
-		uiDefButBitS(block, TOG, USER_SCENEGLOBAL, 0, "Global Scene",
+		uiDefButBitI(block, TOG, USER_SCENEGLOBAL, 0, "Global Scene",
 			(xpos+edgsp),y3,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Forces the current Scene to be displayed in all Screens");
@@ -2390,11 +2391,13 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 #else 
 		U.curssize=0; /*Small Cursor always for OS X for now */
 #endif
+		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Menus:",
 			(xpos+(2*edgsp)+spref),y6label,spref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, USER_MENUOPENAUTO, 0, "Open on Mouse Over",
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_MENUOPENAUTO, 0, "Open on Mouse Over",
 			(xpos+edgsp+spref+midsp),y5,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Open menu buttons and pulldowns automatically when the mouse is hovering");
@@ -2406,10 +2409,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*spref)+(2*midsp)-edgsp),y4,spref+edgsp,buth,
 			&(U.menuthreshold2), 1, 40, 0, 0,
 			"Time delay in 1/10 seconds before automatically opening menu sublevels");
+		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Toolbox click-hold delay:",
 			(xpos+(2*edgsp)+spref),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, 0, "LMB:",
 			(xpos+edgsp+spref+midsp),y2,spref+edgsp,buth,
 			&(U.tb_leftmouse), 2, 40, 0, 0,
@@ -2418,37 +2423,41 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*spref)+(2*midsp)-edgsp),y2,spref+edgsp,buth,
 			&(U.tb_rightmouse), 2, 40, 0, 0,
 			"Time in 1/10 seconds to hold the Right Mouse Button before opening the toolbox");	
-		uiDefButBitS(block, TOG, USER_PANELPINNED, 0, "Pin Floating Panels",
-			(xpos+edgsp+spref+midsp),y1,mpref,buth,
+		uiBlockEndAlign(block);
+
+		uiDefButBitI(block, TOG, USER_PANELPINNED, 0, "Pin Floating Panels",
+			(xpos+edgsp+spref+midsp),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Make floating panels invoked by a hotkey (eg. N Key) open at the previous location");
 		
+		uiDefButBitI(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
+			(xpos+edgsp+spref+midsp+(mpref/2)),y1,(mpref/2),buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Lock the same rotation/scaling pivot in all 3D Views");	
 		
 		uiDefBut(block, LABEL,0,"Snap to grid:",
 			(xpos+(2*edgsp)+spref+midsp+mpref),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, USER_AUTOGRABGRID, 0, "Grab/Move",
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_AUTOGRABGRID, 0, "Grab/Move",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y5,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Snap objects and sub-objects to grid units when moving");
-		uiDefButBitS(block, TOG, USER_AUTOROTGRID, 0, "Rotate",
+		uiDefButBitI(block, TOG, USER_AUTOROTGRID, 0, "Rotate",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y4,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Snap objects and sub-objects to grid units when rotating");
-		uiDefButBitS(block, TOG, USER_AUTOSIZEGRID, 0, "Scale",
+		uiDefButBitI(block, TOG, USER_AUTOSIZEGRID, 0, "Scale",
 			(xpos+edgsp+mpref+spref+(2*midsp)),y3,spref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Snap objects and sub-objects to grid units when scaling");
-		
-		uiDefButBitS(block, TOG, USER_LOCKAROUND, B_DRAWINFO, "Global Pivot",
-			(xpos+edgsp+mpref+spref+(2*midsp)),y1,spref,buth,
-			&(U.uiflag), 0, 0, 0, 0,
-			"Lock the same rotation/scaling pivot in all 3D Views");	
+		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL,0,"View zoom:",
 			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
 		uiDefButS(block, ROW, 0, "Continue",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y5,(mpref/3),buth,
 			&(U.viewzoom), 40, USER_ZOOM_CONT, 0, 0,
@@ -2461,37 +2470,45 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(2*mpref/3)),y5,(mpref/3),buth,
 			&(U.viewzoom), 40, USER_ZOOM_SCALE, 0, 0,
 			"Zooms in and out like scaling the view, mouse movements relative to center.");
+		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL,0,"View rotation:",
 			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y4label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, USER_TRACKBALL, B_DRAWINFO, "Trackball",
+		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
+		uiDefButBitI(block, TOG, USER_TRACKBALL, B_DRAWINFO, "Trackball",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y3,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Allow the view to tumble freely when orbiting with the Middle Mouse Button");
-		uiDefButBitS(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
+		uiDefButBitI(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y3,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Keep the Global Z axis pointing upwards when orbiting the view with the Middle Mouse Button");
-		uiBlockEndAlign(block);
-		
-		uiDefButBitS(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Perspective",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y1,spref,buth,
+			"Allow the view to tumble freely when orbiting with the Middle Mouse Button");
+		uiBlockSetCol(block, TH_AUTO);			/* end color */
+		uiDefButBitI(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Perspective",
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective when changing from top/front/side views");
+		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Active",
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Keep the active object in place when orbiting the views (Object Mode)");
+		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Left Mouse",
+		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
+		uiDefButBitI(block, TOG, USER_LMOUSESELECT, B_DRAWINFO, "Left Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y5,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Use the Left Mouse Button for selection");
-		uiDefButBitS(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Right Mouse",
+		uiDefButBitI(block, TOGN, USER_LMOUSESELECT, B_DRAWINFO, "Right Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/2)),y5,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Use the Right Mouse Button for selection");
+		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
 		
 		
@@ -2509,7 +2526,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
 		
-		uiDefButBitS(block, TOG, USER_TWOBUTTONMOUSE, B_DRAWINFO, "Emulate 3 Button Mouse",
+		uiDefButBitI(block, TOG, USER_TWOBUTTONMOUSE, B_DRAWINFO, "Emulate 3 Button Mouse",
 			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
@@ -2519,18 +2536,21 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOGN, USER_VIEWMOVE, B_DRAWINFO, "Rotate View",
+		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
+		uiDefButBitI(block, TOGN, USER_VIEWMOVE, B_DRAWINFO, "Rotate View",
 			(xpos+edgsp+(4*mpref)+(5*midsp)),y5,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the Middle Mouse Button");
-		uiDefButBitS(block, TOG, USER_VIEWMOVE, B_DRAWINFO, "Pan View",
+		uiDefButBitI(block, TOG, USER_VIEWMOVE, B_DRAWINFO, "Pan View",
 			(xpos+edgsp+(4*mpref)+(5*midsp)+(mpref/2)),y5,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Default action for the Middle Mouse Button");
+		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
 			
 		uiDefBut(block, LABEL,0,"Mouse Wheel:",
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y4label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-		uiDefButBitS(block, TOG, USER_WHEELZOOMDIR, 0, "Invert Zoom",
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_WHEELZOOMDIR, 0, "Invert Zoom",
 			(xpos+edgsp+(4*mpref)+(5*midsp)),y3,spref,buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Swap the Mouse Wheel zoom direction");
@@ -2538,6 +2558,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(4*mpref)+(6*midsp)+spref-edgsp),y3,spref+edgsp,buth,
 			&U.wheellinescroll, 0.0, 32.0, 0, 0,
 			"The number of lines scrolled at a time with the mouse wheel");	
+		uiBlockEndAlign(block);
 
 
 		uiDefBut(block, LABEL,0,"3D Transform Widget:",
@@ -2563,10 +2584,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			xpos,y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOGN, USER_MAT_ON_OB, B_DRAWINFO, "ObData",
+		uiDefButBitI(block, TOGN, USER_MAT_ON_OB, B_DRAWINFO, "ObData",
 			(xpos+edgsp),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
-		uiDefButBitS(block, TOG, USER_MAT_ON_OB, B_DRAWINFO, "Object",
+		uiDefButBitI(block, TOG, USER_MAT_ON_OB, B_DRAWINFO, "Object",
 			(xpos+edgsp+(mpref/2)),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
 		uiBlockEndAlign(block);
@@ -2575,13 +2596,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefBut(block, LABEL,0,"Editmode undo:",
 			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
 			0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
 			&(U.undosteps), 2, 64, 0, 0, "Number of undo steps available in Edit Mode (smaller values conserve memory)");
 
-		uiDefButBitS(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
+		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
 			&(U.uiflag), 2, 64, 0, 0, "");
+		uiBlockEndAlign(block);
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe",
@@ -2603,40 +2626,39 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+(2*edgsp)+(3*midsp)+(3*mpref)+spref),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitS(block, TOG, USER_DUP_MESH, 0, "Mesh",
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_DUP_MESH, 0, "Mesh",
 			(xpos+edgsp+(4*midsp)+(3*mpref)+spref),y2,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes mesh data to be duplicated with Shift+D");
-		uiDefButBitS(block, TOG, USER_DUP_ARM, 0, "Armature",
-			(xpos+edgsp+(4*midsp)+(3*mpref)+spref),y1,(spref+edgsp),buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes armature data to be duplicated with Shift+D");
-
-		uiDefButBitS(block, TOG, USER_DUP_SURF, 0, "Surface",
+		uiDefButBitI(block, TOG, USER_DUP_SURF, 0, "Surface",
 			(xpos+edgsp+(5*midsp)+(3*mpref)+(2*spref)),y2,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes surface data to be duplicated with Shift+D");
-		uiDefButBitS(block, TOG, USER_DUP_LAMP, 0, "Lamp",
-			(xpos+edgsp+(5*midsp)+(3*mpref)+(2*spref)),y1,(spref+edgsp),buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes lamp data to be duplicated with Shift+D");
-
-		uiDefButBitS(block, TOG, USER_DUP_CURVE, 0, "Curve",
+		uiDefButBitI(block, TOG, USER_DUP_CURVE, 0, "Curve",
 			(xpos+edgsp+(6*midsp)+(3*mpref)+(3*spref)),y2,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes curve data to be duplicated with Shift+D");
-		uiDefButBitS(block, TOG, USER_DUP_MAT, 0, "Material",
-			(xpos+edgsp+(6*midsp)+(3*mpref)+(3*spref)),y1,(spref+edgsp),buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes material data to be duplicated with Shift+D");
-
-		uiDefButBitS(block, TOG, USER_DUP_FONT, 0, "Text",
+		uiDefButBitI(block, TOG, USER_DUP_FONT, 0, "Text",
 			(xpos+edgsp+(7*midsp)+(3*mpref)+(4*spref)),y2,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes text data to be duplicated with Shift+D");
-		uiDefButBitS(block, TOG, USER_DUP_TEX, 0, "Texture",
-			(xpos+edgsp+(7*midsp)+(3*mpref)+(4*spref)),y1,(spref+edgsp),buth,
-			&(U.dupflag), 0, 0, 0, 0, "Causes texture data to be duplicated with Shift+D");
-
-		uiDefButBitS(block, TOG, USER_DUP_MBALL, 0, "Metaball",
+		uiDefButBitI(block, TOG, USER_DUP_MBALL, 0, "Metaball",
 			(xpos+edgsp+(8*midsp)+(3*mpref)+(5*spref)),y2,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes metaball data to be duplicated with Shift+D");
-		uiDefButBitS(block, TOG, USER_DUP_IPO, 0, "Ipo",
+
+		uiDefButBitI(block, TOG, USER_DUP_ARM, 0, "Armature",
+			(xpos+edgsp+(4*midsp)+(3*mpref)+spref),y1,(spref+edgsp),buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes armature data to be duplicated with Shift+D");
+		uiDefButBitI(block, TOG, USER_DUP_LAMP, 0, "Lamp",
+			(xpos+edgsp+(5*midsp)+(3*mpref)+(2*spref)),y1,(spref+edgsp),buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes lamp data to be duplicated with Shift+D");
+		uiDefButBitI(block, TOG, USER_DUP_MAT, 0, "Material",
+			(xpos+edgsp+(6*midsp)+(3*mpref)+(3*spref)),y1,(spref+edgsp),buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes material data to be duplicated with Shift+D");
+		uiDefButBitI(block, TOG, USER_DUP_TEX, 0, "Texture",
+			(xpos+edgsp+(7*midsp)+(3*mpref)+(4*spref)),y1,(spref+edgsp),buth,
+			&(U.dupflag), 0, 0, 0, 0, "Causes texture data to be duplicated with Shift+D");
+		uiDefButBitI(block, TOG, USER_DUP_IPO, 0, "Ipo",
 			(xpos+edgsp+(8*midsp)+(3*mpref)+(5*spref)),y1,(spref+edgsp),buth,
 			&(U.dupflag), 0, 0, 0, 0, "Causes ipo data to be duplicated with Shift+D");
+		uiBlockEndAlign(block);
 	
 	} else if(U.userpref == 2) { /* language & colors */
 
@@ -2691,7 +2713,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2.2*mpref)+(5*midsp)+(2*spref)),y1,spref,buth,
 				&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
 
-			uiDefButS(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
+			uiDefButI(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
 				(xpos+edgsp+(2.2*mpref)+(3*midsp)),y2,mpref+(0.5*mpref)+3,buth,
 				&U.language, 0, 0, 0, 0, "Select interface language");
 				
@@ -2712,7 +2734,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&U.versions, 0.0, 32.0, 0, 0,
 			"The number of old versions to maintain in the current directory, when manually saving");
 
-		uiDefButBitS(block, TOG, USER_AUTOSAVE, B_RESETAUTOSAVE, "Auto Save Temp Files",
+		uiDefButBitI(block, TOG, USER_AUTOSAVE, B_RESETAUTOSAVE, "Auto Save Temp Files",
 			(xpos+edgsp+mpref+midsp),y3,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Enables automatic saving of temporary files");
@@ -2805,7 +2827,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*midsp)+(1*mpref)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitS(block, TOG, USER_ALLWINCODECS, 0, "Enable all codecs",
+		uiDefButBitI(block, TOG, USER_ALLWINCODECS, 0, "Enable all codecs",
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y2,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
@@ -2814,12 +2836,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
-		uiDefButBitS(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
+		uiDefButBitI(block, TOG, USER_NO_CAPSLOCK, B_U_CAPSLOCK, "Disable Caps Lock",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y1,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Disables the Caps Lock key when entering text");
 
-		uiDefButBitS(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
+		uiDefButBitI(block, TOG, USER_NONUMPAD, 0, "Emulate Numpad",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y2,mpref,buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Causes the 1 to 0 keys to act as the numpad (useful for laptops)");
@@ -2833,22 +2855,28 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played in games");
 
-		uiDefButBitS(block, TOG, USER_FILTERFILEEXTS, 0, "Filter File Extensions",
+		uiDefButBitI(block, TOG, USER_FILTERFILEEXTS, 0, "Filter File Extensions",
 			(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display only files with extensions in the image select window");
 
 
 		uiDefBut(block, LABEL,0,"OpenGL:",
-			(xpos+edgsp+(5*midsp)+(5*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(5*midsp)+(5*mpref)),y5label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
 		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y2,mpref,buth,
+			(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
-
 		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y1,mpref,buth,
+			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
+
+		uiDefButI(block, NUM, 0, "Time Out ",
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y2, mpref, buth, 
+			&U.textimeout, 0.0, 3600.0, 30, 2, "Time since last access of a GL texture in seconds after which it is freed. (Set to 0 to keep textures allocated)");
+		uiDefButI(block, NUM, 0, "Collect Rate ",
+			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
+			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
+
 
 		uiDefBut(block, LABEL,0,"Audio mixing buffer:",
 			(xpos+edgsp+(2*midsp)+(2*mpref)),y3label,mpref,buth,
@@ -3177,9 +3205,9 @@ void set_rects_butspace(SpaceButs *buts)
 void test_butspace(void)
 {
 	ScrArea *area= curarea;
-	int blocksmin= uiBlocksGetYMin(&area->uiblocks)-10.0;
+	int blocksmin= uiBlocksGetYMin(&area->uiblocks)-10.0f;
 	
-	G.buts->v2d.tot.ymin= MIN2(0.0, blocksmin-10.0);
+	G.buts->v2d.tot.ymin= MIN2(0.0f, blocksmin-10.0f);
 }
 
 static void init_butspace(ScrArea *sa)
@@ -3335,7 +3363,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else {
 				if((G.qual==0)) {
-					dx= 0.1154*(v2d->cur.xmax-v2d->cur.xmin);
+					dx= 0.1154f*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin+= dx;
 					v2d->cur.xmax-= dx;
 					test_view2d(G.v2d, curarea->winx, curarea->winy);
@@ -3362,7 +3390,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if((G.qual==LR_SHIFTKEY))
 					no_gaps();
 				else if((G.qual==0)) {
-					dx= 0.15*(v2d->cur.xmax-v2d->cur.xmin);
+					dx= 0.15f*(v2d->cur.xmax-v2d->cur.xmin);
 					v2d->cur.xmin-= dx;
 					v2d->cur.xmax+= dx;
 					test_view2d(G.v2d, curarea->winx, curarea->winy);

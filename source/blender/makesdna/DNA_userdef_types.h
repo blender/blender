@@ -125,7 +125,7 @@ typedef struct SolidLight {
 } SolidLight;
 
 typedef struct UserDef {
-	short flag, dupflag;
+	int flag, dupflag;
 	int savetime;
 	char tempdir[160];	// FILE_MAXDIR length
 	char fontdir[160];
@@ -140,7 +140,7 @@ typedef struct UserDef {
 	short versions, vrmlflag;	// tmp for export, will be replaced by strubi
 	int gameflags;
 	int wheellinescroll;
-	short uiflag, language;
+	int uiflag, language;
 	short userpref, viewzoom;
 	short console_buffer;	//console vars here for tuhopuu compat, --phase
 	short console_out;
@@ -156,6 +156,7 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
+	long textimeout, texcollectrate;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -200,6 +201,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_AUTOPERSP     		2048
 #define USER_LOCKAROUND     	4096
 #define USER_GLOBALUNDO     	8192
+#define USER_ORBIT_SELECTION	16384
 
 /* transopts */
 

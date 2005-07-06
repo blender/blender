@@ -1314,6 +1314,9 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"couldn't load image data in Blender" );
 
+	/* Update the time tag of the image */
+	tag_image_time(image);
+
 	/* set up a valid clipping rectangle.  if no clip rectangle was
 	 * given, this results in inclusion of the entire image.  otherwise,
 	 * the clipping is just checked against the bounds of the image.

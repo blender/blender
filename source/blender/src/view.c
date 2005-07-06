@@ -432,10 +432,13 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 
 void viewmove(int mode)
 {
+	Object *ob = OBACT;
 	float firstvec[3], newvec[3], dvec[3];
 	float oldquat[4], q1[4], si, phi, dist0;
+	float ofs[3], obofs[3];
 	int firsttime=1;
 	short mvalball[2], mval[2], mvalo[2];
+	short use_sel = 0;
 	
 	/* sometimes this routine is called from headerbuttons */
 	areawinset(curarea->win);
@@ -452,6 +455,19 @@ void viewmove(int mode)
 	calctrackballvec(&curarea->winrct, mvalo, firstvec);
 
 	/* cumultime(0); */
+
+	if (G.obedit==0 && G.obpose==0 && U.uiflag & USER_ORBIT_SELECTION) {
+		use_sel = 1;
+		VECCOPY(ofs, G.vd->ofs);
+		if (ob) {
+			obofs[0] = -ob->obmat[3][0];
+			obofs[1] = -ob->obmat[3][1];
+			obofs[2] = -ob->obmat[3][2];
+		}
+		else {
+			VECCOPY(obofs, ofs);
+		}
+	}
 
 	while(TRUE) {
 		getmouseco_sc(mval);
@@ -510,8 +526,21 @@ void viewmove(int mode)
 					q1[0]= cos(phi);
 					q1[1]*= si;
 					q1[2]*= si;
-					q1[3]*= si;						
+					q1[3]*= si;	
 					QuatMul(G.vd->viewquat, q1, oldquat);
+
+					if (use_sel) {
+						/* compute the post multiplication quat, to rotate the offset correctly */
+						QUATCOPY(q1, oldquat);
+						QuatConj(q1);
+						QuatMul(q1, q1, G.vd->viewquat);
+
+						QuatConj(q1); /* conj == inv for unit quat */
+						VECCOPY(G.vd->ofs, ofs);
+						VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+						QuatMulVecf(q1, G.vd->ofs);
+						VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+					}
 				} else {
 					/* New turntable view code by John Aughey */
 
@@ -541,12 +570,26 @@ void viewmove(int mode)
 					q1[3] = si * xvec[2];
 					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
 
+					if (use_sel) {
+						QuatConj(q1); /* conj == inv for unit quat */
+						VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+						QuatMulVecf(q1, G.vd->ofs);
+						VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+					}
+
 					/* Perform the orbital rotation */
 					phi = sensitivity * (mval[0] - mvalo[0]);
 					q1[0] = cos(phi);
 					q1[1] = q1[2] = 0.0;
 					q1[3] = sin(phi);
 					QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+					if (use_sel) {
+						QuatConj(q1);
+						VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+						QuatMulVecf(q1, G.vd->ofs);
+						VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+					}
 				}
 			}
 			else if(mode==1) {	/* translate */

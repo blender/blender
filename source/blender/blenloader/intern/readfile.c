@@ -4611,6 +4611,10 @@ static void do_versions(FileData *fd, Main *main)
 		Camera *cam= main->camera.first;
 		Material *ma;
 		bScreen *sc;
+
+		/* GL Texture Garbage Collection */
+		U.texcollectrate = 60;
+		U.textimeout = 120;
 		
 		while(sce) {
 			sce->r.mode &= ~R_ZBLUR;	// disabled for release

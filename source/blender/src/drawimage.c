@@ -826,10 +826,10 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	what_image(G.sima);
 	
 	if(G.sima->image) {
-	
 		if(G.sima->image->ibuf==0) {
 			load_image(G.sima->image, IB_rect, G.sce, G.scene->r.cfra);
 		}	
+		tag_image_time(G.sima->image);
 		ibuf= G.sima->image->ibuf;
 	}
 	

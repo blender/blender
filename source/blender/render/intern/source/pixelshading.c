@@ -746,6 +746,8 @@ void fillBackgroundImageChar(char *col, float x, float y)
 		return;
 	}
 
+	tag_image_time(R.backbuf);
+
 	/* Now for the real extraction: */
 	/* Get the y-coordinate of the scanline? */
 	iy= (int) ((y+R.afmy+R.ystart)*R.backbuf->ibuf->y)/(2*R.afmy);

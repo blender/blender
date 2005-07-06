@@ -3840,6 +3840,8 @@ void draw_object(Base *base)
 		glEnd();
 		
 	}
+
+	free_old_images();
 }
 
 void draw_object_ext(Base *base)

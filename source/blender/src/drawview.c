@@ -347,6 +347,8 @@ static void draw_bgpic(void)
 	
 	if(ima==0) return;
 	if(ima->ok==0) return;
+
+	tag_image_time(ima);
 	
 	/* test for image */
 	if(ima->ibuf==0) {
