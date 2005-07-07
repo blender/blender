@@ -280,6 +280,17 @@ void unlink_object(Object *ob)
 					obt->recalc |= OB_RECALC;
 				}
 			}
+			else if(obt->type==OB_ARMATURE && obt->pose) {
+				bPoseChannel *pchan;
+				for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
+					for (con = pchan->constraints.first; con; con=con->next) {
+						if(ob==get_constraint_target(con, &str)) {
+							set_constraint_target(con, NULL);
+							obt->recalc |= OB_RECALC_DATA;
+						}
+					}
+				}
+			}
 			
 			sca_remove_ob_poin(obt, ob);
 			

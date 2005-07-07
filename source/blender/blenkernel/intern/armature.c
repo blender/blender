@@ -702,6 +702,7 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	
 	data=(bKinematicConstraint*)con->data;
 	if(data->tar==NULL) return;
+	if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
 	
 	/* Find the chain's root & count the segments needed */
 	for (curchan = pchan_tip; curchan; curchan=curchan->parent){

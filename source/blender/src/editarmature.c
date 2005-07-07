@@ -2103,8 +2103,8 @@ void clear_armature(Object *ob, char mode)
 			}
 		}
 	}
-
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	/* no DAG flush, this will execture the action again */
+	where_is_pose (ob);
 }
 
 /* helper for function below */
