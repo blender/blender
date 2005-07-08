@@ -777,7 +777,7 @@ static void createTransCurveVerts(TransInfo *t)
 				}
 			}
 			if (propmode && head != tail)
-				calc_distanceCurveVerts(head, tail);
+				calc_distanceCurveVerts(head, tail-1);
 		}
 		else {
 			TransData *head, *tail;

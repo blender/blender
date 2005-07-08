@@ -498,8 +498,8 @@ static void do_update_for_newframe(int mute, int events)
 		allqueue(REDRAWALL, 0);
 	}
 	
-	/* this one applies changes */
-	scene_update_for_newframe(G.scene, G.vd->lay); /* BKE_scene.h */
+	/* this function applies the changes too */
+	scene_update_for_newframe(G.scene, G.vd?G.vd->lay:G.scene->lay); /* BKE_scene.h */
 		
 	/* manipulators like updates too */
 	for(sa=G.curscreen->areabase.first; sa; sa=sa->next) {
