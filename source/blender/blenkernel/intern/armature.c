@@ -982,14 +982,13 @@ void where_is_pose (Object *ob)
 			if(bone) {
 				Mat4CpyMat4(pchan->pose_mat, bone->arm_mat);
 				VECCOPY(pchan->pose_head, bone->arm_head);
-				VECCOPY(pchan->pose_tail, pchan->pose_head);
+				VECCOPY(pchan->pose_tail, bone->arm_tail);
 			}
 		}
 	}
 	else {
 		Mat4Invert(ob->imat, ob->obmat);	// imat is needed 
 
-//#if 0
 		/* 1. construct the PoseChains, clear flags */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			pchan->flag &= ~POSE_DONE;

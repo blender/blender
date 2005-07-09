@@ -1398,28 +1398,30 @@ static void draw_pose_channels(Object *ob)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
 		if(bone) {
-			
-			//	Draw a line from our root to the parent's tip
-			if (bone->parent && !(bone->flag & (BONE_IK_TOPARENT|BONE_HIDDEN)) ){
-				
-				if (arm->flag & ARM_POSEMODE) glLoadName (-1);
-				
-				setlinestyle(3);
-				glBegin(GL_LINES);
-				glVertex3fv(pchan->pose_head);
-				glVertex3fv(pchan->parent->pose_tail);
-				glEnd();
-				setlinestyle(0);
-			}
 			if(!(bone->flag & BONE_HIDDEN)) {
-				glPushMatrix();
-				glMultMatrixf(pchan->pose_mat);
 				
 				if (index!= -1) {   // set color for points */
 					if (bone->flag & BONE_ACTIVE) cpack (B_CYAN_A);
 					else if (bone->flag & BONE_SELECTED) cpack (B_CYAN);
 					else cpack (B_AQUA);
 				}
+				
+				//	Draw a line from our root to the parent's tip
+				if (bone->parent && !(bone->flag & BONE_IK_TOPARENT) ){
+					
+					if (arm->flag & ARM_POSEMODE) glLoadName (-1);
+					
+					setlinestyle(3);
+					glBegin(GL_LINES);
+					glVertex3fv(pchan->pose_head);
+					glVertex3fv(pchan->parent->pose_tail);
+					glEnd();
+					setlinestyle(0);
+				}
+				
+				glPushMatrix();
+				glMultMatrixf(pchan->pose_mat);
+				
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
