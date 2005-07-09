@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <string.h>
 #include <math.h>
 
 #include "MEM_guardedalloc.h"

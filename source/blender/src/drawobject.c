@@ -78,6 +78,7 @@
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"

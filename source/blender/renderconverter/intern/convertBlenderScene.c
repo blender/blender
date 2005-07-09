@@ -87,6 +87,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
