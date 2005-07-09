@@ -170,7 +170,7 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
 
 float BL_ArmatureObject::GetBoneLength(Bone* bone) const
 {
-	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
+//	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
 	
 	return (MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
 }
