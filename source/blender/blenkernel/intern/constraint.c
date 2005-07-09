@@ -703,33 +703,54 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			if (ownertype == TARGET_BONE) {
 				extern void chan_calc_mat(bPoseChannel *chan);
 				bActionConstraint *data = (bActionConstraint*)con->data;
-				bPose *pose=NULL;
+				bPose *pose;
 				bPoseChannel *pchan, *tchan;
-				float ans[4][4];
 				float tempmat3[3][3];
 				float eul[3];
 				float s,t;
 				
-				Mat4One(mat);
+				Mat4One(mat);	// return mat
 				
 				if (data->tar==NULL) return 0;
 				
-				/* proper check for bone... (todo) */
+				/* need proper check for bone... */
 				if(data->subtarget[0]) {
-					//pchan = get_pose_channel(ob->pose, substring);
-					//if (pchan) {
-					//}
+					pchan = get_pose_channel(data->tar->pose, data->subtarget);
+					if (pchan) {
+						float diff_mat[3][3], arm_mat[3][3], pose_mat[3][3], par_mat[3][3], ipar_mat[3][3];
+						/* we need the local rotation = current rotation - (parent rotation + restpos) */
+						
+						Mat3CpyMat4(arm_mat, pchan->bone->arm_mat);
+						
+						if (pchan->parent) {
+							Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
+							Mat3MulMat3(diff_mat, par_mat, arm_mat);
+							
+							Mat3Inv(ipar_mat, diff_mat);
+						}
+						else {
+							Mat3Inv(ipar_mat, arm_mat);
+						}
+						
+						Mat3CpyMat4(pose_mat, pchan->pose_mat);
+						Mat3MulMat3(tempmat3, ipar_mat, pose_mat);
+					}
+					else Mat3One(tempmat3);
 				}
-				constraint_target_to_mat4(data->tar, data->subtarget, ans, size, ctime);
+				else {
+					float ans[4][4];
+					
+					constraint_target_to_mat4(data->tar, data->subtarget, ans, size, ctime);
+					/* extract rotation, is in global world coordinates */
+					Mat3CpyMat4(tempmat3, ans);
+				}
 				
-				/* extract rotation */
-				Mat3CpyMat4(tempmat3, ans);
 				Mat3ToEul(tempmat3, eul);
 				
 				eul[0]*=(float)(180.0/M_PI);
 				eul[1]*=(float)(180.0/M_PI);
 				eul[2]*=(float)(180.0/M_PI);
-
+				
 				/* Target defines the animation */
 				s = (eul[data->type]-data->min)/(data->max-data->min);
 				if (s<0)

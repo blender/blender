@@ -1319,11 +1319,12 @@ static void write_bone(WriteData *wd, Bone* bone)
 {
 	Bone*	cbone;
 
-//	write_constraints(wd, &bone->constraints);
-
+	// PATCH for upward compatibility after 2.37+ armature recode
+	bone->size[0]= bone->size[1]= bone->size[2]= 1.0f;
+		
 	// Write this bone
 	writestruct(wd, DATA, "Bone", 1, bone);
-
+	
 	// Write Children
 	cbone= bone->childbase.first;
 	while(cbone) {

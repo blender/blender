@@ -4708,13 +4708,6 @@ static void do_versions(FileData *fd, Main *main)
 			if(ob->pose) {
 				ob->pose->flag |= POSE_RECALC;
 				ob->recalc |= OB_RECALC;
-
-				/* initialize for IK caching. we check for zero, so new saved files go fine */
-				pchan= ob->pose->chanbase.first;
-				if(pchan && pchan->ik_mat[0][0]==0.0 && pchan->ik_mat[0][1]==0.0 && pchan->ik_mat[0][2]==0.0) {
-					for(; pchan; pchan= pchan->next)
-						Mat3One(pchan->ik_mat);
-				}
 			}
 		}
 	}
