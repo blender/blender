@@ -1559,13 +1559,8 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		
 		/* Check this constraint only if it has some enforcement */
 		if (!(con->flag & CONSTRAINT_DISABLE)) {
-			/* weird code was here (ton)
-			if (con->enforce==0.0)
-				enf = 0.001f;
-				enf = con->enforce;
-			*/
-			enf = con->enforce;
-			
+			enf = con->enforce;	// value from ipos (from action channels)
+
 			/* Get the targetmat */
 			get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
 			

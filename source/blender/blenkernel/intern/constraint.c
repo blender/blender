@@ -600,7 +600,8 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 	bConstraintChannel *chan;
 	IpoCurve *icu=NULL;
 	
-	for (con=conbase->first; con; con=con->next){
+	for (con=conbase->first; con; con=con->next) {
+		con->enforce= 1.0;
 		chan = find_constraint_channel(chanbase, con->name);
 		if (chan && chan->ipo){
 			calc_ipo(chan->ipo, ctime);

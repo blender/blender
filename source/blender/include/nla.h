@@ -41,9 +41,6 @@
  *	__CON_IPO
  *	Support for constraint ipo keys
  *
- *	__NLA_BAKE
- *	Allow users to bake constraints into keyframes
- *
  *	__NLA_ACTION_BY_MOTION_ACTUATOR
  *	New action actuator playback type
  *
@@ -55,7 +52,6 @@
 
 #define __NLA			
 
-#define __NLA_BAKE							//	Not for release: Not yet fully implemented
 #define __CON_IPO							//	Not for Release: Not yet fully implemented
 //#define __NLA_ACTION_BY_MOTION_ACTUATOR	//	Not for release: Not yet fully implemented
 

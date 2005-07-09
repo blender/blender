@@ -2071,7 +2071,7 @@ void clear_armature(Object *ob, char mode)
 			}
 		}
 	}
-	/* no DAG flush, this will execture the action again */
+	/* no DAG flush, this will execute the action again */
 	where_is_pose (ob);
 }
 

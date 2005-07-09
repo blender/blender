@@ -936,12 +936,8 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 		/* conOb.obmat takes bone to worldspace */
 		Mat4MulMat4 (conOb.obmat, pchan->pose_mat, ob->obmat);
 		
-		//VECCOPY(conOb.size, pchan->size);  // stretchto constraint
-		
 		/* Solve */
 		solve_constraints (&conOb, TARGET_BONE, (void*)pchan, ctime);	// ctime doesnt alter objects
-		
-		//VECCOPY(bone->size, conOb.size);	// stretchto constraint
 		
 		/* Take out of worldspace */
 		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);

@@ -141,26 +141,24 @@ static void select_poseelement_by_name (char *name, int select)
 		break;
 	}
 }
-#ifdef __NLA_BAKE
+
 bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 {
+	bArmature		*arm;
 	bAction			*result=NULL;
 	bActionChannel *achan;
+	bAction			*temp;
+	bPoseChannel	*pchan;
 	float			actlen;
+	int				oldframe;
 	int				curframe;
 	char			newname[64];
-	bArmature		*arm;
-	Bone			*bone;
-	float			oldframe;
-	bAction			*temp;
-	bPoseChannel *pchan;
 
 	if (!act)
 		return NULL;
 
 	arm = get_armature(armob);
 
-	
 	if (G.obedit){
 		error ("Actions can't be baked in Edit Mode");
 		return NULL;
@@ -194,38 +192,22 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		/* Apply the object ipo */
 		extract_pose_from_action(armob->pose, act, curframe);
 
-//		where_is_armature_time(armob, curframe);
+		where_is_pose(armob);
 		
 		/* For each channel: set quats and locs if channel is a bone */
 		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
 
-			bone = get_named_bone(arm, pchan->name);
-			if (bone){
-				float tmp_quat[4], tmp_loc[3], tmp_size[3];
-				QUATCOPY(tmp_quat, pchan->quat);
-				VECCOPY(tmp_loc, pchan->loc);
-				VECCOPY(tmp_size, pchan->size);
-
-//				Mat4ToQuat(pchan->obmat, pchan->quat);
-//				Mat4ToSize(pchan->obmat, pchan->size);
-//				VECCOPY(pchan->loc, pchan->obmat[3]);
-
-				/* Apply to keys */
-				set_action_key_time (result, pchan, AC_QUAT_X, 1, curframe);
-				set_action_key_time (result, pchan, AC_QUAT_Y, 1, curframe);
-				set_action_key_time (result, pchan, AC_QUAT_Z, 1, curframe);
-				set_action_key_time (result, pchan, AC_QUAT_W, 1, curframe);
-				set_action_key_time (result, pchan, AC_LOC_X, 1, curframe);
-				set_action_key_time (result, pchan, AC_LOC_Y, 1, curframe);
-				set_action_key_time (result, pchan, AC_LOC_Z, 1, curframe);
-				set_action_key_time (result, pchan, AC_SIZE_X, 1, curframe);
-				set_action_key_time (result, pchan, AC_SIZE_Y, 1, curframe);
-				set_action_key_time (result, pchan, AC_SIZE_Z, 1, curframe);
-
-				QUATCOPY(pchan->quat, tmp_quat);
-				VECCOPY(pchan->loc, tmp_loc);
-				VECCOPY(pchan->size, tmp_size);
-			}
+			/* Apply to keys */
+			set_action_key_time (result, pchan, AC_QUAT_X, 1, curframe);
+			set_action_key_time (result, pchan, AC_QUAT_Y, 1, curframe);
+			set_action_key_time (result, pchan, AC_QUAT_Z, 1, curframe);
+			set_action_key_time (result, pchan, AC_QUAT_W, 1, curframe);
+			set_action_key_time (result, pchan, AC_LOC_X, 1, curframe);
+			set_action_key_time (result, pchan, AC_LOC_Y, 1, curframe);
+			set_action_key_time (result, pchan, AC_LOC_Z, 1, curframe);
+			set_action_key_time (result, pchan, AC_SIZE_X, 1, curframe);
+			set_action_key_time (result, pchan, AC_SIZE_Y, 1, curframe);
+			set_action_key_time (result, pchan, AC_SIZE_Z, 1, curframe);
 		}
 	}
 
@@ -241,9 +223,16 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	notice ("Made a new action named \"%s\"", newname);
 	G.scene->r.cfra = oldframe;
 	armob->action = temp;
+		
+	/* restore */
+	extract_pose_from_action(armob->pose, act, G.scene->r.cfra);
+	where_is_pose(armob);
+	
+	allqueue(REDRAWACTION, 1);
+	
 	return result;
 }
-#endif
+
 
 void select_actionchannel_by_name (bAction *act, char *name, int select)
 {
