@@ -761,6 +761,19 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 	/* and set and transform goal */
 	get_constraint_target_matrix(chain->con, TARGET_BONE, NULL, rootmat, size, 1.0);   // 1.0=ctime
 	VECCOPY (chain->goal, rootmat[3]);
+	/* do we need blending? */
+	if(chain->con->enforce!=1.0) {
+		float vec[3];
+		float fac= chain->con->enforce;
+		float mfac= 1.0-fac;
+		
+		pchan= chain->pchanchain[chain->totchannel-1];	// last bone
+		VECCOPY(vec, pchan->pose_tail);
+		Mat4MulVecfl(ob->obmat, vec);					// world space
+		chain->goal[0]= fac*chain->goal[0] + mfac*vec[0];
+		chain->goal[1]= fac*chain->goal[1] + mfac*vec[1];
+		chain->goal[2]= fac*chain->goal[2] + mfac*vec[2];
+	}
 	Mat4MulVecfl (chain->goalinv, chain->goal);
 	
 	/* Now we construct the IK segments */

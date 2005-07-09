@@ -497,11 +497,15 @@ void do_all_actions(Object *ob)
 	float blendfac, stripframe;
 
 	/* Retrieve data from the NLA */
-	if(ob->type==OB_ARMATURE && ob->pose && ob->nlastrips.first) {
+	if(ob->type==OB_ARMATURE && ob->pose) {
 		bArmature *arm= ob->data;
 
 		if(arm->flag & ARM_NO_ACTION) {  // no action set while transform
 			;
+		}
+		else if(ob->action) {
+			/* Do local action (always overrides the nla actions) */
+			extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
 		}
 		else {
 			doit=0;
@@ -599,14 +603,6 @@ void do_all_actions(Object *ob)
 					}					
 				}
 			}
-
-			/* Do local action (always overrides the nla actions) */
-			/*	At the moment, only constraint ipos on the local action have any effect */
-			if(ob->action) {
-				extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
-				doit = 1;
-			} 
-			
 		}
 	}
 	
