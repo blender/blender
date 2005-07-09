@@ -86,7 +86,7 @@ void	extrude_armature(void);
 void	free_editArmature(void);
 void	join_armature(void);
 void	load_editArmature(void);
-char*	make_bone_menu(struct bArmature *arm);
+
 void	make_bone_parent(void);
 void    clear_bone_parent(void);
 

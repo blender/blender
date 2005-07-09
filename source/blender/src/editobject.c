@@ -1093,6 +1093,29 @@ int test_parent_loop(Object *par, Object *ob)
 
 }
 
+static char *make_bone_menu (Object *ob)
+{
+	char *menustr=NULL;
+	bPoseChannel *pchan;
+	int		size;
+	int		index=0;
+	
+	//	Count the bones
+	for(size=0, pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, size++);
+	
+	size = size*48 + 256;
+	menustr = MEM_callocN(size, "bonemenu");
+	
+	sprintf (menustr, "Select Bone%%t");
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, index++) {
+		sprintf (menustr, "%s|%s%%x%d", menustr, pchan->bone->name, index);
+	}
+	
+	return menustr;
+}
+
+
 void make_parent(void)
 {
 	Base *base;
@@ -1194,8 +1217,7 @@ void make_parent(void)
 				mode=PARBONE;
 				/* Make bone popup menu */
 
-				bonestr = make_bone_menu(get_armature(par));
-		//		if(mbutton(&bone, bonestr, 1, 24, "Bone: ")==0) {
+				bonestr = make_bone_menu(par);
 
 				bonenr= pupmenu_col(bonestr, 20);
 				if (bonestr)

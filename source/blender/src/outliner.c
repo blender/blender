@@ -442,58 +442,61 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						/* possible add all other types links? */
 					}
 				}
-				if(ob->pose && ob!=G.obedit) {
+				if(ob->pose) {
 					bPoseChannel *pchan;
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_POSE_BASE, 0);
-					int a= 0;
 					
 					tenla->name= "Pose";
-					for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
-						ten->name= pchan->name;
-						ten->directdata= pchan;
-						pchan->prev= (bPoseChannel *)ten;
-						
-						if(pchan->constraints.first) {
-							Object *target;
-							bConstraint *con;
-							TreeElement *ten1;
-							TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-							int a= 0;
-							char *str;
+					
+					if(ob!=G.obedit) {	// channels undefined in editmode, but we want the 'tenla' pose icon itself
+						int a= 0;
+						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
+							ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_POSE_CHANNEL, a);
+							ten->name= pchan->name;
+							ten->directdata= pchan;
+							pchan->prev= (bPoseChannel *)ten;
 							
-							tenla1->name= "Constraints";
-							for(con= pchan->constraints.first; con; con= con->next, a++) {
-								ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, a);
-								target= get_constraint_target(con, &str);
-								if(str && str[0]) ten1->name= str;
-								else if(target) ten1->name= target->id.name+2;
-								else ten1->name= con->name;
-								ten1->directdata= con;
-								/* possible add all other types links? */
+							if(pchan->constraints.first) {
+								Object *target;
+								bConstraint *con;
+								TreeElement *ten1;
+								TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
+								int a= 0;
+								char *str;
+								
+								tenla1->name= "Constraints";
+								for(con= pchan->constraints.first; con; con= con->next, a++) {
+									ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, a);
+									target= get_constraint_target(con, &str);
+									if(str && str[0]) ten1->name= str;
+									else if(target) ten1->name= target->id.name+2;
+									else ten1->name= con->name;
+									ten1->directdata= con;
+									/* possible add all other types links? */
+								}
 							}
 						}
-					}
-					/* make hierarchy */
-					ten= tenla->subtree.first;
-					while(ten) {
-						TreeElement *nten= ten->next, *par;
-						tselem= TREESTORE(ten);
-						if(tselem->type==TSE_POSE_CHANNEL) {
-							pchan= (bPoseChannel *)ten->directdata;
-							if(pchan->parent) {
-								BLI_remlink(&tenla->subtree, ten);
-								par= (TreeElement *)pchan->parent->prev;
-								BLI_addtail(&par->subtree, ten);
+						/* make hierarchy */
+						ten= tenla->subtree.first;
+						while(ten) {
+							TreeElement *nten= ten->next, *par;
+							tselem= TREESTORE(ten);
+							if(tselem->type==TSE_POSE_CHANNEL) {
+								pchan= (bPoseChannel *)ten->directdata;
+								if(pchan->parent) {
+									BLI_remlink(&tenla->subtree, ten);
+									par= (TreeElement *)pchan->parent->prev;
+									BLI_addtail(&par->subtree, ten);
+								}
 							}
+							ten= nten;
 						}
-						ten= nten;
-					}
-					/* restore prev pointers */
-					for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-						if(pchan->next) pchan->next->prev= pchan;
-						else if(pchan==ob->pose->chanbase.first) pchan->prev= NULL;
+						/* restore prev pointers */
+						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+							if(pchan->next) pchan->next->prev= pchan;
+							else if(pchan==ob->pose->chanbase.first) pchan->prev= NULL;
+						}
 					}
 				}
 				

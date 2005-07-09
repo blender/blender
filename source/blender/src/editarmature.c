@@ -684,40 +684,6 @@ static int	count_bones (bArmature *arm, int flagmask, int allbones)
 	
 }
 
-static void make_bone_menu_children (Bone *bone, char *str, int *index)
-{
-	Bone *curBone;
-	
-	sprintf (str, "%s|%s%%x%d", str, bone->name, *index);
-	(*index) ++;
-	
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next)
-		make_bone_menu_children (curBone, str, index);
-}
-
-/* called in editobject.c */
-char *make_bone_menu (bArmature *arm)
-{
-	char *menustr=NULL;
-	Bone *curBone;
-	int		size;
-	int		index=0;
-	
-	
-	//	Count the bones
-	size = (count_bones (arm, 0xFFFFFFFF, 1)*48) + 256;
-	menustr = MEM_callocN(size, "bonemenu");
-	
-	sprintf (menustr, "Select Bone%%t");
-	
-	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-		make_bone_menu_children (curBone, menustr, &index);
-	}
-	
-	return menustr;
-}
-
-
 /* **************** END Posemode stuff ********************** */
 /* **************** EditMode stuff ********************** */
 
