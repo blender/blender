@@ -1553,7 +1553,7 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 		clear_object('g');
 		break;
 	case 4:
-		object_apply_deform(OBACT);
+		if(OBACT) object_apply_deform(OBACT);
 		break;
 	case 5: /* make duplis real */
 		make_duplilist_real();
