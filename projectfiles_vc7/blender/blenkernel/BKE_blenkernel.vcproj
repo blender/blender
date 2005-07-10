@@ -377,9 +377,6 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\group.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\blenkernel\intern\ika.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\image.c">
 			</File>
 			<File
@@ -514,9 +511,6 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_group.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\blenkernel\BKE_ika.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_image.h">

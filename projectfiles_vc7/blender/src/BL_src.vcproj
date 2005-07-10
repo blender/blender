@@ -247,9 +247,6 @@
 				RelativePath="..\..\..\source\blender\src\editgroup.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\src\editika.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\src\editimasel.c">
 			</File>
 			<File

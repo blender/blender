@@ -465,9 +465,6 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_ID.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\makesdna\DNA_ika_types.h">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_image_types.h">
 			</File>
 			<File
