@@ -4047,6 +4047,9 @@ void adduplicate(int noTrans)
 				break;
 
 			case OB_ARMATURE:
+				obn->recalc |= OB_RECALC_DATA;
+				if(obn->pose) obn->pose->flag |= POSE_RECALC;
+				
 				if(dupflag & USER_DUP_ARM) {
 					ID_NEW_US2(obn->data )
 					else {
@@ -4055,9 +4058,10 @@ void adduplicate(int noTrans)
 					}
 					id->us--;
 				}
+				
 				break;
+				
 			/* always dupli's */
-		
 			case OB_LATTICE:
 				ID_NEW_US2(obn->data )
 				else obn->data= copy_lattice(obn->data);
