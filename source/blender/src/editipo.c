@@ -2926,6 +2926,27 @@ void sethandles_ipo_keys(Ipo *ipo, int code)
 
 }
 
+static void ipo_curves_auto_horiz(void)
+{
+    EditIpo *ei;
+	int a, set= 1;
+	
+	ei= G.sipo->editipo;
+	for(a=0; a<G.sipo->totipo; a++, ei++) {
+		if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)
+			if(ei->flag & IPO_AUTO_HORIZ) set= 0;
+	}
+	
+	ei= G.sipo->editipo;
+	for(a=0; a<G.sipo->totipo; a++, ei++) {
+		if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+			if(set) ei->flag |= IPO_AUTO_HORIZ;
+			else ei->flag &= ~IPO_AUTO_HORIZ;
+		}
+	}
+	update_editipo_flags();
+}
+
 void sethandles_ipo(int code)
 {
 	/* this function lets you set bezier handles all to
@@ -2949,6 +2970,11 @@ void sethandles_ipo(int code)
 		/*** Set to vector ***/
 		selected_bezier_loop(vis_edit_icu_bez, set_bezier_vector,
                          calchandles_ipocurve);
+		break;
+	case 4:
+		/* set to enforce autohandles to be horizontal on extremes */
+		ipo_curves_auto_horiz();
+		
 		break;
 	default:
 		if (selected_bezier_loop(vis_edit_icu_bez, bezier_isfree, NULL) ) {
@@ -3156,7 +3182,7 @@ void del_ipo()
 	
 	if( okee("Erase selected")==0 ) return;
 
-	// eerste doorloop, kunnen hele stukken weg? 
+	// first round, can we delete entire parts? 
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
 	
@@ -3197,7 +3223,7 @@ void del_ipo()
 		}
 	}
 	
-	// tweede doorloop, kleine stukken weg: alleen curves 
+	// 2nd round, small parts: just curves 
 	ei= G.sipo->editipo;
 	for(b=0; b<G.sipo->totipo; b++, ei++) {
 		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {

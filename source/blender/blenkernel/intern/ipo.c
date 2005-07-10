@@ -404,8 +404,11 @@ void calchandles_ipocurve(IpoCurve *icu)
 		if(bezt->vec[0][0]>bezt->vec[1][0]) bezt->vec[0][0]= bezt->vec[1][0];
 		if(bezt->vec[2][0]<bezt->vec[1][0]) bezt->vec[2][0]= bezt->vec[1][0];
 
-		calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
-
+		if(icu->flag & IPO_AUTO_HORIZ) 
+			calchandleNurb(bezt, prev, next, 2);	/* 2==special autohandle && keep extrema horizontal */
+		else
+			calchandleNurb(bezt, prev, next, 1);	/* 1==special autohandle */
+	
 		prev= bezt;
 		if(a==1) {
 			next= 0;

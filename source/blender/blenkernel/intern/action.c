@@ -166,15 +166,17 @@ bAction* copy_action(bAction *src)
 
 /* ************************ Pose channels *************** */
 
+/* usually used within a loop, so we got a N^2 slowdown */
 bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 {
 	bPoseChannel *chan;
 
 	if(pose==NULL) return NULL;
 	
-	for (chan=pose->chanbase.first; chan; chan=chan->next){
-		if (!strcmp (chan->name, name))
-			return chan;
+	for (chan=pose->chanbase.first; chan; chan=chan->next) {
+		if(chan->name[0] == name[0])
+			if (!strcmp (chan->name, name))
+				return chan;
 	}
 
 	return NULL;

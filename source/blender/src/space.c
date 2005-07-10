@@ -2015,9 +2015,11 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				transform_ipo('g');
 			break;
 		case HKEY:
-			if((G.qual==LR_SHIFTKEY))
+			if(G.qual==LR_ALTKEY)
+				sethandles_ipo(4);		// tsk tsk ton!
+			if(G.qual==LR_SHIFTKEY)
 				sethandles_ipo(HD_AUTO);
-			else if((G.qual==0))
+			else if(G.qual==0)
 				sethandles_ipo(HD_ALIGN);
 			break;
 		case JKEY:

@@ -320,10 +320,10 @@ typedef short IPO_Channel;
 #define CO_ROLL		9
 */
 
-/* these are ipo-specific */
+/* these are IpoCurve specific */
 /* **************** IPO ********************* */
 
-/* vartype */
+/* icu->vartype */
 #define IPO_CHAR		0
 #define IPO_SHORT		1
 #define IPO_INT			2
@@ -331,33 +331,34 @@ typedef short IPO_Channel;
 #define IPO_FLOAT		4
 #define IPO_DOUBLE		5
 #define IPO_FLOAT_DEGR	6
-/* very special case, in keys */
+	/* very special case, in keys */
 #define IPO_BEZTRIPLE	100
 #define IPO_BPOINT		101
 
-
+/* icu->vartype */
 #define IPO_BITS		16
 #define IPO_CHAR_BIT	16
 #define IPO_SHORT_BIT	17
 #define IPO_INT_BIT		18
 
-/* ipo */
+/* icu->ipo */
 #define IPO_CONST		0
 #define IPO_LIN			1
 #define IPO_BEZ			2
 #define IPO_MIXED		3
 
-/* extrap */
+/* icu->extrap */
 #define IPO_HORIZ		0
 #define IPO_DIR			1
 #define IPO_CYCL		2
 #define IPO_CYCLX		3
 
-/* flag */
+/* icu->flag */
 #define IPO_VISIBLE		1
 #define IPO_SELECT		2
 #define IPO_EDIT		4
 #define IPO_LOCK		8
+#define IPO_AUTO_HORIZ	16
 
 #endif
 

@@ -1936,8 +1936,8 @@ void makeBevelList(Object *ob)
  *		1: nothing,  1:auto,  2:vector,  3:aligned
  */
 
-
-void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
+/* mode: is not zero when IpoCurve, is 2 when forced horizontal for autohandles */
+void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 {
 	float *p1,*p2,*p3,pt[3];
 	float dx1,dy1,dz1,dx,dy,dz,vx,vy,vz,len,len1,len2;
@@ -2006,13 +2006,30 @@ void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
 				*(p2-3)= *p2-vx*len1;
 				*(p2-2)= *(p2+1)-vy*len1;
 				*(p2-1)= *(p2+2)-vz*len1;
+				
+				if(mode==2 && next && prev) {	// keep horizontal if extrema
+					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
+					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
+					if( (ydiff1<0.0 && ydiff2<0.0) || (ydiff1>0.0 && ydiff2>0.0) ) {
+						bezt->vec[0][1]= bezt->vec[1][1];
+					}
+				}
 			}
 			if(bezt->h2==HD_AUTO) {
 				len2/=len;
 				*(p2+3)= *p2+vx*len2;
 				*(p2+4)= *(p2+1)+vy*len2;
 				*(p2+5)= *(p2+2)+vz*len2;
+				
+				if(mode==2 && next && prev) {	// keep horizontal if extrema
+					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
+					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
+					if( (ydiff1<0.0 && ydiff2<0.0) || (ydiff1>0.0 && ydiff2>0.0) ) {
+						bezt->vec[2][1]= bezt->vec[1][1];
+					}
+				}
 			}
+			
 		}
 	}
 
@@ -2037,6 +2054,7 @@ void calchandleNurb(BezTriple *bezt,BezTriple *prev, BezTriple *next, int mode)
 	len1= VecLenf(p2, p2-3);
 	if(len1==0.0) len1=1.0;
 	if(len2==0.0) len2=1.0;
+
 	if(bezt->f1 & 1) { /* order of calculation */
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
 			len= len2/len1;
@@ -2224,7 +2242,8 @@ void sethandlesNurb(short code)
 {
 	/* code==1: set autohandle */
 	/* code==2: set vectorhandle */
-	/* if code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
+	/* code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
+	/* code==4: sets icu flag to become IPO_AUTO_HORIZ, horizontal extremes on auto-handles */
 	Nurb *nu;
 	BezTriple *bezt;
 	short a, ok=0;
