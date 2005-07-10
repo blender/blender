@@ -801,8 +801,8 @@ static short intersection(Isect *is)
 	if(ok) {
 		is->isect= ok;	// wich half of the quad
 		
-		if(is->mode==DDA_MIRROR) {
-			/* for mirror: large faces can be filled in too often, this prevents
+		if(is->mode!=DDA_SHADOW) {
+			/* for mirror & tra-shadow: large faces can be filled in too often, this prevents
 			   a face being detected too soon... */
 			if(is->labda > is->ddalabda) {
 				return 0;
