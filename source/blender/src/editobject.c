@@ -1902,7 +1902,10 @@ void special_editmenu(void)
 	if(G.obpose) {
 		pose_special_editmenu();
 	}
-	else if(G.obedit==0) {
+	else if(G.obedit==NULL) {
+		
+		if(!OBACT) return;
+		
 		if(G.f & G_FACESELECT) {
 			Mesh *me= get_mesh(OBACT);
 			TFace *tface;
