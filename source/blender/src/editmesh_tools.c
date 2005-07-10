@@ -2898,12 +2898,13 @@ static void edge_rotate(EditEdge *eed,int dir)
 	
 	/*Copy old edge's flags to new center edge*/
 	for(srchedge=em->edges.first;srchedge;srchedge=srchedge->next){
-		if(srchedge->v1->f & SELECT &&srchedge->v2->f & SELECT  )
+		if(srchedge->v1->f & SELECT &&srchedge->v2->f & SELECT  ){
 			srchedge->f = eed->f;
 			srchedge->h = eed->h;
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
 			srchedge->crease = eed->crease;
+        }
 	}
 	
 	
