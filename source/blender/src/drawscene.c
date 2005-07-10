@@ -47,6 +47,8 @@
 #include "BKE_scene.h"
 
 #include "BDR_editobject.h"
+#include "BDR_editface.h"
+#include "BDR_vpaint.h"
 
 #include "BIF_space.h"
 #include "BIF_drawscene.h"
@@ -65,9 +67,21 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 {
 	bScreen *sc;
 	
-	if( G.obedit) exit_editmode(2);
-	if(G.obpose) exit_posemode(1);
-
+	/* ending all modes */
+	if( G.obedit) 
+		exit_editmode(2);
+	if(G.obpose) 
+		exit_posemode(1);
+	
+	if(G.f & G_FACESELECT)
+		set_faceselect();
+	if(G.f & G_VERTEXPAINT)
+		set_vpaint();
+	if(G.f & G_TEXTUREPAINT)
+		G.f &= ~G_TEXTUREPAINT;
+	if(G.f & G_WEIGHTPAINT)
+		set_wpaint();
+	
 	G.scene= sce;
 
 	sc= G.main->screen.first;
