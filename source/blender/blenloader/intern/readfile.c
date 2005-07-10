@@ -5564,7 +5564,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		sfile->libfiledata= 0;
 	}
 	
-	if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(G.sce, mainl->curlib->name);
+	if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(filename, mainl->curlib->name);	// uses old .blend file as reference
 	
 	if(sfile->flag & FILE_ATCURSOR) {
 		centerbase= (G.scene->base.first);

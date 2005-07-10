@@ -486,7 +486,14 @@ int uiNewPanel(ScrArea *sa, uiBlock *block, char *panelname, char *tabname, int 
 		pa= pa->next;
 	}
 	
-	if(pa==NULL) {
+	if(pa) {
+		if(pa->sizex != sizex) {
+			pa->sizex= sizex;
+			pa->ofsy+= (pa->sizey - sizey);	// check uiNewPanelHeight()
+			pa->sizey= sizey; 
+		}
+	}
+	else {
 		
 		/* new panel */
 		pa= MEM_callocN(sizeof(Panel), "new panel");
