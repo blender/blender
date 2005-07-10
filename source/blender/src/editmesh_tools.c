@@ -1028,7 +1028,7 @@ void fill_mesh(void)
 			v1= BLI_addfillvert(eve->co);
 			eve->vn= v1;
 			v1->vn= eve;
-			v1->h= 0;
+			v1->xs= 0;	// used for counting edges
 		}
 		eve= eve->next;
 	}
@@ -1037,23 +1037,23 @@ void fill_mesh(void)
 	while(eed) {
 		if( (eed->v1->f & SELECT) && (eed->v2->f & SELECT) ) {
 			e1= BLI_addfilledge(eed->v1->vn, eed->v2->vn);
-			e1->v1->h++; 
-			e1->v2->h++;
+			e1->v1->xs++; 
+			e1->v2->xs++;
 		}
 		eed= eed->next;
 	}
 	/* from all selected faces: remove vertices and edges to prevent doubles */
 	/* all edges add values, faces subtract,
-	   then remove edges with vertices ->h<2 */
+	   then remove edges with vertices ->xs<2 */
 	efa= em->faces.first;
 	ok= 0;
 	while(efa) {
 		nextvl= efa->next;
 		if( faceselectedAND(efa, 1) ) {
-			efa->v1->vn->h--;
-			efa->v2->vn->h--;
-			efa->v3->vn->h--;
-			if(efa->v4) efa->v4->vn->h--;
+			efa->v1->vn->xs--;
+			efa->v2->vn->xs--;
+			efa->v3->vn->xs--;
+			if(efa->v4) efa->v4->vn->xs--;
 			ok= 1;
 			
 		}
@@ -1063,7 +1063,7 @@ void fill_mesh(void)
 		eed= filledgebase.first;
 		while(eed) {
 			nexted= eed->next;
-			if(eed->v1->h<2 || eed->v2->h<2) {
+			if(eed->v1->xs<2 || eed->v2->xs<2) {
 				BLI_remlink(&filledgebase,eed);
 			}
 			eed= nexted;
