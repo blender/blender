@@ -1687,7 +1687,7 @@ static void *editMesh_to_undoMesh(void)
 	if(um->totedge) eedc= um->edges= MEM_callocN(um->totedge*sizeof(EditEdgeC), "alledgesC");
 	if(um->totface) efac= um->faces= MEM_callocN(um->totface*sizeof(EditFaceC), "allfacesC");
 
-	if(me->tface) tface= um->tfaces= MEM_mallocN(um->totface*sizeof(TFace), "all tfacesC");
+	if(me->tface || me->mcol) tface= um->tfaces= MEM_mallocN(um->totface*sizeof(TFace), "all tfacesC");
 
 		//printf("copy editmesh %d\n", um->totvert*sizeof(EditVert) + um->totedge*sizeof(EditEdge) + um->totface*sizeof(EditFace));
 		//printf("copy undomesh %d\n", um->totvert*sizeof(EditVertC) + um->totedge*sizeof(EditEdgeC) + um->totface*sizeof(EditFaceC));
