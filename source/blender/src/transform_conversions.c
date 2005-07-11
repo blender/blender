@@ -1328,7 +1328,9 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 
 		arm->flag &= ~ARM_NO_ACTION;
 		
-		if ((G.flags & G_RECORDKEYS) && !cancelled){
+		if(cancelled)	/* if cancelled we do the update always */
+			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+		else if(G.flags & G_RECORDKEYS) {
 			act=G.obpose->action;
 			pose=G.obpose->pose;
 			
@@ -1359,12 +1361,15 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
-			/* do not call this always, we dont want actions to update, for inserting keys */
+			
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 		}
-		else if(cancelled)	/* but if cancelled we do the update */
+		else if(is_delay_deform()) {
+			/* old optimize trick... this enforces to bypass the depgraph */
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
-
+			G.obpose->recalc= 0;	// is set on OK position already by recalcData()
+		}
+		/* do not call DAG_object_flush_update always, we dont want actions to update, for inserting keys */
 	}
 	else {
 		base= FIRSTBASE;

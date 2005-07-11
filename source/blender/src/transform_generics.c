@@ -115,9 +115,11 @@ void recalcData(TransInfo *t)
 	Base *base;
 	
 	if(G.obpose) {
+		/* old optimize trick... this enforces to bypass the depgraph */
 		if (!is_delay_deform()) 
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);  /* sets recalc flags */
-	
+		else
+			where_is_pose(G.obpose);
 	}
 	else if (G.obedit) {
 		
