@@ -159,6 +159,9 @@ void recalcData(TransInfo *t)
 			
 			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);
 		}
+		else {
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+		}
 	}
 	else {
 		
