@@ -992,6 +992,9 @@ void paste_posebuf (int flip)
 			}
 		}
 
+		/* Update event for deformation children */
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		
 		if (G.flags & G_RECORDKEYS) {
 			remake_action_ipos(ob->action);
 			allqueue (REDRAWIPO, 0);
@@ -999,9 +1002,11 @@ void paste_posebuf (int flip)
 			allqueue (REDRAWACTION, 0);		
 			allqueue(REDRAWNLA, 0);
 		}
-
-		/* Update deformation children */
-		DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+		else {
+			/* need to trick depgraph, action is not allowed to execute on pose */
+			where_is_pose(ob);
+			ob->recalc= 0;
+		}
 
 		BIF_undo_push("Paste Action Pose");
 	}

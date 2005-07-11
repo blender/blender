@@ -161,12 +161,10 @@ void do_action_buttons(unsigned short event)
 			break;
 		case B_ACTPASTE:
 			paste_posebuf(0);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 		case B_ACTPASTEFLIP:
 			paste_posebuf(1);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
 
