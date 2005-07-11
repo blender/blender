@@ -245,7 +245,7 @@ void mouse_mball()
 	int a, hits;
 	unsigned int buffer[MAXPICKBUF];
 	
-	hits= selectprojektie(buffer, 0, 0, 0, 0);
+	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
 
 	/* does startelem exist? */
 	ml= editelems.first;

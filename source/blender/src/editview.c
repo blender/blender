@@ -39,6 +39,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#include "MEM_guardedalloc.h"
 
 #include "IMB_imbuf.h"
 #include "PIL_time.h"
@@ -1057,8 +1058,8 @@ void mouse_select(void)
 		}
 	}
 	else {
-		hits= selectprojektie(buffer, mval[0]-7, mval[1]-7, mval[0]+7, mval[1]+7);
-		if(hits==0) hits= selectprojektie(buffer, mval[0]-21, mval[1]-21, mval[0]+21, mval[1]+21);
+		hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-7, mval[1]-7, mval[0]+7, mval[1]+7);
+		if(hits==0) hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-21, mval[1]-21, mval[0]+21, mval[1]+21);
 
 		if(hits>0) {
 			
@@ -1243,7 +1244,7 @@ void borderselect(void)
 		if (G.obpose){
 			if(G.obpose->type==OB_ARMATURE) {
 				Bone	*bone;
-				hits= selectprojektie(buffer, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 				base= FIRSTBASE;
 				for (a=0; a<hits; a++){
 					index = buffer[(4*a)+3];
@@ -1406,7 +1407,7 @@ void borderselect(void)
 				allqueue(REDRAWVIEW3D, 0);
 			}
 			else if(G.obedit->type==OB_MBALL) {
-				hits= selectprojektie(buffer, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 				
 				ml= editelems.first;
 				
@@ -1432,7 +1433,7 @@ void borderselect(void)
 			else if(G.obedit->type==OB_ARMATURE) {
 				EditBone *ebone;
 
-				hits= selectprojektie(buffer, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 				base= FIRSTBASE;
 				for (a=0; a<hits; a++){
@@ -1485,32 +1486,56 @@ void borderselect(void)
 
 		}
 		else {
-			
-			hits= selectprojektie(buffer, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			unsigned int *vbuffer=NULL; /* selection buffer	*/
+			unsigned int *col;			/* color in buffer	*/
+			short selecting = 0;
 
-			base= FIRSTBASE;
-			while(base) {
-				if(base->lay & G.vd->lay) {
-					for(a=0; a<hits; a++) {
-						/* converted index */
-						if(base->selcol==buffer[ (4 * a) + 3 ]) {
-							if(val==LEFTMOUSE) base->flag |= SELECT;
-							else base->flag &= ~SELECT;
+			if (val==LEFTMOUSE)
+				selecting = 1;
+
+			vbuffer = MEM_mallocN(4 * G.totobj * sizeof(unsigned int), "selection buffer");
+			hits= view3d_opengl_select(vbuffer, 4*G.totobj, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			/*
+			LOGIC NOTES (theeth):
+			The buffer and ListBase have the same relative order, which makes the selection
+			very simple. Loop through both data sets at the same time, if the color
+			is the same as the object, we have a hit and can move to the next color
+			and object pair, if not, just move to the next object,
+			keeping the same color until we have a hit.
+
+			The buffer order is defined by OGL standard, hopefully no stupid GFX card
+			does it incorrectly.
+			*/
+
+			if (hits) { /* no need to loop if there's no hit */
+				base= FIRSTBASE;
+				col = vbuffer + 3;
+				while(base && hits) {
+					Base *next = base->next;
+					if(base->lay & G.vd->lay) {
+						if (base->selcol == *col) {
+							if (selecting)
+								base->flag |= SELECT;
+							else
+								base->flag &= ~SELECT;
+
 							base->object->flag= base->flag;
 
-							draw_object_ext(base);
-							break;
+							col+=4;	/* next color */
+							hits--;
 						}
 					}
+					
+					base= next;
 				}
-				
-				base= base->next;
 			}
 			/* frontbuffer flush */
 			glFlush();
+
+			MEM_freeN(vbuffer);
 			
 			allqueue(REDRAWDATASELECT, 0);
-			
+
 			/* because backbuf drawing */
 			tel= 1;
 			base= FIRSTBASE;

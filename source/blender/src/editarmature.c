@@ -494,7 +494,7 @@ static void * get_nearest_bone (int findunsel)
 	persp(PERSP_VIEW);
 	
 	glInitNames();
-	hits= selectprojektie(buffer, 0, 0, 0, 0);
+	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
 	
 	/* See if there are any selected bones in this group */
 	if (hits){
@@ -763,7 +763,7 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 	persp(PERSP_VIEW);
 
 	glInitNames();
-	hits= selectprojektie(buffer, 0, 0, 0, 0);
+	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
 
 	/* See if there are any selected bones in this group */
 	if (hits) {

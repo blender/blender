@@ -70,7 +70,7 @@ void centreview(void);
 void restore_localviewdata(struct View3D *vd);
 void endlocalview(struct ScrArea *sa);
 void view3d_home(int centre);
-short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short y2);
+short view3d_opengl_select(unsigned int *buffer, unsigned int buffsize, short x1, short y1, short x2, short y2);
 void view3d_align_axis_to_vector(struct View3D *v3d, int axisidx, float vec[3]);
 
 #endif

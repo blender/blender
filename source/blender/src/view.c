@@ -857,7 +857,7 @@ void setcameratoview3d(void)
 }
 
 /* IGLuint-> GLuint*/
-short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short y2)
+short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1, short y1, short x2, short y2)
 {
 	rctf rect;
 	Base *base;
@@ -888,7 +888,7 @@ short selectprojektie(unsigned int *buffer, short x1, short y1, short x2, short 
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	glSelectBuffer( MAXPICKBUF, (GLuint *)buffer);
+	glSelectBuffer( bufsize, (GLuint *)buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-1);
