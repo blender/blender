@@ -585,7 +585,7 @@ void subdivideTriNode(RNode *node, RNode *edge)
 		}
 	}
 	
-	/* the subsidiving */
+	/* the subdividing */
 	n1= mallocNode();
 	memcpy(n1, node, sizeof(RNode));
 	n2= mallocNode();
@@ -632,6 +632,9 @@ void subdivideTriNode(RNode *node, RNode *edge)
 			n1->v1[2]= 0.5*(node->v1[2]+ node->v2[2]);
 			n1->v1[3]= node->v1[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[0][0] = n2->uv[1][0] = 0.5*(node->uv[0][0]+ node->uv[1][0]);
+		n1->uv[0][1] = n2->uv[1][1] = 0.5*(node->uv[0][1]+ node->uv[1][1]);
 	}
 	else if(uvl==2) {
 	
@@ -667,6 +670,9 @@ void subdivideTriNode(RNode *node, RNode *edge)
 			n1->v3[2]= 0.5*(node->v2[2]+ node->v3[2]);
 			n1->v3[3]= node->v1[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[2][0] = n2->uv[1][0] = 0.5*(node->uv[1][0]+ node->uv[2][0]);
+		n1->uv[2][1] = n2->uv[1][1] = 0.5*(node->uv[1][1]+ node->uv[2][1]);
 	}
 	else if(uvl==3) {
 	
@@ -702,6 +708,9 @@ void subdivideTriNode(RNode *node, RNode *edge)
 			n1->v3[2]= 0.5*(node->v1[2]+ node->v3[2]);
 			n1->v3[3]= node->v3[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[2][0] = n2->uv[0][0] = 0.5*(node->uv[0][0]+ node->uv[2][0]);
+		n1->uv[2][1] = n2->uv[0][1] = 0.5*(node->uv[0][1]+ node->uv[2][1]);
 	}
 	n1->area= AreaT3Dfl(n1->v1, n1->v2, n1->v3);
 	n2->area= AreaT3Dfl(n2->v1, n2->v2, n2->v3);
@@ -828,6 +837,9 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v1[2]= 0.5*(node->v1[2]+ node->v2[2]);
 			n1->v1[3]= node->v1[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[0][0] = n2->uv[1][0] = 0.5*(node->uv[0][0]+ node->uv[1][0]);
+		n1->uv[0][1] = n2->uv[1][1] = 0.5*(node->uv[0][1]+ node->uv[1][1]);
 		
 		/* NEW VERTEX from edge 3 */
 		if( setvertexpointersNode(n1->ed3, n1, n1->lev3, &v1, &v2) ) {	/* nodes have equal levels */
@@ -847,6 +859,9 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v4[2]= 0.5*(node->v3[2]+ node->v4[2]);
 			n1->v4[3]= node->v4[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[3][0] = n2->uv[2][0] = 0.5*(node->uv[2][0]+ node->uv[3][0]);
+		n1->uv[3][1] = n2->uv[2][1] = 0.5*(node->uv[2][1]+ node->uv[3][1]);
 	}
 	/* subdivide edge 2 and 4 */
 	else if(uvl==2) {
@@ -887,6 +902,9 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v3[2]= 0.5*(node->v2[2]+ node->v3[2]);
 			n1->v3[3]= node->v3[3];	/* color */
 		}
+		/* UVs */
+		n1->uv[2][0] = n2->uv[1][0] = 0.5*(node->uv[1][0]+ node->uv[2][0]);
+		n1->uv[2][1] = n2->uv[1][1] = 0.5*(node->uv[1][1]+ node->uv[2][1]);
 
 		/* NEW VERTEX from edge 4 */
 		if( setvertexpointersNode(n1->ed4, n1, n1->lev4, &v1, &v2) ) {	/* nodes have equal levels */
@@ -906,7 +924,9 @@ void subdivideNode(RNode *node, RNode *edge)
 			n1->v4[2]= 0.5*(node->v1[2]+ node->v4[2]);
 			n1->v4[3]= node->v4[3];	/* color */
 		}
-
+		/* UVs */
+		n1->uv[3][0] = n2->uv[0][0] = 0.5*(node->uv[0][0]+ node->uv[3][0]);
+		n1->uv[3][1] = n2->uv[0][1] = 0.5*(node->uv[0][1]+ node->uv[3][1]);
 	}
 	
 	n1->area= AreaQ3Dfl(n1->v1, n1->v2, n1->v3, n1->v4);

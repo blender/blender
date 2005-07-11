@@ -104,8 +104,8 @@ void splitconnected()
 				else {	/* is face from this vertex allowed for gouraud? */
 					vnc1= vnc;
 					while(vnc1) {
-						if(VecCompare(vnc1->n, rp->norm, 0.01)) {
-							if(VecCompare(vnc1->col, rp->ref, 0.01)) {
+						if(VecCompare(vnc1->n, rp->norm, 0.01f)) {
+							if(VecCompare(vnc1->col, rp->ref, 0.01f)) {
 								break;
 							}
 						}
@@ -285,6 +285,18 @@ void setedgepointers()
 	MEM_freeN(esblock);
 }
 
+int materialIndex(Material *ma)
+{
+	int i = 0;
+	for(i=0;i< RG.totmat; i++)
+	{
+		if (RG.matar[i] == ma) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void rad_collect_meshes()
 {
 	extern Material defmaterial;
@@ -298,7 +310,7 @@ void rad_collect_meshes()
 	RNode *rn;
 	VeNoCo *vnc, **nodevert;
 	float *vd, *v1, *v2, *v3, *v4 = NULL;
-	int a, b, offs, index, matindex;
+	int a, b, offs, index;
 	
 	if(G.obedit) {
 		if (!during_script()) error("Unable to perform function in EditMode");
@@ -323,6 +335,8 @@ void rad_collect_meshes()
 				RG.totvert+= me->totvert;
 			}
 		}
+		else if ((base->flag & SELECT) == 0)
+			break;
 		base= base->next;
 	}
 	if(RG.totvert==0) {
@@ -331,8 +345,8 @@ void rad_collect_meshes()
 	}
 	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "readvideoscape1");
 
-	RG.min[0]= RG.min[1]= RG.min[2]= 1.0e20;
-	RG.max[0]= RG.max[1]= RG.max[2]= -1.0e20;
+	RG.min[0]= RG.min[1]= RG.min[2]= 1.0e20f;
+	RG.max[0]= RG.max[1]= RG.max[2]= -1.0e20f;
 	
 	/* min-max and material array */
 	base= (G.scene->base.first);
@@ -359,20 +373,27 @@ void rad_collect_meshes()
 					if(RG.totmat<MAXMAT) {
 						if(noma==NULL) {
 							noma= add_material("RadioMat");
+							RG.matar[RG.totmat]= noma;
+							RG.totmat++;
 						}
-						RG.matar[RG.totmat]= noma;
-						RG.totmat++;
 					}
 				}
 				else {
 					for(a=0; a<base->object->totcol; a++) {
 						if(RG.totmat >= MAXMAT) break;
-						RG.matar[RG.totmat]= give_current_material(base->object, a+1);
+
+						ma = give_current_material(base->object, a+1);
+
+						if (materialIndex(ma)!=-1) break;
+
+						RG.matar[RG.totmat]= ma;
 						RG.totmat++;
 					}
 				}
 			}
 		}
+		else if ((base->flag & SELECT) == 0)
+			break;
 		base= base->next;
 	}
 
@@ -390,7 +411,6 @@ void rad_collect_meshes()
 	RG.totpatch= 0;
 	RG.totlamp= 0;
 	offs= 0;
-	matindex= 0;
 	
 	base= (G.scene->base.first);
 	while(base) {
@@ -404,6 +424,7 @@ void rad_collect_meshes()
 
 				for(a=0; a<me->totface; a++, mface++) {
 					if(mface->v3) {
+						TFace *tface;
 						
 						rp= callocPatch();
 						BLI_addtail(&(RG.patchbase), rp);
@@ -441,6 +462,24 @@ void rad_collect_meshes()
 							CalcNormFloat(v1, v2, v3, rp->norm);
 						}
 
+						tface = me->tface ? &((TFace*)me->tface)[a] : (TFace*)NULL;
+
+						if (tface) {
+							memcpy(rn->uv, tface->uv, sizeof(float) * 4 * 2);
+							rn->tface = tface;
+						}
+						else {
+							rn->uv[0][0] = 0.0f;
+							rn->uv[0][1] = 0.0f;
+							rn->uv[1][0] = 1.0f;
+							rn->uv[1][1] = 0.0f;
+							rn->uv[2][0] = 1.0f;
+							rn->uv[2][1] = 1.0f;
+							rn->uv[3][0] = 0.0f;
+							rn->uv[3][1] = 1.0f;
+							rn->tface = NULL;
+						}
+
 						rn->area= rp->area;
 
 						/* color and emit */
@@ -475,19 +514,18 @@ void rad_collect_meshes()
 						rp->cent[2]/= (float)rp->type;
 						
 						/* for reconstruction materials */
-						rp->matindex= matindex+mface->mat_nr;
-						if(rp->matindex>MAXMAT-1) rp->matindex= MAXMAT-1;
+						rp->matindex= materialIndex(ma);
+						if(rp->matindex==-1) rp->matindex= 1;
 						
 						RG.totelem++;
 						RG.totpatch++;
 					}
 				}
 				offs+= me->totvert;
-				
-				matindex+= base->object->totcol;
-				if(base->object->totcol==0) matindex++;
 			}
 		}
+		else if ((base->flag & SELECT) == 0)
+			break;
 		base= base->next;
 	}
 	

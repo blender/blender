@@ -73,7 +73,7 @@ typedef struct RadView {
 #define RAD_TWOSIDED	16
 
 
-typedef struct RNode {					/* length: 76 */
+typedef struct RNode {					/* length: 104 */
 	struct RNode *down1, *down2, *up;
 	struct RNode *ed1, *ed2, *ed3, *ed4;
 	struct RPatch *par;
@@ -85,6 +85,8 @@ typedef struct RNode {					/* length: 76 */
 	float totrad[3], area;
 	
 	unsigned int col;
+	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
+	struct TFace *tface;
 } RNode;
 
 
@@ -100,9 +102,11 @@ typedef struct Elem {					/* length: 44 */
 } Elem;
 
 
-typedef struct Face {					/* length: 24 */
+typedef struct Face {					/* length: 52 */
 	float *v1, *v2, *v3, *v4;
 	unsigned int col, matindex;
+	float uv[4][2];		/* when you change this: also do function set_correct_uv in editmesh.c, and there are more locations that use the size of this part */
+	struct TFace *tface;
 } Face;
 
 /* rp->f1 */
