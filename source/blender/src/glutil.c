@@ -473,6 +473,19 @@ void bglVertex3fv(float *vec)
 	}
 }
 
+void bglVertex3f(float x, float y, float z)
+{
+	switch(curmode) {
+	case GL_POINTS:
+		if(pointhack) {
+			glRasterPos3f(x, y, z);
+			glBitmap(pointhack, pointhack, (float)pointhack/2.0, (float)pointhack/2.0, 0.0, 0.0, Squaredot);
+		}
+		else glVertex3f(x, y, z);
+		break;
+	}
+}
+
 void bglVertex2fv(float *vec)
 {
 	switch(curmode) {

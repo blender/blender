@@ -191,6 +191,7 @@ void			glaEnd2DDraw			(gla2DDrawInfo *di);
 void bglBegin(int mode);
 void bglEnd(void);
 void bglVertex3fv(float *vec);
+void bglVertex3f(float x, float y, float z);
 void bglVertex2fv(float *vec);
 
 void set_inverted_drawing(int enable);

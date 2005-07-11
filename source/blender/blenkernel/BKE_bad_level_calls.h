@@ -145,6 +145,7 @@ void make_unique_prop_names(char *str);
 /* DerivedMesh.c */
 void bglBegin(int mode);
 void bglVertex3fv(float *vec);
+void bglVertex3f(float x, float y, float z);
 void bglEnd(void);
 
 #endif
