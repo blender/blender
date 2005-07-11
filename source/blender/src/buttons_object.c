@@ -1079,9 +1079,10 @@ static void softbody_bake(Object *ob)
 	unsigned short event=0;
 	short val;
 	
-	G.scene->r.framelen= 1.0;	// baking has to be in uncorrected time
+	G.scene->r.framelen= 1.0;		// baking has to be in uncorrected time
 	CFRA= sb->sfra;
-	sbObjectToSoftbody(ob);
+	update_for_newframe_muted();	// put everything on this frame
+	sbObjectToSoftbody(ob);			// put softbody in restposition
 	ob->softflag |= OB_SB_BAKEDO;
 	
 	curarea->win_swap= 0;		// clean swapbuffers
