@@ -1097,7 +1097,6 @@ static void draw_filetext(SpaceFile *sfile)
 	for(a= sfile->ofs; a<sfile->totfile; a++, files++) {
 	
 		if( calc_filesel_line(sfile, a, &x, &y)==0 ) break;
-		
 		print_line(sfile, files, x, y);
 	}
 
@@ -1274,6 +1273,9 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	
 	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
 	else sfile->flag &= ~FILE_STRINGCODE;
+
+	if (U.uiflag & USER_HIDE_DOT)
+		sfile->flag |= FILE_HIDE_DOT;
 
 	if(type==FILE_MAIN) {
 		char *groupname;
@@ -2372,6 +2374,10 @@ void main_to_filelist(SpaceFile *sfile)
 	struct direntry *files, *firstlib = NULL;
 	ListBase *lb;
 	int a, fake, idcode, len, ok, totlib, totbl;
+	short hide = 0;
+
+	if (sfile->flag & FILE_HIDE_DOT)
+		hide = 1;
 
 	if(sfile->dir[0]=='/') sfile->dir[0]= 0;
 	
@@ -2425,12 +2431,12 @@ void main_to_filelist(SpaceFile *sfile)
 		id= lb->first;
 		sfile->totfile= 0;
 		while(id) {
-			
 			if(sfile->returnfunc && idcode==ID_IP) {
 				if(sfile->ipotype== ((Ipo *)id)->blocktype) sfile->totfile++;
 			}
-			else sfile->totfile++;
-			
+			else if (hide==0 || id->name[2] != '.')
+				sfile->totfile++;
+
 			id= id->next;
 		}
 		
@@ -2463,33 +2469,35 @@ void main_to_filelist(SpaceFile *sfile)
 			
 			if(ok) {
 		
-				memset( files, 0 , sizeof(struct direntry));
-				files->relname= BLI_strdup(id->name+2);
-				
-				if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
-					if(idcode==ID_OB) {
-						if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVE;
+				if (hide==0 || id->name[2] != '.') {
+					memset( files, 0 , sizeof(struct direntry));
+					files->relname= BLI_strdup(id->name+2);
+					
+					if(sfile->returnfunc==0) { /* F4 DATA BROWSE */
+						if(idcode==ID_OB) {
+							if( ((Object *)id)->flag & SELECT) files->flags |= ACTIVE;
+						}
+						else if(idcode==ID_SCE) {
+							if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVE;
+						}
 					}
-					else if(idcode==ID_SCE) {
-						if( ((Scene *)id)->r.scemode & R_BG_RENDER) files->flags |= ACTIVE;
+					files->nr= totbl+1;
+					files->poin= id;
+					fake= id->flag & LIB_FAKEUSER;
+					
+					if(id->lib && fake) sprintf(files->extra, "LF %d", id->us);
+					else if(id->lib) sprintf(files->extra, "L    %d", id->us);
+					else if(fake) sprintf(files->extra, "F    %d", id->us);
+					else sprintf(files->extra, "      %d", id->us);
+					
+					if(id->lib) {
+						if(totlib==0) firstlib= files;
+						totlib++;
 					}
+					
+					files++;
+					totbl++;
 				}
-				files->nr= totbl+1;
-				files->poin= id;
-				fake= id->flag & LIB_FAKEUSER;
-				
-				if(id->lib && fake) sprintf(files->extra, "LF %d", id->us);
-				else if(id->lib) sprintf(files->extra, "L    %d", id->us);
-				else if(fake) sprintf(files->extra, "F    %d", id->us);
-				else sprintf(files->extra, "      %d", id->us);
-				
-				if(id->lib) {
-					if(totlib==0) firstlib= files;
-					totlib++;
-				}
-				
-				files++;
-				totbl++;
 			}
 			
 			id= id->next;

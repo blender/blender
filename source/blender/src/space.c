@@ -1087,7 +1087,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(val==3) v3d->twmode= V3D_MANIP_NORMAL;
 						v3d->twflag |= V3D_USE_MANIPULATOR;
 						doredraw= 1;
-					}
+ 					}
 				}
 
 				break;
@@ -2850,16 +2850,20 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"System:",
-			(xpos+edgsp+(4*midsp)+(4*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(4*midsp)+(4*mpref)),y4label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButBitI(block, TOG, USER_DISABLE_SOUND, B_SOUNDTOGGLE, "Disable Game Sound",
-			(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
+			(xpos+edgsp+(4*mpref)+(4*midsp)),y3,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Disables sounds from being played in games");
 
 		uiDefButBitI(block, TOG, USER_FILTERFILEEXTS, 0, "Filter File Extensions",
-			(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
+			(xpos+edgsp+(4*mpref)+(4*midsp)),y2,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display only files with extensions in the image select window");
+
+		uiDefButBitI(block, TOG, USER_HIDE_DOT, 0, "Hide dot file/datablock",
+			(xpos+edgsp+(4*mpref)+(4*midsp)),y1,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0, "Hide files/datablocks that start with a dot(.*)");
 
 
 		uiDefBut(block, LABEL,0,"OpenGL:",

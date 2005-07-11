@@ -70,6 +70,7 @@
 #include "DNA_group_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -559,6 +560,9 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 			char buf[32];
 			
 			if (nr && id==link) *nr= i+1;
+
+			if (U.uiflag & USER_HIDE_DOT && id->name[2]=='.')
+				continue;
 			
 			get_flags_for_id(id, buf);
 				
@@ -601,6 +605,9 @@ static void IPOnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, sho
 				if (id==link)
 					*nr= i+1;
 					
+				if (U.uiflag & USER_HIDE_DOT && id->name[2]=='.')
+					continue;
+
 				get_flags_for_id(id, buf);
 				
 				BLI_dynstr_append(pupds, buf);
