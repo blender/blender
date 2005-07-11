@@ -1164,6 +1164,7 @@ void do_object_panels(unsigned short event)
 				/* apparently this call goes from right to left... */
 				Mat4MulSerie(hook->parentinv, hook->parent->imat, ob->obmat, NULL, 
 							NULL, NULL, NULL, NULL, NULL);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				BIF_undo_push("Clear hook");
 				allqueue(REDRAWVIEW3D, 0);
 			}
@@ -1647,7 +1648,7 @@ void object_panel_effects(Object *ob)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
 
 	/* EFFECTS */
 	

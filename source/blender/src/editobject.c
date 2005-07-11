@@ -655,7 +655,7 @@ void add_hook(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_sort(G.scene);
-
+	
 	BIF_undo_push("Add hook");
 }
 

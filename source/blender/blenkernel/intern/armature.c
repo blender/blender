@@ -242,65 +242,6 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 	return bone;
 }
 
-/* ****************** Game Blender functions, called by engine ************** */
-
-void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4])
-{
-	float obinv[4][4];
-
-	Mat4Invert(obinv, obmat);
-	Mat4CpyMat4(premat, obmat);
-	Mat4MulMat4(postmat, parmat, obinv);
-
-	Mat4Invert (premat, postmat);
-}
-
-void GB_init_armature_deform(ListBase *defbase, float premat[][4], float postmat[][4])
-{
-	g_defbase = defbase;
-	Mat4CpyMat4 (g_premat, premat);
-	Mat4CpyMat4 (g_postmat, postmat);
-
-}
-
-void GB_validate_defgroups (Mesh *mesh, ListBase *defbase)
-{
-	/* Should only be called when the mesh or armature changes */
-	int j, i;
-	MDeformVert *dvert;
-
-	for (j=0; j<mesh->totvert; j++){
-		dvert = mesh->dvert+j;
-		for (i=0; i<dvert->totweight; i++)
-			dvert->dw[i].data = ((bDeformGroup*)BLI_findlink (defbase, dvert->dw[i].def_nr))->data;
-	}
-}
-
-void GB_calc_armature_deform (float *co, MDeformVert *dvert)
-{
-	float vec[3]={0, 0, 0};
-	float contrib = 0;
-	int	i;
-	Bone *bone;
-
-	Mat4MulVecfl(g_premat, co);
-	
-	for (i=0; i<dvert->totweight; i++){
-		bone = dvert->dw[i].data;
-//		if (bone) calc_bone_deform (bone, dvert->dw[i].weight, vec, co, &contrib);
-	}
-	
-	if (contrib){
-		vec[0]/=contrib;
-		vec[1]/=contrib;
-		vec[2]/=contrib;
-	}
-	
-	VecAddf (co, vec, co);
-	Mat4MulVecfl(g_postmat, co);
-}
-
-/* ****************** END Game Blender functions, called by engine ************** */
 /* ************ Armature Deform ******************* */
 
 void init_armature_deform(Object *parent, Object *ob)
@@ -1068,4 +1009,65 @@ Bone *get_indexed_bone (Object *ob, int index)
 	}
 	return NULL;
 }
+
+
+/* ****************** Game Blender functions, called by engine ************** */
+
+void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4])
+{
+	float obinv[4][4];
+	
+	Mat4Invert(obinv, obmat);
+	Mat4CpyMat4(premat, obmat);
+	Mat4MulMat4(postmat, parmat, obinv);
+	
+	Mat4Invert (premat, postmat);
+}
+
+void GB_init_armature_deform(ListBase *defbase, float premat[][4], float postmat[][4])
+{
+	g_defbase = defbase;
+	Mat4CpyMat4 (g_premat, premat);
+	Mat4CpyMat4 (g_postmat, postmat);
+	
+}
+
+void GB_validate_defgroups (Mesh *mesh, ListBase *defbase)
+{
+	/* Should only be called when the mesh or armature changes */
+	int j, i;
+	MDeformVert *dvert;
+	
+	for (j=0; j<mesh->totvert; j++){
+		dvert = mesh->dvert+j;
+		for (i=0; i<dvert->totweight; i++)
+			dvert->dw[i].data = ((bDeformGroup*)BLI_findlink (defbase, dvert->dw[i].def_nr))->data;
+	}
+}
+
+void GB_calc_armature_deform (float *co, MDeformVert *dvert)
+{
+	float vec[3]={0, 0, 0};
+	float contrib = 0;
+	int	i;
+//	bPoseChannel *pchan;
+	
+	Mat4MulVecfl(g_premat, co);
+	
+	for (i=0; i<dvert->totweight; i++){
+//		pchan = (bPoseChannel *)dvert->dw[i].data;
+//		if (pchan) calc_bone_deform (pchan, dvert->dw[i].weight, vec, co, &contrib);
+	}
+	
+	if (contrib){
+		vec[0]/=contrib;
+		vec[1]/=contrib;
+		vec[2]/=contrib;
+	}
+	
+	VecAddf (co, vec, co);
+	Mat4MulVecfl(g_postmat, co);
+}
+
+/* ****************** END Game Blender functions, called by engine ************** */
 
