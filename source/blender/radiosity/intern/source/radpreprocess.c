@@ -335,8 +335,6 @@ void rad_collect_meshes()
 				RG.totvert+= me->totvert;
 			}
 		}
-		else if ((base->flag & SELECT) == 0)
-			break;
 		base= base->next;
 	}
 	if(RG.totvert==0) {
@@ -392,8 +390,6 @@ void rad_collect_meshes()
 				}
 			}
 		}
-		else if ((base->flag & SELECT) == 0)
-			break;
 		base= base->next;
 	}
 
@@ -524,8 +520,6 @@ void rad_collect_meshes()
 				offs+= me->totvert;
 			}
 		}
-		else if ((base->flag & SELECT) == 0)
-			break;
 		base= base->next;
 	}
 	
