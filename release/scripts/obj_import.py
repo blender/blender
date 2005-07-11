@@ -80,29 +80,55 @@ from Blender import *
 #==================================================================================#
 # This function sets textures defined in .mtl file                                 #
 #==================================================================================#
-def getImg(img_fileName):
+def getImg(img_fileName, dir):
+	img_fileName_strip = stripPath(img_fileName)
 	for i in Image.Get():
-		if stripPath(i.filename) == stripPath(img_fileName):
+		if stripPath(i.filename) == img_fileName_strip:
 			return i
+	
+	try: # Absolute dir
+		return Image.Load(img_fileName)
+	except IOError:
+		pass
+	
+	# Relative dir
+	if img_fileName.startswith('/'):
+		img_fileName = img_fileName[1:]
+	elif img_fileName.startswith('./'):
+		img_fileName = img_fileName[2:]
+	elif img_fileName.startswith('\\'):
+		img_fileName = img_fileName[1:]		
+	elif img_fileName.startswith('.\\'):
+		img_fileName = img_fileName[2:]		
 	
 	# if we are this far it means the image hasnt been loaded.
 	try:
-		return Image.Load(img_fileName)
+		return Image.Load( dir + img_fileName)
 	except IOError:
-		print '\tunable to open image file: "%s"' % img_fileName
-		return
-
+		pass
+	
+	# Its unlikely but the image might be with the OBJ file, and the path provided not relevent.
+	# if the user extracted an archive with no paths this could happen.
+	try:
+		return Image.Load( dir + img_fileName_strip)
+	except IOError:
+		pass
+	
+	print '\tunable to open image file: "%s"' % img_fileName
+	return None
 
 #==================================================================================#
 # This function sets textures defined in .mtl file                                 #
 #==================================================================================#
-def loadMaterialImage(mat, img_fileName, type, meshDict):
+def loadMaterialImage(mat, img_fileName, type, meshDict, dir):
 	TEX_ON_FLAG = NMesh.FaceModes['TEX']
 	
 	texture = Texture.New(type)
 	texture.setType('Image')
 	
-	image = getImg(img_fileName)
+	# Absolute path - c:\.. etc would work here
+	image = getImg(img_fileName, dir)
+	
 	if image:
 		texture.image = image
 		
@@ -120,11 +146,19 @@ def loadMaterialImage(mat, img_fileName, type, meshDict):
 	
 	# adds textures for materials (rendering)
 	elif type == 'Ka':
-		mat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.CMIR)
+		mat.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.CMIR) # TODO- Add AMB to BPY API
 	elif type == 'Kd':
 		mat.setTexture(1, texture, Texture.TexCo.UV, Texture.MapTo.COL)
 	elif type == 'Ks':
 		mat.setTexture(2, texture, Texture.TexCo.UV, Texture.MapTo.SPEC)
+	
+	elif type == 'Bump': # New Additions
+		mat.setTexture(3, texture, Texture.TexCo.UV, Texture.MapTo.NOR)		
+	elif type == 'D':
+		mat.setTexture(4, texture, Texture.TexCo.UV, Texture.MapTo.ALPHA)				
+	elif type == 'refl':
+		mat.setTexture(5, texture, Texture.TexCo.UV, Texture.MapTo.REF)				
+	
 
 #==================================================================================#
 # This function loads materials from .mtl file (have to be defined in obj file)    #
@@ -138,10 +172,12 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 		# Make a new mat
 		try:
 			return materialDict[matName]
-		except NameError:
+		#except NameError or KeyError:
+		except: # Better do any exception
 			# Do we realy need to keep the dict up to date?, not realy but keeps consuistant.
 			materialDict[matName] = Material.New(matName)
 			return materialDict[matName]
+		
 			
 	mtl_file = stripPath(mtl_file)
 	mtl_fileName = dir + mtl_file
@@ -172,19 +208,34 @@ def load_mtl(dir, mtl_file, meshDict, materialDict):
 				currentMat.setSpecCol(float(l[1]), float(l[2]), float(l[3]))
 			elif l[0] == 'Ns':
 				currentMat.setHardness( int((float(l[1])*0.51)) )
+			elif l[0] == 'Ni': # Refraction index
+				currentMat.setIOR( max(1, min(float(l[1]), 3))) # Between 1 and 3
 			elif l[0] == 'd':
 				currentMat.setAlpha(float(l[1]))
 			elif l[0] == 'Tr':
 				currentMat.setAlpha(float(l[1]))
 			elif l[0] == 'map_Ka':
-				img_fileName = dir + ' '.join(l[1:])
-				loadMaterialImage(currentMat, img_fileName, 'Ka', meshDict)
+				img_fileName = ' '.join(l[1:])
+				loadMaterialImage(currentMat, img_fileName, 'Ka', meshDict, dir)
 			elif l[0] == 'map_Ks':
-				img_fileName = dir + ' '.join(l[1:])
-				loadMaterialImage(currentMat, img_fileName, 'Ks', meshDict)
+				img_fileName = ' '.join(l[1:])
+				loadMaterialImage(currentMat, img_fileName, 'Ks', meshDict, dir)
 			elif l[0] == 'map_Kd':
-				img_fileName = dir + ' '.join(l[1:])
-				loadMaterialImage(currentMat, img_fileName, 'Kd', meshDict)
+				img_fileName = ' '.join(l[1:])
+				loadMaterialImage(currentMat, img_fileName, 'Kd', meshDict, dir)
+			
+			# new additions
+			elif l[0] == 'map_Bump': # Bumpmap
+				img_fileName = ' '.join(l[1:])			
+				loadMaterialImage(currentMat, img_fileName, 'Bump', meshDict, dir)
+			elif l[0] == 'map_D': # Alpha map - Dissolve
+				img_fileName = ' '.join(l[1:])			
+				loadMaterialImage(currentMat, img_fileName, 'D', meshDict, dir)
+
+			elif l[0] == 'refl': # Reflectionmap
+				img_fileName = ' '.join(l[1:])			
+				loadMaterialImage(currentMat, img_fileName, 'refl', meshDict, dir)
+			
 			lIdx+=1
 	except:
 		print '\tERROR: Unable to parse MTL file.'
@@ -641,13 +692,12 @@ def load_obj(file):
 						currentImg = imageDict[newImgName]
 					
 					except KeyError: # Not in dict, add for first time.
-						try: # Image has not been added, Try and load the image
-							currentImg = Image.Load( '%s%s' % (DIR, newImgName) ) # Use join in case of spaces 
-							imageDict[newImgName] = currentImg
-							
-						except IOError: # Cant load, just set blank.
-							imageDict[newImgName] = None
-							currentImg = None
+						# Image has not been added, Try and load the image
+						currentImg = getImg(newImgName, DIR) # Use join in case of spaces 
+						imageDict[newImgName] = currentImg
+						# These may be None, thats okay.
+						
+						
 			
 			# MATERIAL FILE
 			elif l[0] == 'mtllib':
@@ -709,3 +759,4 @@ print "TOTAL IMPORT TIME: ", sys.time() - TIME
 #load_obj('/obj/foot_bones.obj')
 #load_obj('/obj/mba1.obj')
 #load_obj('/obj/PixZSphere50.OBJ')
+#load_obj('/obj/obj_test/LHand.obj')

@@ -1,19 +1,32 @@
 """
 #----------------------------------------------
-# (c) jm soler juillet 2004, released under Blender Artistic Licence 
+# (c) jm soler juillet 2004-juin 2005, 
+#  released under Blender Artistic Licence 
 #    for the Blender 2.34 Python Scripts Bundle.
 #----------------------------------------------
 # Page officielle :
-#   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_ai.htm
+#   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_ai_en.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #
 # 0.1.1 : 2004/08/03, bug in boudingbox reading when Value are negative
+# 0.1.2 : 2005/06/12, gmove tranformation properties
+# 0.1.3 : 2005/06/25, added a __name__ test to use the script alone
+# 0.1.4 : 2005/06/25, closepath improvements 
+# 0.1.5 : 2005/06/25, ... 
+# 0.1.6 : 2005/06/26, warning for compacted file 
+                      compatibility increased up to AI 10.0 plain text 
+# 0.1.7 : 2005/06/25, two more closepath improvements 
 #
 """
 SHARP_IMPORT=0
 SCALE=1
-DEVELOPPEMENT=0
+NOTHING_TODO=1
+AI_VERSION=''
+
+GSTACK          =   []
+GSCALE          =   []
+GTRANSLATE      =   []
 
 import sys
 #oldpath=sys.path
@@ -62,11 +75,11 @@ def filtreFICHIER(nom):
      t=f.readlines()
      f.close()
      
-     if len(t)>1: 
+     if len(t)>1 and t[0].find('EPSF')==-1: 
           return t   
      else:
          name = "OK?%t| Not a valid file or an empty file ... "  # if no %xN int is set, indices start from 1
-         result = Draw.PupMenu(name)
+         result = Blender.Draw.PupMenu(name)
           
          return 'false'
         
@@ -85,6 +98,7 @@ class Bez:
       def __init__(self):
            self.co=[]
            self.ha=[0,0]
+           self.tag=''
            
 class ITEM:
       def __init__(self):
@@ -124,6 +138,23 @@ n0=0
 #=====================================================================
 CP=[0.0,0.0] #currentPoint
 
+
+# modifs 12/06/2005       
+#=====================================================================
+#====================== current transform ============================
+#=====================================================================
+class transform:
+      def __init__(self,matrix=[1,0,01],x=0.0,y=0.0):
+          self.matrix=matrix[:]
+          self.xy=[x,y]          
+
+def G_move(l,a):
+    global GSCALE, GTRANSLATE, GSTACK
+    #print GSCALE, GTRANSLATE, GSTACK
+    return str((float(l)+GTRANSLATE[a]+GSTACK[-1].xy[a])*GSCALE[a])
+# modifs 12/06/2005
+
+
 #=====================================================================
 #===== to compare last position to the original move to displacement =
 #=====  needed for cyclic efinition  =================================
@@ -142,6 +173,7 @@ def Open_GEOfile(dir,nom):
        Blender.Load(dir+nom+'OOO.obj', 1)
        BO=Blender.Object.Get()
        BO[-1].RotY=0.0
+       BO[-1].RotX=1.57
        BO[-1].makeDisplayList() 
        Blender.Window.RedrawAll()
     else:
@@ -166,20 +198,23 @@ def create_GEOtext(courbes):
     t.append(courbes.matrix+'\n')
     
     for k in courbes.ITEM.keys():
-        t.append("%s\n"%courbes.ITEM[k].type)
-        t.append("%s %s \n"%(courbes.ITEM[k].pntsUV[0],courbes.ITEM[k].pntsUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].resolUV[0],courbes.ITEM[k].resolUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].orderUV[0],courbes.ITEM[k].orderUV[1]))
-        t.append("%s %s \n"%(courbes.ITEM[k].flagUV[0],courbes.ITEM[k].flagUV[1]))
+        if len(courbes.ITEM[k].beziers_knot)>1 :
+            t.append("%s\n"%courbes.ITEM[k].type)
+            t.append("%s %s \n"%(courbes.ITEM[k].pntsUV[0],courbes.ITEM[k].pntsUV[1]))
+            t.append("%s %s \n"%(courbes.ITEM[k].resolUV[0],courbes.ITEM[k].resolUV[1]))
+            t.append("%s %s \n"%(courbes.ITEM[k].orderUV[0],courbes.ITEM[k].orderUV[1]))
+            t.append("%s %s \n"%(courbes.ITEM[k].flagUV[0],courbes.ITEM[k].flagUV[1]))
 
-        flag =courbes.ITEM[k].flagUV[0]
+            flag =courbes.ITEM[k].flagUV[0]
 
-        for k2 in range(flag,len(courbes.ITEM[k].beziers_knot)):
-           k1 =courbes.ITEM[k].beziers_knot[k2]
-           t.append("%4f 0.0 %4f \n"%(float(k1.co[0])/SCALE,float(k1.co[1])/SCALE))
-           t.append("%4f 0.0 %4f \n"%(float(k1.co[2])/SCALE,float(k1.co[3])/SCALE))
-           t.append("%4f 0.0 %4f \n"%(float(k1.co[4])/SCALE,float(k1.co[5])/SCALE))
-           t.append(str(k1.ha[0])+' '+str(k1.ha[1])+'\n')
+            for k2 in range(len(courbes.ITEM[k].beziers_knot)):
+               #print k2 
+               k1 =courbes.ITEM[k].beziers_knot[k2]
+               t.append("%4f 0.0 %4f \n"%(float(k1.co[2])/SCALE,float(k1.co[3])/SCALE))               
+               t.append("%4f 0.0 %4f \n"%(float(k1.co[4])/SCALE,float(k1.co[5])/SCALE))
+               t.append("%4f 0.0 %4f \n"%(float(k1.co[0])/SCALE,float(k1.co[1])/SCALE))
+               
+               t.append(str(k1.ha[0])+' '+str(k1.ha[1])+'\n')
     return t
 
 def save_GEOfile(dir,nom,t):
@@ -195,18 +230,17 @@ def save_GEOfile(dir,nom,t):
 #=====================================================================
 def mouvement_vers(l,n0,CP):
     if n0 in courbes.ITEM.keys():
-       #if  test_egalitedespositions(courbes.ITEM[n0].Origine,CP):
-       #   courbes.ITEM[n0].flagUV[0]=1 
        n0+=1
-    else:
-       CP=[l[-3].replace('d',''),l[-2]] 
-    #i=
+
+    CP=[l[-3].replace('d',''),l[-2]] 
     courbes.ITEM[n0]=ITEM() 
     courbes.ITEM[n0].Origine=[l[-3].replace('d',''),l[-2]] 
     
     B=Bez()
     B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
-    B.ha=[0,0]    
+    B.ha=[0,0]
+    B.tag=l[-1]
+
     courbes.ITEM[n0].beziers_knot.append(B)       
 
     return  courbes,n0,CP     
@@ -214,64 +248,75 @@ def mouvement_vers(l,n0,CP):
 def courbe_vers_c(l,l2, n0,CP): #c,C
 
     B=Bez()
-    B.co=[l[2],l[3],l[4],l[5],l[0],l[1]]
-
-    if len(courbes.ITEM[n0].beziers_knot)==1:
-       CP=[l[0],l[1]]
-       courbes.ITEM[n0].Origine=[l[0],l[1]]
-
-    if l[-1]=='C':  
-        B.ha=[2,2]
-    else:
-        B.ha=[0,0]
+    B.co=[l[4],l[5],l[2],l[3],l[4],l[5]]
+    B.tag=l[-1]
+    B.ha=[0,0]
+        
+    BP=courbes.ITEM[n0].beziers_knot[-1]
+    
+    BP.co[0]=l[0]
+    BP.co[1]=l[1]
 
     courbes.ITEM[n0].beziers_knot.append(B)
-    if len(l2)>1 and l2[-1] in Actions.keys():
-       B.co[-2]=l2[0]
-       B.co[-1]=l2[1]
-    else:
-       #B.co[-2]=courbes.ITEM[n0].beziers_knot[-1].co[0]
-       #B.co[-1]=courbes.ITEM[n0].beziers_knot[-].co[1]            
 
-       B.co[-2]=CP[0]
-       B.co[-1]=CP[1]
+    CP=[B.co[4],B.co[5]]
     return  courbes,n0,CP
      
      
 def courbe_vers_v(l,n0,CP): #v-V
+
     B=Bez()
+    B.tag=l[-1]
     B.co=[l[2],l[3],l[0],l[1],l[2],l[3]]
-    if l[-1]=='V':  
-        B.ha=[2,2]
-    else:
-        B.ha=[0,0]
-    courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[l[0],l[1]]    
+    B.ha=[0,0]
+
+    courbes.ITEM[n0].beziers_knot.append(B) 
+   
+    CP=[B.co[4],B.co[5]]    
     return  courbes,n0,CP
          
 def courbe_vers_y(l,n0,CP): #y
     B=Bez()
-    B.co=[l[2],l[3],l[0],l[1],l[2],l[3]]
-    if l[-1]=='Y':  
-        B.ha=[2,2]
-    else:
-        B.ha=[0,0]
+    B.tag=l[-1]
+    B.co=[l[2],l[3],l[2],l[3],l[2],l[3]]
+    B.ha=[0,0]
+        
+    BP=courbes.ITEM[n0].beziers_knot[-1]
+    BP.co[0]=l[0]
+    BP.co[1]=l[1]   
+     
     courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[l[2],l[3]]        
+    CP=[B.co[4],B.co[5]] 
     return  courbes,n0,CP
      
       
 def ligne_tracee_l(l,n0,CP):
     B=Bez()
+    B.tag=l[-1]
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
-    if l[-1]=='L':  
-        B.ha=[2,2]
-    else:
-        B.ha=[0,0]
-    courbes.ITEM[n0].beziers_knot.append(B)    
-    CP=[l[0],l[1]]
+    B.ha=[0,0]
+
+    BP=courbes.ITEM[n0].beziers_knot[-1]    
+
+    courbes.ITEM[n0].beziers_knot.append(B)
+    CP=[B.co[4],B.co[5]]
     return  courbes,n0,CP    
-     
+
+def ligne_fermee(l,n0,CP):
+    courbes.ITEM[n0].flagUV[0]=1
+    
+    if len(courbes.ITEM[n0].beziers_knot)>1:
+        BP=courbes.ITEM[n0].beziers_knot[-1]
+        BP0=courbes.ITEM[n0].beziers_knot[0]
+           
+        if BP.tag not in ['l','L']: 
+           BP.co[0]=BP0.co[0]  #4-5 point prec
+           BP.co[1]=BP0.co[1]
+        
+    del courbes.ITEM[n0].beziers_knot[0]
+    return  courbes,n0,CP    
+
+
 Actions=   {     "C" : courbe_vers_c,
                  "c" : courbe_vers_c,
                  "V" : courbe_vers_v,
@@ -280,13 +325,25 @@ Actions=   {     "C" : courbe_vers_c,
                  "y" : courbe_vers_y,
                  "m" : mouvement_vers,
                  "l" : ligne_tracee_l,
-                 "L" : ligne_tracee_l}
+                 "L" : ligne_tracee_l,
+	
+                 "f" : ligne_fermee,
+                 "b" : ligne_fermee,
+                 "s" : ligne_fermee,
+	
+                 "N" : ligne_fermee,
+                 }
      
 TAGcourbe=Actions.keys()
                  
 def pik_pattern(t,l):
-    global npat, PATTERN, BOUNDINGBOX
-    while t[l].find('%%EndSetup')!=0:   
+    global npat, PATTERN, BOUNDINGBOX, AI_VERSION
+    while t[l].find('%%EndSetup')!=0:
+          if t[l].find('%%Creator: Adobe Illustrator(R)')!=-1:
+               print  t[l]
+               AI_VERSION=t[l].split()[-1]
+               print  AI_VERSION
+			
           if t[l].find('%%BoundingBox:')!=-1:
              t[l]=t[l][t[l].find(':')+1:]    
              l0=t[l].split()
@@ -312,7 +369,7 @@ def pik_pattern(t,l):
     return 1,l
              
 def scan_FILE(nom):
-  global CP, courbes, SCALE
+  global CP, courbes, SCALE, NOTHING_TODO
   dir,name=split(nom)
   name=name.split('.')
   n0=0
@@ -331,10 +388,19 @@ def scan_FILE(nom):
            if not do:
               do,l=pik_pattern(t,l)
            #print 'len(t)',len(t)        
-           t[l].replace('\n','') 
+           t[l].replace('\n','')
+           if t[l].find('%%EOF')==0:
+              break 
            if t[l][0]!='%':
                 l0=t[l].split()
+                #print l0  
+                if l0[0][0] in ['F','f','N','n','B','b']:
+                   l3=l0[0][0]
+                   courbes,n0,CP=Actions[l3](l3,n0,CP)
+                   l0[0]=l0[1:]
+	
                 if l0[-1] in TAGcourbe:
+                    NOTHING_TODO=0
                     if l0[-1] in ['C','c']:
                        l2=t[l+1].split()
                        courbes,n0,CP=Actions[l0[-1]](l0,l2,n0,CP)
@@ -342,15 +408,12 @@ def scan_FILE(nom):
                        courbes,n0,CP=Actions[l0[-1]](l0,n0,CP)
            l=l+1; #print l                    
       t=[]
-      courbes.number_of_items=len(courbes.ITEM.keys())
+      
+            
+      courbes.number_of_items=len(courbes.ITEM.keys())      
       for k in courbes.ITEM.keys():
-         courbes.ITEM[k].pntsUV[0] =len(courbes.ITEM[k].beziers_knot)
-
-         if  test_egalitedespositions(courbes.ITEM[k].Origine,
-                                      [courbes.ITEM[k].beziers_knot[-1].co[-2],
-                                       courbes.ITEM[k].beziers_knot[-1].co[-1]]):
-              courbes.ITEM[k].flagUV[0]=1 
-              courbes.ITEM[k].pntsUV[0] -=1
+              courbes.ITEM[k].pntsUV[0] =len(courbes.ITEM[k].beziers_knot)
+              
 
       if courbes.number_of_items>0:
          if len(PATTERN.keys() )>0:
@@ -375,8 +438,12 @@ def scan_FILE(nom):
 # et de documenter les variables Window.FileSelector
 #=========================================================
 def fonctionSELECT(nom):
+    global NOTHING_TODO,AI_VERSION
     scan_FILE(nom)
+    if NOTHING_TODO==1:
+            warning = "AI  %s compatible file "%AI_VERSION+" but nothing to do ? %t| Perhaps a compacted file ... "
+            NOTHING = Blender.Draw.PupMenu(warning)
 
-if DEVELOPPEMENT==1:
+if __name__=="__main__":
     Blender.Window.FileSelector (fonctionSELECT, 'SELECT AI FILE')
 #sys.path=oldpath       

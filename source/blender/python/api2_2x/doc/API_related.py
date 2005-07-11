@@ -213,7 +213,7 @@ Introduction:
  in Blender.  The script receives the event B{before} it is further processed
  by the program.  An EVENT handler script should check Blender.event (compare
  it against L{Draw} events) and either:
-  - process it (then set Blender.event to None);
+  - process it (the script must set Blender.event to None then);
   - ignore it.
 
  Setting C{Blender.event = None} tells Blender not to go on processing itself
@@ -226,6 +226,7 @@ Introduction:
   import Blender
   from Blender import DRAW
   evt = Blender.event
+  return_it = False
 
   if evt == DRAW.LEFTMOUSE:
     print "Swallowing the left mouse button press"
@@ -233,10 +234,10 @@ Introduction:
     print "Swallowing an 'a' character"
   else:
     print "Let the 3D View itself process this event:", evt
-    return
+    return_it = True
 
   # if Blender should not process itself the passed event:
-  Blender.event = None
+  if not return_it: Blender.event = None
 
  DRAW space handlers are called by that space's drawing callback in Blender.
  The script is called B{after} the space has been drawn.
@@ -254,14 +255,16 @@ Introduction:
 
  B{Guidelines (important)}:
   - EVENT handlers can access and change Blender objects just like any other
-    script, but they should not draw (images, polygons, etc.) to the screen,
-    B{use a DRAW handler to do that} and, if both scripts need to pass
-    information to each other, use the L{Registry} module.
+    script, but they should not draw to the screen, B{use a DRAW handler to do
+    that}.  Specifically: L{Draw.Image} and the L{BGL} drawing functions
+    should not be used inside an EVENT handler.
   - DRAW handlers should leave the space in the same state it was before they
-    executed.  OpenGL attributes and the modelview and projection matrices are
-    automatically saved (pushed) before a DRAW handler runs and restored (poped)
-    after it finishes, no need to worry about that.  Draw handlers should not
-    grab events;
+    were executed.  OpenGL attributes and the modelview and projection matrices
+    are automatically saved (pushed) before a DRAW handler runs and restored
+    (poped) after it finishes, no need to worry about that.  Draw handlers
+    should not grab events;
+  - If script handlers need to pass information to each other (for example an
+    EVENT handler passing info to a DRAW handler), use the L{Registry} module.
   - in short: use the event handler to deal with events and the draw handler to
     draw and your script will be following the recommended practices for
     Blender code.

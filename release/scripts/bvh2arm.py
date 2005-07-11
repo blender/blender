@@ -1,24 +1,24 @@
 #!BPY
 """
 Name: 'BVH Empties to Armature'
-Blender: 234
+Blender: 237
 Group: 'Animation'
-Tooltip: 'Create Armature from Empties created by the BVH import script'
+Tooltip: 'Create Armature from Empties created by BVH importer'
 """
 __author__ = " Jean-Baptiste PERIN (jb_perin(at)yahoo.fr)"
 __url__ = ("blender", "elysiun",
 "BVH 2 ARMATURE, http://www.zoo-logique.org/3D.Blender/index.php3?zoo=dld&rep=zip ",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender") 
 
-__version__ = "2.0"
+__version__ = "2.2"
 
-__bpydoc__ = """ BVH2ARM.py v2.0
+__bpydoc__ = """ BVH2ARM.py v2.2
 
-Script for generating armature from BVH empties.
+Script for generating armature on BVH empties.
 
-This script generates an armature and makes bones
-follow empties created by the BVH import script.
-
+This script generates an armature and make bones
+follow empties created by Blender BVH import script.
+ 
 Usage:<br>
  - Import a bvh in Blender (File->Import->BVH);<br>
  - Launch this script (Alt-P);<br>
@@ -26,13 +26,13 @@ Usage:<br>
    "hipbonename": the name of the main bone;<br>
    "startframe":  the first frame of your anim;<br>
    "endframe":  the last frame of your anim;<br>
-   "decimation": the frequency (in number of frames) to which the armature is updated;<br>
-   "scale": to size the created armature.
+   "decimation": the frequency (in number of frame) to which the armature is updated;<br>
+   "scale" to size the created armature.<br>
  - Press "Create Armature".
 """
 
 #----------------------------------------------
-# (c) Jean-Baptiste PERIN  octobre 2004, released under Blender Artistic Licence
+# (c) Jean-Baptiste PERIN  june 2005, released under Blender Artistic Licence
 #    for the Blender 2.34-2.36 Python Scripts Bundle.
 #----------------------------------------------
 
@@ -346,7 +346,7 @@ def f_createBone (armData, empty, bone, empties):
 		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
 		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
 		dicBone[b.getName()]=b
-		print "Ajout de ", b.getName(),"  au dictionnaire"
+		#print "Ajout de ", b.getName(),"  au dictionnaire"
 		f_createBone(armData, ch, b, empties)
 	
 
@@ -415,7 +415,7 @@ def f_createArmature (rootEmpty, empties, armData):
 		dicBoneRestInvEmpRest[b.getName()]=b.getRestMatrix()*invmatrice*invmatricet
 		dicEmpRestInvBoneRest[b.getName()]=matrice*invbonerest
 		dicBone[b.getName()]=b
-		print "Ajout de ", b.getName(),"  au dictionnaire"
+		#print "Ajout de ", b.getName(),"  au dictionnaire"
 		
 		f_createBone(armData, ch, b, empties)
 
@@ -632,26 +632,22 @@ def button_event(evt):
 		hipbonename = HBName.val
 		framedecimation = FrameDecimation.val
 		scalef= eval(str(ScaleF.val))
-		print "scalef = ", scalef
+		#print "scalef = ", scalef
 		if startframe>=endframe:
 			Msg = 'Start frame must be lower than End frame'
-			Blender.Draw.PupMenu("ERROR: %s" % Msg)
 		else:
 			ob = getEmpty(hipbonename)
 			if (ob!=None): 
 				if ob.getParent()!=None:
 					Msg = 'Empty '+hipbonename+ ' is not a root bone.'
-					Blender.Draw.PupMenu("ERROR: %s" % Msg)
 				else:  
 					if (0.0 > scalef):
 						Msg = 'Scale factor must be greater than 0'
-						Blender.Draw.PupMenu("ERROR: %s" % Msg)
 					else:
 						#Blender.Draw.Exit()
 						Main()
 			else:
 				Msg = 'Empty '+ hipbonename+ ' not found'
-				Blender.Draw.PupMenu("ERROR: %s" % Msg)
 				
 		#Blender.Draw.Redraw(1)
 	elif evt==2:
@@ -660,13 +656,11 @@ def button_event(evt):
 		if (ob!=None): 
 			if ob.getParent()!=None:
 				Msg = 'Empty '+hipbonename+ ' is not a root bone.'
-				Blender.Draw.PupMenu("ERROR: %s" % Msg)
 			else:  
 				#Blender.Draw.Exit()
 				RemoveEmpties()
 		else:
 			Msg = 'Empty '+ hipbonename+ ' not found'
-			Blender.Draw.PupMenu("ERROR: %s" % Msg)
 
 	#else:
 	#	print "evt = ",evt
@@ -677,13 +671,13 @@ def GUI():
 	Blender.BGL.glClear(Blender.BGL.GL_COLOR_BUFFER_BIT)
 	Blender.BGL.glColor3f(1,1,1)
 	Blender.BGL.glRasterPos2i(20,200)
-	Blender.Draw.Text ("BVH 2 ARMATURE v2.0 by Jean-Baptiste PERIN", 'normal')
-	HBName = Blender.Draw.String("HipBoneName: ", -1, 20, 175, 250, 20, '_Hips', 100)
-	SFrame2 = Blender.Draw.Number("Startframe: ", -1, 20, 150, 250, 20, 1, 1,3000,"")
-	EFrame = Blender.Draw.Number("Endframe: ", -1, 20, 125, 250, 20, Blender.Get("endframe"), 1,3000,"")
-	#IFrame = Blender.Draw.Number("Insertionframe: ", -1, 20, 100, 250, 20, Blender.Get("staframe"), 1,3000,"")
-	FrameDecimation = Blender.Draw.Number("FrameDecimation: ", -1, 20, 75, 250, 20,5, 1,10,'')
-	ScaleF = Blender.Draw.Number("Scale: ", -1, 20, 50, 250, 20, 0.03, 0.0, 10.0,  'Scale Factor')
+	Blender.Draw.Text ("BVH 2 ARMATURE v2.2 by Jean-Baptiste PERIN", 'normal')
+	HBName = Blender.Draw.String("HipBoneName: ", 0, 20, 175, 250, 20, '_Hips', 100)
+	SFrame2 = Blender.Draw.Number("Startframe: ", 0, 20, 150, 250, 20, 1, 1,3000,"Start frame of anim")
+	EFrame = Blender.Draw.Number("Endframe: ", 0, 20, 125, 250, 20, Blender.Get("endframe"), 1,3000,"Last frame of anim")
+	#IFrame = Blender.Draw.Number("Insertionframe: ", 0, 20, 100, 250, 20, Blender.Get("staframe"), 1,3000,"")
+	FrameDecimation = Blender.Draw.Number("FrameDecimation: ", 0, 20, 75, 250, 20,5, 1,10,'number of frame to skip between two action keys')
+	ScaleF = Blender.Draw.Number("Scale: ", 0, 20, 50, 250, 20, 1.0, 0.0, 10.0,  'Scale Factor')
 	Blender.Draw.Toggle("Create Armature", 1, 20, 10, 100, 20, 0, "Create Armature")
 	#Blender.Draw.Toggle("Remove Empties", 2, 200, 10, 100, 20, 0, "Remove Empties")
 	Blender.BGL.glRasterPos2i(20,40)

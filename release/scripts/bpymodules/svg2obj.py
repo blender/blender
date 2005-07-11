@@ -1,10 +1,12 @@
 """
-SVG 2 OBJ translater, 0.3.1
-(c) jm soler juillet/novembre 2004, released under Blender Artistic Licence 
-    for the Blender 2.34/33 Python Scripts Bundle.
+SVG 2 OBJ translater, 0.3.3
+(c) jm soler juillet/novembre 2004-juin 2005, 
+#   released under Blender Artistic Licence 
+    for the Blender 2.37/36/35/34/33 Python Scripts Bundle.
 #---------------------------------------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg.htm
+#   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_svg_en.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #---------------------------------------------------------------------------
@@ -72,9 +74,18 @@ Changelog:
       0.2.6 : - correction for illustrator 10 SVG
       0.2.7 : - correction for inskape 0.40 cvs  SVG
       0.2.8 : - correction for inskape plain SVG
-      0.3   : - transform properties added
+      0.3   : - reading of the transform properties added : 
+                    translate
       0.3.1 : - compatibility restored with gimp 
-                
+      0.3.2 : - transform properties added (june, 15-16): 
+                    scale, 
+                    rotate, 
+                    matrix, 
+                    skew               
+              - added a test on __name__ to load the script
+                outside from the blender menu  
+      0.3.3 : - controle du contenu des transformation de type matrix 
+      0.3.4 : - restructuration de la lecture des donnes paths (19/06/05) 
 ==================================================================================   
 =================================================================================="""
 
@@ -85,8 +96,9 @@ DEBUG =0 #print
 DEVELOPPEMENT=0
     
 import sys
-#oldpath=sys.path
+from math import cos,sin,tan
 import Blender
+from Blender import Mathutils
 BLversion=Blender.Get('version')
 
 try:
@@ -275,6 +287,7 @@ def save_GEOfile(dir,nom,t):
 
 def filtre_DATA(c,D,n):
     global DEBUG,TAGcourbe
+    #print 'c',c,'D',D,'n',n
     l=[] 
     if len(c[0])==1 and D[c[1]+1].find(',')!=-1:
         for n2 in range(1,n+1): 
@@ -372,7 +385,8 @@ def courbe_vers_t(c,D,n0,CP):  #T
 def courbe_vers_c(c, D, n0,CP): #c,C
 
     l=filtre_DATA(c,D,3) 
-    #print l, c, CP
+
+    print '\n','l',l, 'c',c,'CP', CP
 
     if c[0]=='c':
        l=["%4s"%(float(l[0])+float(CP[0])),
@@ -437,12 +451,11 @@ def ligne_tracee_l(c, D, n0,CP): #L,l
     
 def ligne_tracee_h(c,D,n0,CP): #H,h
     #print '|',c[0],'|',len(c[0]),'  --> ',CP[0]
+    #print   'D   :',D,' \n CP  :', CP 
     if c[0]=='h':
-       l=["%4s"%(float(D[c[1]+1])+float(CP[0])),
-          "%4s"%float(CP[1])]
+       l=["%4s"%(float(D[c[1]+1])+float(CP[0])),"%4s"%float(CP[1])]
     else:
-       l=["%4s"%float(D[c[1]+1]),
-          "%4s"%float(CP[1])]        
+       l=["%4s"%float(D[c[1]+1]),"%4s"%float(CP[1])]        
     B=Bez()
     B.co=[l[0],l[1],l[0],l[1],l[0],l[1]]
     B.ha=[0,0]
@@ -511,32 +524,22 @@ def get_content(val,t0):
        t=t[t.find(' '+val+'="')+len(' '+val+'="'):]
        val=t[:t.find('"')]
        t=t[t.find('"'):]
-       #----------------------------------------------------------------
-       #print t[:10], val
-       #wait=raw_input('wait:'  )
-
        return t0,val
     else:
        return t0,0
 
 def get_tag(val,t):
-
     t=t[t.find('<'+val):]
     val=t[:t.find('>')+1]
-    t=t[t.find('>')+1:]
-    
+    t=t[t.find('>')+1:]    
     if DEBUG==3 : print t[:10], val
-
     return t,val
 
 def get_data(val,t):
-
     t=t[t.find('<'+val):]
     val=t[:t.find('</'+val+'>')]
     t=t[t.find('</'+val+'>')+3+len(val):]
-    
     if DEBUG==3 : print t[:10], val
-
     return t,val
     
 def get_val(val,t):
@@ -561,6 +564,8 @@ def get_val(val,t):
         d=0.0 
     return d
 
+
+
 def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
     if viewbox==0:
         h=get_val('height',SVG)
@@ -579,88 +584,152 @@ def get_BOUNDBOX(BOUNDINGBOX,SVG,viewbox):
     return BOUNDINGBOX
 
 # 0.2.8 : - correction for inskape 0.40 cvs  SVG
-def repack_DATA(DATA):   
+def repack_DATA2(DATA):   
     for d in Actions.keys():
         DATA=DATA.replace(d,d+' ')
     return DATA    
 
 
-def unpack_DATA(DATA):
-    DATA[0]=DATA[0].replace('-',',-')
-    
+def wash_DATA(ndata):
+   print 'ndata', ndata, len(ndata)
+   if ndata!='':
+       while ndata[0]==' ': 
+           ndata=ndata[1:]
+       while ndata[-1]==' ': 
+           ndata=ndata[:-1]
+       if ndata[0]==',':ndata=ndata[1:]
+       if ndata[-1]==',':ndata=ndata[:-1]
+       if ndata.find('-')!=-1 and ndata[ndata.find('-')-1] not in [' ',' ']:
+          ndata=ndata.replace('-',',-')
+       ndata=ndata.replace(',,',',')    
+       ndata=ndata.replace(' ',',')
+       ndata=ndata.split(',')
+       for n in ndata :
+          if n=='' : ndata.remove(n)
+   return ndata
+         
+	
+# 0.3.4 : - restructuration de la lecture des donnes paths
+def list_DATA(DATA):
+    """
+    cette fonction doit retourner une liste proposant
+    une suite correcte de commande avec le nombre de valeurs
+    attendu pour chacune d'entres-elles .
+    Par exemple :
+    d="'M0,14.0 z" devient ['M','0.0','14.0','z'] 
+    """
+    while DATA.count('  ')!=0 :
+        DATA=DATA.replace('  ',' ')
+
+    tagplace=[]
+    DATA=DATA.replace('\n','')
+
     for d in Actions.keys():
-        DATA[0]=DATA[0].replace(d,', '+d+',')
+        b1=0
+        b2=len(DATA)
+        while DATA.find(d,b1,b2)!=-1 :
+            #print d, b1 
+            tagplace.append(DATA.find(d,b1,b2))
+            b1=DATA.find(d,b1,b2)+1
+    tagplace.sort()
+    tpn=range(len(tagplace)-1)
+    DATA2=[]
 
-    DATA[0]=DATA[0].replace(',,',',')
-    
-    if DATA[0][0]==',':DATA[0]=DATA[0][1:]
-    if DATA[0][-1]==',':DATA[0]=DATA[0][:-1]
+    for t in tpn: 
+             
+       DATA2.append(DATA[tagplace[t]:tagplace[t]+1])    
+       print DATA2[-1]
 
-    DATA[0]=DATA[0].replace('\n','')
-    DATA[0]=DATA[0].replace('\t','')
-    DATA[0]=DATA[0].split(',')
+       ndata=DATA[tagplace[t]+1:tagplace[t+1]]
+       if DATA2[-1] not in ['z','Z'] :
+          ndata=wash_DATA(ndata)
+          for n in ndata : DATA2.append(n)
+       
+    DATA2.append(DATA[tagplace[t+1]:tagplace[t+1]+1])   
+	
+    print DATA2[-1]
+	
+    if DATA2[-1] not in ['z','Z'] and len(DATA)-1>=tagplace[t+1]+1:
+       ndata=DATA[tagplace[t+1]+1:-1]
+       ndata=wash_DATA(ndata)
+       for n in ndata : DATA2.append(n)
 
-    D2=[]
-    D1=DATA[0]
-    
-    for cell in range(len(D1)):
-       if D1[cell] in Actions.keys():
-          D2.append(D1[cell])
-          n=1
-          if D1[cell] not in ['h','v','H','V','a','A']:
-              while cell+n+1<len(D1) and (D1[cell+n] not in  Actions.keys()):
-                 D2.append(D1[cell+n]+','+D1[cell+n+1])               
-                 n+=2
-          elif D1[cell] in ['h','v','H','V']:       
-              while cell+n+1<len(D1) and (D1[cell+n] not in  Actions.keys()):
-                 D2.append(D1[cell+n])
-                 n+=1
-          elif D1[cell] in ['a','A']:       
-                 #(rx ry rotation-axe-x drapeau-arc-large drapeau-balayage x y)
-                 #150,150 0 1,0 150,-150
-                 D2.append(D1[cell+n]+','+D1[cell+n+1])
-                 D2.append(D1[cell+n+2])
-                 D2.append(D1[cell+n+3]+','+D1[cell+n+4])
-                 D2.append(D1[cell+n+5]+','+D1[cell+n+6])
-                 n+=7
-    return D2
+    return DATA2    
 
-def translate(a,b):
-    return [a,b]
 
+# 0.3
+def translate(tx,ty):
+    return [1, 0, tx], [0, 1, ty],[0,0,1]
+
+# 0.3.2
+def scale(sx,sy):
+    return [sx, 0, 0], [0, sy, 0],[0,0,1]
+# 0.3.2
+def rotate(a):
+    return [cos(a), -sin(a), 0], [sin(a), cos(a),0],[0,0,1]
+# 0.3.2
+def skewX(a):
+    return [1, tan(a), 0], [0, 1, 0],[0,0,1]
+# 0.3.2
+def skewX(a):
+    return [1, 0, 0], [tan(a), 1 , 0],[0,0,1]
+# 0.3.2
+def matrix(a,b,c,d,e,f):
+    return [a,b,e],[c,d,f],[0,0,1]
+
+# 0.3.3
+def controle_CONTENU(val,t):
+    """
+    une matrice peut s'ecrire : matrix(a,b,c,d,e,f) ou matrix(a b c d e f)
+    """
+    if val.find('matrix') and t.find(val+'(')!=-1 and t.find(val+',')==-1:
+       t0=t[t.find(val+'(')+len(val+'('):]
+       t0=t0[:t0.find(')')]
+       val=t0[:]
+       while val.find('  ')!=-1:
+           val=val.replace('  ',' ')
+       val=val.replace(' ',',')
+       t=t.replace(t0,val)
+       return val
+    else:
+       return -1
+
+# 0.3    
 def get_TRANSFORM(STRING):
     STRING,TRANSFORM=get_content('transform',STRING)
-    if TRANSFORM.find('translate')!=-1:
-       exec "TRANSFORM=%s"%TRANSFORM
-    return  TRANSFORM
+    #print 'TRANSFORM 1 :', TRANSFORM
+    for t in ['translate','scale','rotate','matrix','skewX','skewY'] :
+       if TRANSFORM.find(t)!=-1 and TRANSFORM.count('(')==1:
+         #print 'TRANSFORM 2 :', TRANSFORM
+         print ' getcontent ', t,' ',controle_CONTENU(t,TRANSFORM)
+         exec "a,b,c=%s;T=Mathutils.Matrix(a,b,c)"%TRANSFORM       
+    return  T
 
+# 0.3
 def G_move(l,a,t):
-    if a!=-1:
-       return str(float(l)+float(t[a]))
+    if a==0:
+        v=Mathutils.Vector([float(l[0]),float(l[1]),1.0])
+        v=Mathutils.MatMultVec(t, v)
+        return str(v[0]),str(v[1])
     else :
+       #print 'l', l ,'t', t, 'a', a
        l=l.split(',')
-       return str(float(l[0])+float(t[0]))+','+str(float(l[1])+float(t[1]))
+       v=Mathutils.Vector([float(l[0]),float(l[1]),1.0])
+       v=Mathutils.MatMultVec(t, v)            
+       return str(v[0])+','+str(v[1])
     
+# 0.3    
 def transform_DATA(D1,TRANSFORM):   
     for cell in range(len(D1)):
         if D1[cell] in TAGtransform:
-           try:       
-                if D1[cell] == 'C': #6 valeurs
-                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
-                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
-                    D1[cell+3]=G_move(D1[cell+3],0,TRANSFORM)
-                    D1[cell+4]=G_move(D1[cell+4],1,TRANSFORM)
-                    D1[cell+5]=G_move(D1[cell+5],0,TRANSFORM)
-                    D1[cell+6]=G_move(D1[cell+6],1,TRANSFORM)
-                elif D1[cell] in ['M','L','T']: #2 valeurs
-                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
-                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
-                elif D1[cell] == ['S','Q']: #4 valeurs
-                    D1[cell+1]=G_move(D1[cell+1],0,TRANSFORM)
-                    D1[cell+2]=G_move(D1[cell+2],1,TRANSFORM)
-                    D1[cell+3]=G_move(D1[cell+3],0,TRANSFORM)
-                    D1[cell+4]=G_move(D1[cell+4],1,TRANSFORM)
-           except :
+           if D1[cell+1].find(',')==-1:       
+                if D1[cell] in ['C', 'S','Q', 'M','L','T',]: #2 valeurs
+                    D1[cell+1],D1[cell+2]=G_move([D1[cell+1],D1[cell+2]],0,TRANSFORM)
+                    if D1[cell] in ['C', 'S','Q'] :
+                       D1[cell+3],D1[cell+4]=G_move([D1[cell+3],D1[cell+4]],0,TRANSFORM)
+                       if D1[cell] in ['C']:
+                          D1[cell+5],D1[cell+6]=G_move([D1[cell+5],D1[cell+6]],0,TRANSFORM)
+           else :
                 if D1[cell] == 'C': #6 valeurs
                     D1[cell+1]=G_move(D1[cell+1],-1,TRANSFORM)
                     D1[cell+2]=G_move(D1[cell+2],-1,TRANSFORM)
@@ -685,8 +754,9 @@ def format_PATH(t,TRANSFORM):
 
     if PATH.find(' transform="')!=-1:
        TRANSFORM2=get_TRANSFORM(PATH)
-       TRANSFORM[0]+=TRANSFORM2[0]
-       TRANSFORM[1]+=TRANSFORM2[1]
+       # 0.3.3
+       TRANSFORM=TRANSFORM*TRANSFORM2
+       #TRANSFORM[1]+=TRANSFORM2[1]
        tagTRANSFORM+=1
        
     if PATH.find(' id="')!=-1:
@@ -703,29 +773,9 @@ def format_PATH(t,TRANSFORM):
 
     if PATH.find(' d="')!=-1:
        PATH,D=get_content('d',PATH)
-
-    # 0.2.8 : - correction for inskape plain SVG    
-    if D.find(',')==-1:
-        D=repack_DATA(D)
-    # 0.2.8 : end
-        
-    D=D.split(' ')
+    D=list_DATA(D)
 
     if  tagTRANSFORM in [1,2] : D=transform_DATA(D,TRANSFORM)
-    
-    try:
-      while D.index(''):
-         del D[D.index('')]
-    except:
-      pass
-    
-    if len(D)==1 or len(D[0])>1 :
-       D1=[]     
-       for D0 in D:
-           D1+=unpack_DATA([D0])[:]
-       D=D1
-
-
     return t,D
 
 
@@ -760,22 +810,25 @@ def scan_FILE(nom):
           
      while t.find('<g')!=-1:
          t,G=get_data('g',t)
-         TRANSFORM=[0.0,0.0]
+         TRANSFORM=Mathutils.Matrix([1.0,0.0,0.0],[0.0,1.0,0.0],[0,0,1])
          tagTRANSFORM=0
          if G.find(' transform="')!=-1:  
             TRANSFORM=get_TRANSFORM(G)
             tagTRANSFORM=1
+            
          while G.find('path')!=-1: 
             G,D=format_PATH(G,TRANSFORM)
+            #print D
             cursor=0
             for cell in D: 
               if DEBUG==2 : print 'cell : ',cell ,' --'                   
               if len(cell)>=1 and cell[0] in TAGcourbe:
                    courbes,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)            
               cursor+=1
-
+              
+     # 0.3.1
      while t.find('path')!=-1:
-            TRANSFORM=[0.0,0.0]
+            TRANSFORM=Mathutils.Matrix([1.0,0.0,0.0],[0.0,1.0,0.0],[0,0,1])
             t,D=format_PATH(t,TRANSFORM)
             cursor=0
             for cell in D: 
