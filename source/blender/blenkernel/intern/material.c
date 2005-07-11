@@ -563,7 +563,6 @@ void init_render_material(Material *ma)
 		/* if(ma->alpha==0.0 || ma->alpha==1.0) */
 		if(R.flag & R_RENDERING) R.flag |= R_ZTRA;
 	}
-	if(ma->mode & MA_VERTEXCOLP) ma->mode |= MA_VERTEXCOL; 
 	
 	if(ma->mode & MA_RADIO) needuv= 1;
 	

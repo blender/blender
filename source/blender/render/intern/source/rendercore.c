@@ -1411,7 +1411,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		return;
 	}
 
-	if( (ma->mode & (MA_VERTEXCOL+MA_VERTEXCOLP))== MA_VERTEXCOL ) {
+	if( (ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))== MA_VERTEXCOL ) {	// vertexcolor light
 		// add_to_diffuse(shr->diff, shi, 1.0, ma->emit+shi->vcol[0], ma->emit+shi->vcol[1], ma->emit+shi->vcol[2]);
 		shr->diff[0]= shi->r*(shi->emit+shi->vcol[0]);
 		shr->diff[1]= shi->g*(shi->emit+shi->vcol[1]);
@@ -1907,7 +1907,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				MTC_Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
-		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_FACETEXTURE)))  {
+		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
 			int j1=i1, j2=i2, j3=i3;
 			
 			/* to prevent storing new tfaces or vcols, we check a split runtime */
@@ -1929,7 +1929,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				j2++; j3++; 
 			}
 			
-			if(mode & MA_VERTEXCOL) {
+			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
 				
 				if(vlr->vcol) {
 					char *cp1, *cp2, *cp3;
@@ -1979,7 +1979,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				}
 				
 				if(mode & MA_FACETEXTURE) {
-					if((mode & MA_VERTEXCOL)==0) {
+					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
 						shi->vcol[0]= 1.0;
 						shi->vcol[1]= 1.0;
 						shi->vcol[2]= 1.0;
