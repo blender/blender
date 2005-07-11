@@ -268,11 +268,6 @@ void set_scene_bg(Scene *sce)
 	
 	/* do we need FRAMECHANGED in set_scene? */
 //	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-
-//	do_all_keys();
-
-//	do_all_actions(NULL);
-
 }
 
 void set_scene_name(char *name)
@@ -430,10 +425,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 	do_all_data_ipos();
 	
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_FRAMECHANGED);
-	
-//	do_all_actions(NULL);
-	/* so nice, better do it twice */
-//	do_all_actions(NULL);
 	
 	/* if keys were activated, disable the locks */
 	unlock_all_keys();

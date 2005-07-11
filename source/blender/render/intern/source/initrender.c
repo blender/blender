@@ -1491,9 +1491,8 @@ void RE_animrender(struct View3D *ogl_render_view3d)
 
 	/* restore time */
 	if(R.r.mode & (R_FIELDS|R_MBLUR)) {
-//		do_all_ipos();
-//		do_all_keys();
-//		do_all_actions(NULL);
+		/* applies changes fully */
+		scene_update_for_newframe(G.scene, G.scene->lay);
 	}
 
 	if (0) {

@@ -498,6 +498,8 @@ void do_all_actions(Object *ob)
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
 
+	if(ob==NULL) return;	// only to have safe calls from editor
+	
 	/* Retrieve data from the NLA */
 	if(ob->type==OB_ARMATURE && ob->pose) {
 		bArmature *arm= ob->data;

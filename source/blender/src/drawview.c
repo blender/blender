@@ -2276,9 +2276,6 @@ void inner_play_anim_loop(int init, int mode)
 	}
 
 	set_timecursor(CFRA);
-
-	//clear_all_constraints();
-	//do_all_actions(NULL);
 	
 	update_for_newframe_muted();
 

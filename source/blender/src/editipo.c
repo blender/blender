@@ -478,7 +478,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		}
 		else if(si->blocktype==ID_SEQ) clear_last_seq();
 		else if(si->blocktype==ID_AC){
-			do_all_actions(NULL);
+			do_all_actions(OBACT);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 		}
@@ -4862,7 +4862,7 @@ void transform_ipo(int mode)
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_AC) {
-					do_all_actions(NULL);
+					do_all_actions(OBACT);
 					force_draw_all(0);
 				}
 				else if(G.sipo->blocktype==ID_OB) {
