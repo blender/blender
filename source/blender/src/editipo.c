@@ -1925,7 +1925,7 @@ IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo)
 		if(icu==0) {
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
 			
-			icu->flag |= IPO_VISIBLE;
+			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 
 			if (!useipo && G.sipo && G.sipo->pin)
 				icu->blocktype = G.sipo->blocktype;

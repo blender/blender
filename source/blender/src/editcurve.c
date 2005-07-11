@@ -3796,7 +3796,7 @@ void default_curve_ipo(Curve *cu)
 			
 	icu->blocktype= ID_CU;
 	icu->adrcode= CU_SPEED;
-	icu->flag= IPO_VISIBLE+IPO_SELECT;
+	icu->flag= IPO_VISIBLE|IPO_SELECT|IPO_AUTO_HORIZ;
 	set_icu_vars(icu);
 	
 	BLI_addtail( &(cu->ipo->curve), icu);

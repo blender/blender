@@ -2010,7 +2010,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 				if(mode==2 && next && prev) {	// keep horizontal if extrema
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
-					if( (ydiff1<0.0 && ydiff2<0.0) || (ydiff1>0.0 && ydiff2>0.0) ) {
+					if( (ydiff1<=0.0 && ydiff2<=0.0) || (ydiff1>=0.0 && ydiff2>=0.0) ) {
 						bezt->vec[0][1]= bezt->vec[1][1];
 					}
 				}
@@ -2024,7 +2024,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 				if(mode==2 && next && prev) {	// keep horizontal if extrema
 					float ydiff1= prev->vec[1][1] - bezt->vec[1][1];
 					float ydiff2= next->vec[1][1] - bezt->vec[1][1];
-					if( (ydiff1<0.0 && ydiff2<0.0) || (ydiff1>0.0 && ydiff2>0.0) ) {
+					if( (ydiff1<=0.0 && ydiff2<=0.0) || (ydiff1>=0.0 && ydiff2>=0.0) ) {
 						bezt->vec[2][1]= bezt->vec[1][1];
 					}
 				}

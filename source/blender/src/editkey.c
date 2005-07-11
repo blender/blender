@@ -290,7 +290,7 @@ static void default_key_ipo(Key *key)
 			
 	icu->blocktype= ID_KE;
 	icu->adrcode= KEY_SPEED;
-	icu->flag= IPO_VISIBLE+IPO_SELECT;
+	icu->flag= IPO_VISIBLE|IPO_SELECT|IPO_AUTO_HORIZ;
 	set_icu_vars(icu);
 	
 	BLI_addtail( &(key->ipo->curve), icu);
