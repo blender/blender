@@ -577,7 +577,7 @@ void KnifeSubdivide(char mode)
 	if (curve && len && mode){
 		eed= em->edges.first;		
 		while(eed) {	
-			if( eed->f & SELECT ){
+			if( eed->v1->f & eed->v2->f & SELECT ){		// NOTE: uses vertex select, subdiv doesnt do edges yet
 				isect=seg_intersect(eed, curve, len);
 				if (isect) eed->f2= 1;
 				else eed->f2=0;
