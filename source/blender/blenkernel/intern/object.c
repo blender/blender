@@ -1721,7 +1721,20 @@ void minmax_object(Object *ob, float *min, float *max)
 			DO_MINMAX(bb.vec[a], min, max);
 		}
 		break;
-
+	case OB_ARMATURE:
+		if(ob->pose) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				VECCOPY(vec, pchan->pose_head);
+				Mat4MulVecfl(ob->obmat, vec);
+				DO_MINMAX(vec, min, max);
+				VECCOPY(vec, pchan->pose_tail);
+				Mat4MulVecfl(ob->obmat, vec);
+				DO_MINMAX(vec, min, max);
+			}
+			break;
+		}
+		/* no break, get_mesh will give NULL and it passes on to default */
 	case OB_MESH:
 		me= get_mesh(ob);
 		

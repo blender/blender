@@ -50,14 +50,16 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_object.h"
@@ -1081,10 +1083,25 @@ void centreview()	/* like a localview without local! */
 	max[0]= max[1]= max[2]= -1.0e10;
 
 	if(G.obedit) {
-		minmax_verts(min, max);
-		//minmax_object(G.obedit, min, max);
-		
+		minmax_verts(min, max);	// ony selected
 		ok= 1;
+	}
+	else if(G.obpose) {
+		if(G.obpose->pose) {
+			bPoseChannel *pchan;
+			float vec[3];
+			for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
+				if(pchan->bone->flag & BONE_SELECTED) {
+					ok= 1;
+					VECCOPY(vec, pchan->pose_head);
+					Mat4MulVecfl(G.obpose->obmat, vec);
+					DO_MINMAX(vec, min, max);
+					VECCOPY(vec, pchan->pose_tail);
+					Mat4MulVecfl(G.obpose->obmat, vec);
+					DO_MINMAX(vec, min, max);
+				}
+			}
+		}
 	}
 	else if (G.f & G_FACESELECT) {
 		minmax_tface(min, max);

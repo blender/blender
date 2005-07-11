@@ -511,11 +511,11 @@ void do_all_actions(Object *ob)
 			/* Do local action (always overrides the nla actions) */
 			extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
 		}
-		else {
+		else if(ob->nlastrips.first) {
 			doit=0;
 
 			copy_pose(&tpose, ob->pose, 1);
-			rest_pose(ob->pose, 1);
+			rest_pose(ob->pose, 1);		// potentially destroying current not-keyed pose
  
 			for (strip=ob->nlastrips.first; strip; strip=strip->next){
 				doit = 0;
