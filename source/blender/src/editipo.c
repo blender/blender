@@ -477,8 +477,9 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_SEQ) clear_last_seq();
-		else if(si->blocktype==ID_AC){
-			do_all_actions(OBACT);
+		else if(si->blocktype==ID_AC) {
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 		}
@@ -4862,8 +4863,8 @@ void transform_ipo(int mode)
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_AC) {
-					do_all_actions(OBACT);
-					force_draw_all(0);
+					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_OB) {
 					Base *base= FIRSTBASE;

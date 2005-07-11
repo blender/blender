@@ -1253,7 +1253,7 @@ void transform_actionchannel_keys(char mode)
 			}
 	
 			if (G.saction->lock){
-				do_all_actions(OBACT);
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 				force_draw_all(0);
 			}
 			else {
@@ -1269,7 +1269,7 @@ void transform_actionchannel_keys(char mode)
 	/*		Update the curve */
 	/*		Depending on the lock status, draw necessary views */
 
-	do_all_actions(OBACT);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	remake_action_ipos(act);
 
 	if(cancel==0) BIF_undo_push("Transform Action");
@@ -1436,7 +1436,7 @@ void transform_meshchannel_keys(char mode, Key *key)
 				 * future
 				 */
 				 
-                do_all_actions(OBACT);
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
                 allqueue (REDRAWVIEW3D, 0);
                 allqueue (REDRAWACTION, 0);
                 allqueue (REDRAWIPO, 0);
