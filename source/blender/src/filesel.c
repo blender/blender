@@ -2496,8 +2496,8 @@ void main_to_filelist(SpaceFile *sfile)
 					}
 					
 					files++;
-					totbl++;
 				}
+				totbl++;
 			}
 			
 			id= id->next;
