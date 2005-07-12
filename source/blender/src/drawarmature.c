@@ -512,6 +512,7 @@ void draw_armature(Object *ob, int dt)
 	
 	/* we use color for solid lighting */
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);	// only for lighting...
 	
 	/* If we're in editmode, draw the Global edit data */
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
@@ -575,6 +576,8 @@ void draw_armature(Object *ob, int dt)
 			arm->flag &= ~ARM_POSEMODE; 
 		}
 	}
+	/* resore */
+	glFrontFace(GL_CCW);
 
 }
 

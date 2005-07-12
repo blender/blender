@@ -1834,9 +1834,30 @@ void do_all_data_ipos()
 	bSound *snd;
 	Sequence *seq;
 	Editing *ed;
+	Base *base;
 	float ctime;
 
 	ctime= frame_to_float(G.scene->r.cfra);
+	
+	/* this exception cannot be depgraphed yet... what todo with objects in other layers?... */
+	for(base= G.scene->base.first; base; base= base->next) {
+		/* only update layer when an ipo */
+		if( has_ipo_code(base->object->ipo, OB_LAY) ) {
+			do_ob_ipo(base->object);
+			base->lay= base->object->lay;
+		}
+	}
+	
+	/* layers for the set...*/
+	if(G.scene->set) {
+		for(base= G.scene->set->base.first; base; base= base->next) {
+			if( has_ipo_code(base->object->ipo, OB_LAY) ) {
+				do_ob_ipo(base->object);
+				base->lay= base->object->lay;
+			}
+		}
+	}
+	
 	
 	ipo= G.main->ipo.first;
 	while(ipo) {
