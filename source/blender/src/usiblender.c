@@ -225,6 +225,17 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if (G.main->versionfile <= 237) {
+		bTheme *btheme;
+		/* bone colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.bone_solid[3]==0) {
+				SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
+				SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 100);
+			}
+		}
+	}
 	
 	if (U.undosteps==0) U.undosteps=32;
 	

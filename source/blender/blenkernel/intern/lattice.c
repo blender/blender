@@ -642,7 +642,7 @@ static int _object_deform(Object *ob, int applyflag)
 		return 1;
 	}
 	else if(ob->parent->type==OB_ARMATURE) {
-		if (ob->partype != PARSKEL){
+		if (ob->partype != PARSKEL || ob->parent==G.obedit){
 			return 0;
 		}
 		

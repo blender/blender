@@ -448,13 +448,13 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 		return;
 
 	/* Copy the data from the action into the pose */
-	for (achan=act->chanbase.first; achan; achan=achan->next){
-		act->achan= achan;  // for ipos
-
-		ipo = achan->ipo;
-		if (ipo) {
-			pchan= get_pose_channel(pose, achan->name);
-			if(pchan) {
+	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		achan= get_named_actionchannel(act, pchan->name);
+		pchan->flag= 0;
+		if(achan) {
+			ipo = achan->ipo;
+			if (ipo) {
+				act->achan= achan;  // for ipos
 				act->pchan= pchan;  // for ipos
 				
 				/* Evaluates and sets the internal ipo value */

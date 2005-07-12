@@ -99,16 +99,6 @@
 #include "blendef.h"
 #include "nla.h"
 
-/*  >>>>> FIXME: ARG!  Colours should be defined in a header somewhere! */
-/*	Note, these came from drawobject.c  They really should be in a nice header file somewhere */
-#define B_YELLOW_A	0xBBFFFF
-#define B_YELLOW	0x77FFFF
-#define B_PURPLE	0xFF70FF
-
-#define B_CYAN_A	0xFFFF88
-#define B_CYAN		0xFFFF00
-#define	B_AQUA		0xFFBB55
-
 extern	float centre[3], centroid[3];	/* Originally defined in editobject.c */
 
 /*	Macros	*/
@@ -482,7 +472,7 @@ void join_armature(void)
 /* used by posemode as well editmode */
 static void * get_nearest_bone (int findunsel)
 {
-	void		*firstunSel=NULL, *data;
+	void		*firstunSel=NULL, *firstSel=NULL, *data;
 	unsigned int buffer[MAXPICKBUF];
 	short		hits;
 	int		 i, takeNext=0;
@@ -495,7 +485,7 @@ static void * get_nearest_bone (int findunsel)
 	
 	glInitNames();
 	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
-	
+
 	/* See if there are any selected bones in this group */
 	if (hits){
 		for (i=0; i< hits; i++){
@@ -524,9 +514,11 @@ static void * get_nearest_bone (int findunsel)
 					data = ebone;
 				}
 				
-				if (sel)
+				if (sel) {
+					if(!firstSel) firstSel= data;
 					takeNext=1;
-				else{
+				}
+				else {
 					if (!firstunSel)
 						firstunSel=data;
 					if (takeNext)
@@ -537,14 +529,8 @@ static void * get_nearest_bone (int findunsel)
 		
 		if (firstunSel)
 			return firstunSel;
-		
-		else{
-			
-			if (G.obedit)
-				return BLI_findlink(&G.edbo, buffer[3] & ~(BONESEL_ANY));
-			else
-				return get_indexed_bone(OBACT, buffer[3] & ~(BONESEL_ANY));
-		}
+		else 
+			return firstSel;
 	}
 	
 	return NULL;
@@ -1139,364 +1125,6 @@ void undo_push_armature(char *name)
 
 
 /* **************** END EditMode stuff ********************** */
-/* *************** Armature drawing ******************* */
-
-static void draw_bonevert(void)
-{
-	static GLuint displist=0;
-	
-	if(displist==0) {
-		GLUquadricObj	*qobj;
-		
-		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
-				
-		glPushMatrix();
-		
-		qobj	= gluNewQuadric(); 
-		gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-		gluDisk( qobj, 0.0,  0.05, 16, 1);
-		
-		glRotatef (90, 0, 1, 0);
-		gluDisk( qobj, 0.0,  0.05, 16, 1);
-		
-		glRotatef (90, 1, 0, 0);
-		gluDisk( qobj, 0.0,  0.05, 16, 1);
-		
-		gluDeleteQuadric(qobj);  
-		
-		glPopMatrix();
-		glEndList();
-	}
-	else glCallList(displist);
-}
-
-static void draw_bone_octahedral()
-{
-	static GLuint displist=0;
-	
-	if(displist==0) {
-		float vec[6][3];	
-		
-		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
-
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
-		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
-		
-		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
-		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
-		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
-		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
-		
-		/*	Section 1, sides */
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[1]);
-		glVertex3fv(vec[5]);
-		glVertex3fv(vec[3]);
-		glVertex3fv(vec[0]);
-		glVertex3fv(vec[4]);
-		glVertex3fv(vec[5]);
-		glVertex3fv(vec[2]);
-		glEnd();
-		
-		/*	Section 1, square */
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(vec[1]);
-		glVertex3fv(vec[2]);
-		glVertex3fv(vec[3]);
-		glVertex3fv(vec[4]);
-		glEnd();
-		
-		glEndList();
-	}
-	else glCallList(displist);
-}	
-
-static void draw_bone_solid_octahedral(void)
-{
-	static GLuint displist=0;
-	
-	if(displist==0) {
-		float vec[6][3];	
-		
-		displist= glGenLists(1);
-		glNewList(displist, GL_COMPILE_AND_EXECUTE);
-		
-		vec[0][0]= vec[0][1]= vec[0][2]= 0.0;
-		vec[5][0]= vec[5][2]= 0.0; vec[5][1]= 1.0;
-		
-		vec[1][0]= 0.1; vec[1][2]= 0.1; vec[1][1]= 0.1;
-		vec[2][0]= 0.1; vec[2][2]= -0.1; vec[2][1]= 0.1;
-		vec[3][0]= -0.1; vec[3][2]= -0.1; vec[3][1]= 0.1;
-		vec[4][0]= -0.1; vec[4][2]= 0.1; vec[4][1]= 0.1;
-		
-		
-		glBegin(GL_TRIANGLES);
-		/* bottom */
-		glVertex3fv(vec[0]);glVertex3fv(vec[1]);glVertex3fv(vec[2]);
-		
-		glVertex3fv(vec[0]);glVertex3fv(vec[2]);glVertex3fv(vec[3]);
-		
-		glVertex3fv(vec[0]);glVertex3fv(vec[3]);glVertex3fv(vec[4]);
-
-		glVertex3fv(vec[0]);glVertex3fv(vec[4]);glVertex3fv(vec[1]);
-		/* top */
-		glVertex3fv(vec[5]);glVertex3fv(vec[1]);glVertex3fv(vec[2]);
-		
-		glVertex3fv(vec[5]);glVertex3fv(vec[2]);glVertex3fv(vec[3]);
-		
-		glVertex3fv(vec[5]);glVertex3fv(vec[3]);glVertex3fv(vec[4]);
-		
-		glVertex3fv(vec[5]);glVertex3fv(vec[4]);glVertex3fv(vec[1]);
-		
-		glEnd();
-		
-		glEndList();
-	}
-	else glCallList(displist);
-}	
-
-
-static void draw_bone (int armflag, int boneflag, int constflag, unsigned int id, char *name, float length)
-{
-	float	pointsize;
-	
-	/*	Draw a 3d octahedral bone, we use normalized space based on length,
-	    for glDisplayLists */
-	
-	/* pointsize todo! */
-	pointsize = length;
-	if (length<0.1)
-		pointsize=0.1;
-	
-	glScalef(length, length, length);
-	
-	if (id!=-1) glLoadName((GLuint) id );
-	
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
-		if (id != -1)
-			glLoadName (id | BONESEL_ROOT);
-		
-		if (armflag & ARM_EDITMODE) {
-			if (boneflag & BONE_ROOTSEL) cpack (B_YELLOW);
-			else cpack (B_PURPLE);
-		}
-		draw_bonevert();
-	}
-	
-	/*	Draw tip point (for selection only ) */
-	
-	if (id != -1)
-		glLoadName (id | BONESEL_TIP);
-	
-	if (armflag & ARM_EDITMODE) {
-		if (boneflag & BONE_TIPSEL) cpack (B_YELLOW);
-		else cpack (B_PURPLE);
-	}
-	
-	glTranslatef(0.0, 1.0, 0.0);
-	draw_bonevert();
-	
-	/*	Draw additional axes */
-	if (armflag & ARM_DRAWAXES){
-		drawaxes(0.25f);
-	}
-	
-	glTranslatef(0.0, -1.0, 0.0);
-	
-	if (id != -1) {
-		if (armflag & ARM_POSEMODE)
-			glLoadName((GLuint) id);
-		else{
-			glLoadName ((GLuint) id|BONESEL_BONE);
-		}
-	}
-	
-	/* colors */
-	if (armflag & ARM_EDITMODE){
-		if (boneflag & BONE_ACTIVE) cpack (B_YELLOW_A);
-		else if (boneflag & BONE_SELECTED) cpack (B_YELLOW);
-		else cpack (B_PURPLE);
-	}
-	else if (armflag & ARM_POSEMODE){
-	
-		if(constflag) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			glEnable(GL_BLEND);
-			if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 50);
-			else glColor4ub(0, 255, 120, 50);
-			draw_bone_solid_octahedral();
-			glDisable(GL_BLEND);
-		}
-		
-		if (boneflag & BONE_ACTIVE) cpack (B_CYAN_A);
-		else if (boneflag & BONE_SELECTED) cpack (B_CYAN);
-		else cpack (B_AQUA);
-	}		
-	draw_bone_octahedral();
-	
-	/*	Draw the bone name */
-	if (armflag & ARM_DRAWNAMES) {
-		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
-		if((G.f & G_PICKSEL) == 0) {
-			glRasterPos3f(0,  0.5,  0);
-			BMF_DrawString(G.font, " ");
-			BMF_DrawString(G.font, name);
-		}
-	}
-}
-
-
-/* assumes object is Armature with pose */
-static void draw_pose_channels(Object *ob)
-{
-	bPoseChannel *pchan;
-	Bone *bone;
-	bArmature *arm= ob->data;
-	short flag;
-	int index= -1;
-	
-	if (arm->flag & ARM_POSEMODE) index= 0;
-	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		bone= pchan->bone;
-		if(bone) {
-			if(!(bone->flag & BONE_HIDDEN)) {
-				
-				if (index!= -1) {   // set color for points */
-					if (bone->flag & BONE_ACTIVE) cpack (B_CYAN_A);
-					else if (bone->flag & BONE_SELECTED) cpack (B_CYAN);
-					else cpack (B_AQUA);
-				}
-				
-				//	Draw a line from our root to the parent's tip
-				if (bone->parent && !(bone->flag & BONE_IK_TOPARENT) ){
-					
-					if (arm->flag & ARM_POSEMODE) glLoadName (-1);
-					
-					setlinestyle(3);
-					glBegin(GL_LINES);
-					glVertex3fv(pchan->pose_head);
-					glVertex3fv(pchan->parent->pose_tail);
-					glEnd();
-					setlinestyle(0);
-				}
-				
-				glPushMatrix();
-				glMultMatrixf(pchan->pose_mat);
-				
-				/* catch exception for bone with hidden parent */
-				flag= bone->flag;
-				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
-					bone->flag &= ~BONE_IK_TOPARENT;
-				
-				draw_bone(arm->flag, flag, pchan->constflag, index, bone->name, bone->length);
-				
-				glPopMatrix();
-			}
-			if (index!= -1) index++;
-		}
-	}
-	
-}
-
-/* called from drawobject.c */
-void draw_armature(Object *ob)
-{
-	bArmature	*arm;
-	
-	if (ob==NULL) return;
-	
-	arm= ob->data; 
-	if (arm==NULL) return;
-
-	if (!(ob->lay & G.vd->lay))
-		return;
-
-	if (arm->flag & ARM_DRAWXRAY) {
-		if(G.zbuf) glDisable(GL_DEPTH_TEST);
-	}
-
-	/* If we're in editmode, draw the Global edit data */
-	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-		EditBone	*eBone;
-		unsigned int	index;
-		float		delta[3],offset[3];
-		float		mat[3][3], bmat[4][4];
-		float	length;
-		cpack (0);
-		
-		if(ob==G.obedit) arm->flag |= ARM_EDITMODE;
-		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-			if (ob==G.obedit) cpack (B_PURPLE);
-			else cpack (0);
-			
-			glPushMatrix();
-			
-			/*	Compose the parent transforms (i.e. their translations) */
-			VECCOPY (offset,eBone->head);
-
-			glTranslatef (offset[0],offset[1],offset[2]);
-			
-			delta[0]=eBone->tail[0]-eBone->head[0];	
-			delta[1]=eBone->tail[1]-eBone->head[1];	
-			delta[2]=eBone->tail[2]-eBone->head[2];
-			
-			length = sqrt (delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
-			
-			vec_roll_to_mat3(delta, eBone->roll, mat);
-			Mat4CpyMat3(bmat, mat);
-				
-			glMultMatrixf (bmat);
-			draw_bone (arm->flag, eBone->flag, 0, index, eBone->name, length);
-
-			glPopMatrix();
-			
-			if (eBone->parent) {
-				glLoadName (-1);
-				setlinestyle(3);
-				
-				glBegin(GL_LINES);
-				glVertex3fv(eBone->parent->tail);
-				glVertex3fv(eBone->head);
-				glEnd();
-
-				setlinestyle(0);
-			}
-		}
-		arm->flag &= ~ARM_EDITMODE;
-		cpack (B_YELLOW);
-		
-	}
-	else{
-		/*	Draw Pose */
-		if(ob->pose) {
-			if (G.obpose == ob) arm->flag |= ARM_POSEMODE;
-			draw_pose_channels(ob);
-			arm->flag &= ~ARM_POSEMODE; 
-		}
-
-#if 0	/* Depreciated interactive ik goal drawing */
-				if (arm->chainbase.first){
-					glPushMatrix();
-					glTranslatef(((PoseChain*)arm->chainbase.first)->goal[0],
-						((PoseChain*)arm->chainbase.first)->goal[1],
-						((PoseChain*)arm->chainbase.first)->goal[2]);
-					drawaxes(1.0);
-					glPopMatrix();
-				}
-#endif
-	}
-
-	if (arm->flag & ARM_DRAWXRAY) {
-		if(G.zbuf) glEnable(GL_DEPTH_TEST);
-	}
-}
-
-/* *************** END Armature drawing ******************* */
 /* *************** Adding stuff in editmode *************** */
 
 static void add_bone_input (Object *ob)

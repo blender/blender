@@ -136,11 +136,11 @@ enum	{
 	POSE_KEY		=	0x1000
 };
 
-/* Pose Channel constflag (constraint) */
+/* Pose Channel constflag (constraint detection) */
 #define PCHAN_HAS_IK		1
-#define PCHAN_HAS_TRACK		2
-#define PCHAN_HAS_CONST		4
-
+#define PCHAN_HAS_CONST		2
+	/* only used for drawing Posemode, not stored in channel */
+#define PCHAN_HAS_ACTION	4
 
 #endif
 

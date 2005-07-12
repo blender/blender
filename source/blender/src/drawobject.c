@@ -46,6 +46,7 @@
 
 #include "MTC_matrixops.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_constraint_types.h" // for drawing constraint
@@ -3338,6 +3339,15 @@ static void drawSolidSelect(Object *ob)
 	} else if (ob->type==OB_MBALL) {
 		drawDispListwire(&ob->disp);
 	}
+	else if(ob->type==OB_ARMATURE) {
+		if(ob!=G.obpose) {
+			bArmature *arm= ob->data;
+			int oldflag= arm->flag;
+			arm->flag &= ~ARM_DRAWXRAY;
+			draw_armature(ob, OB_WIRE);	// patch needed for xray option...
+			arm->flag= oldflag;
+		}
+	}
 
 	glLineWidth(1.0);
 	glDepthMask(1);
@@ -3704,7 +3714,7 @@ void draw_object(Base *base)
 		drawlattice(ob);
 		break;
 	case OB_ARMATURE:
-		draw_armature (ob);
+		draw_armature (ob, dt);
 		break;
 	default:
 		drawaxes(1.0);

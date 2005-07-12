@@ -434,7 +434,10 @@ enum {
 	TH_SYNTAX_V,
 	TH_SYNTAX_C,
 	TH_SYNTAX_L,
-	TH_SYNTAX_N
+	TH_SYNTAX_N,
+	
+	TH_BONE_SOLID,
+	TH_BONE_POSE
 	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */

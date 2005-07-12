@@ -86,6 +86,7 @@ typedef struct ThemeSpace {
 	char face[4], face_select[4];	// solid faces
 	char face_dot[4];	// selected color
 	char normal[4];
+	char bone_solid[4], bone_pose[4];
 	
 	char vertex_size, facedot_size;
 	char bpad[2];

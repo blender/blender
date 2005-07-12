@@ -509,6 +509,10 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= &ts->facedot_size; break;
 			case TH_NORMAL:
 				cp= ts->normal; break;
+			case TH_BONE_SOLID:
+				cp= ts->bone_solid; break;
+			case TH_BONE_POSE:
+				cp= ts->bone_pose; break;
 
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
@@ -600,6 +604,10 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
 	btheme->tv3d.facedot_size= 4;
+	
+	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
+	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 100);		// alpha 100 is not meant editable, used for wire+action draw
+	
 	
 	/* space buttons */
 	/* to have something initialized */
@@ -759,6 +767,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT); strcat(cp, str);
 			sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE); strcat(cp, str);
 			sprintf(str, "Normal %%x%d", TH_NORMAL); strcat(cp, str);
+			sprintf(str, "Bone Solid %%x%d", TH_BONE_SOLID); strcat(cp, str);
+			sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {
 			sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);
