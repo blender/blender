@@ -1046,7 +1046,11 @@ void rad_replacemesh(void)
 	
 	rp= RG.patchbase.first;
 	while(rp) {
-		if( exist_object(rp->from)) rp->from->flag |= SELECT;
+		if( exist_object(rp->from)) {
+			if (rp->from->type == OB_MESH) {
+				rp->from->flag |= SELECT;
+			}
+		}
 		rp= rp->next;
 	}
 	
