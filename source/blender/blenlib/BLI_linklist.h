@@ -52,6 +52,7 @@ int		BLI_linklist_length		(struct LinkNode *list);
 void	BLI_linklist_reverse	(struct LinkNode **listp);
 
 void	BLI_linklist_prepend		(struct LinkNode **listp, void *ptr);
+void	BLI_linklist_append	    	(struct LinkNode **listp, void *ptr);
 void	BLI_linklist_prepend_arena	(struct LinkNode **listp, void *ptr, struct MemArena *ma);
 
 void	BLI_linklist_free		(struct LinkNode *list, LinkNodeFreeFP freefunc);

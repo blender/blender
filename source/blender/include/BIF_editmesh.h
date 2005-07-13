@@ -101,6 +101,7 @@ extern void EM_free_backbuf_border(void);
 
 extern void EM_selectmode_menu(void);
 
+
 extern void vertexnoise(void);
 extern void vertexsmooth(void);
 extern void righthandfaces(int select);
@@ -135,20 +136,22 @@ extern void editmesh_deselect_by_material(int index);
 extern void Edge_Menu(void);
 extern void editmesh_mark_seam(int clear);
 
+
 /* ******************* editmesh_loop.c */
 
 #define KNIFE_PROMPT 0
 #define KNIFE_EXACT 1
 #define KNIFE_MIDPOINT 2
+#define KNIFE_MULTICUT 3
 
+extern void CutEdgeloop(int numcuts);
 extern void KnifeSubdivide(char mode);
 extern void LoopMenu(void);
 
 #define LOOP_SELECT	1
 #define LOOP_CUT	2
 
-extern void loopoperations(char mode);
-extern void vertex_loop_select(void); 
+extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 
 /* ******************* editmesh_tools.c */
 extern void convert_to_triface(int all);
@@ -156,6 +159,7 @@ extern int removedoublesflag(short flag, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);
 extern void subdivideflag(int flag, float rad, int beauty);
+extern void esubdivideflag(int flag, float rad, int beauty, int numcuts, int selecttype);
 extern void extrude_mesh(void);
 extern void split_mesh(void);
 extern void extrude_repeat_mesh(int steps, float offs);
@@ -168,6 +172,7 @@ extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
 void edge_rotate_selected(int dir);
+void EdgeSlide(short immediate, float imperc);
  
 #endif
 

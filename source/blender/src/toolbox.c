@@ -1735,7 +1735,10 @@ static TBitem tb_mesh_edit_edge[]= {
 {	0, "SEPR", 								0, NULL},
 {	0, "Crease SubSurf|Shift E",	9, 		NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Rotate Edge|Ctrl E",	10, 		NULL},
+{	0, "Rotate Edge CW|Ctrl E",	10, 		NULL},
+{	0, "Rotate Edge CCW|Ctrl E",	11, 		NULL},
+{	0, "SEPR", 								0, NULL},
+{	0, "Edgeslide|Ctrl E",	12, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
 
 static TBitem tb_mesh_edit_face[]= {

@@ -819,9 +819,6 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 5: /* select random */
 			selectrandom_mesh();
 			break;
-		case 6: /* select Faceloop */
-			loopoperations(LOOP_SELECT);
-			break;
 		case 7: /* select more */
 			select_more();
 			break;
@@ -830,9 +827,6 @@ void do_view3d_select_meshmenu(void *arg, int event)
 			break;
 		case 9: /* select less */
 			select_non_manifold();
-			break;
-		case 10: /* select vertexloop */
-			vertex_loop_select();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -873,8 +867,6 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Face Loop...|Shift R",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vertex Loop|Alt B",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Vertices|Ctrl L",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 		
 	if(curarea->headertype==HEADERTOP) {
@@ -2088,25 +2080,25 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	switch(event) {
 		 
 	case 0: /* subdivide smooth */
-		subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
+		esubdivideflag(1, 0.0, editbutflag | B_SMOOTH,1,0);
 		BIF_undo_push("Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
-		subdivideflag(1, fac, editbutflag);
+		esubdivideflag(1, fac, editbutflag,1,0);
 		BIF_undo_push("Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
-		subdivideflag(1, 0.0, editbutflag);
+		esubdivideflag(1, 0.0, editbutflag,1,0);
 		BIF_undo_push("Subdivide");
 		break;
 	case 3: /* knife subdivide */
 		KnifeSubdivide(KNIFE_PROMPT);
 		break;
 	case 4: /* Loop subdivide */
-		loopoperations(LOOP_CUT);
+		CutEdgeloop(1);
 		break;
 	case 5: /* Make Edge/Face */
 		addedgeface_mesh();
@@ -2129,6 +2121,9 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		break;
 	case 11: /* Rotate Edge */
 		edge_rotate_selected(1);
+		break;
+	case 12: /* Edgeslide */
+		EdgeSlide(0,0.0);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2170,7 +2165,10 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CCW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CCW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edgeslide |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
+
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

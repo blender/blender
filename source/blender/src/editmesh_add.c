@@ -776,7 +776,8 @@ void add_primitiveMesh(int type)
 	}
 	else if(type==12) {	/* Icosphere */
 		EditVert *eva[12];
-
+        EditEdge *eed;
+        
 		/* clear all flags */
 		eve= em->verts.first;
 		while(eve) {
@@ -792,14 +793,18 @@ void add_primitiveMesh(int type)
 			eva[a]->f= 1+2;
 		}
 		for(a=0;a<20;a++) {
-			v1= eva[ icoface[a][0] ];
+		    EditFace *evtemp;
+            v1= eva[ icoface[a][0] ];
 			v2= eva[ icoface[a][1] ];
 			v3= eva[ icoface[a][2] ];
-			addfacelist(v1, v2, v3, 0, NULL, NULL);
+			evtemp = addfacelist(v1, v2, v3, 0, NULL, NULL);
+			evtemp->e1->f = 1+2;
+			evtemp->e2->f = 1+2;
+			evtemp->e3->f = 1+2;
 		}
 
 		dia*=200;
-		for(a=1; a<subdiv; a++) subdivideflag(2, dia, 0);
+		for(a=1; a<subdiv; a++) esubdivideflag(2, dia, 0,1,0);
 		/* and now do imat */
 		eve= em->verts.first;
 		while(eve) {
@@ -809,6 +814,15 @@ void add_primitiveMesh(int type)
 			}
 			eve= eve->next;
 		}
+		
+		// Clear the flag 2 from the edges
+		for(eed=em->edges.first;eed;eed=eed->next){
+            if(eed->f & 2){
+                   eed->f &= !2;
+            }   
+        }
+		
+		
 	} else if (type==13) {	/* Monkey */
 		extern int monkeyo, monkeynv, monkeynf;
 		extern signed char monkeyf[][4];

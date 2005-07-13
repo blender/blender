@@ -1132,14 +1132,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case BKEY:
 				if((G.qual==LR_SHIFTKEY))
 					set_render_border();
-				else if((G.qual==LR_ALTKEY)){
-					if(G.obedit && G.obedit->type==OB_MESH) {
-						/* Loop Select Operations */
-						/*   Vertexloop */
-						/*   Faceloop   */						
-						vertex_loop_select(); 
-					}
-				}
 				else if((G.qual==0))
 					borderselect();
 				break;
@@ -1535,12 +1527,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if((G.qual==LR_SHIFTKEY)) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF)					
 							selectrow_nurb();
-						else if (G.obedit->type==OB_MESH)
-							loopoperations(LOOP_SELECT);
 					}
 					else if(G.qual==LR_CTRLKEY) {
 						if (G.obedit->type==OB_MESH)
-							loopoperations(LOOP_CUT);
+							CutEdgeloop(1);
+							BIF_undo_push("Cut Edgeloop");
 					}
 					else if((G.qual==0)) {
 						initTransform(TFM_ROTATION, CTX_NONE);

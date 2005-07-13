@@ -76,6 +76,23 @@ void BLI_linklist_prepend(LinkNode **listp, void *ptr) {
 	*listp= nlink;
 }
 
+void BLI_linklist_append(LinkNode **listp, void *ptr) {
+	LinkNode *nlink= MEM_mallocN(sizeof(*nlink), "nlink");
+	LinkNode *node = *listp;
+	
+	nlink->link = ptr;
+	nlink->next = NULL;
+	
+	if(node == NULL){
+        *listp = nlink;
+    } else {
+        while(node->next != NULL){
+            node = node->next;   
+        }
+        node->next = nlink;
+    }
+}
+
 void BLI_linklist_prepend_arena(LinkNode **listp, void *ptr, MemArena *ma) {
 	LinkNode *nlink= BLI_memarena_alloc(ma, sizeof(*nlink));
 	nlink->link= ptr;

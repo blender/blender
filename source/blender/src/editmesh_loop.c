@@ -90,6 +90,211 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "winlay.h"
 
 
+/* New LoopCut */
+static void edgering_sel(EditEdge *startedge, int select, int previewlines){
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	int looking= 1,i;
+	float co[2][3];
+	EditVert *v[2][2];
+	/* in eed->f1 we put the valence (amount of faces in edge) */
+	/* in eed->f2 we put tagged flag as correct loop */
+	/* in efa->f1 we put tagged flag as correct to select */
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+		eed->f2= 0;
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->f1= 0;
+		if(efa->h==0) {
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4) efa->e4->f1++;
+		}
+	}
+	
+	// tag startedge OK
+	startedge->f2= 1;
+	
+	while(looking) {
+		looking= 0;
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->e4 && efa->f1==0) {	// not done quad
+				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+
+					// if edge tagged, select opposing edge and mark face ok
+					if(efa->e1->f2) {
+						efa->e3->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					else if(efa->e2->f2) {
+						efa->e4->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e3->f2) {
+						efa->e1->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e4->f2) {
+						efa->e2->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+				}
+			}
+		}
+	}
+	
+    if(previewlines > 0 && select == 0){
+        	persp(PERSP_VIEW);
+			glPushMatrix();
+			mymultmatrix(G.obedit->obmat);
+			//glColor3ub(0, 255, 255);
+			//glBegin(GL_LINES);			
+			//glVertex3f(nearest->v1->co[0],nearest->v1->co[1],nearest->v1->co[2]);
+			//glVertex3f(nearest->v2->co[0],nearest->v2->co[1],nearest->v2->co[2]);
+			//glEnd();
+			for(efa= em->faces.first; efa; efa= efa->next) {
+                if(efa->v4 == NULL) {  continue; }
+                if(efa->e1->f2 == 1){
+                    v[0][0] = efa->v1;
+                    v[0][1] = efa->v2;
+                    v[1][0] = efa->v4;
+                    v[1][1] = efa->v3;
+                } else if(efa->e2->f2 == 1){
+                    v[0][0] = efa->v2;
+                    v[0][1] = efa->v3;
+                    v[1][0] = efa->v1;
+                    v[1][1] = efa->v4;                    
+                } else { continue; }
+                                      
+    			for(i=1;i<=previewlines;i++){
+                    co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
+                    co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
+                    co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+
+                    co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
+                    co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
+                    co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];                    
+                    glColor3ub(255, 0, 255);
+        			glBegin(GL_LINES);	
+        			glVertex3f(co[0][0],co[0][1],co[0][2]);
+        			glVertex3f(co[1][0],co[1][1],co[1][2]);
+        			glEnd();
+                }
+            }
+			glPopMatrix();   
+    } else {	
+	
+	   /* (de)select the edges */
+	   for(eed= em->edges.first; eed; eed= eed->next) {
+    		if(eed->f2) EM_select_edge(eed, select);
+	   }
+    }
+}
+void CutEdgeloop(int numcuts){
+    EditMesh *em = G.editMesh;
+	short mvalo[2] = {0,0}, mval[2];
+	EditEdge* nearest,*eed;
+	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
+    
+    while(choosing){
+        getmouseco_areawin(mval);
+		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
+
+			mvalo[0] = mval[0];
+			mvalo[1] = mval[1];
+
+			dist= 50;
+			nearest = findnearestedge(&dist);	// returns actual distance in dist
+			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!        
+
+            /* Need to figure preview */
+            if(nearest){
+	            edgering_sel(nearest, 0, numcuts);
+             }   
+			screen_swapbuffers();
+
+		/* backbuffer refresh for non-apples (no aux) */
+#ifndef __APPLE__
+			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+				backdrawview3d(0);
+			}
+#endif
+		}
+		else PIL_sleep_ms(10);	// idle		
+		while(qtest()) 
+		{
+			val=0;
+			event= extern_qread(&val);
+			if(val && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE))
+			{
+                if(event == MIDDLEMOUSE){
+                    cuthalf = 1;   
+                }
+				if (nearest==NULL)
+					cancel = 1;
+				choosing=0;
+				break;
+			}
+			if(val && (event==ESCKEY || event==RIGHTMOUSE ))
+			{
+				choosing=0;
+				cancel = 1;
+				break;
+			}
+			if(val && (event==PADPLUSKEY || event==WHEELUPMOUSE))
+			{
+				numcuts++;
+				mvalo[0] = 0;mvalo[1] = 0;
+				break;
+			}
+			if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
+			{
+                if(numcuts > 1){
+    				numcuts--;
+    				mvalo[0] = 0;mvalo[1] = 0;
+    				break;
+                } 
+			}
+		}	
+    }
+    if(cancel){
+        return;   
+    }
+    /* clean selection */
+    for(eed=em->edges.first; eed; eed = eed->next){
+        EM_select_edge(eed,0);   
+    }
+    /* select edge ring */
+	edgering_sel(nearest, 1, 0);
+	
+	/* now cut the loops */
+	esubdivideflag(SELECT,0,0,numcuts,1);
+	
+    force_draw(0);
+    makeDispList(G.obedit);
+    scrarea_queue_winredraw(curarea);
+	
+	/* if this was a single cut, enter edgeslide mode */
+	if(numcuts == 1){
+        if(cuthalf)
+            EdgeSlide(1,0.0);
+        else
+            EdgeSlide(0,0.0);       
+    }
+	
+    return;
+}
+
+
 /* *************** LOOP SELECT ************* */
 
 static short edgeFaces(EditEdge *e){
@@ -110,7 +315,7 @@ static short edgeFaces(EditEdge *e){
 	returns 1 if they do
 	returns 0 if they do not, or if the function is passed the same edge 2 times
 */
-static short sharesFace(EditEdge* e1, EditEdge* e2)
+short sharesFace(EditEdge* e1, EditEdge* e2)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *search=NULL;
@@ -129,255 +334,6 @@ static short sharesFace(EditEdge* e1, EditEdge* e2)
 	}
 	return 0;
 }
-/* This function selects a vertex loop based on a each succesive edge having a valance of 4
-   and not sharing a face with the previous edge */
-
-/* It uses ->f flags still, which isn't causing bugs now, but better be put in ->f1 (ton) */
-
-void vertex_loop_select() 
-{
-	EditMesh *em = G.editMesh;
-	EditVert *v1=NULL,*v2=NULL;
-	EditEdge *search=NULL,*startEdge=NULL,*valSearch = NULL,*nearest = NULL,*compEdge;
-	EditEdge *EdgeVal[5] = {NULL,NULL,NULL,NULL,NULL};
-	short numEdges=0,curEdge = 0,looking = 1,edgeValCount = 0,i=0,looped = 0,choosing = 1,event,noloop=0,cancel=0, val;
-	short protect = 0, dist= 50;
-	short mvalo[2] = {0,0}, mval[2];
-
-	SetBlenderCursor(BC_VLOOPCURSOR);
-	for(search=em->edges.first;search;search=search->next)
-		numEdges++;
-
-	/* start with v1 and go in one direction. */
-	while(choosing){
-		getmouseco_areawin(mval);
-		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
-
-			mvalo[0] = mval[0];
-			mvalo[1] = mval[1];
-
-			dist= 50;
-			nearest = findnearestedge(&dist);	// returns actual distance in dist
-			
-			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
-
-			if (nearest && edgeFaces(nearest)==2) {
-				for(search = em->edges.first;search;search=search->next)
-					search->f &= ~32;
-					
-				compEdge = startEdge = nearest;
-				nearest->f |= 32;
-				curEdge = 0;
-				v1 = startEdge->v1;
-				v2 = startEdge->v2;
-				looking = 1;
-				while(looking){
-					if(protect++ > numEdges) break;
-					if(edgeFaces(compEdge) != 2) break;
-					/*Find Edges that have v1*/
-					edgeValCount = -1;
-					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
-					
-					for(valSearch = em->edges.first;valSearch;valSearch = valSearch->next){
-						if(valSearch->v1 == v1 || valSearch->v2 == v1){
-							if(valSearch != compEdge){
-								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
-									if(edgeFaces(valSearch) == 2){
-										edgeValCount++;							
-										EdgeVal[edgeValCount] = valSearch;
-									}
-								}
-							}
-						}
-						if(edgeValCount == 3)break;
-					}
-					/* Check that there was a valance of 4*/
-					if(edgeValCount != 2){
-						noloop = 1;
-						looking = 0;
-						break;
-					}
-					else{
-					/* There were 3 edges, so find the one that does not share the previous edge */
-						for(i=0;i<3;i++){
-							if(sharesFace(compEdge,EdgeVal[i]) == 0){
-								/* We went all the way around the loop */
-								if(EdgeVal[i] == nearest){
-									looking = 0;
-									looped = 1;
-									break;
-								}
-								else{
-									/* we are still in the loop, so add the next edge*/
-									curEdge++;
-									EdgeVal[i]->f |= 32;
-									compEdge = EdgeVal[i];
-									if(compEdge->v1 == v1)
-										v1 = compEdge->v2;
-									else
-										v1 = compEdge->v1;
-								}
-							}
-						}
-					}
-				}	
-				compEdge = nearest;
-				looking = 1;
-				protect = 0;
-				while(looking/* && !looped*/){
-					if(protect++ > numEdges) break;
-					if(edgeFaces(compEdge) != 2) break;
-					/*Find Edges that have v1*/
-					edgeValCount = -1;
-					EdgeVal[0] = EdgeVal[1] = EdgeVal[2] = NULL;
-					
-					for(valSearch = em->edges.first;valSearch;valSearch = valSearch->next){
-						if(valSearch->v1 == v2 || valSearch->v2 == v2){
-							if(valSearch != compEdge){
-								if((valSearch->v1->h == 0) && (valSearch->v2->h == 0)){
-									if(edgeFaces(valSearch) == 2){
-										edgeValCount++;							
-										EdgeVal[edgeValCount] = valSearch;
-									}
-								}
-							}
-						}
-						if(edgeValCount == 3)break;
-					}
-					/* Check that there was a valance of 4*/
-					if(edgeValCount != 2){
-						noloop = 1;
-						looking = 0;
-						break;
-					}
-					else{
-					/* There were 3 edges, so find the one that does not share the previous edge */
-						for(i=0;i<3;i++){
-							if(sharesFace(compEdge,EdgeVal[i]) == 0){
-								/* We went all the way around the loop */
-								if(EdgeVal[i] == nearest){
-									looking = 0;
-									looped = 1;
-									break;
-								}
-								else{
-									/* we are still in the loop, so add the next edge*/
-									curEdge++;
-									EdgeVal[i]->f |= 32;
-									compEdge = EdgeVal[i];
-									if(compEdge->v1 == v2)
-										v2 = compEdge->v2;
-									else
-										v2 = compEdge->v1;
-								}
-							}
-						}
-					}
-				}
-				/* set up for opengl drawing in the 3d window */
-				persp(PERSP_VIEW);
-				glPushMatrix();
-				mymultmatrix(G.obedit->obmat);
-				glColor3ub(0, 255, 255);
-				for(search = em->edges.first;search;search= search->next){
-					if(search->f & 32){
-						glBegin(GL_LINES);			
-						glVertex3f(search->v1->co[0],search->v1->co[1],search->v1->co[2]);
-						glVertex3f(search->v2->co[0],search->v2->co[1],search->v2->co[2]);
-						glEnd();
-					}
-				}		
-
-				glPopMatrix();
-			}
-
-			screen_swapbuffers();
-
-		/* backbuffer refresh for non-apples (no aux) */
-#ifndef __APPLE__
-			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-				backdrawview3d(0);
-			}
-#endif
-		}
-		else PIL_sleep_ms(10);	// idle
-		
-		while(qtest()) 
-		{
-			val=0;
-			event= extern_qread(&val);
-			if(val && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE))
-			{
-				if (nearest==NULL)
-					cancel = 1;
-				choosing=0;
-				break;
-			}
-			if(val && (event==ESCKEY || event==RIGHTMOUSE ))
-			{
-				choosing=0;
-				cancel = 1;
-				break;
-			}
-			if(val && (event==BKEY && G.qual==LR_ALTKEY ))
-			{			
-				
-				SetBlenderCursor(SYSCURSOR);
-				loopoperations(LOOP_SELECT);
-				return;
-			}
-		}
-	}
-	if(!cancel){
-		/* If this is a unmodified select, clear the selection */
-		
-		/* XXX note that !1 is 0, so it not only clears bit 1 (ton) */
-		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
-			for(search = em->edges.first;search;search= search->next){
-				search->v1->f &= !1;
-				search->v2->f &= !1;
-			}
-			EM_clear_flag_all(SELECT);	/* XXX probably that's sufficient */
-		}
-		/* Alt was not pressed, so add to the selection */
-		if(!(G.qual & LR_ALTKEY)){
-			for(search = em->edges.first;search;search= search->next){
-				if(search->f & 32){
-					search->v1->f |= 1;
-					search->v2->f |= 1;
-				}
-				search->f &= ~32;
-			}
-			/* XXX this will correctly flush */
-		}
-		/* alt was pressed, so subtract from the selection */
-		else
-		{
-			/* XXX this doesnt flush correct in face select mode */
-			for(search = em->edges.first;search;search= search->next){
-				if(search->f & 32){
-					search->v1->f &= !1;
-					search->v2->f &= !1;
-					EM_select_edge(search, 0);	// the call to deselect edge
-				}
-				search->f &= ~32;
-			}
-		}
-		
-		EM_select_flush(); // flushes vertex -> edge -> face selection
-		
-		countall();
-		
-		BIF_undo_push("Select Vertex Loop");
-	}
-
-	addqueue(curarea->win, REDRAW, 1); 
-	SetBlenderCursor(SYSCURSOR);
-	return;
-}
-
-/* *********** END LOOP SELECT ********** */
-
 
 
 /*   ***************** TRAIL ************************
@@ -549,6 +505,7 @@ void KnifeSubdivide(char mode)
 	CutCurve *curve;		
 	EditEdge *eed; 
 	Window *win;	
+	short numcuts=1;
 	
 	if (G.obedit==0) return;
 
@@ -558,10 +515,14 @@ void KnifeSubdivide(char mode)
 	}
 
 	if (mode==KNIFE_PROMPT) {
-		short val= pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2");
+		short val= pupmenu("Cut Type %t|Exact Line%x1|Midpoints%x2|Multicut%x3");
 		if(val<1) return;
-		mode= val;	// warning, mode is char, pupmenu returns -1 with ESC
+		mode = val;	// warning, mode is char, pupmenu returns -1 with ESC
 	}
+
+    if(mode == KNIFE_MULTICUT) {
+    	if(button(&numcuts, 2, 128, "Number of Cuts:")==0) return;
+    }
 
 	calc_meshverts_ext();  /*Update screen coords for current window */
 	
@@ -591,9 +552,10 @@ void KnifeSubdivide(char mode)
 			eed= eed->next;
 		}
 		
-		if (mode==1) subdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD);
-		else if (mode==2) subdivideflag(1, 0, B_KNIFE);
-		
+		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,0);
+		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,0);
+		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,0);
+        		
 		eed=em->edges.first;
 		while(eed){
 			eed->f2=0;
@@ -718,1103 +680,26 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 	return(isect);
 } 
 
-/* ******************** LOOP ******************************************* */
-
-/* XXX: this loop function is totally out of control!
-   can be half the code, and using structured functions (ton) */
-   
-/* 
-functionality: various loop functions
-parameters: mode tells the function what it should do with the loop:
-		LOOP_SELECT = select
-		LOOP_CUT = cut in half
-*/	
-
-void loopoperations(char mode)
-{
-	EditMesh *em = G.editMesh;
-	EditVert* look = NULL;
-	EditEdge *start, *eed, *opposite,*currente, *oldstart;
-	EditEdge **tagged = NULL,**taggedsrch = NULL,*close;
-	EditFace *efa,**percentfacesloop = NULL, *currentvl,  *formervl;	
-	short lastface=0, foundedge=0, c=0, tri=0, side=1, totface=0, searching=1, event=0, noface=1;
-	short skip,nextpos,percentfaces, dist=50;
-
-	int i=0,ect=0,j=0,k=0,cut,smooth,timesthrough=0,inset = 0;
-
-	float percentcut, outcut;
-
-	char mesg[100];
-
-	if ((G.obedit==0) || (em->faces.first==0)) return;
-	
-	SetBlenderCursor(BC_VLOOPCURSOR);
-	
-	/* Clear flags */
-	for(eed=em->edges.first; eed; eed=eed->next) eed->f2= 0;
-	for(efa= em->faces.first; efa; efa=efa->next) efa->f1= 0;
-	
-	start=NULL;
-	oldstart=NULL;
-
-	while(searching){
-		
-		/* reset variables */
-		start=eed=opposite=currente=0;
-		efa=currentvl=formervl=0;
-		side=noface=1;
-		lastface=foundedge=c=tri=totface=0;		
-				
-		//start=findnearestvisibleedge();
-		dist= 50;
-		start= findnearestedge(&dist);
-		
-		/* used flags in the code:
-		   vertex->f & 2: in findnearestvisibleedge
-		   edge->f2 : subdiv codes
-		   efa->f1 : subdiv codes
-		*/
-		
-		/* If the edge doesn't belong to a face, it's not a valid starting edge */
-		/* and only accept starting edge if it is part of at least one visible face */
-		if(start){
-			start->f2 |= 16;
-			efa=em->faces.first;
-			while(efa){
-				/* since this edge is on the face, check if the face is hidden */
-				if( efa->h==0  ){
-					if(efa->e1->f2 & 16){
-						noface=0;
-						efa->e1->f2 &= ~16;
-					}
-					else if(efa->e2->f2 & 16){					
-						noface=0;
-						efa->e2->f2 &= ~16;
-					}
-					else if(efa->e3->f2 & 16){					
-						noface=0;
-						efa->e3->f2 &= ~16;
-					}
-					else if(efa->e4 && (efa->e4->f2 & 16)){					
-						noface=0;
-						efa->e4->f2 &= ~16;
-					}
-				}
-				efa=efa->next;
-			}			
-		}
-				
-		/* Did we find anything that is selectable? */
-		if(start && !noface && (oldstart==NULL || start!=oldstart)){
-					
-			/* If we stay in the neighbourhood of this edge, we don't have to recalculate the loop everytime*/
-			oldstart=start;	
-			
-			/* Clear flags */
-			for(eed=em->edges.first; eed; eed=eed->next){			
-				eed->f2 &= ~(2|4|8|32|64);
-				eed->v1->f &= ~(2|8|16); // xxxx
-				eed->v2->f &= ~(2|8|16);				
-			}
-			
-			for(efa= em->faces.first; efa; efa=efa->next){			
-				efa->f1 &= ~(4|8);
-				totface++;				
-			}
-					
-			/* Tag the starting edge */
-			start->f2 |= (2|4|8|64);				
-			start->v1->f |= 2;  /* xxxx */
-			start->v2->f |= 2;		
-			
-			currente=start;						
-			
-			/*-----Limit the Search----- */
-			while(!lastface && c<totface+1){
-				
-				/*----------Get Loop------------------------*/
-				tri=foundedge=lastface=0;													
-				efa= em->faces.first;		
-				while(efa && !foundedge && !tri){
-									
-					if(!(efa->v4)){	/* Exception for triangular faces */
-						
-						if((efa->e1->f2 | efa->e2->f2 | efa->e3->f2) & 2){
-							if(!(efa->f1 & 4)){								
-								tri=1;
-								currentvl=efa;
-								if(side==1) efa->f1 |= 4;
-							}
-						}						
-					}
-					else{
-						
-						if((efa->e1->f2 | efa->e2->f2 | efa->e3->f2 | efa->e4->f2) & 2){
-							
-							if(c==0){	/* just pick a face, doesn't matter wich side of the edge we go to */
-								if(!(efa->f1 & 4)){
-									
-									if(!(efa->e1->v1->f & 2) && !(efa->e1->v2->f & 2)){ // xxxxx
-										if(efa->e1->h==0){
-											opposite=efa->e1;														
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e2->v1->f & 2) && !(efa->e2->v2->f & 2)){ // xxxx
-										if(efa->e2->h==0){
-											opposite=efa->e2;
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e3->v1->f & 2) && !(efa->e3->v2->f & 2)){
-										if(efa->e3->h==0){
-											opposite=efa->e3;
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e4->v1->f & 2) && !(efa->e4->v2->f & 2)){
-										if(efa->e4->h==0){
-											opposite=efa->e4;
-											foundedge=1;
-										}
-									}
-									
-									if(foundedge){
-										currentvl=efa;
-										formervl=efa;
-									
-										/* mark this side of the edge so we know in which direction we went */
-										if(side==1) efa->f1 |= 4;
-									}
-								}
-							}
-							else {	
-								if(efa!=formervl){	/* prevent going backwards in the loop */
-								
-									if(!(efa->e1->v1->f & 2) && !(efa->e1->v2->f & 2)){
-										if(efa->e1->h==0){
-											opposite=efa->e1;														
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e2->v1->f & 2) && !(efa->e2->v2->f & 2)){
-										if(efa->e2->h==0){
-											opposite=efa->e2;
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e3->v1->f & 2) && !(efa->e3->v2->f & 2)){
-										if(efa->e3->h==0){
-											opposite=efa->e3;
-											foundedge=1;
-										}
-									}
-									else if(!(efa->e4->v1->f & 2) && !(efa->e4->v2->f & 2)){
-										if(efa->e4->h==0){
-											opposite=efa->e4;
-											foundedge=1;
-										}
-									}
-									
-									currentvl=efa;
-								}
-							}
-						}
-					}
-				efa=efa->next;
-				}
-				/*----------END Get Loop------------------------*/
-				
-			
-				/*----------Decisions-----------------------------*/
-				if(foundedge){
-					/* mark the edge and face as done */					
-					currente->f2 |= 8;
-					currentvl->f1 |= 8;
-
-					if(opposite->f2 & 4) lastface=1;	/* found the starting edge! close loop */								
-					else{
-						/* un-set the testflags */
-						currente->f2 &= ~2;
-						currente->v1->f &= ~2; // xxxx
-						currente->v2->f &= ~2;							
-						
-						/* set the opposite edge to be the current edge */				
-						currente=opposite;							
-						
-						/* set the current face to be the FORMER face (to prevent going backwards in the loop) */
-						formervl=currentvl;
-						
-						/* set the testflags */
-						currente->f2 |= 2;
-						currente->v1->f |= 2; // xxxx
-						currente->v2->f |= 2;			
-					}
-					c++;
-				}
-				else{	
-					/* un-set the testflags */
-					currente->f2 &= ~2;
-					currente->v1->f &= ~2; // xxxx
-					currente->v2->f &= ~2;
-					
-					/* mark the edge and face as done */
-					currente->f2 |= 8;
-					currentvl->f1 |= 8;
-					
-					
-												
-					/* is the the first time we've ran out of possible faces?
-					*  try to start from the beginning but in the opposite direction go as far as possible
-					*/				
-					if(side==1){						
-						if(tri)tri=0;
-						currente=start;
-						currente->f2 |= 2;
-						currente->v1->f |= 2; // xxxx
-						currente->v2->f |= 2;					
-						side++;
-						c=0;
-					}
-					else lastface=1;
-				}				
-				/*----------END Decisions-----------------------------*/
-				
-			}
-			/*-----END Limit the Search----- */
-			
-			
-			/*------------- Preview lines--------------- */
-			
-			/* uses callback mechanism to draw it all in current area */
-			scrarea_do_windraw(curarea);			
-			
-			/* set window matrix to perspective, default an area returns with buttons transform */
-			persp(PERSP_VIEW);
-			/* make a copy, for safety */
-			glPushMatrix();
-			/* multiply with the object transformation */
-			mymultmatrix(G.obedit->obmat);
-			
-			glColor3ub(255, 255, 0);
-			
-			if(mode==LOOP_SELECT){
-				efa= em->faces.first;
-				while(efa){
-					if(efa->f1 & 8){
-						
-						if(!(efa->e1->f2 & 8)){
-							glBegin(GL_LINES);							
-							glVertex3fv(efa->e1->v1->co);
-							glVertex3fv(efa->e1->v2->co);
-							glEnd();	
-						}
-						
-						if(!(efa->e2->f2 & 8)){
-							glBegin(GL_LINES);							
-							glVertex3fv(efa->e2->v1->co);
-							glVertex3fv(efa->e2->v2->co);
-							glEnd();	
-						}
-						
-						if(!(efa->e3->f2 & 8)){
-							glBegin(GL_LINES);							
-							glVertex3fv(efa->e3->v1->co);
-							glVertex3fv(efa->e3->v2->co);
-							glEnd();	
-						}
-						
-						if(efa->e4){
-							if(!(efa->e4->f2 & 8)){
-								glBegin(GL_LINES);							
-								glVertex3fv(efa->e4->v1->co);
-								glVertex3fv(efa->e4->v2->co);
-								glEnd();	
-							}
-						}
-					}
-					efa=efa->next;
-				}
-			}
-				
-			if(mode==LOOP_CUT){
-				efa= em->faces.first;
-				while(efa){
-					if(efa->f1 & 8){
-						float cen[2][3];
-						int a=0;						
-						
-						efa->v1->f &= ~8; // xxx
-						efa->v2->f &= ~8;
-						efa->v3->f &= ~8;
-						if(efa->v4)efa->v4->f &= ~8;
-					
-						if(efa->e1->f2 & 8){
-							cen[a][0]= (efa->e1->v1->co[0] + efa->e1->v2->co[0])/2.0;
-							cen[a][1]= (efa->e1->v1->co[1] + efa->e1->v2->co[1])/2.0;
-							cen[a][2]= (efa->e1->v1->co[2] + efa->e1->v2->co[2])/2.0;
-							
-							efa->e1->v1->f |= 8; // xxx
-							efa->e1->v2->f |= 8;
-							
-							a++;
-						}
-						if((efa->e2->f2 & 8) && a!=2){
-							cen[a][0]= (efa->e2->v1->co[0] + efa->e2->v2->co[0])/2.0;
-							cen[a][1]= (efa->e2->v1->co[1] + efa->e2->v2->co[1])/2.0;
-							cen[a][2]= (efa->e2->v1->co[2] + efa->e2->v2->co[2])/2.0;
-							
-							efa->e2->v1->f |= 8; // xxx
-							efa->e2->v2->f |= 8;
-							
-							a++;
-						}
-						if((efa->e3->f2 & 8) && a!=2){
-							cen[a][0]= (efa->e3->v1->co[0] + efa->e3->v2->co[0])/2.0;
-							cen[a][1]= (efa->e3->v1->co[1] + efa->e3->v2->co[1])/2.0;
-							cen[a][2]= (efa->e3->v1->co[2] + efa->e3->v2->co[2])/2.0;
-							
-							efa->e3->v1->f |= 8; // xxx
-							efa->e3->v2->f |= 8;
-							
-							a++;
-						}
-						
-						if(efa->e4){
-							if((efa->e4->f2 & 8) && a!=2){
-								cen[a][0]= (efa->e4->v1->co[0] + efa->e4->v2->co[0])/2.0;
-								cen[a][1]= (efa->e4->v1->co[1] + efa->e4->v2->co[1])/2.0;
-								cen[a][2]= (efa->e4->v1->co[2] + efa->e4->v2->co[2])/2.0;
-								
-								efa->e4->v1->f |= 8; // xxx
-								efa->e4->v2->f |= 8;
-							
-								a++;
-							}
-						}
-						else{	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */														
-								if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
-									cen[a][0]= efa->v1->co[0];
-									cen[a][1]= efa->v1->co[1];
-									cen[a][2]= efa->v1->co[2];
-									a++;								
-								}
-								else if(!(efa->v2->f & 8) && efa->v2->h==0){
-									cen[a][0]= efa->v2->co[0];
-									cen[a][1]= efa->v2->co[1];
-									cen[a][2]= efa->v2->co[2];	
-									a++;
-								}
-								else if(!(efa->v3->f & 8) && efa->v3->h==0){
-									cen[a][0]= efa->v3->co[0];
-									cen[a][1]= efa->v3->co[1];
-									cen[a][2]= efa->v3->co[2];
-									a++;									
-								}							
-						}
-						
-						if(a==2){
-							glBegin(GL_LINES);
-							
-							glVertex3fv(cen[0]);
-							glVertex3fv(cen[1]);	
-												
-							glEnd();
-						}						
-					}
-					efa=efa->next;
-				}
-				
-				eed=em->edges.first; 
-				while(eed){
-					if(eed->f2 & 64){
-						glBegin(GL_LINES);
-						glColor3ub(200, 255, 200);
-						glVertex3fv(eed->v1->co);
-						glVertex3fv(eed->v2->co);
-						glEnd();
-						eed=0;
-					}else{
-						eed = eed->next;
-					}
-				}		
-			}
-			
-			/* restore matrix transform */
-			glPopMatrix();
-			
-			headerprint("LMB to confirm, RMB to cancel");
-			
-			/* this also verifies other area/windows for clean swap */
-			screen_swapbuffers();
-			
-			/* backbuffer refresh for non-apples (no aux) */
-#ifndef __APPLE__
-			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-				backdrawview3d(0);
-			}
-#endif
-	
-			/*--------- END Preview Lines------------*/
-				
-		}/*if(start!=NULL){ */
-		else PIL_sleep_ms(10);	// idle
-		
-		while(qtest()) {
-			unsigned short val=0;			
-			event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
-
-			/* val==0 on key-release event */
-			if(val && (event==ESCKEY || event==RIGHTMOUSE || event==LEFTMOUSE || event==RETKEY || event == MIDDLEMOUSE)){
-				searching=0;
-			}
-		}	
-		
-	}/*while(event!=ESCKEY && event!=RIGHTMOUSE && event!=LEFTMOUSE && event!=RETKEY){*/
-	
-	/*----------Select Loop------------*/
-	if(mode==LOOP_SELECT && start!=NULL && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE || event == BKEY)){
-				
-		/* If this is a unmodified select, clear the selection */
-		if(!(G.qual & LR_SHIFTKEY) && !(G.qual & LR_ALTKEY)){
-			for(efa= em->faces.first;efa;efa=efa->next){
-				EM_select_face(efa, 0);	// and this is correct deselect face		
-			}
-		}
-		/* Alt was not pressed, so add to the selection */
-		if(!(G.qual & LR_ALTKEY)){
-			for(efa= em->faces.first;efa;efa=efa->next){
-				if(efa->f1 & 8){
-					EM_select_face(efa, 1);	// and this is correct select face
-				}
-			}
-		}
-		/* alt was pressed, so subtract from the selection */
-		else
-		{
-			for(efa= em->faces.first;efa;efa=efa->next){
-				if(efa->f1 & 8){
-					EM_select_face(efa, 0);	// this is correct deselect face
-				}
-			}
-		}
-	
-	}
-	/*----------END Select Loop------------*/
-	
-	/*----------Cut Loop---------------*/			
-	if(mode==LOOP_CUT && start!=NULL && (event==LEFTMOUSE || event==RETKEY)){
-		
-		/* count the number of edges in the loop */		
-		for(eed=em->edges.first; eed; eed = eed->next){
-			if(eed->f2 & 8)
-				ect++;
-		}		
-		
-		tagged = MEM_mallocN(ect*sizeof(EditEdge*), "tagged");
-		taggedsrch = MEM_mallocN(ect*sizeof(EditEdge*), "taggedsrch");
-		for(i=0;i<ect;i++)
-		{
-			tagged[i] = NULL;
-			taggedsrch[i] = NULL;
-		}
-		ect = 0;
-		for(eed=em->edges.first; eed; eed = eed->next){
-			if(eed->f2 & 8)
-			{
-				if(eed->h==0){
-					eed->v1->f |= SELECT;
-					eed->v2->f |= SELECT;
-					eed->f |= SELECT;
-					tagged[ect] = eed;
-					eed->f2 &= ~(32);
-					ect++;
-				}
-			}			
-		}
-		taggedsrch[0] = tagged[0];
-
-		while(timesthrough < 2)
-		{
-			i=0;
-			while(i < ect){/*Look at the members of the search array to line up cuts*/
-				if(taggedsrch[i]==NULL)break;
-				for(j=0;j<ect;j++){			 /*Look through the list of tagged verts for connected edges*/
-					int addededge = 0;
-					if(taggedsrch[i]->f2 & 32)        /*If this edgee is marked as flipped, use vert 2*/
-						look = taggedsrch[i]->v2;
-					else							 /*else use vert 1*/
-						look = taggedsrch[i]->v1;
-
-					if(taggedsrch[i] == tagged[j])
-						continue;  /*If we are looking at the same edge, skip it*/
-	
-					skip = 0;
-					for(k=0;k<ect;k++)	{
-						if(taggedsrch[k] == NULL)	/*go to empty part of search list without finding*/
-							break;							
-						if(tagged[j] == taggedsrch[k]){		/*We found a match already in the list*/
-							skip = 1;
-							break;
-						}
-					}
-					if(skip)
-						continue;
-					nextpos = 0;
-					if(findedgelist(look,tagged[j]->v2)){
-						while(nextpos < ect){ /*Find the first open spot in the search array*/
-							if(taggedsrch[nextpos] == NULL){
-								taggedsrch[nextpos] = tagged[j]; /*put tagged[j] in it*/
-								taggedsrch[nextpos]->f2 |= 32;
-								addededge = 1;
-								break;
-							}
-							else
-								nextpos++;
-						}
-					} /* End else if connected to vert 2*/
-					else if(findedgelist(look,tagged[j]->v1)){   /*If our vert is connected to vert 1 */
-						while(nextpos < ect){ /*Find the first open spot in the search array */
-							if(taggedsrch[nextpos] == NULL){
-								taggedsrch[nextpos] = tagged[j]; /*put tagged[j] in it*/
-								addededge = 1;
-								break;
-							}
-							else 
-								nextpos++;
-						}
-					}
-
-					if(addededge)
-					{
-						break;
-					}					
-				}/* End Outer For (j)*/
-				i++;
-			} /* End while(j<ect)*/
-			timesthrough++;
-		} /*end while timesthrough */
-		percentcut = 0.50;
-		searching = 1;
-		cut   = 1;
-		smooth = 0;
-		close = NULL;
-
-
-		/* Count the Number of Faces in the selected loop*/
-		percentfaces = 0;
-		for(efa= em->faces.first; efa ;efa=efa->next){
-			if(efa->f1 & 8)
-			 {
-				percentfaces++;	
-			 }
-		}
-			
-		/* create a dynamic array for those face pointers */
-		percentfacesloop = MEM_mallocN(percentfaces*sizeof(EditFace*), "percentage");
-
-		/* put those faces in the array */
-		i=0;
-		for(efa= em->faces.first; efa ;efa=efa->next){
-			 if(efa->f1 & 8)
-			 {
-				percentfacesloop[i] = efa;	
-				i++;
-			 }
-		}
-
-		while(searching){
-			
-			/* For the % calculation */
-			short mval[2];			
-			float labda, rc[2], len, slen=0.0;
-			float v1[2], v2[2], v3[2];
-
-			/*------------- Percent Cut Preview Lines--------------- */
-			scrarea_do_windraw(curarea);			
-			persp(PERSP_VIEW);
-			glPushMatrix();
-			mymultmatrix(G.obedit->obmat);
-			glColor3ub(0, 255, 255);
-				
-			/*Put the preview lines where they should be for the percentage selected.*/
-
-			for(i=0;i<percentfaces;i++){
-				efa = percentfacesloop[i];
-				for(eed = em->edges.first; eed; eed=eed->next){
-					if(eed->f2 & 64){	/* color the starting edge */			
-						glBegin(GL_LINES);
-												
-						glColor3ub(200, 255, 200);
-						glVertex3fv(eed->v1->co);					
-						glVertex3fv(eed->v2->co);
-						
-						glEnd();
-
-						glPointSize(5);
-						glBegin(GL_POINTS);
-						glColor3ub(255,0,255);
-						
-						if(eed->f2 & 32)
-							glVertex3fv(eed->v2->co);			
-						else
-							glVertex3fv(eed->v1->co);
-						glEnd();
-
-
-						/*Get Starting Edge Length*/
-						slen = sqrt((eed->v1->co[0]-eed->v2->co[0])*(eed->v1->co[0]-eed->v2->co[0])+
-									(eed->v1->co[1]-eed->v2->co[1])*(eed->v1->co[1]-eed->v2->co[1])+
-									(eed->v1->co[2]-eed->v2->co[2])*(eed->v1->co[2]-eed->v2->co[2]));
-					}
-				}
-				
-				if(!inset){
-					glColor3ub(0,255,255);
-					if(efa->f1 & 8)
-					{
-						float cen[2][3];
-						int a=0;					
-						
-						efa->v1->f &= ~8; // xxx
-						efa->v2->f &= ~8;
-						efa->v3->f &= ~8;
-						if(efa->v4)efa->v4->f &= ~8;
-						
-						if(efa->e1->f2 & 8){
-							float pct;
-							if(efa->e1->f2 & 32)
-								pct = 1-percentcut;
-							else
-								pct = percentcut;
-							cen[a][0]= efa->e1->v1->co[0] - ((efa->e1->v1->co[0] - efa->e1->v2->co[0]) * (pct));
-							cen[a][1]= efa->e1->v1->co[1] - ((efa->e1->v1->co[1] - efa->e1->v2->co[1]) * (pct));
-							cen[a][2]= efa->e1->v1->co[2] - ((efa->e1->v1->co[2] - efa->e1->v2->co[2]) * (pct));
-							efa->e1->v1->f |= 8; // xxx
-							efa->e1->v2->f |= 8;
-							a++;
-						}
-						if((efa->e2->f2 & 8) && a!=2)
-						{
-							float pct;
-							if(efa->e2->f2 & 32)
-								pct = 1-percentcut;
-							else
-								pct = percentcut;
-							cen[a][0]= efa->e2->v1->co[0] - ((efa->e2->v1->co[0] - efa->e2->v2->co[0]) * (pct));
-							cen[a][1]= efa->e2->v1->co[1] - ((efa->e2->v1->co[1] - efa->e2->v2->co[1]) * (pct));
-							cen[a][2]= efa->e2->v1->co[2] - ((efa->e2->v1->co[2] - efa->e2->v2->co[2]) * (pct));
-
-							efa->e2->v1->f |= 8; // xxx
-							efa->e2->v2->f |= 8;
-							
-							a++;
-						}
-						if((efa->e3->f2 & 8) && a!=2){
-							float pct;
-							if(efa->e3->f2 & 32)
-								pct = 1-percentcut;
-							else
-								pct = percentcut;
-							cen[a][0]= efa->e3->v1->co[0] - ((efa->e3->v1->co[0] - efa->e3->v2->co[0]) * (pct));
-							cen[a][1]= efa->e3->v1->co[1] - ((efa->e3->v1->co[1] - efa->e3->v2->co[1]) * (pct));
-							cen[a][2]= efa->e3->v1->co[2] - ((efa->e3->v1->co[2] - efa->e3->v2->co[2]) * (pct));
-
-							efa->e3->v1->f |= 8; // xxx
-							efa->e3->v2->f |= 8;
-							
-							a++;
-						}
-							
-						if(efa->e4){
-							if((efa->e4->f2 & 8) && a!=2){
-								float pct;
-								if(efa->e4->f2 & 32)
-									pct = 1-percentcut;
-								else
-									pct = percentcut;
-								cen[a][0]= efa->e4->v1->co[0] - ((efa->e4->v1->co[0] - efa->e4->v2->co[0]) * (pct));
-								cen[a][1]= efa->e4->v1->co[1] - ((efa->e4->v1->co[1] - efa->e4->v2->co[1]) * (pct));
-								cen[a][2]= efa->e4->v1->co[2] - ((efa->e4->v1->co[2] - efa->e4->v2->co[2]) * (pct));
-
-								efa->e4->v1->f |= 8; // xxx
-								efa->e4->v2->f |= 8;
-							
-								a++;
-							}
-						}
-						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
-								cen[a][0]= efa->v1->co[0];
-								cen[a][1]= efa->v1->co[1];
-								cen[a][2]= efa->v1->co[2];
-								a++;								
-							}
-							else if(!(efa->v2->f & 8) && efa->v2->h==0){ // xxx
-								cen[a][0]= efa->v2->co[0];
-								cen[a][1]= efa->v2->co[1];
-								cen[a][2]= efa->v2->co[2];
-								a++;								
-							}
-							else if(!(efa->v3->f & 8) && efa->v3->h==0){ // xxx
-								cen[a][0]= efa->v3->co[0];
-								cen[a][1]= efa->v3->co[1];
-								cen[a][2]= efa->v3->co[2];
-								a++;													
-							}
-						}
-						
-						if(a==2){
-							glBegin(GL_LINES);
-							
-							glVertex3fv(cen[0]);
-							glVertex3fv(cen[1]);	
-												
-							glEnd();
-						}	
-					}
-				}/* end preview line drawing */			
-				else{
-					glColor3ub(0,128,255);
-					if(efa->f1 & 8)
-					{
-						float cen[2][3];
-						int a=0;					
-						
-						efa->v1->f &= ~8; // xxx
-						efa->v2->f &= ~8;
-						efa->v3->f &= ~8;
-						if(efa->v4)efa->v4->f &= ~8;
-						
-						if(efa->e1->f2 & 8){							
-							float nlen,npct;
-							
-							nlen = sqrt((efa->e1->v1->co[0] - efa->e1->v2->co[0])*(efa->e1->v1->co[0] - efa->e1->v2->co[0])+
-										(efa->e1->v1->co[1] - efa->e1->v2->co[1])*(efa->e1->v1->co[1] - efa->e1->v2->co[1])+
-										(efa->e1->v1->co[2] - efa->e1->v2->co[2])*(efa->e1->v1->co[2] - efa->e1->v2->co[2]));
-							npct = (percentcut*slen)/nlen;
-							if(npct >= 1) npct = 1;
-							if(efa->e1->f2 & 32)	npct = 1-npct;
-
-							cen[a][0]= efa->e1->v1->co[0] - ((efa->e1->v1->co[0] - efa->e1->v2->co[0]) * (npct));
-							cen[a][1]= efa->e1->v1->co[1] - ((efa->e1->v1->co[1] - efa->e1->v2->co[1]) * (npct));
-							cen[a][2]= efa->e1->v1->co[2] - ((efa->e1->v1->co[2] - efa->e1->v2->co[2]) * (npct));
-
-							efa->e1->f1 = 32768*(npct);
-							efa->e1->v1->f |= 8; // xxx
-							efa->e1->v2->f |= 8;
-							a++;
-						}
-						if((efa->e2->f2 & 8) && a!=2)
-						{
-							float nlen,npct;
-							
-							nlen = sqrt((efa->e2->v1->co[0] - efa->e2->v2->co[0])*(efa->e2->v1->co[0] - efa->e2->v2->co[0])+
-										(efa->e2->v1->co[1] - efa->e2->v2->co[1])*(efa->e2->v1->co[1] - efa->e2->v2->co[1])+
-										(efa->e2->v1->co[2] - efa->e2->v2->co[2])*(efa->e2->v1->co[2] - efa->e2->v2->co[2]));
-							npct = (percentcut*slen)/nlen;
-							if(npct >= 1) npct = 1;
-							if(efa->e2->f2 & 32)	npct = 1-npct;
-
-							cen[a][0]= efa->e2->v1->co[0] - ((efa->e2->v1->co[0] - efa->e2->v2->co[0]) * (npct));
-							cen[a][1]= efa->e2->v1->co[1] - ((efa->e2->v1->co[1] - efa->e2->v2->co[1]) * (npct));
-							cen[a][2]= efa->e2->v1->co[2] - ((efa->e2->v1->co[2] - efa->e2->v2->co[2]) * (npct));
-
-							efa->e2->f1 = 32768*(npct);								
-							efa->e2->v1->f |= 8; // xxx
-							efa->e2->v2->f |= 8;
-							a++;
-						}
-						if((efa->e3->f2 & 8) && a!=2){
-							float nlen,npct;
-							
-							nlen = sqrt((efa->e3->v1->co[0] - efa->e3->v2->co[0])*(efa->e3->v1->co[0] - efa->e3->v2->co[0])+
-										(efa->e3->v1->co[1] - efa->e3->v2->co[1])*(efa->e3->v1->co[1] - efa->e3->v2->co[1])+
-										(efa->e3->v1->co[2] - efa->e3->v2->co[2])*(efa->e3->v1->co[2] - efa->e3->v2->co[2]));
-							npct = (percentcut*slen)/nlen;
-							if(npct >= 1) npct = 1;
-							if(efa->e3->f2 & 32)	npct = 1-npct;
-
-							cen[a][0]= efa->e3->v1->co[0] - ((efa->e3->v1->co[0] - efa->e3->v2->co[0]) * (npct));
-							cen[a][1]= efa->e3->v1->co[1] - ((efa->e3->v1->co[1] - efa->e3->v2->co[1]) * (npct));
-							cen[a][2]= efa->e3->v1->co[2] - ((efa->e3->v1->co[2] - efa->e3->v2->co[2]) * (npct));
-
-							efa->e3->f1 = 32768*(npct);								
-							efa->e3->v1->f |= 8; // xxx
-							efa->e3->v2->f |= 8;
-							a++;
-						}
-							
-						if(efa->e4){
-							if((efa->e4->f2 & 8) && a!=2){
-								float nlen,npct;
-								
-								nlen = sqrt((efa->e4->v1->co[0] - efa->e4->v2->co[0])*(efa->e4->v1->co[0] - efa->e4->v2->co[0])+
-											(efa->e4->v1->co[1] - efa->e4->v2->co[1])*(efa->e4->v1->co[1] - efa->e4->v2->co[1])+
-											(efa->e4->v1->co[2] - efa->e4->v2->co[2])*(efa->e4->v1->co[2] - efa->e4->v2->co[2]));
-							npct = (percentcut*slen)/nlen;
-							if(npct >= 1) npct = 1;
-							if(efa->e4->f2 & 32)	npct = 1-npct;
-
-								cen[a][0]= efa->e4->v1->co[0] - ((efa->e4->v1->co[0] - efa->e4->v2->co[0]) * (npct));
-								cen[a][1]= efa->e4->v1->co[1] - ((efa->e4->v1->co[1] - efa->e4->v2->co[1]) * (npct));
-								cen[a][2]= efa->e4->v1->co[2] - ((efa->e4->v1->co[2] - efa->e4->v2->co[2]) * (npct));
-
-								efa->e4->f1 = 32768*(npct);									
-								efa->e4->v1->f |= 8; // xxx
-								efa->e4->v2->f |= 8;
-								a++;
-							}
-						}
-						else {	/* if it's a triangular face, set the remaining vertex as the cutcurve coordinate */
-							if(!(efa->v1->f & 8) && efa->v1->h==0){ // xxx
-								cen[a][0]= efa->v1->co[0];
-								cen[a][1]= efa->v1->co[1];
-								cen[a][2]= efa->v1->co[2];
-								a++;								
-							}
-							else if(!(efa->v2->f & 8) && efa->v2->h==0){ // xxx
-								cen[a][0]= efa->v2->co[0];
-								cen[a][1]= efa->v2->co[1];
-								cen[a][2]= efa->v2->co[2];
-								a++;								
-							}
-							else if(!(efa->v3->f & 8) && efa->v3->h==0){ // xxx
-								cen[a][0]= efa->v3->co[0];
-								cen[a][1]= efa->v3->co[1];
-								cen[a][2]= efa->v3->co[2];
-								a++;													
-							}
-						}
-						
-						if(a==2){
-							glBegin(GL_LINES);
-							
-							glVertex3fv(cen[0]);
-							glVertex3fv(cen[1]);	
-												
-							glEnd();
-						}	
-					}
-				}
-			}
-			/* restore matrix transform */
-	
-			glPopMatrix();
-
-			/*--------- END Preview Lines------------*/
-			while(qtest()) 
-			{
-				unsigned short val=0;			
-				event= extern_qread(&val);	/* extern_qread stores important events for the mainloop to handle */
-				/* val==0 on key-release event */
-		
-				if(val && (event==SKEY))
-				{
-					if(smooth)smooth = 0;
-					else smooth = 1;
-				}
-
-				if(val && (event==PKEY))
-				{
-					if(inset)inset = 0;
-					else inset = 1;
-				}
-
-				if(val && (event==FKEY))
-				{
-						int ct;
-						for(ct = 0; ct < ect; ct++){
-							if(tagged[ct]->f2 & 32) 
-								tagged[ct]->f2 &= ~32;
-							else
-								tagged[ct]->f2 |= 32;
-						}
-				}
-
-				if(val && (event == MIDDLEMOUSE))
-				{
-					cut = 2;
-					searching=0;
-				}
-				else if(val && (event==LEFTMOUSE || event==RETKEY))
-				{
-					searching=0;
-				}
-
-				if(val && (event==ESCKEY || event==RIGHTMOUSE ))
-				{
-					searching=0;
-					cut = 0;
-				}
-				
-			}			
-			
-			/* window coords, no clip with vertices f2 flags set (not used) */
-			calc_meshverts_ext_f2();
-
-
-			/* Determine the % on wich the loop should be cut */
-			getmouseco_areawin(mval);			
-			v1[0]=(float)mval[0];
-			v1[1]=(float)mval[1];
-			
-			v2[0]=(float)start->v1->xs;
-			v2[1]=(float)start->v1->ys;
-			
-			v3[0]=(float)start->v2->xs;
-			v3[1]=(float)start->v2->ys;
-			
-			rc[0]= v3[0]-v2[0];
-			rc[1]= v3[1]-v2[1];
-			len= rc[0]*rc[0]+ rc[1]*rc[1];
-				
-			labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;
-
-
-			if(labda<=0.0) labda=0.0;
-			else if(labda>=1.0)labda=1.0;
-						
-			percentcut=labda;		
-			
-			if(start->f2 & 32)
-				percentcut = 1.0-percentcut;
-
-		if(cut == 2){
-			percentcut = 0.5;
-		}
-
-		if (G.qual & LR_SHIFTKEY){
-
-			percentcut = (int)(percentcut*100.0)/100.0;	
-		}
-		else if (G.qual & LR_CTRLKEY)
-			percentcut = (int)(percentcut*10.0)/10.0;		
-	
-		outcut = (percentcut*100.0);
-
-		/* Build the Header Line */ 
-
-		if(inset)
-			sprintf(mesg,"Cut: %0.2f%% ",slen*percentcut);
-		else
-			sprintf(mesg,"Cut: %0.2f%% ",outcut);
-		
-
-		if(smooth)
-			sprintf(mesg,"%s| (f)lip side | (s)mooth on  |",mesg);
-		else
-			sprintf(mesg,"%s| (f)lip side | (s)mooth off |",mesg);
-
-		if(inset)
-			sprintf(mesg,"%s (p)roportional on ",mesg);
-		else
-			sprintf(mesg,"%s (p)roportional off",mesg);
-		
-		headerprint(mesg);
-
-		screen_swapbuffers();		
-	}			
-	
-	if(cut){
-		/* Now that we have selected a cut %, mark the edges for cutting. */
-		if(!inset){
-
-			for(eed = em->edges.first; eed; eed=eed->next){
-				if(percentcut == 1.0)
-					percentcut = 0.9999;
-				else if(percentcut == 0.0)
-					percentcut = 0.0001;
-				if(eed->f2 & 8){
-					if(eed->f2 & 32)/* Need to offset by a const. (0.5/32768) for consistant roundoff */
-						eed->f1 = 32768*(1.0-percentcut - 0.0000153);
-					else
-						eed->f1 = 32768*(percentcut + 0.0000153);
-				}
-			}
-		}
-	/*-------------------------------------*/
-
-			if(smooth)
-				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD | B_SMOOTH); /* B_KNIFE tells subdivide that edgeflags are already set */
-			else
-				subdivideflag(8, 0, B_KNIFE | B_PERCENTSUBD); /* B_KNIFE tells subdivide that edgeflags are already set */
-			
-			for(eed = em->edges.first; eed; eed=eed->next){							
-				if(eed->v1->f & 16) eed->v1->f |= SELECT; //
-				else eed->v1->f &= ~SELECT;
-				
-				if(eed->v2->f & 16) eed->v2->f |= SELECT;
-				else eed->v2->f &= ~SELECT;
-				
-				/* proper edge select state, needed because subdivide still doesnt do it OK */
-				if(eed->v1->f & eed->v2->f & SELECT) eed->f |= SELECT;
-				else eed->f &= ~SELECT;
-			}			
-		}
-	}
-	/*----------END Cut Loop-----------------------------*/
-
-	
-
-	/* Clear flags */		
-	for(eed = em->edges.first; eed; eed=eed->next){	
-		eed->f2 &= ~(2|4|8|32|64);
-		eed->v1->f &= ~(2|16); // xxx
-		eed->v2->f &= ~(2|16);		
-	}
-	
-	for(efa= em->faces.first; efa; efa=efa->next){
-		efa->f1 &= ~(4|8);
-
-		/* proper face select state, needed because subdivide still doesnt do it OK */
-		if( faceselectedAND(efa, SELECT) ) efa->f |= SELECT;
-		else efa->f &= ~SELECT;
-	}
-	
-	// flushes vertex -> edge -> face selection
-	EM_select_flush();
-	
-	countall();
-
-	if(tagged)
-		MEM_freeN(tagged);
-	if(taggedsrch)
-		MEM_freeN(taggedsrch);
-	if(percentfacesloop)
-		MEM_freeN(percentfacesloop);
-	
-	/* send event to redraw this window, does header too */	
-	SetBlenderCursor(SYSCURSOR);
-	addqueue(curarea->win, REDRAW, 1); 
-
-	/* should have check for cancelled (ton) */
-	if(mode==LOOP_CUT) BIF_undo_push("Face Loop Subdivide");
-	else if(mode==LOOP_SELECT) BIF_undo_push("Select Face Loop");	
-
-}
-
-/* ****************************** END LOOPOPERATIONS ********************** */
-
 void LoopMenu(){ /* Called by KKey */
 
 	short ret;
 	
-	ret=pupmenu("Loop/Cut Menu %t|Face Loop Select %x1|Face Loop Cut %x2|"
-				"Knife (Exact) %x3|Knife (Midpoints)%x4|");
+	ret=pupmenu("Loop/Cut Menu %t|Loop Cut (CTRL-R)%x2|"
+				"Knife (Exact) %x3|Knife (Midpoints)%x4|Knife (Multicut)%x5");
 				
 	switch (ret){
-		case 1:
-			loopoperations(LOOP_SELECT);
-			break;
 		case 2:
-			loopoperations(LOOP_CUT);
+			CutEdgeloop(1);
 			break;
 		case 3: 
 			KnifeSubdivide(KNIFE_EXACT);
 			break;
 		case 4:
 			KnifeSubdivide(KNIFE_MIDPOINT);
+			break;
+		case 5:
+			KnifeSubdivide(KNIFE_MULTICUT);
+			break;
 	}
 
 }

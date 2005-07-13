@@ -974,6 +974,74 @@ static void edgeloop_select(EditEdge *starteed, int select)
 	}
 }
 
+/* 
+   Almostly exactly the same code as faceloop select
+*/
+static void edgering_select(EditEdge *startedge, int select){
+	EditMesh *em = G.editMesh;
+	EditEdge *eed;
+	EditFace *efa;
+	int looking= 1;
+	
+	/* in eed->f1 we put the valence (amount of faces in edge) */
+	/* in eed->f2 we put tagged flag as correct loop */
+	/* in efa->f1 we put tagged flag as correct to select */
+
+	for(eed= em->edges.first; eed; eed= eed->next) {
+		eed->f1= 0;
+		eed->f2= 0;
+	}
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		efa->f1= 0;
+		if(efa->h==0) {
+			efa->e1->f1++;
+			efa->e2->f1++;
+			efa->e3->f1++;
+			if(efa->e4) efa->e4->f1++;
+		}
+	}
+	
+	// tag startedge OK
+	startedge->f2= 1;
+	
+	while(looking) {
+		looking= 0;
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->e4 && efa->f1==0) {	// not done quad
+				if(efa->e1->f1<=2 && efa->e2->f1<=2 && efa->e3->f1<=2 && efa->e4->f1<=2) { // valence ok
+
+					// if edge tagged, select opposing edge and mark face ok
+					if(efa->e1->f2) {
+						efa->e3->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					else if(efa->e2->f2) {
+						efa->e4->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e3->f2) {
+						efa->e1->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+					if(efa->e4->f2) {
+						efa->e2->f2= 1;
+						efa->f1= 1;
+						looking= 1;
+					}
+				}
+			}
+		}
+	}
+	
+	/* (de)select the edges */
+	for(eed= em->edges.first; eed; eed= eed->next) {
+    		if(eed->f2) EM_select_edge(eed, select);
+	}
+}
 /* ***************** MAIN MOUSE SELECTION ************** */
 
 // just to have the functions nice together
@@ -993,8 +1061,14 @@ static void mouse_mesh_loop(void)
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			faceloop_select(eed, eed->f & SELECT);
 		}
-		else {
-			edgeloop_select(eed, eed->f & SELECT);
+		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+            if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
+    			edgering_select(eed, eed->f & SELECT);
+            else if(G.qual & LR_ALTKEY)
+    			edgeloop_select(eed, eed->f & SELECT);
+		}
+        else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+            edgeloop_select(eed, eed->f & SELECT);
 		}
 
 		/* frontbuffer draw of last selected only */
@@ -1696,7 +1770,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5");
 
 	switch(ret)
 	{
@@ -1711,6 +1785,14 @@ void Edge_Menu() {
 		break;
 	case 4:
 		edge_rotate_selected(1);
+		break;
+	case 5:
+		EdgeSlide(0,0.0);
+    	BIF_undo_push("EdgeSlide");
+		break;
+	case 6:
+        CutEdgeloop(1);
+		BIF_undo_push("Loopcut New");
 		break;
 	}
 }

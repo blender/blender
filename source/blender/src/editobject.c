@@ -1897,7 +1897,7 @@ void special_editmenu(void)
 	extern float doublimit;
 	float fac;
 	int nr,ret;
-	short randfac;
+	short randfac,numcuts;
 	
 	if(G.obpose) {
 		pose_special_editmenu();
@@ -2024,26 +2024,38 @@ void special_editmenu(void)
 		}
 	}
 	else if(G.obedit->type==OB_MESH) {
-
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Fractal%x2|Subdivide Smooth%x3|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
-		if(nr>0) waitcursor(1);
+        
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
+		//if(nr>0) waitcursor(1);
 		
 		switch(nr) {
 		case 1:
-			subdivideflag(1, 0.0, editbutflag);
-			BIF_undo_push("Subdivide");
+            numcuts = 1;
+			waitcursor(1);
+            esubdivideflag(1, 0.0, editbutflag,numcuts,0);
+			
+			BIF_undo_push("ESubdivide Single");            
+			//subdivideflag(1, 0.0, editbutflag);
+			//BIF_undo_push("Subdivide");
 			break;
 		case 2:
+            numcuts = 2;
+            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
+            esubdivideflag(1, 0.0, editbutflag,numcuts,0);
+			BIF_undo_push("ESubdivide");
+			break;
+		case 3:
+            numcuts = 2;
+            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			fac= -( (float)randfac )/100;
-			subdivideflag(1, fac, editbutflag);
+			esubdivideflag(1, fac, editbutflag,numcuts,0);
 			BIF_undo_push("Subdivide Fractal");
 			break;
-		case 3:
-			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
-			BIF_undo_push("Subdivide Smooth");
-			break;
+
 		case 4:
 			mergemenu();
 			break;
@@ -2070,7 +2082,19 @@ void special_editmenu(void)
 		case 11:
 			bevel_menu();
 			break;
-		}		
+		case 12:
+            numcuts = 2;
+            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
+			esubdivideflag(1, 0.0, editbutflag | B_SMOOTH,numcuts,0);
+			BIF_undo_push("Subdivide Smooth");
+			break;		
+		case 13:
+			waitcursor(1);
+			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
+			BIF_undo_push("Subdivide Smooth");
+			break;		
+		}
 		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
