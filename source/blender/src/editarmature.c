@@ -317,42 +317,8 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 
 	/* Do the rotations */
 	for (ebone = list.first; ebone; ebone=ebone->next){
-		{
-			/* Fixme: This is essentially duplicated from join_armature */
-			/* Yah, later... :) (ton) */
-			float premat[4][4];
-			float postmat[4][4];
-			float difmat[4][4];
-			float imat[4][4];
-			float temp[3][3];
-			float delta[3];
-			float rmat[4][4];
-			
-			Mat4CpyMat3 (rmat, mat);
-			
-			/* Get the premat */
-			VecSubf (delta, ebone->tail, ebone->head);
-			vec_roll_to_mat3(delta, ebone->roll, temp);
-			
-			Mat4MulMat34 (premat, temp, rmat);
-			
-			Mat4MulVecfl(rmat, ebone->head);
-			Mat4MulVecfl(rmat, ebone->tail);
-			
-			/* Get the postmat */
-			VecSubf (delta, ebone->tail, ebone->head);
-			vec_roll_to_mat3(delta, ebone->roll, temp);
-			Mat4CpyMat3(postmat, temp);
-			
-			/* Find the roll */
-			Mat4Invert (imat, premat);
-			Mat4MulMat4 (difmat, postmat, imat);
-			
-			ebone->roll -=atan(difmat[2][0]/difmat[2][2]);
-			
-			if (difmat[0][0]<0) ebone->roll +=M_PI;
-			
-		}
+		Mat3MulVecfl(mat, ebone->head);
+		Mat3MulVecfl(mat, ebone->tail);
 	}
 	
 	/* Turn the list into an armature */

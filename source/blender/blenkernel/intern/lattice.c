@@ -642,9 +642,11 @@ static int _object_deform(Object *ob, int applyflag)
 		return 1;
 	}
 	else if(ob->parent->type==OB_ARMATURE) {
-		if (ob->partype != PARSKEL || ob->parent==G.obedit){
+		if (ob->partype != PARSKEL)
 			return 0;
-		}
+
+		if (ob->parent==G.obedit) // misleading making displists... very bad
+			return 1;
 		
 		init_armature_deform (ob->parent, ob);
 

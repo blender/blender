@@ -601,7 +601,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			makeDispList(G.obedit);
 			allqueue(REDRAWVIEW3D, 0);
 		}
-		else {
+		else if(G.vd) {
 			base= FIRSTBASE;
 			while(base) {
 				if(TESTBASELIB(base)) {
