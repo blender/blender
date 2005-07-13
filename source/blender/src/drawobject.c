@@ -168,13 +168,15 @@ static void init_gl_materials(Object *ob)
 	last_gl_matnr = -1;
 }
 
-static void set_gl_material(int nr)
+static int set_gl_material(int nr)
 {
 	if(nr<MAXMATBUF && nr!=last_gl_matnr) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matbuf[nr][0]);
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matbuf[nr][1]);
 		last_gl_matnr = nr;
 	}
+
+	return 1;
 }
 
 	/***/

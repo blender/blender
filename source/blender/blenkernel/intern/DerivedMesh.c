@@ -171,7 +171,7 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	}
 	glEnd();
 }
-static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
+static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->ob->data;
@@ -179,7 +179,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 	MFace *mface= me->mface;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
-	int glmode=-1, shademodel=-1, matnr=-1;
+	int glmode=-1, shademodel=-1, matnr=-1, drawCurrentMat=1;
 
 	set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
@@ -208,20 +208,22 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 			if (new_glmode!=glmode || new_matnr!=matnr || new_shademodel!=shademodel) {
 				glEnd();
 
-				setMaterial(matnr=new_matnr);
+				drawCurrentMat = setMaterial(matnr=new_matnr);
 
 				glShadeModel(shademodel=new_shademodel);
 				glBegin(glmode=new_glmode);
-			}
-				
-			if(shademodel==GL_FLAT) 
-				glNormal3fv(nors);
+			} 
+			
+			if (drawCurrentMat) {
+				if(shademodel==GL_FLAT) 
+					glNormal3fv(nors);
 
-			PASSVERT(mface->v1, ME_FLIPV1);
-			PASSVERT(mface->v2, ME_FLIPV2);
-			PASSVERT(mface->v3, ME_FLIPV3);
-			if (mface->v4) {
-				PASSVERT(mface->v4, ME_FLIPV4);
+				PASSVERT(mface->v1, ME_FLIPV1);
+				PASSVERT(mface->v2, ME_FLIPV2);
+				PASSVERT(mface->v3, ME_FLIPV3);
+				if (mface->v4) {
+					PASSVERT(mface->v4, ME_FLIPV4);
+				}
 			}
 		}
 	}
@@ -483,22 +485,22 @@ static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 		}
 	}
 }
-static void emDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
+static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 
 	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
 		if(efa->h==0) {
-			setMaterial(efa->mat_nr+1);
-
-			glNormal3fv(efa->n);
-			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(efa->v1->co);
-			glVertex3fv(efa->v2->co);
-			glVertex3fv(efa->v3->co);
-			if(efa->v4) glVertex3fv(efa->v4->co);
-			glEnd();
+			if (setMaterial(efa->mat_nr+1)) {
+				glNormal3fv(efa->n);
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				glVertex3fv(efa->v1->co);
+				glVertex3fv(efa->v2->co);
+				glVertex3fv(efa->v3->co);
+				if(efa->v4) glVertex3fv(efa->v4->co);
+				glEnd();
+			}
 		}
 	}
 }
@@ -624,12 +626,12 @@ static void ssDM_drawEdges(DerivedMesh *dm)
 		glEnd();
 	}
 }
-static void ssDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
+static void ssDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
 	float *nors = dlm->nors;
-	int glmode=-1, shademodel=-1, matnr=-1;
+	int glmode=-1, shademodel=-1, matnr=-1, drawCurrentMat=1;
 	int i;
 
 #define PASSVERT(ind) {						\
@@ -650,20 +652,22 @@ static void ssDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int))
 			if(new_glmode!=glmode || new_shademodel!=shademodel || new_matnr!=matnr) {
 				glEnd();
 
-				setMaterial(matnr=new_matnr);
+				drawCurrentMat = setMaterial(matnr=new_matnr);
 
 				glShadeModel(shademodel=new_shademodel);
 				glBegin(glmode=new_glmode);
 			}
 			
-			if (shademodel==GL_FLAT)
-				glNormal3fv(&nors[i*3]);
-				
-			PASSVERT(mf->v1);
-			PASSVERT(mf->v2);
-			PASSVERT(mf->v3);
-			if (mf->v4)
-				PASSVERT(mf->v4);
+			if (drawCurrentMat) {
+				if (shademodel==GL_FLAT)
+					glNormal3fv(&nors[i*3]);
+					
+				PASSVERT(mf->v1);
+				PASSVERT(mf->v2);
+				PASSVERT(mf->v3);
+				if (mf->v4)
+					PASSVERT(mf->v4);
+			}
 		}
 	}
 	glEnd();
@@ -844,15 +848,13 @@ static void build_mesh_data(Object *ob, int inEditMode)
 
 		/* Inside edit mode mesh modifiers aren't calculated */
 	if(ob->disp.first==NULL && !inEditMode) { 
-		if(ob->parent && ob->partype==PARSKEL) makeDispList(ob);
-		else if(ob->parent && ob->parent->type==OB_LATTICE) makeDispList(ob);
-		else if(ob->hooks.first) makeDispList(ob);
-		else if(ob->softflag & OB_SB_ENABLE) makeDispList(ob);
-		else if(ob->effect.first) {
-			Effect *eff= ob->effect.first;
-			if(eff->type==EFF_WAVE) makeDispList(ob);
-		}
+		if (	(ob->parent && (ob->partype==PARSKEL || ob->parent->type==OB_LATTICE)) ||
+				ob->hooks.first ||
+				(ob->softflag & OB_SB_ENABLE) ||
+				(ob->effect.first && ((Effect*) ob->effect.first)->type==EFF_WAVE))
+			makeDispList(ob);
 	}
+
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if(inEditMode && !G.editMesh->derived) {
 			makeDispList(ob);
@@ -871,11 +873,11 @@ DerivedMesh *mesh_get_derived(Object *ob)
 	Mesh *me= ob->data;
 
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		build_mesh_data(ob, G.obedit && me==G.obedit->data);
+
 		if(G.obedit && me==G.obedit->data) {
-			build_mesh_data(ob, 1);
 			return G.editMesh->derived;
 		} else {
-			build_mesh_data(ob, 0);
 			return me->derived;
 		}
 	} 
@@ -914,18 +916,15 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 {
 	Mesh *me= ob->data;
 
+	build_mesh_data(ob, G.obedit && me==G.obedit->data);
+
 		/* Build's extverts, nors */
 	if (G.obedit && me==G.obedit->data) {
-		build_mesh_data(ob, 1);
-
 		return getEditMeshDerivedMesh(G.editMesh);
 	} else {
-		DispList *dl, *meDL;
-		
-		build_mesh_data(ob, 0);
+		DispList *dl = find_displist(&ob->disp, DL_VERTS);
+		DispList *meDL = me->disp.first;
 
-		meDL = me->disp.first;
-		dl = find_displist(&ob->disp, DL_VERTS);
 		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
 	}
 }

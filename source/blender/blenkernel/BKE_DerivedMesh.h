@@ -82,8 +82,9 @@ struct DerivedMesh {
 			/* Draw all faces
 			 *  o Set face normal or vertex normal based on inherited face flag
 			 *  o Use inherited face material index to call setMaterial
+			 *  o Only if setMaterial returns true
 			 */
-	void (*drawFacesSolid)(DerivedMesh *dm, void (*setMaterial)(int));
+	void (*drawFacesSolid)(DerivedMesh *dm, int (*setMaterial)(int));
 
 			/* Draw all faces
 			 *  o If useTwoSided, draw front and back using col arrays
