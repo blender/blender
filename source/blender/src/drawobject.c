@@ -3715,7 +3715,9 @@ void draw_object(Base *base)
 		drawlattice(ob);
 		break;
 	case OB_ARMATURE:
-		{
+		if(G.f & G_PICKSEL)		// no xray delay in picking select
+			draw_armature(ob, dt);
+		else {
 			bArmature *arm= ob->data;
 			if(G.vd->xray==0 && (arm->flag & ARM_DRAWXRAY)) 
 				add_view3d_after(G.vd, base, V3D_XRAY);
