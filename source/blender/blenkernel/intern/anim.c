@@ -297,7 +297,7 @@ void frames_duplilist(Object *ob)
 	int cfrao, ok;
 	
 	cfrao= G.scene->r.cfra;
-	if(ob->parent==0 && ob->track==0 && ob->ipo==0) return;
+	if(ob->parent==NULL && ob->track==NULL && ob->ipo==NULL && ob->constraints.first==NULL) return;
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 

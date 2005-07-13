@@ -1280,7 +1280,7 @@ void where_is_object_time(Object *ob, float ctime)
 	/* this one only calculates direct attached parent and track */
 	/* is faster, but should keep track of timeoffs */
 	
-	if(ob==0) return;
+	if(ob==NULL) return;
 
 	if( ctime != ob->ctime) {
 		ob->ctime= ctime;
@@ -1292,7 +1292,7 @@ void where_is_object_time(Object *ob, float ctime)
 			calc_ipo(ob->ipo, stime);
 			execute_ipo((ID *)ob, ob->ipo);
 		}
-		/* do constraint ipos ... what the heck is a channel for! */
+		/* do constraint ipos ... */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, ctime);
 	}
 
