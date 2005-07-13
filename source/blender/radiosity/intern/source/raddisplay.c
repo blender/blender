@@ -202,9 +202,8 @@ void drawnodeGour(RNode *rn)
 void drawpatch_ext(RPatch *patch, unsigned int col)
 {
 	ScrArea *sa, *oldsa;
-	
+	View3D *v3d;
 	glDrawBuffer(GL_FRONT);
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
 
 	cpack(col);
 
@@ -213,10 +212,14 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
+			v3d= sa->spacedata.first;
+			
 		 	/* use mywinget() here: otherwise it draws in header */
 		 	if(sa->win != mywinget()) areawinset(sa->win);
 			persp(PERSP_VIEW);
+			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			drawnodeWire(patch->first);
+			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);	// pretty useless?
 		}
 		sa= sa->next;
 	}
@@ -225,51 +228,8 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 
 	glFlush();
 	glDrawBuffer(GL_BACK);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
 }
 
-void drawnode_ext(RNode *rn, unsigned int col)
-{
-	
-	glDrawBuffer(GL_FRONT);
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
-
-	cpack(col);
-	
-	drawnodeWire(rn);
-
-	glDrawBuffer(GL_BACK);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
-}
-
-void drawOverflowElem()
-{
-	RNode **el, *rn;
-	float *fp;
-	int a;
-
-	glDrawBuffer(GL_FRONT);
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
-
-	cpack(0xFF9900);
-
-	el= RG.elem;
-	fp= RG.formfactors;
-	for(a=0; a<RG.totelem; a++, el++, fp++) {
-		if(*fp>1.0) {
-			rn= *el;
-			glBegin(GL_LINE_LOOP);
-				glVertex3fv( rn->v1);
-				glVertex3fv( rn->v2);
-				glVertex3fv( rn->v3);
-				if(rn->type==4) glVertex3fv( rn->v4);
-			glEnd();
-		}
-	}
-
-	glDrawBuffer(GL_BACK);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
-}
 
 void drawfaceGour(Face *face)
 {

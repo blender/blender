@@ -527,8 +527,6 @@ int main(int argc, char **argv)
 			case 'f':
 				a++;
 				if (G.scene && a < argc) {
-					G.real_sfra = (G.scene->r.sfra);
-					G.real_efra = (G.scene->r.efra);
 					(G.scene->r.sfra) = atoi(argv[a]);
 					(G.scene->r.efra) = (G.scene->r.sfra);
 					RE_animrender(NULL);
@@ -536,8 +534,6 @@ int main(int argc, char **argv)
 				break;
 			case 'a':
 				if (G.scene) {
-					G.real_sfra = (G.scene->r.sfra);
-					G.real_efra = (G.scene->r.efra);
 					RE_animrender(NULL);
 				}
 				break;

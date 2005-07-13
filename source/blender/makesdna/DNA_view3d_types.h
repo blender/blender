@@ -38,6 +38,7 @@ struct Object;
 struct Image;
 struct Tex;
 struct SpaceLink;
+struct Base;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -47,6 +48,8 @@ struct SpaceLink;
 #define near clipsta
 #define far clipend
 #endif
+
+#include "DNA_listBase.h"
 
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
@@ -58,6 +61,18 @@ typedef struct BGpic {
     short xim, yim;
 	unsigned int *rect;
 } BGpic;
+
+#
+#
+typedef struct View3DAfter {
+	struct View3DAfter *next, *prev;
+	struct Base *base;
+	int type;
+} View3DAfter;
+
+/* View3DAfter->type */
+#define V3D_XRAY	1
+#define V3D_TRANSP	2
 
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
@@ -110,6 +125,11 @@ typedef struct View3D {
 	/* transform widget info */
 	short twtype, twmode, twflag, twpad;
 	float twmat[4][4];
+	
+	/* afterdraw, for xray & transparent */
+	struct ListBase afterdraw;
+	/* drawflags, denoting state */
+	short zbuf, transp, xray, pad2;
 	
 } View3D;
 

@@ -91,15 +91,15 @@ typedef struct Global {
     short totobj, totlamp, totobjsel, totcurve, totmesh, totbone, totbonesel;
     int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
     
-    short machine, afbreek, moving, colact, zbuf;
-    short qual, background, imagewin, animspeed;
+    short afbreek, moving;
+    short qual, background;
 	short winpos, displaymode;	/* used to be in Render */
 	
 	/**
 	 * The current version of Blender.
 	 */
     short version;
-	short simulf, fields, order, rt;
+	short simulf, order, rt;
 	int f;
 
     /* Editmode lists */
@@ -108,9 +108,7 @@ typedef struct Global {
     float textcurs[4][2];
     
     /* Frank's variables */
-    int renderd;
-    int real_sfra, real_efra;
-    int	save_over;
+     int	save_over;
 
 	/* Reevan's __NLA variables */
 	struct	Object	*obpose;		/* Current posable object */
@@ -130,22 +128,12 @@ typedef struct Global {
 	struct bSoundListener* listener;
 
     /* Test thingy for Nzc */
-    int magic;       /* toggle use of experimental render pipe       */
 	int compat;      /* toggle compatibility mode for edge rendering */
 	int notonlysolid;/* T-> also edge-render transparent faces       */
-    int useRscale;   /* bitflag for using colour scaling             */
-    int useGscale;   /* bitflag for using colour scaling             */
-    int useBscale;   /* bitflag for using colour scaling             */
-    float cscale[4]; /* sliders for colour scaling                   */
-    int Rhisto;      /* flags for making histograms                  */
-    int Ghisto;
-    int Bhisto;
-
-    /* special versions */
-    short special1, special2;
-
+	
+	/* confusing... G.f and G.flags */
     int flags;
-        
+
 } Global;
 
 /* **************** GLOBAL ********************* */

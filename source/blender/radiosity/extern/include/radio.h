@@ -154,8 +154,6 @@ extern void drawsingnodeWire(RNode *rn);
 extern void drawnodeSolid(RNode *rn);
 extern void drawnodeGour(RNode *rn);
 extern void drawpatch(RPatch *patch, unsigned int col);
-extern void drawnode_ext(RNode *rn, unsigned int col);
-extern void drawOverflowElem(void);
 extern void drawfaceGour(Face *face);
 extern void drawfaceSolid(Face *face);
 extern void drawfaceWire(Face *face);

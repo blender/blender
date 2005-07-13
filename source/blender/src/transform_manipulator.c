@@ -955,7 +955,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	/* restore */
 	myloadmatrix(G.vd->viewmat);
 	gluDeleteQuadric(qobj);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 }
 
@@ -1041,7 +1041,7 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags, in
 	/* restore */
 	myloadmatrix(G.vd->viewmat);
 	
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);	
 	glFrontFace(GL_CCW);
 }
 
@@ -1140,7 +1140,7 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 	gluDeleteQuadric(qobj);
 	myloadmatrix(G.vd->viewmat);
 	
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 }
 
@@ -1240,7 +1240,7 @@ static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflag
 	gluDeleteQuadric(qobj);
 	myloadmatrix(G.vd->viewmat);
 	
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);		// shouldn't be global, tsk!
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 }
 

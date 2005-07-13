@@ -1788,7 +1788,7 @@ void docentre(int centremode)
 
 					allqueue(REDRAWBUTSEDIT, 0);
 				}
-				base->object->recalc |= OB_RECALC_DATA;
+				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 			}
 		}
 		base= base->next;

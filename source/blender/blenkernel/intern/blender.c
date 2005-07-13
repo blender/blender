@@ -201,8 +201,6 @@ void initglobals(void)
 
 	U.savetime= 1;
 
-	G.animspeed= 4;
-
 	G.main= MEM_callocN(sizeof(Main), "initglobals");
 
 	strcpy(G.ima, "//");

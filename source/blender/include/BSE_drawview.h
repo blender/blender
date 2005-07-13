@@ -43,9 +43,12 @@ void default_gl_light(void);
 void init_gl_stuff(void);
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);
-void backdrawview3d(int test);
 
 void do_viewbuts(unsigned short event);
+
+void add_view3d_after(struct View3D *v3d, struct Base *base, int type);
+
+void backdrawview3d(int test);
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
 void drawview3d_render(struct View3D *v3d);
 
@@ -61,7 +64,6 @@ void end_anim_sumo(void);
 
 void inner_play_anim_loop(int init, int mode);
 int play_anim(int mode);
-
 
 void make_axis_color(char *col, char *col2, char axis);
 

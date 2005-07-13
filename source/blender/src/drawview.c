@@ -425,7 +425,7 @@ static void draw_bgpic(void)
 	zoomy= (y2-y1)/ima->ibuf->y;
 
 	glEnable(GL_BLEND);
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	 
@@ -446,7 +446,7 @@ static void draw_bgpic(void)
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
-	if(G.zbuf) glEnable(GL_DEPTH_TEST);
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	
 	areawinset(curarea->win);	// restore viewport / scissor
 }
@@ -655,7 +655,7 @@ static void drawfloor(void)
 
 	if(vd->gridlines<3) return;
 	
-	if(G.zbuf && G.obedit) glDepthMask(0);	// for zbuffer-select
+	if(G.vd->zbuf && G.obedit) glDepthMask(0);	// for zbuffer-select
 	
 	gridlines= vd->gridlines/2;
 	grid= gridlines*vd->grid;
@@ -756,7 +756,7 @@ static void drawfloor(void)
 		glEnd();
 	}
 
-	if(G.zbuf && G.obedit) glDepthMask(1);	
+	if(G.vd->zbuf && G.obedit) glDepthMask(1);	
 
 }
 
@@ -940,13 +940,13 @@ void backdrawview3d(int test)
 #ifdef __APPLE__
 	glDrawBuffer(GL_AUX0);
 #endif	
-	if(G.vd->drawtype > OB_WIRE) G.zbuf= TRUE;
+	if(G.vd->drawtype > OB_WIRE) G.vd->zbuf= TRUE;
 	curarea->win_swap &= ~WIN_BACK_OK;
 	
 	glDisable(GL_DITHER);
 
 	glClearColor(0.0, 0.0, 0.0, 0.0); 
-	if(G.zbuf) {
+	if(G.vd->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
@@ -965,7 +965,7 @@ void backdrawview3d(int test)
 	G.vd->flag &= ~V3D_NEEDBACKBUFDRAW;
 
 	G.f &= ~G_BACKBUFSEL;
-	G.zbuf= FALSE; 
+	G.vd->zbuf= FALSE; 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_DITHER);
 
@@ -1842,6 +1842,41 @@ static void view3d_blockhandlers(ScrArea *sa)
 
 }
 
+/* temp storage of Objects that need to be drawn as last */
+void add_view3d_after(View3D *v3d, Base *base, int type)
+{
+	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
+	
+	BLI_addtail(&v3d->afterdraw, v3da);
+	v3da->base= base;
+	v3da->type= type;
+}
+
+/* clears zbuffer and draws it over */
+static void view3d_draw_xray(View3D *v3d)
+{
+	View3DAfter *v3da, *next;
+	int doit= 0;
+	
+	for(v3da= G.vd->afterdraw.first; v3da; v3da= v3da->next)
+		if(v3da->type==V3D_XRAY) doit= 1;
+	
+	if(doit) {
+		if(v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
+		v3d->xray= TRUE;
+		
+		for(v3da= G.vd->afterdraw.first; v3da; v3da= next) {
+			next= v3da->next;
+			if(v3da->type==V3D_XRAY) {
+				draw_object(v3da->base);
+				BLI_remlink(&G.vd->afterdraw, v3da);
+				MEM_freeN(v3da);
+			}
+		}
+		v3d->xray= FALSE;
+	}
+}
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -1856,7 +1891,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	if(v3d->drawtype > OB_WIRE) {
-		G.zbuf= TRUE;
+		G.vd->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 		if(G.f & G_SIMULATION) {
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
@@ -2037,10 +2072,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
+	/* XRAY afterdraw stuff */
+	view3d_draw_xray(G.vd);
+	
 	BIF_draw_manipulator(sa);
 		
-	if(G.zbuf) {
-		G.zbuf= FALSE;
+	if(G.vd->zbuf) {
+		G.vd->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
 
@@ -2113,7 +2151,7 @@ void drawview3d_render(struct View3D *v3d)
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	if(v3d->drawtype > OB_WIRE) {
-		G.zbuf= TRUE;
+		G.vd->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
 
@@ -2226,8 +2264,11 @@ void drawview3d_render(struct View3D *v3d)
 
 	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
 
-	if(G.zbuf) {
-		G.zbuf= FALSE;
+	/* XRAY afterdraw stuff */
+	view3d_draw_xray(G.vd);
+	
+	if(G.vd->zbuf) {
+		G.vd->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
 	

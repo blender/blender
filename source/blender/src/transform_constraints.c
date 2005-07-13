@@ -692,7 +692,7 @@ void BIF_drawConstraint(void)
 				glVertex3fv(vec); 
 			glEnd();
 			setlinestyle(0);
-			if(G.zbuf) glEnable(GL_DEPTH_TEST);	// warning for global!
+			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);	
 		}
 
 		if (tc->mode & CON_AXIS0) {

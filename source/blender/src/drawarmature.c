@@ -427,10 +427,6 @@ static void draw_pose_channels(Object *ob, int dt)
 			/* and we use selection indices if not done yet */
 			if (arm->flag & ARM_POSEMODE) index= 0;
 		
-		if (arm->flag & ARM_DRAWXRAY) {
-			if(G.zbuf) glDisable(GL_DEPTH_TEST);
-		}
-		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			if(bone && !(bone->flag & BONE_HIDDEN)) {
@@ -472,9 +468,6 @@ static void draw_pose_channels(Object *ob, int dt)
 	/* restore things */
 	if (dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
 		bglPolygonOffset(0.0);
-	if (arm->flag & ARM_DRAWXRAY) {
-		if(G.zbuf) glEnable(GL_DEPTH_TEST);
-	}
 	glDisable(GL_CULL_FACE);
 
 }
@@ -505,10 +498,7 @@ static void set_matrix_editbone(EditBone *eBone)
 /* called from drawobject.c */
 void draw_armature(Object *ob, int dt)
 {
-	bArmature	*arm;
-	
-	if (ob==NULL || ob->data==NULL) return;		// weird check...
-	arm= ob->data; 
+	bArmature *arm= ob->data;
 	
 	/* we use color for solid lighting */
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
@@ -534,10 +524,6 @@ void draw_armature(Object *ob, int dt)
 		/* if wire over solid, set offset */
 		if (dt>OB_WIRE) bglPolygonOffset(1.0);
 		
-		if (arm->flag & ARM_DRAWXRAY) {
-			if(G.zbuf) glDisable(GL_DEPTH_TEST);
-		}
-		
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
 			
 			glPushMatrix();
@@ -562,9 +548,6 @@ void draw_armature(Object *ob, int dt)
 		
 		/* restore */
 		if (dt>OB_WIRE) bglPolygonOffset(0.0);
-		if (arm->flag & ARM_DRAWXRAY) {
-			if(G.zbuf) glEnable(GL_DEPTH_TEST);
-		}
 		
 		arm->flag &= ~ARM_EDITMODE;
 	}

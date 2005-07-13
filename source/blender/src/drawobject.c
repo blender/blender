@@ -960,12 +960,12 @@ static void drawlattice(Object *ob)
 		
 		calc_lattverts();
 		
-		if(G.zbuf) glDisable(GL_DEPTH_TEST);
+		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 		
 		tekenvertslatt(0);
 		tekenvertslatt(1);
 		
-		if(G.zbuf) glEnable(GL_DEPTH_TEST); 
+		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
 	}
 	else lattice_modifier(ob, 'e');
 
@@ -1339,7 +1339,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 {
 	int sel;
 
-	if(G.zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
+	if(G.vd->zbuf) glDepthMask(0);		// disable write in zbuffer, zbuf select
 
 	for (sel=0; sel<2; sel++) {
 		char col[4], fcol[4];
@@ -1353,7 +1353,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			float fsize = BIF_GetThemeValuef(TH_FACEDOT_SIZE);
 
 			if (pass==0) {
-				if(G.zbuf && !(G.vd->flag&V3D_ZBUF_SELECT)) {
+				if(G.vd->zbuf && !(G.vd->flag&V3D_ZBUF_SELECT)) {
 					glDisable(GL_DEPTH_TEST);
 						
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1388,7 +1388,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 		}
 	}
 
-	if(G.zbuf) glDepthMask(1);
+	if(G.vd->zbuf) glDepthMask(1);
 	glPointSize(1.0);
 }
 
@@ -1404,7 +1404,7 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 	for (pass=0; pass<2; pass++) {
 			/* show wires in transparant when no zbuf clipping for select */
 		if (pass==0) {
-			if (G.zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
+			if (G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
@@ -1472,10 +1472,10 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	char val[32]; /* Stores the measurement display text here */
 	float area, col[3]; /* area of the face,  colour of the text to draw */
 	
-	if(G.zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
+	if(G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
 
-	if(G.zbuf) bglPolygonOffset(5.0);
+	if(G.vd->zbuf) bglPolygonOffset(5.0);
 	
 	if(G.f & G_DRAW_EDGELEN) {
 		BIF_GetThemeColor3fv(TH_TEXT, col);
@@ -1616,7 +1616,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 		}
 	}    
 	
-	if(G.zbuf) {
+	if(G.vd->zbuf) {
 		glEnable(GL_DEPTH_TEST);
 		bglPolygonOffset(0.0);
 	}
@@ -2755,7 +2755,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 
 	calc_Nurbverts(nurb);
 
-	if(G.zbuf) glDisable(GL_DEPTH_TEST);
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	nu= nurb;
 	while(nu) {
@@ -2770,7 +2770,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 		nu= nu->next;
 	}
 	
-	if(G.zbuf) glEnable(GL_DEPTH_TEST); 
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
 }
 
 static void tekentextcurs(void)
@@ -3342,10 +3342,9 @@ static void drawSolidSelect(Object *ob)
 	else if(ob->type==OB_ARMATURE) {
 		if(ob!=G.obpose) {
 			bArmature *arm= ob->data;
-			int oldflag= arm->flag;
-			arm->flag &= ~ARM_DRAWXRAY;
-			draw_armature(ob, OB_WIRE);	// patch needed for xray option...
-			arm->flag= oldflag;
+			
+			if(G.vd->xray || (arm->flag & ARM_DRAWXRAY)==0)
+				draw_armature(ob, OB_WIRE);
 		}
 	}
 
@@ -3537,7 +3536,7 @@ void draw_object(Base *base)
 	
 	/* maximum drawtype */
 	dt= MIN2(G.vd->drawtype, ob->dt);
-	if(G.zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
+	if(G.vd->zbuf==0 && dt>OB_WIRE) dt= OB_WIRE;
 	dtx= 0;
 	
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
@@ -3714,7 +3713,13 @@ void draw_object(Base *base)
 		drawlattice(ob);
 		break;
 	case OB_ARMATURE:
-		draw_armature (ob, dt);
+		{
+			bArmature *arm= ob->data;
+			if(G.vd->xray==0 && (arm->flag & ARM_DRAWXRAY)) 
+				add_view3d_after(G.vd, base, V3D_XRAY);
+			else 
+				draw_armature(ob, dt);
+		}
 		break;
 	default:
 		drawaxes(1.0);
@@ -3810,7 +3815,7 @@ void draw_object(Base *base)
 		}
 
 		/* object centers */
-		if(G.zbuf) glDisable(GL_DEPTH_TEST);
+		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 		if(ob->type == OB_LAMP) {
 			if(ob->id.lib) {
 				if(base->flag & SELECT) rect= rectllib_sel;
@@ -3841,7 +3846,7 @@ void draw_object(Base *base)
 			}
 			draw_icon_centered(ob->obmat[3], rect, 4);
 		}
-		if(G.zbuf) glEnable(GL_DEPTH_TEST);
+		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 		
 	}
 	else if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
@@ -3861,7 +3866,7 @@ void draw_object_ext(Base *base)
 	if(G.vd==NULL || base==NULL) return;
 	
 	if(G.vd->drawtype > OB_WIRE) {
-		G.zbuf= 1;
+		G.vd->zbuf= 1;
 		glEnable(GL_DEPTH_TEST);
 	}
 	
@@ -3877,8 +3882,8 @@ void draw_object_ext(Base *base)
 	glFlush();		/* reveil frontbuffer drawing */
 	glDrawBuffer(GL_BACK);
 	
-	if(G.zbuf) {
-		G.zbuf= 0;
+	if(G.vd->zbuf) {
+		G.vd->zbuf= 0;
 		glDisable(GL_DEPTH_TEST);
 	}
 	curarea->win_swap= WIN_FRONT_OK;

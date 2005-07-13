@@ -886,7 +886,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
 	
 	if(G.vd->drawtype > OB_WIRE) {
-		G.zbuf= TRUE;
+		G.vd->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
 
@@ -903,6 +903,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		draw_object(BASACT);
 	}
 	else {
+		G.vd->xray= TRUE;	// otherwise it postpones drawing
 		base= G.scene->base.first;
 		while(base) {
 			if(base->lay & G.vd->lay) {
@@ -913,6 +914,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 			}
 			base= base->next;
 		}
+		G.vd->xray= FALSE;	// restore
 	}
 	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
@@ -923,7 +925,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	Mat4MulMat4(G.vd->persmat, G.vd->viewmat, curarea->winmat);
 	
 	if(G.vd->drawtype > OB_WIRE) {
-		G.zbuf= 0;
+		G.vd->zbuf= 0;
 		glDisable(GL_DEPTH_TEST);
 	}
 	persp(PERSP_WIN);
