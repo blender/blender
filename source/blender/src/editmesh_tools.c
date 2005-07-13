@@ -94,6 +94,8 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 
 #include "MTC_vectorops.h"
 
+#include "PIL_time.h"
+
 /* local prototypes ---------------*/
 void bevel_menu(void);
 static void free_tagged_edgelist(EditEdge *eed);
@@ -1252,9 +1254,10 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[3][0]);
         uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[3][1]);
 
-        cp0= &(efa->tf.col[0]);
-        cp1= &(efa->tf.col[3]);
-        cp2= &(efa->tf.col[2]);
+        cp0= (char*)&(efa->tf.col[0]);
+        cp1= (char*)&(efa->tf.col[3]);
+        cp2= (char*)&(efa->tf.col[2]);
+        
         
         for(i=0; i<4; i++) {
                 fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
@@ -1265,9 +1268,9 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
         uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
 
-        cp0= &(efa->tf.col[0]);
-        cp1= &(efa->tf.col[1]);
-        cp2= &(efa->tf.col[2]);
+        cp0= (char*)&(efa->tf.col[0]);
+        cp1= (char*)&(efa->tf.col[1]);
+        cp2= (char*)&(efa->tf.col[2]);
         
         for(i=0; i<4; i++) {
                 fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
@@ -1282,7 +1285,7 @@ static void facecopy(EditFace *source,EditFace *target){
     set_uv_vcol(source,target->v2->co,target->tf.uv[1],(char*)target->tf.col+1);
     set_uv_vcol(source,target->v3->co,target->tf.uv[2],(char*)target->tf.col+2);
     if(target->v4){
-        set_uv_vcol(source,target->v4->co,target->tf.uv[3],target->tf.col+3);
+        set_uv_vcol(source,target->v4->co,target->tf.uv[3],(char*)target->tf.col+3);
     }
 
 	target->mat_nr     = source->mat_nr;
@@ -4416,12 +4419,12 @@ void EdgeSlide(short immediate, float imperc){
         }
 		
         if(mval[0] > mvalo[0]){
-            if(perc < 0.99)
-                perc += 0.01;   
+            if(perc < 0.94)
+                perc += 0.05;   
             
         } else if(mval[0] < mvalo[0]){
-            if(perc > -0.99)
-                perc -= 0.01;   
+            if(perc > -0.94)
+                perc -= 0.05;   
         }       
 
         mvalo[0] = mval[0];   
@@ -4441,14 +4444,12 @@ void EdgeSlide(short immediate, float imperc){
                         immediate = 1;
                 }
         		if(val && (event==UPARROWKEY)){
-                   if(perc <= 1.0){
-                       perc += 0.01;
-                   }
+                    if(perc < 0.94)
+                        perc += 0.05;  
                 }
         		if(val && (event==DOWNARROWKEY)){
-                   if(perc >= -1.0){
-                       perc -= 0.01;
-                   }
+                    if(perc > -0.94)
+                        perc -= 0.05;  
                 }            
         	} 
         } else {
