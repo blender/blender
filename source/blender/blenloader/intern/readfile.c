@@ -1927,7 +1927,7 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 
 		nu= nu->next;
 	}
-	cu->bb= 0;
+	cu->bb= NULL;
 }
 
 /* ************ READ TEX ***************** */
@@ -4693,23 +4693,38 @@ static void do_versions(FileData *fd, Main *main)
 	if(main->versionfile <= 237) {
 		bArmature *arm;
 		bPoseChannel *pchan;
+		bConstraint *con;
 		Object *ob;
 		
-		/* GL Texture Garbage Collection */
+		if(U.texcollectrate==0) {	// this makes sure we don't have a recent saved file... hackish
+			// armature recode checks 
+			for(arm= main->armature.first; arm; arm= arm->id.next) {
+				where_is_armature(arm);
+			}
+			for(ob= main->object.first; ob; ob= ob->id.next) {
+				// btw. armature_rebuild_pose is further only called on leave editmode
+				if(ob->pose) {
+					ob->pose->flag |= POSE_RECALC;
+					ob->recalc |= OB_RECALC;
+				}
+				// follow path constraint needs to set the 'path' option in curves...
+				for(con=ob->constraints.first; con; con= con->next) {
+					if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
+						bFollowPathConstraint *data = con->data;
+						Object *obc= newlibadr(fd, NULL, data->tar);
+
+						if(obc && obc->type==OB_CURVE) {
+							Curve *cu= newlibadr(fd, NULL, obc->data);
+							cu->flag |= CU_PATH;
+						}
+					}
+				}
+			}
+		}		
+		/* GL Texture Garbage Collection (variable abused above!) */
 		U.texcollectrate = 60;
 		U.textimeout = 120;
 		
-		// armature recode checks 
-		for(arm= main->armature.first; arm; arm= arm->id.next) {
-			where_is_armature(arm);
-		}
-		for(ob= main->object.first; ob; ob= ob->id.next) {
-			// btw. armature_rebuild_pose is further only called on leave editmode
-			if(ob->pose) {
-				ob->pose->flag |= POSE_RECALC;
-				ob->recalc |= OB_RECALC;
-			}
-		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

@@ -1284,10 +1284,9 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 				}
 			}
 		}
-		/* even nicer, we can clear recalc flags... but we don't for armatures, these can have poses that need pointer checks (read old file issue) */
-		if(ob->type!=OB_ARMATURE)
-			if((all_layer & layer)==0)
-				ob->recalc &= ~OB_RECALC;
+		/* even nicer, we can clear recalc flags...  */
+		if((all_layer & layer)==0)
+			ob->recalc &= ~OB_RECALC;
 	}
 	else{
 		/* Object has not RECALC flag */

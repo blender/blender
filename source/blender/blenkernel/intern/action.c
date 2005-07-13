@@ -540,7 +540,7 @@ void do_all_actions(Object *ob)
 
 								if (cu->flag & CU_PATH){
 									/* Ensure we have a valid path */
-									if(cu->path==NULL || cu->path->data==NULL) printf("action path error\n");
+									if(cu->path==NULL || cu->path->data==NULL) printf("action path error in ob %s\n", ob->parent->id.name+2);
 									else {
 
 										/* Find the position on the path */

@@ -1257,8 +1257,7 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	scrarea_queue_winredraw(curarea);
 	
 	/* sometime double, when area already is SPACE_FILE with a different file name */
-	addqueue(curarea->headwin, CHANGED, 1);
-	
+	if(curarea->headwin) addqueue(curarea->headwin, CHANGED, 1);
 
 	name[2]= 0;
 	strcpy(name, file);
