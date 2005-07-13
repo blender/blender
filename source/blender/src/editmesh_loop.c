@@ -266,6 +266,13 @@ void CutEdgeloop(int numcuts){
 			}
 		}	
     }
+    scrarea_do_windraw(curarea);
+    screen_swapbuffers();
+#ifndef __APPLE__
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		backdrawview3d(0);
+	}
+#endif    
     if(cancel){
         return;   
     }
