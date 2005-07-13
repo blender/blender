@@ -332,14 +332,14 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next){
 					for (con = pchan->constraints.first; con; con=con->next){
 						if (constraint_has_target(con)) {
-							subtarget= "";
+							
 							target = get_constraint_target(con, &subtarget);
 							if (target!=ob) {
 								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
 								node3 = dag_get_node(dag, target);
 								
-								if(subtarget[0])
-									dag_add_relation(dag,node3,node, DAG_RL_OB_OB|DAG_RL_DATA_DATA);
+								if(subtarget && subtarget[0])
+									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
 								else
 									dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
 									
