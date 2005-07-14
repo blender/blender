@@ -4419,12 +4419,22 @@ void EdgeSlide(short immediate, float imperc){
         }
 		
         if(mval[0] > mvalo[0]){
-            if(perc < 0.94)
-                perc += 0.05;   
+            if(G.qual==LR_CTRLKEY){
+                if(perc < 0.91)
+                    perc += 0.1;                  
+            } else {
+                if(perc < 0.99)
+                    perc += 0.01;   
+            }
             
-        } else if(mval[0] < mvalo[0]){
-            if(perc > -0.94)
-                perc -= 0.05;   
+        } else if(mval[0] < mvalo[0]){               
+            if(G.qual==LR_CTRLKEY){
+                if(perc > -0.91)
+                    perc -= 0.1;                  
+            } else {
+                if(perc > -0.99)
+                    perc -= 0.01;   
+            }
         }       
 
         mvalo[0] = mval[0];   
@@ -4433,8 +4443,7 @@ void EdgeSlide(short immediate, float imperc){
             while(qtest()) {
         		unsigned short val=0;			
         		event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
-        
-                
+                    
         		/* val==0 on key-release event */
         		if(val && ((event==ESCKEY || event==PADENTER)|| ( event==LEFTMOUSE || event==RETKEY ))){
         				draw = 0;
@@ -4442,15 +4451,7 @@ void EdgeSlide(short immediate, float imperc){
         		if(val && (event==RIGHTMOUSE || event==ESCKEY || (event==MIDDLEMOUSE) )){
                         perc = 0;
                         immediate = 1;
-                }
-        		if(val && (event==UPARROWKEY)){
-                    if(perc < 0.94)
-                        perc += 0.05;  
-                }
-        		if(val && (event==DOWNARROWKEY)){
-                    if(perc > -0.94)
-                        perc -= 0.05;  
-                }            
+                }           
         	} 
         } else {
             draw = 0;   
