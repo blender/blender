@@ -1632,7 +1632,7 @@ void update_displists( void *data )
 			if( ELEM( ob->type, OB_CURVE, OB_SURF ) ) {
 				if( ob != G.obedit ) {
 					if( ob->data == data ) {
-						makeDispList( ob );
+						makeDispListCurveTypes( ob );
 					}
 				}
 			} else if( ob->type == OB_FONT ) {
@@ -1641,7 +1641,7 @@ void update_displists( void *data )
 					if( ( ( Curve * ) cu->textoncurve->
 					      data )->key ) {
 						text_to_curve( ob, 0 );
-						makeDispList( ob );
+						makeDispListCurveTypes( ob );
 					}
 				}
 			}

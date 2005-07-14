@@ -2336,7 +2336,7 @@ static void drawDispList(Object *ob, int dt)
 		cu= ob->data;
 		
 		lb= &cu->disp;
-		if(lb->first==0) makeDispList(ob);
+		if(lb->first==0) makeDispListCurveTypes(ob);
 		
 		if(solid) {
 			dl= lb->first;
@@ -2386,7 +2386,7 @@ static void drawDispList(Object *ob, int dt)
 	case OB_SURF:
 	
 		lb= &((Curve *)ob->data)->disp;
-		if(lb->first==0) makeDispList(ob);
+		if(lb->first==0) makeDispListCurveTypes(ob);
 		
 		if(solid) {
 			dl= lb->first;
@@ -2413,7 +2413,7 @@ static void drawDispList(Object *ob, int dt)
 		
 		if( is_basis_mball(ob)) {
 			lb= &ob->disp;
-			if(lb->first==0) makeDispList(ob);
+			if(lb->first==0) makeDispListMBall(ob);
 	
 			if(solid) {
 				
@@ -3297,14 +3297,14 @@ static void draw_bounding_volume(Object *ob)
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
 		if(bb==0) {
-			makeDispList(ob);
+			makeDispListCurveTypes(ob);
 			bb= ( (Curve *)ob->data )->bb;
 		}
 	}
 	else if(ob->type==OB_MBALL) {
 		bb= ob->bb;
 		if(bb==0) {
-			makeDispList(ob);
+			makeDispListMBall(ob);
 			bb= ob->bb;
 		}
 	}

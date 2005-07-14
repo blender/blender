@@ -852,14 +852,14 @@ static void build_mesh_data(Object *ob, int inEditMode)
 				ob->hooks.first ||
 				(ob->softflag & OB_SB_ENABLE) ||
 				(ob->effect.first && ((Effect*) ob->effect.first)->type==EFF_WAVE))
-			makeDispList(ob);
+			makeDispListMesh(ob);
 	}
 
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if(inEditMode && !G.editMesh->derived) {
-			makeDispList(ob);
+			makeDispListMesh(ob);
 		} else if (!inEditMode && !me->derived) {
-			makeDispList(ob);
+			makeDispListMesh(ob);
 		}
 	}
 
