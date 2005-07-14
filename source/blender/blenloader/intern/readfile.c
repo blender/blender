@@ -2918,6 +2918,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				View3D *v3d= (View3D*) sl;
 				v3d->bgpic= newdataadr(fd, v3d->bgpic);
 				v3d->localvd= newdataadr(fd, v3d->localvd);
+				v3d->afterdraw.first= v3d->afterdraw.last= NULL;
 			}
 			else if (sl->spacetype==SPACE_OOPS) {
 				SpaceOops *soops= (SpaceOops*) sl;
@@ -4696,38 +4697,41 @@ static void do_versions(FileData *fd, Main *main)
 		bConstraint *con;
 		Object *ob;
 		
-		if(U.texcollectrate==0) {	// this makes sure we don't have a recent saved file... hackish
-			// armature recode checks 
-			for(arm= main->armature.first; arm; arm= arm->id.next) {
-				where_is_armature(arm);
-			}
-			for(ob= main->object.first; ob; ob= ob->id.next) {
-				// btw. armature_rebuild_pose is further only called on leave editmode
+		// armature recode checks 
+		for(arm= main->armature.first; arm; arm= arm->id.next) {
+			where_is_armature(arm);
+		}
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			// btw. armature_rebuild_pose is further only called on leave editmode
+			if(ob->type==OB_ARMATURE) {
 				if(ob->pose) {
 					ob->pose->flag |= POSE_RECALC;
 					ob->recalc |= OB_RECALC;
 				}
-				// follow path constraint needs to set the 'path' option in curves...
-				for(con=ob->constraints.first; con; con= con->next) {
-					if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
-						bFollowPathConstraint *data = con->data;
-						Object *obc= newlibadr(fd, NULL, data->tar);
+				/* new generic xray option */
+				arm= newlibadr(fd, NULL, ob->data);
+				if(arm->flag & ARM_DRAWXRAY) {
+					arm->flag &= ~ARM_DRAWXRAY;
+					ob->dtx |= OB_DRAWXRAY;
+				}
+			}
+			// follow path constraint needs to set the 'path' option in curves...
+			for(con=ob->constraints.first; con; con= con->next) {
+				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
+					bFollowPathConstraint *data = con->data;
+					Object *obc= newlibadr(fd, NULL, data->tar);
 
-						if(obc && obc->type==OB_CURVE) {
-							Curve *cu= newlibadr(fd, NULL, obc->data);
-							cu->flag |= CU_PATH;
-						}
+					if(obc && obc->type==OB_CURVE) {
+						Curve *cu= newlibadr(fd, NULL, obc->data);
+						cu->flag |= CU_PATH;
 					}
 				}
 			}
-		}		
-		/* GL Texture Garbage Collection (variable abused above!) */
-		U.texcollectrate = 60;
-		U.textimeout = 120;
-		
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
 	/* don't forget to set version number in blender.c! */
 }

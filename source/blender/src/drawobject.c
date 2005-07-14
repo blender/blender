@@ -120,18 +120,46 @@ extern ListBase editelems;
 
 static void draw_bounding_volume(Object *ob);
 
-	/***/
+/* ************* Setting OpenGL Material ************ */
 
 // Materials start counting at # one....
 #define MAXMATBUF (MAXMAT + 1)
 static float matbuf[MAXMATBUF][2][4];
-static int last_gl_matnr=-1;
 
-static void init_gl_materials(Object *ob)
+static int set_gl_material(int nr)
+{
+	static int last_gl_matnr= -1;
+	static int last_ret_val= 1;
+	
+	if(nr<0) {
+		last_gl_matnr= -1;
+		last_ret_val= 1;
+	}
+	else if(nr<MAXMATBUF && nr!=last_gl_matnr) {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matbuf[nr][0]);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matbuf[nr][1]);
+		last_gl_matnr = nr;
+		last_ret_val= matbuf[nr][0][3]!=0.0;
+		
+		/* matbuf alpha: 0.0 = skip draw, 1.0 = no blending, else blend */
+		if(matbuf[nr][0][3]!= 0.0 && matbuf[nr][0][3]!= 1.0) {
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glEnable(GL_BLEND);
+		}
+		else
+			glDisable(GL_BLEND);
+			
+	}
+	
+	return last_ret_val;
+}
+
+/* returns 1: when there's alpha needed to be drawn in a 2nd pass */
+static int init_gl_materials(Object *ob)
 {
 	extern Material defmaterial;	// render module abuse...
 	Material *ma;
-	int a;
+	int a, has_alpha= 0;
 	
 	if(ob->totcol==0) {
 		matbuf[0][0][0]= defmaterial.r;
@@ -145,8 +173,8 @@ static void init_gl_materials(Object *ob)
 		matbuf[0][1][3]= 1.0;
 		
 		/* do material 1 too, for displists! */
-		VECCOPY(matbuf[1][0], matbuf[0][0]);
-		VECCOPY(matbuf[1][1], matbuf[0][1]);
+		QUATCOPY(matbuf[1][0], matbuf[0][0]);
+		QUATCOPY(matbuf[1][1], matbuf[0][1]);
 	}
 	
 	for(a=1; a<=ob->totcol; a++) {
@@ -156,7 +184,23 @@ static void init_gl_materials(Object *ob)
 			matbuf[a][0][0]= (ma->ref+ma->emit)*ma->r;
 			matbuf[a][0][1]= (ma->ref+ma->emit)*ma->g;
 			matbuf[a][0][2]= (ma->ref+ma->emit)*ma->b;
-			matbuf[a][0][3]= 1.0;
+			
+			/* draw transparent, not in pick-select, nor editmode */
+			if(!(G.f & G_PICKSEL) && (ob->dtx & OB_DRAWTRANSP) && !(G.obedit && G.obedit->data==ob->data)) {
+				if(G.vd->transp) {	// drawing the transparent pass
+					if(ma->alpha==1.0) matbuf[a][0][3]= 0.0;	// means skip solid
+					else matbuf[a][0][3]= ma->alpha;
+				}
+				else {	// normal pass
+					if(ma->alpha==1.0) matbuf[a][0][3]= 1.0;
+					else {
+						matbuf[a][0][3]= 0.0;	// means skip transparent
+						has_alpha= 1;			// return value, to indicate adding to after-draw queue
+					}
+				}
+			}
+			else
+				matbuf[a][0][3]= 1.0;
 			
 			matbuf[a][1][0]= ma->spec*ma->specr;
 			matbuf[a][1][1]= ma->spec*ma->specg;
@@ -165,19 +209,10 @@ static void init_gl_materials(Object *ob)
 		}
 	}
 
-	last_gl_matnr = -1;
+	set_gl_material(-1);		// signal for static variable
+	return has_alpha;
 }
 
-static int set_gl_material(int nr)
-{
-	if(nr<MAXMATBUF && nr!=last_gl_matnr) {
-		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, matbuf[nr][0]);
-		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, matbuf[nr][1]);
-		last_gl_matnr = nr;
-	}
-
-	return 1;
-}
 
 	/***/
 	
@@ -1636,7 +1671,6 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 	}
 
 	if(dt>OB_WIRE) {
-		init_gl_materials(ob);
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
 		glEnable(GL_LIGHTING);
@@ -1650,20 +1684,21 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
-
-			// Setup for drawing wire over, disable zbuffer
-			// write to show selected edge wires better
+		
+		// Setup for drawing wire over, disable zbuffer
+		// write to show selected edge wires better
 		BIF_ThemeColor(TH_WIRE);
 
 		bglPolygonOffset(1.0);
 		glDepthMask(0);
-	} else {
+	} 
+	else {
 		if (realDM && !(me->flag&ME_OPT_EDGES)) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 			realDM->drawEdges(realDM);
 		}
 	}
-
+	
 	if( (G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
 		char col1[4], col2[4];
 			
@@ -1719,15 +1754,26 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 
 /* Mesh drawing routines */
 
-static void draw_mesh_object_outline(DerivedMesh *dm)
+static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 {
-	glLineWidth(2.0);
-	glDepthMask(0);
-				
-	dm->drawEdges(dm);
-				
-	glLineWidth(1.0);
-	glDepthMask(1);
+	
+	if(G.vd->transp==0) {	// not when we draw the transparent pass
+		glLineWidth(2.0);
+		glDepthMask(0);
+		
+		/* if transparent, we cannot draw the edges for solid select... edges have no material info.
+		   drawFacesSolid() doesn't draw the transparent faces */
+		if(ob->dtx & OB_DRAWTRANSP) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+			dm->drawFacesSolid(dm, set_gl_material);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		}
+		else
+			dm->drawEdges(dm);
+					
+		glLineWidth(1.0);
+		glDepthMask(1);
+	}
 }
 
 static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
@@ -1781,18 +1827,19 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & G_FACESELECT)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
-		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !(G.f&G_FACESELECT) && !draw_wire) {
-			draw_mesh_object_outline(dm);
+		
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
+			draw_mesh_object_outline(ob, dm);
 		}
 
 		draw_tface_mesh(ob, ob->data, dt);
 	}
 	else if(dt==OB_SOLID ) {
+		
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
-			draw_mesh_object_outline(dm);
+			draw_mesh_object_outline(ob, dm);
 		}
 
-		init_gl_materials(ob);
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED );
 
 		glEnable(GL_LIGHTING);
@@ -1833,7 +1880,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 			obCol2 = dl->col2;
 
 			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
-				draw_mesh_object_outline(dm);
+				draw_mesh_object_outline(ob, dm);
 			}
 
 			dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
@@ -1869,22 +1916,29 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 	}
 }
 
-static void draw_mesh_object(Object *ob, int dt)
+static void draw_mesh_object(Base *base, int dt)
 {
+	Object *ob= base->object;
 	Mesh *me= ob->data;
 	DerivedMesh *baseDM = mesh_get_base_derived(ob);
 	DerivedMesh *realDM = mesh_get_derived(ob);
-
+	int has_alpha= 0;
+	
 	if(G.obedit && ob->data==G.obedit->data) {
+		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, baseDM, realDM, dt);
 	}
 	else {
 		if(me->bb==NULL) tex_space_mesh(me);
 		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
 			draw_mesh_fancy(ob, baseDM, realDM, dt);
 		}
 	}
-
+	
+	/* init_gl_materials did the proper checking if this is needed */
+	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
+	
 	baseDM->release(baseDM);
 	
 }
@@ -3332,7 +3386,7 @@ static void drawSolidSelect(Object *ob)
 {
 	glLineWidth(2.0);
 	glDepthMask(0);
-		
+	
 	if(ELEM3(ob->type, OB_FONT,OB_CURVE, OB_SURF)) {
 		Curve *cu = ob->data;
 		if (displist_has_faces(&cu->disp) && boundbox_clip(ob->obmat, cu->bb)) {
@@ -3343,10 +3397,7 @@ static void drawSolidSelect(Object *ob)
 	}
 	else if(ob->type==OB_ARMATURE) {
 		if(ob!=G.obpose) {
-			bArmature *arm= ob->data;
-			
-			if(G.vd->xray || (arm->flag & ARM_DRAWXRAY)==0)
-				draw_armature(ob, OB_WIRE);
+			draw_armature(ob, OB_WIRE);
 		}
 	}
 
@@ -3427,6 +3478,14 @@ void draw_object(Base *base)
 
 	ob= base->object;
 
+	/* xray delay? */
+	if(!(G.f & G_PICKSEL)) {
+		if(!G.vd->xray && (ob->dtx & OB_DRAWXRAY)) {
+			add_view3d_after(G.vd, base, V3D_XRAY);
+			return;
+		}
+	}
+	
 	/* draw keys? */
 	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(warning_recursive==0 && ob!=G.obedit) {
@@ -3579,7 +3638,7 @@ void draw_object(Base *base)
 		/* draw outline for selected solid objects, mesh does itself */
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
-			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT)) {
+			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(G.f&G_PICKSEL)) {
 				drawSolidSelect(ob);
 			}
 		}
@@ -3588,7 +3647,7 @@ void draw_object(Base *base)
 	switch( ob->type) {
 	case OB_MESH:
 		if (!(base->flag&OB_RADIO)) {
-			draw_mesh_object(ob, dt);
+			draw_mesh_object(base, dt);
 			dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			if(G.obedit!=ob && warning_recursive==0) {
@@ -3715,15 +3774,7 @@ void draw_object(Base *base)
 		drawlattice(ob);
 		break;
 	case OB_ARMATURE:
-		if(G.f & G_PICKSEL)		// no xray delay in picking select
-			draw_armature(ob, dt);
-		else {
-			bArmature *arm= ob->data;
-			if(G.vd->xray==0 && (arm->flag & ARM_DRAWXRAY)) 
-				add_view3d_after(G.vd, base, V3D_XRAY);
-			else 
-				draw_armature(ob, dt);
-		}
+		draw_armature(ob, dt);
 		break;
 	default:
 		drawaxes(1.0);

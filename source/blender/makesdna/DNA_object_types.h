@@ -290,18 +290,18 @@ extern Object workob;
 #define OB_SOLID		3
 #define OB_SHADED		4
 #define OB_TEXTURE		5
-#define OB_TOON_MONO    6
-#define OB_TOON_COLOR   7
-#define OB_TOON_TRANSP  8
-#define OB_TOON_FLAT    9
-#define OB_TOON_SMOOTH  10
 
-/* dtx: flags */
+/* dtx: flags, char! */
 #define OB_AXIS			2
 #define OB_TEXSPACE		4
 #define OB_DRAWNAME		8
 #define OB_DRAWIMAGE	16
-#define OB_DRAWWIRE		32 /* for solid+wire display */
+	/* for solid+wire display */
+#define OB_DRAWWIRE		32
+	/* for overdraw */
+#define OB_DRAWXRAY		64
+	/* enable transparent draw */
+#define OB_DRAWTRANSP	128
 
 /* boundtype */
 #define OB_BOUND_BOX		0

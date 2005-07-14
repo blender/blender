@@ -79,7 +79,7 @@ typedef struct bArmature {
 
 /* armature->flag */
 #define		ARM_RESTPOSBIT		0
-#define		ARM_DRAWXRAYBIT		1
+
 #define		ARM_DRAWAXESBIT		2
 #define		ARM_DRAWNAMESBIT	3
 #define		ARM_POSEBIT			4
@@ -90,6 +90,7 @@ typedef struct bArmature {
 
 /* armature->flag */
 #define		ARM_RESTPOS		0x0001
+			/* XRAY is here only for backwards converting */
 #define		ARM_DRAWXRAY	0x0002
 #define		ARM_DRAWAXES	0x0004
 #define		ARM_DRAWNAMES	0x0008

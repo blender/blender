@@ -1846,7 +1846,7 @@ static void view3d_blockhandlers(ScrArea *sa)
 void add_view3d_after(View3D *v3d, Base *base, int type)
 {
 	View3DAfter *v3da= MEM_callocN(sizeof(View3DAfter), "View 3d after");
-	
+
 	BLI_addtail(&v3d->afterdraw, v3da);
 	v3da->base= base;
 	v3da->type= type;
@@ -1858,23 +1858,45 @@ static void view3d_draw_xray(View3D *v3d)
 	View3DAfter *v3da, *next;
 	int doit= 0;
 	
-	for(v3da= G.vd->afterdraw.first; v3da; v3da= v3da->next)
+	for(v3da= v3d->afterdraw.first; v3da; v3da= v3da->next)
 		if(v3da->type==V3D_XRAY) doit= 1;
 	
 	if(doit) {
 		if(v3d->zbuf) glClear(GL_DEPTH_BUFFER_BIT);
 		v3d->xray= TRUE;
 		
-		for(v3da= G.vd->afterdraw.first; v3da; v3da= next) {
+		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
 			if(v3da->type==V3D_XRAY) {
 				draw_object(v3da->base);
-				BLI_remlink(&G.vd->afterdraw, v3da);
+				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
 			}
 		}
 		v3d->xray= FALSE;
 	}
+}
+
+/* disables write in zbuffer and draws it over */
+static void view3d_draw_transp(View3D *v3d)
+{
+	View3DAfter *v3da, *next;
+
+	glDepthMask(0);
+	v3d->transp= TRUE;
+		
+	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
+		next= v3da->next;
+		if(v3da->type==V3D_TRANSP) {
+			draw_object(v3da->base);
+			BLI_remlink(&v3d->afterdraw, v3da);
+			MEM_freeN(v3da);
+		}
+	}
+	v3d->transp= FALSE;
+
+	glDepthMask(1);
+
 }
 
 void drawview3dspace(ScrArea *sa, void *spacedata)
@@ -1891,7 +1913,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	if(v3d->drawtype > OB_WIRE) {
-		G.vd->zbuf= TRUE;
+		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 		if(G.f & G_SIMULATION) {
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
@@ -2072,13 +2094,14 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
-	/* XRAY afterdraw stuff */
-	view3d_draw_xray(G.vd);
+	/* Transp and X-ray afterdraw stuff */
+	if(v3d->zbuf) view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	
 	BIF_draw_manipulator(sa);
 		
-	if(G.vd->zbuf) {
-		G.vd->zbuf= FALSE;
+	if(v3d->zbuf) {
+		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
 
@@ -2151,7 +2174,7 @@ void drawview3d_render(struct View3D *v3d)
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	if(v3d->drawtype > OB_WIRE) {
-		G.vd->zbuf= TRUE;
+		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
 
@@ -2262,13 +2285,14 @@ void drawview3d_render(struct View3D *v3d)
 		base= base->next;
 	}
 
-	if(G.scene->radio) RAD_drawall(G.vd->drawtype>=OB_SOLID);
+	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
-	/* XRAY afterdraw stuff */
-	view3d_draw_xray(G.vd);
+	/* Transp and X-ray afterdraw stuff */
+	if(v3d->zbuf) view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	
-	if(G.vd->zbuf) {
-		G.vd->zbuf= FALSE;
+	if(v3d->zbuf) {
+		v3d->zbuf= FALSE;
 		glDisable(GL_DEPTH_TEST);
 	}
 	

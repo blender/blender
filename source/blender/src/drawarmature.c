@@ -559,7 +559,7 @@ void draw_armature(Object *ob, int dt)
 			arm->flag &= ~ARM_POSEMODE; 
 		}
 	}
-	/* resore */
+	/* restore */
 	glFrontFace(GL_CCW);
 
 }
