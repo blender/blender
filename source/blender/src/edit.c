@@ -502,8 +502,10 @@ void count_object(Object *ob, int sel)
 			
 			/* note; do not make disp or get derived mesh here. spoils dependency order */
 			if (me->flag & ME_SUBSURF) {
-				totvert= me->totvert<<me->subdiv;
-				totface= me->totface<<me->subdiv;
+					/* approximate counts, about right for a mesh entirely made 
+					 * of quads and that is a closed 2-manifold.
+					 */
+				totvert= totface= me->totface*1<<(me->subdiv*2);
 			} else {
 				totvert= me->totvert;
 				totface= me->totface;
