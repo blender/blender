@@ -1608,6 +1608,7 @@ void mesh_changed(Object *meshOb)
 {
 	Mesh *me = meshOb->data;
 
+		/* also serves as signal to remake texspace */
 	if (me->bb) {
 		MEM_freeN(me->bb);
 		me->bb = NULL;
@@ -1646,8 +1647,6 @@ void makeDispListMesh(Object *ob)
 		me->derived= NULL;
 	}
 
-	tex_space_mesh(ob->data);
-	
 	if (ob!=G.obedit) mesh_modifier(ob, 's');
 
 	if (mesh_uses_displist(me)) {  /* subsurf */
@@ -2210,6 +2209,8 @@ void imagestodisplist(void)
 						}
 	
 						if(tot) {
+							float size[3];
+
 							freedisplist(&(ob->disp));
 
 							dl= MEM_callocN(sizeof(DispList), "makeDispListimage");
@@ -2222,8 +2223,10 @@ void imagestodisplist(void)
 							
 							xsi= 0.5*(tex->ima->ibuf->x);
 							ysi= 0.5*(tex->ima->ibuf->y);
-							xfac= me->size[0]/xsi;
-							yfac= me->size[1]/ysi;
+
+							mesh_get_texspace(me, NULL, NULL, size);
+							xfac= size[0]/xsi;
+							yfac= size[1]/ysi;
 												
 							data= dl->verts;
 							seg = wireframe->first;
@@ -2258,13 +2261,9 @@ void boundbox_displist(Object *ob)
 	INIT_MINMAX(min, max);
 
 	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-
+		bb= mesh_get_bb(ob->data);
 		dl= find_displist(&ob->disp, DL_VERTS);
 		if(!dl) return;
-
-		if(me->bb==0) me->bb= MEM_callocN(sizeof(BoundBox), "boundbox");	
-		bb= me->bb;
 
 		vert= dl->verts;
 		for(a=0; a<dl->nr; a++, vert+=3) {

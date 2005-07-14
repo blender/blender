@@ -406,23 +406,16 @@ void tex_space_mesh(Mesh *me)
 			}
 		}
 
+		for (a=0; a<3; a++) {
+			if(size[a]==0.0) size[a]= 1.0;
+			else if(size[a]>0.0 && size[a]<0.00001) size[a]= 0.00001;
+			else if(size[a]<0.0 && size[a]> -0.00001) size[a]= -0.00001;
+		}
+
 		VECCOPY(me->loc, loc);
 		VECCOPY(me->size, size);
 		me->rot[0]= me->rot[1]= me->rot[2]= 0.0;
-
-		if(me->size[0]==0.0) me->size[0]= 1.0;
-		else if(me->size[0]>0.0 && me->size[0]<0.00001) me->size[0]= 0.00001;
-		else if(me->size[0]<0.0 && me->size[0]> -0.00001) me->size[0]= -0.00001;
-	
-		if(me->size[1]==0.0) me->size[1]= 1.0;
-		else if(me->size[1]>0.0 && me->size[1]<0.00001) me->size[1]= 0.00001;
-		else if(me->size[1]<0.0 && me->size[1]> -0.00001) me->size[1]= -0.00001;
-	
-		if(me->size[2]==0.0) me->size[2]= 1.0;
-		else if(me->size[2]>0.0 && me->size[2]<0.00001) me->size[2]= 0.00001;
-		else if(me->size[2]<0.0 && me->size[2]> -0.00001) me->size[2]= -0.00001;
 	}
-	
 }
 
 BoundBox *mesh_get_bb(Mesh *me)
@@ -434,15 +427,25 @@ BoundBox *mesh_get_bb(Mesh *me)
 	return me->bb;
 }
 
+void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
+{
+	if (!me->bb) {
+		tex_space_mesh(me);
+	}
+
+	if (loc_r) VECCOPY(loc_r, me->loc);
+	if (rot_r) VECCOPY(rot_r, me->rot);
+	if (size_r) VECCOPY(size_r, me->size);
+}
+
 void make_orco_displist_mesh(Object *ob, int subdivlvl)
 {
-	Mesh *me;
+	Mesh *me= ob->data;
 	DerivedMesh *dm;
 	DispListMesh *dlm;
+	float loc[3], size[3];
 	int i;
 	
-	me= ob->data;
-
 	if (G.obedit && G.obedit->data==me) {
 		dm= subsurf_make_derived_from_editmesh(G.editMesh, subdivlvl, me->subsurftype, NULL);
 		dlm= dm->convertToDispListMesh(dm);
@@ -464,14 +467,13 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 	if (me->orco) MEM_freeN(me->orco);
 	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
 	
+	mesh_get_texspace(me, loc, NULL, size);
 	for(i=0; i<dlm->totvert; i++) {
 		float *fp= &me->orco[i*3];
 
-		VECCOPY(fp, dlm->mvert[i].co);
-
-		fp[0]= (fp[0]-me->loc[0])/me->size[0];
-		fp[1]= (fp[1]-me->loc[1])/me->size[1];
-		fp[2]= (fp[2]-me->loc[2])/me->size[2];
+		fp[0]= (dlm->mvert[i].co[0] - loc[0])/size[0];
+		fp[1]= (dlm->mvert[i].co[1] - loc[1])/size[1];
+		fp[2]= (dlm->mvert[i].co[2] - loc[2])/size[2];
 	}
 	
 	displistmesh_free(dlm);
@@ -483,20 +485,22 @@ void make_orco_mesh(Mesh *me)
 	KeyBlock *kb;
 	float *orco, *fp;
 	int a, totvert;
+	float loc[3], size[3];
 	
 	totvert= me->totvert;
 	if(totvert==0) return;
 	orco= me->orco= MEM_mallocN(sizeof(float)*3*totvert, "orco mesh");
 
+	mesh_get_texspace(me, loc, NULL, size);
 	if(me->key && me->texcomesh==0) {
 		kb= me->key->refkey;
 		if (kb) {		/***** BUG *****/
 			fp= kb->data;
 			
 			for(a=0; a<totvert; a++, orco+=3) {
-				orco[0]= (fp[0]-me->loc[0])/me->size[0];
-				orco[1]= (fp[1]-me->loc[1])/me->size[1];
-				orco[2]= (fp[2]-me->loc[2])/me->size[2];
+				orco[0]= (fp[0]-loc[0])/size[0];
+				orco[1]= (fp[1]-loc[1])/size[1];
+				orco[2]= (fp[2]-loc[2])/size[2];
 				
 				/* only increase mvert when totvert <= kb->totelem */
 				if(a<kb->totelem) fp+=3;
@@ -510,9 +514,9 @@ void make_orco_mesh(Mesh *me)
 	
 		mvert= me->mvert;
 		for(a=0; a<totvert; a++, orco+=3) {
-			orco[0]= (mvert->co[0]-me->loc[0])/me->size[0];
-			orco[1]= (mvert->co[1]-me->loc[1])/me->size[1];
-			orco[2]= (mvert->co[2]-me->loc[2])/me->size[2];
+			orco[0]= (mvert->co[0]-loc[0])/size[0];
+			orco[1]= (mvert->co[1]-loc[1])/size[1];
+			orco[2]= (mvert->co[2]-loc[2])/size[2];
 			
 			/* only increase mvert when totvert <= me->totvert */
 			if(a<me->totvert) mvert++;
@@ -1151,8 +1155,6 @@ void nurbs_to_mesh(Object *ob)
 	}
 	ob->data= me;
 	ob->type= OB_MESH;
-	
-	tex_space_mesh(me);
 	
 	/* other users */
 	ob1= G.main->object.first;

@@ -305,7 +305,6 @@ vertex coordinatess.\n";
 void mesh_update( Mesh * mesh )
 {
 	edge_drawflags_mesh( mesh );
-	tex_space_mesh( mesh );
 }
 
 /*****************************/

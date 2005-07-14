@@ -187,9 +187,6 @@ CSG_AddMeshToBlender(
 		inv_mat
 	);
 
-	// initialize the object
-	tex_space_mesh(me_new);
-
 	return 1;
 }
 

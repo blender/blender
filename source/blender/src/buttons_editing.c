@@ -381,7 +381,6 @@ static void decimate_apply(void)
 			load_editMesh();
 			free_editMesh(G.editMesh);
 			G.obedit= NULL;
-			tex_space_mesh(me);
 			
 			BIF_undo_push("Apply decimation");
 		}
@@ -560,9 +559,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_AUTOTEX:
 		ob= OBACT;
 		if(ob && G.obedit==0) {
-			if(ob->type==OB_MESH) tex_space_mesh(ob->data);
-			else if(ob->type==OB_MBALL) ;
-			else tex_space_curve(ob->data);
+			if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) tex_space_curve(ob->data);
 		}
 		break;
 	case B_DOCENTRE:

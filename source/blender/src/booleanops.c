@@ -544,9 +544,6 @@ NewBooleanMesh(
 				&vd_o,
 				inv_mat
 			);
-		
-			// initialize the object
-			tex_space_mesh(me_new);
 
 			// free up the memory
 
@@ -785,7 +782,7 @@ ConvertCSGDescriptorsToMeshObject(
 	me->totface = face_it->num_elements;
 
 	mesh_calculate_vertex_normals(me);
-
+		
 	// thats it!
 	if (user_face_vertex_data) {
 		MEM_freeN(user_face_vertex_data);

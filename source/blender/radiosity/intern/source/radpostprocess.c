@@ -1014,7 +1014,6 @@ void rad_addmesh(void)
 		}
 		
 		VECCOPY(ob->loc, cent);
-		tex_space_mesh(me);
 		
 		/* restore colors */
 		face= RG.facebase[(startf-1)>>10]+((startf-1) & 1023);

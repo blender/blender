@@ -1703,8 +1703,6 @@ void docentre(int centremode)
 							ob= ob->id.next;
 						}
 					}
-					/* DO: check all users... */
-					tex_space_mesh(me);
 				}
 				else if ELEM(base->object->type, OB_CURVE, OB_SURF) {
 									
@@ -2313,7 +2311,6 @@ void convertmenu(void)
 						}
 						
 						mball_to_mesh(&ob->disp, ob1->data);
-						tex_space_mesh(me);
 					}
 				}
 			}
@@ -2572,7 +2569,7 @@ void copy_attr(short event)
 					if(poin1) {
 						memcpy(poin1, poin2, 4+12+12+12);
 					
-						if(obt->type==OB_MESH) tex_space_mesh(obt->data);
+						if(obt->type==OB_MESH) ;
 						else if(obt->type==OB_MBALL) tex_space_mball(obt);
 						else tex_space_curve(obt->data);
 					}
@@ -4293,8 +4290,6 @@ void image_aspect(void)
 	Object *ob;
 	Material *ma;
 	Tex *tex;
-	Mesh *me;
-	Curve *cu;
 	float x, y, space;
 	int a, b, done;
 	
@@ -4314,14 +4309,16 @@ void image_aspect(void)
 						if(ma->mtex[b] && ma->mtex[b]->tex) {
 							tex= ma->mtex[b]->tex;
 							if(tex->type==TEX_IMAGE && tex->ima && tex->ima->ibuf) {
+
 								/* texturespace */
 								space= 1.0;
 								if(ob->type==OB_MESH) {
-									me= ob->data;
-									space= me->size[0]/me->size[1];
+									float size[3];
+									mesh_get_texspace(ob->data, NULL, NULL, size);
+									space= size[0]/size[1];
 								}
 								else if ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF) {
-									cu= ob->data;
+									Curve *cu= ob->data;
 									space= cu->size[0]/cu->size[1];
 								}
 							

@@ -1126,8 +1126,6 @@ void load_editMesh(void)
 		}
 	}
 	
-	tex_space_mesh(me);
-
 	/* tface block */
 	if( me->tface && me->totface ) {
 		TFace *tfn, *tf;

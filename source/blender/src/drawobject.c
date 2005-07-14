@@ -3322,60 +3322,46 @@ static void draw_bounding_volume(Object *ob)
 
 static void drawtexspace(Object *ob)
 {
-	Mesh *me;
-	MetaBall *mb;
-	Curve *cu;
-	BoundBox bb;
-	float *vec, *loc, *size;
+	float vec[8][3], loc[3], size[3];
 	
 	if(ob->type==OB_MESH) {
-		me= ob->data;
-		size= me->size;
-		loc= me->loc;
+		mesh_get_texspace(ob->data, loc, NULL, size);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-		cu= ob->data;
-		size= cu->size;
-		loc= cu->loc;
+		Curve *cu= ob->data;
+		VECCOPY(size, cu->size);
+		VECCOPY(loc, cu->loc);
 	}
 	else if(ob->type==OB_MBALL) {
-		mb= ob->data;
-		size= mb->size;
-		loc= mb->loc;
+		MetaBall *mb= ob->data;
+		VECCOPY(size, mb->size);
+		VECCOPY(loc, mb->loc);
 	}
 	else return;
 	
-	bb.vec[0][0]=bb.vec[1][0]=bb.vec[2][0]=bb.vec[3][0]= loc[0]-size[0];
-	bb.vec[4][0]=bb.vec[5][0]=bb.vec[6][0]=bb.vec[7][0]= loc[0]+size[0];
+	vec[0][0]=vec[1][0]=vec[2][0]=vec[3][0]= loc[0]-size[0];
+	vec[4][0]=vec[5][0]=vec[6][0]=vec[7][0]= loc[0]+size[0];
 	
-	bb.vec[0][1]=bb.vec[1][1]=bb.vec[4][1]=bb.vec[5][1]= loc[1]-size[1];
-	bb.vec[2][1]=bb.vec[3][1]=bb.vec[6][1]=bb.vec[7][1]= loc[1]+size[1];
+	vec[0][1]=vec[1][1]=vec[4][1]=vec[5][1]= loc[1]-size[1];
+	vec[2][1]=vec[3][1]=vec[6][1]=vec[7][1]= loc[1]+size[1];
 
-	bb.vec[0][2]=bb.vec[3][2]=bb.vec[4][2]=bb.vec[7][2]= loc[2]-size[2];
-	bb.vec[1][2]=bb.vec[2][2]=bb.vec[5][2]=bb.vec[6][2]= loc[2]+size[2];
+	vec[0][2]=vec[3][2]=vec[4][2]=vec[7][2]= loc[2]-size[2];
+	vec[1][2]=vec[2][2]=vec[5][2]=vec[6][2]= loc[2]+size[2];
 	
 	setlinestyle(2);
-		
-	vec= bb.vec[0];
 
 	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec); glVertex3fv(vec+3);glVertex3fv(vec+6); glVertex3fv(vec+9);
-		glVertex3fv(vec); glVertex3fv(vec+12);glVertex3fv(vec+15); glVertex3fv(vec+18);
-		glVertex3fv(vec+21); glVertex3fv(vec+12);
+	glVertex3fv(vec[0]); glVertex3fv(vec[1]);glVertex3fv(vec[2]); glVertex3fv(vec[3]);
+	glVertex3fv(vec[0]); glVertex3fv(vec[4]);glVertex3fv(vec[5]); glVertex3fv(vec[6]);
+	glVertex3fv(vec[7]); glVertex3fv(vec[4]);
 	glEnd();
 
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+3); glVertex3fv(vec+15);
+	glBegin(GL_LINES);
+	glVertex3fv(vec[1]); glVertex3fv(vec[5]);
+	glVertex3fv(vec[2]); glVertex3fv(vec[6]);
+	glVertex3fv(vec[3]); glVertex3fv(vec[7]);
 	glEnd();
 
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+6); glVertex3fv(vec+18);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+9); glVertex3fv(vec+21);
-	glEnd();
-	
 	setlinestyle(0);
 }
 
