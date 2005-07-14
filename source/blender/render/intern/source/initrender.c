@@ -152,6 +152,7 @@ static float calc_weight(float *weight, int i, int j)
 }
 
 // extern called in render_envmap, to disable gauss...
+// extern called in sequence.c, it needs the gamtab
 void init_filt_mask(void)
 {
 	static int firsttime=1;

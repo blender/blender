@@ -242,7 +242,7 @@ static void draw_bone_solid_octahedral(void)
 }	
 
 
-static void draw_bone (int dt, int armflag, int boneflag, int constflag, unsigned int id, char *name, float length)
+static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, char *name)
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
@@ -254,9 +254,6 @@ static void draw_bone (int dt, int armflag, int boneflag, int constflag, unsigne
 		glEnable(GL_LIGHTING);
 		BIF_ThemeColor(TH_BONE_SOLID);
 	}
-	
-	/* change the matrix */
-	glScalef(length, length, length);
 	
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
@@ -356,21 +353,6 @@ static void draw_bone (int dt, int armflag, int boneflag, int constflag, unsigne
 		glDisable(GL_COLOR_MATERIAL);
 		glDisable(GL_LIGHTING);
 	}
-
-	/*	Draw the bone name */
-	if (name && (armflag & ARM_DRAWNAMES)) {
-		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
-		if((G.f & G_PICKSEL) == 0) {
-			if (armflag & (ARM_EDITMODE|ARM_POSEMODE)) {
-				if(boneflag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
-				else BIF_ThemeColor(TH_TEXT);
-			}
-			else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
-			glRasterPos3f(0,  0.5,  0);
-			BMF_DrawString(G.font, " ");
-			BMF_DrawString(G.font, name);
-		}
-	}
 }
 
 /* assumes object is Armature with pose */
@@ -402,12 +384,15 @@ static void draw_pose_channels(Object *ob, int dt)
 				glPushMatrix();
 				glMultMatrixf(pchan->pose_mat);
 				
+				/* scale the matrix to unit bone space */
+				glScalef(bone->length, bone->length, bone->length);
+								
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
 					flag &= ~BONE_IK_TOPARENT;
 				
-				draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->name, bone->length);
+				draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->name);
 				
 				glPopMatrix();
 			}
@@ -448,6 +433,9 @@ static void draw_pose_channels(Object *ob, int dt)
 				glPushMatrix();
 				glMultMatrixf(pchan->pose_mat);
 				
+				/* scale the matrix to unit bone space */
+				glScalef(bone->length, bone->length, bone->length);
+				
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
@@ -458,7 +446,7 @@ static void draw_pose_channels(Object *ob, int dt)
 				if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 					constflag |= PCHAN_HAS_ACTION;
 
-				draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->name, bone->length);
+				draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->name);
 				
 				glPopMatrix();
 			}
@@ -470,6 +458,32 @@ static void draw_pose_channels(Object *ob, int dt)
 		bglPolygonOffset(0.0);
 	glDisable(GL_CULL_FACE);
 
+	/* finally names */
+	if(arm->flag & ARM_DRAWNAMES) {
+		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		if((G.f & G_PICKSEL) == 0) {
+			float vec[3];
+			
+			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+			
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			
+				if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
+					bone= pchan->bone;
+					if(bone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+					else BIF_ThemeColor(TH_TEXT);
+				}
+				else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
+				
+				VecMidf(vec, pchan->pose_head, pchan->pose_tail);
+				glRasterPos3fv(vec);
+				BMF_DrawString(G.font, " ");
+				BMF_DrawString(G.font, pchan->name);
+			}
+			
+			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+		}
+	}
 }
 
 /* in editmode, we don't store the bone matrix... */
@@ -493,6 +507,10 @@ static void set_matrix_editbone(EditBone *eBone)
 	Mat4CpyMat3(bmat, mat);
 				
 	glMultMatrixf (bmat);
+	
+	/* scale the matrix to unit bone space */
+	glScalef(eBone->length, eBone->length, eBone->length);
+	
 }
 
 /* called from drawobject.c */
@@ -516,7 +534,8 @@ void draw_armature(Object *ob, int dt)
 			for (eBone=G.edbo.first; eBone; eBone=eBone->next){
 				glPushMatrix();
 				set_matrix_editbone(eBone);
-				draw_bone (OB_SOLID, arm->flag, eBone->flag, 0, -1, eBone->name, eBone->length);
+				
+				draw_bone(OB_SOLID, arm->flag, eBone->flag, 0, -1, eBone->name);
 				glPopMatrix();
 			}
 		}
@@ -528,7 +547,8 @@ void draw_armature(Object *ob, int dt)
 			
 			glPushMatrix();
 			set_matrix_editbone(eBone);
-			draw_bone (OB_WIRE, arm->flag, eBone->flag, 0, index, eBone->name, eBone->length);
+			
+			draw_bone(OB_WIRE, arm->flag, eBone->flag, 0, index, eBone->name);
 			glPopMatrix();
 			
 			/* offset to parent */
@@ -548,6 +568,29 @@ void draw_armature(Object *ob, int dt)
 		
 		/* restore */
 		if (dt>OB_WIRE) bglPolygonOffset(0.0);
+		
+		/* finally names */
+		if(arm->flag & ARM_DRAWNAMES) {
+			// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+			if((G.f & G_PICKSEL) == 0) {
+				float vec[3];
+				
+				if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+				
+				for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
+					
+					if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+					else BIF_ThemeColor(TH_TEXT);
+					
+					VecMidf(vec, eBone->head, eBone->tail);
+					glRasterPos3fv(vec);
+					BMF_DrawString(G.font, " ");
+					BMF_DrawString(G.font, eBone->name);
+				}
+				
+				if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+			}
+		}
 		
 		arm->flag &= ~ARM_EDITMODE;
 	}
