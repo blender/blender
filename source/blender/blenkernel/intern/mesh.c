@@ -153,8 +153,6 @@ void free_mesh(Mesh *me)
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->disp.first) freedisplist(&me->disp);
 	if(me->derived) me->derived->release(me->derived);
-
-	BLI_freelistN(&me->modifiers);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
