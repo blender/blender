@@ -4436,7 +4436,7 @@ void EdgeSlide(short immediate, float imperc){
         
                 
         		/* val==0 on key-release event */
-        		if(val && (event==ESCKEY || ( event==LEFTMOUSE || event==RETKEY ))){
+        		if(val && ((event==ESCKEY || event==PADENTER)|| ( event==LEFTMOUSE || event==RETKEY ))){
         				draw = 0;
         		}   
         		if(val && (event==RIGHTMOUSE || event==ESCKEY || (event==MIDDLEMOUSE) )){

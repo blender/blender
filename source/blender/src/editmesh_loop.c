@@ -201,10 +201,11 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines){
 }
 void CutEdgeloop(int numcuts){
     EditMesh *em = G.editMesh;
+    int keys = 0,holdnum=0;
 	short mvalo[2] = {0,0}, mval[2];
 	EditEdge* nearest,*eed;
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
-    
+    char msg[128];
     while(choosing){
         getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
@@ -216,12 +217,15 @@ void CutEdgeloop(int numcuts){
 			nearest = findnearestedge(&dist);	// returns actual distance in dist
 			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!        
 
+            sprintf(msg,"Number of Cuts: %d",numcuts);
+        	headerprint(msg);
+
             /* Need to figure preview */
             if(nearest){
 	            edgering_sel(nearest, 0, numcuts);
              }   
 			screen_swapbuffers();
-
+			
 		/* backbuffer refresh for non-apples (no aux) */
 #ifndef __APPLE__
 			if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
@@ -234,7 +238,7 @@ void CutEdgeloop(int numcuts){
 		{
 			val=0;
 			event= extern_qread(&val);
-			if(val && ((event==LEFTMOUSE || event==RETKEY) || event == MIDDLEMOUSE))
+			if(val && ((event==LEFTMOUSE || event==RETKEY) || (event == MIDDLEMOUSE || event==PADENTER)))
 			{
                 if(event == MIDDLEMOUSE){
                     cuthalf = 1;   
@@ -244,19 +248,19 @@ void CutEdgeloop(int numcuts){
 				choosing=0;
 				break;
 			}
-			if(val && (event==ESCKEY || event==RIGHTMOUSE ))
+			else if(val && (event==ESCKEY || event==RIGHTMOUSE ))
 			{
 				choosing=0;
 				cancel = 1;
 				break;
 			}
-			if(val && (event==PADPLUSKEY || event==WHEELUPMOUSE))
+			else if(val && (event==PADPLUSKEY || event==WHEELUPMOUSE))
 			{
 				numcuts++;
 				mvalo[0] = 0;mvalo[1] = 0;
 				break;
 			}
-			if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
+			else if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
 			{
                 if(numcuts > 1){
     				numcuts--;
@@ -264,6 +268,66 @@ void CutEdgeloop(int numcuts){
     				break;
                 } 
 			}
+			else if(val){
+                holdnum = -1;
+                switch(event){
+                	case PAD9:
+                	case NINEKEY:
+                		holdnum = 9; break;
+                	case PAD8:
+                	case EIGHTKEY:
+                		holdnum = 8; break;
+                	case PAD7:
+                	case SEVENKEY:
+                		holdnum = 7; break;
+                	case PAD6:
+                	case SIXKEY:
+                		holdnum = 6; break;
+                	case PAD5:
+                	case FIVEKEY:
+                		holdnum = 5; break;
+                	case PAD4:
+                	case FOURKEY:
+                		holdnum = 4; break;
+                	case PAD3:
+                	case THREEKEY:
+                		holdnum = 3; break;
+                	case PAD2:
+                	case TWOKEY:
+                		holdnum = 2; break;
+                	case PAD1:
+                	case ONEKEY:
+                		holdnum = 1; break;
+                	case PAD0:
+                	case ZEROKEY:
+                		holdnum = 0; break;	
+                    case BACKSPACEKEY:
+                		holdnum = -2; break;			
+               }
+               if(holdnum >= 0 && numcuts*10 < 130){
+                    if(keys == 0){  // first level numeric entry
+                            if(holdnum > 0){
+                                       numcuts = holdnum;
+                                       keys++;        
+                            }
+                    } else if(keys > 0){//highrt level numeric entry
+                            numcuts *= 10;
+                            numcuts += holdnum;
+                            keys++;        
+                    }
+               } else if (holdnum == -2){// backspace
+                  if (keys > 1){
+                      numcuts /= 10;        
+                      keys--;
+                  } else {
+                      numcuts=1;
+                      keys = 0;   
+                  }      
+               }
+               mvalo[0] = 0;mvalo[1] = 0;
+               PIL_sleep_ms(10);
+               break;
+            }
 		}	
     }
     scrarea_do_windraw(curarea);
