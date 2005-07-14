@@ -36,6 +36,7 @@
 
 /***/
 
+struct BoundBox;
 struct DispList;
 struct ListBase;
 struct MDeformVert;
@@ -76,6 +77,8 @@ int mesh_uses_displist(struct Mesh *me);
 int update_realtime_texture(struct TFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
+
+struct BoundBox *mesh_get_bb(struct Mesh *me);
 
 void make_edges(struct Mesh *me);
 

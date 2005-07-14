@@ -1615,11 +1615,19 @@ void mesh_changed(Object *meshOb)
 		me->derived->release(me->derived);
 		me->derived = NULL;
 	}
+
+		/* This should really be delayed, but there is no simple way
+		 * to signal to rebuild the derived mesh (we can't null it
+		 * because it is used for incremental). Just need to add a
+		 * flag at some point. - zr
+		 */
+	if (G.obedit && meshOb->data==G.obedit->data) {
+		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
+	}
 }
 
 void makeDispListMesh(Object *ob)
 {
-	EditMesh *em = G.editMesh;
 	Mesh *me;
 
 	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
@@ -1639,7 +1647,7 @@ void makeDispListMesh(Object *ob)
 
 	if (mesh_uses_displist(me)) {  /* subsurf */
 		if (ob==G.obedit) {
-			G.editMesh->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->subsurftype, G.editMesh->derived);
+			G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 		} else {
 			me->derived= subsurf_make_derived_from_mesh(me, me->subdiv);
 		}

@@ -425,6 +425,15 @@ void tex_space_mesh(Mesh *me)
 	
 }
 
+BoundBox *mesh_get_bb(Mesh *me)
+{
+	if (!me->bb) {
+		tex_space_mesh(me);
+	}
+
+	return me->bb;
+}
+
 void make_orco_displist_mesh(Object *ob, int subdivlvl)
 {
 	Mesh *me;

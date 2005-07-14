@@ -1313,9 +1313,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 		switch ( self->object->type ) {
 		case OB_MESH:
 			me = self->object->data;
-			if( !me->bb )
-				tex_space_mesh( me );
-			vec = ( float * ) me->bb->vec;
+			vec = (float*) mesh_get_bb(me)->vec;
 			break;
 		case OB_CURVE:
 		case OB_FONT:

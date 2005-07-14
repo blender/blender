@@ -1932,8 +1932,9 @@ static void draw_mesh_object(Base *base, int dt)
 		baseDM->release(baseDM);
 	}
 	else {
-		if(me->bb==NULL) tex_space_mesh(me);
-		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+		BoundBox *bb = mesh_get_bb(me);
+
+		if(me->totface<=4 || boundbox_clip(ob->obmat, bb)) {
 			DerivedMesh *baseDM = mesh_get_base_derived(ob);
 			DerivedMesh *realDM = mesh_get_derived(ob);
 
@@ -3222,11 +3223,7 @@ void get_local_bounds(Object *ob, float *centre, float *size)
 	/* uses boundbox, function used by Ketsji */
 	
 	if(ob->type==OB_MESH) {
-		bb= ( (Mesh *)ob->data )->bb;
-		if(bb==0) {
-			tex_space_mesh(ob->data);
-			bb= ( (Mesh *)ob->data )->bb;
-		}
+		bb = mesh_get_bb(ob->data);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
@@ -3295,11 +3292,7 @@ static void draw_bounding_volume(Object *ob)
 	BoundBox *bb=0;
 	
 	if(ob->type==OB_MESH) {
-		bb= ( (Mesh *)ob->data )->bb;
-		if(bb==0) {
-			tex_space_mesh(ob->data);
-			bb= ( (Mesh *)ob->data )->bb;
-		}
+		bb= mesh_get_bb(ob->data);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;

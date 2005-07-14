@@ -1739,8 +1739,7 @@ void minmax_object(Object *ob, float *min, float *max)
 		me= get_mesh(ob);
 		
 		if(me) {
-			if(me->bb==0) tex_space_mesh(me);
-			bb= *(me->bb);
+			bb = *mesh_get_bb(me);
 			
 			for(a=0; a<8; a++) {
 				Mat4MulVecfl(ob->obmat, bb.vec[a]);
@@ -1777,7 +1776,10 @@ void object_handle_update(Object *ob)
 			
 //			printf("recalcdata %s\n", ob->id.name+2);
 			/* includes all keys and modifiers */
-			if(ob->type && ob->type<OB_LAMP) {
+			if(ob->type==OB_MESH) {
+				mesh_changed(ob);
+			}
+			else if(ob->type && ob->type<OB_LAMP) {
 				makeDispList(ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
