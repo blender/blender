@@ -624,10 +624,13 @@ void do_cross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1
 
 void do_gammacross_effect(float facf0, float facf1, int x, int y, unsigned int *rect1, unsigned int *rect2, unsigned int *out)
 {
+	extern void init_filt_mask(void);	// initrender.c, bad level call...
 	int fac1, fac2, col;
 	int xo;
 	char *rt1, *rt2, *rt;
 
+	init_filt_mask();	// nasty call to render code... but it uses gamtabs here
+	
 	xo= x;
 	rt1= (char *)rect1;
 	rt2= (char *)rect2;
