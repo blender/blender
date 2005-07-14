@@ -796,7 +796,7 @@ static int fd_read_from_memfile(FileData *filedata, void *buffer, int size)
 		seek= 0;
 		
 		while(chunk) {
-			if(seek + chunk->size > filedata->seek) break;
+			if(seek + chunk->size > (unsigned) filedata->seek) break;
 			seek+= chunk->size;
 			chunk= chunk->next;
 		}
@@ -1382,7 +1382,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 static void lib_link_armature(FileData *fd, Main *main)
 {
 	bArmature *arm;
-	Bone *bone;
+//	Bone *bone;
 
 	arm= main->armature.first;
 
@@ -3949,7 +3949,6 @@ static void do_versions(FileData *fd, Main *main)
 	if(main->versionfile <= 220) {
 		Object *ob;
 		Mesh *me;
-		bArmature *arm;
 
 		ob = main->object.first;
 
@@ -4059,7 +4058,6 @@ static void do_versions(FileData *fd, Main *main)
 		Scene *sce;
 		Mesh *me;
 		bScreen *sc;
-		Object *ob;
 
 		for (sound=main->sound.first; sound; sound=sound->id.next)
 		{
@@ -4191,12 +4189,12 @@ static void do_versions(FileData *fd, Main *main)
 		}
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
-			ma->refrac= 4.0;
-			ma->roughness= 0.5;
-			ma->param[0]= 0.5;
-			ma->param[1]= 0.1;
-			ma->param[2]= 0.1;
-			ma->param[3]= 0.05;
+			ma->refrac= 4.0f;
+			ma->roughness= 0.5f;
+			ma->param[0]= 0.5f;
+			ma->param[1]= 0.1f;
+			ma->param[2]= 0.1f;
+			ma->param[3]= 0.05f;
 		}
 		// patch for old wrong max view2d settings, allows zooming out more
 		for (sc= main->screen.first; sc; sc= sc->id.next) {
@@ -4282,7 +4280,7 @@ static void do_versions(FileData *fd, Main *main)
 					if (sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *) sl;
 
-						sbuts->v2d.maxzoom= 1.2;
+						sbuts->v2d.maxzoom= 1.2f;
 
 						if(sbuts->mainb==BUTS_LAMP) {
 							sbuts->mainb= CONTEXT_SHADING;
@@ -4348,7 +4346,7 @@ static void do_versions(FileData *fd, Main *main)
 				SpaceLink *sl;
 
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7;
+					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
 					/* added: 5x better zoom in for action */
 					if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *sac= (SpaceAction *)sl;
@@ -4401,7 +4399,7 @@ static void do_versions(FileData *fd, Main *main)
 				ma->fresnel_mir= 0.0;
 			}
 			else if(ma->ang<1.0) {		// temporal, because of IOR & fresnel change
-				ma->ang= 1.0/ma->ang;
+				ma->ang= 1.0f/ma->ang;
 				ma->fresnel_tra= ma->ang;
 				ma->fresnel_mir= ma->ang;
 			}
@@ -4426,7 +4424,7 @@ static void do_versions(FileData *fd, Main *main)
 		wrld= main->world.first;
 		while(wrld) {
 			if(wrld->range==0.0) {
-				wrld->range= 1.0/wrld->exposure;
+				wrld->range= 1.0f/wrld->exposure;
 			}
 			wrld= wrld->id.next;
 		}
@@ -4468,25 +4466,25 @@ static void do_versions(FileData *fd, Main *main)
 			/* copied from kernel texture.c */
 			if(tex->ns_outscale==0.0) {
 				/* musgrave */
-				tex->mg_H = 1.0;
-				tex->mg_lacunarity = 2.0;
-				tex->mg_octaves = 2.0;
-				tex->mg_offset = 1.0;
-				tex->mg_gain = 1.0;
-				tex->ns_outscale = 1.0;
+				tex->mg_H = 1.0f;
+				tex->mg_lacunarity = 2.0f;
+				tex->mg_octaves = 2.0f;
+				tex->mg_offset = 1.0f;
+				tex->mg_gain = 1.0f;
+				tex->ns_outscale = 1.0f;
 				/* distnoise */
-				tex->dist_amount = 1.0;
+				tex->dist_amount = 1.0f;
 				/* voronoi */
-				tex->vn_w1 = 1.0;
-				tex->vn_mexp = 2.5;
+				tex->vn_w1 = 1.0f;
+				tex->vn_mexp = 2.5f;
 			}
 			tex= tex->id.next;
 		}
 
 		while(wrld) {
 			if(wrld->aodist==0.0) {
-				wrld->aodist= 10.0;
-				wrld->aobias= 0.05;
+				wrld->aodist= 10.0f;
+				wrld->aobias= 0.05f;
 			}
 			if(wrld->aosamp==0.0) wrld->aosamp= 5;
 			if(wrld->aoenergy==0.0) wrld->aoenergy= 1.0;
@@ -4501,7 +4499,7 @@ static void do_versions(FileData *fd, Main *main)
 			for (sa= sc->areabase.first; sa; sa= sa->next) {
 				SpaceLink *sl;
 				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->blockscale==0.0) sl->blockscale= 0.7;
+					if(sl->blockscale==0.0) sl->blockscale= 0.7f;
 
 					/* added: 5x better zoom in for nla */
 					if(sl->spacetype==SPACE_NLA) {
@@ -4590,7 +4588,7 @@ static void do_versions(FileData *fd, Main *main)
 		Editing *ed;
 		
 		while(tex) {
-			if(tex->nabla==0.0) tex->nabla= 0.025;
+			if(tex->nabla==0.0) tex->nabla= 0.025f;
 			tex= tex->id.next;
 		}
 		while(sce) {
@@ -4616,22 +4614,22 @@ static void do_versions(FileData *fd, Main *main)
 		while(sce) {
 			sce->r.mode &= ~R_ZBLUR;	// disabled for release
 			
-			if(sce->r.postsat==0.0) sce->r.postsat= 1.0;
+			if(sce->r.postsat==0.0) sce->r.postsat= 1.0f;
 			
 			if(sce->r.zgamma==0.0) {
-				sce->r.focus= 0.9;
-				sce->r.zgamma= 1.0;
-				sce->r.zsigma= 4.0;
-				sce->r.zblur= 10.0;
-				sce->r.zmin= 0.8;
+				sce->r.focus= 0.9f;
+				sce->r.zgamma= 1.0f;
+				sce->r.zsigma= 4.0f;
+				sce->r.zblur= 10.0f;
+				sce->r.zmin= 0.8f;
 			}
-			if(sce->editbutsize==0.0) sce->editbutsize= 0.1;
+			if(sce->editbutsize==0.0) sce->editbutsize= 0.1f;
 			
 			sce= sce->id.next;
 		}
 		while(cam) {
 			if(cam->ortho_scale==0.0) {
-				cam->ortho_scale= 256.0/cam->lens;
+				cam->ortho_scale= 256.0f/cam->lens;
 				if(cam->type==CAM_ORTHO) printf("NOTE: ortho render has changed, tweak new Camera 'scale' value.\n");
 			}
 			cam= cam->id.next;
@@ -4665,16 +4663,16 @@ static void do_versions(FileData *fd, Main *main)
 		// init new shader vars
 		for (ma= main->mat.first; ma; ma= ma->id.next) {
 			if(ma->darkness==0.0) {
-				ma->rms=0.1;
-				ma->darkness=1.0;
+				ma->rms=0.1f;
+				ma->darkness=1.0f;
 			}
 		}
 		
 		/* softbody init new vars */
 		for(ob= main->object.first; ob; ob= ob->id.next) {
 			if(ob->soft) {
-				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7;
-				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0;
+				if(ob->soft->defgoal==0.0) ob->soft->defgoal= 0.7f;
+				if(ob->soft->physics_speed==0.0) ob->soft->physics_speed= 1.0f;
 				
 				if(ob->soft->interval==0) {
 					ob->soft->interval= 2;
@@ -4693,7 +4691,6 @@ static void do_versions(FileData *fd, Main *main)
 	}
 	if(main->versionfile <= 237) {
 		bArmature *arm;
-		bPoseChannel *pchan;
 		bConstraint *con;
 		Object *ob;
 		
