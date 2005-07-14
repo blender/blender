@@ -1608,6 +1608,11 @@ void mesh_changed(Object *meshOb)
 {
 	Mesh *me = meshOb->data;
 
+	if (me->bb) {
+		MEM_freeN(me->bb);
+		me->bb = NULL;
+	}
+
 	freedisplist(&meshOb->disp);
 	freedisplist(&me->disp);
 
