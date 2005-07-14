@@ -175,6 +175,9 @@
 				RelativePath="..\..\..\source\blender\src\drawaction.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\drawarmature.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\drawdeps.c">
 			</File>
 			<File
