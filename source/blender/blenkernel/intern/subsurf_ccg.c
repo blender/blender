@@ -939,13 +939,14 @@ static CCGDerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
 /***/
 
 DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, short type, DerivedMesh *oldDerived) {
-	CCGDerivedMesh *ccgdm;
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) oldDerived;
 
-	if (oldDerived) {
-		ccgdm = (CCGDerivedMesh*) oldDerived;
-	} else {
-		SubSurf *ss = subSurf_fromEditmesh(em, subdivLevels, G.rt==52, 0);
-		ccgdm = getCCGDerivedMesh(ss);
+	if (!ccgdm || ccgSubSurf_getSubdivisionLevels(ccgdm->ss->subSurf)!=subdivLevels) {
+		if (ccgdm) {
+			oldDerived->release(oldDerived);
+		}
+
+		ccgdm = getCCGDerivedMesh(subSurf_fromEditmesh(em, subdivLevels, G.rt==52, 0));
 	}
 
 	subSurf_sync(ccgdm->ss, type==ME_SIMPLE_SUBSURF);
