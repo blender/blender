@@ -1824,7 +1824,8 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 	{
 		if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
 		/* Per lamp, one shadow buffer is made. */
-			RE_initshadowbuf(lar, ob->obmat);
+			Mat4CpyMat4(mat, ob->obmat);
+			RE_initshadowbuf(lar, mat);	// mat is altered
 		}
 	}
 	
