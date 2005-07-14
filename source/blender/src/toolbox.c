@@ -67,6 +67,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
 #include "BKE_mesh.h"
@@ -1808,8 +1809,8 @@ static void tb_do_mesh(void *arg, int event){
 	case 2: G.f ^= G_DRAWEDGES; break;
 	case 3: G.f ^= G_DRAWFACES; break;
 	case 4: G.f ^= G_DRAWNORMALS; break;
-	case 5: me->flag ^= ME_SUBSURF; mesh_changed(OBACT); break;
-	case 6: me->flag ^= ME_OPT_EDGES; mesh_changed(OBACT); break;
+	case 5: me->flag ^= ME_SUBSURF; DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA); break;
+	case 6: me->flag ^= ME_OPT_EDGES; DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA); break;
 	}
 	addqueue(curarea->win, REDRAW, 1);
 }

@@ -1920,27 +1920,32 @@ static void draw_mesh_object(Base *base, int dt)
 {
 	Object *ob= base->object;
 	Mesh *me= ob->data;
-	DerivedMesh *baseDM = mesh_get_base_derived(ob);
-	DerivedMesh *realDM = mesh_get_derived(ob);
 	int has_alpha= 0;
 	
 	if(G.obedit && ob->data==G.obedit->data) {
+		DerivedMesh *baseDM = mesh_get_base_derived(ob);
+		DerivedMesh *realDM = mesh_get_derived(ob);
+
 		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, baseDM, realDM, dt);
+
+		baseDM->release(baseDM);
 	}
 	else {
 		if(me->bb==NULL) tex_space_mesh(me);
 		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+			DerivedMesh *baseDM = mesh_get_base_derived(ob);
+			DerivedMesh *realDM = mesh_get_derived(ob);
+
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
 			draw_mesh_fancy(ob, baseDM, realDM, dt);
+
+			baseDM->release(baseDM);
 		}
 	}
 	
 	/* init_gl_materials did the proper checking if this is needed */
 	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
-	
-	baseDM->release(baseDM);
-	
 }
 
 /* ************** DRAW DISPLIST ****************** */

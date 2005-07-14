@@ -59,6 +59,7 @@
 #include "DNA_image_types.h"
 #include "DNA_object_types.h" // only for uvedit_selectionCB() (struct Object)
 
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
@@ -761,7 +762,7 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 	G.moving= 0;
 	prop_size*= 3;
 	
-	mesh_changed(OBACT);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 
 	if(event!=ESCKEY && event!=RIGHTMOUSE)

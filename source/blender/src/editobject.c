@@ -2347,7 +2347,7 @@ void flip_subdivison(Object *ob, int level)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	mesh_changed(ob);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	BIF_undo_push("Switch subsurf on/off");
 }

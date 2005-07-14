@@ -60,6 +60,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -766,7 +767,7 @@ void wpaint_undo (void){
 	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
 	copy_dverts(me->dvert, wpaintundobuf, totwpaintundo);
 
-	mesh_changed(OBACT);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	scrarea_do_windraw(curarea);
 	
 }
@@ -940,7 +941,7 @@ void weight_paint(void)
 		me->mcol= 0;
 	}
 	
-	mesh_changed(ob);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	// this flag is event for softbody to refresh weightpaint values
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
@@ -1153,7 +1154,7 @@ void set_wpaint(void)		/* toggle */
 	else {
 		freefastshade();	/* to be sure */
 		if (me) {
-			mesh_changed(ob);
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
 		if(!(G.f & G_FACESELECT))
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
@@ -1202,7 +1203,7 @@ void set_vpaint(void)		/* toggle */
 	else {
 		freefastshade();	/* to be sure */
 		if (me) {
-			mesh_changed(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
 		if((G.f & G_FACESELECT)==0) setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}

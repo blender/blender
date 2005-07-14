@@ -54,6 +54,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -1273,5 +1274,5 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
 		}
 	}
 
-	mesh_changed(meshOb);
+	DAG_object_flush_update(G.scene, meshOb, OB_RECALC_DATA);
 }

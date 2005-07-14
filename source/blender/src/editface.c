@@ -59,6 +59,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -885,7 +886,8 @@ void rotate_uv_tface()
 	}
 	
 	BIF_undo_push("Rotate UV face");
-	mesh_changed(OBACT);
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1228,7 +1230,7 @@ void set_faceselect()	/* toggle */
 	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
 		if(me) {
 			reveal_tface();
-			mesh_changed(ob);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		BIF_undo_push("End UV Faceselect");

@@ -397,7 +397,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	EditFace *efa;
 	Base *base;
 	Object *ob;
-	Mesh *me;
 	Nurb *nu;
 	Curve *cu;
 	BezTriple *bezt;
