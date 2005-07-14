@@ -1480,7 +1480,8 @@ void stitch_uv_tface(int mode)
 	MFace *mf;
 	TFace *tf, *tface;
 	Mesh *me;
-	unsigned int a, b, c, vtot, vtot2, tot;
+	int a;
+	unsigned int b, c, vtot, vtot2, tot;
 	float newuv[2], limit[2], *uv, *uv1;
 	struct uvvertsort *sortblock, *sb, *sb1, *sb2;
 	
@@ -1624,8 +1625,8 @@ void select_linked_tface_uv(int mode)
 	TFace *tface, *tf, *nearesttf=NULL;
 	Mesh *me;
 	char sel, *linkflag;
-	int nearestuv, i, nverts;
-	unsigned int a, b, c, vtot, tot, nearestv;
+	int a, nearestuv, i, nverts;
+	unsigned int b, c, vtot, tot, nearestv;
 	float limit[2], *uv, *uv1;
 	struct uvvertsort *sortblock, *sb, *sb1, *sb2;
 	

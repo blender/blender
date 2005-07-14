@@ -101,7 +101,7 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** SELECTION ROUTINES **************** */
 
-int em_solidoffs=0, em_wireoffs=0, em_vertoffs;	// set in drawobject.c ... for colorindices
+unsigned int em_solidoffs=0, em_wireoffs=0, em_vertoffs=0;	// set in drawobject.c ... for colorindices
 
 static void check_backbuf(void)
 {
@@ -194,7 +194,7 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-static unsigned int sample_backbuf_rect(unsigned int *buf, int size, int min, int max, short *dist)
+static unsigned int sample_backbuf_rect(unsigned int *buf, int size, unsigned int min, unsigned int max, short *dist)
 {
 	unsigned int *bufmin, *bufmax;
 	int a, b, rc, nr, amount, dirvec[4][2];
@@ -309,7 +309,7 @@ int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 	return 1;
 }
 
-int EM_check_backbuf_border(int index)
+int EM_check_backbuf_border(unsigned int index)
 {
 	if(selbuf==NULL) return 1;
 	if(index>0 && index<=em_vertoffs)
@@ -562,8 +562,8 @@ EditEdge *findnearestedge(short *dist)
 {
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		EditEdge *eed=NULL;
-		unsigned int *buf;
-		int a=1, index;
+		unsigned int *buf, index;
+		int a=1;
 		short mval[2], distance=255;
 		
 		getmouseco_areawin(mval);
@@ -647,7 +647,8 @@ static EditFace *findnearestface(short *dist)
 {
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		EditFace *efa=NULL;
-		int a=1, index;
+		int a=1;
+		unsigned int index;
 		short mval[2], distance;
 
 		calc_mesh_facedots_ext();	// shouldnt be needed each click

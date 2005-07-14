@@ -267,13 +267,13 @@ static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
 
 static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 {
-	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;
 	EditFace *efa;
 	rcti rect;
-	int index, bbsel=0; // bbsel: no clip needed with screencoords
+	unsigned int index;
+	int bbsel=0; // bbsel: no clip needed with screencoords
 	
 	lasso_select_boundbox(&rect, mcords, moves);
 	
@@ -434,7 +434,6 @@ static void do_lasso_select_lattice(short mcords[][2], short moves, short select
 
 static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
 {
-	extern int em_vertoffs;		// still bad code, let linker solve for now
 	Mesh *me;
 	TFace *tface;
 	rcti rect;
@@ -1274,7 +1273,6 @@ void borderselect(void)
 		else if(G.obedit) {
 			/* used to be a bigger test, also included sector and life */
 			if(G.obedit->type==OB_MESH) {
-				extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 				EditMesh *em = G.editMesh;
 				EditVert *eve;
 				EditEdge *eed;
@@ -1573,7 +1571,6 @@ void borderselect(void)
 
 static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
-	extern int em_solidoffs, em_wireoffs;	// let linker solve it... from editmesh_mods.c 
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditEdge *eed;

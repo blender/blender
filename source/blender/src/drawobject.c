@@ -4080,7 +4080,6 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 
 void draw_object_backbufsel(Object *ob)
 {
-	extern int em_solidoffs, em_wireoffs, em_vertoffs;	// let linker solve it... from editmesh_mods.c 
 	int dmNeedsFree;
 	DerivedMesh *dm;
 
