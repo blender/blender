@@ -127,7 +127,6 @@ PyObject *Curve_getNurb( BPy_Curve * self, int n );
 static int Curve_length( PyInstanceObject * inst );
 void update_displists( void *data );
 
-void makeDispList( Object * ob );
 struct chartrans *text_to_curve( Object * ob, int mode );
 
 

@@ -885,7 +885,7 @@ void rotate_uv_tface()
 	}
 	
 	BIF_undo_push("Rotate UV face");
-	makeDispList(OBACT);
+	mesh_changed(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -1226,9 +1226,11 @@ void set_faceselect()	/* toggle */
 		BIF_undo_push("Set UV Faceselect");
 	}
 	else if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
-		if(me) reveal_tface();
+		if(me) {
+			reveal_tface();
+			mesh_changed(ob);
+		}
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-		makeDispList(ob);
 		BIF_undo_push("End UV Faceselect");
 	}
 	countall();

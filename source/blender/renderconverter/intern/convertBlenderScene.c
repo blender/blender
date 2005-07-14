@@ -1209,7 +1209,7 @@ static void init_render_mball(Object *ob)
 	dlo= ob->disp.first;
 	if(dlo) BLI_remlink(&ob->disp, dlo);
 
-	makeDispList(ob);
+	makeDispListMBall(ob);
 	dl= ob->disp.first;
 	if(dl==0) return;
 
@@ -2222,7 +2222,7 @@ static void init_render_curve(Object *ob)
 	/* no modifier call here, is in makedisp */
 
 	/* test displist */
-	if(cu->disp.first==0) makeDispList(ob);
+	if(cu->disp.first==0) makeDispListCurveTypes(ob);
 	dl= cu->disp.first;
 	if(cu->disp.first==0) return;
 	
@@ -2664,9 +2664,6 @@ void RE_freeRotateBlenderScene(void)
 {
 	ShadBuf *shb;
 	Object *ob = NULL;
-	Mesh *me;
-	Curve *cu;
-	DispList *dl;
 	unsigned long *ztile;
 	int a, b, v;
 	char *ctile;
@@ -2720,26 +2717,26 @@ void RE_freeRotateBlenderScene(void)
 	while(ob) {
 
 		if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-			cu= ob->data;
+			Curve *cu= ob->data;
 			if(cu->orco) {
 				MEM_freeN(cu->orco);
 				cu->orco= 0;
 			}
 		}
 		else if(ob->type==OB_MESH) {
-			me= ob->data;
+			Mesh *me= ob->data;
 			if(me->orco) {
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
 			if ((me->flag&ME_SUBSURF) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
 			    /* Need to recalc for effects since they are time dependant */
-				makeDispList(ob);  /* XXX this should be replaced with proper caching */
+				makeDispListMesh(ob);  /* XXX this should be replaced with proper caching */
 			}
 		}
 		else if(ob->type==OB_MBALL) {
 			if(ob->disp.first && ob->disp.first!=ob->disp.last) {
-				dl= ob->disp.first;
+				DispList *dl= ob->disp.first;
 				BLI_remlink(&ob->disp, dl);
 				freedisplist(&ob->disp);
 				BLI_addtail(&ob->disp, dl);
@@ -3019,7 +3016,7 @@ void RE_rotateBlenderScene(void)
 								cu= obd->data;
 								if(cu->disp.first==NULL) {
 									obd->flag &= ~OB_FROMDUPLI;
-									makeDispList(obd);
+									makeDispListCurveTypes(obd);
 									obd->flag |= OB_FROMDUPLI;
 								}
 							}

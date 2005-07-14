@@ -153,6 +153,8 @@ void free_mesh(Mesh *me)
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->disp.first) freedisplist(&me->disp);
 	if(me->derived) me->derived->release(me->derived);
+
+	BLI_freelistN(&me->modifiers);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
@@ -1259,7 +1261,8 @@ void mesh_delete_material_index(Mesh *me, int index) {
 	}
 }
 
-void mesh_set_smooth_flag(Mesh *me, int enableSmooth) {
+void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
+	Mesh *me = meshOb->data;
 	int i;
 
 	for (i=0; i<me->totface; i++) {
@@ -1271,4 +1274,6 @@ void mesh_set_smooth_flag(Mesh *me, int enableSmooth) {
 			mf->flag &= ~ME_SMOOTH;
 		}
 	}
+
+	mesh_changed(meshOb);
 }

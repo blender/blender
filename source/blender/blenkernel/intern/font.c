@@ -560,7 +560,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		oldflag= cucu->flag;
 		cucu->flag |= (CU_PATH+CU_FOLLOW);
 		
-		if(cucu->path==NULL) makeDispList(cu->textoncurve);
+		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve);
 		if(cucu->path) {
 			
 

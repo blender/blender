@@ -766,7 +766,7 @@ void wpaint_undo (void){
 	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
 	copy_dverts(me->dvert, wpaintundobuf, totwpaintundo);
 
-	makeDispList(OBACT);
+	mesh_changed(OBACT);
 	scrarea_do_windraw(curarea);
 	
 }
@@ -940,7 +940,7 @@ void weight_paint(void)
 		me->mcol= 0;
 	}
 	
-	makeDispList(ob);
+	mesh_changed(ob);
 	// this flag is event for softbody to refresh weightpaint values
 	if(ob->soft) ob->softflag |= OB_SB_REDO;
 	
@@ -1152,8 +1152,9 @@ void set_wpaint(void)		/* toggle */
 	}
 	else {
 		freefastshade();	/* to be sure */
-		if (ob)
-			makeDispList(ob);
+		if (me) {
+			mesh_changed(ob);
+		}
 		if(!(G.f & G_FACESELECT))
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}
@@ -1200,7 +1201,9 @@ void set_vpaint(void)		/* toggle */
 	}
 	else {
 		freefastshade();	/* to be sure */
-		if (ob) makeDispList(ob);
+		if (me) {
+			mesh_changed(ob);
+		}
 		if((G.f & G_FACESELECT)==0) setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}
 }

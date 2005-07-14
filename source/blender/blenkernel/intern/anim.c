@@ -301,17 +301,6 @@ void frames_duplilist(Object *ob)
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
 
-	/* this to make sure that something is z-buffered in drawobject.c */
-	if(G.background==0 && ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		DispList *dl;
-		if(me->disp.first==0) addnormalsDispList(ob, &me->disp);
-		if(ob->dt==OB_SHADED) {
-			dl= ob->disp.first;
-			if(dl==0 || dl->col1==0) shadeDispList(ob);
-		}
-	}
-	
 	for(G.scene->r.cfra= ob->dupsta; G.scene->r.cfra<=ob->dupend; G.scene->r.cfra++) {
 
 		ok= 1;

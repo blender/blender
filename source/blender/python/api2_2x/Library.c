@@ -355,7 +355,7 @@ PyObject *M_Library_Update( PyObject * self )
 		} else {
 			if( ob->type == OB_MESH && ob->parent
 			    && ob->parent->type == OB_LATTICE )
-				makeDispList( ob );
+				makeDispListMesh( ob );
 		}
 
 		ob = ob->id.next;

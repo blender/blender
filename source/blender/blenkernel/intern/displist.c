@@ -650,12 +650,34 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 
 }
 
+static float *mesh_build_faceNormals(Object *meshOb) 
+{
+	Mesh *me = meshOb->data;
+	float *nors = MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
+	float *n1 = nors;
+	int i;
+
+	for (i=0; i<me->totface; i++,n1+=3) {
+		MFace *mf = &me->mface[i];
+		
+		if (mf->v3) {
+			MVert *ve1= &me->mvert[mf->v1];
+			MVert *ve2= &me->mvert[mf->v2];
+			MVert *ve3= &me->mvert[mf->v3];
+			MVert *ve4= &me->mvert[mf->v4];
+					
+			if(mf->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
+			else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
+		}
+	}
+
+	return nors;
+}
+
 void addnormalsDispList(Object *ob, ListBase *lb)
 {
 	DispList *dl = NULL;
 	Mesh *me;
-	MVert *ve1, *ve2, *ve3, *ve4;
-	MFace *mface;
 	float *vdata, *ndata, nor[3];
 	float *v1, *v2, *v3, *v4;
 	float *n1, *n2, *n3, *n4;
@@ -678,23 +700,7 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 		else return;
 		
 		if(dl->nors==0) {
-			dl->nors= MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
-			n1= dl->nors;
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->v3) {
-					ve1= me->mvert+mface->v1;
-					ve2= me->mvert+mface->v2;
-					ve3= me->mvert+mface->v3;
-					ve4= me->mvert+mface->v4;
-					
-					if(mface->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
-					else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
-				}
-				n1+= 3;
-				mface++;
-			}
+			dl->nors= mesh_build_faceNormals(ob);
 		}
 
 		return;
@@ -909,7 +915,7 @@ void shadeDispList(Object *ob)
 			}
 		}
 		else if(me->totvert>0) {
-			float *vnors, *vn;
+			float *vnors, *vn, *nors;
 			
 			if(me->orco==0 && need_orco) {
 				make_orco_mesh(me);
@@ -917,11 +923,7 @@ void shadeDispList(Object *ob)
 			orco= me->orco;
 			/* ms= me->msticky; */
 			
-			dl= me->disp.first;
-			if(dl==0 || dl->nors==0) addnormalsDispList(ob, &me->disp);
-			dl= me->disp.first;
-			if(dl==0 || dl->nors==0) return;
-			nor= dl->nors;
+			nors = nor = mesh_build_faceNormals(ob);
 			
 			dl= MEM_callocN(sizeof(DispList), "displistshade");
 			BLI_addtail(&ob->disp, dl);
@@ -1034,6 +1036,7 @@ void shadeDispList(Object *ob)
 			}
 			
 			MEM_freeN(vnors);
+			MEM_freeN(nors);
 			
 			if(me->orco) {
 				MEM_freeN(me->orco);
@@ -1568,7 +1571,7 @@ float calc_taper(Object *taperobj, int cur, int tot)
 	cu= taperobj->data;
 	dl= cu->disp.first;
 	if(dl==NULL) {
-		makeDispList(taperobj);
+		makeDispListCurveTypes(taperobj);
 		dl= cu->disp.first;
 	}
 	if(dl) {
@@ -1601,10 +1604,70 @@ float calc_taper(Object *taperobj, int cur, int tot)
 	return 1.0;
 }
 
-void makeDispList(Object *ob)
+void mesh_changed(Object *meshOb)
+{
+	Mesh *me = meshOb->data;
+
+	freedisplist(&meshOb->disp);
+	freedisplist(&me->disp);
+
+	if (me->derived) {
+		me->derived->release(me->derived);
+		me->derived = NULL;
+	}
+}
+
+void makeDispListMesh(Object *ob)
 {
 	EditMesh *em = G.editMesh;
 	Mesh *me;
+
+	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
+
+	freedisplist(&(ob->disp));
+	
+	me= ob->data;
+	freedisplist(&me->disp);
+	if (me->derived) {
+		me->derived->release(me->derived);
+		me->derived= NULL;
+	}
+
+	tex_space_mesh(ob->data);
+	
+	if (ob!=G.obedit) mesh_modifier(ob, 's');
+
+	if (mesh_uses_displist(me)) {  /* subsurf */
+		if (ob==G.obedit) {
+			G.editMesh->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->subsurftype, G.editMesh->derived);
+		} else {
+			me->derived= subsurf_make_derived_from_mesh(me, me->subdiv);
+		}
+	}
+
+	if (ob!=G.obedit) mesh_modifier(ob, 'e');
+	
+	boundbox_displist(ob);
+}
+void makeDispListMBall(Object *ob)
+{
+	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MBALL) return;
+
+	freedisplist(&(ob->disp));
+	
+	if(ob->type==OB_MBALL) {
+		if(ob==find_basis_mball(ob)) {
+			metaball_polygonize(ob);
+			tex_space_mball(ob);
+
+			object_deform(ob);
+		}
+	}
+	
+	boundbox_displist(ob);
+}
+void makeDispListCurveTypes(Object *ob)
+{
 	Nurb *nu;
 	Curve *cu;
 	BPoint *bp;
@@ -1615,43 +1678,13 @@ void makeDispList(Object *ob)
 	float *data, *fp1, widfac, vec[3];
 	int len, a, b, draw=0;
 
+	if(!ob || (ob->flag&OB_FROMDUPLI) || !ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 	if(ob==NULL) return;
 	if(ob->flag & OB_FROMDUPLI) return;
 
 	freedisplist(&(ob->disp));
 	
-	if(ob->type==OB_MESH) {
-		me= ob->data;
-		freedisplist(&me->disp);
-		if (me->derived) {
-			me->derived->release(me->derived);
-			me->derived= NULL;
-		}
-
-		tex_space_mesh(ob->data);
-		
-		if (ob!=G.obedit) mesh_modifier(ob, 's');
-
-		if (mesh_uses_displist(me)) {  /* subsurf */
-			if (ob==G.obedit) {
-				G.editMesh->derived= subsurf_make_derived_from_editmesh(em, me->subdiv, me->subsurftype, G.editMesh->derived);
-			} else {
-				me->derived= subsurf_make_derived_from_mesh(me, me->subdiv);
-			}
-		}
-
-		if (ob!=G.obedit) mesh_modifier(ob, 'e');
-	}
-	else if(ob->type==OB_MBALL) {
-		if(ob==find_basis_mball(ob)) {
-			metaball_polygonize(ob);
-			tex_space_mball(ob);
-
-			object_deform(ob);
-		}
-	}
-	else if(ob->type==OB_SURF) {
-		
+	if(ob->type==OB_SURF) {
 		draw= ob->dt;
 		cu= ob->data;
 		dispbase= &(cu->disp);
@@ -1889,6 +1922,17 @@ void makeDispList(Object *ob)
 	}
 	
 	boundbox_displist(ob);
+}
+
+void makeDispList(Object *ob)
+{
+	if (ob->type==OB_MESH) {
+		makeDispListMesh(ob);
+	} else if (ob->type==OB_MBALL) {
+		makeDispListMBall(ob);
+	} else {
+		makeDispListCurveTypes(ob);
+	}
 }
 
 

@@ -1212,7 +1212,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 				dl= bevcu->disp.first;
 				if(dl==0) {
-					makeDispList(cu->bevobj);
+					makeDispListCurveTypes(cu->bevobj);
 					dl= bevcu->disp.first;
 				}
 				while(dl) {

@@ -1153,7 +1153,7 @@ void make_parent(void)
 			mode= PAROBJECT;
 			if((cu->flag & CU_PATH)==0) {
 				cu->flag |= CU_PATH|CU_FOLLOW;
-				makeDispList(par);  // force creation of path data
+				makeDispListCurveTypes(par);  // force creation of path data
 			}
 			else cu->flag |= CU_FOLLOW;
 		}
@@ -1881,7 +1881,7 @@ void split_font()
 		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
 		text_to_curve(OBACT, 0);	// pass 2: remake
 		freedisplist(&OBACT->disp);
-		makeDispList(OBACT);
+		makeDispListCurveTypes(OBACT);
 		
 		OBACT->flag &= ~SELECT;
 		BASACT->flag &= ~SELECT;
@@ -2269,7 +2269,7 @@ void convertmenu(void)
 					cu= ob->data;
 					
 					dl= cu->disp.first;
-					if(dl==0) makeDispList(ob);		// force creation
+					if(dl==0) makeDispListCurveTypes(ob);		// force creation
 
 					nurbs_to_mesh(ob); /* also does users */
 
@@ -2347,7 +2347,7 @@ void flip_subdivison(Object *ob, int level)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	makeDispList(ob);   // no dependency?
+	mesh_changed(ob);
 	
 	BIF_undo_push("Switch subsurf on/off");
 }

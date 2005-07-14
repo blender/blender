@@ -761,7 +761,7 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 	G.moving= 0;
 	prop_size*= 3;
 	
-	makeDispList(OBACT);
+	mesh_changed(OBACT);
 	allqueue(REDRAWVIEW3D, 0);
 
 	if(event!=ESCKEY && event!=RIGHTMOUSE)
