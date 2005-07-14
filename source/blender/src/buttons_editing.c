@@ -606,9 +606,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			while(base) {
 				if(TESTBASELIB(base)) {
 					if(base->object->type==OB_MESH) {
-						me= base->object->data;
-						mesh_set_smooth_flag(me, (event==B_SETSMOOTH));
-						makeDispList(base->object);
+						mesh_set_smooth_flag(base->object, (event==B_SETSMOOTH));
 					}
 					else if ELEM(base->object->type, OB_SURF, OB_CURVE) {
 						cu= base->object->data;
