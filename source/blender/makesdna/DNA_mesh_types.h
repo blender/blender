@@ -42,6 +42,7 @@ struct Key;
 struct Material;
 struct MVert;
 struct MEdge;
+struct MFace;
 struct MCol;
 struct MSticky;
 struct Mesh;
@@ -70,7 +71,9 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-	void *mface, *dface, *tface;
+	struct MFace *mface;
+	struct TFace *tface;
+	void *dface;
 	struct MVert *mvert;
 	struct MEdge *medge;
 	struct MDeformVert *dvert;	/* __NLA */
