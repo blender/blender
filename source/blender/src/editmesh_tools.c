@@ -118,7 +118,7 @@ static int vergxco(const void *v1, const void *v2)
 }
 
 struct facesort {
-	long x;
+	unsigned long x;
 	struct EditFace *efa;
 };
 
@@ -360,8 +360,8 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 		efa= em->faces.first;
 		while(efa) {
 			if(efa->f1 & 1) {
-				if(efa->v4) vsb->x= (long) MIN4( (long)efa->v1, (long)efa->v2, (long)efa->v3, (long)efa->v4);
-				else vsb->x= (long) MIN3( (long)efa->v1, (long)efa->v2, (long)efa->v3);
+				if(efa->v4) vsb->x= (unsigned long) MIN4( (unsigned long)efa->v1, (unsigned long)efa->v2, (unsigned long)efa->v3, (unsigned long)efa->v4);
+				else vsb->x= (unsigned long) MIN3( (unsigned long)efa->v1, (unsigned long)efa->v2, (unsigned long)efa->v3);
 
 				vsb->efa= efa;
 				vsb++;
@@ -2465,7 +2465,7 @@ void beauty_fill(void)
 						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 
 							/* test edges */
-							if( ((long)v1) > ((long)v3) ) {
+							if( (v1) > (v3) ) {
 								dia1.v1= v3;
 								dia1.v2= v1;
 							}
@@ -2474,7 +2474,7 @@ void beauty_fill(void)
 								dia1.v2= v3;
 							}
 
-							if( ((long)v2) > ((long)v4) ) {
+							if( (v2) > (v4) ) {
 								dia2.v1= v4;
 								dia2.v2= v2;
 							}

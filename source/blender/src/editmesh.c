@@ -154,7 +154,7 @@ EditEdge *findedgelist(EditVert *v1, EditVert *v2)
 	struct HashEdge *he;
 
 	/* swap ? */
-	if( (long)v1 > (long)v2) {
+	if( v1 > v2) {
 		v3= v2; 
 		v2= v1; 
 		v1= v3;

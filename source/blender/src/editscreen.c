@@ -1498,7 +1498,7 @@ static void sortscrvert(ScrVert **v1, ScrVert **v2)
 {
 	ScrVert *tmp;
 	
-	if ((long)*v1 > (long)*v2) {
+	if (*v1 > *v2) {
 		tmp= *v1;
 		*v1= *v2;
 		*v2= tmp;	
