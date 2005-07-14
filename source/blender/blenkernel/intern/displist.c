@@ -1626,7 +1626,7 @@ void mesh_changed(Object *meshOb)
 		 * because it is used for incremental). Just need to add a
 		 * flag at some point. - zr
 		 */
-	if (G.obedit && meshOb->data==G.obedit->data) {
+	if (G.obedit && meshOb->data==G.obedit->data && mesh_uses_displist(me)) {
 		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 	}
 }
