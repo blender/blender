@@ -406,11 +406,11 @@ void filesel_statistics(SpaceFile *sfile, int *totfile, int *selfile, float *tot
 			(*totfile) ++;
 
 			len = sfile->filelist[a].s.st_size;
-			(*totlen) += (len/1048576.0); 		
+			(*totlen) += (float)(len/1048576.0); 		
 
 			if(sfile->filelist[a].flags & ACTIVE) {
 				(*selfile) ++;
-				(*sellen) += (len/1048576.0);
+				(*sellen) += (float)(len/1048576.0);
 			}
 		}
 	}
@@ -846,9 +846,9 @@ static void calc_file_rcts(SpaceFile *sfile)
 	collumwidth= (textrct.xmax-textrct.xmin)/sfile->collums;
 	
 
-	totfile= sfile->totfile + 0.5;
+	totfile= sfile->totfile + 0.5f;
 
-	tot= FILESEL_DY*totfile;
+	tot= (int)(FILESEL_DY*totfile);
 	if(tot) fac= ((float)sfile->collums*(scrollrct.ymax-scrollrct.ymin))/( (float)tot);
 	else fac= 1.0;
 	
@@ -856,22 +856,22 @@ static void calc_file_rcts(SpaceFile *sfile)
 	
 	if(tot) start= ( (float)sfile->ofs)/(totfile);
 	else start= 0.0;
-	if(fac>1.0) fac= 1.0;
+	if(fac>1.0) fac= 1.0f;
 
 	if(start+fac>1.0) {
-		sfile->ofs= ceil((1.0-fac)*totfile);
+		sfile->ofs= (short)ceil((1.0-fac)*totfile);
 		start= ( (float)sfile->ofs)/(totfile);
-		fac= 1.0-start;
+		fac= 1.0f-start;
 	}
 
 	bar.xmin= scrollrct.xmin+2;
 	bar.xmax= scrollrct.xmax-2;
 	h= (scrollrct.ymax-scrollrct.ymin)-4;
-	bar.ymax= scrollrct.ymax-2- start*h;
-	bar.ymin= bar.ymax- fac*h;
+	bar.ymax= (int)(scrollrct.ymax-2- start*h);
+	bar.ymin= (int)(bar.ymax- fac*h);
 
 	pixels_to_ofs= (totfile)/(float)(h+3);
-	page_ofs= fac*totfile;
+	page_ofs= (int)(fac*totfile);
 }
 
 int filescrollselect= 0;
@@ -1489,20 +1489,43 @@ static void filesel_execute(SpaceFile *sfile)
 	else if(sfile->returnfunc) {
 		fsmenu_insert_entry(sfile->dir, 1);
 	
-		if(sfile->type==FILE_MAIN) {
-			if (sfile->menup) {
+		if(sfile->type==FILE_MAIN) { /* DATABROWSE */
+			if (sfile->menup) {	/* with value pointing to ID block index */
+				int notfound = 1;
+
+				/*	Need special handling since hiding .* datablocks means that
+					sfile->act is no longer the same as files->nr.
+
+					Also, toggle HIDE_DOT on and off can make sfile->act not longer
+					correct (meaning it doesn't point to the correct item in the filelist.
+					
+					sfile->file is always correct, so first with check if, for the item
+					corresponding to sfile->act, the name is the same.
+
+					If it isn't (or if sfile->act is not good), go over filelist and take
+					the correct one.
+
+					This means that selecting a datablock than hiding it makes it
+					unselectable. Not really a problem.
+
+					- theeth
+				 */
+
+				*sfile->menup= -1;
+
 				if(sfile->act>=0) {
 					if(sfile->filelist) {
 						files= sfile->filelist+sfile->act;
-						*sfile->menup= files->nr;
+						if ( strcmp(files->relname, sfile->file)==0) {
+							notfound = 0;
+							*sfile->menup= files->nr;
+						}
 					}	
-					else *sfile->menup= sfile->act+1;
 				}
-				else {
-					*sfile->menup= -1;
+				if (notfound) {
 					for(a=0; a<sfile->totfile; a++) {
 						if( strcmp(sfile->filelist[a].relname, sfile->file)==0) {
-							*sfile->menup= a+1;
+							*sfile->menup= sfile->filelist[a].nr;
 							break;
 						}
 					}
