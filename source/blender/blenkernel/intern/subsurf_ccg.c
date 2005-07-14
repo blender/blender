@@ -708,7 +708,7 @@ static void ccgDM_drawLooseEdges(DerivedMesh *dm) {
 	ccgEdgeIterator_free(ei);
 }
 
-static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
+static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int)) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss->subSurf;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
@@ -723,7 +723,9 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, void (*setMaterial)(int)) {
 		if (efa->h!=0)
 			continue;
 
-		setMaterial(efa->mat_nr+1);
+		if (!setMaterial(efa->mat_nr+1))
+			continue;
+
 		glShadeModel(isSmooth?GL_SMOOTH:GL_FLAT);
 		for (S=0; S<numVerts; S++) {
 			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
