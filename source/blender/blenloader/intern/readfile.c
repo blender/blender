@@ -5734,8 +5734,13 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 		/* some mains still have to be read, then
 		 * versionfile is still zero! */
-		if(mainptr->versionfile) do_versions(mainptr->curlib->filedata, mainptr);
-
+		if(mainptr->versionfile) {
+			if(mainptr->curlib->filedata) // can be zero... with shift+f1 append
+				do_versions(mainptr->curlib->filedata, mainptr);
+			else
+				do_versions(basefd, mainptr);
+		}
+		
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
 		mainptr->curlib->filedata= NULL;
 
