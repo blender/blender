@@ -532,7 +532,7 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 	angle = angle * (float) (Py_PI / 180);
 	if(axis == NULL && matSize == 2) {
 		//2D rotation matrix
-		mat[0] = (float) cosf (angle);
+		mat[0] = (float) cos (angle);
 		mat[1] = (float) sin (angle);
 		mat[2] = -((float) sin(angle));
 		mat[3] = (float) cos(angle);
