@@ -38,28 +38,28 @@
 #include "Object.h"
 #include "NLA.h"
 #include "logic.h"
-#include <blendef.h>
+#include "blendef.h"
 
-#include <DNA_scene_types.h>
-#include <DNA_mesh_types.h>
-#include <DNA_curve_types.h>
+#include "DNA_scene_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_object_force.h"
-#include <DNA_property_types.h>
+#include "DNA_property_types.h"
 
-#include <BKE_depsgraph.h>
-#include <BKE_font.h>
-#include <BKE_property.h>
-#include <BKE_mball.h>
-#include <BKE_softbody.h>
+#include "BKE_depsgraph.h"
+#include "BKE_font.h"
+#include "BKE_property.h"
+#include "BKE_mball.h"
+#include "BKE_softbody.h"
 
-#include <BIF_editview.h>
-#include <BSE_editipo.h>
-#include <BSE_edit.h>
+#include "BIF_editview.h"
+#include "BSE_editipo.h"
+#include "BSE_edit.h"
 
 #include "Ipo.h"
 #include "Lattice.h"
 #include "modules.h"
-
+#include "Mathutils.h"
 #include "constant.h"
 /* only used for oops location get/set at the moment */
 #include "DNA_oops_types.h" 
@@ -1109,21 +1109,20 @@ static PyObject *Object_getDrawType( BPy_Object * self )
 
 static PyObject *Object_getEuler( BPy_Object * self )
 {
-	EulerObject *eul;
+	float eul[3];
 
-	eul = ( EulerObject * ) newEulerObject( NULL );
-	eul->eul[0] = self->object->rot[0];
-	eul->eul[1] = self->object->rot[1];
-	eul->eul[2] = self->object->rot[2];
+	eul[0] = self->object->rot[0];
+	eul[1] = self->object->rot[1];
+	eul[2] = self->object->rot[2];
 
-	return ( PyObject * ) eul;
+	return ( PyObject * ) newEulerObject( eul, Py_WRAP );
 
 }
 
 static PyObject *Object_getInverseMatrix( BPy_Object * self )
 {
 	MatrixObject *inverse =
-		( MatrixObject * ) newMatrixObject( NULL, 4, 4 );
+		( MatrixObject * ) newMatrixObject( NULL, 4, 4, Py_NEW);
 	Mat4Invert( (float ( * )[4])*inverse->matrix, self->object->obmat );
 
 	return ( ( PyObject * ) inverse );
@@ -1170,35 +1169,30 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args )
 {
-	PyObject *matrix;
+	float matrix[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+  	                 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	char *space = "worldspace";	/* default to world */
 
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected a string or nothing" ) );
 	}
-	//new matrix
-	matrix = newMatrixObject( NULL, 4, 4 );
 
 	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		disable_where_script( 0 );
-		Mat4CpyMat4((float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
-			     self->object->obmat );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		object_to_mat4( self->object,
-				( float ( * )[4] ) *( ( MatrixObject * ) matrix )->matrix );
-		/* old behavior, prior to 2.34, check this method's doc string: */
+		object_to_mat4( self->object, (float (*)[4])matrix );
+		return newMatrixObject(matrix,4,4,Py_NEW);
 	} else if( BLI_streq( space, "old_worldspace" ) ) {
-		Mat4CpyMat4( (float ( * )[4]) *( ( MatrixObject * ) matrix )->matrix,
-			     self->object->obmat );
+		/* old behavior, prior to 2.34, check this method's doc string: */
 	} else {
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"wrong parameter, expected nothing or either 'worldspace' (default),\n\
 'localspace' or 'old_worldspace'" ) );
 	}
-	return matrix;
+	return newMatrixObject((float*)self->object->obmat,4,4,Py_WRAP);
 }
 
 static PyObject *Object_getName( BPy_Object * self )
@@ -1378,7 +1372,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 				   does not have its own memory,
 				   we must create vectors that allocate space */
 
-				vector = newVectorObject( NULL, 3 );
+				vector = newVectorObject( NULL, 3, Py_NEW);
 				memcpy( ( ( VectorObject * ) vector )->vec,
 					tmpvec, 3 * sizeof( float ) );
 				PyList_SET_ITEM( bbox, i, vector );
@@ -1399,7 +1393,7 @@ static PyObject *Object_getBoundBox( BPy_Object * self )
 
 		/* create vectors referencing object bounding box coords */
 		for( i = 0; i < 8; i++ ) {
-			vector = newVectorObject( vec, 3 );
+			vector = newVectorObject( vec, 3, Py_WRAP );
 			PyList_SET_ITEM( bbox, i, vector );
 			vec += 3;
 		}

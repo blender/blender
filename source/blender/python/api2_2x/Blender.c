@@ -41,30 +41,27 @@
 #include <io.h>
 #endif
 
-#ifndef O_BINARY
-# define O_BINARY 0
-#endif
-
-#include <BDR_editobject.h>	/* exit_editmode() */
-#include <BIF_usiblender.h>
-#include <BLI_blenlib.h>
-#include <BLO_writefile.h>
-#include <BKE_exotic.h>
-#include <BKE_global.h>
-#include <BKE_packedFile.h>
-#include <BKE_object.h>
-#include <BKE_text.h>
-#include <BPI_script.h>
-#include <BSE_headerbuttons.h>
-#include <DNA_ID.h>
-#include <DNA_object_types.h>
-#include <DNA_scene_types.h>
-#include <DNA_screen_types.h>	/* for SPACE_VIEW3D */
-#include <DNA_space_types.h>	/* for SPACE_VIEW3D */
-#include <DNA_scriptlink_types.h>
-#include <DNA_userdef_types.h>
-#include <BKE_ipo.h>
-#include <blendef.h>
+#include "BKE_utildefines.h"
+#include "BDR_editobject.h"	/* exit_editmode() */
+#include "BIF_usiblender.h"
+#include "BLI_blenlib.h"
+#include "BLO_writefile.h"
+#include "BKE_exotic.h"
+#include "BKE_global.h"
+#include "BKE_packedFile.h"
+#include "BKE_object.h"
+#include "BKE_text.h"
+#include "BPI_script.h"
+#include "BSE_headerbuttons.h"
+#include "DNA_ID.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
+#include "DNA_space_types.h"	/* for SPACE_VIEW3D */
+#include "DNA_scriptlink_types.h"
+#include "DNA_userdef_types.h"
+#include "BKE_ipo.h"
+#include "blendef.h"
 
 #include "EXPP_interface.h" /* for bpy_gethome() */
 #include "gen_utils.h"

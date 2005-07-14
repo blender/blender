@@ -30,10 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <DNA_text_types.h>
-#include <MEM_guardedalloc.h>
-#include <BLI_blenlib.h>
-#include <BIF_space.h>
+#include "DNA_text_types.h"
+#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
+#include "BIF_space.h"
 
 #include "gen_utils.h"
 #include "constant.h"
@@ -141,6 +141,31 @@ PyObject *EXPP_incr_ret_True()
 	return Py_BuildValue("i", 1);
 }
 
+void EXPP_incr2( PyObject * ob1, PyObject * ob2 )
+{
+  	    Py_INCREF( ob1 );
+  	    Py_INCREF( ob2 );
+}
+
+void EXPP_incr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 )
+{
+  	    Py_INCREF( ob1 );
+  	    Py_INCREF( ob2 );
+  	    Py_INCREF( ob3 );
+}
+
+void EXPP_decr2( PyObject * ob1, PyObject * ob2 )
+{
+  	    Py_DECREF( ob1 );
+  	    Py_DECREF( ob2 );
+}
+
+void EXPP_decr3( PyObject * ob1, PyObject * ob2, PyObject * ob3 )
+{
+  	    Py_DECREF( ob1 );
+  	    Py_DECREF( ob2 );
+  	    Py_DECREF( ob3 );
+}
 /*****************************************************************************/
 /* Description: This function maps the event identifier to a string.	  */
 /*****************************************************************************/

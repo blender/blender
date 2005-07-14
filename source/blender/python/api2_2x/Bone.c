@@ -32,26 +32,30 @@
 
 #include "Bone.h"
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_armature.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <DNA_action_types.h>
-#include <DNA_armature_types.h>
-#include <DNA_ipo_types.h>
-#include <BIF_poseobject.h>
-#include <BKE_action.h>
-#include <BSE_editaction.h>
-#include <BKE_constraint.h>
-#include <MEM_guardedalloc.h>
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_object.h"
+#include "BKE_armature.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_ipo_types.h"
+#include "BIF_poseobject.h"
+#include "BKE_action.h"
+#include "BSE_editaction.h"
+#include "BKE_constraint.h"
+#include "MEM_guardedalloc.h"
+#include "BKE_utildefines.h"
+#include "BLI_arithb.h"
 #include "constant.h"
 #include "gen_utils.h"
 #include "NLA.h"
 #include "quat.h"
 #include "matrix.h"
 #include "vector.h"
+#include "Types.h"
+
 
 //--------------------Python API function prototypes for the Bone module----
 static PyObject *M_Bone_New( PyObject * self, PyObject * args );
@@ -237,7 +241,6 @@ PyObject *Bone_Init( void )
 //--------------- updatePyBone------------------------------------
 static int updatePyBone( BPy_Bone * self )
 {
-	int x, y;
 	char *parent_str = "";
 
 	if( !self->bone ) {
@@ -540,45 +543,19 @@ PyObject *Bone_CreatePyObject( struct Bone * bone )
 	//allocate space for python vars
 	blen_bone->name = PyMem_Malloc( 32 + 1 );
 	blen_bone->parent = PyMem_Malloc( 32 + 1 );
-	blen_bone->head =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->tail =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->loc =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->dloc =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->size =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->dsize =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	blen_bone->quat =
-		( QuaternionObject * )
-		newQuaternionObject( PyMem_Malloc( 4 * sizeof( float ) ) );
-	blen_bone->dquat =
-		( QuaternionObject * )
-		newQuaternionObject( PyMem_Malloc( 4 * sizeof( float ) ) );
-	blen_bone->obmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	blen_bone->parmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	blen_bone->defmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	blen_bone->irestmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	blen_bone->posemat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
+	blen_bone->head = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->tail = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->loc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->dloc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->size = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->dsize = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	blen_bone->quat = blen_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
+	blen_bone->dquat = blen_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
+	blen_bone->obmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	blen_bone->parmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	blen_bone->defmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	blen_bone->irestmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	blen_bone->posemat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
 
 	if( !updatePyBone( blen_bone ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -627,45 +604,19 @@ static PyObject *M_Bone_New( PyObject * self, PyObject * args )
 	//allocate space for python vars
 	py_bone->name = PyMem_Malloc( 32 + 1 );
 	py_bone->parent = PyMem_Malloc( 32 + 1 );
-	py_bone->head =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->tail =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->loc =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->dloc =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->size =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->dsize =
-		( VectorObject * )
-		newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ), 3 );
-	py_bone->quat =
-		( QuaternionObject * )
-		newQuaternionObject( PyMem_Malloc( 4 * sizeof( float ) ) );
-	py_bone->dquat =
-		( QuaternionObject * )
-		newQuaternionObject( PyMem_Malloc( 4 * sizeof( float ) ) );
-	py_bone->obmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	py_bone->parmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	py_bone->defmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	py_bone->irestmat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
-	py_bone->posemat =
-		( MatrixObject * )
-		newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
+	py_bone->head = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->tail = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->loc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->dloc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->size = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->dsize = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
+	py_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
+	py_bone->dquat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
+	py_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	py_bone->parmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	py_bone->defmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	py_bone->irestmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
+	py_bone->posemat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
 
 	//default py values
 	BLI_strncpy( py_bone->name, name_str, strlen( name_str ) + 1 );
@@ -762,19 +713,17 @@ static PyObject *Bone_getWeight( BPy_Bone * self )
 static PyObject *Bone_getHead( BPy_Bone * self )
 {
 	PyObject *attr = NULL;
-	float *vec;
+	float vec[3];
 	int x;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		vec = PyMem_Malloc( 3 * sizeof( float ) );
 		for( x = 0; x < 3; x++ )
 			vec[x] = self->head->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3 );
+		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
 	} else {
 		//use bone datastruct
-		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
-					3 );
+		attr = newVectorObject( NULL, 3, Py_NEW );
 		( ( VectorObject * ) attr )->vec[0] = self->bone->head[0];
 		( ( VectorObject * ) attr )->vec[1] = self->bone->head[1];
 		( ( VectorObject * ) attr )->vec[2] = self->bone->head[2];
@@ -790,19 +739,17 @@ static PyObject *Bone_getHead( BPy_Bone * self )
 static PyObject *Bone_getTail( BPy_Bone * self )
 {
 	PyObject *attr = NULL;
-	float *vec;
+	float vec[3];
 	int x;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		vec = PyMem_Malloc( 3 * sizeof( float ) );
 		for( x = 0; x < 3; x++ )
 			vec[x] = self->tail->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3 );
+		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
 	} else {
 		//use bone datastruct
-		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
-					3 );
+		attr = newVectorObject( NULL, 3, Py_NEW );
 		( ( VectorObject * ) attr )->vec[0] = self->bone->tail[0];
 		( ( VectorObject * ) attr )->vec[1] = self->bone->tail[1];
 		( ( VectorObject * ) attr )->vec[2] = self->bone->tail[2];
@@ -818,19 +765,17 @@ static PyObject *Bone_getTail( BPy_Bone * self )
 static PyObject *Bone_getLoc( BPy_Bone * self )
 {
 	PyObject *attr = NULL;
-	float *vec;
+	float vec[3];
 	int x;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		vec = PyMem_Malloc( 3 * sizeof( float ) );
 		for( x = 0; x < 3; x++ )
 			vec[x] = self->loc->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3 );
+		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
 	} else {
 		//use bone datastruct
-		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
-					3 );
+		attr = newVectorObject( NULL, 3, Py_NEW );
 		
 //		( ( VectorObject * ) attr )->vec[0] = self->bone->loc[0];
 //		( ( VectorObject * ) attr )->vec[1] = self->bone->loc[1];
@@ -847,19 +792,17 @@ static PyObject *Bone_getLoc( BPy_Bone * self )
 static PyObject *Bone_getSize( BPy_Bone * self )
 {
 	PyObject *attr = NULL;
-	float *vec;
+	float vec[3];
 	int x;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		vec = PyMem_Malloc( 3 * sizeof( float ) );
 		for( x = 0; x < 3; x++ )
 			vec[x] = self->size->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3 );
+		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
 	} else {
 		//use bone datastruct
-		attr = newVectorObject( PyMem_Malloc( 3 * sizeof( float ) ),
-					3 );
+		attr = newVectorObject( NULL, 3, Py_NEW );
 //		( ( VectorObject * ) attr )->vec[0] = self->bone->size[0];
 //		( ( VectorObject * ) attr )->vec[1] = self->bone->size[1];
 //		( ( VectorObject * ) attr )->vec[2] = self->bone->size[2];
@@ -875,20 +818,18 @@ static PyObject *Bone_getSize( BPy_Bone * self )
 static PyObject *Bone_getQuat( BPy_Bone * self )
 {
 	PyObject *attr = NULL;
-	float *quat;
+	float quat[4];
 	int x;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars - p.s. - you must return a copy or else
 		//python will trash the internal var
-		quat = PyMem_Malloc( 4 * sizeof( float ) );
 		for( x = 0; x < 4; x++ )
 			quat[x] = self->quat->quat[x];
-		attr = ( PyObject * ) newQuaternionObject( quat );
+		attr = ( PyObject * ) newQuaternionObject( quat, Py_NEW );
 	} else {
 		//use bone datastruct
-		attr = newQuaternionObject( PyMem_Malloc
-					    ( 4 * sizeof( float ) ) );
+		attr = newQuaternionObject( NULL, Py_NEW );
 //		( ( QuaternionObject * ) attr )->quat[0] = self->bone->quat[0];
 //		( ( QuaternionObject * ) attr )->quat[1] = self->bone->quat[1];
 //		( ( QuaternionObject * ) attr )->quat[2] = self->bone->quat[2];
@@ -1697,7 +1638,7 @@ static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected 'bonespace' or 'worldspace'" ) );
 
-	matrix = newMatrixObject( PyMem_Malloc( 16 * sizeof( float ) ), 4, 4 );
+	matrix = newMatrixObject( NULL, 4, 4 , Py_NEW);
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars

@@ -34,29 +34,29 @@
 #include <Python.h>
 #include <stdio.h>
 
-#include <blendef.h>		/* OBACT */
-#include <BDR_editobject.h>	/* enter / leave editmode */
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_object.h>		/* for during_script() and during_scriptlink() */
-#include <BKE_scene.h>		/* scene_find_camera() */
-#include <BIF_usiblender.h>
-#include <BIF_mywindow.h>
-#include <BSE_headerbuttons.h>
-#include <BSE_filesel.h>
-#include <BIF_editmesh.h>	/* for undo_push_mesh() */
-#include <BIF_screen.h>
-#include <BIF_space.h>
-#include <BIF_drawtext.h>
-#include <BIF_mywindow.h> /* L/M/R_MOUSE bitflags */
-#include <BIF_spacetypes.h>
-#include <mydevice.h>
-#include <DNA_view3d_types.h>
-#include <DNA_screen_types.h>
-#include <DNA_space_types.h>
-#include <DNA_scene_types.h>
-#include <DNA_text_types.h>
-#include <DNA_vec_types.h>	/* for rcti struct */
+#include "blendef.h"		/* OBACT */
+#include "BDR_editobject.h"	/* enter / leave editmode */
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_object.h"		/* for during_script() and during_scriptlink() */
+#include "BKE_scene.h"		/* scene_find_camera() */
+#include "BIF_usiblender.h"
+#include "BIF_mywindow.h"
+#include "BSE_headerbuttons.h"
+#include "BSE_filesel.h"
+#include "BIF_editmesh.h"	/* for undo_push_mesh() */
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_drawtext.h"
+#include "BIF_mywindow.h" /* L/M/R_MOUSE bitflags */
+#include "BIF_spacetypes.h"
+#include "mydevice.h"
+#include "DNA_view3d_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_text_types.h"
+#include "DNA_vec_types.h"	/* for rcti struct */
 
 #include "windowTheme.h"
 #include "gen_utils.h"
@@ -856,7 +856,7 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 
 	viewmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->viewmat, 4,
-						4 );
+						4, Py_WRAP );
 
 	if( !viewmat )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -880,7 +880,7 @@ static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 
 	perspmat =
 		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
-						4 );
+						4, Py_WRAP );
 
 	if( !perspmat )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,

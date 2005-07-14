@@ -58,12 +58,12 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
-
+#include "BKE_utildefines.h"
 #include "blendef.h"
 #include "mydevice.h"
 
 #include "Object.h"
-#include "vector.h"
+#include "Mathutils.h"
 #include "constant.h"
 #include "gen_utils.h"
 
@@ -759,12 +759,12 @@ static PyObject *NMVert_getattr( PyObject * self, char *name )
 	BPy_NMVert *mv = ( BPy_NMVert * ) self;
 
 	if( !strcmp( name, "co" ) || !strcmp( name, "loc" ) )
-		return newVectorProxy( mv->co, 3 );
+		return newVectorObject(mv->co,3,Py_WRAP);
 
 	else if( strcmp( name, "no" ) == 0 )
-		return newVectorProxy( mv->no, 3 );
+		return newVectorObject(mv->no,3,Py_WRAP);
 	else if( strcmp( name, "uvco" ) == 0 )
-		return newVectorProxy( mv->uvco, 3 );
+		return newVectorObject(mv->uvco,3,Py_WRAP);
 	else if( strcmp( name, "index" ) == 0 )
 		return PyInt_FromLong( mv->index );
 	else if( strcmp( name, "sel" ) == 0 )
