@@ -2095,8 +2095,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	if(v3d->zbuf) view3d_draw_transp(v3d);
 	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 	
 	BIF_draw_manipulator(sa);
 		
@@ -2288,8 +2288,8 @@ void drawview3d_render(struct View3D *v3d)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	if(v3d->zbuf) view3d_draw_transp(v3d);
 	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d);
 	
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;

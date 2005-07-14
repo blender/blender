@@ -3480,7 +3480,7 @@ void draw_object(Base *base)
 
 	/* xray delay? */
 	if(!(G.f & G_PICKSEL)) {
-		if(!G.vd->xray && (ob->dtx & OB_DRAWXRAY)) {
+		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
 			add_view3d_after(G.vd, base, V3D_XRAY);
 			return;
 		}
