@@ -1215,9 +1215,6 @@ void load_editMesh(void)
 			
 			currkey= currkey->next;
 		}
-
-		/* forces update */
-		if(actkey) showkeypos(me->key, actkey);
 	}
 
 	if(oldverts) MEM_freeN(oldverts);

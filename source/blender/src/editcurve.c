@@ -265,11 +265,7 @@ void load_editNurb()
 		}
 		
 		if(cu->key && actkey!=cu->key->refkey) {
-			/* there are keys, only write changes in vertices */
-			/* when amount of vertices differs, becomes unpredictable a bit */
-				
-			/* vertex -> vertex copy! */
-			if(actkey) showkeypos(cu->key, actkey);
+			;
 		}
 		else {
 			freeNurblist(&(cu->nurb));

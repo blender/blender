@@ -154,8 +154,6 @@ void load_editLatt(void)
 			fp+= 3;
 			bp++;
 		}
-		
-		showkeypos(lt->key, actkey);
 	}
 	else {
 
