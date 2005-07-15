@@ -1924,7 +1924,7 @@ int view2dzoom(unsigned short event)
 				}
 			}
 		}
-		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if(ELEM(event, WHEELUPMOUSE, WHEELDOWNMOUSE) || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 			
 			if(U.viewzoom!=USER_ZOOM_CONT) {
 				mvalo[0]= mval[0];

@@ -3191,30 +3191,19 @@ static void draw_forcefield(Object *ob)
 	
 }
 
-static void draw_bb_box(BoundBox *bb)
+static void draw_box(float vec[8][3])
 {
-	float *vec;
-
-	vec= bb->vec[0];
-
 	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec); glVertex3fv(vec+3);glVertex3fv(vec+6); glVertex3fv(vec+9);
-		glVertex3fv(vec); glVertex3fv(vec+12);glVertex3fv(vec+15); glVertex3fv(vec+18);
-		glVertex3fv(vec+21); glVertex3fv(vec+12);
+	glVertex3fv(vec[0]); glVertex3fv(vec[1]);glVertex3fv(vec[2]); glVertex3fv(vec[3]);
+	glVertex3fv(vec[0]); glVertex3fv(vec[4]);glVertex3fv(vec[5]); glVertex3fv(vec[6]);
+	glVertex3fv(vec[7]); glVertex3fv(vec[4]);
 	glEnd();
 
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+3); glVertex3fv(vec+15);
+	glBegin(GL_LINES);
+	glVertex3fv(vec[1]); glVertex3fv(vec[5]);
+	glVertex3fv(vec[2]); glVertex3fv(vec[6]);
+	glVertex3fv(vec[3]); glVertex3fv(vec[7]);
 	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+6); glVertex3fv(vec+18);
-	glEnd();
-
-	glBegin(GL_LINE_STRIP);
-		glVertex3fv(vec+9); glVertex3fv(vec+21);
-	glEnd();
-	
 }
 
 void get_local_bounds(Object *ob, float *centre, float *size)
@@ -3315,7 +3304,7 @@ static void draw_bounding_volume(Object *ob)
 	
 	if(bb==0) return;
 	
-	if(ob->boundtype==OB_BOUND_BOX) draw_bb_box(bb);
+	if(ob->boundtype==OB_BOUND_BOX) draw_box(bb->vec);
 	else draw_bb_quadric(bb, ob->boundtype);
 	
 }
@@ -3350,17 +3339,7 @@ static void drawtexspace(Object *ob)
 	
 	setlinestyle(2);
 
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(vec[0]); glVertex3fv(vec[1]);glVertex3fv(vec[2]); glVertex3fv(vec[3]);
-	glVertex3fv(vec[0]); glVertex3fv(vec[4]);glVertex3fv(vec[5]); glVertex3fv(vec[6]);
-	glVertex3fv(vec[7]); glVertex3fv(vec[4]);
-	glEnd();
-
-	glBegin(GL_LINES);
-	glVertex3fv(vec[1]); glVertex3fv(vec[5]);
-	glVertex3fv(vec[2]); glVertex3fv(vec[6]);
-	glVertex3fv(vec[3]); glVertex3fv(vec[7]);
-	glEnd();
+	draw_box(vec);
 
 	setlinestyle(0);
 }
