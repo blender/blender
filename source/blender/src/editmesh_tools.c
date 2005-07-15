@@ -1281,11 +1281,11 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 
 static void facecopy(EditFace *source,EditFace *target){
     
-    set_uv_vcol(source,target->v1->co,target->tf.uv[0],(char*)target->tf.col);
-    set_uv_vcol(source,target->v2->co,target->tf.uv[1],(char*)target->tf.col+1);
-    set_uv_vcol(source,target->v3->co,target->tf.uv[2],(char*)target->tf.col+2);
+    set_uv_vcol(source,target->v1->co,target->tf.uv[0],(char*)&target->tf.col[0]);
+    set_uv_vcol(source,target->v2->co,target->tf.uv[1],(char*)&target->tf.col[1]);
+    set_uv_vcol(source,target->v3->co,target->tf.uv[2],(char*)&target->tf.col[2]);
     if(target->v4){
-        set_uv_vcol(source,target->v4->co,target->tf.uv[3],(char*)target->tf.col+3);
+        set_uv_vcol(source,target->v4->co,target->tf.uv[3],(char*)&target->tf.col[3]);
     }
 
 	target->mat_nr     = source->mat_nr;
