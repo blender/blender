@@ -60,5 +60,7 @@ void do_spec_key(struct Key *key);
 
 void unlock_all_keys(void);
 
+struct KeyBlock *key_get_active(struct Key *keyData);
+
 #endif
 

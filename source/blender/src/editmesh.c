@@ -660,9 +660,9 @@ void make_editMesh()
 	/* initialize fastmalloc for editmesh */
 	init_editmesh_fastmalloc(G.editMesh, me->totvert, me->totedge, me->totface);
 
-	actkey = mesh_get_active_key(me);
-
+	actkey = key_get_active(me->key);
 	if(actkey) {
+		strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_mesh(actkey, me);
 		tot= actkey->totelem;
 	}
@@ -1168,7 +1168,7 @@ void load_editMesh(void)
 
 	/* are there keys? */
 	if(me->key) {
-		KeyBlock *currkey, *actkey = mesh_get_active_key(me);
+		KeyBlock *currkey, *actkey = key_get_active(me->key);
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */

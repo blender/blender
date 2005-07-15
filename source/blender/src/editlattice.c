@@ -108,22 +108,15 @@ static void setflagsLatt(int flag)
 void make_editLatt(void)
 {
 	Lattice *lt;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey;
 	
 	free_editLatt();
 	
 	lt= G.obedit->data;
 
-	/* keys? */
-	if(lt->key) {
-		actkey= lt->key->block.first;
-		while(actkey) {
-			if(actkey->flag & SELECT) break;
-			actkey= actkey->next;
-		}
-	}
-
+	actkey = key_get_active(lt->key);
 	if(actkey) {
+		strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_latt(actkey, lt);
 	}
 
@@ -138,22 +131,14 @@ void make_editLatt(void)
 void load_editLatt(void)
 {
 	Lattice *lt;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey;
 	BPoint *bp;
 	float *fp;
 	int tot;
 	
 	lt= G.obedit->data;
 	
-	/* are there keys? */
-	if(lt->key) {
-		actkey= lt->key->block.first;
-		while(actkey) {
-			if(actkey->flag & SELECT) break;
-			actkey= actkey->next;
-		}
-	}
-
+	actkey = key_get_active(lt->key);
 	if(actkey) {
 		/* active key: vertices */
 		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
@@ -170,7 +155,7 @@ void load_editLatt(void)
 			bp++;
 		}
 		
-		if(actkey) showkeypos(lt->key, actkey);
+		showkeypos(lt->key, actkey);
 	}
 	else {
 

@@ -1775,25 +1775,27 @@ static void info_text(int x, int y)
 	int hsize;
 
 	if(G.obedit) {
+		char *s = infostr;
+
+		s+= sprintf(s, "%s", G.editModeTitleExtra);
 		if(G.obedit->type==OB_MESH) {
 			if(G.scene->selectmode & SCE_SELECT_VERTEX)
-				sprintf(infostr,"Ve:%d-%d | Ed:%d-%d | Fa:%d-%d | Mem:%.2fM ",
-						G.totvertsel, G.totvert, G.totedgesel, G.totedge, G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+				s+= sprintf(s,"Ve:%d-%d | Ed:%d-%d | Fa:%d-%d",
+						G.totvertsel, G.totvert, G.totedgesel, G.totedge, G.totfacesel, G.totface);
 			else if(G.scene->selectmode & SCE_SELECT_EDGE)
-				sprintf(infostr,"Ed:%d-%d | Fa:%d-%d | Mem:%.2fM ",
-						G.totedgesel, G.totedge, G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+				s+= sprintf(s,"Ed:%d-%d | Fa:%d-%d",
+						G.totedgesel, G.totedge, G.totfacesel, G.totface);
 			else 
-				sprintf(infostr,"Fa:%d-%d | Mem:%.2fM ",
-						G.totfacesel, G.totface, (mem_in_use>>10)/1024.0);
+				s+= sprintf(s,"Fa:%d-%d", G.totfacesel, G.totface);
 		}
 		else if(G.obedit->type==OB_ARMATURE) {
-			sprintf(infostr,"Ve:%d-%d | Bo:%d-%d | Mem:%.2fM ",
-					G.totvertsel, G.totvert, G.totbonesel, G.totbone, (mem_in_use>>10)/1024.0);
+			s+= sprintf(s,"Ve:%d-%d | Bo:%d-%d", G.totvertsel, G.totvert, G.totbonesel, G.totbone);
 		}
 		else {
-			sprintf(infostr,"Ve:%d-%d | Mem:%.2fM ",
-					G.totvertsel, G.totvert, (mem_in_use>>10)/1024.0);
+			s+= sprintf(s,"Ve:%d-%d", G.totvertsel, G.totvert);
 		}
+
+		sprintf(s," | Mem:%.2fM", (mem_in_use>>10)/1024.0);
 	}
 	else if(G.obpose) {
 		sprintf(infostr,"Bo:%d-%d | Mem:%.2fM ",

@@ -80,7 +80,6 @@ void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 
 struct BoundBox *mesh_get_bb(struct Mesh *me);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
-struct KeyBlock *mesh_get_active_key(struct Mesh *me);
 
 void make_edges(struct Mesh *me);
 

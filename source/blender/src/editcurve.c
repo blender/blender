@@ -69,6 +69,7 @@
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_main.h"
+#include "BKE_key.h"
 
 #include "BIF_editmode_undo.h"
 #include "BIF_gl.h"
@@ -238,7 +239,7 @@ void load_editNurb()
 	/* load editNurb in object */
 	Curve *cu= 0;
 	Nurb *nu, *newnu;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey;
 
 	if(G.obedit==0) return;
 
@@ -249,24 +250,17 @@ void load_editNurb()
 		cu= G.obedit->data;
 
 		/* are there keys? */
-		if(cu->key) {
-			actkey= cu->key->block.first;
-			while(actkey) {
-				if(actkey->flag & SELECT) break;
-				actkey= actkey->next;
-			}
-
-			if(actkey) {
-				/* active key: the vertices */
-				
-				if(G.totvert) {
-					if(actkey->data) MEM_freeN(actkey->data);
-				
-					actkey->data= MEM_callocN(cu->key->elemsize*G.totvert, "actkey->data");
-					actkey->totelem= G.totvert;
+		actkey = key_get_active(cu->key);
+		if(actkey) {
+			/* active key: the vertices */
 			
-					curve_to_key(cu, actkey, &editNurb);
-				}
+			if(G.totvert) {
+				if(actkey->data) MEM_freeN(actkey->data);
+			
+				actkey->data= MEM_callocN(cu->key->elemsize*G.totvert, "actkey->data");
+				actkey->totelem= G.totvert;
+		
+				curve_to_key(cu, actkey, &editNurb);
 			}
 		}
 		
@@ -296,7 +290,6 @@ void load_editNurb()
 	}
 	
 	lastnu= NULL;	/* for selected */
-	
 }
 
 void make_editNurb()
@@ -304,7 +297,7 @@ void make_editNurb()
 	/* make copy of baseNurb in editNurb */
 	Curve *cu=0;
 	Nurb *nu, *newnu;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey;
 
 	if(G.obedit==NULL) return;
 
@@ -323,16 +316,10 @@ void make_editNurb()
 			nu= nu->next;
 		}
 		
-		if(cu->key) {
-			actkey= cu->key->block.first;
-			while(actkey) {
-				if(actkey->flag & SELECT) break;
-				actkey= actkey->next;
-			}
-		
-			if(actkey) {
-				key_to_curve(actkey, cu, &editNurb);
-			}
+		actkey = key_get_active(cu->key);
+		if(actkey) {
+			strcpy(G.editModeTitleExtra, "(Key) ");
+			key_to_curve(actkey, cu, &editNurb);
 		}
 	}
 	else G.obedit= NULL;

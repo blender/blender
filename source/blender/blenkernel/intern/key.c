@@ -1206,3 +1206,16 @@ void do_spec_key(Key *key)
 	else if(idcode==ID_LT) do_latt_key( (Lattice *)key->from);
 	
 }
+
+KeyBlock *key_get_active(Key *keyData) 
+{
+	if (keyData) {
+		KeyBlock *key;
+
+		for (key=keyData->block.first; key; key= key->next)
+			if (key->flag&SELECT)
+				return key;
+	}
+
+	return NULL;
+}

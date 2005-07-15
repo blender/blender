@@ -1287,14 +1287,3 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
 
 	DAG_object_flush_update(G.scene, meshOb, OB_RECALC_DATA);
 }
-
-KeyBlock *mesh_get_active_key(Mesh *me) 
-{
-	KeyBlock *key;
-
-	for (key=me->key->block.first; key; key= key->next)
-		if (key->flag&SELECT)
-			break;
-
-	return key;
-}

@@ -80,6 +80,7 @@ typedef struct Global {
     struct Scene *scene;				/* denk aan file.c */
     struct bScreen *curscreen;
     struct Object *obedit;
+	char editModeTitleExtra[64];
 	
     /* fonts, allocated global data */
     struct BMF_Font *font, *fonts, *fontss;

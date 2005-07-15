@@ -1366,6 +1366,8 @@ void enter_editmode(void)
 	if(base==0) return;
 	if((G.vd==NULL || (base->lay & G.vd->lay))==0) return;
 	
+	strcpy(G.editModeTitleExtra, "");
+
 	ob= base->object;
 	if(ob->data==0) return;
 	
