@@ -517,7 +517,7 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 }
 
 /* Mesh now applies on mesh itself, others do displist */
-static int _object_deform(Object *ob, int applyflag)
+int object_deform(Object *ob)
 {
 	Mesh *me;
 	Curve *cu;
@@ -589,53 +589,21 @@ static int _object_deform(Object *ob, int applyflag)
 			}
 		}
 		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		
 			cu= ob->data;
-			if(applyflag) {
-				Nurb *nu;
-				BPoint *bp;
-				BezTriple *bezt;
+			/* apply deform on displist */
+			dl= cu->disp.first;
+			while(dl) {
 				
-				nu= cu->nurb.first;
-				while(nu) {
-					if(nu->bp) {
-						a= nu->pntsu*nu->pntsv;
-						bp= nu->bp;
-						while(a--) {
-							calc_latt_deform(bp->vec);
-							bp++;
-						}
-					}
-					else if(nu->bezt) {
-						a= nu->pntsu;
-						bezt= nu->bezt;
-						while(a--) {
-							calc_latt_deform(bezt->vec[0]);
-							calc_latt_deform(bezt->vec[1]);
-							calc_latt_deform(bezt->vec[2]);
-							bezt++;
-						}
-						test2DNurb(nu);
-					}
-					nu= nu->next;
+				fp= dl->verts;
+				
+				if(dl->type==DL_INDEX3) tot=dl->parts;
+				else tot= dl->nr*dl->parts;
+				
+				for(a=0; a<tot; a++, fp+=3) {
+					calc_latt_deform(fp);
 				}
-			}
-			else {
-				/* apply deform on displist */
-				dl= cu->disp.first;
-				while(dl) {
-					
-					fp= dl->verts;
-					
-					if(dl->type==DL_INDEX3) tot=dl->parts;
-					else tot= dl->nr*dl->parts;
-					
-					for(a=0; a<tot; a++, fp+=3) {
-						calc_latt_deform(fp);
-					}
-					
-					dl= dl->next;
-				}
+				
+				dl= dl->next;
 			}
 		}
 		end_latt_deform();
@@ -670,12 +638,6 @@ static int _object_deform(Object *ob, int applyflag)
 	return 0;
 
 }
-
-int object_deform(Object *ob)
-{
-	return _object_deform(ob, 0);
-}
-
 
 BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {

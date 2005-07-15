@@ -639,7 +639,7 @@ void make_editMesh()
 	MFace *mface;
 	TFace *tface;
 	MVert *mvert;
-	KeyBlock *actkey=0;
+	KeyBlock *actkey;
 	EditVert *eve, **evlist, *eve1, *eve2, *eve3, *eve4;
 	EditFace *efa;
 	EditEdge *eed;
@@ -660,14 +660,7 @@ void make_editMesh()
 	/* initialize fastmalloc for editmesh */
 	init_editmesh_fastmalloc(G.editMesh, me->totvert, me->totedge, me->totface);
 
-	/* keys? */
-	if(me->key) {
-		actkey= me->key->block.first;
-		while(actkey) {
-			if(actkey->flag & SELECT) break;
-			actkey= actkey->next;
-		}
-	}
+	actkey = mesh_get_active_key(me);
 
 	if(actkey) {
 		key_to_mesh(actkey, me);
@@ -913,7 +906,6 @@ void load_editMesh(void)
 	MEdge *medge=NULL;
 	MFace *mface;
 	MSticky *ms;
-	KeyBlock *actkey=NULL, *currkey;
 	EditVert *eve;
 	EditFace *efa;
 	EditEdge *eed;
@@ -1176,13 +1168,7 @@ void load_editMesh(void)
 
 	/* are there keys? */
 	if(me->key) {
-
-		/* find the active key */
-		actkey= me->key->block.first;
-		while(actkey) {
-			if(actkey->flag & SELECT) break;
-			actkey= actkey->next;
-		}
+		KeyBlock *currkey, *actkey = mesh_get_active_key(me);
 
 		/* Lets reorder the key data so that things line up roughly
 		 * with the way things were before editmode */
@@ -1230,12 +1216,11 @@ void load_editMesh(void)
 			currkey= currkey->next;
 		}
 
+		/* forces update */
+		if(actkey) showkeypos(me->key, actkey);
 	}
 
 	if(oldverts) MEM_freeN(oldverts);
-	
-	/* forces update */
-	if(actkey) showkeypos(me->key, actkey);
 	
 	/* to be sure: clear ->vn pointers */
 	eve= em->verts.first;
