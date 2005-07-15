@@ -51,6 +51,7 @@
 #include "BKE_property.h"
 #include "BKE_mball.h"
 #include "BKE_softbody.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editview.h"
 #include "BSE_editipo.h"
@@ -92,6 +93,9 @@
 static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
 static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args );
+
+/* HELPER FUNCTION FOR PARENTING */
+static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
 
 extern int Text3d_CheckPyObject( PyObject * py_obj );
 extern struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
@@ -163,6 +167,8 @@ static PyObject *Object_isSelected( BPy_Object * self );
 static PyObject *Object_makeDisplayList( BPy_Object * self );
 static PyObject *Object_link( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args );
+static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
+static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( BPy_Object * self, PyObject * args );
 static PyObject *Object_getDupliVerts ( BPy_Object * self );
 
@@ -432,6 +438,23 @@ match the Object's type, so you cannot link a Lamp to a Mesh type object."},
 	{"makeParent", ( PyCFunction ) Object_makeParent, METH_VARARGS,
 	 "Makes the object the parent of the objects provided in the \n\
 argument which must be a list of valid Objects. Optional extra arguments:\n\
+mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
+fast:\n\t0: update scene hierarchy automatically\n\t\
+don't update scene hierarchy (faster). In this case, you must\n\t\
+explicitely update the Scene hierarchy."},
+	{"makeParentDeform", ( PyCFunction ) Object_makeParentDeform, METH_VARARGS,
+	 "Makes the object the deformation parent of the objects provided in the \n\
+argument which must be a list of valid Objects. Optional extra arguments:\n\
+mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
+fast:\n\t0: update scene hierarchy automatically\n\t\
+don't update scene hierarchy (faster). In this case, you must\n\t\
+explicitely update the Scene hierarchy."},
+	{"makeParentVertex", ( PyCFunction ) Object_makeParentVertex, METH_VARARGS,
+	 "Makes the object the vertex parent of the objects provided in the \n\
+argument which must be a list of valid Objects. \n\
+The second argument is a tuple of 1 or 3 positive integers which corresponds \
+to the index of the vertex you are parenting to.\n\
+Optional extra arguments:\n\
 mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
@@ -1523,12 +1546,150 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args )
+{
+	PyObject *list;
+	PyObject *vlist;
+	PyObject *py_child;
+	PyObject *ret_val;
+	Object *parent;
+	int noninverse = 0;
+	int fast = 0;
+	int partype;
+	int v1, v2=0, v3=0;
+	int i, vlen;
+
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "OO|ii", &list, &vlist, &noninverse, &fast ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a list of objects, a tuple of integers and one or two integers as arguments" ) );
+	}
+	if( !PySequence_Check( list ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a list of objects" ) );
+	}
+
+	if (!PyTuple_Check( vlist ))
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a tuple of integers" ) );
+
+	vlen = PyTuple_Size( vlist );
+	switch (vlen) {
+	case 1:
+		if( !PyArg_ParseTuple( vlist, "i", &v1 ) )
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected a tuple of 1 or 3 integers" ) );
+
+		if ( v1 < 0 )
+			return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+							"indices must be strictly positive" ) );
+
+		partype = PARVERT1;
+		break;
+	case 3:
+		if( !PyArg_ParseTuple( vlist, "iii", &v1, &v2, &v3 ) )
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected a tuple of 1 or 3 integers" ) );
+
+		if ( v1 < 0 || v2 < 0 || v3 < 0)
+			return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+							"indices must be strictly positive" ) );
+		partype = PARVERT3;
+		break;
+	default:
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a tuple of 1 or 3 integers" ) );
+	}
+
+	parent = ( Object * ) self->object;
+
+	if (!ELEM3(parent->type, OB_MESH, OB_CURVE, OB_SURF))
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"Parent Vertex only applies to curve, mesh or surface objects" ) );
+
+	if (parent->id.us == 0)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"object must be linked to a scene before it can become a parent");
+
+	/* Check if the PyObject passed in list is a Blender object. */
+	for( i = 0; i < PySequence_Length( list ); i++ ) {
+		py_child = PySequence_GetItem( list, i );
+
+		ret_val = internal_makeParent(parent, py_child, partype, noninverse, fast, v1, v2, v3);
+		Py_DECREF (py_child);
+
+		if (ret_val)
+			Py_DECREF(ret_val);
+		else {
+			if (!fast)	/* need to sort when interupting in the middle of the list */
+				DAG_scene_sort( G.scene );
+			return NULL; /* error has been set already */
+		}
+	}
+
+	if (!fast) /* otherwise, only sort at the end */
+		DAG_scene_sort( G.scene );
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args )
+{
+	PyObject *list;
+	PyObject *py_child;
+	PyObject *ret_val;
+	Object *parent;
+	int noninverse = 0;
+	int fast = 0;
+	int i;
+
+	/* Check if the arguments passed to makeParent are valid. */
+	if( !PyArg_ParseTuple( args, "O|ii", &list, &noninverse, &fast ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"expected a list of objects and one or two integers as arguments" ) );
+	}
+	if( !PySequence_Check( list ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a list of objects" ) );
+	}
+
+	parent = ( Object * ) self->object;
+
+	if (parent->type != OB_CURVE && parent->type != OB_ARMATURE)
+		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
+						"Parent Deform only applies to curve or armature objects" ) );
+
+	if (parent->id.us == 0)
+		return EXPP_ReturnPyObjError (PyExc_RuntimeError,
+			"object must be linked to a scene before it can become a parent");
+
+	/* Check if the PyObject passed in list is a Blender object. */
+	for( i = 0; i < PySequence_Length( list ); i++ ) {
+		py_child = PySequence_GetItem( list, i );
+
+		ret_val = internal_makeParent(parent, py_child, PARSKEL, noninverse, fast, 0, 0, 0);
+		Py_DECREF (py_child);
+
+		if (ret_val)
+			Py_DECREF(ret_val);
+		else {
+			if (!fast)	/* need to sort when interupting in the middle of the list */
+				DAG_scene_sort( G.scene );
+			return NULL; /* error has been set already */
+		}
+	}
+
+	if (!fast) /* otherwise, only sort at the end */
+		DAG_scene_sort( G.scene );
+
+	return EXPP_incr_ret( Py_None );
+}
+
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 {
 	PyObject *list;
 	PyObject *py_child;
-	//BPy_Object      * py_obj_child; unused
-	Object *child;
+	PyObject *ret_val;
 	Object *parent;
 	int noninverse = 0;
 	int fast = 0;
@@ -1552,41 +1713,78 @@ static PyObject *Object_makeParent( BPy_Object * self, PyObject * args )
 
 	/* Check if the PyObject passed in list is a Blender object. */
 	for( i = 0; i < PySequence_Length( list ); i++ ) {
-		child = NULL;
 		py_child = PySequence_GetItem( list, i );
-		if( Object_CheckPyObject( py_child ) )
-			child = ( Object * ) Object_FromPyObject( py_child );
 
-		if( child == NULL ) {
-			Py_DECREF (py_child);
-			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-							"Object Type expected" ) );
-		}
+		ret_val = internal_makeParent(parent, py_child, PAROBJECT, noninverse, fast, 0, 0, 0);
+		Py_DECREF (py_child);
 
-		if( test_parent_loop( parent, child ) ) {
-			Py_DECREF (py_child);
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"parenting loop detected - parenting failed" ) );
+		if (ret_val)
+			Py_DECREF(ret_val);
+		else {
+			if (!fast)	/* need to sort when interupting in the middle of the list */
+				DAG_scene_sort( G.scene );
+			return NULL; /* error has been set already */
 		}
-		child->partype = PAROBJECT;
-		child->parent = parent;
-		//py_obj_child = (BPy_Object *) py_child;
-		if( noninverse == 1 ) {
-			/* Parent inverse = unity */
-			child->loc[0] = 0.0;
-			child->loc[1] = 0.0;
-			child->loc[2] = 0.0;
-		} else {
-			what_does_parent( child );
-			Mat4Invert( child->parentinv, parent->obmat );
-		}
-
-		if( !fast ) {
-			DAG_scene_sort( G.scene );
-		}
-		// We don't need the child object anymore.
-			Py_DECREF (py_child);
 	}
+
+	if (!fast) /* otherwise, only sort at the end */
+		DAG_scene_sort( G.scene );
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
+									 int partype,	/* parenting type */
+									 int noninverse, int fast,	/* parenting arguments */
+									 int v1, int v2, int v3	/* for vertex parent */
+									 )
+{
+	Object *child = NULL;
+
+	if( Object_CheckPyObject( py_child ) )
+		child = ( Object * ) Object_FromPyObject( py_child );
+
+	if( child == NULL ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"Object Type expected" ) );
+	}
+
+	if( test_parent_loop( parent, child ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"parenting loop detected - parenting failed" ) );
+	}
+
+	if (partype == PARSKEL && child->type != OB_MESH)
+		child->partype = PAROBJECT;
+	else
+		child->partype = partype;
+
+	if (partype == PARVERT3) {
+		child->par1 = v1;
+		child->par2 = v2;
+		child->par3 = v3;
+	}
+	else if (partype == PARVERT1) {
+		child->par1 = v1;
+	}
+
+	child->parent = parent;
+	//py_obj_child = (BPy_Object *) py_child;
+	if( noninverse == 1 ) {
+		/* Parent inverse = unity */
+		child->loc[0] = 0.0;
+		child->loc[1] = 0.0;
+		child->loc[2] = 0.0;
+	} else {
+		what_does_parent( child );
+		Mat4Invert( child->parentinv, workob.obmat );
+		clear_workob();
+	}
+
+	if( !fast ) {
+		child->recalc |= OB_RECALC_OB;
+	}
+
 	return EXPP_incr_ret( Py_None );
 }
 

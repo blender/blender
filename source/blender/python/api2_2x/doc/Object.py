@@ -429,8 +429,54 @@ class Object:
     """
     Makes the object the parent of the objects provided in the argument which
     must be a list of valid Objects.
-    @type objects: Blender Object
-    @param objects: A Blender Object.
+    @type objects: Sequence of Blender Object
+    @param objects: The Childs of the parent
+    @type noninverse: Integer
+    @param noninverse:
+        0 - make parent with inverse
+        1 - make parent without inverse
+    @type fast: Integer
+    @param fast:
+        0 - update scene hierarchy automatically
+        1 - don't update scene hierarchy (faster). In this case, you must
+        explicitely update the Scene hierarchy.
+    @warn: objects must first be linked to a scene before they can become
+        parents of other objects.  Calling this makeParent method for an
+        unlinked object will result in an error.
+    """
+	
+  def makeParentDeform(objects, noninverse = 0, fast = 0):
+    """
+    Makes the object the deformation parent of the objects provided in the argument
+    which must be a list of valid Objects.
+    The parent object must be a Curve or Armature.
+    @type objects: Sequence of Blender Object
+    @param objects: The Childs of the parent
+    @type noninverse: Integer
+    @param noninverse:
+        0 - make parent with inverse
+        1 - make parent without inverse
+    @type fast: Integer
+    @param fast:
+        0 - update scene hierarchy automatically
+        1 - don't update scene hierarchy (faster). In this case, you must
+        explicitely update the Scene hierarchy.
+    @warn: objects must first be linked to a scene before they can become
+        parents of other objects.  Calling this makeParent method for an
+        unlinked object will result in an error.
+    @warn: child objects must be of mesh type to deform correctly. Other object
+        types will fall back to normal parenting silently.
+    """
+	
+  def makeParentVertex(objects, indices, noninverse = 0, fast = 0):
+    """
+    Makes the object the vertex parent of the objects provided in the argument
+    which must be a list of valid Objects.
+    The parent object must be a Mesh, Curve or Surface.
+    @type objects: Sequence of Blender Object
+    @param objects: The Childs of the parent
+    @type indices: Tuple of Integers
+    @param indices: The indices of the vertice you want to parent to (1 or 3)
     @type noninverse: Integer
     @param noninverse:
         0 - make parent with inverse
