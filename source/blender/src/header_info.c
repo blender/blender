@@ -1795,7 +1795,7 @@ static void info_text(int x, int y)
 			s+= sprintf(s,"Ve:%d-%d", G.totvertsel, G.totvert);
 		}
 
-		sprintf(s," | Mem:%.2fM", (mem_in_use>>10)/1024.0);
+		sprintf(s," | Mem:%.2fM ", (mem_in_use>>10)/1024.0);
 	}
 	else if(G.obpose) {
 		sprintf(infostr,"Bo:%d-%d | Mem:%.2fM ",
