@@ -2729,10 +2729,6 @@ void RE_freeRotateBlenderScene(void)
 				MEM_freeN(me->orco);
 				me->orco= 0;
 			}
-			if ((me->flag&ME_SUBSURF) && ((me->subdiv!=me->subdivr) || (ob->effect.first != NULL) || ob==G.obedit) ) { 
-			    /* Need to recalc for effects since they are time dependant */
-				makeDispListMesh(ob);  /* XXX this should be replaced with proper caching */
-			}
 		}
 		else if(ob->type==OB_MBALL) {
 			if(ob->disp.first && ob->disp.first!=ob->disp.last) {

@@ -1549,13 +1549,6 @@ void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
 }
 
 
-static int dl_onlyzero= 0;
-
-void set_displist_onlyzero(int val)
-{
-	dl_onlyzero= val;
-}
-
 /* taper rules:
   - only 1 curve
   - first point left, last point right
@@ -1604,44 +1597,23 @@ float calc_taper(Object *taperobj, int cur, int tot)
 	return 1.0;
 }
 
-void mesh_changed(Object *meshOb)
+void makeDispListMesh(Object *ob)
 {
-	Mesh *me = meshOb->data;
+	Mesh *me;
 
+	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
+	me= ob->data;
+
+	
 		/* also serves as signal to remake texspace */
 	if (me->bb) {
 		MEM_freeN(me->bb);
 		me->bb = NULL;
 	}
 
-	freedisplist(&meshOb->disp);
-	freedisplist(&me->disp);
-
-	if (me->derived) {
-		me->derived->release(me->derived);
-		me->derived = NULL;
-	}
-
-		/* This should really be delayed, but there is no simple way
-		 * to signal to rebuild the derived mesh (we can't null it
-		 * because it is used for incremental). Just need to add a
-		 * flag at some point. - zr
-		 */
-	if (G.obedit && meshOb->data==G.obedit->data && mesh_uses_displist(me)) {
-		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
-	}
-}
-
-void makeDispListMesh(Object *ob)
-{
-	Mesh *me;
-
-	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
-
 	freedisplist(&(ob->disp));
-	
-	me= ob->data;
 	freedisplist(&me->disp);
+
 	if (me->derived) {
 		me->derived->release(me->derived);
 		me->derived= NULL;
@@ -1700,7 +1672,6 @@ void makeDispListCurveTypes(Object *ob)
 		draw= ob->dt;
 		cu= ob->data;
 		dispbase= &(cu->disp);
-		if(dl_onlyzero && dispbase->first) return;
 		freedisplist(dispbase);
 		
 		if(ob==G.obedit) nu= editNurb.first;
@@ -1792,7 +1763,6 @@ void makeDispListCurveTypes(Object *ob)
 		draw= ob->dt;
 		cu= ob->data;
 		dispbase= &(cu->disp);
-		if(dl_onlyzero && dispbase->first) return;
 		freedisplist(dispbase);
 		
 		BLI_freelistN(&(cu->bev));
@@ -1935,18 +1905,6 @@ void makeDispListCurveTypes(Object *ob)
 	
 	boundbox_displist(ob);
 }
-
-void makeDispList(Object *ob)
-{
-	if (ob->type==OB_MESH) {
-		makeDispListMesh(ob);
-	} else if (ob->type==OB_MBALL) {
-		makeDispListMBall(ob);
-	} else {
-		makeDispListCurveTypes(ob);
-	}
-}
-
 
 /*******************************/
 /*****       OUTLINE       *****/

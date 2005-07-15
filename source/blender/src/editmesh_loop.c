@@ -54,6 +54,7 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -351,7 +352,7 @@ void CutEdgeloop(int numcuts){
 	esubdivideflag(SELECT,0,0,numcuts,1);
 	
     force_draw(0);
-    makeDispList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
     scrarea_queue_winredraw(curarea);
 	
 	/* if this was a single cut, enter edgeslide mode */

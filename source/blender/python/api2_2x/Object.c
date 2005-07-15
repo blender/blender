@@ -1431,7 +1431,7 @@ static PyObject *Object_makeDisplayList( BPy_Object * self )
 	if( ob->type == OB_FONT )
 		text_to_curve( ob, 0 );
 
-	makeDispList( ob );
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	Py_INCREF( Py_None );
 	return Py_None;

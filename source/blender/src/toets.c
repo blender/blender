@@ -904,7 +904,7 @@ int blenderqread(unsigned short event, short val)
 		}
 		else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) {
 			int a;
-			int event= pupmenu("10 Timer%t|draw|draw+swap|displist|undo");
+			int event= pupmenu("10 Timer%t|draw|draw+swap|undo");
 			if(event>0) {
 				double stime= PIL_check_seconds_timer();
 				char tmpstr[128];
@@ -918,12 +918,8 @@ int blenderqread(unsigned short event, short val)
 					} else if (event==2) {
 						scrarea_do_windraw(curarea);
 						screen_swapbuffers();
-					} else if (event==3) {
-						if (OBACT) {
-							makeDispList(OBACT);
-						}
 					}
-					else if(event==4) {
+					else if(event==3) {
 						BKE_write_undo("10 timer");
 					}
 				}

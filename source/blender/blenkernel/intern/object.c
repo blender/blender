@@ -1777,10 +1777,13 @@ void object_handle_update(Object *ob)
 //			printf("recalcdata %s\n", ob->id.name+2);
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
-				mesh_changed(ob);
+				makeDispListMesh(ob);
 			}
-			else if(ob->type && ob->type<OB_LAMP) {
-				makeDispList(ob);
+			else if(ob->type==OB_MBALL) {
+				makeDispListMBall(ob);
+			} 
+			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+				makeDispListCurveTypes(ob);
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this actually only happens for reading old files... */

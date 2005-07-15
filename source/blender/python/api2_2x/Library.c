@@ -39,7 +39,6 @@
 #include <DNA_ID.h>
 #include <DNA_curve_types.h>
 #include <BKE_library.h>	/* for all_local */
-#include "BKE_displist.h"	/* for set_displist_onlyzero */
 #include "BKE_font.h"		/* for text_to_curve */
 #include <BLO_readfile.h>
 #include <BLI_linklist.h>
@@ -342,25 +341,10 @@ PyObject *M_Library_Update( PyObject * self )
 	Object *ob = NULL;
 	Library *lib = NULL;
 
-	ob = G.main->object.first;
-	set_displist_onlyzero( 1 );
-	while( ob ) {
-		if( ob->id.lib ) {
-			if( ob->type == OB_FONT ) {
-				Curve *cu = ob->data;
-				if( cu->nurb.first == 0 )
-					text_to_curve( ob, 0 );
-			}
-			makeDispList( ob );
-		} else {
-			if( ob->type == OB_MESH && ob->parent
-			    && ob->parent->type == OB_LATTICE )
-				makeDispListMesh( ob );
-		}
-
-		ob = ob->id.next;
-	}
-	set_displist_onlyzero( 0 );
+		/* Displist code that was here is obsolete... depending on what
+		 * this function is supposed to do (it should technically be unnecessary)
+		 * can be replaced with depgraph calls - zr
+		 */
 
 	if( bpy_openlibname ) {
 		strcpy( G.lib, bpy_openlibname );

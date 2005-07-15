@@ -143,8 +143,6 @@ void exit_posemode (int freedata)
 	
 	G.obpose= NULL;
 
-	makeDispList(ob);
-	
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		

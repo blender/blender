@@ -141,12 +141,9 @@ extern void curve_to_filledpoly(struct Curve *cu, struct ListBase *nurb, struct 
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
 extern float calc_taper(struct Object *taperobj, int cur, int tot);
-extern void makeDispList(struct Object *ob);
-extern void mesh_changed(struct Object *meshOb);
 extern void makeDispListMesh(struct Object *ob);
 extern void makeDispListCurveTypes(struct Object *ob);
 extern void makeDispListMBall(struct Object *ob);
-extern void set_displist_onlyzero(int val);
 extern void shadeDispList(struct Object *ob);
 void freefastshade(void);
 void boundbox_displist(struct Object *ob);

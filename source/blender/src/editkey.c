@@ -670,8 +670,12 @@ void showkeypos(Key *key, KeyBlock *kb)
 	if(ob==NULL) return;
 	
 	if(key == give_current_key(ob)) {
-		
-		key->flag |= KEY_LOCKED;	// prevents it from calculated
+		 
+			// key lock is for when a key is selected in the ipo window,
+			// it should be displayed in the 3d window then even though it
+			// is not actually for the current frame. this is not the best
+			// UI... - zr
+		key->flag |= KEY_LOCKED;
 		
 		if(ob->type==OB_MESH) {
 			me= ob->data;

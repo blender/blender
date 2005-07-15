@@ -594,7 +594,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 					nu= nu->next;
 				}
 			}
-			makeDispList(G.obedit);
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(G.vd) {

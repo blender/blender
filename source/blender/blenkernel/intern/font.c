@@ -805,14 +805,13 @@ void font_duplilist(Object *par)
 	yof= cu->yof;
 	
 	ct= chartransdata;
-	set_displist_onlyzero(1);
 
 	for(a=0; a<slen; a++, ct++) {
 	
 		ob= find_family_object(obar, cu->family, cu->str[a]);
 		if(ob) {
-			
-			makeDispList(ob);
+				/* not clear if this free line here is still needed */
+			freedisplist(&ob->disp);
 			
 			vec[0]= fsize*(ct->xof - xof);
 			vec[1]= fsize*(ct->yof - yof);
@@ -836,6 +835,6 @@ void font_duplilist(Object *par)
 		}
 		
 	}
-	set_displist_onlyzero(0);
+
 	MEM_freeN(chartransdata);
 }

@@ -846,15 +846,6 @@ static void build_mesh_data(Object *ob, int inEditMode)
 {
 	Mesh *me = ob->data;
 
-		/* Inside edit mode mesh modifiers aren't calculated */
-	if(ob->disp.first==NULL && !inEditMode) { 
-		if (	(ob->parent && (ob->partype==PARSKEL || ob->parent->type==OB_LATTICE)) ||
-				ob->hooks.first ||
-				(ob->softflag & OB_SB_ENABLE) ||
-				(ob->effect.first && ((Effect*) ob->effect.first)->type==EFF_WAVE))
-			makeDispListMesh(ob);
-	}
-
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if(inEditMode && !G.editMesh->derived) {
 			makeDispListMesh(ob);
@@ -894,7 +885,7 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 			*needsFree = 0;
 
 				// Don't reuse cache in editmode, we need to guarantee
-				// order of result and the incremental syncing messes
+				// index order of result and the incremental syncing messes
 				// with this (could be fixed). - zr
 			if(!(G.obedit && me==G.obedit->data)) {
 				return me->derived;
