@@ -69,10 +69,7 @@ typedef struct Key {
 	ID *from;
 
 	short type, totkey;
-	short slurph, actkey;
-	short flag, pad1;
-	int pad2;
-	
+	short slurph, flag;
 } Key;
 
 /* **************** KEY ********************* */
