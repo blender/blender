@@ -275,7 +275,7 @@ void set_afgeleide_four_ipo(float d, float *data, int type)
 	}
 }
 
-int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
+static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 {
 	/* return 1 means k[2] is the position, return 0 means interpolate */
 	KeyBlock *k1, *firstkey;
@@ -398,7 +398,7 @@ int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 
 }
 
-void flerp(int aantal, float *in, float *f0, float *f1, float *f2, float *f3, float *t)	
+static void flerp(int aantal, float *in, float *f0, float *f1, float *f2, float *f3, float *t)	
 {
 	int a;
 
@@ -563,7 +563,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 }
 
 
-void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
+static void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
 {
 	int a;
 
@@ -574,7 +574,7 @@ void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
 
 
 
-void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ctime, int mode)
+static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ctime, int mode)
 {
 	KeyBlock *kb;
 	IpoCurve *icu;
@@ -686,7 +686,7 @@ void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ct
 }
 
 
-void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, float *t, int mode)
+static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock **k, float *t, int mode)
 {
 	float k1tot = 0.0, k2tot = 0.0, k3tot = 0.0, k4tot = 0.0;
 	float k1d = 0.0, k2d = 0.0, k3d = 0.0, k4d = 0.0;
@@ -941,7 +941,6 @@ void do_mesh_key(Mesh *me)
 		
 		if(flag && k[2]==me->key->refkey) tex_space_mesh(me);
 		else boundbox_mesh(me, loc, size);
-		
 	}
 	else {
 		
@@ -971,7 +970,7 @@ void do_mesh_key(Mesh *me)
 	}
 }
 
-void do_cu_key(Curve *cu, KeyBlock **k, float *t)
+static void do_cu_key(Curve *cu, KeyBlock **k, float *t)
 {
 	Nurb *nu;
 	int a, step = 0, tot;
@@ -1007,7 +1006,7 @@ void do_cu_key(Curve *cu, KeyBlock **k, float *t)
 	}
 }
 
-void do_rel_cu_key(Curve *cu, float ctime)
+static void do_rel_cu_key(Curve *cu, float ctime)
 {
 	Nurb *nu;
 	int a, step = 0, tot;
