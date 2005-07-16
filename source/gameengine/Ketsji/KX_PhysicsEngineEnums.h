@@ -39,7 +39,8 @@ enum	e_PhysicsEngine
 		UseEnji     =  1,
 		UseSumo     =  2,
 		UseDynamo   =  3,
-		UseODE      =  4
+		UseODE      =  4,
+		UseBullet	=	5,
 };
 
 #endif //__KX_PHYSICSENGINEENUMS

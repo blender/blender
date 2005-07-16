@@ -20,6 +20,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
  
+#define USE_ODE
 #ifdef USE_ODE
 
 #include "OdePhysicsController.h"

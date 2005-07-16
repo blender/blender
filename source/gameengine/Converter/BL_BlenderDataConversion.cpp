@@ -816,6 +816,12 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	
 	switch (physics_engine)
 	{
+#ifdef USE_BULLET
+		case UseBullet:
+			KX_ConvertBulletObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
+			break;
+
+#endif
 #ifdef USE_SUMO_SOLID
 		case UseSumo:
 			KX_ConvertSumoObject(gameobj, meshobj, kxscene, shapeprops, smmaterial, &objprop);
@@ -1330,7 +1336,9 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 	KX_WorldInfo* worldinfo = new BlenderWorldInfo(blenderscene->world);
 	converter->RegisterWorldInfo(worldinfo);
 	kxscene->SetWorldInfo(worldinfo);
-	
+
+#define CONVERT_LOGIC
+#ifdef CONVERT_LOGIC
 	// convert logic bricks, sensors, controllers and actuators
 	for (i=0;i<logicbrick_conversionlist->GetCount();i++)
 	{
@@ -1353,6 +1361,8 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 		bool isInActiveLayer = (blenderobj->lay & activeLayerBitInfo)!=0;
 		BL_ConvertSensors(blenderobj,gameobj,logicmgr,kxscene,keydev,executePriority,activeLayerBitInfo,isInActiveLayer,canvas,converter);
 	}
+#endif //CONVERT_LOGIC
+
 	logicbrick_conversionlist->Release();
 	
 	// Calculate the scene btree -

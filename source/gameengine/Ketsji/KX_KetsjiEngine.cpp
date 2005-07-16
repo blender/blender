@@ -321,7 +321,7 @@ void KX_KetsjiEngine::NextFrame()
 	m_deltatime += curtime - m_previoustime;
 	float	realDeltaTime = curtime - m_previoustime;
 
-	m_previoustime = curtime;
+	
 	double localtime = curtime - m_deltatime;
 
 	// Compute the number of logic frames to do each update (fixed tic bricks)
@@ -332,6 +332,7 @@ void KX_KetsjiEngine::NextFrame()
 	
 	while (frames)
 	{
+
 		localtime += 1.0/m_ticrate;
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end(); ++sceneit)
 		// for each scene, call the proceed functions
@@ -388,6 +389,7 @@ void KX_KetsjiEngine::NextFrame()
 				// many iterations of the physics solver.
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->proceedDeltaTime(localtime,realDeltaTime);
+				m_previoustime = curtime;
 			} // suspended
 	
 			DoSound(scene);

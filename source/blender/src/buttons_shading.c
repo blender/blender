@@ -1858,7 +1858,7 @@ static void world_panel_mistaph(World *wrld)
 
 #if GAMEBLENDER == 1
 	uiDefButI(block, MENU, 1, 
-			  "Physics %t|None %x0|Sumo %x2|Ode %x4",	
+			  "Physics %t|None %x0|Sumo %x2|Ode %x4 |Bullet %x5",	
 			  10,180,140,19, &wrld->physicsEngine, 0, 0, 0, 0, 
 			  "Physics Engine");
 	
@@ -3112,7 +3112,6 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	262,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiSetButLock(id && id->lib, "Can't edit library data");
 	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	283,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
-	uiClearButLock();
 	
 	if(ob->actcol==0) ob->actcol= 1;	/* because of TOG|BIT button */
 	
@@ -3144,10 +3143,10 @@ static void material_panel_material(Object *ob, Material *ma)
 	uiBlockEndAlign(block);
 	
 	if(ob->totcol==0) return;
+	uiSetButLock(id->lib!=0, "Can't edit library data");
 
 	ma= give_current_material(ob, ob->actcol);	
-	if(ma==NULL) return;	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	if(ma==0) return;	
 	
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
@@ -3265,8 +3264,6 @@ void material_panels()
 		material_panel_material(ob, ma);
 		
 		if(ma) {
-			uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
-
 			material_panel_ramps(ma);
 			material_panel_shading(ma);
 			if (G.scene->r.renderer==R_INTERN)

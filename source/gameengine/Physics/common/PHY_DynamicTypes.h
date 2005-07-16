@@ -32,15 +32,6 @@
 #ifndef __PHY_DYNAMIC_TYPES
 #define __PHY_DYNAMIC_TYPES
 
-/// PHY_ScalarType enumerates possible scalar types.
-/// See the PHY_IMeshInterface for its use
-typedef enum PHY_ScalarType {
-	PHY_FLOAT,
-	PHY_DOUBLE,
-	PHY_INTEGER,
-	PHY_SHORT,
-	PHY_FIXEDPOINT88
-} PHY_ScalarType;
 
 class	PHY_ResponseTable;
 

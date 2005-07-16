@@ -394,6 +394,7 @@ void BLI_adddirstrings()
 		else sprintf(files[num].size, "0");
 
 		strftime(datum, 32, "%d-%b-%y %R", tm);
+		//for visual studio 8, strftime(datum, 32, "%d-%b-%y ", tm);
 
 		if (st_size < 1000) {
 			sprintf(size, "%10d", (int) st_size);

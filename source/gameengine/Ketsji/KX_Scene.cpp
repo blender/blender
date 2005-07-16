@@ -207,7 +207,7 @@ KX_Scene::~KX_Scene()
 	{
 		delete m_bucketmanager;
 	}
-	Py_DECREF(m_attrlist);
+	//Py_DECREF(m_attrlist);
 }
 
 

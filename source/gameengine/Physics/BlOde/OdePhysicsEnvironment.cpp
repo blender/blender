@@ -24,7 +24,7 @@
 #include "OdePhysicsController.h"
 
 // Ode
-#include <ode/config.h>
+//#include <ode/config.h>
 #include <ode/ode.h>
 #include <../ode/src/joint.h>
 #include <ode/odemath.h>
@@ -105,8 +105,10 @@ bool		ODEPhysicsEnvironment::proceedDeltaTime(double  curTime,float timeStep1)
 		int m_odeContacts = GetNumOdeContacts();
 		
 		//physics integrator + resolver update
-		dWorldStep (m_OdeWorld,deltaTime);
-		
+		//dWorldStep (m_OdeWorld,deltaTime);
+		dWorldQuickStep (m_OdeWorld,deltaTime);
+		//dWorldID w, dReal stepsize)
+
 		//clear collision points
 		this->ClearOdeContactGroup();
 	}

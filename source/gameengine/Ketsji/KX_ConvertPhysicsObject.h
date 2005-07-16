@@ -35,6 +35,7 @@
 /* These are defined by the build system... */
 //#define USE_SUMO_SOLID
 //#define USE_ODE
+//#define USE_BULLET
 
 class RAS_MeshObject;
 class KX_Scene;
@@ -115,5 +116,18 @@ bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
 
 #endif
 
+#ifdef USE_BULLET
+
+void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
+	class	RAS_MeshObject* meshobj,
+	class	KX_Scene* kxscene,
+	struct	PHY_ShapeProps* shapeprops,
+	struct	PHY_MaterialProps*	smmaterial,
+	struct	KX_ObjectProperties*	objprop);
+	
+void	KX_ClearBulletSharedShapes();
+//bool KX_ReInstanceShapeFromMesh(RAS_MeshObject* meshobj);
+
+#endif
 #endif //KX_CONVERTPHYSICSOBJECTS
 

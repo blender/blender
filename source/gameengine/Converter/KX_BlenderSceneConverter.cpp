@@ -45,6 +45,10 @@
 //to decide to use sumo/ode or dummy physics - defines USE_ODE
 #include "KX_ConvertPhysicsObject.h"
 
+#ifdef USE_BULLET
+#include "CcdPhysicsEnvironment.h"
+#endif
+
 #ifdef USE_ODE
 #include "OdePhysicsEnvironment.h"
 #endif //USE_ODE
@@ -117,6 +121,11 @@ KX_BlenderSceneConverter::~KX_BlenderSceneConverter()
 #ifdef USE_SUMO_SOLID
 	KX_ClearSumoSharedShapes();
 #endif
+
+#ifdef USE_BULLET
+	KX_ClearBulletSharedShapes();
+#endif
+
 }
 
 
@@ -182,6 +191,11 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 		{
 			switch (blenderscene->world->physicsEngine)
 			{
+			case WOPHY_BULLET:
+				{
+					physics_engine = UseBullet;
+					break;
+				}
                                 
 				case WOPHY_ODE:
 				{
@@ -209,7 +223,14 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 
 	switch (physics_engine)
 	{
-	
+#ifdef USE_BULLET
+		case UseBullet:
+			{
+				destinationscene->SetPhysicsEnvironment(new CcdPhysicsEnvironment());
+				break;
+			}
+#endif
+
 #ifdef USE_SUMO_SOLID
 		case UseSumo:
 			destinationscene ->SetPhysicsEnvironment(new SumoPhysicsEnvironment());
