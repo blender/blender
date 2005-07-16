@@ -159,6 +159,7 @@ typedef struct World {
 #define WOPHY_SUMO		2
 #define WOPHY_DYNAMO		3
 #define WOPHY_ODE		4
+#define WOPHY_BULLET	5
 
 #endif
 
