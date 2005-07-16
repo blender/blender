@@ -133,7 +133,7 @@ struct DerivedMesh {
 DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
 
 DerivedMesh *mesh_get_derived(struct Object *ob);
-DerivedMesh *mesh_get_derived_final(struct Object *ob);
+DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_render(struct Object *ob, int *needsFree_r);
 
 	/* IMPORTANT: The functions below do not return "true" DerivedMesh

@@ -2180,19 +2180,13 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "Object does not have Mesh data" );
 	else {
-		Mesh *me = ( Mesh * ) ob->data;
-		DispList *dl;
-
-		if( mesh_uses_displist( me )) {
-			DerivedMesh *dm = mesh_get_derived(ob);
-			DispListMesh *dlm = dm->convertToDispListMesh(dm);
-			nmesh = new_NMesh_internal( me, dlm, NULL );
-			displistmesh_free(dlm);
-		}
-		else if( ( dl = find_displist( &ob->disp, DL_VERTS ) ) )
-			nmesh = new_NMesh_internal( me, NULL, dl->verts );
-		else
-			nmesh = new_NMesh( me );
+		int needsFree;
+		DerivedMesh *dm = mesh_get_derived_final(ob, &needsFree);
+		DispListMesh *dlm = dm->convertToDispListMesh(dm);
+		nmesh = new_NMesh_internal(ob->data, dlm, NULL);
+		if (needsFree)
+			dm->release(dm);
+		displistmesh_free(dlm);
 	}
 
 /* @hack: to mark that (deformed) mesh is readonly, so the update function

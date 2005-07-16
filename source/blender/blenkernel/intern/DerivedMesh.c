@@ -913,13 +913,15 @@ DerivedMesh *mesh_get_derived(Object *ob)
 	return NULL;
 }
 
-DerivedMesh *mesh_get_derived_final(Object *ob)
+DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 {
 	Mesh *me= ob->data;
 
 	build_mesh_data(ob, G.obedit && me==G.obedit->data);
 
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		*needsFree_r = 0;
+
 		if(G.obedit && me==G.obedit->data) {
 			return G.editMesh->derived;
 		} else {
@@ -929,6 +931,7 @@ DerivedMesh *mesh_get_derived_final(Object *ob)
 		DispList *dl;
 		DispList *meDL;
 
+		*needsFree_r = 1;
 		dl = find_displist(&ob->disp, DL_VERTS);
 		meDL = me->disp.first;
 		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
