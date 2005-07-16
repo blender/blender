@@ -1,0 +1,140 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenGLSupport", "Demos\OpenGL\OpenGL_vc7.vcproj", "{47328C1E-54A4-4065-B3DA-F88EE281D1E5}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bullet3ContinuousCollision", "Bullet\Bullet3_vc7.vcproj", "{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimplexDemo", "Demos\SimplexDemo\SimplexDemo_vc7.vcproj", "{F6B9DD8D-8C40-4F2B-B492-56B167D01CC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CollisionDemo", "Demos\CollisionDemo\CollisionDemo_vc7.vcproj", "{F43EFC77-3CFA-4669-BAEA-1E2BC8ABA897}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinearConvexCastDemo", "Demos\GjkConvexCastDemo\GjkConvexCastDemo_vc7.vcproj", "{B395AFF6-94FE-4A2C-9E26-58E5BE85083C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ContinuousConvexCollisionDemo", "Demos\ContinuousConvexCollision\ContinuousConvexCollision_vc7.vcproj", "{6A4E3433-D0CD-4A10-BE09-78C9A5F7508B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Raytracer", "Demos\Raytracer\Raytracer_vc7.vcproj", "{F8B0A298-14C9-4006-8D53-51032892BEDD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bullet3Dynamics", "BulletDynamics\BulletDynamics_vc7.vcproj", "{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CcdPhysics", "Extras\PhysicsInterface\CcdPhysics\CcdPhysics_vc7.vcproj", "{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PhysicsInterfaceCommon", "Extras\PhysicsInterface\Common\PhysicsInterfaceCommon\PhysicsInterfaceCommon_vc7.vcproj", "{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CcdPhysicsDemo", "Demos\CcdPhysicsDemo\CcdPhysicsDemo_vc7.vcproj", "{E9C93159-EC18-4121-9D73-1DE7053D81D7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580} = {87D8C006-6DCC-4156-A03E-8CEA1B4C0580}
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE} = {E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4} = {3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConcaveDemo", "Demos\ConcaveDemo\ConcaveDemo.vcproj", "{F20F38CC-CFA7-40C7-81AE-945C8C09E473}"
+	ProjectSection(ProjectDependencies) = postProject
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580} = {87D8C006-6DCC-4156-A03E-8CEA1B4C0580}
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE} = {E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4} = {3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConvexHullDistance", "Demos\ConvexHullDistance\ConvexHullDistance_vc7.vcproj", "{AF9E7C2B-BE49-4101-B056-4A628B276389}"
+	ProjectSection(ProjectDependencies) = postProject
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5} = {47328C1E-54A4-4065-B3DA-F88EE281D1E5}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5}.Debug.ActiveCfg = Debug|Win32
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5}.Debug.Build.0 = Debug|Win32
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5}.Release.ActiveCfg = Release|Win32
+		{47328C1E-54A4-4065-B3DA-F88EE281D1E5}.Release.Build.0 = Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Debug.ActiveCfg = Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Debug.Build.0 = Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Release.ActiveCfg = Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Release.Build.0 = Release|Win32
+		{F6B9DD8D-8C40-4F2B-B492-56B167D01CC0}.Debug.ActiveCfg = Debug|Win32
+		{F6B9DD8D-8C40-4F2B-B492-56B167D01CC0}.Debug.Build.0 = Debug|Win32
+		{F6B9DD8D-8C40-4F2B-B492-56B167D01CC0}.Release.ActiveCfg = Release|Win32
+		{F6B9DD8D-8C40-4F2B-B492-56B167D01CC0}.Release.Build.0 = Release|Win32
+		{F43EFC77-3CFA-4669-BAEA-1E2BC8ABA897}.Debug.ActiveCfg = Debug|Win32
+		{F43EFC77-3CFA-4669-BAEA-1E2BC8ABA897}.Debug.Build.0 = Debug|Win32
+		{F43EFC77-3CFA-4669-BAEA-1E2BC8ABA897}.Release.ActiveCfg = Release|Win32
+		{F43EFC77-3CFA-4669-BAEA-1E2BC8ABA897}.Release.Build.0 = Release|Win32
+		{B395AFF6-94FE-4A2C-9E26-58E5BE85083C}.Debug.ActiveCfg = Debug|Win32
+		{B395AFF6-94FE-4A2C-9E26-58E5BE85083C}.Debug.Build.0 = Debug|Win32
+		{B395AFF6-94FE-4A2C-9E26-58E5BE85083C}.Release.ActiveCfg = Release|Win32
+		{B395AFF6-94FE-4A2C-9E26-58E5BE85083C}.Release.Build.0 = Release|Win32
+		{6A4E3433-D0CD-4A10-BE09-78C9A5F7508B}.Debug.ActiveCfg = Debug|Win32
+		{6A4E3433-D0CD-4A10-BE09-78C9A5F7508B}.Debug.Build.0 = Debug|Win32
+		{6A4E3433-D0CD-4A10-BE09-78C9A5F7508B}.Release.ActiveCfg = Release|Win32
+		{6A4E3433-D0CD-4A10-BE09-78C9A5F7508B}.Release.Build.0 = Release|Win32
+		{F8B0A298-14C9-4006-8D53-51032892BEDD}.Debug.ActiveCfg = Debug|Win32
+		{F8B0A298-14C9-4006-8D53-51032892BEDD}.Debug.Build.0 = Debug|Win32
+		{F8B0A298-14C9-4006-8D53-51032892BEDD}.Release.ActiveCfg = Release|Win32
+		{F8B0A298-14C9-4006-8D53-51032892BEDD}.Release.Build.0 = Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Debug.ActiveCfg = Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Debug.Build.0 = Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Release.ActiveCfg = Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Release.Build.0 = Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Debug.ActiveCfg = Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Debug.Build.0 = Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Release.ActiveCfg = Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Release.Build.0 = Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Debug.ActiveCfg = Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Debug.Build.0 = Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Release.ActiveCfg = Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Release.Build.0 = Release|Win32
+		{E9C93159-EC18-4121-9D73-1DE7053D81D7}.Debug.ActiveCfg = Debug|Win32
+		{E9C93159-EC18-4121-9D73-1DE7053D81D7}.Debug.Build.0 = Debug|Win32
+		{E9C93159-EC18-4121-9D73-1DE7053D81D7}.Release.ActiveCfg = Release|Win32
+		{E9C93159-EC18-4121-9D73-1DE7053D81D7}.Release.Build.0 = Release|Win32
+		{F20F38CC-CFA7-40C7-81AE-945C8C09E473}.Debug.ActiveCfg = Debug|Win32
+		{F20F38CC-CFA7-40C7-81AE-945C8C09E473}.Debug.Build.0 = Debug|Win32
+		{F20F38CC-CFA7-40C7-81AE-945C8C09E473}.Release.ActiveCfg = Release|Win32
+		{F20F38CC-CFA7-40C7-81AE-945C8C09E473}.Release.Build.0 = Release|Win32
+		{AF9E7C2B-BE49-4101-B056-4A628B276389}.Debug.ActiveCfg = Debug|Win32
+		{AF9E7C2B-BE49-4101-B056-4A628B276389}.Debug.Build.0 = Debug|Win32
+		{AF9E7C2B-BE49-4101-B056-4A628B276389}.Release.ActiveCfg = Release|Win32
+		{AF9E7C2B-BE49-4101-B056-4A628B276389}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

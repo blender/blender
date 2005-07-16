@@ -1,0 +1,239 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "Bullet"=.\Bullet\Bullet3.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "BulletDynamics"=.\BulletDynamics\BulletDynamics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "CcdPhysics"=.\EXTRAS\PHYSICSINTERFACE\CcdPhysics\CcdPhysics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "CcdPhysicsDemo"=.\Demos\CcdPhysicsDemo\CcdPhysicsDemo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BulletDynamics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name CcdPhysics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PhysicsInterface
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "CollisionDemo"=.\Demos\CollisionDemo\CollisionDemo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ConcaveDemo"=.\DEMOS\ConcaveDemo\ConcaveDemo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name BulletDynamics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name CcdPhysics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PhysicsInterface
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ContinuousConvexCollision"=.\Demos\ContinuousConvexCollision\ContinuousConvexCollision.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ConvexHullDistance"=.\DEMOS\ConvexHullDistance\ConvexHullDistance.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "GjkConvexCastDemo"=.\Demos\GjkConvexCastDemo\GjkConvexCastDemo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "OpenGL"=.\Demos\OpenGL\OpenGL.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "PhysicsInterface"=.\EXTRAS\PHYSICSINTERFACE\Common\PhysicsInterface.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "Raytracer"=.\Demos\Raytracer\Raytracer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "SimplexDemo"=.\Demos\SimplexDemo\SimplexDemo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name Bullet
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenGL
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
