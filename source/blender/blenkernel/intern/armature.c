@@ -45,6 +45,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_constraint_types.h"
 
+#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -240,6 +241,107 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 	}
 	
 	return bone;
+}
+
+/* ************* B-Bone support ******************* */
+
+#define MAX_BBONE_SUBDIV	32
+
+/* returns pointer to static array, filled with desired amount of bone->segments elements */
+/* this calculation is done within pchan pose_mat space */
+Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
+{
+	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
+	bPoseChannel *next, *prev;
+	Bone *bone= pchan->bone;
+	float h1[3], h2[3], length, hlength, roll;
+	float mat3[3][3], imat[4][4];
+	float data[MAX_BBONE_SUBDIV+1][4], *fp;
+	int a;
+	
+	length= bone->length;
+	hlength= length*0.390464f;		// 0.5*sqrt(2)*kappa, the handle length for near-perfect circles
+	
+	/* evaluate next and prev bones */
+	if(bone->flag & BONE_IK_TOPARENT)
+		prev= pchan->parent;
+	else
+		prev= NULL;
+	
+	next= pchan->child;
+	
+	/* find the handle points, since this is inside bone space, the 
+		first point = (0,0,0)
+		last point =  (0, length, 0) */
+	
+	Mat4Invert(imat, pchan->pose_mat);
+	
+	if(prev) {
+		/* transform previous point inside this bone space */
+		VECCOPY(h1, prev->pose_head);
+		Mat4MulVecfl(imat, h1);
+		/* if previous bone is B-bone too, use average handle direction */
+		if(prev->bone->segments>1) h1[1]-= length;
+		Normalise(h1);
+		VecMulf(h1, -hlength);
+	}
+	else {
+		h1[0]= 0.0f; h1[1]= hlength; h1[2]= 0.0f;
+	}
+	if(next) {
+		float difmat[4][4], result[3][3], imat3[3][3];
+		
+		/* transform next point inside this bone space */
+		VECCOPY(h2, next->pose_tail);
+		Mat4MulVecfl(imat, h2);
+		/* if next bone is B-bone too, use average handle direction */
+		if(next->bone->segments>1);
+		else h2[1]-= length;
+		
+		/* find the next roll to interpolate as well */
+		Mat4MulMat4(difmat, next->pose_mat, imat);
+		Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
+		
+		vec_roll_to_mat3(h2, 0.0f, mat3);			// the result of vec_roll without roll
+		
+		Mat3Inv(imat3, mat3);
+		Mat3MulMat3(mat3, imat3, result);			// the matrix transforming vec_roll to desired roll
+		
+		roll= atan2(mat3[2][0], mat3[2][2]);
+		
+		/* and only now negate handle */
+		Normalise(h2);
+		VecMulf(h2, -hlength);
+		
+	}
+	else {
+		h2[0]= 0.0f; h2[1]= -hlength; h2[2]= 0.0f;
+		roll= 0.0;
+	}
+	
+	//	VecMulf(h1, pchan->bone->ease1);
+	//	VecMulf(h2, pchan->bone->ease2);
+	
+	/* make curve */
+	if(bone->segments > MAX_BBONE_SUBDIV)
+		bone->segments= MAX_BBONE_SUBDIV;
+	
+	forward_diff_bezier(0.0, h1[0],		h2[0],			0.0,		data[0],	bone->segments, 4);
+	forward_diff_bezier(0.0, h1[1],		length + h2[1],	length,		data[0]+1,	bone->segments, 4);
+	forward_diff_bezier(0.0, h1[2],		h2[2],			0.0,		data[0]+2,	bone->segments, 4);
+	
+	forward_diff_bezier(0.0, 0.390464f*roll, (1.0f-0.390464f)*roll,	roll,	data[0]+3,	bone->segments, 4);
+	
+	/* make transformation matrices for the segments for drawing */
+	
+	for(a=0, fp= data[0]; a<bone->segments; a++, fp+=4) {
+		VecSubf(h1, fp+4, fp);
+		vec_roll_to_mat3(h1, fp[3], mat3);		// fp[3] is roll
+		Mat4CpyMat3(bbone_array[a].mat, mat3);
+		VECCOPY(bbone_array[a].mat[3], fp);
+	}
+	
+	return bbone_array;
 }
 
 /* ************ Armature Deform ******************* */
@@ -521,6 +623,13 @@ void where_is_armature_bone(Bone *bone, Bone *prevbone)
 
 	bone->length= VecLenf(bone->head, bone->tail);
 	
+	/* this is called on old file reading too... */
+	if(bone->xwidth==0.0) {
+		bone->xwidth= 0.1f;
+		bone->zwidth= 0.1f;
+		bone->segments= 1;
+	}
+	
 	if(prevbone) {
 		float offs_bone[4][4];  // yoffs(b-1) + root(b) + bonemat(b)
 		
@@ -567,17 +676,20 @@ void where_is_armature (bArmature *arm)
 	}
 }
 
-static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int depth, int counter)
+static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int counter)
 {
 	bPoseChannel *pchan = verify_pose_channel (pose, bone->name);   // verify checks and/or adds
 
 	pchan->bone= bone;
 	pchan->parent= parchan;
-	pchan->depth= depth;
+	
 	counter++;
 	
 	for(bone= bone->childbase.first; bone; bone= bone->next) {
-		counter= rebuild_pose_bone(pose, bone, pchan, depth+1, counter);
+		counter= rebuild_pose_bone(pose, bone, pchan, counter);
+		/* for quick detecting of next bone in chain */
+		if(bone->flag & BONE_IK_TOPARENT)
+			pchan->child= get_pose_channel(pose, bone->name);
 	}
 	
 	return counter;
@@ -596,9 +708,9 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
 	pose= ob->pose;
 	
-	/* first step, check if all channels are there, also sets depth */
+	/* first step, check if all channels are there */
 	for(bone= arm->bonebase.first; bone; bone= bone->next) {
-		counter= rebuild_pose_bone(pose, bone, NULL, 0, counter);
+		counter= rebuild_pose_bone(pose, bone, NULL, counter);
 	}
 	/* sort channels on dependency order, so we can walk the channel list */
 

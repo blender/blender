@@ -156,7 +156,10 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->length= curBone->length;
 		eBone->dist= curBone->dist;
 		eBone->weight= curBone->weight;
+		eBone->xwidth= curBone->xwidth;
+		eBone->zwidth= curBone->zwidth;
 		eBone->boneclass = curBone->boneclass;		
+		eBone->segments = curBone->segments;		
 		
 		BLI_addtail (list, eBone);
 		
@@ -244,6 +247,10 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 		newBone->weight = eBone->weight;
 		newBone->dist = eBone->dist;
 		newBone->boneclass = eBone->boneclass;
+		
+		newBone->xwidth = eBone->xwidth;
+		newBone->zwidth = eBone->zwidth;
+		newBone->segments= eBone->segments;
 		
 	}
 	
@@ -1156,11 +1163,15 @@ static void add_bone_input (Object *ob)
 		
 		bone->flag |= (BONE_SELECTED);
 		deselectall_armature();
+		
 		bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		
 		bone->weight= 1.0F;
 		bone->dist= 1.0F;
+		bone->xwidth= 0.1;
+		bone->zwidth= 0.1;
 		bone->boneclass = BONE_SKINNABLE;
+		bone->segments= 1;
 		
 		/*	Project cursor center to screenspace. */
 		getmouseco_areawin(mval);
@@ -1503,11 +1514,15 @@ void extrude_armature(void)
 			VECCOPY (newbone->head, curbone->tail);
 			VECCOPY (newbone->tail, newbone->head);
 			newbone->parent = curbone;
+			
 			newbone->flag = BONE_TIPSEL;
 			newbone->weight= curbone->weight;
 			newbone->dist= curbone->dist;
+			newbone->xwidth= curbone->xwidth;
+			newbone->zwidth= curbone->zwidth;
+			newbone->segments= curbone->segments;
 			newbone->boneclass= curbone->boneclass;
-
+			
 			/* See if there are any ik children of the parent */
 			for (partest = G.edbo.first; partest; partest=partest->next){
 				if ((partest->parent == curbone) && (partest->flag & BONE_IK_TOPARENT))

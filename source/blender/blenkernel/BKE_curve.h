@@ -69,7 +69,7 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 void makeNurbfaces( struct Nurb *nu, float *data);
 void makeNurbcurve_forw(struct Nurb *nu, float *data);
 void makeNurbcurve( struct Nurb *nu, float *data, int dim);
-void maakbez(float q0, float q1, float q2, float q3, float *p, int it);
+void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
 void make_orco_surf( struct Curve *cu);
 void makebevelcurve( struct Object *ob,  struct ListBase *disp);
 short bevelinside(struct BevList *bl1,struct BevList *bl2);

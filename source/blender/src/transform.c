@@ -497,6 +497,9 @@ void initTransform(int mode, int context) {
 	case TFM_CREASE:
 		initCrease(&Trans);
 		break;
+	case TFM_BONESIZE:
+		initBoneSize(&Trans);
+		break;
 	}
 
 	initConstraint(&Trans);
@@ -2207,6 +2210,121 @@ void Mirror(short mode)
 	scrarea_queue_headredraw(curarea);
 }
 
+/* ******************** EditBone scaling *************** */
+
+static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3]) 
+{
+	float tmat[3][3], smat[3][3], oldy;
+	float sizemat[3][3];
+		
+	Mat3MulMat3(smat, mat, td->mtx);
+	Mat3MulMat3(tmat, td->smtx, smat);
+	
+	if (t->con.applySize) {
+		t->con.applySize(t, td, tmat);
+	}
+	
+	/* we've tucked the scale in loc */
+	oldy= td->iloc[1];
+	SizeToMat3(td->iloc, sizemat);
+	Mat3MulMat3(tmat, smat, sizemat);
+	Mat3ToSize(tmat, td->loc);
+	td->loc[1]= oldy;
+}
+
+
+int BoneSize(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float size[3], mat[3][3];
+	float ratio;
+	int i;
+	char str[50];
+	
+	/* for manipulator, center handle, the scaling can't be done relative to center */
+	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
+		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
+	}
+	else {
+		
+		if(t->flag & T_SHIFT_MOD) {
+			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+			
+			dx= (float)(t->center2d[0] - mval[0]);
+			dy= (float)(t->center2d[1] - mval[1]);
+			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+			
+		}
+		else {
+			float dx= (float)(t->center2d[0] - mval[0]);
+			float dy= (float)(t->center2d[1] - mval[1]);
+			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		}
+		
+		/* flip scale, but not for manipulator center handle */
+		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
+			 (t->center2d[1] - mval[1]) * (t->center2d[1] - t->imval[1]) < 0)
+			ratio *= -1.0f;
+	}
+	
+	size[0] = size[1] = size[2] = ratio;
+	
+	snapGrid(t, size);
+	
+	if (hasNumInput(&t->num)) {
+		applyNumInput(&t->num, size);
+		constraintNumInput(t, size);
+	}
+	
+	SizeToMat3(size, mat);
+	
+	if (t->con.applySize) {
+		t->con.applySize(t, NULL, mat);
+	}
+	
+	Mat3CpyMat3(t->mat, mat);	// used in manipulator
+	
+	headerResize(t, size, str);
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		ElementBoneSize(t, td, mat);
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	force_draw(0);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	
+	return 1;
+}
+
+void initBoneSize(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = BoneSize;
+	t->fac = (float)sqrt( (float)(
+						   (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+						   +
+						   (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+						   ) );
+	
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+/* ************************************ */
 
 void BIF_TransformSetUndo(char *str)
 {

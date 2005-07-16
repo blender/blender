@@ -64,8 +64,10 @@ typedef struct EditBone
 		for pose element, rather than trying to use the existing transObject
 		system?
 	*/
-	float dist, weight, length;
-	short boneclass;
+	float dist, weight;
+	float xwidth, length, zwidth;	/* put them in order! transform uses this as scale */
+	float ease1, ease2;
+	short boneclass, segments;
 
 
 } EditBone;

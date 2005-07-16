@@ -1251,7 +1251,7 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 				}
 				
 				dl= MEM_callocN(sizeof(DispList), "makeDispListbez");
-				/* len+1 because of 'maakbez' function */
+				/* len+1 because of 'forward_diff_bezier' function */
 				dl->verts= MEM_callocN( (len+1)*3*sizeof(float), "dlverts");
 				BLI_addtail(dispbase, dl);
 				dl->parts= 1;
@@ -1283,10 +1283,10 @@ static void curve_to_displist(ListBase *nubase, ListBase *dispbase)
 					else {
 						v1= prevbezt->vec[1];
 						v2= bezt->vec[0];
-						maakbez(v1[0], v1[3], v2[0], v2[3], data, nu->resolu);
-						maakbez(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu);
+						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, nu->resolu, 3);
+						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu, 3);
 						if((nu->type & 8)==0)
-							maakbez(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu);
+							forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
 						data+= 3*nu->resolu;
 					}
 					

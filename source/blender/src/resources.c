@@ -606,7 +606,7 @@ void BIF_InitTheme(void)
 	btheme->tv3d.facedot_size= 4;
 	
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 100);		// alpha 100 is not meant editable, used for wire+action draw
+	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);		// alpha 80 is not meant editable, used for wire+action draw
 	
 	
 	/* space buttons */
@@ -716,7 +716,7 @@ void BIF_InitTheme(void)
 
 char *BIF_ThemeColorsPup(int spacetype)
 {
-	char *cp= MEM_callocN(21*32, "theme pup");
+	char *cp= MEM_callocN(32*32, "theme pup");
 	char str[32];
 	
 	if(spacetype==0) {
@@ -766,8 +766,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT); strcat(cp, str);
 			sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT); strcat(cp, str);
 			sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE); strcat(cp, str);
-			sprintf(str, "Normal %%x%d", TH_NORMAL); strcat(cp, str);
-			sprintf(str, "Bone Solid %%x%d", TH_BONE_SOLID); strcat(cp, str);
+			sprintf(str, "Normal %%x%d|", TH_NORMAL); strcat(cp, str);
+			sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID); strcat(cp, str);
 			sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_IPO) {

@@ -49,7 +49,7 @@ typedef struct Bone {
 	ListBase		childbase;		/*	Children	*/
 	char			name[32];		/*  Name of the bone - must be unique within the armature */
 
-	float			roll, length;   /* */
+	float			roll, length;   /*  roll is input for editmode, length calculated */
 	float			head[3];		
 	float			tail[3];		/*	head/tail and roll in Bone Space	*/
 	float			bone_mat[3][3]; /*  rotation derived from head/tail/roll */
@@ -60,11 +60,13 @@ typedef struct Bone {
 	float			arm_tail[3];	/*	head/tail and roll in Armature Space (rest pos) */
 	float			arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
 	
-	float dist, weight;				/*  dist for non-deformgroup deforms */
+	float			dist, weight;	/*  dist, weight: for non-deformgroup deforms */
+	float			xwidth, zwidth;	/*  width: for block bones */
+	float			ease1, ease2;	/*  length of bezier handles */
 	
-	float size[3];					/* patch for upward compat, UNUSED! */
-	short boneclass;
-	short pad1;
+	float			size[3];		/*  patch for upward compat, UNUSED! */
+	short			boneclass;
+	short			segments;		/*  for B-bones */
 }Bone;
 
 typedef struct bArmature {
@@ -99,6 +101,8 @@ typedef struct bArmature {
 #define		ARM_DELAYDEFORM 0x0040
 #define		ARM_DONT_USE    0x0080
 #define		ARM_NO_ACTION   0x0100
+#define		ARM_B_BONES		0x0200
+
 
 /* bone->flag */
 #define		BONE_SELECTED	1

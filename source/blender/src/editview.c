@@ -1250,15 +1250,19 @@ void borderselect(void)
 					if (val==LEFTMOUSE){
 						if (index != -1){
 							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
-							bone->flag |= BONE_SELECTED;
-							select_actionchannel_by_name(G.obpose->action, bone->name, 1);
+							if(bone) {
+								bone->flag |= BONE_SELECTED;
+								select_actionchannel_by_name(G.obpose->action, bone->name, 1);
+							}
 						}
 					}
 					else{	
 						if (index != -1){
 							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
-							bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
-							select_actionchannel_by_name(G.obpose->action, bone->name, 0);
+							if(bone) {
+								bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+								select_actionchannel_by_name(G.obpose->action, bone->name, 0);
+							}
 						}
 					}
 				}

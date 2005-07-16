@@ -1764,6 +1764,23 @@ void validate_editbonebutton_cb(void *bonev, void *namev)
 	allqueue(REDRAWALL, 0);
 }
 
+/* assumes armature posemode */
+static void validate_posebonebutton_cb(void *bonev, void *namev)
+{
+	Bone *bone= bonev;
+	Object *ob= OBACT;
+	char oldname[32], newname[32];
+	
+	/* need to be on the stack */
+	BLI_strncpy(newname, bone->name, 32);
+	BLI_strncpy(oldname, (char *)namev, 32);
+	/* restore */
+	BLI_strncpy(bone->name, oldname, 32);
+	
+	armature_bone_rename(ob->data, oldname, newname); // editarmature.c
+	allqueue(REDRAWALL, 0);
+}
+
 static void armature_rest_pos_func(void *pointer1, void *pointer2) 
 {
 	Object *ob= pointer1;
@@ -1775,7 +1792,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
 	uiBut       *but;
-	int			bx=148, by=100;
+	int			bx=148, by=120;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
@@ -1784,14 +1801,15 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0,
 					"Disable all animation for this object");
 	uiButSetFunc(but, armature_rest_pos_func, ob, arm);
-
+	
+	by-= 23;
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx,by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_B_BONES, REDRAWVIEW3D, "B-Bones", bx, by-23,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
+	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx, by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray", bx,by-92,97,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
-	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D,
-			  "Delay Deform", bx,by-115,97,20, &arm->flag, 0, 0, 0, 0,
-			  "Don't deform children when manipulating bones in pose mode");
+	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray", bx, by-92,97,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, "Delay Deform", bx, by-115,97,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+
 }
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
@@ -1845,13 +1863,9 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			/* Dist and weight buttons */
 			uiBlockBeginAlign(block);
-			but=uiDefButS(block, MENU, REDRAWVIEW3D,
-							"Skinnable %x0|" "Unskinnable %x1|" "Head %x2|"
-							"Neck %x3|" "Back %x4|" "Shoulder %x5|" "Arm %x6|"
-							"Hand %x7|" "Finger %x8|" "Thumb %x9|" "Pelvis %x10|"
-							"Leg %x11|" "Foot %x12|" "Toe %x13|" "Tentacle %x14",
-							bx-10,by-19,117,18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0,
-							"Classification of armature element");
+			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ",
+							bx-10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0,
+							"Subdivisions for B-bones");
 
 			/* Dist and weight buttons */
 			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+110, by-19,
@@ -1870,6 +1884,67 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 		uiNewPanelHeight(block, 204 - by);
 	}
 
+}
+
+static void editing_panel_pose_bones(Object *ob, bArmature *arm)
+{
+	uiBlock		*block;
+	uiBut		*but;
+	bPoseChannel *pchan;
+	Bone		*curBone;
+	int			bx=148, by=180;
+	int			index;
+	
+	/* Draw the bone name block */
+	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_pose_bones", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Armature Bones", "Editing", 640, 0, 318, 204)==0) return;
+	
+	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
+	/* so first we make it default height */
+	uiNewPanelHeight(block, 204);
+	
+	uiDefBut(block, LABEL, 0, "Selected Bones", bx,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode/Posemode");
+	by-=20;
+	for (pchan=ob->pose->chanbase.first, index=0; pchan; pchan=pchan->next, index++){
+		curBone= pchan->bone;
+		if (curBone->flag & (BONE_SELECTED)) {
+			
+			/* Hide in posemode flag */
+			uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-55,by,45,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
+			
+			/*	Bone naming button */
+			uiBlockBeginAlign(block);
+			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
+			uiButSetFunc(but, validate_posebonebutton_cb, curBone, NULL);
+			
+			/* Dist and weight buttons */
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+107, by,
+					  105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0,
+					  "Bone deformation distance");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+220, by,
+					  110, 18, &curBone->weight, 0.0F, 1000.0F,
+					  10.0F, 0.0F, "Bone deformation weight");
+			
+			
+			/* Segment, ease in/out buttons */
+			uiBlockBeginAlign(block);
+			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ",
+					  bx-10,by-19,117,19, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "In:", 
+					  bx+107, by-19,105, 19, &curBone->ease1, 0.0, 2.0, 10.0, 0.0, "First length of Bezier handle");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Out:", 
+					  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
+			
+			uiBlockEndAlign(block);
+			by-=42;
+		}
+	}
+	
+	if(by<0) {
+		uiNewPanelHeight(block, 204 - by);
+	}
+	
 }
 
 
@@ -2806,6 +2881,9 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_armature_bones(ob, arm);
 		}
+		else if(G.obpose==ob) {
+			editing_panel_pose_bones(ob, arm);
+		}		
 		break;
 	}
 	uiClearButLock();

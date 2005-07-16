@@ -82,8 +82,96 @@
 #include "blendef.h"
 #include "nla.h"
 
+/* half the cube, in Y */
+static float cube[8][3] = {
+{-1.0,  0.0, -1.0},
+{-1.0,  0.0,  1.0},
+{-1.0,  1.0,  1.0},
+{-1.0,  1.0, -1.0},
+{ 1.0,  0.0, -1.0},
+{ 1.0,  0.0,  1.0},
+{ 1.0,  1.0,  1.0},
+{ 1.0,  1.0, -1.0},
+};
 
-/* *************** Armature drawing ******************* */
+
+/* *************** Armature drawing, helper calls for parts ******************* */
+
+static void drawsolidcube_size(float xsize, float ysize, float zsize)
+{
+	float n[3];
+	
+	glScalef(xsize, ysize, zsize);
+	
+	n[0]=0; n[1]=0; n[2]=0;
+	glBegin(GL_QUADS);
+	n[0]= -1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
+	n[0]=0;
+	glEnd();
+	
+	glBegin(GL_QUADS);
+	n[1]= -1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[1]);
+	n[1]=0;
+	glEnd();
+	
+	glBegin(GL_QUADS);
+	n[0]= 1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[4]); glVertex3fv(cube[7]); glVertex3fv(cube[6]); glVertex3fv(cube[5]);
+	n[0]=0;
+	glEnd();
+	
+	glBegin(GL_QUADS);
+	n[1]= 1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[7]); glVertex3fv(cube[3]); glVertex3fv(cube[2]); glVertex3fv(cube[6]);
+	n[1]=0;
+	glEnd();
+	
+	glBegin(GL_QUADS);
+	n[2]= 1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
+	n[2]=0;
+	glEnd();
+	
+	glBegin(GL_QUADS);
+	n[2]= -1.0;
+	glNormal3fv(n); 
+	glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
+	glEnd();
+	
+}
+
+static void drawcube_size(float xsize, float ysize, float zsize)
+{
+	
+	glScalef(xsize, ysize, zsize);
+	
+	glBegin(GL_LINE_STRIP);
+	glVertex3fv(cube[0]); glVertex3fv(cube[1]);glVertex3fv(cube[2]); glVertex3fv(cube[3]);
+	glVertex3fv(cube[0]); glVertex3fv(cube[4]);glVertex3fv(cube[5]); glVertex3fv(cube[6]);
+	glVertex3fv(cube[7]); glVertex3fv(cube[4]);
+	glEnd();
+	
+	glBegin(GL_LINE_STRIP);
+	glVertex3fv(cube[1]); glVertex3fv(cube[5]);
+	glEnd();
+	
+	glBegin(GL_LINE_STRIP);
+	glVertex3fv(cube[2]); glVertex3fv(cube[6]);
+	glEnd();
+	
+	glBegin(GL_LINE_STRIP);
+	glVertex3fv(cube[3]); glVertex3fv(cube[7]);
+	glEnd();
+	
+}
+
 
 static void draw_bonevert(void)
 {
@@ -241,8 +329,160 @@ static void draw_bone_solid_octahedral(void)
 	else glCallList(displist);
 }	
 
+/* *************** Armature drawing, bones ******************* */
 
-static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, char *name)
+
+static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id, float length)
+{
+	/*	Draw root point if we have no IK parent */
+	if (!(boneflag & BONE_IK_TOPARENT)){
+		if (id != -1)
+			glLoadName (id | BONESEL_ROOT);
+		
+		if(dt<=OB_WIRE) {
+			if(armflag & ARM_EDITMODE) {
+				if (boneflag & BONE_ROOTSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
+				else BIF_ThemeColor(TH_VERTEX);
+			}
+		}
+		else 
+			BIF_ThemeColor(TH_BONE_SOLID);
+		
+		if(dt>OB_WIRE) draw_bonevert_solid();
+		else draw_bonevert();
+	}
+	
+	/*	Draw tip point */
+	if (id != -1)
+		glLoadName (id | BONESEL_TIP);
+	
+	if(dt<=OB_WIRE) {
+		if(armflag & ARM_EDITMODE) {
+			if (boneflag & BONE_TIPSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
+			else BIF_ThemeColor(TH_VERTEX);
+		}
+	}
+	else {
+		BIF_ThemeColor(TH_BONE_SOLID);
+	}
+	
+	glTranslatef(0.0, length, 0.0);
+	if(dt>OB_WIRE) draw_bonevert_solid();
+	else draw_bonevert();
+	glTranslatef(0.0, -length, 0.0);
+	
+	if(length > 0.05f) length-= 0.05f;	// make vertices visible
+}
+
+static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float length, float zwidth)
+{
+	int segments= 0;
+	
+	if(pchan) segments= pchan->bone->segments;
+	
+	if(segments>1 && pchan) {
+		float dlen= length/(float)segments;
+		Mat4 *bbone= b_bone_spline_setup(pchan);
+		int a;
+		
+		for(a=0; a<segments; a++, bbone++) {
+			glPushMatrix();
+			glMultMatrixf(bbone->mat);
+			if(dt==OB_SOLID) drawsolidcube_size(xwidth, dlen, zwidth);
+			else drawcube_size(xwidth, dlen, zwidth);
+			glPopMatrix();
+		}
+	}
+	else {
+		glPushMatrix();
+		if(dt==OB_SOLID) drawsolidcube_size(xwidth, length, zwidth);
+		else drawcube_size(xwidth, length, zwidth);
+		glPopMatrix();
+	}
+}
+
+static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+{
+	float xwidth, length, zwidth;
+	
+	if(pchan) {
+		xwidth= pchan->bone->xwidth;
+		length= pchan->bone->length;
+		zwidth= pchan->bone->zwidth;
+	}
+	else {
+		xwidth= ebone->xwidth;
+		length= ebone->length;
+		zwidth= ebone->zwidth;
+	}
+	
+	/* draw points only if... */
+	if(armflag & ARM_EDITMODE) {
+		draw_bone_points(dt, armflag, boneflag, id, length);
+	}
+
+	/* colors for modes */
+	if (armflag & ARM_POSEMODE) {
+		if(dt==OB_WIRE) {
+			if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
+			else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
+			else BIF_ThemeColor(TH_WIRE);
+		}
+		else 
+			BIF_ThemeColor(TH_BONE_SOLID);
+	}
+	else if (armflag & ARM_EDITMODE) {
+		if(dt==OB_WIRE) {
+			if (boneflag & BONE_ACTIVE) BIF_ThemeColor(TH_EDGE_SELECT);
+			else if (boneflag & BONE_SELECTED) BIF_ThemeColorShade(TH_EDGE_SELECT, -20);
+			else BIF_ThemeColor(TH_WIRE);
+		}
+		else 
+			BIF_ThemeColor(TH_BONE_SOLID);
+	}
+	
+	if (id != -1) {
+		glLoadName ((GLuint) id|BONESEL_BONE);
+	}
+	
+	/* set up solid drawing */
+	if(dt > OB_WIRE) {
+		glEnable(GL_COLOR_MATERIAL);
+		glEnable(GL_LIGHTING);
+		BIF_ThemeColor(TH_BONE_SOLID);
+		
+		draw_b_bone_boxes(OB_SOLID, pchan, xwidth, length, zwidth);
+		
+		/* disable solid drawing */
+		glDisable(GL_COLOR_MATERIAL);
+		glDisable(GL_LIGHTING);
+	}
+	else {	// wire
+		if (armflag & ARM_POSEMODE){
+			if(constflag) {
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_BLEND);
+				
+				if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
+				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
+				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
+				
+				draw_b_bone_boxes(OB_SOLID, pchan, xwidth, length, zwidth);
+				
+				glDisable(GL_BLEND);
+				
+				/* restore colors */
+				if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
+				else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
+				else BIF_ThemeColor(TH_WIRE);
+			}
+		}		
+		
+		draw_b_bone_boxes(OB_WIRE, pchan, xwidth, length, zwidth);		
+	}
+}
+
+static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned int id)
 {
 	
 	/*	Draw a 3d octahedral bone, we use normalized space based on length,
@@ -266,52 +506,13 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 			BIF_ThemeColor(TH_BONE_SOLID);
 	}
 	
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
-		if (id != -1)
-			glLoadName (id | BONESEL_ROOT);
-		if (armflag & ARM_EDITMODE) {
-			if(dt<=OB_WIRE) {
-				if (boneflag & BONE_ROOTSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
-				else BIF_ThemeColor(TH_VERTEX);
-			}
-			else 
-				BIF_ThemeColor(TH_BONE_SOLID);
-		}
-		if(dt>OB_WIRE) draw_bonevert_solid();
-		else draw_bonevert();
-	}
 	
-	/*	Draw tip point */
-	if (id != -1)
-		glLoadName (id | BONESEL_TIP);
-	if (armflag & ARM_EDITMODE) {
-		if(dt<=OB_WIRE) {
-			if (boneflag & BONE_TIPSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
-			else BIF_ThemeColor(TH_VERTEX);
-		}
-		else 
-			BIF_ThemeColor(TH_BONE_SOLID);
-	}
-	
-	glTranslatef(0.0, 1.0, 0.0);
-	if(dt>OB_WIRE) draw_bonevert_solid();
-	else draw_bonevert();
-	
-	/*	Draw additional axes */
-	if (armflag & ARM_DRAWAXES){
-		drawaxes(0.25f);
-	}
+	draw_bone_points(dt, armflag, boneflag, id, 1.0);
 	
 	/* now draw the bone itself */
-	glTranslatef(0.0, -1.0, 0.0);
 	
 	if (id != -1) {
-		if (armflag & ARM_POSEMODE)
-			glLoadName((GLuint) id);
-		else{
-			glLoadName ((GLuint) id|BONESEL_BONE);
-		}
+		glLoadName ((GLuint) id|BONESEL_BONE);
 	}
 	
 	/* wire? */
@@ -327,8 +528,8 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 100);
-				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 100);
+				if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
+				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 					
 				draw_bone_solid_octahedral();
@@ -384,16 +585,19 @@ static void draw_pose_channels(Object *ob, int dt)
 				glPushMatrix();
 				glMultMatrixf(pchan->pose_mat);
 				
-				/* scale the matrix to unit bone space */
-				glScalef(bone->length, bone->length, bone->length);
-								
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
 					flag &= ~BONE_IK_TOPARENT;
 				
-				draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->name);
-				
+				if(arm->flag & ARM_B_BONES)
+					draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
+				else {
+					/* scale the matrix to unit bone space */
+					glScalef(bone->length, bone->length, bone->length);
+					
+					draw_bone(OB_SOLID, arm->flag, flag, 0, index);
+				}
 				glPopMatrix();
 			}
 			if (index!= -1) index++;
@@ -433,9 +637,6 @@ static void draw_pose_channels(Object *ob, int dt)
 				glPushMatrix();
 				glMultMatrixf(pchan->pose_mat);
 				
-				/* scale the matrix to unit bone space */
-				glScalef(bone->length, bone->length, bone->length);
-				
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
@@ -446,7 +647,14 @@ static void draw_pose_channels(Object *ob, int dt)
 				if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 					constflag |= PCHAN_HAS_ACTION;
 
-				draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->name);
+				if(arm->flag & ARM_B_BONES)
+					draw_b_bone(OB_WIRE, arm->flag, flag, constflag, index, pchan, NULL);
+				else {
+					/* scale the matrix to unit bone space */
+					glScalef(bone->length, bone->length, bone->length);
+					
+					draw_bone(OB_WIRE, arm->flag, flag, constflag, index);
+				}
 				
 				glPopMatrix();
 			}
@@ -458,8 +666,8 @@ static void draw_pose_channels(Object *ob, int dt)
 		bglPolygonOffset(0.0);
 	glDisable(GL_CULL_FACE);
 
-	/* finally names */
-	if(arm->flag & ARM_DRAWNAMES) {
+	/* finally names and axes */
+	if(arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) {
 		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
 		if((G.f & G_PICKSEL) == 0) {
 			float vec[3];
@@ -475,10 +683,20 @@ static void draw_pose_channels(Object *ob, int dt)
 				}
 				else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
 				
-				VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-				glRasterPos3fv(vec);
-				BMF_DrawString(G.font, " ");
-				BMF_DrawString(G.font, pchan->name);
+				if (arm->flag & ARM_DRAWNAMES){
+					VecMidf(vec, pchan->pose_head, pchan->pose_tail);
+					glRasterPos3fv(vec);
+					BMF_DrawString(G.font, " ");
+					BMF_DrawString(G.font, pchan->name);
+				}				
+				/*	Draw additional axes */
+				if( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ){
+					glPushMatrix();
+					glMultMatrixf(pchan->pose_mat);
+					glTranslatef(0.0f, pchan->bone->length, 0.0f);
+					drawaxes(0.25f);
+					glPopMatrix();
+				}
 			}
 			
 			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
@@ -497,9 +715,7 @@ static void set_matrix_editbone(EditBone *eBone)
 	
 	glTranslatef (offset[0],offset[1],offset[2]);
 	
-	delta[0]= eBone->tail[0]-eBone->head[0];	
-	delta[1]= eBone->tail[1]-eBone->head[1];	
-	delta[2]= eBone->tail[2]-eBone->head[2];
+	VecSubf(delta, eBone->tail, eBone->head);	
 	
 	eBone->length = sqrt (delta[0]*delta[0] + delta[1]*delta[1] +delta[2]*delta[2]);
 	
@@ -508,8 +724,95 @@ static void set_matrix_editbone(EditBone *eBone)
 				
 	glMultMatrixf (bmat);
 	
-	/* scale the matrix to unit bone space */
-	glScalef(eBone->length, eBone->length, eBone->length);
+}
+
+static void draw_ebones(Object *ob, int dt)
+{
+	EditBone	*eBone;
+	bArmature *arm= ob->data;
+	unsigned int	index;
+	
+	/* if solid we draw it first */
+	if(dt>OB_WIRE) {
+		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
+			glPushMatrix();
+			set_matrix_editbone(eBone);
+			
+			if(arm->flag & ARM_B_BONES)
+				draw_b_bone(OB_SOLID, arm->flag, eBone->flag, 0, index, NULL, eBone);
+			else {
+				/* scale the matrix to unit bone space */
+				glScalef(eBone->length, eBone->length, eBone->length);
+				draw_bone(OB_SOLID, arm->flag, eBone->flag, 0, index);
+			}
+			
+			glPopMatrix();
+		}
+	}
+	
+	/* if wire over solid, set offset */
+	index= -1;
+	if (dt>OB_WIRE) bglPolygonOffset(1.0);
+	else if(arm->flag & ARM_EDITMODE) index= 0;	// do selection codes
+	
+	for (eBone=G.edbo.first; eBone; eBone=eBone->next){
+		
+		glPushMatrix();
+		set_matrix_editbone(eBone);
+		
+		if(arm->flag & ARM_B_BONES)
+			draw_b_bone(OB_WIRE, arm->flag, eBone->flag, 0, index, NULL, eBone);
+		else {
+			/* scale the matrix to unit bone space */
+			glScalef(eBone->length, eBone->length, eBone->length);
+			draw_bone(OB_WIRE, arm->flag, eBone->flag, index, -1);
+		}
+		if(arm->flag & ARM_DRAWAXES)
+			drawaxes(0.25f);
+		
+		glPopMatrix();
+		
+		/* offset to parent */
+		if (eBone->parent) {
+			BIF_ThemeColor(TH_WIRE);
+			glLoadName (-1);
+			setlinestyle(3);
+			
+			glBegin(GL_LINES);
+			glVertex3fv(eBone->parent->tail);
+			glVertex3fv(eBone->head);
+			glEnd();
+			
+			setlinestyle(0);
+		}
+		if(index!=-1) index++;
+	}
+	
+	/* restore */
+	if (dt>OB_WIRE) bglPolygonOffset(0.0);
+	
+	/* finally names */
+	if(arm->flag & ARM_DRAWNAMES) {
+		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		if((G.f & G_PICKSEL) == 0) {
+			float vec[3];
+			
+			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+			
+			for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
+				
+				if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+				else BIF_ThemeColor(TH_TEXT);
+				
+				VecMidf(vec, eBone->head, eBone->tail);
+				glRasterPos3fv(vec);
+				BMF_DrawString(G.font, " ");
+				BMF_DrawString(G.font, eBone->name);
+			}
+			
+			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+		}
+	}
 	
 }
 
@@ -522,76 +825,10 @@ void draw_armature(Object *ob, int dt)
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);	// only for lighting...
 	
-	/* If we're in editmode, draw the Global edit data */
+	/* editmode? */
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
-		EditBone	*eBone;
-		unsigned int	index;
-		
 		if(ob==G.obedit) arm->flag |= ARM_EDITMODE;
-		
-		/* if solid we draw it first */
-		if(dt>OB_WIRE && (arm->flag & ARM_EDITMODE)) {
-			for (eBone=G.edbo.first; eBone; eBone=eBone->next){
-				glPushMatrix();
-				set_matrix_editbone(eBone);
-				
-				draw_bone(OB_SOLID, arm->flag, eBone->flag, 0, -1, eBone->name);
-				glPopMatrix();
-			}
-		}
-		
-		/* if wire over solid, set offset */
-		if (dt>OB_WIRE) bglPolygonOffset(1.0);
-		
-		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-			
-			glPushMatrix();
-			set_matrix_editbone(eBone);
-			
-			draw_bone(OB_WIRE, arm->flag, eBone->flag, 0, index, eBone->name);
-			glPopMatrix();
-			
-			/* offset to parent */
-			if (eBone->parent) {
-				BIF_ThemeColor(TH_WIRE);
-				glLoadName (-1);
-				setlinestyle(3);
-				
-				glBegin(GL_LINES);
-				glVertex3fv(eBone->parent->tail);
-				glVertex3fv(eBone->head);
-				glEnd();
-
-				setlinestyle(0);
-			}
-		}
-		
-		/* restore */
-		if (dt>OB_WIRE) bglPolygonOffset(0.0);
-		
-		/* finally names */
-		if(arm->flag & ARM_DRAWNAMES) {
-			// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
-			if((G.f & G_PICKSEL) == 0) {
-				float vec[3];
-				
-				if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
-				
-				for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-					
-					if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
-					else BIF_ThemeColor(TH_TEXT);
-					
-					VecMidf(vec, eBone->head, eBone->tail);
-					glRasterPos3fv(vec);
-					BMF_DrawString(G.font, " ");
-					BMF_DrawString(G.font, eBone->name);
-				}
-				
-				if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
-			}
-		}
-		
+		draw_ebones(ob, dt);
 		arm->flag &= ~ARM_EDITMODE;
 	}
 	else{

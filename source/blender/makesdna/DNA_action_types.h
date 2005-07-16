@@ -51,12 +51,14 @@ typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
 	ListBase			constraints;
 	char				name[32];	/* Channels need longer names than normal blender objects */
+	
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
-	int					depth;		/* dependency sorting help */
+	int					pad;
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
+	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
 	struct ListBase		 chain;		/* only while evaluating pose */
 	
 	float		loc[3];				/* written in by actions or transform */
@@ -69,7 +71,7 @@ typedef struct bPoseChannel {
 	
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */
-	int pad;
+	int pad1;
 } bPoseChannel;
 
 

@@ -50,6 +50,7 @@
 #define TFM_PUSHPULL		12
 #define TFM_CREASE			13
 #define TFM_MIRROR			14
+#define TFM_BONESIZE		15
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

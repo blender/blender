@@ -87,6 +87,7 @@ void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);
 void armature_rebuild_pose(struct Object *ob, struct bArmature *arm);
 void where_is_pose (struct Object *ob);
 
+/* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
 void vec_roll_to_mat3(float *vec, float roll, float mat[][3]);
 
@@ -103,7 +104,13 @@ void GB_calc_armature_deform (float *co, struct MDeformVert *dvert);
 void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4]);
 void GB_validate_defgroups (struct Mesh *mesh, struct ListBase *defbase);
 
-/*void make_boneParentMatrix (struct Bone* bone, float mat[][4]);*/ 
+/* B-Bone support */
+typedef struct Mat4 {
+	float mat[4][4];
+} Mat4;
+
+Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan);
+
 
 #ifdef __cplusplus
 }

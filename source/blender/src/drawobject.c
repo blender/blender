@@ -3737,6 +3737,7 @@ void draw_object(Base *base)
 		drawlattice(ob);
 		break;
 	case OB_ARMATURE:
+		if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
 		draw_armature(ob, dt);
 		break;
 	default:

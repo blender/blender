@@ -496,15 +496,19 @@ static void createTransArmatureVerts(TransInfo *t)
 {
 	EditBone *ebo;
 	TransData *td;
-	float mtx[3][3], smtx[3][3];
+	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
 
 	t->total = 0;
-	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		if (ebo->flag & BONE_TIPSEL){
-			t->total++;
+	for (ebo=G.edbo.first;ebo;ebo=ebo->next) {
+		if (t->mode==TFM_BONESIZE) {
+			if (ebo->flag & BONE_SELECTED)
+				t->total++;
 		}
-		if (ebo->flag & BONE_ROOTSEL){
-			t->total++;
+		else {
+			if (ebo->flag & BONE_TIPSEL)
+				t->total++;
+			if (ebo->flag & BONE_ROOTSEL)
+				t->total++;
 		}
 	}
 
@@ -516,37 +520,62 @@ static void createTransArmatureVerts(TransInfo *t)
     td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		if (ebo->flag & BONE_TIPSEL){
-			VECCOPY (td->iloc, ebo->tail);
-			VECCOPY (td->center, td->iloc);
-			td->loc= ebo->tail;
-			td->flag= TD_SELECTED;
+		if (t->mode==TFM_BONESIZE) {
+			if (ebo->flag & BONE_SELECTED) {
+				// abusive storage of scale in the loc pointer :)
+				td->loc= &ebo->xwidth;
+				VECCOPY (td->iloc, td->loc);
+				VECCOPY (td->center, ebo->head);
+				td->flag= TD_SELECTED;
+				
+				/* use local bone matrix */
+				VecSubf(delta, ebo->tail, ebo->head);	
+				vec_roll_to_mat3(delta, ebo->roll, bonemat);
+				Mat3MulMat3(td->mtx, mtx, bonemat);
+				Mat3Inv(td->smtx, td->mtx);
+				
+				Mat3CpyMat3(td->axismtx, td->mtx);
+				Mat3Ortho(td->axismtx);
 
-			Mat3CpyMat3(td->smtx, smtx);
-			Mat3CpyMat3(td->mtx, mtx);
-
-			td->ext = NULL;
-			td->tdi = NULL;
-			td->val = NULL;
-
-			td++;
+				td->ext = NULL;
+				td->tdi = NULL;
+				td->val = NULL;
+				
+				td++;
+			}
 		}
-		if (ebo->flag & BONE_ROOTSEL){
-			VECCOPY (td->iloc, ebo->head);
-			VECCOPY (td->center, td->iloc);
-			td->loc= ebo->head;
-			td->flag= TD_SELECTED;
+		else {
+			if (ebo->flag & BONE_TIPSEL){
+				VECCOPY (td->iloc, ebo->tail);
+				VECCOPY (td->center, td->iloc);
+				td->loc= ebo->tail;
+				td->flag= TD_SELECTED;
 
-			Mat3CpyMat3(td->smtx, smtx);
-			Mat3CpyMat3(td->mtx, mtx);
+				Mat3CpyMat3(td->smtx, smtx);
+				Mat3CpyMat3(td->mtx, mtx);
 
-			td->ext = NULL;
-			td->tdi = NULL;
-			td->val = NULL;
+				td->ext = NULL;
+				td->tdi = NULL;
+				td->val = NULL;
 
-			td++;
+				td++;
+			}
+			if (ebo->flag & BONE_ROOTSEL){
+				VECCOPY (td->iloc, ebo->head);
+				VECCOPY (td->center, td->iloc);
+				td->loc= ebo->head;
+				td->flag= TD_SELECTED;
+
+				Mat3CpyMat3(td->smtx, smtx);
+				Mat3CpyMat3(td->mtx, mtx);
+
+				td->ext = NULL;
+				td->tdi = NULL;
+				td->val = NULL;
+
+				td++;
+			}
 		}
-			
 	}
 }
 
@@ -1600,6 +1629,12 @@ void createTransData(TransInfo *t)
 			}
 		}
 		t->flag |= T_EDIT;
+		
+		/* exception... hackish, we want bonescale to use bone orientation matrix (ton) */
+		if(t->mode==TFM_BONESIZE) {
+			t->flag &= ~T_EDIT;
+			t->flag |= T_POSE;
+		}
 	}
 	else {
 		createTransObject(t);

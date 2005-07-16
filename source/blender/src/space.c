@@ -1549,8 +1549,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					doredraw= 1;
 				}
 				else if(G.obedit) {
+					
 					if(G.qual==LR_ALTKEY) {
-						initTransform(TFM_SHRINKFATTEN, CTX_NONE);
+						if(G.obedit->type==OB_ARMATURE)
+							initTransform(TFM_BONESIZE, CTX_NONE);
+						else
+							initTransform(TFM_SHRINKFATTEN, CTX_NONE);
 						Transform();
 					}
 					else if(G.qual==LR_CTRLKEY) {

@@ -1055,7 +1055,8 @@ void makeNurbcurve(Nurb *nu, float *data, int dim)
 	MEM_freeN(basisu);
 }
 
-void maakbez(float q0, float q1, float q2, float q3, float *p, int it)
+/* forward differencing method for bezier curve */
+void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride)
 {
 	float rt0,rt1,rt2,rt3,f;
 	int a;
@@ -1075,7 +1076,7 @@ void maakbez(float q0, float q1, float q2, float q3, float *p, int it)
   
   	for(a=0; a<=it; a++) {
 		*p= q0;
-		p+= 3;
+		p+= stride;
 		q0+= q1;
  		q1+= q2;
  		q2+= q3;
@@ -1612,9 +1613,9 @@ void makeBevelList(Object *ob)
 						v2= bezt->vec[0];
 						
 						/* always do all three, to prevent data hanging around */
-						maakbez(v1[0], v1[3], v2[0], v2[3], data, nu->resolu);
-						maakbez(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu);
-						maakbez(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu);
+						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, nu->resolu, 3);
+						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu, 3);
+						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
 						
 						if((nu->type & CU_2D)==0) {
 							if(cu->flag & CU_3D) {

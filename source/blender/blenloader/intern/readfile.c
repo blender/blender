@@ -2265,6 +2265,7 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 	for (chan = pose->chanbase.first; chan; chan=chan->next) {
 		chan->bone= NULL;
 		chan->parent= newdataadr(fd, chan->parent);
+		chan->child= newdataadr(fd, chan->child);
 		direct_link_constraints(fd, &chan->constraints);
 	}
 
