@@ -1344,9 +1344,6 @@ static void init_render_mesh(Object *ob)
 			make_orco_mesh(me);
 	}			
 	
-	/* after orco, because this changes mesh vertices (too) */
-	do_puno= mesh_modifier(ob, 's');
-	
 	if ((me->flag&ME_SUBSURF) && me->subdivr) {
 		int needsFree;
 		DerivedMesh *dm = mesh_get_derived_render(ob, &needsFree);
@@ -1367,7 +1364,10 @@ static void init_render_mesh(Object *ob)
 		totvert= me->totvert;
 
 		dl= find_displist(&ob->disp, DL_VERTS);
-		if(dl) extverts= dl->verts;
+		if(dl) {
+			extverts= dl->verts;
+			do_puno= 1;
+		}
 	
 		ms= me->msticky;
 	}
@@ -1604,13 +1604,9 @@ static void init_render_mesh(Object *ob)
 
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
-		do_puno= 1;
+		calc_vertexnormals(totverto, totvlako);
 	}
 	
-	if(do_puno) calc_vertexnormals(totverto, totvlako);
-	
-	mesh_modifier(ob, 'e');  // end
-
 	if(dlm) displistmesh_free(dlm);
 }
 
