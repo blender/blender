@@ -1296,7 +1296,7 @@ static void init_render_mesh(Object *ob)
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *extverts=0, *orco;
-	int a, a1, ok, do_puno, need_orco=0, totvlako, totverto, vertofs;
+	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
 

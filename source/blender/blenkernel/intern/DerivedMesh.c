@@ -67,6 +67,40 @@ typedef struct {
 	float *extverts, *nors;
 } MeshDerivedMesh;
 
+static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->ob->data;
+	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
+
+	dlm->totvert = me->totvert;
+	dlm->totedge = me->totedge;
+	dlm->totface = me->totface;
+	dlm->mvert = me->mvert;
+	dlm->medge = me->medge;
+	dlm->mface = me->mface;
+	dlm->tface = me->tface;
+	dlm->mcol = me->mcol;
+	dlm->nors = mdm->nors;
+	dlm->dontFreeVerts = dlm->dontFreeOther = 1;
+
+	if (mdm->extverts) {
+		int i;
+
+		dlm->mvert = MEM_dupallocN(dlm->mvert);
+
+		for (i=0; i<dlm->totvert; i++) {
+			dlm->mvert[i].co[0] = mdm->extverts[i*3 + 0];
+			dlm->mvert[i].co[1] = mdm->extverts[i*3 + 1];
+			dlm->mvert[i].co[2] = mdm->extverts[i*3 + 2];
+		}
+
+		displistmesh_calc_normals(dlm);
+	}
+
+	return dlm;
+}
+
 static float *meshDM__getVertCo(MeshDerivedMesh *mdm, int index)
 {
 	if (mdm->extverts) {
@@ -380,6 +414,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "dm");
 
+	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 	mdm->dm.getNumVerts = meshDM_getNumVerts;
 	mdm->dm.getNumFaces = meshDM_getNumFaces;
 
@@ -872,6 +907,30 @@ DerivedMesh *mesh_get_derived(Object *ob)
 			return me->derived;
 		}
 	} 
+
+	return NULL;
+}
+
+DerivedMesh *mesh_get_derived_final(Object *ob)
+{
+	Mesh *me= ob->data;
+
+	build_mesh_data(ob, G.obedit && me==G.obedit->data);
+
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		if(G.obedit && me==G.obedit->data) {
+			return G.editMesh->derived;
+		} else {
+			return me->derived;
+		}
+	} else {
+		DispList *dl;
+		DispList *meDL;
+
+		dl = find_displist(&ob->disp, DL_VERTS);
+		meDL = me->disp.first;
+		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+	}
 
 	return NULL;
 }

@@ -98,6 +98,8 @@ struct DispListMesh {
 	struct MFace *mface;
 	struct TFace *tface;
 	float *nors; // facenormals
+
+	int dontFreeVerts, dontFreeOther;
 };
 
 void displistmesh_free(DispListMesh *dlm);
