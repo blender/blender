@@ -1344,7 +1344,7 @@ static void init_render_mesh(Object *ob)
 			make_orco_mesh(me);
 	}			
 	
-	if ((me->flag&ME_SUBSURF) && me->subdivr) {
+	{
 		int needsFree;
 		DerivedMesh *dm = mesh_get_derived_render(ob, &needsFree);
 		dlm = dm->convertToDispListMesh(dm);
@@ -1355,21 +1355,7 @@ static void init_render_mesh(Object *ob)
 		mvert= dlm->mvert;
 		totvert= dlm->totvert;
 
-		ms= NULL; // no stick in displistmesh
-	} else {
-		DispList *dl;
-
-		dlm= NULL;
-		mvert= me->mvert;
-		totvert= me->totvert;
-
-		dl= find_displist(&ob->disp, DL_VERTS);
-		if(dl) {
-			extverts= dl->verts;
-			do_puno= 1;
-		}
-	
-		ms= me->msticky;
+		ms = (totvert==me->totvert)?me->msticky:NULL;
 	}
 	
 	orco= me->orco;

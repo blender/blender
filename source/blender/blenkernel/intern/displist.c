@@ -112,12 +112,12 @@ void displistmesh_free(DispListMesh *dlm)
 {
 	// also check on mvert and mface, can be NULL after decimator (ton)
 	if (!dlm->dontFreeVerts && dlm->mvert) MEM_freeN(dlm->mvert);
+	if (!dlm->dontFreeNors && dlm->nors) MEM_freeN(dlm->nors);
 	if (!dlm->dontFreeOther) {
 		if (dlm->medge) MEM_freeN(dlm->medge);
 		if (dlm->mface) MEM_freeN(dlm->mface);
 		if (dlm->mcol) MEM_freeN(dlm->mcol);
 		if (dlm->tface) MEM_freeN(dlm->tface);
-		if (dlm->nors) MEM_freeN(dlm->nors);
 	}
 	MEM_freeN(dlm);
 }
@@ -142,11 +142,12 @@ void displistmesh_calc_normals(DispListMesh *dlm)
 	float (*tnorms)[3]= MEM_callocN(dlm->totvert*sizeof(*tnorms), "tnorms");
 	int i;
 	
-	if (dlm->nors) {
+	if (!dlm->dontFreeNors && dlm->nors) {
 		MEM_freeN(dlm->nors);
 	}
 
 	dlm->nors= MEM_mallocN(sizeof(*dlm->nors)*3*dlm->totface, "meshnormals");
+	dlm->dontFreeNors= 0;
 
 	for (i=0; i<dlm->totface; i++) {
 		MFace *mf= &mfaces[i];

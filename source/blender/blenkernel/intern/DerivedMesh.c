@@ -82,7 +82,7 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 	dlm->tface = me->tface;
 	dlm->mcol = me->mcol;
 	dlm->nors = mdm->nors;
-	dlm->dontFreeVerts = dlm->dontFreeOther = 1;
+	dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 1;
 
 	if (mdm->extverts) {
 		int i;
@@ -96,6 +96,8 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 		}
 
 		displistmesh_calc_normals(dlm);
+
+		dlm->dontFreeVerts = 0;
 	}
 
 	return dlm;
@@ -957,9 +959,15 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 		} else {
 			return subsurf_make_derived_from_mesh(me, me->subdivr);
 		}
-	}
+	} else {
+		DispList *dl;
+		DispList *meDL;
 
-	return NULL;
+		*needsFree = 1;
+		dl = find_displist(&ob->disp, DL_VERTS);
+		meDL = me->disp.first;
+		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+	}
 }
 
 DerivedMesh *mesh_get_base_derived(Object *ob)
