@@ -342,48 +342,49 @@ void vertex_duplilist(Scene *sce, Object *par)
 	lay= G.scene->lay;
 	
 	dm = mesh_get_derived_deform(par, &dmNeedsFree);
-	totvert = dm->getNumVerts(dm);
+	if(dm) {
+		totvert = dm->getNumVerts(dm);
 
-	base= sce->base.first;
-	while(base) {
+		base= sce->base.first;
+		while(base) {
 
-		if(base->object->type>0 && (lay & base->lay) && G.obedit!=base->object) {
-			ob= base->object->parent;
-			while(ob) {
-				if(ob==par) {
-					ob= base->object;
-					/* mballs have a different dupli handling */
-					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
+			if(base->object->type>0 && (lay & base->lay) && G.obedit!=base->object) {
+				ob= base->object->parent;
+				while(ob) {
+					if(ob==par) {
+						ob= base->object;
+						/* mballs have a different dupli handling */
+						if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					for(a=0; a<totvert; a++) {
-						dm->getVertCo(dm, a, vec);
+						for(a=0; a<totvert; a++) {
+							dm->getVertCo(dm, a, vec);
 
-						Mat4MulVecfl(pmat, vec);
-						VecSubf(vec, vec, pmat[3]);
-						VecAddf(vec, vec, ob->obmat[3]);
-						
-						newob= new_dupli_object(&duplilist, ob, par);
-						VECCOPY(newob->obmat[3], vec);
-						
-						if(par->transflag & OB_DUPLIROT) {
-							dm->getVertNo(dm, a, vec);
-							vec[0]= -vec[0]; vec[1]= -vec[1]; vec[2]= -vec[2];
+							Mat4MulVecfl(pmat, vec);
+							VecSubf(vec, vec, pmat[3]);
+							VecAddf(vec, vec, ob->obmat[3]);
 							
-							q2= vectoquat(vec, ob->trackflag, ob->upflag);
-				
-							QuatToMat3(q2, mat);
-							Mat4CpyMat4(tmat, newob->obmat);
-							Mat4MulMat43(newob->obmat, tmat, mat);
+							newob= new_dupli_object(&duplilist, ob, par);
+							VECCOPY(newob->obmat[3], vec);
+							
+							if(par->transflag & OB_DUPLIROT) {
+								dm->getVertNo(dm, a, vec);
+								vec[0]= -vec[0]; vec[1]= -vec[1]; vec[2]= -vec[2];
+								
+								q2= vectoquat(vec, ob->trackflag, ob->upflag);
+					
+								QuatToMat3(q2, mat);
+								Mat4CpyMat4(tmat, newob->obmat);
+								Mat4MulMat43(newob->obmat, tmat, mat);
+							}
 						}
+						break;
 					}
-					break;
+					ob= ob->parent;
 				}
-				ob= ob->parent;
 			}
+			base= base->next;
 		}
-		base= base->next;
 	}
-
 	if (dmNeedsFree)
 		dm->release(dm);
 }
