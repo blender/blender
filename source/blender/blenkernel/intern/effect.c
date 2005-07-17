@@ -1159,10 +1159,11 @@ void build_particle_system(Object *ob)
 	PartEff *paf;
 	Particle *pa;
 	Mesh *me;
-	MVert *mvert;
 	MTex *mtexmove=0;
 	Material *ma;
 	DispListMesh *dlm;
+	int dmNeedsFree;
+	DerivedMesh *dm;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
 	int deform=0, a, cur, cfraont, cfralast, totpart;
@@ -1183,9 +1184,6 @@ void build_particle_system(Object *ob)
 	waitcursor(1);
 
 	disable_speed_curve(1);
-	
-	/* warning! we cannot call this when modifier is active! */
-	mesh_modifier(ob, 's');
 
 	/* generate all particles */
 	if(paf->keys) MEM_freeN(paf->keys);
@@ -1263,13 +1261,8 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* init */
-	if (mesh_uses_displist(me)) {
-		DerivedMesh *dm = mesh_get_derived(ob);
-
-		dlm = dm->convertToDispListMesh(dm);
-	} else {
-		dlm = NULL;
-	}
+	dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	dlm = dm->convertToDispListMesh(dm);
 
 	give_mesh_mvert(me, dlm, totpart, co, no, paf->seed);
 	
@@ -1328,9 +1321,14 @@ void build_particle_system(Object *ob)
 		/* get coordinates */
 		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no, paf->seed);
 		else {
-			mvert= me->mvert + (a % me->totvert);
-			VECCOPY(co, mvert->co);
-			VECCOPY(no, mvert->no);
+			float fno[3];
+
+			dm->getVertCo(dm, a%dm->getNumVerts(dm), co);
+			dm->getVertNo(dm, a%dm->getNumVerts(dm), fno);
+
+			no[0] = fno[0]*32767.f;
+			no[1] = fno[1]*32767.f;
+			no[2] = fno[2]*32767.f;
 		}
 		
 		VECCOPY(pa->co, co);
@@ -1355,7 +1353,6 @@ void build_particle_system(Object *ob)
 
 		/* start speed: normal */
 		if(paf->normfac!=0.0) {
-			/* sp= mvert->no; */
 				/* transpose ! */
 			vec[0]= imat[0][0]*no[0] + imat[0][1]*no[1] + imat[0][2]*no[2];
 			vec[1]= imat[1][0]*no[0] + imat[1][1]*no[1] + imat[1][2]*no[2];
@@ -1413,13 +1410,10 @@ void build_particle_system(Object *ob)
 	if(ma) do_mat_ipo(ma);	// set back on current time
 	disable_speed_curve(0);
 	
-	mesh_modifier(ob, 'e');
-
 	waitcursor(0);
 
-	if (dlm) {
-		displistmesh_free(dlm);
-	}
+	displistmesh_free(dlm);
+	if (dmNeedsFree) dm->release(dm);
 }
 
 /* ************* WAVE **************** */

@@ -283,7 +283,7 @@ int mesh_modifier(Object *ob, char mode)
 		
 		/* put deformed vertices in dl->verts, optional subsurf will replace that */
 		if(done) {
-			DispList *dl= find_displist_create(&ob->disp, DL_VERTS);
+			DispList *dl= find_displist_create(&ob->disp, DL_VERTS); // removed after switchover
 			float *fp;
 			
 			if(dl->verts) MEM_freeN(dl->verts);
@@ -307,10 +307,6 @@ int mesh_modifier(Object *ob, char mode)
 			me->mvert= mvert;
 			mvert= NULL;
 		}
-	}
-	else if(mode=='a') { // apply
-		if(mvert) MEM_freeN(mvert);
-		mvert= NULL;
 	}
 	
 	return done;

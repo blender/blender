@@ -49,6 +49,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_anim.h"
@@ -328,12 +329,11 @@ void vertex_duplilist(Scene *sce, Object *par)
 {
 	Object *ob, *newob;
 	Base *base;
-	MVert *mvert;
-	Mesh *me;
-	DispList *dl;
-	float *extverts=NULL, vec[3], pvec[3], pmat[4][4], mat[3][3], tmat[4][4];
+	float vec[3], pmat[4][4], mat[3][3], tmat[4][4];
 	float *q2;
 	int lay, totvert, a;
+	int dmNeedsFree;
+	DerivedMesh *dm;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
@@ -341,8 +341,8 @@ void vertex_duplilist(Scene *sce, Object *par)
 	
 	lay= G.scene->lay;
 	
-	dl= find_displist(&par->disp, DL_VERTS);
-	if(dl) extverts= dl->verts;
+	dm = mesh_get_derived_deform(par, &dmNeedsFree);
+	totvert = dm->getNumVerts(dm);
 
 	base= sce->base.first;
 	while(base) {
@@ -351,29 +351,12 @@ void vertex_duplilist(Scene *sce, Object *par)
 			ob= base->object->parent;
 			while(ob) {
 				if(ob==par) {
-				
 					ob= base->object;
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
-					
-					me= par->data;
-					mvert= me->mvert;
-					mvert+= (me->totvert-1);
-					VECCOPY(pvec, mvert->co);
-					Mat4MulVecfl(pmat, pvec);
 
-					mvert= me->mvert;
-					totvert= me->totvert;
-
-					for(a=0; a<totvert; a++, mvert++) {
-					
-						/* calc the extra offset for children (wrt. centre parent)  */
-						if(extverts) {
-							VECCOPY(vec, extverts+3*a);
-						}
-						else {
-							VECCOPY(vec, mvert->co);
-						}
+					for(a=0; a<totvert; a++) {
+						dm->getVertCo(dm, a, vec);
 
 						Mat4MulVecfl(pmat, vec);
 						VecSubf(vec, vec, pmat[3]);
@@ -383,7 +366,7 @@ void vertex_duplilist(Scene *sce, Object *par)
 						VECCOPY(newob->obmat[3], vec);
 						
 						if(par->transflag & OB_DUPLIROT) {
-							VECCOPY(vec, mvert->no);
+							dm->getVertNo(dm, a, vec);
 							vec[0]= -vec[0]; vec[1]= -vec[1]; vec[2]= -vec[2];
 							
 							q2= vectoquat(vec, ob->trackflag, ob->upflag);
@@ -392,9 +375,6 @@ void vertex_duplilist(Scene *sce, Object *par)
 							Mat4CpyMat4(tmat, newob->obmat);
 							Mat4MulMat43(newob->obmat, tmat, mat);
 						}
-						
-						VECCOPY(pvec, vec);
-					
 					}
 					break;
 				}
@@ -403,6 +383,9 @@ void vertex_duplilist(Scene *sce, Object *par)
 		}
 		base= base->next;
 	}
+
+	if (dmNeedsFree)
+		dm->release(dm);
 }
 
 
