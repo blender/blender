@@ -881,11 +881,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		int start, totface;
 		int dmNeedsFree;
 
-		if(mesh_uses_displist(me) && editing==0) {
-			dm = mesh_get_derived(ob);
-			dmNeedsFree = 0;
-		} else {
+		if(editing) {
 			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+		} else {
+			dm = mesh_get_derived_final(ob, &dmNeedsFree);
 		}
 
 		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
@@ -894,7 +893,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		totface = me->totface;
 		set_buildvars(ob, &start, &totface);
 
-		if (!editing && !mesh_uses_displist(me) && prop && tface) {
+		if (!editing && prop && tface) {
 			tface+= start;
 			for (a=start; a<totface; a++, tface++) {
 				MFace *mf= &mface[a];
