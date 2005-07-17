@@ -2476,42 +2476,6 @@ char videosc_dir[160]= {0, 0};
   fwrite(vert, sizeof(float), 3, fpSTL);  \
 }
 
-static int write_mesh_stl(FILE *fpSTL, Object *ob, Mesh *me)
-{
-	MVert *mvert;
-	MFace *mface;
-	int i, numfacets = 0;
-	float zero[3] = {0.0f, 0.0f, 0.0f};
-	float vert[3];
-
-	mvert = me->mvert;
-	mface = me->mface;
-
-	for (i=0; i<me->totface; i++) {
-
-		if (mface->v4 || mface->v3) {
-			fwrite(zero, sizeof(float), 3, fpSTL); /* <-- v. normal lazy */
-			WRITEVERT(mvert, mface->v1);
-			WRITEVERT(mvert, mface->v2);
-			WRITEVERT(mvert, mface->v3);
-			fprintf(fpSTL, "  "); /* <-- spec puts 2 spaces after facet */
-			numfacets++;
-
-			if(mface->v4) { /* quad = 2 tri's */
-				fwrite(zero, sizeof(float), 3, fpSTL);
-				WRITEVERT(mvert, mface->v1);
-				WRITEVERT(mvert, mface->v3);
-				WRITEVERT(mvert, mface->v4);
-				fprintf(fpSTL, "  ");
-				numfacets++;
-			}
-		}
-		mface++;
-	}
-
-	return numfacets;
-}
-
 static int write_displistmesh_stl(FILE *fpSTL, Object *ob, DispListMesh *dlm)
 {
 
@@ -2546,18 +2510,15 @@ static int write_displistmesh_stl(FILE *fpSTL, Object *ob, DispListMesh *dlm)
 static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 {
 	int  numfacets = 0;
+	int dmNeedsFree;
+	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	DispListMesh *dlm = dm->convertToDispListMesh(dm);
 
-	if(mesh_uses_displist(me)) {
-		DerivedMesh *dm = mesh_get_derived(ob);
-		DispListMesh *dlm = dm->convertToDispListMesh(dm);
+	numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
 
-		numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
+	displistmesh_free(dlm);
+	if (dmNeedsFree) dm->release(dm);
 
-		displistmesh_free(dlm);
-	}
-	else {
-		numfacets += write_mesh_stl(fpSTL, ob, me);
-	}
 	return numfacets;
 }
 
