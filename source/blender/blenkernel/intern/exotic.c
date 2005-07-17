@@ -2632,7 +2632,6 @@ static void write_videoscape_mesh(Object *ob, char *str)
 	EditMesh *em = G.editMesh;
 	Mesh *me;
 	Material *ma;
-	MVert *mvert;
 	MFace *mface;
 	FILE *fp;
 	EditVert *eve;
@@ -2700,26 +2699,16 @@ static void write_videoscape_mesh(Object *ob, char *str)
 		}
 	}
 	else {
-		DispList *dl;
-		float *extverts=0;
-		
-		dl= find_displist(&ob->disp, DL_VERTS);
-		if(dl) extverts= dl->verts;
+		int needsFree;
+		DerivedMesh *dm = mesh_get_derived_deform(ob, &needsFree);
 		
 		me= ob->data;
 		
 		fprintf(fp, "%d\n", me->totvert);
 		
-		mvert= me->mvert;
 		mface= me->mface;
-		for(a=0; a<me->totvert; a++, mvert++) {
-			if(extverts) {
-				VECCOPY(co, extverts);
-				extverts+= 3;
-			}
-			else {
-				VECCOPY(co, mvert->co);
-			}
+		for(a=0; a<me->totvert; a++) {
+			dm->getVertCo(dm, a, co);
 			Mat4MulVecfl(ob->obmat, co);
 			fprintf(fp, "%f %f %f\n", co[0], co[1], co[2] );
 		}
@@ -2734,6 +2723,9 @@ static void write_videoscape_mesh(Object *ob, char *str)
 				fprintf(fp, "4 %d %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, mface->v4, kleur[mface->mat_nr]);
 			}
 		}
+
+		if (needsFree)
+			dm->release(dm);
 	}
 	
 	fclose(fp);
