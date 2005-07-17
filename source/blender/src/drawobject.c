@@ -4006,50 +4006,39 @@ static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
 	}
 	else {
 		Mesh *me= ob->data;
-		MVert *mvert;
 		MFace *mface;
 		TFace *tface;
-		DispList *dl;
-		float *extverts=NULL;
-		int a, totface, hastface;
+		float co[3];
+		int a, dmNeedsFree;
+		DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 		
-		mvert= me->mvert;
 		mface= me->mface;
 		tface= me->tface;
-		hastface = (me->tface != NULL);
-		totface= me->totface;
 
-		dl= find_displist(&ob->disp, DL_VERTS);
-		if(dl) extverts= dl->verts;
-		
-		glBegin(GL_QUADS);
-		glmode= GL_QUADS;
-		
-		for(a=0; a<totface; a++, mface++, tface++) {
-			if(mface->v3) {
-				if(facecol) {
-					if(hastface && tface->flag & TF_HIDE) continue;
-					set_framebuffer_index_color(a+1);
+		glBegin(glmode=GL_QUADS);
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if(mface->v3 && (!me->tface || !(tface->flag&TF_HIDE))) {
+				int newmode = mface->v4?GL_QUADS:GL_TRIANGLES;
+
+				set_framebuffer_index_color(a+1);
+
+				if (newmode!=glmode) {
+					glEnd();
+					glBegin(glmode=newmode);
 				}
-
-				if(mface->v4) {if(glmode==GL_TRIANGLES) {glmode= GL_QUADS; glEnd(); glBegin(GL_QUADS);}}
-				else {if(glmode==GL_QUADS) {glmode= GL_TRIANGLES; glEnd(); glBegin(GL_TRIANGLES);}}
 				
-				if(extverts) {
-					glVertex3fv( extverts+3*mface->v1 );
-					glVertex3fv( extverts+3*mface->v2 );
-					glVertex3fv( extverts+3*mface->v3 );
-					if(mface->v4) glVertex3fv( extverts+3*mface->v4 );
-				}
-				else {
-					glVertex3fv( (mvert+mface->v1)->co );
-					glVertex3fv( (mvert+mface->v2)->co );
-					glVertex3fv( (mvert+mface->v3)->co );
-					if(mface->v4) glVertex3fv( (mvert+mface->v4)->co );
-				}
+				glVertex3fv( (dm->getVertCo(dm, mface->v1, co),co) );
+				glVertex3fv( (dm->getVertCo(dm, mface->v2, co),co) );
+				glVertex3fv( (dm->getVertCo(dm, mface->v3, co),co) );
+				if(mface->v4) glVertex3fv( (dm->getVertCo(dm, mface->v4, co),co) );
 			}
 		}
 		glEnd();
+
+		if (dmNeedsFree) {
+			dm->release(dm);
+		}
+
 		return 1;
 	}
 }

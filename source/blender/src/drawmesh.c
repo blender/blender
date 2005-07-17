@@ -498,21 +498,22 @@ void spack(unsigned int ucol)
 
 void draw_tfaces3D(Object *ob, Mesh *me)
 {
-	MFace *mface;
+	MFace *mface, *activeFace;
 	TFace *tface;
-	DispList *dl;
-	float *v1, *v2, *v3, *v4;
-	float *av1= NULL, *av2= NULL, *av3= NULL, *av4= NULL, *extverts= NULL; 
+	float co[3];
 	int a, activeFaceInSelection= 0;
+	DerivedMesh *dm;
+	int dmNeedsFree;
 	
 	if(me==0 || me->tface==0) return;
 
-	dl= find_displist(&ob->disp, DL_VERTS);
-	if (dl) extverts= dl->verts;
+	dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	bglPolygonOffset(1.0);
+
+#define PASSVERT(index)		{ dm->getVertCo(dm, index, co); glVertex3fv(co); }
 
 	/* Draw (Hidden) Edges */
 	if(G.f & G_DRAWEDGES || G.f & G_HIDDENEDGES){ 
@@ -521,30 +522,17 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		mface= me->mface;
 		tface= me->tface;
 		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3==0) continue;
-			if(tface->flag & TF_HIDE) {
-				if(!(G.f & G_HIDDENEDGES)) continue;
-			}
-			else if(!(G.f & G_DRAWEDGES)) continue;
+			if(mface->v3 && (G.f&G_DRAWEDGES)) {
+				if ((tface->flag&TF_HIDE) && !(G.f&G_HIDDENEDGES))
+					continue;
 			
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= extverts+3*mface->v3;
-				v4= mface->v4?(extverts+3*mface->v4):NULL;
-			} else {
-				v1= (me->mvert+mface->v1)->co;
-				v2= (me->mvert+mface->v2)->co;
-				v3= (me->mvert+mface->v3)->co;
-				v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
+				glBegin(GL_LINE_LOOP);
+					PASSVERT(mface->v1);
+					PASSVERT(mface->v2);
+					PASSVERT(mface->v3);
+					if(mface->v4) PASSVERT(mface->v4);
+				glEnd();
 			}
-
-			glBegin(GL_LINE_LOOP);
-				glVertex3fv(v1);
-				glVertex3fv(v2);
-				glVertex3fv(v3);
-				if(v4) glVertex3fv(v4);
-			glEnd();
 		}
 	}
 
@@ -556,40 +544,26 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		mface= me->mface;
 		tface= me->tface;
 		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3==0) continue;
-			if(tface->flag & TF_HIDE) continue;
+			if (mface->v3 && !(tface->flag&TF_HIDE)) {
+				if(tface->unwrap & TF_SEAM1) {
+					PASSVERT(mface->v1);
+					PASSVERT(mface->v2);
+				}
 
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= extverts+3*mface->v3;
-				v4= mface->v4?(extverts+3*mface->v4):NULL;
-			} else {
-				v1= (me->mvert+mface->v1)->co;
-				v2= (me->mvert+mface->v2)->co;
-				v3= (me->mvert+mface->v3)->co;
-				v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
-			}
+				if(tface->unwrap & TF_SEAM2) {
+					PASSVERT(mface->v2);
+					PASSVERT(mface->v3);
+				}
 
-			if(tface->unwrap & TF_SEAM1) {
-				glVertex3fv(v1);
-				glVertex3fv(v2);
-			}
+				if(tface->unwrap & TF_SEAM3) {
+					PASSVERT(mface->v3);
+					PASSVERT(mface->v4?mface->v4:mface->v1);
+				}
 
-			if(tface->unwrap & TF_SEAM2) {
-				glVertex3fv(v2);
-				glVertex3fv(v3);
-			}
-
-			if(tface->unwrap & TF_SEAM3) {
-				glVertex3fv(v3);
-				if(v4) glVertex3fv(v4);
-				else glVertex3fv(v1);
-			}
-
-			if(v4 && tface->unwrap & TF_SEAM4) {
-				glVertex3fv(v4);
-				glVertex3fv(v1);
+				if(mface->v4 && (tface->unwrap & TF_SEAM4)) {
+					PASSVERT(mface->v4);
+					PASSVERT(mface->v1);
+				}
 			}
 		}
 		glEnd();
@@ -606,27 +580,12 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		mface= me->mface;
 		tface= me->tface;
 		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3==0) continue;
-			if(tface->flag & TF_HIDE) continue;
-		
-			if(tface->flag & TF_SELECT) {
-				if(extverts) {
-					v1= extverts+3*mface->v1;
-					v2= extverts+3*mface->v2;
-					v3= extverts+3*mface->v3;
-					v4= mface->v4?(extverts+3*mface->v4):NULL;
-				} else {
-					v1= (me->mvert+mface->v1)->co;
-					v2= (me->mvert+mface->v2)->co;
-					v3= (me->mvert+mface->v3)->co;
-					v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
-				}
-	
-				glBegin(v4?GL_QUADS:GL_TRIANGLES);
-					glVertex3fv( v1 );
-					glVertex3fv( v2 );
-					glVertex3fv( v3 );
-					if(v4) glVertex3fv( v4 );
+			if(mface->v3 && !(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT)) {
+				glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+					PASSVERT(mface->v1);
+					PASSVERT(mface->v2);
+					PASSVERT(mface->v3);
+					if(mface->v4) PASSVERT(mface->v4);
 				glEnd();
 			}
 		}
@@ -634,37 +593,23 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 	}
 	
 	/* Draw Stippled Outline for selected faces */
+	activeFace = NULL;
 	mface= me->mface;
 	tface= me->tface;
 	bglPolygonOffset(1.0);
 	for(a=me->totface; a>0; a--, mface++, tface++) {
-		if(mface->v3==0) continue;
-		if(tface->flag & TF_HIDE) continue;
-		
-		if(tface->flag & (TF_ACTIVE|TF_SELECT) ) {
-			if(extverts) {
-				v1= extverts+3*mface->v1;
-				v2= extverts+3*mface->v2;
-				v3= extverts+3*mface->v3;
-				v4= mface->v4?(extverts+3*mface->v4):NULL;
-			} else {
-				v1= (me->mvert+mface->v1)->co;
-				v2= (me->mvert+mface->v2)->co;
-				v3= (me->mvert+mface->v3)->co;
-				v4= mface->v4?(me->mvert+mface->v4)->co:NULL;
-			}
-
+		if(mface->v3 && !(tface->flag&TF_HIDE) && (tface->flag & (TF_ACTIVE|TF_SELECT))) {
 			if(tface->flag & TF_ACTIVE) {
+				activeFace = mface;
 				activeFaceInSelection= (tface->flag & TF_SELECT);
-				av1= v1; av2= v2; av3= v3; av4= v4;
 			}
 			else {
 				cpack(0x0);
 				glBegin(GL_LINE_LOOP);
-					glVertex3fv( v1 );
-					glVertex3fv( v2 );
-					glVertex3fv( v3 );
-					if(v4) glVertex3fv( v4 );
+					PASSVERT(mface->v1);
+					PASSVERT(mface->v2);
+					PASSVERT(mface->v3);
+					if(mface->v4) PASSVERT(mface->v4);
 				glEnd();
 			}
 
@@ -672,10 +617,10 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 				cpack(0xFFFFFF);
 				setlinestyle(1);
 				glBegin(GL_LINE_LOOP);
-					glVertex3fv( v1 );
-					glVertex3fv( v2 );
-					glVertex3fv( v3 );
-					if(v4) glVertex3fv( v4 );
+					PASSVERT(mface->v1);
+					PASSVERT(mface->v2);
+					PASSVERT(mface->v3);
+					if(mface->v4) PASSVERT(mface->v4);
 				glEnd();
 				setlinestyle(0);
 			}
@@ -684,32 +629,35 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 
 	/* Draw Active Face on top */
 	/* colors: R=x G=y */
-	if(av1) {
+	if(activeFace) {
 		cpack(0xFF);
 		glBegin(GL_LINE_STRIP);
-			glVertex3fv(av1);
-			if(av4) glVertex3fv(av4);
-			else glVertex3fv(av3);
+			PASSVERT(activeFace->v1);
+			PASSVERT(activeFace->v4?activeFace->v4:activeFace->v3);
 		glEnd();
 
 		cpack(0xFF00);
 		glBegin(GL_LINE_STRIP);
-			glVertex3fv(av1);
-			glVertex3fv(av2);
+			PASSVERT(activeFace->v1);
+			PASSVERT(activeFace->v2);
 		glEnd();
 
 		if(activeFaceInSelection) cpack(0x00FFFF);
 		else cpack(0xFF00FF);
 
 		glBegin(GL_LINE_STRIP);
-			glVertex3fv(av2);
-			glVertex3fv(av3);
-			if(av4) glVertex3fv(av4);
+			PASSVERT(activeFace->v2);
+			PASSVERT(activeFace->v3);
+			if(activeFace->v4) PASSVERT(activeFace->v4);
 		glEnd();
 		setlinestyle(0);
 	}
 
 	bglPolygonOffset(0.0);	// resets correctly now, even after calling accumulated offsets
+
+	if (dmNeedsFree)
+		dm->release(dm);
+#undef PASSVERT
 }
 
 static int set_gl_light(Object *ob)
