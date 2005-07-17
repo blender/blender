@@ -175,6 +175,8 @@ void free_object(Object *ob)
 {
 	int a;
 	
+	if(ob->derivedDeform) ob->derivedDeform->release(ob->derivedDeform);
+
 	/* disconnect specific data */
 	if(ob->data) {
 		ID *id= ob->data;
@@ -224,7 +226,6 @@ void free_object(Object *ob)
 	
 	if(ob->pd) MEM_freeN(ob->pd);
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->derivedDeform) ob->derivedDeform->release(ob->derivedDeform);
 }
 
 void unlink_object(Object *ob)
