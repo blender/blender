@@ -247,6 +247,49 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 
 #define MAX_BBONE_SUBDIV	32
 
+/* data has MAX_BBONE_SUBDIV+1 interpolated points, will become desired amount with equal distances */
+static void equalize_bezier(float *data, int desired)
+{
+	float *fp, totdist, ddist, dist, fac1, fac2;
+	float pdist[MAX_BBONE_SUBDIV+1];
+	float temp[MAX_BBONE_SUBDIV+1][4];
+	int a, nr;
+	
+	pdist[0]= 0.0f;
+	for(a=0, fp= data; a<MAX_BBONE_SUBDIV; a++, fp+=4) {
+		QUATCOPY(temp[a], fp);
+		pdist[a+1]= pdist[a]+VecLenf(fp, fp+4);
+	}
+	/* do last point */
+	QUATCOPY(temp[a], fp);
+	totdist= pdist[a];
+	
+	/* go over distances and calculate new points */
+	ddist= totdist/((float)desired);
+	nr= 1;
+	for(a=1, fp= data+4; a<desired; a++, fp+=4) {
+		
+		dist= ((float)a)*ddist;
+		
+		/* we're looking for location (distance) 'dist' in the array */
+		while((dist>= pdist[nr]) && nr<MAX_BBONE_SUBDIV) {
+			nr++;
+		}
+		
+		fac1= pdist[nr]- pdist[nr-1];
+		fac2= pdist[nr]-dist;
+		fac1= fac2/fac1;
+		fac2= 1.0f-fac1;
+		
+		fp[0]= fac1*temp[nr-1][0]+ fac2*temp[nr][0];
+		fp[1]= fac1*temp[nr-1][1]+ fac2*temp[nr][1];
+		fp[2]= fac1*temp[nr-1][2]+ fac2*temp[nr][2];
+		fp[3]= fac1*temp[nr-1][3]+ fac2*temp[nr][3];
+	}
+	/* set last point, needed for orientation calculus */
+	QUATCOPY(fp, temp[MAX_BBONE_SUBDIV]);
+}
+
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
 /* this calculation is done within pchan pose_mat space */
 Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
@@ -254,13 +297,14 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
-	float h1[3], h2[3], length, hlength, roll;
+	float h1[3], h2[3], length, hlength1, hlength2, roll;
 	float mat3[3][3], imat[4][4];
 	float data[MAX_BBONE_SUBDIV+1][4], *fp;
 	int a;
 	
 	length= bone->length;
-	hlength= length*0.390464f;		// 0.5*sqrt(2)*kappa, the handle length for near-perfect circles
+	hlength1= bone->ease1*length*0.390464f;		// 0.5*sqrt(2)*kappa, the handle length for near-perfect circles
+	hlength2= bone->ease2*length*0.390464f;
 	
 	/* evaluate next and prev bones */
 	if(bone->flag & BONE_IK_TOPARENT)
@@ -283,10 +327,10 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		/* if previous bone is B-bone too, use average handle direction */
 		if(prev->bone->segments>1) h1[1]-= length;
 		Normalise(h1);
-		VecMulf(h1, -hlength);
+		VecMulf(h1, -hlength1);
 	}
 	else {
-		h1[0]= 0.0f; h1[1]= hlength; h1[2]= 0.0f;
+		h1[0]= 0.0f; h1[1]= hlength1; h1[2]= 0.0f;
 	}
 	if(next) {
 		float difmat[4][4], result[3][3], imat3[3][3];
@@ -311,29 +355,26 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		
 		/* and only now negate handle */
 		Normalise(h2);
-		VecMulf(h2, -hlength);
+		VecMulf(h2, -hlength2);
 		
 	}
 	else {
-		h2[0]= 0.0f; h2[1]= -hlength; h2[2]= 0.0f;
+		h2[0]= 0.0f; h2[1]= -hlength2; h2[2]= 0.0f;
 		roll= 0.0;
 	}
-	
-	//	VecMulf(h1, pchan->bone->ease1);
-	//	VecMulf(h2, pchan->bone->ease2);
 	
 	/* make curve */
 	if(bone->segments > MAX_BBONE_SUBDIV)
 		bone->segments= MAX_BBONE_SUBDIV;
 	
-	forward_diff_bezier(0.0, h1[0],		h2[0],			0.0,		data[0],	bone->segments, 4);
-	forward_diff_bezier(0.0, h1[1],		length + h2[1],	length,		data[0]+1,	bone->segments, 4);
-	forward_diff_bezier(0.0, h1[2],		h2[2],			0.0,		data[0]+2,	bone->segments, 4);
+	forward_diff_bezier(0.0, h1[0],		h2[0],			0.0,		data[0],	MAX_BBONE_SUBDIV, 4);
+	forward_diff_bezier(0.0, h1[1],		length + h2[1],	length,		data[0]+1,	MAX_BBONE_SUBDIV, 4);
+	forward_diff_bezier(0.0, h1[2],		h2[2],			0.0,		data[0]+2,	MAX_BBONE_SUBDIV, 4);
+	forward_diff_bezier(0.0, 0.390464f*roll, (1.0f-0.390464f)*roll,	roll,	data[0]+3,	MAX_BBONE_SUBDIV, 4);
 	
-	forward_diff_bezier(0.0, 0.390464f*roll, (1.0f-0.390464f)*roll,	roll,	data[0]+3,	bone->segments, 4);
+	equalize_bezier(data[0], bone->segments);	// note: does stride 4!
 	
 	/* make transformation matrices for the segments for drawing */
-	
 	for(a=0, fp= data[0]; a<bone->segments; a++, fp+=4) {
 		VecSubf(h1, fp+4, fp);
 		vec_roll_to_mat3(h1, fp[3], mat3);		// fp[3] is roll

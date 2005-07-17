@@ -268,7 +268,7 @@ void makepicstring(char *string, int frame)
 
 void addImageExtension(char *string)
 {
-	char *extension;
+	char *extension="";
 
 	if(G.scene->r.imtype== R_IRIS) {
 		extension= ".rgb";
