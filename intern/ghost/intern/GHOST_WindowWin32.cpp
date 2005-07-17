@@ -49,6 +49,9 @@ LPCSTR GHOST_WindowWin32::s_windowClassName = "GHOST_WindowClass";
 const int GHOST_WindowWin32::s_maxTitleLength = 128;
 HGLRC GHOST_WindowWin32::s_firsthGLRc = NULL;
 
+static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd);
+static int EnumPixelFormats(HDC hdc);
+
 /*
  * Color and depth bit values are not to be trusted.
  * For instance, on TNT2:
@@ -63,6 +66,7 @@ static PIXELFORMATDESCRIPTOR sPreferredFormat = {
 	1,                              /* version */
 	PFD_SUPPORT_OPENGL |
 	PFD_DRAW_TO_WINDOW |
+	PFD_SWAP_COPY |					/* support swap copy */
 	PFD_DOUBLEBUFFER,               /* support double-buffering */
 	PFD_TYPE_RGBA,                  /* color type */
 	32,                             /* prefered color depth */
@@ -393,11 +397,11 @@ GHOST_TSuccess GHOST_WindowWin32::installDrawingContext(GHOST_TDrawingContextTyp
 	switch (type) {
 	case GHOST_kDrawingContextTypeOpenGL:
 		{
-		if(m_stereoVisual)
+		if(m_stereoVisual) 
 			sPreferredFormat.dwFlags |= PFD_STEREO;
 
 		// Attempt to match device context pixel format to the preferred format
-		int iPixelFormat = ::ChoosePixelFormat(m_hDC, &sPreferredFormat);
+		int iPixelFormat = EnumPixelFormats(m_hDC);
 		if (iPixelFormat == 0) {
 			success = GHOST_kFailure;
 			break;
@@ -629,4 +633,75 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCustomCursorShape(GHOST_TUns8 *bitmap
 
 	return GHOST_kSuccess;
 }
+
+
+/*  Ron Fosner's code for weighting pixel formats and forcing software.
+	See http://www.opengl.org/resources/faq/technical/weight.cpp */
+
+static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
+	int weight = 0;
+	
+	/* assume desktop color depth is 32 bits per pixel */
+	
+	/* cull unusable pixel formats */
+	/* if no formats can be found, can we determine why it was rejected? */
+	if( !(pfd.dwFlags & PFD_SUPPORT_OPENGL) ||
+		!(pfd.dwFlags & PFD_DRAW_TO_WINDOW) ||
+		!(pfd.dwFlags & PFD_DOUBLEBUFFER) || /* Blender _needs_ this */
+		( pfd.cDepthBits <= 8 ) ||
+		!(pfd.iPixelType == PFD_TYPE_RGBA) )
+		return 0;
+	
+	weight = 1;  /* it's usable */
+	
+	/* the bigger the depth buffer the better */
+	/* give no weight to a 16-bit depth buffer, because those are crap */
+	weight += pfd.cDepthBits - 16;
+	
+	weight += pfd.cColorBits - 8;
+	
+	/* want swap copy capability -- it matters a lot */
+	if(pfd.dwFlags & PFD_SWAP_COPY)	weight += 16;
+	
+	/* but if it's a generic (not accelerated) view, it's really bad */
+	if(pfd.dwFlags & PFD_GENERIC_FORMAT) weight /= 10;
+	
+	return weight;
+}
+
+/* A modification of Ron Fosner's replacement for ChoosePixelFormat */ 
+/* returns 0 on error, else returns the pixel format number to be used */
+static int EnumPixelFormats(HDC hdc) {
+	int iPixelFormat;
+	int i, n, w, weight = 0;
+	PIXELFORMATDESCRIPTOR pfd, pfd_fallback;
+	
+	/* we need a device context to do anything */
+	if(!hdc) return 0;
+
+	iPixelFormat = 1; /* careful! PFD numbers are 1 based, not zero based */
+	
+	/* obtain detailed information about 
+	the device context's first pixel format */
+	n = 1+::DescribePixelFormat(hdc, iPixelFormat, 
+		sizeof(PIXELFORMATDESCRIPTOR), &pfd);
+	
+	/* choose a pixel format using the useless Windows function in case
+		we come up empty handed */
+	iPixelFormat = ::ChoosePixelFormat( hdc, &sPreferredFormat );
+	
+	if(!iPixelFormat) return 0; /* couldn't find one to use */
+
+	for(i=1; i<=n; i++) { /* not the idiom, but it's right */
+		::DescribePixelFormat( hdc, i, sizeof(PIXELFORMATDESCRIPTOR), &pfd );
+		w = WeightPixelFormat(pfd);
+		if(w > weight) {
+			weight = w;
+			iPixelFormat = i;
+		}
+	}
+	
+	return iPixelFormat;
+}
+
 
