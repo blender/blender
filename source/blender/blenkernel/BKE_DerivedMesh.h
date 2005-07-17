@@ -61,9 +61,11 @@ struct DerivedMesh {
 
 	void (*getMappedVertCoEM)(DerivedMesh *dm, void *vert, float co_r[3]);
 
-			/* Convert to new DispListMesh, should be free'd by caller */
+		/* Convert to new DispListMesh, should be free'd by caller */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
 
+		/* Iterate over all vertex points, calling DO_MINMAX with given args */
+	void (*getMinMax)(DerivedMesh *dm, float min_r[3], float max_r[3]);
 
 	/* Direct Access Operations */
 	/*  o Can be undefined */

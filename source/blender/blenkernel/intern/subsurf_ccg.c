@@ -41,6 +41,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_bad_level_calls.h"
+#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
@@ -570,6 +571,51 @@ typedef struct {
 	SubSurf *ss;
 } CCGDerivedMesh;
 
+static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3]) {
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss->subSurf;
+	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ss);
+	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
+	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
+	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int gridSize = ccgSubSurf_getGridSize(ss);
+
+	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
+		CCGVert *v = ccgVertIterator_getCurrent(vi);
+		float *co = ccgSubSurf_getVertData(ss, v);
+
+		DO_MINMAX(co, min_r, max_r);
+	}
+
+	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
+		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
+		EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
+		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
+
+		for (i=1; i<edgeSize-1; i++)
+			DO_MINMAX(edgeData[i].co, min_r, max_r);
+	}
+
+	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
+		CCGFace *f = ccgFaceIterator_getCurrent(fi);
+		EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
+		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
+
+		for (S=0; S<numVerts; S++) {
+			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
+
+			for (x=0; x<gridSize; x++)
+				DO_MINMAX(faceGridData[x].co, min_r, max_r);
+			for (y=0; y<gridSize; y++)
+				for (x=0; x<gridSize; x++)
+					DO_MINMAX(faceGridData[y*gridSize + x].co, min_r, max_r);
+		}
+	}
+
+	ccgFaceIterator_free(fi);
+	ccgEdgeIterator_free(ei);
+	ccgVertIterator_free(vi);
+}
 static int ccgDM_getNumVerts(DerivedMesh *dm) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 
@@ -910,6 +956,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 static CCGDerivedMesh *getCCGDerivedMesh(SubSurf *ss) {
 	CCGDerivedMesh *ccgdm = MEM_mallocN(sizeof(*ccgdm), "dm");
 
+	ccgdm->dm.getMinMax = ccgDM_getMinMax;
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
 	ccgdm->dm.getNumFaces = ccgDM_getNumFaces;
 	ccgdm->dm.getMappedVertCoEM = ccgDM_getMappedVertCoEM;

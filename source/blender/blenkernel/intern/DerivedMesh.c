@@ -45,6 +45,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -109,6 +110,19 @@ static float *meshDM__getVertCoP(MeshDerivedMesh *mdm, int index)
 		return mdm->extverts+3*index;
 	} else {
 		return ((Mesh*) mdm->ob->data)->mvert[index].co;
+	}
+}
+
+static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->ob->data;
+	int i;
+
+	for (i=0; i<me->totvert; i++) {
+		MVert *mv = &me->mvert[i];
+
+		DO_MINMAX(mv->co, min_r, max_r);
 	}
 }
 
@@ -435,6 +449,8 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "dm");
 
+	mdm->dm.getMinMax = meshDM_getMinMax;
+
 	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 	mdm->dm.getNumVerts = meshDM_getNumVerts;
 	mdm->dm.getNumFaces = meshDM_getNumFaces;
@@ -564,6 +580,15 @@ static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	}
 }
 
+static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *eve;
+
+	for (eve= emdm->em->verts.first; eve; eve= eve->next) {
+		DO_MINMAX(eve->co, min_r, max_r);
+	}
+}
 static int emDM_getNumVerts(DerivedMesh *dm)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -580,6 +605,8 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "dm");
+
+	emdm->dm.getMinMax = emDM_getMinMax;
 
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumFaces = emDM_getNumFaces;
@@ -845,6 +872,15 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 	}
 }
 
+static void ssDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	int i;
+
+	for (i=0; i<ssdm->dlm->totvert; i++) {
+		DO_MINMAX(ssdm->dlm->mvert[i].co, min_r, max_r);
+	}
+}
 static int ssDM_getNumVerts(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -877,6 +913,8 @@ static void ssDM_release(DerivedMesh *dm)
 DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 {
 	SSDerivedMesh *ssdm = MEM_callocN(sizeof(*ssdm), "dm");
+
+	ssdm->dm.getMinMax = ssDM_getMinMax;
 
 	ssdm->dm.getNumVerts = ssDM_getNumVerts;
 	ssdm->dm.getNumFaces = ssDM_getNumFaces;

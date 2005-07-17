@@ -105,6 +105,8 @@ struct _FastLamp {
 
 /***/
 
+static void boundbox_displist(Object *ob);
+
 static FastLamp *fastlamplist= NULL;
 static float fviewmat[4][4];
 
@@ -771,7 +773,7 @@ void shadeDispList(Object *ob)
 {
 	MFace *mface;
 	MVert *mvert;
-	DispList *dl, *dlob, *dldeform;
+	DispList *dl, *dlob;
 	Material *ma = NULL;
 	Mesh *me;
 	Curve *cu;
@@ -789,9 +791,6 @@ void shadeDispList(Object *ob)
 	Mat4Invert(tmat, mat);
 	Mat3CpyMat4(imat, tmat);
 	if(ob->transflag & OB_NEG_SCALE) Mat3MulFloat((float *)imat, -1.0);
-	
-	/* we extract dl_verts, deform info */
-	dldeform= find_displist(&ob->disp, DL_VERTS);
 	
 	dl = find_displist(&ob->disp, DL_VERTCOL);
 	if (dl) {
@@ -1179,8 +1178,7 @@ void reshadeall_displist(void)
 			
 			ob= base->object;
 			
-			/* we extract dl_verts, deform info */
-			dldeform= find_displist(&ob->disp, DL_VERTS);
+			dldeform= find_displist(&ob->disp, DL_VERTS); // removed after switchover
 			if(dldeform) BLI_remlink(&ob->disp, dldeform);
 			
 			/* Metaballs have standard displist at the Object */
@@ -2211,7 +2209,7 @@ void imagestodisplist(void)
 	allqueue(REDRAWVIEW3D, 0);
 }
 
-void boundbox_displist(Object *ob)
+static void boundbox_displist(Object *ob)
 {
 	BoundBox *bb=0;
 	float min[3], max[3];

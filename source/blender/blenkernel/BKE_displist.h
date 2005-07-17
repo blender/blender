@@ -148,7 +148,6 @@ extern void makeDispListCurveTypes(struct Object *ob);
 extern void makeDispListMBall(struct Object *ob);
 extern void shadeDispList(struct Object *ob);
 void freefastshade(void);
-void boundbox_displist(struct Object *ob);
 void imagestodisplist(void);
 void reshadeall_displist(void);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
