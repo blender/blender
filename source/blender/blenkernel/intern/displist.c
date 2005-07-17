@@ -813,6 +813,8 @@ void shadeDispList(Object *ob)
 		if (need_orco) {
 			make_orco_displist_mesh(ob, me->subdiv);
 			orco= me->orco;
+		} else {
+			orco= NULL;
 		}
 
 		dlm= dm->convertToDispListMesh(dm);
@@ -853,15 +855,15 @@ void shadeDispList(Object *ob)
 
 				if (mf->v3) {
 					int j, vidx[4], nverts= mf->v4?4:3;
-					unsigned int *col1base= &dlob->col1[i*4];
-					unsigned int *col2base= dlob->col2?&dlob->col2[i*4]:NULL;
-					unsigned int *mcolbase;
+					unsigned char *col1base= (unsigned char*) &dlob->col1[i*4];
+					unsigned char *col2base= (unsigned char*) (dlob->col2?&dlob->col2[i*4]:NULL);
+					unsigned char *mcolbase;
 					float nor[3];
 					
 					if (dlm->tface) {
-						mcolbase = dlm->tface[i].col;
+						mcolbase = (unsigned char*) dlm->tface[i].col;
 					} else if (dlm->mcol) {
-						mcolbase = (unsigned int*) &dlm->mcol[i*4];
+						mcolbase = (unsigned char*) &dlm->mcol[i*4];
 					} else {
 						mcolbase = NULL;
 					}
@@ -874,31 +876,32 @@ void shadeDispList(Object *ob)
 					vidx[2]= mf->v3;
 					vidx[3]= mf->v4;
 
-					if (mf->v4)
-						CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
-					else
-						CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+						// XXX, should all DLM's have normals?
+					if (dlm->nors) {
+						VECCOPY(nor, &dlm->nors[i*3]);
+					} else {
+						if (mf->v4)
+							CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+						else
+							CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+					}
 
 					n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 					n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 					n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 					Normalise(n1);
 
+					vn = n1;
 					for (j=0; j<nverts; j++) {
 						MVert *mv= &dlm->mvert[vidx[j]];
-						unsigned int *col1= &col1base[j];
-						unsigned int *col2= col2base?&col2base[j]:NULL;
-						unsigned int *mcol= mcolbase?&mcolbase[j]:NULL;
+						unsigned char *col1= &col1base[j*4];
+						unsigned char *col2= col2base?&col2base[j*4]:NULL;
+						unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
 						
 						VECCOPY(vec, mv->co);
 						Mat4MulVecfl(mat, vec);
 						if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
-						else vn= n1;
-					
-						if (need_orco && orco)
-							fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
-						else
-							fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
+						fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
 					}
 				}
 			}
