@@ -103,13 +103,32 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 	return dlm;
 }
 
-static float *meshDM__getVertCo(MeshDerivedMesh *mdm, int index)
+static float *meshDM__getVertCoP(MeshDerivedMesh *mdm, int index)
 {
 	if (mdm->extverts) {
 		return mdm->extverts+3*index;
 	} else {
 		return ((Mesh*) mdm->ob->data)->mvert[index].co;
 	}
+}
+
+static void meshDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
+{
+	float *co = meshDM__getVertCoP((MeshDerivedMesh*) dm, index);
+
+	co_r[0] = co[0];
+	co_r[1] = co[1];
+	co_r[2] = co[2];
+}
+
+static void meshDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	short *no = ((Mesh*) mdm->ob->data)->mvert[index].no;
+
+	no_r[0] = no[0]/32767.f;
+	no_r[1] = no[1]/32767.f;
+	no_r[2] = no[2]/32767.f;
 }
 
 static void meshDM_drawVerts(DerivedMesh *dm)
@@ -122,7 +141,7 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 
 	glBegin(GL_POINTS);
 	for(a= start; a<end; a++) {
-		glVertex3fv(meshDM__getVertCo(mdm, a));
+		glVertex3fv(meshDM__getVertCoP(mdm, a));
 	}
 	glEnd();
 }
@@ -144,8 +163,8 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 		glBegin(GL_LINES);
 		for(a=me->totedge; a>0; a--, medge++) {
 			if(medge->flag & ME_EDGEDRAW) {
-				glVertex3fv(meshDM__getVertCo(mdm, medge->v1));
-				glVertex3fv(meshDM__getVertCo(mdm, medge->v2));
+				glVertex3fv(meshDM__getVertCoP(mdm, medge->v1));
+				glVertex3fv(meshDM__getVertCoP(mdm, medge->v2));
 			}
 		}
 		glEnd();
@@ -157,29 +176,29 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 			
 			if(test) {
 				if(test&ME_V1V2){
-					glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
-					glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
+					glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
+					glVertex3fv(meshDM__getVertCoP(mdm, mface->v2));
 				}
 
 				if(mface->v3) {
 					if(test&ME_V2V3){
-						glVertex3fv(meshDM__getVertCo(mdm, mface->v2));
-						glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
+						glVertex3fv(meshDM__getVertCoP(mdm, mface->v2));
+						glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
 					}
 
 					if (mface->v4) {
 						if(test&ME_V3V4){
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
 						}
 						if(test&ME_V4V1){
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
 						}
 					} else {
 						if(test&ME_V3V1){
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
-							glVertex3fv(meshDM__getVertCo(mdm, mface->v1));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
+							glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
 						}
 					}
 				}
@@ -201,8 +220,8 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	glBegin(GL_LINES);
 	for(a=start; a<end; a++, mface++) {
 		if(!mface->v3) {
-			glVertex3fv(meshDM__getVertCo(mdm, mface->v3));
-			glVertex3fv(meshDM__getVertCo(mdm, mface->v4));
+			glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
+			glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
 		} 
 	}
 	glEnd();
@@ -229,7 +248,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 			glNormal3sv(no);					\
 		}										\
 	}											\
-	glVertex3fv(meshDM__getVertCo(mdm,index));	\
+	glVertex3fv(meshDM__getVertCoP(mdm,index));	\
 }
 
 	glBegin(glmode=GL_QUADS);
@@ -309,26 +328,26 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 			}
 				
 			glColor3ub(cp1[3], cp1[2], cp1[1]);
-			glVertex3fv( meshDM__getVertCo(mdm,mface->v1) );
+			glVertex3fv( meshDM__getVertCoP(mdm,mface->v1) );
 			glColor3ub(cp1[7], cp1[6], cp1[5]);
-			glVertex3fv( meshDM__getVertCo(mdm,mface->v2) );
+			glVertex3fv( meshDM__getVertCoP(mdm,mface->v2) );
 			glColor3ub(cp1[11], cp1[10], cp1[9]);
-			glVertex3fv( meshDM__getVertCo(mdm,mface->v3) );
+			glVertex3fv( meshDM__getVertCoP(mdm,mface->v3) );
 			if(mface->v4) {
 				glColor3ub(cp1[15], cp1[14], cp1[13]);
-				glVertex3fv( meshDM__getVertCo(mdm,mface->v4) );
+				glVertex3fv( meshDM__getVertCoP(mdm,mface->v4) );
 			}
 				
 			if(useTwoSide) {
 				glColor3ub(cp2[11], cp2[10], cp2[9]);
-				glVertex3fv( meshDM__getVertCo(mdm,mface->v3) );
+				glVertex3fv( meshDM__getVertCoP(mdm,mface->v3) );
 				glColor3ub(cp2[7], cp2[6], cp2[5]);
-				glVertex3fv( meshDM__getVertCo(mdm,mface->v2) );
+				glVertex3fv( meshDM__getVertCoP(mdm,mface->v2) );
 				glColor3ub(cp2[3], cp2[2], cp2[1]);
-				glVertex3fv( meshDM__getVertCo(mdm,mface->v1) );
+				glVertex3fv( meshDM__getVertCoP(mdm,mface->v1) );
 				if(mface->v4) {
 					glColor3ub(cp2[15], cp2[14], cp2[13]);
-					glVertex3fv( meshDM__getVertCo(mdm,mface->v4) );
+					glVertex3fv( meshDM__getVertCoP(mdm,mface->v4) );
 				}
 			}
 		}
@@ -376,23 +395,23 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		if (tf) glTexCoord2fv(tf->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mf->v1));
+		glVertex3fv(meshDM__getVertCoP(mdm, mf->v1));
 			
 		if (tf) glTexCoord2fv(tf->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mf->v2));
+		glVertex3fv(meshDM__getVertCoP(mdm, mf->v2));
 
 		if (tf) glTexCoord2fv(tf->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
-		glVertex3fv(meshDM__getVertCo(mdm, mf->v3));
+		glVertex3fv(meshDM__getVertCoP(mdm, mf->v3));
 
 		if(mf->v4) {
 			if (tf) glTexCoord2fv(tf->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
-			glVertex3fv(meshDM__getVertCo(mdm, mf->v4));
+			glVertex3fv(meshDM__getVertCoP(mdm, mf->v4));
 		}
 		glEnd();
 	}
@@ -419,6 +438,9 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
 	mdm->dm.getNumVerts = meshDM_getNumVerts;
 	mdm->dm.getNumFaces = meshDM_getNumFaces;
+
+	mdm->dm.getVertCo = meshDM_getVertCo;
+	mdm->dm.getVertNo = meshDM_getVertNo;
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
 
@@ -940,13 +962,28 @@ DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 	return NULL;
 }
 
-DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
+DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
+{
+	Mesh *me = ob->data;
+	DispList *dl;
+	DispList *meDL;
+
+	build_mesh_data(ob, G.obedit && me==G.obedit->data);
+
+	*needsFree_r = 1;
+	dl = find_displist(&ob->disp, DL_VERTS);
+	meDL = me->disp.first;
+
+	return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+}
+
+DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree_r)
 {
 	Mesh *me= ob->data;
 
 	if ((me->flag&ME_SUBSURF) && me->subdivr) {
 		if (me->subdiv==me->subdivr) {
-			*needsFree = 0;
+			*needsFree_r = 0;
 
 				// Don't reuse cache in editmode, we need to guarantee
 				// index order of result and the incremental syncing messes
@@ -956,7 +993,7 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 			}
 		} 
 
-		*needsFree = 1;
+		*needsFree_r = 1;
 		if(G.obedit && me==G.obedit->data) {
 			return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
 		} else {
@@ -966,7 +1003,7 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree)
 		DispList *dl;
 		DispList *meDL;
 
-		*needsFree = 1;
+		*needsFree_r = 1;
 		dl = find_displist(&ob->disp, DL_VERTS);
 		meDL = me->disp.first;
 		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
@@ -990,18 +1027,18 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 	}
 }
 
-DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree)
+DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r)
 {
 	Mesh *me= ob->data;
 	DerivedMesh *dm = NULL;
 
-	*needsFree = 0;
+	*needsFree_r = 0;
 
 	if (me->flag&ME_OPT_EDGES) {
 		dm = mesh_get_derived(ob);
 	}
 	if (!dm) {
-		*needsFree = 1;
+		*needsFree_r = 1;
 		dm = mesh_get_base_derived(ob);
 	}
 

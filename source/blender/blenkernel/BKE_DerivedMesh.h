@@ -64,6 +64,17 @@ struct DerivedMesh {
 			/* Convert to new DispListMesh, should be free'd by caller */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
 
+
+	/* Direct Access Operations */
+	/*  o Can be undefined */
+	/*  o Must be defined for modifiers that only deform however */
+			
+		/* Get vertex location, undefined if index is not valid */
+	void (*getVertCo)(DerivedMesh *dm, int index, float co_r[3]);
+
+		/* Get vertex normal, undefined if index is not valid */
+	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
+
 	/* Drawing Operations */
 
 			/* Draw all vertices as bgl points (no options) */
@@ -135,6 +146,7 @@ DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
 DerivedMesh *mesh_get_derived(struct Object *ob);
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_render(struct Object *ob, int *needsFree_r);
+DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
 
 	/* IMPORTANT: The functions below do not return "true" DerivedMesh
 	 * objects, rather they are just proxies for the mesh or editmesh

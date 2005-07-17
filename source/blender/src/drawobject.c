@@ -1783,13 +1783,9 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
 	DispList *dl;
-	float *obExtVerts;
 	DerivedMesh *dm = realDM?realDM:baseDM;
 
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
-
-	dl = find_displist(&ob->disp, DL_VERTS);
-	obExtVerts = dl?dl->verts:NULL;
 
 		// Unwanted combination.
 	if (G.f&G_FACESELECT) draw_wire = 0;

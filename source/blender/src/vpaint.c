@@ -60,6 +60,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -273,7 +274,7 @@ void make_vertexcol()	/* single ob */
 		if(me->tface) mcol_to_tface(me, 1);
 	}
 	
-	freedisplist(&(ob->disp));
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
@@ -662,14 +663,17 @@ static unsigned int sample_backbuf(int x, int y)
 	return framebuffer_to_index(col);
 }
 
-static int calc_vp_alpha(MVert *mvert, short *mval)
+static int calc_vp_alpha_dl(DerivedMesh *dm, int vert, short *mval)
 {
-	float fac, dx, dy, nor[3];
+	float co[3], no[3];
+	float fac, dx, dy;
 	int alpha;
 	short vertco[2];
 	
 	if(Gvp.flag & VP_SOFT) {
-	 	project_short_noclip(mvert->co , vertco);
+		dm->getVertCo(dm, vert, co);
+
+	 	project_short_noclip(co, vertco);
 		dx= mval[0]-vertco[0];
 		dy= mval[1]-vertco[1];
 		
@@ -681,14 +685,15 @@ static int calc_vp_alpha(MVert *mvert, short *mval)
 	else {
 		alpha= 255.0*Gvp.a;
 	}
+
 	if(Gvp.flag & VP_NORMALS) {
-		VECCOPY(nor, mvert->no);
-		
-		/* transpose ! */
-		fac= vpimat[2][0]*nor[0]+vpimat[2][1]*nor[1]+vpimat[2][2]*nor[2];
+		dm->getVertNo(dm, vert, no);
+
+			/* transpose ! */
+		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
 		if(fac>0.0) {
-			dx= vpimat[0][0]*nor[0]+vpimat[0][1]*nor[1]+vpimat[0][2]*nor[2];
-			dy= vpimat[1][0]*nor[0]+vpimat[1][1]*nor[1]+vpimat[1][2]*nor[2];
+			dx= vpimat[0][0]*no[0]+vpimat[0][1]*no[1]+vpimat[0][2]*no[2];
+			dy= vpimat[1][0]*no[0]+vpimat[1][1]*no[1]+vpimat[1][2]*no[2];
 			
 			alpha*= fac/sqrt(dx*dx + dy*dy + fac*fac);
 		}
@@ -696,53 +701,6 @@ static int calc_vp_alpha(MVert *mvert, short *mval)
 	}
 	
 	return alpha;
-
-}
-
-static int calc_vp_alpha_dl(DispList *disp, MVert *mvert, int vert, short *mval)
-/* Lets us do soft vertex painting onto a deformed mesh */
-{
-	float fac, dx, dy, nor[3];
-	int alpha;
-	short vertco[2];
-	
-	/* For safety's sake !*/
-	if (!disp || !disp->verts)
-		return calc_vp_alpha (mvert+vert, mval);
-
-	//	use display list 
-	if(Gvp.flag & VP_SOFT) {
-	 	project_short_noclip(disp->verts+(vert*3), vertco);
-		dx= mval[0]-vertco[0];
-		dy= mval[1]-vertco[1];
-		
-		fac= sqrt(dx*dx + dy*dy);
-		if(fac > Gvp.size) return 0;
-	
-		alpha= 255.0*Gvp.a*(1.0-fac/Gvp.size);
-	}
-	else {
-		alpha= 255.0*Gvp.a;
-	}
-
-	if(Gvp.flag & VP_NORMALS) {
-		if(disp->nors) {
-			VECCOPY(nor, disp->nors+(vert*3));
-			
-			// transpose ! 
-			fac= vpimat[2][0]*nor[0]+vpimat[2][1]*nor[1]+vpimat[2][2]*nor[2];
-			if(fac>0.0) {
-				dx= vpimat[0][0]*nor[0]+vpimat[0][1]*nor[1]+vpimat[0][2]*nor[2];
-				dy= vpimat[1][0]*nor[0]+vpimat[1][1]*nor[1]+vpimat[1][2]*nor[2];
-				
-				alpha*= fac/sqrt(dx*dx + dy*dy + fac*fac);
-			}
-			else return 0;
-		}
-	}
-	
-	return alpha;
-
 }
 
 
@@ -792,7 +750,6 @@ void weight_paint(void)
 	short mval[2], mvalo[2], firsttime=1, mousebut;
 	MDeformWeight	*dw, *uw;
 	extern float editbutvweight;
-	DispList *dl;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
@@ -838,7 +795,9 @@ void weight_paint(void)
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			
+			DerivedMesh *dm;
+			int needsFree;
+
 			firsttime= 0;
 			
 			/* which faces are involved */
@@ -879,33 +838,32 @@ void weight_paint(void)
 				}
 			}
 			
-			dl= find_displist(&ob->disp, DL_VERTS);
+			dm = mesh_get_derived_deform(ob, &needsFree);
 			for(index=0; index<totindex; index++) {
 				
 				if(indexar[index] && indexar[index]<=me->totface) {
-					mface= ((MFace *)me->mface) + (indexar[index]-1);
+					mface= me->mface + (indexar[index]-1);
 					
-
-					if (calc_vp_alpha_dl(dl, me->mvert, mface->v1, mval)){
+					if (calc_vp_alpha_dl(dm, mface->v1, mval)){
 						dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
 						uw= verify_defweight(wpaintundobuf+mface->v1, ob->actdef-1);
 						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
 					}
 					
-					if (calc_vp_alpha_dl(dl, me->mvert, mface->v2, mval)){
+					if (calc_vp_alpha_dl(dm, mface->v2, mval)){
 						dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
 						uw= verify_defweight(wpaintundobuf+mface->v2, ob->actdef-1);
 						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
 					}
 					
-					if (calc_vp_alpha_dl(dl, me->mvert, mface->v3, mval)){
+					if (calc_vp_alpha_dl(dm, mface->v3, mval)){
 						dw= verify_defweight(me->dvert+mface->v3, ob->actdef-1);
 						uw= verify_defweight(wpaintundobuf+mface->v3, ob->actdef-1);
 						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
 					}
 					
 					if(mface->v4) {
-						if (calc_vp_alpha_dl(dl, me->mvert, mface->v4, mval)){
+						if (calc_vp_alpha_dl(dm, mface->v4, mval)){
 							dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
 							uw= verify_defweight(wpaintundobuf+mface->v4, ob->actdef-1);
 							if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
@@ -913,6 +871,8 @@ void weight_paint(void)
 					}
 				}
 			}
+			if (needsFree)
+				dm->release(dm);
 			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
@@ -955,7 +915,6 @@ void vertex_paint()
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
-	DispList *dl;
 	float mat[4][4], imat[4][4];
 	unsigned int paintcol=0, *mcol, fcol1, fcol2;
 	int index, alpha, totindex, total;
@@ -1006,7 +965,9 @@ void vertex_paint()
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			
+			DerivedMesh *dm;
+			int needsFree;
+
 			firsttime= 0;
 
 			/* which faces are involved */
@@ -1046,8 +1007,7 @@ void vertex_paint()
 				}
 			}
 
-			dl= find_displist(&ob->disp, DL_VERTS);
-
+			dm= mesh_get_derived_deform(ob, &needsFree);
 			for(index=0; index<totindex; index++) {
 
 				if(indexar[index] && indexar[index]<=me->totface) {
@@ -1069,17 +1029,17 @@ void vertex_paint()
 					
 					total= 0;
 					
-					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v1, mval);
+					total+= alpha= calc_vp_alpha_dl(dm, mface->v1, mval);
 					if(alpha) vpaint_blend( mcol, paintcol, alpha);
 					
-					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v2, mval);
+					total+= alpha= calc_vp_alpha_dl(dm, mface->v2, mval);
 					if(alpha) vpaint_blend( mcol+1, paintcol, alpha);
 	
-					total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v3, mval);
+					total+= alpha= calc_vp_alpha_dl(dm, mface->v3, mval);
 					if(alpha) vpaint_blend( mcol+2, paintcol, alpha);
 
 					if(mface->v4) {
-						total+= alpha= calc_vp_alpha_dl(dl, me->mvert, mface->v4, mval);
+						total+= alpha= calc_vp_alpha_dl(dm, mface->v4, mval);
 						if(alpha) vpaint_blend( mcol+3, paintcol, alpha);
 					}
 					
@@ -1092,7 +1052,9 @@ void vertex_paint()
 					/* } */
 				}
 			}
-			
+			if (needsFree)
+				dm->release(dm);
+				
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
 			do_shared_vertexcol(me);
