@@ -889,11 +889,15 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
 
+		if (dmNeedsFree) dm->release(dm);
+
 		start = 0;
 		totface = me->totface;
 		set_buildvars(ob, &start, &totface);
 
 		if (!editing && prop && tface) {
+			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+
 			tface+= start;
 			for (a=start; a<totface; a++, tface++) {
 				MFace *mf= &mface[a];
@@ -977,11 +981,12 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					glEnd();
 				}
 			}
+
+			if (dmNeedsFree) dm->release(dm);
 		}
 
 		/* switch off textures */
 		set_tpage(0);
-		if (dmNeedsFree) dm->release(dm);
 	}
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
