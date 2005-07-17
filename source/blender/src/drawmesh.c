@@ -841,9 +841,6 @@ static int draw_tface_mesh__set_draw(TFace *tface, int matnr)
 void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 /* maximum dt (drawtype): exactly according values that have been set */
 {
-	TFace *tface=NULL;
-	MFace *mface=NULL;
-	float *extverts= NULL;
 	unsigned char obcol[4];
 	int a;
 	short islight, istex;
@@ -876,20 +873,22 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	set_draw_settings_cached(1, 0, 0, 0, 0, 0, 0);
 
 	if(dt > OB_SOLID) {
+		TFace *tface= me->tface;
+		MFace *mface= me->mface;
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
 		DerivedMesh *dm;
 		int start, totface;
+		int dmNeedsFree;
 
 		if(mesh_uses_displist(me) && editing==0) {
 			dm = mesh_get_derived(ob);
-			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
+			dmNeedsFree = 0;
 		} else {
-			int dmNeedsFree;
 			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
-			if (dmNeedsFree) dm->release(dm);
 		}
+
+		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
 
 		start = 0;
 		totface = me->totface;
@@ -905,7 +904,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 				if (mf->v3 && !(tface->flag&TF_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
 					int badtex= set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE);
-					float *v1, *v2, *v3, *v4;
+					float v1[3], v2[3], v3[3], v4[3];
 					char string[MAX_PROPSTRING];
 					int characters, index;
 					Image *ima;
@@ -914,17 +913,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					if (badtex)
 						continue;
 
-					if (extverts) {
-						v1= extverts+3*mf->v1;
-						v2= extverts+3*mf->v2;
-						v3= extverts+3*mf->v3;
-						v4= mf->v4?(extverts+3*mf->v4):NULL;
-					} else {
-						v1= (me->mvert+mf->v1)->co;
-						v2= (me->mvert+mf->v2)->co;
-						v3= (me->mvert+mf->v3)->co;
-						v4= mf->v4?(me->mvert+mf->v4)->co:NULL;
-					}
+					dm->getVertCo(dm, mf->v1, v1);
+					dm->getVertCo(dm, mf->v2, v2);
+					dm->getVertCo(dm, mf->v3, v3);
+					if (mf->v4) dm->getVertCo(dm, mf->v4, v4);
 
 					// The BM_FONT handling code is duplicated in the gameengine
 					// Search for 'Frank van Beek' ;-)
@@ -938,7 +930,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 						characters = 0;
 					}
 
-					if (1 || !mf_smooth) {
+					if (!mf_smooth) {
 						float nor[3];
 
 						CalcNormFloat(v1, v2, v3, nor);
@@ -947,7 +939,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 					}
 
 					curpos= 0.0;
-					glBegin(v4?GL_QUADS:GL_TRIANGLES);
+					glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 					for (index = 0; index < characters; index++) {
 						float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
 						int character = string[index];
@@ -975,7 +967,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 						if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 						glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
 			
-						if(v4) {
+						if(mf->v4) {
 							glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
 							if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 							glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
@@ -990,6 +982,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		/* switch off textures */
 		set_tpage(0);
+		if (dmNeedsFree) dm->release(dm);
 	}
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
