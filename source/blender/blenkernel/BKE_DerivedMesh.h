@@ -45,6 +45,7 @@
  *    conversion to DLM.
  */
 
+struct MVert;
 struct Object;
 struct EditMesh;
 struct EditVert;
@@ -142,8 +143,9 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
-	/* Internal function, just temporarily exposed */
+	/* Internal functions, just temporarily exposed */
 DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
+DerivedMesh *derivedmesh_from_mesh(struct Object *ob, struct MVert *deformedVerts);
 
 DerivedMesh *mesh_get_derived(struct Object *ob);
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);

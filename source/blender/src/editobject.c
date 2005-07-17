@@ -1479,8 +1479,6 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 			set_seamtface();
 			allqueue(REDRAWIMAGE, 0);
 		}
-
-		build_particle_system(G.obedit);
 	}
 	else if (G.obedit->type==OB_ARMATURE){	
 		load_editArmature();
@@ -2213,7 +2211,7 @@ void convertmenu(void)
 						for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 					}
 					
-					dm= subsurf_make_derived_from_mesh(oldme, oldme->subdiv);
+					dm= subsurf_make_derived_from_mesh(ob, oldme->subdiv, 0);
 					dlm= dm->convertToDispListMesh(dm);
 					dm->release(dm);
 

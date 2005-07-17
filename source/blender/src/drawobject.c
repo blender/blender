@@ -1931,13 +1931,14 @@ static void draw_mesh_object(Base *base, int dt)
 		BoundBox *bb = mesh_get_bb(me);
 
 		if(me->totface<=4 || boundbox_clip(ob->obmat, bb)) {
-			DerivedMesh *baseDM = mesh_get_base_derived(ob);
+			int baseDMneedsFree;
+			DerivedMesh *baseDM = mesh_get_derived_deform(ob, &baseDMneedsFree);
 			DerivedMesh *realDM = mesh_get_derived(ob);
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
 			draw_mesh_fancy(ob, baseDM, realDM, dt);
 
-			baseDM->release(baseDM);
+			if (baseDMneedsFree) baseDM->release(baseDM);
 		}
 	}
 	
@@ -3965,88 +3966,81 @@ static int bbs_mesh_solid__setDrawOptions(void *userData, EditFace *efa)
 	}
 }
 /* two options, facecolors or black */
-static int bbs_mesh_solid(Object *ob, DerivedMesh *dm, int facecol)
+static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 {
-	int glmode, a;
+	cpack(0);
+
+	if (facecol) {
+		EditFace *efa, *prevefa;
+		int a, b;
+
+			// tuck original indices in efa->prev
+		for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) 
+			efa->prev= (EditFace *)(b);
+		a = b;
+
+		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 1);
+
+		if(G.scene->selectmode & SCE_SELECT_FACE) {
+			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
+			
+			bglBegin(GL_POINTS);
+			for(efa= G.editMesh->faces.first; efa; efa= efa->next) {
+				if(efa->h==0 && efa->fgonf!=EM_FGON) {
+					set_framebuffer_index_color((int)efa->prev);
+					bglVertex3fv(efa->cent);
+				}
+			}
+			bglEnd();
+		}
+
+		for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
+			efa->prev= prevefa;
+		return a;
+	} else {
+		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 0);
+		return 1;
+	}
+}
+
+static void bbs_mesh_solid(Object *ob)
+{
+	Mesh *me= ob->data;
+	MFace *mface= me->mface;
+	TFace *tface= me->tface;
+	float co[3];
+	int a, glmode, dmNeedsFree;
+	DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 	
 	cpack(0);
 
-	if(ob==G.obedit) {
-		if (facecol) {
-			EditFace *efa, *prevefa;
-			int b;
+	glBegin(glmode=GL_QUADS);
+	for(a=0; a<me->totface; a++, mface++, tface++) {
+		if(mface->v3 && (!me->tface || !(tface->flag&TF_HIDE))) {
+			int newmode = mface->v4?GL_QUADS:GL_TRIANGLES;
 
-				// tuck original indices in efa->prev
-			for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) 
-				efa->prev= (EditFace *)(b);
-			a = b;
+			set_framebuffer_index_color(a+1);
 
-			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 1);
-
-			if(G.scene->selectmode & SCE_SELECT_FACE) {
-				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
-				
-				bglBegin(GL_POINTS);
-				for(efa= G.editMesh->faces.first; efa; efa= efa->next) {
-					if(efa->h==0 && efa->fgonf!=EM_FGON) {
-						set_framebuffer_index_color((int)efa->prev);
-						bglVertex3fv(efa->cent);
-					}
-				}
-				bglEnd();
+			if (newmode!=glmode) {
+				glEnd();
+				glBegin(glmode=newmode);
 			}
-
-			for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
-				efa->prev= prevefa;
-			return a;
-		} else {
-			dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 0);
-			return 1;
+			
+			glVertex3fv( (dm->getVertCo(dm, mface->v1, co),co) );
+			glVertex3fv( (dm->getVertCo(dm, mface->v2, co),co) );
+			glVertex3fv( (dm->getVertCo(dm, mface->v3, co),co) );
+			if(mface->v4) glVertex3fv( (dm->getVertCo(dm, mface->v4, co),co) );
 		}
 	}
-	else {
-		Mesh *me= ob->data;
-		MFace *mface;
-		TFace *tface;
-		float co[3];
-		int a, dmNeedsFree;
-		DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-		
-		mface= me->mface;
-		tface= me->tface;
+	glEnd();
 
-		glBegin(glmode=GL_QUADS);
-		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(mface->v3 && (!me->tface || !(tface->flag&TF_HIDE))) {
-				int newmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-
-				set_framebuffer_index_color(a+1);
-
-				if (newmode!=glmode) {
-					glEnd();
-					glBegin(glmode=newmode);
-				}
-				
-				glVertex3fv( (dm->getVertCo(dm, mface->v1, co),co) );
-				glVertex3fv( (dm->getVertCo(dm, mface->v2, co),co) );
-				glVertex3fv( (dm->getVertCo(dm, mface->v3, co),co) );
-				if(mface->v4) glVertex3fv( (dm->getVertCo(dm, mface->v4, co),co) );
-			}
-		}
-		glEnd();
-
-		if (dmNeedsFree) {
-			dm->release(dm);
-		}
-
-		return 1;
+	if (dmNeedsFree) {
+		dm->release(dm);
 	}
 }
 
 void draw_object_backbufsel(Object *ob)
 {
-	int dmNeedsFree;
-	DerivedMesh *dm;
 
 	mymultmatrix(ob->obmat);
 
@@ -4055,10 +4049,11 @@ void draw_object_backbufsel(Object *ob)
 
 	switch( ob->type) {
 	case OB_MESH:
-		dm = mesh_get_cage_derived(ob, &dmNeedsFree);
+		if(ob==G.obedit) {
+			int dmNeedsFree;
+			DerivedMesh *dm = mesh_get_cage_derived(ob, &dmNeedsFree);
 
-		if(G.obedit) {
-			em_solidoffs= bbs_mesh_solid(ob, dm, G.scene->selectmode & SCE_SELECT_FACE);
+			em_solidoffs= bbs_mesh_solid_EM(dm, G.scene->selectmode & SCE_SELECT_FACE);
 			
 			bglPolygonOffset(1.0);
 			
@@ -4070,12 +4065,13 @@ void draw_object_backbufsel(Object *ob)
 			else em_vertoffs= em_wireoffs;
 			
 			bglPolygonOffset(0.0);
-		}
-		else bbs_mesh_solid(ob, dm, 1);	// 1= facecol, faceselect
 
-		if (dmNeedsFree) {
-			dm->release(dm);
+			if (dmNeedsFree) {
+				dm->release(dm);
+			}
 		}
+		else bbs_mesh_solid(ob);
+
 		break;
 	case OB_CURVE:
 	case OB_SURF:

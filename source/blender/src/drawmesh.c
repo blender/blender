@@ -885,9 +885,10 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			dm = mesh_get_derived(ob);
 			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
 		} else {
-			dm = mesh_get_base_derived(ob);
+			int dmNeedsFree;
+			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 			dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
-			dm->release(dm);
+			if (dmNeedsFree) dm->release(dm);
 		}
 
 		start = 0;

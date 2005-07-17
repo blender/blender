@@ -1211,13 +1211,6 @@ void do_curvebuts(unsigned short event)
 		}
 		break;
 	case B_SUBSURFTYPE:
-			/* Icky, find better system */
-		//if(ob->type==OB_MESH && G.obedit && ob->data==G.obedit->data) {
-		//	if(G.editMesh->derived) {
-		//		G.editMesh->derived->release(G.editMesh->derived);
-		//		G.editMesh->derived= NULL;
-		//	}
-		//}
 		/* fallthrough */
 	case B_MAKEDISP:
 		if(G.vd) {

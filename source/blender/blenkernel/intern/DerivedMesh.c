@@ -445,9 +445,17 @@ static int meshDM_getNumFaces(DerivedMesh *dm)
 	return me->totface;
 }
 
+static void meshDM_release(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+
+	if (mdm->extverts) MEM_freeN(mdm->extverts);
+	MEM_freeN(mdm);
+}
+
 static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 {
-	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "dm");
+	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "mdm");
 
 	mdm->dm.getMinMax = meshDM_getMinMax;
 
@@ -468,7 +476,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
 	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
 
-	mdm->dm.release = (void(*)(DerivedMesh*)) MEM_freeN;
+	mdm->dm.release = meshDM_release;
 	
 	mdm->ob = ob;
 	mdm->extverts = extverts;
@@ -604,7 +612,7 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 {
-	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "dm");
+	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
 	emdm->dm.getMinMax = emDM_getMinMax;
 
@@ -881,6 +889,7 @@ static void ssDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 		DO_MINMAX(ssdm->dlm->mvert[i].co, min_r, max_r);
 	}
 }
+
 static int ssDM_getNumVerts(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -912,7 +921,7 @@ static void ssDM_release(DerivedMesh *dm)
 
 DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 {
-	SSDerivedMesh *ssdm = MEM_callocN(sizeof(*ssdm), "dm");
+	SSDerivedMesh *ssdm = MEM_callocN(sizeof(*ssdm), "ssdm");
 
 	ssdm->dm.getMinMax = ssDM_getMinMax;
 
@@ -988,31 +997,26 @@ DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 			return me->derived;
 		}
 	} else {
-		DispList *dl;
-		DispList *meDL;
-
-		*needsFree_r = 1;
-		dl = find_displist(&ob->disp, DL_VERTS);
-		meDL = me->disp.first;
-		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+		return mesh_get_derived_deform(ob, needsFree_r);
 	}
-
-	return NULL;
 }
 
 DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
 {
-	Mesh *me = ob->data;
-	DispList *dl;
-	DispList *meDL;
+	if (ob->derivedDeform) {
+		*needsFree_r = 0;
+		return ob->derivedDeform;
+	} else {
+		Mesh *me = ob->data;
+		DispList *meDL;
 
-	build_mesh_data(ob, G.obedit && me==G.obedit->data);
+		build_mesh_data(ob, G.obedit && me==G.obedit->data);
 
-	*needsFree_r = 1;
-	dl = find_displist(&ob->disp, DL_VERTS);
-	meDL = me->disp.first;
+		*needsFree_r = 1;
+		meDL = me->disp.first;
 
-	return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+		return getMeshDerivedMesh(ob, NULL, meDL?meDL->nors:NULL);
+	}
 }
 
 DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree_r)
@@ -1035,16 +1039,10 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree_r)
 		if(G.obedit && me==G.obedit->data) {
 			return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
 		} else {
-			return subsurf_make_derived_from_mesh(me, me->subdivr);
+			return subsurf_make_derived_from_mesh(ob, me->subdivr, 1);
 		}
 	} else {
-		DispList *dl;
-		DispList *meDL;
-
-		*needsFree_r = 1;
-		dl = find_displist(&ob->disp, DL_VERTS);
-		meDL = me->disp.first;
-		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+		return mesh_get_derived_deform(ob, needsFree_r);
 	}
 }
 
@@ -1058,10 +1056,9 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 	if (G.obedit && me==G.obedit->data) {
 		return getEditMeshDerivedMesh(G.editMesh);
 	} else {
-		DispList *dl = find_displist(&ob->disp, DL_VERTS);
 		DispList *meDL = me->disp.first;
 
-		return getMeshDerivedMesh(ob, dl?dl->verts:NULL, meDL?meDL->nors:NULL);
+		return getMeshDerivedMesh(ob, NULL, meDL?meDL->nors:NULL);
 	}
 }
 
@@ -1081,4 +1078,21 @@ DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r)
 	}
 
 	return dm;
+}
+
+DerivedMesh *derivedmesh_from_mesh(Object *ob, MVert *deformedVerts)
+{
+	Mesh *me = ob->data;
+	float *extverts = NULL;
+	int i;
+
+	if (deformedVerts) {
+		extverts = MEM_mallocN(sizeof(float)*3*me->totvert, "extverts");
+		for (i=0; i<me->totvert; i++) {
+			VECCOPY(&extverts[i*3], deformedVerts[i].co);
+		}
+		MEM_freeN(deformedVerts);
+	}
+
+	return getMeshDerivedMesh(ob, extverts, NULL);
 }

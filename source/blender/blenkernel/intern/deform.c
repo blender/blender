@@ -227,16 +227,14 @@ void hook_object_deform(Object *ob, int index, float *vec)
 }
 
 
-/* modifiers: hooks, deform, softbody 
-   mode=='s' is start, 'e' is end , 'a' is apply
-*/
-
-int mesh_modifier(Object *ob, char mode)
+void mesh_modifier(Object *ob, MVert **mvert_r)
 {
-	static MVert *mvert=NULL;
+	MVert *origMVert=NULL;
 	Mesh *me= ob->data;
 	MVert *mv;
 	int a, done=0;
+
+	*mvert_r = NULL;
 	
 	do_mesh_key(me);
 	
@@ -246,70 +244,43 @@ int mesh_modifier(Object *ob, char mode)
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else if(ob->parent && ob->partype==PARSKEL); 
 	else if(ob->softflag & OB_SB_ENABLE);
-	else return 0;
+	else return;
 	
-	if(me->totvert==0) return 0;
+	if(me->totvert==0) return;
 	
-	if(mode=='s') { // "start"
-		/* copy  */
-		mvert= MEM_dupallocN(me->mvert);
+	origMVert= MEM_dupallocN(me->mvert);
 		
-		/* hooks */
-		if(ob->hooks.first) {
-			done= 1;
-			
-			/* NULL signals initialize */
-			hook_object_deform(ob, 0, NULL);
-			
-			for(a=0, mv= me->mvert; a<me->totvert; a++, mv++) {
-				hook_object_deform(ob, a, mv->co);
-			}
-		}
+	/* hooks */
+	if(ob->hooks.first) {
+		done= 1;
 		
-		if(ob->effect.first) done |= object_wave(ob);
-
-		if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
-			done= 1;
-			sbObjectStep(ob, (float)G.scene->r.cfra);
-		}
-
-		/* object_deform: output for mesh is in mesh->mvert */
-		done |= object_deform(ob);	
-
-		if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
-			done= 1;
-			sbObjectStep(ob, (float)G.scene->r.cfra);
-		}
+		/* NULL signals initialize */
+		hook_object_deform(ob, 0, NULL);
 		
-		/* put deformed vertices in dl->verts, optional subsurf will replace that */
-		if(done) {
-			DispList *dl= find_displist_create(&ob->disp, DL_VERTS); // removed after switchover
-			float *fp;
-			
-			if(dl->verts) MEM_freeN(dl->verts);
-			if(dl->nors) MEM_freeN(dl->nors);
-			dl->nr= me->totvert;
-			if(dl->nr) {
-				
-				/* make disp array */
-				dl->verts= fp= MEM_mallocN(3*sizeof(float)*me->totvert, "deform1");
-				mv= me->mvert;
-				for(a=0; a<me->totvert; a++, mv++, fp+=3) {
-					VECCOPY(fp, mv->co);
-				}
-			}
-		}
-		
-	}
-	else if(mode=='e') { // end
-		if(mvert) {
-			if(me->mvert) MEM_freeN(me->mvert);
-			me->mvert= mvert;
-			mvert= NULL;
+		for(a=0, mv= me->mvert; a<me->totvert; a++, mv++) {
+			hook_object_deform(ob, a, mv->co);
 		}
 	}
-	
-	return done;
+		
+	if(ob->effect.first) done |= object_wave(ob);
+
+	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
+		done= 1;
+		sbObjectStep(ob, (float)G.scene->r.cfra);
+	}
+
+	/* object_deform: output for mesh is in mesh->mvert */
+	done |= object_deform(ob);	
+
+	if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
+		done= 1;
+		sbObjectStep(ob, (float)G.scene->r.cfra);
+	}
+
+	if (done) {
+		*mvert_r = me->mvert;
+		me->mvert = origMVert;
+	}
 }
 
 int curve_modifier(Object *ob, char mode)

@@ -1166,7 +1166,6 @@ void shadeDispList(Object *ob)
 
 void reshadeall_displist(void)
 {
-	DispList *dldeform;
 	Base *base;
 	Object *ob;
 	
@@ -1175,17 +1174,11 @@ void reshadeall_displist(void)
 	base= G.scene->base.first;
 	while(base) {
 		if(base->lay & G.scene->lay) {
-			
 			ob= base->object;
-			
-			dldeform= find_displist(&ob->disp, DL_VERTS); // removed after switchover
-			if(dldeform) BLI_remlink(&ob->disp, dldeform);
 			
 			/* Metaballs have standard displist at the Object */
 			if(ob->type==OB_MBALL) shadeDispList(ob);
 			else freedisplist(&ob->disp);
-			
-			if(dldeform) BLI_addtail(&ob->disp, dldeform);
 		}
 		base= base->next;
 	}
@@ -1600,12 +1593,12 @@ float calc_taper(Object *taperobj, int cur, int tot)
 
 void makeDispListMesh(Object *ob)
 {
+	MVert *deformedMVerts = NULL;
 	Mesh *me;
 
 	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
 	me= ob->data;
 
-	
 		/* also serves as signal to remake texspace */
 	if (me->bb) {
 		MEM_freeN(me->bb);
@@ -1619,20 +1612,54 @@ void makeDispListMesh(Object *ob)
 		me->derived->release(me->derived);
 		me->derived= NULL;
 	}
+	if (ob->derivedDeform) {
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform= NULL;
+	}
 
-	if (ob!=G.obedit) mesh_modifier(ob, 's');
+	if (ob!=G.obedit) {
+		mesh_modifier(ob, &deformedMVerts);
+
+		if (deformedMVerts) {
+			ob->derivedDeform = derivedmesh_from_mesh(ob, deformedMVerts);
+		}
+	}
 
 	if (mesh_uses_displist(me)) {  /* subsurf */
 		if (ob==G.obedit) {
 			G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 		} else {
-			me->derived= subsurf_make_derived_from_mesh(me, me->subdiv);
+			me->derived= subsurf_make_derived_from_mesh(ob, me->subdiv, 1);
+		}
+	}
+	
+	{
+		BoundBox *bb=0;
+		float min[3], max[3];
+		
+		INIT_MINMAX(min, max);
+
+		bb= mesh_get_bb(ob->data);
+
+		if (me->derived) {
+			me->derived->getMinMax(me->derived, min, max);
+		} else if (ob->derivedDeform) {
+			ob->derivedDeform->getMinMax(ob->derivedDeform, min, max);
+		}
+
+		if(bb) {
+			bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= min[0];
+			bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= max[0];
+			
+			bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= min[1];
+			bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= max[1];
+		
+			bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= min[2];
+			bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= max[2];
 		}
 	}
 
-	if (ob!=G.obedit) mesh_modifier(ob, 'e');
-	
-	boundbox_displist(ob);
+	build_particle_system(ob);
 }
 void makeDispListMBall(Object *ob)
 {
@@ -2219,17 +2246,7 @@ static void boundbox_displist(Object *ob)
 	
 	INIT_MINMAX(min, max);
 
-	if(ob->type==OB_MESH) {
-		bb= mesh_get_bb(ob->data);
-		dl= find_displist(&ob->disp, DL_VERTS);
-		if(!dl) return;
-
-		vert= dl->verts;
-		for(a=0; a<dl->nr; a++, vert+=3) {
-			DO_MINMAX(vert, min, max);
-		}
-	}
-	else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+	if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		Curve *cu= ob->data;
 
 		if(cu->bb==0) cu->bb= MEM_callocN(sizeof(BoundBox), "boundbox");	
