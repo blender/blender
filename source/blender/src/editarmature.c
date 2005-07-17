@@ -158,8 +158,10 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->weight= curBone->weight;
 		eBone->xwidth= curBone->xwidth;
 		eBone->zwidth= curBone->zwidth;
-		eBone->boneclass = curBone->boneclass;		
+		eBone->ease1= curBone->ease1;
+		eBone->ease2= curBone->ease2;
 		eBone->segments = curBone->segments;		
+		eBone->boneclass = curBone->boneclass;		
 		
 		BLI_addtail (list, eBone);
 		
@@ -246,11 +248,13 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 		
 		newBone->weight = eBone->weight;
 		newBone->dist = eBone->dist;
-		newBone->boneclass = eBone->boneclass;
 		
 		newBone->xwidth = eBone->xwidth;
 		newBone->zwidth = eBone->zwidth;
+		newBone->ease1= eBone->ease1;
+		newBone->ease2= eBone->ease2;
 		newBone->segments= eBone->segments;
+		newBone->boneclass = eBone->boneclass;
 		
 	}
 	
@@ -1170,8 +1174,10 @@ static void add_bone_input (Object *ob)
 		bone->dist= 1.0F;
 		bone->xwidth= 0.1;
 		bone->zwidth= 0.1;
-		bone->boneclass = BONE_SKINNABLE;
+		bone->ease1= 1.0;
+		bone->ease2= 1.0;
 		bone->segments= 1;
+		bone->boneclass = BONE_SKINNABLE;
 		
 		/*	Project cursor center to screenspace. */
 		getmouseco_areawin(mval);
@@ -1520,6 +1526,8 @@ void extrude_armature(void)
 			newbone->dist= curbone->dist;
 			newbone->xwidth= curbone->xwidth;
 			newbone->zwidth= curbone->zwidth;
+			newbone->ease1= curbone->ease1;
+			newbone->ease2= curbone->ease2;
 			newbone->segments= curbone->segments;
 			newbone->boneclass= curbone->boneclass;
 			

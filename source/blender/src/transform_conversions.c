@@ -419,10 +419,8 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 				QUATCOPY(td->ext->iquat, pchan->quat);
 				VECCOPY(td->ext->isize, pchan->size);
 
-				if (bone->parent) { /* apply parent transformation if there is one */
-					bPoseChannel *pchan= get_pose_channel(G.obpose->pose, bone->parent->name);
-
-					Mat4MulMat4(tempmat, bone->arm_mat, pchan->chan_mat);
+				if (pchan->parent) { /* apply parent transformation if there is one */
+					Mat4MulMat4(tempmat, bone->arm_mat, pchan->parent->chan_mat);
 				}
 				else {
 					Mat4CpyMat4(tempmat, bone->arm_mat);
@@ -431,8 +429,10 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 
 				Mat3CpyMat4 (td->mtx, parmat);
 				Mat3Inv (td->smtx, td->mtx);
-
-				Mat3CpyMat3(td->axismtx, td->mtx);
+				
+				/* for axismat we use bone's own transform */
+				Mat4MulMat4 (parmat, ob->obmat, pchan->pose_mat);
+				Mat3CpyMat4(td->axismtx, parmat);
 				Mat3Ortho(td->axismtx);
 				
 				return 1;
@@ -455,7 +455,7 @@ static void createTransPose(TransInfo *t)
 	if (arm==NULL || G.obpose->pose==NULL) return;
 	
 	if (arm->flag & ARM_RESTPOS){
-		notice ("Transformation not possible while Rest Position is enabled");
+		notice ("Pose edit not possible while Rest Position is enabled");
 		return;
 	}
 	if (!(G.obpose->lay & G.vd->lay)) return;
