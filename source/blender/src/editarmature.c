@@ -525,7 +525,7 @@ static int select_bonechildren_by_name (Bone *bone, char *name, int select)
 		if (select)
 			bone->flag |= BONE_SELECTED;
 		else
-			bone->flag &= ~BONE_SELECTED;
+			bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
 		return 1;
 	}
 
@@ -537,7 +537,7 @@ static int select_bonechildren_by_name (Bone *bone, char *name, int select)
 	return 0;
 }
 
-/* called in editction.c */
+/* called in editaction.c */
 void select_bone_by_name (bArmature *arm, char *name, int select)
 {
 	Bone *bone;
@@ -721,13 +721,17 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 	unsigned int buffer[MAXPICKBUF];
 	unsigned int hitresult, besthitresult=BONESEL_NOSEL;
 	int i, mindep= 4;
-	short hits;
+	short hits, mval[2];
 
 	persp(PERSP_VIEW);
 
 	glInitNames();
-	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
-
+	
+	getmouseco_areawin(mval);
+	hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-5, mval[1]-5, mval[0]+5, mval[1]+5);
+	if(hits==0)
+		hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-12, mval[1]-12, mval[0]+12, mval[1]+12);
+		
 	/* See if there are any selected bones in this group */
 	if (hits) {
 		

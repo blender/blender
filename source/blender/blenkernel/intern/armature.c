@@ -731,6 +731,8 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 		/* for quick detecting of next bone in chain */
 		if(bone->flag & BONE_IK_TOPARENT)
 			pchan->child= get_pose_channel(pose, bone->name);
+		else
+			pchan->child= NULL;
 	}
 	
 	return counter;

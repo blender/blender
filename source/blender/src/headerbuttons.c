@@ -934,8 +934,14 @@ void do_global_buttons(unsigned short event)
 		if (act)
 			act->id.us--;
 		ob->action=NULL;
-		
+		if(ob->pose) {		// clear flag, also used for draw colors
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+				pchan->flag= 0;
+		}
 		BIF_undo_push("Unlink Action");
+		
+		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWIPO, 0);

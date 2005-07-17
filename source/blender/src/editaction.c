@@ -247,10 +247,12 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 			if (select){
 				chan->flag |= ACHAN_SELECTED;
 				hilight_channel (act, chan, 1);
+				select_poseelement_by_name(chan->name, 1);
 			}
 			else{
 				chan->flag &= ~ACHAN_SELECTED;
 				hilight_channel (act, chan, 0);
+				select_poseelement_by_name(chan->name, 0);
 			}
 			return;
 		}
@@ -567,6 +569,7 @@ static void mouse_action(int selectmode)
 			act->achan = chan;
 			chan->flag |= ACHAN_SELECTED;
 			hilight_channel (act, chan, 1);
+			select_poseelement_by_name(chan->name, 1);
 		}
 		
 		if (conchan)
