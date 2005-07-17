@@ -1287,3 +1287,46 @@ void mesh_set_smooth_flag(Object *meshOb, int enableSmooth) {
 
 	DAG_object_flush_update(G.scene, meshOb, OB_RECALC_DATA);
 }
+
+void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces, float **faceNors_r) 
+{
+	float (*tnorms)[3]= MEM_callocN(numVerts*sizeof(*tnorms), "tnorms");
+	float *fnors= MEM_mallocN(sizeof(*fnors)*3*numFaces, "meshnormals");
+	int i;
+	
+	for (i=0; i<numFaces; i++) {
+		MFace *mf= &mfaces[i];
+
+		if (mf->v3) {
+			float *f_no= &fnors[i*3];
+
+			if (mf->v4)
+				CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
+			else
+				CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
+			
+			VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
+			VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
+			VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
+			if (mf->v4)
+				VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
+		}
+	}
+	for (i=0; i<numVerts; i++) {
+		MVert *mv= &mverts[i];
+		float *no= tnorms[i];
+		
+		Normalise(no);
+		mv->no[0]= (short)(no[0]*32767.0);
+		mv->no[1]= (short)(no[1]*32767.0);
+		mv->no[2]= (short)(no[2]*32767.0);
+	}
+	
+	MEM_freeN(tnorms);
+
+	if (faceNors_r) {
+		*faceNors_r = fnors;
+	} else {
+		MEM_freeN(fnors);
+	}
+}
