@@ -224,6 +224,7 @@ void free_object(Object *ob)
 	
 	if(ob->pd) MEM_freeN(ob->pd);
 	if(ob->soft) sbFree(ob->soft);
+	if(ob->derivedDeform) ob->derivedDeform->release(ob->derivedDeform);
 }
 
 void unlink_object(Object *ob)
@@ -838,6 +839,8 @@ Object *copy_object(Object *ob)
 	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
 	obn->soft= copy_softbody(ob->soft);
 	
+	ob->derivedDeform = NULL;
+
 	return obn;
 }
 

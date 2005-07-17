@@ -53,6 +53,7 @@ struct Material;
 struct bConstraintChannel;
 struct PartDeflect;
 struct SoftBody;
+struct DerivedMesh;
 
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
@@ -193,6 +194,7 @@ typedef struct Object {
 	
 	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
   
+	struct DerivedMesh *derivedDeform;
 } Object;
 
 typedef struct ObHook {

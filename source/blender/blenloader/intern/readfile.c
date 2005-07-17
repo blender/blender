@@ -2372,6 +2372,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 	
 	ob->bb= NULL;
+	ob->derivedDeform= NULL;
 }
 
 /* ************ READ SCENE ***************** */
