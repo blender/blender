@@ -2198,7 +2198,7 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 {
 	DispList *dl, *dlob;
 	int parts, p1, p2, p3, p4, a, b, *index;
-	float *data, *v1, *v2, *v3, *v4;/*  , *extverts=0 */
+	float *data, *v1, *v2, *v3, *v4;
 	unsigned int *cdata, *c1, *c2, *c3, *c4;
 	char *cp;
 

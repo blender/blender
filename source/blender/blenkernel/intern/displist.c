@@ -279,7 +279,7 @@ int displist_has_faces(ListBase *lb)
 	
 	dl= lb->first;
 	while(dl) {
-		if ELEM5(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_POLY)
+		if ELEM4(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_POLY)
 			return 1;
 		dl= dl->next;
 	}
@@ -771,16 +771,12 @@ void addnormalsDispList(Object *ob, ListBase *lb)
 
 void shadeDispList(Object *ob)
 {
-	MFace *mface;
-	MVert *mvert;
 	DispList *dl, *dlob;
 	Material *ma = NULL;
-	Mesh *me;
 	Curve *cu;
-/*  	extern Material defmaterial;	 *//* initrender.c, already in bad lev calls*/
 	float *orco=NULL, imat[3][3], tmat[4][4], mat[4][4], vec[3], xn, yn, zn;
 	float *fp, *nor, n1[3];
-	unsigned int *col1, *col2, *vertcol;
+	unsigned int *col1;
 	int a, lastmat= -1, need_orco = 0;
 
 	if(ob->flag & OB_FROMDUPLI) return;
@@ -808,141 +804,35 @@ void shadeDispList(Object *ob)
 	}
 
 	if(ob->type==OB_MESH) {
-		
-		me= ob->data;
-		
-		if (mesh_uses_displist(me)) {
-			DerivedMesh *dm= mesh_get_derived(ob);
-			DispListMesh *dlm;
+		Mesh *me= ob->data;
+		int dmNeedsFree;
+		DerivedMesh *dm= mesh_get_derived_final(ob, &dmNeedsFree);
+		DispListMesh *dlm;
+		MVert *mvert;
 
-			if (need_orco) {
-				make_orco_displist_mesh(ob, me->subdiv);
-				orco= me->orco;
-			}
-
-			dlm= dm->convertToDispListMesh(dm);
-
-			if (dlm && dlm->totvert) {
-				float *vnors, *vn;
-				int i;
-				
-				dlob= MEM_callocN(sizeof(DispList), "displistshade");
-				BLI_addtail(&ob->disp, dlob);
-				dlob->type= DL_VERTCOL;
-			
-				dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
-				if (me->flag & ME_TWOSIDED)
-					dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
-				
-				/* vertexnormals */
-				vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
-				mvert= dlm->mvert;
-				a= dlm->totvert;
-				while(a--) {
-					
-					xn= mvert->no[0]; 
-					yn= mvert->no[1]; 
-					zn= mvert->no[2];
-					
-					/* transpose ! */
-					vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-					vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-					vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-					Normalise(vn);
-					
-					mvert++; vn+=3;
-				}		
-		
-				for (i=0; i<dlm->totface; i++) {
-					MFace *mf= &dlm->mface[i];
-
-					if (mf->v3) {
-						int j, vidx[4], nverts= mf->v4?4:3;
-						unsigned int *col1base= &dlob->col1[i*4];
-						unsigned int *col2base= dlob->col2?&dlob->col2[i*4]:NULL;
-						unsigned int *mcolbase;
-						float nor[3];
-						
-						if (dlm->tface) {
-							mcolbase = dlm->tface[i].col;
-						} else if (dlm->mcol) {
-							mcolbase = (unsigned int*) &dlm->mcol[i*4];
-						} else {
-							mcolbase = NULL;
-						}
-
-						ma= give_current_material(ob, mf->mat_nr+1);
-						if(ma==0) ma= &defmaterial;
-						
-						vidx[0]= mf->v1;
-						vidx[1]= mf->v2;
-						vidx[2]= mf->v3;
-						vidx[3]= mf->v4;
-
-						if (mf->v4)
-							CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
-						else
-							CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
-
-						n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-						n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-						n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-						Normalise(n1);
-
-						for (j=0; j<nverts; j++) {
-							MVert *mv= &dlm->mvert[vidx[j]];
-							unsigned int *col1= &col1base[j];
-							unsigned int *col2= col2base?&col2base[j]:NULL;
-							unsigned int *mcol= mcolbase?&mcolbase[j]:NULL;
-							
-							VECCOPY(vec, mv->co);
-							Mat4MulVecfl(mat, vec);
-							if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
-							else vn= n1;
-						
-							if (need_orco && orco)
-								fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
-							else
-								fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
-						}
-					}
-				}
-				MEM_freeN(vnors);
-			}
-			displistmesh_free(dlm);
-
-			if (need_orco && orco) {
-				MEM_freeN(me->orco);
-				me->orco= NULL;
-			}
-		}
-		else if(me->totvert>0) {
-			float *vnors, *vn, *nors;
-			
-			if(me->orco==0 && need_orco) {
-				make_orco_mesh(me);
-			}
+		if (need_orco) {
+			make_orco_displist_mesh(ob, me->subdiv);
 			orco= me->orco;
-			/* ms= me->msticky; */
+		}
+
+		dlm= dm->convertToDispListMesh(dm);
+
+		if (dlm && dlm->totvert) {
+			float *vnors, *vn;
+			int i;
 			
-			nors = nor = mesh_build_faceNormals(ob);
-			
-			dl= MEM_callocN(sizeof(DispList), "displistshade");
-			BLI_addtail(&ob->disp, dl);
-			dl->type= DL_VERTCOL;
-			col1= dl->col1= MEM_mallocN(4*sizeof(int)*me->totface, "col1");
-			col2= 0;
-			if(me->tface) tface_to_mcol(me);
-			vertcol= (unsigned int *)me->mcol;
-			
-			if( me->flag & ME_TWOSIDED) {
-				col2= dl->col2= MEM_mallocN(4*sizeof(int)*me->totface, "col2");
-			}
+			dlob= MEM_callocN(sizeof(DispList), "displistshade");
+			BLI_addtail(&ob->disp, dlob);
+			dlob->type= DL_VERTCOL;
+		
+			dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
+			if (me->flag & ME_TWOSIDED)
+				dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
 			
 			/* vertexnormals */
-			vn=vnors= MEM_mallocN(me->totvert*3*sizeof(float), "vnors disp");
-			mvert= me->mvert;
-			a= me->totvert;
+			vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
+			mvert= dlm->mvert;
+			a= dlm->totvert;
 			while(a--) {
 				
 				xn= mvert->no[0]; 
@@ -957,98 +847,71 @@ void shadeDispList(Object *ob)
 				
 				mvert++; vn+=3;
 			}		
-			
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				
-				if(mface->v3) {
-				
-					/* transpose ! */
+	
+			for (i=0; i<dlm->totface; i++) {
+				MFace *mf= &dlm->mface[i];
+
+				if (mf->v3) {
+					int j, vidx[4], nverts= mf->v4?4:3;
+					unsigned int *col1base= &dlob->col1[i*4];
+					unsigned int *col2base= dlob->col2?&dlob->col2[i*4]:NULL;
+					unsigned int *mcolbase;
+					float nor[3];
+					
+					if (dlm->tface) {
+						mcolbase = dlm->tface[i].col;
+					} else if (dlm->mcol) {
+						mcolbase = (unsigned int*) &dlm->mcol[i*4];
+					} else {
+						mcolbase = NULL;
+					}
+
+					ma= give_current_material(ob, mf->mat_nr+1);
+					if(ma==0) ma= &defmaterial;
+					
+					vidx[0]= mf->v1;
+					vidx[1]= mf->v2;
+					vidx[2]= mf->v3;
+					vidx[3]= mf->v4;
+
+					if (mf->v4)
+						CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+					else
+						CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+
 					n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
 					n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
 					n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
 					Normalise(n1);
-					
-					if(lastmat!=mface->mat_nr) {
-						ma= give_current_material(ob, mface->mat_nr+1);
-						if(ma==0) ma= &defmaterial;
-						lastmat= mface->mat_nr;
-					}
-					
-					mvert= me->mvert+mface->v1;
-					VECCOPY(vec, mvert->co);
-					Mat4MulVecfl(mat, vec);
-					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v1;
-					else vn= n1;
-					
-					if(orco)  fastshade(vec, vn, orco+3*mface->v1, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					col1++;
-					if(vertcol) vertcol++; 
-					if(col2) col2++;
-					
-					mvert= me->mvert+mface->v2;
-					VECCOPY(vec, mvert->co);
-					Mat4MulVecfl(mat, vec);
-					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v2;
-					else vn= n1;
-					
-					if(orco)  fastshade(vec, vn, orco+3*mface->v2, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					col1++;
-					if(vertcol) vertcol++; 
-					if(col2) col2++;
-					
-					mvert= me->mvert+mface->v3;
-					VECCOPY(vec, mvert->co);
-					Mat4MulVecfl(mat, vec);
-					if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v3;
-					else vn= n1;
-					
-					if(orco)  fastshade(vec, vn, orco+3*mface->v3, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
-					col1++;
-					if(vertcol) vertcol++; 
-					if(col2) col2++;
-					
-					if(mface->v4) {
-						mvert= me->mvert+mface->v4;
-						VECCOPY(vec, mvert->co);
+
+					for (j=0; j<nverts; j++) {
+						MVert *mv= &dlm->mvert[vidx[j]];
+						unsigned int *col1= &col1base[j];
+						unsigned int *col2= col2base?&col2base[j]:NULL;
+						unsigned int *mcol= mcolbase?&mcolbase[j]:NULL;
+						
+						VECCOPY(vec, mv->co);
 						Mat4MulVecfl(mat, vec);
-						if(mface->flag & ME_SMOOTH) vn= vnors+3*mface->v4;
+						if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
 						else vn= n1;
-						
-						if(orco)  fastshade(vec, vn, orco+3*mface->v4, ma, (char *)col1, (char *)col2, (char *)vertcol);
-						else fastshade(vec, vn, mvert->co, ma, (char *)col1, (char *)col2, (char *)vertcol);
+					
+						if (need_orco && orco)
+							fastshade(vec, vn, &orco[vidx[j]*3], ma, (char *)col1, (char*)col2, (char*) mcol);
+						else
+							fastshade(vec, vn, mv->co, ma, (char *)col1, (char*)col2, (char*) mcol);
 					}
-					col1++;
-					if(vertcol) vertcol++; 
-					if(col2) col2++;
-						
 				}
-				else {
-					col1+=4;
-					if(vertcol) vertcol+=4; 
-					if(col2) col2+=4;
-				}
-	
-				nor+= 3;
-				mface++;
 			}
-			
 			MEM_freeN(vnors);
-			MEM_freeN(nors);
-			
-			if(me->orco) {
-				MEM_freeN(me->orco);
-				me->orco= 0;
-			}
-			if(me->tface) {
-				MEM_freeN(me->mcol);
-				me->mcol= 0;
-			}
 		}
+		displistmesh_free(dlm);
+
+		if (need_orco && orco) {
+			MEM_freeN(me->orco);
+			me->orco= NULL;
+		}
+
+		if (dmNeedsFree) dm->release(dm);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 	
