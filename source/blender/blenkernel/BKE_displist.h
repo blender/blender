@@ -39,11 +39,9 @@
 #define DL_POLY                 0
 #define DL_SEGM                 1
 #define DL_SURF                 2
-#define DL_TRIA                 3
 #define DL_INDEX3               4
 #define DL_INDEX4               5
 #define DL_VERTCOL              6
-#define DL_VERTS                7
 #define DL_NORS                 8
 
 /* dl->flag */
@@ -52,7 +50,6 @@
 #define DL_FRONT_CURVE	4
 #define DL_BACK_CURVE	8
 
-/* This should, of course, become a function */
 #define DL_SURFINDEX(cyclu, cyclv, sizeu, sizev)	    \
 \
 if( (cyclv)==0 && a==(sizev)-1) break;		    \
