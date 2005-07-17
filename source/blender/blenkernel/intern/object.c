@@ -68,6 +68,7 @@
 #include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_nla.h"
 
 #include "BLI_blenlib.h"
@@ -1123,15 +1124,12 @@ void ob_parbone(Object *ob, Object *par, float mat[][4])
 void give_parvert(Object *par, int nr, float *vec)
 {
 	EditMesh *em = G.editMesh;
-	Mesh *me;
 	EditVert *eve;
 /*  	extern ListBase editNurb; already in bad lev calls */
 	Nurb *nu;
 	Curve *cu;
 	BPoint *bp;
-	DispList *dl;
 	BezTriple *bezt;
-	float *fp;
 	int a, count;
 	
 	vec[0]=vec[1]=vec[2]= 0.0;
@@ -1152,21 +1150,15 @@ void give_parvert(Object *par, int nr, float *vec)
 			}
 		}
 		else {
-			me= par->data;
-			if(me->totvert) {
-				if(nr >= me->totvert) nr= 0;
-				
-				/* is there a deform */
-				dl= find_displist(&par->disp, DL_VERTS);
-				if(dl) {
-					fp= dl->verts+3*nr;
-					VECCOPY(vec, fp);
-				}
-				else {
-					MVert *mvert= me->mvert + nr;
-					VECCOPY(vec, mvert->co);
-				}
-			}
+			int needsFree;
+			DerivedMesh *dm = mesh_get_derived_deform(par, &needsFree);
+
+			if(nr >= dm->getNumVerts(dm)) nr= 0;
+
+			dm->getVertCo(dm, nr, vec);
+
+			if (needsFree)
+				dm->release(dm);
 		}
 	}
 	else if ELEM(par->type, OB_CURVE, OB_SURF) {
