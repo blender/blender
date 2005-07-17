@@ -364,10 +364,6 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	}
 }
 
-/* Prototype, see function below */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, 
-							  ID *id, Bone *curBone, TreeElement *parent, int *a);
-
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
@@ -493,9 +489,10 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							ten= nten;
 						}
 						/* restore prev pointers */
-						for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+						pchan= ob->pose->chanbase.first;
+						if(pchan) pchan->prev= NULL;
+						for(; pchan; pchan= pchan->next) {
 							if(pchan->next) pchan->next->prev= pchan;
-							else if(pchan==ob->pose->chanbase.first) pchan->prev= NULL;
 						}
 					}
 				}
@@ -662,34 +659,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						ten= nten;
 					}
 				}
-				else {
-					Bone *curBone;
-					for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
-						outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
-					}
-				}
 			}
 			break;
 		}
 	}
 	return te;
 }
-
-/* special handling of hierarchical non-lib data */
-static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
-							  TreeElement *parent, int *a)
-{
-	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
-
-	(*a)++;
-	te->name= curBone->name;
-	te->directdata= curBone;
-
-	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
-		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
-	}
-}
-
 
 static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
 {
@@ -1364,8 +1339,6 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_nla_action(te, tselem, set);
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(te, tselem, set);
-		case TSE_BONE:
-			return tree_element_active_bone(te, tselem, set);
 		case TSE_EBONE:
 			return tree_element_active_ebone(te, tselem, set);
 		case TSE_HOOK: // actually object
@@ -1900,7 +1873,6 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
 				BIF_draw_icon(ICON_VERTEXSEL); break;
-			case TSE_BONE:
 			case TSE_EBONE:
 				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
@@ -2265,20 +2237,6 @@ static void namebutton_cb(void *soopsp, void *oldnamep)
 							allqueue(REDRAWVIEW3D, 1);
 							allqueue(REDRAWBUTSEDIT, 0);
 							break;
-						case TSE_BONE:
-							{
-								Bone *bone= te->directdata;
-								char newname[32];
-
-								/* restore bone name */
-								BLI_strncpy(newname, bone->name, 32);
-								BLI_strncpy(bone->name, oldnamep, 32);
-								armature_bone_rename((bArmature *)tselem->id, oldnamep, newname);
-							}
-							allqueue(REDRAWOOPS, 0);
-							allqueue(REDRAWVIEW3D, 1);
-							allqueue(REDRAWBUTSEDIT, 0);
-							break;
 						}
 					}
 				}
@@ -2300,7 +2258,7 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_TEXTBUT) {
 			
-			if(tselem->type==TSE_BONE) {
+			if(tselem->type==TSE_EBONE) {
 				len= 32;
 			}
 			else len= 19;

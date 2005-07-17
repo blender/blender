@@ -92,13 +92,15 @@ editmesh_loop: tools with own drawing subloops, select, knife, subdiv
 
 
 /* New LoopCut */
-static void edgering_sel(EditEdge *startedge, int select, int previewlines){
+static void edgering_sel(EditEdge *startedge, int select, int previewlines)
+{
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
 	EditFace *efa;
-	int looking= 1,i;
-	float co[2][3];
 	EditVert *v[2][2];
+	float co[2][3];
+	int looking= 1,i;
+	
 	/* in eed->f1 we put the valence (amount of faces in edge) */
 	/* in eed->f2 we put tagged flag as correct loop */
 	/* in efa->f1 we put tagged flag as correct to select */
@@ -200,13 +202,15 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines){
 	   }
     }
 }
-void CutEdgeloop(int numcuts){
+void CutEdgeloop(int numcuts)
+{
     EditMesh *em = G.editMesh;
-    int keys = 0,holdnum=0;
+	EditEdge *nearest=NULL, *eed;
+    int keys = 0, holdnum=0;
 	short mvalo[2] = {0,0}, mval[2];
-	EditEdge* nearest,*eed;
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
     char msg[128];
+	
     while(choosing){
         getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
@@ -368,8 +372,9 @@ void CutEdgeloop(int numcuts){
 
 
 /* *************** LOOP SELECT ************* */
-
-static short edgeFaces(EditEdge *e){
+#if 0
+static short edgeFaces(EditEdge *e)
+{
 	EditMesh *em = G.editMesh;
 	EditFace *search=NULL;
 	short count = 0;
@@ -378,10 +383,11 @@ static short edgeFaces(EditEdge *e){
 	while(search){
 		if((search->e1 == e || search->e2 == e) || (search->e3 == e || search->e4 == e)) 
 			count++;
-	search = search->next;
+		search = search->next;
 	}
 	return count;	
 }
+#endif
 
 /* this utility function checks to see if 2 edit edges share a face,
 	returns 1 if they do
@@ -391,6 +397,7 @@ short sharesFace(EditEdge* e1, EditEdge* e2)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *search=NULL;
+	
 	search = em->faces.first;
 	if (e1 == e2){
 		return 0 ;
@@ -428,12 +435,13 @@ typedef struct CutCurve {
 	short  y;
 } CutCurve;
 
-static CutCurve *get_mouse_trail(int *len, char mode){
+static CutCurve *get_mouse_trail(int *len, char mode)
+{
 
 	CutCurve *curve,*temp;
+	int i=0, j, blocks=1, lasti=0;
 	short event, val, ldown=0, restart=0, rubberband=0;
 	short  mval[2], lockaxis=0, lockx=0, locky=0, lastx=0, lasty=0;
-	int i=0, j, blocks=1, lasti=0;
 	
 	*len=0;
 	curve=(CutCurve *)MEM_callocN(1024*sizeof(CutCurve), "MouseTrail");
@@ -572,11 +580,11 @@ short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
 void KnifeSubdivide(char mode)
 {
 	EditMesh *em = G.editMesh;
-	int oldcursor, len=0;
-	short isect=0;
 	CutCurve *curve;		
 	EditEdge *eed; 
 	Window *win;	
+	int oldcursor, len=0;
+	short isect=0;
 	short numcuts=1;
 	
 	if (G.obedit==0) return;
@@ -646,15 +654,16 @@ void KnifeSubdivide(char mode)
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
 
-short seg_intersect(EditEdge *e, CutCurve *c, int len){
+short seg_intersect(EditEdge *e, CutCurve *c, int len)
+{
 #define MAXSLOPE 100000
-	short isect=0;
 	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;
 	float  y2min, dist, lastdist=0, xdiff2, xdiff1;
 	float  m1, b1, m2, b2, x21, x22, y21, y22, xi;
 	float  yi, x1min, x1max, y1max, y1min, perc=0; 
 	float  scr[2], co[4];
 	int  i;
+	short isect=0;
 	
 	/* Get screen coords of verts (v->xs and v->ys clip if off screen */
 	VECCOPY(co, e->v1->co);
@@ -752,8 +761,8 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len){
 	return(isect);
 } 
 
-void LoopMenu(){ /* Called by KKey */
-
+void LoopMenu() /* Called by KKey */
+{
 	short ret;
 	
 	ret=pupmenu("Loop/Cut Menu %t|Loop Cut (CTRL-R)%x2|"
