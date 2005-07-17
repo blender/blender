@@ -295,6 +295,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	DagNode * node3;
 	DagNode * scenenode;
 	DagForest *dag;
+	DagAdjList *itA;
 
 	dag = sce->theDag;
 	sce->dagisvalid=1;
@@ -429,6 +430,31 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 		
 		if (addtoroot == 1 )
 			dag_add_relation(dag,scenenode,node,DAG_RL_SCENE);
+	}
+	
+	/* Now all relations were built, but we need to solve 1 exceptional case;
+	   When objects have multiple "parents" (for example parent + constraint working on same object)
+	   the relation type has to be synced. One of the parents can change, and should give same event to child */
+	
+	/* nodes were callocced, so we can use node->color for temporal storage */
+	for(node = sce->theDag->DagNode.first; node; node= node->next) {
+		if(node->type==ID_OB) {
+			for(itA = node->child; itA; itA= itA->next) {
+				if(itA->node->type==ID_OB) {
+					itA->node->color |= itA->type;
+				}
+			}
+		}
+	}
+	/* now set relations equal, so that when only one parent changes, the correct recalcs are found */
+	for(node = sce->theDag->DagNode.first; node; node= node->next) {
+		if(node->type==ID_OB) {
+			for(itA = node->child; itA; itA= itA->next) {
+				if(itA->node->type==ID_OB) {
+					itA->type |= itA->node->color;
+				}
+			}
+		}
 	}
 	
 	// cycle detection and solving
@@ -1166,10 +1192,8 @@ void DAG_scene_sort(struct Scene *sce)
 	
 	nqueue = queue_create(DAGQUEUEALLOC);
 	
-	node = sce->theDag->DagNode.first;
-	while(node) {
+	for(node = sce->theDag->DagNode.first; node; node= node->next) {
 		node->color = DAG_WHITE;
-		node =  node->next;
 	}
 	
 	time = 1;
@@ -1287,33 +1311,15 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		/* even nicer, we can clear recalc flags...  */
 		if((all_layer & layer)==0)
 			ob->recalc &= ~OB_RECALC;
+		
 	}
-	else{
-		/* Object has not RECALC flag */
-		/* check case where child changes and parent forcing obdata to change */
-		/* could merge this in with loop above... (ton) */
-		for(itA = node->child; itA; itA= itA->next) {
-			/* the relationship is visible */
-			if(itA->lay & layer) {
-				if(itA->node->type==ID_OB) {
-					obc= itA->node->ob;
-					/* child moves */
-					if((obc->recalc & OB_RECALC)==OB_RECALC_OB) {
-						/* parent has deforming info */
-						if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
-							// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
-							obc->recalc |= OB_RECALC_DATA;
-						}
-					}
-				}
-			}
-		}
-	}
+	
 	/* we only go deeper if node not checked or something changed  */
 	for(itA = node->child; itA; itA= itA->next) {
 		if(changed || itA->node->lasttime!=curtime) 
 			flush_update_node(itA->node, layer, curtime);
 	}
+	
 }
 
 /* node was checked to have lasttime != curtime , and is of type ID_OB */
@@ -1375,46 +1381,44 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 	for(base= sce->base.first; base; base= base->next) {
 		
 		/* now if DagNode were part of base, the node->lay could be checked... */
-		/* we do all now, since the scene_flush checks layers */
-		//if((base->lay & lay))  {
-			ob= base->object;
+		/* we do all now, since the scene_flush checks layers and clears recalc flags even */
+		ob= base->object;
+		
+		if(ob->ipo) ob->recalc |= OB_RECALC_OB;
+		else if(ob->constraints.first) ob->recalc |= OB_RECALC_OB;
+		else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
+		else if(ob->parent) {
+			if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
+		}
+		
+		if(ob->action) ob->recalc |= OB_RECALC_DATA;
+		else if(ob->nlastrips.first) ob->recalc |= OB_RECALC_DATA;
+		else if(ob->softflag & OB_SB_ENABLE) ob->recalc |= OB_RECALC_DATA;
+		else {
+			Mesh *me;
+			Curve *cu;
+			Lattice *lt;
 			
-			if(ob->ipo) ob->recalc |= OB_RECALC_OB;
-			else if(ob->constraints.first) ob->recalc |= OB_RECALC_OB;
-			else if(ob->scriptlink.totscript) ob->recalc |= OB_RECALC_OB;
-			else if(ob->parent) {
-				if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
+			switch(ob->type) {
+				case OB_MESH:
+					me= ob->data;
+					if(me->key) ob->recalc |= OB_RECALC_DATA;
+					else if(ob->effect.first) {
+						Effect *eff= ob->effect.first;
+						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
+					}
+					break;
+				case OB_CURVE:
+				case OB_SURF:
+					cu= ob->data;
+					if(cu->key) ob->recalc |= OB_RECALC_DATA;
+					break;
+				case OB_LATTICE:
+					lt= ob->data;
+					if(lt->key) ob->recalc |= OB_RECALC_DATA;
+					break;
 			}
-			
-			if(ob->action) ob->recalc |= OB_RECALC_DATA;
-			else if(ob->nlastrips.first) ob->recalc |= OB_RECALC_DATA;
-			else if(ob->softflag & OB_SB_ENABLE) ob->recalc |= OB_RECALC_DATA;
-			else {
-				Mesh *me;
-				Curve *cu;
-				Lattice *lt;
-				
-				switch(ob->type) {
-					case OB_MESH:
-						me= ob->data;
-						if(me->key) ob->recalc |= OB_RECALC_DATA;
-						else if(ob->effect.first) {
-							Effect *eff= ob->effect.first;
-							if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
-						}
-						break;
-					case OB_CURVE:
-					case OB_SURF:
-						cu= ob->data;
-						if(cu->key) ob->recalc |= OB_RECALC_DATA;
-						break;
-					case OB_LATTICE:
-						lt= ob->data;
-						if(lt->key) ob->recalc |= OB_RECALC_DATA;
-						break;
-				}
-			}
-		//}
+		}
 	}
 	DAG_scene_flush_update(sce);
 }

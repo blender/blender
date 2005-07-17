@@ -2000,10 +2000,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		G.f &= ~G_PICKSEL;
 	}
 	
-	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual */
+	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, no layer check here, gets correct flushed */
 	for(base= G.scene->base.first; base; base= base->next) {
-		if(base->lay & v3d->lay) 
-			object_handle_update(base->object);   // bke_object.h
+		object_handle_update(base->object);   // bke_object.h
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
