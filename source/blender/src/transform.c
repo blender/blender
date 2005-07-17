@@ -2227,7 +2227,7 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 	/* we've tucked the scale in loc */
 	oldy= td->iloc[1];
 	SizeToMat3(td->iloc, sizemat);
-	Mat3MulMat3(tmat, smat, sizemat);
+	Mat3MulMat3(tmat, tmat, sizemat);
 	Mat3ToSize(tmat, td->loc);
 	td->loc[1]= oldy;
 }

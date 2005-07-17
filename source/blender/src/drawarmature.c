@@ -332,7 +332,7 @@ static void draw_bone_solid_octahedral(void)
 /* *************** Armature drawing, bones ******************* */
 
 
-static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id, float length)
+static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
 {
 	/*	Draw root point if we have no IK parent */
 	if (!(boneflag & BONE_IK_TOPARENT)){
@@ -366,12 +366,11 @@ static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id,
 		BIF_ThemeColor(TH_BONE_SOLID);
 	}
 	
-	glTranslatef(0.0, length, 0.0);
+	glTranslatef(0.0, 1.0, 0.0);
 	if(dt>OB_WIRE) draw_bonevert_solid();
 	else draw_bonevert();
-	glTranslatef(0.0, -length, 0.0);
+	glTranslatef(0.0, -1.0, 0.0);
 	
-	if(length > 0.05f) length-= 0.05f;	// make vertices visible
 }
 
 static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float length, float zwidth)
@@ -418,7 +417,12 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 	
 	/* draw points only if... */
 	if(armflag & ARM_EDITMODE) {
-		draw_bone_points(dt, armflag, boneflag, id, length);
+		/* move to unitspace */
+		glPushMatrix();
+		glScalef(length, length, length);
+		draw_bone_points(dt, armflag, boneflag, id);
+		glPopMatrix();
+		length*= 0.95f;	// make vertices visible
 	}
 
 	/* colors for modes */
@@ -507,7 +511,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	}
 	
 	
-	draw_bone_points(dt, armflag, boneflag, id, 1.0);
+	draw_bone_points(dt, armflag, boneflag, id);
 	
 	/* now draw the bone itself */
 	

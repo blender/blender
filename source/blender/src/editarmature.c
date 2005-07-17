@@ -795,7 +795,6 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 static void delete_bone(EditBone* exBone)
 {
 	EditBone	*curBone;
-	bPoseChannel *chan;
 	
 	/*	Find any bones that refer to this bone	*/
 	for (curBone=G.edbo.first;curBone;curBone=curBone->next){
@@ -805,26 +804,46 @@ static void delete_bone(EditBone* exBone)
 		}
 	}
 	
-	/*  Erase any associated pose channel */
-	if (G.obedit->pose){
-		for (chan=G.obedit->pose->chanbase.first; chan; chan=chan->next){
-			if (!strcmp (chan->name, exBone->name)){
-				free_constraints(&chan->constraints);
-				BLI_freelinkN (&G.obedit->pose->chanbase, chan);
-				break;
-			}
-		}
-	}
 	BLI_freelinkN (&G.edbo,exBone);
 }
+
+static EditBone *editbone_name_exists (char *name);	// proto for below
 
 /* only editmode! */
 void delete_armature(void)
 {
 	EditBone	*curBone, *next;
+	bConstraint *con;
 	
 	TEST_EDITARMATURE;
 	if(okee("Erase selected bone(s)")==0) return;
+	
+	/*  First rase any associated pose channel */
+	if (G.obedit->pose){
+		bPoseChannel *chan, *next;
+		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
+			next= chan->next;
+			curBone = editbone_name_exists (chan->name);
+			
+			if (curBone && (curBone->flag&BONE_SELECTED)) {
+				free_constraints(&chan->constraints);
+				BLI_freelinkN (&G.obedit->pose->chanbase, chan);
+			}
+			else {
+				for(con= chan->constraints.first; con; con= con->next) {
+					char *subtarget = get_con_subtarget_name(con, G.obedit);
+					if (subtarget) {
+						curBone = editbone_name_exists (subtarget);
+						if (curBone && (curBone->flag&BONE_SELECTED)) {
+							con->flag |= CONSTRAINT_DISABLE;
+							subtarget[0]= 0;
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	
 	for (curBone=G.edbo.first;curBone;curBone=next){
 		next=curBone->next;
