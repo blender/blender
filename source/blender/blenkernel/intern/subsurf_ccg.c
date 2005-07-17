@@ -493,7 +493,7 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 	}
 	ccgFaceIterator_free(fi);
 
-	displistmesh_calc_normals(dlm);
+	mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
 
 	return dlm;
 }

@@ -89,6 +89,11 @@ void make_edges(struct Mesh *me);
 	 */
 void mesh_calculate_vertex_normals	(struct Mesh *me);
 
+	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
+	 * and vertex normals are stored in actual mverts.
+	 */
+void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float **faceNors_r);
+
 #ifdef __cplusplus
 }
 #endif

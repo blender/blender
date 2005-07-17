@@ -100,7 +100,6 @@ struct DispListMesh {
 };
 
 void displistmesh_free(DispListMesh *dlm);
-void displistmesh_calc_normals(DispListMesh *dlm);
 
 void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 

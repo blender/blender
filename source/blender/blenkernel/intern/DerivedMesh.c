@@ -65,7 +65,10 @@ typedef struct {
 	DerivedMesh dm;
 
 	Object *ob;
-	float *extverts, *nors;
+	MVert *verts;
+	float *nors;
+
+	int freeNors;
 } MeshDerivedMesh;
 
 static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
@@ -77,7 +80,7 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 	dlm->totvert = me->totvert;
 	dlm->totedge = me->totedge;
 	dlm->totface = me->totface;
-	dlm->mvert = me->mvert;
+	dlm->mvert = mdm->verts;
 	dlm->medge = me->medge;
 	dlm->mface = me->mface;
 	dlm->tface = me->tface;
@@ -85,32 +88,7 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 	dlm->nors = mdm->nors;
 	dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 1;
 
-	if (mdm->extverts) {
-		int i;
-
-		dlm->mvert = MEM_dupallocN(dlm->mvert);
-
-		for (i=0; i<dlm->totvert; i++) {
-			dlm->mvert[i].co[0] = mdm->extverts[i*3 + 0];
-			dlm->mvert[i].co[1] = mdm->extverts[i*3 + 1];
-			dlm->mvert[i].co[2] = mdm->extverts[i*3 + 2];
-		}
-
-		displistmesh_calc_normals(dlm);
-
-		dlm->dontFreeVerts = 0;
-	}
-
 	return dlm;
-}
-
-static float *meshDM__getVertCoP(MeshDerivedMesh *mdm, int index)
-{
-	if (mdm->extverts) {
-		return mdm->extverts+3*index;
-	} else {
-		return ((Mesh*) mdm->ob->data)->mvert[index].co;
-	}
 }
 
 static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
@@ -120,15 +98,14 @@ static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	int i;
 
 	for (i=0; i<me->totvert; i++) {
-		MVert *mv = &me->mvert[i];
-
-		DO_MINMAX(mv->co, min_r, max_r);
+		DO_MINMAX(mdm->verts[i].co, min_r, max_r);
 	}
 }
 
 static void meshDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
 {
-	float *co = meshDM__getVertCoP((MeshDerivedMesh*) dm, index);
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	float *co = mdm->verts[index].co;
 
 	co_r[0] = co[0];
 	co_r[1] = co[1];
@@ -138,7 +115,7 @@ static void meshDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
 static void meshDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	short *no = ((Mesh*) mdm->ob->data)->mvert[index].no;
+	short *no = mdm->verts[index].no;
 
 	no_r[0] = no[0]/32767.f;
 	no_r[1] = no[1]/32767.f;
@@ -155,7 +132,7 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 
 	glBegin(GL_POINTS);
 	for(a= start; a<end; a++) {
-		glVertex3fv(meshDM__getVertCoP(mdm, a));
+		glVertex3fv(mdm->verts[ a].co);
 	}
 	glEnd();
 }
@@ -177,8 +154,8 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 		glBegin(GL_LINES);
 		for(a=me->totedge; a>0; a--, medge++) {
 			if(medge->flag & ME_EDGEDRAW) {
-				glVertex3fv(meshDM__getVertCoP(mdm, medge->v1));
-				glVertex3fv(meshDM__getVertCoP(mdm, medge->v2));
+				glVertex3fv(mdm->verts[ medge->v1].co);
+				glVertex3fv(mdm->verts[ medge->v2].co);
 			}
 		}
 		glEnd();
@@ -190,29 +167,29 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 			
 			if(test) {
 				if(test&ME_V1V2){
-					glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
-					glVertex3fv(meshDM__getVertCoP(mdm, mface->v2));
+					glVertex3fv(mdm->verts[mface->v1].co);
+					glVertex3fv(mdm->verts[mface->v2].co);
 				}
 
 				if(mface->v3) {
 					if(test&ME_V2V3){
-						glVertex3fv(meshDM__getVertCoP(mdm, mface->v2));
-						glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
+						glVertex3fv(mdm->verts[mface->v2].co);
+						glVertex3fv(mdm->verts[mface->v3].co);
 					}
 
 					if (mface->v4) {
 						if(test&ME_V3V4){
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
+							glVertex3fv(mdm->verts[mface->v3].co);
+							glVertex3fv(mdm->verts[mface->v4].co);
 						}
 						if(test&ME_V4V1){
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
+							glVertex3fv(mdm->verts[mface->v4].co);
+							glVertex3fv(mdm->verts[mface->v1].co);
 						}
 					} else {
 						if(test&ME_V3V1){
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
-							glVertex3fv(meshDM__getVertCoP(mdm, mface->v1));
+							glVertex3fv(mdm->verts[mface->v3].co);
+							glVertex3fv(mdm->verts[mface->v1].co);
 						}
 					}
 				}
@@ -234,8 +211,8 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	glBegin(GL_LINES);
 	for(a=start; a<end; a++, mface++) {
 		if(!mface->v3) {
-			glVertex3fv(meshDM__getVertCoP(mdm, mface->v3));
-			glVertex3fv(meshDM__getVertCoP(mdm, mface->v4));
+			glVertex3fv(mdm->verts[mface->v3].co);
+			glVertex3fv(mdm->verts[mface->v4].co);
 		} 
 	}
 	glEnd();
@@ -244,7 +221,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->ob->data;
-	MVert *mvert= me->mvert;
+	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
@@ -255,14 +232,14 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	
 #define PASSVERT(index, punoBit) {				\
 	if (shademodel==GL_SMOOTH) {				\
-		short *no = (mvert+index)->no;			\
+		short *no = mvert[index].no;			\
 		if (mface->puno&punoBit) {				\
 			glNormal3s(-no[0], -no[1], -no[2]); \
 		} else {								\
 			glNormal3sv(no);					\
 		}										\
 	}											\
-	glVertex3fv(meshDM__getVertCoP(mdm,index));	\
+	glVertex3fv(mvert[index].co);	\
 }
 
 	glBegin(glmode=GL_QUADS);
@@ -342,26 +319,26 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 			}
 				
 			glColor3ub(cp1[3], cp1[2], cp1[1]);
-			glVertex3fv( meshDM__getVertCoP(mdm,mface->v1) );
+			glVertex3fv( mdm->verts[mface->v1].co );
 			glColor3ub(cp1[7], cp1[6], cp1[5]);
-			glVertex3fv( meshDM__getVertCoP(mdm,mface->v2) );
+			glVertex3fv( mdm->verts[mface->v2].co );
 			glColor3ub(cp1[11], cp1[10], cp1[9]);
-			glVertex3fv( meshDM__getVertCoP(mdm,mface->v3) );
+			glVertex3fv( mdm->verts[mface->v3].co );
 			if(mface->v4) {
 				glColor3ub(cp1[15], cp1[14], cp1[13]);
-				glVertex3fv( meshDM__getVertCoP(mdm,mface->v4) );
+				glVertex3fv( mdm->verts[mface->v4].co );
 			}
 				
 			if(useTwoSide) {
 				glColor3ub(cp2[11], cp2[10], cp2[9]);
-				glVertex3fv( meshDM__getVertCoP(mdm,mface->v3) );
+				glVertex3fv( mdm->verts[mface->v3].co );
 				glColor3ub(cp2[7], cp2[6], cp2[5]);
-				glVertex3fv( meshDM__getVertCoP(mdm,mface->v2) );
+				glVertex3fv( mdm->verts[mface->v2].co );
 				glColor3ub(cp2[3], cp2[2], cp2[1]);
-				glVertex3fv( meshDM__getVertCoP(mdm,mface->v1) );
+				glVertex3fv( mdm->verts[mface->v1].co );
 				if(mface->v4) {
 					glColor3ub(cp2[15], cp2[14], cp2[13]);
-					glVertex3fv( meshDM__getVertCoP(mdm,mface->v4) );
+					glVertex3fv( mdm->verts[mface->v4].co );
 				}
 			}
 		}
@@ -377,7 +354,7 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->ob->data;
-	MVert *mvert= me->mvert;
+	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	TFace *tface = me->tface;
 	float *nors = mdm->nors;
@@ -409,23 +386,23 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		if (tf) glTexCoord2fv(tf->uv[0]);
 		if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v1].no);
-		glVertex3fv(meshDM__getVertCoP(mdm, mf->v1));
+		glVertex3fv(mvert[mf->v1].co);
 			
 		if (tf) glTexCoord2fv(tf->uv[1]);
 		if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v2].no);
-		glVertex3fv(meshDM__getVertCoP(mdm, mf->v2));
+		glVertex3fv(mvert[mf->v2].co);
 
 		if (tf) glTexCoord2fv(tf->uv[2]);
 		if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 		if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v3].no);
-		glVertex3fv(meshDM__getVertCoP(mdm, mf->v3));
+		glVertex3fv(mvert[mf->v3].co);
 
 		if(mf->v4) {
 			if (tf) glTexCoord2fv(tf->uv[3]);
 			if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 			if (mf->flag&ME_SMOOTH) glNormal3sv(mvert[mf->v4].no);
-			glVertex3fv(meshDM__getVertCoP(mdm, mf->v4));
+			glVertex3fv(mvert[mf->v4].co);
 		}
 		glEnd();
 	}
@@ -449,13 +426,15 @@ static void meshDM_release(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 
-	if (mdm->extverts) MEM_freeN(mdm->extverts);
+	if (mdm->freeNors) MEM_freeN(mdm->nors);
+	if (mdm->verts!=((Mesh*) mdm->ob->data)->mvert) MEM_freeN(mdm->verts);
 	MEM_freeN(mdm);
 }
 
-static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
+static DerivedMesh *getMeshDerivedMesh(Object *ob, MVert *deformedVerts, float *nors)
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "mdm");
+	Mesh *me = ob->data;
 
 	mdm->dm.getMinMax = meshDM_getMinMax;
 
@@ -479,8 +458,16 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, float *extverts, float *nors)
 	mdm->dm.release = meshDM_release;
 	
 	mdm->ob = ob;
-	mdm->extverts = extverts;
 	mdm->nors = nors;
+	mdm->freeNors = 0;
+
+	if (deformedVerts) {
+		mdm->verts = deformedVerts;
+		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
+		mdm->freeNors = 1;
+	} else {
+		mdm->verts = me->mvert;
+	}
 
 	return (DerivedMesh*) mdm;
 }
@@ -1052,7 +1039,6 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 
 	build_mesh_data(ob, G.obedit && me==G.obedit->data);
 
-		/* Build's extverts, nors */
 	if (G.obedit && me==G.obedit->data) {
 		return getEditMeshDerivedMesh(G.editMesh);
 	} else {
@@ -1083,16 +1069,6 @@ DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r)
 DerivedMesh *derivedmesh_from_mesh(Object *ob, MVert *deformedVerts)
 {
 	Mesh *me = ob->data;
-	float *extverts = NULL;
-	int i;
 
-	if (deformedVerts) {
-		extverts = MEM_mallocN(sizeof(float)*3*me->totvert, "extverts");
-		for (i=0; i<me->totvert; i++) {
-			VECCOPY(&extverts[i*3], deformedVerts[i].co);
-		}
-		MEM_freeN(deformedVerts);
-	}
-
-	return getMeshDerivedMesh(ob, extverts, NULL);
+	return getMeshDerivedMesh(ob, deformedVerts, NULL);
 }

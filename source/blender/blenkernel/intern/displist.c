@@ -137,51 +137,6 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 	return ndlm;
 }
 
-void displistmesh_calc_normals(DispListMesh *dlm) 
-{
-	MVert *mverts= dlm->mvert;
-	MFace *mfaces= dlm->mface;
-	float (*tnorms)[3]= MEM_callocN(dlm->totvert*sizeof(*tnorms), "tnorms");
-	int i;
-	
-	if (!dlm->dontFreeNors && dlm->nors) {
-		MEM_freeN(dlm->nors);
-	}
-
-	dlm->nors= MEM_mallocN(sizeof(*dlm->nors)*3*dlm->totface, "meshnormals");
-	dlm->dontFreeNors= 0;
-
-	for (i=0; i<dlm->totface; i++) {
-		MFace *mf= &mfaces[i];
-		float *f_no= &dlm->nors[i*3];
-
-		if (!mf->v3)
-			continue;
-			
-		if (mf->v4)
-			CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
-		else
-			CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
-		
-		VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
-		VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
-		VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
-		if (mf->v4)
-			VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
-	}
-	for (i=0; i<dlm->totvert; i++) {
-		MVert *mv= &mverts[i];
-		float *no= tnorms[i];
-		
-		Normalise(no);
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
-	}
-	
-	MEM_freeN(tnorms);
-}
-
 void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
 {
 	MFace *mfaces;
@@ -811,7 +766,10 @@ void shadeDispList(Object *ob)
 		MVert *mvert;
 
 		if (need_orco) {
-			make_orco_displist_mesh(ob, me->subdiv);
+			if ((me->flag&ME_SUBSURF) && me->subdiv) 
+				make_orco_displist_mesh(ob, me->subdiv);
+			else
+				make_orco_mesh(me);
 			orco= me->orco;
 		} else {
 			orco= NULL;
@@ -1471,7 +1429,7 @@ void makeDispListMesh(Object *ob)
 		me->bb = NULL;
 	}
 
-	freedisplist(&(ob->disp));
+	freedisplist(&ob->disp);
 	freedisplist(&me->disp);
 
 	if (me->derived) {
