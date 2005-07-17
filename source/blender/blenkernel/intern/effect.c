@@ -1166,7 +1166,7 @@ void build_particle_system(Object *ob)
 	DerivedMesh *dm;
 	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
 	float fac, prevobmat[4][4], sfraont, co[3];
-	int deform=0, a, cur, cfraont, cfralast, totpart;
+	int deform=0, a, cur, cfraont, cfralast, totpart, totvert;
 	short no[3];
 
 	if(ob->type!=OB_MESH) return;
@@ -1263,6 +1263,7 @@ void build_particle_system(Object *ob)
 	/* init */
 	dm = mesh_get_derived_final(ob, &dmNeedsFree);
 	dlm = dm->convertToDispListMesh(dm);
+	totvert = dlm->totvert;
 
 	give_mesh_mvert(me, dlm, totpart, co, no, paf->seed);
 	
@@ -1321,14 +1322,13 @@ void build_particle_system(Object *ob)
 		/* get coordinates */
 		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no, paf->seed);
 		else {
-			float fno[3];
-
-			dm->getVertCo(dm, a%dm->getNumVerts(dm), co);
-			dm->getVertNo(dm, a%dm->getNumVerts(dm), fno);
-
-			no[0] = fno[0]*32767.f;
-			no[1] = fno[1]*32767.f;
-			no[2] = fno[2]*32767.f;
+			if (totvert) {
+				VECCOPY(co, dlm->mvert[a%totvert].co);
+				VECCOPY(no, dlm->mvert[a%totvert].no);
+			} else {
+				co[0] = co[1] = co[2] = 0.0f;
+				no[0] = no[1] = no[2] = 0;
+			}
 		}
 		
 		VECCOPY(pa->co, co);
