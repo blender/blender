@@ -38,7 +38,7 @@ extern void join_mesh(void);
 extern void fasterdraw(void);
 extern void slowerdraw(void);
 
-extern void vertexnormals_mesh(Mesh *me, float *extverts);
+extern void vertexnormals_mesh(Mesh *me);
 extern void sort_faces(void);
 
 

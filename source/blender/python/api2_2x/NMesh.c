@@ -43,8 +43,8 @@
 #include "BDR_editface.h"	/* make_tfaces */
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
-#include "BIF_editmesh.h"	/* vertexnormals_mesh() : still needed???*/
-#include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
+#include "BIF_editmesh.h"
+#include "BIF_meshtools.h"
 #include "BIF_space.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -1310,7 +1310,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	}
 
 	if( recalc_normals )
-		vertexnormals_mesh( mesh, 0 );
+		vertexnormals_mesh( mesh );
 
 	mesh_update( mesh );
 
@@ -1976,7 +1976,7 @@ static int get_active_faceindex( Mesh * me )
 }
 
 static PyObject *new_NMesh_internal( Mesh * oldmesh,
-				     DispListMesh * dlm, float *extverts )
+				     DispListMesh * dlm )
 {
 	BPy_NMesh *me = PyObject_NEW( BPy_NMesh, &NMesh_Type );
 	me->flags = 0;
@@ -2052,15 +2052,13 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 		for( i = 0; i < totvert; i++ ) {
 			MVert *oldmv = &mverts[i];
 			MSticky *oldst = msticky ? &msticky[i] : NULL;
-			float *vco = extverts ? &extverts[i * 3] : oldmv->co;
 
 			PyList_SetItem( me->verts, i,
 					( PyObject * ) nmvert_from_data( oldmv,
 									 oldst,
-									 vco,
+									 oldmv->co,
 									 i,
-									 oldmv->
-									 flag ) );
+									 oldmv->flag ) );
 		}
 
 		me->faces = PyList_New( totface );
@@ -2105,7 +2103,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 
 PyObject *new_NMesh( Mesh * oldmesh )
 {
-	return new_NMesh_internal( oldmesh, NULL, NULL );
+	return new_NMesh_internal( oldmesh, NULL );
 }
 
 static PyObject *M_NMesh_New( PyObject * self, PyObject * args )
@@ -2183,7 +2181,7 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 		int needsFree;
 		DerivedMesh *dm = mesh_get_derived_final(ob, &needsFree);
 		DispListMesh *dlm = dm->convertToDispListMesh(dm);
-		nmesh = new_NMesh_internal(ob->data, dlm, NULL);
+		nmesh = new_NMesh_internal(ob->data, dlm );
 		if (needsFree)
 			dm->release(dm);
 		displistmesh_free(dlm);
@@ -2868,7 +2866,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	if (mesh->dvert) check_dverts(mesh, old_totvert);
 
 	if( recalc_normals )
-		vertexnormals_mesh( mesh, 0 );
+		vertexnormals_mesh( mesh );
 
 	mesh_update( mesh );
 

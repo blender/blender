@@ -39,7 +39,7 @@ void join_mesh(void);
 void fasterdraw(void);
 void slowerdraw(void);
 
-void vertexnormals_mesh(Mesh *me, float *extverts);
+void vertexnormals_mesh(Mesh *me);
 void sort_faces(void);
 
 */
@@ -557,7 +557,7 @@ static int contrpuntnorm(float *n, float *puno)  /* dutch: check vertex normal *
 	return 1;
 }
 
-void vertexnormals_mesh(Mesh *me, float *extverts)
+void vertexnormals_mesh(Mesh *me)
 {
 	MVert *mvert;
 	MFace *mface;
@@ -593,18 +593,10 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 		
 		if(mface->v3==0) continue;
 		
-		if(extverts) {
-			v1= extverts+3*mface->v1;
-			v2= extverts+3*mface->v2;
-			v3= extverts+3*mface->v3;
-			v4= extverts+3*mface->v4;
-		}
-		else {		
-			v1= (mvert+mface->v1)->co;
-			v2= (mvert+mface->v2)->co;
-			v3= (mvert+mface->v3)->co;
-			v4= (mvert+mface->v4)->co;
-		}
+		v1= (mvert+mface->v1)->co;
+		v2= (mvert+mface->v2)->co;
+		v3= (mvert+mface->v3)->co;
+		v4= (mvert+mface->v4)->co;
 		
 		VecSubf(n1, v2, v1);
 		VecSubf(n2, v3, v2);
@@ -683,16 +675,9 @@ void vertexnormals_mesh(Mesh *me, float *extverts)
 		
 		if(mface->v3==0) continue;
 		
-		if(extverts) {
-			v1= extverts+3*mface->v1;
-			v2= extverts+3*mface->v2;
-			v3= extverts+3*mface->v3;
-		}
-		else {		
-			v1= (mvert+mface->v1)->co;
-			v2= (mvert+mface->v2)->co;
-			v3= (mvert+mface->v3)->co;
-		}
+		v1= (mvert+mface->v1)->co;
+		v2= (mvert+mface->v2)->co;
+		v3= (mvert+mface->v3)->co;
 
 		CalcNormFloat(v1, v2, v3, vnor);
 
