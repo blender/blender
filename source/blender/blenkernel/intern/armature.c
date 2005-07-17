@@ -731,8 +731,6 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 		/* for quick detecting of next bone in chain */
 		if(bone->flag & BONE_IK_TOPARENT)
 			pchan->child= get_pose_channel(pose, bone->name);
-		else
-			pchan->child= NULL;
 	}
 	
 	return counter;
@@ -750,6 +748,12 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	/* only done here */
 	if(ob->pose==NULL) ob->pose= MEM_callocN(sizeof(bPose), "new pose");
 	pose= ob->pose;
+	
+	/* clear */
+	for(pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		pchan->bone= NULL;
+		pchan->child= NULL;
+	}
 	
 	/* first step, check if all channels are there */
 	for(bone= arm->bonebase.first; bone; bone= bone->next) {
