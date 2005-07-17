@@ -734,6 +734,7 @@ static void draw_ebones(Object *ob, int dt)
 	
 	/* if solid we draw it first */
 	if(dt>OB_WIRE) {
+		index= 0;
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
 			glPushMatrix();
 			set_matrix_editbone(eBone);
@@ -765,7 +766,7 @@ static void draw_ebones(Object *ob, int dt)
 		else {
 			/* scale the matrix to unit bone space */
 			glScalef(eBone->length, eBone->length, eBone->length);
-			draw_bone(OB_WIRE, arm->flag, eBone->flag, index, -1);
+			draw_bone(OB_WIRE, arm->flag, eBone->flag, 0, index);
 		}
 		if(arm->flag & ARM_DRAWAXES)
 			drawaxes(0.25f);
