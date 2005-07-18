@@ -611,7 +611,6 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3]) {
 
 	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
-		EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
 		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
 		for (i=1; i<edgeSize-1; i++)
@@ -620,7 +619,6 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3]) {
 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
 		for (S=0; S<numVerts; S++) {
