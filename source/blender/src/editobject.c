@@ -2154,8 +2154,8 @@ void convertmenu(void)
 		nr= pupmenu("Convert Nurbs Surface to%t|Mesh");
 		if(nr>0) ok= 1;
 	}
-	else if(ob->type==OB_MESH && mesh_uses_displist((Mesh*) ob->data)) {
-		nr= pupmenu("Convert SubSurf to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
+	else if(ob->type==OB_MESH) {
+		nr= pupmenu("Convert Modifiers to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
 	if(ok==0) return;
@@ -2180,44 +2180,41 @@ void convertmenu(void)
 			if(ob->flag & OB_DONE);
 			else if(ob->type==OB_MESH) {
 				Mesh *oldme= ob->data;
-				
-				if (mesh_uses_displist(oldme)) {
-					DispListMesh *dlm;
-					DerivedMesh *dm;
+				DispListMesh *dlm;
+				DerivedMesh *dm;
 
-					basedel = base;
+				basedel = base;
 
-					ob->flag |= OB_DONE;
+				ob->flag |= OB_DONE;
 
-					ob1= copy_object(ob);
+				ob1= copy_object(ob);
 
-					basen= MEM_mallocN(sizeof(Base), "duplibase");
-					*basen= *base;
-					BLI_addhead(&G.scene->base, basen);	/* addhead: otherwise eternal loop */
-					basen->object= ob1;
-					basen->flag &= ~SELECT;
-						
-					me= ob1->data;
-					me->id.us--;
-						
-					ob1->data= add_mesh();
-					G.totmesh++;
-					ob1->type= OB_MESH;
-
-					me= ob1->data;
-					me->totcol= oldme->totcol;
-					if(ob1->totcol) {
-						me->mat= MEM_dupallocN(oldme->mat);
-						for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
-					}
+				basen= MEM_mallocN(sizeof(Base), "duplibase");
+				*basen= *base;
+				BLI_addhead(&G.scene->base, basen);	/* addhead: otherwise eternal loop */
+				basen->object= ob1;
+				basen->flag &= ~SELECT;
 					
-					dm= subsurf_make_derived_from_mesh(ob->data, oldme->subdiv, NULL, NULL);
-					dlm= dm->convertToDispListMesh(dm);
-					dm->release(dm);
+				me= ob1->data;
+				me->id.us--;
+					
+				ob1->data= add_mesh();
+				G.totmesh++;
+				ob1->type= OB_MESH;
 
-					displistmesh_to_mesh(dlm, ob1->data);
-					displistmesh_free(dlm);
+				me= ob1->data;
+				me->totcol= oldme->totcol;
+				if(ob1->totcol) {
+					me->mat= MEM_dupallocN(oldme->mat);
+					for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
+				
+				dm= mesh_create_derived_no_deform(ob->data, NULL);
+				dlm= dm->convertToDispListMesh(dm);
+				dm->release(dm);
+
+				displistmesh_to_mesh(dlm, ob1->data);
+				displistmesh_free(dlm);
 			}
 			else if(ob->type==OB_FONT) {
 				if(nr==1) {
@@ -2269,7 +2266,7 @@ void convertmenu(void)
 					enter_editmode();
 					exit_editmode(1); // freedata, but no undo
 					BASACT= basact;
-				}
+ 				}
 			}
 			else if(ob->type==OB_MBALL) {
 			
