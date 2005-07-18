@@ -1418,6 +1418,7 @@ float calc_taper(Object *taperobj, int cur, int tot)
 void makeDispListMesh(Object *ob)
 {
 	MVert *deformedMVerts = NULL;
+	float min[3], max[3];
 	Mesh *me;
 
 	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
@@ -1457,30 +1458,15 @@ void makeDispListMesh(Object *ob)
 		}
 	}
 	
-	{
-		BoundBox *bb=0;
-		float min[3], max[3];
-		
-		INIT_MINMAX(min, max);
+	INIT_MINMAX(min, max);
+	if (me->derived) {
+		me->derived->getMinMax(me->derived, min, max);
 
-		bb= mesh_get_bb(ob->data);
+		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
+	} else if (ob->derivedDeform) {
+		ob->derivedDeform->getMinMax(ob->derivedDeform, min, max);
 
-		if (me->derived) {
-			me->derived->getMinMax(me->derived, min, max);
-		} else if (ob->derivedDeform) {
-			ob->derivedDeform->getMinMax(ob->derivedDeform, min, max);
-		}
-
-		if(bb) {
-			bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= min[0];
-			bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= max[0];
-			
-			bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= min[1];
-			bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= max[1];
-		
-			bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= min[2];
-			bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= max[2];
-		}
+		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
 	}
 
 	build_particle_system(ob);
@@ -2092,14 +2078,7 @@ static void boundbox_displist(Object *ob)
 	}
 	
 	if(bb) {
-		bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= min[0];
-		bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= max[0];
-		
-		bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= min[1];
-		bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= max[1];
-	
-		bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= min[2];
-		bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= max[2];
+		boundbox_set_from_min_max(bb, min, max);
 	}
 }
 

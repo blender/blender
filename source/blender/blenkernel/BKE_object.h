@@ -91,6 +91,7 @@ void where_is_object_simul(struct Object *ob);
 
 void what_does_parent(struct Object *ob);
 struct BoundBox *unit_boundbox(void);
+void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 void minmax_object(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 void solve_constraints (struct Object *ob, short obtype, void *obdata, float ctime);

@@ -593,6 +593,9 @@ static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3]) {
 	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 
+	if (!ccgSubSurf_getNumVerts(ss))
+		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
+
 	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		float *co = ccgSubSurf_getVertData(ss, v);

@@ -97,8 +97,12 @@ static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	Mesh *me = mdm->ob->data;
 	int i;
 
-	for (i=0; i<me->totvert; i++) {
-		DO_MINMAX(mdm->verts[i].co, min_r, max_r);
+	if (me->totvert) {
+		for (i=0; i<me->totvert; i++) {
+			DO_MINMAX(mdm->verts[i].co, min_r, max_r);
+		}
+	} else {
+		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
 	}
 }
 
@@ -580,8 +584,12 @@ static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
 
-	for (eve= emdm->em->verts.first; eve; eve= eve->next) {
-		DO_MINMAX(eve->co, min_r, max_r);
+	if (emdm->em->verts.first) {
+		for (eve= emdm->em->verts.first; eve; eve= eve->next) {
+			DO_MINMAX(eve->co, min_r, max_r);
+		}
+	} else {
+		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
 	}
 }
 static int emDM_getNumVerts(DerivedMesh *dm)
@@ -872,8 +880,12 @@ static void ssDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	int i;
 
-	for (i=0; i<ssdm->dlm->totvert; i++) {
-		DO_MINMAX(ssdm->dlm->mvert[i].co, min_r, max_r);
+	if (ssdm->dlm->totvert) {
+		for (i=0; i<ssdm->dlm->totvert; i++) {
+			DO_MINMAX(ssdm->dlm->mvert[i].co, min_r, max_r);
+		}
+	} else {
+		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
 	}
 }
 

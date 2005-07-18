@@ -320,28 +320,20 @@ void tex_space_curve(Curve *cu)
 		dl= dl->next;
 	}
 
-	if(doit) {
-		loc[0]= (min[0]+max[0])/2.0f;
-		loc[1]= (min[1]+max[1])/2.0f;
-		loc[2]= (min[2]+max[2])/2.0f;
-		
-		size[0]= (max[0]-min[0])/2.0f;
-		size[1]= (max[1]-min[1])/2.0f;
-		size[2]= (max[2]-min[2])/2.0f;
-	}
-	else {
-		loc[0]= loc[1]= loc[2]= 0.0f;
-		size[0]= size[1]= size[2]= 1.0f;
+	if(!doit) {
+		min[0] = min[1] = min[2] = -1.0f;
+		max[0] = max[1] = max[2] = 1.0f;
 	}
 	
-	bb->vec[0][0]=bb->vec[1][0]=bb->vec[2][0]=bb->vec[3][0]= loc[0]-size[0];
-	bb->vec[4][0]=bb->vec[5][0]=bb->vec[6][0]=bb->vec[7][0]= loc[0]+size[0];
+	loc[0]= (min[0]+max[0])/2.0f;
+	loc[1]= (min[1]+max[1])/2.0f;
+	loc[2]= (min[2]+max[2])/2.0f;
 	
-	bb->vec[0][1]=bb->vec[1][1]=bb->vec[4][1]=bb->vec[5][1]= loc[1]-size[1];
-	bb->vec[2][1]=bb->vec[3][1]=bb->vec[6][1]=bb->vec[7][1]= loc[1]+size[1];
+	size[0]= (max[0]-min[0])/2.0f;
+	size[1]= (max[1]-min[1])/2.0f;
+	size[2]= (max[2]-min[2])/2.0f;
 
-	bb->vec[0][2]=bb->vec[3][2]=bb->vec[4][2]=bb->vec[7][2]= loc[2]-size[2];
-	bb->vec[1][2]=bb->vec[2][2]=bb->vec[5][2]=bb->vec[6][2]= loc[2]+size[2];
+	boundbox_set_from_min_max(bb, min, max);
 
 	if(cu->texflag & CU_AUTOSPACE) {
 		VECCOPY(cu->loc, loc);
