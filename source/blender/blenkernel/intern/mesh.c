@@ -149,8 +149,7 @@ void free_mesh(Mesh *me)
 	if(me->msticky) MEM_freeN(me->msticky);
 
 	if(me->mat) MEM_freeN(me->mat);
-	if(me->orco) MEM_freeN(me->orco);
-
+	
 	if(me->bb) MEM_freeN(me->bb);
 	if(me->disp.first) freedisplist(&me->disp);
 	if(me->derived) me->derived->release(me->derived);
@@ -235,7 +234,6 @@ Mesh *copy_mesh(Mesh *me)
 	men->mcol= MEM_dupallocN(me->mcol);
 	men->msticky= MEM_dupallocN(me->msticky);
 	men->texcomesh= NULL;
-	men->orco= NULL;
 	men->bb= MEM_dupallocN(men->bb);
 	
 	men->disp.first= men->disp.last= NULL;	// dont copy, editmode version has pointers in it
@@ -430,12 +428,12 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 	if (size_r) VECCOPY(size_r, me->size);
 }
 
-void make_orco_displist_mesh(Object *ob, int subdivlvl)
+static float *make_orco_displist_mesh(Object *ob, int subdivlvl)
 {
 	Mesh *me= ob->data;
 	DerivedMesh *dm;
 	DispListMesh *dlm;
-	float loc[3], size[3];
+	float *orco, *fp, loc[3], size[3];
 	int i;
 	
 	if (G.obedit && G.obedit->data==me) {
@@ -456,32 +454,30 @@ void make_orco_displist_mesh(Object *ob, int subdivlvl)
 		do_ob_key(ob);
 	}
 
-	if (me->orco) MEM_freeN(me->orco);
-	me->orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
+	fp= orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
 	
 	mesh_get_texspace(me, loc, NULL, size);
-	for(i=0; i<dlm->totvert; i++) {
-		float *fp= &me->orco[i*3];
-
+	for(i=0; i<dlm->totvert; i++,fp+=3) {
 		fp[0]= (dlm->mvert[i].co[0] - loc[0])/size[0];
 		fp[1]= (dlm->mvert[i].co[1] - loc[1])/size[1];
 		fp[2]= (dlm->mvert[i].co[2] - loc[2])/size[2];
 	}
 	
 	displistmesh_free(dlm);
+
+	return orco;
 }
 
-void make_orco_mesh(Mesh *me)
+static float *make_orco_mesh(Mesh *me)
 {
 	MVert *mvert;
 	KeyBlock *kb;
-	float *orco, *fp;
+	float *orcoData, *orco, *fp;
 	int a, totvert;
 	float loc[3], size[3];
 	
 	totvert= me->totvert;
-	if(totvert==0) return;
-	orco= me->orco= MEM_mallocN(sizeof(float)*3*totvert, "orco mesh");
+	orco= orcoData= MEM_mallocN(sizeof(float)*3*totvert, "orco mesh");
 
 	mesh_get_texspace(me, loc, NULL, size);
 	if(me->key && me->texcomesh==0) {
@@ -513,6 +509,30 @@ void make_orco_mesh(Mesh *me)
 			/* only increase mvert when totvert <= me->totvert */
 			if(a<me->totvert) mvert++;
 		}
+	}
+
+	return orcoData;
+}
+
+float *mesh_create_orco_render(Object *ob) 
+{
+	Mesh *me = ob->data;
+
+	if ((me->flag&ME_SUBSURF) && me->subdivr) {
+		return make_orco_displist_mesh(ob, me->subdivr);
+	} else {
+		return make_orco_mesh(me);
+	}
+}
+
+float *mesh_create_orco(Object *ob)
+{
+	Mesh *me = ob->data;
+
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		return make_orco_displist_mesh(ob, me->subdiv);
+	} else {
+		return make_orco_mesh(me);
 	}
 }
 

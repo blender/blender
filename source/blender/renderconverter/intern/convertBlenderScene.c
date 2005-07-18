@@ -52,6 +52,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_memarena.h"
+#include "BLI_GHash.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -789,19 +790,17 @@ static void autosmooth(int startvert, int startvlak, int degr)
 /* End of autosmoothing:                                                     */
 /* ------------------------------------------------------------------------- */
 
-static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *extverts)
+static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *extverts, float *orco)
 {
 	HaloRen *har;
 	float xn, yn, zn, nor[3], view[3];
-	float *orco, vec[3], hasize, mat[4][4], imat[3][3];
+	float vec[3], hasize, mat[4][4], imat[3][3];
 	int start, end, a, ok, seed= ma->seed1;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	R.flag |= R_HALO;
-
-	orco= me->orco;
 
 	start= 0;
 	end= totvert;
@@ -1283,6 +1282,32 @@ static void init_render_mball(Object *ob)
 }
 /* ------------------------------------------------------------------------- */
 /* convert */
+
+static GHash *g_orco_hash = NULL;
+
+static float *get_mesh_orco(Object *ob)
+{
+	Mesh *me = ob->data;
+	float *orco;
+
+	if (!g_orco_hash)
+		g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+
+	orco = BLI_ghash_lookup(g_orco_hash, me);
+
+	if (!orco) {
+		orco = mesh_create_orco_render(ob);
+
+		BLI_ghash_insert(g_orco_hash, me, orco);
+	}
+
+	return orco;
+}
+static void free_mesh_orco_hash(void) 
+{
+	BLI_ghash_free(g_orco_hash, NULL, MEM_freeN);
+}
+
 static void init_render_mesh(Object *ob)
 {
 	Mesh *me;
@@ -1295,7 +1320,7 @@ static void init_render_mesh(Object *ob)
 	PartEff *paf;
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
-	float *extverts=0, *orco;
+	float *extverts=0, *orco=0, *orcoData=0;
 	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
@@ -1323,25 +1348,20 @@ static void init_render_mesh(Object *ob)
 
 	if(me->key) do_puno= 1;
 
-	if(me->orco==0) {
-		need_orco= 0;
-		for(a=1; a<=ob->totcol; a++) {
-			ma= give_render_material(ob, a);
-			if(ma) {
-				if(ma->texco & TEXCO_ORCO) {
-					need_orco= 1;
-					break;
-				}
+	need_orco= 0;
+	for(a=1; a<=ob->totcol; a++) {
+		ma= give_render_material(ob, a);
+		if(ma) {
+			if(ma->texco & TEXCO_ORCO) {
+				need_orco= 1;
+				break;
 			}
 		}
 	}
 	
 	/* we do this before deform */
 	if(need_orco) {
-		if ((me->flag&ME_SUBSURF) && me->subdivr) 
-			make_orco_displist_mesh(ob, me->subdivr);
-		else
-			make_orco_mesh(me);
+		orco = get_mesh_orco(ob);
 	}			
 	
 	{
@@ -1358,12 +1378,10 @@ static void init_render_mesh(Object *ob)
 		ms = (totvert==me->totvert)?me->msticky:NULL;
 	}
 	
-	orco= me->orco;
-
 	ma= give_render_material(ob, 1);
 
 	if(ma->mode & MA_HALO) {
-		make_render_halos(ob, me, totvert, mvert, ma, extverts);
+		make_render_halos(ob, me, totvert, mvert, ma, extverts, orco);
 	}
 	else {
 
@@ -2705,13 +2723,6 @@ void RE_freeRotateBlenderScene(void)
 				cu->orco= 0;
 			}
 		}
-		else if(ob->type==OB_MESH) {
-			Mesh *me= ob->data;
-			if(me->orco) {
-				MEM_freeN(me->orco);
-				me->orco= 0;
-			}
-		}
 		else if(ob->type==OB_MBALL) {
 			if(ob->disp.first && ob->disp.first!=ob->disp.last) {
 				DispList *dl= ob->disp.first;
@@ -2722,6 +2733,8 @@ void RE_freeRotateBlenderScene(void)
 		}
 		ob= ob->id.next;
 	}
+
+	free_mesh_orco_hash();
 
 	end_render_textures();
 	end_render_materials();

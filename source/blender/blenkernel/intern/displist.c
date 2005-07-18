@@ -766,13 +766,7 @@ void shadeDispList(Object *ob)
 		MVert *mvert;
 
 		if (need_orco) {
-			if ((me->flag&ME_SUBSURF) && me->subdiv) 
-				make_orco_displist_mesh(ob, me->subdiv);
-			else
-				make_orco_mesh(me);
-			orco= me->orco;
-		} else {
-			orco= NULL;
+			orco = mesh_create_orco(ob);
 		}
 
 		dlm= dm->convertToDispListMesh(dm);
@@ -867,9 +861,8 @@ void shadeDispList(Object *ob)
 		}
 		displistmesh_free(dlm);
 
-		if (need_orco && orco) {
-			MEM_freeN(me->orco);
-			me->orco= NULL;
+		if (orco) {
+			MEM_freeN(orco);
 		}
 
 		if (dmNeedsFree) dm->release(dm);

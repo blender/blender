@@ -2090,7 +2090,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->bb= NULL;
 	mesh->oc= 0;
 	mesh->dface= NULL;
-	mesh->orco= NULL;
 	mesh->decimated= NULL;
 	mesh->derived= NULL;
 

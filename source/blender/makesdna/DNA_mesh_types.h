@@ -80,7 +80,6 @@ typedef struct Mesh {
 	struct MCol *mcol;
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
-	float *orco;
 
 		/* not written in file, caches derived mesh */
 	struct DerivedMesh *derived;
