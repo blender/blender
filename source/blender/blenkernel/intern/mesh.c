@@ -428,112 +428,73 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 	if (size_r) VECCOPY(size_r, me->size);
 }
 
-static float *make_orco_displist_mesh(Object *ob, int subdivlvl)
+static float *make_orco_mesh_internal(Mesh *me, int render)
 {
-	Mesh *me= ob->data;
-	DerivedMesh *dm;
-	DispListMesh *dlm;
-	float *orco, *fp, loc[3], size[3];
-	int i;
-	
-	if (G.obedit && G.obedit->data==me) {
-		dm= subsurf_make_derived_from_editmesh(G.editMesh, subdivlvl, me->subsurftype, NULL);
-		dlm= dm->convertToDispListMesh(dm);
-		dm->release(dm);
-	} else {
-			/* if there's a key, set the first one */
-		if(me->key && me->texcomesh==0) {
-			cp_key(0, me->totvert, me->totvert, (char*) me->mvert->co, me->key, me->key->refkey, 0);
-		}
-
-		dm= subsurf_make_derived_from_mesh(ob, subdivlvl, 0);
-		dlm= dm->convertToDispListMesh(dm);
-		dm->release(dm);
-		
-			/* Restore correct key */
-		do_ob_key(ob);
-	}
-
-	fp= orco= MEM_mallocN(dlm->totvert*3*sizeof(float), "mesh displist orco");
-	
-	mesh_get_texspace(me, loc, NULL, size);
-	for(i=0; i<dlm->totvert; i++,fp+=3) {
-		fp[0]= (dlm->mvert[i].co[0] - loc[0])/size[0];
-		fp[1]= (dlm->mvert[i].co[1] - loc[1])/size[1];
-		fp[2]= (dlm->mvert[i].co[2] - loc[2])/size[2];
-	}
-	
-	displistmesh_free(dlm);
-
-	return orco;
-}
-
-static float *make_orco_mesh(Mesh *me)
-{
-	MVert *mvert;
-	KeyBlock *kb;
-	float *orcoData, *orco, *fp;
+	float (*orcoData)[3];
 	int a, totvert;
 	float loc[3], size[3];
-	
-	totvert= me->totvert;
-	orco= orcoData= MEM_mallocN(sizeof(float)*3*totvert, "orco mesh");
+	DerivedMesh *dm;
+	float (*vcos)[3] = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
 
-	mesh_get_texspace(me, loc, NULL, size);
-	if(me->key && me->texcomesh==0) {
-		kb= me->key->refkey;
-		if (kb) {		/***** BUG *****/
-			fp= kb->data;
-			
-			for(a=0; a<totvert; a++, orco+=3) {
-				orco[0]= (fp[0]-loc[0])/size[0];
-				orco[1]= (fp[1]-loc[1])/size[1];
-				orco[2]= (fp[2]-loc[2])/size[2];
-				
-				/* only increase mvert when totvert <= kb->totelem */
-				if(a<kb->totelem) fp+=3;
-			}
+		/* Get appropriate vertex coordinates */
+
+	if(me->key && me->texcomesh==0 && me->key->refkey) {
+		KeyBlock *kb= me->key->refkey;
+		float *fp= kb->data;
+		totvert= MIN2(kb->totelem, me->totvert);
+
+		for(a=0; a<totvert; a++, fp+=3) {
+			vcos[a][0]= fp[0];
+			vcos[a][1]= fp[1];
+			vcos[a][2]= fp[2];
 		}
 	}
 	else {
-		if(me->texcomesh) {
-			me= me->texcomesh;
-		}	
-	
-		mvert= me->mvert;
-		for(a=0; a<totvert; a++, orco+=3) {
-			orco[0]= (mvert->co[0]-loc[0])/size[0];
-			orco[1]= (mvert->co[1]-loc[1])/size[1];
-			orco[2]= (mvert->co[2]-loc[2])/size[2];
-			
-			/* only increase mvert when totvert <= me->totvert */
-			if(a<me->totvert) mvert++;
+		Mesh *tme = me->texcomesh?me->texcomesh:me;
+		MVert *mvert = tme->mvert;
+		totvert = MIN2(tme->totvert, me->totvert);
+
+		for(a=0; a<totvert; a++, mvert++) {
+			vcos[a][0]= mvert->co[0];
+			vcos[a][1]= mvert->co[1];
+			vcos[a][2]= mvert->co[2];
 		}
 	}
 
-	return orcoData;
+		/* Apply orco-changing modifiers */
+
+	if (render) {
+		dm = mesh_create_derived_no_deform_render(me, vcos);
+	} else {
+		dm = mesh_create_derived_no_deform(me, vcos);
+	}
+	totvert = dm->getNumVerts(dm);
+
+	orcoData = MEM_mallocN(sizeof(*orcoData)*totvert, "orcoData");
+	dm->getVertCos(dm, orcoData);
+	dm->release(dm);
+	MEM_freeN(vcos);
+
+	mesh_get_texspace(me, loc, NULL, size);
+
+	for(a=0; a<totvert; a++) {
+		float *co = orcoData[a];
+		co[0] = (co[0]-loc[0])/size[0];
+		co[1] = (co[1]-loc[1])/size[1];
+		co[2] = (co[2]-loc[2])/size[2];
+	}
+
+	return (float*) orcoData;
 }
 
 float *mesh_create_orco_render(Object *ob) 
 {
-	Mesh *me = ob->data;
-
-	if ((me->flag&ME_SUBSURF) && me->subdivr) {
-		return make_orco_displist_mesh(ob, me->subdivr);
-	} else {
-		return make_orco_mesh(me);
-	}
+	return make_orco_mesh_internal(ob->data, 1);
 }
 
 float *mesh_create_orco(Object *ob)
 {
-	Mesh *me = ob->data;
-
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		return make_orco_displist_mesh(ob, me->subdiv);
-	} else {
-		return make_orco_mesh(me);
-	}
+	return make_orco_mesh_internal(ob->data, 0);
 }
 
 /** rotates the vertices of a face in case v[2] or v[3] (vertex index)

@@ -65,6 +65,7 @@ typedef struct {
 	DerivedMesh dm;
 
 	Object *ob;
+	Mesh *me;
 	MVert *verts;
 	float *nors;
 
@@ -74,7 +75,7 @@ typedef struct {
 static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
 
 	dlm->totvert = me->totvert;
@@ -94,7 +95,7 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	int i;
 
 	if (me->totvert) {
@@ -103,6 +104,19 @@ static void meshDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 		}
 	} else {
 		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
+	}
+}
+
+static void meshDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->me;
+	int i;
+
+	for (i=0; i<me->totvert; i++) {
+		cos_r[i][0] = mdm->verts[i].co[0];
+		cos_r[i][1] = mdm->verts[i].co[1];
+		cos_r[i][2] = mdm->verts[i].co[2];
 	}
 }
 
@@ -129,10 +143,10 @@ static void meshDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 static void meshDM_drawVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	int a, start=0, end=me->totvert;
 
-	set_buildvars(mdm->ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 
 	glBegin(GL_POINTS);
 	for(a= start; a<end; a++) {
@@ -143,11 +157,11 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 static void meshDM_drawEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me= mdm->ob->data;
+	Mesh *me= mdm->me;
 	int a, start= 0, end= me->totface;
 	MFace *mface = me->mface;
 
-	set_buildvars(mdm->ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
 	
 		// edges can't cope with buildvars, draw with
@@ -205,11 +219,11 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 static void meshDM_drawLooseEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	MFace *mface= me->mface;
 	int a, start=0, end=me->totface;
 
-	set_buildvars(mdm->ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
 		
 	glBegin(GL_LINES);
@@ -224,14 +238,14 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
 	int glmode=-1, shademodel=-1, matnr=-1, drawCurrentMat=1;
 
-	set_buildvars(mdm->ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
 	
 #define PASSVERT(index, punoBit) {				\
@@ -286,13 +300,12 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned char *col1, unsigned char *col2)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Object *ob= mdm->ob;
-	Mesh *me= ob->data;
+	Mesh *me= mdm->me;
 	MFace *mface= me->mface;
 	int a, glmode, start=0, end=me->totface;
 	unsigned char *cp1, *cp2;
 
-	set_buildvars(ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 	mface+= start;
 	col1+= 4*start;
 	if(col2) col2+= 4*start;
@@ -357,14 +370,14 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr)) 
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	TFace *tface = me->tface;
 	float *nors = mdm->nors;
 	int a, start=0, end=me->totface;
 
-	set_buildvars(mdm->ob, &start, &end);
+	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
 	
 	for (a=start; a<end; a++) {
 		MFace *mf= &mface[a];
@@ -414,14 +427,14 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 static int meshDM_getNumVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 
 	return me->totvert;
 }
 static int meshDM_getNumFaces(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->ob->data;
+	Mesh *me = mdm->me;
 
 	return me->totface;
 }
@@ -431,14 +444,13 @@ static void meshDM_release(DerivedMesh *dm)
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 
 	if (mdm->freeNors) MEM_freeN(mdm->nors);
-	if (mdm->verts!=((Mesh*) mdm->ob->data)->mvert) MEM_freeN(mdm->verts);
+	if (mdm->verts!=((Mesh*) mdm->me)->mvert) MEM_freeN(mdm->verts);
 	MEM_freeN(mdm);
 }
 
-static DerivedMesh *getMeshDerivedMesh(Object *ob, MVert *deformedVerts, float *nors)
+static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, MVert *deformedVerts, float *nors, float (*vertCos)[3])
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "mdm");
-	Mesh *me = ob->data;
 
 	mdm->dm.getMinMax = meshDM_getMinMax;
 
@@ -446,6 +458,7 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, MVert *deformedVerts, float *
 	mdm->dm.getNumVerts = meshDM_getNumVerts;
 	mdm->dm.getNumFaces = meshDM_getNumFaces;
 
+	mdm->dm.getVertCos = meshDM_getVertCos;
 	mdm->dm.getVertCo = meshDM_getVertCo;
 	mdm->dm.getVertNo = meshDM_getVertNo;
 
@@ -462,8 +475,20 @@ static DerivedMesh *getMeshDerivedMesh(Object *ob, MVert *deformedVerts, float *
 	mdm->dm.release = meshDM_release;
 	
 	mdm->ob = ob;
+	mdm->me = me;
 	mdm->nors = nors;
 	mdm->freeNors = 0;
+
+	if (vertCos) {
+		int i;
+
+		deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*me->totvert, "deformedVerts");
+		for (i=0; i<me->totvert; i++) {
+			deformedVerts[i].co[0] = vertCos[i][0];
+			deformedVerts[i].co[1] = vertCos[i][1];
+			deformedVerts[i].co[2] = vertCos[i][2];
+		}
+	}
 
 	if (deformedVerts) {
 		mdm->verts = deformedVerts;
@@ -889,6 +914,18 @@ static void ssDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	}
 }
 
+static void ssDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	int i;
+
+	for (i=0; i<ssdm->dlm->totvert; i++) {
+		cos_r[i][0] = ssdm->dlm->mvert[i].co[0];
+		cos_r[i][1] = ssdm->dlm->mvert[i].co[1];
+		cos_r[i][2] = ssdm->dlm->mvert[i].co[2];
+	}
+}
+
 static int ssDM_getNumVerts(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -927,6 +964,8 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 	ssdm->dm.getNumVerts = ssDM_getNumVerts;
 	ssdm->dm.getNumFaces = ssDM_getNumFaces;
 	ssdm->dm.convertToDispListMesh = ssDM_convertToDispListMesh;
+
+	ssdm->dm.getVertCos = ssDM_getVertCos;
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
 
@@ -1014,7 +1053,7 @@ DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
 		*needsFree_r = 1;
 		meDL = me->disp.first;
 
-		return getMeshDerivedMesh(ob, NULL, meDL?meDL->nors:NULL);
+		return getMeshDerivedMesh(ob->data, ob, NULL, meDL?meDL->nors:NULL, NULL);
 	}
 }
 
@@ -1038,7 +1077,7 @@ DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree_r)
 		if(G.obedit && me==G.obedit->data) {
 			return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
 		} else {
-			return subsurf_make_derived_from_mesh(ob, me->subdivr, 1);
+			return subsurf_make_derived_from_mesh(ob->data, me->subdivr, ob, NULL);
 		}
 	} else {
 		return mesh_get_derived_deform(ob, needsFree_r);
@@ -1056,7 +1095,7 @@ DerivedMesh *mesh_get_base_derived(Object *ob)
 	} else {
 		DispList *meDL = me->disp.first;
 
-		return getMeshDerivedMesh(ob, NULL, meDL?meDL->nors:NULL);
+		return getMeshDerivedMesh(ob->data, ob, NULL, meDL?meDL->nors:NULL, NULL);
 	}
 }
 
@@ -1082,5 +1121,23 @@ DerivedMesh *derivedmesh_from_mesh(Object *ob, MVert *deformedVerts)
 {
 	Mesh *me = ob->data;
 
-	return getMeshDerivedMesh(ob, deformedVerts, NULL);
+	return getMeshDerivedMesh(ob->data, ob, deformedVerts, NULL, NULL);
+}
+
+DerivedMesh *mesh_create_derived_no_deform(Mesh *me, float (*vertCos)[3])
+{
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		return subsurf_make_derived_from_mesh(me, me->subdiv, NULL, vertCos);
+	} else {
+		return getMeshDerivedMesh(me, NULL, NULL, NULL, vertCos);
+	}
+}
+
+DerivedMesh *mesh_create_derived_no_deform_render(Mesh *me, float (*vertCos)[3])
+{
+	if ((me->flag&ME_SUBSURF) && me->subdivr) {
+		return subsurf_make_derived_from_mesh(me, me->subdivr, NULL, vertCos);
+	} else {
+		return getMeshDerivedMesh(me, NULL, NULL, NULL, vertCos);
+	}
 }

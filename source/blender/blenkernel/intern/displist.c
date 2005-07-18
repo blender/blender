@@ -1447,7 +1447,7 @@ void makeDispListMesh(Object *ob)
 		if (ob==G.obedit) {
 			G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 		} else {
-			me->derived= subsurf_make_derived_from_mesh(ob, me->subdiv, 1);
+			me->derived= subsurf_make_derived_from_mesh(ob->data, me->subdiv, ob, NULL);
 		}
 	}
 	

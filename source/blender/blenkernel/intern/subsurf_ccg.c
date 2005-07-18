@@ -73,6 +73,7 @@ typedef struct _SubSurf {
 	Mesh *me;
 
 	Object *deformOb;
+	float (*vertCos)[3];
 } SubSurf;
 
 typedef struct _VertData {
@@ -144,7 +145,7 @@ static SubSurf *subSurf_fromEditmesh(EditMesh *em, int subdivLevels, int useAgin
 	return ss;
 }
 
-static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels, Object *deformOb) {
+static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels, Object *deformOb, float (*vertCos)[3]) {
 	SubSurf *ss = MEM_mallocN(sizeof(*ss), "ss_m");
 
 	ss->controlType = SUBSURF_CONTROLTYPE_MESH;
@@ -152,6 +153,7 @@ static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels, 
 	ss->subSurf = _getSubSurf(ss, subdivLevels, 1);
 	ss->me = me;
 	ss->deformOb = deformOb;
+	ss->vertCos = vertCos;
 
 	ccgSubSurf_setAllowEdgeCreation(ss->subSurf, 1, useFlatSubdiv?subdivLevels:0.0f);
 
@@ -515,6 +517,10 @@ static void subSurf_sync(SubSurf *ss, int useFlatSubdiv) {
 			}
 
 			displistmesh_free(dlm);
+		} else if (ss->vertCos) {
+			for (i=0; i<ss->me->totvert; i++) {
+				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->vertCos[i]);
+			}
 		} else {
 			for (i=0; i<ss->me->totvert; i++) {
 				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
@@ -1017,10 +1023,9 @@ DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, 
 	return (DerivedMesh*) ccgdm;
 }
 
-DerivedMesh *subsurf_make_derived_from_mesh(Object *ob, int subdivLevels, int useDeformVerts) {
-	Mesh *me = ob->data;
+DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels, Object *deformedVertsOb, float (*vertCos)[3]) {
 	int useFlatSubdiv = me->subsurftype==ME_SIMPLE_SUBSURF;
-	SubSurf *ss = subSurf_fromMesh(me, useFlatSubdiv, subdivLevels, useDeformVerts?ob:NULL);
+	SubSurf *ss = subSurf_fromMesh(me, useFlatSubdiv, subdivLevels, deformedVertsOb, vertCos);
 	DispListMesh *dlm;
 
 	subSurf_sync(ss, useFlatSubdiv);
@@ -1039,7 +1044,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		 * calculated vert positions is incorrect for the verts 
 		 * on the boundary of the mesh.
 		 */
-	SubSurf *ss = subSurf_fromMesh(me, 0, 1, NULL);
+	SubSurf *ss = subSurf_fromMesh(me, 0, 1, NULL, NULL);
 	float edge_sum[3], face_sum[3];
 	CCGVertIterator *vi;
 

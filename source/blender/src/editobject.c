@@ -2211,7 +2211,7 @@ void convertmenu(void)
 						for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 					}
 					
-					dm= subsurf_make_derived_from_mesh(ob, oldme->subdiv, 0);
+					dm= subsurf_make_derived_from_mesh(ob->data, oldme->subdiv, NULL, NULL);
 					dlm= dm->convertToDispListMesh(dm);
 					dm->release(dm);
 

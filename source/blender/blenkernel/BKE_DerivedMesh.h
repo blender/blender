@@ -75,6 +75,9 @@ struct DerivedMesh {
 		/* Get vertex location, undefined if index is not valid */
 	void (*getVertCo)(DerivedMesh *dm, int index, float co_r[3]);
 
+		/* Fill the array (of length .getNumVerts()) with all vertex locations  */
+	void (*getVertCos)(DerivedMesh *dm, float (*cos_r)[3]);
+
 		/* Get vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
@@ -151,6 +154,9 @@ DerivedMesh *mesh_get_derived(struct Object *ob);
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_render(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
+
+DerivedMesh *mesh_create_derived_no_deform(struct Mesh *me, float (*vertCos)[3]);
+DerivedMesh *mesh_create_derived_no_deform_render(struct Mesh *me, float (*vertCos)[3]);
 
 	/* IMPORTANT: The functions below do not return "true" DerivedMesh
 	 * objects, rather they are just proxies for the mesh or editmesh
