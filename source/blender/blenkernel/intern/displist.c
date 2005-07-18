@@ -1443,7 +1443,7 @@ void makeDispListMesh(Object *ob)
 		}
 	}
 
-	if (mesh_uses_displist(me)) {  /* subsurf */
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
 		if (ob==G.obedit) {
 			G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 		} else {

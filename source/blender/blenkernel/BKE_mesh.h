@@ -73,7 +73,6 @@ void mcol_to_tface(struct Mesh *me, int freedata);
 void tface_to_mcol(struct Mesh *me);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */
-int mesh_uses_displist(struct Mesh *me);
 int update_realtime_texture(struct TFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
