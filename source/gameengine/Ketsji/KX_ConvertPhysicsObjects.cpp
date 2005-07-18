@@ -666,7 +666,6 @@ void	KX_ConvertODEEngineObject(KX_GameObject* gameobj,
 #include "KX_BulletPhysicsController.h"
 #include "CollisionShapes/BoxShape.h"
 #include "CollisionShapes/SphereShape.h"
-#include "CollisionShapes/TriangleMeshInterface.h"
 #include "CollisionShapes/ConeShape.h"
 #include "CollisionShapes/ConvexShape.h"
 #include "CollisionShapes/CylinderShape.h"

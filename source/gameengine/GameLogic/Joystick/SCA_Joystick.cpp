@@ -32,6 +32,7 @@
 #include "SCA_Joystick.h"
 #include "SCA_JoystickPrivate.h"
 
+
 SCA_Joystick::SCA_Joystick()
 	:
 	m_axis10(0),

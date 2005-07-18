@@ -1,3 +1,6 @@
+//under visual studio the #define in KX_ConvertPhysicsObject.h is quicker for recompilation
+#include "KX_ConvertPhysicsObject.h"
+
 #ifdef USE_BULLET
 
 #include "KX_BulletPhysicsController.h"
