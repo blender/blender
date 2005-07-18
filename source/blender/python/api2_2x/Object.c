@@ -30,7 +30,7 @@
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
  * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews,
- * Ken Hughes
+ * Ken Hughes, Alex Mole
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -175,6 +175,7 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getName( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
+static PyObject *Object_getParentBoneName( BPy_Object * self );
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
@@ -324,6 +325,8 @@ automatic when the script finishes."},
 	 "Returns the name of the object"},
 	{"getParent", ( PyCFunction ) Object_getParent, METH_NOARGS,
 	 "Returns the object's parent object"},
+	{"getParentBoneName", ( PyCFunction ) Object_getParentBoneName, METH_NOARGS,
+	 "Returns None, or the 'sub-name' of the parent (eg. Bone name)"},
 	{"getSize", ( PyCFunction ) Object_getSize, METH_VARARGS,
 	 "Returns the object's size (x, y, z)"},
 	{"getTimeOffset", ( PyCFunction ) Object_getTimeOffset, METH_NOARGS,
@@ -1262,6 +1265,23 @@ static PyObject *Object_getParent( BPy_Object * self )
 
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get Object.parent attribute" ) );
+}
+
+static PyObject *Object_getParentBoneName( BPy_Object * self )
+{
+	PyObject *attr;
+
+	if( self->object->parent == NULL )
+		return EXPP_incr_ret( Py_None );
+	if( self->object->parsubstr[0] == '\0' )
+		return EXPP_incr_ret( Py_None );
+
+	attr = Py_BuildValue( "s", self->object->parsubstr );
+	if( attr )
+		return attr;
+
+	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"Failed to get parent bone name" ) );
 }
 
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
@@ -2701,6 +2721,14 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	if( StringEqual( name, "parent" ) ) {
 		if( object->parent )
 			return ( Object_CreatePyObject( object->parent ) );
+		else {
+			Py_INCREF( Py_None );
+			return ( Py_None );
+		}
+	}
+	if( StringEqual( name, "parentbonename" ) ) {
+		if( object->parent && object->parsubstr[0] )
+			return ( Py_BuildValue("s", object->parsubstr) );
 		else {
 			Py_INCREF( Py_None );
 			return ( Py_None );
