@@ -2217,13 +2217,6 @@ void convertmenu(void)
 
 					displistmesh_to_mesh(dlm, ob1->data);
 					displistmesh_free(dlm);
-
-					/* texspace and normals */
-					BASACT= basen;
-					enter_editmode();
-					exit_editmode(1); // freedata, but no undo
-					BASACT= basact;
-					
 				}
 			}
 			else if(ob->type==OB_FONT) {
