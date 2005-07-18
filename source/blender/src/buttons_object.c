@@ -811,6 +811,7 @@ void do_constraintbuts(unsigned short event)
 		
 	case B_CONSTRAINT_DEL:
 	case B_CONSTRAINT_CHANGETARGET:
+		if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);
 		break;
 		

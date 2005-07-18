@@ -571,22 +571,6 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
 	Mat4CpyMat4(M_accumulatedMatrix, bone->arm_mat);
 }
 
-#if 0
-/* IK in the sense of; connected directly */
-static Bone *get_last_ik_bone (Bone *bone)
-{
-	Bone *curBone;
-	
-	for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-		if (curBone->flag & BONE_IK_TOPARENT){
-			return get_last_ik_bone (curBone);
-		}
-	}
-	
-	return bone;
-}
-
-#endif
 
 /* **************** The new & simple (but OK!) armature evaluation ********* */ 
 
@@ -1029,6 +1013,9 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 	if(pchan->constraints.first) {
 		static Object conOb;
 		static int initialized= 0;
+		float vec[3];
+		
+		VECCOPY(vec, pchan->pose_mat[3]);
 		
 		/* Build a workob to pass the bone to the constraint solver */
 		if(initialized==0) {
@@ -1054,6 +1041,11 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 		
 		/* Take out of worldspace */
 		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);
+		
+		/* prevent constraints breaking a chain */
+		if(pchan->bone->flag & BONE_IK_TOPARENT)
+			VECCOPY(pchan->pose_mat[3], vec);
+
 	}
 	
 	/* calculate head */
