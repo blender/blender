@@ -99,7 +99,8 @@ typedef struct bLocateLikeConstraint{
 
 typedef struct bActionConstraint{
 	Object		*tar;
-	int			type;
+	short		type;
+	short		local;
 	short		start;
 	short		end;
 	float		min;

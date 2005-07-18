@@ -531,7 +531,8 @@ void *new_constraint_data (short type)
 		{
 			bActionConstraint *data;
 			data = MEM_callocN(sizeof(bActionConstraint), "actionConstraint");
-
+			data->local= 1;
+			
 			result = data;
 		}
 		break;
@@ -717,23 +718,29 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				if(data->subtarget[0]) {
 					pchan = get_pose_channel(data->tar->pose, data->subtarget);
 					if (pchan) {
-						float diff_mat[3][3], arm_mat[3][3], pose_mat[3][3], par_mat[3][3], ipar_mat[3][3];
-						/* we need the local rotation = current rotation - (parent rotation + restpos) */
-						
-						Mat3CpyMat4(arm_mat, pchan->bone->arm_mat);
-						
-						if (pchan->parent) {
-							Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
-							Mat3MulMat3(diff_mat, par_mat, arm_mat);
+						/* new; true local rotation constraint */
+						if(data->local) {
+							float diff_mat[3][3], arm_mat[3][3], pose_mat[3][3], par_mat[3][3], ipar_mat[3][3];
+							/* we need the local rotation = current rotation - (parent rotation + restpos) */
 							
-							Mat3Inv(ipar_mat, diff_mat);
+							Mat3CpyMat4(arm_mat, pchan->bone->arm_mat);
+							
+							if (pchan->parent) {
+								Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
+								Mat3MulMat3(diff_mat, par_mat, arm_mat);
+								
+								Mat3Inv(ipar_mat, diff_mat);
+							}
+							else {
+								Mat3Inv(ipar_mat, arm_mat);
+							}
+							
+							Mat3CpyMat4(pose_mat, pchan->pose_mat);
+							Mat3MulMat3(tempmat3, ipar_mat, pose_mat);
 						}
-						else {
-							Mat3Inv(ipar_mat, arm_mat);
+						else {	/* we use the global rotation, mainly backwards compatibility */
+							Mat3CpyMat4(tempmat3, pchan->pose_mat);
 						}
-						
-						Mat3CpyMat4(pose_mat, pchan->pose_mat);
-						Mat3MulMat3(tempmat3, ipar_mat, pose_mat);
 					}
 					else Mat3One(tempmat3);
 				}
@@ -746,10 +753,12 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				}
 				
 				Mat3ToEul(tempmat3, eul);
-				
 				eul[0]*=(float)(180.0/M_PI);
 				eul[1]*=(float)(180.0/M_PI);
 				eul[2]*=(float)(180.0/M_PI);
+
+				if(data->local==0)	// backwards compatible negative values...
+					VecMulf(eul, -1.0f);
 				
 				/* Target defines the animation */
 				s = (eul[data->type]-data->min)/(data->max-data->min);

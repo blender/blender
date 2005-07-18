@@ -445,17 +445,18 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 
 				/* Draw action button */
-				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_CHANGETARGET, "AC:", *xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
-				uiDefButI(block, MENU, B_CONSTRAINT_REDRAW, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
+				uiBlockBeginAlign(block);
+				uiDefButS(block, TOG, B_CONSTRAINT_TEST, "Local",						*xco+((width/2)-117), *yco-46, 78, 18, &data->local, 0, 0, 0, 0, "Use true local rotation difference");
+				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_TEST, "AC:",	*xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
+				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
 
 				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
-				uiDefButS(block, NUM, B_CONSTRAINT_CHANGETARGET, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
-				uiBlockEndAlign(block);
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Min:", *xco+((width/2)+45), *yco-64, 78, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
-				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Max:", *xco+((width/2)+45), *yco-84, 78, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Min:", *xco+((width/2)+45), *yco-64, 78, 18, &data->min, -180, 180, 0, 0, "Minimum value for target channel range");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Max:", *xco+((width/2)+45), *yco-84, 78, 18, &data->max, -180, 180, 0, 0, "Maximum value for target channel range");
 				uiBlockEndAlign(block);
 			}
 			break;
