@@ -31,10 +31,11 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\python\debug\"
 				ObjectFile="..\..\..\..\build\msvc_7\source\blender\python\debug\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\python\debug\"
-				WarningLevel="2"
+				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+				DisableSpecificWarnings="4100"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
@@ -83,9 +84,10 @@
 				AssemblerListingLocation="..\..\..\..\build\msvc_7\source\blender\python\"
 				ObjectFile="..\..\..\..\build\msvc_7\source\blender\python\"
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\python\"
-				WarningLevel="2"
+				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
-				CompileAs="0"/>
+				CompileAs="0"
+				DisableSpecificWarnings="4100"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
