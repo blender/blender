@@ -1199,31 +1199,6 @@ static int tree_element_active_nla_action(TreeElement *te, TreeStoreElem *tselem
 	return 0;
 }
 
-
-static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int set)
-{
-	bArmature *arm= (bArmature *)tselem->id;
-	Bone *bone= te->directdata;
-
-	if(set) {
-		if(G.qual & LR_SHIFTKEY);
-		else deselectall_posearmature(0);
-		bone->flag |= BONE_SELECTED;
-
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWACTION, 0);
-	}
-	else {
-		Object *ob= OBACT;
-		
-		if(ob && ob->data==arm) {
-			if (bone->flag & BONE_SELECTED) return 1;
-		}
-	}
-	return 0;
-}
-
 static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	Object *ob= (Object *)tselem->id;

@@ -1711,8 +1711,12 @@ void clear_armature(Object *ob, char mode)
 			}
 		}
 	}
-	/* no DAG flush, this will execute the action again */
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	/* no update for this object, this will execute the action again */
+	/* is weak... like for ipo editing which uses ctime now... */
 	where_is_pose (ob);
+	ob->recalc= 0;
 }
 
 /* helper for function below */
