@@ -52,7 +52,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_memarena.h"
-#include "BLI_GHash.h"
+#include "BLI_ghash.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
