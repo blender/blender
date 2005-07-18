@@ -65,6 +65,7 @@
 #include "BKE_library.h"
 #include "BKE_displist.h"
 #include "BKE_mball.h"
+#include "BKE_object.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

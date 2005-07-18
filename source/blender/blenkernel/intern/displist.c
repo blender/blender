@@ -732,7 +732,7 @@ void shadeDispList(Object *ob)
 	float *orco=NULL, imat[3][3], tmat[4][4], mat[4][4], vec[3], xn, yn, zn;
 	float *fp, *nor, n1[3];
 	unsigned int *col1;
-	int a, lastmat= -1, need_orco = 0;
+	int a, need_orco = 0;
 
 	if(ob->flag & OB_FROMDUPLI) return;
 	initfastshade();
