@@ -34,11 +34,12 @@
 #define EXPP_ARMATURE_H
 
 #include <Python.h>
-#include <DNA_armature_types.h>
+#include "DNA_armature_types.h"
 
 //---------------------Python BPy_Armature structure definition-------
 typedef struct {
-	PyObject_HEAD bArmature * armature;
+	PyObject_HEAD 
+	bArmature * armature;
 } BPy_Armature;
 
 //--------------------visible prototypes------------------------------

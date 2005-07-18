@@ -34,10 +34,8 @@
 #define EXPP_BONE_H
 
 #include <Python.h>
-#include <DNA_armature_types.h>
-#include "vector.h"
-#include "quat.h"
-#include "matrix.h"
+#include "DNA_armature_types.h"
+#include "Mathutils.h"
 
 //--------------------------Python BPy_Bone structure definition.-------
 typedef struct {

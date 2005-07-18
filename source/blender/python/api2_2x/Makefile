@@ -40,6 +40,7 @@ include nan_compile.mk
 
 ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
     CFLAGS += -funsigned-char
+    CFLAGS += -fno-strict-aliasing
 endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)

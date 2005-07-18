@@ -30,20 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <math.h>
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
+#include "Mathutils.h"
+
 #include "BLI_arithb.h"
 #include "PIL_time.h"
 #include "BLI_rand.h"
-#include "blendef.h"
-#include "mydevice.h"
-#include "constant.h"
 #include "gen_utils.h"
-#include "Mathutils.h"
+
 //-------------------------DOC STRINGS ---------------------------
 static char M_Mathutils_doc[] = "The Blender Mathutils module\n\n";
 static char M_Mathutils_Vector_doc[] = "() - create a new vector object from a list of floats";
@@ -145,7 +138,7 @@ PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
 		for(y = 0; y < mat->colSize; y++) {
 			dot += mat->matrix[x][y] * vecCopy[y];
 		}
-		vecNew[z++] = dot;
+		vecNew[z++] = (float)dot;
 		dot = 0.0f;
 	}
 	return (PyObject *) newVectorObject(vecNew, vec->size, Py_NEW);
@@ -180,7 +173,7 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 		for(y = 0; y < mat->rowSize; y++) {
 			dot += mat->matrix[y][x] * vecCopy[y];
 		}
-		vecNew[z++] = dot;
+		vecNew[z++] = (float)dot;
 		dot = 0.0f;
 	}
 	return (PyObject *) newVectorObject(vecNew, size, Py_NEW);
@@ -260,7 +253,7 @@ PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args)
 			return EXPP_ReturnPyObjError(PyExc_TypeError, 
 				"Mathutils.Vector(): 2-4 floats or ints expected (optionally in a sequence)\n");
 		}
-		vec[i]=PyFloat_AS_DOUBLE(f);
+		vec[i]=(float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,v);
 	}
 	Py_DECREF(listObject);
@@ -479,7 +472,7 @@ PyObject *M_Mathutils_Matrix(PyObject * self, PyObject * args)
 					return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 						"Mathutils.Matrix(): expects 0-4 numeric sequences of the same size\n");
 				}
-				matrix[(seqSize*i)+j]=PyFloat_AS_DOUBLE(f);
+				matrix[(seqSize*i)+j]=(float)PyFloat_AS_DOUBLE(f);
 				EXPP_decr2(f,s);
 			}
 			Py_DECREF(m);
@@ -955,14 +948,14 @@ PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args)
 			return EXPP_ReturnPyObjError(PyExc_TypeError, 
 				"Mathutils.Quaternion(): 4d numeric sequence expected or 3d vector and number\n");
 		}
-		quat[i] = PyFloat_AS_DOUBLE(f);
+		quat[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f, q);
 	}
 	if(size == 3){ //calculate the quat based on axis/angle
 		norm = sqrt(quat[0] * quat[0] + quat[1] * quat[1] + quat[2] * quat[2]);
-		quat[0] /= norm;
-		quat[1] /= norm;
-		quat[2] /= norm;
+		quat[0] /= (float)norm;
+		quat[1] /= (float)norm;
+		quat[2] /= (float)norm;
 
 		angle = angle * (Py_PI / 180);
 		quat[3] =(float) (sin(angle/ 2.0f)) * quat[2];
@@ -1026,7 +1019,7 @@ PyObject *M_Mathutils_DifferenceQuats(PyObject * self, PyObject * args)
 			       tempQuat[2] * tempQuat[2] + tempQuat[3] * tempQuat[3]);
 
 	for(x = 0; x < 4; x++) {
-		tempQuat[x] /= (dot * dot);
+		tempQuat[x] /= (float)(dot * dot);
 	}
 	QuatMul(quat, tempQuat, quatV->quat);
 	return (PyObject *) newQuaternionObject(quat, Py_NEW);
@@ -1081,10 +1074,10 @@ PyObject *M_Mathutils_Slerp(PyObject * self, PyObject * args)
 		y = sin(param * angle) * IsinT;
 	}
 	//interpolate
-	quat[0] = quat_u[0] * x + quat_v[0] * y;
-	quat[1] = quat_u[1] * x + quat_v[1] * y;
-	quat[2] = quat_u[2] * x + quat_v[2] * y;
-	quat[3] = quat_u[3] * x + quat_v[3] * y;
+	quat[0] = (float)(quat_u[0] * x + quat_v[0] * y);
+	quat[1] = (float)(quat_u[1] * x + quat_v[1] * y);
+	quat[2] = (float)(quat_u[2] * x + quat_v[2] * y);
+	quat[3] = (float)(quat_u[3] * x + quat_v[3] * y);
 
 	return (PyObject *) newQuaternionObject(quat, Py_NEW);
 }
@@ -1135,7 +1128,7 @@ PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args)
 			return EXPP_ReturnPyObjError(PyExc_TypeError, 
 				"Mathutils.Euler(): 3d numeric sequence expected\n");
 		}
-		eul[i]=PyFloat_AS_DOUBLE(f);
+		eul[i]=(float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,e);
 	}
 	Py_DECREF(listObject);

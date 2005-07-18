@@ -34,16 +34,16 @@
 #define EXPP_MATERIAL_H
 
 #include <Python.h>
-#include <DNA_material_types.h>
-#include <BKE_material.h>
-
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
 #include "rgbTuple.h"
 
 /*****************************************************************************/
 /* Python BPy_Material structure definition:        */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD Material * material;
+	PyObject_HEAD 
+	Material * material;
 	BPy_rgbTuple *col, *amb, *spec, *mir;
 
 } BPy_Material;

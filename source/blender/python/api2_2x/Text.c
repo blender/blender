@@ -30,20 +30,16 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <Python.h>
-#include <stdio.h>
+#include "Text.h" /*This must come first*/
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_sca.h>
-#include <BIF_drawtext.h>
-#include <BKE_text.h>
-#include <BLI_blenlib.h>
-#include <DNA_space_types.h>
-#include <DNA_text_types.h>
-
-#include "Text.h"
+#include "BKE_library.h"
+#include "BKE_sca.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BIF_drawtext.h"
+#include "BKE_text.h"
+#include "BLI_blenlib.h"
+#include "DNA_space_types.h"
 #include "gen_utils.h"
 #include "../BPY_extern.h"
 

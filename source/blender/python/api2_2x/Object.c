@@ -35,38 +35,56 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "Object.h"
-#include "NLA.h"
-#include "logic.h"
-#include "blendef.h"
+struct SpaceIpo;
+struct rctf;
 
-#include "DNA_scene_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_curve_types.h"
+#include "Object.h" /*This must come first */
+
+#include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
-#include "DNA_property_types.h"
-
+#include "DNA_userdef_types.h"
 #include "BKE_depsgraph.h"
+#include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_property.h"
 #include "BKE_mball.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
-
+#include "BKE_armature.h"
+#include "BKE_lattice.h"
+#include "BKE_mesh.h"
+#include "BKE_library.h"
+#include "BKE_object.h"
+#include "BKE_curve.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "BIF_editview.h"
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
-
-#include "Ipo.h"
-#include "Lattice.h"
-#include "modules.h"
-#include "Mathutils.h"
-#include "constant.h"
-/* only used for oops location get/set at the moment */
+#include "BIF_space.h"
 #include "DNA_oops_types.h" 
-#include "DNA_space_types.h"
-
-#include <string.h>
+#include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BDR_editobject.h"
+#include "MEM_guardedalloc.h"
+#include "mydevice.h"
+#include "blendef.h"
+#include "Scene.h"
+#include "Mathutils.h"
+#include "NMesh.h"
+#include "Curve.h"
+#include "Ipo.h"
+#include "Armature.h"
+#include "Camera.h"
+#include "Lamp.h"
+#include "Lattice.h"
+#include "Text.h"
+#include "Text3d.h"
+#include "Metaball.h"
+#include "Draw.h"
+#include "NLA.h"
+#include "logic.h"
+#include "gen_utils.h"
 
 /* Defines for insertIpoKey */
 
@@ -631,7 +649,7 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 
 	object->id.us = 0;
 	object->flag = 0;
-	object->type = type;
+	object->type = (short)type;
 
 
 	/* transforms */
@@ -670,9 +688,9 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	/* Gameengine defaults */
 	object->mass = 1.0;
 	object->inertia = 1.0;
-	object->formfactor = 0.4;
-	object->damping = 0.04;
-	object->rdamping = 0.1;
+	object->formfactor = 0.4f;
+	object->damping = 0.04f;
+	object->rdamping = 0.1f;
 	object->anisotropicFriction[0] = 1.0;
 	object->anisotropicFriction[1] = 1.0;
 	object->anisotropicFriction[2] = 1.0;
@@ -1757,7 +1775,7 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 	if (partype == PARSKEL && child->type != OB_MESH)
 		child->partype = PAROBJECT;
 	else
-		child->partype = partype;
+		child->partype = (short)partype;
 
 	if (partype == PARVERT3) {
 		child->par1 = v1;
@@ -1850,9 +1868,9 @@ static PyObject *Object_setDrawType( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_setEuler( BPy_Object * self, PyObject * args )
 {
-	float rot1;
-	float rot2;
-	float rot3;
+	float rot1 = 0.0f;
+	float rot2 = 0.0f;
+	float rot3 = 0.0f;
 	int status = 0;		/* failure */
 	PyObject *ob;
 
@@ -2077,8 +2095,8 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 				id_us_plus( ( ID * ) matlist[i] );
 		}
 		self->object->mat = matlist;
-		self->object->totcol = len;
-		self->object->actcol = len;
+		self->object->totcol = (char)len;
+		self->object->actcol = (char)len;
 
 		switch ( self->object->type ) {
 		case OB_CURVE:	/* fall through */
@@ -2224,9 +2242,6 @@ static PyObject *Object_shareFrom( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "type not supported" );
 	}
-
-	Py_INCREF( Py_None );
-	return ( Py_None );
 }
 
 
@@ -2245,11 +2260,11 @@ static PyObject *Object_Select( BPy_Object * self, PyObject * args )
 		if( base->object == self->object ) {
 			if( sel == 1 ) {
 				base->flag |= SELECT;
-				self->object->flag = base->flag;
+				self->object->flag = (short)base->flag;
 				set_active_base( base );
 			} else {
 				base->flag &= ~SELECT;
-				self->object->flag = base->flag;
+				self->object->flag = (short)base->flag;
 			}
 			break;
 		}

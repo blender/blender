@@ -33,8 +33,6 @@
 #ifndef EXPP_INTERFACE_H
 #define EXPP_INTERFACE_H
 
-#include <DNA_ID.h>
-
 struct Script;
 
 void initBlenderApi2_2x( void );

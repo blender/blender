@@ -33,6 +33,8 @@
 #ifndef EXPP_vector_h
 #define EXPP_vector_h
 
+#include <Python.h>
+
 #define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
 
 typedef struct {

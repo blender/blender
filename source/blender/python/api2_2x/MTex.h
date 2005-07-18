@@ -34,8 +34,7 @@
 #define EXPP_MTEX_H
 
 #include <Python.h>
-
-#include <DNA_texture_types.h>
+#include "DNA_texture_types.h"
 
 
 /*****************************************************************************/

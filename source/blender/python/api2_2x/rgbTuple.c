@@ -30,7 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "rgbTuple.h"
+#include "rgbTuple.h" /*This must come first */
+
+#include "gen_utils.h"
 
 /* This file is heavily based on the old bpython Constant object code in
    Blender */
@@ -298,7 +300,7 @@ static int rgbTupleAssSubscript( BPy_rgbTuple * self, PyObject * key,
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError, name );
 
-	*( self->rgb[i] ) = EXPP_ClampFloat( PyFloat_AsDouble( v ), 0.0, 1.0 );
+	*( self->rgb[i] ) = EXPP_ClampFloat( (float)PyFloat_AsDouble( v ), 0.0, 1.0 );
 
 	return 0;
 }
@@ -349,7 +351,7 @@ static int rgbTupleAssItem( BPy_rgbTuple * self, int i, PyObject * ob )
 					    "color component must be a number" );
 /* XXX this check above is probably ... */
 	*( self->rgb[i] ) =
-		EXPP_ClampFloat( PyFloat_AsDouble( ob ), 0.0, 1.0 );
+		EXPP_ClampFloat( (float)PyFloat_AsDouble( ob ), 0.0, 1.0 );
 
 	return 0;
 }

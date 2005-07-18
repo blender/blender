@@ -30,22 +30,17 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <BIF_editview.h>
-#include <BSE_editipo.h>
-#include <BIF_space.h>
-#include <mydevice.h>
+#include "Camera.h" /*This must come first */
 
-#include <Python.h>
-
-#include "constant.h"
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_object.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "BSE_editipo.h"
+#include "BIF_space.h"
+#include "mydevice.h"
 #include "gen_utils.h"
-
-#include "Camera.h"
 #include "Ipo.h"
 
 

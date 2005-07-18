@@ -30,13 +30,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include "gen_utils.h" /*This must come first*/
+
 #include "DNA_text_types.h"
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BIF_space.h"
-
-#include "gen_utils.h"
-#include "constant.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 
 /*****************************************************************************/
 /* Description: This function clamps an int to the given interval	  */
@@ -281,7 +282,7 @@ int EXPP_map_getShortVal( const EXPP_map_pair * map,
 {
 	while( map->sval ) {
 		if( StringEqual( sval, map->sval ) ) {
-			*ival = map->ival;
+			*ival = (short)map->ival;
 			return 1;
 		}
 		++map;
@@ -420,7 +421,7 @@ PyObject *EXPP_clearScriptLinks( ScriptLink * slink, PyObject * args )
 	*/
 
 	if ( slink->totscript > deleted ) {
-		slink->totscript -= deleted;
+		slink->totscript = slink->totscript - (short)deleted;
 
 		stmp = slink->scripts;
 		slink->scripts =
@@ -527,7 +528,7 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 	}
 
 	slink->scripts[slink->totscript] = ( ID * ) bltxt;
-	slink->flag[slink->totscript] = event;
+	slink->flag[slink->totscript] = (short)event;
 
 	slink->totscript++;
 

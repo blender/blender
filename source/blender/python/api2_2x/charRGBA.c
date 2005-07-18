@@ -30,7 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "charRGBA.h"
+#include "charRGBA.h" /*This must come first */
+#include "gen_utils.h"
 
 /* This file is heavily based on the old bpython Constant object code in
 	 Blender */
@@ -167,10 +168,10 @@ PyObject *charRGBA_setCol( BPy_charRGBA * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 1-byte ints [b,b,b,b] or b,b,b,b as arguments (or nothing)" );
 
-	*( self->rgba[0] ) = EXPP_ClampInt( r, 0, 255 );
-	*( self->rgba[1] ) = EXPP_ClampInt( g, 0, 255 );
-	*( self->rgba[2] ) = EXPP_ClampInt( b, 0, 255 );
-	*( self->rgba[3] ) = EXPP_ClampInt( a, 0, 255 );
+	*( self->rgba[0] ) = (char)EXPP_ClampInt( r, 0, 255 );
+	*( self->rgba[1] ) = (char)EXPP_ClampInt( g, 0, 255 );
+	*( self->rgba[2] ) = (char)EXPP_ClampInt( b, 0, 255 );
+	*( self->rgba[3] ) = (char)EXPP_ClampInt( a, 0, 255 );
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -226,7 +227,7 @@ static int charRGBA_setAttr( BPy_charRGBA * self, char *name, PyObject * v )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "expected char argument" );
 
-	value = EXPP_ClampInt( value, 0, 255 );
+	value = (char)EXPP_ClampInt( value, 0, 255 );
 
 	if( !strcmp( name, "R" ) || !strcmp( name, "r" ) )
 		*( self->rgba[0] ) = value;
@@ -311,7 +312,7 @@ static int charRGBAAssSubscript( BPy_charRGBA * self, PyObject * key,
 	else
 		return EXPP_ReturnIntError( PyExc_AttributeError, name );
 
-	*( self->rgba[i] ) = EXPP_ClampInt( PyInt_AsLong( v ), 0, 255 );
+	*( self->rgba[i] ) = (char)EXPP_ClampInt( PyInt_AsLong( v ), 0, 255 );
 
 	return 0;
 }
@@ -361,7 +362,7 @@ static int charRGBAAssItem( BPy_charRGBA * self, int i, PyObject * ob )
 		return EXPP_ReturnIntError( PyExc_IndexError,
 					    "color component must be a number" );
 
-	*( self->rgba[i] ) = EXPP_ClampInt( PyInt_AsLong( ob ), 0, 255 );
+	*( self->rgba[i] ) = (char)EXPP_ClampInt( PyInt_AsLong( ob ), 0, 255 );
 
 	return 0;
 }
@@ -395,7 +396,7 @@ static int charRGBAAssSlice( BPy_charRGBA * self, int begin, int end,
 			return -1;
 		}
 
-		*( self->rgba[count] ) = EXPP_ClampInt( value, 0, 255 );
+		*( self->rgba[count] ) = (char)EXPP_ClampInt( value, 0, 255 );
 
 		Py_DECREF( ob );
 	}

@@ -33,8 +33,8 @@
 #ifndef EXPP_LOGIC_H
 #define EXPP_LOGIC_H
 
-#include "Python.h"
-#include <DNA_property_types.h>
+#include <Python.h>
+#include "DNA_property_types.h"
 
 //--------------------------Python BPy_Property structure definition.----
 typedef struct {

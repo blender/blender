@@ -34,12 +34,13 @@
 #define EXPP_SCENERADIO_H
 
 #include <Python.h>
-#include <DNA_radio_types.h>
-#include <DNA_scene_types.h>
+#include "DNA_radio_types.h"
+#include "DNA_scene_types.h"
 
 /* BPy_Radio declaration */
 typedef struct {
-	PyObject_HEAD struct Radio *radio;
+	PyObject_HEAD 
+	struct Radio *radio;
 	struct Scene *scene;
 } BPy_Radio;
 

@@ -30,25 +30,19 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Lattice.h"
+#include "Lattice.h" /*This must come first*/
 
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_lattice.h>
-#include <BKE_utildefines.h>
-#include <BKE_key.h>
-#include <BLI_blenlib.h>
-
-#include <DNA_key_types.h>
-#include <DNA_curve_types.h>
-#include <DNA_scene_types.h>
-#include <BIF_editlattice.h>
-#include <BIF_editkey.h>
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_lattice.h"
+#include "BLI_blenlib.h"
+#include "DNA_object_types.h"
+#include "DNA_key_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_scene_types.h"
+#include "BIF_editkey.h"
 #include "blendef.h"
-#include "mydevice.h"
-#include "constant.h"
 #include "gen_utils.h"
 
 
@@ -684,7 +678,7 @@ static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args )
 {
 	//Object* ob; unused
 	Base *base;
-	Object *par;
+	Object *par = NULL;
 	int forced = 0;
 
 	if( !Lattice_IsLinkedToObject( self ) )
@@ -698,7 +692,8 @@ static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args )
 	/* deform children */
 	base = FIRSTBASE;
 	while( base ) {
-		if( ( par = base->object->parent ) ) { /* check/assign if ob has parent */
+		par = base->object->parent;
+		if( par != NULL ) { /* check/assign if ob has parent */
 			/* meshes have their mverts deformed, others ob types use displist,
 			 * so we're not doing meshes here (unless forced), or else they get
 			 * deformed twice, since parenting a Lattice to an object and redrawing
@@ -733,7 +728,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 	if( frame > 0 ) {
 		frame = EXPP_ClampInt( frame, 1, MAXFRAME );
 		oldfra = G.scene->r.cfra;
-		G.scene->r.cfra = frame;
+		G.scene->r.cfra = (short)frame;
 	}
 //      else just use current frame, then
 //              return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
@@ -743,7 +738,7 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 	insert_lattkey( lt );
 
 	if( frame > 0 )
-		G.scene->r.cfra = oldfra;
+		G.scene->r.cfra = (short)oldfra;
 
 	Py_INCREF( Py_None );
 	return Py_None;

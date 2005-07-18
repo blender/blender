@@ -30,36 +30,30 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+struct View3D;
 
-#include <MEM_guardedalloc.h>	/* for MEM_callocN */
+#include "Scene.h" /*This must come first */
 
-#include <DNA_screen_types.h>	/* SPACE_VIEW3D, SPACE_SEQ */
-#include <DNA_scriptlink_types.h>
-
-#include <BKE_depsgraph.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_main.h>
-#include <BKE_scene.h>
-
-#include <BLI_blenlib.h>
-
-#include <BSE_drawview.h>	/* for play_anim */
-#include <BSE_headerbuttons.h>	/* for copy_scene */
-
-#include <BIF_drawscene.h>	/* for set_scene */
-#include <BIF_space.h>		/* for copy_view3d_lock() */
-#include <BIF_screen.h>		/* curarea */
-
-#include <mydevice.h>		/* for #define REDRAW */
-
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "MEM_guardedalloc.h"	/* for MEM_callocN */
+#include "DNA_screen_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
+#include "BKE_depsgraph.h"
+#include "BKE_library.h"
+#include "BKE_scene.h"
+#include "BLI_blenlib.h"
+#include "BSE_drawview.h"	/* for play_anim */
+#include "BSE_headerbuttons.h"	/* for copy_scene */
+#include "BIF_drawscene.h"	/* for set_scene */
+#include "BIF_space.h"		/* for copy_view3d_lock() */
+#include "BIF_screen.h"		/* curarea */
+#include "mydevice.h"		/* for #define REDRAW */
+#include "DNA_view3d_types.h"
 #include "Object.h"
-#include "constant.h"
 #include "gen_utils.h"
 #include "sceneRender.h"
 #include "sceneRadio.h"
 
-#include "Scene.h"
 
 static Base *EXPP_Scene_getObjectBase( Scene * scene, Object * object );
 PyObject *M_Object_Get( PyObject * self, PyObject * args ); /* from Object.c */

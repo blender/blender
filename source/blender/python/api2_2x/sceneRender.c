@@ -29,30 +29,21 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+struct View3D; /* keep me up here */
 
-#include <BIF_renderwin.h>
-#include <BKE_utildefines.h>
-#include <BKE_global.h>
-#include <DNA_image_types.h>
-#include <BIF_drawscene.h>
-#include <BLI_blenlib.h>
-#include <BKE_image.h>
-#include <BIF_space.h>
-#include <DNA_scene_types.h>
-#include <DNA_space_types.h>
-#include <mydevice.h>
-#include <butspace.h>
-#include <BKE_bad_level_calls.h>
-#include <render.h> /* RE_animrender() */
-#include "sceneRender.h"
+#include "sceneRender.h" /*This must come first*/
+
+#include "BIF_renderwin.h"
+#include "DNA_image_types.h"
+#include "BIF_drawscene.h"
+#include "BLI_blenlib.h"
+#include "BKE_image.h"
+#include "BKE_global.h"
+#include "mydevice.h"
+#include "butspace.h"
+#include "render.h" /* RE_animrender() */
 #include "blendef.h"
-#include "Scene.h"
 #include "gen_utils.h"
-
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 //local defines
 #define PY_NONE		0
@@ -886,7 +877,7 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 
 		RE_animrender(NULL);
 
-		G.scene->r.efra = end_frame;
+		G.scene->r.efra = (short)end_frame;
 	}
 
 	return EXPP_incr_ret( Py_None );
@@ -1167,7 +1158,7 @@ PyObject *RenderData_SetOversamplingLevel( BPy_RenderData * self,
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected 5,8,11, or 16" ) );
 
-	self->renderContext->osa = level;
+	self->renderContext->osa = (short)level;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
@@ -1281,7 +1272,7 @@ PyObject *RenderData_SetRenderWinSize( BPy_RenderData * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected 25, 50, 75, or 100" ) );
 
-	self->renderContext->size = size;
+	self->renderContext->size = (short)size;
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 
 	return EXPP_incr_ret( Py_None );
@@ -1330,7 +1321,7 @@ PyObject *RenderData_EnableBorderRender( BPy_RenderData * self,
 //------------------------------------RenderData.SetBorder() ------------
 PyObject *RenderData_SetBorder( BPy_RenderData * self, PyObject * args )
 {
-	float xmin, ymin, xmax, ymax;
+	float xmin = 0.0f, ymin = 0.0f, xmax = 0.0f, ymax = 0.0f;
 	int status = 0;
 	PyObject *ob_args;
 
@@ -1562,59 +1553,59 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 	if( type == B_PR_PAL ) {
 		M_Render_DoSizePreset( self, 720, 576, 54, 51, 100,
 				       self->renderContext->xparts,
-				       self->renderContext->yparts, 25, 0.1,
-				       0.9, 0.1, 0.9 );
+				       self->renderContext->yparts, 25, 0.1f,
+				       0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_NTSC ) {
 		M_Render_DoSizePreset( self, 720, 480, 10, 11, 100, 1, 1,
-				       30, 0.1, 0.9, 0.1, 0.9 );
+				       30, 0.1f, 0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_PRESET ) {
 		M_Render_DoSizePreset( self, 720, 576, 54, 51, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.1, 0.9,
-				       0.1, 0.9 );
+				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       0.1f, 0.9f );
 		self->renderContext->mode = R_OSA + R_SHADOW + R_FIELDS;
 		self->renderContext->imtype = R_TARGA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_PRV ) {
 		M_Render_DoSizePreset( self, 640, 512, 1, 1, 50, 1, 1,
-				       self->renderContext->frs_sec, 0.1, 0.9,
-				       0.1, 0.9 );
+				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_PC ) {
 		M_Render_DoSizePreset( self, 640, 480, 100, 100, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.0, 1.0,
-				       0.0, 1.0 );
+				       self->renderContext->frs_sec, 0.0f, 1.0f,
+				       0.0f, 1.0f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.0, 1.0, 0.0,
-			       1.0 );
+		BLI_init_rctf( &self->renderContext->safety, 0.0f, 1.0f, 0.0f,
+			       1.0f );
 	} else if( type == B_PR_PAL169 ) {
 		M_Render_DoSizePreset( self, 720, 576, 64, 45, 100, 1, 1,
-				       25, 0.1, 0.9, 0.1, 0.9 );
+				       25, 0.1f, 0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_PANO ) {
 		M_Render_DoSizePreset( self, 36, 176, 115, 100, 100, 16, 1,
-				       self->renderContext->frs_sec, 0.1, 0.9,
-				       0.1, 0.9 );
+				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       0.1f, 0.9f );
 		self->renderContext->mode |= R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else if( type == B_PR_FULL ) {
 		M_Render_DoSizePreset( self, 1280, 1024, 1, 1, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.1, 0.9,
-				       0.1, 0.9 );
+				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
-		BLI_init_rctf( &self->renderContext->safety, 0.1, 0.9, 0.1,
-			       0.9 );
+		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
+			       0.9f );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
@@ -1644,7 +1635,7 @@ PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
 	if( type == PY_NONE || type == PY_LOW ||
 	    type == PY_MEDIUM || type == PY_HIGH ||
 	    type == PY_HIGHER || type == PY_BEST ) {
-		self->renderContext->GIquality = type;
+		self->renderContext->GIquality = (short)type;
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );
@@ -1664,7 +1655,7 @@ PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
 						"expected constant" ) );
 
 	if( type == PY_NONE || type == PY_SKYDOME || type == PY_FULL ) {
-		self->renderContext->GImethod = type;
+		self->renderContext->GImethod = (short)type;
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"unknown constant - see modules dict for help" ) );

@@ -34,7 +34,7 @@
 #define EXPP_BEZTRIPLE_H
 
 #include <Python.h>
-#include <DNA_curve_types.h>
+#include "DNA_curve_types.h"
 
 extern PyTypeObject BezTriple_Type;
 

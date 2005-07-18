@@ -37,13 +37,9 @@
 #ifndef EXPP_DRAW_H_
 #define EXPP_DRAW_H_
 
+#include <Python.h>
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
-
-#include "Python.h"
-
-#include "gen_utils.h"
-#include "Window.h"
 
 void initDraw( void );
 

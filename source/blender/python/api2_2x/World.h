@@ -34,10 +34,7 @@
 #define EXPP_WORLD_H
 
 #include <Python.h>
-
-#include <DNA_world_types.h>
-//#include "bpy_types.h"
-
+#include "DNA_world_types.h"
 
 #define BPy_World_Check(v) ((v)->ob_type==&World_Type)
 

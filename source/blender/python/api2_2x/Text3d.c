@@ -30,27 +30,20 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#include "Text3d.h" /*This must come first*/
+ 
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_vfont_types.h"
 #include "MEM_guardedalloc.h"
-#include "BKE_object.h"
-#include "BDR_editobject.h"
-#include "BKE_displist.h"
-#include "MEM_guardedalloc.h"
-#include "mydevice.h"
-#include "blendef.h"
-#include "Text3d.h"
+#include "BKE_curve.h"
+#include "BKE_library.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "Curve.h"
 #include "constant.h"
 #include "Types.h"
 #include "Font.h"
-
-#include "mydevice.h"
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <errno.h>
+#include "gen_utils.h"
 
 //no prototypes declared in header files - external linkage outside of python
 extern VFont *get_builtin_font(void);  
@@ -495,8 +488,8 @@ static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
 		MEM_freeN( self->curve->str );
 		self->curve->str = MEM_mallocN( strlen (text)+1, "str" );
 		strcpy( self->curve->str, text );
-		self->curve->pos = strlen ( text );
-		self->curve->len = strlen ( text );
+		self->curve->pos = (short)strlen ( text );
+		self->curve->len = (short)strlen ( text );
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -955,7 +948,7 @@ PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
 	if( file || !strcmp (fontfile, "<builtin>") ) {
 		load_vfont( fontfile );
 		if(file) fclose( file );
-		if( (vf=exist_vfont( fontfile )) )
+		if( (vf == exist_vfont( fontfile )) )
 			return Font_CreatePyObject( vf );
 		return EXPP_incr_ret( Py_None );
 	}

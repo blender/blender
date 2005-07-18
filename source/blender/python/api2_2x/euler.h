@@ -34,6 +34,8 @@
 #ifndef EXPP_euler_h
 #define EXPP_euler_h
 
+#include <Python.h>
+
 #define EulerObject_Check(v) ((v)->ob_type == &euler_Type)
 
 typedef struct {

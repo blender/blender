@@ -35,40 +35,28 @@
  * implementation.	Non-trivial original comments are marked with an
  * @ symbol at their beginning. */
 
-#include "Draw.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "Draw.h" /*This must come first*/
 
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-
 #include "BMF_Api.h"
-
 #include "DNA_screen_types.h"
-
-#include "DNA_text_types.h"
-
 #include "BKE_global.h"
 #include "BKE_image.h"
-#include "BKE_library.h"
 #include "BKE_object.h"
-
+#include "BKE_main.h"
 #include "BIF_gl.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
-#include "BIF_mywindow.h"
 #include "BIF_toolbox.h"
-
 #include "BPI_script.h"		/* script struct */
-
 #include "Image.h"              /* for accessing Blender.Image objects */
 #include "IMB_imbuf_types.h"    /* for the IB_rect define */
-
 #include "interface.h"
 #include "mydevice.h"		/*@ for all the event constants */
+#include "gen_utils.h"
+#include "Window.h"
 
 /* these delimit the free range for button events */
 #define EXPP_BUTTON_EVENTS_OFFSET 1001
@@ -716,7 +704,7 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 	but = newbutton(  );
 	if( PyFloat_Check( in ) ) {
 		but->type = 2;
-		but->val.asfloat = PyFloat_AsDouble( in );
+		but->val.asfloat = (float)PyFloat_AsDouble( in );
 	} else if( PyInt_Check( in ) ) {
 		but->type = 1;
 		but->val.asint = PyInt_AsLong( in );
@@ -776,7 +764,7 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 	block = Get_uiBlock(  );
 
 	if( block )
-		uiDefBut( block, BUT, event, name, x, y, w, h, 0, 0, 0, 0, 0,
+		uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0,
 			  tip );
 
 	return EXPP_incr_ret( Py_None );
@@ -805,7 +793,7 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 
 	block = Get_uiBlock(  );
 	if( block )
-		uiDefButI( block, MENU, event, name, x, y, w, h,
+		uiDefButI( block, MENU, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
 
 	return ( PyObject * ) but;
@@ -834,7 +822,7 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 
 	block = Get_uiBlock(  );
 	if( block )
-		uiDefButI( block, TOG, event, name, x, y, w, h,
+		uiDefButI( block, TOG, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
 
 	return ( PyObject * ) but;
@@ -863,7 +851,7 @@ static void py_slider_update( void *butv, void *data2_unused )
 	disable_where_script( 1 );
 
 	spacescript_do_pywin_buttons( curarea->spacedata.first,
-		uiButGetRetVal( but ) );
+		(unsigned short)uiButGetRetVal( but ) );
 
 	/* XXX useless right now, investigate better before a bcon 5 */
 	ret = M_Window_Redraw( 0, ref );
@@ -901,9 +889,9 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 	if( PyFloat_Check( inio ) ) {
 		float ini, min, max;
 
-		ini = PyFloat_AsDouble( inio );
-		min = PyFloat_AsDouble( mino );
-		max = PyFloat_AsDouble( maxo );
+		ini = (float)PyFloat_AsDouble( inio );
+		min = (float)PyFloat_AsDouble( mino );
+		max = (float)PyFloat_AsDouble( maxo );
 
 		but->type = 2;
 		but->val.asfloat = ini;
@@ -911,8 +899,8 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
-			ubut = uiDefButF( block, NUMSLI, event, name, x, y, w,
-					  h, &but->val.asfloat, min, max, 0, 0,
+			ubut = uiDefButF( block, NUMSLI, event, name, (short)x, (short)y, (short)w,
+					  (short)h, &but->val.asfloat, min, max, 0, 0,
 					  tip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut,
@@ -931,8 +919,8 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
-			ubut = uiDefButI( block, NUMSLI, event, name, x, y, w,
-					  h, &but->val.asint, min, max, 0, 0,
+			ubut = uiDefButI( block, NUMSLI, event, name, (short)x, (short)y, (short)w,
+					  (short)h, &but->val.asint, (float)min, (float)max, 0, 0,
 					  tip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut,
@@ -974,16 +962,16 @@ another int and string as arguments" );
 	else
 		but->type = 1;
 
-	ini = PyFloat_AsDouble( inio );
-	min = PyFloat_AsDouble( mino );
-	max = PyFloat_AsDouble( maxo );
+	ini = (float)PyFloat_AsDouble( inio );
+	min = (float)PyFloat_AsDouble( mino );
+	max = (float)PyFloat_AsDouble( maxo );
 
 	if( but->type == 2 ) {
 		but->val.asfloat = ini;
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
-			ubut = uiDefButF( block, SCROLL, event, "", x, y, w, h,
+			ubut = uiDefButF( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
 					  &but->val.asfloat, min, max, 0, 0,
 					  tip );
 			if( realtime )
@@ -991,11 +979,11 @@ another int and string as arguments" );
 					      NULL );
 		}
 	} else {
-		but->val.asint = ini;
+		but->val.asint = (int)ini;
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
-			ubut = uiDefButI( block, SCROLL, event, "", x, y, w, h,
+			ubut = uiDefButI( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
 					  &but->val.asint, min, max, 0, 0,
 					  tip );
 			if( realtime )
@@ -1031,16 +1019,16 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	if( PyFloat_Check( inio ) ) {
 		float ini, min, max;
 
-		ini = PyFloat_AsDouble( inio );
-		min = PyFloat_AsDouble( mino );
-		max = PyFloat_AsDouble( maxo );
+		ini = (float)PyFloat_AsDouble( inio );
+		min = (float)PyFloat_AsDouble( mino );
+		max = (float)PyFloat_AsDouble( maxo );
 
 		but->type = 2;
 		but->val.asfloat = ini;
 
 		block = Get_uiBlock(  );
 		if( block )
-			uiDefButF( block, NUM, event, name, x, y, w, h,
+			uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
 				   &but->val.asfloat, min, max, 0, 0, tip );
 	} else {
 		int ini, min, max;
@@ -1054,8 +1042,8 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 
 		block = Get_uiBlock(  );
 		if( block )
-			uiDefButI( block, NUM, event, name, x, y, w, h,
-				   &but->val.asint, min, max, 0, 0, tip );
+			uiDefButI( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
+				   &but->val.asint, (float)min, (float)max, 0, 0, tip );
 	}
 
 	return ( PyObject * ) but;
@@ -1101,8 +1089,8 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 
 	block = Get_uiBlock(  );
 	if( block )
-		uiDefBut( block, TEX, event, info_str, x, y, w, h,
-			  but->val.asstr, 0, len, 0, 0, tip );
+		uiDefBut( block, TEX, event, info_str, (short)x, (short)y, (short)w, (short)h,
+			  but->val.asstr, 0, (float)len, 0, 0, tip );
 
 	return ( PyObject * ) but;
 }
@@ -1201,7 +1189,7 @@ static PyObject *Method_PupIntInput( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 1 string and 3 int arguments" );
 
-	if( button( &var, min, max, text ) == 0 ) {
+	if( button( &var, (short)min, (short)max, text ) == 0 ) {
 		Py_INCREF( Py_None );
 		return Py_None;
 	}

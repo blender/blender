@@ -28,10 +28,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "BKE_utildefines.h"
 #include "Mathutils.h"
-#include "gen_utils.h"
+
 #include "BLI_blenlib.h"
+#include "BKE_utildefines.h"
+#include "gen_utils.h"
+
 
 //-------------------------DOC STRINGS ---------------------------
 char Vector_Zero_doc[] = "() - set all values in the vector to 0";
@@ -210,12 +212,12 @@ static int Vector_setattr(VectorObject * self, char *name, PyObject * v)
 	}
 
 	if(STREQ(name,"x")){
-		self->vec[0] = PyFloat_AS_DOUBLE(f);
+		self->vec[0] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "y")){
-		self->vec[1] = PyFloat_AS_DOUBLE(f);
+		self->vec[1] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "z")){
 		if(self->size > 2){
-			self->vec[2] = PyFloat_AS_DOUBLE(f);
+			self->vec[2] = (float)PyFloat_AS_DOUBLE(f);
 		}else{
 			Py_DECREF(f);
 			return EXPP_ReturnIntError(PyExc_AttributeError,
@@ -223,7 +225,7 @@ static int Vector_setattr(VectorObject * self, char *name, PyObject * v)
 		}
 	}else if(STREQ(name, "w")){
 		if(self->size > 3){
-			self->vec[3] = PyFloat_AS_DOUBLE(f);
+			self->vec[3] = (float)PyFloat_AS_DOUBLE(f);
 		}else{
 			Py_DECREF(f);
 			return EXPP_ReturnIntError(PyExc_AttributeError,
@@ -294,7 +296,7 @@ static int Vector_ass_item(VectorObject * self, int i, PyObject * ob)
 		return EXPP_ReturnIntError(PyExc_IndexError,
 			"vector[attribute] = x: array assignment index out of range\n");
 	}
-	self->vec[i] = PyFloat_AS_DOUBLE(f);
+	self->vec[i] = (float)PyFloat_AS_DOUBLE(f);
 	Py_DECREF(f);
 	return 0;
 }
@@ -349,7 +351,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"vector[begin:end] = []: sequence argument not a number\n");
 		}
-		vec[i] = PyFloat_AS_DOUBLE(f);
+		vec[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,v);
 	}
 	//parsed well - now set in vector
@@ -444,7 +446,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Vector multiplication: arguments not acceptable for this operation\n");
 			}
-			scalar = PyFloat_AS_DOUBLE(f);
+			scalar = (float)PyFloat_AS_DOUBLE(f);
 			size = vec2->size;
 			for(x = 0; x < size; x++) {
 				vec[x] = vec2->vec[x] *	scalar;
@@ -467,7 +469,7 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Vector multiplication: arguments not acceptable for this operation\n");
 				}
-				scalar = PyFloat_AS_DOUBLE(f);
+				scalar = (float)PyFloat_AS_DOUBLE(f);
 				size = vec1->size;
 				for(x = 0; x < size; x++) {
 					vec[x] = vec1->vec[x] *	scalar;

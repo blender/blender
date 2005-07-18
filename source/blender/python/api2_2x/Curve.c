@@ -29,21 +29,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <Python.h>
-#include "Curve.h"
-#include <stdio.h>
+#include "Curve.h" /*This must come first*/
 
-#include <BLI_arithb.h>
-#include <BLI_blenlib.h>
-#include <BKE_main.h>
-#include <BKE_displist.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BKE_curve.h>
-#include <BKE_utildefines.h>
-#include <MEM_guardedalloc.h>	/* because we wil be mallocing memory */
-
+#include "BKE_main.h"
+#include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_curve.h"
+#include "MEM_guardedalloc.h"	/* because we wil be mallocing memory */
 #include "CurNurb.h"
 #include "Material.h"
 #include "Object.h"
@@ -783,7 +776,7 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 {
 	PyObject *listargs = 0;
 	Nurb *ptrnurb = self->curve->nurb.first;
-	int numcourbe, numpoint, i, j;
+	int numcourbe = 0, numpoint = 0, i, j;
 
 	if( !ptrnurb ) {
 		Py_INCREF( Py_None );
@@ -809,14 +802,14 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 	if( ptrnurb->bp )
 		for( i = 0; i < 4; i++ )
 			ptrnurb->bp[numpoint].vec[i] =
-				PyFloat_AsDouble( PyList_GetItem
+				(float)PyFloat_AsDouble( PyList_GetItem
 						  ( listargs, i ) );
 
 	if( ptrnurb->bezt )
 		for( i = 0; i < 3; i++ )
 			for( j = 0; j < 3; j++ )
 				ptrnurb->bezt[numpoint].vec[i][j] =
-					PyFloat_AsDouble( PyList_GetItem
+					(float)PyFloat_AsDouble( PyList_GetItem
 							  ( listargs,
 							    i * 3 + j ) );
 
@@ -904,7 +897,7 @@ static PyObject *Curve_setLoc( BPy_Curve * self, PyObject * args )
 			 ( PyExc_TypeError, "expected a list" ) );
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->loc[i] = PyFloat_AsDouble( xx );
+		self->curve->loc[i] = (float)PyFloat_AsDouble( xx );
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -934,7 +927,7 @@ static PyObject *Curve_setRot( BPy_Curve * self, PyObject * args )
 			 ( PyExc_TypeError, "expected a list" ) );
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->rot[i] = PyFloat_AsDouble( xx );
+		self->curve->rot[i] = (float)PyFloat_AsDouble( xx );
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -963,7 +956,7 @@ static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args )
 			 ( PyExc_TypeError, "expected a list" ) );
 	for( i = 0; i < 3; i++ ) {
 		PyObject *xx = PyList_GetItem( listargs, i );
-		self->curve->size[i] = PyFloat_AsDouble( xx );
+		self->curve->size[i] = (float)PyFloat_AsDouble( xx );
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -984,7 +977,7 @@ static PyObject *Curve_getNumCurves( BPy_Curve * self )
 	/* get curve */
 	ptrnurb = self->curve->nurb.first;
 	if( ptrnurb ) {		/* we have some nurbs in this curve */
-		while( 1 ) {
+		for(;;) {
 			++num_curves;
 			ptrnurb = ptrnurb->next;
 			if( !ptrnurb )	/* no more curves */

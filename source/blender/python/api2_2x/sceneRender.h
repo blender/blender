@@ -34,11 +34,12 @@
 #define EXPP_SCENERENDER_H
 
 #include <Python.h>
-#include <DNA_scene_types.h>
+#include "DNA_scene_types.h"
 
 //------------------------------------Struct definitions-------
 typedef struct {
-	PyObject_HEAD struct RenderData *renderContext;
+	PyObject_HEAD 
+	struct RenderData *renderContext;
 	Scene *scene;
 } BPy_RenderData;
 //------------------------------------Visible prototypes-------

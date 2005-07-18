@@ -29,11 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include "Mathutils.h"
+
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
-#include "Mathutils.h"
-#include "gen_utils.h"
 #include "BLI_blenlib.h"
+#include "gen_utils.h"
+
 
 //-------------------------DOC STRINGS ---------------------------
 char Euler_Zero_doc[] = "() - set all values in the euler to 0";
@@ -129,9 +131,9 @@ PyObject *Euler_Unique(EulerObject * self)
 	heading -= Py_PI;
 
 	//back to degrees
-	self->eul[0] = heading * 180 / (float)Py_PI;
-	self->eul[1] = pitch * 180 / (float)Py_PI;
-	self->eul[2] = bank * 180 / (float)Py_PI;
+	self->eul[0] = (float)(heading * 180 / (float)Py_PI);
+	self->eul[1] = (float)(pitch * 180 / (float)Py_PI);
+	self->eul[2] = (float)(bank * 180 / (float)Py_PI);
 
 	return (PyObject*)self;
 }
@@ -213,11 +215,11 @@ static int Euler_setattr(EulerObject * self, char *name, PyObject * e)
 	}
 
 	if(STREQ(name,"x")){
-		self->eul[0] = PyFloat_AS_DOUBLE(f);
+		self->eul[0] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "y")){
-		self->eul[1] = PyFloat_AS_DOUBLE(f);
+		self->eul[1] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "z")){
-		self->eul[2] = PyFloat_AS_DOUBLE(f);
+		self->eul[2] = (float)PyFloat_AS_DOUBLE(f);
 	}else{
 		Py_DECREF(f);
 		return EXPP_ReturnIntError(PyExc_AttributeError,
@@ -283,7 +285,7 @@ static int Euler_ass_item(EulerObject * self, int i, PyObject * ob)
 		return EXPP_ReturnIntError(PyExc_IndexError,
 			"euler[attribute] = x: array assignment index out of range\n");
 	}
-	self->eul[i] = PyFloat_AS_DOUBLE(f);
+	self->eul[i] = (float)PyFloat_AS_DOUBLE(f);
 	Py_DECREF(f);
 	return 0;
 }
@@ -338,7 +340,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"euler[begin:end] = []: sequence argument not a number\n");
 		}
-		eul[i] = PyFloat_AS_DOUBLE(f);
+		eul[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,e);
 	}
 	//parsed well - now set in vector

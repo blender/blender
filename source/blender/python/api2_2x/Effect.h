@@ -34,19 +34,7 @@
 #define EXPP_EFFECT_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include <BLI_arithb.h>
-#include <BLI_blenlib.h>
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BKE_effect.h>
-
-#include <DNA_effect_types.h>
-
-#include"gen_utils.h"
+#include "DNA_effect_types.h"
 
 extern PyTypeObject Effect_Type;
 

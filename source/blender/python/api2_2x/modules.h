@@ -43,38 +43,7 @@ The #includes commented out below currently do not exist.
 Their *_Init() method declarations are hacked in down below.
 ************************************************************/
 
-
-#include "Armature.h"
-#include "BezTriple.h"
-#include "BGL.h" 
-#include "Blender.h"
-#include "Camera.h"
-#include "Curve.h"
-#include "CurNurb.h"
-#include "Draw.h"
-#include "Effect.h"
-#include "Ipo.h"
-#include "Ipocurve.h"
-#include "Lamp.h"
-#include "Lattice.h"
-/* #include "Library.h" */
-#include "Material.h"
-#include "Mathutils.h"
-#include "Metaball.h"
-#include "NLA.h"
-#include "NMesh.h"
-/* #include "Noise.h" */
-#include "Object.h"
-#include "Registry.h"
-#include "Scene.h"
-#include "Sound.h"
-#include "Sys.h"
-#include "Text.h"
-#include "Text3d.h"
-#include "Texture.h"
-#include "Types.h"
-#include "Window.h"
-#include "World.h"
+#include <Python.h>
 
 /*****************************************************************************/
 /* Global variables                                                          */

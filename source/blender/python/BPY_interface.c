@@ -30,52 +30,40 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include <Python.h>
+
 #include "compile.h"		/* for the PyCodeObject */
 #include "eval.h"		/* for PyEval_EvalCode */
-
-#include <stdio.h>
-
-#include <MEM_guardedalloc.h>
-#include <BLI_blenlib.h>	/* for BLI_last_slash() */
-
-#include "BIF_gl.h" /* glPushAttrib, glPopAttrib for DRAW space handlers */
-#include <BIF_interface.h>	/* for pupmenu() */
-#include <BIF_space.h>
-#include <BIF_screen.h>
-#include <BIF_toolbox.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_main.h>
-#include <BKE_object.h>		/* during_scriptlink() */
-#include <BKE_text.h>
-#include <BKE_utildefines.h>
-#include <BPI_script.h>
-
-#include <DNA_camera_types.h>
-#include <DNA_ID.h>
-#include <DNA_lamp_types.h>
-#include <DNA_material_types.h>
-#include <DNA_object_types.h>
-#include <DNA_scene_types.h>
-#include <DNA_screen_types.h>
-#include <DNA_scriptlink_types.h>
-#include <DNA_space_types.h>
-#include <DNA_text_types.h>
-#include <DNA_world_types.h>
-#include <DNA_userdef_types.h>	/* for U.pythondir */
-
+#include "BLI_blenlib.h"	/* for BLI_last_slash() */
+#include "BIF_interface.h"	/* for pupmenu() */
+#include "BIF_space.h"
+#include "BIF_screen.h"
+#include "BIF_toolbox.h"
+#include "BKE_library.h"
+#include "BKE_object.h"		/* during_scriptlink() */
+#include "BKE_text.h"
+#include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"	/* for U.pythondir */
+#include "MEM_guardedalloc.h"
 #include "BPY_extern.h"
 #include "BPY_menus.h"
+#include "BPI_script.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
-
 #include "api2_2x/gen_utils.h"
-#include "api2_2x/modules.h"
+#include "api2_2x/BGL.h" 
+#include "api2_2x/Blender.h"
+#include "api2_2x/Camera.h"
+#include "api2_2x/Draw.h"
+#include "api2_2x/Lamp.h"
+#include "api2_2x/NMesh.h"
+#include "api2_2x/Object.h"
+#include "api2_2x/Registry.h"
+#include "api2_2x/Scene.h"
+#include "api2_2x/World.h"
 
 /* bpy_registryDict is declared in api2_2x/Registry.h and defined
  * in api2_2x/Registry.c
@@ -83,7 +71,7 @@
  * choose to preserve after they are executed, so user changes can be
  * restored next time the script is used.  Check the Blender.Registry module. 
  */
-#include "api2_2x/Registry.h"
+//#include "api2_2x/Registry.h"
 
 /*************************************************************************
 * Structure definitions	
@@ -449,7 +437,7 @@ void BPY_Err_Handle( char *script_name )
  *	the last frame in the current file is adressed."' 
  */
 
-		while( 1 ) {
+		for(;;) {
 			v = PyObject_GetAttrString( tb, "tb_next" );
 
 			if( !v || v == Py_None ||
@@ -1059,7 +1047,7 @@ void BPY_do_pyscript( ID * id, short event )
 		 * is running nested inside another.  Blender.Load needs this info to
 		 * avoid trouble with invalid slink pointers. */
 		during_slink++;
-		disable_where_scriptlink( during_slink );
+		disable_where_scriptlink( (short)during_slink );
 
 		/* set globals in Blender module to identify scriptlink */
 		PyDict_SetItemString( g_blenderdict, "bylink", EXPP_incr_ret_True() );
@@ -1099,7 +1087,7 @@ void BPY_do_pyscript( ID * id, short event )
 			}
 		}
 
-		disable_where_scriptlink( during_slink - 1 );
+		disable_where_scriptlink( (short)(during_slink - 1) );
 
 		/* cleanup bylink flag and clear link so PyObject
 		 * can be released 
@@ -1210,7 +1198,7 @@ int BPY_add_spacehandler(Text *text, ScrArea *sa, char spacetype)
 
 	if (!sa || !text) return -1;
 
-	handlertype = BPY_is_spacehandler(text, spacetype);
+	handlertype = (unsigned short)BPY_is_spacehandler(text, spacetype);
 
 	if (handlertype) {
 		ScriptLink *slink = &sa->scriptlink;
@@ -1276,7 +1264,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		 * is running nested inside another.  Blender.Load needs this info to
 		 * avoid trouble with invalid slink pointers. */
 		during_slink++;
-		disable_where_scriptlink( during_slink );
+		disable_where_scriptlink( (short)during_slink );
 
 		/* set globals in Blender module to identify space handler scriptlink */
 		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_True());
@@ -1338,7 +1326,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 
 		}
 
-		disable_where_scriptlink( during_slink - 1 );
+		disable_where_scriptlink( (short)(during_slink - 1) );
 
 		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_False());
 		PyDict_SetItemString(g_blenderdict, "link", EXPP_incr_ret(Py_None));

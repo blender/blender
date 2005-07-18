@@ -38,9 +38,9 @@
 /************************/
 
 #include <Python.h>
-#include <math.h>
-#include <BLI_blenlib.h>
-#include <DNA_texture_types.h>
+
+#include "BLI_blenlib.h"
+#include "DNA_texture_types.h"
 #include "constant.h"
 
 /*-----------------------------------------*/
@@ -136,10 +136,10 @@ static void randuvec( float v[3] )
 	float r;
 	v[2] = 2.f * frand(  ) - 1.f;
 	if( ( r = 1.f - v[2] * v[2] ) > 0.f ) {
-		float a = 6.283185307f * frand(  );
-		r = sqrt( r );
-		v[0] = r * cos( a );
-		v[1] = r * sin( a );
+		float a = (float)(6.283185307f * frand(  ));
+		r = (float)sqrt( r );
+		v[0] = (float)(r * cos( a ));
+		v[1] = (float)(r * sin( a ));
 	} else
 		v[2] = 1.f;
 }
@@ -191,11 +191,11 @@ static PyObject *Noise_noise( PyObject * self, PyObject * args )
 static void vNoise( float x, float y, float z, int nb, float v[3] )
 {
 	/* Simply evaluate noise at 3 different positions */
-	v[0] = 2.0 * BLI_gNoise( 1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
-				 nb ) - 1.0;
-	v[1] = 2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0;
-	v[2] = 2.0 * BLI_gNoise( 1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
-				 nb ) - 1.0;
+	v[0] = (float)(2.0 * BLI_gNoise( 1.f, x + 9.321f, y - 1.531f, z - 7.951f, 0,
+				 nb ) - 1.0);
+	v[1] = (float)(2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0);
+	v[2] = (float)(2.0 * BLI_gNoise( 1.f, x + 6.327f, y + 0.1671f, z - 2.672f, 0,
+				 nb ) - 1.0);
 }
 
 static PyObject *Noise_vNoise( PyObject * self, PyObject * args )
@@ -218,17 +218,17 @@ static float turb( float x, float y, float z, int oct, int hard, int nb,
 	float amp, out, t;
 	int i;
 	amp = 1.f;
-	out = 2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0;
+	out = (float)(2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0);
 	if( hard )
-		out = fabs( out );
+		out = (float)fabs( out );
 	for( i = 1; i < oct; i++ ) {
 		amp *= ampscale;
 		x *= freqscale;
 		y *= freqscale;
 		z *= freqscale;
-		t = amp * ( 2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0 );
+		t = (float)(amp * ( 2.0 * BLI_gNoise( 1.f, x, y, z, 0, nb ) - 1.0 ));
 		if( hard )
-			t = fabs( t );
+			t = (float)fabs( t );
 		out += t;
 	}
 	return out;
@@ -257,9 +257,9 @@ static void vTurb( float x, float y, float z, int oct, int hard, int nb,
 	amp = 1.f;
 	vNoise( x, y, z, nb, v );
 	if( hard ) {
-		v[0] = fabs( v[0] );
-		v[1] = fabs( v[1] );
-		v[2] = fabs( v[2] );
+		v[0] = (float)fabs( v[0] );
+		v[1] = (float)fabs( v[1] );
+		v[2] = (float)fabs( v[2] );
 	}
 	for( i = 1; i < oct; i++ ) {
 		amp *= ampscale;
@@ -268,9 +268,9 @@ static void vTurb( float x, float y, float z, int oct, int hard, int nb,
 		z *= freqscale;
 		vNoise( x, y, z, nb, t );
 		if( hard ) {
-			t[0] = fabs( t[0] );
-			t[1] = fabs( t[1] );
-			t[2] = fabs( t[2] );
+			t[0] = (float)fabs( t[0] );
+			t[1] = (float)fabs( t[1] );
+			t[2] = (float)fabs( t[2] );
 		}
 		v[0] += amp * t[0];
 		v[1] += amp * t[1];

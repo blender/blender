@@ -30,11 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "Registry.h"
+#include "Registry.h" /*This must come first */
 
-#include <stdio.h>
-#include <BKE_global.h> /* G.f & G_DEBUG */
-
+#include "BKE_global.h"
 #include "gen_utils.h"
 
 

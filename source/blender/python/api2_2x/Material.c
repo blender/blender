@@ -31,29 +31,25 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <MEM_guardedalloc.h>
-#include <DNA_ID.h>
-#include <BLI_blenlib.h>
-#include <BSE_editipo.h>
-#include <BIF_space.h>
-#include <mydevice.h>
+#include "Material.h" /*This must come first*/
 
-#include "constant.h"
-#include "gen_utils.h"
-
-#include "MTex.h"
-#include "Texture.h"
-
-#include "Material.h"
-#include "Ipo.h"
-
-
-/* only used for .oopsLoc at the moment */
 #include "DNA_oops_types.h"
 #include "DNA_space_types.h"
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_material.h"
+#include "BKE_texture.h"
+#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
+#include "BSE_editipo.h"
+#include "BIF_space.h"
+#include "mydevice.h"
+#include "constant.h"
+#include "MTex.h"
+#include "Texture.h"
+#include "Ipo.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python BPy_Material defaults: */
@@ -107,11 +103,11 @@
 #define EXPP_MAT_ZOFFS_MAX			10.0
 #define EXPP_MAT_HALOSIZE_MIN			 0.0
 #define EXPP_MAT_HALOSIZE_MAX		 100.0
-#define EXPP_MAT_FLARESIZE_MIN		 0.1
+#define EXPP_MAT_FLARESIZE_MIN		 0.1f
 #define EXPP_MAT_FLARESIZE_MAX		25.0
-#define EXPP_MAT_FLAREBOOST_MIN		 0.1
+#define EXPP_MAT_FLAREBOOST_MIN		 0.1f
 #define EXPP_MAT_FLAREBOOST_MAX		10.0
-#define EXPP_MAT_SUBSIZE_MIN			 0.1
+#define EXPP_MAT_SUBSIZE_MIN			 0.1f
 #define EXPP_MAT_SUBSIZE_MAX			25.0
 
 #define EXPP_MAT_HARD_MIN				 1
@@ -1715,7 +1711,7 @@ static PyObject *Material_setHaloSeed( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1, 255]" ) );
 
-	self->material->seed1 = EXPP_ClampInt( value, EXPP_MAT_HALOSEED_MIN,
+	self->material->seed1 = (char)EXPP_ClampInt( value, EXPP_MAT_HALOSEED_MIN,
 					       EXPP_MAT_HALOSEED_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1729,7 +1725,7 @@ static PyObject *Material_setFlareSeed( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1, 255]" ) );
 
-	self->material->seed2 = EXPP_ClampInt( value, EXPP_MAT_FLARESEED_MIN,
+	self->material->seed2 = (char)EXPP_ClampInt( value, EXPP_MAT_FLARESEED_MIN,
 					       EXPP_MAT_FLARESEED_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1744,7 +1740,7 @@ static PyObject *Material_setHardness( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1, 255]" ) );
 
-	self->material->har = EXPP_ClampInt( value, EXPP_MAT_HARD_MIN,
+	self->material->har = (short)EXPP_ClampInt( value, EXPP_MAT_HARD_MIN,
 					     EXPP_MAT_HARD_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1758,7 +1754,7 @@ static PyObject *Material_setNFlares( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1, 32]" ) );
 
-	self->material->flarec = EXPP_ClampInt( value, EXPP_MAT_NFLARES_MIN,
+	self->material->flarec = (short)EXPP_ClampInt( value, EXPP_MAT_NFLARES_MIN,
 						EXPP_MAT_NFLARES_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1772,7 +1768,7 @@ static PyObject *Material_setNStars( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [3, 50]" ) );
 
-	self->material->starc = EXPP_ClampInt( value, EXPP_MAT_NSTARS_MIN,
+	self->material->starc = (short)EXPP_ClampInt( value, EXPP_MAT_NSTARS_MIN,
 					       EXPP_MAT_NSTARS_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1786,7 +1782,7 @@ static PyObject *Material_setNLines( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [0, 250]" ) );
 
-	self->material->linec = EXPP_ClampInt( value, EXPP_MAT_NLINES_MIN,
+	self->material->linec = (short)EXPP_ClampInt( value, EXPP_MAT_NLINES_MIN,
 					       EXPP_MAT_NLINES_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1800,7 +1796,7 @@ static PyObject *Material_setNRings( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [0, 24]" ) );
 
-	self->material->ringc = EXPP_ClampInt( value, EXPP_MAT_NRINGS_MIN,
+	self->material->ringc = (short)EXPP_ClampInt( value, EXPP_MAT_NRINGS_MIN,
 					       EXPP_MAT_NRINGS_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1830,7 +1826,7 @@ static PyObject *Material_setMirrDepth( BPy_Material * self, PyObject * args )
 						"expected float argument in [0, 10]" ) );
 
 	self->material->ray_depth =
-		EXPP_ClampInt( value, EXPP_MAT_MIRRDEPTH_MIN,
+		(short)EXPP_ClampInt( value, EXPP_MAT_MIRRDEPTH_MIN,
 			       EXPP_MAT_MIRRDEPTH_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1891,7 +1887,7 @@ static PyObject *Material_setTransDepth( BPy_Material * self, PyObject * args )
 						"expected float argument in [0, 10]" ) );
 
 	self->material->ray_depth_tra =
-		EXPP_ClampInt( value, EXPP_MAT_TRANSDEPTH_MIN,
+		(short)EXPP_ClampInt( value, EXPP_MAT_TRANSDEPTH_MIN,
 			       EXPP_MAT_TRANSDEPTH_MAX );
 
 	return EXPP_incr_ret( Py_None );
@@ -1957,8 +1953,8 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 
 	self->material->mtex[texnum]->tex = bltex;
 	id_us_plus( &bltex->id );
-	self->material->mtex[texnum]->texco = texco;
-	self->material->mtex[texnum]->mapto = mapto;
+	self->material->mtex[texnum]->texco = (short)texco;
+	self->material->mtex[texnum]->mapto = (short)mapto;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -2082,7 +2078,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 	else if( strcmp( name, "haloSize" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->hasize );
 	else if( strcmp( name, "haloSeed" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->seed1 );
+		attr = PyInt_FromLong( ( long ) self->material->seed1 );
 	else if( strcmp( name, "flareSize" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->
 					   flaresize );
@@ -2090,7 +2086,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 		attr = PyFloat_FromDouble( ( double ) self->material->
 					   flareboost );
 	else if( strcmp( name, "flareSeed" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->seed2 );
+		attr = PyInt_FromLong( ( long ) self->material->seed2 );
 	else if( strcmp( name, "subSize" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->
 					   subsize );
@@ -2118,7 +2114,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 	else if( strcmp( name, "IOR" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->ang );
 	else if( strcmp( name, "transDepth" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->
+		attr = PyInt_FromLong( ( long ) self->material->
 				       ray_depth_tra );
 	else if( strcmp( name, "fresnelTrans" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->
@@ -2127,7 +2123,7 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 		attr = PyFloat_FromDouble( ( double ) self->material->
 					   fresnel_tra_i );
 	else if( strcmp( name, "users" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->
+		attr = PyInt_FromLong( ( long ) self->material->
 					   id.us );
   else if (strcmp(name, "oopsLoc") == 0) {
     if (G.soops) { 
@@ -2499,7 +2495,7 @@ int EXPP_synchronizeMaterialLists( Object * object )
 			/* More data mats than object mats */
 			result = expandPtrArray( ( void * ) &object->mat,
 						 object->totcol, *nmaterials );
-			object->totcol = *nmaterials;
+			object->totcol = (char)*nmaterials;
 		}
 	}			/* else no synchronization needed, they are of equal length */
 

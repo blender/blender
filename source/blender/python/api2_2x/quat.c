@@ -29,11 +29,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include "Mathutils.h"
+
 #include "BLI_arithb.h"
 #include "BKE_utildefines.h"
-#include "Mathutils.h"
-#include "gen_utils.h"
 #include "BLI_blenlib.h"
+#include "gen_utils.h"
+
 
 //-------------------------DOC STRINGS ---------------------------
 char Quaternion_Identity_doc[] = "() - set the quaternion to it's identity (1, vector)";
@@ -105,7 +107,7 @@ PyObject *Quaternion_Inverse(QuaternionObject * self)
 	}
 	mag = sqrt(mag);
 	for(x = 0; x < 4; x++) {
-		self->quat[x] /= (mag * mag);
+		self->quat[x] /= (float)(mag * mag);
 	}
 
 	return (PyObject*)self;
@@ -186,7 +188,7 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 		mag = 2 * (acos(mag));
 		mag = sin(mag / 2);
 		for(x = 0; x < 3; x++) {
-			vec[x] = (self->quat[x + 1] / mag);
+			vec[x] = (float)(self->quat[x + 1] / mag);
 		}
 		Normalise(vec);
 		return (PyObject *) newVectorObject(vec, 3, Py_NEW);
@@ -207,13 +209,13 @@ static int Quaternion_setattr(QuaternionObject * self, char *name, PyObject * q)
 	}
 
 	if(STREQ(name,"w")){
-		self->quat[0] = PyFloat_AS_DOUBLE(f);
+		self->quat[0] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "x")){
-		self->quat[1] = PyFloat_AS_DOUBLE(f);
+		self->quat[1] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "y")){
-		self->quat[2] = PyFloat_AS_DOUBLE(f);
+		self->quat[2] = (float)PyFloat_AS_DOUBLE(f);
 	}else if(STREQ(name, "z")){
-		self->quat[3] = PyFloat_AS_DOUBLE(f);
+		self->quat[3] = (float)PyFloat_AS_DOUBLE(f);
 	}else{
 		Py_DECREF(f);
 		return EXPP_ReturnIntError(PyExc_AttributeError,
@@ -279,7 +281,7 @@ static int Quaternion_ass_item(QuaternionObject * self, int i, PyObject * ob)
 		return EXPP_ReturnIntError(PyExc_IndexError,
 			"quaternion[attribute] = x: array assignment index out of range\n");
 	}
-	self->quat[i] = PyFloat_AS_DOUBLE(f);
+	self->quat[i] = (float)PyFloat_AS_DOUBLE(f);
 	Py_DECREF(f);
 	return 0;
 }
@@ -334,7 +336,7 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end,
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"quaternion[begin:end] = []: sequence argument not a number\n");
 		}
-		quat[i] = PyFloat_AS_DOUBLE(f);
+		quat[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,q);
 	}
 	//parsed well - now set in vector
@@ -414,7 +416,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Quaternion multiplication: arguments not acceptable for this operation\n");
 			}
-			scalar = PyFloat_AS_DOUBLE(f);
+			scalar = (float)PyFloat_AS_DOUBLE(f);
 			for(x = 0; x < 4; x++) {
 				quat[x] = quat2->quat[x] * scalar;
 			}
@@ -431,7 +433,7 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Quaternion multiplication: arguments not acceptable for this operation\n");
 				}
-				scalar = PyFloat_AS_DOUBLE(f);
+				scalar = (float)PyFloat_AS_DOUBLE(f);
 				for(x = 0; x < 4; x++) {
 					quat[x] = quat1->quat[x] * scalar;
 				}

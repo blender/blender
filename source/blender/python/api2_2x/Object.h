@@ -34,32 +34,7 @@
 #define EXPP_OBJECT_H
 
 #include <Python.h>
-#include <stdio.h>
-#include "BDR_editobject.h"
-#include "BKE_armature.h"
-#include "BKE_curve.h"
-#include "BKE_global.h"
-#include "BKE_library.h"
-#include "BKE_lattice.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_scene.h"
-#include "BKE_displist.h"	/* for makeDispList */
-#include "BKE_font.h"		/* for text_to_font */
-#include "BLI_arithb.h"
-#include "BLI_blenlib.h"
-#include "DNA_armature_types.h"
-#include "DNA_action_types.h"
-#include "DNA_ID.h"
-#include "DNA_listBase.h"
-#include "DNA_scene_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_action_types.h"
-
-#include "gen_utils.h"
-
+#include "DNA_object_types.h"
 
 /* The Object PyType Object defined in Object.c */
 extern PyTypeObject Object_Type;
@@ -71,7 +46,8 @@ extern PyTypeObject Object_Type;
 /* Python BPy_Object structure definition.                                  */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD struct Object *object;
+	PyObject_HEAD 
+	struct Object *object;
 } BPy_Object;
 
 

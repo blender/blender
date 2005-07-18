@@ -30,8 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Particle.h"
-#include "Effect.h"
+#include "Particle.h" /*This must come first */
+
+#include "DNA_object_types.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python BPy_Particle methods table:                                        */
@@ -205,7 +210,6 @@ PyObject *M_Particle_New( PyObject * self, PyObject * args )
 	pyeffect->effect = bleffect;
 
 	return ( PyObject * ) pyeffect;
-	return 0;
 }
 
 /*****************************************************************************/
@@ -582,9 +586,9 @@ PyObject *Particle_setForce( BPy_Particle * self, PyObject * args )
 	float val[3];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
 	/*
 	   if (!PyArg_ParseTuple(args, "fff", val,val+1,val+2 ))
 	   return(EXPP_ReturnPyObjError(PyExc_AttributeError,\
@@ -613,10 +617,10 @@ PyObject *Particle_setMult( BPy_Particle * self, PyObject * args )
 	float val[4];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
-	val[3] = PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[3] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
 	ptr->mult[0] = val[0];
 	ptr->mult[1] = val[1];
 	ptr->mult[2] = val[2];
@@ -644,10 +648,10 @@ PyObject *Particle_setLife( BPy_Particle * self, PyObject * args )
 	float val[4];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
-	val[3] = PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[3] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
 	ptr->life[0] = val[0];
 	ptr->life[1] = val[1];
 	ptr->life[2] = val[2];
@@ -674,14 +678,14 @@ PyObject *Particle_setChild( BPy_Particle * self, PyObject * args )
 	float val[4];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
-	val[3] = PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
-	ptr->child[0] = val[0];
-	ptr->child[1] = val[1];
-	ptr->child[2] = val[2];
-	ptr->child[3] = val[3];
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[3] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
+	ptr->child[0] = (short)val[0];
+	ptr->child[1] = (short)val[1];
+	ptr->child[2] = (short)val[2];
+	ptr->child[3] = (short)val[3];
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -704,14 +708,14 @@ PyObject *Particle_setMat( BPy_Particle * self, PyObject * args )
 	float val[4];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
-	val[3] = PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
-	ptr->mat[0] = val[0];
-	ptr->mat[1] = val[1];
-	ptr->mat[2] = val[2];
-	ptr->mat[3] = val[3];
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[3] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 3 ) );
+	ptr->mat[0] = (short)val[0];
+	ptr->mat[1] = (short)val[1];
+	ptr->mat[2] = (short)val[2];
+	ptr->mat[3] = (short)val[3];
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -732,9 +736,9 @@ PyObject *Particle_setDefvec( BPy_Particle * self, PyObject * args )
 	float val[3];
 	if( PyTuple_Size( args ) == 1 )
 		args = PyTuple_GetItem( args, 0 );
-	val[0] = PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
-	val[1] = PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
-	val[2] = PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
+	val[0] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 0 ) );
+	val[1] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 1 ) );
+	val[2] = (float)PyFloat_AsDouble( PyTuple_GetItem( args, 2 ) );
 	ptr->defvec[0] = val[0];
 	ptr->defvec[1] = val[1];
 	ptr->defvec[2] = val[2];

@@ -29,14 +29,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Python.h"
-#include "DNA_curve_types.h"
+#include "CurNurb.h" /*This must come first */
+
 #include "BKE_curve.h"
 #include "BDR_editcurve.h"	/* for convertspline */
 #include "MEM_guardedalloc.h"
-
 #include "gen_utils.h"
-#include "CurNurb.h"
 #include "BezTriple.h"
 
 
@@ -593,7 +591,7 @@ static PyObject *CurNurb_setMatIndex( BPy_CurNurb * self, PyObject * args )
 			   "expected integer argument" ) );
 
 	/* fixme:  some range checking would be nice! */
-	self->nurb->mat_nr = index;
+	self->nurb->mat_nr = (short)index;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -651,7 +649,7 @@ static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
 			   "expected integer argument" ) );
 
 	if( self->nurb->flagu != flagu ) {
-		self->nurb->flagu = flagu;
+		self->nurb->flagu = (short)flagu;
 		makeknots( self->nurb, 1, self->nurb->flagu >> 1 );
 	}
 
@@ -694,7 +692,7 @@ static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
 			   "expected integer argument" ) );
 
 	if( self->nurb->flagv != flagv ) {
-		self->nurb->flagv = flagv;
+		self->nurb->flagv = (short)flagv;
 		makeknots( self->nurb, 2, self->nurb->flagv >> 1 );
 	}
 

@@ -29,33 +29,23 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+struct ScrArea; /*keep me up here */
 
-#include "Bone.h"
+#include "Bone.h" /*This must come first */
 
 #include "BKE_main.h"
 #include "BKE_global.h"
-#include "BKE_object.h"
 #include "BKE_armature.h"
-#include "BKE_library.h"
-#include "BLI_blenlib.h"
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_ipo_types.h"
-#include "BIF_poseobject.h"
 #include "BKE_action.h"
-#include "BSE_editaction.h"
-#include "BKE_constraint.h"
-#include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
+#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include "constant.h"
+#include "BSE_editaction.h"
+#include "DNA_object_types.h"
+#include "DNA_ipo_types.h"
+#include "MEM_guardedalloc.h"
 #include "gen_utils.h"
 #include "NLA.h"
-#include "quat.h"
-#include "matrix.h"
-#include "vector.h"
-#include "Types.h"
-
 
 //--------------------Python API function prototypes for the Bone module----
 static PyObject *M_Bone_New( PyObject * self, PyObject * args );
@@ -313,7 +303,7 @@ int updateBoneData( BPy_Bone * self, Bone * parent )
 			     strlen( self->name ) + 1 );
 		self->bone->roll = self->roll;
 		self->bone->flag = self->flag;
-		self->bone->boneclass = self->boneclass;
+		self->bone->boneclass = (short)self->boneclass;
 		self->bone->dist = self->dist;
 		self->bone->weight = self->weight;
 		self->bone->parent = parent;	//parent will be checked from self->parent string in addBone()
@@ -1521,29 +1511,29 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 		//set action keys
 		if( setChan->flag & POSE_ROT ) {
 			set_action_key( object->action, setChan, AC_QUAT_X,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_QUAT_Y,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_QUAT_Z,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_QUAT_W,
-					makeCurve );
+					(short)makeCurve );
 		}
 		if( setChan->flag & POSE_SIZE ) {
 			set_action_key( object->action, setChan, AC_SIZE_X,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_SIZE_Y,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_SIZE_Z,
-					makeCurve );
+					(short)makeCurve );
 		}
 		if( setChan->flag & POSE_LOC ) {
 			set_action_key( object->action, setChan, AC_LOC_X,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_LOC_Y,
-					makeCurve );
+					(short)makeCurve );
 			set_action_key( object->action, setChan, AC_LOC_Z,
-					makeCurve );
+					(short)makeCurve );
 		}
 		//rebuild ipos
 		remake_action_ipos( object->action );
@@ -1587,7 +1577,7 @@ static PyObject *Bone_setBoneclass( BPy_Bone * self, PyObject * args )
 		self->boneclass = boneclass;
 	} else {
 		//use bone datastruct
-		self->bone->boneclass = boneclass;
+		self->bone->boneclass = (short)boneclass;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1610,8 +1600,6 @@ static PyObject *Bone_hasIK( BPy_Bone * self )
 			return EXPP_incr_ret_False();
 		}
 	}
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.Boneclass attribute" ) );
 }
 
 //--------------- BPy_Bone.getRestMatrix()-------------------------

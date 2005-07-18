@@ -30,23 +30,18 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#include "Lamp.h" /*This must come first*/
 
-#include <stdio.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <BIF_space.h>
-#include <BSE_editipo.h>
-#include <mydevice.h>
-
-#include "Lamp.h"
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_object.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "BIF_space.h"
+#include "BSE_editipo.h"
+#include "mydevice.h"
 #include "Ipo.h"
-
 #include "constant.h"
-#include "rgbTuple.h"
 #include "gen_utils.h"
 
 /*****************************************************************************/
@@ -96,17 +91,17 @@
 #define EXPP_LAMP_BUFFERSIZE_MAX 5120
 #define EXPP_LAMP_ENERGY_MIN  0.0
 #define EXPP_LAMP_ENERGY_MAX 10.0
-#define EXPP_LAMP_DIST_MIN    0.1
+#define EXPP_LAMP_DIST_MIN    0.1f
 #define EXPP_LAMP_DIST_MAX 5000.0
 #define EXPP_LAMP_SPOTSIZE_MIN   1.0
 #define EXPP_LAMP_SPOTSIZE_MAX 180.0
 #define EXPP_LAMP_SPOTBLEND_MIN 0.00
 #define EXPP_LAMP_SPOTBLEND_MAX 1.00
-#define EXPP_LAMP_CLIPSTART_MIN    0.1
+#define EXPP_LAMP_CLIPSTART_MIN    0.1f
 #define EXPP_LAMP_CLIPSTART_MAX 1000.0
 #define EXPP_LAMP_CLIPEND_MIN    1.0
 #define EXPP_LAMP_CLIPEND_MAX 5000.0
-#define EXPP_LAMP_BIAS_MIN 0.01
+#define EXPP_LAMP_BIAS_MIN 0.01f
 #define EXPP_LAMP_BIAS_MAX 5.00
 #define EXPP_LAMP_SOFTNESS_MIN   1.0
 #define EXPP_LAMP_SOFTNESS_MAX 100.0
@@ -982,7 +977,7 @@ static PyObject *Lamp_setSamples( BPy_Lamp * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1,16]" ) );
 
-	self->lamp->samp = EXPP_ClampInt( value,
+	self->lamp->samp = (short)EXPP_ClampInt( value,
 					  EXPP_LAMP_SAMPLES_MIN,
 					  EXPP_LAMP_SAMPLES_MAX );
 
@@ -998,7 +993,7 @@ static PyObject *Lamp_setBufferSize( BPy_Lamp * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [512, 5120]" ) );
 
-	self->lamp->bufsize = EXPP_ClampInt( value,
+	self->lamp->bufsize = (short)EXPP_ClampInt( value,
 					     EXPP_LAMP_BUFFERSIZE_MIN,
 					     EXPP_LAMP_BUFFERSIZE_MAX );
 
@@ -1014,7 +1009,7 @@ static PyObject *Lamp_setHaloStep( BPy_Lamp * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [0,12]" ) );
 
-	self->lamp->shadhalostep = EXPP_ClampInt( value,
+	self->lamp->shadhalostep = (short)EXPP_ClampInt( value,
 						  EXPP_LAMP_HALOSTEP_MIN,
 						  EXPP_LAMP_HALOSTEP_MAX );
 

@@ -32,14 +32,6 @@
 #ifndef EXPP_bpy_types_h
 #define EXPP_bpy_types_h
 
-#include <Python.h>
-
-
-
-
-#include <DNA_curve_types.h>
-
-
 
 /*****************************************************************************/
 /* Camera Data                                                               */

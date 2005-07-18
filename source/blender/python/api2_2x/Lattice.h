@@ -34,7 +34,7 @@
 #define EXPP_Lattice_H
 
 #include <Python.h>
-#include <DNA_lattice_types.h>
+#include "DNA_lattice_types.h"
 
 
 
@@ -42,7 +42,8 @@
 /* Python BPy_Lattice structure definition:   */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD Lattice * Lattice;
+	PyObject_HEAD 
+	Lattice * Lattice;
 } BPy_Lattice;
 
 

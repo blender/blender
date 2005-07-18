@@ -34,9 +34,6 @@
 #define EXPP_rgbTuple_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include "gen_utils.h"
 
 /* Objects of <type 'rgbTuple'> are used inside other Blender Python
  * objects, so this header file must contain only 'public' declarations */

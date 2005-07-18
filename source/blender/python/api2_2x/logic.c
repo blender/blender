@@ -30,10 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "logic.h"
+#include "logic.h" /*This must come first*/
+
+#include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
 #include "gen_utils.h"
-#include <MEM_guardedalloc.h>
-#include <BLI_blenlib.h>
 
 //--------------- Python BPy_Property methods declarations:---------------
 static PyObject *Property_getName( BPy_Property * self );
@@ -121,7 +122,6 @@ int updatePyProperty( BPy_Property * self )
 		}
 		return 1;
 	}
-	return 0;
 }
 
 //--------------- updatePropertyData------------------------------------
@@ -146,7 +146,6 @@ int updateProperyData( BPy_Property * self )
 		}
 		return 1;
 	}
-	return 0;
 }
 
 //--------------- checkValidData_ptr--------------------------------
@@ -379,7 +378,7 @@ PyObject *newPropertyObject( char *name, PyObject * data, int type )
 
 	BLI_strncpy( py_property->name, name, 32 );
 	py_property->data = data;
-	py_property->type = type;
+	py_property->type = (short)type;
 
 	return ( PyObject * ) py_property;
 }

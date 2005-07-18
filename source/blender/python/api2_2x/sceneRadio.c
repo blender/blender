@@ -30,12 +30,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "sceneRadio.h"		/* includes Python.h */
-#include "radio.h"
-#include <BKE_object.h>		/* disable_where_script() */
+#include "sceneRadio.h"		/*This must come first*/
 
+#include "BKE_global.h"
+#include "BKE_object.h"		/* disable_where_script() */
 #include "gen_utils.h"
 #include "constant.h"
+#include "radio.h"
+
 
 /* bitflags */
 #define EXPP_RADIO_flag_SHOWLIM 1
@@ -66,10 +68,10 @@
 #define EXPP_RADIO_maxnode_MAX 250000
 /* floats */
 #define EXPP_RADIO_convergence_MIN 0.0
-#define EXPP_RADIO_convergence_MAX 0.1
-#define EXPP_RADIO_radfac_MIN 0.001
+#define EXPP_RADIO_convergence_MAX 0.1f
+#define EXPP_RADIO_radfac_MIN 0.001f
 #define EXPP_RADIO_radfac_MAX 250.0
-#define EXPP_RADIO_gamma_MIN 0.2
+#define EXPP_RADIO_gamma_MIN 0.2f
 #define EXPP_RADIO_gamma_MAX 10.0
 /* drawtypes */
 #define EXPP_RADIO_drawtype_WIRE 0

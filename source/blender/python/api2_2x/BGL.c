@@ -35,8 +35,10 @@
  * implementation.  The BGL submodule "wraps" OpenGL functions and constants,
  * allowing script writers to make OpenGL calls in their Python scripts. */
 
-#include "BGL.h"
+#include "BGL.h" /*This must come first */
 
+#include "MEM_guardedalloc.h"
+#include "gen_utils.h"
 
 static int type_size( int type );
 static Buffer *make_buffer( int type, int ndimensions, int *dimensions );

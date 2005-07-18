@@ -28,22 +28,20 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+#include "Texture.h" /*This must come first*/
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <BKE_texture.h>
-#include <BKE_utildefines.h>
-
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
+#include "DNA_material_types.h"
 #include "MTex.h"
-#include "Texture.h"
 #include "Image.h"
 #include "Ipo.h"
 #include "constant.h"
 #include "gen_utils.h"
-
 
 
 /*****************************************************************************/
@@ -962,7 +960,7 @@ static PyObject *Texture_setAnimFrames( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "frames cannot be negative" );
 
-	self->texture->frames = frames;
+	self->texture->frames = (short)frames;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -979,7 +977,7 @@ static PyObject *Texture_setAnimLength( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "length cannot be negative" );
 
-	self->texture->len = length;
+	self->texture->len = (short)length;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1006,7 +1004,7 @@ static PyObject *Texture_setAnimMontage( BPy_Texture * self, PyObject * args )
 
 	for( i = 0; i < 4; ++i )
 		for( j = 0; j < 2; ++j )
-			self->texture->fradur[i][j] = fradur[i][j];
+			self->texture->fradur[i][j] = (short)fradur[i][j];
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1020,7 +1018,7 @@ static PyObject *Texture_setAnimOffset( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected an int" );
 
-	self->texture->offset = offset;
+	self->texture->offset = (short)offset;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1038,7 +1036,7 @@ static PyObject *Texture_setAnimStart( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "start must be greater than zero" );
 
-	self->texture->sfra = sfra;
+	self->texture->sfra = (short)sfra;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1132,7 +1130,7 @@ static PyObject *Texture_setIntExtend( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid extend mode" );
 
-	self->texture->extend = extend;
+	self->texture->extend = (short)extend;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1150,7 +1148,7 @@ static PyObject *Texture_setFieldsPerImage( BPy_Texture * self,
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "value must be in range [1,200]" );
 
-	self->texture->fie_ima = fie_ima;
+	self->texture->fie_ima = (short)fie_ima;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1207,7 +1205,7 @@ static PyObject *Texture_setIntFlags( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int argument" );
 
-	self->texture->flag = flags;
+	self->texture->flag = (short)flags;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1286,7 +1284,7 @@ static PyObject *Texture_setIntImageFlags( BPy_Texture * self,
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "image flags MIPMAP and FIELDS cannot be used together" );
 
-	self->texture->imaflag = flags;
+	self->texture->imaflag = (short)flags;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1319,7 +1317,7 @@ static PyObject *Texture_setNoiseDepth( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "value must be in range [0,6]" );
 
-	self->texture->noisedepth = depth;
+	self->texture->noisedepth = (short)depth;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1414,8 +1412,8 @@ static PyObject *Texture_setRepeat( BPy_Texture * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "values must be in range [1,512]" );
 
-	self->texture->xrepeat = repeat[0];
-	self->texture->yrepeat = repeat[1];
+	self->texture->xrepeat = (short)repeat[0];
+	self->texture->yrepeat = (short)repeat[1];
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1488,9 +1486,9 @@ static PyObject *Texture_setIntSType( BPy_Texture * self, PyObject * args )
 					      "invalid stype (for this type)" );
 
 	if( self->texture->type == EXPP_TEX_TYPE_ENVMAP )
-		self->texture->env->stype = stype;
+		self->texture->env->stype = (short)stype;
 	else
-		self->texture->stype = stype;
+		self->texture->stype = (short)stype;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1608,7 +1606,7 @@ static PyObject *Texture_setIntType( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "invalid type number" );
 
-	self->texture->type = type;
+	self->texture->type = (short)type;
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -1804,7 +1802,7 @@ static PyObject *Texture_getAttr( BPy_Texture * self, char *name )
 	else if( STREQ( name, "type" ) )
 		attr = PyInt_FromLong( tex->type );
 	else if( STREQ( name, "hFracDim" ) )
-		attr = PyInt_FromLong( tex->mg_H );
+		attr = PyInt_FromLong( (long)tex->mg_H );
 	else if( STREQ( name, "lacunarity" ) )
 		attr = PyFloat_FromDouble( tex->mg_lacunarity );
 	else if( STREQ( name, "octs" ) )

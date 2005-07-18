@@ -30,20 +30,20 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+#include "Image.h" /*This must come first*/
 
-#include <BDR_drawmesh.h>	/* free_realtime_image */
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_image.h>
-#include <BIF_drawimage.h>
-#include <BLI_blenlib.h>
-#include <DNA_space_types.h>	/* FILE_MAXDIR = 160 */
-#include <IMB_imbuf_types.h>	/* for the IB_rect define */
-#include <BIF_gl.h>
+#include "BDR_drawmesh.h"	/* free_realtime_image */
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_image.h"
+#include "BIF_drawimage.h"
+#include "BLI_blenlib.h"
+#include "DNA_space_types.h"	/* FILE_MAXDIR = 160 */
+#include "IMB_imbuf_types.h"	/* for the IB_rect define */
+#include "BIF_gl.h"
 #include "gen_utils.h"
 
-#include "Image.h"
 
 /*****************************************************************************/
 /* Python BPy_Image defaults:																								 */

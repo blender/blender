@@ -34,7 +34,7 @@
 #define EXPP_CAMERA_H
 
 #include <Python.h>
-#include <DNA_camera_types.h>
+#include "DNA_camera_types.h"
 
 extern PyTypeObject Camera_Type;
 
@@ -66,13 +66,13 @@ typedef struct {
 
 #define EXPP_CAM_LENS_MIN         1.0
 #define EXPP_CAM_LENS_MAX       250.0
-#define EXPP_CAM_SCALE_MIN        0.01
+#define EXPP_CAM_SCALE_MIN        0.01f
 #define EXPP_CAM_SCALE_MAX     1000.0
 #define EXPP_CAM_CLIPSTART_MIN    0.0
 #define EXPP_CAM_CLIPSTART_MAX  100.0
 #define EXPP_CAM_CLIPEND_MIN      1.0
 #define EXPP_CAM_CLIPEND_MAX   5000.0
-#define EXPP_CAM_DRAWSIZE_MIN     0.1
+#define EXPP_CAM_DRAWSIZE_MIN     0.1f
 #define EXPP_CAM_DRAWSIZE_MAX    10.0
 
 PyObject *Camera_Init( void );

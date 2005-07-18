@@ -34,13 +34,14 @@
 #define EXPP_SOUND_H
 
 #include <Python.h>
-#include <DNA_sound_types.h>
+#include "DNA_sound_types.h"
 
 /*****************************************************************************/
 /* Python BPy_Sound structure definition                                     */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD bSound * sound;
+	PyObject_HEAD 
+	bSound * sound;
 } BPy_Sound;
 
 /*****************************************************************************/

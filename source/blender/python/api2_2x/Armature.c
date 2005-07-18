@@ -30,21 +30,18 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Armature.h"
+#include "Armature.h" /*This must come first*/
+
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_armature.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+#include "MEM_guardedalloc.h"
 #include "Bone.h"
 #include "NLA.h"
-#include <stdio.h>
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_armature.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <MEM_guardedalloc.h>
-#include <BLI_arithb.h>
-#include "constant.h"
 #include "gen_utils.h"
-#include "Types.h"
 
 //---------------- Python API function prototypes for the Armature module---
 static PyObject *M_Armature_New( PyObject * self, PyObject * args );

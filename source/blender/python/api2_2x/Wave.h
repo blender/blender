@@ -34,19 +34,7 @@
 #define EXPP_WAVE_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include <BLI_arithb.h>
-#include <BLI_blenlib.h>
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <DNA_effect_types.h>
-
-#include"Effect.h"
-#include "gen_utils.h"
-
+#include "Effect.h"
 
 extern PyTypeObject Wave_Type;
 
@@ -64,7 +52,6 @@ typedef struct {
 /*****************************************************************************/
 PyObject *M_Wave_New( PyObject * self, PyObject * args );
 PyObject *M_Wave_Get( PyObject * self, PyObject * args );
-
 
 
 /*****************************************************************************/

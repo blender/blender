@@ -30,10 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <MEM_guardedalloc.h>
-#include <BLI_blenlib.h>
-#include <DNA_screen_types.h>
-#include "windowTheme.h"
+#include "windowTheme.h" /*This must come first*/
+
+#include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
 #include "charRGBA.h"
 #include "gen_utils.h"
 
@@ -241,7 +241,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 						    "expected integer value" );
 
 		val = ( int ) PyInt_AsLong( value );
-		tsp->vertex_size = EXPP_ClampInt( val,
+		tsp->vertex_size = (char)EXPP_ClampInt( val,
 						  EXPP_THEME_VTX_SIZE_MIN,
 						  EXPP_THEME_VTX_SIZE_MAX );
 		ret = 0;
@@ -254,7 +254,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 						    "expected integer value" );
 
 		val = ( int ) PyInt_AsLong( value );
-		tsp->vertex_size = EXPP_ClampInt( val,
+		tsp->vertex_size = (char)EXPP_ClampInt( val,
 						  EXPP_THEME_FDOT_SIZE_MIN,
 						  EXPP_THEME_FDOT_SIZE_MAX );
 		ret = 0;
@@ -415,7 +415,7 @@ static int ThemeUI_setAttr( BPy_ThemeUI * self, char *name, PyObject * value )
 						    "expected integer value" );
 
 		val = ( int ) PyInt_AsLong( value );
-		tui->but_drawtype = EXPP_ClampInt( val,
+		tui->but_drawtype = (char)EXPP_ClampInt( val,
 						   EXPP_THEME_DRAWTYPE_MIN,
 						   EXPP_THEME_DRAWTYPE_MAX );
 		ret = 0;

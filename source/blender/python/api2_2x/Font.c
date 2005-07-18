@@ -28,12 +28,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "BKE_global.h"
-#include "BKE_packedFile.h"
-#include "DNA_vfont_types.h"
+#include "Font.h" /*This must come first*/
+
 #include "DNA_packedFile_types.h"
-#include "Text3d.h"
-#include "Font.h"
+#include "BKE_packedFile.h"
+#include "BKE_global.h"
+#include "BLI_blenlib.h"
+#include "gen_utils.h"
 
 extern PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args );
 

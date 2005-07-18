@@ -28,11 +28,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include "Mathutils.h"
+
 #include "BKE_utildefines.h"
 #include "BLI_arithb.h"
-#include "Mathutils.h"
-#include "gen_utils.h"
 #include "BLI_blenlib.h"
+#include "gen_utils.h"
 
 //-------------------------DOC STRINGS ---------------------------
 char Matrix_Zero_doc[] = "() - set all values in the matrix to 0";
@@ -205,7 +206,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 
 	//calculate the determinant
 	f = Matrix_Determinant(self);
-	det = PyFloat_AS_DOUBLE(f);
+	det = (float)PyFloat_AS_DOUBLE(f);
 
 	if(det != 0) {
 		//calculate the classical adjoint
@@ -425,7 +426,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 				return EXPP_ReturnIntError(PyExc_TypeError, 
 					"matrix[attribute] = x: sequence argument not a number\n");
 			}
-			vec[x] = PyFloat_AS_DOUBLE(f);
+			vec[x] = (float)PyFloat_AS_DOUBLE(f);
 			EXPP_decr2(m, f);
 		}
 		//parsed well - now set in matrix
@@ -505,7 +506,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 						return EXPP_ReturnIntError(PyExc_TypeError, 
 							"matrix[begin:end] = []: sequence argument not a number\n");
 					}
-					mat[(i * self->colSize) + y] = PyFloat_AS_DOUBLE(f);
+					mat[(i * self->colSize) + y] = (float)PyFloat_AS_DOUBLE(f);
 					EXPP_decr2(f, m);
 				}
 			}else{
@@ -614,7 +615,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Matrix multiplication: arguments not acceptable for this operation\n");
 			}
-			scalar = PyFloat_AS_DOUBLE(f);
+			scalar = (float)PyFloat_AS_DOUBLE(f);
 			for(x = 0; x < mat2->rowSize; x++) {
 				for(y = 0; y < mat2->colSize; y++) {
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
@@ -638,7 +639,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Matrix multiplication: arguments not acceptable for this operation\n");
 				}
-				scalar = PyFloat_AS_DOUBLE(f);
+				scalar = (float)PyFloat_AS_DOUBLE(f);
 				for(x = 0; x < mat1->rowSize; x++) {
 					for(y = 0; y < mat1->colSize; y++) {
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
@@ -658,7 +659,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 					for(z = 0; z < mat1->colSize; z++) {
 						dot += (mat1->matrix[x][z] * mat2->matrix[z][y]);
 					}
-					mat[((x * mat1->rowSize) + y)] = dot;
+					mat[((x * mat1->rowSize) + y)] = (float)dot;
 					dot = 0.0f;
 				}
 			}

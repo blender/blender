@@ -30,15 +30,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BKE_utildefines.h>
-#include <BLI_blenlib.h>
-#include <DNA_scene_types.h> /* G.scene->r.cfra */
-#include <PIL_time.h>
-#include <Python.h>
-#include <sys/stat.h>
-#include "gen_utils.h"
+#include "Sys.h" /*This must come first*/
 
-#include "Sys.h"
+#include "BKE_utildefines.h"
+#include "BKE_global.h"
+#include "BLI_blenlib.h"
+#include "DNA_scene_types.h" /* G.scene-"r.cfra */
+#include "PIL_time.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the sys module.                        */

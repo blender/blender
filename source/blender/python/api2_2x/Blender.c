@@ -29,19 +29,12 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+struct ID; /*keep me up here */
 
-#include <Python.h>
-#include <stdio.h>
+#include "Blender.h" /*This must come first */
 
 /* for open, close in Blender_Load */
 #include <fcntl.h>
-#ifndef WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
-
-#include "BKE_utildefines.h"
 #include "BDR_editobject.h"	/* exit_editmode() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
@@ -49,28 +42,50 @@
 #include "BKE_exotic.h"
 #include "BKE_global.h"
 #include "BKE_packedFile.h"
+#include "BKE_utildefines.h"
 #include "BKE_object.h"
 #include "BKE_text.h"
+#include "BKE_ipo.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BPI_script.h"
 #include "BSE_headerbuttons.h"
-#include "DNA_ID.h"
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"	/* for SPACE_VIEW3D */
-#include "DNA_space_types.h"	/* for SPACE_VIEW3D */
-#include "DNA_scriptlink_types.h"
 #include "DNA_userdef_types.h"
-#include "BKE_ipo.h"
-#include "blendef.h"
-
 #include "EXPP_interface.h" /* for bpy_gethome() */
 #include "gen_utils.h"
 #include "modules.h"
 #include "constant.h"
 #include "../BPY_extern.h" /* BPY_txt_do_python_Text */
 #include "../BPY_menus.h"	/* to update menus */
+#include "Armature.h"
+#include "BezTriple.h"
+#include "Camera.h"
+#include "Curve.h"
+#include "CurNurb.h"
+#include "Draw.h"
+#include "Effect.h"
+#include "Ipo.h"
+#include "Ipocurve.h"
+#include "Lamp.h"
+#include "Lattice.h"
+#include "Mathutils.h"
+#include "Metaball.h"
+#include "NMesh.h"
+#include "Object.h"
+#include "Registry.h"
+#include "Scene.h"
+#include "Sound.h"
+#include "Sys.h"
+#include "Text.h"
+#include "Texture.h"
+#include "Window.h"
+#include "World.h"
+
+
 
 extern PyObject *bpy_registryDict; /* defined in ../BPY_interface.c */
+
 
 /**********************************************************/
 /* Python API function prototypes for the Blender module.	*/
@@ -200,7 +215,7 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 			return ( NULL );
 		}
 
-		G.scene->r.cfra = framenum;
+		G.scene->r.cfra = (short)framenum;
 
 		update_for_newframe(  );
 	} else {

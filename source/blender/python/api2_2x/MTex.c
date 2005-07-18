@@ -29,18 +29,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
+#include "MTex.h" /*This must come first*/
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <BKE_texture.h>
-#include <BKE_utildefines.h>
-
-#include "MTex.h"
+#include "BKE_utildefines.h"
 #include "Texture.h"
-#include "constant.h"
 #include "gen_utils.h"
 
 
@@ -204,7 +196,7 @@ static int MTex_setAttr( BPy_MTex * self, char *name, PyObject * value )
 		if( PyInt_Check( value ) ) {
 			int texco = PyInt_AsLong( value );
 			/* TODO: sanity-check this input! */
-			self->mtex->texco = texco;
+			self->mtex->texco = (short)texco;
 			Py_INCREF( Py_None );	/* because we decref it below */
 			error = Py_None;
 		}
@@ -212,7 +204,7 @@ static int MTex_setAttr( BPy_MTex * self, char *name, PyObject * value )
 		if( PyInt_Check( value ) ) {
 			int mapto = PyInt_AsLong( value );
 			/* TODO: sanity-check this input! */
-			self->mtex->mapto = mapto;
+			self->mtex->mapto = (short)mapto;
 			Py_INCREF( Py_None );	/* because we decref it below */
 			error = Py_None;
 		}

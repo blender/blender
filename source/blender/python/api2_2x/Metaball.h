@@ -34,7 +34,7 @@
 #define EXPP_METABALL_H
 
 #include <Python.h>
-#include <DNA_meta_types.h>
+#include "DNA_meta_types.h"
 
 
 extern PyTypeObject Metaball_Type;

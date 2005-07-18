@@ -34,7 +34,7 @@
 #define EXPP_SCENE_H
 
 #include <Python.h>
-#include <DNA_scene_types.h>
+#include "DNA_scene_types.h"
 
 /* The Scene PyType Object defined in Scene.c */
 extern PyTypeObject Scene_Type;
@@ -44,7 +44,8 @@ extern PyTypeObject Scene_Type;
 
 //---------------------------Python BPy_Scene structure definition----------
 typedef struct {
-	PyObject_HEAD Scene * scene;
+	PyObject_HEAD 
+	Scene * scene;
 } BPy_Scene;
 //---------------------------Python BPy_Scene visible prototypes-----------
 // Python Scene_Type helper functions needed by Blender (the Init function) and Object modules. 

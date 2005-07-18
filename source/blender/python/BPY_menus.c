@@ -35,37 +35,20 @@
  * from Blender menus.  To know more, please start with its header file.
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "BPY_menus.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <Python.h>
-
 #ifndef WIN32
-#include <dirent.h>
+  #include <dirent.h>
 #else
-#include "BLI_winstuff.h"
-#include <io.h>
-#include <direct.h>
+  #include "BLI_winstuff.h"
 #endif
-
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-
-#include <DNA_userdef_types.h>	/* for U.pythondir */
-
-#include "BPY_extern.h"
-#include "BPY_menus.h"
+#include "DNA_userdef_types.h"	/* for U.pythondir */
 #include "api2_2x/EXPP_interface.h" /* for bpy_gethome() */
-
-#include <errno.h>
 
 #define BPYMENU_DATAFILE "Bpymenus"
 #define MAX_DIR_DEPTH 4 /* max depth for traversing scripts dirs */
@@ -494,7 +477,7 @@ static int bpymenu_CreateFromFile( void )
 		}
 
 		if( parsing == 1 ) {	/* got menu group string */
-			group = bpymenu_group_atoi( w1 );
+			group = (short)bpymenu_group_atoi( w1 );
 			if( group < 0 && DEBUG ) {	/* invalid type */
 				fprintf(stderr,
 					"BPyMenus error parsing config file: wrong group: %s,\n\
@@ -503,7 +486,7 @@ will use 'Misc'.\n", w1 );
 		} else
 			continue;
 
-		while( 1 ) {
+		for(;;) {
 			tip = NULL;	/* optional tooltip */
 			fgets( line, 255, fp );
 			if( line[0] == '}' )
@@ -592,7 +575,7 @@ static void bpymenu_WriteDataFile( void )
 		pymenu = BPyMenuTable[i];
 		if( !pymenu )
 			continue;
-		fprintf( fp, "\n%s {\n", BPyMenu_group_itoa( i ) );
+		fprintf( fp, "\n%s {\n", BPyMenu_group_itoa( (short)i ) );
 		while( pymenu ) {
 			fprintf( fp, "'%s' %d %s %d", pymenu->name,
 				 pymenu->version, pymenu->filename,
@@ -629,7 +612,7 @@ void BPyMenu_PrintAllEntries( void )
 
 	for( i = 0; i < PYMENU_TOTAL; i++ ) {
 		pymenu = BPyMenuTable[i];
-		printf( "\n%s {\n", BPyMenu_group_itoa( i ) );
+		printf( "\n%s {\n", BPyMenu_group_itoa( (short)i ) );
 		while( pymenu ) {
 			printf( "'%s' %d %s %d", pymenu->name, pymenu->version,
 				pymenu->filename, pymenu->dir );
@@ -690,7 +673,7 @@ static int bpymenu_ParseFile(FILE *file, char *fname, int is_userdir)
 	int parser_state;
 
 	char script_name[100];
-	int script_version;
+	int script_version = 1;
 	int script_group;
 
 	BPyMenu *scriptMenu = NULL;
@@ -751,7 +734,7 @@ static int bpymenu_ParseFile(FILE *file, char *fname, int is_userdir)
 						}
 						
 						else { /* register script */
-							scriptMenu = bpymenu_AddEntry(script_group,
+							scriptMenu = bpymenu_AddEntry((short)script_group,
 								(short int)script_version, script_name, fname, is_userdir,NULL);
 							if (scriptMenu == NULL) {
 								if (DEBUG)

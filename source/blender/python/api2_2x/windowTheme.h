@@ -34,8 +34,8 @@
 #define EXPP_WINDOWTHEME_H
 
 #include <Python.h>
-#include <DNA_listBase.h>
-#include <DNA_userdef_types.h>
+#include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 
 typedef struct {
 	PyObject_HEAD struct bTheme *theme;

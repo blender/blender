@@ -43,28 +43,9 @@
 #include <config.h>
 #endif
 
-#include "MEM_guardedalloc.h"
-
-#include "BMF_Api.h"
-
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_text_types.h"
-
-#include "BKE_global.h"
-
+#include <Python.h>
 #include "BIF_gl.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_interface.h"
-#include "BIF_mywindow.h"
 
-#include "interface.h"
-#include "mydevice.h"		/*@ for all the event constants */
-
-#include "Python.h"
-
-#include "gen_utils.h"
 
 /*@ Buffer Object */
 /*@ For Python access to OpenGL functions requiring a pointer. */

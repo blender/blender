@@ -33,6 +33,8 @@
 #ifndef EXPP_matrix_h
 #define EXPP_matrix_h
 
+#include <Python.h>
+
 #define MatrixObject_Check(v) ((v)->ob_type == &matrix_Type)
 
 typedef float **ptRow;

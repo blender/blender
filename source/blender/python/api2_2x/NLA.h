@@ -34,14 +34,15 @@
 #define EXPP_NLA_H
 
 #include <Python.h>
-#include <DNA_action_types.h>
+#include "DNA_action_types.h"
 
 /** NLA module initialization function. */
 PyObject *NLA_Init( void );
 
 /** Python BPy_NLA structure definition. */
 typedef struct {
-	PyObject_HEAD bAction * action;
+	PyObject_HEAD 
+	bAction * action;
 } BPy_Action;
 
 PyObject *Action_CreatePyObject( struct bAction *action );

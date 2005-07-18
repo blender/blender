@@ -30,20 +30,12 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <stdio.h>
-
 #include <Python.h>
 
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_main.h>
-#include <BLI_blenlib.h>
-#include <DNA_space_types.h> /* for FILE_MAXDIR, FILE_MAXFILE */
-
-#include "EXPP_interface.h"
+#include "EXPP_interface.h" 
+#include "BLI_blenlib.h"
+#include "DNA_space_types.h" /* for FILE_MAXDIR, FILE_MAXFILE */
 #include "Blender.h"
-#include "Registry.h"
-#include "gen_utils.h"
 
 extern char bprogname[]; /* argv[0] from creator.c */
 

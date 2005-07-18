@@ -31,45 +31,40 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "NMesh.h"
+#include "NMesh.h" /*This must come first*/
 
 #include "DNA_key_types.h"
-#include "DNA_listBase.h"
-#include "DNA_object_types.h"
-#include "DNA_material_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
-
+#include "DNA_oops_types.h"
+#include "DNA_space_types.h"
 #include "BDR_editface.h"	/* make_tfaces */
+#include "BDR_vpaint.h"
+#include "BDR_editobject.h"
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
-#include "BIF_editmesh.h"
-#include "BIF_meshtools.h"
-#include "BIF_space.h"
+#include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
+#include "BIF_editview.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
+#include "BKE_material.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_screen.h"
 #include "BKE_object.h"
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "MEM_guardedalloc.h"
 #include "BKE_utildefines.h"
 #include "blendef.h"
 #include "mydevice.h"
-
 #include "Object.h"
 #include "Mathutils.h"
 #include "constant.h"
 #include "gen_utils.h"
 
-/* only used for ob.oopsloc at the moment */
-#include "DNA_oops_types.h"
-#include "DNA_space_types.h"
+extern void countall(void);
 
 /* EXPP Mesh defines */
 
@@ -333,7 +328,7 @@ static PyObject *M_NMesh_Col( PyObject * self, PyObject * args )
 	short r = 255, g = 255, b = 255, a = 255;
 
 	if( PyArg_ParseTuple( args, "|hhhh", &r, &g, &b, &a ) )
-		return ( PyObject * ) newcol( r, g, b, a );
+		return ( PyObject * ) newcol( (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a );
 
 	return NULL;
 }
@@ -367,13 +362,13 @@ static int NMCol_setattr( PyObject * self, char *name, PyObject * v )
 	ival = ( short ) EXPP_ClampInt( ival, 0, 255 );
 
 	if( strcmp( name, "r" ) == 0 )
-		mc->r = ival;
+		mc->r = (unsigned char)ival;
 	else if( strcmp( name, "g" ) == 0 )
-		mc->g = ival;
+		mc->g = (unsigned char)ival;
 	else if( strcmp( name, "b" ) == 0 )
-		mc->b = ival;
+		mc->b = (unsigned char)ival;
 	else if( strcmp( name, "a" ) == 0 )
-		mc->a = ival;
+		mc->a = (unsigned char)ival;
 	else
 		return -1;
 
@@ -606,7 +601,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 		}
 	} else if( !strcmp( name, "mat" ) || !strcmp( name, "materialIndex" ) ) {
 		PyArg_Parse( v, "h", &ival );
-		mf->mat_nr = ival;
+		mf->mat_nr = (char)ival;
 
 		return 0;
 	} else if( strcmp( name, "smooth" ) == 0 ) {
@@ -648,7 +643,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 		return 0;
 	} else if( strcmp( name, "transp" ) == 0 ) {
 		PyArg_Parse( v, "h", &ival );
-		mf->transp = ival;
+		mf->transp = (unsigned char)ival;
 
 		return 0;
 	} else if( strcmp( name, "image" ) == 0 ) {
@@ -847,7 +842,7 @@ static int NMVert_ass_item( BPy_NMVert * self, int i, PyObject * ob )
 		return EXPP_ReturnIntError( PyExc_IndexError,
 					    "NMVert member must be a number" );
 
-	self->co[i] = PyFloat_AsDouble( ob );
+	self->co[i] = (float)PyFloat_AsDouble( ob );
 
 	return 0;
 }
@@ -1147,7 +1142,7 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 	if( fra > 0 ) {
 		fra = EXPP_ClampInt( fra, 1, NMESH_FRAME_MAX );
 		oldfra = G.scene->r.cfra;
-		G.scene->r.cfra = fra;
+		G.scene->r.cfra = (short)fra;
 	}
 
 	if( !mesh )
@@ -1157,7 +1152,7 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 	insert_meshkey( mesh, typenum );
 
 	if( fra > 0 )
-		G.scene->r.cfra = oldfra;
+		G.scene->r.cfra = (short)oldfra;
 
 	return EXPP_incr_ret( Py_None );
 }
@@ -1334,7 +1329,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 		while (base) {
 			if (base->object == nmesh->object) {
 				base->flag |= SELECT;
-				nmesh->object->flag = base->flag;
+				nmesh->object->flag = (short)base->flag;
 				set_active_base (base);
 				needs_redraw = 0; /* already done in make_vertexcol */
 				break;
@@ -1757,7 +1752,7 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
 		smoothresh = ( short ) PyInt_AsLong( v );
 
 		me->smoothresh =
-			EXPP_ClampInt( smoothresh, NMESH_SMOOTHRESH_MIN,
+			(short)EXPP_ClampInt( smoothresh, NMESH_SMOOTHRESH_MIN,
 				       NMESH_SMOOTHRESH_MAX );
 	}
 
@@ -1938,9 +1933,9 @@ static BPy_NMVert *nmvert_from_data( MVert * vert, MSticky * st, float *co,
 	mv->co[1] = co[1];
 	mv->co[2] = co[2];
 
-	mv->no[0] = vert->no[0] / 32767.0;
-	mv->no[1] = vert->no[1] / 32767.0;
-	mv->no[2] = vert->no[2] / 32767.0;
+	mv->no[0] = (float)(vert->no[0] / 32767.0);
+	mv->no[1] = (float)(vert->no[1] / 32767.0);
+	mv->no[2] = (float)(vert->no[2] / 32767.0);
 
 	if( st ) {
 		mv->uvco[0] = st->co[0];
@@ -2201,9 +2196,9 @@ static void mvert_from_data( MVert * mv, MSticky * st, BPy_NMVert * from )
 	mv->co[1] = from->co[1];
 	mv->co[2] = from->co[2];
 
-	mv->no[0] = from->no[0] * 32767.0;
-	mv->no[1] = from->no[1] * 32767.0;
-	mv->no[2] = from->no[2] * 32767.0;
+	mv->no[0] = (short)(from->no[0] * 32767.0);
+	mv->no[1] = (short)(from->no[1] * 32767.0);
+	mv->no[2] = (short)(from->no[2] * 32767.0);
 
 	mv->flag = ( from->flag & 1 );
 	mv->mat_nr = 0;
@@ -2271,7 +2266,7 @@ static int assignFaceUV( TFace * tf, BPy_NMFace * nmface )
 		tf->tpage = 0;
 
 	tf->mode = nmface->mode;	/* copy mode */
-	tf->flag = nmface->flag;	/* copy flag */
+	tf->flag = (char)nmface->flag;	/* copy flag */
 	tf->transp = nmface->transp;	/* copy transp flag */
 
 	/* assign vertex colours */
@@ -2448,7 +2443,7 @@ Material **nmesh_updateMaterials( BPy_NMesh * nmesh )
 	} else {
 		matlist = 0;
 	}
-	mesh->totcol = len;
+	mesh->totcol = (short)len;
 
 /**@ This is another ugly fix due to the weird material handling of blender.
 	* it makes sure that object material lists get updated (by their length)
@@ -2475,8 +2470,8 @@ PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob )
 	nmats = PyList_Size( nmesh->materials );
 
 	if( nmats > 0 && !mesh->mat ) {
-		ob->totcol = nmats;
-		mesh->totcol = nmats;
+		ob->totcol = (char)nmats;
+		mesh->totcol = (short)nmats;
 		mesh->mat =
 			MEM_callocN( sizeof( void * ) * nmats, "bpy_memats" );
 
@@ -3513,7 +3508,7 @@ static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "no deform groups assigned to mesh" );
 	nIndex++;
-	object->actdef = nIndex;
+	object->actdef = (unsigned short)nIndex;
 
 	del_defgroup( object );
 
@@ -3659,7 +3654,7 @@ static PyObject *NMesh_removeVertsFromGroup( PyObject * self, PyObject * args )
 		}
 		//set current vertex group
 		nIndex++;
-		object->actdef = nIndex;
+		object->actdef = (unsigned short)nIndex;
 
 		//clear all dVerts in active group
 		remove_verts_defgroup( 1 );

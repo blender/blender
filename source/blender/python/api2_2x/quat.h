@@ -34,6 +34,8 @@
 #ifndef EXPP_quat_h
 #define EXPP_quat_h
 
+#include <Python.h>
+
 #define QuaternionObject_Check(v) ((v)->ob_type == &quaternion_Type)
 
 typedef struct {

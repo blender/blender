@@ -29,10 +29,15 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-#include "Effect.h"
+#include "Effect.h" /*This must come first */
+
+#include "DNA_object_types.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "Build.h"
 #include "Particle.h"
 #include "Wave.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python BPy_Effect methods table:                                            */
@@ -88,13 +93,13 @@ struct PyMethodDef M_Effect_methods[] = {
 /*****************************************************************************/
 PyObject *M_Effect_New( PyObject * self, PyObject * args )
 {
-	BPy_Effect *pyeffect;
+/*	BPy_Effect *pyeffect;
 	Effect *bleffect = 0;
 	int type = -1;
-	char *btype = NULL;
+	char *btype = NULL;*/
 	Py_INCREF( Py_None );
 	return Py_None;
-	if( !PyArg_ParseTuple( args, "s", &btype ) )
+/*	if( !PyArg_ParseTuple( args, "s", &btype ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected type argument(wave,build or particle)" ) );
 	if( !strcmp( btype, "wave" ) )
@@ -122,7 +127,7 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 
 	pyeffect->effect = bleffect;
 
-	return ( PyObject * ) pyeffect;
+	return ( PyObject * ) pyeffect;*/
 }
 
 /*****************************************************************************/
@@ -268,7 +273,7 @@ PyObject *Effect_setType( BPy_Effect * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected an int as argument" ) );
-	self->effect->type = value;
+	self->effect->type = (short)value;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -289,7 +294,7 @@ PyObject *Effect_setFlag( BPy_Effect * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected an int as argument" ) );
-	self->effect->flag = value;
+	self->effect->flag = (short)value;
 	Py_INCREF( Py_None );
 	return Py_None;
 }

@@ -36,16 +36,15 @@
 #define EXPP_TEXTURE_H
 
 #include <Python.h>
-#include <DNA_texture_types.h>
-#include <BKE_texture.h>
-
+#include "DNA_texture_types.h"
 
 /*****************************************************************************/
 /* Python BPy_Texture structure definition                                   */
 /*****************************************************************************/
 
 typedef struct {
-	PyObject_HEAD Tex * texture;
+	PyObject_HEAD 
+	Tex * texture;
 } BPy_Texture;
 
 extern PyTypeObject Texture_Type;

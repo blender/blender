@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "Types.h"
+#include "Types.h" 
 
 char M_Types_doc[] = "The Blender Types module\n\n\
 This module is a dictionary of all Blender Python types";
@@ -103,73 +103,73 @@ PyObject *Types_Init( void )
 	/* The Blender Object Type */
 
 	PyDict_SetItemString( dict, "ObjectType",
-			      ( PyObject * ) & Object_Type );
+			      ( PyObject * ) &Object_Type );
 
 	/* Blender Object Data Types */
 
-	PyDict_SetItemString( dict, "SceneType", ( PyObject * ) & Scene_Type );
+	PyDict_SetItemString( dict, "SceneType", ( PyObject * ) &Scene_Type );
 	PyDict_SetItemString( dict, "RenderDataType",
-			      ( PyObject * ) & RenderData_Type );
+			      ( PyObject * ) &RenderData_Type );
 
-	PyDict_SetItemString( dict, "NMeshType", ( PyObject * ) & NMesh_Type );
+	PyDict_SetItemString( dict, "NMeshType", ( PyObject * ) &NMesh_Type );
 	PyDict_SetItemString( dict, "NMFaceType",
-			      ( PyObject * ) & NMFace_Type );
+			      ( PyObject * ) &NMFace_Type );
 	PyDict_SetItemString( dict, "NMVertType",
-			      ( PyObject * ) & NMVert_Type );
-	PyDict_SetItemString( dict, "NMColType", ( PyObject * ) & NMCol_Type );
+			      ( PyObject * ) &NMVert_Type );
+	PyDict_SetItemString( dict, "NMColType", ( PyObject * ) &NMCol_Type );
 
 	PyDict_SetItemString( dict, "ArmatureType",
-			      ( PyObject * ) & Armature_Type );
-	PyDict_SetItemString( dict, "BoneType", ( PyObject * ) & Bone_Type );
+			      ( PyObject * ) &Armature_Type );
+	PyDict_SetItemString( dict, "BoneType", ( PyObject * ) &Bone_Type );
 
 	PyDict_SetItemString( dict, "CurNurb_Type",
-			      ( PyObject * ) & CurNurb_Type );
-	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) & Curve_Type );
+			      ( PyObject * ) &CurNurb_Type );
+	PyDict_SetItemString( dict, "CurveType", ( PyObject * ) &Curve_Type );
 
-	PyDict_SetItemString( dict, "IpoType", ( PyObject * ) & Ipo_Type );
+	PyDict_SetItemString( dict, "IpoType", ( PyObject * ) &Ipo_Type );
 	PyDict_SetItemString( dict, "MetaballType",
-			      ( PyObject * ) & Metaball_Type );
+			      ( PyObject * ) &Metaball_Type );
 
 	PyDict_SetItemString( dict, "CameraType",
-			      ( PyObject * ) & Camera_Type );
-	PyDict_SetItemString( dict, "ImageType", ( PyObject * ) & Image_Type );
-	PyDict_SetItemString( dict, "LampType", ( PyObject * ) & Lamp_Type );
-	PyDict_SetItemString( dict, "TextType", ( PyObject * ) & Text_Type );
-	PyDict_SetItemString( dict, "Text3dType", ( PyObject * ) & Text3d_Type );
+			      ( PyObject * ) &Camera_Type );
+	PyDict_SetItemString( dict, "ImageType", ( PyObject * ) &Image_Type );
+	PyDict_SetItemString( dict, "LampType", ( PyObject * ) &Lamp_Type );
+	PyDict_SetItemString( dict, "TextType", ( PyObject * ) &Text_Type );
+	PyDict_SetItemString( dict, "Text3dType", ( PyObject * ) &Text3d_Type );
 	PyDict_SetItemString( dict, "MaterialType",
-			      ( PyObject * ) & Material_Type );
+			      ( PyObject * ) &Material_Type );
 
 	PyDict_SetItemString( dict, "ButtonType",
-			      ( PyObject * ) & Button_Type );
+			      ( PyObject * ) &Button_Type );
 
 	PyDict_SetItemString( dict, "LatticeType",
-			      ( PyObject * ) & Lattice_Type );
+			      ( PyObject * ) &Lattice_Type );
 
 	PyDict_SetItemString( dict, "TextureType",
-			      ( PyObject * ) & Texture_Type );
-	PyDict_SetItemString( dict, "MTexType", ( PyObject * ) & MTex_Type );
+			      ( PyObject * ) &Texture_Type );
+	PyDict_SetItemString( dict, "MTexType", ( PyObject * ) &MTex_Type );
 
 	/* External helper Types available to the main ones above */
 
 	PyDict_SetItemString( dict, "vectorType",
-			      ( PyObject * ) & vector_Type );
+			      ( PyObject * ) &vector_Type );
 	PyDict_SetItemString( dict, "bufferType",
-			      ( PyObject * ) & buffer_Type );
+			      ( PyObject * ) &buffer_Type );
 	PyDict_SetItemString( dict, "constantType",
-			      ( PyObject * ) & constant_Type );
+			      ( PyObject * ) &constant_Type );
 	PyDict_SetItemString( dict, "rgbTupleType",
-			      ( PyObject * ) & rgbTuple_Type );
+			      ( PyObject * ) &rgbTuple_Type );
 	PyDict_SetItemString( dict, "matrix_Type",
-			      ( PyObject * ) & matrix_Type );
-	PyDict_SetItemString( dict, "eulerType", ( PyObject * ) & euler_Type );
+			      ( PyObject * ) &matrix_Type );
+	PyDict_SetItemString( dict, "eulerType", ( PyObject * ) &euler_Type );
 	PyDict_SetItemString( dict, "quaternionType",
-			      ( PyObject * ) & quaternion_Type );
+			      ( PyObject * ) &quaternion_Type );
 	PyDict_SetItemString( dict, "BezTripleType",
-			      ( PyObject * ) & BezTriple_Type );
+			      ( PyObject * ) &BezTriple_Type );
 	PyDict_SetItemString( dict, "ActionType",
-			      ( PyObject * ) & Action_Type );
+			      ( PyObject * ) &Action_Type );
 	PyDict_SetItemString( dict, "propertyType",
-			      ( PyObject * ) & property_Type );
+			      ( PyObject * ) &property_Type );
 
 	return submodule;
 }

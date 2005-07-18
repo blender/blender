@@ -30,7 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "constant.h"
+#include "constant.h" /*This must come first */
+
+#include "gen_utils.h"
 
 /* This file is heavily based on the old bpython Constant object code in 
    Blender */

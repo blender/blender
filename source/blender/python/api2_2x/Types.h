@@ -33,7 +33,7 @@
 #ifndef EXPP_TYPES_H
 #define EXPP_TYPES_H
 
-#include "Python.h"
+#include <Python.h>
 
 extern PyTypeObject Action_Type, Armature_Type;
 extern PyTypeObject BezTriple_Type, Bone_Type, Build_Type, Button_Type;

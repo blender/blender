@@ -34,6 +34,7 @@
 #define EXPP_FONT_H
 
 #include <Python.h>
+#include "DNA_vfont_types.h"
 
 typedef struct {
 	PyObject_HEAD		/* required py macro */

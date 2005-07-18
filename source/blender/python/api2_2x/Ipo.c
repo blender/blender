@@ -31,22 +31,18 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Ipo.h"
+#include "Ipo.h" /*This must come first*/
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BSE_editipo.h>
-#include <BLI_blenlib.h>
-#include <BIF_space.h>
-#include <BSE_editipo.h>
-#include <mydevice.h>
-#include <DNA_curve_types.h>
-#include <MEM_guardedalloc.h>
-
+#include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_ipo.h"
+#include "BLI_blenlib.h"
+#include "BIF_space.h"
+#include "BSE_editipo.h"
+#include "MEM_guardedalloc.h"
+#include "mydevice.h"
 #include "Ipocurve.h"
-#include "constant.h"
 #include "gen_utils.h"
 
 /*****************************************************************************/
@@ -1167,7 +1163,7 @@ static PyObject *Ipo_setCurveBeztriple( BPy_Ipo * self, PyObject * args )
 
 	for( i = 0; i < 9; i++ ) {
 		PyObject *xx = PyTuple_GetItem( listargs, i );
-		ptrbt->vec[i / 3][i % 3] = PyFloat_AsDouble( xx );
+		ptrbt->vec[i / 3][i % 3] = (float)PyFloat_AsDouble( xx );
 	}
 
 	Py_INCREF( Py_None );

@@ -34,7 +34,7 @@
 #define EXPP_IPO_H
 
 #include <Python.h>
-#include <DNA_ipo_types.h>
+#include "DNA_ipo_types.h"
 
 /*****************************************************************************/
 /* Python BPy_Ipo structure definition:                                     */

@@ -29,19 +29,14 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#include "Build.h" /*This must come first */
 
-#include "Build.h"
-#include "Effect.h"
+#include "DNA_object_types.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
 #include "gen_utils.h"
-
-#include <BLI_arithb.h>
-#include <BLI_blenlib.h>
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-
-#include <stdio.h>
 
 /* prototypes */
 PyObject *Build_Init( void );
@@ -134,7 +129,6 @@ PyObject *M_Build_New( PyObject * self, PyObject * args )
 	pyeffect->effect = bleffect;
 
 	return ( PyObject * ) pyeffect;
-	return 0;
 }
 
 /*****************************************************************************/

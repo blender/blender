@@ -30,19 +30,14 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_library.h>
-#include <BKE_sound.h>
-#include <BLI_blenlib.h>
-#include <BIF_editsound.h>
-#include <BIF_space.h>		/* EXPP_allqueue() */
+#include "Sound.h" /*This must come first*/
 
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BLI_blenlib.h"
+#include "BIF_editsound.h"
 #include "mydevice.h"		/* redraw defines */
-
 #include "gen_utils.h"
-
-#include "Sound.h"
 
 /*****************************************************************************/
 /* Python BPy_Sound defaults:					*/
@@ -485,7 +480,7 @@ static PyObject *Sound_getAttr( BPy_Sound * self, char *name )
 static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * value )
 {
 	PyObject *valtuple;
-	PyObject *error = NULL;
+//	PyObject *error = NULL;
 
 /* We're playing a trick on the Python API users here.	Even if they use
  * Sound.member = val instead of Sound.setMember(value), we end up using the
@@ -508,13 +503,15 @@ static int Sound_setAttr( BPy_Sound * self, char *name, PyObject * value )
 					      "attribute not found or immutable" ) );
 	}
 
+/*	===This code is unreachable===
 	Py_DECREF( valtuple );
 
 	if( error != Py_None )
 		return -1;
 
-	Py_DECREF( Py_None );	/* incref'ed by the called set* function */
-	return 0;		/* normal exit */
+	Py_DECREF( Py_None );	// incref'ed by the called set* function /
+	return 0;		// normal exit 
+	*/
 }
 
 /*****************************************************************************/

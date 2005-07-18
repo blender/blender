@@ -32,7 +32,8 @@
 #ifndef EXPP_NURB_H
 #define EXPP_NURB_H
 
-#include <DNA_curve_types.h>
+#include <Python.h>
+#include "DNA_curve_types.h"
 
 extern PyTypeObject CurNurb_Type;
 

@@ -34,9 +34,6 @@
 #define EXPP_charRGBA_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include "gen_utils.h"
 
 /* Objects of <type 'charRGBA'> are used inside other Blender Python
  * objects, so this header file must contain only 'public' declarations */
@@ -45,7 +42,8 @@
 /* Python BPy_charRGBA structure definition: */
 
 typedef struct {
-	PyObject_HEAD char *rgba[4];	/* array of four pointers to chars */
+	PyObject_HEAD 
+	char *rgba[4];	/* array of four pointers to chars */
 
 } BPy_charRGBA;
 

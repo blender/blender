@@ -34,7 +34,7 @@
 #define EXPP_LAMP_H
 
 #include <Python.h>
-#include <DNA_lamp_types.h>
+#include "DNA_lamp_types.h"
 #include "rgbTuple.h"
 
 extern PyTypeObject Lamp_Type;

@@ -34,9 +34,6 @@
 #define EXPP_constant_H
 
 #include <Python.h>
-#include <stdio.h>
-
-#include "gen_utils.h"
 
 #define BPy_Constant_Check(v) ((v)->ob_type==&constant_Type)
 
@@ -52,7 +49,8 @@ PyObject *M_constant_New( void );
 /* Python BPy_constant structure definition:                                 */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD PyObject * dict;
+	PyObject_HEAD 
+	PyObject * dict;
 
 } BPy_constant;
 

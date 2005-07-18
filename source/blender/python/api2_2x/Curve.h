@@ -33,7 +33,8 @@
 #ifndef EXPP_CURVE_H
 #define EXPP_CURVE_H
 
-#include <DNA_curve_types.h>
+#include <Python.h>
+#include "DNA_curve_types.h"
 
 extern PyTypeObject Curve_Type;
 

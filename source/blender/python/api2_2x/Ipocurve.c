@@ -30,21 +30,15 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Ipocurve.h"
+#include "Ipocurve.h" /*This must come first*/
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BKE_ipo.h>
-#include <BLI_blenlib.h>
-#include <BSE_editipo.h>
-#include <MEM_guardedalloc.h>
-#include <DNA_ipo_types.h>
-
-#include "constant.h"
-#include "gen_utils.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BSE_editipo.h"
+#include "MEM_guardedalloc.h"
+#include "DNA_ipo_types.h"
 #include "BezTriple.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the IpoCurve module.                   */
@@ -219,7 +213,7 @@ static PyObject *IpoCurve_setInterpolation( C_IpoCurve * self,
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "bad interpolation type" ) );
 
-	self->ipocurve->ipo = id;
+	self->ipocurve->ipo = (short)id;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -262,7 +256,7 @@ static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self,
 	if( id == -1 )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "bad interpolation type" ) );
-	self->ipocurve->extrap = id;
+	self->ipocurve->extrap = (short)id;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -297,8 +291,8 @@ static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "expected tuple argument" ) );
 
-	x = PyFloat_AsDouble( PyTuple_GetItem( popo, 0 ) );
-	y = PyFloat_AsDouble( PyTuple_GetItem( popo, 1 ) );
+	x = (float)PyFloat_AsDouble( PyTuple_GetItem( popo, 0 ) );
+	y = (float)PyFloat_AsDouble( PyTuple_GetItem( popo, 1 ) );
 	icu = self->ipocurve;
 	npoints = icu->totvert;
 	tmp = icu->bezt;
@@ -445,8 +439,6 @@ static PyObject *IpoCurve_getName( C_IpoCurve * self )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "This function doesn't support this ipocurve type yet" );
 	}
-
-	return PyString_FromString( "" );
 }
 
 static void IpoCurveDeAlloc( C_IpoCurve * self )

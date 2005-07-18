@@ -34,9 +34,7 @@
 #define EXPP_BUILD_H
 
 #include <Python.h>
-#include <DNA_effect_types.h>
 #include "Effect.h"
-
 
 extern PyTypeObject Build_Type;
 

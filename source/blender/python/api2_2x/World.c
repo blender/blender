@@ -43,24 +43,20 @@
  * (self, name = "MyName")
  */
 
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <BSE_editipo.h>
-#include <BIF_space.h>
-#include <mydevice.h>
+#include "World.h"  /*This must come first*/
 
-#include <DNA_scene_types.h>  /* for G.scene */
-
-#include "World.h"
+#include "DNA_scene_types.h"  /* for G.scene */
+#include "BKE_global.h"
+#include "BKE_world.h"
+#include "BKE_main.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "BSE_editipo.h"
+#include "BIF_space.h"
+#include "mydevice.h"
 #include "Ipo.h"
-
-
-#include "constant.h"
-#include "rgbTuple.h"
 #include "gen_utils.h"
+
 
 #define IPOKEY_ZENITH   0
 #define IPOKEY_HORIZON  1
@@ -579,7 +575,7 @@ static PyObject *World_setSkytype( BPy_World * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &skytype ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
-	self->world->skytype = skytype;
+	self->world->skytype = (short)skytype;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -616,7 +612,7 @@ static PyObject *World_setMode( BPy_World * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &mode ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
-	self->world->mode = mode;
+	self->world->mode = (short)mode;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -665,7 +661,7 @@ static PyObject *World_setMistype( BPy_World * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &mistype ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
-	self->world->mistype = mistype;
+	self->world->mistype = (short)mistype;
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -693,9 +689,9 @@ static PyObject *World_setHor( BPy_World * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "O", &listargs ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected list argument" ) );
-	self->world->horr = PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
-	self->world->horg = PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
-	self->world->horb = PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
+	self->world->horr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
+	self->world->horg = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
+	self->world->horb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -720,9 +716,9 @@ static PyObject *World_setZen( BPy_World * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "O", &listargs ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected list argument" ) );
-	self->world->zenr = PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
-	self->world->zeng = PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
-	self->world->zenb = PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
+	self->world->zenr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
+	self->world->zeng = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
+	self->world->zenb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -755,9 +751,9 @@ static PyObject *World_setAmb( BPy_World * self, PyObject * args )
 	if( PyList_Size( listargs ) != 3 )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "wrong list size" ) );
-	self->world->ambr = PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
-	self->world->ambg = PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
-	self->world->ambb = PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
+	self->world->ambr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
+	self->world->ambg = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
+	self->world->ambb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -792,17 +788,17 @@ static PyObject *World_setStar( BPy_World * self, PyObject * args )
 	if( PyList_Size( listargs ) != 7 )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "wrong list size" ) );
-	self->world->starr = PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
-	self->world->starg = PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
-	self->world->starb = PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
+	self->world->starr = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
+	self->world->starg = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
+	self->world->starb = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	self->world->starsize =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
 	self->world->starmindist =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 4 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 4 ) );
 	self->world->stardist =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 5 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 5 ) );
 	self->world->starcolnoise =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 6 ) );
 	Py_INCREF( Py_None );
 	return Py_None;
 }
@@ -838,13 +834,13 @@ static PyObject *World_setMist( BPy_World * self, PyObject * args )
 	if( PyList_Size( listargs ) != 4 )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_TypeError, "wrong list size" ) );
-	self->world->misi = PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
+	self->world->misi = (float)PyFloat_AsDouble( PyList_GetItem( listargs, 0 ) );
 	self->world->miststa =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 1 ) );
 	self->world->mistdist =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 2 ) );
 	self->world->misthi =
-		PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
+		(float)PyFloat_AsDouble( PyList_GetItem( listargs, 3 ) );
 	Py_INCREF( Py_None );
 	return Py_None;
 }

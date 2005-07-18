@@ -30,19 +30,9 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "BezTriple.h"
+#include "BezTriple.h" /*This must come first */
 
-#include <Python.h>
-
-#include <BKE_main.h>
-#include <BKE_global.h>
-#include <BKE_object.h>
-#include <BKE_library.h>
-#include <BLI_blenlib.h>
-#include <DNA_ipo_types.h>
-#include <MEM_guardedalloc.h>
-
-#include "constant.h"
+#include "MEM_guardedalloc.h"
 #include "gen_utils.h"
 
 
@@ -72,7 +62,7 @@ static void BezTripleDeAlloc( BPy_BezTriple * self );
 static int BezTripleSetAttr( BPy_BezTriple * self, char *name, PyObject * v );
 static PyObject *BezTripleGetAttr( BPy_BezTriple * self, char *name );
 static PyObject *BezTripleRepr( BPy_BezTriple * self );
-static PyObject *BezTriple_Str( BPy_BezTriple * self );
+//static PyObject *BezTriple_Str( BPy_BezTriple * self );
 
 /****************************************************************************
  Python method structure definition for Blender.BezTriple module:          
@@ -258,7 +248,7 @@ static PyObject *BezTriple_setPoints( BPy_BezTriple * self, PyObject * args )
 			printf( "\n bad o. o no!\n" );
 
 		/*   bezt->vec[1][i] = PyFloat_AsDouble (PyTuple_GetItem (popo, i)); */
-		bezt->vec[1][i] = PyFloat_AsDouble( o );
+		bezt->vec[1][i] = (float)PyFloat_AsDouble( o );
 		bezt->vec[0][i] = bezt->vec[1][i] - 1;
 		bezt->vec[2][i] = bezt->vec[1][i] + 1;
 	}
@@ -362,12 +352,12 @@ static PyObject *BezTripleRepr( BPy_BezTriple * self )
  display object as string.
  equivalent to python str(o)
 */
-
+/*
 static PyObject *BezTriple_Str( BPy_BezTriple * self )
 {
 	BezTriple *p = self->beztriple;
 
-/* fixme: */
+// fixme: 
 	return PyString_FromFormat(
 		 "BezTriple (%f %f %f) (%f %f %f) (%f %f %f) alpha %f\n (%d %d) (%d %d) (%d %d) h1:%d h2:%d f1:%d f2:%d f3:%d hide:%d",
 		 p->vec[0][0], p->vec[0][1],  p->vec[0][2], 
@@ -382,7 +372,7 @@ static PyObject *BezTriple_Str( BPy_BezTriple * self )
 		 p->hide );
 
 }
-
+*/
 
 /*
   BezTriple_Init

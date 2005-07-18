@@ -34,14 +34,15 @@
 #define EXPP_IMAGE_H
 
 #include <Python.h>
-#include <DNA_image_types.h>
+#include "DNA_image_types.h"
 
 
 /*****************************************************************************/
 /* Python BPy_Image structure definition                                     */
 /*****************************************************************************/
 typedef struct {
-	PyObject_HEAD Image * image;
+	PyObject_HEAD 
+	Image * image;
 
 } BPy_Image;
 

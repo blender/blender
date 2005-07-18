@@ -34,18 +34,17 @@
 */
 
 #include <Python.h>
-#include <stdio.h>
 
-#include <DNA_ID.h>
-#include <DNA_curve_types.h>
-#include <BKE_library.h>	/* for all_local */
+#include "DNA_curve_types.h"
+#include "DNA_object_types.h"
+#include "BKE_library.h"	/* for all_local */
 #include "BKE_font.h"		/* for text_to_curve */
-#include <BLO_readfile.h>
-#include <BLI_linklist.h>
-#include <MEM_guardedalloc.h>
-
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BLO_readfile.h"
+#include "BLI_linklist.h"
+#include "MEM_guardedalloc.h"
 #include "gen_utils.h"
-
 
 /**
  * Global variables.
@@ -338,7 +337,6 @@ PyObject *M_Library_Load( PyObject * self, PyObject * args )
  */
 PyObject *M_Library_Update( PyObject * self )
 {				/* code adapted from do_library_append in src/filesel.c: */
-	Object *ob = NULL;
 	Library *lib = NULL;
 
 		/* Displist code that was here is obsolete... depending on what

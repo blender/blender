@@ -30,14 +30,16 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "NLA.h"
-#include "Object.h"
-#include <BKE_action.h>
-#include <BKE_global.h>
-#include <BKE_main.h>
+#include "NLA.h" /*This must come first*/
 
+#include "BKE_action.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_library.h"
+#include "BLI_blenlib.h"
+#include "Object.h"
 #include "Ipo.h"
-#include "Types.h"
+#include "gen_utils.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the NLA module.			 */

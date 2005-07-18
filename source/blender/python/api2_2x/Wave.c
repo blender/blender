@@ -30,8 +30,13 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "Wave.h"
-#include "Effect.h"
+#include "Wave.h" /*This must come first*/
+
+#include "DNA_object_types.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "gen_utils.h"
 
 /******* prototypes **********/
 PyObject *Wave_Init( void );
@@ -183,7 +188,6 @@ PyObject *M_Wave_New( PyObject * self, PyObject * args )
 	pyeffect->effect = bleffect;
 
 	return ( PyObject * ) pyeffect;
-	return 0;
 }
 
 /*****************************************************************************/
