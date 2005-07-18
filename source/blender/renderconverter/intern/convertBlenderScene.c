@@ -1306,6 +1306,7 @@ static float *get_mesh_orco(Object *ob)
 static void free_mesh_orco_hash(void) 
 {
 	BLI_ghash_free(g_orco_hash, NULL, MEM_freeN);
+	g_orco_hash = NULL;
 }
 
 static void init_render_mesh(Object *ob)
