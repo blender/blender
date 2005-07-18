@@ -790,7 +790,7 @@ static void autosmooth(int startvert, int startvlak, int degr)
 /* End of autosmoothing:                                                     */
 /* ------------------------------------------------------------------------- */
 
-static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *extverts, float *orco)
+static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
 {
 	HaloRen *har;
 	float xn, yn, zn, nor[3], view[3];
@@ -806,7 +806,6 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 	end= totvert;
 	set_buildvars(ob, &start, &end);
 	mvert+= start;
-	if(extverts) extverts+= 3*start;
 
 	for(a=start; a<end; a++, mvert++) {
 		ok= 1;
@@ -814,13 +813,7 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 		if(ok) {
 			hasize= ma->hasize;
 
-			if(extverts) {
-				VECCOPY(vec, extverts);
-				extverts+= 3;
-			}
-			else {
-				VECCOPY(vec, mvert->co);
-			}
+			VECCOPY(vec, mvert->co);
 			MTC_Mat4MulVecfl(mat, vec);
 
 			if(ma->mode & MA_HALOPUNO) {
@@ -1321,7 +1314,7 @@ static void init_render_mesh(Object *ob)
 	PartEff *paf;
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
-	float *extverts=0, *orco=0, *orcoData=0;
+	float *orco=0;
 	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
@@ -1382,20 +1375,14 @@ static void init_render_mesh(Object *ob)
 	ma= give_render_material(ob, 1);
 
 	if(ma->mode & MA_HALO) {
-		make_render_halos(ob, me, totvert, mvert, ma, extverts, orco);
+		make_render_halos(ob, me, totvert, mvert, ma, orco);
 	}
 	else {
 
 		for(a=0; a<totvert; a++, mvert++) {
 
 			ver= RE_findOrAddVert(R.totvert++);
-			if(extverts) {
-				VECCOPY(ver->co, extverts);
-				extverts+= 3;
-			}
-			else {
-				VECCOPY(ver->co, mvert->co);
-			}
+			VECCOPY(ver->co, mvert->co);
 			MTC_Mat4MulVecfl(mat, ver->co);
 
 			xn= mvert->no[0];
