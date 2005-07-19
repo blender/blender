@@ -1313,6 +1313,27 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			ob->recalc &= ~OB_RECALC;
 		
 	}
+	else{
+		/* Object has not RECALC flag */
+		/* check case where child changes and parent forcing obdata to change */
+		/* could merge this in with loop above...? (ton) */
+		for(itA = node->child; itA; itA= itA->next) {
+			/* the relationship is visible */
+			if(itA->lay & layer) {
+				if(itA->node->type==ID_OB) {
+					obc= itA->node->ob;
+					/* child moves */
+					if((obc->recalc & OB_RECALC)==OB_RECALC_OB) {
+						/* parent has deforming info */
+						if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
+							// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
+							obc->recalc |= OB_RECALC_DATA;
+						}
+					}
+				}
+			}
+		}
+	}
 	
 	/* we only go deeper if node not checked or something changed  */
 	for(itA = node->child; itA; itA= itA->next) {
