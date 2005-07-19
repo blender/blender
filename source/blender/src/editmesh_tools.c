@@ -1105,6 +1105,7 @@ void fill_mesh(void)
 
 /*--------------Edge Based Subdivide------------------*/
 #define EDGENEW    2
+#define FACENEW    2
 #define EDGEINNER  4
 
 static void alter_co(float* co,EditEdge *edge,float rad,int beauty)
@@ -2026,10 +2027,11 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *ef;
-	EditEdge *eed, *cedge;
+	EditEdge *eed, *cedge, *sort[4];
 	EditVert **templist;
 	struct GHash *gh;
-	int i,edgecount,facetype;
+	int i,j,edgecount,facetype,hold;
+	float length[4];
 
 	//Set faces f1 to 0 cause we need it later
 			
@@ -2045,6 +2047,71 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	}   
 	// We store an array of verts for each edge that is subdivided,
 	// we put this array as a value in a ghash which is keyed by the EditEdge*
+
+	// Now for beauty subdivide deselect edges based on length
+	if(beauty & B_BEAUTY){ 
+        for(ef = em->faces.first;ef;ef = ef->next){
+            if(!ef->v4){
+                continue;
+            }
+            if(ef->f & SELECT){
+                length[0] = VecLenf(ef->e1->v1->co,ef->e1->v2->co);
+                length[1] = VecLenf(ef->e2->v1->co,ef->e2->v2->co);
+                length[2] = VecLenf(ef->e3->v1->co,ef->e3->v2->co);
+                length[3] = VecLenf(ef->e4->v1->co,ef->e4->v2->co);
+                sort[0] = ef->e1;
+                sort[1] = ef->e2;
+                sort[2] = ef->e3;
+                sort[3] = ef->e4;
+                                                  
+                                                
+                // Beauty Short Edges
+                if(beauty & B_BEAUTY_SHORT){
+                    for(j=0;j<2;j++){
+                        hold = -1;
+                        for(i=0;i<4;i++){
+                            if(length[i] < 0){
+                                continue;                            
+                            } else if(hold == -1){  
+                                hold = i; 
+                            } else {
+                                if(length[hold] < length[i]){
+                                    hold = i;   
+                                }
+                            }
+                        }
+                        sort[hold]->f &= ~SELECT;
+                        sort[hold]->f2 |= EDGENEW;
+                        length[hold] = -1;
+                    }                            
+                } 
+                
+                // Beauty Long Edges
+                else {
+                     for(j=0;j<2;j++){
+                        hold = -1;
+                        for(i=0;i<4;i++){
+                            if(length[i] < 0){
+                                continue;                            
+                            } else if(hold == -1){  
+                                hold = i; 
+                            } else {
+                                if(length[hold] > length[i]){
+                                    hold = i;   
+                                }
+                            }
+                        }
+                        sort[hold]->f &= ~SELECT;
+                        sort[hold]->f2 |= EDGENEW;
+                        length[hold] = -1;
+                    }                            
+                }   
+            }
+        }	
+    }
+
+
+
 
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
 
@@ -2080,6 +2147,10 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}                                  
 	}
 	vertexnormals(0);
+	
+	
+
+	
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
     for(ef = em->faces.first;ef;ef = ef->next){

@@ -2167,7 +2167,9 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|2, 0, "Beauty",		10,195,80,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters");
+	uiDefButS(block, TOG|BIT|2, 0, "Beauty",		    10,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
+	uiDefButS(block, TOG|BIT|4, 0, "Short",		    50,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
+
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
 	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",	170,195,85,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
 
