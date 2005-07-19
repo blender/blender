@@ -90,7 +90,7 @@ PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 PyObject *Quaternion_Normalize(QuaternionObject * self)
 {
 	NormalQuat(self->quat);
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Quaternion.inverse()------------------
 //invert the quat
@@ -110,7 +110,7 @@ PyObject *Quaternion_Inverse(QuaternionObject * self)
 		self->quat[x] /= (float)(mag * mag);
 	}
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Quaternion.identity()-----------------
 //generate the identity quaternion
@@ -121,7 +121,7 @@ PyObject *Quaternion_Identity(QuaternionObject * self)
 	self->quat[2] = 0.0;
 	self->quat[3] = 0.0;
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Quaternion.negate()-------------------
 //negate the quat
@@ -131,7 +131,7 @@ PyObject *Quaternion_Negate(QuaternionObject * self)
 	for(x = 0; x < 4; x++) {
 		self->quat[x] = -self->quat[x];
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Quaternion.conjugate()----------------
 //negate the vector part
@@ -141,7 +141,7 @@ PyObject *Quaternion_Conjugate(QuaternionObject * self)
 	for(x = 1; x < 4; x++) {
 		self->quat[x] = -self->quat[x];
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------dealloc()(internal) ------------------
 //free the py_object

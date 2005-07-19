@@ -148,7 +148,7 @@ PyObject *Matrix_Resize4x4(MatrixObject * self)
 	}
 	self->rowSize = 4;
 	self->colSize = 4;
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //---------------------------Matrix.translationPart() ------------
 PyObject *Matrix_TranslationPart(MatrixObject * self)
@@ -236,7 +236,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 	} else {
 		printf("Matrix.invert: matrix does not have an inverse\n");
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //---------------------------Matrix.determinant() ----------------
 PyObject *Matrix_Determinant(MatrixObject * self)
@@ -283,7 +283,7 @@ PyObject *Matrix_Transpose(MatrixObject * self)
 		Mat4Transp((float (*)[4])*self->matrix);
 	}
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //---------------------------Matrix.zero() -----------------------
 PyObject *Matrix_Zero(MatrixObject * self)
@@ -295,7 +295,7 @@ PyObject *Matrix_Zero(MatrixObject * self)
 			self->matrix[row][col] = 0.0f;
 		}
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //---------------------------Matrix.identity(() ------------------
 PyObject *Matrix_Identity(MatrixObject * self)
@@ -316,7 +316,7 @@ PyObject *Matrix_Identity(MatrixObject * self)
 		Mat4One((float (*)[4]) *self->matrix);
 	}
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------dealloc()(internal) ----------------
 //free the py_object

@@ -61,7 +61,7 @@ PyObject *Vector_Zero(VectorObject * self)
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] = 0.0f;
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Vector.normalize() -----------------
 //normalize the vector data to a unit vector
@@ -77,7 +77,7 @@ PyObject *Vector_Normalize(VectorObject * self)
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] /= norm;
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Vector.negate() --------------------
 //set the vector to it's negative -x, -y, -z
@@ -87,7 +87,7 @@ PyObject *Vector_Negate(VectorObject * self)
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] = -(self->vec[x]);
 	}
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Vector.resize2D() ------------------
 //resize the vector to x,y
@@ -106,7 +106,7 @@ PyObject *Vector_Resize2D(VectorObject * self)
 	}
 	self->vec = self->data.py_data;  //force
 	self->size = 2;
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Vector.resize3D() ------------------
 //resize the vector to x,y,z
@@ -128,7 +128,7 @@ PyObject *Vector_Resize3D(VectorObject * self)
 		self->data.py_data[2] = 0.0f;
 	}
 	self->size = 3;
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Vector.resize4D() ------------------
 //resize the vector to x,y,z,w
@@ -153,7 +153,7 @@ PyObject *Vector_Resize4D(VectorObject * self)
 		self->data.py_data[3] = 0.0f;
 	}
 	self->size = 4;
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------dealloc()(internal) ----------------
 //free the py_object

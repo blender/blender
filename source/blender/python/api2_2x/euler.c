@@ -135,7 +135,7 @@ PyObject *Euler_Unique(EulerObject * self)
 	self->eul[1] = (float)(pitch * 180 / (float)Py_PI);
 	self->eul[2] = (float)(bank * 180 / (float)Py_PI);
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Euler.zero()-------------------------
 //sets the euler to 0,0,0
@@ -145,7 +145,7 @@ PyObject *Euler_Zero(EulerObject * self)
 	self->eul[1] = 0.0;
 	self->eul[2] = 0.0;
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------Euler.rotate()-----------------------
 //rotates a euler a certain amount and returns the result
@@ -176,7 +176,7 @@ PyObject *Euler_Rotate(EulerObject * self, PyObject *args)
 		self->eul[x] *= (180 / (float)Py_PI);
 	}
 
-	return (PyObject*)self;
+	return EXPP_incr_ret((PyObject*)self);
 }
 //----------------------------dealloc()(internal) ------------------
 //free the py_object
