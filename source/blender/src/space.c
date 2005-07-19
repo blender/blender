@@ -1108,7 +1108,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_LATTICE)
 							deselectall_Latt();
 						else if(G.obedit->type==OB_ARMATURE)
-							deselectall_armature();
+							deselectall_armature(1);	// 1 == toggle
 					}
 					else if (G.obpose){
 						switch (G.obpose->type){
@@ -4805,20 +4805,6 @@ void allspace(unsigned short event, short val)
 			SpaceLink *sl= sa->spacedata.first;
 			while(sl) {
 				switch(event) {
-				case REMAKEALLIPO:
-					{
-						Ipo *ipo;
-						IpoCurve *icu;
-						
-						/* Go to each ipo */
-						for (ipo=G.main->ipo.first; ipo; ipo=ipo->id.next){
-							for (icu = ipo->curve.first; icu; icu=icu->next){
-								sort_time_ipocurve(icu);
-								testhandles_ipocurve(icu);
-							}
-						}
-					}
-					break;
 				case REMAKEIPO:
 					if(sl->spacetype==SPACE_IPO) {
 						SpaceIpo *si= (SpaceIpo *)sl;

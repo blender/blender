@@ -359,12 +359,8 @@ void join_armature(void)
 	if(okee("Join selected armatures")==0) return;
 	
 	/*	Put the active armature into editmode and join the bones from the other one*/
-#if 1
+
 	enter_editmode();
-#else
-	baselist.first=baselist.last=0;
-	make_boneList(&baselist, &((bArmature*)ob->data)->bonebase, NULL);
-#endif
 	
 	for (base=FIRSTBASE; base; base=nextbase) {
 		nextbase = base->next;
@@ -416,13 +412,8 @@ void join_armature(void)
 							curbone->roll +=M_PI;
 						
 					}
-#if 1
 					BLI_remlink(&eblist, curbone);
 					BLI_addtail(&G.edbo, curbone);
-#else
-					BLI_remlink(&eblist, curbone);
-					BLI_addtail(&baselist, curbone);
-#endif
 				}
 				
 				free_and_unlink_base(base);
@@ -430,14 +421,7 @@ void join_armature(void)
 		}
 	}
 	
-#if 1
 	exit_editmode(1);
-#else
-	editbones_to_armature(&baselist, ob);
-	if (baselist.first){
-		BLI_freelistN (&baselist);
-	}
-#endif
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 
@@ -875,8 +859,7 @@ void mouse_armature(void)
 	if (nearBone) {
 		
 		if (!(G.qual & LR_SHIFTKEY)) {
-			nearBone->flag |= BONE_TIPSEL;  // fake, but deselectall toggles
-			deselectall_armature();
+			deselectall_armature(0);
 		}
 		
 		/* by definition the non-root non-IK bones have no root point drawn,
@@ -994,22 +977,22 @@ void load_editArmature(void)
 }
 
 
-void deselectall_armature(void)
-/*	Actually, it toggles selection, deselecting
-everything if anything is selected */
+void deselectall_armature(int toggle)
 {
 	EditBone	*eBone;
 	int			sel=1;
-	
-	
-	/*	Determine if there are any selected bones
-		And therefore whether we are selecting or deselecting */
-	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
-			sel=0;
-			break;
-		};
-	};
+
+	if(toggle) {
+		/*	Determine if there are any selected bones
+			And therefore whether we are selecting or deselecting */
+		for (eBone=G.edbo.first;eBone;eBone=eBone->next){
+			if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
+				sel=0;
+				break;
+			}
+		}
+	}
+	else sel= 0;
 	
 	/*	Set the flags */
 	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
@@ -1017,7 +1000,8 @@ everything if anything is selected */
 			eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		else
 			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
-	};
+	}
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
@@ -1127,196 +1111,54 @@ void undo_push_armature(char *name)
 /* **************** END EditMode stuff ********************** */
 /* *************** Adding stuff in editmode *************** */
 
-static void add_bone_input (Object *ob)
-/*
-	FUNCTION: 
-	Creates a bone chain under user input.
-	As the user clicks to accept each bone,
-	a new bone is started as the child and IK
-	child of the previous bone.  Pressing ESC
-	cancels the current bone and leaves bone
-	adding mode.
- 
- */
+/* default bone add, returns it selected, but without tail set */
+static EditBone *add_editbone(void)
 {
-	float		*cursLoc, cent[3], dx, dy;
-	float		mat[3][3], curs[3],	cmat[3][3], imat[3][3], rmat[4][4], itmat[4][4];
-	short		xo, yo, mval[2], mvalo[2], afbreek=0, drawall;
-	short		val;
-	float		restmat[4][4], tempVec[4];
+	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
+	
+	BLI_addtail(&G.edbo, bone);
+	
+	strcpy (bone->name,"Bone");
+	unique_editbone_name (bone->name);
+	
+	bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+	bone->weight= 1.0F;
+	bone->dist= 1.0F;
+	bone->xwidth= 0.1;
+	bone->zwidth= 0.1;
+	bone->ease1= 1.0;
+	bone->ease2= 1.0;
+	bone->segments= 1;
+	bone->boneclass = BONE_SKINNABLE;
+	
+	return bone;
+}
+
+static void add_primitive_bone(Object *ob)
+{
+	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
-	EditBone	*parent;
-	unsigned short		event;
-	float		angle, scale;
-	float		length, lengths;
-	float	newEnd[4];
-	int			addbones=1;
-	float		dvec[3], dvecp[3];
 	
-	cursLoc= give_cursor();
-	
-	VECCOPY (curs,cursLoc);
-	G.moving= G_TRANSFORM_EDIT;
-	
-	while (addbones>0){
-		afbreek=0;
-		/*	Create an inverse matrix */
-		Mat3CpyMat4(mat, G.obedit->obmat);
-		VECCOPY(cent, curs);
-		cent[0]-= G.obedit->obmat[3][0];
-		cent[1]-= G.obedit->obmat[3][1];
-		cent[2]-= G.obedit->obmat[3][2];
-		
-		Mat3CpyMat4(imat, G.vd->viewmat);
-		Mat3MulVecfl(imat, cent);
-		
-		Mat3MulMat3(cmat, imat, mat);
-		Mat3Inv(imat,cmat);
-		
-		/*	Create a temporary bone	*/
-		bone= MEM_callocN(sizeof(EditBone), "eBone");
-		
-		/*	If we're the child of something, set that up now */
-		if (addbones>1){
-			parent=G.edbo.last;
-			bone->parent=parent;
-			bone->flag|=BONE_IK_TOPARENT;
-		}
-		
-		strcpy (bone->name,"Bone");
-		unique_editbone_name (bone->name);
-		
-		BLI_addtail(&G.edbo, bone);
-		
-		bone->flag |= (BONE_SELECTED);
-		deselectall_armature();
-		
-		bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-		
-		bone->weight= 1.0F;
-		bone->dist= 1.0F;
-		bone->xwidth= 0.1;
-		bone->zwidth= 0.1;
-		bone->ease1= 1.0;
-		bone->ease2= 1.0;
-		bone->segments= 1;
-		bone->boneclass = BONE_SKINNABLE;
-		
-		/*	Project cursor center to screenspace. */
-		getmouseco_areawin(mval);
-		xo= mvalo[0]= mval[0];
-		yo= mvalo[1]= mval[1];
-		window_to_3d(dvecp, xo, yo);
-		drawall= 2;
-		
-		while (1) {
-			
-			getmouseco_areawin(mval);
-			window_to_3d(dvec, mval[0], mval[1]);
-			
-			scale=1000;
-			
-			dx=	((float)mval[0]-(float)xo)*scale;
-			dy= ((float)mval[1]-(float)yo)*scale;
-			
-			/*		Calc bone length*/
-			lengths= sqrt((dx*dx)+(dy*dy));
-			length = sqrt(((dvec[0]-dvecp[0])*(dvec[0]-dvecp[0]))+((dvec[1]-dvecp[1])*(dvec[1]-dvecp[1]))+((dvec[2]-dvecp[2])*(dvec[2]-dvecp[2])));
-			
-			/*		Find rotation around screen normal */
-			if (lengths>0.0F) {
-				angle= acos(dy/lengths);
-				if (dx<0.0F)
-					angle*= -1.0F;
-			}
-			else angle= 0.0F;
-			
-			/*		FIXME:	Is there a blender-defined way of making rot and trans matrices? */
-			rmat[0][0]= cos (angle);
-			rmat[0][1]= -sin (angle);
-			rmat[0][2]= 0.0F;
-			rmat[0][3]= 0.0F;
-			rmat[1][0]= sin (angle);
-			rmat[1][1]= cos (angle);
-			rmat[1][2]= 0.0F;
-			rmat[1][3]= 0.0F;
-			rmat[2][0]= 0.0F;
-			rmat[2][1]= 0.0F;
-			rmat[2][2]= 1.0F;
-			rmat[2][3]= 0.0F;
-			rmat[3][0]= cent[0];
-			rmat[3][1]= cent[1];
-			rmat[3][2]= cent[2];
-			rmat[3][3]= 1.0F;
-			
-			/*		Rotate object's inversemat by the bone's rotation
-				to get the coordinate space of the bone */
-			Mat4CpyMat3	(itmat, imat);
-			Mat4MulMat4 (restmat, rmat, itmat);
-			
-			/*	Find the bone head */
-			tempVec[0]=0; tempVec[1]=0.0F; tempVec[2]=0.0F; tempVec[3]=1.0F;
-			Mat4MulVec4fl (restmat, tempVec);
-			VECCOPY (bone->head, tempVec);
-			
-			/*	Find the bone tail */
-			tempVec[0]=0; tempVec[1]=length; tempVec[2]=0.0F; tempVec[3]=1.0F;
-			Mat4MulVec4fl (restmat, tempVec);
-			VECCOPY (bone->tail, tempVec);
-			
-			/*	IF we're a child of something, add the parents' translates	*/
-			
-			/*	Offset of child is new cursor*/
-			
-			VECCOPY (newEnd,bone->tail); newEnd[3]=1;
-			
-			/* only draw if... */
-			if(drawall) {
-				drawall--;	// draw twice to have 2 identical buffers
-				force_draw_all(1);
-			}
-			else if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-				mvalo[0]= mval[0];
-				mvalo[1]= mval[1];
-				force_draw(1);
-			}
-			else PIL_sleep_ms(10);
-			
-			while(qtest()) {
-				event= extern_qread(&val);
-				if(val) {
-					switch(event) {
-						case ESCKEY:
-						case RIGHTMOUSE:
-							BLI_freelinkN (&G.edbo,bone);
-							afbreek=1;
-							addbones=0;
-							break;
-						case LEFTMOUSE:
-						case MIDDLEMOUSE:
-						case SPACEKEY:
-						case RETKEY:
-							afbreek= 1;
-							
-							Mat4MulVec4fl (G.obedit->obmat,newEnd);
-							
-							curs[0]=newEnd[0];
-							curs[1]=newEnd[1];
-							curs[2]=newEnd[2];
-							addbones++;
-							break;
-					}	/*	End of case*/
-				}	/*	End of if (val)*/
-				if(afbreek) break;
-			}	/*	Endd of Qtest loop	*/
+	VECCOPY (curs, give_cursor());	
 
-		if(afbreek) break;
-		}/*	End of positioning loop (while)*/
-	}	/*	End of bone adding loop*/
-	
-	countall(); // flushes selection!
-	G.moving= 0;
+	/* Get inverse point for head and orientation for tail */
+	Mat4Invert(G.obedit->imat, G.obedit->obmat);
+	Mat4MulVecfl(G.obedit->imat, curs);
 
+	Mat3CpyMat4(obmat, G.vd->viewmat);
+	Mat3CpyMat4(viewmat, G.obedit->obmat);
+	Mat3MulMat3(totmat, obmat, viewmat);
+	Mat3Inv(imat, totmat);
+	
+	deselectall_armature(0);
+	
+	/*	Create a bone	*/
+	bone= add_editbone();
+	bone->flag |= BONE_ACTIVE;
+
+	VECCOPY(bone->head, curs);
+	VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	
 }
 
 void add_primitiveArmature(int type)
@@ -1344,17 +1186,141 @@ void add_primitiveArmature(int type)
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	}
 	
-	switch (type){
-	default:
-		add_bone_input (G.obedit);	
-		break;
-	};
+	/* no primitive support yet */
+	add_primitive_bone(G.obedit);
 	
 	countall(); // flushes selection!
 
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add primitive");
 }
+
+/* the ctrl-click method */
+void addvert_armature(void)
+{
+	EditBone *ebone, *newbone;
+	float *curs, mat[3][3],imat[3][3];
+	
+	TEST_EDITARMATURE;
+	
+	/* find the active or selected bone */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
+		if(ebone->flag & BONE_ACTIVE) break;
+	if(ebone==NULL) return;
+	
+	deselectall_armature(0);
+	newbone= add_editbone();
+	newbone->flag |= BONE_ACTIVE;
+	
+	VECCOPY(newbone->head, ebone->tail);
+	
+	curs= give_cursor();
+	VECCOPY(newbone->tail, curs);
+	VecSubf(newbone->tail, newbone->tail, G.obedit->obmat[3]);
+	
+	Mat3CpyMat4(mat, G.obedit->obmat);
+	Mat3Inv(imat, mat);
+	Mat3MulVecfl(imat, newbone->tail);
+
+	countall();
+	
+	BIF_undo_push("Add Bone");
+	allqueue(REDRAWVIEW3D, 0);
+	
+	while(get_mbut()&R_MOUSE);
+}
+
+
+void adduplicate_armature(void)
+{
+	EditBone	*eBone = NULL;
+	EditBone	*curBone;
+	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
+	
+	countall(); // flushes selection!
+	
+	/*	Find the selected bones and duplicate them as needed */
+	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
+		if (curBone->flag & BONE_SELECTED){
+			
+			eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
+			eBone->flag |= BONE_SELECTED;
+			
+			/*	Copy data from old bone to new bone */
+			memcpy (eBone, curBone, sizeof(EditBone));
+			
+			curBone->temp = eBone;
+			eBone->temp = curBone;
+			
+			unique_editbone_name (eBone->name);
+			BLI_addtail (&G.edbo, eBone);
+			if (!firstDup)
+				firstDup=eBone;
+			
+			/* Lets duplicate the list of constraits that the
+				* current bone has.
+				*/
+			/* temporal removed (ton) */
+		}
+	}
+	
+	if (eBone){
+		/*	Fix the head and tail */	
+		if (eBone->parent && !eBone->parent->flag & BONE_SELECTED){
+			VecSubf (eBone->tail, eBone->tail, eBone->head);
+			VecSubf (eBone->head, eBone->head, eBone->head);
+		}
+	}
+	
+	/*	Run though the list and fix the pointers */
+	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
+		
+		if (curBone->flag & BONE_SELECTED){
+			eBone=(EditBone*) curBone->temp;
+			
+			/*	If this bone has no parent,
+			Set the duplicate->parent to NULL
+			*/
+			if (!curBone->parent){
+				eBone->parent = NULL;
+			}
+			/*	If this bone has a parent that IS selected,
+				Set the duplicate->parent to the curBone->parent->duplicate
+				*/
+			else if (curBone->parent->flag & BONE_SELECTED){
+				eBone->parent=(EditBone*) curBone->parent->temp;
+			}
+			/*	If this bone has a parent that IS not selected,
+				Set the duplicate->parent to the curBone->parent
+				*/
+			else {
+				eBone->parent=(EditBone*) curBone->parent; 
+				eBone->flag &= ~BONE_IK_TOPARENT;
+			}
+			
+			/* Lets try to fix any constraint subtargets that might
+				have been duplicated */
+			/* temporal removed (ton) */
+			
+		}
+	} 
+	
+	/*	Deselect the old bones and select the new ones */
+	
+	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
+		curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+	}
+	
+	BIF_TransformSetUndo("Add Duplicate");
+	initTransform(TFM_TRANSLATION, CTX_NO_PET);
+	Transform();
+	
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
+}
+
+
 
 /* *************** END Adding stuff in editmode *************** */
 /* *************** Tools in editmode *********** */
@@ -1528,17 +1494,15 @@ void unique_editbone_name (char *name)
 void extrude_armature(void)
 {
 	EditBone *newbone, *curbone, *first=NULL, *partest;
+	int totbone= 0;
 	
 	TEST_EDITARMATURE;
-	
-	
-	if(okee("Extrude bone segments")==0) return;
 	
 	/* Duplicate the necessary bones */
 	for (curbone = G.edbo.first; ((curbone) && (curbone!=first)); curbone=curbone->next){
 		if (curbone->flag & (BONE_TIPSEL|BONE_SELECTED)){
+			totbone++;
 			newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
-			
 			
 			VECCOPY (newbone->head, curbone->tail);
 			VECCOPY (newbone->tail, newbone->head);
@@ -1573,108 +1537,15 @@ void extrude_armature(void)
 		}
 		
 		/* Deselect the old bone */
-		curbone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+		curbone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 		
 	}
+	/* if only one bone, make this one active */
+	if(totbone==1 && first) first->flag |= BONE_ACTIVE;
 	
 	/* Transform the endpoints */
 	countall(); // flushes selection!
 	BIF_TransformSetUndo("Extrude");
-	initTransform(TFM_TRANSLATION, CTX_NO_PET);
-	Transform();
-	
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-}
-
-void addvert_armature(void)
-{
-	/* the ctrl-click method */
-}
-
-
-void adduplicate_armature(void)
-{
-	EditBone	*eBone = NULL;
-	EditBone	*curBone;
-	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
-
-	countall(); // flushes selection!
-
-	/*	Find the selected bones and duplicate them as needed */
-	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-		if (curBone->flag & BONE_SELECTED){
-
-			eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
-			eBone->flag |= BONE_SELECTED;
-
-			/*	Copy data from old bone to new bone */
-			memcpy (eBone, curBone, sizeof(EditBone));
-
-			curBone->temp = eBone;
-			eBone->temp = curBone;
-
-			unique_editbone_name (eBone->name);
-			BLI_addtail (&G.edbo, eBone);
-			if (!firstDup)
-				firstDup=eBone;
-
-			/* Lets duplicate the list of constraits that the
-			 * current bone has.
-			 */
-			/* temporal removed (ton) */
-		}
-	}
-
-	if (eBone){
-		/*	Fix the head and tail */	
-		if (eBone->parent && !eBone->parent->flag & BONE_SELECTED){
-			VecSubf (eBone->tail, eBone->tail, eBone->head);
-			VecSubf (eBone->head, eBone->head, eBone->head);
-		}
-	}
-
-	/*	Run though the list and fix the pointers */
-	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-
-		if (curBone->flag & BONE_SELECTED){
-			eBone=(EditBone*) curBone->temp;
-
-			/*	If this bone has no parent,
-					Set the duplicate->parent to NULL
-			*/
-			if (!curBone->parent){
-				eBone->parent = NULL;
-			}
-			/*	If this bone has a parent that IS selected,
-					Set the duplicate->parent to the curBone->parent->duplicate
-			*/
-			 else if (curBone->parent->flag & BONE_SELECTED){
-				eBone->parent=(EditBone*) curBone->parent->temp;
-			}
-			/*	If this bone has a parent that IS not selected,
-					Set the duplicate->parent to the curBone->parent
-			*/
-			 else {
-				eBone->parent=(EditBone*) curBone->parent; 
-				eBone->flag &= ~BONE_IK_TOPARENT;
-			}
-
-			/* Lets try to fix any constraint subtargets that might
-			   have been duplicated */
-			/* temporal removed (ton) */
-			 
-		}
-	} 
-	
-	/*	Deselect the old bones and select the new ones */
-
-	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-		curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
-	}
-
-	BIF_TransformSetUndo("Add Duplicate");
 	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 	Transform();
 	

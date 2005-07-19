@@ -1034,7 +1034,7 @@ static void do_view3d_select_armaturemenu(void *arg, int event)
 			borderselect();
 			break;
 		case 2: /* Select/Deselect all */
-			deselectall_armature();
+			deselectall_armature(1);
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);

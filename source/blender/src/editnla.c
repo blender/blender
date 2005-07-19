@@ -802,6 +802,20 @@ void deselect_nlachannel_keys (int test)
 	}
 }
 
+/* very bad call! */
+static void recalc_all_ipos(void)
+{
+	Ipo *ipo;
+	IpoCurve *icu;
+	
+	/* Go to each ipo */
+	for (ipo=G.main->ipo.first; ipo; ipo=ipo->id.next){
+		for (icu = ipo->curve.first; icu; icu=icu->next){
+			sort_time_ipocurve(icu);
+			testhandles_ipocurve(icu);
+		}
+	}
+}
 
 void transform_nlachannel_keys(char mode)
 {
@@ -1033,7 +1047,7 @@ void transform_nlachannel_keys(char mode)
 	}
 	
 	if(cancel==0) BIF_undo_push("Select all NLA");
-	allspace(REMAKEALLIPO, 0);
+	recalc_all_ipos();	// bad
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWNLA, 0);
 	allqueue (REDRAWIPO, 0);
@@ -1083,7 +1097,7 @@ void delete_nlachannel_keys(void)
 	}
 	
 	BIF_undo_push("Delete NLA keys");
-	allspace(REMAKEALLIPO, 0);
+	recalc_all_ipos();	// bad
 	allspace(REMAKEIPO,0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWNLA, 0);

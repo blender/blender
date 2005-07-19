@@ -1230,8 +1230,7 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 	if(set) {
 		if(G.qual & LR_SHIFTKEY);
 		else {
-			ebone->flag |= BONE_SELECTED; // trick deselectall, it toggles... duhh
-			deselectall_armature();
+			deselectall_armature(0);
 		}
 		ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL;
 		// flush to parent?

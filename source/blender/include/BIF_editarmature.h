@@ -81,7 +81,7 @@ void	apply_rot_armature (struct Object *ob, float mat[3][3]);
 void	clear_armature(struct Object *ob, char mode);
 
 void	delete_armature(void);
-void	deselectall_armature(void);
+void	deselectall_armature(int toggle);
 void	deselectall_posearmature (int test);
 void	draw_armature(struct Object *ob, int dt);
 void	extrude_armature(void);

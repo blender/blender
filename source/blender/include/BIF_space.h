@@ -42,7 +42,6 @@ struct SpaceOops;
 
 #define REMAKEIPO		1
 #define OOPS_TEST		2
-#define REMAKEALLIPO	3	/* Reevan's ipo fixing test */
 
 #define BUT_HORIZONTAL 	1
 #define BUT_VERTICAL 	2
