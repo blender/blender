@@ -103,6 +103,7 @@ typedef struct Object {
 	ListBase network;
 	ListBase disp;
 	ListBase defbase;
+	ListBase modifiers; /* list of ModifierData structures */
 	struct Material **mat;
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */

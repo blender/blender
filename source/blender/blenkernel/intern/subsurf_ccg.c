@@ -73,6 +73,7 @@ typedef struct _SubSurf {
 	Mesh *me;
 
 	float (*vertCos)[3];
+	DispListMesh *dlm;
 } SubSurf;
 
 typedef struct _VertData {
@@ -144,13 +145,14 @@ static SubSurf *subSurf_fromEditmesh(EditMesh *em, int subdivLevels, int useAgin
 	return ss;
 }
 
-static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels, float (*vertCos)[3]) {
+static SubSurf *subSurf_fromMesh(Mesh *me, int useFlatSubdiv, int subdivLevels, float (*vertCos)[3], DispListMesh *dlm) {
 	SubSurf *ss = MEM_mallocN(sizeof(*ss), "ss_m");
 
 	ss->controlType = SUBSURF_CONTROLTYPE_MESH;
 	ss->useAging=0;
 	ss->subSurf = _getSubSurf(ss, subdivLevels, 1);
 	ss->me = me;
+	ss->dlm = dlm;
 	ss->vertCos = vertCos;
 
 	ccgSubSurf_setAllowEdgeCreation(ss->subSurf, 1, useFlatSubdiv?subdivLevels:0.0f);
@@ -505,28 +507,34 @@ static void subSurf_sync(SubSurf *ss, int useFlatSubdiv) {
 
 	if (ss->controlType==SUBSURF_CONTROLTYPE_MESH) {
 		CCGVertHDL fVerts[4];
+		MVert *mvert = ss->dlm?ss->dlm->mvert:ss->me->mvert;
+		MEdge *medge = ss->dlm?ss->dlm->medge:ss->me->medge;
+		MFace *mface = ss->dlm?ss->dlm->mface:ss->me->mface;
+		int totvert = ss->dlm?ss->dlm->totvert:ss->me->totvert;
+		int totedge = ss->dlm?ss->dlm->totedge:ss->me->totedge;
+		int totface = ss->dlm?ss->dlm->totface:ss->me->totface;
 		int i;
 
 		if (ss->vertCos) {
-			for (i=0; i<ss->me->totvert; i++) {
+			for (i=0; i<totvert; i++) {
 				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->vertCos[i]);
 			}
 		} else {
-			for (i=0; i<ss->me->totvert; i++) {
-				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, ss->me->mvert[i].co);
+			for (i=0; i<totvert; i++) {
+				ccgSubSurf_syncVert(ss->subSurf, (CCGVertHDL) i, mvert[i].co);
 			}
 		}
 
-		if (ss->me->medge) {
-			for (i=0; i<ss->me->totedge; i++) {
-				MEdge *med = &ss->me->medge[i];
+		if (medge) {
+			for (i=0; i<totedge; i++) {
+				MEdge *med = &medge[i];
 				float crease = useFlatSubdiv?creaseFactor:med->crease*creaseFactor/255.0f;
 
 				ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) med->v1, (CCGVertHDL) med->v2, crease);
 			}
 		} else {
-			for (i=0; i<ss->me->totface; i++) {
-				MFace *mf = &((MFace*) ss->me->mface)[i];
+			for (i=0; i<totface; i++) {
+				MFace *mf = &((MFace*) mface)[i];
 
 				if (!mf->v3) {
 					ccgSubSurf_syncEdge(ss->subSurf, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2, useFlatSubdiv?creaseFactor:0.0);
@@ -534,8 +542,8 @@ static void subSurf_sync(SubSurf *ss, int useFlatSubdiv) {
 			}
 		}
 
-		for (i=0; i<ss->me->totface; i++) {
-			MFace *mf = &((MFace*) ss->me->mface)[i];
+		for (i=0; i<totface; i++) {
+			MFace *mf = &((MFace*) mface)[i];
 
 			if (mf->v3) {
 				fVerts[0] = (CCGVertHDL) mf->v1;
@@ -1011,12 +1019,22 @@ DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, int subdivLevels, 
 	return (DerivedMesh*) ccgdm;
 }
 
-DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivLevels, float (*vertCos)[3]) {
-	int useFlatSubdiv = me->subsurftype==ME_SIMPLE_SUBSURF;
-	SubSurf *ss = subSurf_fromMesh(me, useFlatSubdiv, subdivLevels, vertCos);
+DerivedMesh *subsurf_make_derived_from_dlm(DispListMesh *dlm, int subdivType, int subdivLevels) {
+	SubSurf *ss = subSurf_fromMesh(NULL, subdivType==ME_SIMPLE_SUBSURF, subdivLevels, NULL, dlm);
+
+	subSurf_sync(ss, subdivType==ME_SIMPLE_SUBSURF);
+
+	dlm = subSurf_createDispListMesh(ss);
+	
+	subSurf_free(ss);
+	
+	return derivedmesh_from_displistmesh(dlm);
+}
+DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, int subdivType, int subdivLevels, float (*vertCos)[3]) {
+	SubSurf *ss = subSurf_fromMesh(me, subdivType==ME_SIMPLE_SUBSURF, subdivLevels, vertCos, NULL);
 	DispListMesh *dlm;
 
-	subSurf_sync(ss, useFlatSubdiv);
+	subSurf_sync(ss, subdivType==ME_SIMPLE_SUBSURF);
 
 	dlm = subSurf_createDispListMesh(ss);
 	
@@ -1032,7 +1050,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 		 * calculated vert positions is incorrect for the verts 
 		 * on the boundary of the mesh.
 		 */
-	SubSurf *ss = subSurf_fromMesh(me, 0, 1, NULL);
+	SubSurf *ss = subSurf_fromMesh(me, 0, 1, NULL, NULL);
 	float edge_sum[3], face_sum[3];
 	CCGVertIterator *vi;
 

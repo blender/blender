@@ -54,6 +54,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
@@ -170,6 +171,16 @@ static void copy_hooks(ListBase *new, ListBase *old)
 
 }
 
+static void free_modifiers(ListBase *lb)
+{
+	ModifierData *md;
+
+	while (md=lb->first) {
+		BLI_remlink(lb, md);
+		MEM_freeN(md);
+	}
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
@@ -210,6 +221,7 @@ void free_object(Object *ob)
 	free_effects(&ob->effect);
 	BLI_freelistN(&ob->network);
 	free_properties(&ob->prop);
+	free_modifiers(&ob->modifiers);
 	
 	free_sensors(&ob->sensors);
 	free_controllers(&ob->controllers);
@@ -807,6 +819,7 @@ Object *copy_object(Object *ob)
 	obn->flag &= ~OB_FROMGROUP;
 	
 	copy_effects(&obn->effect, &ob->effect);
+	obn->modifiers.first = obn->modifiers.last= NULL; // XXX fixme
 	
 	obn->network.first= obn->network.last= 0;
 	

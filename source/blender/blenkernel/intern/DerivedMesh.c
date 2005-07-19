@@ -39,6 +39,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 
@@ -56,6 +57,7 @@
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
 #include "BKE_deform.h"
+#include "BKE_modifier.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1012,23 +1014,154 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 /***/
 
-static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParms, int useDeform)
+static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
+	ModifierData *md=ob->modifiers.first;
 	float (*deformedVerts)[3];
+	DerivedMesh *dm;
+	int a, numVerts = me->totvert;
 
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
 
+		/* Note: useDeform==1 implies ob must be non-NULL */
+
 	if (useDeform && ob) {
 		mesh_modifier(ob, &deformedVerts);
 
+		if (!deformedVerts) {
+			deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "vertexcos1");
+			for (a=0; a<numVerts; a++) {
+				VECCOPY(deformedVerts[a], me->mvert[a].co);
+			}
+		}
+
+			/* Apply all leading deforming modifiers */
+		for (; md; md=md->next) {
+			ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+			if (!(md->mode&(1<<useRenderParams))) continue;
+			if (mti->isDisabled(md)) continue;
+
+			if (mti->type==eModifierTypeType_OnlyDeform) {
+				mti->deformVerts(md, ob, deformedVerts, numVerts);
+			} else {
+				break;
+			}
+		}
+
+			/* Result of all leading deforming modifiers is cached for
+			 * places that wish to use the original mesh but with deformed
+			 * coordinates (vpaint, etc.)
+			 */
 		if (deform_r) *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
 	} else {
 		deformedVerts = inputVertexCos;
 	}
 
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		*final_r = subsurf_make_derived_from_mesh(me, useRenderParms?me->subdivr:me->subdiv, deformedVerts);
+		/* Now apply all remaining modifiers. If useDeform is off then skip
+		 * OnlyDeform ones. If we have no _ob_ and the modifier requires one
+		 * also skip.
+		 */
+	dm = NULL;
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+		if (!(md->mode&(1<<useRenderParams))) continue;
+		if (mti->type==eModifierTypeType_OnlyDeform && !useDeform) continue;
+		if (!ob && (mti->flags&eModifierTypeFlag_RequiresObject)) continue;
+		if (mti->isDisabled(md)) continue;
+
+			/* How to apply modifier depends on (a) what we already have as
+			 * a result of previous modifiers (could be a DerivedMesh or just
+			 * deformed vertices) and (b) what type the modifier is.
+			 */
+
+		if (mti->type==eModifierTypeType_OnlyDeform) {
+				/* No existing verts to deform, need to build them. */
+			if (!deformedVerts) {
+				if (dm) {
+						/* Deforming a derived mesh, read the vertex locations out of the mesh and
+						 * deform them. Once done with this run of deformers will be written back.
+						 */
+					numVerts = dm->getNumVerts(dm);
+					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "dfmv");
+					dm->getVertCos(dm, deformedVerts);
+				} else {
+					numVerts = me->totvert;
+					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "vertexcos2");
+					for (a=0; a<numVerts; a++) {
+						VECCOPY(deformedVerts[a], me->mvert[a].co);
+					}
+				}
+			}
+
+			mti->deformVerts(md, ob, deformedVerts, numVerts);
+		} else {
+				/* There are 4 cases here (have deform? have dm?) but they all are handled
+				 * by the modifier apply function, which will also free the DerivedMesh if
+				 * it exists.
+				 */
+			dm = mti->applyModifier(md, me, ob, dm, deformedVerts, useRenderParams);
+
+			if (deformedVerts) {
+				if (deformedVerts!=inputVertexCos) {
+					MEM_freeN(deformedVerts);
+				}
+				deformedVerts = 0;
+			}
+		}
+	}
+
+		/* Fake the subsurf modifier */
+	{
+		int level = useRenderParams?me->subdivr:me->subdiv;
+
+		if ((me->flag&ME_SUBSURF) && level) {
+			ModifierTypeInfo *mti = modifierType_get_info(eModifierType_Subsurf);
+			SubsurfModifierData smd;
+
+			smd.levels = me->subdiv;
+			smd.renderLevels = me->subdivr;
+			smd.subdivType = me->subsurftype;
+
+			dm = mti->applyModifier(&smd.modifier, me, ob, dm, deformedVerts, useRenderParams);
+
+			if (deformedVerts) {
+				if (deformedVerts!=inputVertexCos) {
+					MEM_freeN(deformedVerts);
+				}
+				deformedVerts = 0;
+			}
+		}
+	}
+
+		/* Yay, we are done. If we have a DerivedMesh and deformed vertices need to apply
+		 * these back onto the DerivedMesh. If we have no DerivedMesh then we need to build
+		 * one.
+		 */
+	if (dm && deformedVerts) {
+		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts or nors were shared
+		int i;
+
+			/* XXX, would like to avoid the conversion to a DLM here if possible.
+			 * Requires adding a DerivedMesh.updateVertCos method.
+			 */
+		for (i=0; i<numVerts; i++) {
+			VECCOPY(dlm->mvert[i].co, deformedVerts[i]);
+		}
+
+		dm->release(dm);
+
+		if (dlm->nors && !dlm->dontFreeNors) {
+			MEM_freeN(dlm->nors);
+			dlm->nors = 0;
+		}
+
+		mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
+		*final_r = derivedmesh_from_displistmesh(dlm);
+	} else if (dm) {
+		*final_r = dm;
 	} else {
 		*final_r = getMeshDerivedMesh(me, ob, deformedVerts);
 	}

@@ -516,64 +516,53 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 
 }
 
-int mesh_deform(Object *ob, float (*vertexCos)[3])
+void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int numVerts)
 {
-	Mesh *me = ob->data;
+	Curve *cu = cuOb->data;
+	int a, flag = cu->flag;
+	CurveDeform cd;
+	
+	cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
+
+	init_curve_deform(cuOb, target, &cd);
+		
+	INIT_MINMAX(cd.dmin, cd.dmax);
+		
+	for(a=0; a<numVerts; a++) {
+		Mat4MulVecfl(cd.curvespace, vertexCos[a]);
+		DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
+	}
+
+	for(a=0; a<numVerts; a++) {
+		calc_curve_deform(cuOb, vertexCos[a], target->trackflag, &cd);
+		Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+	}
+
+	cu->flag = flag;
+}
+
+void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], int numVerts)
+{
 	int a;
 
-	if(ob->parent==NULL || ob->type!=OB_MESH || !me->totvert) return 0;
-	
-	if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
-		Curve *cu = ob->parent->data;
-		int flag = cu->flag;
-		CurveDeform cd;
-		
-		cu->flag |= (CU_PATH|CU_FOLLOW); // needed for path & bevlist
-	
-		init_curve_deform(ob->parent, ob, &cd);
-			
-			/* transformation to curve space, and min max*/
-		INIT_MINMAX(cd.dmin, cd.dmax);
-			
-		for(a=0; a<me->totvert; a++) {
-			Mat4MulVecfl(cd.curvespace, vertexCos[a]);
-			DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
-		}
+	init_latt_deform(laOb, target);
 
-		for(a=0; a<me->totvert; a++) {
-			calc_curve_deform(ob->parent, vertexCos[a], ob->trackflag, &cd);
-			Mat4MulVecfl(cd.objectspace, vertexCos[a]); /* move coord back to objectspace */
-		}
-
-		cu->flag = flag;
-
-		return 1;
+	for(a=0; a<numVerts; a++) {
+		calc_latt_deform(vertexCos[a]);
 	}
-	else if(ob->parent->type==OB_LATTICE) {
-		init_latt_deform(ob->parent, ob);
-		if(ob->type==OB_MESH) {
-			for(a=0; a<me->totvert; a++) {
-				calc_latt_deform(vertexCos[a]);
-			}
-		}
-		end_latt_deform();
 
-		return 1;
-	}
-	else if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
-		if (ob->parent==G.obedit) // misleading making displists... very bad
-			return 1;
-		
-		init_armature_deform (ob->parent, ob);
+	end_latt_deform();
+}
 
-		for(a=0; a<me->totvert; a++) {
-			calc_armature_deform(ob->parent, vertexCos[a], a);
-		}
-		
-		return 1;
+void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
+{
+	int a;
+
+	init_armature_deform(armOb, target);
+
+	for(a=0; a<numVerts; a++) {
+		calc_armature_deform(armOb, vertexCos[a], a);
 	}
-	
-	return 0;
 }
 
 int object_deform(Object *ob)

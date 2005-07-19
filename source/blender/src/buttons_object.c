@@ -95,6 +95,7 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_radio_types.h"
@@ -120,6 +121,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
@@ -134,11 +136,6 @@
 static float prspeed=0.0;
 float prlen=0.0;
 
-
-/* ********************* function prototypes ******************** */
-void object_panel_draw(Object *);
-void object_panel_hooks(Object *);
-void object_panel_effects(Object *);
 
 /* ********************* CONSTRAINT ***************************** */
 
@@ -974,7 +971,7 @@ static void object_panel_constraint(void)
 	}
 }
 
-void object_panel_draw(Object *ob)
+static void object_panel_draw(Object *ob)
 {
 	uiBlock *block;
 	int xco, a, dx, dy;
@@ -1031,7 +1028,7 @@ void object_panel_draw(Object *ob)
 
 }
 
-void object_panel_hooks(Object *ob)
+static void object_panel_hooks(Object *ob)
 {
 	uiBlock *block;
 	ObHook *hook;
@@ -1654,7 +1651,191 @@ static void object_softbodies(Object *ob)
 
 }
 
-void object_panel_effects(Object *ob)
+/* Modifiers */
+
+static int actModifier = 0;
+
+static void modifiers_add(void *ob_v, int type)
+{
+	Object *ob = ob_v;
+	ModifierTypeInfo *mti = modifierType_get_info(type);
+
+	if (mti) {
+		ModifierData *md = mti->allocData();
+	
+		BLI_addtail(&ob->modifiers, md);
+
+		md->type = type;
+		actModifier = BLI_countlist(&ob->modifiers);
+
+		allqueue(REDRAWBUTSOBJECT, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+}
+
+static uiBlock *modifier_add_menu(void *ob_v)
+{
+	Object *ob = ob_v;
+	uiBlock *block;
+	int i, yco=0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, modifiers_add, ob);
+
+	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
+		ModifierTypeInfo *mti = modifierType_get_info(i);
+
+		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
+				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
+			uiDefBut(block, BUTM, B_NOP, mti->name,		0, yco-=20, 160, 19, NULL, 0, 0, 1, i, "");
+		}
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);
+
+	return block;
+}
+
+static void modifiers_del(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md;
+	int i;
+
+	for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
+		md = md->next;
+
+	if (md) {
+		BLI_remlink(&ob->modifiers, md);
+		MEM_freeN(md);
+	}
+
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+static void modifiers_moveUp(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+
+	if (md->prev) {
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
+		actModifier--;
+	}
+
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+static void modifiers_moveDown(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+
+	if (md->next) {
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->next, md);
+		actModifier++;
+	}
+
+	allqueue(REDRAWBUTSOBJECT, 0);
+}
+
+static void modifier_testLatticeObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_LATTICE) {
+				error ("Lattice deform object must be a lattice");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
+static void modifier_testCurveObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_CURVE) {
+				error ("Curve deform object must be a curve");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
+static void object_panel_modifiers(Object *ob)
+{
+	uiBlock *block;
+	uiBut *but;
+	
+	block= uiNewBlock(&curarea->uiblocks, "modifiers_panel", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
+	if(uiNewPanel(curarea, block, "Modifiers", "Object", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefBlockBut(block, modifier_add_menu, ob, "Add Modifier", 550,400,124,27, "Append a new modifier");
+	but = uiDefBut(block, BUT, B_MAKEDISP, "Delete", 676,400,62,27, 0, 0, 0, 0, 0, "Delete the current modifier");
+	uiButSetFunc(but, modifiers_del, ob, NULL);
+	uiBlockEndAlign(block);
+
+	if (ob->modifiers.first) {
+		int i, numModifiers = BLI_countlist(&ob->modifiers);
+		ModifierData *md;
+
+		CLAMP(actModifier, 1, numModifiers);
+		uiDefButI(block, NUM, B_REDR, "Modifier", 760,400,160,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
+
+		for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
+			md = md->next;
+
+		if (md) {
+			static char *modifier_mode_menu ="Modifier Mode%t|Disabled%x0|Only Realtime%x1|Only Render%x2|Realtime & Render%x3";
+			ModifierTypeInfo *mti = modifierType_get_info(md->type);
+			char str[128];
+
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Up", 760, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
+			uiButSetFunc(but, modifiers_moveUp, ob, md);
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 840, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
+			uiButSetFunc(but, modifiers_moveDown, ob, md);
+
+			sprintf(str, "Modifier: %s", mti->name);
+			uiDefBut(block, LABEL, 1, str,	550, 360, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+			but = uiDefButI(block, MENU, B_MAKEDISP, modifier_mode_menu, 550, 340, 160,19, &md->mode, 0, 0, 0, 0, "Modifier calculation mode");
+			uiBlockBeginAlign(block);
+			if (md->type==eModifierType_Subsurf) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) md;
+				char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
+				uiDefButS(block, NUM, B_MAKEDISP, "Levels:",		550, 320, 150,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
+				uiDefButS(block, NUM, B_MAKEDISP, "Render Levels:",		550, 300, 150,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
+				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,280,150,19, &(smd->subdivType), 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+			} else if (md->type==eModifierType_Lattice) {
+				LatticeModifierData *lmd = (LatticeModifierData*) md;
+				uiDefIDPoinBut(block, modifier_testLatticeObj, B_MAKEDISP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");
+			} else if (md->type==eModifierType_Curve) {
+				CurveModifierData *cmd = (CurveModifierData*) md;
+				uiDefIDPoinBut(block, modifier_testCurveObj, B_MAKEDISP, "Ob:",		550, 320, 120,19, &cmd->object, "Lattice object to deform with");
+			}
+			uiBlockEndAlign(block);
+		}
+	}
+}
+
+/***/
+
+static void object_panel_effects(Object *ob)
 {
 	Effect *eff;
 	uiBlock *block;
@@ -1814,6 +1995,7 @@ void object_panels()
 		object_panel_constraint();
 		if(ob->type==OB_MESH) {
 			object_panel_effects(ob);
+			object_panel_modifiers(ob);
 		}
 		object_panel_deflectors(ob);
 		object_softbodies(ob);

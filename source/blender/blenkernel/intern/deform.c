@@ -248,7 +248,7 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 	
 	if(me->totvert==0) return;
 	
-	vertexCos = MEM_mallocN(sizeof(*vertexCos)*me->totvert, "vertexcos");
+	vertexCos = MEM_mallocN(sizeof(*vertexCos)*me->totvert, "mm_vertexcos");
 	for (a=0; a<me->totvert; a++) {
 		VECCOPY(vertexCos[a], me->mvert[a].co);
 	}
@@ -288,8 +288,23 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
-	/* object_deform: output for mesh is in mesh->mvert */
-	done |= mesh_deform(ob, vertexCos);	
+	if (ob->parent && me->totvert) {
+		if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
+			curve_deform_verts(ob->parent, ob, vertexCos, me->totvert);
+			done= 1;
+		}
+		else if(ob->parent->type==OB_LATTICE) {
+			lattice_deform_verts(ob->parent, ob, vertexCos, me->totvert);
+			done= 1;
+		}
+		else if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+				// misleading making displists... very bad
+			if (ob->parent!=G.obedit) {
+				armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
+			}
+			done= 1;
+		}
+	}
 
 	if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
 		done= 1;

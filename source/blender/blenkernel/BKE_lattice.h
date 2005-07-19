@@ -50,11 +50,12 @@ void calc_lat_fudu(int flag, int res, float *fu, float *du);
 void init_latt_deform(struct Object *oblatt, struct Object *ob);
 void calc_latt_deform(float *co);
 void end_latt_deform(void);
-int mesh_deform(struct Object *ob, float (*vertexCos)[3]);
 int object_deform(struct Object *ob);
 struct BPoint *latt_bp(struct Lattice *lt, int u, int v, int w);
 void outside_lattice(struct Lattice *lt);
-
+void curve_deform_verts(struct Object *cuOb, struct Object *target, float (*vertexCos)[3], int numVerts);
+void lattice_deform_verts(struct Object *laOb, struct Object *target, float (*vertexCos)[3], int numVerts);
+void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts);
 
 #endif
 

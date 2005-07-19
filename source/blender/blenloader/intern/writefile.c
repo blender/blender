@@ -120,6 +120,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_material_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -155,6 +156,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_scene.h" // for do_seq
 #include "BKE_sound.h" /* ... and for samples */
 #include "BKE_utildefines.h" // for defines
+#include "BKE_modifier.h"
 
 #include "GEN_messaging.h"
 
@@ -657,6 +659,17 @@ static void write_constraint_channels(WriteData *wd, ListBase *chanbase)
 
 }
 
+static void write_modifiers(WriteData *wd, ListBase *modbase)
+{
+	ModifierData *md;
+
+	for (md=modbase->first; md; md= md->next) {
+		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+		writestruct(wd, DATA, mti->structName, 1, md);
+	}
+}
+
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
@@ -699,6 +712,8 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "ObHook", 1, hook);
 				writedata(wd, DATA, sizeof(int)*hook->totindex, hook->indexar);
 			}
+
+			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
 	}

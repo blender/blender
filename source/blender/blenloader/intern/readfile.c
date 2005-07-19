@@ -79,6 +79,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
@@ -2110,8 +2111,23 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 /* ************ READ OBJECT ***************** */
 
+static void lib_link_modifier_data(FileData *fd, Object *ob, ModifierData *md)
+{
+	if (md->type==eModifierType_Lattice) {
+		LatticeModifierData *lmd = (LatticeModifierData*) md;
+			
+		lmd->object = newlibadr_us(fd, ob->id.lib, lmd->object);
+	} 
+	else if (md->type==eModifierType_Curve) {
+		CurveModifierData *cmd = (CurveModifierData*) md;
+			
+		cmd->object = newlibadr_us(fd, ob->id.lib, cmd->object);
+	}
+}
+
 static void lib_link_object(FileData *fd, Main *main)
 {
+	ModifierData *md;
 	Object *ob;
 	bSensor *sens;
 	bController *cont;
@@ -2242,6 +2258,10 @@ static void lib_link_object(FileData *fd, Main *main)
 			for(hook= ob->hooks.first; hook; hook= hook->next) {
 				hook->parent= newlibadr(fd, ob->id.lib, hook->parent);
 			}
+
+			for (md=ob->modifiers.first; md; md= md->next) {
+				lib_link_modifier_data(fd, ob, md);
+			}
 		}
 		ob= ob->id.next;
 	}
@@ -2283,6 +2303,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
 
+	link_list(fd, &ob->modifiers);
 	link_list(fd, &ob->defbase);
 	link_list(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
