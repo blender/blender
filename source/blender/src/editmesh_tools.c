@@ -2169,6 +2169,20 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
     // that memory
     BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);   
 	
+	EM_selectmode_flush();
+	for(ef=em->faces.first;ef;ef = ef->next){
+		if(ef->e4){
+            if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) &&
+             (ef->e3->f & SELECT && ef->e4->f & SELECT) ){
+                ef->f |= SELECT;             
+            }                   
+        } else {
+            if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) && ef->e3->f & SELECT){
+                ef->f |= SELECT;             
+            }
+        }
+	}
+	
 	recalc_editnormals();
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
