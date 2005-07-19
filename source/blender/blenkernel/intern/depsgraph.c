@@ -48,6 +48,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
@@ -59,6 +60,7 @@
 #include "BKE_action.h"
 #include "BKE_global.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -358,6 +360,15 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 					node3 = dag_get_node(dag,hook->parent);
 					dag_add_relation(dag,node3,node,DAG_RL_OB_DATA);
 				}
+			}
+		}
+		if (ob->modifiers.first) {
+			ModifierData *md;
+
+			for(md=ob->modifiers.first; md; md=md->next) {
+				ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+				if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
 			}
 		}
 		if (ob->parent) {

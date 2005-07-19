@@ -35,6 +35,8 @@
 
 struct DerivedMesh;
 struct ModifierData;
+struct DagForest;
+struct DagNode;
 struct Object;
 
 typedef enum {
@@ -78,6 +80,13 @@ typedef struct ModifierTypeInfo {
 		 * This function must be present.
 		 */
 	int (*isDisabled)(struct ModifierData *md);
+
+		/* Add the appropriate relations to the DEP graph depending on the modifier
+		 * data. 
+		 *
+		 * This function is optional.
+		 */
+	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Object *ob, struct DagNode *obNode);
 
 		/* Only for deform types, should apply the deformation
 		 * to the given vertex array. Object is guaranteed to be

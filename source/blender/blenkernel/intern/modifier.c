@@ -13,6 +13,7 @@
 #include "BKE_modifier.h"
 #include "BKE_lattice.h"
 #include "BKE_subsurf.h"
+#include "depsgraph_private.h"
 
 /***/
 
@@ -49,6 +50,17 @@ static int curveModifier_isDisabled(ModifierData *md)
 	return !cmd->object;
 }
 
+static void curveModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	CurveModifierData *cmd = (CurveModifierData*) md;
+
+	if (cmd->object) {
+		DagNode *curNode = dag_get_node(forest, cmd->object);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
+}
+
 static void curveModifier_deformVerts(ModifierData *md, Object *ob, float (*vertexCos)[3], int numVerts)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -68,6 +80,17 @@ static int latticeModifier_isDisabled(ModifierData *md)
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
 	return !lmd->object;
+}
+
+static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+
+	if (lmd->object) {
+		DagNode *latNode = dag_get_node(forest, lmd->object);
+
+		dag_add_relation(forest, latNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
 }
 
 static void latticeModifier_deformVerts(ModifierData *md, Object *ob, float (*vertexCos)[3], int numVerts)
@@ -149,6 +172,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs;
 		mti->allocData = curveModifier_allocData;
 		mti->isDisabled = curveModifier_isDisabled;
+		mti->updateDepgraph = curveModifier_updateDepgraph;
 		mti->deformVerts = curveModifier_deformVerts;
 
 		mti = &typeArr[eModifierType_Lattice];
@@ -158,6 +182,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs;
 		mti->allocData = latticeModifier_allocData;
 		mti->isDisabled = latticeModifier_isDisabled;
+		mti->updateDepgraph = latticeModifier_updateDepgraph;
 		mti->deformVerts = latticeModifier_deformVerts;
 
 		mti = &typeArr[eModifierType_Subsurf];

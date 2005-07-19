@@ -1823,10 +1823,10 @@ static void object_panel_modifiers(Object *ob)
 				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,280,150,19, &(smd->subdivType), 0, 0, 0, 0, "Selects type of subdivision algorithm.");
 			} else if (md->type==eModifierType_Lattice) {
 				LatticeModifierData *lmd = (LatticeModifierData*) md;
-				uiDefIDPoinBut(block, modifier_testLatticeObj, B_MAKEDISP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");
+				uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");
 			} else if (md->type==eModifierType_Curve) {
 				CurveModifierData *cmd = (CurveModifierData*) md;
-				uiDefIDPoinBut(block, modifier_testCurveObj, B_MAKEDISP, "Ob:",		550, 320, 120,19, &cmd->object, "Lattice object to deform with");
+				uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &cmd->object, "Lattice object to deform with");
 			}
 			uiBlockEndAlign(block);
 		}
