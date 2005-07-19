@@ -487,7 +487,7 @@ void *new_constraint_data (short type)
 			data = MEM_callocN(sizeof(bKinematicConstraint), "kinematicConstraint");
 
 			data->tolerance = (float)0.001;
-			data->iterations = 50;
+			data->iterations = 500;
 
 			result = data;
 		}

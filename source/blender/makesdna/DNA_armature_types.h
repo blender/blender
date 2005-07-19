@@ -88,7 +88,6 @@ typedef struct bArmature {
 #define		ARM_EDITBIT			5
 #define		ARM_DELAYBIT		6
 /* dont use bit 7, was saved in files to disable stuff */
-#define		ARM_NO_ACTIONBIT	8
 
 /* armature->flag */
 #define		ARM_RESTPOS		0x0001
@@ -100,7 +99,7 @@ typedef struct bArmature {
 #define		ARM_EDITMODE	0x0020
 #define		ARM_DELAYDEFORM 0x0040
 #define		ARM_DONT_USE    0x0080
-#define		ARM_NO_ACTION   0x0100
+			/* bit 0x0100 is free now */
 #define		ARM_B_BONES		0x0200
 
 

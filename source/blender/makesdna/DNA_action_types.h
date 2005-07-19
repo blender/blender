@@ -77,7 +77,8 @@ typedef struct bPoseChannel {
 
 typedef struct bPose{
 	ListBase			chanbase;
-	int flag, pad;
+	int flag;
+	float ctime;		// last time actions were done, to allow keyframing
 } bPose;
 
 typedef struct bActionChannel {

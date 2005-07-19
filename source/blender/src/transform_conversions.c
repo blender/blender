@@ -382,7 +382,7 @@ void count_bone_select(TransInfo *t, ListBase *lb, int do_it)
 		if(do_it) {
 			if (bone->flag & BONE_SELECTED) {
 				/* We don't let IK children get "grabbed" */
-				if ( (t->mode!=TFM_TRANSLATION) || bone->parent==NULL || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
 					bone->flag |= BONE_TRANSFORM;
 					t->total++;
 					do_next= 0;	// no transform on children if one parent bone is selected
@@ -396,7 +396,7 @@ void count_bone_select(TransInfo *t, ListBase *lb, int do_it)
 static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
-	float	parmat[4][4], tempmat[4][4];
+	float pmat[3][3], omat[3][3];
 	float vec[3];
 
 	if(bone) {
@@ -415,25 +415,25 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 				td->ext->rot= NULL;
 				td->ext->quat= pchan->quat;
 				td->ext->size= pchan->size;
-				td->ext->bone= bone; //	FIXME: Dangerous
 
 				QUATCOPY(td->ext->iquat, pchan->quat);
 				VECCOPY(td->ext->isize, pchan->size);
 
-				if (pchan->parent) { /* apply parent transformation if there is one */
-					Mat4MulMat4(tempmat, bone->arm_mat, pchan->parent->chan_mat);
+				/* proper way to get the parent transform + own transform */
+				Mat3CpyMat4(omat, ob->obmat);
+				if(pchan->parent) {
+					Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+					Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);	// dang mulserie swaps args
 				}
 				else {
-					Mat4CpyMat4(tempmat, bone->arm_mat);
+					Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);	// huh, transposed?
 				}
-				Mat4MulMat4 (parmat, tempmat, ob->obmat);	
-
-				Mat3CpyMat4 (td->mtx, parmat);
+				
 				Mat3Inv (td->smtx, td->mtx);
 				
 				/* for axismat we use bone's own transform */
-				Mat4MulMat4 (parmat, ob->obmat, pchan->pose_mat);
-				Mat3CpyMat4(td->axismtx, parmat);
+				Mat3CpyMat4(pmat, pchan->pose_mat);
+				Mat3MulMat3(td->axismtx, omat, pmat);
 				Mat3Ortho(td->axismtx);
 				
 				return 1;
@@ -470,9 +470,6 @@ static void createTransPose(TransInfo *t)
 	}		
 	if(t->total==0) return;
 	
-	/* since we need to be able to insert keys, no actions should be assigned */
-	arm->flag |= ARM_NO_ACTION;
-
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
@@ -1351,13 +1348,10 @@ void special_aftertrans_update(short cancelled)
 	int redrawipo=0;
 	
 	if (G.obpose){
-		bArmature *arm= G.obpose->data;
 		bAction	*act;
 		bPose	*pose;
 		bPoseChannel *pchan;
 
-		arm->flag &= ~ARM_NO_ACTION;
-		
 		if(cancelled)	/* if cancelled we do the update always */
 			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
 		else if(G.flags & G_RECORDKEYS) {

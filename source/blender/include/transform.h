@@ -102,7 +102,6 @@ typedef struct TransDataExtension {
     float *size;         /* Size of the data to transform (Faculative)                                     */
     float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[3][3];	 /* Object matrix */  
-	void *bone;			/* ARGH! old transform demanded it, added for now (ton) */
 } TransDataExtension;
 
 typedef struct TransData {

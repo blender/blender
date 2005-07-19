@@ -995,7 +995,8 @@ void paste_posebuf (int flip)
 			}
 		}
 
-		/* Update event for deformation children */
+		/* Update event for pose and deformation children */
+		ob->pose->ctime= -123456.0f;
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		
 		if (G.flags & G_RECORDKEYS) {
@@ -1121,19 +1122,20 @@ void transform_actionchannel_keys(char mode)
 {
 	bAction	*act;
 	TransVert *tv;
-	int /*sel=0,*/  i;
+	Object *ob= OBACT;
+	bConstraintChannel *conchan;
 	bActionChannel	*chan;
-	short	mvals[2], mvalc[2], cent[2];
+	float	deltax, startx;
+	float	cenf[2];
 	float	sval[2], cval[2], lastcval[2];
-	short	cancel=0;
 	float	fac=0.0F;
 	int		loop=1;
 	int		tvtot=0;
-	float	deltax, startx;
-	float	cenf[2];
 	int		invert=0, firsttime=1;
+	int		i;
+	short	cancel=0;
+	short	mvals[2], mvalc[2], cent[2];
 	char	str[256];
-	bConstraintChannel *conchan;
 
 	act=G.saction->action;
 
@@ -1261,8 +1263,11 @@ void transform_actionchannel_keys(char mode)
 			}
 	
 			if (G.saction->lock){
-				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-				force_draw_all(0);
+				if(ob && ob->pose) {
+					ob->pose->ctime= -123456.0f;
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+				force_draw_plus(SPACE_VIEW3D, 0);
 			}
 			else {
 				force_draw(0);
@@ -1277,7 +1282,10 @@ void transform_actionchannel_keys(char mode)
 	/*		Update the curve */
 	/*		Depending on the lock status, draw necessary views */
 
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	if(ob && ob->pose) {
+		ob->pose->ctime= -123456.0f;
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	}
 	remake_action_ipos(act);
 
 	if(cancel==0) BIF_undo_push("Transform Action");

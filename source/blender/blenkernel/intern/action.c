@@ -446,7 +446,9 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 		return;
 	if (!pose)
 		return;
-
+	
+	pose->ctime= ctime;
+	
 	/* Copy the data from the action into the pose */
 	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
 		achan= get_named_actionchannel(act, pchan->name);
@@ -494,120 +496,122 @@ void do_all_actions(Object *ob)
 {
 	bPose *tpose=NULL;
 	bActionStrip *strip;
-	int	doit;
-	float striptime, frametime, length, actlength;
+	float ctime, striptime, frametime, length, actlength;
 	float blendfac, stripframe;
+	int	doit;
 
-	if(ob==NULL) return;	// only to have safe calls from editor
+	// only to have safe calls from editor
+	if(ob==NULL) return;
+	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
+
 	
-	/* Retrieve data from the NLA */
-	if(ob->type==OB_ARMATURE && ob->pose) {
-		bArmature *arm= ob->data;
+	ctime= bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
+		
+	if(ob->pose->ctime==ctime) {  // no actions to execute while transform
+		;
+	}
+	else if(ob->action) {
+		/* Do local action (always overrides the nla actions) */
+		extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
+	}
+	else if(ob->nlastrips.first) {
+		doit=0;
 
-		if(arm->flag & ARM_NO_ACTION) {  // no action set while transform
-			;
-		}
-		else if(ob->action) {
-			/* Do local action (always overrides the nla actions) */
-			extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0));
-		}
-		else if(ob->nlastrips.first) {
-			doit=0;
+		copy_pose(&tpose, ob->pose, 1);
+		rest_pose(ob->pose, 1);		// potentially destroying current not-keyed pose
 
-			copy_pose(&tpose, ob->pose, 1);
-			rest_pose(ob->pose, 1);		// potentially destroying current not-keyed pose
- 
-			for (strip=ob->nlastrips.first; strip; strip=strip->next){
-				doit = 0;
-				if (strip->act){
-			
-					/* Determine if the current frame is within the strip's range */
-					length = strip->end-strip->start;
-					actlength = strip->actend-strip->actstart;
-					striptime = (G.scene->r.cfra-(strip->start)) / length;
-					stripframe = (G.scene->r.cfra-(strip->start)) ;
+		for (strip=ob->nlastrips.first; strip; strip=strip->next){
+			doit = 0;
+			if (strip->act){
+		
+				/* Determine if the current frame is within the strip's range */
+				length = strip->end-strip->start;
+				actlength = strip->actend-strip->actstart;
+				striptime = (G.scene->r.cfra-(strip->start)) / length;
+				stripframe = (G.scene->r.cfra-(strip->start)) ;
 
 
-					if (striptime>=0.0){
-						
-						rest_pose(tpose, 1);
+				if (striptime>=0.0){
+					
+					rest_pose(tpose, 1);
 
-						/* Handle path */
-						if (strip->flag & ACTSTRIP_USESTRIDE){
-							if (ob->parent && ob->parent->type==OB_CURVE){
-								Curve *cu = ob->parent->data;
-								float ctime, pdist;
+					/* Handle path */
+					if (strip->flag & ACTSTRIP_USESTRIDE){
+						if (ob->parent && ob->parent->type==OB_CURVE){
+							Curve *cu = ob->parent->data;
+							float ctime, pdist;
 
-								if (cu->flag & CU_PATH){
-									/* Ensure we have a valid path */
-									if(cu->path==NULL || cu->path->data==NULL) printf("action path error in ob %s\n", ob->parent->id.name+2);
-									else {
+							if (cu->flag & CU_PATH){
+								/* Ensure we have a valid path */
+								if(cu->path==NULL || cu->path->data==NULL) printf("action path error in ob %s\n", ob->parent->id.name+2);
+								else {
 
-										/* Find the position on the path */
-										ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
-										
-										if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
-											ctime /= cu->pathlen;
-											CLAMP(ctime, 0.0, 1.0);
-										}
-										pdist = ctime*cu->path->totdist;
-										
-										if (strip->stridelen)
-											striptime = pdist / strip->stridelen;
-										else
-											striptime = 0;
-										
-										striptime = (float)fmod (striptime, 1.0);
-										
-										frametime = (striptime * actlength) + strip->actstart;
-										extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
-										doit=1;
+									/* Find the position on the path */
+									ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
+									
+									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+										ctime /= cu->pathlen;
+										CLAMP(ctime, 0.0, 1.0);
 									}
+									pdist = ctime*cu->path->totdist;
+									
+									if (strip->stridelen)
+										striptime = pdist / strip->stridelen;
+									else
+										striptime = 0;
+									
+									striptime = (float)fmod (striptime, 1.0);
+									
+									frametime = (striptime * actlength) + strip->actstart;
+									extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
+									doit=1;
 								}
 							}
 						}
+					}
 
-						/* Handle repeat */
-		
-						else if (striptime < 1.0){
-							/* Mod to repeat */
-							striptime*=strip->repeat;
-							striptime = (float)fmod (striptime, 1.0);
-							
+					/* Handle repeat */
+	
+					else if (striptime < 1.0){
+						/* Mod to repeat */
+						striptime*=strip->repeat;
+						striptime = (float)fmod (striptime, 1.0);
+						
+						frametime = (striptime * actlength) + strip->actstart;
+						extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
+						doit=1;
+					}
+					/* Handle extend */
+					else{
+						if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
+							striptime = 1.0;
 							frametime = (striptime * actlength) + strip->actstart;
 							extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
 							doit=1;
 						}
-						/* Handle extend */
-						else{
-							if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
-								striptime = 1.0;
-								frametime = (striptime * actlength) + strip->actstart;
-								extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
-								doit=1;
-							}
+					}
+
+					/* Handle blendin & blendout */
+					if (doit){
+						/* Handle blendin */
+
+						if (strip->blendin>0.0 && stripframe<=strip->blendin && G.scene->r.cfra>=strip->start){
+							blendfac = stripframe/strip->blendin;
 						}
-
-						/* Handle blendin & blendout */
-						if (doit){
-							/* Handle blendin */
-
-							if (strip->blendin>0.0 && stripframe<=strip->blendin && G.scene->r.cfra>=strip->start){
-								blendfac = stripframe/strip->blendin;
-							}
-							else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && G.scene->r.cfra<=strip->end){
-								blendfac = (length-stripframe)/(strip->blendout);
-							}
-							else
-								blendfac = 1;
-
-							/* Blend this pose with the accumulated pose */
-							blend_poses (ob->pose, tpose, blendfac, strip->mode);
+						else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && G.scene->r.cfra<=strip->end){
+							blendfac = (length-stripframe)/(strip->blendout);
 						}
-					}					
-				}
+						else
+							blendfac = 1;
+
+						/* Blend this pose with the accumulated pose */
+						blend_poses (ob->pose, tpose, blendfac, strip->mode);
+					}
+				}					
 			}
 		}
+		
+		ob->pose->ctime= ctime;
 	}
 	
 	if (tpose){
