@@ -2451,11 +2451,7 @@ int BKE_read_exotic(char *name)
 			}
 		}
 	}
-
-	if (retval == 1) {
-		strcpy(G.sce, name);
-	}
-
+	
 	return (retval);
 }
 
