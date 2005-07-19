@@ -1062,7 +1062,7 @@ static void calc_meshverts(DerivedMesh *dm)
 void calc_meshverts_ext(void)
 {
 	int dmNeedsFree;
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
 	areawinset(curarea->win);
 	persp(PERSP_VIEW);
@@ -1080,7 +1080,7 @@ void calc_meshverts_ext(void)
 void calc_meshverts_ext_f2(void)
 {
 	int dmNeedsFree;
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 	float co[3], mat[4][4];
 	EditVert *eve;
 
@@ -1776,14 +1776,13 @@ static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 	}
 }
 
-static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
+static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, int dt)
 {
 	Mesh *me = ob->data;
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
 	DispList *dl;
-	DerivedMesh *dm = realDM?realDM:baseDM;
 
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
@@ -1919,8 +1918,8 @@ static void draw_mesh_object(Base *base, int dt)
 	int has_alpha= 0;
 	
 	if(G.obedit && ob->data==G.obedit->data) {
-		DerivedMesh *baseDM = mesh_get_base_derived(ob);
-		DerivedMesh *realDM = mesh_get_derived(ob);
+		DerivedMesh *baseDM = editmesh_get_derived_proxy();
+		DerivedMesh *realDM = editmesh_get_derived();
 
 		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, baseDM, realDM, dt);
@@ -1931,14 +1930,15 @@ static void draw_mesh_object(Base *base, int dt)
 		BoundBox *bb = mesh_get_bb(me);
 
 		if(me->totface<=4 || boundbox_clip(ob->obmat, bb)) {
-			int baseDMneedsFree;
+			int baseDMneedsFree, realDMneedsFree;
 			DerivedMesh *baseDM = mesh_get_derived_deform(ob, &baseDMneedsFree);
-			DerivedMesh *realDM = mesh_get_derived(ob);
+			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
 			draw_mesh_fancy(ob, baseDM, realDM, dt);
 
 			if (baseDMneedsFree) baseDM->release(baseDM);
+			if (realDMneedsFree) realDM->release(realDM);
 		}
 	}
 	
@@ -4051,7 +4051,7 @@ void draw_object_backbufsel(Object *ob)
 	case OB_MESH:
 		if(ob==G.obedit) {
 			int dmNeedsFree;
-			DerivedMesh *dm = mesh_get_cage_derived(ob, &dmNeedsFree);
+			DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
 			em_solidoffs= bbs_mesh_solid_EM(dm, G.scene->selectmode & SCE_SELECT_FACE);
 			

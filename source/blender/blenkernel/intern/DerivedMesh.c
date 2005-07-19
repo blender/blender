@@ -42,6 +42,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 
+#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
@@ -54,6 +55,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
+#include "BKE_deform.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -448,7 +450,31 @@ static void meshDM_release(DerivedMesh *dm)
 	MEM_freeN(mdm);
 }
 
-static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, MVert *deformedVerts, float *nors, float (*vertCos)[3])
+static float *mesh_build_faceNormals(Object *meshOb) 
+{
+	Mesh *me = meshOb->data;
+	float *nors = MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
+	float *n1 = nors;
+	int i;
+
+	for (i=0; i<me->totface; i++,n1+=3) {
+		MFace *mf = &me->mface[i];
+		
+		if (mf->v3) {
+			MVert *ve1= &me->mvert[mf->v1];
+			MVert *ve2= &me->mvert[mf->v2];
+			MVert *ve3= &me->mvert[mf->v3];
+			MVert *ve4= &me->mvert[mf->v4];
+					
+			if(mf->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
+			else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
+		}
+	}
+
+	return nors;
+}
+
+static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3])
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "mdm");
 
@@ -476,26 +502,24 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, MVert *deformedVert
 	
 	mdm->ob = ob;
 	mdm->me = me;
-	mdm->nors = nors;
+	mdm->verts = me->mvert;
+	mdm->nors = NULL;
 	mdm->freeNors = 0;
 
 	if (vertCos) {
 		int i;
 
-		deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*me->totvert, "deformedVerts");
+		mdm->verts = MEM_mallocN(sizeof(*mdm->verts)*me->totvert, "deformedVerts");
 		for (i=0; i<me->totvert; i++) {
-			deformedVerts[i].co[0] = vertCos[i][0];
-			deformedVerts[i].co[1] = vertCos[i][1];
-			deformedVerts[i].co[2] = vertCos[i][2];
+			mdm->verts[i].co[0] = vertCos[i][0];
+			mdm->verts[i].co[1] = vertCos[i][1];
+			mdm->verts[i].co[2] = vertCos[i][2];
 		}
-	}
-
-	if (deformedVerts) {
-		mdm->verts = deformedVerts;
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
 	} else {
-		mdm->verts = me->mvert;
+		mdm->nors = mesh_build_faceNormals(ob);
+		mdm->freeNors = 1;
 	}
 
 	return (DerivedMesh*) mdm;
@@ -984,160 +1008,179 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 	return (DerivedMesh*) ssdm;
 }
 
-///
+/***/
 
-static void build_mesh_data(Object *ob, int inEditMode)
+static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParms, int useDeform)
 {
-	Mesh *me = ob->data;
+	float (*deformedVerts)[3];
 
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		if(inEditMode && !G.editMesh->derived) {
-			makeDispListMesh(ob);
-		} else if (!inEditMode && !me->derived) {
-			makeDispListMesh(ob);
+	if (deform_r) *deform_r = NULL;
+	*final_r = NULL;
+
+	if (useDeform && ob) {
+		MVert *deformedMVerts;
+
+		mesh_modifier(ob, &deformedMVerts);
+		if (deformedMVerts) {
+			int i;
+
+			deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*me->totvert, "deformedverts");
+
+			for (i=0; i<me->totvert; i++) {
+				VECCOPY(deformedVerts[i], deformedMVerts[i].co);
+			}
+
+			MEM_freeN(deformedMVerts);
+		} else {
+			deformedVerts = NULL;
 		}
+
+		if (deform_r) *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
+	} else {
+		deformedVerts = inputVertexCos;
 	}
 
-	if(!me->disp.first || !((DispList*) me->disp.first)->nors) {
-		addnormalsDispList(ob, &me->disp);
+	if ((me->flag&ME_SUBSURF) && me->subdiv) {
+		*final_r = subsurf_make_derived_from_mesh(me, useRenderParms?me->subdivr:me->subdiv, deformedVerts);
+	} else {
+		*final_r = getMeshDerivedMesh(me, ob, deformedVerts);
+	}
+
+	if (deformedVerts && deformedVerts!=inputVertexCos) {
+		MEM_freeN(deformedVerts);
 	}
 }
 
-DerivedMesh *mesh_get_derived(Object *ob)
+/***/
+
+DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 {
-	Mesh *me= ob->data;
+	Mesh *me = ob->data;
+
+	if (!me->derived) {
+		makeDispListMesh(ob);
+	}
+
+	*needsFree_r = 0;
+	return me->derived;
+}
+
+DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
+{
+	if (!ob->derivedDeform) {
+		makeDispListMesh(ob);
+	} 
+
+	*needsFree_r = 0;
+	return ob->derivedDeform;
+}
+
+DerivedMesh *mesh_create_derived_render(Object *ob)
+{
+	DerivedMesh *final;
+
+	mesh_calc_modifiers(ob->data, ob, NULL, NULL, &final, 1, 1);
+
+	return final;
+}
+
+DerivedMesh *mesh_create_derived_no_deform(Mesh *me, float (*vertCos)[3])
+{
+	DerivedMesh *final;
+
+	mesh_calc_modifiers(me, NULL, vertCos, NULL, &final, 0, 0);
+
+	return final;
+}
+
+DerivedMesh *mesh_create_derived_no_deform_render(Mesh *me, float (*vertCos)[3])
+{
+	DerivedMesh *final;
+
+	mesh_calc_modifiers(me, NULL, vertCos, NULL, &final, 1, 0);
+
+	return final;
+}
+
+/***/
+
+DerivedMesh *editmesh_get_derived_proxy(void)
+{
+	return getEditMeshDerivedMesh(G.editMesh);
+}
+
+DerivedMesh *editmesh_get_derived(void)
+{
+	Mesh *me= G.obedit->data;
 
 	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		build_mesh_data(ob, G.obedit && me==G.obedit->data);
-
-		if(G.obedit && me==G.obedit->data) {
-			return G.editMesh->derived;
-		} else {
-			return me->derived;
+		if (!G.editMesh->derived) {
+			makeDispListMesh(G.obedit);
 		}
+
+		return G.editMesh->derived;
 	} 
 
 	return NULL;
 }
 
-DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
+DerivedMesh *editmesh_get_derived_cage(int *needsFree_r)
 {
-	Mesh *me= ob->data;
-
-	build_mesh_data(ob, G.obedit && me==G.obedit->data);
-
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		*needsFree_r = 0;
-
-		if(G.obedit && me==G.obedit->data) {
-			return G.editMesh->derived;
-		} else {
-			return me->derived;
-		}
-	} else {
-		return mesh_get_derived_deform(ob, needsFree_r);
-	}
-}
-
-DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
-{
-	if (ob->derivedDeform) {
-		*needsFree_r = 0;
-		return ob->derivedDeform;
-	} else {
-		Mesh *me = ob->data;
-		DispList *meDL;
-
-		build_mesh_data(ob, G.obedit && me==G.obedit->data);
-
-		*needsFree_r = 1;
-		meDL = me->disp.first;
-
-		return getMeshDerivedMesh(ob->data, ob, NULL, meDL?meDL->nors:NULL, NULL);
-	}
-}
-
-DerivedMesh *mesh_get_derived_render(Object *ob, int *needsFree_r)
-{
-	Mesh *me= ob->data;
-
-	if ((me->flag&ME_SUBSURF) && me->subdivr) {
-		if (me->subdiv==me->subdivr) {
-			*needsFree_r = 0;
-
-				// Don't reuse cache in editmode, we need to guarantee
-				// index order of result and the incremental syncing messes
-				// with this (could be fixed). - zr
-			if(!(G.obedit && me==G.obedit->data)) {
-				return me->derived;
-			}
-		} 
-
-		*needsFree_r = 1;
-		if(G.obedit && me==G.obedit->data) {
-			return subsurf_make_derived_from_editmesh(G.editMesh, me->subdivr, me->subsurftype, NULL);
-		} else {
-			return subsurf_make_derived_from_mesh(ob->data, me->subdivr, ob, NULL);
-		}
-	} else {
-		return mesh_get_derived_deform(ob, needsFree_r);
-	}
-}
-
-DerivedMesh *mesh_get_base_derived(Object *ob)
-{
-	Mesh *me= ob->data;
-
-	build_mesh_data(ob, G.obedit && me==G.obedit->data);
-
-	if (G.obedit && me==G.obedit->data) {
-		return getEditMeshDerivedMesh(G.editMesh);
-	} else {
-		DispList *meDL = me->disp.first;
-
-		return getMeshDerivedMesh(ob->data, ob, NULL, meDL?meDL->nors:NULL, NULL);
-	}
-}
-
-DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r)
-{
-	Mesh *me= ob->data;
+	Mesh *me= G.obedit->data;
 	DerivedMesh *dm = NULL;
 
 	*needsFree_r = 0;
 
 	if (me->flag&ME_OPT_EDGES) {
-		dm = mesh_get_derived(ob);
+		dm = editmesh_get_derived();
 	}
 	if (!dm) {
 		*needsFree_r = 1;
-		dm = mesh_get_base_derived(ob);
+		dm = editmesh_get_derived_proxy();
 	}
 
 	return dm;
 }
 
-DerivedMesh *derivedmesh_from_mesh(Object *ob, MVert *deformedVerts)
-{
-	Mesh *me = ob->data;
+/***/
 
-	return getMeshDerivedMesh(ob->data, ob, deformedVerts, NULL, NULL);
-}
-
-DerivedMesh *mesh_create_derived_no_deform(Mesh *me, float (*vertCos)[3])
+void makeDispListMesh(Object *ob)
 {
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		return subsurf_make_derived_from_mesh(me, me->subdiv, NULL, vertCos);
-	} else {
-		return getMeshDerivedMesh(me, NULL, NULL, NULL, vertCos);
+	MVert *deformedMVerts = NULL;
+	float min[3], max[3];
+	Mesh *me;
+
+	if(ob->flag&OB_FROMDUPLI) return; // XXX is this needed
+	me= ob->data;
+
+		/* also serves as signal to remake texspace */
+	if (me->bb) {
+		MEM_freeN(me->bb);
+		me->bb = NULL;
 	}
-}
 
-DerivedMesh *mesh_create_derived_no_deform_render(Mesh *me, float (*vertCos)[3])
-{
-	if ((me->flag&ME_SUBSURF) && me->subdivr) {
-		return subsurf_make_derived_from_mesh(me, me->subdivr, NULL, vertCos);
+	freedisplist(&ob->disp);
+
+	if (me->derived) {
+		me->derived->release(me->derived);
+		me->derived= NULL;
+	}
+	if (ob->derivedDeform) {
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform= NULL;
+	}
+
+	if (ob==G.obedit) {
+		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
 	} else {
-		return getMeshDerivedMesh(me, NULL, NULL, NULL, vertCos);
+		mesh_calc_modifiers(ob->data, ob, NULL, &ob->derivedDeform, &me->derived, 0, 1);
+	
+		INIT_MINMAX(min, max);
+
+		me->derived->getMinMax(me->derived, min, max);
+
+		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
+
+		build_particle_system(ob);
 	}
 }

@@ -37,7 +37,7 @@ struct DerivedMesh;
 struct EditMesh;
 
 struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, int subdivLevels, short type, struct DerivedMesh *oldDerived);
-struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, int subdivLevels, struct Object *deformedVertsOb, float (*vertCos)[3]);
+struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, int subdivLevels, float (*vertCos)[3]);
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 

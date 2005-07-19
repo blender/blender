@@ -1318,7 +1318,8 @@ static void init_render_mesh(Object *ob)
 	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
 	int start, end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
-
+	DerivedMesh *dm;
+	
 	me= ob->data;
 
 	paf = give_parteff(ob);
@@ -1358,19 +1359,13 @@ static void init_render_mesh(Object *ob)
 		orco = get_mesh_orco(ob);
 	}			
 	
-	{
-		int needsFree;
-		DerivedMesh *dm = mesh_get_derived_render(ob, &needsFree);
-		dlm = dm->convertToDispListMesh(dm);
-		if (needsFree) {
-			dm->release(dm);
-		}
+	dm = mesh_create_derived_render(ob);
+	dlm = dm->convertToDispListMesh(dm);
 
-		mvert= dlm->mvert;
-		totvert= dlm->totvert;
+	mvert= dlm->mvert;
+	totvert= dlm->totvert;
 
-		ms = (totvert==me->totvert)?me->msticky:NULL;
-	}
+	ms = (totvert==me->totvert)?me->msticky:NULL;
 	
 	ma= give_render_material(ob, 1);
 
@@ -1600,6 +1595,7 @@ static void init_render_mesh(Object *ob)
 	}
 	
 	if(dlm) displistmesh_free(dlm);
+	dm->release(dm);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -173,7 +173,7 @@ int calc_manipulator_stats(ScrArea *sa)
 
 		if(G.obedit->type==OB_MESH) {
 			int dmNeedsFree;
-			DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
+			DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			float vec[3];

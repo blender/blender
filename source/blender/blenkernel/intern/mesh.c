@@ -151,7 +151,6 @@ void free_mesh(Mesh *me)
 	if(me->mat) MEM_freeN(me->mat);
 	
 	if(me->bb) MEM_freeN(me->bb);
-	if(me->disp.first) freedisplist(&me->disp);
 	if(me->derived) me->derived->release(me->derived);
 }
 
@@ -235,8 +234,6 @@ Mesh *copy_mesh(Mesh *me)
 	men->msticky= MEM_dupallocN(me->msticky);
 	men->texcomesh= NULL;
 	men->bb= MEM_dupallocN(men->bb);
-	
-	men->disp.first= men->disp.last= NULL;	// dont copy, editmode version has pointers in it
 	
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;
@@ -723,20 +720,6 @@ void flipnorm_mesh(Mesh *me)
 			}
 		}
 		mface++;
-	}
-
-	if(me->disp.first) {
-		dl= me->disp.first;
-		fp= dl->nors;
-		if(fp) {
-			a= dl->nr;
-			while(a--) {
-				fp[0]= -fp[0];
-				fp[1]= -fp[1];
-				fp[2]= -fp[2];
-				fp+= 3;
-			}
-		}
 	}
 }
 

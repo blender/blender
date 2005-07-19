@@ -42,7 +42,6 @@
 #define DL_INDEX3               4
 #define DL_INDEX4               5
 #define DL_VERTCOL              6
-#define DL_NORS                 8
 
 /* dl->flag */
 #define DL_CYCL_U		1

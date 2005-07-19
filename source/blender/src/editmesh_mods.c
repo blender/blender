@@ -678,7 +678,7 @@ static EditFace *findnearestface(short *dist)
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
 	int dmNeedsFree;
-	DerivedMesh *dm = mesh_get_cage_derived(G.obedit, &dmNeedsFree);
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
 	glDrawBuffer(GL_FRONT);
 

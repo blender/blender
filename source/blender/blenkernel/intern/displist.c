@@ -610,62 +610,15 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 
 }
 
-static float *mesh_build_faceNormals(Object *meshOb) 
-{
-	Mesh *me = meshOb->data;
-	float *nors = MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
-	float *n1 = nors;
-	int i;
-
-	for (i=0; i<me->totface; i++,n1+=3) {
-		MFace *mf = &me->mface[i];
-		
-		if (mf->v3) {
-			MVert *ve1= &me->mvert[mf->v1];
-			MVert *ve2= &me->mvert[mf->v2];
-			MVert *ve3= &me->mvert[mf->v3];
-			MVert *ve4= &me->mvert[mf->v4];
-					
-			if(mf->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
-			else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
-		}
-	}
-
-	return nors;
-}
-
 void addnormalsDispList(Object *ob, ListBase *lb)
 {
 	DispList *dl = NULL;
-	Mesh *me;
 	float *vdata, *ndata, nor[3];
 	float *v1, *v2, *v3, *v4;
 	float *n1, *n2, *n3, *n4;
 	int a, b, p1, p2, p3, p4;
 
 	
-	if(ob->type==OB_MESH) {
-		
-		me= get_mesh(ob);
-		
-		if(me->totface==0) return;
-		
-		if(me->disp.first==0) {
-			dl= MEM_callocN(sizeof(DispList), "meshdisp");
-			dl->type= DL_NORS;
-			dl->parts= 1;
-			dl->nr= me->totface;
-			BLI_addtail(&me->disp, dl);
-		}
-		else return;
-		
-		if(dl->nors==0) {
-			dl->nors= mesh_build_faceNormals(ob);
-		}
-
-		return;
-	}
-
 	dl= lb->first;
 	
 	while(dl) {
@@ -1408,62 +1361,6 @@ float calc_taper(Object *taperobj, int cur, int tot)
 	return 1.0;
 }
 
-void makeDispListMesh(Object *ob)
-{
-	MVert *deformedMVerts = NULL;
-	float min[3], max[3];
-	Mesh *me;
-
-	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MESH) return;
-	me= ob->data;
-
-		/* also serves as signal to remake texspace */
-	if (me->bb) {
-		MEM_freeN(me->bb);
-		me->bb = NULL;
-	}
-
-	freedisplist(&ob->disp);
-	freedisplist(&me->disp);
-
-	if (me->derived) {
-		me->derived->release(me->derived);
-		me->derived= NULL;
-	}
-	if (ob->derivedDeform) {
-		ob->derivedDeform->release(ob->derivedDeform);
-		ob->derivedDeform= NULL;
-	}
-
-	if (ob!=G.obedit) {
-		mesh_modifier(ob, &deformedMVerts);
-
-		if (deformedMVerts) {
-			ob->derivedDeform = derivedmesh_from_mesh(ob, deformedMVerts);
-		}
-	}
-
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		if (ob==G.obedit) {
-			G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
-		} else {
-			me->derived= subsurf_make_derived_from_mesh(ob->data, me->subdiv, ob, NULL);
-		}
-	}
-	
-	INIT_MINMAX(min, max);
-	if (me->derived) {
-		me->derived->getMinMax(me->derived, min, max);
-
-		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
-	} else if (ob->derivedDeform) {
-		ob->derivedDeform->getMinMax(ob->derivedDeform, min, max);
-
-		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
-	}
-
-	build_particle_system(ob);
-}
 void makeDispListMBall(Object *ob)
 {
 	if(!ob || (ob->flag&OB_FROMDUPLI) || ob->type!=OB_MBALL) return;

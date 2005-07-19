@@ -146,30 +146,19 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
-	/* Internal functions, just temporarily exposed */
+	/* Internal function, just temporarily exposed */
 DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
-DerivedMesh *derivedmesh_from_mesh(struct Object *ob, struct MVert *deformedVerts);
 
-DerivedMesh *mesh_get_derived(struct Object *ob);
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
-DerivedMesh *mesh_get_derived_render(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
 
+DerivedMesh *mesh_create_derived_render(struct Object *ob);
 DerivedMesh *mesh_create_derived_no_deform(struct Mesh *me, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_no_deform_render(struct Mesh *me, float (*vertCos)[3]);
 
-	/* IMPORTANT: The functions below do not return "true" DerivedMesh
-	 * objects, rather they are just proxies for the mesh or editmesh
-	 * objects and are used to keep the drawing code consistent. They
-	 * should not be used as general purpose objects (access the Mesh
-	 * or EditMesh directly).
-	 */
-
-	/* Utility function, just chooses appropriate DerivedMesh based
-	 * on mesh flags. Release result if *needsFree_r is true.
-	 */
-DerivedMesh *mesh_get_cage_derived(struct Object *ob, int *needsFree_r);
-DerivedMesh *mesh_get_base_derived(struct Object *ob);
+DerivedMesh *editmesh_get_derived(void);
+DerivedMesh *editmesh_get_derived_proxy(void);
+DerivedMesh *editmesh_get_derived_cage(int *needsFree_r);
 
 #endif
 

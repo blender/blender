@@ -65,7 +65,6 @@ typedef struct Mesh {
 	struct BoundBox *bb;
 
 	ListBase effect;
-	ListBase disp;
 	
 	struct Ipo *ipo;
 	struct Key *key;

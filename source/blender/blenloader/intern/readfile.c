@@ -2086,7 +2086,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->dvert= newdataadr(fd, mesh->dvert);
 	direct_link_dverts(fd, mesh->totvert, mesh->dvert);
 
-	mesh->disp.first= mesh->disp.last= NULL;
 	mesh->bb= NULL;
 	mesh->oc= 0;
 	mesh->dface= NULL;

@@ -2399,7 +2399,6 @@ static void EXPP_unlink_mesh( Mesh * me )
 
 static int unlink_existingMeshData( Mesh * mesh )
 {
-	freedisplist( &mesh->disp );
 	EXPP_unlink_mesh( mesh );
 	if( mesh->mvert )
 		MEM_freeN( mesh->mvert );
