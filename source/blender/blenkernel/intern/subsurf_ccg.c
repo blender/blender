@@ -219,6 +219,10 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 	CCGSubSurf *ss = ssm->subSurf;
 	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
+	TFace *tface = ssm->dlm?ssm->dlm->tface:ssm->me->tface;
+	MEdge *medge = ssm->dlm?ssm->dlm->medge:ssm->me->medge;
+	MFace *mface = ssm->dlm?ssm->dlm->mface:ssm->me->mface;
+	MCol *mcol = ssm->dlm?ssm->dlm->mcol:ssm->me->mcol;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int edgeIndexBase, edgeBase, faceIndexBase, faceBase;
@@ -236,10 +240,10 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 	dlm->mvert = MEM_callocN(dlm->totvert*sizeof(*dlm->mvert), "dlm->mvert");
 	dlm->medge = MEM_callocN(dlm->totedge*sizeof(*dlm->medge), "dlm->medge");
 	dlm->mface = MEM_callocN(dlm->totface*sizeof(*dlm->mface), "dlm->mface");
-	if ((ssm->controlType==SUBSURF_CONTROLTYPE_MESH) && ssm->me->tface) {
+	if ((ssm->controlType==SUBSURF_CONTROLTYPE_MESH) && tface) {
 		dlm->tface = MEM_callocN(dlm->totface*sizeof(*dlm->tface), "dlm->tface");
 		dlm->mcol = NULL;
-	} else if ((ssm->controlType==SUBSURF_CONTROLTYPE_MESH) && ssm->me->mcol) {
+	} else if ((ssm->controlType==SUBSURF_CONTROLTYPE_MESH) && mcol) {
 		dlm->tface = NULL;
 		dlm->mcol = MEM_mallocN(dlm->totface*4*sizeof(*dlm->mcol), "dlm->mcol");
 	} else {
@@ -322,8 +326,8 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 				int edgeIdx = (int) ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
 					/* Edges created by lib have handle of -1 */
-				if (edgeIdx!=-1 && ssm->me->medge) {
-					MEdge *origMed = &ssm->me->medge[edgeIdx];
+				if (edgeIdx!=-1 && medge) {
+					MEdge *origMed = &medge[edgeIdx];
 
 					med->flag|= (origMed->flag&ME_SEAM);
 				}
@@ -384,11 +388,11 @@ static DispListMesh *subSurf_createDispListMesh(SubSurf *ssm) {
 
 		if (ssm->controlType==SUBSURF_CONTROLTYPE_MESH) {
 			int origIdx = (int) ccgSubSurf_getFaceFaceHandle(ss, f);
-			MFace *origMFace = &((MFace*) ssm->me->mface)[origIdx];
-			if (ssm->me->tface)
-				origTFace = &((TFace*)ssm->me->tface)[origIdx];
-			if (ssm->me->mcol)
-				origMCol = &ssm->me->mcol[origIdx*4];
+			MFace *origMFace = &((MFace*) mface)[origIdx];
+			if (tface)
+				origTFace = &((TFace*)tface)[origIdx];
+			if (mcol)
+				origMCol = &mcol[origIdx*4];
 			mat_nr = origMFace->mat_nr;
 			flag = origMFace->flag;
 		} else {
