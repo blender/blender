@@ -374,14 +374,15 @@ static void createTransEdge(TransInfo *t) {
 void count_bone_select(TransInfo *t, ListBase *lb, int do_it) 
 {
 	Bone *bone;
-	int do_next=do_it;
+	int do_next;
 	
 	for(bone= lb->first; bone; bone= bone->next) {
 		bone->flag &= ~BONE_TRANSFORM;
+		do_next= do_it;
 		if(do_it) {
 			if (bone->flag & BONE_SELECTED) {
 				/* We don't let IK children get "grabbed" */
-				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				if ( (t->mode!=TFM_TRANSLATION) || bone->parent==NULL || (bone->flag & BONE_IK_TOPARENT)==0 ) {
 					bone->flag |= BONE_TRANSFORM;
 					t->total++;
 					do_next= 0;	// no transform on children if one parent bone is selected
@@ -462,7 +463,7 @@ static void createTransPose(TransInfo *t)
 
 	/* count total */
 	count_bone_select(t, &arm->bonebase, 1);
-	
+
 	if(t->total==0 && t->mode==TFM_TRANSLATION) {
 		t->mode= TFM_ROTATION;
 		count_bone_select(t, &arm->bonebase, 1);
