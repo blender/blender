@@ -770,23 +770,24 @@ static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
 
 /* copy original (new) situation in softbody, as result of matrices or deform */
 /* is assumed to enter function with ob->soft, but can be without points */
-static void mesh_update_softbody(Object *ob)
+static void mesh_update_softbody(Object *ob, float (*vertexCos)[3])
 {
 	Mesh *me= ob->data;
-	MVert *mvert= me->mvert;
-/*	MEdge *medge= me->medge;  */ /*unused*/
 	BodyPoint *bp;
 	int a;
 	
 	/* possible after a file read... */
-	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob);
+	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob, NULL);
 	
 	if(me->totvert) {
-	
 		bp= ob->soft->bpoint;
-		for(a=0; a<me->totvert; a++, mvert++, bp++) {
+		for(a=0; a<me->totvert; a++, bp++) {
+			if (vertexCos) {
+				VECCOPY(bp->origE, vertexCos[a]);
+			} else {
+				VECCOPY(bp->origE, me->mvert[a].co);
+			}
  			VECCOPY(bp->origS, bp->origE);
-			VECCOPY(bp->origE, mvert->co);
 			Mat4MulVecfl(ob->obmat, bp->origE);
 			VECCOPY(bp->origT, bp->origE);
 		}
@@ -795,7 +796,7 @@ static void mesh_update_softbody(Object *ob)
 			
 			/* happens when in UI edges was set */
 			if(ob->soft->bspring==NULL) 
-				if(object_has_edges(ob)) sbObjectToSoftbody(ob);
+				if(object_has_edges(ob)) sbObjectToSoftbody(ob, NULL);
 		
 			/* hrms .. do springs alter their lenght ? (yes, mesh keys would (ton))
 			if(medge) {
@@ -837,11 +838,10 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 } 
 
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Object *ob)
+static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 {
 	SoftBody *sb;
 	Mesh *me= ob->data;
-	MVert *mvert= me->mvert;
 	MEdge *medge= me->medge;
 	BodyPoint *bp;
 	BodySpring *bs;
@@ -859,9 +859,12 @@ static void mesh_to_softbody(Object *ob)
 	bp= sb->bpoint;
 	goalfac= ABS(sb->maxgoal - sb->mingoal);
 	
-	for(a=me->totvert; a>0; a--, mvert++, bp++) {
-		
-		set_body_point(ob, bp, mvert->co);
+	for(a=0; a<me->totvert; a++, bp++) {
+		if (vertexCos) {
+			set_body_point(ob, bp, vertexCos[a]);
+		} else {
+			set_body_point(ob, bp, me->mvert[a].co);
+		}
 		
 		/* get scalar values needed  *per vertex* from vertex group functions,
 		so we can *paint* them nicly .. 
@@ -974,7 +977,7 @@ static void lattice_update_softbody(Object *ob)
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 	
 	/* possible after a file read... */
-	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob);
+	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob, NULL);
 	
 	for(a= totvert, bp= lt->def, bop= ob->soft->bpoint; a>0; a--, bp++, bop++) {
 		VECCOPY(bop->origS, bop->origE);
@@ -1008,12 +1011,12 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3])
 /* copy original (new) situation in softbody, as result of matrices or deform */
 /* used in sbObjectStep() and sbObjectReset() */
 /* assumes to have ob->soft, but can be entered without points */
-static void object_update_softbody(Object *ob)
+static void object_update_softbody(Object *ob, float (*vertexCos)[3])
 {
 	
 	switch(ob->type) {
 	case OB_MESH:
-		mesh_update_softbody(ob);
+		mesh_update_softbody(ob, vertexCos);
 		break;
 	case OB_LATTICE:
 		lattice_update_softbody(ob);
@@ -1168,12 +1171,12 @@ void sbFree(SoftBody *sb)
 
 
 /* makes totally fresh start situation */
-void sbObjectToSoftbody(Object *ob)
+void sbObjectToSoftbody(Object *ob, float (*vertexCos)[3])
 {
 
 	switch(ob->type) {
 	case OB_MESH:
-		mesh_to_softbody(ob);
+		mesh_to_softbody(ob, vertexCos);
 		break;
 	case OB_LATTICE:
 		lattice_to_softbody(ob);
@@ -1196,7 +1199,7 @@ void sbObjectReset(Object *ob)
 	
 	sb->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
 	
-	object_update_softbody(ob);
+	object_update_softbody(ob, NULL);
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		// origS is previous timestep
@@ -1239,7 +1242,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 		(ob->soft==NULL) ||					// just to be nice we allow full init
 		(ob->soft->bpoint==NULL) ) 			// after reading new file, or acceptable as signal to refresh
-			sbObjectToSoftbody(ob);
+			sbObjectToSoftbody(ob, vertexCos);
 	
 	sb= ob->soft;
 
@@ -1267,7 +1270,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 		//dtime is still in [frames]
 		//we made sure dtime is >= 0.0
 		//but still need to handle dtime == 0.0 -> just return sb as is, just to be nice
-		object_update_softbody(ob);
+		object_update_softbody(ob, vertexCos);
 		
 		if (TRUE) {	// RSOL1 always true now (ton)
 			/* special case of 2nd order Runge-Kutta type AKA Heun */

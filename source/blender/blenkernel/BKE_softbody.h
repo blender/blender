@@ -62,7 +62,7 @@ extern void				sbFree(struct SoftBody *sb);
 extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3]);
 
 /* makes totally fresh start situation, resets time */
-extern void				sbObjectToSoftbody(struct Object *ob);
+extern void				sbObjectToSoftbody(struct Object *ob, float (*vertexCos)[3]);
 
 /* resets all motion and time */
 extern void				sbObjectReset(struct Object *ob);

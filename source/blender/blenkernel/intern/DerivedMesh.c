@@ -1045,7 +1045,7 @@ static void clear_and_build_mesh_data(Object *ob, int mustBuildForMesh)
 	float min[3], max[3];
 	Mesh *me= ob->data;
 
-	if(ob->flag&OB_FROMDUPLI) return; // XXX is this needed
+	if(ob->flag&OB_FROMDUPLI) return;
 
 		/* also serves as signal to remake texspace */
 	if (me->bb) {
