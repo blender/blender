@@ -143,13 +143,12 @@ Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob );
 int NMesh_CheckPyObject( PyObject * pyobj );
 
 
-void mesh_update( Mesh * mesh );
+void mesh_update( Mesh * mesh , Object * ob );
 PyObject *new_NMesh( Mesh * oldmesh );
 Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges );
 PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob );
 Material **nmesh_updateMaterials( BPy_NMesh * nmesh );
 Material **newMaterialList_fromPyList( PyObject * list );
-void mesh_update( Mesh * mesh );
 
 
 #endif				/* EXPP_NMESH_H */

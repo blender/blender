@@ -33,18 +33,23 @@
 
 #include "NMesh.h" /*This must come first*/
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_key_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_oops_types.h"
 #include "DNA_space_types.h"
+
 #include "BDR_editface.h"	/* make_tfaces */
 #include "BDR_vpaint.h"
 #include "BDR_editobject.h"
+
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
 #include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
 #include "BIF_editview.h"
+
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -54,9 +59,10 @@
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
-#include "BLI_arithb.h"
-#include "MEM_guardedalloc.h"
+#include "BKE_depsgraph.h"
 #include "BKE_utildefines.h"
+
+#include "BLI_arithb.h"
 #include "blendef.h"
 #include "mydevice.h"
 #include "Object.h"
@@ -297,9 +303,23 @@ if recalc_normals is True, vertex normals are transformed along with \n\
 vertex coordinatess.\n";
 
 
-void mesh_update( Mesh * mesh )
+void mesh_update( Mesh * mesh, Object * ob )
 {
 	edge_drawflags_mesh( mesh );
+
+	if (ob) {
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+	else {
+		ob = G.main->object.first;
+		while (ob) {
+			if (ob->data == mesh) {
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				break;
+			}
+			ob = ob->id.next;
+		}
+	}
 }
 
 /*****************************/
@@ -1307,7 +1327,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	if( recalc_normals )
 		vertexnormals_mesh( mesh );
 
-	mesh_update( mesh );
+	mesh_update( mesh, nmesh->object );
 
 	nmesh_updateMaterials( nmesh );
 
@@ -2862,7 +2882,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	if( recalc_normals )
 		vertexnormals_mesh( mesh );
 
-	mesh_update( mesh );
+	mesh_update( mesh, nmesh->object );
 
 	if( !during_script(  ) )
 		EXPP_allqueue( REDRAWVIEW3D, 0 );
@@ -3097,7 +3117,7 @@ Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob )
 			  new_id( &( G.main->mesh ), &mesh->id,
 				  PyString_AsString( nmesh->name ) );
 
-		  mesh_update( mesh );
+		  mesh_update( mesh, nmesh->object );
 
 		  nmesh_updateMaterials( nmesh );
     }
