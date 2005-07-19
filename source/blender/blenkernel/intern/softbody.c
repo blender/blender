@@ -873,7 +873,7 @@ static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 		*/ 
 		
 		if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
-			get_scalar_from_vertexgroup(ob, me->totvert - a, sb->vertgroup-1, &bp->goal);
+			get_scalar_from_vertexgroup(ob, a, sb->vertgroup-1, &bp->goal);
 			// do this always, regardless successfull read from vertex group
 			bp->goal= sb->mingoal + bp->goal*goalfac;
 		}
@@ -883,7 +883,7 @@ static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 		/* to proove the concept
 		this would enable per vertex *mass painting*
 		strcpy(name,"SOFTMASS");
-		error = get_scalar_from_named_vertexgroup(ob,name,me->totvert - a,&temp);
+		error = get_scalar_from_named_vertexgroup(ob,name, a,&temp);
 		if (!error) bp->mass = temp * ob->rangeofmass;
 		*/
 	}
