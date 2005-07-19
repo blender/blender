@@ -262,6 +262,10 @@ SOURCE=..\..\..\source\blender\makesdna\DNA_meta_types.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\makesdna\DNA_modifier_types.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\makesdna\DNA_nla_types.h
 # End Source File
 # Begin Source File

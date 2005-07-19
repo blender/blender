@@ -238,6 +238,10 @@ SOURCE=..\..\..\source\blender\blenkernel\intern\mesh.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenkernel\intern\modifier.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenkernel\intern\nla.c
 # End Source File
 # Begin Source File
@@ -419,6 +423,10 @@ SOURCE=..\..\..\source\blender\blenkernel\BKE_mball.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenkernel\BKE_mesh.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenkernel\BKE_modifier.h
 # End Source File
 # Begin Source File
 
