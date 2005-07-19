@@ -566,21 +566,10 @@ void Transform()
 	
 	/* free data, reset vars */
 	postTrans(&Trans);
-	
-	/* mess from old transform, just for now (ton) */
-	{
-		char cmode='g';
-		
-		if(Trans.mode==TFM_RESIZE) cmode= 's';
-		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
-		
-		/* aftertrans does insert ipos and action channels */
-		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL));
-		
-		if(G.obedit==NULL && G.obpose==NULL)
-			clear_trans_object_base_flags();
-	}
-	
+
+	/* aftertrans does insert ipos and action channels, and clears base flags */
+	special_aftertrans_update((short)(Trans.state == TRANS_CANCEL));
+
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
@@ -731,19 +720,8 @@ void ManipulatorTransform()
 	/* free data, reset vars */
 	postTrans(&Trans);
 	
-	/* mess from old transform, just for now (ton) */
-	{
-		char cmode='g';
-		
-		if(Trans.mode==TFM_RESIZE) cmode= 's';
-		else if(Trans.mode==TFM_ROTATION) cmode= 'r';
-		/* aftertrans does displists, ipos and action channels */
-		/* 7 = keyflags, meaning do loc/rot/scale ipos. Not sure if I like the old method to detect what changed (ton) */
-		special_aftertrans_update(cmode, 0, (short)(Trans.state == TRANS_CANCEL));
-		
-		if(G.obedit==NULL && G.obpose==NULL)
-			clear_trans_object_base_flags();
-	}
+	/* aftertrans does insert ipos and action channels, and clears base flags */
+	special_aftertrans_update((short)(Trans.state == TRANS_CANCEL));
 	
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);

@@ -1330,7 +1330,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 	}
 }
 
-void clear_trans_object_base_flags(void)
+static void clear_trans_object_base_flags(void)
 {
 	Base *base;
 	
@@ -1344,7 +1344,7 @@ void clear_trans_object_base_flags(void)
 }
 
 /* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
-void special_aftertrans_update(char mode, int flip, short cancelled)
+void special_aftertrans_update(short cancelled)
 {
 	Object *ob;
 	Base *base;
@@ -1406,8 +1406,9 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 		while(base) {	
 			
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
+			
 			ob= base->object;
-						
+			/* reset soft body object */
 			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob);
 			
 			/* Set autokey if necessary */
@@ -1436,6 +1437,8 @@ void special_aftertrans_update(char mode, int flip, short cancelled)
 		}
 		
 	}
+	
+	clear_trans_object_base_flags();
 	
 	if(redrawipo) {
 		allqueue(REDRAWNLA, 0);
