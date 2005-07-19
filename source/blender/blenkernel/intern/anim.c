@@ -275,6 +275,7 @@ static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
 	Object *newob;
 	
 	newob= MEM_mallocN(sizeof(Object), "newobj dupli");
+
 	memcpy(newob, ob, sizeof(Object));
 	newob->flag |= OB_FROMDUPLI;
 	newob->id.newid= (ID *)par;	/* store duplicator */

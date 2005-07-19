@@ -80,8 +80,6 @@ typedef struct Mesh {
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 
-		/* not written in file, caches derived mesh */
-	struct DerivedMesh *derived;
 		/* hacky place to store temporary decimated mesh */
 	struct DispListMesh *decimated;
 

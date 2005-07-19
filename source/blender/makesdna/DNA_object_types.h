@@ -194,7 +194,7 @@ typedef struct Object {
 	
 	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
   
-	struct DerivedMesh *derivedDeform;
+	struct DerivedMesh *derivedDeform, *derivedFinal;
 } Object;
 
 typedef struct ObHook {

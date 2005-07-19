@@ -910,20 +910,16 @@ static void mesh_to_softbody(Object *ob)
 }
 
 /* copies current sofbody position in mesh, so do this within modifier stacks! */
-static void softbody_to_mesh(Object *ob)
+static void softbody_to_mesh(Object *ob, float (*vertexCos)[3])
 {
 	Mesh *me= ob->data;
-	MVert *mvert;
-	BodyPoint *bp;
+	BodyPoint *bp= ob->soft->bpoint;
 	int a;
 
-	bp= ob->soft->bpoint;
-	mvert= me->mvert;
-	for(a=me->totvert; a>0; a--, mvert++, bp++) {
-		VECCOPY(mvert->co, bp->pos);
-		Mat4MulVecfl(ob->imat, mvert->co);	// softbody is in global coords
+	for(a=me->totvert; a>0; a--, bp++, vertexCos++) {
+		VECCOPY(vertexCos[0], bp->pos);
+		Mat4MulVecfl(ob->imat, vertexCos[0]);	// softbody is in global coords
 	}
-
 }
 
 /* makes totally fresh start situation */
@@ -991,7 +987,7 @@ static void lattice_update_softbody(Object *ob)
 
 /* copies softbody result back in object */
 /* only used in sbObjectStep() */
-static void softbody_to_object(Object *ob)
+static void softbody_to_object(Object *ob, float (*vertexCos)[3])
 {
 	
 	if(ob->soft==NULL) return;
@@ -1001,7 +997,7 @@ static void softbody_to_object(Object *ob)
 	
 	switch(ob->type) {
 	case OB_MESH:
-		softbody_to_mesh(ob);
+		softbody_to_mesh(ob, vertexCos);
 		break;
 	case OB_LATTICE:
 		softbody_to_lattice(ob);
@@ -1027,7 +1023,7 @@ static void object_update_softbody(Object *ob)
 }
 
 /* return 1 if succesfully baked and applied step */
-static int softbody_baked_step(Object *ob, float framenr)
+static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3])
 {
 	SoftBody *sb= ob->soft;
 	SBVertex *key0, *key1, *key2, *key3;
@@ -1079,7 +1075,7 @@ static int softbody_baked_step(Object *ob, float framenr)
 		bp->pos[2]= data[0]*key0->vec[2] +  data[1]*key1->vec[2] + data[2]*key2->vec[2] + data[3]*key3->vec[2];
 	}
 	
-	softbody_to_object(ob);
+	softbody_to_object(ob, vertexCos);
 	
 	return 1;
 }
@@ -1220,7 +1216,7 @@ void sbObjectReset(Object *ob)
 
 /* simulates one step. framenr is in frames */
 /* copies result back to object, displist */
-void sbObjectStep(Object *ob, float framenr)
+void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 {
 	SoftBody *sb;
 	Base *base;
@@ -1237,7 +1233,7 @@ void sbObjectStep(Object *ob, float framenr)
 	
 	/* baking works with global time */
 	if(!(ob->softflag & OB_SB_BAKEDO) )
-		if(softbody_baked_step(ob, framenr) ) return;
+		if(softbody_baked_step(ob, framenr, vertexCos) ) return;
 	
 	/* remake softbody if: */
 	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
@@ -1367,7 +1363,7 @@ void sbObjectStep(Object *ob, float framenr)
 		}
 		
 		/* and apply to vertices */
-		 softbody_to_object(ob);
+		 softbody_to_object(ob, vertexCos);
 		
 		sb->ctime= ctime;
 	} // if(ABS(dtime) > 0.0) 
@@ -1376,7 +1372,7 @@ void sbObjectStep(Object *ob, float framenr)
 		// since dtime= ctime - ob->soft->ctime== 0.0;
 		// and we were not notifified about any other time changes 
 		// so here it is !
-		softbody_to_object(ob);
+		softbody_to_object(ob, vertexCos);
 	}
 
 	/* reset deflector cache */

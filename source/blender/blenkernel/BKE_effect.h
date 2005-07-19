@@ -58,8 +58,8 @@ void particle_tex(struct MTex *mtex, struct PartEff *paf, float *co, float *no);
 void make_particle_keys(int depth, int nr, struct PartEff *paf, struct Particle *part, float *force, int deform, struct MTex *mtex, unsigned int par_layer);
 void init_mv_jit(float *jit, int num,int seed2);
 void build_particle_system(struct Object *ob);
+void init_wave_deform(struct WaveEff *wav);
 void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
-int object_wave(struct Object *ob);                            
 
 /* particle deflector */
 #define PE_WIND_AS_SPEED 0x00000001

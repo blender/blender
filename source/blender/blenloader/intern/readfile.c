@@ -2090,7 +2090,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->oc= 0;
 	mesh->dface= NULL;
 	mesh->decimated= NULL;
-	mesh->derived= NULL;
 
 	if (mesh->tface) {
 		TFace *tfaces= mesh->tface;
@@ -2371,6 +2370,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
+	ob->derivedFinal= NULL;
 }
 
 /* ************ READ SCENE ***************** */

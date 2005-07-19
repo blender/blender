@@ -176,6 +176,7 @@ void free_object(Object *ob)
 	int a;
 	
 	if(ob->derivedDeform) ob->derivedDeform->release(ob->derivedDeform);
+	if(ob->derivedFinal) ob->derivedFinal->release(ob->derivedFinal);
 
 	/* disconnect specific data */
 	if(ob->data) {
@@ -841,6 +842,7 @@ Object *copy_object(Object *ob)
 	obn->soft= copy_softbody(ob->soft);
 	
 	ob->derivedDeform = NULL;
+	ob->derivedFinal = NULL;
 
 	return obn;
 }

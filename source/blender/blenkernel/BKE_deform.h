@@ -40,7 +40,6 @@
 
 struct Object;
 struct ListBase;
-struct MVert;
 struct bDeformGroup;
 
 void copy_defgroups (struct ListBase *lb1, struct ListBase *lb2);
@@ -51,7 +50,7 @@ int  get_defgroup_num (struct Object *ob, struct bDeformGroup   *dg);
 void hook_object_deform(struct Object *ob, int index, float *vec);
 
 int curve_modifier(struct Object *ob, char mode);
-void mesh_modifier(struct Object *ob, struct MVert **mvert_r);
+void mesh_modifier(struct Object *ob, float (**vertexCos_r)[3]);
 int lattice_modifier(struct Object *ob, char mode);
 
 

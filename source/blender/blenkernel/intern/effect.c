@@ -1418,6 +1418,11 @@ void build_particle_system(Object *ob)
 
 /* ************* WAVE **************** */
 
+void init_wave_deform(WaveEff *wav) {
+	wav->minfac= (float)(1.0/exp(wav->width*wav->narrow*wav->width*wav->narrow));
+	if(wav->damp==0) wav->damp= 10.0f;
+}
+
 void calc_wave_deform(WaveEff *wav, float ctime, float *co)
 {
 	/* co is in local coords */
@@ -1465,51 +1470,6 @@ void calc_wave_deform(WaveEff *wav, float ctime, float *co)
 
 		co[2]+= lifefac*amplit;
 	}
-}
-
-/* return 1 if deformed
-   Note: it works on mvert now, so assumes to be callied in modifier stack \
-*/
-int object_wave(Object *ob)
-{
-	WaveEff *wav;
-	Mesh *me;
-	MVert *mvert;
-	float ctime;
-	int a;
-	
-	/* is there a wave */
-	wav= ob->effect.first;
-	while(wav) {
-		if(wav->type==EFF_WAVE) break;
-		wav= wav->next;
-	}
-	if(wav==NULL) return 0;
-	
-	if(ob->type==OB_MESH) {
-
-		ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
-		
-		me= ob->data;
-
-		wav= ob->effect.first;
-		while(wav) {
-			if(wav->type==EFF_WAVE) {
-				
-				/* precalculate */
-				wav->minfac= (float)(1.0/exp(wav->width*wav->narrow*wav->width*wav->narrow));
-				if(wav->damp==0) wav->damp= 10.0f;
-				
-				mvert= me->mvert;
-				
-				for(a=0; a<me->totvert; a++, mvert++) {
-					calc_wave_deform(wav, ctime, mvert->co);
-				}
-			}
-			wav= wav->next;
-		}
-	}
-	return 1;
 }
 
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],

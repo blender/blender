@@ -227,14 +227,14 @@ void hook_object_deform(Object *ob, int index, float *vec)
 }
 
 
-void mesh_modifier(Object *ob, MVert **mvert_r)
+void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 {
 	MVert *origMVert=NULL;
 	Mesh *me= ob->data;
-	MVert *mv;
 	int a, done=0;
+	float (*vertexCos)[3];
 
-	*mvert_r = NULL;
+	*vertexCos_r = NULL;
 	
 	do_mesh_key(me);
 	
@@ -248,8 +248,11 @@ void mesh_modifier(Object *ob, MVert **mvert_r)
 	
 	if(me->totvert==0) return;
 	
-	origMVert= MEM_dupallocN(me->mvert);
-		
+	vertexCos = MEM_mallocN(sizeof(*vertexCos)*me->totvert, "vertexcos");
+	for (a=0; a<me->totvert; a++) {
+		VECCOPY(vertexCos[a], me->mvert[a].co);
+	}
+
 	/* hooks */
 	if(ob->hooks.first) {
 		done= 1;
@@ -257,29 +260,46 @@ void mesh_modifier(Object *ob, MVert **mvert_r)
 		/* NULL signals initialize */
 		hook_object_deform(ob, 0, NULL);
 		
-		for(a=0, mv= me->mvert; a<me->totvert; a++, mv++) {
-			hook_object_deform(ob, a, mv->co);
+		for(a=0; a<me->totvert; a++) {
+			hook_object_deform(ob, a, vertexCos[a]);
 		}
 	}
 		
-	if(ob->effect.first) done |= object_wave(ob);
+	if(ob->effect.first) {
+		WaveEff *wav;
+		float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
+		int a;
+	
+		for (wav= ob->effect.first; wav; wav= wav->next) {
+			if(wav->type==EFF_WAVE) {
+				init_wave_deform(wav);
+
+				for(a=0; a<me->totvert; a++) {
+					calc_wave_deform(wav, ctime, vertexCos[a]);
+				}
+
+				done = 1;
+			}
+		}
+	}
 
 	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
 		done= 1;
-		sbObjectStep(ob, (float)G.scene->r.cfra);
+		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
 	/* object_deform: output for mesh is in mesh->mvert */
-	done |= object_deform(ob);	
+	done |= mesh_deform(ob, vertexCos);	
 
 	if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
 		done= 1;
-		sbObjectStep(ob, (float)G.scene->r.cfra);
+		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
 	if (done) {
-		*mvert_r = me->mvert;
-		me->mvert = origMVert;
+		*vertexCos_r = vertexCos;
+	} else {
+		MEM_freeN(vertexCos_r);
 	}
 }
 
@@ -390,7 +410,7 @@ int lattice_modifier(Object *ob, char mode)
 		}
 		
 		if((ob->softflag & OB_SB_ENABLE)) {
-			sbObjectStep(ob, (float)G.scene->r.cfra);
+			sbObjectStep(ob, (float)G.scene->r.cfra, NULL);
 		}
 		
 	}

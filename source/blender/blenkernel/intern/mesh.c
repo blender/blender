@@ -136,7 +136,6 @@ void unlink_mesh(Mesh *me)
 /* do not free mesh itself */
 void free_mesh(Mesh *me)
 {
-
 	unlink_mesh(me);
 
 	if(me->mvert) MEM_freeN(me->mvert);
@@ -151,7 +150,6 @@ void free_mesh(Mesh *me)
 	if(me->mat) MEM_freeN(me->mat);
 	
 	if(me->bb) MEM_freeN(me->bb);
-	if(me->derived) me->derived->release(me->derived);
 }
 
 void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
@@ -238,7 +236,6 @@ Mesh *copy_mesh(Mesh *me)
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;
 	
-	men->derived = NULL;
 	men->decimated = NULL;
 
 	return men;
@@ -681,8 +678,6 @@ void flipnorm_mesh(Mesh *me)
 {
 	MFace *mface;
 	MVert *mvert;
-	DispList *dl;
-	float *fp;
 	int a, temp;
 	
 	mvert= me->mvert;

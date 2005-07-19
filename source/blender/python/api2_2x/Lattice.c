@@ -32,6 +32,7 @@
 
 #include "Lattice.h" /*This must come first*/
 
+#include "BKE_utildefines.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -39,6 +40,8 @@
 #include "BLI_blenlib.h"
 #include "DNA_object_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "BIF_editkey.h"
@@ -702,8 +705,26 @@ static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args )
 			 * method is needed.  Or for users who actually want to apply the
 			 * deformation n times. */
 			if((self->Lattice == par->data)) {
-				if ((base->object->type != OB_MESH) || forced)
-					object_deform( base->object );
+				if ((base->object->type != OB_MESH) || forced) {
+
+					if (base->object->type==OB_MESH) {
+						Mesh *me = base->object->data;
+						float (*vcos)[3] = malloc(sizeof(*vcos)*me->totvert);
+						int a;
+
+						for (a=0; a<me->totvert; a++) {
+							VECCOPY(vcos[a], me->mvert[a].co);
+						}
+						mesh_deform( base->object, vcos );
+						for (a=0; a<me->totvert; a++) {
+							VECCOPY(me->mvert[a].co, vcos[a]);
+						}
+
+						free(vcos);
+					} else {
+						object_deform( base->object );
+					}
+				}
 			}
 		}
 		base = base->next;

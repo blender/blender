@@ -71,7 +71,7 @@ typedef struct {
 	MVert *verts;
 	float *nors;
 
-	int freeNors;
+	int freeNors, freeVerts;
 } MeshDerivedMesh;
 
 static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
@@ -446,7 +446,7 @@ static void meshDM_release(DerivedMesh *dm)
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 
 	if (mdm->freeNors) MEM_freeN(mdm->nors);
-	if (mdm->verts!=((Mesh*) mdm->me)->mvert) MEM_freeN(mdm->verts);
+	if (mdm->freeVerts) MEM_freeN(mdm->verts);
 	MEM_freeN(mdm);
 }
 
@@ -505,6 +505,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	mdm->verts = me->mvert;
 	mdm->nors = NULL;
 	mdm->freeNors = 0;
+	mdm->freeVerts = 0;
 
 	if (vertCos) {
 		int i;
@@ -517,6 +518,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 		}
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
+		mdm->freeVerts = 1;
 	} else {
 		mdm->nors = mesh_build_faceNormals(ob);
 		mdm->freeNors = 1;
@@ -1018,22 +1020,7 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 	*final_r = NULL;
 
 	if (useDeform && ob) {
-		MVert *deformedMVerts;
-
-		mesh_modifier(ob, &deformedMVerts);
-		if (deformedMVerts) {
-			int i;
-
-			deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*me->totvert, "deformedverts");
-
-			for (i=0; i<me->totvert; i++) {
-				VECCOPY(deformedVerts[i], deformedMVerts[i].co);
-			}
-
-			MEM_freeN(deformedMVerts);
-		} else {
-			deformedVerts = NULL;
-		}
+		mesh_modifier(ob, &deformedVerts);
 
 		if (deform_r) *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
 	} else {
@@ -1053,22 +1040,70 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 
 /***/
 
+static void clear_and_build_mesh_data(Object *ob, int mustBuildForMesh)
+{
+	float min[3], max[3];
+	Mesh *me= ob->data;
+
+	if(ob->flag&OB_FROMDUPLI) return; // XXX is this needed
+
+		/* also serves as signal to remake texspace */
+	if (me->bb) {
+		MEM_freeN(me->bb);
+		me->bb = NULL;
+	}
+
+	freedisplist(&ob->disp);
+
+	if (ob->derivedFinal) {
+		ob->derivedFinal->release(ob->derivedFinal);
+		ob->derivedFinal= NULL;
+	}
+	if (ob->derivedDeform) {
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform= NULL;
+	}
+
+	if (ob==G.obedit) {
+		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
+	} 
+	
+	if (ob!=G.obedit || mustBuildForMesh) {
+		mesh_calc_modifiers(ob->data, ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+	
+		INIT_MINMAX(min, max);
+
+		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
+
+		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
+
+		build_particle_system(ob);
+	}
+}
+
+void makeDispListMesh(Object *ob)
+{
+	clear_and_build_mesh_data(ob, 0);
+}
+
+/***/
+
 DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 {
 	Mesh *me = ob->data;
 
-	if (!me->derived) {
-		makeDispListMesh(ob);
+	if (!ob->derivedFinal) {
+		clear_and_build_mesh_data(ob, 1);
 	}
 
 	*needsFree_r = 0;
-	return me->derived;
+	return ob->derivedFinal;
 }
 
 DerivedMesh *mesh_get_derived_deform(Object *ob, int *needsFree_r)
 {
 	if (!ob->derivedDeform) {
-		makeDispListMesh(ob);
+		clear_and_build_mesh_data(ob, 1);
 	} 
 
 	*needsFree_r = 0;
@@ -1140,47 +1175,4 @@ DerivedMesh *editmesh_get_derived_cage(int *needsFree_r)
 	}
 
 	return dm;
-}
-
-/***/
-
-void makeDispListMesh(Object *ob)
-{
-	MVert *deformedMVerts = NULL;
-	float min[3], max[3];
-	Mesh *me;
-
-	if(ob->flag&OB_FROMDUPLI) return; // XXX is this needed
-	me= ob->data;
-
-		/* also serves as signal to remake texspace */
-	if (me->bb) {
-		MEM_freeN(me->bb);
-		me->bb = NULL;
-	}
-
-	freedisplist(&ob->disp);
-
-	if (me->derived) {
-		me->derived->release(me->derived);
-		me->derived= NULL;
-	}
-	if (ob->derivedDeform) {
-		ob->derivedDeform->release(ob->derivedDeform);
-		ob->derivedDeform= NULL;
-	}
-
-	if (ob==G.obedit) {
-		G.editMesh->derived= subsurf_make_derived_from_editmesh(G.editMesh, me->subdiv, me->subsurftype, G.editMesh->derived);
-	} else {
-		mesh_calc_modifiers(ob->data, ob, NULL, &ob->derivedDeform, &me->derived, 0, 1);
-	
-		INIT_MINMAX(min, max);
-
-		me->derived->getMinMax(me->derived, min, max);
-
-		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
-
-		build_particle_system(ob);
-	}
 }

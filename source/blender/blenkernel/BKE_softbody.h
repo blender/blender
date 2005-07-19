@@ -56,8 +56,10 @@ extern struct SoftBody	*sbNew(void);
 /* frees internal data and softbody itself */
 extern void				sbFree(struct SoftBody *sb);
 
-/* go one step in simulation, copy result in displist vertices */
-extern void				sbObjectStep(struct Object *ob, float framnr);
+/* go one step in simulation, copy result in vertexCos for meshes, or
+ * directly for lattices.
+ */
+extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3]);
 
 /* makes totally fresh start situation, resets time */
 extern void				sbObjectToSoftbody(struct Object *ob);
