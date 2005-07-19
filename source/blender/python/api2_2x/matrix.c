@@ -232,7 +232,7 @@ PyObject *Matrix_Invert(MatrixObject * self)
 			}
 		}
 		//transpose
-		Matrix_Transpose(self);
+		//Matrix_Transpose(self);
 	} else {
 		printf("Matrix.invert: matrix does not have an inverse\n");
 	}
