@@ -1198,14 +1198,15 @@ void add_primitiveArmature(int type)
 /* the ctrl-click method */
 void addvert_armature(void)
 {
-	EditBone *ebone, *newbone;
+	EditBone *ebone, *newbone, *partest;
 	float *curs, mat[3][3],imat[3][3];
 	
 	TEST_EDITARMATURE;
 	
 	/* find the active or selected bone */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
-		if(ebone->flag & BONE_ACTIVE) break;
+		if(ebone->flag & (BONE_ACTIVE|BONE_TIPSEL)) break;
+	
 	if(ebone==NULL) return;
 	
 	deselectall_armature(0);
@@ -1213,6 +1214,16 @@ void addvert_armature(void)
 	newbone->flag |= BONE_ACTIVE;
 	
 	VECCOPY(newbone->head, ebone->tail);
+	
+	/* See if there are any ik children of the parent */
+	for (partest = G.edbo.first; partest; partest= partest->next){
+		if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
+			break;
+	}
+	if(!partest)
+		newbone->flag |= BONE_IK_TOPARENT;
+	
+	newbone->parent= ebone;
 	
 	curs= give_cursor();
 	VECCOPY(newbone->tail, curs);
