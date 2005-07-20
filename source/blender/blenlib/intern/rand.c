@@ -29,6 +29,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#include <stdlib.h>
+#include <string.h>
+
 #include "PIL_time.h"
 #include "BLI_rand.h"
 
@@ -86,3 +90,27 @@ void BLI_fillrand(void *addr, int len) {
 	while (len--) *p++= BLI_rand()&0xFF;
 	BLI_restorerand(save);
 }
+
+void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int seed)
+{
+	unsigned int oldrand[2];
+	int i = numElems;
+	void *temp = malloc(elemSize);
+
+	BLI_storerand(oldrand);
+	BLI_srand(seed);
+
+	while (--i) {
+		int j = BLI_rand()%i;
+		void *iElem = (unsigned char*)data + i*elemSize;
+		void *jElem = (unsigned char*)data + j*elemSize;
+
+		memcpy(temp, iElem, elemSize);
+		memcpy(iElem, jElem, elemSize);
+		memcpy(jElem, temp, elemSize);
+	}
+
+	BLI_restorerand(oldrand);
+	free(temp);
+}
+

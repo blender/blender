@@ -65,5 +65,8 @@ void	BLI_storerand	(unsigned int loc_r[2]);
 	 */
 void	BLI_restorerand	(unsigned int loc[2]);
 
+	/** Shuffle an array randomly using the given seed. */
+void	BLI_array_randomize	(void *data, int elemSize, int numElems, unsigned int seed);
+
 #endif
 
