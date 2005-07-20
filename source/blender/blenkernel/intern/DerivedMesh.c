@@ -1022,7 +1022,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			ModifierTypeInfo *mti = modifierType_get_info(md->type);
 
 			if (!(md->mode&(1<<useRenderParams))) continue;
-			if (mti->isDisabled(md)) continue;
+			if (mti->isDisabled && mti->isDisabled(md)) continue;
 
 			if (mti->type==eModifierTypeType_OnlyDeform) {
 				mti->deformVerts(md, ob, deformedVerts, numVerts);
@@ -1049,7 +1049,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 
 		if (!(md->mode&(1<<useRenderParams))) continue;
 		if (mti->type==eModifierTypeType_OnlyDeform && !useDeform) continue;
-		if (mti->isDisabled(md)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
 			/* How to apply modifier depends on (a) what we already have as
 			 * a result of previous modifiers (could be a DerivedMesh or just

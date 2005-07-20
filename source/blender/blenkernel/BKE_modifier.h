@@ -76,7 +76,7 @@ typedef struct ModifierTypeInfo {
 		 * tested by the system, this is just if the data validates (for example, a
 		 * lattice will return false if the lattice object is not defined).
 		 *
-		 * This function must be present.
+		 * This function is optional (assumes never disabled if not present).
 		 */
 	int (*isDisabled)(struct ModifierData *md);
 

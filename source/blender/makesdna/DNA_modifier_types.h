@@ -11,6 +11,7 @@ typedef enum ModifierType {
 	eModifierType_Lattice,
 	eModifierType_Curve,
 	eModifierType_Build,
+	eModifierType_Mirror,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -56,5 +57,12 @@ typedef struct BuildModifierData {
 	float start, length;
 	int randomize, seed;
 } BuildModifierData;
+
+typedef struct MirrorModifierData {
+	ModifierData modifier;
+
+	int axis;
+	float tolerance;
+} MirrorModifierData;
 
 #endif

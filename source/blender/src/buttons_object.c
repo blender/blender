@@ -1832,6 +1832,12 @@ static void object_panel_modifiers(Object *ob)
 				uiDefButF(block, NUM, B_MAKEDISP, "Length:", 550, 300, 150,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
 				uiDefButI(block, TOG, B_MAKEDISP, "Randomize", 550, 280, 150,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
 				uiDefButI(block, NUM, B_MAKEDISP, "Seed:", 700, 280, 150,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
+			} else if (md->type==eModifierType_Mirror) {
+				MirrorModifierData *mmd = (MirrorModifierData*) md;
+				uiDefButF(block, NUM, B_MAKEDISP, "Tolerance:", 550, 320, 150,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which to share vertices");
+				uiDefButI(block, ROW, B_MAKEDISP, "X",	550, 300, 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
+				uiDefButI(block, ROW, B_MAKEDISP, "Y",	570, 300, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
+				uiDefButI(block, ROW, B_MAKEDISP, "Z",	590, 300, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 			}
 
 			uiBlockEndAlign(block);

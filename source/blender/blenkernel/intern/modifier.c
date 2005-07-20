@@ -118,11 +118,6 @@ static ModifierData *subsurfModifier_allocData(void)
 	return (ModifierData*) smd;
 }
 
-static int subsurfModifier_isDisabled(ModifierData *md)
-{
-	return 0;
-}
-
 static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
@@ -161,11 +156,6 @@ static ModifierData *buildModifier_allocData(void)
 	bmd->length = 100.0;
 
 	return (ModifierData*) bmd;
-}
-
-static int buildModifier_isDisabled(ModifierData *md)
-{
-	return 0;
 }
 
 static int buildModifier_dependsOnTime(ModifierData *md)
@@ -381,6 +371,225 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 	return derivedmesh_from_displistmesh(ndlm);
 }
 
+/* Mirror */
+
+static ModifierData *mirrorModifier_allocData(void)
+{
+	MirrorModifierData *mmd = allocModifierData(eModifierType_Mirror, sizeof(MirrorModifierData));
+
+	mmd->axis = 0;
+	mmd->tolerance = 0.001;
+
+	return (ModifierData*) mmd;
+}
+
+static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*dlm), "mm_dlm");
+	MVert *mvert;
+	MEdge *medge;
+	MFace *mface;
+	TFace *tface;
+	MCol *mcol;
+	int i, j, totvert, totedge, totface;
+	int axis = mmd->axis;
+	float tolerance = mmd->tolerance;
+
+	if (dm) {
+		dlm = dm->convertToDispListMesh(dm);
+
+		mvert = dlm->mvert;
+		medge = dlm->medge;
+		mface = dlm->mface;
+		tface = dlm->tface;
+		mcol = dlm->mcol;
+		totvert = dlm->totvert;
+		totedge = dlm->totedge;
+		totface = dlm->totface;
+	} else {
+		Mesh *me = ob->data;
+
+		mvert = me->mvert;
+		medge = me->medge;
+		mface = me->mface;
+		tface = me->tface;
+		mcol = me->mcol;
+		totvert = me->totvert;
+		totedge = me->totedge;
+		totface = me->totface;
+	}
+
+	ndlm->mvert = MEM_mallocN(sizeof(*mvert)*totvert*2, "mm_mv");
+	for (i=0,j=totvert; i<totvert; i++) {
+		MVert *mv = &mvert[i];
+		MVert *nmv = &ndlm->mvert[i];
+
+		memcpy(nmv, mv, sizeof(*mv));
+
+		if (ABS(nmv->co[axis])<=tolerance) {
+			nmv->co[axis] = 0;
+			*((int*) nmv->no) = i;
+		} else {
+			MVert *nmvMirror = &ndlm->mvert[j];
+
+				/* Because the topology result (# of vertices) must stuff the same
+				 * if the mesh data is overridden by vertex cos, have to calc sharedness
+				 * based on original coordinates. Only write new cos for non-shared
+				 * vertices.
+				 */
+			if (vertexCos) {
+				VECCOPY(nmv->co, vertexCos[i]);
+			}
+
+			memcpy(nmvMirror, nmv, sizeof(*mv));
+			nmvMirror->co[axis] = -nmvMirror->co[axis];
+
+			*((int*) nmv->no) = j++;
+		}
+	}
+	ndlm->totvert = j;
+
+	if (medge) {
+		ndlm->medge = MEM_mallocN(sizeof(*medge)*totedge*2, "mm_med");
+		memcpy(ndlm->medge, medge, sizeof(*medge)*totedge);
+		ndlm->totedge = totedge;
+
+		for (i=0; i<totedge; i++) {
+			MEdge *med = &ndlm->medge[i];
+			MEdge *nmed = &ndlm->medge[ndlm->totedge];
+
+			memcpy(nmed, med, sizeof(*med));
+
+			nmed->v1 = *((int*) ndlm->mvert[nmed->v1].no);
+			nmed->v2 = *((int*) ndlm->mvert[nmed->v2].no);
+
+			if (nmed->v1!=med->v1 || nmed->v2!=med->v2) {
+				ndlm->totedge++;
+			}
+		}
+	}
+
+	ndlm->mface = MEM_mallocN(sizeof(*mface)*totface*2, "mm_mf");
+	memcpy(ndlm->mface, mface, sizeof(*mface)*totface);
+
+	if (tface) {
+		ndlm->tface = MEM_mallocN(sizeof(*tface)*totface*2, "mm_tf");
+		memcpy(ndlm->tface, tface, sizeof(*tface)*totface);
+	} else if (mcol) {
+		ndlm->mcol = MEM_mallocN(sizeof(*mcol)*4*totface*2, "mm_mcol");
+		memcpy(ndlm->mcol, mcol, sizeof(*mcol)*4*totface);
+	}
+
+	ndlm->totface = totface;
+	for (i=0; i<totface; i++) {
+		MFace *mf = &ndlm->mface[i];
+		MFace *nmf = &ndlm->mface[ndlm->totface];
+		TFace *tf, *ntf;
+		MCol *mc, *nmc;
+
+		memcpy(nmf, mf, sizeof(*mf));
+		if (tface) {
+			ntf = &ndlm->tface[ndlm->totface];
+			tf = &ndlm->tface[i];
+			memcpy(ntf, tf, sizeof(*tface));
+		} else if (mcol) {
+			nmc = &ndlm->mcol[ndlm->totface*4];
+			mc = &ndlm->mcol[i*4];
+			memcpy(nmc, mc, sizeof(*mcol)*4);
+		}
+
+			/* Map vertices to shared */
+
+		nmf->v1 = *((int*) ndlm->mvert[nmf->v1].no);
+		nmf->v2 = *((int*) ndlm->mvert[nmf->v2].no);
+		if (nmf->v3) {
+			nmf->v3 = *((int*) ndlm->mvert[nmf->v3].no);
+			if (nmf->v4) nmf->v4 = *((int*) ndlm->mvert[nmf->v4].no);
+		}
+
+			/* If all vertices shared don't duplicate face */
+		if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4)
+			continue;
+
+		if (nmf->v3) {
+			if (nmf->v4) {
+				int copyIdx;
+
+					/* If three in order vertices are shared then duplicating the face 
+					* will be strange (don't want two quads sharing three vertices in a
+					* mesh. Instead modify the original quad to leave out the middle vertice
+					* and span the gap. Vertice will remain in mesh and still have edges
+					* to it but will not interfere with normals.
+					*/
+				if (nmf->v4==mf->v4 && nmf->v1==mf->v1 && nmf->v2==mf->v2) {
+					mf->v1 = nmf->v3;
+					copyIdx = 0;
+				} else if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3) {
+					mf->v2 = nmf->v4;
+					copyIdx = 1;
+				}  else if (nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4) {
+					mf->v3 = nmf->v1;
+					copyIdx = 2;
+				} else if (nmf->v3==mf->v3 && nmf->v4==mf->v4 && nmf->v1==mf->v1) {
+					mf->v4 = nmf->v2;
+					copyIdx = 3;
+				} else {
+					copyIdx = -1;
+				}
+
+				if (copyIdx!=-1) {
+					int fromIdx = (copyIdx+2)%4;
+
+					if (tface) {
+						tf->col[copyIdx] = ntf->col[fromIdx];
+						tf->uv[copyIdx][0] = ntf->uv[fromIdx][0];
+						tf->uv[copyIdx][1] = ntf->uv[fromIdx][1];
+					} else if (mcol) {
+						mc[copyIdx] = nmc[fromIdx];
+					}
+
+					continue;
+				}
+			}
+
+				/* Need to flip face normal, pick which verts to flip
+				 * in order to prevent nmf->v3==0 or nmf->v4==0
+				 */
+			if (nmf->v1) {
+				SWAP(int, nmf->v1, nmf->v3);
+
+				if (tface) {
+					SWAP(unsigned int, ntf->col[0], ntf->col[2]);
+					SWAP(float, ntf->uv[0][0], ntf->uv[2][0]);
+					SWAP(float, ntf->uv[0][1], ntf->uv[2][1]);
+				} else if (mcol) {
+					SWAP(MCol, nmc[0], nmc[2]);
+				}
+			} else {
+				SWAP(int, nmf->v2, nmf->v4);
+
+				if (tface) {
+					SWAP(unsigned int, ntf->col[1], ntf->col[3]);
+					SWAP(float, ntf->uv[1][0], ntf->uv[3][0]);
+					SWAP(float, ntf->uv[1][1], ntf->uv[3][1]);
+				} else if (mcol) {
+					SWAP(MCol, nmc[1], nmc[3]);
+				}
+			}
+		}
+
+		ndlm->totface++;
+	}
+
+	if (dlm) displistmesh_free(dlm);
+	if (dm) dm->release(dm);
+
+	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
+	
+	return derivedmesh_from_displistmesh(ndlm);
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -427,7 +636,6 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping;
 		mti->allocData = subsurfModifier_allocData;
-		mti->isDisabled = subsurfModifier_isDisabled;
 		mti->applyModifier = subsurfModifier_applyModifier;
 
 		mti = &typeArr[eModifierType_Build];
@@ -436,9 +644,16 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->allocData = buildModifier_allocData;
-		mti->isDisabled = buildModifier_isDisabled;
 		mti->dependsOnTime = buildModifier_dependsOnTime;
 		mti->applyModifier = buildModifier_applyModifier;
+
+		mti = &typeArr[eModifierType_Mirror];
+		strcpy(mti->name, "Mirror");
+		strcpy(mti->structName, "MirrorModifierData");
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->allocData = mirrorModifier_allocData;
+		mti->applyModifier = mirrorModifier_applyModifier;
 
 		typeArrInit = 0;
 	}
