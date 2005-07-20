@@ -7,7 +7,18 @@
  * Erwin Coumans makes no representations about the suitability 
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
+ *
+	
+	Elsevier CDROM license agreements grants nonexclusive license to use the software
+	for any purpose, commercial or non-commercial as long as the following credit is included
+	identifying the original source of the software:
+
+	Parts of the source are "from the book Real-Time Collision Detection by
+	Christer Ericson, published by Morgan Kaufmann Publishers,
+	(c) 2005 Elsevier Inc."
+		
 */
+
 
 #include "VoronoiSimplexSolver.h"
 #include <assert.h>
