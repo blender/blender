@@ -221,6 +221,8 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*totvert, "build_mvert");
 		memcpy(ndlm->mvert, mvert, sizeof(*mvert)*totvert);
 		for (i=0; i<totvert; i++) {
+			if (vertexCos)
+				VECCOPY(ndlm->mvert[i].co, vertexCos[i]);
 			ndlm->mvert[i].flag = 0;
 		}
 
@@ -312,6 +314,8 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*totvert, "build_mvert");
 		memcpy(ndlm->mvert, mvert, sizeof(*mvert)*totvert);
 		for (i=0; i<totvert; i++) {
+			if (vertexCos)
+				VECCOPY(ndlm->mvert[i].co, vertexCos[i]);
 			ndlm->mvert[i].flag = 0;
 		}
 
@@ -362,6 +366,11 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 
 		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*ndlm->totvert, "build_mvert");
 		memcpy(ndlm->mvert, mvert, sizeof(*mvert)*ndlm->totvert);
+		if (vertexCos) {
+			for (i=0; i<ndlm->totvert; i++) {
+				VECCOPY(ndlm->mvert[i].co, vertexCos[i]);
+			}
+		}
 	}
 
 	if (dm) dm->release(dm);
