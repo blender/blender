@@ -167,11 +167,8 @@ void *MEM_dupallocN(void *vmemh)
 		MemHead *memh= vmemh;
 		memh--;
 
-		if (memh->len) {
-			newp= MEM_mallocN(memh->len, "dupli_alloc");
-			memcpy(newp, vmemh, memh->len);
-		} else
-			if (err_stream) fprintf(err_stream, "error: MEM_dupallocN with len==0 %s\n", memh->name);
+		newp= MEM_mallocN(memh->len, "dupli_alloc");
+		memcpy(newp, vmemh, memh->len);
 	}
 
 	return newp;
