@@ -358,7 +358,7 @@ class Object:
   def getParentBoneName():
     """
     Returns the object's parent object's sub name, or None.
-		For objects parented to bones, this is the name of the bone.
+    For objects parented to bones, this is the name of the bone.
     @rtype: String
     @return: The parent object sub-name of the object.
 		If not available, None will be returned.
