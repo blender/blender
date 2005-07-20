@@ -422,8 +422,9 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 	if (size_r) VECCOPY(size_r, me->size);
 }
 
-static float *make_orco_mesh_internal(Mesh *me, int render)
+static float *make_orco_mesh_internal(Object *ob, int render)
 {
+	Mesh *me = ob->data;
 	float (*orcoData)[3];
 	int a, totvert;
 	float loc[3], size[3];
@@ -458,9 +459,9 @@ static float *make_orco_mesh_internal(Mesh *me, int render)
 		/* Apply orco-changing modifiers */
 
 	if (render) {
-		dm = mesh_create_derived_no_deform_render(me, vcos);
+		dm = mesh_create_derived_no_deform_render(ob, vcos);
 	} else {
-		dm = mesh_create_derived_no_deform(me, vcos);
+		dm = mesh_create_derived_no_deform(ob, vcos);
 	}
 	totvert = dm->getNumVerts(dm);
 
@@ -483,12 +484,12 @@ static float *make_orco_mesh_internal(Mesh *me, int render)
 
 float *mesh_create_orco_render(Object *ob) 
 {
-	return make_orco_mesh_internal(ob->data, 1);
+	return make_orco_mesh_internal(ob, 1);
 }
 
 float *mesh_create_orco(Object *ob)
 {
-	return make_orco_mesh_internal(ob->data, 0);
+	return make_orco_mesh_internal(ob, 0);
 }
 
 /** rotates the vertices of a face in case v[2] or v[3] (vertex index)

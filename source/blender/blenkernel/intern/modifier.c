@@ -123,11 +123,11 @@ static int subsurfModifier_isDisabled(ModifierData *md)
 	return 0;
 }
 
-static void *subsurfModifier_applyModifier(ModifierData *md, void *data, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	int levels = useRenderParams?smd->renderLevels:smd->levels;
-	Mesh *me = data;
+	Mesh *me = ob->data;
 
 	if (dm) {
 		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts were shared
@@ -173,7 +173,7 @@ static int buildModifier_dependsOnTime(ModifierData *md)
 	return 1;
 }
 
-static void *buildModifier_applyModifier(ModifierData *md, void *data, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
 {
 	BuildModifierData *bmd = (BuildModifierData*) md;
 	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*ndlm), "build_dlm");
@@ -197,7 +197,7 @@ static void *buildModifier_applyModifier(ModifierData *md, void *data, Object *o
 		totedge = dlm->totedge;
 		totface = dlm->totface;
 	} else {
-		Mesh *me = data;
+		Mesh *me = ob->data;
 		mvert = me->mvert;
 		medge = me->medge;
 		mface = me->mface;

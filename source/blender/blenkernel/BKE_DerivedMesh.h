@@ -153,8 +153,8 @@ DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
 
 DerivedMesh *mesh_create_derived_render(struct Object *ob);
-DerivedMesh *mesh_create_derived_no_deform(struct Mesh *me, float (*vertCos)[3]);
-DerivedMesh *mesh_create_derived_no_deform_render(struct Mesh *me, float (*vertCos)[3]);
+DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3]);
+DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob, float (*vertCos)[3]);
 
 DerivedMesh *editmesh_get_derived(void);
 DerivedMesh *editmesh_get_derived_proxy(void);

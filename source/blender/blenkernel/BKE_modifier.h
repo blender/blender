@@ -58,7 +58,6 @@ typedef enum {
 	eModifierTypeFlag_AcceptsMesh = (1<<0),
 	eModifierTypeFlag_AcceptsCVs = (1<<1),
 	eModifierTypeFlag_SupportsMapping = (1<<2),
-	eModifierTypeFlag_RequiresObject = (1<<3),
 } ModifierTypeFlag;
 
 typedef struct ModifierTypeInfo {
@@ -95,15 +94,14 @@ typedef struct ModifierTypeInfo {
 	int (*dependsOnTime)(struct ModifierData *md);
 
 		/* Only for deform types, should apply the deformation
-		 * to the given vertex array. Object is guaranteed to be
-		 * non-NULL.
+		 * to the given vertex array. 
 		 */
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob, float (*vertexCos)[3], int numVerts);
 
 		/* For non-deform types: apply the modifier and return a new derived
 		 * data object (type is dependent on object type). If the _derivedData_
 		 * argument is non-NULL then the modifier should read the object data 
-		 * from the derived object instead of the _data_ object. 
+		 * from the derived object instead of the actual object data. 
 		 *
 		 * If the _vertexCos_ argument is non-NULL then the modifier should read 
 		 * the vertex coordinates from that (even if _derivedData_ is non-NULL).
@@ -116,13 +114,8 @@ typedef struct ModifierTypeInfo {
 		 *
 		 * The modifier is expected to release (or reuse) the _derivedData_ argument
 		 * if non-NULL. The modifier *MAY NOT* share the _vertexCos_ argument.
-		 *
-		 * It is possible for _ob_ to be NULL if the modifier type is not flagged
-		 * to require an object. A NULL _ob_ occurs when original coordinate data
-		 * is requested for an object.
 		 */
-	void *(*applyModifier)(struct ModifierData *md, void *data, struct Object *ob, 
-		 								void *derivedData, float (*vertexCos)[3], int useRenderParams);
+	void *(*applyModifier)(struct ModifierData *md, struct Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams);
 } ModifierTypeInfo;
 
 ModifierTypeInfo *modifierType_get_info(ModifierType type);

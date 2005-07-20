@@ -994,9 +994,10 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 /***/
 
-static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
+static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
-	ModifierData *md= ob?ob->modifiers.first:NULL;
+	Mesh *me = ob->data;
+	ModifierData *md= ob->modifiers.first;
 	float (*deformedVerts)[3];
 	DerivedMesh *dm;
 	int a, numVerts = me->totvert;
@@ -1040,8 +1041,7 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 	}
 
 		/* Now apply all remaining modifiers. If useDeform is off then skip
-		 * OnlyDeform ones. If we have no _ob_ and the modifier requires one
-		 * also skip.
+		 * OnlyDeform ones. 
 		 */
 	dm = NULL;
 	for (; md; md=md->next) {
@@ -1049,7 +1049,6 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 
 		if (!(md->mode&(1<<useRenderParams))) continue;
 		if (mti->type==eModifierTypeType_OnlyDeform && !useDeform) continue;
-		if (!ob && (mti->flags&eModifierTypeFlag_RequiresObject)) continue;
 		if (mti->isDisabled(md)) continue;
 
 			/* How to apply modifier depends on (a) what we already have as
@@ -1082,7 +1081,7 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 				 * by the modifier apply function, which will also free the DerivedMesh if
 				 * it exists.
 				 */
-			dm = mti->applyModifier(md, me, ob, dm, deformedVerts, useRenderParams);
+			dm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams);
 
 			if (deformedVerts) {
 				if (deformedVerts!=inputVertexCos) {
@@ -1105,7 +1104,7 @@ static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3]
 			smd.renderLevels = me->subdivr;
 			smd.subdivType = me->subsurftype;
 
-			dm = mti->applyModifier(&smd.modifier, me, ob, dm, deformedVerts, useRenderParams);
+			dm = mti->applyModifier(&smd.modifier, ob, dm, deformedVerts, useRenderParams);
 
 			if (deformedVerts) {
 				if (deformedVerts!=inputVertexCos) {
@@ -1182,7 +1181,7 @@ static void clear_and_build_mesh_data(Object *ob, int mustBuildForMesh)
 	} 
 	
 	if (ob!=G.obedit || mustBuildForMesh) {
-		mesh_calc_modifiers(ob->data, ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
 	
 		INIT_MINMAX(min, max);
 
@@ -1227,25 +1226,25 @@ DerivedMesh *mesh_create_derived_render(Object *ob)
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(ob->data, ob, NULL, NULL, &final, 1, 1);
+	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1);
 
 	return final;
 }
 
-DerivedMesh *mesh_create_derived_no_deform(Mesh *me, float (*vertCos)[3])
+DerivedMesh *mesh_create_derived_no_deform(Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(me, NULL, vertCos, NULL, &final, 0, 0);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 0, 0);
 
 	return final;
 }
 
-DerivedMesh *mesh_create_derived_no_deform_render(Mesh *me, float (*vertCos)[3])
+DerivedMesh *mesh_create_derived_no_deform_render(Object *ob, float (*vertCos)[3])
 {
 	DerivedMesh *final;
 
-	mesh_calc_modifiers(me, NULL, vertCos, NULL, &final, 1, 0);
+	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0);
 
 	return final;
 }

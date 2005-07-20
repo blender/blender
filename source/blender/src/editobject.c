@@ -2209,7 +2209,7 @@ void convertmenu(void)
 					for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
 				
-				dm= mesh_create_derived_no_deform(ob->data, NULL);
+				dm= mesh_create_derived_no_deform(ob, NULL);
 				dlm= dm->convertToDispListMesh(dm);
 				dm->release(dm);
 
