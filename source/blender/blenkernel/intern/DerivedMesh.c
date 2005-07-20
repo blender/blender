@@ -1007,7 +1007,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 
 		/* Note: useDeform==1 implies ob must be non-NULL */
 
-	if (useDeform && ob) {
+	if (useDeform) {
 		mesh_modifier(ob, &deformedVerts);
 
 		if (!deformedVerts) {

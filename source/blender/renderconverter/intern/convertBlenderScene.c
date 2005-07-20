@@ -1312,7 +1312,7 @@ static void init_render_mesh(Object *ob)
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
+	int a, a1, ok, need_orco=0, totvlako, totverto, vertofs;
 	int end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
 	DerivedMesh *dm;
@@ -1337,8 +1337,6 @@ static void init_render_mesh(Object *ob)
 	
 	totvlako= R.totvlak;
 	totverto= R.totvert;
-
-	if(me->key) do_puno= 1;
 
 	need_orco= 0;
 	for(a=1; a<=ob->totcol; a++) {
@@ -1380,13 +1378,11 @@ static void init_render_mesh(Object *ob)
 			xn= mvert->no[0];
 			yn= mvert->no[1];
 			zn= mvert->no[2];
-			if(do_puno==0) {
-				/* transpose ! */
-				ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalise(ver->n);
-			}
+			/* transpose ! */
+			ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+			ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+			ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+			Normalise(ver->n);
 			if(orco) {
 				ver->orco= orco;
 				orco+=3;
@@ -1559,13 +1555,11 @@ static void init_render_mesh(Object *ob)
 					xn= (v0->no[0]+v1->no[0]);
 					yn= (v0->no[1]+v1->no[1]);
 					zn= (v0->no[2]+v1->no[2]);
-					if(do_puno==0) {
-						/* transpose ! */
-						vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-						vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-						vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-						Normalise(vlr->n);
-					}
+					/* transpose ! */
+					vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+					vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+					vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+					Normalise(vlr->n);
 					
 					vlr->mat= ma;
 					vlr->flag= 0;
@@ -1574,11 +1568,6 @@ static void init_render_mesh(Object *ob)
 				}
 			}
 		}
-	}
-	
-	if(do_puno) {
-		calc_vertexnormals(totverto, totvlako);
-		do_puno= 0;
 	}
 	
 	if (test_for_displace( ob ) ) 
