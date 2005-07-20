@@ -893,7 +893,6 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 
 		start = 0;
 		totface = me->totface;
-		set_buildvars(ob, &start, &totface);
 
 		if (!editing && prop && tface) {
 			dm = mesh_get_derived_deform(ob, &dmNeedsFree);

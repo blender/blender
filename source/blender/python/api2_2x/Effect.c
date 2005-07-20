@@ -34,7 +34,6 @@
 #include "DNA_object_types.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
-#include "Build.h"
 #include "Particle.h"
 #include "Wave.h"
 #include "gen_utils.h"
@@ -104,8 +103,6 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 						"expected type argument(wave,build or particle)" ) );
 	if( !strcmp( btype, "wave" ) )
 		type = EFF_WAVE;
-	if( !strcmp( btype, "build" ) )
-		type = EFF_BUILD;
 	if( !strcmp( btype, "particle" ) )
 		type = EFF_PARTICLE;
 	if( type == -1 )
@@ -235,7 +232,6 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 /*****************************************************************************/
 
 
-PyObject *Build_Init( void );
 PyObject *Wave_Init( void );
 PyObject *Particle_Init( void );
 
@@ -248,7 +244,6 @@ PyObject *Effect_Init( void )
 	submodule = Py_InitModule3( "Blender.Effect", M_Effect_methods, 0 );
 	dict = PyModule_GetDict( submodule );
 	PyDict_SetItemString( dict, "Wave", Wave_Init(  ) );
-	PyDict_SetItemString( dict, "Build", Build_Init(  ) );
 	PyDict_SetItemString( dict, "Particle", Particle_Init(  ) );
 	return ( submodule );
 }
@@ -324,8 +319,6 @@ void EffectDeAlloc( BPy_Effect * self )
 PyObject *EffectGetAttr( BPy_Effect * self, char *name )
 {
 	switch ( self->effect->type ) {
-	case EFF_BUILD:
-		return BuildGetAttr( ( BPy_Build * ) self, name );
 	case EFF_WAVE:
 		return WaveGetAttr( ( BPy_Wave * ) self, name );
 	case EFF_PARTICLE:
@@ -345,8 +338,6 @@ PyObject *EffectGetAttr( BPy_Effect * self, char *name )
 int EffectSetAttr( BPy_Effect * self, char *name, PyObject * value )
 {
 	switch ( self->effect->type ) {
-	case EFF_BUILD:
-		return BuildSetAttr( ( BPy_Build * ) self, name, value );
 	case EFF_WAVE:
 		return WaveSetAttr( ( BPy_Wave * ) self, name, value );
 	case EFF_PARTICLE:
@@ -363,7 +354,6 @@ int EffectSetAttr( BPy_Effect * self, char *name, PyObject * value )
 /*
 int EffectPrint(BPy_Effect *self, FILE *fp, int flags) 
 { 
-if (self->effect->type == EFF_BUILD)puts("Effect Build");
 if (self->effect->type == EFF_PARTICLE)puts("Effect Particle");
 if (self->effect->type == EFF_WAVE)puts("Effect Wave");
  
@@ -379,8 +369,6 @@ if (self->effect->type == EFF_WAVE)puts("Effect Wave");
 PyObject *EffectRepr( BPy_Effect * self )
 {
 	char *str = "";
-	if( self->effect->type == EFF_BUILD )
-		str = "Effect Build";
 	if( self->effect->type == EFF_PARTICLE )
 		str = "Effect Particle";
 	if( self->effect->type == EFF_WAVE )

@@ -50,7 +50,6 @@ struct Effect *copy_effect(struct Effect *eff);
 void copy_act_effect(struct Object *ob);
 void copy_effects(struct ListBase *lbn, struct ListBase *lb);
 void deselectall_eff(struct Object *ob);
-void set_buildvars(struct Object *ob, int *start, int *end);
 struct Particle *new_particle(struct PartEff *paf);
 struct PartEff *give_parteff(struct Object *ob);
 void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, float *vec);

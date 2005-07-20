@@ -1403,6 +1403,17 @@ void DAG_scene_flush_update(Scene *sce)
 	}
 }
 
+static int object_modifiers_use_time(Object *ob)
+{
+	ModifierData *md;
+
+	for (md=ob->modifiers.first; md; md=md->next)
+		if (modifier_dependsOnTime(md))
+			return 1;
+
+	return 0;
+}
+
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 {
@@ -1426,6 +1437,7 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		if(ob->action) ob->recalc |= OB_RECALC_DATA;
 		else if(ob->nlastrips.first) ob->recalc |= OB_RECALC_DATA;
 		else if(ob->softflag & OB_SB_ENABLE) ob->recalc |= OB_RECALC_DATA;
+		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 		else {
 			Mesh *me;
 			Curve *cu;

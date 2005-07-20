@@ -1665,7 +1665,6 @@ static void modifiers_add(void *ob_v, int type)
 	
 		BLI_addtail(&ob->modifiers, md);
 
-		md->type = type;
 		actModifier = BLI_countlist(&ob->modifiers);
 
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -1826,8 +1825,15 @@ static void object_panel_modifiers(Object *ob)
 				uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");
 			} else if (md->type==eModifierType_Curve) {
 				CurveModifierData *cmd = (CurveModifierData*) md;
-				uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &cmd->object, "Lattice object to deform with");
+				uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &cmd->object, "Curve object to deform with");
+			} else if (md->type==eModifierType_Build) {
+				BuildModifierData *bmd = (BuildModifierData*) md;
+				uiDefButF(block, NUM, B_MAKEDISP, "Start:", 550, 320, 150,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
+				uiDefButF(block, NUM, B_MAKEDISP, "Length:", 550, 300, 150,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
+				uiDefButI(block, TOG, B_MAKEDISP, "Randomize", 550, 280, 150,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
+				uiDefButI(block, NUM, B_MAKEDISP, "Seed:", 700, 280, 150,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
 			}
+
 			uiBlockEndAlign(block);
 		}
 	}
@@ -1876,17 +1882,9 @@ static void object_panel_effects(Object *ob)
 	}
 	
 	if(eff) {
-		uiDefButS(block, MENU, B_CHANGEEFFECT, "Build %x0|Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
+		uiDefButS(block, MENU, B_CHANGEEFFECT, "Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
 		
-		if(eff->type==EFF_BUILD) {
-			BuildEff *bld;
-			
-			bld= (BuildEff *)eff;
-			
-			uiDefButF(block, NUM, 0, "Len:",			649,138,95,21, &bld->len, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
-			uiDefButF(block, NUM, 0, "Sfra:",			746,138,94,22, &bld->sfra, 1.0, 9000.0, 100, 0, "Specify the startframe of the effect");
-		}
-		else if(eff->type==EFF_WAVE) {
+		if(eff->type==EFF_WAVE) {
 			WaveEff *wav;
 			
 			wav= (WaveEff *)eff;

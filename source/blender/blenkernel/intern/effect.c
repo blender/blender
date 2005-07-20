@@ -83,20 +83,11 @@
 Effect *add_effect(int type)
 {
 	Effect *eff=0;
-	BuildEff *bld;
 	PartEff *paf;
 	WaveEff *wav;
 	int a;
 	
 	switch(type) {
-	case EFF_BUILD:
-		bld= MEM_callocN(sizeof(BuildEff), "neweff");
-		eff= (Effect *)bld;
-		
-		bld->sfra= 1.0;
-		bld->len= 100.0;
-		break;
-		
 	case EFF_PARTICLE:
 		paf= MEM_callocN(sizeof(PartEff), "neweff");
 		eff= (Effect *)paf;
@@ -194,7 +185,7 @@ void copy_act_effect(Object *ob)
 	}
 	
 	/* when it comes here: add new effect */
-	eff= add_effect(EFF_BUILD);
+	eff= add_effect(EFF_PARTICLE);
 	BLI_addtail(&ob->effect, eff);
 			
 }
@@ -222,28 +213,6 @@ void deselectall_eff(Object *ob)
 	while(eff) {
 		eff->flag &= ~SELECT;
 		eff= eff->next;
-	}
-}
-
-void set_buildvars(Object *ob, int *start, int *end)
-{
-	BuildEff *bld;
-	float ctime;
-	
-	bld= ob->effect.first;
-	while(bld) {
-		if(bld->type==EFF_BUILD) {
-			ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, bld->sfra-1.0f);
-			if(ctime < 0.0) {
-				*end= *start;
-			}
-			else if(ctime < bld->len) {
-				*end= *start+ (int)((*end - *start)*ctime/bld->len);
-			}
-			
-			return;
-		}
-		bld= bld->next;
 	}
 }
 

@@ -148,12 +148,10 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
-	int a, start=0, end=me->totvert;
-
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
+	int a;
 
 	glBegin(GL_POINTS);
-	for(a= start; a<end; a++) {
+	for(a=0; a<me->totvert; a++) {
 		glVertex3fv(mdm->verts[ a].co);
 	}
 	glEnd();
@@ -162,15 +160,10 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->me;
-	int a, start= 0, end= me->totface;
+	int a;
 	MFace *mface = me->mface;
 
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
-	mface+= start;
-	
-		// edges can't cope with buildvars, draw with
-		// faces if build is in use.
-	if(me->medge && start==0 && end==me->totface) {
+	if(me->medge) {
 		MEdge *medge= me->medge;
 		
 		glBegin(GL_LINES);
@@ -184,7 +177,7 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 	}
 	else {
 		glBegin(GL_LINES);
-		for(a=start; a<end; a++, mface++) {
+		for(a=0; a<me->totface; a++, mface++) {
 			int test= mface->edcode;
 			
 			if(test) {
@@ -225,13 +218,10 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
 	MFace *mface= me->mface;
-	int a, start=0, end=me->totface;
+	int a;
 
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
-	mface+= start;
-		
 	glBegin(GL_LINES);
-	for(a=start; a<end; a++, mface++) {
+	for(a=0; a<me->totface; a++, mface++) {
 		if(!mface->v3) {
 			glVertex3fv(mdm->verts[mface->v3].co);
 			glVertex3fv(mdm->verts[mface->v4].co);
@@ -246,12 +236,9 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	float *nors = mdm->nors;
-	int a, start=0, end=me->totface;
+	int a;
 	int glmode=-1, shademodel=-1, matnr=-1, drawCurrentMat=1;
 
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
-	mface+= start;
-	
 #define PASSVERT(index, punoBit) {				\
 	if (shademodel==GL_SMOOTH) {				\
 		short *no = mvert[index].no;			\
@@ -265,7 +252,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 }
 
 	glBegin(glmode=GL_QUADS);
-	for(a=start; a<end; a++, mface++, nors+=3) {
+	for(a=0; a<me->totface; a++, mface++, nors+=3) {
 		if(mface->v3) {
 			int new_glmode, new_matnr, new_shademodel;
 				
@@ -306,14 +293,9 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->me;
 	MFace *mface= me->mface;
-	int a, glmode, start=0, end=me->totface;
+	int a, glmode;
 	unsigned char *cp1, *cp2;
 
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
-	mface+= start;
-	col1+= 4*start;
-	if(col2) col2+= 4*start;
-	
 	cp1= col1;
 	if(col2) {
 		cp2= col2;
@@ -330,7 +312,7 @@ static void meshDM_drawFacesColored(DerivedMesh *dm, int useTwoSide, unsigned ch
 	
 	glShadeModel(GL_SMOOTH);
 	glBegin(glmode=GL_QUADS);
-	for(a=start; a<end; a++, mface++, cp1+= 16) {
+	for(a=0; a<me->totface; a++, mface++, cp1+= 16) {
 		if(mface->v3) {
 			int new_glmode= mface->v4?GL_QUADS:GL_TRIANGLES;
 
@@ -379,11 +361,9 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 	MFace *mface= me->mface;
 	TFace *tface = me->tface;
 	float *nors = mdm->nors;
-	int a, start=0, end=me->totface;
+	int a;
 
-	if (mdm->ob) set_buildvars(mdm->ob, &start, &end);
-	
-	for (a=start; a<end; a++) {
+	for (a=0; a<me->totface; a++) {
 		MFace *mf= &mface[a];
 		TFace *tf = tface?&tface[a]:NULL;
 		unsigned char *cp= NULL;
@@ -1016,7 +996,7 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 static void mesh_calc_modifiers(Mesh *me, Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
-	ModifierData *md=ob->modifiers.first;
+	ModifierData *md= ob?ob->modifiers.first:NULL;
 	float (*deformedVerts)[3];
 	DerivedMesh *dm;
 	int a, numVerts = me->totvert;

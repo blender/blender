@@ -120,6 +120,7 @@
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -2322,6 +2323,25 @@ static void direct_link_object(FileData *fd, Object *ob)
 		}
 		if(paf->type==EFF_WAVE) {
 
+		}
+		if(paf->type==EFF_BUILD) {
+			BuildEff *baf = (BuildEff*) paf;
+			PartEff *next = paf->next;
+			ModifierTypeInfo *mti = modifierType_get_info(eModifierType_Build);
+			BuildModifierData *bmd = (BuildModifierData*) mti->allocData();
+
+			bmd->start = baf->sfra;
+			bmd->length = baf->len;
+			bmd->randomize = 0;
+			bmd->seed = 1;
+
+			BLI_addtail(&ob->modifiers, bmd);
+
+			BLI_remlink(&ob->effect, paf);
+			MEM_freeN(paf);
+
+			paf = next;
+			continue;
 		}
 		paf= paf->next;
 	}

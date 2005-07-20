@@ -403,9 +403,6 @@ static void write_effects(WriteData *wd, ListBase *lb)
 	while(eff) {
 
 		switch(eff->type) {
-		case EFF_BUILD:
-			writestruct(wd, DATA, "BuildEff", 1, eff);
-			break;
 		case EFF_PARTICLE:
 			writestruct(wd, DATA, "PartEff", 1, eff);
 			break;

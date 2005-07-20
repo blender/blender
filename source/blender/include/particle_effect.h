@@ -42,8 +42,6 @@ extern void free_effect(Effect *eff);
 extern void free_effects(ListBase *lb);
 extern void copy_effects(ListBase *lbn, ListBase *lb);
 extern void build_particle_system(Object *ob);
-/* used externally */
-void set_buildvars(Object *ob, int *start, int *end);
 
 #endif
 

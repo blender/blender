@@ -1,6 +1,6 @@
 /**
  *	
- * $$ 
+ * $Id$ 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -88,6 +88,12 @@ typedef struct ModifierTypeInfo {
 		 */
 	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Object *ob, struct DagNode *obNode);
 
+		/* Should return true if the modifier needs to be recalculated on time changes.
+		 *
+		 * This function is optional (assumes false if not present).
+		 */
+	int (*dependsOnTime)(struct ModifierData *md);
+
 		/* Only for deform types, should apply the deformation
 		 * to the given vertex array. Object is guaranteed to be
 		 * non-NULL.
@@ -120,6 +126,8 @@ typedef struct ModifierTypeInfo {
 } ModifierTypeInfo;
 
 ModifierTypeInfo *modifierType_get_info(ModifierType type);
+
+int modifier_dependsOnTime(struct ModifierData *md);
 
 #endif
 

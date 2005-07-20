@@ -10,6 +10,7 @@ typedef enum ModifierType {
 	eModifierType_Subsurf,
 	eModifierType_Lattice,
 	eModifierType_Curve,
+	eModifierType_Build,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -48,5 +49,12 @@ typedef struct CurveModifierData {
 
 	struct Object *object;
 } CurveModifierData;
+
+typedef struct BuildModifierData {
+	ModifierData modifier;
+
+	float start, length;
+	int randomize, seed;
+} BuildModifierData;
 
 #endif

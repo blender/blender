@@ -795,19 +795,14 @@ static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, M
 	HaloRen *har;
 	float xn, yn, zn, nor[3], view[3];
 	float vec[3], hasize, mat[4][4], imat[3][3];
-	int start, end, a, ok, seed= ma->seed1;
+	int a, ok, seed= ma->seed1;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
 	R.flag |= R_HALO;
 
-	start= 0;
-	end= totvert;
-	set_buildvars(ob, &start, &end);
-	mvert+= start;
-
-	for(a=start; a<end; a++, mvert++) {
+	for(a=0; a<totvert; a++, mvert++) {
 		ok= 1;
 
 		if(ok) {
@@ -1318,7 +1313,7 @@ static void init_render_mesh(Object *ob)
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
 	int a, a1, ok, do_puno=0, need_orco=0, totvlako, totverto, vertofs;
-	int start, end, do_autosmooth=0, totvert = 0;
+	int end, do_autosmooth=0, totvert = 0;
 	DispListMesh *dlm = NULL;
 	DerivedMesh *dm;
 	
@@ -1435,13 +1430,11 @@ static void init_render_mesh(Object *ob)
 					if(ma->mode & MA_RADIO) 
 						do_autosmooth= 1;
 				
-				start= 0;
 				end= dlm?dlm->totface:me->totface;
-				set_buildvars(ob, &start, &end);
 				if (dlm) {
-					mface= dlm->mface + start;
+					mface= dlm->mface;
 					if (dlm->tface) {
-						tface= dlm->tface + start;
+						tface= dlm->tface;
 						vertcol= NULL;
 					} else if (dlm->mcol) {
 						vertcol= (unsigned int *)dlm->mcol;
@@ -1449,9 +1442,9 @@ static void init_render_mesh(Object *ob)
 						vertcol= NULL;
 					}
 				} else {
-					mface= ((MFace*) me->mface) + start;
+					mface= me->mface;
 					if (me->tface) {
-						tface= ((TFace*) me->tface) + start;
+						tface= me->tface;
 						vertcol= NULL;
 					} else if (me->mcol) {
 						vertcol= (unsigned int *)me->mcol;
@@ -1460,7 +1453,7 @@ static void init_render_mesh(Object *ob)
 					}
 				}
 
-				for(a=start; a<end; a++) {
+				for(a=0; a<end; a++) {
 					int v1, v2, v3, v4, edcode, flag;
 					
 					if( mface->mat_nr==a1 ) {

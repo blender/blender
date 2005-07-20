@@ -51,7 +51,6 @@ void types_InitAll( void )
 	Armature_Type.ob_type = &PyType_Type;
 	BezTriple_Type.ob_type = &PyType_Type;
 	Bone_Type.ob_type = &PyType_Type;
-	Build_Type.ob_type = &PyType_Type;
 	Button_Type.ob_type = &PyType_Type;
 	Camera_Type.ob_type = &PyType_Type;
 	CurNurb_Type.ob_type = &PyType_Type;
