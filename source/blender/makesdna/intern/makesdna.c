@@ -202,16 +202,6 @@ void dna_write(FILE *file, void *pntr, int size);
  */
 void printStructLenghts(void);
 
-/**
- *
- */ 
-int make_structDNA(FILE *file);
-
-/**
- *
- */ 
-int main(int argc, char ** argv); 
-
 
 
 /* ************************************************************************** */
@@ -550,7 +540,7 @@ int convert_include(char *filename)
 					/* first lets make it all nice strings */
 					md1= md+1;
 					while(*md1 != '}') {
-						if( ((long)md1) > ((long)mainend) ) break;
+						if(md1>mainend) break;
 						
 						if(*md1==',' || *md1==' ') *md1= 0;
 						md1++;
@@ -559,7 +549,7 @@ int convert_include(char *filename)
 					/* read types and names until first character that is not '}' */
 					md1= md+1;
 					while( *md1 != '}' ) {
-						if( ((long)md1) > ((long)mainend) ) break;
+						if(md1>mainend) break;
 						
 						/* skip when it says 'struct' or 'unsigned' */
 						if(*md1) {
@@ -576,13 +566,13 @@ int convert_include(char *filename)
 							
 							/* read until ';' */
 							while( *md1 != ';' ) {
-								if( ((long)md1) > ((long)mainend) ) break;
+								if(md1>mainend) break;
 								
 								if(*md1) {
 									/* We've got a name. slen needs
 									 * correction for function
 									 * pointers! */
-									slen= strlen(md1);
+									slen= (int) strlen(md1);
 									if( md1[slen-1]==';' ) {
 										md1[slen-1]= 0;
 
@@ -683,7 +673,7 @@ int calculate_structlens(void)
 					type= sp[0];
 					cp= names[sp[1]];
 					
-					namelen= strlen(cp);
+					namelen= (int) strlen(cp);
 					/* is it a pointer or function pointer? */
 					if(cp[0]=='*' || cp[1]=='*') {
 						has_pointer = 1;
@@ -841,7 +831,7 @@ void printStructLenghts(void)
 }
 
 
-int make_structDNA(FILE *file)
+int make_structDNA(char *baseDirectory, FILE *file)
 {
 	int len, i;
 	short *sp;
@@ -884,26 +874,16 @@ int make_structDNA(FILE *file)
 	// the defines above shouldn't be output in the padding file...
 	firststruct = nr_types;
 	
-#ifndef BASE_HEADER
-#define BASE_HEADER "../"
-#endif
-
 	/* add all include files defined in the global array                     */
 	/* Since the internal file+path name buffer has limited length, I do a   */
 	/* little test first...                                                  */
 	/* Mind the breaking condition here!                                     */
 	if (debugSDNA) printf("\tStart of header scan:\n"); 
 	for (i = 0; strlen(includefiles[i]); i++) {
-  		if (debugSDNA) printf("\t|-- Converting %s%s\n", BASE_HEADER, includefiles[i]); 
-		if (strlen(includefiles[i]) > SDNA_MAX_FILENAME_LENGTH) {
-			/* this would cause coredumps*/
-			printf("*** \tError in makesdna: the specified filenames is too long "
-				   "for parsing.\n\tFile: %s%s\n", BASE_HEADER, includefiles[i]);			
-		} else {
-			sprintf(str, "%s%s", BASE_HEADER, includefiles[i]);
-			if (convert_include(str)) {
-				return (1);
-			}
+		sprintf(str, "%s%s", baseDirectory, includefiles[i]);
+  		if (debugSDNA) printf("\t|-- Converting %s\n", str); 
+		if (convert_include(str)) {
+			return (1);
 		}
 	}
 	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i); 
@@ -962,7 +942,7 @@ int make_structDNA(FILE *file)
 		/* calculate size of datablock with strings */
 		cp= names[nr_names-1];
 		cp+= strlen(names[nr_names-1]) + 1;			/* +1: null-terminator */
-		len= (long)cp - (long)(names[0]);
+		len= (long) (cp - names[0]);
 		len= (len+3) & ~3;
 		dna_write(file, names[0], len);
 		
@@ -975,7 +955,7 @@ int make_structDNA(FILE *file)
 		/* calculate datablock size */
 		cp= types[nr_types-1];
 		cp+= strlen(types[nr_types-1]) + 1;		/* +1: null-terminator */
-		len= (long)cp - (long)(types[0]);
+		len= (long) (cp - types[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, types[0], len);
@@ -997,7 +977,7 @@ int make_structDNA(FILE *file)
 		/* calc datablock size */
 		sp= structs[nr_structs-1];
 		sp+= 2+ 2*( sp[1] );
-		len= (long)sp - (long)(structs[0]);
+		len= (long) (sp - structs[0]);
 		len= (len+3) & ~3;
 		
 		dna_write(file, structs[0], len);
@@ -1055,13 +1035,17 @@ static void make_bad_file(char *file)
 	fclose(fp);
 }
 
+#ifndef BASE_HEADER
+#define BASE_HEADER "../"
+#endif
+
 int main(int argc, char ** argv)
 {
 	FILE *file;
 	int return_status = 0;
 
-	if (argc != 2) {
-		printf("Usage: %s outfile.c\n", argv[0]);
+	if (argc!=2 && argc!=3) {
+		printf("Usage: %s outfile.c [base directory]\n", argv[0]);
 		return_status = 1;
 	} else {
 		file = fopen(argv[1], "w");
@@ -1069,8 +1053,16 @@ int main(int argc, char ** argv)
 			printf ("Unable to open file: %s\n", argv[1]);
 			return_status = 1;
 		} else {
+			char baseDirectory[256];
+
+			if (argc==3) {
+				strcpy(baseDirectory, argv[2]);
+			} else {
+				strcpy(baseDirectory, BASE_HEADER);
+			}
+
 			fprintf (file, "unsigned char DNAstr[]= {\n");
-			if (make_structDNA(file)) {
+			if (make_structDNA(baseDirectory, file)) {
 				// error
 				fclose(file);
 				make_bad_file(argv[1]);
