@@ -2117,12 +2117,12 @@ static void lib_link_modifier_data(FileData *fd, Object *ob, ModifierData *md)
 	if (md->type==eModifierType_Lattice) {
 		LatticeModifierData *lmd = (LatticeModifierData*) md;
 			
-		lmd->object = newlibadr_us(fd, ob->id.lib, lmd->object);
+		lmd->object = newlibadr(fd, ob->id.lib, lmd->object);
 	} 
 	else if (md->type==eModifierType_Curve) {
 		CurveModifierData *cmd = (CurveModifierData*) md;
 			
-		cmd->object = newlibadr_us(fd, ob->id.lib, cmd->object);
+		cmd->object = newlibadr(fd, ob->id.lib, cmd->object);
 	}
 }
 
@@ -5194,8 +5194,23 @@ static void expand_action(FileData *fd, Main *mainvar, bAction *act)
 	}
 }
 
+static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
+{
+	if (md->type==eModifierType_Lattice) {
+		LatticeModifierData *lmd = (LatticeModifierData*) md;
+			
+		expand_doit(fd, mainvar, lmd->object);
+	} 
+	else if (md->type==eModifierType_Curve) {
+		CurveModifierData *cmd = (CurveModifierData*) md;
+			
+		expand_doit(fd, mainvar, cmd->object);
+	}
+}
+
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
+	ModifierData *md;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -5206,6 +5221,10 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	expand_doit(fd, mainvar, ob->data);
 	expand_doit(fd, mainvar, ob->ipo);
 	expand_doit(fd, mainvar, ob->action);
+
+	for (md=ob->modifiers.first; md; md=md->next) {
+		expand_modifier(fd, mainvar, md);
+	}
 
 	expand_pose(fd, mainvar, ob->pose);
 	expand_constraints(fd, mainvar, &ob->constraints);

@@ -253,6 +253,7 @@ void unlink_object(Object *ob)
 	ObHook *hook;
 	Group *group;
 	bConstraint *con;
+	ModifierData *md;
 	int a;
 	char *str;
 	
@@ -278,6 +279,24 @@ void unlink_object(Object *ob)
 				if(hook->parent==ob) {
 					hook->parent= NULL;
 					obt->recalc |= OB_RECALC;
+				}
+			}
+
+			for (md=obt->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Curve) {
+					CurveModifierData *cmd = (CurveModifierData*) md;
+
+					if (cmd->object==ob) {
+						cmd->object = NULL;
+						obt->recalc |= OB_RECALC;
+					}
+				} else if (md->type==eModifierType_Lattice) {
+					LatticeModifierData *lmd = (LatticeModifierData*) md;
+
+					if (lmd->object==ob) {
+						lmd->object = NULL;
+						obt->recalc |= OB_RECALC;
+					}
 				}
 			}
 			

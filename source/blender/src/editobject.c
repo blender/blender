@@ -3950,7 +3950,7 @@ void adduplicate(int noTrans)
 		
 			ob= base->object;
 			obn= copy_object(ob);
-			obn->recalc |= OB_RECALC_OB;
+			obn->recalc |= OB_RECALC;
 			
 			basen= MEM_mallocN(sizeof(Base), "duplibase");
 			*basen= *base;
