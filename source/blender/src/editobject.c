@@ -2188,6 +2188,7 @@ void convertmenu(void)
 				ob->flag |= OB_DONE;
 
 				ob1= copy_object(ob);
+				ob1->recalc |= OB_RECALC;
 
 				basen= MEM_mallocN(sizeof(Base), "duplibase");
 				*basen= *base;
@@ -2244,7 +2245,10 @@ void convertmenu(void)
 					if(cu->id.us>1) {
 						ob1= G.main->object.first;
 						while(ob1) {
-							if(ob1->data==cu) ob1->type= OB_CURVE;
+							if(ob1->data==cu) {
+								ob1->type= OB_CURVE;
+								ob1->recalc |= OB_RECALC;
+							}
 							ob1= ob1->id.next;
 						}
 					}
@@ -2279,6 +2283,7 @@ void convertmenu(void)
 						ob->flag |= OB_DONE;
 
 						ob1= copy_object(ob);
+						ob1->recalc |= OB_RECALC;
 
 						basen= MEM_mallocN(sizeof(Base), "duplibase");
 						*basen= *base;
@@ -2316,6 +2321,8 @@ void convertmenu(void)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Convert Object");
+
+	DAG_scene_flush_update(G.scene);
 }
 
 	/* Change subdivision properties of mesh object ob, if
