@@ -421,9 +421,9 @@ void rad_collect_meshes()
 
 				for(a=0; a<me->totface; a++, mface++) {
 					if(mface->v3) {
-						TFace *tface = me->tface ? &((TFace*)me->tface)[a] : (TFace*)NULL;						
+						TFace *tface = me->tface ? &((TFace*)me->tface)[a] : NULL;						
 						
-						if ((tface->mode & TF_INVISIBLE)==0) {
+						if (tface == NULL || (tface->mode & TF_INVISIBLE)==0) {
 
     						rp= callocPatch();
     						BLI_addtail(&(RG.patchbase), rp);
