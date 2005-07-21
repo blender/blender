@@ -57,7 +57,9 @@ typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Misc. Queries */
 
+		/* Also called in Editmode */
 	int (*getNumVerts)(DerivedMesh *dm);
+		/* Also called in Editmode */
 	int (*getNumFaces)(DerivedMesh *dm);
 
 	void (*getMappedVertCoEM)(DerivedMesh *dm, void *vert, float co_r[3]);
@@ -65,7 +67,10 @@ struct DerivedMesh {
 		/* Convert to new DispListMesh, should be free'd by caller */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
 
-		/* Iterate over all vertex points, calling DO_MINMAX with given args */
+		/* Iterate over all vertex points, calling DO_MINMAX with given args.
+		 *
+		 * Also called in Editmode
+		 */
 	void (*getMinMax)(DerivedMesh *dm, float min_r[3], float max_r[3]);
 
 	/* Direct Access Operations */
@@ -100,6 +105,8 @@ struct DerivedMesh {
 			 *  o Set face normal or vertex normal based on inherited face flag
 			 *  o Use inherited face material index to call setMaterial
 			 *  o Only if setMaterial returns true
+			 *
+			 * Also called in Editmode
 			 */
 	void (*drawFacesSolid)(DerivedMesh *dm, int (*setMaterial)(int));
 

@@ -1060,7 +1060,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			if (!deformedVerts) {
 				if (dm) {
 						/* Deforming a derived mesh, read the vertex locations out of the mesh and
-						 * deform them. Once done with this run of deformers will be written back.
+						 * deform them. Once done with this run of deformers verts will be written back.
 						 */
 					numVerts = dm->getNumVerts(dm);
 					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "dfmv");

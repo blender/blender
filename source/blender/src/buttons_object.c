@@ -1831,7 +1831,7 @@ static void object_panel_modifiers(Object *ob)
 
 			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Up", 760, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
 			uiButSetFunc(but, modifiers_moveUp, ob, md);
-			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 840, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 840, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier down in stack");
 			uiButSetFunc(but, modifiers_moveDown, ob, md);
 
 			sprintf(str, "Modifier: %s", mti->name);

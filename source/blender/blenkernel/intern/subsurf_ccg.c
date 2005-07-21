@@ -573,6 +573,7 @@ typedef struct {
 	DerivedMesh dm;
 
 	CCGSubSurf *ss;
+	int fromEditmesh;
 } CCGDerivedMesh;
 
 static void ccgDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3]) {
@@ -662,11 +663,13 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
-		EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
 		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
-		if (eed->h!=0)
-			continue;
+		if (ccgdm->fromEditmesh) {
+			EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
+			if (eed->h!=0)
+				continue;
+		}
 
 		if (useAging && !(G.f&G_BACKBUFSEL)) {
 			int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
@@ -687,11 +690,13 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
-		if (efa->h!=0)
-			continue;
+		if (ccgdm->fromEditmesh) {
+			EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
+			if (efa->h!=0)
+				continue;
+		}
 
 		for (S=0; S<numVerts; S++) {
 			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
@@ -770,15 +775,24 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int)) {
 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
-		int isSmooth = efa->flag&ME_SMOOTH;
+		int isSmooth;
 
-		if (efa->h!=0)
-			continue;
+		if (ccgdm->fromEditmesh) {
+			EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
+			isSmooth = efa->flag&ME_SMOOTH;
+			if (efa->h!=0)
+				continue;
+			if (!setMaterial(efa->mat_nr+1))
+				continue;
+		} else {
+				// XXX, can't do these correctly, handle info could have been
+				// free'd if came from a dlm
+			isSmooth = 0;
+//			if (!setMaterial(efa->mat_nr+1))
+//				continue;
+		}
 
-		if (!setMaterial(efa->mat_nr+1))
-			continue;
 
 		glShadeModel(isSmooth?GL_SMOOTH:GL_FLAT);
 		for (S=0; S<numVerts; S++) {
@@ -965,7 +979,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 	MEM_freeN(ccgdm);
 }
 
-static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss) {
+static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh) {
 	CCGDerivedMesh *ccgdm = MEM_mallocN(sizeof(*ccgdm), "ccgdm");
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
@@ -973,6 +987,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss) {
 	ccgdm->dm.getNumFaces = ccgDM_getNumFaces;
 	ccgdm->dm.getMappedVertCoEM = ccgDM_getMappedVertCoEM;
 	ccgdm->dm.convertToDispListMesh = ccgDM_convertToDispListMesh;
+
+	//ccgdm->dm.getVertCos = ccgdm_getVertCos; // XXX fixme
 
 	ccgdm->dm.drawVerts = ccgDM_drawVerts;
 	ccgdm->dm.drawEdges = ccgDM_drawEdges;
@@ -991,6 +1007,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss) {
 	ccgdm->dm.release = ccgDM_release;
 	
 	ccgdm->ss = ss;
+	ccgdm->fromEditmesh = fromEditmesh;
 
 	return ccgdm;
 }
@@ -1003,7 +1020,7 @@ DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, SubsurfModifierDat
 
 	ss_sync_from_editmesh(ss, em, useSimple);
 
-	return (DerivedMesh*) getCCGDerivedMesh(ss);
+	return (DerivedMesh*) getCCGDerivedMesh(ss, 1);
 }
 
 DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, SubsurfModifierData *smd, int useRenderParams, float (*vertCos)[3]) {
@@ -1041,7 +1058,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 		} else {
 			ccgSubSurf_free(ss);
 		}
-		
+
 		return derivedmesh_from_displistmesh(dlm);
 	}
 }

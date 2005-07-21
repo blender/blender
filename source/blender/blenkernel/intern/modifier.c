@@ -103,8 +103,9 @@ static void subsurfModifier_freeData(ModifierData *md)
 	}
 }	
 
-static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
 {
+	DerivedMesh *dm = derivedData;
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 	Mesh *me = ob->data;
 
@@ -145,8 +146,9 @@ static int buildModifier_dependsOnTime(ModifierData *md)
 	return 1;
 }
 
-static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
 {
+	DerivedMesh *dm = derivedData;
 	BuildModifierData *bmd = (BuildModifierData*) md;
 	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*ndlm), "build_dlm");
 	MVert *mvert;
@@ -368,8 +370,9 @@ static void mirrorModifier_initData(ModifierData *md)
 	mmd->tolerance = 0.001;
 }
 
-static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
+static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
 {
+	DerivedMesh *dm = derivedData;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*dlm), "mm_dlm");
 	MVert *mvert;
@@ -470,8 +473,8 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, DerivedM
 	for (i=0; i<totface; i++) {
 		MFace *mf = &ndlm->mface[i];
 		MFace *nmf = &ndlm->mface[ndlm->totface];
-		TFace *tf, *ntf;
-		MCol *mc, *nmc;
+		TFace *tf=NULL, *ntf=NULL; /* gcc's mother is uninitialized! */
+		MCol *mc=NULL, *nmc=NULL; /* gcc's mother is uninitialized! */
 
 		memcpy(nmf, mf, sizeof(*mf));
 		if (tface) {
