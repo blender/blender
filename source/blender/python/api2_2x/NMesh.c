@@ -1999,7 +1999,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 	me->subdiv[0] = NMESH_SUBDIV;
 	me->subdiv[1] = NMESH_SUBDIV;
 	me->smoothresh = NMESH_SMOOTHRESH;
-  me->edges = NULL; /* no edge data by default */
+	me->edges = NULL; /* no edge data by default */
 
 	me->object = NULL;	/* not linked to any object yet */
 
@@ -2015,44 +2015,40 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 		MFace *mfaces;
 		TFace *tfaces;
 		MCol *mcols;
-    MEdge *medges;
+		MEdge *medges;
 		int i, totvert, totface, totedge;
 
-		if( dlm ) {
-			me->name = EXPP_incr_ret( Py_None );
-			me->mesh = 0;
+		me->name = PyString_FromString( oldmesh->id.name + 2 );
+		me->mesh = oldmesh;
+		me->mode = oldmesh->flag;	/* yes, we save the mesh flags in nmesh->mode */
+		me->subdiv[0] = oldmesh->subdiv;
+		me->subdiv[1] = oldmesh->subdivr;
+		me->smoothresh = oldmesh->smoothresh;
 
+		me->sel_face = get_active_faceindex( oldmesh );
+
+		if( dlm ) {
 			msticky = NULL;
-			mfaces = NULL;
 			mverts = dlm->mvert;
 			mfaces = dlm->mface;
 			tfaces = dlm->tface;
 			mcols = dlm->mcol;
-      medges = dlm->medge;
+			medges = dlm->medge;
 
 			totvert = dlm->totvert;
 			totface = dlm->totface;
-      totedge = dlm->totedge;
+			totedge = dlm->totedge;
 		} else {
-			me->name = PyString_FromString( oldmesh->id.name + 2 );
-			me->mesh = oldmesh;
-			me->mode = oldmesh->flag;	/* yes, we save the mesh flags in nmesh->mode */
-			me->subdiv[0] = oldmesh->subdiv;
-			me->subdiv[1] = oldmesh->subdivr;
-			me->smoothresh = oldmesh->smoothresh;
-
 			msticky = oldmesh->msticky;
 			mverts = oldmesh->mvert;
 			mfaces = oldmesh->mface;
 			tfaces = oldmesh->tface;
 			mcols = oldmesh->mcol;
-      medges = oldmesh->medge;
+			medges = oldmesh->medge;
 
 			totvert = oldmesh->totvert;
 			totface = oldmesh->totface;
-      totedge = oldmesh->totedge;
-
-			me->sel_face = get_active_faceindex( oldmesh );
+			totedge = oldmesh->totedge;
 		}
 
 		if( msticky )
