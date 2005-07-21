@@ -1778,24 +1778,25 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 {
 	uiBlock		*block;
 	uiBut       *but;
-	int			bx=148, by=120;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
 
-	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
-					"Rest Pos", bx,by,97,20, &arm->flag, 0, 0, 0, 0,
-					"Disable all animation for this object");
-	uiButSetFunc(but, armature_rest_pos_func, ob, arm);
-	
-	by-= 23;
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_B_BONES, REDRAWVIEW3D, "B-Bones", bx, by-23,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
-	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", bx, by-46,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", bx,by-69,97,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray", bx, by-92,97,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
-	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, "Delay Deform", bx, by-115,97,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
+					"Rest Position", 10,180,150,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
+	uiButSetFunc(but, armature_rest_pos_func, ob, arm);
+	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 
+	uiBlockBeginAlign(block);
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,100,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bone as octahedra");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Lines",	110, 140,100,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bone as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bones",	210, 140,100,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
+	
+	uiBlockBeginAlign(block);
+	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", 110,110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",			210,110,100,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
 }
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)

@@ -40,11 +40,12 @@
 
 #include "PIL_time.h"
 
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_library.h"
-#include "BKE_nla.h"
 #include "BKE_action.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_nla.h"
 
 #include "MEM_guardedalloc.h"
 

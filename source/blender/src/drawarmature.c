@@ -373,6 +373,123 @@ static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
 	
 }
 
+static char bm_dot6[]= {0x0, 0x18, 0x3C, 0x7E, 0x7E, 0x3C, 0x18, 0x0}; 
+static char bm_dot8[]= {0x3C, 0x7E, 0xFF, 0xFF, 0xFF, 0xFF, 0x7E, 0x3C}; 
+
+static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
+{
+	float length;
+	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	
+	if(pchan) 
+		length= pchan->bone->length;
+	else 
+		length= ebone->length;
+	
+	glPushMatrix();
+	glScalef(length, length, length);
+	
+	/* this chunk not in object mode */
+	if(armflag & (ARM_EDITMODE|ARM_POSEMODE)) {
+		glLineWidth(4.0);
+		if(armflag & ARM_POSEMODE) {
+			/* outline in black or selection color */
+			if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
+			else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
+			else BIF_ThemeColor(TH_WIRE);
+		}
+		else if (armflag & ARM_EDITMODE) {
+			BIF_ThemeColor(TH_WIRE);
+		}
+		
+		/*	Draw root point if we have no IK parent */
+		if (!(boneflag & BONE_IK_TOPARENT)){
+			if (id != -1) {	// no bitmap in selection mode, crashes 3d cards...
+				glLoadName (id | BONESEL_ROOT);
+				glBegin(GL_POINTS);
+				glVertex3f(0.0f, 0.0f, 0.0f);
+				glEnd();
+			}
+			else {
+				glRasterPos3f(0.0f, 0.0f, 0.0f);
+				glBitmap(8, 8, 4, 4, 0, 0, bm_dot8);
+			}
+		}
+		
+		if (id != -1)
+			glLoadName ((GLuint) id|BONESEL_BONE);
+		
+		glBegin(GL_LINES);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+		glEnd();
+		
+		/* tip */
+		if (id != -1) {	// no bitmap in selection mode, crashes 3d cards...
+			glLoadName (id | BONESEL_TIP);
+			glBegin(GL_POINTS);
+			glVertex3f(0.0f, 1.0f, 0.0f);
+			glEnd();
+		}
+		else {
+			glRasterPos3f(0.0f, 1.0f, 0.0f);
+			glBitmap(8, 8, 4, 4, 0, 0, bm_dot8);
+		}
+		
+		/* further we send no names */
+		if (id != -1)
+			glLoadName (-1);
+		
+		if(armflag & ARM_POSEMODE) {
+			/* inner part in background color or constraint */
+			if(constflag) {
+				if(constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
+				else if(constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
+				else BIF_ThemeColor(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
+			}
+			else BIF_ThemeColor(TH_BACK);
+		}
+	}
+	
+	glLineWidth(2.0);
+	
+	/*	Draw root point if we have no IK parent */
+	if (!(boneflag & BONE_IK_TOPARENT)){
+		if (id == -1) {	// no bitmap in selection mode, crashes 3d cards...
+			if(armflag & ARM_EDITMODE) {
+				if (boneflag & BONE_ROOTSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
+				else BIF_ThemeColor(TH_VERTEX);
+			}
+			glRasterPos3f(0.0f, 0.0f, 0.0f);
+			glBitmap(8, 8, 4, 4, 0, 0, bm_dot6);
+		}
+	}
+	
+   if(armflag & ARM_EDITMODE) {
+	   if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_EDGE_SELECT);
+	   else BIF_ThemeColor(TH_BACK);
+   }
+	glBegin(GL_LINES);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 1.0f, 0.0f);
+	glEnd();
+	
+	/* tip */
+	if (id == -1) {	// no bitmap in selection mode, crashes 3d cards...
+		if(armflag & ARM_EDITMODE) {
+			if (boneflag & BONE_TIPSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
+			else BIF_ThemeColor(TH_VERTEX);
+		}
+		glRasterPos3f(0.0f, 1.0f, 0.0f);
+		glBitmap(8, 8, 4, 4, 0, 0, bm_dot6);
+	}
+	
+	glLineWidth(1.0);
+	
+	glPopMatrix();
+}
+
 static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float length, float zwidth)
 {
 	int segments= 0;
@@ -580,7 +697,7 @@ static void draw_pose_channels(Object *ob, int dt)
 	if(tmp > 1.1) do_dashed= 0;
 		
 	/* if solid we draw that first, with selection codes, but without names, axes etc */
-	if(dt>OB_WIRE) {
+	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		if(arm->flag & ARM_POSEMODE) index= 0;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
@@ -594,7 +711,7 @@ static void draw_pose_channels(Object *ob, int dt)
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN))
 					flag &= ~BONE_IK_TOPARENT;
 				
-				if(arm->flag & ARM_B_BONES)
+				if(arm->drawtype==ARM_B_BONE)
 					draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
 				else {
 					/* scale the matrix to unit bone space */
@@ -611,10 +728,14 @@ static void draw_pose_channels(Object *ob, int dt)
 	}
 	
 	/* wire draw over solid only in posemode */
-	if(dt<=OB_WIRE || (arm->flag & ARM_POSEMODE)) {
+	if( dt<=OB_WIRE || (arm->flag & ARM_POSEMODE) || arm->drawtype==ARM_LINE) {
 	
+		/* draw line check first. we do selection indices */
+		if (arm->drawtype==ARM_LINE) {
+			if(G.f & G_PICKSEL) index= 0;
+		}
 		/* if solid && posemode, we draw again with polygonoffset */
-		if (dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
+		else if (dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
 			bglPolygonOffset(1.0);
 		else
 			/* and we use selection indices if not done yet */
@@ -651,7 +772,9 @@ static void draw_pose_channels(Object *ob, int dt)
 				if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 					constflag |= PCHAN_HAS_ACTION;
 
-				if(arm->flag & ARM_B_BONES)
+				if(arm->drawtype==ARM_LINE)
+					draw_line_bone(arm->flag, flag, constflag, index, pchan, NULL);
+				else if(arm->drawtype==ARM_B_BONE)
 					draw_b_bone(OB_WIRE, arm->flag, flag, constflag, index, pchan, NULL);
 				else {
 					/* scale the matrix to unit bone space */
@@ -737,13 +860,13 @@ static void draw_ebones(Object *ob, int dt)
 	unsigned int	index;
 	
 	/* if solid we draw it first */
-	if(dt>OB_WIRE) {
+	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		index= 0;
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
 			glPushMatrix();
 			set_matrix_editbone(eBone);
 			
-			if(arm->flag & ARM_B_BONES)
+			if(arm->drawtype==ARM_B_BONE)
 				draw_b_bone(OB_SOLID, arm->flag, eBone->flag, 0, index, NULL, eBone);
 			else {
 				/* scale the matrix to unit bone space */
@@ -757,15 +880,23 @@ static void draw_ebones(Object *ob, int dt)
 	
 	/* if wire over solid, set offset */
 	index= -1;
-	if (dt>OB_WIRE) bglPolygonOffset(1.0);
-	else if(arm->flag & ARM_EDITMODE) index= 0;	// do selection codes
+	if(arm->drawtype==ARM_LINE) {
+		if(G.f & G_PICKSEL)
+			index= 0;
+	}
+	else if (dt>OB_WIRE) 
+		bglPolygonOffset(1.0);
+	else if(arm->flag & ARM_EDITMODE) 
+		index= 0;	// do selection codes
 	
 	for (eBone=G.edbo.first; eBone; eBone=eBone->next){
 		
 		glPushMatrix();
 		set_matrix_editbone(eBone);
 		
-		if(arm->flag & ARM_B_BONES)
+		if(arm->drawtype==ARM_LINE) 
+			draw_line_bone(arm->flag, eBone->flag, 0, index, NULL, eBone);
+		else if(arm->drawtype==ARM_B_BONE)
 			draw_b_bone(OB_WIRE, arm->flag, eBone->flag, 0, index, NULL, eBone);
 		else {
 			/* scale the matrix to unit bone space */

@@ -74,7 +74,7 @@ typedef struct bArmature {
 	ListBase	bonebase;
 	ListBase	chainbase;
 	int			flag;
-	int			res1;				
+	int			drawtype;			
 	int			res2;
 	int			res3;			
 }bArmature;
@@ -99,8 +99,12 @@ typedef struct bArmature {
 #define		ARM_EDITMODE	0x0020
 #define		ARM_DELAYDEFORM 0x0040
 #define		ARM_DONT_USE    0x0080
-			/* bit 0x0100 is free now */
-#define		ARM_B_BONES		0x0200
+
+/* armature->drawtype */
+
+#define		ARM_OCTA		0
+#define		ARM_LINE		1
+#define		ARM_B_BONE		2
 
 
 /* bone->flag */
