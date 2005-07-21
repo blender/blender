@@ -1153,7 +1153,6 @@ static void clear_mesh_caches(Object *ob)
 static void mesh_build_data(Object *ob)
 {
 	float min[3], max[3];
-	Mesh *me= ob->data;
 
 	if(ob->flag&OB_FROMDUPLI) return;
 
@@ -1172,7 +1171,6 @@ static void mesh_build_data(Object *ob)
 
 static void editmesh_build_data(void)
 {
-	Mesh *me = G.obedit->data;
 	EditMesh *em = G.editMesh;
 
 	clear_mesh_caches(G.obedit);
@@ -1218,8 +1216,6 @@ void makeDispListMesh(Object *ob)
 
 DerivedMesh *mesh_get_derived_final(Object *ob, int *needsFree_r)
 {
-	Mesh *me = ob->data;
-
 	if (!ob->derivedFinal) {
 		mesh_build_data(ob);
 	}

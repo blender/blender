@@ -2128,26 +2128,6 @@ static void lib_link_modifiers(FileData *fd, Object *ob)
 			cmd->object = newlibadr(fd, ob->id.lib, cmd->object);
 		}
 	}
-
-		/* Patch subsurf modifier */
-	if (ob->type==OB_MESH) {
-		Mesh *me = ob->data;
-
-		if (me->flag&ME_SUBSURF) {
-			SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-
-			smd->levels = me->subdiv;
-			smd->renderLevels = me->subdivr;
-			smd->subdivType = me->subsurftype;
-			
-			BLI_addtail(&ob->modifiers, smd);
-
-				/* Turn it off, so it won't get saved again with flag,
-				 * still could be an issue with lib-linked mesh.
-				 */
-			me->flag ^= ME_SUBSURF; 
-		}
-	}
 }
 
 static void lib_link_object(FileData *fd, Main *main)
@@ -4766,11 +4746,25 @@ static void do_versions(FileData *fd, Main *main)
 			}
 		}
 	}
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
+
+	/* don't forget to set version number in blender.c! */
+}
+
+static void do_lib_versions(FileData *fd, Main *main)
+{
+		/* NOTE that main->versionfile is not necessarily the version of all
+		 * the objects because they could have come from libraries. Additionally,
+		 * keep in mind that changes to lib linked blocks will not be saved, because
+		 * the lib linked file will be reread on the next load of the main file.
+		 */
+
 	if(main->versionfile <= 237) {
 		bArmature *arm;
 		bConstraint *con;
 		Object *ob;
-		
+
 		// armature recode checks 
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			where_is_armature(arm);
@@ -4783,30 +4777,38 @@ static void do_versions(FileData *fd, Main *main)
 					ob->recalc |= OB_RECALC;
 				}
 				/* new generic xray option */
-				arm= newlibadr(fd, NULL, ob->data);
+				arm= ob->data;
 				if(arm->flag & ARM_DRAWXRAY) {
-					arm->flag &= ~ARM_DRAWXRAY;
 					ob->dtx |= OB_DRAWXRAY;
 				}
+			} else if (ob->type==OB_MESH) {
+				Mesh *me = ob->data;
+
+				if ((me->flag&ME_SUBSURF)) {
+					SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+					smd->levels = me->subdiv;
+					smd->renderLevels = me->subdivr;
+					smd->subdivType = me->subsurftype;
+					
+					BLI_addtail(&ob->modifiers, smd);
+				}
 			}
+
 			// follow path constraint needs to set the 'path' option in curves...
 			for(con=ob->constraints.first; con; con= con->next) {
 				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
 					bFollowPathConstraint *data = con->data;
-					Object *obc= newlibadr(fd, NULL, data->tar);
+					Object *obc= data->tar;
 
 					if(obc && obc->type==OB_CURVE) {
-						Curve *cu= newlibadr(fd, NULL, obc->data);
+						Curve *cu= obc->data;
 						cu->flag |= CU_PATH;
 					}
 				}
 			}
 		}
 	}
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
-
-	/* don't forget to set version number in blender.c! */
 }
 
 static void lib_link_all(FileData *fd, Main *main)
@@ -4910,6 +4912,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 
 	lib_link_all(fd, bfd->main);
 	link_global(fd, bfd, fg);	/* as last */
+	do_lib_versions(fd, bfd->main);
 
 	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
 
