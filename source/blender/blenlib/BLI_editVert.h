@@ -100,7 +100,10 @@ typedef struct EditMesh
 	EditEdge *alledges, *curedge;
 	EditFace *allfaces, *curface;
 	
-	struct DerivedMesh *derived;
+		/* DerivedMesh caches... note that derived cage can be equivalent
+		 * to derived final, care should be taken on release.
+		 */
+	struct DerivedMesh *derivedCage, *derivedFinal;
 } EditMesh;
 
 #endif

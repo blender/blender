@@ -1655,21 +1655,44 @@ static void object_softbodies(Object *ob)
 
 static int actModifier = 0;
 
+void do_modifier_panels(unsigned short event)
+{
+	Object *ob = OBACT;
+	ModifierData *md;
+	int i;
+
+	for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
+		md = md->next;
+
+	switch(event) {
+	case B_MDFR_INCREMENTAl:
+		if (md && md->type==eModifierType_Subsurf && ((SubsurfModifierData*)md)->useIncrementalMesh) {
+			if (ob->type==OB_MESH) {
+				Mesh *me = ob->data;
+
+				if (!me->medge) {
+					if (okee("Requires mesh edges, create now?")) {
+						make_edges(me);
+					}
+				}
+			}
+		}
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+		break;
+	}
+}
+
 static void modifiers_add(void *ob_v, int type)
 {
 	Object *ob = ob_v;
-	ModifierTypeInfo *mti = modifierType_get_info(type);
+	BLI_addtail(&ob->modifiers, modifier_new(type));
 
-	if (mti) {
-		ModifierData *md = mti->allocData();
-	
-		BLI_addtail(&ob->modifiers, md);
+	actModifier = BLI_countlist(&ob->modifiers);
 
-		actModifier = BLI_countlist(&ob->modifiers);
-
-		allqueue(REDRAWBUTSOBJECT, 0);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	}
+	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
 
 static uiBlock *modifier_add_menu(void *ob_v)
@@ -1707,7 +1730,8 @@ static void modifiers_del(void *ob_v, void *arg2)
 
 	if (md) {
 		BLI_remlink(&ob->modifiers, md);
-		MEM_freeN(md);
+
+		modifier_free(md);
 	}
 
 	allqueue(REDRAWBUTSOBJECT, 0);
@@ -1819,7 +1843,8 @@ static void object_panel_modifiers(Object *ob)
 				char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
 				uiDefButS(block, NUM, B_MAKEDISP, "Levels:",		550, 320, 150,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
 				uiDefButS(block, NUM, B_MAKEDISP, "Render Levels:",		550, 300, 150,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
-				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,280,150,19, &(smd->subdivType), 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,280,150,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+				uiDefButS(block, TOG, B_MDFR_INCREMENTAl, "Incremental", 550, 260,150,19,&smd->useIncrementalMesh, 0, 0, 1, 0, "Use incremental calculation, even outside of mesh mode");
 			} else if (md->type==eModifierType_Lattice) {
 				LatticeModifierData *lmd = (LatticeModifierData*) md;
 				uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");

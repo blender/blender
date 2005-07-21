@@ -61,15 +61,33 @@ typedef enum {
 } ModifierTypeFlag;
 
 typedef struct ModifierTypeInfo {
-	char name[32], structName[32];
+		/* The user visible name for this modifier */
+	char name[32];
+
+		/* The DNA struct name for the modifier data type, used to
+		 * write the DNA data out.
+		 */
+	char structName[32];
+
+		/* The size of the modifier data type, used by allocation. */
+	int structSize;
+
 	ModifierTypeType type;
 	ModifierTypeFlag flags;
 
-		/* Create new instance data for this modifier type.
+		/* Initialize new instance data for this modifier type, this function
+		 * should set modifier variables to their default values.
 		 * 
-		 * This function must be present.
+		 * This function is optional.
 		 */
-	struct ModifierData *(*allocData)(void);
+	void (*initData)(struct ModifierData *md);
+
+		/* Free internal modifier data variables, this function should
+		 * not free the _md_ variable itself.
+		 *
+		 * This function is optional.
+		 */
+	void (*freeData)(struct ModifierData *md);
 
 		/* Return a boolean value indicating if this modifier is able to be calculated
 		 * based on the modifier data. This is *not* regarding the md->flag, that is
@@ -120,7 +138,13 @@ typedef struct ModifierTypeInfo {
 
 ModifierTypeInfo *modifierType_get_info(ModifierType type);
 
-int modifier_dependsOnTime(struct ModifierData *md);
+	/* Modifier utility calls, do call through type pointer and return
+	 * default values if pointer is optional.
+	 */
+struct ModifierData*	modifier_new			(int type);
+void					modifier_free			(struct ModifierData *md);
+
+int						modifier_dependsOnTime	(struct ModifierData *md);
 
 #endif
 

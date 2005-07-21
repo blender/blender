@@ -36,7 +36,9 @@ typedef struct ModifierData {
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
 
-	short subdivType, levels, renderLevels, pad;
+	short subdivType, levels, renderLevels, useIncrementalMesh;
+
+	void *emCache, *mCache;
 } SubsurfModifierData;
 
 typedef struct LatticeModifierData {

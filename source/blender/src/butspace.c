@@ -318,8 +318,11 @@ void do_butspace(unsigned short event)
 		do_uvautocalculationbuts(event);
 	}
 	else if(event<=B_EFFECTSBUTS) {
-		/*here we put the effects buttons do commands*/
 		do_effects_panels(event);
+	}
+	else if(event<=B_MDFR_BUTS) {
+		extern void do_modifier_panels(unsigned short event);
+		do_modifier_panels(event);
 	}
 	else if(event==REDRAWVIEW3D) allqueue(event, 1);	// 1=do header too
 	else if(event>REDRAWVIEW3D) allqueue(event, 0);

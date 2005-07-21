@@ -451,9 +451,15 @@ void free_editMesh(EditMesh *em)
 	if(em->edges.first) free_edgelist(&em->edges);
 	if(em->faces.first) free_facelist(&em->faces);
 
-	if(em->derived) {
-		em->derived->release(em->derived);
-		em->derived= NULL;
+	if(em->derivedFinal) {
+		if (em->derivedFinal!=em->derivedCage) {
+			em->derivedFinal->release(em->derivedFinal);
+		}
+		em->derivedFinal= NULL;
+	}
+	if(em->derivedCage) {
+		em->derivedCage->release(em->derivedCage);
+		em->derivedCage= NULL;
 	}
 
 	/* DEBUG: hashtabs are slowest part of enter/exit editmode. here a testprint */
@@ -699,7 +705,7 @@ void make_editMesh()
 		}
 
 	}
-
+	
 	if(actkey && actkey->totelem!=me->totvert);
 	else {
 		unsigned int *mcol;
@@ -779,7 +785,7 @@ void make_editMesh()
 	MEM_freeN(evlist);
 
 	end_editmesh_fastmalloc();	// resets global function pointers
-
+	
 	/* this creates coherent selections. also needed for older files */
 	EM_selectmode_set();
 	/* paranoia check to enforce hide rules */
@@ -1388,7 +1394,7 @@ void separate_mesh(void)
 	emcopy.allverts= NULL;
 	emcopy.alledges= NULL;
 	emcopy.allfaces= NULL;
-	emcopy.derived= NULL;
+	emcopy.derivedFinal= emcopy.derivedCage= NULL;
 	free_editMesh(&emcopy);
 	
 	em->verts= edve;
@@ -1554,7 +1560,7 @@ void separate_mesh_loose(void)
 			emcopy.allverts= NULL;
 			emcopy.alledges= NULL;
 			emcopy.allfaces= NULL;
-			emcopy.derived= NULL;
+			emcopy.derivedFinal= emcopy.derivedCage= NULL;
 			free_editMesh(&emcopy);
 			
 			em->verts= edve;

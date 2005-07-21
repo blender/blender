@@ -95,6 +95,7 @@
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
@@ -177,7 +178,8 @@ static void free_modifiers(ListBase *lb)
 
 	while (md=lb->first) {
 		BLI_remlink(lb, md);
-		MEM_freeN(md);
+
+		modifier_free(md);
 	}
 }
 

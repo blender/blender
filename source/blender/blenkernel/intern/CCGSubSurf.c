@@ -289,8 +289,7 @@ struct _CCGSubSurf {
 	EHash *fMap;	/* map of CCGFaceHDL -> Face */
 
 	CCGMeshIFC meshIFC;
-	void *meshData;
-
+	
 	CCGAllocatorIFC allocatorIFC;
 	CCGAllocatorHDL allocator;
 
@@ -611,7 +610,7 @@ static void _face_unlinkMarkAndFree(CCGFace *f, CCGSubSurf *ss) {
 
 /***/
 
-CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, CCGMeshHDL meshData, int subdivLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator) {
+CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator) {
 	if (!allocatorIFC) {
 		allocatorIFC = _getStandardAllocatorIFC();
 		allocator = NULL;
@@ -630,8 +629,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, CCGMeshHDL meshData, int subdivLevel
 		ss->fMap = _ehash_new(0, &ss->allocatorIFC, ss->allocator);
 
 		ss->meshIFC = *ifc;
-		ss->meshData = meshData;
-
+		
 		ss->subdivLevels = subdivLevels;
 		ss->numGrids = 0;
 		ss->allowEdgeCreation = 0;
@@ -708,6 +706,15 @@ CCGError ccgSubSurf_setSubdivisionLevels(CCGSubSurf *ss, int subdivisionLevels) 
 	}
 
 	return eCCGError_None;
+}
+
+void ccgSubSurf_getUseAgeCounts(CCGSubSurf *ss, int *useAgeCounts_r, int *vertUserOffset_r, int *edgeUserOffset_r, int *faceUserOffset_r)
+{
+	*useAgeCounts_r = ss->useAgeCounts;
+
+	if (vertUserOffset_r) *vertUserOffset_r = ss->vertUserAgeOffset;
+	if (edgeUserOffset_r) *edgeUserOffset_r = ss->edgeUserAgeOffset;
+	if (faceUserOffset_r) *faceUserOffset_r = ss->faceUserAgeOffset;
 }
 
 CCGError ccgSubSurf_setUseAgeCounts(CCGSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset) {

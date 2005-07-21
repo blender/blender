@@ -37,7 +37,7 @@ typedef enum {
 
 typedef struct _CCGSubSurf CCGSubSurf;
 
-CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, CCGMeshHDL meshData, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
+CCGSubSurf*	ccgSubSurf_new	(CCGMeshIFC *ifc, int subdivisionLevels, CCGAllocatorIFC *allocatorIFC, CCGAllocatorHDL allocator);
 void		ccgSubSurf_free	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_sync	(CCGSubSurf *ss);
@@ -56,7 +56,9 @@ CCGError	ccgSubSurf_syncFaceDel	(CCGSubSurf *ss, CCGFaceHDL fHDL);
 CCGError	ccgSubSurf_processSync	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_setSubdivisionLevels		(CCGSubSurf *ss, int subdivisionLevels);
+
 CCGError	ccgSubSurf_setAllowEdgeCreation		(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue);
+void		ccgSubSurf_getUseAgeCounts			(CCGSubSurf *ss, int *useAgeCounts_r, int *vertUserOffset_r, int *edgeUserOffset_r, int *faceUserOffset_r);
 CCGError	ccgSubSurf_setUseAgeCounts			(CCGSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset);
 CCGError	ccgSubSurf_setCalcVertexNormals		(CCGSubSurf *ss, int useVertNormals, int normalDataOffset);
 

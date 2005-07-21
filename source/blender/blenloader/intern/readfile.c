@@ -2112,23 +2112,46 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 /* ************ READ OBJECT ***************** */
 
-static void lib_link_modifier_data(FileData *fd, Object *ob, ModifierData *md)
+static void lib_link_modifiers(FileData *fd, Object *ob)
 {
-	if (md->type==eModifierType_Lattice) {
-		LatticeModifierData *lmd = (LatticeModifierData*) md;
+	ModifierData *md;
+
+	for (md=ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Lattice) {
+			LatticeModifierData *lmd = (LatticeModifierData*) md;
+				
+			lmd->object = newlibadr(fd, ob->id.lib, lmd->object);
+		} 
+		else if (md->type==eModifierType_Curve) {
+			CurveModifierData *cmd = (CurveModifierData*) md;
+				
+			cmd->object = newlibadr(fd, ob->id.lib, cmd->object);
+		}
+	}
+
+		/* Patch subsurf modifier */
+	if (ob->type==OB_MESH) {
+		Mesh *me = ob->data;
+
+		if (me->flag&ME_SUBSURF) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+			smd->levels = me->subdiv;
+			smd->renderLevels = me->subdivr;
+			smd->subdivType = me->subsurftype;
 			
-		lmd->object = newlibadr(fd, ob->id.lib, lmd->object);
-	} 
-	else if (md->type==eModifierType_Curve) {
-		CurveModifierData *cmd = (CurveModifierData*) md;
-			
-		cmd->object = newlibadr(fd, ob->id.lib, cmd->object);
+			BLI_addtail(&ob->modifiers, smd);
+
+				/* Turn it off, so it won't get saved again with flag,
+				 * still could be an issue with lib-linked mesh.
+				 */
+			me->flag ^= ME_SUBSURF; 
+		}
 	}
 }
 
 static void lib_link_object(FileData *fd, Main *main)
 {
-	ModifierData *md;
 	Object *ob;
 	bSensor *sens;
 	bController *cont;
@@ -2260,9 +2283,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				hook->parent= newlibadr(fd, ob->id.lib, hook->parent);
 			}
 
-			for (md=ob->modifiers.first; md; md= md->next) {
-				lib_link_modifier_data(fd, ob, md);
-			}
+			lib_link_modifiers(fd, ob);
 		}
 		ob= ob->id.next;
 	}
@@ -2289,6 +2310,21 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 
 }
 
+static void direct_link_modifiers(FileData *fd, ListBase *lb)
+{
+	ModifierData *md;
+
+	link_list(fd, lb);
+
+	for (md=lb->first; md; md=md->next) {
+		if (md->type==eModifierType_Subsurf) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+			smd->emCache = smd->mCache = 0;
+		}
+	}
+}
+
 static void direct_link_object(FileData *fd, Object *ob)
 {
 	PartEff *paf;
@@ -2304,7 +2340,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->pose= newdataadr(fd, ob->pose);
 	direct_link_pose(fd, ob->pose);
 
-	link_list(fd, &ob->modifiers);
 	link_list(fd, &ob->defbase);
 	link_list(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
@@ -2327,8 +2362,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 		if(paf->type==EFF_BUILD) {
 			BuildEff *baf = (BuildEff*) paf;
 			PartEff *next = paf->next;
-			ModifierTypeInfo *mti = modifierType_get_info(eModifierType_Build);
-			BuildModifierData *bmd = (BuildModifierData*) mti->allocData();
+			BuildModifierData *bmd = (BuildModifierData*) modifier_new(eModifierType_Build);
 
 			bmd->start = baf->sfra;
 			bmd->length = baf->len;
@@ -2408,6 +2442,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 			}
 		}
 	}
+
+	direct_link_modifiers(fd, &ob->modifiers);
 	
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
@@ -4767,7 +4803,6 @@ static void do_versions(FileData *fd, Main *main)
 			}
 		}
 	}
-	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

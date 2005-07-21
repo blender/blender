@@ -21,21 +21,9 @@
 #include "BKE_mesh.h"
 #include "depsgraph_private.h"
 
+#include "CCGSubSurf.h"
+
 /***/
-
-static void *allocModifierData(int type, int size)
-{
-	ModifierData *md = MEM_callocN(size, "md");
-	md->type = type;
-	md->mode = eModifierMode_RealtimeAndRender;
-
-	return md;
-}
-
-static ModifierData *noneModifier_allocData(void)
-{
-	return allocModifierData(eModifierType_None, sizeof(ModifierData));
-}
 
 static int noneModifier_isDisabled(ModifierData *md)
 {
@@ -43,11 +31,6 @@ static int noneModifier_isDisabled(ModifierData *md)
 }
 
 /* Curve */
-
-static ModifierData *curveModifier_allocData(void)
-{
-	return allocModifierData(eModifierType_Curve, sizeof(CurveModifierData));
-}
 
 static int curveModifier_isDisabled(ModifierData *md)
 {
@@ -76,11 +59,6 @@ static void curveModifier_deformVerts(ModifierData *md, Object *ob, float (*vert
 
 /* Lattice */
 
-static ModifierData *latticeModifier_allocData(void)
-{
-	return allocModifierData(eModifierType_Lattice, sizeof(LatticeModifierData));
-}
-
 static int latticeModifier_isDisabled(ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
@@ -108,20 +86,26 @@ static void latticeModifier_deformVerts(ModifierData *md, Object *ob, float (*ve
 
 /* Subsurf */
 
-static ModifierData *subsurfModifier_allocData(void)
+static void subsurfModifier_initData(ModifierData *md)
 {
-	SubsurfModifierData *smd = allocModifierData(eModifierType_Subsurf, sizeof(SubsurfModifierData));
-
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	
 	smd->levels = 1;
 	smd->renderLevels = 2;
-
-	return (ModifierData*) smd;
 }
+
+static void subsurfModifier_freeData(ModifierData *md)
+{
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+	if (smd->mCache) {
+		ccgSubSurf_free(smd->mCache);
+	}
+}	
 
 static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
-	int levels = useRenderParams?smd->renderLevels:smd->levels;
 	Mesh *me = ob->data;
 
 	if (dm) {
@@ -137,25 +121,23 @@ static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, Derived
 		}
 		dm->release(dm);
 
-		dm = subsurf_make_derived_from_dlm(dlm, smd->subdivType, levels);
+		dm = subsurf_make_derived_from_mesh(me, dlm, smd, useRenderParams, NULL);
 		displistmesh_free(dlm);
 
 		return dm;
 	} else {
-		return subsurf_make_derived_from_mesh(me, smd->subdivType, levels, vertexCos);
+		return subsurf_make_derived_from_mesh(me, NULL, smd, useRenderParams, vertexCos);
 	}
 }
 
 /* Build */
 
-static ModifierData *buildModifier_allocData(void)
+static void buildModifier_initData(ModifierData *md)
 {
-	BuildModifierData *bmd = allocModifierData(eModifierType_Build, sizeof(BuildModifierData));
+	BuildModifierData *bmd = (BuildModifierData*) md;
 
 	bmd->start = 1.0;
 	bmd->length = 100.0;
-
-	return (ModifierData*) bmd;
 }
 
 static int buildModifier_dependsOnTime(ModifierData *md)
@@ -354,8 +336,14 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 	} else {
 		ndlm->totvert = totvert*frac;
 
-		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*ndlm->totvert, "build_mvert");
-		memcpy(ndlm->mvert, mvert, sizeof(*mvert)*ndlm->totvert);
+		if (bmd->randomize) {
+			ndlm->mvert = MEM_dupallocN(mvert);
+			BLI_array_randomize(ndlm->mvert, sizeof(*mvert), totvert, bmd->seed);
+		} else {
+			ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*ndlm->totvert, "build_mvert");
+			memcpy(ndlm->mvert, mvert, sizeof(*mvert)*ndlm->totvert);
+		}
+
 		if (vertexCos) {
 			for (i=0; i<ndlm->totvert; i++) {
 				VECCOPY(ndlm->mvert[i].co, vertexCos[i]);
@@ -373,14 +361,11 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, DerivedMe
 
 /* Mirror */
 
-static ModifierData *mirrorModifier_allocData(void)
+static void mirrorModifier_initData(ModifierData *md)
 {
-	MirrorModifierData *mmd = allocModifierData(eModifierType_Mirror, sizeof(MirrorModifierData));
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	mmd->axis = 0;
 	mmd->tolerance = 0.001;
-
-	return (ModifierData*) mmd;
 }
 
 static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int useRenderParams)
@@ -602,60 +587,61 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 		memset(typeArr, 0, sizeof(typeArr));
 
+		/* Initialize and return the appropriate type info structure,
+		 * assumes that modifier has:
+		 *  name == typeName, 
+		 *  structName == typeName + 'ModifierData'
+		 */
+#define INIT_TYPE(typeName) \
+	(	strcpy(typeArr[eModifierType_##typeName].name, #typeName), \
+		strcpy(typeArr[eModifierType_##typeName].structName, #typeName "ModifierData"), \
+		typeArr[eModifierType_##typeName].structSize = sizeof(typeName##ModifierData), \
+		&typeArr[eModifierType_##typeName])
+
 		mti = &typeArr[eModifierType_None];
 		strcpy(mti->name, "None");
 		strcpy(mti->structName, "ModifierData");
+		mti->structSize = sizeof(ModifierData);
 		mti->type = eModifierType_None;
 		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_AcceptsCVs;
-		mti->allocData = noneModifier_allocData;
 		mti->isDisabled = noneModifier_isDisabled;
 
-		mti = &typeArr[eModifierType_Curve];
-		strcpy(mti->name, "Curve");
-		strcpy(mti->structName, "CurveModifierData");
+		mti = INIT_TYPE(Curve);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs;
-		mti->allocData = curveModifier_allocData;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->updateDepgraph = curveModifier_updateDepgraph;
 		mti->deformVerts = curveModifier_deformVerts;
 
-		mti = &typeArr[eModifierType_Lattice];
-		strcpy(mti->name, "Lattice");
-		strcpy(mti->structName, "LatticeModifierData");
+		mti = INIT_TYPE(Lattice);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs;
-		mti->allocData = latticeModifier_allocData;
 		mti->isDisabled = latticeModifier_isDisabled;
 		mti->updateDepgraph = latticeModifier_updateDepgraph;
 		mti->deformVerts = latticeModifier_deformVerts;
 
-		mti = &typeArr[eModifierType_Subsurf];
-		strcpy(mti->name, "Subsurf");
-		strcpy(mti->structName, "SubsurfModifierData");
+		mti = INIT_TYPE(Subsurf);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping;
-		mti->allocData = subsurfModifier_allocData;
+		mti->initData = subsurfModifier_initData;
+		mti->freeData = subsurfModifier_freeData;
 		mti->applyModifier = subsurfModifier_applyModifier;
 
-		mti = &typeArr[eModifierType_Build];
-		strcpy(mti->name, "Build");
-		strcpy(mti->structName, "BuildModifierData");
+		mti = INIT_TYPE(Build);
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
-		mti->allocData = buildModifier_allocData;
+		mti->initData = buildModifier_initData;
 		mti->dependsOnTime = buildModifier_dependsOnTime;
 		mti->applyModifier = buildModifier_applyModifier;
 
-		mti = &typeArr[eModifierType_Mirror];
-		strcpy(mti->name, "Mirror");
-		strcpy(mti->structName, "MirrorModifierData");
+		mti = INIT_TYPE(Mirror);
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
-		mti->allocData = mirrorModifier_allocData;
+		mti->initData = mirrorModifier_initData;
 		mti->applyModifier = mirrorModifier_applyModifier;
 
 		typeArrInit = 0;
+#undef INIT_TYPE
 	}
 
 	if (type>=0 && type<NUM_MODIFIER_TYPES && typeArr[type].name[0]!='\0') {
@@ -663,6 +649,28 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 	} else {
 		return NULL;
 	}
+}
+
+ModifierData *modifier_new(int type)
+{
+	ModifierTypeInfo *mti = modifierType_get_info(type);
+	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
+
+	md->type = type;
+	md->mode = eModifierMode_RealtimeAndRender;
+
+	if (mti->initData) mti->initData(md);
+
+	return md;
+}
+
+void modifier_free(ModifierData *md) 
+{
+	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+	if (mti->freeData) mti->freeData(md);
+
+	MEM_freeN(md);
 }
 
 int modifier_dependsOnTime(ModifierData *md) 

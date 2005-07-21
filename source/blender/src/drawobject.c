@@ -1659,16 +1659,9 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	}
 }
 
-static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, DerivedMesh *realDM, int dt)
+static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-	DerivedMesh *cageDM;
-
-	if(realDM && (me->flag&ME_OPT_EDGES)) {
-		cageDM = realDM;
-	} else {
-		cageDM = baseDM;
-	}
 
 	if(dt>OB_WIRE) {
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
@@ -1676,11 +1669,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		if (realDM) {
-			realDM->drawFacesSolid(realDM, set_gl_material);
-		} else {
-			baseDM->drawFacesSolid(baseDM, set_gl_material);
-		}
+		finalDM->drawFacesSolid(finalDM, set_gl_material);
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
@@ -1693,9 +1682,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *baseDM, Derived
 		glDepthMask(0);
 	} 
 	else {
-		if (realDM && !(me->flag&ME_OPT_EDGES)) {
+		if (cageDM!=finalDM) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			realDM->drawEdges(realDM);
+			finalDM->drawEdges(finalDM);
 		}
 	}
 	
@@ -1918,13 +1907,14 @@ static void draw_mesh_object(Base *base, int dt)
 	int has_alpha= 0;
 	
 	if(G.obedit && ob->data==G.obedit->data) {
-		DerivedMesh *baseDM = editmesh_get_derived_proxy();
-		DerivedMesh *realDM = editmesh_get_derived();
+		int cageNeedsFree, finalNeedsFree;
+		DerivedMesh *finalDM, *cageDM = editmesh_get_derived_cage_and_final(&finalDM, &cageNeedsFree, &finalNeedsFree);
 
 		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
-		draw_em_fancy(ob, G.editMesh, baseDM, realDM, dt);
+		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
-		baseDM->release(baseDM);
+		if (cageNeedsFree) cageDM->release(cageDM);
+		if (finalNeedsFree) finalDM->release(finalDM);
 	}
 	else {
 		BoundBox *bb = mesh_get_bb(me);
