@@ -1388,8 +1388,6 @@ static void mesh_build_data(Object *ob)
 	ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
 
 	boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
-
-	build_particle_system(ob);
 }
 
 static void editmesh_build_data(void)
@@ -1424,6 +1422,8 @@ void makeDispListMesh(Object *ob)
 		editmesh_build_data();
 	} else {
 		mesh_build_data(ob);
+
+		build_particle_system(ob);
 	}
 }
 
