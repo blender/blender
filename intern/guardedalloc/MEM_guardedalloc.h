@@ -98,8 +98,8 @@ extern "C" {
 	 * blocks. */ 
 	void MEM_printmemlist(void);
 
-	/** Set the stream for error output. */
-	void MEM_set_error_stream(FILE*);
+	/** Set the callback function for error output. */
+	void MEM_set_error_callback(void (*func)(char *));
 
 	/**
 	 * Are the start/end block markers still correct ?

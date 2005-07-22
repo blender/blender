@@ -38,6 +38,7 @@
 
 #include <stdlib.h>
 #include <string.h>	/* memcpy */
+#include <stdarg.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -104,12 +105,13 @@ static char *check_memlist(MemHead *memh);
 /* vars                                                                  */
 /* --------------------------------------------------------------------- */
 	
+
 int totblock= 0;
 int mem_in_use= 0;
 
 static struct localListBase _membase;
 static struct localListBase *membase = &_membase;
-static FILE* err_stream = NULL;
+static void (*error_callback)(char *) = NULL;
 
 #ifdef malloc
 #undef malloc
@@ -128,6 +130,18 @@ static FILE* err_stream = NULL;
 /* implementation                                                        */
 /* --------------------------------------------------------------------- */
 
+static void print_error(char *str, ...)
+{
+	char buf[1024];
+	va_list ap;
+
+	va_start(ap, str);
+	vsprintf(buf, str, ap);
+	va_end(ap);
+
+	if (error_callback) error_callback(buf);
+}
+
 int MEM_check_memory_integrity()
 {
 	char* err_val = NULL;
@@ -142,9 +156,9 @@ int MEM_check_memory_integrity()
 }
 
 
-void MEM_set_error_stream(FILE* i)
+void MEM_set_error_callback(void (*func)(char *))
 {
-	err_stream = i;
+	error_callback = func;
 }
 
 
@@ -204,7 +218,7 @@ void *MEM_mallocN(unsigned int len, char *str)
 		mem_in_use += len;
 		return (++memh);
 	}
-	if (err_stream) fprintf(err_stream, "Malloc returns nill: len=%d in %s\n",len,str);
+	print_error("Malloc returns nill: len=%d in %s\n",len,str);
 	return 0;
 }
 
@@ -238,7 +252,7 @@ void *MEM_callocN(unsigned int len, char *str)
 		mem_in_use += len;
 		return (++memh);
 	}
-	if (err_stream) fprintf(err_stream, "Calloc returns nill: len=%d in %s\n",len,str);
+	print_error("Calloc returns nill: len=%d in %s\n",len,str);
 	return 0;
 }
 
@@ -250,7 +264,7 @@ void MEM_printmemlist()
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
 	while(membl) {
-		if (err_stream) fprintf(err_stream, "%s len: %d %p\n",membl->name,membl->len, membl+1);
+		print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
@@ -266,7 +280,7 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 
 	if (memh == 0){
 		MemorY_ErroR("free","attempt to free NULL pointer");
-		/* if (err_stream) fprintf(err_stream, "%d\n", (memh+4000)->tag1); */
+		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
 	}
 
@@ -368,7 +382,7 @@ static void rem_memblock(MemHead *memh)
 
 static void MemorY_ErroR(char *block, char *error)
 {
-	if (err_stream) fprintf(err_stream,"Memoryblock %s: %s\n",block,error);
+	print_error("Memoryblock %s: %s\n",block,error);
 }
 
 static char *check_memlist(MemHead *memh)

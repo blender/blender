@@ -589,10 +589,15 @@ static void error_cb(char *err)
 	error("%s", err);
 }
 
+static void mem_error_cb(char *errorStr)
+{
+	fprintf(stderr, errorStr);
+}
+
 void setCallbacks(void)
 {
 	/* Error output from the alloc routines: */
-	MEM_set_error_stream(stderr);
+	MEM_set_error_callback(mem_error_cb);
 
 
 	/* BLI_blenlib: */
