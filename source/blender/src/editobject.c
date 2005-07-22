@@ -799,7 +799,7 @@ void clear_parent(void)
 			if(mode==1 || mode==2) {
 				par= base->object->parent;
 				base->object->parent= NULL;
-				base->object->recalc |= OB_RECALC_OB;
+				base->object->recalc |= OB_RECALC;
 				
 				if(mode==2) {
 					base->object->track= NULL;
@@ -808,7 +808,7 @@ void clear_parent(void)
 			}
 			else if(mode==3) {
 				Mat4One(base->object->parentinv);
-				base->object->recalc |= OB_RECALC_OB;
+				base->object->recalc |= OB_RECALC;
 			}
 		}
 		base= base->next;

@@ -627,6 +627,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		DAG_scene_sort(G.scene); // makes new dag
 		ob= OBACT;
 		if(ob) ob->recalc |= OB_RECALC;
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	default:
 		if(event>=B_OBLAY && event<=B_OBLAY+31) {
