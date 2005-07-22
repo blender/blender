@@ -1561,10 +1561,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						initTransform(TFM_SHEAR, CTX_NONE);
 						Transform();
 					}
-					else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
-						initTransform(TFM_SHEAR, CTX_NONE);
-						Transform();
-					}
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
 					else if(G.qual==0) {
@@ -1593,7 +1589,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					initTransform(TFM_TOSPHERE, CTX_NONE);
 					Transform();
 				}
-				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY)) {
+				else if(G.qual==(LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)) {
 					initTransform(TFM_SHEAR, CTX_NONE);
 					Transform();
 				}
