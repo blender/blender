@@ -717,101 +717,98 @@ void shadeDispList(Object *ob)
 		DerivedMesh *dm= mesh_get_derived_final(ob, &dmNeedsFree);
 		DispListMesh *dlm;
 		MVert *mvert;
-
+		float *vnors, *vn;
+		int i;
+			
 		if (need_orco) {
 			orco = mesh_create_orco(ob);
 		}
 
 		dlm= dm->convertToDispListMesh(dm);
 
-		if (dlm && dlm->totvert) {
-			float *vnors, *vn;
-			int i;
-			
-			dlob= MEM_callocN(sizeof(DispList), "displistshade");
-			BLI_addtail(&ob->disp, dlob);
-			dlob->type= DL_VERTCOL;
-		
-			dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
-			if (me->flag & ME_TWOSIDED)
-				dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
-			
-			/* vertexnormals */
-			vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
-			mvert= dlm->mvert;
-			a= dlm->totvert;
-			while(a--) {
-				
-				xn= mvert->no[0]; 
-				yn= mvert->no[1]; 
-				zn= mvert->no[2];
-				
-				/* transpose ! */
-				vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalise(vn);
-				
-				mvert++; vn+=3;
-			}		
+		dlob= MEM_callocN(sizeof(DispList), "displistshade");
+		BLI_addtail(&ob->disp, dlob);
+		dlob->type= DL_VERTCOL;
 	
-			for (i=0; i<dlm->totface; i++) {
-				MFace *mf= &dlm->mface[i];
+		dlob->col1= MEM_mallocN(sizeof(*dlob->col1)*dlm->totface*4, "col1");
+		if (me->flag & ME_TWOSIDED)
+			dlob->col2= MEM_mallocN(sizeof(*dlob->col2)*dlm->totface*4, "col1");
+		
+		/* vertexnormals */
+		vn=vnors= MEM_mallocN(dlm->totvert*3*sizeof(float), "vnors disp");
+		mvert= dlm->mvert;
+		a= dlm->totvert;
+		while(a--) {
+			
+			xn= mvert->no[0]; 
+			yn= mvert->no[1]; 
+			zn= mvert->no[2];
+			
+			/* transpose ! */
+			vn[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+			vn[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+			vn[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+			Normalise(vn);
+			
+			mvert++; vn+=3;
+		}		
 
-				if (mf->v3) {
-					int j, vidx[4], nverts= mf->v4?4:3;
-					unsigned char *col1base= (unsigned char*) &dlob->col1[i*4];
-					unsigned char *col2base= (unsigned char*) (dlob->col2?&dlob->col2[i*4]:NULL);
-					unsigned char *mcolbase;
-					float nor[3];
+		for (i=0; i<dlm->totface; i++) {
+			MFace *mf= &dlm->mface[i];
+
+			if (mf->v3) {
+				int j, vidx[4], nverts= mf->v4?4:3;
+				unsigned char *col1base= (unsigned char*) &dlob->col1[i*4];
+				unsigned char *col2base= (unsigned char*) (dlob->col2?&dlob->col2[i*4]:NULL);
+				unsigned char *mcolbase;
+				float nor[3];
+				
+				if (dlm->tface) {
+					mcolbase = (unsigned char*) dlm->tface[i].col;
+				} else if (dlm->mcol) {
+					mcolbase = (unsigned char*) &dlm->mcol[i*4];
+				} else {
+					mcolbase = NULL;
+				}
+
+				ma= give_current_material(ob, mf->mat_nr+1);
+				if(ma==0) ma= &defmaterial;
+				
+				vidx[0]= mf->v1;
+				vidx[1]= mf->v2;
+				vidx[2]= mf->v3;
+				vidx[3]= mf->v4;
+
+					// XXX, should all DLM's have normals?
+				if (dlm->nors) {
+					VECCOPY(nor, &dlm->nors[i*3]);
+				} else {
+					if (mf->v4)
+						CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+					else
+						CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+				}
+
+				n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
+				n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
+				n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+				Normalise(n1);
+
+				vn = n1;
+				for (j=0; j<nverts; j++) {
+					MVert *mv= &dlm->mvert[vidx[j]];
+					unsigned char *col1= &col1base[j*4];
+					unsigned char *col2= col2base?&col2base[j*4]:NULL;
+					unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
 					
-					if (dlm->tface) {
-						mcolbase = (unsigned char*) dlm->tface[i].col;
-					} else if (dlm->mcol) {
-						mcolbase = (unsigned char*) &dlm->mcol[i*4];
-					} else {
-						mcolbase = NULL;
-					}
-
-					ma= give_current_material(ob, mf->mat_nr+1);
-					if(ma==0) ma= &defmaterial;
-					
-					vidx[0]= mf->v1;
-					vidx[1]= mf->v2;
-					vidx[2]= mf->v3;
-					vidx[3]= mf->v4;
-
-						// XXX, should all DLM's have normals?
-					if (dlm->nors) {
-						VECCOPY(nor, &dlm->nors[i*3]);
-					} else {
-						if (mf->v4)
-							CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
-						else
-							CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
-					}
-
-					n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-					n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-					n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-					Normalise(n1);
-
-					vn = n1;
-					for (j=0; j<nverts; j++) {
-						MVert *mv= &dlm->mvert[vidx[j]];
-						unsigned char *col1= &col1base[j*4];
-						unsigned char *col2= col2base?&col2base[j*4]:NULL;
-						unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
-						
-						VECCOPY(vec, mv->co);
-						Mat4MulVecfl(mat, vec);
-						if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
-						fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
-					}
+					VECCOPY(vec, mv->co);
+					Mat4MulVecfl(mat, vec);
+					if(mf->flag & ME_SMOOTH) vn= vnors+3*vidx[j];
+					fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
 				}
 			}
-			MEM_freeN(vnors);
 		}
+		MEM_freeN(vnors);
 		displistmesh_free(dlm);
 
 		if (orco) {

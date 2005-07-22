@@ -91,7 +91,10 @@ struct DerivedMesh {
 			/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
 
-			/* Draw all edges as lines (no options) */
+			/* Draw all edges as lines (no options) 
+			 *
+			 * Also called for *final* editmode DerivedMeshes
+			 */
 	void (*drawEdges)(DerivedMesh *dm);
 
 			/* Draw mapped edges as lines (no options) */
@@ -106,7 +109,7 @@ struct DerivedMesh {
 			 *  o Use inherited face material index to call setMaterial
 			 *  o Only if setMaterial returns true
 			 *
-			 * Also called in Editmode
+			 * Also called for *final* editmode DerivedMeshes
 			 */
 	void (*drawFacesSolid)(DerivedMesh *dm, int (*setMaterial)(int));
 

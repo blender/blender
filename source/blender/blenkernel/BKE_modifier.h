@@ -58,6 +58,7 @@ typedef enum {
 	eModifierTypeFlag_AcceptsMesh = (1<<0),
 	eModifierTypeFlag_AcceptsCVs = (1<<1),
 	eModifierTypeFlag_SupportsMapping = (1<<2),
+	eModifierTypeFlag_SupportsEditmode = (1<<3),
 } ModifierTypeFlag;
 
 typedef struct ModifierTypeInfo {
@@ -112,9 +113,14 @@ typedef struct ModifierTypeInfo {
 	int (*dependsOnTime)(struct ModifierData *md);
 
 		/* Only for deform types, should apply the deformation
-		 * to the given vertex array. 
+		 * to the given vertex array. If the deformer requires information from
+		 * the object it can obtain it from the _derivedData_ argument if non-NULL,
+		 * and otherwise the _ob_ argument.
 		 */
-	void (*deformVerts)(struct ModifierData *md, struct Object *ob, float (*vertexCos)[3], int numVerts);
+	void (*deformVerts)(struct ModifierData *md, struct Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts);
+
+		/* Like deformVerts but called during editmode (for supporting modifiers) */
+	void (*deformVertsEM)(struct ModifierData *md, struct Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts);
 
 		/* For non-deform types: apply the modifier and return a new derived
 		 * data object (type is dependent on object type). If the _derivedData_
@@ -130,10 +136,23 @@ typedef struct ModifierTypeInfo {
 		 * The _useRenderParams_ indicates if the modifier is being applied in
 		 * the service of the renderer which may alter quality settings.
 		 *
+		 * The _isFinalCalc_ parameter indicates if the modifier is being calculated
+		 * for a final result or for something temporary (like orcos). This is a hack
+		 * at the moment, it is meant so subsurf can know if it is safe to reuse its
+		 * internal cache.
+		 *
 		 * The modifier is expected to release (or reuse) the _derivedData_ argument
 		 * if non-NULL. The modifier *MAY NOT* share the _vertexCos_ argument.
 		 */
-	void *(*applyModifier)(struct ModifierData *md, struct Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams);
+	void *(*applyModifier)(struct ModifierData *md, struct Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc);
+
+		/* Like applyModifier but called during editmode (for supporting modifiers).
+		 * 
+		 * The derived object that is returned must support the operations that are expected
+		 * from editmode objects. The same qualifications regarding _derivedData_ and _vertexCos_
+		 * apply as for applyModifier.
+		 */
+	void *(*applyModifierEM)(struct ModifierData *md, struct Object *ob, void *editData, void *derivedData, float (*vertexCos)[3]);
 } ModifierTypeInfo;
 
 ModifierTypeInfo *modifierType_get_info(ModifierType type);

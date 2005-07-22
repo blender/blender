@@ -945,10 +945,8 @@ void load_editMesh(void)
 	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
 
 	/* new Edge block */
-	if(totedge) {
-		if(me->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh
-		else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
-	}
+	if(me->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh
+	else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
 	
 	/* new Face block */
 	if(G.totface==0) mface= NULL;

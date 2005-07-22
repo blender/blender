@@ -766,9 +766,9 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss) {
 	ss->oldEMap = ss->eMap; 
 	ss->oldFMap = ss->fMap;
 
-	ss->vMap = _ehash_new(ss->oldVMap->numEntries, &ss->allocatorIFC, ss->allocator);
-	ss->eMap = _ehash_new(ss->oldFMap->numEntries, &ss->allocatorIFC, ss->allocator);
-	ss->fMap = _ehash_new(ss->oldEMap->numEntries, &ss->allocatorIFC, ss->allocator);
+	ss->vMap = _ehash_new(0, &ss->allocatorIFC, ss->allocator);
+	ss->eMap = _ehash_new(0, &ss->allocatorIFC, ss->allocator);
+	ss->fMap = _ehash_new(0, &ss->allocatorIFC, ss->allocator);
 
 	ss->numGrids = 0;
 

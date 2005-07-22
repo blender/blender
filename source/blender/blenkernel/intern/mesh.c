@@ -790,7 +790,12 @@ void make_edges(Mesh *me)
 		else totedge+=1;
 	}
 	
-	if(totedge==0) return;
+	if(totedge==0) {
+			/* flag that mesh has edges */
+		me->medge = MEM_callocN(0, "make mesh edges");
+		me->totedge = 0;
+		return;
+	}
 	
 	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
 	

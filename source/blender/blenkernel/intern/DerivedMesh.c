@@ -502,7 +502,11 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 		mdm->freeNors = 1;
 		mdm->freeVerts = 1;
 	} else {
-		mdm->nors = mesh_build_faceNormals(ob);
+			// XXX this is kinda hacky because we shouldn't really be editing
+			// the mesh here, however, we can't just call mesh_build_faceNormals(ob)
+			// because in the case when a key is applied to a mesh the vertex normals
+			// would never be correctly computed (and renderer makes this assumption.
+		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
 	}
 
@@ -515,6 +519,7 @@ typedef struct {
 	DerivedMesh dm;
 
 	EditMesh *em;
+	float (*vertexCos)[3];
 } EditMeshDerivedMesh;
 
 static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
@@ -530,12 +535,23 @@ static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
 
-	bglBegin(GL_POINTS);
-	for(eve= emdm->em->verts.first; eve; eve= eve->next) {
-		if(!setDrawOptions || setDrawOptions(userData, eve))
-			bglVertex3fv(eve->co);
+	if (emdm->vertexCos) {
+		int i;
+
+		bglBegin(GL_POINTS);
+		for(i=0,eve= emdm->em->verts.first; eve; i++,eve= eve->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eve))
+				bglVertex3fv(emdm->vertexCos[i]);
+		}
+		bglEnd();		
+	} else {
+		bglBegin(GL_POINTS);
+		for(eve= emdm->em->verts.first; eve; eve= eve->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eve))
+				bglVertex3fv(eve->co);
+		}
+		bglEnd();		
 	}
-	bglEnd();		
 }
 static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
 {
@@ -551,56 +567,106 @@ static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
 
-	glBegin(GL_LINES);
-	for(eed= emdm->em->edges.first; eed; eed= eed->next) {
-		if(!setDrawOptions || setDrawOptions(userData, eed)) {
-			glVertex3fv(eed->v1->co);
-			glVertex3fv(eed->v2->co);
+	if (emdm->vertexCos) {
+		EditVert *eve, *preveve;
+		int i;
+
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		glBegin(GL_LINES);
+		for(eed= emdm->em->edges.first; eed; eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eed)) {
+				glVertex3fv(emdm->vertexCos[(int) eed->v1->prev]);
+				glVertex3fv(emdm->vertexCos[(int) eed->v2->prev]);
+			}
 		}
+		glEnd();
+
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	} else {
+		glBegin(GL_LINES);
+		for(eed= emdm->em->edges.first; eed; eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eed)) {
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
+			}
+		}
+		glEnd();
 	}
-	glEnd();
+}
+static void emDM_drawEdges(DerivedMesh *dm)
+{
+	emDM_drawMappedEdgesEM(dm, NULL, NULL);
 }
 static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void (*setDrawInterpOptions)(void *userData, EditEdge *edge, float t), void *userData) 
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditEdge *eed;
 
-	glBegin(GL_LINES);
-	for(eed= emdm->em->edges.first; eed; eed= eed->next) {
-		if(!setDrawOptions || setDrawOptions(userData, eed)) {
-			setDrawInterpOptions(userData, eed, 0.0);
-			glVertex3fv(eed->v1->co);
-			setDrawInterpOptions(userData, eed, 1.0);
-			glVertex3fv(eed->v2->co);
+	if (emdm->vertexCos) {
+		EditVert *eve, *preveve;
+		int i;
+
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		glBegin(GL_LINES);
+		for(eed= emdm->em->edges.first; eed; eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eed)) {
+				setDrawInterpOptions(userData, eed, 0.0);
+				glVertex3fv(emdm->vertexCos[(int) eed->v1->prev]);
+				setDrawInterpOptions(userData, eed, 1.0);
+				glVertex3fv(emdm->vertexCos[(int) eed->v2->prev]);
+			}
 		}
+		glEnd();
+
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	} else {
+		glBegin(GL_LINES);
+		for(eed= emdm->em->edges.first; eed; eed= eed->next) {
+			if(!setDrawOptions || setDrawOptions(userData, eed)) {
+				setDrawInterpOptions(userData, eed, 0.0);
+				glVertex3fv(eed->v1->co);
+				setDrawInterpOptions(userData, eed, 1.0);
+				glVertex3fv(eed->v2->co);
+			}
+		}
+		glEnd();
 	}
-	glEnd();
 }
 static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
 
-	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
-		if(!setDrawOptions || setDrawOptions(userData, efa)) {
-			glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-			glVertex3fv(efa->v1->co);
-			glVertex3fv(efa->v2->co);
-			glVertex3fv(efa->v3->co);
-			if(efa->v4) glVertex3fv(efa->v4->co);
-			glEnd();
-		}
-	}
-}
-static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditFace *efa;
+	if (emdm->vertexCos) {
+		EditVert *eve, *preveve;
+		int i;
 
-	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0) {
-			if (setMaterial(efa->mat_nr+1)) {
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+			if(!setDrawOptions || setDrawOptions(userData, efa)) {
 				glNormal3fv(efa->n);
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
+				glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
+				glVertex3fv(emdm->vertexCos[(int) efa->v3->prev]);
+				if(efa->v4) glVertex3fv(emdm->vertexCos[(int) efa->v4->prev]);
+				glEnd();
+			}
+		}
+
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	} else {
+		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+			if(!setDrawOptions || setDrawOptions(userData, efa)) {
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				glVertex3fv(efa->v1->co);
 				glVertex3fv(efa->v2->co);
@@ -611,15 +677,64 @@ static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 		}
 	}
 }
+static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditFace *efa;
+
+	if (emdm->vertexCos) {
+		EditVert *eve, *preveve;
+		int i;
+
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				if (setMaterial(efa->mat_nr+1)) {
+					glNormal3fv(efa->n);
+					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
+					glVertex3fv(emdm->vertexCos[(int) efa->v3->prev]);
+					if(efa->v4) glVertex3fv(emdm->vertexCos[(int) efa->v4->prev]);
+					glEnd();
+				}
+			}
+		}
+
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	} else {
+		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+			if(efa->h==0) {
+				if (setMaterial(efa->mat_nr+1)) {
+					glNormal3fv(efa->n);
+					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					if(efa->v4) glVertex3fv(efa->v4->co);
+					glEnd();
+				}
+			}
+		}
+	}
+}
 
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
+	int i;
 
 	if (emdm->em->verts.first) {
-		for (eve= emdm->em->verts.first; eve; eve= eve->next) {
-			DO_MINMAX(eve->co, min_r, max_r);
+		for (i=0,eve= emdm->em->verts.first; eve; i++,eve= eve->next) {
+			if (emdm->vertexCos) {
+				DO_MINMAX(emdm->vertexCos[i], min_r, max_r);
+			} else {
+				DO_MINMAX(eve->co, min_r, max_r);
+			}
 		}
 	} else {
 		min_r[0] = min_r[1] = min_r[2] = max_r[0] = max_r[1] = max_r[2] = 0.0;
@@ -638,7 +753,17 @@ static int emDM_getNumFaces(DerivedMesh *dm)
 	return BLI_countlist(&emdm->em->faces);
 }
 
-static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
+static void emDM_release(DerivedMesh *dm)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+
+	if (emdm->vertexCos)
+		MEM_freeN(emdm->vertexCos);
+
+	MEM_freeN(emdm);
+}
+
+static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
@@ -650,6 +775,7 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
 
+	emdm->dm.drawEdges = emDM_drawEdges;
 	emdm->dm.drawMappedEdgeEM = emDM_drawMappedEdgeEM;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
 	emdm->dm.drawMappedEdgesInterpEM = emDM_drawMappedEdgesInterpEM;
@@ -657,9 +783,10 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em)
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawMappedFacesEM = emDM_drawMappedFacesEM;
 
-	emdm->dm.release = (void(*)(DerivedMesh*)) MEM_freeN;
+	emdm->dm.release = emDM_release;
 	
 	emdm->em = em;
+	emdm->vertexCos = vertexCos;
 
 	return (DerivedMesh*) emdm;
 }
@@ -994,27 +1121,33 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 /***/
 
+typedef float vec3f[3];
+
+static vec3f *mesh_getVertexCos(Mesh *me, int *numVerts_r)
+{
+	int i, numVerts = *numVerts_r = me->totvert;
+	float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
+
+	for (i=0; i<numVerts; i++) {
+		VECCOPY(cos[i], me->mvert[i].co);
+	}
+
+	return cos;
+}
+
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
 	Mesh *me = ob->data;
 	ModifierData *md= ob->modifiers.first;
 	float (*deformedVerts)[3];
 	DerivedMesh *dm;
-	int a, numVerts = me->totvert;
+	int numVerts = me->totvert;
 
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
 
 	if (useDeform) {
 		mesh_modifier(ob, &deformedVerts);
-
-			// XXX this copy should be done on demand
-		if (!deformedVerts) {
-			deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "vertexcos1");
-			for (a=0; a<numVerts; a++) {
-				VECCOPY(deformedVerts[a], me->mvert[a].co);
-			}
-		}
 
 			/* Apply all leading deforming modifiers */
 		for (; md; md=md->next) {
@@ -1024,7 +1157,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			if (mti->isDisabled && mti->isDisabled(md)) continue;
 
 			if (mti->type==eModifierTypeType_OnlyDeform) {
-				mti->deformVerts(md, ob, deformedVerts, numVerts);
+				if (!deformedVerts) deformedVerts = mesh_getVertexCos(me, &numVerts);
+				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
 			} else {
 				break;
 			}
@@ -1066,27 +1200,23 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "dfmv");
 					dm->getVertCos(dm, deformedVerts);
 				} else {
-					numVerts = me->totvert;
-					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "vertexcos2");
-					for (a=0; a<numVerts; a++) {
-						VECCOPY(deformedVerts[a], me->mvert[a].co);
-					}
+					deformedVerts = mesh_getVertexCos(me, &numVerts);
 				}
 			}
 
-			mti->deformVerts(md, ob, deformedVerts, numVerts);
+			mti->deformVerts(md, ob, dm, deformedVerts, numVerts);
 		} else {
 				/* There are 4 cases here (have deform? have dm?) but they all are handled
 				 * by the modifier apply function, which will also free the DerivedMesh if
 				 * it exists.
 				 */
-			dm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams);
+			dm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams, !inputVertexCos);
 
 			if (deformedVerts) {
 				if (deformedVerts!=inputVertexCos) {
 					MEM_freeN(deformedVerts);
 				}
-				deformedVerts = 0;
+				deformedVerts = NULL;
 			}
 		}
 	}
@@ -1123,6 +1253,111 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 
 	if (deformedVerts && deformedVerts!=inputVertexCos) {
 		MEM_freeN(deformedVerts);
+	}
+}
+
+static vec3f *editmesh_getVertexCos(EditMesh *em, int *numVerts_r)
+{
+	int i, numVerts = *numVerts_r = BLI_countlist(&em->verts);
+	float (*cos)[3];
+	EditVert *eve;
+
+	cos = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos");
+	for (i=0,eve=em->verts.first; i<numVerts; i++,eve=eve->next) {
+		VECCOPY(cos[i], eve->co);
+	}
+
+	return cos;
+}
+
+static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
+{
+	Object *ob = G.obedit;
+	EditMesh *em = G.editMesh;
+	ModifierData *md= ob->modifiers.first;
+	float (*deformedVerts)[3] = NULL;
+	DerivedMesh *dm;
+	int numVerts;
+
+	if (cage_r) *cage_r = NULL;
+	*final_r = NULL;
+
+	*cage_r = getEditMeshDerivedMesh(em, NULL);
+
+//	mesh_modifier(ob, &deformedVerts);
+
+	dm = NULL;
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+		if (!(md->mode&1)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
+
+			/* How to apply modifier depends on (a) what we already have as
+			 * a result of previous modifiers (could be a DerivedMesh or just
+			 * deformed vertices) and (b) what type the modifier is.
+			 */
+
+		if (mti->type==eModifierTypeType_OnlyDeform) {
+				/* No existing verts to deform, need to build them. */
+			if (!deformedVerts) {
+				if (dm) {
+						/* Deforming a derived mesh, read the vertex locations out of the mesh and
+						 * deform them. Once done with this run of deformers verts will be written back.
+						 */
+					numVerts = dm->getNumVerts(dm);
+					deformedVerts = MEM_mallocN(sizeof(*deformedVerts)*numVerts, "dfmv");
+					dm->getVertCos(dm, deformedVerts);
+				} else {
+					deformedVerts = editmesh_getVertexCos(em, &numVerts);
+				}
+			}
+
+			mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
+		} else {
+				/* There are 4 cases here (have deform? have dm?) but they all are handled
+				 * by the modifier apply function, which will also free the DerivedMesh if
+				 * it exists.
+				 */
+			dm = mti->applyModifierEM(md, ob, em, dm, deformedVerts);
+
+			if (deformedVerts) {
+				MEM_freeN(deformedVerts);
+				deformedVerts = NULL;
+			}
+		}
+	}
+
+		/* Yay, we are done. If we have a DerivedMesh and deformed vertices need to apply
+		 * these back onto the DerivedMesh. If we have no DerivedMesh then we need to build
+		 * one.
+		 */
+	if (dm && deformedVerts) {
+		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts or nors were shared
+		int i;
+
+			/* XXX, would like to avoid the conversion to a DLM here if possible.
+			 * Requires adding a DerivedMesh.updateVertCos method.
+			 */
+		for (i=0; i<numVerts; i++) {
+			VECCOPY(dlm->mvert[i].co, deformedVerts[i]);
+		}
+
+		dm->release(dm);
+
+		if (dlm->nors && !dlm->dontFreeNors) {
+			MEM_freeN(dlm->nors);
+			dlm->nors = 0;
+		}
+
+		mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
+		*final_r = derivedmesh_from_displistmesh(dlm);
+		MEM_freeN(deformedVerts);
+	} else if (dm) {
+		*final_r = dm;
+	} else {
+		*final_r = getEditMeshDerivedMesh(em, deformedVerts);
 	}
 }
 
@@ -1171,6 +1406,8 @@ static void mesh_build_data(Object *ob)
 
 static void editmesh_build_data(void)
 {
+	float min[3], max[3];
+
 	EditMesh *em = G.editMesh;
 
 	clear_mesh_caches(G.obedit);
@@ -1186,21 +1423,11 @@ static void editmesh_build_data(void)
 		em->derivedCage = NULL;
 	}
 
-/*
-	if ((me->flag&ME_SUBSURF) && me->subdiv) {
-		em->derivedFinal = subsurf_make_derived_from_editmesh(em, me->subdiv, me->subsurftype, NULL);
+	editmesh_calc_modifiers(&em->derivedCage, &em->derivedFinal);
 
-		if (me->flag&ME_OPT_EDGES) {
-			em->derivedCage = em->derivedFinal;
-		} else {
-			em->derivedCage = getEditMeshDerivedMesh(em);
-		}
-	} else {
-*/
-	em->derivedFinal = em->derivedCage = getEditMeshDerivedMesh(em);
-/*
-	}
-*/
+	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
+
+	boundbox_set_from_min_max(mesh_get_bb(G.obedit->data), min, max);
 }
 
 void makeDispListMesh(Object *ob)

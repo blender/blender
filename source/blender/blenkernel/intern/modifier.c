@@ -1,5 +1,6 @@
 #include "string.h"
 
+#include "BLI_blenlib.h"
 #include "BLI_rand.h"
 
 #include "MEM_guardedalloc.h"
@@ -9,6 +10,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "BLI_editVert.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -50,7 +52,14 @@ static void curveModifier_updateDepgraph(ModifierData *md, DagForest *forest, Ob
 	}
 }
 
-static void curveModifier_deformVerts(ModifierData *md, Object *ob, float (*vertexCos)[3], int numVerts)
+static void curveModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	CurveModifierData *cmd = (CurveModifierData*) md;
+
+	curve_deform_verts(cmd->object, ob, vertexCos, numVerts);
+}
+
+static void curveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
@@ -77,7 +86,14 @@ static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest, 
 	}
 }
 
-static void latticeModifier_deformVerts(ModifierData *md, Object *ob, float (*vertexCos)[3], int numVerts)
+static void latticeModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+
+	lattice_deform_verts(lmd->object, ob, vertexCos, numVerts);
+}
+
+static void latticeModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
@@ -101,9 +117,12 @@ static void subsurfModifier_freeData(ModifierData *md)
 	if (smd->mCache) {
 		ccgSubSurf_free(smd->mCache);
 	}
+	if (smd->emCache) {
+		ccgSubSurf_free(smd->emCache);
+	}
 }	
 
-static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
+static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
@@ -122,12 +141,39 @@ static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *d
 		}
 		dm->release(dm);
 
-		dm = subsurf_make_derived_from_mesh(me, dlm, smd, useRenderParams, NULL);
-		displistmesh_free(dlm);
+		dm = subsurf_make_derived_from_mesh(me, dlm, smd, useRenderParams, NULL, isFinalCalc);
 
 		return dm;
 	} else {
-		return subsurf_make_derived_from_mesh(me, NULL, smd, useRenderParams, vertexCos);
+		return subsurf_make_derived_from_mesh(me, NULL, smd, useRenderParams, vertexCos, isFinalCalc);
+	}
+}
+
+static void *subsurfModifier_applyModifierEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3])
+{
+	EditMesh *em = editData;
+	DerivedMesh *dm = derivedData;
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+	if (dm) {
+		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts were shared
+		int i;
+
+		if (vertexCos) {
+			int numVerts = dm->getNumVerts(dm);
+
+			for (i=0; i<numVerts; i++) {
+				VECCOPY(dlm->mvert[i].co, vertexCos[i]);
+			}
+		}
+		dm->release(dm);
+
+			// XXX, should I worry about reuse of mCache in editmode?
+		dm = subsurf_make_derived_from_mesh(NULL, dlm, smd, 0, NULL, 1);
+
+		return dm;
+	} else {
+		return subsurf_make_derived_from_editmesh(em, smd, vertexCos);
 	}
 }
 
@@ -146,7 +192,7 @@ static int buildModifier_dependsOnTime(ModifierData *md)
 	return 1;
 }
 
-static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
+static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	BuildModifierData *bmd = (BuildModifierData*) md;
@@ -370,56 +416,20 @@ static void mirrorModifier_initData(ModifierData *md)
 	mmd->tolerance = 0.001;
 }
 
-static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams)
+static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm, float (*vertexCos)[3])
 {
-	DerivedMesh *dm = derivedData;
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
-	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*dlm), "mm_dlm");
-	MVert *mvert;
-	MEdge *medge;
-	MFace *mface;
-	TFace *tface;
-	MCol *mcol;
-	int i, j, totvert, totedge, totface;
-	int axis = mmd->axis;
+	int totvert=ndlm->totvert, totedge=ndlm->totedge, totface=ndlm->totface;
+	int i, axis = mmd->axis;
 	float tolerance = mmd->tolerance;
 
-	if (dm) {
-		dlm = dm->convertToDispListMesh(dm);
+	for (i=0; i<totvert; i++) {
+		MVert *mv = &ndlm->mvert[i];
 
-		mvert = dlm->mvert;
-		medge = dlm->medge;
-		mface = dlm->mface;
-		tface = dlm->tface;
-		mcol = dlm->mcol;
-		totvert = dlm->totvert;
-		totedge = dlm->totedge;
-		totface = dlm->totface;
-	} else {
-		Mesh *me = ob->data;
-
-		mvert = me->mvert;
-		medge = me->medge;
-		mface = me->mface;
-		tface = me->tface;
-		mcol = me->mcol;
-		totvert = me->totvert;
-		totedge = me->totedge;
-		totface = me->totface;
-	}
-
-	ndlm->mvert = MEM_mallocN(sizeof(*mvert)*totvert*2, "mm_mv");
-	for (i=0,j=totvert; i<totvert; i++) {
-		MVert *mv = &mvert[i];
-		MVert *nmv = &ndlm->mvert[i];
-
-		memcpy(nmv, mv, sizeof(*mv));
-
-		if (ABS(nmv->co[axis])<=tolerance) {
-			nmv->co[axis] = 0;
-			*((int*) nmv->no) = i;
+		if (ABS(mv->co[axis])<=tolerance) {
+			mv->co[axis] = 0;
+			*((int*) mv->no) = i;
 		} else {
-			MVert *nmvMirror = &ndlm->mvert[j];
+			MVert *nmv = &ndlm->mvert[ndlm->totvert];
 
 				/* Because the topology result (# of vertices) must stuff the same
 				 * if the mesh data is overridden by vertex cos, have to calc sharedness
@@ -427,22 +437,17 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 				 * vertices.
 				 */
 			if (vertexCos) {
-				VECCOPY(nmv->co, vertexCos[i]);
+				VECCOPY(mv->co, vertexCos[i]);
 			}
 
-			memcpy(nmvMirror, nmv, sizeof(*mv));
-			nmvMirror->co[axis] = -nmvMirror->co[axis];
+			memcpy(nmv, mv, sizeof(*mv));
+			nmv ->co[axis] = -nmv ->co[axis];
 
-			*((int*) nmv->no) = j++;
+			*((int*) mv->no) = ndlm->totvert++;
 		}
 	}
-	ndlm->totvert = j;
 
-	if (medge) {
-		ndlm->medge = MEM_mallocN(sizeof(*medge)*totedge*2, "mm_med");
-		memcpy(ndlm->medge, medge, sizeof(*medge)*totedge);
-		ndlm->totedge = totedge;
-
+	if (ndlm->medge) {
 		for (i=0; i<totedge; i++) {
 			MEdge *med = &ndlm->medge[i];
 			MEdge *nmed = &ndlm->medge[ndlm->totedge];
@@ -458,18 +463,6 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 		}
 	}
 
-	ndlm->mface = MEM_mallocN(sizeof(*mface)*totface*2, "mm_mf");
-	memcpy(ndlm->mface, mface, sizeof(*mface)*totface);
-
-	if (tface) {
-		ndlm->tface = MEM_mallocN(sizeof(*tface)*totface*2, "mm_tf");
-		memcpy(ndlm->tface, tface, sizeof(*tface)*totface);
-	} else if (mcol) {
-		ndlm->mcol = MEM_mallocN(sizeof(*mcol)*4*totface*2, "mm_mcol");
-		memcpy(ndlm->mcol, mcol, sizeof(*mcol)*4*totface);
-	}
-
-	ndlm->totface = totface;
 	for (i=0; i<totface; i++) {
 		MFace *mf = &ndlm->mface[i];
 		MFace *nmf = &ndlm->mface[ndlm->totface];
@@ -477,14 +470,14 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 		MCol *mc=NULL, *nmc=NULL; /* gcc's mother is uninitialized! */
 
 		memcpy(nmf, mf, sizeof(*mf));
-		if (tface) {
+		if (ndlm->tface) {
 			ntf = &ndlm->tface[ndlm->totface];
 			tf = &ndlm->tface[i];
-			memcpy(ntf, tf, sizeof(*tface));
-		} else if (mcol) {
+			memcpy(ntf, tf, sizeof(*ndlm->tface));
+		} else if (ndlm->mcol) {
 			nmc = &ndlm->mcol[ndlm->totface*4];
 			mc = &ndlm->mcol[i*4];
-			memcpy(nmc, mc, sizeof(*mcol)*4);
+			memcpy(nmc, mc, sizeof(*ndlm->mcol)*4);
 		}
 
 			/* Map vertices to shared */
@@ -529,11 +522,11 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 				if (copyIdx!=-1) {
 					int fromIdx = (copyIdx+2)%4;
 
-					if (tface) {
+					if (ndlm->tface) {
 						tf->col[copyIdx] = ntf->col[fromIdx];
 						tf->uv[copyIdx][0] = ntf->uv[fromIdx][0];
 						tf->uv[copyIdx][1] = ntf->uv[fromIdx][1];
-					} else if (mcol) {
+					} else if (ndlm->mcol) {
 						mc[copyIdx] = nmc[fromIdx];
 					}
 
@@ -547,21 +540,21 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 			if (nmf->v1) {
 				SWAP(int, nmf->v1, nmf->v3);
 
-				if (tface) {
+				if (ndlm->tface) {
 					SWAP(unsigned int, ntf->col[0], ntf->col[2]);
 					SWAP(float, ntf->uv[0][0], ntf->uv[2][0]);
 					SWAP(float, ntf->uv[0][1], ntf->uv[2][1]);
-				} else if (mcol) {
+				} else if (ndlm->mcol) {
 					SWAP(MCol, nmc[0], nmc[2]);
 				}
 			} else {
 				SWAP(int, nmf->v2, nmf->v4);
 
-				if (tface) {
+				if (ndlm->tface) {
 					SWAP(unsigned int, ntf->col[1], ntf->col[3]);
 					SWAP(float, ntf->uv[1][0], ntf->uv[3][0]);
 					SWAP(float, ntf->uv[1][1], ntf->uv[3][1]);
-				} else if (mcol) {
+				} else if (ndlm->mcol) {
 					SWAP(MCol, nmc[1], nmc[3]);
 				}
 			}
@@ -569,6 +562,63 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 
 		ndlm->totface++;
 	}
+}
+
+static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData;
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*dlm), "mm_dlm");
+	MVert *mvert;
+	MEdge *medge;
+	MFace *mface;
+	TFace *tface;
+	MCol *mcol;
+
+	if (dm) {
+		dlm = dm->convertToDispListMesh(dm);
+
+		mvert = dlm->mvert;
+		medge = dlm->medge;
+		mface = dlm->mface;
+		tface = dlm->tface;
+		mcol = dlm->mcol;
+		ndlm->totvert = dlm->totvert;
+		ndlm->totedge = dlm->totedge;
+		ndlm->totface = dlm->totface;
+	} else {
+		Mesh *me = ob->data;
+
+		mvert = me->mvert;
+		medge = me->medge;
+		mface = me->mface;
+		tface = me->tface;
+		mcol = me->mcol;
+		ndlm->totvert = me->totvert;
+		ndlm->totedge = me->totedge;
+		ndlm->totface = me->totface;
+	}
+
+	ndlm->mvert = MEM_mallocN(sizeof(*mvert)*ndlm->totvert*2, "mm_mv");
+	memcpy(ndlm->mvert, mvert, sizeof(*mvert)*ndlm->totvert);
+
+	if (medge) {
+		ndlm->medge = MEM_mallocN(sizeof(*medge)*ndlm->totedge*2, "mm_med");
+		memcpy(ndlm->medge, medge, sizeof(*medge)*ndlm->totedge);
+	}
+
+	ndlm->mface = MEM_mallocN(sizeof(*mface)*ndlm->totface*2, "mm_mf");
+	memcpy(ndlm->mface, mface, sizeof(*mface)*ndlm->totface);
+
+	if (tface) {
+		ndlm->tface = MEM_mallocN(sizeof(*tface)*ndlm->totface*2, "mm_tf");
+		memcpy(ndlm->tface, tface, sizeof(*tface)*ndlm->totface);
+	} else if (mcol) {
+		ndlm->mcol = MEM_mallocN(sizeof(*mcol)*4*ndlm->totface*2, "mm_mcol");
+		memcpy(ndlm->mcol, mcol, sizeof(*mcol)*4*ndlm->totface);
+	}
+
+	mirrorModifier__doMirror(mmd, ndlm, vertexCos);
 
 	if (dlm) displistmesh_free(dlm);
 	if (dm) dm->release(dm);
@@ -576,6 +626,64 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
 	
 	return derivedmesh_from_displistmesh(ndlm);
+}
+
+static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3])
+{
+	if (derivedData) {
+		return mirrorModifier_applyModifier(md, ob, derivedData, vertexCos, 0, 1);
+	} else {
+		MirrorModifierData *mmd = (MirrorModifierData*) md;
+		DispListMesh *ndlm = MEM_callocN(sizeof(*ndlm), "mm_dlm");
+		int i, axis = mmd->axis;
+		float tolerance = mmd->tolerance;
+		EditMesh *em = editData;
+		EditVert *eve, *preveve;
+		EditEdge *eed;
+		EditFace *efa;
+
+		for (i=0,eve=em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		ndlm->totvert = BLI_countlist(&em->verts);
+		ndlm->totedge = BLI_countlist(&em->edges);
+		ndlm->totface = BLI_countlist(&em->faces);
+
+		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*ndlm->totvert*2, "mm_mv");
+		ndlm->medge = MEM_mallocN(sizeof(*ndlm->medge)*ndlm->totedge*2, "mm_med");
+		ndlm->mface = MEM_mallocN(sizeof(*ndlm->mface)*ndlm->totface*2, "mm_mf");
+
+		for (i=0,eve=em->verts.first; i<ndlm->totvert; i++,eve=eve->next) {
+			MVert *mv = &ndlm->mvert[i];
+
+			VECCOPY(mv->co, eve->co);
+		}
+		for (i=0,eed=em->edges.first; i<ndlm->totedge; i++,eed=eed->next) {
+			MEdge *med = &ndlm->medge[i];
+
+			med->v1 = (int) eed->v1->prev;
+			med->v2 = (int) eed->v2->prev;
+			med->crease = eed->crease;
+		}
+		for (i=0,efa=em->faces.first; i<ndlm->totface; i++,efa=efa->next) {
+			MFace *mf = &ndlm->mface[i];
+			mf->v1 = (int) efa->v1->prev;
+			mf->v2 = (int) efa->v2->prev;
+			mf->v3 = (int) efa->v3->prev;
+			mf->v4 = efa->v4?(int) efa->v4->prev:0;
+			mf->mat_nr = efa->mat_nr;
+			mf->flag = efa->flag;
+		}
+
+		mirrorModifier__doMirror(mmd, ndlm, vertexCos);
+
+		for (preveve=NULL, eve=em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+
+		mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
+		
+		return derivedmesh_from_displistmesh(ndlm);
+	}
 }
 
 /***/
@@ -611,24 +719,27 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 		mti = INIT_TYPE(Curve);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->updateDepgraph = curveModifier_updateDepgraph;
 		mti->deformVerts = curveModifier_deformVerts;
+		mti->deformVertsEM = curveModifier_deformVertsEM;
 
 		mti = INIT_TYPE(Lattice);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
 		mti->isDisabled = latticeModifier_isDisabled;
 		mti->updateDepgraph = latticeModifier_updateDepgraph;
 		mti->deformVerts = latticeModifier_deformVerts;
+		mti->deformVertsEM = latticeModifier_deformVertsEM;
 
 		mti = INIT_TYPE(Subsurf);
 		mti->type = eModifierTypeType_Constructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh|eModifierTypeFlag_SupportsMapping;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = subsurfModifier_initData;
 		mti->freeData = subsurfModifier_freeData;
 		mti->applyModifier = subsurfModifier_applyModifier;
+		mti->applyModifierEM = subsurfModifier_applyModifierEM;
 
 		mti = INIT_TYPE(Build);
 		mti->type = eModifierTypeType_Nonconstructive;
@@ -639,9 +750,10 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 		mti = INIT_TYPE(Mirror);
 		mti->type = eModifierTypeType_Constructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = mirrorModifier_initData;
 		mti->applyModifier = mirrorModifier_applyModifier;
+		mti->applyModifierEM = mirrorModifier_applyModifierEM;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

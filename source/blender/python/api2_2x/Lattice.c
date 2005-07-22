@@ -45,6 +45,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "BIF_editkey.h"
+#include "BIF_editdeform.h"
 #include "blendef.h"
 #include "gen_utils.h"
 

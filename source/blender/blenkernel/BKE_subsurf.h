@@ -37,8 +37,8 @@ struct DerivedMesh;
 struct EditMesh;
 struct SubsurfModifierData;
 
-struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, struct SubsurfModifierData *smd);
-struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, struct DispListMesh *dlm, struct SubsurfModifierData *smd, int useRenderParams, float (*vertCos)[3]);
+struct DerivedMesh *subsurf_make_derived_from_editmesh(struct EditMesh *em, struct SubsurfModifierData *smd, float (*vertexCos)[3]);
+struct DerivedMesh *subsurf_make_derived_from_mesh(struct Mesh *me, struct DispListMesh *dlm, struct SubsurfModifierData *smd, int useRenderParams, float (*vertCos)[3], int isFinalCalc);
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]);
 
