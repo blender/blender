@@ -86,6 +86,9 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int useAgin
 	CCGMeshIFC ifc;
 	CCGSubSurf *ccgSS;
 
+		/* subdivLevels==0 is not allowed */
+	subdivLevels = MAX2(subdivLevels, 1);
+
 	if (prevSS) {
 		int oldUseAging;
 

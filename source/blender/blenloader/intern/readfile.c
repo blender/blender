@@ -4787,9 +4787,15 @@ static void do_lib_versions(FileData *fd, Main *main)
 				if ((me->flag&ME_SUBSURF)) {
 					SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
 
-					smd->levels = me->subdiv;
-					smd->renderLevels = me->subdivr;
+					smd->levels = MAX2(1, me->subdiv);
+					smd->renderLevels = MAX2(1, me->subdivr);
 					smd->subdivType = me->subsurftype;
+
+					smd->modifier.mode = 0;
+					if (me->subdiv!=0)
+						smd->modifier.mode |= 1;
+					if (me->subdivr!=0)
+						smd->modifier.mode |= 2;
 					
 					BLI_addtail(&ob->modifiers, smd);
 				}
