@@ -787,10 +787,13 @@ static void draw_pose_channels(Object *ob, int dt)
 			}
 			if (index!= -1) index++;
 		}
+		/* restore things */
+		if (arm->drawtype!=ARM_LINE && dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
+			bglPolygonOffset(0.0);
+		
 	}	
-	/* restore things */
-	if (dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
-		bglPolygonOffset(0.0);
+	
+	/* restore */
 	glDisable(GL_CULL_FACE);
 
 	/* finally names and axes */
