@@ -227,9 +227,6 @@
 					RelativePath="..\..\..\source\blender\python\BPY_menus.c">
 				</File>
 				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\Build.c">
-				</File>
-				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.c">
 				</File>
 				<File
@@ -389,9 +386,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\bpy_types.h">
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\Build.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\charRGBA.h">
