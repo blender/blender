@@ -1283,3 +1283,16 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 		MEM_freeN(fnors);
 	}
 }
+
+float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
+{
+	int i, numVerts = me->totvert;
+	float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
+
+	if (numVerts_r) *numVerts_r = numVerts;
+	for (i=0; i<numVerts; i++) {
+		VECCOPY(cos[i], me->mvert[i].co);
+	}
+
+	return cos;
+}

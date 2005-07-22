@@ -1123,18 +1123,6 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 typedef float vec3f[3];
 
-static vec3f *mesh_getVertexCos(Mesh *me, int *numVerts_r)
-{
-	int i, numVerts = *numVerts_r = me->totvert;
-	float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
-
-	for (i=0; i<numVerts; i++) {
-		VECCOPY(cos[i], me->mvert[i].co);
-	}
-
-	return cos;
-}
-
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
 	Mesh *me = ob->data;

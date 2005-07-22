@@ -93,6 +93,10 @@ void mesh_calculate_vertex_normals	(struct Mesh *me);
 	 */
 void mesh_calc_normals(struct MVert *mverts, int numVerts, struct MFace *mfaces, int numFaces, float **faceNors_r);
 
+	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
+	 * (_numVerts_r_ may be NULL) */
+float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
+
 #ifdef __cplusplus
 }
 #endif

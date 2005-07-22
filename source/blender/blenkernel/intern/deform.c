@@ -59,6 +59,7 @@
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_mesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -231,31 +232,14 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 {
 	MVert *origMVert=NULL;
 	Mesh *me= ob->data;
-	int a, done=0;
-	float (*vertexCos)[3];
+	float (*vertexCos)[3] = NULL;
+	int a;
 
-	*vertexCos_r = NULL;
-	
 	do_mesh_key(me);
-	
-	/* conditions if it's needed */
-	if(ob->hooks.first);
-	else if(ob->effect.first);	// weak... particles too
-	else if(ob->parent && ob->parent->type==OB_LATTICE);
-	else if(ob->parent && ob->partype==PARSKEL); 
-	else if(ob->softflag & OB_SB_ENABLE);
-	else return;
-	
-	if(me->totvert==0) return;
-	
-	vertexCos = MEM_mallocN(sizeof(*vertexCos)*me->totvert, "mm_vertexcos");
-	for (a=0; a<me->totvert; a++) {
-		VECCOPY(vertexCos[a], me->mvert[a].co);
-	}
 
 	/* hooks */
 	if(ob->hooks.first) {
-		done= 1;
+		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 		
 		/* NULL signals initialize */
 		hook_object_deform(ob, 0, NULL);
@@ -272,50 +256,45 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 	
 		for (wav= ob->effect.first; wav; wav= wav->next) {
 			if(wav->type==EFF_WAVE) {
+				if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 				init_wave_deform(wav);
 
 				for(a=0; a<me->totvert; a++) {
 					calc_wave_deform(wav, ctime, vertexCos[a]);
 				}
-
-				done = 1;
 			}
 		}
 	}
 
 	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
-		done= 1;
+		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
 	if (ob->parent && me->totvert) {
 		if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
+			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 			curve_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-			done= 1;
 		}
 		else if(ob->parent->type==OB_LATTICE) {
+			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 			lattice_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-			done= 1;
 		}
 		else if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
 				// misleading making displists... very bad
 			if (ob->parent!=G.obedit) {
+				if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 				armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
 			}
-			done= 1;
 		}
 	}
 
 	if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
-		done= 1;
+		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
-	if (done) {
-		*vertexCos_r = vertexCos;
-	} else {
-		MEM_freeN(vertexCos_r);
-	}
+	*vertexCos_r = vertexCos;
 }
 
 int curve_modifier(Object *ob, char mode)
