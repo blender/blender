@@ -1313,14 +1313,12 @@ void where_is_object_time(Object *ob, float ctime)
 	/* is faster, but should keep track of timeoffs */
 	
 	if(ob==NULL) return;
-
-	if( ctime != ob->ctime) {
-		ob->ctime= ctime;
+	
+	stime= bsystem_time(ob, 0, ctime, 0.0);
+	if( stime != ob->ctime) {
+		ob->ctime= stime;
 		
 		if(ob->ipo) {
-			
-			stime= bsystem_time(ob, 0, ctime, 0.0);
-
 			calc_ipo(ob->ipo, stime);
 			execute_ipo((ID *)ob, ob->ipo);
 		}
