@@ -638,6 +638,114 @@ static void emDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)(
 		glEnd();
 	}
 }
+static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[3])
+{
+	if (vertexCos) {
+		VECCOPY(cent, vertexCos[(int) efa->v1->prev]);
+		VecAddf(cent, cent, vertexCos[(int) efa->v2->prev]);
+		VecAddf(cent, cent, vertexCos[(int) efa->v3->prev]);
+		if (efa->v4) VecAddf(cent, cent, vertexCos[(int) efa->v4->prev]);
+	} else {
+		VECCOPY(cent, efa->v1->co);
+		VecAddf(cent, cent, efa->v2->co);
+		VecAddf(cent, cent, efa->v3->co);
+		if (efa->v4) VecAddf(cent, cent, efa->v4->co);
+	}
+
+	if (efa->v4) {
+		cent[0] *= 0.25f;
+		cent[1] *= 0.25f;
+		cent[2] *= 0.25f;
+	} else {
+		cent[0] *= 0.33333333333f;
+		cent[1] *= 0.33333333333f;
+		cent[2] *= 0.33333333333f;
+	}
+}
+static void emDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *eve, *preveve;
+	EditFace *efa;
+	float cent[3];
+	int i;
+
+	if (emdm->vertexCos) {
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+	}
+
+	bglBegin(GL_POINTS);
+	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
+		if(!setDrawOptions || setDrawOptions(userData, efa)) {
+			emDM__calcFaceCent(efa, cent, emdm->vertexCos);
+			bglVertex3fv(cent);
+		}
+	}
+	bglEnd();
+
+	if (emdm->vertexCos) {
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	}
+}
+static void emDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *eve, *preveve;
+	EditFace *efa;
+	float cent[3];
+	int i;
+
+	glBegin(GL_LINES);
+	if (emdm->vertexCos) {
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+	}
+
+
+	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+		if(!setDrawOptions || setDrawOptions(userData, efa)) {
+			emDM__calcFaceCent(efa, cent, emdm->vertexCos);
+
+			glVertex3fv(efa->cent);
+			glVertex3f(	efa->cent[0] + length*efa->n[0],
+						efa->cent[1] + length*efa->n[1],
+						efa->cent[2] + length*efa->n[2]);
+		}
+	}
+
+	if (emdm->vertexCos) {
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	}
+
+	glEnd();
+}
+static void emDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditVert *eve;
+	int i;
+
+	glBegin(GL_LINES);
+	for (i=0,eve= emdm->em->verts.first; eve; i++,eve= eve->next) {
+		if(!setDrawOptions || setDrawOptions(userData, eve)) {
+			if (emdm->vertexCos) {
+				glVertex3fv(emdm->vertexCos[i]);
+				glVertex3f(	emdm->vertexCos[i][0] + length*eve->no[0],
+							emdm->vertexCos[i][1] + length*eve->no[1],
+							emdm->vertexCos[i][2] + length*eve->no[2]);
+			} else {
+				glVertex3fv(eve->co);
+				glVertex3f(	eve->co[0] + length*eve->no[0],
+							eve->co[1] + length*eve->no[1],
+							eve->co[2] + length*eve->no[2]);
+			}
+		}
+	}
+	glEnd();
+}
 static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -763,6 +871,7 @@ static void emDM_release(DerivedMesh *dm)
 	MEM_freeN(emdm);
 }
 
+	// XXX face and vertex normals are wrong with vertexcos
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
@@ -780,6 +889,10 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
 	emdm->dm.drawMappedEdgesInterpEM = emDM_drawMappedEdgesInterpEM;
 	
+	emdm->dm.drawMappedVertNormalsEM = emDM_drawMappedVertNormalsEM;
+	emdm->dm.drawMappedFaceNormalsEM = emDM_drawMappedFaceNormalsEM;
+	emdm->dm.drawMappedFaceCentersEM = emDM_drawMappedFaceCentersEM;
+
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawMappedFacesEM = emDM_drawMappedFacesEM;
 
@@ -1382,7 +1495,7 @@ static void mesh_build_data(Object *ob)
 	clear_mesh_caches(ob);
 
 	mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
-	
+
 	INIT_MINMAX(min, max);
 
 	ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);

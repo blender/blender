@@ -140,35 +140,35 @@ typedef struct Global {
 /* **************** GLOBAL ********************* */
 
 /* G.f */
-#define G_DISABLE_OK	1
-#define G_PLAYANIM		2
-#define G_TEST_DUPLI	4
-#define G_SIMULATION	8
-#define G_BACKBUFSEL	16
-#define G_PICKSEL		32
-#define G_DRAWNORMALS	64
-#define G_DRAWFACES		128
-#define G_FACESELECT	256
-#define G_DRAW_EXT		512
-#define G_VERTEXPAINT	1024
-#define G_ALLEDGES		2048
-#define G_DEBUG			4096
+#define G_DISABLE_OK	(1 <<  0)
+#define G_PLAYANIM		(1 <<  1)
+#define G_TEST_DUPLI	(1 <<  2)
+#define G_SIMULATION	(1 <<  3)
+#define G_BACKBUFSEL	(1 <<  4)
+#define G_PICKSEL		(1 <<  5)
+#define G_DRAWNORMALS	(1 <<  6)
+#define G_DRAWFACES		(1 <<  7)
+#define G_FACESELECT	(1 <<  8)
+#define G_DRAW_EXT		(1 <<  9)
+#define G_VERTEXPAINT	(1 << 10)
+#define G_ALLEDGES		(1 << 11)
+#define G_DEBUG			(1 << 12)
 #define G_DOSCRIPTLINKS (1 << 13)
-/* #define G_PROPORTIONAL	16384	removed! so can be used later for other stuff */
-#define G_WEIGHTPAINT	32768	
-#define G_TEXTUREPAINT	65536
+#define G_DRAW_VNORMALS	(1 << 14)
+#define G_WEIGHTPAINT	(1 << 15)	
+#define G_TEXTUREPAINT	(1 << 16)
 /* #define G_NOFROZEN	(1 << 17) also removed */
-#define G_DRAWEDGES	(1 << 18)
+#define G_DRAWEDGES		(1 << 18)
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
 
 /* Measurement info Drawing */
-#define G_DRAW_EDGELEN   (1 << 22) 
+#define G_DRAW_EDGELEN  (1 << 22) 
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
-#define G_RECORDKEYS  (1 << 25)
+#define G_RECORDKEYS	(1 << 25)
 
 /* G.fileflags */
 

@@ -1237,35 +1237,29 @@ static unsigned char *calc_weightpaint_colors(Object *ob)
  * logic!!!
  */
 
-static void draw_em_face_normals(EditMesh *em, float normalLength)
+static int ef_nonhiddenAndFgon__setDrawOptions(void *userData, EditFace *efa)
 {
-	EditFace *efa;
-
-	glBegin(GL_LINES);
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0 && efa->fgonf!=EM_FGON) {
-			glVertex3fv(efa->cent);
-			glVertex3f(	efa->cent[0] + normalLength*efa->n[0],
-						efa->cent[1] + normalLength*efa->n[1],
-						efa->cent[2] + normalLength*efa->n[2]);
-			
-		}
+	if (userData) {
+		int sel = ((int) userData) - 1;
+		return (efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel);
+	} else {
+		return (efa->h==0 && efa->fgonf!=EM_FGON);
 	}
-	glEnd();
+}
+static int ev_nonhidden__setDrawOptions(void *userData, EditVert *eve)
+{
+	return (eve->h==0);
+}
+static void draw_dm_face_normals(DerivedMesh *dm) {
+	dm->drawMappedFaceNormalsEM(dm, G.scene->editbutsize, ef_nonhiddenAndFgon__setDrawOptions, 0);
+}
+static void draw_dm_face_centers(DerivedMesh *dm, int sel) {
+	dm->drawMappedFaceCentersEM(dm, ef_nonhiddenAndFgon__setDrawOptions, (void*) (sel+1));
 }
 
-static void draw_em_face_centers(EditMesh *em, int sel) {
-	EditFace *efa;
-
-	bglBegin(GL_POINTS);
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel) {
-			bglVertex3fv(efa->cent);
-		}
-	}
-	bglEnd();
+static void draw_dm_vert_normals(DerivedMesh *dm) {
+	dm->drawMappedVertNormalsEM(dm, G.scene->editbutsize, ev_nonhidden__setDrawOptions, 0);
 }
-
 
 	/* Draw verts with color set based on selection */
 static int draw_dm_verts__setDrawOptions(void *userData, EditVert *eve)
@@ -1415,7 +1409,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(fsize);
 				glColor4ubv(fcol);
-				draw_em_face_centers(em, sel);
+				draw_dm_face_centers(cageDM, sel);
 			}
 			
 			if (pass==0) {
@@ -1728,7 +1722,11 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 
 		if(G.f & G_DRAWNORMALS) {
 			BIF_ThemeColor(TH_NORMAL);
-			draw_em_face_normals(em, G.scene->editbutsize);
+			draw_dm_face_normals(cageDM);
+		}
+		if(G.f & G_DRAW_VNORMALS) {
+			BIF_ThemeColor(TH_NORMAL);
+			draw_dm_vert_normals(cageDM);
 		}
 
 		if(G.f & (G_DRAW_EDGELEN|G_DRAW_FACEAREA|G_DRAW_EDGEANG))

@@ -153,6 +153,21 @@ struct DerivedMesh {
 			 */
 	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
 
+			/* Draw vert normals
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-vert) returns true
+			 */
+	 void (*drawMappedVertNormalsEM)(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData);
+
+			/* Draw face normals
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
+			 */
+	void (*drawMappedFaceNormalsEM)(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
+
+			/* Draw face centers as bgl points
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
+			 */
+	void (*drawMappedFaceCentersEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
+
 	void (*release)(DerivedMesh *dm);
 };
 
