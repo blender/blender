@@ -59,6 +59,14 @@ typedef enum {
 	eModifierTypeFlag_AcceptsCVs = (1<<1),
 	eModifierTypeFlag_SupportsMapping = (1<<2),
 	eModifierTypeFlag_SupportsEditmode = (1<<3),
+
+		/* For modifiers that support editmode this determines if the
+		 * modifier should be enabled by default in editmode. This should
+		 * only be used by modifiers that are relatively speedy and
+		 * also generally used in editmode, otherwise let the user enable
+		 * it.
+		 */
+	eModifierTypeFlag_EnableInEditmode = (1<<4),
 } ModifierTypeFlag;
 
 typedef struct ModifierTypeInfo {

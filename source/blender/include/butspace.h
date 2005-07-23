@@ -603,7 +603,7 @@ enum {
 
 #define B_MDFR_BUTS			3600
 
-#define B_MDFR_INCREMENTAl	3501
+#define B_MDFR_INCREMENTAL	3501
 
 /* *********************** */
 

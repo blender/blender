@@ -22,9 +22,9 @@ typedef enum ModifierType {
 	 */
 typedef enum ModifierMode {
 	eModifierMode_Disabled = 0,
-	eModifierMode_OnlyRealtime = 1,
-	eModifierMode_OnlyRender = 2,
-	eModifierMode_RealtimeAndRender = 3,
+	eModifierMode_Realtime = (1<<0),
+	eModifierMode_Render = (1<<1),
+	eModifierMode_Editmode = (1<<2),
 } ModifierMode;
 
 typedef struct ModifierData {
@@ -33,10 +33,14 @@ typedef struct ModifierData {
 	int type, mode;
 } ModifierData;
 
+typedef enum {
+	eSubsurfModifierFlag_Incremental = (1<<0),
+	eSubsurfModifierFlag_DebugIncr = (1<<1)
+} SubsurfModifierFlag;
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
 
-	short subdivType, levels, renderLevels, useIncrementalMesh;
+	short subdivType, levels, renderLevels, flags;
 
 	void *emCache, *mCache;
 } SubsurfModifierData;

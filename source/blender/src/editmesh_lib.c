@@ -1370,7 +1370,10 @@ void recalc_editnormals(void)
 	}
 
 	for(eve= em->verts.first; eve; eve=eve->next) {
-		Normalise(eve->no);
+		if (Normalise(eve->no)==0.0) {
+			VECCOPY(eve->no, eve->co);
+			Normalise(eve->no);
+		}
 	}
 }
 

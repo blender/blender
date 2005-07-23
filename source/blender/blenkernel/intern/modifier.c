@@ -754,7 +754,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 		mti = INIT_TYPE(Subsurf);
 		mti->type = eModifierTypeType_Constructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = subsurfModifier_initData;
 		mti->freeData = subsurfModifier_freeData;
 		mti->applyModifier = subsurfModifier_applyModifier;
@@ -769,7 +769,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 		mti = INIT_TYPE(Mirror);
 		mti->type = eModifierTypeType_Constructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = mirrorModifier_initData;
 		mti->applyModifier = mirrorModifier_applyModifier;
 		mti->applyModifierEM = mirrorModifier_applyModifierEM;
@@ -791,7 +791,10 @@ ModifierData *modifier_new(int type)
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
 
 	md->type = type;
-	md->mode = eModifierMode_RealtimeAndRender;
+	md->mode = eModifierMode_Realtime|eModifierMode_Render;
+
+	if (mti->flags&eModifierTypeFlag_EnableInEditmode)
+		md->mode |= eModifierMode_Editmode;
 
 	if (mti->initData) mti->initData(md);
 

@@ -1221,8 +1221,16 @@ static int ev_nonhidden__setDrawOptions(void *userData, EditVert *eve)
 static void draw_dm_face_normals(DerivedMesh *dm) {
 	dm->drawMappedFaceNormalsEM(dm, G.scene->editbutsize, ef_nonhiddenAndFgon__setDrawOptions, 0);
 }
-static void draw_dm_face_centers(DerivedMesh *dm, int sel) {
-	dm->drawMappedFaceCentersEM(dm, ef_nonhiddenAndFgon__setDrawOptions, (void*) (sel+1));
+static void draw_em_face_centers(EditMesh *em, int sel) {
+	EditFace *efa;
+
+	bglBegin(GL_POINTS);
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel) {
+			bglVertex3fv(efa->cent);
+		}
+	}
+	bglEnd();
 }
 
 static void draw_dm_vert_normals(DerivedMesh *dm) {
@@ -1377,7 +1385,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(fsize);
 				glColor4ubv(fcol);
-				draw_dm_face_centers(cageDM, sel);
+				draw_em_face_centers(em, sel);
 			}
 			
 			if (pass==0) {

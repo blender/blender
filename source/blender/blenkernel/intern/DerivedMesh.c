@@ -34,6 +34,8 @@
 #include <config.h>
 #endif
 
+#include "PIL_time.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_effect_types.h"
@@ -1234,6 +1236,7 @@ typedef float vec3f[3];
 
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
+//	double startTime = PIL_check_seconds_timer();
 	Mesh *me = ob->data;
 	ModifierData *md= ob->modifiers.first;
 	float (*deformedVerts)[3];
@@ -1351,6 +1354,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	if (deformedVerts && deformedVerts!=inputVertexCos) {
 		MEM_freeN(deformedVerts);
 	}
+
+//	printf("mesh_calc_modifiers(%p, %p, %p, %p, %d) : %6.3fs\n", ob, inputVertexCos, deform_r, final_r, useRenderParams, PIL_check_seconds_timer()-startTime);
 }
 
 static vec3f *editmesh_getVertexCos(EditMesh *em, int *numVerts_r)
@@ -1387,7 +1392,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_get_info(md->type);
 
-		if (!(md->mode&1)) continue;
+		if (!(md->mode&eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
 

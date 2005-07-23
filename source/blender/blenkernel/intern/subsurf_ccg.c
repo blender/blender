@@ -92,6 +92,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int useAgin
 	if (prevSS) {
 		int oldUseAging;
 
+		useAging = !!useAging;
 		ccgSubSurf_getUseAgeCounts(prevSS, &oldUseAging, NULL, NULL, NULL);
 
 		if (oldUseAging!=useAging) {
@@ -1291,8 +1292,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 
 DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, SubsurfModifierData *smd, float (*vertCos)[3]) {
 	int useSimple = smd->subdivType==ME_SIMPLE_SUBSURF;
-	
-	smd->emCache = _getSubSurf(smd->emCache, smd->levels, G.rt==52, 0, 0, useSimple);
+	int useAging = smd->flags&eSubsurfModifierFlag_DebugIncr;
+
+	smd->emCache = _getSubSurf(smd->emCache, smd->levels, useAging, 0, 0, useSimple);
 	ss_sync_from_editmesh(smd->emCache, em, vertCos, useSimple);
 
 	return (DerivedMesh*) getCCGDerivedMesh(smd->emCache, 1, NULL, NULL);
@@ -1316,7 +1318,8 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 		return derivedmesh_from_displistmesh(ndlm);
 	} else {
 		int useEdgeCreation = !(dlm?dlm->medge:me->medge);
-		int useIncremental = smd->useIncrementalMesh && !useEdgeCreation;
+		int useIncremental = (smd->flags&eSubsurfModifierFlag_Incremental) && !useEdgeCreation;
+		int useAging = smd->flags&eSubsurfModifierFlag_DebugIncr;
 		CCGSubSurf *ss;
 		
 			/* It is quite possible there is a much better place to do this. It
@@ -1333,7 +1336,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 		}
 
 		if (useIncremental && isFinalCalc) {
-			smd->mCache = ss = _getSubSurf(smd->mCache, smd->levels, G.rt==52, 0, 0, useSimple);
+			smd->mCache = ss = _getSubSurf(smd->mCache, smd->levels, useAging, 0, 0, useSimple);
 
 			ss_sync_from_mesh(ss, me, dlm, vertCos, useSimple);
 
@@ -1344,7 +1347,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 				smd->mCache = NULL;
 			}
 
-			ss = _getSubSurf(NULL, smd->levels, G.rt==52, 1, useEdgeCreation, useSimple);
+			ss = _getSubSurf(NULL, smd->levels, 0, 1, useEdgeCreation, useSimple);
 			ss_sync_from_mesh(ss, me, dlm, vertCos, useSimple);
 			ndlm = ss_to_displistmesh(ss, 0, me, dlm);
 

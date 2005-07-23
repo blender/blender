@@ -1665,9 +1665,11 @@ void do_modifier_panels(unsigned short event)
 		md = md->next;
 
 	switch(event) {
-	case B_MDFR_INCREMENTAl:
-		if (md && md->type==eModifierType_Subsurf && ((SubsurfModifierData*)md)->useIncrementalMesh) {
-			if (ob->type==OB_MESH) {
+	case B_MDFR_INCREMENTAL:
+		if (md && md->type==eModifierType_Subsurf) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) md;
+			
+			if ((smd->flags&eSubsurfModifierFlag_Incremental) && ob->type==OB_MESH) {
 				Mesh *me = ob->data;
 
 				if (!me->medge) {
@@ -1805,64 +1807,66 @@ static void object_panel_modifiers(Object *ob)
 	uiBut *but;
 	
 	block= uiNewBlock(&curarea->uiblocks, "modifiers_panel", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
 	if(uiNewPanel(curarea, block, "Modifiers", "Object", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBlockBut(block, modifier_add_menu, ob, "Add Modifier", 550,400,124,27, "Append a new modifier");
-	but = uiDefBut(block, BUT, B_MAKEDISP, "Delete", 676,400,62,27, 0, 0, 0, 0, 0, "Delete the current modifier");
+	uiDefBlockBut(block, modifier_add_menu, ob, "Add Modifier", 740,400,110,19, "Append a new modifier");
+	but = uiDefBut(block, BUT, B_MAKEDISP, "Delete", 850,400,70,19, 0, 0, 0, 0, 0, "Delete the current modifier");
 	uiButSetFunc(but, modifiers_del, ob, NULL);
-	uiBlockEndAlign(block);
 
 	if (ob->modifiers.first) {
 		int i, numModifiers = BLI_countlist(&ob->modifiers);
 		ModifierData *md;
 
 		CLAMP(actModifier, 1, numModifiers);
-		uiDefButI(block, NUM, B_REDR, "Modifier", 760,400,160,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
+		uiDefButI(block, NUM, B_REDR, "Modifier", 740,380,180,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
 
 		for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
 			md = md->next;
 
 		if (md) {
-			static char *modifier_mode_menu ="Modifier Mode%t|Disabled%x0|Only Realtime%x1|Only Render%x2|Realtime & Render%x3";
 			ModifierTypeInfo *mti = modifierType_get_info(md->type);
 			char str[128];
 
-			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Up", 760, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Up", 740, 360, 90, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
 			uiButSetFunc(but, modifiers_moveUp, ob, md);
-			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 840, 380, 80, 19, 0, 0, 0, 0, 0, "Move modifier down in stack");
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 830, 360, 90, 19, 0, 0, 0, 0, 0, "Move modifier down in stack");
 			uiButSetFunc(but, modifiers_moveDown, ob, md);
+			uiDefButBitI(block, TOG, eModifierMode_Render, B_NOP, "Render", 740,340,60,19,&md->mode, 0, 0, 1, 0, "");
+			uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MAKEDISP, "Realtime", 810,340,60,19,&md->mode, 0, 0, 1, 0, "");
+			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+				uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MAKEDISP, "Editmode", 860,340,60,19,&md->mode, 0, 0, 1, 0, "");
+			}
 
-			sprintf(str, "Modifier: %s", mti->name);
-			uiDefBut(block, LABEL, 1, str,	550, 360, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
-			but = uiDefButI(block, MENU, B_MAKEDISP, modifier_mode_menu, 550, 340, 160,19, &md->mode, 0, 0, 0, 0, "Modifier calculation mode");
 			uiBlockBeginAlign(block);
+			sprintf(str, "Modifier: %s", mti->name);
+			uiDefBut(block, LABEL, 1, str,	550, 400, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 			if (md->type==eModifierType_Subsurf) {
 				SubsurfModifierData *smd = (SubsurfModifierData*) md;
 				char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
-				uiDefButS(block, NUM, B_MAKEDISP, "Levels:",		550, 320, 150,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
-				uiDefButS(block, NUM, B_MAKEDISP, "Render Levels:",		550, 300, 150,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
-				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,280,150,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
-				uiDefButS(block, TOG, B_MDFR_INCREMENTAl, "Incremental", 550, 260,150,19,&smd->useIncrementalMesh, 0, 0, 1, 0, "Use incremental calculation, even outside of mesh mode");
+				uiDefButS(block, NUM, B_MAKEDISP, "Levels:",		550, 380, 160,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
+				uiDefButS(block, NUM, B_MAKEDISP, "Render Levels:",		550, 360, 160,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
+				uiDefButS(block, MENU, B_MAKEDISP, subsurfmenu,		550,340,160,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+				uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MDFR_INCREMENTAL, "Incremental", 550, 320,160,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
+				uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MAKEDISP, "Debug Incr.", 550, 300,160,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
 			} else if (md->type==eModifierType_Lattice) {
 				LatticeModifierData *lmd = (LatticeModifierData*) md;
-				uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &lmd->object, "Lattice object to deform with");
+				uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",		550, 380, 120,19, &lmd->object, "Lattice object to deform with");
 			} else if (md->type==eModifierType_Curve) {
 				CurveModifierData *cmd = (CurveModifierData*) md;
-				uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:",		550, 320, 120,19, &cmd->object, "Curve object to deform with");
+				uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:",		550, 380, 120,19, &cmd->object, "Curve object to deform with");
 			} else if (md->type==eModifierType_Build) {
 				BuildModifierData *bmd = (BuildModifierData*) md;
-				uiDefButF(block, NUM, B_MAKEDISP, "Start:", 550, 320, 150,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
-				uiDefButF(block, NUM, B_MAKEDISP, "Length:", 550, 300, 150,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
-				uiDefButI(block, TOG, B_MAKEDISP, "Randomize", 550, 280, 150,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
-				uiDefButI(block, NUM, B_MAKEDISP, "Seed:", 700, 280, 150,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
+				uiDefButF(block, NUM, B_MAKEDISP, "Start:", 550, 380, 150,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
+				uiDefButF(block, NUM, B_MAKEDISP, "Length:", 550, 360, 150,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
+				uiDefButI(block, TOG, B_MAKEDISP, "Randomize", 550, 340, 150,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
+				uiDefButI(block, NUM, B_MAKEDISP, "Seed:", 550, 320, 150,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
 			} else if (md->type==eModifierType_Mirror) {
 				MirrorModifierData *mmd = (MirrorModifierData*) md;
-				uiDefButF(block, NUM, B_MAKEDISP, "Tolerance:", 550, 320, 150,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which to share vertices");
-				uiDefButI(block, ROW, B_MAKEDISP, "X",	550, 300, 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
-				uiDefButI(block, ROW, B_MAKEDISP, "Y",	570, 300, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
-				uiDefButI(block, ROW, B_MAKEDISP, "Z",	590, 300, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
+				uiDefButF(block, NUM, B_MAKEDISP, "Tolerance:", 550, 380, 150,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which to share vertices");
+				uiDefButI(block, ROW, B_MAKEDISP, "X",	550, 360, 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
+				uiDefButI(block, ROW, B_MAKEDISP, "Y",	570, 360, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
+				uiDefButI(block, ROW, B_MAKEDISP, "Z",	590, 360, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 			}
 
 			uiBlockEndAlign(block);
