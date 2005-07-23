@@ -1184,6 +1184,19 @@ void build_particle_system(Object *ob)
 	ftime= paf->sta;
 	dtime= (paf->end - paf->sta)/totpart;
 
+		/* this call returns NULL during editmode, just ignore it and
+		 * particles should be recalc'd on exit.
+		 */
+	dm = mesh_get_derived_final(ob, &dmNeedsFree);
+	if (!dm) {
+		waitcursor(0);
+		return;
+	}
+
+		/* WARNING!!!! pushdata and popdata actually copy object memory!!!!
+		 * Changes between these calls will be lost!!!
+		 */
+
 	/* remember full hierarchy */
 	par= ob;
 	while(par) {
@@ -1231,15 +1244,6 @@ void build_particle_system(Object *ob)
 	
 	/* init */
 	
-		/* this call returns NULL during editmode, just ignore it and
-		 * particles should be recalc'd on exit.
-		 */
-	dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	if (!dm) {
-		waitcursor(0);
-		return;
-	}
-
 	dlm = dm->convertToDispListMesh(dm);
 	totvert = dlm->totvert;
 
