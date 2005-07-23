@@ -289,38 +289,6 @@ static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize)
 	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 }
 
-/* bad frontbuffer call... because it is used in transform after force_draw() */
-void helpline(float *vec)
-{
-	float vecrot[3], cent[2];
-	short mval[2];
-
-	VECCOPY(vecrot, vec);
-	if(G.obedit) Mat4MulVecfl(G.obedit->obmat, vecrot);
-	else if(G.obpose) Mat4MulVecfl(G.obpose->obmat, vecrot);
-
-	getmouseco_areawin(mval);
-	project_float(vecrot, cent);	// no overflow in extreme cases
-	if(cent[0]!=3200.0f) {
-		persp(PERSP_WIN);
-		
-		glDrawBuffer(GL_FRONT);
-		
-		BIF_ThemeColor(TH_WIRE);
-
-		setlinestyle(3);
-		glBegin(GL_LINE_STRIP); 
-			glVertex2sv(mval); 
-			glVertex2fv(cent); 
-		glEnd();
-		setlinestyle(0);
-		
-		persp(PERSP_VIEW);
-		glFlush(); // flush display for frontbuffer
-		glDrawBuffer(GL_BACK);
-	}
-}
-
 void drawaxes(float size)
 {
 	int axis;
@@ -3330,8 +3298,10 @@ static void drawtexspace(Object *ob)
 }
 
 /* draws wire outline */
-static void drawSolidSelect(Object *ob) 
+static void drawSolidSelect(Base *base) 
 {
+	Object *ob= base->object;
+	
 	glLineWidth(2.0);
 	glDepthMask(0);
 	
@@ -3344,8 +3314,8 @@ static void drawSolidSelect(Object *ob)
 		drawDispListwire(&ob->disp);
 	}
 	else if(ob->type==OB_ARMATURE) {
-		if(ob!=G.obpose) {
-			draw_armature(ob, OB_WIRE);
+		if(!(ob->flag & OB_POSEMODE)) {
+			draw_armature(base, OB_WIRE);
 		}
 	}
 
@@ -3587,7 +3557,7 @@ void draw_object(Base *base)
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
 			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(G.f&G_PICKSEL)) {
-				drawSolidSelect(ob);
+				drawSolidSelect(base);
 			}
 		}
 	}
@@ -3723,7 +3693,7 @@ void draw_object(Base *base)
 		break;
 	case OB_ARMATURE:
 		if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
-		draw_armature(ob, dt);
+		draw_armature(base, dt);
 		break;
 	default:
 		drawaxes(1.0);

@@ -1865,6 +1865,8 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			uiBlockEndAlign(block);
 			by-=42;
+			
+			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
 	}
 
@@ -1925,7 +1927,9 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 					  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
 			
 			uiBlockEndAlign(block);
+			
 			by-=42;
+			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
 	}
 	
@@ -2875,7 +2879,7 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_armature_bones(ob, arm);
 		}
-		else if(G.obpose==ob) {
+		else if(ob->flag & OB_POSEMODE) {
 			editing_panel_pose_bones(ob, arm);
 		}		
 		break;

@@ -97,45 +97,41 @@ ListBase *get_constraint_client_channels (int forcevalid)
 		return NULL;
 	
 	/* See if we are a bone constraint */
-	if (G.obpose){
-		switch (G.obpose->type){
-		case OB_ARMATURE:
-			{
-				bActionChannel *achan;
-				bPoseChannel *pchan;
+	if (ob->flag & OB_POSEMODE) {
+		bActionChannel *achan;
+		bPoseChannel *pchan;
 
-				pchan = get_active_posechannel();
-				if (!pchan) break;
+		pchan = get_active_posechannel();
+		if (pchan) {
+			
+			/* Make sure we have an action */
+			if (!ob->action){
+				if (!forcevalid)
+					return NULL;
 				
-				/* Make sure we have an action */
-				if (!G.obpose->action){
-					if (!forcevalid)
-						return NULL;
-					
-					G.obpose->action=add_empty_action();
-				}
-				
-				/* Make sure we have an actionchannel */
-				achan = get_named_actionchannel(G.obpose->action, pchan->name);
-				if (!achan){
-					if (!forcevalid)
-						return NULL;
-					
-					achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-
-					strcpy (achan->name, pchan->name);
-					sprintf (ipstr, "%s.%s", G.obpose->action->id.name+2, achan->name);
-					ipstr[23]=0;
-					achan->ipo=	add_ipo(ipstr, ID_AC);	
-					
-					BLI_addtail (&G.obpose->action->chanbase, achan);
-				}
-				
-				return &achan->constraintChannels;
+				ob->action=add_empty_action();
 			}
+			
+			/* Make sure we have an actionchannel */
+			achan = get_named_actionchannel(ob->action, pchan->name);
+			if (!achan){
+				if (!forcevalid)
+					return NULL;
+				
+				achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
+
+				strcpy (achan->name, pchan->name);
+				sprintf (ipstr, "%s.%s", ob->action->id.name+2, achan->name);
+				ipstr[23]=0;
+				achan->ipo=	add_ipo(ipstr, ID_AC);	
+				
+				BLI_addtail (&ob->action->chanbase, achan);
+			}
+			
+			return &achan->constraintChannels;
 		}
 	}
-	
+	/* else we return object constraints */
 	return &ob->constraintChannels;
 }
 
@@ -160,26 +156,21 @@ ListBase *get_constraint_client(char *name, short *clientType, void **clientdata
 	if (name)
 		strcpy (name, ob->id.name+2);
 
-	if (G.obpose){
-		switch (G.obpose->type){
-		case OB_ARMATURE:
-			{
-				bPoseChannel *pchan;
+	if (ob->flag & OB_POSEMODE) {
+		bPoseChannel *pchan;
 
-				pchan = get_active_posechannel();
-				if (!pchan) break;
+		pchan = get_active_posechannel();
+		if (pchan) {
 
-				/* Is the bone the client? */
-				if (clientType)
-					*clientType = TARGET_BONE;
-				if (clientdata)
-					*clientdata = pchan->bone;
-				if (name)
-					sprintf (name, "%s>>%s", name, pchan->name);
+			/* Is the bone the client? */
+			if (clientType)
+				*clientType = TARGET_BONE;
+			if (clientdata)
+				*clientdata = pchan->bone;
+			if (name)
+				sprintf (name, "%s>>%s", name, pchan->name);
 
-				list = &pchan->constraints;
-			}
-			break;
+			list = &pchan->constraints;
 		}
 	}
 

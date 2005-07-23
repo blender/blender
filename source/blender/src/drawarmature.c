@@ -405,7 +405,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		
 		/*	Draw root point if we have no IK parent */
 		if (!(boneflag & BONE_IK_TOPARENT)){
-			if (id != -1) {	// no bitmap in selection mode, crashes 3d cards...
+			if (G.f & G_PICKSEL) {	// no bitmap in selection mode, crashes 3d cards...
 				glLoadName (id | BONESEL_ROOT);
 				glBegin(GL_POINTS);
 				glVertex3f(0.0f, 0.0f, 0.0f);
@@ -426,7 +426,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		glEnd();
 		
 		/* tip */
-		if (id != -1) {	// no bitmap in selection mode, crashes 3d cards...
+		if (G.f & G_PICKSEL) {	// no bitmap in selection mode, crashes 3d cards...
 			glLoadName (id | BONESEL_TIP);
 			glBegin(GL_POINTS);
 			glVertex3f(0.0f, 1.0f, 0.0f);
@@ -439,7 +439,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		
 		/* further we send no names */
 		if (id != -1)
-			glLoadName (-1);
+			glLoadName (id & 0xFFFF);	// object tag, for bordersel optim
 		
 		if(armflag & ARM_POSEMODE) {
 			/* inner part in background color or constraint */
@@ -456,7 +456,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 	
 	/*	Draw root point if we have no IK parent */
 	if (!(boneflag & BONE_IK_TOPARENT)){
-		if (id == -1) {	// no bitmap in selection mode, crashes 3d cards...
+		if ((G.f & G_PICKSEL)==0) {	// no bitmap in selection mode, crashes 3d cards...
 			if(armflag & ARM_EDITMODE) {
 				if (boneflag & BONE_ROOTSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
 				else BIF_ThemeColor(TH_VERTEX);
@@ -476,7 +476,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 	glEnd();
 	
 	/* tip */
-	if (id == -1) {	// no bitmap in selection mode, crashes 3d cards...
+	if ((G.f & G_PICKSEL)==0) {	// no bitmap in selection mode, crashes 3d cards...
 		if(armflag & ARM_EDITMODE) {
 			if (boneflag & BONE_TIPSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
 			else BIF_ThemeColor(TH_VERTEX);
@@ -678,11 +678,12 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 }
 
 /* assumes object is Armature with pose */
-static void draw_pose_channels(Object *ob, int dt)
+static void draw_pose_channels(Base *base, int dt)
 {
+	Object *ob= base->object;
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
-	bArmature *arm= ob->data;
 	GLfloat tmp;
 	int index= -1;
 	int do_dashed= 1;
@@ -698,7 +699,7 @@ static void draw_pose_channels(Object *ob, int dt)
 		
 	/* if solid we draw that first, with selection codes, but without names, axes etc */
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
-		if(arm->flag & ARM_POSEMODE) index= 0;
+		if(arm->flag & ARM_POSEMODE) index= base->selcol;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
@@ -721,9 +722,9 @@ static void draw_pose_channels(Object *ob, int dt)
 				}
 				glPopMatrix();
 			}
-			if (index!= -1) index++;
+			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		glLoadName (-1);
+		glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
 		index= -1;
 	}
 	
@@ -732,14 +733,14 @@ static void draw_pose_channels(Object *ob, int dt)
 	
 		/* draw line check first. we do selection indices */
 		if (arm->drawtype==ARM_LINE) {
-			if(G.f & G_PICKSEL) index= 0;
+			if (arm->flag & ARM_POSEMODE) index= base->selcol;
 		}
 		/* if solid && posemode, we draw again with polygonoffset */
 		else if (dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
 			bglPolygonOffset(1.0);
 		else
 			/* and we use selection indices if not done yet */
-			if (arm->flag & ARM_POSEMODE) index= 0;
+			if (arm->flag & ARM_POSEMODE) index= base->selcol;
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
@@ -748,7 +749,7 @@ static void draw_pose_channels(Object *ob, int dt)
 				//	Draw a line from our root to the parent's tip
 				if (do_dashed && bone->parent && !(bone->flag & BONE_IK_TOPARENT) ){
 					if (arm->flag & ARM_POSEMODE) {
-						glLoadName (-1);
+						glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
 						BIF_ThemeColor(TH_WIRE);
 					}
 					setlinestyle(3);
@@ -785,7 +786,7 @@ static void draw_pose_channels(Object *ob, int dt)
 				
 				glPopMatrix();
 			}
-			if (index!= -1) index++;
+			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
 		/* restore things */
 		if (arm->drawtype!=ARM_LINE && dt>OB_WIRE && (arm->flag & ARM_POSEMODE))
@@ -858,9 +859,9 @@ static void set_matrix_editbone(EditBone *eBone)
 
 static void draw_ebones(Object *ob, int dt)
 {
-	EditBone	*eBone;
+	EditBone *eBone;
 	bArmature *arm= ob->data;
-	unsigned int	index;
+	unsigned int index;
 	
 	/* if solid we draw it first */
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
@@ -914,7 +915,7 @@ static void draw_ebones(Object *ob, int dt)
 		/* offset to parent */
 		if (eBone->parent) {
 			BIF_ThemeColor(TH_WIRE);
-			glLoadName (-1);
+			glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
 			setlinestyle(3);
 			
 			glBegin(GL_LINES);
@@ -956,14 +957,16 @@ static void draw_ebones(Object *ob, int dt)
 }
 
 /* called from drawobject.c */
-void draw_armature(Object *ob, int dt)
+void draw_armature(Base *base, int dt)
 {
+	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	
 	/* we use color for solid lighting */
 	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 	glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);	// only for lighting...
 	
+	/* arm->flag is being used to detect mode... */
 	/* editmode? */
 	if(ob==G.obedit || (G.obedit && ob->data==G.obedit->data)) {
 		if(ob==G.obedit) arm->flag |= ARM_EDITMODE;
@@ -973,8 +976,13 @@ void draw_armature(Object *ob, int dt)
 	else{
 		/*	Draw Pose */
 		if(ob->pose) {
-			if (G.obpose == ob) arm->flag |= ARM_POSEMODE;
-			draw_pose_channels(ob, dt);
+			/* drawing posemode selection indices or colors only in these cases */
+			if(G.f & G_PICKSEL) {
+				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
+			}
+			else if(ob==OBACT && (ob->flag & OB_POSEMODE)) arm->flag |= ARM_POSEMODE;
+			
+			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 		}
 	}

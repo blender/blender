@@ -723,9 +723,6 @@ Object *add_object(int type)
 	Base *base;
 	char name[32];
 
-	if (G.obpose)
-		exit_posemode(1);
-	
 	strcpy(name, get_obdata_defname(type));
 	
 	ob= alloc_libblock(&G.main->object, ID_OB, name);

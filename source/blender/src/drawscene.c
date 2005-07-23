@@ -70,8 +70,6 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	/* ending all modes */
 	if( G.obedit) 
 		exit_editmode(2);
-	if(G.obpose) 
-		exit_posemode(1);
 	
 	if(G.f & G_FACESELECT)
 		set_faceselect();

@@ -409,7 +409,7 @@ static void do_activate_oops(Oops *oops)
 			base= base->next;
 		}
 		if(base) {
-			if(G.obedit==NULL && G.obpose==NULL) set_active_base(base);	/* editview.c */
+			if(G.obedit==NULL) set_active_base(base);	/* editview.c */
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWOOPS, 0);
 			allqueue(REDRAWINFO, 1);

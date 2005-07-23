@@ -112,7 +112,6 @@ typedef struct Global {
      int	save_over;
 
 	/* Reevan's __NLA variables */
-	struct	Object	*obpose;		/* Current posable object */
 	struct	ListBase edbo;			/* Armature Editmode bones */
  
 	/* Rob's variables */

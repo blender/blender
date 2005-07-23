@@ -430,51 +430,66 @@ void join_armature(void)
 /* **************** END tools on Editmode Armature **************** */
 /* **************** PoseMode & EditMode *************************** */
 
-/* used by posemode as well editmode */
-static void * get_nearest_bone (int findunsel)
+/* only for opengl selection indices */
+Bone *get_indexed_bone (Object *ob, int index)
 {
-	void		*firstunSel=NULL, *firstSel=NULL, *data;
-	unsigned int buffer[MAXPICKBUF];
-	short		hits;
-	int		 i, takeNext=0;
-	int		sel;
-	unsigned int	hitresult;
+	bPoseChannel *pchan;
+	int a= 0;
+	
+	if(ob->pose==NULL) return NULL;
+	index>>=16;		// bone selection codes use left 2 bytes
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
+		if(a==index) return pchan->bone;
+	}
+	return NULL;
+}
+
+/* See if there are any selected bones in this buffer */
+static void *get_bone_from_selectbuffer(Base *base, unsigned int *buffer, short hits, short findunsel)
+{
+	Object *ob= base->object;
 	Bone *bone;
 	EditBone *ebone;
+	void *firstunSel=NULL, *firstSel=NULL, *data;
+	unsigned int hitresult;
+	short i, takeNext=0, sel;
 	
-	persp(PERSP_VIEW);
-	
-	glInitNames();
-	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
-
-	/* See if there are any selected bones in this group */
-	if (hits){
-		for (i=0; i< hits; i++){
-			hitresult = buffer[3+(i*4)];
-			if (!(hitresult & BONESEL_NOSEL)){
-				
-				/* Determine which points are selected */
-				hitresult &= ~(BONESEL_ANY);
-				
-				/* Determine what the current bone is */
-				if (!G.obedit){
-					bone = get_indexed_bone(OBACT, hitresult);
+	for (i=0; i< hits; i++){
+		hitresult = buffer[3+(i*4)];
+		if (hitresult & BONESEL_ANY){
+			
+			/* Determine which points are selected */
+			hitresult &= ~(BONESEL_ANY);
+			
+			/* Determine what the current bone is */
+			if (G.obedit==NULL) {
+				/* no singular posemode, so check for correct object */
+				if(base->selcol == (hitresult & 0xFFFF)) {
+					bone = get_indexed_bone(ob, hitresult);
 					if (findunsel)
 						sel = (bone->flag & BONE_SELECTED);
 					else
-						sel = !(bone->flag & BONE_SELECTED);					
+						sel = !(bone->flag & BONE_SELECTED);
+					
 					data = bone;
 				}
-				else{
-					ebone = BLI_findlink(&G.edbo, hitresult);
-					if (findunsel)
-						sel = (ebone->flag & BONE_SELECTED);
-					else
-						sel = !(ebone->flag & BONE_SELECTED);
-					
-					data = ebone;
+				else {
+					data= NULL;
+					sel= 0;
 				}
+			}
+			else{
+				ebone = BLI_findlink(&G.edbo, hitresult);
+				if (findunsel)
+					sel = (ebone->flag & BONE_SELECTED);
+				else
+					sel = !(ebone->flag & BONE_SELECTED);
 				
+				data = ebone;
+			}
+			
+			if(data) {
 				if (sel) {
 					if(!firstSel) firstSel= data;
 					takeNext=1;
@@ -487,12 +502,27 @@ static void * get_nearest_bone (int findunsel)
 				}
 			}
 		}
-		
-		if (firstunSel)
-			return firstunSel;
-		else 
-			return firstSel;
 	}
+	
+	if (firstunSel)
+		return firstunSel;
+	else 
+		return firstSel;
+}
+
+/* used by posemode as well editmode */
+static void *get_nearest_bone (short findunsel)
+{
+	unsigned int buffer[MAXPICKBUF];
+	short hits;
+	
+	persp(PERSP_VIEW);
+	
+	glInitNames();
+	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
+
+	if (hits)
+		return get_bone_from_selectbuffer(BASACT, buffer, hits, findunsel);
 	
 	return NULL;
 }
@@ -534,14 +564,14 @@ void select_bone_by_name (bArmature *arm, char *name, int select)
 			break;
 }
 
-static void selectconnected_posebonechildren (Bone *bone)
+static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 {
 	Bone *curBone;
 	
 	if (!(bone->flag & BONE_IK_TOPARENT))
 		return;
 	
-	select_actionchannel_by_name (G.obpose->action, bone->name, !(G.qual & LR_SHIFTKEY));
+	select_actionchannel_by_name (ob->action, bone->name, !(G.qual & LR_SHIFTKEY));
 	
 	if (G.qual & LR_SHIFTKEY)
 		bone->flag &= ~BONE_SELECTED;
@@ -549,13 +579,17 @@ static void selectconnected_posebonechildren (Bone *bone)
 		bone->flag |= BONE_SELECTED;
 	
 	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		selectconnected_posebonechildren (curBone);
+		selectconnected_posebonechildren (ob, curBone);
 	}
 }
 
+/* within active object context */
 void selectconnected_posearmature(void)
 {
 	Bone *bone, *curBone, *next;
+	Object *ob= OBACT;
+	
+	if(!ob || !ob->pose) return;
 	
 	if (G.qual & LR_SHIFTKEY)
 		bone= get_nearest_bone(0);
@@ -567,7 +601,7 @@ void selectconnected_posearmature(void)
 	
 	/* Select parents */
 	for (curBone=bone; curBone; curBone=next){
-		select_actionchannel_by_name (G.obpose->action, curBone->name, !(G.qual & LR_SHIFTKEY));
+		select_actionchannel_by_name (ob->action, curBone->name, !(G.qual & LR_SHIFTKEY));
 		if (G.qual & LR_SHIFTKEY)
 			curBone->flag &= ~BONE_SELECTED;
 		else
@@ -581,7 +615,7 @@ void selectconnected_posearmature(void)
 	
 	/* Select children */
 	for (curBone=bone->childbase.first; curBone; curBone=next){
-		selectconnected_posebonechildren (curBone);
+		selectconnected_posebonechildren (ob, curBone);
 	}
 	
 	countall(); // flushes selection!
@@ -1608,56 +1642,55 @@ static int clear_active_flag(Object *ob, Bone *bone, void *data)
 	return 0;
 }
 
-/*
-	Handles right-clicking for selection
-	of bones in armature pose modes.
- */
-void mousepose_armature(void)
+
+/* called from editview.c, for mode-less pose selection */
+void do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 {
+	Object *ob= base->object;
 	Bone *nearBone;
+	
+	if (!ob || !ob->pose) return;
 
-	if (!G.obpose) return;
-
-	nearBone = get_nearest_bone(1);
+	nearBone= get_bone_from_selectbuffer(base, buffer, hits, 1);
 
 	if (nearBone) {
 		if (!(G.qual & LR_SHIFTKEY)){
-			deselectall_posearmature(0);
+			deselectall_posearmature(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-			select_actionchannel_by_name(G.obpose->action, nearBone->name, 1);
+			select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
 			if (nearBone->flag & BONE_SELECTED) {
 				/* if not active, we make it active */
 				if((nearBone->flag & BONE_ACTIVE)==0) {
-					bArmature *arm= G.obpose->data;
-					bone_looper(G.obpose, arm->bonebase.first, NULL, clear_active_flag);
+					bArmature *arm= ob->data;
+					bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 					
 					nearBone->flag |= BONE_ACTIVE;
 				}
 				else {
 					nearBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-					select_actionchannel_by_name(G.obpose->action, nearBone->name, 0);
+					select_actionchannel_by_name(ob->action, nearBone->name, 0);
 				}
 			}
 			else{
-				bArmature *arm= G.obpose->data;
-				bone_looper(G.obpose, arm->bonebase.first, NULL, clear_active_flag);
+				bArmature *arm= ob->data;
+				bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 				
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-				select_actionchannel_by_name(G.obpose->action, nearBone->name, 1);
+				select_actionchannel_by_name(ob->action, nearBone->name, 1);
 			}
 		}
+
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWIPO, 0);		/* To force action ipo update */
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
-
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);		/* To force action ipo update */
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWOOPS, 0);
-
-	rightmouse_transform();
+	
+//	rightmouse_transform();
 	
 }
 
@@ -1681,24 +1714,24 @@ static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 	}
 }
 
-
-void deselectall_posearmature (int test)
+void deselectall_posearmature (Object *ob, int test)
 {
-	Object *ob= OBACT;
+	bArmature *arm;
+	Bone *curBone;
 	int	selectmode	=	0;
-	Bone*	curBone;
 	
-	/* we call this from outliner, also without obpose, but with OBACT set OK */
-	if(G.obpose) ob= G.obpose;
+	/* we call this from outliner too, but with OBACT set OK */
+	if(!ob || !ob->pose) return;
+	arm= get_armature(ob);
 	
 	/*	Determine if we're selecting or deselecting	*/
 	if (test){
-		if (!count_bones (get_armature(ob), BONE_SELECTED, 0))
+		if (!count_bones (arm, BONE_SELECTED, 0))
 			selectmode = 1;
 	}
 	
 	/*	Set the flags accordingly	*/
-	for (curBone=get_armature(ob)->bonebase.first; curBone; curBone=curBone->next)
+	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next)
 		deselect_bonechildren (ob, curBone, selectmode);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -2089,19 +2122,20 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	return 0;
 }
 
+/* active object is armature */
 void hide_selected_pose_bones(void) 
 {
 	bArmature		*arm;
 
-	arm=get_armature (G.obpose);
+	arm= get_armature (OBACT);
 
 	if (!arm)
 		return;
 
-	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+	bone_looper(OBACT, arm->bonebase.first, NULL, 
 				hide_selected_pose_bone);
 
-	force_draw(1);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -2112,19 +2146,20 @@ static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	return 0;
 }
 
+/* active object is armature */
 void hide_unselected_pose_bones(void) 
 {
 	bArmature		*arm;
 
-	arm=get_armature (G.obpose);
+	arm=get_armature (OBACT);
 
 	if (!arm)
 		return;
 
-	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+	bone_looper(OBACT, arm->bonebase.first, NULL, 
 				hide_unselected_pose_bone);
 
-	force_draw(1);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
@@ -2137,32 +2172,22 @@ static int show_pose_bone(Object *ob, Bone *bone, void *ptr)
 	return 0;
 }
 
+/* active object is armature in posemode */
 void show_all_pose_bones(void) 
 {
 	bArmature		*arm;
 
-	arm=get_armature (G.obpose);
+	arm=get_armature (OBACT);
 
 	if (!arm)
 		return;
 
-	bone_looper(G.obpose, arm->bonebase.first, NULL, 
+	bone_looper(OBACT, arm->bonebase.first, NULL, 
 				show_pose_bone);
 
-	force_draw(1);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
-int is_delay_deform(void)
-{
-	bArmature               *arm;
-
-	arm=get_armature (G.obpose);
-
-	if (!arm)
-		return 0;
-
-	return (arm->flag & ARM_DELAYDEFORM);
-}
 
 /* ************* RENAMING DISASTERS ************ */
 

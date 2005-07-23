@@ -761,7 +761,7 @@ int blenderqread(unsigned short event, short val)
 			Object *ob= OBACT;
 			if(ob) {
 				if(ob->type==OB_ARMATURE) {
-					if(G.obpose) exit_posemode(1);
+					if(ob->flag & OB_POSEMODE) exit_posemode();
 					else enter_posemode();
 				}
 				else if(ob->type==OB_MESH) {
@@ -769,7 +769,7 @@ int blenderqread(unsigned short event, short val)
 				}
 			}
 		}
-		else if(G.qual==LR_SHIFTKEY) {
+		else if(G.qual==LR_SHIFTKEY) {	// ??
 			if(G.obedit)
 				exit_editmode(2); // freedata, and undo
 			if(G.f & G_FACESELECT)
@@ -783,8 +783,6 @@ int blenderqread(unsigned short event, short val)
 			}
 			if(G.f & G_WEIGHTPAINT)
 				set_wpaint();
-			if(G.obpose)
-				exit_posemode(1);
 		}
 		break;
 
@@ -869,7 +867,7 @@ int blenderqread(unsigned short event, short val)
 		break;
 		
 	case SKEY:
-		if(G.obpose==0 && G.obedit==0) {
+		if(G.obedit==NULL) {
 			if(G.qual==LR_CTRLKEY) {
 				strcpy(dir, G.sce);
 				if (untitled(dir)) {

@@ -100,23 +100,10 @@ extern int count_action_levels (bAction *act);
 
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
-/* Local Function prototypes, some are forward needed */
-
+/* Local Function prototypes, are forward needed */
 static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *chan, int adrcode, short makecurve, float time);
-static void flip_name (char *name);
-static void mouse_actionchannels(bAction *act, short *mval, 
-                                 short *mvalo, int selectmode);
-static void mouse_action(int selectmode);
-static void mouse_mesh_action(int selectmode, Key *key);
-static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **conchan);
-static void delete_actionchannels(void);
-static void select_poseelement_by_name (char *name, int select);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
-
-static void remake_meshaction_ipos(Ipo *ipo);
-static void select_all_keys_frames(bAction *act, short *mval, short *mvalo, int selectmode);
-static void select_all_keys_channels(bAction *act, short *mval,  short *mvalo, int selectmode);
 
 /* Implementation */
 
@@ -127,9 +114,8 @@ static void select_poseelement_by_name (char *name, int select)
 {
 	/* Synchs selection of channels with selection of object elements in posemode */
 
-	Object *ob;
+	Object *ob= OBACT;
 
-	ob = G.obpose;
 	if (!ob)
 		return;
 
@@ -233,7 +219,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	return result;
 }
 
-
+/* apparently within active object context */
 void select_actionchannel_by_name (bAction *act, char *name, int select)
 {
 	bActionChannel *chan;
@@ -541,6 +527,7 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
     return firsticu;
 }
 
+/* apparently within active object context */
 static void mouse_action(int selectmode)
 {
 	bAction	*act;
@@ -795,16 +782,15 @@ void free_posebuf(void)
 
 void copy_posebuf (void)
 {
-	Object *ob;
+	Object *ob= OBACT;
 
-	free_posebuf();
-
-	ob=G.obpose;
-	if (!ob){
-		error ("Copy buffer is empty");
+	if (!ob || !ob->pose){
+		error ("No Pose");
 		return;
 	}
 
+	free_posebuf();
+	
 	set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 	copy_pose(&g_posebuf, ob->pose, 0);
 
@@ -928,92 +914,89 @@ static void flip_name (char *name)
 
 void paste_posebuf (int flip)
 {
-	Object *ob;
+	Object *ob= OBACT;
 	bPoseChannel *chan, *pchan;
 	float eul[4];
 	int newchan = 0;
 	char name[32];
 	
-	ob=G.obpose;
-	if (!ob)
+	if (!ob || !ob->pose)
 		return;
 
 	if (!g_posebuf){
 		error ("Copy buffer is empty");
 		return;
-	};
+	}
 	
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
-	if (ob->pose){
-		for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
-			if (chan->flag & POSE_KEY) {
-				BLI_strncpy(name, chan->name, sizeof(name));
-				if (flip)
-					flip_name (name);
-					
-				/* only copy when channel exists, poses are not meant to add random channels to anymore */
-				pchan= get_pose_channel(ob->pose, name);
+	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
+		if (chan->flag & POSE_KEY) {
+			BLI_strncpy(name, chan->name, sizeof(name));
+			if (flip)
+				flip_name (name);
 				
-				if(pchan) {
-					/* only loc rot size */
-					/* only copies transform info for the pose */
-					VECCOPY(pchan->loc, chan->loc);
-					VECCOPY(pchan->size, chan->size);
-					QUATCOPY(pchan->quat, chan->quat);
-					pchan->flag= chan->flag;
-					
-					if (flip){
-						pchan->loc[0]*= -1;
+			/* only copy when channel exists, poses are not meant to add random channels to anymore */
+			pchan= get_pose_channel(ob->pose, name);
+			
+			if(pchan) {
+				/* only loc rot size */
+				/* only copies transform info for the pose */
+				VECCOPY(pchan->loc, chan->loc);
+				VECCOPY(pchan->size, chan->size);
+				QUATCOPY(pchan->quat, chan->quat);
+				pchan->flag= chan->flag;
+				
+				if (flip){
+					pchan->loc[0]*= -1;
 
-						QuatToEul(pchan->quat, eul);
-						eul[1]*= -1;
-						eul[2]*= -1;
-						EulToQuat(eul, pchan->quat);
+					QuatToEul(pchan->quat, eul);
+					eul[1]*= -1;
+					eul[2]*= -1;
+					EulToQuat(eul, pchan->quat);
+				}
+
+				if (G.flags & G_RECORDKEYS){
+					/* Set keys on pose */
+					if (chan->flag & POSE_ROT){
+						set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
 					}
-
-					if (G.flags & G_RECORDKEYS){
-						/* Set keys on pose */
-						if (chan->flag & POSE_ROT){
-							set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
-							set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
-							set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
-							set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
-						}
-						if (chan->flag & POSE_SIZE){
-							set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
-							set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
-							set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
-						}
-						if (chan->flag & POSE_LOC){
-							set_action_key(ob->action, pchan, AC_LOC_X, newchan);
-							set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
-							set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
-						}
+					if (chan->flag & POSE_SIZE){
+						set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
+						set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
+						set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
+					}
+					if (chan->flag & POSE_LOC){
+						set_action_key(ob->action, pchan, AC_LOC_X, newchan);
+						set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
+						set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
 					}
 				}
 			}
 		}
-
-		/* Update event for pose and deformation children */
-		ob->pose->ctime= -123456.0f;
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		
-		if (G.flags & G_RECORDKEYS) {
-			remake_action_ipos(ob->action);
-			allqueue (REDRAWIPO, 0);
-			allqueue (REDRAWVIEW3D, 0);
-			allqueue (REDRAWACTION, 0);		
-			allqueue(REDRAWNLA, 0);
-		}
-		else {
-			/* need to trick depgraph, action is not allowed to execute on pose */
-			where_is_pose(ob);
-			ob->recalc= 0;
-		}
-
-		BIF_undo_push("Paste Action Pose");
 	}
+
+	/* Update event for pose and deformation children */
+	ob->pose->ctime= -123456.0f;
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	
+	if (G.flags & G_RECORDKEYS) {
+		remake_action_ipos(ob->action);
+		allqueue (REDRAWIPO, 0);
+		allqueue (REDRAWVIEW3D, 0);
+		allqueue (REDRAWACTION, 0);		
+		allqueue(REDRAWNLA, 0);
+	}
+	else {
+		/* need to trick depgraph, action is not allowed to execute on pose */
+		where_is_pose(ob);
+		ob->recalc= 0;
+	}
+
+	BIF_undo_push("Paste Action Pose");
 }
 
 void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode, short makecurve)
@@ -1545,6 +1528,7 @@ void deselect_meshchannel_keys (Key *key, int test)
     set_ipo_key_selection(key->ipo, sel);
 }
 
+/* apparently within active object context */
 void deselect_actionchannels (bAction *act, int test)
 {
 	bActionChannel *chan;
@@ -1618,8 +1602,10 @@ static void hilight_channel (bAction *act, bActionChannel *chan, short select)
  */
 
 /* exported for outliner (ton) */
+/* apparently within active object context */
 int select_channel(bAction *act, bActionChannel *chan,
-                          int selectmode) {
+                          int selectmode) 
+{
 	/* Select the channel based on the selection mode
 	 */
 	int flag;

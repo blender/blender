@@ -208,9 +208,7 @@
 #define B_SCENELOCK		140
 #define B_LOCALVIEW		141
 #define B_U_CAPSLOCK	142
-#define B_EDITMODE		143
-#define B_VPAINT		144
-#define B_FACESEL		145
+
 #define B_VIEWBUT		146
 #define B_PERSP			147
 #define B_PROPTOOL		148
@@ -218,9 +216,7 @@
 #define B_VIEWTRANS		150
 #define B_VIEWZOOM		151
 #define B_STARTGAME		152
-#define	B_POSEMODE		153
-#define	B_TEXTUREPAINT	154
-#define B_WPAINT		155
+
 #define B_MODESELECT	156
 #define B_AROUND		157
 #define B_SEL_VERT		158

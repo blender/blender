@@ -155,7 +155,7 @@ int calc_manipulator_stats(ScrArea *sa)
 	extern ListBase editNurb;
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
-	Object *ob=NULL;
+	Object *ob= OBACT;
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel=0;
@@ -331,11 +331,10 @@ int calc_manipulator_stats(ScrArea *sa)
 			Mat4MulVecfl(G.obedit->obmat, G.scene->twmax);
 		}
 	}
-	else if(G.obpose) {
-		bArmature *arm= G.obpose->data;
+	else if(ob && (ob->flag & OB_POSEMODE)) {
+		bArmature *arm= ob->data;
 		bPoseChannel *pchan;
 		
-		ob= G.obpose;
 		if((ob->lay & G.vd->lay)==0) return 0;
 		
 		Trans.mode= TFM_ROTATION;	// mislead counting bones... bah
@@ -353,9 +352,9 @@ int calc_manipulator_stats(ScrArea *sa)
 			VecMulf(plane, -1.0);
 			
 			VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
-			Mat4MulVecfl(G.obpose->obmat, G.scene->twcent);
-			Mat4MulVecfl(G.obpose->obmat, G.scene->twmin);
-			Mat4MulVecfl(G.obpose->obmat, G.scene->twmax);
+			Mat4MulVecfl(ob->obmat, G.scene->twcent);
+			Mat4MulVecfl(ob->obmat, G.scene->twmin);
+			Mat4MulVecfl(ob->obmat, G.scene->twmax);
 		}
 	}
 	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
@@ -391,7 +390,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			break;
 			
 		case V3D_MANIP_NORMAL:
-			if(G.obedit || G.obpose) {
+			if(G.obedit || (ob->flag & OB_POSEMODE)) {
 				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
 					float imat[3][3], mat[3][3];
 					
@@ -418,7 +417,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
-			if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || G.obpose) {
+			if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || (ob->flag & OB_POSEMODE)) {
 				Mat4CpyMat4(v3d->twmat, ob->obmat);
 				Mat4Ortho(v3d->twmat);
 			}
@@ -1346,9 +1345,10 @@ void BIF_draw_manipulator(ScrArea *sa)
 			v3d->twmat[3][0]= (G.scene->twmin[0] + G.scene->twmax[0])/2.0f;
 			v3d->twmat[3][1]= (G.scene->twmin[1] + G.scene->twmax[1])/2.0f;
 			v3d->twmat[3][2]= (G.scene->twmin[2] + G.scene->twmax[2])/2.0f;
-			if(v3d->around==V3D_ACTIVE && G.obedit==NULL && G.obpose==NULL) {
+			if(v3d->around==V3D_ACTIVE && G.obedit==NULL) {
 				Object *ob= OBACT;
-				if(ob) VECCOPY(v3d->twmat[3], ob->obmat[3]);
+				if(ob && !(ob->flag & OB_POSEMODE)) 
+					VECCOPY(v3d->twmat[3], ob->obmat[3]);
 			}
 			break;
 		case V3D_LOCAL:

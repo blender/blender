@@ -717,13 +717,13 @@ void BIF_undo_menu(void)
 
 static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
+	View3D *v3d= sa->spacedata.first;
+	Object *ob= OBACT;	// do not change!
+	float *curs;
+	int doredraw= 0, pupval;
 	unsigned short event= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
-	View3D *v3d= sa->spacedata.first;
-	Object *ob;
-	float *curs;
-	int doredraw= 0, pupval;
 	
 	if(curarea->win==0) return;	/* when it comes from sa->headqread() */
 	
@@ -931,10 +931,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mouse_mesh();	// loop select for 1 mousebutton dudes
 				else if((G.obedit) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
 					mouse_mesh();	// loop select for 1 mousebutton dudes
-				else if(G.obpose) { 
-					if (G.obpose->type==OB_ARMATURE)
-						mousepose_armature();
-				}
 				else if(G.qual==LR_CTRLKEY)
 					mouse_select();	// also allow in editmode, for vertex parenting
 				else if(G.f & G_FACESELECT)
@@ -942,7 +938,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
 				else
-					mouse_select();
+					mouse_select();	// does poses too
 				break;
 			case WHEELUPMOUSE:
 				/* Regular:   Zoom in */
@@ -1006,7 +1002,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			
 			case ONEKEY:
-				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 1);
@@ -1016,7 +1011,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case TWOKEY:
-				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 2);
@@ -1026,7 +1020,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case THREEKEY:
-				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 3);
@@ -1036,7 +1029,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case FOURKEY:
-				ob= OBACT;
 				if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type == OB_MESH) {
 						flip_subdivison(ob, 4);
@@ -1110,12 +1102,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_ARMATURE)
 							deselectall_armature(1);	// 1 == toggle
 					}
-					else if (G.obpose){
-						switch (G.obpose->type){
-						case OB_ARMATURE:
-							deselectall_posearmature(1);
-							break;
-						}
+					else if (ob && (ob->flag & OB_POSEMODE)){
+						deselectall_posearmature(ob, 1);
 					}
 					else {
 						if(G.f & G_FACESELECT) deselectall_tface();
@@ -1167,9 +1155,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					duplicate_context_selected();
 				}
 				else if(G.qual==LR_ALTKEY) {
-					if(G.obpose)
+					if(ob && (ob->flag & OB_POSEMODE))
 						error ("Duplicate not possible in posemode.");
-					else if((G.obedit==0))
+					else if((G.obedit==NULL))
 						adduplicate(0);
 				}
 				else if(G.qual==LR_CTRLKEY) {
@@ -1303,7 +1291,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();
-				else if(G.obpose) {
+				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual==0)
 						hide_selected_pose_bones();
 					else if (G.qual==LR_SHIFTKEY)
@@ -1317,7 +1305,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 			case JKEY:
 				if(G.qual==LR_CTRLKEY) {
-					if( (ob= OBACT) ) {
+					if( ob ) {
 						if(ob->type == OB_MESH)
 							join_mesh();
 						else if(ob->type == OB_CURVE)
@@ -1371,9 +1359,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 						selectconnected_nurb();
 				}
-				else if(G.obpose) {
-					if(G.obpose->type==OB_ARMATURE)
-						selectconnected_posearmature();
+				else if(ob && (ob->flag & OB_POSEMODE)) {
+					selectconnected_posearmature();
 				}
 				else {
 					if(G.f & G_FACESELECT) {
@@ -1452,7 +1439,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case OKEY:
-				ob= OBACT;
 				if (G.obedit) {
 					if (G.qual==LR_SHIFTKEY) {
 						G.scene->prop_mode = (G.scene->prop_mode+1)%6;
@@ -1646,7 +1632,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 				break;
 			case VKEY:
-				ob= OBACT;
 				if((G.qual==LR_SHIFTKEY)) {
 					if ((G.obedit) && G.obedit->type==OB_MESH) {
 						align_view_to_selected(v3d);
@@ -1751,7 +1736,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case PADASTERKEY:	/* '*' */
 				if(G.qual==0) {
-					ob= OBACT;
 					if(ob) {
 						if ((G.obedit) && (G.obedit->type == OB_MESH)) {
 							editmesh_align_view_to_selected(G.vd, 2);

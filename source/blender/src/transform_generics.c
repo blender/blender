@@ -112,14 +112,16 @@ void getViewVector(float coord[3], float vec[3]) {
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Base *base;
+	Object *ob= OBACT;
 	
-	if(G.obpose) {
+	if(ob && (ob->flag & OB_POSEMODE)) {
+		bArmature *arm= ob->data;
+
 		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!is_delay_deform()) 
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);  /* sets recalc flags */
+		if (!(arm->flag & ARM_DELAYDEFORM)) 
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
 		else
-			where_is_pose(G.obpose);
+			where_is_pose(ob);
 	}
 	else if (G.obedit) {
 		
@@ -166,6 +168,7 @@ void recalcData(TransInfo *t)
 		}
 	}
 	else {
+		Base *base;
 		
 		base= FIRSTBASE;
 		while(base) {
@@ -266,9 +269,10 @@ void drawLine(float *center, float *dir, char axis, short options)
 
 void initTrans (TransInfo *t)
 {
-
+	Object *ob= OBACT;
+	
 	/* moving: is shown in drawobject() (transform color) */
-	if(G.obedit || G.obpose) G.moving= G_TRANSFORM_EDIT;
+	if(G.obedit || (ob && (ob->flag & OB_POSEMODE)) ) G.moving= G_TRANSFORM_EDIT;
 	else G.moving= G_TRANSFORM_OBJ;
 
 	t->data = NULL;
@@ -468,7 +472,7 @@ void calculateCenterCursor(TransInfo *t)
 	VECCOPY(t->center, cursor);
 
 	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:G.obpose;
+		Object *ob= G.obedit?G.obedit:OBACT;
 		float mat[3][3], imat[3][3];
 		float vec[3];
 		
@@ -506,7 +510,7 @@ void calculateCenterMedian(TransInfo *t)
 	VECCOPY(t->center, partial);
 
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:G.obpose;
+		Object *ob= G.obedit?G.obedit:OBACT;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
@@ -545,7 +549,7 @@ void calculateCenterBound(TransInfo *t)
 	VecMulf(t->center, 0.5);
 
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:G.obpose;
+		Object *ob= G.obedit?G.obedit:OBACT;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
@@ -589,7 +593,7 @@ void calculateCenter(TransInfo *t)
 	/* setting constraint center */
 	VECCOPY(t->con.center, t->center);
 	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:G.obpose;
+		Object *ob= G.obedit?G.obedit:OBACT;
 		Mat4MulVecfl(ob->obmat, t->con.center);
 	}
 

@@ -551,7 +551,7 @@ void countall()
 {
 	extern ListBase editNurb;
 	Base *base;
-	Object *ob;
+	Object *ob= OBACT;
 	Mesh *me;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -668,10 +668,10 @@ void countall()
 		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
-	else if(G.obpose) {
-		if(G.obpose->pose) {
+	else if(ob && (ob->flag & OB_POSEMODE)) {
+		if(ob->pose) {
 			bPoseChannel *pchan;
-			for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				G.totbone++;
 				if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) G.totbonesel++;
 			}
@@ -1055,34 +1055,34 @@ void snap_sel_to_grid()
 		return;
 	}
 
-	if (G.obpose){
-		allqueue(REDRAWVIEW3D, 0);
-		return;
-	}
-
 	base= (G.scene->base.first);
 	while(base) {
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
-			ob->recalc |= OB_RECALC_OB;
-			
-			vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
-			vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
-			vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
-
-			if(ob->parent) {
-				where_is_object(ob);
-
-				Mat3Inv(imat, originmat);
-				Mat3MulVecfl(imat, vec);
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+			if(ob->flag & OB_POSEMODE) {
+				;	// todo
 			}
 			else {
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+				ob->recalc |= OB_RECALC_OB;
+				
+				vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
+				vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
+				vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
+
+				if(ob->parent) {
+					where_is_object(ob);
+
+					Mat3Inv(imat, originmat);
+					Mat3MulVecfl(imat, vec);
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
+				else {
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
 			}
 		}
 
@@ -1133,34 +1133,34 @@ void snap_sel_to_curs()
 		return;
 	}
 
-	if (G.obpose){
-		allqueue(REDRAWVIEW3D, 0);
-		return;
-	}
-
 	base= (G.scene->base.first);
 	while(base) {
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
-			ob->recalc |= OB_RECALC_OB;
-			
-			vec[0]= -ob->obmat[3][0] + curs[0];
-			vec[1]= -ob->obmat[3][1] + curs[1];
-			vec[2]= -ob->obmat[3][2] + curs[2];
-
-			if(ob->parent) {
-				where_is_object(ob);
-
-				Mat3Inv(imat, originmat);
-				Mat3MulVecfl(imat, vec);
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+			if(ob->flag & OB_POSEMODE) {
+				; // todo
 			}
 			else {
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+				ob->recalc |= OB_RECALC_OB;
+				
+				vec[0]= -ob->obmat[3][0] + curs[0];
+				vec[1]= -ob->obmat[3][1] + curs[1];
+				vec[2]= -ob->obmat[3][2] + curs[2];
+
+				if(ob->parent) {
+					where_is_object(ob);
+
+					Mat3Inv(imat, originmat);
+					Mat3MulVecfl(imat, vec);
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
+				else {
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
 			}
 		}
 
@@ -1422,34 +1422,34 @@ void snap_to_center()
 		return;
 	}
 
-	if (G.obpose){
-		allqueue(REDRAWVIEW3D, 0);
-		return;
-	}
-
 	base= (G.scene->base.first);
 	while(base) {
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
-			ob->recalc |= OB_RECALC_OB;
-			
-			vec[0]= -ob->obmat[3][0] + snaploc[0];
-			vec[1]= -ob->obmat[3][1] + snaploc[1];
-			vec[2]= -ob->obmat[3][2] + snaploc[2];
-
-			if(ob->parent) {
-				where_is_object(ob);
-
-				Mat3Inv(imat, originmat);
-				Mat3MulVecfl(imat, vec);
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+			if(ob->flag & OB_POSEMODE) {
+				; // todo
 			}
 			else {
-				ob->loc[0]+= vec[0];
-				ob->loc[1]+= vec[1];
-				ob->loc[2]+= vec[2];
+				ob->recalc |= OB_RECALC_OB;
+				
+				vec[0]= -ob->obmat[3][0] + snaploc[0];
+				vec[1]= -ob->obmat[3][1] + snaploc[1];
+				vec[2]= -ob->obmat[3][2] + snaploc[2];
+
+				if(ob->parent) {
+					where_is_object(ob);
+
+					Mat3Inv(imat, originmat);
+					Mat3MulVecfl(imat, vec);
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
+				else {
+					ob->loc[0]+= vec[0];
+					ob->loc[1]+= vec[1];
+					ob->loc[2]+= vec[2];
+				}
 			}
 		}
 
@@ -1510,7 +1510,8 @@ void mergemenu(void)
 
 }
 
-void delete_context_selected(void) {
+void delete_context_selected(void) 
+{
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) delete_mesh();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
@@ -1520,14 +1521,15 @@ void delete_context_selected(void) {
 	else delete_obj(0);
 }
 
-void duplicate_context_selected(void) {
+void duplicate_context_selected(void) 
+{
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) adduplicate_mesh();
 		else if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
 		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}
-	else if(!(G.obpose)){
+	else {
 		adduplicate(0);
 	}
 }

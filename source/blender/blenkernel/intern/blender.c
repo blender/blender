@@ -248,7 +248,6 @@ static void clear_global(void)
 	G.main= NULL;
 	
 	G.obedit= NULL;
-	G.obpose= NULL;
 	G.saction= NULL;
 	G.buts= NULL;
 	G.v2d= NULL;
@@ -307,8 +306,6 @@ static void clean_paths(Main *main)
 
 static void setup_app_data(BlendFileData *bfd, char *filename) 
 {
-	Object *ob;
-	Base *base;
 	bScreen *curscreen= NULL;
 	Scene *curscene= NULL;
 	char mode;
@@ -379,17 +376,6 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 
 	G.f= bfd->globalf;
 
-	/* check posemode */
-	for(base= G.scene->base.first; base; base=base->next) {
-		ob= base->object;
-		if(ob->flag & OB_POSEMODE) {
-			if(ob->type==OB_ARMATURE && G.scene->basact && G.scene->basact->object==ob) 
-				G.obpose= ob;
-			else
-				ob->flag &= ~OB_POSEMODE;
-		}
-	}
-	
 	if (!G.background) {
 		setscreen(G.curscreen);
 	}

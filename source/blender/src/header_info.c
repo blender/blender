@@ -1765,7 +1765,7 @@ char info_time_str[32]="";
 
 static void info_text(int x, int y)
 {
-	Object *ob;
+	Object *ob= OBACT;
 	extern float hashvectf[];
 	extern int mem_in_use;
 	unsigned int swatch_color;
@@ -1797,7 +1797,7 @@ static void info_text(int x, int y)
 
 		sprintf(s," | Mem:%.2fM ", (mem_in_use>>10)/1024.0);
 	}
-	else if(G.obpose) {
+	else if(ob && (ob->flag & OB_POSEMODE)) {
 		sprintf(infostr,"Bo:%d-%d | Mem:%.2fM ",
 					G.totbonesel, G.totbone, (mem_in_use>>10)/1024.0);
 	}
@@ -1805,7 +1805,6 @@ static void info_text(int x, int y)
 		sprintf(infostr,"Ve:%d | Fa:%d | Ob:%d-%d | La:%d | Mem:%.2fM | Time:%s | ",
 			G.totvert, G.totface, G.totobj, G.totobjsel, G.totlamp,  (mem_in_use>>10)/1024.0, info_time_str);
 	}
-	ob= OBACT;
 	if(ob) {
 		strcat(infostr, ob->id.name+2);
 	}

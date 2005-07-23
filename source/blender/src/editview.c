@@ -44,6 +44,7 @@
 #include "IMB_imbuf.h"
 #include "PIL_time.h"
 
+#include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
@@ -233,6 +234,30 @@ static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
    and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
 */
+void do_lasso_select_pose(Object *ob, short mcords[][2], short moves, short select)
+{
+	bPoseChannel *pchan;
+	float vec[3];
+	short sco1[2], sco2[2];
+	
+	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		VECCOPY(vec, pchan->pose_head);
+		Mat4MulVecfl(ob->obmat, vec);
+		project_short(vec, sco1);
+		VECCOPY(vec, pchan->pose_tail);
+		Mat4MulVecfl(ob->obmat, vec);
+		project_short(vec, sco2);
+		
+		if(lasso_inside_edge(mcords, moves, sco1, sco2)) {
+			if(select) pchan->bone->flag |= BONE_SELECTED;
+			else pchan->bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+		}
+	}
+}
+
+
 static void do_lasso_select_objects(short mcords[][2], short moves, short select)
 {
 	Base *base;
@@ -245,6 +270,9 @@ static void do_lasso_select_objects(short mcords[][2], short moves, short select
 				if(select) base->flag |= SELECT;
 				else base->flag &= ~SELECT;
 				base->object->flag= base->flag;
+			}
+			if(base->object->flag & OB_POSEMODE) {
+				do_lasso_select_pose(base->object, mcords, moves, select);
 			}
 		}
 	}
@@ -622,19 +650,19 @@ static char interpret_move(short mcord[][2], int count)
 /* return 1 to denote gesture did something, also does lasso */
 int gesture(void)
 {
-	short mcords[MOVES_LASSO][2]; // the larger size
-	int i= 1, end= 0, a;
 	unsigned short event=0;
+	int i= 1, end= 0, a;
+	short mcords[MOVES_LASSO][2]; // the larger size
 	short mval[2], val, timer=0, mousebut, lasso=0, maxmoves;
 	
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
 	else mousebut = L_MOUSE;
 	
+	/* check for lasso */
 	if(G.qual & LR_CTRLKEY) {
 		if(curarea->spacetype==SPACE_VIEW3D) {
 			if(G.obedit==NULL) {
 				if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
-				if(G.obpose) return 0;
 			}
 			lasso= 1;
 		}
@@ -1016,6 +1044,60 @@ static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
 	}
 }
 
+/* we want a select buffer with bones, if there are... */
+/* so check three selection levels and compare */
+static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
+{
+	int offs;
+	short a, hits15, hits9=0, hits5=0;
+	short has_bones15=0, has_bones9=0, has_bones5=0;
+	
+	hits15= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-14, mval[1]-14, mval[0]+14, mval[1]+14);
+	if(hits15) {
+		for(a=0; a<hits15; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones15= 1;
+		
+		offs= 4*hits15;
+		hits9= view3d_opengl_select(buffer+offs, MAXPICKBUF-offs, mval[0]-9, mval[1]-9, mval[0]+9, mval[1]+9);
+		if(hits9) {
+			for(a=0; a<hits9; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones9= 1;
+			
+			offs+= 4*hits9;
+			hits5= view3d_opengl_select(buffer+offs, MAXPICKBUF-offs, mval[0]-5, mval[1]-5, mval[0]+5, mval[1]+5);
+			if(hits5) {
+				for(a=0; a<hits5; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones5= 1;
+			}
+		}
+		
+		if(has_bones5) {
+			offs= 4*hits15 + 4*hits9;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits5;
+		}
+		if(has_bones9) {
+			offs= 4*hits15;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits9;
+		}
+		if(has_bones15) {
+			return hits15;
+		}
+		
+		if(hits5) {
+			offs= 4*hits15 + 4*hits9;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits5;
+		}
+		if(hits9) {
+			offs= 4*hits15;
+			memcpy(buffer, buffer+offs, 4*offs);
+			return hits9;
+		}
+		return hits15;
+	}
+	
+	return 0;
+}
+
 void mouse_select(void)
 {
 	Base *base, *startbase=NULL, *basact=NULL, *oldbasact=NULL;
@@ -1057,12 +1139,17 @@ void mouse_select(void)
 		}
 	}
 	else {
-		hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-7, mval[1]-7, mval[0]+7, mval[1]+7);
-		if(hits==0) hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-21, mval[1]-21, mval[0]+21, mval[1]+21);
-
+		/* if objects have posemode set, the bones are in the same selection buffer */
+		
+		hits= mixed_bones_object_selectbuffer(buffer, mval);
+		
 		if(hits>0) {
+			int has_bones= 0;
 			
-			if(G.qual & LR_ALTKEY) basact= mouse_select_menu(buffer, hits, mval);
+			for(a=0; a<hits; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones= 1;
+
+			if(has_bones==0 && (G.qual & LR_ALTKEY)) 
+				basact= mouse_select_menu(buffer, hits, mval);
 			else {
 				static short lastmval[2]={-100, -100};
 				int donearest= 0;
@@ -1071,7 +1158,8 @@ void mouse_select(void)
 				if(G.vd->drawtype>OB_WIRE) {
 					donearest= 1;
 					if( ABS(mval[0]-lastmval[0])<3 && ABS(mval[1]-lastmval[1])<3) {
-						donearest= 0;
+						if(!has_bones)	// hrms, if theres bones we always do nearest
+							donearest= 0;
 					}
 				}
 				lastmval[0]= mval[0]; lastmval[1]= mval[1];
@@ -1080,16 +1168,28 @@ void mouse_select(void)
 					unsigned int min= 0xFFFFFFFF;
 					int selcol= 0, notcol=0;
 					
-					/* prevent not being able to select active object... */
-					if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;
-					
-					for(a=0; a<hits; a++) {
-						/* index was converted */
-						if( min > buffer[4*a+1] && notcol!=buffer[4*a+3]) {
-							min= buffer[4*a+1];
-							selcol= buffer[4*a+3];
+
+					if(has_bones) {
+						/* we skip non-bone hits */
+						for(a=0; a<hits; a++) {
+							if( min > buffer[4*a+1] && (buffer[4*a+3] & 0xFFFF0000) ) {
+								min= buffer[4*a+1];
+								selcol= buffer[4*a+3] & 0xFFFF;
+							}
 						}
 					}
+					else {
+						/* only exclude active object when it is selected... */
+						if(BASACT && (BASACT->flag & SELECT) && hits>1) notcol= BASACT->selcol;	
+					
+						for(a=0; a<hits; a++) {
+							if( min > buffer[4*a+1] && notcol!=(buffer[4*a+3] & 0xFFFF)) {
+								min= buffer[4*a+1];
+								selcol= buffer[4*a+3] & 0xFFFF;
+							}
+						}
+					}
+
 					base= FIRSTBASE;
 					while(base) {
 						if(base->lay & G.vd->lay) {
@@ -1105,9 +1205,16 @@ void mouse_select(void)
 					while(base) {
 						if(base->lay & G.vd->lay) {
 							for(a=0; a<hits; a++) {
-								/* index was converted */
-								if(base->selcol==buffer[(4*a)+3]) {
-									basact= base;
+								if(has_bones) {
+									/* skip non-bone objects */
+									if((buffer[4*a+3] & 0xFFFF0000)) {
+										if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+											basact= base;
+									}
+								}
+								else {
+									if(base->selcol== (buffer[(4*a)+3] & 0xFFFF))
+										basact= base;
 								}
 							}
 						}
@@ -1115,15 +1222,21 @@ void mouse_select(void)
 						if(basact) break;
 						
 						base= base->next;
-						if(base==0) base= FIRSTBASE;
+						if(base==NULL) base= FIRSTBASE;
 						if(base==startbase) break;
 					}
 				}
 			}
+			
+			if(has_bones && basact) {
+				do_pose_selectbuffer(basact, buffer, hits);
+			}
 		}
 	}
 	
+	/* so, do we have something selected? */
 	if(basact) {
+		
 		if(G.obedit) {
 			/* only do select */
 			deselectall_except(basact);
@@ -1155,11 +1268,17 @@ void mouse_select(void)
 
 			// for visual speed, only in wire mode
 			if(G.vd->drawtype==OB_WIRE) {
-				if(oldbasact && oldbasact != basact && (oldbasact->lay & G.vd->lay)) 
-					draw_object_ext(oldbasact);
-				draw_object_ext(basact);
+				/* however, not for posemodes */
+				if(basact->object->flag & OB_POSEMODE);
+				else if(oldbasact && (oldbasact->object->flag & OB_POSEMODE));
+				else {
+					if(oldbasact && oldbasact != basact && (oldbasact->lay & G.vd->lay)) 
+						draw_object_ext(oldbasact);
+					draw_object_ext(basact);
+				}
 			}
 			
+			/* selecting a non-mesh, should end a couple of modes... */
 			if(basact->object->type!=OB_MESH) {
 				if(G.f & G_WEIGHTPAINT) {
 					set_wpaint();	/* toggle */
@@ -1171,6 +1290,7 @@ void mouse_select(void)
 					set_faceselect();	/* toggle */
 				}
 			}
+			
 			/* also because multiple 3d windows can be open */
 			allqueue(REDRAWVIEW3D, 0);
 
@@ -1183,7 +1303,6 @@ void mouse_select(void)
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
 			
 		}
-		
 	}
 
 	countall();
@@ -1230,335 +1349,311 @@ void borderselect(void)
 	MetaElem *ml;
 	unsigned int buffer[MAXPICKBUF];
 	int a, index;
-	short hits, val, tel;
+	short hits, val;
 
-	if(G.obedit==0 && (G.f & G_FACESELECT)) {
+	if(G.obedit==NULL && (G.f & G_FACESELECT)) {
 		face_borderselect();
 		return;
 	}
+	
 	setlinestyle(2);
 	val= get_border(&rect, 3);
 	setlinestyle(0);
-	if(val) {
-		if (G.obpose){
-			if(G.obpose->type==OB_ARMATURE) {
-				Bone	*bone;
-				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-				base= FIRSTBASE;
-				for (a=0; a<hits; a++){
-					index = buffer[(4*a)+3];
-					if (val==LEFTMOUSE){
-						if (index != -1){
-							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
-							if(bone) {
-								bone->flag |= BONE_SELECTED;
-								select_actionchannel_by_name(G.obpose->action, bone->name, 1);
-							}
-						}
-					}
-					else{	
-						if (index != -1){
-							bone = get_indexed_bone(G.obpose, index &~(BONESEL_TIP|BONESEL_ROOT));
-							if(bone) {
-								bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
-								select_actionchannel_by_name(G.obpose->action, bone->name, 0);
-							}
-						}
-					}
-				}
-				
-				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWVIEW3D, 0);
-			}
-		}
-		else if(G.obedit) {
-			/* used to be a bigger test, also included sector and life */
-			if(G.obedit->type==OB_MESH) {
-				EditMesh *em = G.editMesh;
-				EditVert *eve;
-				EditEdge *eed;
-				EditFace *efa;
-				int index, bbsel=0; // bbsel: no clip needed with screencoords
-				
-				bbsel= EM_init_backbuf_border(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	
+	if(val==0)
+		return;
+	
+	if(G.obedit) {
+		if(G.obedit->type==OB_MESH) {
+			EditMesh *em = G.editMesh;
+			EditVert *eve;
+			EditEdge *eed;
+			EditFace *efa;
+			int index, bbsel=0; // bbsel: no clip needed with screencoords
+			
+			bbsel= EM_init_backbuf_border(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
-				if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-					if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
-					index= em_wireoffs;
-					for(eve= em->verts.first; eve; eve= eve->next, index++) {
-						if(eve->h==0) {
-							if(bbsel || (eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax)) {
-								if(EM_check_backbuf_border(index)) {
-									if(val==LEFTMOUSE) eve->f|= 1;
-									else eve->f&= 254;
-								}
+			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+				if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
+				index= em_wireoffs;
+				for(eve= em->verts.first; eve; eve= eve->next, index++) {
+					if(eve->h==0) {
+						if(bbsel || (eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax)) {
+							if(EM_check_backbuf_border(index)) {
+								if(val==LEFTMOUSE) eve->f|= 1;
+								else eve->f&= 254;
 							}
 						}
 					}
 				}
-				if(G.scene->selectmode & SCE_SELECT_EDGE) {
-					short done= 0;
-					
-					calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+			}
+			if(G.scene->selectmode & SCE_SELECT_EDGE) {
+				short done= 0;
+				
+				calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
+				index= em_solidoffs;
+				/* two stages, for nice edge select first do 'both points in rect'
+				   also when bbsel is true */
+				for(eed= em->edges.first; eed; eed= eed->next, index++) {
+					if(eed->h==0) {
+						if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
+							if(EM_check_backbuf_border(index)) {
+								EM_select_edge(eed, val==LEFTMOUSE);
+								done = 1;
+							}
+						}
+					}
+				}
+
+				if(done==0) {
 					index= em_solidoffs;
-					/* two stages, for nice edge select first do 'both points in rect'
-					   also when bbsel is true */
 					for(eed= em->edges.first; eed; eed= eed->next, index++) {
 						if(eed->h==0) {
-							if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
-								if(EM_check_backbuf_border(index)) {
+							if(bbsel) {
+								if(EM_check_backbuf_border(index))
 									EM_select_edge(eed, val==LEFTMOUSE);
-									done = 1;
-								}
 							}
-						}
-					}
-
-					if(done==0) {
-						index= em_solidoffs;
-						for(eed= em->edges.first; eed; eed= eed->next, index++) {
-							if(eed->h==0) {
-								if(bbsel) {
-									if(EM_check_backbuf_border(index))
-										EM_select_edge(eed, val==LEFTMOUSE);
-								}
-								else if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
-									EM_select_edge(eed, val==LEFTMOUSE);
-								}
+							else if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
+								EM_select_edge(eed, val==LEFTMOUSE);
 							}
 						}
 					}
 				}
-				
-				if(G.scene->selectmode & SCE_SELECT_FACE) {
-					if(bbsel==0) calc_mesh_facedots_ext();
-					index= 1;
-					for(efa= em->faces.first; efa; efa= efa->next, index++) {
-						if(efa->h==0) {
-							if(bbsel || (efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax)) {
-								if(EM_check_backbuf_border(index)) {
-									EM_select_face_fgon(efa, val==LEFTMOUSE);
-								}
-							}
-						}
-					}
-				}
-				
-				EM_free_backbuf_border();
-					
-				EM_selectmode_flush();
-				allqueue(REDRAWVIEW3D, 0);
-				
 			}
-			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-				
-				calc_nurbverts_ext();	/* drawobject.c */
-				nu= editNurb.first;
-				while(nu) {
-					if((nu->type & 7)==CU_BEZIER) {
-						bezt= nu->bezt;
-						a= nu->pntsu;
-						while(a--) {
-							if(bezt->hide==0) {
-								if(bezt->s[0][0]>rect.xmin && bezt->s[0][0]<rect.xmax) {
-									if(bezt->s[0][1]>rect.ymin && bezt->s[0][1]<rect.ymax) {
-										if(val==LEFTMOUSE) bezt->f1|= 1;
-										else bezt->f1 &= ~1;
-									}
-								}
-								if(bezt->s[1][0]>rect.xmin && bezt->s[1][0]<rect.xmax) {
-									if(bezt->s[1][1]>rect.ymin && bezt->s[1][1]<rect.ymax) {
-										if(val==LEFTMOUSE) {
-											bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
-										}
-										else {
-											bezt->f1 &= ~1; bezt->f2 &= ~1; bezt->f3 &= ~1;
-										}
-									}
-								}
-								if(bezt->s[2][0]>rect.xmin && bezt->s[2][0]<rect.xmax) {
-									if(bezt->s[2][1]>rect.ymin && bezt->s[2][1]<rect.ymax) {
-										if(val==LEFTMOUSE) bezt->f3|= 1;
-										else bezt->f3 &= ~1;
-									}
-								}
-							}
-							bezt++;
-						}
-					}
-					else {
-						bp= nu->bp;
-						a= nu->pntsu*nu->pntsv;
-						while(a--) {
-							if(bp->hide==0) {
-								if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
-									if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
-										if(val==LEFTMOUSE) bp->f1|= 1;
-										else bp->f1 &= ~1;
-									}
-								}
-							}
-							bp++;
-						}
-					}
-					nu= nu->next;
-				}
-				allqueue(REDRAWVIEW3D, 0);
-			}
-			else if(G.obedit->type==OB_MBALL) {
-				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-				
-				ml= editelems.first;
-				
-				while(ml) {
-					for(a=0; a<hits; a++) {
-						if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
-							ml->flag |= MB_SCALE_RAD;
-							if(val==LEFTMOUSE) ml->flag |= SELECT;
-							else ml->flag &= ~SELECT;
-							break;
-						}
-						if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
-							ml->flag &= ~MB_SCALE_RAD;
-							if(val==LEFTMOUSE) ml->flag |= SELECT;
-							else ml->flag &= ~SELECT;
-							break;
-						}
-					}
-					ml= ml->next;
-				}
-				allqueue(REDRAWVIEW3D, 0);
-			}
-			else if(G.obedit->type==OB_ARMATURE) {
-				EditBone *ebone;
-
-				hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-
-				base= FIRSTBASE;
-				for (a=0; a<hits; a++){
-					index = buffer[(4*a)+3];
-					if (val==LEFTMOUSE){
-						if (index!=-1) {
-							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
-							if (index & (BONESEL_TIP|BONESEL_BONE))
-								ebone->flag |= BONE_TIPSEL;
-							if (index & (BONESEL_ROOT|BONESEL_BONE))
-								ebone->flag |= BONE_ROOTSEL;
-						}
-					}
-					else{
-						if (index!=-1){
-							ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
-							if (index & (BONESEL_TIP|BONESEL_BONE))
-								ebone->flag &= ~BONE_TIPSEL;
-							if (index & (BONESEL_ROOT|BONESEL_BONE))
-								ebone->flag &= ~BONE_ROOTSEL;
-						}
-					}
-				}
-				
-				allqueue(REDRAWBUTSEDIT, 0);
-				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWVIEW3D, 0);
-			}
-			else if(G.obedit->type==OB_LATTICE) {
-				
-				calc_lattverts_ext();
-				
-				bp= editLatt->def;
-	
-				a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-				while(a--) {
-					if(bp->hide==0) {
-						if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
-							if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
-								if(val==LEFTMOUSE) bp->f1|= 1;
-								else bp->f1 &= ~1;
+			
+			if(G.scene->selectmode & SCE_SELECT_FACE) {
+				if(bbsel==0) calc_mesh_facedots_ext();
+				index= 1;
+				for(efa= em->faces.first; efa; efa= efa->next, index++) {
+					if(efa->h==0) {
+						if(bbsel || (efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax)) {
+							if(EM_check_backbuf_border(index)) {
+								EM_select_face_fgon(efa, val==LEFTMOUSE);
 							}
 						}
 					}
-					bp++;
 				}
-				allqueue(REDRAWVIEW3D, 0);
 			}
-
+			
+			EM_free_backbuf_border();
+				
+			EM_selectmode_flush();
+			allqueue(REDRAWVIEW3D, 0);
+			
 		}
-		else {
-			unsigned int *vbuffer=NULL; /* selection buffer	*/
-			unsigned int *col;			/* color in buffer	*/
-			short selecting = 0;
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
+			
+			calc_nurbverts_ext();	/* drawobject.c */
+			nu= editNurb.first;
+			while(nu) {
+				if((nu->type & 7)==CU_BEZIER) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						if(bezt->hide==0) {
+							if(bezt->s[0][0]>rect.xmin && bezt->s[0][0]<rect.xmax) {
+								if(bezt->s[0][1]>rect.ymin && bezt->s[0][1]<rect.ymax) {
+									if(val==LEFTMOUSE) bezt->f1|= 1;
+									else bezt->f1 &= ~1;
+								}
+							}
+							if(bezt->s[1][0]>rect.xmin && bezt->s[1][0]<rect.xmax) {
+								if(bezt->s[1][1]>rect.ymin && bezt->s[1][1]<rect.ymax) {
+									if(val==LEFTMOUSE) {
+										bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
+									}
+									else {
+										bezt->f1 &= ~1; bezt->f2 &= ~1; bezt->f3 &= ~1;
+									}
+								}
+							}
+							if(bezt->s[2][0]>rect.xmin && bezt->s[2][0]<rect.xmax) {
+								if(bezt->s[2][1]>rect.ymin && bezt->s[2][1]<rect.ymax) {
+									if(val==LEFTMOUSE) bezt->f3|= 1;
+									else bezt->f3 &= ~1;
+								}
+							}
+						}
+						bezt++;
+					}
+				}
+				else {
+					bp= nu->bp;
+					a= nu->pntsu*nu->pntsv;
+					while(a--) {
+						if(bp->hide==0) {
+							if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
+								if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
+									if(val==LEFTMOUSE) bp->f1|= 1;
+									else bp->f1 &= ~1;
+								}
+							}
+						}
+						bp++;
+					}
+				}
+				nu= nu->next;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		else if(G.obedit->type==OB_MBALL) {
+			hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			
+			ml= editelems.first;
+			
+			while(ml) {
+				for(a=0; a<hits; a++) {
+					if(ml->selcol1==buffer[ (4 * a) + 3 ]) {
+						ml->flag |= MB_SCALE_RAD;
+						if(val==LEFTMOUSE) ml->flag |= SELECT;
+						else ml->flag &= ~SELECT;
+						break;
+					}
+					if(ml->selcol2==buffer[ (4 * a) + 3 ]) {
+						ml->flag &= ~MB_SCALE_RAD;
+						if(val==LEFTMOUSE) ml->flag |= SELECT;
+						else ml->flag &= ~SELECT;
+						break;
+					}
+				}
+				ml= ml->next;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		else if(G.obedit->type==OB_ARMATURE) {
+			EditBone *ebone;
 
-			if (val==LEFTMOUSE)
-				selecting = 1;
+			hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
-			vbuffer = MEM_mallocN(4 * G.totobj * sizeof(unsigned int), "selection buffer");
-			hits= view3d_opengl_select(vbuffer, 4*G.totobj, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-			/*
-			LOGIC NOTES (theeth):
-			The buffer and ListBase have the same relative order, which makes the selection
-			very simple. Loop through both data sets at the same time, if the color
-			is the same as the object, we have a hit and can move to the next color
-			and object pair, if not, just move to the next object,
-			keeping the same color until we have a hit.
+			base= FIRSTBASE;
+			for (a=0; a<hits; a++){
+				index = buffer[(4*a)+3];
+				if (val==LEFTMOUSE){
+					if (index!=-1) {
+						ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+						if (index & (BONESEL_TIP|BONESEL_BONE))
+							ebone->flag |= BONE_TIPSEL;
+						if (index & (BONESEL_ROOT|BONESEL_BONE))
+							ebone->flag |= BONE_ROOTSEL;
+					}
+				}
+				else{
+					if (index!=-1){
+						ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+						if (index & (BONESEL_TIP|BONESEL_BONE))
+							ebone->flag &= ~BONE_TIPSEL;
+						if (index & (BONESEL_ROOT|BONESEL_BONE))
+							ebone->flag &= ~BONE_ROOTSEL;
+					}
+				}
+			}
+			
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		else if(G.obedit->type==OB_LATTICE) {
+			
+			calc_lattverts_ext();
+			
+			bp= editLatt->def;
 
-			The buffer order is defined by OGL standard, hopefully no stupid GFX card
-			does it incorrectly.
-			*/
+			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			while(a--) {
+				if(bp->hide==0) {
+					if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
+						if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
+							if(val==LEFTMOUSE) bp->f1|= 1;
+							else bp->f1 &= ~1;
+						}
+					}
+				}
+				bp++;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
+	}
+	else {	// no editmode, unified for bones and objects
+		Bone *bone;
+		unsigned int *vbuffer=NULL; /* selection buffer	*/
+		unsigned int *col;			/* color in buffer	*/
+		short selecting = 0;
 
-			if (hits) { /* no need to loop if there's no hit */
-				base= FIRSTBASE;
-				col = vbuffer + 3;
-				while(base && hits) {
-					Base *next = base->next;
-					if(base->lay & G.vd->lay) {
-						if (base->selcol == *col) {
+		if (val==LEFTMOUSE)
+			selecting = 1;
+		
+		/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
+		vbuffer = MEM_mallocN(4 * (G.totobj+MAXPICKBUF) * sizeof(unsigned int), "selection buffer");
+		hits= view3d_opengl_select(vbuffer, 4*(G.totobj+MAXPICKBUF), rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+		/*
+		LOGIC NOTES (theeth):
+		The buffer and ListBase have the same relative order, which makes the selection
+		very simple. Loop through both data sets at the same time, if the color
+		is the same as the object, we have a hit and can move to the next color
+		and object pair, if not, just move to the next object,
+		keeping the same color until we have a hit.
+
+		The buffer order is defined by OGL standard, hopefully no stupid GFX card
+		does it incorrectly.
+		*/
+
+		if (hits) { /* no need to loop if there's no hit */
+			base= FIRSTBASE;
+			col = vbuffer + 3;
+			while(base && hits) {
+				Base *next = base->next;
+				if(base->lay & G.vd->lay) {
+					while (base->selcol == (*col & 0xFFFF)) {	// we got an object
+						
+						if(*col & 0xFFFF0000) {					// we got a bone
+							bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
+							if(bone) {
+								if(selecting) {
+									bone->flag |= BONE_SELECTED;
+									select_actionchannel_by_name(base->object->action, bone->name, 1);
+								}
+								else {
+									bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
+									select_actionchannel_by_name(base->object->action, bone->name, 0);
+								}
+							}
+						}
+						else {
 							if (selecting)
 								base->flag |= SELECT;
 							else
 								base->flag &= ~SELECT;
 
 							base->object->flag= base->flag;
-
-							col+=4;	/* next color */
-							hits--;
 						}
+
+						col+=4;	/* next color */
+						hits--;
+						if(hits==0) break;
 					}
-					
-					base= next;
 				}
+				
+				base= next;
 			}
-			/* frontbuffer flush */
-			glFlush();
-
-			MEM_freeN(vbuffer);
-			
-			allqueue(REDRAWDATASELECT, 0);
-
-			/* because backbuf drawing */
-			tel= 1;
-			base= FIRSTBASE;
-			while(base) {
-				/* each base because of multiple windows */
-				base->selcol = ((tel & 0xF00)<<12) 
-					+ ((tel & 0xF0)<<8) 
-					+ ((tel & 0xF)<<4);
-				tel++;
-				base= base->next;
-			}
-			/* new */
-			allqueue(REDRAWBUTSLOGIC, 0);
-			allqueue(REDRAWNLA, 0);
 		}
-		countall();
+		/* frontbuffer flush */
+		glFlush();
+
+		MEM_freeN(vbuffer);
 		
-		allqueue(REDRAWINFO, 0);
+		allqueue(REDRAWDATASELECT, 0);
+		allqueue(REDRAWBUTSLOGIC, 0);
+		allqueue(REDRAWNLA, 0);
 	}
 
-	if(val) BIF_undo_push("Border select");
+	countall();
+	
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWINFO, 0);
+
+	BIF_undo_push("Border select");
 	
 } /* end of borderselect() */
 

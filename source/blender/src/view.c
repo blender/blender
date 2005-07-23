@@ -458,7 +458,7 @@ void viewmove(int mode)
 
 	/* cumultime(0); */
 
-	if (G.obedit==0 && G.obpose==0 && U.uiflag & USER_ORBIT_SELECTION) {
+	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE) && U.uiflag & USER_ORBIT_SELECTION) {
 		use_sel = 1;
 		VECCOPY(ofs, G.vd->ofs);
 		if (ob) {
@@ -862,7 +862,6 @@ void setcameratoview3d(void)
 short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1, short y1, short x2, short y2)
 {
 	rctf rect;
-	Base *base;
 	short mval[2], code, hits;
 
 	G.f |= G_PICKSEL;
@@ -899,23 +898,24 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	if(G.obedit && G.obedit->type==OB_MBALL) {
 		draw_object(BASACT);
 	}
-	else if ((G.obedit && G.obedit->type==OB_ARMATURE)||(G.obpose && G.obpose->type==OB_ARMATURE)) {
+	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
 		draw_object(BASACT);
 	}
 	else {
+		Base *base;
+		
 		G.vd->xray= TRUE;	// otherwise it postpones drawing
-		base= G.scene->base.first;
-		while(base) {
+		for(base= G.scene->base.first; base; base= base->next) {
 			if(base->lay & G.vd->lay) {
 				base->selcol= code;
 				glLoadName(code);
 				draw_object(base);
 				code++;
 			}
-			base= base->next;
 		}
 		G.vd->xray= FALSE;	// restore
 	}
+	
 	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
 	if(hits<0) error("Too many objects in select buffer");
@@ -1077,7 +1077,7 @@ void initlocalview()
 
 void centreview()	/* like a localview without local! */
 {
-	Base *base;
+	Object *ob= OBACT;
 	float size, min[3], max[3], afm[3];
 	int ok=0;
 
@@ -1088,18 +1088,18 @@ void centreview()	/* like a localview without local! */
 		minmax_verts(min, max);	// ony selected
 		ok= 1;
 	}
-	else if(G.obpose) {
-		if(G.obpose->pose) {
+	else if(ob && (ob->flag & OB_POSEMODE)) {
+		if(ob->pose) {
 			bPoseChannel *pchan;
 			float vec[3];
-			for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if(pchan->bone->flag & BONE_SELECTED) {
 					ok= 1;
 					VECCOPY(vec, pchan->pose_head);
-					Mat4MulVecfl(G.obpose->obmat, vec);
+					Mat4MulVecfl(ob->obmat, vec);
 					DO_MINMAX(vec, min, max);
 					VECCOPY(vec, pchan->pose_tail);
-					Mat4MulVecfl(G.obpose->obmat, vec);
+					Mat4MulVecfl(ob->obmat, vec);
 					DO_MINMAX(vec, min, max);
 				}
 			}
@@ -1110,7 +1110,7 @@ void centreview()	/* like a localview without local! */
 		ok= 1;
 	}
 	else {
-		base= FIRSTBASE;
+		Base *base= FIRSTBASE;
 		while(base) {
 			if TESTBASE(base)  {
 				minmax_object(base->object, min, max);

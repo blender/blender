@@ -295,94 +295,6 @@ void buttons_active_id(ID **id, ID **idfrom)
 	}
 }
 
-#if 0
-static void validate_bonebutton(void *bonev, void *data2_unused){
-	Bone *bone= bonev;
-	bArmature *arm;
-
-	arm = get_armature(G.obpose);
-	unique_bone_name(bone, arm);
-}
-
-
-static int bonename_exists(Bone *orig, char *name, ListBase *list)
-{
-	Bone *curbone;
-	
-	for (curbone=list->first; curbone; curbone=curbone->next){
-		/* Check this bone */
-		if (orig!=curbone){
-			if (!strcmp(curbone->name, name))
-				return 1;
-		}
-		
-		/* Check Children */
-		if (bonename_exists(orig, name, &curbone->childbase))
-			return 1;
-	}
-	
-	return 0;
-
-}
-
-static void unique_bone_name (Bone *bone, bArmature *arm)
-{
-	char		tempname[64];
-	char		oldname[64];
-	int			number;
-	char		*dot;
-
-	if (!arm)
-		return;
-
-	strcpy(oldname, bone->name);
-
-	/* See if we even need to do this */
-	if (!bonename_exists(bone, bone->name, &arm->bonebase))
-		return;
-
-	/* Strip off the suffix */
-	dot=strchr(bone->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <=999; number++){
-		sprintf (tempname, "%s.%03d", bone->name, number);
-		
-		if (!bonename_exists(bone, tempname, &arm->bonebase)){
-			strcpy (bone->name, tempname);
-			return;
-		}
-	}
-}
-
-static uiBlock *sbuts_context_menu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco = 0;
-
-	block= uiNewBlock(&curarea->uiblocks, "context_options", UI_EMBOSSP, UI_HELV, curarea->headwin);
-
-	/* should be branches from tree */
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCENE_DEHLT, "Scene|F10", 0, yco-=22, 100, 20, &G.buts->mainb, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_EDIT, "Editing|F9", 0, yco-=22, 100, 20, &G.buts->mainb, 4.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_OBJECT, "Object|F6", 0, yco-=22, 100, 20, &G.buts->mainb, 1.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_MATERIAL_DEHLT, "Shading|F5", 0, yco-=22, 100, 20, &G.buts->mainb, 3.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_GAME, "Logic|F4", 0, yco-=22, 100, 20, &G.buts->mainb, 6.0, 0.0, 0, 0, "");
-	uiDefIconTextButS(block, BUTM, B_REDR, ICON_SCRIPT, "Script", 0, yco-=22, 100, 20, &G.buts->mainb, 5.0, 0.0, 0, 0, "");
-	
-	if(curarea->headertype==HEADERTOP) {
-		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
-		uiBlockSetDirection(block, UI_TOP);
-		uiBlockFlipOrder(block);
-	}
-
-	return block;
-}
-#endif
-
 static void do_buts_view_shadingmenu(void *arg, int event)
 {
 	G.buts->mainb = CONTEXT_SHADING;
@@ -686,15 +598,6 @@ void buts_buttons(void)
 //	uiDefIconBut(block, BUT, B_BUTSHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");
 //	xco+=XIC;
 	
-	/* mainb menu*/
-	/* (this could be done later with a dynamic tree and branches, also for python) */
-	//{
-	//	char mainbname[8][12]= {" Scene", " Object", " Types", " Shading", " Editing", " Script", " Logic"};
-	//	char mainbicon[8]= {ICON_SCENE_DEHLT, ICON_OBJECT, ICON_BBOX, ICON_MATERIAL_DEHLT, ICON_EDIT, ICON_SCRIPT, ICON_GAME};
-	//	uiBut *but= uiDefIconTextBlockBut(block, sbuts_context_menu, NULL, mainbicon[G.buts->mainb], mainbname[G.buts->mainb], xco, 0, 90, YIC, "Set main context for button panels");
-	//	uiButClearFlag(but, UI_ICON_RIGHT); // this type has both flags set, and draws icon right.. uhh
-	//	xco+= 90-XIC+10;
-	//}
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
@@ -704,8 +607,6 @@ void buts_buttons(void)
 	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
 	
 	xco+= XIC;
-	
-	// if(curarea->headertype==HEADERTOP)  t_base= -3; else t_base= 4;
 	
 	/* select the context to be drawn, per contex/tab the actual context is tested */
 	uiBlockSetEmboss(block, UI_EMBOSS);	// normal

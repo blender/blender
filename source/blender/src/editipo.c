@@ -3877,9 +3877,9 @@ void common_insertkey()
 
 	}
 	else if(curarea->spacetype==SPACE_VIEW3D) {
-		
+		ob= OBACT;
 
-		if (G.obpose) {
+		if (ob && (ob->flag & OB_POSEMODE)) {
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9");
 		}
 		else {
@@ -3888,12 +3888,12 @@ void common_insertkey()
 				if TESTBASELIB(base) break;
 				base= base->next;
 			}
-			if(base==0) return;
+			if(base==NULL) return;
 		
 			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9");
 		}
 		
-		if( (ob = OBACT)) {
+		if(ob) {
 			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");
 			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
 			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
@@ -3904,7 +3904,7 @@ void common_insertkey()
 		event= pupmenu(menustr);
 		if(event== -1) return;
 		
-		if(event==7) {
+		if(event==7) { // ob != NULL
 			if(ob->type==OB_MESH) insert_meshkey(ob->data, 0);
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data);
 			else if(ob->type==OB_LATTICE) insert_lattkey(ob->data);
@@ -3924,21 +3924,18 @@ void common_insertkey()
 			}
 		}
 		
-		base= FIRSTBASE;
-		if (G.obpose){
+		if (ob && (ob->flag & OB_POSEMODE)){
 			bAction	*act;
 			bPose	*pose;
 			bPoseChannel *chan;
 			bActionChannel *achan;
-
-			ob = G.obpose;
 
 			/* Get action & pose from object */
 			act=ob->action;
 			pose=ob->pose;
 
 			if (!act){
-				act= G.obpose->action=add_empty_action();
+				act= ob->action= add_empty_action();
 				/* this sets the non-pinned open ipowindow(s) to show the action curve */
 				ob->ipowin= ID_AC;
 				allqueue(REDRAWIPO, ob->ipowin);
@@ -3950,14 +3947,13 @@ void common_insertkey()
 				error ("No pose!"); /* Should never happen */
 			}
 
-			if (act->id.lib)
-			{
+			if (act->id.lib) {
 				error ("Can't key libactions");
 				return;
 			}
+
 			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
-			for (chan=pose->chanbase.first; chan; chan=chan->next)
-			{
+			for (chan=pose->chanbase.first; chan; chan=chan->next) {
 				if (chan->flag & POSE_KEY){
 					//			set_action_key(act, chan);
 					if(event==0 || event==3 ||event==4) {
@@ -3990,13 +3986,14 @@ void common_insertkey()
 				remake_action_ipos(act);
 			}
 
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 		}
 		else {
+			base= FIRSTBASE;
 			while(base) {
 				if TESTBASELIB(base) {
 					id= (ID *)(base->object);

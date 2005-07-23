@@ -380,26 +380,7 @@ typedef struct SpaceImaSel {
 /* **************** SPACE ********************* */
 
 
-/* view3d->flag */ /* Now in DNA_view3d_types.h */
-/*
-#define V3D_DISPIMAGE		1
-#define V3D_DISPBGPIC		2
-#define V3D_SETUPBUTS		4
-#define V3D_NEEDBACKBUFDRAW	8
-#define V3D_MODE			(16+32+64+128)
-#define V3D_EDITMODE		16
-#define V3D_VERTEXPAINT		32
-#define V3D_FACESELECT		64
-#define V3D_POSEMODE		128
-*/
-
-/* view3d->around */ /* Now in DNA_view3d_types.h */
-/*
-#define V3D_CENTRE		0
-#define V3D_CENTROID	3
-#define V3D_CURSOR		1
-#define V3D_LOCAL		2
-*/
+/* view3d  Now in DNA_view3d_types.h */
 
 /* buts defines in BIF_butspace.h */
 

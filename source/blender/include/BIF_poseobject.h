@@ -46,9 +46,8 @@ void set_pose_keys(struct Object *ob);
 
 /**
  * Deactivates posemode
- * @param freedata 0 or 1 value indicating that posedata should be deleted
  */
-void exit_posemode(int freedata);
+void exit_posemode(void);
 
 void pose_special_editmenu(void);
 

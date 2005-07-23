@@ -1141,27 +1141,6 @@ void where_is_pose (Object *ob)
 	}
 }
 
-
-/* *************** helper for selection code ****************** */
-
-
-Bone *get_indexed_bone (Object *ob, int index)
-/*
-	Now using pose channel
-*/
-{
-	bPoseChannel *pchan;
-	int a= 0;
-	
-	if(ob->pose==NULL) return NULL;
-	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, a++) {
-		if(a==index) return pchan->bone;
-	}
-	return NULL;
-}
-
-
 /* ****************** Game Blender functions, called by engine ************** */
 
 void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4])

@@ -91,6 +91,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editview.h"
+#include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_mainqueue.h"
 #include "BIF_meshtools.h"
@@ -101,7 +102,6 @@
 #include "BIF_space.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
-#include "BIF_gl.h"
 #include "BIF_transform.h"
 
 #include "BPY_extern.h"
@@ -124,13 +124,13 @@
  * This can be cleaned when I make some new 'mode' icons.
  */
 
-#define V3D_OBJECTMODE_SEL				ICON_OBJECT
-#define V3D_EDITMODE_SEL				ICON_EDITMODE_HLT
+#define V3D_OBJECTMODE_SEL			ICON_OBJECT
+#define V3D_EDITMODE_SEL			ICON_EDITMODE_HLT
 #define V3D_FACESELECTMODE_SEL		ICON_FACESEL_HLT
 #define V3D_VERTEXPAINTMODE_SEL		ICON_VPAINT_HLT
 #define V3D_TEXTUREPAINTMODE_SEL	ICON_TPAINT_HLT
 #define V3D_WEIGHTPAINTMODE_SEL		ICON_WPAINT_HLT
-#define V3D_POSEMODE_SEL					ICON_POSE_HLT
+#define V3D_POSEMODE_SEL			ICON_POSE_HLT
 
 #define TEST_EDITMESH	if(G.obedit==0) return; \
 						if( (G.vd->lay & G.obedit->lay)==0 ) return;
@@ -1071,12 +1071,12 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 //	extern void borderselect(void);
 	
 	switch(event) {
-			case 0: /* border select */
-			borderselect();
-			break;
-		case 2: /* Select/Deselect all */
-			deselectall_posearmature(1);
-			break;
+	case 0: /* border select */
+		borderselect();
+		break;
+	case 2: /* Select/Deselect all */
+		deselectall_posearmature(OBACT, 1);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3656,135 +3656,11 @@ void do_view3d_buttons(short event)
 			scrarea_queue_headredraw(curarea);
 		}
 		break;
+		
 	case B_LOCALVIEW:
 		if(G.vd->localview) initlocalview();
 		else endlocalview(curarea);
 		scrarea_queue_headredraw(curarea);
-		break;
-	case B_EDITMODE:
-		if (G.f & G_VERTEXPAINT) {
-			/* Switch off vertex paint */
-			G.f &= ~G_VERTEXPAINT;
-		}
-		if (G.f & G_WEIGHTPAINT){
-			/* Switch off weight paint */
-			G.f &= ~G_WEIGHTPAINT;
-		}
-#ifdef NAN_TPT
-		if (G.f & G_TEXTUREPAINT) {
-			/* Switch off texture paint */
-			G.f &= ~G_TEXTUREPAINT;
-		}
-#endif /* NAN_VPT */
-		if(G.obedit==NULL) {
-			enter_editmode();
-			BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
-		}
-		else exit_editmode(2); // freedata, and undo
-		scrarea_queue_headredraw(curarea);
-		break;
-	case B_POSEMODE:
-	/*	if (G.obedit){
-			error("Unable to perform function in EditMode");
-			G.vd->flag &= ~V3D_POSEMODE;
-			scrarea_queue_headredraw(curarea);
-		}
-		else{
-		*/	
-		if (G.obpose==NULL) enter_posemode();
-		else exit_posemode(1);
-
-		allqueue(REDRAWHEADERS, 0); 
-		
-		break;
-	case B_WPAINT:
-		if (G.f & G_VERTEXPAINT) {
-			/* Switch off vertex paint */
-			G.f &= ~G_VERTEXPAINT;
-		}
-#ifdef NAN_TPT
-		if ((!(G.f & G_WEIGHTPAINT)) && (G.f & G_TEXTUREPAINT)) {
-			/* Switch off texture paint */
-			G.f &= ~G_TEXTUREPAINT;
-		}
-#endif /* NAN_VPT */
-		if(G.obedit) {
-			error("Unable to perform function in EditMode");
-			G.vd->flag &= ~V3D_WEIGHTPAINT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else if(G.obpose) {
-			error("Unable to perform function in PoseMode");
-			G.vd->flag &= ~V3D_WEIGHTPAINT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else set_wpaint();
-		break;
-	case B_VPAINT:
-		if ((!(G.f & G_VERTEXPAINT)) && (G.f & G_WEIGHTPAINT)) {
-			G.f &= ~G_WEIGHTPAINT;
-		}
-#ifdef NAN_TPT
-		if ((!(G.f & G_VERTEXPAINT)) && (G.f & G_TEXTUREPAINT)) {
-			/* Switch off texture paint */
-			G.f &= ~G_TEXTUREPAINT;
-		}
-#endif /* NAN_VPT */
-		if(G.obedit) {
-			error("Unable to perform function in EditMode");
-			G.vd->flag &= ~V3D_VERTEXPAINT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else if(G.obpose) {
-			error("Unable to perform function in PoseMode");
-			G.vd->flag &= ~V3D_VERTEXPAINT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else set_vpaint();
-		break;
-		
-#ifdef NAN_TPT
-	case B_TEXTUREPAINT:
-		if (G.f & G_TEXTUREPAINT) {
-			G.f &= ~G_TEXTUREPAINT;
-		}
-		else {
-			if (G.obedit) {
-				error("Unable to perform function in EditMode");
-				G.vd->flag &= ~V3D_TEXTUREPAINT;
-			}
-			else {
-				if (G.f & G_WEIGHTPAINT){
-					/* Switch off weight paint */
-					G.f &= ~G_WEIGHTPAINT;
-				}
-				if (G.f & G_VERTEXPAINT) {
-					/* Switch off vertex paint */
-					G.f &= ~G_VERTEXPAINT;
-				}
-				if (G.f & G_FACESELECT) {
-					/* Switch off face select */
-					G.f &= ~G_FACESELECT;
-				}
-				G.f |= G_TEXTUREPAINT;
-				scrarea_queue_headredraw(curarea);
-			}
-		}
-		break;
-#endif /* NAN_TPT */
-
-	case B_FACESEL:
-		if(G.obedit) {
-			error("Unable to perform function in EditMode");
-			G.vd->flag &= ~V3D_FACESELECT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else if(G.obpose) {
-			error("Unable to perform function in PoseMode");
-			G.vd->flag &= ~V3D_FACESELECT;
-			scrarea_queue_headredraw(curarea);
-		}
-		else set_faceselect();
 		break;
 		
 	case B_VIEWBUT:
@@ -3826,27 +3702,31 @@ void do_view3d_buttons(short event)
 		viewmove(1);
 		scrarea_queue_headredraw(curarea);
 		break;
+		
 	case B_MODESELECT:
-		if (G.vd->modeselect == V3D_OBJECTMODE_SEL) { 
+		if (G.vd->modeselect == V3D_OBJECTMODE_SEL) {
+			Object *ob= OBACT;
+			
 			G.vd->flag &= ~V3D_MODE;
 			G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 			G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 			G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
 			G.f &= ~G_FACESELECT;		/* Switch off face select */
-			if (G.obpose) exit_posemode(1); /* exit posemode */
+			if(ob) exit_posemode();		/* exit posemode for active object */
 			if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
-		} else if (G.vd->modeselect == V3D_EDITMODE_SEL) {
+		} 
+		else if (G.vd->modeselect == V3D_EDITMODE_SEL) {
 			if(!G.obedit) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
-				if (G.obpose) exit_posemode(1); /* exit posemode */
 					
 				enter_editmode();
 				BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
 			}
-		} else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
+		} 
+		else if (G.vd->modeselect == V3D_FACESELECTMODE_SEL) {
 			if ((G.obedit) && (G.f & G_FACESELECT)) {
 				exit_editmode(2); /* exit editmode and undo */
 			} else if ((G.f & G_FACESELECT) && (G.f & G_VERTEXPAINT)) {
@@ -3858,43 +3738,45 @@ void do_view3d_buttons(short event)
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
-				if (G.obpose) exit_posemode(1); /* exit posemode */
 				if (G.obedit) exit_editmode(2); /* exit editmode and undo */
 				
 				set_faceselect();
 			}
-		} else if (G.vd->modeselect == V3D_VERTEXPAINTMODE_SEL) {
+		} 
+		else if (G.vd->modeselect == V3D_VERTEXPAINTMODE_SEL) {
 			if (!(G.f & G_VERTEXPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
-				if (G.obpose) exit_posemode(1); /* exit posemode */
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				set_vpaint();
 			}
-		} else if (G.vd->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
+		} 
+		else if (G.vd->modeselect == V3D_TEXTUREPAINTMODE_SEL) {
 			if (!(G.f & G_TEXTUREPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
-				if (G.obpose) exit_posemode(1); /* exit posemode */
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				G.f |= G_TEXTUREPAINT;		/* Switch on texture paint flag */
 			}
-		} else if (G.vd->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
+		} 
+		else if (G.vd->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
 			if (!(G.f & G_WEIGHTPAINT) && (OBACT && OBACT->type == OB_MESH) && ((((Mesh*)(OBACT->data))->dvert))) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
-				if (G.obpose) exit_posemode(1); /* exit posemode */
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 				
 				set_wpaint();
 			}
-		} else if (G.vd->modeselect == V3D_POSEMODE_SEL) {
-			if (!G.obpose) {
+		} 
+		else if (G.vd->modeselect == V3D_POSEMODE_SEL) {
+			Object *ob= OBACT;
+			
+			if (ob && !(ob->flag & OB_POSEMODE)) {
 				G.vd->flag &= ~V3D_MODE;
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
@@ -3903,6 +3785,7 @@ void do_view3d_buttons(short event)
 		}
 		allqueue(REDRAWVIEW3D, 1);
 		break;
+		
 	case B_AROUND:
 		handle_view3d_around(); // copies to other 3d windows
 		allqueue(REDRAWVIEW3D, 1);
@@ -4027,17 +3910,17 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 		if (OBACT && OBACT->type == OB_MESH) {
 			uiDefPulldownBut(block, view3d_select_faceselmenu, NULL, "Select", xco,-2, xmax-3, 24, "");
 		}
-	} else if (G.obpose) {
-		if (OBACT && OBACT->type == OB_ARMATURE) {
-			uiDefPulldownBut(block, view3d_select_pose_armaturemenu, NULL, "Select", xco,-2, xmax-3, 24, "");
-		}
 	} else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
 		uiDefBut(block, LABEL,0,"", xco, 0, xmax, 20, 0, 0, 0, 0, 0, "");
 	} else {
-		uiDefPulldownBut(block, view3d_select_objectmenu, NULL, "Select",	xco,-2, xmax-3, 24, "");
+		Object *ob= OBACT;
+		
+		if (ob && (ob->flag & OB_POSEMODE))
+			uiDefPulldownBut(block, view3d_select_pose_armaturemenu, NULL, "Select", xco,-2, xmax-3, 24, "");
+		else
+			uiDefPulldownBut(block, view3d_select_objectmenu, NULL, "Select",	xco,-2, xmax-3, 24, "");
 	}
 	xco+= xmax;
-	
 	
 	if (G.obedit) {
 		if (OBACT && OBACT->type == OB_MESH) {
@@ -4081,16 +3964,19 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 			uiDefPulldownBut(block, view3d_faceselmenu, NULL, "Face",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
-	} else if (G.obpose) {
-		if (OBACT && OBACT->type == OB_ARMATURE) {
+	} else {
+		Object *ob= OBACT;
+		
+		if (ob && (ob->flag & OB_POSEMODE)) {
 			xmax= GetButStringLength("Armature");
 			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Armature",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
-	} else {
-		xmax= GetButStringLength("Object");
-		uiDefPulldownBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,-2, xmax-3, 24, "");
-		xco+= xmax;
+		else {
+			xmax= GetButStringLength("Object");
+			uiDefPulldownBut(block, view3d_edit_objectmenu, NULL, "Object",	xco,-2, xmax-3, 24, "");
+			xco+= xmax;
+		}
 	}
 
 	*xcoord= xco;
@@ -4099,6 +3985,7 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 void view3d_buttons(void)
 {
 	uiBlock *block;
+	Object *ob= OBACT;
 	int a;
 	short xco = 0;
 	
@@ -4134,24 +4021,23 @@ void view3d_buttons(void)
 	
 	/* mode */
 	G.vd->modeselect = V3D_OBJECTMODE_SEL;
-	if (G.f & G_WEIGHTPAINT) G.vd->modeselect = V3D_WEIGHTPAINTMODE_SEL;
+	
+	if (G.obedit) G.vd->modeselect = V3D_EDITMODE_SEL;
+	else if(ob && (ob->flag & OB_POSEMODE)) G.vd->modeselect = V3D_POSEMODE_SEL;
+	else if (G.f & G_WEIGHTPAINT) G.vd->modeselect = V3D_WEIGHTPAINTMODE_SEL;
 	else if (G.f & G_VERTEXPAINT) G.vd->modeselect = V3D_VERTEXPAINTMODE_SEL;
 	else if (G.f & G_TEXTUREPAINT) G.vd->modeselect = V3D_TEXTUREPAINTMODE_SEL;
 	else if(G.f & G_FACESELECT) G.vd->modeselect = V3D_FACESELECTMODE_SEL;
-	if (G.obpose) G.vd->modeselect = V3D_POSEMODE_SEL;
-	if (G.obedit) G.vd->modeselect = V3D_EDITMODE_SEL;
 		
 	G.vd->flag &= ~V3D_MODE;
+	
+	/* not sure what the G.vd->flag is useful for now... modeselect is confusing */
 	if(G.obedit) G.vd->flag |= V3D_EDITMODE;
+	if(ob && (ob->flag & OB_POSEMODE)) G.vd->flag |= V3D_POSEMODE;
 	if(G.f & G_VERTEXPAINT) G.vd->flag |= V3D_VERTEXPAINT;
 	if(G.f & G_WEIGHTPAINT) G.vd->flag |= V3D_WEIGHTPAINT;
-#ifdef NAN_TPT
 	if (G.f & G_TEXTUREPAINT) G.vd->flag |= V3D_TEXTUREPAINT;
-#endif /* NAN_TPT */
 	if(G.f & G_FACESELECT) G.vd->flag |= V3D_FACESELECT;
-	if(G.obpose){
-		G.vd->flag |= V3D_POSEMODE;
-	}
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
 																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode:");
@@ -4253,13 +4139,13 @@ void view3d_buttons(void)
 
 	uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
 	
-	if (G.obpose){
+	if (ob && (ob->flag & OB_POSEMODE)) {
 		xco+= XIC/2;
 		if(curarea->headertype==HEADERTOP) {
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Copies the current pose to the buffer");
-			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
+			uiSetButLock(ob->id.lib!=0, "Can't edit library data");
 			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Pastes the pose from the buffer");
@@ -4271,7 +4157,7 @@ void view3d_buttons(void)
 			uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYDOWN,
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Copies the current pose to the buffer");
-			uiSetButLock(G.obpose->id.lib!=0, "Can't edit library data");
+			uiSetButLock(ob->id.lib!=0, "Can't edit library data");
 			uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEDOWN,
 						 xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 						 "Pastes the pose from the buffer");

@@ -33,6 +33,7 @@
 #define BIF_EDITARMATURE_H
 
 struct Object;
+struct Base;
 struct Bone;
 struct bArmature;
 
@@ -82,10 +83,12 @@ void	clear_armature(struct Object *ob, char mode);
 
 void	delete_armature(void);
 void	deselectall_armature(int toggle);
-void	deselectall_posearmature (int test);
-void	draw_armature(struct Object *ob, int dt);
+void	deselectall_posearmature (struct Object *ob, int test);
+void	draw_armature(struct Base *base, int dt);
 void	extrude_armature(void);
 void	free_editArmature(void);
+struct Bone *get_indexed_bone (struct Object *ob, int index);
+
 void	join_armature(void);
 void	load_editArmature(void);
 
@@ -94,7 +97,9 @@ void    clear_bone_parent(void);
 
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
-void	mousepose_armature(void);
+
+void	do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
+
 void	mouse_armature(void);
 void	remake_editArmature(void);
 void	selectconnected_armature(void);
@@ -116,15 +121,14 @@ int bone_looper(Object *ob, struct Bone *bone, void *data,
 				int (*bone_func)(Object *, struct Bone *, void *));
 int ik_chain_looper(Object *ob, struct Bone *bone, void *data,
 				   int (*bone_func)(Object *, struct Bone *, void *));
-int is_delay_deform(void);
 
 void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 
 
-#define	BONESEL_ROOT	0x02000000
-#define	BONESEL_TIP		0x04000000
-#define	BONESEL_BONE	0x08000000
+#define	BONESEL_ROOT	0x10000000
+#define	BONESEL_TIP		0x20000000
+#define	BONESEL_BONE	0x40000000
 #define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
 
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */

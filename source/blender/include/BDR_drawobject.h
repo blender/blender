@@ -46,7 +46,6 @@ struct BoundBox;
 struct Base;
 
 void init_draw_rects(void);
-void helpline(float *vec);
 void drawaxes(float size);
 void drawcamera(struct Object *ob);
 

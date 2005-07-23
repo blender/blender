@@ -443,8 +443,10 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 	return 0;
 }
 
+/* only called with pose mode active object now */
 static void createTransPose(TransInfo *t)
 {
+	Object *ob= OBACT;
 	bArmature *arm;
 	bPoseChannel *pchan;
 	TransData *td;
@@ -452,14 +454,14 @@ static void createTransPose(TransInfo *t)
 	int i;
 	
 	/* check validity of state */
-	arm=get_armature (G.obpose);
-	if (arm==NULL || G.obpose->pose==NULL) return;
+	arm=get_armature (ob);
+	if (arm==NULL || ob->pose==NULL) return;
 	
 	if (arm->flag & ARM_RESTPOS){
 		notice ("Pose edit not possible while Rest Position is enabled");
 		return;
 	}
-	if (!(G.obpose->lay & G.vd->lay)) return;
+	if (!(ob->lay & G.vd->lay)) return;
 
 	/* count total */
 	count_bone_select(t, &arm->bonebase, 1);
@@ -481,8 +483,8 @@ static void createTransPose(TransInfo *t)
 	
 	/* use pose channels to fill trans data */
 	td= t->data;
-	for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if( add_pose_transdata(t, pchan, G.obpose, td) ) td++;
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if( add_pose_transdata(t, pchan, ob, td) ) td++;
 	}
 	if(td != (t->data+t->total)) printf("Bone selection count error\n");
 	
@@ -1343,25 +1345,26 @@ static void clear_trans_object_base_flags(void)
 /* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
 void special_aftertrans_update(short cancelled)
 {
-	Object *ob;
+	Object *ob= OBACT;
 	Base *base;
 	int redrawipo=0;
 	
-	if (G.obpose){
+	if (ob && (ob->flag & OB_POSEMODE)) {
+		bArmature *arm= ob->data;
 		bAction	*act;
 		bPose	*pose;
 		bPoseChannel *pchan;
 
 		if(cancelled)	/* if cancelled we do the update always */
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		else if(G.flags & G_RECORDKEYS) {
-			act=G.obpose->action;
-			pose=G.obpose->pose;
+			act= ob->action;
+			pose= ob->pose;
 			
 			if (!act)
-				act=G.obpose->action=add_empty_action();
+				act= ob->action= add_empty_action();
 			
-			set_pose_keys(G.obpose);  // sets chan->flag to POSE_KEY if bone selected
+			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->flag & POSE_KEY){
 					
@@ -1386,12 +1389,12 @@ void special_aftertrans_update(short cancelled)
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWNLA, 0);
 			
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
-		else if(is_delay_deform()) {
+		else if(arm->flag & ARM_DELAYDEFORM) {
 			/* old optimize trick... this enforces to bypass the depgraph */
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
-			G.obpose->recalc= 0;	// is set on OK position already by recalcData()
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
 		/* do not call DAG_object_flush_update always, we dont want actions to update, for inserting keys */
 	}
@@ -1458,15 +1461,6 @@ static void createTransObject(TransInfo *t)
 	
 	set_trans_object_base_flags(t);
 
-	{
-		/* this has to be done, or else constraints on armature
-		 * bones that point to objects/bones that are outside
-		 * of the armature don't work outside of posemode 
-		 * (and yes, I know it's confusing ...).
-		 */
-		//figure_pose_updating();
-	}
-	
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
@@ -1573,6 +1567,8 @@ static void createTransObject(TransInfo *t)
 
 void createTransData(TransInfo *t) 
 {
+	Object *ob= OBACT;
+	
 	if (t->context == CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		createTransTexspace(t);
@@ -1587,7 +1583,7 @@ void createTransData(TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (G.obpose) {
+	else if (ob && (ob->flag & OB_POSEMODE)) {
 		t->flag |= T_POSE;
 		createTransPose(t);
 	}

@@ -71,6 +71,9 @@
 #include "DNA_vfont_types.h"
 
 #include "BIF_editview.h"		/* arrows_move_cursor	*/
+#include "BIF_gl.h"
+#include "BIF_mywindow.h"
+#include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"			/* undo	*/
 #include "BIF_toets.h"		/* persptoetsen	*/
@@ -93,15 +96,48 @@
 
 #include "mydevice.h"
 
-extern void helpline(float *vec);
-
-
 #include "transform.h"
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
 TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
 ListBase CSpaces = {0,0};
 float MatSpace[3][3];
+
+/* ************************** Dashed help line **************************** */
+
+
+/* bad frontbuffer call... because it is used in transform after force_draw() */
+static void helpline(float *vec, int local)
+{
+	float vecrot[3], cent[2];
+	short mval[2];
+	
+	VECCOPY(vecrot, vec);
+	if(local) {
+		Object *ob= OBACT;
+		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+	}
+	getmouseco_areawin(mval);
+	project_float(vecrot, cent);	// no overflow in extreme cases
+	if(cent[0]!=3200.0f) {
+		persp(PERSP_WIN);
+		
+		glDrawBuffer(GL_FRONT);
+		
+		BIF_ThemeColor(TH_WIRE);
+		
+		setlinestyle(3);
+		glBegin(GL_LINE_STRIP); 
+		glVertex2sv(mval); 
+		glVertex2fv(cent); 
+		glEnd();
+		setlinestyle(0);
+		
+		persp(PERSP_VIEW);
+		glFlush(); // flush display for frontbuffer
+		glDrawBuffer(GL_BACK);
+	}
+}
 
 /* ************************** TRANSFORMATIONS **************************** */
 
@@ -861,7 +897,7 @@ int Warp(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	helpline(gcursor);
+	helpline(gcursor, t->flag & (T_EDIT|T_POSE));
 	
 	return 1;
 }
@@ -945,7 +981,7 @@ int Shear(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -1197,7 +1233,7 @@ int Resize(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -1291,7 +1327,7 @@ int ToSphere(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -1529,7 +1565,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -1631,7 +1667,7 @@ int Trackball(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
 	
 	return 1;
 }
@@ -1908,7 +1944,7 @@ int Tilt(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -2080,7 +2116,7 @@ int Crease(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center);
+	helpline (t->center, t->flag & (T_EDIT|T_POSE));
 
 	return 1;
 }
@@ -2280,7 +2316,7 @@ int BoneSize(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center);
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
 	
 	return 1;
 }

@@ -241,7 +241,6 @@ void delete_obj(int ok)
 	Base *base;
 	int islamp= 0;
 	
-	if(G.obpose) return;
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 	
@@ -250,7 +249,7 @@ void delete_obj(int ok)
 		Base *nbase= base->next;
 
 		if TESTBASE(base) {
-			if(ok==0 &&  (ok=okee("Erase selected"))==0) return;
+			if(ok==0 &&  (ok=okee("Erase selected Object(s)"))==0) return;
 			if(base->object->type==OB_LAMP) islamp= 1;
 			
 			free_and_unlink_base(base);
@@ -870,56 +869,49 @@ void clear_object(char mode)
 	else if(mode=='o') str= "Clear origin";
 	else return;
 	
-	if (G.obpose){
-
-		switch (G.obpose->type){
-		case OB_ARMATURE:
-			clear_armature (G.obpose, mode);
-			break;
-		}
-
-		allqueue(REDRAWVIEW3D, 0);
-		BIF_undo_push(str);
-		return;
-	}
-
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
 			ob= base->object;
 			
-			if(mode=='r') {
-				memset(ob->rot, 0, 3*sizeof(float));
-				memset(ob->drot, 0, 3*sizeof(float));
-				QuatOne(ob->quat);
-				QuatOne(ob->dquat);
+			if(ob->flag & OB_POSEMODE) {
+				// no test if we got armature; could be in future...
+				clear_armature(ob, mode);
 			}
-			else if(mode=='g') {
-				memset(ob->loc, 0, 3*sizeof(float));
-				memset(ob->dloc, 0, 3*sizeof(float));
-			}
-			else if(mode=='s') {
-				memset(ob->dsize, 0, 3*sizeof(float));
-				ob->size[0]= 1.0;
-				ob->size[1]= 1.0;
-				ob->size[2]= 1.0;
-			}
-			else if(mode=='o') {
-				if(ob->parent) {
-					v1= ob->loc;
-					v3= ob->parentinv[3];
-					
-					Mat3CpyMat4(mat, ob->parentinv);
-					VECCOPY(v3, v1);
-					v3[0]= -v3[0];
-					v3[1]= -v3[1];
-					v3[2]= -v3[2];
-					Mat3MulVecfl(mat, v3);
+			else {
+				
+				if(mode=='r') {
+					memset(ob->rot, 0, 3*sizeof(float));
+					memset(ob->drot, 0, 3*sizeof(float));
+					QuatOne(ob->quat);
+					QuatOne(ob->dquat);
 				}
-			}
-			
-			ob->recalc |= OB_RECALC_OB;
-			
+				else if(mode=='g') {
+					memset(ob->loc, 0, 3*sizeof(float));
+					memset(ob->dloc, 0, 3*sizeof(float));
+				}
+				else if(mode=='s') {
+					memset(ob->dsize, 0, 3*sizeof(float));
+					ob->size[0]= 1.0;
+					ob->size[1]= 1.0;
+					ob->size[2]= 1.0;
+				}
+				else if(mode=='o') {
+					if(ob->parent) {
+						v1= ob->loc;
+						v3= ob->parentinv[3];
+						
+						Mat3CpyMat4(mat, ob->parentinv);
+						VECCOPY(v3, v1);
+						v3[0]= -v3[0];
+						v3[1]= -v3[1];
+						v3[2]= -v3[2];
+						Mat3MulVecfl(mat, v3);
+					}
+				}
+				
+				ob->recalc |= OB_RECALC_OB;
+			}			
 		}
 		base= base->next;
 	}
@@ -1120,10 +1112,8 @@ void make_parent(void)
 {
 	Base *base;
 	Object *par;
-	short qual, mode=0;
-	char *bonestr=NULL;
 	Bone	*bone=NULL;
-	int	bonenr;
+	short qual, mode=0;
 
 	if(G.scene->id.lib) return;
 	if(G.obedit) {
@@ -1194,57 +1184,58 @@ void make_parent(void)
 		}
 	}
 	else if(par->type == OB_ARMATURE){
-
-			base= FIRSTBASE;
-			while(base) {
-				if TESTBASELIB(base) {
-					if(base!=BASACT) {
-						if(base->object->type==OB_MESH) {
-							mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
-							break;
-						}
-						else {
-							mode= pupmenu("Make Parent To %t|Bone %x1|Object %x3");
-							break;
-						}
+		int	bonenr;
+		char *bonestr=NULL;
+		
+		base= FIRSTBASE;
+		while(base) {
+			if TESTBASELIB(base) {
+				if(base!=BASACT) {
+					if(base->object->type==OB_MESH) {
+						mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
+						break;
+					}
+					else {
+						mode= pupmenu("Make Parent To %t|Bone %x1|Object %x3");
+						break;
 					}
 				}
-				base= base->next;
 			}
-		
-			switch (mode){
-			case 1:
-				mode=PARBONE;
-				/* Make bone popup menu */
+			base= base->next;
+		}
+	
+		switch (mode){
+		case 1:
+			mode=PARBONE;
+			/* Make bone popup menu */
 
-				bonestr = make_bone_menu(par);
+			bonestr = make_bone_menu(par);
 
-				bonenr= pupmenu_col(bonestr, 20);
-				if (bonestr)
-					MEM_freeN (bonestr);
-				
-				if (bonenr==-1){
-					allqueue(REDRAWVIEW3D, 0);
-					return;
-				}
-
-				bone=get_indexed_bone(par, bonenr); 
-				if (!bone){
-		//			error ("Invalid bone!");
-					allqueue(REDRAWVIEW3D, 0);
-					return;
-				}
-
-				break;
-			case 2:
-				mode=PARSKEL;
-				break;
-			case 3:
-				mode=PAROBJECT;
-				break;
-			default:
+			bonenr= pupmenu_col(bonestr, 20);
+			if (bonestr)
+				MEM_freeN (bonestr);
+			
+			if (bonenr==-1){
+				allqueue(REDRAWVIEW3D, 0);
 				return;
 			}
+
+			bone= get_indexed_bone(par, bonenr<<16);		// function uses selection codes
+			if (!bone){
+				allqueue(REDRAWVIEW3D, 0);
+				return;
+			}
+
+			break;
+		case 2:
+			mode=PARSKEL;
+			break;
+		case 3:
+			mode=PAROBJECT;
+			break;
+		default:
+			return;
+		}
 	}
 	else {
 		if(qual & LR_SHIFTKEY) {
@@ -1286,7 +1277,7 @@ void make_parent(void)
 					
 					/* the ifs below are horrible code (ton) */
 					
-					if (par->type==OB_ARMATURE){
+					if (par->type==OB_ARMATURE) {
 						base->object->partype= mode;
 						if (bone)
 							strcpy (base->object->parsubstr, bone->name);
@@ -1449,9 +1440,6 @@ void enter_editmode(void)
 	}
 	else G.obedit= NULL;
 
-	if (G.obpose)
-		exit_posemode (1);
-	
 	scrarea_queue_headredraw(curarea);
 }
 
@@ -1891,21 +1879,22 @@ void split_font()
 
 void special_editmenu(void)
 {
+	Object *ob= OBACT;
 	extern short editbutflag;
 	extern float doublimit;
 	float fac;
 	int nr,ret;
 	short randfac,numcuts;
 	
-	if(G.obpose) {
-		pose_special_editmenu();
-	}
-	else if(G.obedit==NULL) {
+	if(ob==NULL) return;
+	
+	if(G.obedit==NULL) {
 		
-		if(!OBACT) return;
-		
-		if(G.f & G_FACESELECT) {
-			Mesh *me= get_mesh(OBACT);
+		if(ob->flag & OB_POSEMODE) {
+			pose_special_editmenu();
+		}
+		else if(G.f & G_FACESELECT) {
+			Mesh *me= get_mesh(ob);
 			TFace *tface;
 			int a;
 			
@@ -1946,7 +1935,7 @@ void special_editmenu(void)
 			BIF_undo_push("Change texture face");
 		}
 		else if(G.f & G_VERTEXPAINT) {
-			Mesh *me= get_mesh(OBACT);
+			Mesh *me= get_mesh(ob);
 			
 			if(me==0 || (me->mcol==NULL && me->tface==NULL) ) return;
 			
@@ -1964,29 +1953,25 @@ void special_editmenu(void)
 		}
 		else {
 			Base *base, *base_select= NULL;
-			Object *ob= OBACT;
 			
 			// Get the active object mesh.
 			Mesh *me= get_mesh(ob);
 
-			// If the active object is a mesh...
+			// Booleans, if the active object is a mesh...
 			if (me && ob->id.lib==NULL) {
+				
 				// Bring up a little menu with the boolean operation choices on.
 				nr= pupmenu("Boolean %t|Intersect%x1|Union%x2|Difference%x3");
-
 				if (nr > 0) {
 					// user has made a choice of a menu element.
 					// All of the boolean functions require 2 mesh objects 
 					// we search through the object list to find the other 
 					// selected item and make sure it is distinct and a mesh.
 
-					base= FIRSTBASE;
-					while(base) {
+					for(base= FIRSTBASE; base; base= base->next) {
 						if TESTBASELIB(base) {
-							if(base->object != OBACT) base_select= base;
+							if(base->object != ob) base_select= base;
 						}
-
-						base= base->next;
 					}
 
 					if (base_select) {
@@ -2011,7 +1996,7 @@ void special_editmenu(void)
 
 				allqueue(REDRAWVIEW3D, 0);
 			}
-			else if (OBACT->type == OB_FONT) {
+			else if (ob->type == OB_FONT) {
 				nr= pupmenu("Split %t|Characters%x1");
 				if (nr > 0) {
 					switch(nr) {
@@ -2024,7 +2009,6 @@ void special_editmenu(void)
 	else if(G.obedit->type==OB_MESH) {
         
 		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
-		//if(nr>0) waitcursor(1);
 		
 		switch(nr) {
 		case 1:
@@ -2033,8 +2017,6 @@ void special_editmenu(void)
             esubdivideflag(1, 0.0, editbutflag,numcuts,0);
 			
 			BIF_undo_push("ESubdivide Single");            
-			//subdivideflag(1, 0.0, editbutflag);
-			//BIF_undo_push("Subdivide");
 			break;
 		case 2:
             numcuts = 2;
@@ -3949,159 +3931,164 @@ void adduplicate(int noTrans)
 		if TESTBASELIB(base) {
 		
 			ob= base->object;
-			obn= copy_object(ob);
-			obn->recalc |= OB_RECALC;
-			
-			basen= MEM_mallocN(sizeof(Base), "duplibase");
-			*basen= *base;
-			BLI_addhead(&G.scene->base, basen);	/* addhead: prevent eternal loop */
-			basen->object= obn;
-			base->flag &= ~SELECT;
-			basen->flag &= ~OB_FROMGROUP;
-			
-			if(BASACT==base) BASACT= basen;
+			if(ob->flag & OB_POSEMODE) {
+				; // nothing?
+			}
+			else {
+				obn= copy_object(ob);
+				obn->recalc |= OB_RECALC;
+				
+				basen= MEM_mallocN(sizeof(Base), "duplibase");
+				*basen= *base;
+				BLI_addhead(&G.scene->base, basen);	/* addhead: prevent eternal loop */
+				basen->object= obn;
+				base->flag &= ~SELECT;
+				basen->flag &= ~OB_FROMGROUP;
+				
+				if(BASACT==base) BASACT= basen;
 
-			/* duplicates using userflags */
-			
-			if(dupflag & USER_DUP_IPO) {
-				id= (ID *)obn->ipo;
-				if(id) {
-					ID_NEW_US( obn->ipo)
-						else obn->ipo= copy_ipo(obn->ipo);
-					id->us--;
-				}
-				/* Handle constraint ipos */
-				for (chan=obn->constraintChannels.first; chan; chan=chan->next){
-					id= (ID *)chan->ipo;
+				/* duplicates using userflags */
+				
+				if(dupflag & USER_DUP_IPO) {
+					id= (ID *)obn->ipo;
 					if(id) {
-						ID_NEW_US( chan->ipo)
-							else chan->ipo= copy_ipo(chan->ipo);
+						ID_NEW_US( obn->ipo)
+							else obn->ipo= copy_ipo(obn->ipo);
 						id->us--;
 					}
-				}
-			}
-			if(dupflag & USER_DUP_ACT){
-				id= (ID *)obn->action;
-				if (id){
-					ID_NEW_US(obn->action)
-						else{
-						obn->action= copy_action(obn->action);
-						obn->activecon=NULL;
-					}
-					id->us--;
-				}
-			}
-			if(dupflag & USER_DUP_MAT) {
-				for(a=0; a<obn->totcol; a++) {
-					id= (ID *)obn->mat[a];
-					if(id) {
-						ID_NEW_US(obn->mat[a])
-						else obn->mat[a]= copy_material(obn->mat[a]);
-						id->us--;
-					}
-				}
-			}
-			
-			id= obn->data;
-			didit= 0;
-			
-			switch(obn->type) {
-			case OB_MESH:
-				if(dupflag & USER_DUP_MESH) {
-					ID_NEW_US2( obn->data )
-					else {
-						obn->data= copy_mesh(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				break;
-			case OB_CURVE:
-				if(dupflag & USER_DUP_CURVE) {
-					ID_NEW_US2(obn->data )
-					else {
-						obn->data= copy_curve(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				break;
-			case OB_SURF:
-				if(dupflag & USER_DUP_SURF) {
-					ID_NEW_US2( obn->data )
-					else {
-						obn->data= copy_curve(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				break;
-			case OB_FONT:
-				if(dupflag & USER_DUP_FONT) {
-					ID_NEW_US2( obn->data )
-					else {
-						obn->data= copy_curve(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				break;
-			case OB_MBALL:
-				if(dupflag & USER_DUP_MBALL) {
-					ID_NEW_US2(obn->data )
-					else {
-						obn->data= copy_mball(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				break;
-			case OB_LAMP:
-				if(dupflag & USER_DUP_LAMP) {
-					ID_NEW_US2(obn->data )
-					else obn->data= copy_lamp(obn->data);
-					id->us--;
-				}
-				break;
-
-			case OB_ARMATURE:
-				obn->recalc |= OB_RECALC_DATA;
-				if(obn->pose) obn->pose->flag |= POSE_RECALC;
-				
-				if(dupflag & USER_DUP_ARM) {
-					ID_NEW_US2(obn->data )
-					else {
-						obn->data= copy_armature(obn->data);
-						didit= 1;
-					}
-					id->us--;
-				}
-				
-				break;
-				
-			/* always dupli's */
-			case OB_LATTICE:
-				ID_NEW_US2(obn->data )
-				else obn->data= copy_lattice(obn->data);
-				id->us--;
-				break;
-			case OB_CAMERA:
-				ID_NEW_US2(obn->data )
-				else obn->data= copy_camera(obn->data);
-				id->us--;
-				break;
-			}
-			
-			if(dupflag & USER_DUP_MAT) {
-				matarar= give_matarar(obn);
-				if(didit && matarar) {
-					for(a=0; a<obn->totcol; a++) {
-						id= (ID *)(*matarar)[a];
+					/* Handle constraint ipos */
+					for (chan=obn->constraintChannels.first; chan; chan=chan->next){
+						id= (ID *)chan->ipo;
 						if(id) {
-							ID_NEW_US( (*matarar)[a] )
-							else (*matarar)[a]= copy_material((*matarar)[a]);
-							
+							ID_NEW_US( chan->ipo)
+								else chan->ipo= copy_ipo(chan->ipo);
 							id->us--;
+						}
+					}
+				}
+				if(dupflag & USER_DUP_ACT){
+					id= (ID *)obn->action;
+					if (id){
+						ID_NEW_US(obn->action)
+							else{
+							obn->action= copy_action(obn->action);
+							obn->activecon=NULL;
+						}
+						id->us--;
+					}
+				}
+				if(dupflag & USER_DUP_MAT) {
+					for(a=0; a<obn->totcol; a++) {
+						id= (ID *)obn->mat[a];
+						if(id) {
+							ID_NEW_US(obn->mat[a])
+							else obn->mat[a]= copy_material(obn->mat[a]);
+							id->us--;
+						}
+					}
+				}
+				
+				id= obn->data;
+				didit= 0;
+				
+				switch(obn->type) {
+				case OB_MESH:
+					if(dupflag & USER_DUP_MESH) {
+						ID_NEW_US2( obn->data )
+						else {
+							obn->data= copy_mesh(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					break;
+				case OB_CURVE:
+					if(dupflag & USER_DUP_CURVE) {
+						ID_NEW_US2(obn->data )
+						else {
+							obn->data= copy_curve(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					break;
+				case OB_SURF:
+					if(dupflag & USER_DUP_SURF) {
+						ID_NEW_US2( obn->data )
+						else {
+							obn->data= copy_curve(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					break;
+				case OB_FONT:
+					if(dupflag & USER_DUP_FONT) {
+						ID_NEW_US2( obn->data )
+						else {
+							obn->data= copy_curve(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					break;
+				case OB_MBALL:
+					if(dupflag & USER_DUP_MBALL) {
+						ID_NEW_US2(obn->data )
+						else {
+							obn->data= copy_mball(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					break;
+				case OB_LAMP:
+					if(dupflag & USER_DUP_LAMP) {
+						ID_NEW_US2(obn->data )
+						else obn->data= copy_lamp(obn->data);
+						id->us--;
+					}
+					break;
+
+				case OB_ARMATURE:
+					obn->recalc |= OB_RECALC_DATA;
+					if(obn->pose) obn->pose->flag |= POSE_RECALC;
+					
+					if(dupflag & USER_DUP_ARM) {
+						ID_NEW_US2(obn->data )
+						else {
+							obn->data= copy_armature(obn->data);
+							didit= 1;
+						}
+						id->us--;
+					}
+					
+					break;
+					
+				/* always dupli's */
+				case OB_LATTICE:
+					ID_NEW_US2(obn->data )
+					else obn->data= copy_lattice(obn->data);
+					id->us--;
+					break;
+				case OB_CAMERA:
+					ID_NEW_US2(obn->data )
+					else obn->data= copy_camera(obn->data);
+					id->us--;
+					break;
+				}
+				
+				if(dupflag & USER_DUP_MAT) {
+					matarar= give_matarar(obn);
+					if(didit && matarar) {
+						for(a=0; a<obn->totcol; a++) {
+							id= (ID *)(*matarar)[a];
+							if(id) {
+								ID_NEW_US( (*matarar)[a] )
+								else (*matarar)[a]= copy_material((*matarar)[a]);
+								
+								id->us--;
+							}
 						}
 					}
 				}

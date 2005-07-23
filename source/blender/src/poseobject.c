@@ -78,10 +78,8 @@ void enter_posemode(void)
 	if(G.scene->id.lib) return;
 	base= BASACT;
 	if(base==NULL) return;
-	if((base->lay & G.vd->lay)==0) return;
 	
 	ob= base->object;
-	if(ob->data==NULL) return;
 	
 	if (ob->id.lib){
 		error ("Can't pose libdata");
@@ -93,7 +91,6 @@ void enter_posemode(void)
 		arm= get_armature(ob);
 		if( arm==NULL ) return;
 		
-		G.obpose= ob;
 		ob->flag |= OB_POSEMODE;
 		base->flag= ob->flag;
 		
@@ -108,8 +105,6 @@ void enter_posemode(void)
 
 	if (G.obedit) exit_editmode(1);
 	G.f &= ~(G_VERTEXPAINT | G_FACESELECT | G_TEXTUREPAINT | G_WEIGHTPAINT);
-
-
 }
 
 void set_pose_keys (Object *ob)
@@ -130,41 +125,34 @@ void set_pose_keys (Object *ob)
 }
 
 
-void exit_posemode (int freedata)
+void exit_posemode(void)
 {
-	Object *ob;
+	Object *ob= OBACT;
 	Base *base= BASACT;
 
-	if(G.obpose==NULL) return;
-
-	ob= G.obpose;
+	if(ob==NULL) return;
+	
 	ob->flag &= ~OB_POSEMODE;
 	base->flag= ob->flag;
 	
-	G.obpose= NULL;
-
-	if(freedata) {
-		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-		
-		countall();
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWOOPS, 0);
-		allqueue(REDRAWHEADERS, 0);	
-		allqueue(REDRAWBUTSALL, 0);	
-	}
-	else {
-		G.obpose= ob;
-	}
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWHEADERS, 0);	
+	allqueue(REDRAWBUTSALL, 0);	
 
 	scrarea_queue_headredraw(curarea);
 }
 
 void pose_special_editmenu(void)
 {
+	Object *ob= OBACT;
 	bPoseChannel *pchan;
 	short nr;
 	
-	for(pchan= G.obpose->pose->chanbase.first; pchan; pchan= pchan->next)
+	if(!ob && !ob->pose) return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 		if(pchan->bone->flag & BONE_ACTIVE) break;
 	if(pchan==NULL) return;
 	
@@ -174,11 +162,11 @@ void pose_special_editmenu(void)
 		
 		for(con= pchan->constraints.first; con; con= con->next) {
 			char *subtarget;
-			Object *ob= get_constraint_target(con, &subtarget);
+			Object *target= get_constraint_target(con, &subtarget);
 			
-			if(ob==G.obpose) {
+			if(ob==target) {
 				if(subtarget) {
-					pchan= get_pose_channel(G.obpose->pose, subtarget);
+					pchan= get_pose_channel(ob->pose, subtarget);
 					pchan->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 				}
 			}

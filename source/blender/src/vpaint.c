@@ -753,7 +753,6 @@ void weight_paint(void)
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
-	if(G.obpose) return;
 	
 	if(indexar==NULL) init_vertexpaint();
 	

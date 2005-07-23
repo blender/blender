@@ -66,6 +66,7 @@
 #include "DNA_vec_types.h"
 
 #include "BKE_global.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"

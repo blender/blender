@@ -1589,7 +1589,7 @@ void do_viewbuts(unsigned short event)
 		/* no break, pass on */
 	case B_ARMATUREPANEL2:
 		{
-			DAG_object_flush_update(G.scene, G.obpose, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 		break;
@@ -1634,7 +1634,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		if(ob->type==OB_MBALL) v3d_editmetaball_buts(block, ob, lim);
 		else v3d_editvertex_buts(block, ob, lim);
 	}
-	else if(ob==G.obpose) {
+	else if(ob->flag & OB_POSEMODE) {
 		v3d_posearmature_buts(block, ob, lim);
 	}
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {

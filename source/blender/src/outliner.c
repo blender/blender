@@ -907,7 +907,6 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	sce= (Scene *)outliner_search_back(soops, te, ID_SCE);
 	if(sce && G.scene != sce) {
 		if(G.obedit) exit_editmode(2);
-		if(G.obpose) exit_posemode(1);
 		set_scene(sce);
 	}
 	
@@ -939,7 +938,6 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 	}
 	
 	if(ob!=G.obedit) exit_editmode(2);
-	if(ob!=G.obpose) exit_posemode(1);
 }
 
 static int tree_element_active_material(SpaceOops *soops, TreeElement *te, int set)
@@ -1096,7 +1094,6 @@ static int tree_element_active_world(SpaceOops *soops, TreeElement *te, int set)
 	if(set) {	// make new scene active
 		if(sce && G.scene != sce) {
 			if(G.obedit) exit_editmode(2);
-			if(G.obpose) exit_posemode(1);
 			set_scene(sce);
 		}
 	}
@@ -1139,7 +1136,7 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 			deselect_actionchannels(ob->action, 0);
 			select_channel(ob->action, chan, SELECT_ADD);
 			allqueue(REDRAWACTION, ob->ipowin);
-			if(G.obpose) allqueue(REDRAWVIEW3D, ob->ipowin);
+			allqueue(REDRAWVIEW3D, ob->ipowin);
 		}
 		
 		allqueue(REDRAWIPO, ob->ipowin);
@@ -1206,7 +1203,7 @@ static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tsele
 	
 	if(set) {
 		if(G.qual & LR_SHIFTKEY);
-		else deselectall_posearmature(0);
+		else deselectall_posearmature(ob, 0);
 		pchan->bone->flag |= BONE_SELECTED|BONE_ACTIVE;
 		
 		allqueue(REDRAWVIEW3D, 0);
@@ -1295,11 +1292,11 @@ static int tree_element_active_pose(TreeElement *te, TreeStoreElem *tselem, int 
 	
 	if(set) {
 		if(G.obedit) exit_editmode(2);
-		if(G.obpose) exit_posemode(1);
+		if(ob->flag & OB_POSEMODE) exit_posemode();
 		else enter_posemode();
 	}
 	else {
-		if(ob==G.obpose) return 1;
+		if(ob->flag & OB_POSEMODE) return 1;
 	}
 	return 0;
 }
@@ -1378,12 +1375,10 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					if(te->idcode==ID_SCE) {
 						if(G.scene!=(Scene *)tselem->id) {
 							if(G.obedit) exit_editmode(2);
-							if(G.obpose) exit_posemode(1);
 							set_scene((Scene *)tselem->id);
 						}
 					}
 					else if(ELEM5(te->idcode, ID_ME, ID_CU, ID_MB, ID_LT, ID_AR)) {
-						if(G.obpose) exit_posemode(1);
 						if(G.obedit) exit_editmode(2);
 						else {
 							enter_editmode();
@@ -1719,7 +1714,6 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
 	
 	if(base) {
 		// check also library later
-		if(G.obpose==base->object) exit_posemode(1);
 		if(G.obedit==base->object) exit_editmode(2);
 		
 		if(base==BASACT) {
