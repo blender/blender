@@ -363,8 +363,11 @@ void CutEdgeloop(int numcuts)
 	if(numcuts == 1){
         if(cuthalf)
             EdgeSlide(1,0.0);
-        else
-            EdgeSlide(0,0.0);       
+        else {
+            if(EdgeSlide(0,0.0) == -1){
+                undo_editmode_step(0);   
+            }   
+        }
     }
 	
     return;

@@ -1193,6 +1193,17 @@ static void flipvertarray(EditVert** arr, short size)
 	}
 }
 
+static int VecEqual(float *a, float *b){
+    if( a[0] == b[0] && 
+       (a[1] == b[1] && 
+        a[2] == b[2])){
+        return 1;
+    }
+    else{
+        return 0;
+    }
+}
+
 static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 { 
     EditVert *v1,*v2,*v3,*v4;
@@ -1202,6 +1213,37 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
     int fac;
     short i, j;
     char *cp0, *cp1, *cp2;
+    
+    //First Check for exact match between co and efa verts
+    if(VecEqual(co,efa->v1->co)){
+        uv[0] = efa->tf.uv[0][0];
+        uv[1] = efa->tf.uv[0][1];
+        col[0]= (char)efa->tf.col[0];
+        col[1]= (char)(*(&efa->tf.col[0]+1)); 
+        col[2]= (char)(*(&efa->tf.col[0]+2)); 
+        col[3]= (char)(*(&efa->tf.col[0]+3));        
+    } else if(VecEqual(co,efa->v2->co)){
+        uv[0] = efa->tf.uv[1][0];
+        uv[1] = efa->tf.uv[1][1];
+        col[0]= (char)efa->tf.col[1];
+        col[1]= (char)(*(&efa->tf.col[1]+1)); 
+        col[2]= (char)(*(&efa->tf.col[1]+2)); 
+        col[3]= (char)(*(&efa->tf.col[1]+3));        
+    } else if(VecEqual(co,efa->v3->co)){
+        uv[0] = efa->tf.uv[2][0];
+        uv[1] = efa->tf.uv[2][1];
+        col[0]= (char)efa->tf.col[2];
+        col[1]= (char)(*(&efa->tf.col[2]+1)); 
+        col[2]= (char)(*(&efa->tf.col[2]+2)); 
+        col[3]= (char)(*(&efa->tf.col[2]+3));        
+    } else if(efa->v4 && VecEqual(co,efa->v4->co)){
+        uv[0] = efa->tf.uv[3][0];
+        uv[1] = efa->tf.uv[3][1];
+        col[0]= (char)efa->tf.col[3];
+        col[1]= (char)(*(&efa->tf.col[3]+1)); 
+        col[2]= (char)(*(&efa->tf.col[3]+2)); 
+        col[3]= (char)(*(&efa->tf.col[3]+3));        
+    }    
     
     /* define best projection of face XY, XZ or YZ */
     xn= fabs(efa->n[0]);
@@ -4171,7 +4213,7 @@ void freeGHash(GHash *g)
 	return;
 }
 
-void EdgeSlide(short immediate, float imperc)
+int EdgeSlide(short immediate, float imperc)
 {
     EditMesh *em = G.editMesh;
     EditFace *efa;
@@ -4182,7 +4224,7 @@ void EdgeSlide(short immediate, float imperc)
     SlideVert *tempsv;
     float perc = 0, percp = 0;
     int i = 0,j;
-    int numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1;
+    int numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
     short event, draw=1;
     short mval[2], mvalo[2];
     char str[128]; 
@@ -4210,7 +4252,7 @@ void EdgeSlide(short immediate, float imperc)
             efa->e1->f1++;
             if(efa->e1->f1 > 2){
                 okee("3+ face edge - Stopping");
-                return;                 
+                return 0;                 
             }
         }
         if(efa->e2->f & SELECT){
@@ -4218,7 +4260,7 @@ void EdgeSlide(short immediate, float imperc)
             efa->e2->f1++;
             if(efa->e2->f1 > 2){
                 okee("3+ face edge - Stopping");
-                return;                 
+                return 0;                 
             }
         }
         if(efa->e3->f & SELECT){
@@ -4226,7 +4268,7 @@ void EdgeSlide(short immediate, float imperc)
             efa->e3->f1++;
             if(efa->e3->f1 > 2){
                 okee("3+ face edge - Stopping");
-                return;                 
+                return 0;                 
             }
         }
         if(efa->e4 && efa->e4->f & SELECT){
@@ -4234,13 +4276,13 @@ void EdgeSlide(short immediate, float imperc)
             efa->e4->f1++;
             if(efa->e4->f1 > 2){
                 okee("3+ face edge - Stopping");
-                return;                 
+                return 0;                 
             }
         }    
         // Make sure loop is not 2 edges of same face    
         if(ct > 1){
            okee("loop crosses itself - Stopping");
-           return;   
+           return 0;   
         }
     }       
     // Get # of selected verts
@@ -4251,7 +4293,7 @@ void EdgeSlide(short immediate, float imperc)
     // Test for multiple segments
     if(vertsel > numsel+1){
         okee("Was not a single edge loop - Stopping");
-        return;           
+        return 0;           
     }  
     
     // Get the edgeloop in order - mark f1 with SELECT once added
@@ -4289,7 +4331,7 @@ void EdgeSlide(short immediate, float imperc)
         if(timesthrough >= numsel*2){
             BLI_linklist_free(edgelist,NULL); 
             okee("could not order loop - Stopping");
-            return;   
+            return 0;   
         }
     }
     
@@ -4414,7 +4456,7 @@ void EdgeSlide(short immediate, float imperc)
             BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
             BLI_linklist_free(vertlist,NULL); 
             BLI_linklist_free(edgelist,NULL); 
-            return;   
+            return 0;   
         }
         BLI_ghash_insert(vertgh,ev,tempsv);
         
@@ -4541,11 +4583,16 @@ void EdgeSlide(short immediate, float imperc)
         		event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
                     
         		/* val==0 on key-release event */
-        		if(val && ((event==ESCKEY || event==PADENTER)|| ( event==LEFTMOUSE || event==RETKEY ))){
-        				draw = 0;
-        		}   
-        		if(val && (event==RIGHTMOUSE || event==ESCKEY || (event==MIDDLEMOUSE) )){
-                        perc = 0;
+        		if(val && (event == ESCKEY || event==RIGHTMOUSE)){
+                        perc = 0; // Set back to begining %
+                        immediate = 1; //Run through eval code 1 more time
+                        cancel = 1;   // Return -1
+                } 
+                if(val && ( event==PADENTER || ( event==LEFTMOUSE || event==RETKEY ))){
+        				draw = 0; // End looping now
+        		} 
+                if(val && event==MIDDLEMOUSE){
+                        perc = 0;  
                         immediate = 1;
                 }           
         	} 
@@ -4558,6 +4605,13 @@ void EdgeSlide(short immediate, float imperc)
     BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
     BLI_linklist_free(vertlist,NULL); 
     BLI_linklist_free(edgelist,NULL); 
+    
+    if(cancel == 1){
+        return -1;   
+    }
+    return 1;   
+    
+    
 }
 
 //----------------------------------------------  OLD SUBDIVIDE -----------------------------------------------------

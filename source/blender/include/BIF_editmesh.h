@@ -173,7 +173,7 @@ extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
 void edge_rotate_selected(int dir);
-void EdgeSlide(short immediate, float imperc);
+int EdgeSlide(short immediate, float imperc);
  
 #endif
 
