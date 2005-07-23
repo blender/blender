@@ -451,25 +451,24 @@ static int contrpuntnormr(float *n, float *puno)
 
 static void calc_vertexnormals(int startvert, int startvlak)
 {
-	VlakRen *vlr;
-	VertRen *ver, *adrve1, *adrve2, *adrve3, *adrve4;
-	float n1[3], n2[3], n3[3], n4[3], *adrco, *tfl, fac, *temp;
 	int a;
 
-	if(R.totvlak==0 || R.totvert==0) return;
-	if(startvert==R.totvert || startvlak==R.totvlak) return;
+		/* clear all vertex normals */
+	for(a=startvert; a<R.totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(a);
+		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
+	}
 
-	adrco= (float *)MEM_callocN(12+4*sizeof(float)*(R.totvlak-startvlak), "normalen1");
-
-	tfl= adrco;
-	/* calculate cos of angles and point-masses */
-	for(a= startvlak; a<R.totvlak; a++) {
-		vlr= RE_findOrAddVlak(a);
+		/* calculate cos of angles and point-masses */
+	for(a=startvlak; a<R.totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(a);
 		if(vlr->flag & ME_SMOOTH) {
-			adrve1= vlr->v1;
-			adrve2= vlr->v2;
-			adrve3= vlr->v3;
-			adrve4= vlr->v4;
+			VertRen *adrve1= vlr->v1;
+			VertRen *adrve2= vlr->v2;
+			VertRen *adrve3= vlr->v3;
+			VertRen *adrve4= vlr->v4;
+			float n1[3], n2[3], n3[3], n4[3];
+			float fac1, fac2, fac3, fac4;
 
 			VecSubf(n1, adrve2->co, adrve1->co);
 			Normalise(n1);
@@ -479,9 +478,9 @@ static void calc_vertexnormals(int startvert, int startvlak)
 				VecSubf(n3, adrve1->co, adrve3->co);
 				Normalise(n3);
 
-				*(tfl++)= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
-				*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-				*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+				fac1= saacos(-n1[0]*n3[0]-n1[1]*n3[1]-n1[2]*n3[2]);
+				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
 			}
 			else {
 				VecSubf(n3, adrve4->co, adrve3->co);
@@ -489,71 +488,43 @@ static void calc_vertexnormals(int startvert, int startvlak)
 				VecSubf(n4, adrve1->co, adrve4->co);
 				Normalise(n4);
 
-				*(tfl++)= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-				*(tfl++)= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-				*(tfl++)= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-				*(tfl++)= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+				fac1= saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
+				fac2= saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
+				fac3= saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
+				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
+
+				if(!(vlr->flag & R_NOPUNOFLIP)) {
+					if( contrpuntnormr(vlr->n, adrve4->n) ) fac1= -fac1;
+				}
+
+				adrve4->n[0] +=fac4*vlr->n[0];
+				adrve4->n[1] +=fac4*vlr->n[1];
+				adrve4->n[2] +=fac4*vlr->n[2];
 			}
+
+			if(!(vlr->flag & R_NOPUNOFLIP)) {
+				if( contrpuntnormr(vlr->n, adrve1->n) ) fac1= -fac1;
+				if( contrpuntnormr(vlr->n, adrve2->n) ) fac2= -fac2;
+				if( contrpuntnormr(vlr->n, adrve3->n) ) fac3= -fac3;
+			}
+
+			adrve1->n[0] +=fac1*vlr->n[0];
+			adrve1->n[1] +=fac1*vlr->n[1];
+			adrve1->n[2] +=fac1*vlr->n[2];
+
+			adrve2->n[0] +=fac2*vlr->n[0];
+			adrve2->n[1] +=fac2*vlr->n[1];
+			adrve2->n[2] +=fac2*vlr->n[2];
+
+			adrve3->n[0] +=fac3*vlr->n[0];
+			adrve3->n[1] +=fac3*vlr->n[1];
+			adrve3->n[2] +=fac3*vlr->n[2];
 		}
 	}
 
-	/* clear all vertex normals */
-	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-
-		ver->n[0]=ver->n[1]=ver->n[2]= 0.0;
-	}
-
-	/* calculate normals and add it to the vertex normals (dutch: punt normaal) */
-	tfl= adrco;
+		/* do solid faces */
 	for(a=startvlak; a<R.totvlak; a++) {
-		vlr= RE_findOrAddVlak(a);
-		
-		if(vlr->flag & ME_SMOOTH) {
-
-			adrve1= vlr->v1;
-			adrve2= vlr->v2;
-			adrve3= vlr->v3;
-			adrve4= vlr->v4;
-
-			temp= adrve1->n;
-			fac= *(tfl++);
-			if( vlr->flag & R_NOPUNOFLIP);
-			else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-			*(temp++) +=fac*vlr->n[0];
-			*(temp++) +=fac*vlr->n[1];
-			*(temp)   +=fac*vlr->n[2];
-
-			temp= adrve2->n;
-			fac= *(tfl++);
-			if( vlr->flag & R_NOPUNOFLIP);
-			else  if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-			*(temp++) +=fac*vlr->n[0];
-			*(temp++) +=fac*vlr->n[1];
-			*(temp)   +=fac*vlr->n[2];
-
-			temp= adrve3->n;
-			fac= *(tfl++);
-			if( vlr->flag & R_NOPUNOFLIP);
-			else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-			*(temp++) +=fac*vlr->n[0];
-			*(temp++) +=fac*vlr->n[1];
-			*(temp)   +=fac*vlr->n[2];
-
-			if(adrve4) {
-				temp= adrve4->n;
-				fac= *(tfl++);
-				if( vlr->flag & R_NOPUNOFLIP);
-				else if( contrpuntnormr(vlr->n, temp) ) fac= -fac ;
-				*(temp++) +=fac*vlr->n[0];
-				*(temp++) +=fac*vlr->n[1];
-				*(temp)   +=fac*vlr->n[2];
-			}
-		}
-	}
-	/* do solid faces */
-	for(a=startvlak; a<R.totvlak; a++) {
-		vlr= RE_findOrAddVlak(a);
+		VlakRen *vlr= RE_findOrAddVlak(a);
 		if((vlr->flag & ME_SMOOTH)==0) {
 			float *f1= vlr->v1->n;
 			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
@@ -568,39 +539,30 @@ static void calc_vertexnormals(int startvert, int startvlak)
 		}
 	}
 	
-	/* normalise vertex normals */
+		/* normalise vertex normals */
 	for(a=startvert; a<R.totvert; a++) {
-		ver= RE_findOrAddVert(a);
-
+		VertRen *ver= RE_findOrAddVert(a);
 		Normalise(ver->n);
 	}
 
-	/* vertex normal (puno) switch flags for during render */
+		/* vertex normal (puno) switch flags for during render */
 	for(a=startvlak; a<R.totvlak; a++) {
-		vlr= RE_findOrAddVlak(a);
+		VlakRen *vlr= RE_findOrAddVlak(a);
 
 		if((vlr->flag & R_NOPUNOFLIP)==0) {
-			adrve1= vlr->v1;
-			adrve2= vlr->v2;
-			adrve3= vlr->v3;
-			adrve4= vlr->v4;
-	
+			VertRen *adrve1= vlr->v1;
+			VertRen *adrve2= vlr->v2;
+			VertRen *adrve3= vlr->v3;
+			VertRen *adrve4= vlr->v4;
 			vlr->puno &= ~15;
-			fac= vlr->n[0]*adrve1->n[0]+vlr->n[1]*adrve1->n[1]+vlr->n[2]*adrve1->n[2];
-			if(fac<0.0) vlr->puno= 1;
-			fac= vlr->n[0]*adrve2->n[0]+vlr->n[1]*adrve2->n[1]+vlr->n[2]*adrve2->n[2];
-			if(fac<0.0) vlr->puno+= 2;
-			fac= vlr->n[0]*adrve3->n[0]+vlr->n[1]*adrve3->n[1]+vlr->n[2]*adrve3->n[2];
-			if(fac<0.0) vlr->puno+= 4;
-	
+			if ((vlr->n[0]*adrve1->n[0]+vlr->n[1]*adrve1->n[1]+vlr->n[2]*adrve1->n[2])<0.0) vlr->puno= 1;
+			if ((vlr->n[0]*adrve2->n[0]+vlr->n[1]*adrve2->n[1]+vlr->n[2]*adrve2->n[2])<0.0) vlr->puno+= 2;
+			if ((vlr->n[0]*adrve3->n[0]+vlr->n[1]*adrve3->n[1]+vlr->n[2]*adrve3->n[2])<0.0) vlr->puno+= 4;
 			if(adrve4) {
-				fac= vlr->n[0]*adrve4->n[0]+vlr->n[1]*adrve4->n[1]+vlr->n[2]*adrve4->n[2];
-				if(fac<0.0) vlr->puno+= 8;
+				if((vlr->n[0]*adrve4->n[0]+vlr->n[1]*adrve4->n[1]+vlr->n[2]*adrve4->n[2])<0.0) vlr->puno+= 8;
 			}
 		}
 	}
-
-	MEM_freeN(adrco);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1370,19 +1332,10 @@ static void init_render_mesh(Object *ob)
 	else {
 
 		for(a=0; a<totvert; a++, mvert++) {
-
 			ver= RE_findOrAddVert(R.totvert++);
 			VECCOPY(ver->co, mvert->co);
 			MTC_Mat4MulVecfl(mat, ver->co);
 
-			xn= mvert->no[0];
-			yn= mvert->no[1];
-			zn= mvert->no[2];
-			/* transpose ! */
-			ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-			ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-			ver->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-			Normalise(ver->n);
 			if(orco) {
 				ver->orco= orco;
 				orco+=3;
@@ -1575,9 +1528,10 @@ static void init_render_mesh(Object *ob)
 
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
-		calc_vertexnormals(totverto, totvlako);
 	}
-	
+
+	calc_vertexnormals(totverto, totvlako);
+
 	if(dlm) displistmesh_free(dlm);
 	dm->release(dm);
 }
