@@ -727,7 +727,6 @@ ConvertCSGDescriptorsToMeshObject(
 		mface->v4 = 0;
 
 		mface->edcode = ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
-		mface->puno = 0;
 		mface->mat_nr = 0;
 		mface->flag = fdata->faceflag;
 		
@@ -781,7 +780,7 @@ ConvertCSGDescriptorsToMeshObject(
 
 	me->totface = face_it->num_elements;
 
-	mesh_calculate_vertex_normals(me);
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 		
 	// thats it!
 	if (user_face_vertex_data) {

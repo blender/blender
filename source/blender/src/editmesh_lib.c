@@ -1312,8 +1312,8 @@ void vertexnormals(int testflip)
 	Mesh *me;
 	EditVert *eve;
 	EditFace *efa;	
-	float n1[3], n2[3], n3[3], n4[3], co[4], fac1, fac2, fac3, fac4, *temp;
-	float *f1, *f2, *f3, *f4, xn, yn, zn;
+	float n1[3], n2[3], n3[3], n4[3], co[4], *temp;
+	float xn, yn, zn;
 	float len, area;
 	
 	if(G.obedit && G.obedit->type==OB_MESH) {
@@ -1440,41 +1440,10 @@ void vertexnormals(int testflip)
 	/* vertex normal flip-flags for shade (render) */
 	efa= em->faces.first;
 	while(efa) {
-		efa->puno=0;			
-
-		if(testflip) {
-			f1= efa->v1->no;
-			f2= efa->v2->no;
-			f3= efa->v3->no;
-			
-			fac1= efa->n[0]*f1[0] + efa->n[1]*f1[1] + efa->n[2]*f1[2];
-			if(fac1<0.0) {
-				efa->puno = ME_FLIPV1;
-			}
-			fac2= efa->n[0]*f2[0] + efa->n[1]*f2[1] + efa->n[2]*f2[2];
-			if(fac2<0.0) {
-				efa->puno += ME_FLIPV2;
-			}
-			fac3= efa->n[0]*f3[0] + efa->n[1]*f3[1] + efa->n[2]*f3[2];
-			if(fac3<0.0) {
-				efa->puno += ME_FLIPV3;
-			}
-			if(efa->v4) {
-				f4= efa->v4->no;
-				fac4= efa->n[0]*f4[0] + efa->n[1]*f4[1] + efa->n[2]*f4[2];
-				if(fac4<0.0) {
-					efa->puno += ME_FLIPV4;
-				}
-			}
-		}
 		/* projection for cubemap! */
 		xn= fabs(efa->n[0]);
 		yn= fabs(efa->n[1]);
 		zn= fabs(efa->n[2]);
-		
-		if(zn>xn && zn>yn) efa->puno += ME_PROJXY;
-		else if(yn>xn && yn>zn) efa->puno += ME_PROJXZ;
-		else efa->puno += ME_PROJYZ;
 		
 		efa= efa->next;
 	}

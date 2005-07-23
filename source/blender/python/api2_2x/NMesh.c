@@ -2337,7 +2337,6 @@ static void mface_from_data( MFace * mf, TFace * tf, MCol * col,
 		test_index_mface( mf, i );
 	}
 
-	mf->puno = 0;
 	mf->mat_nr = from->mat_nr;
 	mf->edcode = 0;
 	mf->flag = from->mf_flag;

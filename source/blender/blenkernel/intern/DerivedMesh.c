@@ -239,14 +239,10 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	int a;
 	int glmode=-1, shademodel=-1, matnr=-1, drawCurrentMat=1;
 
-#define PASSVERT(index, punoBit) {				\
+#define PASSVERT(index) {						\
 	if (shademodel==GL_SMOOTH) {				\
 		short *no = mvert[index].no;			\
-		if (mface->puno&punoBit) {				\
-			glNormal3s(-no[0], -no[1], -no[2]); \
-		} else {								\
-			glNormal3sv(no);					\
-		}										\
+		glNormal3sv(no);						\
 	}											\
 	glVertex3fv(mvert[index].co);	\
 }
@@ -273,11 +269,11 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 				if(shademodel==GL_FLAT) 
 					glNormal3fv(nors);
 
-				PASSVERT(mface->v1, ME_FLIPV1);
-				PASSVERT(mface->v2, ME_FLIPV2);
-				PASSVERT(mface->v3, ME_FLIPV3);
+				PASSVERT(mface->v1);
+				PASSVERT(mface->v2);
+				PASSVERT(mface->v3);
 				if (mface->v4) {
-					PASSVERT(mface->v4, ME_FLIPV4);
+					PASSVERT(mface->v4);
 				}
 			}
 		}

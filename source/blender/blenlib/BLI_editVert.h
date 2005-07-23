@@ -85,7 +85,7 @@ typedef struct EditFace
 	short xs, ys;		/* selection */
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
-	unsigned char f, f1, h, puno;
+	unsigned char f, f1, h;
 	unsigned char fast;			/* only 0 or 1, for editmesh_fastmalloc */
 	unsigned char fgonf;		/* flag for fgon options */
 } EditFace;

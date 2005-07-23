@@ -561,8 +561,8 @@ void vertexnormals_mesh(Mesh *me)
 {
 	MVert *mvert;
 	MFace *mface;
-	float n1[3], n2[3], n3[3], n4[3], co[4], fac1, fac2, fac3, fac4, *temp;
-	float *f1, *f2, *f3, *f4, xn, yn, zn, *normals;
+	float n1[3], n2[3], n3[3], n4[3], co[4], *temp;
+	float xn, yn, zn, *normals;
 	float *v1, *v2, *v3, *v4, len, vnor[3];
 	int a, testflip;
 
@@ -671,8 +671,6 @@ void vertexnormals_mesh(Mesh *me)
 	mface= me->mface;
 	mvert= me->mvert;
 	for(a=0; a<me->totface; a++, mface++) {
-		mface->puno=0;			
-		
 		if(mface->v3==0) continue;
 		
 		v1= (mvert+mface->v1)->co;
@@ -681,40 +679,10 @@ void vertexnormals_mesh(Mesh *me)
 
 		CalcNormFloat(v1, v2, v3, vnor);
 
-		if(testflip) {
-			f1= normals + 3*mface->v1;
-			f2= normals + 3*mface->v2;
-			f3= normals + 3*mface->v3;
-
-			fac1= vnor[0]*f1[0] + vnor[1]*f1[1] + vnor[2]*f1[2];
-			if(fac1<0.0) {
-				mface->puno = ME_FLIPV1;
-			}
-			fac2= vnor[0]*f2[0] + vnor[1]*f2[1] + vnor[2]*f2[2];
-			if(fac2<0.0) {
-				mface->puno += ME_FLIPV2;
-			}
-			fac3= vnor[0]*f3[0] + vnor[1]*f3[1] + vnor[2]*f3[2];
-			if(fac3<0.0) {
-				mface->puno += ME_FLIPV3;
-			}
-			if(mface->v4) {
-				f4= normals + 3*mface->v4;
-				fac4= vnor[0]*f4[0] + vnor[1]*f4[1] + vnor[2]*f4[2];
-				if(fac4<0.0) {
-					mface->puno += ME_FLIPV4;
-				}
-			}
-		}
 		/* proj for cubemap! */
 		xn= fabs(vnor[0]);
 		yn= fabs(vnor[1]);
 		zn= fabs(vnor[2]);
-		
-		if(zn>xn && zn>yn) mface->puno += ME_PROJXY;
-		else if(yn>xn && yn>zn) mface->puno += ME_PROJXZ;
-		else mface->puno += ME_PROJYZ;
-		
 	}
 	
 	MEM_freeN(normals);

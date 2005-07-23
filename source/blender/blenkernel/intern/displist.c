@@ -168,7 +168,6 @@ void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me)
 			mf->v4= oldmf->v4;
 			mf->flag= oldmf->flag;
 			mf->mat_nr= oldmf->mat_nr;
-			mf->puno= 0;
 			mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 		}
 	}

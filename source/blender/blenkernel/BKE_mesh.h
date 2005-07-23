@@ -82,12 +82,6 @@ void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_
 
 void make_edges(struct Mesh *me);
 
-	/** Generate the mesh vertex normals by averaging over connected faces.
-	 *
-	 * @param me The mesh to update.
-	 */
-void mesh_calculate_vertex_normals	(struct Mesh *me);
-
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.
 	 */

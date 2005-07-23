@@ -857,13 +857,6 @@ static void fix_faceindices(MFace *mface, EditFace *efa, int nr)
 			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
 			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
 			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
-			
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV2;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
-
 		}
 	}
 	else if(nr==4) {
@@ -891,14 +884,6 @@ static void fix_faceindices(MFace *mface, EditFace *efa, int nr)
 			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
 			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
 			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
-
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV4;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
-			if(a & ME_FLIPV4) mface->puno |= ME_FLIPV2;
-
 		}
 	}
 }
@@ -1051,7 +1036,6 @@ void load_editMesh(void)
 		if(efa->v4) mface->v4= (unsigned int) efa->v4->vn;
 			
 		mface->mat_nr= efa->mat_nr;
-		mface->puno= efa->puno;
 		
 		mface->flag= efa->flag;
 		/* bit 0 of flag is already taken for smooth... */
@@ -1613,7 +1597,7 @@ typedef struct EditEdgeC
 typedef struct EditFaceC
 {
 	int v1, v2, v3, v4;
-	unsigned char mat_nr, flag, f, h, puno, fgonf;
+	unsigned char mat_nr, flag, f, h, fgonf;
 	short pad1;
 } EditFaceC;
 
@@ -1713,7 +1697,6 @@ static void *editMesh_to_undoMesh(void)
 		efac->flag= efa->flag;
 		efac->f= efa->f;
 		efac->h= efa->h;
-		efac->puno= efa->puno;
 		efac->fgonf= efa->fgonf;
 		
 		if(tface) {
@@ -1782,7 +1765,6 @@ static void undoMesh_to_editMesh(void *umv)
 		efa->flag= efac->flag;
 		efa->f= efac->f;
 		efa->h= efac->h;
-		efa->puno= efac->puno;
 		efa->fgonf= efac->fgonf;
 		
 		if(tface) {

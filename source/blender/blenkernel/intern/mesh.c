@@ -543,12 +543,6 @@ void test_index_mface(MFace *mface, int nr)
 			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
 			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
 			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
-			
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV2;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
 		}
 	}
 	else if(nr==4) {
@@ -561,13 +555,6 @@ void test_index_mface(MFace *mface, int nr)
 			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
 			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
 			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
-
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV4;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
-			if(a & ME_FLIPV4) mface->puno |= ME_FLIPV2;
 		}
 	}
 }
@@ -631,12 +618,6 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
 			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
 			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
-			
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV2;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
 		}
 	}
 	else if(nr==4) {
@@ -664,13 +645,6 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
 			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
 			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
-
-			a= mface->puno;
-			mface->puno &= ~15;
-			if(a & ME_FLIPV1) mface->puno |= ME_FLIPV3;
-			if(a & ME_FLIPV2) mface->puno |= ME_FLIPV4;
-			if(a & ME_FLIPV3) mface->puno |= ME_FLIPV1;
-			if(a & ME_FLIPV4) mface->puno |= ME_FLIPV2;
 		}
 	}
 }
@@ -679,7 +653,7 @@ void flipnorm_mesh(Mesh *me)
 {
 	MFace *mface;
 	MVert *mvert;
-	int a, temp;
+	int a;
 	
 	mvert= me->mvert;
 	a= me->totvert;
@@ -698,21 +672,10 @@ void flipnorm_mesh(Mesh *me)
 				SWAP(int, mface->v4, mface->v1);
 				SWAP(int, mface->v3, mface->v2);
 				test_index_mface(mface, 4);
-				temp= mface->puno;
-				mface->puno &= ~15;
-				if(temp & ME_FLIPV1) mface->puno |= ME_FLIPV4;
-				if(temp & ME_FLIPV2) mface->puno |= ME_FLIPV3;
-				if(temp & ME_FLIPV3) mface->puno |= ME_FLIPV2;
-				if(temp & ME_FLIPV4) mface->puno |= ME_FLIPV1;
 			}
 			else {
 				SWAP(int, mface->v3, mface->v1);
 				test_index_mface(mface, 3);
-				temp= mface->puno;
-				mface->puno &= ~15;
-				if(temp & ME_FLIPV1) mface->puno |= ME_FLIPV3;
-				if(temp & ME_FLIPV2) mface->puno |= ME_FLIPV2;
-				if(temp & ME_FLIPV3) mface->puno |= ME_FLIPV1;
 			}
 		}
 		mface++;
@@ -894,7 +857,6 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v3= index[2];
 			mface->v4= index[3];
 
-			mface->puno= 0;
 			mface->edcode= ME_V1V2+ME_V2V3;
 			mface->flag = ME_SMOOTH;
 			
@@ -1041,7 +1003,6 @@ void nurbs_to_mesh(Object *ob)
 				mface->v3= startvert+index[2];
 				mface->v4= 0;
 	
-				mface->puno= 7;
 				mface->edcode= ME_V1V2+ME_V2V3;
 				test_index_mface(mface, 3);
 				
@@ -1175,43 +1136,6 @@ void mcol_to_tface(Mesh *me, int freedata)
 		MEM_freeN(me->mcol);
 		me->mcol= 0;
 	}
-}
-
-void mesh_calculate_vertex_normals(Mesh *me)
-{
-	float (*tempNorms)[3]= MEM_callocN(me->totvert*sizeof(*tempNorms), "tempNorms");
-	int i;
-
-	for (i=0; i<me->totface; i++) {
-		MFace *mf= &((MFace*) me->mface)[i];
-		float f_no[3];
-
-		if (!mf->v3)
-			continue;
-			
-		if (mf->v4) {
-			CalcNormFloat4(me->mvert[mf->v1].co, me->mvert[mf->v2].co, me->mvert[mf->v3].co, me->mvert[mf->v4].co, f_no);
-		} else {
-			CalcNormFloat(me->mvert[mf->v1].co, me->mvert[mf->v2].co, me->mvert[mf->v3].co, f_no);
-		}
-		
-		VecAddf(tempNorms[mf->v1], tempNorms[mf->v1], f_no);
-		VecAddf(tempNorms[mf->v2], tempNorms[mf->v2], f_no);
-		VecAddf(tempNorms[mf->v3], tempNorms[mf->v3], f_no);
-		if (mf->v4)
-			VecAddf(tempNorms[mf->v4], tempNorms[mf->v4], f_no);
-	}
-	for (i=0; i<me->totvert; i++) {
-		MVert *mv= &me->mvert[i];
-		float *no= tempNorms[i];
-		
-		Normalise(no);
-		mv->no[0]= (short)(no[0]*32767.0);
-		mv->no[1]= (short)(no[1]*32767.0);
-		mv->no[2]= (short)(no[2]*32767.0);
-	}
-	
-	MEM_freeN(tempNorms);
 }
 
 void mesh_delete_material_index(Mesh *me, int index) {

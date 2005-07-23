@@ -2224,19 +2224,20 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,		  REDRAWVIEW3D, "NSize:",	955, 131, 150, 19, &G.scene->editbutsize, 0.001, 2.0, 10, 0, "Sets the length to use when displaying face normals");
-	uiDefButI(block, TOG|BIT|6, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
-	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
-	uiDefButI(block, TOG|BIT|18, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
-	uiDefButI(block, TOG|BIT|19, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
-	uiDefButI(block, TOG|BIT|20, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
-	uiDefButI(block, TOG|BIT|11, 0, "All Edges",			955, 0,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
+	uiDefButBitI(block, TOG, G_DRAWNORMALS, REDRAWVIEW3D, "Draw Normals",	955,110,150,19, &G.f, 0, 0, 0, 0, "Displays face normals as lines");
+	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
+	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
+	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
+	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			955, 0,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiBlockEndAlign(block);
 	
 	/* Measurement drawing options */
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|22, REDRAWVIEW3D, "Edge Length",	1125,131,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
-	uiDefButI(block, TOG|BIT|24, REDRAWVIEW3D, "Edge Angles",	1125,110,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
-	uiDefButI(block, TOG|BIT|23, REDRAWVIEW3D, "Face Area",		1125,88,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
+	uiDefButBitI(block, TOG, G_DRAW_VNORMALS, REDRAWVIEW3D, "Draw VNormals",1125,110,150,19, &G.f, 0, 0, 0, 0, "Displays vertex normals as lines");
+	uiDefButBitI(block, TOG, G_DRAW_EDGELEN, REDRAWVIEW3D, "Edge Length",	1125,88,150,19, &G.f, 0, 0, 0, 0, "Displays selected edge lengths");
+	uiDefButBitI(block, TOG, G_DRAW_EDGEANG, REDRAWVIEW3D, "Edge Angles",	1125,66,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
+	uiDefButBitI(block, TOG, G_DRAW_FACEAREA, REDRAWVIEW3D, "Face Area",	1125,44,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 	uiBlockEndAlign(block);
 
 }
