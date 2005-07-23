@@ -88,7 +88,6 @@ extern int EM_nvertices_selected(void);
 extern int faceselectedAND(struct EditFace *efa, int flag);
 extern void recalc_editnormals(void);
 extern void flip_editnormals(void);
-extern void vertexnormals(int testflip);
 
 /* ******************* editmesh_mods.c */
 

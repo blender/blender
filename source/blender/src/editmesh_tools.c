@@ -587,7 +587,7 @@ void extrude_mesh(void)
 		/* individual faces? */
 		BIF_TransformSetUndo("Extrude");
 		if(nr==2) {
-			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_NOR_RECALC);
+			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET);
 			Transform();
 		}
 		else {
@@ -2188,9 +2188,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			BLI_ghash_insert(gh, eed, templist);               
 		}                                  
 	}
-	vertexnormals(0);
-	
-	
 
 	
 	// Now for each face in the mesh we need to figure out How many edges were cut
@@ -5117,12 +5114,6 @@ void subdivideflag(int flag, float rad, int beauty)
 		}
 	}
 
-	if(beauty & B_SMOOTH) {
-		
-		vertexnormals(0);		/* no1*/
-			
-	}
-	
 	/* make new normal and put in edge, clear flag! needed for face creation part below */
 	eed= em->edges.first;
 	while(eed) {

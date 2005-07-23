@@ -915,9 +915,6 @@ void load_editMesh(void)
 	/* eve->f2 : being used in vertexnormals */
 	edge_drawflags();
 	
-	/* this sets efa->puno, punoflag (for vertex normal & projection) */
-	vertexnormals( (me->flag & ME_NOPUNOFLIP)==0 );
-		
 	eed= em->edges.first;
 	while(eed) {
 		totedge++;
@@ -1235,6 +1232,9 @@ void load_editMesh(void)
 			error("Sticky was too small");
 		}
 	}
+
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+
 	waitcursor(0);
 }
 

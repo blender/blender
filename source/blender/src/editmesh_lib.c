@@ -1306,149 +1306,6 @@ static int check_vnormal_flip(float *n, float *vnorm)
 }
 
 
-void vertexnormals(int testflip)
-{
-	EditMesh *em = G.editMesh;
-	Mesh *me;
-	EditVert *eve;
-	EditFace *efa;	
-	float n1[3], n2[3], n3[3], n4[3], co[4], *temp;
-	float xn, yn, zn;
-	float len, area;
-	
-	if(G.obedit && G.obedit->type==OB_MESH) {
-		me= G.obedit->data;
-		if((me->flag & ME_TWOSIDED)==0) testflip= 0;
-	}
-
-	if(G.totvert==0) return;
-
-	if(G.totface==0) {
-		/* fake vertex normals for 'halo puno'! */
-		eve= em->verts.first;
-		while(eve) {
-			VECCOPY(eve->no, eve->co);
-			Normalise( (float *)eve->no);
-			eve= eve->next;
-		}
-		return;
-	}
-
-	/* clear normals, clear flag */	
-	eve= em->verts.first;
-	while(eve) {
-		eve->no[0]= eve->no[1]= eve->no[2]= 0.0;
-		eve->f2= 0;
-		eve= eve->next;
-	}
-	
-	/* check for vertices being shared by both solid and smooth face, 
-	   these get vertexnormal of smooth face normal only */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->flag & ME_SMOOTH) {
-			efa->v1->f2 |= 1; efa->v2->f2 |= 1; efa->v3->f2 |= 1;
-			if(efa->v4) efa->v4->f2 |= 1;
-		}
-		else {
-			efa->v1->f2 |= 2; efa->v2->f2 |= 2; efa->v3->f2 |= 2;
-			if(efa->v4) efa->v4->f2 |= 2;
-		}
-	}
-	
-	/* calculate cosine angles and add to vertex normal */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		VecSubf(n1, efa->v2->co, efa->v1->co);
-		VecSubf(n2, efa->v3->co, efa->v2->co);
-		Normalise(n1);
-		Normalise(n2);
-
-		if(efa->v4==0) {
-			VecSubf(n3, efa->v1->co, efa->v3->co);
-			Normalise(n3);
-			
-			//area= AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
-			//if(area!=0.0) area=1.0/area; 
-			//area= sqrt(area);
-			area= 1.0;
-			
-			co[0]= area*saacos(-n3[0]*n1[0]-n3[1]*n1[1]-n3[2]*n1[2]);
-			co[1]= area*saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= area*saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			
-		}
-		else {
-			VecSubf(n3, efa->v4->co, efa->v3->co);
-			VecSubf(n4, efa->v1->co, efa->v4->co);
-			Normalise(n3);
-			Normalise(n4);
-			
-			//area= AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-			//if(area!=0.0) area=1.0/area; 
-			//area= sqrt(area);
-			area= 1.0;
-			
-			co[0]= area*saacos(-n4[0]*n1[0]-n4[1]*n1[1]-n4[2]*n1[2]);
-			co[1]= area*saacos(-n1[0]*n2[0]-n1[1]*n2[1]-n1[2]*n2[2]);
-			co[2]= area*saacos(-n2[0]*n3[0]-n2[1]*n3[1]-n2[2]*n3[2]);
-			co[3]= area*saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
-		}
-		
-		if(efa->v1->f2!=3 || (efa->flag & ME_SMOOTH)) {
-			temp= efa->v1->no;
-			if(testflip && check_vnormal_flip(efa->n, temp) ) co[0]= -co[0];
-			temp[0]+= co[0]*efa->n[0];
-			temp[1]+= co[0]*efa->n[1];
-			temp[2]+= co[0]*efa->n[2];
-		}
-		
-		if(efa->v2->f2!=3 || (efa->flag & ME_SMOOTH)) {
-			temp= efa->v2->no;
-			if(testflip && check_vnormal_flip(efa->n, temp) ) co[1]= -co[1];
-			temp[0]+= co[1]*efa->n[0];
-			temp[1]+= co[1]*efa->n[1];
-			temp[2]+= co[1]*efa->n[2];
-		}
-		
-		if(efa->v3->f2!=3 || (efa->flag & ME_SMOOTH)) {
-			temp= efa->v3->no;
-			if(testflip && check_vnormal_flip(efa->n, temp) ) co[2]= -co[2];
-			temp[0]+= co[2]*efa->n[0];
-			temp[1]+= co[2]*efa->n[1];
-			temp[2]+= co[2]*efa->n[2];
-		}
-		
-		if(efa->v4 && (efa->v4->f2!=3 || (efa->flag & ME_SMOOTH))) {
-			temp= efa->v4->no;
-			if(testflip && check_vnormal_flip(efa->n, temp) ) co[3]= -co[3];
-			temp[0]+= co[3]*efa->n[0];
-			temp[1]+= co[3]*efa->n[1];
-			temp[2]+= co[3]*efa->n[2];
-		}
-	}
-	
-	/* normalise vertex normals */
-	eve= em->verts.first;
-	while(eve) {
-		len= Normalise(eve->no);
-		if(len==0.0) {
-			VECCOPY(eve->no, eve->co);
-			Normalise( eve->no);
-		}
-		eve= eve->next;
-	}
-	
-	/* vertex normal flip-flags for shade (render) */
-	efa= em->faces.first;
-	while(efa) {
-		/* projection for cubemap! */
-		xn= fabs(efa->n[0]);
-		yn= fabs(efa->n[1]);
-		zn= fabs(efa->n[2]);
-		
-		efa= efa->next;
-	}
-}
-
 void flipface(EditFace *efa)
 {
 	if(efa->v4) {
@@ -1491,18 +1348,29 @@ void recalc_editnormals(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
+	EditVert *eve;
 
-	efa= em->faces.first;
-	while(efa) {
+	for(eve= em->verts.first; eve; eve=eve->next) {
+		eve->no[0] = eve->no[1] = eve->no[2] = 0.0;
+	}
+
+	for(efa= em->faces.first; efa; efa=efa->next) {
 		if(efa->v4) {
 			CalcNormFloat4(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co, efa->n);
 			CalcCent4f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
+			VecAddf(efa->v4->no, efa->v4->no, efa->n);
 		}
 		else {
 			CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
 			CalcCent3f(efa->cent, efa->v1->co, efa->v2->co, efa->v3->co);
 		}
-		efa= efa->next;
+		VecAddf(efa->v1->no, efa->v1->no, efa->n);
+		VecAddf(efa->v2->no, efa->v2->no, efa->n);
+		VecAddf(efa->v3->no, efa->v3->no, efa->n);
+	}
+
+	for(eve= em->verts.first; eve; eve=eve->next) {
+		Normalise(eve->no);
 	}
 }
 

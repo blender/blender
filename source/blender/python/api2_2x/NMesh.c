@@ -47,7 +47,6 @@
 
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
-#include "BIF_meshtools.h"   /* current loc of vertexnormals_mesh() */
 #include "BIF_editview.h"
 
 #include "BKE_deform.h"
@@ -1325,7 +1324,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 	}
 
 	if( recalc_normals )
-		vertexnormals_mesh( mesh );
+		mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
 
 	mesh_update( mesh, nmesh->object );
 
@@ -2875,7 +2874,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	if (mesh->dvert) check_dverts(mesh, old_totvert);
 
 	if( recalc_normals )
-		vertexnormals_mesh( mesh );
+		mesh_calc_normals(mesh->mvert, mesh->totvert, mesh->mface, mesh->totface, NULL);
 
 	mesh_update( mesh, nmesh->object );
 
