@@ -39,11 +39,15 @@
 #include "matrix.h"
 #include "quat.h"
 #include "euler.h"
+#include "point.h"
 #include "Types.h"
 
 PyObject *Mathutils_Init( void );
 PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat);
 PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec);
+PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat);
+PyObject *column_point_multiplication(MatrixObject * mat, PointObject* pt);
+PyObject *quat_rotation(PyObject *arg1, PyObject *arg2);
 
 PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Vector(PyObject * self, PyObject * args);

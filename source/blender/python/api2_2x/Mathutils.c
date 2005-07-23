@@ -143,6 +143,35 @@ PyObject *column_vector_multiplication(MatrixObject * mat, VectorObject* vec)
 	}
 	return (PyObject *) newVectorObject(vecNew, vec->size, Py_NEW);
 }
+//This is a helper for point/matrix translation 
+PyObject *column_point_multiplication(MatrixObject * mat, PointObject* pt)
+{
+	float ptNew[4], ptCopy[4];
+	double dot = 0.0f;
+	int x, y, z = 0;
+
+	if(mat->rowSize != pt->size){
+		if(mat->rowSize == 4 && pt->size != 3){
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"matrix * point: matrix row size and point size must be the same\n");
+		}else{
+			ptCopy[3] = 0.0f;
+		}
+	}
+
+	for(x = 0; x < pt->size; x++){
+		ptCopy[x] = pt->coord[x];
+		}
+
+	for(x = 0; x < mat->rowSize; x++) {
+		for(y = 0; y < mat->colSize; y++) {
+			dot += mat->matrix[x][y] * ptCopy[y];
+		}
+		ptNew[z++] = (float)dot;
+		dot = 0.0f;
+	}
+	return (PyObject *) newPointObject(ptNew, pt->size, Py_NEW);
+}
 //-----------------row_vector_multiplication (internal)-----------
 //ROW VECTOR Multiplication - Vector X Matrix
 //[x][y][z] *  [1][2][3]
@@ -178,6 +207,122 @@ PyObject *row_vector_multiplication(VectorObject* vec, MatrixObject * mat)
 	}
 	return (PyObject *) newVectorObject(vecNew, size, Py_NEW);
 }
+//This is a helper for the point class
+PyObject *row_point_multiplication(PointObject* pt, MatrixObject * mat)
+{
+	float ptNew[4], ptCopy[4];
+	double dot = 0.0f;
+	int x, y, z = 0, size;
+
+	if(mat->colSize != pt->size){
+		if(mat->rowSize == 4 && pt->size != 3){
+			return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+				"point * matrix: matrix column size and the point size must be the same\n");
+		}else{
+			ptCopy[3] = 0.0f;
+		}
+	}
+	size = pt->size;
+	for(x = 0; x < pt->size; x++){
+		ptCopy[x] = pt->coord[x];
+	}
+
+	//muliplication
+	for(x = 0; x < mat->colSize; x++) {
+		for(y = 0; y < mat->rowSize; y++) {
+			dot += mat->matrix[y][x] * ptCopy[y];
+		}
+		ptNew[z++] = (float)dot;
+		dot = 0.0f;
+	}
+	return (PyObject *) newPointObject(ptNew, size, Py_NEW);
+}
+//-----------------quat_rotation (internal)-----------
+//This function multiplies a vector/point * quat or vice versa
+//to rotate the point/vector by the quaternion
+//arguments should all be 3D
+PyObject *quat_rotation(PyObject *arg1, PyObject *arg2)
+{
+	float rot[3];
+	QuaternionObject *quat = NULL;
+	VectorObject *vec = NULL;
+	PointObject *pt = NULL;
+
+	if(QuaternionObject_Check(arg1)){
+		quat = (QuaternionObject*)arg1;
+		if(VectorObject_Check(arg2)){
+			vec = (VectorObject*)arg2;
+			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
+				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
+				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
+				quat->quat[3]*quat->quat[3]*vec->vec[0] - quat->quat[2]*quat->quat[2]*vec->vec[0];
+			rot[1] = 2*quat->quat[1]*quat->quat[2]*vec->vec[0] + quat->quat[2]*quat->quat[2]*vec->vec[1] + 
+				2*quat->quat[3]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[3]*vec->vec[0] - 
+				quat->quat[3]*quat->quat[3]*vec->vec[1] + quat->quat[0]*quat->quat[0]*vec->vec[1] - 
+				2*quat->quat[1]*quat->quat[0]*vec->vec[2] - quat->quat[1]*quat->quat[1]*vec->vec[1];
+			rot[2] = 2*quat->quat[1]*quat->quat[3]*vec->vec[0] + 2*quat->quat[2]*quat->quat[3]*vec->vec[1] + 
+				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
+				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
+				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
+			return (PyObject *) newVectorObject(rot, 3, Py_NEW);
+		}else if(PointObject_Check(arg2)){
+			pt = (PointObject*)arg2;
+			rot[0] = quat->quat[0]*quat->quat[0]*pt->coord[0] + 2*quat->quat[2]*quat->quat[0]*pt->coord[2] - 
+				2*quat->quat[3]*quat->quat[0]*pt->coord[1] + quat->quat[1]*quat->quat[1]*pt->coord[0] + 
+				2*quat->quat[2]*quat->quat[1]*pt->coord[1] + 2*quat->quat[3]*quat->quat[1]*pt->coord[2] - 
+				quat->quat[3]*quat->quat[3]*pt->coord[0] - quat->quat[2]*quat->quat[2]*pt->coord[0];
+			rot[1] = 2*quat->quat[1]*quat->quat[2]*pt->coord[0] + quat->quat[2]*quat->quat[2]*pt->coord[1] + 
+				2*quat->quat[3]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[3]*pt->coord[0] - 
+				quat->quat[3]*quat->quat[3]*pt->coord[1] + quat->quat[0]*quat->quat[0]*pt->coord[1] - 
+				2*quat->quat[1]*quat->quat[0]*pt->coord[2] - quat->quat[1]*quat->quat[1]*pt->coord[1];
+			rot[2] = 2*quat->quat[1]*quat->quat[3]*pt->coord[0] + 2*quat->quat[2]*quat->quat[3]*pt->coord[1] + 
+				quat->quat[3]*quat->quat[3]*pt->coord[2] - 2*quat->quat[0]*quat->quat[2]*pt->coord[0] - 
+				quat->quat[2]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[1]*pt->coord[1] - 
+				quat->quat[1]*quat->quat[1]*pt->coord[2] + quat->quat[0]*quat->quat[0]*pt->coord[2];
+			return (PyObject *) newPointObject(rot, 3, Py_NEW);
+		}
+	}else if(VectorObject_Check(arg1)){
+		vec = (VectorObject*)arg1;
+		if(QuaternionObject_Check(arg2)){
+			quat = (QuaternionObject*)arg2;
+			rot[0] = quat->quat[0]*quat->quat[0]*vec->vec[0] + 2*quat->quat[2]*quat->quat[0]*vec->vec[2] - 
+				2*quat->quat[3]*quat->quat[0]*vec->vec[1] + quat->quat[1]*quat->quat[1]*vec->vec[0] + 
+				2*quat->quat[2]*quat->quat[1]*vec->vec[1] + 2*quat->quat[3]*quat->quat[1]*vec->vec[2] - 
+				quat->quat[3]*quat->quat[3]*vec->vec[0] - quat->quat[2]*quat->quat[2]*vec->vec[0];
+			rot[1] = 2*quat->quat[1]*quat->quat[2]*vec->vec[0] + quat->quat[2]*quat->quat[2]*vec->vec[1] + 
+				2*quat->quat[3]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[3]*vec->vec[0] - 
+				quat->quat[3]*quat->quat[3]*vec->vec[1] + quat->quat[0]*quat->quat[0]*vec->vec[1] - 
+				2*quat->quat[1]*quat->quat[0]*vec->vec[2] - quat->quat[1]*quat->quat[1]*vec->vec[1];
+			rot[2] = 2*quat->quat[1]*quat->quat[3]*vec->vec[0] + 2*quat->quat[2]*quat->quat[3]*vec->vec[1] + 
+				quat->quat[3]*quat->quat[3]*vec->vec[2] - 2*quat->quat[0]*quat->quat[2]*vec->vec[0] - 
+				quat->quat[2]*quat->quat[2]*vec->vec[2] + 2*quat->quat[0]*quat->quat[1]*vec->vec[1] - 
+				quat->quat[1]*quat->quat[1]*vec->vec[2] + quat->quat[0]*quat->quat[0]*vec->vec[2];
+			return (PyObject *) newVectorObject(rot, 3, Py_NEW);
+		}
+	}else if(PointObject_Check(arg1)){
+		pt = (PointObject*)arg1;
+		if(QuaternionObject_Check(arg2)){
+			quat = (QuaternionObject*)arg2;
+			rot[0] = quat->quat[0]*quat->quat[0]*pt->coord[0] + 2*quat->quat[2]*quat->quat[0]*pt->coord[2] - 
+				2*quat->quat[3]*quat->quat[0]*pt->coord[1] + quat->quat[1]*quat->quat[1]*pt->coord[0] + 
+				2*quat->quat[2]*quat->quat[1]*pt->coord[1] + 2*quat->quat[3]*quat->quat[1]*pt->coord[2] - 
+				quat->quat[3]*quat->quat[3]*pt->coord[0] - quat->quat[2]*quat->quat[2]*pt->coord[0];
+			rot[1] = 2*quat->quat[1]*quat->quat[2]*pt->coord[0] + quat->quat[2]*quat->quat[2]*pt->coord[1] + 
+				2*quat->quat[3]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[3]*pt->coord[0] - 
+				quat->quat[3]*quat->quat[3]*pt->coord[1] + quat->quat[0]*quat->quat[0]*pt->coord[1] - 
+				2*quat->quat[1]*quat->quat[0]*pt->coord[2] - quat->quat[1]*quat->quat[1]*pt->coord[1];
+			rot[2] = 2*quat->quat[1]*quat->quat[3]*pt->coord[0] + 2*quat->quat[2]*quat->quat[3]*pt->coord[1] + 
+				quat->quat[3]*quat->quat[3]*pt->coord[2] - 2*quat->quat[0]*quat->quat[2]*pt->coord[0] - 
+				quat->quat[2]*quat->quat[2]*pt->coord[2] + 2*quat->quat[0]*quat->quat[1]*pt->coord[1] - 
+				quat->quat[1]*quat->quat[1]*pt->coord[2] + quat->quat[0]*quat->quat[0]*pt->coord[2];
+			return (PyObject *) newPointObject(rot, 3, Py_NEW);
+		}
+	}
+
+	return (EXPP_ReturnPyObjError(PyExc_RuntimeError,
+		"quat_rotation(internal): internal problem rotating vector/point\n"));
+}
+
 //----------------------------------Mathutils.Rand() --------------------
 //returns a random number between a high and low value
 PyObject *M_Mathutils_Rand(PyObject * self, PyObject * args)

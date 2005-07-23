@@ -68,10 +68,7 @@ PyObject *Quaternion_ToEuler(QuaternionObject * self)
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (180 / (float)Py_PI);
 	}
-	if(self->data.blend_data)
-        return newEulerObject(eul, Py_WRAP);
-	else
-		return newEulerObject(eul, Py_NEW);
+	return newEulerObject(eul, Py_NEW);
 }
 //----------------------------Quaternion.toMatrix()------------------
 //return the quat as a matrix
@@ -80,10 +77,7 @@ PyObject *Quaternion_ToMatrix(QuaternionObject * self)
 	float mat[9] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
 	QuatToMat3(self->quat, (float (*)[3]) mat);
 
-	if(self->data.blend_data)
-		return newMatrixObject(mat, 3, 3, Py_WRAP);
-	else
-		return newMatrixObject(mat, 3, 3, Py_NEW);
+	return newMatrixObject(mat, 3, 3, Py_NEW);
 }
 //----------------------------Quaternion.normalize()----------------
 //normalize the axis of rotation of [theta,vector]
@@ -192,6 +186,12 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 		}
 		Normalise(vec);
 		return (PyObject *) newVectorObject(vec, 3, Py_NEW);
+	}
+	if(STREQ(name, "wrapped")){
+		if(self->wrapped == Py_WRAP)
+			return EXPP_incr_ret((PyObject *)Py_True);
+		else 
+			return EXPP_incr_ret((PyObject *)Py_False);
 	}
 
 	return Py_FindMethod(Quaternion_methods, (PyObject *) self, name);
@@ -397,11 +397,12 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 {
 	int x;
-	float quat[4], scalar, newVec[3];
+	float quat[4], scalar;
 	double dot = 0.0f;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
-	PyObject *f = NULL;
+	PyObject *f = NULL, *retObj = NULL;
 	VectorObject *vec = NULL;
+	PointObject *pt = NULL;
 
 	EXPP_incr2(q1, q2);
 	quat1 = (QuaternionObject*)q1;
@@ -446,32 +447,19 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Quaternion multiplication: only 3D vector rotations currently supported\n");
 				}
-				newVec[0] = quat1->quat[0]*quat1->quat[0]*vec->vec[0] + 
-							2*quat1->quat[2]*quat1->quat[0]*vec->vec[2] - 
-							2*quat1->quat[3]*quat1->quat[0]*vec->vec[1] + 
-							quat1->quat[1]*quat1->quat[1]*vec->vec[0] + 
-							2*quat1->quat[2]*quat1->quat[1]*vec->vec[1] + 
-							2*quat1->quat[3]*quat1->quat[1]*vec->vec[2] - 
-							quat1->quat[3]*quat1->quat[3]*vec->vec[0] - 
-							quat1->quat[2]*quat1->quat[2]*vec->vec[0];
-				newVec[1] = 2*quat1->quat[1]*quat1->quat[2]*vec->vec[0] + 
-							quat1->quat[2]*quat1->quat[2]*vec->vec[1] + 
-							2*quat1->quat[3]*quat1->quat[2]*vec->vec[2] + 
-							2*quat1->quat[0]*quat1->quat[3]*vec->vec[0] - 
-							quat1->quat[3]*quat1->quat[3]*vec->vec[1] + 
-							quat1->quat[0]*quat1->quat[0]*vec->vec[1] - 
-							2*quat1->quat[1]*quat1->quat[0]*vec->vec[2] - 
-							quat1->quat[1]*quat1->quat[1]*vec->vec[1];
-				newVec[2] = 2*quat1->quat[1]*quat1->quat[3]*vec->vec[0] + 
-							2*quat1->quat[2]*quat1->quat[3]*vec->vec[1] + 
-							quat1->quat[3]*quat1->quat[3]*vec->vec[2] - 
-							2*quat1->quat[0]*quat1->quat[2]*vec->vec[0] - 
-							quat1->quat[2]*quat1->quat[2]*vec->vec[2] + 
-							2*quat1->quat[0]*quat1->quat[1]*vec->vec[1] - 
-							quat1->quat[1]*quat1->quat[1]*vec->vec[2] + 
-							quat1->quat[0]*quat1->quat[0]*vec->vec[2];
+				retObj = quat_rotation((PyObject*)quat1, (PyObject*)vec);
 				EXPP_decr3((PyObject*)quat1, (PyObject*)quat2, (PyObject*)vec);
-				return newVectorObject(newVec,3,Py_NEW);
+				return retObj;
+			}else if(PointObject_Check(quat2->coerced_object)){  //QUAT * POINT
+				pt = (PointObject*)EXPP_incr_ret(quat2->coerced_object);
+				if(pt->size != 3){
+					EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
+					return EXPP_ReturnPyObjError(PyExc_TypeError, 
+						"Quaternion multiplication: only 3D point rotations currently supported\n");
+				}
+				retObj = quat_rotation((PyObject*)quat1, (PyObject*)pt);
+				EXPP_decr3((PyObject*)quat1, (PyObject*)quat2, (PyObject*)pt);
+				return retObj;
 			}
 		}else{  //QUAT * QUAT (dot product)
 			for(x = 0; x < 4; x++) {
@@ -499,7 +487,8 @@ static int Quaternion_coerce(PyObject ** q1, PyObject ** q2)
 	PyObject *coerced = NULL;
 
 	if(!QuaternionObject_Check(*q2)) {
-		if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2)) {
+		if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2) ||
+			PointObject_Check(*q2)) {
 			coerced = EXPP_incr_ret(*q2);
 			*q2 = newQuaternionObject(NULL,Py_NEW);
 			((QuaternionObject*)*q2)->coerced_object = coerced;
@@ -583,6 +572,7 @@ PyObject *newQuaternionObject(float *quat, int type)
 	if(type == Py_WRAP){
 		self->data.blend_data = quat;
 		self->quat = self->data.blend_data;
+		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
 		self->data.py_data = PyMem_Malloc(4 * sizeof(float));
 		self->quat = self->data.py_data;
@@ -593,6 +583,7 @@ PyObject *newQuaternionObject(float *quat, int type)
 				self->quat[x] = quat[x];
 			}
 		}
+		self->wrapped = Py_NEW;
 	}else{ //bad type
 		return NULL;
 	}

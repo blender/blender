@@ -42,6 +42,7 @@ char Vector_Negate_doc[] = "() - changes vector to it's additive inverse";
 char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
 char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
 char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
+char Vector_toPoint_doc[] = "() - create a new Point Object from this vector";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
@@ -50,9 +51,27 @@ struct PyMethodDef Vector_methods[] = {
 	{"resize2D", (PyCFunction) Vector_Resize2D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
+	{"toPoint", (PyCFunction) Vector_toPoint, METH_NOARGS, Vector_toPoint_doc},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------------METHODS----------------------------
+//--------------------------Vector.toPoint()----------------------
+//create a new point object to represent this vector
+PyObject *Vector_toPoint(VectorObject * self)
+{
+	float coord[3];
+	int x;
+
+	if(self->size < 2 || self->size > 3) {
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+			"Vector.toPoint(): inappropriate vector size - expects 2d or 3d vector\n");
+	} 
+	for(x = 0; x < self->size; x++){
+		coord[x] = self->vec[x];
+	}
+	
+	return (PyObject *) newPointObject(coord, self->size, Py_NEW);
+}
 //----------------------------Vector.zero() ----------------------
 //set the vector data to 0,0,0
 PyObject *Vector_Zero(VectorObject * self)
@@ -76,16 +95,6 @@ PyObject *Vector_Normalize(VectorObject * self)
 	norm = (float) sqrt(norm);
 	for(x = 0; x < self->size; x++) {
 		self->vec[x] /= norm;
-	}
-	return EXPP_incr_ret((PyObject*)self);
-}
-//----------------------------Vector.negate() --------------------
-//set the vector to it's negative -x, -y, -z
-PyObject *Vector_Negate(VectorObject * self)
-{
-	int x;
-	for(x = 0; x < self->size; x++) {
-		self->vec[x] = -(self->vec[x]);
 	}
 	return EXPP_incr_ret((PyObject*)self);
 }
@@ -196,7 +205,12 @@ static PyObject *Vector_getattr(VectorObject * self, char *name)
 		}
 		return PyFloat_FromDouble(sqrt(dot));
 	}
-
+	if(STREQ(name, "wrapped")){
+		if(self->wrapped == Py_WRAP)
+			return EXPP_incr_ret((PyObject *)Py_True);
+		else 
+			return EXPP_incr_ret((PyObject *)Py_False);
+	}
 	return Py_FindMethod(Vector_methods, (PyObject *) self, name);
 }
 //----------------------------setattr()(internal) ----------------
@@ -368,28 +382,47 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 	int x, size;
 	float vec[4];
 	VectorObject *vec1 = NULL, *vec2 = NULL;
+	PointObject *pt = NULL;
 
 	EXPP_incr2(v1, v2);
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 
-	if(vec1->coerced_object || vec2->coerced_object){
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector addition: arguments not valid for this operation....\n");
-	}
-	if(vec1->size != vec2->size){
-		EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector addition: vectors must have the same dimensions for this operation\n");
+	if(!vec1->coerced_object){
+		if(vec2->coerced_object){
+			if(PointObject_Check(vec2->coerced_object)){  //VECTOR + POINT
+				//Point translation
+				pt = (PointObject*)EXPP_incr_ret(vec2->coerced_object);
+				size = vec1->size;
+				if(pt->size == size){
+					for(x = 0; x < size; x++){
+						vec[x] = vec1->vec[x] + pt->coord[x];
+					}	
+				}else{
+					EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)pt);
+					return EXPP_ReturnPyObjError(PyExc_AttributeError,
+						"Vector addition: arguments are the wrong size....\n");
+				}
+				EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)pt);
+				return (PyObject *) newPointObject(vec, size, Py_NEW);
+			}
+		}else{ //VECTOR + VECTOR
+			if(vec1->size != vec2->size){
+				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
+				return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"Vector addition: vectors must have the same dimensions for this operation\n");
+			}
+			size = vec1->size;
+			for(x = 0; x < size; x++) {
+				vec[x] = vec1->vec[x] +	vec2->vec[x];
+			}
+			EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
+			return (PyObject *) newVectorObject(vec, size, Py_NEW);
+		}
 	}
 
-	size = vec1->size;
-	for(x = 0; x < size; x++) {
-		vec[x] = vec1->vec[x] +	vec2->vec[x];
-	}
-
-	EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-	return (PyObject *) newVectorObject(vec, size, Py_NEW);
+	return EXPP_ReturnPyObjError(PyExc_AttributeError,
+		"Vector addition: arguments not valid for this operation....\n");
 }
 //------------------------obj - obj------------------------------
 //subtraction
@@ -426,7 +459,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 {
 	int x, size;
-	float vec[4], scalar, newVec[3];
+	float vec[4], scalar;
 	double dot = 0.0f;
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	PyObject *f = NULL, *retObj = NULL;
@@ -476,39 +509,16 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 				}
 				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 				return (PyObject *) newVectorObject(vec, size, Py_NEW);
-			}else if(QuaternionObject_Check(vec2->coerced_object)){  //QUAT * VEC
+			}else if(QuaternionObject_Check(vec2->coerced_object)){  //VECTOR * QUATERNION
 				quat = (QuaternionObject*)EXPP_incr_ret(vec2->coerced_object);
 				if(vec1->size != 3){
 					EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
 				}
-				newVec[0] = quat->quat[0]*quat->quat[0]*vec1->vec[0] + 
-							2*quat->quat[2]*quat->quat[0]*vec1->vec[2] - 
-							2*quat->quat[3]*quat->quat[0]*vec1->vec[1] + 
-							quat->quat[1]*quat->quat[1]*vec1->vec[0] + 
-							2*quat->quat[2]*quat->quat[1]*vec1->vec[1] + 
-							2*quat->quat[3]*quat->quat[1]*vec1->vec[2] - 
-							quat->quat[3]*quat->quat[3]*vec1->vec[0] - 
-							quat->quat[2]*quat->quat[2]*vec1->vec[0];
-				newVec[1] = 2*quat->quat[1]*quat->quat[2]*vec1->vec[0] + 
-							quat->quat[2]*quat->quat[2]*vec1->vec[1] + 
-							2*quat->quat[3]*quat->quat[2]*vec1->vec[2] + 
-							2*quat->quat[0]*quat->quat[3]*vec1->vec[0] - 
-							quat->quat[3]*quat->quat[3]*vec1->vec[1] + 
-							quat->quat[0]*quat->quat[0]*vec1->vec[1] - 
-							2*quat->quat[1]*quat->quat[0]*vec1->vec[2] - 
-							quat->quat[1]*quat->quat[1]*vec1->vec[1];
-				newVec[2] = 2*quat->quat[1]*quat->quat[3]*vec1->vec[0] + 
-							2*quat->quat[2]*quat->quat[3]*vec1->vec[1] + 
-							quat->quat[3]*quat->quat[3]*vec1->vec[2] - 
-							2*quat->quat[0]*quat->quat[2]*vec1->vec[0] - 
-							quat->quat[2]*quat->quat[2]*vec1->vec[2] + 
-							2*quat->quat[0]*quat->quat[1]*vec1->vec[1] - 
-							quat->quat[1]*quat->quat[1]*vec1->vec[2] + 
-							quat->quat[0]*quat->quat[0]*vec1->vec[2];
+				retObj = quat_rotation((PyObject*)vec1, (PyObject*)quat);
 				EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)quat);
-				return newVectorObject(newVec,3,Py_NEW);
+				return retObj;
 			}
 		}else{  //VECTOR * VECTOR
 			if(vec1->size != vec2->size){
@@ -530,35 +540,16 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Vector multiplication: arguments not acceptable for this operation\n");
 }
-//------------------------obj / obj------------------------------
-//division
-static PyObject *Vector_div(PyObject * v1, PyObject * v2)
+//-------------------------- -obj -------------------------------
+//returns the negative of this object
+static PyObject *Vector_neg(VectorObject *self)
 {
-	int x, size;
-	float vec[4];
-	VectorObject *vec1 = NULL, *vec2 = NULL;
-
-	EXPP_incr2(v1, v2);
-	vec1 = (VectorObject*)v1;
-	vec2 = (VectorObject*)v2;
-
-	if(vec1->coerced_object || vec2->coerced_object){
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Vector division: arguments not valid for this operation....\n");
-	}
-	if(vec1->size != vec2->size){
-		EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-		"Vector division: vectors must have the same dimensions for this operation\n");
+	int x;
+	for(x = 0; x < self->size; x++){
+		self->vec[x] = -self->vec[x];
 	}
 
-	size = vec1->size;
-	for(x = 0; x < size; x++) {
-		vec[x] = vec1->vec[x] /	vec2->vec[x];
-	}
-
-	EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-	return (PyObject *) newVectorObject(vec, size, Py_NEW);
+	return EXPP_incr_ret((PyObject *)self);
 }
 //------------------------coerce(obj, obj)-----------------------
 //coercion of unknown types to type VectorObject for numeric protocols
@@ -573,7 +564,8 @@ static int Vector_coerce(PyObject ** v1, PyObject ** v2)
 	PyObject *coerced = NULL;
 
 	if(!VectorObject_Check(*v2)) {
-		if(MatrixObject_Check(*v2) || PyFloat_Check(*v2) || PyInt_Check(*v2) || QuaternionObject_Check(*v2)) {
+		if(MatrixObject_Check(*v2) || PyFloat_Check(*v2) || PyInt_Check(*v2) || 
+			QuaternionObject_Check(*v2) || PointObject_Check(*v2)) {
 			coerced = EXPP_incr_ret(*v2);
 			*v2 = newVectorObject(NULL,3,Py_NEW);
 			((VectorObject*)*v2)->coerced_object = coerced;
@@ -599,11 +591,11 @@ static PyNumberMethods Vector_NumMethods = {
 	(binaryfunc) Vector_add,					/* __add__ */
 	(binaryfunc) Vector_sub,					/* __sub__ */
 	(binaryfunc) Vector_mul,					/* __mul__ */
-	(binaryfunc) Vector_div,					/* __div__ */
+	(binaryfunc) 0,								/* __div__ */
 	(binaryfunc) 0,								/* __mod__ */
 	(binaryfunc) 0,								/* __divmod__ */
 	(ternaryfunc) 0,							/* __pow__ */
-	(unaryfunc) 0,								/* __neg__ */
+	(unaryfunc) Vector_neg,						/* __neg__ */
 	(unaryfunc) 0,								/* __pos__ */
 	(unaryfunc) 0,								/* __abs__ */
 	(inquiry) 0,								/* __nonzero__ */
@@ -652,12 +644,15 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	self = PyObject_NEW(VectorObject, &vector_Type);
 	self->data.blend_data = NULL;
 	self->data.py_data = NULL;
+	if(size > 4 || size < 2)
+		return NULL;
 	self->size = size;
 	self->coerced_object = NULL;
 
 	if(type == Py_WRAP){
 		self->data.blend_data = vec;
 		self->vec = self->data.blend_data;
+		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
 		self->data.py_data = PyMem_Malloc(size * sizeof(float));
 		self->vec = self->data.py_data;
@@ -672,9 +667,25 @@ PyObject *newVectorObject(float *vec, int size, int type)
 				self->vec[x] = vec[x];
 			}
 		}
+		self->wrapped = Py_NEW;
 	}else{ //bad type
 		return NULL;
 	}
 	return (PyObject *) EXPP_incr_ret((PyObject *)self);
 }
 
+//#############################DEPRECATED################################
+//#######################################################################
+//----------------------------Vector.negate() --------------------
+//set the vector to it's negative -x, -y, -z
+PyObject *Vector_Negate(VectorObject * self)
+{
+	int x;
+	for(x = 0; x < self->size; x++) {
+		self->vec[x] = -(self->vec[x]);
+	}
+	printf("Vector.negate(): Deprecated: use -vector instead\n");
+	return EXPP_incr_ret((PyObject*)self);
+}
+//#######################################################################
+//#############################DEPRECATED################################

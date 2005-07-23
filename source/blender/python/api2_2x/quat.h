@@ -45,6 +45,7 @@ typedef struct {
 		float *blend_data;	//blender managed
 	}data;
 	float *quat;				//1D array of data (alias)
+	int wrapped;			//is wrapped data?
 	PyObject *coerced_object;
 } QuaternionObject;
 /*coerced_object is a pointer to the object that it was

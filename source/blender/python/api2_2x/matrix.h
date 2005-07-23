@@ -48,6 +48,7 @@ typedef struct _Matrix {
 	float *contigPtr;		//1D array of data (alias)
 	int rowSize;
 	int colSize;
+	int wrapped;			//is wrapped data?
 	PyObject *coerced_object;
 } MatrixObject;
 /*coerced_object is a pointer to the object that it was

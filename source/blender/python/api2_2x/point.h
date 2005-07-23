@@ -1,4 +1,5 @@
-/* $Id$
+/* 
+ * 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -17,25 +18,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano & Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- *
- */
+*/
 
-#ifndef EXPP_vector_h
-#define EXPP_vector_h
+#ifndef EXPP_point_h
+#define EXPP_point_h
 
 #include <Python.h>
 
-#define VectorObject_Check(v) ((v)->ob_type == &vector_Type)
+#define PointObject_Check(v) ((v)->ob_type == &point_Type)
 
 typedef struct {
 	PyObject_VAR_HEAD 
@@ -43,11 +43,11 @@ typedef struct {
 		float *py_data;		//python managed
 		float *blend_data;	//blender managed
 	}data;
-	float *vec;				//1D array of data (alias)
+	float *coord;			//1D array of data (alias)
 	int size;
 	int wrapped;			//is wrapped data?
 	PyObject *coerced_object;
-} VectorObject;
+} PointObject;
 /*coerced_object is a pointer to the object that it was
 coerced from when a dummy vector needs to be created from
 the coerce() function for numeric protocol operations*/
@@ -58,13 +58,8 @@ be stored in py_data) or be a wrapper for data allocated through
 blender (stored in blend_data). This is an either/or struct not both*/
 
 //prototypes
-PyObject *Vector_Zero( VectorObject * self );
-PyObject *Vector_Normalize( VectorObject * self );
-PyObject *Vector_Negate( VectorObject * self );
-PyObject *Vector_Resize2D( VectorObject * self );
-PyObject *Vector_Resize3D( VectorObject * self );
-PyObject *Vector_Resize4D( VectorObject * self );
-PyObject *Vector_toPoint( VectorObject * self );
-PyObject *newVectorObject(float *vec, int size, int type);
+PyObject *Point_Zero( PointObject * self );
+PyObject *Point_toVector(PointObject * self);
+PyObject *newPointObject(float *coord, int size, int type);
 
-#endif				/* EXPP_vector_h */
+#endif				/* EXPP_point_h */

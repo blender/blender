@@ -85,6 +85,7 @@ void types_InitAll( void )
 	rgbTuple_Type.ob_type = &PyType_Type;
 	vector_Type.ob_type = &PyType_Type;
 	property_Type.ob_type = &PyType_Type;
+	point_Type.ob_type = &PyType_Type;
 }
 
 /*****************************************************************************/
@@ -169,6 +170,8 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &Action_Type );
 	PyDict_SetItemString( dict, "propertyType",
 			      ( PyObject * ) &property_Type );
+	PyDict_SetItemString( dict, "pointType",
+			      ( PyObject * ) &point_Type );
 
 	return submodule;
 }

@@ -65,10 +65,7 @@ PyObject *Euler_ToQuat(EulerObject * self)
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToQuat(eul, quat);
-	if(self->data.blend_data)
-		return (PyObject *) newQuaternionObject(quat, Py_WRAP);
-	else
-		return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return (PyObject *) newQuaternionObject(quat, Py_NEW);
 }
 //----------------------------Euler.toMatrix()---------------------
 //return a matrix representation of the euler
@@ -82,10 +79,7 @@ PyObject *Euler_ToMatrix(EulerObject * self)
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToMat3(eul, (float (*)[3]) mat);
-	if(self->data.blend_data)
-		return (PyObject *) newMatrixObject(mat, 3, 3 , Py_WRAP);
-	else	
-		return (PyObject *) newMatrixObject(mat, 3, 3 , Py_NEW);
+	return (PyObject *) newMatrixObject(mat, 3, 3 , Py_NEW);
 }
 //----------------------------Euler.unique()-----------------------
 //sets the x,y,z values to a unique euler rotation
@@ -199,7 +193,12 @@ static PyObject *Euler_getattr(EulerObject * self, char *name)
 	}else if(STREQ(name, "z")){
 		return PyFloat_FromDouble(self->eul[2]);
 	}
-
+	if(STREQ(name, "wrapped")){
+		if(self->wrapped == Py_WRAP)
+			return EXPP_incr_ret((PyObject *)Py_True);
+		else 
+			return EXPP_incr_ret((PyObject *)Py_False);
+	}
 	return Py_FindMethod(Euler_methods, (PyObject *) self, name);
 }
 //----------------------------setattr()(internal) ------------------
@@ -394,6 +393,7 @@ PyObject *newEulerObject(float *eul, int type)
 	if(type == Py_WRAP){
 		self->data.blend_data = eul;
 		self->eul = self->data.blend_data;
+		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
 		self->data.py_data = PyMem_Malloc(3 * sizeof(float));
 		self->eul = self->data.py_data;
@@ -406,6 +406,7 @@ PyObject *newEulerObject(float *eul, int type)
 				self->eul[x] = eul[x];
 			}
 		}
+		self->wrapped = Py_NEW;
 	}else{ //bad type
 		return NULL;
 	}

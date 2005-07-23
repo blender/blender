@@ -77,10 +77,7 @@ PyObject *Matrix_toQuat(MatrixObject * self)
 		Mat4ToQuat((float (*)[4])*self->matrix, quat);
 	}
 	
-	if(self->data.blend_data)
-		return (PyObject *) newQuaternionObject(quat, Py_WRAP);
-	else
-		return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return (PyObject *) newQuaternionObject(quat, Py_NEW);
 }
 //---------------------------Matrix.toEuler() --------------------
 PyObject *Matrix_toEuler(MatrixObject * self)
@@ -98,10 +95,7 @@ PyObject *Matrix_toEuler(MatrixObject * self)
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (float) (180 / Py_PI);
 	}
-	if(self->data.blend_data)
-		return (PyObject *) newEulerObject(eul, Py_WRAP);
-	else
-		return (PyObject *) newEulerObject(eul, Py_NEW);
+	return (PyObject *) newEulerObject(eul, Py_NEW);
 }
 //---------------------------Matrix.resize4x4() ------------------
 PyObject *Matrix_Resize4x4(MatrixObject * self)
@@ -339,7 +333,12 @@ static PyObject *Matrix_getattr(MatrixObject * self, char *name)
 	} else if(STREQ(name, "colSize")) {
 		return PyInt_FromLong((long) self->colSize);
 	}
-
+	if(STREQ(name, "wrapped")){
+		if(self->wrapped == Py_WRAP)
+			return EXPP_incr_ret((PyObject *)Py_True);
+		else 
+			return EXPP_incr_ret((PyObject *)Py_False);
+	}
 	return Py_FindMethod(Matrix_methods, (PyObject *) self, name);
 }
 //----------------------------setattr()(internal) ----------------
@@ -601,6 +600,7 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 	PyObject *f = NULL, *retObj = NULL;
 	VectorObject *vec = NULL;
+	PointObject *pt = NULL;
 
 	EXPP_incr2(m1, m2);
 	mat1 = (MatrixObject*)m1;
@@ -630,6 +630,11 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 				vec = (VectorObject*)EXPP_incr_ret(mat2->coerced_object);
 				retObj = column_vector_multiplication(mat1, vec);
 				EXPP_decr3((PyObject*)mat1, (PyObject*)mat2, (PyObject*)vec);
+				return retObj;
+			}else if(PointObject_Check(mat2->coerced_object)){ //MATRIX * POINT
+				pt = (PointObject*)EXPP_incr_ret(mat2->coerced_object);
+				retObj = column_point_multiplication(mat1, pt);
+				EXPP_decr3((PyObject*)mat1, (PyObject*)mat2, (PyObject*)pt);
 				return retObj;
 			}else if (PyFloat_Check(mat2->coerced_object) || 
 				PyInt_Check(mat2->coerced_object)){	// MATRIX * FLOAT/INT
@@ -671,6 +676,10 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Matrix multiplication: arguments not acceptable for this operation\n");
 }
+PyObject* Matrix_inv(MatrixObject *self)
+{
+	return Matrix_Invert(self);
+}
 //------------------------coerce(obj, obj)-----------------------
 //coercion of unknown types to type MatrixObject for numeric protocols
 /*Coercion() is called whenever a math operation has 2 operands that
@@ -683,7 +692,8 @@ static int Matrix_coerce(PyObject ** m1, PyObject ** m2)
 {
 	PyObject *coerced = NULL;
 	if(!MatrixObject_Check(*m2)) {
-		if(VectorObject_Check(*m2) || PyFloat_Check(*m2) || PyInt_Check(*m2)) {
+		if(VectorObject_Check(*m2) || PyFloat_Check(*m2) || PyInt_Check(*m2) ||
+			PointObject_Check(*m2)) {
 			coerced = EXPP_incr_ret(*m2);
 			*m2 = newMatrixObject(NULL,3,3,Py_NEW);
 			((MatrixObject*)*m2)->coerced_object = coerced;
@@ -718,7 +728,7 @@ static PyNumberMethods Matrix_NumMethods = {
 	(unaryfunc) 0,							/* __pos__ */
 	(unaryfunc) 0,							/* __abs__ */
 	(inquiry) 0,							/* __nonzero__ */
-	(unaryfunc) 0,							/* __invert__ */
+	(unaryfunc) Matrix_inv,					/* __invert__ */
 	(binaryfunc) 0,							/* __lshift__ */
 	(binaryfunc) 0,							/* __rshift__ */
 	(binaryfunc) 0,							/* __and__ */
@@ -794,6 +804,7 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 		for(x = 0; x < rowSize; x++) {
 			self->matrix[x] = self->contigPtr + (x * colSize);
 		}
+		self->wrapped = Py_WRAP;
 	}else if (type == Py_NEW){
 		self->data.py_data = PyMem_Malloc(rowSize * colSize * sizeof(float));
 		if(self->data.py_data == NULL) { //allocation failure
@@ -822,6 +833,7 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 		} else { //or if no arguments are passed return identity matrix
 			Matrix_Identity(self);
 		}
+		self->wrapped = Py_NEW;
 	}else{ //bad type
 		return NULL;
 	}

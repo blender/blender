@@ -45,6 +45,7 @@ typedef struct {
 		float *blend_data;	//blender managed
 	}data;
 	float *eul;				//1D array of data (alias)
+	int wrapped;			//is wrapped data?
 } EulerObject;
 
 /*struct data contains a pointer to the actual data that the
