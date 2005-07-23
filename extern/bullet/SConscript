@@ -1,0 +1,104 @@
+#!/usr/bin/python
+import sys
+import os
+
+bullet_env = Environment(ENV = os.environ)
+
+# Import the C flags set in the SConstruct file
+Import ('cflags')
+#Import ('cxxflags')
+#Import ('defines')
+Import ('user_options_dict')
+#defines = ['QHULL', '_LIB']
+defines = ['USE_DOUBLES','QHULL', '_LIB']
+#cflags = []
+cxxflags = []
+
+if sys.platform=='win32':
+	defines += ['WIN32','NDEBUG', '_WINDOWS', '_LIB']
+	#cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
+	cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
+elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='freebsd4' or sys.platform=='freebsd5':
+	defines += ['NDEBUG']
+	cflags += ['-O2']
+elif sys.platform=='darwin' :
+	defines += ['NDEBUG']
+	cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math', '-mpowerpc' , '-mtune=G4']
+
+else:
+    print "################################################"
+    print 
+    print "Check if bullet builds on your platform correctly"
+    print "Add your platform specific defines"
+    print "and cflags / cxxflags to the"
+    print "extern/bullet/SConscript file"
+
+bullet_env.Append (CCFLAGS = cflags)
+bullet_env.Append (CPPFLAGS = cxxflags)
+
+bullet_env.Append (CPPDEFINES = defines)
+
+bullet_sources = ['Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
+				'Bullet/BroadphaseCollision/CollisionAlgorithm.cpp',
+				'Bullet/BroadphaseCollision/CollisionDispatcher.cpp',
+				'Bullet/BroadphaseCollision/SimpleBroadphase.cpp',
+				
+				'Bullet/CollisionShapes/BoxShape.cpp',
+				'Bullet/CollisionShapes/CollisionShape.cpp',
+				'Bullet/CollisionShapes/ConeShape.cpp',
+				'Bullet/CollisionShapes/ConvexHullShape.cpp',
+				'Bullet/CollisionShapes/ConvexShape.cpp',
+				'Bullet/CollisionShapes/CylinderShape.cpp',
+				'Bullet/CollisionShapes/MinkowskiSumShape.cpp',
+				'Bullet/CollisionShapes/MultiSphereShape.cpp',
+				'Bullet/CollisionShapes/PolyhedralConvexShape.cpp',
+				'Bullet/CollisionShapes/Simplex1to4Shape.cpp',
+				'Bullet/CollisionShapes/SphereShape.cpp',
+				'Bullet/CollisionShapes/StridingMeshInterface.cpp',
+				'Bullet/CollisionShapes/TriangleMesh.cpp',
+				'Bullet/CollisionShapes/TriangleMeshShape.cpp',
+				
+				'Bullet/NarrowPhaseCollision/BU_AlgebraicPolynomialSolver.cpp',
+				'Bullet/NarrowPhaseCollision/BU_Collidable.cpp',
+				'Bullet/NarrowPhaseCollision/BU_CollisionPair.cpp',
+				'Bullet/NarrowPhaseCollision/BU_EdgeEdge.cpp',
+				'Bullet/NarrowPhaseCollision/BU_Screwing.cpp',
+				'Bullet/NarrowPhaseCollision/BU_VertexPoly.cpp',
+				'Bullet/NarrowPhaseCollision/ContinuousConvexCollision.cpp',
+				'Bullet/NarrowPhaseCollision/ConvexCast.cpp',
+				'Bullet/NarrowPhaseCollision/GjkConvexCast.cpp',
+				'Bullet/NarrowPhaseCollision/GjkPairDetector.cpp',
+				'Bullet/NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.cpp',
+				'Bullet/NarrowPhaseCollision/PersistentManifold.cpp',
+				'Bullet/NarrowPhaseCollision/RaycastCallback.cpp',
+				'Bullet/NarrowPhaseCollision/SubSimplexConvexCast.cpp',
+				'Bullet/NarrowPhaseCollision/VoronoiSimplexSolver.cpp',
+				
+				'BulletDynamics/CollisionDispatch/ConvexConcaveCollisionAlgorithm.cpp',
+				'BulletDynamics/CollisionDispatch/ConvexConvexAlgorithm.cpp',
+				'BulletDynamics/CollisionDispatch/EmptyCollisionAlgorithm.cpp',
+				'BulletDynamics/CollisionDispatch/ManifoldResult.cpp',
+				'BulletDynamics/CollisionDispatch/ToiContactDispatcher.cpp',
+				'BulletDynamics/CollisionDispatch/UnionFind.cpp',
+				
+				'BulletDynamics/ConstraintSolver/ContactConstraint.cpp',
+				'BulletDynamics/ConstraintSolver/OdeConstraintSolver.cpp',
+				'BulletDynamics/ConstraintSolver/OdeConstraintSolver2.cpp',
+				'BulletDynamics/ConstraintSolver/Point2PointConstraint.cpp',
+				'BulletDynamics/ConstraintSolver/SimpleConstraintSolver.cpp',
+				'BulletDynamics/ConstraintSolver/Solve2LinearConstraint.cpp',
+				'BulletDynamics/ConstraintSolver/SorLcp.cpp',
+				
+				'BulletDynamics/Dynamics/BU_Joint.cpp',
+				'BulletDynamics/Dynamics/ContactJoint.cpp',
+				'BulletDynamics/Dynamics/RigidBody.cpp',
+					]
+
+bullet_env.Append (CPPPATH = ['.',
+                             'Bullet',
+                             'BulletDynamics',
+                             'LinearMath'
+                             ])
+source_files = bullet_sources 
+
+bullet_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/extern_bullet', source=source_files)
