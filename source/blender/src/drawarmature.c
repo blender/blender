@@ -915,7 +915,7 @@ static void draw_ebones(Object *ob, int dt)
 		/* offset to parent */
 		if (eBone->parent) {
 			BIF_ThemeColor(TH_WIRE);
-			glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
+			glLoadName (-1);		// -1 here is OK!
 			setlinestyle(3);
 			
 			glBegin(GL_LINES);
@@ -929,7 +929,8 @@ static void draw_ebones(Object *ob, int dt)
 	}
 	
 	/* restore */
-	if (dt>OB_WIRE) bglPolygonOffset(0.0);
+	if(arm->drawtype==ARM_LINE);
+	else if (dt>OB_WIRE) bglPolygonOffset(0.0);
 	
 	/* finally names */
 	if(arm->flag & ARM_DRAWNAMES) {

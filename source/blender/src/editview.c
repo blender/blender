@@ -234,7 +234,7 @@ static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v
 /* warning; lasso select with backbuffer-check draws in backbuf with persp(PERSP_WIN) 
    and returns with persp(PERSP_VIEW). After lasso select backbuf is not OK
 */
-void do_lasso_select_pose(Object *ob, short mcords[][2], short moves, short select)
+static void do_lasso_select_pose(Object *ob, short mcords[][2], short moves, short select)
 {
 	bPoseChannel *pchan;
 	float vec[3];
@@ -459,6 +459,40 @@ static void do_lasso_select_lattice(short mcords[][2], short moves, short select
 	}
 }
 
+static void do_lasso_select_armature(short mcords[][2], short moves, short select)
+{
+	EditBone *ebone;
+	float vec[3];
+	short sco1[2], sco2[2], didpoint;
+	
+	for (ebone=G.edbo.first; ebone; ebone=ebone->next) {
+
+		VECCOPY(vec, ebone->head);
+		Mat4MulVecfl(G.obedit->obmat, vec);
+		project_short(vec, sco1);
+		VECCOPY(vec, ebone->tail);
+		Mat4MulVecfl(G.obedit->obmat, vec);
+		project_short(vec, sco2);
+		
+		didpoint= 0;
+		if(lasso_inside(mcords, moves, sco1[0], sco1[1])) {
+			if(select) ebone->flag |= BONE_ROOTSEL;
+			else ebone->flag &= ~BONE_ROOTSEL;
+			didpoint= 1;
+		}
+		if(lasso_inside(mcords, moves, sco2[0], sco2[1])) {
+		   if(select) ebone->flag |= BONE_TIPSEL;
+		   else ebone->flag &= ~BONE_TIPSEL;
+		   didpoint= 1;
+		}
+		/* if one of points selected, we skip the bone itself */
+		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1, sco2)) {
+			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
+			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+		}
+	}
+	countall();	// abused for flushing selection
+}
 
 static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
 {
@@ -506,6 +540,8 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 		do_lasso_select_curve(mcords, moves, select);
 	else if(G.obedit->type==OB_LATTICE) 
 		do_lasso_select_lattice(mcords, moves, select);
+	else if(G.obedit->type==OB_ARMATURE)
+		do_lasso_select_armature(mcords, moves, select);
 	
 	BIF_undo_push("Lasso select");
 

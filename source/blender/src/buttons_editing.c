@@ -1791,7 +1791,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 
 	uiBlockBeginAlign(block);
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,100,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bone as octahedra");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Lines",	110, 140,100,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bone as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Sticks",	110, 140,100,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bone as simple 2d lines with dots");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bones",	210, 140,100,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
 	
 	uiBlockBeginAlign(block);

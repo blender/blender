@@ -1349,7 +1349,8 @@ void special_aftertrans_update(short cancelled)
 	Base *base;
 	int redrawipo=0;
 	
-	if (ob && (ob->flag & OB_POSEMODE)) {
+	if(G.obedit);	// nothing
+	else if (ob && (ob->flag & OB_POSEMODE)) {
 		bArmature *arm= ob->data;
 		bAction	*act;
 		bPose	*pose;
@@ -1583,10 +1584,6 @@ void createTransData(TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (ob && (ob->flag & OB_POSEMODE)) {
-		t->flag |= T_POSE;
-		createTransPose(t);
-	}
 	else if (G.obedit) {
 		t->ext = NULL;
 		if (G.obedit->type == OB_MESH) {
@@ -1627,6 +1624,10 @@ void createTransData(TransInfo *t)
 			t->flag &= ~T_EDIT;
 			t->flag |= T_POSE;
 		}
+	}
+	else if (ob && (ob->flag & OB_POSEMODE)) {
+		t->flag |= T_POSE;
+		createTransPose(t);
 	}
 	else {
 		createTransObject(t);
