@@ -468,7 +468,7 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 		MFace *nmf = &ndlm->mface[ndlm->totface];
 		TFace *tf=NULL, *ntf=NULL; /* gcc's mother is uninitialized! */
 		MCol *mc=NULL, *nmc=NULL; /* gcc's mother is uninitialized! */
-
+		
 		memcpy(nmf, mf, sizeof(*mf));
 		if (ndlm->tface) {
 			ntf = &ndlm->tface[ndlm->totface];
@@ -493,8 +493,11 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 		if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4)
 			continue;
 
-		if (nmf->v3) {
-			if (nmf->v4) {
+	/* Decided this wasn't worth the effort, esp. because the mesh still
+	 * has wierd topology. Can put it back if it appears useful in the end.
+	 * Note it needs some test_mface or so added.
+	 */
+#if 0
 				int copyIdx;
 
 					/* If three in order vertices are shared then duplicating the face 
@@ -530,13 +533,17 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 						mc[copyIdx] = nmc[fromIdx];
 					}
 
+					if (mf->v3==0 || nmf->v3==0 || (has4 && (mf->v4==0 || nmf->v4==0))) {
+						int i = 0;
+					}
 					continue;
 				}
-			}
+#endif
 
+		if (nmf->v3) {
 				/* Need to flip face normal, pick which verts to flip
-				 * in order to prevent nmf->v3==0 or nmf->v4==0
-				 */
+				* in order to prevent nmf->v3==0 or nmf->v4==0
+				*/
 			if (nmf->v1) {
 				SWAP(int, nmf->v1, nmf->v3);
 
@@ -548,14 +555,26 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 					SWAP(MCol, nmc[0], nmc[2]);
 				}
 			} else {
-				SWAP(int, nmf->v2, nmf->v4);
+				if (nmf->v4) {
+					SWAP(int, nmf->v2, nmf->v4);
 
-				if (ndlm->tface) {
-					SWAP(unsigned int, ntf->col[1], ntf->col[3]);
-					SWAP(float, ntf->uv[1][0], ntf->uv[3][0]);
-					SWAP(float, ntf->uv[1][1], ntf->uv[3][1]);
-				} else if (ndlm->mcol) {
-					SWAP(MCol, nmc[1], nmc[3]);
+					if (ndlm->tface) {
+						SWAP(unsigned int, ntf->col[1], ntf->col[3]);
+						SWAP(float, ntf->uv[1][0], ntf->uv[3][0]);
+						SWAP(float, ntf->uv[1][1], ntf->uv[3][1]);
+					} else if (ndlm->mcol) {
+						SWAP(MCol, nmc[1], nmc[3]);
+					}
+				} else {
+					SWAP(int, nmf->v2, nmf->v3);
+
+					if (ndlm->tface) {
+						SWAP(unsigned int, ntf->col[1], ntf->col[2]);
+						SWAP(float, ntf->uv[1][0], ntf->uv[2][0]);
+						SWAP(float, ntf->uv[1][1], ntf->uv[2][1]);
+					} else if (ndlm->mcol) {
+						SWAP(MCol, nmc[1], nmc[2]);
+					}
 				}
 			}
 		}

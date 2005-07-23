@@ -782,12 +782,12 @@ static void mesh_update_softbody(Object *ob, float (*vertexCos)[3])
 	if(me->totvert) {
 		bp= ob->soft->bpoint;
 		for(a=0; a<me->totvert; a++, bp++) {
+ 			VECCOPY(bp->origS, bp->origE);
 			if (vertexCos) {
 				VECCOPY(bp->origE, vertexCos[a]);
 			} else {
 				VECCOPY(bp->origE, me->mvert[a].co);
 			}
- 			VECCOPY(bp->origS, bp->origE);
 			Mat4MulVecfl(ob->obmat, bp->origE);
 			VECCOPY(bp->origT, bp->origE);
 		}
