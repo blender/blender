@@ -4064,19 +4064,19 @@ void view3d_buttons(void)
 
 	/* Transform widget / manipulators */
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform widgets (CTRL+Space)");	
+	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (CTRL+Space)");	
 	xco+= XIC;
 	
 	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate widget mode (CTRL+Space)");
+		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate widget mode (CTRL+Space)");
+		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale widget mode (CTRL+Space)");
+		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefButS(block, MENU, REDRAWVIEW3D, "Orientation%t|Global%x0|Local%x1|Normal%x2",                    xco,0,60,YIC, &G.vd->twmode, 0, 0, 0, 0, "Widget orientation (ALT+Space)");
-		xco+= 60;
 	}
+	uiDefButS(block, MENU, B_MAN_MODE, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3|Custom%x4",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+	xco+= 70;
 	uiBlockEndAlign(block);
 	xco+= 8;
 	

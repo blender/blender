@@ -31,6 +31,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -86,11 +87,7 @@
 extern ListBase editNurb;
 extern ListBase editelems;
 
-void recalcData();
-
 /* ************************** CONSTRAINTS ************************* */
-void getConstraintMatrix(TransInfo *t);
-
 void constraintNumInput(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
@@ -98,15 +95,16 @@ void constraintNumInput(TransInfo *t, float vec[3])
 		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
 		if (getConstraintSpaceDimension(t) == 2) {
-			if (mode & (CON_AXIS0|CON_AXIS1)) {
+			int axis = mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+			if (axis == (CON_AXIS0|CON_AXIS1)) {
 				vec[2] = nval;
 			}
-			else if (mode & (CON_AXIS1|CON_AXIS2)) {
+			else if (axis == (CON_AXIS1|CON_AXIS2)) {
 				vec[2] = vec[1];
 				vec[1] = vec[0];
 				vec[0] = nval;
 			}
-			else if (mode & (CON_AXIS0|CON_AXIS2)) {
+			else if (axis == (CON_AXIS0|CON_AXIS2)) {
 				vec[2] = vec[1];
 				vec[1] = nval;
 			}
@@ -166,7 +164,6 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 	Mat3MulVecfl(t->con.mtx, vec);
 }
 
-
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], n[3], n2[3], vec[3], factor;
 
@@ -186,7 +183,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	}
 	else {
 		// prevent division by zero, happens on constrainting without initial delta transform */
-		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0) {
+		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0f) {
 			/* project axis on viewplane		*/
 			Projf(vec, axis, t->viewinv[2]);
 			VecSubf(vec, axis, vec);
@@ -204,7 +201,9 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 			Projf(vec, in, n2);
 
 			/* Adjust output */
-			factor = Inpf(vec, vec) / Inpf(axis, vec);
+			factor = Inpf(axis, vec);
+			if (factor == 0.0f) return; /* prevent divide by zero */
+			factor = Inpf(vec, vec) / factor;
 
 			VecMulf(axis, factor);
 			VECCOPY(out, axis);
@@ -220,7 +219,9 @@ static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 
 	VecSubf(vec, out, in);
 
-	factor = Inpf(vec, vec) / Inpf(vec, norm);
+	factor = Inpf(vec, norm);
+	if (factor == 0.0f) return; /* prevent divide by zero */
+	factor = Inpf(vec, vec) / factor;
 
 	VECCOPY(vec, norm);
 	VecMulf(vec, factor);
@@ -459,71 +460,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3])
 	}
 }
 
-static void drawObjectConstraint(TransInfo *t) {
-	int i;
-	TransData * td = t->data;
-
-	/* Draw the first one lighter because that's the one who controls the others.
-	   Meaning the transformation is projected on that one and just copied on the others
-	   constraint space.
-	   In a nutshell, the object with light axis is controlled by the user and the others follow.
-	   Without drawing the first light, users have little clue what they are doing.
-	 */
-	if (t->con.mode & CON_AXIS0) {
-		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
-	}
-	if (t->con.mode & CON_AXIS1) {
-		drawLine(td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
-	}
-	if (t->con.mode & CON_AXIS2) {
-		drawLine(td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
-	}
-	
-	td++;
-
-	for(i=1;i<t->total;i++,td++) {
-		if (t->con.mode & CON_AXIS0) {
-			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
-		}
-		if (t->con.mode & CON_AXIS1) {
-			drawLine(td->ob->obmat[3], td->axismtx[1], 'y', 0);
-		}
-		if (t->con.mode & CON_AXIS2) {
-			drawLine(td->ob->obmat[3], td->axismtx[2], 'z', 0);
-		}
-	}
-}
-
-/*
- * Returns the dimension of the constraint space.
- * 
- * For that reason, the flags always needs to be set to properly evaluate here,
- * even if they aren't actually used in the callback function. (Which could happen
- * for weird constraints not yet designed. Along a path for example.)
- */
-
-int getConstraintSpaceDimension(TransInfo *t)
-{
-	int n = 0;
-
-	if (t->con.mode & CON_AXIS0)
-		n++;
-
-	if (t->con.mode & CON_AXIS1)
-		n++;
-
-	if (t->con.mode & CON_AXIS2)
-		n++;
-
-	return n;
-/*
-  Someone willing to do it criptically could do the following instead:
-
-  return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
-	
-  Based on the assumptions that the axis flags are one after the other and start at 1
-*/
-}
+/*--------------------- INTERNAL SETUP CALLS ------------------*/
 
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]) {
 	strncpy(t->con.text + 1, text, 48);
@@ -538,38 +475,6 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 	t->con.applySize = applyAxisConstraintSize;
 	t->con.applyRot = applyAxisConstraintRot;
 	t->redraw = 1;
-}
-
-void BIF_setLocalAxisConstraint(char axis, char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-
-	switch (axis) {
-	case 'X':
-		setLocalConstraint(t, CON_AXIS0, text);
-		break;
-	case 'Y':
-		setLocalConstraint(t, CON_AXIS1, text);
-		break;
-	case 'Z':
-		setLocalConstraint(t, CON_AXIS2, text);
-		break;
-	}
-}
-
-void BIF_setLocalLockConstraint(char axis, char *text) {
-	TransInfo *t = BIF_GetTransInfo();
-
-	switch (axis) {
-	case 'x':
-		setLocalConstraint(t, (CON_AXIS1|CON_AXIS2), text);
-		break;
-	case 'y':
-		setLocalConstraint(t, (CON_AXIS0|CON_AXIS2), text);
-		break;
-	case 'z':
-		setLocalConstraint(t, (CON_AXIS0|CON_AXIS1), text);
-		break;
-	}
 }
 
 void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
@@ -596,6 +501,73 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 			t->con.applyRot = applyObjectConstraintRot;
 			t->redraw = 1;
 		}
+	}
+}
+
+/*
+	Set the constraint according to the user defined orientation
+
+	ftext is a format string passed to sprintf. It will add the name of
+	the orientation where %s is (logically).
+*/
+void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
+	float mtx[3][3];
+	char text[40];
+
+	switch(G.vd->twmode) {
+	case V3D_MANIP_GLOBAL:
+		sprintf(text, ftext, "global");
+		Mat3One(mtx);
+		setConstraint(t, mtx, mode, text);
+		break;
+	case V3D_MANIP_LOCAL:
+		sprintf(text, ftext, "local");
+		setLocalConstraint(t, mode, text);
+		break;
+	case V3D_MANIP_NORMAL:
+		sprintf(text, ftext, "normal");
+		setConstraint(t, t->spacemtx, mode, text);
+		break;
+	case V3D_MANIP_VIEW:
+		sprintf(text, ftext, "view");
+		setConstraint(t, t->spacemtx, mode, text);
+		break;
+	}
+
+	t->con.mode |= CON_USER;
+}
+
+/*--------------------- EXTERNAL SETUP CALLS ------------------*/
+
+void BIF_setLocalLockConstraint(char axis, char *text) {
+	TransInfo *t = BIF_GetTransInfo();
+
+	switch (axis) {
+	case 'x':
+		setLocalConstraint(t, (CON_AXIS1|CON_AXIS2), text);
+		break;
+	case 'y':
+		setLocalConstraint(t, (CON_AXIS0|CON_AXIS2), text);
+		break;
+	case 'z':
+		setLocalConstraint(t, (CON_AXIS0|CON_AXIS1), text);
+		break;
+	}
+}
+
+void BIF_setLocalAxisConstraint(char axis, char *text) {
+	TransInfo *t = BIF_GetTransInfo();
+
+	switch (axis) {
+	case 'X':
+		setLocalConstraint(t, CON_AXIS0, text);
+		break;
+	case 'Y':
+		setLocalConstraint(t, CON_AXIS1, text);
+		break;
+	case 'Z':
+		setLocalConstraint(t, CON_AXIS2, text);
+		break;
 	}
 }
 
@@ -652,6 +624,7 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 	t->redraw = 1;
 }
 
+/*----------------- DRAWING CONSTRAINTS -------------------*/
 
 void BIF_drawConstraint(void)
 {
@@ -730,26 +703,43 @@ void BIF_drawPropCircle()
 	}
 }
 
-int isLockConstraint(TransInfo *t) {
-	int mode = t->con.mode;
 
-	if ( (mode & (CON_AXIS0|CON_AXIS1)) == (CON_AXIS0|CON_AXIS1))
-		return 1;
+static void drawObjectConstraint(TransInfo *t) {
+	int i;
+	TransData * td = t->data;
 
-	if ( (mode & (CON_AXIS1|CON_AXIS2)) == (CON_AXIS1|CON_AXIS2))
-		return 1;
+	/* Draw the first one lighter because that's the one who controls the others.
+	   Meaning the transformation is projected on that one and just copied on the others
+	   constraint space.
+	   In a nutshell, the object with light axis is controlled by the user and the others follow.
+	   Without drawing the first light, users have little clue what they are doing.
+	 */
+	if (t->con.mode & CON_AXIS0) {
+		drawLine(td->ob->obmat[3], td->axismtx[0], 'x', DRAWLIGHT);
+	}
+	if (t->con.mode & CON_AXIS1) {
+		drawLine(td->ob->obmat[3], td->axismtx[1], 'y', DRAWLIGHT);
+	}
+	if (t->con.mode & CON_AXIS2) {
+		drawLine(td->ob->obmat[3], td->axismtx[2], 'z', DRAWLIGHT);
+	}
+	
+	td++;
 
-	if ( (mode & (CON_AXIS0|CON_AXIS2)) == (CON_AXIS0|CON_AXIS2))
-		return 1;
-
-	return 0;
-}
-
-void initConstraint(TransInfo *t) {
-	if (t->con.mode & CON_APPLY) {
-		startConstraint(t);
+	for(i=1;i<t->total;i++,td++) {
+		if (t->con.mode & CON_AXIS0) {
+			drawLine(td->ob->obmat[3], td->axismtx[0], 'x', 0);
+		}
+		if (t->con.mode & CON_AXIS1) {
+			drawLine(td->ob->obmat[3], td->axismtx[1], 'y', 0);
+		}
+		if (t->con.mode & CON_AXIS2) {
+			drawLine(td->ob->obmat[3], td->axismtx[2], 'z', 0);
+		}
 	}
 }
+
+/*--------------------- START / STOP CONSTRAINTS ---------------------- */
 
 void startConstraint(TransInfo *t) {
 	t->con.mode |= CON_APPLY;
@@ -790,6 +780,8 @@ void getConstraintMatrix(TransInfo *t)
 	Mat3MulMat3(mat, t->con.pmtx, t->con.imtx);
 	Mat3MulMat3(t->con.pmtx, t->con.mtx, mat);
 }
+
+/*------------------------- MMB Select -------------------------------*/
 
 void initSelectConstraint(TransInfo *t, float mtx[3][3])
 {
@@ -881,35 +873,37 @@ void setNearestAxis(TransInfo *t)
 	if (len[0] <= len[1] && len[0] <= len[2]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS1|CON_AXIS2);
-			strcpy(t->con.text, " locking global X");
+			sprintf(t->con.text, " locking %s X axis", t->spacename);
 		}
 		else {
 			t->con.mode |= CON_AXIS0;
-			strcpy(t->con.text, " along global X");
+			sprintf(t->con.text, " along %s X axis", t->spacename);
 		}
 	}
 	else if (len[1] <= len[0] && len[1] <= len[2]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS2);
-			strcpy(t->con.text, " locking global Y");
+			sprintf(t->con.text, " locking %s Y axis", t->spacename);
 		}
 		else {
 			t->con.mode |= CON_AXIS1;
-			strcpy(t->con.text, " along global Y");
+			sprintf(t->con.text, " along %s Y axis", t->spacename);
 		}
 	}
 	else if (len[2] <= len[1] && len[2] <= len[0]) {
 		if (G.qual & LR_SHIFTKEY) {
 			t->con.mode |= (CON_AXIS0|CON_AXIS1);
-			strcpy(t->con.text, " locking global Z");
+			sprintf(t->con.text, " locking %s Z axis", t->spacename);
 		}
 		else {
 			t->con.mode |= CON_AXIS2;
-			strcpy(t->con.text, " along global Z");
+			sprintf(t->con.text, " along %s Z axis", t->spacename);
 		}
 	}
 	getConstraintMatrix(t);
 }
+
+/*-------------- HELPER FUNCTIONS ----------------*/
 
 char constraintModeToChar(TransInfo *t) {
 	if ((t->con.mode & CON_APPLY)==0) {
@@ -928,4 +922,51 @@ char constraintModeToChar(TransInfo *t) {
 	default:
 		return '\0';
 	}
+}
+
+
+int isLockConstraint(TransInfo *t) {
+	int mode = t->con.mode;
+
+	if ( (mode & (CON_AXIS0|CON_AXIS1)) == (CON_AXIS0|CON_AXIS1))
+		return 1;
+
+	if ( (mode & (CON_AXIS1|CON_AXIS2)) == (CON_AXIS1|CON_AXIS2))
+		return 1;
+
+	if ( (mode & (CON_AXIS0|CON_AXIS2)) == (CON_AXIS0|CON_AXIS2))
+		return 1;
+
+	return 0;
+}
+
+/*
+ * Returns the dimension of the constraint space.
+ * 
+ * For that reason, the flags always needs to be set to properly evaluate here,
+ * even if they aren't actually used in the callback function. (Which could happen
+ * for weird constraints not yet designed. Along a path for example.)
+ */
+
+int getConstraintSpaceDimension(TransInfo *t)
+{
+	int n = 0;
+
+	if (t->con.mode & CON_AXIS0)
+		n++;
+
+	if (t->con.mode & CON_AXIS1)
+		n++;
+
+	if (t->con.mode & CON_AXIS2)
+		n++;
+
+	return n;
+/*
+  Someone willing to do it criptically could do the following instead:
+
+  return t->con & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
+	
+  Based on the assumptions that the axis flags are one after the other and start at 1
+*/
 }

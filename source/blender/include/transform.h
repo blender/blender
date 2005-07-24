@@ -124,27 +124,27 @@ typedef struct TransData {
 
 typedef struct TransInfo {
     int         mode;           /* current mode                         */
+    int	        flag;           /* generic flags for special behaviors  */
 	short		state;			/* current state (running, canceled,...)*/
     int         context;        /* current context                      */
+    float       val;            /* init value for some transformations (and rotation angle)  */
+    float       fac;            /* factor for distance based transform  */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
-    char        redraw;         /* redraw flag                          */
-    int	        flag;           /* generic flags for special behaviors  */
     int         total;          /* total number of transformed data     */
+    TransData  *data;           /* transformed data (array)             */
+	TransDataExtension *ext;	/* transformed data extension (array)   */
+    TransCon    con;            /* transformed constraint               */
+    NumInput    num;            /* numerical input                      */
+    char        redraw;         /* redraw flag                          */
 	float		propsize;		/* proportional circle radius           */
 	char		proptext[20];	/* proportional falloff text			*/
     float       center[3];      /* center of transformation             */
     int         center2d[2];    /* center in screen coordinates         */
     short       imval[2];       /* initial mouse position               */
 	short		shiftmval[2];	/* mouse position when shift was pressed */
-	short       idx_max;
+	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
-    TransData  *data;           /* transformed data (array)             */
-	TransDataExtension *ext;	/* transformed data extension (array)   */
-    TransCon    con;            /* transformed constraint               */
-    NumInput    num;            /* numerical input                      */
-    float       val;            /* init value for some transformations (and rotation angle)  */
-    float       fac;            /* factor for distance based transform  */
 	
 	float		viewmat[4][4];	/* copy from G.vd, prevents feedback    */
 	float		viewinv[4][4];
@@ -153,7 +153,9 @@ typedef struct TransInfo {
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
 	
-	char		*undostr;		/* if set, uses this string for undo */
+	char		*undostr;		/* if set, uses this string for undo		*/
+	float		spacemtx[3][3];	/* orientation matrix of the current space	*/
+	char		spacename[32];	/* name of the current space				*/
 } TransInfo;
 
 
@@ -184,9 +186,9 @@ typedef struct TransInfo {
 
 /* restrictions flags */
 #define T_ALL_RESTRICTIONS	(256|512|1024)
-#define T_NO_CONSTRAINT	256
-#define T_NULL_ONE		512
-#define T_NO_ZERO		1024
+#define T_NO_CONSTRAINT		256
+#define T_NULL_ONE			512
+#define T_NO_ZERO			1024
 
 #define T_PROP_EDIT		 2048
 #define T_PROP_CONNECTED 4096
@@ -202,11 +204,12 @@ typedef struct TransInfo {
 #define CON_SELECT		16
 #define CON_NOFLIP		32	/* does not reorient vector to face viewport when on */
 #define CON_LOCAL		64
+#define CON_USER		128
 
 /* transdata->flag */
-#define TD_SELECTED		1
-#define	TD_NOACTION		2
-#define	TD_USEQUAT		4
+#define TD_SELECTED			1
+#define	TD_NOACTION			2
+#define	TD_USEQUAT			4
 #define TD_NOTCONNECTED		8
 #define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
 
@@ -264,40 +267,34 @@ void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(short canceled);
 
 /*********************** Constraints *****************************/
+
 void getConstraintMatrix(TransInfo *t);
 void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[]);
 void setLocalConstraint(TransInfo *t, int mode, const char text[]);
+void setUserConstraint(TransInfo *t, int mode, const char text[]);
 
 void constraintNumInput(TransInfo *t, float vec[3]);
 
-//void drawConstraint(TransCon *t);
-void drawConstraint();
-
-//void drawPropCircle(TransInfo *t);
-void drawPropCircle();
-
+void getConstraintMatrix(TransInfo *t);
 int isLockConstraint(TransInfo *t);
+int getConstraintSpaceDimension(TransInfo *t);
+char constraintModeToChar(TransInfo *t);
 
-void initConstraint(TransInfo *t);
 void startConstraint(TransInfo *t);
 void stopConstraint(TransInfo *t);
-
-void getConstraintMatrix(TransInfo *t);
 
 void initSelectConstraint(TransInfo *t, float mtx[3][3]);
 void selectConstraint(TransInfo *t);
 void postSelectConstraint(TransInfo *t);
 
-int getConstraintSpaceDimension(TransInfo *t);
-
 void setNearestAxis(TransInfo *t);
-
-char constraintModeToChar(TransInfo *t);
+void drawObjectConstraint(TransInfo *t);
 
 /*********************** Generics ********************************/
-void recalcData(TransInfo *t);
 
+void initTrans(TransInfo *t);
 void initTransModeFlags(TransInfo *t, int mode);
+void postTrans (TransInfo *t);
 
 void drawLine(float *center, float *dir, char axis, short options);
 
@@ -308,15 +305,12 @@ void drawLine(float *center, float *dir, char axis, short options);
 
 void applyTransObjects(TransInfo *t);
 void restoreTransObjects(TransInfo *t);
+void recalcData(TransInfo *t);
 
-void initTrans(TransInfo *t);
-void postTrans (TransInfo *t);
-
+void calculateCenter(TransInfo *t);
 void calculateCenterBound(TransInfo *t);
 void calculateCenterMedian(TransInfo *t);
 void calculateCenterCursor(TransInfo *t);
-
-void calculateCenter(TransInfo *t);
 
 void calculatePropRatio(TransInfo *t);
 
@@ -326,14 +320,12 @@ void getViewVector(float coord[3], float vec[3]);
 
 TransInfo * BIF_GetTransInfo(void);
 
-
 /*********************** NumInput ********************************/
+
 void outputNumInput(NumInput *n, char *str);
-
 short hasNumInput(NumInput *n);
-
 void applyNumInput(NumInput *n, float *vec);
-
 char handleNumInput(NumInput *n, unsigned short event);
+
 #endif
 

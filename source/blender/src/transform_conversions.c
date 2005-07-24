@@ -259,6 +259,13 @@ static void createTransTexspace(TransInfo *t)
 	ID *id;
 	
 	ob= OBACT;
+
+	id= ob->data;
+	if(id==NULL || !ELEM3( GS(id->name), ID_ME, ID_CU, ID_MB )) {
+		t->total = 0;
+		return;
+	}
+
 	t->total = 1;
 	td= t->data= MEM_callocN(sizeof(TransData), "TransTexspace");
 	td->ext= t->ext= MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
@@ -270,9 +277,7 @@ static void createTransTexspace(TransInfo *t)
 	Mat3CpyMat4(td->mtx, ob->obmat);
 	Mat3Inv(td->smtx, td->mtx);
 	
-	id= ob->data;
-	if(id==0);
-	else if( GS(id->name)==ID_ME) {
+	if( GS(id->name)==ID_ME) {
 		Mesh *me= ob->data;
 		me->texflag &= ~AUTOSPACE;
 		td->loc= me->loc;

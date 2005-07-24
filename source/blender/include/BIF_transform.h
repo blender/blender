@@ -75,6 +75,8 @@ void BIF_drawPropCircle(void);
 
 void BIF_TransformSetUndo(char *str);
 
+void BIF_selectOrientation(void);
+
 /* view3d manipulators */
 void initManipulator(int mode);
 void ManipulatorTransform();

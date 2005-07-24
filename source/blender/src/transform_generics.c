@@ -322,14 +322,6 @@ void postTrans (TransInfo *t)
 	G.moving = 0; // Set moving flag off (display as usual)
 
 	stopConstraint(t);
-	/* Not needed anymore but will keep there in case it will be
-	t->con.drawExtra = NULL;
-	t->con.applyVec	= NULL;
-	t->con.applySize= NULL;
-	t->con.applyRot	= NULL;
-	t->con.mode		= 0;
-	*/
-
 	
 	/* postTrans can be called when nothing is selected, so data is NULL already */
 	if (t->data) {

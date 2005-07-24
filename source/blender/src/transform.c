@@ -31,6 +31,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
@@ -46,51 +47,43 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_action_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_constraint_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_effect_types.h"
-#include "DNA_image_types.h"
-#include "DNA_ipo_types.h"
-#include "DNA_key_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_meta_types.h"
+#include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+#include "DNA_scene_types.h"	/* PET modes			*/
+#include "DNA_screen_types.h"	/* area dimensions		*/
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_world_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_property_types.h"
-#include "DNA_vfont_types.h"
+#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_gl.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BIF_space.h"			/* undo	*/
-#include "BIF_toets.h"		/* persptoetsen	*/
+#include "BIF_space.h"			/* undo					*/
+#include "BIF_toets.h"			/* persptoetsen			*/
+#include "BIF_mywindow.h"		/* warp_pointer			*/
+#include "BIF_toolbox.h"		/* notice				*/
+#include "BIF_editmesh.h"
 
-#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
+#include "BKE_bad_level_calls.h"/* popmenu and error	*/
 
-#include "BDR_editobject.h"
+#include "BDR_editobject.h"		/* compatible_eul		*/
 
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
-#include "BDR_editobject.h"
-
-#include "PIL_time.h"
+#include "PIL_time.h"			/* sleep				*/
 
 #include "blendef.h"
 
@@ -140,6 +133,17 @@ static void helpline(float *vec, int local)
 }
 
 /* ************************** TRANSFORMATIONS **************************** */
+
+void BIF_selectOrientation() {
+	short val;
+	val= pupmenu("Orientation%t|Global|Local|Normal|View");
+	if(val>0) {
+		if(val==1) G.vd->twmode= V3D_MANIP_GLOBAL;
+		else if(val==2) G.vd->twmode= V3D_MANIP_LOCAL;
+		else if(val==3) G.vd->twmode= V3D_MANIP_NORMAL;
+		else if(val==4) G.vd->twmode= V3D_MANIP_VIEW;
+	}
+}
 
 static void view_editmove(unsigned short event)
 {
@@ -209,6 +213,13 @@ static void view_editmove(unsigned short event)
 	}
 }
 
+void checkFirstTime() {
+	if(Trans.mode==TFM_INIT) {
+		memset(&Trans, 0, sizeof(TransInfo));
+		Trans.propsize = 1.0;
+	}
+}
+
 static char *transform_to_undostr(TransInfo *t)
 {
 	switch (t->mode) {
@@ -240,14 +251,6 @@ static char *transform_to_undostr(TransInfo *t)
 
 /* ************************************************* */
 
-void checkFirstTime() {
-	if(Trans.mode==TFM_INIT) {
-		memset(&Trans, 0, sizeof(TransInfo));
-		Trans.propsize = 1.0;
-		Mat3One(MatSpace);
-	}
-}
-
 static void transformEvent(unsigned short event, short val) {
 	float mati[3][3] = {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}};
 	char cmode = constraintModeToChar(&Trans);
@@ -266,6 +269,22 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.flag |= T_SHIFT_MOD;
 			Trans.redraw = 1;
 			break;
+
+		case SPACEKEY:
+			if (G.qual & LR_ALTKEY) {
+				short mval[2];
+
+				getmouseco_sc(mval);
+				BIF_selectOrientation();
+				calc_manipulator_stats(curarea);
+				Mat3CpyMat4(Trans.spacemtx, G.vd->twmat);
+				warp_pointer(mval[0], mval[1]);
+			}
+			else {
+				Trans.state = TRANS_CONFIRM;
+			}
+			break;
+
 			
 		case MIDDLEMOUSE:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
@@ -285,7 +304,7 @@ static void transformEvent(unsigned short event, short val) {
 						stopConstraint(&Trans);
 					}
 					else {
-						initSelectConstraint(&Trans, MatSpace);
+						initSelectConstraint(&Trans, Trans.spacemtx);
 						postSelectConstraint(&Trans);
 					}
 				}
@@ -297,7 +316,6 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.state = TRANS_CANCEL;
 			break;
 		case LEFTMOUSE:
-		case SPACEKEY:
 		case PADENTER:
 		case RETKEY:
 			Trans.state = TRANS_CONFIRM;
@@ -342,14 +360,14 @@ static void transformEvent(unsigned short event, short val) {
 		case XKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'X') {
-					if (Trans.con.mode & CON_LOCAL) {
+					if (Trans.con.mode & CON_USER) {
 						stopConstraint(&Trans);
 					}
 					else {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS0), "along local X");
+							setUserConstraint(&Trans, (CON_AXIS0), "along %s X");
 						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking local X");
+							setUserConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking %s X");
 					}
 				}
 				else {
@@ -364,14 +382,14 @@ static void transformEvent(unsigned short event, short val) {
 		case YKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'Y') {
-					if (Trans.con.mode & CON_LOCAL) {
+					if (Trans.con.mode & CON_USER) {
 						stopConstraint(&Trans);
 					}
 					else {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS1), "along local Y");
+							setUserConstraint(&Trans, (CON_AXIS1), "along %s Y");
 						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking local Y");
+							setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking %s Y");
 					}
 				}
 				else {
@@ -386,14 +404,14 @@ static void transformEvent(unsigned short event, short val) {
 		case ZKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'Z') {
-					if (Trans.con.mode & CON_LOCAL) {
+					if (Trans.con.mode & CON_USER) {
 						stopConstraint(&Trans);
 					}
 					else {
 						if (G.qual == 0)
-							setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
+							setUserConstraint(&Trans, (CON_AXIS2), "along %s Z");
 						else if (G.qual == LR_SHIFTKEY)
-							setLocalConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking local Z");
+							setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS1), "locking %s Z");
 					}
 				}
 				else {
@@ -481,6 +499,9 @@ void initTransform(int mode, int context) {
 
 	Trans.context = context;
 
+	calc_manipulator_stats(curarea);
+	Mat3CpyMat4(Trans.spacemtx, G.vd->twmat);
+
 	initTrans(&Trans);					// internal data, mouse, vectors
 
 	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
@@ -537,20 +558,15 @@ void initTransform(int mode, int context) {
 		initBoneSize(&Trans);
 		break;
 	}
-
-	initConstraint(&Trans);
 }
 
 void Transform() 
 {
-	float mati[3][3];
 	short pmval[2] = {0, 0}, mval[2], val;
 	unsigned short event;
 
 	if(Trans.total==0) return;	// added, can happen now! (ton)
 	
-	Mat3One(mati);
-
 	// Emptying event queue
 	while( qtest() ) {
 		event= extern_qread(&val);
@@ -564,7 +580,7 @@ void Transform()
 		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
 			if (Trans.flag & T_MMB_PRESSED) {
-				initSelectConstraint(&Trans, mati);
+				initSelectConstraint(&Trans, Trans.spacemtx);
 			}
 			Trans.redraw = 1;
 		}
@@ -612,6 +628,8 @@ void Transform()
 	scrarea_queue_headredraw(curarea);
 }
 
+/* ************************** Manipulator init and main **************************** */
+
 void initManipulator(int mode)
 {
 	Trans.state = TRANS_RUNNING;
@@ -651,7 +669,6 @@ void initManipulator(int mode)
 	}
 
 	Trans.flag |= T_USES_MANIPULATOR;
-	initConstraint(&Trans);
 }
 
 void ManipulatorTransform() 
@@ -765,7 +782,7 @@ void ManipulatorTransform()
 	scrarea_queue_headredraw(curarea);
 }
 
-
+/* ************************** TRANSFORMATIONS **************************** */
 
 /* ************************** WRAP *************************** */
 
@@ -2146,8 +2163,6 @@ void Mirror(short mode)
 	calculateCenter(&Trans);
 
 	initResize(&Trans);
-
-	initConstraint(&Trans);
 
 	if (Trans.total == 0) {
 		postTrans(&Trans);

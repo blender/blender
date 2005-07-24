@@ -153,12 +153,15 @@ static void stats_pose(bPoseChannel *pchan, float *normal, float *plane)
 int calc_manipulator_stats(ScrArea *sa)
 {
 	extern ListBase editNurb;
+	TransInfo *t;
 	View3D *v3d= sa->spacedata.first;
 	Base *base;
 	Object *ob= OBACT;
 	float normal[3]={0.0, 0.0, 0.0};
 	float plane[3]={0.0, 0.0, 0.0};
 	int a, totsel=0;
+
+	t = BIF_GetTransInfo();
 	
 	/* transform widget matrix */
 	Mat4One(v3d->twmat);
@@ -387,10 +390,12 @@ int calc_manipulator_stats(ScrArea *sa)
 		
 		switch(v3d->twmode) {
 		case V3D_MANIP_GLOBAL:
+			strcpy(t->spacename, "global");
 			break;
 			
 		case V3D_MANIP_NORMAL:
 			if(G.obedit || (ob->flag & OB_POSEMODE)) {
+				strcpy(t->spacename, "normal");
 				if(normal[0]!=0.0 || normal[1]!=0.0 || normal[2]!=0.0) {
 					float imat[3][3], mat[3][3];
 					
@@ -411,18 +416,29 @@ int calc_manipulator_stats(ScrArea *sa)
 					
 					Mat4CpyMat3(v3d->twmat, mat);
 					Mat4Ortho(v3d->twmat);
-					
+
 					break;
 				}
 			}
 			/* no break we define 'normal' as 'local' in Object mode */
 		case V3D_MANIP_LOCAL:
 			if(totsel==1 || v3d->around==V3D_LOCAL || G.obedit || (ob->flag & OB_POSEMODE)) {
+				strcpy(t->spacename, "local");
 				Mat4CpyMat4(v3d->twmat, ob->obmat);
 				Mat4Ortho(v3d->twmat);
 			}
 			break;
-		}		
+		case V3D_MANIP_VIEW:
+			{
+				float mat[3][3];
+				strcpy(t->spacename, "view");
+				Mat3CpyMat4(mat, v3d->viewinv);
+				Mat3Ortho(mat);
+				Mat4CpyMat3(v3d->twmat, mat);
+			}
+			break;
+		}
+		
 	}
 	   
 	return totsel;
@@ -588,8 +604,8 @@ static void draw_manipulator_axes(int colcode, int flagx, int flagy, int flagz)
 		if(flagx & MAN_SCALE_X) glLoadName(MAN_SCALE_X);
 		else if(flagx & MAN_TRANS_X) glLoadName(MAN_TRANS_X);
 		glBegin(GL_LINES);
-		glVertex3f(0.2, 0.0, 0.0);
-		glVertex3f(1.0, 0.0, 0.0);
+		glVertex3f(0.2f, 0.0f, 0.0f);
+		glVertex3f(1.0f, 0.0f, 0.0f);
 		glEnd();
 	}		
 	if(flagy) {
@@ -597,8 +613,8 @@ static void draw_manipulator_axes(int colcode, int flagx, int flagy, int flagz)
 		else if(flagy & MAN_TRANS_Y) glLoadName(MAN_TRANS_Y);
 		manipulator_setcolor('y', colcode);
 		glBegin(GL_LINES);
-		glVertex3f(0.0, 0.2, 0.0);
-		glVertex3f(0.0, 1.0, 0.0);
+		glVertex3f(0.0f, 0.2f, 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
 		glEnd();
 	}		
 	if(flagz) {
@@ -606,8 +622,8 @@ static void draw_manipulator_axes(int colcode, int flagx, int flagy, int flagz)
 		else if(flagz & MAN_TRANS_Z) glLoadName(MAN_TRANS_Z);
 		manipulator_setcolor('z', colcode);
 		glBegin(GL_LINES);
-		glVertex3f(0.0, 0.0, 0.2);
-		glVertex3f(0.0, 0.0, 1.0);
+		glVertex3f(0.0f, 0.0f, 0.2f);
+		glVertex3f(0.0f, 0.0f, 1.0f);
 		glEnd();
 	}
 }
@@ -681,9 +697,9 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			svec[1]+= tmat[2][1];
 			Normalise(svec);
 			
-			startphi= atan2(svec[0], svec[1]);
+			startphi= (float)atan2(svec[0], svec[1]);
 		}
-		else startphi= 0.5*M_PI;
+		else startphi= 0.5f*(float)M_PI;
 		
 		VECCOPY(vec, mat[0]);	// use x axis to detect rotation
 		Normalise(vec);
@@ -703,9 +719,9 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			svec[2]+= tmat[2][2];
 			Normalise(svec);
 			
-			startphi= M_PI + atan2(svec[2], -svec[1]);
+			startphi= (float)(M_PI + atan2(svec[2], -svec[1]));
 		}
-		else startphi= 0.0;
+		else startphi= 0.0f;
 		
 		VECCOPY(vec, mat[1]);	// use y axis to detect rotation
 		Normalise(vec);
@@ -727,9 +743,9 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 			svec[2]+= tmat[2][2];
 			Normalise(svec);
 			
-			startphi= M_PI + atan2(-svec[0], svec[2]);
+			startphi= (float)(M_PI + atan2(-svec[0], svec[2]));
 		}
-		else startphi= M_PI;
+		else startphi= (float)M_PI;
 		
 		VECCOPY(vec, mat[2]);	// use z axis to detect rotation
 		Normalise(vec);
@@ -833,18 +849,18 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 				glBegin(GL_LINES);
 				if( (drawflags & MAN_ROT_X) || (moving && (drawflags & MAN_ROT_Z)) ) {
 					manipulator_setcolor('x', colcode);
-					glVertex3f(0.2, 0.0, 0.0);
-					glVertex3f(1.0, 0.0, 0.0);
+					glVertex3f(0.2f, 0.0f, 0.0f);
+					glVertex3f(1.0f, 0.0f, 0.0f);
 				}		
 				if( (drawflags & MAN_ROT_Y) || (moving && (drawflags & MAN_ROT_X)) ) {
 					manipulator_setcolor('y', colcode);
-					glVertex3f(0.0, 0.2, 0.0);
-					glVertex3f(0.0, 1.0, 0.0);
+					glVertex3f(0.0f, 0.2f, 0.0f);
+					glVertex3f(0.0f, 1.0f, 0.0f);
 				}		
 				if( (drawflags & MAN_ROT_Z) || (moving && (drawflags & MAN_ROT_Y)) ) {
 					manipulator_setcolor('z', colcode);
-					glVertex3f(0.0, 0.0, 0.2);
-					glVertex3f(0.0, 0.0, 1.0);
+					glVertex3f(0.0f, 0.0f, 0.2f);
+					glVertex3f(0.0f, 0.0f, 1.0f);
 				}
 				glEnd();
 			}
@@ -918,7 +934,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
 			manipulator_setcolor('z', colcode);
 
-			partial_donut(0.7*cusize, 1.0, 31, 33, 8, 64);
+			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 		}	
@@ -931,7 +947,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			
 			glRotatef(90.0, 1.0, 0.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7*cusize, 1.0, 31, 33, 8, 64);
+			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 			
 			glPopMatrix();
 		}
@@ -944,7 +960,7 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 			
 			glRotatef(-90.0, 0.0, 1.0, 0.0);
 			glRotatef(90.0, 0.0, 0.0, 1.0);
-			partial_donut(0.7*cusize, 1.0, 31, 33, 8, 64);
+			partial_donut(0.7f*cusize, 1.0f, 31, 33, 8, 64);
 
 			glPopMatrix();
 		}
@@ -979,7 +995,7 @@ static void draw_manipulator_scale(float mat[][4], int moving, int drawflags, in
 		glPushMatrix();
 		size= screen_aligned(mat);
 		Mat4One(unitmat);
-		drawcircball(GL_LINE_LOOP, unitmat[3], 0.2*size, unitmat);
+		drawcircball(GL_LINE_LOOP, unitmat[3], 0.2f*size, unitmat);
 		glPopMatrix();
 		
 		dz= 1.0;
@@ -1092,7 +1108,7 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 	glPushMatrix();
 	size= screen_aligned(mat);
 	Mat4One(unitmat);
-	drawcircball(GL_LINE_LOOP, unitmat[3], 0.2*size, unitmat);
+	drawcircball(GL_LINE_LOOP, unitmat[3], 0.2f*size, unitmat);
 	glPopMatrix();
 	
 	/* and now apply matrix, we move to local matrix drawing */
@@ -1107,8 +1123,8 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 
 	
 	/* offset in combo mode, for rotate a bit more */
-	if(combo & (V3D_MANIP_ROTATE)) dz= 1.0f+2.0*cylen;
-	else if(combo & (V3D_MANIP_SCALE)) dz= 1.0f+0.5*cylen;
+	if(combo & (V3D_MANIP_ROTATE)) dz= 1.0f+2.0f*cylen;
+	else if(combo & (V3D_MANIP_SCALE)) dz= 1.0f+0.5f*cylen;
 	else dz= 1.0f;
 	
 	/* Z Cone */

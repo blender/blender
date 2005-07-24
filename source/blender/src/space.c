@@ -1072,14 +1072,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if(G.qual == LR_ALTKEY) {
-					val= pupmenu("Manipulator Orientation%t|Global|Local|Normal");
-					if(val>0) {
-						if(val==1) v3d->twmode= V3D_MANIP_GLOBAL;
-						else if(val==2) v3d->twmode= V3D_MANIP_LOCAL;
-						else if(val==3) v3d->twmode= V3D_MANIP_NORMAL;
-						v3d->twflag |= V3D_USE_MANIPULATOR;
-						doredraw= 1;
- 					}
+ 					BIF_selectOrientation();
+ 					doredraw= 1;
 				}
 
 				break;

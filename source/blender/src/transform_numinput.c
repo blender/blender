@@ -30,29 +30,11 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include <stdio.h>		/* for sprintf		*/
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include "BKE_global.h" /* for G			*/
 
-#ifndef WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
-
-#include "MEM_guardedalloc.h"
-
-#include "BKE_global.h" /* for G */
-
-#include "blendef.h"
-
-#include "mydevice.h"
-
-#include "BLI_arithb.h"
+#include "mydevice.h"	/* for KEY defines	*/
 
 #include "transform.h"
 
