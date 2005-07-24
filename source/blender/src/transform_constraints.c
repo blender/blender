@@ -84,8 +84,7 @@
 
 #include "transform.h"
 
-extern ListBase editNurb;
-extern ListBase editelems;
+static void drawObjectConstraint(TransInfo *t);
 
 /* ************************** CONSTRAINTS ************************* */
 void constraintNumInput(TransInfo *t, float vec[3])

@@ -288,7 +288,6 @@ void selectConstraint(TransInfo *t);
 void postSelectConstraint(TransInfo *t);
 
 void setNearestAxis(TransInfo *t);
-void drawObjectConstraint(TransInfo *t);
 
 /*********************** Generics ********************************/
 
