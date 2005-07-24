@@ -2368,7 +2368,7 @@ static void editing_panel_links(Object *ob)
 
 	uiBlockBeginAlign(block);
 	if(ma) uiDefButF(block, COL, B_REDR, "",			292,123,31,30, &(ma->r), 0, 0, 0, 0, "");
-	uiDefButC(block, NUM, B_REDR,	str,		324,123,100,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
+	uiDefButC(block, NUM, B_ACTCOL,	str,		324,123,100,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
 	uiDefBut(block, BUT,B_MATWICH,	"?",		424,123,30,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 
 	uiBlockBeginAlign(block);
