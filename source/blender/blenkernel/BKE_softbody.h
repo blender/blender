@@ -65,7 +65,7 @@ extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[
 extern void				sbObjectToSoftbody(struct Object *ob, float (*vertexCos)[3]);
 
 /* resets all motion and time */
-extern void				sbObjectReset(struct Object *ob);
+extern void				sbObjectReset(struct Object *ob, float (*vertexCos)[3]);
 
 #endif
 

@@ -1412,7 +1412,7 @@ void special_aftertrans_update(short cancelled)
 			
 			ob= base->object;
 			/* reset soft body object */
-			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob);
+			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob, NULL);
 			
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){

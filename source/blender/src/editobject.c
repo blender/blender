@@ -2191,13 +2191,12 @@ void convertmenu(void)
 					me->mat= MEM_dupallocN(oldme->mat);
 					for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
 				}
-				
+
 				dm= mesh_create_derived_no_deform(ob, NULL);
 				dlm= dm->convertToDispListMesh(dm);
-				dm->release(dm);
-
 				displistmesh_to_mesh(dlm, ob1->data);
 				displistmesh_free(dlm);
+				dm->release(dm);
 			}
 			else if(ob->type==OB_FONT) {
 				if(nr==1) {
@@ -2297,14 +2296,14 @@ void convertmenu(void)
 			free_and_unlink_base(basedel);	
 		basedel = NULL;				
 	}
-	
+
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Convert Object");
 
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_sort(G.scene);
 }
 
 	/* Change subdivision properties of mesh object ob, if

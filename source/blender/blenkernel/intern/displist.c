@@ -139,9 +139,6 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 
 void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
 {
-	MFace *mfaces;
-	int i;
-	
 	if (dlm->totvert>MESH_MAX_VERTS) {
 		error("Too many vertices");
 	} else {
@@ -149,26 +146,15 @@ void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me)
 		me->totvert= dlm->totvert;
 
 		me->mvert= MEM_dupallocN(dlm->mvert);
-		me->mface= mfaces= MEM_mallocN(sizeof(*mfaces)*me->totface, "me->mface");
-		me->tface= MEM_dupallocN(dlm->tface);
-		me->mcol= MEM_dupallocN(dlm->mcol);
+		me->mface= MEM_dupallocN(dlm->mface);
+		if (dlm->tface)
+			me->tface= MEM_dupallocN(dlm->tface);
+		if (dlm->mcol)
+			me->mcol= MEM_dupallocN(dlm->mcol);
 
 		if(dlm->medge) {
 			me->totedge= dlm->totedge;
 			me->medge= MEM_dupallocN(dlm->medge);
-		}
-
-		for (i=0; i<me->totface; i++) {
-			MFace *mf= &mfaces[i];
-			MFace *oldmf= &dlm->mface[i];
-		
-			mf->v1= oldmf->v1;
-			mf->v2= oldmf->v2;
-			mf->v3= oldmf->v3;
-			mf->v4= oldmf->v4;
-			mf->flag= oldmf->flag;
-			mf->mat_nr= oldmf->mat_nr;
-			mf->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 		}
 	}
 }

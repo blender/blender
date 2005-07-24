@@ -1188,7 +1188,7 @@ void sbObjectToSoftbody(Object *ob, float (*vertexCos)[3])
 }
 
 /* reset all motion */
-void sbObjectReset(Object *ob)
+void sbObjectReset(Object *ob, float (*vertexCos)[3])
 {
 	SoftBody *sb= ob->soft;
 	BodyPoint *bp;
@@ -1199,7 +1199,7 @@ void sbObjectReset(Object *ob)
 	
 	sb->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
 	
-	object_update_softbody(ob, NULL);
+	object_update_softbody(ob, vertexCos);
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		// origS is previous timestep
@@ -1259,7 +1259,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 	dtime= ctime - sb->ctime;
 		// bail out for negative or for large steps
 	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // G.scene->r.framelen corrects for frame-mapping, so this is actually 10 frames for UI
-		sbObjectReset(ob);
+		sbObjectReset(ob, vertexCos);
 		return;
 	}
 	
