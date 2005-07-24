@@ -332,7 +332,6 @@ void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 	schan= src->chanbase.first;
 	for (dchan = dst->chanbase.first; dchan; dchan=dchan->next, schan= schan->next){
 		if (schan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE)) {
-			
 			/* replaced quat->matrix->quat conversion with decent quaternion interpol (ton) */
 			
 			/* Do the transformation blend */
@@ -356,7 +355,8 @@ void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 			dchan->flag |= schan->flag;
 		}
 		for(dcon= dchan->constraints.first, scon= schan->constraints.first; dcon && scon; dcon= dcon->next, scon= scon->next) {
-			dcon->enforce= dcon->enforce*dstweight + scon->enforce*srcweight;
+			/* no 'add' option for constraint blending */
+			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
 	}
 }
