@@ -1435,15 +1435,8 @@ static void solve_parenting (Object *ob, Object *par, float slowmat[][4], int si
 		break;
 		
 	case PARSKEL:
-#if 0
-		if (ob!=G.obedit)
-			Mat4One(totmat);
-		else
-			Mat4CpyMat4(totmat, par->obmat);
+		Mat4CpyMat4(totmat, par->obmat);
 		break;
-#else
-			Mat4CpyMat4(totmat, par->obmat);
-#endif
 	}
 	
 	// total 

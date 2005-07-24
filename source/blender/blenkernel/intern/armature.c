@@ -1069,7 +1069,6 @@ void where_is_pose (Object *ob)
 	Bone *bone;
 	bPoseChannel *pchan, *next;
 	float imat[4][4];
-//	float ctime= (float)G.scene->r.cfra;	/* time only applies constraint location on curve path (now) */
 
 	arm = get_armature(ob);
 	
@@ -1077,10 +1076,8 @@ void where_is_pose (Object *ob)
 	if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC)) 
 	   armature_rebuild_pose(ob, arm);
 	
-//	printf("re-evaluate pose %s\n", ob->id.name);
-	
 	/* In restposition we read the data from the bones */
-	if(arm->flag & ARM_RESTPOS) {
+	if(ob==G.obedit || (arm->flag & ARM_RESTPOS)) {
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;

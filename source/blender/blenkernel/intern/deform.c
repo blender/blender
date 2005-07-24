@@ -281,11 +281,8 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 			lattice_deform_verts(ob->parent, ob, vertexCos, me->totvert);
 		}
 		else if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
-				// misleading making displists... very bad
-			if (ob->parent!=G.obedit) {
-				if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-				armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-			}
+			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
+			armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
 		}
 	}
 
