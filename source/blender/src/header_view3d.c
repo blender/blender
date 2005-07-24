@@ -4075,7 +4075,7 @@ void view3d_buttons(void)
 		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (CTRL+Space)");
 		xco+= XIC;
 	}
-	uiDefButS(block, MENU, B_MAN_MODE, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3|Custom%x4",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
+	uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3|Custom%x4",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
 	xco+= 70;
 	uiBlockEndAlign(block);
 	xco+= 8;
