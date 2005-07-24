@@ -49,7 +49,11 @@ void set_pose_keys(struct Object *ob);
  */
 void exit_posemode(void);
 
+/* tools */
 void pose_special_editmenu(void);
+void pose_add_IK(void);
+void pose_clear_IK(void);
+void pose_clear_constraints(void);
 
 #endif
 

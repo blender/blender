@@ -92,10 +92,9 @@ void free_constraints (ListBase *conlist)
 	bConstraint *con;
 	
 	/* Do any specific freeing */
-	for (con=conlist->first; con; con=con->next)
-	{
+	for (con=conlist->first; con; con=con->next) {
 		free_constraint_data (con);
-	};
+	}
 	
 	/* Free the whole list */
 	BLI_freelistN(conlist);
@@ -374,7 +373,7 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 	return NULL;  
 }
 
-void set_constraint_target(bConstraint *con, Object *ob)
+void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 {
 	/*
 	 * Set the target for this constraint  
@@ -384,36 +383,42 @@ void set_constraint_target(bConstraint *con, Object *ob)
 		{
 			bActionConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 		{
 			bKinematicConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 		case CONSTRAINT_TYPE_FOLLOWPATH: 
@@ -426,6 +431,7 @@ void set_constraint_target(bConstraint *con, Object *ob)
 		{
 			bStretchToConstraint *data = con->data;
 			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
 	}
@@ -488,7 +494,8 @@ void *new_constraint_data (short type)
 
 			data->tolerance = (float)0.001;
 			data->iterations = 500;
-
+			data->flag= CONSTRAINT_IK_TIP;
+			
 			result = data;
 		}
 		break;

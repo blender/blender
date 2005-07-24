@@ -67,13 +67,11 @@ typedef struct bConstraint{
 typedef struct bKinematicConstraint{
 	Object		*tar;
 	float		tolerance;		/* Acceptable distance from target */
-	int			iterations;		/* Maximum number of iterations to try */
+	short		iterations;		/* Maximum number of iterations to try */
+	short		flag;			/* Like IK to Tip */
 	char		subtarget[32];	/* String to specify sub-object target */
 
-	float		cacheeff[3];	/* Target location cache */
-	int			reserved1;
 
-	float		cachemat[4][4];	/* Result cache */
 } bKinematicConstraint;
 
 typedef struct bTrackToConstraint{
@@ -218,6 +216,9 @@ typedef struct bStretchToConstraint{
 #define PLANE_X		0x00000000
 #define PLANE_Y		0x00000001
 #define PLANE_Z		0x00000002
+
+/* bKinematicConstraint->flag */
+#define CONSTRAINT_IK_TIP		1
 
 #endif
 

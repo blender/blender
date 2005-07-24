@@ -791,11 +791,15 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	/* Find the chain's root & count the segments needed */
 	for (curchan = pchan_tip; curchan; curchan=curchan->parent){
 		pchan_root = curchan;
-		/* tip is not in the chain */
-		if (curchan!=pchan_tip){
-			chanlist[segcount]=curchan;
-			segcount++;
+		
+		chanlist[segcount]=curchan;
+		segcount++;
+		
+		/* exclude tip from chain? */
+		if(curchan==pchan_tip) {
+			if(!(data->flag & CONSTRAINT_IK_TIP)) segcount--;
 		}
+		
 		if(segcount>255) break; // also weak
 		
 		if (!(curchan->bone->flag & BONE_IK_TOPARENT))

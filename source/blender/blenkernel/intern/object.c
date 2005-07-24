@@ -322,7 +322,7 @@ void unlink_object(Object *ob)
 				for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
 					for (con = pchan->constraints.first; con; con=con->next) {
 						if(ob==get_constraint_target(con, &str)) {
-							set_constraint_target(con, NULL);
+							set_constraint_target(con, NULL, NULL);
 							obt->recalc |= OB_RECALC_DATA;
 						}
 					}
@@ -333,7 +333,7 @@ void unlink_object(Object *ob)
 			
 			for (con = obt->constraints.first; con; con=con->next) {
 				if(ob==get_constraint_target(con, &str)) {
-					set_constraint_target(con, NULL);
+					set_constraint_target(con, NULL, NULL);
 					obt->recalc |= OB_RECALC_OB;
 				}
 			}

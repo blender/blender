@@ -103,6 +103,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
+#include "BIF_poseobject.h"
 #include "BIF_outliner.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -1122,7 +1123,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					copy_attr_menu();
 				}
 				else if(G.qual==LR_ALTKEY) {
-					convertmenu();	/* editobject.c */
+					if(ob && (ob->flag & OB_POSEMODE))
+						pose_clear_constraints();	/* poseobject.c */
+					else
+						convertmenu();	/* editobject.c */
 				}
 				else if((G.qual==LR_SHIFTKEY)) {
 					view3d_home(1);
@@ -1295,6 +1299,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case IKEY:
+				if(G.obedit);
+				else if(G.qual==LR_CTRLKEY) {
+					if(ob && ob->type==OB_ARMATURE) 
+						if(ob->flag & OB_POSEMODE) 
+							pose_add_IK();
+				}
+				else if(G.qual==LR_ALTKEY) {
+					if(ob && ob->type==OB_ARMATURE) 
+						if(ob->flag & OB_POSEMODE) 
+							pose_clear_IK();
+				}
 				break;
 				
 			case JKEY:

@@ -529,15 +529,18 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
-				if (arm){
+				if (arm)
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-				}
 				else
 					strcpy (data->subtarget, "");
 				uiBlockEndAlign(block);
 	
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_REDRAW, "Use Tip", *xco+((width/2)-117), *yco-42, 80, 18, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
+				
+				uiBlockBeginAlign(block);
 				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Tolerance:", *xco+((width/2)-117), *yco-64, 120, 18, &data->tolerance, 0.0001f, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
-				uiDefButI(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_REDRAW, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
+				uiBlockEndAlign(block);
 				
 			}
 			break;

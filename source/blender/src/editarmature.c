@@ -1155,7 +1155,7 @@ static EditBone *add_editbone(void)
 	strcpy (bone->name,"Bone");
 	unique_editbone_name (bone->name);
 	
-	bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
 	bone->dist= 1.0F;
 	bone->xwidth= 0.1;
@@ -1188,7 +1188,6 @@ static void add_primitive_bone(Object *ob)
 	
 	/*	Create a bone	*/
 	bone= add_editbone();
-	bone->flag |= BONE_ACTIVE;
 
 	VECCOPY(bone->head, curs);
 	VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1

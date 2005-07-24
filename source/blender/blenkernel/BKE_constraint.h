@@ -60,7 +60,7 @@ void free_constraint_channels (ListBase *chanbase);
 
 char constraint_has_target (struct bConstraint *con);
 struct Object *get_constraint_target(struct bConstraint *con, char **subtarget);
-void set_constraint_target(struct bConstraint *con, struct Object *ob);
+void set_constraint_target(struct bConstraint *con, struct Object *ob, char *subtarget);
 
 
 /* Constraint target/owner types */

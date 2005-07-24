@@ -6,10 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,19 +20,15 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
+ * Contributor(s): Ton Roosendaal, Blender Foundation '05, full recode.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * support for animation modes - Reevan McKay
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include <stdlib.h>
+
+#include "MEM_guardedalloc.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -51,16 +44,19 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
-#include "BKE_global.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_object.h"
 
+#include "BIF_editconstraint.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_poseobject.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
-#include "BIF_poseobject.h"
 
 #include "BDR_editobject.h"
 
@@ -144,13 +140,16 @@ void exit_posemode(void)
 	scrarea_queue_headredraw(curarea);
 }
 
+/* context: active channel */
 void pose_special_editmenu(void)
 {
 	Object *ob= OBACT;
 	bPoseChannel *pchan;
 	short nr;
 	
+	/* paranoia checks */
 	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
 		if(pchan->bone->flag & BONE_ACTIVE) break;
@@ -175,4 +174,155 @@ void pose_special_editmenu(void)
 	}
 }
 
+/* context: active channel, optional selected channel */
+void pose_add_IK(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchanact, *pchansel;
+	bConstraint *con;
+	short nr;
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	/* find active */
+	for(pchanact= ob->pose->chanbase.first; pchanact; pchanact= pchanact->next)
+		if(pchanact->bone->flag & BONE_ACTIVE) break;
+	if(pchanact==NULL) return;
+	
+	/* find selected */
+	for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
+		if(pchansel!=pchanact)
+			if(pchansel->bone->flag & BONE_SELECTED) break;
+	}
+	
+	for(con= pchanact->constraints.first; con; con= con->next) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
+	}
+	if(con) {
+		error("Pose Channel already has IK");
+		return;
+	}
+	
+	if(pchansel)
+		nr= pupmenu("Add IK Constraint%t|To new Empty Object%x1|To selected Bone%x2");
+	else
+		nr= pupmenu("Add IK Constraint%t|To new Empty Object%x1");
+
+	if(nr<1) return;
+	
+	/* prevent weird chains... */
+	if(nr==2) {
+		bPoseChannel *pchan= pchanact;
+		while(pchan) {
+			if(pchan==pchansel) break;
+			if(pchan->bone->flag & BONE_IK_TOPARENT)
+				pchan= pchan->parent;
+			else pchan= NULL;
+		}
+		if(pchan) {
+			error("IK target should not be in the IK chain itself");
+			return;
+		}
+	}
+
+	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
+	BLI_addtail(&pchanact->constraints, con);
+	pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
+	
+	/* add new empty as target */
+	if(nr==1) {
+		Base *base= BASACT;
+		Object *obt;
+		
+		obt= add_object(OB_EMPTY);
+		/* transform cent to global coords for loc */
+		VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
+		
+		set_constraint_target(con, obt, NULL);
+		
+		/* restore, add_object sets active */
+		BASACT= base;
+		base->flag |= SELECT;
+	}
+	else if(nr==2) {
+		set_constraint_target(con, ob, pchansel->name);
+	}
+	
+	ob->pose->flag |= POSE_RECALC;	// sort pose channels
+	DAG_scene_sort(G.scene);		// sort order of objects
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+
+	BIF_undo_push("Add IK constraint");
+}
+
+/* context: all selected channels */
+void pose_clear_IK(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	bConstraint *con;
+	bConstraint *next;
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	if(okee("Remove IK constraint(s)")==0) return;
+
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			
+			for(con= pchan->constraints.first; con; con= next) {
+				next= con->next;
+				if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+					BLI_remlink(&pchan->constraints, con);
+					free_constraint_data(con);
+					MEM_freeN(con);
+				}
+			}
+			pchan->constflag &= ~PCHAN_HAS_IK;
+		}
+	}
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Remove IK constraint(s)");
+}
+
+void pose_clear_constraints(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	if(okee("Remove Constraints")==0) return;
+	
+	/* find active */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			free_constraints(&pchan->constraints);
+			pchan->constflag= 0;
+		}
+	}
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Remove Constraint(s)");
+	
+}
 
