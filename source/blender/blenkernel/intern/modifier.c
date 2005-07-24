@@ -654,12 +654,11 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 	} else {
 		MirrorModifierData *mmd = (MirrorModifierData*) md;
 		DispListMesh *ndlm = MEM_callocN(sizeof(*ndlm), "mm_dlm");
-		int i, axis = mmd->axis;
-		float tolerance = mmd->tolerance;
 		EditMesh *em = editData;
 		EditVert *eve, *preveve;
 		EditEdge *eed;
 		EditFace *efa;
+		int i;
 
 		for (i=0,eve=em->verts.first; eve; eve= eve->next)
 			eve->prev = (EditVert*) i++;

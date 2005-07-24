@@ -430,30 +430,6 @@ static void meshDM_release(DerivedMesh *dm)
 	MEM_freeN(mdm);
 }
 
-static float *mesh_build_faceNormals(Object *meshOb) 
-{
-	Mesh *me = meshOb->data;
-	float *nors = MEM_mallocN(sizeof(float)*3*me->totface, "meshnormals");
-	float *n1 = nors;
-	int i;
-
-	for (i=0; i<me->totface; i++,n1+=3) {
-		MFace *mf = &me->mface[i];
-		
-		if (mf->v3) {
-			MVert *ve1= &me->mvert[mf->v1];
-			MVert *ve2= &me->mvert[mf->v2];
-			MVert *ve3= &me->mvert[mf->v3];
-			MVert *ve4= &me->mvert[mf->v4];
-					
-			if(mf->v4) CalcNormFloat4(ve1->co, ve2->co, ve3->co, ve4->co, n1);
-			else CalcNormFloat(ve1->co, ve2->co, ve3->co, n1);
-		}
-	}
-
-	return nors;
-}
-
 static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3])
 {
 	MeshDerivedMesh *mdm = MEM_callocN(sizeof(*mdm), "mdm");

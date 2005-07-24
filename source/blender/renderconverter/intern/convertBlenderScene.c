@@ -494,7 +494,7 @@ static void calc_vertexnormals(int startvert, int startvlak)
 				fac4= saacos(-n3[0]*n4[0]-n3[1]*n4[1]-n3[2]*n4[2]);
 
 				if(!(vlr->flag & R_NOPUNOFLIP)) {
-					if( contrpuntnormr(vlr->n, adrve4->n) ) fac1= -fac1;
+					if( contrpuntnormr(vlr->n, adrve4->n) ) fac4= -fac4;
 				}
 
 				adrve4->n[0] +=fac4*vlr->n[0];

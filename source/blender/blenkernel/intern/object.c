@@ -174,9 +174,9 @@ static void copy_hooks(ListBase *new, ListBase *old)
 
 static void free_modifiers(ListBase *lb)
 {
-	ModifierData *md;
+	while (lb->first) {
+		ModifierData *md = lb->first;
 
-	while (md=lb->first) {
 		BLI_remlink(lb, md);
 
 		modifier_free(md);
