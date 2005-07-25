@@ -55,9 +55,9 @@ typedef unsigned long long	r_uint64;
 
 /***/
 
-typedef struct RNG {
+struct RNG {
 	r_uint64 X;
-} RNG;
+};
 
 RNG	*rng_new(unsigned int seed)
 {

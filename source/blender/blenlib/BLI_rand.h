@@ -41,6 +41,7 @@
 	 * to BLI_rand functions below.
 	 */
 struct RNG;
+typedef struct RNG RNG;
 
 struct RNG*	rng_new			(unsigned int seed);
 void		rng_free		(struct RNG* rng);
