@@ -211,6 +211,7 @@ void CutEdgeloop(int numcuts)
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
     char msg[128];
 	
+	BIF_undo_push("Loopcut Begin");
     while(choosing){
         getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
@@ -365,7 +366,7 @@ void CutEdgeloop(int numcuts)
             EdgeSlide(1,0.0);
         else {
             if(EdgeSlide(0,0.0) == -1){
-                undo_editmode_step(0);   
+                BIF_undo();   
             }   
         }
     }
