@@ -36,6 +36,21 @@
 #ifndef BLI_RAND_H
 #define BLI_RAND_H
 
+	/* RNG is just an abstract random number generator
+	 * type that avoids using globals, otherwise identical
+	 * to BLI_rand functions below.
+	 */
+struct RNG;
+
+struct RNG*	rng_new			(unsigned int seed);
+void		rng_free		(struct RNG* rng);
+
+void		rng_seed		(struct RNG* rng, unsigned int seed);
+int			rng_getInt		(struct RNG* rng);
+double		rng_getDouble	(struct RNG* rng);
+float		rng_getFloat	(struct RNG* rng);
+void		rng_shuffleArray(struct RNG *rng, void *data, int elemSize, int numElems);
+
 	/** Seed the random number generator */
 void	BLI_srand		(unsigned int seed);
 
@@ -55,17 +70,10 @@ float	BLI_frand		(void);
 	 */
 void	BLI_fillrand	(void *addr, int len);
 
-	/** Stores the BLI randum number generator state
-	 * into the buffer in @a loc_r.
+	/** Shuffle an array randomly using the given seed.
+	 * contents. This routine does not use nor modify
+	 * the state of the BLI random number generator.
 	 */
-void	BLI_storerand	(unsigned int loc_r[2]);
-
-	/** Retores the BLI randum number generator state
-	 * from the buffer in @a loc.
-	 */
-void	BLI_restorerand	(unsigned int loc[2]);
-
-	/** Shuffle an array randomly using the given seed. */
 void	BLI_array_randomize	(void *data, int elemSize, int numElems, unsigned int seed);
 
 #endif
