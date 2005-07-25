@@ -115,10 +115,6 @@ SOURCE=..\..\..\source\blender\python\BPY_menus.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\python\api2_2x\Build.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\python\api2_2x\Camera.c
 # End Source File
 # Begin Source File
@@ -231,6 +227,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Particle.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\point.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\quat.c
 # End Source File
 # Begin Source File
@@ -335,10 +335,6 @@ SOURCE=..\..\..\source\blender\python\api2_2x\bpy_types.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\python\api2_2x\Build.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\python\api2_2x\Camera.h
 # End Source File
 # Begin Source File
@@ -440,6 +436,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Object.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Particle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\point.h
 # End Source File
 # Begin Source File
 
