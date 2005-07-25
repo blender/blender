@@ -1461,6 +1461,9 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 					lt= ob->data;
 					if(lt->key) ob->recalc |= OB_RECALC_DATA;
 					break;
+				case OB_MBALL:
+					if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
+					break;
 			}
 		}
 	}

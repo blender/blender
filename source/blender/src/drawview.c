@@ -2006,22 +2006,17 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	}
 	
 	/* then draw not selected and the duplis, but skip editmode object */
-	base= G.scene->base.first;
-	while(base) {
-		
+	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
 			
 			/* dupli drawing temporal off here */
-			if(FALSE && base->object->transflag & OB_DUPLI) {
+			if(base->object->transflag & OB_DUPLI) {
 				extern ListBase duplilist;
 				Base tbase;
 
-				/* draw original always first because of make_displist */
-				draw_object(base);
-
 				/* patch: color remains constant */ 
 				G.f |= G_PICKSEL;
-				cpack(0x404040);
+				BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
 				
 				tbase.flag= OB_FROMDUPLI;
 				make_duplilist(G.scene, base->object);
@@ -2039,56 +2034,19 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			else if((base->flag & SELECT)==0) {
 				if(base->object!=G.obedit) draw_object(base);
 			}
-			
 		}
-		
-		base= base->next;
 	}
 	/* draw selected and editmode */
-	base= G.scene->base.first;
-	while(base) {
-		
+	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
 			if (base->object==G.obedit || ( base->flag & SELECT) ) 
 				draw_object(base);
 		}
-		
-		base= base->next;
 	}
 
 	if(G.moving) {
 		BIF_drawConstraint();
 		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
-	}
-
-	/* duplis, draw as last to make sure the displists are ok */
-	base= G.scene->base.first;
-	while(base) {
-		
-		if(v3d->lay & base->lay) {
-			if(base->object->transflag & OB_DUPLI) {
-				extern ListBase duplilist;
-				Base tbase;
-
-				/* patch: color remains constant */ 
-				G.f |= G_PICKSEL;
-				cpack(0x404040);
-				
-				tbase.flag= OB_FROMDUPLI;
-				make_duplilist(G.scene, base->object);
-
-				ob= duplilist.first;
-				while(ob) {
-					tbase.object= ob;
-					draw_object(&tbase);
-					ob= ob->id.next;
-				}
-				free_duplilist();
-				
-				G.f &= ~G_PICKSEL;				
-			}
-		}
-		base= base->next;
 	}
 
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
