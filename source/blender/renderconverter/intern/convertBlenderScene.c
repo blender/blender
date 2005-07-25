@@ -1523,8 +1523,10 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 	
-	if (test_for_displace( ob ) ) 
+	if (test_for_displace( ob ) ) {
+		calc_vertexnormals(totverto, totvlako);
 		do_displacement(ob, totvlako, R.totvlak-totvlako, totverto, R.totvert-totverto);
+	}
 
 	if(do_autosmooth || (me->flag & ME_AUTOSMOOTH)) {
 		autosmooth(totverto, totvlako, me->smoothresh);
