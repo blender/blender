@@ -566,7 +566,7 @@ void init_render_material(Material *ma)
 	
 	if(ma->mode & MA_RADIO) needuv= 1;
 	
-	if(ma->mode & (MA_VERTEXCOL|MA_FACETEXTURE)) {
+	if(ma->mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)) {
 		needuv= 1;
 		if(R.osa) ma->texco |= TEXCO_OSA;		/* for texfaces */
 	}
