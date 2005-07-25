@@ -218,7 +218,7 @@ void deselectall_eff(Object *ob)
 
 /* ***************** PARTICLES ***************** */
 
-Particle *new_particle(PartEff *paf)
+static Particle *new_particle(PartEff *paf)
 {
 	static Particle *pa;
 	static int cur;
@@ -283,7 +283,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 
 }
 
-void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
+static void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 {				
 	float tin, tr, tg, tb, ta;
 	float old;
@@ -504,7 +504,7 @@ static void cache_object_vertices(Object *ob)
 	}
 }
 
-int pdDoDeflection(float opco[3], float npco[3], float opno[3],
+static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
         float npno[3], float life, float force[3], int def_depth,
         float cur_time, unsigned int par_layer, int *last_object,
 		int *last_face, int *same_face)
@@ -679,7 +679,7 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 		else 
 			perm_val = deflection_object->pd->pdef_perm;
 
-		perm_thresh =  (float)BLI_drand() - perm_val;
+		perm_thresh = rng_getFloat(rng) - perm_val;
 		if (perm_thresh < 0 ) {
 			deflected = 0;
 		}
@@ -742,7 +742,7 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 		else 
 			rdamp_val = deflection_object->pd->pdef_rdamp;
 
-		damping = damping + ((1 - damping) * ((float)BLI_drand()*rdamp_val));
+		damping = damping + ((1.0f - damping) * rng_getFloat(rng) *rdamp_val);
 		damping = damping * damping;
         ref_plane_mag = INPR(refl_vel,d_nvect);
 
@@ -828,7 +828,7 @@ int pdDoDeflection(float opco[3], float npco[3], float opno[3],
 	return deflected;
 }
 
-void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
+static void make_particle_keys(RNG *rng, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
 {
 	Particle *pa, *opa = NULL;
 	float damp, deltalife, life;
@@ -842,9 +842,9 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 
 	/* start speed: random */
 	if(paf->randfac!=0.0) {
-		pa->no[0]+= (float)(paf->randfac*( BLI_drand() -0.5));
-		pa->no[1]+= (float)(paf->randfac*( BLI_drand() -0.5));
-		pa->no[2]+= (float)(paf->randfac*( BLI_drand() -0.5));
+		pa->no[0]+= paf->randfac*(rng_getFloat(rng) - 0.5f);
+		pa->no[1]+= paf->randfac*(rng_getFloat(rng) - 0.5f);
+		pa->no[2]+= paf->randfac*(rng_getFloat(rng) - 0.5f);
 	}
 
 	/* start speed: texture */
@@ -912,7 +912,7 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 		/* Bail out if we've done the calculation 10 times - this seems ok     */
         /* for most scenes I've tested */
 		while (finish_defs) {
-			deflected =  pdDoDeflection(opco, npco, opno, npno, life, new_force,
+			deflected =  pdDoDeflection(rng, opco, npco, opno, npno, life, new_force,
 							def_count, cur_time, par_layer,
 							&last_ob, &last_fc, &same_fc);
 			if (deflected) {
@@ -978,18 +978,19 @@ void make_particle_keys(int depth, int nr, PartEff *paf, Particle *part, float *
 				*pa= *opa;
 				pa->lifetime= paf->life[depth];
 				if(paf->randlife!=0.0) {
-					pa->lifetime*= 1.0f+ (float)(paf->randlife*( BLI_drand() - 0.5));
+					pa->lifetime*= 1.0f + paf->randlife*(rng_getFloat(rng) - 0.5f);
 				}
 				pa->mat_nr= paf->mat[depth];
 
-				make_particle_keys(depth+1, b, paf, pa, force, deform, mtex, par_layer);
+				make_particle_keys(rng, depth+1, b, paf, pa, force, deform, mtex, par_layer);
 			}
 		}
 	}
 }
 
-void init_mv_jit(float *jit, int num,int seed2)
+static void init_mv_jit(float *jit, int num,int seed2)
 {
+	RNG *rng;
 	float *jit2, x, rad1, rad2, rad3;
 	int i, num2;
 
@@ -999,13 +1000,13 @@ void init_mv_jit(float *jit, int num,int seed2)
 	rad2= (float)(1.0/((float)num));
 	rad3= (float)sqrt((float)num)/((float)num);
 
-	BLI_srand(31415926 + num + seed2);
+	rng = rng_new(31415926 + num + seed2);
 	x= 0;
         num2 = 2 * num;
 	for(i=0; i<num2; i+=2) {
 	
-		jit[i]= x+ (float)(rad1*(0.5-BLI_drand()));
-		jit[i+1]= ((float)i/2)/num +(float)(rad1*(0.5-BLI_drand()));
+		jit[i]= x + rad1*(0.5f - rng_getFloat(rng));
+		jit[i+1]= i/(2.0f*num) + rad1*(0.5f - rng_getFloat(rng));
 		
 		jit[i]-= (float)floor(jit[i]);
 		jit[i+1]-= (float)floor(jit[i+1]);
@@ -1022,6 +1023,7 @@ void init_mv_jit(float *jit, int num,int seed2)
 		RE_jitterate2(jit, jit2, num, rad2);
 	}
 	MEM_freeN(jit2);
+	rng_free(rng);
 }
 
 
@@ -1123,6 +1125,7 @@ static void give_mesh_mvert(Mesh *me, DispListMesh *dlm, int nr, float *co, shor
 
 void build_particle_system(Object *ob)
 {
+	RNG *rng;
 	Base *base;
 	Object *par;
 	PartEff *paf;
@@ -1229,7 +1232,7 @@ void build_particle_system(Object *ob)
 		Mat3One(imat);
 	}
 	
-	BLI_srand(paf->seed);
+	rng = rng_new(paf->seed);
 	
 	/* otherwise it goes way too fast */
 	force[0]= paf->force[0]*0.05f;
@@ -1346,11 +1349,11 @@ void build_particle_system(Object *ob)
 		}
 		pa->lifetime= paf->lifetime;
 		if(paf->randlife!=0.0) {
-			pa->lifetime*= 1.0f+ (float)(paf->randlife*( BLI_drand() - 0.5));
+			pa->lifetime*= 1.0f + paf->randlife*(rng_getFloat(rng) - 0.5f);
 		}
 		pa->mat_nr= 1;
 		
-		make_particle_keys(0, a, paf, pa, force, deform, mtexmove, ob->lay);
+		make_particle_keys(rng, 0, a, paf, pa, force, deform, mtexmove, ob->lay);
 	}
 	
 	if(G.f & G_DEBUG) {
@@ -1396,6 +1399,8 @@ void build_particle_system(Object *ob)
 
 	displistmesh_free(dlm);
 	if (dmNeedsFree) dm->release(dm);
+
+	rng_free(rng);
 }
 
 /* ************* WAVE **************** */

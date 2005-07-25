@@ -50,12 +50,8 @@ struct Effect *copy_effect(struct Effect *eff);
 void copy_act_effect(struct Object *ob);
 void copy_effects(struct ListBase *lbn, struct ListBase *lb);
 void deselectall_eff(struct Object *ob);
-struct Particle *new_particle(struct PartEff *paf);
 struct PartEff *give_parteff(struct Object *ob);
 void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, float *vec);
-void particle_tex(struct MTex *mtex, struct PartEff *paf, float *co, float *no);
-void make_particle_keys(int depth, int nr, struct PartEff *paf, struct Particle *part, float *force, int deform, struct MTex *mtex, unsigned int par_layer);
-void init_mv_jit(float *jit, int num,int seed2);
 void build_particle_system(struct Object *ob);
 void init_wave_deform(struct WaveEff *wav);
 void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
@@ -64,10 +60,6 @@ void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
 #define PE_WIND_AS_SPEED 0x00000001
 
 void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer,unsigned int flags);
-int pdDoDeflection(float opco[3], float npco[3], float opno[3],
-				   float npno[3], float life, float force[3], int def_depth,
-				   float cur_time, unsigned int par_layer, int *last_object,
-				   int *last_face, int *same_face);
 
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
         float facenormal[3], float *damp, float force[3], int mode,
