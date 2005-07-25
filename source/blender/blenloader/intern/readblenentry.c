@@ -163,7 +163,9 @@ int BLO_idcode_from_name(char *name)
 	 
 BlendHandle *BLO_blendhandle_from_file(char *file) 
 {
-	return (BlendHandle*) blo_openblenderfile(file);
+	BlendReadError err;
+
+	return (BlendHandle*) blo_openblenderfile(file, &err);
 }
 
 void BLO_blendhandle_print_sizes(BlendHandle *bh, void *fp) 
@@ -254,7 +256,7 @@ BlendFileData *BLO_read_from_file(char *file, BlendReadError *error_r)
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblenderfile(file);
+	fd = blo_openblenderfile(file, error_r);
 	if (fd) {
 		bfd= blo_read_file_internal(fd, error_r);
 		if (bfd) {
@@ -272,7 +274,7 @@ BlendFileData *BLO_read_from_memory(void *mem, int memsize, BlendReadError *erro
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblendermemory(mem, memsize);
+	fd = blo_openblendermemory(mem, memsize,  error_r);
 	if (fd) {
 		bfd= blo_read_file_internal(fd, error_r);
 		if (bfd) {
@@ -290,7 +292,7 @@ BlendFileData *BLO_read_from_memfile(MemFile *memfile, BlendReadError *error_r)
 	BlendFileData *bfd = NULL;
 	FileData *fd;
 		
-	fd = blo_openblendermemfile(memfile);
+	fd = blo_openblendermemfile(memfile, error_r);
 	if (fd) {
 		bfd= blo_read_file_internal(fd, error_r);
 		if (bfd) {

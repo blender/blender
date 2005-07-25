@@ -100,9 +100,9 @@ void blo_split_main(ListBase *mainlist);
 
 BlendFileData *blo_read_file_internal( FileData *fd,  BlendReadError *error_r);
 
-FileData *blo_openblenderfile( char *name);
-FileData *blo_openblendermemory( void *buffer, int buffersize);
-FileData *blo_openblendermemfile(struct MemFile *memfile);
+FileData *blo_openblenderfile( char *name, BlendReadError *error_r);
+FileData *blo_openblendermemory( void *buffer, int buffersize, BlendReadError *error_r);
+FileData *blo_openblendermemfile(struct MemFile *memfile, BlendReadError *error_r);
 
 void blo_freefiledata( FileData *fd);
 

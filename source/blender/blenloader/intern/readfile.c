@@ -854,7 +854,26 @@ static FileData *filedata_new(void)
 	return fd;
 }
 
-FileData *blo_openblenderfile(char *name)
+static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
+{
+	decode_blender_header(fd);
+
+	if (fd->flags & FD_FLAGS_FILE_OK) {
+		if (!read_file_dna(fd)) {
+			*error_r = BRE_INCOMPLETE;
+			blo_freefiledata(fd);
+			fd= NULL;
+		}
+	} else {
+		*error_r = BRE_NOT_A_BLEND;
+		blo_freefiledata(fd);
+		fd= NULL;
+	}
+
+	return fd;
+}
+
+FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 {
 	int file;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
@@ -869,6 +888,7 @@ FileData *blo_openblenderfile(char *name)
 	file= open(name1, O_BINARY|O_RDONLY);
 
 	if (file == -1) {
+		*error_r = BRE_UNABLE_TO_OPEN;
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
@@ -877,25 +897,14 @@ FileData *blo_openblenderfile(char *name)
 		fd->buffersize = BLI_filesize(file);
 		fd->read = fd_read_from_file;
 
-		decode_blender_header(fd);
-
-		if (fd->flags & FD_FLAGS_FILE_OK) {
-			if (!read_file_dna(fd)) {
-				blo_freefiledata(fd);
-				fd= NULL;
-			}
-		} else {
-			blo_freefiledata(fd);
-			fd= NULL;
-		}
-
-		return fd;
+		return blo_decode_and_check(fd, error_r);
 	}
 }
 
-FileData *blo_openblendermemory(void *mem, int memsize)
+FileData *blo_openblendermemory(void *mem, int memsize, BlendReadError *error_r)
 {
 	if (!mem || memsize<SIZEOFBLENDERHEADER) {
+		*error_r = mem?BRE_UNABLE_TO_READ:BRE_UNABLE_TO_OPEN;
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();
@@ -904,25 +913,14 @@ FileData *blo_openblendermemory(void *mem, int memsize)
 		fd->read= fd_read_from_memory;
 		fd->flags|= FD_FLAGS_NOT_MY_BUFFER;
 
-		decode_blender_header(fd);
-
-		if (fd->flags & FD_FLAGS_FILE_OK) {
-			if (!read_file_dna(fd)) {
-				blo_freefiledata(fd);
-				fd= NULL;
-			}
-		} else {
-			blo_freefiledata(fd);
-			fd= NULL;
-		}
-
-		return fd;
+		return blo_decode_and_check(fd, error_r);
 	}
 }
 
-FileData *blo_openblendermemfile(MemFile *memfile)
+FileData *blo_openblendermemfile(MemFile *memfile, BlendReadError *error_r)
 {
 	if (!memfile) {
+		*error_r = BRE_UNABLE_TO_OPEN;
 		return NULL;
 	} else {
 		FileData *fd= filedata_new();
@@ -931,19 +929,7 @@ FileData *blo_openblendermemfile(MemFile *memfile)
 		fd->read= fd_read_from_memfile;
 		fd->flags|= FD_FLAGS_NOT_MY_BUFFER;
 
-		decode_blender_header(fd);
-
-		if (fd->flags & FD_FLAGS_FILE_OK) {
-			if (!read_file_dna(fd)) {
-				blo_freefiledata(fd);
-				fd= NULL;
-			}
-		} else {
-			blo_freefiledata(fd);
-			fd= NULL;
-		}
-
-		return fd;
+		return blo_decode_and_check(fd, error_r);
 	}
 }
 
@@ -5759,8 +5745,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				FileData *fd= mainptr->curlib->filedata;
 
 				if(fd==NULL) {
+					BlendReadError err;
 					printf("read lib %s\n", mainptr->curlib->name);
-					fd= blo_openblenderfile(mainptr->curlib->name);
+					fd= blo_openblenderfile(mainptr->curlib->name, &err);
 					if (fd) {
 						if (fd->libmap)
 							oldnewmap_free(fd->libmap);
@@ -5859,19 +5846,9 @@ BlendFileData *blo_read_blendafterruntime(int file, int actualsize, BlendReadErr
 	fd->buffersize = actualsize;
 	fd->read = fd_read_from_file;
 
-	decode_blender_header(fd);
-
-	if (fd->flags & FD_FLAGS_FILE_OK) {
-		if (!read_file_dna(fd)) {
-			blo_freefiledata(fd);
-			fd= NULL;
-			return NULL;
-		}
-	} else {
-		blo_freefiledata(fd);
-		fd= NULL;
+	fd = blo_decode_and_check(fd, error_r);
+	if (!fd)
 		return NULL;
-	}
 
 	bfd= blo_read_file_internal(fd, error_r);
 	blo_freefiledata(fd);
