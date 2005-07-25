@@ -629,10 +629,9 @@ void split_mesh(void)
 void extrude_repeat_mesh(int steps, float offs)
 {
 	float dvec[3], tmat[3][3], bmat[3][3], nor[3]= {0.0, 0.0, 0.0};
-	short a,ok;
+	short a;
 
 	TEST_EDITMESH
-	waitcursor(1);
 	
 	/* dvec */
 	dvec[0]= G.vd->persinv[2][0];
@@ -648,22 +647,20 @@ void extrude_repeat_mesh(int steps, float offs)
 	Mat3Inv(tmat, bmat);
 	Mat3MulVecfl(tmat, dvec);
 
-	for(a=0;a<steps;a++) {
-		ok= extrudeflag(SELECT, nor);
-		if(ok==0) {
-			error("No valid vertices are selected");
-			break;
-		}
+	for(a=0; a<steps; a++) {
+		extrudeflag(SELECT, nor);
 		translateflag(SELECT, dvec);
 	}
 	
+	recalc_editnormals();
+	
 	EM_fgon_flags();
 	countall();
+	
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-	waitcursor(0);
+	
 	BIF_undo_push("Extrude Repeat");
-
 }
 
 void spin_mesh(int steps,int degr,float *dvec, int mode)
@@ -678,8 +675,6 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	short a,ok;
 
 	TEST_EDITMESH
-	
-	waitcursor(1);
 	
 	/* imat and centre and size */
 	Mat3CpyMat4(bmat, G.obedit->obmat);
@@ -733,7 +728,6 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 		}
 	}
 
-	waitcursor(0);
 	if(ok==0) {
 		/* no vertices or only loose ones selected, remove duplicates */
 		eve= em->verts.first;
@@ -746,10 +740,10 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 			eve= nextve;
 		}
 	}
-	
+	recalc_editnormals();
+
 	EM_fgon_flags();
 	countall();
-	recalc_editnormals();
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	

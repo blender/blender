@@ -878,7 +878,7 @@ short extrudeflag_vert(short flag, float *nor)
 	EditVert *eve, *v1, *v2, *v3, *v4, *nextve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, *efa2, *nextvl;
-	short sel=0, del_old= 0;
+	short sel=0, del_old= 0, is_face_sel=0;
 
 	if(G.obedit==0 || get_mesh(G.obedit)==0) return 0;
 
@@ -923,6 +923,7 @@ short extrudeflag_vert(short flag, float *nor)
 			if(e4 && e4->f2 < 3) e4->f2++;
 			
 			efa->f1= 1;
+			is_face_sel= 1;	// for del_old
 		}
 		else if(faceselectedOR(efa, flag)) {
 			e1= efa->e1;
@@ -992,11 +993,13 @@ short extrudeflag_vert(short flag, float *nor)
 	*/
 	
 	 /* find if we delete old faces */
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if( (eed->f2==1 || eed->f2==2) ) {
-			if(eed->f1==2) {
-				del_old= 1;
-				break;
+	if(is_face_sel) {
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if( (eed->f2==1 || eed->f2==2) ) {
+				if(eed->f1==2) {
+					del_old= 1;
+					break;
+				}
 			}
 		}
 	}
@@ -1009,7 +1012,7 @@ short extrudeflag_vert(short flag, float *nor)
 			eed->v2->f |= 128;
 		}
 		if( (eed->f2==1 || eed->f2==2) ) {
-			
+	
 			/* if del_old, the preferred normal direction is exact opposite as for keep old faces */
 			if(eed->dir!=del_old) efa2= addfacelist(eed->v1, eed->v2, eed->v2->vn, eed->v1->vn, NULL, NULL);
 			else efa2= addfacelist(eed->v2, eed->v1, eed->v1->vn, eed->v2->vn, NULL, NULL);
@@ -1292,7 +1295,7 @@ void delfaceflag(int flag)
 }
 
 /* ********************* */
-
+#if 0
 static int check_vnormal_flip(float *n, float *vnorm) 
 {
 	float inp;
@@ -1304,7 +1307,7 @@ static int check_vnormal_flip(float *n, float *vnorm)
 
 	return 1;
 }
-
+#endif
 
 void flipface(EditFace *efa)
 {

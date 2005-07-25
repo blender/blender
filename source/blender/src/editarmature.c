@@ -421,6 +421,8 @@ void join_armature(void)
 		}
 	}
 	
+	DAG_scene_sort(G.scene);	// because we removed object(s)
+	
 	exit_editmode(1);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);

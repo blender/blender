@@ -438,7 +438,7 @@ void join_mesh(void)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
-	DAG_scene_sort(G.scene);
+	DAG_scene_sort(G.scene);	// removed objects, need to rebuild dag
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	BIF_undo_push("Join Mesh");

@@ -3383,6 +3383,8 @@ void join_curve(int type)
 	enter_editmode();
 	exit_editmode(1);
 	
+	DAG_scene_sort(G.scene);	// because we removed object(s)
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Join");

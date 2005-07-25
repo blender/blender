@@ -499,14 +499,14 @@ void BIF_write_file(char *target)
 			return; 
 	}
 	
-	waitcursor(1);
-	
 	if(G.obedit) {
 		exit_editmode(0);	/* 0 = no free data */
 	}
 	if (G.fileflags & G_AUTOPACK) {
 		packAll();
 	}
+	
+	waitcursor(1);	// exit_editmode sets cursor too
 
 	do_history(di);
 		

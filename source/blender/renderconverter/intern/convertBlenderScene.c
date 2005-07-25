@@ -2893,8 +2893,6 @@ void RE_rotateBlenderScene(void)
 			}
 		}
 		else {
-			where_is_object(ob);	// too many? we got depgraph now... (ton)
-
 			if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & G.scene->lay)) ) {
 
 				if(ob->transflag & OB_DUPLI) {

@@ -121,8 +121,9 @@ void file_buttons(void)
 	uiBlockEndAlign(block);
 
 	cpack(0x0);
-	glRasterPos2i(xco+=XIC+10,	5);
-
+	xco+=XIC+10;
+	glRasterPos2f((float)xco, 5.0);
+	BIF_RasterPos((float)xco, 5.0);	// stupid texture fonts
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
@@ -157,7 +158,7 @@ void file_buttons(void)
 
 		cpack(0x0);
 		glRasterPos2f((float)xco, 5.0);
-		BIF_RasterPos((float)xco, 5.0);
+		BIF_RasterPos((float)xco, 5.0);	// texture fonts
 	
 		BIF_DrawString(G.font, naam, 0);
 	}
