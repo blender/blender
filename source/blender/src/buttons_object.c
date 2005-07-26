@@ -126,6 +126,7 @@
 #include "BKE_sound.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BIF_editconstraint.h"
 #include "BSE_editipo.h"
@@ -1692,9 +1693,14 @@ void do_modifier_panels(unsigned short event)
 static void modifiers_add(void *ob_v, int type)
 {
 	Object *ob = ob_v;
-	BLI_addtail(&ob->modifiers, modifier_new(type));
+	ModifierData *md;
+	int i;
 
-	actModifier = BLI_countlist(&ob->modifiers);
+	for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
+		md = md->next;
+
+	BLI_insertlink(&ob->modifiers, md, modifier_new(type));
+	actModifier++;
 
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -1804,6 +1810,51 @@ static void modifier_testCurveObj(char *name, ID **idpp)
 	*idpp= 0;
 }
 
+static void modifiers_applyModifier(void *obv, void *mdv)
+{
+	Object *ob = obv;
+	ModifierData *md = mdv;
+	DerivedMesh *dm;
+	DispListMesh *dlm;
+	Mesh *me = ob->data;
+
+	if (G.obedit) {
+		error("Modifiers cannot be applied in editmode");
+		return;
+	} else if (me->id.us>1) {
+		error("Modifiers cannot be applied to a multi-user mesh");
+		return;
+	}
+
+	if (md!=ob->modifiers.first) {
+		if (!okee("Modifier is not first, continue with apply?"))
+			return;
+	}
+
+		// XXX, only for mesh
+
+	dm = mesh_create_derived_for_modifier(ob, md);
+	if (!dm) {
+		error("Modifier is not active, skipping apply");
+		return;
+	}
+
+	dlm= dm->convertToDispListMesh(dm);
+
+	ob->data= add_mesh();
+	displistmesh_to_mesh(dlm, ob->data);
+	displistmesh_free(dlm);
+	dm->release(dm);
+
+	free_libblock_us(&G.main->mesh, me);
+
+	BLI_remlink(&ob->modifiers, md);
+	modifier_free(md);
+
+	if (actModifier>1)
+		actModifier--;
+}
+
 static void object_panel_modifiers(Object *ob)
 {
 	uiBlock *block;
@@ -1813,7 +1864,7 @@ static void object_panel_modifiers(Object *ob)
 	if(uiNewPanel(curarea, block, "Modifiers", "Object", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBlockBut(block, modifier_add_menu, ob, "Add Modifier", 740,400,110,19, "Append a new modifier");
+	uiDefBlockBut(block, modifier_add_menu, ob, "Add Modifier", 740,400,110,19, "Insert a new modifier after the current one");
 	but = uiDefBut(block, BUT, B_MAKEDISP, "Delete", 850,400,70,19, 0, 0, 0, 0, 0, "Delete the current modifier");
 	uiButSetFunc(but, modifiers_del, ob, NULL);
 
@@ -1840,6 +1891,8 @@ static void object_panel_modifiers(Object *ob)
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
 				uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MAKEDISP, "Editmode", 860,340,60,19,&md->mode, 0, 0, 1, 0, "");
 			}
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Apply Modifier",	740,320,180,19, 0, 0, 0, 0, 0, "Apply the currnt modifier and remove from the stack");
+			uiButSetFunc(but, modifiers_applyModifier, ob, md);
 
 			uiBlockBeginAlign(block);
 			sprintf(str, "Modifier: %s", mti->name);
@@ -1866,7 +1919,7 @@ static void object_panel_modifiers(Object *ob)
 				uiDefButI(block, NUM, B_MAKEDISP, "Seed:", 550, 320, 150,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
 			} else if (md->type==eModifierType_Mirror) {
 				MirrorModifierData *mmd = (MirrorModifierData*) md;
-				uiDefButF(block, NUM, B_MAKEDISP, "Tolerance:", 550, 380, 150,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which to share vertices");
+				uiDefButF(block, NUM, B_MAKEDISP, "Merge Limit:", 550, 380, 150,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
 				uiDefButI(block, ROW, B_MAKEDISP, "X",	550, 360, 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
 				uiDefButI(block, ROW, B_MAKEDISP, "Y",	570, 360, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 				uiDefButI(block, ROW, B_MAKEDISP, "Z",	590, 360, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");

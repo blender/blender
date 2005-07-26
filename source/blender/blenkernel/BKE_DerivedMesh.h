@@ -52,6 +52,7 @@ struct EditVert;
 struct EditEdge;
 struct EditFace;
 struct DispListMesh;
+struct ModifierData;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
@@ -176,6 +177,8 @@ DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
 
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
+
+DerivedMesh *mesh_create_derived_for_modifier(struct Object *ob, struct ModifierData *md);
 
 DerivedMesh *mesh_create_derived_render(struct Object *ob);
 DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3]);

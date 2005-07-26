@@ -1210,9 +1210,32 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 
 typedef float vec3f[3];
 
+DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
+{
+	Mesh *me = ob->data;
+	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	DerivedMesh *dm;
+
+	if (!(md->mode&eModifierMode_Realtime)) return NULL;
+	if (mti->isDisabled && mti->isDisabled(md)) return NULL;
+
+	if (mti->type==eModifierTypeType_OnlyDeform) {
+		int numVerts;
+		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
+
+		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
+		
+		dm = getMeshDerivedMesh(me, ob, deformedVerts);
+		MEM_freeN(deformedVerts);
+	} else {
+		dm = mti->applyModifier(md, ob, NULL, NULL, 0, 0);
+	}
+
+	return dm;
+}
+
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
-//	double startTime = PIL_check_seconds_timer();
 	Mesh *me = ob->data;
 	ModifierData *md= ob->modifiers.first;
 	float (*deformedVerts)[3];
@@ -1330,8 +1353,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	if (deformedVerts && deformedVerts!=inputVertexCos) {
 		MEM_freeN(deformedVerts);
 	}
-
-//	printf("mesh_calc_modifiers(%p, %p, %p, %p, %d) : %6.3fs\n", ob, inputVertexCos, deform_r, final_r, useRenderParams, PIL_check_seconds_timer()-startTime);
 }
 
 static vec3f *editmesh_getVertexCos(EditMesh *em, int *numVerts_r)
