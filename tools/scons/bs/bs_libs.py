@@ -105,7 +105,8 @@ def player_libs2(env):
 	Link order shenannigans: these libs are added after common_libs
 	"""
 	env.Append (LIBS=['blender_blenkernel_blc',
-			'soundsystem'])
+					  'blender_LOD',				  
+					  'soundsystem'])
 
 def winblenderres(env):
 	"""
