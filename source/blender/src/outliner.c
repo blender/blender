@@ -364,6 +364,10 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 	}
 }
 
+/* Prototype, see function below */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, 
+							  ID *id, Bone *curBone, TreeElement *parent, int *a);
+
 
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
@@ -413,31 +417,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 				Object *ob= (Object *)id;
 				
 				outliner_add_element(soops, &te->subtree, ob->data, te, 0, 0);
-				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
-				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
 				
-				for(a=0; a<ob->totcol; a++) 
-					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
-				
-				if(ob->constraints.first) {
-					Object *target;
-					bConstraint *con;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
-					int a= 0;
-					char *str;
-					
-					tenla->name= "Constraints";
-					for(con= ob->constraints.first; con; con= con->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
-						target= get_constraint_target(con, &str);
-						if(str && str[0]) ten->name= str;
-						else if(target) ten->name= target->id.name+2;
-						else ten->name= con->name;
-						ten->directdata= con;
-						/* possible add all other types links? */
-					}
-				}
 				if(ob->pose) {
 					bPoseChannel *pchan;
 					TreeElement *ten;
@@ -494,6 +474,32 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						for(; pchan; pchan= pchan->next) {
 							if(pchan->next) pchan->next->prev= pchan;
 						}
+					}
+				}
+				
+				outliner_add_element(soops, &te->subtree, ob->ipo, te, 0, 0);
+				outliner_add_element(soops, &te->subtree, ob->action, te, 0, 0);
+				
+				for(a=0; a<ob->totcol; a++) 
+					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
+				
+				if(ob->constraints.first) {
+					Object *target;
+					bConstraint *con;
+					TreeElement *ten;
+					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
+					int a= 0;
+					char *str;
+					
+					tenla->name= "Constraints";
+					for(con= ob->constraints.first; con; con= con->next, a++) {
+						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
+						target= get_constraint_target(con, &str);
+						if(str && str[0]) ten->name= str;
+						else if(target) ten->name= target->id.name+2;
+						else ten->name= con->name;
+						ten->directdata= con;
+						/* possible add all other types links? */
 					}
 				}
 				
@@ -659,11 +665,33 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 						ten= nten;
 					}
 				}
+				else {
+					Bone *curBone;
+					for (curBone=arm->bonebase.first; curBone; curBone=curBone->next){
+						outliner_add_bone(soops, &te->subtree, id, curBone, te, &a);
+					}
+				}
 			}
 			break;
 		}
 	}
 	return te;
+}
+
+
+/* special handling of hierarchical non-lib data */
+static void outliner_add_bone(SpaceOops *soops, ListBase *lb, ID *id, Bone *curBone, 
+							  TreeElement *parent, int *a)
+{
+	TreeElement *te= outliner_add_element(soops, lb, id, parent, TSE_BONE, *a);
+	
+	(*a)++;
+	te->name= curBone->name;
+	te->directdata= curBone;
+	
+	for(curBone= curBone->childbase.first; curBone; curBone=curBone->next) {
+		outliner_add_bone(soops, &te->subtree, id, curBone, te, a);
+	}
 }
 
 static void outliner_make_hierarchy(SpaceOops *soops, ListBase *lb)
@@ -1218,6 +1246,30 @@ static int tree_element_active_posechannel(TreeElement *te, TreeStoreElem *tsele
 	return 0;
 }
 
+static int tree_element_active_bone(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	bArmature *arm= (bArmature *)tselem->id;
+	Bone *bone= te->directdata;
+	
+	if(set) {
+		if(G.qual & LR_SHIFTKEY);
+		else deselectall_posearmature(OBACT, 0);
+		bone->flag |= BONE_SELECTED;
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
+		allqueue(REDRAWACTION, 0);
+	}
+	else {
+		Object *ob= OBACT;
+		
+		if(ob && ob->data==arm) {
+			if (bone->flag & BONE_SELECTED) return 1;
+		}
+	}
+	return 0;
+}
+
 
 /* ebones only draw in editmode armature */
 static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int set)
@@ -1310,6 +1362,8 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_nla_action(te, tselem, set);
 		case TSE_DEFGROUP:
 			return tree_element_active_defgroup(te, tselem, set);
+		case TSE_BONE:
+			return tree_element_active_bone(te, tselem, set);
 		case TSE_EBONE:
 			return tree_element_active_ebone(te, tselem, set);
 		case TSE_HOOK: // actually object
@@ -1841,6 +1895,7 @@ static void tselem_draw_icon(TreeStoreElem *tselem)
 				BIF_draw_icon(ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
 				BIF_draw_icon(ICON_VERTEXSEL); break;
+			case TSE_BONE:
 			case TSE_EBONE:
 				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
@@ -2205,6 +2260,46 @@ static void namebutton_cb(void *soopsp, void *oldnamep)
 							allqueue(REDRAWVIEW3D, 1);
 							allqueue(REDRAWBUTSEDIT, 0);
 							break;
+
+						case TSE_BONE:
+							{
+								Bone *bone= te->directdata;
+								Object *ob;
+								char newname[32];
+								
+								// always make current object active
+								tree_element_active_object(soops, te);
+								ob= OBACT;
+								
+								/* restore bone name */
+								BLI_strncpy(newname, bone->name, 32);
+								BLI_strncpy(bone->name, oldnamep, 32);
+								armature_bone_rename(ob->data, oldnamep, newname);
+							}
+							allqueue(REDRAWOOPS, 0);
+							allqueue(REDRAWVIEW3D, 1);
+							allqueue(REDRAWBUTSEDIT, 0);
+							break;
+						case TSE_POSE_CHANNEL:
+							{
+								bPoseChannel *pchan= te->directdata;
+								Object *ob;
+								char newname[32];
+								
+								// always make current object active
+								tree_element_active_object(soops, te);
+								ob= OBACT;
+								
+								/* restore bone name */
+								BLI_strncpy(newname, pchan->name, 32);
+								BLI_strncpy(pchan->name, oldnamep, 32);
+								armature_bone_rename(ob->data, oldnamep, newname);
+							}
+							allqueue(REDRAWOOPS, 0);
+							allqueue(REDRAWVIEW3D, 1);
+							allqueue(REDRAWBUTSEDIT, 0);
+							break;
+							
 						}
 					}
 				}
