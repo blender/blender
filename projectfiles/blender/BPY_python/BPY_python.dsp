@@ -283,10 +283,6 @@ SOURCE=..\..\..\source\blender\python\api2_2x\vector.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\source\blender\python\api2_2x\Wave.c
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\..\source\blender\python\api2_2x\Window.c
 # End Source File
 # Begin Source File
@@ -492,10 +488,6 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Types.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\vector.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\..\source\blender\python\api2_2x\Wave.h
 # End Source File
 # Begin Source File
 
