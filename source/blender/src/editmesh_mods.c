@@ -1069,7 +1069,10 @@ static void mouse_mesh_loop(void)
     			edgeloop_select(eed, eed->f & SELECT);
 		}
         else if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-            edgeloop_select(eed, eed->f & SELECT);
+            if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY))
+    			edgering_select(eed, eed->f & SELECT);
+            else if(G.qual & LR_ALTKEY)
+    			edgeloop_select(eed, eed->f & SELECT);
 		}
 
 		/* frontbuffer draw of last selected only */
