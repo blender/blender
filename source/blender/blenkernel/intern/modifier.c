@@ -429,21 +429,22 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 
 	for (i=0; i<totvert; i++) {
 		MVert *mv = &ndlm->mvert[i];
+		int isShared = ABS(mv->co[axis])<=tolerance;
 
-		if (ABS(mv->co[axis])<=tolerance) {
+			/* Because the topology result (# of vertices) must stuff the same
+				* if the mesh data is overridden by vertex cos, have to calc sharedness
+				* based on original coordinates. Only write new cos for non-shared
+				* vertices. This is why we test before copy.
+				*/
+		if (vertexCos) {
+			VECCOPY(mv->co, vertexCos[i]);
+		}
+
+		if (isShared) {
 			mv->co[axis] = 0;
 			*((int*) mv->no) = i;
 		} else {
 			MVert *nmv = &ndlm->mvert[ndlm->totvert];
-
-				/* Because the topology result (# of vertices) must stuff the same
-				 * if the mesh data is overridden by vertex cos, have to calc sharedness
-				 * based on original coordinates. Only write new cos for non-shared
-				 * vertices.
-				 */
-			if (vertexCos) {
-				VECCOPY(mv->co, vertexCos[i]);
-			}
 
 			memcpy(nmv, mv, sizeof(*mv));
 			nmv ->co[axis] = -nmv ->co[axis];
