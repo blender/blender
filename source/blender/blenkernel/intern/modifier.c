@@ -729,7 +729,6 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	DispListMesh *ndlm=NULL, *dlm=NULL;
 	LOD_Decimation_Info lod;
 	int totvert, totface;
-	int *tib=NULL;
 	int a, numTris;
 
 	if (dm) {
@@ -762,7 +761,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
 	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*totvert, "normals");
 	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*numTris, "trias");
-	lod.vertex_num= me->totvert;
+	lod.vertex_num= totvert;
 	lod.face_num= numTris;
 
 	for(a=0; a<totvert; a++) {
