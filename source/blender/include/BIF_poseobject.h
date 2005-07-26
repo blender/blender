@@ -54,6 +54,7 @@ void pose_special_editmenu(void);
 void pose_add_IK(void);
 void pose_clear_IK(void);
 void pose_clear_constraints(void);
+void pose_copy_menu(void);
 
 #endif
 

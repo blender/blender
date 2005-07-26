@@ -48,6 +48,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_editconstraint.h"
 #include "BIF_gl.h"
@@ -323,6 +324,56 @@ void pose_clear_constraints(void)
 	allqueue (REDRAWBUTSOBJECT, 0);
 	
 	BIF_undo_push("Remove Constraint(s)");
+	
+}
+
+void pose_copy_menu(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan, *pchanact;
+	short nr;
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	/* find active */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & BONE_ACTIVE) break;
+	}
+	
+	if(pchan==NULL) return;
+	pchanact= pchan;
+	
+	nr= pupmenu("Copy Pose Attributes %t|Location%x1|Rotation%x2|Size%x3|Constraints");
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & BONE_SELECTED) {
+			if(pchan!=pchanact) {
+				if(nr==1) {
+					VECCOPY(pchan->loc, pchanact->loc);
+				}
+				else if(nr==2) {
+					QUATCOPY(pchan->quat, pchanact->quat);
+				}
+				else if(nr==3) {
+					VECCOPY(pchan->size, pchanact->size);
+				}
+				else if(nr==4) {
+					free_constraints(&pchan->constraints);
+					copy_constraints(&pchan->constraints, &pchanact->constraints);
+					pchan->constflag = pchanact->constflag;
+				}
+			}
+		}
+	}
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	
+	BIF_undo_push("Copy Pose Attributes");
 	
 }
 

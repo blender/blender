@@ -1120,7 +1120,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case CKEY:
 				if(G.qual==LR_CTRLKEY) {
-					copy_attr_menu();
+					if(ob && (ob->flag & OB_POSEMODE))
+						pose_copy_menu();	/* poseobject.c */
+					else
+						copy_attr_menu();
 				}
 				else if(G.qual==LR_ALTKEY) {
 					if(ob && (ob->flag & OB_POSEMODE))
