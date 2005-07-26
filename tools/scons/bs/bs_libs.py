@@ -58,9 +58,9 @@ def blender_libs(env):
 		'blender_yafray',
 		'blender_renderconverter',
 		'blender_radiosity',
-		'blender_LOD',
 		'blender_BSP',
 		'blender_blenkernel',
+		'blender_LOD',
 		'blender_IK',
 		'blender_ONL'])
 
