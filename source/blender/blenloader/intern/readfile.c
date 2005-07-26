@@ -3337,7 +3337,7 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 	}
 }
 
-static void do_versions(FileData *fd, Main *main)
+static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
 
@@ -4752,25 +4752,11 @@ static void do_versions(FileData *fd, Main *main)
 			}
 		}
 	}
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
-
-	/* don't forget to set version number in blender.c! */
-}
-
-static void do_lib_versions(FileData *fd, Main *main)
-{
-		/* NOTE that main->versionfile is not necessarily the version of all
-		 * the objects because they could have come from libraries. Additionally,
-		 * keep in mind that changes to lib linked blocks will not be saved, because
-		 * the lib linked file will be reread on the next load of the main file.
-		 */
-
 	if(main->versionfile <= 237) {
 		bArmature *arm;
 		bConstraint *con;
 		Object *ob;
-
+		
 		// armature recode checks 
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			where_is_armature(arm);
@@ -4783,20 +4769,20 @@ static void do_lib_versions(FileData *fd, Main *main)
 					ob->recalc |= OB_RECALC;
 				}
 				/* new generic xray option */
-				arm= ob->data;
+				arm= newlibadr(fd, lib, ob->data);
 				if(arm->flag & ARM_DRAWXRAY) {
 					ob->dtx |= OB_DRAWXRAY;
 				}
 			} else if (ob->type==OB_MESH) {
-				Mesh *me = ob->data;
-
+				Mesh *me = newlibadr(fd, lib, ob->data);
+				
 				if ((me->flag&ME_SUBSURF)) {
 					SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-
+					
 					smd->levels = MAX2(1, me->subdiv);
 					smd->renderLevels = MAX2(1, me->subdivr);
 					smd->subdivType = me->subsurftype;
-
+					
 					smd->modifier.mode = 0;
 					if (me->subdiv!=0)
 						smd->modifier.mode |= 1;
@@ -4806,13 +4792,13 @@ static void do_lib_versions(FileData *fd, Main *main)
 					BLI_addtail(&ob->modifiers, smd);
 				}
 			}
-
+			
 			// follow path constraint needs to set the 'path' option in curves...
 			for(con=ob->constraints.first; con; con= con->next) {
 				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
 					bFollowPathConstraint *data = con->data;
-					Object *obc= data->tar;
-
+					Object *obc= newlibadr(fd, lib, data->tar);
+					
 					if(obc && obc->type==OB_CURVE) {
 						Curve *cu= obc->data;
 						cu->flag |= CU_PATH;
@@ -4820,7 +4806,11 @@ static void do_lib_versions(FileData *fd, Main *main)
 				}
 			}
 		}
-	}
+	}		
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
+
+	/* don't forget to set version number in blender.c! */
 }
 
 static void lib_link_all(FileData *fd, Main *main)
@@ -4918,13 +4908,13 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	}
 
 	/* before read_libraries */
-	do_versions(fd, bfd->main);
+	do_versions(fd, NULL, bfd->main);
+	
 	read_libraries(fd, &fd->mainlist);
 	blo_join_main(&fd->mainlist);
 
 	lib_link_all(fd, bfd->main);
 	link_global(fd, bfd, fg);	/* as last */
-	do_lib_versions(fd, bfd->main);
 
 	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
 
@@ -5844,9 +5834,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		 * versionfile is still zero! */
 		if(mainptr->versionfile) {
 			if(mainptr->curlib->filedata) // can be zero... with shift+f1 append
-				do_versions(mainptr->curlib->filedata, mainptr);
+				do_versions(mainptr->curlib->filedata, mainptr->curlib, mainptr);
 			else
-				do_versions(basefd, mainptr);
+				do_versions(basefd, NULL, mainptr);
 		}
 		
 		if(mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
