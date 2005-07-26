@@ -1906,7 +1906,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Object *ob;
 	
 	setwinmatrixview3d(0);	/* 0= no pick rect */
-	setviewmatrixview3d();
+	setviewmatrixview3d();	/* note: calls where_is_object for camera... */
 
 	Mat4MulMat4(v3d->persmat, v3d->viewmat, curarea->winmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);

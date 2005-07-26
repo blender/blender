@@ -543,8 +543,8 @@ void do_all_actions(Object *ob)
 
 							if (cu->flag & CU_PATH){
 								/* Ensure we have a valid path */
-								if(cu->path==NULL || cu->path->data==NULL) printf("action path error in ob %s\n", ob->parent->id.name+2);
-								else {
+								if(cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(ob->parent);
+								if(cu->path) {
 
 									/* Find the position on the path */
 									ctime= bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);

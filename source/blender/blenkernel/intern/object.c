@@ -1073,7 +1073,8 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	Mat4One(mat);
 	
 	cu= par->data;
-	if(cu->path==NULL || cu->path->data==NULL) calc_curvepath(par);
+	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file */
+		makeDispListCurveTypes(par);
 	if(cu->path==NULL) return;
 	
 	/* exception, timeoffset is regarded as distance offset */
