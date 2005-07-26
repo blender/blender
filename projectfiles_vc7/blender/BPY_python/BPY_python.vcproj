@@ -251,6 +251,9 @@
 					RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\line.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\logic.c">
 				</File>
 				<File
@@ -276,9 +279,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\vector.c">
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\Wave.c">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.c">
@@ -415,6 +415,9 @@
 					RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.h">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\python\api2_2x\line.h">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\logic.h">
 				</File>
 				<File
@@ -443,9 +446,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\vector.h">
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\Wave.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\windowTheme.h">
