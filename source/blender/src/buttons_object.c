@@ -1996,7 +1996,7 @@ static void object_panel_effects(Object *ob)
 	}
 	
 	if(eff) {
-		uiDefButS(block, MENU, B_CHANGEEFFECT, "Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
+		uiDefButS(block, MENU, B_CHANGEEFFECT, "Particles %x1", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
 		
 		if(eff->type==EFF_PARTICLE) {
 			PartEff *paf;
