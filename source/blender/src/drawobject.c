@@ -1752,28 +1752,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		// Unwanted combination.
 	if (G.f&G_FACESELECT) draw_wire = 0;
 
-		// This is only for objects from the decimator and
-		// is a temporal solution, a reconstruction of the
-		// displist system should take care of it (zr/ton)
-	if(me->decimated) {
-		DispListMesh *dlm = me->decimated;
-		MVert *mvert= dlm->mvert;
-		MFace *mface= dlm->mface;
-		int i;
-
-		for (i=0; i<dlm->totface; i++, mface++) {
-			glBegin(GL_LINE_LOOP);
-			glVertex3fv(mvert[mface->v1].co);
-			glVertex3fv(mvert[mface->v2].co);
-			if (mface->v3) {
-				glVertex3fv(mvert[mface->v3].co);
-				if (mface->v4)
-					glVertex3fv(mvert[mface->v4].co);
-			}
-			glEnd();
-		}
-	}
-	else if(dt==OB_BOUNDBOX) {
+	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
 	else if(hasHaloMat || (me->totface==0 && (!me->medge || me->totedge==0))) {

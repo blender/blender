@@ -406,9 +406,6 @@ static void write_effects(WriteData *wd, ListBase *lb)
 		case EFF_PARTICLE:
 			writestruct(wd, DATA, "PartEff", 1, eff);
 			break;
-		case EFF_WAVE:
-			writestruct(wd, DATA, "WaveEff", 1, eff);
-			break;
 		default:
 			writedata(wd, DATA, MEM_allocN_len(eff), eff);
 		}

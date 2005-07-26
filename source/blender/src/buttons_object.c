@@ -1835,7 +1835,7 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 
 	dm = mesh_create_derived_for_modifier(ob, md);
 	if (!dm) {
-		error("Modifier is not active, skipping apply");
+		error("Modifier is disabled or returned error, skipping apply");
 		return;
 	}
 
@@ -1923,6 +1923,29 @@ static void object_panel_modifiers(Object *ob)
 				uiDefButI(block, ROW, B_MAKEDISP, "X",	550, 360, 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
 				uiDefButI(block, ROW, B_MAKEDISP, "Y",	570, 360, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 				uiDefButI(block, ROW, B_MAKEDISP, "Z",	590, 360, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
+			} else if (md->type==eModifierType_Decimate) {
+				DecimateModifierData *dmd = (DecimateModifierData*) md;
+				uiDefButF(block, NUM, B_MAKEDISP, "Percent:",	550,380,150,19, &dmd->percent, 0.0, 1.0, 0, 0, "Defines the percentage of triangles to reduce to");
+				sprintf(str, "Face Count: %d", dmd->faceCount);
+				uiDefBut(block, LABEL, 1, str,	550, 360, 150,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
+			} else if (md->type==eModifierType_Wave) {
+				WaveModifierData *wmd = (WaveModifierData*) md;
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, WAV_X, B_MAKEDISP, "X",		550,380,45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
+				uiDefButBitS(block, TOG, WAV_Y, B_MAKEDISP, "Y",		600,380,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
+				uiDefButBitS(block, TOG, WAV_CYCL, B_MAKEDISP, "Cycl",	650,380,60,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
+				uiDefButF(block, NUM, B_MAKEDISP, "Time sta:",	550,360,150,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
+				uiDefButF(block, NUM, B_MAKEDISP, "Lifetime:",	550,340,150,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
+				uiDefButF(block, NUM, B_MAKEDISP, "Damptime:",	550,320,150,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_MAKEDISP, "Sta x:",		550,280,113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
+				uiDefButF(block, NUM, B_MAKEDISP, "Sta y:",		665,280,105,19, &wmd->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUMSLI, B_MAKEDISP, "Speed:",	550,260,220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
+				uiDefButF(block, NUMSLI, B_MAKEDISP, "Heigth:",	550,240,220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
+				uiDefButF(block, NUMSLI, B_MAKEDISP, "Width:",	550,220,220,19, &wmd->width, 0.0, 5.0, 0, 0, "Specify the width of the wave");
+				uiDefButF(block, NUMSLI, B_MAKEDISP, "Narrow:",	550,200,220,19, &wmd->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
+				uiBlockEndAlign(block);
 			}
 
 			uiBlockEndAlign(block);
@@ -1975,30 +1998,7 @@ static void object_panel_effects(Object *ob)
 	if(eff) {
 		uiDefButS(block, MENU, B_CHANGEEFFECT, "Particles %x1|Wave %x2", 895,187,107,27, &eff->buttype, 0, 0, 0, 0, "Set effect type");
 		
-		if(eff->type==EFF_WAVE) {
-			WaveEff *wav;
-			
-			wav= (WaveEff *)eff;
-			uiBlockBeginAlign(block);
-			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "X",		782,135,54,23, &wav->flag, 0, 0, 0, 0, "Enable X axis motion");
-			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Y",		840,135,47,23, &wav->flag, 0, 0, 0, 0, "Enable Y axis motion");
-			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Cycl",	890,135,111,23, &wav->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CALCEFFECT, "Sta x:",		550,135,113,24, &wav->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Sta y:",		665,135,104,24, &wav->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Speed:",	550,100,216,20, &wav->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
-			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Heigth:",	550,80,216,20, &wav->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
-			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Width:",	550,60,216,20, &wav->width, 0.0, 5.0, 0, 0, "Specify the width of the wave");
-			uiDefButF(block, NUMSLI, B_CALCEFFECT, "Narrow:",	550,40,216,20, &wav->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CALCEFFECT, "Time sta:",	780,100,219,20, &wav->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
-
-			uiDefButF(block, NUM, B_CALCEFFECT, "Lifetime:",	780,80,219,20, &wav->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Damptime:",	780,60,219,20, &wav->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
-			uiBlockEndAlign(block);
-		}
-		else if(eff->type==EFF_PARTICLE) {
+		if(eff->type==EFF_PARTICLE) {
 			PartEff *paf;
 			
 			paf= (PartEff *)eff;

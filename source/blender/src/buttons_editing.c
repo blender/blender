@@ -148,9 +148,6 @@
 #include "BSE_buttons.h"
 #include "BSE_seqaudio.h"
 
-#include "LOD_DependKludge.h"
-#include "LOD_decimation.h"
-
 #include "RE_renderconverter.h"		// make_sticky
 
 #include "butspace.h" // own module
@@ -169,224 +166,6 @@ extern ListBase editNurb;
 
 /* *************************** static functions prototypes ****************** */
 VFont *exist_vfont(char *str);
-
-/* *************************** MESH DECIMATE ******************************** */
-
-/* should be removed from this c file (ton) */
-
-static int decimate_count_tria(Object *ob)
-{
-	int tottria;
-	MFace *mface;
-	Mesh *me;
-	int a;
-
-	me= ob->data;
-
-	/* count number of trias, since decimator doesnt allow quads */
-	tottria= 0;
-	mface= me->mface;
-	for(a=0; a<me->totface; a++, mface++) {
-		if(mface->v4) tottria++;
-		if(mface->v3) tottria++;
-	}
-
-	return tottria;
-}
-
-static void decimate_faces(void)
-{
-	Object *ob;
-	Mesh *me;
-	MVert *mvert;
-	MFace *mface;
-	LOD_Decimation_Info lod;
-	float *vb=NULL;
-	float *vnb=NULL;
-	int *tib=NULL;
-	int a, tottria;
-
-	/* we assume the active object being decimated */
-	ob= OBACT;
-	if(ob==NULL || ob->type!=OB_MESH) return;
-	me= ob->data;
-
-	/* add warning for vertex col and tfaces */
-	if(me->tface || me->mcol || me->dvert || me->medge) {
-		if(okee("This will remove UV coordinates, vertexcolors, deform weights and edge data")==0) return;
-		if(me->tface) MEM_freeN(me->tface);
-		if(me->mcol) MEM_freeN(me->mcol);
-		if(me->dvert) free_dverts(me->dvert, me->totvert);
-		me->tface= NULL;
-		me->mcol= NULL;
-		me->dvert= NULL;
-	}
-
-	/* count number of trias, since decimator doesnt allow quads */
-	tottria= decimate_count_tria(ob);
-
-	if(tottria<3) {
-		error("You must have more than 3 input faces selected.");
-		return;
-	}
-	/* allocate and init */
-	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*me->totvert, "vertices");
-	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*me->totvert, "normals");
-	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*tottria, "trias");
-	lod.vertex_num= me->totvert;
-	lod.face_num= tottria;
-
-	/* fill vertex buffer */
-	vb= lod.vertex_buffer;
-	vnb= lod.vertex_normal_buffer;
-	mvert= me->mvert;
-	for(a=0; a<me->totvert; a++, mvert++, vb+=3, vnb+=3) {
-		VECCOPY(vb, mvert->co);
-		VECCOPY(vnb, mvert->no);
-		Normalise(vnb);
-	}
-
-	/* fill index buffer */
-	mface= me->mface;
-	tib= lod.triangle_index_buffer;
-	for(a=0; a<me->totface; a++, mface++) {
-		if(mface->v4) {
-			tib[0]= mface->v1;
-			tib[1]= mface->v3;
-			tib[2]= mface->v4;
-			tib+= 3;
-		}
-		if(mface->v3) {
-			tib[0]= mface->v1;
-			tib[1]= mface->v2;
-			tib[2]= mface->v3;
-			tib+= 3;
-		}
-	}
-
-	if(LOD_LoadMesh(&lod) ) {
-		if( LOD_PreprocessMesh(&lod) ) {
-			DispListMesh *dlm;
-			MFace *mfaceint;
-
-			/* we assume the decim_faces tells how much to reduce */
-
-			while(lod.face_num > decim_faces) {
-				if( LOD_CollapseEdge(&lod)==0) break;
-			}
-
-			/* ok, put back the stuff in a displist */
-			if (me->decimated) {
-				displistmesh_free(me->decimated);
-			}
-
-			dlm= me->decimated= MEM_callocN(sizeof(DispListMesh), "dispmesh");
-			dlm->mvert= MEM_callocN(lod.vertex_num*sizeof(MVert), "mvert");
-			dlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
-			dlm->totvert= lod.vertex_num;
-			dlm->totface= lod.face_num;
-
-			mvert= dlm->mvert;
-			vb= lod.vertex_buffer;
-			for(a=0; a<lod.vertex_num; a++, vb+=3, mvert++) {
-				VECCOPY(mvert->co, vb);
-			}
-
-			mfaceint= dlm->mface;
-			tib= lod.triangle_index_buffer;
-			for(a=0; a<lod.face_num; a++, mfaceint++, tib+=3) {
-				mfaceint->v1= tib[0];
-				mfaceint->v2= tib[1];
-				mfaceint->v3= tib[2];
-			}
-		}
-		else error("No memory");
-
-		LOD_FreeDecimationData(&lod);
-	}
-	else error("No manifold Mesh");
-
-	MEM_freeN(lod.vertex_buffer);
-	MEM_freeN(lod.vertex_normal_buffer);
-	MEM_freeN(lod.triangle_index_buffer);
-
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-
-
-static void decimate_cancel(void)
-{
-	Object *ob;
-
-	ob= OBACT;
-	if(ob) {
-		if (ob->type==OB_MESH) {
-			Mesh *me = ob->data;
-			
-			if (me->decimated) {
-				displistmesh_free(me->decimated);
-				me->decimated = NULL;
-			}
-		}
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-
-static void decimate_apply(void)
-{
-	Object *ob;
-	MFace *mface;
-	MFace *mfaceint;
-	int a;
-
-	if(G.obedit) return;
-
-	ob= OBACT;
-	if(ob && ob->type==OB_MESH) {
-		Mesh *me = ob->data;
-
-		if (me->decimated) {
-			DispListMesh *dlm= me->decimated;
-
-			// vertices
-			if(me->mvert) MEM_freeN(me->mvert);
-			me->mvert= dlm->mvert;
-			dlm->mvert= NULL;
-			me->totvert= dlm->totvert;
-
-			// edges
-			if(me->medge) MEM_freeN(me->medge);
-			me->medge = NULL;
-			me->totedge = 0;
-
-			// faces
-			if(me->mface) MEM_freeN(me->mface);
-			me->mface= MEM_callocN(dlm->totface*sizeof(MFace), "mface");
-			me->totface= dlm->totface;
-			mface= me->mface;
-			mfaceint= dlm->mface;
-			for(a=0; a<me->totface; a++, mface++, mfaceint++) {
-				mface->v1= mfaceint->v1;
-				mface->v2= mfaceint->v2;
-				mface->v3= mfaceint->v3;
-				test_index_mface(mface, 3);
-			}
-
-			displistmesh_free(me->decimated);
-			me->decimated= NULL;
-
-			G.obedit= ob;
-			make_editMesh();
-			load_editMesh();
-			free_editMesh(G.editMesh);
-			G.obedit= NULL;
-			
-			BIF_undo_push("Apply decimation");
-		}
-		else error("Not a decimated Mesh");
-	}
-}
 
 /* *************** */
 
@@ -700,25 +479,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	80,10,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
 	uiBlockEndAlign(block);
-
-	/* decimator */
-	if(G.obedit==NULL) {
-		int tottria= decimate_count_tria(ob);
-		Mesh *me = ob->data;
-
-		if (!me->decimated) {
-			decim_faces= tottria;
-		}
-
-		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButI(block, NUM,B_DECIM_FACES, "Decimator:",	175,180,230,19, &decim_faces, 4.0, tottria, 10, 10, "Defines the number of triangular faces to decimate the active Mesh object to");
-		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT,B_DECIM_APPLY, "Apply",		175,160,110,19, 0, 0, 0, 0, 0, "Applies the decimation to the active Mesh object");
-		uiDefBut(block, BUT,B_DECIM_CANCEL, "Cancel",	285,160,120,19, 0, 0, 0, 0, 0, "Restores the Mesh to its original number of faces");
-		uiBlockEndAlign(block);
-	}
-
 
 	uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
 
@@ -2059,16 +1819,6 @@ void do_meshbuts(unsigned short event)
 			}
 
 			allqueue(REDRAWVIEW3D, 0);
-			break;
-
-		case B_DECIM_FACES:
-			decimate_faces();
-			break;
-		case B_DECIM_CANCEL:
-			decimate_cancel();
-			break;
-		case B_DECIM_APPLY:
-			decimate_apply();
 			break;
 
 		case B_SLOWERDRAW:

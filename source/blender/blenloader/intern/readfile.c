@@ -2077,8 +2077,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->bb= NULL;
 	mesh->oc= 0;
 	mesh->dface= NULL;
-	mesh->decimated= NULL;
-
+	
 	if (mesh->tface) {
 		TFace *tfaces= mesh->tface;
 		int i;
@@ -2323,7 +2322,28 @@ static void direct_link_object(FileData *fd, Object *ob)
 			paf->keys= 0;
 		}
 		if(paf->type==EFF_WAVE) {
+			WaveEff *wav = (WaveEff*) paf;
+			PartEff *next = paf->next;
+			WaveModifierData *wmd = (WaveModifierData*) modifier_new(eModifierType_Wave);
 
+			wmd->damp = wav->damp;
+			wmd->flag = wav->flag;
+			wmd->height = wav->height;
+			wmd->lifetime = wav->lifetime;
+			wmd->narrow = wav->narrow;
+			wmd->speed = wav->speed;
+			wmd->startx = wav->startx;
+			wmd->starty = wav->startx;
+			wmd->timeoffs = wav->timeoffs;
+			wmd->width = wav->width;
+
+			BLI_addtail(&ob->modifiers, wmd);
+
+			BLI_remlink(&ob->effect, paf);
+			MEM_freeN(paf);
+
+			paf = next;
+			continue;
 		}
 		if(paf->type==EFF_BUILD) {
 			BuildEff *baf = (BuildEff*) paf;

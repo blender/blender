@@ -1309,14 +1309,18 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 				 * by the modifier apply function, which will also free the DerivedMesh if
 				 * it exists.
 				 */
-			dm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams, !inputVertexCos);
+			DerivedMesh *ndm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams, !inputVertexCos);
 
-			if (deformedVerts) {
-				if (deformedVerts!=inputVertexCos) {
-					MEM_freeN(deformedVerts);
+			if (ndm) {
+				dm = ndm;
+
+				if (deformedVerts) {
+					if (deformedVerts!=inputVertexCos) {
+						MEM_freeN(deformedVerts);
+					}
+					deformedVerts = NULL;
 				}
-				deformedVerts = NULL;
-			}
+			} 
 		}
 	}
 

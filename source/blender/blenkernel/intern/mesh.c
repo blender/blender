@@ -236,8 +236,6 @@ Mesh *copy_mesh(Mesh *me)
 	men->key= copy_key(me->key);
 	if(men->key) men->key->from= (ID *)men;
 	
-	men->decimated = NULL;
-
 	return men;
 }
 

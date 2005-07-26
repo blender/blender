@@ -12,6 +12,8 @@ typedef enum ModifierType {
 	eModifierType_Curve,
 	eModifierType_Build,
 	eModifierType_Mirror,
+	eModifierType_Decimate,
+	eModifierType_Wave,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -70,5 +72,23 @@ typedef struct MirrorModifierData {
 	int axis;
 	float tolerance;
 } MirrorModifierData;
+
+typedef struct DecimateModifierData {
+	ModifierData modifier;
+
+	float percent;
+	int faceCount;
+} DecimateModifierData;
+
+typedef struct WaveModifierData {
+	ModifierData modifier;
+
+	short flag, pad;
+
+	float startx, starty, height, width;
+	float narrow, speed, damp;
+	
+	float timeoffs, lifetime;
+} WaveModifierData;
 
 #endif

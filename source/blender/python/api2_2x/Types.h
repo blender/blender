@@ -49,7 +49,7 @@ extern PyTypeObject Object_Type;
 extern PyTypeObject Particle_Type;
 extern PyTypeObject Scene_Type, RenderData_Type;
 extern PyTypeObject Text_Type, Text3d_Type, Texture_Type;
-extern PyTypeObject Wave_Type, World_Type;
+extern PyTypeObject World_Type;
 extern PyTypeObject property_Type;
 extern PyTypeObject buffer_Type, constant_Type, euler_Type;
 extern PyTypeObject matrix_Type, quaternion_Type, rgbTuple_Type, vector_Type;

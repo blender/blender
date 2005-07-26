@@ -84,7 +84,6 @@ Effect *add_effect(int type)
 {
 	Effect *eff=0;
 	PartEff *paf;
-	WaveEff *wav;
 	int a;
 	
 	switch(type) {
@@ -106,21 +105,6 @@ Effect *add_effect(int type)
 		paf->staticstep= 5;
 		paf->defvec[2]= 1.0f;
 		paf->nabla= 0.05f;
-		
-		break;
-		
-	case EFF_WAVE:
-		wav= MEM_callocN(sizeof(WaveEff), "neweff");
-		eff= (Effect *)wav;
-		
-		wav->flag |= (WAV_X+WAV_Y+WAV_CYCL);
-		
-		wav->height= 0.5f;
-		wav->width= 1.5f;
-		wav->speed= 0.5f;
-		wav->narrow= 1.5f;
-		wav->lifetime= 0.0f;
-		wav->damp= 10.0f;
 		
 		break;
 	}
@@ -1401,62 +1385,6 @@ void build_particle_system(Object *ob)
 	if (dmNeedsFree) dm->release(dm);
 
 	rng_free(rng);
-}
-
-/* ************* WAVE **************** */
-
-void init_wave_deform(WaveEff *wav) {
-	wav->minfac= (float)(1.0/exp(wav->width*wav->narrow*wav->width*wav->narrow));
-	if(wav->damp==0) wav->damp= 10.0f;
-}
-
-void calc_wave_deform(WaveEff *wav, float ctime, float *co)
-{
-	/* co is in local coords */
-	float lifefac, x, y, amplit;
-	
-	/* actually this should not happen */
-	if((wav->flag & (WAV_X+WAV_Y))==0) return;	
-
-	lifefac= wav->height;
-	
-	if( wav->lifetime!=0.0) {
-		x= ctime - wav->timeoffs;
-		if(x>wav->lifetime) {
-			
-			lifefac= x-wav->lifetime;
-			
-			if(lifefac > wav->damp) lifefac= 0.0;
-			else lifefac= (float)(wav->height*(1.0 - sqrt(lifefac/wav->damp)));
-		}
-	}
-	if(lifefac==0.0) return;
-
-	x= co[0]-wav->startx;
-	y= co[1]-wav->starty;
-
-	if(wav->flag & WAV_X) {
-		if(wav->flag & WAV_Y) amplit= (float)sqrt( (x*x + y*y));
-		else amplit= x;
-	}
-	else amplit= y;
-	
-	/* this way it makes nice circles */
-	amplit-= (ctime-wav->timeoffs)*wav->speed;
-
-	if(wav->flag & WAV_CYCL) {
-		amplit = (float)fmod(amplit-wav->width, 2.0*wav->width) + wav->width;
-	}
-
-	/* GAUSSIAN */
-	
-	if(amplit> -wav->width && amplit<wav->width) {
-	
-		amplit = amplit*wav->narrow;
-		amplit= (float)(1.0/exp(amplit*amplit) - wav->minfac);
-
-		co[2]+= lifefac*amplit;
-	}
 }
 
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],

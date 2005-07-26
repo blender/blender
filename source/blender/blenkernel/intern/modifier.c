@@ -1,4 +1,5 @@
 #include "string.h"
+#include "math.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
@@ -9,6 +10,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_effect_types.h"
 #include "DNA_scene_types.h"
 #include "BLI_editVert.h"
 
@@ -22,6 +24,9 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "depsgraph_private.h"
+
+#include "LOD_DependKludge.h"
+#include "LOD_decimation.h"
 
 #include "CCGSubSurf.h"
 
@@ -704,6 +709,235 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 	}
 }
 
+/* Decimate */
+
+static void decimateModifier_initData(ModifierData *md)
+{
+	DecimateModifierData *dmd = (DecimateModifierData*) md;
+
+	dmd->percent = 1.0;
+}
+
+static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
+{
+	DecimateModifierData *dmd = (DecimateModifierData*) md;
+	DerivedMesh *dm = derivedData;
+	Mesh *me = ob->data;
+	MVert *mvert;
+	MFace *mface;
+	DispListMesh *ndlm=NULL, *dlm=NULL;
+	LOD_Decimation_Info lod;
+	int totvert, totface;
+	int *tib=NULL;
+	int a, numTris;
+
+	if (dm) {
+		dlm = dm->convertToDispListMesh(dm);
+		mvert = dlm->mvert;
+		mface = dlm->mface;
+		totvert = dlm->totvert;
+		totface = dlm->totface;
+	} else {
+		mvert = me->mvert;
+		mface = me->mface;
+		totvert = me->totvert;
+		totface = me->totface;
+	}
+
+	numTris = 0;
+	for (a=0; a<totface; a++) {
+		MFace *mf = &mface[a];
+		if (mf->v3) {
+			numTris++;
+			if (mf->v4) numTris++;
+		}
+	}
+
+	if(numTris<3) {
+		// ("You must have more than 3 input faces selected.");
+		return NULL;
+	}
+
+	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
+	lod.vertex_normal_buffer= MEM_mallocN(3*sizeof(float)*totvert, "normals");
+	lod.triangle_index_buffer= MEM_mallocN(3*sizeof(int)*numTris, "trias");
+	lod.vertex_num= me->totvert;
+	lod.face_num= numTris;
+
+	for(a=0; a<totvert; a++) {
+		MVert *mv = &mvert[a];
+		float *vbCo = &lod.vertex_buffer[a*3];
+		float *vbNo = &lod.vertex_normal_buffer[a*3];
+
+		if (vertexCos) { // XXX normals wrong
+			VECCOPY(vbCo, vertexCos[a]);
+		} else {
+			VECCOPY(vbCo, mv->co);
+		}
+
+		vbNo[0] = mv->no[0]/32767.0f;
+		vbNo[1] = mv->no[1]/32767.0f;
+		vbNo[2] = mv->no[2]/32767.0f;
+	}
+
+	numTris = 0;
+	for(a=0; a<totface; a++) {
+		MFace *mf = &mface[a];
+
+		if(mf->v3) {
+			int *tri = &lod.triangle_index_buffer[3*numTris++];
+			tri[0]= mf->v1;
+			tri[1]= mf->v2;
+			tri[2]= mf->v3;
+
+			if(mf->v4) {
+				tri = &lod.triangle_index_buffer[3*numTris++];
+				tri[0]= mf->v1;
+				tri[1]= mf->v3;
+				tri[2]= mf->v4;
+			}
+		}
+	}
+
+	dmd->faceCount = 0;
+	if(LOD_LoadMesh(&lod) ) {
+		if( LOD_PreprocessMesh(&lod) ) {
+
+			/* we assume the decim_faces tells how much to reduce */
+
+			while(lod.face_num > numTris*dmd->percent) {
+				if( LOD_CollapseEdge(&lod)==0) break;
+			}
+
+			ndlm= MEM_callocN(sizeof(DispListMesh), "dispmesh");
+			ndlm->mvert= MEM_callocN(lod.vertex_num*sizeof(MVert), "mvert");
+			ndlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
+			ndlm->totvert= lod.vertex_num;
+			ndlm->totface= dmd->faceCount = lod.face_num;
+
+			for(a=0; a<lod.vertex_num; a++) {
+				MVert *mv = &ndlm->mvert[a];
+				float *vbCo = &lod.vertex_buffer[a*3];
+				
+				VECCOPY(mv->co, vbCo);
+			}
+
+			for(a=0; a<lod.face_num; a++) {
+				MFace *mf = &ndlm->mface[a];
+				int *tri = &lod.triangle_index_buffer[a*3];
+				mf->v1 = tri[0];
+				mf->v2 = tri[1];
+				mf->v3 = tri[2];
+				test_index_mface(mf, 3);
+			}
+		}
+		else {
+			// No memory
+		}
+
+		LOD_FreeDecimationData(&lod);
+	}
+	else {
+		// Non-manifold mesh
+	}
+
+	MEM_freeN(lod.vertex_buffer);
+	MEM_freeN(lod.vertex_normal_buffer);
+	MEM_freeN(lod.triangle_index_buffer);
+
+	if (dlm) displistmesh_free(dlm);
+
+	if (ndlm) {
+		if (dm) dm->release(dm);
+
+		mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
+
+		return derivedmesh_from_displistmesh(ndlm);
+	} else {
+		return NULL;
+	}
+}
+
+/* Wave */
+
+static void waveModifier_initData(ModifierData *md) 
+{
+	WaveModifierData *wmd = (WaveModifierData*) md; // whadya know, moved here from Iraq
+		
+	wmd->flag |= (WAV_X+WAV_Y+WAV_CYCL);
+	
+	wmd->height= 0.5f;
+	wmd->width= 1.5f;
+	wmd->speed= 0.5f;
+	wmd->narrow= 1.5f;
+	wmd->lifetime= 0.0f;
+	wmd->damp= 10.0f;
+}
+
+static int waveModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void waveModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	WaveModifierData *wmd = (WaveModifierData*) md;
+	float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
+	float minfac = (float)(1.0/exp(wmd->width*wmd->narrow*wmd->width*wmd->narrow));
+	float lifefac = wmd->height;
+
+	if(wmd->damp==0) wmd->damp= 10.0f;
+
+	if(wmd->lifetime!=0.0) {
+		float x= ctime - wmd->timeoffs;
+
+		if(x>wmd->lifetime) {
+			lifefac= x-wmd->lifetime;
+			
+			if(lifefac > wmd->damp) lifefac= 0.0;
+			else lifefac= (float)(wmd->height*(1.0 - sqrt(lifefac/wmd->damp)));
+		}
+	}
+
+	if(lifefac!=0.0) {
+		int i;
+
+		for (i=0; i<numVerts; i++) {
+			float *co = vertexCos[i];
+			float x= co[0]-wmd->startx;
+			float y= co[1]-wmd->starty;
+			float amplit;
+
+			if(wmd->flag & WAV_X) {
+				if(wmd->flag & WAV_Y) amplit= (float)sqrt( (x*x + y*y));
+				else amplit= x;
+			}
+			else amplit= y;
+			
+			/* this way it makes nice circles */
+			amplit-= (ctime-wmd->timeoffs)*wmd->speed;
+
+			if(wmd->flag & WAV_CYCL) {
+				amplit = (float)fmod(amplit-wmd->width, 2.0*wmd->width) + wmd->width;
+			}
+
+				/* GAUSSIAN */
+			if(amplit> -wmd->width && amplit<wmd->width) {
+				amplit = amplit*wmd->narrow;
+				amplit= (float)(1.0/exp(amplit*amplit) - minfac);
+
+				co[2]+= lifefac*amplit;
+			}
+		}
+	}
+}
+
+static void waveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	waveModifier_deformVerts(md, ob, NULL, vertexCos, numVerts);
+}
+
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -772,6 +1006,20 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->initData = mirrorModifier_initData;
 		mti->applyModifier = mirrorModifier_applyModifier;
 		mti->applyModifierEM = mirrorModifier_applyModifierEM;
+
+		mti = INIT_TYPE(Decimate);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->initData = decimateModifier_initData;
+		mti->applyModifier = decimateModifier_applyModifier;
+
+		mti = INIT_TYPE(Wave);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->initData = waveModifier_initData;
+		mti->dependsOnTime = waveModifier_dependsOnTime;
+		mti->deformVerts = waveModifier_deformVerts;
+		mti->deformVertsEM = waveModifier_deformVertsEM;
 
 		typeArrInit = 0;
 #undef INIT_TYPE

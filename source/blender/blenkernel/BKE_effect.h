@@ -53,8 +53,6 @@ void deselectall_eff(struct Object *ob);
 struct PartEff *give_parteff(struct Object *ob);
 void where_is_particle(struct PartEff *paf, struct Particle *pa, float ctime, float *vec);
 void build_particle_system(struct Object *ob);
-void init_wave_deform(struct WaveEff *wav);
-void calc_wave_deform(struct WaveEff *wav, float ctime, float *co);
 
 /* particle deflector */
 #define PE_WIND_AS_SPEED 0x00000001

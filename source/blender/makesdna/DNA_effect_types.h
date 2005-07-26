@@ -51,7 +51,6 @@
 
 	/* eff->flag */
 #define EFF_SELECT		1
-#define EFF_CYCLIC		2
 
 	/* paf->stype */
 #define PAF_NORMAL		0

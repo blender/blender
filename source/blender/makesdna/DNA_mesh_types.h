@@ -80,9 +80,6 @@ typedef struct Mesh {
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 
-		/* hacky place to store temporary decimated mesh */
-	struct DispListMesh *decimated;
-
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
 

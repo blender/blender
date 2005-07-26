@@ -249,23 +249,6 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 		}
 	}
 		
-	if(ob->effect.first) {
-		WaveEff *wav;
-		float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
-		int a;
-	
-		for (wav= ob->effect.first; wav; wav= wav->next) {
-			if(wav->type==EFF_WAVE) {
-				if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-				init_wave_deform(wav);
-
-				for(a=0; a<me->totvert; a++) {
-					calc_wave_deform(wav, ctime, vertexCos[a]);
-				}
-			}
-		}
-	}
-
 	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
 		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
