@@ -78,7 +78,6 @@ PYPLAYERLIB ?= $(PYLIB)
 
     GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
     GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
-    GRPLIB += $(NAN_DECIMATION)/lib/libdecimation.a
     GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
     GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
     GRPLIB += $(NAN_GHOST)/lib/$(DEBUG_DIR)libghost.a
@@ -98,6 +97,7 @@ PYPLAYERLIB ?= $(PYLIB)
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
     COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
+    COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
     COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
     COMLIB += $(OCGDIR)/blender/blenpluginapi/$(DEBUG_DIR)libblenpluginapi.a
     COMLIB += $(OCGDIR)/blender/imbuf/$(DEBUG_DIR)libimbuf.a
