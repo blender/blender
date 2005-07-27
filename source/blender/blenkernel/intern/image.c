@@ -181,8 +181,7 @@ void free_old_images()
 
 	ima= G.main->image.first;
 	while(ima) {
-		/* lastused == 0 is the tag for non removable images */
-		if(ima->flag & IMA_NOCOLLECT && ctime - ima->lastused > U.textimeout) {
+		if((ima->flag & IMA_NOCOLLECT)==0 && ctime - ima->lastused > U.textimeout) {
 			/*
 			   If it's in GL memory, deallocate and set time tag to current time
 			   This gives textures a "second chance" to be used before dying.
