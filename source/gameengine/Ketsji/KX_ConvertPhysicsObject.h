@@ -39,7 +39,8 @@
 //on visual studio 8, always enable BULLET. 
 //you can have multiple physics engines running anyway, and 
 //the build system doesn't really support this at the moment.
-#if 1400 > _MSC_VER
+#if 1400 < _MSC_VER
+#else
 #define USE_BULLET
 #endif
 
