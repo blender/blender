@@ -33,6 +33,8 @@
 #ifndef READFILE_H
 #define READFILE_H
 
+#include "zlib.h"
+
 struct OldNewMap;
 struct MemFile;
 
@@ -52,6 +54,8 @@ typedef struct FileData {
 
 	// variables needed for reading from file
 	int filedes;
+	gzFile gzfiledes;
+
 	// now only in use for library appending
 	char filename[FILE_MAXDIR+FILE_MAXFILE];
 	

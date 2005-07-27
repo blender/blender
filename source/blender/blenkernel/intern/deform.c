@@ -230,7 +230,6 @@ void hook_object_deform(Object *ob, int index, float *vec)
 
 void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 {
-	MVert *origMVert=NULL;
 	Mesh *me= ob->data;
 	float (*vertexCos)[3] = NULL;
 	int a;

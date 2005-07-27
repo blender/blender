@@ -52,6 +52,7 @@
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
+#include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_library.h"

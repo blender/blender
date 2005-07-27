@@ -125,6 +125,8 @@
 
 #include "blendef.h"
 
+#include "zlib.h"
+
 static int is_dxf(char *str);
 static void dxf_read(char *filename);
 static int is_stl(char *str);
@@ -2376,7 +2378,8 @@ static void displist_to_objects(ListBase *lbase)
 int BKE_read_exotic(char *name)
 {
 	ListBase lbase={0, 0};
-	int file, len;
+	int len;
+	gzFile gzfile;
 	char str[32];
 	int *s0 = (int*) str;
 	int retval = 0;
@@ -2385,15 +2388,15 @@ int BKE_read_exotic(char *name)
 
 	len= strlen(name);
 	if (name[len-1] !='/' && name[len-1] != '\\') {
-		file = open(name, O_BINARY|O_RDONLY);
+		gzfile = gzopen(name,"rb");
 
-		if (file <= 0) {
+		if (NULL == gzfile ) {
 			error("Can't open file: %s", name);
 		} else {
-			read(file, str, 31);
-			close(file);
+			gzread(gzfile, str, 31);
+			gzclose(gzfile);
 
-			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0)) {
+			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0) && !BLI_testextensie(name,".blend.gz")) {
 
 				waitcursor(1);
 				

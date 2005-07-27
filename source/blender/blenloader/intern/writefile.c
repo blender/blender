@@ -167,6 +167,9 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "readfile.h"
 #include "genfile.h"
 
+#include "zlib.h"
+
+#include <errno.h>
 
 /* ********* my write, buffered writing with minimum 50k chunks ************ */
 
@@ -1607,10 +1610,28 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 	close(file);
 
 	if(!fout) {
+		if(write_flags & G_FILE_COMPRESS)
+		{	
+			// compressed files have the same ending as regular files... only from 2.4!!!
+			
+			int ret = BLI_gzip(tempname, dir);
+			
+			if(-1==ret) {
+				*error_r= "Failed opening .gz file";
+				return 0;
+			}
+			if(-2==ret) {
+				*error_r= "Failed opening .blend file for compression";
+				return 0;
+			}
+		}
+		else
 		if(BLI_rename(tempname, dir) < 0) {
 			*error_r= "Can't change old file. File saved with @";
 			return 0;
 		}
+
+		
 	} else {
 		remove(tempname);
 

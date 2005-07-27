@@ -121,6 +121,11 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		else if (BLI_strncasecmp(string + len - 6, ".trace", 6) == 0) len -= 6;
 	}
 	
+	if (len > 9) {
+		if (BLI_strncasecmp(string + len - 9, ".blend.gz", 9) == 0) len -= 9;
+	}
+		
+	
 	if (len == len2) {
 		if (len > 4) {
 			/* handle .jf0 en .jf1 for jstreams */

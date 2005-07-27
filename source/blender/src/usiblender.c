@@ -475,6 +475,7 @@ static void do_history(char *name)
 void BIF_write_file(char *target)
 {
 	Library *li;
+	int writeflags;
 	char di[FILE_MAXDIR];
 	char *err;
 	
@@ -511,8 +512,13 @@ void BIF_write_file(char *target)
 	waitcursor(1);	// exit_editmode sets cursor too
 
 	do_history(di);
-		
-	if (BLO_write_file(di, G.fileflags, &err)) {
+	
+	/* we use the UserDef to define compression flag */
+	writeflags= G.fileflags & ~G_FILE_COMPRESS;
+	if(U.flag & USER_FILECOMPRESS)
+		writeflags |= G_FILE_COMPRESS;
+	
+	if (BLO_write_file(di, writeflags, &err)) {
 		strcpy(G.sce, di);
 		strcpy(G.main->name, di);	/* is guaranteed current file */
 

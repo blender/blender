@@ -146,7 +146,10 @@ void file_buttons(void)
 		uiBlockEndAlign(block);
 	} else if(sfile->type==FILE_BLENDER) {
 		uiDefButI(block, TOGN|BIT|10, B_REDR, "Load UI", xco+=XIC,0,80,YIC, &G.fileflags, 0, 0, 0, 0, "Load the UI setup as well as the scene data");
+		
+	
 		xco+=100;
+
 	}
 
 	if(sfile->type==FILE_UNIX) {

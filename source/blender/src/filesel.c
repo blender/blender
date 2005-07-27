@@ -704,6 +704,7 @@ static void split_sfile(SpaceFile *sfile, char *s1)
 		else test_flags_file(sfile);
 	}
 	strcpy(sfile->file, file);
+		
 	BLI_make_file_string(G.sce, sfile->dir, dir, "");
 }
 
@@ -917,6 +918,7 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 		linerect(boxcol, x, y);
 	}
 
+	// this is where the little boxes in the file view are being drawn according to the file type
 	if(files->flags & BLENDERFILE) {
 		cpack(0xA0A0);
 		glRects(x-14,  y,  x-8,  y+7);
@@ -1149,8 +1151,9 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	}
 	else loadbutton= 0;
 
-	uiDefBut(block, TEX,	    1,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-	uiDefBut(block, TEX,	    2,"",	textrct.xmin, filebuty2, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX,1,"",	textrct.xmin, filebuty1, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX,2,"",	textrct.xmin, filebuty2, textrct.xmax-textrct.xmin-loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT,	    5, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");

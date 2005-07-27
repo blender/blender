@@ -152,7 +152,6 @@
 
 #include "butspace.h" // own module
 
-static int decim_faces=0;
 static short degr= 90, step= 9, turn= 1;
 static float extr_offs= 1.0;
 static float editbutweight=1.0;

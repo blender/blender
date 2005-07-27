@@ -572,95 +572,6 @@ static void write_runtime_check(char *str)
 /************************** MAIN MENU *****************************/
 /************************** FILE *****************************/
 
-#if 0
-static void do_info_file_optionsmenu(void *arg, int event)
-{
-	G.fileflags ^= (1 << event);
-
-	// allqueue(REDRAWINFO, 0);
-}
-#endif
-
-#if GAMEBLENDER == 1
-
-#if 0
-static uiBlock *info_file_optionsmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, xco = 20;
-
-	block= uiNewBlock(&curarea->uiblocks, "runtime_options", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetButmFunc(block, do_info_file_optionsmenu, NULL);
-	uiBlockSetXOfs(block,-40);	// offset to parent button
-	
-	/* flags are case-values */
-	uiDefBut(block, BUTM, 1, "Compress File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_COMPRESS_BIT, "Enables file compression");
-/*
-	uiDefBut(block, BUTM, 1, "Sign File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_SIGN_BIT, "Add signature to file");
-	uiDefBut(block, BUTM, 1, "Lock File",	xco, yco-=20, 100, 19, NULL, 0.0, 0.0, 0, G_FILE_LOCK_BIT, "Protect the file from editing by others");
-*/
-	uiTextBoundsBlock(block, 50);
-
-	/* Toggle buttons */
-	
-	yco= 0;
-	xco -= 20;
-	uiBlockSetEmboss(block, UI_EMBOSSM);
-	uiBlockSetButmFunc(block, NULL, NULL);
-	/* flags are defines */
-	uiDefIconButI(block, ICONTOG|BIT|G_FILE_COMPRESS_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
-/*
-	uiDefIconButI(block, ICONTOG|BIT|G_FILE_SIGN_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
-	uiDefIconButI(block, ICONTOG|BIT|G_FILE_LOCK_BIT, 0, ICON_CHECKBOX_DEHLT, xco, yco-=20, 19, 19, &G.fileflags, 0.0, 0.0, 0, 0, "");
-*/
-	uiBlockSetDirection(block, UI_RIGHT);
-		
-	return block;
-}
-
-static uiBlock *info_runtime_optionsmenu(void *arg_unused)
-{
-	uiBlock *block;
-	short yco= 0, xco = 20;
-
-	block= uiNewBlock(&curarea->uiblocks, "add_surfacemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
-	uiBlockSetXOfs(block, -40);  // offset to parent button
-	uiBlockSetEmboss(block, UI_EMBOSSM);
-
-	uiDefBut(block, LABEL, 0, "Size options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, NUM, 0, "X:",		xco+19, yco-=20, 95, 19,		&G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
-	uiDefButS(block, NUM, 0, "Y:",		xco+19, yco-=20, 95, 19, &G.scene->r.yplay, 10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
-
-	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefBut(block, LABEL, 0, "Fullscreen options:",		xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, TOG, 0, "Fullscreen", xco + 19, yco-=20, 95, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
-	uiDefButS(block, NUM, 0, "Freq:",	xco+19, yco-=20, 95, 19, &G.scene->r.freqplay, 10.0, 120.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
-	uiDefButS(block, NUM, 0, "Bits:",	xco+19, yco-=20, 95, 19, &G.scene->r.depth, 1.0, 32.0, 0, 0, "Displays bit depth of full screen display. Click to change.");
-
-	uiDefBut(block, SEPR, 0, "",		xco, yco-=4, 114, 4, NULL, 0.0, 0.0, 0, 0, "");
-
-	/* stereo settings */
-	/* can't use any definition from the game engine here so hardcode it. Change it here when it changes there!
-	 * RAS_IRasterizer has definitions:
-	 * RAS_STEREO_NOSTEREO		 1
-	 * RAS_STEREO_QUADBUFFERED 2
-	 * RAS_STEREO_ABOVEBELOW	 3
-	 * RAS_STEREO_INTERLACED	 4	 future
-	 */
-	uiDefBut(block, LABEL, 0, "Stereo options", xco, yco-=20, 114, 19, 0, 0.0, 0.0, 0, 0, "");
-	uiDefButS(block, ROW, 0, "no stereo", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 1.0, 0, 0, "Disables stereo");
-	uiDefButS(block, ROW, 0, "h/w pageflip", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 2.0, 0, 0, "Enables hardware pageflip stereo method");
-	uiDefButS(block, ROW, 0, "syncdoubling", xco+19, yco-=20, 95, 19, &(G.scene->r.stereomode), 6.0, 3.0, 0, 0, "Enables syncdoubling stereo method");
-
-	uiBlockSetDirection(block, UI_RIGHT);
-	uiTextBoundsBlock(block, 50);
-		
-	return block;
-}
-#endif
-
-#endif
 
 static void do_info_file_importmenu(void *arg, int event)
 {
@@ -899,6 +810,10 @@ static void do_info_filemenu(void *arg, int event)
 	case 31: /* save default settings */
 		BIF_write_homefile();
 		break;
+
+	case 35: /* compress toggle */
+		U.flag ^= (USER_FILECOMPRESS);
+		break;
 	}
 	allqueue(REDRAWINFO, 0);
 }
@@ -921,6 +836,12 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Ctrl W",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...|F2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	
+	if(U.flag & USER_FILECOMPRESS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Compress File",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 35, "Enable file compression");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Compress File",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 35, "Enable file compression");
+	}
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

@@ -141,6 +141,10 @@
 #include "mydevice.h"
 #include "blendef.h"
 
+#include "zlib.h"
+
+#include <errno.h>
+
 /*
  Remark: still a weak point is the newadress() function, that doesnt solve reading from
  multiple files at the same time
@@ -774,6 +778,19 @@ static int fd_read_from_file(FileData *filedata, void *buffer, int size)
 	return (readsize);
 }
 
+static int fd_read_gzip_from_file(FileData *filedata, void *buffer, int size)
+{
+	int readsize = gzread(filedata->gzfiledes, buffer, size);
+
+	if (readsize < 0) {
+		readsize = EOF;
+	} else {
+		filedata->seek += readsize;
+	}
+
+	return (readsize);
+}
+
 static int fd_read_from_memory(FileData *filedata, void *buffer, int size)
 {
 		// don't read more bytes then there are available in the buffer
@@ -840,6 +857,7 @@ static FileData *filedata_new(void)
 	FileData *fd = MEM_callocN(sizeof(FileData), "FileData");
 
 	fd->filedes = -1;
+	fd->gzfiledes = NULL;
 
 		/* XXX, this doesn't need to be done all the time,
 		 * but it keeps us reentrant,  remove once we have
@@ -875,7 +893,7 @@ static FileData *blo_decode_and_check(FileData *fd, BlendReadError *error_r)
 
 FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 {
-	int file;
+	gzFile gzfile;
 	char name1[FILE_MAXDIR+FILE_MAXFILE];
 	
 	/* library files can have stringcodes */
@@ -885,17 +903,16 @@ FileData *blo_openblenderfile(char *name, BlendReadError *error_r)
 	else
 		strcpy(G.sce, name);	// global... is set in blender.c setup_app_data too. should be part of Main immediate?
 	
-	file= open(name1, O_BINARY|O_RDONLY);
+	gzfile= gzopen(name1, "rb");
 
-	if (file == -1) {
+	if (NULL == gzfile) {
 		*error_r = BRE_UNABLE_TO_OPEN;
 		return NULL;
 	} else {
 		FileData *fd = filedata_new();
-		fd->filedes = file;
+		fd->gzfiledes = gzfile;
 		BLI_strncpy(fd->filename, name, sizeof(fd->filename));	// now only in use by library append
-		fd->buffersize = BLI_filesize(file);
-		fd->read = fd_read_from_file;
+		fd->read = fd_read_gzip_from_file;
 
 		return blo_decode_and_check(fd, error_r);
 	}
@@ -937,8 +954,14 @@ FileData *blo_openblendermemfile(MemFile *memfile, BlendReadError *error_r)
 void blo_freefiledata(FileData *fd)
 {
 	if (fd) {
+		
 		if (fd->filedes != -1) {
 			close(fd->filedes);
+		}
+
+		if (fd->gzfiledes != NULL)
+		{
+			gzclose(fd->gzfiledes);
 		}
 
 		if (fd->buffer && !(fd->flags & FD_FLAGS_NOT_MY_BUFFER)) {
@@ -971,7 +994,7 @@ void blo_freefiledata(FileData *fd)
 
 int BLO_has_bfile_extension(char *str)
 {
-	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend"));
+	return (BLI_testextensie(str, ".ble") || BLI_testextensie(str, ".blend")||BLI_testextensie(str, ".blend.gz"));
 }
 
 /* ************** OLD POINTERS ******************* */

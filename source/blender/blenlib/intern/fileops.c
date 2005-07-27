@@ -55,6 +55,14 @@
 #include "BLI_fileops.h"
 #include "BLI_callbacks.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#include "BKE_utildefines.h"
+#include "zlib.h"
+#include <errno.h>
+
 /* implementations: */
 char *first_slash(char *string) {
 	char *ffslash, *fbslash;
@@ -80,6 +88,37 @@ char *BLI_last_slash(char *string) {
 	
 	if ((int)lfslash < (int)lbslash) return lbslash;
 	else return lfslash;
+}
+
+/* gzip the file in from and write it to "to". 
+ return -1 if zlib fails, -2 if the originating file does not exist
+ note: will remove the "from" file
+  */
+int BLI_gzip(char *from, char *to) {
+	char buffer[10240];
+	int file;
+	int readsize = 0;
+	
+	gzFile gzfile = gzopen(to,"wb"); 
+	if (NULL == gzfile) return -1;
+	
+	file = open(from,O_BINARY|O_RDONLY);
+	
+	if ( -1 == file ) 	return -2;
+
+	while ( 1 )
+	{
+		readsize = read(file, buffer, 10240);
+		
+		if (readsize <= 0) break;
+		
+		gzwrite(gzfile,buffer,readsize);
+	}
+	
+	gzclose(gzfile);
+	close(file);
+	
+	remove(from);
 }
 
 #ifdef WIN32
