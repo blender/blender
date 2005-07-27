@@ -488,12 +488,14 @@ void makeoctree(void)
 		if((v & 255)==0) vlr= R.blovl[v>>8];	
 		else vlr++;
 		if(vlr->mat->mode & MA_TRACEBLE) {	
-			
-			DO_MINMAX(vlr->v1->co, g_oc.min, g_oc.max);
-			DO_MINMAX(vlr->v2->co, g_oc.min, g_oc.max);
-			DO_MINMAX(vlr->v3->co, g_oc.min, g_oc.max);
-			if(vlr->v4) {
-				DO_MINMAX(vlr->v4->co, g_oc.min, g_oc.max);
+			if((vlr->mat->mode & MA_WIRE)==0) {	
+				
+				DO_MINMAX(vlr->v1->co, g_oc.min, g_oc.max);
+				DO_MINMAX(vlr->v2->co, g_oc.min, g_oc.max);
+				DO_MINMAX(vlr->v3->co, g_oc.min, g_oc.max);
+				if(vlr->v4) {
+					DO_MINMAX(vlr->v4->co, g_oc.min, g_oc.max);
+				}
 			}
 		}
 	}
@@ -527,96 +529,98 @@ void makeoctree(void)
 		else vlr++;
 		
 		if(vlr->mat->mode & MA_TRACEBLE) {
-			
-			v1= vlr->v1;
-			v2= vlr->v2;
-			v3= vlr->v3;
-			v4= vlr->v4;
-			
-			for(c=0;c<3;c++) {
-				rtf[0][c]= (v1->co[c]-g_oc.min[c])*ocfac[c] ;
-				rts[0][c]= (short)rtf[0][c];
-				rtf[1][c]= (v2->co[c]-g_oc.min[c])*ocfac[c] ;
-				rts[1][c]= (short)rtf[1][c];
-				rtf[2][c]= (v3->co[c]-g_oc.min[c])*ocfac[c] ;
-				rts[2][c]= (short)rtf[2][c];
-				if(v4) {
-					rtf[3][c]= (v4->co[c]-g_oc.min[c])*ocfac[c] ;
-					rts[3][c]= (short)rtf[3][c];
+			if((vlr->mat->mode & MA_WIRE)==0) {	
+				
+				v1= vlr->v1;
+				v2= vlr->v2;
+				v3= vlr->v3;
+				v4= vlr->v4;
+				
+				for(c=0;c<3;c++) {
+					rtf[0][c]= (v1->co[c]-g_oc.min[c])*ocfac[c] ;
+					rts[0][c]= (short)rtf[0][c];
+					rtf[1][c]= (v2->co[c]-g_oc.min[c])*ocfac[c] ;
+					rts[1][c]= (short)rtf[1][c];
+					rtf[2][c]= (v3->co[c]-g_oc.min[c])*ocfac[c] ;
+					rts[2][c]= (short)rtf[2][c];
+					if(v4) {
+						rtf[3][c]= (v4->co[c]-g_oc.min[c])*ocfac[c] ;
+						rts[3][c]= (short)rtf[3][c];
+					}
 				}
-			}
-			
-			
-			
-			for(c=0;c<3;c++) {
-				oc1= rts[0][c];
-				oc2= rts[1][c];
-				oc3= rts[2][c];
+				
+				
+				
+				for(c=0;c<3;c++) {
+					oc1= rts[0][c];
+					oc2= rts[1][c];
+					oc3= rts[2][c];
+					if(v4==NULL) {
+						ocmin[c]= MIN3(oc1,oc2,oc3);
+						ocmax[c]= MAX3(oc1,oc2,oc3);
+					}
+					else {
+						oc4= rts[3][c];
+						ocmin[c]= MIN4(oc1,oc2,oc3,oc4);
+						ocmax[c]= MAX4(oc1,oc2,oc3,oc4);
+					}
+					if(ocmax[c]>g_oc.ocres-1) ocmax[c]=g_oc.ocres-1;
+					if(ocmin[c]<0) ocmin[c]=0;
+				}
+
+				d2dda(0,1,0,1,ocvlak+ocres2,rts,rtf);
+				d2dda(0,1,0,2,ocvlak,rts,rtf);
+				d2dda(0,1,1,2,ocvlak+2*ocres2,rts,rtf);
+				d2dda(1,2,0,1,ocvlak+ocres2,rts,rtf);
+				d2dda(1,2,0,2,ocvlak,rts,rtf);
+				d2dda(1,2,1,2,ocvlak+2*ocres2,rts,rtf);
 				if(v4==NULL) {
-					ocmin[c]= MIN3(oc1,oc2,oc3);
-					ocmax[c]= MAX3(oc1,oc2,oc3);
+					d2dda(2,0,0,1,ocvlak+ocres2,rts,rtf);
+					d2dda(2,0,0,2,ocvlak,rts,rtf);
+					d2dda(2,0,1,2,ocvlak+2*ocres2,rts,rtf);
 				}
 				else {
-					oc4= rts[3][c];
-					ocmin[c]= MIN4(oc1,oc2,oc3,oc4);
-					ocmax[c]= MAX4(oc1,oc2,oc3,oc4);
+					d2dda(2,3,0,1,ocvlak+ocres2,rts,rtf);
+					d2dda(2,3,0,2,ocvlak,rts,rtf);
+					d2dda(2,3,1,2,ocvlak+2*ocres2,rts,rtf);
+					d2dda(3,0,0,1,ocvlak+ocres2,rts,rtf);
+					d2dda(3,0,0,2,ocvlak,rts,rtf);
+					d2dda(3,0,1,2,ocvlak+2*ocres2,rts,rtf);
 				}
-				if(ocmax[c]>g_oc.ocres-1) ocmax[c]=g_oc.ocres-1;
-				if(ocmin[c]<0) ocmin[c]=0;
-			}
-
-			d2dda(0,1,0,1,ocvlak+ocres2,rts,rtf);
-			d2dda(0,1,0,2,ocvlak,rts,rtf);
-			d2dda(0,1,1,2,ocvlak+2*ocres2,rts,rtf);
-			d2dda(1,2,0,1,ocvlak+ocres2,rts,rtf);
-			d2dda(1,2,0,2,ocvlak,rts,rtf);
-			d2dda(1,2,1,2,ocvlak+2*ocres2,rts,rtf);
-			if(v4==NULL) {
-				d2dda(2,0,0,1,ocvlak+ocres2,rts,rtf);
-				d2dda(2,0,0,2,ocvlak,rts,rtf);
-				d2dda(2,0,1,2,ocvlak+2*ocres2,rts,rtf);
-			}
-			else {
-				d2dda(2,3,0,1,ocvlak+ocres2,rts,rtf);
-				d2dda(2,3,0,2,ocvlak,rts,rtf);
-				d2dda(2,3,1,2,ocvlak+2*ocres2,rts,rtf);
-				d2dda(3,0,0,1,ocvlak+ocres2,rts,rtf);
-				d2dda(3,0,0,2,ocvlak,rts,rtf);
-				d2dda(3,0,1,2,ocvlak+2*ocres2,rts,rtf);
-			}
-			/* nothing todo with triangle..., just fills :) */
-			filltriangle(0,1,ocvlak+ocres2,ocmin);
-			filltriangle(0,2,ocvlak,ocmin);
-			filltriangle(1,2,ocvlak+2*ocres2,ocmin);
-			
-			/* init static vars here */
-			face_in_node(vlr, 0,0,0, rtf);
-			
-			for(x=ocmin[0];x<=ocmax[0];x++) {
-				a= g_oc.ocres*x;
-				for(y=ocmin[1];y<=ocmax[1];y++) {
-					if(ocvlak[a+y+ocres2]) {
-						b= g_oc.ocres*y+2*ocres2;
-						for(z=ocmin[2];z<=ocmax[2];z++) {
-							if(ocvlak[b+z] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
+				/* nothing todo with triangle..., just fills :) */
+				filltriangle(0,1,ocvlak+ocres2,ocmin);
+				filltriangle(0,2,ocvlak,ocmin);
+				filltriangle(1,2,ocvlak+2*ocres2,ocmin);
+				
+				/* init static vars here */
+				face_in_node(vlr, 0,0,0, rtf);
+				
+				for(x=ocmin[0];x<=ocmax[0];x++) {
+					a= g_oc.ocres*x;
+					for(y=ocmin[1];y<=ocmax[1];y++) {
+						if(ocvlak[a+y+ocres2]) {
+							b= g_oc.ocres*y+2*ocres2;
+							for(z=ocmin[2];z<=ocmax[2];z++) {
+								if(ocvlak[b+z] && ocvlak[a+z]) ocwrite(vlr, x,y,z, rtf);
+							}
 						}
 					}
 				}
-			}
-			
-			/* same loops to clear octree, doubt it can be done smarter */
-			for(x=ocmin[0];x<=ocmax[0];x++) {
-				a= g_oc.ocres*x;
-				for(y=ocmin[1];y<=ocmax[1];y++) {
-					/* x-y */
-					ocvlak[a+y+ocres2]= 0;
+				
+				/* same loops to clear octree, doubt it can be done smarter */
+				for(x=ocmin[0];x<=ocmax[0];x++) {
+					a= g_oc.ocres*x;
+					for(y=ocmin[1];y<=ocmax[1];y++) {
+						/* x-y */
+						ocvlak[a+y+ocres2]= 0;
 
-					b= g_oc.ocres*y + 2*ocres2;
-					for(z=ocmin[2];z<=ocmax[2];z++) {
-						/* y-z */
-						ocvlak[b+z]= 0;
-						/* x-z */
-						ocvlak[a+z]= 0;
+						b= g_oc.ocres*y + 2*ocres2;
+						for(z=ocmin[2];z<=ocmax[2];z++) {
+							/* y-z */
+							ocvlak[b+z]= 0;
+							/* x-z */
+							ocvlak[a+z]= 0;
+						}
 					}
 				}
 			}
