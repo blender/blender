@@ -240,8 +240,10 @@ static void init_userdef_file(void)
 	if (U.undosteps==0) U.undosteps=32;
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
-	U.texcollectrate = 60;
-	U.textimeout = 120;
+	if (U.textimeout == 0) {
+		U.texcollectrate = 60;
+		U.textimeout = 120;
+	}
 	
 	reset_autosave();
 	
