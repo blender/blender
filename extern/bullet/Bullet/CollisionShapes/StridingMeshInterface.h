@@ -34,7 +34,7 @@ class  StridingMeshInterface
 	public:
 		StridingMeshInterface() :m_scaling(1.f,1.f,1.f)
 		{
-			
+
 		}
 
 		virtual ~StridingMeshInterface();
@@ -64,6 +64,8 @@ class  StridingMeshInterface
 		{
 			m_scaling = scaling;
 		}
+
+
 };
 
 #endif //STRIDING_MESHINTERFACE_H

@@ -213,5 +213,6 @@ PyObject* KX_MeshProxy::PyGetVertex(PyObject* self,
 KX_PYMETHODDEF_DOC(KX_MeshProxy, reinstancePhysicsMesh,
 "Reinstance the physics mesh.")
 {
-	return Py_Success(KX_ReInstanceShapeFromMesh(m_meshobj));
+	//this needs to be reviewed, it is dependend on Sumo/Solid. Who is using this ?
+	return Py_None;//Py_Success(KX_ReInstanceShapeFromMesh(m_meshobj));
 }

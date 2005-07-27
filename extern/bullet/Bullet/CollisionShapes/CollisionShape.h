@@ -69,6 +69,8 @@ public:
 	const char * m_tempDebug;
 //endif debugging support
 
+	virtual void	SetMargin(float margin) = 0;
+	virtual float	GetMargin() const = 0;
 
 };	
 

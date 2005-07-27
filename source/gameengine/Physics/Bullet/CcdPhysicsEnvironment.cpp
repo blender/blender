@@ -47,6 +47,43 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 
 
 
+
+static void DrawAabb(PHY_IPhysicsDebugDraw* debugDrawer,const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
+{
+	SimdVector3 halfExtents = (to-from)* 0.5f;
+	SimdVector3 center = (to+from) *0.5f;
+	int i,j;
+
+	SimdVector3 edgecoord(1.f,1.f,1.f),pa,pb;
+	for (i=0;i<4;i++)
+	{
+		for (j=0;j<3;j++)
+		{
+			pa = SimdVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],		
+				edgecoord[2]*halfExtents[2]);
+			pa+=center;
+			
+			int othercoord = j%3;
+			edgecoord[othercoord]*=-1.f;
+			pb = SimdVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],	
+				edgecoord[2]*halfExtents[2]);
+			pb+=center;
+			
+			debugDrawer->DrawLine(pa,pb,color);
+		}
+		edgecoord = SimdVector3(-1.f,-1.f,-1.f);
+		if (i<3)
+			edgecoord[i]*=-1.f;
+	}
+
+
+}
+
+
+
+
+
+
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher,BroadphaseInterface* bp)
 :m_dispatcher(dispatcher),
 m_broadphase(bp),
@@ -402,9 +439,15 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 				
 				SimdPoint3 minAabb,maxAabb;
 				CollisionShape* shapeinterface = ctrl->GetCollisionShape();
+
+
+
 				shapeinterface->CalculateTemporalAabb(body->getCenterOfMassTransform(),
 					body->getLinearVelocity(),body->getAngularVelocity(),
 					timeStep,minAabb,maxAabb);
+
+				shapeinterface->GetAabb(body->getCenterOfMassTransform(),
+					minAabb,maxAabb);
 
 				
 				BroadphaseProxy* bp = (BroadphaseProxy*) ctrl->m_broadphaseHandle;
@@ -414,7 +457,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 #ifdef WIN32
 					SimdVector3 color (1,0,0);
 					if (m_debugDrawer)
-						m_debugDrawer->DrawLine(minAabb,maxAabb,color);
+					{	
+						//draw aabb
+
+						DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
+					}
 #endif
 					scene->SetAabb(bp,minAabb,maxAabb);
 				}

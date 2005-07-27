@@ -83,6 +83,8 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 	if (m_boxProxy->IsConvexShape())
 	{
 		TriangleShape tm(triangle[0],triangle[1],triangle[2]);	
+		tm.SetMargin(m_collisionMarginTriangle);
+
 		RigidBody* triangleBody = (RigidBody* )m_triangleProxy.m_clientObject;
 		
 		triangleBody->SetCollisionShape(&tm);
@@ -97,11 +99,12 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 
 
 
-void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,bool useContinuous)
+void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,float collisionMarginTriangle,bool useContinuous)
 {
 	m_timeStep = timeStep;
 	m_stepCount = stepCount;
 	m_useContinuous = useContinuous;
+	m_collisionMarginTriangle = collisionMarginTriangle;
 
 	//recalc aabbs
 	RigidBody* boxBody = (RigidBody* )m_boxProxy->m_clientObject;
@@ -141,8 +144,9 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 		
 		if (m_convex.IsConvexShape())
 		{
+			float collisionMarginTriangle = triangleMesh->GetMargin();
 					
-			m_boxTriangleCallback.SetTimeStepAndCounters(timeStep,stepCount, useContinuous);
+			m_boxTriangleCallback.SetTimeStepAndCounters(timeStep,stepCount, collisionMarginTriangle,useContinuous);
 #ifdef USE_BOX_TRIANGLE
 			m_boxTriangleCallback.m_manifoldPtr->ClearManifold();
 #endif
@@ -160,6 +164,8 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 
 float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount)
 {
+
+	return 1.f;
 
 	//quick approximation using raycast, todo: use proper continuou collision detection
 	RigidBody* convexbody = (RigidBody* )m_convex.m_clientObject;
@@ -193,7 +199,7 @@ float ConvexConcaveCollisionAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* ,B
 		RigidBody* concavebody = (RigidBody* )m_concave.m_clientObject;
 
 		TriangleMeshShape* triangleMesh = (TriangleMeshShape*) concavebody->GetCollisionShape();
-
+		
 		if (triangleMesh)
 		{
 			triangleMesh->ProcessAllTriangles(&raycastCallback,aabbMin,aabbMax);

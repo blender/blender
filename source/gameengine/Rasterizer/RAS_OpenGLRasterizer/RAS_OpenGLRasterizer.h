@@ -44,6 +44,13 @@ using namespace std;
 #include "RAS_MaterialBucket.h"
 #include "RAS_ICanvas.h"
 
+struct	OglDebugLine
+{
+	MT_Vector3	m_from;
+	MT_Vector3	m_to;
+	MT_Vector3	m_color;
+};
+
 /**
  * 3D rendering device context.
  */
@@ -225,6 +232,17 @@ public:
 						float diffuse
 					);
 	virtual void	SetPolygonOffset(float mult, float add);
+
+	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
+	{
+		OglDebugLine line;
+		line.m_from = from;
+		line.m_to = to;
+		line.m_color = color;
+		m_debugLines.push_back(line);
+	}
+
+	std::vector <OglDebugLine>	m_debugLines;
 
 };
 

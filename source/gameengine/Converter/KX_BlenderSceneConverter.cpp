@@ -170,7 +170,22 @@ static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& sce
 
 	return (Scene*) maggie->scene.first;
 }
+#include "KX_PythonInit.h"
 
+#ifdef USE_BULLET
+struct	BlenderDebugDraw : public PHY_IPhysicsDebugDraw
+{
+	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
+	{
+		MT_Vector3 kxfrom(from[0],from[1],from[2]);
+		MT_Vector3 kxto(to[0],to[1],to[2]);
+		MT_Vector3 kxcolor(color[0],color[1],color[2]);
+
+		KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
+	}
+};
+
+#endif
 
 void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 											class KX_Scene* destinationscene,
@@ -226,7 +241,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 #ifdef USE_BULLET
 		case UseBullet:
 			{
-				destinationscene->SetPhysicsEnvironment(new CcdPhysicsEnvironment());
+				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
+				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
+				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}
 #endif

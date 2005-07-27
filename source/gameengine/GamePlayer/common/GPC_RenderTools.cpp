@@ -173,6 +173,7 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	int lines;
 	char* s = tmpstr.Ptr();
 	char* p;
+	
 
 	// Save and change OpenGL settings
 	int texture2D;
@@ -181,6 +182,11 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 	int fog;
 	glGetIntegerv(GL_FOG, (GLint*)&fog);
 	glDisable(GL_FOG);
+	
+	int light;
+	glGetIntegerv(GL_LIGHTING, (GLint*)&light);
+	glDisable(GL_LIGHTING);
+
 	
 	// Set up viewing settings
 	glMatrixMode(GL_PROJECTION);
@@ -228,6 +234,10 @@ void GPC_RenderTools::RenderText2D(RAS_TEXT_RENDER_MODE mode,
 		glEnable(GL_TEXTURE_2D);
 	else
 		glDisable(GL_TEXTURE_2D);
+	if (light)
+		glEnable(GL_LIGHTING);
+	else
+		glDisable(GL_LIGHTING);
 }
 
 /**

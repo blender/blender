@@ -854,6 +854,7 @@ static CollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool p
 
 
 
+
 void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	class	RAS_MeshObject* meshobj,
 	class	KX_Scene* kxscene,
@@ -864,6 +865,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 		CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
 	assert(env);
+
+
 	
 
 	bool dyna = false;
@@ -954,6 +957,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				if (bm)
 				{
 					bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+					bm->SetMargin(0.f);
 				}
 				break;
 			}

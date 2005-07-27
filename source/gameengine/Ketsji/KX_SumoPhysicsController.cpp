@@ -1,3 +1,6 @@
+#include "KX_ConvertPhysicsObject.h"
+
+#ifdef USE_SUMO_SOLID
 
 #ifdef WIN32
 #pragma warning (disable : 4786)
@@ -216,3 +219,4 @@ KX_SumoPhysicsController::~KX_SumoPhysicsController()
 }
 
 
+#endif//USE_SUMO_SOLID

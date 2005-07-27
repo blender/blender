@@ -120,13 +120,18 @@ bool	ContinuousConvexCollision::calcTimeOfImpact(
 
 			lambda = lambda + dLambda;
 
+			if (lambda > 1.f)
+				return false;
+
+			if (lambda < 0.f)
+				return false;
+
 			//todo: next check with relative epsilon
 			if (lambda <= lastLambda)
 				break;
 			lastLambda = lambda;
 
-			if (lambda > 1.f)
-				return false;
+			
 
 			//interpolate to next lambda
 			SimdTransform interpolatedTransA,interpolatedTransB,relativeTrans;

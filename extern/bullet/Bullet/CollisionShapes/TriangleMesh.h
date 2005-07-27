@@ -27,6 +27,7 @@ struct MyTriangle
 class TriangleMesh : public StridingMeshInterface
 {
 	std::vector<MyTriangle>	m_triangles;
+	
 
 	public:
 		TriangleMesh ();
@@ -56,8 +57,7 @@ class TriangleMesh : public StridingMeshInterface
 		virtual void	preallocateVertices(int numverts){}
 		virtual void	preallocateIndices(int numindices){}
 
-
-
+		
 };
 
 #endif //TRIANGLE_MESH_H

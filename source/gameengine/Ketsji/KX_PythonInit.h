@@ -51,6 +51,9 @@ void		exitGamePlayerPythonScripting();
 PyObject*	initGamePythonScripting(const STR_String& progname, TPythonSecurityLevel level);
 void		exitGamePythonScripting();
 void PHY_SetActiveScene(class KX_Scene* scene);
+#include "MT_Vector3.h"
+
+void		KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color);
 
 #endif //__KX_PYTHON_INIT
 

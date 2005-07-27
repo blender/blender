@@ -17,7 +17,8 @@
 
 
 TriangleMeshShape::TriangleMeshShape(StridingMeshInterface* meshInterface)
-: m_meshInterface(meshInterface)
+: m_meshInterface(meshInterface),
+m_collisionMargin(0.1f)
 {
 }
 
@@ -31,16 +32,16 @@ TriangleMeshShape::~TriangleMeshShape()
 
 void TriangleMeshShape::GetAabb(const SimdTransform& trans,SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
-	SimdScalar margin = 0.5f;
+
 	for (int i=0;i<3;i++)
 	{
 		SimdVector3 vec(0.f,0.f,0.f);
 		vec[i] = 1.f;
 		SimdVector3 tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
-		aabbMax[i] = tmp[i]+margin;
+		aabbMax[i] = tmp[i]+m_collisionMargin;
 		vec[i] = -1.f;
 		tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
-		aabbMin[i] = tmp[i]-margin;
+		aabbMin[i] = tmp[i]-m_collisionMargin;
 	}
 }
 

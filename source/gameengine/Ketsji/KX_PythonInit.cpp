@@ -78,6 +78,12 @@ static RAS_ICanvas* gp_Canvas = NULL;
 static KX_Scene*	gp_KetsjiScene = NULL;
 static RAS_IRasterizer* gp_Rasterizer = NULL;
 
+void	KX_RasterizerDrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)
+{
+	if (gp_Rasterizer)
+		gp_Rasterizer->DrawDebugLine(from,to,color);
+}
+
 /* Macro for building the keyboard translation */
 //#define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(SCA_IInputDevice::KX_##name))
 #define KX_MACRO_addToDict(dict, name) PyDict_SetItemString(dict, #name, PyInt_FromLong(name))

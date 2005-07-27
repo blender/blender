@@ -24,7 +24,8 @@ class TriangleMeshShape : public CollisionShape
 {
 
 	StridingMeshInterface* m_meshInterface;
-	
+	float m_collisionMargin;
+
 public:
 	TriangleMeshShape(StridingMeshInterface* meshInterface);
 
@@ -56,6 +57,16 @@ public:
 
 	//debugging
 	virtual char*	GetName()const {return "TRIANGLEMESH";}
+
+	
+	virtual float GetMargin() const {
+		return m_collisionMargin;
+	}
+	virtual void SetMargin(float collisionMargin)
+	{
+		m_collisionMargin = collisionMargin;
+	}
+
 
 
 };

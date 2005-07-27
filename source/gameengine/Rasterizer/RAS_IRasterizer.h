@@ -333,6 +333,7 @@ public:
 	 */
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
+	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
 };
 
 #endif //__RAS_IRASTERIZER

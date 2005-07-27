@@ -33,6 +33,7 @@ class BoxTriangleCallback : public TriangleCallback
 	float	m_timeStep;
 	int	m_stepCount;
 	bool m_useContinuous;
+	float m_collisionMarginTriangle;
 	
 public:
 
@@ -40,7 +41,7 @@ public:
 
 	BoxTriangleCallback(Dispatcher* dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1);
 
-	void	SetTimeStepAndCounters(float timeStep,int stepCount, bool useContinuous);
+	void	SetTimeStepAndCounters(float timeStep,int stepCount, float collisionMarginTriangle,bool useContinuous);
 
 	virtual ~BoxTriangleCallback();
 

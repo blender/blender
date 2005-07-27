@@ -401,6 +401,21 @@ void RAS_OpenGLRasterizer::ClearCachingInfo(void)
 
 void RAS_OpenGLRasterizer::EndFrame()
 {
+	//DrawDebugLines
+	glBegin(GL_LINES);
+	for (unsigned int i=0;i<m_debugLines.size();i++)
+	{
+		glColor4f(m_debugLines[i].m_color[0],m_debugLines[i].m_color[1],m_debugLines[i].m_color[2],1.f);
+		const MT_Scalar* fromPtr = &m_debugLines[i].m_from.x();
+		const MT_Scalar* toPtr= &m_debugLines[i].m_to.x();
+
+		glVertex3dv(fromPtr);
+		glVertex3dv(toPtr);
+	}
+	glEnd();
+
+	m_debugLines.clear();
+
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	m_2DCanvas->EndFrame();
 }	
