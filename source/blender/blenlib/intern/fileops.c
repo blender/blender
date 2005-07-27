@@ -44,8 +44,11 @@
 #include <config.h>
 #endif
 
+#include "zlib.h"
+
 #ifdef WIN32
 #include "BLI_winstuff.h"
+#include <io.h>
 #else
 #include <sys/param.h>
 #endif
@@ -60,7 +63,6 @@
 #include <fcntl.h>
 
 #include "BKE_utildefines.h"
-#include "zlib.h"
 #include <errno.h>
 
 /* implementations: */
@@ -119,6 +121,8 @@ int BLI_gzip(char *from, char *to) {
 	close(file);
 	
 	remove(from);
+
+	return 0;
 }
 
 #ifdef WIN32

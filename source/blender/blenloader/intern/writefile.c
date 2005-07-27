@@ -83,6 +83,8 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include <config.h>
 #endif
 
+#include "zlib.h"
+
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -166,8 +168,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 
 #include "readfile.h"
 #include "genfile.h"
-
-#include "zlib.h"
 
 #include <errno.h>
 

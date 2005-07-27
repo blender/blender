@@ -39,6 +39,8 @@
 #include <config.h>
 #endif
 
+#include "zlib.h"
+
 #ifdef WIN32
 #include "winsock2.h"
 #include "BLI_winstuff.h"
@@ -140,8 +142,6 @@
 
 #include "mydevice.h"
 #include "blendef.h"
-
-#include "zlib.h"
 
 #include <errno.h>
 
