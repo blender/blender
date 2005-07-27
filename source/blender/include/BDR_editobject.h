@@ -63,7 +63,6 @@ void docentre_cursor(void);
 void movetolayer(void);
 void special_editmenu(void);
 void convertmenu(void);
-void copymenu_properties(struct Object *ob);
 void copy_attr_menu(void);
 void copy_attr(short event);
 void link_to_scene(unsigned short nr);
@@ -71,9 +70,6 @@ void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
 void apply_object(void);
-
-void copymenu_logicbricks(struct Object *ob);
-
 
 /* old transform */
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);

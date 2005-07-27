@@ -1393,6 +1393,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_get_info(md->type);
 
+		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (!(md->mode&eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;

@@ -54,6 +54,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -69,6 +70,7 @@
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
+#include "BKE_modifier.h"
 
 #include "BIF_editaction.h"
 #include "BIF_editmode_undo.h"
@@ -1993,7 +1995,7 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
     mesh = (Mesh*)ob->data;
 
 	/* Is subsurf on? Lets use the verts on the limit surface then */
-	if (mesh->flag&ME_SUBSURF) {
+	if (modifiers_findByType(&ob->modifiers, eModifierType_Subsurf)) {
 		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
 		subsurf_calculate_limit_positions(mesh, (void *)subverts);	/* (ton) made void*, dunno how to cast */
 	}

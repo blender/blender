@@ -38,6 +38,7 @@ struct ModifierData;
 struct DagForest;
 struct DagNode;
 struct Object;
+struct ListBase;
 
 typedef enum {
 		/* Should not be used, only for None modifier type */
@@ -90,6 +91,11 @@ typedef struct ModifierTypeInfo {
 		 * This function is optional.
 		 */
 	void (*initData)(struct ModifierData *md);
+
+		/* Copy instance data for this modifier type. Should copy all user
+		 * level settings to the target modifier.
+		 */
+	void (*copyData)(struct ModifierData *md, struct ModifierData *target);
 
 		/* Free internal modifier data variables, this function should
 		 * not free the _md_ variable itself.
@@ -171,7 +177,10 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type);
 struct ModifierData*	modifier_new			(int type);
 void					modifier_free			(struct ModifierData *md);
 
+void					modifier_copyData		(struct ModifierData *md, struct ModifierData *target);
 int						modifier_dependsOnTime	(struct ModifierData *md);
+
+struct ModifierData*	modifiers_findByType	(struct ListBase *lb, ModifierType type);
 
 #endif
 

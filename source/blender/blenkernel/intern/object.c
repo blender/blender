@@ -823,6 +823,7 @@ SoftBody *copy_softbody(SoftBody *sb)
 Object *copy_object(Object *ob)
 {
 	Object *obn;
+	ModifierData *md;
 	int a;
 	bConstraintChannel *actcon;
 
@@ -837,7 +838,13 @@ Object *copy_object(Object *ob)
 	obn->flag &= ~OB_FROMGROUP;
 	
 	copy_effects(&obn->effect, &ob->effect);
-	obn->modifiers.first = obn->modifiers.last= NULL; // XXX fixme
+	obn->modifiers.first = obn->modifiers.last= NULL;
+	
+	for (md=ob->modifiers.first; md; md=md->next) {
+		ModifierData *nmd = modifier_new(md->type);
+		modifier_copyData(md, nmd);
+		BLI_addtail(&obn->modifiers, nmd);
+	}
 	
 	obn->network.first= obn->network.last= 0;
 	

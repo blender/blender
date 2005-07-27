@@ -39,6 +39,14 @@ static int noneModifier_isDisabled(ModifierData *md)
 
 /* Curve */
 
+static void curveModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *tcmd = (CurveModifierData*) target;
+
+	tcmd->object = cmd->object;
+}
+
 static int curveModifier_isDisabled(ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -72,6 +80,14 @@ static void curveModifier_deformVertsEM(ModifierData *md, Object *ob, void *edit
 }
 
 /* Lattice */
+
+static void latticeModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+	LatticeModifierData *tlmd = (LatticeModifierData*) target;
+
+	tlmd->object = lmd->object;
+}
 
 static int latticeModifier_isDisabled(ModifierData *md)
 {
@@ -113,6 +129,17 @@ static void subsurfModifier_initData(ModifierData *md)
 	
 	smd->levels = 1;
 	smd->renderLevels = 2;
+}
+
+static void subsurfModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	SubsurfModifierData *tsmd = (SubsurfModifierData*) target;
+
+	tsmd->flags = smd->flags;
+	tsmd->levels = smd->levels;
+	tsmd->renderLevels = smd->renderLevels;
+	tsmd->subdivType = smd->subdivType;
 }
 
 static void subsurfModifier_freeData(ModifierData *md)
@@ -190,6 +217,17 @@ static void buildModifier_initData(ModifierData *md)
 
 	bmd->start = 1.0;
 	bmd->length = 100.0;
+}
+
+static void buildModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	BuildModifierData *bmd = (BuildModifierData*) md;
+	BuildModifierData *tbmd = (BuildModifierData*) target;
+
+	tbmd->start = bmd->start;
+	tbmd->length = bmd->length;
+	tbmd->randomize = bmd->randomize;
+	tbmd->seed = bmd->seed;
 }
 
 static int buildModifier_dependsOnTime(ModifierData *md)
@@ -419,6 +457,15 @@ static void mirrorModifier_initData(ModifierData *md)
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
 	mmd->tolerance = 0.001;
+}
+
+static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	MirrorModifierData *tmmd = (MirrorModifierData*) target;
+
+	tmmd->axis = mmd->axis;
+	tmmd->tolerance = mmd->tolerance;
 }
 
 static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm, float (*vertexCos)[3])
@@ -874,6 +921,23 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->damp= 10.0f;
 }
 
+static void waveModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	WaveModifierData *wmd = (WaveModifierData*) md;
+	WaveModifierData *twmd = (WaveModifierData*) target;
+
+	twmd->damp = wmd->damp;
+	twmd->flag = wmd->flag;
+	twmd->height = wmd->height;
+	twmd->lifetime = wmd->lifetime;
+	twmd->narrow = wmd->narrow;
+	twmd->speed = wmd->speed;
+	twmd->startx = wmd->startx;
+	twmd->starty = wmd->starty;
+	twmd->timeoffs = wmd->timeoffs;
+	twmd->width = wmd->width;
+}
+
 static int waveModifier_dependsOnTime(ModifierData *md)
 {
 	return 1;
@@ -972,6 +1036,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti = INIT_TYPE(Curve);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->copyData = curveModifier_copyData;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->updateDepgraph = curveModifier_updateDepgraph;
 		mti->deformVerts = curveModifier_deformVerts;
@@ -980,6 +1045,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti = INIT_TYPE(Lattice);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->copyData = latticeModifier_copyData;
 		mti->isDisabled = latticeModifier_isDisabled;
 		mti->updateDepgraph = latticeModifier_updateDepgraph;
 		mti->deformVerts = latticeModifier_deformVerts;
@@ -989,6 +1055,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsMapping | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = subsurfModifier_initData;
+		mti->copyData = subsurfModifier_copyData;
 		mti->freeData = subsurfModifier_freeData;
 		mti->applyModifier = subsurfModifier_applyModifier;
 		mti->applyModifierEM = subsurfModifier_applyModifierEM;
@@ -997,6 +1064,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = buildModifier_initData;
+		mti->copyData = buildModifier_copyData;
 		mti->dependsOnTime = buildModifier_dependsOnTime;
 		mti->applyModifier = buildModifier_applyModifier;
 
@@ -1004,6 +1072,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_Constructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = mirrorModifier_initData;
+		mti->copyData = mirrorModifier_copyData;
 		mti->applyModifier = mirrorModifier_applyModifier;
 		mti->applyModifierEM = mirrorModifier_applyModifierEM;
 
@@ -1017,6 +1086,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
 		mti->initData = waveModifier_initData;
+		mti->copyData = waveModifier_copyData;
 		mti->dependsOnTime = waveModifier_dependsOnTime;
 		mti->deformVerts = waveModifier_deformVerts;
 		mti->deformVertsEM = waveModifier_deformVertsEM;
@@ -1062,4 +1132,25 @@ int modifier_dependsOnTime(ModifierData *md)
 	ModifierTypeInfo *mti = modifierType_get_info(md->type);
 
 	return mti->dependsOnTime && mti->dependsOnTime(md);
+}
+
+ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
+{
+	ModifierData *md = lb->first;
+
+	for (; md; md=md->next)
+		if (md->type==type)
+			break;
+
+	return md;
+}
+
+void modifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+
+	target->mode = md->mode;
+
+	if (mti->copyData)
+		mti->copyData(md, target);
 }

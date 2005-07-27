@@ -73,12 +73,6 @@ extern void countall(void);
 
 /* EXPP Mesh defines */
 
-#define EXPP_NMESH_MODE_NOPUNOFLIP		ME_NOPUNOFLIP
-#define EXPP_NMESH_MODE_TWOSIDED		ME_TWOSIDED
-#define EXPP_NMESH_MODE_AUTOSMOOTH		ME_AUTOSMOOTH
-#define EXPP_NMESH_MODE_SUBSURF			ME_SUBSURF
-#define EXPP_NMESH_MODE_OPTIMAL			ME_OPT_EDGES
-
 #define NMESH_FRAME_MAX				30000
 #define NMESH_SMOOTHRESH			30
 #define NMESH_SMOOTHRESH_MIN			1
@@ -1544,15 +1538,15 @@ static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
 			for( i = 0; i < 5; i++ ) {
 				if( !m[i] ) break;
 				else if( strcmp( m[i], "NoVNormalsFlip" ) == 0 )
-					mode |= EXPP_NMESH_MODE_NOPUNOFLIP;
+					mode |= ME_NOPUNOFLIP;
 				else if( strcmp( m[i], "TwoSided" ) == 0 )
-					mode |= EXPP_NMESH_MODE_TWOSIDED;
+					mode |= ME_TWOSIDED;
 				else if( strcmp( m[i], "AutoSmooth" ) == 0 )
-					mode |= EXPP_NMESH_MODE_AUTOSMOOTH;
+					mode |= ME_AUTOSMOOTH;
 				else if( strcmp( m[i], "SubSurf" ) == 0 )
-					mode |= EXPP_NMESH_MODE_SUBSURF;
+					mode |= ME_SUBSURF;
 				else if( strcmp( m[i], "Optimal" ) == 0 )
-					mode |= EXPP_NMESH_MODE_OPTIMAL;
+					mode |= ME_OPT_EDGES;
 				else if( m[i][0] == '\0' )
 					mode = 0;
 				else
@@ -1994,7 +1988,7 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 {
 	BPy_NMesh *me = PyObject_NEW( BPy_NMesh, &NMesh_Type );
 	me->flags = 0;
-	me->mode = EXPP_NMESH_MODE_TWOSIDED;	/* default for new meshes */
+	me->mode = ME_TWOSIDED;	/* default for new meshes */
 	me->subdiv[0] = NMESH_SUBDIV;
 	me->subdiv[1] = NMESH_SUBDIV;
 	me->smoothresh = NMESH_SMOOTHRESH;
@@ -2948,16 +2942,16 @@ static PyObject *M_NMesh_Modes( void )
 
 		constant_insert( d, "NOVNORMALSFLIP",
 				 PyInt_FromLong
-				 ( EXPP_NMESH_MODE_NOPUNOFLIP ) );
+				 ( ME_NOPUNOFLIP ) );
 		constant_insert( d, "TWOSIDED",
-				 PyInt_FromLong( EXPP_NMESH_MODE_TWOSIDED ) );
+				 PyInt_FromLong( ME_TWOSIDED ) );
 		constant_insert( d, "AUTOSMOOTH",
 				 PyInt_FromLong
-				 ( EXPP_NMESH_MODE_AUTOSMOOTH ) );
+				 ( ME_AUTOSMOOTH ) );
 		constant_insert( d, "SUBSURF",
-				 PyInt_FromLong( EXPP_NMESH_MODE_SUBSURF ) );
+				 PyInt_FromLong( ME_SUBSURF ) );
 		constant_insert( d, "OPTIMAL",
-				 PyInt_FromLong( EXPP_NMESH_MODE_OPTIMAL ) );
+				 PyInt_FromLong( ME_OPT_EDGES ) );
 	}
 
 	return Modes;

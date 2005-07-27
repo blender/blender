@@ -3606,7 +3606,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 169) {
 		Mesh *me= main->mesh.first;
 		while(me) {
-			if(me->subdiv==0) me->subdiv= 3;
+			if(me->subdiv==0) me->subdiv= 1;
 			me= me->id.next;
 		}
 	}

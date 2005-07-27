@@ -147,5 +147,7 @@ void imagestodisplist(void);
 void reshadeall_displist(void);
 void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
+void mesh_create_shadedColors(struct Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r);
+
 #endif
 

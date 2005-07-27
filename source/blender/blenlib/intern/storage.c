@@ -393,12 +393,7 @@ void BLI_adddirstrings()
 		else if(num1) sprintf(files[num].size, "%15d", num1);
 		else sprintf(files[num].size, "0");
 
-#if 1400 >= _MSC_VER
-		//visual studio 8 crashes on 'R', todo: check for replacement
-		strftime(datum, 32, "%d-%b-%y ", tm);
-#else
-		strftime(datum, 32, "%d-%b-%y %R", tm);
-#endif
+		strftime(datum, 32, "%d-%b-%y %H:%M", tm);
 
 		if (st_size < 1000) {
 			sprintf(size, "%10d", (int) st_size);

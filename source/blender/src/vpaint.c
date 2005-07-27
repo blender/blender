@@ -225,8 +225,8 @@ void make_vertexcol()	/* single ob */
 {
 	Object *ob;
 	Mesh *me;
-	DispList *dl;
-	
+	int i;
+
 	/*
 	 * Always copies from shadedisplist to mcol.
 	 * When there are tfaces, it copies the colors and frees mcol
@@ -241,38 +241,14 @@ void make_vertexcol()	/* single ob */
 	me= get_mesh(ob);
 	if(me==0) return;
 
-	/* to be able to copy lighting info, we only use it from single side (ton) */
-	if(me->flag & ME_TWOSIDED) {
-		me->flag &= ~ME_TWOSIDED;
+	if(me->mcol) MEM_freeN(me->mcol);
+	mesh_create_shadedColors(ob, 1, (unsigned int**) &me->mcol, NULL);
+
+	for (i=0; i<me->totface*4; i++) {
+		me->mcol[i].a = 255;
 	}
-	
-	/* but subsurf vertex colors are wrong */
-	if (me->flag & ME_SUBSURF) {
-		if(me->mcol) MEM_freeN(me->mcol);
-		me->mcol= MEM_callocN(4*me->totface*sizeof(MCol), "mcol");
-	}
-	else {
-		dl= ob->disp.first;
 		
-		if(dl==NULL || dl->col1==NULL) {
-			shadeDispList(ob);
-			dl= find_displist(&ob->disp, DL_VERTCOL);
-		}
-		if(dl && dl->col1) {
-			if(me->mcol) MEM_freeN(me->mcol);
-			me->mcol= MEM_dupallocN(dl->col1);
-		}
-	}
-	
-	if(me->mcol) {
-		int i;
-		for (i=0; i<me->totface*4; i++) {
-			MCol *mcol= &me->mcol[i];
-			mcol->a= 255;
-		}
-		
-		if(me->tface) mcol_to_tface(me, 1);
-	}
+	if(me->tface) mcol_to_tface(me, 1);
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	

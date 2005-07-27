@@ -197,8 +197,6 @@ Mesh *add_mesh()
 	me->smoothresh= 30;
 	me->texflag= AUTOSPACE;
 	me->flag= ME_TWOSIDED;
-	me->subdiv= 1;
-	me->subdivr = 1;
 	me->bb= unit_boundbox();
 	
 	return me;

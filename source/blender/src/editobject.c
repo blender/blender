@@ -81,6 +81,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -117,6 +118,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_modifier.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -2315,23 +2317,40 @@ void convertmenu(void)
 	 */
 void flip_subdivison(Object *ob, int level)
 {
-	Mesh *me = ob->data;
+	ModifierData *md = modifiers_findByType(&ob->modifiers, eModifierType_Subsurf);
 
-	if (level == -1) {
-		me->flag ^= ME_SUBSURF;
+	if (md) {
+		SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+		if (level == -1) {
+			if (smd->modifier.mode&(eModifierMode_Render|eModifierMode_Realtime)) {
+				smd->modifier.mode &= ~(eModifierMode_Render|eModifierMode_Realtime);
+			} else {
+				smd->modifier.mode |= (eModifierMode_Render|eModifierMode_Realtime);
+			}
+		} else {
+			smd->levels = level;
+		}
 	} else {
-		me->subdiv = level;
+		SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+		BLI_addtail(&ob->modifiers, smd);
+
+		if (level!=-1) {
+			smd->levels = level;
+		}
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	BIF_undo_push("Switch subsurf on/off");
 }
  
-void copymenu_properties(Object *ob)
+static void copymenu_properties(Object *ob)
 {	
 	bProperty *prop, *propn, *propc;
 	Base *base;
@@ -2397,7 +2416,7 @@ void copymenu_properties(Object *ob)
 	BIF_undo_push("Copy properties");
 }
 
-void copymenu_logicbricks(Object *ob)
+static void copymenu_logicbricks(Object *ob)
 {
 	Base *base;
 	
@@ -2431,11 +2450,79 @@ void copymenu_logicbricks(Object *ob)
 	BIF_undo_push("Copy logic");
 }
 
+static void copymenu_modifiers(Object *ob)
+{
+	char str[512];
+	int i, event;
+	Base *base;
+
+	strcpy(str, "Copy Modifiers %t");
+
+	sprintf(str+strlen(str), "|All%%x%d|%%l", NUM_MODIFIER_TYPES);
+
+	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
+		ModifierTypeInfo *mti = modifierType_get_info(i);
+
+		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
+				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
+			sprintf(str+strlen(str), "|%s%%x%d", mti->name, i);
+		}
+	}
+
+	event = pupmenu(str);
+	if(event<=0) return;
+
+	for (base= FIRSTBASE; base; base= base->next) {
+		if(base->object != ob) {
+			if(TESTBASELIB(base)) {
+				ModifierData *md;
+
+				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+
+				if (base->object->type==OB_MESH) {
+					if (event==NUM_MODIFIER_TYPES) {
+						while (base->object->modifiers.first) {
+							md = base->object->modifiers.first;
+							BLI_remlink(&base->object->modifiers, md);
+							modifier_free(md);
+						}
+
+						for (md=ob->modifiers.first; md; md=md->next) {
+							ModifierData *nmd = modifier_new(md->type);
+							modifier_copyData(md, nmd);
+							BLI_addtail(&base->object->modifiers, nmd);
+						}
+					} else {
+						ModifierData *md = modifiers_findByType(&ob->modifiers, event);
+
+						if (md) {
+							ModifierData *tmd = modifiers_findByType(&base->object->modifiers, event);
+
+							if (!tmd) {
+								tmd = modifier_new(event);
+								BLI_addtail(&base->object->modifiers, tmd);
+							}
+
+							modifier_copyData(md, tmd);
+						}
+					}
+				}
+			}
+		}
+	}
+				
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+	
+	BIF_undo_push("Copy modifiers");
+}
+
 void copy_attr_menu()
 {
 	Object *ob;
 	short event;
-	char str[256];
+	char str[512];
 
 	/* If you change this menu, don't forget to update the menu in header_view3d.c
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
@@ -2461,6 +2548,10 @@ void copy_attr_menu()
 
 	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
 	
+	if(ob->type==OB_MESH){
+		strcat(str, "|Modifiers ...%x24");
+	}
+
 	event= pupmenu(str);
 	if(event<= 0) return;
 	
@@ -2495,6 +2586,10 @@ void copy_attr(short event)
 	}
 	else if(event==10) {
 		copymenu_logicbricks(ob);
+		return;
+	}
+	else if(event==24) {
+		copymenu_modifiers(ob);
 		return;
 	}
 
@@ -2635,14 +2730,19 @@ void copy_attr(short event)
 				}
 				else if(event==21){
 					if (base->object->type==OB_MESH) {
-						Mesh *targetme= base->object->data;
-						Mesh *sourceme= ob->data;
+						ModifierData *md = modifiers_findByType(&ob->modifiers, eModifierType_Subsurf);
 
-						targetme->flag= (targetme->flag&~ME_SUBSURF) | (sourceme->flag&ME_SUBSURF);
-						targetme->subsurftype = sourceme->subsurftype;
-						targetme->subdiv= sourceme->subdiv;
-						targetme->subdivr= sourceme->subdivr;
-						base->object->recalc |= OB_RECALC_DATA;
+						if (md) {
+							ModifierData *tmd = modifiers_findByType(&base->object->modifiers, eModifierType_Subsurf);
+
+							if (!tmd) {
+								tmd = modifier_new(eModifierType_Subsurf);
+								BLI_addtail(&base->object->modifiers, tmd);
+							}
+
+							modifier_copyData(md, tmd);
+							base->object->recalc |= OB_RECALC_DATA;
+						}
 					}
 				}
 				else if(event==22) {
