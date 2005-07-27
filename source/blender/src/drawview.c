@@ -990,11 +990,37 @@ void drawname(Object *ob)
 }
 
 
-static void draw_selected_name(char *name)
+static void draw_selected_name(Object *ob)
 {
 	char info[128];
 
-	sprintf(info, "(%d) %s", CFRA, name);
+	if(ob->type==OB_ARMATURE) {
+		char *name= NULL;
+		
+		if(ob==G.obedit) {
+			EditBone *ebo;
+			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
+				if (ebo->flag & BONE_ACTIVE) {
+					name= ebo->name;
+					break;
+				}
+			}
+		}
+		else if(ob->pose && (ob->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+				if(pchan->bone->flag & BONE_ACTIVE) {
+					name= pchan->name;
+					break;
+				}
+			}
+		}
+		if(name)
+			sprintf(info, "(%d) %s %s", CFRA, ob->id.name+2, name);
+		else
+			sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
+	}
+	else sprintf(info, "(%d) %s", CFRA, ob->id.name+2);
 
 	BIF_ThemeColor(TH_TEXT_HI);
 	glRasterPos2i(30,  10);
@@ -2069,7 +2095,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	draw_view_icon();
 
 	ob= OBACT;
-	if(ob!=0 && (U.uiflag & USER_DRAWVIEWINFO)) draw_selected_name(ob->id.name+2);
+	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 
+		draw_selected_name(ob);
 	
 	draw_area_emboss(sa);
 	

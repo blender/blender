@@ -70,6 +70,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editaction.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editdeform.h"
 #include "BIF_editarmature.h"
@@ -91,7 +92,6 @@
 #include "BSE_edit.h"
 #include "BSE_view.h"
 #include "BSE_trans_types.h"
-#include "BSE_editaction.h"
 
 #include "PIL_time.h"
 
@@ -1012,13 +1012,16 @@ void load_editArmature(void)
 	editbones_to_armature(&G.edbo, G.obedit);
 }
 
-
+/* toggle==0: deselect
+   toggle==1: swap 
+   toggle==2: only active tag
+*/
 void deselectall_armature(int toggle)
 {
 	EditBone	*eBone;
 	int			sel=1;
 
-	if(toggle) {
+	if(toggle==1) {
 		/*	Determine if there are any selected bones
 			And therefore whether we are selecting or deselecting */
 		for (eBone=G.edbo.first;eBone;eBone=eBone->next){
@@ -1028,12 +1031,14 @@ void deselectall_armature(int toggle)
 			}
 		}
 	}
-	else sel= 0;
+	else sel= toggle;
 	
 	/*	Set the flags */
 	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if (sel)
+		if (sel==1)
 			eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+		else if (sel==2)
+			eBone->flag &= ~(BONE_ACTIVE);
 		else
 			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
@@ -1695,7 +1700,10 @@ void do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 	
 }
 
-
+/*	mode==0: deselect
+	mode==1: select
+	mode==2: clear active tag 
+*/
 static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 {
 	Bone	*curBone;
@@ -1705,31 +1713,40 @@ static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 
 	if (mode==0)
 		bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
-	else if (!(bone->flag & BONE_HIDDEN))
-		bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
-
-	select_actionchannel_by_name(ob->action, bone->name, mode);
+	else if (mode==1) {
+		if(!(bone->flag & BONE_HIDDEN))
+			bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
+	}
+	else bone->flag &= ~BONE_ACTIVE;
+	
+	if(mode!=2) select_actionchannel_by_name(ob->action, bone->name, mode);
 
 	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
 		deselect_bonechildren(ob, curBone, mode);
 	}
 }
 
+/* test==0: deselect all
+   test==1: swap select
+   test==2: only clear active tag 
+*/
 void deselectall_posearmature (Object *ob, int test)
 {
 	bArmature *arm;
 	Bone *curBone;
-	int	selectmode	=	0;
+	int	selectmode= 0;
 	
 	/* we call this from outliner too, but with OBACT set OK */
 	if(!ob || !ob->pose) return;
 	arm= get_armature(ob);
 	
 	/*	Determine if we're selecting or deselecting	*/
-	if (test){
+	if (test==1) {
 		if (!count_bones (arm, BONE_SELECTED, 0))
-			selectmode = 1;
+			selectmode= 1;
 	}
+	else if(test==2)
+		selectmode= 2;
 	
 	/*	Set the flags accordingly	*/
 	for (curBone=arm->bonebase.first; curBone; curBone=curBone->next)
@@ -2232,13 +2249,16 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 /* called by UI for renaming a bone */
 /* warning: make sure the original bone was not renamed yet! */
 /* seems messy, but thats what you get with not using pointers but channel names :) */
-void armature_bone_rename(bArmature *arm, char *oldname, char *newnamep)
+void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
 	Object *ob;
 	char newname[MAXBONENAME];
+	char oldname[MAXBONENAME];
 	
 	/* we alter newname string... so make copy */
 	BLI_strncpy(newname, newnamep, MAXBONENAME);
+	/* we use oldname for search... so make copy */
+	BLI_strncpy(oldname, oldnamep, MAXBONENAME);
 	
 	/* now check if we're in editmode, we need to find the unique name */
 	if(G.obedit && G.obedit->data==arm) {

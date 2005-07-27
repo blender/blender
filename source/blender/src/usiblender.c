@@ -89,6 +89,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editsound.h"
+#include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -99,7 +100,6 @@
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_editipo.h"
-#include "BSE_editaction.h"
 #include "BSE_filesel.h"
 #include "BSE_edit.h"
 

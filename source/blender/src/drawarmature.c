@@ -76,7 +76,6 @@
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
-#include "BSE_editaction.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -376,6 +375,10 @@ static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
 static char bm_dot6[]= {0x0, 0x18, 0x3C, 0x7E, 0x7E, 0x3C, 0x18, 0x0}; 
 static char bm_dot8[]= {0x3C, 0x7E, 0xFF, 0xFF, 0xFF, 0xFF, 0x7E, 0x3C}; 
 
+static char bm_dot5[]= {0x0, 0x0, 0x10, 0x38, 0x7c, 0x38, 0x10, 0x0}; 
+static char bm_dot7[]= {0x0, 0x38, 0x7C, 0xFE, 0xFE, 0xFE, 0x7C, 0x38}; 
+
+
 static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned int id, bPoseChannel *pchan, EditBone *ebone)
 {
 	float length;
@@ -434,7 +437,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		}
 		else {
 			glRasterPos3f(0.0f, 1.0f, 0.0f);
-			glBitmap(8, 8, 4, 4, 0, 0, bm_dot8);
+			glBitmap(8, 8, 4, 4, 0, 0, bm_dot7);
 		}
 		
 		/* further we send no names */
@@ -482,7 +485,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 			else BIF_ThemeColor(TH_VERTEX);
 		}
 		glRasterPos3f(0.0f, 1.0f, 0.0f);
-		glBitmap(8, 8, 4, 4, 0, 0, bm_dot6);
+		glBitmap(8, 8, 4, 4, 0, 0, bm_dot5);
 	}
 	
 	glLineWidth(1.0);

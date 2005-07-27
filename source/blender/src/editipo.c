@@ -91,6 +91,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
+#include "BIF_editaction.h"
 #include "BIF_editkey.h"
 #include "BIF_editseq.h"
 #include "BIF_editview.h"
@@ -109,7 +110,6 @@
 #include "BSE_editipo_types.h"
 #include "BSE_drawipo.h"
 #include "BSE_editipo.h"
-#include "BSE_editaction.h"
 #include "BSE_edit.h"
 #include "BSE_drawview.h"
 #include "BSE_headerbuttons.h"

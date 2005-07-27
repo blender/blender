@@ -59,31 +59,31 @@
 #include "DNA_key_types.h"
 
 #include "BKE_action.h"
+#include "BKE_ipo.h"
 #include "BKE_global.h"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
+#include "BIF_editaction.h"
+#include "BIF_interface.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 
+#include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
+
 #include "BSE_view.h"
 #include "BSE_drawipo.h"
-#include "BSE_editaction.h"
-#include "BSE_editaction_types.h"
-#include "BDR_drawaction.h"
 
 /* 'old' stuff": defines and types, and own include -------------------- */
 
 #include "blendef.h"
 #include "mydevice.h"
 
-#include "BKE_ipo.h"
 
 /* local functions ----------------------------------------------------- */
 void drawactionspace(ScrArea *sa, void *spacedata);

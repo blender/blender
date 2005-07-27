@@ -67,19 +67,6 @@
 #include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
 
-#include "BIF_editview.h"
-#include "BIF_resources.h"
-#include "BIF_mywindow.h"
-#include "BIF_gl.h"
-#include "BIF_editlattice.h"
-#include "BIF_editconstraint.h"
-#include "BIF_editarmature.h"
-#include "BIF_editmesh.h"
-#include "BIF_poseobject.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_toolbox.h"
-
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
@@ -97,12 +84,25 @@
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
+
+#include "BIF_editaction.h"
+#include "BIF_editview.h"
+#include "BIF_editlattice.h"
+#include "BIF_editconstraint.h"
+#include "BIF_editarmature.h"
+#include "BIF_editmesh.h"
+#include "BIF_gl.h"
+#include "BIF_poseobject.h"
+#include "BIF_mywindow.h"
+#include "BIF_resources.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
+
 #include "BSE_view.h"
 #include "BSE_edit.h"
-#include "BSE_editaction.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
-#include "BSE_editaction.h"
 
 #include "BDR_editobject.h"		// reset_slowparents()
 

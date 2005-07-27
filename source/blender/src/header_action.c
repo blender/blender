@@ -53,11 +53,12 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 
+#include "BIF_editaction.h"
 #include "BIF_interface.h"
+#include "BIF_poseobject.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_editaction.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -68,7 +69,6 @@
 #include "BKE_utildefines.h"
 
 #include "BSE_drawipo.h"
-#include "BSE_editaction.h"
 #include "BSE_headerbuttons.h"
 
 #include "nla.h"

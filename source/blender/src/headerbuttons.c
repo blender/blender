@@ -119,6 +119,7 @@
 #include "BIF_drawoops.h"
 #include "BIF_drawscene.h"
 #include "BIF_drawtext.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editfont.h"
 #include "BIF_editlattice.h"
@@ -151,8 +152,6 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
 #include "BSE_sequence.h"
-#include "BSE_editaction.h"
-#include "BSE_editaction_types.h"
 #include "BSE_editipo.h"
 #include "BSE_drawipo.h"
 

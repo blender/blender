@@ -67,6 +67,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
@@ -91,7 +92,6 @@
 #include "BSE_view.h"		/* give_cursor() */
 #include "BSE_editipo.h"
 #include "BSE_drawview.h"
-#include "BSE_editaction.h"
 
 #include "editmesh.h"	// borderselect uses it...
 #include "blendef.h"

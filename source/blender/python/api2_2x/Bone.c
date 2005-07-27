@@ -33,19 +33,25 @@ struct ScrArea; /*keep me up here */
 
 #include "Bone.h" /*This must come first */
 
-#include "BKE_main.h"
-#include "BKE_global.h"
-#include "BKE_armature.h"
-#include "BKE_action.h"
-#include "BKE_utildefines.h"
-#include "BLI_blenlib.h"
-#include "BLI_arithb.h"
-#include "BSE_editaction.h"
+#include "MEM_guardedalloc.h"
+
 #include "DNA_object_types.h"
 #include "DNA_ipo_types.h"
-#include "MEM_guardedalloc.h"
-#include "gen_utils.h"
+
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
+
+#include "BKE_armature.h"
+#include "BKE_action.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_utildefines.h"
+
+#include "BIF_editaction.h"
+
 #include "NLA.h"
+
+#include "gen_utils.h"
 
 //--------------------Python API function prototypes for the Bone module----
 static PyObject *M_Bone_New( PyObject * self, PyObject * args );

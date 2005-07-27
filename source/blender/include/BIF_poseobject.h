@@ -33,28 +33,29 @@
 #ifndef BIF_POSEOBJECT
 #define BIF_POSEOBJECT
 
-/**
- * Activates posemode
- */
-void enter_posemode(void);
 
-/**
-* If bones are selected, it sets the flags 
-*/
 struct Object;
-void set_pose_keys(struct Object *ob);
 
-/**
- * Deactivates posemode
- */
+void enter_posemode(void);
 void exit_posemode(void);
 
+ // sets chan->flag to POSE_KEY if bone selected
+void set_pose_keys(struct Object *ob);
+
+
 /* tools */
+void pose_select_constraint_target(void);
 void pose_special_editmenu(void);
 void pose_add_IK(void);
 void pose_clear_IK(void);
 void pose_clear_constraints(void);
 void pose_copy_menu(void);
+
+void free_posebuf(void);
+void copy_posebuf (void);
+void paste_posebuf (int flip);
+
+void pose_flip_names(void);
 
 #endif
 

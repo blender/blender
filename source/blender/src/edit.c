@@ -1229,15 +1229,29 @@ void snap_curs_to_sel()
 		transvmain= 0;
 	}
 	else {
-		base= (G.scene->base.first);
-		while(base) {
-			if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
-				VECCOPY(vec, base->object->obmat[3]);
-				VecAddf(centroid, centroid, vec);
-				DO_MINMAX(vec, min, max);
-				count++;
+		Object *ob= OBACT;
+		
+		if(ob && (ob->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+				if(pchan->bone->flag & BONE_SELECTED) {
+					VECCOPY(vec, pchan->pose_head);
+					Mat4MulVecfl(ob->obmat, vec);
+					VecAddf(centroid, centroid, vec);
+					DO_MINMAX(vec, min, max);
+					count++;
+				}
 			}
-			base= base->next;
+		}
+		else {
+			for(base= G.scene->base.first; base; base= base->next) {
+				if(((base)->flag & SELECT) && ((base)->lay & G.vd->lay) ) {
+					VECCOPY(vec, base->object->obmat[3]);
+					VecAddf(centroid, centroid, vec);
+					DO_MINMAX(vec, min, max);
+					count++;
+				}
+			}
 		}
 		if(count) {
 			if(G.vd->around==V3D_CENTROID) {

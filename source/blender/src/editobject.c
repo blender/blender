@@ -138,7 +138,6 @@
 #include "BIF_resources.h"
 
 #include "BSE_edit.h"
-#include "BSE_editaction.h"
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"	/* For activate_databrowse() */
 #include "BSE_view.h"
@@ -592,9 +591,14 @@ void add_hook(void)
 		else {
 			
 			if(mode==1) {
-				Base *base= BASACT;
+				Base *base= BASACT, *newbase;
 
 				ob= add_object(OB_EMPTY);
+				/* set layers OK */
+				newbase= BASACT;
+				newbase->lay= base->lay;
+				ob->lay= newbase->lay;
+				
 				/* transform cent to global coords for loc */
 				VecMat4MulVecfl(ob->loc, G.obedit->obmat, cent);
 				

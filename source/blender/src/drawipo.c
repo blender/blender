@@ -77,7 +77,6 @@
 #include "BSE_view.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
-#include "BSE_editaction_types.h"
 #include "BSE_editnla_types.h"
 
 #include "mydevice.h"

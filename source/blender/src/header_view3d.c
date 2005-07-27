@@ -72,7 +72,6 @@
 #include "BLI_blenlib.h"
 
 #include "BSE_edit.h"
-#include "BSE_editaction.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_view.h"
@@ -1077,6 +1076,9 @@ static void do_view3d_select_pose_armaturemenu(void *arg, int event)
 	case 2: /* Select/Deselect all */
 		deselectall_posearmature(OBACT, 1);
 		break;
+	case 3:
+		pose_select_constraint_target();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1094,6 +1096,7 @@ static uiBlock *view3d_select_pose_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Constraint Target|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -3057,6 +3060,11 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 7: /* Warp */
 		initTransform(TFM_WARP, CTX_NONE);
 		Transform();
+	case 8:
+		make_bone_parent();
+		break;
+	case 9:
+		clear_bone_parent();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3082,8 +3090,10 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrude|E",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Parent...|Alt P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -3154,6 +3164,21 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 4: /* insert keyframe */
 		common_insertkey();
 		break;
+	case 5:
+		pose_copy_menu();
+		break;
+	case 6:
+		pose_add_IK();
+		break;
+	case 7:
+		pose_clear_IK();
+		break;
+	case 8:
+		pose_clear_constraints();
+		break;
+	case 9:
+		pose_flip_names();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3219,9 +3244,18 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_pose_armature_showhidemenu, 
-						  NULL, ICON_RIGHTARROW_THIN, 
-						  "Show/Hide Bones", 0, yco-=20, 120, 19, "");
+						  NULL, ICON_RIGHTARROW_THIN,   "Show/Hide Bones", 0, yco-=20, 120, 19, "");
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Constraints...|Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}
@@ -3968,8 +4002,8 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 		Object *ob= OBACT;
 		
 		if (ob && (ob->flag & OB_POSEMODE)) {
-			xmax= GetButStringLength("Armature");
-			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Armature",	xco,-2, xmax-3, 24, "");
+			xmax= GetButStringLength("Pose");
+			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 		else {

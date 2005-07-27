@@ -53,13 +53,12 @@
 #include "BKE_constraint.h"
 #include "BKE_ipo.h"
 
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editconstraint.h"
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
-
-#include "BSE_editaction.h"
 
 #include "blendef.h"
 #include "nla.h"

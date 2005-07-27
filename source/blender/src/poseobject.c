@@ -27,6 +27,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -50,6 +51,8 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editarmature.h"
+#include "BIF_editaction.h"
 #include "BIF_editconstraint.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -141,41 +144,61 @@ void exit_posemode(void)
 	scrarea_queue_headredraw(curarea);
 }
 
+void pose_select_constraint_target(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	bConstraint *con;
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			
+			for(con= pchan->constraints.first; con; con= con->next) {
+				char *subtarget;
+				Object *target= get_constraint_target(con, &subtarget);
+				
+				if(ob==target) {
+					if(subtarget) {
+						bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
+						pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+					}
+				}
+			}
+		}
+	}
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
+	
+	BIF_undo_push("Select constraint target");
+
+}
+
 /* context: active channel */
 void pose_special_editmenu(void)
 {
 	Object *ob= OBACT;
-	bPoseChannel *pchan;
 	short nr;
 	
 	/* paranoia checks */
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
-		if(pchan->bone->flag & BONE_ACTIVE) break;
-	if(pchan==NULL) return;
-	
-	nr= pupmenu("Specials%t|Select constraint target%x1");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names");
 	if(nr==1) {
-		bConstraint *con;
-		
-		for(con= pchan->constraints.first; con; con= con->next) {
-			char *subtarget;
-			Object *target= get_constraint_target(con, &subtarget);
-			
-			if(ob==target) {
-				if(subtarget) {
-					pchan= get_pose_channel(ob->pose, subtarget);
-					pchan->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
-				}
-			}
-		}
-		allqueue(REDRAWVIEW3D, 0);
+		pose_select_constraint_target();
+	}
+	else if(nr==2) {
+		pose_flip_names();
 	}
 }
 
-/* context: active channel, optional selected channel */
+/* context: active object, active channel, optional selected channel */
 void pose_add_IK(void)
 {
 	Object *ob= OBACT;
@@ -234,10 +257,15 @@ void pose_add_IK(void)
 	
 	/* add new empty as target */
 	if(nr==1) {
-		Base *base= BASACT;
+		Base *base= BASACT, *newbase;
 		Object *obt;
 		
 		obt= add_object(OB_EMPTY);
+		/* set layers OK */
+		newbase= BASACT;
+		newbase->lay= base->lay;
+		obt->lay= newbase->lay;
+		
 		/* transform cent to global coords for loc */
 		VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
 		
@@ -258,7 +286,8 @@ void pose_add_IK(void)
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSOBJECT, 0);
-
+	allqueue (REDRAWOOPS, 0);
+	
 	BIF_undo_push("Add IK constraint");
 }
 
@@ -295,6 +324,7 @@ void pose_clear_IK(void)
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
 	
 	BIF_undo_push("Remove IK constraint(s)");
 }
@@ -322,10 +352,12 @@ void pose_clear_constraints(void)
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
 	
 	BIF_undo_push("Remove Constraint(s)");
 	
 }
+
 
 void pose_copy_menu(void)
 {
@@ -372,8 +404,272 @@ void pose_copy_menu(void)
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWOOPS, 0);
 	
 	BIF_undo_push("Copy Pose Attributes");
 	
 }
 
+/* ******************** copy/paste pose ********************** */
+
+static bPose	*g_posebuf=NULL;
+
+void free_posebuf(void) 
+{
+	if (g_posebuf) {
+		// was copied without constraints
+		BLI_freelistN (&g_posebuf->chanbase);
+		MEM_freeN (g_posebuf);
+	}
+	g_posebuf=NULL;
+}
+
+void copy_posebuf (void)
+{
+	Object *ob= OBACT;
+
+	if (!ob || !ob->pose){
+		error ("No Pose");
+		return;
+	}
+
+	free_posebuf();
+	
+	set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
+	copy_pose(&g_posebuf, ob->pose, 0);
+
+}
+
+static void flip_name (char *name)
+{
+
+	char	prefix[128]={""};	/* The part before the facing */
+	char	suffix[128]={""};	/* The part after the facing */
+	char	replace[128]={""};	/* The replacement string */
+
+	char	*index=NULL;
+	/* Find the last period */
+
+	strcpy (prefix, name);
+
+	/* Check for an instance of .Right */
+	if (!index){
+		index = strstr (prefix, "Right");
+		if (index){
+			*index=0;
+			strcpy (replace, "Left");
+			strcpy (suffix, index+6);
+		}
+	}
+
+	/* Che ck for an instance of .RIGHT */
+	if (!index){
+		index = strstr (prefix, "RIGHT");
+		if (index){
+			*index=0;
+			strcpy (replace, "LEFT");
+			strcpy (suffix, index+6);
+		}
+	}
+
+
+	/* Check for an instance of .right */
+	if (!index){
+		index = strstr (prefix, "right");
+		if (index){
+			*index=0;
+			strcpy (replace, "left");
+			strcpy (suffix, index+6);
+		}
+	}
+
+	/* Check for an instance of .left */
+	if (!index){
+		index = strstr (prefix, "left");
+		if (index){
+			*index=0;
+			strcpy (replace, "right");
+			strcpy (suffix, index+5);
+		}
+	}
+
+	/* Check for an instance of .LEFT */
+	if (!index){
+		index = strstr (prefix, "LEFT");
+		if (index){
+			*index=0;
+			strcpy (replace, "RIGHT");
+			strcpy (suffix, index+5);
+		}
+	}
+
+	/* Check for an instance of .Left */
+	if (!index){
+		index = strstr (prefix, "Left");
+		if (index){
+			*index=0;
+			strcpy (replace, "Right");
+			strcpy (suffix, index+5);
+		}
+	}
+
+	/* check for an instance of .L */
+	if (!index){
+		index = strstr (prefix, ".L");
+		if (index){
+			*index=0;
+			strcpy (replace, ".R");
+			strcpy (suffix, index+2);
+		}
+	}
+
+	/* check for an instance of .l */
+	if (!index){
+		index = strstr (prefix, ".l");
+		if (index){
+			*index=0;
+			strcpy (replace, ".r");
+			strcpy (suffix, index+2);
+		}
+	}
+
+	/* Checl for an instance of .R */
+	if (!index){
+		index = strstr (prefix, ".R");
+		if (index){
+			*index=0;
+			strcpy (replace, ".L");
+			strcpy (suffix, index+2);
+		}
+	}
+
+	/* Checl for an instance of .r */
+	if (!index){
+		index = strstr (prefix, ".r");
+		if (index){
+			*index=0;
+			strcpy (replace, ".l");
+			strcpy (suffix, index+2);
+		}
+	}
+
+	sprintf (name, "%s%s%s", prefix, replace, suffix);
+}
+
+void paste_posebuf (int flip)
+{
+	Object *ob= OBACT;
+	bPoseChannel *chan, *pchan;
+	float eul[4];
+	int newchan = 0;
+	char name[32];
+	
+	if (!ob || !ob->pose)
+		return;
+
+	if (!g_posebuf){
+		error ("Copy buffer is empty");
+		return;
+	}
+	
+	/* Safely merge all of the channels in this pose into
+	any existing pose */
+	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
+		if (chan->flag & POSE_KEY) {
+			BLI_strncpy(name, chan->name, sizeof(name));
+			if (flip)
+				flip_name (name);
+				
+			/* only copy when channel exists, poses are not meant to add random channels to anymore */
+			pchan= get_pose_channel(ob->pose, name);
+			
+			if(pchan) {
+				/* only loc rot size */
+				/* only copies transform info for the pose */
+				VECCOPY(pchan->loc, chan->loc);
+				VECCOPY(pchan->size, chan->size);
+				QUATCOPY(pchan->quat, chan->quat);
+				pchan->flag= chan->flag;
+				
+				if (flip){
+					pchan->loc[0]*= -1;
+
+					QuatToEul(pchan->quat, eul);
+					eul[1]*= -1;
+					eul[2]*= -1;
+					EulToQuat(eul, pchan->quat);
+				}
+
+				if (G.flags & G_RECORDKEYS){
+					/* Set keys on pose */
+					if (chan->flag & POSE_ROT){
+						set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
+						set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
+					}
+					if (chan->flag & POSE_SIZE){
+						set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
+						set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
+						set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
+					}
+					if (chan->flag & POSE_LOC){
+						set_action_key(ob->action, pchan, AC_LOC_X, newchan);
+						set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
+						set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
+					}
+				}
+			}
+		}
+	}
+
+	/* Update event for pose and deformation children */
+	ob->pose->ctime= -123456.0f;
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	
+	if (G.flags & G_RECORDKEYS) {
+		remake_action_ipos(ob->action);
+		allqueue (REDRAWIPO, 0);
+		allqueue (REDRAWVIEW3D, 0);
+		allqueue (REDRAWACTION, 0);		
+		allqueue(REDRAWNLA, 0);
+	}
+	else {
+		/* need to trick depgraph, action is not allowed to execute on pose */
+		where_is_pose(ob);
+		ob->recalc= 0;
+	}
+
+	BIF_undo_push("Paste Action Pose");
+}
+
+
+/* ********************************************** */
+
+/* context active object */
+void pose_flip_names(void)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	char newname[32];
+	
+	/* paranoia checks */
+	if(!ob && !ob->pose) return;
+	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+			BLI_strncpy(newname, pchan->name, sizeof(newname));
+			flip_name(newname);
+			armature_bone_rename(ob->data, pchan->name, newname);
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Flip names");
+	
+}

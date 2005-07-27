@@ -69,25 +69,23 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_butspace.h"
+#include "BIF_editaction.h"
+#include "BIF_editview.h"
+#include "BIF_editarmature.h"
 #include "BIF_gl.h"
+#include "BIF_interface.h"
 #include "BIF_mywindow.h"
-#include "BIF_toolbox.h"
+#include "BIF_poseobject.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
-#include "BIF_butspace.h"
-#include "BIF_interface.h"
-#include "BIF_editview.h"
-#include "BIF_poseobject.h"
-#include "BIF_editarmature.h"
-#include "BIF_editaction.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_edit.h"
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_editipo.h"
-#include "BSE_editaction.h"
 #include "BSE_trans_types.h"
-#include "BSE_editaction_types.h"
 
 #include "BDR_editobject.h"
 
@@ -95,7 +93,6 @@
 #include "blendef.h"
 #include "nla.h"
 
-static bPose	*g_posebuf=NULL;
 extern int count_action_levels (bAction *act);
 
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
@@ -768,235 +765,6 @@ void set_exprap_action(int mode)
 	if(G.saction->action && G.saction->action->id.lib) return;
 
 	error ("Not yet implemented!");
-}
-
-void free_posebuf(void) 
-{
-	if (g_posebuf) {
-		// was copied without constraints
-		BLI_freelistN (&g_posebuf->chanbase);
-		MEM_freeN (g_posebuf);
-	}
-	g_posebuf=NULL;
-}
-
-void copy_posebuf (void)
-{
-	Object *ob= OBACT;
-
-	if (!ob || !ob->pose){
-		error ("No Pose");
-		return;
-	}
-
-	free_posebuf();
-	
-	set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
-	copy_pose(&g_posebuf, ob->pose, 0);
-
-}
-
-static void flip_name (char *name)
-{
-
-	char	prefix[128]={""};	/* The part before the facing */
-	char	suffix[128]={""};	/* The part after the facing */
-	char	replace[128]={""};	/* The replacement string */
-
-	char	*index=NULL;
-	/* Find the last period */
-
-	strcpy (prefix, name);
-
-	/* Check for an instance of .Right */
-	if (!index){
-		index = strstr (prefix, "Right");
-		if (index){
-			*index=0;
-			strcpy (replace, "Left");
-			strcpy (suffix, index+6);
-		}
-	}
-
-	/* Che ck for an instance of .RIGHT */
-	if (!index){
-		index = strstr (prefix, "RIGHT");
-		if (index){
-			*index=0;
-			strcpy (replace, "LEFT");
-			strcpy (suffix, index+6);
-		}
-	}
-
-
-	/* Check for an instance of .right */
-	if (!index){
-		index = strstr (prefix, "right");
-		if (index){
-			*index=0;
-			strcpy (replace, "left");
-			strcpy (suffix, index+6);
-		}
-	}
-
-	/* Check for an instance of .left */
-	if (!index){
-		index = strstr (prefix, "left");
-		if (index){
-			*index=0;
-			strcpy (replace, "right");
-			strcpy (suffix, index+5);
-		}
-	}
-
-	/* Check for an instance of .LEFT */
-	if (!index){
-		index = strstr (prefix, "LEFT");
-		if (index){
-			*index=0;
-			strcpy (replace, "RIGHT");
-			strcpy (suffix, index+5);
-		}
-	}
-
-	/* Check for an instance of .Left */
-	if (!index){
-		index = strstr (prefix, "Left");
-		if (index){
-			*index=0;
-			strcpy (replace, "Right");
-			strcpy (suffix, index+5);
-		}
-	}
-
-	/* check for an instance of .L */
-	if (!index){
-		index = strstr (prefix, ".L");
-		if (index){
-			*index=0;
-			strcpy (replace, ".R");
-			strcpy (suffix, index+2);
-		}
-	}
-
-	/* check for an instance of .l */
-	if (!index){
-		index = strstr (prefix, ".l");
-		if (index){
-			*index=0;
-			strcpy (replace, ".r");
-			strcpy (suffix, index+2);
-		}
-	}
-
-	/* Checl for an instance of .R */
-	if (!index){
-		index = strstr (prefix, ".R");
-		if (index){
-			*index=0;
-			strcpy (replace, ".L");
-			strcpy (suffix, index+2);
-		}
-	}
-
-	/* Checl for an instance of .r */
-	if (!index){
-		index = strstr (prefix, ".r");
-		if (index){
-			*index=0;
-			strcpy (replace, ".l");
-			strcpy (suffix, index+2);
-		}
-	}
-
-	sprintf (name, "%s%s%s", prefix, replace, suffix);
-}
-
-void paste_posebuf (int flip)
-{
-	Object *ob= OBACT;
-	bPoseChannel *chan, *pchan;
-	float eul[4];
-	int newchan = 0;
-	char name[32];
-	
-	if (!ob || !ob->pose)
-		return;
-
-	if (!g_posebuf){
-		error ("Copy buffer is empty");
-		return;
-	}
-	
-	/* Safely merge all of the channels in this pose into
-	any existing pose */
-	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
-		if (chan->flag & POSE_KEY) {
-			BLI_strncpy(name, chan->name, sizeof(name));
-			if (flip)
-				flip_name (name);
-				
-			/* only copy when channel exists, poses are not meant to add random channels to anymore */
-			pchan= get_pose_channel(ob->pose, name);
-			
-			if(pchan) {
-				/* only loc rot size */
-				/* only copies transform info for the pose */
-				VECCOPY(pchan->loc, chan->loc);
-				VECCOPY(pchan->size, chan->size);
-				QUATCOPY(pchan->quat, chan->quat);
-				pchan->flag= chan->flag;
-				
-				if (flip){
-					pchan->loc[0]*= -1;
-
-					QuatToEul(pchan->quat, eul);
-					eul[1]*= -1;
-					eul[2]*= -1;
-					EulToQuat(eul, pchan->quat);
-				}
-
-				if (G.flags & G_RECORDKEYS){
-					/* Set keys on pose */
-					if (chan->flag & POSE_ROT){
-						set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
-					}
-					if (chan->flag & POSE_SIZE){
-						set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
-						set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
-						set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
-					}
-					if (chan->flag & POSE_LOC){
-						set_action_key(ob->action, pchan, AC_LOC_X, newchan);
-						set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
-						set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
-					}
-				}
-			}
-		}
-	}
-
-	/* Update event for pose and deformation children */
-	ob->pose->ctime= -123456.0f;
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	
-	if (G.flags & G_RECORDKEYS) {
-		remake_action_ipos(ob->action);
-		allqueue (REDRAWIPO, 0);
-		allqueue (REDRAWVIEW3D, 0);
-		allqueue (REDRAWACTION, 0);		
-		allqueue(REDRAWNLA, 0);
-	}
-	else {
-		/* need to trick depgraph, action is not allowed to execute on pose */
-		where_is_pose(ob);
-		ob->recalc= 0;
-	}
-
-	BIF_undo_push("Paste Action Pose");
 }
 
 void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode, short makecurve)
