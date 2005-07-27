@@ -65,6 +65,8 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "PIL_time.h"
+
 /* bad level; call to free_realtime_image */
 #include "BKE_bad_level_calls.h"	
 
@@ -149,12 +151,12 @@ Image *add_image(char *name)
 void tag_image_time(Image *ima)
 {
 	if (ima)
-		ima->lastused = clock() / CLOCKS_PER_SEC;
+		ima->lastused = (int)PIL_check_seconds_timer();
 }
 
 void tag_all_images_time() {
 	Image *ima;
-	long ctime = clock() / CLOCKS_PER_SEC;
+	int ctime = (int)PIL_check_seconds_timer();
 
 	ima= G.main->image.first;
 	while(ima) {
@@ -167,8 +169,8 @@ void tag_all_images_time() {
 void free_old_images()
 {
 	Image *ima;
-	static long lasttime = 0;
-	long ctime = clock() / CLOCKS_PER_SEC;
+	static int lasttime = 0;
+	int ctime = (int)PIL_check_seconds_timer();
 	
 	/* 
 	   Run garbage collector once for every collecting period of time 
