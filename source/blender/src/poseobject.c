@@ -532,7 +532,24 @@ static void flip_name (char *name)
 			strcpy (suffix, index+2);
 		}
 	}
-
+	/* check for an instance of _l */
+	if (!index){
+		index = strstr (prefix, "_l");
+		if (index){
+			*index=0;
+			strcpy (replace, "_r");
+			strcpy (suffix, index+2);
+		}
+	}
+	/* check for an instance of _L */
+	if (!index){
+		index = strstr (prefix, "_L");
+		if (index){
+			*index=0;
+			strcpy (replace, "_R");
+			strcpy (suffix, index+2);
+		}
+	}
 	/* Checl for an instance of .R */
 	if (!index){
 		index = strstr (prefix, ".R");
@@ -552,8 +569,29 @@ static void flip_name (char *name)
 			strcpy (suffix, index+2);
 		}
 	}
-
-	sprintf (name, "%s%s%s", prefix, replace, suffix);
+	/* Checl for an instance of _r */
+	if (!index){
+		index = strstr (prefix, "_r");
+		if (index){
+			*index=0;
+			strcpy (replace, "_l");
+			strcpy (suffix, index+2);
+		}
+	}	
+	/* Check for an instance of _R */
+	if (!index){
+		index = strstr (prefix, "_R");
+		if (index){
+			*index=0;
+			strcpy (replace, "_L");
+			strcpy (suffix, index+2);
+		}
+	}	
+    if(strstr (suffix, "001")){
+    	sprintf (name, "%s%s", prefix, replace);        
+    } else {
+    	sprintf (name, "%s%s%s", prefix, replace, suffix);
+    }
 }
 
 void paste_posebuf (int flip)
