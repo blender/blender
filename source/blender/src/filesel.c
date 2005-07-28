@@ -439,7 +439,7 @@ void checkdir(char *dir)
 		return;
 	}	
 
-	while (start = strstr(dir, "\\..\\")) {
+	while ( (start = strstr(dir, "\\..\\")) ) {
 		eind = start + strlen("\\..\\") - 1;
 		a = start-dir-1;
 		while (a>0) {
@@ -449,17 +449,17 @@ void checkdir(char *dir)
 		strcpy(dir+a,eind);
 	}
 
-	while (start = strstr(dir,"\\.\\")){
+	while ( (start = strstr(dir,"\\.\\")) ){
 		eind = start + strlen("\\.\\") - 1;
 		strcpy(start,eind);
 	}
 
-	while (start = strstr(dir,"\\\\" )){
+	while ( (start = strstr(dir,"\\\\" )) ){
 		eind = start + strlen("\\\\") - 1;
 		strcpy(start,eind);
 	}
 
-	if(a = strlen(dir)){				/* remove the '\\' at the end */
+	if((a = strlen(dir))){				/* remove the '\\' at the end */
 		while(a>0 && dir[a-1] == '\\'){
 			a--;
 			dir[a] = 0;
@@ -720,21 +720,21 @@ void parent(SpaceFile *sfile)
 	dir= sfile->dir;
 	
 #ifdef WIN32
-	if(a = strlen(dir)) {				/* remove all '/' at the end */
+	if( (a = strlen(dir)) ) {				/* remove all '/' at the end */
 		while(dir[a-1] == '\\') {
 			a--;
 			dir[a] = 0;
 			if (a<=0) break;
 		}
 	}
-	if(a = strlen(dir)) {				/* then remove all until '/' */
+	if( (a = strlen(dir)) ) {				/* then remove all until '/' */
 		while(dir[a-1] != '\\') {
 			a--;
 			dir[a] = 0;
 			if (a<=0) break;
 		}
 	}
-	if (a = strlen(dir)) {
+	if( (a = strlen(dir)) ) {
 		if (dir[a-1] != '\\') strcat(dir,"\\");
 	}
 	else if(sfile->type!=FILE_MAIN) strcpy(dir,"\\");
