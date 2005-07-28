@@ -373,7 +373,7 @@ elif sys.platform == 'win32':
 	if use_quicktime == 'true':
 		extra_includes += ['#../lib/windows/QTDevWin/CIncludes']
 	# z library information
-	z_lib = ['libz']
+	z_lib = ['zlib']
 	z_libpath = ['#../lib/windows/zlib/lib']
 	z_include = ['#../lib/windows/zlib/include']
 	# png library information
