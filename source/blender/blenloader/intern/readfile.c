@@ -239,7 +239,6 @@ typedef struct OldNewMap {
 
 
 /* local prototypes */
-void lib_link_screen_restore(Main *, char , Scene *);
 extern          short freeN(void *vmemh); /* defined in util.h */  
 
 
@@ -2824,16 +2823,16 @@ static void *restore_pointer_by_name(Main *mainp, ID *id, int user)
 }
 
 /* called from kernel/blender.c */
-void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
+/* used to link a file (without UI) to the current UI */
+void lib_link_screen_restore(Main *newmain, Scene *curscene)
 {
 	bScreen *sc;
 	ScrArea *sa;
 
 	sc= newmain->screen.first;
 	while(sc) {
-
-		if(mode=='u') sc->scene= restore_pointer_by_name(newmain, (ID *)sc->scene, 1);
-		if(sc->scene==NULL || mode=='n') sc->scene= curscene;
+		
+		sc->scene= curscene;
 
 		sa= sc->areabase.first;
 		while(sa) {
@@ -2843,8 +2842,7 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;
 					
-					if(mode=='u') v3d->camera= restore_pointer_by_name(newmain, (ID *)v3d->camera, 1);
-					if(v3d->camera==NULL || mode=='n') v3d->camera= sc->scene->camera;
+					v3d->camera= sc->scene->camera;
 					
 					if(v3d->bgpic) {
 						v3d->bgpic->ima= restore_pointer_by_name(newmain, (ID *)v3d->bgpic->ima, 1);
@@ -2854,8 +2852,8 @@ void lib_link_screen_restore(Main *newmain, char mode, Scene *curscene)
 					}
 					if(v3d->localvd) {
 						Base *base;
-						if(mode=='u') v3d->localvd->camera= restore_pointer_by_name(newmain, (ID *)v3d->localvd->camera, 1);
-						if(v3d->localvd->camera==NULL || mode=='n') v3d->localvd->camera= sc->scene->camera;
+
+						v3d->localvd->camera= sc->scene->camera;
 						
 						/* localview can become invalid during undo/redo steps, so we exit it when no could be found */
 						for(base= sc->scene->base.first; base; base= base->next) {

@@ -1679,7 +1679,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			
 			uiBlockEndAlign(block);
 			
-			by-=42;
+			by-=60;
 			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
 	}

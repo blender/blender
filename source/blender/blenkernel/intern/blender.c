@@ -320,7 +320,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	/* no load screens? */
 	if(mode) {
 		/* comes from readfile.c */
-		extern void lib_link_screen_restore(Main *, char, Scene *);
+		extern void lib_link_screen_restore(Main *, Scene *);
 		
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		
@@ -333,7 +333,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		curscreen->scene= curscene;
 
 		/* clear_global will free G.main, here we can still restore pointers */
-		lib_link_screen_restore(bfd->main, mode, curscene);
+		lib_link_screen_restore(bfd->main, curscene);
 	}
 	
 	clear_global();
