@@ -1007,7 +1007,21 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 		offs_bone[3][1]+= parbone->length;
 		
 		/* Compose the matrix for this bone  */
-		Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+		if(bone->flag & BONE_HINGE) {	// uses restposition rotation, but actual position
+			float tmat[4][4];
+			
+			/* the rotation of the parent restposition */
+			Mat4CpyMat4(tmat, parbone->arm_mat);
+			
+			/* the location of actual parent transform */
+			VECCOPY(tmat[3], offs_bone[3]);
+			offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
+			Mat4MulVecfl(parchan->pose_mat, tmat[3]);
+			
+			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+		}
+		else 
+			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}
 	else 
 		Mat4MulMat4(pchan->pose_mat, pchan->chan_mat, bone->arm_mat);
@@ -1017,7 +1031,6 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 	if(pchan->constraints.first) {
 		static Object conOb;
 		static int initialized= 0;
-		float vec[3];
 		
 		VECCOPY(vec, pchan->pose_mat[3]);
 		
@@ -1067,7 +1080,7 @@ void where_is_pose (Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;
-	bPoseChannel *pchan, *next;
+	bPoseChannel *pchan;
 	float imat[4][4];
 
 	arm = get_armature(ob);
@@ -1132,9 +1145,7 @@ void where_is_pose (Object *ob)
 	}
 		
 	/* calculating deform matrices */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= next) {
-		next= pchan->next;
-		
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone) {
 			Mat4Invert(imat, pchan->bone->arm_mat);
 			Mat4MulMat4(pchan->chan_mat, imat, pchan->pose_mat);

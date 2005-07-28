@@ -1527,9 +1527,9 @@ static void validate_posebonebutton_cb(void *bonev, void *namev)
 	allqueue(REDRAWALL, 0);
 }
 
-static void armature_rest_pos_func(void *pointer1, void *pointer2) 
+static void armature_recalc_func(void *obp, void *pointer2) 
 {
-	Object *ob= pointer1;
+	Object *ob= obp;
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
@@ -1545,7 +1545,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiBlockBeginAlign(block);
 	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
 					"Rest Position", 10,180,150,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
-	uiButSetFunc(but, armature_rest_pos_func, ob, arm);
+	uiButSetFunc(but, armature_recalc_func, ob, NULL);
 	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 
 	uiBlockBeginAlign(block);
@@ -1583,9 +1583,6 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
 		if (curBone->flag & (BONE_SELECTED)) {
 
-			/* Hide in posemode flag */
-			uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-55,by,45,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
-
 			/*	Bone naming button */
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
@@ -1604,26 +1601,24 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			/* IK to parent flag */
 			if (curBone->parent){
-				but=uiDefButI(block, TOG|BIT|BONE_IK_TOPARENTBIT, REDRAWVIEW3D, "IK", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
+				but=uiDefButBitI(block, TOG, BONE_IK_TOPARENT, REDRAWVIEW3D, "IK", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
 
-			/* Dist and weight buttons */
+			/* Segment, dist and weight buttons */
 			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ",
-							bx-10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0,
-							"Subdivisions for B-bones");
-
-			/* Dist and weight buttons */
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+110, by-19,
-						105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0,
-						"Bone deformation distance");
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+223, by-19,
-						110, 18, &curBone->weight, 0.0F, 1000.0F,
-						10.0F, 0.0F, "Bone deformation weight");
-
+			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ", bx-10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+110, by-19, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+223, by-19,110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
+			
+			/* bone types */
+			uiDefButBitI(block, TOG, BONE_HINGE, REDRAWVIEW3D, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButS(block, TOGN|BIT|0,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
+			/* Hide in posemode flag */
+			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
+			
 			uiBlockEndAlign(block);
-			by-=42;
+			by-=60;
 			
 			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
@@ -1659,31 +1654,28 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 		curBone= pchan->bone;
 		if (curBone->flag & (BONE_SELECTED)) {
 			
-			/* Hide in posemode flag */
-			uiDefButI(block, TOG|BIT|BONE_HIDDENBIT, REDRAWVIEW3D, "Hide", bx-55,by,45,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
-			
 			/*	Bone naming button */
 			uiBlockBeginAlign(block);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_posebonebutton_cb, curBone, NULL);
 			
 			/* Dist and weight buttons */
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+107, by,
-					  105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0,
-					  "Bone deformation distance");
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+220, by,
-					  110, 18, &curBone->weight, 0.0F, 1000.0F,
-					  10.0F, 0.0F, "Bone deformation weight");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Dist:", bx+107, by, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Weight:", bx+220, by,  110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 			
 			
 			/* Segment, ease in/out buttons */
 			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ",
-					  bx-10,by-19,117,19, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
-			uiDefButF(block, NUM,REDRAWVIEW3D, "In:", 
-					  bx+107, by-19,105, 19, &curBone->ease1, 0.0, 2.0, 10.0, 0.0, "First length of Bezier handle");
-			uiDefButF(block, NUM,REDRAWVIEW3D, "Out:", 
-					  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
+			uiDefButS(block, NUM, REDRAWVIEW3D, "Segm: ",  bx-10,by-19,117,19, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "In:",  bx+107, by-19,105, 19, &curBone->ease1, 0.0, 2.0, 10.0, 0.0, "First length of Bezier handle");
+			uiDefButF(block, NUM,REDRAWVIEW3D, "Out:",  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
+			
+			/* bone types */
+			but= uiDefButBitI(block, TOG, BONE_HINGE, REDRAWVIEW3D, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiButSetFunc(but, armature_recalc_func, ob, NULL);
+			uiDefButS(block, TOGN|BIT|0,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
+			/* Hide in posemode flag */
+			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
 			
 			uiBlockEndAlign(block);
 			

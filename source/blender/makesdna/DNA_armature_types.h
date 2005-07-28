@@ -120,6 +120,8 @@ typedef struct bArmature {
 #define		BONE_DONE		128
 			/* active is on mouse clicks only */
 #define		BONE_ACTIVE		256
+			/* No parent rotation or scale */
+#define		BONE_HINGE		512
 
 /* bone->flag  bits */
 #define		BONE_IK_TOPARENTBIT		4

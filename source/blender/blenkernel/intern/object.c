@@ -1645,7 +1645,6 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 					float delta[4][4];
 					float imat[4][4];
 					float identity[4][4];
-					float worldmat[4][4];
 					
 					if (con->type!=CONSTRAINT_TYPE_KINEMATIC) {
 						/* If we're not an IK constraint, solve the constraint then blend it to the previous one */
@@ -1663,18 +1662,6 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 						}
 						Mat4MulMat4 (ob->obmat, delta, oldmat);
 
-					}
-					else{
-						/* Interpolate the target between the chain's unconstrained endpoint and the effector loc */
-						if (obtype==TARGET_BONE) {
-							get_objectspace_bone_matrix(obdata, oldmat, 1, 1);
-							
-							Mat4MulMat4(worldmat, oldmat, ob->parent->obmat);
-
-							Mat4BlendMat4(focusmat, worldmat, lastmat, a);
-							
-							evaluate_constraint(con, ob, obtype, obdata, focusmat);
-						}
 					}
 				}
 			}
