@@ -54,6 +54,8 @@ CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 # path to blenkernel
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
 CPPFLAGS += -I../../include/
+# path to zlib
+CPPFLAGS += -I$(NAN_ZLIB)/include
 
 ifeq ($(WITH_FREETYPE2), true)
 	CPPFLAGS += -DWITH_FREETYPE2
