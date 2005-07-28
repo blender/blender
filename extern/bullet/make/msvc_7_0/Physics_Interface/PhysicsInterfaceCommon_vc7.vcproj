@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.0"
+	Name="PhysicsInterfaceCommon"
+	ProjectGUID="{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}"
+	Keyword="Win32Proj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\LinearMath"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\debug\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\debug\PhysicsInterfaceCommon.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+XCOPY /Y ..\..\..\Extras\PhysicsInterface\Common\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\LinearMath"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\PhysicsInterfaceCommon.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+XCOPY /Y ..\..\..\Extras\PhysicsInterface\Common\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\LinearMath"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\debug\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\debug\PhysicsInterfaceCommon.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+XCOPY /Y ..\..\..\Extras\PhysicsInterface\Common\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\LinearMath"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\physics_interface\mtdll\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\PhysicsInterfaceCommon.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+XCOPY /Y ..\..\..\Extras\PhysicsInterface\Common\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\PhysicsInterfaceCommon
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}">
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IMotionState.cpp">
+				<FileConfiguration
+					Name="Blender Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.cpp">
+				<FileConfiguration
+					Name="Blender Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.cpp">
+				<FileConfiguration
+					Name="Blender Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Blender Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="3D Plugin Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+				</FileConfiguration>
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_DynamicTypes.h">
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IMotionState.h">
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IPhysicsController.h">
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_IPhysicsEnvironment.h">
+			</File>
+			<File
+				RelativePath="..\..\..\Extras\PhysicsInterface\Common\PHY_Pro.h">
+			</File>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

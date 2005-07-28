@@ -1,8 +1,12 @@
 Microsoft Visual Studio Solution File, Format Version 7.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_install_all.vcproj", "{9C71A793-C177-4CAB-8EC5-923D500B39F8}"
 	ProjectSection(ProjectDependencies) = postProject
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580} = {87D8C006-6DCC-4156-A03E-8CEA1B4C0580}
 		{F9850C15-FF0A-429E-9D47-89FB433C9BD8} = {F9850C15-FF0A-429E-9D47-89FB433C9BD8}
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE} = {E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400} = {FFD3C64A-30E2-4BC7-BC8F-51818C320400}
 		{D696C86B-0B53-4471-A50D-5B983A6FA4AD} = {D696C86B-0B53-4471-A50D-5B983A6FA4AD}
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4} = {3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "solid", "..\..\solid\make\msvc_7_0\solid.vcproj", "{D696C86B-0B53-4471-A50D-5B983A6FA4AD}"
@@ -30,6 +34,22 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "broad", "..\..\solid\make\m
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ftgl_static_lib", "..\..\bFTGL\make\msvc_7_0\ftgl_static_lib.vcproj", "{F9850C15-FF0A-429E-9D47-89FB433C9BD8}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bullet3ContinuousCollision", "..\..\bullet\make\msvc_7_0\Bullet3_vc7.vcproj", "{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CcdPhysics", "..\..\bullet\make\msvc_7_0\Physics_Interface\CcdPhysics_vc7.vcproj", "{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PhysicsInterfaceCommon", "..\..\bullet\make\msvc_7_0\Physics_Interface\PhysicsInterfaceCommon_vc7.vcproj", "{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bullet3Dynamics", "..\..\bullet\make\msvc_7_0\Dynamics\BulletDynamics_vc7.vcproj", "{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -97,6 +117,38 @@ Global
 		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Debug.Build.0 = Blender Debug|Win32
 		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.ActiveCfg = Blender Release|Win32
 		{F9850C15-FF0A-429E-9D47-89FB433C9BD8}.Blender Release.Build.0 = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Debug.Build.0 = Blender Debug|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Release.ActiveCfg = Blender Release|Win32
+		{FFD3C64A-30E2-4BC7-BC8F-51818C320400}.Blender Release.Build.0 = Blender Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Blender Debug.Build.0 = Blender Debug|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Blender Release.ActiveCfg = Blender Release|Win32
+		{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}.Blender Release.Build.0 = Blender Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Blender Debug.Build.0 = Blender Debug|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Blender Release.ActiveCfg = Blender Release|Win32
+		{87D8C006-6DCC-4156-A03E-8CEA1B4C0580}.Blender Release.Build.0 = Blender Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.3D Plugin Release.Build.0 = 3D Plugin Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Blender Debug.Build.0 = Blender Debug|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Blender Release.ActiveCfg = Blender Release|Win32
+		{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}.Blender Release.Build.0 = Blender Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

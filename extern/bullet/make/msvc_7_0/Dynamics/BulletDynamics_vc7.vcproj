@@ -1,0 +1,747 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.0"
+	Name="Bullet3Dynamics"
+	ProjectGUID="{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}"
+	Keyword="Win32Proj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\LinearMath;..\..\..\Bullet;..\..\..\BulletDynamics"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\debug\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\debug\BulletDynamics.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+XCOPY /Y ..\..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\..\BulletDynamics\CollisionDispatch\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\LinearMath;..\..\..\Bullet;..\..\..\BulletDynamics"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\BulletDynamics.pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\BulletDynamics.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+XCOPY /Y ..\..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\..\BulletDynamics\CollisionDispatch\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\LinearMath;..\..\..\Bullet;..\..\..\BulletDynamics"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="TRUE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\debug\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\debug\BulletDynamics.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+XCOPY /Y ..\..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\..\BulletDynamics\CollisionDispatch\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\LinearMath;..\..\..\Bullet;..\..\..\BulletDynamics"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\extern\bullet\dynamics\mtdll\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\mtdll\BulletDynamics.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+XCOPY /Y ..\..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\..\BulletDynamics\CollisionDispatch\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionDispatch
+XCOPY /Y ..\..\..\BulletDynamics\ConstraintSolver\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\ConstraintSolver
+XCOPY /Y ..\..\..\BulletDynamics\Dynamics\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\Dynamics
+
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	
+	<Files>
+		<Filter
+			Name="ConstraintSolver"
+			Filter="">
+			<Filter
+				Name="Source Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\ContactConstraint.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\OdeConstraintSolver.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Point2PointConstraint.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SimpleConstraintSolver.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Solve2LinearConstraint.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SorLcp.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Header Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\ConstraintSolver.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\ContactConstraint.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\ContactSolverInfo.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\JacobianEntry.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\OdeConstraintSolver.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Point2PointConstraint.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SimpleConstraintSolver.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\Solve2LinearConstraint.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\ConstraintSolver\SorLcp.h">
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="CollisionDispatch"
+			Filter="">
+			<Filter
+				Name="Source Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ConvexConcaveCollisionAlgorithm.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ConvexConvexAlgorithm.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\EmptyCollisionAlgorithm.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ManifoldResult.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ToiContactDispatcher.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\UnionFind.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Header Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ConvexConcaveCollisionAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ConvexConvexAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\EmptyCollisionAlgorithm.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ManifoldResult.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\ToiContactDispatcher.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\CollisionDispatch\UnionFind.h">
+				</File>
+			</Filter>
+		</Filter>
+		<Filter
+			Name="Dynamics"
+			Filter="">
+			<Filter
+				Name="Source Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\BU_Joint.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\ContactJoint.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\RigidBody.cpp">
+					<FileConfiguration
+						Name="Blender Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Blender Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="3D Plugin Release|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							ObjectFile="$(IntDir)/$(InputName)1.obj"/>
+					</FileConfiguration>
+				</File>
+			</Filter>
+			<Filter
+				Name="Header Files"
+				Filter="">
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\BU_Joint.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\ContactJoint.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\MassProps.h">
+				</File>
+				<File
+					RelativePath="..\..\..\BulletDynamics\Dynamics\RigidBody.h">
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>
