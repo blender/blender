@@ -2268,6 +2268,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
             if(eed->f2 & EDGENEW){
                 eed->f |= flag;
                 EM_select_edge(eed,1); 
+                
             }else{
                 eed->f &= !flag;
                 EM_select_edge(eed,0); 
@@ -2284,6 +2285,14 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
             }
         }          
     } 
+     if(G.scene->selectmode & SCE_SELECT_VERTEX){
+         for(eed = em->edges.first;eed;eed = eed->next){
+            if(eed->f & SELECT){
+                eed->v1->f |= SELECT;
+                eed->v2->f |= SELECT;
+            }
+        }    
+    }
     // Free the ghash and call MEM_freeN on all the value entries to return 
     // that memory
     BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);   
@@ -4490,6 +4499,7 @@ int EdgeSlide(short immediate, float imperc)
     // we should have enough info now to slide
     //persp(PERSP_WIN);
     //glDrawBuffer(GL_FRONT); 
+    percp = -1;
     while(draw){
         if(perc == percp){
             PIL_sleep_ms(10);
