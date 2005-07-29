@@ -4551,18 +4551,23 @@ int EdgeSlide(short immediate, float imperc)
             if(G.qual==LR_CTRLKEY){
                 if(perc < 0.91)
                     perc += 0.1;                  
-            } else {
+            } else if(G.qual==LR_SHIFTKEY) {
                 if(perc < 0.99)
                     perc += 0.01;   
-            }
-            
+            }else {
+                if(perc < 0.94)
+                    perc += 0.05;   
+            }  
         } else if(mval[0] < mvalo[0]){               
             if(G.qual==LR_CTRLKEY){
                 if(perc > -0.91)
                     perc -= 0.1;                  
-            } else {
+            } else if(G.qual==LR_SHIFTKEY){
                 if(perc > -0.99)
                     perc -= 0.01;   
+            } else {
+                if(perc > -0.94)
+                    perc -= 0.05;   
             }
         }       
 
