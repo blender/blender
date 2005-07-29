@@ -1207,36 +1207,49 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
     int fac;
     short i, j;
     char *cp0, *cp1, *cp2;
+    char *hold;
     
     //First Check for exact match between co and efa verts
     if(VecEqual(co,efa->v1->co)){
         uv[0] = efa->tf.uv[0][0];
         uv[1] = efa->tf.uv[0][1];
-        col[0]= (char)efa->tf.col[0];
-        col[1]= (char)(*(&efa->tf.col[0]+1)); 
-        col[2]= (char)(*(&efa->tf.col[0]+2)); 
-        col[3]= (char)(*(&efa->tf.col[0]+3));        
+        
+        hold = &efa->tf.col[0];
+        col[0]= hold[0];
+        col[1]= hold[1];
+        col[2]= hold[2];
+        col[3]= hold[3];
+        return;      
     } else if(VecEqual(co,efa->v2->co)){
         uv[0] = efa->tf.uv[1][0];
         uv[1] = efa->tf.uv[1][1];
-        col[0]= (char)efa->tf.col[1];
-        col[1]= (char)(*(&efa->tf.col[1]+1)); 
-        col[2]= (char)(*(&efa->tf.col[1]+2)); 
-        col[3]= (char)(*(&efa->tf.col[1]+3));        
+        
+        hold = &efa->tf.col[1];
+        col[0]= hold[0];
+        col[1]= hold[1];
+        col[2]= hold[2];
+        col[3]= hold[3]; 
+        return;       
     } else if(VecEqual(co,efa->v3->co)){
         uv[0] = efa->tf.uv[2][0];
         uv[1] = efa->tf.uv[2][1];
-        col[0]= (char)efa->tf.col[2];
-        col[1]= (char)(*(&efa->tf.col[2]+1)); 
-        col[2]= (char)(*(&efa->tf.col[2]+2)); 
-        col[3]= (char)(*(&efa->tf.col[2]+3));        
+        
+        hold = &efa->tf.col[2];
+        col[0]= hold[0];
+        col[1]= hold[1];
+        col[2]= hold[2];
+        col[3]= hold[3];    
+        return;   
     } else if(efa->v4 && VecEqual(co,efa->v4->co)){
         uv[0] = efa->tf.uv[3][0];
         uv[1] = efa->tf.uv[3][1];
-        col[0]= (char)efa->tf.col[3];
-        col[1]= (char)(*(&efa->tf.col[3]+1)); 
-        col[2]= (char)(*(&efa->tf.col[3]+2)); 
-        col[3]= (char)(*(&efa->tf.col[3]+3));        
+        
+        hold = &efa->tf.col[3];
+        col[0]= hold[0];
+        col[1]= hold[1];
+        col[2]= hold[2];
+        col[3]= hold[3];   
+        return;     
     }    
     
     /* define best projection of face XY, XZ or YZ */
@@ -1267,7 +1280,9 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
     /* interpolate */
     l= 1.0+u+v;
         /* outside triangle? */
-    if(efa->v4 && l > 1.0) {
+     printf("l: %f\n",l);
+    if(efa->v4 && l >= 0.5) {
+        printf("outside\n");
         /* do it all over, but now with vertex 2 replaced with 4 */
         
         /* calculate u and v */
@@ -1302,7 +1317,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
                 col[i]= CLAMPIS(fac, 0, 255);
         }              
     } else {     
-             
+        printf("inside\n");     
         //new = l*vertex3_val - u*vertex1_val - v*vertex2_val;
         uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
         uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
