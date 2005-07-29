@@ -1280,9 +1280,9 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
     /* interpolate */
     l= 1.0+u+v;
         /* outside triangle? */
-     printf("l: %f\n",l);
+    // printf("l: %f\n",l);
     if(efa->v4 && l >= 0.5) {
-        printf("outside\n");
+    //    printf("outside\n");
         /* do it all over, but now with vertex 2 replaced with 4 */
         
         /* calculate u and v */
@@ -1317,7 +1317,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
                 col[i]= CLAMPIS(fac, 0, 255);
         }              
     } else {     
-        printf("inside\n");     
+    //    printf("inside\n");     
         //new = l*vertex3_val - u*vertex1_val - v*vertex2_val;
         uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
         uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
