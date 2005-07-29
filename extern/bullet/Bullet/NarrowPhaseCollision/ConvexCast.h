@@ -16,6 +16,7 @@
 #include <SimdVector3.h>
 #include <SimdScalar.h>
 class MinkowskiSumShape;
+#include "IDebugDraw.h"
 
 /// ConvexCast is an interface for Casting
 class ConvexCast
@@ -30,18 +31,23 @@ public:
 	struct	CastResult
 	{
 		//virtual bool	addRayResult(const SimdVector3& normal,SimdScalar	fraction) = 0;
-
+				
 		virtual void	DebugDraw(SimdScalar	fraction) {}
 		virtual void	DrawCoordSystem(const SimdTransform& trans) {}
+
 		CastResult()
-			:m_fraction(1e30f)
+			:m_fraction(1e30f),
+			m_debugDrawer(0)
 		{
 		}
 
 		SimdVector3	m_normal;
 		SimdScalar	m_fraction;
 		SimdTransform	m_hitTransformA;
-		SimdTransform	m_hitTransformB;		
+		SimdTransform	m_hitTransformB;
+
+		IDebugDraw* m_debugDrawer;
+
 	};
 
 

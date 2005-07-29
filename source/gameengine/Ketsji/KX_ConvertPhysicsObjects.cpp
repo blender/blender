@@ -133,7 +133,7 @@ void	KX_ConvertSumoObject(	KX_GameObject* gameobj,
 	smmaterial->m_fh_normal = kxmaterial->m_fh_normal;
 	smmaterial->m_fh_spring = kxmaterial->m_fh_spring;
 	smmaterial->m_friction = kxmaterial->m_friction;
-	smmaterial->m_restitution = kxmaterial->m_restitution;
+	smmaterial->m_restitution = 0.f;//kxmaterial->m_restitution;
 
 	SumoPhysicsEnvironment* sumoEnv =
 		(SumoPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
@@ -911,9 +911,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			halfExtents /= 2.f;
 
-			SimdVector3 he (halfExtents[0]-CONVEX_DISTANCE_MARGIN ,halfExtents[1]-CONVEX_DISTANCE_MARGIN ,halfExtents[2]-CONVEX_DISTANCE_MARGIN );
-			he = he.absolute();
-
+			//todo: do this conversion internally !
+			SimdVector3 he (halfExtents[0],halfExtents[1],halfExtents[2]);
 
 			bm = new BoxShape(he);
 			bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
@@ -957,7 +956,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				if (bm)
 				{
 					bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-					bm->SetMargin(0.f);
+					bm->SetMargin(0.05f);
 				}
 				break;
 			}
@@ -1005,8 +1004,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_restitution = smmaterial->m_restitution;
 
 
-	ci.m_linearDamping = shapeprops->m_lin_drag;
-	ci.m_angularDamping = shapeprops->m_ang_drag;
+	ci.m_linearDamping = 0.5;//shapeprops->m_lin_drag;
+	ci.m_angularDamping = 0.5f;//shapeprops->m_ang_drag;
 
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,dyna);
 	env->addCcdPhysicsController( physicscontroller);

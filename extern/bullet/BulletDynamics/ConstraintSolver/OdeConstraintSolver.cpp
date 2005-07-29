@@ -19,6 +19,8 @@
 #include "Dynamics/BU_Joint.h"
 #include "Dynamics/ContactJoint.h"
 
+#include "IDebugDraw.h"
+
 #define USE_SOR_SOLVER
 
 #include "SorLcp.h"
@@ -41,8 +43,7 @@ class BU_Joint;
 
 //see below
 
-int gCurBody = 0;
-int gCurJoint= 0;
+
 
 int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies);
 void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
@@ -53,10 +54,10 @@ void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJo
 
 
 //iterative lcp and penalty method
-float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal)
+float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
 {
-	gCurBody = 0;
-	gCurJoint = 0;
+	m_CurBody = 0;
+	m_CurJoint = 0;
 
 	float cfm = 1e-5f;
 	float erp = 0.2f;
@@ -77,7 +78,7 @@ float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numM
 		{
 			body0 = ConvertBody((RigidBody*)manifold->GetBody0(),bodies,numBodies);
 			body1 = ConvertBody((RigidBody*)manifold->GetBody1(),bodies,numBodies);
-			ConvertConstraint(manifold,joints,numJoints,bodies,body0,body1);
+			ConvertConstraint(manifold,joints,numJoints,bodies,body0,body1,debugDrawer);
 		}
 	}
 
@@ -112,7 +113,7 @@ void dRfromQ1 (dMatrix3 R, const dQuaternion q)
 
 
 
-int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies)
+int OdeConstraintSolver::ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies)
 {
 	if (!body || (body->getInvMass() == 0.f) )
 	{
@@ -195,8 +196,8 @@ int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies)
 static ContactJoint gJointArray[MAX_JOINTS_1];
 
 
-void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
-					   RigidBody** bodies,int _bodyId0,int _bodyId1)
+void OdeConstraintSolver::ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
+					   RigidBody** bodies,int _bodyId0,int _bodyId1,IDebugDraw* debugDrawer)
 {
 
 
@@ -228,14 +229,21 @@ void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJo
 
 	assert(bodyId0 >= 0);
 
+	SimdVector3 color(0,1,0);
 	for (i=0;i<numContacts;i++)
 	{
-		
-		assert (gCurJoint < MAX_JOINTS_1);
+
+		if (debugDrawer)
+		{
+			debugDrawer->DrawLine(manifold->GetContactPoint(i).m_positionWorldOnA,manifold->GetContactPoint(i).m_positionWorldOnB,color);
+			debugDrawer->DrawLine(manifold->GetContactPoint(i).m_positionWorldOnA,manifold->GetContactPoint(i).m_positionWorldOnB,color);
+
+		}
+		assert (m_CurJoint < MAX_JOINTS_1);
 
 		if (manifold->GetContactPoint(i).GetDistance() < 0.f)
 		{
-			ContactJoint* cont = new (&gJointArray[gCurJoint++]) ContactJoint( manifold ,i, swapBodies,body0,body1);
+			ContactJoint* cont = new (&gJointArray[m_CurJoint++]) ContactJoint( manifold ,i, swapBodies,body0,body1);
 
 			cont->node[0].joint = cont;
 			cont->node[0].body = bodyId0 >= 0 ? bodies[bodyId0] : 0;

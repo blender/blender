@@ -13,15 +13,28 @@
 
 #include "ConstraintSolver.h"
 
+class RigidBody;
+class BU_Joint;
 
+/// OdeConstraintSolver is one of the available solvers for Bullet dynamics framework
+/// It uses the the unmodified version of quickstep solver from the open dynamics project
 class OdeConstraintSolver : public ConstraintSolver
 {
-	
+private:
+
+	int m_CurBody;
+	int m_CurJoint;
+
+
+	int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies);
+	void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
+					   RigidBody** bodies,int _bodyId0,int _bodyId1,IDebugDraw* debugDrawer);
+
 public:
 
 	virtual ~OdeConstraintSolver() {}
 	
-	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info);
+	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info,IDebugDraw* debugDrawer = 0);
 
 };
 

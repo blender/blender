@@ -62,7 +62,7 @@
 
 #include "KX_PyMath.h"
 
-#include "SumoPhysicsEnvironment.h"
+#include "PHY_IPhysicsEnvironment.h"
 // FIXME: Enable for access to blender python modules.  This is disabled because
 // python has dependencies on a lot of other modules and is a pain to link.
 //#define USE_BLENDER_PYTHON
@@ -226,6 +226,22 @@ static PyObject* gPySetPhysicsTicRate(PyObject*,
 	
 	return NULL;
 }
+
+static PyObject* gPySetPhysicsDebug(PyObject*,
+					PyObject* args,
+					PyObject*)
+{
+	int debugMode;
+	if (PyArg_ParseTuple(args, "i", &debugMode))
+	{
+		PHY_GetActiveEnvironment()->setDebugMode(debugMode);
+		Py_Return;
+	}
+	
+	return NULL;
+}
+
+
 
 static PyObject* gPyGetPhysicsTicRate(PyObject*, PyObject*, PyObject*)
 {

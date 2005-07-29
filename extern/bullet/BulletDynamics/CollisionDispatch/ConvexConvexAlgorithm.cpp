@@ -175,6 +175,8 @@ m_collisionImpulse = 0.f;
 		input.m_maximumDistanceSquared = min0->GetMargin() + min1->GetMargin() + m_manifoldPtr->GetManifoldMargin();
 		input.m_maximumDistanceSquared*= input.m_maximumDistanceSquared;
 	}
+
+	input.m_maximumDistanceSquared = 1e30;//
 	
 	input.m_transformA = body0->getCenterOfMassTransform();
 	input.m_transformB = body1->getCenterOfMassTransform();

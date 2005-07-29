@@ -11,6 +11,14 @@
 
 #include "BoxShape.h"
 
+SimdVector3 BoxShape::GetHalfExtents() const
+{ 
+	SimdVector3 scalingCorrectedHalfExtents = m_boxHalfExtents1 * m_localScaling;
+	SimdVector3 marginCorrection (CONVEX_DISTANCE_MARGIN,CONVEX_DISTANCE_MARGIN,CONVEX_DISTANCE_MARGIN);
+	return (scalingCorrectedHalfExtents - marginCorrection).absolute();
+}
+
+
 
 void BoxShape::GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const
 {
@@ -25,8 +33,9 @@ void BoxShape::GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& 
 
 
 	//todo: this is a quick fix, we need to enlarge the aabb dependent on several criteria
-	//extent += SimdVector3(.2f,.2f,.2f);
-
+//	SimdVector3 extra(1,1,1);
+//	extent += extra;
+	
 	aabbMin = center - extent;
 	aabbMax = center + extent;
 

@@ -111,6 +111,10 @@ void PersistentManifold::AddManifoldPoint(const ManifoldPoint& newPoint)
 	ReplaceContactPoint(newPoint,insertIndex);
 }
 
+float	PersistentManifold::GetManifoldMargin() const
+{
+	return 0.02f;
+}
 
 void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const SimdTransform& trB)
 {

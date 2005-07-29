@@ -15,7 +15,7 @@ m_body1(body1)
 
 int m_numRows = 3;
 
-float gContactFrictionFactor  = 30.5f;//100.f;//1e30f;//2.9f;
+//float gContactFrictionFactor  = 0.f;//12.f;//30.5f;//100.f;//1e30f;//2.9f;
 
 
 
@@ -149,6 +149,9 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[0] = ccc2[0];
 	c2[1] = ccc2[1];
 	c2[2] = ccc2[2];
+	
+	float friction = m_body0->getFriction() * m_body1->getFriction();
+	
 	// first friction direction
 	if (m_numRows >= 2) 
 	{
@@ -175,8 +178,9 @@ void ContactJoint::GetInfo2(Info2 *info)
 		// mode
 		//1e30f
 		
-		info->lo[1] = -gContactFrictionFactor;//-j->contact.surface.mu;
-		info->hi[1] = gContactFrictionFactor;//j->contact.surface.mu;
+		
+		info->lo[1] = -friction;//-j->contact.surface.mu;
+		info->hi[1] = friction;//j->contact.surface.mu;
 		if (0)//j->contact.surface.mode & dContactApprox1_1) 
 			info->findex[1] = 0;
 		
@@ -210,8 +214,8 @@ void ContactJoint::GetInfo2(Info2 *info)
 			//info->hi[2] = j->contact.surface.mu2;
 		}
 		else {
-			info->lo[2] = -gContactFrictionFactor;
-			info->hi[2] = gContactFrictionFactor;
+			info->lo[2] = -friction;
+			info->hi[2] = friction;
 		}
 		if (0)//j->contact.surface.mode & dContactApprox1_2) 
 			

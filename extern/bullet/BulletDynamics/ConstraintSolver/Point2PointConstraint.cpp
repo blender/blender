@@ -13,7 +13,7 @@
 #include "Dynamics/MassProps.h"
 
 
-static RigidBody s_fixed(MassProps(0,SimdVector3(0.f,0.f,0.f)),0.f,0.f);
+static RigidBody s_fixed(MassProps(0,SimdVector3(0.f,0.f,0.f)),0.f,0.f,1.f,1.f);
 
 Point2PointConstraint::Point2PointConstraint():
 m_rbA(s_fixed),m_rbB(s_fixed)

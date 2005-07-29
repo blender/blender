@@ -12,17 +12,19 @@
 #define SIMPLE_CONSTRAINT_SOLVER_H
 
 #include "ConstraintSolver.h"
+class IDebugDraw;
 
-
+/// SimpleConstraintSolver uses a Propagation Method
+/// Applies impulses for combined restitution and penetration recovery and to simulate friction
 class SimpleConstraintSolver : public ConstraintSolver
 {
-	float Solve(PersistentManifold* manifold, const ContactSolverInfo& info,int iter);
+	float Solve(PersistentManifold* manifold, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer);
 
 public:
 
 	virtual ~SimpleConstraintSolver() {}
 	
-	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info);
+	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info, IDebugDraw* debugDrawer=0);
 
 };
 

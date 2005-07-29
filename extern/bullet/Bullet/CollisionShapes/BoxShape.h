@@ -32,10 +32,7 @@ public:
 
 	}
 
-	SimdVector3 GetHalfExtents() const{ return m_boxHalfExtents1 * m_localScaling;}
- 	//const SimdVector3& GetHalfExtents() const{ return m_boxHalfExtents1;}
-
-
+	SimdVector3 GetHalfExtents() const;
 	
 	virtual int	GetShapeType() const { return BOX_SHAPE_PROXYTYPE;}
 

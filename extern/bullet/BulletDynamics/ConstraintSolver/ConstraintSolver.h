@@ -16,6 +16,7 @@ class RigidBody;
 
 struct ContactSolverInfo;
 struct BroadphaseProxy;
+class IDebugDraw;
 
 /// ConstraintSolver provides solver interface
 class ConstraintSolver
@@ -25,7 +26,7 @@ public:
 
 	virtual ~ConstraintSolver() {}
 	
-	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info) = 0;
+	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info,class IDebugDraw* debugDrawer = 0) = 0;
 
 };
 

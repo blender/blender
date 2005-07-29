@@ -7,7 +7,7 @@
 
 class BP_Proxy;
 
-bool gEnableSleeping = true;//false;//true;
+bool gEnableSleeping = false;//false;//true;
 #include "Dynamics/MassProps.h"
 
 SimdVector3 startVel(0,0,0);//-10000);

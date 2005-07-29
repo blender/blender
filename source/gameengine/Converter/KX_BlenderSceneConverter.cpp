@@ -173,15 +173,32 @@ static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& sce
 #include "KX_PythonInit.h"
 
 #ifdef USE_BULLET
-struct	BlenderDebugDraw : public PHY_IPhysicsDebugDraw
+#include "IDebugDraw.h"
+
+
+struct	BlenderDebugDraw : public IDebugDraw
 {
+	BlenderDebugDraw () :
+		m_debugMode(0) 
+	{
+	}
+	
+	int m_debugMode;
+
 	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
 	{
-		MT_Vector3 kxfrom(from[0],from[1],from[2]);
-		MT_Vector3 kxto(to[0],to[1],to[2]);
-		MT_Vector3 kxcolor(color[0],color[1],color[2]);
+		if (m_debugMode == 1)
+		{
+			MT_Vector3 kxfrom(from[0],from[1],from[2]);
+			MT_Vector3 kxto(to[0],to[1],to[2]);
+			MT_Vector3 kxcolor(color[0],color[1],color[2]);
 
-		KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
+			KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
+		}
+	}
+	virtual void	SetDebugMode(int debugMode)
+	{
+		m_debugMode = debugMode;
 	}
 };
 

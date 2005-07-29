@@ -118,13 +118,13 @@ void ConvexHullShape::GetEdge(int i,SimdPoint3& pa,SimdPoint3& pb) const
 
 	int index0 = i%m_points.size();
 	int index1 = i/m_points.size();
-	pa = m_points[index0];
-	pb = m_points[index1];
+	pa = m_points[index0]*m_localScaling;
+	pb = m_points[index1]*m_localScaling;
 }
 
 void ConvexHullShape::GetVertex(int i,SimdPoint3& vtx) const
 {
-	vtx = m_points[i];
+	vtx = m_points[i]*m_localScaling;
 }
 
 int	ConvexHullShape::GetNumPlanes() const

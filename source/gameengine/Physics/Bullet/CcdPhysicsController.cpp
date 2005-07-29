@@ -31,7 +31,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 
 	MassProps mp(ci.m_mass, ci.m_localInertiaTensor);
 
-	m_body = new RigidBody(mp,0,0);
+	m_body = new RigidBody(mp,0,0,ci.m_friction,ci.m_restitution);
 	
 	m_broadphaseHandle = ci.m_broadphaseHandle;
 
@@ -44,12 +44,10 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 	m_body->setMassProps(ci.m_mass, ci.m_localInertiaTensor);
 	m_body->setGravity( ci.m_gravity);
 
-	m_friction = ci.m_friction;
-	m_restitution = ci.m_restitution;
-
+	
 	m_body->setDamping(ci.m_linearDamping, ci.m_angularDamping);
 
-	
+
 	m_body->setCenterOfMassTransform( trans );
 
 	#ifdef WIN32

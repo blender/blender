@@ -86,18 +86,15 @@ void ToiContactDispatcher::ReleaseManifold(PersistentManifold* manifold)
 //
 // todo: this is random access, it can be walked 'cache friendly'!
 //
-void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,int numRigidBodies) 
+void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,int numRigidBodies,IDebugDraw* debugDrawer) 
 {
 	int i;
 
-	int numManifolds;
 
 	for (int islandId=0;islandId<numRigidBodies;islandId++)
 	{
-		numManifolds = 0;
 
-		PersistentManifold* manifolds[MAX_MANIFOLDS];
-
+		std::vector<PersistentManifold*>  islandmanifold;
 		
 		//int numSleeping = 0;
 
@@ -116,16 +113,15 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 					allSleeping = false;
 				}
 
-				manifolds[numManifolds] = manifold;
-				numManifolds++;
+				islandmanifold.push_back(manifold);
 			}
 		}
 		if (allSleeping)
 		{
 			//tag all as 'ISLAND_SLEEPING'
-			for (i=0;i<numManifolds;i++)
+			for (i=0;i<islandmanifold.size();i++)
 			{
-				 PersistentManifold* manifold = manifolds[i];
+				 PersistentManifold* manifold = islandmanifold[i];
 				if (((RigidBody*)manifold->GetBody0()))	
 				{
 					((RigidBody*)manifold->GetBody0())->SetActivationState( ISLAND_SLEEPING );
@@ -140,9 +136,9 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 		{
 
 			//tag all as 'ISLAND_SLEEPING'
-			for (i=0;i<numManifolds;i++)
+			for (i=0;i<islandmanifold.size();i++)
 			{
-				 PersistentManifold* manifold = manifolds[i];
+				 PersistentManifold* manifold = islandmanifold[i];
 				if (((RigidBody*)manifold->GetBody0()))	
 				{
 					if ( ((RigidBody*)manifold->GetBody0())->GetActivationState() == ISLAND_SLEEPING)
@@ -169,19 +165,8 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 			info.m_tau = 0.4f;
 			info.m_restitution = 0.1f;//m_restitution;
 
-			/*
-			int numManifolds = 0;
 
-			for (i=0;i<m_firstFreeManifold;i++)
-			{
-				PersistentManifold* manifold = &m_manifolds[m_freeManifolds[i]];
-				//ASSERT(((RigidBody*)manifold->GetBody0()));
-				//ASSERT(((RigidBody*)manifold->GetBody1()));
-				manifolds[i] = manifold;
-				numManifolds++;
-			}
-*/
-			m_solver->SolveGroup( manifolds, numManifolds,info );
+			m_solver->SolveGroup( &islandmanifold[0], islandmanifold.size(),info,debugDrawer );
 
 		}
 	}

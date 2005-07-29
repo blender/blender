@@ -7,7 +7,7 @@
 float gRigidBodyDamping = 0.5f;
 static int uniqueId = 0;
 
-RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping)
+RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping,SimdScalar friction,SimdScalar restitution)
 : m_collisionShape(0),
 	m_activationState1(1),
 	m_hitFraction(1.f),
@@ -17,7 +17,9 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 	m_totalForce(0.0f, 0.0f, 0.0f),
 	m_totalTorque(0.0f, 0.0f, 0.0f),
 	m_linearVelocity(0.0f, 0.0f, 0.0f),
-	m_angularVelocity(0.f,0.f,0.f)
+	m_angularVelocity(0.f,0.f,0.f),
+	m_restitution(restitution),
+	m_friction(friction)
 
 {
 	m_debugBodyId = uniqueId++;

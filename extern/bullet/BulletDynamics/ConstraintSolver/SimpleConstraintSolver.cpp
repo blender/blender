@@ -16,6 +16,7 @@
 #include "ContactSolverInfo.h"
 #include "Dynamics/BU_Joint.h"
 #include "Dynamics/ContactJoint.h"
+#include "IDebugDraw.h"
 
 //debugging
 bool doApplyImpulse = true;
@@ -28,7 +29,7 @@ bool useImpulseFriction = true;//true;//false;
 
 
 //iterative lcp and penalty method
-float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal)
+float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numManifolds,const ContactSolverInfo& infoGlobal,IDebugDraw* debugDrawer)
 {
 
 	ContactSolverInfo info = infoGlobal;
@@ -41,7 +42,7 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 	{
 		for (int j=0;j<numManifolds;j++)
 		{
-			Solve(manifoldPtr[j],info,i);
+			Solve(manifoldPtr[j],info,i,debugDrawer);
 		}
 	}
 	return 0.f;
@@ -51,7 +52,7 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 float penetrationResolveFactor = 0.9f;
 
 
-float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter)
+float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const ContactSolverInfo& info,int iter,IDebugDraw* debugDrawer)
 {
 
 	RigidBody* body0 = (RigidBody*)manifoldPtr->GetBody0();
@@ -73,6 +74,7 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 	{
 		const int numpoints = manifoldPtr->GetNumContacts();
 
+		SimdVector3 color(0,1,0);
 		for (int i=0;i<numpoints ;i++)
 		{
 
@@ -83,6 +85,10 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 				j=i;
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
+			
+			if (debugDrawer)
+				debugDrawer->DrawLine(cp.m_positionWorldOnA,cp.m_positionWorldOnB,color);
+
 
 			{
 

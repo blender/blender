@@ -7,13 +7,13 @@
 #include "BroadphaseCollision/BroadphaseProxy.h"
 
 class ConstraintSolver;
+class IDebugDraw;
 
 //island management
 #define ACTIVE_TAG 1
 #define ISLAND_SLEEPING 2
 #define WANTS_DEACTIVATION 3
 
-#define MAX_MANIFOLDS 512
 
 struct CollisionAlgorithmCreateFunc
 {
@@ -40,8 +40,6 @@ class ToiContactDispatcher : public Dispatcher
 	
 	std::vector<PersistentManifold*>	m_manifoldsPtr;
 
-//	PersistentManifold	m_manifolds[MAX_MANIFOLDS];
-//	int	m_freeManifolds[MAX_MANIFOLDS];
 
 	UnionFind m_unionFind;
 	ConstraintSolver*	m_solver;
@@ -86,7 +84,7 @@ public:
 	//
 	// todo: this is random access, it can be walked 'cache friendly'!
 	//
-	virtual void SolveConstraints(float timeStep, int numIterations,int numRigidBodies);
+	virtual void SolveConstraints(float timeStep, int numIterations,int numRigidBodies,IDebugDraw* debugDrawer);
 	
 	
 	CollisionAlgorithm* FindAlgorithm(BroadphaseProxy& proxy0,BroadphaseProxy& proxy1)

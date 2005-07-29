@@ -15,7 +15,7 @@ typedef SimdScalar dMatrix3[4*3];
 class RigidBody  {
 public:
 
-	RigidBody(const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping);
+	RigidBody(const MassProps& massProps,SimdScalar linearDamping,SimdScalar angularDamping,SimdScalar friction,SimdScalar restitution);
 
 	void			proceedToTransform(const SimdTransform& newTrans); 
 	
@@ -123,6 +123,22 @@ public:
 	int	GetActivationState() const { return m_activationState1;}
 	void SetActivationState(int newState);
 
+	void	setRestitution(float rest)
+	{
+		m_restitution = rest;
+	}
+	float	getRestitution() const
+	{
+		return m_restitution;
+	}
+	void	setFriction(float frict)
+	{
+		m_friction = frict;
+	}
+	float	getFriction() const
+	{
+		return m_friction;
+	}
 
 private:
 	SimdTransform	m_worldTransform;
@@ -141,6 +157,8 @@ private:
 	SimdScalar		m_angularDamping;
 	SimdScalar		m_inverseMass;
 
+	SimdScalar		m_friction;
+	SimdScalar		m_restitution;
 
 	CollisionShape*	m_collisionShape;
 

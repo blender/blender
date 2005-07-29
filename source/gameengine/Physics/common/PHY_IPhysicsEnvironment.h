@@ -51,7 +51,7 @@ class PHY_IPhysicsEnvironment
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;
 
-
+		virtual void		setDebugMode(int debugMode) {}
 		virtual	void		setGravity(float x,float y,float z)=0;
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,

@@ -14,6 +14,7 @@
 #include "ConstraintSolver/OdeConstraintSolver.h"
 #include "ConstraintSolver/SimpleConstraintSolver.h"
 
+#include "IDebugDraw.h"
 
 
 #include "CollisionDispatch/ToiContactDispatcher.h"
@@ -32,7 +33,7 @@ bool useIslands = true;
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
 
-unsigned long gNumIterations = 10;
+unsigned long gNumIterations = 20;
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -48,7 +49,7 @@ void DrawRasterizerLine(const float* from,const float* to,int color);
 
 
 
-static void DrawAabb(PHY_IPhysicsDebugDraw* debugDrawer,const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
+static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
 {
 	SimdVector3 halfExtents = (to-from)* 0.5f;
 	SimdVector3 center = (to+from) *0.5f;
@@ -313,10 +314,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 		//m_scalingPropagated = true;
 	}
 
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.begin("integrate force");
-#endif //EXTRA_PHYSICS_PROFILE
-
 
 
 	{
@@ -338,9 +335,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			
 		}
 	}
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.end("integrate force");
-#endif //EXTRA_PHYSICS_PROFILE
 	BroadphaseInterface*	scene = m_broadphase;
 	
 	
@@ -358,33 +352,22 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	DispatcherInfo dispatchInfo;
 	dispatchInfo.m_timeStep = timeStep;
 	dispatchInfo.m_stepCount = 0;
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.begin("cd");
-#endif //EXTRA_PHYSICS_PROFILE
 
 	scene->DispatchAllCollisionPairs(*m_dispatcher,dispatchInfo);///numsubstep,g);
 
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.end("cd");
-#endif //EXTRA_PHYSICS_PROFILE
 
 
 	
 		
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.begin("solver");
-#endif //EXTRA_PHYSICS_PROFILE
 	
 	int numRigidBodies = m_controllers.size();
 	
 	UpdateActivationState();
 
 	//contacts
-	m_dispatcher->SolveConstraints(timeStep, gNumIterations ,numRigidBodies);
+
 	
-#ifdef EXTRA_PHYSICS_PROFILE
-	cpuProfile.end("solver");
-#endif //EXTRA_PHYSICS_PROFILE
+	m_dispatcher->SolveConstraints(timeStep, gNumIterations ,numRigidBodies,m_debugDrawer);
 
 	for (int g=0;g<numsubstep;g++)
 	{
@@ -557,6 +540,29 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	}
 	return true;
 }
+
+void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
+{
+	if (debugMode > 10)
+	{
+		if (m_dispatcher)
+			delete m_dispatcher;
+
+		if (debugMode == 11)
+		{
+			SimpleConstraintSolver* solver= new SimpleConstraintSolver();
+			m_dispatcher = new ToiContactDispatcher(solver);
+		} else
+		{
+			OdeConstraintSolver* solver = new OdeConstraintSolver();
+			m_dispatcher = new ToiContactDispatcher(solver);
+		}
+	}
+	if (m_debugDrawer){
+		m_debugDrawer->SetDebugMode(debugMode);
+	}
+}
+
 
 void	CcdPhysicsEnvironment::SyncMotionStates(float timeStep)
 {

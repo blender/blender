@@ -6,10 +6,6 @@
 class CcdPhysicsController;
 #include "SimdVector3.h"
 
-struct	PHY_IPhysicsDebugDraw
-{
-	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)=0;
-};
 
 
 class Point2PointConstraint;
@@ -20,6 +16,7 @@ class Dispatcher;
 class Vehicle;
 class PersistentManifold;
 class BroadphaseInterface;
+class IDebugDraw;
 
 /// Physics Environment takes care of stepping the simulation and is a container for physics entities.
 /// It stores rigidbodies,constraints, materials etc.
@@ -28,7 +25,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 {
 	SimdVector3 m_gravity;
 	BroadphaseInterface*	m_broadphase;
-	PHY_IPhysicsDebugDraw*	m_debugDrawer;
+	IDebugDraw*	m_debugDrawer;
 	
 	public:
 		CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
@@ -41,7 +38,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 
 		/// Perform an integration step of duration 'timeStep'.
 
-		virtual void setDebugDrawer(PHY_IPhysicsDebugDraw* debugDrawer)
+		virtual void setDebugDrawer(IDebugDraw* debugDrawer)
 		{
 			m_debugDrawer = debugDrawer;
 		}

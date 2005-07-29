@@ -37,6 +37,8 @@ class PersistentManifold
 	/// sort cached points so most isolated points come first
 	int	SortCachedPoints(const ManifoldPoint& pt);
 
+	int		FindContactPoint(const ManifoldPoint* unUsed, int numUnused,const ManifoldPoint& pt);
+
 public:
 
 	int m_index1;
@@ -77,11 +79,8 @@ public:
 	}
 
 	/// todo: get this margin from the current physics / collision environment
-	inline float	GetManifoldMargin() const
-	{
-		return 0.02f;
-	}
-
+	float	GetManifoldMargin() const;
+	
 	int GetCacheEntry(const ManifoldPoint& newPoint) const;
 
 	void AddManifoldPoint( const ManifoldPoint& newPoint);
