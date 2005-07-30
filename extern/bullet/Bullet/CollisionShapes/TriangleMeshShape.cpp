@@ -13,12 +13,13 @@
 #include "SimdQuaternion.h"
 #include "StridingMeshInterface.h"
 #include "AabbUtil2.h"
+#include "NarrowPhaseCollision/CollisionMargin.h"
 
 
 
 TriangleMeshShape::TriangleMeshShape(StridingMeshInterface* meshInterface)
 : m_meshInterface(meshInterface),
-m_collisionMargin(0.1f)
+m_collisionMargin(CONVEX_DISTANCE_MARGIN)
 {
 }
 

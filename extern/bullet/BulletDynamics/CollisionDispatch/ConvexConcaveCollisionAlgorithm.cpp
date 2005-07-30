@@ -115,7 +115,7 @@ void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,fl
 
 	boxBody->GetCollisionShape()->GetAabb(boxInTriangleSpace,m_aabbMin,m_aabbMax);
 
-	float extraMargin = CONVEX_DISTANCE_MARGIN+0.1f;
+	float extraMargin = CONVEX_DISTANCE_MARGIN;//+0.1f;
 
 	SimdVector3 extra(extraMargin,extraMargin,extraMargin);
 
@@ -132,7 +132,6 @@ void ConvexConcaveCollisionAlgorithm::ClearCache()
 
 void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount,bool useContinuous)
 {
-
 
 	if (m_concave.GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
 	{

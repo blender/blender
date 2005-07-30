@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="Bullet3Dynamics"
 	ProjectGUID="{3427A9EF-FF84-4B3E-9AE5-C37CF44D7DA4}"
 	Keyword="Win32Proj">
@@ -241,7 +241,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="ConstraintSolver"

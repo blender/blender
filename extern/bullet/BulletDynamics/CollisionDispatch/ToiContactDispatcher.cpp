@@ -163,7 +163,7 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 			info.m_numIterations = numIterations;
 			info.m_timeStep = timeStep;
 			info.m_tau = 0.4f;
-			info.m_restitution = 0.1f;//m_restitution;
+			info.m_restitution = 0.0f;//m_restitution;
 
 
 			m_solver->SolveGroup( &islandmanifold[0], islandmanifold.size(),info,debugDrawer );

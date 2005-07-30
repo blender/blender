@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="Bullet3ContinuousCollision"
 	ProjectGUID="{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
 	SccProjectName=""
@@ -39,22 +39,22 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\debug\Bullet.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\debug\Bullet.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="ECHO Copying header files
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
-XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
 ECHO Done
 "/>
@@ -105,22 +105,22 @@ ECHO Done
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\extern\Bullet.lib"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\extern\Bullet.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="ECHO Copying header files
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
-XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
 ECHO Done
 "/>
@@ -176,15 +176,15 @@ ECHO Done
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="ECHO Copying header files
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
-XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
 ECHO Done
 "/>
@@ -242,18 +242,17 @@ ECHO Done
 			<Tool
 				Name="VCPostBuildEventTool"
 				CommandLine="ECHO Copying header files
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-IF NOT EXIST ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision MKDIR ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
-XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include
-XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
-XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
-XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
+XCOPY /Y ..\..\LinearMath\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include
+XCOPY /Y ..\..\Bullet\BroadphaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\BroadphaseCollision
+XCOPY /Y ..\..\Bullet\CollisionShapes\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\CollisionShapes
+XCOPY /Y ..\..\Bullet\NarrowPhaseCollision\*.h ..\..\..\..\..\build\msvc_7\extern\bullet\include\NarrowPhaseCollision
 
 ECHO Done
-
 "/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
@@ -273,7 +272,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="NarrowPhaseCollision"

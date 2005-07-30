@@ -147,7 +147,7 @@ private:
 	SimdVector3		m_invInertiaLocal;
 	SimdVector3		m_totalForce;
 	SimdVector3		m_totalTorque;
-	SimdQuaternion	m_orn1;
+//	SimdQuaternion	m_orn1;
 	
 	SimdVector3		m_linearVelocity;
 	

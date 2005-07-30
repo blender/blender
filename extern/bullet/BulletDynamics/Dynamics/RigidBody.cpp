@@ -26,8 +26,8 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 	
 	setMassProps(massProps.m_mass, massProps.m_inertiaLocal);
     setDamping(linearDamping, angularDamping);
-	updateInertiaTensor();
 	m_worldTransform.setIdentity();
+	updateInertiaTensor();
 
 }
 

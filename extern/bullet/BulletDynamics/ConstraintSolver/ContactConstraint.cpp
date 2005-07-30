@@ -22,7 +22,7 @@ static SimdScalar ContactThreshold = -10.0f;
 
 float useGlobalSettingContacts = false;//true;
 
-SimdScalar contactDamping = 0.9f;
+SimdScalar contactDamping = 0.2f;
 SimdScalar contactTau = .02f;//0.02f;//*0.02f;
 
 

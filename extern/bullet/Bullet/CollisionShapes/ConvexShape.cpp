@@ -33,12 +33,15 @@ void	ConvexShape::setLocalScaling(const SimdVector3& scaling)
 void	ConvexShape::GetAabbSlow(const SimdTransform& trans,SimdVector3&minAabb,SimdVector3&maxAabb) const
 {
 
-	SimdScalar margin = 0.05f;
+	SimdScalar margin = GetMargin();
 	for (int i=0;i<3;i++)
 	{
 		SimdVector3 vec(0.f,0.f,0.f);
 		vec[i] = 1.f;
-		SimdVector3 tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
+
+		SimdVector3 sv = LocalGetSupportingVertex(vec*trans.getBasis());
+
+		SimdVector3 tmp = trans(sv);
 		maxAabb[i] = tmp[i]+margin;
 		vec[i] = -1.f;
 		tmp = trans(LocalGetSupportingVertex(vec*trans.getBasis()));
