@@ -4228,21 +4228,31 @@ void freeGHash(GHash *g)
 	return;
 }
 
+static void ScreenEdgeCenter(float x1,float y1,float x2,float y2,short* output){
+    output[0] = (short)((x1+x2)/2 + x1);
+    output[1] = (short)((y1+y2)/2 + y1);    
+}
+
+static float Dist2s(short* d1,short* d2){
+    return sqrt(pow(d1[0]-d2[0],2)+pow(d1[1]-d2[1],2));   
+}
+
 int EdgeSlide(short immediate, float imperc)
 {
     EditMesh *em = G.editMesh;
     EditFace *efa;
     EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
-    EditVert *ev;
+    EditVert *ev, *nearest;
     LinkNode *edgelist = NULL, *vertlist=NULL, *look;
     GHash *vertgh;
     SlideVert *tempsv;
-    float perc = 0, percp = 0;
-    int i = 0,j;
-    int numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
+    float perc = 0, percp = 0,vertdist;
+    int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
     short event, draw=1;
-    short mval[2], mvalo[2];
+    short mval[2], mvalo[2],origin[2]={0,0};
     char str[128]; 
+    
+    
     
     mvalo[0] = -1; mvalo[1] = -1; 
     numsel =0;  
@@ -4400,6 +4410,8 @@ int EdgeSlide(short immediate, float imperc)
         tempsv->origvert.no[0] = ev->no[0];
         tempsv->origvert.no[1] = ev->no[1];
         tempsv->origvert.no[2] = ev->no[2];
+        tempsv->origvert.xs = ev->xs;
+        tempsv->origvert.ys = ev->ys;
         // i is total edges that vert is on
         // j is total selected edges that vert is on
         
@@ -4479,10 +4491,15 @@ int EdgeSlide(short immediate, float imperc)
     }          
    
     // make sure the UPs nad DOWNs are 'faceloops'
+    // Also find the nearest slidevert to the cursor
     
-    look = vertlist;      
+    getmouseco_areawin(mval);
+    look = vertlist;    
+    nearest = NULL;
+    vertdist = -1;  
 	while(look){    
         SlideVert *sv;
+        float tempdist;
         if(look->next != NULL){
             tempsv = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
             sv     = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
@@ -4492,18 +4509,34 @@ int EdgeSlide(short immediate, float imperc)
                 sv->up = sv->down;
                 sv->down = swap; 
             }
+        }   
+        tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
+        if(vertdist < 0){
+            vertdist = tempdist;
+            nearest  = (EditVert*)look->link;   
+        } else if ( tempdist < vertdist ){
+            vertdist = tempdist;
+            nearest  = (EditVert*)look->link;    
         }
+
         look = look->next;   
     }       
-   
+    
     // we should have enough info now to slide
     //persp(PERSP_WIN);
     //glDrawBuffer(GL_FRONT); 
     percp = -1;
     while(draw){
-        if(perc == percp){
-            PIL_sleep_ms(10);
-        } else {
+         /* For the % calculation */   
+         short mval[2];   
+         float labda, rc[2], len, slen=0.0;   
+         float v1[2], v2[2], v3[2]; 
+
+        
+        
+        //if(perc == percp){
+        //    PIL_sleep_ms(10);
+        //} else {
             //Adjust Edgeloop
             if(immediate){
                 perc = imperc;   
@@ -4557,46 +4590,103 @@ int EdgeSlide(short immediate, float imperc)
                     //non-prop code   
                 }         
             }
+
+
+            tempsv = BLI_ghash_lookup(vertgh,nearest);
+
+             getmouseco_areawin(mval);   
+             v1[0]=(float)mval[0];   
+             v1[1]=(float)mval[1];   
+
+             if(tempsv->up->v1 == tempsv->down->v1){
+                 v2[0]=(float)tempsv->up->v2->xs;   
+                 v2[1]=(float)tempsv->up->v2->ys;   
+    
+                 v3[0]=(float)tempsv->down->v2->xs;   
+                 v3[1]=(float)tempsv->down->v2->ys;  
+             } else if (tempsv->up->v2 == tempsv->down->v2){
+                 v2[0]=(float)tempsv->up->v1->xs;   
+                 v2[1]=(float)tempsv->up->v1->ys;   
+    
+                 v3[0]=(float)tempsv->down->v1->xs;   
+                 v3[1]=(float)tempsv->down->v1->ys;  
+             } else if (tempsv->up->v1 == tempsv->down->v2){
+                 v2[0]=(float)tempsv->up->v2->xs;   
+                 v2[1]=(float)tempsv->up->v2->ys;   
+    
+                 v3[0]=(float)tempsv->down->v1->xs;   
+                 v3[1]=(float)tempsv->down->v1->ys;  
+             } else if (tempsv->up->v2 == tempsv->down->v1){
+                 v2[0]=(float)tempsv->up->v1->xs;   
+                 v2[1]=(float)tempsv->up->v1->ys;   
+    
+                 v3[0]=(float)tempsv->down->v2->xs;   
+                 v3[1]=(float)tempsv->down->v2->ys;  
+             }
+
+             // Highlight the Control Edges
+    
+            scrarea_do_windraw(curarea);   
+            persp(PERSP_VIEW);   
+            glPushMatrix();   
+            mymultmatrix(G.obedit->obmat);   
+
+            glBegin(GL_LINES);   
+            glColor3ub(0, 255, 0);   
+            
+             if(tempsv->up->v1 == tempsv->down->v1){
+                glVertex3fv(tempsv->up->v2->co);   
+                glVertex3fv(tempsv->down->v2->co);   
+             } else if (tempsv->up->v2 == tempsv->down->v2){
+                glVertex3fv(tempsv->up->v1->co);   
+                glVertex3fv(tempsv->down->v1->co);  
+             } else if (tempsv->up->v1 == tempsv->down->v2){
+                glVertex3fv(tempsv->up->v2->co);   
+                glVertex3fv(tempsv->down->v1->co);  
+             } else if (tempsv->up->v2 == tempsv->down->v1){
+                glVertex3fv(tempsv->up->v1->co);   
+                glVertex3fv(tempsv->down->v2->co);  
+             }            
+            glEnd(); 
+            glPopMatrix();
+         
+         
+            /* Determine the % on wich the loop should be cut */   
+
+             rc[0]= v3[0]-v2[0];   
+             rc[1]= v3[1]-v2[1];   
+             len= rc[0]*rc[0]+ rc[1]*rc[1];   
+             if (len==0) {len = 0.0001;}
+             labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;   
+
+
+             if(labda<=0.0) labda=0.0;   
+             else if(labda>=1.0)labda=1.0;   
+
+             perc=((1-labda)*2)-1;          
+            
+            if(G.qual == 0){
+                perc *= 100;
+                perc = floor(perc);
+                perc /= 100;
+            } else if (G.qual == LR_CTRLKEY){
+                perc *= 10;
+                perc = floor(perc);
+                perc /= 10;                   
+            } else if (G.qual == LR_SHIFTKEY){
+                perc *= 1000;
+                perc = floor(perc);
+                perc /= 1000;                   
+            }
             
             sprintf(str, "Percentage %f", perc);
 			headerprint(str);
-            
-            force_draw(0);
-            DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-            scrarea_queue_winredraw(curarea);
-        }
-        
-	    getmouseco_areawin(mval);
-        if(mvalo[0] == -1){
-            mvalo[0] = mval[0];
-            mvalo[1] = mval[1];        
-        }
-		
-        if(mval[0] > mvalo[0]){
-            if(G.qual==LR_CTRLKEY){
-                if(perc < 0.91)
-                    perc += 0.1;                  
-            } else if(G.qual==LR_SHIFTKEY) {
-                if(perc < 0.99)
-                    perc += 0.01;   
-            }else {
-                if(perc < 0.94)
-                    perc += 0.05;   
-            }  
-        } else if(mval[0] < mvalo[0]){               
-            if(G.qual==LR_CTRLKEY){
-                if(perc > -0.91)
-                    perc -= 0.1;                  
-            } else if(G.qual==LR_SHIFTKEY){
-                if(perc > -0.99)
-                    perc -= 0.01;   
-            } else {
-                if(perc > -0.94)
-                    perc -= 0.05;   
-            }
-        }       
+            screen_swapbuffers();            
+        //}
 
-        mvalo[0] = mval[0];   
+             
+
+
 	
 	   if(!immediate){
             while(qtest()) {
@@ -4608,20 +4698,36 @@ int EdgeSlide(short immediate, float imperc)
                         perc = 0; // Set back to begining %
                         immediate = 1; //Run through eval code 1 more time
                         cancel = 1;   // Return -1
-                } 
+                } else
                 if(val && ( event==PADENTER || ( event==LEFTMOUSE || event==RETKEY ))){
         				draw = 0; // End looping now
-        		} 
+        		} else
                 if(val && event==MIDDLEMOUSE){
                         perc = 0;  
                         immediate = 1;
-                }           
+                } else if(val && ( event==WHEELUPMOUSE)) { // Scroll through Control Edges
+                    look = vertlist;    
+                 	while(look){    
+                        if(nearest == (EditVert*)look->link){
+                            if(look->next == NULL){
+                                nearest =  (EditVert*)vertlist->link;  
+                            } else {
+                                nearest = (EditVert*)look->next->link;
+                            }     
+                            break;                
+                        }
+                        look = look->next;   
+                    }      
+    			}
         	} 
         } else {
             draw = 0;   
         }          
     }
-         
+    force_draw(0);
+    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+    scrarea_queue_winredraw(curarea);         
+    
     //BLI_ghash_free(edgesgh, freeGHash, NULL); 
     BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
     BLI_linklist_free(vertlist,NULL); 
