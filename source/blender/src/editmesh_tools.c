@@ -4648,8 +4648,7 @@ int EdgeSlide(short immediate, float imperc)
                 glVertex3fv(tempsv->down->v2->co);  
              }            
             glEnd(); 
-            glPopMatrix();
-         
+            glPopMatrix();         
          
             /* Determine the % on wich the loop should be cut */   
 
@@ -4658,7 +4657,6 @@ int EdgeSlide(short immediate, float imperc)
              len= rc[0]*rc[0]+ rc[1]*rc[1];   
              if (len==0) {len = 0.0001;}
              labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;   
-
 
              if(labda<=0.0) labda=0.0;   
              else if(labda>=1.0)labda=1.0;   
@@ -4673,12 +4671,7 @@ int EdgeSlide(short immediate, float imperc)
                 perc *= 10;
                 perc = floor(perc);
                 perc /= 10;                   
-            } else if (G.qual == LR_SHIFTKEY){
-                perc *= 1000;
-                perc = floor(perc);
-                perc /= 1000;                   
-            }
-            
+            }            
             sprintf(str, "Percentage %f", perc);
 			headerprint(str);
             screen_swapbuffers();            
@@ -4705,7 +4698,7 @@ int EdgeSlide(short immediate, float imperc)
                 if(val && event==MIDDLEMOUSE){
                         perc = 0;  
                         immediate = 1;
-                } else if(val && ( event==WHEELUPMOUSE)) { // Scroll through Control Edges
+                } else if(val && (event==RIGHTARROWKEY || event==WHEELUPMOUSE)) { // Scroll through Control Edges
                     look = vertlist;    
                  	while(look){    
                         if(nearest == (EditVert*)look->link){
@@ -4716,6 +4709,22 @@ int EdgeSlide(short immediate, float imperc)
                             }     
                             break;                
                         }
+                        look = look->next;   
+                    }      
+    			}else if(val && (event==LEFTARROWKEY || event==WHEELDOWNMOUSE)) { // Scroll through Control Edges
+                    look = vertlist;    
+                 	while(look){    
+                        if(look->next){
+                            if(look->next->link == nearest){
+                                nearest = (EditVert*)look->link;
+                                break;
+                            }      
+                        } else {
+                            if((EditVert*)vertlist->link == nearest){
+                                nearest = look->link;
+                                break;                             
+                            }       
+                        }   
                         look = look->next;   
                     }      
     			}
