@@ -1214,7 +1214,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = efa->tf.uv[0][0];
         uv[1] = efa->tf.uv[0][1];
         
-        hold = &efa->tf.col[0];
+        hold = (char*)&efa->tf.col[0];
         col[0]= hold[0];
         col[1]= hold[1];
         col[2]= hold[2];
@@ -1224,7 +1224,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = efa->tf.uv[1][0];
         uv[1] = efa->tf.uv[1][1];
         
-        hold = &efa->tf.col[1];
+        hold = (char*)&efa->tf.col[1];
         col[0]= hold[0];
         col[1]= hold[1];
         col[2]= hold[2];
@@ -1234,7 +1234,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = efa->tf.uv[2][0];
         uv[1] = efa->tf.uv[2][1];
         
-        hold = &efa->tf.col[2];
+        hold = (char*)&efa->tf.col[2];
         col[0]= hold[0];
         col[1]= hold[1];
         col[2]= hold[2];
@@ -1244,7 +1244,7 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
         uv[0] = efa->tf.uv[3][0];
         uv[1] = efa->tf.uv[3][1];
         
-        hold = &efa->tf.col[3];
+        hold = (char*)&efa->tf.col[3];
         col[0]= hold[0];
         col[1]= hold[1];
         col[2]= hold[2];
