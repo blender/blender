@@ -834,8 +834,11 @@ void do_textedit(unsigned short event, short val, char _ascii)
 		}
 	}
 	if(doit || cursmove) {
-
-		if (cu->pos) cu->curinfo = textbufinfo[cu->pos-1];
+	
+		if (cu->pos) {
+			cu->curinfo = textbufinfo[cu->pos-1];
+		} else cu->curinfo = textbufinfo[0];
+		
 		if (G.obedit->totcol>0) {
 			G.obedit->actcol = textbufinfo[cu->pos-1].mat_nr;
 		}
@@ -926,6 +929,10 @@ void make_editText(void)
 	cu->strinfo= textbufinfo;
 
 	if(cu->pos>cu->len) cu->pos= cu->len;
+
+	if (cu->pos) {
+		cu->curinfo = textbufinfo[cu->pos-1];
+	} else cu->curinfo = textbufinfo[0];
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
