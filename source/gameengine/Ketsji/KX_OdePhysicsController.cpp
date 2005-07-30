@@ -19,6 +19,10 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+#include "KX_ConvertPhysicsObject.h"
+
+#ifdef USE_ODE
+
 #include "KX_OdePhysicsController.h"
 #include "KX_GameObject.h"
 #include "KX_MotionState.h"
@@ -244,3 +248,4 @@ void	KX_OdePhysicsController::SetSimulatedTime(double time)
 
 }
 	
+#endif //USE_ODE

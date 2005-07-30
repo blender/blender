@@ -36,10 +36,11 @@
 //#define USE_SUMO_SOLID
 //#define USE_ODE
 
-//on visual studio 8, always enable BULLET for now 
+//on visual studio 7/8, always enable BULLET for now 
 //you can have multiple physics engines running anyway, and 
 //the scons build system doesn't really support this at the moment.
-#if 1400 <= _MSC_VER
+//if you got troubles, just comment out USE_BULLET
+#if 1300 <= _MSC_VER
 #define USE_BULLET
 #endif
 

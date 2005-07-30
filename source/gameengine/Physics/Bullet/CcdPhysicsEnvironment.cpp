@@ -33,7 +33,7 @@ bool useIslands = true;
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
 
-unsigned long gNumIterations = 20;
+unsigned long gNumIterations = 10;
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
