@@ -50,7 +50,10 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual	bool		proceedDeltaTime(double curTime,float timeStep);
 		virtual	void		setFixedTimeStep(bool useFixedTimeStep,float fixedTimeStep){};
 		//returns 0.f if no fixed timestep is used
+
 		virtual	float		getFixedTimeStep(){ return 0.f;};
+
+		virtual void		setDebugMode(int debugMode);
 
 		virtual	void		setGravity(float x,float y,float z);
 
@@ -112,6 +115,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		class ToiContactDispatcher* m_dispatcher;
 
 		bool	m_scalingPropagated;
+
 
 };
 

@@ -33,7 +33,7 @@ bool useIslands = true;
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
 
-unsigned long gNumIterations = 1;
+unsigned long gNumIterations = 10;
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -366,6 +366,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 	//contacts
 
+	
 	m_dispatcher->SolveConstraints(timeStep, gNumIterations ,numRigidBodies,m_debugDrawer);
 
 	for (int g=0;g<numsubstep;g++)
@@ -438,7 +439,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 					
 #ifdef WIN32
 					SimdVector3 color (1,0,0);
-					if (0)//m_debugDrawer)
+					if (m_debugDrawer)
 					{	
 						//draw aabb
 
@@ -539,6 +540,29 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	}
 	return true;
 }
+
+void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
+{
+	if (debugMode > 10)
+	{
+		if (m_dispatcher)
+			delete m_dispatcher;
+
+		if (debugMode == 11)
+		{
+			SimpleConstraintSolver* solver= new SimpleConstraintSolver();
+			m_dispatcher = new ToiContactDispatcher(solver);
+		} else
+		{
+			OdeConstraintSolver* solver = new OdeConstraintSolver();
+			m_dispatcher = new ToiContactDispatcher(solver);
+		}
+	}
+	if (m_debugDrawer){
+		m_debugDrawer->SetDebugMode(debugMode);
+	}
+}
+
 
 void	CcdPhysicsEnvironment::SyncMotionStates(float timeStep)
 {

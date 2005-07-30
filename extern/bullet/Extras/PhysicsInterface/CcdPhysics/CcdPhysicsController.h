@@ -15,7 +15,6 @@ struct CcdConstructionInfo
 	CcdConstructionInfo()
 		: m_gravity(0,0,0),
 		m_mass(0.f),
-		m_friction(0.1f),
 		m_restitution(0.1f),
 		m_linearDamping(0.1f),
 		m_angularDamping(0.1f),
@@ -27,9 +26,8 @@ struct CcdConstructionInfo
 	SimdVector3	m_localInertiaTensor;
 	SimdVector3	m_gravity;
 	SimdScalar	m_mass;
-	SimdScalar	m_friction;
 	SimdScalar	m_restitution;
-	
+	SimdScalar	m_friction;
 	SimdScalar	m_linearDamping;
 	SimdScalar	m_angularDamping;
 	void*		m_broadphaseHandle;
@@ -54,8 +52,6 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	
 		int				m_collisionDelay;
 	
-		SimdScalar	m_friction;
-		SimdScalar	m_restitution;
 		void*  m_broadphaseHandle;
 
 		CcdPhysicsController (const CcdConstructionInfo& ci);
