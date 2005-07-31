@@ -4528,15 +4528,17 @@ int EdgeSlide(short immediate, float imperc)
     percp = -1;
     while(draw){
          /* For the % calculation */   
-         short mval[2];   
-         float labda, rc[2], len, slen=0.0;   
-         float v1[2], v2[2], v3[2]; 
+        short mval[2];   
+        float labda, rc[2], len, slen=0.0;   
+        float v1[2], v2[2], v3[2]; 
 
+        getmouseco_areawin(mval);  
         
-        
-        //if(perc == percp){
-        //    PIL_sleep_ms(10);
-        //} else {
+		if (mval[0] == mvalo[0] && mval[1] ==  mvalo[1]) {
+            PIL_sleep_ms(10);
+        } else {
+   			mvalo[0] = mval[0];
+			mvalo[1] = mval[1];
             //Adjust Edgeloop
             if(immediate){
                 perc = imperc;   
@@ -4675,7 +4677,7 @@ int EdgeSlide(short immediate, float imperc)
             sprintf(str, "Percentage %f", perc);
 			headerprint(str);
             screen_swapbuffers();            
-        //}
+        }
 
              
 
@@ -4683,7 +4685,7 @@ int EdgeSlide(short immediate, float imperc)
 	
 	   if(!immediate){
             while(qtest()) {
-        		unsigned short val=0;			
+        		unsigned short val=0;		   	
         		event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
                     
         		/* val==0 on key-release event */
@@ -4707,6 +4709,7 @@ int EdgeSlide(short immediate, float imperc)
                             } else {
                                 nearest = (EditVert*)look->next->link;
                             }     
+                            mvalo[0] = -1;
                             break;                
                         }
                         look = look->next;   
@@ -4717,11 +4720,13 @@ int EdgeSlide(short immediate, float imperc)
                         if(look->next){
                             if(look->next->link == nearest){
                                 nearest = (EditVert*)look->link;
+                                mvalo[0] = -1;
                                 break;
                             }      
                         } else {
                             if((EditVert*)vertlist->link == nearest){
                                 nearest = look->link;
+                                mvalo[0] = -1;
                                 break;                             
                             }       
                         }   
