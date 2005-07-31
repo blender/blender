@@ -102,6 +102,11 @@ static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *c
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
 static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
 
+static void up_sel_action(void);
+static void down_sel_action(void);
+static void top_sel_action(void);
+static void bottom_sel_action(void);
+
 /* Implementation */
 
 short showsliders = 0;
@@ -2201,6 +2206,34 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 
+		case PAGEUPKEY:
+			if (key) {
+				/* to do */
+			}
+			else {
+				if(G.qual & LR_SHIFTKEY) {
+					top_sel_action();
+				}
+				else
+				{
+					up_sel_action();
+				}
+				
+			}
+			break;
+		case PAGEDOWNKEY:
+			if (key) {
+				/* to do */
+			}
+			else {
+				if(G.qual & LR_SHIFTKEY) {
+					bottom_sel_action();
+				}
+				else
+				down_sel_action();
+				
+			}
+			break;
 		case DELKEY:
 		case XKEY:
 			if (key) {
@@ -2372,3 +2405,156 @@ int get_nearest_key_num(Key *key, short *mval, float *x) {
 }
 
 
+
+void top_sel_action()
+{
+	bAction *act;
+	bActionChannel *chan;
+	
+	/* Get the selected action, exit if none are selected */
+	act = G.saction->action;
+	if (!act) return;
+	
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+			/* take it out off the chain keep data */
+			BLI_remlink (&act->chanbase, chan);
+			/* make it first element */
+			BLI_insertlinkbefore(&act->chanbase,act->chanbase.first, chan);
+			chan->flag |= ACHAN_MOVED;
+			/* restart with rest of list */
+			chan=chan->next;
+		}
+	}
+    /* clear temp flags */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		chan->flag = chan->flag & ~ACHAN_MOVED;
+	}
+	
+	/* Clean up and redraw stuff */
+	remake_action_ipos (act);
+	BIF_undo_push("Top Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+void up_sel_action()
+{
+	bAction *act;
+	bActionChannel *chan;
+	bActionChannel *prev;
+	
+	/* Get the selected action, exit if none are selected */
+	act = G.saction->action;
+	if (!act) return;
+	
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+			prev = chan->prev;
+			if (prev){
+				/* take it out off the chain keep data */
+				BLI_remlink (&act->chanbase, chan);
+				/* push it up */
+				BLI_insertlinkbefore(&act->chanbase,prev, chan);
+				chan->flag |= ACHAN_MOVED;
+				/* restart with rest of list */
+				chan=chan->next;
+			}
+		}
+	}
+	/* clear temp flags */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		chan->flag = chan->flag & ~ACHAN_MOVED;
+	}
+	
+	/* Clean up and redraw stuff
+	*/
+	remake_action_ipos (act);
+	BIF_undo_push("Up Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+void down_sel_action()
+{
+	bAction *act;
+	bActionChannel *chan;
+	bActionChannel *next;
+	
+	/* Get the selected action, exit if none are selected */
+	act = G.saction->action;
+	if (!act) return;
+	
+	for (chan=act->chanbase.last; chan; chan=chan->prev){
+		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+			next = chan->next;
+			if (next) next = next->next;
+			if (next){
+				/* take it out off the chain keep data */
+				BLI_remlink (&act->chanbase, chan);
+				/* move it down */
+				BLI_insertlinkbefore(&act->chanbase,next, chan);
+				chan->flag |= ACHAN_MOVED;
+			}
+			else {
+				/* take it out off the chain keep data */
+				BLI_remlink (&act->chanbase, chan);
+				/* add at end */
+				BLI_addtail(&act->chanbase,chan);
+				chan->flag |= ACHAN_MOVED;
+			}
+
+		}
+	}
+	/* clear temp flags */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		chan->flag = chan->flag & ~ACHAN_MOVED;
+	}
+	
+	/* Clean up and redraw stuff
+	*/
+	remake_action_ipos (act);
+	BIF_undo_push("Down Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+void bottom_sel_action()
+{
+	bAction *act;
+	bActionChannel *chan;
+	
+	/* Get the selected action, exit if none are selected */
+	act = G.saction->action;
+	if (!act) return;
+	
+	for (chan=act->chanbase.last; chan; chan=chan->prev){
+		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)) {
+			/* take it out off the chain keep data */
+			BLI_remlink (&act->chanbase, chan);
+			/* add at end */
+			BLI_addtail(&act->chanbase,chan);
+			chan->flag |= ACHAN_MOVED;
+		}
+		
+	}
+	/* clear temp flags */
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		chan->flag = chan->flag & ~ACHAN_MOVED;
+	}
+	
+	/* Clean up and redraw stuff
+	*/
+	remake_action_ipos (act);
+	BIF_undo_push("Bottom Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}

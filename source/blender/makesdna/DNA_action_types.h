@@ -118,6 +118,8 @@ typedef struct SpaceAction {
 /* Action Channel flags */
 #define	ACHAN_SELECTED	0x00000001
 #define ACHAN_HILIGHTED	0x00000002
+#define ACHAN_MOVED     0x80000000
+
 
 /* Pose->flag */
 
