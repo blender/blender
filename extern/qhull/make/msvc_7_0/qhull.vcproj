@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="qhull"
 	ProjectGUID="{6461F05D-4698-47AB-A8E8-1CA2ACC9948B}"
 	SccProjectName=""
@@ -234,7 +234,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"

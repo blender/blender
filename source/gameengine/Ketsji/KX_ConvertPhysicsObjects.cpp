@@ -864,6 +864,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 {
 
 		CcdPhysicsEnvironment* env = (CcdPhysicsEnvironment*)kxscene->GetPhysicsEnvironment();
+		
 	assert(env);
 
 
@@ -928,6 +929,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 			);
 			bm = new CylinderShapeZ(halfExtents);
 			bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
+			bm->SetMargin(0.05f);
 
 			break;
 		}
@@ -946,6 +948,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 				bm = new ConeShape(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
 				bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
 
+				bm->SetMargin(0.05f);
 
 
 			break;

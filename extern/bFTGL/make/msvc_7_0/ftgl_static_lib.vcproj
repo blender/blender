@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.0"
+	Version="7.10"
 	Name="ftgl_static_lib"
 	ProjectGUID="{F9850C15-FF0A-429E-9D47-89FB433C9BD8}"
 	SccProjectName=""
@@ -242,7 +242,8 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	
+	<References>
+	</References>
 	<Files>
 		<Filter
 			Name="Source Files"

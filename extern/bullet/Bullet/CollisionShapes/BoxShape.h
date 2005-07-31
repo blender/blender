@@ -33,6 +33,10 @@ public:
 	}
 
 	SimdVector3 GetHalfExtents() const;
+	//{ return m_boxHalfExtents1 * m_localScaling;}
+ 	//const SimdVector3& GetHalfExtents() const{ return m_boxHalfExtents1;}
+
+
 	
 	virtual int	GetShapeType() const { return BOX_SHAPE_PROXYTYPE;}
 
@@ -40,13 +44,14 @@ public:
 	{
 		
 		SimdVector3 halfExtents = GetHalfExtents();
-
+		SimdVector3 margin(GetMargin(),GetMargin(),GetMargin());
+		halfExtents -= margin;
+		
 		SimdVector3 supVertex;
 		supVertex = SimdPoint3(vec.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
                      vec.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
                      vec.z() < SimdScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
   
-
 		if ( GetMargin()!=0.f )
 		{
 			SimdVector3 vecnorm = vec;
@@ -64,6 +69,8 @@ public:
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const
 	{
 		SimdVector3 halfExtents = GetHalfExtents();
+		SimdVector3 margin(GetMargin(),GetMargin(),GetMargin());
+		halfExtents -= margin;
 
 		return SimdVector3(vec.x() < SimdScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
                     vec.y() < SimdScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),

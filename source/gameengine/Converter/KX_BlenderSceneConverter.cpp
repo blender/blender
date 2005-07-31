@@ -260,6 +260,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			{
 				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
 				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
+			
+			//disable / enable debug drawing (contact points, aabb's etc)	
+		//		ccdPhysEnv->setDebugMode(1);
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}
