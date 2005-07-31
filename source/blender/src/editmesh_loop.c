@@ -340,13 +340,7 @@ void CutEdgeloop(int numcuts)
             }
 		}	
     }
-    scrarea_do_windraw(curarea);
-    screen_swapbuffers();
-#ifndef __APPLE__
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		backdrawview3d(0);
-	}
-#endif    
+  
     if(cancel){
         return;   
     }
@@ -360,10 +354,6 @@ void CutEdgeloop(int numcuts)
 	/* now cut the loops */
 	esubdivideflag(SELECT,0,0,numcuts,1);
 	
-    force_draw(0);
-	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-    scrarea_queue_winredraw(curarea);
-	
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1){
         if(cuthalf)
@@ -374,7 +364,9 @@ void CutEdgeloop(int numcuts)
             }   
         }
     }
-	
+    //force_draw(0);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+    scrarea_queue_winredraw(curarea);	
     return;
 }
 
