@@ -213,6 +213,9 @@ void CutEdgeloop(int numcuts)
 	
 	BIF_undo_push("Loopcut Begin");
     while(choosing){
+        if(cancel){
+            break;   
+        }
         getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
 
@@ -252,25 +255,27 @@ void CutEdgeloop(int numcuts)
 				if (nearest==NULL)
 					cancel = 1;
 				choosing=0;
+				mvalo[0] = -1;
 				break;
 			}
 			else if(val && (event==ESCKEY || event==RIGHTMOUSE ))
 			{
 				choosing=0;
 				cancel = 1;
+				mvalo[0] = -1;
 				break;
 			}
 			else if(val && (event==PADPLUSKEY || event==WHEELUPMOUSE))
 			{
 				numcuts++;
-				mvalo[0] = 0;mvalo[1] = 0;
+				mvalo[0] = -1;
 				break;
 			}
 			else if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
 			{
                 if(numcuts > 1){
     				numcuts--;
-    				mvalo[0] = 0;mvalo[1] = 0;
+    				mvalo[0] = -1;
     				break;
                 } 
 			}
@@ -282,33 +287,33 @@ void CutEdgeloop(int numcuts)
                 		holdnum = 9; break;
                 	case PAD8:
                 	case EIGHTKEY:
-                		holdnum = 8; break;
+                		holdnum = 8;break;
                 	case PAD7:
                 	case SEVENKEY:
-                		holdnum = 7; break;
+                		holdnum = 7;break;
                 	case PAD6:
                 	case SIXKEY:
-                		holdnum = 6; break;
+                		holdnum = 6;break;
                 	case PAD5:
                 	case FIVEKEY:
-                		holdnum = 5; break;
+                		holdnum = 5;break;
                 	case PAD4:
                 	case FOURKEY:
-                		holdnum = 4; break;
+                		holdnum = 4;break;
                 	case PAD3:
                 	case THREEKEY:
                 		holdnum = 3; break;
                 	case PAD2:
                 	case TWOKEY:
-                		holdnum = 2; break;
+                		holdnum = 2;break;
                 	case PAD1:
                 	case ONEKEY:
                 		holdnum = 1; break;
                 	case PAD0:
                 	case ZEROKEY:
-                		holdnum = 0; break;	
+                		holdnum = 0;break;	
                     case BACKSPACEKEY:
-                		holdnum = -2; break;			
+                		holdnum = -2;break;			
                }
                if(holdnum >= 0 && numcuts*10 < 130){
                     if(keys == 0){  // first level numeric entry
@@ -330,8 +335,7 @@ void CutEdgeloop(int numcuts)
                       keys = 0;   
                   }      
                }
-               mvalo[0] = 0;mvalo[1] = 0;
-               PIL_sleep_ms(10);
+               mvalo[0] = -1;
                break;
             }
 		}	
