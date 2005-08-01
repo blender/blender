@@ -9,6 +9,7 @@ L{NMesh.addEdgesData}, etc.);
  - new optional arguments to L{NMesh.update};
  - L{NMesh.transform};
  - L{GetNames}.
+ - L{GetRawFromObject} supports Surface/Curve/Text/Meta objects
 
 Mesh Data
 =========
@@ -151,8 +152,9 @@ def GetRawFromObject(name):
   Get the raw mesh data object from the Object in Blender called I{name}.\n
   Note: The mesh coordinates are in local space, not the world space of its Object.\n
   For world space vertex coordinates, each vertex location must be multiplied by the object's 4x4 matrix.
+  This function support all the geometry based objects: Mesh, Text, Surface, Curve, Meta.
   @type name: string
-  @param name: The name of an Object of type "Mesh".
+  @param name: The name of an Object.
   @rtype: NMesh
   @return: The NMesh wrapper of the mesh data from the Object called I{name}.
   @note: For "subsurfed" meshes, it's the B{display} level of subdivision that
@@ -160,10 +162,14 @@ def GetRawFromObject(name):
       and is not available for scripts.  This is not a problem at all, since
       you can get and set the subdivision levels via scripting, too (see
       L{NMesh.getSubDivLevels}, L{NMesh.setSubDivLevels}).
+  @note: Meshes extracted from curve based objects (Font/2D filled curves)
+      contain both the filled surfaces and the outlines of the shapes.
   @warn: This function gets I{deformed} mesh data, already modified for
       displaying (think "display list").  It also doesn't let you overwrite the
       original mesh in Blender, so if you try to update it, a new mesh will
       be created.
+  @warn: For Meta Object's, this function will only return a NMesh with some geometry
+      when called on the base element (the one with the shortest name).
   """
 
 def PutRaw(nmesh, name = None, recalc_normals = 1, store_edges = 0):

@@ -40,6 +40,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_oops_types.h"
 #include "DNA_space_types.h"
+#include "DNA_curve_types.h"
 
 #include "BDR_editface.h"	/* make_tfaces */
 #include "BDR_vpaint.h"
@@ -58,10 +59,12 @@
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
-#include "BKE_depsgraph.h"
+#include "BKE_mball.h"
 #include "BKE_utildefines.h"
+#include "BKE_depsgraph.h"
 
 #include "BLI_arithb.h"
+
 #include "blendef.h"
 #include "mydevice.h"
 #include "Object.h"
@@ -315,6 +318,7 @@ void mesh_update( Mesh * mesh, Object * ob )
 	}
 }
 
+
 /*****************************/
 /*			Mesh Color Object		 */
 /*****************************/
@@ -338,10 +342,10 @@ static BPy_NMCol *newcol( char r, char g, char b, char a )
 
 static PyObject *M_NMesh_Col( PyObject * self, PyObject * args )
 {
-	short r = 255, g = 255, b = 255, a = 255;
+	char r = 255, g = 255, b = 255, a = 255;
 
-	if( PyArg_ParseTuple( args, "|hhhh", &r, &g, &b, &a ) )
-		return ( PyObject * ) newcol( (unsigned char)r, (unsigned char)g, (unsigned char)b, (unsigned char)a );
+	if( PyArg_ParseTuple( args, "|bbbb", &r, &g, &b, &a ) )
+		return ( PyObject * ) newcol( r, g, b, a );
 
 	return NULL;
 }
@@ -367,12 +371,12 @@ static PyObject *NMCol_getattr( PyObject * self, char *name )
 static int NMCol_setattr( PyObject * self, char *name, PyObject * v )
 {
 	BPy_NMCol *mc = ( BPy_NMCol * ) self;
-	short ival;
+	char ival;
 
-	if( !PyArg_Parse( v, "h", &ival ) )
+	if( !PyArg_Parse( v, "b", &ival ) )
 		return -1;
 
-	ival = ( short ) EXPP_ClampInt( ival, 0, 255 );
+	ival = ( char ) EXPP_ClampInt( ival, 0, 255 );
 
 	if( strcmp( name, "r" ) == 0 )
 		mc->r = (unsigned char)ival;
@@ -595,6 +599,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 {
 	BPy_NMFace *mf = ( BPy_NMFace * ) self;
 	short ival;
+	char cval;
 
 	if( strcmp( name, "v" ) == 0 ) {
 
@@ -613,8 +618,8 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 			return 0;
 		}
 	} else if( !strcmp( name, "mat" ) || !strcmp( name, "materialIndex" ) ) {
-		PyArg_Parse( v, "h", &ival );
-		mf->mat_nr = (char)ival;
+		PyArg_Parse( v, "b", &cval );
+		mf->mat_nr = cval;
 
 		return 0;
 	} else if( strcmp( name, "smooth" ) == 0 ) {
@@ -655,8 +660,8 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 
 		return 0;
 	} else if( strcmp( name, "transp" ) == 0 ) {
-		PyArg_Parse( v, "h", &ival );
-		mf->transp = (unsigned char)ival;
+		PyArg_Parse( v, "b", &cval );
+		mf->transp = cval;
 
 		return 0;
 	} else if( strcmp( name, "image" ) == 0 ) {
@@ -1983,6 +1988,243 @@ static int get_active_faceindex( Mesh * me )
 	return -1;
 }
 
+static BPy_NMVert *nmvert_from_float(float *co, float *no, int idx) {
+	BPy_NMVert *mv;
+
+	mv = PyObject_NEW( BPy_NMVert, &NMVert_Type );
+
+	mv->index = idx;
+
+	mv->co[0] = co[0];
+	mv->co[1] = co[1];
+	mv->co[2] = co[2];
+
+	mv->no[0] = no[0];
+	mv->no[1] = no[1];
+	mv->no[2] = no[2];
+
+	mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
+
+	mv->flag = 0;
+
+	return mv;
+}
+
+static BPy_NMFace *nmface_from_index( BPy_NMesh * mesh, int vidxs[4], char mat_nr )
+{
+	BPy_NMFace *newf = PyObject_NEW( BPy_NMFace, &NMFace_Type );
+	int i, len;
+
+	if( vidxs[3] )
+		len = 4;
+	else if( vidxs[2] )
+		len = 3;
+	else
+		len = 2;
+
+	newf->v = PyList_New( len );
+
+	for( i = 0; i < len; i++ )
+		PyList_SetItem( newf->v, i,
+				EXPP_incr_ret( PyList_GetItem
+					       ( mesh->verts, vidxs[i] ) ) );
+
+	newf->mode = TF_DYNAMIC;	/* just to initialize it to something meaninful, */
+	/* since without tfaces there are no tface->mode's, obviously. */
+	newf->image = NULL;
+	newf->uv = PyList_New( 0 );
+
+	newf->mat_nr = mat_nr;
+	newf->mf_flag = 0;
+
+	newf->col = PyList_New( 0 );
+
+	return newf;
+}
+
+/* RATHER EVIL FUNCTION BORROWED FROM fix_faceindices IN editmesh.c */
+static void correctFaceIndex(int vidx[4])
+{
+	if (vidx[3]) {
+		if (vidx[1] == 0) {
+			vidx[1] = vidx[2];
+			vidx[2] = vidx[3];
+			vidx[3] = vidx[0];
+			vidx[0] = 0;
+		}
+		if (vidx[2] == 0) {
+			int t = vidx[1];
+			vidx[2] = vidx[0];
+			vidx[1] = vidx[3];
+			vidx[3] = t;
+			vidx[0] = 0;
+		}
+		if (vidx[3] == 0) {
+			vidx[3] = vidx[2];
+			vidx[2] = vidx[1];
+			vidx[1] = vidx[0];
+			vidx[0] = 0;
+		}
+	}
+	else if (vidx[1] == 0) {
+		vidx[1] = vidx[2];
+		vidx[2] = vidx[0];
+		vidx[0] = 0;
+	}
+	else if (vidx[2] == 0) {
+		vidx[2] = vidx[1];
+		vidx[1] = vidx[0];
+		vidx[0] = 0;
+	}
+}
+
+/*
+	CREATES A NMESH FROM DISPLIST DATA. INSPIRED BY THE FUNCTIONS CALLED WHEN
+	CONVERTING OBJECTS TO MESH.
+ */
+static PyObject *new_NMesh_displist(ListBase *lb, Object *ob)
+{
+	BPy_NMesh *me;
+	DispList *dl;
+	float *data, *ndata;
+	float normal[3] = {1, 0, 0};
+	int vidx[4];
+	int parts, p1, p2, p3, p4, a, b, one_normal=0, ioffset=0;
+	int *index;
+
+	if (ob->type == OB_CURVE || ob->type == OB_FONT)
+		one_normal = 1;
+
+	me = PyObject_NEW( BPy_NMesh, &NMesh_Type );
+	me->name = EXPP_incr_ret( Py_None );
+	me->flags = 0;
+	me->mode = ME_TWOSIDED;	/* default for new meshes */
+	me->subdiv[0] = NMESH_SUBDIV;
+	me->subdiv[1] = NMESH_SUBDIV;
+	me->smoothresh = NMESH_SMOOTHRESH;
+	me->edges = NULL;
+
+	me->object = ob;
+	me->materials = EXPP_PyList_fromMaterialList( ob->mat, ob->totcol, 0 );
+
+	me->verts = PyList_New( 0 ); 
+	me->faces = PyList_New( 0 );
+
+	dl= lb->first;
+	while(dl) {
+		parts= dl->parts;
+		index= dl->index;
+		data= dl->verts;
+		ndata= dl->nors;
+
+		switch(dl->type) {
+		case DL_SEGM:
+			for(a=0; a<dl->parts*dl->nr; a++, data+=3) {
+				PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, normal, a));
+			}
+
+			vidx[2] = vidx[3] = 0;
+
+			for(a=0; a<dl->parts; a++) {
+				for(b=1; b<dl->nr; b++) {
+					vidx[0] = ioffset + a * dl->nr + b-1;
+					vidx[1] = ioffset + a * dl->nr + b;
+					PyList_Append(me->faces, ( PyObject * ) nmface_from_index(me, vidx, 0));
+				}
+			}
+			ioffset += dl->parts * dl->nr;
+			break;
+		case DL_POLY:
+			for(a=0; a<dl->parts*dl->nr; a++, data+=3) {
+				PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, normal, a));
+			}
+
+			vidx[2] = vidx[3] = 0;
+
+			for(a=0; a<dl->parts; a++) {
+				for(b=0; b<dl->nr; b++) {
+					vidx[0] = ioffset + a * dl->nr + b;
+					if(b==dl->nr-1) vidx[1] = ioffset + a * dl->nr;
+					else vidx[1]= ioffset + a * dl->nr + b+1;
+					PyList_Append(me->faces, ( PyObject * ) nmface_from_index(me, vidx, 0));
+				}
+			}
+			ioffset += dl->parts * dl->nr;
+			break;
+		case DL_SURF:
+			for(a=0; a<dl->parts*dl->nr; a++, data+=3, ndata+=3) {
+				PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, ndata, a));
+			}
+
+			for(a=0; a<dl->parts; a++) {
+				
+				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				
+				
+				for(; b<dl->nr; b++) {
+					vidx[0] = p2 + ioffset;
+					vidx[1] = p1 + ioffset;
+					vidx[2] = p3 + ioffset;
+					vidx[3] = p4 + ioffset;
+					correctFaceIndex(vidx);
+
+					PyList_Append(me->faces, ( PyObject * ) nmface_from_index(me, vidx, (char)dl->col));
+
+					p2 = p1;
+					p4 = p3;
+					p1++;
+					p3++;
+				}
+			}
+			ioffset += dl->parts * dl->nr;
+			break;
+
+		case DL_INDEX3:
+			if (one_normal)
+				for(a=0; a<dl->nr; a++, data+=3)
+					PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, ndata, a));
+			else
+				for(a=0; a<dl->nr; a++, data+=3, ndata+=3)
+					PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, ndata, a));
+
+			while(parts--) {
+				vidx[0] = index[0] + ioffset;
+				vidx[1] = index[1] + ioffset;
+				vidx[2] = index[2] + ioffset;
+				vidx[3] = 0;
+				correctFaceIndex(vidx);
+
+				PyList_Append(me->faces, ( PyObject * ) nmface_from_index(me, vidx, (char)dl->col));
+				index+= 3;
+			}
+			ioffset += dl->nr;
+
+			break;
+
+		case DL_INDEX4:
+			for(a=0; a<dl->nr; a++, data+=3, ndata+=3) {
+				PyList_Append(me->verts, ( PyObject * ) nmvert_from_float(data, ndata, a));
+			}
+
+			while(parts--) {
+				vidx[0] = index[0] + ioffset;
+				vidx[1] = index[1] + ioffset;
+				vidx[2] = index[2] + ioffset;
+				vidx[3] = index[3] + ioffset;
+				correctFaceIndex(vidx);
+
+				PyList_Append(me->faces, ( PyObject * ) nmface_from_index(me, vidx, (char)dl->col));
+				index+= 4;
+			}
+			ioffset += dl->nr;
+			break;
+		}
+		dl= dl->next;
+	}
+
+	return ( PyObject * ) me;
+}
+
 static PyObject *new_NMesh_internal( Mesh * oldmesh,
 				     DispListMesh * dlm )
 {
@@ -2087,19 +2329,17 @@ static PyObject *new_NMesh_internal( Mesh * oldmesh,
 									 oldmc ) );
 		}
 
-    if (medges)
-    {
-      me->edges = PyList_New( totedge );
-      for( i = 0; i < totedge; i++ )
-      {
-        MEdge *edge = &medges[i];
-        PyList_SetItem( me->edges, i, (PyObject*)nmedge_from_data ( me, edge ) );
-      }
-    }
+		if (medges)
+		{
+			me->edges = PyList_New( totedge );
+			for( i = 0; i < totedge; i++ )
+			{
+				MEdge *edge = &medges[i];
+				PyList_SetItem( me->edges, i, (PyObject*)nmedge_from_data ( me, edge ) );
+			}
+		}
 
-		me->materials =
-			EXPP_PyList_fromMaterialList( oldmesh->mat,
-						      oldmesh->totcol, 0 );
+		me->materials = EXPP_PyList_fromMaterialList( oldmesh->mat, oldmesh->totcol, 0 );
 	}
 
 	return ( PyObject * ) me;
@@ -2166,9 +2406,11 @@ static PyObject *M_NMesh_GetNames(PyObject *self)
  * the vertices are already transformed / deformed. */
 static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 {
-	char *name;
 	Object *ob;
 	PyObject *nmesh;
+	ListBase *lb=0;
+	DispList *dl;
+	char *name;
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -2178,18 +2420,70 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
 
 	if( !ob )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
-	else if( ob->type != OB_MESH )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "Object does not have Mesh data" );
-	else {
-		int needsFree;
-		DerivedMesh *dm = mesh_get_derived_final(ob, &needsFree);
-		DispListMesh *dlm = dm->convertToDispListMesh(dm);
-		nmesh = new_NMesh_internal(ob->data, dlm );
-		if (needsFree)
-			dm->release(dm);
-		displistmesh_free(dlm);
-	}
+
+ 
+ 	switch (ob->type) {
+ 	case OB_MBALL:
+ 		if( is_basis_mball(ob)) {
+ 			lb= &ob->disp;
+ 			if(lb->first==0) makeDispListMBall(ob);
+ 			nmesh = new_NMesh_displist(lb, ob);
+ 		}
+ 		else {
+ 			return EXPP_ReturnPyObjError( PyExc_AttributeError, "Object does not have geometry data" );
+ 		}
+ 		break;
+ 	case OB_FONT:
+ 	case OB_CURVE:
+ 		{
+ 			Curve *cu= ob->data;
+ 			
+ 			lb= &cu->disp;
+ 			if(lb->first==0) makeDispListCurveTypes(ob);
+ 
+ 			dl= lb->first;
+ 			if(dl==0)
+ 				return EXPP_ReturnPyObjError( PyExc_AttributeError, "Object does not have geometry data" );
+ 			
+ 			/* rule: dl->type INDEX3 is always first in list */
+ 			if(dl->type!=DL_INDEX3) {
+ 				curve_to_filledpoly(ob->data, &cu->nurb, lb);
+ 				
+ 				dl= lb->first;
+ 			}
+ 
+ 			if(dl->nors==0) addnormalsDispList(ob, lb);
+ 
+ 			nmesh = new_NMesh_displist(lb, ob);
+ 		}
+ 		break;
+ 	case OB_SURF:
+ 	
+ 		lb= &((Curve *)ob->data)->disp;
+ 		if(lb->first==0) makeDispListCurveTypes(ob);
+ 		
+ 		dl= lb->first;
+ 		if(dl==0)
+ 			return EXPP_ReturnPyObjError( PyExc_AttributeError, "Object does not have geometry data" );
+ 		
+ 		if(dl->nors==0) addnormalsDispList(ob, lb);
+ 		nmesh = new_NMesh_displist(lb, ob);
+ 
+ 		break;
+ 	case OB_MESH:
+ 		{
+			int needsFree;
+			DerivedMesh *dm = mesh_get_derived_final(ob, &needsFree);
+			DispListMesh *dlm = dm->convertToDispListMesh(dm);
+			nmesh = new_NMesh_internal(ob->data, dlm );
+			if (needsFree)
+				dm->release(dm);
+			displistmesh_free(dlm);
+ 		}
+ 		break;
+ 	default:
+ 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "Object does not have geometry data" );
+  	}
 
 /* @hack: to mark that (deformed) mesh is readonly, so the update function
  * will not try to write it. */
@@ -2851,6 +3145,8 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 			mesh = ( Mesh * ) ob->data;
 		else
 			set_mesh( ob, mesh );	// also does id.us++
+
+		nmesh->object = ob;	// linking so vgrouping methods know which obj to work on
 	}
 
 	if( name )
@@ -2902,7 +3198,6 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	// each bit indicates the binding PER MATERIAL 
 
 	if( ob ) {		// we created a new object
-		nmesh->object = ob;	// linking so vgrouping methods know which obj to work on
 		NMesh_assignMaterials_toObject( nmesh, ob );
 		EXPP_synchronizeMaterialLists( ob );
 		return Object_CreatePyObject( ob );
@@ -3930,7 +4225,6 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args)
 		vz = mv->co[2];
 
 		/* Mat4MulVecfl(mat->matrix, mv->co); */
-
 		mv->co[0] = vx*mat->matrix[0][0] + vy*mat->matrix[1][0] +
 								vz*mat->matrix[2][0] + mat->matrix[3][0];
 		mv->co[1] = vx*mat->matrix[0][1] + vy*mat->matrix[1][1] +
