@@ -206,10 +206,18 @@ void CutEdgeloop(int numcuts)
 {
     EditMesh *em = G.editMesh;
 	EditEdge *nearest=NULL, *eed;
-    int keys = 0, holdnum=0;
+    int keys = 0, holdnum=0, selectmode;
 	short mvalo[2] = {0,0}, mval[2];
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
     char msg[128];
+	
+    selectmode = G.scene->selectmode;
+		
+	if(G.scene->selectmode & SCE_SELECT_FACE){
+        G.scene->selectmode =  SCE_SELECT_EDGE;  
+        EM_selectmode_set();      
+    }
+	
 	
 	BIF_undo_push("Loopcut Begin");
     while(choosing){
@@ -364,6 +372,12 @@ void CutEdgeloop(int numcuts)
             }   
         }
     }
+    
+	if(G.scene->selectmode !=  selectmode){
+        G.scene->selectmode = selectmode;
+        EM_selectmode_set();      
+    }    
+    
     //force_draw(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
     scrarea_queue_winredraw(curarea);	
