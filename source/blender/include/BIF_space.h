@@ -70,6 +70,18 @@ struct SpaceOops;
 /* sequence handler codes */
 #define SEQ_HANDLER_PROPERTIES	60
 
+/* theme codes */
+#define B_ADD_THEME 	3301
+#define B_DEL_THEME 	3302
+#define B_NAME_THEME 	3303
+#define B_THEMECOL 		3304
+#define B_UPDATE_THEME 	3305
+#define B_CHANGE_THEME 	3306
+#define B_THEME_COPY 	3307
+#define B_THEME_PASTE 	3308
+
+#define B_RECALCLIGHT 	3310
+
 
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);

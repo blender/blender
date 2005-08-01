@@ -2108,17 +2108,6 @@ static void space_sound_button_function(int event)
 }
 #endif
 
-#define B_ADD_THEME 	3301
-#define B_DEL_THEME 	3302
-#define B_NAME_THEME 	3303
-#define B_THEMECOL 		3304
-#define B_UPDATE_THEME 	3305
-#define B_CHANGE_THEME 	3306
-#define B_THEME_COPY 	3307
-#define B_THEME_PASTE 	3308
-
-#define B_RECALCLIGHT 	3310
-
 // needed for event; choose new 'curmain' resets it...
 static short th_curcol= TH_BACK;
 static char *th_curcol_ptr= NULL;
