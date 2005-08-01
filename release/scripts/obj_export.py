@@ -21,7 +21,7 @@ Run this script from "File->Export" menu to export all meshes.
 
 
 # --------------------------------------------------------------------------
-# OBJ Export v0.9 by Campbell Barton (AKA Ideasman)
+# OBJ Export v0.9b by Campbell Barton (AKA Ideasman)
 # --------------------------------------------------------------------------
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
@@ -63,6 +63,7 @@ def save_mtl(filename):
 		file.write('Kd %.6f %.6f %.6f\n' % tuple(mat.getRGBCol())) # Diffuse
 		file.write('Ka %.6f %.6f %.6f\n' % tuple(mat.getMirCol())) # Ambient, uses mirror colour,
 		file.write('Ks %.6f %.6f %.6f\n' % tuple(mat.getSpecCol())) # Specular
+		file.write('Ni %.6f\n' % mat.getIOR()) # Refraction index
 		file.write('d %.6f\n' % mat.getAlpha()) # Alpha (obj uses 'd' for dissolve)
 		
 		# illum, 0 to disable lightng, 2 is normal.
@@ -80,7 +81,7 @@ def save_obj(filename):
 	save_mtl(mtlfilename)
 
 	file = open(filename, "w")
-
+	
 	# Write Header
 	file.write('# Blender OBJ File: %s\n' % (Get('filename')))
 	file.write('# www.blender.org\n')
@@ -91,6 +92,8 @@ def save_obj(filename):
 	# Initialize totals, these are updated each object
 	totverts = totuvco = 0
 	
+	globalUVCoords = {}
+	
 	# Get all meshs
 	for ob in scn.getChildren():
 		if ob.getType() != 'Mesh':
@@ -100,7 +103,14 @@ def save_obj(filename):
 		
 		if not m.faces: # Make sure there is somthing to write
 			continue #dont bother with this mesh.
-	
+		
+		faces = [ f for f in m.faces if len(f) > 2 ]
+		materials = m.materials
+		
+		# Sort by Material so we dont over context switch in the obj file.
+		if len(materials) > 1:
+			faces.sort(lambda a,b: cmp(a.mat, b.mat))
+		
 		# Set the default mat
 		currentMatName = NULL_MAT
 		currentImgName = NULL_IMG
@@ -112,24 +122,27 @@ def save_obj(filename):
 			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
 	
 		# UV
-		for f in m.faces:
-			for uvIdx in range(len(f.v)):
-				if f.uv:
-					file.write('vt %.6f %.6f 0.0\n' % f.uv[uvIdx])
-				else:
-					file.write('vt 0.0 0.0 0.0\n')
-		
+		if m.hasFaceUV():
+			for f in faces:
+				for uv in f.uv:
+					uvKey = '%.6f %.6f' % uv
+					try:
+						dummy = globalUVCoords[uvKey]
+					except KeyError:
+						totuvco +=1 # 1 based index.
+						globalUVCoords[uvKey] = totuvco
+						file.write('vt %s 0.0\n' % uvKey)
+						
 		# NORMAL
-		for f in m.faces:
-			for v in f.v:
-				file.write('vn %.6f %.6f %.6f\n' % tuple(v.no))
+		for v in m.verts:
+			file.write('vn %.6f %.6f %.6f\n' % tuple(v.no))
 		
 		uvIdx = 0
-		for f in m.faces:
+		for f in faces:
 			# Check material and change if needed.
-			if len(m.materials) > f.mat:
-				if currentMatName != m.materials[f.mat].getName():
-					currentMatName = m.materials[f.mat].getName()
+			if len(materials) > 0:
+				if currentMatName != materials[f.mat].getName():
+					currentMatName = materials[f.mat].getName()
 					file.write('usemtl %s\n' % (currentMatName))
 			
 			elif currentMatName != NULL_MAT:
@@ -146,19 +159,23 @@ def save_obj(filename):
 				
 			elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
 				currentImgName = NULL_IMG
-				# Set a new image for all following faces
+				# Set a ne w image for all following faces
 				file.write( 'usemap %s\n' % currentImgName) # No splitting needed.
-
-			file.write('f ')
-			for v in f.v:
-				file.write( '%s/%s/%s ' % (v.index + totverts+1, uvIdx+totuvco+1, uvIdx+totuvco+1))
-
-				uvIdx+=1
+			
+			file.write('f')
+			if m.hasFaceUV():
+				for vi, v in enumerate(f.v):
+					uvIdx = globalUVCoords[ '%.6f %.6f' % f.uv[vi] ]
+					i = v.index + totverts + 1
+					file.write( ' %d/%d/%d' % (i, uvIdx, i)) # vert, uv, normal
+					
+			else: # No UV's
+				for v in f.v:
+					file.write( ' %d' % (v.index + totverts+1))
 			file.write('\n')
 		
 		# Make the indicies global rather then per mesh
 		totverts += len(m.verts)
-		totuvco += uvIdx
 	file.close()
 	print "obj export time: %.2f" % (sys.time() - time1)
 

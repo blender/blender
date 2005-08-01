@@ -9,43 +9,43 @@ The Blender Python API Reference
  Top Module:
  -----------
 
-  - L{Blender} (*)
+  - L{Blender}
 
  Submodules:
  -----------
-  - L{Armature}
+  - L{Armature} (broken, needs rewrite)
      - L{Bone}
      - L{NLA}
   - L{BGL}
-  - L{Camera} (*)
-  - L{Curve} (*)
-  - L{Draw} (*)
+  - L{Camera}
+  - L{Curve}
+  - L{Draw}
   - L{Effect}
-  - L{Image} (*)
-  - L{Ipo} (*)
+  - L{Image}
+  - L{Ipo}
   - L{Lamp}
   - L{Lattice}
   - L{Library}
-  - L{Material}
+  - L{Material} (*)
   - L{Mathutils} (*)
   - L{Metaball}
   - L{NMesh} (*)
   - L{Noise}
   - L{Object} (*)
-  - L{Registry} (*)
-  - L{Scene} (*)
+  - L{Registry}
+  - L{Scene}
      - L{Radio}
      - L{Render}
   - L{Sound}
   - L{Text}
-  - L{Text3d} (new)
-     - L{Font} (new)
+  - L{Text3d}
+     - L{Font}
   - L{Texture}
   - L{Types}
   - L{Window}
      - L{Theme}
   - L{World}
-  - L{sys<Sys>} (*)
+  - L{sys<Sys>}
 
  Additional information:
  -----------------------

@@ -3,7 +3,7 @@
 """
 The Blender.Material submodule.
 
-B{New}: L{Material.clearScriptLinks} accepts a parameter now.
+B{New}: access to shader data.
 
 Material 
 ========
@@ -56,6 +56,19 @@ Example::
     such possibilities in the Modes dict below: each halo-related mode that
     uses an already taken value is preceded by "-" and appear below the normal
     mode which also uses that value.
+
+
+@type Shaders: readonly dictionary
+@var Shaders: The available Material Shaders.
+    - DIFFUSE_LAMBERT    - Make Material use the lambert diffuse shader.
+    - DIFFUSE_ORENNAYAR       - Make Material use the orennayar diffuse shader.
+    - DIFFUSE_TOON    - Make Material use the toon diffuse shader.
+    - DIFFUSE_MINNAERT  - Make Material use the minnaert diffuse shader.
+    - SPEC_COOKTORR   - Make Material use the cooktorr specular shader.
+    - SPEC_PHONG   - Make Material use the phong specular shader.
+    - SPEC_BLINN         - Make Material use the blinn specular shader.
+    - SPEC_TOON      - Make Material use the toon specular shader.
+    - SPEC_WARDISO      - Make Material use the wardiso specular shader.
 """
 
 def New (name = 'Mat'):
@@ -124,6 +137,18 @@ class Material:
   @ivar fresnelTrans: Power of Fresnel for transparency.
   @ivar fresnelTransFac: Blending factor for Fresnel.
   @ivar specTrans: Makes specular areas opaque on transparent materials.
+  @cvar specShader: Specular shader from one of the shaders in Material.Shaders dict - [0, 4].
+  @cvar diffuseShader: Diffuse shader from one of the shaders in Material.Shaders dict - [0, 3].
+  @cvar roughness: Material's Roughness (applies to the \"Oren Nayar\" Diffuse Shader only) - [0.0, 3.14].
+  @cvar specSize: Material's size of speculara area (applies to the \"Toon\" Specular Shader only) - [0.0, 1.53].
+  @cvar diffuseSize: Material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only) - [0.0, 3.14].
+  @cvar specSmooth: Material's smoothing of specular area (applies to the \"Toon\" Specular Shader only) - [0.0, 1.0].
+  @cvar diffuseSmooth: Material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only) - [0.0, 1.0].
+  @cvar diffuseDarkness: Material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only) - [0.0, 2.0].
+  @cvar refracIndex: Material's Index of Refraction (applies to the \"Blinn\" Specular Shader only) - [1.0, 10.0].
+  @cvar rms: Material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only) - [0.0, 0.4].
+  @cvar filter: Amount of filtering when transparent raytrace is enabled - [0.0, 1.0].
+  @cvar translucency: Amount of diffuse shading of the back side - [0.0, 1.0].
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.
@@ -206,7 +231,7 @@ class Material:
     "ZTransp", "ZInvert", "HaloRings", "HaloLines", "OnlyShadow",
     "HaloXAlpha", "HaloStar", "TexFace", "HaloTex", "HaloPuno", "NoMist",
     "HaloShaded", "HaloFlare", "Radio", "RayMirr", "ZTransp", "RayTransp",
-    "OnlyShadow", "NoMist", "Env"
+    "Env"
 
     An integer can also be given, which directly sets the mode flag.  The
     Modes dictionary keys can (and should) be added or ORed to specify
@@ -343,6 +368,162 @@ class Material:
     Set the specular transparency.
     @type spectransp: float
     @param spectransp: The new value in [0.0, 1.0].
+    """
+
+  def setSpecShader(specShader):
+    """
+    Set the material's specular shader from one of the shaders in Material.Shaders dict.
+    @type specShader: int
+    @param specShader: The new value in [0, 4].
+    """
+
+  def getSpecShader(specShader):
+    """
+    Get the material's specular shader from one of the shaders in Material.Shaders dict.
+    @rtype: int
+    """
+
+  def setDiffuseShader(diffuseShader):
+    """
+    Set the material's diffuse shader from one of the shaders in Material.Shaders dict.
+    @type diffuseShader: int
+    @param diffuseShader: The new value in [0, 3].
+    """
+
+  def getDiffuseShader():
+    """
+    Get the material's diffuse shader from one of the shaders in Material.Shaders dict.
+    @rtype: int
+    """
+
+  def setRoughness(roughness):
+    """
+    Set the material's roughness (applies to the \"Oren Nayar\" Diffuse Shader only)
+    @type roughness: float
+    @param roughness: The new value in [0.0, 3.14].
+    """
+
+  def getRoughness():
+    """
+    Get the material's roughness (applies to the \"Oren Nayar\" Diffuse Shader only)
+    @rtype: float
+    """
+
+  def setSpecSize(specSize):
+    """
+    Set the material's size of speculara area (applies to the \"Toon\" Specular Shader only)
+    @type specSize: float
+    @param specSize: The new value in [0.0, 1.53].
+    """
+
+  def getSpecSize():
+    """
+    Get the material's size of speculara area (applies to the \"Toon\" Specular Shader only)
+    @rtype specSize: float
+    """
+
+  def setSpecSize(diffuseSize):
+    """
+    Set the material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only)
+    @type diffuseSize: float
+    @param diffuseSize: The new value in [0.0, 3.14].
+    """
+
+  def getSpecSize():
+    """
+    Get the material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only)
+    @rtype: float
+    """
+
+  def setSpecSmooth(specSmooth):
+    """
+    Set the material's smoothing of specular area (applies to the \"Toon\" Specular Shader only)
+    @type specSmooth: float
+    @param specSmooth: The new value in [0.0, 1.0].
+    """
+
+  def getSpecSmooth():
+    """
+    Get the material's smoothing of specular area (applies to the \"Toon\" Specular Shader only)
+    @rtype: float
+    """
+
+  def setDiffuseSmooth(diffuseSmooth):
+    """
+    Set the material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only)
+    @type diffuseSmooth: float
+    @param diffuseSmooth: The new value in [0.0, 1.0].
+    """
+
+  def getDiffuseSmooth():
+    """
+    Get the material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only)
+    @rtype: float
+    """
+
+  def setDiffuseDarkness(diffuseDarkness):
+    """
+    Set the material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only)
+    @type diffuseDarkness: float
+    @param diffuseDarkness: The new value in [0.0, 2.0].
+    """
+
+  def getDiffuseDarkness():
+    """
+    Get the material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only)
+    @rtype: float
+    """
+
+  def setRefracIndex(refracIndex):
+    """
+    Set the material's Index of Refraction (applies to the \"Blinn\" Specular Shader only)
+    @type refracIndex: float
+    @param refracIndex: The new value in [1.0, 10.0].
+    """
+
+  def getRefracIndex():
+    """
+    Get the material's Index of Refraction (applies to the \"Blinn\" Specular Shader only)
+    @rtype: float
+    """
+
+  def setRms(rms):
+    """
+    Set the material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only)
+    @type rms: float
+    @param rms: The new value in [0.0, 0.4].
+    """
+
+  def getRms():
+    """
+    Get the material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only)
+    @rtype: float
+    """
+
+  def setFilter(filter):
+    """
+    Set the material's amount of filtering when transparent raytrace is enabled
+    @type filter: float
+    @param filter: The new value in [0.0, 1.0].
+    """
+
+  def getFilter():
+    """
+    Get the material's amount of filtering when transparent raytrace is enabled
+    @rtype: float
+    """
+
+  def setTranslucency(translucency):
+    """
+    Set the material's amount of diffuse shading of the back side
+    @type translucency: float
+    @param translucency: The new value in [0.0, 1.0].
+    """
+
+  def getTranslucency():
+    """
+    Get the material's amount of diffuse shading of the back side
+    @rtype: float
     """
 
   def getAdd():

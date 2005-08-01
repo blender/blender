@@ -316,6 +316,8 @@ def ligne_fermee(l,n0,CP):
     del courbes.ITEM[n0].beziers_knot[0]
     return  courbes,n0,CP    
 
+def passe(l,n0,CP):
+    return  courbes,n0,CP
 
 Actions=   {     "C" : courbe_vers_c,
                  "c" : courbe_vers_c,
@@ -326,12 +328,14 @@ Actions=   {     "C" : courbe_vers_c,
                  "m" : mouvement_vers,
                  "l" : ligne_tracee_l,
                  "L" : ligne_tracee_l,
-	
+                 "F" :	passe,                      
                  "f" : ligne_fermee,
+                 "B" :	passe,
                  "b" : ligne_fermee,
+	               "S" :	passe,
                  "s" : ligne_fermee,
-	
                  "N" : ligne_fermee,
+	               "n" :	passe,
                  }
      
 TAGcourbe=Actions.keys()

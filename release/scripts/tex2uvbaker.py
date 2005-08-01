@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Official Page, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_mesh3d2uv2d_en.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.2.6 2005/5/29"
+__version__ = "0.2.8 2005/7/20"
 
 __bpydoc__ = """\
 Texture Baker "bakes" Blender procedural materials (including textures): it saves them as 2d uv-mapped images.
@@ -37,7 +37,7 @@ Notes:<br>
 """
 
 #---------------------------------------------
-# Last release : 0.2.6 ,  2005/05/29 , 22h00
+# Last release : 0.2.8 ,  2005/07/20 , 17h10
 #---------------------------------------------
 #---------------------------------------------
 # (c) jm soler  07/2004 : 'Procedural Texture Baker'
@@ -46,6 +46,26 @@ Notes:<br>
 #     of the original mesh.
 #
 #     Released under Blender Artistic Licence
+#
+#   0.2.8
+#       -- added the forgotten image property in face
+#       data. a little longer but better.
+#       ( a remove double in the resulting mesh may be
+#       useful .) 
+#       -- the data.update() function problem is 
+#       corrected too
+#       -- no more layers problem . CAM and MESH are
+#       localised in layer 20 . This layer is
+#       the active one for the image rendering .
+#       -- mesh creation is cleaner, loop in double was
+#       removed and the abskey is set in frame 1 
+#       only  . This solves an other deform problem  .
+#       -- if user does not want an autosaved image,
+#       the "no replace" option leaves the render 
+#       window on the screen 
+#
+#   0.2.7 
+#      -- minor correction on line 147: "!=-1" added 
 #
 #   0.2.6
 #       -- Creation of LAMP object is removed and replaced
@@ -142,7 +162,7 @@ DIRNAME=Blender.Get('filename')
 # the file name from the path name
 #----------------------------------- 
 
-if DIRNAME.find(os.sep):
+if DIRNAME.find(os.sep)!=-1:
     k0=DIRNAME.split(os.sep)
 else:
     k0=DIRNAME.split('/')   
@@ -178,6 +198,8 @@ LIMIT=0
 XYLIMIT = [0.0, 0.0,1.0,1.0]    
 OBJPOS = 100.0
 DEBUG=1
+RENDERLAYER=20
+SCENELAYERS=[]
 
 helpmsg = """
 Texture Baker:
@@ -234,7 +256,7 @@ def RenameImage(RDIR, MYDIR, FILENAME, name):
         name = Draw.PupStrInput ('ReName Image, please :', name, 32)
         RenameImage(RDIR, MYDIR, FILENAME, name)
 
-def SAVE_image (rc, name, FRAME):
+def SAVE_image (rc, name, FRAME, result):
    """  
 # ---------------------------
 # Function  SAVE_image
@@ -268,26 +290,25 @@ def SAVE_image (rc, name, FRAME):
    rc.startFrame(NEWFRAME)
    rc.endFrame(NEWFRAME)
    rc.renderAnim()
-   Blender.Scene.Render.CloseRenderWindow()
-
-   FILENAME = "%04d" % NEWFRAME
-   FILENAME = FILENAME.replace (' ', '0')
-   FILENAME = RDIR + MYDIR + FILENAME + '.png'
-
-   RenameImage(RDIR, MYDIR, FILENAME, name)
-
+   if result!=2 and not KEEPRENDERWINDOW:
+      Blender.Scene.Render.CloseRenderWindow()
+      FILENAME = "%04d" % NEWFRAME
+      FILENAME = FILENAME.replace (' ', '0')
+      FILENAME = RDIR + MYDIR + FILENAME + '.png'
+      RenameImage(RDIR, MYDIR, FILENAME, name)
+	
    rc.endFrame(OLDEFRAME)
    rc.startFrame(OLDSFRAME)
    rc.setRenderPath(RENDERDIR)
 
-def SHOOT (XYlimit, frame, obj, name, FRAME):
+def SHOOT (XYlimit, frame, obj, name, FRAME, result):
    """
 # ---------------------------
 # Function  SHOOT
 #
 #  IN : XYlimit  list of 4 floats, smallest and biggest 
 #                uvcoords
-#       frame    cureente frame
+#       frame    current frame
 #       obj      for object location
 #       name     image name
 #       FRAME    the last animation's frame 
@@ -305,6 +326,7 @@ def SHOOT (XYlimit, frame, obj, name, FRAME):
       CAM, SC = GET_newobject('Camera','UVCAMERA')
       CAM.link(Cam)
       CAM.setName('UVCAMERA')
+      CAM.layers=[RENDERLAYER]
       Cam.lens = 30
       Cam.name = 'UVCamera'
 
@@ -333,13 +355,15 @@ def SHOOT (XYlimit, frame, obj, name, FRAME):
    elif (tres) == 5: res = 2048
    else: res = 512
 
+   SCENELAYERS=SC.layers
+   SC.layers = [20]
    context.imageSizeY(res)
    context.imageSizeX(res)
-   SAVE_image (context, name, FRAME)
+   SAVE_image (context, name, FRAME, result)
    context.imageSizeY(OLDy)
    context.imageSizeX(OLDx)
-
-   if Camold :SC.setCurrentCamera(Camold)
+   SC.layers = SCENELAYERS
+   if Camold : SC.setCurrentCamera(Camold)
 
    Blender.Set ('curframe', frame)
 
@@ -393,6 +417,8 @@ def Mesh2UVCoord (LIMIT):
 #  OUT:  nothing
 # ---------------------------   
    """
+   global PUTRAW, FRAME, SCENELAYERS
+
    try:
       MESH3D = Object.GetSelected()[0]
       if MESH3D.getType() == 'Mesh':
@@ -401,18 +427,21 @@ def Mesh2UVCoord (LIMIT):
          try:
             NewOBJECT=Blender.Object.Get('UVOBJECT')
             CurSCENE=Blender.Scene.getCurrent()            
-            MESH2 = NewOBJECT.getData()
-            
          except:
             NewOBJECT, CurSCENE = GET_newobject('Mesh','UVOBJECT')
-            MESH2 = Blender.NMesh.GetRaw()
+         MESH2 = NewOBJECT.getData() 
+         NewOBJECT.layers=[RENDERLAYER]
 
          MESH2.faces=[]
          for f in MESH.faces:
             f1 = Blender.NMesh.Face()
-
             for v in f.v:
-               v1 = Blender.NMesh.Vert (v.co[0], v.co[1], v.co[2])
+               v1 = Blender.NMesh.Vert (0.0, 0.0, 0.0)
+               for n in [0,1]:
+                  v1.co[n] = f.uv[f.v.index(v)][n]
+                  exec "if v1.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v1.co[%s]" % (n, n+2, n+2, n)
+                  exec "if v1.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v1.co[%s]" % (n, n, n, n)
+               v1.co[2] = 0.0
                MESH2.verts.append(v1)
                f1.v.append(MESH2.verts[len(MESH2.verts) - 1])
 
@@ -423,30 +452,21 @@ def Mesh2UVCoord (LIMIT):
             f1.mode = f.mode
             f1.flag = f.flag
             f1.mat = f.mat
+            #----------------------------------- 
+            # release : 0.2.8 ,  2005/07/19 , end
+            #----------------------------------- 
+            try:
+              f1.image=f.image
+            except :
+              pass
 
          MESH2.materials = MESH.materials[:]
-
          NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
          NewOBJECT.setEuler (0.0, 0.0, 0.0)
 
          MESH2.removeAllKeys()
-
          MESH2.update()
          MESH2.insertKey (1, 'absolute')
-         MESH2.update()
-
-         for f in MESH2.faces:
-            for v in f.v:
-               for n in [0,1]:
-                  v.co[n] = f.uv[f.v.index(v)][n]
-                  exec "if v.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n+2, n+2, n)
-                  exec "if v.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n, n, n)
-               v.co[2] = 0.0
-
-         if DEBUG: print XYLIMIT
-
-         MESH2.update()
-         MESH2.insertKey (FRAME, 'absolute')
          MESH2.update()
 
          imagename = 'uvtext'
@@ -467,9 +487,9 @@ def Mesh2UVCoord (LIMIT):
             #----------------------------------- 
 
             if LIMIT :
-                 SHOOT(XYLIMIT, FRAME, NewOBJECT, imagename, FRAME)
+                 SHOOT(XYLIMIT, FRAME, NewOBJECT, imagename, FRAME,result)
             else :
-                 SHOOT([0.0,0.0,1.0,1.0], FRAME, NewOBJECT, imagename, FRAME)
+                 SHOOT([0.0,0.0,1.0,1.0], FRAME, NewOBJECT, imagename, FRAME, result)
             #----------------------------------- 
             # release : 0.2.6,  2005/05/29 , 00h00
             #----------------------------------- 
