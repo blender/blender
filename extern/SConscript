@@ -5,7 +5,8 @@ Import('user_options_dict')
 
 print "externs..."
 SConscript(['qhull/SConscript',
-            'solid/SConscript'])
+            'solid/SConscript',
+	    'bullet/SConscript'])
             
             
 if user_options_dict['USE_INTERNATIONAL'] == 1:

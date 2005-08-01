@@ -22,3 +22,5 @@ if user_options_dict['USE_PHYSICS'] == 'solid':
     SConscript(['Physics/Sumo/SConscript'])
 elif user_options_dict['USE_PHYSICS'] == 'ode':
     SConscript(['Physics/BlOde/SConscript'])
+elif user_options_dict['USE_PHYSICS'] == 'bullet':
+    SConscript(['Physics/Bullet/SConscript'])

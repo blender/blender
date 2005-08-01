@@ -25,7 +25,7 @@ makesdna_tool.Append (LIBPATH = '#'+user_options_dict['BUILD_DIR']+'/lib')
 makesdna_tool.Append (LIBS = 'blender_guardedalloc')
 makesdna_tool.Program (target = '#'+user_options_dict['BUILD_DIR']+'makesdna', source = source_files)
 
-dna = Environment ()
+dna = Environment (ENV = os.environ)
 dna_dict = dna.Dictionary()
 makesdna_name = user_options_dict['BUILD_DIR']+'makesdna' + dna_dict['PROGSUFFIX']
 dna.Depends ('dna.c', '#'+makesdna_name)

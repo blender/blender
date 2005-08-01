@@ -35,6 +35,7 @@ kx_blenderhook_env.Append (CPPPATH=['.',
                                     '#source/gameengine/Network',
                                     '#source/gameengine/SceneGraph',
                                     '#source/gameengine/Physics/common',
+                                    '#source/gameengine/Physics/Bullet',
                                     '#source/gameengine/Physics/Sumo',
                                     '#source/gameengine/Physics/Sumo/Fuzzics/include',
                                     '#source/gameengine/Network/LoopBackNetwork',
@@ -45,6 +46,7 @@ kx_blenderhook_env.Append (CPPPATH=['.',
 
 kx_blenderhook_env.Append (CPPPATH = user_options_dict['PYTHON_INCLUDE'])
 kx_blenderhook_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+kx_blenderhook_env.Append (CPPPATH = user_options_dict['BULLET_INCLUDE'])
 kx_blenderhook_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 
 if sys.platform=='win32':

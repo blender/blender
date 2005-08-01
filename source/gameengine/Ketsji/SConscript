@@ -68,6 +68,11 @@ if user_options_dict['USE_PHYSICS'] == 'ode':
     source_files += ['KX_OdePhysicsController.cpp']
     ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
 
+if user_options_dict['USE_PHYSICS'] == 'bullet':
+    source_files += ['KX_BulletPhysicsController.cpp']
+    ketsji_env.Append (CPPPATH = user_options_dict['BULLET_INCLUDE'])
+    ketsji_env.Append (CPPPATH = user_options_dict['SOLID_INCLUDE'])
+
 ketsji_env.Append (CPPPATH = ['.',
                               '#source/kernel/gen_system',
                               '#intern/string',
@@ -97,6 +102,7 @@ ketsji_env.Append (CPPPATH = ['.',
                               '#source/gameengine/Network',
                               '#source/gameengine/SceneGraph',
                               '#source/gameengine/Physics/common',
+                              '#source/gameengine/Physics/Bullet',
                               '#source/gameengine/Physics/BlOde',
                               '#source/gameengine/Physics/Dummy',
                               '#source/gameengine/Physics/Sumo',

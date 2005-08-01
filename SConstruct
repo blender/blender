@@ -331,8 +331,9 @@ elif sys.platform == 'win32':
 	use_openal = 'true'
 	use_fmod = 'false'
 	use_quicktime = 'true'
-	use_sumo = 'true'
+	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'true'
 	use_buildinfo = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -402,6 +403,10 @@ elif sys.platform == 'win32':
 	qhull_lib = ['qhull']
 	qhull_libpath = ['#../lib/windows/qhull/lib']
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = []												# TODO
 	ode_libpath = ['#../lib/windows/ode/lib']
@@ -794,6 +799,8 @@ else:
 	config.write ("BUILD_GAMEENGINE = %r\n"%(use_gameengine))
 	if use_ode == 'true':
 		config.write ("USE_PHYSICS = 'ode'\n")
+	elif use_bullet == 'true':
+		config.write("USE_PHYSICS = 'bullet'\n")
 	else:
 		config.write ("USE_PHYSICS = 'solid'\n")
 	config.write ("USE_OPENAL = %r\n"%(use_openal))
@@ -842,6 +849,9 @@ else:
 	config.write ("ODE_INCLUDE = %r\n"%(ode_include))
 	config.write ("ODE_LIBPATH = %r\n"%(ode_libpath))
 	config.write ("ODE_LIBRARY = %r\n"%(ode_lib))
+	config.write ("BULLET_INCLUDE = %r\n"%(bullet_include))
+	config.write ("BULLET_LIBPATH = %r\n"%(bullet_libpath))
+	config.write ("BULLET_LIBRARY = %r\n"%(bullet_lib))
 	config.write ("OPENAL_INCLUDE = %r\n"%(openal_include))
 	config.write ("OPENAL_LIBPATH = %r\n"%(openal_libpath))
 	config.write ("OPENAL_LIBRARY = %r\n"%(openal_lib))
@@ -891,7 +901,7 @@ user_options.AddOptions (
 					'false')),
 		(EnumOption ('USE_PHYSICS', 'solid',
 					'Select which physics engine to use.',
-					allowed_values = ('ode', 'solid'))),
+					allowed_values = ('ode', 'solid', 'bullet'))),
 		(BoolOption ('BUILD_GAMEENGINE',
 					'Set to 1 to build blender with game engine support.',
 					'false')),
@@ -943,6 +953,9 @@ user_options.AddOptions (
 		('ODE_INCLUDE', 'Include directory for ODE header files.'),
 		('ODE_LIBPATH', 'Library path where the ODE library is located.'),
 		('ODE_LIBRARY', 'ODE library name.'),
+		('BULLET_INCLUDE', 'Include directory for BULLET header files.'),
+		('BULLET_LIBPATH', 'Library path where the BULLET library is located.'),
+		('BULLET_LIBRARY', 'BULLET library name'),
 		('OPENAL_INCLUDE', 'Include directory for OpenAL header files.'),
 		('OPENAL_LIBPATH', 'Library path where the OpenAL library is located.'),
 		('OPENAL_LIBRARY', 'OpenAL library name.'),
@@ -980,6 +993,8 @@ if user_options_dict['BUILD_GAMEENGINE'] == 1:
 	defines += ['GAMEBLENDER=1']
 	if user_options_dict['USE_PHYSICS'] == 'ode':
 		defines += ['USE_ODE']
+	elif user_options_dict['USE_PHYSICS'] == 'bullet':
+		defines += ['USE_BULLET']
 	else:
 		defines += ['USE_SUMO_SOLID']
 else:

@@ -83,7 +83,7 @@ bullet_sources = ['Bullet/BroadphaseCollision/BroadphaseProxy.cpp',
 				
 				'BulletDynamics/ConstraintSolver/ContactConstraint.cpp',
 				'BulletDynamics/ConstraintSolver/OdeConstraintSolver.cpp',
-				'BulletDynamics/ConstraintSolver/OdeConstraintSolver2.cpp',
+				#'BulletDynamics/ConstraintSolver/OdeConstraintSolver2.cpp',
 				'BulletDynamics/ConstraintSolver/Point2PointConstraint.cpp',
 				'BulletDynamics/ConstraintSolver/SimpleConstraintSolver.cpp',
 				'BulletDynamics/ConstraintSolver/Solve2LinearConstraint.cpp',
@@ -101,4 +101,4 @@ bullet_env.Append (CPPPATH = ['.',
                              ])
 source_files = bullet_sources 
 
-bullet_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/extern_bullet', source=source_files)
+bullet_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/extern_bullet', source=bullet_sources)
