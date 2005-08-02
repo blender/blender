@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\blender.exe"
 				LinkIncremental="1"
@@ -60,9 +60,10 @@
 MOVE /Y ..\..\bin\blender.lib ..\..\..\build\msvc_7\libs
 MOVE /Y ..\..\bin\blender.exp ..\..\..\build\msvc_7\libs
 ECHO Copying required 3rd party dlls...
+XCOPY /Y ..\..\..\lib\windows\python\lib\python24.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin
-XCOPY /Y ..\..\..\lib\windows\python\lib\python23.dll ..\..\bin
+ECHO Copying language folder
 ECHO Done
 "/>
 			<Tool
@@ -115,7 +116,7 @@ ECHO Done
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib"
+				AdditionalDependencies="SDL.lib freetype2ST.lib ftgl_static.lib gnu_gettext.lib qtmlClient.lib openal_static.lib libsoundsystem.lib libopenalsoundsystem.lib libdummysoundsystem.lib libguardedalloc.lib libbsp.lib libbmfont.lib libghost.lib libstring.lib ws2_32.lib dxguid.lib opengl32.lib libjpeg.lib glu32.lib vfw32.lib winmm.lib libdecimation.lib libiksolver.lib libpng_st.lib zlib.lib libmoto.lib solid.lib qhull.lib libopennl.lib BulletDynamics.lib Bullet.lib python24_d.lib"
 				ShowProgress="0"
 				OutputFile="..\..\bin\debug\blender.exe"
 				LinkIncremental="2"
@@ -137,7 +138,7 @@ MOVE /Y ..\..\bin\debug\blender.ilk ..\..\..\build\msvc_7\libs\debug
 ECHO Copying required 3rd party dlls...
 XCOPY /Y ..\..\..\lib\windows\gettext\lib\*.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\sdl\lib\*.dll ..\..\bin\debug
-XCOPY /Y ..\..\..\lib\windows\python\lib\python23_d.dll ..\..\bin\debug
+XCOPY /Y ..\..\..\lib\windows\python\lib\python24_d.dll ..\..\bin\debug
 XCOPY /Y ..\..\..\lib\windows\CRTL\lib\msvcrtd.dll ..\..\bin\debug
 ECHO Copying language folder
 IF NOT EXIST ..\..\bin\debug\.blender MKDIR ..\..\bin\debug\.blender
