@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="build_install_all"
 	ProjectGUID="{9C71A793-C177-4CAB-8EC5-923D500B39F8}"
 	RootNamespace="build_install_all"
@@ -76,8 +76,7 @@
 				Name="VCPreBuildEventTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 	</Files>
 	<Globals>

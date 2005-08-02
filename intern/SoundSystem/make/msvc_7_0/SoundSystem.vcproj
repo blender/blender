@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="SoundSystem"
 	ProjectGUID="{98330220-47A6-42E0-9DE4-AD0FF5D204D6}"
 	SccProjectName=""
@@ -244,8 +244,7 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

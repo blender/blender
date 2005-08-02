@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="broad"
 	ProjectGUID="{0112CAD5-3584-412A-A2E5-1315A00437B4}"
 	SccProjectName=""
@@ -218,8 +218,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="Bullet3ContinuousCollision"
 	ProjectGUID="{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
 	SccProjectName=""
@@ -272,8 +272,7 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="NarrowPhaseCollision"

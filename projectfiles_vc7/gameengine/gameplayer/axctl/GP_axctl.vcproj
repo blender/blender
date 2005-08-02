@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="GP_axctl"
 	RootNamespace="GP_axctl"
 	SccProjectName=""
@@ -46,7 +46,7 @@
 				IgnoreImportLibrary="FALSE"
 				AdditionalOptions="/MACHINE:I386
 "
-				AdditionalDependencies="openal_static.lib libmoto.lib libguardedalloc.lib libbmfont.lib libstring.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libblenkey.lib libeay32.lib libz.lib libpng.lib libjpeg.lib odelib.lib libSoundSystem.lib libOpenALSoundSystem.lib libDummySoundSystem.lib SDL.lib solid.lib qtmlClient.lib freetype2ST.lib libbsp.lib libopennl.lib libghost.lib ftgl_static.lib libiksolver.lib libdecimation.lib gnu_gettext.lib ws2_32.lib"
+				AdditionalDependencies="openal_static.lib libmoto.lib libguardedalloc.lib libbmfont.lib libstring.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libblenkey.lib libeay32.lib libz.lib libpng.lib libjpeg.lib odelib.lib libSoundSystem.lib libOpenALSoundSystem.lib libDummySoundSystem.lib SDL.lib solid.lib qtmlClient.lib freetype2ST.lib libbsp.lib libopennl.lib libghost.lib ftgl_static.lib libiksolver.lib libdecimation.lib gnu_gettext.lib ws2_32.lib BulletDynamics.lib Bullet.lib"
 				ShowProgress="0"
 				OutputFile="..\..\..\..\bin\debug\Blender3DPlugin.ocx"
 				LinkIncremental="2"
@@ -129,7 +129,7 @@ ECHO Done
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="openal_static.lib libmoto.lib libguardedalloc.lib libbmfont.lib libstring.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libblenkey.lib libeay32.lib libz.lib libpng.lib libjpeg.lib odelib.lib libSoundSystem.lib libOpenALSoundSystem.lib libDummySoundSystem.lib SDL.lib solid.lib qtmlClient.lib freetype2ST.lib libbsp.lib libopennl.lib libghost.lib ftgl_static.lib libiksolver.lib libdecimation.lib gnu_gettext.lib ws2_32.lib"
+				AdditionalDependencies="openal_static.lib libmoto.lib libguardedalloc.lib libbmfont.lib libstring.lib opengl32.lib glu32.lib glaux.lib dxguid.lib ole32.lib vfw32.lib libblenkey.lib libeay32.lib libz.lib libpng.lib libjpeg.lib odelib.lib libSoundSystem.lib libOpenALSoundSystem.lib libDummySoundSystem.lib SDL.lib solid.lib qtmlClient.lib freetype2ST.lib libbsp.lib libopennl.lib libghost.lib ftgl_static.lib libiksolver.lib libdecimation.lib gnu_gettext.lib ws2_32.lib BulletDynamics.lib Bullet.lib"
 				OutputFile="..\..\..\..\bin\Blender3DPlugin.ocx"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
@@ -169,8 +169,7 @@ ECHO Done
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

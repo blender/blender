@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="convex"
 	ProjectGUID="{524264F4-DF21-4B79-847F-E7CA643ECD0B}"
 	SccProjectName=""
@@ -218,8 +218,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="Source Files"

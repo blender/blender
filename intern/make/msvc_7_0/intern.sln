@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
+Microsoft Visual Studio Solution File, Format Version 7.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_install_all.vcproj", "{02110D03-59DB-4571-8787-72B3C03B2F2D}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection

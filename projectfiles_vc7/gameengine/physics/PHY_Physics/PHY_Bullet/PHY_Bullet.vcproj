@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="shift_jis"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="7.0"
 	Name="PHY_Bullet"
 	ProjectGUID="{E90C7BC2-CF30-4A60-A8F2-0050D592E358}"
 	Keyword="Win32Proj">
@@ -11,9 +11,9 @@
 	</Platforms>
 	<Configurations>
 		<Configuration
-			Name="Debug|Win32"
-			OutputDirectory="Debug"
-			IntermediateDirectory="Debug"
+			Name="BlenderPlayer Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -24,7 +24,11 @@
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -32,7 +36,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Bullet.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Bullet.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -53,17 +57,21 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="Release"
-			IntermediateDirectory="Release"
+			Name="BlenderPlayer Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="4"
-				UsePrecompiledHeader="0"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -71,7 +79,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Bullet.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Bullet.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -93,8 +101,8 @@
 		</Configuration>
 		<Configuration
 			Name="Blender Release|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -102,7 +110,11 @@
 				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
 				RuntimeLibrary="0"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="3"/>
@@ -110,7 +122,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Bullet.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\PHY_Bullet.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -132,8 +144,8 @@
 		</Configuration>
 		<Configuration
 			Name="Blender Debug|Win32"
-			OutputDirectory="$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug"
 			ConfigurationType="4"
 			CharacterSet="2">
 			<Tool
@@ -144,7 +156,11 @@
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\debug\"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
 				DebugInformationFormat="4"/>
@@ -152,7 +168,96 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="$(OutDir)/PHY_Bullet.lib"/>
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\debug\PHY_Bullet.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="FALSE"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\debug\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="4"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\debug\PHY_Bullet.lib"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3D Plugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll"
+			IntermediateDirectory="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll"
+			ConfigurationType="4"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\..\..\..\..\build\msvc_7\intern\moto\include;..\..\..\..\..\..\build\msvc_7\extern\bullet\include;..\..\..\..\..\source\gameengine\Physics\common;..\..\..\..\..\source\gameengine\Physics\Bullet"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="2"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\$(TargetName).pch"
+				AssemblerListingLocation="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\"
+				ObjectFile="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\..\build\msvc_7\source\gameengine\physics\bullet\mtdll\"
+				WarningLevel="3"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="3"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\..\build\msvc_7\libs\mtdll\PHY_Bullet.lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -173,8 +278,7 @@
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
 	</Configurations>
-	<References>
-	</References>
+	
 	<Files>
 		<Filter
 			Name="Source Files"
