@@ -1412,8 +1412,12 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 	// Make center face
 	if(vertsize % 2 == 0){
 		hold = addfacelist(verts[(vertsize-1)/2],verts[((vertsize-1)/2)+1],v[left],v[right], NULL,NULL);
+		hold->e2->f2 |= EDGEINNER;
+		hold->e4->f2 |= EDGEINNER;
 	}else{
-		hold = addfacelist(verts[(vertsize-1)/2],v[left],v[right],NULL, NULL,NULL);            
+		hold = addfacelist(verts[(vertsize-1)/2],v[left],v[right],NULL, NULL,NULL);  
+		hold->e1->f2 |= EDGEINNER;
+		hold->e3->f2 |= EDGEINNER;          
 	}
 	facecopy(efa,hold);
 
@@ -1421,8 +1425,14 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 	for(i=0;i<(vertsize-1)/2;i++){
 		hold = addfacelist(verts[i],verts[i+1],v[right],NULL,NULL,NULL);  
 		facecopy(efa,hold);
+		if(i+1 != (vertsize-1)/2){
+         		hold->e2->f2 |= EDGEINNER;
+        }
 		hold = addfacelist(verts[vertsize-2-i],verts[vertsize-1-i],v[left],NULL,NULL,NULL); 
 		facecopy(efa,hold);
+		if(i+1 != (vertsize-1)/2){
+         		hold->e3->f2 |= EDGEINNER;
+        }
 	}      
 }
 
@@ -1487,6 +1497,9 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 	// Make side faces
 	for(i=0;i<(vertsize-1);i++){
 		hold = addfacelist(verts[i],verts[i+1],v[op],NULL,NULL,NULL);  
+		if(i+1 != vertsize-1){
+         		hold->e2->f2 |= EDGEINNER;
+        }
 		facecopy(efa,hold);
 	}      
 }
@@ -1608,13 +1621,16 @@ static void fill_quad_double_adj(EditFace *efa, struct GHash *gh, int numcuts)
 
 	// Make outside tris
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
+	hold->e3->f2 |= EDGEINNER;
 	facecopy(efa,hold);       
-	hold = addfacelist(verts[0][0],verts[1][vertsize-1],v[(start2+2)%4],NULL,NULL,NULL);  
+	hold = addfacelist(verts[0][0],verts[1][vertsize-1],v[(start2+2)%4],NULL,NULL,NULL);
+	hold->e1->f2 |= EDGEINNER;  
 	facecopy(efa,hold);               
 	// Make side faces
 
 	for(i=0;i<numcuts;i++){
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-1-(i+1)],verts[1][vertsize-1-i],NULL,NULL);  
+		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);
 	}      
 }
@@ -1671,11 +1687,13 @@ static void fill_tri_double(EditFace *efa, struct GHash *gh, int numcuts)
 
 	// Make outside tri
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
+	hold->e3->f2 |= EDGEINNER;
 	facecopy(efa,hold);              
 	// Make side faces
 
 	for(i=0;i<numcuts;i++){
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-1-(i+1)],verts[1][vertsize-1-i],NULL,NULL);  
+		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);
 	}      
 }
@@ -1797,24 +1815,30 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 
 	// Make outside tris
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
+	hold->e3->f2 |= EDGEINNER;
 	facecopy(efa,hold);      
 	hold = addfacelist(verts[1][vertsize-2],verts[1][vertsize-1],verts[2][1],NULL,NULL,NULL);  
+	hold->e3->f2 |= EDGEINNER;
 	facecopy(efa,hold);              
 	// Make bottom quad
 	hold = addfacelist(verts[0][0],verts[0][1],verts[2][vertsize-2],verts[2][vertsize-1],NULL,NULL);  
-	facecopy(efa,hold);         
+	hold->e2->f2 |= EDGEINNER;
+    facecopy(efa,hold);         
 	//If it is even cuts, add the 2nd lower quad
 	if(numcuts % 2 == 0){
 		hold = addfacelist(verts[0][1],verts[0][2],verts[2][vertsize-3],verts[2][vertsize-2],NULL,NULL);  
+		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);         
 		// Also Make inner quad
 		hold = addfacelist(verts[1][numcuts/2],verts[1][(numcuts/2)+1],verts[2][numcuts/2],verts[0][(numcuts/2)+1],NULL,NULL);           
-		facecopy(efa,hold);
+		hold->e3->f2 |= EDGEINNER;
+        facecopy(efa,hold);
 		repeats = (numcuts / 2) -1;
 	} else {
 		// Make inner tri     
 		hold = addfacelist(verts[1][(numcuts/2)+1],verts[2][(numcuts/2)+1],verts[0][(numcuts/2)+1],NULL,NULL,NULL);           
-		facecopy(efa,hold);   
+		hold->e2->f2 |= EDGEINNER;
+        facecopy(efa,hold);   
 		repeats = ((numcuts+1) / 2)-1;
 	}
 	
@@ -1822,9 +1846,11 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	if(numcuts < 3){repeats = 0;}
 	for(i=0;i<repeats;i++){
 		//Make side repeating Quads
-		hold = addfacelist(verts[1][i+1],verts[1][i+2],verts[0][vertsize-i-3],verts[0][vertsize-i-2],NULL,NULL);           
+		hold = addfacelist(verts[1][i+1],verts[1][i+2],verts[0][vertsize-i-3],verts[0][vertsize-i-2],NULL,NULL);  
+        hold->e2->f2 |= EDGEINNER;         
 		facecopy(efa,hold);               
 		hold = addfacelist(verts[1][vertsize-i-3],verts[1][vertsize-i-2],verts[2][i+1],verts[2][i+2],NULL,NULL);           
+		hold->e4->f2 |= EDGEINNER;
 		facecopy(efa,hold); 
 	}
 	// Do repeating bottom quads 
@@ -1834,6 +1860,7 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 		} else {
 			hold = addfacelist(verts[0][2+i],verts[0][3+i],verts[2][vertsize-4-i],verts[2][vertsize-3-i],NULL,NULL);                  
 		}
+		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);                
 	}    
 }
@@ -1926,6 +1953,12 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 			hold->e2->f2 = EDGENEW;  
 			hold->e3->f2 = EDGENEW;            
 			hold->e4->f2 = EDGENEW;   
+			
+			if(i != 0){ hold->e1->f2 |= EDGEINNER; }
+            if(j != 0){ hold->e2->f2 |= EDGEINNER; }
+            if(i != numcuts){ hold->e3->f2 |= EDGEINNER; }
+            if(j != numcuts){ hold->e4->f2 |= EDGEINNER; }
+			
 			facecopy(efa,hold);        
 		}        
 	}
@@ -2025,17 +2058,21 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 		for(j=0;j<(numcuts+1)-i;j++){   
 			//We always do the first tri
 			hold = addfacelist(innerverts[i][j+1],innerverts[i][j],innerverts[i+1][j],NULL,NULL,NULL);    
-			hold->e1->f2 = EDGENEW;      
-			hold->e2->f2 = EDGENEW;  
-			hold->e3->f2 = EDGENEW;  
+			hold->e1->f2 |= EDGENEW;      
+			hold->e2->f2 |= EDGENEW;  
+			hold->e3->f2 |= EDGENEW;  
+			if(i != 0){ hold->e1->f2 |= EDGEINNER; }
+            if(j != 0){ hold->e2->f2 |= EDGEINNER; }
+            if(j+1 != (numcuts+1)-i){hold->e3->f2 |= EDGEINNER;}
+            
 			facecopy(efa,hold);        
 			//if there are more to come, we do the 2nd     
 			if(j+1 <= numcuts-i){
 				hold = addfacelist(innerverts[i+1][j],innerverts[i+1][j+1],innerverts[i][j+1],NULL,NULL,NULL);           
 				facecopy(efa,hold); 
-				hold->e1->f2 = EDGENEW;      
-				hold->e2->f2 = EDGENEW;  
-				hold->e3->f2 = EDGENEW;  
+				hold->e1->f2 |= EDGENEW;      
+				hold->e2->f2 |= EDGENEW;  
+				hold->e3->f2 |= EDGENEW;  	
 			}
 		} 
 	}
@@ -2263,7 +2300,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
     } 
     free_tagged_edgelist(em->edges.first); 
     
-    if(seltype == 0){
+    if(seltype == 0 && G.qual != LR_CTRLKEY){
         for(eed = em->edges.first;eed;eed = eed->next){
             if(eed->f2 & EDGENEW){
                 eed->f |= flag;
@@ -2274,7 +2311,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
                 EM_select_edge(eed,0); 
             }
         }   
-    } else if (seltype == 1){
+    } else if (seltype == 1 || G.qual == LR_CTRLKEY){
         for(eed = em->edges.first;eed;eed = eed->next){
             if(eed->f2 & EDGEINNER){
                 eed->f |= flag;
