@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "SimdTransform.h"
 #include "Dynamics/RigidBody.h"
-#include "BroadphaseCollision/BroadPhaseInterface.h"
+#include "BroadphaseCollision/BroadphaseInterface.h"
 #include "BroadphaseCollision/SimpleBroadphase.h"
 
 #include "CollisionShapes/ConvexShape.h"

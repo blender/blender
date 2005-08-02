@@ -13,7 +13,7 @@
 #include "SimdVector3.h"
 #include "JacobianEntry.h"
 #include "ContactSolverInfo.h"
-#include "GEN_minmax.h"
+#include "GEN_MinMax.h"
 
 #define ASSERT2 assert
 

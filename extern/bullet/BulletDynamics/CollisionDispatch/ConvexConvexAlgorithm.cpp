@@ -23,7 +23,7 @@
 
 #include "NarrowPhaseCollision/ConvexPenetrationDepthSolver.h"
 #include "NarrowPhaseCollision/ContinuousConvexCollision.h"
-#include "NarrowPhaseCollision/SubsimplexConvexCast.h"
+#include "NarrowPhaseCollision/SubSimplexConvexCast.h"
 #include "NarrowPhaseCollision/GjkConvexCast.h"
 
 

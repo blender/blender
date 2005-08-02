@@ -19,7 +19,7 @@
 #include "ConstraintSolver/ConstraintSolver.h"
 #include "ConstraintSolver/ContactSolverInfo.h"
 #include "CollisionDispatch/ManifoldResult.h"
-#include "NarrowphaseCollision/RaycastCallback.h"
+#include "NarrowPhaseCollision/RaycastCallback.h"
 #include "CollisionShapes/TriangleMeshShape.h"
 
 

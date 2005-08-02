@@ -1,7 +1,7 @@
 #include "RigidBody.h"
 #include "MassProps.h"
 #include "CollisionShapes/ConvexShape.h"
-#include "GEN_minmax.h"
+#include "GEN_MinMax.h"
 #include <SimdTransformUtil.h>
 
 float gRigidBodyDamping = 0.5f;
