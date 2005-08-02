@@ -61,6 +61,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_quicktime = 'false'
 	use_sumo = 'true'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -107,6 +108,10 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	qhull_lib = []
 	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = ['ode']
 	ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
@@ -142,6 +147,7 @@ elif sys.platform == 'darwin':
 	use_precomp = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -209,6 +215,10 @@ elif sys.platform == 'darwin':
 	qhull_lib = []                                          
 	qhull_libpath = []                                          
 	qhull_include = ['#/extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = ['libode']                                             
 	ode_libpath = [darwin_precomp + 'ode/lib']                                          
@@ -253,6 +263,7 @@ elif sys.platform == 'cygwin':
 	use_quicktime = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'false'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -301,6 +312,10 @@ elif sys.platform == 'cygwin':
 	qhull_lib = []
 	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = ['ode']
 	ode_libpath = ['#../lib/windows/gcc/ode/lib']
@@ -439,6 +454,7 @@ elif string.find (sys.platform, 'sunos') != -1:
 	use_quicktime = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'false'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -489,6 +505,10 @@ elif string.find (sys.platform, 'sunos') != -1:
 	ode_lib = []
 	ode_libpath = []
 	ode_include = ['#extern/ode/dist/include/ode']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# Python variables.
 	python_lib = ['python%d.%d' % sys.version_info[0:2]]
 	python_libpath = [sysconfig.get_python_lib (0, 1) + '/config']
@@ -517,6 +537,7 @@ elif string.find (sys.platform, 'irix') != -1:
 	use_quicktime = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'false'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -570,6 +591,10 @@ elif string.find (sys.platform, 'irix') != -1:
 	qhull_lib = []
 	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = []
 	ode_libpath = []
@@ -607,6 +632,7 @@ elif sys.platform=='openbsd3':
 	use_quicktime = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -652,6 +678,10 @@ elif sys.platform=='openbsd3':
 	qhull_lib = []
 	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = ['ode']
 	ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
@@ -686,6 +716,7 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	use_quicktime = 'false'
 	use_sumo = 'false'
 	use_ode = 'false'
+	use_bullet = 'false'
 	use_buildinfo = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
@@ -731,6 +762,10 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	qhull_lib = []
 	qhull_libpath = []
 	qhull_include = ['#extern/qhull/include']
+	# Bullet library information
+	bullet_lib = []
+	bullet_libpath = []
+	bullet_include = ['#extern/bullet','#extern/bullet/LinearMath','#extern/bullet/Bullet','#extern/bullet/BulletDynamics']
 	# ODE library information
 	ode_lib = ['ode']
 	ode_libpath = ['#../lib/linux-glibc2.2.5-i386/ode/lib']
