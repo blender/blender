@@ -509,6 +509,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\LinearMath\IDebugDraw.h"
+				>
+			</File>
+			<File
 				RelativePath="..\LinearMath\SimdMatrix3x3.h"
 				>
 			</File>

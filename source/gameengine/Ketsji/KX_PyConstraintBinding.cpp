@@ -48,8 +48,10 @@ static char PhysicsConstraints_module_documentation[] =
 
 
 static char gPySetGravity__doc__[] = "setGravity(float x,float y,float z)";
+static char gPySetDebugMode__doc__[] = "setDebugMode(int mode)";
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
 static char gPyRemoveConstraint__doc__[] = "removeConstraint(constraint id)";
+
 
 static PyObject* gPySetGravity(PyObject* self,
 										 PyObject* args, 
@@ -64,6 +66,26 @@ static PyObject* gPySetGravity(PyObject* self,
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
+
+static PyObject* gPySetDebugMode(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	int mode;
+	if (PyArg_ParseTuple(args,"i",&mode))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setDebugMode(mode);
+			
+		}
+		
+	}
+	printf("hi\n");
+
+	Py_INCREF(Py_None); return Py_None;
+}
+
 
 
 
@@ -142,7 +164,10 @@ static PyObject* gPyRemoveConstraint(PyObject* self,
 static struct PyMethodDef physicsconstraints_methods[] = {
   {"setGravity",(PyCFunction) gPySetGravity,
    METH_VARARGS, gPySetGravity__doc__},
-   
+  {"setDebugMode",(PyCFunction) gPySetDebugMode,
+   METH_VARARGS, gPySetDebugMode__doc__},
+
+
   {"createConstraint",(PyCFunction) gPyCreateConstraint,
    METH_VARARGS, gPyCreateConstraint__doc__},
   {"removeConstraint",(PyCFunction) gPyRemoveConstraint,
@@ -160,6 +185,7 @@ PyObject*	initPythonConstraintBinding()
   PyObject* ErrorObject;
   PyObject* m;
   PyObject* d;
+
 
   m = Py_InitModule4("PhysicsConstraints", physicsconstraints_methods,
 		     PhysicsConstraints_module_documentation,

@@ -173,6 +173,7 @@ static struct Scene *GetSceneForName2(struct Main *maggie, const STR_String& sce
 #include "KX_PythonInit.h"
 
 #ifdef USE_BULLET
+
 #include "IDebugDraw.h"
 
 
@@ -187,7 +188,7 @@ struct	BlenderDebugDraw : public IDebugDraw
 
 	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)
 	{
-		if (m_debugMode == 1)
+		if (m_debugMode >0)
 		{
 			MT_Vector3 kxfrom(from[0],from[1],from[2]);
 			MT_Vector3 kxto(to[0],to[1],to[2]);
@@ -260,9 +261,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 			{
 				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
 				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
-			
-			//disable / enable debug drawing (contact points, aabb's etc)	
-		//		ccdPhysEnv->setDebugMode(1);
+				//todo: get a button in blender ?
+				//disable / enable debug drawing (contact points, aabb's etc)	
+				//ccdPhysEnv->setDebugMode(1);
 				destinationscene->SetPhysicsEnvironment(ccdPhysEnv);
 				break;
 			}

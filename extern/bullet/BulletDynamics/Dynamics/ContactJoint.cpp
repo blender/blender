@@ -3,6 +3,9 @@
 #include "NarrowPhaseCollision/PersistentManifold.h"
 
 
+//this constant needs to be set up so different solvers give 'similar' results
+#define FRICTION_CONSTANT 120.f
+
 
 ContactJoint::ContactJoint(PersistentManifold* manifold,int index,bool swap,RigidBody* body0,RigidBody* body1)
 :m_manifold(manifold),
@@ -14,9 +17,6 @@ m_body1(body1)
 }
 
 int m_numRows = 3;
-
-//float gContactFrictionFactor  = 0.f;//12.f;//30.5f;//100.f;//1e30f;//2.9f;
-
 
 
 void ContactJoint::GetInfo1(Info1 *info)
@@ -150,7 +150,8 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[1] = ccc2[1];
 	c2[2] = ccc2[2];
 	
-	float friction = 20.f*m_body0->getFriction() * m_body1->getFriction();
+	
+	float friction = FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
 	
 	// first friction direction
 	if (m_numRows >= 2) 
