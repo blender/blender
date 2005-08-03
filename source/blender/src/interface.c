@@ -4612,14 +4612,6 @@ static uiBut *uiDefButBit(uiBlock *block, int type, int bit, int retval, char *s
 	if (bitIdx==-1) {
 		return NULL;
 	} else {
-		if (type&BIT) {
-			int curIdx = type&31;
-
-			if (curIdx!=bitIdx) {
-				printf("ERROR: button index mismatch! (Button: %s, Correct Index: %d, Given Index: %d)\n", str, bitIdx, curIdx);
-			}
-		}
-
 		return uiDefBut(block, type|BIT|bitIdx, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
 	}
 }

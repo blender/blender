@@ -436,11 +436,11 @@ void seq_buttons()
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
 	}

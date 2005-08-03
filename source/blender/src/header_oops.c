@@ -340,11 +340,11 @@ void oops_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Show pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Hide pulldown menus");
 	}
@@ -383,20 +383,20 @@ void oops_buttons(void)
 		
 		/* VISIBLE */
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|10,B_NEWOOPS, "Layer",		(short)(xco+=XIC),0,XIC+20,YIC, &soops->visiflag, 0, 0, 0, 0, "Only show object datablocks on visible layers");
+		uiDefButBitS(block, TOG, OOPS_LAY, B_NEWOOPS, "Layer",		(short)(xco+=XIC),0,XIC+20,YIC, &soops->visiflag, 0, 0, 0, 0, "Only show object datablocks on visible layers");
 		xco+= 20;
-		uiDefIconButS(block, TOG|BIT|0, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Scene datablocks");
-		uiDefIconButS(block, TOG|BIT|1, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Object datablocks");
-		uiDefIconButS(block, TOG|BIT|2, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Mesh datablocks");
-		uiDefIconButS(block, TOG|BIT|3, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Curve/Surface/Font datablocks");
-		uiDefIconButS(block, TOG|BIT|4, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Metaball datablocks");
-		uiDefIconButS(block, TOG|BIT|5, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lattice datablocks");
-		uiDefIconButS(block, TOG|BIT|6, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lamp datablocks");
-		uiDefIconButS(block, TOG|BIT|7, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Material datablocks");
-		uiDefIconButS(block, TOG|BIT|8, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture datablocks");
-		uiDefIconButS(block, TOG|BIT|9, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo datablocks");
-		uiDefIconButS(block, TOG|BIT|12, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image datablocks");
-		uiDefIconButS(block, TOG|BIT|11, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_SCE, B_NEWOOPS, ICON_SCENE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Scene datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_OB, B_NEWOOPS, ICON_OBJECT_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Object datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_ME, B_NEWOOPS, ICON_MESH_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Mesh datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_CU, B_NEWOOPS, ICON_CURVE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Curve/Surface/Font datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_MB, B_NEWOOPS, ICON_MBALL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Metaball datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_LT, B_NEWOOPS, ICON_LATTICE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lattice datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_LA, B_NEWOOPS, ICON_LAMP_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Lamp datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_MA, B_NEWOOPS, ICON_MATERIAL_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Material datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_TE, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_IP, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_IM, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_LI, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library datablocks");
 
 		uiBlockEndAlign(block);
 	  

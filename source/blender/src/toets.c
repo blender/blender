@@ -528,7 +528,7 @@ int blenderqread(unsigned short event, short val)
 	
 	if(val==0) return 1;
 	if(event==MOUSEY || event==MOUSEX) return 1;
-	if (G.flags & G_FLAGS_AUTOPLAY) return 1;
+	if (G.flags & G_FILE_AUTOPLAY) return 1;
 
 	if (curarea && curarea->spacetype==SPACE_TEXT) textspace= 1;
 	else if (curarea && curarea->spacetype==SPACE_SCRIPT) textspace= 1;

@@ -4038,11 +4038,11 @@ void view3d_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
 	}
@@ -4091,7 +4091,7 @@ void view3d_buttons(void)
 
 	xco+= XIC+10;
 	
-	uiDefIconButS(block, TOG|BIT|10, B_AROUND, ICON_ALIGN,
+	uiDefIconButBitS(block, TOG, V3D_ALIGN, B_AROUND, ICON_ALIGN,
 				xco,0,XIC,YIC,
 				&G.vd->flag, 0, 0, 0, 0, "Move object centers only");	
 	uiBlockEndAlign(block);
@@ -4100,15 +4100,15 @@ void view3d_buttons(void)
 
 	/* Transform widget / manipulators */
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, TOG|BIT|0, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (CTRL+Space)");	
+	uiDefIconButBitS(block, TOG, V3D_USE_MANIPULATOR, B_REDR, ICON_MANIPUL,xco,0,XIC,YIC, &G.vd->twflag, 0, 0, 0, 0, "Use 3d transform manipulator (CTRL+Space)");	
 	xco+= XIC;
 	
 	if(G.vd->twflag & V3D_USE_MANIPULATOR) {
-		uiDefIconButS(block, TOG|BIT|0, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_TRANSLATE, B_MAN_TRANS, ICON_MAN_TRANS, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Translate manipulator mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|1, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_ROTATE, B_MAN_ROT, ICON_MAN_ROT, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Rotate manipulator mode (CTRL+Space)");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|2, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (CTRL+Space)");
+		uiDefIconButBitS(block, TOG, V3D_MANIP_SCALE, B_MAN_SCALE, ICON_MAN_SCALE, xco,0,XIC,YIC, &G.vd->twtype, 1.0, 0.0, 0, 0, "Scale manipulator mode (CTRL+Space)");
 		xco+= XIC;
 	}
 	uiDefButS(block, MENU, B_NOP, "Orientation%t|Global%x0|Local%x1|Normal%x2|View%x3",xco,0,70,YIC, &G.vd->twmode, 0, 0, 0, 0, "Transform Orientation (ALT+Space)");
@@ -4121,16 +4121,16 @@ void view3d_buttons(void)
 		
 		uiBlockBeginAlign(block);
 		for(a=0; a<5; a++)
-			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
 		for(a=0; a<5; a++)
-			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
 			
 		xco+= 5;
 		uiBlockBeginAlign(block);
 		for(a=5; a<10; a++)
-			uiDefButI(block, TOG|BIT|a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<a, B_LAY+a, "",	(short)(xco+a*(XIC/2)), (short)(YIC/2),(short)(XIC/2),(short)(YIC/2), &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
 		for(a=5; a<10; a++)
-			uiDefButI(block, TOG|BIT|(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
+			uiDefButBitI(block, TOG, 1<<(a+10), B_LAY+10+a, "",(short)(xco+a*(XIC/2)), 0,			XIC/2, (YIC)/2, &(G.vd->lay), 0, 0, 0, 0, "Toggles Layer visibility");
 
 		uiBlockEndAlign(block);
 		
@@ -4159,15 +4159,15 @@ void view3d_buttons(void)
 	/* selection modus */
 	if(G.obedit && (G.obedit->type == OB_MESH)) {
 		uiBlockBeginAlign(block);
-		uiDefIconButS(block, TOG|BIT|0, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_VERTEX, B_SEL_VERT, ICON_VERTEXSEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Vertex select mode");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|1, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_EDGE, B_SEL_EDGE, ICON_EDGESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Edge select mode");
 		xco+= XIC;
-		uiDefIconButS(block, TOG|BIT|2, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
+		uiDefIconButBitS(block, TOG, SCE_SELECT_FACE, B_SEL_FACE, ICON_FACESEL, xco,0,XIC,YIC, &G.scene->selectmode, 1.0, 0.0, 0, 0, "Face select mode");
 		xco+= XIC;
 		uiBlockEndAlign(block);
 		if(G.vd->drawtype > OB_WIRE) {
-			uiDefIconButS(block, TOG|BIT|12, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
+			uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
 			xco+= XIC;
 		}
 		xco+= 20;

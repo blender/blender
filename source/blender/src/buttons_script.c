@@ -318,7 +318,7 @@ static void  script_panel_scriptlink(void)
 	block= uiNewBlock(&curarea->uiblocks, "script_panel_scriptlink", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Scriptlinks", "Script", 0, 0, 318, 204)==0) return;
 
-	uiDefButI(block, TOG|BIT|13, REDRAWBUTSSCRIPT,
+	uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT,
 			"Enable Script Links", xco, 200, 150, 20, &G.f, 0, 0, 0, 0,
 			"Enable execution of all assigned Script links");
 	/* for proper alignment: */

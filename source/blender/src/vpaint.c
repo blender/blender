@@ -96,12 +96,6 @@
 #define VP_MUL	3
 #define VP_FILT	4
 
-	/* Gvp.flag */
-#define VP_COLINDEX	1
-#define VP_AREA		2
-#define VP_SOFT		4
-#define VP_NORMALS	8
-
 #define MAXINDEX	512000
 
 VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT};

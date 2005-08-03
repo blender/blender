@@ -306,16 +306,10 @@ typedef struct FreeCamera {
 #define ACT_GROUP_SET		6
 
 /* ipoactuator->flag */
-#define ACT_IPOFORCE_BIT       0
-#define ACT_IPOEND_BIT         1
-#define ACT_IPOFORCE_LOCAL_BIT 2
-// unused: 3
-#define ACT_IPOCHILD_BIT       4
-
-#define ACT_IPOFORCE        (1 << ACT_IPOFORCE_BIT)
-#define ACT_IPOEND          (1 << ACT_IPOEND_BIT)
-#define ACT_IPOFORCE_LOCAL  (1 << ACT_IPOFORCE_LOCAL_BIT)
-#define ACT_IPOCHILD        (1 << ACT_IPOCHILD_BIT)			
+#define ACT_IPOFORCE        (1 << 0)
+#define ACT_IPOEND          (1 << 1)
+#define ACT_IPOFORCE_LOCAL  (1 << 2)
+#define ACT_IPOCHILD        (1 << 4)			
 
 /* ipoactuator->flag for k2k */
 #define ACT_K2K_PREV		1
@@ -399,8 +393,7 @@ typedef struct FreeCamera {
 
 /* visibilityact->flag */
 /* Set means the object will become invisible */
-#define ACT_VISIBILITY_INVISIBLE_BIT   0
-#define ACT_VISIBILITY_INVISIBLE       (1 << ACT_VISIBILITY_INVISIBLE_BIT)
+#define ACT_VISIBILITY_INVISIBLE       (1 << 0)
 
 #endif
 

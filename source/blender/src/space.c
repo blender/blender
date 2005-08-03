@@ -482,7 +482,7 @@ void start_game(void)
 	restore_all_scene_cfra(scene_cfra_store);
 	set_scene_bg(startscene);
 	
-	if (G.flags & G_FLAGS_AUTOPLAY)
+	if (G.flags & G_FILE_AUTOPLAY)
 		exit_usiblender();
 
 		/* groups could have changed ipo */
@@ -2362,7 +2362,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0,
 			"Forces the current Scene to be displayed in all Screens");
 #ifndef __APPLE__	
-		uiDefButS(block, TOG|BIT|0, 0, "Large Cursors",
+		uiDefButBitS(block, TOG, 1, 0, "Large Cursors",
 			(xpos+edgsp),y2,spref,buth,
 			&(U.curssize), 0, 0, 0, 0,
 			"Use large mouse cursors when available");
@@ -2737,7 +2737,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButS(block, MENU, B_REDR, "Light1 %x0|Light2 %x1|Light3 %x2",
 			xpos+edgsp, y2, 2*mpref/6, buth, &cur_light, 0.0, 0.0, 0, 0, "");
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButI(block, TOG|BIT|0, B_RECALCLIGHT, "On",
+		uiDefButBitI(block, TOG, 1, B_RECALCLIGHT, "On",
 			xpos+edgsp+2*mpref/6, y2, mpref/6, buth, 
 			&U.light[cur_light].flag, 0.0, 0.0, 0, 0, "Enable this OpenGL light in Solid draw mode");
 			
@@ -2787,7 +2787,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		}
 
 /*
-		uiDefButS(block, TOG|BIT|5, 0, "Log Events to Console",
+		uiDefButBitS(block, TOG, USER_EVTTOCONSOLE, 0, "Log Events to Console",
 			(xpos+edgsp),y2,lpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display a list of input events in the console");
 

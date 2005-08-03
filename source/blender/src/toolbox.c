@@ -1244,16 +1244,16 @@ int movetolayer_buts(unsigned int *lay)
 	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++) 
-		uiDefButI(block, TOGR|BIT|a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
 	for(a=0; a<5; a++) 
-		uiDefButI(block, TOGR|BIT|(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
 	x1+= 5;
 	
 	uiBlockBeginAlign(block);
 	for(a=5; a<10; a++) 
-		uiDefButI(block, TOGR|BIT|a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
 	for(a=5; a<10; a++) 
-		uiDefButI(block, TOGR|BIT|(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOGR, 1<<(a+10), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
 	uiBlockEndAlign(block);
 
 	x1-= 5;

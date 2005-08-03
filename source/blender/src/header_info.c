@@ -1256,11 +1256,11 @@ static uiBlock *info_addmenu(void *arg_unused)
 static void do_info_gamemenu(void *arg, int event)
 {
 	switch (event) {
-	case G_FILE_ENABLE_ALL_FRAMES_BIT:
-	case G_FILE_SHOW_FRAMERATE_BIT:
-	case G_FILE_SHOW_DEBUG_PROPS_BIT:
-	case G_FILE_AUTOPLAY_BIT:
-		G.fileflags ^= (1 << event);
+	case G_FILE_ENABLE_ALL_FRAMES:
+	case G_FILE_SHOW_FRAMERATE:
+	case G_FILE_SHOW_DEBUG_PROPS:
+	case G_FILE_AUTOPLAY:
+		G.fileflags ^= event;
 		break;
 	default:
 		; /* ignore the rest */
@@ -1282,30 +1282,30 @@ static uiBlock *info_gamemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 1, 0, "");
 
 
-	if(G.fileflags & (1 << G_FILE_ENABLE_ALL_FRAMES_BIT)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
+	if(G.fileflags & G_FILE_ENABLE_ALL_FRAMES) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES, "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES_BIT, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enable All Frames",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_ENABLE_ALL_FRAMES, "");
 	}
 
-	if(G.fileflags & (1 << G_FILE_SHOW_FRAMERATE_BIT)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Framerate and Profile",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE_BIT, "");
+	if(G.fileflags & G_FILE_SHOW_FRAMERATE) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Framerate and Profile",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE, "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Framerate and Profile",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE_BIT, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Framerate and Profile",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_FRAMERATE, "");
 	}
 
-	if(G.fileflags & (1 << G_FILE_SHOW_DEBUG_PROPS_BIT)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS_BIT, "");
+	if(G.fileflags & G_FILE_SHOW_DEBUG_PROPS) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS, "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS_BIT, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Show Debug Properties",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_SHOW_DEBUG_PROPS, "");
 	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 1, 0, "");
 
-	if(G.fileflags & (1 << G_FILE_AUTOPLAY_BIT)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Autostart",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY_BIT, "");
+	if(G.fileflags & G_FILE_AUTOPLAY) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Autostart",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY, "");
 	} else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Autostart",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY_BIT, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Autostart",	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, G_FILE_AUTOPLAY, "");
 	}
 
 	uiBlockSetDirection(block, UI_DOWN);
@@ -1781,11 +1781,11 @@ void info_buttons(void)
 	else uiBlockSetCol(block, TH_HEADERDESEL);
 	
 	if(curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Enables display of pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Hides pulldown menus");
 	}

@@ -141,7 +141,7 @@ typedef struct Global {
 /* G.f */
 #define G_DISABLE_OK	(1 <<  0)
 #define G_PLAYANIM		(1 <<  1)
-#define G_TEST_DUPLI	(1 <<  2)
+/* also uses G_FILE_AUTOPLAY */
 #define G_SIMULATION	(1 <<  3)
 #define G_BACKBUFSEL	(1 <<  4)
 #define G_PICKSEL		(1 <<  5)
@@ -171,30 +171,17 @@ typedef struct Global {
 
 /* G.fileflags */
 
-#define G_AUTOPACK_BIT                  0
-#define G_FILE_COMPRESS_BIT             1
-#define G_FILE_AUTOPLAY_BIT             2
-#define G_FILE_ENABLE_ALL_FRAMES_BIT    3
-#define G_FILE_SHOW_DEBUG_PROPS_BIT     4
-#define G_FILE_SHOW_FRAMERATE_BIT       5
-#define G_FILE_SHOW_PROFILE_BIT         6
-#define G_FILE_LOCK_BIT                 7
-#define G_FILE_SIGN_BIT                 8
-#define G_FILE_PUBLISH_BIT				9
-#define G_FILE_NO_UI_BIT				10
-
-
-#define G_AUTOPACK               (1 << G_AUTOPACK_BIT)
-#define G_FILE_COMPRESS          (1 << G_FILE_COMPRESS_BIT)
-#define G_FILE_AUTOPLAY          (1 << G_FILE_AUTOPLAY_BIT)
-#define G_FILE_ENABLE_ALL_FRAMES (1 << G_FILE_ENABLE_ALL_FRAMES_BIT)
-#define G_FILE_SHOW_DEBUG_PROPS  (1 << G_FILE_SHOW_DEBUG_PROPS_BIT)
-#define G_FILE_SHOW_FRAMERATE    (1 << G_FILE_SHOW_FRAMERATE_BIT)
-#define G_FILE_SHOW_PROFILE      (1 << G_FILE_SHOW_PROFILE_BIT)
-#define G_FILE_LOCK              (1 << G_FILE_LOCK_BIT)
-#define G_FILE_SIGN              (1 << G_FILE_SIGN_BIT)
-#define G_FILE_PUBLISH			 (1 << G_FILE_PUBLISH_BIT)
-#define G_FILE_NO_UI			 (1 << G_FILE_NO_UI_BIT)
+#define G_AUTOPACK               (1 << 0)
+#define G_FILE_COMPRESS          (1 << 1)
+#define G_FILE_AUTOPLAY          (1 << 2)
+#define G_FILE_ENABLE_ALL_FRAMES (1 << 3)
+#define G_FILE_SHOW_DEBUG_PROPS  (1 << 4)
+#define G_FILE_SHOW_FRAMERATE    (1 << 5)
+#define G_FILE_SHOW_PROFILE      (1 << 6)
+#define G_FILE_LOCK              (1 << 7)
+#define G_FILE_SIGN              (1 << 8)
+#define G_FILE_PUBLISH			 (1 << 9)
+#define G_FILE_NO_UI			 (1 << 10)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0
@@ -206,10 +193,6 @@ typedef struct Global {
 #define G_RESTART	4
 #define G_QUIT		8
 #define G_SETSCENE	16
-
-/* G.flags: double? */
-#define G_FLAGS_AUTOPLAY_BIT	2 
-#define G_FLAGS_AUTOPLAY		(1 << G_FLAGS_AUTOPLAY_BIT)
 
 /* G.qual */
 #define R_SHIFTKEY		1

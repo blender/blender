@@ -178,11 +178,6 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_DISABLE		0x00000004
 #define CONSTRAINT_LOOPTESTED	0x00000008
 
-
-#define CONSTRAINT_EXPAND_BIT	0
-#define CONSTRAINT_DONE_BIT		1
-#define CONSTRAINT_DISABLE_BIT	2
-
 /* bConstraintChannel.flag */
 #define CONSTRAINT_CHANNEL_SELECT	0x00000001
 

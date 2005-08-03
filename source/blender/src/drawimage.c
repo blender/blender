@@ -60,6 +60,7 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_image.h"
 
@@ -745,14 +746,14 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, B_NOP, str,		10,180,300,19, 0, 0, 0, 0, 0, "");
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", 10,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
+		uiDefButBitS(block, TOG, IMA_TWINANIM, B_TWINANIM, "Anim", 10,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
 		uiDefButS(block, NUM, B_TWINANIM, "Start:",		10,130,140,19, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture");
 		uiDefButS(block, NUM, B_TWINANIM, "End:",		10,110,140,19, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture");
 		uiDefButS(block, NUM, B_NOP, "Speed", 				10,90,140,19, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second");
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|0, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces");
+		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);
@@ -780,7 +781,6 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiDefButF(block, NUM, B_NOP, "A: ",		180+12+24,160,80,20, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 	uiDefButF(block, NUM, B_NOP, "Size ",	180+12+24,140,80,20, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 }
-
 
 static void image_blockhandlers(ScrArea *sa)
 {

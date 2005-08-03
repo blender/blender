@@ -560,14 +560,14 @@ void buts_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if (curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
 					  xco,2,XIC,YIC-2,
 					  &(curarea->flag), 0, 0, 0, 0, 
 					  "Show pulldown menus");
 	}
 	else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
 					  ICON_DISCLOSURE_TRI_DOWN,
 					  xco,2,XIC,YIC-2,
 					  &(curarea->flag), 0, 0, 0, 0, 

@@ -502,9 +502,9 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefBut(block, NUM|FLO, B_REDR, "Stride:", 	160,40,150,19, &strip->stridelen, 0.0001, MAXFRAMEF, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TOG|SHO|BIT|ACTSTRIP_USESTRIDEBIT, B_REDR, "Use Path",	10,0,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride. Only armatures parented to a path");
-	uiDefBut(block, TOG|SHO|BIT|ACTSTRIP_HOLDLASTFRAMEBIT, B_REDR, "Hold",	110,0,100,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
-	uiDefBut(block, TOG|SHO, B_REDR, "Add",	210,0,100,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_REDR, "Use Path",	10,0,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride. Only armatures parented to a path");
+	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_REDR, "Hold",	110,0,100,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefButS(block, TOG, B_REDR, "Add",	210,0,100,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
 }
 
 static void nla_blockhandlers(ScrArea *sa)

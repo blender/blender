@@ -887,7 +887,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	y= area->winy-30+sipo->butofs;
 	for(a=0; a<sipo->totipo; a++, ei++, y-=IPOBUTY) {
 		// this button defines visiblity, bit zero of flag (IPO_VISIBLE)
-		but= uiDefButS(block, TOG|BIT|0, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
+		but= uiDefButBitS(block, TOG, IPO_VISIBLE, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
 		// no hilite, its not visible, but most of all the winmatrix is not correct later on...
 		uiButSetFlag(but, UI_TEXT_LEFT|UI_NO_HILITE);
 		

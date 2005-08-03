@@ -80,13 +80,6 @@ typedef struct bArmature {
 }bArmature;
 
 /* armature->flag */
-#define		ARM_RESTPOSBIT		0
-
-#define		ARM_DRAWAXESBIT		2
-#define		ARM_DRAWNAMESBIT	3
-#define		ARM_POSEBIT			4
-#define		ARM_EDITBIT			5
-#define		ARM_DELAYBIT		6
 /* dont use bit 7, was saved in files to disable stuff */
 
 /* armature->flag */
@@ -131,19 +124,6 @@ typedef struct bArmature {
 enum {
 		BONE_SKINNABLE  =       0,
 		BONE_UNSKINNABLE,
-		BONE_HEAD,
-		BONE_NECK,
-		BONE_BACK,
-		BONE_SHOULDER,
-		BONE_ARM,
-		BONE_HAND,
-		BONE_FINGER,
-		BONE_THUMB,
-		BONE_PELVIS,
-		BONE_LEG,
-		BONE_FOOT,
-		BONE_TOE,
-		BONE_TENTACLE
 };
 
 #endif

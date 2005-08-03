@@ -358,14 +358,14 @@ void time_buttons(ScrArea *sa)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if (sa->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
 					  ICON_DISCLOSURE_TRI_RIGHT,
 					  xco,2,XIC,YIC-2,
 					  &(sa->flag), 0, 0, 0, 0, 
 					  "Show pulldown menus");
 	}
 	else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, 
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, 
 					  ICON_DISCLOSURE_TRI_DOWN,
 					  xco,2,XIC,YIC-2,
 					  &(sa->flag), 0, 0, 0, 0, 

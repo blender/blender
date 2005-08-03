@@ -346,7 +346,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
-	uiDefIconButS(block, ICONTOG|BIT|CONSTRAINT_EXPAND_BIT, B_CONSTRAINT_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
+	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 
 	if (con->flag & CONSTRAINT_EXPAND) {
 		
@@ -483,9 +483,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButI(block, TOG|BIT|1, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+				but=uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -647,7 +647,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
 				/* Draw Curve Follow toggle */
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
+				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
 
 				/* Draw Offset number button */
 				uiDefButF(block, NUM, B_CONSTRAINT_REDRAW, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
@@ -992,16 +992,16 @@ static void object_panel_draw(Object *ob)
 	
 	uiBlockBeginAlign(block);
 	for(a=0; a<5; a++)
-		uiDefButI(block, TOG|BIT|(a), B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
 	for(a=0; a<5; a++)
-		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
 		
 	xco+= 7;
 	uiBlockBeginAlign(block);
 	for(a=5; a<10; a++)
-		uiDefButI(block, TOG|BIT|(a), B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOG, 1<<a, B_OBLAY+a, "",	(short)(xco+a*(dx/2)), 180, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
 	for(a=5; a<10; a++)
-		uiDefButI(block, TOG|BIT|(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
+		uiDefButBitI(block, TOG, 1<<(a+10), B_OBLAY+a+10, "",	(short)(xco+a*(dx/2)), 165, (short)(dx/2), (short)(dy/2), &(BASACT->lay), 0, 0, 0, 0, "");
 
 	uiBlockEndAlign(block);
 
@@ -1017,7 +1017,7 @@ static void object_panel_draw(Object *ob)
 	uiDefBut(block, LABEL, 0, "Draw Extra",							120,120,90,20, NULL, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Bounds",				120, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
+	uiDefButBitC(block, TOG, OB_BOUNDBOX, REDRAWVIEW3D, "Bounds",				120, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's bounds");
 	uiDefButBitC(block, TOG, OB_DRAWNAME, REDRAWVIEW3D, "Name",		210, 100, 90, 20, &ob->dtx, 0, 0, 0, 0, "Displays the active object's name");
 	
 	uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4",
@@ -1294,24 +1294,24 @@ static void object_panel_anim(Object *ob)
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
 	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		298,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
 	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|0, REDRAWVIEW3D, "Draw Key",		24,160,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
-	uiDefButC(block, TOG|BIT|1, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
-	uiDefButC(block, TOG|BIT|7, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
-	uiDefButS(block, TOG|BIT|4, 0, "SlowPar",					260,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
+	uiDefButBitC(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,160,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
+	uiDefButBitC(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
+	uiDefButBitC(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
+	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
 	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|3, REDRAWVIEW3D, "DupliFrames",	24,128,89,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefButC(block, TOG|BIT|4, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButC(block, TOG|BIT|5, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
-	uiDefButC(block, TOG|BIT|6, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
+	uiDefButBitC(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,128,89,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefButBitC(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
+	uiDefButBitC(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButBitC(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|2, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
-	uiDefButC(block, TOG|BIT|6, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButC(block, TOG|BIT|7, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiDefButBitC(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
+	uiDefButBitC(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
+	uiDefButBitC(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,17,115,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
@@ -1519,7 +1519,7 @@ static void object_panel_deflectors(Object *ob)
 			
 			/* only meshes collide now */
 			if(ob->type==OB_MESH) {
-				uiDefButS(block, TOG|BIT|0, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+				uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
 				uiDefBut(block, LABEL, 0, "Particles",			160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 				
 				uiBlockBeginAlign(block);
@@ -1870,10 +1870,10 @@ static void object_panel_modifiers(Object *ob)
 
 	if (ob->modifiers.first) {
 		int i, canCage=1, numModifiers = BLI_countlist(&ob->modifiers);
-		ModifierData *md;
-
-		CLAMP(actModifier, 1, numModifiers);
-		uiDefButI(block, NUM, B_REDR, "Modifier", 740,380,180,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
+ 		ModifierData *md;
+ 
+ 		CLAMP(actModifier, 1, numModifiers);
+ 		uiDefButI(block, NUM, B_REDR, "Modifier", 740,380,180,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
 
 		for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++) {
 			if (!modifier_supportsMapping(md) || !(md->mode&eModifierMode_OnCage))
@@ -1989,7 +1989,7 @@ static void object_panel_effects(Object *ob)
 		
 		x= 15 * a + 550;
 		y= 172; // - 12*( abs(a/10) ) ;
-		uiDefButS(block, TOG|BIT|0, B_SELEFFECT+a, "", x, y, 15, 12, &eff->flag, 0, 0, 0, 0, "");
+		uiDefButBitS(block, TOG, SELECT, B_SELEFFECT+a, "", x, y, 15, 12, &eff->flag, 0, 0, 0, 0, "");
 		
 		a++;
 		if(a==MAX_EFFECT) break;
@@ -2012,9 +2012,9 @@ static void object_panel_effects(Object *ob)
 			
 			uiDefBut(block, BUT, B_RECALCAL, "RecalcAll", 741,187,67,27, 0, 0, 0, 0, 0, "Update the particle system");
 			uiBlockBeginAlign(block);
-			uiDefButS(block, TOG|BIT|2, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
+			uiDefButBitS(block, TOG, PAF_STATIC, B_CALCEFFECT, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
 			if(paf->flag & PAF_STATIC)
-				uiDefButS(block, TOG|BIT|4, B_DIFF, "Animated",825,167,67,20, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
+				uiDefButBitS(block, TOG, PAF_ANIMATED, B_DIFF, "Animated",825,167,67,20, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
 			
 			uiBlockBeginAlign(block);
 			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",			550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");
@@ -2038,8 +2038,8 @@ static void object_panel_effects(Object *ob)
 			uiDefButF(block, NUM, B_CALCEFFECT, "Randlife:",	550,96,96,20, &paf->randlife, 0.0, 2.0, 10, 0, "Give the particlelife a random variation");
 			uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",		652,96,80,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
 
-			uiDefButS(block, TOG|BIT|3, B_CALCEFFECT, "Face",		735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
-			uiDefButS(block, TOG|BIT|1, B_CALCEFFECT, "Bspline",	782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
+			uiDefButBitS(block, TOG, PAF_FACE, B_CALCEFFECT, "Face",		735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
+			uiDefButBitS(block, TOG, PAF_BSPLINE, B_CALCEFFECT, "Bspline",	782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
 			uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",				837,96,45,20, &paf->stype, 0, 0, 0, 0, "Give the particles a rotation direction");
 			uiDefButF(block, NUM, B_DIFF,			"VectSize",		885,96,116,20, &paf->vectsize, 0.0, 1.0, 10, 0, "Set the speed for Vect");	
 

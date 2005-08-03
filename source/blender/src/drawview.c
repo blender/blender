@@ -1213,8 +1213,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	
 		
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButS(block, TOGN|BIT|13, REDRAWVIEW3D, "Local",			230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",			230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
 		
 		QUATCOPY(ve_median, median);
 		

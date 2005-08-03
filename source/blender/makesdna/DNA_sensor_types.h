@@ -213,11 +213,8 @@ typedef struct bJoystickSensor {
 #define SENS_NEG_PULSE_MODE 4
 
 /* sensor->suppress */
-#define SENS_SUPPRESS_POSITIVE_BIT 0
-#define SENS_SUPPRESS_NEGATIVE_BIT 1
-
-#define SENS_SUPPRESS_POSITIVE (1 << SENS_SUPPRESS_POSITIVE_BIT)
-#define SENS_SUPPRESS_NEGATIVE (1 << SENS_SUPPRESS_NEGATIVE_BIT)
+#define SENS_SUPPRESS_POSITIVE (1 << 0)
+#define SENS_SUPPRESS_NEGATIVE (1 << 1)
 
 /* collision, ray sensor modes: */
 /* A little bit fake: when property is active, the first bit is

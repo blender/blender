@@ -312,8 +312,8 @@ static void sound_panel_sequencer(void)
 	uiDefBut(block, BUT, B_SOUND_RECALC, "Recalc",		xco+160,yco,75,20, 0, 0, 0, 0, 0, "Recalculate samples");
 
 	yco -= 25;
-	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
-	uiDefButS(block, TOG|BIT|2, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
+	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",	xco,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+	uiDefButBitS(block, TOG, AUDIO_SCRUB, B_SOUND_CHANGED, "Scrub",		xco+120,yco,115,20, &G.scene->audio.flag, 0, 0, 0, 0, "Scrub when changing frames");
 
 	yco -= 25;
 	uiDefBut(block, LABEL, 0, "Main mix", xco,yco,295,20, 0, 0, 0, 0, 0, "");
@@ -323,7 +323,7 @@ static void sound_panel_sequencer(void)
 		xco,yco,235,24,&G.scene->audio.main, -24.0, 6.0, 0, 0, "Set the audio master gain/attenuation in dB");
 
 	yco -= 25;
-	uiDefButS(block, TOG|BIT|0, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
+	uiDefButBitS(block, TOG, AUDIO_MUTE, 0, "Mute",	xco,yco,235,24, &G.scene->audio.flag, 0, 0, 0, 0, "Mute audio from sequencer");		
 	
 	yco -= 35;
 	uiDefBut(block, BUT, B_SOUND_MIXDOWN, "MIXDOWN",	xco,yco,235,24, 0, 0, 0, 0, 0, "Create WAV file from sequenced audio");
@@ -384,7 +384,7 @@ static void sound_panel_sound(bSound *sound)
 		if (sound->sample->packedfile) packdummy = 1;
 		else packdummy = 0;
 		
-		uiDefIconButI(block, TOG|BIT|0, B_SOUND_UNPACK_SAMPLE, ICON_PACKAGE,
+		uiDefIconButBitI(block, TOG, 1, B_SOUND_UNPACK_SAMPLE, ICON_PACKAGE,
 			285, 120,25,24, &packdummy, 0, 0, 0, 0,"Pack/Unpack this sample");
 		
 		uiDefBut(block, BUT, B_SOUND_LOAD_SAMPLE, "Load sample", 10, 95,150,24, 0, 0, 0, 0, 0, "Load a different sample file");
@@ -398,11 +398,11 @@ static void sound_panel_sound(bSound *sound)
 			160,70,150,20, &sound->pitch, -12.0, 12.0, 0, 0, "Game engine only: Set the pitch of this sound");
 
 		/* looping */
-		uiDefButI(block, TOG|BIT|SOUND_FLAGS_LOOP_BIT, B_SOUND_REDRAW, "Loop",
+		uiDefButBitI(block, TOG, SOUND_FLAGS_LOOP, B_SOUND_REDRAW, "Loop",
 			10, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Game engine only: Toggle between looping on/off");
 
 		if (sound->flags & SOUND_FLAGS_LOOP) {
-			uiDefButI(block, TOG|BIT|SOUND_FLAGS_BIDIRECTIONAL_LOOP_BIT, B_SOUND_REDRAW, "Ping Pong",
+			uiDefButBitI(block, TOG, SOUND_FLAGS_BIDIRECTIONAL_LOOP, B_SOUND_REDRAW, "Ping Pong",
 				105, 50, 95, 20, &sound->flags, 0.0, 0.0, 0, 0, "Game engine only: Toggle between A->B and A->B->A looping");
 			
 		}
@@ -411,7 +411,7 @@ static void sound_panel_sound(bSound *sound)
 		/* 3D settings ------------------------------------------------------------------ */
 
 		if (sound->sample->channels == 1) {
-			uiDefButI(block, TOG|BIT|SOUND_FLAGS_3D_BIT, B_SOUND_REDRAW, "3D Sound",
+			uiDefButBitI(block, TOG, SOUND_FLAGS_3D, B_SOUND_REDRAW, "3D Sound",
 				10, 10, 90, 20, &sound->flags, 0, 0, 0, 0, "Game engine only: Turns 3D sound on");
 			
 			if (sound->flags & SOUND_FLAGS_3D) {
@@ -1021,38 +1021,38 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButS(block, TOG|BIT|0, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	uiDefButI(block, TOG|BIT|19, B_NOP,"Threads",	10, 68, 80, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable/Disable render in two threads");	
+	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
+	uiDefButBitI(block, TOG, R_THREADS, B_NOP,"Threads",	10, 68, 80, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable/Disable render in two threads");	
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
 	for(b=2; b>=0; b--)
 		for(a=0; a<3; a++)
-			uiDefButS(block, TOG|BIT|(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
+			uiDefButBitS(block, TOG, 1<<(3*b+a), 800,"",	(short)(10+18*a),(short)(10+14*b),16,12, &G.winpos, 0, 0, 0, 0, "Render window placement on screen");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
+	uiDefButBitS(block, TOG, R_PASSEPARTOUT, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
 	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiBlockEndAlign(block);
 
-	uiDefButS(block, TOG|BIT|4, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+	uiDefButBitS(block, TOG, R_EXTENSION, 0, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
 
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|5, 0,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefButBitI(block, TOG, R_EDGE, 0,"Edge",   100, 94, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 170, 94, 140, 20, "Display edge settings");
 	
 	/* postprocess render buttons */
 	uiBlockBeginAlign(block);
 	if(R.rectftot)
-		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+		uiDefIconTextButBitI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
 	else
-		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",  100, 68, 70, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
 	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 170, 68, 140, 20, "Applies on RGBA floats while render or with Fbuf available");
 	uiBlockEndAlign(block);
 	
@@ -1079,7 +1079,7 @@ static void render_panel_render(void)
 												369, 142, 191, 20, &G.scene->r.renderer, 0, 0, 0, 0, "Choose rendering engine");	
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|0, 0, "OSA",		369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
+	uiDefButBitI(block, TOG, R_OSA, 0, "OSA",		369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
 	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
 	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
 	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
@@ -1087,7 +1087,7 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|14, 0, "MBLUR",	496,109,64,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
+	uiDefButBitI(block, TOG, R_MBLUR, 0, "MBLUR",	496,109,64,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",			496,88,64,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
 	uiBlockEndAlign(block);
 
@@ -1106,11 +1106,11 @@ static void render_panel_render(void)
 		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|1,0,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButI(block, TOG|BIT|4,0,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
-	uiDefButI(block, TOG|BIT|10,0,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
-	uiDefButI(block, TOG|BIT|16,B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButI(block, TOG|BIT|8,0,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButBitI(block, TOG, R_SHADOW, 0,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButBitI(block, TOG, R_ENVMAP, 0,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
+	uiDefButBitI(block, TOG, R_PANORAMA, 0,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
+	uiDefButBitI(block, TOG, R_RADIO, 0,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -1121,15 +1121,15 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|6,0,"Fields",  565,55,60,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
-	uiDefButI(block, TOG|BIT|13,0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
-	uiDefButI(block, TOG|BIT|7,0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
+	uiDefButBitI(block, TOG, R_FIELDS, 0,"Fields",  565,55,60,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
+	uiDefButBitI(block, TOG, R_ODDFIELD, 0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
+	uiDefButBitI(block, TOG, R_FIELDSTILL, 0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	
-	uiDefButI(block, TOG|BIT|17,0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
+	uiDefButBitI(block, TOG, R_GAUSS, 0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
 	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
 	
-	uiDefButI(block, TOG|BIT|9,REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
-	uiDefButI(block, TOG|BIT|2, B_REDR, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
+	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButBitI(block, TOG, R_GAMMA, B_REDR, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");
 	uiBlockEndAlign(block);
 
 }
@@ -1147,8 +1147,8 @@ static void render_panel_anim(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0, 0, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
-	uiDefButS(block, TOG|BIT|1, 0, "Render Daemon",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
+	uiDefButBitS(block, TOG, R_DOSEQ, 0, "Do Sequence",692,114,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Enables sequence output rendering (Default: 3D rendering)");
+	uiDefButBitS(block, TOG, R_BG_RENDER, 0, "Render Daemon",692,90,192,20, &G.scene->r.scemode, 0, 0, 0, 0, "Let external network render current scene");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
@@ -1190,11 +1190,11 @@ static void render_panel_format(void)
 #ifdef __sgi
 	yofs = 76;
 	uiDefButS(block, NUM,B_DIFF,"MaxSize:", 892,32,165,20, &G.scene->r.maximsize, 0.0, 500.0, 0, 0, "Maximum size per frame to save in an SGI movie");
-	uiDefButI(block, TOG|BIT|12,0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
+	uiDefButBitI(block, TOG, R_COSMO, 0,"Cosmo", 1059,32,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Attempt to save SGI movies using Cosmo hardware");
 #endif
 
 	uiDefButS(block, MENU,B_FILETYPEMENU,imagetype_pup(),	892,yofs,174,20, &G.scene->r.imtype, 0, 0, 0, 0, "Images are saved in this file format");
-	uiDefButI(block, TOG|BIT|11,B_DIFF, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
+	uiDefButBitI(block, TOG, R_MOVIECROP, B_DIFF, "Crop",          1068,yofs,51,20, &G.scene->r.mode, 0, 0, 0, 0, "Exclude border rendering from total image");
 
 	yofs -= 22;
 
@@ -1248,7 +1248,7 @@ static void render_panel_format(void)
 	uiDefBut(block, BUT,B_PR_PAL169, "PAL 16:9",1146,70,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 720x576, Aspect ratio - 64x45");
 	uiDefBut(block, BUT,B_PR_PANO, "PANO",		1146,50,100,18, 0, 0, 0, 0, 0, "Standard panorama settings");
 	uiDefBut(block, BUT,B_PR_FULL, "FULL",		1146,30,100,18, 0, 0, 0, 0, 0, "Size preset: Image size - 1280x1024, Aspect ratio - 1x1");
-	uiDefButI(block, TOG|BIT|15, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
+	uiDefButBitI(block, TOG, R_UNIFIED, B_REDR, "Unified Renderer", 1146,10,100,18,  &G.scene->r.mode, 0, 0, 0, 0, "Use the unified renderer.");
 	uiBlockEndAlign(block);
 }
 
@@ -1283,13 +1283,13 @@ static void render_panel_yafrayGI()
 		if (G.scene->r.GImethod==2) {
 			uiDefButI(block, NUM, B_DIFF, "Depth:", 180,175,110,20, &G.scene->r.GIdepth, 1.0, 100.0, 10, 10, "Number of bounces of the indirect light");
 			uiDefButI(block, NUM, B_DIFF, "CDepth:", 180,150,110,20, &G.scene->r.GIcausdepth, 1.0, 100.0, 10, 10, "Number of bounces inside objects (for caustics)");
-			uiDefButS(block,TOG|BIT|0, B_REDR, "Photons",210,125,100,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
+			uiDefButBitS(block, TOG, 1,  B_REDR, "Photons",210,125,100,20, &G.scene->r.GIphotons, 0, 0, 0, 0, "Use global photons to help in GI");
 		}
 
-		uiDefButS(block,TOG|BIT|0, B_REDR, "Cache",6,125,95,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache occlusion/irradiance samples (faster)");
+		uiDefButBitS(block, TOG, 1, B_REDR, "Cache",6,125,95,20, &G.scene->r.GIcache, 0, 0, 0, 0, "Cache occlusion/irradiance samples (faster)");
 		if (G.scene->r.GIcache) 
 		{
-			uiDefButS(block,TOG|BIT|0, B_REDR, "NoBump",108,125,95,20, &G.scene->r.YF_nobump, 0, 0, 0, 0, "Don't use bumpnormals for cache (faster, but no bumpmapping in total indirectly lit areas)");
+			uiDefButBitS(block,TOG, 1, B_REDR, "NoBump",108,125,95,20, &G.scene->r.YF_nobump, 0, 0, 0, 0, "Don't use bumpnormals for cache (faster, but no bumpmapping in total indirectly lit areas)");
 			uiDefBut(block, LABEL, 0, "Cache parameters:", 5,105,130,20, 0, 1.0, 0, 0, 0, "");
 			if (G.scene->r.GIshadowquality==0.0) G.scene->r.GIshadowquality=0.9;
 			uiDefButF(block, NUM, B_DIFF,"ShadQu:", 5,85,154,20,	&(G.scene->r.GIshadowquality), 0.01, 1.0 ,1,0, "Sets the shadow quality, keep it under 0.95 :-) ");
@@ -1312,7 +1312,7 @@ static void render_panel_yafrayGI()
 				if(G.scene->r.GImixphotons==0) G.scene->r.GImixphotons=100;
 				uiDefButI(block, NUM, B_DIFF, "MixCount:", 170,35,140,20, &G.scene->r.GImixphotons, 
 						0, 1000, 10, 10, "Number of photons to mix");
-				uiDefButS(block,TOG|BIT|0, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
+				uiDefButBitS(block, TOG, 1, B_REDR, "Tune Photons",170,10,140,20, &G.scene->r.GIdirect, 
 						0, 0, 0, 0, "Show the photonmap directly in the render for tuning");
 			}
 		}
@@ -1332,7 +1332,7 @@ static void render_panel_yafrayGlobal()
 	// label to force a boundbox for buttons not to be centered
 	uiDefBut(block, LABEL, 0, " ", 305,180,10,10, 0, 0, 0, 0, 0, "");
 
-	uiDefButS(block,TOGN|BIT|0, B_REDR, "xml", 5,180,75,20, &G.scene->r.YFexportxml,
+	uiDefButBitS(block, TOGN, 1, B_REDR, "xml", 5,180,75,20, &G.scene->r.YFexportxml,
 					0, 0, 0, 0, "Export to an xml file and call yafray instead of plugin");
 
 	uiDefButF(block, NUMSLI, B_DIFF,"Bi ", 5,35,150,20,	&(G.scene->r.YF_raybias), 
@@ -1345,9 +1345,9 @@ static void render_panel_yafrayGlobal()
 	uiDefButI(block, NUM, B_DIFF, "Processors:", 160,60,150,20, &G.scene->r.YF_numprocs, 1.0, 8.0, 10, 10, "Number of processors to use");
 
 	/*AA Settings*/
-	uiDefButS(block,TOGN|BIT|0, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
+	uiDefButBitS(block, TOGN, 1, B_REDR, "Auto AA", 5,140,150,20, &G.scene->r.YF_AA, 
 					0, 0, 0, 0, "Set AA using OSA and GI quality, disable for manual control");
-	uiDefButS(block, TOGN|BIT|0, B_DIFF, "Clamp RGB", 160,140,150,20, &G.scene->r.YF_clamprgb, 1.0, 8.0, 10, 10, "For AA on fast high contrast changes. Not advisable for Bokeh! Dulls lens shape detail.");
+	uiDefButBitS(block, TOGN, 1, B_DIFF, "Clamp RGB", 160,140,150,20, &G.scene->r.YF_clamprgb, 1.0, 8.0, 10, 10, "For AA on fast high contrast changes. Not advisable for Bokeh! Dulls lens shape detail.");
  	if(G.scene->r.YF_AA){
 		uiDefButI(block, NUM, B_DIFF, "AA Passes ", 5,115,150,20, &G.scene->r.YF_AApasses, 0, 64, 10, 10, "Number of AA passes (0 is no AA)");
 		uiDefButI(block, NUM, B_DIFF, "AA Samples ", 160,115,150,20, &G.scene->r.YF_AAsamples, 0, 2048, 10, 10, "Number of samples per pass");
@@ -1366,7 +1366,7 @@ static void render_panel_sfx(void)
 	if(uiNewPanel(curarea, block, "Post Effects", "Render", 320, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|20,B_SET_ZBLUR,"Zblur",	10,180,140,20,&G.scene->r.mode,0,0, 0, 0, "Apply blur based on depth values in z-buffer");
+	uiDefButBitI(block, TOG, R_ZBLUR,B_SET_ZBLUR,"Zblur",	10,180,140,20,&G.scene->r.mode,0,0, 0, 0, "Apply blur based on depth values in z-buffer");
 	uiDefButF(block, NUM,B_DIFF, "ZMin:",		10,160,140,20, &G.scene->r.zmin, 0.0, 1.0, 0, 0, "Specify the start distance with maximum blur");				
 	uiDefButF(block, NUM,B_DIFF, "Focus:",		10,140,140,20, &G.scene->r.focus, 0.0, 1.0, 0, 0, "Specify the focus distance (not blurred)");
 	uiDefButF(block, NUM,B_DIFF, "Blur:",		10,120,140,20, &G.scene->r.zblur, 1.0, 100.0, 0, 0, "Specify the maximum blur radius");	
@@ -1375,15 +1375,15 @@ static void render_panel_sfx(void)
 	
 	/* Toon shading buttons */
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|5, B_SET_EDGE, "Edge",	160, 180, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
+	uiDefButBitI(block, TOG, R_EDGE, B_SET_EDGE, "Edge",	160, 180, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Toon edge shading");
 	uiDefBlockBut(block, edge_render_menu, NULL, "Edge Settings", 160, 160, 150, 20, "Display edge settings");
 	
 	/* postprocess render buttons */
 	uiBlockBeginAlign(block);
 	if(R.rectftot)
-		uiDefIconTextButI(block, TOG|BIT|18, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
+		uiDefIconTextButI(block, TOG, R_FBUF, B_NOP, ICON_IMAGE_DEHLT," Fbuf", 160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render; buffer available");
 	else
-		uiDefButI(block, TOG|BIT|18, 0,"Fbuf",		160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
+		uiDefButBitI(block, TOG, R_FBUF, 0,"Fbuf",		160, 130, 150, 20, &G.scene->r.mode, 0, 0, 0, 0, "Keep RGBA float buffer after render, no buffer available now");
 	uiDefBlockBut(block, post_render_menu, NULL, "Post process", 160, 110, 150, 20, "Applies on RGBA floats while render or with Fbuf available");
 	uiBlockEndAlign(block);
 	
@@ -1432,7 +1432,7 @@ void anim_panels()
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",  10,130,150,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
-	uiDefButS(block, TOG|BIT|1, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
+	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM,REDRAWSEQ,"Sta:",	10,100,150,20,&G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "Specify the start frame of the animation");

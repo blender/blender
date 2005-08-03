@@ -1075,11 +1075,11 @@ void image_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_RIGHT,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Show pulldown menus");
 	} else {
-		uiDefIconButS(block, TOG|BIT|0, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
+		uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, B_FLIPINFOMENU, ICON_DISCLOSURE_TRI_DOWN,
 				xco,2,XIC,YIC-2,
 				&(curarea->flag), 0, 0, 0, 0, "Hide pulldown menus");
 	}
@@ -1129,8 +1129,8 @@ void image_buttons(void)
 	/*	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)"); 
 	
 	
-	uiDefIconButS(block, TOG|BIT|0, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
-	uiDefIconButS(block, ICONTOG|BIT|2, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");
+	uiDefIconButBitS(block, TOG, SI_BE_SQUARE, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
+	uiDefIconButBitS(block, ICONTOG, SI_CLIP_UV, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");
 	*/
     
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
@@ -1143,7 +1143,7 @@ void image_buttons(void)
 		if (G.sima->image->packedfile) {
 			headerbuttons_packdummy = 1;
 		}
-		uiDefIconButI(block, TOG|BIT|0, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+		uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
 		
 		xco+= XIC;
 	}
@@ -1158,17 +1158,17 @@ void image_buttons(void)
 		uiBlockSetCol(block, TH_AUTO);
 		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - file select");
 		xco+= 3.5*XIC;
-		uiDefIconButS(block, TOG|BIT|4, 0, ICON_ENVMAP, xco,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
+		uiDefIconButBitS(block, TOG, 16, 0, ICON_ENVMAP, xco,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
 
-		uiDefIconButS(block, TOG|BIT|0, B_SIMAGEDRAW1, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "");
+		uiDefIconButBitS(block, TOG, 1, B_SIMAGEDRAW1, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 	
-		uiDefButS(block, TOG|BIT|1, B_TWINANIM, "Anim", xco,0,(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
+		uiDefButBitS(block, TOG, IMA_TWINANIM, B_TWINANIM, "Anim", xco,0,(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
 		xco+= XIC;
 		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture. Click to change.");
 		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture. Click to change.");
-//		uiDefButS(block, TOG|BIT|2, 0, "Cycle", xco+=XIC,0,2*XIC,YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
+//		uiDefButBitS(block, TOG, IMA_COLCYCLE, 0, "Cycle", xco+=XIC,0,2*XIC,YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
 		
 		uiDefButS(block, NUM, 0, "Speed", xco,0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
 		xco+= 4.5*XIC;
@@ -1189,7 +1189,7 @@ void image_buttons(void)
 
 #ifdef NAN_TPT
 		
-		uiDefIconButS(block, TOG|BIT|3, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		uiDefIconButBitS(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		xco+= XIC+8;
 #endif /* NAN_TPT */
 

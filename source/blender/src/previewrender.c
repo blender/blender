@@ -652,12 +652,12 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 			}
 			else {
 				skip= 1;
-				ta= 0.0;
+				tr= tg= tb= ta= 0.0;
 			}
 		}
 		else {
 			skip= 1;
-			ta= 0.0;
+			tr= tg= tb= ta= 0.0;
 		}
 	}
 	else {

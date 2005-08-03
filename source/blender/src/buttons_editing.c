@@ -440,12 +440,12 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|5, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
+	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,154,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
 	uiDefButS(block, NUM, B_DIFF, "Degr:",				10,160,154,19, &me->smoothresh, 1, 80, 0, 0, "Defines maximum angle between face normals that 'Auto Smooth' will operate on");
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButS(block, TOG|BIT|8, B_SUBSURFTYPE, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
+	uiDefButBitS(block, TOG, ME_OPT_EDGES, B_SUBSURFTYPE, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
 
 	uiBlockBeginAlign(block);
 
@@ -497,8 +497,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		275, 55, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Toggles selected faces as doublesided or single-sided");
-	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "No V.Normal Flip",275,10,130,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
+	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Toggles selected faces as doublesided or single-sided");
+	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip",275,10,130,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
 	uiBlockEndAlign(block);
 
 }
@@ -823,8 +823,8 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefBut(block, BUT, B_LOAD3DTEXT, "Insert Text", 480, 165, 90, 20, 0, 0, 0, 0, 0, "Insert text file at cursor");
 	uiDefBut(block, BUT, B_LOREM, "Lorem", 575, 165, 70, 20, 0, 0, 0, 0, 0, "Insert a paragraph of Lorem Ipsum at cursor");	
 	uiBlockBeginAlign(block);
-	uiDefButC(block, TOG|BIT|0,B_STYLETOSEL, "B",		752,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");
-	uiDefButC(block, TOG|BIT|1,B_STYLETOSEL, "i",		772,165,20,20, &(cu->curinfo.flag), 0, 0, 0, 0, "");	
+	uiDefButBitC(block, TOG, CU_BOLD, B_STYLETOSEL, "B",		752,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");
+	uiDefButBitC(block, TOG, CU_ITALIC, B_STYLETOSEL, "i",		772,165,20,20, &(cu->curinfo.flag), 0, 0, 0, 0, "");	
 	uiBlockEndAlign(block);
 
 	MEM_freeN(strp);
@@ -837,7 +837,7 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		668,135,47,20, &cu->spacemode, 0.0,4.0, 0, 0, "Always fill to maximum textframe width");	
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);
-	uiDefButS(block, TOG|BIT|9,B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
+	uiDefButBitS(block, TOG, CU_FAST, B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
 
 	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
 	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	480,84,220,19, cu->family, 0.0, 20.0, 0, 0, "Blender uses font from selfmade objects");
@@ -1113,9 +1113,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_curve_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Curve and Surface", "Editing", 320, 0, 318, 204)==0) return;
 
-	uiDefButS(block, TOG|BIT|5, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "Forces to use UV coordinates for texture mapping 'orco'");
+	uiDefButBitS(block, TOG, CU_UV_ORCO, 0, "UV Orco",					600,160,150,19, &cu->flag, 0, 0, 0, 0, "Forces to use UV coordinates for texture mapping 'orco'");
 	if(ob->type==OB_SURF)
-		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "Don't flip vertex normals while render");
+		uiDefButBitS(block, TOG, CU_NOPUNOFLIP, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "Don't flip vertex normals while render");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
@@ -1142,10 +1142,10 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 			
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
-			uiDefButS(block, TOG|BIT|3, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "Enables curve to become translation path");
-			uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "Makes curve path children to rotate along path");
-			uiDefButS(block, TOG|BIT|7, B_CURVECHECK, "CurveStretch", 600,10,150,19, &cu->flag, 0, 0, 0, 0, "Option for curve-deform: makes deformed child to stretch along entire path");
-			uiDefButS(block, TOG|BIT|8, REDRAWVIEW3D, "PathDist Offs", 600,-10,150,19, &cu->flag, 0, 0, 0, 0, "Children will use TimeOffs value as path distance offset");
+			uiDefButBitS(block, TOG, CU_PATH, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "Enables curve to become translation path");
+			uiDefButBitS(block, TOG, CU_FOLLOW, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "Makes curve path children to rotate along path");
+			uiDefButBitS(block, TOG, CU_STRETCH, B_CURVECHECK, "CurveStretch", 600,10,150,19, &cu->flag, 0, 0, 0, 0, "Option for curve-deform: makes deformed child to stretch along entire path");
+			uiDefButBitS(block, TOG, CU_OFFS_PATHDIST, REDRAWVIEW3D, "PathDist Offs", 600,-10,150,19, &cu->flag, 0, 0, 0, 0, "Children will use TimeOffs value as path distance offset");
 
 			uiBlockEndAlign(block);
 		}
@@ -1164,9 +1164,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButS(block, TOG|BIT|2, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for curves");
-		uiDefButS(block, TOG|BIT|1, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for curves");
-		uiDefButS(block, TOG|BIT|0, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve Object to be 3d, it doesn't fill then");
+		uiDefButBitS(block, TOG, CU_BACK, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for curves");
+		uiDefButBitS(block, TOG, CU_FRONT, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for curves");
+		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve Object to be 3d, it doesn't fill then");
 
 
 	}
@@ -1202,8 +1202,8 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 
 	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho",		470,29,61,60, &cam->type, 0, 0, 0, 0, "Render orthogonally");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "ShowLimits", 533,59,97,30, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
-	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Show Mist",  533,29,97,30, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+	uiDefButBitS(block, TOG, CAM_SHOWLIMITS, REDRAWVIEW3D, "ShowLimits", 533,59,97,30, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
+	uiDefButBitS(block, TOG, CAM_SHOWMIST, REDRAWVIEW3D, "Show Mist",  533,29,97,30, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
 	uiBlockEndAlign(block);
 }
 
@@ -1220,7 +1220,7 @@ static void editing_panel_camera_yafraydof(Object *ob, Camera *cam)
 	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 10, 147, 180, 20, &cam->YF_dofdist, 0.0, 5000.0, 50, 0, "Sets distance to point of focus (use camera 'ShowLimits' to make visible in 3Dview)");
 	uiDefButF(block, NUM, B_DIFF, "Aperture:", 10, 125, 180, 20, &cam->YF_aperture, 0.0, 2.0, 1, 0, "Sets lens aperture, the larger, the more blur (use small values, 0 is no DoF)");
 
-	uiDefButS(block, TOG|BIT|2, B_DIFF, "Random sampling", 10, 90, 180, 20, &cam->flag, 0, 0, 0, 0, "Use noisy random Lens sampling instead of QMC");
+	uiDefButBitS(block, TOG, CAM_YF_NO_QMC, B_DIFF, "Random sampling", 10, 90, 180, 20, &cam->flag, 0, 0, 0, 0, "Use noisy random Lens sampling instead of QMC");
 
 	uiDefBut(block, LABEL, 0, "Bokeh", 10, 60, 180, 19, 0, 0.0, 0.0, 0, 0, "");
 	mst1 = "Bokeh Type%t|Disk1%x0|Disk2%x1|Triangle%x2|Square%x3|Pentagon%x4|Hexagon%x5|Ring%x6";
@@ -1319,8 +1319,8 @@ static void editing_panel_mball_tools(Object *ob, MetaBall *mb)
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|1, B_RECALCMBALL, "Negative",753,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta creating holes");
-		uiDefButS(block, TOG|BIT|3, B_RECALCMBALL, "Hide",878,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta invisible");
+		uiDefButBitS(block, TOG, MB_NEGATIVE, B_RECALCMBALL, "Negative",753,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta creating holes");
+		uiDefButBitS(block, TOG, MB_HIDE, B_RECALCMBALL, "Hide",878,16,125,19, &lastelem->flag, 0, 0, 0, 0, "Make active meta invisible");
 		uiBlockEndAlign(block);
 
 	}
@@ -1397,7 +1397,7 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		469,98,102,31, 0, 0, 0, 0, 0, "Make Lattice regular");
 
 	uiClearButLock();
-	uiDefButS(block, TOG|BIT|1, B_LATTCHANGED, "Outside",	571,98,122,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
+	uiDefButBitS(block, TOG, LT_OUTSIDE, B_LATTCHANGED, "Outside",	571,98,122,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
 
 	if(lt->key) {
 		uiDefButS(block, NUM, B_DIFF, "Slurph:",			469,60,120,19, &(lt->key->slurph), -500.0, 500.0, 0, 0, "Set time value to denote 'slurph' (sequential delay) vertices with key framing");
@@ -1543,19 +1543,18 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	but = uiDefButI(block, TOG|BIT|ARM_RESTPOSBIT,REDRAWVIEW3D,
+	but = uiDefButBitI(block, TOG, ARM_RESTPOS, REDRAWVIEW3D,
 					"Rest Position", 10,180,150,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
 	uiButSetFunc(but, armature_recalc_func, ob, NULL);
-	uiDefButI(block, TOG|BIT|ARM_DELAYBIT,REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
-
+	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	uiBlockBeginAlign(block);
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,100,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bone as octahedra");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Sticks",	110, 140,100,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bone as simple 2d lines with dots");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bones",	210, 140,100,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|ARM_DRAWAXESBIT,REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButI(block, TOG|BIT|ARM_DRAWNAMESBIT,REDRAWVIEW3D, "Draw Names", 110,110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",			210,110,100,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
 }
 
@@ -1613,7 +1612,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, REDRAWVIEW3D, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButS(block, TOGN|BIT|0,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
+			uiDefButBitS(block, TOGN, 1,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
 			/* Hide in posemode flag */
 			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
 			
@@ -1653,7 +1652,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	for (pchan=ob->pose->chanbase.first, index=0; pchan; pchan=pchan->next, index++){
 		curBone= pchan->bone;
 		if (curBone->flag & (BONE_SELECTED)) {
-			
+
 			/*	Bone naming button */
 			uiBlockBeginAlign(block);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
@@ -1673,10 +1672,9 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			/* bone types */
 			but= uiDefButBitI(block, TOG, BONE_HINGE, REDRAWVIEW3D, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiButSetFunc(but, armature_recalc_func, ob, NULL);
-			uiDefButS(block, TOGN|BIT|0,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
+			uiDefButBitS(block, TOGN, 1,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
 			/* Hide in posemode flag */
 			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
-			
 			uiBlockEndAlign(block);
 			
 			by-=60;
@@ -1907,8 +1905,8 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|2, 0, "Beauty",		    10,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
-	uiDefButS(block, TOG|BIT|4, 0, "Short",		    50,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
+	uiDefButBitS(block, TOG, B_BEAUTY, 0, "Beauty",		    10,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
+	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Short",		    50,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
 
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
 	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",	170,195,85,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
@@ -1936,8 +1934,8 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButS(block, NUM, B_DIFF, "Degr:",			10,55,80,19, &degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
 	uiDefButS(block, NUM, B_DIFF, "Steps:",			90,55,80,19, &step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
 	uiDefButS(block, NUM, B_DIFF, "Turns:",			170,55,85,19, &turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
-	uiDefButS(block, TOG|BIT|1, B_DIFF, "Keep Original",10,35,160,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
-	uiDefButS(block, TOG|BIT|0, B_DIFF, "Clockwise",	170,35,85,19, &editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,160,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
+	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	170,35,85,19, &editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,120,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
@@ -2099,7 +2097,7 @@ static void editing_panel_links(Object *ob)
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
 	else poin= &( ((Curve *)ob->data)->texflag );
-	uiDefButI(block, TOG|BIT|0, B_AUTOTEX, "AutoTexSpace",	143,15,140,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
+	uiDefButBitI(block, TOG, AUTOSPACE, B_AUTOTEX, "AutoTexSpace",	143,15,140,19, poin, 0, 0, 0, 0, "Adjusts active object's texture space automatically when transforming object");
 
 	sprintf(str,"%d Mat ", ob->totcol);
 	if(ob->totcol) min= 1.0; else min= 0.0;
@@ -2366,10 +2364,10 @@ static void editing_panel_mesh_paint(void)
 		uiDefButS(block, ROW, B_DIFF, "Filter",		1212, 80,63,19, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
 		
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|1, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint evaluates the area of the face the brush covers (otherwise vertices only)");
-		uiDefButS(block, TOG|BIT|2, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
-		uiDefButS(block, TOG|BIT|3, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint applies the vertex normal before painting");
-		
+		uiDefButBitS(block, TOG, VP_AREA, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint evaluates the area of the face the brush covers (otherwise vertices only)");
+		uiDefButBitS(block, TOG, VP_SOFT, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
+		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint applies the vertex normal before painting");
+
 		uiBlockBeginAlign(block);
 		uiDefBut(block, BUT, B_VPGAMMA, "Set", 	979,30,81,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
 		uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
@@ -2394,22 +2392,23 @@ static void editing_panel_mesh_texface(void)
 	if(lasttface) {
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|2, B_REDR_3D_IMA, "Tex",	600,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face with texture");
-		uiDefButS(block, TOG|BIT|7, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use tilemode for face");
-		uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Light",	720,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use light for face");
-		uiDefButS(block, TOG|BIT|10, REDRAWVIEW3D, "Invisible",780,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Make face invisible");
-		uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Collision", 840,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use face for collision detection");
+		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face with texture");
+		uiDefButBitS(block, TOG, TF_TILES, B_REDR_3D_IMA, "Tiles",	660,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use tilemode for face");
+		uiDefButBitS(block, TOG, TF_LIGHT, REDRAWVIEW3D, "Light",	720,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use light for face");
+		uiDefButBitS(block, TOG, TF_INVISIBLE, REDRAWVIEW3D, "Invisible",780,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Make face invisible");
+		uiDefButBitS(block, TOG, TF_DYNAMIC, REDRAWVIEW3D, "Collision", 840,160,60,19, &lasttface->mode, 0, 0, 0, 0, "Use face for collision detection");
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|6, REDRAWVIEW3D, "Shared",	600,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
-		uiDefButS(block, TOG|BIT|9, REDRAWVIEW3D, "Twoside",660,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
-		uiDefButS(block, TOG|BIT|11, REDRAWVIEW3D, "ObColor",720,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
+		uiDefButBitS(block, TOG, TF_SHAREDCOL, REDRAWVIEW3D, "Shared",	600,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Blend vertex colours across face when vertices are shared");
+		uiDefButBitS(block, TOG, TF_TWOSIDE, REDRAWVIEW3D, "Twoside",660,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Render face twosided");
+		uiDefButBitS(block, TOG, TF_OBCOL, REDRAWVIEW3D, "ObColor",720,135,60,19, &lasttface->mode, 0, 0, 0, 0, "Use ObColor instead of vertex colours");
 
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|8, B_TFACE_HALO, "Halo",	600,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Screen aligned billboard");
-		uiDefButS(block, TOG|BIT|12, B_TFACE_BILLB, "Billboard",660,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
-		uiDefButS(block, TOG|BIT|13, REDRAWVIEW3D, "Shadow", 720,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
-		uiDefButS(block, TOG|BIT|14, REDRAWVIEW3D, "Text", 780,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
+		
+		uiDefButBitS(block, TOG, TF_BILLBOARD, B_TFACE_HALO, "Halo",	600,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Screen aligned billboard");
+		uiDefButBitS(block, TOG, TF_BILLBOARD2, B_TFACE_BILLB, "Billboard",660,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Billboard with Z-axis constraint");
+		uiDefButBitS(block, TOG, TF_SHADOW, REDRAWVIEW3D, "Shadow", 720,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Face is used for shadow");
+		uiDefButBitS(block, TOG, TF_BMFONT, REDRAWVIEW3D, "Text", 780,110,60,19, &lasttface->mode, 0, 0, 0, 0, "Enable bitmap text on face");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -2489,10 +2488,10 @@ static void editing_panel_mesh_uvautocalculation(void)
 	row-= 2*butHB+butS;
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, TOG|BIT|7, REDRAWVIEW3D, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
-	uiDefButI(block,TOG|BIT|18,REDRAWVIEW3D,"Draw Edges",100,row-butHB,200,butH,&G.f, 2.0, 0, 0, 0,  "Displays edges of visible faces");
- 	uiDefButI(block,TOG|BIT|21,REDRAWVIEW3D,"Draw Hidden Edges",100,row-2*butHB,200,butH,&G.f, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
-	uiDefButI(block,TOG|BIT|20,REDRAWVIEW3D,"Draw Seams",100,row-3*butHB,200,butH,&G.f, 2.0, 2.0, 0, 0,  "Displays UV unwrapping seams");
+	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",	100,row,200,butH, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButBitI(block,TOG, G_DRAWEDGES, REDRAWVIEW3D,"Draw Edges",100,row-butHB,200,butH,&G.f, 2.0, 0, 0, 0,  "Displays edges of visible faces");
+ 	uiDefButBitI(block,TOG, G_HIDDENEDGES, REDRAWVIEW3D,"Draw Hidden Edges",100,row-2*butHB,200,butH,&G.f, 2.0, 1.0, 0, 0,  "Displays edges of hidden faces");
+	uiDefButBitI(block,TOG, G_DRAWSEAMS, REDRAWVIEW3D,"Draw Seams",100,row-3*butHB,200,butH,&G.f, 2.0, 2.0, 0, 0,  "Displays UV unwrapping seams");
 	uiBlockEndAlign(block);
 	row-= 4*butHB+butS;
 

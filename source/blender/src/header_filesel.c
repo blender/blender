@@ -127,8 +127,8 @@ void file_buttons(void)
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
 	xco+= BIF_GetStringWidth(G.font, sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
-	uiDefIconButS(block, ICONTOG|BIT|0, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
-	uiDefIconButS(block, TOG|BIT|3, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
+	uiDefIconButBitS(block, ICONTOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_LONGDISPLAY,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Toggles long info");
+	uiDefIconButBitS(block, TOG, FILE_HIDE_DOT, B_RELOADDIR, ICON_GHOST,xco+=XIC,0,XIC,YIC, &sfile->flag, 0, 0, 0, 0, "Hides dot files");
 
 	uiDefButBitS(block, TOG, FILE_STRINGCODE, 0, "Relative Paths", xco+=XIC+20,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Makes sure returned paths are relative to the current .blend file");
 
@@ -136,16 +136,16 @@ void file_buttons(void)
 
 	if(sfile->type==FILE_LOADLIB) {
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOGN|BIT|2, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
-		uiDefButS(block, TOG|BIT|2, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
+		uiDefButBitS(block, TOGN, FILE_LINK, B_REDR, "Append",		xco+=XIC,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Copies selected data into current project");
+		uiDefButBitS(block, TOG, FILE_LINK, B_REDR, "Link",	xco+=100,0,100,YIC, &sfile->flag, 0, 0, 0, 0, "Creates a link to selected data from current project");
 		uiBlockEndAlign(block);
 		uiBlockBeginAlign(block);
-		uiDefButS(block, TOG|BIT|4, B_REDR, "Autosel", xco+=125,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
-		uiDefButS(block, TOG|BIT|5, B_REDR, "Active Layer", xco+=65,0,80,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) in active layer");
-		uiDefButS(block, TOG|BIT|6, B_REDR, "At Cursor", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
+		uiDefButBitS(block, TOG, FILE_AUTOSELECT, B_REDR, "Autosel", xco+=125,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Autoselect imported objects");
+		uiDefButBitS(block, TOG, FILE_ACTIVELAY, B_REDR, "Active Layer", xco+=65,0,80,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) in active layer");
+		uiDefButBitS(block, TOG, FILE_ATCURSOR, B_REDR, "At Cursor", xco+=80,0,65,YIC, &sfile->flag, 0, 0, 0, 0, "Append object(s) at cursor, use centroid if more than one object is selected");
 		uiBlockEndAlign(block);
 	} else if(sfile->type==FILE_BLENDER) {
-		uiDefButI(block, TOGN|BIT|10, B_REDR, "Load UI", xco+=XIC,0,80,YIC, &G.fileflags, 0, 0, 0, 0, "Load the UI setup as well as the scene data");
+		uiDefButBitI(block, TOGN, G_FILE_NO_UI, B_REDR, "Load UI", xco+=XIC,0,80,YIC, &G.fileflags, 0, 0, 0, 0, "Load the UI setup as well as the scene data");
 		
 	
 		xco+=100;

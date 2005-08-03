@@ -667,8 +667,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		uiDefButS(block, TOG|BIT|6, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButS(block, TOG|BIT|4, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
+		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 	}
 	else if(last_seq->type==SEQ_META) {
@@ -690,8 +690,8 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		uiDefButS(block, TOG|BIT|6, SEQ_BUT_RELOAD, "Make Premul Alpha ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButS(block, TOG|BIT|4, SEQ_BUT_RELOAD, "FilterY ",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Make Premul Alpha ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
+		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY ",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 
 	}
@@ -700,7 +700,7 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 
-		uiDefButS(block, TOG|BIT|5, B_NOP, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
+		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,90,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,70,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,50,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
 	}

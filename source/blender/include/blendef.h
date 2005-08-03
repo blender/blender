@@ -389,4 +389,11 @@
 #define R_DISPLAYWIN	1
 #define R_DISPLAYAUTO	2
 
+	/* Gvp.flag */
+#define VP_COLINDEX	1
+#define VP_AREA		2
+#define VP_SOFT		4
+#define VP_NORMALS	8
+
+
 #endif

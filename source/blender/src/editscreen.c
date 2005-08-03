@@ -1383,7 +1383,7 @@ void screenmain(void)
 				// SET AUTOPLAY in G.flags for
 				// other fileloads
 
-				G.flags |= G_FLAGS_AUTOPLAY;
+				G.flags |= G_FILE_AUTOPLAY;
 				area_autoplayscreen();
 
 				// Let The Games Begin
@@ -2204,7 +2204,7 @@ void area_fullscreen(void)	/* with curarea */
 		// refuse to go out of SCREENAUTOPLAY as long as G_FLAGS_AUTOPLAY
 		// is set
 
-		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FLAGS_AUTOPLAY) == 0) {
+		if (fulltype != SCREENAUTOPLAY || (G.flags & G_FILE_AUTOPLAY) == 0) {
 			sc->full= 0;
 		
 			/* find old area */
