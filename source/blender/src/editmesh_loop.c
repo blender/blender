@@ -348,6 +348,7 @@ void CutEdgeloop(int numcuts)
             }
 		}	
     }
+    scrarea_queue_winredraw(curarea);
   
     if(cancel){
         return;   
