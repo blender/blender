@@ -1016,15 +1016,22 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 
 		for (k=0; k<numVerts; k++) {
 			ss->tempVerts[k] = _ehash_lookup(ss->vMap, vHDLs[k]);
+
+			if (!ss->tempVerts[k])
+				return eCCGError_InvalidValue;
 		}
 		for (k=0; k<numVerts; k++) {
 			ss->tempEdges[k] = _vert_findEdgeTo(ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts]);
 
-			if (ss->allowEdgeCreation && !ss->tempEdges[k]) {
-				CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], ss->defaultCreaseValue, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
-				_ehash_insert(ss->eMap, (EHEntry*) e);
-				e->v0->flags |= Vert_eEffected;
-				e->v1->flags |= Vert_eEffected;
+			if (!ss->tempEdges[k]) {
+				if (ss->allowEdgeCreation) {
+					CCGEdge *e = ss->tempEdges[k] = _edge_new((CCGEdgeHDL) -1, ss->tempVerts[k], ss->tempVerts[(k+1)%numVerts], ss->defaultCreaseValue, ss->subdivLevels, ss->meshIFC.vertDataSize, ss);
+					_ehash_insert(ss->eMap, (EHEntry*) e);
+					e->v0->flags |= Vert_eEffected;
+					e->v1->flags |= Vert_eEffected;
+				} else {
+					return eCCGError_InvalidValue;
+				}
 			}
 		}
 

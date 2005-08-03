@@ -2664,12 +2664,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 					  (xpos+edgsp+mpref+midsp),y2,mpref,buth,
 					  &U.fontsize, 0, 0, 0, 0, "Restores to using the default included antialised font");
 			
-			uiDefButI(block, MENU|INT, B_SETFONTSIZE, fontsize_pup(),
+			uiDefButI(block, MENU, B_SETFONTSIZE, fontsize_pup(),
 				(xpos+edgsp+mpref+midsp),y1,mpref,buth,
 				&U.fontsize, 0, 0, 0, 0, "Current interface font size (points)");
 
 /*
-			uiDefButS(block, MENU|SHO, B_SETENCODING, encoding_pup(),
+			uiDefButS(block, MENU, B_SETENCODING, encoding_pup(),
 				(xpos+edgsp+mpref+midsp),y1,mpref,buth,
 				&U.encoding, 0, 0, 0, 0, "Current interface font encoding");
 
@@ -2691,7 +2691,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				(xpos+edgsp+(2.2*mpref)+(5*midsp)+(2*spref)),y1,spref,buth,
 				&(U.transopts), 0, 0, 0, 0, "Translate toolbox menu");
 
-			uiDefButI(block, MENU|SHO, B_SETLANGUAGE, language_pup(),
+			uiDefButI(block, MENU, B_SETLANGUAGE, language_pup(),
 				(xpos+edgsp+(2.2*mpref)+(3*midsp)),y2,mpref+(0.5*mpref)+3,buth,
 				&U.language, 0, 0, 0, 0, "Select interface language");
 				
@@ -2791,7 +2791,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp),y2,lpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Display a list of input events in the console");
 
-		uiDefButS(block, MENU|SHO, B_CONSOLEOUT, consolemethod_pup(),
+		uiDefButS(block, MENU, B_CONSOLEOUT, consolemethod_pup(),
 			(xpos+edgsp), y1, lpref,buth,
 			&U.console_out, 0, 0, 0, 0, "Select console output method");
 

@@ -543,53 +543,6 @@ static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm
 		if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4)
 			continue;
 
-	/* Decided this wasn't worth the effort, esp. because the mesh still
-	 * has wierd topology. Can put it back if it appears useful in the end.
-	 * Note it needs some test_mface or so added.
-	 */
-#if 0
-				int copyIdx;
-
-					/* If three in order vertices are shared then duplicating the face 
-					* will be strange (don't want two quads sharing three vertices in a
-					* mesh. Instead modify the original quad to leave out the middle vertice
-					* and span the gap. Vertice will remain in mesh and still have edges
-					* to it but will not interfere with normals.
-					*/
-				if (nmf->v4==mf->v4 && nmf->v1==mf->v1 && nmf->v2==mf->v2) {
-					mf->v1 = nmf->v3;
-					copyIdx = 0;
-				} else if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3) {
-					mf->v2 = nmf->v4;
-					copyIdx = 1;
-				}  else if (nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4) {
-					mf->v3 = nmf->v1;
-					copyIdx = 2;
-				} else if (nmf->v3==mf->v3 && nmf->v4==mf->v4 && nmf->v1==mf->v1) {
-					mf->v4 = nmf->v2;
-					copyIdx = 3;
-				} else {
-					copyIdx = -1;
-				}
-
-				if (copyIdx!=-1) {
-					int fromIdx = (copyIdx+2)%4;
-
-					if (ndlm->tface) {
-						tf->col[copyIdx] = ntf->col[fromIdx];
-						tf->uv[copyIdx][0] = ntf->uv[fromIdx][0];
-						tf->uv[copyIdx][1] = ntf->uv[fromIdx][1];
-					} else if (ndlm->mcol) {
-						mc[copyIdx] = nmc[fromIdx];
-					}
-
-					if (mf->v3==0 || nmf->v3==0 || (has4 && (mf->v4==0 || nmf->v4==0))) {
-						int i = 0;
-					}
-					continue;
-				}
-#endif
-
 		if (nmf->v3) {
 				/* Need to flip face normal, pick which verts to flip
 				* in order to prevent nmf->v3==0 or nmf->v4==0
@@ -740,6 +693,8 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 			mf->v4 = efa->v4?(int) efa->v4->prev:0;
 			mf->mat_nr = efa->mat_nr;
 			mf->flag = efa->flag;
+
+			test_index_mface(mf, efa->v4?4:3);
 		}
 
 		mirrorModifier__doMirror(mmd, ndlm, vertexCos);
