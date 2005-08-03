@@ -590,8 +590,8 @@ void SolveInternal1 (float global_cfm,
 					const ContactSolverInfo& solverInfo)
 {
 
-	int numIter = 30;
-	float sOr = 1.3f;
+	int numIter = solverInfo.m_numIterations;
+	float sOr = solverInfo.m_sor;
 
 	int i,j;
 	
@@ -756,7 +756,7 @@ void SolveInternal1 (float global_cfm,
 
 		// scale CFM
 		for (i=0; i<m; i++) 
-			cfm[i] =0;//*= stepsize1;
+			cfm[i] *= stepsize1;
 
 		// load lambda from the value saved on the previous iteration
 		dRealAllocaArray (lambda,m);

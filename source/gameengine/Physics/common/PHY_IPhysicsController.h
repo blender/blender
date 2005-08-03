@@ -34,12 +34,12 @@
 
 #include "PHY_DynamicTypes.h"
 
+
+
 /**
 	PHY_IPhysicsController is the abstract simplified Interface to a physical object.
 	It contains the IMotionState and IDeformableMesh Interfaces.
 */
-
-
 class PHY_IPhysicsController	
 {
 

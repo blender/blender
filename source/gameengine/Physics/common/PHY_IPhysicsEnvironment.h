@@ -51,7 +51,27 @@ class PHY_IPhysicsEnvironment
 		//returns 0.f if no fixed timestep is used
 		virtual	float		getFixedTimeStep()=0;
 
+		///setDebugMode is used to support several ways of debug lines, contact point visualization
 		virtual void		setDebugMode(int debugMode) {}
+		///setNumIterations set the number of iterations for iterative solvers
+		virtual void		setNumIterations(int numIter) {}
+		///setDeactivationTime sets the minimum time that an objects has to stay within the velocity tresholds until it gets fully deactivated
+		virtual void		setDeactivationTime(float dTime) {}
+		///setDeactivationLinearTreshold sets the linear velocity treshold, see setDeactivationTime
+		virtual	void		setDeactivationLinearTreshold(float linTresh) {}
+		///setDeactivationAngularTreshold sets the angular velocity treshold, see setDeactivationTime
+		virtual	void		setDeactivationAngularTreshold(float angTresh) {}
+		///setContactBreakingTreshold sets tresholds to do with contact point management
+		virtual void		setContactBreakingTreshold(float contactBreakingTreshold) {}
+		///continuous collision detection mode, very experimental for Bullet
+		virtual void		setCcdMode(int ccdMode) {}
+		///successive overrelaxation constant, in case PSOR is used, values in between 1 and 2 guarantee converging behaviour
+		virtual void		setSolverSorConstant(float sor) {}
+		///setTau sets the spring constant of a penalty based solver
+		virtual void		setTau(float tau) {}
+		///setDamping sets the damper constant of a penalty based solver
+		virtual void		setDamping(float damping) {}
+
 		virtual	void		setGravity(float x,float y,float z)=0;
 
 		virtual int			createConstraint(class PHY_IPhysicsController* ctrl,class PHY_IPhysicsController* ctrl2,PHY_ConstraintType type,

@@ -10,6 +10,11 @@
 #include "SimdScalar.h"	
 class CollisionShape;
 
+extern float gDeactivationTime;
+extern float gLinearSleepingTreshold;
+extern float gAngularSleepingTreshold;
+
+
 struct CcdConstructionInfo
 {
 	CcdConstructionInfo()

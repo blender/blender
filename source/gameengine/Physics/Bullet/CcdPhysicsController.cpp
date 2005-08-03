@@ -7,7 +7,11 @@
 
 class BP_Proxy;
 
-bool gEnableSleeping = false;//false;//true;
+//'temporarily' global variables
+float	gDeactivationTime = 0.f;
+float gLinearSleepingTreshold = 0.8f;
+float gAngularSleepingTreshold = 1.0f;
+
 #include "Dynamics/MassProps.h"
 
 SimdVector3 startVel(0,0,0);//-10000);
@@ -190,27 +194,19 @@ void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 
 }
 
-#ifdef WIN32
-float gSleepingTreshold = 0.8f;
-float gAngularSleepingTreshold = 1.f;
-
-#else
-
-float gSleepingTreshold = 0.8f;
-float gAngularSleepingTreshold = 1.0f;
-#endif
 
 
 bool CcdPhysicsController::wantsSleeping()
 {
 
-	if (!gEnableSleeping)
+	//disable deactivation
+	if (gDeactivationTime == 0.f)
 		return false;
 
 	if ( (m_body->GetActivationState() == 3) || (m_body->GetActivationState() == 2))
 		return true;
 
-	if ((m_body->getLinearVelocity().length2() < gSleepingTreshold*gSleepingTreshold) &&
+	if ((m_body->getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
 		(m_body->getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
 	{
 		m_sleepingCounter++;
@@ -219,7 +215,7 @@ bool CcdPhysicsController::wantsSleeping()
 		m_sleepingCounter=0;
 	}
 
-	if (m_sleepingCounter> 150)
+	if (m_sleepingCounter> gDeactivationTime)
 	{
 		return true;
 	}

@@ -38,7 +38,10 @@ ToiContactDispatcher::ToiContactDispatcher (ConstraintSolver* solver):
 	m_useIslands(true),
 		m_unionFind(MAX_RIGIDBODIES),
 		m_solver(solver),
-		m_count(0)
+		m_count(0),
+		m_sor(1.3f),
+		m_tau(0.4f),
+		m_damping(0.9f)
 		
 {
 	int i;
@@ -158,13 +161,15 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 
 			///This island solving can all be scheduled in parallel
 			ContactSolverInfo info;
-			info.m_damping = 0.9f;
 			info.m_friction = 0.9f;
 			info.m_numIterations = numIterations;
 			info.m_timeStep = timeStep;
-			info.m_tau = 0.4f;
+			
 			info.m_restitution = 0.0f;//m_restitution;
-
+			
+			info.m_sor = m_sor;
+			info.m_tau = m_tau;
+			info.m_damping = m_damping;
 
 			m_solver->SolveGroup( &islandmanifold[0], islandmanifold.size(),info,debugDrawer );
 

@@ -49,8 +49,24 @@ static char PhysicsConstraints_module_documentation[] =
 
 static char gPySetGravity__doc__[] = "setGravity(float x,float y,float z)";
 static char gPySetDebugMode__doc__[] = "setDebugMode(int mode)";
+
+static char gPySetNumIterations__doc__[] = "setNumIterations(int numiter) This sets the number of iterations for an iterative constraint solver";
+static char gPySetDeactivationTime__doc__[] = "setDeactivationTime(float time) This sets the time after which a resting rigidbody gets deactived";
+static char gPySetDeactivationLinearTreshold__doc__[] = "setDeactivationLinearTreshold(float linearTreshold)";
+static char gPySetDeactivationAngularTreshold__doc__[] = "setDeactivationAngularTreshold(float angularTreshold)";
+static char gPySetContactBreakingTreshold__doc__[] = "setContactBreakingTreshold(float breakingTreshold) Reasonable default is 0.02 (if units are meters)";
+static char gPySetCcdMode__doc__[] = "setCcdMode(int ccdMode) Very experimental, not recommended";
+
+static char gPySetSorConstant__doc__[] = "setSorConstant(float sor) Very experimental, not recommended";
+static char gPySetTau__doc__[] = "setTau(float tau) Very experimental, not recommended";
+static char gPySetDamping__doc__[] = "setDamping(float damping) Very experimental, not recommended";
+
+
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
 static char gPyRemoveConstraint__doc__[] = "removeConstraint(constraint id)";
+
+
+
 
 
 static PyObject* gPySetGravity(PyObject* self,
@@ -81,13 +97,149 @@ static PyObject* gPySetDebugMode(PyObject* self,
 		}
 		
 	}
-	printf("hi\n");
+	Py_INCREF(Py_None); return Py_None;
+}
 
+static PyObject* gPySetNumIterations(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	int iter;
+	if (PyArg_ParseTuple(args,"i",&iter))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setNumIterations(iter);
+		}
+	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
 
 
+static PyObject* gPySetDeactivationTime(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float deactive_time;
+	if (PyArg_ParseTuple(args,"f",&deactive_time))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setDeactivationTime(deactive_time);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+static PyObject* gPySetDeactivationLinearTreshold(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float linearDeactivationTreshold;
+	if (PyArg_ParseTuple(args,"f",&linearDeactivationTreshold))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setDeactivationLinearTreshold( linearDeactivationTreshold);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+static PyObject* gPySetDeactivationAngularTreshold(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float angularDeactivationTreshold;
+	if (PyArg_ParseTuple(args,"f",&angularDeactivationTreshold))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setDeactivationAngularTreshold( angularDeactivationTreshold);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+static PyObject* gPySetContactBreakingTreshold(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float contactBreakingTreshold;
+	if (PyArg_ParseTuple(args,"f",&contactBreakingTreshold))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setContactBreakingTreshold( contactBreakingTreshold);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+static PyObject* gPySetCcdMode(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float ccdMode;
+	if (PyArg_ParseTuple(args,"f",&ccdMode))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setCcdMode( ccdMode);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+static PyObject* gPySetSorConstant(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float sor;
+	if (PyArg_ParseTuple(args,"f",&sor))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setSolverSorConstant( sor);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+static PyObject* gPySetTau(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float tau;
+	if (PyArg_ParseTuple(args,"f",&tau))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setTau( tau);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+static PyObject* gPySetDamping(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float damping;
+	if (PyArg_ParseTuple(args,"f",&damping))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setDamping( damping);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
 
 
 static PyObject* gPyCreateConstraint(PyObject* self,
@@ -166,6 +318,30 @@ static struct PyMethodDef physicsconstraints_methods[] = {
    METH_VARARGS, gPySetGravity__doc__},
   {"setDebugMode",(PyCFunction) gPySetDebugMode,
    METH_VARARGS, gPySetDebugMode__doc__},
+
+   /// settings that influence quality of the rigidbody dynamics
+  {"setNumIterations",(PyCFunction) gPySetNumIterations,
+   METH_VARARGS, gPySetNumIterations__doc__},
+
+  {"setDeactivationTime",(PyCFunction) gPySetDeactivationTime,
+   METH_VARARGS, gPySetDeactivationTime__doc__},
+
+  {"setDeactivationLinearTreshold",(PyCFunction) gPySetDeactivationLinearTreshold,
+   METH_VARARGS, gPySetDeactivationLinearTreshold__doc__},
+  {"setDeactivationAngularTreshold",(PyCFunction) gPySetDeactivationAngularTreshold,
+   METH_VARARGS, gPySetDeactivationAngularTreshold__doc__},
+
+   {"setContactBreakingTreshold",(PyCFunction) gPySetContactBreakingTreshold,
+   METH_VARARGS, gPySetContactBreakingTreshold__doc__},
+     {"setCcdMode",(PyCFunction) gPySetCcdMode,
+   METH_VARARGS, gPySetCcdMode__doc__},
+     {"setSorConstant",(PyCFunction) gPySetSorConstant,
+   METH_VARARGS, gPySetSorConstant__doc__},
+       {"setTau",(PyCFunction) gPySetTau,
+   METH_VARARGS, gPySetTau__doc__},
+        {"setDamping",(PyCFunction) gPySetDamping,
+   METH_VARARGS, gPySetDamping__doc__},
+
 
 
   {"createConstraint",(PyCFunction) gPyCreateConstraint,

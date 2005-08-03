@@ -43,11 +43,13 @@ class BU_Joint;
 
 //see below
 
+OdeConstraintSolver::OdeConstraintSolver():
+m_cfm(1e-5f),
+m_erp(0.2f)
+{
+}
 
 
-int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies);
-void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
-					   RigidBody** bodies,int bodyId0,int bodyId1);
 
 
 
@@ -59,8 +61,6 @@ float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numM
 	m_CurBody = 0;
 	m_CurJoint = 0;
 
-	float cfm = 1e-5f;
-	float erp = 0.2f;
 
 	RigidBody* bodies [128];
 
@@ -82,7 +82,7 @@ float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numM
 		}
 	}
 
-	SolveInternal1(cfm,erp,bodies,numBodies,joints,numJoints,infoGlobal);
+	SolveInternal1(m_cfm,m_erp,bodies,numBodies,joints,numJoints,infoGlobal);
 
 	return 0.f;
 

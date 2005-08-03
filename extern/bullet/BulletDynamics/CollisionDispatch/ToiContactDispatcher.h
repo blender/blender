@@ -44,6 +44,10 @@ class ToiContactDispatcher : public Dispatcher
 	UnionFind m_unionFind;
 	ConstraintSolver*	m_solver;
 	
+	float	m_sor;
+	float	m_tau;
+	float	m_damping;
+	
 	CollisionAlgorithmCreateFunc* m_doubleDispatch[MAX_BROADPHASE_COLLISION_TYPES][MAX_BROADPHASE_COLLISION_TYPES];
 	
 public:
@@ -97,6 +101,22 @@ public:
 	
 	virtual int GetUniqueId() { return RIGIDBODY_DISPATCHER;}
 	
+	void	SetSor(float sor)
+	{
+		m_sor = sor;
+	}
+
+	void	SetTau(float tau)
+	{
+		m_tau = tau;
+	}
+	
+	void	SetDamping( float damping)
+	{
+		m_damping = damping;
+	}
+	
+
 };
 
 #endif //TOI_CONTACT_DISPATCHER_H

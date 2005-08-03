@@ -25,6 +25,9 @@ private:
 	int m_CurBody;
 	int m_CurJoint;
 
+	float	m_cfm;
+	float	m_erp;
+	
 
 	int ConvertBody(RigidBody* body,RigidBody** bodies,int& numBodies);
 	void ConvertConstraint(PersistentManifold* manifold,BU_Joint** joints,int& numJoints,
@@ -32,10 +35,24 @@ private:
 
 public:
 
+	OdeConstraintSolver();
+
 	virtual ~OdeConstraintSolver() {}
 	
 	virtual float SolveGroup(PersistentManifold** manifold,int numManifolds,const ContactSolverInfo& info,IDebugDraw* debugDrawer = 0);
 
+	///setConstraintForceMixing, the cfm adds some positive value to the main diagonal
+	///This can improve convergence (make matrix positive semidefinite), but it can make the simulation look more 'springy'
+	void	setConstraintForceMixing(float cfm) { 
+		m_cfm  = cfm;
+	}
+
+	///setErrorReductionParamter sets the maximum amount of error reduction
+	///which limits energy addition during penetration depth recovery
+	void	setErrorReductionParamter(float erp)
+	{
+		m_erp = erp;
+	}
 };
 
 

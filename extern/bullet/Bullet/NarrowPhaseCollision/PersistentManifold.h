@@ -19,6 +19,9 @@
 
 struct CollisionResult;
 
+///contact breaking and merging treshold
+extern float gContactBreakingTreshold;
+
 #define MANIFOLD_CACHE_SIZE 4
 
 ///PersistentManifold maintains contact points, and reduces them to 4

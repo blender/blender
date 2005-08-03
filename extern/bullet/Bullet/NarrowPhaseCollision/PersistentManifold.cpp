@@ -14,6 +14,7 @@
 #include "SimdTransform.h"
 #include <assert.h>
 
+float gContactBreakingTreshold = 0.02f;
 
 PersistentManifold::PersistentManifold()
 :m_body0(0),
@@ -113,7 +114,7 @@ void PersistentManifold::AddManifoldPoint(const ManifoldPoint& newPoint)
 
 float	PersistentManifold::GetManifoldMargin() const
 {
-	return 0.02f;
+	return gContactBreakingTreshold;
 }
 
 void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const SimdTransform& trB)

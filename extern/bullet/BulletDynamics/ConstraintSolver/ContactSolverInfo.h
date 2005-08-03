@@ -23,6 +23,7 @@ struct ContactSolverInfo
 		m_restitution = 0.f;
 		m_maxErrorReduction = 20.f;
 		m_numIterations = 10;
+		m_sor = 1.3f;
 	}
 
 	float	m_tau;
@@ -32,7 +33,7 @@ struct ContactSolverInfo
 	float	m_restitution;
 	int		m_numIterations;
 	float	m_maxErrorReduction;
-
+	float	m_sor;
 
 };
 
