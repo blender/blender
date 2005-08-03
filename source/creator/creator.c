@@ -253,6 +253,8 @@ int main(int argc, char **argv)
 #ifdef __linux__
     #ifdef __alpha__
 	signal (SIGFPE, fpe_handler);
+    #else
+    setenv("SDL_AUDIODRIVER", "dma", 1);
     #endif
 #endif
 #if defined(__sgi)
