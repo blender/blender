@@ -1,6 +1,6 @@
 /*  softbody.c      
  * 
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -925,19 +925,103 @@ static void softbody_to_mesh(Object *ob, float (*vertexCos)[3])
 	}
 }
 
+
+static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
+{
+	BPoint *bp, *bpu;
+	int u, v, w, dv, dw, uxt, vxt, wxt, bpc, bpuc;
+int debugspringcounter = 0;
+	bp= lt->def;
+	bpc =0;
+	
+	dv= lt->pntsu;
+	dw= dv*lt->pntsv;
+	
+	for(w=0; w<lt->pntsw; w++) {
+		
+		for(v=0; v<lt->pntsv; v++) {
+			
+			for(u=0, bpu=0, bpuc=0; u<lt->pntsu; u++, bp++, bpc++) {
+				
+				if(w) {
+/*					
+					glBegin(GL_LINES);
+					glVertex3fv( (bp-dw)->vec ); glVertex3fv(bp->vec);
+					glEnd();
+*/
+					bs->v1 = bpc;
+					bs->v2 = bpc-dw;
+				    bs->strength= 1.0;
+					bs->len= VecLenf((bp-dw)->vec ,bp->vec);
+					bs++;
+					debugspringcounter++;
+				
+				}
+				if(v) {
+/*					
+					glBegin(GL_LINES);
+					glVertex3fv( (bp-dv)->vec ); glVertex3fv(bp->vec);
+					glEnd();
+*/
+					bs->v1 = bpc;
+					bs->v2 = bpc-dv;
+				    bs->strength= 1.0;
+					bs->len= VecLenf((bp-dv)->vec ,bp->vec);
+					bs++;
+					debugspringcounter++;
+
+				}
+				if(u) {
+/*					
+					glBegin(GL_LINES);
+					glVertex3fv(bpu->vec); glVertex3fv(bp->vec);
+					glEnd();
+*/
+					bs->v1 = bpuc;
+					bs->v2 = bpc;
+				    bs->strength= 1.0;
+					bs->len= VecLenf((bpu)->vec ,bp->vec);
+					bs++;
+					debugspringcounter++;
+				}
+				/*
+				if (dostiff) {
+					if(w){
+						if( v || u ){
+							bs->v1 = bp;
+							bs->v2 = bpc-dw-dv-1;
+							bs->strength= 1.0;
+							bs->len= VecLenf((bp-dw+dv-1)->vec ,bp->vec);
+							bs++;
+							debugspringcounter++;
+						}						
+					}
+				}
+*/
+				bpu= bp;
+				bpuc = bpc;
+			}
+		}
+	}
+}
+
+
 /* makes totally fresh start situation */
 static void lattice_to_softbody(Object *ob)
 {
 	SoftBody *sb;
+	BodySpring *bs;
 	Lattice *lt= ob->data;
 	BodyPoint *bop;
 	BPoint *bp;
-	int a, totvert;
+	int a, totvert, totspring;
 	
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
-	
+	totspring = ((lt->pntsu -1) * lt->pntsv 
+		          + (lt->pntsv -1) * lt->pntsu) * lt->pntsw
+			     +lt->pntsu*lt->pntsv*(lt->pntsw -1);
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, 0);
+	renew_softbody(ob, totvert, totspring);
 	
 	/* we always make body points */
 	sb= ob->soft;	
@@ -945,6 +1029,12 @@ static void lattice_to_softbody(Object *ob)
 	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
 		set_body_point(ob, bop, bp->vec);
 	}
+	if (ob->softflag & OB_SB_EDGES){
+		bs = sb->bspring;
+		makelatticesprings(lt,bs,ob->softflag & OB_SB_QUADS);
+		build_bps_springlist(ob); /* link bps to springs */
+	}
+
 }
 
 /* copies current sofbody position */
