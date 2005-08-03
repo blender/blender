@@ -366,7 +366,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			ModifierData *md;
 
 			for(md=ob->modifiers.first; md; md=md->next) {
-				ModifierTypeInfo *mti = modifierType_get_info(md->type);
+				ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 				if (mti->updateDepgraph) mti->updateDepgraph(md, dag, ob, node);
 			}

@@ -1716,7 +1716,7 @@ static uiBlock *modifier_add_menu(void *ob_v)
 	uiBlockSetButmFunc(block, modifiers_add, ob);
 
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
-		ModifierTypeInfo *mti = modifierType_get_info(i);
+		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1869,29 +1869,36 @@ static void object_panel_modifiers(Object *ob)
 	uiButSetFunc(but, modifiers_del, ob, NULL);
 
 	if (ob->modifiers.first) {
-		int i, numModifiers = BLI_countlist(&ob->modifiers);
+		int i, canCage=1, numModifiers = BLI_countlist(&ob->modifiers);
 		ModifierData *md;
 
 		CLAMP(actModifier, 1, numModifiers);
 		uiDefButI(block, NUM, B_REDR, "Modifier", 740,380,180,27, &actModifier, 1, numModifiers, 0, 0, "Index of current modifier");
 
-		for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++)
+		for (i=0, md=ob->modifiers.first; md && i<actModifier-1; i++) {
+			if (!modifier_supportsMapping(md) || !(md->mode&eModifierMode_OnCage))
+				canCage = 0;
+
 			md = md->next;
+		}
 
 		if (md) {
-			ModifierTypeInfo *mti = modifierType_get_info(md->type);
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 			char str[128];
 
 			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Up", 740, 360, 90, 19, 0, 0, 0, 0, 0, "Move modifier up in stack");
 			uiButSetFunc(but, modifiers_moveUp, ob, md);
 			but = uiDefBut(block, BUT, B_MAKEDISP, "Move Down", 830, 360, 90, 19, 0, 0, 0, 0, 0, "Move modifier down in stack");
 			uiButSetFunc(but, modifiers_moveDown, ob, md);
-			uiDefButBitI(block, TOG, eModifierMode_Render, B_NOP, "Render", 740,340,60,19,&md->mode, 0, 0, 1, 0, "");
-			uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MAKEDISP, "Realtime", 810,340,60,19,&md->mode, 0, 0, 1, 0, "");
+			uiDefButBitI(block, TOG, eModifierMode_Render, B_NOP, "Render", 740,340,90,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+			uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MAKEDISP, "3D View", 830,340,90,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MAKEDISP, "Editmode", 860,340,60,19,&md->mode, 0, 0, 1, 0, "");
+				uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MAKEDISP, "Editmode", 740,320,90,19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+				if (canCage && modifier_supportsMapping(md)) {
+					uiDefButBitI(block, TOG, eModifierMode_OnCage, B_MAKEDISP, "On Cage", 830,320,90,19,&md->mode, 0, 0, 1, 0, "Apply modifier to editing cage during Editmode");
+				}
 			}
-			but = uiDefBut(block, BUT, B_MAKEDISP, "Apply Modifier",	740,320,180,19, 0, 0, 0, 0, 0, "Apply the currnt modifier and remove from the stack");
+			but = uiDefBut(block, BUT, B_MAKEDISP, "Apply Modifier",	740,300,180,19, 0, 0, 0, 0, 0, "Apply the currnt modifier and remove from the stack");
 			uiButSetFunc(but, modifiers_applyModifier, ob, md);
 
 			uiBlockBeginAlign(block);

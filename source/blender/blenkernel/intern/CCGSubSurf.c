@@ -389,6 +389,9 @@ static int _vert_isBoundary(CCGVert *v) {
 static void *_vert_getCo(CCGVert *v, int lvl, int dataSize) {
 	return &VERT_getLevelData(v)[lvl*dataSize];
 }
+static float *_vert_getNo(CCGVert *v, int lvl, int dataSize, int normalDataOffset) {
+	return (float*) &VERT_getLevelData(v)[lvl*dataSize + normalDataOffset];
+}
 
 static void _vert_free(CCGVert *v, CCGSubSurf *ss) {
 	CCGSUBSURF_free(ss, v->edges);
@@ -1839,13 +1842,27 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 				}
 			}
 		}
+			// XXX can I reduce the number of normalisations here?
 		for (ptrIdx=0; ptrIdx<numEffectedV; ptrIdx++) {
 			CCGVert *v = (CCGVert*) effectedV[ptrIdx];
-			float no[3] = {0};
+			float length, *no = _vert_getNo(v, lvl, vertDataSize, normalDataOffset);
+
+			NormZero(no);
 
 			for (i=0; i<v->numFaces; i++) {
 				CCGFace *f = v->faces[i];
 				NormAdd(no, FACE_getIFNo(f, lvl, _face_getVertIndex(f,v), gridSize-1, gridSize-1));
+			}
+
+			length = sqrt(no[0]*no[0] + no[1]*no[1] + no[2]*no[2]);
+
+			if (length>FLT_EPSILON) {
+				float invLength = 1.0f/length;
+				no[0] *= invLength;
+				no[1] *= invLength;
+				no[2] *= invLength;
+			} else {
+				NormZero(no);
 			}
 
 			for (i=0; i<v->numFaces; i++) {

@@ -2461,7 +2461,7 @@ static void copymenu_modifiers(Object *ob)
 	sprintf(str+strlen(str), "|All%%x%d|%%l", NUM_MODIFIER_TYPES);
 
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
-		ModifierTypeInfo *mti = modifierType_get_info(i);
+		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {

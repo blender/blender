@@ -34,6 +34,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_mesh_types.h"
@@ -418,7 +420,9 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, int ssFromEditmesh, Mesh
 		}
 
 		for (S=0; S<numVerts; S++) {
+			VertData *gridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			int prevS= (S-1+numVerts)%numVerts;
+
 			for (y=0; y<gridSize-1; y++) {
 				for (x=0; x<gridSize-1; x++) {
 					MFace *mf = &dlm->mface[i];
@@ -1142,6 +1146,29 @@ static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 	ccgVertIterator_free(vi);
 }
+static void ccgDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData) {
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ss);
+
+	glBegin(GL_LINES);
+	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
+		CCGVert *v = ccgVertIterator_getCurrent(vi);
+		EditVert *vert = ccgSubSurf_getVertVertHandle(ss,v);
+
+		if (!setDrawOptions || setDrawOptions(userData, vert)) {
+			VertData *vd = ccgSubSurf_getVertData(ss, v);
+
+			glVertex3fv(vd->co);
+			glVertex3f(	vd->co[0] + length*vd->no[0],
+						vd->co[1] + length*vd->no[1],
+						vd->co[2] + length*vd->no[2]);
+		}
+	}
+	glEnd();
+
+	ccgVertIterator_free(vi);
+}
 static void ccgDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1245,6 +1272,30 @@ static void ccgDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 	ccgFaceIterator_free(fi);
 }
+static void ccgDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData) {
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
+	int gridSize = ccgSubSurf_getGridSize(ss);
+
+	glBegin(GL_LINES);
+	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
+		CCGFace *f = ccgFaceIterator_getCurrent(fi);
+		EditFace *efa = ccgSubSurf_getFaceFaceHandle(ss, f);
+		if (!setDrawOptions || setDrawOptions(userData, efa)) {
+				/* Face center data normal isn't updated atm. */
+			VertData *vd = ccgSubSurf_getFaceGridData(ss, f, 0, 0, 0);
+
+			glVertex3fv(vd->co);
+			glVertex3f(	vd->co[0] + length*vd->no[0],
+						vd->co[1] + length*vd->no[1],
+						vd->co[2] + length*vd->no[2]);
+		}
+	}
+	glEnd();
+
+	ccgFaceIterator_free(fi);
+}
 
 static void ccgDM_release(DerivedMesh *dm) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -1273,10 +1324,12 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
 
 	ccgdm->dm.drawMappedVertsEM = ccgDM_drawMappedVertsEM;
+	ccgdm->dm.drawMappedVertNormalsEM = ccgDM_drawMappedVertNormalsEM;
 	ccgdm->dm.drawMappedEdgeEM = ccgDM_drawMappedEdgeEM;
 	ccgdm->dm.drawMappedEdgesInterpEM = ccgDM_drawMappedEdgesInterpEM;
 	ccgdm->dm.drawMappedEdgesEM = ccgDM_drawMappedEdgesEM;
 	ccgdm->dm.drawMappedFacesEM = ccgDM_drawMappedFacesEM;
+	ccgdm->dm.drawMappedFaceNormalsEM = ccgDM_drawMappedFaceNormalsEM;
 
 	ccgdm->dm.release = ccgDM_release;
 	

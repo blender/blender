@@ -171,7 +171,6 @@ static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *d
 				VECCOPY(dlm->mvert[i].co, vertexCos[i]);
 			}
 		}
-		dm->release(dm);
 
 		dm = subsurf_make_derived_from_mesh(me, dlm, smd, useRenderParams, NULL, isFinalCalc);
 
@@ -198,7 +197,6 @@ static void *subsurfModifier_applyModifierEM(ModifierData *md, Object *ob, void 
 				VECCOPY(dlm->mvert[i].co, vertexCos[i]);
 			}
 		}
-		dm->release(dm);
 
 			// XXX, should I worry about reuse of mCache in editmode?
 		dm = subsurf_make_derived_from_mesh(NULL, dlm, smd, 0, NULL, 1);
@@ -442,7 +440,6 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 		}
 	}
 
-	if (dm) dm->release(dm);
 	if (dlm) displistmesh_free(dlm);
 
 	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
@@ -693,7 +690,6 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 	mirrorModifier__doMirror(mmd, ndlm, vertexCos);
 
 	if (dlm) displistmesh_free(dlm);
-	if (dm) dm->release(dm);
 
 	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
 	
@@ -895,8 +891,6 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	if (dlm) displistmesh_free(dlm);
 
 	if (ndlm) {
-		if (dm) dm->release(dm);
-
 		mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
 
 		return derivedmesh_from_displistmesh(ndlm);
@@ -1007,7 +1001,7 @@ static void waveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editD
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
 static int typeArrInit = 1;
 
-ModifierTypeInfo *modifierType_get_info(ModifierType type)
+ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 {
 	if (typeArrInit) {
 		ModifierTypeInfo *mti;
@@ -1104,7 +1098,7 @@ ModifierTypeInfo *modifierType_get_info(ModifierType type)
 
 ModifierData *modifier_new(int type)
 {
-	ModifierTypeInfo *mti = modifierType_get_info(type);
+	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
 
 	md->type = type;
@@ -1120,7 +1114,7 @@ ModifierData *modifier_new(int type)
 
 void modifier_free(ModifierData *md) 
 {
-	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	if (mti->freeData) mti->freeData(md);
 
@@ -1129,9 +1123,18 @@ void modifier_free(ModifierData *md)
 
 int modifier_dependsOnTime(ModifierData *md) 
 {
-	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	return mti->dependsOnTime && mti->dependsOnTime(md);
+}
+
+int modifier_supportsMapping(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	return (	(mti->flags&eModifierTypeFlag_SupportsEditmode) &&
+				(	(mti->type==eModifierTypeType_OnlyDeform ||
+					(mti->flags&eModifierTypeFlag_SupportsMapping))) );
 }
 
 ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
@@ -1147,7 +1150,7 @@ ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
 
 void modifier_copyData(ModifierData *md, ModifierData *target)
 {
-	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	target->mode = md->mode;
 

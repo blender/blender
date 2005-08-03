@@ -494,15 +494,33 @@ typedef struct {
 
 	EditMesh *em;
 	float (*vertexCos)[3];
+	float (*vertexNos)[3];
+	float (*faceNos)[3];
 } EditMeshDerivedMesh;
 
 static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 {
-	EditVert *eve = vert;
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 
-	co_r[0] = eve->co[0];
-	co_r[1] = eve->co[1];
-	co_r[2] = eve->co[2];
+	if (emdm->vertexCos) {
+		EditVert *eve;
+		int i;
+
+		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
+			if (eve==vert) {
+				co_r[0] = emdm->vertexCos[i][0];
+				co_r[1] = emdm->vertexCos[i][1];
+				co_r[2] = emdm->vertexCos[i][2];
+				break;
+			}
+		}
+	} else {
+		EditVert *eve = vert;
+
+		co_r[0] = eve->co[0];
+		co_r[1] = eve->co[1];
+		co_r[2] = eve->co[2];
+	}
 }
 static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
 {
@@ -678,14 +696,16 @@ static void emDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*se
 	}
 
 
-	for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+	for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 		if(!setDrawOptions || setDrawOptions(userData, efa)) {
+			float *no = emdm->vertexCos?emdm->faceNos[i]:efa->n;
+
 			emDM__calcFaceCent(efa, cent, emdm->vertexCos);
 
-			glVertex3fv(efa->cent);
-			glVertex3f(	efa->cent[0] + length*efa->n[0],
-						efa->cent[1] + length*efa->n[1],
-						efa->cent[2] + length*efa->n[2]);
+			glVertex3fv(cent);
+			glVertex3f(	cent[0] + length*no[0],
+						cent[1] + length*no[1],
+						cent[2] + length*no[2]);
 		}
 	}
 
@@ -707,9 +727,9 @@ static void emDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*se
 		if(!setDrawOptions || setDrawOptions(userData, eve)) {
 			if (emdm->vertexCos) {
 				glVertex3fv(emdm->vertexCos[i]);
-				glVertex3f(	emdm->vertexCos[i][0] + length*eve->no[0],
-							emdm->vertexCos[i][1] + length*eve->no[1],
-							emdm->vertexCos[i][2] + length*eve->no[2]);
+				glVertex3f(	emdm->vertexCos[i][0] + length*emdm->vertexNos[i][0],
+							emdm->vertexCos[i][1] + length*emdm->vertexNos[i][1],
+							emdm->vertexCos[i][2] + length*emdm->vertexNos[i][2]);
 			} else {
 				glVertex3fv(eve->co);
 				glVertex3f(	eve->co[0] + length*eve->no[0],
@@ -732,9 +752,9 @@ static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
 			eve->prev = (EditVert*) i++;
 
-		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			if(!setDrawOptions || setDrawOptions(userData, efa)) {
-				glNormal3fv(efa->n);
+				glNormal3fv(emdm->faceNos[i]);
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 				glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
 				glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
@@ -771,10 +791,10 @@ static void emDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
 			eve->prev = (EditVert*) i++;
 
-		for (efa= emdm->em->faces.first; efa; efa= efa->next) {
+		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			if(efa->h==0) {
 				if (setMaterial(efa->mat_nr+1)) {
-					glNormal3fv(efa->n);
+					glNormal3fv(emdm->faceNos[i]);
 					glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 					glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
 					glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
@@ -839,8 +859,11 @@ static void emDM_release(DerivedMesh *dm)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 
-	if (emdm->vertexCos)
+	if (emdm->vertexCos) {
 		MEM_freeN(emdm->vertexCos);
+		MEM_freeN(emdm->vertexNos);
+		MEM_freeN(emdm->faceNos);
+	}
 
 	MEM_freeN(emdm);
 }
@@ -874,6 +897,52 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 	
 	emdm->em = em;
 	emdm->vertexCos = vertexCos;
+
+	if (vertexCos) {
+		EditVert *eve, *preveve;
+		EditFace *efa;
+		int totface = BLI_countlist(&em->faces);
+		int i;
+
+		for (i=0,eve=em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+
+		emdm->vertexNos = MEM_callocN(sizeof(*emdm->vertexNos)*i, "emdm_vno");
+		emdm->faceNos = MEM_mallocN(sizeof(*emdm->faceNos)*totface, "emdm_vno");
+
+		for(i=0, efa= em->faces.first; efa; i++, efa=efa->next) {
+			float *v1 = vertexCos[(int) efa->v1->prev];
+			float *v2 = vertexCos[(int) efa->v2->prev];
+			float *v3 = vertexCos[(int) efa->v3->prev];
+			float *no = emdm->faceNos[i];
+			
+			if(efa->v4) {
+				float *v4 = vertexCos[(int) efa->v3->prev];
+
+				CalcNormFloat4(v1, v2, v3, v4, no);
+				VecAddf(emdm->vertexNos[(int) efa->v4->prev], emdm->vertexNos[(int) efa->v4->prev], no);
+			}
+			else {
+				CalcNormFloat(v1, v2, v3, no);
+			}
+
+			VecAddf(emdm->vertexNos[(int) efa->v1->prev], emdm->vertexNos[(int) efa->v1->prev], no);
+			VecAddf(emdm->vertexNos[(int) efa->v2->prev], emdm->vertexNos[(int) efa->v2->prev], no);
+			VecAddf(emdm->vertexNos[(int) efa->v3->prev], emdm->vertexNos[(int) efa->v3->prev], no);
+		}
+
+		for(i=0, eve= em->verts.first; eve; i++, eve=eve->next) {
+			float *no = emdm->vertexNos[i];
+
+			if (Normalise(no)==0.0) {
+				VECCOPY(no, vertexCos[i]);
+				Normalise(no);
+			}
+		}
+
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	}
 
 	return (DerivedMesh*) emdm;
 }
@@ -1213,7 +1282,7 @@ typedef float vec3f[3];
 DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 {
 	Mesh *me = ob->data;
-	ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	DerivedMesh *dm;
 
 	if (!(md->mode&eModifierMode_Realtime)) return NULL;
@@ -1250,7 +1319,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 
 			/* Apply all leading deforming modifiers */
 		for (; md; md=md->next) {
-			ModifierTypeInfo *mti = modifierType_get_info(md->type);
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if (!(md->mode&(1<<useRenderParams))) continue;
 			if (mti->isDisabled && mti->isDisabled(md)) continue;
@@ -1277,7 +1346,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 		 */
 	dm = NULL;
 	for (; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!(md->mode&(1<<useRenderParams))) continue;
 		if (mti->type==eModifierTypeType_OnlyDeform && !useDeform) continue;
@@ -1312,6 +1381,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			DerivedMesh *ndm = mti->applyModifier(md, ob, dm, deformedVerts, useRenderParams, !inputVertexCos);
 
 			if (ndm) {
+				if (dm) dm->release(dm);
+
 				dm = ndm;
 
 				if (deformedVerts) {
@@ -1377,21 +1448,34 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 {
 	Object *ob = G.obedit;
 	EditMesh *em = G.editMesh;
-	ModifierData *md= ob->modifiers.first;
+	ModifierData *md, *cageModifier;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
 	int numVerts;
 
-	if (cage_r) *cage_r = NULL;
-	*final_r = NULL;
+		/* Find the last modifier acting on the cage. */
+	cageModifier = NULL;
+	for (md= ob->modifiers.first; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	*cage_r = getEditMeshDerivedMesh(em, NULL);
+		if (!(md->mode&eModifierMode_Realtime)) continue;
+		if (!(md->mode&eModifierMode_Editmode)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
 
-//	mesh_modifier(ob, &deformedVerts);
+		if (!modifier_supportsMapping(md) || !(md->mode&eModifierMode_OnCage))
+			break;
+
+		cageModifier = md;
+	}
+
+	if (cage_r && !cageModifier) {
+		*cage_r = getEditMeshDerivedMesh(em, NULL);
+	}
 
 	dm = NULL;
-	for (; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+	for (md= ob->modifiers.first; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (!(md->mode&eModifierMode_Editmode)) continue;
@@ -1424,11 +1508,28 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 				 * by the modifier apply function, which will also free the DerivedMesh if
 				 * it exists.
 				 */
-			dm = mti->applyModifierEM(md, ob, em, dm, deformedVerts);
+			DerivedMesh *ndm = mti->applyModifierEM(md, ob, em, dm, deformedVerts);
 
-			if (deformedVerts) {
-				MEM_freeN(deformedVerts);
-				deformedVerts = NULL;
+			if (ndm) {
+				if (dm && (!cage_r || dm!=*cage_r)) dm->release(dm);
+
+				dm = ndm;
+
+				if (deformedVerts) {
+					MEM_freeN(deformedVerts);
+					deformedVerts = NULL;
+				}
+			}
+		}
+
+		if (cage_r && md==cageModifier) {
+			if (dm && deformedVerts) {
+					// XXX  this is not right, need to convert the dm
+				*cage_r = dm;
+			} else if (dm) {
+				*cage_r = dm;
+			} else {
+				*cage_r = getEditMeshDerivedMesh(em, deformedVerts?MEM_dupallocN(deformedVerts):NULL);
 			}
 		}
 	}
@@ -1448,7 +1549,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 			VECCOPY(dlm->mvert[i].co, deformedVerts[i]);
 		}
 
-		dm->release(dm);
+		if (!cage_r || dm!=*cage_r) dm->release(dm);
 
 		if (dlm->nors && !dlm->dontFreeNors) {
 			MEM_freeN(dlm->nors);
@@ -1526,6 +1627,8 @@ static void editmesh_build_data(void)
 	}
 
 	editmesh_calc_modifiers(&em->derivedCage, &em->derivedFinal);
+
+	INIT_MINMAX(min, max);
 
 	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
 

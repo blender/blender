@@ -661,7 +661,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 	ModifierData *md;
 
 	for (md=modbase->first; md; md= md->next) {
-		ModifierTypeInfo *mti = modifierType_get_info(md->type);
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		writestruct(wd, DATA, mti->structName, 1, md);
 	}

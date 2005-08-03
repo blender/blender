@@ -155,7 +155,7 @@ typedef struct ModifierTypeInfo {
 		 * at the moment, it is meant so subsurf can know if it is safe to reuse its
 		 * internal cache.
 		 *
-		 * The modifier is expected to release (or reuse) the _derivedData_ argument
+		 * The modifier *MAY NOT* reuse or release the _derivedData_ argument
 		 * if non-NULL. The modifier *MAY NOT* share the _vertexCos_ argument.
 		 */
 	void *(*applyModifier)(struct ModifierData *md, struct Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc);
@@ -169,7 +169,7 @@ typedef struct ModifierTypeInfo {
 	void *(*applyModifierEM)(struct ModifierData *md, struct Object *ob, void *editData, void *derivedData, float (*vertexCos)[3]);
 } ModifierTypeInfo;
 
-ModifierTypeInfo *modifierType_get_info(ModifierType type);
+ModifierTypeInfo*		modifierType_getInfo	(ModifierType type);
 
 	/* Modifier utility calls, do call through type pointer and return
 	 * default values if pointer is optional.
@@ -179,6 +179,7 @@ void					modifier_free			(struct ModifierData *md);
 
 void					modifier_copyData		(struct ModifierData *md, struct ModifierData *target);
 int						modifier_dependsOnTime	(struct ModifierData *md);
+int						modifier_supportsMapping(struct ModifierData *md);
 
 struct ModifierData*	modifiers_findByType	(struct ListBase *lb, ModifierType type);
 
