@@ -1493,32 +1493,29 @@ static void init_render_mesh(Object *ob)
 			medge= dlm?dlm->medge:me->medge;
 			
 			for(a1=0; a1<end; a1++, medge++) {
-				
-				if( (me->flag & ME_OPT_EDGES)==0 || (medge->flag & ME_EDGEDRAW)) {
-					MVert *v0 = &mvert[medge->v1];
-					MVert *v1 = &mvert[medge->v2];
+				MVert *v0 = &mvert[medge->v1];
+				MVert *v1 = &mvert[medge->v2];
 
-					vlr= RE_findOrAddVlak(R.totvlak++);
-					vlr->ob= vlr_set_ob(ob);
-					vlr->v1= RE_findOrAddVert(vertofs+medge->v1);
-					vlr->v2= RE_findOrAddVert(vertofs+medge->v2);
-					vlr->v3= vlr->v2;
-					vlr->v4= NULL;
-					
-					xn= (v0->no[0]+v1->no[0]);
-					yn= (v0->no[1]+v1->no[1]);
-					zn= (v0->no[2]+v1->no[2]);
-					/* transpose ! */
-					vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-					vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-					vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-					Normalise(vlr->n);
-					
-					vlr->mat= ma;
-					vlr->flag= 0;
-					vlr->ec= ME_V1V2;
-					vlr->lay= ob->lay;
-				}
+				vlr= RE_findOrAddVlak(R.totvlak++);
+				vlr->ob= vlr_set_ob(ob);
+				vlr->v1= RE_findOrAddVert(vertofs+medge->v1);
+				vlr->v2= RE_findOrAddVert(vertofs+medge->v2);
+				vlr->v3= vlr->v2;
+				vlr->v4= NULL;
+				
+				xn= (v0->no[0]+v1->no[0]);
+				yn= (v0->no[1]+v1->no[1]);
+				zn= (v0->no[2]+v1->no[2]);
+				/* transpose ! */
+				vlr->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+				vlr->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+				vlr->n[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+				Normalise(vlr->n);
+				
+				vlr->mat= ma;
+				vlr->flag= 0;
+				vlr->ec= ME_V1V2;
+				vlr->lay= ob->lay;
 			}
 		}
 	}

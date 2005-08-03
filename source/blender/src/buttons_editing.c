@@ -445,9 +445,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButBitS(block, TOG, ME_OPT_EDGES, B_SUBSURFTYPE, "Optimal",	10, 94,154,19, &me->flag, 0, 0, 0, 0, "Only draws optimal wireframe");
-
-	uiBlockBeginAlign(block);
 
 	if(me->medge) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Edges", 					10,70,70,20, 0, val, 0, 0, 0, "");

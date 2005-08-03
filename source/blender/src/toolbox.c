@@ -1808,7 +1808,6 @@ static void tb_do_mesh(void *arg, int event){
 	case 3: G.f ^= G_DRAWFACES; break;
 	case 4: G.f ^= G_DRAWNORMALS; break;
 	case 5: flip_subdivison(OBACT, -1); break;
-	case 6: me->flag ^= ME_OPT_EDGES; DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA); break;
 	}
 	addqueue(curarea->win, REDRAW, 1);
 }
@@ -1821,7 +1820,6 @@ static TBitem tb_mesh[]= {
 {	0, "Show/Hide Normals", 		4, 		NULL},
 {	0, "SEPR", 						0, 	NULL},
 {	0, "Subdivision Surface", 		5, 		NULL},
-{	0, "SubSurf Optimal", 			6, 		NULL},
 {	0, "SEPR", 						0, NULL},
 {	0, "Show/Hide Vertices", 	0, 		tb_obdata_hide},
 {  -1, "", 			0, tb_do_mesh}};

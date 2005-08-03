@@ -479,7 +479,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 			// XXX this is kinda hacky because we shouldn't really be editing
 			// the mesh here, however, we can't just call mesh_build_faceNormals(ob)
 			// because in the case when a key is applied to a mesh the vertex normals
-			// would never be correctly computed (and renderer makes this assumption.
+			// would never be correctly computed (and renderer makes this assumption).
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
 	}
@@ -868,7 +868,6 @@ static void emDM_release(DerivedMesh *dm)
 	MEM_freeN(emdm);
 }
 
-	// XXX face and vertex normals are wrong with vertexcos
 static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 {
 	EditMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");

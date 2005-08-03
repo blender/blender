@@ -772,7 +772,6 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 			vidx[2]= mf->v3;
 			vidx[3]= mf->v4;
 
-				// XXX, should all DLM's have normals?
 			if (dlm->nors) {
 				VECCOPY(nor, &dlm->nors[i*3]);
 			} else {

@@ -1548,10 +1548,6 @@ static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
 					mode |= ME_TWOSIDED;
 				else if( strcmp( m[i], "AutoSmooth" ) == 0 )
 					mode |= ME_AUTOSMOOTH;
-				else if( strcmp( m[i], "SubSurf" ) == 0 )
-					mode |= ME_SUBSURF;
-				else if( strcmp( m[i], "Optimal" ) == 0 )
-					mode |= ME_OPT_EDGES;
 				else if( m[i][0] == '\0' )
 					mode = 0;
 				else
@@ -3243,10 +3239,6 @@ static PyObject *M_NMesh_Modes( void )
 		constant_insert( d, "AUTOSMOOTH",
 				 PyInt_FromLong
 				 ( ME_AUTOSMOOTH ) );
-		constant_insert( d, "SUBSURF",
-				 PyInt_FromLong( ME_SUBSURF ) );
-		constant_insert( d, "OPTIMAL",
-				 PyInt_FromLong( ME_OPT_EDGES ) );
 	}
 
 	return Modes;

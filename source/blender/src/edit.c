@@ -500,7 +500,6 @@ void count_object(Object *ob, int sel)
 		if(me) {
 			int totvert, totface;
 			
-				// XXX fixme for modifier stack
 			totvert= me->totvert;
 			totface= me->totface;
 			

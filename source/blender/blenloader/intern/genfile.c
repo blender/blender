@@ -483,47 +483,6 @@ struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap)
 	
 	return sdna;
 }
-		/* XXX, this routine was added because at one
-		 * point I thought using the dna more would be
-		 * nice, but really thats a flawed idea, you
-		 * already know about your memory structures when
-		 * you are compiling no need to redirect that
-		 * through the DNA, the python stuff should be
-		 * changed to not use this routine (a bit 
-		 * o' work). - zr
-		 */
-int BLO_findstruct_offset(char *structname, char *member)
-{
-	extern char DNAstr[];	/* DNA.c */
-	extern int DNAlen;
-	
-	struct SDNA *sdna;
-	int a, offset;
-	short *sp;
-
-	sdna= dna_sdna_from_data(DNAstr, DNAlen, 0);
-	
-	sp= findstruct_name(sdna, structname);
-	
-	if(sp) {
-		a= sp[1];	/* nr of elems */
-		sp+= 2;
-		offset= 0;
-		
-		while(a--) {
-			if(strcmp(sdna->names[sp[1]], member)==0) {
-				dna_freestructDNA(sdna);
-				return offset;
-			}
-
-			offset+= elementsize(sdna, sp[0], sp[1]);			
-			sp+= 2;
-		}
-	}
-	
-	dna_freestructDNA(sdna);
-	return -1;
-}
 
 /* ******************** END READ DNA ********************** */
 

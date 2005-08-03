@@ -767,7 +767,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 		float *vbCo = &lod.vertex_buffer[a*3];
 		float *vbNo = &lod.vertex_normal_buffer[a*3];
 
-		if (vertexCos) { // XXX normals wrong
+		if (vertexCos) {
 			VECCOPY(vbCo, vertexCos[a]);
 		} else {
 			VECCOPY(vbCo, mv->co);
