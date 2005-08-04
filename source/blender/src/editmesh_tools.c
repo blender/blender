@@ -4773,7 +4773,8 @@ int EdgeSlide(short immediate, float imperc)
         	} 
         } else {
             draw = 0;   
-        }          
+        }     
+        DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);     
     }
     force_draw(0);
     DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
