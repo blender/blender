@@ -34,6 +34,7 @@ source_files = ['intern/allocimbuf.c',
                 'intern/writeimage.c']
 
 imbuf_env.Append (CPPPATH = ['.',
+                             '../imbuf',
                              '../makesdna',
                              '#/intern/guardedalloc',
                              '../blenlib',

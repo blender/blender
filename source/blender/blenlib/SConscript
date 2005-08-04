@@ -28,6 +28,7 @@ source_files = ['intern/BLI_dynstr.c',
 
 
 blenlib_env.Append (CPPPATH = ['.',
+                               '../blenlib',
                                '../makesdna',
                                '../blenkernel',
                                '#/intern/guardedalloc',

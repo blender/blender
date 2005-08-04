@@ -7,6 +7,8 @@ readblenfile_env = library_env.Copy ()
 source_files = ['intern/BLO_readblenfile.c']
 
 readblenfile_env.Append (CPPPATH = ['.',
+
+'../readblenfile',
 									'../readstreamglue',
 									'../blenloader',
 									'../blenloader/intern',

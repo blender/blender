@@ -241,8 +241,8 @@ elif sys.platform == 'darwin':
 						'-framework', 'IOKit' , 
 						'-framework', 'AppKit']
 	# International stuff
-	ftgl_lib = []
-	ftgl_libpath = []
+	ftgl_lib = ['libftgl']
+	ftgl_libpath = [darwin_precomp + 'ftgl/lib']
 	ftgl_include = ['#extern/bFTGL/include']
 	freetype_lib = ['libfreetype']
 	freetype_libpath = [darwin_precomp + 'freetype/lib']

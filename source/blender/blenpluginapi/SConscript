@@ -8,6 +8,7 @@ source_files = ['intern/pluginapi.c']
 
 blenplugin_env.Append (CPPPATH = ['.',
                                   '..',
+                                  '../blenpluginapi',
                                   '#/intern/guardedalloc',
                                   '../blenlib',
                                   '../imbuf',

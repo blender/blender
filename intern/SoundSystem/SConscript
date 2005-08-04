@@ -21,6 +21,7 @@ source_files = ['dummy/SND_DummyDevice.cpp',
                 'intern/SND_WaveSlot.cpp']
 
 soundsys_env.Append (CPPPATH = ['.',
+                                '../SoundSystem',
                                 'intern',
                                 '../moto/include',
                                 '../string',

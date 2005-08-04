@@ -11,6 +11,7 @@ source_files = ['intern/genfile.c',
                 'intern/writefile.c']
 
 blenloader_env.Append (CPPPATH = ['.',
+                                  '../blenloader',
                                   '#/intern/guardedalloc',
                                   '../blenlib',
                                   '../blenkernel',

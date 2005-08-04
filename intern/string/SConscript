@@ -6,6 +6,6 @@ string_env = library_env.Copy ()
 
 source_files = ['intern/STR_String.cpp']
 
-string_env.Append (CPPPATH = ['.'])
+string_env.Append (CPPPATH = ['.', '../string'])
 
 string_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_STR', source=source_files)

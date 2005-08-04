@@ -12,7 +12,7 @@ source_files = ['makesdna.c']
 makesdna_tool = Environment (ENV = os.environ, CCFLAGS='-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
-                                 '..'])
+                                 '../../makesdna'])
 
 makesdna_tool.Replace (CC = user_options_dict['HOST_CC'])
 makesdna_tool.Replace (PATH = user_options_dict['PATH'])

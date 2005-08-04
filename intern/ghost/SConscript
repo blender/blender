@@ -35,6 +35,7 @@ else:
     print "Unknown window system specified."
 
 ghost_env.Append (CPPPATH = ['.',
+                             '../ghost',
                              '../string'])
 
 ghost_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])

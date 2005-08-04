@@ -11,6 +11,7 @@ source_files = ['apple/quicktime_import.c',
                 'apple/quicktime_export.c']
 
 quicktime_env.Append (CPPPATH = ['.',
+                                 '../quicktime',
                                  '../makesdna',
                                  '#/intern/guardedalloc',
                                  '../blenlib',

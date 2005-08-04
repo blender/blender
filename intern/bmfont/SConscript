@@ -17,6 +17,7 @@ source_files = ['intern/BMF_Api.cpp',
                 'intern/BMF_font_scr15.cpp']
 
 bmfont_env.Append (CPPPATH = ['.',
+                              '../bmfont',
                               'intern'])
 
 bmfont_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])

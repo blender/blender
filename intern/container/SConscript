@@ -6,6 +6,6 @@ cont_env = library_env.Copy ()
 
 source_files = ['intern/CTR_List.cpp']
 
-cont_env.Append (CPPPATH = ['.'])
+cont_env.Append (CPPPATH = ['.','../container'])
 
 cont_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_CTR', source=source_files)

@@ -46,6 +46,7 @@ source_files = ['intern/constraint.c',
                 'intern/texture.c']
 
 blenkernel_env.Append (CPPPATH = ['.',
+                                  '../blenkernel',
                                   '#/intern/guardedalloc',
                                   '../include',
                                   '../blenlib',
