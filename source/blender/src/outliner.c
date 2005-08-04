@@ -1888,75 +1888,75 @@ void outliner_operation_menu(ScrArea *sa)
 
 /* ***************** DRAW *************** */
 
-static void tselem_draw_icon(TreeStoreElem *tselem)
+static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem)
 {
 	if(tselem->type) {
 		switch( tselem->type) {
 			case TSE_NLA:
-				BIF_draw_icon(ICON_NLA); break;
+				BIF_draw_icon(x, y, ICON_NLA); break;
 			case TSE_NLA_ACTION:
-				BIF_draw_icon(ICON_ACTION); break;
+				BIF_draw_icon(x, y, ICON_ACTION); break;
 			case TSE_DEFGROUP_BASE:
-				BIF_draw_icon(ICON_VERTEXSEL); break;
+				BIF_draw_icon(x, y, ICON_VERTEXSEL); break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
-				BIF_draw_icon(ICON_CONSTRAINT); break;
+				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
 			case TSE_HOOKS_BASE:
-				BIF_draw_icon(ICON_HOOK); break;
+				BIF_draw_icon(x, y, ICON_HOOK); break;
 			case TSE_HOOK:
-				BIF_draw_icon(ICON_OBJECT); break;
+				BIF_draw_icon(x, y, ICON_OBJECT); break;
 			case TSE_SCRIPT_BASE:
-				BIF_draw_icon(ICON_TEXT); break;
+				BIF_draw_icon(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
-				BIF_draw_icon(ICON_ARMATURE_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_ARMATURE_DEHLT); break;
 			case TSE_POSE_CHANNEL:
-				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
 			default:
-				BIF_draw_icon(ICON_DOT); break;
+				BIF_draw_icon(x, y, ICON_DOT); break;
 		}
 	}
 	else {
 		switch( GS(tselem->id->name)) {
 			case ID_SCE:
-				BIF_draw_icon(ICON_SCENE_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_SCENE_DEHLT); break;
 			case ID_OB:
-				BIF_draw_icon(ICON_OBJECT); break;
+				BIF_draw_icon(x, y, ICON_OBJECT); break;
 			case ID_ME:
-				BIF_draw_icon(ICON_MESH); break;
+				BIF_draw_icon(x, y, ICON_MESH); break;
 			case ID_CU:
-				BIF_draw_icon(ICON_CURVE); break;
+				BIF_draw_icon(x, y, ICON_CURVE); break;
 			case ID_MB:
-				BIF_draw_icon(ICON_MBALL); break;
+				BIF_draw_icon(x, y, ICON_MBALL); break;
 			case ID_LT:
-				BIF_draw_icon(ICON_LATTICE); break;
+				BIF_draw_icon(x, y, ICON_LATTICE); break;
 			case ID_LA:
-				BIF_draw_icon(ICON_LAMP_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_LAMP_DEHLT); break;
 			case ID_MA:
-				BIF_draw_icon(ICON_MATERIAL_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_MATERIAL_DEHLT); break;
 			case ID_TE:
-				BIF_draw_icon(ICON_TEXTURE_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_TEXTURE_DEHLT); break;
 			case ID_IP:
-				BIF_draw_icon(ICON_IPO_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_IPO_DEHLT); break;
 			case ID_IM:
-				BIF_draw_icon(ICON_IMAGE_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_IMAGE_DEHLT); break;
 			case ID_SO:
-				BIF_draw_icon(ICON_SPEAKER); break;
+				BIF_draw_icon(x, y, ICON_SPEAKER); break;
 			case ID_AR:
-				BIF_draw_icon(ICON_WPAINT_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
 			case ID_CA:
-				BIF_draw_icon(ICON_CAMERA_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_CAMERA_DEHLT); break;
 			case ID_KE:
-				BIF_draw_icon(ICON_EDIT_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_EDIT_DEHLT); break;
 			case ID_WO:
-				BIF_draw_icon(ICON_WORLD_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_WORLD_DEHLT); break;
 			case ID_AC:
-				BIF_draw_icon(ICON_ACTION); break;
+				BIF_draw_icon(x, y, ICON_ACTION); break;
 			case ID_NLA:
-				BIF_draw_icon(ICON_NLA); break;
+				BIF_draw_icon(x, y, ICON_NLA); break;
 			case ID_TXT:
-				BIF_draw_icon(ICON_SCRIPT); break;
+				BIF_draw_icon(x, y, ICON_SCRIPT); break;
 		}
 	}
 }
@@ -1989,8 +1989,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int
 				glEnable(GL_BLEND);
 			}
 			
-			glRasterPos2i(*offsx, ys);
-			tselem_draw_icon(tselem);
+			tselem_draw_icon(*offsx, ys, tselem);
 			te->xs= *offsx;
 			te->ys= ys;
 			te->xend= *offsx+OL_X;
@@ -2067,21 +2066,24 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		
 		/* open/close icon, only when sublevels, except for scene */
 		if(te->subtree.first || te->idcode==ID_SCE) {
+			int icon_x;
 			if(tselem->type==0 && (te->idcode==ID_OB || te->idcode==ID_SCE))
-				glRasterPos2i(startx, *starty+2); // icons a bit higher
+				icon_x = startx;
 			else
-				glRasterPos2i(startx+5, *starty+2); // icons a bit higher
+				icon_x = startx+5;
+
+				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				BIF_draw_icon(ICON_TRIA_CLOSED);
+				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_CLOSED);
 			else
-				BIF_draw_icon(ICON_TRIA_OPEN);
+				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_OPEN);
 		}
 		offsx+= OL_X;
 		
 		/* datatype icon */
 		
-		glRasterPos2i(startx+offsx, *starty+2); // icons a bit higher
-		tselem_draw_icon(tselem);
+			// icons a bit higher
+		tselem_draw_icon(startx+offsx, *starty+2, tselem);
 		offsx+= OL_X;
 		glDisable(GL_BLEND);
 

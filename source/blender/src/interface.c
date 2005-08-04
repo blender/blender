@@ -2541,7 +2541,7 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 	}
 	uiBlockEndAlign(block);
 	
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
@@ -2592,7 +2592,7 @@ static int ui_do_but_COL(uiBut *but)
 	}
 	else poin= (float *)but->poin;
 	
-	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSSX, UI_HELV, but->win);
+	block= uiNewBlock(&listb, "colorpicker", UI_EMBOSS, UI_HELV, but->win);
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	

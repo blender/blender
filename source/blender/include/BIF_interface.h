@@ -42,6 +42,7 @@ struct ScrArea;
 #define UI_EMBOSSN		1	/* Nothing */
 #define UI_EMBOSSM		2	/* Minimal builtin emboss, also for logic buttons */
 #define UI_EMBOSSP		3	/* Pulldown */
+#define UI_EMBOSSR		4	/* Rounded */
 
 #define UI_EMBOSSX		0	/* for a python file, which i can't change.... duh! */
 

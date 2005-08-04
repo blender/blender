@@ -279,7 +279,7 @@ void sound_buttons(void)
 
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco= std_libbuttons(block, xco+8, 0, 0, NULL, B_SOUNDBROWSE, (ID *)G.ssound->sound, 0, &(G.ssound->sndnr), 1, 0, 0, 0, 0);	
 
 	if(G.ssound->sound) {

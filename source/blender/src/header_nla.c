@@ -354,7 +354,7 @@ void nla_buttons(void)
 
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 
 
 	/* FULL WINDOW */

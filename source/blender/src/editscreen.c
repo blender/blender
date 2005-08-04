@@ -3202,24 +3202,20 @@ void draw_area_emboss(ScrArea *sa)
 	
 	/* for test */
 	if(FALSE && sa->spacetype==SPACE_VIEW3D) {
-	cpack(0xA0A0A0);
-	uiSetRoundBox(31);
-	uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0, 0);
+		cpack(0xA0A0A0);
+		uiSetRoundBox(31);
+		uiRoundBoxEmboss(5.0, 5.0, 25.0, 100.0, 8.0, 0);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
-	
-	glRasterPos2f(8.0, 10.0);
-	BIF_draw_icon(ICON_MATERIAL_HLT);
-	glRasterPos2f(8.0, 30.0);
-	BIF_draw_icon(ICON_IPO_HLT);
-	glRasterPos2f(8.0, 50.0);
-	BIF_draw_icon(ICON_HOME);
-	glRasterPos2f(8.0, 70.0);
-	BIF_draw_icon(ICON_BORDERMOVE);
-	
-	glBlendFunc(GL_ONE,  GL_ZERO); 
-	glDisable(GL_BLEND);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
+		
+		BIF_draw_icon(8.0, 10.0, ICON_MATERIAL_HLT);
+		BIF_draw_icon(8.0, 30.0, ICON_IPO_HLT);
+		BIF_draw_icon(8.0, 50.0, ICON_HOME);
+		BIF_draw_icon(8.0, 70.0, ICON_BORDERMOVE);
+		
+		glBlendFunc(GL_ONE,  GL_ZERO); 
+		glDisable(GL_BLEND);
 	}
 }
 

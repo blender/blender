@@ -828,7 +828,7 @@ void ipo_buttons(void)
 	}
 
 	/* end of pull down menus */
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	/* mainmenu, only when data is there and no pin */
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");

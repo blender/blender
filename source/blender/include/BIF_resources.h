@@ -299,9 +299,19 @@ typedef enum {
 	ICON_CURSOR,
 	ICON_ROTATECOLLECTION,
 	ICON_ROTATECENTER,
-	ICON_ROTACTIVE
-	
-#define BIFICONID_LAST		(ICON_ROTACTIVE)
+	ICON_ROTACTIVE,
+
+	VICON_VIEW3D,
+	VICON_EDIT,
+	VICON_EDITMODE_DEHLT,
+	VICON_EDITMODE_HLT,
+	VICON_DISCLOSURE_TRI_RIGHT,
+	VICON_DISCLOSURE_TRI_DOWN,
+	VICON_MOVE_UP,
+	VICON_MOVE_DOWN,
+	VICON_X
+
+#define BIFICONID_LAST		(VICON_X)
 #define BIFNICONIDS			(BIFICONID_LAST-BIFICONID_FIRST + 1)
 } BIFIconID;
 
@@ -495,8 +505,8 @@ void	BIF_load_ui_colors		(void);
 // icon API
 int		BIF_get_icon_width		(BIFIconID icon);
 int		BIF_get_icon_height		(BIFIconID icon);
-void	BIF_draw_icon			(BIFIconID icon);
-void	BIF_draw_icon_blended	(BIFIconID icon, int colorid, int shade);
+void	BIF_draw_icon			(float x, float y, BIFIconID icon);
+void	BIF_draw_icon_blended	(float x, float y, BIFIconID icon, int colorid, int shade);
 
 /* only for buttons in theme editor! */
 char 	*BIF_ThemeGetColorPtr(struct bTheme *btheme, int spacetype, int colorid);

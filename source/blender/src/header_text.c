@@ -609,7 +609,7 @@ void text_buttons(void)
 			xco+=xmax;
 		}
 	}
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco += 10;
 	
 	/* FULL WINDOW */

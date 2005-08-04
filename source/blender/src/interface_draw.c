@@ -154,6 +154,10 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	int blend= 0;
 	float xs=0, ys=0;
 
+	if (icon==VICON_X) {
+		int i = 0;
+	}
+
 	// this icon doesn't need draw...
 	if(icon==ICON_BLANK1) return;
 
@@ -178,9 +182,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		ys= (but->y1+but->y2- BIF_get_icon_height(icon))/2.0;
 	}
 
-	glRasterPos2f(xs, ys);
-	// BIF_icon_pos(xs, ys);
-
 	if(but->aspect>1.1) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
 	else if(but->aspect<0.9) glPixelZoom(1.0/but->aspect, 1.0/but->aspect);
 
@@ -193,7 +194,7 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 		else if(but->flag & UI_ACTIVE);
 		else blend= -60;
 	}
-	BIF_draw_icon_blended(icon, but->themecol, blend);
+	BIF_draw_icon_blended(xs, ys, icon, but->themecol, blend);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
@@ -1728,6 +1729,7 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 	else if(drawtype==UI_EMBOSSM) but->embossfunc= ui_draw_minimal;
 	else if(drawtype==UI_EMBOSSN) but->embossfunc= ui_draw_nothing;
 	else if(drawtype==UI_EMBOSSP) but->embossfunc= ui_draw_pulldown_item;
+	else if(drawtype==UI_EMBOSSR) but->embossfunc= ui_draw_round;
 	else {
 		int theme= BIF_GetThemeValue(TH_BUT_DRAWTYPE);
 		

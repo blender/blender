@@ -739,7 +739,7 @@ void action_buttons(void)
 		xco+= xmax;
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	// object action is allowed to be zero!
 	/* (ton) commented out below line, since people can apparently link Action to any object (mesh) and

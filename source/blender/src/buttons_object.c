@@ -362,7 +362,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		else
 			but = uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Object Constraint%t|Track To%x2|Copy Rotation%x8|Copy Location%x9|Null%x0", *xco+20, *yco, 100, 20, &con->type, 0.0, 0.0, 0.0, 0.0, "Constraint type"); 
 		*/
-		uiBlockSetEmboss(block, UI_EMBOSSX);
+		uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* rounded header */
 		BIF_ThemeColorShade(curCol, -20);
@@ -409,7 +409,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	but = uiDefIconBut(block, BUT, B_CONSTRAINT_DEL, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
 	uiButSetFunc(but, del_constraint_func, con, list);
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 
 
 	/* Draw constraint data*/

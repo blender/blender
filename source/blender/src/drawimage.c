@@ -539,22 +539,22 @@ static void draw_image_prop_circle(ImBuf *ibuf)
 
 static void draw_image_view_icon(void)
 {
+	float xPos = 5.0;
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glRasterPos2f(5.0, 5.0);
-
 	if(G.sima->flag & SI_STICKYUVS) {
-		BIF_draw_icon(ICON_STICKY2_UVS);
-		glRasterPos2f(25.0, 5.0);
+		BIF_draw_icon(xPos, 5.0, ICON_STICKY2_UVS);
+		xPos = 25.0;
 	}
 	else if(G.sima->flag & SI_LOCALSTICKY) {
-		BIF_draw_icon(ICON_STICKY_UVS);
-		glRasterPos2f(25.0, 5.0);
+		BIF_draw_icon(xPos, 5.0, ICON_STICKY_UVS);
+		xPos = 25.0;
 	}
 
 	if(G.sima->flag & SI_SELACTFACE) {
-			BIF_draw_icon(ICON_DRAW_UVFACES);
+		BIF_draw_icon(xPos, 5.0, ICON_DRAW_UVFACES);
 	}
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 

@@ -1040,8 +1040,7 @@ static void draw_view_icon(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	glRasterPos2f(5.0, 5.0);
-	BIF_draw_icon(icon);
+	BIF_draw_icon(5.0, 5.0, icon);
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);

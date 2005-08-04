@@ -58,22 +58,39 @@
 #include "datatoc.h"
 
 /* global for themes */
+typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
+
 static bTheme *theme_active=NULL;
 static int theme_spacetype= SPACE_VIEW3D;
 
 typedef struct {
+		/* If drawFunc is defined then it is a vector icon, otherwise use data */
+	VectorDrawFunc drawFunc;
+
+	int w, h;
+
+		/* Data for image icons */
 	unsigned char *data;
 	float uv[4][2];
 	GLuint texid;
-	int w, h;
 } Icon;
 
+static Icon *icon_new_vector(VectorDrawFunc drawFunc, int w, int h)
+{
+	Icon *icon= MEM_callocN(sizeof(*icon), "internicon");
+	icon->drawFunc = drawFunc;
+	icon->w = w;
+	icon->h = h;
+
+	return icon;
+}
 
 static Icon *icon_from_data(unsigned char *rect, GLuint texid, int xofs, int yofs, int w, int h, int rowstride)
 {
 	Icon *icon= MEM_mallocN(sizeof(*icon), "internicon");
 	int y;
 
+	icon->drawFunc = NULL;
 	icon->texid= texid;
 	icon->uv[0][0]= ((float)xofs)/512.0;
 	icon->uv[0][1]= ((float)yofs)/256.0;
@@ -142,28 +159,36 @@ static void icon_draw_tex(Icon *icon)
 #endif
 
 
-static void icon_draw(Icon *icon)
+static void icon_draw(float x, float y, Icon *icon)
 {
-	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
+	if (icon->drawFunc) {
+		icon->drawFunc(x, y, icon->w, icon->h, 1.0);
+	} else {
+		glRasterPos2f(x, y);
+		glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
+	}
 }
 
 
-static void icon_draw_blended(Icon *icon, char *blendcol, int shade)
+static void icon_draw_blended(float x, float y, Icon *icon, char *blendcol, int shade)
 {
-
-	if(shade < 0) {
-		float r= (128+shade)/128.0;
-		glPixelTransferf(GL_ALPHA_SCALE, r);
+	if (icon->drawFunc) {
+		icon->drawFunc(x, y, icon->w, icon->h, shade<0?((128+shade)/128.0):1.0);
+	} else {
+		if(shade < 0) {
+			float r= (128+shade)/128.0;
+			glPixelTransferf(GL_ALPHA_SCALE, r);
+		}
+		glRasterPos2f(x, y);
+		glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
+		glPixelTransferf(GL_ALPHA_SCALE, 1.0);
 	}
-	glDrawPixels(icon->w, icon->h, GL_RGBA, GL_UNSIGNED_BYTE, icon->data);
-	glPixelTransferf(GL_ALPHA_SCALE, 1.0);
-
 }
 
 
 static void icon_free(Icon *icon)
 {
-	MEM_freeN(icon->data);
+	if (icon->data) MEM_freeN(icon->data);
 	MEM_freeN(icon);
 }
 
@@ -188,17 +213,16 @@ static void free_common_icons(void)
 	}
 }
 
-void BIF_draw_icon(BIFIconID icon)
+void BIF_draw_icon(float x, float y, BIFIconID icon)
 {
-	icon_draw(get_icon(icon));
+	icon_draw(x, y, get_icon(icon));
 }
 
-void BIF_draw_icon_blended(BIFIconID icon, int colorid, int shade)
+void BIF_draw_icon_blended(float x, float y, BIFIconID icon, int colorid, int shade)
 {
 	char *cp= BIF_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
-	icon_draw_blended(get_icon(icon), cp, shade);
+	icon_draw_blended(x, y, get_icon(icon), cp, shade);
 	// icon_draw_tex(get_icon(icon));
-
 }
 
 int BIF_get_icon_width(BIFIconID icon)
@@ -222,6 +246,17 @@ static void def_icon(ImBuf *bbuf, GLuint texid, BIFIconID icon, int xidx, int yi
 		common_icons_arr[iconidx]= 
 			icon_from_data(start, texid, (xidx*20 + 3 + offsx), (yidx*21 + 3 + offsy), w, h, rowstride);
 		
+	} else {
+		printf("def_icon: Internal error, bad icon ID: %d\n", icon);
+	}
+}
+
+static void def_vicon(BIFIconID icon, int w, int h, VectorDrawFunc drawFunc)
+{
+	int iconidx= icon-BIFICONID_FIRST;
+	
+	if (iconidx>=0 && iconidx<BIFNICONIDS) {
+		common_icons_arr[iconidx]= icon_new_vector(drawFunc, w, h);
 	} else {
 		printf("def_icon: Internal error, bad icon ID: %d\n", icon);
 	}
@@ -278,6 +313,264 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 	}
 }
 
+/* Vector Icon Drawing Routines */
+
+	/* Utilities */
+
+static void viconutil_set_point(int pt[2], int x, int y)
+{
+	pt[0] = x;
+	pt[1] = y;
+}
+
+static void viconutil_draw_tri(int (*pts)[2])
+{
+	glBegin(GL_TRIANGLES);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glVertex2iv(pts[2]);
+	glEnd();
+}
+
+static void viconutil_draw_quad(int (*pts)[2])
+{
+	glBegin(GL_QUADS);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glVertex2iv(pts[2]);
+	glVertex2iv(pts[3]);
+	glEnd();
+}
+
+static void viconutil_draw_lineloop(int (*pts)[2], int numPoints)
+{
+	int i;
+
+	glBegin(GL_LINE_LOOP);
+	for (i=0; i<numPoints; i++) {
+		glVertex2iv(pts[i]);
+	}
+	glEnd();
+}
+
+static void viconutil_draw_lineloop_smooth(int (*pts)[2], int numPoints)
+{
+	glEnable(GL_LINE_SMOOTH);
+	viconutil_draw_lineloop(pts, numPoints);
+	glDisable(GL_LINE_SMOOTH);
+}
+
+static void viconutil_draw_points(int (*pts)[2], int numPoints, int pointSize)
+{
+	int i;
+
+	glBegin(GL_QUADS);
+	for (i=0; i<numPoints; i++) {
+		int x = pts[i][0], y = pts[i][1];
+
+		glVertex2i(x-pointSize,y-pointSize);
+		glVertex2i(x+pointSize,y-pointSize);
+		glVertex2i(x+pointSize,y+pointSize);
+		glVertex2i(x-pointSize,y+pointSize);
+	}
+	glEnd();
+}
+
+	/* Drawing functions */
+
+static void vicon_x_draw(int x, int y, int w, int h, float alpha)
+{
+	x += 3;
+	y += 3;
+	w -= 6;
+	h -= 6;
+
+	glEnable( GL_LINE_SMOOTH );
+
+	glLineWidth(2.5);
+	
+	glColor4f(0.0, 0.0, 0.0, alpha);
+	glBegin(GL_LINES);
+	glVertex2i(x  ,y  );
+	glVertex2i(x+w,y+h);
+	glVertex2i(x+w,y  );
+	glVertex2i(x  ,y+h);
+	glEnd();
+
+	glLineWidth(1.0);
+	
+	glDisable( GL_LINE_SMOOTH );
+}
+
+static void vicon_view3d_draw(int x, int y, int w, int h, float alpha)
+{
+	int cx = x + w/2;
+	int cy = y + h/2;
+	int d = MAX2(2, h/3);
+
+	glColor4f(0.5, 0.5, 0.5, alpha);
+	glBegin(GL_LINES);
+	glVertex2i(x  , cy-d);
+	glVertex2i(x+w, cy-d);
+	glVertex2i(x  , cy+d);
+	glVertex2i(x+w, cy+d);
+
+	glVertex2i(cx-d, y  );
+	glVertex2i(cx-d, y+h);
+	glVertex2i(cx+d, y  );
+	glVertex2i(cx+d, y+h);
+	glEnd();
+	
+	glColor4f(0.0, 0.0, 0.0, alpha);
+	glBegin(GL_LINES);
+	glVertex2i(x  , cy);
+	glVertex2i(x+w, cy);
+	glVertex2i(cx, y  );
+	glVertex2i(cx, y+h);
+	glEnd();
+}
+
+static void vicon_edit_draw(int x, int y, int w, int h, float alpha)
+{
+	int pts[4][2];
+
+	viconutil_set_point(pts[0], x+3  , y+3  );
+	viconutil_set_point(pts[1], x+w-3, y+3  );
+	viconutil_set_point(pts[2], x+w-3, y+h-3);
+	viconutil_set_point(pts[3], x+3  , y+h-3);
+
+	glColor4f(0.0, 0.0, 0.0, alpha);
+	viconutil_draw_lineloop(pts, 4);
+
+	glColor3f(1, 1, 0.0);
+	viconutil_draw_points(pts, 4, 1);
+}
+
+static void vicon_editmode_hlt_draw(int x, int y, int w, int h, float alpha)
+{
+	int pts[3][2];
+
+	viconutil_set_point(pts[0], x+w/2, y+h-3);
+	viconutil_set_point(pts[1], x+3, y+3);
+	viconutil_set_point(pts[2], x+w-3, y+3);
+
+	glColor4f(0.5, 0.5, 0.5, alpha);
+	viconutil_draw_tri(pts);
+
+	glColor4f(0.0, 0.0, 0.0, 1);
+	viconutil_draw_lineloop_smooth(pts, 3);
+
+	glColor3f(1, 1, 0.0);
+	viconutil_draw_points(pts, 3, 1);
+}
+
+static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float alpha)
+{
+	int pts[3][2];
+
+	viconutil_set_point(pts[0], x+w/2, y+h-3);
+	viconutil_set_point(pts[1], x+3, y+3);
+	viconutil_set_point(pts[2], x+w-3, y+3);
+
+	glColor4f(0.0, 0.0, 0.0, 1);
+	viconutil_draw_lineloop_smooth(pts, 3);
+
+	glColor3f(.9, .9, .9);
+	viconutil_draw_points(pts, 3, 1);
+}
+
+static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float alpha)
+{
+	int pts[3][2];
+	int cx = x+w/2;
+	int cy = y+w/2;
+	int d = w/3, d2 = w/5;
+
+	viconutil_set_point(pts[0], cx-d2, cy+d);
+	viconutil_set_point(pts[1], cx-d2, cy-d);
+	viconutil_set_point(pts[2], cx+d2, cy);
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_TRIANGLES);
+	glColor4f(0.8, 0.8, 0.8, alpha);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glColor4f(0.3, 0.3, 0.3, alpha);
+	glVertex2iv(pts[2]);
+	glEnd();
+	glShadeModel(GL_FLAT);
+
+	glColor4f(0.0, 0.0, 0.0, 1);
+	viconutil_draw_lineloop_smooth(pts, 3);
+}
+
+static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alpha)
+{
+	int pts[3][2];
+	int cx = x+w/2;
+	int cy = y+w/2;
+	int d = w/3, d2 = w/5;
+
+	viconutil_set_point(pts[0], cx+d, cy+d2);
+	viconutil_set_point(pts[1], cx-d, cy+d2);
+	viconutil_set_point(pts[2], cx, cy-d2);
+
+	glShadeModel(GL_SMOOTH);
+	glBegin(GL_TRIANGLES);
+	glColor4f(0.8, 0.8, 0.8, alpha);
+	glVertex2iv(pts[0]);
+	glVertex2iv(pts[1]);
+	glColor4f(0.3, 0.3, 0.3, alpha);
+	glVertex2iv(pts[2]);
+	glEnd();
+	glShadeModel(GL_FLAT);
+
+	glColor4f(0.0, 0.0, 0.0, 1);
+	viconutil_draw_lineloop_smooth(pts, 3);
+}
+
+static void vicon_move_up_draw(int x, int y, int w, int h, float alpha)
+{
+	int i, d=-2, pad=3;
+
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(2);
+	glColor3f(0.0, 0.0, 0.0);
+	for (i=0; i<2; i++) {
+		int offs = (i?2:-2) + 1;
+
+		glBegin(GL_LINE_STRIP);
+		glVertex2i(x+pad, y+h/2+d + offs);
+		glVertex2i(x+w/2, y+h/2-d + offs);
+		glVertex2i(x+w-pad, y+h/2+d + offs);
+		glEnd();
+	}
+	glLineWidth(1.0);
+	glDisable(GL_LINE_SMOOTH);
+}
+
+static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
+{
+	int i, d=2, pad=3;
+
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(2);
+	glColor3f(0.0, 0.0, 0.0);
+	for (i=0; i<2; i++) {
+		int offs = (i?2:-2) - 1;
+
+		glBegin(GL_LINE_STRIP);
+		glVertex2i(x+pad, y+h/2+d + offs);
+		glVertex2i(x+w/2, y+h/2-d + offs);
+		glVertex2i(x+w-pad, y+h/2+d + offs);
+		glEnd();
+	}
+	glLineWidth(1.0);
+	glDisable(GL_LINE_SMOOTH);
+}
+
+/***/
+
 void BIF_resources_init(void)
 {
 	ImBuf *bbuf= IMB_ibImageFromMemory((int *)datatoc_blenderbuttons, datatoc_blenderbuttons_size, IB_rect);
@@ -324,6 +617,16 @@ void BIF_resources_init(void)
 			}
 		}
 	}
+
+	def_vicon(VICON_VIEW3D, 16, 16, vicon_view3d_draw);
+	def_vicon(VICON_EDIT, 16, 16, vicon_edit_draw);
+	def_vicon(VICON_EDITMODE_DEHLT, 16, 16, vicon_editmode_dehlt_draw);
+	def_vicon(VICON_EDITMODE_HLT, 16, 16, vicon_editmode_hlt_draw);
+	def_vicon(VICON_DISCLOSURE_TRI_RIGHT, 16, 16, vicon_disclosure_tri_right_draw);
+	def_vicon(VICON_DISCLOSURE_TRI_DOWN, 16, 16, vicon_disclosure_tri_down_draw);
+	def_vicon(VICON_MOVE_UP, 16, 16, vicon_move_up_draw);
+	def_vicon(VICON_MOVE_DOWN, 16, 16, vicon_move_down_draw);
+	def_vicon(VICON_X, 16, 16, vicon_x_draw);
 
 	IMB_freeImBuf(bbuf);	
 }

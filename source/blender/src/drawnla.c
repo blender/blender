@@ -148,8 +148,7 @@ static void draw_nlatree(void)
 	
 			/* Draw the action timeline */
 			if (ACTIVE_ARMATURE(base)){
-				glRasterPos2f(x,  y-8);				
-				BIF_draw_icon(ICON_DOWNARROW_HLT);
+				BIF_draw_icon(x, y-8, ICON_DOWNARROW_HLT);
 				y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 				
 				if (base->object->action){

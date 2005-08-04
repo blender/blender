@@ -393,7 +393,7 @@ void time_buttons(ScrArea *sa)
 		xco+= xmax;
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, REDRAWALL,"Start:",	

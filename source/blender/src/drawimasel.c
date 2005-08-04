@@ -508,27 +508,24 @@ void draw_sima_area(SpaceImaSel *simasel)
 		sx = simasel->desx;
 		sy = simasel->deey+6;
 		
-		glRasterPos2f(sx+16*0, sy);
 		if (bitset(simasel->fase, IMS_FOUND_BIP)) {
-			BIF_draw_icon(ICON_BPIBFOLDER_HLT);
+			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_HLT);
 		} else if (bitset(simasel->fase, IMS_WRITE_NO_BIP)) {
-			BIF_draw_icon(ICON_BPIBFOLDER_DEHLT);
+			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
 		} else {
-			BIF_draw_icon(ICON_BPIBFOLDER_DEHLT);
+			BIF_draw_icon(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
 		}
 
-		glRasterPos2f(sx+16*1, sy);
 		if (bitset(simasel->fase, IMS_KNOW_INF)) {
-			BIF_draw_icon(ICON_FOLDER_HLT);
+			BIF_draw_icon(sx+16*1, sy, ICON_FOLDER_HLT);
 		} else {
-			BIF_draw_icon(ICON_FOLDER_DEHLT);
+			BIF_draw_icon(sx+16*1, sy, ICON_FOLDER_DEHLT);
 		}
 		
-		glRasterPos2f(sx+16*2, sy);
 		if (bitset(simasel->fase, IMS_KNOW_IMA)) {
-			BIF_draw_icon(ICON_BLUEIMAGE_HLT);
+			BIF_draw_icon(sx+16*2, sy, ICON_BLUEIMAGE_HLT);
 		} else {
-			BIF_draw_icon(ICON_BLUEIMAGE_DEHLT);
+			BIF_draw_icon(sx+16*2, sy, ICON_BLUEIMAGE_DEHLT);
 		}
 	}
 	

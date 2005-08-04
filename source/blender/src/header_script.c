@@ -215,7 +215,7 @@ void script_buttons(void)
 	if (!sc || sc->spacetype != SPACE_SCRIPT) return;
 
 	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSSX, UI_HELV, curarea->headwin);
+	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
 
 	if(area_is_active_area(curarea)) uiBlockSetCol(block, TH_HEADER);
 	else uiBlockSetCol(block, TH_HEADERDESEL);
@@ -250,7 +250,7 @@ void script_buttons(void)
 		xco+=xmax;
 	}
 
-	uiBlockSetEmboss(block, UI_EMBOSSX);
+	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	uiDefIconBut(block, BUT, B_SCRIPT2PREV, ICON_GO_LEFT, xco+=XIC, 0, XIC, YIC,
 		0, 0, 0, 0, 0, "Returns to previous window");
