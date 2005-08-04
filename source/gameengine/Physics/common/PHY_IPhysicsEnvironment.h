@@ -67,10 +67,16 @@ class PHY_IPhysicsEnvironment
 		virtual void		setCcdMode(int ccdMode) {}
 		///successive overrelaxation constant, in case PSOR is used, values in between 1 and 2 guarantee converging behaviour
 		virtual void		setSolverSorConstant(float sor) {}
+		///setSolverType, internal setting, chooses solvertype, PSOR, Dantzig, impulse based, penalty based
+		virtual void		setSolverType(int solverType) {}
 		///setTau sets the spring constant of a penalty based solver
-		virtual void		setTau(float tau) {}
+		virtual void		setSolverTau(float tau) {}
 		///setDamping sets the damper constant of a penalty based solver
-		virtual void		setDamping(float damping) {}
+		virtual void		setSolverDamping(float damping) {}
+		///linear air damping for rigidbodies
+		virtual void		setLinearAirDamping(float damping) {}
+		/// penetrationdepth setting
+		virtual void		setUseEpa(bool epa) {}
 
 		virtual	void		setGravity(float x,float y,float z)=0;
 

@@ -32,6 +32,8 @@
 #include "NarrowPhaseCollision/VoronoiSimplexSolver.h"
 #include "CollisionShapes/SphereShape.h"
 
+#include "NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.h"
+
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -50,22 +52,22 @@ bool gForceBoxBox = false;//false;//true;
 bool gBoxBoxUseGjk = true;//true;//false;
 bool gDisableConvexCollision = false;
 
-
+bool gUseEpa = false;
 
 
 ConvexConvexAlgorithm::ConvexConvexAlgorithm(PersistentManifold* mf,const CollisionAlgorithmConstructionInfo& ci,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
 : CollisionAlgorithm(ci),
-m_gjkPairDetector(0,0,&m_simplexSolver,&m_penetrationDepthSolver),
+m_gjkPairDetector(0,0,&m_simplexSolver,0),
 m_box0(*proxy0),
 m_box1(*proxy1),
 m_collisionImpulse(0.f),
 m_ownManifold (false),
 m_manifoldPtr(mf),
-m_lowLevelOfDetail(false)
-
+m_lowLevelOfDetail(false),
+m_useEpa(gUseEpa)
 {
+	CheckPenetrationDepthSolver();
 
-	
 	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
 	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
 
@@ -127,6 +129,22 @@ public:
 
 };
 
+void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
+{
+//	if (m_useEpa != gUseEpa)
+	{
+		m_useEpa  = gUseEpa;
+		if (m_useEpa)
+		{
+			//not distributed
+			//m_gjkPairDetector.SetPenetrationDepthSolver(new Solid3EpaPenetrationDepth);
+		} else
+		{
+			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);
+		}
+	}
+	
+}
 bool extra = false;
 
 float gFriction = 0.5f;
@@ -135,12 +153,18 @@ float gFriction = 0.5f;
 //
 void ConvexConvexAlgorithm ::ProcessCollision (BroadphaseProxy* ,BroadphaseProxy* ,float timeStep,int stepCount, bool useContinuous)
 {
-	
+	CheckPenetrationDepthSolver();
+
 //	printf("ConvexConvexAlgorithm::ProcessCollision\n");
 m_collisionImpulse = 0.f;
 	
 	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
 	RigidBody* body1 = (RigidBody*)m_box1.m_clientObject;
+
+	//todo: move this in the dispatcher
+	if ((body0->GetActivationState() == 2) &&(body1->GetActivationState() == 2))
+		return;
+
 
 	if (!m_manifoldPtr)
 		return;
@@ -188,6 +212,8 @@ bool disableCcd = false;
 float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,BroadphaseProxy* proxy1,float timeStep,int stepCount)
 {
 
+	CheckPenetrationDepthSolver();
+
 	m_collisionImpulse = 0.f;
 	
 	RigidBody* body0 = (RigidBody*)m_box0.m_clientObject;
@@ -222,7 +248,7 @@ float	ConvexConvexAlgorithm::CalculateTimeOfImpact(BroadphaseProxy* proxy0,Broad
 	//SubsimplexConvexCast ccd(&voronoiSimplex);
 	//GjkConvexCast ccd(&voronoiSimplex);
 	
-	ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,&m_penetrationDepthSolver);
+	ContinuousConvexCollision ccd(min0,min1,&voronoiSimplex,m_penetrationDepthSolver);
 
 	if (disableCcd)
 		return 1.f;

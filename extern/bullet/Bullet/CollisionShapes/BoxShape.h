@@ -84,26 +84,7 @@ public:
 
 	
 
-	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
-	{
-		float margin = GetMargin();
-		SimdVector3 halfExtents = GetHalfExtents();
-
-		SimdScalar lx=2.f*(halfExtents.x()+margin);
-		SimdScalar ly=2.f*(halfExtents.y()+margin);
-		SimdScalar lz=2.f*(halfExtents.z()+margin);
-		const SimdScalar x2 = lx*lx;
-		const SimdScalar y2 = ly*ly;
-		const SimdScalar z2 = lz*lz;
-		const SimdScalar scaledmass = mass * 0.08333333f;
-
-		inertia = scaledmass * (SimdVector3(y2+z2,x2+z2,x2+y2));
-
-//		inertia.x() = scaledmass * (y2+z2);
-//		inertia.y() = scaledmass * (x2+z2);
-//		inertia.z() = scaledmass * (x2+y2);
-	}
-
+	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
 	virtual void GetPlane(SimdVector3& planeNormal,SimdPoint3& planeSupport,int i ) const
 	{

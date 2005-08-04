@@ -142,18 +142,21 @@ void ToiContactDispatcher::SolveConstraints(float timeStep, int numIterations,in
 			for (i=0;i<islandmanifold.size();i++)
 			{
 				 PersistentManifold* manifold = islandmanifold[i];
-				if (((RigidBody*)manifold->GetBody0()))	
+				 RigidBody* body0 = (RigidBody*)manifold->GetBody0();
+				 RigidBody* body1 = (RigidBody*)manifold->GetBody1();
+
+				if (body0)	
 				{
-					if ( ((RigidBody*)manifold->GetBody0())->GetActivationState() == ISLAND_SLEEPING)
+					if ( body0->GetActivationState() == ISLAND_SLEEPING)
 					{
-						((RigidBody*)manifold->GetBody0())->SetActivationState( WANTS_DEACTIVATION );//ACTIVE_TAG;
+						body0->SetActivationState( WANTS_DEACTIVATION);
 					}
 				}
-				if (((RigidBody*)manifold->GetBody1()))	
+				if (body1)	
 				{
-					if ( ((RigidBody*)manifold->GetBody1())->GetActivationState() == ISLAND_SLEEPING)
+					if ( body1->GetActivationState() == ISLAND_SLEEPING)
 					{
-						((RigidBody*)manifold->GetBody1())->SetActivationState(WANTS_DEACTIVATION);//ACTIVE_TAG;
+						body1->SetActivationState(WANTS_DEACTIVATION);
 					}
 				}
 

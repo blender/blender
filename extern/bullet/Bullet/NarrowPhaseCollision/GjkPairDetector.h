@@ -55,6 +55,10 @@ public:
 		m_cachedSeparatingAxis = seperatingAxis;
 	}
 
+	void	SetPenetrationDepthSolver(ConvexPenetrationDepthSolver*	penetrationDepthSolver)
+	{
+		m_penetrationDepthSolver = penetrationDepthSolver;
+	}
 };
 
 #endif //GJK_PAIR_DETECTOR_H

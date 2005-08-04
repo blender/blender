@@ -917,7 +917,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			bm = new BoxShape(he);
 			bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-
+			bm->SetMargin(0.05 * halfExtents.length());
 			break;
 		};
 	case KX_BOUNDCYLINDER:

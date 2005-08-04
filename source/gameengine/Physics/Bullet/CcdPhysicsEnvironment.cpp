@@ -88,15 +88,15 @@ CcdPhysicsEnvironment::CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher,Br
 m_broadphase(bp),
 m_scalingPropagated(false),
 m_numIterations(30),
-m_ccdMode(0)
+m_ccdMode(0),
+m_solverType(-1)
 {
+
 	if (!m_dispatcher)
 	{
-		OdeConstraintSolver* solver = new OdeConstraintSolver();
-		//SimpleConstraintSolver* solver= new SimpleConstraintSolver();
-		m_dispatcher = new ToiContactDispatcher(solver);
-
+		setSolverType(0);
 	}
+
 	if (!m_broadphase)
 	{
 		m_broadphase = new SimpleBroadphase();
@@ -439,14 +439,41 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 					
 #ifdef WIN32
 					SimdVector3 color (1,0,0);
+					
+				
+
+				
 					if (m_debugDrawer)
 					{	
 						//draw aabb
+						switch (body->GetActivationState())
+						{
+						case ISLAND_SLEEPING:
+							{
+								color.setValue(0,1,0);
+								break;
+							}
+						case WANTS_DEACTIVATION:
+							{
+								color.setValue(0,0,1);
+								break;
+							}
+						case ACTIVE_TAG:
+							{
+								break;
+							}
+
+							
+						};
 
 						DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
 					}
 #endif
+
 					scene->SetAabb(bp,minAabb,maxAabb);
+
+
+					
 				}
 			}
 			
@@ -505,6 +532,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			{
 				CcdPhysicsController* ctrl = (*i);
 				RigidBody* body = ctrl->GetRigidBody();
+
+				ctrl->UpdateDeactivation(timeStep);
+
 				
 				if (ctrl->wantsSleeping())
 				{
@@ -543,21 +573,6 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
 {
-	if (debugMode > 10)
-	{
-		if (m_dispatcher)
-			delete m_dispatcher;
-
-		if (debugMode > 100)
-		{
-			SimpleConstraintSolver* solver= new SimpleConstraintSolver();
-			m_dispatcher = new ToiContactDispatcher(solver);
-		} else
-		{
-			OdeConstraintSolver* solver = new OdeConstraintSolver();
-			m_dispatcher = new ToiContactDispatcher(solver);
-		}
-	}
 	if (m_debugDrawer){
 		m_debugDrawer->SetDebugMode(debugMode);
 	}
@@ -597,14 +612,61 @@ void		CcdPhysicsEnvironment::setSolverSorConstant(float sor)
 	m_dispatcher->SetSor(sor);
 }
 
-void		CcdPhysicsEnvironment::setTau(float tau)
+void		CcdPhysicsEnvironment::setSolverTau(float tau)
 {
 	m_dispatcher->SetTau(tau);
 }
-void		CcdPhysicsEnvironment::setDamping(float damping)
+void		CcdPhysicsEnvironment::setSolverDamping(float damping)
 {
 	m_dispatcher->SetDamping(damping);
 }
+
+
+void		CcdPhysicsEnvironment::setLinearAirDamping(float damping)
+{
+	gLinearAirDamping = damping;
+}
+
+void		CcdPhysicsEnvironment::setUseEpa(bool epa)
+{
+	gUseEpa = epa;
+}
+
+void		CcdPhysicsEnvironment::setSolverType(int solverType)
+{
+
+	switch (solverType)
+	{
+	case 1:
+		{
+			if (m_solverType != solverType)
+			{
+				if (m_dispatcher)
+					delete m_dispatcher;
+
+				SimpleConstraintSolver* solver= new SimpleConstraintSolver();
+				m_dispatcher = new ToiContactDispatcher(solver);
+				break;
+			}
+		}
+	
+	case 0:
+	default:
+			if (m_solverType != solverType)
+			{
+				if (m_dispatcher)
+					delete m_dispatcher;
+
+				OdeConstraintSolver* solver= new OdeConstraintSolver();
+				m_dispatcher = new ToiContactDispatcher(solver);
+				break;
+			}
+
+	};
+	
+	m_solverType = solverType ;
+}
+
 
 
 

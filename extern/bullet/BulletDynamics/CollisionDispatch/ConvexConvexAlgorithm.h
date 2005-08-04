@@ -16,18 +16,16 @@
 #include "NarrowPhaseCollision/PersistentManifold.h"
 #include "BroadphaseCollision/BroadphaseProxy.h"
 #include "NarrowPhaseCollision/VoronoiSimplexSolver.h"
-#include "NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.h"
-
 
 class ConvexPenetrationDepthSolver;
 
 ///ConvexConvexAlgorithm collision algorithm implements time of impact, convex closest points and penetration depth calculations.
 class ConvexConvexAlgorithm : public CollisionAlgorithm
 {
-	//hardcoded penetration and simplex solver, its easy to make this flexible later
-	MinkowskiPenetrationDepthSolver	m_penetrationDepthSolver;
+	ConvexPenetrationDepthSolver*	m_penetrationDepthSolver;
 	VoronoiSimplexSolver	m_simplexSolver;
 	GjkPairDetector m_gjkPairDetector;
+	bool	m_useEpa;
 public:
 	BroadphaseProxy	m_box0;
 	BroadphaseProxy	m_box1;
@@ -35,6 +33,8 @@ public:
 	bool	m_ownManifold;
 	PersistentManifold*	m_manifoldPtr;
 	bool			m_lowLevelOfDetail;
+
+	void	CheckPenetrationDepthSolver();
 
 	
 

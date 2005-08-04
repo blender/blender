@@ -420,7 +420,7 @@ static void SOR_LCP (int m, int nb, dRealMutablePtr J, int *jb, RigidBody * cons
 		}
 		iMJ_ptr += 12;
 		J_ptr += 12;
-		Ad[i] = sor_w / (sum + cfm[i]);
+		Ad[i] = sor_w / sum;//(sum + cfm[i]);
 	}
 
 	// scale J and b by Ad
@@ -434,7 +434,8 @@ static void SOR_LCP (int m, int nb, dRealMutablePtr J, int *jb, RigidBody * cons
 	}
 
 	// scale Ad by CFM
-	for (i=0; i<m; i++) Ad[i] *= cfm[i];
+	for (i=0; i<m; i++) 
+		Ad[i] *= cfm[i];
 
 	// order to solve constraint rows in
 	IndexError *order = (IndexError*) alloca (m*sizeof(IndexError));
@@ -442,8 +443,12 @@ static void SOR_LCP (int m, int nb, dRealMutablePtr J, int *jb, RigidBody * cons
 #ifndef REORDER_CONSTRAINTS
 	// make sure constraints with findex < 0 come first.
 	j=0;
-	for (i=0; i<m; i++) if (findex[i] < 0) order[j++].index = i;
-	for (i=0; i<m; i++) if (findex[i] >= 0) order[j++].index = i;
+	for (i=0; i<m; i++) 
+		if (findex[i] < 0) 
+			order[j++].index = i;
+	for (i=0; i<m; i++) 
+		if (findex[i] >= 0) 
+			order[j++].index = i;
 	dIASSERT (j==m);
 #endif
 
@@ -629,15 +634,16 @@ void SolveInternal1 (float global_cfm,
 		// compute inertia tensor in global frame
 		dMULTIPLY2_333 (tmp,body[i]->m_I,body[i]->m_R);
 		dMULTIPLY0_333 (I+i*12,body[i]->m_R,tmp);
+
 		// compute inverse inertia tensor in global frame
 		dMULTIPLY2_333 (tmp,body[i]->m_invI,body[i]->m_R);
 		dMULTIPLY0_333 (invI+i*12,body[i]->m_R,tmp);
 		// compute rotational force
 		dMULTIPLY0_331 (tmp,I+i*12,body[i]->getAngularVelocity());
-		//dCROSS (body[i]->tacc,-=,body[i]->avel,tmp);
 		dCROSS (body[i]->m_tacc,-=,body[i]->getAngularVelocity(),tmp);
-
 	}
+
+
 
 
 	// get joint information (m = total constraint dimension, nub = number of unbounded variables).
@@ -742,9 +748,11 @@ void SolveInternal1 (float global_cfm,
 		// put v/h + invM*fe into tmp1
 		for (i=0; i<nb; i++) {
 			SimdScalar body_invMass = body[i]->getInvMass();
-			for (j=0; j<3; j++) tmp1[i*6+j] = body[i]->m_facc[j] * body_invMass + body[i]->getLinearVelocity()[j] * stepsize1;
+			for (j=0; j<3; j++) 
+				tmp1[i*6+j] = body[i]->m_facc[j] * body_invMass + body[i]->getLinearVelocity()[j] * stepsize1;
 			dMULTIPLY0_331NEW (tmp1 + i*6 + 3,=,invI + i*12,body[i]->m_tacc);
-			for (j=0; j<3; j++) tmp1[i*6+3+j] += body[i]->getAngularVelocity()[j] * stepsize1;
+			for (j=0; j<3; j++) 
+				tmp1[i*6+3+j] += body[i]->getAngularVelocity()[j] * stepsize1;
 		}
 
 		// put J*tmp1 into rhs
@@ -756,7 +764,7 @@ void SolveInternal1 (float global_cfm,
 
 		// scale CFM
 		for (i=0; i<m; i++) 
-			cfm[i] *= stepsize1;
+			cfm[i] =0.f;//*= stepsize1;
 
 		// load lambda from the value saved on the previous iteration
 		dRealAllocaArray (lambda,m);

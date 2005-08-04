@@ -55,11 +55,14 @@ static char gPySetDeactivationTime__doc__[] = "setDeactivationTime(float time) T
 static char gPySetDeactivationLinearTreshold__doc__[] = "setDeactivationLinearTreshold(float linearTreshold)";
 static char gPySetDeactivationAngularTreshold__doc__[] = "setDeactivationAngularTreshold(float angularTreshold)";
 static char gPySetContactBreakingTreshold__doc__[] = "setContactBreakingTreshold(float breakingTreshold) Reasonable default is 0.02 (if units are meters)";
-static char gPySetCcdMode__doc__[] = "setCcdMode(int ccdMode) Very experimental, not recommended";
 
+static char gPySetCcdMode__doc__[] = "setCcdMode(int ccdMode) Very experimental, not recommended";
 static char gPySetSorConstant__doc__[] = "setSorConstant(float sor) Very experimental, not recommended";
-static char gPySetTau__doc__[] = "setTau(float tau) Very experimental, not recommended";
-static char gPySetDamping__doc__[] = "setDamping(float damping) Very experimental, not recommended";
+static char gPySetSolverTau__doc__[] = "setTau(float tau) Very experimental, not recommended";
+static char gPySetSolverDamping__doc__[] = "setDamping(float damping) Very experimental, not recommended";
+static char gPySetLinearAirDamping__doc__[] = "setLinearAirDamping(float damping) Very experimental, not recommended";
+static char gPySetUseEpa__doc__[] = "setUseEpa(int epa) Very experimental, not recommended";
+static char gPySetSolverType__doc__[] = "setSolverType(int solverType) Very experimental, not recommended";
 
 
 static char gPyCreateConstraint__doc__[] = "createConstraint(ob1,ob2,float restLength,float restitution,float damping)";
@@ -210,7 +213,7 @@ static PyObject* gPySetSorConstant(PyObject* self,
 	Py_INCREF(Py_None); return Py_None;
 }
 
-static PyObject* gPySetTau(PyObject* self,
+static PyObject* gPySetSolverTau(PyObject* self,
 										 PyObject* args, 
 										 PyObject* kwds)
 {
@@ -219,14 +222,14 @@ static PyObject* gPySetTau(PyObject* self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setTau( tau);
+			PHY_GetActiveEnvironment()->setSolverTau( tau);
 		}
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
 
 
-static PyObject* gPySetDamping(PyObject* self,
+static PyObject* gPySetSolverDamping(PyObject* self,
 										 PyObject* args, 
 										 PyObject* kwds)
 {
@@ -235,11 +238,60 @@ static PyObject* gPySetDamping(PyObject* self,
 	{
 		if (PHY_GetActiveEnvironment())
 		{
-			PHY_GetActiveEnvironment()->setDamping( damping);
+			PHY_GetActiveEnvironment()->setSolverDamping( damping);
 		}
 	}
 	Py_INCREF(Py_None); return Py_None;
 }
+
+static PyObject* gPySetLinearAirDamping(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	float damping;
+	if (PyArg_ParseTuple(args,"f",&damping))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setLinearAirDamping( damping);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+static PyObject* gPySetUseEpa(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	int	epa;
+	if (PyArg_ParseTuple(args,"i",&epa))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setUseEpa(epa);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+static PyObject* gPySetSolverType(PyObject* self,
+										 PyObject* args, 
+										 PyObject* kwds)
+{
+	int	solverType;
+	if (PyArg_ParseTuple(args,"i",&solverType))
+	{
+		if (PHY_GetActiveEnvironment())
+		{
+			PHY_GetActiveEnvironment()->setSolverType(solverType);
+		}
+	}
+	Py_INCREF(Py_None); return Py_None;
+}
+
+
+
+
 
 
 static PyObject* gPyCreateConstraint(PyObject* self,
@@ -337,10 +389,18 @@ static struct PyMethodDef physicsconstraints_methods[] = {
    METH_VARARGS, gPySetCcdMode__doc__},
      {"setSorConstant",(PyCFunction) gPySetSorConstant,
    METH_VARARGS, gPySetSorConstant__doc__},
-       {"setTau",(PyCFunction) gPySetTau,
-   METH_VARARGS, gPySetTau__doc__},
-        {"setDamping",(PyCFunction) gPySetDamping,
-   METH_VARARGS, gPySetDamping__doc__},
+       {"setSolverTau",(PyCFunction) gPySetSolverTau,
+   METH_VARARGS, gPySetSolverTau__doc__},
+        {"setSolverDamping",(PyCFunction) gPySetSolverDamping,
+   METH_VARARGS, gPySetSolverDamping__doc__},
+
+         {"setLinearAirDamping",(PyCFunction) gPySetLinearAirDamping,
+   METH_VARARGS, gPySetLinearAirDamping__doc__},
+
+    {"setUseEpa",(PyCFunction) gPySetUseEpa,
+   METH_VARARGS, gPySetUseEpa__doc__},
+	{"setSolverType",(PyCFunction) gPySetSolverType,
+   METH_VARARGS, gPySetSolverType__doc__},
 
 
 

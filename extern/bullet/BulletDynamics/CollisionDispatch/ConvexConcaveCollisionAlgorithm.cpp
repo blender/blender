@@ -139,6 +139,11 @@ void ConvexConcaveCollisionAlgorithm::ProcessCollision (BroadphaseProxy* ,Broadp
 		RigidBody* convexbody = (RigidBody* )m_convex.m_clientObject;
 		RigidBody* concavebody = (RigidBody* )m_concave.m_clientObject;
 
+			//todo: move this in the dispatcher
+		if ((convexbody->GetActivationState() == 2) &&(concavebody->GetActivationState() == 2))
+		return;
+
+
 		TriangleMeshShape* triangleMesh = (TriangleMeshShape*) concavebody->GetCollisionShape();
 		
 		if (m_convex.IsConvexShape())

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "SimdTransform.h"
 #include "Dynamics/RigidBody.h"
-#include "BroadphaseCollision/BroadPhaseInterface.h"
+#include "BroadphaseCollision/BroadphaseInterface.h"
 #include "BroadphaseCollision/SimpleBroadphase.h"
 
 #include "CollisionShapes/ConvexShape.h"
@@ -32,8 +32,6 @@ bool useIslands = true;
 //#include "BroadphaseCollision/QueryDispatcher.h"
 //#include "BroadphaseCollision/QueryBox.h"
 //todo: change this to allow dynamic registration of types!
-
-unsigned long gNumIterations = 10;
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -88,14 +86,17 @@ static void DrawAabb(IDebugDraw* debugDrawer,const SimdVector3& from,const SimdV
 CcdPhysicsEnvironment::CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher,BroadphaseInterface* bp)
 :m_dispatcher(dispatcher),
 m_broadphase(bp),
-m_scalingPropagated(false)
+m_scalingPropagated(false),
+m_numIterations(30),
+m_ccdMode(0),
+m_solverType(-1)
 {
+
 	if (!m_dispatcher)
 	{
-		OdeConstraintSolver* solver = new OdeConstraintSolver();
-		//SimpleConstraintSolver* solver= new SimpleConstraintSolver();
-		m_dispatcher = new ToiContactDispatcher(solver);
+		setSolverType(0);
 	}
+
 	if (!m_broadphase)
 	{
 		m_broadphase = new SimpleBroadphase();
@@ -290,7 +291,6 @@ void	CcdPhysicsEnvironment::UpdateActivationState()
 	
 }
 
-bool gPredictCollision = false;//true;//false;
 
 
 /// Perform an integration step of duration 'timeStep'.
@@ -346,7 +346,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	
 	
 	
-	int numsubstep = gNumIterations;
+	int numsubstep = m_numIterations;
 	
 	
 	DispatcherInfo dispatchInfo;
@@ -367,7 +367,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	//contacts
 
 	
-	m_dispatcher->SolveConstraints(timeStep, gNumIterations ,numRigidBodies,m_debugDrawer);
+	m_dispatcher->SolveConstraints(timeStep, m_numIterations ,numRigidBodies,m_debugDrawer);
 
 	for (int g=0;g<numsubstep;g++)
 	{
@@ -439,14 +439,41 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 					
 #ifdef WIN32
 					SimdVector3 color (1,0,0);
+					
+				
+
+				
 					if (m_debugDrawer)
 					{	
 						//draw aabb
+						switch (body->GetActivationState())
+						{
+						case ISLAND_SLEEPING:
+							{
+								color.setValue(0,1,0);
+								break;
+							}
+						case WANTS_DEACTIVATION:
+							{
+								color.setValue(0,0,1);
+								break;
+							}
+						case ACTIVE_TAG:
+							{
+								break;
+							}
+
+							
+						};
 
 						DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
 					}
 #endif
+
 					scene->SetAabb(bp,minAabb,maxAabb);
+
+
+					
 				}
 			}
 			
@@ -454,7 +481,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 
 			
-			if (gPredictCollision)
+			if (m_ccdMode == 3)
 			{
 				DispatcherInfo dispatchInfo;
 				dispatchInfo.m_timeStep = timeStep;
@@ -505,6 +532,9 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 			{
 				CcdPhysicsController* ctrl = (*i);
 				RigidBody* body = ctrl->GetRigidBody();
+
+				ctrl->UpdateDeactivation(timeStep);
+
 				
 				if (ctrl->wantsSleeping())
 				{
@@ -543,25 +573,102 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 
 void		CcdPhysicsEnvironment::setDebugMode(int debugMode)
 {
-	if (debugMode > 10)
-	{
-		if (m_dispatcher)
-			delete m_dispatcher;
-
-		if (debugMode == 11)
-		{
-			SimpleConstraintSolver* solver= new SimpleConstraintSolver();
-			m_dispatcher = new ToiContactDispatcher(solver);
-		} else
-		{
-			OdeConstraintSolver* solver = new OdeConstraintSolver();
-			m_dispatcher = new ToiContactDispatcher(solver);
-		}
-	}
 	if (m_debugDrawer){
 		m_debugDrawer->SetDebugMode(debugMode);
 	}
 }
+
+void		CcdPhysicsEnvironment::setNumIterations(int numIter)
+{
+	m_numIterations = numIter;
+}
+void		CcdPhysicsEnvironment::setDeactivationTime(float dTime)
+{
+	gDeactivationTime = dTime;
+}
+void		CcdPhysicsEnvironment::setDeactivationLinearTreshold(float linTresh)
+{
+	gLinearSleepingTreshold = linTresh;
+}
+void		CcdPhysicsEnvironment::setDeactivationAngularTreshold(float angTresh) 
+{
+	gAngularSleepingTreshold = angTresh;
+}
+void		CcdPhysicsEnvironment::setContactBreakingTreshold(float contactBreakingTreshold)
+{
+	gContactBreakingTreshold = contactBreakingTreshold;
+	
+}
+
+
+void		CcdPhysicsEnvironment::setCcdMode(int ccdMode)
+{
+	m_ccdMode = ccdMode;
+}
+
+
+void		CcdPhysicsEnvironment::setSolverSorConstant(float sor)
+{
+	m_dispatcher->SetSor(sor);
+}
+
+void		CcdPhysicsEnvironment::setSolverTau(float tau)
+{
+	m_dispatcher->SetTau(tau);
+}
+void		CcdPhysicsEnvironment::setSolverDamping(float damping)
+{
+	m_dispatcher->SetDamping(damping);
+}
+
+
+void		CcdPhysicsEnvironment::setLinearAirDamping(float damping)
+{
+	gLinearAirDamping = damping;
+}
+
+void		CcdPhysicsEnvironment::setUseEpa(bool epa)
+{
+	gUseEpa = epa;
+}
+
+void		CcdPhysicsEnvironment::setSolverType(int solverType)
+{
+
+	switch (solverType)
+	{
+	case 1:
+		{
+			if (m_solverType != solverType)
+			{
+				if (m_dispatcher)
+					delete m_dispatcher;
+
+				SimpleConstraintSolver* solver= new SimpleConstraintSolver();
+				m_dispatcher = new ToiContactDispatcher(solver);
+				break;
+			}
+		}
+	
+	case 0:
+	default:
+			if (m_solverType != solverType)
+			{
+				if (m_dispatcher)
+					delete m_dispatcher;
+
+				OdeConstraintSolver* solver= new OdeConstraintSolver();
+				m_dispatcher = new ToiContactDispatcher(solver);
+				break;
+			}
+
+	};
+	
+	m_solverType = solverType ;
+}
+
+
+
 
 
 void	CcdPhysicsEnvironment::SyncMotionStates(float timeStep)

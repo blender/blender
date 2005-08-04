@@ -8,7 +8,7 @@
 class BP_Proxy;
 
 //'temporarily' global variables
-float	gDeactivationTime = 0.f;
+float	gDeactivationTime = 2.f;
 float gLinearSleepingTreshold = 0.8f;
 float gAngularSleepingTreshold = 1.0f;
 
@@ -19,8 +19,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 {
 	m_collisionDelay = 0;
 
-	m_sleepingCounter = 0;
-
+	
 	m_MotionState = ci.m_MotionState;
 
 
@@ -195,6 +194,23 @@ void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 }
 
 
+void	CcdPhysicsController::UpdateDeactivation(float timeStep)
+{
+	if ( (m_body->GetActivationState() == 2))
+		return;
+	
+
+	if ((m_body->getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
+		(m_body->getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
+	{
+		m_body->m_deactivationTime += timeStep;
+	} else
+	{
+		m_body->m_deactivationTime=0.f;
+		m_body->SetActivationState(0);
+	}
+
+}
 
 bool CcdPhysicsController::wantsSleeping()
 {
@@ -202,20 +218,11 @@ bool CcdPhysicsController::wantsSleeping()
 	//disable deactivation
 	if (gDeactivationTime == 0.f)
 		return false;
-
-	if ( (m_body->GetActivationState() == 3) || (m_body->GetActivationState() == 2))
+	//2 == ISLAND_SLEEPING, 3 == WANTS_DEACTIVATION
+	if ( (m_body->GetActivationState() == 2) || (m_body->GetActivationState() == 3))
 		return true;
 
-	if ((m_body->getLinearVelocity().length2() < gLinearSleepingTreshold*gLinearSleepingTreshold) &&
-		(m_body->getAngularVelocity().length2() < gAngularSleepingTreshold*gAngularSleepingTreshold))
-	{
-		m_sleepingCounter++;
-	} else
-	{
-		m_sleepingCounter=0;
-	}
-
-	if (m_sleepingCounter> gDeactivationTime)
+	if (m_body->m_deactivationTime> gDeactivationTime)
 	{
 		return true;
 	}

@@ -99,7 +99,7 @@ class	SimdQuadWord
 		SIMD_FORCE_INLINE SimdQuadWord(const SimdScalar& x, const SimdScalar& y, const SimdScalar& z) 
 		:m_x(x),m_y(y),m_z(z)
 		//todo, remove this in release/simd ?
-		,m_unusedW(1e30f)
+		,m_unusedW(0.f)
 		{
 		}
 

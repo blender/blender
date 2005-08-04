@@ -52,7 +52,6 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	class	PHY_IMotionState*			m_MotionState;
 	CollisionShape*			m_collisionShape;
 
-	int				m_sleepingCounter;
 	public:
 	
 		int				m_collisionDelay;
@@ -125,6 +124,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 
 		bool	wantsSleeping();
+
+		void	UpdateDeactivation(float timeStep);
 
 		void	SetAabb(const SimdVector3& aabbMin,const SimdVector3& aabbMax);
 

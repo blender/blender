@@ -9,6 +9,9 @@ class CollisionShape;
 struct MassProps;
 typedef SimdScalar dMatrix3[4*3];
 
+extern float gLinearAirDamping;
+extern bool gUseEpa;
+
 
 /// RigidBody class for RigidBody Dynamics
 /// 
@@ -170,7 +173,10 @@ public:
 	dMatrix3		m_invI;
 	int				m_islandTag1;//temp
 	int				m_activationState1;//temp
+	float			m_deactivationTime;
+
 	int				m_odeTag;
+	float		m_padding[1024];
 	SimdVector3		m_tacc;//temp
 	SimdVector3		m_facc;
 	SimdScalar		m_hitFraction; //time of impact calculation

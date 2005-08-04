@@ -97,18 +97,24 @@ typedef SimdScalar dQuaternion[4];
 void dRfromQ1 (dMatrix3 R, const dQuaternion q)
 {
   // q = (s,vx,vy,vz)
-  SimdScalar qq1 = 2*q[1]*q[1];
-  SimdScalar qq2 = 2*q[2]*q[2];
-  SimdScalar qq3 = 2*q[3]*q[3];
-  _R(0,0) = 1 - qq2 - qq3;
+  SimdScalar qq1 = 2.f*q[1]*q[1];
+  SimdScalar qq2 = 2.f*q[2]*q[2];
+  SimdScalar qq3 = 2.f*q[3]*q[3];
+  _R(0,0) = 1.f - qq2 - qq3;
   _R(0,1) = 2*(q[1]*q[2] - q[0]*q[3]);
   _R(0,2) = 2*(q[1]*q[3] + q[0]*q[2]);
+  _R(0,3) = 0.f;
+	
   _R(1,0) = 2*(q[1]*q[2] + q[0]*q[3]);
-  _R(1,1) = 1 - qq1 - qq3;
+  _R(1,1) = 1.f - qq1 - qq3;
   _R(1,2) = 2*(q[2]*q[3] - q[0]*q[1]);
+  _R(1,3) = 0.f;
+
   _R(2,0) = 2*(q[1]*q[3] - q[0]*q[2]);
   _R(2,1) = 2*(q[2]*q[3] + q[0]*q[1]);
-  _R(2,2) = 1 - qq1 - qq2;
+  _R(2,2) = 1.f - qq1 - qq2;
+  _R(2,3) = 0.f;
+
 }
 
 
@@ -131,8 +137,8 @@ int OdeConstraintSolver::ConvertBody(RigidBody* body,RigidBody** bodies,int& num
 	//convert data
 
 
-	body->m_facc.setValue(0,0,0);
-	body->m_tacc.setValue(0,0,0);
+	body->m_facc.setValue(0,0,0,0);
+	body->m_tacc.setValue(0,0,0,0);
 	
 	//are the indices the same ?
 	for (i=0;i<4;i++)
@@ -147,9 +153,9 @@ int OdeConstraintSolver::ConvertBody(RigidBody* body,RigidBody** bodies,int& num
 	body->m_invI[1+4*1] = 	body->getInvInertiaDiagLocal()[1];
 	body->m_invI[2+4*2] = 	body->getInvInertiaDiagLocal()[2];
 
-	body->m_I[0+0*4] = body->getInvInertiaDiagLocal()[0];
-	body->m_I[1+1*4] = body->getInvInertiaDiagLocal()[1];
-	body->m_I[2+2*4] = body->getInvInertiaDiagLocal()[2];
+	body->m_I[0+0*4] = 1.f/body->getInvInertiaDiagLocal()[0];
+	body->m_I[1+1*4] = 1.f/body->getInvInertiaDiagLocal()[1];
+	body->m_I[2+2*4] = 1.f/body->getInvInertiaDiagLocal()[2];
 	
 
 	/*
@@ -241,7 +247,7 @@ void OdeConstraintSolver::ConvertConstraint(PersistentManifold* manifold,BU_Join
 		}
 		assert (m_CurJoint < MAX_JOINTS_1);
 
-		if (manifold->GetContactPoint(i).GetDistance() < 0.f)
+		if (manifold->GetContactPoint(i).GetDistance() < 0.0f)
 		{
 			ContactJoint* cont = new (&gJointArray[m_CurJoint++]) ContactJoint( manifold ,i, swapBodies,body0,body1);
 

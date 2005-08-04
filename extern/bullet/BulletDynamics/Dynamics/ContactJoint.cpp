@@ -128,13 +128,20 @@ void ContactJoint::GetInfo2(Info2 *info)
 		depth = 0.f;
 	
 	info->c[0] = k * depth;
+	info->cfm[0] = 0.f;
+	info->cfm[1] = 0.f;
+	info->cfm[2] = 0.f;
 	
 	
 	
 	// set LCP limits for normal
 	info->lo[0] = 0;
 	info->hi[0] = 1e30f;//dInfinity;
-	
+	info->lo[1] = 0;
+	info->hi[1] = 0.f;
+	info->lo[2] = 0.f;
+	info->hi[2] = 0.f;
+
 #define DO_THE_FRICTION_2
 #ifdef DO_THE_FRICTION_2
 	// now do jacobian for tangential forces
@@ -151,7 +158,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[2] = ccc2[2];
 	
 	
-	float friction = FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
+	float friction = 30.f;//0.01f;//FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
 	
 	// first friction direction
 	if (m_numRows >= 2) 
@@ -182,13 +189,16 @@ void ContactJoint::GetInfo2(Info2 *info)
 		
 		info->lo[1] = -friction;//-j->contact.surface.mu;
 		info->hi[1] = friction;//j->contact.surface.mu;
-		if (0)//j->contact.surface.mode & dContactApprox1_1) 
+		if (1)//j->contact.surface.mode & dContactApprox1_1) 
 			info->findex[1] = 0;
 		
 		// set slip (constraint force mixing)
 		if (0)//j->contact.surface.mode & dContactSlip1)
 		{
 			//	info->cfm[1] = j->contact.surface.slip1;
+		} else
+		{
+			info->cfm[1] = 0.f;
 		}
 	}
 	

@@ -26,6 +26,9 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 	SimdVector3 m_gravity;
 	BroadphaseInterface*	m_broadphase;
 	IDebugDraw*	m_debugDrawer;
+	int	m_numIterations;
+	int	m_ccdMode;
+	int	m_solverType;
 	
 	public:
 		CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
@@ -43,6 +46,18 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 			m_debugDrawer = debugDrawer;
 		}
 
+		virtual void		setNumIterations(int numIter);
+		virtual void		setDeactivationTime(float dTime);
+		virtual	void		setDeactivationLinearTreshold(float linTresh) ;
+		virtual	void		setDeactivationAngularTreshold(float angTresh) ;
+		virtual void		setContactBreakingTreshold(float contactBreakingTreshold) ;
+		virtual void		setCcdMode(int ccdMode);
+		virtual void		setSolverType(int solverType);
+		virtual void		setSolverSorConstant(float sor);
+		virtual void		setSolverTau(float tau);
+		virtual void		setSolverDamping(float damping);
+		virtual void		setLinearAirDamping(float damping);
+		virtual void		setUseEpa(bool epa) ;
 
 		virtual	void		beginFrame() {};
 		virtual void		endFrame() {};

@@ -14,7 +14,7 @@
 #include "SimdTransform.h"
 #include <assert.h>
 
-float gContactBreakingTreshold = 0.02f;
+float gContactBreakingTreshold = 0.002f;
 
 PersistentManifold::PersistentManifold()
 :m_body0(0),

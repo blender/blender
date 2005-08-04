@@ -28,6 +28,7 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 	IDebugDraw*	m_debugDrawer;
 	int	m_numIterations;
 	int	m_ccdMode;
+	int	m_solverType;
 	
 	public:
 		CcdPhysicsEnvironment(ToiContactDispatcher* dispatcher=0, BroadphaseInterface* broadphase=0);
@@ -51,10 +52,12 @@ class CcdPhysicsEnvironment : public PHY_IPhysicsEnvironment
 		virtual	void		setDeactivationAngularTreshold(float angTresh) ;
 		virtual void		setContactBreakingTreshold(float contactBreakingTreshold) ;
 		virtual void		setCcdMode(int ccdMode);
+		virtual void		setSolverType(int solverType);
 		virtual void		setSolverSorConstant(float sor);
-		virtual void		setTau(float tau);
-		virtual void		setDamping(float damping);
-
+		virtual void		setSolverTau(float tau);
+		virtual void		setSolverDamping(float damping);
+		virtual void		setLinearAirDamping(float damping);
+		virtual void		setUseEpa(bool epa) ;
 
 		virtual	void		beginFrame() {};
 		virtual void		endFrame() {};
