@@ -2304,6 +2304,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 	link_list(fd, lb);
 
 	for (md=lb->first; md; md=md->next) {
+		md->error = NULL;
+
 		if (md->type==eModifierType_Subsurf) {
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 

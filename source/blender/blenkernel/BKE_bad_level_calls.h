@@ -80,6 +80,7 @@ float Phong_Spec(float *, float *, float *, int);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
 #define REDRAWVIEW3D	0x4010
+#define REDRAWBUTSEDIT	0x4019
 struct Material;
 extern struct Material defmaterial;
 

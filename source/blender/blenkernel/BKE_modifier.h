@@ -180,8 +180,12 @@ void					modifier_free			(struct ModifierData *md);
 void					modifier_copyData		(struct ModifierData *md, struct ModifierData *target);
 int						modifier_dependsOnTime	(struct ModifierData *md);
 int						modifier_supportsMapping(struct ModifierData *md);
+int						modifier_couldBeCage	(struct ModifierData *md);
+void					modifier_setError		(struct ModifierData *md, char *format, ...);
 
 struct ModifierData*	modifiers_findByType	(struct ListBase *lb, ModifierType type);
+void					modifiers_clearErrors	(struct ListBase *lb);
+int						modifiers_getCageIndex	(struct ListBase *lb, int *lastPossibleCageIndex_r);
 
 #endif
 

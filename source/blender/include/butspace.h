@@ -601,9 +601,11 @@ enum {
 #define B_RECALCAL		3411
 #define B_RECALC_DEFL	3412
 
-#define B_MDFR_BUTS			3600
+#define B_MODIFIER_BUTS		3600
 
-#define B_MDFR_INCREMENTAL	3501
+#define B_MODIFIER_RECALC	3501
+#define B_MODIFIER_REDRAW	3502
+
 
 /* *********************** */
 

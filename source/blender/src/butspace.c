@@ -320,7 +320,7 @@ void do_butspace(unsigned short event)
 	else if(event<=B_EFFECTSBUTS) {
 		do_effects_panels(event);
 	}
-	else if(event<=B_MDFR_BUTS) {
+	else if(event<=B_MODIFIER_BUTS) {
 		extern void do_modifier_panels(unsigned short event);
 		do_modifier_panels(event);
 	}

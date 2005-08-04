@@ -1,4 +1,5 @@
 #include "string.h"
+#include "stdarg.h"
 #include "math.h"
 
 #include "BLI_blenlib.h"
@@ -14,6 +15,7 @@
 #include "DNA_scene_types.h"
 #include "BLI_editVert.h"
 
+#include "BKE_bad_level_calls.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -752,8 +754,8 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	}
 
 	if(numTris<3) {
-		// ("You must have more than 3 input faces selected.");
-		return NULL;
+		modifier_setError(md, "There must be more than 3 input faces (triangles).");
+		goto exit;
 	}
 
 	lod.vertex_buffer= MEM_mallocN(3*sizeof(float)*totvert, "vertices");
@@ -830,19 +832,20 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 			}
 		}
 		else {
-			// No memory
+			modifier_setError(md, "Out of memory.");
 		}
 
 		LOD_FreeDecimationData(&lod);
 	}
 	else {
-		// Non-manifold mesh
+		modifier_setError(md, "Non-manifold mesh as input.");
 	}
 
 	MEM_freeN(lod.vertex_buffer);
 	MEM_freeN(lod.vertex_normal_buffer);
 	MEM_freeN(lod.triangle_index_buffer);
 
+exit:
 	if (dlm) displistmesh_free(dlm);
 
 	if (ndlm) {
@@ -1057,7 +1060,7 @@ ModifierData *modifier_new(int type)
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
 
 	md->type = type;
-	md->mode = eModifierMode_Realtime|eModifierMode_Render;
+	md->mode = eModifierMode_Realtime|eModifierMode_Render|eModifierMode_Expanded;
 
 	if (mti->flags&eModifierTypeFlag_EnableInEditmode)
 		md->mode |= eModifierMode_Editmode;
@@ -1072,6 +1075,7 @@ void modifier_free(ModifierData *md)
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	if (mti->freeData) mti->freeData(md);
+	if (md->error) MEM_freeN(md->error);
 
 	MEM_freeN(md);
 }
@@ -1103,6 +1107,20 @@ ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
 	return md;
 }
 
+void modifiers_clearErrors(struct ListBase *lb)
+{
+	ModifierData *md = lb->first;
+
+	for (; md; md=md->next) {
+		if (md->error) {
+			MEM_freeN(md->error);
+			md->error = NULL;
+
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+}
+
 void modifier_copyData(ModifierData *md, ModifierData *target)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1111,4 +1129,56 @@ void modifier_copyData(ModifierData *md, ModifierData *target)
 
 	if (mti->copyData)
 		mti->copyData(md, target);
+}
+
+int modifier_couldBeCage(ModifierData *md)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+	return (	(md->mode&eModifierMode_Realtime) &&
+				(md->mode&eModifierMode_Editmode) &&
+				(!mti->isDisabled || !mti->isDisabled(md)) &&
+				modifier_supportsMapping(md));	
+}
+
+void modifier_setError(ModifierData *md, char *format, ...)
+{
+	char buffer[2048];
+	va_list ap;
+
+	va_start(ap, format);
+	vsprintf(buffer, format, ap);
+	va_end(ap);
+
+	if (md->error)
+		MEM_freeN(md->error);
+
+	md->error = BLI_strdup(buffer);
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+int modifiers_getCageIndex(ListBase *lb, int *lastPossibleCageIndex_r)
+{
+	ModifierData *md = lb->first;
+	int i, cageIndex = -1;
+
+		/* Find the last modifier acting on the cage. */
+	for (i=0; md; i++,md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (!(md->mode&eModifierMode_Realtime)) continue;
+		if (!(md->mode&eModifierMode_Editmode)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
+
+		if (!modifier_supportsMapping(md))
+			break;
+
+		if (lastPossibleCageIndex_r) *lastPossibleCageIndex_r = i;
+		if (md->mode&eModifierMode_OnCage)
+			cageIndex = i;
+	}
+
+	return cageIndex;
 }

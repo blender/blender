@@ -65,6 +65,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_radio_types.h"
@@ -80,6 +81,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 
@@ -500,7 +502,414 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 }
 
+/* *************************** MODIFIERS ******************************** */
 
+void do_modifier_panels(unsigned short event)
+{
+	Object *ob = OBACT;
+
+	switch(event) {
+	case B_MODIFIER_REDRAW:
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+
+	case B_MODIFIER_RECALC:
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		break;
+	}
+}
+
+static void modifiers_add(void *ob_v, int type)
+{
+	Object *ob = ob_v;
+
+	BLI_addtail(&ob->modifiers, modifier_new(type));
+}
+
+static uiBlock *modifiers_add_menu(void *ob_v)
+{
+	Object *ob = ob_v;
+	uiBlock *block;
+	int i, yco=0;
+	
+	block= uiNewBlock(&curarea->uiblocks, "modifier_add_menu", UI_EMBOSSP, UI_HELV, curarea->win);
+	uiBlockSetButmFunc(block, modifiers_add, ob);
+
+	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
+		ModifierTypeInfo *mti = modifierType_getInfo(i);
+
+		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
+				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
+			uiDefBut(block, BUTM, B_MODIFIER_RECALC, mti->name,		0, yco-=20, 160, 19, NULL, 0, 0, 1, i, "");
+		}
+	}
+	
+	uiTextBoundsBlock(block, 50);
+	uiBlockSetDirection(block, UI_DOWN);
+
+	return block;
+}
+
+static void modifiers_del(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md;
+
+		/* It seems on rapid delete it is possible to
+		 * get called twice on same modifier, so make
+		 * sure it is in list.
+		 */
+	for (md=ob->modifiers.first; md; md=md->next)
+		if (md==md_v)
+			break;
+	
+	if (!md)
+		return;
+
+	BLI_remlink(&ob->modifiers, md_v);
+
+	modifier_free(md_v);
+}
+
+static void modifiers_moveUp(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+
+	if (md->prev) {
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
+	}
+}
+
+static void modifiers_moveDown(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+
+	if (md->next) {
+		BLI_remlink(&ob->modifiers, md);
+		BLI_insertlink(&ob->modifiers, md->next, md);
+	}
+}
+
+static void modifier_testLatticeObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_LATTICE) {
+				error ("Lattice deform object must be a lattice");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
+static void modifier_testCurveObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_CURVE) {
+				error ("Curve deform object must be a curve");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
+static void modifiers_applyModifier(void *obv, void *mdv)
+{
+	Object *ob = obv;
+	ModifierData *md = mdv;
+	DerivedMesh *dm;
+	DispListMesh *dlm;
+	Mesh *me = ob->data;
+
+	if (G.obedit) {
+		error("Modifiers cannot be applied in editmode");
+		return;
+	} else if (me->id.us>1) {
+		error("Modifiers cannot be applied to a multi-user mesh");
+		return;
+	}
+
+	if (md!=ob->modifiers.first) {
+		if (!okee("Modifier is not first, continue with apply?"))
+			return;
+	}
+
+		// XXX, only for mesh
+
+	dm = mesh_create_derived_for_modifier(ob, md);
+	if (!dm) {
+		error("Modifier is disabled or returned error, skipping apply");
+		return;
+	}
+
+	dlm= dm->convertToDispListMesh(dm);
+
+	ob->data= add_mesh();
+	displistmesh_to_mesh(dlm, ob->data);
+	displistmesh_free(dlm);
+	dm->release(dm);
+
+	free_libblock_us(&G.main->mesh, me);
+
+	BLI_remlink(&ob->modifiers, md);
+	modifier_free(md);
+}
+
+static void modifiers_setOnCage(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md;
+	int i, cageIndex = modifiers_getCageIndex(&ob->modifiers, NULL);
+
+	for (i=0,md=ob->modifiers.first; md; i++,md=md->next)
+		if (md==md_v)
+			break;
+
+	md->mode ^= eModifierMode_OnCage;
+
+	md = md->next;
+
+	for (; md; md=md->next) {
+		md->mode &= ~eModifierMode_OnCage;
+	}
+}
+
+
+static void modifiers_setSubsurfIncremental(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+			
+	if ((smd->flags&eSubsurfModifierFlag_Incremental) && ob->type==OB_MESH) {
+		Mesh *me = ob->data;
+
+		if (!me->medge) {
+			if (okee("Requires mesh edges, create now?")) {
+				make_edges(me);
+			}
+		}
+	}
+}
+
+static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	uiBut *but;
+	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
+	short height, width = 295;
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, x, y, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+
+	BIF_ThemeColor(color);
+	uiBlockSetEmboss(block, UI_EMBOSS);
+		
+		/* rounded header */
+	BIF_ThemeColorShade(color, -20);
+	uiSetRoundBox(3);
+	uiRoundBox(x+4+10, y-18, x+width+10, y+6, 5.0);
+
+	BIF_ThemeColor(color);
+	uiDefBut(block, LABEL, B_NOP, mti->name, x+15, y-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+	if (modifier_couldBeCage(md) && index<=lastCageIndex) {
+		int icon;
+
+		uiSetRoundBox(15);
+		if (index==cageIndex) {
+			BIF_ThemeColorShadeAlpha(color, 40, 40);
+			icon = ICON_EDITMODE_HLT;
+		} else if (index<cageIndex) {
+			BIF_ThemeColorShade(color, 10);
+			icon = ICON_EDITMODE_DEHLT;
+		} else {
+			BIF_ThemeColorShade(color, -20);
+			icon = ICON_EDITMODE_DEHLT;
+		}
+		uiRoundBox(x+width-120+19, y-13, x+width-120+16+19, y+3, 6.0);
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-120, y, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+		uiButSetFunc(but, modifiers_setOnCage, ob, md);
+	}
+
+	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_REW, x+width-90, y, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+	uiButSetFunc(but, modifiers_moveUp, ob, md);
+
+	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_FF, x+width-90+20, y, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+	uiButSetFunc(but, modifiers_moveDown, ob, md);
+
+	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, ICON_X, x+width-30, y, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
+	uiButSetFunc(but, modifiers_del, ob, md);
+
+	BIF_ThemeColor(color);
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	if (!(md->mode&eModifierMode_Expanded)) {
+		uiBlockBeginAlign(block);
+		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-90, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+		uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, ICON_VIEW3D, x+width-120-90+20, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+			uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, ICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+		}
+		uiBlockEndAlign(block);
+
+		y -= 18;
+	} else {
+		char str[128];
+		int cy = y - 8;
+		int lx = x + width - 60 - 15;
+
+		y -= 18;
+
+		if (md->type==eModifierType_Subsurf) {
+			height = 86;
+		} else if (md->type==eModifierType_Lattice) {
+			height = 86;
+		} else if (md->type==eModifierType_Curve) {
+			height = 86;
+		} else if (md->type==eModifierType_Build) {
+			height = 86;
+		} else if (md->type==eModifierType_Mirror) {
+			height = 86;
+		} else if (md->type==eModifierType_Decimate) {
+			height = 66;
+		} else if (md->type==eModifierType_Wave) {
+			height = 200;
+		}
+
+		BIF_ThemeColor(color);
+		glRects(x+3+10, y-height, x+width+10, y);
+
+		uiBlockBeginAlign(block);
+		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the currnt modifier and remove from the stack");
+		uiButSetFunc(but, modifiers_applyModifier, ob, md);
+
+		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+		uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, "3D View", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+			uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, "Editmode", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+		}
+		uiBlockEndAlign(block);
+
+		lx = x;
+		cy = y + 10 - 1;
+		uiBlockBeginAlign(block);
+		if (md->type==eModifierType_Subsurf) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) md;
+			char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, subsurfmenu,		lx,(cy-=19),160,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), 160,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), 160,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
+
+			but = uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MODIFIER_RECALC, "Incremental", lx, (cy-=19),90,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
+			uiButSetFunc(but, modifiers_setSubsurfIncremental, ob, md);
+
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,70,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
+		} else if (md->type==eModifierType_Lattice) {
+			LatticeModifierData *lmd = (LatticeModifierData*) md;
+			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",	lx, (cy-=19), 120,19, &lmd->object, "Lattice object to deform with");
+		} else if (md->type==eModifierType_Curve) {
+			CurveModifierData *cmd = (CurveModifierData*) md;
+			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:", lx, (cy-=19), 120,19, &cmd->object, "Curve object to deform with");
+		} else if (md->type==eModifierType_Build) {
+			BuildModifierData *bmd = (BuildModifierData*) md;
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), 160,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:", lx, (cy-=19), 160,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
+			uiDefButI(block, TOG, B_MODIFIER_RECALC, "Randomize", lx, (cy-=19), 160,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
+			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), 160,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
+		} else if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), 160,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
+			uiDefButI(block, ROW, B_MODIFIER_RECALC, "X",	lx, (cy-=19), 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
+			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
+			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
+		} else if (md->type==eModifierType_Decimate) {
+			DecimateModifierData *dmd = (DecimateModifierData*) md;
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Percent:",	lx,(cy-=19),160,19, &dmd->percent, 0.0, 1.0, 0, 0, "Defines the percentage of triangles to reduce to");
+			sprintf(str, "Face Count: %d", dmd->faceCount);
+			uiDefBut(block, LABEL, 1, str,	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
+		} else if (md->type==eModifierType_Wave) {
+			WaveModifierData *wmd = (WaveModifierData*) md;
+			uiDefButBitS(block, TOG, WAV_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
+			uiDefButBitS(block, TOG, WAV_Y, B_MODIFIER_RECALC, "Y",		lx+50,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
+			uiDefButBitS(block, TOG, WAV_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+100,cy,60,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),150,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),150,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),150,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
+			cy -= 19;
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta y:",		lx+115,cy,105,19, &wmd->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Heigth:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Width:",	lx,(cy-=19),220,19, &wmd->width, 0.0, 5.0, 0, 0, "Specify the width of the wave");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Narrow:",	lx,(cy-=19),220,19, &wmd->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
+		}
+		uiBlockEndAlign(block);
+
+		y-=height;
+	}
+
+	if (md->error) {
+		char str[512];
+
+		y -= 20;
+
+		BIF_ThemeColorShade(color, 40);
+		glRects(x+3+10, y, x+width+10, y+20);
+
+		sprintf(str, "Modifier Error: %s", md->error);
+		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+	}
+
+	y -= 3+6;
+
+	*xco = x;
+	*yco = y;
+}
+
+static void editing_panel_modifiers(Object *ob)
+{
+	ModifierData *md;
+	uiBlock *block;
+	int xco, yco, i, lastCageIndex, cageIndex = modifiers_getCageIndex(&ob->modifiers, &lastCageIndex);
+
+		// XXX ofsx should probably be changed in other panels here
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
+	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
+
+	uiNewPanelHeight(block, 204);
+
+	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
+		
+	xco = 0;
+	yco = 160;
+
+	uiPanelPush(block);
+	for (i=0,md=ob->modifiers.first; md; i++, md=md->next) {
+		draw_modifier(block, ob, md, &xco, &yco, i, cageIndex, lastCageIndex);
+	}
+	uiPanelPop(block);
+	
+	if(yco < 0) uiNewPanelHeight(block, 204-yco);
+}
 
 /* *************************** FONT ******************************** */
 
@@ -2544,6 +2953,7 @@ void editing_panels()
 	case OB_MESH:
 		editing_panel_links(ob); // no editmode!
 		editing_panel_mesh_type(ob, ob->data);	// no editmode!
+		editing_panel_modifiers(ob);
 		/* modes */
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data); // no editmode!

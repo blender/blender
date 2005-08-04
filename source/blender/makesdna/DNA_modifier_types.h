@@ -28,12 +28,15 @@ typedef enum ModifierMode {
 	eModifierMode_Render = (1<<1),
 	eModifierMode_Editmode = (1<<2),
 	eModifierMode_OnCage = (1<<3),
+	eModifierMode_Expanded = (1<<4),
 } ModifierMode;
 
 typedef struct ModifierData {
 	struct ModifierData *next, *prev;
 
 	int type, mode;
+
+	char *error;
 } ModifierData;
 
 typedef enum {

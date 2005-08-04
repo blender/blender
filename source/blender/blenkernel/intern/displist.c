@@ -128,7 +128,7 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 {
 	DispListMesh *ndlm= MEM_dupallocN(odlm);
 	ndlm->mvert= MEM_dupallocN(odlm->mvert);
-	ndlm->medge= MEM_dupallocN(odlm->medge);
+	if (odlm->medge) ndlm->medge= MEM_dupallocN(odlm->medge);
 	ndlm->mface= MEM_dupallocN(odlm->mface);
 	if (odlm->nors) ndlm->nors = MEM_dupallocN(odlm->nors);
 	if (odlm->mcol) ndlm->mcol= MEM_dupallocN(odlm->mcol);

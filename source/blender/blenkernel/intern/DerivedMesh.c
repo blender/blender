@@ -1310,6 +1310,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	DerivedMesh *dm;
 	int numVerts = me->totvert;
 
+	modifiers_clearErrors(&ob->modifiers);
+
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
 
@@ -1447,33 +1449,19 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 {
 	Object *ob = G.obedit;
 	EditMesh *em = G.editMesh;
-	ModifierData *md, *cageModifier;
+	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
-	int numVerts;
+	int i, numVerts, cageIndex = modifiers_getCageIndex(&ob->modifiers, NULL);
 
-		/* Find the last modifier acting on the cage. */
-	cageModifier = NULL;
-	for (md= ob->modifiers.first; md; md=md->next) {
-		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	modifiers_clearErrors(&ob->modifiers);
 
-		if (!(md->mode&eModifierMode_Realtime)) continue;
-		if (!(md->mode&eModifierMode_Editmode)) continue;
-		if (mti->isDisabled && mti->isDisabled(md)) continue;
-		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
-
-		if (!modifier_supportsMapping(md) || !(md->mode&eModifierMode_OnCage))
-			break;
-
-		cageModifier = md;
-	}
-
-	if (cage_r && !cageModifier) {
+	if (cage_r && cageIndex==-1) {
 		*cage_r = getEditMeshDerivedMesh(em, NULL);
 	}
 
 	dm = NULL;
-	for (md= ob->modifiers.first; md; md=md->next) {
+	for (i=0,md= ob->modifiers.first; md; i++,md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!(md->mode&eModifierMode_Realtime)) continue;
@@ -1521,7 +1509,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 			}
 		}
 
-		if (cage_r && md==cageModifier) {
+		if (cage_r && i==cageIndex) {
 			if (dm && deformedVerts) {
 					// XXX  this is not right, need to convert the dm
 				*cage_r = dm;
