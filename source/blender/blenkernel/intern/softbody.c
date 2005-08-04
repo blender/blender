@@ -944,11 +944,6 @@ int debugspringcounter = 0;
 			for(u=0, bpu=0, bpuc=0; u<lt->pntsu; u++, bp++, bpc++) {
 				
 				if(w) {
-/*					
-					glBegin(GL_LINES);
-					glVertex3fv( (bp-dw)->vec ); glVertex3fv(bp->vec);
-					glEnd();
-*/
 					bs->v1 = bpc;
 					bs->v2 = bpc-dw;
 				    bs->strength= 1.0;
@@ -958,11 +953,6 @@ int debugspringcounter = 0;
 				
 				}
 				if(v) {
-/*					
-					glBegin(GL_LINES);
-					glVertex3fv( (bp-dv)->vec ); glVertex3fv(bp->vec);
-					glEnd();
-*/
 					bs->v1 = bpc;
 					bs->v2 = bpc-dv;
 				    bs->strength= 1.0;
@@ -972,11 +962,6 @@ int debugspringcounter = 0;
 
 				}
 				if(u) {
-/*					
-					glBegin(GL_LINES);
-					glVertex3fv(bpu->vec); glVertex3fv(bp->vec);
-					glEnd();
-*/
 					bs->v1 = bpuc;
 					bs->v2 = bpc;
 				    bs->strength= 1.0;
@@ -984,20 +969,48 @@ int debugspringcounter = 0;
 					bs++;
 					debugspringcounter++;
 				}
-				/*
+				
 				if (dostiff) {
-					if(w){
-						if( v || u ){
-							bs->v1 = bp;
+
+  					if(w){
+						if( v && u ) {
+							bs->v1 = bpc;
 							bs->v2 = bpc-dw-dv-1;
+							bs->strength= 1.0;
+							bs->len= VecLenf((bp-dw-dv-1)->vec ,bp->vec);
+							bs++;
+							debugspringcounter++;
+						}						
+						if( (v < lt->pntsv-1) && (u) ) {
+							bs->v1 = bpc;
+							bs->v2 = bpc-dw+dv-1;
 							bs->strength= 1.0;
 							bs->len= VecLenf((bp-dw+dv-1)->vec ,bp->vec);
 							bs++;
 							debugspringcounter++;
 						}						
 					}
+
+					if(w < lt->pntsw -1){
+						if( v && u ) {
+							bs->v1 = bpc;
+							bs->v2 = bpc+dw-dv-1;
+							bs->strength= 1.0;
+							bs->len= VecLenf((bp+dw-dv-1)->vec ,bp->vec);
+							bs++;
+							debugspringcounter++;
+						}						
+						if( (v < lt->pntsv-1) && (u) ) {
+							bs->v1 = bpc;
+							bs->v2 = bpc+dw+dv-1;
+							bs->strength= 1.0;
+							bs->len= VecLenf((bp+dw+dv-1)->vec ,bp->vec);
+							bs++;
+							debugspringcounter++;
+						}						
+					}
 				}
-*/
+
 				bpu= bp;
 				bpuc = bpc;
 			}
@@ -1014,12 +1027,22 @@ static void lattice_to_softbody(Object *ob)
 	Lattice *lt= ob->data;
 	BodyPoint *bop;
 	BPoint *bp;
-	int a, totvert, totspring;
+	int a, totvert, totspring = 0;
 	
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
-	totspring = ((lt->pntsu -1) * lt->pntsv 
+
+	if (ob->softflag & OB_SB_EDGES){
+		
+		totspring = ((lt->pntsu -1) * lt->pntsv 
 		          + (lt->pntsv -1) * lt->pntsu) * lt->pntsw
-			     +lt->pntsu*lt->pntsv*(lt->pntsw -1);
+				  +lt->pntsu*lt->pntsv*(lt->pntsw -1);
+		if (ob->softflag & OB_SB_QUADS){
+		totspring += 4*(lt->pntsu -1) *  (lt->pntsv -1)  * (lt->pntsw-1);
+			
+		}
+	}
+	
+
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(ob, totvert, totspring);
 	
@@ -1029,10 +1052,20 @@ static void lattice_to_softbody(Object *ob)
 	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
 		set_body_point(ob, bop, bp->vec);
 	}
+
+	/* create some helper edges to enable SB lattice to be usefull at all */
 	if (ob->softflag & OB_SB_EDGES){
 		bs = sb->bspring;
 		makelatticesprings(lt,bs,ob->softflag & OB_SB_QUADS);
 		build_bps_springlist(ob); /* link bps to springs */
+
+		/* recalculate lenght since BPoint and Bodypoint obviously can differ */
+		bs= ob->soft->bspring;
+		bop= ob->soft->bpoint;
+		for(a=0; a < totspring ; a++, bs++) { 
+			bs->len= VecLenf( (bop+bs->v1)->origE, (bop+bs->v2)->origE);
+			}
+
 	}
 
 }
