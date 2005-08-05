@@ -208,7 +208,7 @@ void CutEdgeloop(int numcuts)
 	EditEdge *nearest=NULL, *eed;
     int keys = 0, holdnum=0, selectmode;
 	short mvalo[2] = {0,0}, mval[2];
-	short event,val,choosing=1,cancel=0,dist,cuthalf = 0;
+	short event,val,choosing=1,cancel=0,dist,cuthalf = 0,smooth=0;
     char msg[128];
 	
     selectmode = G.scene->selectmode;
@@ -234,8 +234,15 @@ void CutEdgeloop(int numcuts)
 			nearest = findnearestedge(&dist);	// returns actual distance in dist
 			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!        
 
+            
             sprintf(msg,"Number of Cuts: %d",numcuts);
-        	headerprint(msg);
+        	if(smooth){
+                sprintf(msg,"%s (S)mooth: on",msg);       
+            } else {
+                sprintf(msg,"%s (S)mooth: off",msg);       
+            }
+            
+            headerprint(msg);
 
             /* Need to figure preview */
             if(nearest){
@@ -286,6 +293,13 @@ void CutEdgeloop(int numcuts)
     				mvalo[0] = -1;
     				break;
                 } 
+			}
+			else if(val && event==SKEY)
+			{
+                if(smooth){smooth=0;} 
+                else { smooth=1; }
+    			mvalo[0] = -1;
+    			break;
 			}
 			else if(val){
                 holdnum = -1;
@@ -361,8 +375,11 @@ void CutEdgeloop(int numcuts)
 	edgering_sel(nearest, 1, 0);
 	
 	/* now cut the loops */
-	esubdivideflag(SELECT,0,0,numcuts,1);
-	
+	if(smooth){
+    	esubdivideflag(SELECT,0,B_SMOOTH,numcuts,1);
+    } else {
+    	esubdivideflag(SELECT,0,0,numcuts,1);
+    }
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1){
         if(cuthalf)

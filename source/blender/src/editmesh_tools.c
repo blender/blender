@@ -1122,7 +1122,6 @@ static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
 
 	if(beauty & B_SMOOTH) {         
     	float len, fac, nor[3], nor1[3], nor2[3];
-    	float smoothperc = 0.25;
     	
     	VecSubf(nor, edge->v1->co, edge->v2->co);
     	len= 0.5f*Normalise(nor);
@@ -1147,6 +1146,7 @@ static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
         if(perc > .5){
             perc = 1-perc;    
         }
+        perc /= 2;
         
     	vec1[0]*= perc*len;
     	vec1[1]*= perc*len;
