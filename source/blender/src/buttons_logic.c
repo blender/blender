@@ -2515,8 +2515,8 @@ void logic_buts(void)
 		}
 
 		if(prop->type==PROP_BOOL) {
-			uiDefButBitI(block, TOG, PROP_BOOL, B_REDR, "True",		215, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
-			uiDefButBitI(block, TOGN, PROP_BOOL, B_REDR, "False",	270, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOG, 1, B_REDR, "True",		215, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
+			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(70-20*a), 55, 19, &prop->data, 0, 0, 0, 0, "");
 		}
 		else if(prop->type==PROP_INT) 
 			uiDefButI(block, NUM, butreturn, "",			215, (short)(70-20*a), 110, 19, &prop->data, -10000, 10000, 0, 0, "");

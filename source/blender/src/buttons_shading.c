@@ -1753,10 +1753,10 @@ static void world_panel_mapto(World *wrld)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, B_MATPRV, WOMAP_BLEND, "Blend",		10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
-	uiDefButBitS(block, TOG, B_MATPRV, WOMAP_HORIZ, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
-	uiDefButBitS(block, TOG, B_MATPRV, WOMAP_ZENUP, "ZenUp",		160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
-	uiDefButBitS(block, TOG, B_MATPRV, WOMAP_ZENDOWN, "ZenDo",		235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
+	uiDefButBitS(block, TOG, WOMAP_BLEND, B_MATPRV, "Blend",		10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
+	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_MATPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
+	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_MATPRV, "ZenUp",		160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
+	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_MATPRV, "ZenDo",		235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
