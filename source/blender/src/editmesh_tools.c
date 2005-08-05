@@ -1102,9 +1102,9 @@ void fill_mesh(void)
 #define FACENEW    2
 #define EDGEINNER  4
 
-static void alter_co(float* co,EditEdge *edge,float rad,int beauty)
+static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
 {
-    float  vec1[3],vec2[3],fac,vec3[3],vec4[4],len,ang;
+    float  vec1[3],fac;
     
 	if(rad > 0.0) {   /* subdivide sphere */
 		Normalise(co);
@@ -1121,57 +1121,40 @@ static void alter_co(float* co,EditEdge *edge,float rad,int beauty)
 	}
 
 	if(beauty & B_SMOOTH) {         
-        // We are using the 2 ends of the edge vertex normals to 
-        // determine the arc for the smooth 
-
-        // This figures our smooth radius for this edge
-        ang = acos(MTC_dot3Float(edge->v1->no,edge->v2->no))/2;      
-        len = VecLenf(edge->v1->co,edge->v2->co)/2;
-        rad = len/sin(ang);
-        
-        // Now find the centerpoint of the smooth radius
-        // Need to calculate and add the offset. 
-        //
-        //  L1 = v1->co  +  a  v1->no
-        //  L2 = v2->co  +  b  v2->no
-        //
-        //  Assume they intersect
-        //
-        //  Set equal
-        //
-        //  v1->co + a v1->no = v2->co + b v2->no
-        //
-        //  a v1->no = (v2->co - v1->co) + b v2->no
-        //
-        //  Cross v2->no with both sides
-        //
-        //  a (v1->no X v2->no) = (v2->co - v1->co) X v2->no
-        //  a (vec1)            = vec2 X v2->no       
-        //  a vec1              = vec3
-        //  a                   = length(vec3) / length(vec1)
-        //
-        //  Now plug a into L1 = v1->co + a v1->no, this is intersection
-        
-        Crossf(vec1,edge->v1->no,edge->v2->no);
-        VecSubf(vec2,edge->v2->co,edge->v1->co);
-        Crossf(vec3,vec2,edge->v2->no);
-        len = VecLength(vec3)/VecLength(vec1);
+    	float len, fac, nor[3], nor1[3], nor2[3];
+    	float smoothperc = 0.25;
+    	
+    	VecSubf(nor, edge->v1->co, edge->v2->co);
+    	len= 0.5f*Normalise(nor);
     
-        VECCOPY(vec4,edge->v1->no);  
-        VecMulf(vec4,len);
-        VecAddf(vec1,edge->v1->co,vec4);
-
-        // vec1 *should* be the smooth center offset.
-
-        //VecSubf(co,co,vec1);
+    	VECCOPY(nor1, edge->v1->no);
+    	VECCOPY(nor2, edge->v2->no);
+    
+    	/* cosine angle */
+    	fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
+    	
+    	vec1[0]= fac*nor1[0];
+    	vec1[1]= fac*nor1[1];
+    	vec1[2]= fac*nor1[2];
+    
+    	/* cosine angle */
+    	fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
+    	
+    	vec1[0]+= fac*nor2[0];
+    	vec1[1]+= fac*nor2[1];
+    	vec1[2]+= fac*nor2[2];
+    
+        if(perc > .5){
+            perc = 1-perc;    
+        }
         
-		Normalise(co);
-		
-        co[0]*= rad;
-		co[1]*= rad;
-		co[2]*= rad;
-		
-		//VecAddf(co,co,vec1);
+    	vec1[0]*= perc*len;
+    	vec1[1]*= perc*len;
+    	vec1[2]*= perc*len;
+    	
+    	co[0] += vec1[0];
+    	co[1] += vec1[1];
+    	co[2] += vec1[2];
 	}    
 }
 
@@ -1937,11 +1920,10 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 			temp.v2 = innerverts[i][numcuts+1];
 
 			// Call alter co for things like fractal and smooth
-			alter_co(co,&temp,rad,beauty);
+			alter_co(co,&temp,rad,beauty,j/(float)(numcuts+1));
 
 			innerverts[i][(numcuts+1)-j] = addvertlist(co); 
 
-			//VECCOPY(innerverts[i][(numcuts+1)-j]->no,nor);
 
 		}    
 	}    
@@ -2045,10 +2027,9 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 			temp.v1 = innerverts[i][0];
 			temp.v2 = innerverts[i][(numcuts+1)-i];
 
-			alter_co(co,&temp,rad,beauty);
+			alter_co(co,&temp,rad,beauty,j/(float)((numcuts+1)-i));
 
-			innerverts[i][((numcuts+1)-i)-j] = addvertlist(co);             
-			//VECCOPY(innerverts[i][((numcuts+1)-i)-j]->no,nor);
+			innerverts[i][((numcuts+1)-i)-j] = addvertlist(co);    
 		}
 	}
 
@@ -2104,7 +2085,7 @@ static EditVert *subdivideedgenum(EditEdge *edge,int curpoint,int totpoint,float
 		co[2] = (edge->v2->co[2]-edge->v1->co[2])*(curpoint/(float)(totpoint+1))+edge->v1->co[2];
 	}
 			
-	alter_co(co,edge,rad,beauty);
+	alter_co(co,edge,rad,beauty,curpoint/(float)(totpoint+1));
 	ev = addvertlist(co);
 	ev->f = edge->v1->f;
 
@@ -2235,7 +2216,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}                                  
 	}
 
-	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
     for(ef = em->faces.first;ef;ef = ef->next){
