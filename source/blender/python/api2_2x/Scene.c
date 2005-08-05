@@ -53,6 +53,7 @@ struct View3D;
 #include "gen_utils.h"
 #include "sceneRender.h"
 #include "sceneRadio.h"
+#include "sceneTimeLine.h"
 
 
 static Base *EXPP_Scene_getObjectBase( Scene * scene, Object * object );
@@ -113,6 +114,8 @@ static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_play( BPy_Scene * self, PyObject * args );
+static PyObject *Scene_getTimeLine( BPy_Scene * self );
+
 
 //internal
 static void Scene_dealloc( BPy_Scene * self );
@@ -188,6 +191,8 @@ static PyMethodDef BPy_Scene_methods[] = {
 	 "since they can be used just as an interruptible timer.  If 'win' is not"
 	 "available or invalid, VIEW3D is tried, then any bigger window."
 	 "Returns 0 for normal exit or 1 when canceled by user input."},
+	{"getTimeLine", ( PyCFunction ) Scene_getTimeLine, METH_NOARGS,
+	"() - Get time line of this Scene"},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------BPy_Scene method def------------------------------
@@ -1053,3 +1058,20 @@ static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 
 	return ret;
 }
+
+static PyObject *Scene_getTimeLine( BPy_Scene *self ) 
+{
+	BPy_TimeLine *tm= NULL;
+
+	tm= (BPy_TimeLine *) PyObject_NEW (BPy_TimeLine, &TimeLine_Type);
+	if (!tm)
+		return EXPP_ReturnPyObjError (PyExc_MemoryError,
+					      "couldn't create BPy_TimeLine object");
+	tm->marker_list= &(self->scene->markers);
+	tm->sfra= (int) self->scene->r.sfra;
+	tm->efra= (int) self->scene->r.efra;
+
+	return (PyObject *)tm;
+}
+
+
