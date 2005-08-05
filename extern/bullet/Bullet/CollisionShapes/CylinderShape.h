@@ -27,7 +27,24 @@ public:
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
+	virtual SimdVector3	LocalGetSupportingVertex(const SimdVector3& vec) const
+	{
 
+		SimdVector3 supVertex;
+		supVertex = LocalGetSupportingVertexWithoutMargin(vec);
+		
+		if ( GetMargin()!=0.f )
+		{
+			SimdVector3 vecnorm = vec;
+			if (vecnorm .length2() == 0.f)
+			{
+				vecnorm.setValue(-1.f,-1.f,-1.f);
+			} 
+			vecnorm.normalize();
+			supVertex+= GetMargin() * vecnorm;
+		}
+		return supVertex;
+	}
 
 
 	//use box inertia

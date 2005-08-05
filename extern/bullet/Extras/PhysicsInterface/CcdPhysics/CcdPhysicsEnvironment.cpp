@@ -16,6 +16,8 @@
 
 #include "IDebugDraw.h"
 
+#include "NarrowPhaseCollision/VoronoiSimplexSolver.h"
+#include "NarrowPhaseCollision/SubsimplexConvexCast.h"
 
 #include "CollisionDispatch/ToiContactDispatcher.h"
 
@@ -24,6 +26,7 @@
 #include "CollisionDispatch/UnionFind.h"
 
 #include "NarrowPhaseCollision/RaycastCallback.h"
+#include "CollisionShapes/SphereShape.h"
 
 bool useIslands = true;
 
@@ -678,6 +681,7 @@ void	CcdPhysicsEnvironment::SyncMotionStates(float timeStep)
 	//
 	// synchronize the physics and graphics transformations
 	//
+
 	for (i=m_controllers.begin();
 	!(i==m_controllers.end()); i++)
 	{
@@ -856,9 +860,56 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 								float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
 
+	int minFraction = 1.f;
 
-//	m_broadphase->cast(
-	return 0;
+	SimdTransform	rayFromTrans,rayToTrans;
+	rayFromTrans.setIdentity();
+	rayFromTrans.setOrigin(SimdVector3(fromX,fromY,fromZ));
+	rayToTrans.setIdentity();
+	rayToTrans.setOrigin(SimdVector3(toX,toY,toZ));
+
+
+	CcdPhysicsController* nearestHit = 0;
+	
+	std::vector<CcdPhysicsController*>::iterator i;
+	SphereShape pointShape(0.0f);
+
+	/// brute force go over all objects. Once there is a broadphase, use that, or
+	/// add a raycast against aabb first.
+	for (i=m_controllers.begin();
+	!(i==m_controllers.end()); i++)
+	{
+		CcdPhysicsController* ctrl = (*i);
+		RigidBody* body = ctrl->GetRigidBody();
+
+		if (body->GetCollisionShape()->IsConvex())
+		{
+			ConvexCast::CastResult rayResult;
+			rayResult.m_fraction = 1.f;
+
+			ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
+			VoronoiSimplexSolver	simplexSolver;
+			SubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
+			if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,body->getCenterOfMassTransform(),body->getCenterOfMassTransform(),rayResult))
+			{
+				//add hit
+				rayResult.m_normal.normalize();
+				if (rayResult.m_fraction < minFraction)
+				{
+					minFraction = rayResult.m_fraction;
+					nearestHit = ctrl;
+					normalX = rayResult.m_normal.getX();
+					normalY = rayResult.m_normal.getY();
+					normalZ = rayResult.m_normal.getZ();
+					hitX = rayResult.m_hitTransformA.getOrigin().getX();
+					hitY = rayResult.m_hitTransformA.getOrigin().getY();
+					hitZ = rayResult.m_hitTransformA.getOrigin().getZ();
+				}
+			}
+		}
+	}
+
+	return nearestHit;
 }
 
 

@@ -69,13 +69,15 @@ bool KX_RayCast::RayTest(KX_IPhysicsController* ignore_controller, PHY_IPhysicsE
 		
 		if (!info)
 		{
+			printf("no info!\n");
 			MT_assert(info && "Physics controller with no client object info");
 			return false;
 		}
 		
 		if (callback.RayHit(info, result_point, result_normal))
 			return true;
-		
+	
+	
 		// skip past the object and keep tracing
 		/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
 		MT_Scalar marg = 0.01 + hit_controller->GetMargin();

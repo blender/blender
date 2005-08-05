@@ -18,7 +18,7 @@ SimdVector3 startVel(0,0,0);//-10000);
 CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 {
 	m_collisionDelay = 0;
-
+	m_newClientInfo = 0;
 	
 	m_MotionState = ci.m_MotionState;
 
@@ -163,6 +163,17 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 }
 void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
+	printf("CcdPhysicsController::applyImpulse\n");
+
+	SimdVector3 impulse(impulseX,impulseY,impulseZ);
+	SimdVector3 pos(attachX,attachY,attachZ);
+
+	//it might be sleeping... wake up !
+	m_body->SetActivationState(1);
+	m_body->m_deactivationTime = 0.f;
+
+	m_body->applyImpulse(impulse,pos);
+
 }
 void		CcdPhysicsController::SetActive(bool active)
 {
@@ -186,11 +197,11 @@ void		CcdPhysicsController::setRigidBody(bool rigid)
 		// clientinfo for raycasts for example
 void*		CcdPhysicsController::getNewClientInfo()
 {
-	return 0;
+	return m_newClientInfo;
 }
 void		CcdPhysicsController::setNewClientInfo(void* clientinfo)
 {
-
+	m_newClientInfo = clientinfo;
 }
 
 

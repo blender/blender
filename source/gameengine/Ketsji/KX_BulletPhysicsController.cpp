@@ -32,6 +32,8 @@ void	KX_BulletPhysicsController::resolveCombinedVelocities(float linvelX,float l
 
 void	KX_BulletPhysicsController::applyImpulse(const MT_Point3& attach, const MT_Vector3& impulse)
 {
+		CcdPhysicsController::applyImpulse(attach[0],attach[1],attach[2],impulse[0],impulse[1],impulse[2]);
+
 }
 
 void	KX_BulletPhysicsController::SetObject (SG_IObject* object)

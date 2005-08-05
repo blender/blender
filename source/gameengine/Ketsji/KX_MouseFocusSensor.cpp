@@ -76,6 +76,8 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 	 * together, so it should be safe to do it here. */
 	m_mouse_over_in_previous_frame = false;
 	m_positive_event = false;
+	m_hitObject = 0;
+
 }
 
 bool KX_MouseFocusSensor::Evaluate(CValue* event)
@@ -132,8 +134,9 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hi
 	* self-hits are excluded by setting the correct ignore-object.)
 	* Hitspots now become valid. */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
-	if (hitKXObj == thisObj)
+	if (hitKXObj != thisObj)
 	{
+		m_hitObject = hitKXObj;
 		m_hitPosition = hit_point;
 		m_hitNormal = hit_normal;
 		return true;
@@ -267,97 +270,18 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	/* Shoot! Beware that the first argument here is an
 	 * ignore-object. We don't ignore anything... */
 	
-	KX_IPhysicsController* physics_controller = (cam->GetPhysicsController());
+	KX_IPhysicsController* physics_controller = cam->GetPhysicsController();
 	PHY_IPhysicsEnvironment* physics_environment = m_kxscene->GetPhysicsEnvironment();
 
-// 	MT_Vector3 todir = topoint3 - frompoint3;
-// 	if (todir.dot(todir) < MT_EPSILON)
-// 		return false;
-// 	todir.normalize();
-	
-	KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
-	
+	bool result = false;
 
-// 	while (true)
-// 	{	
-// 		PHY__Vector3 resultpt;
-// 		PHY__Vector3 resultnr;
-// 
-// 		PHY_IPhysicsController* hitCtrl= physEnv->rayTest(camCtrl, 
-// 							frompoint3.x(),frompoint3.y(),frompoint3.z(),
-// 							topoint3.x(),topoint3.y(),topoint3.z(),
-// 							resultpt[0], resultpt[1],resultpt[2],
-// 							resultnr[0],resultnr[1],resultnr[2]);
-// 		
-// 		if (!hitCtrl)
-// 			return false;
-// 			
-// 		resultpoint = MT_Vector3(resultpt);
-// 		resultnormal = MT_Vector3(resultnr);
-// 
-// 		/* all this casting makes me nervous... */
-// 		KX_ClientObjectInfo* client_info 
-// 			= 	static_cast<KX_ClientObjectInfo*>( hitCtrl->getNewClientInfo());
-// 		
-// 		if (!client_info)
-// 		{
-// 			std::cout<< "WARNING:  MouseOver sensor " << GetName() << " cannot sense - no client info.\n" << std::endl;
-// 
-// 			return false;
-// 		} 
-// 	
-// 		KX_GameObject* hitKXObj = client_info->m_gameobject;
-// 		
-// 		if (client_info->m_type > KX_ClientObjectInfo::ACTOR)
-// 		{
-// 			// false hit
-// 			// FIXME: add raytest interface to KX_IPhysicsController, remove casting
-// 			PHY_IPhysicsController* hitspc = (PHY_IPhysicsController*) (static_cast<KX_GameObject*> (hitKXObj)->GetPhysicsController());
-// 			if (hitspc)
-// 			{
-// 				/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
-// 				MT_Scalar marg = 0.01 + hitspc->GetMargin();
-// 				marg += hitspc->GetRadius(); //this is changed, check !
-// 
-// 				//if (hitspc->GetSumoObject()->getShapeProps())
-// 				//{
-// 				//	marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
-// 				//}
-// 				
-// 				/* Calculate the other side of this object */
-// 				MT_Point3 hitObjPos;
-// 				PHY__Vector3 hitpos;
-// 				hitspc->getPosition(hitpos);
-// 				hitObjPos = MT_Vector3(hitpos);
-// 				MT_Vector3 hitvector = hitObjPos - resultpoint;
-// 				if (hitvector.dot(hitvector) > MT_EPSILON)
-// 				{
-// 					hitvector.normalize();
-// 					marg *= 2.*todir.dot(hitvector);
-// 				}
-// 				frompoint3 = resultpoint + marg * todir;
-// 			} else {
-// 				return false;
-// 			}
-// 			continue;
-// 		}
-// 		/* Is this me? In the ray test, there are a lot of extra checks
-// 		* for aliasing artefacts from self-hits. That doesn't happen
-// 		* here, so a simple test suffices. Or does the camera also get
-// 		* self-hits? (No, and the raysensor shouldn't do it either, since
-// 		* self-hits are excluded by setting the correct ignore-object.)
-// 		* Hitspots now become valid. */
-// 		if (hitKXObj == thisObj)
-// 		{
-// 			m_hitPosition = resultpoint;
-// 			m_hitNormal = resultnormal;
-// 			return true;
-// 		}
-// 		
-// 		return false;
-// 	}
+	result = KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
+	if (result)
+	{
+		
+	}
+	return result;
 
-	return false;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -398,12 +322,96 @@ PyMethodDef KX_MouseFocusSensor::Methods[] = {
 	 METH_VARARGS, GetRayTarget_doc},
 	{"getRaySource", (PyCFunction) KX_MouseFocusSensor::sPyGetRaySource, 
 	 METH_VARARGS, GetRaySource_doc},
+	{"getHitObject",(PyCFunction) KX_MouseFocusSensor::sPyGetHitObject,METH_VARARGS, GetHitObject_doc},
+	{"getHitPosition",(PyCFunction) KX_MouseFocusSensor::sPyGetHitPosition,METH_VARARGS, GetHitPosition_doc},
+	{"getHitNormal",(PyCFunction) KX_MouseFocusSensor::sPyGetHitNormal,METH_VARARGS, GetHitNormal_doc},
+	{"getRayDirection",(PyCFunction) KX_MouseFocusSensor::sPyGetRayDirection,METH_VARARGS, GetRayDirection_doc},
+
+
 	{NULL,NULL} //Sentinel
 };
 
 PyObject* KX_MouseFocusSensor::_getattr(const STR_String& attr) {
 	_getattr_up(SCA_MouseSensor);
 }
+
+
+char KX_MouseFocusSensor::GetHitObject_doc[] = 
+"getHitObject()\n"
+"\tReturns the name of the object that was hit by this ray.\n";
+PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self, 
+										   PyObject* args, 
+										   PyObject* kwds)
+{
+	if (m_hitObject)
+	{
+		printf("hitObject!\n");
+		return m_hitObject->AddRef();
+	}
+	Py_Return;
+}
+
+
+char KX_MouseFocusSensor::GetHitPosition_doc[] = 
+"getHitPosition()\n"
+"\tReturns the position (in worldcoordinates) where the object was hit by this ray.\n";
+PyObject* KX_MouseFocusSensor::PyGetHitPosition(PyObject* self, 
+			       PyObject* args, 
+			       PyObject* kwds)
+{
+
+	MT_Point3 pos = m_hitPosition;
+
+	PyObject* resultlist = PyList_New(3);
+	int index;
+	for (index=0;index<3;index++)
+	{
+		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
+	}
+	return resultlist;
+
+}
+
+char KX_MouseFocusSensor::GetRayDirection_doc[] = 
+"getRayDirection()\n"
+"\tReturns the direction from the ray (in worldcoordinates) .\n";
+PyObject* KX_MouseFocusSensor::PyGetRayDirection(PyObject* self, 
+			       PyObject* args, 
+			       PyObject* kwds)
+{
+
+	MT_Vector3 dir = m_prevTargetPoint - m_prevSourcePoint;
+	dir.normalize();
+
+	PyObject* resultlist = PyList_New(3);
+	int index;
+	for (index=0;index<3;index++)
+	{
+		PyList_SetItem(resultlist,index,PyFloat_FromDouble(dir[index]));
+	}
+	return resultlist;
+
+}
+
+char KX_MouseFocusSensor::GetHitNormal_doc[] = 
+"getHitNormal()\n"
+"\tReturns the normal (in worldcoordinates) of the object at the location where the object was hit by this ray.\n";
+PyObject* KX_MouseFocusSensor::PyGetHitNormal(PyObject* self, 
+			       PyObject* args, 
+			       PyObject* kwds)
+{
+	MT_Vector3 pos = m_hitNormal;
+
+	PyObject* resultlist = PyList_New(3);
+	int index;
+	for (index=0;index<3;index++)
+	{
+		PyList_SetItem(resultlist,index,PyFloat_FromDouble(pos[index]));
+	}
+	return resultlist;
+
+}
+
 
 /*  getRayTarget                                                */
 char KX_MouseFocusSensor::GetRayTarget_doc[] = 

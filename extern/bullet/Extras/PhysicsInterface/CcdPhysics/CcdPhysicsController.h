@@ -51,6 +51,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	RigidBody* m_body;
 	class	PHY_IMotionState*			m_MotionState;
 	CollisionShape*			m_collisionShape;
+	void*		m_newClientInfo;
 
 	public:
 	

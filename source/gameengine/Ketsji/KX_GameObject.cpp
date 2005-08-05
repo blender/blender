@@ -953,16 +953,26 @@ PyObject* KX_GameObject::PyApplyImpulse(PyObject* self,
 	
 	PyObject* pyattach;
 	PyObject* pyimpulse;
+
+	printf("impulse1\n");
+	
 	
 	if (PyArg_ParseTuple(args, "OO", &pyattach, &pyimpulse))
 	{
 		MT_Point3  attach;
 		MT_Vector3 impulse;
+		printf("impulse2\n");
 	
-		if (PyVecTo(pyattach, attach) && PyVecTo(pyimpulse, impulse) && m_pPhysicsController1)
+		if (m_pPhysicsController1)
 		{
-			m_pPhysicsController1->applyImpulse(attach, impulse);
-			Py_Return;
+				printf("impulse3\n");
+
+			if (PyVecTo(pyattach, attach) && PyVecTo(pyimpulse, impulse))
+			{
+				printf("impulse4\n");
+				m_pPhysicsController1->applyImpulse(attach, impulse);
+				Py_Return;
+			}
 		}
 
 	}

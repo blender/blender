@@ -917,7 +917,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 			bm = new BoxShape(he);
 			bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-			bm->SetMargin(0.05 * halfExtents.length());
 			break;
 		};
 	case KX_BOUNDCYLINDER:
@@ -946,8 +945,6 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 
 				bm = new ConeShape(objprop->m_boundobject.c.m_radius,objprop->m_boundobject.c.m_height);
 				bm->CalculateLocalInertia(ci.m_mass,ci.m_localInertiaTensor);
-
-
 
 			break;
 		}
@@ -998,24 +995,33 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	if (!bm)
 		return;
 
+	bm->SetMargin(0.06);
+
 	ci.m_collisionShape = bm;
 	ci.m_broadphaseHandle = 0;
 	ci.m_friction = smmaterial->m_friction;
 	ci.m_restitution = smmaterial->m_restitution;
 
-
-	ci.m_linearDamping = shapeprops->m_lin_drag;
-	ci.m_angularDamping = shapeprops->m_ang_drag;
+	// drag / damping is inverted
+	ci.m_linearDamping = 1.f - shapeprops->m_lin_drag;
+	ci.m_angularDamping = 1.f - shapeprops->m_ang_drag;
+	//need a bit of damping, else system doesn't behave well
+	
 
 	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,dyna);
 	env->addCcdPhysicsController( physicscontroller);
 
 	
 	gameobj->SetPhysicsController(physicscontroller);
-	physicscontroller->setNewClientInfo(gameobj);						
+	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
+	bool isActor = objprop->m_isactor;
+	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
+	// store materialname in auxinfo, needed for touchsensors
+	gameobj->getClientInfo()->m_auxilary_info = 0;//(matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+
+
 	gameobj->GetSGNode()->AddSGController(physicscontroller);
 
-	bool isActor = objprop->m_isactor;
 	STR_String materialname;
 	if (meshobj)
 		materialname = meshobj->GetMaterialName(0);

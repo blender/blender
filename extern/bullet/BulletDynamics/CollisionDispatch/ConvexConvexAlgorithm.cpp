@@ -34,6 +34,11 @@
 
 #include "NarrowPhaseCollision/MinkowskiPenetrationDepthSolver.h"
 
+///Solid3EpaPenetrationDepth is not shipped by default, the license doesn't allow commercial, closed source. contact if you want the file
+///It improves the penetration depth handling dramatically
+#ifdef USE_EPA
+#include "NarrowPhaseCollision/Solid3EpaPenetrationDepth.h"
+#endif// USE_EPA
 
 #ifdef WIN32
 void DrawRasterizerLine(const float* from,const float* to,int color);
@@ -136,8 +141,10 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 		m_useEpa  = gUseEpa;
 		if (m_useEpa)
 		{
-			//not distributed
-			//m_gjkPairDetector.SetPenetrationDepthSolver(new Solid3EpaPenetrationDepth);
+			//not distributed, see top of this file
+			#ifdef USE_EPA
+			m_gjkPairDetector.SetPenetrationDepthSolver(new Solid3EpaPenetrationDepth);
+			#endif
 		} else
 		{
 			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);

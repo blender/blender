@@ -33,7 +33,7 @@
 #define KX_CONVERTPHYSICSOBJECTS
 
 /* These are defined by the build system... */
-//#define USE_SUMO_SOLID
+#define USE_SUMO_SOLID
 //#define USE_ODE
 
 //on visual studio 7/8, always enable BULLET for now 
