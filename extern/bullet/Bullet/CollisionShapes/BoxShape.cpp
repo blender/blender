@@ -54,25 +54,4 @@ void	BoxShape::CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia)
 	inertia[2] = mass/(12.0f) * (lx*lx + ly*ly);
 
 
-//		float radius = GetHalfExtents().length();
-//		SimdScalar elem = 0.4f * mass * radius*radius;
-//	inertia[0] = inertia[1] = inertia[2] = elem;
-return;
-/*
-	float margin = GetMargin();
-	SimdVector3 halfExtents = GetHalfExtents();
-
-	SimdScalar lx=2.f*(halfExtents.x()+margin);
-	SimdScalar ly=2.f*(halfExtents.y()+margin);
-	SimdScalar lz=2.f*(halfExtents.z()+margin);
-	const SimdScalar x2 = lx*lx;
-	const SimdScalar y2 = ly*ly;
-	const SimdScalar z2 = lz*lz;
-	const SimdScalar scaledmass = mass * 0.08333333f;
-
-	inertia = scaledmass * (SimdVector3(y2+z2,x2+z2,x2+y2));
-*/
-//		inertia.x() = scaledmass * (y2+z2);
-//		inertia.y() = scaledmass * (x2+z2);
-//		inertia.z() = scaledmass * (x2+y2);
 }

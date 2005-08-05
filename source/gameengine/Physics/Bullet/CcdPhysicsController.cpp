@@ -163,8 +163,7 @@ void		CcdPhysicsController::SetLinearVelocity(float lin_velX,float lin_velY,floa
 }
 void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attachZ, float impulseX,float impulseY,float impulseZ)
 {
-	printf("CcdPhysicsController::applyImpulse\n");
-
+	
 	SimdVector3 impulse(impulseX,impulseY,impulseZ);
 	SimdVector3 pos(attachX,attachY,attachZ);
 

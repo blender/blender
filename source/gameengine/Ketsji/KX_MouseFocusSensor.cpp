@@ -345,7 +345,6 @@ PyObject* KX_MouseFocusSensor::PyGetHitObject(PyObject* self,
 {
 	if (m_hitObject)
 	{
-		printf("hitObject!\n");
 		return m_hitObject->AddRef();
 	}
 	Py_Return;

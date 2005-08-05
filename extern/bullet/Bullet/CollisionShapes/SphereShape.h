@@ -31,7 +31,7 @@ public:
 
 	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
-	virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
+	//virtual void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const;
 
 	virtual int	GetShapeType() const { return SPHERE_SHAPE_PROXYTYPE; }
 

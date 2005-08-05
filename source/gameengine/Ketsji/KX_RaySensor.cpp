@@ -106,13 +106,12 @@ bool KX_RaySensor::IsPositiveTrigger()
 
 bool KX_RaySensor::RayHit(KX_ClientObjectInfo* info, MT_Point3& hit_point, MT_Vector3& hit_normal, void* const data)
 {
-	printf("KX_RaySensor::RayHit\n");
 
 	KX_GameObject* obj = (KX_GameObject*)GetParent();
 	SCA_IObject *hitgameobj = info->m_gameobject;
 	if (hitgameobj == obj || info->m_type > KX_ClientObjectInfo::ACTOR)
 	{
-		printf("false hit\n");
+//		printf("false hit\n");
 		// false hit
 		return false;
 	}
