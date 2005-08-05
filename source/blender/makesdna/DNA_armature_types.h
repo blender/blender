@@ -123,7 +123,7 @@ typedef struct bArmature {
 
 enum {
 		BONE_SKINNABLE  =       0,
-		BONE_UNSKINNABLE,
+		BONE_UNSKINNABLE
 };
 
 #endif
