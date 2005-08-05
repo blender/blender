@@ -56,6 +56,7 @@ source_files = ['BPY_interface.c',
                 'api2_2x/rgbTuple.c',
                 'api2_2x/sceneRender.c',
                 'api2_2x/sceneRadio.c',
+                'api2_2x/sceneTimeLine.c',
                 'api2_2x/vector.c',
                 'api2_2x/windowTheme.c']
 
