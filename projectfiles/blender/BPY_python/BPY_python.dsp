@@ -255,6 +255,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\sceneRender.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\sceneTimeLine.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Sound.c
 # End Source File
 # Begin Source File
@@ -460,6 +464,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\sceneRadio.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\sceneRender.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\sceneTimeLine.h
 # End Source File
 # Begin Source File
 
