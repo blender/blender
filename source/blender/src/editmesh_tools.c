@@ -584,6 +584,15 @@ void extrude_mesh(void)
 		EM_fgon_flags();
 		countall(); 
 		
+			/* We need to force immediate calculation here because 
+			* transform may use derived objects (which are now stale).
+			*
+			* This shouldn't be necessary, derived queries should be
+			* automatically building this data if invalid. Or something.
+			*/
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+		object_handle_update(G.obedit);
+
 		/* individual faces? */
 		BIF_TransformSetUndo("Extrude");
 		if(nr==2) {

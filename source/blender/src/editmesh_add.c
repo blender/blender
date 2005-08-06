@@ -438,6 +438,16 @@ void adduplicate_mesh(void)
 
 	waitcursor(0);
 	countall(); 
+
+		/* We need to force immediate calculation here because 
+		* transform may use derived objects (which are now stale).
+		*
+		* This shouldn't be necessary, derived queries should be
+		* automatically building this data if invalid. Or something.
+		*/
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+	object_handle_update(G.obedit);
+
 	BIF_TransformSetUndo("Add Duplicate");
 	initTransform(TFM_TRANSLATION, CTX_NO_PET);
 	Transform();
