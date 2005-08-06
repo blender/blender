@@ -1387,21 +1387,33 @@ void build_particle_system(Object *ob)
 	rng_free(rng);
 }
 
+
+/* this evil hack is only needed for iterating faces in SoftBodyDetectCollision */
+/* so if i could ask politely for the face array pointer and #faces i would not need it */
+
+typedef struct {
+	DerivedMesh dm;
+
+	Object *ob;
+	Mesh *me;
+	MVert *verts;
+	float *nors;
+
+	int freeNors, freeVerts;
+} MeshDerivedMesh;
+
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 							float facenormal[3], float *damp, float force[3], int mode,
 							float cur_time, unsigned int par_layer,struct Object *vertexowner)
 {
+	static short recursion = 0;
+	static short didokee = 0;
 	Base *base;
-	Object *ob, *deflection_object = NULL;
-	Mesh *def_mesh;
-	MFace *mface, *deflection_face = NULL;
-	float *v1, *v2, *v3, *v4, *vcache=NULL;
-	float mat[3][3];
-	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], obloc[3];
+	Object *ob;
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3];
 	float dv1[3], dv2[3], dv3[3];
 	float facedist,n_mag,t,t2, min_t,force_mag_norm;
 	int a, deflected=0, deflected_now=0;
-	short cur_frame;
 	int d_object=0, d_face=0, ds_object=0, ds_face=0;
 	
 	// i'm going to rearrange it to declaration rules when WIP is finished (BM)
@@ -1410,10 +1422,17 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	float ee = 5.0f;
 	float ff = 0.1f;
 	float fa;
-	
+
+	if (recursion){
+		if (!didokee)
+		okee("SB collision detected recursion. We will CRASH now!");
+		didokee =1;
+		return 0;
+	}
+	recursion =1;
+
 	min_t = 200000;
 	
-	/* The first part of the code, finding the first intersected face*/
 	base= G.scene->base.first;
 	while (base) {
 		/*Only proceed for mesh object in same layer */
@@ -1427,79 +1446,73 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 			}
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
-				def_mesh= ob->data;
-				
-				d_object = d_object + 1;
-				
-				d_face = d_face + 1;
-				mface= def_mesh->mface;
-				a = def_mesh->totface;
+				DerivedMesh *dm=NULL;				
+				int dmNeedsFree;				
+				Mesh *me;
+				MFace *mface;
+				int use_deformed = (ob->pd->pad && 1) ; // get colliding mesh from modifier stack
+				/* do object level stuff
 				/* need to have user control for that since it depends on model scale */
-				
 				innerfacethickness =-ob->pd->pdef_sbift;
 				outerfacethickness =ob->pd->pdef_sboft;
 				fa = (ff*outerfacethickness-outerfacethickness);
 				fa *= fa;
 				fa = 1.0f/fa;
 				
-				if(ob->parent==NULL && ob->ipo==NULL) {	// static
-					if(ob->sumohandle==NULL) cache_object_vertices(ob);
-					vcache= ob->sumohandle;
-				}
-				else {
-					/*Find out where the object is at this time*/
-					cur_frame = G.scene->r.cfra;
-					G.scene->r.cfra = (short)cur_time;
-					where_is_object_time(ob, cur_time);
-					G.scene->r.cfra = cur_frame;
-					
-					/*Pass the values from ob->obmat to mat*/
-					/*and the location values to obloc           */
-					Mat3CpyMat4(mat,ob->obmat);
-					obloc[0] = ob->obmat[3][0];
-					obloc[1] = ob->obmat[3][1];
-					obloc[2] = ob->obmat[3][2];
-					/* not cachable */
-					vcache= NULL;
-					
+				if (use_deformed){
+					if(1) { // so maybe someone wants overkill to collide with subsurfed 
+						dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+					} else {
+						dm = mesh_get_derived_final(ob, &dmNeedsFree);
+					}
 				}
 				
+				if (dm) {
+					MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+					me = mdm->me;
+				}
+				else
+					me = ob->data;
+				
+				/* use mesh*/
+				mface= me->mface;
+				a = me->totface;
 				while (a--) {
 					
-					if(vcache) {
-						v1= vcache+ 3*(mface->v1);
-						VECCOPY(nv1, v1);
-						v1= vcache+ 3*(mface->v2);
-						VECCOPY(nv2, v1);
-						v1= vcache+ 3*(mface->v3);
-						VECCOPY(nv3, v1);
-						v1= vcache+ 3*(mface->v4);
-						VECCOPY(nv4, v1);
+					/* Calculate the global co-ordinates of the vertices*/
+					if (dm){
+						dm->getVertCo(dm,mface->v1,nv1);
+						Mat4MulVecfl(ob->obmat, nv1);
+						
+						dm->getVertCo(dm,mface->v2,nv2);
+						Mat4MulVecfl(ob->obmat, nv2);
+						
+						dm->getVertCo(dm,mface->v3,nv3);
+						Mat4MulVecfl(ob->obmat, nv3);
+						
+						
+						if (mface->v4){
+							dm->getVertCo(dm,mface->v4,nv4);
+							Mat4MulVecfl(ob->obmat, nv4);
+						}
 					}
-					else {
-						/* Calculate the global co-ordinates of the vertices*/
-						v1= (def_mesh->mvert+(mface->v1))->co;
-						v2= (def_mesh->mvert+(mface->v2))->co;
-						v3= (def_mesh->mvert+(mface->v3))->co;
-						v4= (def_mesh->mvert+(mface->v4))->co;
+					else{
 						
-						VECCOPY(nv1, v1);
-						VECCOPY(nv2, v2);
-						VECCOPY(nv3, v3);
-						VECCOPY(nv4, v4);
+						VECCOPY(nv1,(me->mvert+(mface->v1))->co);
+						Mat4MulVecfl(ob->obmat, nv1);
 						
-						/*Apply the objects deformation matrix*/
-						Mat3MulVecfl(mat, nv1);
-						Mat3MulVecfl(mat, nv2);
-						Mat3MulVecfl(mat, nv3);
-						Mat3MulVecfl(mat, nv4);
+						VECCOPY(nv2,(me->mvert+(mface->v2))->co);
+						Mat4MulVecfl(ob->obmat, nv2);
 						
-						VECADD(nv1, nv1, obloc);
-						VECADD(nv2, nv2, obloc);
-						VECADD(nv3, nv3, obloc);
-						VECADD(nv4, nv4, obloc);
+						VECCOPY(nv3,(me->mvert+(mface->v3))->co);
+						Mat4MulVecfl(ob->obmat, nv3);
+						
+						if (mface->v4){
+							VECCOPY(nv4,(me->mvert+(mface->v4))->co);
+							Mat4MulVecfl(ob->obmat, nv4);
+						}
+						
 					}
-					
 					deflected_now = 0;
 					
 					if (mode == 1){ // face intrusion test
@@ -1568,10 +1581,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 								deflected_now = 1;
 							}
 						}
-						//					else if (mface->v4 && (t>=0.0 && t<=1.0)) {
-						// no, you can't skip testing the other triangle
-						// it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
-						// note: the 2 triangles don't need to share a plane ! (BM)
+						
 						if (mface->v4) {
 							if( linetriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
 								if (t2 < min_t) {
@@ -1585,8 +1595,6 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 							min_t = t;
 							ds_object = d_object;
 							ds_face = d_face;
-							deflection_object = ob;
-							deflection_face = mface;
 							if (deflected_now==1) {
 								min_t = t;
 								VECCOPY(dv1, nv1);
@@ -1600,15 +1608,23 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 								VECCOPY(dv3, nv4);
 							}
 						}
-					}  
+					}
 					mface++;
-				}
-			}
-		}
-		base = base->next;
+					
+                }//while a		
+				/* give it away */
+				if (dm) {
+					if (dmNeedsFree) dm->release(dm);
+				} // if (dm)
+				
+				
+		} // if(ob->pd && ob->pd->deflect) 
+       }//if (base->object->type==OB_MESH && (base->lay & par_layer)) {
+    base = base->next;
 	} // while (base)
 	
 	if (mode == 1){ // face 
+		recursion = 0;
 		return deflected;
 	}
 	
@@ -1626,6 +1642,6 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 			VECCOPY(facenormal,d_nvect);					
 		}
 	}
+	recursion = 0;
 	return deflected;
 }
-
