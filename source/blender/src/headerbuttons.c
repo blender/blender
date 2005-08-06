@@ -740,9 +740,10 @@ void do_global_buttons(unsigned short event)
 		idtest= G.main->mesh.first;
 		while(idtest) {
 			if(nr==G.buts->menunr) {
-					
 				set_mesh(ob, (Mesh *)idtest);
 				
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+					
 				BIF_undo_push("Browse Mesh");
 				allqueue(REDRAWBUTSEDIT, 0);
 				allqueue(REDRAWVIEW3D, 0);
@@ -1846,6 +1847,8 @@ void do_global_buttons2(short event)
 				if(okee("Make local")) {
 					make_local_mesh(me);
 					make_local_key( me->key );
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);				
 				}
 			}
 		}
@@ -2056,6 +2059,8 @@ void do_global_buttons2(short event)
 					men->id.us= 0;
 					
 					set_mesh(ob, men);
+					
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 					
 					if(ob==G.obedit) allqueue(REDRAWVIEW3D, 0);
 				}
