@@ -645,6 +645,11 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		return;
 	}
 
+	if (md->type==eModifierType_Decimate && (me->tface || me->mcol)) {
+		if (!okee("Applying decimate modifier will remove mesh UVs and vertex colors, continue?"))
+			return;
+	}
+
 	if (md!=ob->modifiers.first) {
 		if (!okee("Modifier is not first, continue with apply?"))
 			return;
@@ -671,17 +676,28 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 	modifier_free(md);
 }
 
+static void modifiers_copyModifier(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	ModifierData *nmd = modifier_new(md->type);
+
+	modifier_copyData(md, nmd);
+
+	BLI_insertlink(&ob->modifiers, md, nmd);
+}
+
 static void modifiers_setOnCage(void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
 	ModifierData *md;
-
-	for (md=ob->modifiers.first; md; md=md->next) {
-		md->mode &= ~eModifierMode_OnCage;
-	}
+	
+	for (md=ob->modifiers.first; md; md=md->next)
+		if (md!=md_v)
+			md->mode &= ~eModifierMode_OnCage;
 
 	md = md_v;
-	md->mode |= eModifierMode_OnCage;
+	md->mode ^= eModifierMode_OnCage;
 }
 
 
@@ -710,18 +726,18 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	short height, width = 295;
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x, y, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
+	uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 
 	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 		
 		/* rounded header */
 	BIF_ThemeColorShade(color, -20);
-	uiSetRoundBox(3);
+	uiSetRoundBox((md->mode&eModifierMode_Expanded)?3:15);
 	uiRoundBox(x+4+10, y-18, x+width+10, y+6, 5.0);
 
 	BIF_ThemeColor(color);
-	uiDefBut(block, LABEL, B_NOP, mti->name, x+15, y-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+	uiDefBut(block, LABEL, B_NOP, mti->name, x+5, y-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 	uiBlockSetEmboss(block, UI_EMBOSSR);
 
@@ -740,7 +756,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			icon = ICON_BLANK1;
 		}
 		uiBlockSetCol(block, color);
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-120, y, 18, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-120, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 		uiButSetFunc(but, modifiers_setOnCage, ob, md);
 		uiBlockSetCol(block, TH_AUTO);
 	}
@@ -752,7 +768,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-70+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
 	uiButSetFunc(but, modifiers_moveDown, ob, md);
-
+	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
 	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
@@ -761,15 +777,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
-	if (!(md->mode&eModifierMode_Expanded)) {
-		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-90, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-		uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-90+20, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-			uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
-		}
-		uiBlockEndAlign(block);
 
+	uiBlockBeginAlign(block);
+	uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-90, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+	uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-90+20, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+	if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+	}
+	uiBlockEndAlign(block);
+
+	if (!(md->mode&eModifierMode_Expanded)) {
 		y -= 18;
 	} else {
 		char str[128];
@@ -795,18 +812,22 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		}
 
 		BIF_ThemeColor(color);
-		glRects(x+3+10, y-height, x+width+10, y);
+		uiSetRoundBox(12);
+		uiRoundBox(x+4+10, y-height, x+width+10, y, 5.0);
 
 		uiBlockBeginAlign(block);
-		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the currnt modifier and remove from the stack");
+		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
 		uiButSetFunc(but, modifiers_applyModifier, ob, md);
-
-		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-		uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, "3D View", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-			uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, "Editmode", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
-		}
+		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
+		uiButSetFunc(but, modifiers_copyModifier, ob, md);
 		uiBlockEndAlign(block);
+
+//		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+//		uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, "3D View", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+//		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+//			uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, "Editmode", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+//		}
+//		uiBlockEndAlign(block);
 
 		lx = x;
 		cy = y + 10 - 1;
@@ -874,7 +895,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		y -= 20;
 
 		BIF_ThemeColorShade(color, 40);
-		glRects(x+3+10, y, x+width+10, y+20);
+		uiSetRoundBox(15);
+		uiRoundBox(x+4+10, y, x+width+10, y+20, 5.0);
 
 		sprintf(str, "Modifier Error: %s", md->error);
 		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -890,6 +912,7 @@ static void editing_panel_modifiers(Object *ob)
 {
 	ModifierData *md;
 	uiBlock *block;
+	char str[64];
 	int xco, yco, i, lastCageIndex, cageIndex = modifiers_getCageIndex(&ob->modifiers, &lastCageIndex);
 
 		// XXX ofsx should probably be changed in other panels here
@@ -899,7 +922,10 @@ static void editing_panel_modifiers(Object *ob)
 	uiNewPanelHeight(block, 204);
 
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
-		
+
+	sprintf(str, "To: %s", ob->id.name+2);
+	uiDefBut(block, LABEL, 1, str,	140, 190, 140, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
+
 	xco = 0;
 	yco = 160;
 

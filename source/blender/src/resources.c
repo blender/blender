@@ -450,9 +450,9 @@ static void vicon_editmode_hlt_draw(int x, int y, int w, int h, float alpha)
 {
 	int pts[3][2];
 
-	viconutil_set_point(pts[0], x+w/2, y+h-3);
-	viconutil_set_point(pts[1], x+3, y+3);
-	viconutil_set_point(pts[2], x+w-3, y+3);
+	viconutil_set_point(pts[0], x+w/2, y+h-2);
+	viconutil_set_point(pts[1], x+3, y+4);
+	viconutil_set_point(pts[2], x+w-3, y+4);
 
 	glColor4f(0.5, 0.5, 0.5, alpha);
 	viconutil_draw_tri(pts);
@@ -468,9 +468,9 @@ static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float alpha)
 {
 	int pts[3][2];
 
-	viconutil_set_point(pts[0], x+w/2, y+h-3);
-	viconutil_set_point(pts[1], x+3, y+3);
-	viconutil_set_point(pts[2], x+w-3, y+3);
+	viconutil_set_point(pts[0], x+w/2, y+h-2);
+	viconutil_set_point(pts[1], x+3, y+4);
+	viconutil_set_point(pts[2], x+w-3, y+4);
 
 	glColor4f(0.0, 0.0, 0.0, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);

@@ -2924,6 +2924,8 @@ void make_links(short event)
 							
 							/* if amount of material indices changed: */
 							test_object_materials(obt->data);
+
+							obt->recalc |= OB_RECALC_DATA;
 						}
 					}
 				else if(event==4) {  /* ob ipo */
@@ -2992,7 +2994,9 @@ void make_links(short event)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
-	
+
+	DAG_scene_flush_update(G.scene);
+
 	BIF_undo_push("Create links");
 }
 
