@@ -1704,3 +1704,8 @@ DerivedMesh *editmesh_get_derived_cage(int *needsFree_r)
 
 	return G.editMesh->derivedCage;
 }
+
+DerivedMesh *editmesh_get_derived_base(void)
+{
+	return getEditMeshDerivedMesh(G.editMesh, NULL);
+}

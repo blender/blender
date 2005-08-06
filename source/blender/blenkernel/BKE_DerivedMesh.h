@@ -184,6 +184,7 @@ DerivedMesh *mesh_create_derived_render(struct Object *ob);
 DerivedMesh *mesh_create_derived_no_deform(struct Object *ob, float (*vertCos)[3]);
 DerivedMesh *mesh_create_derived_no_deform_render(struct Object *ob, float (*vertCos)[3]);
 
+DerivedMesh *editmesh_get_derived_base(void);
 DerivedMesh *editmesh_get_derived_cage(int *needsFree_r);
 DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r, int *cageNeedsFree_r, int *finalNeedsFree_r);
 

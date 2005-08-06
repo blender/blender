@@ -1856,7 +1856,15 @@ static void draw_mesh_object(Base *base, int dt)
 	
 	if(G.obedit && ob->data==G.obedit->data) {
 		int cageNeedsFree, finalNeedsFree;
-		DerivedMesh *finalDM, *cageDM = editmesh_get_derived_cage_and_final(&finalDM, &cageNeedsFree, &finalNeedsFree);
+		DerivedMesh *finalDM, *cageDM;
+		
+		if (G.obedit!=ob) {
+			finalDM = cageDM = editmesh_get_derived_base();
+			cageNeedsFree = 0;
+			finalNeedsFree = 1;
+		} else {
+			cageDM = editmesh_get_derived_cage_and_final(&finalDM, &cageNeedsFree, &finalNeedsFree);
+		}
 
 		if(dt>OB_WIRE) init_gl_materials(ob);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
