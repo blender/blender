@@ -83,22 +83,22 @@
 #define EXPP_MAT_MODE_NOMIST			MA_NOMIST
 #define EXPP_MAT_MODE_ENV			MA_ENV
 /* Material MIN, MAX values */
-#define EXPP_MAT_ADD_MIN			 0.0
-#define EXPP_MAT_ADD_MAX			 1.0
-#define EXPP_MAT_ALPHA_MIN	   0.0
-#define EXPP_MAT_ALPHA_MAX		 1.0
-#define EXPP_MAT_AMB_MIN			 0.0
-#define EXPP_MAT_AMB_MAX			 1.0
-#define EXPP_MAT_COL_MIN			 0.0 /* min/max for all ... */
-#define EXPP_MAT_COL_MAX			 1.0 /* ... color triplets  */
-#define EXPP_MAT_EMIT_MIN			 0.0
-#define EXPP_MAT_EMIT_MAX			 1.0
-#define EXPP_MAT_REF_MIN			 0.0
-#define EXPP_MAT_REF_MAX			 1.0
-#define EXPP_MAT_SPEC_MIN			 0.0
-#define EXPP_MAT_SPEC_MAX			 2.0
-#define EXPP_MAT_SPECTRA_MIN	 0.0
-#define EXPP_MAT_SPECTRA_MAX	 1.0
+#define EXPP_MAT_ADD_MIN			 0.0f
+#define EXPP_MAT_ADD_MAX			 1.0f
+#define EXPP_MAT_ALPHA_MIN	   0.0f
+#define EXPP_MAT_ALPHA_MAX		 1.0f
+#define EXPP_MAT_AMB_MIN			 0.0f
+#define EXPP_MAT_AMB_MAX			 1.0f
+#define EXPP_MAT_COL_MIN			 0.0f /* min/max for all ... */
+#define EXPP_MAT_COL_MAX			 1.0f /* ... color triplets  */
+#define EXPP_MAT_EMIT_MIN			 0.0f
+#define EXPP_MAT_EMIT_MAX			 1.0f
+#define EXPP_MAT_REF_MIN			 0.0f
+#define EXPP_MAT_REF_MAX			 1.0f
+#define EXPP_MAT_SPEC_MIN			 0.0f
+#define EXPP_MAT_SPEC_MAX			 2.0f
+#define EXPP_MAT_SPECTRA_MIN	 0.0f
+#define EXPP_MAT_SPECTRA_MAX	 1.0f
 
 /* Shader spesific settings */
 #define EXPP_MAT_SPEC_SHADER_MIN			 0
@@ -106,22 +106,22 @@
 #define EXPP_MAT_DIFFUSE_SHADER_MIN			 0
 #define EXPP_MAT_DIFFUSE_SHADER_MAX			 4
 
-#define EXPP_MAT_ROUGHNESS_MIN			 0.0
-#define EXPP_MAT_ROUGHNESS_MAX			 3.140
-#define EXPP_MAT_SPECSIZE_MIN			 0.0
-#define EXPP_MAT_SPECSIZE_MAX			 1.530
-#define EXPP_MAT_DIFFUSESIZE_MIN		 0.0
-#define EXPP_MAT_DIFFUSESIZE_MAX			 3.140
-#define EXPP_MAT_SPECSMOOTH_MIN			 0.0
-#define EXPP_MAT_SPECSMOOTH_MAX			 1.0
-#define EXPP_MAT_DIFFUSESMOOTH_MIN			 0.0
-#define EXPP_MAT_DIFFUSESMOOTH_MAX			 1.0
-#define EXPP_MAT_DIFFUSE_DARKNESS_MIN			 0.0
-#define EXPP_MAT_DIFFUSE_DARKNESS_MAX			 2.0
-#define EXPP_MAT_REFRACINDEX_MIN			 1.0
-#define EXPP_MAT_REFRACINDEX_MAX			 10.0
-#define EXPP_MAT_RMS_MIN			 0.0
-#define EXPP_MAT_RMS_MAX			 0.4
+#define EXPP_MAT_ROUGHNESS_MIN			 0.0f
+#define EXPP_MAT_ROUGHNESS_MAX			 3.140f
+#define EXPP_MAT_SPECSIZE_MIN			 0.0f
+#define EXPP_MAT_SPECSIZE_MAX			 1.530f
+#define EXPP_MAT_DIFFUSESIZE_MIN		 0.0f
+#define EXPP_MAT_DIFFUSESIZE_MAX			 3.140f
+#define EXPP_MAT_SPECSMOOTH_MIN			 0.0f
+#define EXPP_MAT_SPECSMOOTH_MAX			 1.0f
+#define EXPP_MAT_DIFFUSESMOOTH_MIN			 0.0f
+#define EXPP_MAT_DIFFUSESMOOTH_MAX			 1.0f
+#define EXPP_MAT_DIFFUSE_DARKNESS_MIN			 0.0f
+#define EXPP_MAT_DIFFUSE_DARKNESS_MAX			 2.0f
+#define EXPP_MAT_REFRACINDEX_MIN			 1.0f
+#define EXPP_MAT_REFRACINDEX_MAX			 10.0f
+#define EXPP_MAT_RMS_MIN			 0.0f
+#define EXPP_MAT_RMS_MAX			 0.4f
 /* End shader settings */
 
 /* diff_shader */
@@ -1825,7 +1825,7 @@ static PyObject *Material_setSpecShader( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 
-	self->material->spec_shader = EXPP_ClampInt( value, EXPP_MAT_SPEC_SHADER_MIN,
+	self->material->spec_shader = (short)EXPP_ClampInt( value, EXPP_MAT_SPEC_SHADER_MIN,
 					       EXPP_MAT_SPEC_SHADER_MAX );
 	
 	Py_INCREF( Py_None );
@@ -1840,7 +1840,7 @@ static PyObject *Material_setDiffuseShader( BPy_Material * self, PyObject * args
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument" ) );
 
-	self->material->diff_shader = EXPP_ClampInt( value, EXPP_MAT_DIFFUSE_SHADER_MIN,
+	self->material->diff_shader = (short)EXPP_ClampInt( value, EXPP_MAT_DIFFUSE_SHADER_MIN,
 					       EXPP_MAT_DIFFUSE_SHADER_MAX );
 	
 	Py_INCREF( Py_None );
@@ -2627,10 +2627,10 @@ static PyObject *Material_getAttr( BPy_Material * self, char *name )
 					   id.us );
 	/* Shader settings*/
 	else if( strcmp( name, "specShader" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->
+		attr = PyInt_FromLong( ( long ) self->material->
 					   spec_shader );
 	else if( strcmp( name, "diffuseShader" ) == 0 )
-		attr = PyInt_FromLong( ( double ) self->material->
+		attr = PyInt_FromLong( ( long ) self->material->
 					   diff_shader );
 	else if( strcmp( name, "roughness" ) == 0 )
 		attr = PyFloat_FromDouble( ( double ) self->material->

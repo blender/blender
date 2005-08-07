@@ -194,6 +194,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneTimeLine.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Sound.c">
 			</File>
 			<File
@@ -352,6 +355,9 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\sceneRender.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\sceneTimeLine.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Sound.h">
 			</File>
 			<File
@@ -410,9 +416,6 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\Ipocurve.h">
-				</File>
-				<File
-					RelativePath="..\..\..\source\blender\python\api2_2x\line.h">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\python\api2_2x\logic.h">

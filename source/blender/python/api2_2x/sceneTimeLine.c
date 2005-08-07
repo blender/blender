@@ -176,7 +176,8 @@ static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args) {
 	if (tmarker) {
 		int f;
 		char *s= NULL;
-		if (PyInt_Check (tmarker) && (f= PyInt_AsLong (tmarker)) ) {
+		f = PyInt_AsLong (tmarker);
+		if (PyInt_Check (tmarker) && f != 0) {
 			for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next)
 				if (marker_it->frame==f) PyList_Append (marker_list, PyString_FromString (marker_it->name));
 		}
