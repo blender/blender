@@ -4317,7 +4317,7 @@ int EdgeSlide(short immediate, float imperc)
 			ct++;
 			efa->e1->f1++;
 			if(efa->e1->f1 > 2){
-				okee("3+ face edge - Stopping");
+				error("3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4325,7 +4325,7 @@ int EdgeSlide(short immediate, float imperc)
 			ct++;
 			efa->e2->f1++;
 			if(efa->e2->f1 > 2){
-				okee("3+ face edge - Stopping");
+				error("3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4333,7 +4333,7 @@ int EdgeSlide(short immediate, float imperc)
 			ct++;
 			efa->e3->f1++;
 			if(efa->e3->f1 > 2){
-				okee("3+ face edge - Stopping");
+				error("3+ face edge");
 				return 0;				 
 			}
 		}
@@ -4341,13 +4341,13 @@ int EdgeSlide(short immediate, float imperc)
 			ct++;
 			efa->e4->f1++;
 			if(efa->e4->f1 > 2){
-				okee("3+ face edge - Stopping");
+				error("3+ face edge");
 				return 0;				 
 			}
 		}	
 		// Make sure loop is not 2 edges of same face	
 		if(ct > 1){
-		   okee("loop crosses itself - Stopping");
+		   error("loop crosses itself");
 		   return 0;   
 		}
 	}	   
@@ -4358,7 +4358,7 @@ int EdgeSlide(short immediate, float imperc)
 	   
 	// Test for multiple segments
 	if(vertsel > numsel+1){
-		okee("Was not a single edge loop - Stopping");
+		error("Was not a single edge loop");
 		return 0;		   
 	}  
 	
@@ -4396,7 +4396,7 @@ int EdgeSlide(short immediate, float imperc)
 		// It looks like there was an unexpected case - Hopefully should not happen
 		if(timesthrough >= numsel*2){
 			BLI_linklist_free(edgelist,NULL); 
-			okee("could not order loop - Stopping");
+			error("could not order loop");
 			return 0;   
 		}
 	}
@@ -4533,7 +4533,6 @@ int EdgeSlide(short immediate, float imperc)
    
 	// make sure the UPs nad DOWNs are 'faceloops'
 	// Also find the nearest slidevert to the cursor
-	
 	getmouseco_areawin(mval);
 	look = vertlist;	
 	nearest = NULL;
@@ -4541,29 +4540,36 @@ int EdgeSlide(short immediate, float imperc)
 	while(look){	
 		SlideVert *sv=NULL;		// keep gcc happy
 		float tempdist;
-		
 		if(look->next != NULL){
-			tempsv = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			sv	 = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
+			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			sv		= BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
+			
+			if(!tempsv->up || !tempsv->down){
+				error("Missing rails");
+				BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+				BLI_linklist_free(vertlist,NULL); 
+				BLI_linklist_free(edgelist,NULL); 
+				return 0;
+			}
 			if(!sharesFace(tempsv->up,sv->up)){
 				EditEdge *swap;
 				swap = sv->up;
 				sv->up = sv->down;
 				sv->down = swap; 
 			}
-		}   
-		tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
+		}   		
+		if(sv){
+			tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
+		}
 		if(vertdist < 0){
 			vertdist = tempdist;
 			nearest  = (EditVert*)look->link;   
 		} else if ( tempdist < vertdist ){
 			vertdist = tempdist;
 			nearest  = (EditVert*)look->link;	
-		}
-
+		}		
 		look = look->next;   
 	}	   
-	
 	// we should have enough info now to slide
 	//persp(PERSP_WIN);
 	//glDrawBuffer(GL_FRONT); 
@@ -4579,7 +4585,7 @@ int EdgeSlide(short immediate, float imperc)
 		if (mval[0] == mvalo[0] && mval[1] ==  mvalo[1]) {
 			PIL_sleep_ms(10);
 		} else {
-   			mvalo[0] = mval[0];
+			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
 			//Adjust Edgeloop
 			if(immediate){
@@ -4720,12 +4726,7 @@ int EdgeSlide(short immediate, float imperc)
 			headerprint(str);
 			screen_swapbuffers();			
 		}
-
-			 
-
-
-	
-	   if(!immediate){
+		if(!immediate){
 			while(qtest()) {
 				unsigned short val=0;		   	
 				event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
@@ -4777,8 +4778,8 @@ int EdgeSlide(short immediate, float imperc)
 				}
 			} 
 		} else {
-			draw = 0;   
-		}	 
+			draw = 0;
+		}
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	 
 	}
 	force_draw(0);
@@ -4791,11 +4792,9 @@ int EdgeSlide(short immediate, float imperc)
 	BLI_linklist_free(edgelist,NULL); 
 	
 	if(cancel == 1){
-		return -1;   
+		return -1;
 	}
-	return 1;   
-	
-	
+	return 1;
 }
 
 //----------------------------------------------  OLD SUBDIVIDE -----------------------------------------------------
