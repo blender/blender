@@ -1456,7 +1456,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				}
 				
 				if (dm) {
-					disp_mesh = dm->convertToDispListMesh(dm);
+					disp_mesh = dm->convertToDispListMesh(dm, 1);
 					mface= disp_mesh->mface;
 					a = disp_mesh->totface;
 				}
@@ -1603,15 +1603,12 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 					
                 }//while a		
 				/* give it away */
-				if (dm) {
-					if (dmNeedsFree) dm->release(dm);
-				} 
 				if (disp_mesh) {
 					displistmesh_free(disp_mesh);
 				}
-
-				
-				
+				if (dm) {
+					if (dmNeedsFree) dm->release(dm);
+				} 
 		} // if(ob->pd && ob->pd->deflect) 
        }//if (base->object->type==OB_MESH && (base->lay & par_layer)) {
     base = base->next;
