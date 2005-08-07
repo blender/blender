@@ -1388,26 +1388,12 @@ void build_particle_system(Object *ob)
 }
 
 
-/* this evil hack is only needed for iterating faces in SoftBodyDetectCollision */
-/* so if i could ask politely for the face array pointer and #faces i would not need it */
-
-typedef struct {
-	DerivedMesh dm;
-
-	Object *ob;
-	Mesh *me;
-	MVert *verts;
-	float *nors;
-
-	int freeNors, freeVerts;
-} MeshDerivedMesh;
-
 int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 							float facenormal[3], float *damp, float force[3], int mode,
 							float cur_time, unsigned int par_layer,struct Object *vertexowner)
 {
-	static short recursion = 0;
-	static short didokee = 0;
+//	static short recursion = 0;
+//	static short didokee = 0;
 	Base *base;
 	Object *ob;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3];
@@ -1422,15 +1408,15 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	float ee = 5.0f;
 	float ff = 0.1f;
 	float fa;
-
+/*
 	if (recursion){
 		if (!didokee)
-		okee("SB collision detected recursion. We will CRASH now!");
+		printf("SB collision detected recursion. We will CRASH now!");
 		didokee =1;
 		return 0;
 	}
 	recursion =1;
-
+*/
 	min_t = 200000;
 	
 	base= G.scene->base.first;
@@ -1449,8 +1435,9 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				DerivedMesh *dm=NULL;				
 				int dmNeedsFree;				
 				Mesh *me;
+				DispListMesh  *disp_mesh = 0;
 				MFace *mface;
-				int use_deformed = (ob->pd->pad && 1) ; // get colliding mesh from modifier stack
+	            Object *copyob;
 				/* do object level stuff
 				/* need to have user control for that since it depends on model scale */
 				innerfacethickness =-ob->pd->pdef_sbift;
@@ -1458,25 +1445,28 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				fa = (ff*outerfacethickness-outerfacethickness);
 				fa *= fa;
 				fa = 1.0f/fa;
-				
-				if (use_deformed){
+				copyob = ob;
+				if (ob->pd->flag & PDEFLE_DEFORM){// get colliding mesh from modifier stack
+
 					if(1) { // so maybe someone wants overkill to collide with subsurfed 
-						dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+						dm = mesh_get_derived_deform(copyob, &dmNeedsFree);
 					} else {
-						dm = mesh_get_derived_final(ob, &dmNeedsFree);
+						dm = mesh_get_derived_final(copyob, &dmNeedsFree);
 					}
 				}
 				
 				if (dm) {
-					MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-					me = mdm->me;
+					disp_mesh = dm->convertToDispListMesh(dm);
+					mface= disp_mesh->mface;
+					a = disp_mesh->totface;
 				}
-				else
+				else {
 					me = ob->data;
+					mface= me->mface;
+					a = me->totface;
+				}
 				
 				/* use mesh*/
-				mface= me->mface;
-				a = me->totface;
 				while (a--) {
 					
 					/* Calculate the global co-ordinates of the vertices*/
@@ -1615,7 +1605,11 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				/* give it away */
 				if (dm) {
 					if (dmNeedsFree) dm->release(dm);
-				} // if (dm)
+				} 
+				if (disp_mesh) {
+					displistmesh_free(disp_mesh);
+				}
+
 				
 				
 		} // if(ob->pd && ob->pd->deflect) 
@@ -1624,7 +1618,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 	} // while (base)
 	
 	if (mode == 1){ // face 
-		recursion = 0;
+//		recursion = 0;
 		return deflected;
 	}
 	
@@ -1642,6 +1636,6 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 			VECCOPY(facenormal,d_nvect);					
 		}
 	}
-	recursion = 0;
+//	recursion = 0;
 	return deflected;
 }

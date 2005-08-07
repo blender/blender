@@ -1535,7 +1535,7 @@ static void object_panel_deflectors(Object *ob)
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 				uiBlockBeginAlign(block);
- 			    uiDefButBitS(block, TOG, 1, 0,"UMS or CRASH",	0,0,150,20, &pd->pad, 0, 0, 0, 0, "Let collision object move with armatures/lattices WARNING logical circles will CRASH");
+ 			    uiDefButBitS(block, TOG, PDEFLE_DEFORM , 0,"UMS or CRASH",	0,0,150,20, &pd->flag, 0, 0, 0, 0, "Let collision object move with armatures/lattices WARNING logical circles will CRASH");
 			}		
 		}	
 	}
