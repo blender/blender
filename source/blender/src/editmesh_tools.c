@@ -4264,6 +4264,14 @@ static float Dist2s(short* d1,short* d2){
     return sqrt(pow(d1[0]-d2[0],2)+pow(d1[1]-d2[1],2));   
 }
 
+void EdgeLoopDelete(){
+    EdgeSlide(1, 1);
+    select_more();
+    removedoublesflag(1,0.001);
+	EM_select_flush();
+    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+}
+
 int EdgeSlide(short immediate, float imperc)
 {
     EditMesh *em = G.editMesh;
