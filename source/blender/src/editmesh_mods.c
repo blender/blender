@@ -675,6 +675,15 @@ static EditFace *findnearestface(short *dist)
 }
 
 /* for interactivity, frontbuffer draw in current window */
+static int draw_dm_mapped_edge__setDrawOptions(void *theEdge, EditEdge *eed)
+{
+	return theEdge==eed;
+}
+static void draw_dm_mapped_edge(DerivedMesh *dm, EditEdge *eed)
+{
+	dm->drawMappedEdgesEM(dm, draw_dm_mapped_edge__setDrawOptions, eed);
+}
+
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
 	int dmNeedsFree;
@@ -706,11 +715,11 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			if(efa->fgonf==0) {
 				BIF_ThemeColor((efa->f & SELECT)?TH_EDGE_SELECT:TH_WIRE);
 	
-				dm->drawMappedEdgeEM(dm, efa->e1);
-				dm->drawMappedEdgeEM(dm, efa->e2);
-				dm->drawMappedEdgeEM(dm, efa->e3);
+				draw_dm_mapped_edge(dm, efa->e1);
+				draw_dm_mapped_edge(dm, efa->e2);
+				draw_dm_mapped_edge(dm, efa->e3);
 				if (efa->e4) {
-					dm->drawMappedEdgeEM(dm, efa->e4);
+					draw_dm_mapped_edge(dm, efa->e4);
 				}
 			}
 		}
@@ -731,7 +740,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 		if(G.scene->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) {
 			BIF_ThemeColor((eed->f & SELECT)?TH_EDGE_SELECT:TH_WIRE);
 
-			dm->drawMappedEdgeEM(dm, eed);
+			draw_dm_mapped_edge(dm, eed);
 		}
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 			float co[3];

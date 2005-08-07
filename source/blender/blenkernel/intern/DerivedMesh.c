@@ -140,11 +140,8 @@ static void meshDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
 static void meshDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	float *co = mdm->verts[index].co;
 
-	co_r[0] = co[0];
-	co_r[1] = co[1];
-	co_r[2] = co[2];
+	VECCOPY(co_r, mdm->verts[index].co);
 }
 
 static void meshDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
@@ -479,9 +476,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 
 		mdm->verts = MEM_mallocN(sizeof(*mdm->verts)*me->totvert, "deformedVerts");
 		for (i=0; i<me->totvert; i++) {
-			mdm->verts[i].co[0] = vertCos[i][0];
-			mdm->verts[i].co[1] = vertCos[i][1];
-			mdm->verts[i].co[2] = vertCos[i][2];
+			VECCOPY(mdm->verts[i].co, vertCos[i]);
 		}
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
@@ -519,18 +514,14 @@ static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
 
 		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
 			if (eve==vert) {
-				co_r[0] = emdm->vertexCos[i][0];
-				co_r[1] = emdm->vertexCos[i][1];
-				co_r[2] = emdm->vertexCos[i][2];
+				VECCOPY(co_r, emdm->vertexCos[i]);
 				break;
 			}
 		}
 	} else {
 		EditVert *eve = vert;
 
-		co_r[0] = eve->co[0];
-		co_r[1] = eve->co[1];
-		co_r[2] = eve->co[2];
+		VECCOPY(co_r, eve->co);
 	}
 }
 static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
@@ -555,15 +546,6 @@ static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 		}
 		bglEnd();		
 	}
-}
-static void emDM_drawMappedEdgeEM(DerivedMesh *dm, void *edge)
-{
-	EditEdge *eed = edge;
-
-	glBegin(GL_LINES);
-	glVertex3fv(eed->v1->co);
-	glVertex3fv(eed->v2->co);
-	glEnd();
 }
 static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) 
 {
@@ -656,13 +638,9 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 	}
 
 	if (efa->v4) {
-		cent[0] *= 0.25f;
-		cent[1] *= 0.25f;
-		cent[2] *= 0.25f;
+		VecMulf(cent, 0.25f);
 	} else {
-		cent[0] *= 0.33333333333f;
-		cent[1] *= 0.33333333333f;
-		cent[2] *= 0.33333333333f;
+		VecMulf(cent, 0.33333333333f);
 	}
 }
 static void emDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
@@ -892,7 +870,6 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
 
 	emdm->dm.drawEdges = emDM_drawEdges;
-	emdm->dm.drawMappedEdgeEM = emDM_drawMappedEdgeEM;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
 	emdm->dm.drawMappedEdgesInterpEM = emDM_drawMappedEdgesInterpEM;
 	
@@ -963,7 +940,182 @@ typedef struct {
 	DerivedMesh dm;
 
 	DispListMesh *dlm;
+
+	EditVert **vertMap;
+	EditEdge **edgeMap;
+	EditFace **faceMap;
 } SSDerivedMesh;
+
+static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+
+	if (ssdm->vertMap) {
+		int i;
+
+		for (i=0; i<dlm->totvert; i++) {
+			if (ssdm->vertMap[i]==vert) {
+				VECCOPY(co_r, dlm->mvert[i].co);
+				break;
+			}
+		}
+	}
+}
+static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+
+	if (ssdm->vertMap) {
+		int i;
+
+		bglBegin(GL_POINTS);
+		for (i=0; i<dlm->totvert; i++) {
+			if(ssdm->vertMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->vertMap[i]))) {
+				bglVertex3fv(dlm->mvert[i].co);
+			}
+		}
+		bglEnd();
+	}
+}
+static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) 
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (ssdm->edgeMap) {
+		glBegin(GL_LINES);
+		for(i=0; i<dlm->totedge; i++) {
+			if(ssdm->edgeMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->edgeMap[i]))) {
+				MEdge *med = &dlm->medge[i];
+
+				glVertex3fv(dlm->mvert[med->v1].co);
+				glVertex3fv(dlm->mvert[med->v2].co);
+			}
+		}
+		glEnd();
+	}
+}
+
+static void ssDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (ssdm->faceMap) {
+		bglBegin(GL_POINTS);
+		for (i=0; i<dlm->totface; i++) {
+			if(ssdm->faceMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->faceMap[i]))) {
+				MFace *mf = &dlm->mface[i];
+
+				if (mf->v3) {
+					float cent[3];
+
+					VECCOPY(cent, dlm->mvert[mf->v1].co);
+					VecAddf(cent, cent, dlm->mvert[mf->v2].co);
+					VecAddf(cent, cent, dlm->mvert[mf->v3].co);
+
+					if (mf->v4) {
+						VecAddf(cent, cent, dlm->mvert[mf->v4].co);
+						VecMulf(cent, 0.25f);
+					} else {
+						VecMulf(cent, 0.33333333333f);
+					}
+
+					bglVertex3fv(cent);
+				}
+			}
+		}
+		bglEnd();
+	}
+}
+static void ssDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (ssdm->faceMap) {
+		glBegin(GL_LINES);
+		for (i=0; i<dlm->totface; i++) {
+			if(ssdm->faceMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->faceMap[i]))) {
+				MFace *mf = &dlm->mface[i];
+
+				if (mf->v3) {
+					float cent[3];
+					float no[3];
+
+					VECCOPY(cent, dlm->mvert[mf->v1].co);
+					VecAddf(cent, cent, dlm->mvert[mf->v2].co);
+					VecAddf(cent, cent, dlm->mvert[mf->v3].co);
+
+					if (mf->v4) {
+						CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, no);
+						VecAddf(cent, cent, dlm->mvert[mf->v4].co);
+						VecMulf(cent, 0.25f);
+					} else {
+						CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, no);
+						VecMulf(cent, 0.33333333333f);
+					}
+
+					glVertex3fv(cent);
+					glVertex3f(	cent[0] + length*no[0],
+								cent[1] + length*no[1],
+								cent[2] + length*no[2]);
+				}
+			}
+		}
+		glEnd();
+	}
+}
+static void ssDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (ssdm->vertMap) {
+		glBegin(GL_LINES);
+		for (i=0; i<dlm->totvert; i++) {
+			if(ssdm->vertMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->vertMap[i]))) {
+				float *co = dlm->mvert[i].co;
+				short *no = dlm->mvert[i].no;
+
+				glVertex3fv(co);
+				glVertex3f(	co[0] + length*no[0]/32767.0,
+							co[1] + length*no[1]/32767.0,
+							co[2] + length*no[2]/32767.0);
+			}
+		}
+		glEnd();
+	}
+}
+static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (ssdm->faceMap) {		
+		for (i=0; i<dlm->totface; i++) {
+			if(ssdm->faceMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->faceMap[i]))) {
+				MFace *mf = &dlm->mface[i];
+
+				if (mf->v3) {
+					glBegin(mf->v3?GL_QUADS:GL_TRIANGLES);
+					glVertex3fv(dlm->mvert[mf->v1].co);
+					glVertex3fv(dlm->mvert[mf->v2].co);
+					glVertex3fv(dlm->mvert[mf->v3].co);
+					if(mf->v4) glVertex3fv(dlm->mvert[mf->v4].co);
+					glEnd();
+				}
+			}
+		}
+	}
+}
 
 static void ssDM_drawMappedEdges(DerivedMesh *dm)
 {
@@ -1251,16 +1403,38 @@ static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm, int allowShared
 	}
 }
 
+static DispListMesh *ssDM_convertToDispListMeshMapped(DerivedMesh *dm, int allowShared, EditVert ***vertMap_r, EditEdge ***edgeMap_r, EditFace ***faceMap_r)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+
+		// We should never get here if the appropriate ssdm fields weren't given.
+
+	*vertMap_r = MEM_dupallocN(ssdm->vertMap);
+	*edgeMap_r = MEM_dupallocN(ssdm->edgeMap);
+	*faceMap_r = MEM_dupallocN(ssdm->faceMap);
+
+	if (allowShared) {
+		return displistmesh_copyShared(ssdm->dlm);
+	} else {
+		return displistmesh_copy(ssdm->dlm);
+	}
+}
+
 static void ssDM_release(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 
 	displistmesh_free(ssdm->dlm);
+	if (ssdm->vertMap) {
+		MEM_freeN(ssdm->vertMap);
+		MEM_freeN(ssdm->edgeMap);
+		MEM_freeN(ssdm->faceMap);
+	}
 
 	MEM_freeN(dm);
 }
 
-DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
+DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)[3], EditVert **vertMap, EditEdge **edgeMap, EditFace **faceMap)
 {
 	SSDerivedMesh *ssdm = MEM_callocN(sizeof(*ssdm), "ssdm");
 
@@ -1269,6 +1443,7 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 	ssdm->dm.getNumVerts = ssDM_getNumVerts;
 	ssdm->dm.getNumFaces = ssDM_getNumFaces;
 	ssdm->dm.convertToDispListMesh = ssDM_convertToDispListMesh;
+	ssdm->dm.convertToDispListMeshMapped = ssDM_convertToDispListMeshMapped;
 
 	ssdm->dm.getVertCos = ssDM_getVertCos;
 
@@ -1282,9 +1457,41 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm)
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
 	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;
 
+		/* EM functions */
+	
+	ssdm->dm.getMappedVertCoEM = ssDM_getMappedVertCoEM;
+	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;
+
+	ssdm->dm.drawMappedEdgesEM = ssDM_drawMappedEdgesEM;
+	ssdm->dm.drawMappedEdgesInterpEM = NULL; // no way to implement this one
+	
+	ssdm->dm.drawMappedVertNormalsEM = ssDM_drawMappedVertNormalsEM;
+	ssdm->dm.drawMappedFaceNormalsEM = ssDM_drawMappedFaceNormalsEM;
+	ssdm->dm.drawMappedFaceCentersEM = ssDM_drawMappedFaceCentersEM;
+
+	ssdm->dm.drawMappedFacesEM = ssDM_drawMappedFacesEM;
+
 	ssdm->dm.release = ssDM_release;
 	
 	ssdm->dlm = dlm;
+	ssdm->vertMap = vertMap;
+	ssdm->edgeMap = edgeMap;
+	ssdm->faceMap = faceMap;
+
+	if (vertexCos) {
+		int i;
+
+		for (i=0; i<dlm->totvert; i++) {
+			VECCOPY(dlm->mvert[i].co, vertexCos[i]);
+		}
+
+		if (dlm->nors && !dlm->dontFreeNors) {
+			MEM_freeN(dlm->nors);
+			dlm->nors = 0;
+		}
+
+		mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
+	}
 
 	return (DerivedMesh*) ssdm;
 }
@@ -1417,24 +1624,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 		 */
 	if (dm && deformedVerts) {
 		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
-		int i;
-
-			/* XXX, would like to avoid the conversion to a DLM here if possible.
-			 * Requires adding a DerivedMesh.updateVertCos method.
-			 */
-		for (i=0; i<numVerts; i++) {
-			VECCOPY(dlm->mvert[i].co, deformedVerts[i]);
-		}
 
 		dm->release(dm);
 
-		if (dlm->nors && !dlm->dontFreeNors) {
-			MEM_freeN(dlm->nors);
-			dlm->nors = 0;
-		}
-
-		mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
-		*final_r = derivedmesh_from_displistmesh(dlm);
+		*final_r = derivedmesh_from_displistmesh(dlm, deformedVerts, NULL, NULL, NULL);
 	} else if (dm) {
 		*final_r = dm;
 	} else {
@@ -1526,8 +1719,14 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 
 		if (cage_r && i==cageIndex) {
 			if (dm && deformedVerts) {
-					// XXX  this is not right, need to convert the dm
-				*cage_r = dm;
+				DispListMesh *dlm;
+				EditVert **vertMap;
+				EditEdge **edgeMap;
+				EditFace **faceMap;
+
+				dlm = dm->convertToDispListMeshMapped(dm, 0, &vertMap, &edgeMap, &faceMap);
+
+				*cage_r = derivedmesh_from_displistmesh(dlm, deformedVerts, vertMap, edgeMap, faceMap);
 			} else if (dm) {
 				*cage_r = dm;
 			} else {
@@ -1542,24 +1741,10 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 		 */
 	if (dm && deformedVerts) {
 		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
-		int i;
-
-			/* XXX, would like to avoid the conversion to a DLM here if possible.
-			 * Requires adding a DerivedMesh.updateVertCos method.
-			 */
-		for (i=0; i<numVerts; i++) {
-			VECCOPY(dlm->mvert[i].co, deformedVerts[i]);
-		}
 
 		if (!cage_r || dm!=*cage_r) dm->release(dm);
 
-		if (dlm->nors && !dlm->dontFreeNors) {
-			MEM_freeN(dlm->nors);
-			dlm->nors = 0;
-		}
-
-		mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
-		*final_r = derivedmesh_from_displistmesh(dlm);
+		*final_r = derivedmesh_from_displistmesh(dlm, deformedVerts, NULL, NULL, NULL);
 		MEM_freeN(deformedVerts);
 	} else if (dm) {
 		*final_r = dm;

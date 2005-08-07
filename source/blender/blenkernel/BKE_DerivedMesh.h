@@ -74,6 +74,18 @@ struct DerivedMesh {
 		 */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm, int allowShared);
 
+		/* Convert to new DispListMesh, should be free'd by caller.
+		 *
+		 * Additionally, allocate and return map arrays. Each map array should be
+		 * have a length corresponding to the returned DLMs totvert, totedge, and 
+		 * totface fields respectively.
+		 *
+		 * Each index in the array should give the EditMesh element from which the
+		 * element at the same index in the DLMs vert, edge, or face array was
+		 * derived (which may be null).
+		 */
+	 struct DispListMesh* (*convertToDispListMeshMapped)(DerivedMesh *dm, int allowShared, struct EditVert ***vertMap_r, struct EditEdge ***edgeMap_r, struct EditFace ***faceMap_r);
+
 		/* Iterate over all vertex points, calling DO_MINMAX with given args.
 		 *
 		 * Also called in Editmode
@@ -137,9 +149,6 @@ struct DerivedMesh {
 			 */
 	void (*drawMappedVertsEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData);
 
-			/* Draw single mapped edge as lines (no options) */
-	void (*drawMappedEdgeEM)(DerivedMesh *dm, void *edge);
-
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true
 			 */
@@ -179,7 +188,7 @@ struct DerivedMesh {
 };
 
 	/* Internal function, just temporarily exposed */
-DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm);
+DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm, float (*vertexCos)[3], struct EditVert **vertMap, struct EditEdge **edgeMap, struct EditFace **faceMap);
 
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);
