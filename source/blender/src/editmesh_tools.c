@@ -2380,6 +2380,7 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 			eed->vn= (EditVert *) (&efaa[i]);
 			i++;
 		}
+		else eed->vn= NULL;
 		
 		eed= eed->next;
 	}
@@ -2399,21 +2400,21 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 				e1= efa->e1;
 				e2= efa->e2;
 				e3= efa->e3;
-				if(e1->f2<3) {
+				if(e1->f2<3 && e1->vn) {
 					if(e1->f2<2) {
 						evp= (EVPtr *) e1->vn;
 						evp[(int)e1->f2]= efa;
 					}
 					e1->f2+= 1;
 				}
-				if(e2->f2<3) {
+				if(e2->f2<3 && e2->vn) {
 					if(e2->f2<2) {
 						evp= (EVPtr *) e2->vn;
 						evp[(int)e2->f2]= efa;
 					}
 					e2->f2+= 1;
 				}
-				if(e3->f2<3) {
+				if(e3->f2<3 && e3->vn) {
 					if(e3->f2<2) {
 						evp= (EVPtr *) e3->vn;
 						evp[(int)e3->f2]= efa;
@@ -2579,7 +2580,8 @@ static void free_tagged_facelist(EditFace *efa)
 	}
 }	
 
-
+/* note; the EM_selectmode_set() calls here illustrate how badly constructed it all is... from before the
+   edge/face flags, with very mixed results.... */
 void beauty_fill(void)
 {
     EditMesh *em = G.editMesh;
@@ -2602,7 +2604,7 @@ void beauty_fill(void)
 		*               - if true: remedge,  addedge, all edges at the edge get new face pointers
 		*/
 	
-	EM_selectmode_flush();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
+	EM_selectmode_set();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
 
     totedge = count_selected_edges(em->edges.first);
     if(totedge==0) return;
@@ -2694,13 +2696,15 @@ void beauty_fill(void)
 									efa->f1= 1;
 
 									w= addfacelist(v1, v2, v3, 0, efa, NULL);
-
+									w->f |= SELECT;
+									
 									UVCOPY(w->tf.uv[0], uv[0]);
 									UVCOPY(w->tf.uv[1], uv[1]);
 									UVCOPY(w->tf.uv[2], uv[2]);
 
 									w->tf.col[0] = col[0]; w->tf.col[1] = col[1]; w->tf.col[2] = col[2];
 									w= addfacelist(v1, v3, v4, 0, efa, NULL);
+									w->f |= SELECT;
 
 									UVCOPY(w->tf.uv[0], uv[0]);
 									UVCOPY(w->tf.uv[1], uv[2]);
@@ -2720,12 +2724,14 @@ void beauty_fill(void)
 									efa->f1= 1;
 
 									w= addfacelist(v2, v3, v4, 0, efa, NULL);
+									w->f |= SELECT;
 
 									UVCOPY(w->tf.uv[0], uv[1]);
 									UVCOPY(w->tf.uv[1], uv[3]);
 									UVCOPY(w->tf.uv[2], uv[4]);
 
 									w= addfacelist(v1, v2, v4, 0, efa, NULL);
+									w->f |= SELECT;
 
 									UVCOPY(w->tf.uv[0], uv[0]);
 									UVCOPY(w->tf.uv[1], uv[1]);
@@ -2747,7 +2753,7 @@ void beauty_fill(void)
 
         if(onedone==0) break;
 		
-		EM_select_flush();	// new edges/faces were added
+		EM_selectmode_set();	// new edges/faces were added
     }
 
     MEM_freeN(efaar);
@@ -4284,7 +4290,7 @@ int EdgeSlide(short immediate, float imperc)
     float perc = 0, percp = 0,vertdist;
     int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
     short event, draw=1;
-    short mval[2], mvalo[2],origin[2]={0,0};
+    short mval[2], mvalo[2];
     char str[128]; 
     
     
@@ -4533,8 +4539,9 @@ int EdgeSlide(short immediate, float imperc)
     nearest = NULL;
     vertdist = -1;  
 	while(look){    
-        SlideVert *sv;
+        SlideVert *sv=NULL;		// keep gcc happy
         float tempdist;
+		
         if(look->next != NULL){
             tempsv = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
             sv     = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
@@ -4564,7 +4571,7 @@ int EdgeSlide(short immediate, float imperc)
     while(draw){
          /* For the % calculation */   
         short mval[2];   
-        float labda, rc[2], len, slen=0.0;   
+        float labda, rc[2], len;   
         float v1[2], v2[2], v3[2]; 
 
         getmouseco_areawin(mval);  
