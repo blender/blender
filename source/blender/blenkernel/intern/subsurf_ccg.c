@@ -857,7 +857,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 		if (ccgdm->fromEditmesh) {
 			EditEdge *eed = ccgDM_getEdgeHandle(ccgdm, e);
-			if (eed->h!=0)
+			if (eed && eed->h!=0)
 				continue;
 		}
 
@@ -884,7 +884,7 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 
 		if (ccgdm->fromEditmesh) {
 			EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-			if (efa->h!=0)
+			if (efa && efa->h!=0)
 				continue;
 		}
 
@@ -970,7 +970,7 @@ static void ccgDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int)) {
 
 		if (ccgdm->fromEditmesh || ccgdm->vertMap) {
 			EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-			if (efa->h!=0)
+			if (efa && efa->h!=0)
 				continue;
 
 			flag = efa->flag;
@@ -1226,7 +1226,7 @@ static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		EditVert *vert = ccgDM_getVertHandle(ccgdm, v);
 
-		if (!setDrawOptions || setDrawOptions(userData, vert)) {
+		if (vert && (!setDrawOptions || setDrawOptions(userData, vert))) {
 			bglVertex3fv(ccgSubSurf_getVertData(ss, v));
 		}
 	}
@@ -1244,7 +1244,7 @@ static void ccgDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*s
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
 		EditVert *vert = ccgDM_getVertHandle(ccgdm, v);
 
-		if (!setDrawOptions || setDrawOptions(userData, vert)) {
+		if (vert && (!setDrawOptions || setDrawOptions(userData, vert))) {
 			VertData *vd = ccgSubSurf_getVertData(ss, v);
 
 			glVertex3fv(vd->co);
@@ -1271,7 +1271,7 @@ static void ccgDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
 		glBegin(GL_LINE_STRIP);
-		if (!setDrawOptions || setDrawOptions(userData, edge)) {
+		if (edge && (!setDrawOptions || setDrawOptions(userData, edge))) {
 			if (useAging && !(G.f&G_BACKBUFSEL)) {
 				int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;
 				glColor3ub(0, ageCol>0?ageCol:0, 0);
@@ -1301,7 +1301,7 @@ static void ccgDM_drawMappedEdgesInterpEM(DerivedMesh *dm, int (*setDrawOptions)
 		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
 
 		glBegin(GL_LINE_STRIP);
-		if (!setDrawOptions || setDrawOptions(userData, edge)) {
+		if (edge && (!setDrawOptions || setDrawOptions(userData, edge))) {
 			for (i=0; i<edgeSize; i++) {
 				setDrawInterpOptions(userData, edge, (float) i/(edgeSize-1));
 
@@ -1325,7 +1325,7 @@ static void ccgDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
 		EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-		if (!setDrawOptions || setDrawOptions(userData, efa)) {
+		if (efa && (!setDrawOptions || setDrawOptions(userData, efa))) {
 			int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
 			for (S=0; S<numVerts; S++) {
@@ -1355,7 +1355,7 @@ static void ccgDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*s
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
 		EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-		if (!setDrawOptions || setDrawOptions(userData, efa)) {
+		if (efa && (!setDrawOptions || setDrawOptions(userData, efa))) {
 				/* Face center data normal isn't updated atm. */
 			VertData *vd = ccgSubSurf_getFaceGridData(ss, f, 0, 0, 0);
 
