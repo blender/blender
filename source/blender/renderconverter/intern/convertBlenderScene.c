@@ -1317,7 +1317,7 @@ static void init_render_mesh(Object *ob)
 	}			
 	
 	dm = mesh_create_derived_render(ob);
-	dlm = dm->convertToDispListMesh(dm);
+	dlm = dm->convertToDispListMesh(dm, 1);
 
 	mvert= dlm->mvert;
 	totvert= dlm->totvert;

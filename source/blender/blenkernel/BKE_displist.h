@@ -103,6 +103,7 @@ void displistmesh_free(DispListMesh *dlm);
 void displistmesh_to_mesh(DispListMesh *dlm, struct Mesh *me);
 
 DispListMesh *displistmesh_copy(DispListMesh *odlm);
+DispListMesh *displistmesh_copyShared(DispListMesh *odlm);
 
 /*
  * All the different DispList.type's use the

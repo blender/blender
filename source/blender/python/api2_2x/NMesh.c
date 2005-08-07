@@ -2470,11 +2470,11 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
  		{
 			int needsFree;
 			DerivedMesh *dm = mesh_get_derived_final(ob, &needsFree);
-			DispListMesh *dlm = dm->convertToDispListMesh(dm);
+			DispListMesh *dlm = dm->convertToDispListMesh(dm, 1);
 			nmesh = new_NMesh_internal(ob->data, dlm );
+			displistmesh_free(dlm);
 			if (needsFree)
 				dm->release(dm);
-			displistmesh_free(dlm);
  		}
  		break;
  	default:

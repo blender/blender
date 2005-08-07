@@ -663,7 +663,7 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		return;
 	}
 
-	dlm= dm->convertToDispListMesh(dm);
+	dlm= dm->convertToDispListMesh(dm, 1);
 
 	ob->data= add_mesh();
 	displistmesh_to_mesh(dlm, ob->data);
@@ -782,7 +782,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-90, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 	uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-90+20, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 	if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
+		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 	}
 	uiBlockEndAlign(block);
 

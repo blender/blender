@@ -2511,7 +2511,7 @@ static int write_object_stl(FILE *fpSTL, Object *ob, Mesh *me)
 	int  numfacets = 0;
 	int dmNeedsFree;
 	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	DispListMesh *dlm = dm->convertToDispListMesh(dm);
+	DispListMesh *dlm = dm->convertToDispListMesh(dm, 1);
 
 	numfacets += write_displistmesh_stl(fpSTL, ob, dlm);
 

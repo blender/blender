@@ -163,7 +163,7 @@ static void *subsurfModifier_applyModifier(ModifierData *md, Object *ob, void *d
 	Mesh *me = ob->data;
 
 	if (dm) {
-		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts were shared
+		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
 		int i;
 
 		if (vertexCos) {
@@ -189,21 +189,7 @@ static void *subsurfModifier_applyModifierEM(ModifierData *md, Object *ob, void 
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 	if (dm) {
-		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts were shared
-		int i;
-
-		if (vertexCos) {
-			int numVerts = dm->getNumVerts(dm);
-
-			for (i=0; i<numVerts; i++) {
-				VECCOPY(dlm->mvert[i].co, vertexCos[i]);
-			}
-		}
-
-			// XXX, should I worry about reuse of mCache in editmode?
-		dm = subsurf_make_derived_from_mesh(NULL, dlm, smd, 0, NULL, 1);
-
-		return dm;
+		return subsurfModifier_applyModifier(md, ob, dm, vertexCos, 0, 1);
 	} else {
 		return subsurf_make_derived_from_editmesh(em, smd, vertexCos);
 	}
@@ -250,7 +236,7 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 	float frac;
 
 	if (dm) {
-		dlm = dm->convertToDispListMesh(dm);
+		dlm = dm->convertToDispListMesh(dm, 1);
 		mvert = dlm->mvert;
 		medge = dlm->medge;
 		mface = dlm->mface;
@@ -600,7 +586,7 @@ static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *de
 	MCol *mcol;
 
 	if (dm) {
-		dlm = dm->convertToDispListMesh(dm);
+		dlm = dm->convertToDispListMesh(dm, 1);
 
 		mvert = dlm->mvert;
 		medge = dlm->medge;
@@ -685,7 +671,7 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 
 			med->v1 = (int) eed->v1->prev;
 			med->v2 = (int) eed->v2->prev;
-			med->crease = eed->crease;
+			med->crease = (unsigned char) (eed->crease*255.0f);
 		}
 		for (i=0,efa=em->faces.first; i<ndlm->totface; i++,efa=efa->next) {
 			MFace *mf = &ndlm->mface[i];
@@ -732,7 +718,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	int a, numTris;
 
 	if (dm) {
-		dlm = dm->convertToDispListMesh(dm);
+		dlm = dm->convertToDispListMesh(dm, 1);
 		mvert = dlm->mvert;
 		mface = dlm->mface;
 		totvert = dlm->totvert;

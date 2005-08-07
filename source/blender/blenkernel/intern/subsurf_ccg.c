@@ -702,7 +702,7 @@ static void ccgDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3]) 
 	co_r[1] = co[1];
 	co_r[2] = co[2];
 }
-static DispListMesh *ccgDM_convertToDispListMesh(DerivedMesh *dm) {
+static DispListMesh *ccgDM_convertToDispListMesh(DerivedMesh *dm, int allowShared) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 
 	return ss_to_displistmesh(ccgdm->ss, ccgdm->fromEditmesh, ccgdm->me, ccgdm->dlm);

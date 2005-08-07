@@ -78,7 +78,7 @@ typedef struct {
 	int freeNors, freeVerts;
 } MeshDerivedMesh;
 
-static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
+static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
@@ -94,6 +94,17 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm)
 	dlm->mcol = me->mcol;
 	dlm->nors = mdm->nors;
 	dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 1;
+
+	if (!allowShared) {
+		dlm->mvert = MEM_dupallocN(dlm->mvert);
+		if (dlm->medge) dlm->medge = MEM_dupallocN(dlm->medge);
+		dlm->mface = MEM_dupallocN(dlm->mface);
+		if (dlm->tface) dlm->tface = MEM_dupallocN(dlm->tface);
+		if (dlm->mcol) dlm->mcol = MEM_dupallocN(dlm->mcol);
+		if (dlm->nors) dlm->nors = MEM_dupallocN(dlm->nors);
+
+		dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 0;
+	}
 
 	return dlm;
 }
@@ -479,7 +490,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 			// XXX this is kinda hacky because we shouldn't really be editing
 			// the mesh here, however, we can't just call mesh_build_faceNormals(ob)
 			// because in the case when a key is applied to a mesh the vertex normals
-			// would never be correctly computed (and renderer makes this assumption).
+			// would never be correctly computed.
 		mesh_calc_normals(mdm->verts, me->totvert, me->mface, me->totface, &mdm->nors);
 		mdm->freeNors = 1;
 	}
@@ -1229,11 +1240,15 @@ static int ssDM_getNumFaces(DerivedMesh *dm)
 	return ssdm->dlm->totface;
 }
 
-static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm)
+static DispListMesh *ssDM_convertToDispListMesh(DerivedMesh *dm, int allowShared)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 
-	return displistmesh_copy(ssdm->dlm);
+	if (allowShared) {
+		return displistmesh_copyShared(ssdm->dlm);
+	} else {
+		return displistmesh_copy(ssdm->dlm);
+	}
 }
 
 static void ssDM_release(DerivedMesh *dm)
@@ -1401,7 +1416,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 		 * one.
 		 */
 	if (dm && deformedVerts) {
-		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts or nors were shared
+		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
 		int i;
 
 			/* XXX, would like to avoid the conversion to a DLM here if possible.
@@ -1526,7 +1541,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 		 * one.
 		 */
 	if (dm && deformedVerts) {
-		DispListMesh *dlm = dm->convertToDispListMesh(dm); // XXX what if verts or nors were shared
+		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
 		int i;
 
 			/* XXX, would like to avoid the conversion to a DLM here if possible.

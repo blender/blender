@@ -1333,6 +1333,23 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	dm->drawMappedFacesEM(dm, draw_dm_faces_sel__setDrawOptions, cols);
 }
 
+static int draw_dm_creases__setDrawOptions(void *userData, EditEdge *eed)
+{
+	if (eed->h==0 && eed->crease!=0.0) {
+		BIF_ThemeColorShade((eed->f&SELECT)?TH_EDGE_SELECT:TH_WIRE, 120*eed->crease);
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+static void draw_dm_creases(DerivedMesh *dm)
+{
+	glLineWidth(3.0);
+	dm->drawMappedEdgesEM(dm, draw_dm_creases__setDrawOptions, NULL);
+	glLineWidth(1.0);
+}
+
 /* Second section of routines: Combine first sets to form fancy
  * drawing routines (for example rendering twice to get overlays).
  *
@@ -1447,28 +1464,6 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 		}
 	}
 }	
-
-static void draw_em_creases(EditMesh *em)
-{
-	EditEdge *eed;
-	float fac, *v1, *v2, vec[3];
-	
-	glLineWidth(3.0);
-	glBegin(GL_LINES);
-	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && eed->crease!=0.0) {
-			BIF_ThemeColor((eed->f&SELECT)?TH_EDGE_SELECT:TH_WIRE);
-			
-			v1= eed->v1->co; v2= eed->v2->co;
-			VECSUB(vec, v2, v1);
-			fac= 0.5 + eed->crease/2.0;
-			glVertex3f(v1[0] + fac*vec[0], v1[1] + fac*vec[1], v1[2] + fac*vec[2] );
-			glVertex3f(v2[0] - fac*vec[0], v2[1] - fac*vec[1], v2[2] - fac*vec[2] );
-		}
-	}
-	glEnd();
-	glLineWidth(1.0);
-}
 
 static void draw_em_measure_stats(Object *ob, EditMesh *em)
 {
@@ -1689,7 +1684,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	draw_em_fancy_edges(cageDM);
 
 	if(G.f & G_DRAWCREASES) {
-		draw_em_creases(em);
+		draw_dm_creases(cageDM);
 	}
 
 	if(ob==G.obedit) {

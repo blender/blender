@@ -1231,7 +1231,7 @@ void build_particle_system(Object *ob)
 	
 	/* init */
 	
-	dlm = dm->convertToDispListMesh(dm);
+	dlm = dm->convertToDispListMesh(dm, 1);
 	totvert = dlm->totvert;
 
 	give_mesh_mvert(me, dlm, totpart, co, no, paf->seed);

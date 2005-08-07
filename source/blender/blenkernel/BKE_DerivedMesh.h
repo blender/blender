@@ -65,8 +65,14 @@ struct DerivedMesh {
 
 	void (*getMappedVertCoEM)(DerivedMesh *dm, void *vert, float co_r[3]);
 
-		/* Convert to new DispListMesh, should be free'd by caller */
-	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm);
+		/* Convert to new DispListMesh, should be free'd by caller.
+		 *
+		 * If allowShared is true then the caller is committing to not free'ng
+		 * the DerivedMesh before free'ng the DispListMesh, which means that
+		 * certain fields of the returned DispListMesh can safely be share with
+		 * the DerivedMesh's internal data.
+		 */
+	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm, int allowShared);
 
 		/* Iterate over all vertex points, calling DO_MINMAX with given args.
 		 *

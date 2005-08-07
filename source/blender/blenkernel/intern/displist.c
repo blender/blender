@@ -137,6 +137,14 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 	return ndlm;
 }
 
+DispListMesh *displistmesh_copyShared(DispListMesh *odlm) 
+{
+	DispListMesh *ndlm= MEM_dupallocN(odlm);
+	ndlm->dontFreeNors = ndlm->dontFreeOther = ndlm->dontFreeVerts = 1;
+	
+	return ndlm;
+}
+
 void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
 {
 	if (dlm->totvert>MESH_MAX_VERTS) {
@@ -718,7 +726,7 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 	} else {
 		dm = mesh_get_derived_final(ob, &dmNeedsFree);
 	}
-	dlm= dm->convertToDispListMesh(dm);
+	dlm= dm->convertToDispListMesh(dm, 1);
 
 	col1 = MEM_mallocN(sizeof(*col1)*dlm->totface*4, "col1");
 	if (col2_r && (me->flag & ME_TWOSIDED)) {
