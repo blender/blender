@@ -2131,6 +2131,9 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	case 12: /* Edgeslide */
 		EdgeSlide(0,0.0);
 		break;
+	case 13: /* Edge Loop Delete */
+		EdgeLoopDelete();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2173,6 +2176,7 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CCW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edgeslide |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop Delete |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");	
 
 	
 	uiBlockSetDirection(block, UI_RIGHT);

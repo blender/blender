@@ -1107,14 +1107,14 @@ void fill_mesh(void)
 }
 
 /*--------------Edge Based Subdivide------------------*/
-#define EDGENEW    2
-#define FACENEW    2
+#define EDGENEW	2
+#define FACENEW	2
 #define EDGEINNER  4
 
 static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
 {
-    float  vec1[3],fac;
-    
+	float  vec1[3],fac;
+	
 	if(rad > 0.0) {   /* subdivide sphere */
 		Normalise(co);
 		co[0]*= rad;
@@ -1129,42 +1129,42 @@ static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
 		VecAddf(co, co, vec1);
 	}
 
-	if(beauty & B_SMOOTH) {         
-    	float len, fac, nor[3], nor1[3], nor2[3];
-    	
-    	VecSubf(nor, edge->v1->co, edge->v2->co);
-    	len= 0.5f*Normalise(nor);
-    
-    	VECCOPY(nor1, edge->v1->no);
-    	VECCOPY(nor2, edge->v2->no);
-    
-    	/* cosine angle */
-    	fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
-    	
-    	vec1[0]= fac*nor1[0];
-    	vec1[1]= fac*nor1[1];
-    	vec1[2]= fac*nor1[2];
-    
-    	/* cosine angle */
-    	fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
-    	
-    	vec1[0]+= fac*nor2[0];
-    	vec1[1]+= fac*nor2[1];
-    	vec1[2]+= fac*nor2[2];
-    
-        if(perc > .5){
-            perc = 1-perc;    
-        }
-        perc /= 2;
-        
-    	vec1[0]*= perc*len;
-    	vec1[1]*= perc*len;
-    	vec1[2]*= perc*len;
-    	
-    	co[0] += vec1[0];
-    	co[1] += vec1[1];
-    	co[2] += vec1[2];
-	}    
+	if(beauty & B_SMOOTH) {		 
+		float len, fac, nor[3], nor1[3], nor2[3];
+		
+		VecSubf(nor, edge->v1->co, edge->v2->co);
+		len= 0.5f*Normalise(nor);
+	
+		VECCOPY(nor1, edge->v1->no);
+		VECCOPY(nor2, edge->v2->no);
+	
+		/* cosine angle */
+		fac= nor[0]*nor1[0] + nor[1]*nor1[1] + nor[2]*nor1[2] ;
+		
+		vec1[0]= fac*nor1[0];
+		vec1[1]= fac*nor1[1];
+		vec1[2]= fac*nor1[2];
+	
+		/* cosine angle */
+		fac= -nor[0]*nor2[0] - nor[1]*nor2[1] - nor[2]*nor2[2] ;
+		
+		vec1[0]+= fac*nor2[0];
+		vec1[1]+= fac*nor2[1];
+		vec1[2]+= fac*nor2[2];
+	
+		if(perc > .5){
+			perc = 1-perc;	
+		}
+		perc /= 2;
+		
+		vec1[0]*= perc*len;
+		vec1[1]*= perc*len;
+		vec1[2]*= perc*len;
+		
+		co[0] += vec1[0];
+		co[1] += vec1[1];
+		co[2] += vec1[2];
+	}	
 }
 
 static void flipvertarray(EditVert** arr, short size)
@@ -1180,149 +1180,149 @@ static void flipvertarray(EditVert** arr, short size)
 }
 
 static int VecEqual(float *a, float *b){
-    if( a[0] == b[0] && 
-       (a[1] == b[1] && 
-        a[2] == b[2])){
-        return 1;
-    }
-    else{
-        return 0;
-    }
+	if( a[0] == b[0] && 
+	   (a[1] == b[1] && 
+		a[2] == b[2])){
+		return 1;
+	}
+	else{
+		return 0;
+	}
 }
 
 static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 { 
-    EditVert *v1,*v2,*v3,*v4;
-    float xn, yn, zn;
-    float t00, t01, t10, t11;
-    float detsh, u, v, l;
-    int fac;
-    short i, j;
-    char *cp0, *cp1, *cp2;
-    char *hold;
-    
-    //First Check for exact match between co and efa verts
-    if(VecEqual(co,efa->v1->co)){
-        uv[0] = efa->tf.uv[0][0];
-        uv[1] = efa->tf.uv[0][1];
-        
-        hold = (char*)&efa->tf.col[0];
-        col[0]= hold[0];
-        col[1]= hold[1];
-        col[2]= hold[2];
-        col[3]= hold[3];
-        return;      
-    } else if(VecEqual(co,efa->v2->co)){
-        uv[0] = efa->tf.uv[1][0];
-        uv[1] = efa->tf.uv[1][1];
-        
-        hold = (char*)&efa->tf.col[1];
-        col[0]= hold[0];
-        col[1]= hold[1];
-        col[2]= hold[2];
-        col[3]= hold[3]; 
-        return;       
-    } else if(VecEqual(co,efa->v3->co)){
-        uv[0] = efa->tf.uv[2][0];
-        uv[1] = efa->tf.uv[2][1];
-        
-        hold = (char*)&efa->tf.col[2];
-        col[0]= hold[0];
-        col[1]= hold[1];
-        col[2]= hold[2];
-        col[3]= hold[3];    
-        return;   
-    } else if(efa->v4 && VecEqual(co,efa->v4->co)){
-        uv[0] = efa->tf.uv[3][0];
-        uv[1] = efa->tf.uv[3][1];
-        
-        hold = (char*)&efa->tf.col[3];
-        col[0]= hold[0];
-        col[1]= hold[1];
-        col[2]= hold[2];
-        col[3]= hold[3];   
-        return;     
-    }    
-    
-    /* define best projection of face XY, XZ or YZ */
-    xn= fabs(efa->n[0]);
-    yn= fabs(efa->n[1]);
-    zn= fabs(efa->n[2]);
-    if(zn>=xn && zn>=yn) {i= 0; j= 1;}
-    else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
-    else {i= 1; j= 2;} 
-    
-    /* calculate u and v */
-    v1= efa->v1;
-    v2= efa->v2;
-    v3= efa->v3;
-        
-    t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
-    t10= v3->co[i]-v2->co[i]; t11= v3->co[j]-v2->co[j];
-        
-    detsh= 1.0/(t00*t11-t10*t01);    /* potential danger */
-    t00*= detsh; t01*=detsh;
-    t10*=detsh; t11*=detsh;
-        
-    u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
-    v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
-    
-    /* btw; u and v range from -1 to 0 */
-        
-    /* interpolate */
-    l= 1.0+u+v;
-        /* outside triangle? */
-    // printf("l: %f\n",l);
-    if(efa->v4 && l >= 0.5) {
-    //    printf("outside\n");
-        /* do it all over, but now with vertex 2 replaced with 4 */
-        
-        /* calculate u and v */
-        v1= efa->v1;
-        v4= efa->v4;
-        v3= efa->v3;
-                
-        t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
-        t10= v3->co[i]-v4->co[i]; t11= v3->co[j]-v4->co[j];
-                
-        detsh= 1.0/(t00*t11-t10*t01);    /* potential danger */
-        t00*= detsh; t01*=detsh;
-        t10*=detsh; t11*=detsh;
-                
-        u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
-        v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
-        
-        /* btw; u and v range from -1 to 0 */
-                
-        /* interpolate */
-        l= 1.0+u+v;
-        uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[3][0]);
-        uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[3][1]);
+	EditVert *v1,*v2,*v3,*v4;
+	float xn, yn, zn;
+	float t00, t01, t10, t11;
+	float detsh, u, v, l;
+	int fac;
+	short i, j;
+	char *cp0, *cp1, *cp2;
+	char *hold;
+	
+	//First Check for exact match between co and efa verts
+	if(VecEqual(co,efa->v1->co)){
+		uv[0] = efa->tf.uv[0][0];
+		uv[1] = efa->tf.uv[0][1];
+		
+		hold = (char*)&efa->tf.col[0];
+		col[0]= hold[0];
+		col[1]= hold[1];
+		col[2]= hold[2];
+		col[3]= hold[3];
+		return;	  
+	} else if(VecEqual(co,efa->v2->co)){
+		uv[0] = efa->tf.uv[1][0];
+		uv[1] = efa->tf.uv[1][1];
+		
+		hold = (char*)&efa->tf.col[1];
+		col[0]= hold[0];
+		col[1]= hold[1];
+		col[2]= hold[2];
+		col[3]= hold[3]; 
+		return;	   
+	} else if(VecEqual(co,efa->v3->co)){
+		uv[0] = efa->tf.uv[2][0];
+		uv[1] = efa->tf.uv[2][1];
+		
+		hold = (char*)&efa->tf.col[2];
+		col[0]= hold[0];
+		col[1]= hold[1];
+		col[2]= hold[2];
+		col[3]= hold[3];	
+		return;   
+	} else if(efa->v4 && VecEqual(co,efa->v4->co)){
+		uv[0] = efa->tf.uv[3][0];
+		uv[1] = efa->tf.uv[3][1];
+		
+		hold = (char*)&efa->tf.col[3];
+		col[0]= hold[0];
+		col[1]= hold[1];
+		col[2]= hold[2];
+		col[3]= hold[3];   
+		return;	 
+	}	
+	
+	/* define best projection of face XY, XZ or YZ */
+	xn= fabs(efa->n[0]);
+	yn= fabs(efa->n[1]);
+	zn= fabs(efa->n[2]);
+	if(zn>=xn && zn>=yn) {i= 0; j= 1;}
+	else if(yn>=xn && yn>=zn) {i= 0; j= 2;}
+	else {i= 1; j= 2;} 
+	
+	/* calculate u and v */
+	v1= efa->v1;
+	v2= efa->v2;
+	v3= efa->v3;
+		
+	t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
+	t10= v3->co[i]-v2->co[i]; t11= v3->co[j]-v2->co[j];
+		
+	detsh= 1.0/(t00*t11-t10*t01);	/* potential danger */
+	t00*= detsh; t01*=detsh;
+	t10*=detsh; t11*=detsh;
+		
+	u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
+	v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
+	
+	/* btw; u and v range from -1 to 0 */
+		
+	/* interpolate */
+	l= 1.0+u+v;
+		/* outside triangle? */
+	// printf("l: %f\n",l);
+	if(efa->v4 && l >= 0.5) {
+	//	printf("outside\n");
+		/* do it all over, but now with vertex 2 replaced with 4 */
+		
+		/* calculate u and v */
+		v1= efa->v1;
+		v4= efa->v4;
+		v3= efa->v3;
+				
+		t00= v3->co[i]-v1->co[i]; t01= v3->co[j]-v1->co[j];
+		t10= v3->co[i]-v4->co[i]; t11= v3->co[j]-v4->co[j];
+				
+		detsh= 1.0/(t00*t11-t10*t01);	/* potential danger */
+		t00*= detsh; t01*=detsh;
+		t10*=detsh; t11*=detsh;
+				
+		u= (co[i]-v3->co[i])*t11-(co[j]-v3->co[j])*t10;
+		v= (co[j]-v3->co[j])*t00-(co[i]-v3->co[i])*t01; 
+		
+		/* btw; u and v range from -1 to 0 */
+				
+		/* interpolate */
+		l= 1.0+u+v;
+		uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[3][0]);
+		uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[3][1]);
 
-        cp0= (char*)&(efa->tf.col[0]);
-        cp1= (char*)&(efa->tf.col[3]);
-        cp2= (char*)&(efa->tf.col[2]);
-        
-        
-        for(i=0; i<4; i++) {
-                fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-                col[i]= CLAMPIS(fac, 0, 255);
-        }              
-    } else {     
-    //    printf("inside\n");     
-        //new = l*vertex3_val - u*vertex1_val - v*vertex2_val;
-        uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
-        uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
+		cp0= (char*)&(efa->tf.col[0]);
+		cp1= (char*)&(efa->tf.col[3]);
+		cp2= (char*)&(efa->tf.col[2]);
+		
+		
+		for(i=0; i<4; i++) {
+				fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
+				col[i]= CLAMPIS(fac, 0, 255);
+		}			  
+	} else {	 
+	//	printf("inside\n");	 
+		//new = l*vertex3_val - u*vertex1_val - v*vertex2_val;
+		uv[0] = (l*efa->tf.uv[2][0] - u*efa->tf.uv[0][0] - v*efa->tf.uv[1][0]);
+		uv[1] = (l*efa->tf.uv[2][1] - u*efa->tf.uv[0][1] - v*efa->tf.uv[1][1]);
 
-        cp0= (char*)&(efa->tf.col[0]);
-        cp1= (char*)&(efa->tf.col[1]);
-        cp2= (char*)&(efa->tf.col[2]);
-        
-        for(i=0; i<4; i++) {
-                fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-                col[i]= CLAMPIS(fac, 0, 255);
-        }                       
-    }
+		cp0= (char*)&(efa->tf.col[0]);
+		cp1= (char*)&(efa->tf.col[1]);
+		cp2= (char*)&(efa->tf.col[2]);
+		
+		for(i=0; i<4; i++) {
+				fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
+				col[i]= CLAMPIS(fac, 0, 255);
+		}					   
+	}
 } 
 
 static void facecopy(EditFace *source,EditFace *target)
@@ -1335,15 +1335,15 @@ static void facecopy(EditFace *source,EditFace *target)
 		set_uv_vcol(source,target->v4->co,target->tf.uv[3],(char*)&target->tf.col[3]);
 	}
 
-	target->mat_nr     = source->mat_nr;
-	target->tf.flag    = source->tf.flag;
+	target->mat_nr	 = source->mat_nr;
+	target->tf.flag	= source->tf.flag;
 	target->tf.transp  = source->tf.transp;
-	target->tf.mode    = source->tf.mode;
-	target->tf.tile    = source->tf.tile;
+	target->tf.mode	= source->tf.mode;
+	target->tf.tile	= source->tf.tile;
 	target->tf.unwrap  = source->tf.unwrap;
 	target->tf.tpage   = source->tf.tpage;
-	target->flag       = source->flag;    
-    
+	target->flag	   = source->flag;	
+	
 }
 
 static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
@@ -1356,12 +1356,12 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 	v[0] = efa->v1;
 	v[1] = efa->v2;
 	v[2] = efa->v3;
-	v[3] = efa->v4;     
+	v[3] = efa->v4;	 
 
-	if(efa->e1->f & SELECT)      { cedge = efa->e1; start = 0;}
-	else if(efa->e2->f & SELECT) { cedge = efa->e2; start = 1;}       
-	else if(efa->e3->f & SELECT) { cedge = efa->e3; start = 2;}       
-	else if(efa->e4->f & SELECT) { cedge = efa->e4; start = 3;}         
+	if(efa->e1->f & SELECT)	  { cedge = efa->e1; start = 0;}
+	else if(efa->e2->f & SELECT) { cedge = efa->e2; start = 1;}	   
+	else if(efa->e3->f & SELECT) { cedge = efa->e3; start = 2;}	   
+	else if(efa->e4->f & SELECT) { cedge = efa->e4; start = 3;}		 
 
 	// Point verts to the array of new verts for cedge
 	verts = BLI_ghash_lookup(gh, cedge);
@@ -1373,32 +1373,32 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 	// the array to the correct direction
 
 	if(verts[0] != v[start]){flipvertarray(verts,numcuts+2);}
-	end    = (start+1)%4;
+	end	= (start+1)%4;
 	left   = (start+2)%4;
 	right  = (start+3)%4; 
 		   
 	/*
 	We should have something like this now
 
-			  end         start                 
+			  end		 start				 
 			   3   2   1   0   
 			   |---*---*---|
-			   |           |
-			   |           |       
-			   |           |
-			   -------------       
-			  left       right
+			   |		   |
+			   |		   |	   
+			   |		   |
+			   -------------	   
+			  left	   right
 
 	where start,end,left, right are indexes of EditFace->v1, etc (stored in v)
 	and 0,1,2... are the indexes of the new verts stored in verts
 
 	We will fill this case like this or this depending on even or odd cuts
 	 
-			   |---*---*---|          |---*---|
-			   |  /     \  |          |  / \  |
-			   | /       \ |          | /   \ |     
-			   |/         \|          |/     \|
-			   -------------          ---------  
+			   |---*---*---|		  |---*---|
+			   |  /	 \  |		  |  / \  |
+			   | /	   \ |		  | /   \ |	 
+			   |/		 \|		  |/	 \|
+			   -------------		  ---------  
 	*/
 
 	// Make center face
@@ -1409,7 +1409,7 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 	}else{
 		hold = addfacelist(verts[(vertsize-1)/2],v[left],v[right],NULL, NULL,NULL);  
 		hold->e1->f2 |= EDGEINNER;
-		hold->e3->f2 |= EDGEINNER;          
+		hold->e3->f2 |= EDGEINNER;		  
 	}
 	facecopy(efa,hold);
 
@@ -1418,14 +1418,14 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 		hold = addfacelist(verts[i],verts[i+1],v[right],NULL,NULL,NULL);  
 		facecopy(efa,hold);
 		if(i+1 != (vertsize-1)/2){
-         		hold->e2->f2 |= EDGEINNER;
-        }
+		 		hold->e2->f2 |= EDGEINNER;
+		}
 		hold = addfacelist(verts[vertsize-2-i],verts[vertsize-1-i],v[left],NULL,NULL,NULL); 
 		facecopy(efa,hold);
 		if(i+1 != (vertsize-1)/2){
-         		hold->e3->f2 |= EDGEINNER;
-        }
-	}      
+		 		hold->e3->f2 |= EDGEINNER;
+		}
+	}	  
 }
 
 static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
@@ -1437,11 +1437,11 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 							
 	v[0] = efa->v1;
 	v[1] = efa->v2;
-	v[2] = efa->v3;    
+	v[2] = efa->v3;	
 
-	if(efa->e1->f & SELECT)      { cedge = efa->e1; start = 0;}
-	else if(efa->e2->f & SELECT) { cedge = efa->e2; start = 1;}       
-	else if(efa->e3->f & SELECT) { cedge = efa->e3; start = 2;}         
+	if(efa->e1->f & SELECT)	  { cedge = efa->e1; start = 0;}
+	else if(efa->e2->f & SELECT) { cedge = efa->e2; start = 1;}	   
+	else if(efa->e3->f & SELECT) { cedge = efa->e3; start = 2;}		 
 
 	// Point verts to the array of new verts for cedge
 	verts = BLI_ghash_lookup(gh, cedge);
@@ -1453,19 +1453,19 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 	// the array to the correct direction
 
 	if(verts[0] != v[start]){flipvertarray(verts,numcuts+2);}
-	   end    = (start+1)%3;
-	   op     = (start+2)%3;
+	   end	= (start+1)%3;
+	   op	 = (start+2)%3;
 		   
 	/*
 	We should have something like this now
 
-			  end         start                 
+			  end		 start				 
 			   3   2   1   0   
 			   |---*---*---|
-			   \           |
-				 \         |       
-				   \       |
-					 \     |
+			   \		   |
+				 \		 |	   
+				   \	   |
+					 \	 |
 					   \   |
 						 \ |
 						   |op
@@ -1477,8 +1477,8 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 	 
 			   3   2   1   0   
 			   |---*---*---|
-			   \    \  \   |
-				 \    \ \  |       
+			   \	\  \   |
+				 \	\ \  |	   
 				   \   \ \ |
 					 \  \ \|
 					   \ \\|
@@ -1490,10 +1490,10 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 	for(i=0;i<(vertsize-1);i++){
 		hold = addfacelist(verts[i],verts[i+1],v[op],NULL,NULL,NULL);  
 		if(i+1 != vertsize-1){
-         		hold->e2->f2 |= EDGEINNER;
-        }
+		 		hold->e2->f2 |= EDGEINNER;
+		}
 		facecopy(efa,hold);
-	}      
+	}	  
 }
 
 static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
@@ -1506,10 +1506,10 @@ static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
 	v[0] = efa->v1;
 	v[1] = efa->v2;
 	v[2] = efa->v3;
-	v[3] = efa->v4;     
+	v[3] = efa->v4;	 
 
-	if(efa->e1->f & SELECT)      { cedge[0] = efa->e1;  cedge[1] = efa->e3; start = 0;}
-	else if(efa->e2->f & SELECT)      { cedge[0] = efa->e2;  cedge[1] = efa->e4; start = 1;}
+	if(efa->e1->f & SELECT)	  { cedge[0] = efa->e1;  cedge[1] = efa->e3; start = 0;}
+	else if(efa->e2->f & SELECT)	  { cedge[0] = efa->e2;  cedge[1] = efa->e4; start = 1;}
 
 	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
 	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
@@ -1522,28 +1522,28 @@ static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
 	// the array to the correct direction
 
 	if(verts[0][0] != v[start]){flipvertarray(verts[0],numcuts+2);}
-	end    = (start+1)%4;
+	end	= (start+1)%4;
 	left   = (start+2)%4;
 	right  = (start+3)%4; 
-	if(verts[1][0] != v[left]){flipvertarray(verts[1],numcuts+2);}    
+	if(verts[1][0] != v[left]){flipvertarray(verts[1],numcuts+2);}	
 	/*
 	We should have something like this now
 
-			  end         start                 
+			  end		 start				 
 			   3   2   1   0   
 			   |---*---*---|
-			   |           |
-			   |           |       
-			   |           |
-			   |---*---*---|      
+			   |		   |
+			   |		   |	   
+			   |		   |
+			   |---*---*---|	  
 			   0   1   2   3
-			  left       right
+			  left	   right
 
 	We will fill this case like this or this depending on even or odd cuts
 	 
 			   |---*---*---|
 			   |   |   |   |
-			   |   |   |   |       
+			   |   |   |   |	   
 			   |   |   |   |
 			   |---*---*---| 
 	*/
@@ -1555,7 +1555,7 @@ static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
 			hold->e2->f2 |= EDGEINNER;
 		}
 		facecopy(efa,hold);
-	}      
+	}	  
 }
 
 
@@ -1569,7 +1569,7 @@ static void fill_quad_double_adj(EditFace *efa, struct GHash *gh, int numcuts)
 	v[0] = efa->v1;
 	v[1] = efa->v2;
 	v[2] = efa->v3;
-	v[3] = efa->v4;     
+	v[3] = efa->v4;	 
 
 	if(efa->e1->f & SELECT && efa->e2->f & SELECT) {cedge[0] = efa->e1;  cedge[1] = efa->e2; start = 0; start2 = 1;}
 	if(efa->e2->f & SELECT && efa->e3->f & SELECT) {cedge[0] = efa->e2;  cedge[1] = efa->e3; start = 1; start2 = 2;}
@@ -1587,44 +1587,44 @@ static void fill_quad_double_adj(EditFace *efa, struct GHash *gh, int numcuts)
 	// the array to the correct direction
 
 	if(verts[0][0] != v[start]){flipvertarray(verts[0],numcuts+2);}
-	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}    
+	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}	
 	/*
 	We should have something like this now
 
-			   end         start                 
+			   end		 start				 
 				3   2   1   0   
 		start2 0|---*---*---|
-				|           |
-			   1*           |
-				|           |
-			   2*           |       
-				|           |
+				|		   |
+			   1*		   |
+				|		   |
+			   2*		   |	   
+				|		   |
 		 end2  3|-----------|   
 
 	We will fill this case like this or this depending on even or odd cuts
 			   |---*---*---|
 			   | /   /   / |
 			   *   /   /   |
-			   | /   /     |
-			   *   /       |       
-			   | /         |
+			   | /   /	 |
+			   *   /	   |	   
+			   | /		 |
 			   |-----------|  
 	*/
 
 	// Make outside tris
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
 	hold->e3->f2 |= EDGEINNER;
-	facecopy(efa,hold);       
+	facecopy(efa,hold);	   
 	hold = addfacelist(verts[0][0],verts[1][vertsize-1],v[(start2+2)%4],NULL,NULL,NULL);
 	hold->e1->f2 |= EDGEINNER;  
-	facecopy(efa,hold);               
+	facecopy(efa,hold);			   
 	// Make side faces
 
 	for(i=0;i<numcuts;i++){
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-1-(i+1)],verts[1][vertsize-1-i],NULL,NULL);  
 		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);
-	}      
+	}	  
 }
 
 static void fill_tri_double(EditFace *efa, struct GHash *gh, int numcuts)
@@ -1653,41 +1653,41 @@ static void fill_tri_double(EditFace *efa, struct GHash *gh, int numcuts)
 	// the array to the correct direction
 
 	if(verts[0][0] != v[start]){flipvertarray(verts[0],numcuts+2);}
-	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}    
+	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}	
 	/*
 	We should have something like this now
 
-			   end         start                 
+			   end		 start				 
 				3   2   1   0   
 		start2 0|---*---*---|
-				|         /     
-			   1*       /        
-				|     /         
-			   2*   /                 
-				| /           
+				|		 /	 
+			   1*	   /		
+				|	 /		 
+			   2*   /				 
+				| /		   
 		 end2  3|  
 
 	We will fill this case like this or this depending on even or odd cuts
 			   |---*---*---|
 			   | /   /   / 
 			   *   /   /   
-			   | /   /     
-			   *   /              
-			   | /         
+			   | /   /	 
+			   *   /			  
+			   | /		 
 			   |
 	*/
 
 	// Make outside tri
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
 	hold->e3->f2 |= EDGEINNER;
-	facecopy(efa,hold);              
+	facecopy(efa,hold);			  
 	// Make side faces
 
 	for(i=0;i<numcuts;i++){
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-1-(i+1)],verts[1][vertsize-1-i],NULL,NULL);  
 		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);
-	}      
+	}	  
 }
 
 static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
@@ -1700,7 +1700,7 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	v[0] = efa->v1;
 	v[1] = efa->v2;
 	v[2] = efa->v3;
-	v[3] = efa->v4;     
+	v[3] = efa->v4;	 
 	   
 	if(!(efa->e1->f & SELECT)) {
 		cedge[0] = efa->e2;  
@@ -1725,7 +1725,7 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 		cedge[1] = efa->e2; 
 		cedge[2] = efa->e3;
 		start = 0;start2 = 1;start3 = 2;   
-	}       
+	}	   
 	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
 	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
 	verts[1] = BLI_ghash_lookup(gh, cedge[1]);
@@ -1743,20 +1743,20 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	/*
 	 We should have something like this now
 	 
-	 start2                 
+	 start2				 
 	 3   2   1   0   
 	 start3 0|---*---*---|3 
-	 |           |
-	 1*           *2
-	 |           |
-	 2*           *1       
-	 |           |
+	 |		   |
+	 1*		   *2
+	 |		   |
+	 2*		   *1	   
+	 |		   |
 	 3|-----------|0 start   
 	 
 	 We will fill this case like this or this depending on even or odd cuts  
 	 there are a couple of differences. For odd cuts, there is a tri in the
 	 middle as well as 1 quad at the bottom (not including the extra quads
-	 for odd cuts > 1          
+	 for odd cuts > 1		  
 	 
 	 For even cuts, there is a quad in the middle and 2 quads on the bottom
 	 
@@ -1768,39 +1768,39 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	 
 	 |---*---*---*---|
 	 |1/   /  \   \ 1|
-	 |/ 3 /    \  3 \|
-	 *  /    2   \   *
-	 | /          \  |
-	 |/            \ | 
+	 |/ 3 /	\  3 \|
+	 *  /	2   \   *
+	 | /		  \  |
+	 |/			\ | 
 	 *---------------*
-	 |      3        |
-	 |               |  
+	 |	  3		|
+	 |			   |  
 	 *---------------*
-	 |               |
-	 |      1        |                  
-	 |               |
+	 |			   |
+	 |	  1		|				  
+	 |			   |
 	 |---------------|
 	 
 	 |---*---*---*---*---|
-	 | 1/   /     \   \ 1|   
-	 | /   /       \   \ |  
-	 |/ 3 /         \ 3 \|
-	 *   /           \   *
-	 |  /             \  |    
-	 | /       2       \ |   
-	 |/                 \|
+	 | 1/   /	 \   \ 1|   
+	 | /   /	   \   \ |  
+	 |/ 3 /		 \ 3 \|
+	 *   /		   \   *
+	 |  /			 \  |	
+	 | /	   2	   \ |   
+	 |/				 \|
 	 *-------------------*
-	 |                   |
-	 |         3         |
-	 |                   | 
+	 |				   |
+	 |		 3		 |
+	 |				   | 
 	 *-------------------*
-	 |                   |
-	 |         1         |
-	 |                   | 
+	 |				   |
+	 |		 1		 |
+	 |				   | 
 	 *-------------------*
-	 |                   |
-	 |        1          |
-	 |                   | 
+	 |				   |
+	 |		1		  |
+	 |				   | 
 	 |-------------------|
 	 
 	 */
@@ -1808,29 +1808,29 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	// Make outside tris
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
 	hold->e3->f2 |= EDGEINNER;
-	facecopy(efa,hold);      
+	facecopy(efa,hold);	  
 	hold = addfacelist(verts[1][vertsize-2],verts[1][vertsize-1],verts[2][1],NULL,NULL,NULL);  
 	hold->e3->f2 |= EDGEINNER;
-	facecopy(efa,hold);              
+	facecopy(efa,hold);			  
 	// Make bottom quad
 	hold = addfacelist(verts[0][0],verts[0][1],verts[2][vertsize-2],verts[2][vertsize-1],NULL,NULL);  
 	hold->e2->f2 |= EDGEINNER;
-    facecopy(efa,hold);         
+	facecopy(efa,hold);		 
 	//If it is even cuts, add the 2nd lower quad
 	if(numcuts % 2 == 0){
 		hold = addfacelist(verts[0][1],verts[0][2],verts[2][vertsize-3],verts[2][vertsize-2],NULL,NULL);  
 		hold->e2->f2 |= EDGEINNER;
-		facecopy(efa,hold);         
+		facecopy(efa,hold);		 
 		// Also Make inner quad
-		hold = addfacelist(verts[1][numcuts/2],verts[1][(numcuts/2)+1],verts[2][numcuts/2],verts[0][(numcuts/2)+1],NULL,NULL);           
+		hold = addfacelist(verts[1][numcuts/2],verts[1][(numcuts/2)+1],verts[2][numcuts/2],verts[0][(numcuts/2)+1],NULL,NULL);		   
 		hold->e3->f2 |= EDGEINNER;
-        facecopy(efa,hold);
+		facecopy(efa,hold);
 		repeats = (numcuts / 2) -1;
 	} else {
-		// Make inner tri     
-		hold = addfacelist(verts[1][(numcuts/2)+1],verts[2][(numcuts/2)+1],verts[0][(numcuts/2)+1],NULL,NULL,NULL);           
+		// Make inner tri	 
+		hold = addfacelist(verts[1][(numcuts/2)+1],verts[2][(numcuts/2)+1],verts[0][(numcuts/2)+1],NULL,NULL,NULL);		   
 		hold->e2->f2 |= EDGEINNER;
-        facecopy(efa,hold);   
+		facecopy(efa,hold);   
 		repeats = ((numcuts+1) / 2)-1;
 	}
 	
@@ -1839,30 +1839,30 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 	for(i=0;i<repeats;i++){
 		//Make side repeating Quads
 		hold = addfacelist(verts[1][i+1],verts[1][i+2],verts[0][vertsize-i-3],verts[0][vertsize-i-2],NULL,NULL);  
-        hold->e2->f2 |= EDGEINNER;         
-		facecopy(efa,hold);               
-		hold = addfacelist(verts[1][vertsize-i-3],verts[1][vertsize-i-2],verts[2][i+1],verts[2][i+2],NULL,NULL);           
+		hold->e2->f2 |= EDGEINNER;		 
+		facecopy(efa,hold);			   
+		hold = addfacelist(verts[1][vertsize-i-3],verts[1][vertsize-i-2],verts[2][i+1],verts[2][i+2],NULL,NULL);		   
 		hold->e4->f2 |= EDGEINNER;
 		facecopy(efa,hold); 
 	}
 	// Do repeating bottom quads 
 	for(i=0;i<repeats;i++){
-		if(numcuts % 2 == 1){     
+		if(numcuts % 2 == 1){	 
 			hold = addfacelist(verts[0][1+i],verts[0][2+i],verts[2][vertsize-3-i],verts[2][vertsize-2-i],NULL,NULL);  
 		} else {
-			hold = addfacelist(verts[0][2+i],verts[0][3+i],verts[2][vertsize-4-i],verts[2][vertsize-3-i],NULL,NULL);                  
+			hold = addfacelist(verts[0][2+i],verts[0][3+i],verts[2][vertsize-4-i],verts[2][vertsize-3-i],NULL,NULL);				  
 		}
 		hold->e2->f2 |= EDGEINNER;
-		facecopy(efa,hold);                
-	}    
+		facecopy(efa,hold);				
+	}	
 }
 
 static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,float rad,int beauty)
 {
 	EditVert **verts[4], ***innerverts;
 	short vertsize, i, j;
-	float co[3];                
-	EditFace *hold;    
+	float co[3];				
+	EditFace *hold;	
 	EditEdge temp;
 	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
 	verts[0] = BLI_ghash_lookup(gh, efa->e1);
@@ -1880,19 +1880,19 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 	if(verts[0][0] != efa->v1) {flipvertarray(verts[0],numcuts+2);}
 	if(verts[1][0] != efa->v2) {flipvertarray(verts[1],numcuts+2);}  
 	if(verts[2][0] == efa->v3) {flipvertarray(verts[2],numcuts+2);}
-	if(verts[3][0] == efa->v4) {flipvertarray(verts[3],numcuts+2);}     
+	if(verts[3][0] == efa->v4) {flipvertarray(verts[3],numcuts+2);}	 
 	/*
 	We should have something like this now
 					  1
 										  
 				3   2   1   0   
 			   0|---*---*---|0 
-				|           |
-			   1*           *1
-		 2      |           |      4
-			   2*           *2       
-				|           |
-			   3|---*---*---|3    
+				|		   |
+			   1*		   *1
+		 2	  |		   |	  4
+			   2*		   *2	   
+				|		   |
+			   3|---*---*---|3	
 				3   2   1   0
 
 					  3
@@ -1903,7 +1903,7 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 					|   |   |   |
 				1   0---1---2---3 
 					|   |   |   |
-				2   0---1---2---3        
+				2   0---1---2---3		
 					|   |   |   |
 				3   0---1---2---3  
 		  
@@ -1914,16 +1914,16 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 	}   
 	// first row is e1 last row is e3
 	for(i=0;i<numcuts+2;i++){
-		innerverts[0][i]          = verts[0][(numcuts+1)-i];
+		innerverts[0][i]		  = verts[0][(numcuts+1)-i];
 		innerverts[numcuts+1][i]  = verts[2][(numcuts+1)-i];
-	}           
+	}		   
 	for(i=1;i<=numcuts;i++){
-		innerverts[i][0]          = verts[1][i];
+		innerverts[i][0]		  = verts[1][i];
 		innerverts[i][numcuts+1]  = verts[3][i];
 		for(j=1;j<=numcuts;j++){ 
 			co[0] = ((verts[1][i]->co[0] - verts[3][i]->co[0]) * (j /(float)(numcuts+1))) + verts[3][i]->co[0];
 			co[1] = ((verts[1][i]->co[1] - verts[3][i]->co[1]) * (j /(float)(numcuts+1))) + verts[3][i]->co[1];
-			co[2] = ((verts[1][i]->co[2] - verts[3][i]->co[2]) * (j /(float)(numcuts+1))) + verts[3][i]->co[2];          
+			co[2] = ((verts[1][i]->co[2] - verts[3][i]->co[2]) * (j /(float)(numcuts+1))) + verts[3][i]->co[2];		  
 
 			temp.v1 = innerverts[i][0];
 			temp.v2 = innerverts[i][numcuts+1];
@@ -1934,29 +1934,29 @@ static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,flo
 			innerverts[i][(numcuts+1)-j] = addvertlist(co); 
 
 
-		}    
-	}    
+		}	
+	}	
 	// Fill with faces
 	for(i=0;i<numcuts+1;i++){
 		for(j=0;j<numcuts+1;j++){
-			hold = addfacelist(innerverts[i][j+1],innerverts[i][j],innerverts[i+1][j],innerverts[i+1][j+1],NULL,NULL);     
-			hold->e1->f2 = EDGENEW;      
+			hold = addfacelist(innerverts[i][j+1],innerverts[i][j],innerverts[i+1][j],innerverts[i+1][j+1],NULL,NULL);	 
+			hold->e1->f2 = EDGENEW;	  
 			hold->e2->f2 = EDGENEW;  
-			hold->e3->f2 = EDGENEW;            
+			hold->e3->f2 = EDGENEW;			
 			hold->e4->f2 = EDGENEW;   
 			
 			if(i != 0){ hold->e1->f2 |= EDGEINNER; }
-            if(j != 0){ hold->e2->f2 |= EDGEINNER; }
-            if(i != numcuts){ hold->e3->f2 |= EDGEINNER; }
-            if(j != numcuts){ hold->e4->f2 |= EDGEINNER; }
+			if(j != 0){ hold->e2->f2 |= EDGEINNER; }
+			if(i != numcuts){ hold->e3->f2 |= EDGEINNER; }
+			if(j != numcuts){ hold->e4->f2 |= EDGEINNER; }
 			
-			facecopy(efa,hold);        
-		}        
+			facecopy(efa,hold);		
+		}		
 	}
 	// Clean up our dynamic multi-dim array
 	for(i=0;i<numcuts+2;i++){
 	   MEM_freeN(innerverts[i]);   
-	}    
+	}	
 	MEM_freeN(innerverts);
 }
 
@@ -1964,7 +1964,7 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 {
 	EditVert **verts[3], ***innerverts;
 	short vertsize, i, j;
-	float co[3];                
+	float co[3];				
 	EditFace *hold;  
 	EditEdge temp;
 
@@ -1989,11 +1989,11 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 										  
 				3   2   1   0   
 			   0|---*---*---|3 
-				|          /    
-		  1    1*        *2   
-				|      /      
-			   2*    *1       2         
-				|  /           
+				|		  /	
+		  1	1*		*2   
+				|	  /	  
+			   2*	*1	   2		 
+				|  /		   
 			   3|/ 
 				 0
 
@@ -2002,11 +2002,11 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 						3
 
 			 0  0---1---2---3---4
-				| / | /  |/  | /    
+				| / | /  |/  | /	
 			 1  0---1----2---3 
-	   1        | /  | / | /    
-			 2  0----1---2     2
-				|  / |  /       
+	   1		| /  | / | /	
+			 2  0----1---2	 2
+				|  / |  /	   
 				|/   |/   
 			 3  0---1 
 				|  /
@@ -2014,31 +2014,31 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 			 4  0  
 	  
 	*/
-    
+	
 	innerverts = MEM_mallocN(sizeof(EditVert*)*(numcuts+2),"tri-tri subdiv inner verts outer array"); 
 	for(i=0;i<numcuts+2;i++){
 		  innerverts[i] = MEM_mallocN(sizeof(EditVert*)*((numcuts+2)-i),"tri-tri subdiv inner verts inner array");
 	}
 	//top row is e3 backwards
 	for(i=0;i<numcuts+2;i++){
-		  innerverts[0][i]          = verts[2][(numcuts+1)-i];
+		  innerverts[0][i]		  = verts[2][(numcuts+1)-i];
 	}   
 		   
 	for(i=1;i<=numcuts+1;i++){
 		//first vert is from e1, last is from e2
-		innerverts[i][0]              = verts[0][i];
-		innerverts[i][(numcuts+1)-i]  = verts[1][(numcuts+1)-i];        
+		innerverts[i][0]			  = verts[0][i];
+		innerverts[i][(numcuts+1)-i]  = verts[1][(numcuts+1)-i];		
 		for(j=1;j<(numcuts+1)-i;j++){
 			co[0] = ((verts[0][i]->co[0] - verts[1][(numcuts+1)-i]->co[0]) * (j/(float)((numcuts+1)-i))) + verts[1][(numcuts+1)-i]->co[0];
 			co[1] = ((verts[0][i]->co[1] - verts[1][(numcuts+1)-i]->co[1]) * (j/(float)((numcuts+1)-i))) + verts[1][(numcuts+1)-i]->co[1];
-			co[2] = ((verts[0][i]->co[2] - verts[1][(numcuts+1)-i]->co[2]) * (j/(float)((numcuts+1)-i))) + verts[1][(numcuts+1)-i]->co[2];                          
+			co[2] = ((verts[0][i]->co[2] - verts[1][(numcuts+1)-i]->co[2]) * (j/(float)((numcuts+1)-i))) + verts[1][(numcuts+1)-i]->co[2];						  
 
 			temp.v1 = innerverts[i][0];
 			temp.v2 = innerverts[i][(numcuts+1)-i];
 
 			alter_co(co,&temp,rad,beauty,j/(float)((numcuts+1)-i));
 
-			innerverts[i][((numcuts+1)-i)-j] = addvertlist(co);    
+			innerverts[i][((numcuts+1)-i)-j] = addvertlist(co);	
 		}
 	}
 
@@ -2047,20 +2047,20 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 	for(i=0;i<=numcuts+1;i++){
 		for(j=0;j<(numcuts+1)-i;j++){   
 			//We always do the first tri
-			hold = addfacelist(innerverts[i][j+1],innerverts[i][j],innerverts[i+1][j],NULL,NULL,NULL);    
-			hold->e1->f2 |= EDGENEW;      
+			hold = addfacelist(innerverts[i][j+1],innerverts[i][j],innerverts[i+1][j],NULL,NULL,NULL);	
+			hold->e1->f2 |= EDGENEW;	  
 			hold->e2->f2 |= EDGENEW;  
 			hold->e3->f2 |= EDGENEW;  
 			if(i != 0){ hold->e1->f2 |= EDGEINNER; }
-            if(j != 0){ hold->e2->f2 |= EDGEINNER; }
-            if(j+1 != (numcuts+1)-i){hold->e3->f2 |= EDGEINNER;}
-            
-			facecopy(efa,hold);        
-			//if there are more to come, we do the 2nd     
+			if(j != 0){ hold->e2->f2 |= EDGEINNER; }
+			if(j+1 != (numcuts+1)-i){hold->e3->f2 |= EDGEINNER;}
+			
+			facecopy(efa,hold);		
+			//if there are more to come, we do the 2nd	 
 			if(j+1 <= numcuts-i){
-				hold = addfacelist(innerverts[i+1][j],innerverts[i+1][j+1],innerverts[i][j+1],NULL,NULL,NULL);           
+				hold = addfacelist(innerverts[i+1][j],innerverts[i+1][j+1],innerverts[i][j+1],NULL,NULL,NULL);		   
 				facecopy(efa,hold); 
-				hold->e1->f2 |= EDGENEW;      
+				hold->e1->f2 |= EDGENEW;	  
 				hold->e2->f2 |= EDGENEW;  
 				hold->e3->f2 |= EDGENEW;  	
 			}
@@ -2070,7 +2070,7 @@ static void fill_tri_triple(EditFace *efa, struct GHash *gh, int numcuts,float r
 	// Clean up our dynamic multi-dim array
 	for(i=0;i<numcuts+2;i++){
 		MEM_freeN(innerverts[i]);   
-	}    
+	}	
 	MEM_freeN(innerverts);
 }
 
@@ -2087,8 +2087,8 @@ static EditVert *subdivideedgenum(EditEdge *edge,int curpoint,int totpoint,float
 		percent=(float)(edge->f1)/32768.0f;
 		co[0] = (edge->v2->co[0]-edge->v1->co[0])*percent+edge->v1->co[0];
 		co[1] = (edge->v2->co[1]-edge->v1->co[1])*percent+edge->v1->co[1];
-		co[2] = (edge->v2->co[2]-edge->v1->co[2])*percent+edge->v1->co[2];                    
-	} else {                 
+		co[2] = (edge->v2->co[2]-edge->v1->co[2])*percent+edge->v1->co[2];					
+	} else {				 
 		co[0] = (edge->v2->co[0]-edge->v1->co[0])*(curpoint/(float)(totpoint+1))+edge->v1->co[0];
 		co[1] = (edge->v2->co[1]-edge->v1->co[1])*(curpoint/(float)(totpoint+1))+edge->v1->co[1];
 		co[2] = (edge->v2->co[2]-edge->v1->co[2])*(curpoint/(float)(totpoint+1))+edge->v1->co[2];
@@ -2119,7 +2119,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	for(eed = em->edges.first;eed;eed = eed->next){
 		//Flush vertext flags upward to the edges
 		//if(eed->f & flag && eed->v1->f == eed->v2->f){
-		//    eed->f |= eed->v1->f;   
+		//	eed->f |= eed->v1->f;   
 		// }
 		eed->f2 = 0;   
 	}   
@@ -2128,65 +2128,65 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 
 	// Now for beauty subdivide deselect edges based on length
 	if(beauty & B_BEAUTY){ 
-        for(ef = em->faces.first;ef;ef = ef->next){
-            if(!ef->v4){
-                continue;
-            }
-            if(ef->f & SELECT){
-                length[0] = VecLenf(ef->e1->v1->co,ef->e1->v2->co);
-                length[1] = VecLenf(ef->e2->v1->co,ef->e2->v2->co);
-                length[2] = VecLenf(ef->e3->v1->co,ef->e3->v2->co);
-                length[3] = VecLenf(ef->e4->v1->co,ef->e4->v2->co);
-                sort[0] = ef->e1;
-                sort[1] = ef->e2;
-                sort[2] = ef->e3;
-                sort[3] = ef->e4;
-                                                  
-                                                
-                // Beauty Short Edges
-                if(beauty & B_BEAUTY_SHORT){
-                    for(j=0;j<2;j++){
-                        hold = -1;
-                        for(i=0;i<4;i++){
-                            if(length[i] < 0){
-                                continue;                            
-                            } else if(hold == -1){  
-                                hold = i; 
-                            } else {
-                                if(length[hold] < length[i]){
-                                    hold = i;   
-                                }
-                            }
-                        }
-                        sort[hold]->f &= ~SELECT;
-                        sort[hold]->f2 |= EDGENEW;
-                        length[hold] = -1;
-                    }                            
-                } 
-                
-                // Beauty Long Edges
-                else {
-                     for(j=0;j<2;j++){
-                        hold = -1;
-                        for(i=0;i<4;i++){
-                            if(length[i] < 0){
-                                continue;                            
-                            } else if(hold == -1){  
-                                hold = i; 
-                            } else {
-                                if(length[hold] > length[i]){
-                                    hold = i;   
-                                }
-                            }
-                        }
-                        sort[hold]->f &= ~SELECT;
-                        sort[hold]->f2 |= EDGENEW;
-                        length[hold] = -1;
-                    }                            
-                }   
-            }
-        }	
-    }
+		for(ef = em->faces.first;ef;ef = ef->next){
+			if(!ef->v4){
+				continue;
+			}
+			if(ef->f & SELECT){
+				length[0] = VecLenf(ef->e1->v1->co,ef->e1->v2->co);
+				length[1] = VecLenf(ef->e2->v1->co,ef->e2->v2->co);
+				length[2] = VecLenf(ef->e3->v1->co,ef->e3->v2->co);
+				length[3] = VecLenf(ef->e4->v1->co,ef->e4->v2->co);
+				sort[0] = ef->e1;
+				sort[1] = ef->e2;
+				sort[2] = ef->e3;
+				sort[3] = ef->e4;
+												  
+												
+				// Beauty Short Edges
+				if(beauty & B_BEAUTY_SHORT){
+					for(j=0;j<2;j++){
+						hold = -1;
+						for(i=0;i<4;i++){
+							if(length[i] < 0){
+								continue;							
+							} else if(hold == -1){  
+								hold = i; 
+							} else {
+								if(length[hold] < length[i]){
+									hold = i;   
+								}
+							}
+						}
+						sort[hold]->f &= ~SELECT;
+						sort[hold]->f2 |= EDGENEW;
+						length[hold] = -1;
+					}							
+				} 
+				
+				// Beauty Long Edges
+				else {
+					 for(j=0;j<2;j++){
+						hold = -1;
+						for(i=0;i<4;i++){
+							if(length[i] < 0){
+								continue;							
+							} else if(hold == -1){  
+								hold = i; 
+							} else {
+								if(length[hold] > length[i]){
+									hold = i;   
+								}
+							}
+						}
+						sort[hold]->f &= ~SELECT;
+						sort[hold]->f2 |= EDGENEW;
+						length[hold] = -1;
+					}							
+				}   
+			}
+		}	
+	}
 
 
 
@@ -2221,14 +2221,14 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			cedge = addedgelist(templist[i],templist[i+1],eed);
 			cedge->f2 = EDGENEW;
 			// Now that the edge is subdivided, we can put its verts in the ghash 
-			BLI_ghash_insert(gh, eed, templist);               
-		}                                  
+			BLI_ghash_insert(gh, eed, templist);			   
+		}								  
 	}
 
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	// Now for each face in the mesh we need to figure out How many edges were cut
 	// and which filling method to use for that face
-    for(ef = em->faces.first;ef;ef = ef->next){
+	for(ef = em->faces.first;ef;ef = ef->next){
 		edgecount = 0;
 		facetype = 3;
 		if(ef->e1->f & flag) {edgecount++;}
@@ -2249,18 +2249,18 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					// we can tell if the selected pair is Adjacent or Opposite of each other
 					if((ef->e1->f & flag && ef->e3->f & flag) || 
 					   (ef->e2->f & flag && ef->e4->f & flag)){
-						fill_quad_double_op(ef, gh, numcuts);                              
+						fill_quad_double_op(ef, gh, numcuts);							  
 					}else{
 						//printf("adj\n");
-						fill_quad_double_adj(ef, gh, numcuts);                          
+						fill_quad_double_adj(ef, gh, numcuts);						  
 					}
-						break;    
+						break;	
 				case 3: ef->f1 = SELECT;
 					fill_quad_triple(ef, gh, numcuts); 
-					break;    
+					break;	
 				case 4: ef->f1 = SELECT;
 					fill_quad_quadruple(ef, gh, numcuts,rad,beauty); 
-					break;    
+					break;	
 			}
 		} else {
 			switch(edgecount){
@@ -2270,72 +2270,72 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					break;   
 				case 2: ef->f1 = SELECT;
 					fill_tri_double(ef, gh, numcuts);
-					break;    
+					break;	
 				case 3: ef->f1 = SELECT;
 					fill_tri_triple(ef, gh, numcuts,rad,beauty);
 					break;  
-			}    
-		}    
-    }
-    
-    // Delete Old Faces
-    free_tagged_facelist(em->faces.first);     
-    //Delete Old Edges
-    for(eed = em->edges.first;eed;eed = eed->next){
-        if(BLI_ghash_haskey(gh,eed)){
+			}	
+		}	
+	}
+	
+	// Delete Old Faces
+	free_tagged_facelist(em->faces.first);	 
+	//Delete Old Edges
+	for(eed = em->edges.first;eed;eed = eed->next){
+		if(BLI_ghash_haskey(gh,eed)){
 			eed->f1 = SELECT; 
-        } else {
+		} else {
 			eed->f1 = 0;   
-        }
-    } 
-    free_tagged_edgelist(em->edges.first); 
-    
-    if(seltype == 0 && G.qual != LR_CTRLKEY){
-        for(eed = em->edges.first;eed;eed = eed->next){
-            if(eed->f2 & EDGENEW){
-                eed->f |= flag;
-                EM_select_edge(eed,1); 
-                
-            }else{
-                eed->f &= !flag;
-                EM_select_edge(eed,0); 
-            }
-        }   
-    } else if (seltype == 1 || G.qual == LR_CTRLKEY){
-        for(eed = em->edges.first;eed;eed = eed->next){
-            if(eed->f2 & EDGEINNER){
-                eed->f |= flag;
-                EM_select_edge(eed,1);   
-            }else{
-                eed->f &= !flag;
-                EM_select_edge(eed,0); 
-            }
-        }          
-    } 
-     if(G.scene->selectmode & SCE_SELECT_VERTEX){
-         for(eed = em->edges.first;eed;eed = eed->next){
-            if(eed->f & SELECT){
-                eed->v1->f |= SELECT;
-                eed->v2->f |= SELECT;
-            }
-        }    
-    }
-    // Free the ghash and call MEM_freeN on all the value entries to return 
-    // that memory
-    BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);   
+		}
+	} 
+	free_tagged_edgelist(em->edges.first); 
+	
+	if(seltype == 0 && G.qual != LR_CTRLKEY){
+		for(eed = em->edges.first;eed;eed = eed->next){
+			if(eed->f2 & EDGENEW){
+				eed->f |= flag;
+				EM_select_edge(eed,1); 
+				
+			}else{
+				eed->f &= !flag;
+				EM_select_edge(eed,0); 
+			}
+		}   
+	} else if (seltype == 1 || G.qual == LR_CTRLKEY){
+		for(eed = em->edges.first;eed;eed = eed->next){
+			if(eed->f2 & EDGEINNER){
+				eed->f |= flag;
+				EM_select_edge(eed,1);   
+			}else{
+				eed->f &= !flag;
+				EM_select_edge(eed,0); 
+			}
+		}		  
+	} 
+	 if(G.scene->selectmode & SCE_SELECT_VERTEX){
+		 for(eed = em->edges.first;eed;eed = eed->next){
+			if(eed->f & SELECT){
+				eed->v1->f |= SELECT;
+				eed->v2->f |= SELECT;
+			}
+		}	
+	}
+	// Free the ghash and call MEM_freeN on all the value entries to return 
+	// that memory
+	BLI_ghash_free(gh, NULL, (GHashValFreeFP)MEM_freeN);   
 	
 	EM_selectmode_flush();
 	for(ef=em->faces.first;ef;ef = ef->next){
 		if(ef->e4){
-            if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) &&
-             (ef->e3->f & SELECT && ef->e4->f & SELECT) ){
-                ef->f |= SELECT;             
-            }                   
-        } else {
-            if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) && ef->e3->f & SELECT){
-                ef->f |= SELECT;             
-            }
-        }
+			if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) &&
+			 (ef->e3->f & SELECT && ef->e4->f & SELECT) ){
+				ef->f |= SELECT;			 
+			}				   
+		} else {
+			if(  (ef->e1->f & SELECT && ef->e2->f & SELECT) && ef->e3->f & SELECT){
+				ef->f |= SELECT;			 
+			}
+		}
 	}
 	
 	recalc_editnormals();
@@ -2362,9 +2362,9 @@ typedef EditFace *EVPtr;
 typedef EVPtr EVPTuple[2];
 
 /** builds EVPTuple array efaa of face tuples (in fact pointers to EditFaces)
-    sharing one edge.
+	sharing one edge.
 	arguments: selected edge list, face list.
-	Edges will also be tagged accordingly (see eed->f2)          */
+	Edges will also be tagged accordingly (see eed->f2)		  */
 
 static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
 {
@@ -2433,11 +2433,11 @@ static int collect_quadedges(EVPTuple *efaa, EditEdge *eed, EditFace *efa)
    - can be righthand or lefthand
 
 			4-----3
-			|\    |
+			|\	|
 			| \ 2 | <- efa1
 			|  \  | 
 	  efa-> | 1 \ | 
-			|    \| 
+			|	\| 
 			1-----2
 
 */
@@ -2584,65 +2584,65 @@ static void free_tagged_facelist(EditFace *efa)
    edge/face flags, with very mixed results.... */
 void beauty_fill(void)
 {
-    EditMesh *em = G.editMesh;
-    EditVert *v1, *v2, *v3, *v4;
-    EditEdge *eed, *nexted;
-    EditEdge dia1, dia2;
-    EditFace *efa, *w;
-    // void **efaar, **efaa;
-    EVPTuple *efaar;
-    EVPtr *efaa;
-    float *uv[4];
-    unsigned int col[4];
-    float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
-    int totedge, ok, notbeauty=8, onedone;
+	EditMesh *em = G.editMesh;
+	EditVert *v1, *v2, *v3, *v4;
+	EditEdge *eed, *nexted;
+	EditEdge dia1, dia2;
+	EditFace *efa, *w;
+	// void **efaar, **efaa;
+	EVPTuple *efaar;
+	EVPtr *efaa;
+	float *uv[4];
+	unsigned int col[4];
+	float len1, len2, len3, len4, len5, len6, opp1, opp2, fac1, fac2;
+	int totedge, ok, notbeauty=8, onedone;
 
 	/* - all selected edges with two faces
 		* - find the faces: store them in edges (using datablock)
 		* - per edge: - test convex
 		*			   - test edge: flip?
-		*               - if true: remedge,  addedge, all edges at the edge get new face pointers
+		*			   - if true: remedge,  addedge, all edges at the edge get new face pointers
 		*/
 	
 	EM_selectmode_set();	// makes sure in selectmode 'face' the edges of selected faces are selected too 
 
-    totedge = count_selected_edges(em->edges.first);
-    if(totedge==0) return;
+	totedge = count_selected_edges(em->edges.first);
+	if(totedge==0) return;
 
-    if(okee("Beautify fill")==0) return;
-    
-    /* temp block with face pointers */
-    efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
+	if(okee("Beautify fill")==0) return;
+	
+	/* temp block with face pointers */
+	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
 
-    while (notbeauty) {
-        notbeauty--;
+	while (notbeauty) {
+		notbeauty--;
 
-        ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
+		ok = collect_quadedges(efaar, em->edges.first, em->faces.first);
 
-        /* there we go */
-        onedone= 0;
+		/* there we go */
+		onedone= 0;
 
-        eed= em->edges.first;
-        while(eed) {
-            nexted= eed->next;
+		eed= em->edges.first;
+		while(eed) {
+			nexted= eed->next;
 			
 			/* f2 is set in collect_quadedges() */
-            if(eed->f2==2 && eed->h==0) {
+			if(eed->f2==2 && eed->h==0) {
 
-                efaa = (EVPtr *) eed->vn;
+				efaa = (EVPtr *) eed->vn;
 
-                /* none of the faces should be treated before, nor be part of fgon */
-                ok= 1;
-                efa= efaa[0];
-                if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
+				/* none of the faces should be treated before, nor be part of fgon */
+				ok= 1;
+				efa= efaa[0];
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
 				if(efa->fgonf) ok= 0;
-                efa= efaa[1];
-                if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
+				efa= efaa[1];
+				if(efa->e1->f1 || efa->e2->f1 || efa->e3->f1) ok= 0;
 				if(efa->fgonf) ok= 0;
 				
-                if(ok) {
-                    /* test convex */
-                    givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
+				if(ok) {
+					/* test convex */
+					givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
 					if(v1 && v2 && v3 && v4) {
 						if( convex(v1->co, v2->co, v3->co, v4->co) ) {
 
@@ -2741,27 +2741,27 @@ void beauty_fill(void)
 								}
 							}
 						}
-                    }
-                }
+					}
+				}
 
-            }
-            eed= nexted;
-        }
+			}
+			eed= nexted;
+		}
 
-        free_tagged_edgelist(em->edges.first);
-        free_tagged_facelist(em->faces.first);
+		free_tagged_edgelist(em->edges.first);
+		free_tagged_facelist(em->faces.first);
 
-        if(onedone==0) break;
+		if(onedone==0) break;
 		
 		EM_selectmode_set();	// new edges/faces were added
-    }
+	}
 
-    MEM_freeN(efaar);
+	MEM_freeN(efaar);
 
 	EM_select_flush();
 	
-    allqueue(REDRAWVIEW3D, 0);
-    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	BIF_undo_push("Beauty Fill");
 }
 
@@ -2816,13 +2816,13 @@ void join_triangles(void)
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
 
 /*
-		4-----3        4-----3
-		|\    |        |     |
-		| \ 1 |        |     |
-		|  \  |  ->    |     |	
-		| 0 \ |        |     | 
-		|    \|        |     |
-		1-----2        1-----2
+		4-----3		4-----3
+		|\	|		|	 |
+		| \ 1 |		|	 |
+		|  \  |  ->	|	 |	
+		| 0 \ |		|	 | 
+		|	\|		|	 |
+		1-----2		1-----2
 */
 				/* make new faces */
 				if(v1 && v2 && v3 && v4) {
@@ -2913,13 +2913,13 @@ void edge_flip(void)
 				givequadverts(efaa[0], efaa[1], &v1, &v2, &v3, &v4, uv, col);
 
 /*
-		4-----3        4-----3
-		|\    |        |    /|
-		| \ 1 |        | 1 / |
-		|  \  |  ->    |  /  |	
-		| 0 \ |        | / 0 | 
-		|    \|        |/    |
-		1-----2        1-----2
+		4-----3		4-----3
+		|\	|		|	/|
+		| \ 1 |		| 1 / |
+		|  \  |  ->	|  /  |	
+		| 0 \ |		| / 0 | 
+		|	\|		|/	|
+		1-----2		1-----2
 */
 				/* make new faces */
 				if (v1 && v2 && v3){
@@ -2978,8 +2978,8 @@ static void edge_rotate(EditEdge *eed,int dir)
 	EditVert *faces[2][4],*v1,*v2,*v3,*v4,*vtemp;
 	EditEdge *srchedge = NULL;
 	short facecount=0, p1=0,p2=0,p3=0,p4=0,fac1=4,fac2=4,i,j,numhidden;
-    EditEdge **hiddenedges;
-    
+	EditEdge **hiddenedges;
+	
 	/* check to make sure that the edge is only part of 2 faces */
 	for(efa = em->faces.first;efa;efa = efa->next){
 		if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || efa->e4 == eed)){
@@ -3100,22 +3100,22 @@ static void edge_rotate(EditEdge *eed,int dir)
 	}	
 
 
-    /* Create an Array of the Edges who have h set prior to rotate */
-    numhidden = 0;
-    for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
-        if(srchedge->h){
-            numhidden++;
-        }
-    }
+	/* Create an Array of the Edges who have h set prior to rotate */
+	numhidden = 0;
+	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
+		if(srchedge->h){
+			numhidden++;
+		}
+	}
 	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1,"Hidden Vert Scratch Array for Rotate Edges");
-    numhidden = 0;
-    for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
-        if(srchedge->h){
-            hiddenedges[numhidden] = srchedge;
-            numhidden++;
-        }
-    }	
-    						
+	numhidden = 0;
+	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
+		if(srchedge->h){
+			hiddenedges[numhidden] = srchedge;
+			numhidden++;
+		}
+	}	
+							
 	/* create the 2 new faces */   								
 	if(fac1 == 3 && fac2 == 3){
 		/*No need of reverse setup*/
@@ -3229,8 +3229,8 @@ static void edge_rotate(EditEdge *eed,int dir)
 	
 	else if(fac1 == 4 && fac2 == 4){
 		if(dir == 1){
-            newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],NULL,NULL);
-            newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],NULL,NULL);
+			newFace[0] = addfacelist(faces[0][(p1+1 )%4],faces[0][(p1+2 )%4],faces[0][(p1+3 )%4],faces[1][(p3+1 )%4],NULL,NULL);
+			newFace[1] = addfacelist(faces[1][(p3+1 )%4],faces[1][(p3+2 )%4],faces[1][(p3+3 )%4],faces[0][(p1+1 )%4],NULL,NULL);
 	
 			newFace[0]->tf.col[0] = face[0]->tf.col[(p1+1 )%4];
 			newFace[0]->tf.col[1] = face[0]->tf.col[(p1+2 )%4];
@@ -3295,64 +3295,64 @@ static void edge_rotate(EditEdge *eed,int dir)
 			srchedge->dir = eed->dir;
 			srchedge->seam = eed->seam;
 			srchedge->crease = eed->crease;
-        }
+		}
 	}
 	
 	
 	/* copy flags and material */
 	
-	newFace[0]->mat_nr     = face[0]->mat_nr;
-	newFace[0]->tf.flag    = face[0]->tf.flag;
+	newFace[0]->mat_nr	 = face[0]->mat_nr;
+	newFace[0]->tf.flag	= face[0]->tf.flag;
 	newFace[0]->tf.transp  = face[0]->tf.transp;
-	newFace[0]->tf.mode    = face[0]->tf.mode;
-	newFace[0]->tf.tile    = face[0]->tf.tile;
+	newFace[0]->tf.mode	= face[0]->tf.mode;
+	newFace[0]->tf.tile	= face[0]->tf.tile;
 	newFace[0]->tf.unwrap  = face[0]->tf.unwrap;
 	newFace[0]->tf.tpage   = face[0]->tf.tpage;
-	newFace[0]->flag       = face[0]->flag;
+	newFace[0]->flag	   = face[0]->flag;
 
-	newFace[1]->mat_nr     = face[1]->mat_nr;
-	newFace[1]->tf.flag    = face[1]->tf.flag;
+	newFace[1]->mat_nr	 = face[1]->mat_nr;
+	newFace[1]->tf.flag	= face[1]->tf.flag;
 	newFace[1]->tf.transp  = face[1]->tf.transp;
-	newFace[1]->tf.mode    = face[1]->tf.mode;
-	newFace[1]->tf.tile    = face[1]->tf.tile;
+	newFace[1]->tf.mode	= face[1]->tf.mode;
+	newFace[1]->tf.tile	= face[1]->tf.tile;
 	newFace[1]->tf.unwrap  = face[1]->tf.unwrap;
 	newFace[1]->tf.tpage   = face[1]->tf.tpage;
-	newFace[1]->flag       = face[1]->flag;
+	newFace[1]->flag	   = face[1]->flag;
 	
 	/* Resetting Hidden Flag */
 	for(numhidden--;numhidden>=0;numhidden--){
-        hiddenedges[numhidden]->h = 1;
-           
-    }
-    
-    /* check for orhphan edges */
-    for(srchedge=em->edges.first;srchedge;srchedge = srchedge->next){
-        srchedge->f1 = -1;   
-    }
-    
+		hiddenedges[numhidden]->h = 1;
+		   
+	}
+	
+	/* check for orhphan edges */
+	for(srchedge=em->edges.first;srchedge;srchedge = srchedge->next){
+		srchedge->f1 = -1;   
+	}
+	
 	/*for(efa = em->faces.first;efa;efa = efa->next){
 		if(efa->h == 0){
-            efa->e1->f1 = 1;   
-            efa->e2->f1 = 1;   
-            efa->e3->f1 = 1;   
-            if(efa->e4){
-                efa->e4->f1 = 1;   
-            }
-        }
+			efa->e1->f1 = 1;   
+			efa->e2->f1 = 1;   
+			efa->e3->f1 = 1;   
+			if(efa->e4){
+				efa->e4->f1 = 1;   
+			}
+		}
 		if(efa->h == 1){
-            if(efa->e1->f1 == -1){
-                efa->e1->f1 = 0; 
-            }  
-            if(efa->e2->f1 == -1){
-                efa->e2->f1 = 0; 
-            } 
-                        if(efa->e1->f1 == -1){
-                efa->e1->f1 = 0; 
-            }    
-            if(efa->e4){
-                efa->e4->f1 = 1;   
-            }
-        }        
+			if(efa->e1->f1 == -1){
+				efa->e1->f1 = 0; 
+			}  
+			if(efa->e2->f1 == -1){
+				efa->e2->f1 = 0; 
+			} 
+						if(efa->e1->f1 == -1){
+				efa->e1->f1 = 0; 
+			}	
+			if(efa->e4){
+				efa->e4->f1 = 1;   
+			}
+		}		
 	}
 	 A Little Cleanup */
 	MEM_freeN(hiddenedges);
@@ -3717,8 +3717,8 @@ static void bevel_mesh(float bsize, int allfaces)
 	EditMesh *em = G.editMesh;
 //#define BEV_DEBUG
 /* Enables debug printfs and assigns material indices: */
-/* 2 = edge quad                                       */
-/* 3 = fill polygon (vertex clusters)                  */
+/* 2 = edge quad									   */
+/* 3 = fill polygon (vertex clusters)				  */
 
 	EditFace *efa, *example; //, *nextvl;
 	EditEdge *eed, *eed2;
@@ -3895,10 +3895,10 @@ static void bevel_mesh(float bsize, int allfaces)
 						efa= em->faces.first;	/* search example face (for mat_nr, ME_SMOOTH, ...) */
 						while (efa) {
 							if ( (efa->e1 == eed) ||
-							     (efa->e2 == eed) ||
-							     (efa->e3 == eed) ||
-							     (efa->e4 && (efa->e4 == eed)) ) {
-							    example= efa;
+								 (efa->e2 == eed) ||
+								 (efa->e3 == eed) ||
+								 (efa->e4 && (efa->e4 == eed)) ) {
+								example= efa;
 								efa= NULL;
 							}
 							if (efa) efa= efa->next;
@@ -3959,7 +3959,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	}
 	
 	/* eve->f: 128: first vertex in a list (->vn) */
-	/*          64: vertex is in a list */
+	/*		  64: vertex is in a list */
 	
 	eve= em->verts.first;
 	while (eve) {
@@ -4026,10 +4026,10 @@ static void bevel_mesh(float bsize, int allfaces)
 				efa= em->faces.first;	/* search example face */
 				while (efa) {
 					if ( (efa->v1 == neweve[0]) ||
-					     (efa->v2 == neweve[0]) ||
-					     (efa->v3 == neweve[0]) ||
-					     (efa->v4 && (efa->v4 == neweve[0])) ) {
-					    example= efa;
+						 (efa->v2 == neweve[0]) ||
+						 (efa->v3 == neweve[0]) ||
+						 (efa->v4 && (efa->v4 == neweve[0])) ) {
+						example= efa;
 						efa= NULL;
 					}
 					if (efa) efa= efa->next;
@@ -4192,7 +4192,7 @@ void bevel_menu()
 			/* restore matrix transform */
 			glPopMatrix();
 			
-			sprintf(str, "Bevel Size: %.4f        LMB to confirm, RMB to cancel, SPACE to input directly.", drawd);
+			sprintf(str, "Bevel Size: %.4f		LMB to confirm, RMB to cancel, SPACE to input directly.", drawd);
 			headerprint(str);
 
 			/* this also verifies other area/windows for clean swap */
@@ -4250,8 +4250,8 @@ void bevel_menu()
 /* *********** END BEVEL *********/
 
 typedef struct SlideVert {
-    EditEdge *up,*down;
-    EditVert origvert;
+	EditEdge *up,*down;
+	EditVert origvert;
 } SlideVert;
 
 // This passes a ghash to the ghash free function so we can use it pseudo-recursively later
@@ -4262,540 +4262,540 @@ void freeGHash(GHash *g)
 }
 
 static void ScreenEdgeCenter(float x1,float y1,float x2,float y2,short* output){
-    output[0] = (short)((x1+x2)/2 + x1);
-    output[1] = (short)((y1+y2)/2 + y1);    
+	output[0] = (short)((x1+x2)/2 + x1);
+	output[1] = (short)((y1+y2)/2 + y1);	
 }
 
 static float Dist2s(short* d1,short* d2){
-    return sqrt(pow(d1[0]-d2[0],2)+pow(d1[1]-d2[1],2));   
+	return sqrt(pow(d1[0]-d2[0],2)+pow(d1[1]-d2[1],2));   
 }
 
 void EdgeLoopDelete(){
-    EdgeSlide(1, 1);
-    select_more();
-    removedoublesflag(1,0.001);
+	EdgeSlide(1, 1);
+	select_more();
+	removedoublesflag(1,0.001);
 	EM_select_flush();
-    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 int EdgeSlide(short immediate, float imperc)
 {
-    EditMesh *em = G.editMesh;
-    EditFace *efa;
-    EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
-    EditVert *ev, *nearest;
-    LinkNode *edgelist = NULL, *vertlist=NULL, *look;
-    GHash *vertgh;
-    SlideVert *tempsv;
-    float perc = 0, percp = 0,vertdist;
-    int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
-    short event, draw=1;
-    short mval[2], mvalo[2];
-    char str[128]; 
-    
-    
-    
-    mvalo[0] = -1; mvalo[1] = -1; 
-    numsel =0;  
-    
-    // Get number of selected edges and clear some flags
-    for(eed=em->edges.first;eed;eed=eed->next){
-        eed->f1 = 0;
-        eed->f2 = 0;   
-        if(eed->f & SELECT) numsel++;
-    }
-    
-    for(ev=em->verts.first;ev;ev=ev->next){
-        ev->f1 = 0;   
-    } 
-    
-    //Make sure each edge only has 2 faces
-    // make sure loop doesn't cross face
-    for(efa=em->faces.first;efa;efa=efa->next){
-        int ct = 0;
-        if(efa->e1->f & SELECT){
-            ct++;
-            efa->e1->f1++;
-            if(efa->e1->f1 > 2){
-                okee("3+ face edge - Stopping");
-                return 0;                 
-            }
-        }
-        if(efa->e2->f & SELECT){
-            ct++;
-            efa->e2->f1++;
-            if(efa->e2->f1 > 2){
-                okee("3+ face edge - Stopping");
-                return 0;                 
-            }
-        }
-        if(efa->e3->f & SELECT){
-            ct++;
-            efa->e3->f1++;
-            if(efa->e3->f1 > 2){
-                okee("3+ face edge - Stopping");
-                return 0;                 
-            }
-        }
-        if(efa->e4 && efa->e4->f & SELECT){
-            ct++;
-            efa->e4->f1++;
-            if(efa->e4->f1 > 2){
-                okee("3+ face edge - Stopping");
-                return 0;                 
-            }
-        }    
-        // Make sure loop is not 2 edges of same face    
-        if(ct > 1){
-           okee("loop crosses itself - Stopping");
-           return 0;   
-        }
-    }       
-    // Get # of selected verts
-    for(ev=em->verts.first;ev;ev=ev->next){ 
-        if(ev->f & SELECT) vertsel++;
-    }    
-       
-    // Test for multiple segments
-    if(vertsel > numsel+1){
-        okee("Was not a single edge loop - Stopping");
-        return 0;           
-    }  
-    
-    // Get the edgeloop in order - mark f1 with SELECT once added
-    for(eed=em->edges.first;eed;eed=eed->next){
-        if((eed->f & SELECT) && !(eed->f1 & SELECT)){
-            // If this is the first edge added, just put it in
-            if(!edgelist){
-                BLI_linklist_prepend(&edgelist,eed);
-                numadded++;
-                first = eed;
-                last  = eed; 
-                eed->f1 = SELECT;
-            } else {  
-                if((eed->v1 == last->v1 || eed->v1 == last->v2) ||
-                   (eed->v2 == last->v1 || eed->v2 == last->v2) ){
-                    BLI_linklist_append(&edgelist,eed);
-                    eed->f1 = SELECT;
-                    numadded++;
-                    last = eed;                      
-                }  else if((eed->v1 == first->v1 || eed->v1 == first->v2) ||
-                   (        eed->v2 == first->v1 || eed->v2 == first->v2) ){
-                    BLI_linklist_prepend(&edgelist,eed);
-                    eed->f1 = SELECT;
-                    numadded++;
-                    first = eed;                      
-                }   
-            }
-        }   
-        if(eed->next == NULL && numadded != numsel){
-            eed=em->edges.first;    
-            timesthrough++;
-        }
-        
-        // It looks like there was an unexpected case - Hopefully should not happen
-        if(timesthrough >= numsel*2){
-            BLI_linklist_free(edgelist,NULL); 
-            okee("could not order loop - Stopping");
-            return 0;   
-        }
-    }
-    
-    // Put the verts in order in a linklist
-    look = edgelist;
-    while(look){
-        eed = look->link;
-        if(!vertlist){
-            if(look->next){
-                temp = look->next->link;
-
-                //This is the first entry takes care of extra vert
-                if(eed->v1 != temp->v1 && eed->v1 != temp->v2){
-                    BLI_linklist_append(&vertlist,eed->v1); 
-                    eed->v1->f1 = 1; 
-                } else {
-                    BLI_linklist_append(&vertlist,eed->v2);  
-                    eed->v2->f1 = 1; 
-                }             
-            } else {
-                //This is the case that we only have 1 edge
-                BLI_linklist_append(&vertlist,eed->v1); 
-                eed->v1->f1 = 1;                    
-            }
-        }        
-        // for all the entries
-        if(eed->v1->f1 != 1){
-            BLI_linklist_append(&vertlist,eed->v1); 
-            eed->v1->f1 = 1;           
-        } else  if(eed->v2->f1 != 1){
-            BLI_linklist_append(&vertlist,eed->v2); 
-            eed->v2->f1 = 1;                    
-        } 
-        look = look->next;   
-    }         
-    
-    // populate the SlideVerts
-    
-    vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
-    look = vertlist;      
-	while(look){
-        i=0;
-        j=0;
-        ev = look->link;
-        tempsv = (struct SlideVert*)MEM_mallocN(sizeof(struct SlideVert),"SlideVert");
-        tempsv->up = NULL;
-        tempsv->down = NULL;
-        tempsv->origvert.co[0] = ev->co[0];
-        tempsv->origvert.co[1] = ev->co[1];
-        tempsv->origvert.co[2] = ev->co[2];
-        tempsv->origvert.no[0] = ev->no[0];
-        tempsv->origvert.no[1] = ev->no[1];
-        tempsv->origvert.no[2] = ev->no[2];
-        tempsv->origvert.xs = ev->xs;
-        tempsv->origvert.ys = ev->ys;
-        // i is total edges that vert is on
-        // j is total selected edges that vert is on
-        
-        for(eed=em->edges.first;eed;eed=eed->next){
-            if(eed->v1 == ev || eed->v2 == ev){
-                i++;    
-                if(eed->f & SELECT){
-                     j++;   
-                }
-            }        
-        }
-        // If the vert is in the middle of an edge loop, it touches 2 selected edges and 2 unselected edges
-        if(i == 4 && j == 2){
-            for(eed=em->edges.first;eed;eed=eed->next){
-                if(eed->v1 == ev || eed->v2 == ev){
-                    if(!(eed->f & SELECT)){
-                         if(!tempsv->up){
-                             tempsv->up = eed;
-                         } else if (!(tempsv->down)){
-                             tempsv->down = eed;  
-                         }
-                    }
-                }        
-            }            
-        }
-        // If it is on the end of the loop, it touches 1 selected and as least 2 more unselected
-        if(i >= 3 && j == 1){
-            for(eed=em->edges.first;eed;eed=eed->next){
-                if((eed->v1 == ev || eed->v2 == ev) && eed->f & SELECT){
-                    for(efa = em->faces.first;efa;efa=efa->next){
-                        if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || (efa->e4 && efa->e4 == eed))){
-                            if((efa->e1->v1 == ev || efa->e1->v2 == ev) && efa->e1 != eed){
-                                 if(!tempsv->up){
-                                     tempsv->up = efa->e1;
-                                 } else if (!(tempsv->down)){
-                                     tempsv->down = efa->e1;  
-                                 }                                   
-                            }
-                            if((efa->e2->v1 == ev || efa->e2->v2 == ev) && efa->e2 != eed){
-                                 if(!tempsv->up){
-                                     tempsv->up = efa->e2;
-                                 } else if (!(tempsv->down)){
-                                     tempsv->down = efa->e2;  
-                                 }                                   
-                            }                            
-                            if((efa->e3->v1 == ev || efa->e3->v2 == ev) && efa->e3 != eed){
-                                 if(!tempsv->up){
-                                     tempsv->up = efa->e3;
-                                 } else if (!(tempsv->down)){
-                                     tempsv->down = efa->e3;  
-                                 }                                   
-                            }  
-                            if(efa->e4){
-                                if((efa->e4->v1 == ev || efa->e4->v2 == ev) && efa->e4 != eed){
-                                     if(!tempsv->up){
-                                         tempsv->up = efa->e4;
-                                     } else if (!(tempsv->down)){
-                                         tempsv->down = efa->e4;  
-                                     }                                   
-                                }
-                            }                                                          
-                            
-                        }
-                    }
-                }        
-            }            
-        }        
-        if(i > 4 && j == 2){
-            BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-            BLI_linklist_free(vertlist,NULL); 
-            BLI_linklist_free(edgelist,NULL); 
-            return 0;   
-        }
-        BLI_ghash_insert(vertgh,ev,tempsv);
-        
-        look = look->next;   
-    }          
-   
-    // make sure the UPs nad DOWNs are 'faceloops'
-    // Also find the nearest slidevert to the cursor
-    
-    getmouseco_areawin(mval);
-    look = vertlist;    
-    nearest = NULL;
-    vertdist = -1;  
-	while(look){    
-        SlideVert *sv=NULL;		// keep gcc happy
-        float tempdist;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	EditEdge *eed,*first=NULL,*last=NULL, *temp = NULL;
+	EditVert *ev, *nearest;
+	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
+	GHash *vertgh;
+	SlideVert *tempsv;
+	float perc = 0, percp = 0,vertdist;
+	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
+	short event, draw=1;
+	short mval[2], mvalo[2];
+	char str[128]; 
+	
+	
+	
+	mvalo[0] = -1; mvalo[1] = -1; 
+	numsel =0;  
+	
+	// Get number of selected edges and clear some flags
+	for(eed=em->edges.first;eed;eed=eed->next){
+		eed->f1 = 0;
+		eed->f2 = 0;   
+		if(eed->f & SELECT) numsel++;
+	}
+	
+	for(ev=em->verts.first;ev;ev=ev->next){
+		ev->f1 = 0;   
+	} 
+	
+	//Make sure each edge only has 2 faces
+	// make sure loop doesn't cross face
+	for(efa=em->faces.first;efa;efa=efa->next){
+		int ct = 0;
+		if(efa->e1->f & SELECT){
+			ct++;
+			efa->e1->f1++;
+			if(efa->e1->f1 > 2){
+				okee("3+ face edge - Stopping");
+				return 0;				 
+			}
+		}
+		if(efa->e2->f & SELECT){
+			ct++;
+			efa->e2->f1++;
+			if(efa->e2->f1 > 2){
+				okee("3+ face edge - Stopping");
+				return 0;				 
+			}
+		}
+		if(efa->e3->f & SELECT){
+			ct++;
+			efa->e3->f1++;
+			if(efa->e3->f1 > 2){
+				okee("3+ face edge - Stopping");
+				return 0;				 
+			}
+		}
+		if(efa->e4 && efa->e4->f & SELECT){
+			ct++;
+			efa->e4->f1++;
+			if(efa->e4->f1 > 2){
+				okee("3+ face edge - Stopping");
+				return 0;				 
+			}
+		}	
+		// Make sure loop is not 2 edges of same face	
+		if(ct > 1){
+		   okee("loop crosses itself - Stopping");
+		   return 0;   
+		}
+	}	   
+	// Get # of selected verts
+	for(ev=em->verts.first;ev;ev=ev->next){ 
+		if(ev->f & SELECT) vertsel++;
+	}	
+	   
+	// Test for multiple segments
+	if(vertsel > numsel+1){
+		okee("Was not a single edge loop - Stopping");
+		return 0;		   
+	}  
+	
+	// Get the edgeloop in order - mark f1 with SELECT once added
+	for(eed=em->edges.first;eed;eed=eed->next){
+		if((eed->f & SELECT) && !(eed->f1 & SELECT)){
+			// If this is the first edge added, just put it in
+			if(!edgelist){
+				BLI_linklist_prepend(&edgelist,eed);
+				numadded++;
+				first = eed;
+				last  = eed; 
+				eed->f1 = SELECT;
+			} else {  
+				if((eed->v1 == last->v1 || eed->v1 == last->v2) ||
+				   (eed->v2 == last->v1 || eed->v2 == last->v2) ){
+					BLI_linklist_append(&edgelist,eed);
+					eed->f1 = SELECT;
+					numadded++;
+					last = eed;					  
+				}  else if((eed->v1 == first->v1 || eed->v1 == first->v2) ||
+				   (		eed->v2 == first->v1 || eed->v2 == first->v2) ){
+					BLI_linklist_prepend(&edgelist,eed);
+					eed->f1 = SELECT;
+					numadded++;
+					first = eed;					  
+				}   
+			}
+		}   
+		if(eed->next == NULL && numadded != numsel){
+			eed=em->edges.first;	
+			timesthrough++;
+		}
 		
-        if(look->next != NULL){
-            tempsv = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-            sv     = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
-            if(!sharesFace(tempsv->up,sv->up)){
-                EditEdge *swap;
-                swap = sv->up;
-                sv->up = sv->down;
-                sv->down = swap; 
-            }
-        }   
-        tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
-        if(vertdist < 0){
-            vertdist = tempdist;
-            nearest  = (EditVert*)look->link;   
-        } else if ( tempdist < vertdist ){
-            vertdist = tempdist;
-            nearest  = (EditVert*)look->link;    
-        }
+		// It looks like there was an unexpected case - Hopefully should not happen
+		if(timesthrough >= numsel*2){
+			BLI_linklist_free(edgelist,NULL); 
+			okee("could not order loop - Stopping");
+			return 0;   
+		}
+	}
+	
+	// Put the verts in order in a linklist
+	look = edgelist;
+	while(look){
+		eed = look->link;
+		if(!vertlist){
+			if(look->next){
+				temp = look->next->link;
 
-        look = look->next;   
-    }       
-    
-    // we should have enough info now to slide
-    //persp(PERSP_WIN);
-    //glDrawBuffer(GL_FRONT); 
-    percp = -1;
-    while(draw){
-         /* For the % calculation */   
-        short mval[2];   
-        float labda, rc[2], len;   
-        float v1[2], v2[2], v3[2]; 
+				//This is the first entry takes care of extra vert
+				if(eed->v1 != temp->v1 && eed->v1 != temp->v2){
+					BLI_linklist_append(&vertlist,eed->v1); 
+					eed->v1->f1 = 1; 
+				} else {
+					BLI_linklist_append(&vertlist,eed->v2);  
+					eed->v2->f1 = 1; 
+				}			 
+			} else {
+				//This is the case that we only have 1 edge
+				BLI_linklist_append(&vertlist,eed->v1); 
+				eed->v1->f1 = 1;					
+			}
+		}		
+		// for all the entries
+		if(eed->v1->f1 != 1){
+			BLI_linklist_append(&vertlist,eed->v1); 
+			eed->v1->f1 = 1;		   
+		} else  if(eed->v2->f1 != 1){
+			BLI_linklist_append(&vertlist,eed->v2); 
+			eed->v2->f1 = 1;					
+		} 
+		look = look->next;   
+	}		 
+	
+	// populate the SlideVerts
+	
+	vertgh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
+	look = vertlist;	  
+	while(look){
+		i=0;
+		j=0;
+		ev = look->link;
+		tempsv = (struct SlideVert*)MEM_mallocN(sizeof(struct SlideVert),"SlideVert");
+		tempsv->up = NULL;
+		tempsv->down = NULL;
+		tempsv->origvert.co[0] = ev->co[0];
+		tempsv->origvert.co[1] = ev->co[1];
+		tempsv->origvert.co[2] = ev->co[2];
+		tempsv->origvert.no[0] = ev->no[0];
+		tempsv->origvert.no[1] = ev->no[1];
+		tempsv->origvert.no[2] = ev->no[2];
+		tempsv->origvert.xs = ev->xs;
+		tempsv->origvert.ys = ev->ys;
+		// i is total edges that vert is on
+		// j is total selected edges that vert is on
+		
+		for(eed=em->edges.first;eed;eed=eed->next){
+			if(eed->v1 == ev || eed->v2 == ev){
+				i++;	
+				if(eed->f & SELECT){
+					 j++;   
+				}
+			}		
+		}
+		// If the vert is in the middle of an edge loop, it touches 2 selected edges and 2 unselected edges
+		if(i == 4 && j == 2){
+			for(eed=em->edges.first;eed;eed=eed->next){
+				if(eed->v1 == ev || eed->v2 == ev){
+					if(!(eed->f & SELECT)){
+						 if(!tempsv->up){
+							 tempsv->up = eed;
+						 } else if (!(tempsv->down)){
+							 tempsv->down = eed;  
+						 }
+					}
+				}		
+			}			
+		}
+		// If it is on the end of the loop, it touches 1 selected and as least 2 more unselected
+		if(i >= 3 && j == 1){
+			for(eed=em->edges.first;eed;eed=eed->next){
+				if((eed->v1 == ev || eed->v2 == ev) && eed->f & SELECT){
+					for(efa = em->faces.first;efa;efa=efa->next){
+						if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || (efa->e4 && efa->e4 == eed))){
+							if((efa->e1->v1 == ev || efa->e1->v2 == ev) && efa->e1 != eed){
+								 if(!tempsv->up){
+									 tempsv->up = efa->e1;
+								 } else if (!(tempsv->down)){
+									 tempsv->down = efa->e1;  
+								 }								   
+							}
+							if((efa->e2->v1 == ev || efa->e2->v2 == ev) && efa->e2 != eed){
+								 if(!tempsv->up){
+									 tempsv->up = efa->e2;
+								 } else if (!(tempsv->down)){
+									 tempsv->down = efa->e2;  
+								 }								   
+							}							
+							if((efa->e3->v1 == ev || efa->e3->v2 == ev) && efa->e3 != eed){
+								 if(!tempsv->up){
+									 tempsv->up = efa->e3;
+								 } else if (!(tempsv->down)){
+									 tempsv->down = efa->e3;  
+								 }								   
+							}  
+							if(efa->e4){
+								if((efa->e4->v1 == ev || efa->e4->v2 == ev) && efa->e4 != eed){
+									 if(!tempsv->up){
+										 tempsv->up = efa->e4;
+									 } else if (!(tempsv->down)){
+										 tempsv->down = efa->e4;  
+									 }								   
+								}
+							}														  
+							
+						}
+					}
+				}		
+			}			
+		}		
+		if(i > 4 && j == 2){
+			BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+			BLI_linklist_free(vertlist,NULL); 
+			BLI_linklist_free(edgelist,NULL); 
+			return 0;   
+		}
+		BLI_ghash_insert(vertgh,ev,tempsv);
+		
+		look = look->next;   
+	}		  
+   
+	// make sure the UPs nad DOWNs are 'faceloops'
+	// Also find the nearest slidevert to the cursor
+	
+	getmouseco_areawin(mval);
+	look = vertlist;	
+	nearest = NULL;
+	vertdist = -1;  
+	while(look){	
+		SlideVert *sv=NULL;		// keep gcc happy
+		float tempdist;
+		
+		if(look->next != NULL){
+			tempsv = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			sv	 = BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
+			if(!sharesFace(tempsv->up,sv->up)){
+				EditEdge *swap;
+				swap = sv->up;
+				sv->up = sv->down;
+				sv->down = swap; 
+			}
+		}   
+		tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
+		if(vertdist < 0){
+			vertdist = tempdist;
+			nearest  = (EditVert*)look->link;   
+		} else if ( tempdist < vertdist ){
+			vertdist = tempdist;
+			nearest  = (EditVert*)look->link;	
+		}
 
-        getmouseco_areawin(mval);  
-        
+		look = look->next;   
+	}	   
+	
+	// we should have enough info now to slide
+	//persp(PERSP_WIN);
+	//glDrawBuffer(GL_FRONT); 
+	percp = -1;
+	while(draw){
+		 /* For the % calculation */   
+		short mval[2];   
+		float labda, rc[2], len;   
+		float v1[2], v2[2], v3[2]; 
+
+		getmouseco_areawin(mval);  
+		
 		if (mval[0] == mvalo[0] && mval[1] ==  mvalo[1]) {
-            PIL_sleep_ms(10);
-        } else {
+			PIL_sleep_ms(10);
+		} else {
    			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
-            //Adjust Edgeloop
-            if(immediate){
-                perc = imperc;   
-            }
-            percp = perc;
-            if(perc >=0){
-                if(prop){
-                    look = vertlist;      
-                    while(look){ 
-                        EditVert *tempev;
-                        ev = look->link;
-                        tempsv = BLI_ghash_lookup(vertgh,ev);
-                        
-                        if(tempsv->up->v1 == ev){
-                          tempev = tempsv->up->v2; 
-                        } else {
-                          tempev = tempsv->up->v1;  
-                        }
-                        
-                        ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
-                        ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
-                        ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
-                                        
-                        look = look->next;     
-                    }
-                }
-                else {
-                    //Non prop code   
-                }
-            } else {
-                if(prop){
-                    look = vertlist;      
-                    while(look){ 
-                        EditVert *tempev;
-                        ev = look->link;
-                        tempsv = BLI_ghash_lookup(vertgh,ev);
-                        
-                        if(tempsv->down->v1 == ev){
-                          tempev = tempsv->down->v2; 
-                        } else {
-                          tempev = tempsv->down->v1;  
-                        }
-                        
-                        ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
-                        ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
-                        ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
-                                        
-                        look = look->next;    
-                    }   
-                } else {
-                    //non-prop code   
-                }         
-            }
+			//Adjust Edgeloop
+			if(immediate){
+				perc = imperc;   
+			}
+			percp = perc;
+			if(perc >=0){
+				if(prop){
+					look = vertlist;	  
+					while(look){ 
+						EditVert *tempev;
+						ev = look->link;
+						tempsv = BLI_ghash_lookup(vertgh,ev);
+						
+						if(tempsv->up->v1 == ev){
+						  tempev = tempsv->up->v2; 
+						} else {
+						  tempev = tempsv->up->v1;  
+						}
+						
+						ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
+						ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
+						ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
+										
+						look = look->next;	 
+					}
+				}
+				else {
+					//Non prop code   
+				}
+			} else {
+				if(prop){
+					look = vertlist;	  
+					while(look){ 
+						EditVert *tempev;
+						ev = look->link;
+						tempsv = BLI_ghash_lookup(vertgh,ev);
+						
+						if(tempsv->down->v1 == ev){
+						  tempev = tempsv->down->v2; 
+						} else {
+						  tempev = tempsv->down->v1;  
+						}
+						
+						ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
+						ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
+						ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
+										
+						look = look->next;	
+					}   
+				} else {
+					//non-prop code   
+				}		 
+			}
 
 
-            tempsv = BLI_ghash_lookup(vertgh,nearest);
+			tempsv = BLI_ghash_lookup(vertgh,nearest);
 
-             getmouseco_areawin(mval);   
-             v1[0]=(float)mval[0];   
-             v1[1]=(float)mval[1];   
+			 getmouseco_areawin(mval);   
+			 v1[0]=(float)mval[0];   
+			 v1[1]=(float)mval[1];   
 
-             if(tempsv->up->v1 == tempsv->down->v1){
-                 v2[0]=(float)tempsv->up->v2->xs;   
-                 v2[1]=(float)tempsv->up->v2->ys;   
-    
-                 v3[0]=(float)tempsv->down->v2->xs;   
-                 v3[1]=(float)tempsv->down->v2->ys;  
-             } else if (tempsv->up->v2 == tempsv->down->v2){
-                 v2[0]=(float)tempsv->up->v1->xs;   
-                 v2[1]=(float)tempsv->up->v1->ys;   
-    
-                 v3[0]=(float)tempsv->down->v1->xs;   
-                 v3[1]=(float)tempsv->down->v1->ys;  
-             } else if (tempsv->up->v1 == tempsv->down->v2){
-                 v2[0]=(float)tempsv->up->v2->xs;   
-                 v2[1]=(float)tempsv->up->v2->ys;   
-    
-                 v3[0]=(float)tempsv->down->v1->xs;   
-                 v3[1]=(float)tempsv->down->v1->ys;  
-             } else if (tempsv->up->v2 == tempsv->down->v1){
-                 v2[0]=(float)tempsv->up->v1->xs;   
-                 v2[1]=(float)tempsv->up->v1->ys;   
-    
-                 v3[0]=(float)tempsv->down->v2->xs;   
-                 v3[1]=(float)tempsv->down->v2->ys;  
-             }
+			 if(tempsv->up->v1 == tempsv->down->v1){
+				 v2[0]=(float)tempsv->up->v2->xs;   
+				 v2[1]=(float)tempsv->up->v2->ys;   
+	
+				 v3[0]=(float)tempsv->down->v2->xs;   
+				 v3[1]=(float)tempsv->down->v2->ys;  
+			 } else if (tempsv->up->v2 == tempsv->down->v2){
+				 v2[0]=(float)tempsv->up->v1->xs;   
+				 v2[1]=(float)tempsv->up->v1->ys;   
+	
+				 v3[0]=(float)tempsv->down->v1->xs;   
+				 v3[1]=(float)tempsv->down->v1->ys;  
+			 } else if (tempsv->up->v1 == tempsv->down->v2){
+				 v2[0]=(float)tempsv->up->v2->xs;   
+				 v2[1]=(float)tempsv->up->v2->ys;   
+	
+				 v3[0]=(float)tempsv->down->v1->xs;   
+				 v3[1]=(float)tempsv->down->v1->ys;  
+			 } else if (tempsv->up->v2 == tempsv->down->v1){
+				 v2[0]=(float)tempsv->up->v1->xs;   
+				 v2[1]=(float)tempsv->up->v1->ys;   
+	
+				 v3[0]=(float)tempsv->down->v2->xs;   
+				 v3[1]=(float)tempsv->down->v2->ys;  
+			 }
 
-             // Highlight the Control Edges
-    
-            scrarea_do_windraw(curarea);   
-            persp(PERSP_VIEW);   
-            glPushMatrix();   
-            mymultmatrix(G.obedit->obmat);   
+			 // Highlight the Control Edges
+	
+			scrarea_do_windraw(curarea);   
+			persp(PERSP_VIEW);   
+			glPushMatrix();   
+			mymultmatrix(G.obedit->obmat);   
 
-            glBegin(GL_LINES);   
-            glColor3ub(0, 255, 0);   
-            
-             if(tempsv->up->v1 == tempsv->down->v1){
-                glVertex3fv(tempsv->up->v2->co);   
-                glVertex3fv(tempsv->down->v2->co);   
-             } else if (tempsv->up->v2 == tempsv->down->v2){
-                glVertex3fv(tempsv->up->v1->co);   
-                glVertex3fv(tempsv->down->v1->co);  
-             } else if (tempsv->up->v1 == tempsv->down->v2){
-                glVertex3fv(tempsv->up->v2->co);   
-                glVertex3fv(tempsv->down->v1->co);  
-             } else if (tempsv->up->v2 == tempsv->down->v1){
-                glVertex3fv(tempsv->up->v1->co);   
-                glVertex3fv(tempsv->down->v2->co);  
-             }            
-            glEnd(); 
-            glPopMatrix();         
-         
-            /* Determine the % on wich the loop should be cut */   
+			glBegin(GL_LINES);   
+			glColor3ub(0, 255, 0);   
+			
+			 if(tempsv->up->v1 == tempsv->down->v1){
+				glVertex3fv(tempsv->up->v2->co);   
+				glVertex3fv(tempsv->down->v2->co);   
+			 } else if (tempsv->up->v2 == tempsv->down->v2){
+				glVertex3fv(tempsv->up->v1->co);   
+				glVertex3fv(tempsv->down->v1->co);  
+			 } else if (tempsv->up->v1 == tempsv->down->v2){
+				glVertex3fv(tempsv->up->v2->co);   
+				glVertex3fv(tempsv->down->v1->co);  
+			 } else if (tempsv->up->v2 == tempsv->down->v1){
+				glVertex3fv(tempsv->up->v1->co);   
+				glVertex3fv(tempsv->down->v2->co);  
+			 }			
+			glEnd(); 
+			glPopMatrix();		 
+		 
+			/* Determine the % on wich the loop should be cut */   
 
-             rc[0]= v3[0]-v2[0];   
-             rc[1]= v3[1]-v2[1];   
-             len= rc[0]*rc[0]+ rc[1]*rc[1];   
-             if (len==0) {len = 0.0001;}
-             labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;   
+			 rc[0]= v3[0]-v2[0];   
+			 rc[1]= v3[1]-v2[1];   
+			 len= rc[0]*rc[0]+ rc[1]*rc[1];   
+			 if (len==0) {len = 0.0001;}
+			 labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;   
 
-             if(labda<=0.0) labda=0.0;   
-             else if(labda>=1.0)labda=1.0;   
+			 if(labda<=0.0) labda=0.0;   
+			 else if(labda>=1.0)labda=1.0;   
 
-             perc=((1-labda)*2)-1;          
-            
-            if(G.qual == 0){
-                perc *= 100;
-                perc = floor(perc);
-                perc /= 100;
-            } else if (G.qual == LR_CTRLKEY){
-                perc *= 10;
-                perc = floor(perc);
-                perc /= 10;                   
-            }            
-            sprintf(str, "Percentage %f", perc);
+			 perc=((1-labda)*2)-1;		  
+			
+			if(G.qual == 0){
+				perc *= 100;
+				perc = floor(perc);
+				perc /= 100;
+			} else if (G.qual == LR_CTRLKEY){
+				perc *= 10;
+				perc = floor(perc);
+				perc /= 10;				   
+			}			
+			sprintf(str, "Percentage %f", perc);
 			headerprint(str);
-            screen_swapbuffers();            
-        }
+			screen_swapbuffers();			
+		}
 
-             
+			 
 
 
 	
 	   if(!immediate){
-            while(qtest()) {
-        		unsigned short val=0;		   	
-        		event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
-                    
-        		/* val==0 on key-release event */
-        		if(val && (event == ESCKEY || event==RIGHTMOUSE)){
-                        perc = 0; // Set back to begining %
-                        immediate = 1; //Run through eval code 1 more time
-                        cancel = 1;   // Return -1
-                } else
-                if(val && ( event==PADENTER || ( event==LEFTMOUSE || event==RETKEY ))){
-        				draw = 0; // End looping now
-        		} else
-                if(val && event==MIDDLEMOUSE){
-                        perc = 0;  
-                        immediate = 1;
-                } else if(val && (event==RIGHTARROWKEY || event==WHEELUPMOUSE)) { // Scroll through Control Edges
-                    look = vertlist;    
-                 	while(look){    
-                        if(nearest == (EditVert*)look->link){
-                            if(look->next == NULL){
-                                nearest =  (EditVert*)vertlist->link;  
-                            } else {
-                                nearest = (EditVert*)look->next->link;
-                            }     
-                            mvalo[0] = -1;
-                            break;                
-                        }
-                        look = look->next;   
-                    }      
-    			}else if(val && (event==LEFTARROWKEY || event==WHEELDOWNMOUSE)) { // Scroll through Control Edges
-                    look = vertlist;    
-                 	while(look){    
-                        if(look->next){
-                            if(look->next->link == nearest){
-                                nearest = (EditVert*)look->link;
-                                mvalo[0] = -1;
-                                break;
-                            }      
-                        } else {
-                            if((EditVert*)vertlist->link == nearest){
-                                nearest = look->link;
-                                mvalo[0] = -1;
-                                break;                             
-                            }       
-                        }   
-                        look = look->next;   
-                    }      
-    			}
-        	} 
-        } else {
-            draw = 0;   
-        }     
-        DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);     
-    }
-    force_draw(0);
-    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-    scrarea_queue_winredraw(curarea);         
-    
-    //BLI_ghash_free(edgesgh, freeGHash, NULL); 
-    BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
-    BLI_linklist_free(vertlist,NULL); 
-    BLI_linklist_free(edgelist,NULL); 
-    
-    if(cancel == 1){
-        return -1;   
-    }
-    return 1;   
-    
-    
+			while(qtest()) {
+				unsigned short val=0;		   	
+				event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
+					
+				/* val==0 on key-release event */
+				if(val && (event == ESCKEY || event==RIGHTMOUSE)){
+						perc = 0; // Set back to begining %
+						immediate = 1; //Run through eval code 1 more time
+						cancel = 1;   // Return -1
+				} else
+				if(val && ( event==PADENTER || ( event==LEFTMOUSE || event==RETKEY ))){
+						draw = 0; // End looping now
+				} else
+				if(val && event==MIDDLEMOUSE){
+						perc = 0;  
+						immediate = 1;
+				} else if(val && (event==RIGHTARROWKEY || event==WHEELUPMOUSE)) { // Scroll through Control Edges
+					look = vertlist;	
+				 	while(look){	
+						if(nearest == (EditVert*)look->link){
+							if(look->next == NULL){
+								nearest =  (EditVert*)vertlist->link;  
+							} else {
+								nearest = (EditVert*)look->next->link;
+							}	 
+							mvalo[0] = -1;
+							break;				
+						}
+						look = look->next;   
+					}	  
+				}else if(val && (event==LEFTARROWKEY || event==WHEELDOWNMOUSE)) { // Scroll through Control Edges
+					look = vertlist;	
+				 	while(look){	
+						if(look->next){
+							if(look->next->link == nearest){
+								nearest = (EditVert*)look->link;
+								mvalo[0] = -1;
+								break;
+							}	  
+						} else {
+							if((EditVert*)vertlist->link == nearest){
+								nearest = look->link;
+								mvalo[0] = -1;
+								break;							 
+							}	   
+						}   
+						look = look->next;   
+					}	  
+				}
+			} 
+		} else {
+			draw = 0;   
+		}	 
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	 
+	}
+	force_draw(0);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	scrarea_queue_winredraw(curarea);		 
+	
+	//BLI_ghash_free(edgesgh, freeGHash, NULL); 
+	BLI_ghash_free(vertgh, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_linklist_free(vertlist,NULL); 
+	BLI_linklist_free(edgelist,NULL); 
+	
+	if(cancel == 1){
+		return -1;   
+	}
+	return 1;   
+	
+	
 }
 
 //----------------------------------------------  OLD SUBDIVIDE -----------------------------------------------------
@@ -4942,46 +4942,46 @@ static void set_wuv(int tot, EditFace *efa, int v1, int v2, int v3, int v4, Edit
 	*/
 
 	/* ******************************************** */
-	/*                                              */
+	/*											  */
 	/* Numbers corespond to verts (corner points), 	*/
-	/* edge->vn's (center edges), the Center 	    */
-	/* And the quincunx points of a face 		    */
-	/*                                              */
+	/* edge->vn's (center edges), the Center 		*/
+	/* And the quincunx points of a face 			*/
+	/*											  */
 	/* ******************************************** */
 
 	/* ******************************************** */
-	/* as shown here for quads:                     */
-	/*                                              */
-	/*           2 ------- 5 -------- 1             */
-	/*           | \    /  |  \    /  |             */
-	/*           |   10    |    13    |             */
-	/*           | /    \  |  /    \  |             */
-	/*           6 ------- 9 -------- 8             */
-	/*           | \    /  |  \    /  |             */
-	/*           |   11    |    12    |             */
-	/*           | /    \  |  /    \  |             */
-	/*           3 ------- 7 -------- 4             */
-	/*                                              */
+	/* as shown here for quads:					 */
+	/*											  */
+	/*		   2 ------- 5 -------- 1			 */
+	/*		   | \	/  |  \	/  |			 */
+	/*		   |   10	|	13	|			 */
+	/*		   | /	\  |  /	\  |			 */
+	/*		   6 ------- 9 -------- 8			 */
+	/*		   | \	/  |  \	/  |			 */
+	/*		   |   11	|	12	|			 */
+	/*		   | /	\  |  /	\  |			 */
+	/*		   3 ------- 7 -------- 4			 */
+	/*											  */
 	/* ******************************************** */
 
 	/* ******************************************** */
-	/* and for triangles:                           */
-	/*                     1                        */
-	/*                   /   \                      */
-	/*                 /       \                    */
-	/*               5           7                  */
-	/*             /              \                 */
-	/*           /                  \               */
-	/*         2 --------- 6 -------- 3             */
-	/*                                              */
+	/* and for triangles:						   */
+	/*					 1						*/
+	/*				   /   \					  */
+	/*				 /	   \					*/
+	/*			   5		   7				  */
+	/*			 /			  \				 */
+	/*		   /				  \			   */
+	/*		 2 --------- 6 -------- 3			 */
+	/*											  */
 	/* ******************************************** */
 
 	/* ******************************************** */
-	/*                                              */
+	/*											  */
 	/* My talents in ascii arts are minimal so the  */
 	/* drawings don't show all possible subdivision */
-	/* just draw them on paper if you need to.      */
-	/*                                              */
+	/* just draw them on paper if you need to.	  */
+	/*											  */
 	/* ******************************************** */
 
 	for(a=0; a<tot; a++, uv+=2, col++) {
@@ -5223,7 +5223,7 @@ void subdivideflag(int flag, float rad, int beauty)
 	float fac, vec[3], vec1[3], len1, len2, len3, percent;
 	short test;
 
-    printf("in old subdivideflag\n");
+	printf("in old subdivideflag\n");
 	
 	if(beauty & B_SMOOTH) {
 		short perc= 100;
@@ -5653,5 +5653,5 @@ void subdivideflag(int flag, float rad, int beauty)
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
-    DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
