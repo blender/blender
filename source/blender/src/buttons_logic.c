@@ -955,24 +955,25 @@ static void draw_default_sensor_header(bSensor *sens,
 								short w) 
 {
 	/* Pulsing and frequency */
-	uiDefIconButBitS(block, TOG, SENS_PULSE_CONT, 1, ICON_DOTSUP,
-			 (short)(x + 10), (short)(y - 19), (short)(0.15 * (w-20)), 19,
+	uiDefIconButBitS(block, TOG, SENS_PULSE_REPEAT, 1, ICON_DOTSUP,
+			 (short)(x + 10 + 0. * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
-			 "Activate TRUE pulse mode");
+			 "Activate TRUE level triggering (pulse mode)");
+
 	uiDefIconButBitS(block, TOG, SENS_NEG_PULSE_MODE, 1, ICON_DOTSDOWN,
 			 (short)(x + 10 + 0.15 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->pulse, 0.0, 0.0, 0, 0,
-			 "Activate FALSE pulse mode");
+			 "Activate FALSE level triggering (pulse mode)");
 	uiDefButS(block, NUM, 1, "f:",
 			 (short)(x + 10 + 0.3 * (w-20)), (short)(y - 19), (short)(0.275 * (w-20)), 19,
 			 &sens->freq, 0.0, 10000.0, 0, 0,
-			 "Frequency of pulses (in 1/50 sec)");
+			 "Delay between repeated pulses (in logic tics, 0 = no delay)");
 	
 	/* value or shift? */
 	uiDefButS(block, TOG, 1, "Inv",
 			 (short)(x + 10 + 0.85 * (w-20)), (short)(y - 19), (short)(0.15 * (w-20)), 19,
 			 &sens->invert, 0.0, 0.0, 0, 0,
-			 "Invert the output of this sensor");
+			 "Invert the level (output) of this sensor");
 }
 
 static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short yco, short width,char* objectname)
@@ -2442,8 +2443,8 @@ void buttons_ketsji(uiBlock *block, Object *ob)
 				&ob->gameflag, 0, 0,0, 0,
 				"Specify a bounds object for physics");
 		if (ob->gameflag & OB_BOUNDS) {
-			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Polyheder%x4|Polytope%x5",
-				85, 125, 100, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the boundary display type");
+			uiDefButS(block, MENU, REDRAWVIEW3D, "Boundary Display%t|Box%x0|Sphere%x1|Cylinder%x2|Cone%x3|Concave Mesh %x4|Convex Polytope%x5",
+				85, 125, 140, 19, &ob->boundtype, 0, 0, 0, 0, "Selects the collision type");
 		}
 	}
 }
