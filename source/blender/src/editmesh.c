@@ -747,12 +747,6 @@ void make_editMesh()
 
 				if(me->tface) {
 					efa->tf= *tface;
-
-					if( tface->flag & TF_SELECT) {
-						if(G.f & G_FACESELECT) {
-							EM_select_face(efa, 1);
-						}
-					}
 				}
 			
 				efa->mat_nr= mface->mat_nr;
@@ -764,9 +758,15 @@ void make_editMesh()
 						efa->f |= SELECT;
 						if(me->medge==NULL) EM_select_face(efa, 1);
 					}
+					if(mface->flag & ME_HIDE) efa->h= 1;
 				}
-				if(mface->flag & ME_HIDE) efa->h= 1;
-				
+				else {
+					if( tface->flag & TF_HIDE) 
+						efa->h= 1;
+					else if( tface->flag & TF_SELECT) {
+						EM_select_face(efa, 1);
+					}
+				}
 			}
 
 			if(me->tface) tface++;
@@ -1114,6 +1114,8 @@ void load_editMesh(void)
 			*tf= efa->tf;
 				
 			if(G.f & G_FACESELECT) {
+				if( efa->h) tf->flag |= TF_HIDE;
+				else tf->flag &= ~TF_HIDE;
 				if( efa->f & SELECT)  tf->flag |= TF_SELECT;
 				else tf->flag &= ~TF_SELECT;
 			}
