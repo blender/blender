@@ -1346,7 +1346,7 @@ static void facecopy(EditFace *source,EditFace *target)
 	
 }
 
-static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
+static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts, int seltype)
 {
 	EditEdge *cedge=NULL;
 	EditVert *v[4], **verts;
@@ -1418,17 +1418,21 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts)
 		hold = addfacelist(verts[i],verts[i+1],v[right],NULL,NULL,NULL);  
 		facecopy(efa,hold);
 		if(i+1 != (vertsize-1)/2){
-		 		hold->e2->f2 |= EDGEINNER;
+            if(seltype == SUBDIV_SELECT_INNER){
+	 		   hold->e2->f2 |= EDGEINNER;
+            }
 		}
 		hold = addfacelist(verts[vertsize-2-i],verts[vertsize-1-i],v[left],NULL,NULL,NULL); 
 		facecopy(efa,hold);
 		if(i+1 != (vertsize-1)/2){
+            if(seltype == SUBDIV_SELECT_INNER){
 		 		hold->e3->f2 |= EDGEINNER;
+            }
 		}
 	}	  
 }
 
-static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
+static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts, int seltype)
 {
 	EditEdge *cedge=NULL;
 	EditVert *v[3], **verts;
@@ -1490,7 +1494,9 @@ static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts)
 	for(i=0;i<(vertsize-1);i++){
 		hold = addfacelist(verts[i],verts[i+1],v[op],NULL,NULL,NULL);  
 		if(i+1 != vertsize-1){
+            if(seltype == SUBDIV_SELECT_INNER){
 		 		hold->e2->f2 |= EDGEINNER;
+            }
 		}
 		facecopy(efa,hold);
 	}	  
@@ -2242,7 +2248,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			switch(edgecount){
 				case 0: break;
 				case 1: ef->f1 = SELECT;
-					fill_quad_single(ef, gh, numcuts);
+					fill_quad_single(ef, gh, numcuts, seltype);
 					break;   
 				case 2: ef->f1 = SELECT;
 					// if there are 2, we check if edge 1 and 3 are either both on or off that way
@@ -2266,7 +2272,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			switch(edgecount){
 				case 0: break;
 				case 1: ef->f1 = SELECT;
-					fill_tri_single(ef, gh, numcuts);
+					fill_tri_single(ef, gh, numcuts, seltype);
 					break;   
 				case 2: ef->f1 = SELECT;
 					fill_tri_double(ef, gh, numcuts);
@@ -2290,7 +2296,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	} 
 	free_tagged_edgelist(em->edges.first); 
 	
-	if(seltype == 0 && G.qual != LR_CTRLKEY){
+	if(seltype == SUBDIV_SELECT_ORIG  && G.qual != LR_CTRLKEY){
 		for(eed = em->edges.first;eed;eed = eed->next){
 			if(eed->f2 & EDGENEW){
 				eed->f |= flag;
@@ -2301,7 +2307,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 				EM_select_edge(eed,0); 
 			}
 		}   
-	} else if (seltype == 1 || G.qual == LR_CTRLKEY){
+	} else if ((seltype == SUBDIV_SELECT_INNER || seltype == SUBDIV_SELECT_INNER_SEL)|| G.qual == LR_CTRLKEY){
 		for(eed = em->edges.first;eed;eed = eed->next){
 			if(eed->f2 & EDGEINNER){
 				eed->f |= flag;

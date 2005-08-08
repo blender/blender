@@ -154,6 +154,11 @@ extern void LoopMenu(void);
 extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 
 /* ******************* editmesh_tools.c */
+
+#define SUBDIV_SELECT_ORIG      0
+#define SUBDIV_SELECT_INNER     1
+#define SUBDIV_SELECT_INNER_SEL 2
+
 extern void convert_to_triface(int all);
 extern int removedoublesflag(short flag, float limit);
 extern void xsortvert_flag(int flag);

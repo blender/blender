@@ -376,9 +376,9 @@ void CutEdgeloop(int numcuts)
 	
 	/* now cut the loops */
 	if(smooth){
-    	esubdivideflag(SELECT,0,B_SMOOTH,numcuts,1);
+    	esubdivideflag(SELECT,0,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
     } else {
-    	esubdivideflag(SELECT,0,0,numcuts,1);
+    	esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);
     }
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1){
@@ -664,9 +664,9 @@ void KnifeSubdivide(char mode)
 			eed= eed->next;
 		}
 		
-		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,0);
-		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,0);
-		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,0);
+		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
+		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
         		
 		eed=em->edges.first;
 		while(eed){
