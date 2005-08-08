@@ -684,6 +684,15 @@ static void draw_dm_mapped_edge(DerivedMesh *dm, EditEdge *eed)
 	dm->drawMappedEdgesEM(dm, draw_dm_mapped_edge__setDrawOptions, eed);
 }
 
+static int draw_dm_mapped_face_center__setDrawOptions(void *theFace, EditFace *efa)
+{
+	return theFace==efa;
+}
+static void draw_dm_mapped_face_center(DerivedMesh *dm, EditFace *efa)
+{
+	dm->drawMappedFaceCentersEM(dm, draw_dm_mapped_face_center__setDrawOptions, efa);
+}
+
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 {
 	int dmNeedsFree;
@@ -729,9 +738,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 				BIF_ThemeColor((efa->f & SELECT)?TH_FACE_DOT:TH_WIRE);
 
-				bglBegin(GL_POINTS);
-				bglVertex3fv(efa->cent);
-				bglEnd();
+				draw_dm_mapped_face_center(dm, efa);
 			}
 		}
 	}

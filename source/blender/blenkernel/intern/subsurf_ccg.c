@@ -1369,6 +1369,26 @@ static void ccgDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*s
 
 	ccgFaceIterator_free(fi);
 }
+static void ccgDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData) {
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
+	int gridSize = ccgSubSurf_getGridSize(ss);
+
+	bglBegin(GL_POINTS);
+	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
+		CCGFace *f = ccgFaceIterator_getCurrent(fi);
+		EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
+		if (efa && (!setDrawOptions || setDrawOptions(userData, efa))) {
+			VertData *vd = ccgSubSurf_getFaceCenterData(ss, f);
+
+			bglVertex3fv(vd->co);
+		}
+	}
+	bglEnd();
+
+	ccgFaceIterator_free(fi);
+}
 
 static void ccgDM_release(DerivedMesh *dm) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -1408,6 +1428,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 	ccgdm->dm.drawMappedEdgesEM = ccgDM_drawMappedEdgesEM;
 	ccgdm->dm.drawMappedFacesEM = ccgDM_drawMappedFacesEM;
 	ccgdm->dm.drawMappedFaceNormalsEM = ccgDM_drawMappedFaceNormalsEM;
+	ccgdm->dm.drawMappedFaceCentersEM = ccgDM_drawMappedFaceCentersEM;
 
 	ccgdm->dm.release = ccgDM_release;
 	

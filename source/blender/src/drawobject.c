@@ -1221,16 +1221,8 @@ static int ev_nonhidden__setDrawOptions(void *userData, EditVert *eve)
 static void draw_dm_face_normals(DerivedMesh *dm) {
 	dm->drawMappedFaceNormalsEM(dm, G.scene->editbutsize, ef_nonhiddenAndFgon__setDrawOptions, 0);
 }
-static void draw_em_face_centers(EditMesh *em, int sel) {
-	EditFace *efa;
-
-	bglBegin(GL_POINTS);
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel) {
-			bglVertex3fv(efa->cent);
-		}
-	}
-	bglEnd();
+static void draw_dm_face_centers(DerivedMesh *dm, int sel) {
+	dm->drawMappedFaceCentersEM(dm, ef_nonhiddenAndFgon__setDrawOptions, (void*) (sel+1));
 }
 
 static void draw_dm_vert_normals(DerivedMesh *dm) {
@@ -1402,7 +1394,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_FACE) {
 				glPointSize(fsize);
 				glColor4ubv(fcol);
-				draw_em_face_centers(em, sel);
+				draw_dm_face_centers(cageDM, sel);
 			}
 			
 			if (pass==0) {
@@ -1576,18 +1568,14 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 			if( (e4->f & e1->f & SELECT) || (G.moving && (efa->v1->f & SELECT)) ) {
 				/* Vec 1 */
 				sprintf(val,"%.3f", VecAngle3(v4, v1, v2));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v1->co[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v1->co[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v1->co[2];
+				VecLerpf(fvec, efa->cent, efa->v1->co, 0.8);
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
 			if( (e1->f & e2->f & SELECT) || (G.moving && (efa->v2->f & SELECT)) ) {
 				/* Vec 2 */
 				sprintf(val,"%.3f", VecAngle3(v1, v2, v3));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v2->co[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v2->co[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v3->co[2];
+				VecLerpf(fvec, efa->cent, efa->v2->co, 0.8);
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
@@ -1597,9 +1585,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v4));
 				else
 					sprintf(val,"%.3f", VecAngle3(v2, v3, v1));
-				fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v3->co[0];
-				fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v3->co[1];
-				fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v3->co[2];
+				VecLerpf(fvec, efa->cent, efa->v3->co, 0.8);
 				glRasterPos3fv(fvec);
 				BMF_DrawString( G.fonts, val);
 			}
@@ -1607,10 +1593,7 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 			if(efa->v4) {
 				if( (e3->f & e4->f & SELECT) || (G.moving && (efa->v4->f & SELECT)) ) {
 					sprintf(val,"%.3f", VecAngle3(v3, v4, v1));
-
-					fvec[0]= 0.2*efa->cent[0] + 0.8*efa->v4->co[0];
-					fvec[1]= 0.2*efa->cent[1] + 0.8*efa->v4->co[1];
-					fvec[2]= 0.2*efa->cent[2] + 0.8*efa->v4->co[2];
+					VecLerpf(fvec, efa->cent, efa->v4->co, 0.8);
 					glRasterPos3fv(fvec);
 					BMF_DrawString( G.fonts, val);
 				}
@@ -3897,7 +3880,7 @@ static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 	return offset;
 }		
 
-static int bbs_mesh_solid__setDrawOptions(void *userData, EditFace *efa)
+static int bbs_mesh_solid__setSolidDrawOptions(void *userData, EditFace *efa)
 {
 	if (efa->h==0) {
 		if (userData) {
@@ -3908,6 +3891,17 @@ static int bbs_mesh_solid__setDrawOptions(void *userData, EditFace *efa)
 		return 0;
 	}
 }
+
+int bbs_mesh_solid__setCenterDrawOptions(void *userData, EditFace *efa)
+{
+	if (efa->h==0 && efa->fgonf!=EM_FGON) {
+		set_framebuffer_index_color((int) efa->prev);
+		return 1; 
+	} else {
+		return 0;
+	}
+}
+
 /* two options, facecolors or black */
 static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 {
@@ -3922,26 +3916,19 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 			efa->prev= (EditFace *)(b);
 		a = b;
 
-		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 1);
+		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1);
 
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
-			
-			bglBegin(GL_POINTS);
-			for(efa= G.editMesh->faces.first; efa; efa= efa->next) {
-				if(efa->h==0 && efa->fgonf!=EM_FGON) {
-					set_framebuffer_index_color((int)efa->prev);
-					bglVertex3fv(efa->cent);
-				}
-			}
-			bglEnd();
+		
+			dm->drawMappedFaceCentersEM(dm, bbs_mesh_solid__setCenterDrawOptions, NULL);
 		}
 
 		for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
 			efa->prev= prevefa;
 		return a;
 	} else {
-		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setDrawOptions, (void*) 0);
+		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0);
 		return 1;
 	}
 }

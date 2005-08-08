@@ -546,6 +546,13 @@ VecAddf(
 	float *v1, 
 	float *v2
 );
+	void
+VecLerpf(
+	float *target, 
+	float *a, 
+	float *b,
+	float t
+);
 	void 
 VecUpMat3(
 	float *vec, 

@@ -1790,6 +1790,15 @@ void VecSubf(float *v, float *v1, float *v2)
 	v[2]= v1[2]- v2[2];
 }
 
+void VecLerpf(float *target, float *a, float *b, float t)
+{
+	float s = 1.0f-t;
+
+	target[0]= s*a[0] + t*b[0];
+	target[1]= s*a[1] + t*b[1];
+	target[2]= s*a[2] + t*b[2];
+}
+
 void VecMidf(float *v, float *v1, float *v2)
 {
 	v[0]= 0.5f*(v1[0]+ v2[0]);
