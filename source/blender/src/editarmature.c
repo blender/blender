@@ -461,7 +461,7 @@ static void *get_bone_from_selectbuffer(Base *base, unsigned int *buffer, short 
 	
 	for (i=0; i< hits; i++){
 		hitresult = buffer[3+(i*4)];
-		if (hitresult & BONESEL_ANY){
+		if (!(hitresult & BONESEL_NOSEL)) {
 			
 			/* Determine which points are selected */
 			hitresult &= ~(BONESEL_ANY);
