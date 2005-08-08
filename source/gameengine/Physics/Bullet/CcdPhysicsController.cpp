@@ -116,9 +116,38 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 
 }
 
-void		CcdPhysicsController::RelativeRotate(const float drot[9],bool local)
+void		CcdPhysicsController::RelativeRotate(const float rotval[12],bool local)
 {
+	if (m_body )
+	{
+		SimdMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
+								rotval[4],rotval[5],rotval[6],
+								rotval[8],rotval[9],rotval[10]);
+
+
+		SimdMatrix3x3 currentOrn;
+		GetWorldOrientation(currentOrn);
+
+		SimdTransform xform = m_body->getCenterOfMassTransform();
+
+		xform.setBasis(xform.getBasis()*(local ? 
+		drotmat : (currentOrn.inverse() * drotmat * currentOrn)));
+
+		printf("hi\n");
+		m_body->setCenterOfMassTransform(xform);
+	}
+
 }
+
+
+void CcdPhysicsController::GetWorldOrientation(SimdMatrix3x3& mat)
+{
+	float orn[4];
+	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
+	SimdQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
+	mat.setRotation(quat);
+}
+
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
 {
 }

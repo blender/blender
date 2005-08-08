@@ -16,17 +16,18 @@ RaycastCallback::RaycastCallback(const SimdVector3& from,const SimdVector3& to)
 	m_from(from),
 	m_to(to),
 	m_hitFraction(1.f),
-	m_hitProxy(0)
+	m_hitProxy(0),
+	m_hitFound(false)
 {
 
 }
 
 
-
+#include <stdio.h>
 void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 {
+	
 
-	int hits_found=0;
 	const SimdVector3 &vert0=triangle[0];
 	const SimdVector3 &vert1=triangle[1];
 	const SimdVector3 &vert2=triangle[2];
@@ -53,8 +54,11 @@ void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 	// Add an epsilon as a tolerance for the raycast,
 	// in case the ray hits exacly on the edge of the triangle.
 	// It must be scaled for the triangle size.
+	
 	if(distance < m_hitFraction)
 	{
+		
+
 		float edge_tolerance =triangleNormal.length2();		
 		edge_tolerance *= -0.0001f;
 		SimdVector3 point; point.setInterpolate3( m_from, m_to, distance);
@@ -65,6 +69,8 @@ void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 
 			if ( (float)(cp0.dot(triangleNormal)) >=edge_tolerance) 
 			{
+						
+
 				SimdVector3 v2p; v2p = vert2 -  point;
 				SimdVector3 cp1;
 				cp1 = v1p.cross( v2p);
@@ -72,23 +78,23 @@ void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 				{
 					SimdVector3 cp2;
 					cp2 = v2p.cross(v0p);
+					
 					if ( (float)(cp2.dot(triangleNormal)) >=edge_tolerance) 
 					{
 						m_hitFraction = distance;
 						if ( dist_a > 0 )
 						{
-							m_hitNormalWorld = triangleNormal;
+							m_hitNormalLocal = triangleNormal;
 						}
 						else
 						{
-							m_hitNormalWorld = -triangleNormal;
+							m_hitNormalLocal = -triangleNormal;
 						}
-						hits_found = 1;
+						
+						m_hitFound= true;
 					}
 				}
 			}
 		}
 	}
-	//return hits_found;
-
 }

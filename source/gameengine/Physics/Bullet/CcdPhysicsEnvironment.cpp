@@ -301,10 +301,11 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 {
 	
 	
-//	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
 	
 	if (timeStep == 0.f)
 		return true;
+
+	printf("CcdPhysicsEnvironment::proceedDeltaTime\n");
 
 	//clamp hardcoded for now
 	if (timeStep > 0.02)
@@ -313,8 +314,8 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	//this is needed because scaling is not known in advance, and scaling has to propagate to the shape
 	if (!m_scalingPropagated)
 	{
-		//SyncMotionStates(timeStep);
-		//m_scalingPropagated = true;
+		SyncMotionStates(timeStep);
+		m_scalingPropagated = true;
 	}
 
 
@@ -708,89 +709,7 @@ void		CcdPhysicsEnvironment::setGravity(float x,float y,float z)
 	}
 }
 
-#ifdef DASHDASJKHASDJK
-class RaycastingQueryBox : public QueryBox
-{
-	
-	SimdVector3 m_aabbMin;
-	
-	SimdVector3 m_aabbMax;
-	
-	
-	
-public:
-	
-	RaycastCallback	m_raycastCallback;
-	
-	
-	RaycastingQueryBox(QueryBoxConstructionInfo& ci,const SimdVector3& from,const SimdVector3& to)
-		: QueryBox(ci),
-		m_raycastCallback(from,to)
-	{
-		for (int i=0;i<3;i++)
-		{
-			float fromI = from[i];
-			float toI = to[i];
-			if (fromI < toI)
-			{
-				m_aabbMin[i] = fromI;
-				m_aabbMax[i] = toI;
-			} else
-			{
-				m_aabbMin[i] = toI;
-				m_aabbMax[i] = fromI;
-			}
-		}
-		
-	}
-	virtual void AddCollider( BroadphaseProxy* proxy)
-	{
-		//perform raycast if wanted, and update the m_hitFraction
-		
-		if (proxy->GetClientObjectType() == TRIANGLE_MESH_SHAPE_PROXYTYPE)
-		{
-			//do it
-			RigidBody* body = (RigidBody*)proxy->m_clientObject;
-			TriangleMeshInterface* meshInterface = (TriangleMeshInterface*)
-				body->m_minkowski1;
-			
-			//if the hit is closer, record the proxy!
-			float curFraction = m_raycastCallback.m_hitFraction;
-			
-			meshInterface->ProcessAllTriangles(&m_raycastCallback,m_aabbMin,m_aabbMax);
-			
-			if (m_raycastCallback.m_hitFraction < curFraction)
-			{
-				m_raycastCallback.m_hitProxy = proxy;
-			}
-			
-		}
-		
-	}
-};
 
-struct InternalVehicleRaycaster : public VehicleRaycaster
-{
-	
-	CcdPhysicsEnvironment* m_env;
-	
-public:
-	
-	InternalVehicleRaycaster(CcdPhysicsEnvironment* env)
-		:	m_env(env)
-	{
-		
-	}
-	
-	virtual void* CastRay(const SimdVector3& from,const SimdVector3& to, VehicleRaycasterResult& result)
-	{
-
-		return 0;
-	}
-	
-};
-
-#endif 
 int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl0,class PHY_IPhysicsController* ctrl1,PHY_ConstraintType type,
 														float pivotX,float pivotY,float pivotZ,
 														float axisX,float axisY,float axisZ)
@@ -856,10 +775,12 @@ void		CcdPhysicsEnvironment::removeConstraint(int constraintid)
 	}
 	
 }
+
 PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* ignoreClient, float fromX,float fromY,float fromZ, float toX,float toY,float toZ, 
 								float& hitX,float& hitY,float& hitZ,float& normalX,float& normalY,float& normalZ)
 {
 
+	printf("raytest\n");
 	int minFraction = 1.f;
 
 	SimdTransform	rayFromTrans,rayToTrans;
@@ -879,13 +800,17 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 	for (i=m_controllers.begin();
 	!(i==m_controllers.end()); i++)
 	{
+
 		CcdPhysicsController* ctrl = (*i);
+		if (ctrl == ignoreClient)
+			continue;
+
 		RigidBody* body = ctrl->GetRigidBody();
 
 		if (body->GetCollisionShape()->IsConvex())
 		{
 			ConvexCast::CastResult rayResult;
-			rayResult.m_fraction = 1.f;
+			rayResult.m_fraction = minFraction;
 
 			ConvexShape* convexShape = (ConvexShape*) body->GetCollisionShape();
 			VoronoiSimplexSolver	simplexSolver;
@@ -904,6 +829,41 @@ PHY_IPhysicsController* CcdPhysicsEnvironment::rayTest(PHY_IPhysicsController* i
 					hitX = rayResult.m_hitTransformA.getOrigin().getX();
 					hitY = rayResult.m_hitTransformA.getOrigin().getY();
 					hitZ = rayResult.m_hitTransformA.getOrigin().getZ();
+				}
+			}
+		} else
+		{
+			if (body->GetCollisionShape()->IsConcave())
+			{
+				TriangleMeshShape* triangleMesh = (TriangleMeshShape*)body->GetCollisionShape();
+				
+				SimdTransform worldToBody = body->getCenterOfMassTransform().inverse();
+
+				SimdVector3 rayFromLocal = worldToBody * rayFromTrans.getOrigin();
+				SimdVector3 rayToLocal = worldToBody * rayToTrans.getOrigin();
+
+				RaycastCallback	rcb(rayFromLocal,rayToLocal);
+				rcb.m_hitFraction = minFraction;
+
+				SimdVector3 aabbMax(1e30f,1e30f,1e30f);
+
+				triangleMesh->ProcessAllTriangles(&rcb,-aabbMax,aabbMax);
+				if (rcb.m_hitFound && (rcb.m_hitFraction < minFraction))
+				{
+					printf("hit %f\n",rcb.m_hitFraction);
+					nearestHit = ctrl;
+					minFraction = rcb.m_hitFraction;
+					SimdVector3 hitNormalWorld = body->getCenterOfMassTransform()(rcb.m_hitNormalLocal);
+
+					normalX = hitNormalWorld.getX();
+					normalY = hitNormalWorld.getY();
+					normalZ = hitNormalWorld.getZ();
+					SimdVector3 hitWorld;
+					hitWorld.setInterpolate3(rayFromTrans.getOrigin(),rayToTrans.getOrigin(),rcb.m_hitFraction);
+					hitX = hitWorld.getX();
+					hitY = hitWorld.getY();
+					hitZ = hitWorld.getZ();
+					
 				}
 			}
 		}

@@ -8,6 +8,8 @@
 ///	It contains the IMotionState and IDeformableMesh Interfaces.
 #include "SimdVector3.h"
 #include "SimdScalar.h"	
+#include "SimdMatrix3x3.h"
+
 class CollisionShape;
 
 extern float gDeactivationTime;
@@ -87,7 +89,7 @@ class CcdPhysicsController : public PHY_IPhysicsController
 
 		// kinematic methods
 		virtual void		RelativeTranslate(float dlocX,float dlocY,float dlocZ,bool local);
-		virtual void		RelativeRotate(const float drot[9],bool local);
+		virtual void		RelativeRotate(const float rotval[12],bool local);
 		virtual	void		getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal);
 		virtual	void		setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal);
 		virtual	void		setPosition(float posX,float posY,float posZ);
@@ -129,6 +131,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 		void	UpdateDeactivation(float timeStep);
 
 		void	SetAabb(const SimdVector3& aabbMin,const SimdVector3& aabbMax);
+
+		void GetWorldOrientation(SimdMatrix3x3& mat);
 
 
 };

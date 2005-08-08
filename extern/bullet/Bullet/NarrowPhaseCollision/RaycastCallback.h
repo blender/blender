@@ -27,8 +27,8 @@ public:
 	BroadphaseProxy*	m_hitProxy;
 
 	//output
-	SimdVector3			m_hitNormalWorld;
-
+	SimdVector3			m_hitNormalLocal;
+	bool				m_hitFound;
 
 
 	RaycastCallback(const SimdVector3& from,const SimdVector3& to);

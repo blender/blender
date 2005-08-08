@@ -4,6 +4,7 @@
 	Version="8.00"
 	Name="Bullet3ContinuousCollision"
 	ProjectGUID="{FFD3C64A-30E2-4BC7-BC8F-51818C320400}"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -277,6 +278,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldPointCollector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\NarrowPhaseCollision\ManifoldPointCollector.h"
+				>
+			</File>
+			<File
 				RelativePath=".\NarrowPhaseCollision\MinkowskiPenetrationDepthSolver.cpp"
 				>
 			</File>
@@ -426,14 +435,6 @@
 			</File>
 			<File
 				RelativePath=".\CollisionShapes\TriangleCallback.h"
-				>
-			</File>
-			<File
-				RelativePath=".\CollisionShapes\TriangleMesh.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\CollisionShapes\TriangleMesh.h"
 				>
 			</File>
 			<File
