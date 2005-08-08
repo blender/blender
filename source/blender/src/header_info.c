@@ -338,6 +338,8 @@ Scene *copy_scene(Scene *sce, int level)
 		single_obdata_users(0);
 		single_mat_users_expand();
 		single_tex_users_expand();
+		
+		scen->radio= MEM_dupallocN(sce->radio);
 	}
 
 	clear_id_newpoins();

@@ -56,6 +56,8 @@
 
 #include "BSE_view.h"
 
+#include "radio.h"
+
 #include "blendef.h" /* old */
 #include "mydevice.h"
 
@@ -127,7 +129,8 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	}
 
 	set_scene_bg(G.scene);	
-	
+	set_radglobal();
+		
 	/* complete redraw */
 	allqueue(REDRAWALL, 0);
 	allqueue(REDRAWDATASELECT, 0);	/* does a remake */
