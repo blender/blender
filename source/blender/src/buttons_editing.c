@@ -2714,8 +2714,8 @@ void do_fpaintbuts(unsigned short event)
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 		
-	case B_OPA0_0:
-		Gvp.a = 0.0f;
+	case B_OPA1_8:
+		Gvp.a = 0.125f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_OPA1_4:
@@ -2758,24 +2758,24 @@ static void editing_panel_mesh_paint(void)
 	if(ob==NULL) return;
 
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",979,160,194,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-		uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			979,140,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",			1020,140,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",			1060,140,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",			1100,140,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			1140,140,33,19, 0, 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",2010,160,400,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
+		uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 2010,140,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 2090,140,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 2170,140,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 2250,140,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 2330,140,80,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUMSLI, 0, "Opacity ",		979,120,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefBut(block, BUT, B_OPA0_0 , "0",			979,100,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_4 , "1/4",			1020,100,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_2 , "1/2",			1060,100,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA3_4 , "3/4",			1100,100,40,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_0 , "1",			1140,100,33,19, 0, 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+		uiDefButF(block, NUMSLI, 0, "Opacity ",		2010,120,400,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefBut(block, BUT, B_OPA1_8 , "1/8",		2010,100,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_4 , "1/4",		2090,100,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_2 , "1/2",		2170,100,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		2250,100,80,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_0 , "1",		2330,100,80,19, 0, 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, 0, "Size ",		2010,80,400,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 		uiBlockEndAlign(block);
 		if(ob){
 		uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	979,40,194,19	, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+		uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	2010,40,194,29, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
 		uiBlockEndAlign(block);
 		}
 	}

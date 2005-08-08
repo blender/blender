@@ -476,7 +476,7 @@ enum {
 #define B_WEIGHT3_4	    2843
 #define B_WEIGHT1_0	    2844
 
-#define B_OPA0_0	    2845
+#define B_OPA1_8	    2845
 #define B_OPA1_4	    2846
 #define B_OPA1_2	    2847
 #define B_OPA3_4	    2848
