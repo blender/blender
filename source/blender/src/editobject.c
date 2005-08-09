@@ -2170,6 +2170,7 @@ void convertmenu(void)
 				Mesh *oldme= ob->data;
 				DispListMesh *dlm;
 				DerivedMesh *dm;
+				ModifierData *md;
 
 				basedel = base;
 
@@ -2177,6 +2178,7 @@ void convertmenu(void)
 
 				ob1= copy_object(ob);
 				ob1->recalc |= OB_RECALC;
+				object_free_modifiers(ob1);
 
 				basen= MEM_mallocN(sizeof(Base), "duplibase");
 				*basen= *base;
@@ -2481,11 +2483,7 @@ static void copymenu_modifiers(Object *ob)
 
 				if (base->object->type==OB_MESH) {
 					if (event==NUM_MODIFIER_TYPES) {
-						while (base->object->modifiers.first) {
-							md = base->object->modifiers.first;
-							BLI_remlink(&base->object->modifiers, md);
-							modifier_free(md);
-						}
+						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
 							ModifierData *nmd = modifier_new(md->type);

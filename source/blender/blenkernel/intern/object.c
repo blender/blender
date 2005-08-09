@@ -172,12 +172,12 @@ static void copy_hooks(ListBase *new, ListBase *old)
 
 }
 
-static void free_modifiers(ListBase *lb)
+void object_free_modifiers(Object *ob)
 {
-	while (lb->first) {
-		ModifierData *md = lb->first;
+	while (ob->modifiers.first) {
+		ModifierData *md = ob->modifiers.first;
 
-		BLI_remlink(lb, md);
+		BLI_remlink(&ob->modifiers, md);
 
 		modifier_free(md);
 	}
@@ -223,7 +223,7 @@ void free_object(Object *ob)
 	free_effects(&ob->effect);
 	BLI_freelistN(&ob->network);
 	free_properties(&ob->prop);
-	free_modifiers(&ob->modifiers);
+	object_free_modifiers(ob);
 	
 	free_sensors(&ob->sensors);
 	free_controllers(&ob->controllers);
