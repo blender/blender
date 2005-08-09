@@ -3101,14 +3101,18 @@ static void edge_rotate(EditEdge *eed,int dir)
 	/* Create an Array of the Edges who have h set prior to rotate */
 	numhidden = 0;
 	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
-		if(srchedge->h){
+		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT)){
 			numhidden++;
 		}
 	}
-	hiddenedges = MEM_mallocN(sizeof(EditVert*)*(numhidden+1),"Hidden Vert Scratch Array for Rotate Edges");
-	numhidden = 0;
+	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1,"Hidden Vert Scratch Array for Rotate Edges");
+	if(!hiddenedges){
+        error("Malloc Was not happy!");
+        return;   
+    }
+    numhidden = 0;
 	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
-		if(srchedge->h){
+		if(srchedge->h && (srchedge->v1->f & SELECT || srchedge->v2->f & SELECT)){
 			hiddenedges[numhidden] = srchedge;
 			numhidden++;
 		}
