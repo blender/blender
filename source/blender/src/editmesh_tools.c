@@ -3105,7 +3105,7 @@ static void edge_rotate(EditEdge *eed,int dir)
 			numhidden++;
 		}
 	}
-	hiddenedges = MEM_mallocN(sizeof(EditVert*)*numhidden+1,"Hidden Vert Scratch Array for Rotate Edges");
+	hiddenedges = MEM_mallocN(sizeof(EditVert*)*(numhidden+1),"Hidden Vert Scratch Array for Rotate Edges");
 	numhidden = 0;
 	for(srchedge = em->edges.first;srchedge;srchedge = srchedge->next){
 		if(srchedge->h){
