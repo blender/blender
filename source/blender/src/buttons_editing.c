@@ -1781,7 +1781,6 @@ void do_latticebuts(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_DRAWLAT:
-		if(ob==G.obedit) calc_lattverts_ext();
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_LATTCHANGED:

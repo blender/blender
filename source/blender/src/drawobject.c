@@ -276,7 +276,7 @@ void init_draw_rects(void)
 
 static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize) 
 {
-	float hsize= (float) rectsize/2.0;
+	float hsize= (float) rectsize/2.0f;
 	GLubyte dummy= 0;
 	
 	glRasterPos3fv(pos);
@@ -836,36 +836,29 @@ static void tekenvertslatt(short sel)
 	bglEnd();	
 }
 
-static void calc_lattverts(void)
+void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
 {
-	BPoint *bp;
+	int i, N = editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	float mat[4][4];
-	int a;
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
-	
-	 bp= editLatt->def;
-	
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	while(a--) {
-		project_short(bp->vec, bp->s);
-		bp++;
-	}
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-}
-
-
-void calc_lattverts_ext(void)
-{
+	short s[2];
 
 	areawinset(curarea->win);
 	persp(PERSP_VIEW);
 	mymultmatrix(G.obedit->obmat);
-	calc_lattverts();
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	mygetsingmatrix(G.vd->persmat);
+
+	for (i=0; i<N; i++) {
+		BPoint *bp = &editLatt->def[i];
+
+		if (bp->hide==0) {
+			project_short(bp->vec, s);
+			func(userData, bp, s[0], s[1]);
+		}
+	}
+
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	myloadmatrix(G.vd->viewmat);
-	
 }
 
 
@@ -962,9 +955,6 @@ static void drawlattice(Object *ob)
 	}
 	
 	if(ob==G.obedit) {
-		
-		calc_lattverts();
-		
 		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 		
 		tekenvertslatt(0);
@@ -978,100 +968,48 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
-void calc_mesh_facedots_ext(void)
+static void mesh_foreachScreenVert__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
 {
-	EditMesh *em = G.editMesh;
-	EditFace *efa;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; } *data = userData;
+	short s[2];
+
+	if (eve->h==0) {
+		if (data->clipVerts) {
+			project_short(co, s);
+		} else {
+			project_short_noclip(co, s);
+		}
+
+		data->func(data->userData, eve, s[0], s[1], (int) eve->prev);
+	}
+}
+void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
+{
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; } data;
+	int dmNeedsFree;
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 	float mat[4][4];
+	EditVert *eve, *preveve;
+	int index;
 
-	if(em->faces.first==NULL) return;
-	efa= em->faces.first;
-
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	
-	mymultmatrix(G.obedit->obmat);
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
-
-	efa= em->faces.first;
-	while(efa) {
-		if( efa->h==0) {
-			project_short(efa->cent, &(efa->xs));
-		}
-		efa= efa->next;
-	}
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-
-	myloadmatrix(G.vd->viewmat);
-}
-
-/* window coord, assuming all matrices are set OK */
-static void calc_meshverts(DerivedMesh *dm)
-{
-	float co[3], mat[4][4];
-	EditVert *eve;
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
-
-	for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-		if(eve->h==0) {
-			dm->getMappedVertCoEM(dm, eve, co);
-			project_short(co, &(eve->xs));
-		}
-	}
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-}
-
-/* window coord for current window, sets matrices temporal */
-void calc_meshverts_ext(void)
-{
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	data.func = func;
+	data.userData = userData;
+	data.clipVerts = clipVerts;
 
 	areawinset(curarea->win);
 	persp(PERSP_VIEW);
-	
 	mymultmatrix(G.obedit->obmat);
-	calc_meshverts(dm);
-	myloadmatrix(G.vd->viewmat);
-
-	if (dmNeedsFree) {
-		dm->release(dm);
-	}
-}
-
-/* window coord for current window, sets matrices temporal, sets (eve->f & 2) when not visible */
-void calc_meshverts_ext_f2(void)
-{
-	int dmNeedsFree;
-	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	float co[3], mat[4][4];
-	EditVert *eve;
-
-	/* matrices */
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-		eve->f &= ~2;
-		if(eve->h==0) {
-			dm->getMappedVertCoEM(dm, eve, co);
-			project_short_noclip(co, &(eve->xs));
-	
-			if( eve->xs >= 0 && eve->ys >= 0 && eve->xs<curarea->winx && eve->ys<curarea->winy);
-			else eve->f |= 2;
-		}
-	}
-	
-	/* restore */
+	for (index=0,eve=G.editMesh->verts.first; eve; index++,eve= eve->next)
+		eve->prev = (EditVert*) index;
+
+	dm->foreachMappedVertEM(dm, mesh_foreachScreenVert__mapFunc, &data);
+
+	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
+		eve->prev = preveve;
+
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	myloadmatrix(G.vd->viewmat);
 
@@ -1080,53 +1018,151 @@ void calc_meshverts_ext_f2(void)
 	}
 }
 
-
-static void calc_Nurbverts(Nurb *nurb)
+static void mesh_foreachScreenEdge__mapFunc(void *userData, EditEdge *eed, float *v0co, float *v1co)
 {
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; } *data = userData;
+	short s[2][2];
+
+	if (eed->h==0) {
+		if (data->clipVerts==1) {
+			project_short(v0co, s[0]);
+			project_short(v1co, s[1]);
+		} else {
+			project_short_noclip(v0co, s[0]);
+			project_short_noclip(v1co, s[1]);
+
+			if (data->clipVerts==2) {
+                if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<curarea->winx && s[0][1]<curarea->winy)) 
+					if (!(s[1][0]>=0 && s[1][1]>= 0 && s[1][0]<curarea->winx && s[1][1]<curarea->winy)) 
+						return;
+			}
+		}
+
+		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], (int) eed->prev);
+	}
+}
+void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
+{
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; } data;
+	int dmNeedsFree;
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	float mat[4][4];
+	EditEdge *eed, *preveed;
+	int index;
+
+	data.func = func;
+	data.userData = userData;
+	data.clipVerts = clipVerts;
+
+	areawinset(curarea->win);
+	persp(PERSP_VIEW);
+	mymultmatrix(G.obedit->obmat);
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	mygetsingmatrix(G.vd->persmat);
+
+	for (index=0,eed=G.editMesh->edges.first; eed; index++,eed= eed->next)
+		eed->prev = (EditEdge*) index;
+
+	dm->foreachMappedEdgeEM(dm, mesh_foreachScreenEdge__mapFunc, &data);
+
+	for (preveed=NULL, eed=G.editMesh->edges.first; eed; preveed=eed, eed= eed->next)
+		eed->prev = preveed;
+
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	myloadmatrix(G.vd->viewmat);
+
+	if (dmNeedsFree) {
+		dm->release(dm);
+	}
+}
+
+static void mesh_foreachScreenFace__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
+{
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; } *data = userData;
+	short s[2];
+
+	if (efa && efa->fgonf!=EM_FGON) {
+		project_short(cent, s);
+
+		data->func(data->userData, efa, s[0], s[1], (int) efa->prev);
+	}
+}
+void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
+{
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; } data;
+	int dmNeedsFree;
+	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
+	float mat[4][4];
+	EditFace *efa, *prevefa;
+	int index = 0;
+
+	data.func = func;
+	data.userData = userData;
+
+	areawinset(curarea->win);
+	persp(PERSP_VIEW);
+	mymultmatrix(G.obedit->obmat);
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	mygetsingmatrix(G.vd->persmat);
+
+	for (index=0,efa=G.editMesh->faces.first; efa; index++,efa= efa->next)
+		efa->prev = (EditFace*) index;
+
+	dm->foreachMappedFaceCenterEM(dm, mesh_foreachScreenFace__mapFunc, &data);
+
+	for (prevefa=NULL, efa=G.editMesh->faces.first; efa; prevefa=efa, efa= efa->next)
+		efa->prev = prevefa;
+
+	MTC_Mat4SwapMat4(G.vd->persmat, mat);
+	myloadmatrix(G.vd->viewmat);
+
+	if (dmNeedsFree) {
+		dm->release(dm);
+	}
+}
+
+void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
+{
+	float mat[4][4];
+	short s[2];
 	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	float mat[4][4];
-	int a;
+	int i;
 
+	areawinset(curarea->win);
+	persp(PERSP_VIEW);
+	mymultmatrix(G.obedit->obmat);
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
 	mygetsingmatrix(G.vd->persmat);
 
-	nu= nurb;
-	while(nu) {
-		if((nu->type & 7)==1) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				project_short(bezt->vec[0], bezt->s[0]);
-				project_short(bezt->vec[1], bezt->s[1]);
-				project_short(bezt->vec[2], bezt->s[2]);
-				bezt++;
+	for (nu= editNurb.first; nu; nu=nu->next) {
+		if((nu->type & 7)==CU_BEZIER) {
+			for (i=0; i<nu->pntsu; i++) {
+				BezTriple *bezt = &nu->bezt[i];
+
+				if(bezt->hide==0) {
+					project_short(bezt->vec[0], s);
+					func(userData, nu, NULL, bezt, 0, s[0], s[1]);
+					project_short(bezt->vec[1], s);
+					func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+					project_short(bezt->vec[2], s);
+					func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+				}
 			}
 		}
 		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				project_short(bp->vec, bp->s);
-				bp++;
+			for (i=0; i<nu->pntsu*nu->pntsv; i++) {
+				BPoint *bp = &nu->bp[i];
+
+				if(bp->hide==0) {
+					project_short(bp->vec, s);
+					func(userData, nu, bp, NULL, -1, s[0], s[1]);
+				}
 			}
 		}
-		nu= nu->next;
 	}
 
 	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-}
-
-void calc_nurbverts_ext(void)
-{
-
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	calc_Nurbverts(editNurb.first);
 	myloadmatrix(G.vd->viewmat);
-	
 }
 
 ////
@@ -1205,40 +1241,72 @@ static unsigned char *calc_weightpaint_colors(Object *ob)
  * logic!!!
  */
 
-static int ef_nonhiddenAndFgon__setDrawOptions(void *userData, EditFace *efa)
+static void draw_dm_face_normals__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
 {
-	if (userData) {
-		int sel = ((int) userData) - 1;
-		return (efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel);
-	} else {
-		return (efa->h==0 && efa->fgonf!=EM_FGON);
+	if (efa->h==0 && efa->fgonf!=EM_FGON) {
+		glVertex3fv(cent);
+		glVertex3f(	cent[0] + no[0]*G.scene->editbutsize,
+					cent[1] + no[1]*G.scene->editbutsize,
+					cent[2] + no[2]*G.scene->editbutsize);
 	}
 }
-static int ev_nonhidden__setDrawOptions(void *userData, EditVert *eve)
-{
-	return (eve->h==0);
-}
 static void draw_dm_face_normals(DerivedMesh *dm) {
-	dm->drawMappedFaceNormalsEM(dm, G.scene->editbutsize, ef_nonhiddenAndFgon__setDrawOptions, 0);
-}
-static void draw_dm_face_centers(DerivedMesh *dm, int sel) {
-	dm->drawMappedFaceCentersEM(dm, ef_nonhiddenAndFgon__setDrawOptions, (void*) (sel+1));
-}
-
-static void draw_dm_vert_normals(DerivedMesh *dm) {
-	dm->drawMappedVertNormalsEM(dm, G.scene->editbutsize, ev_nonhidden__setDrawOptions, 0);
+	glBegin(GL_LINES);
+	dm->foreachMappedFaceCenterEM(dm, draw_dm_face_normals__mapFunc, 0);
+	glEnd();
 }
 
-	/* Draw verts with color set based on selection */
-static int draw_dm_verts__setDrawOptions(void *userData, EditVert *eve)
+static void draw_dm_face_centers__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
 {
 	int sel = *((int*) userData);
 
-	return (eve->h==0 && (eve->f&SELECT)==sel);
+	if (efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel) {
+		bglVertex3fv(cent);
+	}
+}
+static void draw_dm_face_centers(DerivedMesh *dm, int sel)
+{
+	bglBegin(GL_POINTS);
+	dm->foreachMappedFaceCenterEM(dm, draw_dm_face_centers__mapFunc, &sel);
+	bglEnd();
+}
+
+static void draw_dm_vert_normals__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+{
+	if (eve->h==0) {
+		glVertex3fv(co);
+
+		if (no_f) {
+			glVertex3f(	co[0] + no_f[0]*G.scene->editbutsize,
+						co[1] + no_f[1]*G.scene->editbutsize,
+						co[2] + no_f[2]*G.scene->editbutsize);
+		} else {
+			glVertex3f(	co[0] + no_s[0]*G.scene->editbutsize/32767.0f,
+						co[1] + no_s[1]*G.scene->editbutsize/32767.0f,
+						co[2] + no_s[2]*G.scene->editbutsize/32767.0f);
+		}
+	}
+}
+static void draw_dm_vert_normals(DerivedMesh *dm) {
+	glBegin(GL_LINES);
+	dm->foreachMappedVertEM(dm, draw_dm_vert_normals__mapFunc, NULL);
+	glEnd();
+}
+
+	/* Draw verts with color set based on selection */
+static void draw_dm_verts__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+{
+	int sel = *((int*) userData);
+
+	if (eve->h==0 && (eve->f&SELECT)==sel) {
+		bglVertex3fv(co);
+	}
 }
 static void draw_dm_verts(DerivedMesh *dm, int sel)
 {
-	dm->drawMappedVertsEM(dm, draw_dm_verts__setDrawOptions, &sel);
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVertEM(dm, draw_dm_verts__mapFunc, &sel);
+	bglEnd();
 }
 
 	/* Draw edges with color set based on selection */
@@ -1671,7 +1739,6 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	}
 
 	if(ob==G.obedit) {
-		calc_meshverts(cageDM);
 		draw_em_fancy_verts(em, cageDM);
 
 		if(G.f & G_DRAWNORMALS) {
@@ -2735,8 +2802,6 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 			nu= nu->next;
 		}
 	}
-
-	calc_Nurbverts(nurb);
 
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -3833,13 +3898,11 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static int bbs_mesh_verts__setDrawOptions(void *userData, EditVert *eve)
+static void bbs_mesh_verts__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
 {
 	if (eve->h==0) {
 		set_framebuffer_index_color((int) eve->prev);
-		return 1;
-	} else {
-		return 0;
+		bglVertex3fv(co);
 	}
 }
 static int bbs_mesh_verts(DerivedMesh *dm, int offset)
@@ -3850,7 +3913,9 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 		eve->prev = (EditVert*) offset++;
 
 	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
-	dm->drawMappedVertsEM(dm, bbs_mesh_verts__setDrawOptions, NULL);
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVertEM(dm, bbs_mesh_verts__mapFunc, NULL);
+	bglEnd();
 	glPointSize(1.0);
 
 	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
@@ -3892,13 +3957,12 @@ static int bbs_mesh_solid__setSolidDrawOptions(void *userData, EditFace *efa)
 	}
 }
 
-int bbs_mesh_solid__setCenterDrawOptions(void *userData, EditFace *efa)
+static void bbs_mesh_solid__drawCenter(void *userData, EditFace *efa, float *cent, float *no)
 {
 	if (efa->h==0 && efa->fgonf!=EM_FGON) {
 		set_framebuffer_index_color((int) efa->prev);
-		return 1; 
-	} else {
-		return 0;
+
+		bglVertex3fv(cent);
 	}
 }
 
@@ -3921,7 +3985,9 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
-			dm->drawMappedFaceCentersEM(dm, bbs_mesh_solid__setCenterDrawOptions, NULL);
+			bglBegin(GL_POINTS);
+			dm->foreachMappedFaceCenterEM(dm, bbs_mesh_solid__drawCenter, NULL);
+			bglEnd();
 		}
 
 		for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)

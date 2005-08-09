@@ -504,27 +504,7 @@ typedef struct {
 	float (*faceNos)[3];
 } EditMeshDerivedMesh;
 
-static void emDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-
-	if (emdm->vertexCos) {
-		EditVert *eve;
-		int i;
-
-		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
-			if (eve==vert) {
-				VECCOPY(co_r, emdm->vertexCos[i]);
-				break;
-			}
-		}
-	} else {
-		EditVert *eve = vert;
-
-		VECCOPY(co_r, eve->co);
-	}
-}
-static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
+static void emDM_foreachMappedVertEM(DerivedMesh *dm, void (*func)(void *userData, EditVert *vert, float *co, float *no_f, short *no_s), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve;
@@ -532,19 +512,33 @@ static void emDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	if (emdm->vertexCos) {
 		int i;
 
-		bglBegin(GL_POINTS);
-		for(i=0,eve= emdm->em->verts.first; eve; i++,eve= eve->next) {
-			if(!setDrawOptions || setDrawOptions(userData, eve))
-				bglVertex3fv(emdm->vertexCos[i]);
+		for (i=0,eve= emdm->em->verts.first; eve; i++,eve=eve->next) {
+			func(userData, eve, emdm->vertexCos[i], emdm->vertexNos[i], NULL);
 		}
-		bglEnd();		
 	} else {
-		bglBegin(GL_POINTS);
-		for(eve= emdm->em->verts.first; eve; eve= eve->next) {
-			if(!setDrawOptions || setDrawOptions(userData, eve))
-				bglVertex3fv(eve->co);
+		for (eve= emdm->em->verts.first; eve; eve=eve->next) {
+			func(userData, eve, eve->co, eve->no, NULL);
 		}
-		bglEnd();		
+	}
+}
+static void emDM_foreachMappedEdgeEM(DerivedMesh *dm, void (*func)(void *userData, EditEdge *eed, float *v0co, float *v1co), void *userData)
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditEdge *eed;
+
+	if (emdm->vertexCos) {
+		EditVert *eve, *preveve;
+		int i;
+
+		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
+			eve->prev = (EditVert*) i++;
+		for(eed= emdm->em->edges.first; eed; eed= eed->next)
+			func(userData, eed, emdm->vertexCos[(int) eed->v1->prev], emdm->vertexCos[(int) eed->v2->prev]);
+		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
+			eve->prev = preveve;
+	} else {
+		for(eed= emdm->em->edges.first; eed; eed= eed->next)
+			func(userData, eed, eed->v1->co, eed->v2->co);
 	}
 }
 static void emDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) 
@@ -643,7 +637,7 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 		VecMulf(cent, 0.33333333333f);
 	}
 }
-static void emDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+static void emDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *userData, EditFace *efa, float *co, float *no), void *userData)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditVert *eve, *preveve;
@@ -656,78 +650,16 @@ static void emDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(
 			eve->prev = (EditVert*) i++;
 	}
 
-	bglBegin(GL_POINTS);
 	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
-		if(!setDrawOptions || setDrawOptions(userData, efa)) {
-			emDM__calcFaceCent(efa, cent, emdm->vertexCos);
-			bglVertex3fv(cent);
-		}
-	}
-	bglEnd();
-
-	if (emdm->vertexCos) {
-		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
-			eve->prev = preveve;
-	}
-}
-static void emDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditVert *eve, *preveve;
-	EditFace *efa;
-	float cent[3];
-	int i;
-
-	glBegin(GL_LINES);
-	if (emdm->vertexCos) {
-		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)
-			eve->prev = (EditVert*) i++;
-	}
-
-
-	for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
-		if(!setDrawOptions || setDrawOptions(userData, efa)) {
-			float *no = emdm->vertexCos?emdm->faceNos[i]:efa->n;
-
-			emDM__calcFaceCent(efa, cent, emdm->vertexCos);
-
-			glVertex3fv(cent);
-			glVertex3f(	cent[0] + length*no[0],
-						cent[1] + length*no[1],
-						cent[2] + length*no[2]);
-		}
+		emDM__calcFaceCent(efa, cent, emdm->vertexCos);
+		func(userData, efa, cent, emdm->vertexCos?emdm->faceNos[i]:efa->n);
+		bglVertex3fv(cent);
 	}
 
 	if (emdm->vertexCos) {
 		for (preveve=NULL, eve=emdm->em->verts.first; eve; preveve=eve, eve= eve->next)
 			eve->prev = preveve;
 	}
-
-	glEnd();
-}
-static void emDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData)
-{
-	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
-	EditVert *eve;
-	int i;
-
-	glBegin(GL_LINES);
-	for (i=0,eve= emdm->em->verts.first; eve; i++,eve= eve->next) {
-		if(!setDrawOptions || setDrawOptions(userData, eve)) {
-			if (emdm->vertexCos) {
-				glVertex3fv(emdm->vertexCos[i]);
-				glVertex3f(	emdm->vertexCos[i][0] + length*emdm->vertexNos[i][0],
-							emdm->vertexCos[i][1] + length*emdm->vertexNos[i][1],
-							emdm->vertexCos[i][2] + length*emdm->vertexNos[i][2]);
-			} else {
-				glVertex3fv(eve->co);
-				glVertex3f(	eve->co[0] + length*eve->no[0],
-							eve->co[1] + length*eve->no[1],
-							eve->co[2] + length*eve->no[2]);
-			}
-		}
-	}
-	glEnd();
 }
 static void emDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
 {
@@ -865,17 +797,13 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, float (*vertexCos)[3])
 
 	emdm->dm.getNumVerts = emDM_getNumVerts;
 	emdm->dm.getNumFaces = emDM_getNumFaces;
-	emdm->dm.getMappedVertCoEM = emDM_getMappedVertCoEM;
-
-	emdm->dm.drawMappedVertsEM = emDM_drawMappedVertsEM;
+	emdm->dm.foreachMappedVertEM = emDM_foreachMappedVertEM;
+	emdm->dm.foreachMappedEdgeEM = emDM_foreachMappedEdgeEM;
+	emdm->dm.foreachMappedFaceCenterEM = emDM_foreachMappedFaceCenterEM;
 
 	emdm->dm.drawEdges = emDM_drawEdges;
 	emdm->dm.drawMappedEdgesEM = emDM_drawMappedEdgesEM;
 	emdm->dm.drawMappedEdgesInterpEM = emDM_drawMappedEdgesInterpEM;
-	
-	emdm->dm.drawMappedVertNormalsEM = emDM_drawMappedVertNormalsEM;
-	emdm->dm.drawMappedFaceNormalsEM = emDM_drawMappedFaceNormalsEM;
-	emdm->dm.drawMappedFaceCentersEM = emDM_drawMappedFaceCentersEM;
 
 	emdm->dm.drawFacesSolid = emDM_drawFacesSolid;
 	emdm->dm.drawMappedFacesEM = emDM_drawMappedFacesEM;
@@ -946,37 +874,34 @@ typedef struct {
 	EditFace **faceMap;
 } SSDerivedMesh;
 
-static void ssDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3])
+static void ssDM_foreachMappedVertEM(DerivedMesh *dm, void (*func)(void *userData, EditVert *vert, float *co, float *no_f, short *no_s), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
+	int i;
 
 	if (ssdm->vertMap) {
-		int i;
-
 		for (i=0; i<dlm->totvert; i++) {
-			if (ssdm->vertMap[i]==vert) {
-				VECCOPY(co_r, dlm->mvert[i].co);
-				break;
+			if (ssdm->vertMap[i]) {
+				func(userData, ssdm->vertMap[i], dlm->mvert[i].co, NULL, dlm->mvert[i].no);
 			}
 		}
 	}
 }
-static void ssDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData)
+static void ssDM_foreachMappedEdgeEM(DerivedMesh *dm, void (*func)(void *userData, EditEdge *eed, float *v0co, float *v1co), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
+	int i;
 
-	if (ssdm->vertMap) {
-		int i;
+	if (ssdm->edgeMap) {
+		for (i=0; i<dlm->totedge; i++) {
+			if (ssdm->edgeMap[i]) {
+				MEdge *med = &dlm->medge[i];
 
-		bglBegin(GL_POINTS);
-		for (i=0; i<dlm->totvert; i++) {
-			if(ssdm->vertMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->vertMap[i]))) {
-				bglVertex3fv(dlm->mvert[i].co);
+				func(userData, ssdm->edgeMap[i], dlm->mvert[med->v1].co, dlm->mvert[med->v2].co);
 			}
 		}
-		bglEnd();
 	}
 }
 static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) 
@@ -999,49 +924,15 @@ static void ssDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	}
 }
 
-static void ssDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
+static void ssDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *userData, EditFace *efa, float *co, float *no), void *userData)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
 	int i;
 
 	if (ssdm->faceMap) {
-		bglBegin(GL_POINTS);
 		for (i=0; i<dlm->totface; i++) {
-			if(ssdm->faceMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->faceMap[i]))) {
-				MFace *mf = &dlm->mface[i];
-
-				if (mf->v3) {
-					float cent[3];
-
-					VECCOPY(cent, dlm->mvert[mf->v1].co);
-					VecAddf(cent, cent, dlm->mvert[mf->v2].co);
-					VecAddf(cent, cent, dlm->mvert[mf->v3].co);
-
-					if (mf->v4) {
-						VecAddf(cent, cent, dlm->mvert[mf->v4].co);
-						VecMulf(cent, 0.25f);
-					} else {
-						VecMulf(cent, 0.33333333333f);
-					}
-
-					bglVertex3fv(cent);
-				}
-			}
-		}
-		bglEnd();
-	}
-}
-static void ssDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	int i;
-
-	if (ssdm->faceMap) {
-		glBegin(GL_LINES);
-		for (i=0; i<dlm->totface; i++) {
-			if(ssdm->faceMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->faceMap[i]))) {
+			if(ssdm->faceMap[i]) {
 				MFace *mf = &dlm->mface[i];
 
 				if (mf->v3) {
@@ -1061,36 +952,10 @@ static void ssDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*se
 						VecMulf(cent, 0.33333333333f);
 					}
 
-					glVertex3fv(cent);
-					glVertex3f(	cent[0] + length*no[0],
-								cent[1] + length*no[1],
-								cent[2] + length*no[2]);
+					func(userData, ssdm->faceMap[i], cent, no);
 				}
 			}
 		}
-		glEnd();
-	}
-}
-static void ssDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	int i;
-
-	if (ssdm->vertMap) {
-		glBegin(GL_LINES);
-		for (i=0; i<dlm->totvert; i++) {
-			if(ssdm->vertMap[i] && (!setDrawOptions || setDrawOptions(userData, ssdm->vertMap[i]))) {
-				float *co = dlm->mvert[i].co;
-				short *no = dlm->mvert[i].no;
-
-				glVertex3fv(co);
-				glVertex3f(	co[0] + length*no[0]/32767.0,
-							co[1] + length*no[1]/32767.0,
-							co[2] + length*no[2]/32767.0);
-			}
-		}
-		glEnd();
 	}
 }
 static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditFace *face), void *userData)
@@ -1459,16 +1324,13 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 
 		/* EM functions */
 	
-	ssdm->dm.getMappedVertCoEM = ssDM_getMappedVertCoEM;
-	ssdm->dm.drawMappedVertsEM = ssDM_drawMappedVertsEM;
-
+	ssdm->dm.foreachMappedVertEM = ssDM_foreachMappedVertEM;
+	ssdm->dm.foreachMappedEdgeEM = ssDM_foreachMappedEdgeEM;
+	ssdm->dm.foreachMappedFaceCenterEM = ssDM_foreachMappedFaceCenterEM;
+	
 	ssdm->dm.drawMappedEdgesEM = ssDM_drawMappedEdgesEM;
 	ssdm->dm.drawMappedEdgesInterpEM = NULL; // no way to implement this one
 	
-	ssdm->dm.drawMappedVertNormalsEM = ssDM_drawMappedVertNormalsEM;
-	ssdm->dm.drawMappedFaceNormalsEM = ssDM_drawMappedFaceNormalsEM;
-	ssdm->dm.drawMappedFaceCentersEM = ssDM_drawMappedFaceCentersEM;
-
 	ssdm->dm.drawMappedFacesEM = ssDM_drawMappedFacesEM;
 
 	ssdm->dm.release = ssDM_release;

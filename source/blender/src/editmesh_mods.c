@@ -194,13 +194,22 @@ static unsigned int *read_backbuf(short xmin, short ymin, short xmax, short ymax
 
 
 /* smart function to sample a rect spiralling outside, nice for backbuf selection */
-static unsigned int sample_backbuf_rect(unsigned int *buf, int size, unsigned int min, unsigned int max, short *dist)
+static unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, short *dist)
 {
-	unsigned int *bufmin, *bufmax;
+	unsigned int *buf, *bufmin, *bufmax;
+	int minx, miny;
 	int a, b, rc, nr, amount, dirvec[4][2];
 	short distance=0;
+	unsigned int index = 0;
 	
 	amount= (size-1)/2;
+
+	minx = mval[0]-(amount+1);
+	miny = mval[1]-(amount+1);
+	buf = read_backbuf(minx, miny, minx+size-1, miny+size-1);
+	if (!buf)
+		return 0;
+
 	rc= 0;
 	
 	dirvec[0][0]= 1; dirvec[0][1]= 0;
@@ -216,23 +225,26 @@ static unsigned int sample_backbuf_rect(unsigned int *buf, int size, unsigned in
 		
 		for(a=0; a<2; a++) {
 			for(b=0; b<nr; b++, distance++) {
-				
-				if(*buf && *buf>=min && *buf<max ) {
-					*dist= (short) sqrt( (float)distance );
-					return *buf - min+1;	// messy yah, but indices start at 1
+				if (*buf && *buf>=min && *buf<max) {
+					*dist= (short) sqrt( (float)distance ); // XXX, this distance is wrong - zr
+					index = *buf - min+1; // messy yah, but indices start at 1
+					goto exit;
 				}
 				
 				buf+= (dirvec[rc][0]+dirvec[rc][1]);
 				
 				if(buf<bufmin || buf>=bufmax) {
-					return 0;
+					goto exit;
 				}
 			}
 			rc++;
 			rc &= 3;
 		}
 	}
-	return 0;
+
+exit:
+	MEM_freeN(bufmin);
+	return index;
 }
 
 /* facilities for border select and circle select */
@@ -302,14 +314,15 @@ int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax)
 	
 	a= (xmax-xmin+1)*(ymax-ymin+1);
 	while(a--) {
-		if(*dr>0 && *dr<=em_vertoffs) selbuf[*dr]= 1;
+		if(*dr>0 && *dr<=em_vertoffs) 
+			selbuf[*dr]= 1;
 		dr++;
 	}
 	MEM_freeN(buf);
 	return 1;
 }
 
-int EM_check_backbuf_border(unsigned int index)
+int EM_check_backbuf(unsigned int index)
 {
 	if(selbuf==NULL) return 1;
 	if(index>0 && index<=em_vertoffs)
@@ -317,7 +330,7 @@ int EM_check_backbuf_border(unsigned int index)
 	return 0;
 }
 
-void EM_free_backbuf_border(void)
+void EM_free_backbuf(void)
 {
 	if(selbuf) MEM_freeN(selbuf);
 	selbuf= NULL;
@@ -416,265 +429,241 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 	
 }
 
-
-static EditVert *findnearestvert_f(short *dist, short sel)
+static void findnearestvert__doClosest(void *userData, EditVert *eve, int x, int y, int index)
 {
-	static EditVert *acto= NULL;
-	EditMesh *em = G.editMesh;
-	/* if sel==1 the vertices with flag==1 get a disadvantage */
-	EditVert *eve,*act=NULL;
-	short temp, mval[2];
+	struct { short mval[2], pass, select, dist; int lastIndex, closestIndex; EditVert *closest; } *data = userData;
 
-	if(em->verts.first==NULL) return NULL;
-
-	/* do projection */
-	calc_meshverts_ext();	/* drawobject.c */
-	
-	/* we count from acto->next to last, and from first to acto */
-	/* does acto exist? */
-	eve= em->verts.first;
-	while(eve) {
-		if(eve==acto) break;
-		eve= eve->next;
+	if (data->pass==0) {
+		if (index<=data->lastIndex)
+			return;
+	} else {
+		if (index>data->lastIndex)
+			return;
 	}
-	if(eve==NULL) acto= em->verts.first;
 
-	/* is there an indicated vertex? part 1 */
-	getmouseco_areawin(mval);
-	eve= acto->next;
-	while(eve) {
-		if(eve->h==0 && eve->xs!=3200) {
-			temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
-			if( (eve->f & 1)==sel ) temp+=5;
-			if(temp< *dist) {
-				act= eve;
-				*dist= temp;
-				if(*dist<4) break;
-			}
-		}
-		eve= eve->next;
-	}
-	/* is there an indicated vertex? part 2 */
-	if(*dist>3) {
-		eve= em->verts.first;
-		while(eve) {
-			if(eve->h==0 && eve->xs!=3200) {
-				temp= abs(mval[0]- eve->xs)+ abs(mval[1]- eve->ys);
-				if( (eve->f & 1)==sel ) temp+=5;
-				if(temp< *dist) {
-					act= eve;
-					if(temp<4) break;
-					*dist= temp;
-				}
-				if(eve== acto) break;
-			}
-			eve= eve->next;
+	if (data->dist>3) {
+		short temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
+		if ((eve->f&1)==data->select) temp += 5;
+
+		if (temp<data->dist) {
+			data->dist = temp;
+			data->closest = eve;
+			data->closestIndex = index;
 		}
 	}
-
-	acto= act;
-	return act;
 }
-
-/* backbuffer version */
 static EditVert *findnearestvert(short *dist, short sel)
 {
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		EditVert *eve=NULL;
-		unsigned int *buf;
-		int a=1, index;
-		short mval[2], distance=255;
-		
-		getmouseco_areawin(mval);
-		
-		// sample colorcode 
-		buf= read_backbuf(mval[0]-25, mval[1]-25, mval[0]+24, mval[1]+24);
-		if(buf) {
-			index= sample_backbuf_rect(buf, 50, em_wireoffs, 0xFFFFFF, &distance); // globals, set in drawobject.c
-			MEM_freeN(buf);
-			if(distance < *dist) {
-				if(index>0) for(eve= G.editMesh->verts.first; eve; eve= eve->next, a++) if(index==a) break;
-				if(eve) *dist= distance;
-			}
-		}
-		return eve;
-	}
-	else return findnearestvert_f(dist, sel);
-}
-
-/* helper for findnearest edge */
-static float dist_mval_edge(short *mval, EditEdge *eed)
-{
-	float v1[2], v2[2], mval2[2];
-
-	mval2[0] = (float)mval[0];
-	mval2[1] = (float)mval[1];
-	
-	v1[0] = eed->v1->xs;
-	v1[1] = eed->v1->ys;
-	v2[0] = eed->v2->xs;
-	v2[1] = eed->v2->ys;
-	
-	return PdistVL2Dfl(mval2, v1, v2);
-}
-
-static EditEdge *findnearestedge_f(short *dist)
-{
-	EditMesh *em = G.editMesh;
-	EditEdge *closest, *eed;
-	EditVert *eve;
-	short mval[2], distance;
-	
-	if(em->edges.first==NULL) return NULL;
-	else eed= em->edges.first;	
-	
-	calc_meshverts_ext_f2();     	/* sets/clears (eve->f & 2) for vertices that aren't visible */
+	short mval[2];
 
 	getmouseco_areawin(mval);
-	closest=NULL;
-	
-	/*compare the distance to the rest of the edges and find the closest one*/
-	eed=em->edges.first;
-	while(eed) {
-		/* Are both vertices of the edge ofscreen or either of them hidden? then don't select the edge*/
-		if( !((eed->v1->f & 2) && (eed->v2->f & 2)) && eed->h==0){
-			
-			distance= dist_mval_edge(mval, eed);
-			if(eed->f & SELECT) distance+=5;
-			if(distance < *dist) {
-				*dist= distance;
-				closest= eed;
-			}
+		
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		short distance;
+		unsigned int index = sample_backbuf_rect(mval, 50, em_wireoffs, 0xFFFFFF, &distance);
+		EditVert *eve = BLI_findlink(&G.editMesh->verts, index-1);
+
+		if (eve && distance < *dist) {
+			*dist = distance;
+			return eve;
+		} else {
+			return NULL;
 		}
-		eed= eed->next;
 	}
-	
-	/* reset flags */	
-	for(eve=em->verts.first; eve; eve=eve->next){
-		eve->f &= ~2;
+	else {
+		struct { short mval[2], pass, select, dist; int lastIndex, closestIndex; EditVert *closest; } data;
+		static int lastSelectedIndex=0;
+		static EditVert *lastSelected=NULL;
+
+		if (lastSelected && BLI_findlink(&G.editMesh->verts, lastSelectedIndex)!=lastSelected) {
+			lastSelectedIndex = 0;
+			lastSelected = NULL;
+		}
+
+		data.lastIndex = lastSelectedIndex;
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.select = sel;
+		data.dist = *dist;
+		data.closest = NULL;
+		data.closestIndex = 0;
+
+		data.pass = 0;
+		mesh_foreachScreenVert(findnearestvert__doClosest, &data, 1);
+
+		if (data.dist>3) {
+			data.pass = 1;
+			mesh_foreachScreenVert(findnearestvert__doClosest, &data, 1);
+		}
+
+		*dist = data.dist;
+		lastSelected = data.closest;
+		lastSelectedIndex = data.closestIndex;
+
+		return data.closest;
 	}
-	
-	return closest;
 }
 
-/* backbuffer version */
+static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+{
+	struct { float mval[2]; short dist; EditEdge *closest; } *data = userData;
+	float v1[2], v2[2];
+	short distance;
+		
+	v1[0] = x0;
+	v1[1] = y0;
+	v2[0] = x1;
+	v2[1] = y1;
+		
+	distance= PdistVL2Dfl(data->mval, v1, v2);
+		
+	if(eed->f & SELECT) distance+=5;
+	if(distance < data->dist) {
+		data->dist = distance;
+		data->closest = eed;
+	}
+}
 EditEdge *findnearestedge(short *dist)
 {
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		EditEdge *eed=NULL;
-		unsigned int *buf, index;
-		int a=1;
-		short mval[2], distance=255;
+	short mval[2];
 		
-		getmouseco_areawin(mval);
-		// sample colorcode 
-
-		buf= read_backbuf(mval[0]-25, mval[1]-25, mval[0]+24, mval[1]+24);
-		if(buf) {
-			index= sample_backbuf_rect(buf, 50, em_solidoffs, em_wireoffs, &distance); // global, set in drawobject.c
-			MEM_freeN(buf);
-			if(distance < *dist) {
-				if(index>0 && index<=em_wireoffs-em_solidoffs) {
-					for(eed= G.editMesh->edges.first; eed; eed= eed->next, a++) 
-						if(index==a) break;
-				}
-				if(eed) *dist= distance;
-			}
-		}
-		
-		return eed;
-	}
-	else return findnearestedge_f(dist);
-}
-
-
-static EditFace *findnearestface_f(short *dist)
-{
-	static EditFace *acto= NULL;
-	EditMesh *em = G.editMesh;
-	/* if selected the faces with flag==1 get a disadvantage */
-	EditFace *efa, *act=NULL;
-	short temp, mval[2];
-
-	if(em->faces.first==NULL) return NULL;
-
-	/* do projection */
-	calc_mesh_facedots_ext();
-	
-	/* we count from acto->next to last, and from first to acto */
-	/* does acto exist? */
-	efa= em->faces.first;
-	while(efa) {
-		if(efa==acto) break;
-		efa= efa->next;
-	}
-	if(efa==NULL) acto= em->faces.first;
-
-	/* is there an indicated face? part 1 */
 	getmouseco_areawin(mval);
-	efa= acto->next;
-	while(efa) {
-		if(efa->h==0 && efa->fgonf!=EM_FGON) {
-			temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
-			if(temp< *dist) {
-				act= efa;
-				*dist= temp;
-			}
-		}
-		efa= efa->next;
-	}
-	/* is there an indicated face? part 2 */
-	if(*dist>3) {
-		efa= em->faces.first;
-		while(efa) {
-			if(efa->h==0 && efa->fgonf!=EM_FGON) {
-				temp= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
-				if(temp< *dist) {
-					act= efa;
-					*dist= temp;
-				}
-				if(efa== acto) break;
-			}
-			efa= efa->next;
-		}
-	}
 
-	acto= act;
-	return act;
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		short distance;
+		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance);
+		EditEdge *eed = BLI_findlink(&G.editMesh->edges, index-1);
+
+		if (eed && distance<*dist) {
+			*dist = distance;
+			return eed;
+		} else {
+			return NULL;
+		}
+	}
+	else {
+		struct { float mval[2]; short dist; EditEdge *closest; } data;
+
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.dist = *dist;
+		data.closest = NULL;
+
+		mesh_foreachScreenEdge(findnearestedge__doClosest, &data, 2);
+
+		*dist = data.dist;
+		return data.closest;
+	}
 }
 
+static void findnearestface__getDistance(void *userData, EditFace *efa, int x, int y, int index)
+{
+	struct { short mval[2], dist; EditFace *toFace; } *data = userData;
+
+	if (efa==data->toFace) {
+		short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+
+		if (temp<data->dist)
+			data->dist = temp;
+	}
+}
+static void findnearestface__doClosest(void *userData, EditFace *efa, int x, int y, int index)
+{
+	struct { short mval[2], pass, dist; int lastIndex, closestIndex; EditFace *closest; } *data = userData;
+
+	if (data->pass==0) {
+		if (index<=data->lastIndex)
+			return;
+	} else {
+		if (index>data->lastIndex)
+			return;
+	}
+
+	if (data->dist>3) {
+		short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+
+		if (temp<data->dist) {
+			data->dist = temp;
+			data->closest = efa;
+			data->closestIndex = index;
+		}
+	}
+}
 static EditFace *findnearestface(short *dist)
 {
+	short mval[2];
+
+	getmouseco_areawin(mval);
+
 	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
-		EditFace *efa=NULL;
-		int a=1;
-		unsigned int index;
-		short mval[2], distance;
+		unsigned int index = sample_backbuf(mval[0], mval[1]);
+		EditFace *efa = BLI_findlink(&G.editMesh->faces, index-1);
 
-		calc_mesh_facedots_ext();	// shouldnt be needed each click
-		getmouseco_areawin(mval);
+		if (efa) {
+			struct { short mval[2], dist; EditFace *toFace; } data;
 
-		// sample colorcode 
-		index= sample_backbuf(mval[0], mval[1]);
-		
-		if(index && index<=em_solidoffs) {
-			for(efa= G.editMesh->faces.first; efa; efa= efa->next, a++) if(index==a) break;
-			if(efa) {
-				distance= abs(mval[0]- efa->xs)+ abs(mval[1]- efa->ys);
+			data.mval[0] = mval[0];
+			data.mval[1] = mval[1];
+			data.dist = (1<<20); // just a big number
+			data.toFace = efa;
 
-				if(G.scene->selectmode == SCE_SELECT_FACE || distance<*dist) {	// only faces, no dist check
-					*dist= distance;
-					return efa;
-				}
+			mesh_foreachScreenFace(findnearestface__getDistance, &data);
+
+			if(G.scene->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	// only faces, no dist check
+				*dist= data.dist;
+				return efa;
 			}
 		}
 		
 		return NULL;
 	}
-	else return findnearestface_f(dist);
+	else {
+		struct { short mval[2], pass, dist; int lastIndex, closestIndex; EditFace *closest; } data;
+		static int lastSelectedIndex=0;
+		static EditFace *lastSelected=NULL;
+
+		if (lastSelected && BLI_findlink(&G.editMesh->faces, lastSelectedIndex)!=lastSelected) {
+			lastSelectedIndex = 0;
+			lastSelected = NULL;
+		}
+
+		data.lastIndex = lastSelectedIndex;
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.dist = *dist;
+		data.closest = NULL;
+		data.closestIndex = 0;
+
+		data.pass = 0;
+		mesh_foreachScreenFace(findnearestface__doClosest, &data);
+
+		if (data.dist>3) {
+			data.pass = 1;
+			mesh_foreachScreenFace(findnearestface__doClosest, &data);
+		}
+
+		*dist = data.dist;
+		lastSelected = data.closest;
+		lastSelectedIndex = data.closestIndex;
+
+		return data.closest;
+	}
 }
 
 /* for interactivity, frontbuffer draw in current window */
+static void draw_dm_mapped_vert__mapFunc(void *theVert, EditVert *eve, float *co, float *no_f, short *no_s)
+{
+	if (eve==theVert) {
+		bglVertex3fv(co);
+	}
+}
+static void draw_dm_mapped_vert(DerivedMesh *dm, EditVert *eve)
+{
+	bglBegin(GL_POINTS);
+	dm->foreachMappedVertEM(dm, draw_dm_mapped_vert__mapFunc, eve);
+	bglEnd();
+}
+
 static int draw_dm_mapped_edge__setDrawOptions(void *theEdge, EditEdge *eed)
 {
 	return theEdge==eed;
@@ -684,13 +673,17 @@ static void draw_dm_mapped_edge(DerivedMesh *dm, EditEdge *eed)
 	dm->drawMappedEdgesEM(dm, draw_dm_mapped_edge__setDrawOptions, eed);
 }
 
-static int draw_dm_mapped_face_center__setDrawOptions(void *theFace, EditFace *efa)
+static void draw_dm_mapped_face_center__mapFunc(void *theFace, EditFace *efa, float *cent, float *no)
 {
-	return theFace==efa;
+	if (efa==theFace) {
+		bglVertex3fv(cent);
+	}
 }
 static void draw_dm_mapped_face_center(DerivedMesh *dm, EditFace *efa)
 {
-	dm->drawMappedFaceCentersEM(dm, draw_dm_mapped_face_center__setDrawOptions, efa);
+	bglBegin(GL_POINTS);
+	dm->foreachMappedFaceCenterEM(dm, draw_dm_mapped_face_center__mapFunc, efa);
+	bglEnd();
 }
 
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
@@ -750,31 +743,21 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			draw_dm_mapped_edge(dm, eed);
 		}
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-			float co[3];
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
 			BIF_ThemeColor((eed->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			bglBegin(GL_POINTS);
-			dm->getMappedVertCoEM(dm, eed->v1, co);
-			bglVertex3fv(co);
-
-			dm->getMappedVertCoEM(dm, eed->v2, co);
-			bglVertex3fv(co);
-			bglEnd();
+			draw_dm_mapped_vert(dm, eed->v1);
+			draw_dm_mapped_vert(dm, eed->v2);
 		}
 	}
 	if(eve) {
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-			float co[3];
 			glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 			
 			BIF_ThemeColor((eve->f & SELECT)?TH_VERTEX_SELECT:TH_VERTEX);
 			
-			bglBegin(GL_POINTS);
-			dm->getMappedVertCoEM(dm, eve, co);
-			bglVertex3fv(co);
-			bglEnd();
+			draw_dm_mapped_vert(dm, eve);
 		}
 	}
 
@@ -1294,7 +1277,6 @@ void hide_mesh(int swap)
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if((eve->f & SELECT)!=swap) {
-				eve->xs= 3200;
 				eve->f &= ~SELECT;
 				eve->h= 1;
 			}

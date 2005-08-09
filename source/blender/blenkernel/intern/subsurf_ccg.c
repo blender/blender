@@ -751,39 +751,35 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3]) {
 	}
 	ccgFaceIterator_free(fi);
 }
-static void ccgDM_getMappedVertCoEM(DerivedMesh *dm, void *vert, float co_r[3]) {
+static void ccgDM_foreachMappedVertEM(DerivedMesh *dm, void (*func)(void *userData, EditVert *vert, float *co, float *no_f, short *no_s), void *userData) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ccgdm->ss);
 
-		/* The vert handle is an index into the vmap in this case, have
-		 * to search for it.
-		 */
-	if (ccgdm->vertMap) {
-		CCGVertIterator *vi = ccgSubSurf_getVertIterator(ccgdm->ss);
+	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
+		CCGVert *v = ccgVertIterator_getCurrent(vi);
+		VertData *vd = ccgSubSurf_getVertData(ccgdm->ss, v);
 
-		for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
-			CCGVert *v = ccgVertIterator_getCurrent(vi);
-			int index = (int) ccgSubSurf_getVertVertHandle(ccgdm->ss, v);
-
-			if (ccgdm->vertMap[index]==vert) {
-				float *co = ccgSubSurf_getVertData(ccgdm->ss, v);
-
-				co_r[0] = co[0];
-				co_r[1]	= co[1];
-				co_r[2]	= co[2];
-
-				break;
-			}
-		}
-
-		ccgVertIterator_free(vi);
-	} else {
-		CCGVert *v = ccgSubSurf_getVert(ccgdm->ss, vert);
-		float *co = ccgSubSurf_getVertData(ccgdm->ss, v);
-
-		co_r[0] = co[0];
-		co_r[1] = co[1];
-		co_r[2] = co[2];
+		func(userData, ccgDM_getVertHandle(ccgdm, v), vd->co, vd->no, NULL);
 	}
+
+	ccgVertIterator_free(vi);
+}
+static void ccgDM_foreachMappedEdgeEM(DerivedMesh *dm, void (*func)(void *userData, EditEdge *eed, float *v0co, float *v1co), void *userData) {
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
+	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
+
+	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
+		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
+		EditEdge *edge = ccgDM_getEdgeHandle(ccgdm, e);
+		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
+
+		for (i=0; i<edgeSize-1; i++)
+			func(userData, edge, edgeData[i].co, edgeData[i+1].co);
+	}
+
+	ccgEdgeIterator_free(ei);
 }
 static DispListMesh *ccgDM_convertToDispListMesh(DerivedMesh *dm, int allowShared) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
@@ -1216,47 +1212,6 @@ static void ccgDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, 
 */
 }
 
-static void ccgDM_drawMappedVertsEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditVert *vert), void *userData) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ss);
-
-	bglBegin(GL_POINTS);
-	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
-		CCGVert *v = ccgVertIterator_getCurrent(vi);
-		EditVert *vert = ccgDM_getVertHandle(ccgdm, v);
-
-		if (vert && (!setDrawOptions || setDrawOptions(userData, vert))) {
-			bglVertex3fv(ccgSubSurf_getVertData(ss, v));
-		}
-	}
-	bglEnd();
-
-	ccgVertIterator_free(vi);
-}
-static void ccgDM_drawMappedVertNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	CCGVertIterator *vi = ccgSubSurf_getVertIterator(ss);
-
-	glBegin(GL_LINES);
-	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
-		CCGVert *v = ccgVertIterator_getCurrent(vi);
-		EditVert *vert = ccgDM_getVertHandle(ccgdm, v);
-
-		if (vert && (!setDrawOptions || setDrawOptions(userData, vert))) {
-			VertData *vd = ccgSubSurf_getVertData(ss, v);
-
-			glVertex3fv(vd->co);
-			glVertex3f(	vd->co[0] + length*vd->no[0],
-						vd->co[1] + length*vd->no[1],
-						vd->co[2] + length*vd->no[2]);
-		}
-	}
-	glEnd();
-
-	ccgVertIterator_free(vi);
-}
 static void ccgDM_drawMappedEdgesEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, EditEdge *edge), void *userData) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -1345,47 +1300,23 @@ static void ccgDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void 
 
 	ccgFaceIterator_free(fi);
 }
-static void ccgDM_drawMappedFaceNormalsEM(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData) {
+static void ccgDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *userData, EditFace *efa, float *co, float *no), void *userData) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
 
-	glBegin(GL_LINES);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
 		EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-		if (efa && (!setDrawOptions || setDrawOptions(userData, efa))) {
+
+		if (efa) {
 				/* Face center data normal isn't updated atm. */
 			VertData *vd = ccgSubSurf_getFaceGridData(ss, f, 0, 0, 0);
 
-			glVertex3fv(vd->co);
-			glVertex3f(	vd->co[0] + length*vd->no[0],
-						vd->co[1] + length*vd->no[1],
-						vd->co[2] + length*vd->no[2]);
+			func(userData, efa, vd->co, vd->no);
 		}
 	}
-	glEnd();
-
-	ccgFaceIterator_free(fi);
-}
-static void ccgDM_drawMappedFaceCentersEM(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
-	int gridSize = ccgSubSurf_getGridSize(ss);
-
-	bglBegin(GL_POINTS);
-	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
-		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-		if (efa && (!setDrawOptions || setDrawOptions(userData, efa))) {
-			VertData *vd = ccgSubSurf_getFaceCenterData(ss, f);
-
-			bglVertex3fv(vd->co);
-		}
-	}
-	bglEnd();
 
 	ccgFaceIterator_free(fi);
 }
@@ -1410,7 +1341,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 	ccgdm->dm.getNumVerts = ccgDM_getNumVerts;
 	ccgdm->dm.getNumFaces = ccgDM_getNumFaces;
 	ccgdm->dm.getVertCos = ccgdm_getVertCos;
-	ccgdm->dm.getMappedVertCoEM = ccgDM_getMappedVertCoEM;
+	ccgdm->dm.foreachMappedVertEM = ccgDM_foreachMappedVertEM;
+	ccgdm->dm.foreachMappedEdgeEM = ccgDM_foreachMappedEdgeEM;
+	ccgdm->dm.foreachMappedFaceCenterEM = ccgDM_foreachMappedFaceCenterEM;
 	ccgdm->dm.convertToDispListMesh = ccgDM_convertToDispListMesh;
 	ccgdm->dm.convertToDispListMeshMapped = ccgDM_convertToDispListMeshMapped;
 
@@ -1422,13 +1355,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
 
-	ccgdm->dm.drawMappedVertsEM = ccgDM_drawMappedVertsEM;
-	ccgdm->dm.drawMappedVertNormalsEM = ccgDM_drawMappedVertNormalsEM;
 	ccgdm->dm.drawMappedEdgesInterpEM = ccgDM_drawMappedEdgesInterpEM;
 	ccgdm->dm.drawMappedEdgesEM = ccgDM_drawMappedEdgesEM;
 	ccgdm->dm.drawMappedFacesEM = ccgDM_drawMappedFacesEM;
-	ccgdm->dm.drawMappedFaceNormalsEM = ccgDM_drawMappedFaceNormalsEM;
-	ccgdm->dm.drawMappedFaceCentersEM = ccgDM_drawMappedFaceCentersEM;
 
 	ccgdm->dm.release = ccgDM_release;
 	

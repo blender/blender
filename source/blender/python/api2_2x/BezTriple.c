@@ -331,15 +331,12 @@ static PyObject *BezTripleRepr( BPy_BezTriple * self )
 	 */
 	char str[1000];
 	sprintf( str,
-		 "BezTriple %f %f %f %f %f %f %f %f %f %f\n %d %d %d %d %d %d %d %d %d %d %d %d\n",
+		 "BezTriple %f %f %f %f %f %f %f %f %f %f\n %d %d %d %d %d %d\n",
 		 self->beztriple->vec[0][0], self->beztriple->vec[0][1],
 		 self->beztriple->vec[0][2], self->beztriple->vec[1][0],
 		 self->beztriple->vec[1][1], self->beztriple->vec[1][2],
 		 self->beztriple->vec[2][0], self->beztriple->vec[2][1],
 		 self->beztriple->vec[2][2], self->beztriple->alfa,
-		 self->beztriple->s[0][0], self->beztriple->s[0][1],
-		 self->beztriple->s[1][0], self->beztriple->s[1][1],
-		 self->beztriple->s[2][0], self->beztriple->s[1][1],
 		 self->beztriple->h1, self->beztriple->h2, self->beztriple->f1,
 		 self->beztriple->f2, self->beztriple->f3,
 		 self->beztriple->hide );
@@ -359,14 +356,11 @@ static PyObject *BezTriple_Str( BPy_BezTriple * self )
 
 // fixme: 
 	return PyString_FromFormat(
-		 "BezTriple (%f %f %f) (%f %f %f) (%f %f %f) alpha %f\n (%d %d) (%d %d) (%d %d) h1:%d h2:%d f1:%d f2:%d f3:%d hide:%d",
+		 "BezTriple (%f %f %f) (%f %f %f) (%f %f %f) alpha %f\n h1:%d h2:%d f1:%d f2:%d f3:%d hide:%d",
 		 p->vec[0][0], p->vec[0][1],  p->vec[0][2], 
 		 p->vec[1][0],  p->vec[1][1], p->vec[1][2],
 		 p->vec[2][0], p->vec[2][1],  p->vec[2][2],
 		 p->alfa,
-		 p->s[0][0], p->s[0][1],
-		 p->s[1][0], p->s[1][1],
-		 p->s[2][0], p->s[1][1],
 		 p->h1, p->h2, p->f1,
 		 p->f2, p->f3,
 		 p->hide );

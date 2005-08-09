@@ -63,7 +63,24 @@ struct DerivedMesh {
 		/* Also called in Editmode */
 	int (*getNumFaces)(DerivedMesh *dm);
 
-	void (*getMappedVertCoEM)(DerivedMesh *dm, void *vert, float co_r[3]);
+		/* Iterate over each mapped vertex in the derived mesh, calling the
+		 * given function with the original vert and the mapped vert's new
+		 * coordinate and normal. For historical reasons the normal can be
+		 * passed as a float or short array, only one should be non-NULL.
+		 */
+	void (*foreachMappedVertEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditVert *vert, float *co, float *no_f, short *no_s), void *userData);
+
+		/* Iterate over each mapped vertex in the derived mesh, calling the
+		 * given function with the original vert and the mapped edge's new
+		 * coordinates.
+		 */
+	void (*foreachMappedEdgeEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditEdge *edge, float *v0co, float *v1co), void *userData);
+
+		/* Iterate over each mapped face in the derived mesh, calling the
+		 * given function with the original face and the mapped face's (or
+		 * faces') center and normal.
+		 */
+	void (*foreachMappedFaceCenterEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditFace *face, float *cent, float *no), void *userData);
 
 		/* Convert to new DispListMesh, should be free'd by caller.
 		 *
@@ -144,11 +161,6 @@ struct DerivedMesh {
 			 */
 	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr));
 
-			/* Draw mapped vertices as bgl points
-			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-vert) returns true
-			 */
-	void (*drawMappedVertsEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData);
-
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true
 			 */
@@ -168,21 +180,6 @@ struct DerivedMesh {
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
 			 */
 	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
-
-			/* Draw vert normals
-			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-vert) returns true
-			 */
-	 void (*drawMappedVertNormalsEM)(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditVert *eve), void *userData);
-
-			/* Draw face normals
-			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
-			 */
-	void (*drawMappedFaceNormalsEM)(DerivedMesh *dm, float length, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
-
-			/* Draw face centers as bgl points
-			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
-			 */
-	void (*drawMappedFaceCentersEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
 
 	void (*release)(DerivedMesh *dm);
 };

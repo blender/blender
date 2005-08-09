@@ -211,39 +211,32 @@ void deselectall_Latt(void)
 	BIF_undo_push("(De)select all");
 }
 
+static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, int y)
+{
+	struct { BPoint *bp; short dist, select, mval[2]; } *data = userData;
+	short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+	
+	if ((bp->f1&1)==data->select) temp += 5;
+	if (temp<data->dist) {
+		data->dist = temp;
 
+		data->bp = bp;
+	}
+}
 static BPoint *findnearestLattvert(int sel)
 {
-	/* sel==1: selected get a disadvantage */
-	/* in bp nearest is written */
-	BPoint *bp1, *bp;
-	short dist= 100, temp, mval[2], a;
+		/* sel==1: selected gets a disadvantage */
+		/* in nurb and bezt or bp the nearest is written */
+		/* return 0 1 2: handlepunt */
+	struct { BPoint *bp; short dist, select, mval[2]; } data = {0};
 
-	bp= 0;
+	data.dist = 100;
+	data.select = sel;
+	getmouseco_areawin(data.mval);
 
-	/* do projection */
-	calc_lattverts_ext();	/* drawobject.c */
-	
-	getmouseco_areawin(mval);
+	lattice_foreachScreenVert(findnearestLattvert__doClosest, &data);
 
-			
-	bp1= editLatt->def;
-	
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	
-	while(a--) {
-		if(bp1->hide==0) {
-			temp= abs(mval[0]- bp1->s[0])+ abs(mval[1]- bp1->s[1]);
-			if( (bp1->f1 & 1)==sel) temp+=5;
-			if(temp<dist) { 
-				bp= bp1; 
-				dist= temp; 
-			}
-		}
-		bp1++;
-	}
-
-	return bp;
+	return data.bp;
 }
 
 

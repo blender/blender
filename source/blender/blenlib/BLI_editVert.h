@@ -82,7 +82,6 @@ typedef struct EditFace
 	struct EditVert *v1, *v2, *v3, *v4;
 	struct EditEdge *e1, *e2, *e3, *e4;
 	float n[3], cent[3];
-	short xs, ys;		/* selection */
 	struct TFace tf;	/* a copy of original tface. */
 	unsigned char mat_nr, flag;
 	unsigned char f, f1, h;

@@ -1025,8 +1025,7 @@ PyObject *CurNurb_dump( BPy_CurNurb * self )
 			}
 		
 			/* alfa, s[2] */
-			printf("\n alpha: %5.2f   s: %d %d ", 
-				   bp->alfa, bp->s[0], bp->s[1] );
+			printf("\n alpha: %5.2f", bp->alfa);
 			/* f1, hide */
 			printf(" f1 %d  hide %d", bp->f1, bp->hide );
 			printf("\n");

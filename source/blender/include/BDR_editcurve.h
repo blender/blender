@@ -62,10 +62,6 @@ void hideNurb(int swap);
 void revealNurb(void);
 void selectswapNurb(void);
 void subdivideNurb(void);
-short findnearestNurbvert(short sel, struct Nurb **nurb, 
-						  struct BezTriple **bezt, struct BPoint **bp);
-void findselectedNurbvert(struct Nurb **nu, struct BezTriple **bezt, 
-						  struct BPoint **bp);
 
 int convertspline(short type, struct Nurb *nu);
 void setsplinetype(short type);

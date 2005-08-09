@@ -60,7 +60,6 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_armature.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
@@ -175,8 +174,6 @@ int calc_manipulator_stats(ScrArea *sa)
 		if((ob->lay & G.vd->lay)==0) return 0;
 
 		if(G.obedit->type==OB_MESH) {
-			int dmNeedsFree;
-			DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 			EditMesh *em = G.editMesh;
 			EditVert *eve;
 			float vec[3];
@@ -201,8 +198,7 @@ int calc_manipulator_stats(ScrArea *sa)
 					if(no_faces) VECADD(normal, normal, eve->no);
 					
 					totsel++;
-					dm->getMappedVertCoEM(dm, eve, vec);
-					calc_tw_center(vec);
+					calc_tw_center(eve->co);
 				}
 			}
 			/* the edge case... */
@@ -217,9 +213,6 @@ int calc_manipulator_stats(ScrArea *sa)
 						break;
 					}
 				}
-			}
-			if (dmNeedsFree) {
-				dm->release(dm);
 			}
 		}
 		else if (G.obedit->type==OB_ARMATURE){

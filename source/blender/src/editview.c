@@ -104,7 +104,48 @@ extern ListBase editNurb; /* originally from exports.h, memory from editcurve.c*
 extern ListBase editelems;
 
 /* local prototypes */
-void obedit_selectionCB(short , Object *, short *, float ); /* called in edit.c */ 
+
+void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
+{
+	EditVert *eve;
+	int index= em_wireoffs;
+
+	for(eve= em->verts.first; eve; eve= eve->next, index++) {
+		if(eve->h==0) {
+			if(EM_check_backbuf(index)) {
+				eve->f = select?(eve->f|1):(eve->f&~1);
+			}
+		}
+	}
+}
+
+void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
+{
+	EditEdge *eed;
+	int index= em_solidoffs;
+
+	for(eed= em->edges.first; eed; eed= eed->next, index++) {
+		if(eed->h==0) {
+			if(EM_check_backbuf(index)) {
+				EM_select_edge(eed, select);
+			}
+		}
+	}
+}
+
+void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
+{
+	EditFace *efa;
+	int index= 1;
+
+	for(efa= em->faces.first; efa; efa= efa->next, index++) {
+		if(efa->h==0) {
+			if(EM_check_backbuf(index)) {
+				EM_select_face_fgon(efa, select);
+			}
+		}
+	}
+}
 
 void arrows_move_cursor(unsigned short event)
 {
@@ -126,36 +167,29 @@ void arrows_move_cursor(unsigned short event)
 /* *********************** GESTURE AND LASSO ******************* */
 
 /* helper also for borderselect */
-static int edge_fully_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+static int edge_fully_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 {
-	
-	// check points in rect
-	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) 
-		if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
-	
-	return 0;
-	
+	return BLI_in_rcti(rect, x1, y1) && BLI_in_rcti(rect, x2, y2);
 }
 
-static int edge_inside_rect(rcti rect, short x1, short y1, short x2, short y2)
+static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 {
 	int d1, d2, d3, d4;
 	
 	// check points in rect
-	if(rect.xmin<x1 && rect.xmax>x1 && rect.ymin<y1 && rect.ymax>y1) return 1;
-	if(rect.xmin<x2 && rect.xmax>x2 && rect.ymin<y2 && rect.ymax>y2) return 1;
+	if(edge_fully_inside_rect(rect, x1, y1, x2, y2)) return 1;
 	
-	/* check points completely out rect */
-	if(x1<rect.xmin && x2<rect.xmin) return 0;
-	if(x1>rect.xmax && x2>rect.xmax) return 0;
-	if(y1<rect.ymin && y2<rect.ymin) return 0;
-	if(y1>rect.ymax && y2>rect.ymax) return 0;
+	// check points completely out rect
+	if(x1<rect->xmin && x2<rect->xmin) return 0;
+	if(x1>rect->xmax && x2>rect->xmax) return 0;
+	if(y1<rect->ymin && y2<rect->ymin) return 0;
+	if(y1>rect->ymax && y2>rect->ymax) return 0;
 	
 	// simple check lines intersecting. 
-	d1= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymin );
-	d2= (y1-y2)*(x1- rect.xmin ) + (x2-x1)*(y1- rect.ymax );
-	d3= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymax );
-	d4= (y1-y2)*(x1- rect.xmax ) + (x2-x1)*(y1- rect.ymin );
+	d1= (y1-y2)*(x1- rect->xmin ) + (x2-x1)*(y1- rect->ymin );
+	d2= (y1-y2)*(x1- rect->xmin ) + (x2-x1)*(y1- rect->ymax );
+	d3= (y1-y2)*(x1- rect->xmax ) + (x2-x1)*(y1- rect->ymax );
+	d4= (y1-y2)*(x1- rect->xmax ) + (x2-x1)*(y1- rect->ymin );
 	
 	if(d1<0 && d2<0 && d3<0 && d4<0) return 0;
 	if(d1>0 && d2>0 && d3>0 && d4>0) return 0;
@@ -212,9 +246,13 @@ static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 }
 
 /* edge version for lasso select. we assume boundbox check was done */
-static int lasso_inside_edge(short mcords[][2], short moves, short *v1, short *v2)
+static int lasso_inside_edge(short mcords[][2], short moves, int x0, int y0, int x1, int y1)
 {
+	short v1[2], v2[2];
 	int a;
+
+	v1[0] = x0, v1[1] = y0;
+	v2[0] = x1, v2[1] = y1;
 
 	// check points in lasso
 	if(lasso_inside(mcords, moves, v1[0], v1[1])) return 1;
@@ -250,7 +288,7 @@ static void do_lasso_select_pose(Object *ob, short mcords[][2], short moves, sho
 		Mat4MulVecfl(ob->obmat, vec);
 		project_short(vec, sco2);
 		
-		if(lasso_inside_edge(mcords, moves, sco1, sco2)) {
+		if(lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) pchan->bone->flag |= BONE_SELECTED;
 			else pchan->bone->flag &= ~(BONE_ACTIVE|BONE_SELECTED);
 		}
@@ -293,170 +331,137 @@ static void lasso_select_boundbox(rcti *rect, short mcords[][2], short moves)
 	}
 }
 
-static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
+static void do_lasso_select_mesh__doSelectVert(void *userData, EditVert *eve, int x, int y, int index)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	rcti rect;
-	unsigned int index;
-	int bbsel=0; // bbsel: no clip needed with screencoords
-	
-	lasso_select_boundbox(&rect, mcords, moves);
-	
-	bbsel= EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-	
-	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-		if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
-		index= em_wireoffs;
-		for(eve= em->verts.first; eve; eve= eve->next, index++) {
-			if(eve->h==0) {
-				if(bbsel) {
-					if(EM_check_backbuf_border(index)) {
-						if(select) eve->f|= 1;
-						else eve->f&= 254;
-					}
-				}
-				else if(eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax) {
-					if(lasso_inside(mcords, moves, eve->xs, eve->ys)) {
-						if(select) eve->f|= 1;
-						else eve->f&= 254;
-					}
-				}
+	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
+		eve->f = data->select?(eve->f|1):(eve->f&~1);
+	}
+}
+static void do_lasso_select_mesh__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+{
+	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
+
+	if (EM_check_backbuf(em_solidoffs+index)) {
+		if (data->pass==0) {
+			if (	edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
+					lasso_inside(data->mcords, data->moves, x0, y0) &&
+					lasso_inside(data->mcords, data->moves, x1, y1)) {
+				EM_select_edge(eed, data->select);
+				data->done = 1;
+			}
+		} else {
+			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
+				EM_select_edge(eed, data->select);
 			}
 		}
 	}
-	if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		short done= 0;
-		
-		calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
-		index= em_solidoffs;
-		
-		/* two stages, for nice edge select first do 'both points in rect' 
-			also when bbsel is true */
-		for(eed= em->edges.first; eed; eed= eed->next, index++) {
-			if(eed->h==0) {
-				if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-					if(lasso_inside(mcords, moves, eed->v1->xs, eed->v1->ys)) {
-						if(lasso_inside(mcords, moves, eed->v2->xs, eed->v2->ys)) {
-							if(EM_check_backbuf_border(index)) {
-								EM_select_edge(eed, select);
-								done = 1;
-							}
-						}
-					}
-				}
-			}
+}
+static void do_lasso_select_mesh__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
+{
+	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
+		EM_select_face_fgon(efa, data->select);
+	}
+}
+
+static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
+{
+	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } data;
+	EditMesh *em = G.editMesh;
+	rcti rect;
+	int bbsel;
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	data.rect = &rect;
+	data.mcords = mcords;
+	data.moves = moves;
+	data.select = select;
+	data.done = 0;
+	data.pass = 0;
+
+	bbsel= EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if (bbsel) {
+			EM_backbuf_checkAndSelectVerts(em, select);
+		} else {
+			mesh_foreachScreenVert(do_lasso_select_mesh__doSelectVert, &data, 1);
 		}
-		
-		if(done==0) {
-			index= em_solidoffs;
-			for(eed= em->edges.first; eed; eed= eed->next, index++) {
-				if(eed->h==0) {
-					if(bbsel) {
-						if(EM_check_backbuf_border(index))
-							EM_select_edge(eed, select);
-					}
-					else if(lasso_inside_edge(mcords, moves, &eed->v1->xs, &eed->v2->xs)) {
-						EM_select_edge(eed, select);
-					}
-				}
-			}
+	}
+	if(G.scene->selectmode & SCE_SELECT_EDGE) {
+			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
+
+		data.pass = 0;
+		mesh_foreachScreenEdge(do_lasso_select_mesh__doSelectEdge, &data, 0);
+
+		if (data.done==0) {
+			data.pass = 1;
+			mesh_foreachScreenEdge(do_lasso_select_mesh__doSelectEdge, &data, 0);
 		}
 	}
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
-		if(bbsel==0) calc_mesh_facedots_ext();
-		index= 1;
-		for(efa= em->faces.first; efa; efa= efa->next, index++) {
-			if(efa->h==0) {
-				if(bbsel) {
-					if(EM_check_backbuf_border(index)) {
-						EM_select_face_fgon(efa, select);
-					}
-				}
-				else if(efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax) {
-					if(lasso_inside(mcords, moves, efa->xs, efa->ys)) {
-						EM_select_face_fgon(efa, select);
-					}
-				}
-			}
+		if (bbsel) {
+			EM_backbuf_checkAndSelectFaces(em, select);
+		} else {
+			mesh_foreachScreenFace(do_lasso_select_mesh__doSelectFace, &data);
 		}
 	}
 	
-	EM_free_backbuf_border();
-	EM_selectmode_flush();
-	
+	EM_free_backbuf();
+	EM_selectmode_flush();	
 }
 
+static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+{
+	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
+
+	if (lasso_inside(data->mcords, data->moves, x, y)) {
+		if (bp) {
+			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		} else {
+			if (beztindex==0) {
+				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+			} else if (beztindex==1) {
+				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			} else {
+				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+			}
+		}
+	}
+}
 static void do_lasso_select_curve(short mcords[][2], short moves, short select)
 {
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	int a;
-	
-	calc_nurbverts_ext();	/* drawobject.c */
-	nu= editNurb.first;
-	while(nu) {
-		if((nu->type & 7)==CU_BEZIER) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(bezt->hide==0) {
-					if(lasso_inside(mcords, moves, bezt->s[0][0], bezt->s[0][1])) {
-						if(select) bezt->f1|= 1;
-						else bezt->f1 &= ~1;
-					}
-					if(lasso_inside(mcords, moves, bezt->s[1][0], bezt->s[1][1])) {
-						if(select) bezt->f2|= 1;
-						else bezt->f2 &= ~1;
-					}
-					if(lasso_inside(mcords, moves, bezt->s[2][0], bezt->s[2][1])) {
-						if(select) bezt->f3|= 1;
-						else bezt->f3 &= ~1;
-					}
-				}
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(bp->hide==0) {
-					if(lasso_inside(mcords, moves, bp->s[0], bp->s[1])) {
-						if(select) bp->f1|= 1;
-						else bp->f1 &= ~1;
-					}
-				}
-				bp++;
-			}
-		}
-		nu= nu->next;
-	}
+	struct { short (*mcords)[2]; short moves; short select; } data;
+
+	data.mcords = mcords;
+	data.moves = moves;
+	data.select = select;
+
+	nurbs_foreachScreenVert(do_lasso_select_curve__doSelect, &data);
 }
 
+static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x, int y)
+{
+	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
+
+	if (lasso_inside(data->mcords, data->moves, x, y)) {
+		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+	}
+}
 static void do_lasso_select_lattice(short mcords[][2], short moves, short select)
 {
-	BPoint *bp;
-	int a;
-	
-	calc_lattverts_ext();
-	
-	bp= editLatt->def;
-	
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	while(a--) {
-		if(bp->hide==0) {
-			if(lasso_inside(mcords, moves, bp->s[0], bp->s[1])) {
-				if(select) bp->f1|= 1;
-				else bp->f1 &= ~1;
-			}
-		}
-		bp++;
-	}
+	struct { short (*mcords)[2]; short moves; short select; } data;
+
+	data.mcords = mcords;
+	data.moves = moves;
+	data.select = select;
+
+	lattice_foreachScreenVert(do_lasso_select_lattice__doSelect, &data);
 }
 
 static void do_lasso_select_armature(short mcords[][2], short moves, short select)
@@ -486,7 +491,7 @@ static void do_lasso_select_armature(short mcords[][2], short moves, short selec
 		   didpoint= 1;
 		}
 		/* if one of points selected, we skip the bone itself */
-		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1, sco2)) {
+		if(didpoint==0 && lasso_inside_edge(mcords, moves, sco1[0], sco1[1], sco2[0], sco2[1])) {
 			if(select) ebone->flag |= BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED;
 			else ebone->flag &= ~(BONE_ACTIVE|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
@@ -512,13 +517,12 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
 	for(a=1; a<=me->totface; a++, tface++) {
-		if(EM_check_backbuf_border(a)) {
-			if(select) tface->flag |= TF_SELECT;
-			else tface->flag &= ~TF_SELECT;
+		if(EM_check_backbuf(a)) {
+			tface->flag = select?(tface->flag|TF_SELECT):(tface->flag&~TF_SELECT);
 		}
 	}
 	
-	EM_free_backbuf_border();
+	EM_free_backbuf();
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -1370,6 +1374,129 @@ static int edge_inside_circle(short centx, short centy, short rad, short x1, sho
 	return 0;
 }
 
+static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+{
+	struct { rcti *rect; int select; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y)) {
+		if (bp) {
+			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		} else {
+			if (beztindex==0) {
+				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+			} else if (beztindex==1) {
+				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			} else {
+				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+			}
+		}
+	}
+}
+static void do_nurbs_box_select(rcti *rect, int select)
+{
+	struct { rcti *rect; int select; } data;
+
+	data.rect = rect;
+	data.select = select;
+
+	nurbs_foreachScreenVert(do_nurbs_box_select__doSelect, &data);
+}
+
+static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, int y)
+{
+	struct { rcti *rect; int select; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y)) {
+		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+	}
+}
+static void do_lattice_box_select(rcti *rect, int select)
+{
+	struct { rcti *rect; short select, pass, done; } data;
+
+	data.rect = rect;
+	data.select = select;
+
+	lattice_foreachScreenVert(do_lattice_box_select__doSelect, &data);
+}
+
+static void do_mesh_box_select__doSelectVert(void *userData, EditVert *eve, int x, int y, int index)
+{
+	struct { rcti *rect; short select, pass, done; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y)) {
+		eve->f = data->select?(eve->f|1):(eve->f&~1);
+	}
+}
+static void do_mesh_box_select__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+{
+	struct { rcti *rect; short select, pass, done; } *data = userData;
+
+	if(EM_check_backbuf(em_solidoffs+index)) {
+		if (data->pass==0) {
+			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
+				EM_select_edge(eed, data->select);
+				data->done = 1;
+			}
+		} else {
+			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
+				EM_select_edge(eed, data->select);
+			}
+		}
+	}
+}
+static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
+{
+	struct { rcti *rect; short select, pass, done; } *data = userData;
+
+	if (BLI_in_rcti(data->rect, x, y)) {
+		EM_select_face_fgon(efa, data->select);
+	}
+}
+static void do_mesh_box_select(rcti *rect, int select)
+{
+	struct { rcti *rect; short select, pass, done; } data;
+	EditMesh *em = G.editMesh;
+	int bbsel;
+	
+	data.rect = rect;
+	data.select = select;
+	data.pass = 0;
+	data.done = 0;
+
+	bbsel= EM_init_backbuf_border(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if (bbsel) {
+			EM_backbuf_checkAndSelectVerts(em, select);
+		} else {
+			mesh_foreachScreenVert(do_mesh_box_select__doSelectVert, &data, 1);
+		}
+	}
+	if(G.scene->selectmode & SCE_SELECT_EDGE) {
+			/* Does both bbsel and non-bbsel versions (need screen cos for both) */
+
+		data.pass = 0;
+		mesh_foreachScreenEdge(do_mesh_box_select__doSelectEdge, &data, 0);
+
+		if (data.done==0) {
+			data.pass = 1;
+			mesh_foreachScreenEdge(do_mesh_box_select__doSelectEdge, &data, 0);
+		}
+	}
+	
+	if(G.scene->selectmode & SCE_SELECT_FACE) {
+		if(bbsel) {
+			EM_backbuf_checkAndSelectFaces(em, select);
+		} else {
+			mesh_foreachScreenFace(do_mesh_box_select__doSelectFace, &data);
+		}
+	}
+	
+	EM_free_backbuf();
+		
+	EM_selectmode_flush();
+}
 
 /**
  * Does the 'borderselect' command. (Select verts based on selecting with a 
@@ -1379,9 +1506,6 @@ void borderselect(void)
 {
 	rcti rect;
 	Base *base;
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
 	MetaElem *ml;
 	unsigned int buffer[MAXPICKBUF];
 	int a, index;
@@ -1401,135 +1525,11 @@ void borderselect(void)
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) {
-			EditMesh *em = G.editMesh;
-			EditVert *eve;
-			EditEdge *eed;
-			EditFace *efa;
-			int index, bbsel=0; // bbsel: no clip needed with screencoords
-			
-			bbsel= EM_init_backbuf_border(rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-
-			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-				if(bbsel==0) calc_meshverts_ext();	/* clips, drawobject.c */
-				index= em_wireoffs;
-				for(eve= em->verts.first; eve; eve= eve->next, index++) {
-					if(eve->h==0) {
-						if(bbsel || (eve->xs>rect.xmin && eve->xs<rect.xmax && eve->ys>rect.ymin && eve->ys<rect.ymax)) {
-							if(EM_check_backbuf_border(index)) {
-								if(val==LEFTMOUSE) eve->f|= 1;
-								else eve->f&= 254;
-							}
-						}
-					}
-				}
-			}
-			if(G.scene->selectmode & SCE_SELECT_EDGE) {
-				short done= 0;
-				
-				calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
-				index= em_solidoffs;
-				/* two stages, for nice edge select first do 'both points in rect'
-				   also when bbsel is true */
-				for(eed= em->edges.first; eed; eed= eed->next, index++) {
-					if(eed->h==0) {
-						if(edge_fully_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
-							if(EM_check_backbuf_border(index)) {
-								EM_select_edge(eed, val==LEFTMOUSE);
-								done = 1;
-							}
-						}
-					}
-				}
-
-				if(done==0) {
-					index= em_solidoffs;
-					for(eed= em->edges.first; eed; eed= eed->next, index++) {
-						if(eed->h==0) {
-							if(bbsel) {
-								if(EM_check_backbuf_border(index))
-									EM_select_edge(eed, val==LEFTMOUSE);
-							}
-							else if(edge_inside_rect(rect, eed->v1->xs, eed->v1->ys, eed->v2->xs, eed->v2->ys)) {
-								EM_select_edge(eed, val==LEFTMOUSE);
-							}
-						}
-					}
-				}
-			}
-			
-			if(G.scene->selectmode & SCE_SELECT_FACE) {
-				if(bbsel==0) calc_mesh_facedots_ext();
-				index= 1;
-				for(efa= em->faces.first; efa; efa= efa->next, index++) {
-					if(efa->h==0) {
-						if(bbsel || (efa->xs>rect.xmin && efa->xs<rect.xmax && efa->ys>rect.ymin && efa->ys<rect.ymax)) {
-							if(EM_check_backbuf_border(index)) {
-								EM_select_face_fgon(efa, val==LEFTMOUSE);
-							}
-						}
-					}
-				}
-			}
-			
-			EM_free_backbuf_border();
-				
-			EM_selectmode_flush();
+			do_mesh_box_select(&rect, (val==LEFTMOUSE));
 			allqueue(REDRAWVIEW3D, 0);
-			
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
-			
-			calc_nurbverts_ext();	/* drawobject.c */
-			nu= editNurb.first;
-			while(nu) {
-				if((nu->type & 7)==CU_BEZIER) {
-					bezt= nu->bezt;
-					a= nu->pntsu;
-					while(a--) {
-						if(bezt->hide==0) {
-							if(bezt->s[0][0]>rect.xmin && bezt->s[0][0]<rect.xmax) {
-								if(bezt->s[0][1]>rect.ymin && bezt->s[0][1]<rect.ymax) {
-									if(val==LEFTMOUSE) bezt->f1|= 1;
-									else bezt->f1 &= ~1;
-								}
-							}
-							if(bezt->s[1][0]>rect.xmin && bezt->s[1][0]<rect.xmax) {
-								if(bezt->s[1][1]>rect.ymin && bezt->s[1][1]<rect.ymax) {
-									if(val==LEFTMOUSE) {
-										bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
-									}
-									else {
-										bezt->f1 &= ~1; bezt->f2 &= ~1; bezt->f3 &= ~1;
-									}
-								}
-							}
-							if(bezt->s[2][0]>rect.xmin && bezt->s[2][0]<rect.xmax) {
-								if(bezt->s[2][1]>rect.ymin && bezt->s[2][1]<rect.ymax) {
-									if(val==LEFTMOUSE) bezt->f3|= 1;
-									else bezt->f3 &= ~1;
-								}
-							}
-						}
-						bezt++;
-					}
-				}
-				else {
-					bp= nu->bp;
-					a= nu->pntsu*nu->pntsv;
-					while(a--) {
-						if(bp->hide==0) {
-							if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
-								if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
-									if(val==LEFTMOUSE) bp->f1|= 1;
-									else bp->f1 &= ~1;
-								}
-							}
-						}
-						bp++;
-					}
-				}
-				nu= nu->next;
-			}
+			do_nurbs_box_select(&rect, val==LEFTMOUSE);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(G.obedit->type==OB_MBALL) {
@@ -1590,23 +1590,7 @@ void borderselect(void)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(G.obedit->type==OB_LATTICE) {
-			
-			calc_lattverts_ext();
-			
-			bp= editLatt->def;
-
-			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-			while(a--) {
-				if(bp->hide==0) {
-					if(bp->s[0]>rect.xmin && bp->s[0]<rect.xmax) {
-						if(bp->s[1]>rect.ymin && bp->s[1]<rect.ymax) {
-							if(val==LEFTMOUSE) bp->f1|= 1;
-							else bp->f1 &= ~1;
-						}
-					}
-				}
-				bp++;
-			}
+			do_lattice_box_select(&rect, val==LEFTMOUSE);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
@@ -1704,177 +1688,129 @@ void borderselect(void)
 	XXX These callback functions are still dirty, because they call globals... 
   */
 
+static void mesh_selectionCB__doSelectVert(void *userData, EditVert *eve, int x, int y, int index)
+{
+	struct { short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+
+	if (r<=data->radius) {
+		eve->f = data->select?(eve->f|1):(eve->f&~1);
+	}
+}
+static void mesh_selectionCB__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+{
+	struct { short select, mval[2]; float radius; } *data = userData;
+
+	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
+		EM_select_edge(eed, data->select);
+	}
+}
+static void mesh_selectionCB__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
+{
+	struct { short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+
+	if (r<=data->radius) {
+		EM_select_face_fgon(efa, data->select);
+	}
+}
 static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
+	struct { short select, mval[2]; float radius; } data;
 	EditMesh *em = G.editMesh;
-	EditVert *eve;
-	EditEdge *eed;
-	EditFace *efa;
-	float x, y, r;
-	int index, bbsel=0; // if bbsel we dont clip with screencoords
-	short rads= (short)(rad+1.0);
+	int bbsel;
 	
-	bbsel= EM_init_backbuf_circle(mval[0], mval[1], rads);
+	bbsel= EM_init_backbuf_circle(mval[0], mval[1], (short)(rad+1.0));
 	
+	data.select = (selecting==LEFTMOUSE);
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
+
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
-		if(bbsel==0) calc_meshverts_ext();	/* drawobject.c */
-		index= em_wireoffs;
-		for(eve= em->verts.first; eve; eve= eve->next, index++) {
-			if(eve->h==0) {
-				if(bbsel) {
-					if(EM_check_backbuf_border(index)) {
-						if(selecting==LEFTMOUSE) eve->f|= 1;
-						else eve->f&= 254;
-					}
-				}
-				else {
-					x= eve->xs-mval[0];
-					y= eve->ys-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						if(selecting==LEFTMOUSE) eve->f|= 1;
-						else eve->f&= 254;
-					}
-				}
-			}
+		if(bbsel) {
+			EM_backbuf_checkAndSelectVerts(em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenVert(mesh_selectionCB__doSelectVert, &data, 1);
 		}
 	}
 
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		if(bbsel==0) calc_meshverts_ext_f2();	/* doesnt clip, drawobject.c */
-		index= em_solidoffs;
-		for(eed= em->edges.first; eed; eed= eed->next, index++) {
-			if(eed->h==0) {
-				if(bbsel || edge_inside_circle(mval[0], mval[1], (short)rad, eed->v1->xs, eed->v1->ys,  eed->v2->xs, eed->v2->ys)) {
-					if(EM_check_backbuf_border(index)) {
-						EM_select_edge(eed, selecting==LEFTMOUSE);
-					}
-				}
-			}
+		if (bbsel) {
+			EM_backbuf_checkAndSelectEdges(em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenEdge(mesh_selectionCB__doSelectEdge, &data, 0);
 		}
 	}
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
-		if(bbsel==0) calc_mesh_facedots_ext();
-		index= 1;
-		for(efa= em->faces.first; efa; efa= efa->next, index++) {
-			if(efa->h==0) {
-				if(bbsel) {
-					if(EM_check_backbuf_border(index)) {
-						EM_select_face_fgon(efa, selecting==LEFTMOUSE);
-					}
-				}
-				else {
-					x= efa->xs-mval[0];
-					y= efa->ys-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						EM_select_face_fgon(efa, selecting==LEFTMOUSE);
-					}
-				}
-			}
+		if(bbsel) {
+			EM_backbuf_checkAndSelectFaces(em, selecting==LEFTMOUSE);
+		} else {
+			mesh_foreachScreenFace(mesh_selectionCB__doSelectFace, &data);
 		}
 	}
-	EM_free_backbuf_border();
+
+	EM_free_backbuf();
 	EM_selectmode_flush();
-
-	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw(0);
-
 }
 
 
+static void nurbscurve_selectionCB__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
+{
+	struct { short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+
+	if (r<=data->radius) {
+		if (bp) {
+			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		} else {
+			if (beztindex==0) {
+				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+			} else if (beztindex==1) {
+				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			} else {
+				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+			}
+		}
+	}
+}
 static void nurbscurve_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
-	Nurb *nu;
-	BPoint *bp;
-	BezTriple *bezt;
-	float x, y, r;
-	int a;
+	struct { short select, mval[2]; float radius; } data;
 
-	calc_nurbverts_ext();	/* drawobject.c */
-	nu= editNurb.first;
-	while(nu) {
-		if((nu->type & 7)==CU_BEZIER) {
-			bezt= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(bezt->hide==0) {
-					x= bezt->s[0][0]-mval[0];
-					y= bezt->s[0][1]-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						if(selecting==LEFTMOUSE) bezt->f1|= 1;
-						else bezt->f1 &= ~1;
-					}
-					x= bezt->s[1][0]-mval[0];
-					y= bezt->s[1][1]-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						if(selecting==LEFTMOUSE) bezt->f2|= 1;
-						else bezt->f2 &= ~1;
-					}
-					x= bezt->s[2][0]-mval[0];
-					y= bezt->s[2][1]-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						if(selecting==LEFTMOUSE) bezt->f3|= 1;
-						else bezt->f3 &= ~1;
-					}
-					
-				}
-				bezt++;
-			}
-		}
-		else {
-			bp= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(bp->hide==0) {
-					x= bp->s[0]-mval[0];
-					y= bp->s[1]-mval[1];
-					r= sqrt(x*x+y*y);
-					if(r<=rad) {
-						if(selecting==LEFTMOUSE) bp->f1|= 1;
-						else bp->f1 &= ~1;
-					}
-				}
-				bp++;
-			}
-		}
-		nu= nu->next;
-	}
-	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw(0);
+	data.select = (selecting==LEFTMOUSE);
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
 
-
+	nurbs_foreachScreenVert(nurbscurve_selectionCB__doSelect, &data);
 }
 
+
+static void latticecurve_selectionCB__doSelect(void *userData, BPoint *bp, int x, int y)
+{
+	struct { short select, mval[2]; float radius; } *data = userData;
+	int mx = x - data->mval[0], my = y - data->mval[1];
+	float r = sqrt(mx*mx + my*my);
+
+	if (r<=data->radius) {
+		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+	}
+}
 static void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
-	BPoint *bp;
-	float x, y, r;
-	int a;
+	struct { short select, mval[2]; float radius; } data;
 
-	calc_lattverts_ext();
-	
-	bp= editLatt->def;
+	data.select = (selecting==LEFTMOUSE);
+	data.mval[0] = mval[0];
+	data.mval[1] = mval[1];
+	data.radius = rad;
 
-	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-	while(a--) {
-		if(bp->hide==0) {
-			x= bp->s[0]-mval[0];
-			y= bp->s[1]-mval[1];
-			r= sqrt(x*x+y*y);
-			if(r<=rad) {
-				if(selecting==LEFTMOUSE) bp->f1|= 1;
-				else bp->f1 &= ~1;
-			}
-		}
-		bp++;
-	}
-	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
-	force_draw(0);
+	lattice_foreachScreenVert(latticecurve_selectionCB__doSelect, &data);
 }
 
 /** Callbacks for selection in Editmode */
@@ -1892,7 +1828,12 @@ void obedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 	case OB_LATTICE:
 		lattice_selectionCB(selecting, editobj, mval, rad);
 		break;
+	default:
+		return;
 	}
+
+	draw_sel_circle(0, 0, 0, 0, 0);	/* signal */
+	force_draw(0);
 }
 
 void set_render_border(void)

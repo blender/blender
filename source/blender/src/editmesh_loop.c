@@ -636,8 +636,6 @@ void KnifeSubdivide(char mode)
     	if(button(&numcuts, 2, 128, "Number of Cuts:")==0) return;
     }
 
-	calc_meshverts_ext();  /*Update screen coords for current window */
-	
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
 

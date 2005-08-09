@@ -185,48 +185,35 @@ void printknots()
 }
 
 #if 0
-static void printweightsNurb(void)
+static void printweightsNurb__doPrint(void *userData, Nurb *nurb, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	Nurb *nu;
-	BPoint *bp;
-	int a;
 	char str[30];
 
+	if (bp && (bp->f1&1)) {
+		sprintf(str,"%2.2f", bp->vec[3]);
+
+		cpack(0x737373);
+		glRasterPos2i(x-1, y-1);
+		BMF_DrawString(G.font, str);
+
+		glRasterPos2i(x+1, y+1);
+		BMF_DrawString(G.font, str);
+
+		cpack(0xFFFFFF);
+		glRasterPos2i(x, y);
+		BMF_DrawString(G.font, str);
+	}
+}
+static void printweightsNurb(void)
+{
 	if(G.obedit==0) return;
 
 	persp(PERSP_WIN);
 
 	glDrawBuffer(GL_FRONT); 
+	nurbs_foreachScreenVert(printweightsNurb__doPrint, NULL);
+	glDrawBuffer(GL_BACK);
 
-	nu= editNurb.first;
-	while(nu) {
-		if((nu->type & 7)==CU_NURBS) {
-			a= nu->pntsu*nu->pntsv;
-			bp= nu->bp;
-			while(a--) {
-				if(bp->f1 & 1) {
-					if(bp->s[0]!= 3200) {
-						sprintf(str,"%2.2f", bp->vec[3]);
-
-						cpack(0x737373);
-						glRasterPos2i(bp->s[0]-1, bp->s[1]-1);
-						BMF_DrawString(G.font, str);
-
-						glRasterPos2i(bp->s[0]+1, bp->s[1]+1);
-						BMF_DrawString(G.font, str);
-
-						cpack(0xFFFFFF);
-						glRasterPos2i(bp->s[0], bp->s[1]);
-						BMF_DrawString(G.font, str);
-					}
-				}
-				bp++;
-			}
-		}
-		nu= nu->next;
-	}
-
-	glDrawBuffer(GL_BACK); 
 	persp(PERSP_VIEW);
 }
 #endif
@@ -1679,93 +1666,62 @@ void subdivideNurb()
 
 }
 
-
-short findnearestNurbvert(short sel, Nurb **nurb, BezTriple **bezt, BPoint **bp)
+static void findnearestNurbvert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
-	/* sel==1: selected gets a disadvantage */
-	/* in nurb and bezt or bp the nearest is written */
-	/* return 0 1 2: handlepunt */
-	Nurb *nu;
-	BezTriple *bezt1;
-	BPoint *bp1;
-	short dist= 100, temp, mval[2], a, hpoint=0;
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; short dist, hpoint, select, mval[2]; } *data = userData;
 
-	*nurb= 0;
-	*bezt= 0;
-	*bp= 0;
+	short flag;
+	short temp;
 
-	/* do projection */
-	calc_nurbverts_ext();	/* drawobject.c */
-	
-	getmouseco_areawin(mval);
-
-	nu= editNurb.first;
-	while(nu) {
-		if((nu->type & 7)==CU_BEZIER) {
-			bezt1= nu->bezt;
-			a= nu->pntsu;
-			while(a--) {
-				if(bezt1->hide==0) {
-					temp= abs(mval[0]- bezt1->s[0][0])+ abs(mval[1]- bezt1->s[0][1]);
-					if( (bezt1->f1 & 1)==sel) temp+=5;
-					if(temp<dist) { 
-						hpoint=0; 
-						*bezt=bezt1; 
-						dist= temp; 
-						*nurb= nu; 
-						*bp= 0; 
-					}
-
-					/* middle points get a small disadvantage */
-					temp= 3+abs(mval[0]- bezt1->s[1][0])+ abs(mval[1]- bezt1->s[1][1]);
-					if( (bezt1->f2 & 1)==sel) temp+=5;
-					if(temp<dist) { 
-						hpoint=1; 
-						*bezt=bezt1; 
-						dist= temp; 
-						*nurb= nu; 
-						*bp= 0; 
-					}
-
-					temp= abs(mval[0]- bezt1->s[2][0])+ abs(mval[1]- bezt1->s[2][1]);
-					if( (bezt1->f3 & 1)==sel) temp+=5;
-					if(temp<dist) { 
-						hpoint=2; 
-						*bezt=bezt1; 
-						dist= temp; 
-						*nurb= nu; 
-						*bp= 0; 
-					}
-				}
-				bezt1++;
-			}
+	if (bp) {
+		flag = bp->f1;
+	} else {
+		if (beztindex==0) {
+			flag = bezt->f1;
+		} else if (beztindex==1) {
+			flag = bezt->f2;
+		} else {
+			flag = bezt->f3;
 		}
-		else {
-			bp1= nu->bp;
-			a= nu->pntsu*nu->pntsv;
-			while(a--) {
-				if(bp1->hide==0) {
-					temp= abs(mval[0]- bp1->s[0])+ abs(mval[1]- bp1->s[1]);
-					if( (bp1->f1 & 1)==sel) temp+=5;
-					if(temp<dist) { 
-						hpoint=0; 
-						*bp=bp1; 
-						dist= temp; 
-						*nurb= nu; 
-						*bezt= 0; 
-					}
-				}
-				bp1++;
-			}
-		}
-		nu= nu->next;
 	}
 
-	return hpoint;
+	temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+	if ((flag&1)==data->select) temp += 5;
+	if (bezt && beztindex==1) temp += 3; /* middle points get a small disadvantage */
+
+	if (temp<data->dist) {
+		data->dist = temp;
+
+		data->bp = bp;
+		data->bezt = bezt;
+		data->nurb = nu;
+		data->hpoint = bezt?beztindex:0;
+	}
+}
+
+static short findnearestNurbvert(short sel, Nurb **nurb, BezTriple **bezt, BPoint **bp)
+{
+		/* sel==1: selected gets a disadvantage */
+		/* in nurb and bezt or bp the nearest is written */
+		/* return 0 1 2: handlepunt */
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; short dist, hpoint, select, mval[2]; } data = {0};
+
+	data.dist = 100;
+	data.hpoint = 0;
+	data.select = sel;
+	getmouseco_areawin(data.mval);
+
+	nurbs_foreachScreenVert(findnearestNurbvert__doClosest, &data);
+
+	*nurb = data.nurb;
+	*bezt = data.bezt;
+	*bp = data.bp;
+
+	return data.hpoint;
 }
 
 
-void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
+static void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
 {
 	/* in nu and (bezt or bp) selected are written if there's 1 sel.  */
 	/* if more points selected in 1 spline: return only nu, bezt and bp are 0 */
@@ -2683,8 +2639,6 @@ void addvert_Nurb(int mode)
 
 		if(bezt) {
 			nu->pntsu++;
-			newbezt->s[1][0]= G.vd->mx;
-			newbezt->s[1][1]= G.vd->my;
 			
 			if(mode=='e') {
 				VECCOPY(newbezt->vec[0], bezt->vec[0]);
@@ -2731,8 +2685,6 @@ void addvert_Nurb(int mode)
 
 		if(bp) {
 			nu->pntsu++;
-			newbp->s[0]= G.vd->mx;
-			newbp->s[1]= G.vd->my;
 
 			if(nu->resolu<3) nu->resolu++;
 			makeknots(nu, 1, nu->flagu>>1);

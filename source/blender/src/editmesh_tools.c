@@ -103,14 +103,14 @@ static void free_tagged_facelist(EditFace *efa);
 /********* qsort routines *********/
 
 
-struct xvertsort {
+typedef struct xvertsort {
 	float x;
 	EditVert *v1;
-};
+} xvertsort;
 
 static int vergxco(const void *v1, const void *v2)
 {
-	const struct xvertsort *x1=v1, *x2=v2;
+	const xvertsort *x1=v1, *x2=v2;
 
 	if( x1->x > x2->x ) return 1;
 	else if( x1->x < x2->x) return -1;
@@ -179,7 +179,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	EditVert *eve, *v1, *nextve;
 	EditEdge *eed, *e1, *nexted;
 	EditFace *efa, *nextvl;
-	struct xvertsort *sortblock, *sb, *sb1;
+	xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
 	float dist;
 	int a, b, test, amount;
@@ -195,7 +195,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	if(amount==0) return 0;
 
 	/* allocate memory and qsort */
-	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
+	sb= sortblock= MEM_mallocN(sizeof(xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->h==0 && (eve->f & flag)) {
@@ -205,7 +205,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 		}
 		eve= eve->next;
 	}
-	qsort(sortblock, amount, sizeof(struct xvertsort), vergxco);
+	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
 	/* test for doubles */
 	sb= sortblock;
@@ -427,45 +427,37 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 }
 
 /* called from buttons */
+static void xsortvert_flag__doSetX(void *userData, EditVert *eve, int x, int y, int index)
+{
+	xvertsort *sortblock = userData;
+
+	sortblock[index].x = x;
+}
 void xsortvert_flag(int flag)
 {
 	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are sorted */
 	EditVert *eve;
-	struct xvertsort *sortblock, *sb;
+	xvertsort *sortblock;
 	ListBase tbase;
-	int amount;
+	int i, amount = BLI_countlist(&em->verts);
 	
-	/* count */
-	eve= em->verts.first;
-	amount= 0;
-	while(eve) {
-		if(eve->f & flag) amount++;
-		eve= eve->next;
-	}
-	if(amount==0) return;
-
-	/* allocate memory and sort */
-	sb= sortblock= (struct xvertsort *)MEM_mallocN(sizeof(struct xvertsort)*amount,"sortremovedoub");
-	eve= em->verts.first;
-	while(eve) {
-		if(eve->f & flag) {
-			sb->x= eve->xs;
-			sb->v1= eve;
-			sb++;
-		}
-		eve= eve->next;
-	}
-	qsort(sortblock, amount, sizeof(struct xvertsort), vergxco);
+	sortblock = MEM_callocN(sizeof(xvertsort)*amount,"xsort");
+	for (i=0,eve=em->verts.first; eve; i++,eve=eve->next)
+		if(eve->f & flag)
+			sortblock[i].v1 = eve;
+	mesh_foreachScreenVert(xsortvert_flag__doSetX, sortblock, 0);
+	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 	
-	/* make temporal listbase */
+		/* make temporal listbase */
 	tbase.first= tbase.last= 0;
-	sb= sortblock;
-	while(amount--) {
-		eve= sb->v1;
-		BLI_remlink(&em->verts, eve);
-		BLI_addtail(&tbase, eve);
-		sb++;
+	for (i=0; i<amount; i++) {
+		eve = sortblock[i].v1;
+
+		if (eve) {
+			BLI_remlink(&em->verts, eve);
+			BLI_addtail(&tbase, eve);
+		}
 	}
 	
 	addlisttolist(&em->verts, &tbase);

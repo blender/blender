@@ -144,8 +144,6 @@ void addvert_mesh(void)
 	
 	curs= give_cursor();
 	VECCOPY(eve->co, curs);
-	eve->xs= G.vd->mx;
-	eve->ys= G.vd->my;
 	VecSubf(eve->co, eve->co, G.obedit->obmat[3]);
 
 	Mat3MulVecfl(imat, eve->co);
