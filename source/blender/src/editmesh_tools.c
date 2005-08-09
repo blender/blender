@@ -4650,30 +4650,43 @@ int EdgeSlide(short immediate, float imperc)
 			 v1[0]=(float)mval[0];   
 			 v1[1]=(float)mval[1];   
 
+
 			 if(tempsv->up->v1 == tempsv->down->v1){
-				 v2[0]=(float)tempsv->up->v2->xs;   
-				 v2[1]=(float)tempsv->up->v2->ys;   
-	
-				 v3[0]=(float)tempsv->down->v2->xs;   
-				 v3[1]=(float)tempsv->down->v2->ys;  
+                 short t[2];   
+				 project_short(tempsv->up->v2->co,t);
+                 v2[0] = (float)t[0];
+                 v2[1] = (float)t[1];
+                 
+				 project_short(tempsv->down->v2->co,t);	
+                 v3[0] = (float)t[0];
+                 v3[1] = (float)t[1];               			 
 			 } else if (tempsv->up->v2 == tempsv->down->v2){
-				 v2[0]=(float)tempsv->up->v1->xs;   
-				 v2[1]=(float)tempsv->up->v1->ys;   
-	
-				 v3[0]=(float)tempsv->down->v1->xs;   
-				 v3[1]=(float)tempsv->down->v1->ys;  
+                 short t[2];    
+				 project_short(tempsv->up->v1->co,t);
+                 v2[0] = (float)t[0];
+                 v2[1] = (float)t[1];
+                 
+				 project_short(tempsv->down->v1->co,t);	
+                 v3[0] = (float)t[0];
+                 v3[1] = (float)t[1];
 			 } else if (tempsv->up->v1 == tempsv->down->v2){
-				 v2[0]=(float)tempsv->up->v2->xs;   
-				 v2[1]=(float)tempsv->up->v2->ys;   
-	
-				 v3[0]=(float)tempsv->down->v1->xs;   
-				 v3[1]=(float)tempsv->down->v1->ys;  
+                 short t[2];    
+				 project_short(tempsv->up->v2->co,t);
+                 v2[0] = (float)t[0];
+                 v2[1] = (float)t[1];
+                 
+				 project_short(tempsv->down->v1->co,t);	
+                 v3[0] = (float)t[0];
+                 v3[1] = (float)t[1]; 
 			 } else if (tempsv->up->v2 == tempsv->down->v1){
-				 v2[0]=(float)tempsv->up->v1->xs;   
-				 v2[1]=(float)tempsv->up->v1->ys;   
-	
-				 v3[0]=(float)tempsv->down->v2->xs;   
-				 v3[1]=(float)tempsv->down->v2->ys;  
+                 short t[2];   
+				 project_short(tempsv->up->v1->co,t);
+                 v2[0] = (float)t[0];
+                 v2[1] = (float)t[1];
+                 
+				 project_short(tempsv->down->v2->co,t);	
+                 v3[0] = (float)t[0];
+                 v3[1] = (float)t[1];
 			 }
 
 			 // Highlight the Control Edges
