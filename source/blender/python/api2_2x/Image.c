@@ -30,7 +30,7 @@
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-#include "Image.h" /*This must come first*/
+#include "Image.h"		/*This must come first */
 
 #include "BDR_drawmesh.h"	/* free_realtime_image */
 #include "BKE_main.h"
@@ -44,6 +44,12 @@
 #include "BIF_gl.h"
 #include "gen_utils.h"
 
+/* 
+   fixme
+   this belongs in a header
+   sswaney 10-aug-2005
+*/
+short IMB_saveiff( struct ImBuf *ibuf, char *naam, int flags );
 
 /*****************************************************************************/
 /* Python BPy_Image defaults:																								 */
@@ -224,7 +230,7 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 
 	PyObject *attr;
 	Image *image = self->image;
-	char *pixel;	/* image data */
+	char *pixel;		/* image data */
 	int index;		/* offset into image data */
 	int x = 0;
 	int y = 0;
@@ -265,13 +271,193 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 			      ( ( float ) pixel[index + 2] ) / 255.0,
 			      ( ( float ) pixel[index + 3] / 255.0 ) );
 
-	if( attr )  /* normal return */
+	if( attr )		/* normal return */
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get pixel colors" );
 }
 
+
+/**
+ * getPixelI( x, y )
+ *  returns integer list of pixel colors in rgba order.
+ *  returned values are ints normalized to 0-255.
+ *  blender images are all 4x8 bit at the moment apr-2005
+ */
+
+static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args )
+{
+	PyObject *attr;
+	Image *image = self->image;
+	char *pixel;		/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+
+	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers" );
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( image->ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( image->ibuf->x - 1 )
+	    || y > ( image->ibuf->y - 1 )
+	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of range" );
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	index = ( x + y * image->ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) image->ibuf->rect;
+	attr = Py_BuildValue( "[i,i,i,i]",
+			      pixel[index],
+			      pixel[index + 1],
+			      pixel[index + 2], pixel[index + 3] );
+
+	if( attr )		/* normal return */
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get pixel colors" );
+}
+
+
+/* set pixel as floats */
+
+static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
+{
+	Image *image = self->image;
+	char *pixel;		/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int a = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	float p[4];
+
+	if( !PyArg_ParseTuple
+	    ( args, "ii(ffff)", &x, &y, &p[0], &p[1], &p[2], &p[3] ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers and an array of 4 floats" );
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( image->ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( image->ibuf->x - 1 )
+	    || y > ( image->ibuf->y - 1 )
+	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of range" );
+
+	for( a = 0; a < 4; a++ ) {
+		if( p[a] > 1.0 || p[a] < 0.0 )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						      "r, g, b, or a is out of range" );
+	}
+
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	index = ( x + y * image->ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) image->ibuf->rect;
+
+	pixel[index] = ( int ) ( p[0] * 255.0 );
+	pixel[index + 1] = ( int ) ( p[1] * 255.0 );
+	pixel[index + 2] = ( int ) ( p[2] * 255.0 );
+	pixel[index + 3] = ( int ) ( p[3] * 255.0 );
+
+	Py_RETURN_NONE;
+}
+
+
+/* set pixel as ints */
+
+static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
+{
+	Image *image = self->image;
+	char *pixel;		/* image data */
+	int index;		/* offset into image data */
+	int x = 0;
+	int y = 0;
+	int a = 0;
+	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
+	int p[4];
+
+	if( !PyArg_ParseTuple
+	    ( args, "ii(iiii)", &x, &y, &p[0], &p[1], &p[2], &p[3] ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected 2 integers and an list of 4 ints" );
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	if( image->ibuf->type == 1 )	/* bitplane image */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "unsupported bitplane image format" );
+
+	if( x > ( image->ibuf->x - 1 )
+	    || y > ( image->ibuf->y - 1 )
+	    || x < image->ibuf->xorig || y < image->ibuf->yorig )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "x or y is out of range" );
+
+	for( a = 0; a < 4; a++ ) {
+		if( p[a] > 255 || p[a] < 0 )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						      "r, g, b, or a is out of range" );
+	}
+
+	/* 
+	   assumption: from looking at source, skipx is often not set,
+	   so we calc ourselves
+	 */
+
+	index = ( x + y * image->ibuf->x ) * pixel_size;
+
+	pixel = ( char * ) image->ibuf->rect;
+
+	pixel[index] = p[0];
+	pixel[index + 1] = p[1];
+	pixel[index + 2] = p[2];
+	pixel[index + 3] = p[3];
+
+	Py_RETURN_NONE;
+}
+
+
+/* get max extent of image */
 
 static PyObject *Image_getMaxXY( BPy_Image * self )
 {
@@ -286,11 +472,53 @@ static PyObject *Image_getMaxXY( BPy_Image * self )
 					      "couldn't load image data in Blender" );
 
 	attr = Py_BuildValue( "[i,i]", image->ibuf->x, image->ibuf->y );
+
 	if( attr )
 		return attr;
+
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "could not determine max x or y" );
+}
 
+
+/* get min extent of image */
+
+static PyObject *Image_getMinXY( BPy_Image * self )
+{
+	Image *image = self->image;
+	PyObject *attr;
+
+	if( !image->ibuf || !image->ibuf->rect )	/* if no image data available */
+		load_image( image, IB_rect, "", 0 );	/* loading it */
+
+	if( !image->ibuf || !image->ibuf->rect )	/* didn't work */
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't load image data in Blender" );
+
+	attr = Py_BuildValue( "[i,i]", image->ibuf->xorig,
+			      image->ibuf->yorig );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "could not determine min x or y" );
+}
+
+
+/* save image to file */
+
+static PyObject *Image_save( BPy_Image * self )
+{
+	Py_INCREF( Py_None );
+
+	if( !IMB_saveiff
+	    ( self->image->ibuf, self->image->name,
+	      self->image->ibuf->flags ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "could not save image" );
+
+	Py_RETURN_NONE;		/*  normal return, image saved */
 }
 
 /*****************************************************************************/
@@ -331,7 +559,13 @@ static PyObject *Image_reload( BPy_Image * self );
 static PyObject *Image_glLoad( BPy_Image * self );
 static PyObject *Image_glFree( BPy_Image * self );
 static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_getPixelI( BPy_Image * self, PyObject * args );
+static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args );
+static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
 static PyObject *Image_getMaxXY( BPy_Image * self );
+static PyObject *Image_getMinXY( BPy_Image * self );
+static PyObject *Image_save( BPy_Image * self );
+
 
 /*****************************************************************************/
 /* Python BPy_Image methods table:	 */
@@ -339,9 +573,17 @@ static PyObject *Image_getMaxXY( BPy_Image * self );
 static PyMethodDef BPy_Image_methods[] = {
 	/* name, method, flags, doc */
 	{"getPixelF", ( PyCFunction ) Image_getPixelF, METH_VARARGS,
-	 "(float, float) - Get colors of specified pixel as [r,g,b,a]"},
-	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_VARARGS,
+	 "(int, int) - Get pixel color as floats 0.0-1.0 returns [r,g,b,a]"},
+	{"getPixelI", ( PyCFunction ) Image_getPixelI, METH_VARARGS,
+	 "(int, int) - Get pixel color as ints 0-255 returns [r,g,b,a]"},
+	{"setPixelF", ( PyCFunction ) Image_setPixelF, METH_VARARGS,
+	 "(int, int, [f r,f g,f b,f a]) - Set pixel color using floats 0.0-1.0"},
+	{"setPixelI", ( PyCFunction ) Image_setPixelI, METH_VARARGS,
+	 "(int, int, [i r, i g, i b, i a]) - Set pixel color using ints 0-255"},
+	{"getMaxXY", ( PyCFunction ) Image_getMaxXY, METH_NOARGS,
 	 "() - Get maximum x & y coordinates of current image as [x, y]"},
+	{"getMinXY", ( PyCFunction ) Image_getMinXY, METH_NOARGS,
+	 "() - Get minimun x & y coordinates of image as [x, y]"},
 	{"getName", ( PyCFunction ) Image_getName, METH_NOARGS,
 	 "() - Return Image object name"},
 	{"getFilename", ( PyCFunction ) Image_getFilename, METH_NOARGS,
@@ -372,6 +614,8 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(int) - Change Image object x repetition value"},
 	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
 	 "(int) - Change Image object y repetition value"},
+	{"save", ( PyCFunction ) Image_save, METH_NOARGS,
+	 "() - Write image buffer to file"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -388,7 +632,7 @@ static PyObject *Image_repr( BPy_Image * self );
 /* Python Image_Type structure definition:   */
 /*****************************************************************************/
 PyTypeObject Image_Type = {
-	PyObject_HEAD_INIT( NULL )  /*     required macro. ( no comma needed )  */
+	PyObject_HEAD_INIT( NULL ) /*     required macro. ( no comma needed )  */ 
 	0,	/* ob_size */
 	"Blender Image",	/* tp_name */
 	sizeof( BPy_Image ),	/* tp_basicsize */
@@ -571,8 +815,7 @@ static PyObject *Image_reload( BPy_Image * self )
 	if( G.sima )
 		image_changed( G.sima, 0 );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Image_glFree( BPy_Image * self )
@@ -582,7 +825,7 @@ static PyObject *Image_glFree( BPy_Image * self )
 	free_realtime_image( img );
 	/* remove the nocollect flag, image is available for garbage collection again */
 	img->flag &= ~IMA_NOCOLLECT;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Image_glLoad( BPy_Image * self )
@@ -615,9 +858,10 @@ static PyObject *Image_glLoad( BPy_Image * self )
 			      img->ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE,
 			      img->ibuf->rect );
 
-		/* raise the nocollect flag, image is not available for garbage collection 
+		/* raise the nocollect flag, 
+		   image is not available for garbage collection 
 		   (python GL might use it directly)
-		*/
+		 */
 		img->flag |= IMA_NOCOLLECT;
 	}
 
@@ -637,8 +881,7 @@ static PyObject *Image_setName( BPy_Image * self, PyObject * args )
 
 	rename_id( &self->image->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
@@ -659,8 +902,7 @@ static PyObject *Image_setFilename( BPy_Image * self, PyObject * args )
 	PyOS_snprintf( self->image->name, FILE_MAXDIR * sizeof( char ), "%s",
 		       name );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
@@ -677,8 +919,7 @@ static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
 						"expected int argument in [1,16]" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *Image_setYRep( BPy_Image * self, PyObject * args )
@@ -695,8 +936,7 @@ static PyObject *Image_setYRep( BPy_Image * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
 						"expected int argument in [1,16]" ) );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*****************************************************************************/

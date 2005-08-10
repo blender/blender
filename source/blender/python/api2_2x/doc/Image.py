@@ -106,10 +106,29 @@ class Image:
 	@param x:  the x coordinate of pixel.
 	@param y:  the y coordinate of pixel.  
     """
+  def getPixelI(x, y):
+    """
+	Get the the colors of the current pixel in the form [r,g,b,a].
+	Returned values are ints normalized to 0 - 255.
+	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+	@returns: [ r, g, b, a]
+	@rtype: list of 4 ints
+	@type x: int
+	@type y: int
+	@param x:  the x coordinate of pixel.
+	@param y:  the y coordinate of pixel.  
+    """
 
   def getMaxXY():
     """
     Get the  x & y size for the image.  Image coordinates range from 0 to size-1.
+    @returns: [x, y]
+    @rtype: list of 2 ints
+    """
+
+  def getMinXY():
+    """
+    Get the x & y origin for the image. Image coordinates range from 0 to size-1.
     @returns: [x, y]
     @rtype: list of 2 ints
     """
@@ -196,4 +215,41 @@ class Image:
     Texture tiling: set the number of y repetitions for this Image.
     @type yrep: int
     @param yrep: The new value in [1, 16].
+    """
+
+  def setPixelF(x, y, (r, g, b,a )):
+    """
+       	Set the the colors of the current pixel in the form [r,g,b,a].
+       	Color values must be floats in the range 0.0 - 1.0.
+	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+	@type x: int
+	@type y: int
+	@type r: float
+	@type g: float
+	@type b: float
+	@type a: float
+	@returns: nothing
+	@rtype: none
+    """
+    
+  def setPixelI(x, y, (r, g, b, a)):
+    """
+       	Set the the colors of the current pixel in the form [r,g,b,a].
+       	Color values must be ints in the range 0 - 255.
+	Pixel coordinates are in the range from 0 to N-1.  See L{getMaxXY}
+	@type x: int
+	@type y: int
+	@type r: int
+	@type g: int
+	@type b: int
+	@type a: int
+	@returns: nothing
+	@rtype: none
+    """
+    
+  def save():
+    """
+    Saves the current image.
+    @returns: nothing
+    @rtype: none
     """
