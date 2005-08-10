@@ -1136,18 +1136,27 @@ static void hookModifier_deformVerts(ModifierData *md, Object *ob, void *derived
 	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv, NULL, NULL, NULL, NULL, NULL);
 
 	for (i=0; i<hmd->totindex; i++) {
-		float *co = vertexCos[hmd->indexar[i]];
-		float fac = hmd->force;
+		int index = hmd->indexar[i];
 
-		if(hmd->falloff!=0.0) {
-			float len= VecLenf(co, hmd->cent);
-			if(len > hmd->falloff) fac = 0.0;
-			else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
-		}
+			/* These should always be true and I don't generally like 
+			 * "paranoid" style code like this, but old files can have
+			 * indices that are out of range because old blender did
+			 * not correct them on exit editmode.
+			 */
+		if (index<numVerts) {
+			float *co = vertexCos[index];
+			float fac = hmd->force;
 
-		if(fac!=0.0) {
-			VecMat4MulVecfl(vec, mat, co);
-			VecLerpf(co, co, vec, fac);
+			if(hmd->falloff!=0.0) {
+				float len= VecLenf(co, hmd->cent);
+				if(len > hmd->falloff) fac = 0.0;
+				else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
+			}
+
+			if(fac!=0.0) {
+				VecMat4MulVecfl(vec, mat, co);
+				VecLerpf(co, co, vec, fac);
+			}
 		}
 	}
 }
