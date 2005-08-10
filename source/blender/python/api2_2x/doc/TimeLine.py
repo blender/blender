@@ -4,7 +4,7 @@
 The Blender.Scene.TimeLine submodule.
 
 TimeLine
-=====
+========
 
 This module gives access to B{Scene TimeLine Contexts} in Blender.
 
@@ -32,8 +32,8 @@ Example::
 class TimeLine:
   """
   The TimeLine object
-  ====================
-    This object wraps the current Scene's time line context in Blender.
+  ===================
+  This object wraps the current Scene's time line context in Blender.
   """
  
   def add(ival):
@@ -72,7 +72,6 @@ class TimeLine:
     """
     Get name of frame.
     @type ival: int
-    @type sval: string
     @param ival: the frame number.
     @rtype: int|string
     @return: the list of frame number or name.
