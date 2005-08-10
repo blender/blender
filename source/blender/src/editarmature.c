@@ -1995,7 +1995,7 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
     mesh = (Mesh*)ob->data;
 
 	/* Is subsurf on? Lets use the verts on the limit surface then */
-	if (modifiers_findByType(&ob->modifiers, eModifierType_Subsurf)) {
+	if (modifiers_findByType(ob, eModifierType_Subsurf)) {
 		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
 		subsurf_calculate_limit_positions(mesh, (void *)subverts);	/* (ton) made void*, dunno how to cast */
 	}

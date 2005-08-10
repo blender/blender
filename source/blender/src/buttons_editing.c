@@ -511,11 +511,13 @@ void do_modifier_panels(unsigned short event)
 	switch(event) {
 	case B_MODIFIER_REDRAW:
 		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWOOPS, 0);
 		break;
 
 	case B_MODIFIER_RECALC:
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	}
@@ -590,6 +592,17 @@ static void modifiers_moveDown(void *ob_v, void *md_v)
 	ModifierData *md = md_v;
 
 	if (md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+			ModifierTypeInfo *nmti = modifierType_getInfo(md->next->type);
+
+			if (nmti->type!=eModifierTypeType_OnlyDeform) {
+				error("Cannot move beyond a non-deforming modifier.");
+				return;
+			}
+		}
+
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->next, md);
 	}
@@ -620,6 +633,23 @@ static void modifier_testCurveObj(char *name, ID **idpp)
 		if( strcmp(name, id->name+2)==0 ) {
 			if (((Object *)id)->type != OB_CURVE) {
 				error ("Curve deform object must be a curve");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
+static void modifier_testArmatureObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_ARMATURE) {
+				error ("Armature deform object must be an armature");
 				break;
 			} 
 			*idpp= id;
@@ -718,6 +748,19 @@ static void modifiers_setSubsurfIncremental(void *ob_v, void *md_v)
 	}
 }
 
+static void modifiers_clearHookOffset(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	
+	if (hmd->object) {
+		Mat4Invert(hmd->object->imat, hmd->object->obmat);
+		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+		BIF_undo_push("Clear hook");
+	}
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -737,7 +780,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiRoundBox(x+4+10, y-18, x+width+10, y+6, 5.0);
 
 	BIF_ThemeColor(color);
-	uiDefBut(block, LABEL, B_NOP, mti->name, x+5, y-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+	uiBlockBeginAlign(block);
+	uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, width-120-60-10, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+	uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+	uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+	if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+	}
+	uiBlockEndAlign(block);
 
 	uiBlockSetEmboss(block, UI_EMBOSSR);
 
@@ -756,7 +806,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			icon = ICON_BLANK1;
 		}
 		uiBlockSetCol(block, color);
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-120, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-105, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
 		uiButSetFunc(but, modifiers_setOnCage, ob, md);
 		uiBlockSetCol(block, TH_AUTO);
 	}
@@ -778,14 +828,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	uiBlockBeginAlign(block);
-	uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-90, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-	uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-90+20, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-	if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-90+40, y, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
-	}
-	uiBlockEndAlign(block);
-
 	if (!(md->mode&eModifierMode_Expanded)) {
 		y -= 18;
 	} else {
@@ -798,17 +840,23 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		if (md->type==eModifierType_Subsurf) {
 			height = 86;
 		} else if (md->type==eModifierType_Lattice) {
-			height = 86;
+			height = 46;
 		} else if (md->type==eModifierType_Curve) {
-			height = 86;
+			height = 46;
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 86;
+			height = 46;
 		} else if (md->type==eModifierType_Decimate) {
-			height = 66;
+			height = 46;
 		} else if (md->type==eModifierType_Wave) {
 			height = 200;
+		} else if (md->type==eModifierType_Armature) {
+			height = 46;
+		} else if (md->type==eModifierType_Hook) {
+			height = 86;
+		} else if (md->type==eModifierType_Softbody) {
+			height = 46;
 		}
 
 		BIF_ThemeColor(color);
@@ -845,10 +893,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,70,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob:",	lx, (cy-=19), 120,19, &lmd->object, "Lattice object to deform with");
+			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), 120,19, &lmd->object, "Lattice object to deform with");
 		} else if (md->type==eModifierType_Curve) {
 			CurveModifierData *cmd = (CurveModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob:", lx, (cy-=19), 120,19, &cmd->object, "Curve object to deform with");
+			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), 120,19, &cmd->object, "Curve object to deform with");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), 160,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
@@ -883,6 +931,18 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Heigth:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Width:",	lx,(cy-=19),220,19, &wmd->width, 0.0, 5.0, 0, 0, "Specify the width of the wave");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Narrow:",	lx,(cy-=19),220,19, &wmd->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
+		} else if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			uiDefIDPoinBut(block, modifier_testArmatureObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), 120,19, &amd->object, "Armature object to deform with");
+		} else if (md->type==eModifierType_Hook) {
+			HookModifierData *hmd = (HookModifierData*) md;
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), 160,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ", 	lx, (cy-=19), 160,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
+			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", 	lx, (cy-=19), 160,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Clear offset", 		lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+			uiButSetFunc(but, modifiers_clearHookOffset, ob, md);
+		} else if (md->type==eModifierType_Softbody) {
+			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		uiBlockEndAlign(block);
 
@@ -913,9 +973,8 @@ static void editing_panel_modifiers(Object *ob)
 	ModifierData *md;
 	uiBlock *block;
 	char str[64];
-	int xco, yco, i, lastCageIndex, cageIndex = modifiers_getCageIndex(&ob->modifiers, &lastCageIndex);
+	int xco, yco, i, lastCageIndex, cageIndex = modifiers_getCageIndex(ob, &lastCageIndex);
 
-		// XXX ofsx should probably be changed in other panels here
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
 

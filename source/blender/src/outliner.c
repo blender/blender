@@ -47,6 +47,7 @@
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_oops_types.h"
@@ -65,6 +66,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
@@ -367,7 +369,6 @@ static void outliner_sort(SpaceOops *soops, ListBase *lb)
 static void outliner_add_bone(SpaceOops *soops, ListBase *lb, 
 							  ID *id, Bone *curBone, TreeElement *parent, int *a);
 
-
 static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *idv, 
 										 TreeElement *parent, short type, short index)
 {
@@ -502,16 +503,25 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					}
 				}
 				
-				if(ob->hooks.first) {
-					ObHook *hook;
-					TreeElement *ten;
-					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_HOOKS_BASE, 0);
-					int a= 0;
-					
-					tenla->name= "Hooks";
-					for(hook=ob->hooks.first; hook; hook= hook->next, a++) {
-						ten= outliner_add_element(soops, &tenla->subtree, hook->parent, tenla, TSE_HOOK, a);
-						if(ten) ten->name= hook->name;
+				if(ob->modifiers.first) {
+					ModifierData *md;
+					TreeElement *temod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
+					int index;
+
+					for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
+						ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+						TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
+						if(te) te->name= md->name;
+
+						if (md->type==eModifierType_Lattice) {
+							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+						} else if (md->type==eModifierType_Curve) {
+							outliner_add_element(soops, &te->subtree, ((CurveModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+						} else if (md->type==eModifierType_Armature) {
+							outliner_add_element(soops, &te->subtree, ((ArmatureModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+						} else if (md->type==eModifierType_Hook) {
+							outliner_add_element(soops, &te->subtree, ((HookModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);
+						}
 					}
 				}
 				if(ob->defbase.first) {
@@ -1298,6 +1308,14 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 	return 0;
 }
 
+static int tree_element_active_modifier(TreeElement *te, TreeStoreElem *tselem, int set)
+{
+	if(set) {
+		extern_set_butspace(F9KEY);
+	}
+	
+	return 0;
+}
 
 static int tree_element_active_text(SpaceOops *soops, TreeElement *te, int set)
 {
@@ -1369,7 +1387,9 @@ static int tree_element_type_active(SpaceOops *soops, TreeElement *te, TreeStore
 			return tree_element_active_bone(te, tselem, set);
 		case TSE_EBONE:
 			return tree_element_active_ebone(te, tselem, set);
-		case TSE_HOOK: // actually object
+		case TSE_MODIFIER:
+			return tree_element_active_modifier(te, tselem, set);
+		case TSE_MODIFIER_OB:
 			if(set) tree_element_active_object(soops, te);
 			else if(tselem->id==(ID *)OBACT) return 1;
 			break;
@@ -1417,7 +1437,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			
 			/* activate a name button? */
 			if(G.qual & LR_CTRLKEY) {
-				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_HOOKS_BASE, TSE_SCRIPT_BASE)) 
+				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
 					error("Cannot edit builtin name");
 				else {
 					tselem->flag |= TSE_TEXTBUT;
@@ -1903,9 +1923,9 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem)
 				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
 			case TSE_CONSTRAINT_BASE:
 				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
-			case TSE_HOOKS_BASE:
+			case TSE_MODIFIER_BASE:
 				BIF_draw_icon(x, y, ICON_HOOK); break;
-			case TSE_HOOK:
+			case TSE_MODIFIER_OB:
 				BIF_draw_icon(x, y, ICON_OBJECT); break;
 			case TSE_SCRIPT_BASE:
 				BIF_draw_icon(x, y, ICON_TEXT); break;
@@ -2326,15 +2346,14 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 		tselem= TREESTORE(te);
 		if(tselem->flag & TSE_TEXTBUT) {
 			
-			if(tselem->type==TSE_EBONE) {
-				len= 32;
-			}
-			else len= 19;
+			if(tselem->type==TSE_EBONE) len = sizeof(((EditBone*) 0)->name);
+			else if (tselem->type==TSE_MODIFIER) len = sizeof(((ModifierData*) 0)->name);
+			else len= sizeof(((ID*) 0)->name)-2;
 			
 			dx= BIF_GetStringWidth(G.font, te->name, 0);
 			if(dx<50) dx= 50;
 			
-			bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  te->xs+2*OL_X-4, te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len, 0, 0, "");
+			bt= uiDefBut(block, TEX, OL_NAMEBUTTON, "",  te->xs+2*OL_X-4, te->ys, dx+10, OL_H-1, te->name, 1.0, (float)len-1, 0, 0, "");
 			uiButSetFunc(bt, namebutton_cb, soops, NULL);
 
 			// signal for button to open

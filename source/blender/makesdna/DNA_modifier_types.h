@@ -14,6 +14,9 @@ typedef enum ModifierType {
 	eModifierType_Mirror,
 	eModifierType_Decimate,
 	eModifierType_Wave,
+	eModifierType_Armature,
+	eModifierType_Hook,
+	eModifierType_Softbody,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -23,7 +26,6 @@ typedef enum ModifierType {
 	 * for render calc.
 	 */
 typedef enum ModifierMode {
-	eModifierMode_Disabled = 0,
 	eModifierMode_Realtime = (1<<0),
 	eModifierMode_Render = (1<<1),
 	eModifierMode_Editmode = (1<<2),
@@ -35,6 +37,7 @@ typedef struct ModifierData {
 	struct ModifierData *next, *prev;
 
 	int type, mode;
+	char name[32];
 
 	char *error;
 } ModifierData;
@@ -94,5 +97,28 @@ typedef struct WaveModifierData {
 	
 	float timeoffs, lifetime;
 } WaveModifierData;
+
+typedef struct ArmatureModifierData {
+	ModifierData modifier;
+
+	struct Object *object;
+} ArmatureModifierData;
+
+typedef struct HookModifierData {
+	ModifierData modifier;
+
+	struct Object *object;
+	float parentinv[4][4];	/* matrix making current transform unmodified */
+	float cent[3];			/* visualization of hook */
+	float falloff;			/* if not zero, falloff is distance where influence zero */
+	
+	int *indexar;
+	int totindex;
+	float force;
+} HookModifierData;
+
+typedef struct SoftbodyModifierData {
+	ModifierData modifier;
+} SoftbodyModifierData;
 
 #endif

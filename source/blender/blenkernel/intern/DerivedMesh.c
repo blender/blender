@@ -1393,7 +1393,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	DerivedMesh *dm;
 	int numVerts = me->totvert;
 
-	modifiers_clearErrors(&ob->modifiers);
+	modifiers_clearErrors(ob);
 
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
@@ -1434,6 +1434,10 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 
 		if (!(md->mode&(1<<useRenderParams))) continue;
 		if (mti->type==eModifierTypeType_OnlyDeform && !useDeform) continue;
+		if ((mti->flags&eModifierTypeFlag_RequiresOriginalData) && dm) {
+			modifier_setError(md, "Internal error, modifier requires original data (bad stack position).");
+			continue;
+		}
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
 			/* How to apply modifier depends on (a) what we already have as
@@ -1521,9 +1525,9 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 	ModifierData *md;
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
-	int i, numVerts, cageIndex = modifiers_getCageIndex(&ob->modifiers, NULL);
+	int i, numVerts, cageIndex = modifiers_getCageIndex(ob, NULL);
 
-	modifiers_clearErrors(&ob->modifiers);
+	modifiers_clearErrors(ob);
 
 	if (cage_r && cageIndex==-1) {
 		*cage_r = getEditMeshDerivedMesh(em, NULL);
@@ -1535,6 +1539,10 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 
 		if (!(md->mode&eModifierMode_Realtime)) continue;
 		if (!(md->mode&eModifierMode_Editmode)) continue;
+		if ((mti->flags&eModifierTypeFlag_RequiresOriginalData) && dm) {
+			modifier_setError(md, "Internal error, modifier requires original data (bad stack position).");
+			continue;
+		}
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (!(mti->flags&eModifierTypeFlag_SupportsEditmode)) continue;
 

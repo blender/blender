@@ -1077,8 +1077,6 @@ void fill_mesh(void)
 
 	ok= BLI_edgefill(0);
 
-	/* printf("time: %d\n",(clock()-tijd)/1000); */
-
 	if(ok) {
 		efa= fillfacebase.first;
 		while(efa) {
@@ -1087,7 +1085,6 @@ void fill_mesh(void)
 			efa= efa->next;
 		}
 	}
-	/* else printf("fill error\n"); */
 
 	BLI_end_edgefill();
 
@@ -4436,8 +4433,6 @@ int EdgeSlide(short immediate, float imperc)
 		tempsv->origvert.no[0] = ev->no[0];
 		tempsv->origvert.no[1] = ev->no[1];
 		tempsv->origvert.no[2] = ev->no[2];
-		tempsv->origvert.xs = ev->xs;
-		tempsv->origvert.ys = ev->ys;
 		// i is total edges that vert is on
 		// j is total selected edges that vert is on
 		

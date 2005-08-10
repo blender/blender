@@ -47,8 +47,6 @@ struct bDeformGroup* copy_defgroup (struct bDeformGroup *ingroup);
 struct bDeformGroup *get_named_vertexgroup (Object *ob, char *name);
 int  get_defgroup_num (struct Object *ob, struct bDeformGroup   *dg);
 
-void hook_object_deform(struct Object *ob, int index, float *vec);
-
 int curve_modifier(struct Object *ob, char mode);
 void mesh_modifier(struct Object *ob, float (**vertexCos_r)[3]);
 int lattice_modifier(struct Object *ob, char mode);

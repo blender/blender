@@ -1032,60 +1032,6 @@ static void object_panel_draw(Object *ob)
 
 }
 
-static void object_panel_hooks(Object *ob)
-{
-	uiBlock *block;
-	ObHook *hook;
-	int tothook=0, nr, active;
-	char *cp;
-	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_hooks", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Draw", "Object");
-	if(uiNewPanel(curarea, block, "Hooks", "Object", 320, 0, 318, 204)==0) return;
-
-	if(ob->hooks.first==NULL) {
-		uiDefBut(block, LABEL, 0, "Add hooks in Editmode", 10,180,300,19, NULL, 0, 0, 0, 0, "");
-		return;
-	}
-	
-	/* build menu */
-	for(hook= ob->hooks.first; hook; hook= hook->next) tothook++;
-	
-	cp= MEM_callocN(32*tothook+32, "temp string");
-	strcpy(cp, "Active Hook %t|");
-
-	for(hook= ob->hooks.first; hook; hook= hook->next) {
-		strcat(cp, hook->name);
-		strcat(cp, " |");
-	}
-	/* active is stored in first hook */
-	hook= ob->hooks.first;
-	if(hook->active<1 || hook->active > tothook) hook->active= 1;
-	active= hook->active;
-	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_REDR, cp,					10,180,150,19, &hook->active, 0, 0, 0, 0, "Set active hook");
-	MEM_freeN(cp);
-
-	for(nr=1, hook= ob->hooks.first; hook; hook= hook->next, nr++) {
-		if(nr==active) break;
-	}
-	if(hook==NULL) printf("error in object_panel_hooks\n");
-	
-	uiDefBut(block, TEX, B_REDR, "Name: ", 				160,180,150,19, hook->name, 0, 31, 0, 0, "Set name of hook");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MAKEDISP, "Falloff: ",		160,140,150,19, &hook->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
-	uiDefButF(block, NUMSLI, B_MAKEDISP, "Force: ", 	160,120,150,19, &hook->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
-	uiBlockEndAlign(block);
-
-	uiDefIDPoinBut(block, test_obpoin_but, B_CLR_HOOK, "Parent:", 	10, 120, 150, 19, &hook->parent, "Parent Object for hook, also recalculates and clears offset"); 
-
-	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_DEL_HOOK, "Delete", 				10,80,150,19, NULL, 0.0, 0.0, 0, 0, "Delete hook");
-	uiDefBut(block, BUT, B_CLR_HOOK, "Clear offset", 		160,80,150,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
-}
-
 static void softbody_bake(Object *ob)
 {
 	SoftBody *sb= ob->soft;
@@ -1139,7 +1085,6 @@ static void softbody_bake(Object *ob)
 void do_object_panels(unsigned short event)
 {
 	Object *ob;
-	ObHook *hook;
 	Effect *eff;
 	
 	ob= OBACT;
@@ -1149,42 +1094,6 @@ void do_object_panels(unsigned short event)
 		ob= OBACT;
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
-		break;
-	case B_DEL_HOOK:
-		hook= ob->hooks.first;
-		if(hook) {
-			int active= hook->active, nr;
-			for(nr=1, hook=ob->hooks.first; hook; hook=hook->next, nr++) {
-				if(active==nr) break;
-			}
-			if(hook) {
-				BLI_remlink(&ob->hooks, hook);
-				if(hook->indexar) MEM_freeN(hook->indexar);
-				MEM_freeN(hook);
-			}
-			freedisplist(&ob->disp);
-			BIF_undo_push("Delete hook");
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSOBJECT, 0);
-		}
-		break;
-	case B_CLR_HOOK:
-		hook= ob->hooks.first;
-		if(hook) {
-			int active= hook->active, nr;
-			for(nr=1, hook=ob->hooks.first; hook; hook=hook->next, nr++) {
-				if(active==nr) break;
-			}
-			if(hook && hook->parent) {
-				Mat4Invert(hook->parent->imat, hook->parent->obmat);
-				/* apparently this call goes from right to left... */
-				Mat4MulSerie(hook->parentinv, hook->parent->imat, ob->obmat, NULL, 
-							NULL, NULL, NULL, NULL, NULL);
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-				BIF_undo_push("Clear hook");
-				allqueue(REDRAWVIEW3D, 0);
-			}
-		}
 		break;
 	case B_RECALCPATH:
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
@@ -1782,7 +1691,6 @@ void object_panels()
 
 		object_panel_anim(ob);
 		object_panel_draw(ob);
-		object_panel_hooks(ob);
 		object_panel_constraint();
 		if(ob->type==OB_MESH) {
 			object_panel_effects(ob);

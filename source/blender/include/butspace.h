@@ -215,10 +215,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 /* *********************** */
 #define B_ANIMBUTS		1500
 
-#define B_RECALCPATH		1401
+#define B_RECALCPATH	1401
 #define B_TRACKBUTS		1402
-#define B_DEL_HOOK		1403
-#define B_CLR_HOOK		1404
 
 #define B_PRINTSPEED	1413
 #define B_PRINTLEN		1414

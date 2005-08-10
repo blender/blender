@@ -352,16 +352,6 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 				}
 			}
 		}
-		if (ob->hooks.first) {
-			ObHook *hook;
-			
-			for(hook= ob->hooks.first; hook; hook= hook->next) {
-				if(hook->parent) {
-					node3 = dag_get_node(dag,hook->parent);
-					dag_add_relation(dag,node3,node,DAG_RL_OB_DATA);
-				}
-			}
-		}
 		if (ob->modifiers.first) {
 			ModifierData *md;
 

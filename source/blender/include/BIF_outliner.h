@@ -60,11 +60,12 @@ typedef struct TreeElement {
 #define TSE_EBONE			6
 #define TSE_CONSTRAINT_BASE	7
 #define TSE_CONSTRAINT		8
-#define TSE_HOOKS_BASE		9
-#define TSE_HOOK			10
-#define TSE_SCRIPT_BASE		11
-#define TSE_POSE_BASE		12
-#define TSE_POSE_CHANNEL	13
+#define TSE_MODIFIER_BASE	9
+#define TSE_MODIFIER		10
+#define TSE_MODIFIER_OB		11
+#define TSE_SCRIPT_BASE		12
+#define TSE_POSE_BASE		13
+#define TSE_POSE_CHANNEL	14
 
 /* button events */
 #define OL_NAMEBUTTON		1

@@ -149,29 +149,6 @@ void update_base_layer(Object *ob)
 	}
 }
 
-static void free_hooks(ListBase *lb)
-{
-	while(lb->first) {
-		ObHook *hook= lb->first;
-		if(hook->indexar) MEM_freeN(hook->indexar);
-		BLI_remlink(lb, hook);
-		MEM_freeN(hook);
-	}
-}
-
-static void copy_hooks(ListBase *new, ListBase *old)
-{
-	ObHook *hook, *hookn;
-	new->first= new->last= NULL;
-	
-	for(hook= old->first; hook; hook= hook->next) {
-		hookn= MEM_dupallocN(hook);
-		hookn->indexar= MEM_dupallocN(hookn->indexar);
-		BLI_addtail(new, hookn);
-	}
-
-}
-
 void object_free_modifiers(Object *ob)
 {
 	while (ob->modifiers.first) {
@@ -233,8 +210,6 @@ void free_object(Object *ob)
 	free_constraint_channels(&ob->constraintChannels);
 	free_nlastrips(&ob->nlastrips);
 	
-	free_hooks(&ob->hooks);
-	
 	freedisplist(&ob->disp);
 	
 	BPY_free_scriptlink(&ob->scriptlink);
@@ -243,6 +218,15 @@ void free_object(Object *ob)
 	if(ob->soft) sbFree(ob->soft);
 }
 
+static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
+{
+	Object *unlinkOb = userData;
+
+	if (*obpoin==unlinkOb) {
+		*obpoin = NULL;
+		ob->recalc |= OB_RECALC;
+	}
+}
 void unlink_object(Object *ob)
 {
 	Object *obt;
@@ -252,10 +236,8 @@ void unlink_object(Object *ob)
 	Scene *sce;
 	Curve *cu;
 	Tex *tex;
-	ObHook *hook;
 	Group *group;
 	bConstraint *con;
-	ModifierData *md;
 	int a;
 	char *str;
 	
@@ -277,30 +259,7 @@ void unlink_object(Object *ob)
 				obt->recalc |= OB_RECALC_OB;
 			}
 			
-			for(hook=obt->hooks.first; hook; hook= hook->next) {
-				if(hook->parent==ob) {
-					hook->parent= NULL;
-					obt->recalc |= OB_RECALC;
-				}
-			}
-
-			for (md=obt->modifiers.first; md; md=md->next) {
-				if (md->type==eModifierType_Curve) {
-					CurveModifierData *cmd = (CurveModifierData*) md;
-
-					if (cmd->object==ob) {
-						cmd->object = NULL;
-						obt->recalc |= OB_RECALC;
-					}
-				} else if (md->type==eModifierType_Lattice) {
-					LatticeModifierData *lmd = (LatticeModifierData*) md;
-
-					if (lmd->object==ob) {
-						lmd->object = NULL;
-						obt->recalc |= OB_RECALC;
-					}
-				}
-			}
+			modifiers_foreachObjectLink(obt, unlink_object__unlinkModifierLinks, ob);
 			
 			if ELEM(obt->type, OB_CURVE, OB_FONT) {
 				cu= obt->data;
@@ -860,8 +819,6 @@ Object *copy_object(Object *ob)
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
 	copy_constraints (&obn->constraints, &ob->constraints);
 
-	copy_hooks( &obn->hooks, &ob->hooks);
-	
 	actcon = clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels, ob->activecon);
 	/* If the active constraint channel was in this list, update it */
 	if (actcon)

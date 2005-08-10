@@ -4,6 +4,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
+#include "BLI_arithb.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -56,6 +57,13 @@ static int curveModifier_isDisabled(ModifierData *md)
 	return !cmd->object;
 }
 
+static void curveModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	CurveModifierData *cmd = (CurveModifierData*) md;
+
+	walk(userData, ob, &cmd->object);
+}
+
 static void curveModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
@@ -96,6 +104,13 @@ static int latticeModifier_isDisabled(ModifierData *md)
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
 	return !lmd->object;
+}
+
+static void latticeModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	LatticeModifierData *lmd = (LatticeModifierData*) md;
+
+	walk(userData, ob, &lmd->object);
 }
 
 static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
@@ -1007,6 +1022,158 @@ static void waveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editD
 	waveModifier_deformVerts(md, ob, NULL, vertexCos, numVerts);
 }
 
+/* Armature */
+
+static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+	ArmatureModifierData *tamd = (ArmatureModifierData*) target;
+
+	tamd->object = amd->object;
+}
+
+static int armatureModifier_isDisabled(ModifierData *md)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+	return !amd->object;
+}
+
+static void armatureModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+	walk(userData, ob, &amd->object);
+}
+
+static void armatureModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+	if (amd->object) {
+		DagNode *curNode = dag_get_node(forest, amd->object);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
+}
+
+static void armatureModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+	armature_deform_verts(amd->object, ob, vertexCos, numVerts);
+}
+
+static void armatureModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+	armature_deform_verts(amd->object, ob, vertexCos, numVerts);
+}
+
+/* Hook */
+
+static void hookModifier_initData(ModifierData *md) 
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	hmd->force= 1.0;
+}
+
+static void hookModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+	HookModifierData *thmd = (HookModifierData*) target;
+
+	VECCOPY(thmd->cent, hmd->cent);
+	thmd->falloff = hmd->falloff;
+	thmd->force = hmd->force;
+	thmd->object = hmd->object;
+	thmd->totindex = hmd->totindex;
+	thmd->indexar = MEM_dupallocN(hmd->indexar);
+	memcpy(thmd->parentinv, hmd->parentinv, sizeof(hmd->parentinv));
+}
+
+static void hookModifier_freeData(ModifierData *md)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	if (hmd->indexar) MEM_freeN(hmd->indexar);
+}
+
+static int hookModifier_isDisabled(ModifierData *md)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	return !hmd->object;
+}
+
+static void hookModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	walk(userData, ob, &hmd->object);
+}
+
+static void hookModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	if (hmd->object) {
+		DagNode *curNode = dag_get_node(forest, hmd->object);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+	}
+}
+
+static void hookModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+	float vec[3], mat[4][4];
+	int i;
+
+	Mat4Invert(ob->imat, ob->obmat);
+	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv, NULL, NULL, NULL, NULL, NULL);
+
+	for (i=0; i<hmd->totindex; i++) {
+		float *co = vertexCos[hmd->indexar[i]];
+		float fac = hmd->force;
+
+		if(hmd->falloff!=0.0) {
+			float len= VecLenf(co, hmd->cent);
+			if(len > hmd->falloff) fac = 0.0;
+			else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
+		}
+
+		if(fac!=0.0) {
+			VecMat4MulVecfl(vec, mat, co);
+			VecLerpf(co, co, vec, fac);
+		}
+	}
+}
+
+static void hookModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts);
+}
+
+/* Softbody */
+
+static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
+
+//	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
+}
+
+static void softbodyModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
+
+//	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
+}
 
 /***/
 
@@ -1044,6 +1211,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
 		mti->copyData = curveModifier_copyData;
 		mti->isDisabled = curveModifier_isDisabled;
+		mti->foreachObjectLink = curveModifier_foreachObjectLink;
 		mti->updateDepgraph = curveModifier_updateDepgraph;
 		mti->deformVerts = curveModifier_deformVerts;
 		mti->deformVertsEM = curveModifier_deformVertsEM;
@@ -1053,6 +1221,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
 		mti->copyData = latticeModifier_copyData;
 		mti->isDisabled = latticeModifier_isDisabled;
+		mti->foreachObjectLink = latticeModifier_foreachObjectLink;
 		mti->updateDepgraph = latticeModifier_updateDepgraph;
 		mti->deformVerts = latticeModifier_deformVerts;
 		mti->deformVertsEM = latticeModifier_deformVertsEM;
@@ -1097,6 +1266,34 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->deformVerts = waveModifier_deformVerts;
 		mti->deformVertsEM = waveModifier_deformVertsEM;
 
+		mti = INIT_TYPE(Armature);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->copyData = armatureModifier_copyData;
+		mti->isDisabled = armatureModifier_isDisabled;
+		mti->foreachObjectLink = armatureModifier_foreachObjectLink;
+		mti->updateDepgraph = armatureModifier_updateDepgraph;
+		mti->deformVerts = armatureModifier_deformVerts;
+		mti->deformVertsEM = armatureModifier_deformVertsEM;
+
+		mti = INIT_TYPE(Hook);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_RequiresOriginalData;
+		mti->initData = hookModifier_initData;
+		mti->copyData = hookModifier_copyData;
+		mti->freeData = hookModifier_freeData;
+		mti->isDisabled = hookModifier_isDisabled;
+		mti->foreachObjectLink = hookModifier_foreachObjectLink;
+		mti->updateDepgraph = hookModifier_updateDepgraph;
+		mti->deformVerts = hookModifier_deformVerts;
+		mti->deformVertsEM = hookModifier_deformVertsEM;
+
+		mti = INIT_TYPE(Softbody);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->deformVerts = softbodyModifier_deformVerts;
+		mti->deformVertsEM = softbodyModifier_deformVertsEM;
+
 		typeArrInit = 0;
 #undef INIT_TYPE
 	}
@@ -1108,10 +1305,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 	}
 }
 
+/***/
+
 ModifierData *modifier_new(int type)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(type);
 	ModifierData *md = MEM_callocN(mti->structSize, mti->structName);
+
+	strcpy(md->name, mti->name);
 
 	md->type = type;
 	md->mode = eModifierMode_Realtime|eModifierMode_Render|eModifierMode_Expanded;
@@ -1150,9 +1351,9 @@ int modifier_supportsMapping(ModifierData *md)
 					(mti->flags&eModifierTypeFlag_SupportsMapping))) );
 }
 
-ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
+ModifierData *modifiers_findByType(Object *ob, ModifierType type)
 {
-	ModifierData *md = lb->first;
+	ModifierData *md = ob->modifiers.first;
 
 	for (; md; md=md->next)
 		if (md->type==type)
@@ -1161,17 +1362,31 @@ ModifierData *modifiers_findByType(struct ListBase *lb, ModifierType type)
 	return md;
 }
 
-void modifiers_clearErrors(struct ListBase *lb)
+void modifiers_clearErrors(Object *ob)
 {
-	ModifierData *md = lb->first;
+	ModifierData *md = ob->modifiers.first;
+	int qRedraw = 0;
 
 	for (; md; md=md->next) {
 		if (md->error) {
 			MEM_freeN(md->error);
 			md->error = NULL;
 
-			allqueue(REDRAWBUTSEDIT, 0);
+			qRedraw = 1;
 		}
+	}
+
+	if (qRedraw) allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void modifiers_foreachObjectLink(Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (mti->foreachObjectLink) mti->foreachObjectLink(md, ob, walk, userData);
 	}
 }
 
@@ -1212,9 +1427,9 @@ void modifier_setError(ModifierData *md, char *format, ...)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-int modifiers_getCageIndex(ListBase *lb, int *lastPossibleCageIndex_r)
+int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 {
-	ModifierData *md = lb->first;
+	ModifierData *md = ob->modifiers.first;
 	int i, cageIndex = -1;
 
 		/* Find the last modifier acting on the cage. */

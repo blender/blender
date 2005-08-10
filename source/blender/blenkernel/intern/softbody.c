@@ -745,7 +745,6 @@ static int object_has_edges(Object *ob)
 /* helper  call */
 static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
 {
-	
 	VECCOPY(bp->pos, vec);
 	Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
 	VECCOPY(bp->origS, bp->pos);

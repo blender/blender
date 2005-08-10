@@ -307,16 +307,16 @@ static int return_editmesh_indexar(int **indexar, float *cent)
 	return totvert;
 }
 
-static void select_editmesh_hook(ObHook *hook)
+static void select_editmesh_hook(HookModifierData *hmd)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	int index=0, nr=0;
 	
 	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
-		if(nr==hook->indexar[index]) {
+		if(nr==hmd->indexar[index]) {
 			eve->f |= SELECT;
-			if(index < hook->totindex-1) index++;
+			if(index < hmd->totindex-1) index++;
 		}
 	}
 	EM_select_flush();
@@ -361,7 +361,7 @@ static int return_editlattice_indexar(int **indexar, float *cent)
 	return totvert;
 }
 
-static void select_editlattice_hook(ObHook *hook)
+static void select_editlattice_hook(HookModifierData *hmd)
 {
 	BPoint *bp;
 	int index=0, nr=0, a;
@@ -370,9 +370,9 @@ static void select_editlattice_hook(ObHook *hook)
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	bp= editLatt->def;
 	while(a--) {
-		if(hook->indexar[index]==nr) {
+		if(hmd->indexar[index]==nr) {
 			bp->f1 |= SELECT;
-			if(index < hook->totindex-1) index++;
+			if(index < hmd->totindex-1) index++;
 		}
 		nr++;
 		bp++;
@@ -455,7 +455,7 @@ static int return_editcurve_indexar(int **indexar, float *cent)
 	return totvert;
 }
 
-static void select_editcurve_hook(ObHook *hook)
+static void select_editcurve_hook(HookModifierData *hmd)
 {
 	extern ListBase editNurb;
 	Nurb *nu;
@@ -468,19 +468,19 @@ static void select_editcurve_hook(ObHook *hook)
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
-				if(nr == hook->indexar[index]) {
+				if(nr == hmd->indexar[index]) {
 					bezt->f1 |= SELECT;
-					if(index<hook->totindex-1) index++;
+					if(index<hmd->totindex-1) index++;
 				}
 				nr++;
-				if(nr == hook->indexar[index]) {
+				if(nr == hmd->indexar[index]) {
 					bezt->f2 |= SELECT;
-					if(index<hook->totindex-1) index++;
+					if(index<hmd->totindex-1) index++;
 				}
 				nr++;
-				if(nr == hook->indexar[index]) {
+				if(nr == hmd->indexar[index]) {
 					bezt->f3 |= SELECT;
-					if(index<hook->totindex-1) index++;
+					if(index<hmd->totindex-1) index++;
 				}
 				nr++;
 
@@ -491,9 +491,9 @@ static void select_editcurve_hook(ObHook *hook)
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
 			while(a--) {
-				if(nr == hook->indexar[index]) {
+				if(nr == hmd->indexar[index]) {
 					bp->f1 |= SELECT;
-					if(index<hook->totindex-1) index++;
+					if(index<hmd->totindex-1) index++;
 				}
 				nr++;
 				bp++;
@@ -504,14 +504,15 @@ static void select_editcurve_hook(ObHook *hook)
 
 void add_hook(void)
 {
+	ModifierData *md = NULL;
+	HookModifierData *hmd = NULL;
 	Object *ob=NULL;
-	ObHook *hook=NULL;
 	float cent[3];
 	int tot=0, *indexar, mode;
 
 	if(G.obedit==NULL) return;
 	
-	if(G.obedit->hooks.first)
+	if(modifiers_findByType(G.obedit, eModifierType_Hook))
 		mode= pupmenu("Hooks %t|Add Hook, To New Empty %x1|Add Hook, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
 	else
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
@@ -541,7 +542,10 @@ void add_hook(void)
 		char *cp;
 		
 		// make pupmenu with hooks
-		for(hook= G.obedit->hooks.first; hook; hook= hook->next) maxlen+=32;
+		for(md=G.obedit->modifiers.first; md; md= md->next) {
+			if (md->type==eModifierType_Hook) 
+				maxlen+=32;
+		}
 		
 		if(maxlen==0) {
 			error("Object has no hooks yet");
@@ -554,9 +558,11 @@ void add_hook(void)
 		else if(mode==5) strcpy(cp, "Select %t|");
 		else if(mode==6) strcpy(cp, "Clear Offset %t|");
 		
-		for(hook= G.obedit->hooks.first; hook; hook= hook->next) {
-			strcat(cp, hook->name);
-			strcat(cp, " |");
+		for(md=G.obedit->modifiers.first; md; md= md->next) {
+			if (md->type==eModifierType_Hook) {
+				strcat(cp, md->name);
+				strcat(cp, " |");
+			}
 		}
 	
 		nr= pupmenu(cp);
@@ -565,10 +571,15 @@ void add_hook(void)
 		if(nr<1) return;
 		
 		a= 1;
-		for(hook= G.obedit->hooks.first; hook; hook= hook->next, a++) {
-			if(a==nr) break;
+		for(md=G.obedit->modifiers.first; md; md=md->next) {
+			if (md->type==eModifierType_Hook) {
+				if(a==nr) break;
+				a++;
+			}
 		}
-		ob= hook->parent;
+
+		hmd = (HookModifierData*) md;
+		ob= hmd->object;
 	}
 
 	/* do it, new hooks or reassign */
@@ -611,17 +622,16 @@ void add_hook(void)
 									
 			/* new hook */
 			if(mode==1 || mode==2) {
-				hook= MEM_callocN(sizeof(ObHook), "new hook");
-				BLI_addtail(&G.obedit->hooks, hook);
-				strncpy(hook->name, ob->id.name+2, 30);
-				hook->force= 1.0;
+				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
+				BLI_addtail(&G.obedit->modifiers, &hmd); // XXX, ordering
+				sprintf("Hook-%s", hmd->modifier.name, ob->id.name+2);
 			}
-			else MEM_freeN(hook->indexar); // reassign, hook was set
+			else if (hmd->indexar) MEM_freeN(hmd->indexar); // reassign, hook was set
 
-			hook->parent= ob;
-			hook->indexar= indexar;
-			VECCOPY(hook->cent, cent);
-			hook->totindex= tot;
+			hmd->object= ob;
+			hmd->indexar= indexar;
+			VECCOPY(hmd->cent, cent);
+			hmd->totindex= tot;
 			
 			if(mode==1 || mode==2) {
 				/* matrix calculus */
@@ -632,28 +642,27 @@ void add_hook(void)
 		
 				Mat4Invert(ob->imat, ob->obmat);
 				/* apparently this call goes from right to left... */
-				Mat4MulSerie(hook->parentinv, ob->imat, G.obedit->obmat, NULL, 
+				Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
 							NULL, NULL, NULL, NULL, NULL);
 			}
 		}
 	}
 	else if(mode==3) { // remove
-		BLI_remlink(&G.obedit->hooks, hook);
-		MEM_freeN(hook->indexar);
-		MEM_freeN(hook);
+		BLI_remlink(&G.obedit->modifiers, md);
+		modifier_free(md);
 	}
 	else if(mode==5) { // select
-		if(G.obedit->type==OB_MESH) select_editmesh_hook(hook);
-		else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hook);
-		else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hook);
-		else if(G.obedit->type==OB_SURF) select_editcurve_hook(hook);
+		if(G.obedit->type==OB_MESH) select_editmesh_hook(hmd);
+		else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hmd);
+		else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hmd);
+		else if(G.obedit->type==OB_SURF) select_editcurve_hook(hmd);
 	}
 	else if(mode==6) { // clear offset
 		where_is_object(ob);	// ob is hook->parent
 
 		Mat4Invert(ob->imat, ob->obmat);
 		/* this call goes from right to left... */
-		Mat4MulSerie(hook->parentinv, ob->imat, G.obedit->obmat, NULL, 
+		Mat4MulSerie(hmd->parentinv, ob->imat, G.obedit->obmat, NULL, 
 					NULL, NULL, NULL, NULL, NULL);
 	}
 
@@ -2318,7 +2327,7 @@ void convertmenu(void)
 	 */
 void flip_subdivison(Object *ob, int level)
 {
-	ModifierData *md = modifiers_findByType(&ob->modifiers, eModifierType_Subsurf);
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
 
 	if (md) {
 		SubsurfModifierData *smd = (SubsurfModifierData*) md;
@@ -2464,6 +2473,8 @@ static void copymenu_modifiers(Object *ob)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
+		if (i==eModifierType_Hook) continue;
+
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
 			sprintf(str+strlen(str), "|%s%%x%d", mti->name, i);
@@ -2485,15 +2496,17 @@ static void copymenu_modifiers(Object *ob)
 						object_free_modifiers(base->object);
 
 						for (md=ob->modifiers.first; md; md=md->next) {
-							ModifierData *nmd = modifier_new(md->type);
-							modifier_copyData(md, nmd);
-							BLI_addtail(&base->object->modifiers, nmd);
+							if (md->type!=eModifierType_Hook) {
+								ModifierData *nmd = modifier_new(md->type);
+								modifier_copyData(md, nmd);
+								BLI_addtail(&base->object->modifiers, nmd);
+							}
 						}
 					} else {
-						ModifierData *md = modifiers_findByType(&ob->modifiers, event);
+						ModifierData *md = modifiers_findByType(ob, event);
 
 						if (md) {
-							ModifierData *tmd = modifiers_findByType(&base->object->modifiers, event);
+							ModifierData *tmd = modifiers_findByType(base->object, event);
 
 							if (!tmd) {
 								tmd = modifier_new(event);
@@ -2727,10 +2740,10 @@ void copy_attr(short event)
 				}
 				else if(event==21){
 					if (base->object->type==OB_MESH) {
-						ModifierData *md = modifiers_findByType(&ob->modifiers, eModifierType_Subsurf);
+						ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
 
 						if (md) {
-							ModifierData *tmd = modifiers_findByType(&base->object->modifiers, eModifierType_Subsurf);
+							ModifierData *tmd = modifiers_findByType(base->object, eModifierType_Subsurf);
 
 							if (!tmd) {
 								tmd = modifier_new(eModifierType_Subsurf);
@@ -3444,6 +3457,10 @@ void rightmouse_transform(void)
 /* ************************************** */
 
 
+static void single_object_users__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+{
+	ID_NEW(*obpoin);
+}
 void single_object_users(int flag)	
 {
 	Base *base;
@@ -3485,17 +3502,10 @@ void single_object_users(int flag)
 						relink_constraints(&chan->constraints);
 					}
 				}
-				if(base->object->hooks.first) {
-					ObHook *hook= base->object->hooks.first;
-					while(hook) {
-						ID_NEW(hook->parent);
-						hook= hook->next;
-					}
-				}
+				modifiers_foreachObjectLink(base->object, single_object_users__forwardModifierLinks, NULL);
 				
 				ID_NEW(ob->parent);
 				ID_NEW(ob->track);
-				
 			}
 		}
 		base= base->next;
@@ -4012,7 +4022,10 @@ void make_local(void)
 	BIF_undo_push("Make local");
 }
 
-
+static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object **obpoin)
+{
+	ID_NEW(*obpoin);
+}
 void adduplicate(int noTrans)
 /* dtrans is 3 x 3xfloat dloc, drot en dsize */
 {
@@ -4206,7 +4219,6 @@ void adduplicate(int noTrans)
 	base= FIRSTBASE;
 	while(base) {
 		if TESTBASELIB(base) {
-			
 			relink_constraints(&base->object->constraints);
 			if (base->object->pose){
 				bPoseChannel *chan;
@@ -4214,13 +4226,7 @@ void adduplicate(int noTrans)
 					relink_constraints(&chan->constraints);
 				}
 			}
-			if(base->object->hooks.first) {
-				ObHook *hook= base->object->hooks.first;
-				while(hook) {
-					ID_NEW(hook->parent);
-					hook= hook->next;
-				}
-			}
+			modifiers_foreachObjectLink(base->object, adduplicate__forwardModifierLinks, NULL);
 			ID_NEW(base->object->parent);
 			ID_NEW(base->object->track);
 			

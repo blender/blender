@@ -2119,22 +2119,15 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 /* ************ READ OBJECT ***************** */
 
+static void lib_link_modifiers__linkModifiers(void *userData, Object *ob, Object **obpoin)
+{
+	FileData *fd = userData;
+
+	*obpoin = newlibadr(fd, ob->id.lib, *obpoin);
+}
 static void lib_link_modifiers(FileData *fd, Object *ob)
 {
-	ModifierData *md;
-
-	for (md=ob->modifiers.first; md; md=md->next) {
-		if (md->type==eModifierType_Lattice) {
-			LatticeModifierData *lmd = (LatticeModifierData*) md;
-				
-			lmd->object = newlibadr(fd, ob->id.lib, lmd->object);
-		} 
-		else if (md->type==eModifierType_Curve) {
-			CurveModifierData *cmd = (CurveModifierData*) md;
-				
-			cmd->object = newlibadr(fd, ob->id.lib, cmd->object);
-		}
-	}
+	modifiers_foreachObjectLink(ob, lib_link_modifiers__linkModifiers, fd);
 }
 
 static void lib_link_object(FileData *fd, Main *main)
@@ -2143,7 +2136,6 @@ static void lib_link_object(FileData *fd, Main *main)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	ObHook *hook;
 	void *poin;
 	int warn=0, a;
 
@@ -2265,11 +2257,6 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 
 			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
-			
-			for(hook= ob->hooks.first; hook; hook= hook->next) {
-				hook->parent= newlibadr(fd, ob->id.lib, hook->parent);
-			}
-
 			lib_link_modifiers(fd, ob);
 		}
 		ob= ob->id.next;
@@ -2310,6 +2297,16 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 			smd->emCache = smd->mCache = 0;
+		} else if (md->type==eModifierType_Hook) {
+			HookModifierData *hmd = (HookModifierData*) md;
+
+			hmd->indexar= newdataadr(fd, hmd->indexar);
+			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+				int a;
+				for(a=0; a<hmd->totindex; a++) {
+					SWITCH_INT(hmd->indexar[a]);
+				}
+			}
 		}
 	}
 }
@@ -4785,6 +4782,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			where_is_armature(arm);
 		}
 		for(ob= main->object.first; ob; ob= ob->id.next) {
+			while (ob->hooks.first) {
+				ObHook *hook = ob->hooks.first;
+				HookModifierData *hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
+
+				VECCOPY(hmd->cent, hook->cent);
+				hmd->falloff = hook->falloff;
+				hmd->force = hook->force;
+				hmd->indexar = hook->indexar;
+				hmd->object = hook->parent;
+				memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
+				hmd->totindex = hook->totindex;
+
+				BLI_addtail(&ob->modifiers, hmd);
+				BLI_remlink(&ob->hooks, hook);
+
+				MEM_freeN(hook);
+			}
+
 			// btw. armature_rebuild_pose is further only called on leave editmode
 			if(ob->type==OB_ARMATURE) {
 				if(ob->pose) {

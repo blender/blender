@@ -695,7 +695,7 @@ short seg_intersect(EditEdge *e, CutCurve *c, int len)
 	int  i;
 	short isect=0;
 	
-	/* Get screen coords of verts (v->xs and v->ys clip if off screen */
+	/* Get screen coords of verts */
 	VECCOPY(co, e->v1->co);
 	co[3]= 1.0;
 	Mat4MulVec4fl(G.obedit->obmat, co);

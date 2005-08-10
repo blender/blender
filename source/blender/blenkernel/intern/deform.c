@@ -156,98 +156,13 @@ int  get_defgroup_num (Object *ob, bDeformGroup	*dg)
 
 /* *************** HOOK ****************** */
 
-/* vec==NULL: init
-   vec is supposed to be local coord, deform happens in local space
-*/
-
-void hook_object_deform(Object *ob, int index, float *vec)
-{
-	float totforce;
-	ObHook *hook;
-	float vect[3], vectot[3];
-	
-	if(ob->hooks.first==NULL) return;
-	
-	/* reinitialize if... */
-	if(vec==NULL) {
-		totforce= 0.0;
-		for(hook= ob->hooks.first; hook; hook= hook->next) {
-			if(hook->parent) {
-				hook->curindex= 0;
-				Mat4Invert(ob->imat, ob->obmat);
-				/* apparently this call goes from right to left... */
-				Mat4MulSerie(hook->mat, ob->imat, hook->parent->obmat, hook->parentinv, NULL, 
-							NULL, NULL, NULL, NULL);
-			}
-		}
-		return;
-	}
-
-	totforce= 0.0;
-	vectot[0]= vectot[1]= vectot[2]= 0.0;
-	
-	for(hook= ob->hooks.first; hook; hook= hook->next) {
-		if(hook->parent) {
-			
-			/* is 'index' in hook array? */
-			while(hook->curindex < hook->totindex-1) {
-				if( hook->indexar[hook->curindex] < index ) hook->curindex++;
-				else break;
-			}
-			
-			if( hook->indexar[hook->curindex]==index ) {
-				float fac= hook->force, len;
-				
-				VecMat4MulVecfl(vect, hook->mat, vec);
-
-				if(hook->falloff!=0.0) {
-					/* hook->cent is in local coords */
-					len= VecLenf(vec, hook->cent);
-					if(len > hook->falloff) fac= 0.0;
-					else if(len>0.0) fac*= sqrt(1.0 - len/hook->falloff);
-				}
-				if(fac!=0.0) {
-					totforce+= fac;
-					vectot[0]+= fac*vect[0];
-					vectot[1]+= fac*vect[1];
-					vectot[2]+= fac*vect[2];
-				}
-			}
-		}
-	}
-
-	/* if totforce < 1.0, we take old position also into account */
-	if(totforce<1.0) {
-		vectot[0]+= (1.0-totforce)*vec[0];
-		vectot[1]+= (1.0-totforce)*vec[1];
-		vectot[2]+= (1.0-totforce)*vec[2];
-	}
-	else VecMulf(vectot, 1.0/totforce);
-	
-	VECCOPY(vec, vectot);
-}
-
-
 void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 {
 	Mesh *me= ob->data;
 	float (*vertexCos)[3] = NULL;
-	int a;
 
 	do_mesh_key(me);
 
-	/* hooks */
-	if(ob->hooks.first) {
-		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-		
-		/* NULL signals initialize */
-		hook_object_deform(ob, 0, NULL);
-		
-		for(a=0; a<me->totvert; a++) {
-			hook_object_deform(ob, a, vertexCos[a]);
-		}
-	}
-		
 	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
 		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
@@ -281,15 +196,12 @@ int curve_modifier(Object *ob, char mode)
 	static ListBase nurb={NULL, NULL};
 	Curve *cu= ob->data;
 	Nurb *nu, *newnu;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a, index, done= 0;
+	int done= 0;
 	
 	do_curve_key(cu);
 	
 	/* conditions if it's needed */
-	if(ob->hooks.first);
-	else if(ob->parent && ob->partype==PARSKEL); 
+	if(ob->parent && ob->partype==PARSKEL); 
 	else if(ob->parent && ob->parent->type==OB_LATTICE);
 	else return 0;
 	
@@ -301,39 +213,6 @@ int curve_modifier(Object *ob, char mode)
 			newnu= duplicateNurb(nu);
 			BLI_addtail(&nurb, newnu);
 			nu= nu->next;
-		}
-		
-		/* hooks */
-		if(ob->hooks.first) {
-			done= 1;
-			
-			/* NULL signals initialize */
-			hook_object_deform(ob, 0, NULL);
-			index= 0;
-			
-			nu= cu->nurb.first;
-			while(nu) {
-				if((nu->type & 7)==CU_BEZIER) {
-					bezt= nu->bezt;
-					a= nu->pntsu;
-					while(a--) {
-						hook_object_deform(ob, index++, bezt->vec[0]);
-						hook_object_deform(ob, index++, bezt->vec[1]);
-						hook_object_deform(ob, index++, bezt->vec[2]);
-						bezt++;
-					}
-				}
-				else {
-					bp= nu->bp;
-					a= nu->pntsu*nu->pntsv;
-					while(a--) {
-						hook_object_deform(ob, index++, bp->vec);
-						bp++;
-					}
-				}
-					
-				nu= nu->next;
-			}
 		}
 	}
 	else if(mode=='e') {
@@ -352,14 +231,12 @@ int lattice_modifier(Object *ob, char mode)
 {
 	static BPoint *bpoint;
 	Lattice *lt= ob->data;
-	BPoint *bp;
-	int a, index, done= 0;
+	int done= 0;
 	
 	do_latt_key(lt);
 	
 	/* conditions if it's needed */
-	if(ob->hooks.first);
-	else if(ob->parent && ob->partype==PARSKEL); 
+	if(ob->parent && ob->partype==PARSKEL); 
 	else if((ob->softflag & OB_SB_ENABLE));
 	else return 0;
 	
@@ -367,25 +244,9 @@ int lattice_modifier(Object *ob, char mode)
 		/* copy  */
 		bpoint= MEM_dupallocN(lt->def);
 		
-		/* hooks */
-		if(ob->hooks.first) {
-			done= 1;
-			
-			/* NULL signals initialize */
-			hook_object_deform(ob, 0, NULL);
-			index= 0;
-			bp= lt->def;
-			a= lt->pntsu*lt->pntsv*lt->pntsw;
-			while(a--) {
-				hook_object_deform(ob, index++, bp->vec);
-				bp++;
-			}
-		}
-		
 		if((ob->softflag & OB_SB_ENABLE)) {
 			sbObjectStep(ob, (float)G.scene->r.cfra, NULL);
 		}
-		
 	}
 	else { // end
 		MEM_freeN(lt->def);

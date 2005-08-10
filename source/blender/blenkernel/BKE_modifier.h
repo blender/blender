@@ -38,7 +38,6 @@ struct ModifierData;
 struct DagForest;
 struct DagNode;
 struct Object;
-struct ListBase;
 
 typedef enum {
 		/* Should not be used, only for None modifier type */
@@ -60,14 +59,19 @@ typedef enum {
 	eModifierTypeFlag_AcceptsCVs = (1<<1),
 	eModifierTypeFlag_SupportsMapping = (1<<2),
 	eModifierTypeFlag_SupportsEditmode = (1<<3),
-
+	
 		/* For modifiers that support editmode this determines if the
 		 * modifier should be enabled by default in editmode. This should
 		 * only be used by modifiers that are relatively speedy and
 		 * also generally used in editmode, otherwise let the user enable
-		 * it.
+		 * it by hand.
 		 */
 	eModifierTypeFlag_EnableInEditmode = (1<<4),
+
+		/* For modifiers that require original data and so cannot
+		 * be placed after any non-deformative modifier.
+		 */
+	eModifierTypeFlag_RequiresOriginalData = (1<<5),
 } ModifierTypeFlag;
 
 typedef struct ModifierTypeInfo {
@@ -126,6 +130,14 @@ typedef struct ModifierTypeInfo {
 		 */
 	int (*dependsOnTime)(struct ModifierData *md);
 
+		/* Should call the given _walk_ function on with a pointer to each Object pointer
+		 * that the modifier data stores. This is used for linking on file load and for
+		 * unlinking objects or forwarding object references.
+		 *
+		 * This function is optional.
+		 */
+	void (*foreachObjectLink)(struct ModifierData *md, struct Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData);
+
 		/* Only for deform types, should apply the deformation
 		 * to the given vertex array. If the deformer requires information from
 		 * the object it can obtain it from the _derivedData_ argument if non-NULL,
@@ -183,9 +195,10 @@ int						modifier_supportsMapping(struct ModifierData *md);
 int						modifier_couldBeCage	(struct ModifierData *md);
 void					modifier_setError		(struct ModifierData *md, char *format, ...);
 
-struct ModifierData*	modifiers_findByType	(struct ListBase *lb, ModifierType type);
-void					modifiers_clearErrors	(struct ListBase *lb);
-int						modifiers_getCageIndex	(struct ListBase *lb, int *lastPossibleCageIndex_r);
+void					modifiers_foreachObjectLink	(struct Object *ob, void (*walk)(void *userData, struct Object *ob, struct Object **obpoin), void *userData);
+struct ModifierData*	modifiers_findByType		(struct Object *ob, ModifierType type);
+void					modifiers_clearErrors		(struct Object *ob);
+int						modifiers_getCageIndex		(struct Object *ob, int *lastPossibleCageIndex_r);
 
 #endif
 

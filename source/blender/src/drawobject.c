@@ -58,6 +58,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_space_types.h"
@@ -3387,27 +3388,30 @@ static void drawWireExtra(Object *ob)
 /* should be called in view space */
 static void draw_hooks(Object *ob)
 {
-	ObHook *hook;
+	ModifierData *md;
 	float vec[3];
 	
-	for(hook= ob->hooks.first; hook; hook= hook->next) {
-		
-		VecMat4MulVecfl(vec, ob->obmat, hook->cent);
-		if(hook->parent) {
-			setlinestyle(3);
-			glBegin(GL_LINES);
-			glVertex3fv(hook->parent->obmat[3]);
-			glVertex3fv(vec);
-			glEnd();
-			setlinestyle(0);
+	for (md=ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Hook) {
+			HookModifierData *hmd = (HookModifierData*) md;
+
+			VecMat4MulVecfl(vec, ob->obmat, hmd->cent);
+
+			if(hmd->object) {
+				setlinestyle(3);
+				glBegin(GL_LINES);
+				glVertex3fv(hmd->object->obmat[3]);
+				glVertex3fv(vec);
+				glEnd();
+				setlinestyle(0);
+			}
+
+			glPointSize(3.0);
+			bglBegin(GL_POINTS);
+			bglVertex3fv(vec);
+			bglEnd();
+			glPointSize(1.0);
 		}
-
-		glPointSize(3.0);
-		bglBegin(GL_POINTS);
-		bglVertex3fv(vec);
-		bglEnd();
-		glPointSize(1.0);
-
 	}
 }
 
@@ -3782,7 +3786,7 @@ void draw_object(Base *base)
 		ListBase *list;
 
 		/* draw hook center and offset line */
-		if(ob->hooks.first && ob!=G.obedit) draw_hooks(ob);
+		if(ob!=G.obedit) draw_hooks(ob);
 
 		/* help lines and so */
 		if(ob!=G.obedit && ob->parent && (ob->parent->lay & G.vd->lay)) {

@@ -664,13 +664,18 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		writestruct(wd, DATA, mti->structName, 1, md);
+
+		if (md->type==eModifierType_Hook) {
+			HookModifierData *hmd = (HookModifierData*) md;
+
+			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
+		}
 	}
 }
 
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
-	ObHook *hook;
 	int a;
 	
 	ob= idbase->first;
@@ -705,11 +710,6 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 				}
 			}
 			
-			for(hook= ob->hooks.first; hook; hook= hook->next) {
-				writestruct(wd, DATA, "ObHook", 1, hook);
-				writedata(wd, DATA, sizeof(int)*hook->totindex, hook->indexar);
-			}
-
 			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
