@@ -100,6 +100,7 @@ editmesh_tool.c: UI called tools for editmesh, geometry changes here, otherwise 
 void bevel_menu(void);
 static void free_tagged_edgelist(EditEdge *eed);
 static void free_tagged_facelist(EditFace *efa);
+
 /********* qsort routines *********/
 
 
@@ -4256,23 +4257,7 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
-// This passes a ghash to the ghash free function so we can use it pseudo-recursively later
-void freeGHash(GHash *g)
-{
-	BLI_ghash_free(g, NULL, NULL);
-	return;
-}
-
-static void ScreenEdgeCenter(float x1,float y1,float x2,float y2,short* output){
-	output[0] = (short)((x1+x2)/2 + x1);
-	output[1] = (short)((y1+y2)/2 + y1);	
-}
-
-static float Dist2s(short* d1,short* d2){
-	return sqrt(pow(d1[0]-d2[0],2)+pow(d1[1]-d2[1],2));   
-}
-
-void EdgeLoopDelete(){
+void EdgeLoopDelete(void) {
 	EdgeSlide(1, 1);
 	select_more();
 	removedoublesflag(1,0.001);
@@ -4375,14 +4360,12 @@ int EdgeSlide(short immediate, float imperc)
 				last  = eed; 
 				eed->f1 = SELECT;
 			} else {  
-				if((eed->v1 == last->v1 || eed->v1 == last->v2) ||
-				   (eed->v2 == last->v1 || eed->v2 == last->v2) ){
+				if(editedge_getSharedVert(eed, last)) {
 					BLI_linklist_append(&edgelist,eed);
 					eed->f1 = SELECT;
 					numadded++;
 					last = eed;					  
-				}  else if((eed->v1 == first->v1 || eed->v1 == first->v2) ||
-				   (		eed->v2 == first->v1 || eed->v2 == first->v2) ){
+				}  else if(editedge_getSharedVert(eed, first)) {
 					BLI_linklist_prepend(&edgelist,eed);
 					eed->f1 = SELECT;
 					numadded++;
@@ -4469,7 +4452,7 @@ int EdgeSlide(short immediate, float imperc)
 		// If the vert is in the middle of an edge loop, it touches 2 selected edges and 2 unselected edges
 		if(i == 4 && j == 2){
 			for(eed=em->edges.first;eed;eed=eed->next){
-				if(eed->v1 == ev || eed->v2 == ev){
+				if(editedge_containsVert(eed, ev)){
 					if(!(eed->f & SELECT)){
 						 if(!tempsv->up){
 							 tempsv->up = eed;
@@ -4483,24 +4466,24 @@ int EdgeSlide(short immediate, float imperc)
 		// If it is on the end of the loop, it touches 1 selected and as least 2 more unselected
 		if(i >= 3 && j == 1){
 			for(eed=em->edges.first;eed;eed=eed->next){
-				if((eed->v1 == ev || eed->v2 == ev) && eed->f & SELECT){
+				if(editedge_containsVert(eed, ev) && eed->f & SELECT){
 					for(efa = em->faces.first;efa;efa=efa->next){
-						if((efa->e1 == eed || efa->e2 == eed) || (efa->e3 == eed || (efa->e4 && efa->e4 == eed))){
-							if((efa->e1->v1 == ev || efa->e1->v2 == ev) && efa->e1 != eed){
+						if(editface_containsEdge(efa, eed)){
+							if(editedge_containsVert(efa->e1, ev) && efa->e1 != eed){
 								 if(!tempsv->up){
 									 tempsv->up = efa->e1;
 								 } else if (!(tempsv->down)){
 									 tempsv->down = efa->e1;  
 								 }								   
 							}
-							if((efa->e2->v1 == ev || efa->e2->v2 == ev) && efa->e2 != eed){
+							if(editedge_containsVert(efa->e2, ev) && efa->e2 != eed){
 								 if(!tempsv->up){
 									 tempsv->up = efa->e2;
 								 } else if (!(tempsv->down)){
 									 tempsv->down = efa->e2;  
 								 }								   
 							}							
-							if((efa->e3->v1 == ev || efa->e3->v2 == ev) && efa->e3 != eed){
+							if(editedge_containsVert(efa->e3, ev) && efa->e3 != eed){
 								 if(!tempsv->up){
 									 tempsv->up = efa->e3;
 								 } else if (!(tempsv->down)){
@@ -4508,7 +4491,7 @@ int EdgeSlide(short immediate, float imperc)
 								 }								   
 							}  
 							if(efa->e4){
-								if((efa->e4->v1 == ev || efa->e4->v2 == ev) && efa->e4 != eed){
+								if(editedge_containsVert(efa->e4, ev) && efa->e4 != eed){
 									 if(!tempsv->up){
 										 tempsv->up = efa->e4;
 									 } else if (!(tempsv->down)){
@@ -4540,9 +4523,9 @@ int EdgeSlide(short immediate, float imperc)
 	nearest = NULL;
 	vertdist = -1;  
 	while(look){	
-		SlideVert *sv=NULL;		// keep gcc happy
-		float tempdist;
 		if(look->next != NULL){
+			SlideVert *sv;
+
 			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
 			sv		= BLI_ghash_lookup(vertgh,(EditVert*)look->next->link);
 			
@@ -4559,17 +4542,23 @@ int EdgeSlide(short immediate, float imperc)
 				sv->up = sv->down;
 				sv->down = swap; 
 			}
+
+			if(sv) {
+				float tempdist, co[2];
+
+				project_float(sv->origvert.co, co);
+				
+				tempdist = sqrt(pow(co[0] - mval[0],2)+pow(co[1]  - mval[1],2));
+
+				if(vertdist < 0){
+					vertdist = tempdist;
+					nearest  = (EditVert*)look->link;   
+				} else if ( tempdist < vertdist ){
+					vertdist = tempdist;
+					nearest  = (EditVert*)look->link;	
+				}		
+			}
 		}   		
-		if(sv){
-			tempdist = sqrt(pow(sv->origvert.xs - mval[0],2)+pow(sv->origvert.ys  - mval[1],2));
-		}
-		if(vertdist < 0){
-			vertdist = tempdist;
-			nearest  = (EditVert*)look->link;   
-		} else if ( tempdist < vertdist ){
-			vertdist = tempdist;
-			nearest  = (EditVert*)look->link;	
-		}		
 		look = look->next;   
 	}	   
 	// we should have enough info now to slide
@@ -4580,11 +4569,12 @@ int EdgeSlide(short immediate, float imperc)
 		 /* For the % calculation */   
 		short mval[2];   
 		float labda, rc[2], len;   
-		float v1[2], v2[2], v3[2]; 
+		float v1[2], v2[2], v3[2];
+		EditVert *centerVert, *upVert, *downVert;
 
 		getmouseco_areawin(mval);  
 		
-		if (mval[0] == mvalo[0] && mval[1] ==  mvalo[1]) {
+		if (!immediate && (mval[0] == mvalo[0] && mval[1] ==  mvalo[1])) {
 			PIL_sleep_ms(10);
 		} else {
 			mvalo[0] = mval[0];
@@ -4594,128 +4584,51 @@ int EdgeSlide(short immediate, float imperc)
 				perc = imperc;   
 			}
 			percp = perc;
-			if(perc >=0){
-				if(prop){
-					look = vertlist;	  
-					while(look){ 
-						EditVert *tempev;
-						ev = look->link;
-						tempsv = BLI_ghash_lookup(vertgh,ev);
-						
-						if(tempsv->up->v1 == ev){
-						  tempev = tempsv->up->v2; 
-						} else {
-						  tempev = tempsv->up->v1;  
-						}
-						
-						ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
-						ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
-						ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
-										
-						look = look->next;	 
-					}
+			if(prop){
+				look = vertlist;	  
+				while(look){ 
+					EditVert *tempev;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					
+					tempev = editedge_getOtherVert((perc>=0)?tempsv->up:tempsv->down, ev);
+					VecLerpf(ev->co, tempsv->origvert.co, tempev->co, fabs(perc));
+									
+					look = look->next;	 
 				}
-				else {
-					//Non prop code   
-				}
-			} else {
-				if(prop){
-					look = vertlist;	  
-					while(look){ 
-						EditVert *tempev;
-						ev = look->link;
-						tempsv = BLI_ghash_lookup(vertgh,ev);
-						
-						if(tempsv->down->v1 == ev){
-						  tempev = tempsv->down->v2; 
-						} else {
-						  tempev = tempsv->down->v1;  
-						}
-						
-						ev->co[0] =  ((tempsv->origvert.co[0]-tempev->co[0])*(1-fabs(perc))) + tempev->co[0];
-						ev->co[1] =  ((tempsv->origvert.co[1]-tempev->co[1])*(1-fabs(perc))) + tempev->co[1];
-						ev->co[2] =  ((tempsv->origvert.co[2]-tempev->co[2])*(1-fabs(perc))) + tempev->co[2];
-										
-						look = look->next;	
-					}   
-				} else {
-					//non-prop code   
-				}		 
 			}
-
-
+			else {
+				//Non prop code   
+			}
+			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
 
-			 getmouseco_areawin(mval);   
-			 v1[0]=(float)mval[0];   
-			 v1[1]=(float)mval[1];   
+			getmouseco_areawin(mval);   
+			v1[0]=(float)mval[0];   
+			v1[1]=(float)mval[1];   
 
+			centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
+			upVert = editedge_getOtherVert(tempsv->up, centerVert);
+			downVert = editedge_getOtherVert(tempsv->down, centerVert);
 
-			 if(tempsv->up->v1 == tempsv->down->v1){
-                 short t[2];   
-				 project_short(tempsv->up->v2->co,t);
-                 v2[0] = (float)t[0];
-                 v2[1] = (float)t[1];
-                 
-				 project_short(tempsv->down->v2->co,t);	
-                 v3[0] = (float)t[0];
-                 v3[1] = (float)t[1];               			 
-			 } else if (tempsv->up->v2 == tempsv->down->v2){
-                 short t[2];    
-				 project_short(tempsv->up->v1->co,t);
-                 v2[0] = (float)t[0];
-                 v2[1] = (float)t[1];
-                 
-				 project_short(tempsv->down->v1->co,t);	
-                 v3[0] = (float)t[0];
-                 v3[1] = (float)t[1];
-			 } else if (tempsv->up->v1 == tempsv->down->v2){
-                 short t[2];    
-				 project_short(tempsv->up->v2->co,t);
-                 v2[0] = (float)t[0];
-                 v2[1] = (float)t[1];
-                 
-				 project_short(tempsv->down->v1->co,t);	
-                 v3[0] = (float)t[0];
-                 v3[1] = (float)t[1]; 
-			 } else if (tempsv->up->v2 == tempsv->down->v1){
-                 short t[2];   
-				 project_short(tempsv->up->v1->co,t);
-                 v2[0] = (float)t[0];
-                 v2[1] = (float)t[1];
-                 
-				 project_short(tempsv->down->v2->co,t);	
-                 v3[0] = (float)t[0];
-                 v3[1] = (float)t[1];
-			 }
+			project_float(upVert->co, v2);
+			project_float(downVert->co, v3);	
 
 			 // Highlight the Control Edges
 	
 			scrarea_do_windraw(curarea);   
 			persp(PERSP_VIEW);   
 			glPushMatrix();   
-			mymultmatrix(G.obedit->obmat);   
+			mymultmatrix(G.obedit->obmat);
 
-			glBegin(GL_LINES);   
 			glColor3ub(0, 255, 0);   
-			
-			 if(tempsv->up->v1 == tempsv->down->v1){
-				glVertex3fv(tempsv->up->v2->co);   
-				glVertex3fv(tempsv->down->v2->co);   
-			 } else if (tempsv->up->v2 == tempsv->down->v2){
-				glVertex3fv(tempsv->up->v1->co);   
-				glVertex3fv(tempsv->down->v1->co);  
-			 } else if (tempsv->up->v1 == tempsv->down->v2){
-				glVertex3fv(tempsv->up->v2->co);   
-				glVertex3fv(tempsv->down->v1->co);  
-			 } else if (tempsv->up->v2 == tempsv->down->v1){
-				glVertex3fv(tempsv->up->v1->co);   
-				glVertex3fv(tempsv->down->v2->co);  
-			 }			
+			glBegin(GL_LINES);
+			glVertex3fv(upVert->co);
+			glVertex3fv(downVert->co);
 			glEnd(); 
 			glPopMatrix();		 
 		 
-			/* Determine the % on wich the loop should be cut */   
+			/* Determine the % on which the loop should be cut */   
 
 			 rc[0]= v3[0]-v2[0];   
 			 rc[1]= v3[1]-v2[1];   
@@ -4747,49 +4660,49 @@ int EdgeSlide(short immediate, float imperc)
 				event= extern_qread(&val);	// extern_qread stores important events for the mainloop to handle 
 					
 				/* val==0 on key-release event */
-				if(val && (event == ESCKEY || event==RIGHTMOUSE)){
-						perc = 0; // Set back to begining %
-						immediate = 1; //Run through eval code 1 more time
-						cancel = 1;   // Return -1
-				} else
-				if(val && ( event==PADENTER || ( event==LEFTMOUSE || event==RETKEY ))){
-						draw = 0; // End looping now
-				} else
-				if(val && event==MIDDLEMOUSE){
-						perc = 0;  
-						immediate = 1;
-				} else if(val && (event==RIGHTARROWKEY || event==WHEELUPMOUSE)) { // Scroll through Control Edges
-					look = vertlist;	
-				 	while(look){	
-						if(nearest == (EditVert*)look->link){
-							if(look->next == NULL){
-								nearest =  (EditVert*)vertlist->link;  
+				if (val) {
+					if(ELEM(event, ESCKEY, RIGHTMOUSE)) {
+							perc = 0; // Set back to begining %
+							immediate = 1; //Run through eval code 1 more time
+							cancel = 1;   // Return -1
+					} else if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)) {
+							draw = 0; // End looping now
+					} else if(event==MIDDLEMOUSE) {
+							perc = 0;  
+							immediate = 1;
+					} else if(ELEM(event, RIGHTARROWKEY, WHEELUPMOUSE)) { // Scroll through Control Edges
+						look = vertlist;	
+				 		while(look){	
+							if(nearest == (EditVert*)look->link){
+								if(look->next == NULL){
+									nearest =  (EditVert*)vertlist->link;  
+								} else {
+									nearest = (EditVert*)look->next->link;
+								}	 
+								mvalo[0] = -1;
+								break;				
+							}
+							look = look->next;   
+						}	  
+					} else if(ELEM(event, LEFTARROWKEY, WHEELDOWNMOUSE)) { // Scroll through Control Edges
+						look = vertlist;	
+				 		while(look){	
+							if(look->next){
+								if(look->next->link == nearest){
+									nearest = (EditVert*)look->link;
+									mvalo[0] = -1;
+									break;
+								}	  
 							} else {
-								nearest = (EditVert*)look->next->link;
-							}	 
-							mvalo[0] = -1;
-							break;				
-						}
-						look = look->next;   
-					}	  
-				}else if(val && (event==LEFTARROWKEY || event==WHEELDOWNMOUSE)) { // Scroll through Control Edges
-					look = vertlist;	
-				 	while(look){	
-						if(look->next){
-							if(look->next->link == nearest){
-								nearest = (EditVert*)look->link;
-								mvalo[0] = -1;
-								break;
-							}	  
-						} else {
-							if((EditVert*)vertlist->link == nearest){
-								nearest = look->link;
-								mvalo[0] = -1;
-								break;							 
-							}	   
-						}   
-						look = look->next;   
-					}	  
+								if((EditVert*)vertlist->link == nearest){
+									nearest = look->link;
+									mvalo[0] = -1;
+									break;							 
+								}	   
+							}   
+							look = look->next;   
+						}	  
+					}
 				}
 			} 
 		} else {

@@ -389,6 +389,48 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 
 /* ************************ end add/new/find ************  */
 
+/* ************************ Edit{Vert,Edge,Face} utilss ***************************** */
+
+/* some nice utility functions */
+
+EditVert *editedge_getOtherVert(EditEdge *eed, EditVert *eve)
+{
+	if (eve==eed->v1) {
+		return eed->v2;
+	} else if (eve==eed->v2) {
+		return eed->v1;
+	} else {
+		return NULL;
+	}
+}
+
+EditVert *editedge_getSharedVert(EditEdge *eed, EditEdge *eed2) 
+{
+	if (eed->v1==eed2->v1 || eed->v1==eed2->v2) {
+		return eed->v1;
+	} else if (eed->v2==eed2->v1 || eed->v2==eed2->v2) {
+		return eed->v2;
+	} else {
+		return NULL;
+	}
+}
+
+int editedge_containsVert(EditEdge *eed, EditVert *eve) 
+{
+	return (eed->v1==eve || eed->v2==eve);
+}
+
+int editface_containsVert(EditFace *efa, EditVert *eve) 
+{
+	return (efa->v1==eve || efa->v2==eve || efa->v3==eve || (efa->v4 && efa->v4==eve));
+}
+
+int editface_containsEdge(EditFace *efa, EditEdge *eed) 
+{
+	return (efa->e1==eed || efa->e2==eed || efa->e3==eed || (efa->e4 && efa->e4==eed));
+}
+
+
 /* ************************ stuct EditMesh manipulation ***************************** */
 
 /* fake callocs for fastmalloc below */

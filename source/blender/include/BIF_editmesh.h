@@ -180,5 +180,11 @@ void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
 void EdgeLoopDelete(void);
  
+struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *ev);
+struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);
+int editedge_containsVert(struct EditEdge *eed, struct EditVert *eve);
+int editface_containsVert(struct EditFace *efa, struct EditVert *eve);
+int editface_containsEdge(struct EditFace *efa, struct EditEdge *eed);
+
 #endif
 

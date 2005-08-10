@@ -2170,7 +2170,6 @@ void convertmenu(void)
 				Mesh *oldme= ob->data;
 				DispListMesh *dlm;
 				DerivedMesh *dm;
-				ModifierData *md;
 
 				basedel = base;
 

@@ -653,7 +653,6 @@ static void emDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *u
 	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
 		emDM__calcFaceCent(efa, cent, emdm->vertexCos);
 		func(userData, efa, cent, emdm->vertexCos?emdm->faceNos[i]:efa->n);
-		bglVertex3fv(cent);
 	}
 
 	if (emdm->vertexCos) {
