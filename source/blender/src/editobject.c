@@ -623,8 +623,8 @@ void add_hook(void)
 			/* new hook */
 			if(mode==1 || mode==2) {
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
-				BLI_addtail(&G.obedit->modifiers, &hmd); // XXX, ordering
-				sprintf("Hook-%s", hmd->modifier.name, ob->id.name+2);
+				BLI_addtail(&G.obedit->modifiers, hmd); // XXX, ordering
+				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
 			}
 			else if (hmd->indexar) MEM_freeN(hmd->indexar); // reassign, hook was set
 

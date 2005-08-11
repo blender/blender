@@ -1272,7 +1272,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Armature);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_RequiresOriginalData;
 		mti->copyData = armatureModifier_copyData;
 		mti->isDisabled = armatureModifier_isDisabled;
 		mti->foreachObjectLink = armatureModifier_foreachObjectLink;
