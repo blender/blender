@@ -75,6 +75,7 @@
 #include "BIF_interface.h"
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
+#include "BKE_object.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -883,6 +884,8 @@ int blenderqread(unsigned short event, short val)
 	
 	case TKEY:
 		if (G.qual==(LR_SHIFTKEY|LR_ALTKEY|LR_CTRLKEY)) {
+			Object *ob = OBACT;
+			int event = pupmenu(ob?"Time%t|draw|recalc ob|recalc data":"Time%t|draw");
 			int a;
 			double delta, stime;
 
@@ -890,14 +893,22 @@ int blenderqread(unsigned short event, short val)
 			
 			stime= PIL_check_seconds_timer();
 			for(a=0; a<100000; a++) {
-				scrarea_do_windraw(curarea);
+				if (event==1) {
+					scrarea_do_windraw(curarea);
+				} else if (event==2) {
+					ob->recalc |= OB_RECALC_OB;
+					object_handle_update(ob);
+				} else if (event==3) {
+					ob->recalc |= OB_RECALC_DATA;
+					object_handle_update(ob);
+				}
 
 				delta= PIL_check_seconds_timer()-stime;
 				if (delta>5.0) break;
 			}
 			
 			waitcursor(0);
-			notice("FPS: %f (%d iterations)", a/delta, a);
+			notice("%8.6f s/op - %6.2f ops/s - %d iterations", delta/a, a/delta, a);
 			return 0;
 		}
 		else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) {
