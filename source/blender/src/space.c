@@ -4848,16 +4848,18 @@ void force_draw(int header)
 	screen_swapbuffers();
 
 #ifndef __APPLE__
-	/* de the afterqueuetest for backbuf draw */
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			if(afterqtest(sa->win, BACKBUFDRAW)) {
-				areawinset(sa->win);
-				backdrawview3d(0);
+	if(tempsa->spacetype==SPACE_VIEW3D) {
+		/* de the afterqueuetest for backbuf draw */
+		sa= G.curscreen->areabase.first;
+		while(sa) {
+			if(sa->spacetype==SPACE_VIEW3D) {
+				if(afterqtest(sa->win, BACKBUFDRAW)) {
+					areawinset(sa->win);
+					backdrawview3d(0);
+				}
 			}
+			sa= sa->next;
 		}
-		sa= sa->next;
 	}
 #endif
 	if(curarea!=tempsa) areawinset(tempsa->win);
