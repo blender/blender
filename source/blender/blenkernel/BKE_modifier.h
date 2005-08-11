@@ -37,6 +37,7 @@ struct DerivedMesh;
 struct DagForest;
 struct DagNode;
 struct Object;
+struct ListBase;
 
 typedef enum {
 		/* Should not be used, only for None modifier type */
@@ -200,6 +201,8 @@ void			modifiers_clearErrors		(struct Object *ob);
 int				modifiers_getCageIndex		(struct Object *ob, int *lastPossibleCageIndex_r);
 
 int				modifiers_isSoftbodyEnabled	(struct Object *ob);
+
+ModifierData*	modifiers_getVirtualModifierList	(struct Object *ob);
 
 #endif
 

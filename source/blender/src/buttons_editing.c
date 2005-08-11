@@ -786,12 +786,33 @@ static void modifiers_clearHookOffset(void *ob_v, void *md_v)
 	}
 }
 
+static void modifiers_convertToReal(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	ModifierData *nmd = modifier_new(md->type);
+
+	modifier_copyData(md, nmd);
+	nmd->mode &= ~eModifierMode_Virtual;
+
+	BLI_addhead(&ob->modifiers, nmd);
+
+	ob->partype = PAROBJECT;
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	uiBut *but;
+	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
 	short height, width = 295;
+	char str[128];
+	uiBut *but;
+
+	if (isVirtual) {
+		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
+		color = TH_BUT_SETTING1;
+	}
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
@@ -805,54 +826,65 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiRoundBox(x+4+10, y-18, x+width+10, y+6, 5.0);
 
 	BIF_ThemeColor(color);
-	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, width-120-60-10, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+	if (isVirtual) {
+		sprintf(str, "%s (virtual)", md->name);
+		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-120-60-10, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 
-		/* Softbody not allowed in this situation, enforce! */
-	if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
-		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-		uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-			uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+		uiClearButLock();
+
+		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Make Real", x+width-80, y, 60, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
+		uiButSetFunc(but, modifiers_convertToReal, ob, md);
+		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
+	} else {
+		uiBlockBeginAlign(block);
+		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, width-120-60-10, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+
+			/* Softbody not allowed in this situation, enforce! */
+		if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+			uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+			}
 		}
-	}
-	uiBlockEndAlign(block);
+		uiBlockEndAlign(block);
 
-	uiBlockSetEmboss(block, UI_EMBOSSR);
+		uiBlockSetEmboss(block, UI_EMBOSSR);
 
-	if (modifier_couldBeCage(md) && index<=lastCageIndex) {
-		int icon, color;
+		if (modifier_couldBeCage(md) && index<=lastCageIndex) {
+			int icon, color;
 
-		uiSetRoundBox(15);
-		if (index==cageIndex) {
-			color = TH_BUT_SETTING;
-			icon = VICON_EDITMODE_HLT;
-		} else if (index<cageIndex) {
-			color = TH_BUT_NEUTRAL;
-			icon = VICON_EDITMODE_DEHLT;
-		} else {
-			color = TH_BUT_NEUTRAL;
-			icon = ICON_BLANK1;
+			uiSetRoundBox(15);
+			if (index==cageIndex) {
+				color = TH_BUT_SETTING;
+				icon = VICON_EDITMODE_HLT;
+			} else if (index<cageIndex) {
+				color = TH_BUT_NEUTRAL;
+				icon = VICON_EDITMODE_DEHLT;
+			} else {
+				color = TH_BUT_NEUTRAL;
+				icon = ICON_BLANK1;
+			}
+			uiBlockSetCol(block, color);
+			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-105, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
+			uiButSetFunc(but, modifiers_setOnCage, ob, md);
+			uiBlockSetCol(block, TH_AUTO);
 		}
-		uiBlockSetCol(block, color);
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, icon, x+width-105, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Apply modifier to editing cage during Editmode");
-		uiButSetFunc(but, modifiers_setOnCage, ob, md);
+
+		uiBlockSetCol(block, TH_BUT_ACTION);
+
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, x+width-70, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+		uiButSetFunc(but, modifiers_moveUp, ob, md);
+
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-70+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+		uiButSetFunc(but, modifiers_moveDown, ob, md);
+		
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
+		uiButSetFunc(but, modifiers_del, ob, md);
 		uiBlockSetCol(block, TH_AUTO);
 	}
-
-	uiBlockSetCol(block, TH_BUT_ACTION);
-
-	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, x+width-70, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
-	uiButSetFunc(but, modifiers_moveUp, ob, md);
-
-	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-70+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
-	uiButSetFunc(but, modifiers_moveDown, ob, md);
-	
-	uiBlockSetEmboss(block, UI_EMBOSSN);
-
-	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
-	uiButSetFunc(but, modifiers_del, ob, md);
-	uiBlockSetCol(block, TH_AUTO);
 
 	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
@@ -860,7 +892,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	if (!(md->mode&eModifierMode_Expanded)) {
 		y -= 18;
 	} else {
-		char str[128];
 		int cy = y - 8;
 		int lx = x + width - 60 - 15;
 
@@ -892,14 +923,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiSetRoundBox(12);
 		uiRoundBox(x+4+10, y-height, x+width+10, y, 5.0);
 
-		uiBlockBeginAlign(block);
-		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
-		uiButSetFunc(but, modifiers_applyModifier, ob, md);
-		if (md->type!=eModifierType_Softbody) {
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
-			uiButSetFunc(but, modifiers_copyModifier, ob, md);
+		if (!isVirtual) {
+			uiBlockBeginAlign(block);
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
+			uiButSetFunc(but, modifiers_applyModifier, ob, md);
+			if (md->type!=eModifierType_Softbody) {
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
+				uiButSetFunc(but, modifiers_copyModifier, ob, md);
+			}
+			uiBlockEndAlign(block);
 		}
-		uiBlockEndAlign(block);
 
 //		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 //		uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, "3D View", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
@@ -997,6 +1030,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 	*xco = x;
 	*yco = y;
+
+	if (isVirtual) {
+		uiClearButLock();
+	}
 }
 
 static void editing_panel_modifiers(Object *ob)
@@ -1019,8 +1056,10 @@ static void editing_panel_modifiers(Object *ob)
 	xco = 0;
 	yco = 160;
 
+	md = modifiers_getVirtualModifierList(ob);
+
 	uiPanelPush(block);
-	for (i=0,md=ob->modifiers.first; md; i++, md=md->next) {
+	for (i=0; md; i++, md=md->next) {
 		draw_modifier(block, ob, md, &xco, &yco, i, cageIndex, lastCageIndex);
 	}
 	uiPanelPop(block);

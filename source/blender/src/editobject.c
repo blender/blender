@@ -1141,7 +1141,19 @@ void make_parent(void)
 	qual= G.qual;
 	par= BASACT->object;
 
-	if(par->type == OB_CURVE){
+	if(par->type == OB_LATTICE){
+		mode= pupmenu("Make Parent %t|Normal Parent %x1|Lattice Deform %x2");
+		if(mode<=0){
+			return;
+		}
+		else if(mode==1) {
+			mode= PAROBJECT;
+		}
+		else if(mode==2) {
+			mode= PARSKEL;
+		}
+	}
+	else if(par->type == OB_CURVE){
 		bConstraint *con;
 		bFollowPathConstraint *data;
 
@@ -1303,7 +1315,7 @@ void make_parent(void)
 						if(qual & LR_ALTKEY) {
 							base->object->partype= PARVERT1;
 						}
-						else if(par->type==OB_CURVE) {
+						else if(ELEM(par->type, OB_CURVE, OB_LATTICE)) {
 							base->object->partype= mode;
 						}
 						else {

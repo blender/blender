@@ -156,31 +156,6 @@ int  get_defgroup_num (Object *ob, bDeformGroup	*dg)
 
 /* *************** HOOK ****************** */
 
-void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
-{
-	Mesh *me= ob->data;
-	float (*vertexCos)[3] = NULL;
-
-	do_mesh_key(me);
-
-	if (ob->parent && me->totvert) {
-		if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
-			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-			curve_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-		}
-		else if(ob->parent->type==OB_LATTICE) {
-			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-			lattice_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-		}
-		else if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
-			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-			armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
-		}
-	}
-
-	*vertexCos_r = vertexCos;
-}
-
 int curve_modifier(Object *ob, char mode)
 {
 	static ListBase nurb={NULL, NULL};

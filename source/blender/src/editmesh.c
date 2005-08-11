@@ -1203,28 +1203,30 @@ void load_editMesh(void)
 		int i,j;
 
 		for (ob=G.main->object.first; ob; ob=ob->id.next) {
-			for (md=ob->modifiers.first; md; md=md->next) {
-				if (md->type==eModifierType_Hook) {
-					HookModifierData *hmd = (HookModifierData*) md;
+			if (ob->data==me) {
+				for (md=ob->modifiers.first; md; md=md->next) {
+					if (md->type==eModifierType_Hook) {
+						HookModifierData *hmd = (HookModifierData*) md;
 
-					if (!vertMap) {
-						vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
+						if (!vertMap) {
+							vertMap = MEM_callocN(sizeof(*vertMap)*ototvert, "vertMap");
 
-						for (eve=em->verts.first; eve; eve=eve->next) {
-							if (eve->keyindex!=-1)
-								vertMap[eve->keyindex] = eve;
+							for (eve=em->verts.first; eve; eve=eve->next) {
+								if (eve->keyindex!=-1)
+									vertMap[eve->keyindex] = eve;
+							}
 						}
-					}
-					
-					for (i=j=0; i<hmd->totindex; i++) {
-						eve = vertMap[hmd->indexar[i]];
 						
-						if (eve) {
-							hmd->indexar[j++] = (long) eve->vn;
+						for (i=j=0; i<hmd->totindex; i++) {
+							eve = vertMap[hmd->indexar[i]];
+							
+							if (eve) {
+								hmd->indexar[j++] = (long) eve->vn;
+							}
 						}
-					}
 
-					hmd->totindex = j;
+						hmd->totindex = j;
+					}
 				}
 			}
 		}

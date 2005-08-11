@@ -60,6 +60,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
+#include "BKE_key.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -1388,8 +1389,8 @@ DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedMesh **deform_r, DerivedMesh **final_r, int useRenderParams, int useDeform)
 {
 	Mesh *me = ob->data;
-	ModifierData *md= ob->modifiers.first;
-	float (*deformedVerts)[3];
+	ModifierData *md= modifiers_getVirtualModifierList(ob);
+	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
 	int numVerts = me->totvert;
 
@@ -1399,7 +1400,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	*final_r = NULL;
 
 	if (useDeform) {
-		mesh_modifier(ob, &deformedVerts);
+		do_mesh_key(me);
 
 			/* Apply all leading deforming modifiers */
 		for (; md; md=md->next) {

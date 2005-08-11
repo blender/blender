@@ -5145,8 +5145,6 @@ void subdivideflag(int flag, float rad, int beauty)
 	float fac, vec[3], vec1[3], len1, len2, len3, percent;
 	short test;
 
-	printf("in old subdivideflag\n");
-	
 	if(beauty & B_SMOOTH) {
 		short perc= 100;
 

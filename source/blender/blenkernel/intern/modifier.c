@@ -1468,3 +1468,54 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 
 	return (md && md->mode&(eModifierMode_Realtime|eModifierMode_Render));
 }
+
+ModifierData *modifiers_getVirtualModifierList(Object *ob)
+{
+		/* Kinda hacky, but should be fine since we are never
+		 * reentrant and avoid free hassles.
+		 */
+	static ArmatureModifierData amd;
+	static CurveModifierData cmd;
+	static LatticeModifierData lmd;
+	static int init = 1;
+
+	if (init) {
+		ModifierData *md;
+
+		md = modifier_new(eModifierType_Armature);
+		amd = *((ArmatureModifierData*) md);
+		modifier_free(md);
+
+		md = modifier_new(eModifierType_Curve);
+		cmd = *((CurveModifierData*) md);
+		modifier_free(md);
+
+		md = modifier_new(eModifierType_Lattice);
+		lmd = *((LatticeModifierData*) md);
+		modifier_free(md);
+
+		amd.modifier.mode |= eModifierMode_Virtual;
+		cmd.modifier.mode |= eModifierMode_Virtual;
+		lmd.modifier.mode |= eModifierMode_Virtual;
+
+		init = 0;
+	}
+
+	if (ob->parent) {
+		if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
+			amd.object = ob->parent;
+			amd.modifier.next = ob->modifiers.first;
+			return &amd.modifier;
+		} else if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
+			cmd.object = ob->parent;
+			cmd.modifier.next = ob->modifiers.first;
+			return &cmd.modifier;
+		} else if(ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+			lmd.object = ob->parent;
+			lmd.modifier.next = ob->modifiers.first;
+			return &lmd.modifier;
+		}
+	}
+
+	return ob->modifiers.first;
+}
