@@ -622,8 +622,14 @@ void add_hook(void)
 									
 			/* new hook */
 			if(mode==1 || mode==2) {
+				ModifierData *md = G.obedit->modifiers.first;
+
+				while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+					md = md->next;
+				}
+
 				hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
-				BLI_addtail(&G.obedit->modifiers, hmd); // XXX, ordering
+				BLI_insertlinkbefore(&G.obedit->modifiers, md, hmd);
 				sprintf(hmd->modifier.name, "Hook-%s", ob->id.name+2);
 			}
 			else if (hmd->indexar) MEM_freeN(hmd->indexar); // reassign, hook was set
