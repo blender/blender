@@ -41,10 +41,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -153,10 +149,6 @@ static void ui_draw_icon(uiBut *but, BIFIconID icon)
 	// void BIF_icon_pos(float xs, float ys);
 	int blend= 0;
 	float xs=0, ys=0;
-
-	if (icon==VICON_X) {
-		int i = 0;
-	}
 
 	// this icon doesn't need draw...
 	if(icon==ICON_BLANK1) return;

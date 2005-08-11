@@ -104,10 +104,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #define OL_H	19
 #define OL_X	18
 
@@ -509,7 +505,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					int index;
 
 					for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
-						ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 						TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
 						if(te) te->name= md->name;
 

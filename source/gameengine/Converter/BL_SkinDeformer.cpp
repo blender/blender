@@ -182,8 +182,11 @@ void BL_SkinDeformer::SetArmature(BL_ArmatureObject *armobj)
 {
 	m_armobj = armobj;
 
-	for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next)
-			dg->data = (void*)get_named_bone(m_armobj->GetArmature(), dg->name);
+	for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next) {
+
+/*		dg->data no longer exists needs update
+			dg->data = (void*)get_named_bone(m_armobj->GetArmature(), dg->name); */
+	}
 		
 		GB_validate_defgroups(m_bmesh, m_defbase);
 }

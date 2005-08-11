@@ -35,10 +35,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #ifndef snprintf
 #define snprintf _snprintf
@@ -808,7 +804,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
-	short height, width = 295;
+	short height = 86; 
+        short width = 295;
 	char str[128];
 	uiBut *but;
 

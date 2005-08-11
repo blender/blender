@@ -76,10 +76,6 @@
 #include "render.h"  // externtex, bad level call (ton)
 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 Effect *add_effect(int type)
 {
 	Effect *eff=0;
@@ -1438,7 +1434,7 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				DispListMesh  *disp_mesh = 0;
 				MFace *mface;
 	            Object *copyob;
-				/* do object level stuff
+				/* do object level stuff */
 				/* need to have user control for that since it depends on model scale */
 				innerfacethickness =-ob->pd->pdef_sbift;
 				outerfacethickness =ob->pd->pdef_sboft;
