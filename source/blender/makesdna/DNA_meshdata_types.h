@@ -49,7 +49,6 @@ typedef struct MEdge {
 typedef struct MDeformWeight {
 	int				def_nr;
 	float			weight;
-	struct Bone		*data;		/* Runtime: Does not need to be valid in file */
 } MDeformWeight;
 
 typedef struct MDeformVert {

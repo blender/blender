@@ -58,7 +58,6 @@ struct DerivedMesh;
 typedef struct bDeformGroup {
 	struct bDeformGroup *next, *prev;
 	char name[32];
-	void *data;	/* Temporary data, most likely a pointer to the bone - no need to delete */
 } bDeformGroup;
 
 #

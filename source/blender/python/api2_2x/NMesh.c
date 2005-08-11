@@ -1405,23 +1405,27 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 			sweight = me->dvert[index].dw;
 
 			for( i = 0; i < totinfluences; i++ ) {
-
 				/*Add the weight and the name of the bone, which is used to identify it */
 
-				if( sweight->data )
+					/* Disabled this code, it couldn't be correct!
+					 * sweight->data was being set to a posechannel not a bone
+					 * for one thing, and it is not always set for another.
+					 * The only thing safe here is to return the defgroup number. -zr
+					 */
+//				if( sweight->data )
 					/* valid bone: return its name */
 					/*  PyList_SetItem(influence_list, i,
 					   Py_BuildValue("[sf]", sweight->data->name, sweight->weight));
 					   else // NULL bone: return Py_None instead
 					   PyList_SetItem(influence_list, i,
 					   Py_BuildValue("[Of]", Py_None, sweight->weight)); */
-					PyList_Append( influence_list,
-						       Py_BuildValue( "[sf]",
-								      sweight->
-								      data->
-								      name,
-								      sweight->
-								      weight ) );
+//					PyList_Append( influence_list,
+//						       Py_BuildValue( "[sf]",
+//								      sweight->
+//								      data->
+//								      name,
+//								      sweight->
+//								      weight ) );
 
 				/* Next weight */
 				sweight++;

@@ -556,17 +556,6 @@ void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], i
 	end_latt_deform();
 }
 
-void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
-{
-	int a;
-
-	init_armature_deform(armOb, target);
-
-	for(a=0; a<numVerts; a++) {
-		calc_armature_deform(armOb, vertexCos[a], a);
-	}
-}
-
 int object_deform(Object *ob)
 {
 	Curve *cu;
