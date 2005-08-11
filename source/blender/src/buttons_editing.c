@@ -553,8 +553,8 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-		if (i==eModifierType_Softbody && modifiers_findByType(ob, eModifierType_Softbody))
-			continue;
+			/* Only allow adding through appropriate other interfaces */
+		if (ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
 			
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -691,6 +691,7 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 	DerivedMesh *dm;
 	DispListMesh *dlm;
 	Mesh *me = ob->data;
+	int converted = 0;
 
 	if (G.obedit) {
 		error("Modifiers cannot be applied in editmode");
@@ -700,13 +701,8 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		return;
 	}
 
-	if (md->type==eModifierType_Decimate && (me->tface || me->mcol)) {
-		if (!okee("Applying decimate modifier will remove mesh UVs and vertex colors, continue?"))
-			return;
-	}
-
 	if (md!=ob->modifiers.first) {
-		if (!okee("Modifier is not first, continue with apply?"))
+		if (!okee("Modifier is not first"))
 			return;
 	}
 
@@ -718,14 +714,21 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		return;
 	}
 
-	dlm= dm->convertToDispListMesh(dm, 1);
+	dlm= dm->convertToDispListMesh(dm, 0);
 
-	ob->data= add_mesh();
-	displistmesh_to_mesh(dlm, ob->data);
-	displistmesh_free(dlm);
+	if ((!me->tface || dlm->tface) || okee("Applying will delete mesh UVs and vertex colors")) {
+		if ((!me->mcol || dlm->mcol) || okee("Applying will delete mesh vertex colors")) {
+			if (dlm->totvert==me->totvert || okee("Applying will delete mesh sticky, keys, and vertex groups")) {
+				displistmesh_to_mesh(dlm, me);
+				converted = 1;
+			}
+		}
+	}
+
+	if (!converted) {
+		displistmesh_free(dlm);
+	}
 	dm->release(dm);
-
-	free_libblock_us(&G.main->mesh, me);
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
@@ -812,10 +815,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	if (isVirtual) {
 		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
 		color = TH_BUT_SETTING1;
+	} else {
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
-
-	uiBlockSetEmboss(block, UI_EMBOSSN);
-	uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 
 	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);

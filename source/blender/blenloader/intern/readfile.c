@@ -2074,10 +2074,6 @@ static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 		mdverts[i].dw=newdataadr(fd, mdverts[i].dw);
 		if (!mdverts[i].dw)
 			mdverts[i].totweight=0;
-
-		for (j=0; j< mdverts[i].totweight; j++) {
-			mdverts[i].dw[j].data = NULL;	// not saved in file, clear pointer
-		}
 	}
 }
 

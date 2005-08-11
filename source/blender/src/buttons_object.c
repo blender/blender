@@ -1456,12 +1456,27 @@ static void object_softbodies__enable(void *ob_v, void *arg2)
 	Object *ob = ob_v;
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
 
-	if (!md) {
-		md = modifier_new(eModifierType_Softbody);
-		BLI_addhead(&ob->modifiers, md);
-	}
+	if (modifiers_isSoftbodyEnabled(ob)) {
+		if (md) {
+			md->mode &= ~(eModifierMode_Render|eModifierMode_Realtime);
+		}
+	} else {
+		if (!md) {
+			md = modifier_new(eModifierType_Softbody);
+			BLI_addhead(&ob->modifiers, md);
+		}
 
-	md->mode |= eModifierMode_Render|eModifierMode_Realtime;
+		md->mode |= eModifierMode_Render|eModifierMode_Realtime;
+
+		if (!ob->soft) {
+			ob->soft= sbNew();
+			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+			if(ob->type==OB_MESH) {
+				Mesh *me= ob->data;
+				if(me->medge==NULL) make_edges(me);
+			}
+		}
+	}
 
 	allqueue(REDRAWBUTSEDIT, 0);
 }
@@ -1479,11 +1494,13 @@ static void object_softbodies(Object *ob)
 		uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
 		uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 	} else {
-		if (!modifiers_isSoftbodyEnabled(ob)) {
-			uiBut *but = uiDefButS(block, BUT, REDRAWBUTSOBJECT, "Enable Soft Body",	10,200,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
-			uiButSetFunc(but, object_softbodies__enable, ob, NULL);
-			uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
-		}
+		static int val;
+		uiBut *but;
+
+		val = modifiers_isSoftbodyEnabled(ob);
+		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Enable Soft Body",	10,200,150,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+		uiButSetFunc(but, object_softbodies__enable, ob, NULL);
+		uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
 	}
 	
 	if(modifiers_isSoftbodyEnabled(ob)) {

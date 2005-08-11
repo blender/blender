@@ -60,6 +60,7 @@
 #include "DNA_material_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_key_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -147,24 +148,51 @@ DispListMesh *displistmesh_copyShared(DispListMesh *odlm)
 
 void displistmesh_to_mesh(DispListMesh *dlm, Mesh *me) 
 {
-	if (dlm->totvert>MESH_MAX_VERTS) {
-		error("Too many vertices");
-	} else {
-		me->totface= dlm->totface;
-		me->totvert= dlm->totvert;
+		/* We assume, rather courageously, that any
+		 * shared data came from the mesh itself and so
+		 * we can ignore the dlm->dontFreeOther flag.
+		 */
 
-		me->mvert= MEM_dupallocN(dlm->mvert);
-		me->mface= MEM_dupallocN(dlm->mface);
-		if (dlm->tface)
-			me->tface= MEM_dupallocN(dlm->tface);
-		if (dlm->mcol)
-			me->mcol= MEM_dupallocN(dlm->mcol);
+	if (me->mvert && dlm->mvert!=me->mvert) MEM_freeN(me->mvert);
+	if (me->mface && dlm->mface!=me->mface) MEM_freeN(me->mface);
+	if (me->tface && dlm->tface!=me->tface) MEM_freeN(me->tface);
+	if (me->mcol && dlm->mcol!=me->mcol) MEM_freeN(me->mcol);
+	if (me->medge && dlm->medge!=me->medge) MEM_freeN(me->medge);
 
-		if(dlm->medge) {
-			me->totedge= dlm->totedge;
-			me->medge= MEM_dupallocN(dlm->medge);
-		}
+	me->tface = NULL;
+	me->mcol = NULL;
+	me->medge = NULL;
+
+	if (dlm->totvert!=me->totvert) {
+		if (me->msticky) MEM_freeN(me->msticky);
+		me->msticky = NULL;
+
+		if (me->dvert) free_dverts(me->dvert, me->totvert);
+		me->dvert = NULL;
+
+		if(me->key) me->key->id.us--;
+		me->key = NULL;
 	}
+
+	me->totface= dlm->totface;
+	me->totvert= dlm->totvert;
+	me->totedge= 0;
+
+	me->mvert= dlm->mvert;
+	me->mface= dlm->mface;
+	if (dlm->tface)
+		me->tface= dlm->tface;
+	if (dlm->mcol)
+		me->mcol= dlm->mcol;
+
+	if(dlm->medge) {
+		me->totedge= dlm->totedge;
+		me->medge= dlm->medge;
+	}
+
+	if (dlm->nors && !dlm->dontFreeNors) MEM_freeN(dlm->nors);
+
+	MEM_freeN(dlm);
 }
 
 void free_disp_elem(DispList *dl)

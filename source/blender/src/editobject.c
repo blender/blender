@@ -2223,7 +2223,6 @@ void convertmenu(void)
 				dm= mesh_create_derived_no_deform(ob, NULL);
 				dlm= dm->convertToDispListMesh(dm, 1);
 				displistmesh_to_mesh(dlm, ob1->data);
-				displistmesh_free(dlm);
 				dm->release(dm);
 			}
 			else if(ob->type==OB_FONT) {

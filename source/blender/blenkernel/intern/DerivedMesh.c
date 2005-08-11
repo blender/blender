@@ -98,13 +98,9 @@ static DispListMesh *meshDM_convertToDispListMesh(DerivedMesh *dm, int allowShar
 
 	if (!allowShared) {
 		dlm->mvert = MEM_dupallocN(dlm->mvert);
-		if (dlm->medge) dlm->medge = MEM_dupallocN(dlm->medge);
-		dlm->mface = MEM_dupallocN(dlm->mface);
-		if (dlm->tface) dlm->tface = MEM_dupallocN(dlm->tface);
-		if (dlm->mcol) dlm->mcol = MEM_dupallocN(dlm->mcol);
 		if (dlm->nors) dlm->nors = MEM_dupallocN(dlm->nors);
 
-		dlm->dontFreeVerts = dlm->dontFreeOther = dlm->dontFreeNors = 0;
+		dlm->dontFreeVerts = dlm->dontFreeNors = 0;
 	}
 
 	return dlm;
