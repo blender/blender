@@ -1,6 +1,6 @@
 /**
  *
- * $Id:  
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

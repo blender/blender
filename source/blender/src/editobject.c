@@ -1511,7 +1511,7 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 	if(freedata) G.obedit= NULL;
 
 	/* total remake of softbody data */
-	if(ob->softflag & OB_SB_ENABLE) {
+	if(modifiers_isSoftbodyEnabled(ob)) {
 		SoftBody *sb= ob->soft;
 		
 		if(sb->keys) {
@@ -2473,7 +2473,7 @@ static void copymenu_modifiers(Object *ob)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
-		if (i==eModifierType_Hook) continue;
+		if (ELEM(i, eModifierType_Hook, eModifierType_Softbody)) continue;
 
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -2774,6 +2774,10 @@ void copy_attr(short event)
 					if(base->object->soft) sbFree(base->object->soft);
 					
 					base->object->soft= copy_softbody(ob->soft);
+
+					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
+						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));
+					}
 				}
 			}
 		}

@@ -55,6 +55,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -80,10 +81,10 @@
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
-
 
 #include "BIF_editaction.h"
 #include "BIF_editview.h"
@@ -1411,8 +1412,8 @@ void special_aftertrans_update(short cancelled)
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
-			/* reset soft body object */
-			if(ob->softflag & OB_SB_ENABLE) sbObjectReset(ob, NULL);
+
+			if(modifiers_isSoftbodyEnabled(ob)) sbObjectReset(ob, NULL);
 			
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){

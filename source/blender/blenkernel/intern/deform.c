@@ -163,11 +163,6 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 
 	do_mesh_key(me);
 
-	if((ob->softflag & OB_SB_ENABLE) && !(ob->softflag & OB_SB_POSTDEF)) {
-		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
-	}
-
 	if (ob->parent && me->totvert) {
 		if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
 			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
@@ -181,11 +176,6 @@ void mesh_modifier(Object *ob, float (**vertexCos_r)[3])
 			if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
 			armature_deform_verts(ob->parent, ob, vertexCos, me->totvert);
 		}
-	}
-
-	if((ob->softflag & OB_SB_ENABLE) && (ob->softflag & OB_SB_POSTDEF)) {
-		if (!vertexCos) vertexCos = mesh_getVertexCos(me, NULL);
-		sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 	}
 
 	*vertexCos_r = vertexCos;
@@ -229,31 +219,10 @@ int curve_modifier(Object *ob, char mode)
 
 int lattice_modifier(Object *ob, char mode)
 {
-	static BPoint *bpoint;
-	Lattice *lt= ob->data;
-	int done= 0;
-	
+	Lattice *lt = ob->data;
+
 	do_latt_key(lt);
 	
-	/* conditions if it's needed */
-	if(ob->parent && ob->partype==PARSKEL); 
-	else if((ob->softflag & OB_SB_ENABLE));
-	else return 0;
-	
-	if(mode=='s') { // "start"
-		/* copy  */
-		bpoint= MEM_dupallocN(lt->def);
-		
-		if((ob->softflag & OB_SB_ENABLE)) {
-			sbObjectStep(ob, (float)G.scene->r.cfra, NULL);
-		}
-	}
-	else { // end
-		MEM_freeN(lt->def);
-		lt->def= bpoint;
-		bpoint= NULL;
-	}
-	
-	return done;
+	return 0;
 }
 

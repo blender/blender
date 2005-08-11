@@ -259,10 +259,6 @@ static PyObject *Object_getSBInnerSpringFriction( BPy_Object * self );
 static PyObject *Object_setSBInnerSpringFriction( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBDefaultGoal( BPy_Object * self );
 static PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args );
-static PyObject *Object_getSBEnable( BPy_Object * self );
-static PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args );
-static PyObject *Object_getSBPostDef( BPy_Object * self );
-static PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBUseGoal( BPy_Object * self );
 static PyObject *Object_setSBUseGoal( BPy_Object * self, PyObject * args );
 static PyObject *Object_getSBUseEdges( BPy_Object * self );
@@ -422,14 +418,6 @@ automatic when the script finishes."},
 	 "Returns SB DefaultGoal"},
 	{"setSBDefaultGoal", ( PyCFunction ) Object_setSBDefaultGoal, METH_VARARGS,
 	 "Sets SB DefaultGoal"}, 		 
-	{"getSBEnable", ( PyCFunction ) Object_getSBEnable, METH_NOARGS,
-	 "Returns SB Enable"},
-	{"setSBEnable", ( PyCFunction ) Object_setSBEnable, METH_VARARGS,
-	 "Sets SB Enable"}, 		 
-	{"getSBPostDef", ( PyCFunction ) Object_getSBPostDef, METH_NOARGS,
-	 "Returns SB PostDef"},
-	{"setSBPostDef", ( PyCFunction ) Object_setSBPostDef, METH_VARARGS,
-	 "Sets SB PostDef"}, 
 	{"getSBUseGoal", ( PyCFunction ) Object_getSBUseGoal, METH_NOARGS,
 	 "Returns SB UseGoal"},
 	{"setSBUseGoal", ( PyCFunction ) Object_setSBUseGoal, METH_VARARGS,
@@ -3924,97 +3912,6 @@ PyObject *Object_setSBDefaultGoal( BPy_Object * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
-PyObject *Object_getSBEnable( BPy_Object * self )
-{
-    /*short flag =  self->object->softflag;*/
-    PyObject *attr = NULL;
-    
-    if(!self->object->soft){
-       if(!setupSB(self->object))
-    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"softbody could not be accessed (null pointer)" ) );    
-    }    
-    
-    
-    if(self->object->softflag & OB_SB_ENABLE){
-           attr = PyInt_FromLong(1);
-    }
-    else{  attr = PyInt_FromLong(0);  }
-        
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Object->softflag attribute" ) );
-}
-
-PyObject *Object_setSBEnable( BPy_Object * self, PyObject * args )
-{
-    short value;
-    
-    if(!self->object->soft){
-       if(!setupSB(self->object))
-    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"softbody could not be accessed (null pointer)" ) );    
-    }       
-    
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected integer argument" ) );
-    		
-    if(value > 0){ 
-        self->object->softflag |= OB_SB_ENABLE; 
-    }
-    else{     
-        self->object->softflag &= ~OB_SB_ENABLE; 
-    } 
-
-	return EXPP_incr_ret( Py_None );
-}
-
-PyObject *Object_getSBPostDef( BPy_Object * self )
-{
-    /*short flag =  self->object->softflag;*/
-    PyObject *attr = NULL;
-
-    if(!self->object->soft){
-       if(!setupSB(self->object))
-    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"softbody could not be accessed (null pointer)" ) );    
-    }   
-    
-    if(self->object->softflag & OB_SB_POSTDEF){
-           attr = PyInt_FromLong(1);
-    }
-    else{  attr = PyInt_FromLong(0);  }
-        
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Object->softflag attribute" ) );
-}
-
-PyObject *Object_setSBPostDef( BPy_Object * self, PyObject * args )
-{
-    short value;
-    
-    if(!self->object->soft){
-       if(!setupSB(self->object))
-    	   return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"softbody could not be accessed (null pointer)" ) );    
-    }       
-    
-    
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"expected integer argument" ) );
-			
-    if(value){ self->object->softflag |= OB_SB_POSTDEF; }
-    else{ self->object->softflag &= ~OB_SB_POSTDEF; } 
-
-	return EXPP_incr_ret( Py_None );
-}
 PyObject *Object_getSBUseGoal( BPy_Object * self )
 {
     /*short flag =  self->object->softflag;*/

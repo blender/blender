@@ -1417,13 +1417,12 @@ static void object_panel_deflectors(Object *ob)
 		uiDefButF(block, NUM, REDRAWVIEW3D, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
 		uiBlockEndAlign(block);
 
-		if(ob->softflag & OB_SB_ENABLE) {
+		if(modifiers_isSoftbodyEnabled(ob)) {
 			uiDefBut(block, LABEL, 0, "Object is Softbody,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, "no Deflection possible",		160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 			pd->deflect= 0;
 		}
 		else {
-			
 			uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
 			
 			/* only meshes collide now */
@@ -1452,6 +1451,20 @@ static void object_panel_deflectors(Object *ob)
 
 
 /* Panel for softbodies */
+static void object_softbodies__enable(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+
+	if (!md) {
+		md = modifier_new(eModifierType_Softbody);
+		BLI_addhead(&ob->modifiers, md);
+	}
+
+	md->mode |= eModifierMode_Render|eModifierMode_Realtime;
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
 
 static void object_softbodies(Object *ob)
 {
@@ -1462,22 +1475,18 @@ static void object_softbodies(Object *ob)
 	if(uiNewPanel(curarea, block, "Softbody", "Object", 640, 0, 318, 204)==0) return;
 
 	/* do not allow to combine with force fields */
-	if(ob->pd) {
-		PartDeflect *pd= ob->pd;
-		
-		if(pd->deflect) {
-			uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
-			ob->softflag &= ~OB_SB_ENABLE;
-			
-			return;
+	if(ob->pd && ob->pd->deflect) {
+		uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
+	} else {
+		if (!modifiers_isSoftbodyEnabled(ob)) {
+			uiBut *but = uiDefButS(block, BUT, REDRAWBUTSOBJECT, "Enable Soft Body",	10,200,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
+			uiButSetFunc(but, object_softbodies__enable, ob, NULL);
+			uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
 		}
 	}
 	
-	uiDefButBitS(block, TOG, OB_SB_ENABLE, REDRAWBUTSOBJECT, "Enable Soft Body",	10,200,150,20, &ob->softflag, 0, 0, 0, 0, "Sets object to become soft body");
-	uiDefBut(block, LABEL, 0, "",	160, 200,150,20, NULL, 0.0, 0.0, 0, 0, "");	// alignment reason
-	
-	if(ob->softflag & OB_SB_ENABLE) {
+	if(modifiers_isSoftbodyEnabled(ob)) {
 		SoftBody *sb= ob->soft;
 		int defCount;
 		char *menustr;
@@ -1522,7 +1531,6 @@ static void object_softbodies(Object *ob)
 			uiDefButF(block, NUM, B_DIFF, "Grav:",			10,150,150,20, &sb->grav , 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
 			uiDefButF(block, NUM, B_DIFF, "Speed:",			160,150,150,20, &sb->physics_speed , 0.01, 100.0, 10, 0, "Tweak timing for physics to control frequency and speed");
 			uiDefButF(block, NUM, B_DIFF, "Error Limit:",	10,130,150,20, &sb->rklimit , 0.01, 1.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision");
-			uiDefButBitS(block, TOG, OB_SB_POSTDEF, B_DIFF, "Apply Deform First",	160,130,150,20, &ob->softflag, 0, 0, 0, 0, "Softbody is calculated AFTER Deformation");
 			uiBlockEndAlign(block);
 			
 			/* GOAL STUFF */

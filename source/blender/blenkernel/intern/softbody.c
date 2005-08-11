@@ -929,7 +929,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 {
 	BPoint *bp, *bpu;
 	int u, v, w, dv, dw, uxt, vxt, wxt, bpc, bpuc;
-int debugspringcounter = 0;
+	int debugspringcounter = 0;
 	bp= lt->def;
 	bpc =0;
 	

@@ -526,8 +526,19 @@ void do_modifier_panels(unsigned short event)
 static void modifiers_add(void *ob_v, int type)
 {
 	Object *ob = ob_v;
+	ModifierTypeInfo *mti = modifierType_getInfo(type);
+	
+	if (mti->flags&eModifierTypeFlag_RequiresOriginalData) {
+		ModifierData *md = ob->modifiers.first;
 
-	BLI_addtail(&ob->modifiers, modifier_new(type));
+		while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+			md = md->next;
+		}
+
+		BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(type));
+	} else {
+		BLI_addtail(&ob->modifiers, modifier_new(type));
+	}
 }
 
 static uiBlock *modifiers_add_menu(void *ob_v)
@@ -542,6 +553,9 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 	for (i=eModifierType_None+1; i<NUM_MODIFIER_TYPES; i++) {
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
+		if (i==eModifierType_Softbody && modifiers_findByType(ob, eModifierType_Softbody))
+			continue;
+			
 		if (	(mti->flags&eModifierTypeFlag_AcceptsCVs) || 
 				(ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
 			uiDefBut(block, BUTM, B_MODIFIER_RECALC, mti->name,		0, yco-=20, 160, 19, NULL, 0, 0, 1, i, "");
@@ -581,6 +595,17 @@ static void modifiers_moveUp(void *ob_v, void *md_v)
 	ModifierData *md = md_v;
 
 	if (md->prev) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (mti->type!=eModifierTypeType_OnlyDeform) {
+			ModifierTypeInfo *nmti = modifierType_getInfo(md->prev->type);
+
+			if (nmti->flags&eModifierTypeFlag_RequiresOriginalData) {
+				error("Cannot move above a modifier requiring original data.");
+				return;
+			}
+		}
+
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
 	}
@@ -782,10 +807,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	BIF_ThemeColor(color);
 	uiBlockBeginAlign(block);
 	uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, width-120-60-10, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
-	uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-	uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-	if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-		uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+
+		/* Softbody not allowed in this situation, enforce! */
+	if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
+		uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+		uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
+			uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+		}
 	}
 	uiBlockEndAlign(block);
 
@@ -856,7 +885,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Hook) {
 			height = 86;
 		} else if (md->type==eModifierType_Softbody) {
-			height = 46;
+			height = 26;
 		}
 
 		BIF_ThemeColor(color);
@@ -866,8 +895,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiBlockBeginAlign(block);
 		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
 		uiButSetFunc(but, modifiers_applyModifier, ob, md);
-		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
-		uiButSetFunc(but, modifiers_copyModifier, ob, md);
+		if (md->type!=eModifierType_Softbody) {
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
+			uiButSetFunc(but, modifiers_copyModifier, ob, md);
+		}
 		uiBlockEndAlign(block);
 
 //		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");

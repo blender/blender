@@ -12,6 +12,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_effect_types.h"
 #include "DNA_scene_types.h"
 #include "BLI_editVert.h"
@@ -26,6 +27,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_object.h"
 #include "BKE_mesh.h"
+#include "BKE_softbody.h"
 #include "depsgraph_private.h"
 
 #include "LOD_DependKludge.h"
@@ -1138,10 +1140,10 @@ static void hookModifier_deformVerts(ModifierData *md, Object *ob, void *derived
 	for (i=0; i<hmd->totindex; i++) {
 		int index = hmd->indexar[i];
 
-			/* These should always be true and I don't generally like 
+			/* This should always be true and I don't generally like 
 			 * "paranoid" style code like this, but old files can have
 			 * indices that are out of range because old blender did
-			 * not correct them on exit editmode.
+			 * not correct them on exit editmode. - zr
 			 */
 		if (index<numVerts) {
 			float *co = vertexCos[index];
@@ -1174,14 +1176,7 @@ static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *der
 {
 	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
 
-//	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
-}
-
-static void softbodyModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
-{
-	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
-
-//	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
+	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
 }
 
 /***/
@@ -1299,9 +1294,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Softbody);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
-		mti->deformVertsEM = softbodyModifier_deformVertsEM;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -1459,4 +1453,18 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 	}
 
 	return cageIndex;
+}
+
+
+int modifiers_isSoftbodyEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
+
+		/* Softbody not allowed in this situation, enforce! */
+	if (md && ob->pd && ob->pd->deflect) {
+		md->mode &= ~(eModifierMode_Realtime|eModifierMode_Render|eModifierMode_Editmode);
+		md = NULL;
+	}
+
+	return (md && md->mode&(eModifierMode_Realtime|eModifierMode_Render));
 }

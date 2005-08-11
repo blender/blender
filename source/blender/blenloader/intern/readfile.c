@@ -2318,7 +2318,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
-	ObHook *hook;
 	int a;
 	
 	ob->disp.first=ob->disp.last= NULL;
@@ -2439,8 +2438,13 @@ static void direct_link_object(FileData *fd, Object *ob)
 		act= act->next;
 	}
 
+	direct_link_modifiers(fd, &ob->modifiers);
+
 	link_list(fd, &ob->hooks);
-	for(hook= ob->hooks.first; hook; hook= hook->next) {
+	while (ob->hooks.first) {
+		ObHook *hook = ob->hooks.first;
+		HookModifierData *hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
+
 		hook->indexar= newdataadr(fd, hook->indexar);
 		if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 			int a;
@@ -2448,9 +2452,24 @@ static void direct_link_object(FileData *fd, Object *ob)
 				SWITCH_INT(hook->indexar[a]);
 			}
 		}
-	}
 
-	direct_link_modifiers(fd, &ob->modifiers);
+			/* Do conversion here because if we have loaded
+			 * a hook we need to make sure it gets converted
+			 * and free'd, regardless of version.
+			 */
+		VECCOPY(hmd->cent, hook->cent);
+		hmd->falloff = hook->falloff;
+		hmd->force = hook->force;
+		hmd->indexar = hook->indexar;
+		hmd->object = hook->parent;
+		memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
+		hmd->totindex = hook->totindex;
+
+		BLI_addhead(&ob->modifiers, hmd);
+		BLI_remlink(&ob->hooks, hook);
+
+		MEM_freeN(hook);
+	}
 	
 	ob->bb= NULL;
 	ob->derivedDeform= NULL;
@@ -4782,22 +4801,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			where_is_armature(arm);
 		}
 		for(ob= main->object.first; ob; ob= ob->id.next) {
-			while (ob->hooks.first) {
-				ObHook *hook = ob->hooks.first;
-				HookModifierData *hmd = (HookModifierData*) modifier_new(eModifierType_Hook);
+			if (ob->softflag&OB_SB_ENABLE) {
+				if (ob->softflag&OB_SB_POSTDEF) {
+					ModifierData *md = ob->modifiers.first;
 
-				VECCOPY(hmd->cent, hook->cent);
-				hmd->falloff = hook->falloff;
-				hmd->force = hook->force;
-				hmd->indexar = hook->indexar;
-				hmd->object = hook->parent;
-				memcpy(hmd->parentinv, hook->parentinv, sizeof(hmd->parentinv));
-				hmd->totindex = hook->totindex;
+					while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+						md = md->next;
+					}
 
-				BLI_addtail(&ob->modifiers, hmd);
-				BLI_remlink(&ob->hooks, hook);
-
-				MEM_freeN(hook);
+					BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(eModifierType_Softbody));
+				} else {
+					BLI_addhead(&ob->modifiers, modifier_new(eModifierType_Softbody));
+				}
 			}
 
 			// btw. armature_rebuild_pose is further only called on leave editmode

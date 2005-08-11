@@ -1426,7 +1426,7 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		
 		if(ob->action) ob->recalc |= OB_RECALC_DATA;
 		else if(ob->nlastrips.first) ob->recalc |= OB_RECALC_DATA;
-		else if(ob->softflag & OB_SB_ENABLE) ob->recalc |= OB_RECALC_DATA;
+		else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 		else {
 			Mesh *me;
