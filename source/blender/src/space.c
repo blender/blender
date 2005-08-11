@@ -1394,7 +1394,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
  			case MKEY:
-				if(G.obedit){
+				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0))
+					mirror_uv_tface();
+				else if(G.obedit){
 					if(G.qual==LR_ALTKEY) {
 						if(G.obedit->type==OB_MESH) {
 							mergemenu();

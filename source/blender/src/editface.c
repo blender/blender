@@ -892,6 +892,79 @@ void rotate_uv_tface()
 	allqueue(REDRAWIMAGE, 0);
 }
 
+void mirror_uv_tface()
+{
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	short mode;
+	int a;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+	
+	mode= pupmenu("Mirror %t|UV Co-ordinates %x1|Vertex Colors %x2");
+	
+	if(mode<1) return;
+	
+	tface= me->tface;
+	mface= me->mface;
+	a= me->totface;
+	while(a--) {
+		if(tface->flag & TF_SELECT) {
+			if(mode==1) {
+				float u1= tface->uv[0][0];
+				float v1= tface->uv[0][1];
+				if(mface->v4) {
+					tface->uv[0][0]= tface->uv[3][0];
+					tface->uv[0][1]= tface->uv[3][1];
+				
+					tface->uv[3][0]= u1;
+					tface->uv[3][1]= v1;
+
+					u1= tface->uv[1][0];
+					v1= tface->uv[1][1];
+
+					tface->uv[1][0]= tface->uv[2][0];
+					tface->uv[1][1]= tface->uv[2][1];
+				
+					tface->uv[2][0]= u1;
+					tface->uv[2][1]= v1;
+				}
+				else {
+					tface->uv[0][0]= tface->uv[2][0];
+					tface->uv[0][1]= tface->uv[2][1];
+					tface->uv[2][0]= u1;
+					tface->uv[2][1]= v1;
+				}
+			}
+			else if(mode==2) {
+				unsigned int tcol= tface->col[0];
+				if(mface->v4) {
+					tface->col[0]= tface->col[3];
+					tface->col[3]= tcol;
+
+					tcol = tface->col[1];
+					tface->col[1]= tface->col[2];
+					tface->col[2]= tcol;
+				}
+				else {
+					tface->col[0]= tface->col[2];
+					tface->col[2]= tcol;
+				}
+			}
+		}
+		tface++;
+		mface++;
+	}
+	
+	BIF_undo_push("Mirror UV face");
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 void minmax_tface(float *min, float *max)
 {
 	Object *ob;

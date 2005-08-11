@@ -3531,6 +3531,9 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	case 7: /* rotate UVs */
 		rotate_uv_tface();
 		break;
+	case 9: /* mirror UVs */
+		mirror_uv_tface();
+		break;
 	
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3554,6 +3557,7 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unwrap UVs|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate UVs|R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror UVs|M",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
