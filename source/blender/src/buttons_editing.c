@@ -1061,6 +1061,7 @@ static void editing_panel_modifiers(Object *ob)
 	uiPanelPush(block);
 	for (i=0; md; i++, md=md->next) {
 		draw_modifier(block, ob, md, &xco, &yco, i, cageIndex, lastCageIndex);
+		if (md->mode&eModifierMode_Virtual) i--;
 	}
 	uiPanelPop(block);
 	
