@@ -33,8 +33,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#define STRUBI hack
-
 #include <math.h>  // floor
 #include <string.h>
 #include <stdlib.h>  
@@ -78,43 +76,6 @@ extern ListBase editNurb;  /* editcurve.c */
 int cu_isectLL(float *v1, float *v2, float *v3, float *v4, 
 			   short cox, short coy, 
 			   float *labda, float *mu, float *vec);
-
-
-#ifdef STRUBI
-/* hotfix; copies x*y array into extended (x+dx)*(y+dy) array
-old[] and new[] can be the same ! */
-int copyintoExtendedArray(float *old, int oldx, int oldy, float *new, int newx, int newy)
-{
-	int x, y, ttt, ooo;
-	float *oldp, *newp;
-        
-	if (newx < oldx || newy < oldy) return 0;
-	
-		
-	for (y = newy - 1; y >= oldy; y--) {	
-                ttt = y * newx;
-		for (x = newx - 1; x >= 0; x--) {
-			newp = new + 3 * (ttt + x);
-			newp[0] = 0.0; newp[1] = 0.0; newp[2] = 0.0;
-		}
-	}	
-
-	for (; y >= 0; y--) {
-		ttt = y * newx;
-                ooo = y * oldx;
-		for (x = newx - 1; x >= oldx; x--) {	
-			newp = new + 3 * (ttt + x);
-			newp[0] = 0.0; newp[1] = 0.0; newp[2] = 0.0;
-		}
-		for (; x  >= 0; x--) {
-			oldp = old + 3 * (ooo + x);
-			newp = new + 3 * (ttt + x);
-			VECCOPY(newp, oldp);
-		}
-	}
-	return 1;
-}
-#endif
 
 void unlink_curve(Curve *cu)
 {
@@ -718,7 +679,7 @@ void basisNurb(float t, short order, short pnts, float *knots, float *basis, int
 }
 
 
-void makeNurbfaces(Nurb *nu, float *data) 
+void makeNurbfaces(Nurb *nu, float *data, int rowstride) 
 /* data  has to be 3*4*resolu*resolv in size, and zero-ed */
 {
 	BPoint *bp;
@@ -863,6 +824,7 @@ void makeNurbfaces(Nurb *nu, float *data)
 			basis+= KNOTSV(nu);
 		}
 		u+= ustep;
+		if (rowstride!=0) in = (float*) (((unsigned char*) in) + (rowstride - 3*nu->resolv*sizeof(*in)));
 	}
 
 	/* free */
@@ -1088,7 +1050,6 @@ void make_orco_surf(Curve *cu)
 	/* first calculate the size of the datablock */
 	nu= cu->nurb.first;
 	while(nu) {
-#ifdef STRUBI
 /* this is a bad hack: as we want to avoid the seam in a cyclic nurbs
 texture wrapping, reserve extra orco data space to save these extra needed
 vertex based UV coordinates for the meridian vertices.
@@ -1103,9 +1064,7 @@ See also blenderWorldManipulation.c: init_render_surf()
 		if (nu->flagu & CU_CYCLIC) sizeu++;
 		if (nu->flagv & CU_CYCLIC) sizev++;
 		if(nu->pntsv>1) tot+= sizeu * sizev;
-#else
-		if(nu->pntsv>1) tot+= nu->resolu*nu->resolv;
-#endif
+
 		nu= nu->next;
 	}
 				/* makeNurbfaces wants zeros */
@@ -1116,10 +1075,9 @@ See also blenderWorldManipulation.c: init_render_surf()
 		if(nu->pntsv>1) {
 			sizeu = nu->resolu;
 			sizev = nu->resolv;
-#ifdef STRUBI
+
 			if (nu->flagu & CU_CYCLIC) sizeu++;
 			if (nu->flagv & CU_CYCLIC) sizev++;
-#endif
 			
 			if(cu->flag & CU_UV_ORCO) {
 				for(b=0; b< sizeu; b++) {
@@ -1138,17 +1096,17 @@ See also blenderWorldManipulation.c: init_render_surf()
 				}
 			}
 			else {
-				makeNurbfaces(nu, data);
-#ifdef STRUBI 
-				for(b=0; b< nu->resolu; b++) {
-					for(a=0; a< nu->resolv; a++) {
-						data = cu->orco + 3 * (b * nu->resolv + a);
+				makeNurbfaces(nu, data, sizeof(*data)*sizev*3);
+
+				for(b=0; b<nu->resolu; b++) {
+					for(a=0; a<nu->resolv; a++) {
+						data = cu->orco + 3 * (b * sizev + a);
 						data[0]= (data[0]-cu->loc[0])/cu->size[0];
 						data[1]= (data[1]-cu->loc[1])/cu->size[1];
 						data[2]= (data[2]-cu->loc[2])/cu->size[2];
 					}
 				}
-				copyintoExtendedArray(cu->orco, nu->resolv, nu->resolu, cu->orco, sizev, sizeu);
+
 				/* copy U/V-cyclic orco's */
 				if (nu->flagv & CU_CYCLIC) {
 					b = sizeu - 1;	
@@ -1164,17 +1122,6 @@ See also blenderWorldManipulation.c: init_render_surf()
 						VECCOPY(data, cu->orco + 3 * b*sizev);
 					}
 				}	
-
-#else
-				tot= sizeu * sizev;
-				while(tot--) {
-					data[0]= (data[0]-cu->loc[0])/cu->size[0];
-					data[1]= (data[1]-cu->loc[1])/cu->size[1];
-					data[2]= (data[2]-cu->loc[2])/cu->size[2];
-	
-					data+= 3;
-				}
-#endif
 			}
 		}
 		nu= nu->next;

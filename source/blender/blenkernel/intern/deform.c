@@ -185,9 +185,6 @@ int curve_modifier(Object *ob, char mode)
 		freeNurblist(&cu->nurb);
 		cu->nurb= nurb;
 	}
-	else if(mode=='a') {
-		freeNurblist(&nurb);
-	}
 	
 	return done;
 }

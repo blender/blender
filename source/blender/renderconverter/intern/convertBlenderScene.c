@@ -31,12 +31,6 @@
  * Interface to transform the Blender scene into renderable data.
  */
 
-/* check for dl->flag, 1 or 2 should be replaced be the def's below */
-#define STRUBI hack
-#define DL_CYCLIC_U 1
-#define DL_CYCLIC_V 2
-
-
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -1773,12 +1767,10 @@ static void init_render_surf(Object *ob)
 	Material *matar[32];
 	float *data, *fp, *orco, n1[3], flen, mat[4][4];
 	int len, a, need_orco=0, startvlak, startvert, p1, p2, p3, p4;
-#ifdef STRUBI
 	int u, v;
 	int sizeu, sizev;
 	VlakRen *vlr1, *vlr2, *vlr3;
 	float  vn[3]; // n2[3],
-#endif
 
 	cu= ob->data;
 	nu= cu->nurb.first;
@@ -1809,7 +1801,6 @@ static void init_render_surf(Object *ob)
 	nu= cu->nurb.first;
 	while(nu) {
 		if(nu->pntsv>1) {
-	//		if (dl->flag & DL_CYCLIC_V) {
 			len= nu->resolu*nu->resolv;
 			/* makeNurbfaces wants zeros */
 
@@ -1825,10 +1816,10 @@ static void init_render_surf(Object *ob)
 			data= dl->verts;
 			dl->type= DL_SURF;
 			/* if nurbs cyclic (u/v) set flags in displist accordingly */
-			if(nu->flagv & 1) dl->flag |= DL_CYCLIC_V;	
-			if(nu->flagu & 1) dl->flag |= DL_CYCLIC_U;
+			if(nu->flagv & CU_CYCLIC) dl->flag |= DL_CYCL_V;	
+			if(nu->flagu & CU_CYCLIC) dl->flag |= DL_CYCL_U;
 
-			makeNurbfaces(nu, data);
+			makeNurbfaces(nu, data, 0);
 		}
 		nu= nu->next;
 	}
@@ -1850,26 +1841,10 @@ static void init_render_surf(Object *ob)
 	/* note; deform will be included in modifier() later */
 	curve_modifier(ob, 'e');
 
-	if(ob->partype==PARSKEL && ob->parent && ob->parent->type==OB_ARMATURE) {
-/*  		bArmature *arm= ob->parent->data; */
-		init_armature_deform(ob->parent, ob);
-		dl= displist.first;
-		while(dl) {
-
-			fp= dl->verts;
-			len= dl->nr*dl->parts;
-			for(a=0; a<len; a++, fp+=3)
-				calc_armature_deform(ob->parent, fp, a);
-
-			dl= dl->next;
-		}
-	}
-
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
 	while(dl) {
-#ifdef STRUBI
-/* watch out: u ^= y, v ^= x !! */
+			/* watch out: u ^= y, v ^= x !! */
 		if(dl->type==DL_SURF) {
 			startvert= R.totvert;
 			sizeu = dl->parts; sizev = dl->nr; 
@@ -1892,7 +1867,7 @@ static void init_render_surf(Object *ob)
 					MTC_Mat4MulVecfl(mat, ver->co);
 				}
 				/* if V-cyclic, add extra vertices at end of the row */
-				if (dl->flag & DL_CYCLIC_V) {
+				if (dl->flag & DL_CYCL_V) {
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
 					if(orco) {
@@ -1902,11 +1877,11 @@ static void init_render_surf(Object *ob)
 				}	
 			}	
 
-			if (dl->flag & DL_CYCLIC_V)  sizev++; /* adapt U dimension */
+			if (dl->flag & DL_CYCL_V)  sizev++; /* adapt U dimension */
 
 
 			/* if U cyclic, add extra row at end of column */
-			if (dl->flag & DL_CYCLIC_U) {
+			if (dl->flag & DL_CYCL_U) {
 				for (v = 0; v < sizev; v++) {
 					v1= RE_findOrAddVert(startvert + v);
 					ver= RE_findOrAddVert(R.totvert++);
@@ -1979,7 +1954,7 @@ static void init_render_surf(Object *ob)
 			}	
 			/* fix normals for U resp. V cyclic faces */
 			sizeu--; sizev--;  /* dec size for face array */
-			if (dl->flag & DL_CYCLIC_U) {
+			if (dl->flag & DL_CYCL_U) {
 
 				for (v = 0; v < sizev; v++)
 				{
@@ -1992,7 +1967,7 @@ static void init_render_surf(Object *ob)
 					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
 				}
 			}
-			if (dl->flag & DL_CYCLIC_V) {
+			if (dl->flag & DL_CYCL_V) {
 
 				for (u = 0; u < sizeu; u++)
 				{
@@ -2022,7 +1997,7 @@ static void init_render_surf(Object *ob)
 			normals of the surrounding faces to all of the duplicates of []
 			*/
 
-			if ((dl->flag & DL_CYCLIC_U) && (dl->flag & DL_CYCLIC_V))
+			if ((dl->flag & DL_CYCL_U) && (dl->flag & DL_CYCL_V))
 			{
 				vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
 				vlr1= RE_findOrAddVlak(UVTOINDEX(0,0));  /* (0,0) */
@@ -2043,77 +2018,7 @@ static void init_render_surf(Object *ob)
 
 
 		}
-#else
 
-		if(dl->type==DL_SURF) {
-			startvert= R.totvert;
-			a= dl->nr*dl->parts;
-			data= dl->verts;
-			while(a--) {
-				ver= RE_findOrAddVert(R.totvert++);
-				VECCOPY(ver->co, data);
-				if(orco) {
-					ver->orco= orco;
-					orco+= 3;
-				}
-				MTC_Mat4MulVecfl(mat, ver->co);
-				data+= 3;
-			}
-
-			startvlak= R.totvlak;
-
-			for(a=0; a<dl->parts; a++) {
-
-				DL_SURFINDEX(dl->flag & DL_CYCLIC_V, dl->flag & DL_CYCLIC_U, dl->nr, dl->parts);
-				p1+= startvert;
-				p2+= startvert;
-				p3+= startvert;
-				p4+= startvert;
-
-				for(; b<dl->nr; b++) {
-					v1= RE_findOrAddVert(p1);
-					v2= RE_findOrAddVert(p2);
-					v3= RE_findOrAddVert(p3);
-					v4= RE_findOrAddVert(p4);
-
-					flen= CalcNormFloat4(v1->co, v3->co, v4->co, v2->co, n1);
-					if(flen!=0.0) {
-						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= vlr_set_ob(ob);
-						vlr->v1= v1;
-						vlr->v2= v3;
-						vlr->v3= v4;
-						vlr->v4= v2;
-						VECCOPY(vlr->n, n1);
-						vlr->lay= ob->lay;
-						vlr->mat= matar[ dl->col];
-						vlr->ec= ME_V1V2+ME_V2V3;
-						vlr->flag= dl->rt;
-						if( (cu->flag & CU_NOPUNOFLIP) ) {
-							vlr->flag |= R_NOPUNOFLIP;
-						}
-					}
-
-					VecAddf(v1->n, v1->n, n1);
-					VecAddf(v2->n, v2->n, n1);
-					VecAddf(v3->n, v3->n, n1);
-					VecAddf(v4->n, v4->n, n1);
-
-					p4= p3;
-					p3++;
-					p2= p1;
-					p1++;
-				}
-			}
-
-			for(a=startvert; a<R.totvert; a++) {
-				ver= RE_findOrAddVert(a);
-				Normalise(ver->n);
-			}
-
-
-		}
-#endif
 		dl= dl->next;
 	}
 	freedisplist(&displist);
@@ -2216,11 +2121,6 @@ static void init_render_curve(Object *ob)
 	if(ob->parent && ob->parent->type==OB_LATTICE) {
 		lt= ob->parent->data;
 		init_latt_deform(ob->parent, ob);
-		need_orco= 1;
-	}
-	
-	if(ob->parent && ob->parent->type==OB_ARMATURE) {
-		init_armature_deform(ob->parent, ob);
 		need_orco= 1;
 	}
 

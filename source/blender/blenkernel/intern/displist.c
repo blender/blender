@@ -1501,25 +1501,18 @@ void makeDispListCurveTypes(Object *ob)
 						dl->verts= MEM_callocN(len*3*sizeof(float), "dlverts");
 						BLI_addtail(dispbase, dl);
 	
-						if(draw==0) {
-							dl->parts= nu->pntsv;
-							dl->nr= nu->pntsu;
-							if(nu->flagu & 1) dl->flag|= DL_CYCL_U;
-							if(nu->flagv & 1) dl->flag|= DL_CYCL_V;
-						}
-						else {
-							dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
-							dl->nr= nu->resolv;
-							if(nu->flagv & 1) dl->flag|= DL_CYCL_U;	/* reverse too! */
-							if(nu->flagu & 1) dl->flag|= DL_CYCL_V;
-						}
 						dl->col= nu->mat_nr;
 						dl->rt= nu->flag;
 						
 						data= dl->verts;
 						dl->type= DL_SURF;
-						
+
 						if(draw==0) {
+							dl->parts= nu->pntsv;
+							dl->nr= nu->pntsu;
+							if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_U;
+							if(nu->flagv & CU_CYCLIC) dl->flag|= DL_CYCL_V;
+
 							bp= nu->bp;
 							while(len--) {
 								VECCOPY(data, bp->vec);
@@ -1527,7 +1520,14 @@ void makeDispListCurveTypes(Object *ob)
 								data+= 3;
 							}
 						}
-						else makeNurbfaces(nu, data);
+						else {
+							dl->parts= nu->resolu;	/* in reverse, because makeNurbfaces works that way */
+							dl->nr= nu->resolv;
+							if(nu->flagv & CU_CYCLIC) dl->flag|= DL_CYCL_U;	/* reverse too! */
+							if(nu->flagu & CU_CYCLIC) dl->flag|= DL_CYCL_V;
+
+							makeNurbfaces(nu, data, 0);
+						}
 					}
 				}
 			}

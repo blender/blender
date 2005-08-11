@@ -1955,8 +1955,8 @@ static void displist_to_mesh(DispList *dlfirst)
 		if(dl->type==DL_SURF) {
 			a= dl->nr;
 			b= dl->parts;
-			if(dl->flag & 1) a++;
-			if(dl->flag & 2) b++;
+			if(dl->flag & DL_CYCL_U) a++;
+			if(dl->flag & DL_CYCL_V) b++;
 			
 			totquad+= a*b;
 
@@ -2114,7 +2114,7 @@ static void displist_to_mesh(DispList *dlfirst)
 
 			for(a=0; a<dl->parts; a++) {
 
-				DL_SURFINDEX(dl->flag & 1, dl->flag & 2, dl->nr, dl->parts);
+				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
 				p1+= startve; 
 				p2+= startve; 
 				p3+= startve; 

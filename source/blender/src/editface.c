@@ -1181,21 +1181,6 @@ void face_borderselect()
 #endif
 }
 
-#define TEST_STRUBI 1				
-#ifdef TEST_STRUBI
-float CalcNormUV(float *a, float *b, float *c)
-{
-	float d1[3], d2[3];
-
-	d1[0] = a[0] - b[0];
-	d1[1] = a[1] - b[1];
-	d2[0] = b[0] - c[0];
-	d2[1] = b[1] - c[1];
-	return (d1[0] * d2[1] - d1[1] * d2[0]);
-}
-#endif
-
-
 /* Pupmenu codes: */
 #define UV_CUBE_MAPPING 2
 #define UV_CYL_MAPPING 3

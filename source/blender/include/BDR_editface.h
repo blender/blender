@@ -52,7 +52,6 @@ void minmax_tface(float *min, float *max);
 int face_pick(struct Mesh *me, short x, short y, unsigned int *index);
 void face_select(void);
 void face_borderselect(void);
-float CalcNormUV(float *a, float *b, float *c);
 void uv_autocalc_tface(void);
 void set_faceselect(void);
 void face_draw(void);

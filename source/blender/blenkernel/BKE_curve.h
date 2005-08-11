@@ -46,7 +46,6 @@ struct BevList;
 #define KNOTSV(nu)	    ( (nu)->orderv+ (nu)->pntsv+ (nu->orderv-1)*((nu)->flagv & 1) )
 
 
-int copyintoExtendedArray(float *old, int oldx, int oldy, float *newp, int newx, int newy);
 void unlink_curve( struct Curve *cu);
 void free_curve( struct Curve *cu);
 struct Curve *add_curve(int type);
@@ -66,7 +65,7 @@ void calcknots(float *knots, short aantal, short order, short type);
 void makecyclicknots(float *knots, short pnts, short order);
 void makeknots( struct Nurb *nu, short uv, short type);
 void basisNurb(float t, short order, short pnts, float *knots, float *basis, int *start, int *end);
-void makeNurbfaces( struct Nurb *nu, float *data);
+void makeNurbfaces( struct Nurb *nu, float *data, int rowstride);
 void makeNurbcurve_forw(struct Nurb *nu, float *data);
 void makeNurbcurve( struct Nurb *nu, float *data, int dim);
 void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);

@@ -580,7 +580,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		VecAddf(co, vec, co);
 		Mat4MulVecfl(postmat, co);
 	}
-	
+
 	if (defnrToPC) MEM_freeN(defnrToPC);
 }
 

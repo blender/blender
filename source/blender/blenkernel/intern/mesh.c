@@ -900,7 +900,7 @@ void nurbs_to_mesh(Object *ob)
 		}
 		else if(dl->type==DL_SURF) {
 			totvert+= dl->parts*dl->nr;
-			totvlak+= (dl->parts-1+((dl->flag & 2)==2))*(dl->nr-1+(dl->flag & 1));
+			totvlak+= (dl->parts-1+((dl->flag & DL_CYCL_V)==2))*(dl->nr-1+(dl->flag & DL_CYCL_U));
 		}
 		else if(dl->type==DL_INDEX3) {
 			totvert+= dl->nr;
@@ -1021,9 +1021,9 @@ void nurbs_to_mesh(Object *ob)
 
 			for(a=0; a<dl->parts; a++) {
 
-				if( (dl->flag & 2)==0 && a==dl->parts-1) break;
+				if( (dl->flag & DL_CYCL_V)==0 && a==dl->parts-1) break;
 
-				if(dl->flag & 1) {			/* p2 -> p1 -> */
+				if(dl->flag & DL_CYCL_U) {			/* p2 -> p1 -> */
 					p1= startvert+ dl->nr*a;	/* p4 -> p3 -> */
 					p2= p1+ dl->nr-1;		/* -----> next row */
 					p3= p1+ dl->nr;
@@ -1037,7 +1037,7 @@ void nurbs_to_mesh(Object *ob)
 					p3= p1+ dl->nr;
 					b= 1;
 				}
-				if( (dl->flag & 2) && a==dl->parts-1) {
+				if( (dl->flag & DL_CYCL_V) && a==dl->parts-1) {
 					p3-= dl->parts*dl->nr;
 					p4-= dl->parts*dl->nr;
 				}

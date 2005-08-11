@@ -118,7 +118,7 @@ static PyObject *Curve_iterNext( BPy_Curve * self );
 
 PyObject *Curve_getNurb( BPy_Curve * self, int n );
 static int Curve_length( PyInstanceObject * inst );
-void update_displists( void *data );
+
 
 struct chartrans *text_to_curve( Object * ob, int mode );
 
@@ -1255,7 +1255,6 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_update( BPy_Curve * self )
 {
-/*	update_displists( ( void * ) self->curve );  */
 	freedisplist( &self->curve->disp ); 
 
 	Py_INCREF( Py_None );
@@ -1595,56 +1594,5 @@ struct Curve *Curve_FromPyObject( PyObject * py_obj )
 	blen_obj = ( BPy_Curve * ) py_obj;
 	return ( blen_obj->curve );
 
-}
-
-
-
-/*
- * NOTE:  this func has been replaced by freedisplist() in the recent
- *        display list refactoring.
- *
- * walk across all objects looking for curves
- *  so we can update their ob's disp list
- */
-
-void update_displists( void *data )
-{
-#if 0
-	Base *base;
-	Object *ob;
-	unsigned int layer;
-
-	/* background */
-	layer = G.scene->lay;
-
-	base = G.scene->base.first;
-	while( base ) {
-		if( base->lay & layer ) {
-			ob = base->object;
-
-			if( ELEM( ob->type, OB_CURVE, OB_SURF ) ) {
-				if( ob != G.obedit ) {
-					if( ob->data == data ) {
-						makeDispListCurveTypes( ob );
-					}
-				}
-			} else if( ob->type == OB_FONT ) {
-				Curve *cu = ob->data;
-				if( cu->textoncurve ) {
-					if( ( ( Curve * ) cu->textoncurve->
-					      data )->key ) {
-						text_to_curve( ob, 0 );
-						makeDispListCurveTypes( ob );
-					}
-				}
-			}
-		}
-		if( base->next == 0 && G.scene->set
-		    && base == G.scene->base.last )
-			base = G.scene->set->base.first;
-		else
-			base = base->next;
-	}
-#endif
 }
 
