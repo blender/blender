@@ -132,13 +132,9 @@ struct DerivedMesh {
 			 * Also called for *final* editmode DerivedMeshes
 			 */
 	void (*drawEdges)(DerivedMesh *dm);
-
-			/* Draw mapped edges as lines (no options) */
-	void (*drawMappedEdges)(DerivedMesh *dm);
 			
 			/* Draw all edges without faces as lines (no options) */
 	void (*drawLooseEdges)(DerivedMesh *dm);
-
 			
 			/* Draw all faces
 			 *  o Set face normal or vertex normal based on inherited face flag

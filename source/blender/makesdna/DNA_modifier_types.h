@@ -45,7 +45,8 @@ typedef struct ModifierData {
 
 typedef enum {
 	eSubsurfModifierFlag_Incremental = (1<<0),
-	eSubsurfModifierFlag_DebugIncr = (1<<1)
+	eSubsurfModifierFlag_DebugIncr = (1<<1),
+	eSubsurfModifierFlag_ControlEdges = (1<<2)
 } SubsurfModifierFlag;
 typedef struct SubsurfModifierData {
 	ModifierData modifier;

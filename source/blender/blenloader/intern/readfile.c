@@ -2065,7 +2065,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 
 static void direct_link_dverts(FileData *fd, int count, MDeformVert *mdverts)
 {
-	int	i, j;
+	int	i;
 
 	if (!mdverts)
 		return;

@@ -2880,7 +2880,7 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
       MEdge *medge=mesh->medge+j;
       medge->v1=edge->v1;
       medge->v2=edge->v2;
-      medge->flag=ME_EDGEDRAW;
+      medge->flag=ME_EDGEDRAW|ME_EDGERENDER;
       medge->crease=0;
       ++j;
     }
@@ -3319,6 +3319,7 @@ static PyObject *M_NMesh_EdgeFlagsDict( void )
 
 		constant_insert(d, "SELECT", PyInt_FromLong(1));
 		constant_insert(d, "EDGEDRAW", PyInt_FromLong(ME_EDGEDRAW));
+		constant_insert(d, "EDGERENDER", PyInt_FromLong(ME_EDGERENDER));
 		constant_insert(d, "SEAM", PyInt_FromLong(ME_SEAM));
 		constant_insert(d, "FGON", PyInt_FromLong(ME_FGON));
 	}
@@ -3425,7 +3426,7 @@ static PyObject *findEdge( BPy_NMesh *nmesh, BPy_NMVert *v1, BPy_NMVert *v2, int
   /* if this line is reached, edge has not been found */
   if (create)
   {
-    PyObject *newEdge=(PyObject *)new_NMEdge(v1, v2, 0, ME_EDGEDRAW);
+    PyObject *newEdge=(PyObject *)new_NMEdge(v1, v2, 0, ME_EDGEDRAW|ME_EDGERENDER);
     PyList_Append(nmesh->edges, newEdge);
     return newEdge;
   }

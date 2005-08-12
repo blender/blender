@@ -196,7 +196,7 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 		return faceBase + 1 + (gridSize-2)*numVerts + S*(gridSize-2)*(gridSize-2) + (y-1)*(gridSize-2) + (x-1);
 	}
 }
-static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, int ssFromEditmesh, Mesh *inMe, DispListMesh *inDLM, EditVert ***vertMap_r, EditEdge ***edgeMap_r, EditFace ***faceMap_r) {
+static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, int ssFromEditmesh, int drawInteriorEdges, Mesh *inMe, DispListMesh *inDLM, EditVert ***vertMap_r, EditEdge ***edgeMap_r, EditFace ***faceMap_r) {
 	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
@@ -318,7 +318,7 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 			MEdge *med = &dlm->medge[i];
 			med->v1 = getEdgeIndex(ss, e, x, edgeSize);
 			med->v2 = getEdgeIndex(ss, e, x+1, edgeSize);
-			med->flag = ME_EDGEDRAW;
+			med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 
 			if (ssFromEditmesh) {
 				EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
@@ -354,6 +354,7 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 		for (k=0; k<numVerts; k++) {
 			for (x=0; x<gridSize-1; x++) {
 				MEdge *med = &dlm->medge[i];
+				if (drawInteriorEdges) med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 				med->v1 = getFaceIndex(ss, f, k, x, 0, edgeSize, gridSize);
 				med->v2 = getFaceIndex(ss, f, k, x+1, 0, edgeSize, gridSize);
 				i++;
@@ -364,11 +365,13 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 					MEdge *med;
 					
 					med = &dlm->medge[i];
+					if (drawInteriorEdges) med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 					med->v1 = getFaceIndex(ss, f, k, x, y, edgeSize, gridSize);
 					med->v2 = getFaceIndex(ss, f, k, x, y+1, edgeSize, gridSize);
 					i++;
 
 					med = &dlm->medge[i];
+					if (drawInteriorEdges) med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 					med->v1 = getFaceIndex(ss, f, k, y, x, edgeSize, gridSize);
 					med->v2 = getFaceIndex(ss, f, k, y+1, x, edgeSize, gridSize);
 					i++;
@@ -615,7 +618,7 @@ struct CCGDerivedMesh {
 	DerivedMesh dm;
 
 	CCGSubSurf *ss;
-	int fromEditmesh;
+	int fromEditmesh, drawInteriorEdges;
 
 	Mesh *me;
 	DispListMesh *dlm;
@@ -784,12 +787,12 @@ static void ccgDM_foreachMappedEdgeEM(DerivedMesh *dm, void (*func)(void *userDa
 static DispListMesh *ccgDM_convertToDispListMesh(DerivedMesh *dm, int allowShared) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 
-	return ss_to_displistmesh(ccgdm->ss, ccgdm, ccgdm->fromEditmesh, ccgdm->me, ccgdm->dlm, NULL, NULL, NULL);
+	return ss_to_displistmesh(ccgdm->ss, ccgdm, ccgdm->fromEditmesh, ccgdm->drawInteriorEdges, ccgdm->me, ccgdm->dlm, NULL, NULL, NULL);
 }
 static DispListMesh *ccgDM_convertToDispListMeshMapped(DerivedMesh *dm, int allowShared, EditVert ***vertMap_r, EditEdge ***edgeMap_r, EditFace ***faceMap_r) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 
-	return ss_to_displistmesh(ccgdm->ss, ccgdm, ccgdm->fromEditmesh, ccgdm->me, ccgdm->dlm, vertMap_r, edgeMap_r, faceMap_r);
+	return ss_to_displistmesh(ccgdm->ss, ccgdm, ccgdm->fromEditmesh, ccgdm->drawInteriorEdges, ccgdm->me, ccgdm->dlm, vertMap_r, edgeMap_r, faceMap_r);
 }
 
 static void ccgDM_drawVerts(DerivedMesh *dm) {
@@ -874,59 +877,41 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 		glColor3ub(0, 0, 0);
 	}
 
-	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
-		CCGFace *f = ccgFaceIterator_getCurrent(fi);
-		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
+	if (ccgdm->drawInteriorEdges) {
+		for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
+			CCGFace *f = ccgFaceIterator_getCurrent(fi);
+			int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
-		if (ccgdm->fromEditmesh) {
-			EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
-			if (efa && efa->h!=0)
-				continue;
-		}
+			if (ccgdm->fromEditmesh) {
+				EditFace *efa = ccgDM_getFaceHandle(ccgdm, f);
+				if (efa && efa->h!=0)
+					continue;
+			}
 
-		for (S=0; S<numVerts; S++) {
-			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
+			for (S=0; S<numVerts; S++) {
+				VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 
-			glBegin(GL_LINE_STRIP);
-			for (x=0; x<gridSize; x++)
-				glVertex3fv(faceGridData[x].co);
-			glEnd();
-			for (y=1; y<gridSize-1; y++) {
 				glBegin(GL_LINE_STRIP);
 				for (x=0; x<gridSize; x++)
-					glVertex3fv(faceGridData[y*gridSize + x].co);
+					glVertex3fv(faceGridData[x].co);
 				glEnd();
-			}
-			for (x=1; x<gridSize-1; x++) {
-				glBegin(GL_LINE_STRIP);
-				for (y=0; y<gridSize; y++)
-					glVertex3fv(faceGridData[y*gridSize + x].co);
-				glEnd();
+				for (y=1; y<gridSize-1; y++) {
+					glBegin(GL_LINE_STRIP);
+					for (x=0; x<gridSize; x++)
+						glVertex3fv(faceGridData[y*gridSize + x].co);
+					glEnd();
+				}
+				for (x=1; x<gridSize-1; x++) {
+					glBegin(GL_LINE_STRIP);
+					for (y=0; y<gridSize; y++)
+						glVertex3fv(faceGridData[y*gridSize + x].co);
+					glEnd();
+				}
 			}
 		}
 	}
 
 	ccgFaceIterator_free(fi);
-	ccgEdgeIterator_free(ei);
-}
-static void ccgDM_drawMappedEdges(DerivedMesh *dm) {
-	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
-	CCGSubSurf *ss = ccgdm->ss;
-	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
-	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
-
-	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
-		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
-		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
-
-		glBegin(GL_LINE_STRIP);
-		for (i=0; i<edgeSize-1; i++) {
-			glVertex3fv(edgeData[i].co);
-			glVertex3fv(edgeData[i+1].co);
-		}
-		glEnd();
-	}
-
 	ccgEdgeIterator_free(ei);
 }
 static void ccgDM_drawLooseEdges(DerivedMesh *dm) {
@@ -1334,7 +1319,7 @@ static void ccgDM_release(DerivedMesh *dm) {
 	MEM_freeN(ccgdm);
 }
 
-static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh *me, DispListMesh *dlm, EditVert **vertMap, EditEdge **edgeMap, EditFace **faceMap) {
+static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, int drawInteriorEdges, Mesh *me, DispListMesh *dlm, EditVert **vertMap, EditEdge **edgeMap, EditFace **faceMap) {
 	CCGDerivedMesh *ccgdm = MEM_callocN(sizeof(*ccgdm), "ccgdm");
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
@@ -1349,7 +1334,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 
 	ccgdm->dm.drawVerts = ccgDM_drawVerts;
 	ccgdm->dm.drawEdges = ccgDM_drawEdges;
-	ccgdm->dm.drawMappedEdges = ccgDM_drawMappedEdges;
 	ccgdm->dm.drawLooseEdges = ccgDM_drawLooseEdges;
 	ccgdm->dm.drawFacesSolid = ccgDM_drawFacesSolid;
 	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
@@ -1363,6 +1347,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 	
 	ccgdm->ss = ss;
 	ccgdm->fromEditmesh = fromEditmesh;
+	ccgdm->drawInteriorEdges = drawInteriorEdges;
 	ccgdm->me = me;
 	ccgdm->dlm = dlm;
 	ccgdm->vertMap = vertMap;
@@ -1377,26 +1362,29 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, Mesh 
 DerivedMesh *subsurf_make_derived_from_editmesh(EditMesh *em, SubsurfModifierData *smd, float (*vertCos)[3]) {
 	int useSimple = smd->subdivType==ME_SIMPLE_SUBSURF;
 	int useAging = smd->flags&eSubsurfModifierFlag_DebugIncr;
+	int drawInteriorEdges = !(smd->flags&eSubsurfModifierFlag_ControlEdges);
 
 	smd->emCache = _getSubSurf(smd->emCache, smd->levels, useAging, 0, 0, useSimple);
 	ss_sync_from_editmesh(smd->emCache, em, vertCos, useSimple);
 
-	return (DerivedMesh*) getCCGDerivedMesh(smd->emCache, 1, NULL, NULL, NULL, NULL, NULL);
+	return (DerivedMesh*) getCCGDerivedMesh(smd->emCache, 1, drawInteriorEdges, NULL, NULL, NULL, NULL, NULL);
 }
 
 DerivedMesh *subsurf_make_derived_from_dlm_em(DispListMesh *dlm, SubsurfModifierData *smd, float (*vertCos)[3], EditVert **vertMap, EditEdge **edgeMap, EditFace **faceMap) {
 	int useSimple = smd->subdivType==ME_SIMPLE_SUBSURF;
 	int useAging = smd->flags&eSubsurfModifierFlag_DebugIncr;
+	int drawInteriorEdges = !(smd->flags&eSubsurfModifierFlag_ControlEdges);
 		
 	smd->emCache = _getSubSurf(smd->emCache, smd->levels, useAging, 0, 0, useSimple);
 
 	ss_sync_from_mesh(smd->emCache, NULL, dlm, vertCos, useSimple);
 
-	return (DerivedMesh*) getCCGDerivedMesh(smd->emCache, 0, NULL, dlm, vertMap, edgeMap, faceMap);
+	return (DerivedMesh*) getCCGDerivedMesh(smd->emCache, 0, drawInteriorEdges, NULL, dlm, vertMap, edgeMap, faceMap);
 }
 
 DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, SubsurfModifierData *smd, int useRenderParams, float (*vertCos)[3], int isFinalCalc) {
 	int useSimple = smd->subdivType==ME_SIMPLE_SUBSURF;
+	int drawInteriorEdges = !(smd->flags&eSubsurfModifierFlag_ControlEdges);
 	DispListMesh *ndlm;
 
 		/* Do not use cache in render mode. */
@@ -1405,7 +1393,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 
 		ss_sync_from_mesh(ss, me, dlm, vertCos, useSimple);
 
-		ndlm = ss_to_displistmesh(ss, NULL, 0, me, dlm, NULL, NULL, NULL);
+		ndlm = ss_to_displistmesh(ss, NULL, 0, drawInteriorEdges, me, dlm, NULL, NULL, NULL);
 		if (dlm) displistmesh_free(dlm);
 
 		ccgSubSurf_free(ss);
@@ -1435,7 +1423,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 
 			ss_sync_from_mesh(ss, me, dlm, vertCos, useSimple);
 
-			return (DerivedMesh*) getCCGDerivedMesh(ss, 0, me, dlm, NULL, NULL, NULL);
+			return (DerivedMesh*) getCCGDerivedMesh(ss, 0, drawInteriorEdges, me, dlm, NULL, NULL, NULL);
 		} else {
 			if (smd->mCache && isFinalCalc) {
 				ccgSubSurf_free(smd->mCache);
@@ -1444,7 +1432,7 @@ DerivedMesh *subsurf_make_derived_from_mesh(Mesh *me, DispListMesh *dlm, Subsurf
 
 			ss = _getSubSurf(NULL, smd->levels, 0, 1, useEdgeCreation, useSimple);
 			ss_sync_from_mesh(ss, me, dlm, vertCos, useSimple);
-			ndlm = ss_to_displistmesh(ss, NULL, 0, me, dlm, NULL, NULL, NULL);
+			ndlm = ss_to_displistmesh(ss, NULL, 0, drawInteriorEdges, me, dlm, NULL, NULL, NULL);
 
 			if (dlm) displistmesh_free(dlm);
 			ccgSubSurf_free(ss);

@@ -175,7 +175,7 @@ static void meshDM_drawEdges(DerivedMesh *dm)
 		
 		glBegin(GL_LINES);
 		for(a=me->totedge; a>0; a--, medge++) {
-			if(medge->flag & ME_EDGEDRAW) {
+			if(medge->flag&ME_EDGEDRAW) {
 				glVertex3fv(mdm->verts[ medge->v1].co);
 				glVertex3fv(mdm->verts[ medge->v2].co);
 			}
@@ -452,7 +452,6 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	mdm->dm.drawVerts = meshDM_drawVerts;
 
 	mdm->dm.drawEdges = meshDM_drawEdges;
-	mdm->dm.drawMappedEdges = meshDM_drawEdges;
 	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
 
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
@@ -978,24 +977,6 @@ static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	}
 }
 
-static void ssDM_drawMappedEdges(DerivedMesh *dm)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	MEdge *medge= dlm->medge;
-	MVert *mvert= dlm->mvert;
-	int a;
-	
-	glBegin(GL_LINES);
-	for (a=0; a<dlm->totedge; a++, medge++) {
-		if (medge->flag&ME_EDGEDRAW) {
-			glVertex3fv(mvert[medge->v1].co); 
-			glVertex3fv(mvert[medge->v2].co);
-		}
-	}
-	glEnd();
-}
-
 static void ssDM_drawLooseEdges(DerivedMesh *dm)
 {
 	/* Can't implement currently */ 
@@ -1026,8 +1007,10 @@ static void ssDM_drawEdges(DerivedMesh *dm)
 	
 		glBegin(GL_LINES);
 		for (i=0; i<dlm->totedge; i++, medge++) {
-			glVertex3fv(mvert[medge->v1].co); 
-			glVertex3fv(mvert[medge->v2].co);
+			if (medge->flag&ME_EDGEDRAW) {
+				glVertex3fv(mvert[medge->v1].co); 
+				glVertex3fv(mvert[medge->v2].co);
+			}
 		}
 		glEnd();
 	} else {
@@ -1311,7 +1294,6 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 	ssdm->dm.drawVerts = ssDM_drawVerts;
 
 	ssdm->dm.drawEdges = ssDM_drawEdges;
-	ssdm->dm.drawMappedEdges = ssDM_drawMappedEdges;
 	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
 
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;

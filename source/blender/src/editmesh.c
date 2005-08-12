@@ -1051,7 +1051,7 @@ void load_editMesh(void)
 			medge->v1= (unsigned int) eed->v1->vn;
 			medge->v2= (unsigned int) eed->v2->vn;
 			
-			medge->flag= eed->f & SELECT;
+			medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
 			if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
 			if(eed->seam) medge->flag |= ME_SEAM;
 			if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes

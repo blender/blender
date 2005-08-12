@@ -898,7 +898,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		y -= 18;
 
 		if (md->type==eModifierType_Subsurf) {
-			height = 86;
+			height = 106;
 		} else if (md->type==eModifierType_Lattice) {
 			height = 46;
 		} else if (md->type==eModifierType_Curve) {
@@ -955,6 +955,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiButSetFunc(but, modifiers_setSubsurfIncremental, ob, md);
 
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,70,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
+
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), 160,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), 120,19, &lmd->object, "Lattice object to deform with");

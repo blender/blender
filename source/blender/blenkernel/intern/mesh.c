@@ -801,6 +801,7 @@ void make_edges(Mesh *me)
 			medge->v1= ed->v1;
 			medge->v2= ed->v2;
 			if(ed->flag) medge->flag= ME_EDGEDRAW;
+			medge->flag |= ME_EDGERENDER;
 			medge++;
 		}
 	}
@@ -808,6 +809,7 @@ void make_edges(Mesh *me)
 	medge->v1= ed->v1;
 	medge->v2= ed->v2;
 	if(ed->flag) medge->flag= ME_EDGEDRAW;
+	medge->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
 }
