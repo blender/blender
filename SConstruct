@@ -11,6 +11,7 @@ bs_globals.targets = COMMAND_LINE_TARGETS
 
 print 'targets = ',bs_globals.targets
 print 'arguments = ', bs_globals.arguments
+print os.getcwd()
 
 appname = ''
 playername = ''
@@ -25,7 +26,10 @@ if sys.platform != 'win32':
 	config_guess = os.popen("SRCHOME=source/ source/tools/guess/guessconfig").read()[:-1]
 else:
 	config_guess = "windows"
-	
+
+#the above check is not enough for darwin. we way want to build for darwin/X11
+#more, now even for Os X, we need to check and take in account arch 
+#(PPC, x86, universal binaries)	
 if sys.platform == 'darwin':
 	appname = 'blender'
 	playername = 'blenderplayer'
@@ -42,8 +46,12 @@ bs_config.parseOpts()
 # don't want to put scons-generated .sconsign files in the source tree, but in
 # the root_build_dir, we have to create that dir ourselves before SCons tries
 # to access/create the file containing .sconsign data.
+# we need to create the top level hierarchy too (at least on Os X) 
 if os.path.isdir (bs_globals.root_build_dir) == 0:
 	os.makedirs (bs_globals.root_build_dir)
+	os.makedirs (bs_globals.root_build_dir+os.sep+'extern')
+	os.makedirs (bs_globals.root_build_dir+os.sep+'intern')
+	os.makedirs (bs_globals.root_build_dir+os.sep+'source')
 
 # Blender version.
 version='2.37a'
