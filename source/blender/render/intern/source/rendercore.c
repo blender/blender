@@ -608,6 +608,13 @@ static double Normalise_d(double *n)
 }
 
 
+static double saacos_d(double fac)
+{
+	if(fac<= -1.0f) return M_PI;
+	else if(fac>=1.0f) return 0.0;
+	else return acos(fac);
+}
+
 /* Stoke's form factor. Need doubles here for extreme small area sizes */
 static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 {
@@ -643,10 +650,10 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	rad[2]= vec[2][0]*vec[3][0]+ vec[2][1]*vec[3][1]+ vec[2][2]*vec[3][2];
 	rad[3]= vec[3][0]*vec[0][0]+ vec[3][1]*vec[0][1]+ vec[3][2]*vec[0][2];
 
-	rad[0]= saacos(rad[0]);
-	rad[1]= saacos(rad[1]);
-	rad[2]= saacos(rad[2]);
-	rad[3]= saacos(rad[3]);
+	rad[0]= saacos_d(rad[0]);
+	rad[1]= saacos_d(rad[1]);
+	rad[2]= saacos_d(rad[2]);
+	rad[3]= saacos_d(rad[3]);
 
 	/* Stoke formula */
 	VECMUL(cross[0], rad[0]);
