@@ -42,7 +42,11 @@ float SimpleConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int n
 	{
 		for (int j=0;j<numManifolds;j++)
 		{
-			Solve(manifoldPtr[j],info,i,debugDrawer);
+			int k=j;
+			if (i % 2)
+				k = numManifolds-1-j;
+
+			Solve(manifoldPtr[k],info,i,debugDrawer);
 		}
 	}
 	return 0.f;
@@ -86,35 +90,29 @@ float SimpleConstraintSolver::Solve(PersistentManifold* manifoldPtr, const Conta
 
 			ManifoldPoint& cp = manifoldPtr->GetContactPoint(j);
 			
-			if (debugDrawer)
-				debugDrawer->DrawLine(cp.m_positionWorldOnA,cp.m_positionWorldOnB,color);
-
+			if (iter == 0)
+			{
+				if (debugDrawer)
+					debugDrawer->DrawContactPoint(cp.m_positionWorldOnB,cp.m_normalWorldOnB,cp.GetDistance(),cp.GetLifeTime(),color);
+			}
 
 			{
 
 
-				float dist =  invNumIterFl * cp.GetDistance() * penetrationResolveFactor / info.m_timeStep;// / timeStep;//penetrationResolveFactor*cp.m_solveDistance /timeStep;//cp.GetDistance();
+				float actualDist =  cp.GetDistance();
+#define MAXPENETRATIONPERFRAME -0.2f
+				float dist = actualDist< MAXPENETRATIONPERFRAME? MAXPENETRATIONPERFRAME:actualDist;
 
 
-				float impulse = 0.f;
-
-				if (doApplyImpulse)
-				{
-					impulse = resolveSingleCollision(*body0, 
+				float impulse = resolveSingleCollisionWithFriction(
+					*body0, 
 						cp.GetPositionWorldOnA(),
 						*body1, 
 						cp.GetPositionWorldOnB(),
-						-dist,
+						dist,
 						cp.m_normalWorldOnB,
 						info);
-
-					if (useImpulseFriction)
-					{
-						applyFrictionInContactPointOld(
-							*body0,cp.GetPositionWorldOnA(),*body1,cp.GetPositionWorldOnB(),
-							cp.m_normalWorldOnB,impulse,info) ;
-					}
-				}
+				
 				if (iter == 0)
 				{
 					cp.m_appliedImpulse = impulse;

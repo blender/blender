@@ -306,6 +306,13 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 	if (timeStep == 0.f)
 		return true;
 
+	if (m_debugDrawer)
+	{
+		gDisableDeactivation = (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_NoDeactivation);
+	}
+
+
+
 	//clamp hardcoded for now
 	if (timeStep > 0.02)
 		timeStep = 0.02;
@@ -435,17 +442,17 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 				shapeinterface->GetAabb(body->getCenterOfMassTransform(),
 					minAabb,maxAabb);
 
+				SimdVector3 manifoldExtraExtents(gContactBreakingTreshold,gContactBreakingTreshold,gContactBreakingTreshold);
+				minAabb -= manifoldExtraExtents;
+				maxAabb += manifoldExtraExtents;
 				
 				BroadphaseProxy* bp = (BroadphaseProxy*) ctrl->m_broadphaseHandle;
 				if (bp)
 				{
 					
 #ifdef WIN32
-					SimdVector3 color (1,0,0);
+					SimdVector3 color (1,1,0);
 					
-				
-
-				
 					if (m_debugDrawer)
 					{	
 						//draw aabb
@@ -453,7 +460,7 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 						{
 						case ISLAND_SLEEPING:
 							{
-								color.setValue(0,1,0);
+								color.setValue(1,1,1);
 								break;
 							}
 						case WANTS_DEACTIVATION:
@@ -465,11 +472,13 @@ bool	CcdPhysicsEnvironment::proceedDeltaTime(double curTime,float timeStep)
 							{
 								break;
 							}
-
 							
 						};
 
-						DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
+						if (m_debugDrawer->GetDebugMode() & IDebugDraw::DBG_DrawAabb)
+						{
+							DrawAabb(m_debugDrawer,minAabb,maxAabb,color);
+						}
 					}
 #endif
 

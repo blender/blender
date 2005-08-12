@@ -29,10 +29,6 @@ void BoxShape::GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& 
 		  abs_b[2].dot(halfExtents));
 	extent += SimdVector3(GetMargin(),GetMargin(),GetMargin());
 
-
-	//todo: this is a quick fix, we need to enlarge the aabb dependent on several criteria
-	extent += SimdVector3(.2f,.2f,.2f);
-
 	aabbMin = center - extent;
 	aabbMax = center + extent;
 

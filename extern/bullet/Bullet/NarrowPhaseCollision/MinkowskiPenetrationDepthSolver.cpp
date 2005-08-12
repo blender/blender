@@ -8,15 +8,21 @@
 struct MyResult : public DiscreteCollisionDetectorInterface::Result
 {
 
+	MyResult():m_hasResult(false)
+	{
+	}
+	
 	SimdVector3 m_normalOnBInWorld;
 	SimdVector3 m_pointInWorld;
 	float m_depth;
+	bool	m_hasResult;
 
 	void AddContactPoint(const SimdVector3& normalOnBInWorld,const SimdVector3& pointInWorld,float depth)
 	{
 		m_normalOnBInWorld = normalOnBInWorld;
 		m_pointInWorld = pointInWorld;
 		m_depth = depth;
+		m_hasResult = true;
 	}
 };
 
@@ -37,6 +43,7 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	SimdVector3 minVertex;
 	SimdVector3 minA,minB;
 
+	//not so good, lots of directions overlap, better to use gauss map
 	for (int i=-N;i<N;i++)
 	{
 		for (int j = -N;j<N;j++)
@@ -122,11 +129,10 @@ bool MinkowskiPenetrationDepthSolver::CalcPenDepth(SimplexSolverInterface& simpl
 	MyResult res;
 	gjkdet.GetClosestPoints(input,res);
 
-	SimdVector3 halfV = v*0.5f;
-
-	//approximate pa and pb
-	pa = res.m_pointInWorld - halfV;
-	pb = res.m_pointInWorld +halfV;
-
-	return true;
+	if (res.m_hasResult)
+	{
+		pa = res.m_pointInWorld - res.m_normalOnBInWorld*res.m_depth;
+		pb = res.m_pointInWorld;
+	}
+	return res.m_hasResult;
 }

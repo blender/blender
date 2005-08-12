@@ -5,6 +5,7 @@
 	Name="CcdPhysics"
 	ProjectGUID="{E3D57F36-36AC-4E9A-B0E0-2AE4510FCBFE}"
 	Keyword="Win32Proj"
+	SignManifests="true"
 	>
 	<Platforms>
 		<Platform
@@ -41,12 +42,12 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\Common;..\..\..\LinearMath;..\..\..\Bullet;..\..\..\BulletDynamics"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="TRUE"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -72,7 +73,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -107,7 +108,7 @@
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="TRUE"
+				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -133,7 +134,7 @@
 				Name="VCBscMakeTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
+				Name="VCFxCopTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -182,4 +183,6 @@
 			>
 		</File>
 	</Files>
+	<Globals>
+	</Globals>
 </VisualStudioProject>

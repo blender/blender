@@ -36,8 +36,12 @@
 
 ///Solid3EpaPenetrationDepth is not shipped by default, the license doesn't allow commercial, closed source. contact if you want the file
 ///It improves the penetration depth handling dramatically
+//#define USE_EPA
 #ifdef USE_EPA
 #include "NarrowPhaseCollision/Solid3EpaPenetrationDepth.h"
+bool gUseEpa = true;
+#else
+bool gUseEpa = false;
 #endif// USE_EPA
 
 #ifdef WIN32
@@ -57,7 +61,6 @@ bool gForceBoxBox = false;//false;//true;
 bool gBoxBoxUseGjk = true;//true;//false;
 bool gDisableConvexCollision = false;
 
-bool gUseEpa = false;
 
 
 ConvexConvexAlgorithm::ConvexConvexAlgorithm(PersistentManifold* mf,const CollisionAlgorithmConstructionInfo& ci,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1)
@@ -144,7 +147,10 @@ void	ConvexConvexAlgorithm::CheckPenetrationDepthSolver()
 			//not distributed, see top of this file
 			#ifdef USE_EPA
 			m_gjkPairDetector.SetPenetrationDepthSolver(new Solid3EpaPenetrationDepth);
+			#else
+			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);
 			#endif
+			
 		} else
 		{
 			m_gjkPairDetector.SetPenetrationDepthSolver(new MinkowskiPenetrationDepthSolver);

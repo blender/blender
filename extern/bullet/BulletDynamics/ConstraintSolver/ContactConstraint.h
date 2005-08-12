@@ -19,30 +19,18 @@ class RigidBody;
 struct ContactSolverInfo;
 
 ///bilateral constraint between two dynamic objects
+///positive distance = separation, negative distance = penetration
 void resolveSingleBilateral(RigidBody& body1, const SimdVector3& pos1,
                       RigidBody& body2, const SimdVector3& pos2,
-                      SimdScalar depth, const SimdVector3& normal,SimdScalar& impulse ,float timeStep);
+                      SimdScalar distance, const SimdVector3& normal,SimdScalar& impulse ,float timeStep);
 
 
-//contact constraint resolution:
-//calculate and apply impulse to satisfy non-penetration and non-negative relative velocity constraint
-float resolveSingleCollision(RigidBody& body1, const SimdVector3& pos1,
-                      RigidBody& body2, const SimdVector3& pos2,
-                      SimdScalar depth, const SimdVector3& normal, 
-					  const ContactSolverInfo& info);
-
-
-/// apply friction force to simulate friction in a contact point related to the normal impulse
-void	applyFrictionInContactPointOld(RigidBody& body1, const SimdVector3& pos1,
-                      RigidBody& body2, const SimdVector3& pos2,
-                      const SimdVector3& normal,float normalImpulse,
-					  const ContactSolverInfo& info);
-
-//contact constraint resolution:
-//calculate and apply impulse to satisfy non-penetration and non-negative relative velocity constraint
+///contact constraint resolution:
+///calculate and apply impulse to satisfy non-penetration and non-negative relative velocity constraint
+///positive distance = separation, negative distance = penetration
 float resolveSingleCollisionWithFriction(RigidBody& body1, const SimdVector3& pos1,
                       RigidBody& body2, const SimdVector3& pos2,
-                      SimdScalar depth, const SimdVector3& normal, 
+                      SimdScalar distance, const SimdVector3& normal, 
 					  const ContactSolverInfo& info);
 
 #endif //CONTACT_CONSTRAINT_H

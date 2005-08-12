@@ -19,7 +19,8 @@ class ManifoldPoint
 					m_localPointB( pointB ), 
 					m_normalWorldOnB( normal ), 
 					m_distance1( distance )
-					,m_appliedImpulse(0.f)
+					,m_appliedImpulse(0.f),
+					m_lifeTime(0)
 			{}
 
 			SimdVector3 m_localPointA;			
@@ -31,10 +32,15 @@ class ManifoldPoint
 			float	m_distance1;
 			/// total applied impulse during most recent frame
 			float	m_appliedImpulse;
+			int		m_lifeTime;//lifetime of the contactpoint in frames
 			
 			float GetDistance() const
 			{
 				return m_distance1;
+			}
+			int	GetLifeTime() const
+			{
+				return m_lifeTime;
 			}
 
 			SimdVector3 GetPositionWorldOnA() {

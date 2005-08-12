@@ -14,7 +14,7 @@
 #include "SimdTransform.h"
 #include <assert.h>
 
-float gContactBreakingTreshold = 0.002f;
+float gContactBreakingTreshold = 0.02f;
 
 PersistentManifold::PersistentManifold()
 :m_body0(0),
@@ -128,6 +128,7 @@ void PersistentManifold::RefreshContactPoints(const SimdTransform& trA,const Sim
 		manifoldPoint.m_positionWorldOnA = trA( manifoldPoint.m_localPointA );
 		manifoldPoint.m_positionWorldOnB = trB( manifoldPoint.m_localPointB );
 		manifoldPoint.m_distance1 = (manifoldPoint.m_positionWorldOnA -  manifoldPoint.m_positionWorldOnB).dot(manifoldPoint.m_normalWorldOnB);
+		manifoldPoint.m_lifeTime++;
 	}
 
 	/// then 

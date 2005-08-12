@@ -7,7 +7,6 @@
 #include "CollisionDispatch/EmptyCollisionAlgorithm.h"
 #include "CollisionDispatch/ConvexConcaveCollisionAlgorithm.h"
 
-#define MAX_RIGIDBODIES 128
 
 
 void ToiContactDispatcher::FindUnions()

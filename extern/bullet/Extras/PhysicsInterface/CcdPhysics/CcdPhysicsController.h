@@ -13,6 +13,7 @@ class CollisionShape;
 extern float gDeactivationTime;
 extern float gLinearSleepingTreshold;
 extern float gAngularSleepingTreshold;
+extern bool gDisableDeactivation;
 
 
 struct CcdConstructionInfo

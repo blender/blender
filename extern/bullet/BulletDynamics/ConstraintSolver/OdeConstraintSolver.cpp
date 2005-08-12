@@ -45,7 +45,7 @@ class BU_Joint;
 
 OdeConstraintSolver::OdeConstraintSolver():
 m_cfm(1e-5f),
-m_erp(0.2f)
+m_erp(0.3f)
 {
 }
 
@@ -62,10 +62,10 @@ float OdeConstraintSolver::SolveGroup(PersistentManifold** manifoldPtr, int numM
 	m_CurJoint = 0;
 
 
-	RigidBody* bodies [128];
+	RigidBody* bodies [MAX_RIGIDBODIES];
 
 	int numBodies = 0;
-	BU_Joint* joints [128*5];
+	BU_Joint* joints [MAX_RIGIDBODIES*4];
 	int numJoints = 0;
 
 	for (int j=0;j<numManifolds;j++)
@@ -158,27 +158,6 @@ int OdeConstraintSolver::ConvertBody(RigidBody* body,RigidBody** bodies,int& num
 	body->m_I[2+2*4] = 1.f/body->getInvInertiaDiagLocal()[2];
 	
 
-	/*
-	
-	SimdMatrix3x3 invI;
-	invI.setIdentity();
-	invI[0][0] = body->getInvInertiaDiagLocal()[0];
-	invI[1][1] = body->getInvInertiaDiagLocal()[1];
-	invI[2][2] = body->getInvInertiaDiagLocal()[2];
-	SimdMatrix3x3 inertia = invI.inverse();
-
-	for (i=0;i<3;i++)
-	{
-		for (j=0;j<3;j++)
-		{
-			body->m_I[i+4*j] = inertia[i][j];
-		}
-	}
-	*/
-//	body->m_I[3+0*4] = 0.f;
-//	body->m_I[3+1*4] = 0.f;
-//	body->m_I[3+2*4] = 0.f;
-//	body->m_I[3+3*4] = 0.f;
 	
 	
 	dQuaternion q;
@@ -241,13 +220,19 @@ void OdeConstraintSolver::ConvertConstraint(PersistentManifold* manifold,BU_Join
 
 		if (debugDrawer)
 		{
-			debugDrawer->DrawLine(manifold->GetContactPoint(i).m_positionWorldOnA,manifold->GetContactPoint(i).m_positionWorldOnB,color);
-			debugDrawer->DrawLine(manifold->GetContactPoint(i).m_positionWorldOnA,manifold->GetContactPoint(i).m_positionWorldOnB,color);
+			const ManifoldPoint& cp = manifold->GetContactPoint(i);
+
+			debugDrawer->DrawContactPoint(
+				cp.m_positionWorldOnB,
+				cp.m_normalWorldOnB,
+				cp.GetDistance(),
+				cp.GetLifeTime(),
+				color);
 
 		}
 		assert (m_CurJoint < MAX_JOINTS_1);
 
-		if (manifold->GetContactPoint(i).GetDistance() < 0.0f)
+//		if (manifold->GetContactPoint(i).GetDistance() < 0.0f)
 		{
 			ContactJoint* cont = new (&gJointArray[m_CurJoint++]) ContactJoint( manifold ,i, swapBodies,body0,body1);
 

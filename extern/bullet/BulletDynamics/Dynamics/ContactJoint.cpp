@@ -124,13 +124,20 @@ void ContactJoint::GetInfo2(Info2 *info)
 	SimdScalar k = info->fps * info->erp;
 	
 	float depth = -point.GetDistance();
-	if (depth < 0.f)
-		depth = 0.f;
+//	if (depth < 0.f)
+//		depth = 0.f;
 	
 	info->c[0] = k * depth;
-	info->cfm[0] = 0.f;
-	info->cfm[1] = 0.f;
-	info->cfm[2] = 0.f;
+	float maxvel = .2f;
+
+//	if (info->c[0] > maxvel)
+//		info->c[0] = maxvel;
+
+
+	//can override it, not necessary
+//	info->cfm[0] = 0.f;
+//	info->cfm[1] = 0.f;
+//	info->cfm[2] = 0.f;
 	
 	
 	
@@ -158,7 +165,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 	c2[2] = ccc2[2];
 	
 	
-	float friction = 30.f;//0.01f;//FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
+	float friction = 10.1f;//FRICTION_CONSTANT*m_body0->getFriction() * m_body1->getFriction();
 	
 	// first friction direction
 	if (m_numRows >= 2) 
@@ -198,7 +205,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 			//	info->cfm[1] = j->contact.surface.slip1;
 		} else
 		{
-			info->cfm[1] = 0.f;
+			//info->cfm[1] = 0.f;
 		}
 	}
 	
@@ -214,6 +221,7 @@ void ContactJoint::GetInfo2(Info2 *info)
 			info->J2l[s2+2] = -t2[2];
 			dCROSS (info->J2a+s2,= -,c2,t2);
 		}
+
 		// set right hand side
 		if (0){//j->contact.surface.mode & dContactMotion2) {
 			//info->c[2] = j->contact.surface.motion2;

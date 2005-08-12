@@ -33,6 +33,11 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 
 }
 
+void RigidBody::activate()
+{
+		SetActivationState(1);
+		m_deactivationTime = 0.f;
+}
 void RigidBody::setLinearVelocity(const SimdVector3& lin_vel)
 { 
 

@@ -12,6 +12,8 @@ typedef SimdScalar dMatrix3[4*3];
 extern float gLinearAirDamping;
 extern bool gUseEpa;
 
+#define MAX_RIGIDBODIES 1024
+
 
 /// RigidBody class for RigidBody Dynamics
 /// 
@@ -142,6 +144,7 @@ public:
 	{
 		return m_friction;
 	}
+	void	activate();
 
 private:
 	SimdTransform	m_worldTransform;

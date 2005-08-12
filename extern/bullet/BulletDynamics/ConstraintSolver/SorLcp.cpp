@@ -206,7 +206,7 @@ void dSetValue1 (SimdScalar *a, int n, SimdScalar value)
 // during the solution. depending on the situation, this can help a lot
 // or hardly at all, but it doesn't seem to hurt.
 
-//#define RANDOMLY_REORDER_CONSTRAINTS 1
+#define RANDOMLY_REORDER_CONSTRAINTS 1
 
 
 
@@ -764,7 +764,7 @@ void SolveInternal1 (float global_cfm,
 
 		// scale CFM
 		for (i=0; i<m; i++) 
-			cfm[i] =0.f;//*= stepsize1;
+			cfm[i] *= stepsize1;
 
 		// load lambda from the value saved on the previous iteration
 		dRealAllocaArray (lambda,m);

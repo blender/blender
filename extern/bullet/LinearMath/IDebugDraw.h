@@ -30,12 +30,30 @@ DEALINGS IN THE SOFTWARE.
 
 #include "SimdVector3.h"
 
+
 class	IDebugDraw
 {
-public:
+	public:
+
+	enum	DebugDrawModes
+	{
+		DBG_NoDebug=0,
+		DBG_DrawAabb=1,
+		DBG_DrawText=2,
+		DBG_DrawFeaturesText=4,
+		DBG_DrawContactPoints=8,
+		DBG_NoDeactivation=16,
+		DBG_MAX_DEBUG_DRAW_MODE
+	};
+
 	virtual void	DrawLine(const SimdVector3& from,const SimdVector3& to,const SimdVector3& color)=0;
 
+	virtual void	DrawContactPoint(const SimdVector3& PointOnB,const SimdVector3& normalOnB,float distance,int lifeTime,const SimdVector3& color)=0;
+
 	virtual void	SetDebugMode(int debugMode) =0;
+	
+	virtual int		GetDebugMode() const = 0;
+
 
 };
 
