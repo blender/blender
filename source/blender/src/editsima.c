@@ -488,9 +488,29 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 					else if(dist > prop_size) tv->fac= 0.0;
 					else {
 						dist= (prop_size-dist)/prop_size;
-						if(G.scene->prop_mode==1)
-							tv->fac= 3.0*dist*dist - 2.0*dist*dist*dist;
-						else tv->fac= dist*dist;
+
+						switch(G.scene->prop_mode) {
+						case PROP_SHARP:
+							tv->fac= dist*dist;
+							break;
+						case PROP_SMOOTH:
+							tv->fac= 3.0f*dist*dist - 2.0f*dist*dist*dist;
+							break;
+						case PROP_ROOT:
+							tv->fac= (float)sqrt(dist);
+							break;
+						case PROP_LIN:
+							tv->fac= dist;
+							break;
+						case PROP_CONST:
+							tv->fac= 1.0f;
+							break;
+						case PROP_SPHERE:
+							tv->fac= (float)sqrt(2*dist - dist * dist);
+							break;
+						default:
+							tv->fac= 1;
+						}
 					}
 					tv++;
 				}

@@ -3841,7 +3841,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case OKEY:
 				if (G.qual==LR_SHIFTKEY) {
-					G.scene->prop_mode= !G.scene->prop_mode;
+					G.scene->prop_mode = (G.scene->prop_mode+1)%6;
+					allqueue(REDRAWHEADERS, 0);
 				}
 				else if((G.qual==0)) {
 					G.scene->proportional= !G.scene->proportional;
