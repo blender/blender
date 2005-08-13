@@ -428,7 +428,11 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 				/* proper way to get the parent transform + own transform */
 				Mat3CpyMat4(omat, ob->obmat);
 				if(pchan->parent) {
-					Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+					if(pchan->bone->flag & BONE_HINGE)
+						Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat);
+					else
+						Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+						
 					Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);	// dang mulserie swaps args
 				}
 				else {

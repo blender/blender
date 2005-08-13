@@ -462,48 +462,50 @@ static void *get_bone_from_selectbuffer(Base *base, unsigned int *buffer, short 
 	
 	for (i=0; i< hits; i++){
 		hitresult = buffer[3+(i*4)];
-		if (!(hitresult & BONESEL_NOSEL)) {
-			
-			/* Determine which points are selected */
-			hitresult &= ~(BONESEL_ANY);
-			
-			/* Determine what the current bone is */
-			if (G.obedit==NULL) {
-				/* no singular posemode, so check for correct object */
-				if(base->selcol == (hitresult & 0xFFFF)) {
-					bone = get_indexed_bone(ob, hitresult);
-					if (findunsel)
-						sel = (bone->flag & BONE_SELECTED);
-					else
-						sel = !(bone->flag & BONE_SELECTED);
-					
-					data = bone;
-				}
-				else {
-					data= NULL;
-					sel= 0;
-				}
-			}
-			else{
-				ebone = BLI_findlink(&G.edbo, hitresult);
-				if (findunsel)
-					sel = (ebone->flag & BONE_SELECTED);
-				else
-					sel = !(ebone->flag & BONE_SELECTED);
+		
+		if (!(hitresult & BONESEL_NOSEL)) {	// -1
+			if(hitresult & BONESEL_ANY) {	// to avoid including objects in selection
 				
-				data = ebone;
-			}
-			
-			if(data) {
-				if (sel) {
-					if(!firstSel) firstSel= data;
-					takeNext=1;
+				hitresult &= ~(BONESEL_ANY);
+				/* Determine what the current bone is */
+				if (G.obedit==NULL) {
+					/* no singular posemode, so check for correct object */
+					if(base->selcol == (hitresult & 0xFFFF)) {
+						bone = get_indexed_bone(ob, hitresult);
+
+						if (findunsel)
+							sel = (bone->flag & BONE_SELECTED);
+						else
+							sel = !(bone->flag & BONE_SELECTED);
+						
+						data = bone;
+					}
+					else {
+						data= NULL;
+						sel= 0;
+					}
 				}
-				else {
-					if (!firstunSel)
-						firstunSel=data;
-					if (takeNext)
-						return data;
+				else{
+					ebone = BLI_findlink(&G.edbo, hitresult);
+					if (findunsel)
+						sel = (ebone->flag & BONE_SELECTED);
+					else
+						sel = !(ebone->flag & BONE_SELECTED);
+					
+					data = ebone;
+				}
+				
+				if(data) {
+					if (sel) {
+						if(!firstSel) firstSel= data;
+						takeNext=1;
+					}
+					else {
+						if (!firstunSel)
+							firstunSel=data;
+						if (takeNext)
+							return data;
+					}
 				}
 			}
 		}
