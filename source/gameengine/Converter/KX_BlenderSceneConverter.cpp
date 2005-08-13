@@ -197,6 +197,12 @@ struct	BlenderDebugDraw : public IDebugDraw
 			KX_RasterizerDrawDebugLine(kxfrom,kxto,kxcolor);
 		}
 	}
+	
+	virtual void	DrawContactPoint(const SimdVector3& PointOnB,const SimdVector3& normalOnB,float distance,int lifeTime,const SimdVector3& color)
+	{
+		//not yet
+	}
+
 	virtual void	SetDebugMode(int debugMode)
 	{
 		m_debugMode = debugMode;

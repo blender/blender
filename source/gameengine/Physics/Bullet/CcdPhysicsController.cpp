@@ -7,8 +7,12 @@
 
 class BP_Proxy;
 
+///todo: fill all the empty CcdPhysicsController methods, hook them up to the RigidBody class
+
 //'temporarily' global variables
 float	gDeactivationTime = 2.f;
+bool	gDisableDeactivation = false;
+
 float gLinearSleepingTreshold = 0.8f;
 float gAngularSleepingTreshold = 1.0f;
 
@@ -116,46 +120,31 @@ void		CcdPhysicsController::RelativeTranslate(float dlocX,float dlocY,float dloc
 
 }
 
-void		CcdPhysicsController::RelativeRotate(const float rotval[12],bool local)
+void		CcdPhysicsController::RelativeRotate(const float drot[9],bool local)
 {
-	if (m_body )
-	{
-		SimdMatrix3x3 drotmat(	rotval[0],rotval[1],rotval[2],
-								rotval[4],rotval[5],rotval[6],
-								rotval[8],rotval[9],rotval[10]);
-
-
-		SimdMatrix3x3 currentOrn;
-		GetWorldOrientation(currentOrn);
-
-		SimdTransform xform = m_body->getCenterOfMassTransform();
-
-		xform.setBasis(xform.getBasis()*(local ? 
-		drotmat : (currentOrn.inverse() * drotmat * currentOrn)));
-
-		printf("hi\n");
-		m_body->setCenterOfMassTransform(xform);
-	}
-
 }
-
-
-void CcdPhysicsController::GetWorldOrientation(SimdMatrix3x3& mat)
-{
-	float orn[4];
-	m_MotionState->getWorldOrientation(orn[0],orn[1],orn[2],orn[3]);
-	SimdQuaternion quat(orn[0],orn[1],orn[2],orn[3]);
-	mat.setRotation(quat);
-}
-
 void		CcdPhysicsController::getOrientation(float &quatImag0,float &quatImag1,float &quatImag2,float &quatReal)
 {
+
 }
 void		CcdPhysicsController::setOrientation(float quatImag0,float quatImag1,float quatImag2,float quatReal)
 {
+	m_body->activate();
+
+	SimdTransform xform  = m_body->getCenterOfMassTransform();
+	xform.setRotation(SimdQuaternion(quatImag0,quatImag1,quatImag2,quatReal));
+	m_body->setCenterOfMassTransform(xform);
+
 }
+
 void		CcdPhysicsController::setPosition(float posX,float posY,float posZ)
 {
+	m_body->activate();
+
+	SimdTransform xform  = m_body->getCenterOfMassTransform();
+	xform.setOrigin(SimdVector3(posX,posY,posZ));
+	m_body->setCenterOfMassTransform(xform);
+
 }
 void		CcdPhysicsController::resolveCombinedVelocities(float linvelX,float linvelY,float linvelZ,float angVelX,float angVelY,float angVelZ)
 {
@@ -196,9 +185,7 @@ void		CcdPhysicsController::applyImpulse(float attachX,float attachY,float attac
 	SimdVector3 impulse(impulseX,impulseY,impulseZ);
 	SimdVector3 pos(attachX,attachY,attachZ);
 
-	//it might be sleeping... wake up !
-	m_body->SetActivationState(1);
-	m_body->m_deactivationTime = 0.f;
+	m_body->activate();
 
 	m_body->applyImpulse(impulse,pos);
 
@@ -255,7 +242,7 @@ bool CcdPhysicsController::wantsSleeping()
 {
 
 	//disable deactivation
-	if (gDeactivationTime == 0.f)
+	if (gDisableDeactivation || (gDeactivationTime == 0.f))
 		return false;
 	//2 == ISLAND_SLEEPING, 3 == WANTS_DEACTIVATION
 	if ( (m_body->GetActivationState() == 2) || (m_body->GetActivationState() == 3))
