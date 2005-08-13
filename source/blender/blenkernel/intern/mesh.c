@@ -466,7 +466,7 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 	dm->release(dm);
 	MEM_freeN(vcos);
 
-	mesh_get_texspace(me, loc, NULL, size);
+	mesh_get_texspace(me->texcomesh?me->texcomesh:me, loc, NULL, size);
 
 	for(a=0; a<totvert; a++) {
 		float *co = orcoData[a];
@@ -877,14 +877,6 @@ void nurbs_to_mesh(Object *ob)
 	int p1, p2, p3, p4, *index;
 
 	cu= ob->data;
-
-	if(ob->type==OB_CURVE) {
-		/* rule: dl->type INDEX3 always as first in list */
-		dl= cu->disp.first;
-		if(dl->type!=DL_INDEX3) {
-			curve_to_filledpoly(ob->data, &cu->nurb, &cu->disp);
-		}
-	}
 
 	/* count */
 	dl= cu->disp.first;
