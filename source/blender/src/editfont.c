@@ -754,6 +754,11 @@ void do_textedit(unsigned short event, short val, char _ascii)
 				if(G.qual & LR_ALTKEY) {
 					if(cu->pos>0) accentcode= 1;
 				}
+				else if (G.qual & LR_CTRLKEY) {
+					cu->len = cu->pos = 0;
+					textbuf[0]= 0;
+					doit= 1;
+				}
 				else {
 					if (killselection(0)==0) {
 						if (cu->pos>0) {
