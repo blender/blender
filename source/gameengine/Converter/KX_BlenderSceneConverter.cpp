@@ -207,6 +207,11 @@ struct	BlenderDebugDraw : public IDebugDraw
 	{
 		m_debugMode = debugMode;
 	}
+	virtual int		GetDebugMode() const
+	{
+		return m_debugMode;
+	}
+		
 };
 
 #endif
