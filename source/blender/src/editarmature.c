@@ -31,9 +31,10 @@
  * editarmature.c: Interface for creating and posing armature objects
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+#include <math.h> 
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1521,6 +1522,7 @@ static EditBone *editbone_name_exists (char *name)
 	return NULL;
 }
 
+/* note: there's a unique_bone_name() too! */
 void unique_editbone_name (char *name)
 {
 	char		tempname[64];
@@ -1528,11 +1530,15 @@ void unique_editbone_name (char *name)
 	char		*dot;
 	
 	
-	if (editbone_name_exists(name)){
-		/*	Strip off the suffix */
-		dot=strchr(name, '.');
-		if (dot)
-			*dot=0;
+	if (editbone_name_exists(name)) {
+		
+		/*	Strip off the suffix, if it's a number */
+		number= strlen(name);
+		if(number && isdigit(name[number-1])) {
+			dot= strrchr(name, '.');	// last occurrance
+			if (dot)
+				*dot=0;
+		}
 		
 		for (number = 1; number <=999; number++){
 			sprintf (tempname, "%s.%03d", name, number);
@@ -2211,6 +2217,7 @@ void show_all_pose_bones(void)
 
 /* ************* RENAMING DISASTERS ************ */
 
+/* note: there's a unique_editbone_name() too! */
 void unique_bone_name (bArmature *arm, char *name)
 {
 	char		tempname[64];
@@ -2218,10 +2225,14 @@ void unique_bone_name (bArmature *arm, char *name)
 	char		*dot;
 	
 	if (get_named_bone(arm, name)) {
-		/*	Strip off the suffix */
-		dot=strchr(name, '.');
-		if (dot)
-			*dot=0;
+		
+		/*	Strip off the suffix, if it's a number */
+		number= strlen(name);
+		if(number && isdigit(name[number-1])) {
+			dot= strrchr(name, '.');	// last occurrance
+			if (dot)
+				*dot=0;
+		}
 		
 		for (number = 1; number <=999; number++){
 			sprintf (tempname, "%s.%03d", name, number);
