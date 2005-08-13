@@ -1061,8 +1061,6 @@ See also blenderWorldManipulation.c: init_render_surf()
 */
 
 		sizeu = nu->resolu; sizev = nu->resolv;
-		if (nu->flagu & CU_CYCLIC) sizeu++;
-		if (nu->flagv & CU_CYCLIC) sizev++;
 		if(nu->pntsv>1) tot+= sizeu * sizev;
 
 		nu= nu->next;
@@ -1075,9 +1073,6 @@ See also blenderWorldManipulation.c: init_render_surf()
 		if(nu->pntsv>1) {
 			sizeu = nu->resolu;
 			sizev = nu->resolv;
-
-			if (nu->flagu & CU_CYCLIC) sizeu++;
-			if (nu->flagv & CU_CYCLIC) sizev++;
 			
 			if(cu->flag & CU_UV_ORCO) {
 				for(b=0; b< sizeu; b++) {
@@ -1098,30 +1093,14 @@ See also blenderWorldManipulation.c: init_render_surf()
 			else {
 				makeNurbfaces(nu, data, sizeof(*data)*sizev*3);
 
-				for(b=0; b<nu->resolu; b++) {
-					for(a=0; a<nu->resolv; a++) {
+				for(b=0; b<sizeu; b++) {
+					for(a=0; a<sizev; a++) {
 						data = cu->orco + 3 * (b * sizev + a);
 						data[0]= (data[0]-cu->loc[0])/cu->size[0];
 						data[1]= (data[1]-cu->loc[1])/cu->size[1];
 						data[2]= (data[2]-cu->loc[2])/cu->size[2];
 					}
 				}
-
-				/* copy U/V-cyclic orco's */
-				if (nu->flagv & CU_CYCLIC) {
-					b = sizeu - 1;	
-					for(a=0; a< sizev; a++) {
-						data = cu->orco + 3 * (b * sizev + a);
-						VECCOPY(data, cu->orco + 3*a);
-					}
-				}	
-				if (nu->flagu & CU_CYCLIC) {
-					a = sizev - 1;	
-					for(b=0; b< sizeu; b++) {
-						data = cu->orco + 3 * (b * sizev + a);
-						VECCOPY(data, cu->orco + 3 * b*sizev);
-					}
-				}	
 			}
 		}
 		nu= nu->next;

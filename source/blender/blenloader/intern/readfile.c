@@ -4841,6 +4841,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						smd->modifier.mode |= 1;
 					if (me->subdivr!=0)
 						smd->modifier.mode |= 2;
+					if (me->flag&ME_OPT_EDGES)
+						smd->flags |= eSubsurfModifierFlag_ControlEdges;
 					
 					BLI_addtail(&ob->modifiers, smd);
 				}

@@ -1818,8 +1818,8 @@ static void init_render_surf(Object *ob)
 			data= dl->verts;
 			dl->type= DL_SURF;
 			/* if nurbs cyclic (u/v) set flags in displist accordingly */
-			if(nu->flagv & CU_CYCLIC) dl->flag |= DL_CYCL_V;	
-			if(nu->flagu & CU_CYCLIC) dl->flag |= DL_CYCL_U;
+			if(nu->flagv & CU_CYCLIC) dl->flag |= DL_CYCL_U;	
+			if(nu->flagu & CU_CYCLIC) dl->flag |= DL_CYCL_V;
 
 			makeNurbfaces(nu, data, 0);
 		}
@@ -1848,8 +1848,10 @@ static void init_render_surf(Object *ob)
 	while(dl) {
 			/* watch out: u ^= y, v ^= x !! */
 		if(dl->type==DL_SURF) {
+			int nsizeu, nsizev;
+
 			startvert= R.totvert;
-			sizeu = dl->parts; sizev = dl->nr; 
+			nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
 
 			data= dl->verts;
 			for (u = 0; u < sizeu; u++) {
@@ -1869,67 +1871,47 @@ static void init_render_surf(Object *ob)
 					MTC_Mat4MulVecfl(mat, ver->co);
 				}
 				/* if V-cyclic, add extra vertices at end of the row */
-				if (dl->flag & DL_CYCL_V) {
+				if (dl->flag & DL_CYCL_U) {
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
 					if(orco) {
-						ver->orco= orco;
-						orco+= 3;
+						ver->orco= cu->orco + 3*(u*sizev + 0);
 					}
 				}	
 			}	
 
-			if (dl->flag & DL_CYCL_V)  sizev++; /* adapt U dimension */
-
+				/* Done before next loop to get corner vert */
+			if (dl->flag & DL_CYCL_U) nsizev++;
+			if (dl->flag & DL_CYCL_V) nsizeu++;
 
 			/* if U cyclic, add extra row at end of column */
-			if (dl->flag & DL_CYCL_U) {
-				for (v = 0; v < sizev; v++) {
+			if (dl->flag & DL_CYCL_V) {
+				for (v = 0; v < nsizev; v++) {
 					v1= RE_findOrAddVert(startvert + v);
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
 					if(orco) {
-						ver->orco= orco;
-						orco +=3;
+						ver->orco= cu->orco + 3*(0*sizev + v);
 					}
 				}
-				sizeu++;
-			}	
-					
-
-
+			}
+			
+			sizeu = nsizeu;
+			sizev = nsizev;
 
 			startvlak= R.totvlak;
 
-			/* process generic surface */
 			for(u = 0; u < sizeu - 1; u++) {
-/*
-				
-			^	()----p4----p3----()
-			|	|     |     |     |
-			u	|     |     |     |
-				|     |     |     |
-				()----p1----p2----()
-				       v ->
-*/
-
 				p1 = startvert + u * sizev; /* walk through face list */
 				p2 = p1 + 1;
 				p3 = p2 + sizev;
 				p4 = p3 - 1;
-
 
 				for(v = 0; v < sizev - 1; v++) {
 					v1= RE_findOrAddVert(p1);
 					v2= RE_findOrAddVert(p2);
 					v3= RE_findOrAddVert(p3);
 					v4= RE_findOrAddVert(p4);
-
-/* normal len can be 0 if there are double nurbs control vertices 
-	so zero area faces can be generated
-	->> there is at the moment no proper way to fix this except
-	generating empty render faces */
-
 
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= vlr_set_ob(ob);
@@ -1956,7 +1938,7 @@ static void init_render_surf(Object *ob)
 			}	
 			/* fix normals for U resp. V cyclic faces */
 			sizeu--; sizev--;  /* dec size for face array */
-			if (dl->flag & DL_CYCL_U) {
+			if (dl->flag & DL_CYCL_V) {
 
 				for (v = 0; v < sizev; v++)
 				{
@@ -1969,7 +1951,7 @@ static void init_render_surf(Object *ob)
 					VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
 				}
 			}
-			if (dl->flag & DL_CYCL_V) {
+			if (dl->flag & DL_CYCL_U) {
 
 				for (u = 0; u < sizeu; u++)
 				{
@@ -1999,7 +1981,7 @@ static void init_render_surf(Object *ob)
 			normals of the surrounding faces to all of the duplicates of []
 			*/
 
-			if ((dl->flag & DL_CYCL_U) && (dl->flag & DL_CYCL_V))
+			if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
 			{
 				vlr= RE_findOrAddVlak(UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
 				vlr1= RE_findOrAddVlak(UVTOINDEX(0,0));  /* (0,0) */
