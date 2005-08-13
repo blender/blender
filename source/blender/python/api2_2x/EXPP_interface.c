@@ -69,7 +69,14 @@ char *bpy_gethome(int append_scriptsdir)
 	else if (homedir[0] != '\0')
 		return homedir;
 
+	/* BLI_gethome() can return NULL if env vars are not set */
 	s = BLI_gethome();
+
+	if( !s )  /* bail if no $HOME */
+	{
+		printf("$HOME is NOT set\n");
+		return NULL;
+	}
 
 	if( strstr( s, ".blender" ) )
 		PyOS_snprintf( homedir, FILE_MAXDIR, s );
