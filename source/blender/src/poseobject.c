@@ -26,7 +26,6 @@
  * support for animation modes - Reevan McKay
  */
 
-#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -190,7 +189,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
@@ -441,132 +440,6 @@ void copy_posebuf (void)
 
 }
 
-static char *strcasestr_(register char *s, register char *find)
-{
-    register char c, sc;
-    register size_t len;
-	
-    if ((c = *find++) != 0) {
-		c= tolower(c);
-		len = strlen(find);
-		do {
-			do {
-				if ((sc = *s++) == 0)
-					return (NULL);
-				sc= tolower(sc);
-			} while (sc != c);
-		} while (BLI_strncasecmp(s, find, len) != 0);
-		s--;
-    }
-    return ((char *) s);
-}
-
-#define IS_SEPARATOR(a)	(a=='.' || a==' ' || a=='-' || a=='_')
-
-/* finds the best possible flipped name, removing number extensions. For renaming; check for unique names afterwards */
-static void flip_name (char *name)
-{
-	int		len;
-	char	prefix[128]={""};	/* The part before the facing */
-	char	suffix[128]={""};	/* The part after the facing */
-	char	replace[128]={""};	/* The replacement string */
-	char	*index=NULL;
-
-	len= strlen(name);
-	if(len<3) return;	// we don't do names like .R or .L
-
-	/* We first check the case with a .### extension, let's find the last period */
-	if(isdigit(name[len-1])) {
-		index= strrchr(name, '.');	// last occurrance
-		if (index && isdigit(index[1]) ) {		// doesnt handle case bone.1abc2 correct..., whatever!
-			*index= 0;
-			len= strlen(name);
-		}
-	}
-
-	strcpy (prefix, name);
-
-	/* first case; separator . - _ with extensions r R l L  */
-	if( IS_SEPARATOR(name[len-2]) ) {
-		switch(name[len-1]) {
-			case 'l':
-				prefix[len-1]= 0;
-				strcpy(replace, "r");
-				break;
-			case 'r':
-				prefix[len-1]= 0;
-				strcpy(replace, "l");
-				break;
-			case 'L':
-				prefix[len-1]= 0;
-				strcpy(replace, "R");
-				break;
-			case 'R':
-				prefix[len-1]= 0;
-				strcpy(replace, "L");
-				break;
-		}
-	}
-	/* case; beginning with r R l L , with separator after it */
-	else if( IS_SEPARATOR(name[1]) ) {
-		switch(name[0]) {
-			case 'l':
-				strcpy(replace, "r");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'r':
-				strcpy(replace, "l");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'L':
-				strcpy(replace, "R");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-			case 'R':
-				strcpy(replace, "L");
-				strcpy(suffix, name+1);
-				prefix[0]= 0;
-				break;
-		}
-	}
-	else if(len > 5) {
-		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = strcasestr_(prefix, "right");
-		if (index==prefix || index==prefix+len-5) {
-			if(index[0]=='r') 
-				strcpy (replace, "left");
-			else {
-				if(index[1]=='I') 
-					strcpy (replace, "LEFT");
-				else
-					strcpy (replace, "Left");
-			}
-			*index= 0;
-			strcpy (suffix, index+5);
-		}
-		else {
-			index = strcasestr_(prefix, "left");
-			if (index==prefix || index==prefix+len-4) {
-				if(index[0]=='l') 
-					strcpy (replace, "right");
-				else {
-					if(index[1]=='E') 
-						strcpy (replace, "RIGHT");
-					else
-						strcpy (replace, "Right");
-				}
-				*index= 0;
-				strcpy (suffix, index+4);
-			}
-		}		
-	}
-
-	sprintf (name, "%s%s%s", prefix, replace, suffix);
-}
-
 void paste_posebuf (int flip)
 {
 	Object *ob= OBACT;
@@ -589,7 +462,7 @@ void paste_posebuf (int flip)
 		if (chan->flag & POSE_KEY) {
 			BLI_strncpy(name, chan->name, sizeof(name));
 			if (flip)
-				flip_name (name);
+				bone_flip_name (name);
 				
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
@@ -671,7 +544,7 @@ void pose_flip_names(void)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 			BLI_strncpy(newname, pchan->name, sizeof(newname));
-			flip_name(newname);
+			bone_flip_name(newname);
 			armature_bone_rename(ob->data, pchan->name, newname);
 		}
 	}

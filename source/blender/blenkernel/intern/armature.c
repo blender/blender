@@ -25,6 +25,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <ctype.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
@@ -240,6 +241,133 @@ Bone *get_named_bone (bArmature *arm, const char *name)
 	
 	return bone;
 }
+
+static char *strcasestr_(register char *s, register char *find)
+{
+    register char c, sc;
+    register size_t len;
+	
+    if ((c = *find++) != 0) {
+		c= tolower(c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+				sc= tolower(sc);
+			} while (sc != c);
+		} while (BLI_strncasecmp(s, find, len) != 0);
+		s--;
+    }
+    return ((char *) s);
+}
+
+#define IS_SEPARATOR(a)	(a=='.' || a==' ' || a=='-' || a=='_')
+
+/* finds the best possible flipped name, removing number extensions. For renaming; check for unique names afterwards */
+void bone_flip_name (char *name)
+{
+	int		len;
+	char	prefix[128]={""};	/* The part before the facing */
+	char	suffix[128]={""};	/* The part after the facing */
+	char	replace[128]={""};	/* The replacement string */
+	char	*index=NULL;
+
+	len= strlen(name);
+	if(len<3) return;	// we don't do names like .R or .L
+
+	/* We first check the case with a .### extension, let's find the last period */
+	if(isdigit(name[len-1])) {
+		index= strrchr(name, '.');	// last occurrance
+		if (index && isdigit(index[1]) ) {		// doesnt handle case bone.1abc2 correct..., whatever!
+			*index= 0;
+			len= strlen(name);
+		}
+	}
+
+	strcpy (prefix, name);
+
+	/* first case; separator . - _ with extensions r R l L  */
+	if( IS_SEPARATOR(name[len-2]) ) {
+		switch(name[len-1]) {
+			case 'l':
+				prefix[len-1]= 0;
+				strcpy(replace, "r");
+				break;
+			case 'r':
+				prefix[len-1]= 0;
+				strcpy(replace, "l");
+				break;
+			case 'L':
+				prefix[len-1]= 0;
+				strcpy(replace, "R");
+				break;
+			case 'R':
+				prefix[len-1]= 0;
+				strcpy(replace, "L");
+				break;
+		}
+	}
+	/* case; beginning with r R l L , with separator after it */
+	else if( IS_SEPARATOR(name[1]) ) {
+		switch(name[0]) {
+			case 'l':
+				strcpy(replace, "r");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'r':
+				strcpy(replace, "l");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'L':
+				strcpy(replace, "R");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+			case 'R':
+				strcpy(replace, "L");
+				strcpy(suffix, name+1);
+				prefix[0]= 0;
+				break;
+		}
+	}
+	else if(len > 5) {
+		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
+		index = strcasestr_(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
+			if(index[0]=='r') 
+				strcpy (replace, "left");
+			else {
+				if(index[1]=='I') 
+					strcpy (replace, "LEFT");
+				else
+					strcpy (replace, "Left");
+			}
+			*index= 0;
+			strcpy (suffix, index+5);
+		}
+		else {
+			index = strcasestr_(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
+				if(index[0]=='l') 
+					strcpy (replace, "right");
+				else {
+					if(index[1]=='E') 
+						strcpy (replace, "RIGHT");
+					else
+						strcpy (replace, "Right");
+				}
+				*index= 0;
+				strcpy (suffix, index+4);
+			}
+		}		
+	}
+
+	sprintf (name, "%s%s%s", prefix, replace, suffix);
+}
+
 
 /* ************* B-Bone support ******************* */
 
@@ -515,7 +643,6 @@ void calc_armature_deform (Object *ob, float *co, int index)
 
 void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
 {
-	bArmature *arm = armOb->data;
 	bPoseChannel **defnrToPC = NULL;
 	MDeformVert *dverts;
 	float obinv[4][4], premat[4][4], postmat[4][4];

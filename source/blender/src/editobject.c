@@ -2129,6 +2129,12 @@ void special_editmenu(void)
 		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
+	else if(G.obedit->type==OB_ARMATURE) {
+		nr= pupmenu("Specials%t|Flip Left-Right Names%x1");
+		if(nr==1) {
+			armature_flip_names();
+		}
+	}
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);

@@ -124,6 +124,7 @@ int ik_chain_looper(Object *ob, struct Bone *bone, void *data,
 
 void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
+void armature_flip_names(void);
 
 
 #define	BONESEL_ROOT	0x10000000
