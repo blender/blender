@@ -441,6 +441,26 @@ void copy_posebuf (void)
 
 }
 
+static char *strcasestr_(register char *s, register char *find)
+{
+    register char c, sc;
+    register size_t len;
+	
+    if ((c = *find++) != 0) {
+		c= tolower(c);
+		len = strlen(find);
+		do {
+			do {
+				if ((sc = *s++) == 0)
+					return (NULL);
+				sc= tolower(sc);
+			} while (sc != c);
+		} while (BLI_strncasecmp(s, find, len) != 0);
+		s--;
+    }
+    return ((char *) s);
+}
+
 #define IS_SEPARATOR(a)	(a=='.' || a==' ' || a=='-' || a=='_')
 
 /* finds the best possible flipped name, removing number extensions. For renaming; check for unique names afterwards */
@@ -485,7 +505,7 @@ static void flip_name (char *name)
 				prefix[len-1]= 0;
 				strcpy(replace, "L");
 				break;
-		}				
+		}
 	}
 	/* case; beginning with r R l L , with separator after it */
 	else if( IS_SEPARATOR(name[1]) ) {
@@ -514,8 +534,8 @@ static void flip_name (char *name)
 	}
 	else if(len > 5) {
 		/* hrms, why test for a separator? lets do the rule 'ultimate left or right' */
-		index = strcasestr (prefix, "right");
-		if (index==prefix || index==prefix-5) {
+		index = strcasestr_(prefix, "right");
+		if (index==prefix || index==prefix+len-5) {
 			if(index[0]=='r') 
 				strcpy (replace, "left");
 			else {
@@ -528,8 +548,8 @@ static void flip_name (char *name)
 			strcpy (suffix, index+5);
 		}
 		else {
-			index = strcasestr (prefix, "left");
-			if (index==prefix || index==prefix-4) {
+			index = strcasestr_(prefix, "left");
+			if (index==prefix || index==prefix+len-4) {
 				if(index[0]=='l') 
 					strcpy (replace, "right");
 				else {
