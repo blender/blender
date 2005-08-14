@@ -4797,8 +4797,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			where_is_armature(arm);
 		}
 		for(ob= main->object.first; ob; ob= ob->id.next) {
-			if (ob->parent && ob->parent->type==OB_LATTICE) {
-				ob->partype = PARSKEL;
+			if(ob->parent) {
+				Object *parent= newlibadr(fd, lib, ob->parent);
+				if (parent && parent->type==OB_LATTICE)
+					ob->partype = PARSKEL;
 			}
 
 			if (ob->softflag&OB_SB_ENABLE) {
