@@ -2327,7 +2327,15 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 	
 	if(R.flag & R_LAMPHALO) {
 		if(facenr<=0) {	/* calc view vector and put shi.co at far */
-		
+			if(R.r.mode & R_ORTHO) {
+				/* x and y 3d coordinate can be derived from pixel coord and winmat */
+				float fx= 2.0/(R.rectx*R.winmat[0][0]);
+				float fy= 2.0/(R.recty*R.winmat[1][1]);
+				
+				shi.co[0]= (0.5 + x - 0.5*R.rectx)*fx - R.winmat[3][0]/R.winmat[0][0];
+				shi.co[1]= (0.5 + y - 0.5*R.recty)*fy - R.winmat[3][1]/R.winmat[1][1];
+			}
+			
 			calc_view_vector(shi.view, x, y);
 			shi.co[2]= 0.0;
 			
