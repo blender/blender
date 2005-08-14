@@ -320,6 +320,8 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 			med->v2 = getEdgeIndex(ss, e, x+1, edgeSize);
 			med->flag = ME_EDGEDRAW|ME_EDGERENDER;
 
+			if (!ccgSubSurf_getEdgeNumFaces(ss, e)) med->flag |= ME_LOOSEEDGE;
+
 			if (ssFromEditmesh) {
 				EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
@@ -839,7 +841,7 @@ static void ccgDM_drawVerts(DerivedMesh *dm) {
 	ccgFaceIterator_free(fi);
 	glEnd();
 }
-static void ccgDM_drawEdges(DerivedMesh *dm) {
+static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
@@ -859,6 +861,8 @@ static void ccgDM_drawEdges(DerivedMesh *dm) {
 			if (eed && eed->h!=0)
 				continue;
 		}
+		if (!drawLooseEdges && !ccgSubSurf_getEdgeNumFaces(ss, e))
+			continue;
 
 		if (useAging && !(G.f&G_BACKBUFSEL)) {
 			int ageCol = 255-ccgSubSurf_getEdgeAge(ss, e)*4;

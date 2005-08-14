@@ -1699,7 +1699,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	else {
 		if (cageDM!=finalDM) {
 			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			finalDM->drawEdges(finalDM);
+			finalDM->drawEdges(finalDM, 1);
 		}
 	}
 	
@@ -1775,8 +1775,9 @@ static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 			dm->drawFacesSolid(dm, set_gl_material);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-		else
-			dm->drawEdges(dm);
+		else {
+			dm->drawEdges(dm, 0);
+		}
 					
 		glLineWidth(1.0);
 		glDepthMask(1);
@@ -1831,7 +1832,11 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
 
-		BIF_ThemeColor(TH_WIRE);
+		if(ob->flag & SELECT) {
+			BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+		} else {
+			BIF_ThemeColor(TH_WIRE);
+		}
 		dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
@@ -1883,7 +1888,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 
-		dm->drawEdges(dm);
+		dm->drawEdges(dm, dt==OB_WIRE);
 
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);

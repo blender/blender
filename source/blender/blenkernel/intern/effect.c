@@ -1221,7 +1221,7 @@ void build_particle_system(Object *ob)
 	
 	if( paf->flag & PAF_STATIC ) deform= 0;
 	else {
-		deform= (ob->parent && ob->parent->type==OB_LATTICE);
+		deform= (ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL);
 		if(deform) init_latt_deform(ob->parent, 0);
 	}
 	

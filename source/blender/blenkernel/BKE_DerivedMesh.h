@@ -131,7 +131,7 @@ struct DerivedMesh {
 			 *
 			 * Also called for *final* editmode DerivedMeshes
 			 */
-	void (*drawEdges)(DerivedMesh *dm);
+	void (*drawEdges)(DerivedMesh *dm, int drawLooseEdges);
 			
 			/* Draw all edges without faces as lines (no options) */
 	void (*drawLooseEdges)(DerivedMesh *dm);

@@ -1053,6 +1053,7 @@ void load_editMesh(void)
 			
 			medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
 			if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
+			if(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
 			if(eed->seam) medge->flag |= ME_SEAM;
 			if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
 			if(eed->h & 1) medge->flag |= ME_HIDE;
