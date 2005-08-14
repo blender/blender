@@ -364,22 +364,24 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	}
 }
 
-static void renderspothalo(ShadeInput *shi, float *col)
+static void renderspothalo(ShadeInput *shi, float *col, float alpha)
 {
 	LampRen *lar;
 	float i;
 	int a;
 	
+	if(alpha==0.0f) return;
+
 	for(a=0; a<R.totlamp; a++) {
 		lar= R.la[a];
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
 	
 			spothalo(lar, shi, &i);
 			if(i>0.0) {
-				col[3]+= i;
-				col[0]+= i*lar->r;
-				col[1]+= i*lar->g;
-				col[2]+= i*lar->b;			
+				col[3]+= i*alpha;			// all premul
+				col[0]+= i*lar->r*alpha;
+				col[1]+= i*lar->g*alpha;
+				col[2]+= i*lar->b*alpha;	
 			}
 		}
 	}
@@ -2329,8 +2331,10 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 			calc_view_vector(shi.view, x, y);
 			shi.co[2]= 0.0;
 			
+			renderspothalo(&shi, col, 1.0);
 		}
-		renderspothalo(&shi, col);
+		else
+			renderspothalo(&shi, col, col[3]);
 	}
 	
 	return vlr;
