@@ -535,6 +535,8 @@ static void modifiers_add(void *ob_v, int type)
 	} else {
 		BLI_addtail(&ob->modifiers, modifier_new(type));
 	}
+
+	BIF_undo_push("Add modifier");
 }
 
 static uiBlock *modifiers_add_menu(void *ob_v)
@@ -583,6 +585,8 @@ static void modifiers_del(void *ob_v, void *md_v)
 	BLI_remlink(&ob->modifiers, md_v);
 
 	modifier_free(md_v);
+
+	BIF_undo_push("Del modifier");
 }
 
 static void modifiers_moveUp(void *ob_v, void *md_v)
@@ -605,6 +609,8 @@ static void modifiers_moveUp(void *ob_v, void *md_v)
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->prev->prev, md);
 	}
+
+	BIF_undo_push("Move modifier");
 }
 
 static void modifiers_moveDown(void *ob_v, void *md_v)
@@ -627,6 +633,8 @@ static void modifiers_moveDown(void *ob_v, void *md_v)
 		BLI_remlink(&ob->modifiers, md);
 		BLI_insertlink(&ob->modifiers, md->next, md);
 	}
+
+	BIF_undo_push("Move modifier");
 }
 
 static void modifier_testLatticeObj(char *name, ID **idpp)
@@ -728,6 +736,8 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
+
+	BIF_undo_push("Apply modifier");
 }
 
 static void modifiers_copyModifier(void *ob_v, void *md_v)
@@ -739,6 +749,8 @@ static void modifiers_copyModifier(void *ob_v, void *md_v)
 	modifier_copyData(md, nmd);
 
 	BLI_insertlink(&ob->modifiers, md, nmd);
+
+	BIF_undo_push("Copy modifier");
 }
 
 static void modifiers_setOnCage(void *ob_v, void *md_v)
@@ -753,7 +765,6 @@ static void modifiers_setOnCage(void *ob_v, void *md_v)
 	md = md_v;
 	md->mode ^= eModifierMode_OnCage;
 }
-
 
 static void modifiers_setSubsurfIncremental(void *ob_v, void *md_v)
 {
@@ -805,6 +816,8 @@ static void modifiers_cursorHookCenter(void *ob_v, void *md_v)
 		hmd->cent[1]= curs[1]-ob->obmat[3][1];
 		hmd->cent[2]= curs[2]-ob->obmat[3][2];
 		Mat3MulVecfl(imat, hmd->cent);
+
+		BIF_undo_push("Hook cursor center");
 	}
 }
 
@@ -850,6 +863,8 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 	BLI_addhead(&ob->modifiers, nmd);
 
 	ob->partype = PAROBJECT;
+
+	BIF_undo_push("Modifier convert to real");
 }
 
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
@@ -885,7 +900,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		uiClearButLock();
 
-		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Make Real", x+width-80, y, 60, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
+		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Make Real", x+width-100, y, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
 		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
 	} else {
@@ -904,7 +919,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		uiBlockSetEmboss(block, UI_EMBOSSR);
 
-		if (modifier_couldBeCage(md) && index<=lastCageIndex) {
+		if (ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
 			int icon, color;
 
 			uiSetRoundBox(15);
@@ -3193,6 +3208,7 @@ void editing_panels()
 		cu= ob->data;
 		editing_panel_links(ob); // no editmode!
 		editing_panel_curve_type(ob, cu);
+		editing_panel_modifiers(ob);
 		if(G.obedit) {
 			editing_panel_curve_tools(ob, cu);
 			editing_panel_curve_tools1(ob, cu);
@@ -3213,6 +3229,7 @@ void editing_panels()
 		editing_panel_links(ob); // no editmode!
 		editing_panel_curve_type(ob, cu);
 		editing_panel_font_type(ob, cu);
+		editing_panel_modifiers(ob);
 		break;
 
 	case OB_LATTICE:

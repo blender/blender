@@ -55,6 +55,7 @@
 #include "DNA_object_force.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
@@ -88,6 +89,7 @@
 #include "BKE_lattice.h"
 #include "BKE_scene.h"
 #include "BKE_subsurf.h"
+#include "BKE_modifier.h"
 
 #include "nla.h" /* For __NLA: Please do not remove yet */
 #include "render.h"
@@ -1414,22 +1416,174 @@ void makeDispListMBall(Object *ob)
 	
 	boundbox_displist(ob);
 }
+
+float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
+{
+	int i, numVerts = *numVerts_r = count_curveverts(lb);
+	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
+	Nurb *nu;
+
+	co = cos[0];
+	for (nu=lb->first; nu; nu=nu->next) {
+		if ((nu->type & 7)==CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for (i=0; i<nu->pntsu; i++,bezt++) {
+				VECCOPY(co, bezt->vec[0]); co+=3;
+				VECCOPY(co, bezt->vec[1]); co+=3;
+				VECCOPY(co, bezt->vec[2]); co+=3;
+			}
+		} else {
+			BPoint *bp = nu->bp;
+
+			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				VECCOPY(co, bp->vec); co+=3;
+			}
+		}
+	}
+
+	return cos;
+}
+
+void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
+{
+	float *co = vertexCos[0];
+	Nurb *nu;
+	int i;
+
+	for (nu=lb->first; nu; nu=nu->next) {
+		if ((nu->type & 7)==CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for (i=0; i<nu->pntsu; i++,bezt++) {
+				VECCOPY(bezt->vec[0], co); co+=3;
+				VECCOPY(bezt->vec[1], co); co+=3;
+				VECCOPY(bezt->vec[2], co); co+=3;
+			}
+		} else {
+			BPoint *bp = nu->bp;
+
+			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				VECCOPY(bp->vec, co); co+=3;
+			}
+		}
+	}
+}
+
+static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int editmode)
+{
+	ModifierData *md, *preTesselatePoint;
+
+	preTesselatePoint = NULL;
+	for (md=ob->modifiers.first; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (!(md->mode&(1<<forRender))) continue;
+		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+
+		if (md->type==eModifierType_Hook) {
+			preTesselatePoint  = md;
+		}
+	}
+
+	return preTesselatePoint;
+}
+
+void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (**originalVerts_r)[3], float (**deformedVerts_r)[3], int *numVerts_r)
+{
+	int editmode = (!forRender && ob==G.obedit);
+	ModifierData *md, *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	int numVerts = 0;
+	float (*originalVerts)[3] = NULL;
+	float (*deformedVerts)[3] = NULL;
+
+	if (preTesselatePoint) {
+		for (md=ob->modifiers.first; md; md=md->next) {
+			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+			if (!(md->mode&(1<<forRender))) continue;
+			if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+			if (mti->isDisabled && mti->isDisabled(md)) continue;
+			if (mti->type!=eModifierTypeType_OnlyDeform) continue;
+
+			if (!deformedVerts) {
+				deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
+				originalVerts = MEM_dupallocN(deformedVerts);
+			}
+			mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
+
+			if (md==preTesselatePoint)
+				break;
+		}
+	} else {
+		md = ob->modifiers.first;
+	}
+
+	if (deformedVerts) {
+		curve_applyVertexCos(ob->data, nurb, deformedVerts);
+	}
+
+	*originalVerts_r = originalVerts;
+	*deformedVerts_r = deformedVerts;
+	*numVerts_r = numVerts;
+}
+
+void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
+{
+	int editmode = (!forRender && ob==G.obedit);
+	ModifierData *md, *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	DispList *dl;
+
+	if (preTesselatePoint) {
+		md = preTesselatePoint->next;
+	} else {
+		md = ob->modifiers.first;
+	}
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (!(md->mode&(1<<forRender))) continue;
+		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
+
+		for (dl=dispbase->first; dl; dl=dl->next) {
+			mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);
+		}
+	}
+
+	if (deformedVerts) {
+		curve_applyVertexCos(ob->data, nurb, originalVerts);
+		MEM_freeN(originalVerts);
+		MEM_freeN(deformedVerts);
+	}
+}
+
 void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 {
+	ListBase *nubase;
 	Nurb *nu;
 	Curve *cu = ob->data;
 	DispList *dl;
 	float *data;
 	int len;
+	int numVerts;
+	float (*originalVerts)[3];
+	float (*deformedVerts)[3];
 		
-	if(!forRender && ob==G.obedit) nu= editNurb.first;
+	if(!forRender && ob==G.obedit) {
+		nubase= &editNurb;
+	}
 	else {
 		do_curve_key(cu);
-
-		nu= cu->nurb.first;
+		nubase= &cu->nurb;
 	}
-		
-	while(nu) {
+
+	curve_calc_modifiers_pre(ob, nubase, forRender, &originalVerts, &deformedVerts, &numVerts);
+
+	for (nu=nubase->first; nu; nu=nu->next) {
 		if(forRender || nu->hide==0) {
 			if(nu->pntsv==1) {
 				len= nu->pntsu*nu->resolu;
@@ -1470,14 +1624,13 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 				makeNurbfaces(nu, data, 0);
 			}
 		}
-		nu= nu->next;
 	}
 
 	if (!forRender) {
 		tex_space_curve(cu);
 	}
 
-	if(forRender || ob!=G.obedit) object_deform_curve(ob, dispbase);
+	curve_calc_modifiers_post(ob, nubase, dispbase, forRender, originalVerts, deformedVerts);
 }
 void makeDispListCurveTypes(Object *ob, int forOrco)
 {
@@ -1496,6 +1649,10 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
 		int obedit= (G.obedit && G.obedit->data==ob->data);
+		int numVerts;
+		float (*originalVerts)[3];
+		float (*deformedVerts)[3];
+		ListBase *nubase = obedit?&editNurb:&cu->nurb;
 		
 		BLI_freelistN(&(cu->bev));
 		
@@ -1505,6 +1662,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		if(ob->type==OB_FONT) text_to_curve(ob, 0);
 		
 		if(!obedit && !forOrco) do_curve_key(cu);
+		if(!forOrco) curve_calc_modifiers_pre(ob, nubase, 0, &originalVerts, &deformedVerts, &numVerts);
 
 		makeBevelList(ob);
 
@@ -1602,7 +1760,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		}
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
-		if(!obedit) object_deform_curve(ob, &cu->disp);
+		if(!forOrco) curve_calc_modifiers_post(ob, nubase, &cu->disp, 0, originalVerts, deformedVerts);
 		tex_space_curve(cu);
 	}
 	

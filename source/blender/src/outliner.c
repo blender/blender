@@ -504,6 +504,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					TreeElement *temod = outliner_add_element(soops, &te->subtree, ob, te, TSE_MODIFIER_BASE, 0);
 					int index;
 
+					temod->name = "Modifiers";
 					for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
 						TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
 						if(te) te->name= md->name;
