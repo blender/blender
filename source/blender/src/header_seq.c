@@ -325,7 +325,10 @@ static void do_seq_editmenu(void *arg, int event)
 		break;
 	case 12: /* Snap to Current Frame */
 		seq_snap(event);
-	    break;
+		break;
+	case 13: /* Cut at Current Frame */
+		seq_cut(CFRA);
+		break;
 	}
 }
 
@@ -345,6 +348,10 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Current Frame|Shift S, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cut at Current Frame|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");

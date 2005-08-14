@@ -1754,7 +1754,9 @@ void enter_meta(void)
 typedef struct TransSeq {
 	int start, machine;
 	int startstill, endstill;
+	int startdisp, enddisp;
 	int startofs, endofs;
+	int len;
 } TransSeq;
 
 void transform_seq(int mode, int context)
@@ -2072,6 +2074,136 @@ void clever_numbuts_seq(void)
 			allqueue(REDRAWSEQ, 0);
 		}
 	}
+}
+
+void seq_cut(short cutframe)
+{
+	Editing *ed;
+	Sequence *seq;
+	TransSeq *ts, *transmain;
+	int tot=0;
+	ListBase newlist;
+	
+	ed= G.scene->ed;
+	if(ed==0) return;
+	
+	/* test for validity */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			if(cutframe > seq->startdisp && cutframe < seq->enddisp)
+				if(seq->type==SEQ_META) break;
+		}
+	}
+	if(seq) {
+		error("Cannot cut Meta strips");
+		return;
+	}
+	
+	/* we build an array of TransSeq, to denote which strips take part in cutting */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			if(cutframe > seq->startdisp && cutframe < seq->enddisp)
+				tot++;
+			else
+				seq->flag &= ~SELECT;	// bad code, but we need it for recurs_dupli_seq... note that this ~SELECT assumption is used in loops below too (ton)
+		}
+	}
+	
+	if(tot==0) {
+		error("No strips to cut");
+		return;
+	}
+	
+	ts=transmain= MEM_callocN(tot*sizeof(TransSeq), "transseq");
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			
+			ts->start= seq->start;
+			ts->machine= seq->machine;
+			ts->startstill= seq->startstill;
+			ts->endstill= seq->endstill;
+			ts->startdisp= seq->startdisp;
+			ts->enddisp= seq->enddisp;
+			ts->startofs= seq->startofs;
+			ts->endofs= seq->endofs;
+			ts->len= seq->len;
+			
+			ts++;
+		}
+	}
+		
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+			
+			/* strips with extended stillframes before */
+			if ((seq->startstill) && (cutframe <seq->start)) {
+				seq->start= cutframe -1;
+				seq->startstill= cutframe -seq->startdisp -1;
+				seq->len= 1;
+				seq->endstill= 0;
+			}
+			
+			/* normal strip */
+			else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+				seq->endofs = (seq->start+seq->len) - cutframe;
+			}
+			
+			/* strips with extended stillframes after */
+			else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+				seq->endstill -= seq->enddisp - cutframe;
+			}
+			
+			calc_sequence(seq);
+		}
+	}
+		
+	newlist.first= newlist.last= NULL;
+	
+	/* now we duplicate the cut strip and move it into place afterwards */
+	recurs_dupli_seq(ed->seqbasep, &newlist);
+	addlisttolist(ed->seqbasep, &newlist);
+	
+	ts= transmain;
+	
+	/* go through all the strips and correct them based on their stored values */
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->flag & SELECT) {
+
+			/* strips with extended stillframes before */
+			if ((seq->startstill) && (cutframe == seq->start + 1)) {
+				seq->start = ts->start;
+				seq->startstill= ts->start- cutframe;
+				seq->len = ts->len;
+				seq->endstill = ts->endstill;
+			}
+			
+			/* normal strip */
+			else if ((cutframe>=seq->start)&&(cutframe<=(seq->start+seq->len))) {
+				seq->startstill = 0;
+				seq->startofs = cutframe - ts->start;
+				seq->endofs = ts->endofs;
+				seq->endstill = ts->endstill;
+			}				
+			
+			/* strips with extended stillframes after */
+			else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+				seq->start = cutframe - ts->len +1;
+				seq->startofs = ts->len-1;
+				seq->endstill = ts->enddisp - cutframe -1;
+				seq->startstill = 0;
+			}
+			calc_sequence(seq);
+			
+			ts++;
+		}
+	}
+		
+	/* as last: */	
+	sort_seq();
+	MEM_freeN(transmain);
+	
+	allqueue(REDRAWSEQ, 0);
 }
 
 void seq_snap_menu(void)

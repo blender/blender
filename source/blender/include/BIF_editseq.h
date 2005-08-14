@@ -57,6 +57,7 @@ void				swap_select_seq(void);
 void				touch_seq_files(void);
 void				transform_seq(int mode, int context);
 void				un_meta(void);
+void				seq_cut(short cutframe);
 
 /* drawseq.c */
 void do_seqbuttons(short);
