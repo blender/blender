@@ -389,7 +389,7 @@ NewBooleanMesh(
 	Mesh *me2 = get_mesh(base_select->object);
 	Mesh *me = get_mesh(base->object);
 	Mesh *me_new = NULL;
-	Object *ob;
+	Object *ob, *ob_new = NULL;
 	int free_tface1,free_tface2;
 
 	float inv_mat[4][4];
@@ -526,7 +526,7 @@ NewBooleanMesh(
 
 			// Create a new blender mesh object - using 'base' as 
 			// a template for the new object.
-			Object * ob_new=  AddNewBlenderMesh(base);
+			ob_new=  AddNewBlenderMesh(base);
 
 			// get the output descriptors
 
@@ -579,6 +579,10 @@ NewBooleanMesh(
 	
 	FreeMeshDescriptors(&fd_1,&vd_1);
 	FreeMeshDescriptors(&fd_2,&vd_2);
+
+	if (ob_new) {
+		DAG_object_flush_update(G.scene, ob_new, OB_RECALC_DATA);
+	}
 
 	return success;
 }
