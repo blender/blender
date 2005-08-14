@@ -146,19 +146,44 @@ void convert_to_triface(int all)
 		next= efa->prev;
 		if(efa->v4) {
 			if(all || (efa->f & SELECT) ) {
-				
-				efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
-				if(efa->f & SELECT) EM_select_face(efan, 1);
-				efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa, NULL);
-				if(efa->f & SELECT) EM_select_face(efan, 1);
+				/* choose shortest diagonal for split */
+				if(VecLenf(efa->v1->co, efa->v3->co) <= VecLenf(efa->v2->co, efa->v4->co)) {
+					
+					efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
+					if(efa->f & SELECT) EM_select_face(efan, 1);
+					efan= addfacelist(efa->v1, efa->v3, efa->v4, 0, efa, NULL);
+					if(efa->f & SELECT) EM_select_face(efan, 1);
 
-				efan->tf.uv[1][0]= efan->tf.uv[2][0];
-				efan->tf.uv[1][1]= efan->tf.uv[2][1];
-				efan->tf.uv[2][0]= efan->tf.uv[3][0];
-				efan->tf.uv[2][1]= efan->tf.uv[3][1];
-				
-				efan->tf.col[1]= efan->tf.col[2];
-				efan->tf.col[2]= efan->tf.col[3];
+					efan->tf.uv[1][0]= efan->tf.uv[2][0];
+					efan->tf.uv[1][1]= efan->tf.uv[2][1];
+					efan->tf.uv[2][0]= efan->tf.uv[3][0];
+					efan->tf.uv[2][1]= efan->tf.uv[3][1];
+					
+					efan->tf.col[1]= efan->tf.col[2];
+					efan->tf.col[2]= efan->tf.col[3];
+				}
+				else {
+					efan= addfacelist(efa->v1, efa->v2, efa->v4, 0, efa, NULL);
+					if(efa->f & SELECT) EM_select_face(efan, 1);
+					
+					efan->tf.uv[2][0]= efan->tf.uv[3][0];
+					efan->tf.uv[2][1]= efan->tf.uv[3][1];
+					efan->tf.col[2]= efan->tf.col[3];
+					
+					efan= addfacelist(efa->v2, efa->v3, efa->v4, 0, efa, NULL);
+					if(efa->f & SELECT) EM_select_face(efan, 1);
+					
+					efan->tf.uv[0][0]= efan->tf.uv[1][0];
+					efan->tf.uv[0][1]= efan->tf.uv[1][1];
+					efan->tf.uv[1][0]= efan->tf.uv[2][0];
+					efan->tf.uv[1][1]= efan->tf.uv[2][1];
+					efan->tf.uv[2][0]= efan->tf.uv[3][0];
+					efan->tf.uv[2][1]= efan->tf.uv[3][1];
+					
+					efan->tf.col[0]= efan->tf.col[1];
+					efan->tf.col[1]= efan->tf.col[2];
+					efan->tf.col[2]= efan->tf.col[3];
+				}
 				
 				BLI_remlink(&em->faces, efa);
 				free_editface(efa);
