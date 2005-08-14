@@ -39,7 +39,6 @@
 
 // This is blenlib internal only
 void callLocalErrorCallBack(char* msg);
-int callLocalInterruptCallBack(void);
 
 #endif
 
