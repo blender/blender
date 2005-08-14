@@ -500,6 +500,28 @@ static void select_editcurve_hook(HookModifierData *hmd)
 	}
 }
 
+void hook_select(HookModifierData *hmd) 
+{
+	if(G.obedit->type==OB_MESH) select_editmesh_hook(hmd);
+	else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hmd);
+	else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hmd);
+	else if(G.obedit->type==OB_SURF) select_editcurve_hook(hmd);
+}
+int hook_getIndexArray(int **indexar, float *cent_r)
+{
+	switch(G.obedit->type) {
+	case OB_MESH:	
+		return return_editmesh_indexar(indexar, cent_r);
+	case OB_CURVE:
+	case OB_SURF:
+		return return_editcurve_indexar(indexar, cent_r);
+	case OB_LATTICE:
+		return return_editlattice_indexar(indexar, cent_r);
+	default:
+		return 0;
+	}
+}
+
 void add_hook(void)
 {
 	ModifierData *md = NULL;
@@ -582,20 +604,8 @@ void add_hook(void)
 
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {
-	
-		switch(G.obedit->type) {
-		case OB_MESH:
-			tot= return_editmesh_indexar(&indexar, cent);
-			break;
-		case OB_CURVE:
-		case OB_SURF:
-			tot= return_editcurve_indexar(&indexar, cent);
-			break;
-		case OB_LATTICE:
-			tot= return_editlattice_indexar(&indexar, cent);
-			break;
-		}
-		
+		tot = hook_getIndexArray(&indexar, cent);
+
 		if(tot==0) {
 			error("Requires selected vertices");
 		}
@@ -656,10 +666,7 @@ void add_hook(void)
 		modifier_free(md);
 	}
 	else if(mode==5) { // select
-		if(G.obedit->type==OB_MESH) select_editmesh_hook(hmd);
-		else if(G.obedit->type==OB_LATTICE) select_editlattice_hook(hmd);
-		else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hmd);
-		else if(G.obedit->type==OB_SURF) select_editcurve_hook(hmd);
+		hook_select(hmd);
 	}
 	else if(mode==6) { // clear offset
 		where_is_object(ob);	// ob is hook->parent

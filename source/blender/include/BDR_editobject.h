@@ -37,6 +37,7 @@ struct Object;
 struct Tex;
 struct Material;
 struct Base;
+struct HookModifierData;
 
 void add_object_draw(int type);
 void add_objectLamp(short type);
@@ -105,6 +106,8 @@ void mirrormenu(void);
 
 
 void add_hook(void);
+void hook_select(struct HookModifierData *hmd);
+int hook_getIndexArray(int **indexar, float *cent_r);
 
 #endif /*  BDR_EDITOBJECT_H */
 

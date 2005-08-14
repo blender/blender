@@ -2749,7 +2749,7 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 		BIF_ThemeColor(TH_WIRE);
 		glBegin(GL_LINES);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
-			BevPoint *bevp= (BevPoint *)(&bl+1);		
+			BevPoint *bevp= (BevPoint *)(bl+1);		
 			int nr= bl->nr;
 			int skip= nu->resolu/16;
 			

@@ -785,6 +785,59 @@ static void modifiers_clearHookOffset(void *ob_v, void *md_v)
 	}
 }
 
+static void modifiers_cursorHookCenter(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	if (G.vd) {
+		float *curs = give_cursor();
+		float bmat[3][3], imat[3][3];
+
+		where_is_object(ob);
+	
+		Mat3CpyMat4(bmat, ob->obmat);
+		Mat3Inv(imat, bmat);
+
+		curs= give_cursor();
+		hmd->cent[0]= curs[0]-ob->obmat[3][0];
+		hmd->cent[1]= curs[1]-ob->obmat[3][1];
+		hmd->cent[2]= curs[2]-ob->obmat[3][2];
+		Mat3MulVecfl(imat, hmd->cent);
+	}
+}
+
+static void modifiers_selectHook(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+
+	hook_select(hmd);
+}
+
+static void modifiers_reassignHook(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;
+	HookModifierData *hmd = (HookModifierData*) md;
+	float cent[3];
+	int *indexar, tot = hook_getIndexArray(&indexar, cent);
+
+	if (!tot) {
+		error("Requires selected vertices");
+	} else {
+		if (hmd->indexar) {
+			MEM_freeN(hmd->indexar);
+		}
+
+		VECCOPY(hmd->cent, cent);
+		hmd->indexar = indexar;
+		hmd->totindex = tot;
+	}
+}
+
 static void modifiers_convertToReal(void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
@@ -804,8 +857,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
-	short height = 86; 
-        short width = 295;
+	int editing = (G.obedit==ob);
+    short height, width = 295;
 	char str[128];
 	uiBut *but;
 
@@ -915,6 +968,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 46;
 		} else if (md->type==eModifierType_Hook) {
 			height = 86;
+			if (editing)
+				height += 20;
 		} else if (md->type==eModifierType_Softbody) {
 			height = 26;
 		}
@@ -1005,8 +1060,17 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), 160,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ", 	lx, (cy-=19), 160,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
 			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", 	lx, (cy-=19), 160,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Clear offset", 		lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Clear offset", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
 			uiButSetFunc(but, modifiers_clearHookOffset, ob, md);
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Cursor center", 		lx+80, cy, 80,19, NULL, 0.0, 0.0, 0, 0, "Sets hook center to cursor position");
+			uiButSetFunc(but, modifiers_cursorHookCenter, ob, md);
+
+			if (editing) {
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Select", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Selects effected vertices on mesh");
+				uiButSetFunc(but, modifiers_selectHook, ob, md);
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reassign", 		lx+80, cy, 80,19, NULL, 0.0, 0.0, 0, 0, "Reassigns selected vertices to hook");
+				uiButSetFunc(but, modifiers_reassignHook, ob, md);
+			}
 		} else if (md->type==eModifierType_Softbody) {
 			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "");
 		}
