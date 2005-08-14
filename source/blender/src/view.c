@@ -436,7 +436,7 @@ void viewmove(int mode)
 {
 	Object *ob = OBACT;
 	float firstvec[3], newvec[3], dvec[3];
-	float oldquat[4], q1[4], si, phi, dist0;
+	float reverse, oldquat[4], q1[4], si, phi, dist0;
 	float ofs[3], obofs[3];
 	int firsttime=1;
 	short mvalball[2], mval[2], mvalo[2];
@@ -470,6 +470,10 @@ void viewmove(int mode)
 			VECCOPY(obofs, ofs);
 		}
 	}
+
+	reverse= 1.0f;
+	if (G.vd->persmat[2][1] < 0.0f)
+		reverse= -1.0f;
 
 	while(TRUE) {
 		getmouseco_sc(mval);
@@ -580,7 +584,7 @@ void viewmove(int mode)
 					}
 
 					/* Perform the orbital rotation */
-					phi = sensitivity * (mval[0] - mvalo[0]);
+					phi = sensitivity * reverse * (mval[0] - mvalo[0]);
 					q1[0] = cos(phi);
 					q1[1] = q1[2] = 0.0;
 					q1[3] = sin(phi);
