@@ -1039,37 +1039,24 @@ void forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int i
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-void make_orco_surf(Curve *cu)
+float *make_orco_surf(Object *ob)
 {
+	Curve *cu = ob->data;
 	Nurb *nu;
 	int a, b, tot=0;
 	int sizeu, sizev;// ###
 	float *data;
+	float *orco;
 
-
-	/* first calculate the size of the datablock */
-	nu= cu->nurb.first;
-	while(nu) {
-/* this is a bad hack: as we want to avoid the seam in a cyclic nurbs
-texture wrapping, reserve extra orco data space to save these extra needed
-vertex based UV coordinates for the meridian vertices.
-Vertices on the 0/2pi boundary are not duplicated inside the displist but later in
-the renderface/vert construction.
-
-See also blenderWorldManipulation.c: init_render_surf()
-
-*/
-
+		/* first calculate the size of the datablock */
+	for (nu=cu->nurb.first; nu; nu=nu->next) {
 		sizeu = nu->resolu; sizev = nu->resolv;
 		if(nu->pntsv>1) tot+= sizeu * sizev;
-
-		nu= nu->next;
 	}
 				/* makeNurbfaces wants zeros */
-	data= cu->orco= MEM_callocN(3*sizeof(float)*tot, "make_orco");
+	data= orco= MEM_callocN(3*sizeof(float)*tot, "make_orco");
 
-	nu= cu->nurb.first;
-	while(nu) {
+	for (nu=cu->nurb.first; nu; nu=nu->next) {
 		if(nu->pntsv>1) {
 			sizeu = nu->resolu;
 			sizev = nu->resolv;
@@ -1095,7 +1082,7 @@ See also blenderWorldManipulation.c: init_render_surf()
 
 				for(b=0; b<sizeu; b++) {
 					for(a=0; a<sizev; a++) {
-						data = cu->orco + 3 * (b * sizev + a);
+						data = orco + 3 * (b * sizev + a);
 						data[0]= (data[0]-cu->loc[0])/cu->size[0];
 						data[1]= (data[1]-cu->loc[1])/cu->size[1];
 						data[2]= (data[2]-cu->loc[2])/cu->size[2];
@@ -1103,12 +1090,82 @@ See also blenderWorldManipulation.c: init_render_surf()
 				}
 			}
 		}
-		nu= nu->next;
 	}
-	/* loadkeypostype(22, base, base); */
 
+	return orco;
 }
 
+
+	/* NOTE: This routine is tied to the order of vertex
+	 * built by displist and as passed to the renderer.
+	 */
+float *make_orco_curve(Object *ob)
+{
+	Curve *cu = ob->data;
+	DispList *dl;
+	int u, v, numVerts;
+	float *fp, *orco;
+	int remakeDisp = 0;
+
+	if (!(cu->flag&CU_UV_ORCO) && cu->key && cu->key->refkey) {
+		cp_cu_key(cu, cu->key->refkey, 0, count_curveverts(&cu->nurb));
+		makeDispListCurveTypes(ob, 1);
+		remakeDisp = 1;
+	}
+
+		/* Assumes displist has been built */
+
+	numVerts = 0;
+	for (dl=cu->disp.first; dl; dl=dl->next) {
+		if (dl->type==DL_INDEX3) {
+			numVerts += dl->nr;
+		} else if (dl->type==DL_SURF) {
+			numVerts += dl->parts*dl->nr;
+		}
+	}
+
+	fp= orco= MEM_mallocN(3*sizeof(float)*numVerts, "cu_orco");
+
+	for (dl=cu->disp.first; dl; dl=dl->next) {
+		if (dl->type==DL_INDEX3) {
+			for (u=0; u<dl->nr; u++,fp+=3) {
+				if (cu->flag&CU_UV_ORCO) {
+					fp[0]= 2.0f*u/(dl->nr-1) - 1.0f;
+					fp[1]= 0.0;
+					fp[2]= 0.0;
+				} else {
+					VECCOPY(fp, &dl->verts[u*3]);
+
+					fp[0]= (fp[0]-cu->loc[0])/cu->size[0];
+					fp[1]= (fp[1]-cu->loc[1])/cu->size[1];
+					fp[2]= (fp[2]-cu->loc[2])/cu->size[2];
+				}
+			}
+		} else if (dl->type==DL_SURF) {
+			for (u=0; u<dl->parts; u++) {
+				for (v=0; v<dl->nr; v++,fp+=3) {
+					if (cu->flag&CU_UV_ORCO) {
+						fp[0]= 2.0f*u/(dl->parts-1) - 1.0f;
+						fp[1]= 2.0f*v/(dl->nr-1) - 1.0f;
+						fp[2]= 0.0;
+					} else {
+						VECCOPY(fp, &dl->verts[(dl->nr*u + v)*3]);
+
+						fp[0]= (fp[0]-cu->loc[0])/cu->size[0];
+						fp[1]= (fp[1]-cu->loc[1])/cu->size[1];
+						fp[2]= (fp[2]-cu->loc[2])/cu->size[2];
+					}
+				}
+			}
+		}
+	}
+
+	if (remakeDisp) {
+		makeDispListCurveTypes(ob, 0);
+	}
+
+	return orco;
+}
 
 
 /* ***************** BEVEL ****************** */
@@ -1122,6 +1179,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 	cu= ob->data;
 
+	disp->first = disp->last = NULL;
 	if(cu->bevobj && cu->bevobj!=ob) {
 		if(cu->bevobj->type==OB_CURVE) {
 			bevcu= cu->bevobj->data;
@@ -1131,7 +1189,7 @@ void makebevelcurve(Object *ob, ListBase *disp)
 
 				dl= bevcu->disp.first;
 				if(dl==0) {
-					makeDispListCurveTypes(cu->bevobj);
+					makeDispListCurveTypes(cu->bevobj, 0);
 					dl= bevcu->disp.first;
 				}
 				while(dl) {
@@ -1157,6 +1215,9 @@ void makebevelcurve(Object *ob, ListBase *disp)
 				}
 			}
 		}
+	}
+	else if(cu->ext1==0.0 && cu->ext2==0.0) {
+		;
 	}
 	else if(cu->ext2==0.0) {
 		dl= MEM_callocN(sizeof(DispList), "makebevelcurve2");
@@ -1259,7 +1320,6 @@ void makebevelcurve(Object *ob, ListBase *disp)
 			fp+= 3;
 		}
 	}
-
 }
 
 int cu_isectLL(float *v1, float *v2, float *v3, float *v4, short cox, short coy, float *labda, float *mu, float *vec)

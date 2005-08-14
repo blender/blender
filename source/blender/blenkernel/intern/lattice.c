@@ -240,7 +240,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	
 	fp= latticedata= MEM_mallocN(sizeof(float)*3*deformLatt->pntsu*deformLatt->pntsv*deformLatt->pntsw, "latticedata");
 	
-	lattice_modifier(oblatt, 's');
+	do_latt_key(oblatt->data);
 	bp= deformLatt->def;
 
 	//if(ob) where_is_object(ob); causes lag here, but why! (ton)
@@ -284,9 +284,6 @@ void init_latt_deform(Object *oblatt, Object *ob)
 		}
 		vec[2]+= dw;
 	}
-
-	lattice_modifier(oblatt, 'e');
-
 }
 
 void calc_latt_deform(float *co)
@@ -556,51 +553,36 @@ void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], i
 	end_latt_deform();
 }
 
-int object_deform(Object *ob)
+int object_deform_mball(Object *ob)
 {
-	Curve *cu;
-	DispList *dl;
-	float *fp;
-	int a, tot;
+	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+		DispList *dl;
 
-	if(ob->parent==NULL) return 0;
-	
-	if(ob->parent->type==OB_LATTICE) {
-		init_latt_deform(ob->parent, ob);
-		
-		if(ob->type==OB_MBALL) {
-			dl=ob->disp.first;
-			while(dl) {
-				fp = dl->verts;
-				for(a=0;a<dl->nr;a++,fp+=3)
-					calc_latt_deform(fp);
-				dl=dl->next;
-			}
+		for (dl=ob->disp.first; dl; dl=dl->next) {
+			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, dl->nr);
 		}
-		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-			cu= ob->data;
-			/* apply deform on displist */
-			dl= cu->disp.first;
-			while(dl) {
-				
-				fp= dl->verts;
-				
-				if(dl->type==DL_INDEX3) tot=dl->parts;
-				else tot= dl->nr*dl->parts;
-				
-				for(a=0; a<tot; a++, fp+=3) {
-					calc_latt_deform(fp);
-				}
-				
-				dl= dl->next;
-			}
-		}
-		end_latt_deform();
+
 		return 1;
+	} else {
+		return 0;
 	}
-	
-	return 0;
+}
 
+int object_deform_curve(Object *ob, ListBase *lb)
+{
+	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
+		DispList *dl;
+
+		for (dl=lb->first; dl; dl=dl->next) {
+			int tot = (dl->type==DL_INDEX3)?dl->parts:dl->nr*dl->parts;
+
+			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, tot);
+		}
+
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 BPoint *latt_bp(Lattice *lt, int u, int v, int w)

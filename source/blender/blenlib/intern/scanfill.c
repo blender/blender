@@ -54,19 +54,6 @@
 /* callbacks for errors and interrupts and some goo */
 static void (*BLI_localErrorCallBack)(char*) = NULL;
 static int (*BLI_localInterruptCallBack)(void) = NULL;
-static void *objectref = NULL;
-static char *colourref = NULL;
-
-
-void BLI_setScanFillObjectRef(void* ob)
-{
-	objectref = ob;
-}
-
-void BLI_setScanFillColourRef(char* c)
-{
-	colourref = c;
-}
 
 void BLI_setErrorCallBack(void (*f)(char*))
 {
@@ -87,7 +74,7 @@ void callLocalErrorCallBack(char* msg)
 }
 
 /* ignore if the interrupt wasn't set */
-int callLocalInterruptCallBack(void)
+static int callLocalInterruptCallBack(void)
 {
 	if (BLI_localInterruptCallBack) {
 		return BLI_localInterruptCallBack();
@@ -112,39 +99,21 @@ typedef struct ScFillVert {
 
 
 /* local funcs */
-int vergscdata(const void *a1, const void *a2);
-int vergpoly(const void *a1, const void *a2);
-void *new_mem_element(int size);
-void addfillface(EditVert *v1, EditVert *v2, EditVert *v3);
-int boundinside(PolyFill *pf1, PolyFill *pf2);
-int boundisect(PolyFill *pf2, PolyFill *pf1);
-void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* pf2 added to pf1 */;
-EditEdge *existfilledge(EditVert *v1, EditVert *v2);
-short addedgetoscanvert(ScFillVert *sc, EditEdge *eed);
-short testedgeside(float *v1, float *v2, float *v3);
-short testedgeside2(float *v1, float *v2, float *v3);
-short boundinsideEV(EditEdge *eed, EditVert *eve)	/* is eve within boundbox eed */;
-void testvertexnearedge(void);
-void scanfill(PolyFill *pf);
-void fill_mesh(void);
-ScFillVert *addedgetoscanlist(EditEdge *eed, int len);
-void splitlist(ListBase *tempve, ListBase *temped, short nr);
 
-/* This one is also used in isect.c Keep it here until we know what to do with isect.c */
 #define COMPLIMIT	0.0003
 
-ScFillVert *scdata;
+static ScFillVert *scdata;
 
 ListBase fillvertbase = {0,0};
 ListBase filledgebase = {0,0};
 ListBase fillfacebase = {0,0};
 
-short cox, coy;
+static short cox, coy;
 
 /* ****  FUBCTIONS FOR QSORT *************************** */
 
 
-int vergscdata(const void *a1, const void *a2)
+static int vergscdata(const void *a1, const void *a2)
 {
 	const ScFillVert *x1=a1,*x2=a2;
 	
@@ -156,7 +125,7 @@ int vergscdata(const void *a1, const void *a2)
 	return 0;
 }
 
-int vergpoly(const void *a1, const void *a2)
+static int vergpoly(const void *a1, const void *a2)
 {
 	const PolyFill *x1=a1, *x2=a2;
 
@@ -181,7 +150,7 @@ struct mem_elements {
    free in the end, with argument '-1'
 */
 
-void *new_mem_element(int size)
+static void *new_mem_element(int size)
 {
 	int blocksize= 16384;
 	static int offs= 0;		/* the current free adress */
@@ -239,12 +208,9 @@ EditVert *BLI_addfillvert(float *vec)
 	eve= new_mem_element(sizeof(EditVert));
 	BLI_addtail(&fillvertbase, eve);
 	
-	if(vec) {
-		*(eve->co)     = *(vec);
-		*(eve->co + 1) = *(vec + 1);
-		*(eve->co + 2) = *(vec + 2);
-	}
-/*  	VECCOPY(eve->co, vec); */
+	eve->co[0] = vec[0];
+	eve->co[1] = vec[1];
+	eve->co[2] = vec[2];
 
 	return eve;	
 }
@@ -262,7 +228,7 @@ EditEdge *BLI_addfilledge(EditVert *v1, EditVert *v2)
 	return newed;
 }
 
-void addfillface(EditVert *v1, EditVert *v2, EditVert *v3)
+static void addfillface(EditVert *v1, EditVert *v2, EditVert *v3, int mat_nr)
 {
 	/* does not make edges */
 	EditFace *evl;
@@ -274,17 +240,11 @@ void addfillface(EditVert *v1, EditVert *v2, EditVert *v3)
 	evl->v2= v2;
 	evl->v3= v3;
 	evl->f= 2;
-	/* G.obedit is Object*, actcol is char */
-/*  	if(G.obedit && G.obedit->actcol) evl->mat_nr= G.obedit->actcol-1; */
-	if (objectref && colourref && *colourref) {
-		evl->mat_nr = *colourref - 1;
-	} else {
-		evl->mat_nr = 0;
-	}
+	evl->mat_nr= mat_nr;
 }
 
 
-int boundinside(PolyFill *pf1, PolyFill *pf2)
+static int boundinside(PolyFill *pf1, PolyFill *pf2)
 {
 	/* is pf2 INSIDE pf1 ? using bounding box */
 	/* test first if polys exist */
@@ -298,7 +258,7 @@ int boundinside(PolyFill *pf1, PolyFill *pf2)
 	return 0;
 }
 
-int boundisect(PolyFill *pf2, PolyFill *pf1)
+static int boundisect(PolyFill *pf2, PolyFill *pf1)
 {
 	/* has pf2 been touched (intersected) by pf1 ? with bounding box */
 	/* test first if polys exist */
@@ -325,7 +285,7 @@ int boundisect(PolyFill *pf2, PolyFill *pf1)
 
 
 
-void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* add pf2 to pf1 */
+static void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* add pf2 to pf1 */
 {
 	EditVert *eve;
 	EditEdge *eed;
@@ -350,7 +310,7 @@ void mergepolysSimp(PolyFill *pf1, PolyFill *pf2)	/* add pf2 to pf1 */
 
 
 
-EditEdge *existfilledge(EditVert *v1, EditVert *v2)
+static EditEdge *existfilledge(EditVert *v1, EditVert *v2)
 {
 	EditEdge *eed;
 
@@ -364,7 +324,7 @@ EditEdge *existfilledge(EditVert *v1, EditVert *v2)
 }
 
 
-short testedgeside(float *v1, float *v2, float *v3)
+static short testedgeside(float *v1, float *v2, float *v3)
 /* is v3 to the right of v1-v2 ? With exception: v3==v1 || v3==v2 */
 {
 	float inp;
@@ -380,7 +340,7 @@ short testedgeside(float *v1, float *v2, float *v3)
 	return 1;
 }
 
-short testedgeside2(float *v1, float *v2, float *v3)
+static short testedgeside2(float *v1, float *v2, float *v3)
 /* is v3 to the right of v1-v2 ? no intersection allowed! */
 {
 	float inp;
@@ -392,7 +352,7 @@ short testedgeside2(float *v1, float *v2, float *v3)
 	return 1;
 }
 
-short addedgetoscanvert(ScFillVert *sc, EditEdge *eed)
+static short addedgetoscanvert(ScFillVert *sc, EditEdge *eed)
 {
 	/* find first edge to the right of eed, and insert eed before that */
 	EditEdge *ed;
@@ -436,7 +396,7 @@ short addedgetoscanvert(ScFillVert *sc, EditEdge *eed)
 }
 
 
-ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
+static ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 {
 	/* inserts edge at correct location in ScFillVert list */
 	/* returns sc when edge already exists */
@@ -467,7 +427,7 @@ ScFillVert *addedgetoscanlist(EditEdge *eed, int len)
 	return 0;
 }
 
-short boundinsideEV(EditEdge *eed, EditVert *eve)
+static short boundinsideEV(EditEdge *eed, EditVert *eve)
 /* is eve inside boundbox eed */
 {
 	float minx,maxx,miny,maxy;
@@ -493,7 +453,7 @@ short boundinsideEV(EditEdge *eed, EditVert *eve)
 }
 
 
-void testvertexnearedge(void)
+static void testvertexnearedge(void)
 {
 	/* only vertices with ->h==1 are being tested for
 		being close to an edge, if true insert */
@@ -560,7 +520,7 @@ void testvertexnearedge(void)
 	}
 }
 
-void splitlist(ListBase *tempve, ListBase *temped, short nr)
+static void splitlist(ListBase *tempve, ListBase *temped, short nr)
 {
 	/* everything is in templist, write only poly nr to fillist */
 	EditVert *eve,*nextve;
@@ -590,7 +550,7 @@ void splitlist(ListBase *tempve, ListBase *temped, short nr)
 }
 
 
-void scanfill(PolyFill *pf)
+static void scanfill(PolyFill *pf, int mat_nr)
 {
 	ScFillVert *sc = NULL, *sc1;
 	EditVert *eve,*v1,*v2,*v3;
@@ -775,7 +735,7 @@ void scanfill(PolyFill *pf)
 				else {
 					/* new triangle */
 					/* printf("add face %x %x %x\n",v1,v2,v3); */
-					addfillface(v1, v2, v3);
+					addfillface(v1, v2, v3, mat_nr);
 					totface++;
 					BLI_remlink((ListBase *)&(sc->first),ed1);
 					BLI_addtail(&filledgebase,ed1);
@@ -844,7 +804,7 @@ void scanfill(PolyFill *pf)
 
 
 
-int BLI_edgefill(int mode)  /* THE MAIN FILL ROUTINE */
+int BLI_edgefill(int mode, int mat_nr)
 {
 	/*
 	  - fill works with its own lists, so create that first (no faces!)
@@ -1122,7 +1082,7 @@ int BLI_edgefill(int mode)  /* THE MAIN FILL ROUTINE */
 	for(a=0;a<poly;a++) {
 		if(pf->edges>1) {
 			splitlist(&tempve,&temped,pf->nr);
-			scanfill(pf);
+			scanfill(pf, mat_nr);
 		}
 		pf++;
 	}

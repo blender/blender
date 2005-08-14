@@ -1333,7 +1333,6 @@ void do_effects_panels(unsigned short event)
 		while(eff) {
 			if(eff->flag & SELECT) {
 				if(eff->type==EFF_PARTICLE) build_particle_system(ob);
-				else if(eff->type==EFF_WAVE) freedisplist(&ob->disp);
 			}
 			eff= eff->next;
 		}

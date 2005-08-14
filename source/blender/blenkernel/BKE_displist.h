@@ -127,6 +127,8 @@ typedef struct DispList {
 	unsigned int *col1, *col2;
 	int charidx;
 	int pad;
+
+	unsigned int *bevelSplitFlag;
 } DispList;
 
 extern void copy_displist(struct ListBase *lbn, struct ListBase *lb);
@@ -135,12 +137,11 @@ extern DispList *find_displist_create(struct ListBase *lb, int type);
 extern DispList *find_displist(struct ListBase *lb, int type);
 extern void addnormalsDispList(struct Object *ob, struct ListBase *lb);
 extern void count_displist(struct ListBase *lb, int *totvert, int *totface);
-extern void curve_to_filledpoly(struct Curve *cu, struct ListBase *nurb, struct ListBase *dispbase);
 extern void freedisplist(struct ListBase *lb);
 extern int displist_has_faces(struct ListBase *lb);
-extern float calc_taper(struct Object *taperobj, int cur, int tot);
 extern void makeDispListMesh(struct Object *ob);
-extern void makeDispListCurveTypes(struct Object *ob);
+extern void makeDispListSurf(struct Object *ob, struct ListBase *dispbase, int forRender);
+extern void makeDispListCurveTypes(struct Object *ob, int forOrco);
 extern void makeDispListMBall(struct Object *ob);
 extern void shadeDispList(struct Object *ob);
 void freefastshade(void);

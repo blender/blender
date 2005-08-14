@@ -2439,19 +2439,12 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
  			Curve *cu= ob->data;
  			
  			lb= &cu->disp;
- 			if(lb->first==0) makeDispListCurveTypes(ob);
+ 			if(lb->first==0) makeDispListCurveTypes(ob, 0);
  
  			dl= lb->first;
  			if(dl==0)
  				return EXPP_ReturnPyObjError( PyExc_AttributeError, "Object does not have geometry data" );
  			
- 			/* rule: dl->type INDEX3 is always first in list */
- 			if(dl->type!=DL_INDEX3) {
- 				curve_to_filledpoly(ob->data, &cu->nurb, lb);
- 				
- 				dl= lb->first;
- 			}
- 
  			if(dl->nors==0) addnormalsDispList(ob, lb);
  
  			nmesh = new_NMesh_displist(lb, ob);
@@ -2460,7 +2453,7 @@ static PyObject *M_NMesh_GetRawFromObject( PyObject * self, PyObject * args )
  	case OB_SURF:
  	
  		lb= &((Curve *)ob->data)->disp;
- 		if(lb->first==0) makeDispListCurveTypes(ob);
+ 		if(lb->first==0) makeDispListCurveTypes(ob, 0);
  		
  		dl= lb->first;
  		if(dl==0)

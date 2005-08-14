@@ -383,9 +383,9 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	cu= ob->data;
 	mem= cu->str;
+	if (cu->str==0) return 0;
 	slen = strlen(mem);	
 
-	if (cu->str==0) return 0;
 	if (cu->strinfo==NULL) {	/* old file */
 		cu->strinfo = MEM_callocN((slen+1) * sizeof(CharInfo), "strinfo compat");
 	}
@@ -560,7 +560,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		oldflag= cucu->flag;
 		cucu->flag |= (CU_PATH+CU_FOLLOW);
 		
-		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve);
+		if(cucu->path==NULL) makeDispListCurveTypes(cu->textoncurve, 0);
 		if(cucu->path) {
 			
 

@@ -3468,7 +3468,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		ob= main->object.first;
 		while(ob) {
 			ob->ipoflag |= OB_OFFS_PARENT;
-			if(ob->dt==0) ob->dt= 3;
+			if(ob->dt==0) ob->dt= OB_SOLID;
 			ob= ob->id.next;
 		}
 

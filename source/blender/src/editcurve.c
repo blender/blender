@@ -3884,7 +3884,7 @@ void clear_tilt()
 		nu= nu->next;
 	}
 
-	makeBevelList(G.obedit);
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Clear tilt");
 	

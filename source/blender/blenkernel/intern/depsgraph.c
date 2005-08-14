@@ -1437,10 +1437,6 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 				case OB_MESH:
 					me= ob->data;
 					if(me->key) ob->recalc |= OB_RECALC_DATA;
-					else if(ob->effect.first) {
-						Effect *eff= ob->effect.first;
-						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
-					}
 					break;
 				case OB_CURVE:
 				case OB_SURF:

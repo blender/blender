@@ -133,8 +133,7 @@ typedef struct Curve {
 	struct Material **mat;
 	
 	ListBase bev;
-	float *orco;
-
+	
 	float loc[3];
 	float size[3];
 	float rot[3];

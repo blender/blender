@@ -631,13 +631,10 @@ void object_apply_deform(Object *ob)
 		if(cu->id.us>1) {
 			err= "Can't apply deformation to Curve with other users";
 		} else {
-			curve_modifier(ob, 's'); // start
-			curve_modifier(ob, 'a'); // apply and end
 			freedisplist(&ob->disp);
 		}
 	}
 
 	if(err) error(err);
-
 }
 

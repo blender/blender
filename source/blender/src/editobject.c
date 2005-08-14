@@ -171,8 +171,6 @@
 
 /* --------------------------------- */
 
-Base *dupfontbase;
-
 void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff */
 {
 	Object *ob;
@@ -1176,7 +1174,7 @@ void make_parent(void)
 			mode= PAROBJECT;
 			if((cu->flag & CU_PATH)==0) {
 				cu->flag |= CU_PATH|CU_FOLLOW;
-				makeDispListCurveTypes(par);  // force creation of path data
+				makeDispListCurveTypes(par, 0);  // force creation of path data
 			}
 			else cu->flag |= CU_FOLLOW;
 		}
@@ -1383,7 +1381,6 @@ void enter_editmode(void)
 	Mesh *me;
 	int ok= 0;
 	bArmature *arm;
-	Curve *cu;
 	
 	if(G.scene->id.lib) return;
 	base= BASACT;
@@ -1427,20 +1424,6 @@ void enter_editmode(void)
 		allqueue (REDRAWVIEW3D,0);
 	}
 	else if(ob->type==OB_FONT) {
-		cu= ob->data;
-		if ((cu->flag & CU_FAST)==0) { 
-			base->flag |= SELECT;
-			ob->flag |= SELECT;
-			G.qual |= LR_ALTKEY;	/* patch to make sure we get a linked duplicate */
-			adduplicate(1);
-			G.qual &= ~LR_ALTKEY;
-			dupfontbase = BASACT;
-			BASACT->flag &= ~SELECT;
-			BASACT->object->flag &= ~SELECT;
-			set_active_base(base);
-			base->flag |= SELECT;
-			base->object->flag |= SELECT;
-		}
 		G.obedit= ob;
 		ok= 1;
 		make_editText();
@@ -1478,7 +1461,6 @@ void enter_editmode(void)
 
 void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do undo buffer too */
 {
-	Base *oldbase;
 	Object *ob;
 
 	if(G.obedit==NULL) return;
@@ -1539,23 +1521,6 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		else sbObjectToSoftbody(ob, NULL);
 	}
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-
-	// evil HACK!
-	if ((ob->type == OB_FONT) && (freedata)) {
-		Curve *cu= ob->data;
-		if ((cu->flag & CU_FAST)==0) {
-			oldbase = BASACT;
-			BASACT->flag &= ~SELECT;
-			BASACT->object->flag &= ~SELECT;
-			set_active_base(dupfontbase);
-			BASACT->flag |= SELECT;
-			BASACT->object->flag |= SELECT;
-			delete_obj(1);
-			oldbase->flag |= SELECT;
-			oldbase->object->flag |= SELECT;
-			set_active_base(oldbase);
-		}
-	}
 
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
@@ -1900,7 +1865,7 @@ void split_font()
 		text_to_curve(OBACT, 0);	// pass 1: only one letter, adapt position
 		text_to_curve(OBACT, 0);	// pass 2: remake
 		freedisplist(&OBACT->disp);
-		makeDispListCurveTypes(OBACT);
+		makeDispListCurveTypes(OBACT, 0);
 		
 		OBACT->flag &= ~SELECT;
 		BASACT->flag &= ~SELECT;
@@ -2281,7 +2246,7 @@ void convertmenu(void)
 					cu= ob->data;
 					
 					dl= cu->disp.first;
-					if(dl==0) makeDispListCurveTypes(ob);		// force creation
+					if(dl==0) makeDispListCurveTypes(ob, 0);		// force creation
 
 					nurbs_to_mesh(ob); /* also does users */
 

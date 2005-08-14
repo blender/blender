@@ -282,7 +282,7 @@ void BLI_union_rctf(struct rctf *rcta, struct rctf *rctb);
 /* scanfill.c: used in displist only... */
 struct EditVert *BLI_addfillvert(float *vec);
 struct EditEdge *BLI_addfilledge(struct EditVert *v1, struct EditVert *v2);
-int BLI_edgefill(int mode);  /* DE HOOFD FILL ROUTINE */
+int BLI_edgefill(int mode, int mat_nr);
 void BLI_end_edgefill(void);
 
 /* noise.h: */
@@ -326,24 +326,6 @@ void BLI_setErrorCallBack(void (*f)(char*));
  * @attention used in creator.c
  */
 void BLI_setInterruptCallBack(int (*f)(void));
-
-/**
- * Before scanfilling is done, these two references need to be set. If
- * the object reference is NULL, the function will fail. If the object
- * is set, but no colour is available, colour can be omitted. 
- *
- * @attention Also see BLI_setScanFillColourRef
- */
-void BLI_setScanFillObjectRef(void* ob); 
-
-/**
- * Before scanfilling is done, these two references need to be set. If
- * the object reference is NULL, the function will fail. If the object
- * is set, but no colour is available, colour can be omitted. 
- *
- * @attention Also see BLI_setScanFillObjectRef
- */
-void BLI_setScanFillColourRef(char* c);
 
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);

@@ -1038,7 +1038,7 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	
 	cu= par->data;
 	if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file */
-		makeDispListCurveTypes(par);
+		makeDispListCurveTypes(par, 0);
 	if(cu->path==NULL) return;
 	
 	/* exception, timeoffset is regarded as distance offset */
@@ -1760,7 +1760,7 @@ void object_handle_update(Object *ob)
 				makeDispListMBall(ob);
 			} 
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-				makeDispListCurveTypes(ob);
+				makeDispListCurveTypes(ob, 0);
 			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this actually only happens for reading old files... */

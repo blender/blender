@@ -115,9 +115,6 @@
 #define FNT_PDRAW 1
 #define FNT_HAEBERLI 2
 
-/* isect and scanfill */
-#define COMPLIMIT	0.0003
-
 /* getbutton */
 
 /* do_global_buttons(event) */

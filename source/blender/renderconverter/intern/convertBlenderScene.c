@@ -124,8 +124,6 @@ static Material *give_render_material(Object *ob, int nr);
 
 
 /* blenderWorldManipulation.c */
-/*static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu);*/
-static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int plek, int cyclu, int cyclv);
 static int contrpuntnormr(float *n, float *puno);
 static void as_addvert(VertRen *v1, VlakRen *vlr);
 static void as_freevert(VertRen *ver);
@@ -339,96 +337,95 @@ static HaloRen *initstar(float *vec, float hasize)
 }
 
 
-
 /* ------------------------------------------------------------------------- */
+
+static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
+{
+	int vLen = vsize-1+(!!cyclv);
+	int uLen = usize-1+(!!cyclu);
+	int v;
+
+	for (v=0; v<vLen; v++) {
+		VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + v);
+		VertRen *vert = RE_findOrAddVert(R.totvert++);
+
+		if (cyclv) {
+			*vert = *vlr->v2;
+			vlr->v2 = vert;
+
+			if (v==vLen-1) {
+				VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + 0);
+				vlr->v1 = vert;
+			} else {
+				VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + v+1);
+				vlr->v1 = vert;
+			}
+		} else {
+			*vert = *vlr->v2;
+			vlr->v2 = vert;
+
+			if (v<vLen-1) {
+				VlakRen *vlr = RE_findOrAddVlak(startvlak + vLen*uIndex + v+1);
+				vlr->v1 = vert;
+			}
+
+			if (v==0) {
+				vert = RE_findOrAddVert(R.totvert++);
+				*vert = *vlr->v1;
+				vlr->v1 = vert;
+			} 
+		}
+	}
+}
 
 #if 0
-static void split_u_renderfaces(int startvlak, int startvert, int usize, int plek, int cyclu)
+static void DBG_show_shared_render_faces(int firstvert, int firstface)
 {
-	VlakRen *vlr;
-	VertRen *v1, *v2;
-	int a, v;
+	int i;
 
-	if(cyclu) cyclu= 1;
+	for (i=firstvert; i<R.totvert; i++) {
+		VertRen *ver = RE_findOrAddVert(i);
 
-	/* first give all involved vertices a pointer to the new one */
-	v= startvert+ plek*usize;
-	for(a=0; a<usize; a++) {
-		v2= RE_findOrAddVert(R.totvert++);
-		v1= RE_findOrAddVert(v++);
-		*v2= *v1;
-		v1->sticky= (float *)v2;
+		ver->n[0] = ver->n[1] = ver->n[2] = 0.0;
+		ver->sticky = 0;
 	}
 
-	/* check involved faces and replace pointers */
-	v= startvlak+plek*(usize-1+cyclu);
-	for(a=1-cyclu; a<usize; a++) {
-		vlr= RE_findOrAddVlak(v++);
-		vlr->v1= (VertRen *)(vlr->v1->sticky);
-		vlr->v2= (VertRen *)(vlr->v2->sticky);
-	}
+	for (i=firstface; i<R.totvlak; i++) {
+		VlakRen *vlr = RE_findOrAddVlak(i);
 
-}
-#endif 
+		if (vlr->v3) {
+			float cent[3];
 
-/* ------------------------------------------------------------------------- */
-
-static void split_v_renderfaces(int startvlak, int startvert, int usize, int vsize, int plek, int cyclu, int cyclv)
-{
-	VlakRen *vlr;
-	VertRen *v1=0;
-	int a, vlak, ofs;
-
-	if(vsize<2) return;
-
-	/* check involved faces and create doubles */
-	/* because (evt) split_u already has been done, you cannot work with vertex->sticky pointers */
-	/* because faces do not share vertices anymore */
-
-	if(plek+cyclu==usize) plek= -1;
-
-	vlak= startvlak+(plek+cyclu);
-	ofs= (usize-1+cyclu);
-
-	for(a=1; a<vsize; a++) {
-
-		vlr= RE_findOrAddVlak(vlak);
-		if (vlr->v1 == 0) return; /* OOPS, when not cyclic */
-
-		v1= RE_findOrAddVert(R.totvert++);
-		*v1= *(vlr->v1);
-
-		vlr->v1= v1;
-
-		/* vlr= findOrAddVlak(vlak+1); */
-		/* vlr->v1= v1; */
-
-		if(a>1) {
-			vlr= RE_findOrAddVlak(vlak-ofs);
-			if(vlr->v4->sticky) {
-				v1= RE_findOrAddVert(R.totvert++);
-				*v1= *(vlr->v4);
-				vlr->v4= v1;
+			if (vlr->v4) {
+				CalcCent4f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
+				VecAddf(vlr->v4->n, vlr->v4->n, cent);
+				vlr->v4->sticky = (float*) (((int) vlr->v4->sticky) + 1);
+			} else {
+				CalcCent3f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 			}
-			else vlr->v4= v1;
+
+			VecAddf(vlr->v1->n, vlr->v1->n, cent);
+			VecAddf(vlr->v2->n, vlr->v2->n, cent);
+			VecAddf(vlr->v3->n, vlr->v3->n, cent);
+
+			vlr->v1->sticky = (float*) (((int) vlr->v1->sticky) + 1);
+			vlr->v2->sticky = (float*) (((int) vlr->v2->sticky) + 1);
+			vlr->v3->sticky = (float*) (((int) vlr->v3->sticky) + 1);
 		}
-
-		if(a== vsize-1) {
-			if(cyclv) {
-				;
-			}
-			else {
-				vlr= RE_findOrAddVlak(vlak);
-				v1= RE_findOrAddVert(R.totvert++);
-				*v1= *(vlr->v4);
-				vlr->v4= v1;
-			}
-		}
-
-		vlak+= ofs;
 	}
 
+	for (i=firstvert; i<R.totvert; i++) {
+		VertRen *ver = RE_findOrAddVert(i);
+
+		VecMulf(ver->n, 1.f/(int) ver->sticky);
+
+		VecLerpf(ver->co, ver->co, ver->n, 0.3);
+		ver->sticky = 0;
+	}
+
+	calc_vertexnormals(firstvert, firstface);
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -1229,20 +1226,26 @@ static void init_render_mball(Object *ob)
 
 static GHash *g_orco_hash = NULL;
 
-static float *get_mesh_orco(Object *ob)
+static float *get_object_orco(Object *ob)
 {
-	Mesh *me = ob->data;
 	float *orco;
 
 	if (!g_orco_hash)
 		g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 
-	orco = BLI_ghash_lookup(g_orco_hash, me);
+	orco = BLI_ghash_lookup(g_orco_hash, ob);
 
 	if (!orco) {
-		orco = mesh_create_orco_render(ob);
+		if (ob->type==OB_MESH) {
+			orco = mesh_create_orco_render(ob);
+		} else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+			orco = make_orco_curve(ob);
+		} else if (ob->type==OB_SURF) {
+			orco = make_orco_surf(ob);
+		}
 
-		BLI_ghash_insert(g_orco_hash, me, orco);
+		if (orco)
+			BLI_ghash_insert(g_orco_hash, ob, orco);
 	}
 
 	return orco;
@@ -1305,10 +1308,7 @@ static void init_render_mesh(Object *ob)
 		}
 	}
 	
-	/* we do this before deform */
-	if(need_orco) {
-		orco = get_mesh_orco(ob);
-	}			
+	if(need_orco) orco = get_object_orco(ob);
 	
 	dm = mesh_create_derived_render(ob);
 	dlm = dm->convertToDispListMesh(dm, 1);
@@ -1767,8 +1767,8 @@ static void init_render_surf(Object *ob)
 	VertRen *ver, *v1, *v2, *v3, *v4;
 	VlakRen *vlr;
 	Material *matar[32];
-	float *data, *fp, *orco, n1[3], flen, mat[4][4];
-	int len, a, need_orco=0, startvlak, startvert, p1, p2, p3, p4;
+	float *data, *orco=NULL, *orcobase=NULL, n1[3], flen, mat[4][4];
+	int a, need_orco=0, startvlak, startvert, p1, p2, p3, p4;
 	int u, v;
 	int sizeu, sizev;
 	VlakRen *vlr1, *vlr2, *vlr3;
@@ -1793,55 +1793,10 @@ static void init_render_surf(Object *ob)
 
 	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	if(cu->orco==0 && need_orco) make_orco_surf(cu);
-	orco= cu->orco;
+	if(need_orco) orcobase= orco= get_object_orco(ob);
 
-	curve_modifier(ob, 's');
-
-	/* make a complete new displist, the base-displist can be different */
 	displist.first= displist.last= 0;
-	nu= cu->nurb.first;
-	while(nu) {
-		if(nu->pntsv>1) {
-			len= nu->resolu*nu->resolv;
-			/* makeNurbfaces wants zeros */
-
-			dl= MEM_callocN(sizeof(DispList)+len*3*sizeof(float), "makeDispList1");
-			dl->verts= MEM_callocN(len*3*sizeof(float), "makeDispList01");
-			BLI_addtail(&displist, dl);
-
-			dl->parts= nu->resolu;	/* switched order, makeNurbfaces works that way... */
-			dl->nr= nu->resolv;
-			dl->col= nu->mat_nr;
-			dl->rt= nu->flag;
-
-			data= dl->verts;
-			dl->type= DL_SURF;
-			/* if nurbs cyclic (u/v) set flags in displist accordingly */
-			if(nu->flagv & CU_CYCLIC) dl->flag |= DL_CYCL_U;	
-			if(nu->flagu & CU_CYCLIC) dl->flag |= DL_CYCL_V;
-
-			makeNurbfaces(nu, data, 0);
-		}
-		nu= nu->next;
-	}
-
-	if(ob->parent && ob->parent->type==OB_LATTICE) {
-		init_latt_deform(ob->parent, ob);
-		dl= displist.first;
-		while(dl) {
-
-			fp= dl->verts;
-			len= dl->nr*dl->parts;
-			for(a=0; a<len; a++, fp+=3)  calc_latt_deform(fp);
-
-			dl= dl->next;
-		}
-		end_latt_deform();
-	}
-	
-	/* note; deform will be included in modifier() later */
-	curve_modifier(ob, 'e');
+	makeDispListSurf(ob, &displist, 1);
 
 	dl= displist.first;
 	/* walk along displaylist and create rendervertices/-faces */
@@ -1875,7 +1830,7 @@ static void init_render_surf(Object *ob)
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
 					if(orco) {
-						ver->orco= cu->orco + 3*(u*sizev + 0);
+						ver->orco= orcobase + 3*(u*sizev + 0);
 					}
 				}	
 			}	
@@ -1891,7 +1846,7 @@ static void init_render_surf(Object *ob)
 					ver= RE_findOrAddVert(R.totvert++);
 					VECCOPY(ver->co, v1->co);
 					if(orco) {
-						ver->orco= cu->orco + 3*(0*sizev + v);
+						ver->orco= orcobase + 3*(0*sizev + v);
 					}
 				}
 			}
@@ -2011,20 +1966,15 @@ static void init_render_surf(Object *ob)
 static void init_render_curve(Object *ob)
 {
 	extern Material defmaterial;	// initrender.c
-	Lattice *lt=0;
 	Curve *cu;
 	VertRen *ver;
 	VlakRen *vlr;
-	ListBase dlbev;
-	Nurb *nu=0;
-	DispList *dlb, *dl;
-	BevList *bl;
-	BevPoint *bevp;
+	DispList *dl;
 	Material *matar[32];
-	float len, *data, *fp, *fp1, fac;
-	float n[3], vec[3], widfac, size[3], mat[4][4];
-	int nr, startvert, startvlak, a, b, p1, p2, p3, p4;
-	int totvert, frontside, need_orco=0, firststartvert, *index;
+	float len, *data, *fp, *orco=NULL;
+	float n[3], mat[4][4];
+	int nr, startvert, startvlak, a, b;
+	int frontside, need_orco=0;
 
 	cu= ob->data;
 	if(cu->nurb.first==NULL) return;
@@ -2032,17 +1982,9 @@ static void init_render_curve(Object *ob)
 	/* no modifier call here, is in makedisp */
 
 	/* test displist */
-	if(cu->disp.first==0) makeDispListCurveTypes(ob);
+	if(cu->disp.first==0) makeDispListCurveTypes(ob, 0);
 	dl= cu->disp.first;
 	if(cu->disp.first==0) return;
-	
-	if(dl->type!=DL_INDEX3) {
-		curve_to_filledpoly(cu, &cu->nurb, &cu->disp);
-	}
-
-	if(cu->bev.first==0) makeBevelList(ob);
-
-	firststartvert= R.totvert;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
@@ -2057,231 +1999,13 @@ static void init_render_curve(Object *ob)
 		}
 	}
 
-	/* bevelcurve in displist */
-	dlbev.first= dlbev.last= 0;
+	if(need_orco) orco= get_object_orco(ob);
 
-	if(cu->ext1!=0.0 || cu->ext2!=0.0 || cu->bevobj!=NULL) {
-		makebevelcurve(ob, &dlbev);
-	}
-
-	/* uv orcos? count amount of points and malloc */
-	if(need_orco && (cu->flag & CU_UV_ORCO)) {
-		if(cu->flag & CU_PATH);
-		else {
-			totvert= 0;
-			bl= cu->bev.first;
-			while(bl) {
-				dlb= dlbev.first;
-				while(dlb) {
-					totvert+= dlb->nr*bl->nr;
-					dlb= dlb->next;
-				}
-				bl= bl->next;
-			}
-
-			if(totvert) {
-				fp= cu->orco= MEM_mallocN(3*sizeof(float)*totvert, "cu->orco");
-	
-				bl= cu->bev.first;
-				while(bl) {
-					dlb= dlbev.first;
-					while(dlb) {
-						for(b=0; b<dlb->nr; b++) {
-							fac= (2.0*b/(float)(dlb->nr-1)) - 1.0;
-							for(a=0; a<bl->nr; a++, fp+=3) {
-								fp[0]= (2.0*a/(float)(bl->nr-1)) - 1.0;
-								fp[1]= fac;
-								fp[2]= 0.0;
-							}
-						}
-						dlb= dlb->next;
-					}
-					bl= bl->next;
-				}
-			}
-		}
-	}
-
-	if(ob->parent && ob->parent->type==OB_LATTICE) {
-		lt= ob->parent->data;
-		init_latt_deform(ob->parent, ob);
-		need_orco= 1;
-	}
-
-	/* do keypos? NOTE: watch it : orcos */
-
-	/* effect on text? */
-
-	/* boundboxclip still todo */
-
-	/* side faces of poly:  work with bevellist */
-	widfac= (cu->width-1.0);
-
-	bl= cu->bev.first;
-	nu= cu->nurb.first;
-	while(bl) {
-
-		if(dlbev.first) {    /* otherwise just a poly */
-
-			dlb= dlbev.first;   /* bevel loop */
-			while(dlb) {
-				data= MEM_mallocN(3*sizeof(float)*dlb->nr*bl->nr, "init_render_curve3");
-				fp= data;
-
-				/* for each point at bevelcurve do the entire poly */
-				fp1= dlb->verts;
-				b= dlb->nr;
-				while(b--) {
-
-					bevp= (BevPoint *)(bl+1);
-					for(a=0; a<bl->nr; a++) {
-						float fac;
-						
-						/* returns 1.0 if no taper, of course */
-						fac= calc_taper(cu->taperobj, a, bl->nr);
-
-						if(cu->flag & CU_3D) {
-							vec[0]= fp1[1]+widfac;
-							vec[1]= fp1[2];
-							vec[2]= 0.0;
-
-							MTC_Mat3MulVecfl(bevp->mat, vec);
-
-							fp[0]= bevp->x+ fac*vec[0];
-							fp[1]= bevp->y+ fac*vec[1];
-							fp[2]= bevp->z+ fac*vec[2];
-						}
-						else {
-
-							fp[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
-							fp[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
-							fp[2]= bevp->z+ fac*fp1[2];
-							/* do not MatMul here: polyfill should work uniform, independent which frame */
-						}
-						fp+= 3;
-						bevp++;
-					}
-					fp1+=3;
-				}
-
-				/* make render vertices */
-				fp= data;
-				startvert= R.totvert;
-				nr= dlb->nr*bl->nr;
-
-				while(nr--) {
-					ver= RE_findOrAddVert(R.totvert++);
-					
-					if(lt) calc_latt_deform(fp);
-					
-					VECCOPY(ver->co, fp);
-					MTC_Mat4MulVecfl(mat, ver->co);
-					fp+= 3;
-				}
-
-				startvlak= R.totvlak;
-
-				for(a=0; a<dlb->nr; a++) {
-
-					frontside= (a >= dlb->nr/2);
-
-					DL_SURFINDEX(bl->poly>0, dlb->type==DL_POLY, bl->nr, dlb->nr);
-					p1+= startvert;
-					p2+= startvert;
-					p3+= startvert;
-					p4+= startvert;
-
-					for(; b<bl->nr; b++) {
-
-						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->ob= vlr_set_ob(ob);
-						vlr->v1= RE_findOrAddVert(p2);
-						vlr->v2= RE_findOrAddVert(p1);
-						vlr->v3= RE_findOrAddVert(p3);
-						vlr->v4= RE_findOrAddVert(p4);
-						vlr->ec= ME_V2V3+ME_V3V4;
-						if(a==0) vlr->ec+= ME_V1V2;
-
-						vlr->flag= nu->flag;
-						vlr->lay= ob->lay;
-
-						/* this is not really scientific: the vertices
-						 * 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-						 * front and backside treated different!!
-						 */
-
-						if(frontside)
-							CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
-						else 
-							CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-
-						vlr->mat= matar[ nu->mat_nr ];
-
-						p4= p3;
-						p3++;
-						p2= p1;
-						p1++;
-
-					}
-
-				}
-
-				/* here was split_u before, for split off standard bevels, not needed anymore */
-				/* but it could check on the bevel-curve BevPoints for u-split though... */
-				
-				/* make double points: SPLIT BEVELS */
-				bevp= (BevPoint *)(bl+1);
-				for(a=0; a<bl->nr; a++) {
-					if(bevp->f1)
-						split_v_renderfaces(startvlak, startvert, bl->nr, dlb->nr, a, bl->poly>0,
-						    dlb->type==DL_POLY);
-					bevp++;
-				}
-
-				/* vertex normals */
-				for(a= startvlak; a<R.totvlak; a++) {
-					vlr= RE_findOrAddVlak(a);
-
-					VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
-					VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
-					VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
-					VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
-				}
-				for(a=startvert; a<R.totvert; a++) {
-					ver= RE_findOrAddVert(a);
-					len= Normalise(ver->n);
-					if(len==0.0) ver->sticky= (float *)1;
-					else ver->sticky= 0;
-				}
-				for(a= startvlak; a<R.totvlak; a++) {
-					vlr= RE_findOrAddVlak(a);
-					if(vlr->v1->sticky) VECCOPY(vlr->v1->n, vlr->n);
-					if(vlr->v2->sticky) VECCOPY(vlr->v2->n, vlr->n);
-					if(vlr->v3->sticky) VECCOPY(vlr->v3->n, vlr->n);
-					if(vlr->v4->sticky) VECCOPY(vlr->v4->n, vlr->n);
-				}
-
-				dlb= dlb->next;
-
-				MEM_freeN(data);
-			}
-
-		}
-		bl= bl->next;
-		nu= nu->next;
-	}
-
-	if(dlbev.first) {
-		freedisplist(&dlbev);
-	}
-
-	if(cu->flag & CU_PATH) return;
-
-	/* from displist the filled faces can be extracted */
 	dl= cu->disp.first;
-
 	while(dl) {
 		if(dl->type==DL_INDEX3) {
+			int *index;
+
 			startvert= R.totvert;
 			data= dl->verts;
 
@@ -2294,12 +2018,20 @@ static void init_render_curve(Object *ob)
 			for(a=0; a<dl->nr; a++, data+=3) {
 				ver= RE_findOrAddVert(R.totvert++);
 				VECCOPY(ver->co, data);
+				MTC_Mat4MulVecfl(mat, ver->co);
 
 				if(ver->co[2] < 0.0) {
 					VECCOPY(ver->n, n);
+					ver->sticky = (float*) 1;
 				}
 				else {
 					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
+					ver->sticky = (float*) 0;
+				}
+
+				if (orco) {
+					ver->orco = orco;
+					orco += 3;
 				}
 			}
 
@@ -2314,7 +2046,7 @@ static void init_render_curve(Object *ob)
 				vlr->v3= RE_findOrAddVert(startvert+index[2]);
 				vlr->v4= NULL;
 				
-				if(vlr->v1->co[2] < 0.0) {
+				if(vlr->v1->sticky) {
 					VECCOPY(vlr->n, n);
 				}
 				else {
@@ -2329,50 +2061,103 @@ static void init_render_curve(Object *ob)
 				vlr->ec= 0;
 				vlr->lay= ob->lay;
 			}
-			/* rotate verts */
-			for(a=0; a<dl->nr; a++) {
-				ver= RE_findOrAddVert(startvert+a);
+		}
+		else if (dl->type==DL_SURF) {
+			int p1,p2,p3,p4;
+			float *surforco = orco;
+
+			fp= dl->verts;
+			startvert= R.totvert;
+			nr= dl->nr*dl->parts;
+
+			while(nr--) {
+				ver= RE_findOrAddVert(R.totvert++);
+					
+				VECCOPY(ver->co, fp);
 				MTC_Mat4MulVecfl(mat, ver->co);
+				fp+= 3;
+
+				if (orco) {
+					ver->orco = orco;
+					orco += 3;
+				}
 			}
-			
+
+			startvlak= R.totvlak;
+
+			for(a=0; a<dl->parts; a++) {
+
+				frontside= (a >= dl->nr/2);
+
+				DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+				p1+= startvert;
+				p2+= startvert;
+				p3+= startvert;
+				p4+= startvert;
+
+				for(; b<dl->nr; b++) {
+					vlr= RE_findOrAddVlak(R.totvlak++);
+					vlr->ob= vlr_set_ob(ob);
+					vlr->v1= RE_findOrAddVert(p2);
+					vlr->v2= RE_findOrAddVert(p1);
+					vlr->v3= RE_findOrAddVert(p3);
+					vlr->v4= RE_findOrAddVert(p4);
+					vlr->ec= ME_V2V3+ME_V3V4;
+					if(a==0) vlr->ec+= ME_V1V2;
+
+					vlr->flag= dl->rt;
+					vlr->lay= ob->lay;
+
+					/* this is not really scientific: the vertices
+						* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+						* front and backside treated different!!
+						*/
+
+					if(frontside)
+						CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
+					else 
+						CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+
+					vlr->mat= matar[ dl->col ];
+
+					p4= p3;
+					p3++;
+					p2= p1;
+					p1++;
+				}
+			}
+
+			if (dl->bevelSplitFlag) {
+				for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
+					if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
+						split_v_renderfaces(startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+			}
+
+			/* vertex normals */
+			for(a= startvlak; a<R.totvlak; a++) {
+				vlr= RE_findOrAddVlak(a);
+
+				VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
+				VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
+				VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
+				VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
+			}
+			for(a=startvert; a<R.totvert; a++) {
+				ver= RE_findOrAddVert(a);
+				len= Normalise(ver->n);
+				if(len==0.0) ver->sticky= (float *)1;
+				else ver->sticky= 0;
+			}
+			for(a= startvlak; a<R.totvlak; a++) {
+				vlr= RE_findOrAddVlak(a);
+				if(vlr->v1->sticky) VECCOPY(vlr->v1->n, vlr->n);
+				if(vlr->v2->sticky) VECCOPY(vlr->v2->n, vlr->n);
+				if(vlr->v3->sticky) VECCOPY(vlr->v3->n, vlr->n);
+				if(vlr->v4->sticky) VECCOPY(vlr->v4->n, vlr->n);
+			}
 		}
+
 		dl= dl->next;
-	}
-
-	if(lt) {
-		end_latt_deform();
-	}
-
-	if(need_orco) {	/* the stupid way: should be replaced; taking account for keys! */
-
-		VECCOPY(size, cu->size);
-
-		nr= R.totvert-firststartvert;
-		if(nr) {
-			if(cu->orco) {
-				fp= cu->orco;
-				while(nr--) {
-					ver= RE_findOrAddVert(firststartvert++);
-					ver->orco= fp;
-					fp+= 3;
-				}
-			}
-			else {
-				fp= cu->orco= MEM_mallocN(sizeof(float)*3*nr, "cu orco");
-				while(nr--) {
-					ver= RE_findOrAddVert(firststartvert++);
-					ver->orco= fp;
-
-					VECCOPY(fp, ver->co);
-					MTC_Mat4MulVecfl(ob->imat, fp);
-
-					fp[0]= (fp[0]-cu->loc[0])/size[0];
-					fp[1]= (fp[1]-cu->loc[1])/size[1];
-					fp[2]= (fp[2]-cu->loc[2])/size[2];
-					fp+= 3;
-				}
-			}
-		}
 	}
 }
 
@@ -2520,15 +2305,7 @@ void RE_freeRotateBlenderScene(void)
 	/* free orco. check all objects because of duplis and sets */
 	ob= G.main->object.first;
 	while(ob) {
-
-		if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
-			Curve *cu= ob->data;
-			if(cu->orco) {
-				MEM_freeN(cu->orco);
-				cu->orco= 0;
-			}
-		}
-		else if(ob->type==OB_MBALL) {
+		if(ob->type==OB_MBALL) {
 			if(ob->disp.first && ob->disp.first!=ob->disp.last) {
 				DispList *dl= ob->disp.first;
 				BLI_remlink(&ob->disp, dl);
@@ -2810,7 +2587,7 @@ void RE_rotateBlenderScene(void)
 								cu= obd->data;
 								if(cu->disp.first==NULL) {
 									obd->flag &= ~OB_FROMDUPLI;
-									makeDispListCurveTypes(obd);
+									makeDispListCurveTypes(obd, 0);
 									obd->flag |= OB_FROMDUPLI;
 								}
 							}

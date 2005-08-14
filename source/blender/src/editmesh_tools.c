@@ -1071,13 +1071,7 @@ void fill_mesh(void)
 		}
 	}
 
-	/* to make edgefill work */
-	BLI_setScanFillObjectRef(G.obedit);
-	BLI_setScanFillColourRef(&G.obedit->actcol);
-
-	ok= BLI_edgefill(0);
-
-	if(ok) {
+	if(BLI_edgefill(0, (G.obedit && G.obedit->actcol)?(G.obedit->actcol-1):0)) {
 		efa= fillfacebase.first;
 		while(efa) {
 			efan= addfacelist(efa->v3->vn, efa->v2->vn, efa->v1->vn, 0, NULL, NULL); // normals default pointing up

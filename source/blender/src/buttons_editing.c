@@ -388,7 +388,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							else nu->flag &= ~ME_SMOOTH;
 							nu= nu->next;
 						}
-						makeDispListCurveTypes(base->object);
+						makeDispListCurveTypes(base->object, 0);
 					}
 				}
 				base= base->next;
@@ -1210,9 +1210,8 @@ void do_fontbuts(unsigned short event)
 		
 	case B_FASTFONT:
 		if (G.obedit) {
-			cu= G.obedit->data;
-			cu->flag ^= CU_FAST;
-			error("Not in editmode!");
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 	case B_INSTB:
@@ -1225,7 +1224,7 @@ void do_fontbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			text_to_curve(ob, 0);
-			makeDispListCurveTypes(ob);
+			makeDispListCurveTypes(ob, 0);
 		}
 		else {
 			error("Do you really need that many text frames?");
@@ -1240,7 +1239,7 @@ void do_fontbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
 			text_to_curve(ob, 0);
-			makeDispListCurveTypes(ob);			
+			makeDispListCurveTypes(ob, 0);
 		}
 		break;
 	case B_TOUPPER:
@@ -1721,9 +1720,9 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "Make interpolated result thinner or fatter");
-		uiDefButF(block, NUM, B_MAKEDISP, "Ext1:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "Extrude depth");
-		uiDefButF(block, NUM, B_MAKEDISP, "Ext2:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "Extrude beveling depth");
-		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "Amount of bevels");
+		uiDefButF(block, NUM, B_MAKEDISP, "Extrude:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "Curve extrusion size when not using a bevel object");
+		uiDefButF(block, NUM, B_MAKEDISP, "Bevel Depth:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "Bevel depth when not using a bevel object");
+		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "Bevel resolution when depth is non-zero and not using a bevel object");
 		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
 		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
 
@@ -1732,10 +1731,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButBitS(block, TOG, CU_BACK, B_MAKEDISP, "Back",	760,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled back for curves");
 		uiDefButBitS(block, TOG, CU_FRONT, B_MAKEDISP, "Front",810,130,50,19, &cu->flag, 0, 0, 0, 0, "Draw filled front for curves");
 		uiDefButBitS(block, TOG, CU_3D, B_CU3D, "3D",		860,130,50,19, &cu->flag, 0, 0, 0, 0, "Allow Curve Object to be 3d, it doesn't fill then");
-
-
 	}
-
 }
 
 

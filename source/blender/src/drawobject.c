@@ -74,7 +74,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
-#include "BKE_deform.h"		// lattice_modifier()
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -82,6 +81,7 @@
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_material.h"
@@ -876,7 +876,7 @@ static void drawlattice(Object *ob)
 		cpack(0x004000);
 	}
 	else {
-		lattice_modifier(ob, 's');
+		do_latt_key(lt);
 		bp= lt->def;
 	}
 	
@@ -963,8 +963,6 @@ static void drawlattice(Object *ob)
 		
 		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
 	}
-	else lattice_modifier(ob, 'e');
-
 }
 
 /* ***************** ******************** */
@@ -2325,21 +2323,12 @@ static void drawDispList(Object *ob, int dt)
 		cu= ob->data;
 		
 		lb= &cu->disp;
-		if(lb->first==0) makeDispListCurveTypes(ob);
 		
 		if(solid) {
 			dl= lb->first;
 			if(dl==0) return;
 			
-			/* rule: dl->type INDEX3 is always first in list */
-			if(dl->type!=DL_INDEX3) {
-				if(ob==G.obedit) curve_to_filledpoly(ob->data, &editNurb, lb);
-				else curve_to_filledpoly(ob->data, &cu->nurb, lb);
-				
-				dl= lb->first;
-			}
 			if(dl->nors==0) addnormalsDispList(ob, lb);
-			
 			index3_nors_incr= 0;
 			
 			if( displist_has_faces(lb)==0) {
@@ -2375,7 +2364,6 @@ static void drawDispList(Object *ob, int dt)
 	case OB_SURF:
 	
 		lb= &((Curve *)ob->data)->disp;
-		if(lb->first==0) makeDispListCurveTypes(ob);
 		
 		if(solid) {
 			dl= lb->first;
@@ -2738,85 +2726,57 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 
 static void drawnurb(Object *ob, Nurb *nurb, int dt)
 {
-	Curve *cu;
+	Curve *cu = ob->data;
 	Nurb *nu;
-	BevPoint *bevp;
 	BevList *bl;
-	float vec[3];
-	int a, nr, skip;
 
 	/* first non-selected handles */
-	nu= nurb;
-	while(nu) {
+	for(nu=nurb; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			tekenhandlesN(nu, 0);
 		}
-		nu= nu->next;
 	}
 	
 	/* then DispList */
 	
 	BIF_ThemeColor(TH_WIRE);
-	cu= ob->data;
 	drawDispList(ob, dt);
 
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
 
 	if(cu->flag & CU_3D) {
-	
-		if(cu->bev.first==0) makeBevelList(ob);
-		
 		BIF_ThemeColor(TH_WIRE);
-		bl= cu->bev.first;
-		nu= nurb;
-		while(nu && bl) {
-			bevp= (BevPoint *)(bl+1);		
-			nr= bl->nr;
+		glBegin(GL_LINES);
+		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
+			BevPoint *bevp= (BevPoint *)(&bl+1);		
+			int nr= bl->nr;
+			int skip= nu->resolu/16;
 			
-			skip= nu->resolu/16;
-			
-			while(nr-- > 0) {
-				
-				glBegin(GL_LINE_STRIP);
-				vec[0]= bevp->x-G.scene->editbutsize*bevp->mat[0][0];
-				vec[1]= bevp->y-G.scene->editbutsize*bevp->mat[0][1];
-				vec[2]= bevp->z-G.scene->editbutsize*bevp->mat[0][2];
-				glVertex3fv(vec);
-				vec[0]= bevp->x+G.scene->editbutsize*bevp->mat[0][0];
-				vec[1]= bevp->y+G.scene->editbutsize*bevp->mat[0][1];
-				vec[2]= bevp->z+G.scene->editbutsize*bevp->mat[0][2];
-				glVertex3fv(vec);
+			while (nr-->0) {
+				float ox = G.scene->editbutsize*bevp->mat[0][0];
+				float oy = G.scene->editbutsize*bevp->mat[0][1];
+				float oz = G.scene->editbutsize*bevp->mat[0][2];
 
-				glEnd();
+				glVertex3f(bevp->x - ox, bevp->y - oy, bevp->z - oz);
+				glVertex3f(bevp->x + ox, bevp->y + oy, bevp->z + oz);
 				
-				bevp++;
-				
-				a= skip;
-				while(a--) {
-					bevp++;
-					nr--;
-				}
+				bevp += skip+1;
+				nr -= skip;
 			}
-
-			bl= bl->next;
-			nu= nu->next;
 		}
+		glEnd();
 	}
 
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
-	nu= nurb;
-	while(nu) {
+	for(nu=nurb; nu; nu=nu->next) {
 		if((nu->type & 7)==1) tekenhandlesN(nu, 1);
 		tekenvertsN(nu, 0);
-		nu= nu->next;
 	}
 
-	nu= nurb;
-	while(nu) {
+	for(nu=nurb; nu; nu=nu->next) {
 		tekenvertsN(nu, 1);
-		nu= nu->next;
 	}
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
@@ -3272,10 +3232,6 @@ static void draw_bounding_volume(Object *ob)
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
-		if(bb==0) {
-			makeDispListCurveTypes(ob);
-			bb= ( (Curve *)ob->data )->bb;
-		}
 	}
 	else if(ob->type==OB_MBALL) {
 		bb= ob->bb;
@@ -3620,6 +3576,7 @@ void draw_object(Base *base)
 		break;
 	case OB_FONT:
 		cu= ob->data;
+		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 		if(ob==G.obedit) {
 			tekentextcurs();
 
@@ -3628,6 +3585,8 @@ void draw_object(Base *base)
 				set_inverted_drawing(1);
 				drawDispList(ob, OB_WIRE);
 				set_inverted_drawing(0);
+			} else {
+				drawDispList(ob, dt);
 			}
 
 			if (cu->linewidth != 0.0) {
@@ -3703,6 +3662,7 @@ void draw_object(Base *base)
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
+		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 		
 		if(ob==G.obedit) {
 			drawnurb(ob, editNurb.first, dt);
