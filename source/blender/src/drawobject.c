@@ -791,7 +791,7 @@ static void tekenvertslatt(short sel)
 	Lattice *lt;
 	BPoint *bp;
 	float size;
-	int a, uxt, u, vxt, v, wxt, w;
+	int a, u, v, w;
 
 	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(size);
@@ -807,12 +807,11 @@ static void tekenvertslatt(short sel)
 	if(lt->flag & LT_OUTSIDE) {
 		
 		for(w=0; w<lt->pntsw; w++) {
-			if(w==0 || w==lt->pntsw-1) wxt= 1; else wxt= 0;
+			int wxt = (w==0 || w==lt->pntsw-1);
 			for(v=0; v<lt->pntsv; v++) {
-				if(v==0 || v==lt->pntsv-1) vxt= 1; else vxt= 0;
-				
+				int vxt = (v==0 || v==lt->pntsv-1);
 				for(u=0; u<lt->pntsu; u++, bp++) {
-					if(u==0 || u==lt->pntsu-1) uxt= 1; else uxt= 0;
+					int uxt = (u==0 || u==lt->pntsu-1);
 					if(uxt || vxt || wxt) {
 						if(bp->hide==0) {
 							if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
@@ -843,23 +842,16 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	float mat[4][4];
 	short s[2];
 
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
+	view3d_get_object_project_mat(curarea, G.obedit, mat);
 
 	for (i=0; i<N; i++) {
 		BPoint *bp = &editLatt->def[i];
 
 		if (bp->hide==0) {
-			project_short(bp->vec, s);
+			view3d_project_short(curarea, bp->vec, s, mat);
 			func(userData, bp, s[0], s[1]);
 		}
 	}
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	myloadmatrix(G.vd->viewmat);
 }
 
 
@@ -969,14 +961,14 @@ static void drawlattice(Object *ob)
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; } *data = userData;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
 	short s[2];
 
 	if (eve->h==0) {
 		if (data->clipVerts) {
-			project_short(co, s);
+			view3d_project_short(curarea, co, s, data->mat);
 		} else {
-			project_short_noclip(co, s);
+			view3d_project_short_noclip(curarea, co, s, data->mat);
 		}
 
 		data->func(data->userData, eve, s[0], s[1], (int) eve->prev);
@@ -984,10 +976,9 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, EditVert *eve, float
 }
 void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; } data;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	float mat[4][4];
 	EditVert *eve, *preveve;
 	int index;
 
@@ -995,11 +986,7 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
 	for (index=0,eve=G.editMesh->verts.first; eve; index++,eve= eve->next)
 		eve->prev = (EditVert*) index;
@@ -1009,9 +996,6 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
 		eve->prev = preveve;
 
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	myloadmatrix(G.vd->viewmat);
-
 	if (dmNeedsFree) {
 		dm->release(dm);
 	}
@@ -1019,16 +1003,16 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, EditEdge *eed, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; } *data = userData;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
 	short s[2][2];
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			project_short(v0co, s[0]);
-			project_short(v1co, s[1]);
+			view3d_project_short(curarea, v0co, s[0], data->mat);
+			view3d_project_short(curarea, v1co, s[1], data->mat);
 		} else {
-			project_short_noclip(v0co, s[0]);
-			project_short_noclip(v1co, s[1]);
+			view3d_project_short_noclip(curarea, v0co, s[0], data->mat);
+			view3d_project_short_noclip(curarea, v1co, s[1], data->mat);
 
 			if (data->clipVerts==2) {
                 if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<curarea->winx && s[0][1]<curarea->winy)) 
@@ -1042,10 +1026,9 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, EditEdge *eed, float
 }
 void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; } data;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	float mat[4][4];
 	EditEdge *eed, *preveed;
 	int index;
 
@@ -1053,11 +1036,7 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
 	for (index=0,eed=G.editMesh->edges.first; eed; index++,eed= eed->next)
 		eed->prev = (EditEdge*) index;
@@ -1067,9 +1046,6 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 	for (preveed=NULL, eed=G.editMesh->edges.first; eed; preveed=eed, eed= eed->next)
 		eed->prev = preveed;
 
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	myloadmatrix(G.vd->viewmat);
-
 	if (dmNeedsFree) {
 		dm->release(dm);
 	}
@@ -1077,32 +1053,27 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; } *data = userData;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } *data = userData;
 	short s[2];
 
 	if (efa && efa->fgonf!=EM_FGON) {
-		project_short(cent, s);
+		view3d_project_short(curarea, cent, s, data->mat);
 
 		data->func(data->userData, efa, s[0], s[1], (int) efa->prev);
 	}
 }
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; } data;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	float mat[4][4];
 	EditFace *efa, *prevefa;
 	int index = 0;
 
 	data.func = func;
 	data.userData = userData;
 
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
 	for (index=0,efa=G.editMesh->faces.first; efa; index++,efa= efa->next)
 		efa->prev = (EditFace*) index;
@@ -1111,9 +1082,6 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 
 	for (prevefa=NULL, efa=G.editMesh->faces.first; efa; prevefa=efa, efa= efa->next)
 		efa->prev = prevefa;
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	myloadmatrix(G.vd->viewmat);
 
 	if (dmNeedsFree) {
 		dm->release(dm);
@@ -1127,11 +1095,7 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 	Nurb *nu;
 	int i;
 
-	areawinset(curarea->win);
-	persp(PERSP_VIEW);
-	mymultmatrix(G.obedit->obmat);
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	mygetsingmatrix(G.vd->persmat);
+	view3d_get_object_project_mat(curarea, G.obedit, mat);
 
 	for (nu= editNurb.first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1139,11 +1103,11 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					project_short(bezt->vec[0], s);
+					view3d_project_short(curarea, bezt->vec[0], s, mat);
 					func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-					project_short(bezt->vec[1], s);
+					view3d_project_short(curarea, bezt->vec[1], s, mat);
 					func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-					project_short(bezt->vec[2], s);
+					view3d_project_short(curarea, bezt->vec[2], s, mat);
 					func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 				}
 			}
@@ -1153,15 +1117,12 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					project_short(bp->vec, s);
+					view3d_project_short(curarea, bp->vec, s, mat);
 					func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
 		}
 	}
-
-	MTC_Mat4SwapMat4(G.vd->persmat, mat);
-	myloadmatrix(G.vd->viewmat);
 }
 
 ////

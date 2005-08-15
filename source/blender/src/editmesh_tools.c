@@ -4290,13 +4290,13 @@ int EdgeSlide(short immediate, float imperc)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	SlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist;
+	float perc = 0, percp = 0,vertdist, projectMat[4][4];
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
 	
-	
+	view3d_get_object_project_mat(curarea, G.obedit, projectMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
 	numsel =0;  
@@ -4550,17 +4550,18 @@ int EdgeSlide(short immediate, float imperc)
 				BLI_linklist_free(edgelist,NULL); 
 				return 0;
 			}
-			if(!sharesFace(tempsv->up,sv->up)){
-				EditEdge *swap;
-				swap = sv->up;
-				sv->up = sv->down;
-				sv->down = swap; 
-			}
 
 			if(sv) {
 				float tempdist, co[2];
 
-				project_float(sv->origvert.co, co);
+				if(!sharesFace(tempsv->up,sv->up)){
+					EditEdge *swap;
+					swap = sv->up;
+					sv->up = sv->down;
+					sv->down = swap; 
+				}
+
+				view3d_project_float(curarea, tempsv->origvert.co, co, projectMat);
 				
 				tempdist = sqrt(pow(co[0] - mval[0],2)+pow(co[1]  - mval[1],2));
 
@@ -4583,7 +4584,7 @@ int EdgeSlide(short immediate, float imperc)
 		 /* For the % calculation */   
 		short mval[2];   
 		float labda, rc[2], len;   
-		float v1[2], v2[2], v3[2];
+		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
 
 		getmouseco_areawin(mval);  
@@ -4617,17 +4618,9 @@ int EdgeSlide(short immediate, float imperc)
 			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
 
-			getmouseco_areawin(mval);   
-			v1[0]=(float)mval[0];   
-			v1[1]=(float)mval[1];   
-
 			centerVert = editedge_getSharedVert(tempsv->up, tempsv->down);
 			upVert = editedge_getOtherVert(tempsv->up, centerVert);
 			downVert = editedge_getOtherVert(tempsv->down, centerVert);
-
-			project_float(upVert->co, v2);
-			project_float(downVert->co, v3);	
-
 			 // Highlight the Control Edges
 	
 			scrarea_do_windraw(curarea);   
@@ -4641,19 +4634,22 @@ int EdgeSlide(short immediate, float imperc)
 			glVertex3fv(downVert->co);
 			glEnd(); 
 			glPopMatrix();		 
-		 
+
+			view3d_project_float(curarea, upVert->co, v2, projectMat);
+			view3d_project_float(curarea, downVert->co, v3, projectMat);
+
 			/* Determine the % on which the loop should be cut */   
 
-			 rc[0]= v3[0]-v2[0];   
-			 rc[1]= v3[1]-v2[1];   
-			 len= rc[0]*rc[0]+ rc[1]*rc[1];   
-			 if (len==0) {len = 0.0001;}
-			 labda= ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;   
+			rc[0]= v3[0]-v2[0];   
+			rc[1]= v3[1]-v2[1];   
+			len= rc[0]*rc[0]+ rc[1]*rc[1];
+			if (len==0) {len = 0.0001;}
+			labda= ( rc[0]*(mval[0]-v2[0]) + rc[1]*(mval[1]-v2[1]) )/len;   
 
-			 if(labda<=0.0) labda=0.0;   
-			 else if(labda>=1.0)labda=1.0;   
+			if(labda<=0.0) labda=0.0;   
+			else if(labda>=1.0)labda=1.0;   
 
-			 perc=((1-labda)*2)-1;		  
+			perc=((1-labda)*2)-1;		  
 			
 			if(G.qual == 0){
 				perc *= 100;

@@ -684,7 +684,7 @@ void KnifeSubdivide(char mode)
 
 /* seg_intersect() Determines if and where a mouse trail intersects an EditEdge */
 
-short seg_intersect(EditEdge *e, CutCurve *c, int len)
+static short seg_intersect(EditEdge *e, CutCurve *c, int len)
 {
 #define MAXSLOPE 100000
 	float  x11, y11, x12=0, y12=0, x2max, x2min, y2max;

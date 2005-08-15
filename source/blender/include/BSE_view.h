@@ -46,6 +46,11 @@ struct ScrArea;
 void persp_general(int a);
 void persp(int a);
 
+void view3d_get_object_project_mat(struct ScrArea *area, struct Object *ob, float mat[4][4]);
+void view3d_project_float(struct ScrArea *area, float *vec, float *adr, float mat[4][4]);
+void view3d_project_short(struct ScrArea *area, float *vec, short *adr, float mat[4][4]);
+void view3d_project_short_noclip(struct ScrArea *area, float *vec, short *adr, float mat[4][4]);
+
 void initgrabz(float x, float y, float z);
 void window_to_3d(float *vec, short mx, short my);
 void project_short(float *vec, short *adr);

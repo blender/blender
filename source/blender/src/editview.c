@@ -807,42 +807,39 @@ void mouse_cursor(void)
 	if(gesture()) return;
 	
 	getmouseco_areawin(mval);
+
+	mx= mval[0];
+	my= mval[1];
 	
-	if(mval[0]!=G.vd->mx || mval[1]!=G.vd->my) {
+	fp= give_cursor();
+	
+	if(G.obedit && ((G.qual & LR_CTRLKEY) || get_mbut()&R_MOUSE )) lr_click= 1;
+	VECCOPY(oldcurs, fp);
+	
+	project_short_noclip(fp, mval);
 
-		mx= mval[0];
-		my= mval[1];
+	initgrabz(fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=3200) {
 		
-		fp= give_cursor();
+		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
 		
-		if(G.obedit && ((G.qual & LR_CTRLKEY) || get_mbut()&R_MOUSE )) lr_click= 1;
-		VECCOPY(oldcurs, fp);
-		
-		project_short_noclip(fp, mval);
-
-		initgrabz(fp[0], fp[1], fp[2]);
-		
-		if(mval[0]!=3200) {
-			
-			window_to_3d(dvec, mval[0]-mx, mval[1]-my);
-			VecSubf(fp, fp, dvec);
-			
-		}
-		else {
-
-			dx= ((float)(mx-(curarea->winx/2)))*zfac/(curarea->winx/2);
-			dy= ((float)(my-(curarea->winy/2)))*zfac/(curarea->winy/2);
-			
-			fz= G.vd->persmat[0][3]*fp[0]+ G.vd->persmat[1][3]*fp[1]+ G.vd->persmat[2][3]*fp[2]+ G.vd->persmat[3][3];
-			fz= fz/zfac;
-			
-			fp[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy+ G.vd->persinv[2][0]*fz)-G.vd->ofs[0];
-			fp[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy+ G.vd->persinv[2][1]*fz)-G.vd->ofs[1];
-			fp[2]= (G.vd->persinv[0][2]*dx + G.vd->persinv[1][2]*dy+ G.vd->persinv[2][2]*fz)-G.vd->ofs[2];
-		}
-		
-		allqueue(REDRAWVIEW3D, 1);
 	}
+	else {
+
+		dx= ((float)(mx-(curarea->winx/2)))*zfac/(curarea->winx/2);
+		dy= ((float)(my-(curarea->winy/2)))*zfac/(curarea->winy/2);
+		
+		fz= G.vd->persmat[0][3]*fp[0]+ G.vd->persmat[1][3]*fp[1]+ G.vd->persmat[2][3]*fp[2]+ G.vd->persmat[3][3];
+		fz= fz/zfac;
+		
+		fp[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy+ G.vd->persinv[2][0]*fz)-G.vd->ofs[0];
+		fp[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy+ G.vd->persinv[2][1]*fz)-G.vd->ofs[1];
+		fp[2]= (G.vd->persinv[0][2]*dx + G.vd->persinv[1][2]*dy+ G.vd->persinv[2][2]*fz)-G.vd->ofs[2];
+	}
+	
+	allqueue(REDRAWVIEW3D, 1);
 	
 	if(lr_click) {
 		if(G.obedit->type==OB_MESH) addvert_mesh();

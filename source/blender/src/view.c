@@ -259,6 +259,87 @@ void project_float(float *vec, float *adr)
 	}
 }
 
+void view3d_get_object_project_mat(ScrArea *area, Object *ob, float mat[4][4])
+{
+	if (area->spacetype!=SPACE_VIEW3D || !area->spacedata.first) {
+		Mat4One(mat);
+	} else {
+		View3D *vd = area->spacedata.first;
+		float tmp[4][4];
+
+		Mat4MulMat4(tmp, ob->obmat, vd->viewmat);
+		Mat4MulMat4(mat, tmp, vd->winmat1);
+	}
+}
+
+void view3d_project_short(ScrArea *area, float *vec, short *adr, float mat[4][4])
+{
+	float fx, fy, vec4[4];
+
+	adr[0]= 3200;
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(mat, vec4);
+
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
+		fx= (area->winx/2)*(1 + vec4[0]/vec4[3]);
+		
+		if( fx>0 && fx<area->winx) {
+		
+			fy= (area->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+			if(fy>0.0 && fy< (float)area->winy) {
+				adr[0]= floor(fx); 
+				adr[1]= floor(fy);
+			}
+		}
+	}
+}
+
+void view3d_project_short_noclip(ScrArea *area, float *vec, short *adr, float mat[4][4])
+{
+	float fx, fy, vec4[4];
+
+	adr[0]= 3200;
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(mat, vec4);
+
+	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
+		fx= (area->winx/2)*(1 + vec4[0]/vec4[3]);
+		
+		if( fx>-32700 && fx<32700) {
+		
+			fy= (area->winy/2)*(1 + vec4[1]/vec4[3]);
+			
+			if(fy>-32700.0 && fy<32700.0) {
+				adr[0]= floor(fx); 
+				adr[1]= floor(fy);
+			}
+		}
+	}
+}
+
+void view3d_project_float(ScrArea *area, float *vec, float *adr, float mat[4][4])
+{
+	float vec4[4];
+	
+	adr[0]= 3200.0;
+	VECCOPY(vec4, vec);
+	vec4[3]= 1.0;
+	
+	Mat4MulVec4fl(mat, vec4);
+
+	if( vec4[3]>FLT_EPSILON ) {
+		adr[0] = (area->winx/2.0)+(area->winx/2.0)*vec4[0]/vec4[3];	
+		adr[1] = (area->winy/2.0)+(area->winy/2.0)*vec4[1]/vec4[3];
+	} else {
+		adr[0] = adr[1] = 0.0;
+	}
+}
+
 int boundbox_clip(float obmat[][4], BoundBox *bb)
 {
 	/* return 1: draw */

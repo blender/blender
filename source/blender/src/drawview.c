@@ -389,6 +389,8 @@ static void draw_bgpic(void)
 		y2= vb.ymax;
 	}
 	else {
+		float sco[2];
+
 		/* calc window coord */
 		initgrabz(0.0, 0.0, 0.0);
 		window_to_3d(vec, 1, 0);
@@ -397,16 +399,10 @@ static void draw_bgpic(void)
 	
 		asp= ( (float)ima->ibuf->y)/(float)ima->ibuf->x;
 
-			/* This code below was lifted from project_short_noclip
-			 * because that code fails if the point is to close to
-			 * the near clipping plane but we don't really care about
-			 * that here.
-			 */
-		vec[0]= vec[1]= vec[2]= 0.0; vec[3]= 1.0;
-		Mat4MulVec4fl(G.vd->persmat, vec);
-
-		cx= (curarea->winx/2.0)*(1 + vec[0]/vec[3]);	
-		cy= (curarea->winy/2.0)*(1 + vec[1]/vec[3]);
+		vec[0] = vec[1] = vec[2] = 0.0;
+		view3d_project_float(curarea, vec, sco, G.vd->persmat);
+		cx = sco[0];
+		cy = sco[1];
 	
 		x1=  cx+ fac*(bgpic->xof-bgpic->size);
 		y1=  cy+ asp*fac*(bgpic->yof-bgpic->size);
@@ -762,29 +758,26 @@ static void drawfloor(void)
 
 static void drawcursor(void)
 {
-
-	if(G.f & G_PLAYANIM) return;
+	short mx,my,co[2];
 	
-	project_short( give_cursor(), &G.vd->mx);
+	project_short( give_cursor(), co);
+	mx = co[0];
+	my = co[1];
 
-	G.vd->mxo= G.vd->mx;
-	G.vd->myo= G.vd->my;
-
-	if( G.vd->mx!=3200) {
-		
+	if(mx!=3200) {
 		setlinestyle(0); 
 		cpack(0xFF);
-		circ((float)G.vd->mx, (float)G.vd->my, 10.0);
+		circ((float)mx, (float)my, 10.0);
 		setlinestyle(4); 
 		cpack(0xFFFFFF);
-		circ((float)G.vd->mx, (float)G.vd->my, 10.0);
+		circ((float)mx, (float)my, 10.0);
 		setlinestyle(0);
 		cpack(0x0);
 		
-		sdrawline(G.vd->mx-20, G.vd->my, G.vd->mx-5, G.vd->my);
-		sdrawline(G.vd->mx+5, G.vd->my, G.vd->mx+20, G.vd->my);
-		sdrawline(G.vd->mx, G.vd->my-20, G.vd->mx, G.vd->my-5);
-		sdrawline(G.vd->mx, G.vd->my+5, G.vd->mx, G.vd->my+20);
+		sdrawline(mx-20, my, mx-5, my);
+		sdrawline(mx+5, my, mx+20, my);
+		sdrawline(mx, my-20, mx, my-5);
+		sdrawline(mx, my+5, mx, my+20);
 	}
 }
 
@@ -2090,7 +2083,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	persp(PERSP_WIN);  // set ortho
 	
 	if(v3d->persp>1) drawviewborder();
-	drawcursor();
+	if(!(G.f & G_PLAYANIM)) drawcursor();
 	draw_view_icon();
 
 	ob= OBACT;
