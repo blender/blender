@@ -4857,8 +4857,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					Object *obc= newlibadr(fd, lib, data->tar);
 					
 					if(obc && obc->type==OB_CURVE) {
-						Curve *cu= obc->data;
-						cu->flag |= CU_PATH;
+						Curve *cu= newlibadr(fd, lib, obc->data);
+						if(cu) cu->flag |= CU_PATH;
 					}
 				}
 			}
