@@ -1427,16 +1427,16 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	uiButSetFunc(but, validate_editbonebutton_cb, ebone, NULL);
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 140, 19, ebone->head, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootX:",	10, 70, 140, 19, ebone->head, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootY:",	10, 50, 140, 19, ebone->head+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "RootZ:",	10, 30, 140, 19, ebone->head+2, -lim, lim, 10, 3, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipX:",	160, 70, 140, 19, ebone->tail, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
 	ob_eul[0]= 180.0*ebone->roll/M_PI;
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, ob_eul, -lim, lim, 100, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, ob_eul, -lim, lim, 1000, 3, "");
 
 }
 
@@ -1561,6 +1561,7 @@ void do_viewbuts(unsigned short event)
 		
 	case B_ARMATUREPANEL1:
 		{
+			bArmature *arm= G.obedit->data;
 			EditBone *ebone, *child;
 			
 			ebone= G.edbo.first;
@@ -1576,10 +1577,31 @@ void do_viewbuts(unsigned short event)
 			
 				//	Update our children if necessary
 				for (child = G.edbo.first; child; child=child->next){
-					if (child->parent == ebone && child->flag & BONE_IK_TOPARENT){
+					if (child->parent == ebone && (child->flag & BONE_IK_TOPARENT)){
 						VECCOPY (child->head, ebone->tail);
 					}
 				}
+				if(arm->flag & ARM_MIRROR_EDIT) {
+					EditBone *eboflip= armature_bone_get_mirrored(ebone);
+					if(eboflip) {
+						eboflip->roll= -ebone->roll;
+						eboflip->head[0]= -ebone->head[0];
+						eboflip->tail[0]= -ebone->tail[0];
+						
+						//	Update our parent
+						if (eboflip->parent && eboflip->flag & BONE_IK_TOPARENT){
+							VECCOPY (eboflip->parent->tail, eboflip->head);
+						}
+						
+						//	Update our children if necessary
+						for (child = G.edbo.first; child; child=child->next){
+							if (child->parent == eboflip && (child->flag & BONE_IK_TOPARENT)){
+								VECCOPY (child->head, eboflip->tail);
+							}
+						}
+					}
+				}
+				
 				allqueue(REDRAWVIEW3D, 1);
 			}
 		}
