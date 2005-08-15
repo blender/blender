@@ -1430,10 +1430,11 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 			if(ob->pd && ob->pd->deflect) {
 				DerivedMesh *dm=NULL;				
 				int dmNeedsFree;				
-				Mesh *me;
+				Mesh *me= NULL;
 				DispListMesh  *disp_mesh = 0;
 				MFace *mface;
 	            Object *copyob;
+				
 				/* do object level stuff */
 				/* need to have user control for that since it depends on model scale */
 				innerfacethickness =-ob->pd->pdef_sbift;

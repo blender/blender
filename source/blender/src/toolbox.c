@@ -1802,7 +1802,6 @@ static TBitem tb_obdata_hide[]= {
 {  -1, "", 			0, tb_do_hotkey}};
 
 static void tb_do_mesh(void *arg, int event){
-	Mesh *me= get_mesh(OBACT);
 	switch(event) {
 	case 1: common_insertkey(); break;
 	case 2: G.f ^= G_DRAWEDGES; break;

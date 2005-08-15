@@ -462,7 +462,7 @@ void paste_posebuf (int flip)
 		if (chan->flag & POSE_KEY) {
 			BLI_strncpy(name, chan->name, sizeof(name));
 			if (flip)
-				bone_flip_name (name);
+				bone_flip_name (name, 0);		// 0 = don't strip off number extensions
 				
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
@@ -544,7 +544,7 @@ void pose_flip_names(void)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
 			BLI_strncpy(newname, pchan->name, sizeof(newname));
-			bone_flip_name(newname);
+			bone_flip_name(newname, 1);	// 1 = do strip off number extensions
 			armature_bone_rename(ob->data, pchan->name, newname);
 		}
 	}

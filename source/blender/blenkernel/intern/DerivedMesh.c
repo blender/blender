@@ -651,7 +651,7 @@ static void emDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *u
 	EditVert *eve, *preveve;
 	EditFace *efa;
 	float cent[3];
-	int i;
+	int i=0;	// gcc!
 
 	if (emdm->vertexCos) {
 		for (i=0,eve=emdm->em->verts.first; eve; eve= eve->next)

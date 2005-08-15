@@ -604,7 +604,7 @@ static EditFace *findnearestface(short *dist)
 
 			data.mval[0] = mval[0];
 			data.mval[1] = mval[1];
-			data.dist = (1<<20); // just a big number
+			data.dist = 0x7FFF;		// largest short
 			data.toFace = efa;
 
 			mesh_foreachScreenFace(findnearestface__getDistance, &data);

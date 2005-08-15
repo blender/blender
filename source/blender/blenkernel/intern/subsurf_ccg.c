@@ -447,7 +447,6 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 		}
 
 		for (S=0; S<numVerts; S++) {
-			VertData *gridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
 			int prevS= (S-1+numVerts)%numVerts;
 
 			for (y=0; y<gridSize-1; y++) {
@@ -1293,7 +1292,6 @@ static void ccgDM_foreachMappedFaceCenterEM(DerivedMesh *dm, void (*func)(void *
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
-	int gridSize = ccgSubSurf_getGridSize(ss);
 
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);

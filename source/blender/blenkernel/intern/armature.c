@@ -264,13 +264,15 @@ static char *strcasestr_(register char *s, register char *find)
 
 #define IS_SEPARATOR(a)	(a=='.' || a==' ' || a=='-' || a=='_')
 
-/* finds the best possible flipped name, removing number extensions. For renaming; check for unique names afterwards */
-void bone_flip_name (char *name)
+/* finds the best possible flipped name. For renaming; check for unique names afterwards */
+/* if strip_number: removes number extensions */
+void bone_flip_name (char *name, int strip_number)
 {
 	int		len;
 	char	prefix[128]={""};	/* The part before the facing */
 	char	suffix[128]={""};	/* The part after the facing */
 	char	replace[128]={""};	/* The replacement string */
+	char	number[128]={""};	/* The number extension string */
 	char	*index=NULL;
 
 	len= strlen(name);
@@ -280,6 +282,8 @@ void bone_flip_name (char *name)
 	if(isdigit(name[len-1])) {
 		index= strrchr(name, '.');	// last occurrance
 		if (index && isdigit(index[1]) ) {		// doesnt handle case bone.1abc2 correct..., whatever!
+			if(strip_number==0) 
+				strcpy(number, index);
 			*index= 0;
 			len= strlen(name);
 		}
@@ -365,7 +369,7 @@ void bone_flip_name (char *name)
 		}		
 	}
 
-	sprintf (name, "%s%s%s", prefix, replace, suffix);
+	sprintf (name, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 

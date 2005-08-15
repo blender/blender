@@ -92,6 +92,7 @@ typedef struct bArmature {
 #define		ARM_EDITMODE	0x0020
 #define		ARM_DELAYDEFORM 0x0040
 #define		ARM_DONT_USE    0x0080
+#define		ARM_MIRROR_EDIT	0x0100
 
 /* armature->drawtype */
 

@@ -85,7 +85,7 @@ void	delete_armature(void);
 void	deselectall_armature(int toggle);
 void	deselectall_posearmature (struct Object *ob, int test);
 void	draw_armature(struct Base *base, int dt);
-void	extrude_armature(void);
+void	extrude_armature(int forked);
 void	free_editArmature(void);
 struct Bone *get_indexed_bone (struct Object *ob, int index);
 
@@ -125,7 +125,7 @@ int ik_chain_looper(Object *ob, struct Bone *bone, void *data,
 void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 void armature_flip_names(void);
-
+EditBone *armature_bone_get_mirrored(EditBone *ebo);
 
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000

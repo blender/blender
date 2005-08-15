@@ -1184,7 +1184,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.obedit->type==OB_SURF)
 							extrude_nurb();
 						else if(G.obedit->type==OB_ARMATURE)
-							extrude_armature();
+							extrude_armature(0);
 					}
 				}
 				else if (G.qual==LR_CTRLKEY) {
@@ -1195,6 +1195,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if (G.obedit && G.obedit->type==OB_MESH) {
 						initTransform(TFM_CREASE, CTX_EDGE);
 						Transform();
+					}
+					else if (G.obedit && G.obedit->type==OB_ARMATURE) {
+						extrude_armature(1);
 					}
 				}
 				break;

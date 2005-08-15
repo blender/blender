@@ -890,7 +890,7 @@ void delete_armature(void)
 	BIF_undo_push("Delete bone(s)");
 }
 
-/* editmode version */
+/* context: editmode armature */
 void mouse_armature(void)
 {
 	EditBone *nearBone = NULL, *ebone;
@@ -950,13 +950,13 @@ void mouse_armature(void)
 		}
 
 		countall(); // flushes selection!
-	
+		
 		if(nearBone) {
 			/* then now check for active status */
 			for (ebone=G.edbo.first;ebone;ebone=ebone->next) ebone->flag &= ~BONE_ACTIVE;
 			if(nearBone->flag & BONE_SELECTED) nearBone->flag |= BONE_ACTIVE;
 		}
-	   
+		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -1384,24 +1384,24 @@ void adduplicate_armature(void)
 /* the "IK" button in editbuttons */
 void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
-	EditBone *curBone= bonev;
-	attach_bone_to_parent(curBone);
+	EditBone *ebone= bonev;
+	attach_bone_to_parent(ebone);
 }
 
 void attach_bone_to_parent(EditBone *bone)
 {
-	EditBone *curbone;
+	EditBone *ebone;
 
 	if (bone->flag & BONE_IK_TOPARENT) {
 
 		/* See if there are any other bones that refer to the same 
 		 * parent and disconnect them 
 		 */
-		for (curbone = G.edbo.first; curbone; curbone=curbone->next){
-			if (curbone!=bone){
-				if (curbone->parent && (curbone->parent == bone->parent) && 
-					(curbone->flag & BONE_IK_TOPARENT))
-						curbone->flag &= ~BONE_IK_TOPARENT;
+		for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+			if (ebone!=bone){
+				if (ebone->parent && (ebone->parent == bone->parent) && 
+					(ebone->flag & BONE_IK_TOPARENT))
+						ebone->flag &= ~BONE_IK_TOPARENT;
 			}
 		}
 
@@ -1552,53 +1552,93 @@ void unique_editbone_name (char *name)
 	}
 }
 
-void extrude_armature(void)
+/* context; editmode armature */
+/* if forked && mirror-edit: makes two bones with flipped names */
+void extrude_armature(int forked)
 {
-	EditBone *newbone, *curbone, *first=NULL, *partest;
-	int totbone= 0;
+	bArmature *arm= G.obedit->data;
+	EditBone *newbone, *ebone, *flipbone, *first=NULL, *partest;
+	int a, totbone= 0;
 	
 	TEST_EDITARMATURE;
 	
 	/* Duplicate the necessary bones */
-	for (curbone = G.edbo.first; ((curbone) && (curbone!=first)); curbone=curbone->next){
-		if (curbone->flag & (BONE_TIPSEL|BONE_SELECTED)){
-			totbone++;
-			newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
+	for (ebone = G.edbo.first; ((ebone) && (ebone!=first)); ebone=ebone->next){
+		if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED)) {
 			
-			VECCOPY (newbone->head, curbone->tail);
-			VECCOPY (newbone->tail, newbone->head);
-			newbone->parent = curbone;
-			
-			newbone->flag = BONE_TIPSEL;
-			newbone->weight= curbone->weight;
-			newbone->dist= curbone->dist;
-			newbone->xwidth= curbone->xwidth;
-			newbone->zwidth= curbone->zwidth;
-			newbone->ease1= curbone->ease1;
-			newbone->ease2= curbone->ease2;
-			newbone->segments= curbone->segments;
-			newbone->boneclass= curbone->boneclass;
-			
-			/* See if there are any ik children of the parent */
-			for (partest = G.edbo.first; partest; partest=partest->next){
-				if ((partest->parent == curbone) && (partest->flag & BONE_IK_TOPARENT))
-					break;
+			/* we re-use code for mirror editing... */
+			flipbone= NULL;
+			if(arm->flag & ARM_MIRROR_EDIT) {
+				flipbone= armature_bone_get_mirrored(ebone);
+				if (flipbone) {
+					forked= 0;	// we extrude 2 different bones
+					if(flipbone->flag & (BONE_TIPSEL|BONE_SELECTED))
+						/* don't want this bone to be selected... */
+						flipbone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
+				}
+				if(flipbone==NULL && forked)
+					flipbone= ebone;
 			}
 			
-			if (!partest)
-				newbone->flag |= BONE_IK_TOPARENT;
-			
-			strcpy (newbone->name, curbone->name);
-			unique_editbone_name(newbone->name);
-			
-			/* Add the new bone to the list */
-			BLI_addtail(&G.edbo, newbone);
-			if (!first)
-				first = newbone;
+			for(a=0; a<2; a++) {
+				if(a==1) {
+					if(flipbone==NULL)
+						break;
+					else {
+						SWAP(EditBone *, flipbone, ebone);
+					}
+				}
+				
+				totbone++;
+				newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
+				
+				VECCOPY (newbone->head, ebone->tail);
+				VECCOPY (newbone->tail, newbone->head);
+				newbone->parent = ebone;
+				
+				newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+				newbone->weight= ebone->weight;
+				newbone->dist= ebone->dist;
+				newbone->xwidth= ebone->xwidth;
+				newbone->zwidth= ebone->zwidth;
+				newbone->ease1= ebone->ease1;
+				newbone->ease2= ebone->ease2;
+				newbone->segments= ebone->segments;
+				newbone->boneclass= ebone->boneclass;
+				
+				/* See if there are any ik children of the parent */
+				for (partest = G.edbo.first; partest; partest=partest->next){
+					if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
+						break;
+				}
+				
+				if (!partest)
+					newbone->flag |= BONE_IK_TOPARENT;
+				
+				strcpy (newbone->name, ebone->name);
+				
+				if(flipbone && forked) {	// only set if mirror edit
+					if(strlen(newbone->name)<30) {
+						if(a==0) strcat(newbone->name, "_L");
+						else strcat(newbone->name, "_R");
+					}
+				}
+				unique_editbone_name(newbone->name);
+				
+				/* Add the new bone to the list */
+				BLI_addtail(&G.edbo, newbone);
+				if (!first)
+					first = newbone;
+				
+				/* restore ebone if we were flipping */
+				if(a==1 && flipbone) 
+					SWAP(EditBone *, flipbone, ebone);
+
+			}
 		}
 		
 		/* Deselect the old bone */
-		curbone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
+		ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 		
 	}
 	/* if only one bone, make this one active */
@@ -2365,7 +2405,7 @@ void armature_flip_names(void)
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		if(ebone->flag & BONE_SELECTED) {
 			BLI_strncpy(newname, ebone->name, sizeof(newname));
-			bone_flip_name(newname);
+			bone_flip_name(newname, 1);		// 1 = do strip off number extensions
 			armature_bone_rename(G.obedit->data, ebone->name, newname);
 		}
 	}
@@ -2377,5 +2417,21 @@ void armature_flip_names(void)
 	allqueue(REDRAWOOPS, 0);
 	BIF_undo_push("Flip names");
 	
+}
+
+/* context; editmode armature */
+EditBone *armature_bone_get_mirrored(EditBone *ebo)
+{
+	EditBone *eboflip= NULL;
+	char name[32];
+	
+	BLI_strncpy(name, ebo->name, sizeof(name));
+	bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+
+	for (eboflip=G.edbo.first; eboflip; eboflip=eboflip->next)
+		if(ebo!=eboflip)
+			if (!strcmp (name, eboflip->name)) break;
+	
+	return eboflip;
 }
 

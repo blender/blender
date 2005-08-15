@@ -47,26 +47,27 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_ID.h"
+#include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_image_types.h"
 #include "DNA_text_types.h" /* for space handlers */
 #include "DNA_texture_types.h"
 
-#include "BKE_library.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
+#include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
-#include "BKE_image.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -2142,8 +2143,6 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
-	
-	Mesh *me= get_mesh(OBACT);
 
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_mesh_edgesmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_edgesmenu, NULL);
@@ -3051,7 +3050,7 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		mainqenter(NKEY, 1);
 		break;
 	case 3: /* extrude */
-		extrude_armature();
+		extrude_armature(0);
 		break;
 	case 4: /* duplicate */
 		duplicate_context_selected();
@@ -3072,12 +3071,16 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 9:
 		clear_bone_parent();
 		break;
+	case 10: /* forked! */
+		extrude_armature(1);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
 
 static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 {
+	bArmature *arm= G.obedit->data;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
 	
@@ -3096,6 +3099,9 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrude|E",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	if(arm->flag & ARM_MIRROR_EDIT)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Extrude Forked|Shift E",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+		
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Parent...|Ctrl P",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");

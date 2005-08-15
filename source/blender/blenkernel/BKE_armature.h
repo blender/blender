@@ -72,7 +72,7 @@ void unlink_armature(struct bArmature *arm);
 void free_armature(struct bArmature *arm);
 void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
-void bone_flip_name (char *name);
+void bone_flip_name (char *name, int strip_number);
 
 void calc_armature_deform (struct Object *ob, float *co, int index);
 

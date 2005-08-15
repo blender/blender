@@ -1161,8 +1161,6 @@ static void hookModifier_deformVerts(ModifierData *md, Object *ob, void *derived
 
 static void hookModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	HookModifierData *hmd = (HookModifierData*) md;
-
 	hookModifier_deformVerts(md, ob, derivedData, vertexCos, numVerts);
 }
 
@@ -1170,8 +1168,6 @@ static void hookModifier_deformVertsEM(ModifierData *md, Object *ob, void *editD
 
 static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
-
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 

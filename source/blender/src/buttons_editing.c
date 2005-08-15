@@ -850,7 +850,6 @@ static void modifiers_cursorHookCenter(void *ob_v, void *md_v)
 
 static void modifiers_selectHook(void *ob_v, void *md_v)
 {
-	Object *ob = ob_v;
 	ModifierData *md = md_v;
 	HookModifierData *hmd = (HookModifierData*) md;
 
@@ -859,7 +858,6 @@ static void modifiers_selectHook(void *ob_v, void *md_v)
 
 static void modifiers_reassignHook(void *ob_v, void *md_v)
 {
-	Object *ob = ob_v;
 	ModifierData *md = md_v;
 	HookModifierData *hmd = (HookModifierData*) md;
 	float cent[3];
@@ -897,12 +895,12 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	uiBut *but;
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
 	int editing = (G.obedit==ob);
-    short height, width = 295, buttonWidth = width-120-10;
+    short height=26, width = 295, buttonWidth = width-120-10;
 	char str[128];
-	uiBut *but;
 
 	if (isVirtual) {
 		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
@@ -2229,6 +2227,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",			210,110,100,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 }
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)

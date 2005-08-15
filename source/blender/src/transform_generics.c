@@ -67,6 +67,7 @@
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 
 #include "blendef.h"
 
@@ -109,22 +110,41 @@ void getViewVector(float coord[3], float vec[3]) {
 
 /* ************************** GENERICS **************************** */
 
+/* if editbone (partial) selected, copy data */
+/* context; editmode armature, with mirror editing enabled */
+static void transform_armature_mirror_update(void)
+{
+	EditBone *ebo, *eboflip;
+	
+	for (ebo=G.edbo.first; ebo; ebo=ebo->next) {
+		if(ebo->flag & (BONE_TIPSEL|BONE_ROOTSEL)) {
+			
+			eboflip= armature_bone_get_mirrored(ebo);
+			
+			if(eboflip) {
+				/* we assume X-axis flipping for now */
+				if(ebo->flag & BONE_TIPSEL) {
+					eboflip->tail[0]= -ebo->tail[0];
+					eboflip->tail[1]= ebo->tail[1];
+					eboflip->tail[2]= ebo->tail[2];
+				}
+				if(ebo->flag & BONE_ROOTSEL) {
+					eboflip->head[0]= -ebo->head[0];
+					eboflip->head[1]= ebo->head[1];
+					eboflip->head[2]= ebo->head[2];
+				}
+			}
+		}
+	}
+}
+
+
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
 	Object *ob= OBACT;
 	
-	if(ob && (ob->flag & OB_POSEMODE)) {
-		bArmature *arm= ob->data;
-
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) 
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-		else
-			where_is_pose(ob);
-	}
-	else if (G.obedit) {
-		
+	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
@@ -141,6 +161,7 @@ void recalcData(TransInfo *t)
 			}
 		}
 		else if(G.obedit->type==OB_ARMATURE){   /* no recalc flag, does pose */
+			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
 			
 			/* Ensure all bones are correctly adjusted */
@@ -157,6 +178,9 @@ void recalcData(TransInfo *t)
 					}
 				}
 			}
+			if(arm->flag & ARM_MIRROR_EDIT) 
+				transform_armature_mirror_update();
+			
 		}
 		else if(G.obedit->type==OB_LATTICE) {
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
@@ -166,6 +190,15 @@ void recalcData(TransInfo *t)
 		else {
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 		}
+	}
+	else if(ob && (ob->flag & OB_POSEMODE)) {
+		bArmature *arm= ob->data;
+		
+		/* old optimize trick... this enforces to bypass the depgraph */
+		if (!(arm->flag & ARM_DELAYDEFORM)) 
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+		else
+			where_is_pose(ob);
 	}
 	else {
 		Base *base;
