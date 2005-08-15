@@ -873,7 +873,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	int isVirtual = md->mode&eModifierMode_Virtual;
 	int x = *xco, y = *yco, color = md->error?TH_REDALERT:TH_BUT_NEUTRAL;
 	int editing = (G.obedit==ob);
-    short height, width = 295;
+    short height, width = 295, buttonWidth = width-120-10;
 	char str[128];
 	uiBut *but;
 
@@ -905,14 +905,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
 	} else {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, width-120-60-10, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, buttonWidth-60, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
 			/* Softbody not allowed in this situation, enforce! */
 		if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
-			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+width-120-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+width-120-60+20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
+			uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+width-120-60+40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
+				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
 		}
 		uiBlockEndAlign(block);
@@ -941,10 +941,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		uiBlockSetCol(block, TH_BUT_ACTION);
 
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, x+width-70, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, x+width-75, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
 		uiButSetFunc(but, modifiers_moveUp, ob, md);
 
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-70+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, x+width-75+20, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
 		uiButSetFunc(but, modifiers_moveDown, ob, md);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -1004,60 +1004,53 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockEndAlign(block);
 		}
 
-//		uiDefButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, "Render", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-//		uiDefButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, "3D View", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-//		if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
-//			uiDefButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, "Editmode", lx,(cy-=19),60,19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode");
-//		}
-//		uiBlockEndAlign(block);
-
-		lx = x;
+		lx = x + 10;
 		cy = y + 10 - 1;
 		uiBlockBeginAlign(block);
 		if (md->type==eModifierType_Subsurf) {
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 			char subsurfmenu[]="Subsurf Type%t|Catmull-Clark%x0|Simple Subdiv.%x1";
-			uiDefButS(block, MENU, B_MODIFIER_RECALC, subsurfmenu,		lx,(cy-=19),160,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
-			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), 160,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
-			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), 160,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, subsurfmenu,		lx,(cy-=19),buttonWidth,19, &smd->subdivType, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), buttonWidth,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), buttonWidth,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
 
 			but = uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MODIFIER_RECALC, "Incremental", lx, (cy-=19),90,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
 			uiButSetFunc(but, modifiers_setSubsurfIncremental, ob, md);
 
-			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,70,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,buttonWidth-90,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
 
-			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), 160,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), 120,19, &lmd->object, "Lattice object to deform with");
+			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");
 		} else if (md->type==eModifierType_Curve) {
 			CurveModifierData *cmd = (CurveModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), 120,19, &cmd->object, "Curve object to deform with");
+			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), 160,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:", lx, (cy-=19), 160,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
-			uiDefButI(block, TOG, B_MODIFIER_RECALC, "Randomize", lx, (cy-=19), 160,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
-			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), 160,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:", lx, (cy-=19), buttonWidth,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
+			uiDefButI(block, TOG, B_MODIFIER_RECALC, "Randomize", lx, (cy-=19), buttonWidth,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
+			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), buttonWidth,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
 		} else if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), 160,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), buttonWidth,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
 			uiDefButI(block, ROW, B_MODIFIER_RECALC, "X",	lx, (cy-=19), 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
 			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
 		} else if (md->type==eModifierType_Decimate) {
 			DecimateModifierData *dmd = (DecimateModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Percent:",	lx,(cy-=19),160,19, &dmd->percent, 0.0, 1.0, 0, 0, "Defines the percentage of triangles to reduce to");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Percent:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 0, 0, "Defines the percentage of triangles to reduce to");
 			sprintf(str, "Face Count: %d", dmd->faceCount);
 			uiDefBut(block, LABEL, 1, str,	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData*) md;
 			uiDefButBitS(block, TOG, WAV_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
-			uiDefButBitS(block, TOG, WAV_Y, B_MODIFIER_RECALC, "Y",		lx+50,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
-			uiDefButBitS(block, TOG, WAV_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+100,cy,60,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),150,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),150,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),150,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
+			uiDefButBitS(block, TOG, WAV_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
+			uiDefButBitS(block, TOG, WAV_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+90,cy,buttonWidth-90,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify startingframe of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
 			cy -= 19;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
@@ -1069,25 +1062,25 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Narrow:",	lx,(cy-=19),220,19, &wmd->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
 		} else if (md->type==eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testArmatureObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), 120,19, &amd->object, "Armature object to deform with");
+			uiDefIDPoinBut(block, modifier_testArmatureObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), 160,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
-			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ", 	lx, (cy-=19), 160,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
-			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", 	lx, (cy-=19), 160,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Clear offset", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ", 	lx, (cy-=19), buttonWidth,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
+			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", 	lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reset", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
 			uiButSetFunc(but, modifiers_clearHookOffset, ob, md);
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Cursor center", 		lx+80, cy, 80,19, NULL, 0.0, 0.0, 0, 0, "Sets hook center to cursor position");
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Recenter", 		lx+80, cy, buttonWidth-80,19, NULL, 0.0, 0.0, 0, 0, "Sets hook center to cursor position");
 			uiButSetFunc(but, modifiers_cursorHookCenter, ob, md);
 
 			if (editing) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Select", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Selects effected vertices on mesh");
 				uiButSetFunc(but, modifiers_selectHook, ob, md);
-				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reassign", 		lx+80, cy, 80,19, NULL, 0.0, 0.0, 0, 0, "Reassigns selected vertices to hook");
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reassign", 		lx+80, cy, buttonWidth-80,19, NULL, 0.0, 0.0, 0, 0, "Reassigns selected vertices to hook");
 				uiButSetFunc(but, modifiers_reassignHook, ob, md);
 			}
 		} else if (md->type==eModifierType_Softbody) {
-			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
 		}
 		uiBlockEndAlign(block);
 

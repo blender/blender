@@ -568,23 +568,6 @@ int object_deform_mball(Object *ob)
 	}
 }
 
-int object_deform_curve(Object *ob, ListBase *lb)
-{
-	if(ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL) {
-		DispList *dl;
-
-		for (dl=lb->first; dl; dl=dl->next) {
-			int tot = (dl->type==DL_INDEX3)?dl->parts:dl->nr*dl->parts;
-
-			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, tot);
-		}
-
-		return 1;
-	} else {
-		return 0;
-	}
-}
-
 BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
 	return lt->def+ u + v*lt->pntsu + w*lt->pntsu*lt->pntsv;

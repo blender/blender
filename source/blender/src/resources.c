@@ -531,40 +531,36 @@ static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alp
 
 static void vicon_move_up_draw(int x, int y, int w, int h, float alpha)
 {
-	int i, d=-2, pad=3;
+	int d=-2, pad=3;
 
 	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(2);
+	glLineWidth(1);
 	glColor3f(0.0, 0.0, 0.0);
-	for (i=0; i<2; i++) {
-		int offs = (i?2:-2) + 1;
 
-		glBegin(GL_LINE_STRIP);
-		glVertex2i(x+pad, y+h/2+d + offs);
-		glVertex2i(x+w/2, y+h/2-d + offs);
-		glVertex2i(x+w-pad, y+h/2+d + offs);
-		glEnd();
-	}
+	glBegin(GL_LINE_STRIP);
+	glVertex2i(x+w/2-d*2, y+h/2+d);
+	glVertex2i(x+w/2, y+h/2-d + 1);
+	glVertex2i(x+w/2+d*2, y+h/2+d);
+	glEnd();
+
 	glLineWidth(1.0);
 	glDisable(GL_LINE_SMOOTH);
 }
 
 static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 {
-	int i, d=2, pad=3;
+	int d=2, pad=3;
 
 	glEnable(GL_LINE_SMOOTH);
-	glLineWidth(2);
+	glLineWidth(1);
 	glColor3f(0.0, 0.0, 0.0);
-	for (i=0; i<2; i++) {
-		int offs = (i?2:-2) - 1;
 
-		glBegin(GL_LINE_STRIP);
-		glVertex2i(x+pad, y+h/2+d + offs);
-		glVertex2i(x+w/2, y+h/2-d + offs);
-		glVertex2i(x+w-pad, y+h/2+d + offs);
-		glEnd();
-	}
+	glBegin(GL_LINE_STRIP);
+	glVertex2i(x+w/2-d*2, y+h/2+d);
+	glVertex2i(x+w/2, y+h/2-d - 1);
+	glVertex2i(x+w/2+d*2, y+h/2+d);
+	glEnd();
+
 	glLineWidth(1.0);
 	glDisable(GL_LINE_SMOOTH);
 }

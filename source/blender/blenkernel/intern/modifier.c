@@ -86,9 +86,7 @@ static void curveModifier_deformVerts(ModifierData *md, Object *ob, void *derive
 
 static void curveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
-
-	curve_deform_verts(cmd->object, ob, vertexCos, numVerts);
+	curveModifier_deformVerts(md, ob, NULL, vertexCos, numVerts);
 }
 
 /* Lattice */
@@ -135,9 +133,7 @@ static void latticeModifier_deformVerts(ModifierData *md, Object *ob, void *deri
 
 static void latticeModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	LatticeModifierData *lmd = (LatticeModifierData*) md;
-
-	lattice_deform_verts(lmd->object, ob, vertexCos, numVerts);
+	latticeModifier_deformVerts(md, ob, NULL, vertexCos, numVerts);
 }
 
 /* Subsurf */

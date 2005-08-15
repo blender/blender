@@ -51,7 +51,6 @@ void init_latt_deform(struct Object *oblatt, struct Object *ob);
 void calc_latt_deform(float *co);
 void end_latt_deform(void);
 int object_deform_mball(struct Object *ob);
-int object_deform_curve(struct Object *ob, struct ListBase *lb);
 struct BPoint *latt_bp(struct Lattice *lt, int u, int v, int w);
 void outside_lattice(struct Lattice *lt);
 void curve_deform_verts(struct Object *cuOb, struct Object *target, float (*vertexCos)[3], int numVerts);
