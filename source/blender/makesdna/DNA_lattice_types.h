@@ -42,14 +42,16 @@ typedef struct Lattice {
 	ID id;
 	
 	short pntsu, pntsv, pntsw, flag;
+	short opntsu, opntsv, opntsw, pad2;
 	char typeu, typev, typew, type;
 	int pad;
+	
+	float fu, fv, fw, du, dv, dw;
 	
 	struct BPoint *def;
 	
 	struct Ipo *ipo;
 	struct Key *key;
-	
 } Lattice;
 
 /* ***************** LATTICE ********************* */

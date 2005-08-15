@@ -1044,7 +1044,7 @@ static void softbody_bake(Object *ob)
 	G.scene->r.framelen= 1.0;		// baking has to be in uncorrected time
 	CFRA= sb->sfra;
 	update_for_newframe_muted();	// put everything on this frame
-	sbObjectToSoftbody(ob, NULL);	// put softbody in restposition
+	sbObjectToSoftbody(ob);	// put softbody in restposition
 	ob->softflag |= OB_SB_BAKEDO;
 	
 	curarea->win_swap= 0;		// clean swapbuffers
@@ -1069,7 +1069,7 @@ static void softbody_bake(Object *ob)
 		if(event==ESCKEY) break;
 	}
 	
-	if(event==ESCKEY) sbObjectToSoftbody(ob, NULL);	// clears all
+	if(event==ESCKEY) sbObjectToSoftbody(ob);	// clears all
 	
 	/* restore */
 	waitcursor(0);
@@ -1157,7 +1157,7 @@ void do_object_panels(unsigned short event)
 		break;
 	case B_SOFTBODY_BAKE_FREE:
 		ob= OBACT;
-		if(ob && ob->soft) sbObjectToSoftbody(ob, NULL);
+		if(ob && ob->soft) sbObjectToSoftbody(ob);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;

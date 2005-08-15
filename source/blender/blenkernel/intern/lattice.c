@@ -46,6 +46,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_lattice_types.h"
@@ -62,6 +63,7 @@
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
@@ -74,45 +76,120 @@
 
 #include "blendef.h"
 
-Lattice *editLatt=0, *deformLatt=0;
+Lattice *editLatt=0;
+static Lattice *deformLatt=0;
 
-float *latticedata=0, latmat[4][4];
+static float *latticedata=0, latmat[4][4];
 
-void resizelattice(Lattice *lt)
+void calc_lat_fudu(int flag, int res, float *fu, float *du)
+{
+	if(res==1) {
+		*fu= 0.0;
+		*du= 0.0;
+	}
+	else if(flag & LT_GRID) {
+		*fu= -0.5f*(res-1);
+		*du= 1.0f;
+	}
+	else {
+		*fu= -1.0f;
+		*du= 2.0f/(res-1);
+	}
+}
+
+void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 {
 	BPoint *bp;
-	int u, v, w;
-	float vec[3], fu, fv, fw, du=0.0, dv=0.0, dw=0.0;
+	int i, u, v, w;
+	float fu, fv, fw, uc, vc, wc, du=0.0, dv=0.0, dw=0.0;
+	float *co, (*vertexCos)[3] = NULL;
 	
+	while(uNew*vNew*wNew > 32000) {
+		if( uNew>=vNew && uNew>=wNew) uNew--;
+		else if( vNew>=uNew && vNew>=wNew) vNew--;
+		else wNew--;
+	}
+
+	vertexCos = MEM_mallocN(sizeof(*vertexCos)*uNew*vNew*wNew, "tmp_vcos");
+
+	calc_lat_fudu(lt->flag, uNew, &fu, &du);
+	calc_lat_fudu(lt->flag, vNew, &fv, &dv);
+	calc_lat_fudu(lt->flag, wNew, &fw, &dw);
+
+		/* If old size is different then resolution changed in interface,
+		 * try to do clever reinit of points. Pretty simply idea, we just
+		 * deform new verts by old lattice, but scaling them to match old
+		 * size first.
+		 */
+	if (ltOb) {
+		if (uNew!=1 && lt->pntsu!=1) {
+			fu = lt->fu;
+			du = (lt->pntsu-1)*lt->du/(uNew-1);
+		}
+
+		if (vNew!=1 && lt->pntsv!=1) {
+			fv = lt->fv;
+			dv = (lt->pntsv-1)*lt->dv/(vNew-1);
+		}
+
+		if (wNew!=1 && lt->pntsw!=1) {
+			fw = lt->fw;
+			dw = (lt->pntsw-1)*lt->dw/(wNew-1);
+		}
+	}
+
+	co = vertexCos[0];
+	for(w=0,wc=fw; w<wNew; w++,wc+=dw) {
+		for(v=0,vc=fv; v<vNew; v++,vc+=dv) {
+			for(u=0,uc=fu; u<uNew; u++,co+=3,uc+=du) {
+				co[0] = uc;
+				co[1] = vc;
+				co[2] = wc;
+			}
+		}
+	}
+	
+	if (ltOb) {
+		float mat[4][4];
+		int typeu = lt->typeu, typev = lt->typev, typew = lt->typew;
+
+			/* works best if we force to linear type (endpoints match) */
+		lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
+
+			/* prevent using deformed locations */
+		freedisplist(&ltOb->disp);
+
+		Mat4CpyMat4(mat, ltOb->obmat);
+		Mat4One(ltOb->obmat);
+		lattice_deform_verts(ltOb, NULL, vertexCos, uNew*vNew*wNew);
+		Mat4CpyMat4(ltOb->obmat, mat);
+
+		lt->typeu = typeu;
+		lt->typev = typev;
+		lt->typew = typew;
+	}
+
+	lt->fu = fu;
+	lt->fv = fv;
+	lt->fw = fw;
+	lt->du = du;
+	lt->dv = dv;
+	lt->dw = dw;
+
+	lt->pntsu = uNew;
+	lt->pntsv = vNew;
+	lt->pntsw = wNew;
 
 	MEM_freeN(lt->def);
 	lt->def= MEM_callocN(lt->pntsu*lt->pntsv*lt->pntsw*sizeof(BPoint), "lattice bp");
 	
 	bp= lt->def;
 	
-	while(lt->pntsu*lt->pntsv*lt->pntsw > 32000) {
-		if( lt->pntsu>=lt->pntsv && lt->pntsu>=lt->pntsw) lt->pntsu--;
-		else if( lt->pntsv>=lt->pntsu && lt->pntsv>=lt->pntsw) lt->pntsv--;
-		else lt->pntsw--;
+	for (i=0; i<lt->pntsu*lt->pntsv*lt->pntsw; i++,bp++) {
+		VECCOPY(bp->vec, vertexCos[i]);
 	}
-	
-	calc_lat_fudu(lt->flag, lt->pntsu, &fu, &du);
-	calc_lat_fudu(lt->flag, lt->pntsv, &fv, &dv);
-	calc_lat_fudu(lt->flag, lt->pntsw, &fw, &dw);
-	
-	vec[2]= fw;
-	for(w=0; w<lt->pntsw; w++) {
-		vec[1]= fv;
-		for(v=0; v<lt->pntsv; v++) {
-			vec[0]= fu;
-			for(u=0; u<lt->pntsu; u++, bp++) {
-				VECCOPY(bp->vec, vec);
-				vec[0]+= du;
-			}
-			vec[1]+= dv;
-		}
-		vec[2]+= dw;
-	}
+
+	MEM_freeN(vertexCos);
 }
 
 Lattice *add_lattice()
@@ -121,15 +198,12 @@ Lattice *add_lattice()
 	
 	lt= alloc_libblock(&G.main->latt, ID_LT, "Lattice");
 	
-	lt->pntsu=lt->pntsv=lt->pntsw= 2;
 	lt->flag= LT_GRID;
 	
 	lt->typeu= lt->typev= lt->typew= KEY_BSPLINE;
 	
-	/* temporally */
-	lt->def= MEM_callocN(sizeof(BPoint), "lattvert");
-	
-	resizelattice(lt);	/* creates a uniform lattice */
+	lt->def= MEM_callocN(sizeof(BPoint), "lattvert"); /* temporary */
+	resizelattice(lt, 2, 2, 2, NULL);	/* creates a uniform lattice */
 		
 	return lt;
 }
@@ -207,45 +281,20 @@ void make_local_lattice(Lattice *lt)
 	}
 }
 
-
-
-void calc_lat_fudu(int flag, int res, float *fu, float *du)
-{
-	
-	if(res==1) {
-		*fu= 0.0;
-		*du= 0.0;
-	}
-	else if(flag & LT_GRID) {
-		*fu= -0.5f*(res-1);
-		*du= 1.0f;
-	}
-	else {
-		*fu= -1.0f;
-		*du= 2.0f/(res-1);
-	}
-	
-}
-
 void init_latt_deform(Object *oblatt, Object *ob)
 {
-	/* we make an array with all differences */
-	BPoint *bp;
+		/* we make an array with all differences */
+	Lattice *lt = deformLatt = (oblatt==G.obedit)?editLatt:oblatt->data;
+	BPoint *bp = lt->def;
+	DispList *dl = find_displist(&oblatt->disp, DL_VERTS);
+	float *co = dl?dl->verts:NULL;
 	float *fp, imat[4][4];
-	float vec[3], fu, fv, fw, du=0.0, dv=0.0, dw=0.0;
+	float fu, fv, fw;
 	int u, v, w;
-	
-	if(oblatt==G.obedit) deformLatt= editLatt;
-	else deformLatt= oblatt->data;
-	
+
 	fp= latticedata= MEM_mallocN(sizeof(float)*3*deformLatt->pntsu*deformLatt->pntsv*deformLatt->pntsw, "latticedata");
 	
-	do_latt_key(oblatt->data);
-	bp= deformLatt->def;
-
-	//if(ob) where_is_object(ob); causes lag here, but why! (ton)
-
-	/* for example with a particle system: ob==0 */
+		/* for example with a particle system: ob==0 */
 	if(ob==0) {
 		/* in deformspace, calc matrix  */
 		Mat4Invert(latmat, oblatt->obmat);
@@ -261,35 +310,30 @@ void init_latt_deform(Object *oblatt, Object *ob)
 		/* back: put in deform array */
 		Mat4Invert(imat, latmat);
 	}
-	calc_lat_fudu(deformLatt->flag, deformLatt->pntsu, &fu, &du);
-	calc_lat_fudu(deformLatt->flag, deformLatt->pntsv, &fv, &dv);
-	calc_lat_fudu(deformLatt->flag, deformLatt->pntsw, &fw, &dw);
 	
-	/* we keep calculating the u v w lattice coordinates, not enough reason to store that */
-	
-	vec[2]= fw;
-	for(w=0; w<deformLatt->pntsw; w++) {
-		vec[1]= fv;
-		for(v=0; v<deformLatt->pntsv; v++) {
-			vec[0]= fu;
-			for(u=0; u<deformLatt->pntsu; u++, bp++) {
-				
-				VecSubf(fp, bp->vec, vec);
+	for(w=0,fw=lt->fw; w<lt->pntsw; w++,fw+=lt->dw) {
+		for(v=0,fv=lt->fv; v<lt->pntsv; v++, fv+=lt->dv) {
+			for(u=0,fu=lt->fu; u<lt->pntsu; u++, bp++, co+=3, fp+=3, fu+=lt->du) {
+				if (dl) {
+					fp[0] = co[0] - fu;
+					fp[1] = co[1] - fv;
+					fp[2] = co[2] - fw;
+				} else {
+					fp[0] = bp->vec[0] - fu;
+					fp[1] = bp->vec[1] - fv;
+					fp[2] = bp->vec[2] - fw;
+				}
+
 				Mat4Mul3Vecfl(imat, fp);
-		
-				vec[0]+= du;
-				fp+= 3;
 			}
-			vec[1]+= dv;
 		}
-		vec[2]+= dw;
 	}
 }
 
 void calc_latt_deform(float *co)
 {
 	Lattice *lt;
-	float fu, du, u, v, w, tu[4], tv[4], tw[4];
+	float u, v, w, tu[4], tv[4], tw[4];
 	float *fpw, *fpv, *fpu, vec[3];
 	int ui, vi, wi, uu, vv, ww;
 	
@@ -305,8 +349,7 @@ void calc_latt_deform(float *co)
 	/* u v w coords */
 	
 	if(lt->pntsu>1) {
-		calc_lat_fudu(lt->flag, lt->pntsu, &fu, &du);
-		u= (vec[0]-fu)/du;
+		u= (vec[0]-lt->fu)/lt->du;
 		ui= (int)floor(u);
 		u -= ui;
 		set_four_ipo(u, tu, lt->typeu);
@@ -317,8 +360,7 @@ void calc_latt_deform(float *co)
 	}
 	
 	if(lt->pntsv>1) {
-		calc_lat_fudu(lt->flag, lt->pntsv, &fu, &du);
-		v= (vec[1]-fu)/du;
+		v= (vec[1]-lt->fv)/lt->dv;
 		vi= (int)floor(v);
 		v -= vi;
 		set_four_ipo(v, tv, lt->typev);
@@ -329,8 +371,7 @@ void calc_latt_deform(float *co)
 	}
 	
 	if(lt->pntsw>1) {
-		calc_lat_fudu(lt->flag, lt->pntsw, &fu, &du);
-		w= (vec[2]-fu)/du;
+		w= (vec[2]-lt->fw)/lt->dw;
 		wi= (int)floor(w);
 		w -= wi;
 		set_four_ipo(w, tw, lt->typew);
@@ -568,7 +609,7 @@ int object_deform_mball(Object *ob)
 	}
 }
 
-BPoint *latt_bp(Lattice *lt, int u, int v, int w)
+static BPoint *latt_bp(Lattice *lt, int u, int v, int w)
 {
 	return lt->def+ u + v*lt->pntsu + w*lt->pntsu*lt->pntsv;
 }
@@ -632,4 +673,62 @@ void outside_lattice(Lattice *lt)
 		
 	}
 	
+}
+
+float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3]
+{
+	Lattice *lt = (G.obedit==ob)?editLatt:ob->data;
+	int i, numVerts = *numVerts_r = lt->pntsu*lt->pntsv*lt->pntsw;
+	float (*vertexCos)[3] = MEM_mallocN(sizeof(*vertexCos)*numVerts,"lt_vcos");
+
+	for (i=0; i<numVerts; i++) {
+		VECCOPY(vertexCos[i], lt->def[i].vec);
+	}
+
+	return vertexCos;
+}
+
+void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3])
+{
+	Lattice *lt = ob->data;
+	int i, numVerts = lt->pntsu*lt->pntsv*lt->pntsw;
+
+	for (i=0; i<numVerts; i++) {
+		VECCOPY(lt->def[i].vec, vertexCos[i]);
+	}
+}
+
+void lattice_calc_modifiers(Object *ob)
+{
+	float (*vertexCos)[3] = NULL;
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	int numVerts, editmode = G.obedit==ob;
+
+	freedisplist(&ob->disp);
+
+	if (!editmode) {
+		do_latt_key(ob->data);
+	}
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if (!(md->mode&(1<<0))) continue;
+		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
+		if (mti->isDisabled && mti->isDisabled(md)) continue;
+		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
+
+		if (!vertexCos) vertexCos = lattice_getVertexCos(ob, &numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
+	}
+
+	if (vertexCos) {
+		DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
+		dl->type = DL_VERTS;
+		dl->parts = 1;
+		dl->nr = numVerts;
+		dl->verts = (float*) vertexCos;
+		
+		BLI_addtail(&ob->disp, dl);
+	}
 }

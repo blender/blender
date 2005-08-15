@@ -119,6 +119,7 @@
 #include "BKE_effect.h" // for give_parteff
 #include "BKE_global.h" // for G
 #include "BKE_property.h" // for get_property
+#include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main
 #include "BKE_mesh.h" // for ME_ defines (patching)
@@ -4863,7 +4864,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-	}		
+	}
+	if(main->versionfile <= 238) {
+		Lattice *lt;
+
+		for (lt=main->latt.first; lt; lt=lt->id.next) {
+			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
+				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
+				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
+				calc_lat_fudu(lt->flag, lt->pntsw, &lt->fw, &lt->dw);
+			}
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

@@ -422,6 +422,7 @@ enum {
 #define B_RESIZELAT		2601
 #define B_DRAWLAT		2602
 #define B_LATTCHANGED	2603
+#define B_REGULARLAT	2604
 
 /* *********************** */
 #define B_GAMEBUTS		2800

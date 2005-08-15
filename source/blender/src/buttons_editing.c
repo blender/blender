@@ -75,6 +75,7 @@
 
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_curve.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -511,6 +512,7 @@ void do_modifier_panels(unsigned short event)
 		break;
 
 	case B_MODIFIER_RECALC:
+		ob->softflag |= OB_SB_RESET;
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWOOPS, 0);
@@ -700,8 +702,8 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 	if (G.obedit) {
 		error("Modifiers cannot be applied in editmode");
 		return;
-	} else if (me->id.us>1) {
-		error("Modifiers cannot be applied to a multi-user mesh");
+	} else if (((ID*) ob->data)->us>1) {
+		error("Modifiers cannot be applied to multi-user data");
 		return;
 	}
 
@@ -710,29 +712,54 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 			return;
 	}
 
-		// XXX, only for mesh
+	if (ob->type==OB_MESH) {
+		dm = mesh_create_derived_for_modifier(ob, md);
+		if (!dm) {
+			error("Modifier is disabled or returned error, skipping apply");
+			return;
+		}
 
-	dm = mesh_create_derived_for_modifier(ob, md);
-	if (!dm) {
-		error("Modifier is disabled or returned error, skipping apply");
-		return;
-	}
+		dlm= dm->convertToDispListMesh(dm, 0);
 
-	dlm= dm->convertToDispListMesh(dm, 0);
-
-	if ((!me->tface || dlm->tface) || okee("Applying will delete mesh UVs and vertex colors")) {
-		if ((!me->mcol || dlm->mcol) || okee("Applying will delete mesh vertex colors")) {
-			if (dlm->totvert==me->totvert || okee("Applying will delete mesh sticky, keys, and vertex groups")) {
-				displistmesh_to_mesh(dlm, me);
-				converted = 1;
+		if ((!me->tface || dlm->tface) || okee("Applying will delete mesh UVs and vertex colors")) {
+			if ((!me->mcol || dlm->mcol) || okee("Applying will delete mesh vertex colors")) {
+				if (dlm->totvert==me->totvert || okee("Applying will delete mesh sticky, keys, and vertex groups")) {
+					displistmesh_to_mesh(dlm, me);
+					converted = 1;
+				}
 			}
 		}
-	}
 
-	if (!converted) {
-		displistmesh_free(dlm);
+		if (!converted) {
+			displistmesh_free(dlm);
+		}
+		dm->release(dm);
+	} 
+	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		Curve *cu = ob->data;
+		int numVerts;
+		float (*vertexCos)[3];
+
+		if (!okee("Apply will only change CV points, not tesselated/bevel vertices"))
+			return;
+
+		if (!(md->mode&eModifierMode_Realtime) || (mti->isDisabled && mti->isDisabled(md))) {
+			error("Modifier is disabled, skipping apply");
+			return;
+		}
+
+		vertexCos = curve_getVertexCos(cu, &cu->nurb, &numVerts);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts);
+		curve_applyVertexCos(cu, &cu->nurb, vertexCos);
+		MEM_freeN(vertexCos);
+
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	}
-	dm->release(dm);
+	else {
+		error("Cannot apply modifier for this object type");
+		return;
+	}
 
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
@@ -1972,13 +1999,23 @@ void do_latticebuts(unsigned short event)
 	if(ob->type!=OB_LATTICE) return;
 
 	switch(event) {
+	case B_REGULARLAT:
+		if(ob) {
+			lt = ob->data;
+			if(ob==G.obedit) resizelattice(editLatt, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
+			else resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
+			ob->softflag |= OB_SB_REDO;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	case B_RESIZELAT:
 		if(ob) {
-			if(ob==G.obedit) resizelattice(editLatt);
-			else resizelattice(ob->data);
+			lt = ob->data;
+			resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, ob);
 			ob->softflag |= OB_SB_REDO;
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
 		}
-		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_DRAWLAT:
 		allqueue(REDRAWVIEW3D, 0);
@@ -2009,24 +2046,28 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 
 	uiBlockBeginAlign(block);
 
-	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				469, 178,100,19, &lt->pntsu, 1.0, 64.0, 0, 0, "Points in U direction");
+	lt->opntsu = lt->pntsu;
+	lt->opntsv = lt->pntsv;
+	lt->opntsw = lt->pntsw;
+
+	uiDefButS(block, NUM, B_RESIZELAT,	"U:",				469, 178,100,19, &lt->opntsu, 1.0, 64.0, 0, 0, "Points in U direction");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 178, 40, 19, &lt->typeu, 1.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
-	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				469, 156,100,19, &lt->pntsv, 1.0, 64.0, 0, 0, "Points in V direction");
+	uiDefButS(block, NUM, B_RESIZELAT,	"V:",				469, 156,100,19, &lt->opntsv, 1.0, 64.0, 0, 0, "Points in V direction");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 156, 40, 19, &lt->typev, 2.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 156, 40, 19, &lt->typev, 2.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 156, 40, 19, &lt->typev, 2.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
-	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				469, 134,100,19, &lt->pntsw, 1.0, 64.0, 0, 0, "Points in W direction");
+	uiDefButS(block, NUM, B_RESIZELAT,	"W:",				469, 134,100,19, &lt->opntsw, 1.0, 64.0, 0, 0, "Points in W direction");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Lin",		572, 134, 40, 19, &lt->typew, 3.0, (float)KEY_LINEAR, 0, 0, "Set Linear interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"Card",		613, 134, 40, 19, &lt->typew, 3.0, (float)KEY_CARDINAL, 0, 0, "Set Cardinal interpolation");
 	uiDefButC(block, ROW, B_LATTCHANGED,		"B",		652, 134, 40, 19, &lt->typew, 3.0, (float)KEY_BSPLINE, 0, 0, "Set B-spline interpolation");
 
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, BUT, B_RESIZELAT,	"Make Regular",		469,98,102,31, 0, 0, 0, 0, 0, "Make Lattice regular");
+	uiDefBut(block, BUT, B_REGULARLAT,	"Make Regular",		469,98,102,31, 0, 0, 0, 0, 0, "Make Lattice regular");
 
 	uiClearButLock();
 	uiDefButBitS(block, TOG, LT_OUTSIDE, B_LATTCHANGED, "Outside",	571,98,122,31, &lt->flag, 0, 0, 0, 0, "Only draw, and take into account, the outer vertices");
@@ -3229,6 +3270,7 @@ void editing_panels()
 		lt= ob->data;
 		editing_panel_links(ob); // no editmode!
 		editing_panel_lattice_type(ob, lt);
+		editing_panel_modifiers(ob);
 		break;
 
 	case OB_LAMP:

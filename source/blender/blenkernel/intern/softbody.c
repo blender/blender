@@ -85,6 +85,21 @@ extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
 
 
 /* ********** soft body engine ******* */
+
+typedef struct BodyPoint {
+	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
+	float weight, goal;
+	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
+    int nofsprings; int *springs;
+	float contactfrict;
+} BodyPoint;
+
+typedef struct BodySpring {
+	int v1, v2;
+	float len, strength;
+} BodySpring;
+
+
 #define SOFTGOALSNAP  0.999f 
 // if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
 // removes *unnecessary* stiffnes from ODE system
@@ -179,12 +194,10 @@ static void add_mesh_quad_diag_springs(Object *ob)
 						bs->v1= mface->v1;
 						bs->v2= mface->v3;
 						bs->strength= 1.0;
-						bs->len= VecLenf( (bp+bs->v1)->origS, (bp+bs->v2)->origS);
 						bs++;
 						bs->v1= mface->v2;
 						bs->v2= mface->v4;
 						bs->strength= 1.0;
-						bs->len= VecLenf( (bp+bs->v1)->origS, (bp+bs->v2)->origS);
 						bs++;
 						
 					}
@@ -245,10 +258,10 @@ static void build_bps_springlist(Object *ob)
 
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
-/* called in mesh_to_softbody */
 static void renew_softbody(Object *ob, int totpoint, int totspring)  
 {
 	SoftBody *sb;
+	int i;
 	
 	if(ob->soft==NULL) ob->soft= sbNew();
 	else free_softbody_intern(ob->soft);
@@ -261,6 +274,24 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 		sb->bpoint= MEM_mallocN( totpoint*sizeof(BodyPoint), "bodypoint");
 		if(totspring) 
 			sb->bspring= MEM_mallocN( totspring*sizeof(BodySpring), "bodyspring");
+
+			/* initialise BodyPoint array */
+		for (i=0; i<totpoint; i++) {
+			BodyPoint *bp = &sb->bpoint[i];
+
+			bp->weight= 1.0;
+			if(ob->softflag & OB_SB_GOAL) {
+				bp->goal= ob->soft->defgoal;
+			}
+			else { 
+				bp->goal= 0.0f; 
+				/* so this will definily be below SOFTGOALSNAP */
+			}
+			
+			bp->nofsprings= 0;
+			bp->springs= NULL;
+			bp->contactfrict = 0.0f;
+		}
 	}
 }
 
@@ -723,93 +754,8 @@ static void interpolate_exciter(Object *ob, int timescale, int time)
 /* ************ convertors ********** */
 
 /*  for each object type we need;
-    - xxxx_to_softbody(Object *ob)      : a full (new) copy
-	- xxxx_update_softbody(Object *ob)  : update refreshes current positions
-    - softbody_to_xxxx(Object *ob)      : after simulation, copy vertex locations back
+    - xxxx_to_softbody(Object *ob)      : a full (new) copy, creates SB geometry
 */
-
-/* helper  call */
-static int object_has_edges(Object *ob) 
-{
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		if(me->medge) return 1;
-	}
-	else if(ob->type==OB_LATTICE) {
-		;
-	}
-	
-	return 0;
-}
-
-/* helper  call */
-static void set_body_point(Object *ob, BodyPoint *bp, float *vec)
-{
-	VECCOPY(bp->pos, vec);
-	Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
-	VECCOPY(bp->origS, bp->pos);
-	VECCOPY(bp->origE, bp->pos);
-	VECCOPY(bp->origT, bp->pos);
-	
-	bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0;
-	bp->weight= 1.0;
-	if(ob->softflag & OB_SB_GOAL) {
-		bp->goal= ob->soft->defgoal;
-	}
-	else { 
-		bp->goal= 0.0f; 
-		/* so this will definily be below SOFTGOALSNAP */
-	}
-	
-	bp->nofsprings= 0;
-	bp->springs= NULL;
-	bp->contactfrict = 0.0f;
-}
-
-
-/* copy original (new) situation in softbody, as result of matrices or deform */
-/* is assumed to enter function with ob->soft, but can be without points */
-static void mesh_update_softbody(Object *ob, float (*vertexCos)[3])
-{
-	Mesh *me= ob->data;
-	BodyPoint *bp;
-	int a;
-	
-	/* possible after a file read... */
-	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob, NULL);
-	
-	if(me->totvert) {
-		bp= ob->soft->bpoint;
-		for(a=0; a<me->totvert; a++, bp++) {
- 			VECCOPY(bp->origS, bp->origE);
-			if (vertexCos) {
-				VECCOPY(bp->origE, vertexCos[a]);
-			} else {
-				VECCOPY(bp->origE, me->mvert[a].co);
-			}
-			Mat4MulVecfl(ob->obmat, bp->origE);
-			VECCOPY(bp->origT, bp->origE);
-		}
-		
-		if(ob->softflag & OB_SB_EDGES) {
-			
-			/* happens when in UI edges was set */
-			if(ob->soft->bspring==NULL) 
-				if(object_has_edges(ob)) sbObjectToSoftbody(ob, NULL);
-		
-			/* hrms .. do springs alter their lenght ? (yes, mesh keys would (ton))
-			if(medge) {
-				bs= ob->soft->bspring;
-				bp= ob->soft->bpoint;
-				for(a=0; (a<me->totedge && a < ob->soft->totspring ); a++, medge++, bs++) { 
-					bs->len= VecLenf( (bp+bs->v1)->origE, (bp+bs->v2)->origE);
-				}
-			}
-			*/
-		}
-	}
-}
-
 
 static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex, float *target)
 /* result 0 on success, else indicates error number
@@ -837,7 +783,7 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 } 
 
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
+static void mesh_to_softbody(Object *ob)
 {
 	SoftBody *sb;
 	Mesh *me= ob->data;
@@ -859,12 +805,6 @@ static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 	goalfac= ABS(sb->maxgoal - sb->mingoal);
 	
 	for(a=0; a<me->totvert; a++, bp++) {
-		if (vertexCos) {
-			set_body_point(ob, bp, vertexCos[a]);
-		} else {
-			set_body_point(ob, bp, me->mvert[a].co);
-		}
-		
 		/* get scalar values needed  *per vertex* from vertex group functions,
 		so we can *paint* them nicly .. 
 		they are normalized [0.0..1.0] so may be we need amplitude for scale
@@ -891,12 +831,10 @@ static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 	if (ob->softflag & OB_SB_EDGES) {
 		if(medge) {
 			bs= sb->bspring;
-			bp= sb->bpoint;
 			for(a=me->totedge; a>0; a--, medge++, bs++) {
 				bs->v1= medge->v1;
 				bs->v2= medge->v2;
 				bs->strength= 1.0;
-				bs->len= VecLenf( (bp+bs->v1)->origS, (bp+bs->v2)->origS);
 			}
 
 		
@@ -909,19 +847,6 @@ static void mesh_to_softbody(Object *ob, float (*vertexCos)[3])
 		}
 	}
 	
-}
-
-/* copies current sofbody position in mesh, so do this within modifier stacks! */
-static void softbody_to_mesh(Object *ob, float (*vertexCos)[3])
-{
-	Mesh *me= ob->data;
-	BodyPoint *bp= ob->soft->bpoint;
-	int a;
-
-	for(a=me->totvert; a>0; a--, bp++, vertexCos++) {
-		VECCOPY(vertexCos[0], bp->pos);
-		Mat4MulVecfl(ob->imat, vertexCos[0]);	// softbody is in global coords
-	}
 }
 
 
@@ -1021,23 +946,17 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 /* makes totally fresh start situation */
 static void lattice_to_softbody(Object *ob)
 {
-	SoftBody *sb;
-	BodySpring *bs;
 	Lattice *lt= ob->data;
-	BodyPoint *bop;
-	BPoint *bp;
-	int a, totvert, totspring = 0;
+	int totvert, totspring = 0;
 	
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 
 	if (ob->softflag & OB_SB_EDGES){
-		
 		totspring = ((lt->pntsu -1) * lt->pntsv 
 		          + (lt->pntsv -1) * lt->pntsu) * lt->pntsw
 				  +lt->pntsu*lt->pntsv*(lt->pntsw -1);
 		if (ob->softflag & OB_SB_QUADS){
-		totspring += 4*(lt->pntsu -1) *  (lt->pntsv -1)  * (lt->pntsw-1);
-			
+			totspring += 4*(lt->pntsu -1) *  (lt->pntsv -1)  * (lt->pntsw-1);
 		}
 	}
 	
@@ -1045,110 +964,31 @@ static void lattice_to_softbody(Object *ob)
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(ob, totvert, totspring);
 	
-	/* we always make body points */
-	sb= ob->soft;	
-	
-	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
-		set_body_point(ob, bop, bp->vec);
-	}
-
 	/* create some helper edges to enable SB lattice to be usefull at all */
 	if (ob->softflag & OB_SB_EDGES){
-		bs = sb->bspring;
-		makelatticesprings(lt,bs,ob->softflag & OB_SB_QUADS);
+		makelatticesprings(lt,ob->soft->bspring,ob->softflag & OB_SB_QUADS);
 		build_bps_springlist(ob); /* link bps to springs */
-
-		/* recalculate lenght since BPoint and Bodypoint obviously can differ */
-		bs= ob->soft->bspring;
-		bop= ob->soft->bpoint;
-		for(a=0; a < totspring ; a++, bs++) { 
-			bs->len= VecLenf( (bop+bs->v1)->origE, (bop+bs->v2)->origE);
-			}
-
 	}
-
-}
-
-/* copies current sofbody position */
-static void softbody_to_lattice(Object *ob)
-{
-	SoftBody *sb;
-	Lattice *lt= ob->data;
-	BodyPoint *bop;
-	BPoint *bp;
-	int a, totvert;
-	
-	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
-	sb= ob->soft;	
-	
-	for(a= totvert, bp= lt->def, bop= sb->bpoint; a>0; a--, bp++, bop++) {
-		VECCOPY(bp->vec, bop->pos);
-		Mat4MulVecfl(ob->imat, bp->vec);	// softbody is in global coords
-	}
-}
-
-/* copy original (new) situation in softbody, as result of matrices or deform */
-/* is assumed to enter function with ob->soft, but can be without points */
-static void lattice_update_softbody(Object *ob)
-{
-	Lattice *lt= ob->data;
-	BodyPoint *bop;
-	BPoint *bp;
-	int a, totvert;
-	
-	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
-	
-	/* possible after a file read... */
-	if(ob->soft->bpoint==NULL) sbObjectToSoftbody(ob, NULL);
-	
-	for(a= totvert, bp= lt->def, bop= ob->soft->bpoint; a>0; a--, bp++, bop++) {
-		VECCOPY(bop->origS, bop->origE);
-		VECCOPY(bop->origE, bp->vec);
-		Mat4MulVecfl(ob->obmat, bop->origE);
-		VECCOPY(bop->origT, bop->origE);
-	}	
 }
 
 
 /* copies softbody result back in object */
-/* only used in sbObjectStep() */
-static void softbody_to_object(Object *ob, float (*vertexCos)[3])
+static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts)
 {
-	
-	if(ob->soft==NULL) return;
-	
+	BodyPoint *bp= ob->soft->bpoint;
+	int a;
+
 	/* inverse matrix is not uptodate... */
 	Mat4Invert(ob->imat, ob->obmat);
 	
-	switch(ob->type) {
-	case OB_MESH:
-		softbody_to_mesh(ob, vertexCos);
-		break;
-	case OB_LATTICE:
-		softbody_to_lattice(ob);
-		break;
+	for(a=0; a<numVerts; a++, bp++) {
+		VECCOPY(vertexCos[a], bp->pos);
+		Mat4MulVecfl(ob->imat, vertexCos[a]);	// softbody is in global coords
 	}
-}
-
-/* copy original (new) situation in softbody, as result of matrices or deform */
-/* used in sbObjectStep() and sbObjectReset() */
-/* assumes to have ob->soft, but can be entered without points */
-static void object_update_softbody(Object *ob, float (*vertexCos)[3])
-{
-	
-	switch(ob->type) {
-	case OB_MESH:
-		mesh_update_softbody(ob, vertexCos);
-		break;
-	case OB_LATTICE:
-		lattice_update_softbody(ob);
-		break;
-	}
-	
 }
 
 /* return 1 if succesfully baked and applied step */
-static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3])
+static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
 {
 	SoftBody *sb= ob->soft;
 	SBVertex *key0, *key1, *key2, *key3;
@@ -1200,7 +1040,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3])
 		bp->pos[2]= data[0]*key0->vec[2] +  data[1]*key1->vec[2] + data[2]*key2->vec[2] + data[3]*key3->vec[2];
 	}
 	
-	softbody_to_object(ob, vertexCos);
+	softbody_to_object(ob, vertexCos, numVerts);
 	
 	return 1;
 }
@@ -1293,79 +1133,68 @@ void sbFree(SoftBody *sb)
 
 
 /* makes totally fresh start situation */
-void sbObjectToSoftbody(Object *ob, float (*vertexCos)[3])
+void sbObjectToSoftbody(Object *ob)
 {
+	ob->softflag |= OB_SB_REDO;
+}
 
+static void convert_object_to_sb(Object *ob, int numVerts)
+{
 	switch(ob->type) {
 	case OB_MESH:
-		mesh_to_softbody(ob, vertexCos);
+		mesh_to_softbody(ob);
 		break;
 	case OB_LATTICE:
 		lattice_to_softbody(ob);
 		break;
+	default:
+		renew_softbody(ob, numVerts, 0);
+		break;
 	}
 	
-	if(ob->soft) ob->soft->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
 	ob->softflag &= ~OB_SB_REDO;
+
+		/* still need to update to correct vertex locations, happens on next step */
+	ob->softflag |= OB_SB_RESET; 
 }
 
-/* reset all motion */
-void sbObjectReset(Object *ob, float (*vertexCos)[3])
+static int object_has_edges(Object *ob) 
 {
-	SoftBody *sb= ob->soft;
-	BodyPoint *bp;
-	int a;
-	
-	if(sb==NULL) return;
-	if(sb->keys && sb->totkey) return; // only as cpu time saver
-	
-	sb->ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);
-	
-	object_update_softbody(ob, vertexCos);
-	
-	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		// origS is previous timestep
-		VECCOPY(bp->origS, bp->origE);
-		VECCOPY(bp->pos, bp->origE);
-		VECCOPY(bp->origT, bp->origE);
-		bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
-
-		// no idea about the Heun stuff! (ton)
-		VECCOPY(bp->prevpos, bp->pos);
-		VECCOPY(bp->prevvec, bp->vec);
-		VECCOPY(bp->prevdx, bp->vec);
-		VECCOPY(bp->prevdv, bp->vec);
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		return (me->medge && me->totedge);
+	}
+	else if(ob->type==OB_LATTICE) {
+		return 1;
+	}
+	else {
+		return 0;
 	}
 }
-
 
 /* simulates one step. framenr is in frames */
-/* copies result back to object, displist */
-void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
+void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts)
 {
 	SoftBody *sb;
 	Base *base;
+	BodyPoint *bp;
 	float dtime;
-	int timescale,t;
+	int a,timescale,t;
 	float ctime, forcetime;
 	float err;
-
-	/* this variable is set while transform(). with lattices also having a softbody, 
-	   it calls lattice_modifier() all the time... has no displist yet. Is temporal
-	   hack which should be resolved with proper depgraph usage + storage of deformed
-	   vertices in lattice (ton) */
-	if(G.moving) return;
 	
 	/* baking works with global time */
 	if(!(ob->softflag & OB_SB_BAKEDO) )
-		if(softbody_baked_step(ob, framenr, vertexCos) ) return;
+		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
 	
-	/* remake softbody if: */
-	if( (ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
-		(ob->soft==NULL) ||					// just to be nice we allow full init
-		(ob->soft->bpoint==NULL) ) 			// after reading new file, or acceptable as signal to refresh
-			sbObjectToSoftbody(ob, vertexCos);
-	
+		/* remake softbody if: */
+	if(		(ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
+			(ob->soft==NULL) ||					// just to be nice we allow full init
+			(ob->soft->bpoint==NULL) || 		// after reading new file, or acceptable as signal to refresh
+			(numVerts!=ob->soft->totpoint) ||	// should never happen, just to be safe
+			((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) // happens when in UI edges was set
+		convert_object_to_sb(ob, numVerts);
+
 	sb= ob->soft;
 
 	/* still no points? go away */
@@ -1377,23 +1206,53 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 	}
 
 	/* checking time: */
+
 	ctime= bsystem_time(ob, NULL, framenr, 0.0);
-	dtime= ctime - sb->ctime;
-		// bail out for negative or for large steps
-	if(dtime<0.0 || dtime >= 9.9*G.scene->r.framelen) { // G.scene->r.framelen corrects for frame-mapping, so this is actually 10 frames for UI
-		sbObjectReset(ob, vertexCos);
-		return;
+
+	if (ob->softflag&OB_SB_RESET) {
+		dtime = 0.0;
+	} else {
+		dtime= ctime - sb->ctime;
 	}
-	
+
 	/* the simulator */
-	
-	if(dtime > 0.0) {	// note: what does this mean now? (ton)
-		//answer (BM) :
-		//dtime is still in [frames]
-		//we made sure dtime is >= 0.0
-		//but still need to handle dtime == 0.0 -> just return sb as is, just to be nice
-		object_update_softbody(ob, vertexCos);
-		
+
+		/* update the vertex locations */
+	if (dtime!=0.0) {
+		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+ 			VECCOPY(bp->origS, bp->origE);
+			VECCOPY(bp->origE, vertexCos[a]);
+			Mat4MulVecfl(ob->obmat, bp->origE);
+			VECCOPY(bp->origT, bp->origE);
+		}
+	}
+
+		// G.scene->r.framelen corrects for frame-mapping, so this is actually 10 frames for UI
+	if((ob->softflag&OB_SB_RESET) || dtime<0.0 || dtime>=9.9*G.scene->r.framelen) {
+		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+			VECCOPY(bp->pos, vertexCos[a]);
+			Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
+			VECCOPY(bp->origS, bp->pos);
+			VECCOPY(bp->origE, bp->pos);
+			VECCOPY(bp->origT, bp->pos);
+			bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
+
+			// no idea about the Heun stuff! (ton)
+			VECCOPY(bp->prevpos, bp->pos);
+			VECCOPY(bp->prevvec, bp->vec);
+			VECCOPY(bp->prevdx, bp->vec);
+			VECCOPY(bp->prevdv, bp->vec);
+		}
+
+		for(a=0; a<sb->totspring; a++) {
+			BodySpring *bs = &sb->bspring[a];
+
+			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+		}
+
+		ob->softflag &= ~OB_SB_RESET;
+	}
+	else if(dtime>0.0) {
 		if (TRUE) {	// RSOL1 always true now (ton)
 			/* special case of 2nd order Runge-Kutta type AKA Heun */
 			float timedone =0.0; // how far did we get without violating error condition
@@ -1486,19 +1345,10 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3])
 				}
 			}
 		}
-		
-		/* and apply to vertices */
-		 softbody_to_object(ob, vertexCos);
-		
-		sb->ctime= ctime;
-	} // if(ABS(dtime) > 0.0) 
-	else {
-		// rule : you have asked for the current state of the softobject 
-		// since dtime= ctime - ob->soft->ctime== 0.0;
-		// and we were not notifified about any other time changes 
-		// so here it is !
-		softbody_to_object(ob, vertexCos);
 	}
+
+	softbody_to_object(ob, vertexCos, numVerts);
+	sb->ctime= ctime;
 
 	/* reset deflector cache */
 	for(base= G.scene->base.first; base; base= base->next) {

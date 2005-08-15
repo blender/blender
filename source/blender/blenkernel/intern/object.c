@@ -1762,6 +1762,9 @@ void object_handle_update(Object *ob)
 			else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 				makeDispListCurveTypes(ob, 0);
 			}
+			else if(ob->type==OB_LATTICE) {
+				lattice_calc_modifiers(ob);
+			}
 			else if(ob->type==OB_ARMATURE) {
 				/* this actually only happens for reading old files... */
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))

@@ -786,49 +786,30 @@ void drawcamera(Object *ob)
 	}
 }
 
-static void tekenvertslatt(short sel)
+static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 {
-	Lattice *lt;
-	BPoint *bp;
-	float size;
-	int a, u, v, w;
+	BPoint *bp = lt->def;
+	float *co = dl?dl->verts:NULL;
+	int u, v, w;
 
-	size= BIF_GetThemeValuef(TH_VERTEX_SIZE);
-	glPointSize(size);
-
-	if(sel) BIF_ThemeColor(TH_VERTEX_SELECT);
-	else BIF_ThemeColor(TH_VERTEX);
-
+	BIF_ThemeColor(sel?TH_VERTEX_SELECT:TH_VERTEX);
+	glPointSize(BIF_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 
-	bp= editLatt->def;
-	lt= editLatt;
-	
-	if(lt->flag & LT_OUTSIDE) {
-		
-		for(w=0; w<lt->pntsw; w++) {
-			int wxt = (w==0 || w==lt->pntsw-1);
-			for(v=0; v<lt->pntsv; v++) {
-				int vxt = (v==0 || v==lt->pntsv-1);
-				for(u=0; u<lt->pntsu; u++, bp++) {
-					int uxt = (u==0 || u==lt->pntsu-1);
-					if(uxt || vxt || wxt) {
-						if(bp->hide==0) {
-							if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
+	for(w=0; w<lt->pntsw; w++) {
+		int wxt = (w==0 || w==lt->pntsw-1);
+		for(v=0; v<lt->pntsv; v++) {
+			int vxt = (v==0 || v==lt->pntsv-1);
+			for(u=0; u<lt->pntsu; u++, bp++, co+=3) {
+				int uxt = (u==0 || u==lt->pntsu-1);
+				if(!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
+					if(bp->hide==0) {
+						if((bp->f1 & 1)==sel) {
+							bglVertex3fv(dl?co:bp->vec);
 						}
 					}
 				}
 			}
-		}
-	}
-	else {
-
-		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		while(a--) {
-			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
-			}
-			bp++;
 		}
 	}
 	
@@ -839,119 +820,74 @@ static void tekenvertslatt(short sel)
 void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, int y), void *userData)
 {
 	int i, N = editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+	DispList *dl = find_displist(&G.obedit->disp, DL_VERTS);
+	float *co = dl?dl->verts:NULL;
+	BPoint *bp = editLatt->def;
 	float mat[4][4];
 	short s[2];
 
 	view3d_get_object_project_mat(curarea, G.obedit, mat);
 
-	for (i=0; i<N; i++) {
-		BPoint *bp = &editLatt->def[i];
-
+	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short(curarea, bp->vec, s, mat);
+			view3d_project_short(curarea, dl?co:bp->vec, s, mat);
 			func(userData, bp, s[0], s[1]);
 		}
 	}
 }
 
+static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w)
+{
+	int index = ((w*lt->pntsv + v)*lt->pntsu) + u;
 
+	if (dl) {
+		glVertex3fv(&dl->verts[index*3]);
+	} else {
+		glVertex3fv(lt->def[index].vec);
+	}
+}
 static void drawlattice(Object *ob)
 {
 	Lattice *lt;
-	BPoint *bp, *bpu;
-	int u, v, w, dv, dw, uxt, vxt, wxt;
+	DispList *dl;
+	int u, v, w;
 
-	lt= ob->data;
+	lt= (ob==G.obedit)?editLatt:ob->data;
+	dl= find_displist(&ob->disp, DL_VERTS);
 	if(ob==G.obedit) {
-		bp= editLatt->def;
-		
 		cpack(0x004000);
 	}
-	else {
-		do_latt_key(lt);
-		bp= lt->def;
-	}
 	
-	dv= lt->pntsu;
-	dw= dv*lt->pntsv;
-	
-	if(lt->flag & LT_OUTSIDE) {
-		
-		for(w=0; w<lt->pntsw; w++) {
-			
-			if(w==0 || w==lt->pntsw-1) wxt= 1; else wxt= 0;
-			
-			for(v=0; v<lt->pntsv; v++) {
-				
-				if(v==0 || v==lt->pntsv-1) vxt= 1; else vxt= 0;
-				
-				for(u=0, bpu=0; u<lt->pntsu; u++, bp++) {
-				
-					if(u==0 || u==lt->pntsu-1) uxt= 1; else uxt= 0;
-					
-					if(uxt || vxt || wxt) {
-					
-						if(w && (uxt || vxt)) {
+	glBegin(GL_LINES);
+	for(w=0; w<lt->pntsw; w++) {
+		int wxt = (w==0 || w==lt->pntsw-1);
+		for(v=0; v<lt->pntsv; v++) {
+			int vxt = (v==0 || v==lt->pntsv-1);
+			for(u=0; u<lt->pntsu; u++) {
+				int uxt = (u==0 || u==lt->pntsu-1);
 
-							glBegin(GL_LINE_STRIP);
-							glVertex3fv( (bp-dw)->vec ); glVertex3fv(bp->vec);
-							glEnd();
-						}
-						if(v && (uxt || wxt)) {
-
-							glBegin(GL_LINES);
-							glVertex3fv( (bp-dv)->vec ); glVertex3fv(bp->vec);
-							glEnd();
-						}
-						if(u && (vxt || wxt)) {
-
-							glBegin(GL_LINES);
-							glVertex3fv(bpu->vec); glVertex3fv(bp->vec);
-							glEnd();
-						}
-					}
-					
-					bpu= bp;
+				if(w && ((uxt || vxt) || !(lt->flag & LT_OUTSIDE))) {
+					drawlattice__point(lt, dl, u, v, w-1);
+					drawlattice__point(lt, dl, u, v, w);
 				}
-			}
-		}		
-	}
-	else {
-		for(w=0; w<lt->pntsw; w++) {
-			
-			for(v=0; v<lt->pntsv; v++) {
-				
-				for(u=0, bpu=0; u<lt->pntsu; u++, bp++) {
-				
-					if(w) {
-
-						glBegin(GL_LINES);
-						glVertex3fv( (bp-dw)->vec ); glVertex3fv(bp->vec);
-						glEnd();
-					}
-					if(v) {
-
-						glBegin(GL_LINES);
-						glVertex3fv( (bp-dv)->vec ); glVertex3fv(bp->vec);
-						glEnd();
-					}
-					if(u) {
-
-						glBegin(GL_LINES);
-						glVertex3fv(bpu->vec); glVertex3fv(bp->vec);
-						glEnd();
-					}
-					bpu= bp;
+				if(v && ((uxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
+					drawlattice__point(lt, dl, u, v-1, w);
+					drawlattice__point(lt, dl, u, v, w);
+				}
+				if(u && ((vxt || wxt) || !(lt->flag & LT_OUTSIDE))) {
+					drawlattice__point(lt, dl, u-1, v, w);
+					drawlattice__point(lt, dl, u, v, w);
 				}
 			}
 		}
-	}
+	}		
+	glEnd();
 	
 	if(ob==G.obedit) {
 		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 		
-		tekenvertslatt(0);
-		tekenvertslatt(1);
+		lattice_draw_verts(lt, dl, 0);
+		lattice_draw_verts(lt, dl, 1);
 		
 		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
 	}

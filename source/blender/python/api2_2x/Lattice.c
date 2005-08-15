@@ -423,10 +423,7 @@ static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"partition values must be 2 or greater" ) );
 
-	bl_Lattice->pntsu = ( short ) x;
-	bl_Lattice->pntsv = ( short ) y;
-	bl_Lattice->pntsw = ( short ) z;
-	resizelattice( bl_Lattice );
+	resizelattice(bl_Lattice, x, y, z, NULL);
 
 	Py_INCREF( Py_None );
 	return Py_None;

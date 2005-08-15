@@ -1417,65 +1417,13 @@ void makeDispListMBall(Object *ob)
 	boundbox_displist(ob);
 }
 
-float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
-{
-	int i, numVerts = *numVerts_r = count_curveverts(lb);
-	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
-	Nurb *nu;
-
-	co = cos[0];
-	for (nu=lb->first; nu; nu=nu->next) {
-		if ((nu->type & 7)==CU_BEZIER) {
-			BezTriple *bezt = nu->bezt;
-
-			for (i=0; i<nu->pntsu; i++,bezt++) {
-				VECCOPY(co, bezt->vec[0]); co+=3;
-				VECCOPY(co, bezt->vec[1]); co+=3;
-				VECCOPY(co, bezt->vec[2]); co+=3;
-			}
-		} else {
-			BPoint *bp = nu->bp;
-
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
-				VECCOPY(co, bp->vec); co+=3;
-			}
-		}
-	}
-
-	return cos;
-}
-
-void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
-{
-	float *co = vertexCos[0];
-	Nurb *nu;
-	int i;
-
-	for (nu=lb->first; nu; nu=nu->next) {
-		if ((nu->type & 7)==CU_BEZIER) {
-			BezTriple *bezt = nu->bezt;
-
-			for (i=0; i<nu->pntsu; i++,bezt++) {
-				VECCOPY(bezt->vec[0], co); co+=3;
-				VECCOPY(bezt->vec[1], co); co+=3;
-				VECCOPY(bezt->vec[2], co); co+=3;
-			}
-		} else {
-			BPoint *bp = nu->bp;
-
-			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
-				VECCOPY(bp->vec, co); co+=3;
-			}
-		}
-	}
-}
-
 static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int editmode)
 {
-	ModifierData *md, *preTesselatePoint;
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *preTesselatePoint;
 
 	preTesselatePoint = NULL;
-	for (md=ob->modifiers.first; md; md=md->next) {
+	for (; md; md=md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 		if (!(md->mode&(1<<forRender))) continue;
@@ -1493,13 +1441,14 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (**originalVerts_r)[3], float (**deformedVerts_r)[3], int *numVerts_r)
 {
 	int editmode = (!forRender && ob==G.obedit);
-	ModifierData *md, *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
 	int numVerts = 0;
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
 
 	if (preTesselatePoint) {
-		for (md=ob->modifiers.first; md; md=md->next) {
+		for (; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 			if (!(md->mode&(1<<forRender))) continue;
@@ -1516,8 +1465,6 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 			if (md==preTesselatePoint)
 				break;
 		}
-	} else {
-		md = ob->modifiers.first;
 	}
 
 	if (deformedVerts) {
@@ -1532,13 +1479,12 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, int forRender, float (*originalVerts)[3], float (*deformedVerts)[3])
 {
 	int editmode = (!forRender && ob==G.obedit);
-	ModifierData *md, *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *preTesselatePoint = curve_get_tesselate_point(ob, forRender, editmode);
 	DispList *dl;
 
 	if (preTesselatePoint) {
 		md = preTesselatePoint->next;
-	} else {
-		md = ob->modifiers.first;
 	}
 
 	for (; md; md=md->next) {

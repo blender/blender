@@ -607,7 +607,7 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 */
 
 /* prototype */
-short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
+static short seg_intersect(struct EditEdge * e, CutCurve *c, int len);
 
 void KnifeSubdivide(char mode)
 {

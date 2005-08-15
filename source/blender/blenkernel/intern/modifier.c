@@ -1172,7 +1172,7 @@ static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *der
 {
 	SoftbodyModifierData *hmd = (SoftbodyModifierData*) md;
 
-	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos);
+	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
 /***/

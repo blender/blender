@@ -34,19 +34,6 @@
 #ifndef BKE_SOFTBODY_H
 #define BKE_SOFTBODY_H
 
-typedef struct BodyPoint {
-	float origS[3], origE[3], origT[3], pos[3], vec[3], force[3];
-	float weight, goal;
-	float prevpos[3], prevvec[3], prevdx[3], prevdv[3]; /* used for Heun integration */
-    int nofsprings; int *springs;
-	float contactfrict;
-} BodyPoint;
-
-typedef struct BodySpring {
-	int v1, v2;
-	float len, strength;
-} BodySpring;
-
 struct Object;
 struct SoftBody;
 
@@ -56,16 +43,11 @@ extern struct SoftBody	*sbNew(void);
 /* frees internal data and softbody itself */
 extern void				sbFree(struct SoftBody *sb);
 
-/* go one step in simulation, copy result in vertexCos for meshes, or
- * directly for lattices.
- */
-extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3]);
+/* do one simul step, reading and writing vertex locs from given array */
+extern void				sbObjectStep(struct Object *ob, float framnr, float (*vertexCos)[3], int numVerts);
 
 /* makes totally fresh start situation, resets time */
-extern void				sbObjectToSoftbody(struct Object *ob, float (*vertexCos)[3]);
-
-/* resets all motion and time */
-extern void				sbObjectReset(struct Object *ob, float (*vertexCos)[3]);
+extern void				sbObjectToSoftbody(struct Object *ob);
 
 #endif
 

@@ -86,5 +86,8 @@ void sethandlesNurb(short code);
 void swapdata(void *adr1, void *adr2, int len);
 void switchdirectionNurb( struct Nurb *nu);
 
+float (*curve_getVertexCos(struct Curve *cu, struct ListBase *lb, int *numVerts_r))[3];
+void curve_applyVertexCos(struct Curve *cu, struct ListBase *lb, float (*vertexCos)[3]);
+
 #endif
 

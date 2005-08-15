@@ -1311,7 +1311,7 @@ void make_parent(void)
 				}
 				else {
 					
-					base->object->recalc |= OB_RECALC_OB;
+					base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
 					
 					/* the ifs below are horrible code (ton) */
 					
@@ -1363,7 +1363,6 @@ void make_parent(void)
 					
 					if(par->type==OB_ARMATURE && mode == PARSKEL){
 						verify_defgroups(base->object);
-						base->object->recalc |= OB_RECALC_DATA;
 					}
 				}
 			}
@@ -1523,9 +1522,9 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 		
 		if(sb->keys) {
 			if( okee("Erase Baked SoftBody") )
-				sbObjectToSoftbody(ob, NULL);
+				sbObjectToSoftbody(ob);
 		}
-		else sbObjectToSoftbody(ob, NULL);
+		else sbObjectToSoftbody(ob);
 	}
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 

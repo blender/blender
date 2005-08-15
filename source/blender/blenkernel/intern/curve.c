@@ -2411,3 +2411,57 @@ void switchdirectionNurb(Nurb *nu)
 		}
 	}
 }
+
+
+float (*curve_getVertexCos(Curve *cu, ListBase *lb, int *numVerts_r))[3]
+{
+	int i, numVerts = *numVerts_r = count_curveverts(lb);
+	float *co, (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "cu_vcos");
+	Nurb *nu;
+
+	co = cos[0];
+	for (nu=lb->first; nu; nu=nu->next) {
+		if ((nu->type & 7)==CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for (i=0; i<nu->pntsu; i++,bezt++) {
+				VECCOPY(co, bezt->vec[0]); co+=3;
+				VECCOPY(co, bezt->vec[1]); co+=3;
+				VECCOPY(co, bezt->vec[2]); co+=3;
+			}
+		} else {
+			BPoint *bp = nu->bp;
+
+			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				VECCOPY(co, bp->vec); co+=3;
+			}
+		}
+	}
+
+	return cos;
+}
+
+void curve_applyVertexCos(Curve *cu, ListBase *lb, float (*vertexCos)[3])
+{
+	float *co = vertexCos[0];
+	Nurb *nu;
+	int i;
+
+	for (nu=lb->first; nu; nu=nu->next) {
+		if ((nu->type & 7)==CU_BEZIER) {
+			BezTriple *bezt = nu->bezt;
+
+			for (i=0; i<nu->pntsu; i++,bezt++) {
+				VECCOPY(bezt->vec[0], co); co+=3;
+				VECCOPY(bezt->vec[1], co); co+=3;
+				VECCOPY(bezt->vec[2], co); co+=3;
+			}
+		} else {
+			BPoint *bp = nu->bp;
+
+			for (i=0; i<nu->pntsu*nu->pntsv; i++,bp++) {
+				VECCOPY(bp->vec, co); co+=3;
+			}
+		}
+	}
+}
