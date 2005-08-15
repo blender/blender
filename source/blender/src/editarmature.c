@@ -1700,12 +1700,12 @@ static int clear_active_flag(Object *ob, Bone *bone, void *data)
 
 
 /* called from editview.c, for mode-less pose selection */
-void do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
+int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 {
 	Object *ob= base->object;
 	Bone *nearBone;
 	
-	if (!ob || !ob->pose) return;
+	if (!ob || !ob->pose) return 0;
 
 	nearBone= get_bone_from_selectbuffer(base, buffer, hits, 1);
 
@@ -1738,6 +1738,13 @@ void do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 			}
 		}
 
+		/* in weightpaint we select the associated vertex group too */
+		if(G.f & G_WEIGHTPAINT) {
+			if(nearBone->flag & BONE_ACTIVE) {
+				vertexgroup_select_by_name(OBACT, nearBone->name);
+			}
+		}
+		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);		/* To force action ipo update */
@@ -1746,7 +1753,7 @@ void do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 		allqueue(REDRAWOOPS, 0);
 	}
 	
-//	rightmouse_transform();
+	return nearBone!=NULL;
 	
 }
 

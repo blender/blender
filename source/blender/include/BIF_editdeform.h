@@ -59,6 +59,8 @@ void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg,
 						   int vertnum);
 void create_dverts(Mesh *me);
 
+void vertexgroup_select_by_name(struct Object *ob, char *name);
+
 extern void object_apply_deform(struct Object *ob);
 
 #endif

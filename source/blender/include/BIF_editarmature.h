@@ -98,7 +98,7 @@ void    clear_bone_parent(void);
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
 
-void	do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
+int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
 void	mouse_armature(void);
 void	remake_editArmature(void);

@@ -984,8 +984,12 @@ void draw_armature(Base *base, int dt)
 			if(G.f & G_PICKSEL) {
 				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
 			}
-			else if(ob==OBACT && (ob->flag & OB_POSEMODE)) arm->flag |= ARM_POSEMODE;
-			
+			else if(ob->flag & OB_POSEMODE) {
+				if(ob==OBACT) 
+					arm->flag |= ARM_POSEMODE;
+				else if(G.f & G_WEIGHTPAINT)
+					arm->flag |= ARM_POSEMODE;
+			}			
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 		}

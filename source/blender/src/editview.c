@@ -1266,7 +1266,13 @@ void mouse_select(void)
 			}
 			
 			if(has_bones && basact) {
-				do_pose_selectbuffer(basact, buffer, hits);
+				if( do_pose_selectbuffer(basact, buffer, hits) ) {	// bone found
+				
+					/* in weightpaint, we use selected bone to select vertexgroup, so no switch to new active object */
+					if(G.f & G_WEIGHTPAINT) {
+						basact= NULL;
+					}
+				}
 			}
 		}
 	}

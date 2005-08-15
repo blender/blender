@@ -602,6 +602,20 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 	}	
 }
 
+void vertexgroup_select_by_name(Object *ob, char *name)
+{
+	bDeformGroup *curdef;
+	int actdef= 1;
+	
+	if(ob==NULL || ob->type!=OB_MESH) return;
+	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++){
+		if (!strcmp(curdef->name, name)) {
+			ob->actdef= actdef;
+		}
+	}
+}
+
+
 /* ******************* other deform edit stuff ********** */
 
 void object_apply_deform(Object *ob)
