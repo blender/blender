@@ -150,6 +150,7 @@ struct ScrArea;
 #define ICONTEXTROW (25<<9)
 #define HSVCUBE (26<<9)
 #define PULLDOWN (27<<9)
+#define ROUNDBOX (28<<9)
 
 #define BUTTYPE	(31<<9)
 

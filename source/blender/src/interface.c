@@ -2699,7 +2699,7 @@ static uiBut *ui_but_prev(uiBut *but)
 {
 	while(but->prev) {
 		but= but->prev;
-		if(but->type!=LABEL && but->type!=SEPR) return but;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
 	}
 	return NULL;
 }
@@ -2708,7 +2708,7 @@ static uiBut *ui_but_next(uiBut *but)
 {
 	while(but->next) {
 		but= but->next;
-		if(but->type!=LABEL && but->type!=SEPR) return but;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
 	}
 	return NULL;
 }
@@ -2719,7 +2719,7 @@ static uiBut *ui_but_first(uiBlock *block)
 	
 	but= block->buttons.first;
 	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR) return but;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
 		but= but->next;
 	}
 	return NULL;
@@ -2731,7 +2731,7 @@ static uiBut *ui_but_last(uiBlock *block)
 	
 	but= block->buttons.last;
 	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR) return but;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
 		but= but->prev;
 	}
 	return NULL;
@@ -4575,7 +4575,10 @@ static uiBut *ui_def_but(uiBlock *block, int type, int retval, char *str, short 
 	if ELEM8(but->type, HSVSLI , NUMSLI, MENU, TEX, LABEL, IDPOIN, BLOCK, BUTM) {
 		but->flag |= UI_TEXT_LEFT;
 	}
-	
+
+	if(but->type==ROUNDBOX)
+		but->flag |= UI_NO_HILITE;
+
 	but->flag |= (block->flag & UI_BUT_ALIGN);
 	
 	return but;

@@ -346,6 +346,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
+	/* rounded header */
+	uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-1, width+30, 22, NULL, 5.0, 0.0, 
+			 (con->flag & CONSTRAINT_EXPAND)?3:15 , -20, ""); 
+	
+	/* open/close */
 	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 
 	if (con->flag & CONSTRAINT_EXPAND) {
@@ -364,17 +369,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		*/
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
-		/* rounded header */
-		BIF_ThemeColorShade(curCol, -20);
-		uiSetRoundBox(3);
-		uiRoundBox((float)*xco+4, (float)*yco-18, (float)*xco+width+30, (float)*yco+6, 5.0);
-
-		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 		uiButSetFunc(but, constraint_changed_func, con, NULL);
 		con->otype = con->type;
 		
-		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco-1, 135, 19, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
+		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco, 135, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
 		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
 	}	
 	else{
@@ -386,16 +386,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		}
 		else
 			BIF_ThemeColor(curCol);
-			
-		/* coloured rectangle to hold constraint controls */
-		if (con->type!=CONSTRAINT_TYPE_NULL) glRects(*xco+3, *yco-36, *xco+width+30, *yco-15);
-	
-		/* rounded header */
-		BIF_ThemeColorShade(curCol, -20);
-		uiSetRoundBox(3);
-		uiRoundBox((float)*xco+4, (float)*yco-15, (float)*xco+width+30, (float)*yco+6, 5.0);
 		
-		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco-1, 100, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		uiButSetFunc(but, move_constraint_func, con, NULL);
 		
 		but = uiDefBut(block, LABEL, B_CONSTRAINT_TEST, con->name, *xco+120, *yco-1, 135, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -423,11 +415,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bActionConstraint *data = con->data;
 				bArmature *arm;
 
-				height = 86;
+				height = 88;
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
-
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
@@ -462,10 +452,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bLocateLikeConstraint *data = con->data;
 				bArmature *arm;
-				height = 66;
 				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				height = 66;
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -493,10 +482,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bRotateLikeConstraint *data = con->data;
 				bArmature *arm;
+				
 				height = 46;
-
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -519,9 +507,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 66;
-				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -551,9 +537,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 
 				height = 66;
-				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -594,9 +578,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bLockTrackConstraint *data = con->data;
 				bArmature *arm;
 				height = 66;
-				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -637,9 +619,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bFollowPathConstraint *data = con->data;
 
 				height = 66;
-				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -676,10 +656,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bStretchToConstraint *data = con->data;
 				bArmature *arm;
+				
 				height = 105;
-				BIF_ThemeColor(curCol);
-
-				glRects(*xco+3, *yco-height-39, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -723,9 +702,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
-				
-				BIF_ThemeColor(curCol);
-				glRects(*xco+3, *yco-height-17, *xco+width+30, *yco-18);
+				uiDefBut(block, ROUNDBOX, 0, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, 0, ""); 
 				
 			}
 			break;
@@ -933,6 +910,8 @@ static void object_panel_constraint(void)
 	/* so first we make it default height */
 	uiNewPanelHeight(block, 204);
 
+	if(G.obedit==OBACT) return;
+	
 	conlist = get_constraint_client(ownerstr, &type, NULL);
 	
 	if (conlist) {
@@ -960,15 +939,11 @@ static void object_panel_constraint(void)
 		/* Go through the list of constraints and draw them */
 		xco = 10;
 		yco = 160;
-		// local panel coords
-		uiPanelPush(block);
 		
 		for (curcon = conlist->first; curcon; curcon=curcon->next) {
 			/* Draw default constraint header */			
 			draw_constraint(block, conlist, curcon, &xco, &yco, type);	
 		}
-		
-		uiPanelPop(block);
 		
 		if(yco < 0) uiNewPanelHeight(block, 204-yco);
 		

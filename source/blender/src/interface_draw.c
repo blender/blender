@@ -1698,6 +1698,16 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
 }
 
+static void ui_draw_roundbox(uiBut *but)
+{
+	BIF_ThemeColorShade(but->themecol, but->a2);
+
+	uiSetRoundBox(but->a1);
+	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->min);
+
+}
+
+
 /* nothing! */
 static void ui_draw_nothing(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
@@ -1716,7 +1726,7 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 	but->sliderfunc= ui_draw_slider;
 
 	// standard builtin first:
-	if(but->type==LABEL) but->embossfunc= ui_draw_nothing;
+	if(but->type==LABEL || but->type==ROUNDBOX) but->embossfunc= ui_draw_nothing;
 	else if(but->type==PULLDOWN) but->embossfunc= ui_draw_pulldown_round;
 	else if(drawtype==UI_EMBOSSM) but->embossfunc= ui_draw_minimal;
 	else if(drawtype==UI_EMBOSSN) but->embossfunc= ui_draw_nothing;
@@ -1790,6 +1800,9 @@ void ui_draw_but(uiBut *but)
 	case INLINK:
 		ui_draw_icon(but, but->icon);
 		break;
+		
+	case ROUNDBOX:
+		ui_draw_roundbox(but);
 
 	default:
 		but->embossfunc(but->type, but->themecol, but->aspect, but->x1, but->y1, but->x2, but->y2, but->flag);

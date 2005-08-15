@@ -902,6 +902,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
     short height=26, width = 295, buttonWidth = width-120-10;
 	char str[128];
 
+	/* rounded header */
+	uiBlockSetCol(block, color);
+		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
+	uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 26, NULL, 7.0, 0.0, 
+			 md->mode&eModifierMode_Expanded?3:15, -20, ""); 
+	uiBlockSetCol(block, TH_AUTO);
+	
+	/* open/close icon */
 	if (isVirtual) {
 		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
 		color = TH_BUT_SETTING1;
@@ -910,15 +918,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
 
-	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
-		
-		/* rounded header */
-	BIF_ThemeColorShade(color, -20);
-	uiSetRoundBox((md->mode&eModifierMode_Expanded)?3:15);
-	uiRoundBox(x+4+10, y-18, x+width+10, y+6, 5.0);
-
-	BIF_ThemeColor(color);
+	
 	if (isVirtual) {
 		sprintf(str, "%s (virtual)", md->name);
 		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-120-60-10, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
@@ -947,7 +948,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		if (ob->type==OB_MESH && modifier_couldBeCage(md) && index<=lastCageIndex) {
 			int icon, color;
 
-			uiSetRoundBox(15);
 			if (index==cageIndex) {
 				color = TH_BUT_SETTING;
 				icon = VICON_EDITMODE_HLT;
@@ -979,7 +979,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiBlockSetCol(block, TH_AUTO);
 	}
 
-	BIF_ThemeColor(color);
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 	if (!(md->mode&eModifierMode_Expanded)) {
@@ -987,8 +986,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	} else {
 		int cy = y - 8;
 		int lx = x + width - 60 - 15;
-
-		y -= 18;
 
 		if (md->type==eModifierType_Subsurf) {
 			height = 106;
@@ -1014,9 +1011,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 26;
 		}
 
-		BIF_ThemeColor(color);
-		uiSetRoundBox(12);
-		uiRoundBox(x+4+10, y-height, x+width+10, y, 5.0);
+							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
+		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 0, ""); 
+
+		y -= 18;
 
 		if (!isVirtual) {
 			uiBlockBeginAlign(block);
@@ -1117,9 +1115,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		y -= 20;
 
-		BIF_ThemeColorShade(color, 40);
-		uiSetRoundBox(15);
-		uiRoundBox(x+4+10, y, x+width+10, y+20, 5.0);
+		uiBlockSetCol(block, color);
+					/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
+		uiDefBut(block, ROUNDBOX, 0, "", x-10, y, width, 20, NULL, 5.0, 0.0, 15, 40, ""); 
+		uiBlockSetCol(block, TH_AUTO);
 
 		sprintf(str, "Modifier Error: %s", md->error);
 		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -1157,12 +1156,10 @@ static void editing_panel_modifiers(Object *ob)
 
 	md = modifiers_getVirtualModifierList(ob);
 
-	uiPanelPush(block);
 	for (i=0; md; i++, md=md->next) {
 		draw_modifier(block, ob, md, &xco, &yco, i, cageIndex, lastCageIndex);
 		if (md->mode&eModifierMode_Virtual) i--;
 	}
-	uiPanelPop(block);
 	
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
 }
