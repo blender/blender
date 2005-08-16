@@ -34,9 +34,11 @@
 #include <stdio.h>
 #include "GEN_messaging.h"
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+int BLO_readblenfilememory( char *fromBuffer, int fromBufferSize);
+int BLO_readblenfilename( char *fileName);
+int BLO_readblenfilehandle( int fileHandle);
+int BLO_is_a_runtime( char *file);
+int BLO_read_runtime( char *file);
 
 	int
 BLO_readblenfilememory(

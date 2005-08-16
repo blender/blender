@@ -76,7 +76,20 @@ extern struct ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 extern struct RE_Render R;
+float Blinn_Spec(float *n, float *l, float *v, float a, float b);
 float Phong_Spec(float *, float *, float *, int);
+float CookTorr_Spec(float *n, float *l, float *v, int hard);
+float Toon_Spec(float *n, float *l, float *v, float a, float b);
+float WardIso_Spec(float *n, float *l, float *v, float a);
+float Toon_Diff(float *n, float *l, float *v, float a, float b);
+float OrenNayar_Diff(float *n, float *l, float *v, float rough);
+float Minnaert_Diff(float nl, float *n, float *v, float a);
+void add_to_diffuse(float *, ShadeInput *, float, float, float, float);
+void ramp_diffuse_result(float *diff, ShadeInput *shi);
+void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);
+void ramp_spec_result(float *, float *, float *, ShadeInput *);
+
+void mainqenter (unsigned short event, short val);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
 #define REDRAWVIEW3D	0x4010
@@ -113,8 +126,8 @@ void allspace(unsigned short event, short val) ;
 extern ListBase editelems;
 
 /* object.c */
-/*  void BPY_free_scriptlink(ScriptLink *slink); */
-/*  void BPY_copy_scriptlink(ScriptLink *scriptlink); */
+void BPY_free_scriptlink(ScriptLink *slink);
+void BPY_copy_scriptlink(ScriptLink *scriptlink);
 float *give_cursor(void);  // become a callback or argument
 void exit_posemode(int freedata);
 
@@ -127,16 +140,25 @@ short pupmenu(char *instr);  // will be general callback
 /* scene.c */
 #include "DNA_sequence_types.h"
 void free_editing(struct Editing *ed);	// scenes and sequences problem...
+void BPY_do_all_scripts (short int event);
+int BPY_call_importloader(char *name);
 
 /* texture.c */
 #define FLO 128
 #define INT	96
 struct EnvMap;
 struct Tex;
-void    RE_free_envmap(struct EnvMap *env);      
+
+void do_material_tex(ShadeInput *shi);
+void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, 
+	float *tg, float *tb, float *ta);
+void init_render_textures(void);
+void end_render_textures(void);
+
+void RE_free_envmap(struct EnvMap *env);      
+void RE_free_envmapdata(struct EnvMap *env);
 struct EnvMap *RE_copy_envmap(struct EnvMap *env);
-void    RE_free_envmapdata(struct EnvMap *env);
-int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
+int RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt);
 extern char texstr[20][12];	/* buttons.c */
 
 
