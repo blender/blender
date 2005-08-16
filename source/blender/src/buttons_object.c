@@ -1391,7 +1391,8 @@ static void object_panel_deflectors(Object *ob)
 		uiDefButF(block, NUM, REDRAWVIEW3D, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
 		uiBlockEndAlign(block);
 
-		if(modifiers_isSoftbodyEnabled(ob)) {
+//		if(modifiers_isSoftbodyEnabled(ob)) {
+		if(0) {
 			uiDefBut(block, LABEL, 0, "Object is Softbody,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, "no Deflection possible",		160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 			pd->deflect= 0;
