@@ -1518,13 +1518,9 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 	/* total remake of softbody data */
 	if(modifiers_isSoftbodyEnabled(ob)) {
-		SoftBody *sb= ob->soft;
-		
-		if(sb->keys) {
-			if( okee("Erase Baked SoftBody") )
-				sbObjectToSoftbody(ob);
-		}
-		else sbObjectToSoftbody(ob);
+		notice("Erased Baked SoftBody");
+
+		sbObjectToSoftbody(ob);
 	}
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 

@@ -80,10 +80,6 @@ variables on the UI for now
 
 #include  "BIF_editdeform.h"
 
-extern bDeformGroup *get_named_vertexgroup(Object *ob, char *name);
-extern int  get_defgroup_num (Object *ob, bDeformGroup        *dg);
-
-
 /* ********** soft body engine ******* */
 
 typedef struct BodyPoint {
@@ -998,8 +994,6 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 
 	/* precondition check */
 	if(sb==NULL || sb->keys==NULL || sb->totkey==0) return 0;
-	/* so we got keys, but no bodypoints... even without simul we need it for the bake */
-	if(sb->bpoint==NULL) sb->bpoint= MEM_callocN( sb->totpoint*sizeof(BodyPoint), "bodypoint");
 	
 	/* convert cfra time to system time */
 	sfra= (float)sb->sfra;
@@ -1136,26 +1130,8 @@ void sbFree(SoftBody *sb)
 void sbObjectToSoftbody(Object *ob)
 {
 	ob->softflag |= OB_SB_REDO;
-}
 
-static void convert_object_to_sb(Object *ob, int numVerts)
-{
-	switch(ob->type) {
-	case OB_MESH:
-		mesh_to_softbody(ob);
-		break;
-	case OB_LATTICE:
-		lattice_to_softbody(ob);
-		break;
-	default:
-		renew_softbody(ob, numVerts, 0);
-		break;
-	}
-	
-	ob->softflag &= ~OB_SB_REDO;
-
-		/* still need to update to correct vertex locations, happens on next step */
-	ob->softflag |= OB_SB_RESET; 
+	free_softbody_intern(ob->soft);
 }
 
 static int object_has_edges(Object *ob) 
@@ -1183,18 +1159,34 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	float ctime, forcetime;
 	float err;
 	
-	/* baking works with global time */
-	if(!(ob->softflag & OB_SB_BAKEDO) )
-		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
-	
 		/* remake softbody if: */
 	if(		(ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 			(ob->soft==NULL) ||					// just to be nice we allow full init
 			(ob->soft->bpoint==NULL) || 		// after reading new file, or acceptable as signal to refresh
 			(numVerts!=ob->soft->totpoint) ||	// should never happen, just to be safe
 			((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) // happens when in UI edges was set
-		convert_object_to_sb(ob, numVerts);
+	{
+		switch(ob->type) {
+		case OB_MESH:
+			mesh_to_softbody(ob);
+			break;
+		case OB_LATTICE:
+			lattice_to_softbody(ob);
+			break;
+		default:
+			renew_softbody(ob, numVerts, 0);
+			break;
+		}
+		
+			/* still need to update to correct vertex locations, happens on next step */
+		ob->softflag |= OB_SB_RESET; 
+		ob->softflag &= ~OB_SB_REDO;
+	}
 
+	/* baking works with global time */
+	if(!(ob->softflag & OB_SB_BAKEDO) )
+		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
+	
 	sb= ob->soft;
 
 	/* still no points? go away */

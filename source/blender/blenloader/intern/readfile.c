@@ -4804,20 +4804,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					ob->partype = PARSKEL;
 			}
 
-			if (ob->softflag&OB_SB_ENABLE) {
-				if (ob->softflag&OB_SB_POSTDEF) {
-					ModifierData *md = ob->modifiers.first;
-
-					while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
-						md = md->next;
-					}
-
-					BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(eModifierType_Softbody));
-				} else {
-					BLI_addhead(&ob->modifiers, modifier_new(eModifierType_Softbody));
-				}
-			}
-
 			// btw. armature_rebuild_pose is further only called on leave editmode
 			if(ob->type==OB_ARMATURE) {
 				if(ob->pose) {
@@ -4867,12 +4853,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 238) {
 		Lattice *lt;
+		Object *ob;
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
 			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
 				calc_lat_fudu(lt->flag, lt->pntsu, &lt->fu, &lt->du);
 				calc_lat_fudu(lt->flag, lt->pntsv, &lt->fv, &lt->dv);
 				calc_lat_fudu(lt->flag, lt->pntsw, &lt->fw, &lt->dw);
+			}
+		}
+
+		for(ob=main->object.first; ob; ob= ob->id.next) {
+			if ((ob->softflag&OB_SB_ENABLE) && !modifiers_findByType(ob, eModifierType_Softbody)) {
+				if (ob->softflag&OB_SB_POSTDEF) {
+					ModifierData *md = ob->modifiers.first;
+
+					while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
+						md = md->next;
+					}
+
+					BLI_insertlinkbefore(&ob->modifiers, md, modifier_new(eModifierType_Softbody));
+				} else {
+					BLI_addhead(&ob->modifiers, modifier_new(eModifierType_Softbody));
+				}
+
+				ob->softflag &= ~OB_SB_ENABLE;
 			}
 		}
 	}

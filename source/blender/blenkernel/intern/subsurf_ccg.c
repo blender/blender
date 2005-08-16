@@ -200,7 +200,7 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int gridSize = ccgSubSurf_getGridSize(ss);
-	int edgeIndexBase, edgeBase, faceIndexBase, faceBase;
+	int edgeIndexBase, edgeBase, faceBase;
 	int i, j, k, S, x, y;
 	int vertBase = 0;
 	TFace *tface = NULL;
@@ -281,7 +281,7 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 	}
 	ccgEdgeIterator_free(ei);
 
-	faceIndexBase = faceBase = i;
+	faceBase = i;
 	fi = ccgSubSurf_getFaceIterator(ss);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
