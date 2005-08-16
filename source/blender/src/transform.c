@@ -519,8 +519,8 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		case LEFTMOUSE:
 		case RIGHTMOUSE:
-			/* commented out, doesn't work for actions started with menu */
-			// Trans.state = TRANS_CONFIRM;
+			if (Trans.context & CTX_TWEAK)
+				Trans.state = TRANS_CONFIRM;
 			break;
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:

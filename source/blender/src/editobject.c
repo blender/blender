@@ -300,7 +300,7 @@ static int return_editmesh_indexar(int **indexar, float *cent)
 		nr++;
 	}
 	
-	VecMulf(cent, 1.0/(float)totvert);
+	VecMulf(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -354,7 +354,7 @@ static int return_editlattice_indexar(int **indexar, float *cent)
 		nr++;
 	}
 	
-	VecMulf(cent, 1.0/(float)totvert);
+	VecMulf(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -448,7 +448,7 @@ static int return_editcurve_indexar(int **indexar, float *cent)
 		}
 	}
 	
-	VecMulf(cent, 1.0/(float)totvert);
+	VecMulf(cent, 1.0f/(float)totvert);
 	
 	return totvert;
 }
@@ -3424,7 +3424,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D) {
-				initTransform(TFM_TRANSLATION, CTX_NONE);
+				initTransform(TFM_TRANSLATION, CTX_TWEAK);
 				Transform();
 			}
 			else if(xf_func)

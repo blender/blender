@@ -57,6 +57,7 @@
 #define CTX_TEXTURE			1
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
+#define CTX_TWEAK			8
 
 void initTransform(int mode, int context);
 void Transform(void);
