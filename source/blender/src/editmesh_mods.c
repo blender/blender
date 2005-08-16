@@ -1395,6 +1395,44 @@ void reveal_mesh(void)
 	BIF_undo_push("Reveal");
 }
 
+void select_faces_by_numverts(int numverts)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+
+	/* Selects isolated verts, and edges that do not have 2 neighboring
+	 * faces
+	 */
+	
+	if(G.scene->selectmode!=SCE_SELECT_FACE) {
+		error("Only works in face selection mode");
+		return;
+	}
+
+	efa= em->faces.first;
+	while(efa) {
+		if (efa->e4) {
+			EM_select_face(efa, (numverts==4) );
+		}
+		else if (efa->e3) {
+			EM_select_face(efa, (numverts==3) );
+		}
+		else 
+			EM_select_face(efa, (numverts!=3) && (numverts!=4) );
+		efa= efa->next;
+	}
+
+	countall();
+	addqueue(curarea->win,  REDRAW, 0);
+
+	if (numverts==3)
+		BIF_undo_push("Select Triangles");
+	else if (numverts==4)
+		BIF_undo_push("Select Quads");
+	else
+		BIF_undo_push("Select non-Triangles/Quads");
+}
+
 void select_non_manifold(void)
 {
 	EditMesh *em = G.editMesh;

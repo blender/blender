@@ -1026,6 +1026,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						flip_subdivison(ob, 3);
 					}
 				}
+				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
+						select_faces_by_numverts(3);
+				}
 				else do_layer_buttons(2); 
 				break;
 				
@@ -1035,11 +1039,21 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						flip_subdivison(ob, 4);
 					}
 				}
+				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
+						select_faces_by_numverts(4);
+				}
 				else do_layer_buttons(3); 
 				break;
 				
 			case FIVEKEY:
-				do_layer_buttons(4); break;
+				if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
+						select_faces_by_numverts(5);
+				}
+				else do_layer_buttons(4);
+				break;
+
 			case SIXKEY:
 				do_layer_buttons(5); break;
 			case SEVENKEY:

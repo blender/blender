@@ -828,6 +828,16 @@ void do_view3d_select_meshmenu(void *arg, int event)
 		case 9: /* select less */
 			select_non_manifold();
 			break;
+		case 11: /* select triangles */
+			select_faces_by_numverts(3);
+			break;
+		case 12: /* select quads */
+			select_faces_by_numverts(4);
+			break;
+		case 13: /* select non-triangles/quads */
+			select_faces_by_numverts(5);
+			break;
+
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -856,6 +866,19 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 					 "Non-Manifold|Ctrl Alt Shift M", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Triangles|Ctrl Alt Shift 3", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Quads|Ctrl Alt Shift 4", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Non-Triangles/Quads|Ctrl Alt Shift 5", 
+					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
