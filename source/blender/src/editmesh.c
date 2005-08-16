@@ -946,7 +946,6 @@ void load_editMesh(void)
 	float *fp, *newkey, *oldkey, nor[3];
 	int i, a, ototvert, totedge=0;
 	MDeformVert *dvert;
-	int	usedDvert = 0;
 
 	waitcursor(1);
 	countall();
@@ -1014,7 +1013,7 @@ void load_editMesh(void)
 		VecMulf(nor, 32767.0);
 		VECCOPY(mvert->no, nor);
 
-		/* NEW VERSION */
+		/* note: it used to remove me->dvert when it was not in use, cancelled that... annoying when you have a fresh vgroup */
 		if (dvert){
 			dvert->totweight=eve->totweight;
 			if (eve->dw){
@@ -1022,7 +1021,6 @@ void load_editMesh(void)
 										 "deformWeight");
 				memcpy (dvert->dw, eve->dw, 
 						sizeof(MDeformWeight)*eve->totweight);
-				usedDvert++;
 			}
 		}
 
@@ -1036,12 +1034,6 @@ void load_editMesh(void)
 		eve= eve->next;
 		mvert++;
 		dvert++;
-	}
-	
-	/* If we didn't actually need the dverts, get rid of them */
-	if (!usedDvert){
-		free_dverts(me->dvert, G.totvert);
-		me->dvert=NULL;
 	}
 
 	/* the edges */

@@ -98,7 +98,8 @@
 
 #define MAXINDEX	512000
 
-VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT};
+VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY};
+VPaint Gwp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT};
 float vpimat[3][3];
 unsigned int *vpaintundobuf= NULL;
 int totvpaintundo;
@@ -554,31 +555,59 @@ static unsigned int mcol_mul(unsigned int col1, unsigned int col2, int fac)
 	return col;
 }
 
-static void vpaint_blend( unsigned int *col, unsigned int paintcol, int alpha)
+static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
-	
+
 	if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) *col= mcol_blend( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
+	
+	/* if no spray, clip color adding with colorig & orig alpha */
+	if((Gvp.flag & VP_SPRAY)==0) {
+		unsigned int testcol=0, a;
+		char *cp, *ct, *co;
+		
+		alpha= (int)(255.0*Gvp.a);
+		
+		if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) testcol= mcol_blend( *colorig, paintcol, alpha);
+		else if(Gvp.mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
+		else if(Gvp.mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
+		else if(Gvp.mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
+		
+		cp= (char *)col;
+		ct= (char *)&testcol;
+		co= (char *)colorig;
+		
+		for(a=0; a<4; a++) {
+			if( ct[a]<co[a] ) {
+				if( cp[a]<ct[a] ) cp[a]= ct[a];
+				else if( cp[a]>co[a] ) cp[a]= co[a];
+			}
+			else {
+				if( cp[a]<co[a] ) cp[a]= co[a];
+				else if( cp[a]>ct[a] ) cp[a]= ct[a];
+			}
+		}
+	}
 }
 
 
-static int sample_backbuf_area(int x, int y)
+static int sample_backbuf_area(int x, int y, float size)
 {
 	unsigned int rect[129*129], *rt;
-	int x1, y1, x2, y2, size, a, tot=0, index;
+	int x1, y1, x2, y2, a, tot=0, index;
 	
 	if(totvpaintundo>=MAXINDEX) return 0;
 	
-	if(Gvp.size>64.0) Gvp.size= 64.0;
+	if(size>64.0) size= 64.0;
 	
-	x1= x-Gvp.size;
-	x2= x+Gvp.size;
+	x1= x-size;
+	x2= x+size;
 	CLAMP(x1, 0, curarea->winx);
 	CLAMP(x2, 0, curarea->winx);
-	y1= y-Gvp.size;
-	y2= y+Gvp.size;
+	y1= y-size;
+	y2= y+size;
 	CLAMP(y1, 0, curarea->winy);
 	CLAMP(y2, 0, curarea->winy);
 #ifdef __APPLE__
@@ -587,7 +616,7 @@ static int sample_backbuf_area(int x, int y)
 	glReadPixels(x1+curarea->winrct.xmin, y1+curarea->winrct.ymin, x2-x1+1, y2-y1+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
 	glReadBuffer(GL_BACK);	
 
-	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr( (int)(4*Gvp.size*Gvp.size), rect);
+	if(G.order==B_ENDIAN) IMB_convert_rgba_to_abgr( (int)(4*size*size), rect);
 
 	rt= rect;
 	size= (y2-y1)*(x2-x1);
@@ -633,14 +662,14 @@ static unsigned int sample_backbuf(int x, int y)
 	return framebuffer_to_index(col);
 }
 
-static int calc_vp_alpha_dl(DerivedMesh *dm, int vert, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, DerivedMesh *dm, int vert, short *mval)
 {
 	float co[3], no[3];
 	float fac, dx, dy;
 	int alpha;
 	short vertco[2];
 	
-	if(Gvp.flag & VP_SOFT) {
+	if(vp->flag & VP_SOFT) {
 		dm->getVertCo(dm, vert, co);
 
 	 	project_short_noclip(co, vertco);
@@ -648,15 +677,15 @@ static int calc_vp_alpha_dl(DerivedMesh *dm, int vert, short *mval)
 		dy= mval[1]-vertco[1];
 		
 		fac= sqrt(dx*dx + dy*dy);
-		if(fac > Gvp.size) return 0;
-	
-		alpha= 255.0*Gvp.a*(1.0-fac/Gvp.size);
+		if(fac > vp->size) return 0;
+
+		alpha= 255.0*vp->a*(1.0-fac/vp->size);
 	}
 	else {
-		alpha= 255.0*Gvp.a;
+		alpha= 255.0*vp->a;
 	}
 
-	if(Gvp.flag & VP_NORMALS) {
+	if(vp->flag & VP_NORMALS) {
 		dm->getVertNo(dm, vert, no);
 
 			/* transpose ! */
@@ -674,8 +703,10 @@ static int calc_vp_alpha_dl(DerivedMesh *dm, int vert, short *mval)
 }
 
 
-void wpaint_undo (void){
+void wpaint_undo (void)
+{
 	Mesh	*me;
+	MDeformVert *swapbuf;
 
 	me = get_mesh(OBACT);
 	if (!me)
@@ -690,17 +721,27 @@ void wpaint_undo (void){
 	if (totwpaintundo != me->totvert)
 		return;
 
-	free_dverts(me->dvert, me->totvert);
+	swapbuf= me->dvert;
 
+	/* copy undobuf to mesh */
 	me->dvert= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "deformVert");
 	copy_dverts(me->dvert, wpaintundobuf, totwpaintundo);
+	
+	/* copy previous mesh to undo */
+	free_dverts(wpaintundobuf, me->totvert);
+	wpaintundobuf= MEM_mallocN(sizeof(MDeformVert)*me->totvert, "wpaintundo");
+	copy_dverts(wpaintundobuf, swapbuf, totwpaintundo);
+	
+	/* now free previous mesh dverts */
+	free_dverts(swapbuf, me->totvert);
 
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	scrarea_do_windraw(curarea);
 	
 }
 
-void copy_wpaint_undo (MDeformVert *dverts, int dcount){
+void copy_wpaint_undo (MDeformVert *dverts, int dcount)
+{
 	if (wpaintundobuf)
 		free_dverts(wpaintundobuf, totwpaintundo);
 
@@ -709,17 +750,65 @@ void copy_wpaint_undo (MDeformVert *dverts, int dcount){
 	copy_dverts (wpaintundobuf, dverts, dcount);
 }
 
+static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, float paintval)
+{
+	
+	if(dw==NULL || uw==NULL) return;
+	
+	if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
+	else if(Gwp.mode==VP_ADD)
+		dw->weight += paintval*alpha;
+	else if(Gwp.mode==VP_SUB) 
+		dw->weight -= paintval*alpha;
+	else if(Gwp.mode==VP_MUL) 
+		/* first mul, then blend the fac */
+		dw->weight = ((1.0-alpha) + alpha*paintval)*dw->weight;
+	
+	CLAMP(dw->weight, 0.0f, 1.0f);
+	
+	/* if no spray, clip result with orig weight & orig alpha */
+	if((Gwp.flag & VP_SPRAY)==0) {
+		float testw=0.0f;
+		
+		alpha= Gwp.a;
+		
+		if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+			testw = paintval*alpha + uw->weight*(1.0-alpha);
+		else if(Gwp.mode==VP_ADD)
+			testw = uw->weight + paintval*alpha;
+		else if(Gwp.mode==VP_SUB) 
+			testw = uw->weight - paintval*alpha;
+		else if(Gwp.mode==VP_MUL) 
+			/* first mul, then blend the fac */
+			testw = ((1.0-alpha) + alpha*paintval)*uw->weight;
+		
+		CLAMP(testw, 0.0f, 1.0f);
+		
+		if( testw<uw->weight ) {
+			if(dw->weight < testw) dw->weight= testw;
+			else if(dw->weight > uw->weight) dw->weight= uw->weight;
+		}
+		else {
+			if(dw->weight > testw) dw->weight= testw;
+			else if(dw->weight < uw->weight) dw->weight= uw->weight;
+		}
+	}
+	
+}
+
+
 void weight_paint(void)
 {
+	extern float editbutvweight;
+	MDeformWeight	*dw, *uw;
 	Object *ob; 
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
-	float mat[4][4], imat[4][4];
-	int index, totindex;
+	float mat[4][4], imat[4][4], paintweight;
+	int index, totindex, alpha, totw;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
-	MDeformWeight	*dw, *uw;
-	extern float editbutvweight;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
@@ -770,8 +859,8 @@ void weight_paint(void)
 			firsttime= 0;
 			
 			/* which faces are involved */
-			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(mval[0], mval[1]);
+			if(Gwp.flag & VP_AREA) {
+				totindex= sample_backbuf_area(mval[0], mval[1], Gwp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -781,7 +870,7 @@ void weight_paint(void)
 			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
-			if(Gvp.flag & VP_COLINDEX) {
+			if(Gwp.flag & VP_COLINDEX) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
 					
@@ -807,35 +896,87 @@ void weight_paint(void)
 				}
 			}
 			
+			/* make sure each vertex gets treated only once */
+			/* and calculate filter weight */
+			totw= 0;
+			if(Gwp.mode==VP_FILT) 
+				paintweight= 0.0f;
+			else
+				paintweight= editbutvweight;
+			
+			for(index=0; index<totindex; index++) {
+				if(indexar[index] && indexar[index]<=me->totface) {
+					mface= me->mface + (indexar[index]-1);
+					
+					(me->dvert+mface->v1)->flag= 1;
+					(me->dvert+mface->v2)->flag= 1;
+					(me->dvert+mface->v3)->flag= 1;
+					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
+					
+					if(Gwp.mode==VP_FILT) {
+						dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						dw= verify_defweight(me->dvert+mface->v3, ob->actdef-1);
+						if(dw) {paintweight+= dw->weight; totw++;}
+						if(mface->v4) {
+							dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
+							if(dw) {paintweight+= dw->weight; totw++;}
+						}
+					}
+				}
+			}
+			
+			if(Gwp.mode==VP_FILT) 
+				paintweight/= (float)totw;
+			
 			dm = mesh_get_derived_deform(ob, &needsFree);
+
 			for(index=0; index<totindex; index++) {
 				
 				if(indexar[index] && indexar[index]<=me->totface) {
 					mface= me->mface + (indexar[index]-1);
 					
-					if (calc_vp_alpha_dl(dm, mface->v1, mval)){
-						dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
-						uw= verify_defweight(wpaintundobuf+mface->v1, ob->actdef-1);
-						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
+					if((me->dvert+mface->v1)->flag) {
+						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v1, mval);
+						if(alpha) {
+							dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
+							uw= verify_defweight(wpaintundobuf+mface->v1, ob->actdef-1);
+							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+						}
+						(me->dvert+mface->v1)->flag= 0;
 					}
 					
-					if (calc_vp_alpha_dl(dm, mface->v2, mval)){
-						dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
-						uw= verify_defweight(wpaintundobuf+mface->v2, ob->actdef-1);
-						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
+					if((me->dvert+mface->v2)->flag) {
+						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v2, mval);
+						if(alpha) {
+							dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
+							uw= verify_defweight(wpaintundobuf+mface->v2, ob->actdef-1);
+							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+						}
+						(me->dvert+mface->v2)->flag= 0;
 					}
 					
-					if (calc_vp_alpha_dl(dm, mface->v3, mval)){
-						dw= verify_defweight(me->dvert+mface->v3, ob->actdef-1);
-						uw= verify_defweight(wpaintundobuf+mface->v3, ob->actdef-1);
-						if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
+					if((me->dvert+mface->v3)->flag) {
+						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v3, mval);
+						if(alpha) {
+							dw= verify_defweight(me->dvert+mface->v3, ob->actdef-1);
+							uw= verify_defweight(wpaintundobuf+mface->v3, ob->actdef-1);
+							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+						}
+						(me->dvert+mface->v3)->flag= 0;
 					}
 					
-					if(mface->v4) {
-						if (calc_vp_alpha_dl(dm, mface->v4, mval)){
-							dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
-							uw= verify_defweight(wpaintundobuf+mface->v4, ob->actdef-1);
-							if (dw) dw->weight = editbutvweight*Gvp.a + (uw->weight*(1.0-Gvp.a));
+					if((me->dvert+mface->v4)->flag) {
+						if(mface->v4) {
+							alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v4, mval);
+							if(alpha) {
+								dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
+								uw= verify_defweight(wpaintundobuf+mface->v4, ob->actdef-1);
+								wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+							}
+							(me->dvert+mface->v4)->flag= 0;
 						}
 					}
 				}
@@ -851,11 +992,13 @@ void weight_paint(void)
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 
 			scrarea_do_windraw(curarea);
-
-			/* draw circle in backbuf! */
-			persp(PERSP_WIN);
-			fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
-			persp(PERSP_VIEW);
+			
+			if(Gwp.flag & (VP_AREA|VP_SOFT)) {
+				/* draw circle in backbuf! */
+				persp(PERSP_WIN);
+				fdrawXORcirc((float)mval[0], (float)mval[1], Gwp.size);
+				persp(PERSP_VIEW);
+			}
 
 			screen_swapbuffers();
 			backdrawview3d(0);
@@ -885,8 +1028,8 @@ void vertex_paint()
 	MFace *mface;
 	TFace *tface;
 	float mat[4][4], imat[4][4];
-	unsigned int paintcol=0, *mcol, fcol1, fcol2;
-	int index, alpha, totindex, total;
+	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
+	int index, alpha, totindex;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
 	
 	if((G.f & G_VERTEXPAINT)==0) return;
@@ -941,7 +1084,7 @@ void vertex_paint()
 
 			/* which faces are involved */
 			if(Gvp.flag & VP_AREA) {
-				totindex= sample_backbuf_area(mval[0], mval[1]);
+				totindex= sample_backbuf_area(mval[0], mval[1], Gvp.size);
 			}
 			else {
 				indexar[0]= sample_backbuf(mval[0], mval[1]);
@@ -982,7 +1125,8 @@ void vertex_paint()
 				if(indexar[index] && indexar[index]<=me->totface) {
 				
 					mface= ((MFace *)me->mface) + (indexar[index]-1);
-					mcol= ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
+					mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
+					mcolorig= ( (unsigned int *)vpaintundobuf) + 4*(indexar[index]-1);
 
 					if(Gvp.mode==VP_FILT) {
 						fcol1= mcol_blend( mcol[0], mcol[1], 128);
@@ -996,29 +1140,19 @@ void vertex_paint()
 						
 					}
 					
-					total= 0;
+					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v1, mval);
+					if(alpha) vpaint_blend( mcol, mcolorig, paintcol, alpha);
 					
-					total+= alpha= calc_vp_alpha_dl(dm, mface->v1, mval);
-					if(alpha) vpaint_blend( mcol, paintcol, alpha);
-					
-					total+= alpha= calc_vp_alpha_dl(dm, mface->v2, mval);
-					if(alpha) vpaint_blend( mcol+1, paintcol, alpha);
+					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v2, mval);
+					if(alpha) vpaint_blend( mcol+1, mcolorig+1, paintcol, alpha);
 	
-					total+= alpha= calc_vp_alpha_dl(dm, mface->v3, mval);
-					if(alpha) vpaint_blend( mcol+2, paintcol, alpha);
+					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v3, mval);
+					if(alpha) vpaint_blend( mcol+2, mcolorig+2, paintcol, alpha);
 
 					if(mface->v4) {
-						total+= alpha= calc_vp_alpha_dl(dm, mface->v4, mval);
-						if(alpha) vpaint_blend( mcol+3, paintcol, alpha);
+						alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v4, mval);
+						if(alpha) vpaint_blend( mcol+3, mcolorig+3, paintcol, alpha);
 					}
-					
-					/* if(total==0) { */
-					/* 	alpha= 25*Gvp.a; */
-					/* 	vpaint_blend( mcol, paintcol, alpha); */
-					/* 	vpaint_blend( mcol+1, paintcol, alpha); */
-					/* 	vpaint_blend( mcol+2, paintcol, alpha); */
-					/* 	if(mface->v4) vpaint_blend( mcol+3, paintcol, alpha); */
-					/* } */
 				}
 			}
 			if (needsFree)
@@ -1033,11 +1167,12 @@ void vertex_paint()
 	
 			scrarea_do_windraw(curarea);
 
-			/* draw circle in backbuf! */
-			persp(PERSP_WIN);
-			fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
-			persp(PERSP_VIEW);
-
+			if(Gvp.flag & (VP_AREA|VP_SOFT)) {
+				/* draw circle in backbuf! */
+				persp(PERSP_WIN);
+				fdrawXORcirc((float)mval[0], (float)mval[1], Gvp.size);
+				persp(PERSP_VIEW);
+			}
 			screen_swapbuffers();
 			backdrawview3d(0);
 			

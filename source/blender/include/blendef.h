@@ -391,6 +391,6 @@
 #define VP_AREA		2
 #define VP_SOFT		4
 #define VP_NORMALS	8
-
+#define VP_SPRAY	16
 
 #endif

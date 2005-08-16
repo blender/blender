@@ -481,7 +481,7 @@ enum {
 #define B_OPA3_4	    2848
 #define B_OPA1_0	    2849
 
-
+#define B_CLR_WPAINT	2850
 
 /* *********************** */
 #define B_RADIOBUTS		3000

@@ -2845,11 +2845,12 @@ void do_fpaintbuts(unsigned short event)
 {
 	Mesh *me;
 	Object *ob;
+	bDeformGroup *defGroup;
 	extern TFace *lasttface; /* caches info on tface bookkeeping ?*/
-	extern VPaint Gvp;         /* from vpaint */
+	extern VPaint Gwp;         /* from vpaint */
 
 	ob= OBACT;
-	if(ob==0) return;
+	if(ob==NULL) return;
 
 	switch(event) {
 
@@ -2902,7 +2903,10 @@ void do_fpaintbuts(unsigned short event)
 		}
 		break;
 	case B_SET_VCOL:
-		clear_vpaint_selectedfaces();
+		if(G.f & G_FACESELECT) 
+			clear_vpaint_selectedfaces();
+		else
+			clear_vpaint();
 		break;
 	case B_REDR_3D_IMA:
 		allqueue(REDRAWVIEW3D, 0);
@@ -2953,27 +2957,34 @@ void do_fpaintbuts(unsigned short event)
 		break;
 		
 	case B_OPA1_8:
-		Gvp.a = 0.125f;
+		Gwp.a = 0.125f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_OPA1_4:
-		Gvp.a = 0.25f;
+		Gwp.a = 0.25f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_OPA1_2:
-		Gvp.a = 0.5f;
+		Gwp.a = 0.5f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_OPA3_4:
-		Gvp.a = 0.75f;
+		Gwp.a = 0.75f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_OPA1_0:
-		Gvp.a = 1.0f;
+		Gwp.a = 1.0f;
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
-		
-
+	case B_CLR_WPAINT:
+		defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
+		if(defGroup) {
+			Mesh *me= ob->data;
+			int a;
+			for(a=0; a<me->totvert; a++)
+				remove_vert_defgroup (ob, defGroup, a);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 }
 
@@ -2982,7 +2993,6 @@ void do_fpaintbuts(unsigned short event)
 
 static void editing_panel_mesh_paint(void)
 {
-	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_paint", UI_EMBOSS, UI_HELV, curarea->win);
@@ -2990,43 +3000,66 @@ static void editing_panel_mesh_paint(void)
 	
 	
 	if(G.f & G_WEIGHTPAINT) {
+		extern VPaint Gwp;         /* from vpaint */
 		Object *ob;
  	    ob= OBACT;
 		
 		if(ob==NULL) return;
 
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",2010,160,400,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
-		uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 2010,140,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 2090,140,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 2170,140,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 2250,140,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 2330,140,80,19, 0, 0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",10,160,225,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
 		
-		uiDefButF(block, NUMSLI, 0, "Opacity ",		2010,120,400,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefBut(block, BUT, B_OPA1_8 , "1/8",		2010,100,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_4 , "1/4",		2090,100,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_2 , "1/2",		2170,100,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		2250,100,80,19, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_OPA1_0 , "1",		2330,100,80,19, 0, 0, 0, 0, 0, "");
-		uiDefButF(block, NUMSLI, 0, "Size ",		2010,80,400,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
-		uiBlockEndAlign(block);
+		uiDefBut(block, BUT, B_WEIGHT0_0 , "0",			 10,140,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_4 , "1/4",		 55,140,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_2 , "1/2",		 100,140,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 145,140,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 190,140,45,19, 0, 0, 0, 0, 0, "");
+		
+		uiDefButF(block, NUMSLI, 0, "Opacity ",		10,120,225,19, &Gwp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		
+		uiDefBut(block, BUT, B_OPA1_8 , "1/8",		10,100,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_4 , "1/4",		55,100,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_2 , "1/2",		100,100,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,100,45,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_OPA1_0 , "1",		190,100,45,19, 0, 0, 0, 0, 0, "");
+		
+		uiDefButF(block, NUMSLI, 0, "Size ",		10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, ROW, B_DIFF, "Mix",		250,160,60,19, &Gwp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
+		uiDefButS(block, ROW, B_DIFF, "Add",		250,140,60,19, &Gwp.mode, 1.0, 1.0, 0, 0, "Add the vertex colour");
+		uiDefButS(block, ROW, B_DIFF, "Sub",		250,120,60,19, &Gwp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex colour");
+		uiDefButS(block, ROW, B_DIFF, "Mul",		250,100,60,19, &Gwp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex colour");
+		uiDefButS(block, ROW, B_DIFF, "Filter",		250, 80,60,19, &Gwp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 	10,50,75,19, &Gwp.flag, 0, 0, 0, 0, "Paint on all faces inside brush");
+		uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 85,50,75,19, &Gwp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of paint entire faces)");
+		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	160,50,75,19, &Gwp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
+		uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",		235,50,75,19, &Gwp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
+		
 		if(ob){
 			uiBlockBeginAlign(block);
-			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	2010,40,194,29, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	10,10,150,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					160,10,150,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
 			uiBlockEndAlign(block);
 		}
 	}
 	else{
+		extern VPaint Gvp;         /* from vpaint */
+		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
 		uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
 		uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
-		uiBlockEndAlign(block);
-		uiDefButF(block, NUMSLI, 0, "Opacity ",		979,100,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefButF(block, NUMSLI, 0, "Size ",		979,80,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 		
-		uiDefButF(block, COL, B_REDR, "",		1176,99,28,80, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, 0, "Opacity ",		979,95,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefButF(block, NUMSLI, 0, "Size ",		979,75,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+		uiBlockEndAlign(block);
+		
+		uiDefButF(block, COL, B_REDR, "",			1176,120,28,60, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
+		
 		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_DIFF, "Mix",			1212,160,63,19, &Gvp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
 		uiDefButS(block, ROW, B_DIFF, "Add",			1212,140,63,19, &Gvp.mode, 1.0, 1.0, 0, 0, "Add the vertex colour");
@@ -3035,17 +3068,18 @@ static void editing_panel_mesh_paint(void)
 		uiDefButS(block, ROW, B_DIFF, "Filter",		1212, 80,63,19, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colours with an alpha factor");
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, VP_AREA, 0, "Area", 		979,50,81,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint evaluates the area of the face the brush covers (otherwise vertices only)");
-		uiDefButBitS(block, TOG, VP_SOFT, 0, "Soft", 		1061,50,112,19, &Gvp.flag, 0, 0, 0, 0, "Use a soft brush");
-		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	1174,50,102,19, &Gvp.flag, 0, 0, 0, 0, "Vertex paint applies the vertex normal before painting");
+		uiDefButBitS(block, TOG, VP_AREA, 0, "All Faces", 		979,50,75,19, &Gvp.flag, 0, 0, 0, 0, "Paint on all faces inside brush");
+		uiDefButBitS(block, TOG, VP_SOFT, 0, "Vertex Dist", 	1054,50,75,19, &Gvp.flag, 0, 0, 0, 0, "Use distances to vertices (instead of paint entire faces)");
+		uiDefButBitS(block, TOG, VP_NORMALS, 0, "Normals", 	1129,50,75,19, &Gvp.flag, 0, 0, 0, 0, "Applies the vertex normal before painting");
+		uiDefButBitS(block, TOG, VP_SPRAY, 0, "Spray",		1204,50,75,19, &Gvp.flag, 0, 0, 0, 0, "Keep applying paint effect while holding mouse");
 
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_VPGAMMA, "Set", 	979,30,81,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
-		uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,30,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
-		uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,30,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
+		uiDefBut(block, BUT, B_VPGAMMA, "Set",		979,25,81,19, 0, 0, 0, 0, 0, "Apply Mul and Gamma to vertex colours");
+		uiDefButF(block, NUM, B_DIFF, "Mul:", 		1061,25,112,19, &Gvp.mul, 0.1, 50.0, 10, 0, "Set the number to multiply vertex colours with");
+		uiDefButF(block, NUM, B_DIFF, "Gamma:", 	1174,25,102,19, &Gvp.gamma, 0.1, 5.0, 10, 0, "Change the clarity of the vertex colours");
 		uiBlockEndAlign(block);
 		
-		uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	979,5,81,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
+		uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	979,0,81,20, 0, 0, 0, 0, 0, "Set Vertex colour of selection to current (Shift+K)");
 	}
 	
 }

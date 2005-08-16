@@ -54,7 +54,7 @@ typedef struct MDeformWeight {
 typedef struct MDeformVert {
 	struct MDeformWeight *dw;
 	int totweight;
-	int reserved1;
+	int flag;	// flag only in use for weightpaint now
 } MDeformVert;
 
 typedef struct MVert {
