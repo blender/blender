@@ -100,16 +100,21 @@ float MatSpace[3][3];
 
 
 /* bad frontbuffer call... because it is used in transform after force_draw() */
-static void helpline(float *vec, int local)
+static void helpline(TransInfo *t, float *vec)
 {
 	float vecrot[3], cent[2];
 	short mval[2];
 	
 	VECCOPY(vecrot, vec);
-	if(local) {
-		Object *ob= OBACT;
+	if(t->flag & T_EDIT) {
+		Object *ob=G.obedit;
 		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
 	}
+	else if(t->flag & T_POSE) {
+		Object *ob=t->poseobj;
+		if(ob) Mat4MulVecfl(ob->obmat, vecrot);
+	}
+	
 	getmouseco_areawin(mval);
 	project_float(vecrot, cent);	// no overflow in extreme cases
 	if(cent[0]!=3200.0f) {
@@ -616,11 +621,11 @@ void Transform()
 	}
 	Trans.undostr= NULL;
 	
-	/* free data, reset vars */
+	/* free data */
 	postTrans(&Trans);
 
-	/* aftertrans does insert ipos and action channels, and clears base flags */
-	special_aftertrans_update((short)(Trans.state == TRANS_CANCEL));
+	/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+	special_aftertrans_update(&Trans);
 
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);
@@ -774,7 +779,7 @@ void ManipulatorTransform()
 	postTrans(&Trans);
 	
 	/* aftertrans does insert ipos and action channels, and clears base flags */
-	special_aftertrans_update((short)(Trans.state == TRANS_CANCEL));
+	special_aftertrans_update(&Trans);
 	
 	/* send events out for redraws */
 	allqueue(REDRAWVIEW3D, 0);
@@ -914,7 +919,7 @@ int Warp(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	helpline(gcursor, t->flag & (T_EDIT|T_POSE));
+	helpline(t, gcursor);
 	
 	return 1;
 }
@@ -998,7 +1003,7 @@ int Shear(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	helpline (t, t->center);
 
 	return 1;
 }
@@ -1250,7 +1255,7 @@ int Resize(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
 	return 1;
 }
@@ -1344,7 +1349,7 @@ int ToSphere(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	helpline (t, t->center);
 
 	return 1;
 }
@@ -1582,7 +1587,7 @@ int Rotation(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 
 	return 1;
 }
@@ -1684,7 +1689,7 @@ int Trackball(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
 }
@@ -1961,7 +1966,7 @@ int Tilt(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	helpline (t, t->center);
 
 	return 1;
 }
@@ -2133,7 +2138,7 @@ int Crease(TransInfo *t, short mval[2])
 
 	force_draw(0);
 
-	helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	helpline (t, t->center);
 
 	return 1;
 }
@@ -2331,7 +2336,7 @@ int BoneSize(TransInfo *t, short mval[2])
 	
 	force_draw(0);
 	
-	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t->center, t->flag & (T_EDIT|T_POSE));
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
 	
 	return 1;
 }

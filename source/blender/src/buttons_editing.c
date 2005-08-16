@@ -2989,11 +2989,11 @@ static void editing_panel_mesh_paint(void)
 	if(uiNewPanel(curarea, block, "Paint", "Editing", 640, 0, 318, 204)==0) return;
 	
 	
-	if(G.f & ( G_WEIGHTPAINT))
-	{
+	if(G.f & G_WEIGHTPAINT) {
 		Object *ob;
  	    ob= OBACT;
-	if(ob==NULL) return;
+		
+		if(ob==NULL) return;
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Weight:",2010,160,400,19, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
@@ -3012,9 +3012,9 @@ static void editing_panel_mesh_paint(void)
 		uiDefButF(block, NUMSLI, 0, "Size ",		2010,80,400,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 		uiBlockEndAlign(block);
 		if(ob){
-		uiBlockBeginAlign(block);
-		uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	2010,40,194,29, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-		uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	2010,40,194,29, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiBlockEndAlign(block);
 		}
 	}
 	else{

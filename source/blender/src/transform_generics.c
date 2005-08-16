@@ -142,7 +142,6 @@ static void transform_armature_mirror_update(void)
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	Object *ob= OBACT;
 	
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
@@ -191,7 +190,8 @@ void recalcData(TransInfo *t)
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 	}
-	else if(ob && (ob->flag & OB_POSEMODE)) {
+	else if( (t->flag & T_POSE) && t->poseobj) {
+		Object *ob= t->poseobj;
 		bArmature *arm= ob->data;
 		
 		/* old optimize trick... this enforces to bypass the depgraph */
@@ -302,10 +302,9 @@ void drawLine(float *center, float *dir, char axis, short options)
 
 void initTrans (TransInfo *t)
 {
-	Object *ob= OBACT;
 	
 	/* moving: is shown in drawobject() (transform color) */
-	if(G.obedit || (ob && (ob->flag & OB_POSEMODE)) ) G.moving= G_TRANSFORM_EDIT;
+	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
 	else G.moving= G_TRANSFORM_OBJ;
 
 	t->data = NULL;
@@ -497,7 +496,7 @@ void calculateCenterCursor(TransInfo *t)
 	VECCOPY(t->center, cursor);
 
 	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:OBACT;
+		Object *ob= G.obedit?G.obedit:t->poseobj;
 		float mat[3][3], imat[3][3];
 		float vec[3];
 		
@@ -535,7 +534,7 @@ void calculateCenterMedian(TransInfo *t)
 	VECCOPY(t->center, partial);
 
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:OBACT;
+		Object *ob= G.obedit?G.obedit:t->poseobj;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
@@ -574,7 +573,7 @@ void calculateCenterBound(TransInfo *t)
 	VecMulf(t->center, 0.5);
 
 	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:OBACT;
+		Object *ob= G.obedit?G.obedit:t->poseobj;
 		float vec[3];
 		
 		VECCOPY(vec, t->center);
@@ -618,7 +617,7 @@ void calculateCenter(TransInfo *t)
 	/* setting constraint center */
 	VECCOPY(t->con.center, t->center);
 	if(t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:OBACT;
+		Object *ob= G.obedit?G.obedit:t->poseobj;
 		Mat4MulVecfl(ob->obmat, t->con.center);
 	}
 

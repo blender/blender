@@ -454,9 +454,8 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 }
 
 /* only called with pose mode active object now */
-static void createTransPose(TransInfo *t)
+static void createTransPose(Object *ob, TransInfo *t)
 {
-	Object *ob= OBACT;
 	bArmature *arm;
 	bPoseChannel *pchan;
 	TransData *td;
@@ -481,6 +480,9 @@ static void createTransPose(TransInfo *t)
 		count_bone_select(t, &arm->bonebase, 1);
 	}		
 	if(t->total==0) return;
+	
+	t->flag |= T_POSE;
+	t->poseobj= ob;	// we also allow non-active objects to be transformed, in weightpaint
 	
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
@@ -1353,19 +1355,24 @@ static void clear_trans_object_base_flags(void)
 }
 
 /* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
-void special_aftertrans_update(short cancelled)
+/* note; transdata has been freed already! */
+void special_aftertrans_update(TransInfo *t)
 {
-	Object *ob= OBACT;
+	Object *ob;
 	Base *base;
 	int redrawipo=0;
-	
+	int cancelled= (t->state == TRANS_CANCEL);
+		
 	if(G.obedit);	// nothing
-	else if (ob && (ob->flag & OB_POSEMODE)) {
-		bArmature *arm= ob->data;
+	else if( (t->flag & T_POSE) && t->poseobj) {
+		bArmature *arm;
 		bAction	*act;
 		bPose	*pose;
 		bPoseChannel *pchan;
 
+		ob= t->poseobj;
+		arm= ob->data;
+		
 		if(cancelled)	/* if cancelled we do the update always */
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		else if(G.flags & G_RECORDKEYS) {
@@ -1636,8 +1643,21 @@ void createTransData(TransInfo *t)
 		}
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {
-		t->flag |= T_POSE;
-		createTransPose(t);
+		createTransPose(OBACT, t);
+	}
+	else if (G.f & G_WEIGHTPAINT) {
+		/* exception, we look for the one selected armature */
+		Base *base;
+		for(base=FIRSTBASE; base; base= base->next) {
+			if(TESTBASELIB(base)) {
+				if(base->object->type==OB_ARMATURE)
+					if(base->object->flag & OB_POSEMODE)
+						break;
+			}
+		}
+		if(base) {
+			createTransPose(base->object, t);
+		}
 	}
 	else {
 		createTransObject(t);
