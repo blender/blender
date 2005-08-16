@@ -1785,7 +1785,11 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 
-		dm->drawEdges(dm, dt==OB_WIRE);
+		if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)) {
+			baseDM->drawEdges(baseDM, dt==OB_WIRE);
+		} else {
+			dm->drawEdges(dm, dt==OB_WIRE);
+		}
 
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);
