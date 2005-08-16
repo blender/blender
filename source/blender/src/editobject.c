@@ -3424,7 +3424,7 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 10) {
 			if(curarea->spacetype==SPACE_VIEW3D) {
-				initTransform(TFM_TRANSLATION, CTX_TWEAK);
+				initTransform(TFM_TRANSLATION, CTX_NONE);
 				Transform();
 			}
 			else if(xf_func)
