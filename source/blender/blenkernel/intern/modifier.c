@@ -1453,7 +1453,9 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
 
 		/* Softbody not allowed in this situation, enforce! */
-	if (md && ob->pd && ob->pd->deflect) {
+	/* if (md && ob->pd && ob->pd->deflect) {	*/
+	/* no reason for that any more BM */
+	if (0) {
 		md->mode &= ~(eModifierMode_Realtime|eModifierMode_Render|eModifierMode_Editmode);
 		md = NULL;
 	}

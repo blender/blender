@@ -1443,7 +1443,9 @@ int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
 				fa *= fa;
 				fa = 1.0f/fa;
 				copyob = ob;
-				if (ob->pd->flag & PDEFLE_DEFORM){// get colliding mesh from modifier stack
+//				if (ob->pd->flag & PDEFLE_DEFORM){// get colliding mesh from modifier stack
+// keep this option for debugging but IMHO this is not needed
+				if (1){// get colliding mesh from modifier stack
 
 					if(1) { // so maybe someone wants overkill to collide with subsurfed 
 						dm = mesh_get_derived_deform(copyob, &dmNeedsFree);

@@ -1417,7 +1417,9 @@ static void object_panel_deflectors(Object *ob)
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 				uiBlockBeginAlign(block);
+/* seems to be working fine .. so we do use modifier stack by default .. code here rests for debugging
  			    uiDefButBitS(block, TOG, PDEFLE_DEFORM , 0,"UMS or CRASH",	0,0,150,20, &pd->flag, 0, 0, 0, 0, "Let collision object move with armatures/lattices WARNING logical circles will CRASH");
+*/
 			}		
 		}	
 	}
@@ -1464,7 +1466,9 @@ static void object_softbodies(Object *ob)
 	if(uiNewPanel(curarea, block, "Softbody", "Object", 640, 0, 318, 204)==0) return;
 
 	/* do not allow to combine with force fields */
-	if(ob->pd && ob->pd->deflect) {
+	/* if(ob->pd && ob->pd->deflect) { */
+	/* no reason for that any more BM */
+	if(0) {
 		uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
 		uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 	} else {
