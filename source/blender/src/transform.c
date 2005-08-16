@@ -93,9 +93,8 @@
 
 /* GLOBAL VARIABLE THAT SHOULD MOVED TO SCREEN MEMBER OR SOMETHING  */
 TransInfo Trans = {TFM_INIT, 0};	// enforce init on first usage
-ListBase CSpaces = {0,0};
-float MatSpace[3][3];
 
+/******************************** Helper functions ************************************/
 /* ************************** Dashed help line **************************** */
 
 
@@ -135,6 +134,42 @@ static void helpline(TransInfo *t, float *vec)
 		glFlush(); // flush display for frontbuffer
 		glDrawBuffer(GL_BACK);
 	}
+}
+/* ************************** INPUT FROM MOUSE *************************** */
+
+float InputScaleRatio(TransInfo *t, short mval[2]) {
+	float ratio, dx, dy;
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx = (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy = (float)(t->center2d[1] - t->shiftmval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+	}
+	else {
+		dx = (float)(t->center2d[0] - mval[0]);
+		dy = (float)(t->center2d[1] - mval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+	return ratio;
+}
+
+float InputHorizontalRatio(TransInfo *t, short mval[2]) {
+	int y, pad;
+
+	pad = G.vd->area->winx / 10;
+
+	if (t->flag & T_SHIFT_MOD) {
+		/* deal with Shift key by adding motion / 10 to motion before shift press */
+		y = t->shiftmval[0] + (mval[0] - t->shiftmval[0]) / 10;
+	}
+	else {
+		y = mval[0];
+	}
+	return (float)(y - pad) / (float)(G.vd->area->winx - 2 * pad);
 }
 
 /* ************************** TRANSFORMATIONS **************************** */
@@ -1199,23 +1234,7 @@ int Resize(TransInfo *t, short mval[2])
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
-		
-		if(t->flag & T_SHIFT_MOD) {
-			/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
-			float dx= (float)(t->center2d[0] - t->shiftmval[0]);
-			float dy= (float)(t->center2d[1] - t->shiftmval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-			
-			dx= (float)(t->center2d[0] - mval[0]);
-			dy= (float)(t->center2d[1] - mval[1]);
-			ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
-			
-		}
-		else {
-			float dx= (float)(t->center2d[0] - mval[0]);
-			float dy= (float)(t->center2d[1] - mval[1]);
-			ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
-		}
+		ratio = InputScaleRatio(t, mval);
 		
 		/* flip scale, but not for manipulator center handle */
 		if	((t->center2d[0] - mval[0]) * (t->center2d[0] - t->imval[0]) + 
@@ -1274,13 +1293,6 @@ void initToSphere(TransInfo *t)
 
 	t->val /= (float)t->total;
 
-	Trans.fac = (float)sqrt( (float)
-		(
-			(Trans.center2d[1] - Trans.imval[1])*(Trans.center2d[1] - Trans.imval[1])
-		+
-			(Trans.center2d[0] - Trans.imval[0])*(Trans.center2d[0] - Trans.imval[0])
-		) );
-
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -1299,18 +1311,15 @@ int ToSphere(TransInfo *t, short mval[2])
 	char str[50];
 	TransData *td = t->data;
 
-	ratio = (float)sqrt( (float)
-		(
-			(t->center2d[1] - mval[1])*(t->center2d[1] - mval[1])
-		+
-			(t->center2d[0] - mval[0])*(t->center2d[0] - mval[0])
-		) ) / t->fac;
+	ratio = InputHorizontalRatio(t, mval);
 
 	snapGrid(t, &ratio);
 
 	applyNumInput(&t->num, &ratio);
 
-	if (ratio > 1.0f)
+	if (ratio < 0)
+		ratio = 0.0f;
+	else if (ratio > 1)
 		ratio = 1.0f;
 
 	/* header print for NumInput */
@@ -1336,9 +1345,9 @@ int ToSphere(TransInfo *t, short mval[2])
 
 		radius = Normalise(vec);
 
-		tratio = 1.0f - ((1.0f - ratio) * td->factor);
+		tratio = ratio * td->factor;
 
-		VecMulf(vec, radius * tratio + t->val * (1.0f - tratio));
+		VecMulf(vec, radius * (1.0f - tratio) + t->val * tratio);
 
 		VecAddf(td->loc, t->center, vec);
 	}
@@ -1348,8 +1357,6 @@ int ToSphere(TransInfo *t, short mval[2])
 	headerprint(str);
 
 	force_draw(0);
-
-	helpline (t, t->center);
 
 	return 1;
 }
