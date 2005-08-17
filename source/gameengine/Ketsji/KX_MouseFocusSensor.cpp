@@ -62,7 +62,7 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 										 int startx,
 										 int starty,
 										 short int mousemode,
-										 bool focusmode,
+										 int focusmode,
 										 RAS_ICanvas* canvas,
 										 KX_Scene* kxscene,
 										 SCA_IObject* gameobj, 
@@ -72,8 +72,7 @@ KX_MouseFocusSensor::KX_MouseFocusSensor(SCA_MouseManager* eventmgr,
 	  m_gp_canvas(canvas),
 	  m_kxscene(kxscene)
 {
-	/* Or postpone? I think a sumo scene and kx scene go pretty much
-	 * together, so it should be safe to do it here. */
+
 	m_mouse_over_in_previous_frame = false;
 	m_positive_event = false;
 	m_hitObject = 0;
@@ -134,7 +133,7 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hi
 	* self-hits are excluded by setting the correct ignore-object.)
 	* Hitspots now become valid. */
 	KX_GameObject* thisObj = (KX_GameObject*) GetParent();
-	if (hitKXObj != thisObj)
+	if ((m_focusmode == 2) || hitKXObj == thisObj)
 	{
 		m_hitObject = hitKXObj;
 		m_hitPosition = hit_point;
@@ -150,7 +149,7 @@ bool KX_MouseFocusSensor::RayHit(KX_ClientObjectInfo* client_info, MT_Point3& hi
 
 bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 {
-	
+	m_hitObject = 0;
 	m_hitPosition = MT_Vector3(0,0,0);
 	m_hitNormal =	MT_Vector3(1,0,0);
 	MT_Point3 resultpoint;

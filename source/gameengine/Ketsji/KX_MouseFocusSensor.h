@@ -54,7 +54,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 						int startx,
 						int starty,
 						short int mousemode,
-						bool focusmode,
+						int focusmode,
 						RAS_ICanvas* canvas,
 						KX_Scene* kxscene,
 						SCA_IObject* gameobj,
@@ -98,9 +98,9 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 
  private:
 	/**
-	 * The focus mode. True for handling focus, false for not handling
-	 * it. */
-	bool m_focusmode;
+	 * The focus mode. 1 for handling focus, 0 for not handling, 2 for focus on any object
+	*/
+	 int	m_focusmode;
 
 	/**
 	 * Flags whether the previous test showed a mouse-over.
@@ -145,6 +145,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * Ref to the engine, for retrieving a reference to the current
 	 * scene.  */
 	class KX_KetsjiEngine* m_engine;
+
 
 	/**
 	 * The active canvas. The size of this canvas determines a part of

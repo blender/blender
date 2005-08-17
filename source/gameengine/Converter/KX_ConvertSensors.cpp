@@ -422,7 +422,7 @@ void BL_ConvertSensors(struct Object* blenderobject,
 		case SENS_MOUSE:
 			{
 				int keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_NODEF;			
-				bool trackfocus = false;
+				int trackfocus = 0;
 				bMouseSensor *bmouse = (bMouseSensor *)sens->data;
 				
 				/* There are two main types of mouse sensors. If there is
@@ -455,8 +455,12 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						keytype = SCA_MouseSensor::KX_MOUSESENSORMODE_MOVEMENT;
 						break;
 					case BL_SENS_MOUSE_MOUSEOVER:
-						trackfocus = true;
+						trackfocus = 1;
 						break;
+					case BL_SENS_MOUSE_MOUSEOVER_ANY:
+						trackfocus = 2;
+						break;
+
 					default:
 						; /* error */
 					}

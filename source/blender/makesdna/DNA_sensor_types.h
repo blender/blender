@@ -233,6 +233,7 @@ typedef struct bJoystickSensor {
 #define BL_SENS_MOUSE_WHEEL_DOWN     6
 #define BL_SENS_MOUSE_MOVEMENT       8
 #define BL_SENS_MOUSE_MOUSEOVER      16
+#define BL_SENS_MOUSE_MOUSEOVER_ANY	 32
 
 #define SENS_JOY_BUTTON		0
 #define SENS_JOY_BUTTON_PRESSED	0
