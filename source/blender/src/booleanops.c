@@ -1,5 +1,3 @@
-
-#include <string.h>
 /**
  * $Id$
  *
@@ -33,6 +31,8 @@
  * CSG operations. 
  */
 
+#include <string.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_ghash.h"
@@ -45,14 +45,15 @@
 
 #include "CSG_BooleanOps.h"
 
-#include "BKE_global.h"
-#include "BKE_mesh.h"
-#include "BKE_displist.h"
-#include "BKE_object.h"
 #include "BKE_booleanops.h"
-#include "BKE_utildefines.h"
+#include "BKE_depsgraph.h"
+#include "BKE_displist.h"
+#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
 
 #include <math.h>
 

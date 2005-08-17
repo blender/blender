@@ -922,7 +922,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	
 	if (isVirtual) {
 		sprintf(str, "%s (virtual)", md->name);
-		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-120-60-10, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
+		uiDefBut(block, LABEL, 0, str, x+10, y-1, buttonWidth-60, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 
 		uiClearButLock();
 

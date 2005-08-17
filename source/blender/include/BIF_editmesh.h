@@ -160,7 +160,7 @@ extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 #define SUBDIV_SELECT_INNER     1
 #define SUBDIV_SELECT_INNER_SEL 2
 
-extern void convert_to_triface(int all);
+extern void convert_to_triface(int direction);
 extern int removedoublesflag(short flag, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);

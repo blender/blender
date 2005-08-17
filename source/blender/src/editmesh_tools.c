@@ -136,18 +136,21 @@ static int vergface(const void *v1, const void *v2)
 
 /* *********************************** */
 
-void convert_to_triface(int all)
+void convert_to_triface(int direction)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa, *efan, *next;
+	float fac;
 	
 	efa= em->faces.last;
 	while(efa) {
 		next= efa->prev;
 		if(efa->v4) {
-			if(all || (efa->f & SELECT) ) {
+			if(efa->f & SELECT) {
 				/* choose shortest diagonal for split */
-				if(VecLenf(efa->v1->co, efa->v3->co) <= VecLenf(efa->v2->co, efa->v4->co)) {
+				fac= VecLenf(efa->v1->co, efa->v3->co) - VecLenf(efa->v2->co, efa->v4->co);
+				/* this makes sure exact squares get split different in both cases */
+				if( (direction==0 && fac<FLT_EPSILON) || (direction && fac>0.0f) ) {
 					
 					efan= addfacelist(efa->v1, efa->v2, efa->v3, 0, efa, NULL);
 					if(efa->f & SELECT) EM_select_face(efan, 1);

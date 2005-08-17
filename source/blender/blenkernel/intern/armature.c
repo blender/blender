@@ -567,12 +567,15 @@ float dist_to_bone (float vec[3], float b1[3], float b2[3])
 	}
 }
 
-static float calc_armature_deform_bone(Bone *bone, bPoseChannel *pchan, float *vec, float *co)
+static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 {
+	Bone *bone= pchan->bone;
 	float	dist, fac, ifac;
 	float	cop[3];
 	float	bdsqr, contrib=0.0;
 
+	if(bone==NULL) return 0.0f;
+	
 	bdsqr = bone->dist*bone->dist;
 	VECCOPY (cop, co);
 
@@ -599,7 +602,7 @@ static float calc_armature_deform_bone(Bone *bone, bPoseChannel *pchan, float *v
 	return contrib;
 }
 
-static void calc_bone_deform(bPoseChannel *pchan, float weight, float *vec, float *co, float *contrib)
+static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, float *co, float *contrib)
 {
 	float	cop[3];
 
@@ -615,34 +618,6 @@ static void calc_bone_deform(bPoseChannel *pchan, float weight, float *vec, floa
 	vec[2]+=(cop[2]-co[2])*weight;
 
 	(*contrib)+=weight;
-}
-
-void calc_armature_deform (Object *ob, float *co, int index)
-{
-	bPoseChannel *pchan;
-	float	vec[3];
-	float	contrib=0.0;
-
-	vec[0]=vec[1]=vec[2]=0;
-
-	/* Apply the object's matrix */
-	Mat4MulVecfl(g_premat, co);
-
-	for(pchan= g_deform->pose->chanbase.first; pchan; pchan= pchan->next) {
-		Bone *bone= pchan->bone;
-		if(bone) {
-			contrib+= calc_armature_deform_bone(bone, pchan, vec, co);
-		}
-	}
-
-	if (contrib>0.0){
-		vec[0]/=contrib;
-		vec[1]/=contrib;
-		vec[2]/=contrib;
-	}
-
-	VecAddf (co, vec, co);
-	Mat4MulVecfl(g_postmat, co);
 }
 
 void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
@@ -665,10 +640,11 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		bDeformGroup *dg;
 
 		dverts = ((Mesh*)target->data)->dvert;
-
-		defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
-		for (i=0,dg=target->defbase.first; dg; i++,dg=dg->next) {
-			defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
+		if(dverts) {
+			defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
+			for (i=0,dg=target->defbase.first; dg; i++,dg=dg->next) {
+				defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
+			}
 		}
 	}
 	else {
@@ -687,18 +663,17 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		/* Apply the object's matrix */
 		Mat4MulVecfl(premat, co);
 
-		if (dverts) {
+		if (dverts) {	// use weight groups
 			MDeformVert *dvert = &dverts[i];
 
 			for (j=0; j<dvert->totweight; j++){
 				pchan = defnrToPC[dvert->dw[j].def_nr];
-				if (pchan) calc_bone_deform(pchan, dvert->dw[j].weight, vec, co, &contrib);
+				if (pchan) pchan_bone_deform(pchan, dvert->dw[j].weight, vec, co, &contrib);
 			}
 		}
 		else {
 			for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
-				Bone *bone= pchan->bone;
-				if(bone) contrib+= calc_armature_deform_bone(bone, pchan, vec, co);
+				contrib+= dist_bone_deform(pchan, vec, co);
 			}
 		}
 
@@ -1349,7 +1324,7 @@ void GB_calc_armature_deform (float *co, MDeformVert *dvert)
 	
 	for (i=0; i<dvert->totweight; i++){
 //		pchan = (bPoseChannel *)dvert->dw[i].data;
-//		if (pchan) calc_bone_deform(pchan, dvert->dw[i].weight, vec, co, &contrib);
+//		if (pchan) pchan_bone_deform(pchan, dvert->dw[i].weight, vec, co, &contrib);
 	}
 	
 	if (contrib){
