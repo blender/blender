@@ -873,15 +873,15 @@ PyObject *Radio_Init( void )
 	submodule = Py_InitModule3( "Blender.Scene.Radio", M_Radio_methods,
 				    "The Blender Radiosity submodule" );
 
-	Modes = M_constant_New(  );
-	DrawTypes = M_constant_New(  );
+	Modes = PyConstant_New(  );
+	DrawTypes = PyConstant_New(  );
 
 	if( Modes ) {
 		BPy_constant *d = ( BPy_constant * ) Modes;
 
-		constant_insert( d, "ShowLimits",
+		PyConstant_Insert( d, "ShowLimits",
 				 PyInt_FromLong( EXPP_RADIO_flag_SHOWLIM ) );
-		constant_insert( d, "Z", PyInt_FromLong( EXPP_RADIO_flag_Z ) );
+		PyConstant_Insert( d, "Z", PyInt_FromLong( EXPP_RADIO_flag_Z ) );
 
 		PyModule_AddObject( submodule, "Modes", Modes );
 	}
@@ -889,11 +889,11 @@ PyObject *Radio_Init( void )
 	if( DrawTypes ) {
 		BPy_constant *d = ( BPy_constant * ) DrawTypes;
 
-		constant_insert( d, "Wire",
+		PyConstant_Insert( d, "Wire",
 				 PyInt_FromLong( EXPP_RADIO_drawtype_WIRE ) );
-		constant_insert( d, "Solid",
+		PyConstant_Insert( d, "Solid",
 				 PyInt_FromLong( EXPP_RADIO_drawtype_SOLID ) );
-		constant_insert( d, "Gouraud",
+		PyConstant_Insert( d, "Gouraud",
 				 PyInt_FromLong
 				 ( EXPP_RADIO_drawtype_GOURAUD ) );
 

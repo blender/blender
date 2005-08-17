@@ -39,12 +39,6 @@
 
 extern char bprogname[]; /* argv[0] from creator.c */
 
-void initBlenderApi2_2x( void )
-{
-	g_blenderdict = NULL;
-	M_Blender_Init(  );
-}
-
 /* this makes sure BLI_gethome() returns a path with '.blender' appended
  * Besides, this function now either returns userhome/.blender (if it exists)
  * or blenderInstallDir/.blender/ otherwise (can also be cvs dir).

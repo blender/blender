@@ -485,22 +485,22 @@ static PyObject *M_Lamp_Get( PyObject * self, PyObject * args )
 
 static PyObject *Lamp_TypesDict( void )
 {	/* create the Blender.Lamp.Types constant dict */
-	PyObject *Types = M_constant_New(  );
+	PyObject *Types = PyConstant_New(  );
 
 	if( Types ) {
 		BPy_constant *c = ( BPy_constant * ) Types;
 
-		constant_insert( c, "Lamp",
+		PyConstant_Insert( c, "Lamp",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_LAMP ) );
-		constant_insert( c, "Sun",
+		PyConstant_Insert( c, "Sun",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_SUN ) );
-		constant_insert( c, "Spot",
+		PyConstant_Insert( c, "Spot",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_SPOT ) );
-		constant_insert( c, "Hemi",
+		PyConstant_Insert( c, "Hemi",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_HEMI ) );
-		constant_insert( c, "Area",
+		PyConstant_Insert( c, "Area",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_AREA ) );
-		constant_insert( c, "Photon",
+		PyConstant_Insert( c, "Photon",
 				 PyInt_FromLong( EXPP_LAMP_TYPE_YF_PHOTON ) );
 	}
 
@@ -509,30 +509,30 @@ static PyObject *Lamp_TypesDict( void )
 
 static PyObject *Lamp_ModesDict( void )
 {			/* create the Blender.Lamp.Modes constant dict */
-	PyObject *Modes = M_constant_New(  );
+	PyObject *Modes = PyConstant_New(  );
 
 	if( Modes ) {
 		BPy_constant *c = ( BPy_constant * ) Modes;
 
-		constant_insert( c, "Shadows",
+		PyConstant_Insert( c, "Shadows",
 				 PyInt_FromLong( EXPP_LAMP_MODE_SHADOWS ) );
-		constant_insert( c, "Halo",
+		PyConstant_Insert( c, "Halo",
 				 PyInt_FromLong( EXPP_LAMP_MODE_HALO ) );
-		constant_insert( c, "Layer",
+		PyConstant_Insert( c, "Layer",
 				 PyInt_FromLong( EXPP_LAMP_MODE_LAYER ) );
-		constant_insert( c, "Quad",
+		PyConstant_Insert( c, "Quad",
 				 PyInt_FromLong( EXPP_LAMP_MODE_QUAD ) );
-		constant_insert( c, "Negative",
+		PyConstant_Insert( c, "Negative",
 				 PyInt_FromLong( EXPP_LAMP_MODE_NEGATIVE ) );
-		constant_insert( c, "Sphere",
+		PyConstant_Insert( c, "Sphere",
 				 PyInt_FromLong( EXPP_LAMP_MODE_SPHERE ) );
-		constant_insert( c, "Square",
+		PyConstant_Insert( c, "Square",
 				 PyInt_FromLong( EXPP_LAMP_MODE_SQUARE ) );
-		constant_insert( c, "OnlyShadow",
+		PyConstant_Insert( c, "OnlyShadow",
 				 PyInt_FromLong( EXPP_LAMP_MODE_ONLYSHADOW ) );
-		constant_insert( c, "NoDiffuse",
+		PyConstant_Insert( c, "NoDiffuse",
 				 PyInt_FromLong( EXPP_LAMP_MODE_NODIFFUSE ) );
-		constant_insert( c, "NoSpecular",
+		PyConstant_Insert( c, "NoSpecular",
 				 PyInt_FromLong( EXPP_LAMP_MODE_NOSPECULAR ) );
 	}
 

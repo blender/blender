@@ -352,11 +352,11 @@ PyObject *M_Text3d_Get( PyObject * self, PyObject * args )
 
 static PyObject *generate_ModuleIntConstant(char *name, int value)
 {
-	PyObject *constant = M_constant_New();
+	PyObject *constant = PyConstant_New();
 
-	constant_insert((BPy_constant*)constant, 
+	PyConstant_Insert((BPy_constant*)constant, 
 		"value", PyInt_FromLong(value));
-	constant_insert((BPy_constant*)constant, 
+	PyConstant_Insert((BPy_constant*)constant, 
 		"name", PyString_FromString(name));
 
 	Py_INCREF(constant);

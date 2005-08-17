@@ -73,6 +73,14 @@
  */
 //#include "api2_2x/Registry.h"
 
+/*Declares the modules and their initialization functions
+*These are TOP-LEVEL modules e.g. import `module` - there is no
+*support for packages here e.g. import `package.module` */
+static struct _inittab BPy_Inittab_Modules[] = {
+	{"Blender", M_Blender_Init},
+	{NULL}
+};
+
 /*************************************************************************
 * Structure definitions	
 **************************************************************************/
@@ -105,11 +113,9 @@ PyObject *traceback_getFilename( PyObject * tb );
 
 void BPY_free_screen_spacehandlers(struct bScreen *sc);
 
-
 /****************************************************************************
-* Description: This function will initialise Python and all the implemented 
-*	          api variations.
-* Notes:	Currently only the api for 2.2x will be initialised. 
+* Description: This function will start the interpreter and load all modules
+* as well as search for a python installation.
 ****************************************************************************/
 void BPY_start_python( int argc, char **argv )
 {
@@ -120,35 +126,38 @@ void BPY_start_python( int argc, char **argv )
 	/* we keep a copy of the values of argc and argv so that the game engine
 	 * can call BPY_start_python(0, NULL) whenever a game ends, without having
 	 * to know argc and argv there (in source/blender/src/space.c) */
-
 	if( first_time ) {
 		argc_copy = argc;
 		argv_copy = argv;
 	}
 
+	//stuff for Registry module
 	bpy_registryDict = PyDict_New(  );/* check comment at start of this file */
-
 	if( !bpy_registryDict )
 		printf( "Error: Couldn't create the Registry Python Dictionary!" );
-
 	Py_SetProgramName( "blender" );
 
-	/* 
-	 * Py_Initialize() will attempt to import the site module and
+	/* Py_Initialize() will attempt to import the site module and
 	 * print an error if not found.  See init_syspath() for the
 	 * rest of our init msgs.
 	 */
-
-	/* Py_GetVersion() returns a ptr to astatic string */
+	// Py_GetVersion() returns a ptr to astatic string
 	printf( "Using Python version %.3s\n", Py_GetVersion() );
 
+	//Initialize the TOP-LEVEL modules
+	PyImport_ExtendInittab(BPy_Inittab_Modules);
+	
+	//Start the interpreter
 	Py_Initialize(  );
 	PySys_SetArgv( argc_copy, argv_copy );
 
+	//Overrides __import__
 	init_ourImport(  );
 
-	initBlenderApi2_2x(  );
+	//init a global dictionary
+	g_blenderdict = NULL;
 
+	//Look for a python installation
 	init_syspath( first_time ); /* not first_time: some msgs are suppressed */
 
 	return;
@@ -521,12 +530,12 @@ int BPY_txt_do_python_Text( struct Text *text )
 
 	script->py_globaldict = py_dict;
 
-	info = ( BPy_constant * ) M_constant_New(  );
+	info = ( BPy_constant * ) PyConstant_New(  );
 	if( info ) {
-		constant_insert( info, "name",
+		PyConstant_Insert( info, "name",
 				 PyString_FromString( script->id.name + 2 ) );
 		Py_INCREF( Py_None );
-		constant_insert( info, "arg", Py_None );
+		PyConstant_Insert( info, "arg", Py_None );
 		PyDict_SetItemString( py_dict, "__script__",
 				      ( PyObject * ) info );
 	}
@@ -751,11 +760,11 @@ int BPY_menu_do_python( short menutype, int event )
 
 	script->py_globaldict = py_dict;
 
-	info = ( BPy_constant * ) M_constant_New(  );
+	info = ( BPy_constant * ) PyConstant_New(  );
 	if( info ) {
-		constant_insert( info, "name",
+		PyConstant_Insert( info, "name",
 				 PyString_FromString( script->id.name + 2 ) );
-		constant_insert( info, "arg", pyarg );
+		PyConstant_Insert( info, "arg", pyarg );
 		PyDict_SetItemString( py_dict, "__script__",
 				      ( PyObject * ) info );
 	}

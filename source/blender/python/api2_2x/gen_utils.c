@@ -39,6 +39,30 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+//---------------------- EXPP_GetModuleConstant -------------------------
+//Helper function for returning a module constant
+PyObject *EXPP_GetModuleConstant(char *module, char *constant)
+{
+	PyObject *py_module = NULL, *py_dict = NULL, *py_constant = NULL;
+
+	/*Careful to pass the correct Package.Module string here or
+	* else you add a empty module somewhere*/
+	py_module = PyImport_AddModule(module);
+	if(!py_module){   //null = error returning module
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"error encountered with returning module constant..." ) );
+	}
+	py_dict = PyModule_GetDict(py_module); //never fails
+
+	py_constant = PyDict_GetItemString(py_dict, constant);
+	if(!py_constant){   //null = key not found
+		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"error encountered with returning module constant..." ) );
+	}
+
+	return EXPP_incr_ret(py_constant);
+}
+
 /*****************************************************************************/
 /* Description: This function clamps an int to the given interval	  */
 /*							[min, max].	   */
@@ -115,6 +139,33 @@ int EXPP_ReturnIntError( PyObject * type, char *error_msg )
 {
 	PyErr_SetString( type, error_msg );
 	return -1;
+}
+
+
+int EXPP_intError(PyObject *type, const char *format, ...)
+{
+	char *error = "";
+	va_list vlist;
+
+	va_start(vlist, format);
+	vsprintf(error, format, vlist);
+	va_end(vlist);
+
+	PyErr_SetString(type, error);
+	return -1;
+}
+//Like EXPP_ReturnPyObjError but takes a printf format string and multiple arguments
+PyObject *EXPP_objError(PyObject *type, const char *format, ...)
+{
+	char *error = "";
+	va_list vlist;
+
+	va_start(vlist, format);
+	vsprintf(error, format, vlist);
+	va_end(vlist);
+
+	PyErr_SetString(type, error);
+	return NULL;
 }
 
 /*****************************************************************************/

@@ -366,11 +366,11 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 
 static PyObject *Material_ModesDict( void )
 {
-	PyObject *Modes = M_constant_New(  );
+	PyObject *Modes = PyConstant_New(  );
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(c, #name, PyInt_FromLong(EXPP_MAT_MODE_##name))
+	PyConstant_Insert(c, #name, PyInt_FromLong(EXPP_MAT_MODE_##name))
 
 /* So that:
  * EXPP_ADDCONST(TRACEABLE) becomes:
@@ -414,11 +414,11 @@ static PyObject *Material_ModesDict( void )
 
 static PyObject *Material_ShadersDict( void )
 {
-	PyObject *Shaders = M_constant_New(  );
+	PyObject *Shaders = PyConstant_New(  );
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(c, #name, PyInt_FromLong(EXPP_MAT_SHADER_##name))
+	PyConstant_Insert(c, #name, PyInt_FromLong(EXPP_MAT_SHADER_##name))
 
 /* So that:
  * EXPP_ADDCONST(DIFFUSE_LAMBERT) becomes:

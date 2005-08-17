@@ -752,24 +752,22 @@ static PyObject * Blender_UpdateMenus( PyObject * self )
 /*****************************************************************************/
 /* Function:		initBlender		 */
 /*****************************************************************************/
-void M_Blender_Init( void )
+void M_Blender_Init(void)
 {
 	PyObject *module;
 	PyObject *dict, *smode, *SpaceHandlers;
 
-	g_blenderdict = NULL;
+	module = Py_InitModule3("Blender", Blender_methods,
+		"The main Blender module");
 
-	module = Py_InitModule3( "Blender", Blender_methods,
-		"The main Blender module" );
+	types_InitAll();	/* set all our pytypes to &PyType_Type */
 
-	types_InitAll(  );	/* set all our pytypes to &PyType_Type */
-
-	SpaceHandlers = M_constant_New();
+	SpaceHandlers = PyConstant_New();
 	if (SpaceHandlers) {
 		BPy_constant *d = (BPy_constant *)SpaceHandlers;
 
-		constant_insert(d,"VIEW3D_EVENT",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT));
-		constant_insert(d,"VIEW3D_DRAW", PyInt_FromLong(SPACEHANDLER_VIEW3D_DRAW));
+		PyConstant_Insert(d,"VIEW3D_EVENT",PyInt_FromLong(SPACEHANDLER_VIEW3D_EVENT));
+		PyConstant_Insert(d,"VIEW3D_DRAW", PyInt_FromLong(SPACEHANDLER_VIEW3D_DRAW));
 
 		PyModule_AddObject(module, "SpaceHandlers", SpaceHandlers);
 	}
@@ -779,45 +777,46 @@ void M_Blender_Init( void )
 	else
 		smode = PyString_FromString("interactive");
 
-	dict = PyModule_GetDict( module );
+	dict = PyModule_GetDict(module);
 	g_blenderdict = dict;
 
-	PyDict_SetItemString( dict, "bylink", EXPP_incr_ret_False() );
-	PyDict_SetItemString( dict, "link", EXPP_incr_ret ( Py_None ) );
-	PyDict_SetItemString( dict, "event", PyString_FromString( "" ) );
-	PyDict_SetItemString( dict, "mode", smode );
-
-	PyDict_SetItemString( dict, "Types", Types_Init(  ) );
-	PyDict_SetItemString( dict, "sys", sys_Init(  ) );
-	PyDict_SetItemString( dict, "Registry", Registry_Init(  ) );
-	PyDict_SetItemString( dict, "Scene", Scene_Init(  ) );
-	PyDict_SetItemString( dict, "Object", Object_Init(  ) );
-	PyDict_SetItemString( dict, "Material", Material_Init(  ) );
-	PyDict_SetItemString( dict, "Camera", Camera_Init(  ) );
-	PyDict_SetItemString( dict, "Lamp", Lamp_Init(  ) );
-	PyDict_SetItemString( dict, "Lattice", Lattice_Init(  ) );
-	PyDict_SetItemString( dict, "Curve", Curve_Init(  ) );
-	PyDict_SetItemString( dict, "Armature", Armature_Init(  ) );
-	PyDict_SetItemString( dict, "Ipo", Ipo_Init(  ) );
-	PyDict_SetItemString( dict, "IpoCurve", IpoCurve_Init(  ) );
-	PyDict_SetItemString( dict, "Metaball", Metaball_Init(  ) );
-	PyDict_SetItemString( dict, "Image", Image_Init(  ) );
-	PyDict_SetItemString( dict, "Window", Window_Init(  ) );
-	PyDict_SetItemString( dict, "Draw", Draw_Init(  ) );
-	PyDict_SetItemString( dict, "BGL", BGL_Init(  ) );
-	PyDict_SetItemString( dict, "Effect", Effect_Init(  ) );
-	PyDict_SetItemString( dict, "Text", Text_Init(  ) );
-	PyDict_SetItemString( dict, "Text3d", Text3d_Init(  ) );
-	PyDict_SetItemString( dict, "World", World_Init(  ) );
-	PyDict_SetItemString( dict, "Texture", Texture_Init(  ) );
-	PyDict_SetItemString( dict, "NMesh", NMesh_Init(  ) );
-	PyDict_SetItemString( dict, "Noise", Noise_Init(  ) );
-	PyDict_SetItemString( dict, "Mathutils", Mathutils_Init(  ) );
-	PyDict_SetItemString( dict, "Library", Library_Init(  ) );
-	PyDict_SetItemString( dict, "Sound", Sound_Init(  ) );
-	PyDict_SetItemString( dict, "CurNurb", CurNurb_Init(  ) );
-	PyDict_SetItemString( dict, "BezTriple", BezTriple_Init(  ) );
-
-	PyModule_AddIntConstant( module, "TRUE", 1 );
+	PyModule_AddIntConstant(module, "TRUE", 1);
 	PyModule_AddIntConstant( module, "FALSE", 0 );
+
+	PyDict_SetItemString(dict, "bylink", EXPP_incr_ret_False());
+	PyDict_SetItemString(dict, "link", EXPP_incr_ret (Py_None));
+	PyDict_SetItemString(dict, "event", PyString_FromString(""));
+	PyDict_SetItemString(dict, "mode", smode);
+
+	PyDict_SetItemString(dict, "Armature", Armature_Init());
+	PyDict_SetItemString(dict, "BezTriple", BezTriple_Init());
+	PyDict_SetItemString(dict, "BGL", BGL_Init());
+	PyDict_SetItemString(dict, "CurNurb", CurNurb_Init());
+	PyDict_SetItemString(dict, "Curve", Curve_Init());
+	PyDict_SetItemString(dict, "Camera", Camera_Init());
+	PyDict_SetItemString(dict, "Draw", Draw_Init());
+	PyDict_SetItemString(dict, "Effect", Effect_Init());
+	PyDict_SetItemString(dict, "Ipo", Ipo_Init());
+	PyDict_SetItemString(dict, "IpoCurve", IpoCurve_Init());
+	PyDict_SetItemString(dict, "Image", Image_Init());
+	PyDict_SetItemString(dict, "Lamp", Lamp_Init());
+	PyDict_SetItemString(dict, "Lattice", Lattice_Init());
+	PyDict_SetItemString(dict, "Library", Library_Init());
+	PyDict_SetItemString(dict, "Material", Material_Init());
+	PyDict_SetItemString(dict, "Metaball", Metaball_Init());
+	PyDict_SetItemString(dict, "Mathutils", Mathutils_Init());
+	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
+	PyDict_SetItemString(dict, "Noise", Noise_Init());
+	PyDict_SetItemString(dict, "Object", Object_Init());
+	PyDict_SetItemString(dict, "Registry", Registry_Init());
+	PyDict_SetItemString(dict, "sys", sys_Init());
+	PyDict_SetItemString(dict, "Scene", Scene_Init());
+	PyDict_SetItemString(dict, "Sound", Sound_Init());
+	PyDict_SetItemString(dict, "Types", Types_Init());
+	PyDict_SetItemString(dict, "Text", Text_Init());
+	PyDict_SetItemString(dict, "Text3d", Text3d_Init());
+	PyDict_SetItemString(dict, "Texture", Texture_Init());
+	PyDict_SetItemString(dict, "Window", Window_Init());
+	PyDict_SetItemString(dict, "World", World_Init());
+
 }

@@ -51,6 +51,8 @@
 #define Py_RETURN_NONE  Py_INCREF( Py_None ); return Py_None 
 #endif
 
+PyObject *EXPP_GetModuleConstant(char *module, char *constant);
+
 int StringEqual( const char *string1, const char *string2 );
 char *GetIdName( ID * id );
 ID *GetIdFromList( ListBase * list, char *name );
@@ -72,6 +74,9 @@ PyObject *EXPP_incr_ret_True(void);
 PyObject *EXPP_incr_ret_False(void);
 PyObject *EXPP_ReturnPyObjError( PyObject * type, char *error_msg );
 int EXPP_ReturnIntError( PyObject * type, char *error_msg );
+
+PyObject *EXPP_objError(PyObject *type, const char *format, ...);
+int EXPP_intError(PyObject *type, const char *format, ...);
 
 int EXPP_check_sequence_consistency( PyObject * seq, PyTypeObject * against );
 PyObject *EXPP_tuple_repr( PyObject * self, int size );

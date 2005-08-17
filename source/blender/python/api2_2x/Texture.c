@@ -600,11 +600,11 @@ static PyObject *M_Texture_Get( PyObject * self, PyObject * args )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_TYPE_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_TYPE_##name))
 
 static PyObject *M_Texture_TypesDict( void )
 {
-	PyObject *Types = M_constant_New(  );
+	PyObject *Types = PyConstant_New(  );
 	if( Types ) {
 		BPy_constant *d = ( BPy_constant * ) Types;
 
@@ -628,11 +628,11 @@ static PyObject *M_Texture_TypesDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_STYPE_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_STYPE_##name))
 
 static PyObject *M_Texture_STypesDict( void )
 {
-	PyObject *STypes = M_constant_New(  );
+	PyObject *STypes = PyConstant_New(  );
 	if( STypes ) {
 		BPy_constant *d = ( BPy_constant * ) STypes;
 
@@ -693,11 +693,11 @@ static PyObject *M_Texture_STypesDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_TEXCO_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_TEXCO_##name))
 
 static PyObject *M_Texture_TexCoDict( void )
 {
-	PyObject *TexCo = M_constant_New(  );
+	PyObject *TexCo = PyConstant_New(  );
 	if( TexCo ) {
 		BPy_constant *d = ( BPy_constant * ) TexCo;
 
@@ -717,11 +717,11 @@ static PyObject *M_Texture_TexCoDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_MAPTO_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_MAPTO_##name))
 
 static PyObject *M_Texture_MapToDict( void )
 {
-	PyObject *MapTo = M_constant_New(  );
+	PyObject *MapTo = PyConstant_New(  );
 	if( MapTo ) {
 		BPy_constant *d = ( BPy_constant * ) MapTo;
 
@@ -745,11 +745,11 @@ static PyObject *M_Texture_MapToDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_FLAG_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_FLAG_##name))
 
 static PyObject *M_Texture_FlagsDict( void )
 {
-	PyObject *Flags = M_constant_New(  );
+	PyObject *Flags = PyConstant_New(  );
 	if( Flags ) {
 		BPy_constant *d = ( BPy_constant * ) Flags;
 
@@ -763,11 +763,11 @@ static PyObject *M_Texture_FlagsDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_EXTEND_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_EXTEND_##name))
 
 static PyObject *M_Texture_ExtendModesDict( void )
 {
-	PyObject *ExtendModes = M_constant_New(  );
+	PyObject *ExtendModes = PyConstant_New(  );
 	if( ExtendModes ) {
 		BPy_constant *d = ( BPy_constant * ) ExtendModes;
 
@@ -782,11 +782,11 @@ static PyObject *M_Texture_ExtendModesDict( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(name) \
-	constant_insert(d, #name, PyInt_FromLong(EXPP_TEX_IMAGEFLAG_##name))
+	PyConstant_Insert(d, #name, PyInt_FromLong(EXPP_TEX_IMAGEFLAG_##name))
 
 static PyObject *M_Texture_ImageFlagsDict( void )
 {
-	PyObject *ImageFlags = M_constant_New(  );
+	PyObject *ImageFlags = PyConstant_New(  );
 	if( ImageFlags ) {
 		BPy_constant *d = ( BPy_constant * ) ImageFlags;
 

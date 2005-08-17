@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -35,28 +35,19 @@
 
 #include <Python.h>
 
+//-------------------TYPE CHECKS---------------------------------
 #define BPy_Constant_Check(v) ((v)->ob_type==&constant_Type)
-
-/* Objects of <type 'constant'> are used inside many other Blender Python
- * objects, so this header file must contain only 'public' declarations */
-
-/*****************************************************************************/
-/* Python API function prototypes for the constant module.                   */
-/*****************************************************************************/
-PyObject *M_constant_New( void );
-
-/*****************************************************************************/
-/* Python BPy_constant structure definition:                                 */
-/*****************************************************************************/
+//-------------------TYPEOBJECT----------------------------------
+PyTypeObject constant_Type;
+//-------------------STRUCT DEFINITION---------------------------
 typedef struct {
 	PyObject_HEAD 
 	PyObject * dict;
-
 } BPy_constant;
-
-/*****************************************************************************/
-/* Python BPy_constant methods declarations:                                 */
-/*****************************************************************************/
-int constant_insert( BPy_constant * self, char *name, PyObject * value );
+//-------------------VISIBLE PROTOTYPES-------------------------
+PyObject *PyConstant_New(void);
+int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value);
+PyObject *PyConstant_NewInt(char *name, int value);
+PyObject *PyConstant_NewString(char *name, char *value);
 
 #endif				/* EXPP_constant_H */

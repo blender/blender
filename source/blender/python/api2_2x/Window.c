@@ -1350,28 +1350,28 @@ PyObject *Window_Init( void )
 	if( dict )
 		PyDict_SetItemString( dict, "Theme", Theme_Init(  ) );
 
-	Types = M_constant_New(  );
-	Qual = M_constant_New(  );
-	MButs = M_constant_New(  );
+	Types = PyConstant_New(  );
+	Qual = PyConstant_New(  );
+	MButs = PyConstant_New(  );
 
 	if( Types ) {
 		BPy_constant *d = ( BPy_constant * ) Types;
 
-		constant_insert( d, "VIEW3D", PyInt_FromLong( SPACE_VIEW3D ) );
-		constant_insert( d, "IPO", PyInt_FromLong( SPACE_IPO ) );
-		constant_insert( d, "OOPS", PyInt_FromLong( SPACE_OOPS ) );
-		constant_insert( d, "BUTS", PyInt_FromLong( SPACE_BUTS ) );
-		constant_insert( d, "FILE", PyInt_FromLong( SPACE_FILE ) );
-		constant_insert( d, "IMAGE", PyInt_FromLong( SPACE_IMAGE ) );
-		constant_insert( d, "INFO", PyInt_FromLong( SPACE_INFO ) );
-		constant_insert( d, "SEQ", PyInt_FromLong( SPACE_SEQ ) );
-		constant_insert( d, "IMASEL", PyInt_FromLong( SPACE_IMASEL ) );
-		constant_insert( d, "SOUND", PyInt_FromLong( SPACE_SOUND ) );
-		constant_insert( d, "ACTION", PyInt_FromLong( SPACE_ACTION ) );
-		constant_insert( d, "TEXT", PyInt_FromLong( SPACE_TEXT ) );
-		constant_insert( d, "NLA", PyInt_FromLong( SPACE_NLA ) );
-		constant_insert( d, "SCRIPT", PyInt_FromLong( SPACE_SCRIPT ) );
-		constant_insert( d, "TIME", PyInt_FromLong( SPACE_TIME ) );
+		PyConstant_Insert( d, "VIEW3D", PyInt_FromLong( SPACE_VIEW3D ) );
+		PyConstant_Insert( d, "IPO", PyInt_FromLong( SPACE_IPO ) );
+		PyConstant_Insert( d, "OOPS", PyInt_FromLong( SPACE_OOPS ) );
+		PyConstant_Insert( d, "BUTS", PyInt_FromLong( SPACE_BUTS ) );
+		PyConstant_Insert( d, "FILE", PyInt_FromLong( SPACE_FILE ) );
+		PyConstant_Insert( d, "IMAGE", PyInt_FromLong( SPACE_IMAGE ) );
+		PyConstant_Insert( d, "INFO", PyInt_FromLong( SPACE_INFO ) );
+		PyConstant_Insert( d, "SEQ", PyInt_FromLong( SPACE_SEQ ) );
+		PyConstant_Insert( d, "IMASEL", PyInt_FromLong( SPACE_IMASEL ) );
+		PyConstant_Insert( d, "SOUND", PyInt_FromLong( SPACE_SOUND ) );
+		PyConstant_Insert( d, "ACTION", PyInt_FromLong( SPACE_ACTION ) );
+		PyConstant_Insert( d, "TEXT", PyInt_FromLong( SPACE_TEXT ) );
+		PyConstant_Insert( d, "NLA", PyInt_FromLong( SPACE_NLA ) );
+		PyConstant_Insert( d, "SCRIPT", PyInt_FromLong( SPACE_SCRIPT ) );
+		PyConstant_Insert( d, "TIME", PyInt_FromLong( SPACE_TIME ) );
 
 		PyModule_AddObject( submodule, "Types", Types );
 	}
@@ -1379,15 +1379,15 @@ PyObject *Window_Init( void )
 	if( Qual ) {
 		BPy_constant *d = ( BPy_constant * ) Qual;
 
-		constant_insert( d, "LALT", PyInt_FromLong( L_ALTKEY ) );
-		constant_insert( d, "RALT", PyInt_FromLong( R_ALTKEY ) );
-		constant_insert( d, "ALT", PyInt_FromLong( LR_ALTKEY ) );
-		constant_insert( d, "LCTRL", PyInt_FromLong( L_CTRLKEY ) );
-		constant_insert( d, "RCTRL", PyInt_FromLong( R_CTRLKEY ) );
-		constant_insert( d, "CTRL", PyInt_FromLong( LR_CTRLKEY ) );
-		constant_insert( d, "LSHIFT", PyInt_FromLong( L_SHIFTKEY ) );
-		constant_insert( d, "RSHIFT", PyInt_FromLong( R_SHIFTKEY ) );
-		constant_insert( d, "SHIFT", PyInt_FromLong( LR_SHIFTKEY ) );
+		PyConstant_Insert( d, "LALT", PyInt_FromLong( L_ALTKEY ) );
+		PyConstant_Insert( d, "RALT", PyInt_FromLong( R_ALTKEY ) );
+		PyConstant_Insert( d, "ALT", PyInt_FromLong( LR_ALTKEY ) );
+		PyConstant_Insert( d, "LCTRL", PyInt_FromLong( L_CTRLKEY ) );
+		PyConstant_Insert( d, "RCTRL", PyInt_FromLong( R_CTRLKEY ) );
+		PyConstant_Insert( d, "CTRL", PyInt_FromLong( LR_CTRLKEY ) );
+		PyConstant_Insert( d, "LSHIFT", PyInt_FromLong( L_SHIFTKEY ) );
+		PyConstant_Insert( d, "RSHIFT", PyInt_FromLong( R_SHIFTKEY ) );
+		PyConstant_Insert( d, "SHIFT", PyInt_FromLong( LR_SHIFTKEY ) );
 
 		PyModule_AddObject( submodule, "Qual", Qual );
 	}
@@ -1395,9 +1395,9 @@ PyObject *Window_Init( void )
 	if( MButs ) {
 		BPy_constant *d = ( BPy_constant * ) MButs;
 
-		constant_insert( d, "L", PyInt_FromLong( L_MOUSE ) );
-		constant_insert( d, "M", PyInt_FromLong( M_MOUSE ) );
-		constant_insert( d, "R", PyInt_FromLong( R_MOUSE ) );
+		PyConstant_Insert( d, "L", PyInt_FromLong( L_MOUSE ) );
+		PyConstant_Insert( d, "M", PyInt_FromLong( M_MOUSE ) );
+		PyConstant_Insert( d, "R", PyInt_FromLong( R_MOUSE ) );
 
 		PyModule_AddObject( submodule, "MButs", MButs );
 	}

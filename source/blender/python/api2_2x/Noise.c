@@ -615,49 +615,49 @@ PyObject *Noise_Init(void)
 	setRndSeed( 0 );	
 
 	/* Constant noisetype dictionary */
-	NoiseTypes = M_constant_New(  );
+	NoiseTypes = PyConstant_New(  );
 	if( NoiseTypes ) {
 		BPy_constant *nt = ( BPy_constant * ) NoiseTypes;
-		constant_insert( nt, "BLENDER",
+		PyConstant_Insert( nt, "BLENDER",
 				 PyInt_FromLong( TEX_BLENDER ) );
-		constant_insert( nt, "STDPERLIN",
+		PyConstant_Insert( nt, "STDPERLIN",
 				 PyInt_FromLong( TEX_STDPERLIN ) );
-		constant_insert( nt, "NEWPERLIN",
+		PyConstant_Insert( nt, "NEWPERLIN",
 				 PyInt_FromLong( TEX_NEWPERLIN ) );
-		constant_insert( nt, "VORONOI_F1",
+		PyConstant_Insert( nt, "VORONOI_F1",
 				 PyInt_FromLong( TEX_VORONOI_F1 ) );
-		constant_insert( nt, "VORONOI_F2",
+		PyConstant_Insert( nt, "VORONOI_F2",
 				 PyInt_FromLong( TEX_VORONOI_F2 ) );
-		constant_insert( nt, "VORONOI_F3",
+		PyConstant_Insert( nt, "VORONOI_F3",
 				 PyInt_FromLong( TEX_VORONOI_F3 ) );
-		constant_insert( nt, "VORONOI_F4",
+		PyConstant_Insert( nt, "VORONOI_F4",
 				 PyInt_FromLong( TEX_VORONOI_F4 ) );
-		constant_insert( nt, "VORONOI_F2F1",
+		PyConstant_Insert( nt, "VORONOI_F2F1",
 				 PyInt_FromLong( TEX_VORONOI_F2F1 ) );
-		constant_insert( nt, "VORONOI_CRACKLE",
+		PyConstant_Insert( nt, "VORONOI_CRACKLE",
 				 PyInt_FromLong( TEX_VORONOI_CRACKLE ) );
-		constant_insert( nt, "CELLNOISE",
+		PyConstant_Insert( nt, "CELLNOISE",
 				 PyInt_FromLong( TEX_CELLNOISE ) );
 		PyModule_AddObject( md, "NoiseTypes", NoiseTypes );
 	}
 
 	/* Constant distance metric dictionary for voronoi */
-	DistanceMetrics = M_constant_New(  );
+	DistanceMetrics = PyConstant_New(  );
 	if( DistanceMetrics ) {
 		BPy_constant *dm = ( BPy_constant * ) DistanceMetrics;
-		constant_insert( dm, "DISTANCE",
+		PyConstant_Insert( dm, "DISTANCE",
 				 PyInt_FromLong( TEX_DISTANCE ) );
-		constant_insert( dm, "DISTANCE_SQUARED",
+		PyConstant_Insert( dm, "DISTANCE_SQUARED",
 				 PyInt_FromLong( TEX_DISTANCE_SQUARED ) );
-		constant_insert( dm, "MANHATTAN",
+		PyConstant_Insert( dm, "MANHATTAN",
 				 PyInt_FromLong( TEX_MANHATTAN ) );
-		constant_insert( dm, "CHEBYCHEV",
+		PyConstant_Insert( dm, "CHEBYCHEV",
 				 PyInt_FromLong( TEX_CHEBYCHEV ) );
-		constant_insert( dm, "MINKOVSKY_HALF",
+		PyConstant_Insert( dm, "MINKOVSKY_HALF",
 				 PyInt_FromLong( TEX_MINKOVSKY_HALF ) );
-		constant_insert( dm, "MINKOVSKY_FOUR",
+		PyConstant_Insert( dm, "MINKOVSKY_FOUR",
 				 PyInt_FromLong( TEX_MINKOVSKY_FOUR ) );
-		constant_insert( dm, "MINKOVSKY",
+		PyConstant_Insert( dm, "MINKOVSKY",
 				 PyInt_FromLong( TEX_MINKOVSKY ) );
 		PyModule_AddObject( md, "DistanceMetrics", DistanceMetrics );
 	}

@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Willian P. Germano
+ * Contributor(s): Willian P. Germano, Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -34,171 +34,196 @@
 
 #include "gen_utils.h"
 
-/* This file is heavily based on the old bpython Constant object code in 
-   Blender */
-
-/*****************************************************************************/
-/* Python constant_Type callback function prototypes:                        */
-/*****************************************************************************/
-static void constant_dealloc( BPy_constant * cam );
-static PyObject *constant_getAttr( BPy_constant * cam, char *name );
-static PyObject *constant_repr( BPy_constant * cam );
-static int constantLength( BPy_constant * self );
-static PyObject *constantSubscript( BPy_constant * self, PyObject * key );
-static int constantAssSubscript( BPy_constant * self, PyObject * who,
-				 PyObject * cares );
-
-/*****************************************************************************/
-/* Python constant_Type Mapping Methods table:                               */
-/*****************************************************************************/
-static PyMappingMethods constantAsMapping = {
-	( inquiry ) constantLength,	/* mp_length        */
-	( binaryfunc ) constantSubscript,	/* mp_subscript     */
-	( objobjargproc ) constantAssSubscript,	/* mp_ass_subscript */
-};
-
-/*****************************************************************************/
-/* Python constant_Type structure definition:                                */
-/*****************************************************************************/
-PyTypeObject constant_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender constant",	/* tp_name */
-	sizeof( BPy_constant ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) constant_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) constant_getAttr,	/* tp_getattr */
-	0,			/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) constant_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	&constantAsMapping,	/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_methods */
-	0,			/* tp_members */
-};
-
-/*****************************************************************************/
-/* Function:              constant_New                                       */
-/*****************************************************************************/
-static PyObject *new_const( void );
-
-PyObject *M_constant_New( void )
-{				/* can't be static, we call it in other files */
-	return new_const(  );
+//------------------METHOD IMPLEMENTATIONS-----------------------------
+//------------------------constant.items()
+//Returns a list of key:value pairs like dict.items()
+PyObject* constant_items(BPy_constant *self)
+{
+	return PyDict_Items(self->dict);
 }
-
-static PyObject *new_const( void )
-{				/* this is the static one */
+//------------------------constant.keys()
+//Returns a list of keys like dict.keys()
+PyObject* constant_keys(BPy_constant *self)
+{
+	return PyDict_Keys(self->dict);
+}
+//------------------------constant.values()
+//Returns a list of values like dict.values()
+PyObject* constant_values(BPy_constant *self)
+{
+	return PyDict_Values(self->dict);
+}
+//------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------TYPE_OBECT IMPLEMENTATION--------------------------
+//-----------------------(internal)
+//Creates a new constant object
+static PyObject *new_const(void) 
+{				
 	BPy_constant *constant;
 
-	constant_Type.ob_type = &PyType_Type;
-
-	constant =
-		( BPy_constant * ) PyObject_NEW( BPy_constant,
-						 &constant_Type );
-
-	if( constant == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create constant object" ) );
-
-	if( ( constant->dict = PyDict_New(  ) ) == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create constant object's dictionary" ) );
-
-	return ( PyObject * ) constant;
-}
-
-/*****************************************************************************/
-/* Python BPy_constant methods:                                              */
-/*****************************************************************************/
-int constant_insert( BPy_constant * self, char *name, PyObject * value )
-{
-	return PyDict_SetItemString( self->dict, name, value );
-}
-
-/*****************************************************************************/
-/* Function:    constant_dealloc                                             */
-/* Description: This is a callback function for the BPy_constant type. It is */
-/*              the destructor function.                                     */
-/*****************************************************************************/
-static void constant_dealloc( BPy_constant * self )
-{
-	Py_DECREF( self->dict );
-	PyObject_DEL( self );
-}
-
-/*****************************************************************************/
-/* Function:    constant_getAttr                                             */
-/* Description: This is a callback function for the BPy_constant type. It is */
-/*              the function that accesses BPy_constant member variables and */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *constant_getAttr( BPy_constant * self, char *name )
-{
-	if( self->dict ) {
-		PyObject *v;
-
-		if( !strcmp( name, "__members__" ) )
-			return PyDict_Keys( self->dict );
-
-		v = PyDict_GetItemString( self->dict, name );
-		if( v ) {
-			Py_INCREF( v );	/* was a borrowed ref */
-			return v;
-		}
-
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"attribute not found" ) );
+	constant =	(BPy_constant *) PyObject_NEW(BPy_constant, &constant_Type);
+	if(constant == NULL){
+		return (EXPP_ReturnPyObjError(PyExc_MemoryError, 
+			"couldn't create constant object"));
 	}
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"constant object lacks a dictionary" ) );
-}
+	if((constant->dict = PyDict_New()) == NULL){
+		return (EXPP_ReturnPyObjError(PyExc_MemoryError,
+			"couldn't create constant object's dictionary"));
+	}
 
-/*****************************************************************************/
-/* Section:    Sequence Mapping                                              */
-/*             These functions provide code to access constant objects as    */
-/*             mappings.                                                     */
-/*****************************************************************************/
-static int constantLength( BPy_constant * self )
+	return EXPP_incr_ret((PyObject *)constant);
+}
+//------------------------tp_doc
+//The __doc__ string for this object
+static char BPy_constant_doc[] = "This is an internal subobject of armature\
+designed to act as a Py_Bone dictionary.";
+
+//------------------------tp_methods
+//This contains a list of all methods the object contains
+static PyMethodDef BPy_constant_methods[] = {
+	{"items", (PyCFunction) constant_items, METH_NOARGS, 
+		"() - Returns the key:value pairs from the dictionary"},
+	{"keys", (PyCFunction) constant_keys, METH_NOARGS, 
+		"() - Returns the keys the dictionary"},
+	{"values", (PyCFunction) constant_values, METH_NOARGS, 
+		"() - Returns the values from the dictionary"},
+	{NULL}
+};
+//------------------------mp_length
+static int constantLength(BPy_constant *self)
 {
 	return 0;
 }
-
-static PyObject *constantSubscript( BPy_constant * self, PyObject * key )
+//------------------------mp_subscript
+static PyObject *constantSubscript(BPy_constant *self, PyObject *key)
 {
-	if( self->dict ) {
-		PyObject *v = PyDict_GetItem( self->dict, key );
-
-		if( v ) {
-			Py_INCREF( v );
-			return v;
+	if(self->dict) {
+		PyObject *v = PyDict_GetItem(self->dict, key);
+		if(v) {
+			return EXPP_incr_ret(v);
 		}
 	}
-
 	return NULL;
 }
-
-static int constantAssSubscript( BPy_constant * self, PyObject * who,
-				 PyObject * cares )
+//------------------------mp_ass_subscript
+static int constantAssSubscript(BPy_constant *self, PyObject *who, PyObject *cares)
 {
-	/* no user assignments allowed */
-	return 0;
+	return 0; /* no user assignments allowed */
+}
+//------------------------tp_getattr
+static PyObject *constant_getAttr(BPy_constant * self, char *name)
+{
+	if(self->dict) {
+		PyObject *v;
+
+		if(!strcmp(name, "__members__"))
+			return PyDict_Keys(self->dict);
+
+		v = PyDict_GetItemString(self->dict, name);
+		if(v) {
+			return EXPP_incr_ret(v); /* was a borrowed ref */
+		}
+		return (EXPP_ReturnPyObjError(PyExc_AttributeError,
+						"attribute not found"));
+	}
+	return (EXPP_ReturnPyObjError(PyExc_RuntimeError,
+					"constant object lacks a dictionary"));
+}
+//------------------------tp_repr
+static PyObject *constant_repr(BPy_constant * self)
+{
+	PyObject *repr = PyObject_Repr(self->dict);
+	return repr;
+}
+//------------------------tp_dealloc
+static void constant_dealloc(BPy_constant * self)
+{
+	Py_DECREF(self->dict);
+	PyObject_DEL(self);
 }
 
-/*****************************************************************************/
-/* Function:    constant_repr                                                */
-/* Description: This is a callback function for the BPy_constant type. It    */
-/*              builds a meaninful string to represent constant objects.     */
-/*****************************************************************************/
-static PyObject *constant_repr( BPy_constant * self )
+//------------------TYPE_OBECT DEFINITION------------------------------
+static PyMappingMethods constantAsMapping = {
+	(inquiry) constantLength,					// mp_length 
+	(binaryfunc) constantSubscript,				// mp_subscript
+	(objobjargproc) constantAssSubscript,		// mp_ass_subscript
+};
+
+PyTypeObject constant_Type = {
+	PyObject_HEAD_INIT(NULL)		//tp_head
+	0,								//tp_internal
+	"Constant",						//tp_name
+	sizeof(BPy_constant),			//tp_basicsize
+	0,								//tp_itemsize
+	(destructor)constant_dealloc,	//tp_dealloc
+	0,								//tp_print
+	(getattrfunc)constant_getAttr,	//tp_getattr
+	0,								//tp_setattr
+	0,								//tp_compare
+	(reprfunc) constant_repr,		//tp_repr
+	0,								//tp_as_number
+	0,								//tp_as_sequence
+	&constantAsMapping,				//tp_as_mapping
+	0,								//tp_hash
+	0,								//tp_call
+	0,								//tp_str
+	0,								//tp_getattro
+	0,								//tp_setattro
+	0,								//tp_as_buffer
+	Py_TPFLAGS_DEFAULT,				//tp_flags
+	BPy_constant_doc,				//tp_doc
+	0,								//tp_traverse
+	0,								//tp_clear
+	0,								//tp_richcompare
+	0,								//tp_weaklistoffset
+	0,								//tp_iter
+	0,								//tp_iternext
+	BPy_constant_methods,			//tp_methods
+	0,								//tp_members
+	0,								//tp_getset
+	0,								//tp_base
+	0,								//tp_dict
+	0,								//tp_descr_get
+	0,								//tp_descr_set
+	0,								//tp_dictoffset
+	0,								//tp_init
+	0,								//tp_alloc
+	0,								//tp_new
+	0,								//tp_free
+	0,								//tp_is_gc
+	0,								//tp_bases
+	0,								//tp_mro
+	0,								//tp_cache
+	0,								//tp_subclasses
+	0,								//tp_weaklist
+	0								//tp_del
+};
+//------------------VISIBLE PROTOTYPE IMPLEMENTATION-------------------
+//Creates a default empty constant
+PyObject *PyConstant_New(void)
+{				
+	return new_const();
+}
+//Inserts a key:value pair into the constant and then returns 0/1
+int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value)
 {
-	PyObject *repr = PyObject_Repr( self->dict );
-	return repr;
+	return PyDict_SetItemString(self->dict, name, value);
+}
+//This is a helper function for generating constants......
+PyObject *PyConstant_NewInt(char *name, int value)
+{
+        PyObject *constant = PyConstant_New();
+                
+        PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
+		PyConstant_Insert((BPy_constant*)constant, "value", PyInt_FromLong(value));
+        return EXPP_incr_ret(constant);
+}
+//This is a helper function for generating constants......
+PyObject *PyConstant_NewString(char *name, char *value)
+{
+        PyObject *constant = PyConstant_New();
+       
+        PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
+		PyConstant_Insert((BPy_constant*)constant, "value", PyString_FromString(value));
+        return EXPP_incr_ret(constant);
 }

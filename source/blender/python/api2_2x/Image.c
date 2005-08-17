@@ -389,10 +389,10 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 
 	pixel = ( char * ) image->ibuf->rect;
 
-	pixel[index] = ( int ) ( p[0] * 255.0 );
-	pixel[index + 1] = ( int ) ( p[1] * 255.0 );
-	pixel[index + 2] = ( int ) ( p[2] * 255.0 );
-	pixel[index + 3] = ( int ) ( p[3] * 255.0 );
+	pixel[index] = ( char ) ( p[0] * 255.0 );
+	pixel[index + 1] = ( char ) ( p[1] * 255.0 );
+	pixel[index + 2] = ( char ) ( p[2] * 255.0 );
+	pixel[index + 3] = ( char ) ( p[3] * 255.0 );
 
 	Py_RETURN_NONE;
 }
@@ -448,10 +448,10 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 
 	pixel = ( char * ) image->ibuf->rect;
 
-	pixel[index] = p[0];
-	pixel[index + 1] = p[1];
-	pixel[index + 2] = p[2];
-	pixel[index + 3] = p[3];
+	pixel[index] = ( char ) p[0];
+	pixel[index + 1] = ( char ) p[1];
+	pixel[index + 2] = ( char ) p[2];
+	pixel[index + 3] = ( char ) p[3];
 
 	Py_RETURN_NONE;
 }

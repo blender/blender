@@ -3223,17 +3223,17 @@ static struct PyMethodDef M_NMesh_methods[] = {
 
 static PyObject *M_NMesh_Modes( void )
 {
-	PyObject *Modes = M_constant_New(  );
+	PyObject *Modes = PyConstant_New(  );
 
 	if( Modes ) {
 		BPy_constant *d = ( BPy_constant * ) Modes;
 
-		constant_insert( d, "NOVNORMALSFLIP",
+		PyConstant_Insert( d, "NOVNORMALSFLIP",
 				 PyInt_FromLong
 				 ( ME_NOPUNOFLIP ) );
-		constant_insert( d, "TWOSIDED",
+		PyConstant_Insert( d, "TWOSIDED",
 				 PyInt_FromLong( ME_TWOSIDED ) );
-		constant_insert( d, "AUTOSMOOTH",
+		PyConstant_Insert( d, "AUTOSMOOTH",
 				 PyInt_FromLong
 				 ( ME_AUTOSMOOTH ) );
 	}
@@ -3243,20 +3243,20 @@ static PyObject *M_NMesh_Modes( void )
 
 #undef EXPP_ADDCONST
 #define EXPP_ADDCONST(dict, name) \
-			 constant_insert(dict, #name, PyInt_FromLong(TF_##name))
+			 PyConstant_Insert(dict, #name, PyInt_FromLong(TF_##name))
 /* Set constants for face drawing mode -- see drawmesh.c */
 
 static PyObject *M_NMesh_FaceModesDict( void )
 {
-	PyObject *FM = M_constant_New(  );
+	PyObject *FM = PyConstant_New(  );
 
 	if( FM ) {
 		BPy_constant *d = ( BPy_constant * ) FM;
 
-		constant_insert( d, "BILLBOARD",
+		PyConstant_Insert( d, "BILLBOARD",
 				 PyInt_FromLong( TF_BILLBOARD2 ) );
-		constant_insert( d, "ALL", PyInt_FromLong( 0xffff ) );
-		constant_insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
+		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0xffff ) );
+		PyConstant_Insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
 		EXPP_ADDCONST( d, DYNAMIC );
 		EXPP_ADDCONST( d, INVISIBLE );
 		EXPP_ADDCONST( d, LIGHT );
@@ -3274,7 +3274,7 @@ static PyObject *M_NMesh_FaceModesDict( void )
 
 static PyObject *M_NMesh_FaceFlagsDict( void )
 {
-	PyObject *FF = M_constant_New(  );
+	PyObject *FF = PyConstant_New(  );
 
 	if( FF ) {
 		BPy_constant *d = ( BPy_constant * ) FF;
@@ -3289,7 +3289,7 @@ static PyObject *M_NMesh_FaceFlagsDict( void )
 
 static PyObject *M_NMesh_FaceTranspModesDict( void )
 {
-	PyObject *FTM = M_constant_New(  );
+	PyObject *FTM = PyConstant_New(  );
 
 	if( FTM ) {
 		BPy_constant *d = ( BPy_constant * ) FTM;
@@ -3305,16 +3305,16 @@ static PyObject *M_NMesh_FaceTranspModesDict( void )
 
 static PyObject *M_NMesh_EdgeFlagsDict( void )
 {
-	PyObject *EF = M_constant_New(  );
+	PyObject *EF = PyConstant_New(  );
 
 	if( EF ) {
 		BPy_constant *d = ( BPy_constant * ) EF;
 
-		constant_insert(d, "SELECT", PyInt_FromLong(1));
-		constant_insert(d, "EDGEDRAW", PyInt_FromLong(ME_EDGEDRAW));
-		constant_insert(d, "EDGERENDER", PyInt_FromLong(ME_EDGERENDER));
-		constant_insert(d, "SEAM", PyInt_FromLong(ME_SEAM));
-		constant_insert(d, "FGON", PyInt_FromLong(ME_FGON));
+		PyConstant_Insert(d, "SELECT", PyInt_FromLong(1));
+		PyConstant_Insert(d, "EDGEDRAW", PyInt_FromLong(ME_EDGEDRAW));
+		PyConstant_Insert(d, "EDGERENDER", PyInt_FromLong(ME_EDGERENDER));
+		PyConstant_Insert(d, "SEAM", PyInt_FromLong(ME_SEAM));
+		PyConstant_Insert(d, "FGON", PyInt_FromLong(ME_FGON));
 	}
 
 	return EF;
