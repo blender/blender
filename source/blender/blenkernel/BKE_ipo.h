@@ -48,6 +48,7 @@ struct Object;
 struct Sequence;
 struct ListBase;
 struct BezTriple;
+struct ID;
 /*  struct IPO_Channel; */
 
 float frame_to_float(int cfra);

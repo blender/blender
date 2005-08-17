@@ -33,6 +33,8 @@
 #ifndef BIF_EDITNLA_H
 #define BIF_EDITNLA_H
 
+struct BWinEvent;
+
 void clever_numbuts_nla(void);
 extern void winqreadnlaspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 

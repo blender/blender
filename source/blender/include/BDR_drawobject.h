@@ -47,6 +47,7 @@ struct Base;
 struct BPoint;
 struct BezTriple;
 struct EditVert;
+struct EditFace;
 
 void init_draw_rects(void);
 void drawaxes(float size);
