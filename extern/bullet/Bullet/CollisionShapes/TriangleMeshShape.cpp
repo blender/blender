@@ -15,7 +15,7 @@
 #include "AabbUtil2.h"
 #include "NarrowPhaseCollision/CollisionMargin.h"
 
-
+#include "stdio.h"
 
 TriangleMeshShape::TriangleMeshShape(StridingMeshInterface* meshInterface)
 : m_meshInterface(meshInterface),
@@ -143,6 +143,7 @@ void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const Sim
 			{
 				//check aabb in triangle-space, before doing this
 				callback->ProcessTriangle(triangle);
+	
 			}
 			
 		}

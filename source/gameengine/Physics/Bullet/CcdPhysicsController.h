@@ -8,6 +8,8 @@
 ///	It contains the IMotionState and IDeformableMesh Interfaces.
 #include "SimdVector3.h"
 #include "SimdScalar.h"	
+#include "SimdMatrix3x3.h"
+
 class CollisionShape;
 
 extern float gDeactivationTime;
@@ -53,6 +55,8 @@ class CcdPhysicsController : public PHY_IPhysicsController
 	class	PHY_IMotionState*			m_MotionState;
 	CollisionShape*			m_collisionShape;
 	void*		m_newClientInfo;
+
+	void GetWorldOrientation(SimdMatrix3x3& mat);
 
 	public:
 	

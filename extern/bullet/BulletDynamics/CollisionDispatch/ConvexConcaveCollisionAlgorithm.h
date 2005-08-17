@@ -36,7 +36,8 @@ class BoxTriangleCallback : public TriangleCallback
 	float m_collisionMarginTriangle;
 	
 public:
-
+int	m_triangleCount;
+	
 	PersistentManifold*	m_manifoldPtr;
 
 	BoxTriangleCallback(Dispatcher* dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1);

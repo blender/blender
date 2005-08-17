@@ -48,13 +48,8 @@ void	KX_BulletPhysicsController::RelativeTranslate(const MT_Vector3& dloc,bool l
 
 void	KX_BulletPhysicsController::RelativeRotate(const MT_Matrix3x3& drot,bool local)
 {
-	printf("he1\n");
 	float	rotval[12];
 	drot.getValue(rotval);
-
-
-	
-	printf("hi\n");
 	CcdPhysicsController::RelativeRotate(rotval,local);
 }
 

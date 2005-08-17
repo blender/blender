@@ -41,15 +41,14 @@
 #include "KX_GameObject.h"
 #include "KX_Scene.h"
 
-#include "KX_RayCast.h"
 #include "PHY_IPhysicsEnvironment.h"
-#include "PHY_IPhysicsController.h"
 #include "KX_IPhysicsController.h"
-
+#include "PHY_IPhysicsController.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
 
 KX_RaySensor::KX_RaySensor(class SCA_EventManager* eventmgr,
 					SCA_IObject* gameobj,
@@ -104,49 +103,7 @@ bool KX_RaySensor::IsPositiveTrigger()
 	return result;
 }
 
-bool KX_RaySensor::RayHit(KX_ClientObjectInfo* info, MT_Point3& hit_point, MT_Vector3& hit_normal, void* const data)
-{
 
-	KX_GameObject* obj = (KX_GameObject*)GetParent();
-	SCA_IObject *hitgameobj = info->m_gameobject;
-	if (hitgameobj == obj || info->m_type > KX_ClientObjectInfo::ACTOR)
-	{
-//		printf("false hit\n");
-		// false hit
-		return false;
-	}
-	
-	bool bFound = false;
-	if (m_propertyname.Length() == 0)
-	{
-		bFound = true;
-	}
-	else
-	{
-		if (m_bFindMaterial)
-		{
-			if (info->m_auxilary_info)
-			{
-				bFound = (m_propertyname== ((char*)info->m_auxilary_info));
-			}
-		}
-		else
-		{
-			bFound = hitgameobj->GetProperty(m_propertyname) != NULL;
-		}
-	}
-
-	if (bFound)
-	{
-		m_rayHit = true;
-		m_hitObject = hitgameobj;
-		m_hitPosition = hit_point;
-		m_hitNormal = hit_normal;
-			
-	}
-	
-	return true;
-}
 
 bool KX_RaySensor::Evaluate(CValue* event)
 {
@@ -213,70 +170,132 @@ bool KX_RaySensor::Evaluate(CValue* event)
 	MT_Point3 topoint = frompoint + (m_distance) * todir;
 	MT_Point3 resultpoint;
 	MT_Vector3 resultnormal;
-	PHY_IPhysicsEnvironment* physics_environment = m_scene->GetPhysicsEnvironment();
-	if (!physics_environment)
+	bool ready = false;
+	PHY_IPhysicsEnvironment* pe = m_scene->GetPhysicsEnvironment();
+
+	if (!pe)
 	{
 		std::cout << "WARNING: Ray sensor " << GetName() << ":  There is no physics environment!" << std::endl;
 		std::cout << "         Check universe for malfunction." << std::endl;
 		return false;
 	} 
-	KX_IPhysicsController* physics_controller = obj->GetPhysicsController();
 
-	// Use the parent's physics controller if obj has no physics controller.
+	KX_IPhysicsController *spc = obj->GetPhysicsController();
 	KX_GameObject *parent = obj->GetParent();
-	if (!physics_controller && parent)
-		physics_controller = parent->GetPhysicsController();
-
+	if (!spc && parent)
+		spc = parent->GetPhysicsController();
+	
 	if (parent)
 		parent->Release();
-		
-	KX_RayCast::RayTest(physics_controller, physics_environment, frompoint, topoint, resultpoint, resultnormal, KX_RayCast::Callback<KX_RaySensor>(this));
+	
+	do {
+		PHY_IPhysicsController* physCtrl = 0;
+//			frompoint,
+//			topoint,
+//			resultpoint,
+//			resultnormal);
+			
+		if (physCtrl)
+		{
+	
+			KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(physCtrl->getNewClientInfo());
+			bool bFound = false;
+			
+			if (!info)
+			{
+				std::cout<< "WARNING:  Ray sensor ";// << GetName() << " cannot sense SM_Object " << hitObj << " - no client info.\n" << std::endl;
+				ready = true;
+				break;
+			} 
+			
+			SCA_IObject *hitgameobj = info->m_gameobject;
+			
+			if (hitgameobj == obj || info->m_type > KX_ClientObjectInfo::ACTOR)
+			{
+#ifdef NOPE
+				/*
+				// false hit
+				KX_IPhysicsController *hitspc =  (static_cast<KX_GameObject*> (hitgameobj))->GetPhysicsController();
 
-// 	do {
-// 		PHY__Vector3 respos;
-// 		PHY__Vector3 resnormal;
-// 
-// 		PHY_IPhysicsController* hitCtrl = spe->rayTest(physCtrl,
-// 			frompoint.x(),frompoint.y(),frompoint.z(),
-// 			topoint.x(),topoint.y(),topoint.z(),
-// 			respos[0],respos[1],respos[2],
-// 			resnormal[0],resnormal[1],resnormal[2]);
-// 			
-// 		if (hitCtrl)
-// 		{
-// 
-// 			resultpoint = MT_Vector3(respos);
-// 			resultnormal = MT_Vector3(resnormal);
-// 			KX_ClientObjectInfo* info = static_cast<KX_ClientObjectInfo*>(hitCtrl->getNewClientInfo());
-// 			bool bFound = false;
-// 			
-// 			if (!info)
-// 			{
-// 				std::cout<< "WARNING:  Ray sensor " << GetName() << " cannot sense PHY_IPhysicsController  - no client info.\n" << std::endl;
-// 				ready = true;
-// 				break;
-// 			} 
-// 			
-// 			
-// 
-// 		}
-// 		else
-// 		{
-// 			ready = true;
-// 		}
-// 	}
-// 	while (!ready);
-// 	
+				if (hitspc)
+				{
+					/* We add 0.01 of fudge, so that if the margin && radius == 0., we don't endless loop. */
+					MT_Scalar marg = 0.01;// + hitspc->getmargin();
+
+					if (hitspc->GetSumoObject()->getShapeProps())
+					{
+						marg += 2*hitspc->GetSumoObject()->getShapeProps()->m_radius;
+					}
+					
+					/* Calculate the other side of this object */
+					MT_Point3 hitObjPos;
+					hitspc->GetWorldPosition(hitObjPos);
+					MT_Vector3 hitvector = hitObjPos - resultpoint;
+					if (hitvector.dot(hitvector) > MT_EPSILON)
+					{
+						hitvector.normalize();
+						marg *= 2.*todir.dot(hitvector);
+					}
+					frompoint = resultpoint + marg * todir;
+				} else {
+					ready = true;
+				}
+#endif
+			ready = true;
+			}
+			else
+			{
+				ready = true;
+				if (m_propertyname.Length() == 0)
+				{
+					bFound = true;
+				}
+				else
+				{
+					if (m_bFindMaterial)
+					{
+						if (info->m_auxilary_info)
+						{
+							bFound = (m_propertyname== ((char*)info->m_auxilary_info));
+						}
+					}
+					else
+					{
+						bFound = hitgameobj->GetProperty(m_propertyname) != NULL;
+					}
+				}
+
+				if (bFound)
+				{
+					m_rayHit = true;
+					m_hitObject = hitgameobj;
+					m_hitPosition = resultpoint;
+					m_hitNormal = resultnormal;
+						
+				}
+			}
+		}
+		else
+		{
+			ready = true;
+		}
+	}
+	while (!ready);
+	
 	
 	
 	/* now pass this result to some controller */
-	if (m_rayHit) 
+    if (m_rayHit) 
 	{
 		if (!m_bTriggered)
 		{
 			// notify logicsystem that ray is now hitting
 			result = true;
 			m_bTriggered = true;
+		}
+		else
+		{
+			
 		}
 	}
 	else

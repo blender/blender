@@ -1017,7 +1017,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);
 	// store materialname in auxinfo, needed for touchsensors
-	gameobj->getClientInfo()->m_auxilary_info = 0;//(matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	//gameobj->getClientInfo()->m_auxilary_info = 0;//(matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
+	//gameobj->getClientInfo()->m_auxilary_info = (matname.Length() ? (void*)(matname.ReadPtr()+2) : NULL);
 
 
 	gameobj->GetSGNode()->AddSGController(physicscontroller);

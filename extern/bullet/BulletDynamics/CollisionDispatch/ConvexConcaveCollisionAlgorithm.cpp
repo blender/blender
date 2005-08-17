@@ -38,7 +38,8 @@ ConvexConcaveCollisionAlgorithm::~ConvexConcaveCollisionAlgorithm()
 BoxTriangleCallback::BoxTriangleCallback(Dispatcher*  dispatcher,BroadphaseProxy* proxy0,BroadphaseProxy* proxy1):
   m_boxProxy(proxy0),m_triangleProxy(*proxy1),m_dispatcher(dispatcher),
 	  m_timeStep(0.f),
-	  m_stepCount(-1)
+	  m_stepCount(-1),
+	  m_triangleCount(0)
 {
 
 	  m_triangleProxy.SetClientObjectType(TRIANGLE_SHAPE_PROXYTYPE);
@@ -70,6 +71,9 @@ void	BoxTriangleCallback::ClearCache()
 void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 {
  
+	//just for debugging purposes
+	//printf("triangle %d",m_triangleCount++);
+
 
 	RigidBody* triangleBody = (RigidBody*)m_triangleProxy.m_clientObject;
 
@@ -101,6 +105,7 @@ void BoxTriangleCallback::ProcessTriangle(SimdVector3* triangle)
 
 void	BoxTriangleCallback::SetTimeStepAndCounters(float timeStep,int stepCount,float collisionMarginTriangle,bool useContinuous)
 {
+	m_triangleCount = 0;
 	m_timeStep = timeStep;
 	m_stepCount = stepCount;
 	m_useContinuous = useContinuous;

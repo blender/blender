@@ -8,7 +8,7 @@
 struct SM_ClientObjectInfo
 {
 	int			m_type;
-	void*		m_clientobject;
+	void*		m_clientobject1;
 	void*		m_auxilary_info;
 };
 

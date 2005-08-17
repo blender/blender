@@ -275,10 +275,9 @@ bool KX_MouseFocusSensor::ParentObjectHasFocus(void)
 	bool result = false;
 
 	result = KX_RayCast::RayTest(physics_controller, physics_environment, frompoint3, topoint3, resultpoint, resultnormal, KX_RayCast::Callback<KX_MouseFocusSensor>(this));
-	if (result)
-	{
-		
-	}
+	
+	result = (m_hitObject!=0);
+
 	return result;
 
 }

@@ -114,6 +114,8 @@ bool	SubsimplexConvexCast::calcTimeOfImpact(
 
 	int numiter = MAX_ITERATIONS - maxIter;
 //	printf("number of iterations: %d", numiter);
+
+	//printf("lambd%f",lambda);
 	result.m_fraction = lambda;
 	result.m_normal = n;
 
