@@ -1767,6 +1767,13 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 			}
 
 			dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
+
+			if(ob->flag & SELECT) {
+				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			} else {
+				BIF_ThemeColor(TH_WIRE);
+			}
+			dm->drawEdgesFlag(dm, ME_LOOSEEDGE, ME_LOOSEEDGE);
 		}
 	}
 
@@ -3878,7 +3885,7 @@ static void bbs_mesh_solid(Object *ob)
 	int a, glmode, dmNeedsFree;
 	DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 	
-	cpack(0);
+	glColor3ub(0, 0, 0);
 
 	glBegin(glmode=GL_QUADS);
 	for(a=0; a<me->totface; a++, mface++, tface++) {

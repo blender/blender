@@ -924,6 +924,14 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	
 	glFrontFace(GL_CCW);
 
+	if(dt > OB_SOLID && !(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface)) {
+		if(ob->flag & SELECT) {
+			BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+		} else {
+			BIF_ThemeColor(TH_WIRE);
+		}
+		dm->drawEdgesFlag(dm, ME_LOOSEEDGE, ME_LOOSEEDGE);
+	}
 }
 
 void init_realtime_GL(void)
