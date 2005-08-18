@@ -39,7 +39,13 @@ DEALINGS IN THE SOFTWARE.
 #include <float.h>
 
 #ifdef WIN32
+
+#ifdef __MINGW32__
+#define SIMD_FORCE_INLINE inline
+#else
 #define SIMD_FORCE_INLINE __forceinline
+#endif //__MINGW32__
+
 //#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
 #define ATTRIBUTE_ALIGNED16(a) a
 
