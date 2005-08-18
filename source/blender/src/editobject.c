@@ -1518,7 +1518,9 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 	/* total remake of softbody data */
 	if(modifiers_isSoftbodyEnabled(ob)) {
-		notice("Erased Baked SoftBody");
+		if (ob->soft && ob->soft->keys) {
+			notice("Erased Baked SoftBody");
+		}
 
 		sbObjectToSoftbody(ob);
 	}
@@ -2200,7 +2202,7 @@ void convertmenu(void)
 				}
 
 				dm= mesh_create_derived_no_deform(ob, NULL);
-				dlm= dm->convertToDispListMesh(dm, 1);
+				dlm= dm->convertToDispListMesh(dm, 0);
 				displistmesh_to_mesh(dlm, ob1->data);
 				dm->release(dm);
 			}
