@@ -848,10 +848,9 @@ static void mesh_to_softbody(Object *ob)
 
 static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 {
-	BPoint *bp, *bpu;
 	int u, v, w, dv, dw, bpc, bpuc;
 	int debugspringcounter = 0;
-	bp= lt->def;
+
 	bpc =0;
 	
 	dv= lt->pntsu;
@@ -861,13 +860,12 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 		
 		for(v=0; v<lt->pntsv; v++) {
 			
-			for(u=0, bpu=0, bpuc=0; u<lt->pntsu; u++, bp++, bpc++) {
+			for(u=0, bpuc=0; u<lt->pntsu; u++, bpc++) {
 				
 				if(w) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dw;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bp-dw)->vec ,bp->vec);
 					bs++;
 					debugspringcounter++;
 				
@@ -876,7 +874,6 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 					bs->v1 = bpc;
 					bs->v2 = bpc-dv;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bp-dv)->vec ,bp->vec);
 					bs++;
 					debugspringcounter++;
 
@@ -885,7 +882,6 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 					bs->v1 = bpuc;
 					bs->v2 = bpc;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bpu)->vec ,bp->vec);
 					bs++;
 					debugspringcounter++;
 				}
@@ -897,7 +893,6 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw-dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp-dw-dv-1)->vec ,bp->vec);
 							bs++;
 							debugspringcounter++;
 						}						
@@ -905,7 +900,6 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw+dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp-dw+dv-1)->vec ,bp->vec);
 							bs++;
 							debugspringcounter++;
 						}						
@@ -916,7 +910,6 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw-dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp+dw-dv-1)->vec ,bp->vec);
 							bs++;
 							debugspringcounter++;
 						}						
@@ -924,14 +917,12 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw+dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp+dw+dv-1)->vec ,bp->vec);
 							bs++;
 							debugspringcounter++;
 						}						
 					}
 				}
 
-				bpu= bp;
 				bpuc = bpc;
 			}
 		}
