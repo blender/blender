@@ -20,7 +20,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2002 by Hans Lambermont
+# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -28,38 +28,28 @@
 # Contributor(s): none yet.
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
-# Bounces make to subdirectories. Also installs after succesful all target.
+# opennl intern Makefile
+#
 
-include nan_definitions.mk
+LIBNAME = bulletdyn
+SOURCEDIR = extern/bullet/BulletDynamics
+DIR = $(OCGDIR)/$(SOURCEDIR)
 
-SOURCEDIR = extern
-DIR = $(OCGDIR)/extern
-DIRS = qhull/src solid 
+CCSRCS =  $(wildcard CollisionDispatch/*.cpp)
+CCSRCS += $(wildcard ConstraintSolver/*.cpp)
+CCSRCS += $(wildcard Dynamics/*.cpp)
 
-ifeq ($(WITH_FREETYPE2), true)
-    DIRS += bFTGL/src
-endif
+CPPFLAGS += -DUSE_DOUBLES -DQHULL -D_LIB
+CPPFLAGS += -I../Bullet -I../BulletDynamics -I../LinearMath
 
-ifeq ($(NAN_USE_BULLET), true)
-    DIRS += bullet
-endif
+all debug:: objdirs
 
-TARGET =
-ifneq ($(OS),irix)
-  TARGET=solid
-endif
+include nan_compile.mk
 
-all::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i install || exit 1; \
-	done
-
-clean test debug::
-	@[ -d $(OCGDIR)/extern ] || mkdir -p $(OCGDIR)/extern
-	@for i in $(DIRS); do \
-	    echo "====> $(MAKE) $@ in $(SOURCEDIR)/$$i" ;\
-	    $(MAKE) -C $$i $@ || exit 1; \
-	done
+.PHONY: objdirs
+objdirs:
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)CollisionDispatch
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)ConstraintSolver
+	@$(MAKE) makedir DIR=$(DIR)/$(DEBUG_DIR)Dynamics
 

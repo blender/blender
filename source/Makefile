@@ -125,6 +125,9 @@ ifneq ($(NAN_NO_KETSJI),true)
 #    COMLIB += $(OCGDIR)/gameengine/blphys/blode/$(DEBUG_DIR)libblode.a
 #    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
+    ifeq ($(NAN_USE_BULLET), true)
+       COMLIB += $(OCGDIR)/gameengine/blphys/blbullet/$(DEBUG_DIR)libblbullet.a
+    endif
     COMLIB += $(OCGDIR)/gameengine/blphys/common/$(DEBUG_DIR)libcommon.a
 #    COMLIB += $(OCGDIR)/gameengine/blphys/sumo/$(DEBUG_DIR)libsumo.a
     COMLIB += $(OCGDIR)/gameengine/blphys/dummy/$(DEBUG_DIR)libdummy.a
@@ -144,6 +147,10 @@ ifneq ($(NAN_NO_KETSJI),true)
     COMLIB += $(OCGDIR)/gameengine/ketsji/KXNetwork/$(DEBUG_DIR)libKXNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/$(DEBUG_DIR)libNetwork.a
     COMLIB += $(OCGDIR)/gameengine/Network/LoopBackNetwork/$(DEBUG_DIR)libLoopBackNetwork.a
+    ifeq ($(NAN_USE_BULLET), true)
+       COMLIB += $(NAN_BULLET)/lib/libbulletdyn.a
+       COMLIB += $(NAN_BULLET)/lib/libbullet.a
+    endif
 endif
     COMLIB += $(NAN_GUARDEDALLOC)/lib/libguardedalloc.a
     COMLIB += $(NAN_BMFONT)/lib/$(DEBUG_DIR)libbmfont.a

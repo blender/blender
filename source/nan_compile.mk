@@ -42,6 +42,10 @@ ifneq ($(NAN_NO_KETSJI), true)
     CFLAGS  += -DGAMEBLENDER=1
     CFLAGS  += -DUSE_SUMO_SOLID
     CCFLAGS += -DUSE_SUMO_SOLID
+    ifeq ($(NAN_USE_BULLET), true)
+      CFLAGS  += -DUSE_BULLET
+      CCFLAGS += -DUSE_BULLET
+    endif
 else
    CPPFLAGS += -DNO_KETSJI
 endif

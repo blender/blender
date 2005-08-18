@@ -67,6 +67,7 @@ else
     export NAN_SOLID ?= $(LCGDIR)/solid
     export NAN_QHULL ?= $(LCGDIR)/qhull
 endif
+    export NAN_BULLET ?= $(LCGDIR)/bullet
     export NAN_SUMO ?= $(SRCHOME)/gameengine/Physics/Sumo
     export NAN_FUZZICS ?= $(SRCHOME)/gameengine/Physics/Sumo/Fuzzics
     export NAN_BLENKEY ?= $(LCGDIR)/blenkey

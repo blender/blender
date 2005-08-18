@@ -37,5 +37,8 @@ SOURCEDIR = source/gameengine/Physics
 DIR = $(OCGDIR)/gameengine/blphys
 DIRS = common Sumo Dummy
 #DIRS += BlOde
+ifeq ($(NAN_USE_BULLET), true)
+ DIRS += Bullet
+endif
 
 include nan_subdirs.mk
