@@ -81,6 +81,13 @@ extern "C" {
 #include <GL/gl.h>
 #endif
 
+/* was in drawmesh.c */
+void spack(unsigned int ucol)
+{
+	char *cp= (char *)&ucol;
+        
+	glColor3ub(cp[3], cp[2], cp[1]);
+}
 
 void BL_warp_pointer(int x,int y)
 {
