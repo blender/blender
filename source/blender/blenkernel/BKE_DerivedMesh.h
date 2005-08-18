@@ -127,15 +127,18 @@ struct DerivedMesh {
 			/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
 
+			/* Draw edges in the UV mesh (if exists) */
+	void (*drawUVEdges)(DerivedMesh *dm);
+
 			/* Draw all edges as lines (no options) 
 			 *
 			 * Also called for *final* editmode DerivedMeshes
 			 */
 	void (*drawEdges)(DerivedMesh *dm, int drawLooseEdges);
-			
-			/* Draw all edges without faces as lines (no options) */
-	void (*drawLooseEdges)(DerivedMesh *dm);
-			
+	
+			/* Draw all edges for which (med->flag&mask)==value */
+	void (*drawEdgesFlag)(DerivedMesh *dm, unsigned int mask, unsigned int value);
+
 			/* Draw all faces
 			 *  o Set face normal or vertex normal based on inherited face flag
 			 *  o Use inherited face material index to call setMaterial

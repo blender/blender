@@ -63,6 +63,7 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
+#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
@@ -96,13 +97,42 @@ void clever_numbuts_sima(void);
 void sel_uvco_inside_radius(short , TFace *, int , float *, float *, short);
 void uvedit_selectionCB(short , Object *, short *, float ); /* used in edit.c*/ 
 
-
 static int compuvvert(const void *u1, const void *u2)
 {
 	const struct uvvertsort *v1=u1, *v2=u2;
 	if (v1->v > v2->v) return 1;
 	else if (v1->v < v2->v) return -1;
 	return 0;
+}
+
+void object_uvs_changed(Object *ob)
+{
+		/* Unfortunately we also have to force an eval 
+		 * here because otherwise the modifier UVs might 
+		 * not be updated. Goes back to sillyness that 
+		 * recalc is done as part of view3d draw loop!
+		 *
+		 * Technically should scan all SpaceImas here.
+		 */
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	if(G.sima && (G.sima->flag & SI_DRAWSHADOW)) {
+		object_handle_update(ob);
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
+void object_tface_flags_changed(Object *ob, int updateButtons)
+{
+	if (G.f&G_FACESELECT) {
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		object_handle_update(ob);
+	}
+
+	if (updateButtons) allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 
 int is_uv_tface_editing_allowed_silent(void)
@@ -221,7 +251,7 @@ void clever_numbuts_sima(void)
 				}
 			}
 			
-			allqueue(REDRAWVIEW3D, 0);
+			object_uvs_changed(OBACT);
 		}
 	}
 }
@@ -690,7 +720,17 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 			xo= mval[0];
 			yo= mval[1];
 			
-			if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
+				/* Need to force a recalculate since we may be 
+				 * drawing modified UVs.
+				 */
+			if(G.sima->flag & SI_DRAWSHADOW){
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	
+				object_handle_update(OBACT);
+			}
+
+			if(G.sima->lock) {
+				force_draw_plus(SPACE_VIEW3D, 0);
+			}
 			else force_draw(0);
 			
 			firsttime= 0;
@@ -782,14 +822,10 @@ void transform_tface_uv(int mode, int context)	// 2 args, for callback
 	G.moving= 0;
 	prop_size*= 3;
 	
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-	allqueue(REDRAWVIEW3D, 0);
+	object_uvs_changed(OBACT);
 
 	if(event!=ESCKEY && event!=RIGHTMOUSE)
 		BIF_undo_push("Transform UV");
-
-	scrarea_queue_headredraw(curarea);
-	scrarea_queue_winredraw(curarea);
 }
 
 void mirror_tface_uv(char mirroraxis)
@@ -827,8 +863,7 @@ void mirror_tface_uv(char mirroraxis)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	object_uvs_changed(OBACT);
 }
 
 void mirrormenu_tface_uv(void)
@@ -898,8 +933,7 @@ void weld_align_tface_uv(char tool)
 		}
 	}
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	object_uvs_changed(OBACT);
 }
 
 void weld_align_menu_tface_uv(void)
@@ -953,6 +987,7 @@ void select_swap_tface_uv(void)
 	}
 	
 	BIF_undo_push("Select swap UV");
+
 	allqueue(REDRAWIMAGE, 0);
 }
 
@@ -1424,7 +1459,6 @@ void mouseco_to_curtile(void)
 
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
-		
 		}
 		
 		G.sima->flag &= ~SI_EDITTILE;
@@ -1469,9 +1503,10 @@ void hide_tface_uv(int swap)
 			}
 		}
 	}
+
 	BIF_undo_push("Hide UV");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void reveal_tface_uv(void)
@@ -1490,9 +1525,9 @@ void reveal_tface_uv(void)
 			if(!(tface->flag & TF_SELECT))
 				tface->flag |= (TF_SELECT|TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 	
-	BIF_undo_push("Reveil UV");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	BIF_undo_push("Reveal UV");
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void stitch_uv_tface(int mode)
@@ -1634,8 +1669,8 @@ void stitch_uv_tface(int mode)
 	if(G.sima->flag & SI_CLIP_UV) tface_do_clip();
 
 	BIF_undo_push("Stitch UV");
-	allqueue(REDRAWVIEW3D, 0);
-	scrarea_queue_winredraw(curarea);
+
+	object_uvs_changed(OBACT);
 }
 
 void select_linked_tface_uv(int mode)

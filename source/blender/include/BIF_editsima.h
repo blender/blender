@@ -33,6 +33,11 @@
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
+struct Object;
+
+void object_uvs_changed(struct Object *ob);
+void object_tface_flags_changed(struct Object *ob, int updateButtons);
+
 int is_uv_tface_editing_allowed(void);
 int is_uv_tface_editing_allowed_silent(void);
 void borderselect_sima(void);

@@ -2129,6 +2129,15 @@ CCGEdge *ccgSubSurf_getFaceEdge(CCGSubSurf *ss, CCGFace *f, int index) {
 		return FACE_getEdges(f)[index];
 	}
 }
+int ccgSubSurf_getFaceEdgeIndex(CCGSubSurf *ss, CCGFace *f, CCGEdge *e) {
+	int i;
+
+	for (i=0; i<f->numVerts; i++)
+		if (FACE_getEdges(f)[i]==e)
+			return i;
+
+	return -1;
+}
 void *ccgSubSurf_getFaceCenterData(CCGSubSurf *ss, CCGFace *f) {
 	return FACE_getCenterData(f);
 }

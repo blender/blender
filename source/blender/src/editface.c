@@ -64,11 +64,13 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_texture.h"
+#include "BKE_object.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
 #include "BSE_drawview.h"	/* for backdrawview3d */
 
+#include "BIF_editsima.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_toolbox.h"
@@ -589,6 +591,7 @@ void make_tfaces(Mesh *me)
 	}
 }
 
+
 void reveal_tface()
 {
 	Mesh *me;
@@ -610,8 +613,7 @@ void reveal_tface()
 
 	BIF_undo_push("Reveal UV face");
 
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void hide_tface()
@@ -644,10 +646,10 @@ void hide_tface()
 		
 		tface++;
 	}
+
 	BIF_undo_push("Hide UV face");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
-	
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void select_linked_tfaces(int mode)
@@ -761,8 +763,8 @@ void select_linked_tfaces(int mode)
 	MEM_freeN(linkflag);
 	
 	BIF_undo_push("Select linked UV face");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void deselectall_tface()
@@ -795,8 +797,8 @@ void deselectall_tface()
 	}
 
 	BIF_undo_push("(De)select all UV face");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void selectswap_tface(void)
@@ -820,8 +822,8 @@ void selectswap_tface(void)
 	}
 
 	BIF_undo_push("Select inverse UV face");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_tface_flags_changed(OBACT, 0);
 }
 
 void rotate_uv_tface()
@@ -886,10 +888,8 @@ void rotate_uv_tface()
 	}
 	
 	BIF_undo_push("Rotate UV face");
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_uvs_changed(OBACT);
 }
 
 void mirror_uv_tface()
@@ -959,10 +959,8 @@ void mirror_uv_tface()
 	}
 	
 	BIF_undo_push("Mirror UV face");
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+
+	object_uvs_changed(OBACT);
 }
 
 void minmax_tface(float *min, float *max)
@@ -1111,9 +1109,8 @@ void face_select()
 	/* image window redraw */
 	
 	BIF_undo_push("Select UV face");
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	allqueue(REDRAWVIEW3D, 0);
+
+	object_tface_flags_changed(OBACT, 1);
 }
 
 void face_borderselect()
@@ -1173,8 +1170,7 @@ void face_borderselect()
 
 		BIF_undo_push("Border Select UV face");
 
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWIMAGE, 0);
+		object_tface_flags_changed(OBACT, 0);
 	}
 #ifdef __APPLE__	
 	glReadBuffer(GL_BACK);
@@ -1772,7 +1768,7 @@ void get_same_uv(void)
 	
 	/* image window redraw */
 	BIF_undo_push("Get same UV");
-	allqueue(REDRAWIMAGE, 0);
-	allqueue(REDRAWVIEW3D, 0);
+
+	object_tface_flags_changed(OBACT, 0);
 }
 #endif /* NAN_TPT */

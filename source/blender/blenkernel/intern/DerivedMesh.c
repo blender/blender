@@ -163,6 +163,41 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 	}
 	glEnd();
 }
+static void meshDM_drawUVEdges(DerivedMesh *dm)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me = mdm->me;
+	int i;
+
+	if (me->tface) {
+		glBegin(GL_LINES);
+		for (i=0; i<me->totface; i++) {
+			if (me->mface[i].v3) {
+				TFace *tf = &me->tface[i];
+
+				if (!(tf->flag&TF_HIDE)) {
+					glVertex2fv(tf->uv[0]);
+					glVertex2fv(tf->uv[1]);
+
+					glVertex2fv(tf->uv[1]);
+					glVertex2fv(tf->uv[2]);
+
+					if (!me->mface[i].v4) {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[0]);
+					} else {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[3]);
+
+						glVertex2fv(tf->uv[3]);
+						glVertex2fv(tf->uv[0]);
+					}
+				}
+			}
+		}
+		glEnd();
+	}
+}
 static void meshDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
@@ -220,30 +255,94 @@ static void meshDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 		glEnd();
 	}
 }
-static void meshDM_drawLooseEdges(DerivedMesh *dm)
+static void meshDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned int value)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
-	Mesh *me = mdm->me;
-	MFace *mface= me->mface;
-	MEdge *medge= me->medge;
+	Mesh *me= mdm->me;
 	int a;
+	MFace *mface = me->mface;
+	int tfaceFlags = (ME_EDGE_TFSEL|ME_EDGE_TFACT|ME_EDGE_TFVISIBLE|ME_EDGE_TFACTFIRST|ME_EDGE_TFACTLAST);
 
-	if (medge) {
+	if ((mask&tfaceFlags) && me->tface) {
+		TFace *tface = me->tface;
+
 		glBegin(GL_LINES);
-		for(a=0; a<me->totedge; a++, medge++) {
-			if ((medge->flag&ME_EDGEDRAW) && (medge->flag&ME_LOOSEEDGE)) {
-				glVertex3fv(mdm->verts[medge->v1].co);
-				glVertex3fv(mdm->verts[medge->v2].co);
+		for(a=0; a<me->totface; a++, mface++, tface++) {
+			if (mface->v3) {
+				unsigned int flags = ME_EDGEDRAW|ME_EDGEMAPPED;
+				unsigned int flag0, flag1, flag2, flag3;
+
+				if (tface->flag&TF_SELECT) flags |= ME_EDGE_TFSEL;
+				if (!(tface->flag&TF_HIDE)) flags |= ME_EDGE_TFVISIBLE;
+
+				if (tface->flag&TF_ACTIVE) {
+					flags |= ME_EDGE_TFACT;
+					flag0 = flag1 = flag2 = flag3 = flags;
+
+					flag0 |= ME_EDGE_TFACTFIRST;
+					flag3 |= ME_EDGE_TFACTLAST;
+				} else {
+					flag0 = flag1 = flag2 = flag3 = flags;
+				}
+
+				if (mask&ME_SEAM) {
+					if (tface->unwrap&TF_SEAM1) flag0 |= ME_SEAM;
+					if (tface->unwrap&TF_SEAM2) flag1 |= ME_SEAM;
+					if (tface->unwrap&TF_SEAM3) flag2 |= ME_SEAM;
+					if (tface->unwrap&TF_SEAM4) flag3 |= ME_SEAM;
+				}
+
+				if ((flag0&mask)==value) {
+					glVertex3fv(mdm->verts[mface->v1].co);
+					glVertex3fv(mdm->verts[mface->v2].co);
+				}
+
+				if ((flag1&mask)==value) {
+					glVertex3fv(mdm->verts[mface->v2].co);
+					glVertex3fv(mdm->verts[mface->v3].co);
+				}
+
+				if (mface->v4) {
+					if ((flag2&mask)==value) {
+						glVertex3fv(mdm->verts[mface->v3].co);
+						glVertex3fv(mdm->verts[mface->v4].co);
+					}
+
+					if ((flag3&mask)==value) {
+						glVertex3fv(mdm->verts[mface->v4].co);
+						glVertex3fv(mdm->verts[mface->v1].co);
+					}
+				} else {
+					if ((flag3&mask)==value) {
+						glVertex3fv(mdm->verts[mface->v3].co);
+						glVertex3fv(mdm->verts[mface->v1].co);
+					}
+				}
 			}
 		}
 		glEnd();
-	} else {
+	}
+	else if(me->medge) {
+		MEdge *medge= me->medge;
+		
+		glBegin(GL_LINES);
+		for(a=me->totedge; a>0; a--, medge++) {
+			if (((medge->flag|ME_EDGEMAPPED)&mask)==value) {
+				glVertex3fv(mdm->verts[ medge->v1].co);
+				glVertex3fv(mdm->verts[ medge->v2].co);
+			}
+		}
+		glEnd();
+	}
+	else {
 		glBegin(GL_LINES);
 		for(a=0; a<me->totface; a++, mface++) {
-			if(!mface->v3) {
-				glVertex3fv(mdm->verts[mface->v1].co);
-				glVertex3fv(mdm->verts[mface->v2].co);
-			} 
+			if (!mface->v3) {
+				if (((ME_EDGEDRAW|ME_LOOSEEDGE|ME_EDGEMAPPED)&mask)==value) {
+					glVertex3fv(mdm->verts[mface->v1].co);
+					glVertex3fv(mdm->verts[mface->v2].co);
+				}
+			}
 		}
 		glEnd();
 	}
@@ -381,16 +480,20 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 	for (a=0; a<me->totface; a++) {
 		MFace *mf= &mface[a];
 		TFace *tf = tface?&tface[a]:NULL;
+		int flag;
 		unsigned char *cp= NULL;
 		
-		if(mf->v3==0) continue;
-		if(tf && ((tf->flag&TF_HIDE) || (tf->mode&TF_INVISIBLE))) continue;
+		if (mf->v3==0) continue;
 
-		if (setDrawParams(tf, mf->mat_nr)) {
+		flag = setDrawParams(tf, mf->mat_nr);
+
+		if (flag==0) {
+			continue;
+		} else if (flag==1) {
 			if (tf) {
-				cp= (unsigned char *) tf->col;
+				cp= (unsigned char*) tf->col;
 			} else if (me->mcol) {
-				cp= (unsigned char *) &me->mcol[a*4];
+				cp= (unsigned char*) &me->mcol[a*4];
 			}
 		}
 
@@ -463,9 +566,10 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 
 	mdm->dm.drawVerts = meshDM_drawVerts;
 
+	mdm->dm.drawUVEdges = meshDM_drawUVEdges;
 	mdm->dm.drawEdges = meshDM_drawEdges;
-	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
-
+	mdm->dm.drawEdgesFlag = meshDM_drawEdgesFlag;
+	
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
 	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
@@ -989,26 +1093,6 @@ static void ssDM_drawMappedFacesEM(DerivedMesh *dm, int (*setDrawOptions)(void *
 	}
 }
 
-static void ssDM_drawLooseEdges(DerivedMesh *dm)
-{
-	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
-	DispListMesh *dlm = ssdm->dlm;
-	int i;
-
-	if (dlm->medge) {
-		MEdge *medge= dlm->medge;
-	
-		glBegin(GL_LINES);
-		for (i=0; i<dlm->totedge; i++, medge++) {
-			if (medge->flag&ME_LOOSEEDGE) {
-				glVertex3fv(dlm->mvert[medge->v1].co); 
-				glVertex3fv(dlm->mvert[medge->v2].co);
-			}
-		}
-		glEnd();
-	}
-}
-
 static void ssDM_drawVerts(DerivedMesh *dm)
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
@@ -1021,6 +1105,61 @@ static void ssDM_drawVerts(DerivedMesh *dm)
 		bglVertex3fv(mvert[i].co);
 	}
 	bglEnd();
+}
+static void ssDM_drawUVEdges(DerivedMesh *dm)
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	int i;
+
+	if (dlm->tface) {
+		glBegin(GL_LINES);
+		for (i=0; i<dlm->totface; i++) {
+			if (dlm->mface[i].v3) {
+				TFace *tf = &dlm->tface[i];
+
+				if (!(tf->flag&TF_HIDE)) {
+					glVertex2fv(tf->uv[0]);
+					glVertex2fv(tf->uv[1]);
+
+					glVertex2fv(tf->uv[1]);
+					glVertex2fv(tf->uv[2]);
+
+					if (!dlm->mface[i].v4) {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[0]);
+					} else {
+						glVertex2fv(tf->uv[2]);
+						glVertex2fv(tf->uv[3]);
+
+						glVertex2fv(tf->uv[3]);
+						glVertex2fv(tf->uv[0]);
+					}
+				}
+			}
+		}
+		glEnd();
+	}
+}
+static void ssDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned int value) 
+{
+	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
+	DispListMesh *dlm = ssdm->dlm;
+	MVert *mvert = dlm->mvert;
+	int i;
+
+	if (dlm->medge) {
+		MEdge *medge= dlm->medge;
+	
+		glBegin(GL_LINES);
+		for (i=0; i<dlm->totedge; i++, medge++) {
+			if ((medge->flag&mask)==value) {
+				glVertex3fv(mvert[medge->v1].co); 
+				glVertex3fv(mvert[medge->v2].co);
+			}
+		}
+		glEnd();
+	}
 }
 static void ssDM_drawEdges(DerivedMesh *dm, int drawLooseEdges) 
 {
@@ -1181,12 +1320,16 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 	for (a=0; a<dlm->totface; a++) {
 		MFace *mf= &mface[a];
 		TFace *tf = tface?&tface[a]:NULL;
+		int flag;
 		unsigned char *cp= NULL;
 		
-		if(mf->v3==0) continue;
-		if(tf && ((tf->flag&TF_HIDE) || (tf->mode&TF_INVISIBLE))) continue;
+		if (mf->v3==0) continue;
 
-		if (setDrawParams(tf, mf->mat_nr)) {
+		flag = setDrawParams(tf, mf->mat_nr);
+
+		if (flag==0) {
+			continue;
+		} else if (flag==1) {
 			if (tf) {
 				cp= (unsigned char*) tf->col;
 			} else if (dlm->mcol) {
@@ -1320,9 +1463,10 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 
 	ssdm->dm.drawVerts = ssDM_drawVerts;
 
+	ssdm->dm.drawUVEdges = ssDM_drawUVEdges;
 	ssdm->dm.drawEdges = ssDM_drawEdges;
-	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
-
+	ssdm->dm.drawEdgesFlag = ssDM_drawEdgesFlag;
+	
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;
 	ssdm->dm.drawFacesTex = ssDM_drawFacesTex;

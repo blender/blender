@@ -489,84 +489,43 @@ void update_realtime_textures()
 }
 
 
-void spack(unsigned int ucol)
+static int draw_tfaces3D__drawFaceOpts(TFace *tface, int matnr)
 {
-	char *cp= (char *)&ucol;
-	
-	glColor3ub(cp[3], cp[2], cp[1]);
+	if (tface && !(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT)) {
+		return 2; /* Don't set color */
+	} else {
+		return 0;
+	}
 }
-
-void draw_tfaces3D(Object *ob, Mesh *me)
+static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 {
-	MFace *mface, *activeFace;
-	TFace *tface;
-	float co[3];
-	int a, activeFaceInSelection= 0;
-	DerivedMesh *dm;
-	int dmNeedsFree;
-	
-	if(me==0 || me->tface==0) return;
-
-	dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+	int a;
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
 	bglPolygonOffset(1.0);
 
-#define PASSVERT(index)		{ dm->getVertCo(dm, index, co); glVertex3fv(co); }
-
-	/* Draw (Hidden) Edges */
-	if(G.f & G_DRAWEDGES || G.f & G_HIDDENEDGES){ 
-		BIF_ThemeColor(TH_EDGE_FACESEL);
-
-		mface= me->mface;
-		tface= me->tface;
-		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3 && (G.f&G_DRAWEDGES)) {
-				if ((tface->flag&TF_HIDE) && !(G.f&G_HIDDENEDGES))
-					continue;
-			
-				glBegin(GL_LINE_LOOP);
-					PASSVERT(mface->v1);
-					PASSVERT(mface->v2);
-					PASSVERT(mface->v3);
-					if(mface->v4) PASSVERT(mface->v4);
-				glEnd();
-			}
+		/* Draw (Hidden) Edges */
+	BIF_ThemeColor(TH_EDGE_FACESEL);
+	if((G.f & G_DRAWEDGES)){ 
+		if (G.f&G_HIDDENEDGES) {
+			dm->drawEdgesFlag(dm, ME_EDGEMAPPED, ME_EDGEMAPPED);
+		} else {
+			dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE, ME_EDGE_TFVISIBLE);
 		}
+	} else {
+		dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL);
 	}
 
 	if(G.f & G_DRAWSEAMS) {
 		BIF_ThemeColor(TH_EDGE_SEAM);
 		glLineWidth(2);
 
-		glBegin(GL_LINES);
-		mface= me->mface;
-		tface= me->tface;
-		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if (mface->v3 && !(tface->flag&TF_HIDE)) {
-				if(tface->unwrap & TF_SEAM1) {
-					PASSVERT(mface->v1);
-					PASSVERT(mface->v2);
-				}
-
-				if(tface->unwrap & TF_SEAM2) {
-					PASSVERT(mface->v2);
-					PASSVERT(mface->v3);
-				}
-
-				if(tface->unwrap & TF_SEAM3) {
-					PASSVERT(mface->v3);
-					PASSVERT(mface->v4?mface->v4:mface->v1);
-				}
-
-				if(mface->v4 && (tface->unwrap & TF_SEAM4)) {
-					PASSVERT(mface->v4);
-					PASSVERT(mface->v1);
-				}
-			}
+		if (G.f&G_HIDDENEDGES) {
+			dm->drawEdgesFlag(dm, ME_EDGEMAPPED|ME_SEAM, ME_EDGEMAPPED|ME_SEAM);
+		} else {
+			dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_SEAM, ME_EDGE_TFVISIBLE|ME_SEAM);
 		}
-		glEnd();
 
 		glLineWidth(1);
 	}
@@ -577,86 +536,45 @@ void draw_tfaces3D(Object *ob, Mesh *me)
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		BIF_ThemeColor4(TH_FACE_SELECT);
 
-		mface= me->mface;
-		tface= me->tface;
-		for(a=me->totface; a>0; a--, mface++, tface++) {
-			if(mface->v3 && !(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT)) {
-				glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
-					PASSVERT(mface->v1);
-					PASSVERT(mface->v2);
-					PASSVERT(mface->v3);
-					if(mface->v4) PASSVERT(mface->v4);
-				glEnd();
-			}
-		}
+		dm->drawFacesTex(dm, draw_tfaces3D__drawFaceOpts);
+
 		glDisable(GL_BLEND);
 	}
 	
-	/* Draw Stippled Outline for selected faces */
-	activeFace = NULL;
-	mface= me->mface;
-	tface= me->tface;
 	bglPolygonOffset(1.0);
-	for(a=me->totface; a>0; a--, mface++, tface++) {
-		if(mface->v3 && !(tface->flag&TF_HIDE) && (tface->flag & (TF_ACTIVE|TF_SELECT))) {
-			if(tface->flag & TF_ACTIVE) {
-				activeFace = mface;
-				activeFaceInSelection= (tface->flag & TF_SELECT);
-			}
-			else {
-				cpack(0x0);
-				glBegin(GL_LINE_LOOP);
-					PASSVERT(mface->v1);
-					PASSVERT(mface->v2);
-					PASSVERT(mface->v3);
-					if(mface->v4) PASSVERT(mface->v4);
-				glEnd();
+
+		/* Draw Stippled Outline for selected faces */
+	cpack(0xFFFFFF);
+	setlinestyle(1);
+	dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL);
+	setlinestyle(0);
+
+		/* Draw active face */
+	for (a=0; a<me->totface; a++) {
+		TFace *tf = &me->tface[a];
+
+		if (me->mface[a].v3 && (tf->flag&TF_ACTIVE)) {
+			if (!(tf->flag&TF_HIDE)) {
+				glColor3ub(255, 0, 0);
+				dm->drawEdgesFlag(dm, ME_EDGE_TFACTLAST, ME_EDGE_TFACTLAST);
+				glColor3ub(0, 255, 0);
+				dm->drawEdgesFlag(dm, ME_EDGE_TFACTFIRST, ME_EDGE_TFACTFIRST);
+
+				if (tf->flag&TF_SELECT) {
+					glColor3ub(255, 255, 0);
+				} else {
+					glColor3ub(255, 0, 255);
+				}
+
+					/* Draw remaining edges of active fact that are not first or last */
+				dm->drawEdgesFlag(dm, ME_EDGE_TFACT|ME_EDGE_TFACTFIRST|ME_EDGE_TFACTLAST, ME_EDGE_TFACT|0|0);
 			}
 
-			if(tface->flag & TF_SELECT) {
-				cpack(0xFFFFFF);
-				setlinestyle(1);
-				glBegin(GL_LINE_LOOP);
-					PASSVERT(mface->v1);
-					PASSVERT(mface->v2);
-					PASSVERT(mface->v3);
-					if(mface->v4) PASSVERT(mface->v4);
-				glEnd();
-				setlinestyle(0);
-			}
+			break;
 		}
 	}
 
-	/* Draw Active Face on top */
-	/* colors: R=x G=y */
-	if(activeFace) {
-		cpack(0xFF);
-		glBegin(GL_LINE_STRIP);
-			PASSVERT(activeFace->v1);
-			PASSVERT(activeFace->v4?activeFace->v4:activeFace->v3);
-		glEnd();
-
-		cpack(0xFF00);
-		glBegin(GL_LINE_STRIP);
-			PASSVERT(activeFace->v1);
-			PASSVERT(activeFace->v2);
-		glEnd();
-
-		if(activeFaceInSelection) cpack(0x00FFFF);
-		else cpack(0xFF00FF);
-
-		glBegin(GL_LINE_STRIP);
-			PASSVERT(activeFace->v2);
-			PASSVERT(activeFace->v3);
-			if(activeFace->v4) PASSVERT(activeFace->v4);
-		glEnd();
-		setlinestyle(0);
-	}
-
 	bglPolygonOffset(0.0);	// resets correctly now, even after calling accumulated offsets
-
-	if (dmNeedsFree)
-		dm->release(dm);
 #undef PASSVERT
 }
 
@@ -823,12 +741,14 @@ static int g_draw_tface_mesh_istex = 0;
 static unsigned char g_draw_tface_mesh_obcol[4];
 static int draw_tface_mesh__set_draw(TFace *tface, int matnr)
 {
+	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
+
 	if (set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
-		return 0; /* Don't set color */
+		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
 		glColor3ubv(g_draw_tface_mesh_obcol);
-		return 0; /* Don't set color */
+		return 2; /* Don't set color */
 	} else if (!tface) {
 		Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr);
 		if(ma) glColor3f(ma->r, ma->g, ma->b);
@@ -844,9 +764,12 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	unsigned char obcol[4];
 	int a;
 	short islight, istex;
+	DerivedMesh *dm;
+	int dmNeedsFree;
 	
 	if(me==NULL) return;
 
+	dm = mesh_get_derived_final(ob, &dmNeedsFree);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -877,25 +800,16 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		MFace *mface= me->mface;
 		bProperty *prop = get_property(ob, "Text");
 		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
-		DerivedMesh *dm;
 		int start, totface;
-		int dmNeedsFree;
-
-		if(editing) {
-			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-		} else {
-			dm = mesh_get_derived_final(ob, &dmNeedsFree);
-		}
 
 		dm->drawFacesTex(dm, draw_tface_mesh__set_draw);
-
-		if (dmNeedsFree) dm->release(dm);
 
 		start = 0;
 		totface = me->totface;
 
 		if (!editing && prop && tface) {
-			dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+			int dmNeedsFree;
+			DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
 
 			tface+= start;
 			for (a=start; a<totface; a++, tface++) {
@@ -990,8 +904,8 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	glShadeModel(GL_FLAT);
 	glDisable(GL_CULL_FACE);
 	
-	if(ob==OBACT && (G.f & G_FACESELECT)) {
-		draw_tfaces3D(ob, me);
+	if(ob==OBACT && (G.f & G_FACESELECT) && me && me->tface) {
+		draw_tfaces3D(ob, me, dm);
 	}
 	
 		/* XXX, bad patch - default_gl_light() calls

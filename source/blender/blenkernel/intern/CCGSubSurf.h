@@ -108,6 +108,7 @@ CCGFaceHDL	ccgSubSurf_getFaceFaceHandle		(CCGSubSurf *ss, CCGFace *f);
 int			ccgSubSurf_getFaceNumVerts			(CCGSubSurf *ss, CCGFace *f);
 CCGVert*	ccgSubSurf_getFaceVert				(CCGSubSurf *ss, CCGFace *f, int index);
 CCGEdge*	ccgSubSurf_getFaceEdge				(CCGSubSurf *ss, CCGFace *f, int index);
+int			ccgSubSurf_getFaceEdgeIndex			(CCGSubSurf *ss, CCGFace *f, CCGEdge *e);
 
 int			ccgSubSurf_getFaceAge				(CCGSubSurf *ss, CCGFace *f);
 void*		ccgSubSurf_getFaceUserData			(CCGSubSurf *ss, CCGFace *f);

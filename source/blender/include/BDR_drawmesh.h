@@ -73,8 +73,6 @@ void free_realtime_image(struct Image *ima);
 void free_all_realtime_images(void);
 void make_repbind(struct Image *ima);
 int set_tpage(struct TFace *tface);
-void spack(unsigned int ucol);
-void draw_tfaces3D(struct Object *ob, struct Mesh *me);
 void draw_tface_mesh(struct Object *ob, struct Mesh *me, int dt);
 void init_realtime_GL(void); 
 

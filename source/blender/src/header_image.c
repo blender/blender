@@ -45,6 +45,7 @@
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -58,6 +59,7 @@
 #include "BKE_main.h"
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
+#include "BKE_depsgraph.h"
 
 #include "BLI_blenlib.h"
 #include "BIF_drawimage.h"
@@ -300,8 +302,8 @@ void do_image_buttons(unsigned short event)
 
 	case B_CLIP_UV:
 		tface_do_clip();
-		allqueue(REDRAWIMAGE, 0);
-		allqueue(REDRAWVIEW3D, 0);
+		
+		if (OBACT) object_uvs_changed(OBACT);
 		break;
 
 	case B_SIMAGEPAINTTOOL:

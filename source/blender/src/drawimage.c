@@ -63,6 +63,8 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_image.h"
+#include "BKE_DerivedMesh.h"
+#include "BKE_displist.h"
 
 #include "BDR_editface.h"
 #include "BDR_drawobject.h"
@@ -267,14 +269,23 @@ void draw_tfaces(void)
 			glLoadIdentity();
 			
 			/* draw shadow mesh */
-			if(G.sima->flag & SI_DRAWSHADOW){		
+			if((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)){
+				int dmNeedsFree;
+				DerivedMesh *dm = mesh_get_derived_final(OBACT, &dmNeedsFree);
+
+				glColor3ub(112, 112, 112);
+				if (dm->drawUVEdges) dm->drawUVEdges(dm);
+
+				if (dmNeedsFree) dm->release(dm);
+			}
+			else if(G.sima->flag & SI_DRAWSHADOW){		
 				tface= me->tface;
 				mface= me->mface;
 				a= me->totface;			
 				while(a--) {
 					if(tface->flag & TF_HIDE);
 					else if(mface->v3) {
-						cpack(0x707070);
+						glColor3ub(112, 112, 112);
 						glBegin(GL_LINE_LOOP);
 						glVertex2fv(tface->uv[0]);
 						glVertex2fv(tface->uv[1]);
