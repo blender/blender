@@ -17,7 +17,7 @@
 #include "IDebugDraw.h"
 
 #include "NarrowPhaseCollision/VoronoiSimplexSolver.h"
-#include "NarrowPhaseCollision/SubsimplexConvexCast.h"
+#include "NarrowPhaseCollision/SubSimplexConvexCast.h"
 
 #include "CollisionDispatch/ToiContactDispatcher.h"
 
