@@ -2808,3 +2808,41 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
 	v1[2]= x*mat[0][2] + y*mat[1][2] + mat[2][2]*v2[2] + mat[3][2];
 	
 }
+
+/* moved from effect.c
+   test if the line starting at p1 ending at p2 intersects the triangle v0..v2
+   return non zero if it does 
+
+   wild guess .. says did not check the math since i don't need it
+   and if (it intersects) lambda returns intersection = p1 + lambda(p1-p2)
+*/
+int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
+{
+
+	float p[3], s[3], d[3], e1[3], e2[3], q[3];
+	float a, f, u, v;
+	
+	VecSubf(e1, v1, v0);
+	VecSubf(e2, v2, v0);
+	VecSubf(d, p2, p1);
+	
+	Crossf(p, d, e2);
+	a = Inpf(e1, p);
+	if ((a > -0.000001) && (a < 0.000001)) return 0;
+	f = 1.0f/a;
+	
+	VecSubf(s, p1, v0);
+	
+	Crossf(q, s, e1);
+	*lambda = f * Inpf(e2, q);
+	if ((*lambda < 0.0)||(*lambda > 1.0)) return 0;
+	
+	u = f * Inpf(s, p);
+	if ((u < 0.0)||(u > 1.0)) return 0;
+	
+	v = f * Inpf(d, q);
+	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+	
+	return 1;
+}
+

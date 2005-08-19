@@ -59,9 +59,6 @@ void build_particle_system(struct Object *ob);
 
 void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer,unsigned int flags);
 
-int SoftBodyDetectCollision(float opco[3], float npco[3], float colco[3],
-        float facenormal[3], float *damp, float force[3], int mode,
-        float cur_time, unsigned int par_layer,struct Object *vertexowner);
 
 
 #endif

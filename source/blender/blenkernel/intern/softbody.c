@@ -77,8 +77,10 @@ variables on the UI for now
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_DerivedMesh.h"
 
 #include  "BIF_editdeform.h"
+
 
 /* ********** soft body engine ******* */
 
@@ -336,6 +338,257 @@ static void free_softbody_intern(SoftBody *sb)
 
 
 /* ************ dynamics ********** */
+int sb_detect_collision(float opco[3], float npco[3], float colco[3],
+							float facenormal[3], float *damp, float force[3], int mode,
+							float cur_time, unsigned int par_layer,struct Object *vertexowner)
+{
+//	static short recursion = 0;
+//	static short didokee = 0;
+	Base *base;
+	Object *ob;
+	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3];
+	float dv1[3], dv2[3], dv3[3];
+	float facedist,n_mag,t,t2, min_t,force_mag_norm;
+	int a, deflected=0, deflected_now=0;
+	int d_object=0, d_face=0, ds_object=0, ds_face=0;
+	
+	// i'm going to rearrange it to declaration rules when WIP is finished (BM)
+	float innerfacethickness = -0.5f;
+	float outerfacethickness = 0.2f;
+	float ee = 5.0f;
+	float ff = 0.1f;
+	float fa;
+/*
+	if (recursion){
+		if (!didokee)
+		printf("SB collision detected recursion. We will CRASH now!");
+		didokee =1;
+		return 0;
+	}
+	recursion =1;
+*/
+	min_t = 200000;
+	
+	base= G.scene->base.first;
+	while (base) {
+		/*Only proceed for mesh object in same layer */
+		if(base->object->type==OB_MESH && (base->lay & par_layer)) {
+			ob= base->object;
+			if((vertexowner) && (ob == vertexowner)){ 
+			/* if vertexowner is given 
+				* we don't want to check collision with owner object */ 
+				base = base->next;
+				continue;
+			}
+			/* only with deflecting set */
+			if(ob->pd && ob->pd->deflect) {
+				DerivedMesh *dm=NULL;				
+				int dmNeedsFree;				
+				Mesh *me= NULL;
+				DispListMesh  *disp_mesh = 0;
+				MFace *mface;
+	            Object *copyob;
+				
+				/* do object level stuff */
+				/* need to have user control for that since it depends on model scale */
+				innerfacethickness =-ob->pd->pdef_sbift;
+				outerfacethickness =ob->pd->pdef_sboft;
+				fa = (ff*outerfacethickness-outerfacethickness);
+				fa *= fa;
+				fa = 1.0f/fa;
+				copyob = ob;
+//				if (ob->pd->flag & PDEFLE_DEFORM){// get colliding mesh from modifier stack
+// keep this option for debugging but IMHO this is not needed
+				if (1){// get colliding mesh from modifier stack
+
+					if(1) { // so maybe someone wants overkill to collide with subsurfed 
+						dm = mesh_get_derived_deform(copyob, &dmNeedsFree);
+					} else {
+						dm = mesh_get_derived_final(copyob, &dmNeedsFree);
+					}
+				}
+				
+				if (dm) {
+					disp_mesh = dm->convertToDispListMesh(dm, 1);
+					mface= disp_mesh->mface;
+					a = disp_mesh->totface;
+				}
+				else {
+					me = ob->data;
+					mface= me->mface;
+					a = me->totface;
+				}
+				
+				/* use mesh*/
+				while (a--) {
+					
+					/* Calculate the global co-ordinates of the vertices*/
+					if (dm){
+						dm->getVertCo(dm,mface->v1,nv1);
+						Mat4MulVecfl(ob->obmat, nv1);
+						
+						dm->getVertCo(dm,mface->v2,nv2);
+						Mat4MulVecfl(ob->obmat, nv2);
+						
+						dm->getVertCo(dm,mface->v3,nv3);
+						Mat4MulVecfl(ob->obmat, nv3);
+						
+						
+						if (mface->v4){
+							dm->getVertCo(dm,mface->v4,nv4);
+							Mat4MulVecfl(ob->obmat, nv4);
+						}
+					}
+					else{
+						
+						VECCOPY(nv1,(me->mvert+(mface->v1))->co);
+						Mat4MulVecfl(ob->obmat, nv1);
+						
+						VECCOPY(nv2,(me->mvert+(mface->v2))->co);
+						Mat4MulVecfl(ob->obmat, nv2);
+						
+						VECCOPY(nv3,(me->mvert+(mface->v3))->co);
+						Mat4MulVecfl(ob->obmat, nv3);
+						
+						if (mface->v4){
+							VECCOPY(nv4,(me->mvert+(mface->v4))->co);
+							Mat4MulVecfl(ob->obmat, nv4);
+						}
+						
+					}
+					deflected_now = 0;
+					
+					if (mode == 1){ // face intrusion test
+						// switch origin to be nv2
+						VECSUB(edge1, nv1, nv2);
+						VECSUB(edge2, nv3, nv2);
+						VECSUB(dv1,opco,nv2); // abuse dv1 to have vertex in question at *origin* of triangle
+						
+						Crossf(d_nvect, edge2, edge1);
+						n_mag = Normalise(d_nvect);
+						facedist = Inpf(dv1,d_nvect);
+						
+						if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
+							dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+							dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+							dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+							if ( LineIntersectsTriangle( opco, dv2, nv1, nv2, nv3, &t)){
+								force_mag_norm =(float)exp(-ee*facedist);
+								if (facedist > outerfacethickness*ff)
+									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+								
+								force[0] += force_mag_norm*d_nvect[0] ;
+								force[1] += force_mag_norm*d_nvect[1] ;
+								force[2] += force_mag_norm*d_nvect[2] ;
+								*damp=ob->pd->pdef_sbdamp;
+								deflected = 2;
+							}
+						}		
+						if (mface->v4){ // quad
+							// switch origin to be nv4
+							VECSUB(edge1, nv3, nv4);
+							VECSUB(edge2, nv1, nv4);
+							VECSUB(dv1,opco,nv4); // abuse dv1 to have vertex in question at *origin* of triangle
+							
+							Crossf(d_nvect, edge2, edge1);
+							n_mag = Normalise(d_nvect);
+							facedist = Inpf(dv1,d_nvect);
+							
+							if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){
+								dv2[0] = opco[0] - 2.0f*facedist*d_nvect[0];
+								dv2[1] = opco[1] - 2.0f*facedist*d_nvect[1];
+								dv2[2] = opco[2] - 2.0f*facedist*d_nvect[2];
+								if (LineIntersectsTriangle( opco, dv2, nv1, nv3, nv4, &t)){
+									force_mag_norm =(float)exp(-ee*facedist);
+									if (facedist > outerfacethickness*ff)
+										force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
+									
+									force[0] += force_mag_norm*d_nvect[0] ;
+									force[1] += force_mag_norm*d_nvect[1] ;
+									force[2] += force_mag_norm*d_nvect[2] ;
+									*damp=ob->pd->pdef_sbdamp;
+									deflected = 2;
+								}
+							}
+							
+						}
+					}
+					if (mode == 2){ // edge intrusion test
+						
+						
+						//t= 0.5;	// this is labda of line, can use it optimize quad intersection
+						// sorry but no .. see below (BM)					
+						if(LineIntersectsTriangle(opco, npco, nv1, nv2, nv3, &t) ) {
+							if (t < min_t) {
+								deflected = 1;
+								deflected_now = 1;
+							}
+						}
+						
+						if (mface->v4) {
+							if( LineIntersectsTriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
+								if (t2 < min_t) {
+									deflected = 1;
+									deflected_now = 2;
+								}
+							}
+						}
+						
+						if ((deflected_now > 0) && ((t < min_t) ||(t2 < min_t))) {
+							min_t = t;
+							ds_object = d_object;
+							ds_face = d_face;
+							if (deflected_now==1) {
+								min_t = t;
+								VECCOPY(dv1, nv1);
+								VECCOPY(dv2, nv2);
+								VECCOPY(dv3, nv3);
+							}
+							else {
+								min_t = t2;
+								VECCOPY(dv1, nv1);
+								VECCOPY(dv2, nv3);
+								VECCOPY(dv3, nv4);
+							}
+						}
+					}
+					mface++;
+					
+                }//while a		
+				/* give it away */
+				if (disp_mesh) {
+					displistmesh_free(disp_mesh);
+				}
+				if (dm) {
+					if (dmNeedsFree) dm->release(dm);
+				} 
+		} // if(ob->pd && ob->pd->deflect) 
+       }//if (base->object->type==OB_MESH && (base->lay & par_layer)) {
+    base = base->next;
+	} // while (base)
+	
+	if (mode == 1){ // face 
+//		recursion = 0;
+		return deflected;
+	}
+	
+	if (mode == 2){ // edge intrusion test
+		if (deflected) {
+			VECSUB(edge1, dv1, dv2);
+			VECSUB(edge2, dv3, dv2);
+			Crossf(d_nvect, edge2, edge1);
+			n_mag = Normalise(d_nvect);
+			// return point of intersection
+			colco[0] = opco[0] + (min_t * (npco[0] - opco[0]));
+			colco[1] = opco[1] + (min_t * (npco[1] - opco[1]));
+			colco[2] = opco[2] + (min_t * (npco[2] - opco[2]));
+			
+			VECCOPY(facenormal,d_nvect);					
+		}
+	}
+//	recursion = 0;
+	return deflected;
+}
 
 /* aye this belongs to arith.c */
 static void Vec3PlusStVec(float *v, float s, float *v1)
@@ -355,7 +608,7 @@ static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *col
 	if (bounce) *bounce *= 1.5f;
 				
 				
-	deflected= SoftBodyDetectCollision(s_actpos, s_futurepos, collisionpos,
+	deflected= sb_detect_collision(s_actpos, s_futurepos, collisionpos,
 					facenormal, cf, force , 1,
 					G.scene->r.cfra, ob->lay, ob);
 	return(deflected);

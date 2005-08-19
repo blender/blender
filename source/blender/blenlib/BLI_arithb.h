@@ -870,6 +870,7 @@ Normalise2(
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 			  
+int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 			  
 #ifdef __cplusplus
 }
