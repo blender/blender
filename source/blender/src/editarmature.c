@@ -1251,6 +1251,7 @@ void addvert_armature(void)
 {
 	EditBone *ebone, *newbone, *partest;
 	float *curs, mat[3][3],imat[3][3];
+	int to_root= 0;
 	
 	TEST_EDITARMATURE;
 	
@@ -1258,23 +1259,38 @@ void addvert_armature(void)
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
 		if(ebone->flag & (BONE_ACTIVE|BONE_TIPSEL)) break;
 	
-	if(ebone==NULL) return;
+	if(ebone==NULL) {
+		for (ebone = G.edbo.first; ebone; ebone=ebone->next)
+			if(ebone->flag & (BONE_ACTIVE|BONE_ROOTSEL)) break;
+		
+		if(ebone==NULL) 
+			return;
+		to_root= 1;
+	}
 	
 	deselectall_armature(0);
 	newbone= add_editbone();
 	newbone->flag |= BONE_ACTIVE;
 	
-	VECCOPY(newbone->head, ebone->tail);
-	
-	/* See if there are any ik children of the parent */
-	for (partest = G.edbo.first; partest; partest= partest->next){
-		if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
-			break;
+	if(to_root) {
+		VECCOPY(newbone->head, ebone->head);
+		
+		newbone->parent= ebone->parent;
 	}
-	if(!partest)
-		newbone->flag |= BONE_IK_TOPARENT;
-	
-	newbone->parent= ebone;
+	else {
+		VECCOPY(newbone->head, ebone->tail);
+
+		
+		/* See if there are any ik children of the parent */
+		for (partest = G.edbo.first; partest; partest= partest->next){
+			if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
+				break;
+		}
+		if(!partest)
+			newbone->flag |= BONE_IK_TOPARENT;
+		
+		newbone->parent= ebone;
+	}
 	
 	curs= give_cursor();
 	VECCOPY(newbone->tail, curs);
