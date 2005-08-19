@@ -691,7 +691,8 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		}
 		else {
 			for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
-				contrib+= dist_bone_deform(pchan, vec, co);
+				if(pchan->bone->boneclass==BONE_SKINNABLE)
+					contrib+= dist_bone_deform(pchan, vec, co);
 			}
 		}
 

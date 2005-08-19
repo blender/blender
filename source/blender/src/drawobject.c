@@ -101,6 +101,7 @@
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
 #include "BDR_editobject.h"
+#include "BDR_vpaint.h"
 
 #include "BSE_view.h"
 #include "BSE_drawview.h"
@@ -1066,7 +1067,7 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col)
 {
 	Mesh *me = ob->data;
-	float fr, fg, fb, input = 0.0;
+	float fr, fg, fb, input = 0.0f;
 	int i;
 
 	if (me->dvert) {
@@ -1075,33 +1076,13 @@ static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col
 				input+=me->dvert[vert].dw[i].weight;		
 	}
 
-	CLAMP(input, 0.0, 1.0);
-
-	fr = fg = fb = 85;
-	if (input<=0.25f){
-		fr=0.0f;
-		fg=255.0f * (input*4.0f);
-		fb=255.0f;
-	}
-	else if (input<=0.50f){
-		fr=0.0f;
-		fg=255.0f;
-		fb=255.0f * (1.0f-((input-0.25f)*4.0f)); 
-	}
-	else if (input<=0.75){
-		fr=255.0f * ((input-0.50f)*4.0f);
-		fg=255.0f;
-		fb=0.0f;
-	}
-	else if (input<=1.0){
-		fr=255.0f;
-		fg=255.0f * (1.0f-((input-0.75f)*4.0f)); 
-		fb=0.0f;
-	}
-
-	col[3] = (unsigned char)(fr * ((input/2.0f)+0.5f));
-	col[2] = (unsigned char)(fg * ((input/2.0f)+0.5f));
-	col[1] = (unsigned char)(fb * ((input/2.0f)+0.5f));
+	CLAMP(input, 0.0f, 1.0f);
+	
+	weight_to_rgb(input, &fr, &fg, &fb);
+	
+	col[3] = (unsigned char)(fr * 255.0f);
+	col[2] = (unsigned char)(fg * 255.0f);
+	col[1] = (unsigned char)(fb * 255.0f);
 	col[0] = 255;
 }
 static unsigned char *calc_weightpaint_colors(Object *ob) 

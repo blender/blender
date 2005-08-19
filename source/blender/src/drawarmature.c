@@ -1099,8 +1099,9 @@ static void draw_pose_channels(Base *base, int dt)
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone= pchan->bone;
 				if(bone && !(bone->flag & BONE_HIDDEN_P)) {
-					if(bone->flag & (BONE_SELECTED))
-						draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
+					if(bone->boneclass==BONE_SKINNABLE)
+						if(bone->flag & (BONE_SELECTED))
+							draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
 				}
 			}
 			
@@ -1301,8 +1302,9 @@ static void draw_ebones(Object *ob, int dt)
 
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
 			if(!(eBone->flag & BONE_HIDDEN_A))
-				if(eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
-					draw_sphere_bone_dist(smat, imat, eBone->flag, NULL, eBone);
+				if(eBone->boneclass==BONE_SKINNABLE)
+					if(eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
+						draw_sphere_bone_dist(smat, imat, eBone->flag, NULL, eBone);
 		}
 		
 		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);

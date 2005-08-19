@@ -174,10 +174,12 @@ void recalcData(TransInfo *t)
 					/* If this bone has a parent tip that has been moved */
 					if (ebo->parent->flag & BONE_TIPSEL){
 						VECCOPY (ebo->head, ebo->parent->tail);
+						if(t->mode==TFM_BONE_ENVELOPE) ebo->rad_head= ebo->parent->rad_tail;
 					}
 					/* If this bone has a parent tip that has NOT been moved */
 					else{
 						VECCOPY (ebo->parent->tail, ebo->head);
+						if(t->mode==TFM_BONE_ENVELOPE) ebo->parent->rad_tail= ebo->rad_head;
 					}
 				}
 				

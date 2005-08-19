@@ -62,6 +62,7 @@
 #include "DNA_image_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -1098,21 +1099,26 @@ static float ve_median[4];
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 {
+	static int curdef=0;
+	static float *defweightp= NULL;
 	EditMesh *em = G.editMesh;
-	EditVert *eve;
+	EditVert *eve, *evedef=NULL;
 	EditEdge *eed;
 	float median[4];
 	int tot, totw, totedge;
+	char defstr[320];
 	
 	median[0]= median[1]= median[2]= median[3]= 0.0;
 	tot= totw= totedge= 0;
-	
+	defstr[0]= 0;
+
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {
+				evedef= eve;
 				tot++;
 				VecAddf(median, median, eve->co);
 			}
@@ -1126,6 +1132,28 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					median[3]+= eed->crease;
 				}
 				eed= eed->next;
+			}
+		}
+		/* check for defgroups */
+		if(tot==1 && evedef->totweight) {
+			bDeformGroup *dg;
+			int i, max=1, init=1;
+			char str[32];
+			
+			for (i=0; i<evedef->totweight; i++){
+				dg = BLI_findlink (&ob->defbase, evedef->dw[i].def_nr);
+				max+= sprintf(str, "%s %%x%d|", dg->name, evedef->dw[i].def_nr); 
+				if(max<320) strcat(defstr, str);
+				
+				if(curdef==evedef->dw[i].def_nr) {
+					init= 0;
+					defweightp= &evedef->dw[i].weight;
+				}
+			}
+			
+			if(init) {	// needs new initialized 
+				curdef= evedef->dw[0].def_nr;
+				defweightp= &evedef->dw[0].weight;
 			}
 		}
 	}
@@ -1206,7 +1234,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",			230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
 		
 		QUATCOPY(ve_median, median);
 		
@@ -1217,6 +1245,14 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
 			if(totw==1)
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			
+			if(defstr[0]) {
+				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		10, 40, 290, 20, NULL, 0.0, 0.0, 0, 0, "");
+
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_NOP, "Weight:",			10, 20, 150, 19, defweightp, 0.0f, 1.0f, 10, 3, "Weight value");
+				uiDefButI(block, MENU, REDRAWVIEW3D, defstr,	160, 20, 140, 19, &curdef, 0.0, 0.0, 0, 0, "Current Vertex Group");
+			}
 		}
 		else {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");

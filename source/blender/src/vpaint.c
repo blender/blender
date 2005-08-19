@@ -442,6 +442,35 @@ void sample_vpaint()	/* frontbuf */
 	addqueue(curarea->win, REDRAW, 1); // needed for when panel is open...
 }
 
+/* only used in drawobject.c now... */
+void weight_to_rgb(float input, float *fr, float *fg, float *fb)
+{
+	float blend;
+	
+	blend= ((input/2.0f)+0.5f);
+	
+	if (input<=0.25f){	// blue->cyan
+		*fr= 0.0f;
+		*fg= blend*input*4.0f;
+		*fb= blend;
+	}
+	else if (input<=0.50f){	// cyan->green
+		*fr= 0.0f;
+		*fg= blend;
+		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
+	}
+	else if (input<=0.75){	// green->yellow
+		*fr= blend * ((input-0.50f)*4.0f);
+		*fg= blend;
+		*fb= 0.0f;
+	}
+	else if (input<=1.0){ // yellow->red
+		*fr= blend;
+		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
+		*fb= 0.0f;
+	}
+}
+
 void init_vertexpaint()
 {
 	
@@ -797,6 +826,89 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 	
 }
 
+static MDeformWeight *get_defweight(MDeformVert *dv, int defgroup)
+{
+	int i;
+	for (i=0; i<dv->totweight; i++){
+		if (dv->dw[i].def_nr == defgroup)
+			return dv->dw+i;
+	}
+	return NULL;
+}
+
+/* used for 3d view */
+/* cant sample frontbuf, weight colors are interpolated too unpredictable */
+/* so we return the closest value to vertex, wich is actually correct anyway */
+void sample_wpaint()
+{
+	extern float editbutvweight;
+	Object *ob= OBACT;
+	Mesh *me= get_mesh(ob);
+	int index;
+	short mval[2], sco[2];
+	
+	getmouseco_areawin(mval);
+	index= sample_backbuf(mval[0], mval[1]);
+	
+	if(index && index<=me->totface) {
+		MFace *mface;
+		DerivedMesh *dm;
+		MDeformWeight *dw;
+		float w1, w2, w3, w4, co[3], fac;
+		int needsFree;
+		
+		dm = mesh_get_derived_deform(ob, &needsFree);
+		
+		mface= ((MFace *)me->mface) + index-1;
+		
+		/* calc 3 or 4 corner weights */
+		dm->getVertCo(dm, mface->v1, co);
+	 	project_short_noclip(co, sco);
+		w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+		
+		dm->getVertCo(dm, mface->v2, co);
+	 	project_short_noclip(co, sco);
+		w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+		
+		dm->getVertCo(dm, mface->v3, co);
+	 	project_short_noclip(co, sco);
+		w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+		
+		if(mface->v4) {
+			dm->getVertCo(dm, mface->v4, co);
+			project_short_noclip(co, sco);
+			w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+		}
+		else w4= 1.0e10;
+		
+		fac= MIN4(w1, w2, w3, w4);
+		if(w1==fac) {
+			dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
+			if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+		}
+		else if(w2==fac) {
+			dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
+			if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+		}
+		else if(w3==fac) {
+			dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
+			if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+		}
+		else if(w4==fac) {
+			if(mface->v4) {
+				dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
+				if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+			}
+		}
+		
+		if (needsFree)
+			dm->release(dm);
+		
+	}
+	allqueue(REDRAWBUTSEDIT, 0);
+	
+}
+
 
 void weight_paint(void)
 {
@@ -812,6 +924,11 @@ void weight_paint(void)
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
+	
+	if(G.qual & LR_CTRLKEY) {
+		sample_wpaint();
+		return;
+	}
 	
 	if(indexar==NULL) init_vertexpaint();
 	
