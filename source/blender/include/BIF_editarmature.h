@@ -43,7 +43,7 @@ typedef struct EditBone
 	struct EditBone *parent;/*	Editbones have a one-way link  (i.e. children refer
 									to parents.  This is converted to a two-way link for
 									normal bones when leaving editmode.	*/
-	void	*temp;		/*	Used to store temporary data */
+	void	*temp;			/*	Used to store temporary data */
 
 	char	name[32];
 	float	roll;			/*	Roll along axis.  We'll ultimately use the axis/angle method
@@ -59,17 +59,14 @@ typedef struct EditBone
 	int		flag;
 
 	int		parNr;		/* Used for retrieving values from the menu system */
-	/*	Storage for transformation data used by the posing system.
-		Maybe a better solution would be to make bones a blenderObject
-		variant?  Or perhaps to use a TOTALLY custom transformation scheme
-		for pose element, rather than trying to use the existing transObject
-		system?
-	*/
+	
 	float dist, weight;
 	float xwidth, length, zwidth;	/* put them in order! transform uses this as scale */
 	float ease1, ease2;
+	float rad_head, rad_tail;
 	short boneclass, segments;
-
+	
+	float oldlength;				/* for envelope scaling */
 
 } EditBone;
 
@@ -126,6 +123,10 @@ void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 void armature_flip_names(void);
 EditBone *armature_bone_get_mirrored(EditBone *ebo);
+
+void hide_selected_armature_bones(void);
+void hide_unselected_armature_bones(void);
+void show_all_armature_bones(void);
 
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000

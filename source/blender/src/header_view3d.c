@@ -3644,7 +3644,6 @@ static char *view3d_modeselect_pup(void)
 		sprintf(tempstr, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
 		strcat(string, tempstr);
 
-	
 		if ( ((Mesh*)(ob->data))->dvert)  {
 			sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
 			strcat(string, tempstr);
@@ -3704,6 +3703,7 @@ static char *propfalloff_pup(void)
 
 void do_view3d_buttons(short event)
 {
+	Object *ob= OBACT;
 	int bit;
 
 	/* watch it: if curarea->win does not exist, check that when calling direct drawing routines */
@@ -3778,7 +3778,6 @@ void do_view3d_buttons(short event)
 		
 	case B_MODESELECT:
 		if (G.vd->modeselect == V3D_OBJECTMODE_SEL) {
-			Object *ob= OBACT;
 			
 			G.vd->flag &= ~V3D_MODE;
 			G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
@@ -3837,7 +3836,7 @@ void do_view3d_buttons(short event)
 			}
 		} 
 		else if (G.vd->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
-			if (!(G.f & G_WEIGHTPAINT) && (OBACT && OBACT->type == OB_MESH) && ((((Mesh*)(OBACT->data))->dvert))) {
+			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) && ((((Mesh*)(ob->data))->dvert))) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
@@ -3847,7 +3846,6 @@ void do_view3d_buttons(short event)
 			}
 		} 
 		else if (G.vd->modeselect == V3D_POSEMODE_SEL) {
-			Object *ob= OBACT;
 			
 			if (ob && !(ob->flag & OB_POSEMODE)) {
 				G.vd->flag &= ~V3D_MODE;
@@ -3944,6 +3942,7 @@ void do_view3d_buttons(short event)
 
 static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 {
+	Object *ob= OBACT;
 	short xmax, xco= *xcoord;
 	
 	/* pull down menus */
@@ -3966,27 +3965,26 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	
 	xmax= GetButStringLength("Select");
 	if (G.obedit) {
-		if (OBACT && OBACT->type == OB_MESH) {
+		if (ob && ob->type == OB_MESH) {
 			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco,-2, xmax-3, 24, "");
-		} else if (OBACT && (OBACT->type == OB_CURVE || OBACT->type == OB_SURF)) {
+		} else if (ob && (ob->type == OB_CURVE || ob->type == OB_SURF)) {
 			uiDefPulldownBut(block, view3d_select_curvemenu, NULL, "Select", xco,-2, xmax-3, 24, "");
-		} else if (OBACT && OBACT->type == OB_FONT) {
+		} else if (ob && ob->type == OB_FONT) {
 			uiDefPulldownBut(block, view3d_select_meshmenu, NULL, "Select",	xco, -2, xmax-3, 24, "");
-		} else if (OBACT && OBACT->type == OB_MBALL) {
+		} else if (ob && ob->type == OB_MBALL) {
 			uiDefPulldownBut(block, view3d_select_metaballmenu, NULL, "Select",	xco,-2, xmax-3, 24, "");
-		} else if (OBACT && OBACT->type == OB_LATTICE) {
+		} else if (ob && ob->type == OB_LATTICE) {
 			uiDefPulldownBut(block, view3d_select_latticemenu, NULL, "Select", xco,-2, xmax-3, 24, "");
-		} else if (OBACT && OBACT->type == OB_ARMATURE) {
+		} else if (ob && ob->type == OB_ARMATURE) {
 			uiDefPulldownBut(block, view3d_select_armaturemenu, NULL, "Select",	xco,-2, xmax-3, 24, "");
 		}
 	} else if (G.f & G_FACESELECT) {
-		if (OBACT && OBACT->type == OB_MESH) {
+		if (ob && ob->type == OB_MESH) {
 			uiDefPulldownBut(block, view3d_select_faceselmenu, NULL, "Select", xco,-2, xmax-3, 24, "");
 		}
 	} else if ((G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_WEIGHTPAINT)) {
 		uiDefBut(block, LABEL,0,"", xco, 0, xmax, 20, 0, 0, 0, 0, 0, "");
 	} else {
-		Object *ob= OBACT;
 		
 		if (ob && (ob->flag & OB_POSEMODE))
 			uiDefPulldownBut(block, view3d_select_pose_armaturemenu, NULL, "Select", xco,-2, xmax-3, 24, "");
@@ -3996,31 +3994,31 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 	xco+= xmax;
 	
 	if (G.obedit) {
-		if (OBACT && OBACT->type == OB_MESH) {
+		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Mesh");
 			uiDefPulldownBut(block, view3d_edit_meshmenu, NULL, "Mesh",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_CURVE) {
+		} else if (ob && ob->type == OB_CURVE) {
 			xmax= GetButStringLength("Curve");
 			uiDefPulldownBut(block, view3d_edit_curvemenu, NULL, "Curve",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_SURF) {
+		} else if (ob && ob->type == OB_SURF) {
 			xmax= GetButStringLength("Surface");
 			uiDefPulldownBut(block, view3d_edit_curvemenu, NULL, "Surface",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_FONT) {
+		} else if (ob && ob->type == OB_FONT) {
 			xmax= GetButStringLength("Text");
 			uiDefPulldownBut(block, view3d_edit_textmenu, NULL, "Text",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_MBALL) {
+		} else if (ob && ob->type == OB_MBALL) {
 			xmax= GetButStringLength("Metaball");
 			uiDefPulldownBut(block, view3d_edit_metaballmenu, NULL, "Metaball",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_LATTICE) {
+		} else if (ob && ob->type == OB_LATTICE) {
 			xmax= GetButStringLength("Lattice");
 			uiDefPulldownBut(block, view3d_edit_latticemenu, NULL, "Lattice",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
-		} else if (OBACT && OBACT->type == OB_ARMATURE) {
+		} else if (ob && ob->type == OB_ARMATURE) {
 			xmax= GetButStringLength("Armature");
 			uiDefPulldownBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
@@ -4032,14 +4030,12 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 		xco+= xmax;
 	} 
 	else if (G.f & G_FACESELECT) {
-		if (OBACT && OBACT->type == OB_MESH) {
+		if (ob && ob->type == OB_MESH) {
 			xmax= GetButStringLength("Face");
 			uiDefPulldownBut(block, view3d_faceselmenu, NULL, "Face",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
 	} else {
-		Object *ob= OBACT;
-		
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xmax= GetButStringLength("Pose");
 			uiDefPulldownBut(block, view3d_pose_armaturemenu, NULL, "Pose",	xco,-2, xmax-3, 24, "");

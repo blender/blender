@@ -55,6 +55,8 @@ void free_posebuf(void);
 void copy_posebuf (void);
 void paste_posebuf (int flip);
 
+void pose_adds_vgroups(struct Object *meshobj);
+
 void pose_flip_names(void);
 
 #endif

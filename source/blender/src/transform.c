@@ -47,18 +47,19 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
+#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
 #include "DNA_listBase.h"
-#include "DNA_userdef_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"	/* PET modes			*/
 #include "DNA_screen_types.h"	/* area dimensions		*/
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_ipo_types.h"		/* some silly ipo flag	*/
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
 
 #include "BIF_editview.h"		/* arrows_move_cursor	*/
 #include "BIF_gl.h"
@@ -285,6 +286,10 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Push/Pull";
 		case TFM_CREASE:
 			return "Crease";
+		case TFM_BONESIZE:
+			return "Bone Width";
+		case TFM_BONE_ENVELOPE:
+			return "Bone Envelope";
 	}
 	return "Transform";
 }
@@ -361,29 +366,39 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.state = TRANS_CONFIRM;
 			break;
 		case GKEY:
-			restoreTransObjects(&Trans);
-			initTransModeFlags(&Trans, TFM_TRANSLATION);
-			initTranslation(&Trans);
-			Trans.redraw = 1;
+			/* only switch when... */
+			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) { 
+				restoreTransObjects(&Trans);
+				initTransModeFlags(&Trans, TFM_TRANSLATION);
+				initTranslation(&Trans);
+				Trans.redraw = 1;
+			}
 			break;
 		case SKEY:
-			restoreTransObjects(&Trans);
-			initTransModeFlags(&Trans, TFM_RESIZE);
-			initResize(&Trans);
-			Trans.redraw = 1;
+			/* only switch when... */
+			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) { 
+				restoreTransObjects(&Trans);
+				initTransModeFlags(&Trans, TFM_RESIZE);
+				initResize(&Trans);
+				Trans.redraw = 1;
+			}
 			break;
 		case RKEY:
-			if (Trans.mode == TFM_ROTATION) {
-				restoreTransObjects(&Trans);
-				initTransModeFlags(&Trans, TFM_TRACKBALL);
-				initTrackball(&Trans);
+			/* only switch when... */
+			if( ELEM4(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) { 
+				
+				if (Trans.mode == TFM_ROTATION) {
+					restoreTransObjects(&Trans);
+					initTransModeFlags(&Trans, TFM_TRACKBALL);
+					initTrackball(&Trans);
+				}
+				else {
+					restoreTransObjects(&Trans);
+					initTransModeFlags(&Trans, TFM_ROTATION);
+					initRotation(&Trans);
+				}
+				Trans.redraw = 1;
 			}
-			else {
-				restoreTransObjects(&Trans);
-				initTransModeFlags(&Trans, TFM_ROTATION);
-				initRotation(&Trans);
-			}
-			Trans.redraw = 1;
 			break;
 		case CKEY:
 			if (G.qual & LR_ALTKEY) {
@@ -595,7 +610,16 @@ void initTransform(int mode, int context) {
 		initCrease(&Trans);
 		break;
 	case TFM_BONESIZE:
-		initBoneSize(&Trans);
+		{	/* used for both B-Bone width (bonesize) as for deform-dist (envelope) */
+			bArmature *arm= Trans.poseobj->data;
+			if(arm->drawtype==ARM_ENVELOPE)
+				initBoneEnvelope(&Trans);
+			else
+				initBoneSize(&Trans);
+		}
+		break;
+	case TFM_BONE_ENVELOPE:
+		initBoneEnvelope(&Trans);
 		break;
 	}
 }
@@ -675,6 +699,13 @@ void initManipulator(int mode)
 	Trans.state = TRANS_RUNNING;
 
 	Trans.context = CTX_NONE;
+	
+	/* automatic switch to scaling bone envelopes */
+	if(mode==TFM_RESIZE && G.obedit && G.obedit->type==OB_ARMATURE) {
+		bArmature *arm= G.obedit->data;
+		if(arm->drawtype==ARM_ENVELOPE)
+			mode= TFM_BONE_ENVELOPE;
+	}
 
 	initTrans(&Trans);					// internal data, mouse, vectors
 
@@ -2251,13 +2282,13 @@ void Mirror(short mode)
 	scrarea_queue_headredraw(curarea);
 }
 
-/* ******************** EditBone scaling *************** */
+/* ******************** EditBone (B-bone) width scaling *************** */
 
 static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3]) 
 {
 	float tmat[3][3], smat[3][3], oldy;
 	float sizemat[3][3];
-		
+	
 	Mat3MulMat3(smat, mat, td->mtx);
 	Mat3MulMat3(tmat, td->smtx, smat);
 	
@@ -2357,10 +2388,86 @@ void initBoneSize(TransInfo *t)
 	t->snap[2] = t->snap[1] * 0.1f;
 	t->transform = BoneSize;
 	t->fac = (float)sqrt( (float)(
-						   (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
-						   +
-						   (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
-						   ) );
+								  (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+								  +
+								  (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+								  ) );
+	
+	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+/* ******************** EditBone envelope *************** */
+
+int BoneEnvelope(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[50];
+	
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		float dx= (float)(t->center2d[0] - t->shiftmval[0]);
+		float dy= (float)(t->center2d[1] - t->shiftmval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+		
+		dx= (float)(t->center2d[0] - mval[0]);
+		dy= (float)(t->center2d[1] - mval[1]);
+		ratio+= 0.1f*(float)(sqrt( dx*dx + dy*dy)/t->fac -ratio);
+		
+	}
+	else {
+		float dx= (float)(t->center2d[0] - mval[0]);
+		float dy= (float)(t->center2d[1] - mval[1]);
+		ratio = (float)sqrt( dx*dx + dy*dy)/t->fac;
+	}
+	
+	snapGrid(t, &ratio);
+	
+	applyNumInput(&t->num, &ratio);
+	
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+		
+		outputNumInput(&(t->num), c);
+		sprintf(str, "Envelope: %s", c);
+	}
+	else {
+		sprintf(str, "Envelope: %3f", ratio);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if(td->val) *td->val= td->ival*ratio;
+	}
+	
+	recalcData(t);
+	
+	headerprint(str);
+	
+	force_draw(0);
+	
+	if(!(t->flag & T_USES_MANIPULATOR)) helpline (t, t->center);
+	
+	return 1;
+}
+
+void initBoneEnvelope(TransInfo *t)
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = BoneEnvelope;
+	t->fac = (float)sqrt( (float)(
+								  (t->center2d[1] - t->imval[1])*(t->center2d[1] - t->imval[1])
+								  +
+								  (t->center2d[0] - t->imval[0])*(t->center2d[0] - t->imval[0])
+								  ) );
 	
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
 }

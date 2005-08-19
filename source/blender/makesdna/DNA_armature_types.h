@@ -49,7 +49,7 @@ typedef struct Bone {
 	ListBase		childbase;		/*	Children	*/
 	char			name[32];		/*  Name of the bone - must be unique within the armature */
 
-	float			roll, length;   /*  roll is input for editmode, length calculated */
+	float			roll;   /*  roll is input for editmode, length calculated */
 	float			head[3];		
 	float			tail[3];		/*	head/tail and roll in Bone Space	*/
 	float			bone_mat[3][3]; /*  rotation derived from head/tail/roll */
@@ -60,9 +60,10 @@ typedef struct Bone {
 	float			arm_tail[3];	/*	head/tail and roll in Armature Space (rest pos) */
 	float			arm_mat[4][4];  /*  matrix: (bonemat(b)+head(b))*arm_mat(b-1), rest pos*/
 	
-	float			dist, weight;	/*  dist, weight: for non-deformgroup deforms */
-	float			xwidth, zwidth;	/*  width: for block bones */
-	float			ease1, ease2;	/*  length of bezier handles */
+	float			dist, weight;			/*  dist, weight: for non-deformgroup deforms */
+	float			xwidth, length, zwidth;	/*  width: for block bones. keep in this order, transform! */
+	float			ease1, ease2;			/*  length of bezier handles */
+	float			rad_head, rad_tail;	/* radius for head/tail sphere, defining deform as well */
 	
 	float			size[3];		/*  patch for upward compat, UNUSED! */
 	short			boneclass;
@@ -99,6 +100,7 @@ typedef struct bArmature {
 #define		ARM_OCTA		0
 #define		ARM_LINE		1
 #define		ARM_B_BONE		2
+#define		ARM_ENVELOPE	3
 
 
 /* bone->flag */
@@ -109,13 +111,16 @@ typedef struct bArmature {
 #define		BONE_TRANSFORM  8
 #define		BONE_IK_TOPARENT 16
 			/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
-#define		BONE_HIDDEN		64
+			/* hidden Bones when drawing Posechannels */
+#define		BONE_HIDDEN_P		64
 			/* For detecting cyclic dependancies */
 #define		BONE_DONE		128
 			/* active is on mouse clicks only */
 #define		BONE_ACTIVE		256
 			/* No parent rotation or scale */
 #define		BONE_HINGE		512
+			/* hidden Bones when drawing Armature Editmode */
+#define		BONE_HIDDEN_A	1024
 
 /* bone->flag  bits */
 #define		BONE_IK_TOPARENTBIT		4

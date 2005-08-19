@@ -254,6 +254,9 @@ int Crease(TransInfo *t, short mval[2]);
 void initBoneSize(TransInfo *t);
 int BoneSize(TransInfo *t, short mval[2]);
 
+void initBoneEnvelope(TransInfo *t);
+int BoneEnvelope(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void count_bone_select(TransInfo *t, struct ListBase *lb, int do_it);

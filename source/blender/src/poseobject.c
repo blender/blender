@@ -37,6 +37,8 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -45,6 +47,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -54,6 +57,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
 #include "BIF_editconstraint.h"
+#include "BIF_editdeform.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
@@ -527,6 +531,62 @@ void paste_posebuf (int flip)
 	BIF_undo_push("Paste Action Pose");
 }
 
+/* ********************************************** */
+
+void pose_adds_vgroups(Object *meshobj)
+{
+	Object *poseobj= meshobj->parent;
+	bPoseChannel *pchan;
+	Bone *bone;
+	bDeformGroup *dg;
+	Mesh *me= meshobj->data;
+	MVert *mvert;
+	float head[3], tail[3], vec[3], fac;
+	int i;
+	
+	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
+	
+	for(pchan= poseobj->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone= pchan->bone;
+		if(bone->flag & (BONE_SELECTED)) {
+			
+			/* check if mesh has vgroups */
+			dg= get_named_vertexgroup(meshobj, bone->name);
+			if(dg==NULL)
+				dg= add_defgroup_name(meshobj, bone->name);
+			
+			/* get the root of the bone in global coords */
+			VECCOPY(head, bone->arm_head);
+			Mat4MulVecfl(poseobj->obmat, head);
+			
+            /* get the tip of the bone in global coords */
+			VECCOPY(tail, bone->arm_tail);
+            Mat4MulVecfl(poseobj->obmat, tail);
+			
+			/* todo; get the optimal vertices instead of mverts */
+			mvert= me->mvert;
+			for ( i=0 ; i < me->totvert ; i++ , mvert++) {
+				VECCOPY(vec, mvert->co);
+				 Mat4MulVecfl(meshobj->obmat, vec);
+				 
+				 /* get the distance-factor from the vertex to bone */
+				 fac= distfactor_to_bone (vec, head, tail, bone->rad_head, bone->rad_tail, bone->dist);
+				 
+				 /* add to vgroup. this call also makes me->dverts */
+				 if(fac!=0.0f) 
+					 add_vert_to_defgroup (meshobj, dg, i, fac, WEIGHT_REPLACE);
+				 else
+					 remove_vert_defgroup (meshobj, dg, i);
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	
+	DAG_object_flush_update(G.scene, meshobj, OB_RECALC_DATA);	// and all its relations
+
+}
 
 /* ********************************************** */
 

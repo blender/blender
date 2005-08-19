@@ -127,12 +127,16 @@ static void transform_armature_mirror_update(void)
 					eboflip->tail[0]= -ebo->tail[0];
 					eboflip->tail[1]= ebo->tail[1];
 					eboflip->tail[2]= ebo->tail[2];
+					eboflip->rad_tail= ebo->rad_tail;
 				}
 				if(ebo->flag & BONE_ROOTSEL) {
 					eboflip->head[0]= -ebo->head[0];
 					eboflip->head[1]= ebo->head[1];
 					eboflip->head[2]= ebo->head[2];
+					eboflip->rad_head= ebo->rad_head;
 				}
+				if(ebo->flag & BONE_SELECTED)
+					eboflip->dist= ebo->dist;
 			}
 		}
 	}
@@ -174,6 +178,17 @@ void recalcData(TransInfo *t)
 					/* If this bone has a parent tip that has NOT been moved */
 					else{
 						VECCOPY (ebo->parent->tail, ebo->head);
+					}
+				}
+				
+				if(arm->drawtype==ARM_ENVELOPE) {
+					if(ebo->oldlength==0.0f) {
+						ebo->rad_head= 0.25f*ebo->length;
+						ebo->rad_tail= 0.10f*ebo->length;
+						if(ebo->parent) {
+							if(ebo->rad_head > ebo->parent->rad_tail)
+								ebo->rad_head= ebo->parent->rad_tail;
+						}
 					}
 				}
 			}
@@ -260,9 +275,8 @@ void initTransModeFlags(TransInfo *t, int mode)
 		t->flag |= T_NO_CONSTRAINT;
 		break;
 	case TFM_SHEAR:
-		t->flag |= T_NO_CONSTRAINT;
-		break;
 	case TFM_CREASE:
+	case TFM_BONE_ENVELOPE:
 		t->flag |= T_NO_CONSTRAINT;
 		break;
 	}

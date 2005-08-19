@@ -163,8 +163,10 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		eBone->zwidth= curBone->zwidth;
 		eBone->ease1= curBone->ease1;
 		eBone->ease2= curBone->ease2;
+		eBone->rad_head= curBone->rad_head;
+		eBone->rad_tail= curBone->rad_tail;
 		eBone->segments = curBone->segments;		
-		eBone->boneclass = curBone->boneclass;		
+		eBone->boneclass = curBone->boneclass;
 		
 		BLI_addtail (list, eBone);
 		
@@ -256,6 +258,8 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 		newBone->zwidth = eBone->zwidth;
 		newBone->ease1= eBone->ease1;
 		newBone->ease2= eBone->ease2;
+		newBone->rad_head= eBone->rad_head;
+		newBone->rad_tail= eBone->rad_tail;
 		newBone->segments= eBone->segments;
 		newBone->boneclass = eBone->boneclass;
 		
@@ -1162,10 +1166,10 @@ static EditBone *add_editbone(void)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_addtail(&G.edbo, bone);
-	
 	strcpy (bone->name,"Bone");
 	unique_editbone_name (bone->name);
+	
+	BLI_addtail(&G.edbo, bone);
 	
 	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
@@ -1174,6 +1178,8 @@ static EditBone *add_editbone(void)
 	bone->zwidth= 0.1;
 	bone->ease1= 1.0;
 	bone->ease2= 1.0;
+	bone->rad_head= 0.25;
+	bone->rad_tail= 0.1;
 	bone->segments= 1;
 	bone->boneclass = BONE_SKINNABLE;
 	
@@ -1381,6 +1387,55 @@ void adduplicate_armature(void)
 /* *************** END Adding stuff in editmode *************** */
 /* *************** Tools in editmode *********** */
 
+
+void hide_selected_armature_bones(void)
+{
+	EditBone *ebone;
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if(ebone->flag & (BONE_SELECTED)) {
+			ebone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
+			ebone->flag |= BONE_HIDDEN_A;
+		}
+	}
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void hide_unselected_armature_bones(void)
+{
+	EditBone *ebone;
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if(ebone->flag & (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL));
+		else {
+			ebone->flag &= ~BONE_ACTIVE;
+			ebone->flag |= BONE_HIDDEN_A;
+		}
+	}
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+void show_all_armature_bones(void)
+{
+	EditBone *ebone;
+	
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if(ebone->flag & BONE_HIDDEN_A) {
+			ebone->flag |= (BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL);
+			ebone->flag &= ~BONE_HIDDEN_A;
+		}
+	}
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+
+
 /* the "IK" button in editbuttons */
 void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
@@ -1558,13 +1613,34 @@ void extrude_armature(int forked)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *newbone, *ebone, *flipbone, *first=NULL, *partest;
-	int a, totbone= 0;
+	int a, totbone= 0, do_extrude;
 	
 	TEST_EDITARMATURE;
 	
+	/* since we allow root extrude too, we have to make sure selection is OK */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+		if(ebone->flag & BONE_ROOTSEL) {
+			if(ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) {
+				if(ebone->parent->flag & BONE_TIPSEL)
+					ebone->flag &= ~BONE_ROOTSEL;
+			}
+		}
+	}
+	
 	/* Duplicate the necessary bones */
 	for (ebone = G.edbo.first; ((ebone) && (ebone!=first)); ebone=ebone->next){
-		if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED)) {
+		
+		/* we extrude per definition the tip */
+		do_extrude= 0;
+		if (ebone->flag & (BONE_TIPSEL|BONE_SELECTED))
+			do_extrude= 1;
+		else if(ebone->flag & BONE_ROOTSEL) {
+			/* but, a bone with parent deselected we do the root... */
+			if(ebone->parent && (ebone->parent->flag & BONE_TIPSEL));
+			else do_extrude= 2;
+		}
+		
+		if (do_extrude) {
 			
 			/* we re-use code for mirror editing... */
 			flipbone= NULL;
@@ -1572,7 +1648,7 @@ void extrude_armature(int forked)
 				flipbone= armature_bone_get_mirrored(ebone);
 				if (flipbone) {
 					forked= 0;	// we extrude 2 different bones
-					if(flipbone->flag & (BONE_TIPSEL|BONE_SELECTED))
+					if(flipbone->flag & (BONE_TIPSEL|BONE_ROOTSEL|BONE_SELECTED))
 						/* don't want this bone to be selected... */
 						flipbone->flag &= ~(BONE_TIPSEL|BONE_SELECTED|BONE_ROOTSEL|BONE_ACTIVE);
 				}
@@ -1592,28 +1668,42 @@ void extrude_armature(int forked)
 				totbone++;
 				newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
 				
-				VECCOPY (newbone->head, ebone->tail);
-				VECCOPY (newbone->tail, newbone->head);
-				newbone->parent = ebone;
-				
-				newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+				if(do_extrude==1) {
+					VECCOPY (newbone->head, ebone->tail);
+					VECCOPY (newbone->tail, newbone->head);
+					newbone->parent = ebone;
+					
+					newbone->flag = ebone->flag & BONE_TIPSEL;	// copies it, in case mirrored bone
+				}
+				else {
+					VECCOPY(newbone->head, ebone->head);
+					VECCOPY(newbone->tail, ebone->head);
+					newbone->parent= ebone->parent;
+					
+					newbone->flag= BONE_TIPSEL;
+				}
+
 				newbone->weight= ebone->weight;
 				newbone->dist= ebone->dist;
 				newbone->xwidth= ebone->xwidth;
 				newbone->zwidth= ebone->zwidth;
 				newbone->ease1= ebone->ease1;
 				newbone->ease2= ebone->ease2;
-				newbone->segments= ebone->segments;
+				newbone->rad_head= ebone->rad_tail;	// dont copy entire bone...
+				newbone->rad_tail= ebone->rad_tail;
+				newbone->segments= 1;
 				newbone->boneclass= ebone->boneclass;
 				
 				/* See if there are any ik children of the parent */
-				for (partest = G.edbo.first; partest; partest=partest->next){
-					if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
-						break;
+				if(do_extrude==1) {
+					for (partest = G.edbo.first; partest; partest=partest->next){
+						if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
+							break;
+					}
+					
+					if (!partest)
+						newbone->flag |= BONE_IK_TOPARENT;
 				}
-				
-				if (!partest)
-					newbone->flag |= BONE_IK_TOPARENT;
 				
 				strcpy (newbone->name, ebone->name);
 				
@@ -1771,7 +1861,7 @@ static void deselect_bonechildren (Object *ob, Bone *bone, int mode)
 	if (mode==0)
 		bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 	else if (mode==1) {
-		if(!(bone->flag & BONE_HIDDEN))
+		if(!(bone->flag & BONE_HIDDEN_P))
 			bone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 	}
 	else bone->flag &= ~BONE_ACTIVE;
@@ -2000,12 +2090,15 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
 	 * on the subsurf limit surface is used to generate 
 	 * the weights rather than the verts on the cage
 	 * mesh.
+	 *
+	 * ("Limit surface" = same amount of vertices as mesh, but vertices 
+     *   moved to the subsurfed position, like for 'optimal').
      */
 
     bArmature *arm;
     Bone **bonelist, **bonehandle, *bone;
     bDeformGroup **dgrouplist, **dgrouphandle, *defgroup;
-    float *distance, mindist = 0.0, weight = 0.0;
+    float *distance;
     float   root[3];
     float   tip[3];
     float real_co[3];
@@ -2043,7 +2136,7 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
                        dgroup_skinnable);
 
     /* create an array of floats that will be used for each vert
-     * to hold the distance to each bone.
+     * to hold the distance-factor to each bone.
      */
     distance = MEM_mallocN(numbones*sizeof(float), "distance");
 
@@ -2087,21 +2180,10 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
 			VECCOPY(tip, bone->arm_tail);
             Mat4MulVecfl(par->obmat, tip);
 
-            /* store the distance from the bone to
-             * the vert
+            /* store the distance-factor from the vertex to
+             * the bone
              */
-            distance[j] = dist_to_bone(real_co, root, tip);
-
-            /* if this is the first bone, or if this
-             * bone is less than mindist, then set this
-             * distance to mindist
-             */
-            if (j == 0) {
-                mindist = distance[j];
-            }
-            else if (distance[j] < mindist) {
-                mindist = distance[j];
-            }
+			distance[j]= distfactor_to_bone (real_co, root, tip, bone->rad_head, bone->rad_tail, bone->dist);
         }
 
         /* for each deform group ...
@@ -2109,31 +2191,12 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
         for (j=0; j < numbones; ++j) {
             defgroup = dgrouplist[j];
 
-            /* if the cooresponding bone is the closest one
-             * add the vert to the deform group with weight 1
+            /* add the vert to the deform group if weight!=0.0
              */
-            if (distance[j] <= mindist) {
-                add_vert_to_defgroup (ob, defgroup, i, 1.0, WEIGHT_REPLACE);
-            }
-
-            /* if the cooresponding bone is within 10% of the
-             * nearest distance, add the vert to the
-             * deform group with a weight that declines with
-             * distance
-             */
-            else if (distance[j] <= mindist*1.10) {
-                if (mindist > 0)
-                    weight = 1.0 - (distance[j] - mindist) / (mindist * 0.10);
-                add_vert_to_defgroup (ob, defgroup, i, weight, WEIGHT_REPLACE);
-            }
-            
-            /* if the cooresponding bone is outside of the 10% tolerance
-             * then remove the vert from the weight group (if it is
-             * in that group)
-             */
-            else {
+            if (distance[j]!=0.0)
+                add_vert_to_defgroup (ob, defgroup, i, distance[j], WEIGHT_REPLACE);
+            else
                 remove_vert_defgroup (ob, defgroup, i);
-            }
         }
     }
 
@@ -2191,7 +2254,7 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr) 
 {
 	if (bone->flag & BONE_SELECTED) {
-		bone->flag |= BONE_HIDDEN;
+		bone->flag |= BONE_HIDDEN_P;
 		bone->flag &= ~BONE_SELECTED;
 	}
 	return 0;
@@ -2211,12 +2274,13 @@ void hide_selected_pose_bones(void)
 				hide_selected_pose_bone);
 
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr) 
 {
 	if (~bone->flag & BONE_SELECTED) {
-		bone->flag |= BONE_HIDDEN;
+		bone->flag |= BONE_HIDDEN_P;
 	}
 	return 0;
 }
@@ -2235,12 +2299,13 @@ void hide_unselected_pose_bones(void)
 				hide_unselected_pose_bone);
 
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 static int show_pose_bone(Object *ob, Bone *bone, void *ptr) 
 {
-	if (bone->flag & BONE_HIDDEN) {
-		bone->flag &= ~BONE_HIDDEN;
+	if (bone->flag & BONE_HIDDEN_P) {
+		bone->flag &= ~BONE_HIDDEN_P;
 		bone->flag |= BONE_SELECTED;
 	}
 
@@ -2261,6 +2326,7 @@ void show_all_pose_bones(void)
 				show_pose_bone);
 
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -2317,86 +2383,90 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
-	/* we alter newname string... so make copy */
-	BLI_strncpy(newname, newnamep, MAXBONENAME);
-	/* we use oldname for search... so make copy */
-	BLI_strncpy(oldname, oldnamep, MAXBONENAME);
-	
-	/* now check if we're in editmode, we need to find the unique name */
-	if(G.obedit && G.obedit->data==arm) {
-		EditBone	*eBone;
+	/* names better differ! */
+	if(strncmp(oldnamep, newnamep, MAXBONENAME)) {
+		
+		/* we alter newname string... so make copy */
+		BLI_strncpy(newname, newnamep, MAXBONENAME);
+		/* we use oldname for search... so make copy */
+		BLI_strncpy(oldname, oldnamep, MAXBONENAME);
+		
+		/* now check if we're in editmode, we need to find the unique name */
+		if(G.obedit && G.obedit->data==arm) {
+			EditBone	*eBone;
 
-		eBone= editbone_name_exists(oldname);
-		if(eBone) {
-			unique_editbone_name (newname);
-			BLI_strncpy(eBone->name, newname, MAXBONENAME);
-		}
-		else return;
-	}
-	else {
-		Bone *bone= get_named_bone (arm, oldname);
-
-		if(bone) {
-			unique_bone_name (arm, newname);
-			BLI_strncpy(bone->name, newname, MAXBONENAME);
-		}
-		else return;
-	}
-	
-	/* do entire dbase */
-	for(ob= G.main->object.first; ob; ob= ob->id.next) {
-		/* we have the object using the armature */
-		if(arm==ob->data) {
-			Object *cob;
-			bAction  *act;
-			bActionChannel *chan;
-
-			/* Rename action channel if necessary */
-			act = ob->action;
-			if (act && !act->id.lib){
-				/*	Find the appropriate channel */
-				chan= get_named_actionchannel(act, oldname);
-				if(chan) BLI_strncpy(chan->name, newname, MAXBONENAME);
+			eBone= editbone_name_exists(oldname);
+			if(eBone) {
+				unique_editbone_name (newname);
+				BLI_strncpy(eBone->name, newname, MAXBONENAME);
 			}
-	
-			/* Rename the pose channel, if it exists */
-			if (ob->pose) {
-				bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
-				if (pchan) {
-					BLI_strncpy (pchan->name, newname, MAXBONENAME);
+			else return;
+		}
+		else {
+			Bone *bone= get_named_bone (arm, oldname);
+
+			if(bone) {
+				unique_bone_name (arm, newname);
+				BLI_strncpy(bone->name, newname, MAXBONENAME);
+			}
+			else return;
+		}
+		
+		/* do entire dbase */
+		for(ob= G.main->object.first; ob; ob= ob->id.next) {
+			/* we have the object using the armature */
+			if(arm==ob->data) {
+				Object *cob;
+				bAction  *act;
+				bActionChannel *chan;
+
+				/* Rename action channel if necessary */
+				act = ob->action;
+				if (act && !act->id.lib){
+					/*	Find the appropriate channel */
+					chan= get_named_actionchannel(act, oldname);
+					if(chan) BLI_strncpy(chan->name, newname, MAXBONENAME);
 				}
-			}
-			
-			/* and actually do the NLA too */
-			/* (todo) */
-			
-			/* Update any object constraints to use the new bone name */
-			for(cob= G.main->object.first; cob; cob= cob->id.next) {
-				if(cob->constraints.first)
-					constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
-				if (cob->pose) {
-					bPoseChannel *pchan;
-					for (pchan = cob->pose->chanbase.first; pchan; pchan=pchan->next) {
-						constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
+		
+				/* Rename the pose channel, if it exists */
+				if (ob->pose) {
+					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
+					if (pchan) {
+						BLI_strncpy (pchan->name, newname, MAXBONENAME);
 					}
 				}
-			}
-			
-		}
 				
-		/* See if an object is parented to this armature */
-		if (ob->parent && (ob->parent->data == arm)) {
-			if(ob->partype==PARBONE) {
-				/* bone name in object */
-				if (!strcmp(ob->parsubstr, oldname))
-					BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
+				/* and actually do the NLA too */
+				/* (todo) */
+				
+				/* Update any object constraints to use the new bone name */
+				for(cob= G.main->object.first; cob; cob= cob->id.next) {
+					if(cob->constraints.first)
+						constraint_bone_name_fix(ob, &cob->constraints, oldname, newname);
+					if (cob->pose) {
+						bPoseChannel *pchan;
+						for (pchan = cob->pose->chanbase.first; pchan; pchan=pchan->next) {
+							constraint_bone_name_fix(ob, &pchan->constraints, oldname, newname);
+						}
+					}
+				}
+				
 			}
-			else if(ob->partype==PARSKEL) {
-				bDeformGroup *dg;
-				/* bone name in defgroup */
-				for (dg=ob->defbase.first; dg; dg=dg->next) {
-					if(!strcmp(dg->name, oldname))
-					   BLI_strncpy(dg->name, newname, MAXBONENAME);
+					
+			/* See if an object is parented to this armature */
+			if (ob->parent && (ob->parent->data == arm)) {
+				if(ob->partype==PARBONE) {
+					/* bone name in object */
+					if (!strcmp(ob->parsubstr, oldname))
+						BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
+				}
+				else if(ob->partype==PARSKEL) {
+					bDeformGroup *dg;
+					/* bone name in defgroup */
+					for (dg=ob->defbase.first; dg; dg=dg->next) {
+						if(!strcmp(dg->name, oldname))
+						   BLI_strncpy(dg->name, newname, MAXBONENAME);
+					}
 				}
 			}
 		}

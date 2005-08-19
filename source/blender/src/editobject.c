@@ -1953,6 +1953,13 @@ void special_editmenu(void)
 				BIF_undo_push("Shared VertexCol");
 			}
 		}
+		else if(G.f & G_WEIGHTPAINT) {
+			if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
+				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
+				if(nr==1) 
+					pose_adds_vgroups(ob);
+			}
+		}
 		else {
 			Base *base, *base_select= NULL;
 			

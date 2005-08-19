@@ -193,9 +193,16 @@ void del_defgroup (Object *ob)
 	/* Update the active material index if necessary */
 	if (ob->actdef==BLI_countlist(&ob->defbase))
 		ob->actdef--;
-
+	
 	/* Remove the group */
 	BLI_freelinkN (&ob->defbase, defgroup);
+	
+	/* remove all dverts */
+	if(ob->actdef==0) {
+		Mesh *me= ob->data;
+		free_dverts(me->dvert, me->totvert);
+		me->dvert= NULL;
+	}
 }
 
 void create_dverts(Mesh *me)
@@ -288,8 +295,11 @@ void add_vert_defnr (Object *ob, int def_nr, int vertnum,
 
 	/* get the vert
 	 */
-	dv = ((Mesh*)ob->data)->dvert + vertnum;
-
+	if(((Mesh*)ob->data)->dvert)
+		dv = ((Mesh*)ob->data)->dvert + vertnum;
+	else 
+		return;
+	
 	/* Lets first check to see if this vert is
 	 * already in the weight group -- if so
 	 * lets update it

@@ -809,6 +809,7 @@ void setwinmatrixview3d(rctf *rect)		/* rect: for picking */
 		else y1= -G.vd->dist;
 		y2= -y1;
 		
+		far*= 0.5;	// otherwise too extreme low zbuffer quality
 		near= -far;
 		orth= 1;
 	}

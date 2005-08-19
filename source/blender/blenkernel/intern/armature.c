@@ -537,56 +537,74 @@ void init_armature_deform(Object *parent, Object *ob)
 	/* bone defmats are already in the channels, chan_mat */
 }
 
-float dist_to_bone (float vec[3], float b1[3], float b2[3])
+/* using vec with dist to bone b1 - b2 */
+float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist)
 {
-/*  	float dist=0; */
+	float dist=0.0f; 
 	float bdelta[3];
 	float pdelta[3];
-	float hsqr, a, l;
-
+	float hsqr, a, l, rad;
+	
 	VecSubf (bdelta, b2, b1);
 	l = Normalise (bdelta);
-
+	
 	VecSubf (pdelta, vec, b1);
-
+	
 	a = bdelta[0]*pdelta[0] + bdelta[1]*pdelta[1] + bdelta[2]*pdelta[2];
 	hsqr = ((pdelta[0]*pdelta[0]) + (pdelta[1]*pdelta[1]) + (pdelta[2]*pdelta[2]));
-
+	
 	if (a < 0.0F){
-		//return 100000;
-		/* If we're past the end of the bone, do some weird field attenuation thing */
-		return ((b1[0]-vec[0])*(b1[0]-vec[0]) +(b1[1]-vec[1])*(b1[1]-vec[1]) +(b1[2]-vec[2])*(b1[2]-vec[2])) ;
+		/* If we're past the end of the bone, do a spherical field attenuation thing */
+		dist= ((b1[0]-vec[0])*(b1[0]-vec[0]) +(b1[1]-vec[1])*(b1[1]-vec[1]) +(b1[2]-vec[2])*(b1[2]-vec[2])) ;
+		rad= rad1;
 	}
 	else if (a > l){
-		//return 100000;
-		/* If we're past the end of the bone, do some weird field attenuation thing */
-		return ((b2[0]-vec[0])*(b2[0]-vec[0]) +(b2[1]-vec[1])*(b2[1]-vec[1]) +(b2[2]-vec[2])*(b2[2]-vec[2])) ;
+		/* If we're past the end of the bone, do a spherical field attenuation thing */
+		dist= ((b2[0]-vec[0])*(b2[0]-vec[0]) +(b2[1]-vec[1])*(b2[1]-vec[1]) +(b2[2]-vec[2])*(b2[2]-vec[2])) ;
+		rad= rad2;
 	}
 	else {
-		return (hsqr - (a*a));
+		dist= (hsqr - (a*a));
+		
+		if(l!=0.0f) {
+			rad= a/l;
+			rad= rad*rad2 + (1.0-rad)*rad1;
+		}
+		else rad= rad1;
+	}
+	
+	a= rad*rad;
+	if(dist < a) 
+		return 1.0f;
+	else {
+		l= rad+rdist;
+		l*= l;
+		if(rdist==0.0f || dist >= l) 
+			return 0.0f;
+		else {
+			a= sqrt(dist)-rad;
+			return 1.0-( a*a )/( rdist*rdist );
+		}
 	}
 }
 
 static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 {
 	Bone *bone= pchan->bone;
-	float	dist, fac, ifac;
+	float	fac;
 	float	cop[3];
-	float	bdsqr, contrib=0.0;
+	float	contrib=0.0;
 
 	if(bone==NULL) return 0.0f;
 	
-	bdsqr = bone->dist*bone->dist;
 	VECCOPY (cop, co);
 
-	dist = dist_to_bone(cop, bone->arm_head, bone->arm_tail);
+	fac= distfactor_to_bone(cop, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 	
-	if ((dist) <= bdsqr){
-		fac = (dist)/bdsqr;
-		ifac = 1.0F-fac;
+	if (fac>0.0){
 		
-		ifac*=bone->weight;
-		contrib= ifac;
+		fac*=bone->weight;
+		contrib= fac;
 		if(contrib>0.0) {
 
 			VECCOPY (cop, co);
@@ -594,7 +612,7 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 			Mat4MulVecfl(pchan->chan_mat, cop);
 			
 			VecSubf (cop, cop, co);	//	Make this a delta from the base position
-			cop[0]*=ifac; cop[1]*=ifac; cop[2]*=ifac;
+			cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
 			VecAddf (vec, vec, cop);
 		}
 	}

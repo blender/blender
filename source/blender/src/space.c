@@ -54,6 +54,7 @@
 #include "BLI_linklist.h"
 
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
@@ -1306,6 +1307,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if((G.qual==0)) 
 							hide_mball(0);
 					}
+					else if(G.obedit->type==OB_ARMATURE) {
+						if (G.qual==0)
+							hide_selected_armature_bones();
+						else if (G.qual==LR_SHIFTKEY)
+							hide_unselected_armature_bones();
+						else if (G.qual==LR_ALTKEY)
+							show_all_armature_bones();
+					}
 				}
 				else if(G.f & G_FACESELECT)
 					hide_tface();
@@ -1568,8 +1577,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.obedit) {
 					
 					if(G.qual==LR_ALTKEY) {
-						if(G.obedit->type==OB_ARMATURE)
+						if(G.obedit->type==OB_ARMATURE) {
 							initTransform(TFM_BONESIZE, CTX_NONE);
+						}
 						else
 							initTransform(TFM_SHRINKFATTEN, CTX_NONE);
 						Transform();
@@ -1581,7 +1591,15 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.qual==LR_SHIFTKEY)
 						snapmenu();
 					else if(G.qual==0) {
-						initTransform(TFM_RESIZE, CTX_NONE);
+						if(G.obedit->type==OB_ARMATURE) {
+							bArmature *arm= G.obedit->data;
+							if(arm->drawtype==ARM_ENVELOPE)
+								initTransform(TFM_BONE_ENVELOPE, CTX_NONE);
+							else
+								initTransform(TFM_RESIZE, CTX_NONE);
+						}
+						else
+							initTransform(TFM_RESIZE, CTX_NONE);
 						Transform();
 					}
 					else if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)){
@@ -1591,6 +1609,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 				}
 				else if(G.qual==LR_ALTKEY) {
+					if(G.f & G_WEIGHTPAINT)
+						ob= ob->parent;
+					if(ob && (ob->flag & OB_POSEMODE)) {
+						bArmature *arm= ob->data;
+						if( ELEM(arm->drawtype, ARM_B_BONE, ARM_ENVELOPE)) {
+							initTransform(TFM_BONESIZE, CTX_NONE);
+							Transform();
+							break;
+						}
+					}
+					
 					if(okee("Clear size")) {
 						clear_object('s');
 					}

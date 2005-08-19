@@ -51,6 +51,7 @@
 #define TFM_CREASE			13
 #define TFM_MIRROR			14
 #define TFM_BONESIZE		15
+#define TFM_BONE_ENVELOPE	16
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

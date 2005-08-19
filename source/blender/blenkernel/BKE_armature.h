@@ -78,7 +78,7 @@ void init_armature_deform(struct Object *parent, struct Object *ob);
 struct bArmature* get_armature (struct Object* ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 
-float dist_to_bone (float vec[3], float b1[3], float b2[3]);
+float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist);
 
 void where_is_armature (struct bArmature *arm);
 void where_is_armature_bone(struct Bone *bone, struct Bone *prevbone);

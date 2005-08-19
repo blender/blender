@@ -446,6 +446,22 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 				Mat3MulMat3(td->axismtx, omat, pmat);
 				Mat3Ortho(td->axismtx);
 				
+				if(t->mode==TFM_BONESIZE) {
+					bArmature *arm= t->poseobj->data;
+					
+					if(arm->drawtype==ARM_ENVELOPE) {
+						td->loc= NULL;
+						td->val= &bone->dist;
+						td->ival= bone->dist;
+					}
+					else {
+						// abusive storage of scale in the loc pointer :)
+						td->loc= &bone->xwidth;
+						VECCOPY (td->iloc, td->loc);
+						td->val= NULL;
+					}
+				}
+				
 				return 1;
 			}
 		}
@@ -466,9 +482,11 @@ static void createTransPose(Object *ob, TransInfo *t)
 	arm=get_armature (ob);
 	if (arm==NULL || ob->pose==NULL) return;
 	
-	if (arm->flag & ARM_RESTPOS){
-		notice ("Pose edit not possible while Rest Position is enabled");
-		return;
+	if (arm->flag & ARM_RESTPOS) {
+		if(t->mode!=TFM_BONESIZE) {
+			notice ("Pose edit not possible while Rest Position is enabled");
+			return;
+		}
 	}
 	if (!(ob->lay & G.vd->lay)) return;
 
@@ -507,6 +525,7 @@ static void createTransPose(Object *ob, TransInfo *t)
 static void createTransArmatureVerts(TransInfo *t)
 {
 	EditBone *ebo;
+	bArmature *arm= G.obedit->data;
 	TransData *td;
 	float mtx[3][3], smtx[3][3], delta[3], bonemat[3][3];
 
@@ -532,11 +551,57 @@ static void createTransArmatureVerts(TransInfo *t)
     td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		if (t->mode==TFM_BONESIZE) {
+		
+		ebo->oldlength= ebo->length;	// might be used for scaling
+		
+		if (t->mode==TFM_BONE_ENVELOPE) {
+			
+			if (ebo->flag & BONE_ROOTSEL){
+				td->val= &ebo->rad_head;
+				td->ival= *td->val;
+				
+				VECCOPY (td->center, ebo->head);
+				td->flag= TD_SELECTED;
+				
+				Mat3CpyMat3(td->smtx, smtx);
+				Mat3CpyMat3(td->mtx, mtx);
+				
+				td->loc = NULL;
+				td->ext = NULL;
+				td->tdi = NULL;
+				
+				td++;
+			}
+			if (ebo->flag & BONE_TIPSEL){
+				td->val= &ebo->rad_tail;
+				td->ival= *td->val;
+				VECCOPY (td->center, ebo->tail);
+				td->flag= TD_SELECTED;
+				
+				Mat3CpyMat3(td->smtx, smtx);
+				Mat3CpyMat3(td->mtx, mtx);
+				
+				td->loc = NULL;
+				td->ext = NULL;
+				td->tdi = NULL;
+				
+				td++;
+			}
+			
+		}
+		else if (t->mode==TFM_BONESIZE) {
 			if (ebo->flag & BONE_SELECTED) {
-				// abusive storage of scale in the loc pointer :)
-				td->loc= &ebo->xwidth;
-				VECCOPY (td->iloc, td->loc);
+				if(arm->drawtype==ARM_ENVELOPE) {
+					td->loc= NULL;
+					td->val= &ebo->dist;
+					td->ival= ebo->dist;
+				}
+				else {
+					// abusive storage of scale in the loc pointer :)
+					td->loc= &ebo->xwidth;
+					VECCOPY (td->iloc, td->loc);
+					td->val= NULL;
+				}
 				VECCOPY (td->center, ebo->head);
 				td->flag= TD_SELECTED;
 				
@@ -551,7 +616,6 @@ static void createTransArmatureVerts(TransInfo *t)
 
 				td->ext = NULL;
 				td->tdi = NULL;
-				td->val = NULL;
 				
 				td++;
 			}
@@ -1363,7 +1427,10 @@ void special_aftertrans_update(TransInfo *t)
 	int redrawipo=0;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
-	if(G.obedit);	// nothing
+	if(G.obedit) {
+		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+			allqueue(REDRAWBUTSEDIT, 0);
+	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		bArmature *arm;
 		bAction	*act;
@@ -1415,6 +1482,10 @@ void special_aftertrans_update(TransInfo *t)
 			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
 		/* do not call DAG_object_flush_update always, we dont want actions to update, for inserting keys */
+		
+		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+			allqueue(REDRAWBUTSEDIT, 0);
+
 	}
 	else {
 		base= FIRSTBASE;
@@ -1636,10 +1707,11 @@ void createTransData(TransInfo *t)
 		}
 		t->flag |= T_EDIT;
 		
-		/* exception... hackish, we want bonescale to use bone orientation matrix (ton) */
+		/* exception... hackish, we want bonesize to use bone orientation matrix (ton) */
 		if(t->mode==TFM_BONESIZE) {
 			t->flag &= ~T_EDIT;
 			t->flag |= T_POSE;
+			t->poseobj= ob;	/* <- tsk tsk, this is going to give issues one day */
 		}
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {

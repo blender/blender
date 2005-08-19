@@ -448,28 +448,28 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	if(me->medge) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Edges", 					10,70,70,20, 0, val, 0, 0, 0, "");
 	if(me->medge==NULL) {
-		uiDefBut(block, BUT, B_MAKEEDGES, "Make",		80,70,84,19, 0, 0, 0, 0, 0, "Adds edges data to active Mesh object, enables creases/seams and faster wireframe draw");
+		uiDefBut(block, BUT, B_MAKEEDGES, "Make",		80,70,84,19, 0, 0, 0, 0, 0, "Adds edges data to active Mesh, enables creases/seams and faster wireframe draw");
 	}
-	else uiDefBut(block, BUT, B_DELEDGES, "Delete", 	80,70,84,19, 0, 0, 0, 0, 0, "Deletes edges data from active Mesh object");
+	else uiDefBut(block, BUT, B_DELEDGES, "Delete", 	80,70,84,19, 0, 0, 0, 0, 0, "Deletes edges data from active Mesh");
 
 	if(me->mcol) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
 	if(me->mcol==NULL) {
-		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",		80,50,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active object");
+		uiDefBut(block, BUT, B_MAKEVERTCOL, "Make",		80,50,84,19, 0, 0, 0, 0, 0, "Enables vertex colour painting on active Mesh");
 	}
-	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 	80,50,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active object");
+	else uiDefBut(block, BUT, B_DELVERTCOL, "Delete", 	80,50,84,19, 0, 0, 0, 0, 0, "Deletes vertex colours on active Mesh");
 
 	if(me->tface) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "TexFace", 				10,30,70,20, 0, val, 0, 0, 0, "");
 	if(me->tface==NULL) {
-		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active object's faces for UV coordinate mapping");
+		uiDefBut(block, BUT, B_MAKE_TFACES, "Make",		80,30,84,19, 0, 0, 0, 0, 0, "Enables the active Mesh's faces for UV coordinate mapping");
 	}
-	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active object's faces");
+	else uiDefBut(block, BUT, B_DEL_TFACES, "Delete", 	80,30,84,19, 0, 0, 0, 0, 0, "Deletes UV coordinates for active Mesh's faces");
 
 	if(me->msticky) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "Sticky", 				10,10,70,20, 0, val, 0, 0, 0, "");
 	if(me->msticky==NULL) {
-		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		80,10,84,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active object from the current camera view background picture");
+		uiDefBut(block, BUT, B_MAKESTICKY, "Make",		80,10,84,19, 0, 0, 0, 0, 0, "Creates Sticky coordinates for the active Mesh from the current camera view background picture");
 	}
 	else uiDefBut(block, BUT, B_DELSTICKY, "Delete", 	80,10,84,19, 0, 0, 0, 0, 0, "Deletes Sticky texture coordinates");
 
@@ -2217,9 +2217,10 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiButSetFunc(but, armature_recalc_func, ob, NULL);
 	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	uiBlockBeginAlign(block);
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,100,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bone as octahedra");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Sticks",	110, 140,100,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bone as simple 2d lines with dots");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bones",	210, 140,100,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bone as boxes, showing subdivision and b-splines");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,75,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	85, 140,70,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 140,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 140,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
@@ -2286,7 +2287,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_HINGE, REDRAWVIEW3D, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitS(block, TOGN, 1,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
 			/* Hide in posemode flag */
-			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
 			
 			uiBlockEndAlign(block);
 			by-=60;
@@ -2346,7 +2347,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiButSetFunc(but, armature_recalc_func, ob, NULL);
 			uiDefButBitS(block, TOGN, 1,REDRAWVIEW3D, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
 			/* Hide in posemode flag */
-			uiDefButBitI(block, TOG, BONE_HIDDEN, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_P, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
 			uiBlockEndAlign(block);
 			
 			by-=60;

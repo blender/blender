@@ -976,7 +976,9 @@ void load_editMesh(void)
 	if(G.totface==0) mface= NULL;
 	else mface= MEM_callocN(G.totface*sizeof(MFace), "loadeditMesh face");
 	
-	if (G.totvert==0 || me->dvert==NULL) dvert= NULL;
+	/* are we adding dverts? */
+	if (G.totvert==0) dvert= NULL;
+	else if(G.obedit->defbase.first==NULL) dvert= NULL;
 	else dvert = MEM_callocN(G.totvert*sizeof(MDeformVert), "loadeditMesh3");
 
 	if (me->dvert) free_dverts(me->dvert, me->totvert);

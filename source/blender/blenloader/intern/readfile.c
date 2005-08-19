@@ -3373,6 +3373,22 @@ static int map_223_keybd_code_to_224_keybd_code(int code)
 	}
 }
 
+static void bone_version_238(ListBase *lb)
+{
+	Bone *bone;
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		if(bone->rad_tail==0.0f && bone->rad_head==0.0f) {
+			bone->rad_head= 0.25f*bone->length;
+			bone->rad_tail= 0.1f*bone->length;
+			
+			bone->dist-= bone->rad_head;
+			if(bone->dist<=0.0f) bone->dist= 0.0f;
+		}
+		bone_version_238(&bone->childbase);
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -4854,6 +4870,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 238) {
 		Lattice *lt;
 		Object *ob;
+		bArmature *arm;
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
 			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
@@ -4879,6 +4896,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				ob->softflag &= ~OB_SB_ENABLE;
 			}
+		}
+		
+		for(arm=main->armature.first; arm; arm= arm->id.next) {
+			bone_version_238(&arm->bonebase);
 		}
 	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
