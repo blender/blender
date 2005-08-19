@@ -1375,8 +1375,8 @@ static PyObject *Bone_hide( BPy_Bone * self )
 					      "link bone to armature before attempting to hide/unhide" );
 	} else {
 		//use bone datastruct
-		if( !( self->bone->flag & BONE_HIDDEN ) )
-			self->bone->flag |= BONE_HIDDEN;
+		if( !( self->bone->flag & BONE_HIDDEN_P ) )
+			self->bone->flag |= BONE_HIDDEN_P;
 	}
 	return EXPP_incr_ret( Py_None );
 }
@@ -1390,8 +1390,8 @@ static PyObject *Bone_unhide( BPy_Bone * self )
 					      "link bone to armature before attempting to hide/unhide" );
 	} else {
 		//use bone datastruct
-		if( self->bone->flag & BONE_HIDDEN )
-			self->bone->flag &= ~BONE_HIDDEN;
+		if( self->bone->flag & BONE_HIDDEN_P )
+			self->bone->flag &= ~BONE_HIDDEN_P;
 	}
 	return EXPP_incr_ret( Py_None );
 }
