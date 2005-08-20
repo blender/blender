@@ -4554,6 +4554,21 @@ int EdgeSlide(short immediate, float imperc)
 				return 0;
 			}
 
+			if(G.f & G_DRAW_EDGELEN){
+				if(!(tempsv->up->f & SELECT)){
+					tempsv->up->f |= SELECT;
+					tempsv->up->f2 |= 16;
+				} else {
+					tempsv->up->f2 |= ~16;
+				}
+				if(!(tempsv->down->f & SELECT)){
+					tempsv->down->f |= SELECT;
+					tempsv->down->f2 |= 16;
+				} else {
+					tempsv->down->f2 |= ~16;
+				}
+			}
+
 			if(sv) {
 				float tempdist, co[2];
 
@@ -4577,6 +4592,9 @@ int EdgeSlide(short immediate, float imperc)
 				}		
 			}
 		}   		
+		
+		
+		
 		look = look->next;   
 	}	   
 	// we should have enough info now to slide
@@ -4723,6 +4741,23 @@ int EdgeSlide(short immediate, float imperc)
 		}
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	 
 	}
+	
+	
+	look = vertlist;
+	while(look){	
+		if(look->next != NULL){
+			if(G.f & G_DRAW_EDGELEN){
+				if(tempsv->up->f2 & 16){
+					tempsv->up->f &= !SELECT;
+				}
+				if(tempsv->down->f2 & 16){
+					tempsv->down->f &= !SELECT;
+				}
+			}
+		}
+		look = look->next;
+	}
+	
 	force_draw(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	scrarea_queue_winredraw(curarea);		 
