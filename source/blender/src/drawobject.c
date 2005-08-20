@@ -279,9 +279,14 @@ void init_draw_rects(void)
 static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize) 
 {
 	float hsize= (float) rectsize/2.0f;
+//	float vals[4];
 	GLubyte dummy= 0;
 	
 	glRasterPos3fv(pos);
+//	glGetFloatv(GL_CURRENT_RASTER_POSITION_VALID, vals);
+//	printf("rasterpos %f\n", vals[0]);
+//	glGetFloatv(GL_CURRENT_RASTER_POSITION, vals);
+//	printf("pos %f %f %f %f\n", vals[0], vals[1], vals[2], vals[3]);
 	
 		/* use bitmap to shift rasterpos in pixels */
 	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
@@ -824,14 +829,14 @@ void lattice_foreachScreenVert(void (*func)(void *userData, BPoint *bp, int x, i
 	DispList *dl = find_displist(&G.obedit->disp, DL_VERTS);
 	float *co = dl?dl->verts:NULL;
 	BPoint *bp = editLatt->def;
-	float mat[4][4];
+	float pmat[4][4], vmat[4][4];
 	short s[2];
 
-	view3d_get_object_project_mat(curarea, G.obedit, mat);
+	view3d_get_object_project_mat(curarea, G.obedit, pmat, vmat);
 
 	for (i=0; i<N; i++, bp++, co+=3) {
 		if (bp->hide==0) {
-			view3d_project_short(curarea, dl?co:bp->vec, s, mat);
+			view3d_project_short_clip(curarea, dl?co:bp->vec, s, pmat, vmat);
 			func(userData, bp, s[0], s[1]);
 		}
 	}
@@ -898,15 +903,15 @@ static void drawlattice(Object *ob)
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 	short s[2];
 
 	if (eve->h==0) {
 		if (data->clipVerts) {
-			view3d_project_short(curarea, co, s, data->mat);
+			view3d_project_short_clip(curarea, co, s, data->pmat, data->vmat);
 		} else {
-			view3d_project_short_noclip(curarea, co, s, data->mat);
+			view3d_project_short_noclip(curarea, co, s, data->pmat);
 		}
 
 		data->func(data->userData, eve, s[0], s[1], index);
@@ -914,7 +919,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 }
 void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } data;
+	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
@@ -922,7 +927,7 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
@@ -935,17 +940,17 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
 	if (eed->h==0) {
 		if (data->clipVerts==1) {
-			view3d_project_short(curarea, v0co, s[0], data->mat);
-			view3d_project_short(curarea, v1co, s[1], data->mat);
+			view3d_project_short_clip(curarea, v0co, s[0], data->pmat, data->vmat);
+			view3d_project_short_clip(curarea, v1co, s[1], data->pmat, data->vmat);
 		} else {
-			view3d_project_short_noclip(curarea, v0co, s[0], data->mat);
-			view3d_project_short_noclip(curarea, v1co, s[1], data->mat);
+			view3d_project_short_noclip(curarea, v0co, s[0], data->pmat);
+			view3d_project_short_noclip(curarea, v1co, s[1], data->pmat);
 
 			if (data->clipVerts==2) {
                 if (!(s[0][0]>=0 && s[0][1]>= 0 && s[0][0]<curarea->winx && s[0][1]<curarea->winy)) 
@@ -959,7 +964,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 }
 void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } data;
+	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
@@ -967,7 +972,7 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
-	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
@@ -980,26 +985,26 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } *data = userData;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } *data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
 	short s[2];
 
 	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
-		view3d_project_short(curarea, cent, s, data->mat);
+		view3d_project_short_clip(curarea, cent, s, data->pmat, data->vmat);
 
 		data->func(data->userData, efa, s[0], s[1], index);
 	}
 }
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } data;
+	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
 	data.func = func;
 	data.userData = userData;
 
-	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
+	view3d_get_object_project_mat(curarea, G.obedit, data.pmat, data.vmat);
 
 	EM_init_index_arrays(0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
@@ -1012,12 +1017,12 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 
 void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y), void *userData)
 {
-	float mat[4][4];
+	float pmat[4][4], vmat[4][4];
 	short s[2];
 	Nurb *nu;
 	int i;
 
-	view3d_get_object_project_mat(curarea, G.obedit, mat);
+	view3d_get_object_project_mat(curarea, G.obedit, pmat, vmat);
 
 	for (nu= editNurb.first; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1025,11 +1030,11 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					view3d_project_short(curarea, bezt->vec[0], s, mat);
+					view3d_project_short_clip(curarea, bezt->vec[0], s, pmat, vmat);
 					func(userData, nu, NULL, bezt, 0, s[0], s[1]);
-					view3d_project_short(curarea, bezt->vec[1], s, mat);
+					view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
 					func(userData, nu, NULL, bezt, 1, s[0], s[1]);
-					view3d_project_short(curarea, bezt->vec[2], s, mat);
+					view3d_project_short_clip(curarea, bezt->vec[2], s, pmat, vmat);
 					func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 				}
 			}
@@ -1039,7 +1044,7 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BPoint *bp = &nu->bp[i];
 
 				if(bp->hide==0) {
-					view3d_project_short(curarea, bp->vec, s, mat);
+					view3d_project_short_clip(curarea, bp->vec, s, pmat, vmat);
 					func(userData, nu, bp, NULL, -1, s[0], s[1]);
 				}
 			}
@@ -3646,8 +3651,7 @@ void draw_object(Base *base)
 	if(zbufoff) glDisable(GL_DEPTH_TEST);
 
 	if(warning_recursive) return;
-	if(base->flag & OB_FROMDUPLI) return;
-	if(base->flag & OB_RADIO) return;
+	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
 	if(G.f & G_SIMULATION) return;
 
 	if((G.f & (G_PICKSEL))==0) {
@@ -3754,8 +3758,14 @@ void draw_object_ext(Base *base)
 	glDrawBuffer(GL_FRONT);
 	persp(PERSP_VIEW);
 
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_set_clipping(G.vd);
+	
 	draw_object(base);
 
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	G.f &= ~G_DRAW_EXT;
 
 	glFlush();		/* reveil frontbuffer drawing */
@@ -3859,7 +3869,6 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = userData;
-	MFace *mf = &me->mface[index];
 
 	if (!me->tface || !(me->tface[index].flag&TF_HIDE)) {
 		set_framebuffer_index_color(index+1);

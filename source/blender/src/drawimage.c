@@ -82,6 +82,7 @@
 #include "BIF_screen.h"
 
 #include "BSE_trans_types.h"
+#include "BSE_view.h"
 
 /* Modules used */
 #include "mydevice.h"
@@ -225,7 +226,7 @@ void uvco_to_areaco(float *vec, short *mval)
 {
 	float x, y;
 
-	mval[0]= 3200;
+	mval[0]= IS_CLIPPED;
 	
 	x= (vec[0] - G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 	y= (vec[1] - G.v2d->cur.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
@@ -242,7 +243,7 @@ void uvco_to_areaco_noclip(float *vec, short *mval)
 {
 	float x, y;
 
-	mval[0]= 3200;
+	mval[0]= IS_CLIPPED;
 	
 	x= (vec[0] - G.v2d->cur.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 	y= (vec[1] - G.v2d->cur.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);

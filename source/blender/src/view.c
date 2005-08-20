@@ -173,12 +173,17 @@ void project_short(float *vec, short *adr)	/* clips */
 {
 	float fx, fy, vec4[4];
 
-	adr[0]= 3200;
+	adr[0]= IS_CLIPPED;
+	
+	if(G.vd->flag & V3D_CLIPPING) {
+		if(view3d_test_clipping(G.vd, vec))
+			return;
+	}
+
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
-	
 	Mat4MulVec4fl(G.vd->persmat, vec4);
-
+	
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (curarea->winx/2)*(1 + vec4[0]/vec4[3]);
 		
@@ -222,7 +227,7 @@ void project_short_noclip(float *vec, short *adr)
 {
 	float fx, fy, vec4[4];
 
-	adr[0]= 3200;
+	adr[0]= IS_CLIPPED;
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
@@ -247,7 +252,7 @@ void project_float(float *vec, float *adr)
 {
 	float vec4[4];
 	
-	adr[0]= 3200.0;
+	adr[0]= IS_CLIPPED;
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
@@ -259,29 +264,41 @@ void project_float(float *vec, float *adr)
 	}
 }
 
-void view3d_get_object_project_mat(ScrArea *area, Object *ob, float mat[4][4])
+void view3d_get_object_project_mat(ScrArea *area, Object *ob, float pmat[4][4], float vmat[4][4])
 {
 	if (area->spacetype!=SPACE_VIEW3D || !area->spacedata.first) {
-		Mat4One(mat);
+		Mat4One(pmat);
+		Mat4One(vmat);
 	} else {
 		View3D *vd = area->spacedata.first;
-		float tmp[4][4];
 
-		Mat4MulMat4(tmp, ob->obmat, vd->viewmat);
-		Mat4MulMat4(mat, tmp, vd->winmat1);
+		Mat4MulMat4(vmat, ob->obmat, vd->viewmat);
+		Mat4MulMat4(pmat, vmat, vd->winmat1);
 	}
 }
 
-void view3d_project_short(ScrArea *area, float *vec, short *adr, float mat[4][4])
+/* projectmat brings it to window coords, viewmat to rotated view (eye space) */
+void view3d_project_short_clip(ScrArea *area, float *vec, short *adr, float projmat[4][4], float viewmat[4][4])
 {
+	View3D *v3d= area->spacedata.first;
 	float fx, fy, vec4[4];
 
-	adr[0]= 3200;
+	adr[0]= IS_CLIPPED;
+	
+	/* clipplanes in eye space */
+	if(v3d->flag & V3D_CLIPPING) {
+		VECCOPY(vec4, vec);
+		Mat4MulVecfl(viewmat, vec4);
+		if(view3d_test_clipping(v3d, vec4))
+			return;
+	}
+	
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
-	Mat4MulVec4fl(mat, vec4);
-
+	Mat4MulVec4fl(projmat, vec4);
+	
+	/* clipplanes in window space */
 	if( vec4[3]>BL_NEAR_CLIP ) {	/* 0.001 is the NEAR clipping cutoff for picking */
 		fx= (area->winx/2)*(1 + vec4[0]/vec4[3]);
 		
@@ -301,7 +318,8 @@ void view3d_project_short_noclip(ScrArea *area, float *vec, short *adr, float ma
 {
 	float fx, fy, vec4[4];
 
-	adr[0]= 3200;
+	adr[0]= IS_CLIPPED;
+	
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
@@ -326,7 +344,7 @@ void view3d_project_float(ScrArea *area, float *vec, float *adr, float mat[4][4]
 {
 	float vec4[4];
 	
-	adr[0]= 3200.0;
+	adr[0]= IS_CLIPPED;
 	VECCOPY(vec4, vec);
 	vec4[3]= 1.0;
 	
@@ -975,6 +993,9 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		glEnable(GL_DEPTH_TEST);
 	}
 
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_set_clipping(G.vd);
+	
 	glSelectBuffer( bufsize, (GLuint *)buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
@@ -1015,6 +1036,9 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 		glDisable(GL_DEPTH_TEST);
 	}
 	persp(PERSP_WIN);
+	
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
 
 	return hits;
 }

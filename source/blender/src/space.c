@@ -1128,9 +1128,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case BKEY:
-				if((G.qual==LR_SHIFTKEY))
+				if(G.qual==LR_ALTKEY)
+					view3d_edit_clipping(v3d);
+				else if(G.qual==LR_SHIFTKEY)
 					set_render_border();
-				else if((G.qual==0))
+				else if(G.qual==0)
 					borderselect();
 				break;
 			case CKEY:
@@ -4494,13 +4496,13 @@ void freespacelist(ListBase *lb)
 		else if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs*) sl;
 			if(buts->rect) MEM_freeN(buts->rect);
-			if(G.buts==buts) G.buts= 0;
+			if(G.buts==buts) G.buts= NULL;
 		}
 		else if(sl->spacetype==SPACE_IPO) {
 			SpaceIpo *si= (SpaceIpo*) sl;
 			if(si->editipo) MEM_freeN(si->editipo);
 			free_ipokey(&si->ipokey);
-			if(G.sipo==si) G.sipo= 0;
+			if(G.sipo==si) G.sipo= NULL;
 		}
 		else if(sl->spacetype==SPACE_VIEW3D) {
 			View3D *vd= (View3D*) sl;
@@ -4510,7 +4512,8 @@ void freespacelist(ListBase *lb)
 				MEM_freeN(vd->bgpic);
 			}
 			if(vd->localvd) MEM_freeN(vd->localvd);
-			if(G.vd==vd) G.vd= 0;
+			if(vd->clipbb) MEM_freeN(vd->clipbb);
+			if(G.vd==vd) G.vd= NULL;
 		}
 		else if(sl->spacetype==SPACE_OOPS) {
 			free_oopspace((SpaceOops *)sl);
@@ -4544,7 +4547,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 
 	duplicatelist(lb1, lb2);
 	
-	/* lb1 is kopie from lb2, from lb2 we free the file list */
+	/* lb1 is copy from lb2, from lb2 we free the file list */
 	
 	sl= lb2->first;
 	while(sl) {
@@ -4583,20 +4586,21 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 
 		if(sl->spacetype==SPACE_BUTS) {
 			SpaceButs *buts= (SpaceButs *)sl;
-			buts->rect= 0;
+			buts->rect= NULL;
 		}
 		else if(sl->spacetype==SPACE_IPO) {
 			SpaceIpo *si= (SpaceIpo *)sl;
-			si->editipo= 0;
-			si->ipokey.first= si->ipokey.last= 0;
+			si->editipo= NULL;
+			si->ipokey.first= si->ipokey.last= NULL;
 		}
 		else if(sl->spacetype==SPACE_VIEW3D) {
 			View3D *vd= (View3D *)sl;
 			if(vd->bgpic) {
 				vd->bgpic= MEM_dupallocN(vd->bgpic);
-				vd->bgpic->rect= 0;
+				vd->bgpic->rect= NULL;
 				if(vd->bgpic->ima) vd->bgpic->ima->id.us++;
 			}
+			vd->clipbb= MEM_dupallocN(vd->clipbb);
 		}
 		sl= sl->next;
 	}
@@ -4608,7 +4612,7 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			View3D *v3d= (View3D*) sl;
 			if(v3d->localvd) {
 				restore_localviewdata(v3d);
-				v3d->localvd= 0;
+				v3d->localvd= NULL;
 				v3d->localview= 0;
 				v3d->lay &= 0xFFFFFF;
 			}

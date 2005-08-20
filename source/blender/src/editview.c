@@ -826,7 +826,7 @@ void mouse_cursor(void)
 
 	initgrabz(fp[0], fp[1], fp[2]);
 	
-	if(mval[0]!=3200) {
+	if(mval[0]!=IS_CLIPPED) {
 		
 		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
 		VecSubf(fp, fp, dvec);
@@ -1999,5 +1999,61 @@ void fly(void)
 	allqueue(REDRAWVIEW3D, 0);
 	scrarea_queue_headredraw(curarea);
 	
+}
+
+void view3d_edit_clipping(View3D *v3d)
+{
+	
+	if(v3d->flag & V3D_CLIPPING) {
+		v3d->flag &= ~V3D_CLIPPING;
+		scrarea_queue_winredraw(curarea);
+		if(v3d->clipbb) MEM_freeN(v3d->clipbb);
+		v3d->clipbb= NULL;
+	}
+	else {
+		rcti rect;
+		double mvmatrix[16];
+		double projmatrix[16];
+		double xs, ys, p[3];
+		GLint viewport[4];
+		short val;
+		
+		/* get border in window coords */
+		setlinestyle(2);
+		val= get_border(&rect, 3);
+		setlinestyle(0);
+		if(val==0) return;
+		
+		v3d->flag |= V3D_CLIPPING;
+		v3d->clipbb= MEM_mallocN(sizeof(BoundBox), "clipbb");
+		
+		/* convert border to 3d coordinates */
+		
+		/* Get the matrices needed for gluUnProject */
+		glGetIntegerv(GL_VIEWPORT, viewport);
+		glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+		glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+		
+		/* Set up viewport so that gluUnProject will give correct values */
+		viewport[0] = 0;
+		viewport[1] = 0;
+		
+		/* four clipping planes and bounding volume */
+		for(val=0; val<4; val++) {
+			
+			xs= (val==0||val==3)?rect.xmin:rect.xmax;
+			ys= (val==0||val==1)?rect.ymin:rect.ymax;
+			gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
+			VECCOPY(v3d->clipbb->vec[val], p);
+			
+			VECCOPY(v3d->clip[val], G.vd->viewinv[val & 1]);
+			if(val>1) VecMulf(v3d->clip[val], -1.0f);
+			v3d->clip[val][3]= - v3d->clip[val][0]*p[0] - v3d->clip[val][1]*p[1] - v3d->clip[val][2]*p[2];
+			
+			gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
+			VECCOPY(v3d->clipbb->vec[4+val], p);
+		}
+		
+	}
 }
 

@@ -60,8 +60,6 @@ typedef struct bDeformGroup {
 	char name[32];
 } bDeformGroup;
 
-#
-#
 typedef struct BoundBox {
 	float vec[8][3];
 } BoundBox;

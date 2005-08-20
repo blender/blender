@@ -214,7 +214,7 @@ void deselectall_Latt(void)
 static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, int y)
 {
 	struct { BPoint *bp; short dist, select, mval[2]; } *data = userData;
-	short temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 	
 	if ((bp->f1&1)==data->select) temp += 5;
 	if (temp<data->dist) {

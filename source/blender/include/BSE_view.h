@@ -46,9 +46,11 @@ struct ScrArea;
 void persp_general(int a);
 void persp(int a);
 
-void view3d_get_object_project_mat(struct ScrArea *area, struct Object *ob, float mat[4][4]);
+/* note, the define below is still used for shorts, to calc distances... */
+#define IS_CLIPPED	12000
+void view3d_get_object_project_mat(struct ScrArea *area, struct Object *ob, float pmat[4][4], float vmat[4][4]);
 void view3d_project_float(struct ScrArea *area, float *vec, float *adr, float mat[4][4]);
-void view3d_project_short(struct ScrArea *area, float *vec, short *adr, float mat[4][4]);
+void view3d_project_short_clip(struct ScrArea *area, float *vec, short *adr, float projmat[4][4], float viewmat[4][4]);
 void view3d_project_short_noclip(struct ScrArea *area, float *vec, short *adr, float mat[4][4]);
 
 void initgrabz(float x, float y, float z);
@@ -57,6 +59,7 @@ void project_short(float *vec, short *adr);
 void project_short_noclip(float *vec, short *adr);
 void project_int(float *vec, int *adr);
 void project_float(float *vec, float *adr);
+
 int boundbox_clip(float obmat[][4], struct BoundBox *bb);
 void fdrawline(float x1, float y1, float x2, float y2);
 void fdrawbox(float x1, float y1, float x2, float y2);

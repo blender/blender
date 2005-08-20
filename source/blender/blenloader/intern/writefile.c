@@ -1207,6 +1207,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 					writestruct(wd, DATA, "View3D", 1, v3d);
 					if(v3d->bgpic) writestruct(wd, DATA, "BGpic", 1, v3d->bgpic);
 					if(v3d->localvd) writestruct(wd, DATA, "View3D", 1, v3d->localvd);
+					if(v3d->clipbb) writestruct(wd, DATA, "BoundBox", 1, v3d->clipbb);
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					writestruct(wd, DATA, "SpaceIpo", 1, sl);

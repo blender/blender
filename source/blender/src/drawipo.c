@@ -337,7 +337,7 @@ void ipoco_to_areaco(View2D *v2d, float *vec, short *mval)
 {
 	float x, y;
 	
-	mval[0]= 3200;
+	mval[0]= IS_CLIPPED;
 	
 	x= (vec[0] - v2d->cur.xmin)/(v2d->cur.xmax-v2d->cur.xmin);
 	y= (vec[1] - v2d->cur.ymin)/(v2d->cur.ymax-v2d->cur.ymin);
@@ -639,7 +639,7 @@ static void draw_solution_line(View2D *v2d, float h)
 	vec[0]= v2d->cur.xmin;
 	vec[1]= h;
 	ipoco_to_areaco(v2d, vec, mval);
-	if(mval[0]!=3200) {
+	if(mval[0]!=IS_CLIPPED) {
 		glBegin(GL_LINES);
 		glVertex2f(v2d->vert.xmin, mval[1]);
 		glVertex2f(v2d->vert.xmax, mval[1]);

@@ -705,6 +705,10 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	glDrawBuffer(GL_FRONT);
 
 	persp(PERSP_VIEW);
+	
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_set_clipping(G.vd);
+	
 	glPushMatrix();
 	mymultmatrix(G.obedit->obmat);
 	
@@ -778,6 +782,9 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 	glFlush();
 	glDrawBuffer(GL_BACK);
 
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	/* signal that frontbuf differs from back */
 	curarea->win_swap= WIN_FRONT_OK;
 

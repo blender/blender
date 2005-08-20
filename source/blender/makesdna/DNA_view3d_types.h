@@ -39,6 +39,7 @@ struct Image;
 struct Tex;
 struct SpaceLink;
 struct Base;
+struct BoundBox;
 
 /* This is needed to not let VC choke on near and far... old
  * proprietary MS extensions... */
@@ -123,13 +124,17 @@ typedef struct View3D {
 	short twtype, twmode, twflag, twpad;
 	float twmat[4][4];
 	
+	/* user defined clipping planes */
+	float clip[4][4];
+	struct BoundBox *clipbb;
+	
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw;
 	/* drawflags, denoting state */
 	short zbuf, transp, xray, pad2;
 } View3D;
 
-/* View3D->flag */
+/* View3D->flag (short) */
 #define V3D_MODE			(16+32+64+128+256+512)
 #define V3D_DISPIMAGE		1
 #define V3D_DISPBGPIC		2
@@ -145,6 +150,7 @@ typedef struct View3D {
 #define V3D_SELECT_OUTLINE	2048
 #define V3D_ZBUF_SELECT		4096
 #define V3D_GLOBAL_STATS	8192
+#define V3D_CLIPPING		16384
 
 /* View3D->around */
 #define V3D_CENTRE		 0

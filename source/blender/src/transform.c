@@ -117,7 +117,7 @@ static void helpline(TransInfo *t, float *vec)
 	
 	getmouseco_areawin(mval);
 	project_float(vecrot, cent);	// no overflow in extreme cases
-	if(cent[0]!=3200.0f) {
+	if(cent[0]!=IS_CLIPPED) {
 		persp(PERSP_WIN);
 		
 		glDrawBuffer(GL_FRONT);

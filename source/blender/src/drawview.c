@@ -765,7 +765,7 @@ static void drawcursor(void)
 	mx = co[0];
 	my = co[1];
 
-	if(mx!=3200) {
+	if(mx!=IS_CLIPPED) {
 		setlinestyle(0); 
 		cpack(0xFF);
 		circ((float)mx, (float)my, 10.0);
@@ -781,6 +781,66 @@ static void drawcursor(void)
 		sdrawline(mx, my+5, mx, my+20);
 	}
 }
+
+/* ********* custom clipping *********** */
+
+static void view3d_draw_clipping(View3D *v3d)
+{
+	BoundBox *bb= v3d->clipbb;
+	
+	BIF_ThemeColorShade(TH_BACK, -8);
+	
+	glBegin(GL_QUADS);
+
+	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[3]);
+	glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[1]);
+	glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[5]);
+	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[3]); glVertex3fv(bb->vec[2]); glVertex3fv(bb->vec[6]);
+	glVertex3fv(bb->vec[1]); glVertex3fv(bb->vec[5]); glVertex3fv(bb->vec[6]); glVertex3fv(bb->vec[2]);
+	glVertex3fv(bb->vec[7]); glVertex3fv(bb->vec[4]); glVertex3fv(bb->vec[0]); glVertex3fv(bb->vec[3]);
+	
+	glEnd();
+}
+
+void view3d_set_clipping(View3D *v3d)
+{
+	double plane[4];
+	int a;
+	
+	for(a=0; a<3; a++) {
+		QUATCOPY(plane, v3d->clip[a]);
+		glClipPlane(GL_CLIP_PLANE0+a, plane);
+		glEnable(GL_CLIP_PLANE0+a);
+	}
+}
+
+void view3d_clr_clipping(void)
+{
+	int a;
+	
+	for(a=0; a<4; a++) {
+		glDisable(GL_CLIP_PLANE0+a);
+	}
+}
+
+int view3d_test_clipping(View3D *v3d, float *vec)
+{
+	/* vec in world coordinates, returns 1 if clipped */
+	float view[3];
+	
+	VECCOPY(view, vec);
+	Mat4MulVecfl(v3d->viewmat, view);
+	
+	if(0.0f < v3d->clip[0][3] + INPR(view, v3d->clip[0]))
+		if(0.0f < v3d->clip[1][3] + INPR(view, v3d->clip[1]))
+			if(0.0f < v3d->clip[2][3] + INPR(view, v3d->clip[2]))
+				if(0.0f < v3d->clip[3][3] + INPR(view, v3d->clip[3]))
+					return 0;
+
+	return 1;
+}
+
+/* ********* end custom clipping *********** */
 
 static void view3d_get_viewborder_size(View3D *v3d, float size_r[2])
 {
@@ -949,6 +1009,9 @@ void backdrawview3d(int test)
 		glDisable(GL_DEPTH_TEST);
 	}
 	
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_set_clipping(G.vd);
+	
 	G.f |= G_BACKBUFSEL;
 	
 	base= (G.scene->basact);
@@ -967,6 +1030,9 @@ void backdrawview3d(int test)
 	glDrawBuffer(GL_BACK); /* we were in aux buffers */
 #endif
 
+	if(G.vd->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	/* it is important to end a view in a transform compatible with buttons */
 	persp(PERSP_WIN);  // set ortho
 	bwin_scalematrix(curarea->win, G.vd->blockscale, G.vd->blockscale, G.vd->blockscale);
@@ -1989,11 +2055,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
 	if(v3d->drawtype > OB_WIRE) {
-		v3d->zbuf= TRUE;
-		glEnable(GL_DEPTH_TEST);
-		if(G.f & G_SIMULATION) {
+		if(G.f & G_SIMULATION)
 			glClearColor(0.0, 0.0, 0.0, 0.0); 
-		}
 		else {
 			float col[3];
 			BIF_GetThemeColor3fv(TH_BACK, col);
@@ -2013,6 +2076,15 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	myloadmatrix(v3d->viewmat);
 	persp(PERSP_STORE);  // store correct view for persp(PERSP_VIEW) calls
 
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_draw_clipping(v3d);
+	
+	/* set zbuffer after we draw clipping region */
+	if(v3d->drawtype > OB_WIRE) {
+		v3d->zbuf= TRUE;
+		glEnable(GL_DEPTH_TEST);
+	}
+	
 	// needs to be done always, gridview is adjusted in drawgrid() now
 	v3d->gridview= v3d->grid;
 	
@@ -2035,6 +2107,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			draw_bgpic();
 		}
 	}
+	
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_set_clipping(v3d);
 	
 	/* draw set first */
 	if(G.scene->set) {
@@ -2131,6 +2206,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d);
 	
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
+	
 	BIF_draw_manipulator(sa);
 		
 	if(v3d->zbuf) {
@@ -2211,6 +2289,9 @@ void drawview3d_render(struct View3D *v3d)
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
 	}
+
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_set_clipping(v3d);
 
 	if (v3d->drawtype==OB_TEXTURE && G.scene->world) {
 		glClearColor(G.scene->world->horr, G.scene->world->horg, G.scene->world->horb, 0.0); 
@@ -2324,6 +2405,9 @@ void drawview3d_render(struct View3D *v3d)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d);
+	
+	if(v3d->flag & V3D_CLIPPING)
+		view3d_clr_clipping();
 	
 	if(v3d->zbuf) {
 		v3d->zbuf= FALSE;

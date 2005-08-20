@@ -4293,13 +4293,13 @@ int EdgeSlide(short immediate, float imperc)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	SlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist, projectMat[4][4];
+	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4];
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
 	
-	view3d_get_object_project_mat(curarea, G.obedit, projectMat);
+	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
 	
 	mvalo[0] = -1; mvalo[1] = -1; 
 	numsel =0;  
