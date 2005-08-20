@@ -828,7 +828,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-				if (drawSmooth) {
+				if (!drawSmooth) {
 					glNormal3fv(emdm->faceNos[i]);
 					glVertex3fv(emdm->vertexCos[(int) efa->v1->prev]);
 					glVertex3fv(emdm->vertexCos[(int) efa->v2->prev]);
@@ -860,7 +860,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-				if (drawSmooth) {
+				if (!drawSmooth) {
 					glNormal3fv(efa->n);
 					glVertex3fv(efa->v1->co);
 					glVertex3fv(efa->v2->co);
