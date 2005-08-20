@@ -532,25 +532,17 @@ static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *
 	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	float *nors= mdm->nors;
-	int a, glmode, shademodel;
+	int a;
 
-	glShadeModel(shademodel = GL_SMOOTH);
-	glBegin(glmode = GL_QUADS);
 	for (a=0; a<me->totface; a++) {
 		MFace *mf= &mface[a];
 		int drawSmooth = 1;
 
 		if (mf->v3 && setDrawOptions(userData, a, &drawSmooth)) {
-			int newmode = mf->v4?GL_QUADS:GL_TRIANGLES;
-			int newshademodel = drawSmooth?GL_SMOOTH:GL_FLAT;
-		
-			if (newmode!=glmode || newshademodel!=shademodel) {
-				glEnd(); 
-				glShadeModel(shademodel = newshademodel);
-				glBegin(glmode = newmode);
-			}
+			glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 
-			if (shademodel==GL_FLAT) {
+			if (!drawSmooth) {
 				glNormal3fv(&nors[a*3]);
 
 				glVertex3fv(mvert[mf->v1].co);
@@ -569,9 +561,10 @@ static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *
 					glVertex3fv(mvert[mf->v4].co);
 				}
 			}
+
+			glEnd();
 		}
 	}
-	glEnd();
 }
 static int meshDM_getNumVerts(DerivedMesh *dm)
 {
@@ -1451,10 +1444,8 @@ static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	MVert *mvert= dlm->mvert;
 	MFace *mface= dlm->mface;
 	float *nors = dlm->nors;
-	int i, glmode, shademodel, index=-1;
+	int i, index=-1;
 
-	glShadeModel(shademodel = GL_SMOOTH);
-	glBegin(glmode=GL_QUADS);
 	for (i=0; i<dlm->totface; i++) {
 		MFace *mf = &mface[i];
 		int drawSmooth = 1;
@@ -1462,16 +1453,9 @@ static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		if (mf->flag&ME_FACE_STEPINDEX) index++;
 
 		if (index!=-1 && mf->v3 && (!setDrawOptions || setDrawOptions(userData, index, &drawSmooth))) {
-			int newmode = mf->v4?GL_QUADS:GL_TRIANGLES;
-			int newshademodel = drawSmooth?GL_SMOOTH:GL_FLAT;
-
-			if (newmode!=glmode || newshademodel!=shademodel) {
-				glEnd(); 
-				glShadeModel(shademodel = newshademodel);
-				glBegin(glmode = newmode);
-			}
-
-			if (shademodel==GL_FLAT) {
+			glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+			if (!drawSmooth) {
 				glNormal3fv(&nors[i*3]);
 
 				glVertex3fv(mvert[mf->v1].co);
@@ -1490,9 +1474,9 @@ static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					glVertex3fv(mvert[mf->v4].co);
 				}
 			}
+			glEnd();
 		}
 	}
-	glEnd();
 }
 static void ssDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 {
