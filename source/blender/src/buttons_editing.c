@@ -909,14 +909,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetCol(block, color);
 		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 	uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 26, NULL, 7.0, 0.0, 
-			 md->mode&eModifierMode_Expanded?3:15, -20, ""); 
+			 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, -20, ""); 
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* open/close icon */
-	if (isVirtual) {
-		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
-		color = TH_BUT_SETTING1;
-	} else {
+	if (!isVirtual) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
@@ -924,14 +921,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	if (isVirtual) {
-		sprintf(str, "%s (virtual)", md->name);
-		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-90, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
-
-		uiClearButLock();
+		sprintf(str, "%s parent deform", md->name);
+		uiDefBut(block, LABEL, 0, str, x+10, y-1, width-110, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Modifier name"); 
 
 		but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Make Real", x+width-100, y, 80, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Convert virtual modifier to a real modifier");
 		uiButSetFunc(but, modifiers_convertToReal, ob, md);
-		uiSetButLock(1, "Modifier is virtual and cannot be edited.");
 	} else {
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, buttonWidth-60, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
@@ -984,7 +978,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	if (!(md->mode&eModifierMode_Expanded)) {
+	if (isVirtual || !(md->mode&eModifierMode_Expanded)) {
 		y -= 18;
 	} else {
 		int cy = y - 8;
@@ -1131,10 +1125,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 	*xco = x;
 	*yco = y;
-
-	if (isVirtual) {
-		uiClearButLock();
-	}
 }
 
 static void editing_panel_modifiers(Object *ob)
