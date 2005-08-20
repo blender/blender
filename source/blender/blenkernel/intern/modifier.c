@@ -677,7 +677,7 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 			efa->e1->f2 = 1;
 			efa->e2->f2 = 1;
 			efa->e3->f2 = 1;
-			efa->e4->f2 = 1;
+			if (efa->e4) efa->e4->f2 = 1;
 		}
 
 		for (i=0,eve=em->verts.first; i<inDLM->totvert; i++,eve=eve->next) {
