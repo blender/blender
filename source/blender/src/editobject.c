@@ -1958,8 +1958,11 @@ void special_editmenu(void)
 		else if(G.f & G_WEIGHTPAINT) {
 			if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
-				if(nr==1) 
+				if(nr==1) {
+					Mesh *me= ob->data;
+					copy_wpaint_undo(me->dvert, me->totvert);
 					pose_adds_vgroups(ob);
+				}
 			}
 		}
 		else {

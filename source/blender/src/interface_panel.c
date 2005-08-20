@@ -721,7 +721,7 @@ void uiMatchPanel_view2d(ScrArea *sa)
 	}	
 }
 
-/* extern used ny previewrender */
+/* extern used by previewrender */
 void uiPanelPush(uiBlock *block)
 {
 	glPushMatrix(); 
@@ -896,7 +896,7 @@ static void ui_draw_panel_header(uiBlock *block)
 		/* active tab */
 		/* draw text label */
 		BIF_ThemeColor(TH_TEXT_HI);
-		ui_rasterpos_safe(4+block->minx+pnl_icons, block->maxy+5, block->aspect);
+		ui_rasterpos_safe(4.0f+block->minx+pnl_icons, block->maxy+5.0f, block->aspect);
 		BIF_DrawString(block->curfont, block->panel->panelname, (U.transopts & USER_TR_BUTTONS));
 		return;
 	}
@@ -960,7 +960,7 @@ void ui_draw_panel(uiBlock *block)
 	
 	if(panel->paneltab) return;
 
-	/* if the panel is minimised vertically:
+	/* if the panel is minimized vertically:
 	 * (------)
 	 */
 	if(panel->flag & PNL_CLOSEDY) {
@@ -988,7 +988,7 @@ void ui_draw_panel(uiBlock *block)
 		}
 	
 	}
-	/* if the panel is minimised horizontally:
+	/* if the panel is minimized horizontally:
 	 * /-\
 	 *  |
 	 *  |

@@ -183,14 +183,14 @@ void recalcData(TransInfo *t)
 					}
 				}
 				
-				if(arm->drawtype==ARM_ENVELOPE) {
-					if(ebo->oldlength==0.0f) {
-						ebo->rad_head= 0.25f*ebo->length;
-						ebo->rad_tail= 0.10f*ebo->length;
-						if(ebo->parent) {
-							if(ebo->rad_head > ebo->parent->rad_tail)
-								ebo->rad_head= ebo->parent->rad_tail;
-						}
+				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+				if(ebo->oldlength==0.0f) {
+					ebo->rad_head= 0.25f*ebo->length;
+					ebo->rad_tail= 0.10f*ebo->length;
+					ebo->dist= 0.25f*ebo->length;
+					if(ebo->parent) {
+						if(ebo->rad_head > ebo->parent->rad_tail)
+							ebo->rad_head= ebo->parent->rad_tail;
 					}
 				}
 			}

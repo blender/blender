@@ -1173,7 +1173,7 @@ static EditBone *add_editbone(void)
 	
 	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
-	bone->dist= 1.0F;
+	bone->dist= 0.5F;
 	bone->xwidth= 0.1;
 	bone->zwidth= 0.1;
 	bone->ease1= 1.0;
@@ -1300,6 +1300,10 @@ void addvert_armature(void)
 	Mat3Inv(imat, mat);
 	Mat3MulVecfl(imat, newbone->tail);
 
+	newbone->length= VecLenf(newbone->head, newbone->tail);
+	newbone->rad_tail= newbone->length*0.1f;
+	newbone->dist= newbone->length*0.25f;
+	
 	countall();
 	
 	BIF_undo_push("Add Bone");

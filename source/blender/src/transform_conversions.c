@@ -552,7 +552,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		
-		ebo->oldlength= ebo->length;	// might be used for scaling
+		ebo->oldlength= ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 		
 		if (t->mode==TFM_BONE_ENVELOPE) {
 			

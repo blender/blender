@@ -1210,7 +1210,8 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
-	ui_draw_but(but);
+	/* no draw of button now, for floating panels the matrix now is invalid...
+	   the button still is active, and will be redrawn in main loop to de-activate it */
 	
 	uibut_do_func(but);
 

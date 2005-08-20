@@ -2297,7 +2297,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	short edgsp, midsp;
 	char naam[32];
 
-	if(curarea->win==0) return;
+	if(curarea->win==0 || curarea->winy<2) return;
 
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
