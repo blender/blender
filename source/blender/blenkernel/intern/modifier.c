@@ -524,12 +524,12 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 		med->v2 = indexMap[inMED->v2][0];
 		if (initFlags) med->flag |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED|ME_EDGE_STEPINDEX;
 
-		if (indexMap[inMED->v1][1] || indexMap[inMED->v2][2]) {
+		if (indexMap[inMED->v1][1] || indexMap[inMED->v2][1]) {
 			MEdge *med2 = &dlm->medge[dlm->totedge++];
 
 			*med2 = *med;
-			med2->v1 = med->v1+indexMap[inMED->v1][1];
-			med2->v2 = med->v2+indexMap[inMED->v2][1];
+			med2->v1 += indexMap[inMED->v1][1];
+			med2->v2 += indexMap[inMED->v2][1];
 			med2->flag &= ~ME_EDGE_STEPINDEX;
 		}
 	}
@@ -566,10 +566,10 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 			MCol *mc = NULL;
 
 			*mf2 = *mf;
-			mf2->v1 = indexMap[inMF->v1][0] + indexMap[inMF->v1][1];
-			mf2->v2 = indexMap[inMF->v2][0] + indexMap[inMF->v2][1];
-			mf2->v3 = indexMap[inMF->v3][0] + (inMF->v3?indexMap[inMF->v3][1]:0);
-			mf2->v4 = indexMap[inMF->v4][0] + (inMF->v4?indexMap[inMF->v4][1]:0);
+			mf2->v1 += indexMap[inMF->v1][1];
+			mf2->v2 += indexMap[inMF->v2][1];
+			if (inMF->v3) mf2->v3 += indexMap[inMF->v3][1];
+			if (inMF->v4) mf2->v4 += indexMap[inMF->v4][1];
 			mf2->flag &= ~ME_FACE_STEPINDEX;
 
 			if (inDLM->tface) {
