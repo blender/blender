@@ -1555,7 +1555,7 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 	EditFace *efa = EM_get_face_for_index(index);
 
 	if (efa->h==0) {
-		set_gl_material(efa->mat_nr);
+		set_gl_material(efa->mat_nr+1);
 		*drawSmooth_r = efa->flag&ME_SMOOTH;
 		return 1;
 	} else {
