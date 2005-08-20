@@ -147,6 +147,20 @@ void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 	}
 }
 
+void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
+{
+	TFace *tface = me->tface;
+	int a;
+
+	if (tface) {
+		for(a=1; a<=me->totface; a++, tface++) {
+			if(EM_check_backbuf(a)) {
+				tface->flag = select?(tface->flag|TF_SELECT):(tface->flag&~TF_SELECT);
+			}
+		}
+	}
+}
+
 void arrows_move_cursor(unsigned short event)
 {
 	short mval[2];
@@ -502,30 +516,22 @@ static void do_lasso_select_armature(short mcords[][2], short moves, short selec
 static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
 {
 	Mesh *me;
-	TFace *tface;
 	rcti rect;
-	int a;
 	
 	me= get_mesh(OBACT);
 	if(me==NULL || me->tface==NULL) return;
 	if(me->totface==0) return;
-	tface= me->tface;
 	
 	em_vertoffs= me->totface+1;	// max index array
 	
 	lasso_select_boundbox(&rect, mcords, moves);
 	EM_mask_init_backbuf_border(mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 	
-	for(a=1; a<=me->totface; a++, tface++) {
-		if(EM_check_backbuf(a)) {
-			tface->flag = select?(tface->flag|TF_SELECT):(tface->flag&~TF_SELECT);
-		}
-	}
+	EM_backbuf_checkAndSelectTFaces(me, select);
 	
 	EM_free_backbuf();
 	
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	object_tface_flags_changed(OBACT, 0);
 }
 
 static void do_lasso_select(short mcords[][2], short moves, short select)
@@ -1728,7 +1734,23 @@ static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float 
 	struct { short select, mval[2]; float radius; } data;
 	EditMesh *em = G.editMesh;
 	int bbsel;
-	
+
+	if(!G.obedit && (G.f&G_FACESELECT)) {
+		Mesh *me = get_mesh(OBACT);
+
+		if (me) {
+			em_vertoffs= me->totface+1;	// max index array
+
+			bbsel= EM_init_backbuf_circle(mval[0], mval[1], (short)(rad+1.0));
+			EM_backbuf_checkAndSelectTFaces(me, selecting==LEFTMOUSE);
+			EM_free_backbuf();
+
+			object_tface_flags_changed(OBACT, 0);
+		}
+
+		return;
+	}
+
 	bbsel= EM_init_backbuf_circle(mval[0], mval[1], (short)(rad+1.0));
 	
 	data.select = (selecting==LEFTMOUSE);

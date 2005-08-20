@@ -344,8 +344,10 @@ int get_border(rcti *rect, short col)
 			if (G.obedit) {
 				if ELEM4(G.obedit->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
 					circle_selectCB(&obedit_selectionCB);
-					return 0;
 				}
+			}
+			else if (G.f&G_FACESELECT) {
+				circle_selectCB(&obedit_selectionCB);
 			}
 			return 0;
 			

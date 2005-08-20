@@ -137,7 +137,7 @@ DispListMesh *displistmesh_copy(DispListMesh *odlm)
 	if (odlm->nors) ndlm->nors = MEM_dupallocN(odlm->nors);
 	if (odlm->mcol) ndlm->mcol= MEM_dupallocN(odlm->mcol);
 	if (odlm->tface) ndlm->tface= MEM_dupallocN(odlm->tface);
-	
+
 	return ndlm;
 }
 

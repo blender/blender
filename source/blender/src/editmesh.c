@@ -363,6 +363,7 @@ EditFace *addfacelist(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4, Ed
 	if(example) {
 		efa->mat_nr= example->mat_nr;
 		efa->tf= example->tf;
+		efa->tf.flag &= ~TF_ACTIVE;
 		efa->flag= example->flag;
 	}
 	else {
@@ -803,7 +804,7 @@ void make_editMesh()
 					}
 					if(mface->flag & ME_HIDE) efa->h= 1;
 				}
-				else {
+				else if (tface) {
 					if( tface->flag & TF_HIDE) 
 						efa->h= 1;
 					else if( tface->flag & TF_SELECT) {
@@ -839,96 +840,6 @@ void make_editMesh()
 	countall();
 	
 	waitcursor(0);
-}
-
-/** Rotates MFace and UVFace vertices in case the last
-  * vertex index is = 0. 
-  * This function is a hack and may only be called in the
-  * conversion from EditMesh to Mesh data.
-  * This function is similar to test_index_mface in
-  * blenkernel/intern/mesh.c. 
-  * To not clutter the blenkernel code with more bad level
-  * calls/structures, this function resides here.
-  */
-
-static void fix_faceindices(MFace *mface, EditFace *efa, int nr)
-{
-	int a;
-	float tmpuv[2];
-	unsigned int tmpcol;
-
-	/* first test if the face is legal */
-
-	if(mface->v3 && mface->v3==mface->v4) {
-		mface->v4= 0;
-		nr--;
-	}
-	if(mface->v2 && mface->v2==mface->v3) {
-		mface->v3= mface->v4;
-		mface->v4= 0;
-		nr--;
-	}
-	if(mface->v1==mface->v2) {
-		mface->v2= mface->v3;
-		mface->v3= mface->v4;
-		mface->v4= 0;
-		nr--;
-	}
-
-	/* prevent a zero index value at the wrong location */
-	if(nr==2) {
-		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
-	}
-	else if(nr==3) {
-		if(mface->v3==0) {
-			SWAP(int, mface->v1, mface->v2);
-			SWAP(int, mface->v2, mface->v3);
-			/* rotate face UV coordinates, too */
-			UVCOPY(tmpuv, efa->tf.uv[0]);
-			UVCOPY(efa->tf.uv[0], efa->tf.uv[1]);
-			UVCOPY(efa->tf.uv[1], efa->tf.uv[2]);
-			UVCOPY(efa->tf.uv[2], tmpuv);
-			/* same with vertex colours */
-			tmpcol = efa->tf.col[0];
-			efa->tf.col[0] = efa->tf.col[1];
-			efa->tf.col[1] = efa->tf.col[2];
-			efa->tf.col[2] = tmpcol;
-
-			
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
-			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
-			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
-		}
-	}
-	else if(nr==4) {
-		if(mface->v3==0 || mface->v4==0) {
-			SWAP(int, mface->v1, mface->v3);
-			SWAP(int, mface->v2, mface->v4);
-			/* swap UV coordinates */
-			UVCOPY(tmpuv, efa->tf.uv[0]);
-			UVCOPY(efa->tf.uv[0], efa->tf.uv[2]);
-			UVCOPY(efa->tf.uv[2], tmpuv);
-			UVCOPY(tmpuv, efa->tf.uv[1]);
-			UVCOPY(efa->tf.uv[1], efa->tf.uv[3]);
-			UVCOPY(efa->tf.uv[3], tmpuv);
-			/* swap vertex colours */
-			tmpcol = efa->tf.col[0];
-			efa->tf.col[0] = efa->tf.col[2];
-			efa->tf.col[2] = tmpcol;
-			tmpcol = efa->tf.col[1];
-			efa->tf.col[1] = efa->tf.col[3];
-			efa->tf.col[3] = tmpcol;
-
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V4;
-			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
-			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
-			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
-		}
-	}
 }
 
 /* makes Mesh out of editmesh */
@@ -1117,8 +1028,7 @@ void load_editMesh(void)
 
 
 		/* no index '0' at location 3 or 4 */
-		if(efa->v4) fix_faceindices(mface, efa, 4);
-		else fix_faceindices(mface, efa, 3);
+		test_index_face(mface, NULL, &efa->tf, efa->v4?4:3);
 			
 		i++;
 		efa= efa->next;
@@ -1132,7 +1042,7 @@ void load_editMesh(void)
 				mface= &((MFace *) me->mface)[i];
 				mface->v1= (unsigned int) eed->v1->vn;
 				mface->v2= (unsigned int) eed->v2->vn;
-				test_index_mface(mface, 2);
+				test_index_face(mface, NULL, NULL, 2);
 				mface->edcode= ME_V1V2;
 				i++;
 			}
@@ -1865,4 +1775,60 @@ void undo_push_mesh(char *name)
 
 /* *************** END UNDO *************/
 
+static EditVert **g_em_vert_array = NULL;
+static EditEdge **g_em_edge_array = NULL;
+static EditFace **g_em_face_array = NULL;
 
+void EM_init_index_arrays(int forVert, int forEdge, int forFace)
+{
+	EditVert *eve;
+	EditEdge *eed;
+	EditFace *efa;
+	int i;
+
+	if (forVert) {
+		g_em_vert_array = MEM_mallocN(sizeof(*g_em_vert_array)*G.totvert, "em_v_arr");
+
+		for (i=0,eve=G.editMesh->verts.first; eve; i++,eve=eve->next)
+			g_em_vert_array[i] = eve;
+	}
+
+	if (forEdge) {
+		g_em_edge_array = MEM_mallocN(sizeof(*g_em_edge_array)*G.totedge, "em_e_arr");
+
+		for (i=0,eed=G.editMesh->edges.first; eed; i++,eed=eed->next)
+			g_em_edge_array[i] = eed;
+	}
+
+	if (forFace) {
+		g_em_face_array = MEM_mallocN(sizeof(*g_em_face_array)*G.totface, "em_f_arr");
+
+		for (i=0,efa=G.editMesh->faces.first; efa; i++,efa=efa->next)
+			g_em_face_array[i] = efa;
+	}
+}
+
+void EM_free_index_arrays(void)
+{
+	if (g_em_vert_array) MEM_freeN(g_em_vert_array);
+	if (g_em_edge_array) MEM_freeN(g_em_edge_array);
+	if (g_em_face_array) MEM_freeN(g_em_face_array);
+	g_em_vert_array = NULL;
+	g_em_edge_array = NULL;
+	g_em_face_array = NULL;
+}
+
+EditVert *EM_get_vert_for_index(int index)
+{
+	return g_em_vert_array?g_em_vert_array[index]:NULL;
+}
+
+EditEdge *EM_get_edge_for_index(int index)
+{
+	return g_em_edge_array?g_em_edge_array[index]:NULL;
+}
+
+EditFace *EM_get_face_for_index(int index)
+{
+	return g_em_face_array?g_em_face_array[index]:NULL;
+}

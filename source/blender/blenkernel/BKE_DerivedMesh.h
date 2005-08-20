@@ -48,9 +48,6 @@
 struct MVert;
 struct Object;
 struct EditMesh;
-struct EditVert;
-struct EditEdge;
-struct EditFace;
 struct DispListMesh;
 struct ModifierData;
 
@@ -68,19 +65,19 @@ struct DerivedMesh {
 		 * coordinate and normal. For historical reasons the normal can be
 		 * passed as a float or short array, only one should be non-NULL.
 		 */
-	void (*foreachMappedVertEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditVert *vert, float *co, float *no_f, short *no_s), void *userData);
+	void (*foreachMappedVert)(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData);
 
 		/* Iterate over each mapped vertex in the derived mesh, calling the
 		 * given function with the original vert and the mapped edge's new
 		 * coordinates.
 		 */
-	void (*foreachMappedEdgeEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditEdge *edge, float *v0co, float *v1co), void *userData);
+	void (*foreachMappedEdge)(DerivedMesh *dm, void (*func)(void *userData, int index, float *v0co, float *v1co), void *userData);
 
 		/* Iterate over each mapped face in the derived mesh, calling the
 		 * given function with the original face and the mapped face's (or
 		 * faces') center and normal.
 		 */
-	void (*foreachMappedFaceCenterEM)(DerivedMesh *dm, void (*func)(void *userData, struct EditFace *face, float *cent, float *no), void *userData);
+	void (*foreachMappedFaceCenter)(DerivedMesh *dm, void (*func)(void *userData, int index, float *cent, float *no), void *userData);
 
 		/* Convert to new DispListMesh, should be free'd by caller.
 		 *
@@ -90,18 +87,6 @@ struct DerivedMesh {
 		 * the DerivedMesh's internal data.
 		 */
 	struct DispListMesh* (*convertToDispListMesh)(DerivedMesh *dm, int allowShared);
-
-		/* Convert to new DispListMesh, should be free'd by caller.
-		 *
-		 * Additionally, allocate and return map arrays. Each map array should be
-		 * have a length corresponding to the returned DLMs totvert, totedge, and 
-		 * totface fields respectively.
-		 *
-		 * Each index in the array should give the EditMesh element from which the
-		 * element at the same index in the DLMs vert, edge, or face array was
-		 * derived (which may be null).
-		 */
-	 struct DispListMesh* (*convertToDispListMeshMapped)(DerivedMesh *dm, int allowShared, struct EditVert ***vertMap_r, struct EditEdge ***edgeMap_r, struct EditFace ***faceMap_r);
 
 		/* Iterate over all vertex points, calling DO_MINMAX with given args.
 		 *
@@ -158,33 +143,40 @@ struct DerivedMesh {
 			/* Draw all faces uses TFace 
 			 *  o Drawing options too complicated to enumerate, look at code.
 			 */
-	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, int matnr));
+	void (*drawFacesTex)(DerivedMesh *dm, int (*setDrawOptions)(TFace *tf, int matnr));
+
+			/* Draw mapped faces (no color, or texture)
+			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face-index, drawSmooth_r) returns true
+			 *
+			 * If drawSmooth is set to true then vertex normals should be set and glShadeModel
+			 * called with GL_SMOOTH. Otherwise the face normal should be set and glShadeModel
+			 * called with GL_FLAT.
+			 *
+			 * The setDrawOptions is allowed to not set drawSmooth (for example, when lighting
+			 * is disabled), in which case the implementation should draw as smooth shaded.
+			 */
+	void (*drawMappedFaces)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData);
 
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true
 			 */
-	void (*drawMappedEdgesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditEdge *eed), void *userData);
+	void (*drawMappedEdges)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData);
 
 			/* Draw mapped edges as lines with interpolation values
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge, mapped-v0, mapped-v1, t) returns true
 			 *
 			 * NOTE: This routine is optional!
 			 */
-	void (*drawMappedEdgesInterpEM)(DerivedMesh *dm, 
-									int (*setDrawOptions)(void *userData, struct EditEdge *eed), 
-									void (*setDrawInterpOptions)(void *userData, struct EditEdge *eed, float t),
+	void (*drawMappedEdgesInterp)(DerivedMesh *dm, 
+									int (*setDrawOptions)(void *userData, int index), 
+									void (*setDrawInterpOptions)(void *userData, int index, float t),
 									void *userData);
-
-			/* Draw all faces
-			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-face) returns true
-			 */
-	void (*drawMappedFacesEM)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, struct EditFace *efa), void *userData);
 
 	void (*release)(DerivedMesh *dm);
 };
 
 	/* Internal function, just temporarily exposed */
-DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm, float (*vertexCos)[3], struct EditVert **vertMap, struct EditEdge **edgeMap, struct EditFace **faceMap);
+DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm, float (*vertexCos)[3]);
 
 DerivedMesh *mesh_get_derived_final(struct Object *ob, int *needsFree_r);
 DerivedMesh *mesh_get_derived_deform(struct Object *ob, int *needsFree_r);

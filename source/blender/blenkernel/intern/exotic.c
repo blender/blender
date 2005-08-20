@@ -649,7 +649,7 @@ static void read_videoscape_mesh(char *str)
 				}
 				mface->edcode= 3;
 				
-				test_index_mface(mface, poly);
+				test_index_face(mface, NULL, NULL, poly);
 				
 				mface++;
 			}
@@ -823,7 +823,7 @@ static void read_radiogour(char *str)
 				}
 				mface->edcode= 3;
 				
-				test_index_mface(mface, poly);
+				test_index_face(mface, NULL, NULL, poly);
 				
 				mface++;
 			}
@@ -2128,7 +2128,7 @@ static void displist_to_mesh(DispList *dlfirst)
 					mface->v4= p3;
 					
 					mface->mat_nr= colnr;
-					test_index_mface(mface, 4);
+					test_index_face(mface, NULL, NULL, 4);
 					
 					mface++;
 					
@@ -2161,7 +2161,7 @@ static void displist_to_mesh(DispList *dlfirst)
 						mface->v2= startve+a*dl->nr+1;
 						mface->v3= startve+a*dl->nr+2;
 						mface->mat_nr= colnr;
-						test_index_mface(mface, 3);
+						test_index_face(mface, NULL, NULL, 3);
 						mface++;
 					}
 					else {
@@ -2170,7 +2170,7 @@ static void displist_to_mesh(DispList *dlfirst)
 						mface->v3= startve+a*dl->nr+2;
 						mface->v4= startve+a*dl->nr+3;
 						mface->mat_nr= colnr;
-						test_index_mface(mface, 4);
+						test_index_face(mface, NULL, NULL, 4);
 						mface++;
 					}
 				}
@@ -2196,7 +2196,7 @@ static void displist_to_mesh(DispList *dlfirst)
 						else mface->v2= startve+a+1;
 						
 						mface->mat_nr= colnr;
-						test_index_mface(mface, 2);
+						test_index_face(mface, NULL, NULL, 2);
 
 						mface++;
 					}
@@ -2226,7 +2226,7 @@ static void displist_to_mesh(DispList *dlfirst)
 				if (mface->v2>maxvertidx) mface->v2= maxvertidx;
 				if (mface->v3>maxvertidx) mface->v3= maxvertidx;
 
-				test_index_mface(mface, 3);
+				test_index_face(mface, NULL, NULL, 3);
 				mface++;
 				idata+= 3;
 			}
@@ -2248,7 +2248,7 @@ static void displist_to_mesh(DispList *dlfirst)
 					mface->v1= startve+a;
 					mface->v2= startve+a+1;
 					mface->mat_nr= colnr;
-					test_index_mface(mface, 2);
+					test_index_face(mface, NULL, NULL, 2);
 					mface++;
 				}
 				startve += dl->nr;
@@ -4328,7 +4328,7 @@ static void dxf_read_polyline(int noob) {
 				mface->edcode= 3;
 				mface->mat_nr= 0;
 
-				test_index_mface(mface, 2);
+				test_index_face(mface, NULL, NULL, 2);
 			}
 		}
 		
@@ -4445,9 +4445,9 @@ static void dxf_read_polyline(int noob) {
 	
 				if(vids[3] && vids[3]!=vids[0]) {
 					mface->v4= vids[3]-1;
-					test_index_mface(mface, 4);
+					test_index_face(mface, NULL, NULL, 4);
 				}
-				else test_index_mface(mface, 3);
+				else test_index_face(mface, NULL, NULL, 3);
 	
 				mface->edcode= 3;
 				mface->mat_nr= 0;
@@ -4786,7 +4786,7 @@ static void dxf_read_3dface(int noob)
 	mface->edcode= 3;
 	mface->mat_nr= 0;
 
-	test_index_mface(mface, nverts);
+	test_index_face(mface, NULL, NULL, nverts);
 
 	hasbumped=1;
 }

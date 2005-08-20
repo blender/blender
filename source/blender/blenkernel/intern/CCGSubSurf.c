@@ -693,6 +693,10 @@ CCGError ccgSubSurf_setAllowEdgeCreation(CCGSubSurf *ss, int allowEdgeCreation, 
 
 	return eCCGError_None;
 }
+void ccgSubSurf_getAllowEdgeCreation(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r) {
+	if (allowEdgeCreation_r) *allowEdgeCreation_r = ss->allowEdgeCreation;
+	if (defaultCreaseValue_r) *defaultCreaseValue_r = ss->defaultCreaseValue;
+}
 
 CCGError ccgSubSurf_setSubdivisionLevels(CCGSubSurf *ss, int subdivisionLevels) {
 	if (subdivisionLevels<=0) {
@@ -850,9 +854,9 @@ CCGError ccgSubSurf_syncFaceDel(CCGSubSurf *ss, CCGFaceHDL fHDL) {
 	return eCCGError_None;
 }
 
-CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
+CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData, CCGVert **v_r) {
 	void **prevp;
-	CCGVert *v;
+	CCGVert *v = NULL;
 	
 	if (ss->syncState==eSyncState_Partial) {
 		v = _ehash_lookupWithPrev(ss->vMap, vHDL, &prevp);
@@ -902,12 +906,13 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, void *vertData) {
 		}
 	}
 
+	if (v_r) *v_r = v;
 	return eCCGError_None;
 }
 
-CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease) {
+CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0, CCGVertHDL e_vHDL1, float crease, CCGEdge **e_r) {
 	void **prevp;
-	CCGEdge *e, *eNew;
+	CCGEdge *e = NULL, *eNew;
 
 	if (ss->syncState==eSyncState_Partial) {
 		e = _ehash_lookupWithPrev(ss->eMap, eHDL, &prevp);
@@ -955,12 +960,13 @@ CCGError ccgSubSurf_syncEdge(CCGSubSurf *ss, CCGEdgeHDL eHDL, CCGVertHDL e_vHDL0
 		}
 	}
 
+	if (e_r) *e_r = e;
 	return eCCGError_None;
 }
 
-CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs) {
+CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGVertHDL *vHDLs, CCGFace **f_r) {
 	void **prevp;
-	CCGFace *f, *fNew;
+	CCGFace *f = NULL, *fNew;
 	int j, k, topologyChanged = 0;
 
 	if (numVerts>ss->lenTempArrays) {
@@ -1065,6 +1071,7 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 		}
 	}
 
+	if (f_r) *f_r = f;
 	return eCCGError_None;
 }
 

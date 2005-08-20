@@ -202,12 +202,9 @@ static void *subsurfModifier_applyModifierEM(ModifierData *md, Object *ob, void 
 	SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 	if (dm) {
-		EditVert **vertMap;
-		EditEdge **edgeMap;
-		EditFace **faceMap;
-		DispListMesh *dlm = dm->convertToDispListMeshMapped(dm, 0, &vertMap, &edgeMap, &faceMap);
+		DispListMesh *dlm = dm->convertToDispListMesh(dm, 0);
 
-		dm = subsurf_make_derived_from_dlm_em(dlm, smd, vertexCos, vertMap, edgeMap, faceMap);
+		dm = subsurf_make_derived_from_dlm_em(dlm, smd, vertexCos);
 
 		return dm;
 	} else {
@@ -452,7 +449,7 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 
 	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
 	
-	return derivedmesh_from_displistmesh(ndlm, NULL, NULL, NULL, NULL);
+	return derivedmesh_from_displistmesh(ndlm, NULL);
 }
 
 /* Mirror */
@@ -473,307 +470,257 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->tolerance = mmd->tolerance;
 }
 
-static void mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *ndlm, float (*vertexCos)[3], EditVert **vertMap, EditEdge **edgeMap, EditFace **faceMap, EditVert ***vertMap_r, EditEdge ***edgeMap_r, EditFace ***faceMap_r)
+static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListMesh *inDLM, float (*vertexCos)[3], int initFlags)
 {
-	int totvert=ndlm->totvert, totedge=ndlm->totedge, totface=ndlm->totface;
 	int i, axis = mmd->axis;
 	float tolerance = mmd->tolerance;
-	EditVert **vMapOut;
-	EditEdge **eMapOut;
-	EditFace **fMapOut;
+	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "mirror_dlm");
+	int (*indexMap)[2];
 
-	if (vertMap) {
-		*vertMap_r = vMapOut = MEM_mallocN(sizeof(*vMapOut)*totvert*2, "vmap");
-		*edgeMap_r = eMapOut = MEM_mallocN(sizeof(*eMapOut)*totedge*2, "emap");
-		*faceMap_r = fMapOut = MEM_mallocN(sizeof(*fMapOut)*totface*2, "fmap");
-	} else {
-		*vertMap_r = vMapOut = NULL;
-		*edgeMap_r = eMapOut = NULL;
-		*faceMap_r = fMapOut = NULL;
-	}
+	dlm->totvert = dlm->totedge = dlm->totface = 0;
+	indexMap = MEM_mallocN(sizeof(*indexMap)*inDLM->totvert, "indexmap");
+	dlm->mvert = MEM_callocN(sizeof(*dlm->mvert)*inDLM->totvert*2, "dlm_mvert");
+	dlm->mface = MEM_callocN(sizeof(*dlm->mface)*inDLM->totface*2, "dlm_mface");
 
-	for (i=0; i<totvert; i++) {
-		MVert *mv = &ndlm->mvert[i];
-		int isShared = ABS(mv->co[axis])<=tolerance;
+	if (inDLM->medge) dlm->medge = MEM_callocN(sizeof(*dlm->medge)*inDLM->totedge*2, "dlm_medge");
+	if (inDLM->tface) dlm->tface = MEM_callocN(sizeof(*dlm->tface)*inDLM->totface*2, "dlm_tface");
+	if (inDLM->mcol) dlm->mcol = MEM_callocN(sizeof(*dlm->mcol)*inDLM->totface*4*2, "dlm_mcol");
 
-				/* Because the topology result (# of vertices) must stuff the same
+	for (i=0; i<inDLM->totvert; i++) {
+		MVert *inMV = &inDLM->mvert[i];
+		MVert *mv = &dlm->mvert[dlm->totvert++];
+		int isShared = ABS(inMV->co[axis])<=tolerance;
+
+				/* Because the topology result (# of vertices) must be the same
 				 * if the mesh data is overridden by vertex cos, have to calc sharedness
-				 * based on original coordinates. Only write new cos for non-shared
-				 * vertices. This is why we test before copy.
+				 * based on original coordinates. This is why we test before copy.
 				 */
+		*mv = *inMV;
 		if (vertexCos) {
 			VECCOPY(mv->co, vertexCos[i]);
 		}
+		if (initFlags) mv->flag |= ME_VERT_STEPINDEX;
 
-		if (vMapOut) vMapOut[i] = vertMap[i];
+		indexMap[i][0] = dlm->totvert-1;
+		indexMap[i][1] = !isShared;
 
 		if (isShared) {
 			mv->co[axis] = 0;
-			*((int*) mv->no) = i;
 		} else {
-			MVert *nmv = &ndlm->mvert[ndlm->totvert];
+			MVert *mv2 = &dlm->mvert[dlm->totvert++];
 
-			memcpy(nmv, mv, sizeof(*mv));
-			nmv ->co[axis] = -nmv ->co[axis];
-
-			if (vMapOut) vMapOut[ndlm->totvert] = vertMap[i];
-
-			*((int*) mv->no) = ndlm->totvert++;
+			*mv2 = *mv;
+			mv2->co[axis] = -mv2->co[axis];
+			mv2->flag &= ~ME_VERT_STEPINDEX;
 		}
 	}
 
-	if (ndlm->medge) {
-		for (i=0; i<totedge; i++) {
-			MEdge *med = &ndlm->medge[i];
-			MEdge *nmed = &ndlm->medge[ndlm->totedge];
+	for (i=0; i<inDLM->totedge; i++) {
+		MEdge *inMED = &inDLM->medge[i];
+		MEdge *med = &dlm->medge[dlm->totedge++];
 
-			memcpy(nmed, med, sizeof(*med));
+		*med = *inMED;
+		med->v1 = indexMap[inMED->v1][0];
+		med->v2 = indexMap[inMED->v2][0];
+		if (initFlags) med->flag |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED|ME_EDGE_STEPINDEX;
 
-			nmed->v1 = *((int*) ndlm->mvert[nmed->v1].no);
-			nmed->v2 = *((int*) ndlm->mvert[nmed->v2].no);
+		if (indexMap[inMED->v1][1] || indexMap[inMED->v2][2]) {
+			MEdge *med2 = &dlm->medge[dlm->totedge++];
 
-			if (eMapOut) eMapOut[i] = edgeMap[i];
-
-			if (nmed->v1!=med->v1 || nmed->v2!=med->v2) {
-				if (eMapOut) eMapOut[ndlm->totedge] = edgeMap[i];
-
-				ndlm->totedge++;
-			}
+			*med2 = *med;
+			med2->v1 = med->v1+indexMap[inMED->v1][1];
+			med2->v2 = med->v2+indexMap[inMED->v2][1];
+			med2->flag &= ~ME_EDGE_STEPINDEX;
 		}
 	}
 
-	for (i=0; i<totface; i++) {
-		MFace *mf = &ndlm->mface[i];
-		MFace *nmf = &ndlm->mface[ndlm->totface];
-		TFace *tf=NULL, *ntf=NULL; /* gcc's mother is uninitialized! */
-		MCol *mc=NULL, *nmc=NULL;
+	for (i=0; i<inDLM->totface; i++) {
+		MFace *inMF = &inDLM->mface[i];
+		MFace *mf = &dlm->mface[dlm->totface++];
+
+		*mf = *inMF;
+		mf->v1 = indexMap[inMF->v1][0];
+		mf->v2 = indexMap[inMF->v2][0];
+		mf->v3 = indexMap[inMF->v3][0];
+		mf->v4 = indexMap[inMF->v4][0];
+		if (initFlags) mf->flag |= ME_FACE_STEPINDEX;
+
+		if (inDLM->tface) {
+			TFace *inTF = &inDLM->tface[i];
+			TFace *tf = &dlm->tface[dlm->totface-1];
+
+			*tf = *inTF;
+		} else if (inDLM->mcol) {
+			MCol *inMC = &inDLM->mcol[i*4];
+			MCol *mc = &dlm->mcol[(dlm->totface-1)*4];
+
+			mc[0] = inMC[0];
+			mc[1] = inMC[1];
+			mc[2] = inMC[2];
+			mc[3] = inMC[3];
+		}
 		
-		memcpy(nmf, mf, sizeof(*mf));
-		if (ndlm->tface) {
-			ntf = &ndlm->tface[ndlm->totface];
-			tf = &ndlm->tface[i];
-			memcpy(ntf, tf, sizeof(*ndlm->tface));
-		} else if (ndlm->mcol) {
-			nmc = &ndlm->mcol[ndlm->totface*4];
-			mc = &ndlm->mcol[i*4];
-			memcpy(nmc, mc, sizeof(*ndlm->mcol)*4);
-		}
+		if (indexMap[inMF->v1][1] || indexMap[inMF->v2][1] || (mf->v3 && indexMap[inMF->v3][1]) || (mf->v4 && indexMap[inMF->v4][1])) {
+			MFace *mf2 = &dlm->mface[dlm->totface++];
+			TFace *tf = NULL;
+			MCol *mc = NULL;
 
-			/* Map vertices to shared */
+			*mf2 = *mf;
+			mf2->v1 = indexMap[inMF->v1][0] + indexMap[inMF->v1][1];
+			mf2->v2 = indexMap[inMF->v2][0] + indexMap[inMF->v2][1];
+			mf2->v3 = indexMap[inMF->v3][0] + (inMF->v3?indexMap[inMF->v3][1]:0);
+			mf2->v4 = indexMap[inMF->v4][0] + (inMF->v4?indexMap[inMF->v4][1]:0);
+			mf2->flag &= ~ME_FACE_STEPINDEX;
 
-		nmf->v1 = *((int*) ndlm->mvert[nmf->v1].no);
-		nmf->v2 = *((int*) ndlm->mvert[nmf->v2].no);
-		if (nmf->v3) {
-			nmf->v3 = *((int*) ndlm->mvert[nmf->v3].no);
-			if (nmf->v4) nmf->v4 = *((int*) ndlm->mvert[nmf->v4].no);
-		}
+			if (inDLM->tface) {
+				TFace *inTF = &inDLM->tface[i];
+				tf = &dlm->tface[dlm->totface-1];
 
-		if (fMapOut) fMapOut[i] = faceMap[i];
+				*tf = *inTF;
+			} else if (inDLM->mcol) {
+				MCol *inMC = &inDLM->mcol[i*4];
+				mc = &dlm->mcol[(dlm->totface-1)*4];
 
-			/* If all vertices shared don't duplicate face */
-		if (nmf->v1==mf->v1 && nmf->v2==mf->v2 && nmf->v3==mf->v3 && nmf->v4==mf->v4)
-			continue;
+				mc[0] = inMC[0];
+				mc[1] = inMC[1];
+				mc[2] = inMC[2];
+				mc[3] = inMC[3];
+			}
 
-		if (fMapOut) fMapOut[ndlm->totface] = faceMap[i];
-
-		if (nmf->v3) {
-				/* Need to flip face normal, pick which verts to flip
-				* in order to prevent nmf->v3==0 or nmf->v4==0
-				*/
-			if (nmf->v1) {
-				SWAP(int, nmf->v1, nmf->v3);
-
-				if (ndlm->tface) {
-					SWAP(unsigned int, ntf->col[0], ntf->col[2]);
-					SWAP(float, ntf->uv[0][0], ntf->uv[2][0]);
-					SWAP(float, ntf->uv[0][1], ntf->uv[2][1]);
-				} else if (ndlm->mcol) {
-					SWAP(MCol, nmc[0], nmc[2]);
+			if (mf2->v3) {
+					/* Flip face normal */
+				SWAP(int, mf2->v1, mf2->v3);
+				if (tf) {
+					SWAP(unsigned int, tf->col[0], tf->col[2]);
+					SWAP(float, tf->uv[0][0], tf->uv[2][0]);
+					SWAP(float, tf->uv[0][1], tf->uv[2][1]);
+				} else if (mc) {
+					SWAP(MCol, mc[0], mc[2]);
 				}
-			} else {
-				if (nmf->v4) {
-					SWAP(int, nmf->v2, nmf->v4);
 
-					if (ndlm->tface) {
-						SWAP(unsigned int, ntf->col[1], ntf->col[3]);
-						SWAP(float, ntf->uv[1][0], ntf->uv[3][0]);
-						SWAP(float, ntf->uv[1][1], ntf->uv[3][1]);
-					} else if (ndlm->mcol) {
-						SWAP(MCol, nmc[1], nmc[3]);
-					}
-				} else {
-					SWAP(int, nmf->v2, nmf->v3);
-
-					if (ndlm->tface) {
-						SWAP(unsigned int, ntf->col[1], ntf->col[2]);
-						SWAP(float, ntf->uv[1][0], ntf->uv[2][0]);
-						SWAP(float, ntf->uv[1][1], ntf->uv[2][1]);
-					} else if (ndlm->mcol) {
-						SWAP(MCol, nmc[1], nmc[2]);
-					}
-				}
+				test_index_face(mf2, mc, tf, inMF->v4?4:3);
 			}
 		}
-
-		ndlm->totface++;
 	}
+
+	MEM_freeN(indexMap);
+
+	return dlm;
 }
 
-static void *mirrorModifier_applyModifier__internal(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc, int needsMaps)
+static void *mirrorModifier_applyModifier__internal(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
 {
 	DerivedMesh *dm = derivedData;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
-	DispListMesh *dlm=NULL, *ndlm = MEM_callocN(sizeof(*dlm), "mm_dlm");
-	MVert *mvert;
-	MEdge *medge;
-	MFace *mface;
-	TFace *tface;
-	MCol *mcol;
-	EditVert **vertMapOut, **vertMap = NULL;
-	EditEdge **edgeMapOut, **edgeMap = NULL;
-	EditFace **faceMapOut, **faceMap = NULL;
+	DispListMesh *outDLM, *inDLM;
 
 	if (dm) {
-		if (needsMaps) {
-			dlm = dm->convertToDispListMeshMapped(dm, 1, &vertMap, &edgeMap, &faceMap);
-		} else {
-			dlm = dm->convertToDispListMesh(dm, 1);
-		}
-
-		mvert = dlm->mvert;
-		medge = dlm->medge;
-		mface = dlm->mface;
-		tface = dlm->tface;
-		mcol = dlm->mcol;
-		ndlm->totvert = dlm->totvert;
-		ndlm->totedge = dlm->totedge;
-		ndlm->totface = dlm->totface;
+		inDLM = dm->convertToDispListMesh(dm, 1);
 	} else {
 		Mesh *me = ob->data;
 
-		mvert = me->mvert;
-		medge = me->medge;
-		mface = me->mface;
-		tface = me->tface;
-		mcol = me->mcol;
-		ndlm->totvert = me->totvert;
-		ndlm->totedge = me->totedge;
-		ndlm->totface = me->totface;
+		inDLM = MEM_callocN(sizeof(*inDLM), "inDLM");
+		inDLM->dontFreeVerts = inDLM->dontFreeOther = 1;
+		inDLM->mvert = me->mvert;
+		inDLM->medge = me->medge;
+		inDLM->mface = me->mface;
+		inDLM->tface = me->tface;
+		inDLM->mcol = me->mcol;
+		inDLM->totvert = me->totvert;
+		inDLM->totedge = me->totedge;
+		inDLM->totface = me->totface;
 	}
 
-	ndlm->mvert = MEM_mallocN(sizeof(*mvert)*ndlm->totvert*2, "mm_mv");
-	memcpy(ndlm->mvert, mvert, sizeof(*mvert)*ndlm->totvert);
+	outDLM = mirrorModifier__doMirror(mmd, inDLM, vertexCos, dm?0:1);
 
-	if (medge) {
-		ndlm->medge = MEM_mallocN(sizeof(*medge)*ndlm->totedge*2, "mm_med");
-		memcpy(ndlm->medge, medge, sizeof(*medge)*ndlm->totedge);
-	}
-
-	ndlm->mface = MEM_mallocN(sizeof(*mface)*ndlm->totface*2, "mm_mf");
-	memcpy(ndlm->mface, mface, sizeof(*mface)*ndlm->totface);
-
-	if (tface) {
-		ndlm->tface = MEM_mallocN(sizeof(*tface)*ndlm->totface*2, "mm_tf");
-		memcpy(ndlm->tface, tface, sizeof(*tface)*ndlm->totface);
-	} else if (mcol) {
-		ndlm->mcol = MEM_mallocN(sizeof(*mcol)*4*ndlm->totface*2, "mm_mcol");
-		memcpy(ndlm->mcol, mcol, sizeof(*mcol)*4*ndlm->totface);
-	}
-
-	mirrorModifier__doMirror(mmd, ndlm, vertexCos, vertMap, edgeMap, faceMap, &vertMapOut, &edgeMapOut, &faceMapOut);
-
-	if (dlm) {
-		displistmesh_free(dlm);
-		if (needsMaps) {
-			MEM_freeN(vertMap);
-			MEM_freeN(edgeMap);
-			MEM_freeN(faceMap);
-		}
-	}
-
-	mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
+	displistmesh_free(inDLM);
 	
-	return derivedmesh_from_displistmesh(ndlm, NULL, vertMapOut, edgeMapOut, faceMapOut);
+	mesh_calc_normals(outDLM->mvert, outDLM->totvert, outDLM->mface, outDLM->totface, &outDLM->nors);
+	
+	return derivedmesh_from_displistmesh(outDLM, NULL);
 }
 
 static void *mirrorModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
 {
-	return mirrorModifier_applyModifier__internal(md, ob, derivedData, vertexCos, 0, 1, 0);
+	return mirrorModifier_applyModifier__internal(md, ob, derivedData, vertexCos, 0, 1);
 }
 
 static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3])
 {
 	if (derivedData) {
-		return mirrorModifier_applyModifier__internal(md, ob, derivedData, vertexCos, 0, 1, 1);
+		return mirrorModifier_applyModifier__internal(md, ob, derivedData, vertexCos, 0, 1);
 	} else {
 		MirrorModifierData *mmd = (MirrorModifierData*) md;
-		DispListMesh *ndlm = MEM_callocN(sizeof(*ndlm), "mm_dlm");
+		DispListMesh *outDLM, *inDLM = MEM_callocN(sizeof(*inDLM), "mm_dlm");
 		EditMesh *em = editData;
 		EditVert *eve, *preveve;
 		EditEdge *eed;
 		EditFace *efa;
-		EditVert **vertMapOut, **vertMap;
-		EditEdge **edgeMapOut, **edgeMap;
-		EditFace **faceMapOut, **faceMap;
 		int i;
 
 		for (i=0,eve=em->verts.first; eve; eve= eve->next)
 			eve->prev = (EditVert*) i++;
 
-		ndlm->totvert = BLI_countlist(&em->verts);
-		ndlm->totedge = BLI_countlist(&em->edges);
-		ndlm->totface = BLI_countlist(&em->faces);
+		inDLM->totvert = BLI_countlist(&em->verts);
+		inDLM->totedge = BLI_countlist(&em->edges);
+		inDLM->totface = BLI_countlist(&em->faces);
 
-		vertMap = MEM_mallocN(sizeof(*vertMap)*ndlm->totvert, "mm_vmap");
-		edgeMap = MEM_mallocN(sizeof(*edgeMap)*ndlm->totedge, "mm_emap");
-		faceMap = MEM_mallocN(sizeof(*faceMap)*ndlm->totface, "mm_fmap");
+		inDLM->mvert = MEM_mallocN(sizeof(*inDLM->mvert)*inDLM->totvert*2, "mm_mv");
+		inDLM->medge = MEM_mallocN(sizeof(*inDLM->medge)*inDLM->totedge*2, "mm_med");
+		inDLM->mface = MEM_mallocN(sizeof(*inDLM->mface)*inDLM->totface*2, "mm_mf");
 
-		ndlm->mvert = MEM_mallocN(sizeof(*ndlm->mvert)*ndlm->totvert*2, "mm_mv");
-		ndlm->medge = MEM_mallocN(sizeof(*ndlm->medge)*ndlm->totedge*2, "mm_med");
-		ndlm->mface = MEM_mallocN(sizeof(*ndlm->mface)*ndlm->totface*2, "mm_mf");
+			/* Need to be able to mark loose edges */
+		for (eed=em->edges.first; eed; eed=eed->next) {
+			eed->f2 = 0;
+		}
+		for (efa=em->faces.first; efa; efa=efa->next) {
+			efa->e1->f2 = 1;
+			efa->e2->f2 = 1;
+			efa->e3->f2 = 1;
+			efa->e4->f2 = 1;
+		}
 
-		for (i=0,eve=em->verts.first; i<ndlm->totvert; i++,eve=eve->next) {
-			MVert *mv = &ndlm->mvert[i];
+		for (i=0,eve=em->verts.first; i<inDLM->totvert; i++,eve=eve->next) {
+			MVert *mv = &inDLM->mvert[i];
 
 			VECCOPY(mv->co, eve->co);
-
-			vertMap[i] = eve;
+			mv->mat_nr = 0;
+			mv->flag = ME_VERT_STEPINDEX;
 		}
-		for (i=0,eed=em->edges.first; i<ndlm->totedge; i++,eed=eed->next) {
-			MEdge *med = &ndlm->medge[i];
+		for (i=0,eed=em->edges.first; i<inDLM->totedge; i++,eed=eed->next) {
+			MEdge *med = &inDLM->medge[i];
 
 			med->v1 = (int) eed->v1->prev;
 			med->v2 = (int) eed->v2->prev;
 			med->crease = (unsigned char) (eed->crease*255.0f);
-
-			edgeMap[i] = eed;
+			med->flag = ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED|ME_EDGE_STEPINDEX;
+			
+			if (eed->seam) med->flag |= ME_SEAM;
+			if (!eed->f2) med->flag |= ME_LOOSEEDGE;
 		}
-		for (i=0,efa=em->faces.first; i<ndlm->totface; i++,efa=efa->next) {
-			MFace *mf = &ndlm->mface[i];
+		for (i=0,efa=em->faces.first; i<inDLM->totface; i++,efa=efa->next) {
+			MFace *mf = &inDLM->mface[i];
 			mf->v1 = (int) efa->v1->prev;
 			mf->v2 = (int) efa->v2->prev;
 			mf->v3 = (int) efa->v3->prev;
 			mf->v4 = efa->v4?(int) efa->v4->prev:0;
 			mf->mat_nr = efa->mat_nr;
-			mf->flag = efa->flag;
+			mf->flag = efa->flag|ME_FACE_STEPINDEX;
+			mf->edcode = 0;
 
-			test_index_mface(mf, efa->v4?4:3);
-
-			faceMap[i] = efa;
+			test_index_face(mf, NULL, NULL, efa->v4?4:3);
 		}
 
-		mirrorModifier__doMirror(mmd, ndlm, vertexCos, vertMap, edgeMap, faceMap, &vertMapOut, &edgeMapOut, &faceMapOut);
+		outDLM = mirrorModifier__doMirror(mmd, inDLM, vertexCos, 0);
+
+		displistmesh_free(inDLM);
 
 		for (preveve=NULL, eve=em->verts.first; eve; preveve=eve, eve= eve->next)
 			eve->prev = preveve;
 
-		mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
-		
-		MEM_freeN(faceMap);
-		MEM_freeN(edgeMap);
-		MEM_freeN(vertMap);
+		mesh_calc_normals(outDLM->mvert, outDLM->totvert, outDLM->mface, outDLM->totface, &outDLM->nors);
 
-		return derivedmesh_from_displistmesh(ndlm, NULL, vertMapOut, edgeMapOut, faceMapOut);
+		return derivedmesh_from_displistmesh(outDLM, NULL);
 	}
 }
 
@@ -895,7 +842,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				mf->v1 = tri[0];
 				mf->v2 = tri[1];
 				mf->v3 = tri[2];
-				test_index_mface(mf, 3);
+				test_index_face(mface, NULL, NULL, 3);
 			}
 		}
 		else {
@@ -918,7 +865,7 @@ exit:
 	if (ndlm) {
 		mesh_calc_normals(ndlm->mvert, ndlm->totvert, ndlm->mface, ndlm->totface, &ndlm->nors);
 
-		return derivedmesh_from_displistmesh(ndlm, NULL, NULL, NULL, NULL);
+		return derivedmesh_from_displistmesh(ndlm, NULL);
 	} else {
 		return NULL;
 	}

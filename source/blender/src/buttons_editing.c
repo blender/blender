@@ -2434,6 +2434,7 @@ void do_meshbuts(unsigned short event)
 				me->totedge= 1;
 			}
 			else make_edges(me);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		case B_DELEDGES:
@@ -2475,11 +2476,6 @@ void do_meshbuts(unsigned short event)
 			if(G.obedit) {
 				flip_editnormals();
 			}
-			else {
-				flipnorm_mesh( get_mesh(ob) );
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			}
-
 			allqueue(REDRAWVIEW3D, 0);
 			break;
 

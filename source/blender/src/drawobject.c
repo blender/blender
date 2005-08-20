@@ -896,9 +896,10 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
-static void mesh_foreachScreenVert__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
+	EditVert *eve = EM_get_vert_for_index(index);
 	short s[2];
 
 	if (eve->h==0) {
@@ -908,7 +909,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, EditVert *eve, float
 			view3d_project_short_noclip(curarea, co, s, data->mat);
 		}
 
-		data->func(data->userData, eve, s[0], s[1], (int) eve->prev);
+		data->func(data->userData, eve, s[0], s[1], index);
 	}
 }
 void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
@@ -916,8 +917,6 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	EditVert *eve, *preveve;
-	int index;
 
 	data.func = func;
 	data.userData = userData;
@@ -925,22 +924,19 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 
 	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
-	for (index=0,eve=G.editMesh->verts.first; eve; index++,eve= eve->next)
-		eve->prev = (EditVert*) index;
-
-	dm->foreachMappedVertEM(dm, mesh_foreachScreenVert__mapFunc, &data);
-
-	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
-		eve->prev = preveve;
+	EM_init_index_arrays(1, 0, 0);
+	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
+	EM_free_index_arrays();
 
 	if (dmNeedsFree) {
 		dm->release(dm);
 	}
 }
 
-static void mesh_foreachScreenEdge__mapFunc(void *userData, EditEdge *eed, float *v0co, float *v1co)
+static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } *data = userData;
+	EditEdge *eed = EM_get_edge_for_index(index);
 	short s[2][2];
 
 	if (eed->h==0) {
@@ -958,7 +954,7 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, EditEdge *eed, float
 			}
 		}
 
-		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], (int) eed->prev);
+		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], index);
 	}
 }
 void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
@@ -966,8 +962,6 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	EditEdge *eed, *preveed;
-	int index;
 
 	data.func = func;
 	data.userData = userData;
@@ -975,28 +969,25 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 
 	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
-	for (index=0,eed=G.editMesh->edges.first; eed; index++,eed= eed->next)
-		eed->prev = (EditEdge*) index;
-
-	dm->foreachMappedEdgeEM(dm, mesh_foreachScreenEdge__mapFunc, &data);
-
-	for (preveed=NULL, eed=G.editMesh->edges.first; eed; preveed=eed, eed= eed->next)
-		eed->prev = preveed;
+	EM_init_index_arrays(0, 1, 0);
+	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
+	EM_free_index_arrays();
 
 	if (dmNeedsFree) {
 		dm->release(dm);
 	}
 }
 
-static void mesh_foreachScreenFace__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
+static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } *data = userData;
+	EditFace *efa = EM_get_face_for_index(index);
 	short s[2];
 
-	if (efa && efa->fgonf!=EM_FGON) {
+	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
 		view3d_project_short(curarea, cent, s, data->mat);
 
-		data->func(data->userData, efa, s[0], s[1], (int) efa->prev);
+		data->func(data->userData, efa, s[0], s[1], index);
 	}
 }
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
@@ -1004,21 +995,15 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float mat[4][4]; } data;
 	int dmNeedsFree;
 	DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
-	EditFace *efa, *prevefa;
-	int index = 0;
 
 	data.func = func;
 	data.userData = userData;
 
 	view3d_get_object_project_mat(curarea, G.obedit, data.mat);
 
-	for (index=0,efa=G.editMesh->faces.first; efa; index++,efa= efa->next)
-		efa->prev = (EditFace*) index;
-
-	dm->foreachMappedFaceCenterEM(dm, mesh_foreachScreenFace__mapFunc, &data);
-
-	for (prevefa=NULL, efa=G.editMesh->faces.first; efa; prevefa=efa, efa= efa->next)
-		efa->prev = prevefa;
+	EM_init_index_arrays(0, 0, 1);
+	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
+	EM_free_index_arrays();
 
 	if (dmNeedsFree) {
 		dm->release(dm);
@@ -1118,8 +1103,10 @@ static unsigned char *calc_weightpaint_colors(Object *ob)
  * logic!!!
  */
 
-static void draw_dm_face_normals__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
+static void draw_dm_face_normals__mapFunc(void *userData, int index, float *cent, float *no)
 {
+	EditFace *efa = EM_get_face_for_index(index);
+
 	if (efa->h==0 && efa->fgonf!=EM_FGON) {
 		glVertex3fv(cent);
 		glVertex3f(	cent[0] + no[0]*G.scene->editbutsize,
@@ -1129,12 +1116,13 @@ static void draw_dm_face_normals__mapFunc(void *userData, EditFace *efa, float *
 }
 static void draw_dm_face_normals(DerivedMesh *dm) {
 	glBegin(GL_LINES);
-	dm->foreachMappedFaceCenterEM(dm, draw_dm_face_normals__mapFunc, 0);
+	dm->foreachMappedFaceCenter(dm, draw_dm_face_normals__mapFunc, 0);
 	glEnd();
 }
 
-static void draw_dm_face_centers__mapFunc(void *userData, EditFace *efa, float *cent, float *no)
+static void draw_dm_face_centers__mapFunc(void *userData, int index, float *cent, float *no)
 {
+	EditFace *efa = EM_get_face_for_index(index);
 	int sel = *((int*) userData);
 
 	if (efa->h==0 && efa->fgonf!=EM_FGON && (efa->f&SELECT)==sel) {
@@ -1144,12 +1132,14 @@ static void draw_dm_face_centers__mapFunc(void *userData, EditFace *efa, float *
 static void draw_dm_face_centers(DerivedMesh *dm, int sel)
 {
 	bglBegin(GL_POINTS);
-	dm->foreachMappedFaceCenterEM(dm, draw_dm_face_centers__mapFunc, &sel);
+	dm->foreachMappedFaceCenter(dm, draw_dm_face_centers__mapFunc, &sel);
 	bglEnd();
 }
 
-static void draw_dm_vert_normals__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+static void draw_dm_vert_normals__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	EditVert *eve = EM_get_vert_for_index(index);
+
 	if (eve->h==0) {
 		glVertex3fv(co);
 
@@ -1166,13 +1156,14 @@ static void draw_dm_vert_normals__mapFunc(void *userData, EditVert *eve, float *
 }
 static void draw_dm_vert_normals(DerivedMesh *dm) {
 	glBegin(GL_LINES);
-	dm->foreachMappedVertEM(dm, draw_dm_vert_normals__mapFunc, NULL);
+	dm->foreachMappedVert(dm, draw_dm_vert_normals__mapFunc, NULL);
 	glEnd();
 }
 
 	/* Draw verts with color set based on selection */
-static void draw_dm_verts__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	EditVert *eve = EM_get_vert_for_index(index);
 	int sel = *((int*) userData);
 
 	if (eve->h==0 && (eve->f&SELECT)==sel) {
@@ -1182,13 +1173,14 @@ static void draw_dm_verts__mapFunc(void *userData, EditVert *eve, float *co, flo
 static void draw_dm_verts(DerivedMesh *dm, int sel)
 {
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVertEM(dm, draw_dm_verts__mapFunc, &sel);
+	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &sel);
 	bglEnd();
 }
 
 	/* Draw edges with color set based on selection */
-static int draw_dm_edges_sel__setDrawOptions(void *userData, EditEdge *eed)
+static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
+	EditEdge *eed = EM_get_edge_for_index(index);
 	unsigned char **cols = userData;
 
 	if (eed->h==0) {
@@ -1203,26 +1195,27 @@ static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	unsigned char *cols[2];
 	cols[0] = baseCol;
 	cols[1] = selCol;
-	dm->drawMappedEdgesEM(dm, draw_dm_edges_sel__setDrawOptions, cols);
+	dm->drawMappedEdges(dm, draw_dm_edges_sel__setDrawOptions, cols);
 }
 
 	/* Draw edges */
-static int draw_dm_edges__setDrawOptions(void *userData, EditEdge *eed)
+static int draw_dm_edges__setDrawOptions(void *userData, int index)
 {
-	return eed->h==0;
+	return EM_get_edge_for_index(index)->h==0;
 }
 static void draw_dm_edges(DerivedMesh *dm) 
 {
-	dm->drawMappedEdgesEM(dm, draw_dm_edges__setDrawOptions, NULL);
+	dm->drawMappedEdges(dm, draw_dm_edges__setDrawOptions, NULL);
 }
 
 	/* Draw edges with color interpolated based on selection */
-static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, EditEdge *eed)
+static int draw_dm_edges_sel_interp__setDrawOptions(void *userData, int index)
 {
-	return (eed->h==0);
+	return EM_get_edge_for_index(index)->h==0;
 }
-static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, EditEdge *eed, float t)
+static void draw_dm_edges_sel_interp__setDrawInterpOptions(void *userData, int index, float t)
 {
+	EditEdge *eed = EM_get_edge_for_index(index);
 	unsigned char **cols = userData;
 	unsigned char *col0 = cols[(eed->v1->f&SELECT)?1:0];
 	unsigned char *col1 = cols[(eed->v2->f&SELECT)?1:0];
@@ -1237,26 +1230,30 @@ static void draw_dm_edges_sel_interp(DerivedMesh *dm, unsigned char *baseCol, un
 	unsigned char *cols[2];
 	cols[0] = baseCol;
 	cols[1] = selCol;
-	dm->drawMappedEdgesInterpEM(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
+	dm->drawMappedEdgesInterp(dm, draw_dm_edges_sel_interp__setDrawOptions, draw_dm_edges_sel_interp__setDrawInterpOptions, cols);
 }
 
 	/* Draw only seam edges */
-static int draw_dm_edges_seams__setDrawOptions(void *userData, EditEdge *eed)
+static int draw_dm_edges_seams__setDrawOptions(void *userData, int index)
 {
+	EditEdge *eed = EM_get_edge_for_index(index);
+
 	return (eed->h==0 && eed->seam);
 }
 static void draw_dm_edges_seams(DerivedMesh *dm)
 {
-	dm->drawMappedEdgesEM(dm, draw_dm_edges_seams__setDrawOptions, NULL);
+	dm->drawMappedEdges(dm, draw_dm_edges_seams__setDrawOptions, NULL);
 }
 
 	/* Draw faces with color set based on selection */
-static int draw_dm_faces_sel__setDrawOptions(void *userData, EditFace *efa)
+static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
+	EditFace *efa = EM_get_face_for_index(index);
 	unsigned char **cols = userData;
 
 	if (efa->h==0) {
 		glColor4ubv(cols[(efa->f&SELECT)?1:0]);
+		*drawSmooth_r = (efa->flag&ME_SMOOTH);
 		return 1;
 	} else {
 		return 0;
@@ -1267,11 +1264,13 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	unsigned char *cols[2];
 	cols[0] = baseCol;
 	cols[1] = selCol;
-	dm->drawMappedFacesEM(dm, draw_dm_faces_sel__setDrawOptions, cols);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, cols);
 }
 
-static int draw_dm_creases__setDrawOptions(void *userData, EditEdge *eed)
+static int draw_dm_creases__setDrawOptions(void *userData, int index)
 {
+	EditEdge *eed = EM_get_edge_for_index(index);
+
 	if (eed->h==0 && eed->crease!=0.0) {
 		BIF_ThemeColorShade((eed->f&SELECT)?TH_EDGE_SELECT:TH_WIRE, 120*eed->crease);
 		return 1;
@@ -1279,11 +1278,10 @@ static int draw_dm_creases__setDrawOptions(void *userData, EditEdge *eed)
 		return 0;
 	}
 }
-
 static void draw_dm_creases(DerivedMesh *dm)
 {
 	glLineWidth(3.0);
-	dm->drawMappedEdgesEM(dm, draw_dm_creases__setDrawOptions, NULL);
+	dm->drawMappedEdges(dm, draw_dm_creases__setDrawOptions, NULL);
 	glLineWidth(1.0);
 }
 
@@ -1382,7 +1380,7 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 			draw_dm_edges_sel(cageDM, wire, sel);
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
-			if(cageDM->drawMappedEdgesInterpEM && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
+			if(cageDM->drawMappedEdgesInterp && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
 				draw_dm_edges_sel_interp(cageDM, wire, sel);
 				glShadeModel(GL_FLAT);
@@ -1552,9 +1550,23 @@ static void draw_em_measure_stats(Object *ob, EditMesh *em)
 	}
 }
 
+static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth_r)
+{
+	EditFace *efa = EM_get_face_for_index(index);
+
+	if (efa->h==0) {
+		set_gl_material(efa->mat_nr);
+		*drawSmooth_r = efa->flag&ME_SMOOTH;
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
+
+	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
 		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
@@ -1562,7 +1574,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		finalDM->drawFacesSolid(finalDM, set_gl_material);
+		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL);
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
@@ -1635,6 +1647,8 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glDepthMask(1);
 		bglPolygonOffset(0.0);
 	}
+
+	EM_free_index_arrays();
 }
 
 /* Mesh drawing routines */
@@ -1729,7 +1743,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
 			tface_to_mcol(me);
 			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, (unsigned char*) me->mcol, 0);
-			MEM_freeN(me->mcol); 
+			MEM_freeN(me->mcol);
 			me->mcol= 0;
 		}
 		else {
@@ -3756,36 +3770,34 @@ void draw_object_ext(Base *base)
 
 /* ***************** BACKBUF SEL (BBS) ********* */
 
-static void bbs_mesh_verts__mapFunc(void *userData, EditVert *eve, float *co, float *no_f, short *no_s)
+static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	int offset = (int) userData;
+	EditVert *eve = EM_get_vert_for_index(index);
+
 	if (eve->h==0) {
-		set_framebuffer_index_color((int) eve->prev);
+		set_framebuffer_index_color(offset+index);
 		bglVertex3fv(co);
 	}
 }
 static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 {
-	EditVert *eve, *preveve;
-
-	for (eve=G.editMesh->verts.first; eve; eve= eve->next)
-		eve->prev = (EditVert*) offset++;
-
 	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVertEM(dm, bbs_mesh_verts__mapFunc, NULL);
+	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*) offset);
 	bglEnd();
 	glPointSize(1.0);
 
-	for (preveve=NULL, eve=G.editMesh->verts.first; eve; preveve=eve, eve= eve->next)
-		eve->prev = preveve;
-
-	return offset;
+	return offset + G.totvert; // XXX is G variable reliable?
 }		
 
-static int bbs_mesh_wire__setDrawOptions(void *userData, EditEdge *eed)
+static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
+	int offset = (int) userData;
+	EditEdge *eed = EM_get_edge_for_index(index);
+
 	if (eed->h==0) {
-		set_framebuffer_index_color((int) eed->vn);
+		set_framebuffer_index_color(offset+index);
 		return 1;
 	} else {
 		return 0;
@@ -3793,21 +3805,16 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, EditEdge *eed)
 }
 static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
-	EditEdge *eed;
+	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*) offset);
 
-	for(eed= G.editMesh->edges.first; eed; eed= eed->next)
-		eed->vn= (EditVert*) offset++;
-
-	dm->drawMappedEdgesEM(dm, bbs_mesh_wire__setDrawOptions, NULL);
-
-	return offset;
+	return offset + G.totedge; // XXX is G variable reliable?
 }		
 
-static int bbs_mesh_solid__setSolidDrawOptions(void *userData, EditFace *efa)
+static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
-	if (efa->h==0) {
+	if (EM_get_face_for_index(index)->h==0) {
 		if (userData) {
-			set_framebuffer_index_color((int) efa->prev);
+			set_framebuffer_index_color(index+1);
 		}
 		return 1;
 	} else {
@@ -3815,10 +3822,12 @@ static int bbs_mesh_solid__setSolidDrawOptions(void *userData, EditFace *efa)
 	}
 }
 
-static void bbs_mesh_solid__drawCenter(void *userData, EditFace *efa, float *cent, float *no)
+static void bbs_mesh_solid__drawCenter(void *userData, int index, float *cent, float *no)
 {
+	EditFace *efa = EM_get_face_for_index(index);
+
 	if (efa->h==0 && efa->fgonf!=EM_FGON) {
-		set_framebuffer_index_color((int) efa->prev);
+		set_framebuffer_index_color(index+1);
 
 		bglVertex3fv(cent);
 	}
@@ -3830,64 +3839,43 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	cpack(0);
 
 	if (facecol) {
-		EditFace *efa, *prevefa;
-		int a, b;
-
-			// tuck original indices in efa->prev
-		for(b=1, efa= G.editMesh->faces.first; efa; efa= efa->next, b++) 
-			efa->prev= (EditFace *)(b);
-		a = b;
-
-		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1);
 
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);
-			dm->foreachMappedFaceCenterEM(dm, bbs_mesh_solid__drawCenter, NULL);
+			dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, NULL);
 			bglEnd();
 		}
 
-		for (prevefa= NULL, efa= G.editMesh->faces.first; efa; prevefa= efa, efa= efa->next)
-			efa->prev= prevefa;
-		return a;
+		return 1+G.totface;
 	} else {
-		dm->drawMappedFacesEM(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0);
 		return 1;
 	}
 }
 
+static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmooth_r)
+{
+	Mesh *me = userData;
+	MFace *mf = &me->mface[index];
+
+	if (!me->tface || !(me->tface[index].flag&TF_HIDE)) {
+		set_framebuffer_index_color(index+1);
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static void bbs_mesh_solid(Object *ob)
 {
-	Mesh *me= ob->data;
-	MFace *mface= me->mface;
-	TFace *tface= me->tface;
-	float co[3];
-	int a, glmode, dmNeedsFree;
-	DerivedMesh *dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+	int dmNeedsFree;
+	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
 	
 	glColor3ub(0, 0, 0);
-
-	glBegin(glmode=GL_QUADS);
-	for(a=0; a<me->totface; a++, mface++, tface++) {
-		if(mface->v3 && (!me->tface || !(tface->flag&TF_HIDE))) {
-			int newmode = mface->v4?GL_QUADS:GL_TRIANGLES;
-
-			set_framebuffer_index_color(a+1);
-
-			if (newmode!=glmode) {
-				glEnd();
-				glBegin(glmode=newmode);
-			}
-			
-			glVertex3fv( (dm->getVertCo(dm, mface->v1, co),co) );
-			glVertex3fv( (dm->getVertCo(dm, mface->v2, co),co) );
-			glVertex3fv( (dm->getVertCo(dm, mface->v3, co),co) );
-			if(mface->v4) glVertex3fv( (dm->getVertCo(dm, mface->v4, co),co) );
-		}
-	}
-	glEnd();
-
+	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, ob->data);
+	
 	if (dmNeedsFree) {
 		dm->release(dm);
 	}
@@ -3907,6 +3895,8 @@ void draw_object_backbufsel(Object *ob)
 			int dmNeedsFree;
 			DerivedMesh *dm = editmesh_get_derived_cage(&dmNeedsFree);
 
+			EM_init_index_arrays(1, 1, 1);
+
 			em_solidoffs= bbs_mesh_solid_EM(dm, G.scene->selectmode & SCE_SELECT_FACE);
 			
 			bglPolygonOffset(1.0);
@@ -3923,6 +3913,8 @@ void draw_object_backbufsel(Object *ob)
 			if (dmNeedsFree) {
 				dm->release(dm);
 			}
+
+			EM_free_index_arrays();
 		}
 		else bbs_mesh_solid(ob);
 

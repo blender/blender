@@ -488,88 +488,11 @@ float *mesh_create_orco(Object *ob)
 	return make_orco_mesh_internal(ob, 0);
 }
 
-/** rotates the vertices of a face in case v[2] or v[3] (vertex index)
-  * is = 0.
-  * Helaas, the MFace structure has no pointer to its
-  * texture face, therefore, texture can not be fixed inside
-  * this function. 
-  * 
-  * see also blender/src/editmesh.c, fix_faceindices()
-
-  * THIS FUNCTION WILL BE DINOSOURCE. For the moment, another hack
-	is added to fix texture coordinates / vertex colors:
-
-	void test_index_face(MFace *mface, TFace *tface, int nr)
-  */
-
-void test_index_mface(MFace *mface, int nr)
+	/* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0. */
+#define UVSWAP(t, s) { SWAP(float, t[0], s[0]); SWAP(float, t[1], s[1]); }
+void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 {
 	int a;
-
-	
-	/* first test if the face is legal */
-
-	if(mface->v3 && mface->v3==mface->v4) {
-		mface->v4= 0;
-		nr--;
-	}
-	if(mface->v2 && mface->v2==mface->v3) {
-		mface->v3= mface->v4;
-		mface->v4= 0;
-		nr--;
-	}
-	if(mface->v1==mface->v2) {
-		mface->v2= mface->v3;
-		mface->v3= mface->v4;
-		mface->v4= 0;
-		nr--;
-	}
-
-	/* prevent a zero at wrong index location */
-	if(nr==2) {
-		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
-	}
-	else if(nr==3) {
-		if(mface->v3==0) {
-			SWAP(int, mface->v1, mface->v2);
-			SWAP(int, mface->v2, mface->v3);
-			
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
-			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
-			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
-		}
-	}
-	else if(nr==4) {
-		if(mface->v3==0 || mface->v4==0) {
-			SWAP(int, mface->v1, mface->v3);
-			SWAP(int, mface->v2, mface->v4);
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V4;
-			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
-			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
-			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
-		}
-	}
-}
-
-/**	This function should die as soon as there is another mesh
-	structure. Functionality is the same as
-
-		void test_index_mface()
-
-	but it fixes texture coordinates as well. 
-*/
-
-#define UVCOPY(t, s) memcpy(t, s, 2 * sizeof(float));
-void test_index_face(MFace *mface, TFace *tface, int nr)
-{
-	int a;
-	float tmpuv[2];
-	unsigned int tmpcol;
-
 
 	/* first test if the face is legal */
 
@@ -597,18 +520,19 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 		if(mface->v3==0) {
 			SWAP(int, mface->v1, mface->v2);
 			SWAP(int, mface->v2, mface->v3);
-			/* rotate face UV coordinates, too */
-			UVCOPY(tmpuv, tface->uv[0]);
-			UVCOPY(tface->uv[0], tface->uv[1]);
-			UVCOPY(tface->uv[1], tface->uv[2]);
-			UVCOPY(tface->uv[2], tmpuv);
-			/* same with vertex colours */
-			tmpcol = tface->col[0];
-			tface->col[0] = tface->col[1];
-			tface->col[1] = tface->col[2];
-			tface->col[2] = tmpcol;
 
-			
+			if (tface) {
+				UVSWAP(tface->uv[0], tface->uv[1]);
+				UVSWAP(tface->uv[1], tface->uv[2]);
+				SWAP(unsigned int, tface->col[0], tface->col[1]);
+				SWAP(unsigned int, tface->col[1], tface->col[2]);
+			}
+
+			if (mc) {
+				SWAP(MCol, mc[0], mc[1]);
+				SWAP(MCol, mc[1], mc[2]);
+			}
+
 			a= mface->edcode;
 			mface->edcode= 0;
 			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
@@ -620,20 +544,19 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 		if(mface->v3==0 || mface->v4==0) {
 			SWAP(int, mface->v1, mface->v3);
 			SWAP(int, mface->v2, mface->v4);
-			/* swap UV coordinates */
-			UVCOPY(tmpuv, tface->uv[0]);
-			UVCOPY(tface->uv[0], tface->uv[2]);
-			UVCOPY(tface->uv[2], tmpuv);
-			UVCOPY(tmpuv, tface->uv[1]);
-			UVCOPY(tface->uv[1], tface->uv[3]);
-			UVCOPY(tface->uv[3], tmpuv);
-			/* swap vertex colours */
-			tmpcol = tface->col[0];
-			tface->col[0] = tface->col[2];
-			tface->col[2] = tmpcol;
-			tmpcol = tface->col[1];
-			tface->col[1] = tface->col[3];
-			tface->col[3] = tmpcol;
+
+
+			if (tface) {
+				UVSWAP(tface->uv[0], tface->uv[2]);
+				UVSWAP(tface->uv[1], tface->uv[3]);
+				SWAP(unsigned int, tface->col[0], tface->col[2]);
+				SWAP(unsigned int, tface->col[1], tface->col[3]);
+			}
+
+			if (mc) {
+				SWAP(MCol, mc[0], mc[2]);
+				SWAP(MCol, mc[1], mc[3]);
+			}
 
 			a= mface->edcode;
 			mface->edcode= 0;
@@ -642,39 +565,6 @@ void test_index_face(MFace *mface, TFace *tface, int nr)
 			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
 			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
 		}
-	}
-}
-
-void flipnorm_mesh(Mesh *me)
-{
-	MFace *mface;
-	MVert *mvert;
-	int a;
-	
-	mvert= me->mvert;
-	a= me->totvert;
-	while(a--) {
-		mvert->no[0]= -mvert->no[0];
-		mvert->no[1]= -mvert->no[1];
-		mvert->no[2]= -mvert->no[2];
-		mvert++;
-	}
-	
-	mface= me->mface;
-	a= me->totface;
-	while(a--) {
-		if(mface->v3) {
-			if(mface->v4) {
-				SWAP(int, mface->v4, mface->v1);
-				SWAP(int, mface->v3, mface->v2);
-				test_index_mface(mface, 4);
-			}
-			else {
-				SWAP(int, mface->v3, mface->v1);
-				test_index_mface(mface, 3);
-			}
-		}
-		mface++;
 	}
 }
 
@@ -942,7 +832,7 @@ void nurbs_to_mesh(Object *ob)
 					mface->v1= startvert+ofs+b-1;
 					mface->v2= startvert+ofs+b;
 					mface->edcode= ME_V1V2;
-					test_index_mface(mface, 2);
+					test_index_face(mface, NULL, NULL, 2);
 					mface++;
 				}
 			}
@@ -968,7 +858,7 @@ void nurbs_to_mesh(Object *ob)
 						if(b==dl->nr-1) mface->v2= startvert+ofs;
 						else mface->v2= startvert+ofs+b+1;
 						mface->edcode= ME_V1V2;
-						test_index_mface(mface, 2);
+						test_index_face(mface, NULL, NULL, 2);
 						mface++;
 					}
 				}
@@ -994,7 +884,7 @@ void nurbs_to_mesh(Object *ob)
 				mface->v4= 0;
 	
 				mface->edcode= ME_V1V2+ME_V2V3;
-				test_index_mface(mface, 3);
+				test_index_face(mface, NULL, NULL, 3);
 				
 				mface++;
 				index+= 3;
@@ -1043,7 +933,7 @@ void nurbs_to_mesh(Object *ob)
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
 					mface->edcode= ME_V1V2+ME_V2V3;
-					test_index_mface(mface, 4);
+					test_index_face(mface, NULL, NULL, 4);
 					mface++;
 
 					p4= p3; 

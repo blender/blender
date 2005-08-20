@@ -405,7 +405,12 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 	short xmin, ymin, xmax, ymax, xc, yc;
 	int radsq;
 	
-	if(G.obedit==NULL || G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
+	/* method in use for face selecting too */
+	if(G.obedit==NULL) {
+		if(G.f & G_FACESELECT);
+		else return 0;
+	}
+	else if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
 	if(em_vertoffs==0) return 0;
 	
 	xmin= xs-rads; xmax= xs+rads;
@@ -651,39 +656,45 @@ static EditFace *findnearestface(short *dist)
 }
 
 /* for interactivity, frontbuffer draw in current window */
-static void draw_dm_mapped_vert__mapFunc(void *theVert, EditVert *eve, float *co, float *no_f, short *no_s)
+static void draw_dm_mapped_vert__mapFunc(void *theVert, int index, float *co, float *no_f, short *no_s)
 {
-	if (eve==theVert) {
+	if (EM_get_vert_for_index(index)==theVert) {
 		bglVertex3fv(co);
 	}
 }
 static void draw_dm_mapped_vert(DerivedMesh *dm, EditVert *eve)
 {
+	EM_init_index_arrays(1, 0, 0);
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVertEM(dm, draw_dm_mapped_vert__mapFunc, eve);
+	dm->foreachMappedVert(dm, draw_dm_mapped_vert__mapFunc, eve);
 	bglEnd();
+	EM_free_index_arrays();
 }
 
-static int draw_dm_mapped_edge__setDrawOptions(void *theEdge, EditEdge *eed)
+static int draw_dm_mapped_edge__setDrawOptions(void *theEdge, int index)
 {
-	return theEdge==eed;
+	return EM_get_edge_for_index(index)==theEdge;
 }
 static void draw_dm_mapped_edge(DerivedMesh *dm, EditEdge *eed)
 {
-	dm->drawMappedEdgesEM(dm, draw_dm_mapped_edge__setDrawOptions, eed);
+	EM_init_index_arrays(0, 1, 0);
+	dm->drawMappedEdges(dm, draw_dm_mapped_edge__setDrawOptions, eed);
+	EM_free_index_arrays();
 }
 
-static void draw_dm_mapped_face_center__mapFunc(void *theFace, EditFace *efa, float *cent, float *no)
+static void draw_dm_mapped_face_center__mapFunc(void *theFace, int index, float *cent, float *no)
 {
-	if (efa==theFace) {
+	if (EM_get_face_for_index(index)==theFace) {
 		bglVertex3fv(cent);
 	}
 }
 static void draw_dm_mapped_face_center(DerivedMesh *dm, EditFace *efa)
 {
+	EM_init_index_arrays(0, 0, 1);
 	bglBegin(GL_POINTS);
-	dm->foreachMappedFaceCenterEM(dm, draw_dm_mapped_face_center__mapFunc, efa);
+	dm->foreachMappedFaceCenter(dm, draw_dm_mapped_face_center__mapFunc, efa);
 	bglEnd();
+	EM_free_index_arrays();
 }
 
 static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)

@@ -185,7 +185,7 @@ void image_changed(SpaceImage *sima, int dotile)
 	if(sima->mode==SI_TEXTURE) {
 		
 		if(G.f & G_FACESELECT) {
-			me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
+			me= get_mesh(OBACT);
 			if(me && me->tface) {
 				tface= me->tface;
 				a= me->totface;
@@ -211,7 +211,8 @@ void image_changed(SpaceImage *sima, int dotile)
 					}
 					tface++;
 				}
-				allqueue(REDRAWVIEW3D, 0);
+
+				object_uvs_changed(OBACT);
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}

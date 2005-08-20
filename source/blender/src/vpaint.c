@@ -293,6 +293,8 @@ void vpaint_undo()
 		*from= temp;
 		to++; from++;
 	}
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	if(me->tface) mcol_to_tface(me, 1);
 }
@@ -325,6 +327,8 @@ void clear_vpaint()
 		to++; 
 	}
 	BIF_undo_push("Clear vertex colors");
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	if(me->tface) mcol_to_tface(me, 1);
 }
@@ -1282,6 +1286,7 @@ void vertex_paint()
 				mcol_to_tface(me, 0);
 			}
 	
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_do_windraw(curarea);
 
 			if(Gvp.flag & (VP_AREA|VP_SOFT)) {

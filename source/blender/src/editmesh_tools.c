@@ -1348,7 +1348,7 @@ static void facecopy(EditFace *source,EditFace *target)
 	}
 
 	target->mat_nr	 = source->mat_nr;
-	target->tf.flag	= source->tf.flag;
+	target->tf.flag	= source->tf.flag&~TF_ACTIVE;
 	target->tf.transp  = source->tf.transp;
 	target->tf.mode	= source->tf.mode;
 	target->tf.tile	= source->tf.tile;

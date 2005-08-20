@@ -2612,9 +2612,9 @@ static void mface_from_data( MFace * mf, TFace * tf, MCol * col,
 			return;
 		}
 
-		test_index_face( mf, tf, i );
+		test_index_face(mf, NULL, tf, i );
 	} else {
-		test_index_mface( mf, i );
+		test_index_face(mf, NULL, NULL, i );
 	}
 
 	mf->mat_nr = from->mat_nr;

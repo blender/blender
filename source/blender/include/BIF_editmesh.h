@@ -91,6 +91,13 @@ extern void flip_editnormals(void);
 
 /* ******************* editmesh_mods.c */
 
+extern void EM_init_index_arrays(int forVert, int forEdge, int forFace);
+extern void EM_free_index_arrays(void);
+
+extern struct EditVert *EM_get_vert_for_index(int index);
+extern struct EditEdge *EM_get_edge_for_index(int index);
+extern struct EditFace *EM_get_face_for_index(int index);
+
 extern void EM_select_face_fgon(struct EditFace *efa, int sel);
 
 extern int EM_init_backbuf_border(short xmin, short ymin, short xmax, short ymax);

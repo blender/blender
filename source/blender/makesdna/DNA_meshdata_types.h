@@ -75,6 +75,7 @@ typedef struct MSticky {
 #define ME_SPHERETEST	2
 #define ME_SPHERETEMP	4
 #define ME_HIDE			16
+#define ME_VERT_STEPINDEX	(1<<7)
 
 /* medge->flag (1=SELECT)*/
 #define ME_EDGEDRAW			(1<<1)
@@ -89,6 +90,7 @@ typedef struct MSticky {
 #define ME_EDGE_TFVISIBLE	(1<<10)
 #define ME_EDGE_TFACTFIRST	(1<<11)
 #define ME_EDGE_TFACTLAST	(1<<12)
+#define ME_EDGE_STEPINDEX	(1<<15)
 
 /* puno = vertexnormal (mface) */
 #define ME_FLIPV1		1
@@ -107,9 +109,9 @@ typedef struct MSticky {
 #define ME_V4V1			8
 
 /* flag (mface) */
-#define ME_SMOOTH		1
-#define ME_FACE_SEL		2
-						/* flag ME_HIDE is used here too */ 
-
+#define ME_SMOOTH			1
+#define ME_FACE_SEL			2
+						/* flag ME_HIDE==16 is used here too */ 
+#define ME_FACE_STEPINDEX	(1<<7)
 
 #endif

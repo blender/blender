@@ -772,9 +772,9 @@ ConvertCSGDescriptorsToMeshObject(
 					((((unsigned int)floor(color[3] + 0.5f)) & 0xff) << 0);
 			}
 
-			test_index_face(mface, tface, 3);
+			test_index_face(mface, NULL, tface, 3);
 		} else {
-			test_index_mface(mface, 3);
+			test_index_face(mface, NULL, NULL, 3);
 		}
 
 		fi_insert_pos++;
