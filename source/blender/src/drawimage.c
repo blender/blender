@@ -65,6 +65,7 @@
 #include "BKE_image.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
+#include "BKE_object.h"
 
 #include "BDR_editface.h"
 #include "BDR_drawobject.h"
@@ -828,6 +829,15 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	int x1, y1;
 	short sx, sy, dx, dy;
 	
+		/* If derived data is used then make sure that object
+		 * is up-to-date... might not be the case because updates
+		 * are normally done in drawview and could get here before
+		 * drawing a View3D.
+		 */
+	if (!G.obedit && OBACT && (G.sima->flag&SI_DRAWSHADOW)) {
+		object_handle_update(OBACT);
+	}
+
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
