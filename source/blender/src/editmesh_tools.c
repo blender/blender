@@ -4743,19 +4743,16 @@ int EdgeSlide(short immediate, float imperc)
 	}
 	
 	
-	look = vertlist;
-	while(look){	
-		if(look->next != NULL){
-			if(G.f & G_DRAW_EDGELEN){
-				if(tempsv->up->f2 & 16){
-					tempsv->up->f &= !SELECT;
-				}
-				if(tempsv->down->f2 & 16){
-					tempsv->down->f &= !SELECT;
-				}
+	if(G.f & G_DRAW_EDGELEN){
+		look = vertlist;
+		while(look){	
+			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
+			if(tempsv != NULL){
+				tempsv->up->f &= !SELECT;
+				tempsv->down->f &= !SELECT;
 			}
+			look = look->next;
 		}
-		look = look->next;
 	}
 	
 	force_draw(0);
