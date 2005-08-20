@@ -807,7 +807,7 @@ void view3d_set_clipping(View3D *v3d)
 	double plane[4];
 	int a;
 	
-	for(a=0; a<3; a++) {
+	for(a=0; a<4; a++) {
 		QUATCOPY(plane, v3d->clip[a]);
 		glClipPlane(GL_CLIP_PLANE0+a, plane);
 		glEnable(GL_CLIP_PLANE0+a);
