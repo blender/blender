@@ -2039,21 +2039,29 @@ void view3d_edit_clipping(View3D *v3d)
 		viewport[1] = 0;
 		
 		/* four clipping planes and bounding volume */
+		/* first do the bounding volume */
 		for(val=0; val<4; val++) {
 			
 			xs= (val==0||val==3)?rect.xmin:rect.xmax;
 			ys= (val==0||val==1)?rect.ymin:rect.ymax;
+			
 			gluUnProject(xs, ys, 0.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
 			VECCOPY(v3d->clipbb->vec[val], p);
-			
-			VECCOPY(v3d->clip[val], G.vd->viewinv[val & 1]);
-			if(val>1) VecMulf(v3d->clip[val], -1.0f);
-			v3d->clip[val][3]= - v3d->clip[val][0]*p[0] - v3d->clip[val][1]*p[1] - v3d->clip[val][2]*p[2];
 			
 			gluUnProject(xs, ys, 1.0, mvmatrix, projmatrix, viewport, &p[0], &p[1], &p[2]);
 			VECCOPY(v3d->clipbb->vec[4+val], p);
 		}
 		
+		/* then plane equations */
+		for(val=0; val<4; val++) {
+			
+			CalcNormFloat(v3d->clipbb->vec[val], v3d->clipbb->vec[val==3?0:val+1], v3d->clipbb->vec[val+4],
+						  v3d->clip[val]); 
+			
+			v3d->clip[val][3]= - v3d->clip[val][0]*v3d->clipbb->vec[val][0] 
+							   - v3d->clip[val][1]*v3d->clipbb->vec[val][1] 
+							   - v3d->clip[val][2]*v3d->clipbb->vec[val][2];
+		}
 	}
 }
 
