@@ -137,7 +137,9 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, int useAgin
 		ccgSubSurf_setUseAgeCounts(ccgSS, 1, 8, 8, 8);
 	}
 	if (useEdgeCreation) {
-		ccgSubSurf_setAllowEdgeCreation(ccgSS, 1, useFlatSubdiv?subdivLevels:0.0f);
+		int defaultUserData[3] = {0, -1, 0};
+
+		ccgSubSurf_setAllowEdgeCreation(ccgSS, 1, useFlatSubdiv?subdivLevels:0.0f, defaultUserData);
 	}
 
 	ccgSubSurf_setCalcVertexNormals(ccgSS, 1, BLI_STRUCT_OFFSET(VertData, no));
@@ -218,7 +220,7 @@ static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditme
 			if (!medge) {
 				makeFlags = 1;
 			}
-		} else {
+		} else if (medge) { // can happen for loose edges on mesh with no medge
 			MEdge *origMed = &medge[edgeIdx];
 
 			if (dlm) {
@@ -227,6 +229,8 @@ static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditme
 				flags |= (origMed->flag&ME_SEAM);
 				makeFlags = 1;
 			}
+		} else {
+			makeFlags = 1;
 		}
 		
 		if (makeFlags) {
@@ -281,7 +285,7 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 	CCGVert **vertMap2;
 	int totvert, totedge, totface, useEdgeCreation;
 	
-	ccgSubSurf_getAllowEdgeCreation(ss, &useEdgeCreation, NULL);
+	ccgSubSurf_getAllowEdgeCreation(ss, &useEdgeCreation, NULL, NULL);
 
 	totvert = ccgSubSurf_getNumVerts(ss);
 	vertMap2 = MEM_mallocN(totvert*sizeof(*vertMap2), "vertmap");
@@ -652,10 +656,13 @@ static void ss_sync_from_mesh(CCGSubSurf *ss, Mesh *me, DispListMesh *dlm, float
 		}
 	} else {
 		for (i=0; i<totface; i++) {
+			CCGEdge *e;
 			MFace *mf = &((MFace*) mface)[i];
 
 			if (!mf->v3) {
-				ccgSubSurf_syncEdge(ss, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2, useFlatSubdiv?creaseFactor:0.0f, NULL);
+				ccgSubSurf_syncEdge(ss, (CCGEdgeHDL) i, (CCGVertHDL) mf->v1, (CCGVertHDL) mf->v2, useFlatSubdiv?creaseFactor:0.0f, &e);
+
+				((int*) ccgSubSurf_getEdgeUserData(ss, e))[1] = -1;
 			}
 		}
 	}

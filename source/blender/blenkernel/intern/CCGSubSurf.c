@@ -297,6 +297,7 @@ struct _CCGSubSurf {
 	int numGrids;
 	int allowEdgeCreation;
 	float defaultCreaseValue;
+	void *defaultEdgeUserData;
 
 	void *q, *r;
 		
@@ -637,6 +638,7 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->numGrids = 0;
 		ss->allowEdgeCreation = 0;
 		ss->defaultCreaseValue = 0;
+		ss->defaultEdgeUserData = NULL;
 
 		ss->useAgeCounts = 0;
 		ss->vertUserAgeOffset = ss->edgeUserAgeOffset = ss->faceUserAgeOffset = 0;
@@ -675,6 +677,7 @@ void ccgSubSurf_free(CCGSubSurf *ss) {
 
 	CCGSUBSURF_free(ss, ss->r);
 	CCGSUBSURF_free(ss, ss->q);
+	if (ss->defaultEdgeUserData) CCGSUBSURF_free(ss, ss->defaultEdgeUserData);
 
 	_ehash_free(ss->fMap, (EHEntryFreeFP) _face_free, ss);
 	_ehash_free(ss->eMap, (EHEntryFreeFP) _edge_free, ss);
@@ -687,15 +690,29 @@ void ccgSubSurf_free(CCGSubSurf *ss) {
 	}
 }
 
-CCGError ccgSubSurf_setAllowEdgeCreation(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue) {
+CCGError ccgSubSurf_setAllowEdgeCreation(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue, void *defaultUserData) {
+	if (ss->defaultEdgeUserData) {
+		CCGSUBSURF_free(ss, ss->defaultEdgeUserData);
+	}
+
 	ss->allowEdgeCreation = !!allowEdgeCreation;
 	ss->defaultCreaseValue = defaultCreaseValue;
+	ss->defaultEdgeUserData = CCGSUBSURF_alloc(ss, ss->meshIFC.edgeUserSize);
+
+	if (defaultUserData) {
+		memcpy(ss->defaultEdgeUserData, defaultUserData, ss->meshIFC.edgeUserSize);
+	} else {
+		memset(ss->defaultEdgeUserData, 0, ss->meshIFC.edgeUserSize);
+	}
 
 	return eCCGError_None;
 }
-void ccgSubSurf_getAllowEdgeCreation(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r) {
+void ccgSubSurf_getAllowEdgeCreation(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r, void *defaultUserData_r) {
 	if (allowEdgeCreation_r) *allowEdgeCreation_r = ss->allowEdgeCreation;
-	if (defaultCreaseValue_r) *defaultCreaseValue_r = ss->defaultCreaseValue;
+	if (ss->allowEdgeCreation) {
+		if (defaultCreaseValue_r) *defaultCreaseValue_r = ss->defaultCreaseValue;
+		if (defaultUserData_r) memcpy(defaultUserData_r, ss->defaultEdgeUserData, ss->meshIFC.edgeUserSize);
+	}
 }
 
 CCGError ccgSubSurf_setSubdivisionLevels(CCGSubSurf *ss, int subdivisionLevels) {
@@ -1035,6 +1052,9 @@ CCGError ccgSubSurf_syncFace(CCGSubSurf *ss, CCGFaceHDL fHDL, int numVerts, CCGV
 					_ehash_insert(ss->eMap, (EHEntry*) e);
 					e->v0->flags |= Vert_eEffected;
 					e->v1->flags |= Vert_eEffected;
+					if (ss->meshIFC.edgeUserSize) {
+						memcpy(ccgSubSurf_getEdgeUserData(ss, e), ss->defaultEdgeUserData, ss->meshIFC.edgeUserSize);
+					}
 				} else {
 					return eCCGError_InvalidValue;
 				}

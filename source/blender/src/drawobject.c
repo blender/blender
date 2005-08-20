@@ -1790,7 +1790,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)) {
 			baseDM->drawEdges(baseDM, dt==OB_WIRE);
 		} else {
-			dm->drawEdges(dm, dt==OB_WIRE);
+			dm->drawEdges(dm, (dt==OB_WIRE || me->totface==0));
 		}
 
 		if (dt!=OB_WIRE) {

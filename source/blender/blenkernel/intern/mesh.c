@@ -597,10 +597,11 @@ void set_mesh(Object *ob, Mesh *me)
 struct edgesort {
 	int v1, v2;
 	int flag;
+	int is_loose;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag)
+static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag, int is_loose)
 {
 	if(v1<v2) {
 		ed->v1= v1; ed->v2= v2;
@@ -609,6 +610,7 @@ static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag)
 		ed->v1= v2; ed->v2= v1;
 	}
 	ed->flag= flag;
+	ed->is_loose= is_loose;
 }
 
 static int vergedgesort(const void *v1, const void *v2)
@@ -649,21 +651,20 @@ void make_edges(Mesh *me)
 	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
 	
 	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
-		
-		to_edgesort(ed, mface->v1, mface->v2, mface->edcode & ME_V1V2);
+		to_edgesort(ed, mface->v1, mface->v2, mface->edcode & ME_V1V2, !mface->v3);
 		ed++;
 		if(mface->v4) {
-			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3);
+			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3, 0);
 			ed++;
-			to_edgesort(ed, mface->v3, mface->v4, mface->edcode & ME_V3V4);
+			to_edgesort(ed, mface->v3, mface->v4, mface->edcode & ME_V3V4, 0);
 			ed++;
-			to_edgesort(ed, mface->v4, mface->v1, mface->edcode & ME_V4V1);
+			to_edgesort(ed, mface->v4, mface->v1, mface->edcode & ME_V4V1, 0);
 			ed++;
 		}
 		else if(mface->v3) {
-			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3);
+			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3, 0);
 			ed++;
-			to_edgesort(ed, mface->v3, mface->v1, mface->edcode & ME_V3V1);
+			to_edgesort(ed, mface->v3, mface->v1, mface->edcode & ME_V3V1, 0);
 			ed++;
 		}
 	}
@@ -691,6 +692,7 @@ void make_edges(Mesh *me)
 			medge->v1= ed->v1;
 			medge->v2= ed->v2;
 			if(ed->flag) medge->flag= ME_EDGEDRAW;
+			if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 			medge->flag |= ME_EDGERENDER;
 			medge++;
 		}
@@ -699,6 +701,7 @@ void make_edges(Mesh *me)
 	medge->v1= ed->v1;
 	medge->v2= ed->v2;
 	if(ed->flag) medge->flag= ME_EDGEDRAW;
+	if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 	medge->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);

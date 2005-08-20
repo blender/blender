@@ -61,8 +61,8 @@ CCGError	ccgSubSurf_processSync	(CCGSubSurf *ss);
 
 CCGError	ccgSubSurf_setSubdivisionLevels		(CCGSubSurf *ss, int subdivisionLevels);
 
-CCGError	ccgSubSurf_setAllowEdgeCreation		(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue);
-void		ccgSubSurf_getAllowEdgeCreation		(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r);
+CCGError	ccgSubSurf_setAllowEdgeCreation		(CCGSubSurf *ss, int allowEdgeCreation, float defaultCreaseValue, void *defaultUserData);
+void		ccgSubSurf_getAllowEdgeCreation		(CCGSubSurf *ss, int *allowEdgeCreation_r, float *defaultCreaseValue_r, void *defaultUserData_r);
 
 void		ccgSubSurf_getUseAgeCounts			(CCGSubSurf *ss, int *useAgeCounts_r, int *vertUserOffset_r, int *edgeUserOffset_r, int *faceUserOffset_r);
 CCGError	ccgSubSurf_setUseAgeCounts			(CCGSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset);
