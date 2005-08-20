@@ -1951,6 +1951,8 @@ void special_editmenu(void)
 				
 				if(me->tface) mcol_to_tface(me, 1);
 				BIF_undo_push("Shared VertexCol");
+
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 		}
 		else if(G.f & G_WEIGHTPAINT) {

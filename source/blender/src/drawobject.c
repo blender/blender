@@ -3788,7 +3788,7 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 	bglEnd();
 	glPointSize(1.0);
 
-	return offset + G.totvert; // XXX is G variable reliable?
+	return offset + G.totvert;
 }		
 
 static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
@@ -3807,7 +3807,7 @@ static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
 	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*) offset);
 
-	return offset + G.totedge; // XXX is G variable reliable?
+	return offset + G.totedge;
 }		
 
 static int bbs_mesh_solid__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)

@@ -107,17 +107,7 @@ static int compuvvert(const void *u1, const void *u2)
 
 void object_uvs_changed(Object *ob)
 {
-		/* Unfortunately we also have to force an eval 
-		 * here because otherwise the modifier UVs might 
-		 * not be updated. Goes back to sillyness that 
-		 * recalc is done as part of view3d draw loop!
-		 *
-		 * Technically should scan all SpaceImas here.
-		 */
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	if(G.sima && (G.sima->flag & SI_DRAWSHADOW)) {
-		object_handle_update(ob);
-	}
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
@@ -127,7 +117,6 @@ void object_tface_flags_changed(Object *ob, int updateButtons)
 {
 	if (G.f&G_FACESELECT) {
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		object_handle_update(ob);
 	}
 
 	if (updateButtons) allqueue(REDRAWBUTSEDIT, 0);

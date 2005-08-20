@@ -762,10 +762,12 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 		return;
 	}
 
-	BLI_remlink(&ob->modifiers, md);
-	modifier_free(md);
+	if (converted) {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
 
-	BIF_undo_push("Apply modifier");
+		BIF_undo_push("Apply modifier");
+	}
 }
 
 static void modifiers_copyModifier(void *ob_v, void *md_v)
