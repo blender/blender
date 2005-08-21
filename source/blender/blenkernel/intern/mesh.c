@@ -492,8 +492,6 @@ float *mesh_create_orco(Object *ob)
 #define UVSWAP(t, s) { SWAP(float, t[0], s[0]); SWAP(float, t[1], s[1]); }
 void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 {
-	int a;
-
 	/* first test if the face is legal */
 
 	if(mface->v3 && mface->v3==mface->v4) {
@@ -671,6 +669,7 @@ void make_edges(Mesh *me)
 	/* last edge */
 	medge->v1= ed->v1;
 	medge->v2= ed->v2;
+	medge->flag= ME_EDGEDRAW;
 	if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 	medge->flag |= ME_EDGERENDER;
 
