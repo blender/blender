@@ -444,7 +444,6 @@ void fasterdraw(void)
 {
 	Base *base;
 	Mesh *me;
-	MFace *mface;
 	int toggle, a;
 
 	if(G.obedit) return;
@@ -462,28 +461,13 @@ void fasterdraw(void)
 			me= base->object->data;
 			if(me->id.lib==0 && (me->flag & ME_ISDONE)==0) {
 				me->flag |= ME_ISDONE;
-				mface= me->mface;
 				toggle= 0;
-				for(a=0; a<me->totface; a++) {
-						/* XXX, rewrite to work with MEdge */
-/*
-					if( (mface->edcode & ME_V1V2) && ( (toggle++) & 1) ) {
-						mface->edcode-= ME_V1V2;
+				for(a=0; a<me->totedge; a++) {
+					MEdge *med = &me->medge[a];
+
+					if( (med->flag & ME_EDGEDRAW) && !( (toggle++) & 3) ) {
+						med->flag ^= ME_EDGEDRAW;
 					}
-					if( (mface->edcode & ME_V2V3) && ( (toggle++) & 1)) {
-						mface->edcode-= ME_V2V3;
-					}
-					if( (mface->edcode & ME_V3V1) && ( (toggle++) & 1)) {
-						mface->edcode-= ME_V3V1;
-					}
-					if( (mface->edcode & ME_V4V1) && ( (toggle++) & 1)) {
-						mface->edcode-= ME_V4V1;
-					}
-					if( (mface->edcode & ME_V3V4) && ( (toggle++) & 1)) {
-						mface->edcode-= ME_V3V4;
-					}
-*/
-					mface++;
 				}
 			}
 		}
@@ -504,7 +488,6 @@ void slowerdraw(void)		/* reset fasterdraw */
 {
 	Base *base;
 	Mesh *me;
-	MFace *mface;
 	int a;
 
 	if(G.obedit) return;

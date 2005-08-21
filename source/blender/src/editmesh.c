@@ -670,87 +670,19 @@ static void edge_drawflags(void)
 		}
 
 		/* all faces, all edges with flag==2: compare normal */
-		if (G.rt) {
-			float drawEdgePercent = G.rt/1000.0;
-			EdgeDrawFlagInfo *info = MEM_callocN(sizeof(*info)*G.totedge, "info");
-			EditEdge *preveed;
-			int i, numDrawn, numToDraw;
-
-			for (i=0,eed=em->edges.first; eed; i++,eed=eed->next) {
-				info[i].eed = eed;
-				eed->prev = (EditEdge*) i;
+		efa= em->faces.first;
+		while(efa) {
+			if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
+			else efa->e1->f2= 1;
+			if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
+			else efa->e2->f2= 1;
+			if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
+			else efa->e3->f2= 1;
+			if(efa->e4) {
+				if(efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
+				else efa->e4->f2= 1;
 			}
-
-			for (efa=em->faces.first; efa; efa=efa->next) {
-				EdgeDrawFlagInfo *ei;
-
-				ei = &info[(int) efa->e1->prev];
-				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
-
-				ei = &info[(int) efa->e2->prev];
-				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
-
-				ei = &info[(int) efa->e3->prev];
-				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
-
-				if (efa->e4) {
-					ei = &info[(int) efa->e4->prev];
-					VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
-				}
-			}
-
-			for (i=0; i<G.totedge; i++) {
-				if (info[i].adjCount==0) {
-					info[i].noLen = -1;
-				} else {
-					info[i].noLen = VecLength(info[i].no)/info[i].adjCount + BLI_frand()*.0001;
-				}
-			}
-
-			qsort(info, G.totedge, sizeof(*info), edgeDrawFlagInfo_cmp);
-
-			numToDraw = drawEdgePercent*G.totedge;
-			if (numToDraw<1) numToDraw = 1;
-
-			numDrawn = 0;
-			for (i=0; i<G.totedge; i++) {
-				EdgeDrawFlagInfo *ei = &info[i];
-
-				if (ei->eed->f2==2) {
-					if (G.rt==1000) {
-						if (ei->noLen<0.999 || numDrawn<(G.totedge*.1)) {
-							ei->eed->f2 = 1;
-							numDrawn++;
-						}
-					} else if (numDrawn<numToDraw) {
-						ei->eed->f2 = 1;
-						numDrawn++;
-					}
-				} else {
-					ei->eed->f2 = 1;
-				}
-			}
-
-			for (preveed=NULL,eed=em->edges.first; eed; preveed=eed,eed=eed->next) {
-				eed->prev = preveed;
-			}
-
-			MEM_freeN(info);
-		} else {
-			efa= em->faces.first;
-			while(efa) {
-				if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
-				else efa->e1->f2= 1;
-				if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
-				else efa->e2->f2= 1;
-				if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
-				else efa->e3->f2= 1;
-				if(efa->e4) {
-					if(efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
-					else efa->e4->f2= 1;
-				}
-				efa= efa->next;
-			}
+			efa= efa->next;
 		}
 		
 		/* sphere collision flag */
