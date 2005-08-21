@@ -808,7 +808,7 @@ static PyMethodDef BPy_Material_methods[] = {
 	{"setFresnelMirrFac", ( PyCFunction ) Material_setFresnelMirrFac,
 	 METH_VARARGS,
 	 "(f) - Set blend fac for mirror fresnel - [1.0, 5.0]"},
-	{"setFilter", ( PyCFunction ) Material_setFresnelMirrFac,
+	{"setFilter", ( PyCFunction ) Material_setFilter,
 	 METH_VARARGS,
 	 "(f) - Set the amount of filtering when transparent raytrace is enabled"},
 	{"setTranslucency", ( PyCFunction ) Material_setTranslucency,
@@ -1901,7 +1901,7 @@ static PyObject *Material_setSpecSmooth( BPy_Material * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected float argument in [0.0, 1.0]" ) );
 
-	self->material->param[2] = EXPP_ClampFloat( value, EXPP_MAT_SPECSMOOTH_MIN,
+	self->material->param[3] = EXPP_ClampFloat( value, EXPP_MAT_SPECSMOOTH_MIN,
 						EXPP_MAT_SPECSMOOTH_MAX );
 
 	return EXPP_incr_ret( Py_None );
