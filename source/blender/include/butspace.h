@@ -78,6 +78,8 @@ extern void do_mballbuts(unsigned short event);
 extern void do_latticebuts(unsigned short event);
 extern void do_fpaintbuts(unsigned short event);
 extern void do_cambuts(unsigned short event);
+extern void do_armbuts(unsigned short event);
+
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
 /* shading */
@@ -404,7 +406,9 @@ enum {
 #define B_STYLETOSEL	2212
 
 /* *********************** */
+#define B_ARMBUTS		2400
 
+#define B_ARM_RECALCDATA	2301
 
 /* *********************** */
 #define B_CAMBUTS		2500

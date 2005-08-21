@@ -53,6 +53,7 @@ typedef struct bPoseChannel {
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
 	struct ListBase		 chain;		/* only while evaluating pose */
+	void				*b_bone_mats;	/* only while deform, stores precalculated b_bone deform mats */
 	
 	float		loc[3];				/* written in by actions or transform */
 	float		size[3];

@@ -74,7 +74,6 @@ void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
 void bone_flip_name (char *name, int strip_number);
 
-void init_armature_deform(struct Object *parent, struct Object *ob);
 struct bArmature* get_armature (struct Object* ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 

@@ -69,11 +69,6 @@
 #include <config.h>
 #endif
 
-/* ugly Globals */
-static float g_premat[4][4];
-static float g_postmat[4][4];
-static Object *g_deform;
-
 /*	**************** Generic Functions, data level *************** */
 
 bArmature *get_armature(Object *ob)
@@ -421,7 +416,7 @@ static void equalize_bezier(float *data, int desired)
 }
 
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
-/* this calculation is done within pchan pose_mat space */
+/* this calculation is done  within unit bone space */
 Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 {
 	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
@@ -517,24 +512,44 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 
 /* ************ Armature Deform ******************* */
 
-void init_armature_deform(Object *parent, Object *ob)
+static void pchan_b_bone_defmats(bPoseChannel *pchan)
 {
-	bArmature *arm;
-	float obinv[4][4];
+	Bone *bone= pchan->bone;
+	Mat4 *b_bone= b_bone_spline_setup(pchan);
+	Mat4 *b_bone_mats;
+	int a;
+	
+	pchan->b_bone_mats=b_bone_mats= MEM_mallocN((1+bone->segments)*sizeof(Mat4), "BBone defmats");
+	
+	/* first matrix is the inverse arm_mat, to bring points in local bone space */
+	Mat4Invert(b_bone_mats[0].mat, bone->arm_mat);
+	
+	/* then we multiply the bbone_mats with arm_mat */
+	for(a=0; a<bone->segments; a++) {
+		Mat4MulMat4(b_bone_mats[a+1].mat, b_bone[a].mat, bone->arm_mat);
+	}
+}
 
-	arm = get_armature(parent);
-	if (!arm)
-		return;
+static void b_bone_deform(bPoseChannel *pchan, Bone *bone, float *defpos)
+{
+	Mat4 *b_bone= pchan->b_bone_mats;
+	float segment;
+	int a;
+	
+	/* need to transform defpos back to bonespace */
+	Mat4MulVecfl(b_bone[0].mat, defpos);
+	
+	/* now calculate which of the b_bones are deforming this */
+	segment= bone->length/((float)bone->segments);
+	a= (int) (defpos[1]/segment);
+	
+	/* note; by clamping it extends deform at endpoints, goes best with straight joints in restpos. */
+	CLAMP(a, 0, bone->segments-1);
 
-	g_deform = parent;
-
-	Mat4Invert(obinv, ob->obmat);
-	Mat4CpyMat4(g_premat, ob->obmat);
-	Mat4MulMat4(g_postmat, parent->obmat, obinv);
-
-	Mat4Invert (g_premat, g_postmat);
-
-	/* bone defmats are already in the channels, chan_mat */
+	/* since the bbone mats translate from (0.0.0) on the curve, we subtract */
+	defpos[1] -= ((float)a)*segment;
+	
+	Mat4MulVecfl(b_bone[a+1].mat, defpos);
 }
 
 /* using vec with dist to bone b1 - b2 */
@@ -609,6 +624,9 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 
 			VECCOPY (cop, co);
 			
+			if(bone->segments>1)
+				b_bone_deform(pchan, bone, cop);	// applies on cop
+			
 			Mat4MulVecfl(pchan->chan_mat, cop);
 			
 			VecSubf (cop, cop, co);	//	Make this a delta from the base position
@@ -629,6 +647,9 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, flo
 
 	VECCOPY (cop, co);
 	
+	if(pchan->bone->segments>1)
+		b_bone_deform(pchan, pchan->bone, cop);	// applies on cop
+	
 	Mat4MulVecfl(pchan->chan_mat, cop);
 	
 	vec[0]+=(cop[0]-co[0])*weight;
@@ -640,7 +661,7 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, flo
 
 void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
 {
-	bPoseChannel **defnrToPC = NULL;
+	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts;
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int i;
@@ -651,7 +672,14 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 
 	Mat4Invert(premat, postmat);
 
-		/* bone defmats are already in the channels, chan_mat */
+	/* bone defmats are already in the channels, chan_mat */
+	
+	/* initialize B_bone matrices */
+	for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
+		//if(pchan->bone->boneclass==BONE_SKINNABLE)	// not yet... for vgroups this is ignored
+			if(pchan->bone->segments>1)
+				pchan_b_bone_defmats(pchan);
+	}
 
 	if (target->type==OB_MESH){
 		int numGroups = BLI_countlist(&target->defbase);
@@ -670,7 +698,6 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	}
 
 	for(i=0; i<numVerts; i++) {
-		bPoseChannel *pchan;
 		float *co = vertexCos[i];
 		float	vec[3];
 		float	contrib=0.0;
@@ -686,7 +713,8 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 
 			for (j=0; j<dvert->totweight; j++){
 				pchan = defnrToPC[dvert->dw[j].def_nr];
-				if (pchan) pchan_bone_deform(pchan, dvert->dw[j].weight, vec, co, &contrib);
+				if (pchan) 
+					pchan_bone_deform(pchan, dvert->dw[j].weight, vec, co, &contrib);
 			}
 		}
 		else {
@@ -707,6 +735,15 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	}
 
 	if (defnrToPC) MEM_freeN(defnrToPC);
+	
+	/* free B_bone matrices */
+	for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->b_bone_mats) {
+			MEM_freeN(pchan->b_bone_mats);
+			pchan->b_bone_mats= NULL;
+		}
+	}
+	
 }
 
 /* ************ END Armature Deform ******************* */
@@ -1299,6 +1336,12 @@ void where_is_pose (Object *ob)
 }
 
 /* ****************** Game Blender functions, called by engine ************** */
+
+/* NOTE: doesn't work at the moment!!! (ton) */
+
+/* ugly Globals */
+static float g_premat[4][4];
+static float g_postmat[4][4];
 
 void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4])
 {
