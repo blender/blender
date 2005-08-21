@@ -458,7 +458,7 @@ RAS_MeshObject* BL_ConvertMesh(Mesh* mesh, Object* blenderobj, RAS_IRenderTools*
 					}
 				}
 				
-				poly->SetVisibleWireframeEdges(mface->edcode);
+//				poly->SetVisibleWireframeEdges(mface->edcode);
 				poly->SetCollider(collider);
 			}
 		}
