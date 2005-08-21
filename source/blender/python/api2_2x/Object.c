@@ -4044,11 +4044,6 @@ PyObject *Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
 int setupSB(Object* ob){
 	ob->soft= sbNew();
 	ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
-	// default add edges for softbody
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		if(me->medge==NULL) make_edges(me);
-	}
 
 	if(ob->soft){	
     	ob->soft->nodemass   = 1.0f;		

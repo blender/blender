@@ -159,19 +159,16 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(mface->v3) {
-			if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
-				
-				scol= scolmain+4*mface->v1;
-				scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
-				scol= scolmain+4*mface->v2;
-				scol[0]++; scol[1]+= mcol[5]; scol[2]+= mcol[6]; scol[3]+= mcol[7];
-				scol= scolmain+4*mface->v3;
-				scol[0]++; scol[1]+= mcol[9]; scol[2]+= mcol[10]; scol[3]+= mcol[11];
-				if(mface->v4) {
-					scol= scolmain+4*mface->v4;
-					scol[0]++; scol[1]+= mcol[13]; scol[2]+= mcol[14]; scol[3]+= mcol[15];
-				}
+		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+			scol= scolmain+4*mface->v1;
+			scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
+			scol= scolmain+4*mface->v2;
+			scol[0]++; scol[1]+= mcol[5]; scol[2]+= mcol[6]; scol[3]+= mcol[7];
+			scol= scolmain+4*mface->v3;
+			scol[0]++; scol[1]+= mcol[9]; scol[2]+= mcol[10]; scol[3]+= mcol[11];
+			if(mface->v4) {
+				scol= scolmain+4*mface->v4;
+				scol[0]++; scol[1]+= mcol[13]; scol[2]+= mcol[14]; scol[3]+= mcol[15];
 			}
 		}
 		if(tface) tface++;
@@ -192,22 +189,16 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(mface->v3) {
-			if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
-				
-				scol= scolmain+4*mface->v1;
-				mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
-				
-				scol= scolmain+4*mface->v2;
-				mcol[5]= scol[1]; mcol[6]= scol[2]; mcol[7]= scol[3];
-				
-				scol= scolmain+4*mface->v3;
-				mcol[9]= scol[1]; mcol[10]= scol[2]; mcol[11]= scol[3];
-				
-				if(mface->v4) {
-					scol= scolmain+4*mface->v4;
-					mcol[13]= scol[1]; mcol[14]= scol[2]; mcol[15]= scol[3];
-				}
+		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+			scol= scolmain+4*mface->v1;
+			mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
+			scol= scolmain+4*mface->v2;
+			mcol[5]= scol[1]; mcol[6]= scol[2]; mcol[7]= scol[3];
+			scol= scolmain+4*mface->v3;
+			mcol[9]= scol[1]; mcol[10]= scol[2]; mcol[11]= scol[3];
+			if(mface->v4) {
+				scol= scolmain+4*mface->v4;
+				mcol[13]= scol[1]; mcol[14]= scol[2]; mcol[15]= scol[3];
 			}
 		}
 		if(tface) tface++;

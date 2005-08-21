@@ -392,26 +392,23 @@ static void DBG_show_shared_render_faces(int firstvert, int firstface)
 
 	for (i=firstface; i<R.totvlak; i++) {
 		VlakRen *vlr = RE_findOrAddVlak(i);
+		float cent[3];
 
-		if (vlr->v3) {
-			float cent[3];
-
-			if (vlr->v4) {
-				CalcCent4f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
-				VecAddf(vlr->v4->n, vlr->v4->n, cent);
-				vlr->v4->sticky = (float*) (((int) vlr->v4->sticky) + 1);
-			} else {
-				CalcCent3f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
-			}
-
-			VecAddf(vlr->v1->n, vlr->v1->n, cent);
-			VecAddf(vlr->v2->n, vlr->v2->n, cent);
-			VecAddf(vlr->v3->n, vlr->v3->n, cent);
-
-			vlr->v1->sticky = (float*) (((int) vlr->v1->sticky) + 1);
-			vlr->v2->sticky = (float*) (((int) vlr->v2->sticky) + 1);
-			vlr->v3->sticky = (float*) (((int) vlr->v3->sticky) + 1);
+		if (vlr->v4) {
+			CalcCent4f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
+			VecAddf(vlr->v4->n, vlr->v4->n, cent);
+			vlr->v4->sticky = (float*) (((int) vlr->v4->sticky) + 1);
+		} else {
+			CalcCent3f(cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
 		}
+
+		VecAddf(vlr->v1->n, vlr->v1->n, cent);
+		VecAddf(vlr->v2->n, vlr->v2->n, cent);
+		VecAddf(vlr->v3->n, vlr->v3->n, cent);
+
+		vlr->v1->sticky = (float*) (((int) vlr->v1->sticky) + 1);
+		vlr->v2->sticky = (float*) (((int) vlr->v2->sticky) + 1);
+		vlr->v3->sticky = (float*) (((int) vlr->v3->sticky) + 1);
 	}
 
 	for (i=firstvert; i<R.totvert; i++) {
@@ -1397,78 +1394,60 @@ static void init_render_mesh(Object *ob)
 				}
 
 				for(a=0; a<end; a++) {
-					int v1, v2, v3, v4, edcode, flag;
+					int v1, v2, v3, v4, flag;
 					
 					if( mface->mat_nr==a1 ) {
+						float len;
+							
 						v1= mface->v1;
 						v2= mface->v2;
 						v3= mface->v3;
 						v4= mface->v4;
 						flag= mface->flag;
-						edcode= mface->edcode;
 						
-						if(v3) {
-							float len;
-							
-							vlr= RE_findOrAddVlak(R.totvlak++);
-							vlr->ob= vlr_set_ob(ob);
-							vlr->v1= RE_findOrAddVert(vertofs+v1);
-							vlr->v2= RE_findOrAddVert(vertofs+v2);
-							vlr->v3= RE_findOrAddVert(vertofs+v3);
-							if(v4) vlr->v4= RE_findOrAddVert(vertofs+v4);
-							else vlr->v4= 0;
+						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->ob= vlr_set_ob(ob);
+						vlr->v1= RE_findOrAddVert(vertofs+v1);
+						vlr->v2= RE_findOrAddVert(vertofs+v2);
+						vlr->v3= RE_findOrAddVert(vertofs+v3);
+						if(v4) vlr->v4= RE_findOrAddVert(vertofs+v4);
+						else vlr->v4= 0;
 
-							/* render normals are inverted in render */
-							if(vlr->v4) len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
-							    vlr->v1->co, vlr->n);
-							else len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
-							    vlr->n);
+						/* render normals are inverted in render */
+						if(vlr->v4) len= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co,
+							vlr->v1->co, vlr->n);
+						else len= CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co,
+							vlr->n);
 
-							vlr->mat= ma;
-							vlr->flag= flag;
-							if((me->flag & ME_NOPUNOFLIP) ) {
-								vlr->flag |= R_NOPUNOFLIP;
-							}
-							vlr->ec= edcode;
-							vlr->lay= ob->lay;
+						vlr->mat= ma;
+						vlr->flag= flag;
+						if((me->flag & ME_NOPUNOFLIP) ) {
+							vlr->flag |= R_NOPUNOFLIP;
+						}
+						vlr->ec= 0; /* mesh edges rendered separately */
+						vlr->lay= ob->lay;
 
-							if(len==0) R.totvlak--;
-							else {
-								if(dlm) {
-									if(tface) {
-										vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(*vlr->tface));
-										vlr->vcol= vlr->tface->col;
-										memcpy(vlr->tface, tface, sizeof(*tface));
-									} 
-									else if (vertcol) {
-										vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(int)*16);
-										memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*16);
-									}
-								} else {
-									if(tface) {
-										vlr->vcol= tface->col;
-										vlr->tface= tface;
-									} 
-									else if (vertcol) {
-										vlr->vcol= vertcol+4*a;
-									}
+						if(len==0) R.totvlak--;
+						else {
+							if(dlm) {
+								if(tface) {
+									vlr->tface= BLI_memarena_alloc(R.memArena, sizeof(*vlr->tface));
+									vlr->vcol= vlr->tface->col;
+									memcpy(vlr->tface, tface, sizeof(*tface));
+								} 
+								else if (vertcol) {
+									vlr->vcol= BLI_memarena_alloc(R.memArena, sizeof(int)*16);
+									memcpy(vlr->vcol, vertcol+4*a, sizeof(int)*16);
+								}
+							} else {
+								if(tface) {
+									vlr->vcol= tface->col;
+									vlr->tface= tface;
+								} 
+								else if (vertcol) {
+									vlr->vcol= vertcol+4*a;
 								}
 							}
-						}
-						else if(v2 && (ma->mode & MA_WIRE)) {
-							vlr= RE_findOrAddVlak(R.totvlak++);
-							vlr->ob= vlr_set_ob(ob);
-							vlr->v1= RE_findOrAddVert(vertofs+v1);
-							vlr->v2= RE_findOrAddVert(vertofs+v2);
-							vlr->v3= vlr->v2;
-							vlr->v4= 0;
-
-							vlr->n[0]=vlr->n[1]=vlr->n[2]= 0.0;
-
-							vlr->mat= ma;
-							vlr->flag= flag;
-							vlr->ec= ME_V1V2;
-							vlr->lay= ob->lay;
 						}
 					}
 

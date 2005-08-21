@@ -1381,8 +1381,7 @@ void sbObjectToSoftbody(Object *ob)
 static int object_has_edges(Object *ob) 
 {
 	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		return (me->medge && me->totedge);
+		return ((Mesh*) ob->data)->totedge;
 	}
 	else if(ob->type==OB_LATTICE) {
 		return 1;

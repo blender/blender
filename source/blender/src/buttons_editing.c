@@ -429,7 +429,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 
 /* *************************** MESH  ******************************** */
 
-
 static void editing_panel_mesh_type(Object *ob, Mesh *me)
 {
 	uiBlock *block;
@@ -444,13 +443,6 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_AUTO);
-
-	if(me->medge) val= 1.0; else val= 0.0;
-	uiDefBut(block, LABEL, 0, "Edges", 					10,70,70,20, 0, val, 0, 0, 0, "");
-	if(me->medge==NULL) {
-		uiDefBut(block, BUT, B_MAKEEDGES, "Make",		80,70,84,19, 0, 0, 0, 0, 0, "Adds edges data to active Mesh, enables creases/seams and faster wireframe draw");
-	}
-	else uiDefBut(block, BUT, B_DELEDGES, "Delete", 	80,70,84,19, 0, 0, 0, 0, 0, "Deletes edges data from active Mesh");
 
 	if(me->mcol) val= 1.0; else val= 0.0;
 	uiDefBut(block, LABEL, 0, "VertCol", 				10,50,70,20, 0, val, 0, 0, 0, "");
@@ -796,23 +788,6 @@ static void modifiers_setOnCage(void *ob_v, void *md_v)
 	md->mode ^= eModifierMode_OnCage;
 }
 
-static void modifiers_setSubsurfIncremental(void *ob_v, void *md_v)
-{
-	Object *ob = ob_v;
-	ModifierData *md = md_v;
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
-			
-	if ((smd->flags&eSubsurfModifierFlag_Incremental) && ob->type==OB_MESH) {
-		Mesh *me = ob->data;
-
-		if (!me->medge) {
-			if (okee("Requires mesh edges, create now?")) {
-				make_edges(me);
-			}
-		}
-	}
-}
-
 static void modifiers_clearHookOffset(void *ob_v, void *md_v)
 {
 	Object *ob = ob_v;
@@ -1034,9 +1009,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), buttonWidth,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
 			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), buttonWidth,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
 
-			but = uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MODIFIER_RECALC, "Incremental", lx, (cy-=19),90,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
-			uiButSetFunc(but, modifiers_setSubsurfIncremental, ob, md);
-
+			uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MODIFIER_RECALC, "Incremental", lx, (cy-=19),90,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,buttonWidth-90,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
 
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
@@ -2419,25 +2392,6 @@ void do_meshbuts(unsigned short event)
 			allqueue(REDRAWBUTSEDIT, 0);
 			break;
 		
-		case B_MAKEEDGES:
-			/* in editmode we only have to set edge pointer */
-			if(ob==G.obedit) {
-				me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
-				me->totedge= 1;
-			}
-			else make_edges(me);
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
-			break;
-		case B_DELEDGES:
-			if(me->medge) MEM_freeN(me->medge);
-			me->medge= NULL;
-			me->totedge= 0;
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-			break;
-			
 		case B_MAKEVERTCOL:
 			make_vertexcol();
 			break;

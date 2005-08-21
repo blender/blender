@@ -3527,26 +3527,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ma= ma->id.next;
 		}
 	}
-	if(main->versionfile <= 114) {
-		Mesh *me= main->mesh.first;
-		MFace *mface;
-		int a_int;
-
-		/* edge drawflags changed */
-		while(me) {
-			a_int= me->totface;
-			mface= me->mface;
-			while(a_int--) {
-				if(mface->edcode & 16) {
-					mface->edcode -= 16;
-					mface->edcode |= ME_V3V1;
-				}
-				mface++;
-			}
-			me= me->id.next;
-		}
-	}
-
 
 	if(main->versionfile <= 134) {
 		Tex *tex = main->tex.first;
@@ -4872,6 +4852,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lattice *lt;
 		Object *ob;
 		bArmature *arm;
+		Mesh *me;
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
 			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {
@@ -4901,6 +4882,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(arm=main->armature.first; arm; arm= arm->id.next) {
 			bone_version_238(&arm->bonebase);
+		}
+
+		for(me=main->mesh.first; me; me= me->id.next) {
+			if (!me->medge) {
+				make_edges(me);
+			} else {
+				mesh_strip_loose_faces(me);
+			}
 		}
 	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

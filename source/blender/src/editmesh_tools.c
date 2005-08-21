@@ -2115,7 +2115,7 @@ static EditVert *subdivideedgenum(EditEdge *edge,int curpoint,int totpoint,float
 	alter_co(co,edge,rad,beauty,curpoint/(float)(totpoint+1));
 	ev = addvertlist(co);
 	ev->f = edge->v1->f;
-
+	
 	return ev;
 }
 

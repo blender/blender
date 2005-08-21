@@ -137,30 +137,22 @@ void EM_select_face_fgon(EditFace *efa, int val)
 /* only vertices */
 int faceselectedOR(EditFace *efa, int flag)
 {
-	
-	if(efa->v1->f & flag) return 1;
-	if(efa->v2->f & flag) return 1;
-	if(efa->v3->f & flag) return 1;
-	if(efa->v4 && (efa->v4->f & 1)) return 1;
-	return 0;
+	if ((efa->v1->f | efa->v2->f | efa->v3->f | (efa->v4?efa->v4->f:0))&flag) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 // replace with (efa->f & SELECT)
 int faceselectedAND(EditFace *efa, int flag)
 {
-	if(efa->v1->f & flag) {
-		if(efa->v2->f & flag) {
-			if(efa->v3->f & flag) {
-				if(efa->v4) {
-					if(efa->v4->f & flag) return 1;
-				}
-				else return 1;
-			}
-		}
+	if ((efa->v1->f & efa->v2->f & efa->v3->f & (efa->v4?efa->v4->f:flag))&flag) {
+		return 1;
+	} else {
+		return 0;
 	}
-	return 0;
 }
-
 
 int EM_nfaces_selected(void)
 {

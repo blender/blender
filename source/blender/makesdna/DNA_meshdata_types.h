@@ -37,7 +37,7 @@ struct Bone;
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	char pad, mat_nr;
-	char edcode, flag;
+	char pad2, flag;
 } MFace;
 
 typedef struct MEdge {

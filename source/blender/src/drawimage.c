@@ -286,8 +286,7 @@ void draw_tfaces(void)
 				mface= me->mface;
 				a= me->totface;			
 				while(a--) {
-					if(tface->flag & TF_HIDE);
-					else if(mface->v3) {
+					if(!(tface->flag & TF_HIDE)) {
 						glColor3ub(112, 112, 112);
 						glBegin(GL_LINE_LOOP);
 						glVertex2fv(tface->uv[0]);
@@ -311,7 +310,7 @@ void draw_tfaces(void)
 				mface= me->mface;
 				a= me->totface;			
 				while(a--) {
-					if(mface->v3 && (tface->flag & TF_SELECT)) {
+					if(tface->flag & TF_SELECT) {
 						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
 						   (!mface->v4 || tface->flag & TF_SEL4))
 							glColor4ubv(col2);
@@ -336,7 +335,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(mface->v3 && (tface->flag & TF_SELECT) ) {
+				if(tface->flag & TF_SELECT) {
 					if(tface->flag & TF_ACTIVE){
 						activetface= tface; 
 						activemface= mface; 
@@ -423,7 +422,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(mface->v3  && (tface->flag & TF_SELECT) ) {
+				if(tface->flag & TF_SELECT) {
 					
 					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
@@ -447,7 +446,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(mface->v3  && (tface->flag & TF_SELECT) ) {
+				if(tface->flag & TF_SELECT) {
 					
 					if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 					if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
@@ -470,7 +469,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(mface->v3  && (tface->flag & TF_SELECT) ) {
+				if(tface->flag & TF_SELECT) {
 					
 					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
@@ -602,7 +601,7 @@ static void image_editvertex_buts(uiBlock *block)
 		MFace *mf= &((MFace*) me->mface)[i];
 		TFace *tf= &((TFace*) me->tface)[i];
 		
-		if (!mf->v3 || !(tf->flag & TF_SELECT))
+		if (!(tf->flag & TF_SELECT))
 			continue;
 		
 		if (tf->flag & TF_SEL1) {
@@ -674,7 +673,7 @@ static void image_editvertex_buts(uiBlock *block)
 			MFace *mf= &((MFace*) me->mface)[i];
 			TFace *tf= &((TFace*) me->tface)[i];
 		
-			if (!mf->v3 || !(tf->flag & TF_SELECT))
+			if (!(tf->flag & TF_SELECT))
 				continue;
 		
 			if (tf->flag & TF_SEL1) {

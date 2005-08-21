@@ -1190,15 +1190,13 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			}
 			eve= eve->next;
 		}
-		if(me->medge) {
-			eed= em->edges.first;
-			while(eed) {
-				if((eed->f & SELECT)) {
-					totedge++;
-					median[3]+= eed->crease;
-				}
-				eed= eed->next;
+		eed= em->edges.first;
+		while(eed) {
+			if((eed->f & SELECT)) {
+				totedge++;
+				median[3]+= eed->crease;
 			}
+			eed= eed->next;
 		}
 		/* check for defgroups */
 		if(tot==1 && evedef->totweight) {

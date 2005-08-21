@@ -69,9 +69,6 @@
 #include <config.h>
 #endif
 
-/** check if passed mesh has faces, return zero if only edges, 1 if faces have been found */
-int has_faces(Mesh *me);
-
 /**
  * Here's the vertex iterator structure used to walk through
  * the blender vertex structure.
@@ -236,18 +233,16 @@ FaceIt_Fill(
 	MFace *mface = &mfaces[f_index];
 	FaceData *fdata = face->user_face_data;
 	
-	if (mface->v3) {
-		// ignore lines (faces with mface->v3==0)
-		face->vertex_index[0] = mface->v1;
-		face->vertex_index[1] = mface->v2;
-		face->vertex_index[2] = mface->v3;
-		if (mface->v4) {
-			face->vertex_index[3] = mface->v4;
-			face->vertex_number = 4;
-		} else {
-			face->vertex_number = 3;
-		}
-	}	
+	// ignore lines (faces with mface->v3==0)
+	face->vertex_index[0] = mface->v1;
+	face->vertex_index[1] = mface->v2;
+	face->vertex_index[2] = mface->v3;
+	if (mface->v4) {
+		face->vertex_index[3] = mface->v4;
+		face->vertex_number = 4;
+	} else {
+		face->vertex_number = 3;
+	}
 
 	fdata->faceflag = mface->flag;
 	fdata->material = give_current_material(ob, mface->mat_nr+1);
@@ -364,18 +359,6 @@ InterpFaceVertexData(
 	return 0;
 }
 
-int has_faces(Mesh *me)
-{
-	MFace *mface;
-	int a;
-
-	mface= me->mface;
-	for(a=0; a<me->totface; a++, mface++) {		
-		if(mface->v3) return 1;
-	}
-	return 0;
-}
-
 /**
  * Assumes mesh is valid and forms part of a fresh
  * blender object.
@@ -410,10 +393,7 @@ NewBooleanMesh(
 
 	if (me == NULL || me2 == NULL) return 0;
 
-	success = has_faces(me);
-	if(success==0) return -1;
-	success = has_faces(me2);
-	if(success==0) return -1;
+	if(!me->totface || !me2->totface) return -1;
 	
 	success = 0;
 
@@ -730,8 +710,6 @@ ConvertCSGDescriptorsToMeshObject(
 		mface->v2 = face.vertex_index[1];
 		mface->v3 = face.vertex_index[2];
 		mface->v4 = 0;
-
-		mface->edcode = ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
 		mface->mat_nr = 0;
 		mface->flag = fdata->faceflag;
 		

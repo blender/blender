@@ -126,7 +126,6 @@ void join_mesh(void)
 	unsigned int *mcol=NULL, *mcolmain;
 	float imat[4][4], cmat[4][4];
 	int a, b, totcol, totedge=0, totvert=0, totface=0, ok=0, vertofs, map[MAXMAT];
-	int hasedges=0;
 	int	i, j, index, haskey=0, hasdefgroup=0;
 	bDeformGroup *dg, *odg;
 	MDeformVert *dvert, *dvertmain;
@@ -144,7 +143,6 @@ void join_mesh(void)
 				me= base->object->data;
 				totvert+= me->totvert;
 				totface+= me->totface;
-				if(me->medge) hasedges= 1;
 
 				if(base->object == ob) ok= 1;
 
@@ -170,14 +168,11 @@ void join_mesh(void)
 
 
 	/* if needed add edges to other meshes */
-	if(hasedges) {
-		for(base= FIRSTBASE; base; base= base->next) {
-			if TESTBASELIB(base) {
-				if(base->object->type==OB_MESH) {
-					me= base->object->data;
-					if(me->medge==NULL) make_edges(me);
-					totedge += me->totedge;
-				}
+	for(base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			if(base->object->type==OB_MESH) {
+				me= base->object->data;
+				totedge += me->totedge;
 			}
 		}
 	}
@@ -341,7 +336,7 @@ void join_mesh(void)
 					while(a--) {
 						mface->v1+= vertofs;
 						mface->v2+= vertofs;
-						if(mface->v3) mface->v3+= vertofs;
+						mface->v3+= vertofs;
 						if(mface->v4) mface->v4+= vertofs;
 						
 						mface->mat_nr= map[(int)mface->mat_nr];
@@ -470,6 +465,8 @@ void fasterdraw(void)
 				mface= me->mface;
 				toggle= 0;
 				for(a=0; a<me->totface; a++) {
+						/* XXX, rewrite to work with MEdge */
+/*
 					if( (mface->edcode & ME_V1V2) && ( (toggle++) & 1) ) {
 						mface->edcode-= ME_V1V2;
 					}
@@ -485,6 +482,7 @@ void fasterdraw(void)
 					if( (mface->edcode & ME_V3V4) && ( (toggle++) & 1)) {
 						mface->edcode-= ME_V3V4;
 					}
+*/
 					mface++;
 				}
 			}
@@ -516,13 +514,8 @@ void slowerdraw(void)		/* reset fasterdraw */
 		if( TESTBASELIB(base) && (base->object->type==OB_MESH)) {
 			me= base->object->data;
 			if(me->id.lib==0) {
-				
-				mface= me->mface;
-				
-				for(a=0; a<me->totface; a++) {
-				
-					mface->edcode |= ME_V1V2|ME_V2V3;
-					mface++;
+				for(a=0; a<me->totedge; a++) {
+					me->medge[a].flag |= ME_EDGEDRAW;
 				}
 			}
 		}

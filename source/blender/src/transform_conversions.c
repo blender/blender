@@ -316,14 +316,6 @@ static void createTransEdge(TransInfo *t) {
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
-	/* THIS IS A REALLY STUPID HACK, MUST BE A BETTER WAY TO DO IT */
-	/* this is sufficient to invoke edges added in mesh, but only in editmode */
-	if(me->medge==NULL) {
-		me->medge= MEM_callocN(sizeof(MEdge), "fake medge");
-		me->totedge= 1;
-		allqueue(REDRAWBUTSEDIT, 0);
-	}
-					
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h==0) {
 			if (eed->f & SELECT) countsel++;

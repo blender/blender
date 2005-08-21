@@ -1039,22 +1039,14 @@ static void give_mesh_mvert(Mesh *me, DispListMesh *dlm, int nr, float *co, shor
 		v2= (mvertbase+(mface->v2))->co;
 		n1= (mvertbase+(mface->v1))->no;
 		n2= (mvertbase+(mface->v2))->no;
-		if(mface->v3==0) {
-			v3= (mvertbase+(mface->v2))->co;
+		v3= (mvertbase+(mface->v3))->co;
+		n3= (mvertbase+(mface->v3))->no;
+		if(mface->v4==0) {
 			v4= (mvertbase+(mface->v1))->co;
-			n3= (mvertbase+(mface->v2))->no;
-			n4= (mvertbase+(mface->v1))->no;
-		}
-		else if(mface->v4==0) {
-			v3= (mvertbase+(mface->v3))->co;
-			v4= (mvertbase+(mface->v1))->co;
-			n3= (mvertbase+(mface->v3))->no;
 			n4= (mvertbase+(mface->v1))->no;
 		}
 		else {
-			v3= (mvertbase+(mface->v3))->co;
 			v4= (mvertbase+(mface->v4))->co;
-			n3= (mvertbase+(mface->v3))->no;
 			n4= (mvertbase+(mface->v4))->no;
 		}
 

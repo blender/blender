@@ -1088,8 +1088,7 @@ static unsigned char *calc_weightpaint_colors(Object *ob)
 	for (i=0; i<me->totface; i++, mf++){
 		calc_weightpaint_vert_color(ob, mf->v1, &wtcol[(i*4 + 0)*4]); 
 		calc_weightpaint_vert_color(ob, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		if (mf->v3)
-			calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
 		if (mf->v4)
 			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
@@ -1697,7 +1696,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
-	else if(hasHaloMat || (me->totface==0 && (!me->medge || me->totedge==0))) {
+	else if(hasHaloMat || (me->totface==0 && me->totedge==0)) {
 		glPointSize(1.5);
 		dm->drawVerts(dm);
 		glPointSize(1.0);

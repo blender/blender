@@ -117,7 +117,7 @@ static void uv_calc_center_vector(float *result, Object *ob, Mesh *me)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				DO_MINMAX((me->mvert+mface->v1)->co, min, max);
 				DO_MINMAX((me->mvert+mface->v2)->co, min, max);
 				DO_MINMAX((me->mvert+mface->v3)->co, min, max);
@@ -311,7 +311,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,3,(me->mvert+mface->v1)->co,min,max);
 				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,3,(me->mvert+mface->v2)->co,min,max);
 				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,3,(me->mvert+mface->v3)->co,min,max);
@@ -327,7 +327,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				if(mface->v4) b= 3; else b= 2;
 				for(; b>=0; b--) {
 					tface->uv[b][0]= ((tface->uv[b][0]-min[0])*fac)/dx;
@@ -344,7 +344,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,4,(me->mvert+mface->v1)->co,NULL,NULL);
 				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,4,(me->mvert+mface->v2)->co,NULL,NULL);
 				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,4,(me->mvert+mface->v3)->co,NULL,NULL);
@@ -385,7 +385,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				uv_calc_shift_project(tface->uv[0],cent,rotatematrix,mapmode,(me->mvert+mface->v1)->co,NULL,NULL);
 				uv_calc_shift_project(tface->uv[1],cent,rotatematrix,mapmode,(me->mvert+mface->v2)->co,NULL,NULL);
 				uv_calc_shift_project(tface->uv[2],cent,rotatematrix,mapmode,(me->mvert+mface->v3)->co,NULL,NULL);
@@ -422,7 +422,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(tface->flag & TF_SELECT && mface->v3) {
+			if(tface->flag & TF_SELECT) {
 				CalcNormFloat((mv+mface->v1)->co, (mv+mface->v2)->co, (mv+mface->v3)->co, no);
 					
 				no[0]= fabs(no[0]);
@@ -467,7 +467,7 @@ void calculate_uv_map(unsigned short mapmode)
 		tface= me->tface;
 		mface= me->mface;
 		for(a=0; a<me->totface; a++, mface++, tface++) {
-			if(!(tface->flag & TF_SELECT && mface->v3)) continue;
+			if(!(tface->flag & TF_SELECT)) continue;
 				
 			dx= dy= 0;
 			if(mface->v4) b= 3; else b= 2;
@@ -656,10 +656,6 @@ void select_linked_tfaces(int mode)
 {
 	Object *ob;
 	Mesh *me;
-	TFace *tf;
-	MFace *mf;
-	int a, doit=1, mark=0;
-	char *cpmain, *linkflag;
 	short mval[2];
 	unsigned int index=0;
 
@@ -675,96 +671,7 @@ void select_linked_tfaces(int mode)
 		if (!face_pick(me, mval[0], mval[1], &index)) return;
 	}
 
-	if(me->medge) {
-		select_linked_tfaces_with_seams(mode, me, index);
-		return;
-	}
-
-	cpmain= MEM_callocN(me->totvert, "cpmain");
-	linkflag= MEM_callocN(sizeof(char)*me->totface, "linkflaguv");
-
-	if (mode==0 || mode==1) {
-		/* only put face under cursor in array */
-		mf= ((MFace*)me->mface) + index;
-		cpmain[mf->v1]= cpmain[mf->v2]= cpmain[mf->v3]= 1;
-		if (mf->v4) cpmain[mf->v4]= 1;
-		linkflag[index]= 1;
-	}
-	else {
-		/* fill array by selection */
-		tf= me->tface;
-		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++) {
-			if(tf->flag & TF_HIDE);
-			else if(tf->flag & TF_SELECT) {
-				if(mf->v3) {
-					cpmain[mf->v1]= 1;
-					cpmain[mf->v2]= 1;
-					cpmain[mf->v3]= 1;
-					if(mf->v4) cpmain[mf->v4]= 1;
-					linkflag[a]= 1;
-				}
-			}
-		}
-	}
-	
-	while(doit) {
-		doit= 0;
-		
-		/* expand selection */
-		tf= me->tface;
-		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++) {
-			if(tf->flag & TF_HIDE);
-			else if(mf->v3 && !linkflag[a]) {
-				mark= 0;
-
-				if(cpmain[mf->v1] || cpmain[mf->v2] || cpmain[mf->v3])
-					mark= 1;
-				else if(mf->v4 && cpmain[mf->v4])
-					mark= 1;
-
-				if(mark) {
-					linkflag[a]= 1;
-					cpmain[mf->v1]= cpmain[mf->v2]= cpmain[mf->v3]= 1;
-					if(mf->v4) cpmain[mf->v4]= 1;
-					doit= 1;
-				}
-			}
-		}
-		
-	}
-
-	if(mode==0 || mode==2) {
-		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
-			if(linkflag[a])
-				tf->flag |= TF_SELECT;
-			else
-				tf->flag &= ~TF_SELECT;
-	}
-	else if(mode==1) {
-		for(a=0, tf=me->tface; a<me->totface; a++, tf++)
-			if(linkflag[a] && (tf->flag & TF_SELECT))
-				break;
-
-		if (a<me->totface) {
-			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
-				if(linkflag[a])
-					tf->flag &= ~TF_SELECT;
-		}
-		else {
-			for(a=0, tf=me->tface; a<me->totface; a++, tf++)
-				if(linkflag[a])
-					tf->flag |= TF_SELECT;
-		}
-	}
-	
-	MEM_freeN(cpmain);
-	MEM_freeN(linkflag);
-	
-	BIF_undo_push("Select linked UV face");
-
-	object_tface_flags_changed(OBACT, 0);
+	select_linked_tfaces_with_seams(mode, me, index);
 }
 
 void deselectall_tface()
@@ -984,7 +891,7 @@ void minmax_tface(float *min, float *max)
 	mf= me->mface;
 	tf= me->tface;
 	for (a=me->totface; a>0; a--, mf++, tf++) {
-		if (!mf->v3 || tf->flag & TF_HIDE || !(tf->flag & TF_SELECT))
+		if (tf->flag & TF_HIDE || !(tf->flag & TF_SELECT))
 			continue;
 
 		VECCOPY(vec, (mv+mf->v1)->co);

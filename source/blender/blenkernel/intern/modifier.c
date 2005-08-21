@@ -321,10 +321,8 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 
 			ndlm->mvert[mf->v1].flag = 1;
 			ndlm->mvert[mf->v2].flag = 1;
-			if (mf->v3) {
-				ndlm->mvert[mf->v3].flag = 1;
-				if (mf->v4) ndlm->mvert[mf->v4].flag = 1;
-			}
+			ndlm->mvert[mf->v3].flag = 1;
+			if (mf->v4) ndlm->mvert[mf->v4].flag = 1;
 		}
 
 			/* Store remapped indices in *((int*) mv->no) */
@@ -342,10 +340,8 @@ static void *buildModifier_applyModifier(ModifierData *md, Object *ob, void *der
 
 			mf->v1 = *((int*) ndlm->mvert[mf->v1].no);
 			mf->v2 = *((int*) ndlm->mvert[mf->v2].no);
-			if (mf->v3) {
-				mf->v3 = *((int*) ndlm->mvert[mf->v3].no);
-				if (mf->v4) mf->v4 = *((int*) ndlm->mvert[mf->v4].no);
-			}
+			mf->v3 = *((int*) ndlm->mvert[mf->v3].no);
+			if (mf->v4) mf->v4 = *((int*) ndlm->mvert[mf->v4].no);
 		}
 			/* Copy in all edges that have both vertices (remap in process) */
 		if (totedge) {
@@ -560,7 +556,7 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 			mc[3] = inMC[3];
 		}
 		
-		if (indexMap[inMF->v1][1] || indexMap[inMF->v2][1] || (mf->v3 && indexMap[inMF->v3][1]) || (mf->v4 && indexMap[inMF->v4][1])) {
+		if (indexMap[inMF->v1][1] || indexMap[inMF->v2][1] || indexMap[inMF->v3][1] || (mf->v4 && indexMap[inMF->v4][1])) {
 			MFace *mf2 = &dlm->mface[dlm->totface++];
 			TFace *tf = NULL;
 			MCol *mc = NULL;
@@ -568,7 +564,7 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 			*mf2 = *mf;
 			mf2->v1 += indexMap[inMF->v1][1];
 			mf2->v2 += indexMap[inMF->v2][1];
-			if (inMF->v3) mf2->v3 += indexMap[inMF->v3][1];
+			mf2->v3 += indexMap[inMF->v3][1];
 			if (inMF->v4) mf2->v4 += indexMap[inMF->v4][1];
 			mf2->flag &= ~ME_FACE_STEPINDEX;
 
@@ -587,19 +583,17 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 				mc[3] = inMC[3];
 			}
 
-			if (mf2->v3) {
-					/* Flip face normal */
-				SWAP(int, mf2->v1, mf2->v3);
-				if (tf) {
-					SWAP(unsigned int, tf->col[0], tf->col[2]);
-					SWAP(float, tf->uv[0][0], tf->uv[2][0]);
-					SWAP(float, tf->uv[0][1], tf->uv[2][1]);
-				} else if (mc) {
-					SWAP(MCol, mc[0], mc[2]);
-				}
-
-				test_index_face(mf2, mc, tf, inMF->v4?4:3);
+				/* Flip face normal */
+			SWAP(int, mf2->v1, mf2->v3);
+			if (tf) {
+				SWAP(unsigned int, tf->col[0], tf->col[2]);
+				SWAP(float, tf->uv[0][0], tf->uv[2][0]);
+				SWAP(float, tf->uv[0][1], tf->uv[2][1]);
+			} else if (mc) {
+				SWAP(MCol, mc[0], mc[2]);
 			}
+
+			test_index_face(mf2, mc, tf, inMF->v4?4:3);
 		}
 	}
 
@@ -706,8 +700,6 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 			mf->v4 = efa->v4?(int) efa->v4->prev:0;
 			mf->mat_nr = efa->mat_nr;
 			mf->flag = efa->flag|ME_FACE_STEPINDEX;
-			mf->edcode = 0;
-
 			test_index_face(mf, NULL, NULL, efa->v4?4:3);
 		}
 
@@ -761,10 +753,8 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	numTris = 0;
 	for (a=0; a<totface; a++) {
 		MFace *mf = &mface[a];
-		if (mf->v3) {
-			numTris++;
-			if (mf->v4) numTris++;
-		}
+		numTris++;
+		if (mf->v4) numTris++;
 	}
 
 	if(numTris<3) {
@@ -797,19 +787,16 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	numTris = 0;
 	for(a=0; a<totface; a++) {
 		MFace *mf = &mface[a];
+		int *tri = &lod.triangle_index_buffer[3*numTris++];
+		tri[0]= mf->v1;
+		tri[1]= mf->v2;
+		tri[2]= mf->v3;
 
-		if(mf->v3) {
-			int *tri = &lod.triangle_index_buffer[3*numTris++];
+		if(mf->v4) {
+			tri = &lod.triangle_index_buffer[3*numTris++];
 			tri[0]= mf->v1;
-			tri[1]= mf->v2;
-			tri[2]= mf->v3;
-
-			if(mf->v4) {
-				tri = &lod.triangle_index_buffer[3*numTris++];
-				tri[0]= mf->v1;
-				tri[1]= mf->v3;
-				tri[2]= mf->v4;
-			}
+			tri[1]= mf->v3;
+			tri[2]= mf->v4;
 		}
 	}
 

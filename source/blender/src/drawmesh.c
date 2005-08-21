@@ -818,7 +818,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				int matnr= mf->mat_nr;
 				int mf_smooth= mf->flag & ME_SMOOTH;
 
-				if (mf->v3 && !(tface->flag&TF_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+				if (!(tface->flag&TF_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
 					int badtex= set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE);
 					float v1[3], v2[3], v3[3], v4[3];
 					char string[MAX_PROPSTRING];

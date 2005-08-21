@@ -264,9 +264,6 @@ static void make_fgon(void)
 	}
 	else {
 		Mesh *me= G.obedit->data;
-		// signal to save edges with ngon flags
-		if(!me->medge)
-			me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
 		
 		EM_fgon_flags();	// redo flags and indices for fgons
 

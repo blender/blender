@@ -213,25 +213,21 @@ static void mesh_add_normals_flags(Mesh *me)
 	
 	mface= me->mface;
 	for(a=0; a<me->totface; a++, mface++) {
-		if(mface->v3) {
-			mface->edcode= ME_V1V2 | ME_V2V3;	// only draw 2 for speed
-			
-			v1= me->mvert+mface->v1;
-			v2= me->mvert+mface->v2;
-			v3= me->mvert+mface->v3;
-			v4= me->mvert+mface->v4;
-			
-			CalcNormFloat(v1->co, v2->co, v3->co, nor);
-			sno[0]= 32767.0*nor[0];
-			sno[1]= 32767.0*nor[1];
-			sno[2]= 32767.0*nor[2];
-			
-			simple_vertex_normal_blend(v1->no, sno);
-			simple_vertex_normal_blend(v2->no, sno);
-			simple_vertex_normal_blend(v3->no, sno);
-			if(mface->v4) {
-				simple_vertex_normal_blend(v4->no, sno);
-			}
+		v1= me->mvert+mface->v1;
+		v2= me->mvert+mface->v2;
+		v3= me->mvert+mface->v3;
+		v4= me->mvert+mface->v4;
+		
+		CalcNormFloat(v1->co, v2->co, v3->co, nor);
+		sno[0]= 32767.0*nor[0];
+		sno[1]= 32767.0*nor[1];
+		sno[2]= 32767.0*nor[2];
+		
+		simple_vertex_normal_blend(v1->no, sno);
+		simple_vertex_normal_blend(v2->no, sno);
+		simple_vertex_normal_blend(v3->no, sno);
+		if(mface->v4) {
+			simple_vertex_normal_blend(v4->no, sno);
 		}
 	}	
 }
@@ -306,6 +302,8 @@ static void read_stl_mesh_binary(char *str)
 			me->totvert = totvert;
 
 			mesh_add_normals_flags(me);
+			make_edges(me);
+			mesh_strip_loose_faces(me);
 		}
 		waitcursor(1);
 	}
@@ -470,6 +468,8 @@ static void read_stl_mesh_ascii(char *str)
 	free(vertdata);
 
 	mesh_add_normals_flags(me);
+	make_edges(me);
+	mesh_strip_loose_faces(me);
 
 	waitcursor(1);
 }
@@ -551,15 +551,7 @@ static void read_videoscape_mesh(char *str)
 			totcol++;
 		}
 	}
-	
-	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
-		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
-		error("too many faces");
-		MEM_freeN(vertdata);
-		fclose(fp);
-		return;
-	}
-	
+
 	/* new object */
 	ob= add_object(OB_MESH);
 	me= ob->data;
@@ -647,7 +639,6 @@ static void read_videoscape_mesh(char *str)
 					if( fscanf(fp,"%d", &nr) <=0 ) break;
 					mface->v4= MIN2(nr, me->totvert-1);
 				}
-				mface->edcode= 3;
 				
 				test_index_face(mface, NULL, NULL, poly);
 				
@@ -668,7 +659,6 @@ static void read_videoscape_mesh(char *str)
 				}
 				mface->v1= first;
 				mface->v2= nr;
-				mface->edcode= 1;
 				mface++;
 				if(end<=0) break;
 			}
@@ -688,11 +678,9 @@ static void read_videoscape_mesh(char *str)
 	fclose(fp);
 	MEM_freeN(vertdata);
 	
-	G.obedit= ob;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh(G.editMesh);
-	G.obedit= 0;
+	mesh_add_normals_flags(me);
+	make_edges(me);
+	mesh_strip_loose_faces(me);
 
 	waitcursor(1);
 }
@@ -821,7 +809,6 @@ static void read_radiogour(char *str)
 					if( fscanf(fp,"%d", &nr) <=0 ) break;
 					mface->v4= MIN2(nr, me->totvert-1);
 				}
-				mface->edcode= 3;
 				
 				test_index_face(mface, NULL, NULL, poly);
 				
@@ -842,7 +829,6 @@ static void read_radiogour(char *str)
 				}
 				mface->v1= first;
 				mface->v2= nr;
-				mface->edcode= 1;
 				mface->flag= ME_SMOOTH;
 				
 				mface++;
@@ -873,12 +859,9 @@ static void read_radiogour(char *str)
 	fclose(fp);
 	MEM_freeN(vertdata);
 	
-	G.obedit= ob;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh(G.editMesh);
-
-	G.obedit= 0;
+	mesh_add_normals_flags(me);
+	make_edges(me);
+	mesh_strip_loose_faces(me);
 
 	waitcursor(1);
 }
@@ -2022,15 +2005,6 @@ static void displist_to_mesh(DispList *dlfirst)
 	if(totvert==0) {
 		return;
 	}
-	if(totvert>MESH_MAX_VERTS || tottria>=MESH_MAX_VERTS) {
-		if (totvert>=MESH_MAX_VERTS) {
-			error("Too many vertices (%d)", totvert);
-		} else {
-			error("Too many faces (%d)", tottria);
-		}
-
-		return;
-	}
 	
 	if(totcol>16) {
 		error("Found more than 16 different colors");
@@ -2196,7 +2170,6 @@ static void displist_to_mesh(DispList *dlfirst)
 						else mface->v2= startve+a+1;
 						
 						mface->mat_nr= colnr;
-						test_index_face(mface, NULL, NULL, 2);
 
 						mface++;
 					}
@@ -2248,7 +2221,6 @@ static void displist_to_mesh(DispList *dlfirst)
 					mface->v1= startve+a;
 					mface->v2= startve+a+1;
 					mface->mat_nr= colnr;
-					test_index_face(mface, NULL, NULL, 2);
 					mface++;
 				}
 				startve += dl->nr;
@@ -2258,6 +2230,8 @@ static void displist_to_mesh(DispList *dlfirst)
 	}
 
 	mesh_add_normals_flags(me);
+	make_edges(me);
+	mesh_strip_loose_faces(me);
 }
 
 static void displist_to_objects(ListBase *lbase)
@@ -2673,10 +2647,7 @@ static void write_videoscape_mesh(Object *ob, char *str)
 			fprintf(fp, "%f %f %f\n", co[0], co[1], co[2] );
 		}
 		for(a=0; a<me->totface; a++, mface++) {
-			if(mface->v3==0) {
-				fprintf(fp, "2 %d %d 0x%x\n", mface->v1, mface->v2, kleur[mface->mat_nr]);
-			}
-			else if(mface->v4==0) {
+			if(mface->v4==0) {
 				fprintf(fp, "3 %d %d %d 0x%x\n", mface->v1, mface->v2, mface->v3, kleur[mface->mat_nr]);
 			}
 			else {
@@ -2790,7 +2761,7 @@ unsigned int *mcol_to_vcol(Mesh *me)
 	for(a=me->totface; a>0; a--, mface++) {
 		mcoln[mface->v1]= mcol[0];
 		mcoln[mface->v2]= mcol[1];
-		if(mface->v3) mcoln[mface->v3]= mcol[2];
+		mcoln[mface->v3]= mcol[2];
 		if(mface->v4) mcoln[mface->v4]= mcol[3];
 
 		mcol+= 4;
@@ -2910,7 +2881,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 				if(mface->mat_nr==b) {
 					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[0][0], tface->uv[0][1]); 
 					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[1][0], tface->uv[1][1]); 
-					if(mface->v3) fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[2][0], tface->uv[2][1]); 
+					fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[2][0], tface->uv[2][1]); 
 					if(mface->v4) fprintf(fp, "\t\t\t\t %f %f,\n", tface->uv[3][0], tface->uv[3][1]); 
 				}
 				mface++;
@@ -2928,7 +2899,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 		while(a--) {
 			if(mface->mat_nr==b) {
 				if(mface->v4) fprintf(fp, "\t\t\t\t %d, %d, %d, %d, -1,\n", mface->v1, mface->v2, mface->v3, mface->v4); 
-				else if(mface->v3) fprintf(fp, "\t\t\t\t %d, %d, %d, -1,\n", mface->v1, mface->v2, mface->v3); 
+				else fprintf(fp, "\t\t\t\t %d, %d, %d, -1,\n", mface->v1, mface->v2, mface->v3); 
 			}
 			mface++;
 		}
@@ -2945,7 +2916,7 @@ static void write_mesh_vrml(FILE *fp, Mesh *me)
 						fprintf(fp, "\t\t\t\t %d, %d, %d, %d, -1,\n", texind, texind+1, texind+2, texind+3); 
 						texind+= 4;
 					}
-					else if(mface->v3) {
+					else {
 						fprintf(fp, "\t\t\t\t %d, %d, %d, -1,\n", texind, texind+1, texind+2); 
 						texind+= 3;
 					}
@@ -3260,37 +3231,35 @@ static void write_mesh_dxf(FILE *fp, Mesh *me)
 	a= me->totface;
 	mface= me->mface;
 	while(a--) {
-		if (mface->v4 || mface->v3) {
-			write_group(0, "VERTEX"); /* Start a new face */
-			write_group(8, "Meshes");
-		
-			/* Write a face color */
-			if (me->totcol) {
-				ma= me->mat[mface->mat_nr];
-				if(ma) {
-					sprintf(str,"%d",rgb_to_dxf_col(ma->r,ma->g,ma->b));
-					write_group(62, str); /* Color index */
-				}
+		write_group(0, "VERTEX"); /* Start a new face */
+		write_group(8, "Meshes");
+	
+		/* Write a face color */
+		if (me->totcol) {
+			ma= me->mat[mface->mat_nr];
+			if(ma) {
+				sprintf(str,"%d",rgb_to_dxf_col(ma->r,ma->g,ma->b));
+				write_group(62, str); /* Color index */
 			}
-			else write_group(62, "254"); /* Color Index */
+		}
+		else write_group(62, "254"); /* Color Index */
 
-			/* Not sure what this really corresponds too */
-			write_group(10, "0.0"); /* X of base */
-			write_group(20, "0.0"); /* Y of base */
-			write_group(30, "0.0"); /* Z of base */
-		
-			write_group(70, "128"); /* Polymesh face flag */
-		
-			if(mface->v4) {
-				fprintf (fp, "71\n%d\n", mface->v1+1);
-				fprintf (fp, "72\n%d\n", mface->v2+1);
-				fprintf (fp, "73\n%d\n", mface->v3+1);
-				fprintf (fp, "74\n%d\n", mface->v4+1);
-			} else if(mface->v3) {
-				fprintf (fp, "71\n%d\n", mface->v1+1);
-				fprintf (fp, "72\n%d\n", mface->v2+1);
-				fprintf (fp, "73\n%d\n", mface->v3+1);
-			}
+		/* Not sure what this really corresponds too */
+		write_group(10, "0.0"); /* X of base */
+		write_group(20, "0.0"); /* Y of base */
+		write_group(30, "0.0"); /* Z of base */
+	
+		write_group(70, "128"); /* Polymesh face flag */
+	
+		if(mface->v4) {
+			fprintf (fp, "71\n%d\n", mface->v1+1);
+			fprintf (fp, "72\n%d\n", mface->v2+1);
+			fprintf (fp, "73\n%d\n", mface->v3+1);
+			fprintf (fp, "74\n%d\n", mface->v4+1);
+		} else {
+			fprintf (fp, "71\n%d\n", mface->v1+1);
+			fprintf (fp, "72\n%d\n", mface->v2+1);
+			fprintf (fp, "73\n%d\n", mface->v3+1);
 		}
 		mface++;
 	}
@@ -3707,17 +3676,7 @@ static void dxf_read_point(int noob) {
 	mvert->co[0]= mvert->co[1]= mvert->co[2]= 0;
 		
 	if (ob) VECCOPY(ob->loc, cent);
-	
-	if (!noob) {
-		G.obedit= ob;
-		make_editMesh();
-		load_editMesh();
-		free_editMesh(G.editMesh);
-		waitcursor(1);		/* patch yah... */
 
-		G.obedit= 0;
-	}
-	
 	hasbumped=1;
 }
 
@@ -3733,14 +3692,6 @@ static void dxf_close_line(void)
 	linemhold=NULL;
 	if (linehold==NULL) return;
 	
-	G.obedit= linehold;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh(G.editMesh);
-	waitcursor(1);		/* patch yah... */
-
-	G.obedit= 0;
-
 	linehold=NULL;
 }
 
@@ -3837,10 +3788,8 @@ static void dxf_read_line(int noob) {
 	mface= &(((MFace*)me->mface)[me->totface-1]);
 	mface->v1= me->totvert-2;
 	mface->v2= me->totvert-1;
-		
-	mface->edcode= 1;
 	mface->mat_nr= 0;
-	
+
 	hasbumped=1;
 }
 
@@ -3854,14 +3803,6 @@ static void dxf_close_2dpoly(void)
 {
 	p2dmhold= NULL;
 	if (p2dhold==NULL) return;
-
-	G.obedit= p2dhold;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh(G.editMesh);
-	waitcursor(1);		/* patch yah... */
-
-	G.obedit= 0;
 
 	p2dhold=NULL;
 }
@@ -4033,11 +3974,11 @@ static void dxf_read_ellipse(int noob)
 
 		x = a * sin(phi);
 		y = b * cos(phi);	
-	  epoint[0] = center[0] + x*cos(theta) - y*sin(theta);
-	  epoint[1] = center[1] + x*sin(theta) + y*cos(theta);
-	  epoint[2] = center[2];
+		epoint[0] = center[0] + x*cos(theta) - y*sin(theta);
+		epoint[1] = center[1] + x*sin(theta) + y*cos(theta);
+		epoint[2] = center[2];
 	  
-	  mvert= &me->mvert[v];
+		mvert= &me->mvert[v];
 		
 		if (vspace) {
 			VECCOPY(mvert->co, epoint);
@@ -4049,14 +3990,13 @@ static void dxf_read_ellipse(int noob)
 			mface= &(((MFace*)me->mface)[v-1]);
 			mface->v1 = v-1;
 			mface->v2 = v;
-  	  mface->edcode = 1;
-	    mface->mat_nr = 0;
+			mface->mat_nr = 0;
 		}
 	  
-	  hasbumped = 1;
+		hasbumped = 1;
 
-	  VECCOPY(cent, epoint);	  
-	  phi+=phid;
+		VECCOPY(cent, epoint);	  
+		phi+=phid;
 	}
 }
 
@@ -4154,15 +4094,15 @@ static void dxf_read_arc(int noob)
 
 	for(v = 0; v <= tot; v++) { 
 
-	  epoint[0]= center[0]+dia*sin(phi);
-	  epoint[1]= center[1]+dia*cos(phi);
-	  epoint[2]= center[2];
+		epoint[0]= center[0]+dia*sin(phi);
+		epoint[1]= center[1]+dia*cos(phi);
+		epoint[2]= center[2];
 
 		mvert= &me->mvert[v];
 		
 		if (vspace) {
 			VECCOPY(mvert->co, epoint);
-		}	else {
+		} else {
 			VecSubf(mvert->co, epoint, vcenter);
 		}
 
@@ -4170,14 +4110,13 @@ static void dxf_read_arc(int noob)
 			mface= &(((MFace*)me->mface)[v-1]);
 			mface->v1 = v-1;
 			mface->v2 = v;
-  	  mface->edcode = 1;
-	    mface->mat_nr = 0;
+			mface->mat_nr = 0;
 		}
 	  
-	  hasbumped=1;
+		hasbumped=1;
 
-	  VECCOPY(cent, epoint);	  
-	  phi+=phid;
+		VECCOPY(cent, epoint);	  
+		phi+=phid;
 	}
 }
 
@@ -4324,16 +4263,11 @@ static void dxf_read_polyline(int noob) {
 			for(a=1; a<nverts; a++, mface++) {
 				mface->v1= (me->totvert-nverts)+a-1;
 				mface->v2= (me->totvert-nverts)+a;
-			
-				mface->edcode= 3;
 				mface->mat_nr= 0;
-
-				test_index_face(mface, NULL, NULL, 2);
 			}
 		}
 		
 		lwasp2d=1;
-	
 	} 
 	else if (flag&64) {
 		if (noob) {
@@ -4449,7 +4383,6 @@ static void dxf_read_polyline(int noob) {
 				}
 				else test_index_face(mface, NULL, NULL, 3);
 	
-				mface->edcode= 3;
 				mface->mat_nr= 0;
 	
 			} else {
@@ -4461,15 +4394,6 @@ static void dxf_read_polyline(int noob) {
 			}
 	
 		}	
-		
-		if (!noob) {
-			G.obedit= ob;
-			make_editMesh();
-			load_editMesh();
-			free_editMesh(G.editMesh);
-			waitcursor(1);		/* patch yah... */
-			G.obedit= 0;
-		}
 	}
 }
 
@@ -4560,8 +4484,7 @@ static void dxf_read_lwpolyline(int noob) {
 			mface= &(((MFace*)me->mface)[v-1]);
 			mface->v1 = v-1;
 			mface->v2 = v;
-  	  mface->edcode = 1;
-	    mface->mat_nr = 0;
+			mface->mat_nr = 0;
 		}
 	}
 
@@ -4573,7 +4496,6 @@ static void dxf_read_lwpolyline(int noob) {
 			mface= &(((MFace*)me->mface)[nverts - 1]);
 			mface->v1 = nverts-1;
 			mface->v2 = 0;
-			mface->edcode = 1;
 			mface->mat_nr = 0;
 		}
 	}  
@@ -4591,13 +4513,6 @@ static void dxf_close_3dface(void)
 	f3dmhold= NULL;
 	if (f3dhold==NULL) return;
 	
-	G.obedit= f3dhold;
-	make_editMesh();
-	load_editMesh();
-	free_editMesh(G.editMesh);
-	waitcursor(1);		/* patch yah... */
-	G.obedit= 0;
-
 	f3dhold=NULL;
 }
 
@@ -4783,7 +4698,6 @@ static void dxf_read_3dface(int noob)
 	if (nverts==4)
 		mface->v4= (me->totvert-nverts)+3;
 
-	mface->edcode= 3;
 	mface->mat_nr= 0;
 
 	test_index_face(mface, NULL, NULL, nverts);
@@ -4793,6 +4707,8 @@ static void dxf_read_3dface(int noob)
 
 static void dxf_read(char *filename)
 {
+	Mesh *lastMe = G.main->mesh.last;
+
 	dxf_line=0;
 	
 	dxf_fp= fopen(filename, "r");
@@ -4982,13 +4898,6 @@ static void dxf_read(char *filename)
 						base->lay= ob->lay;
 		
 						base->object= ob;
-	
-						G.obedit= ob;
-						make_editMesh();
-						load_editMesh();
-						free_editMesh(G.editMesh);
-						waitcursor(1);		/* patch yah... */
-						G.obedit= 0;
 					}
 
 					hasbumped=1;
@@ -5054,4 +4963,15 @@ static void dxf_read(char *filename)
 	dxf_close_3dface();
 	dxf_close_2dpoly();
 	dxf_close_line();
+
+	if (lastMe) {
+		lastMe = lastMe->id.next;
+	} else {
+		lastMe = G.main->mesh.first;
+	}
+	for (; lastMe; lastMe=lastMe->id.next) {
+		mesh_add_normals_flags(lastMe);
+		make_edges(lastMe);
+		mesh_strip_loose_faces(lastMe);
+	}
 }

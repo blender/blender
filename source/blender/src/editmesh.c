@@ -60,6 +60,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_dynstr.h"
+#include "BLI_rand.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
@@ -581,6 +582,22 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	if(inp < -0.001 ) eed->f1= 1;
 }
 
+typedef struct {
+	EditEdge *eed;
+	float noLen,no[3];
+	int adjCount;
+} EdgeDrawFlagInfo;
+
+static int edgeDrawFlagInfo_cmp(const void *av, const void *bv)
+{
+	const EdgeDrawFlagInfo *a = av;
+	const EdgeDrawFlagInfo *b = bv;
+
+	if (a->noLen<b->noLen) return -1;
+	else if (a->noLen>b->noLen) return 1;
+	else return 0;
+}
+
 static void edge_drawflags(void)
 {
 	EditMesh *em = G.editMesh;
@@ -653,19 +670,87 @@ static void edge_drawflags(void)
 		}
 
 		/* all faces, all edges with flag==2: compare normal */
-		efa= em->faces.first;
-		while(efa) {
-			if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
-			else efa->e1->f2= 1;
-			if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
-			else efa->e2->f2= 1;
-			if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
-			else efa->e3->f2= 1;
-			if(efa->e4) {
-				if(efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
-				else efa->e4->f2= 1;
+		if (G.rt) {
+			float drawEdgePercent = G.rt/1000.0;
+			EdgeDrawFlagInfo *info = MEM_callocN(sizeof(*info)*G.totedge, "info");
+			EditEdge *preveed;
+			int i, numDrawn, numToDraw;
+
+			for (i=0,eed=em->edges.first; eed; i++,eed=eed->next) {
+				info[i].eed = eed;
+				eed->prev = (EditEdge*) i;
 			}
-			efa= efa->next;
+
+			for (efa=em->faces.first; efa; efa=efa->next) {
+				EdgeDrawFlagInfo *ei;
+
+				ei = &info[(int) efa->e1->prev];
+				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
+
+				ei = &info[(int) efa->e2->prev];
+				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
+
+				ei = &info[(int) efa->e3->prev];
+				VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
+
+				if (efa->e4) {
+					ei = &info[(int) efa->e4->prev];
+					VecAddf(ei->no, ei->no, efa->n); ei->adjCount++;
+				}
+			}
+
+			for (i=0; i<G.totedge; i++) {
+				if (info[i].adjCount==0) {
+					info[i].noLen = -1;
+				} else {
+					info[i].noLen = VecLength(info[i].no)/info[i].adjCount + BLI_frand()*.0001;
+				}
+			}
+
+			qsort(info, G.totedge, sizeof(*info), edgeDrawFlagInfo_cmp);
+
+			numToDraw = drawEdgePercent*G.totedge;
+			if (numToDraw<1) numToDraw = 1;
+
+			numDrawn = 0;
+			for (i=0; i<G.totedge; i++) {
+				EdgeDrawFlagInfo *ei = &info[i];
+
+				if (ei->eed->f2==2) {
+					if (G.rt==1000) {
+						if (ei->noLen<0.999 || numDrawn<(G.totedge*.1)) {
+							ei->eed->f2 = 1;
+							numDrawn++;
+						}
+					} else if (numDrawn<numToDraw) {
+						ei->eed->f2 = 1;
+						numDrawn++;
+					}
+				} else {
+					ei->eed->f2 = 1;
+				}
+			}
+
+			for (preveed=NULL,eed=em->edges.first; eed; preveed=eed,eed=eed->next) {
+				eed->prev = preveed;
+			}
+
+			MEM_freeN(info);
+		} else {
+			efa= em->faces.first;
+			while(efa) {
+				if(efa->e1->f2==2) edge_normal_compare(efa->e1, efa);
+				else efa->e1->f2= 1;
+				if(efa->e2->f2==2) edge_normal_compare(efa->e2, efa);
+				else efa->e2->f2= 1;
+				if(efa->e3->f2==2) edge_normal_compare(efa->e3, efa);
+				else efa->e3->f2= 1;
+				if(efa->e4) {
+					if(efa->e4->f2==2) edge_normal_compare(efa->e4, efa);
+					else efa->e4->f2= 1;
+				}
+				efa= efa->next;
+			}
 		}
 		
 		/* sphere collision flag */
@@ -753,23 +838,19 @@ void make_editMesh()
 	if(actkey && actkey->totelem!=me->totvert);
 	else {
 		unsigned int *mcol;
+		MEdge *medge= me->medge;
 		
 		/* make edges */
-		if(me->medge) {
-			MEdge *medge= me->medge;
+		for(a=0; a<me->totedge; a++, medge++) {
+			eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
+			eed->crease= ((float)medge->crease)/255.0;
 			
-			for(a=0; a<me->totedge; a++, medge++) {
-				eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
-				eed->crease= ((float)medge->crease)/255.0;
-				
-				if(medge->flag & ME_SEAM) eed->seam= 1;
-				if(medge->flag & SELECT) eed->f |= SELECT;
-				if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
-				if(medge->flag & ME_HIDE) eed->h |= 1;
-				if(G.scene->selectmode & SCE_SELECT_EDGE) 
-					EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
-			}
-
+			if(medge->flag & ME_SEAM) eed->seam= 1;
+			if(medge->flag & SELECT) eed->f |= SELECT;
+			if(medge->flag & ME_FGON) eed->h= EM_FGON;	// 2 different defines!
+			if(medge->flag & ME_HIDE) eed->h |= 1;
+			if(G.scene->selectmode & SCE_SELECT_EDGE) 
+				EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
 		}
 		
 		/* make faces */
@@ -780,7 +861,8 @@ void make_editMesh()
 		for(a=0; a<me->totface; a++, mface++) {
 			eve1= evlist[mface->v1];
 			eve2= evlist[mface->v2];
-			if(mface->v3) eve3= evlist[mface->v3]; else eve3= NULL;
+			if(!mface->v3) error("Eeekadoodle! An MFACE-EDGE! Tell Zr!!!!");
+			eve3= evlist[mface->v3];
 			if(mface->v4) eve4= evlist[mface->v4]; else eve4= NULL;
 			
 			efa= addfacelist(eve1, eve2, eve3, eve4, NULL, NULL);
@@ -800,7 +882,6 @@ void make_editMesh()
 					/* select face flag, if no edges we flush down */
 					if(mface->flag & ME_FACE_SEL) {
 						efa->f |= SELECT;
-						if(me->medge==NULL) EM_select_face(efa, 1);
 					}
 					if(mface->flag & ME_HIDE) efa->h= 1;
 				}
@@ -816,14 +897,6 @@ void make_editMesh()
 			if(me->tface) tface++;
 			if(mcol) mcol+=4;
 		}
-	}
-	
-	/* flush hide flags when no medge */
-	if(me->medge==NULL) {
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->v1->h || eed->v2->h) eed->h |= 1;
-			else eed->h &= ~1;
-		}	
 	}
 	
 	MEM_freeN(evlist);
@@ -848,7 +921,7 @@ void load_editMesh(void)
 	EditMesh *em = G.editMesh;
 	Mesh *me= G.obedit->data;
 	MVert *mvert, *oldverts;
-	MEdge *medge=NULL;
+	MEdge *medge;
 	MFace *mface;
 	MSticky *ms;
 	EditVert *eve;
@@ -871,7 +944,6 @@ void load_editMesh(void)
 	eed= em->edges.first;
 	while(eed) {
 		totedge++;
-		if(me->medge==NULL && (eed->f2==0)) G.totface++;
 		eed= eed->next;
 	}
 	
@@ -880,7 +952,7 @@ void load_editMesh(void)
 	else mvert= MEM_callocN(G.totvert*sizeof(MVert), "loadeditMesh vert");
 
 	/* new Edge block */
-	if(me->medge==NULL) totedge= 0;	// if edges get added is defined by orig mesh
+	if(totedge==0) medge= NULL;
 	else medge= MEM_callocN(totedge*sizeof(MEdge), "loadeditMesh edge");
 	
 	/* new Face block */
@@ -906,7 +978,7 @@ void load_editMesh(void)
 
 	if(me->medge) MEM_freeN(me->medge);
 	me->medge= medge;
-	if(medge) me->totedge= totedge; else me->totedge= 0;
+	me->totedge= totedge;
 	
 	if(me->mface) MEM_freeN(me->mface);
 	me->mface= mface;
@@ -949,24 +1021,22 @@ void load_editMesh(void)
 	}
 
 	/* the edges */
-	if(medge) {
-		eed= em->edges.first;
-		while(eed) {
-			medge->v1= (unsigned int) eed->v1->vn;
-			medge->v2= (unsigned int) eed->v2->vn;
-			
-			medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
-			if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
-			if(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
-			if(eed->seam) medge->flag |= ME_SEAM;
-			if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
-			if(eed->h & 1) medge->flag |= ME_HIDE;
-			
-			medge->crease= (char)(255.0*eed->crease);
+	eed= em->edges.first;
+	while(eed) {
+		medge->v1= (unsigned int) eed->v1->vn;
+		medge->v2= (unsigned int) eed->v2->vn;
+		
+		medge->flag= (eed->f & SELECT) | ME_EDGERENDER;
+		if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
+		if(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
+		if(eed->seam) medge->flag |= ME_SEAM;
+		if(eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
+		if(eed->h & 1) medge->flag |= ME_HIDE;
+		
+		medge->crease= (char)(255.0*eed->crease);
 
-			medge++;
-			eed= eed->next;
-		}
+		medge++;
+		eed= eed->next;
 	}
 
 	/* the faces */
@@ -1005,24 +1075,15 @@ void load_editMesh(void)
 		/* watch: efa->e1->f2==0 means loose edge */ 
 			
 		if(efa->e1->f2==1) {
-			mface->edcode |= ME_V1V2; 
 			efa->e1->f2= 2;
 		}			
 		if(efa->e2->f2==1) {
-			mface->edcode |= ME_V2V3; 
 			efa->e2->f2= 2;
 		}
 		if(efa->e3->f2==1) {
-			if(efa->v4) {
-				mface->edcode |= ME_V3V4;
-			}
-			else {
-				mface->edcode |= ME_V3V1;
-			}
 			efa->e3->f2= 2;
 		}
 		if(efa->e4 && efa->e4->f2==1) {
-			mface->edcode |= ME_V4V1; 
 			efa->e4->f2= 2;
 		}
 
@@ -1032,22 +1093,6 @@ void load_editMesh(void)
 			
 		i++;
 		efa= efa->next;
-	}
-		
-	/* add loose edges as a face */
-	if(medge==NULL) {
-		eed= em->edges.first;
-		while(eed) {
-			if( eed->f2==0 ) {
-				mface= &((MFace *) me->mface)[i];
-				mface->v1= (unsigned int) eed->v1->vn;
-				mface->v2= (unsigned int) eed->v2->vn;
-				test_index_face(mface, NULL, NULL, 2);
-				mface->edcode= ME_V1V2;
-				i++;
-			}
-			eed= eed->next;
-		}
 	}
 	
 	/* tface block */

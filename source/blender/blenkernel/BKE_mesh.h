@@ -67,7 +67,6 @@ struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 void nurbs_to_mesh(struct Object *ob);
-void edge_drawflags_mesh(struct Mesh *me);
 void mcol_to_tface(struct Mesh *me, int freedata);
 void tface_to_mcol(struct Mesh *me);
 void free_dverts(struct MDeformVert *dvert, int totvert);
@@ -80,6 +79,7 @@ struct BoundBox *mesh_get_bb(struct Mesh *me);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
 
 void make_edges(struct Mesh *me);
+void mesh_strip_loose_faces(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
 	 * and vertex normals are stored in actual mverts.

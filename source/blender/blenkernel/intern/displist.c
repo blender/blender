@@ -788,55 +788,52 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 
 	for (i=0; i<dlm->totface; i++) {
 		MFace *mf= &dlm->mface[i];
+		int j, vidx[4], nverts= mf->v4?4:3;
+		unsigned char *col1base= (unsigned char*) &col1[i*4];
+		unsigned char *col2base= (unsigned char*) (col2?&col2[i*4]:NULL);
+		unsigned char *mcolbase;
+		Material *ma= give_current_material(ob, mf->mat_nr+1);
+		float nor[3], n1[3];
+		
+		if(ma==0) ma= &defmaterial;
+		
+		if (dlm->tface) {
+			mcolbase = (unsigned char*) dlm->tface[i].col;
+		} else if (dlm->mcol) {
+			mcolbase = (unsigned char*) &dlm->mcol[i*4];
+		} else {
+			mcolbase = NULL;
+		}
 
-		if (mf->v3) {
-			int j, vidx[4], nverts= mf->v4?4:3;
-			unsigned char *col1base= (unsigned char*) &col1[i*4];
-			unsigned char *col2base= (unsigned char*) (col2?&col2[i*4]:NULL);
-			unsigned char *mcolbase;
-			Material *ma= give_current_material(ob, mf->mat_nr+1);
-			float nor[3], n1[3];
-			
-			if(ma==0) ma= &defmaterial;
-			
-			if (dlm->tface) {
-				mcolbase = (unsigned char*) dlm->tface[i].col;
-			} else if (dlm->mcol) {
-				mcolbase = (unsigned char*) &dlm->mcol[i*4];
-			} else {
-				mcolbase = NULL;
-			}
+		vidx[0]= mf->v1;
+		vidx[1]= mf->v2;
+		vidx[2]= mf->v3;
+		vidx[3]= mf->v4;
 
-			vidx[0]= mf->v1;
-			vidx[1]= mf->v2;
-			vidx[2]= mf->v3;
-			vidx[3]= mf->v4;
+		if (dlm->nors) {
+			VECCOPY(nor, &dlm->nors[i*3]);
+		} else {
+			if (mf->v4)
+				CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
+			else
+				CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
+		}
 
-			if (dlm->nors) {
-				VECCOPY(nor, &dlm->nors[i*3]);
-			} else {
-				if (mf->v4)
-					CalcNormFloat4(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, dlm->mvert[mf->v4].co, nor);
-				else
-					CalcNormFloat(dlm->mvert[mf->v1].co, dlm->mvert[mf->v2].co, dlm->mvert[mf->v3].co, nor);
-			}
+		n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
+		n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
+		n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
+		Normalise(n1);
 
-			n1[0]= imat[0][0]*nor[0]+imat[0][1]*nor[1]+imat[0][2]*nor[2];
-			n1[1]= imat[1][0]*nor[0]+imat[1][1]*nor[1]+imat[1][2]*nor[2];
-			n1[2]= imat[2][0]*nor[0]+imat[2][1]*nor[1]+imat[2][2]*nor[2];
-			Normalise(n1);
+		for (j=0; j<nverts; j++) {
+			MVert *mv= &dlm->mvert[vidx[j]];
+			unsigned char *col1= &col1base[j*4];
+			unsigned char *col2= col2base?&col2base[j*4]:NULL;
+			unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
+			float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
 
-			for (j=0; j<nverts; j++) {
-				MVert *mv= &dlm->mvert[vidx[j]];
-				unsigned char *col1= &col1base[j*4];
-				unsigned char *col2= col2base?&col2base[j*4]:NULL;
-				unsigned char *mcol= mcolbase?&mcolbase[j*4]:NULL;
-				float *vn = (mf->flag & ME_SMOOTH)?&vnors[3*vidx[j]]:n1;
-
-				VECCOPY(vec, mv->co);
-				Mat4MulVecfl(mat, vec);
-				fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
-			}
+			VECCOPY(vec, mv->co);
+			Mat4MulVecfl(mat, vec);
+			fastshade(vec, vn, orco?&orco[vidx[j]*3]:mv->co, ma, col1, col2, mcol);
 		}
 	}
 	MEM_freeN(vnors);

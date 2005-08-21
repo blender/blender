@@ -1797,8 +1797,6 @@ void editmesh_mark_seam(int clear)
 			G.f |= G_DRAWSEAMS;
 			allqueue(REDRAWBUTSEDIT, 0);
 		}
-		if(!me->medge)
-			me->medge= MEM_callocN(sizeof(MEdge), "fake mesh edge");
 	}
 
 	if(clear) {
@@ -2107,13 +2105,9 @@ static int faceselect_nfaces_selected(Mesh *me)
 {
 	int i, count= 0;
 
-	for (i=0; i<me->totface; i++) {
-		MFace *mf= ((MFace*) me->mface) + i;
-		TFace *tf= ((TFace*) me->tface) + i;
-
-		if (mf->v3 && tface_is_selected(tf))
+	for (i=0; i<me->totface; i++)
+		if (tface_is_selected(&me->tface[i]))
 			count++;
-	}
 
 	return count;
 }
@@ -2136,7 +2130,7 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 			MFace *mf= ((MFace*) me->mface) + i;
 			TFace *tf= ((TFace*) me->tface) + i;
 	
-			if (mf->v3 && tface_is_selected(tf)) {
+			if (tface_is_selected(tf)) {
 				float *v1, *v2, *v3, fno[3];
 
 				v1= me->mvert[mf->v1].co;

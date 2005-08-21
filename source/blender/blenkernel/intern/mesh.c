@@ -513,10 +513,7 @@ void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 	}
 
 	/* prevent a zero at wrong index location */
-	if(nr==2) {
-		if(mface->v2==0) SWAP(int, mface->v1, mface->v2);
-	}
-	else if(nr==3) {
+	if(nr==3) {
 		if(mface->v3==0) {
 			SWAP(int, mface->v1, mface->v2);
 			SWAP(int, mface->v2, mface->v3);
@@ -532,12 +529,6 @@ void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 				SWAP(MCol, mc[0], mc[1]);
 				SWAP(MCol, mc[1], mc[2]);
 			}
-
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V1;
-			if(a & ME_V2V3) mface->edcode |= ME_V1V2;
-			if(a & ME_V3V1) mface->edcode |= ME_V2V3;
 		}
 	}
 	else if(nr==4) {
@@ -557,13 +548,6 @@ void test_index_face(MFace *mface, MCol *mc, TFace *tface, int nr)
 				SWAP(MCol, mc[0], mc[2]);
 				SWAP(MCol, mc[1], mc[3]);
 			}
-
-			a= mface->edcode;
-			mface->edcode= 0;
-			if(a & ME_V1V2) mface->edcode |= ME_V3V4;
-			if(a & ME_V2V3) mface->edcode |= ME_V2V3;
-			if(a & ME_V3V4) mface->edcode |= ME_V1V2;
-			if(a & ME_V4V1) mface->edcode |= ME_V4V1;
 		}
 	}
 }
@@ -596,12 +580,11 @@ void set_mesh(Object *ob, Mesh *me)
 
 struct edgesort {
 	int v1, v2;
-	int flag;
 	int is_loose;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag, int is_loose)
+static void to_edgesort(struct edgesort *ed, int v1, int v2, int is_loose)
 {
 	if(v1<v2) {
 		ed->v1= v1; ed->v2= v2;
@@ -609,7 +592,6 @@ static void to_edgesort(struct edgesort *ed, int v1, int v2, int flag, int is_lo
 	else {
 		ed->v1= v2; ed->v2= v1;
 	}
-	ed->flag= flag;
 	ed->is_loose= is_loose;
 }
 
@@ -651,21 +633,15 @@ void make_edges(Mesh *me)
 	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
 	
 	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
-		to_edgesort(ed, mface->v1, mface->v2, mface->edcode & ME_V1V2, !mface->v3);
-		ed++;
+		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3);
 		if(mface->v4) {
-			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3, 0);
-			ed++;
-			to_edgesort(ed, mface->v3, mface->v4, mface->edcode & ME_V3V4, 0);
-			ed++;
-			to_edgesort(ed, mface->v4, mface->v1, mface->edcode & ME_V4V1, 0);
-			ed++;
+			to_edgesort(ed++, mface->v2, mface->v3, 0);
+			to_edgesort(ed++, mface->v3, mface->v4, 0);
+			to_edgesort(ed++, mface->v4, mface->v1, 0);
 		}
 		else if(mface->v3) {
-			to_edgesort(ed, mface->v2, mface->v3, mface->edcode & ME_V2V3, 0);
-			ed++;
-			to_edgesort(ed, mface->v3, mface->v1, mface->edcode & ME_V3V1, 0);
-			ed++;
+			to_edgesort(ed++, mface->v2, mface->v3, 0);
+			to_edgesort(ed++, mface->v3, mface->v1, 0);
 		}
 	}
 	
@@ -675,11 +651,6 @@ void make_edges(Mesh *me)
 	for(a=totedge, ed=edsort; a>1; a--, ed++) {
 		/* edge is unique when it differs from next edge, or is last */
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) final++;
-		else {
-			/* this makes sure identical edges both get draw flag */
-			if(ed->flag) (ed+1)->flag= 1;
-			else if((ed+1)->flag) ed->flag= 1;
-		}
 	}
 	final++;
 	
@@ -691,7 +662,7 @@ void make_edges(Mesh *me)
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) {
 			medge->v1= ed->v1;
 			medge->v2= ed->v2;
-			if(ed->flag) medge->flag= ME_EDGEDRAW;
+			medge->flag= ME_EDGEDRAW;
 			if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 			medge->flag |= ME_EDGERENDER;
 			medge++;
@@ -700,13 +671,31 @@ void make_edges(Mesh *me)
 	/* last edge */
 	medge->v1= ed->v1;
 	medge->v2= ed->v2;
-	if(ed->flag) medge->flag= ME_EDGEDRAW;
 	if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 	medge->flag |= ME_EDGERENDER;
 
 	MEM_freeN(edsort);
+
+	mesh_strip_loose_faces(me);
 }
 
+void mesh_strip_loose_faces(Mesh *me)
+{
+	int a,b;
+
+	for (a=b=0; a<me->totface; a++) {
+		if (!me->mface[a].v3) {
+			if (a!=b) {
+				memcpy(&me->mface[b],&me->mface[a],sizeof(me->mface[b]));
+				if (me->tface) memcpy(&me->tface[b],&me->tface[a],sizeof(me->tface[b]));
+				if (me->mcol) memcpy(&me->mcol[b],&me->mcol[a],sizeof(me->mcol[b])*4);
+			}
+		} else {
+			b++;
+		}
+	}
+	me->totface = b;
+}
 
 
 void mball_to_mesh(ListBase *lb, Mesh *me)
@@ -747,8 +736,6 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 			mface->v2= index[1];
 			mface->v3= index[2];
 			mface->v4= index[3];
-
-			mface->edcode= ME_V1V2+ME_V2V3;
 			mface->flag = ME_SMOOTH;
 			
 			mface++;
@@ -834,8 +821,6 @@ void nurbs_to_mesh(Object *ob)
 				for(b=1; b<dl->nr; b++) {
 					mface->v1= startvert+ofs+b-1;
 					mface->v2= startvert+ofs+b;
-					mface->edcode= ME_V1V2;
-					test_index_face(mface, NULL, NULL, 2);
 					mface++;
 				}
 			}
@@ -860,8 +845,6 @@ void nurbs_to_mesh(Object *ob)
 						mface->v1= startvert+ofs+b;
 						if(b==dl->nr-1) mface->v2= startvert+ofs;
 						else mface->v2= startvert+ofs+b+1;
-						mface->edcode= ME_V1V2;
-						test_index_face(mface, NULL, NULL, 2);
 						mface++;
 					}
 				}
@@ -885,8 +868,6 @@ void nurbs_to_mesh(Object *ob)
 				mface->v2= startvert+index[1];
 				mface->v3= startvert+index[2];
 				mface->v4= 0;
-	
-				mface->edcode= ME_V1V2+ME_V2V3;
 				test_index_face(mface, NULL, NULL, 3);
 				
 				mface++;
@@ -935,7 +916,6 @@ void nurbs_to_mesh(Object *ob)
 					mface->v3= p4;
 					mface->v4= p2;
 					mface->mat_nr= (unsigned char)dl->col;
-					mface->edcode= ME_V1V2+ME_V2V3;
 					test_index_face(mface, NULL, NULL, 4);
 					mface++;
 
@@ -950,6 +930,9 @@ void nurbs_to_mesh(Object *ob)
 
 		dl= dl->next;
 	}
+
+	make_edges(me);
+	mesh_strip_loose_faces(me);
 
 	if(ob->data) {
 		free_libblock(&G.main->curve, ob->data);
@@ -969,17 +952,6 @@ void nurbs_to_mesh(Object *ob)
 		ob1= ob1->id.next;
 	}
 
-}
-
-void edge_drawflags_mesh(Mesh *me)
-{
-	MFace *mface;
-	int a;
-	
-	mface= me->mface;
-	for(a=0; a<me->totface; a++, mface++) {
-		mface->edcode= ME_V1V2|ME_V2V3|ME_V3V4|ME_V4V1;
-	}
 }
 
 void tface_to_mcol(Mesh *me)
@@ -1056,21 +1028,18 @@ void mesh_calc_normals(MVert *mverts, int numVerts, MFace *mfaces, int numFaces,
 	
 	for (i=0; i<numFaces; i++) {
 		MFace *mf= &mfaces[i];
+		float *f_no= &fnors[i*3];
 
-		if (mf->v3) {
-			float *f_no= &fnors[i*3];
-
-			if (mf->v4)
-				CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
-			else
-				CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
-			
-			VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
-			VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
-			VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
-			if (mf->v4)
-				VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
-		}
+		if (mf->v4)
+			CalcNormFloat4(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, mverts[mf->v4].co, f_no);
+		else
+			CalcNormFloat(mverts[mf->v1].co, mverts[mf->v2].co, mverts[mf->v3].co, f_no);
+		
+		VecAddf(tnorms[mf->v1], tnorms[mf->v1], f_no);
+		VecAddf(tnorms[mf->v2], tnorms[mf->v2], f_no);
+		VecAddf(tnorms[mf->v3], tnorms[mf->v3], f_no);
+		if (mf->v4)
+			VecAddf(tnorms[mf->v4], tnorms[mf->v4], f_no);
 	}
 	for (i=0; i<numVerts; i++) {
 		MVert *mv= &mverts[i];

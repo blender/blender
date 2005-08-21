@@ -979,8 +979,6 @@ void rad_addmesh(void)
 			mface->v2= *((unsigned int *)face->v2+3);
 			mface->v3= *((unsigned int *)face->v3+3);
 			if(face->v4) mface->v4= *((unsigned int *)face->v4+3);
-
-			mface->edcode= 3;
 			test_index_face(mface, NULL, NULL, face->v4 ? 4 : 3);
 			mface->mat_nr= face->matindex;
 

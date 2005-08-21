@@ -50,6 +50,7 @@
 
 #include "BLI_arithb.h"
 
+#include "BIF_editsima.h"
 #include "BIF_space.h"
 
 #include "blendef.h"
@@ -175,9 +176,6 @@ static HashEdge *make_hash_edge_table(Mesh *me, short fill)
 	MEdge *medge;
 	unsigned int a;
 
-	if(fill && (me->medge==NULL))
-		return NULL;
-
 	htable= MEM_callocN(EDHASHSIZE*sizeof(HashEdge), "lscmedgehashtable");
 
 	if(fill) {
@@ -264,7 +262,7 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 			a= b;
 			while(a--) {
 				if(tf->flag & TF_HIDE);
-				else if(tf->flag & TF_SELECT && *gf==gid && mf->v3) {
+				else if(tf->flag & TF_SELECT && *gf==gid) {
 					hash_add_face(htable, mf);
 				}
 				tf++; mf++; gf++;
@@ -278,7 +276,7 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 			a= b;
 			while(a--) {
 				if(tf->flag & TF_HIDE);
-				else if(tf->flag & TF_SELECT && mf->v3 && *gf==0) {
+				else if(tf->flag & TF_SELECT && *gf==0) {
 					mark= 0;
 	
 					if(!(tf->unwrap & TF_SEAM1))
@@ -1294,7 +1292,6 @@ void set_seamtface()
 	mf= me->mface;
 	tf= me->tface;
 	for(a=me->totface; a>0; a--, mf++, tf++) {
-		if(mf->v3==0) continue;
 		tf->unwrap &= ~(TF_SEAM1|TF_SEAM2|TF_SEAM3|TF_SEAM4);
 
 		if(!htable) continue;
@@ -1350,7 +1347,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 		mf= me->mface;
 		for(a=0; a<me->totface; a++, tf++, mf++) {
 			if(tf->flag & TF_HIDE);
-			else if(mf->v3 && !linkflag[a]) {
+			else if(!linkflag[a]) {
 				mark= 0;
 
 				if(!(tf->unwrap & TF_SEAM1))
@@ -1409,7 +1406,6 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	MEM_freeN(linkflag);
 	
 	BIF_undo_push("Select linked UV face");
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWIMAGE, 0);
+	object_tface_flags_changed(OBACT, 0);
 }
 

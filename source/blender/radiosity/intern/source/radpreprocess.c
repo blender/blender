@@ -420,103 +420,101 @@ void rad_collect_meshes()
 				index= -1;
 
 				for(a=0; a<me->totface; a++, mface++) {
-					if(mface->v3) {
-						TFace *tface = me->tface ? &((TFace*)me->tface)[a] : NULL;						
-						
-						if (tface == NULL || (tface->mode & TF_INVISIBLE)==0) {
+					TFace *tface = me->tface ? &((TFace*)me->tface)[a] : NULL;						
+					
+					if (tface == NULL || (tface->mode & TF_INVISIBLE)==0) {
 
-    						rp= callocPatch();
-    						BLI_addtail(&(RG.patchbase), rp);
-    						rp->from= ob;
-    						
-    						if(mface->v4) rp->type= 4;
-    						else rp->type= 3;
-    						
-    						rp->first= rn= callocNode();
-    						
-    						if(mface->flag & ME_SMOOTH) rp->f1= RAD_NO_SPLIT;
-    						
-    						/* temporal: we store the venoco in the node */
-    						rn->v1= (float *)(RG.verts+mface->v1+offs);
-    						v1= (RG.verts+mface->v1+offs)->v;
-    						rn->v2= (float *)(RG.verts+mface->v2+offs);
-    						v2= (RG.verts+mface->v2+offs)->v;
-    						rn->v3= (float *)(RG.verts+mface->v3+offs);
-    						v3= (RG.verts+mface->v3+offs)->v;
+    					rp= callocPatch();
+    					BLI_addtail(&(RG.patchbase), rp);
+    					rp->from= ob;
+    					
+    					if(mface->v4) rp->type= 4;
+    					else rp->type= 3;
+    					
+    					rp->first= rn= callocNode();
+    					
+    					if(mface->flag & ME_SMOOTH) rp->f1= RAD_NO_SPLIT;
+    					
+    					/* temporal: we store the venoco in the node */
+    					rn->v1= (float *)(RG.verts+mface->v1+offs);
+    					v1= (RG.verts+mface->v1+offs)->v;
+    					rn->v2= (float *)(RG.verts+mface->v2+offs);
+    					v2= (RG.verts+mface->v2+offs)->v;
+    					rn->v3= (float *)(RG.verts+mface->v3+offs);
+    					v3= (RG.verts+mface->v3+offs)->v;
 
-    						if(mface->v4) {
-    							rn->v4= (float *)(RG.verts+mface->v4+offs);
-    							v4= (RG.verts+mface->v4+offs)->v;
-    						}			
-    						rn->par= rp;
-    						rn->f= RAD_PATCH;	/* this node is a Patch */
-    						rn->type= rp->type;
+    					if(mface->v4) {
+    						rn->v4= (float *)(RG.verts+mface->v4+offs);
+    						v4= (RG.verts+mface->v4+offs)->v;
+    					}			
+    					rn->par= rp;
+    					rn->f= RAD_PATCH;	/* this node is a Patch */
+    					rn->type= rp->type;
 
-    						if(rn->type==4) {
-    							rp->area= AreaQ3Dfl(v1, v2, v3, v4);
-    							CalcNormFloat4(v1, v2, v3, v4, rp->norm);
-    						}
-    						else {
-    							rp->area= AreaT3Dfl(v1, v2, v3);
-    							CalcNormFloat(v1, v2, v3, rp->norm);
-    						}
-
-    						if (tface) {
-    							memcpy(rn->uv, tface->uv, sizeof(float) * 4 * 2);
-    							rn->tface = tface;
-    						}
-    						else {
-    							rn->uv[0][0] = 0.0f;
-    							rn->uv[0][1] = 0.0f;
-    							rn->uv[1][0] = 1.0f;
-    							rn->uv[1][1] = 0.0f;
-    							rn->uv[2][0] = 1.0f;
-    							rn->uv[2][1] = 1.0f;
-    							rn->uv[3][0] = 0.0f;
-    							rn->uv[3][1] = 1.0f;
-    							rn->tface = NULL;
-    						}
-
-    						rn->area= rp->area;
-
-    						/* color and emit */
-    						if(mface->mat_nr != index) {
-    							index= mface->mat_nr;
-    							ma= give_current_material(ob, index+1);
-    							if(ma==0) ma= &defmaterial;
-    						}
-    						rp->ref[0]= ma->r;
-    						rp->ref[1]= ma->g;
-    						rp->ref[2]= ma->b;
-
-    						if(ma->emit) RG.totlamp++;
-    	
-    						rp->emit[0]= rp->emit[1]= rp->emit[2]= ma->emit;
-    						rp->emit[0]*= rp->ref[0];
-    						rp->emit[1]*= rp->ref[1];
-    						rp->emit[2]*= rp->ref[2];
-
-    // uncommented, this is not satisfying, but i leave it in code for now (ton)						
-    //						if(ma->translucency!=0.0) rn->f |= RAD_TWOSIDED;
-
-    						nodevert= (VeNoCo **)&(rn->v1);
-    						for(b=0; b<rp->type; b++) {
-    							rp->cent[0]+= (*nodevert)->v[0];
-    							rp->cent[1]+= (*nodevert)->v[1];
-    							rp->cent[2]+= (*nodevert)->v[2];
-    							nodevert++;
-    						}
-    						rp->cent[0]/= (float)rp->type;
-    						rp->cent[1]/= (float)rp->type;
-    						rp->cent[2]/= (float)rp->type;
-    						
-    						/* for reconstruction materials */
-    						rp->matindex= materialIndex(ma);
-    						if(rp->matindex==-1) rp->matindex= 1;
-    						
-    						RG.totelem++;
-    						RG.totpatch++;
+    					if(rn->type==4) {
+    						rp->area= AreaQ3Dfl(v1, v2, v3, v4);
+    						CalcNormFloat4(v1, v2, v3, v4, rp->norm);
     					}
+    					else {
+    						rp->area= AreaT3Dfl(v1, v2, v3);
+    						CalcNormFloat(v1, v2, v3, rp->norm);
+    					}
+
+    					if (tface) {
+    						memcpy(rn->uv, tface->uv, sizeof(float) * 4 * 2);
+    						rn->tface = tface;
+    					}
+    					else {
+    						rn->uv[0][0] = 0.0f;
+    						rn->uv[0][1] = 0.0f;
+    						rn->uv[1][0] = 1.0f;
+    						rn->uv[1][1] = 0.0f;
+    						rn->uv[2][0] = 1.0f;
+    						rn->uv[2][1] = 1.0f;
+    						rn->uv[3][0] = 0.0f;
+    						rn->uv[3][1] = 1.0f;
+    						rn->tface = NULL;
+    					}
+
+    					rn->area= rp->area;
+
+    					/* color and emit */
+    					if(mface->mat_nr != index) {
+    						index= mface->mat_nr;
+    						ma= give_current_material(ob, index+1);
+    						if(ma==0) ma= &defmaterial;
+    					}
+    					rp->ref[0]= ma->r;
+    					rp->ref[1]= ma->g;
+    					rp->ref[2]= ma->b;
+
+    					if(ma->emit) RG.totlamp++;
+    
+    					rp->emit[0]= rp->emit[1]= rp->emit[2]= ma->emit;
+    					rp->emit[0]*= rp->ref[0];
+    					rp->emit[1]*= rp->ref[1];
+    					rp->emit[2]*= rp->ref[2];
+
+// uncommented, this is not satisfying, but i leave it in code for now (ton)						
+//						if(ma->translucency!=0.0) rn->f |= RAD_TWOSIDED;
+
+    					nodevert= (VeNoCo **)&(rn->v1);
+    					for(b=0; b<rp->type; b++) {
+    						rp->cent[0]+= (*nodevert)->v[0];
+    						rp->cent[1]+= (*nodevert)->v[1];
+    						rp->cent[2]+= (*nodevert)->v[2];
+    						nodevert++;
+    					}
+    					rp->cent[0]/= (float)rp->type;
+    					rp->cent[1]/= (float)rp->type;
+    					rp->cent[2]/= (float)rp->type;
+    					
+    					/* for reconstruction materials */
+    					rp->matindex= materialIndex(ma);
+    					if(rp->matindex==-1) rp->matindex= 1;
+    					
+    					RG.totelem++;
+    					RG.totpatch++;
     				}
 				}
 				offs+= me->totvert;
