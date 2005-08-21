@@ -2175,24 +2175,30 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
 
+	uiDefBut(block, LABEL, 0, "Editing Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,
-					"Rest Position", 10,180,150,20, &arm->flag, 0, 0, 0, 0, "Disable all animation for this object");
+	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 160,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",				160,160,150,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Display Options", 10,140,150,20, 0, 0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 120,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 120,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 120,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 120,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform", 160, 180,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
-	uiBlockBeginAlign(block);
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 140,75,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	85, 140,70,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 140,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 140,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 100,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 160,100,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiBlockEndAlign(block);
 	
+	uiDefBut(block, LABEL, 0, "Deform Options", 10,80,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,110,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
-	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",			210,110,100,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	uiDefButBitI(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 60,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
+	uiDefButBitI(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,60,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
+	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,40,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
+	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,40,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	
-	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
 }
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
@@ -2248,10 +2254,10 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", bx+223, by-19,110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 			
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitS(block, TOGN, 1,B_ARM_RECALCDATA, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
-			/* Hide in posemode flag */
-			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", bx-10,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitS(block, TOGN, 1, B_ARM_RECALCDATA, "Deform",		bx+75, by-38, 85, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", bx+160,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	bx+245,by-38,88,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
 			
 			uiBlockEndAlign(block);
 			by-=60;
@@ -2307,10 +2313,10 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Out:",  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
 			
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", bx-10,by-38,117,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitS(block, TOGN, 1,B_ARM_RECALCDATA, "Skinnable", bx+110, by-38, 105, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone is included in automatic creation of vertex groups");
-			/* Hide in posemode flag */
-			uiDefButBitI(block, TOG, BONE_HIDDEN_P, REDRAWVIEW3D, "Hide", bx+223,by-38,110,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in posemode");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", bx-10,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitS(block, TOGN, 1, B_ARM_RECALCDATA, "Deform",		bx+75, by-38, 85, 18, &curBone->boneclass, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", bx+160,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_P, REDRAWVIEW3D, "Hide",	bx+245,by-38,88,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Pose Mode");
 			uiBlockEndAlign(block);
 			
 			by-=60;

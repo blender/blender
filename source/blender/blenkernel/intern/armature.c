@@ -661,9 +661,11 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, flo
 
 void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
 {
+	bArmature *arm= armOb->data;
 	bPoseChannel *pchan, **defnrToPC = NULL;
-	MDeformVert *dverts;
+	MDeformVert *dverts= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
+	int use_envelope= arm->deformflag & ARM_DEF_ENVELOPE;
 	int i;
 
 	Mat4Invert(obinv, target->obmat);
@@ -676,28 +678,33 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	
 	/* initialize B_bone matrices */
 	for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
-		//if(pchan->bone->boneclass==BONE_SKINNABLE)	// not yet... for vgroups this is ignored
+		if(pchan->bone->boneclass==BONE_SKINNABLE)
 			if(pchan->bone->segments>1)
 				pchan_b_bone_defmats(pchan);
 	}
 
-	if (target->type==OB_MESH){
-		int numGroups = BLI_countlist(&target->defbase);
-		bDeformGroup *dg;
-
-		dverts = ((Mesh*)target->data)->dvert;
-		if(dverts) {
-			defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
-			for (i=0,dg=target->defbase.first; dg; i++,dg=dg->next) {
-				defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
+	/* get a vertex-deform-index to posechannel array */
+	if(arm->deformflag & ARM_DEF_VGROUP) {
+		if (target->type==OB_MESH){
+			int numGroups = BLI_countlist(&target->defbase);
+			bDeformGroup *dg;
+		
+			dverts = ((Mesh*)target->data)->dvert;
+			if(dverts) {
+				defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
+				for (i=0,dg=target->defbase.first; dg; i++,dg=dg->next) {
+					defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
+					/* exclude non-skinnable bones */
+					if(defnrToPC[i])
+						if(defnrToPC[i]->bone->boneclass!=BONE_SKINNABLE)
+							defnrToPC[i]= NULL;
+				}
 			}
 		}
 	}
-	else {
-		dverts = NULL;
-	}
 
 	for(i=0; i<numVerts; i++) {
+		MDeformVert *dvert;
 		float *co = vertexCos[i];
 		float	vec[3];
 		float	contrib=0.0;
@@ -707,17 +714,28 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 
 		/* Apply the object's matrix */
 		Mat4MulVecfl(premat, co);
-
-		if (dverts) {	// use weight groups
+		
+		if(dverts)
+			dvert= dverts+i;
+		else
+			dvert= NULL;
+		
+		if(dvert) {	// use weight groups
 			MDeformVert *dvert = &dverts[i];
 
 			for (j=0; j<dvert->totweight; j++){
 				pchan = defnrToPC[dvert->dw[j].def_nr];
-				if (pchan) 
-					pchan_bone_deform(pchan, dvert->dw[j].weight, vec, co, &contrib);
+				if (pchan) {
+					float weight= dvert->dw[j].weight;
+					if(pchan->bone->flag & BONE_MULT_VG_ENV) {
+						Bone *bone= pchan->bone;
+						weight*= distfactor_to_bone(co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
+					}
+					pchan_bone_deform(pchan, weight, vec, co, &contrib);
+				}
 			}
 		}
-		else {
+		else if(use_envelope) {
 			for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if(pchan->bone->boneclass==BONE_SKINNABLE)
 					contrib+= dist_bone_deform(pchan, vec, co);

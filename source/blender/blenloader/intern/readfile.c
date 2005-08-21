@@ -4882,6 +4882,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for(arm=main->armature.first; arm; arm= arm->id.next) {
 			bone_version_238(&arm->bonebase);
+			arm->deformflag |= ARM_DEF_VGROUP;
 		}
 
 		for(me=main->mesh.first; me; me= me->id.next) {

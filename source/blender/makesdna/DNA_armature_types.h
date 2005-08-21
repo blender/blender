@@ -76,7 +76,7 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	int			flag;
 	int			drawtype;			
-	int			res2;
+	int			deformflag;
 	int			res3;			
 }bArmature;
 
@@ -96,11 +96,14 @@ typedef struct bArmature {
 #define		ARM_MIRROR_EDIT	0x0100
 
 /* armature->drawtype */
-
 #define		ARM_OCTA		0
 #define		ARM_LINE		1
 #define		ARM_B_BONE		2
 #define		ARM_ENVELOPE	3
+
+/* armature->deformflag */
+#define		ARM_DEF_VGROUP		1
+#define		ARM_DEF_ENVELOPE	2
 
 
 /* bone->flag */
@@ -120,7 +123,9 @@ typedef struct bArmature {
 			/* No parent rotation or scale */
 #define		BONE_HINGE		512
 			/* hidden Bones when drawing Armature Editmode */
-#define		BONE_HIDDEN_A	1024
+#define		BONE_HIDDEN_A		1024
+			/* multiplies vgroup with envelope */
+#define		BONE_MULT_VG_ENV	2048
 
 /* bone->flag  bits */
 #define		BONE_IK_TOPARENTBIT		4
