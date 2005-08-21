@@ -913,7 +913,7 @@ static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1,16]" ) );
 
-	if( value >= EXPP_IMAGE_REP_MIN || value <= EXPP_IMAGE_REP_MAX )
+	if( value >= EXPP_IMAGE_REP_MIN && value <= EXPP_IMAGE_REP_MAX )
 		self->image->xrep = value;
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -930,7 +930,7 @@ static PyObject *Image_setYRep( BPy_Image * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1,16]" ) );
 
-	if( value >= EXPP_IMAGE_REP_MIN || value <= EXPP_IMAGE_REP_MAX )
+	if( value >= EXPP_IMAGE_REP_MIN && value <= EXPP_IMAGE_REP_MAX )
 		self->image->yrep = value;
 	else
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,

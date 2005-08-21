@@ -102,9 +102,9 @@
 
 /* Shader spesific settings */
 #define EXPP_MAT_SPEC_SHADER_MIN			 0
-#define EXPP_MAT_SPEC_SHADER_MAX			 3
+#define EXPP_MAT_SPEC_SHADER_MAX			 4
 #define EXPP_MAT_DIFFUSE_SHADER_MIN			 0
-#define EXPP_MAT_DIFFUSE_SHADER_MAX			 4
+#define EXPP_MAT_DIFFUSE_SHADER_MAX			 3
 
 #define EXPP_MAT_ROUGHNESS_MIN			 0.0f
 #define EXPP_MAT_ROUGHNESS_MAX			 3.140f
@@ -142,7 +142,7 @@
 #define EXPP_MAT_SHADER_DIFFUSE_ORENNAYAR	MA_DIFF_ORENNAYAR
 #define EXPP_MAT_SHADER_DIFFUSE_TOON		MA_DIFF_TOON
 #define EXPP_MAT_SHADER_DIFFUSE_MINNAERT	MA_DIFF_MINNAERT
-/* shader dicts - Specualr */
+/* shader dicts - Specular */
 #define EXPP_MAT_SHADER_SPEC_COOKTORR		MA_SPEC_COOKTORR
 #define EXPP_MAT_SHADER_SPEC_PHONG			MA_SPEC_PHONG
 #define EXPP_MAT_SHADER_SPEC_BLINN			MA_SPEC_BLINN
@@ -734,25 +734,25 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(f,f,f or [f,f,f]) - Set Material's specular color"},
 	 
 	/* Shader spesific settings */
-	{"setSpecShader", ( PyCFunction ) Material_setSpecShader, METH_NOARGS,
+	{"setSpecShader", ( PyCFunction ) Material_setSpecShader, METH_VARARGS,
 	 "(i) - Set the Material's specular shader" },
-	{"setDiffuseShader", ( PyCFunction ) Material_setDiffuseShader, METH_NOARGS,
+	{"setDiffuseShader", ( PyCFunction ) Material_setDiffuseShader, METH_VARARGS,
 	 "(i) - Set the Material's diffuse shader" },
-	 {"setRoughness", ( PyCFunction ) Material_setRoughness, METH_NOARGS,
+	 {"setRoughness", ( PyCFunction ) Material_setRoughness, METH_VARARGS,
 	 "(f) - Set the Material's Roughness (applies to the \"Oren Nayar\" Diffuse Shader only)" },
-	{"setSpecSize", ( PyCFunction ) Material_setSpecSize, METH_NOARGS,
+	{"setSpecSize", ( PyCFunction ) Material_setSpecSize, METH_VARARGS,
 	 "(f) - Set the Material's size of specular area (applies to the \"Toon\" Specular Shader only)" },
-	{"setDiffuseSize", ( PyCFunction ) Material_setDiffuseSize, METH_NOARGS,
+	{"setDiffuseSize", ( PyCFunction ) Material_setDiffuseSize, METH_VARARGS,
 	 "(f) - Set the Material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only)" },
-	{"setSpecSmooth", ( PyCFunction ) Material_setSpecSmooth, METH_NOARGS,
+	{"setSpecSmooth", ( PyCFunction ) Material_setSpecSmooth, METH_VARARGS,
 	 "(f) - Set the Material's smoothing of specular area (applies to the \"Toon\" Specular Shader only)" },
-	{"setDiffuseSmooth", ( PyCFunction ) Material_setDiffuseSmooth, METH_NOARGS,
+	{"setDiffuseSmooth", ( PyCFunction ) Material_setDiffuseSmooth, METH_VARARGS,
 	 "(f) - Set the Material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only)" },
-	{"setDiffuseDarkness", ( PyCFunction ) Material_setDiffuseDarkness, METH_NOARGS,
+	{"setDiffuseDarkness", ( PyCFunction ) Material_setDiffuseDarkness, METH_VARARGS,
 	 "(f) - Set the Material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only)" },
-	{"setRefracIndex", ( PyCFunction ) Material_setRefracIndex, METH_NOARGS,
+	{"setRefracIndex", ( PyCFunction ) Material_setRefracIndex, METH_VARARGS,
 	 "(f) - Set the Material's Index of Refraction (applies to the \"Blinn\" Specular Shader only)" },	 
-	{"setRms", ( PyCFunction ) Material_setRms, METH_NOARGS,
+	{"setRms", ( PyCFunction ) Material_setRms, METH_VARARGS,
 	 "(f) - Set the Material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only)" },
 	/* End shader settings */
 	 
@@ -1445,7 +1445,7 @@ static PyObject *Material_getIOR( BPy_Material * self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nRings attribute" );
+				      "couldn't get Material.IOR attribute" );
 }
 
 static PyObject *Material_getTransDepth( BPy_Material * self )
@@ -1457,7 +1457,7 @@ static PyObject *Material_getTransDepth( BPy_Material * self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nRings attribute" );
+				      "couldn't get Material.transDepth attribute" );
 }
 
 static PyObject *Material_getFresnelTrans( BPy_Material * self )
@@ -1469,7 +1469,7 @@ static PyObject *Material_getFresnelTrans( BPy_Material * self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nRings attribute" );
+				      "couldn't get Material.fresnelTrans attribute" );
 }
 
 static PyObject *Material_getFresnelTransFac( BPy_Material * self )
@@ -1481,7 +1481,7 @@ static PyObject *Material_getFresnelTransFac( BPy_Material * self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Material.nRings attribute" );
+				      "couldn't get Material.fresnelTransFac attribute" );
 }
 
 static PyObject *Material_getTextures( BPy_Material * self )
@@ -1504,8 +1504,8 @@ static PyObject *Material_getTextures( BPy_Material * self )
 	}
 
 	/* turn the array into a tuple */
-	tuple = Py_BuildValue( "NNNNNNNN", t[0], t[1], t[2], t[3],
-			       t[4], t[5], t[6], t[7] );
+	tuple = Py_BuildValue( "NNNNNNNNNN", t[0], t[1], t[2], t[3],
+			       t[4], t[5], t[6], t[7], t[8], t[9] );
 	if( !tuple )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "Material_getTextures: couldn't create PyTuple" );
@@ -2071,7 +2071,7 @@ static PyObject *Material_setSpec( BPy_Material * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "f", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
+						"expected float argument in [0.0, 2.0]" ) );
 
 	self->material->spec = EXPP_ClampFloat( value, EXPP_MAT_SPEC_MIN,
 						EXPP_MAT_SPEC_MAX );

@@ -62,7 +62,7 @@
 #define EXPP_RADIO_elma_MIN 1
 #define EXPP_RADIO_elma_MAX 500
 #define EXPP_RADIO_elmi_MIN 1
-#define EXPP_RADIO_elmi_MAX 500
+#define EXPP_RADIO_elmi_MAX 100
 /* ints */
 #define EXPP_RADIO_maxnode_MIN 1
 #define EXPP_RADIO_maxnode_MAX 250000

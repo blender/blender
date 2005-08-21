@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Willian P. Germano, Jacques Guignot, Joseph Gilbert,
- * Campbell Barton.
+ * Campbell Barton, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -50,6 +50,7 @@ struct View3D;
 #include "mydevice.h"		/* for #define REDRAW */
 #include "DNA_view3d_types.h"
 #include "Object.h"
+#include "Camera.h"
 #include "gen_utils.h"
 #include "sceneRender.h"
 #include "sceneRadio.h"
@@ -822,6 +823,7 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	PyObject *bpy_obj;
 	Object *object;
 	Base *base;
+	PyObject *name;
 
 	if( !scene )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -832,9 +834,13 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 	while( base ) {
 		object = base->object;
 
-		bpy_obj = M_Object_Get( Py_None,
-					Py_BuildValue( "(s)",
-						       object->id.name + 2 ) );
+		name = Py_BuildValue( "(s)", object->id.name + 2 );
+		if( !name )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Py_BuildValue() failed" );
+
+		bpy_obj = M_Object_Get( Py_None, name );
+		Py_DECREF ( name );
 
 		if( !bpy_obj )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -891,10 +897,18 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 
 	cam_obj = scene->camera;
 
-	if( cam_obj )		/* if found, return a wrapper for it */
-		return M_Object_Get( Py_None,
-				     Py_BuildValue( "(s)",
-						    cam_obj->id.name + 2 ) );
+	if( cam_obj ) {		/* if found, return a wrapper for it */
+		PyObject *camera = NULL;
+		PyObject *name = Py_BuildValue( "(s)", cam_obj->id.name + 2 );
+
+		if( !name )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "Py_BuildValue() failed" );
+
+		camera = M_Object_Get( Py_None, name );
+		Py_DECREF ( name );
+		return camera;
+	}
 
 	Py_INCREF( Py_None );	/* none found */
 	return Py_None;
@@ -916,6 +930,9 @@ static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args )
 					      "expected Camera Object as argument" );
 
 	object = cam_obj->object;
+	if( object->type != OB_CAMERA )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+					      "expected Camera Object as argument" );
 
 	scene->camera = object;	/* set the current Camera */
 

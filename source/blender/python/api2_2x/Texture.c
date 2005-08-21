@@ -1068,9 +1068,9 @@ static PyObject *Texture_setContrast( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a float" );
 
-	if( contrast < 0 || contrast > 2 )
+	if( contrast < 0.01 || contrast > 5.0 )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-					      "contrast must be in range [0,2]" );
+					      "contrast must be in range [0.01,5.0]" );
 
 	self->texture->contrast = contrast;
 
@@ -1637,9 +1637,9 @@ static PyObject *Texture_setExp( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a float" );
 
-	if( vn_mexp < 0 || vn_mexp > 10 )
+	if( vn_mexp < 0.01 || vn_mexp > 10.0 )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-					      "Exp  must be in range [0,10]" );
+					      "Exp must be in range [0.01,10.0]" );
 
 	self->texture->vn_mexp = vn_mexp;
 

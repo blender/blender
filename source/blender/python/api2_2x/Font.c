@@ -268,7 +268,7 @@ static PyObject *Font_pack( BPy_Font * self, PyObject * args )
 	if( !PyArg_ParseTuple( args, "i", &pack ) )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
-			   "expected string argument" ) );
+			   "expected int argument" ) );
 	if( pack && !self->font->packedfile ) 
 		self->font->packedfile = newPackedFile(self->font->name);
 	else if (self->font->packedfile)
