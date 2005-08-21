@@ -1178,9 +1178,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	tot= totw= totedge= 0;
 	defstr[0]= 0;
 
-	if(ob->type==OB_MESH) {
-		Mesh *me= ob->data;
-		
+	if(ob->type==OB_MESH) {		
 		eve= em->verts.first;
 		while(eve) {
 			if(eve->f & 1) {

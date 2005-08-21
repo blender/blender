@@ -3643,11 +3643,8 @@ static char *view3d_modeselect_pup(void)
 		strcat(string, tempstr);
 		sprintf(tempstr, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
 		strcat(string, tempstr);
-
-		if ( ((Mesh*)(ob->data))->dvert)  {
-			sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
-			strcat(string, tempstr);
-		}
+		sprintf(tempstr, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);
+		strcat(string, tempstr);
 	}
 
 	
@@ -3836,7 +3833,7 @@ void do_view3d_buttons(short event)
 			}
 		} 
 		else if (G.vd->modeselect == V3D_WEIGHTPAINTMODE_SEL) {
-			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) && ((((Mesh*)(ob->data))->dvert))) {
+			if (!(G.f & G_WEIGHTPAINT) && (ob && ob->type == OB_MESH) ) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */

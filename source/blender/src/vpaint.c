@@ -51,6 +51,8 @@
 #include "BLI_arithb.h"
 #include "MTC_matrixops.h"
 
+#include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
@@ -62,6 +64,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
+#include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -931,10 +934,33 @@ void weight_paint(void)
 	if(ob->id.lib) return;
 
 	me= get_mesh(ob);
-	if (!me->dvert){
-		return;
+	if(me==NULL || me->totface==0) return;
+	
+	/* if nothing was added yet, we make dverts and a vertex deform group */
+	if (!me->dvert)
+		create_dverts(me);
+	if(ob->defbase.first==NULL) {
+		add_defgroup(ob);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}	
+	/* this happens on a Bone select, when no vgroup existed yet */
+	if(ob->actdef==0) {
+		if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			for(pchan= ob->parent->pose->chanbase.first; pchan; pchan= pchan->next)
+				if(pchan->bone->flag & SELECT)
+					break;
+			if(pchan) {
+				bDeformGroup *dg= get_named_vertexgroup(ob, pchan->name);
+				if(dg==NULL)
+					dg= add_defgroup_name(ob, pchan->name);	// sets actdef
+				else
+					ob->actdef= get_defgroup_num(ob, dg);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+		}
 	}
-	if(me==0 || me->totface==0) return;
+	
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
 	persp(PERSP_VIEW);
@@ -1318,8 +1344,6 @@ void set_wpaint(void)		/* toggle */
 		G.f &= ~G_WEIGHTPAINT;
 		return;
 	}
-	
-//	if(me && me->tface==NULL && me->mcol==NULL) make_vertexcol();
 	
 	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
 	else G.f |= G_WEIGHTPAINT;

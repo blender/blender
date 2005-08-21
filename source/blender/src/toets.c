@@ -767,6 +767,7 @@ int blenderqread(unsigned short event, short val)
 				}
 				else if(ob->type==OB_MESH) {
 					if(ob==G.obedit) EM_selectmode_menu();
+					else set_wpaint();
 				}
 			}
 		}

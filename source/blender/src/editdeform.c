@@ -621,8 +621,10 @@ void vertexgroup_select_by_name(Object *ob, char *name)
 	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++){
 		if (!strcmp(curdef->name, name)) {
 			ob->actdef= actdef;
+			return;
 		}
 	}
+	ob->actdef=0;	// this signals on painting to create a new one, if a bone in posemode is selected */
 }
 
 
