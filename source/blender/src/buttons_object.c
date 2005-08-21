@@ -332,6 +332,43 @@ static int get_constraint_col(bConstraint *con)
 	}
 }
 
+static void constraint_moveUp(void *ob_v, void *con_v)
+{
+	bConstraint *con, *constr= con_v;
+	ListBase *conlist;
+	
+	if(constr->prev) {
+		conlist = get_constraint_client(NULL, NULL, NULL);
+		for(con= conlist->first; con; con= con->next) {
+			if(con==constr) {
+				BLI_remlink(conlist, con);
+				BLI_insertlink(conlist, con->prev->prev, con);
+				break;
+			}
+		}
+	}
+	BIF_undo_push("Move constraint");
+}
+
+static void constraint_moveDown(void *ob_v, void *con_v)
+{
+	bConstraint *con, *constr= con_v;
+	ListBase *conlist;
+	
+	if(constr->next) {
+		conlist = get_constraint_client(NULL, NULL, NULL);
+		for(con= conlist->first; con; con= con->next) {
+			if(con==constr) {
+				BLI_remlink(conlist, con);
+				BLI_insertlink(conlist, con->next, con);
+				break;
+			}
+		}
+	}
+	BIF_undo_push("Move constraint");
+}
+
+
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco, short type)
 {
 	uiBut *but;
@@ -352,7 +389,15 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	
 	/* open/close */
 	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_REDRAW, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
-
+	
+	/* up down */
+	uiBlockSetEmboss(block, UI_EMBOSS);
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+	uiButSetFunc(but, constraint_moveUp, NULL, con);
+	
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+20, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+	uiButSetFunc(but, constraint_moveDown, NULL, con);
+	
 	if (con->flag & CONSTRAINT_EXPAND) {
 		
 		if (con->flag & CONSTRAINT_DISABLE) {
@@ -374,7 +419,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		uiButSetFunc(but, constraint_changed_func, con, NULL);
 		con->otype = con->type;
 		
-		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco, 135, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
+		but = uiDefBut(block, TEX, B_CONSTRAINT_REDRAW, "", *xco+120, *yco, 85, 18, con->name, 0.0, 29.0, 0.0, 0.0, "Constraint name"); 
 		uiButSetFunc(but, verify_constraint_name_func, con, NULL);
 	}	
 	else{
