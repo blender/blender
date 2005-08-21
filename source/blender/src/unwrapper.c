@@ -49,6 +49,7 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 #include "BIF_editsima.h"
 #include "BIF_space.h"
@@ -96,127 +97,16 @@ static int comp_lscmvert(const void *u1, const void *u2)
 
 /* Hashed edge table utility */
 
-#define EDHASH(a, b) ((a)*256 + (b))
-#define EDHASHSIZE 65536
-#define EDHMAX 256
-
-typedef struct HashEdge {
-	unsigned int v1, v2;
-	struct HashEdge *next;
-} HashEdge;
-
-static HashEdge *get_hashedge(HashEdge *table, unsigned int v1, unsigned int v2)
+static void hash_add_face(EdgeHash *ehash, MFace *mf)
 {
-	unsigned int hv1, hv2;
-
-	hv1= v1 % EDHMAX;
-	hv2= v2 % EDHMAX;
-	if(hv1 > hv2)
-		SWAP(unsigned int, hv1, hv2);
-
-	return (table + EDHASH(hv1, hv2));
-}
-
-static int has_hashedge(HashEdge *he, unsigned int v1, unsigned int v2)
-{
-	while(he) {
-		if(he->v1 || he->v2) {
-			if(he->v1==v1 && he->v2==v2) return 1;
-			else if(he->v1==v2 && he->v2==v1) return 1;
-		}
-		he= he->next;
-	}
-
-	return 0;
-}
-
-static void add_hashedge(HashEdge *first, unsigned int v1, unsigned int v2)
-{
-	if(first->v1 == 0 && first->v2 == 0) {
-		first->v1 = v1;
-		first->v2 = v2;
-	}
-	else {
-		HashEdge *he= (HashEdge*)MEM_mallocN(sizeof(HashEdge), "mini");
-		he->v1= v1;
-		he->v2= v2;
-		he->next= first->next;
-		first->next= he;
-	}
-}
-
-static int edge_in_hash(HashEdge *htable, unsigned int v1, unsigned int v2)
-{
-	return has_hashedge(get_hashedge(htable, v1, v2), v1, v2);
-}
-
-static void hash_add_edge(HashEdge *htable, unsigned int v1, unsigned int v2)
-{
-	HashEdge *he = get_hashedge(htable, v1, v2);
-
-	if (!has_hashedge(he, v1, v2))
-		add_hashedge(he, v1, v2);
-}
-
-static void hash_add_face(HashEdge *htable, MFace *mface)
-{
-	hash_add_edge(htable, mface->v1, mface->v2);
-	hash_add_edge(htable, mface->v2, mface->v3);
-	if(mface->v4) {
-		hash_add_edge(htable, mface->v3, mface->v4);
-		hash_add_edge(htable, mface->v4, mface->v1);
+	BLI_edgehash_insert(ehash, mf->v1, mf->v2, NULL);
+	BLI_edgehash_insert(ehash, mf->v2, mf->v3, NULL);
+	if(mf->v4) {
+		BLI_edgehash_insert(ehash, mf->v3, mf->v4, NULL);
+		BLI_edgehash_insert(ehash, mf->v4, mf->v1, NULL);
 	}
 	else
-		hash_add_edge(htable, mface->v3, mface->v1);
-}
-
-static HashEdge *make_hash_edge_table(Mesh *me, short fill)
-{
-	HashEdge *htable, *he;
-	MEdge *medge;
-	unsigned int a;
-
-	htable= MEM_callocN(EDHASHSIZE*sizeof(HashEdge), "lscmedgehashtable");
-
-	if(fill) {
-		medge= me->medge;
-		for(a=me->totedge; a>0; a--, medge++) {
-			if(medge->flag & ME_SEAM) {
-				he= get_hashedge(htable, medge->v1, medge->v2);
-				add_hashedge(he, medge->v1, medge->v2);
-			}
-		}
-	}
-
-	return htable;
-}
-
-static void clear_hash_edge_table(HashEdge *htable)
-{
-	HashEdge *first, *he, *hen;
-	int a;
-
-	if(htable) {
-		first= htable;
-		for(a=EDHASHSIZE; a>0; a--, first++) {
-			he= first->next;
-			while(he) {
-				hen= he->next;
-				MEM_freeN(he);
-				he= hen;
-			}
-			first->v1 = first->v2 = 0;
-			first->next = NULL;
-		}
-	}
-}
-
-static void free_hash_edge_table(HashEdge *htable)
-{
-	if(htable) {
-		clear_hash_edge_table(htable);
-		MEM_freeN(htable);
-	}
+		BLI_edgehash_insert(ehash, mf->v3, mf->v1, NULL);
 }
 
 /* divide selected faces in groups, based on seams. note that group numbering
@@ -227,14 +117,14 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 	TFace *tf, *tface;
 	MFace *mf, *mface;
 	int *gf, *gface, *groups;
-	HashEdge *htable;
+	EdgeHash *ehash;
 	int doit, mark;
 
 	if(!me || !me->tface) return 0;
 
 	groups= (int*)MEM_callocN(sizeof(int)*me->totface, "SeamGroups");
 
-	htable= make_hash_edge_table(me, 0);
+	ehash= BLI_edgehash_new();
 
 	mface= (MFace*)me->mface;
 	tface= (TFace*)me->tface;
@@ -244,7 +134,7 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 		if(!(tface->flag & TF_SELECT) || *gface!=0) continue;
 
 		if(gid != 0)
-			clear_hash_edge_table(htable);
+			BLI_edgehash_clear(ehash, NULL);
 
 		gid++;
 		*gface= gid;
@@ -263,7 +153,7 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 			while(a--) {
 				if(tf->flag & TF_HIDE);
 				else if(tf->flag & TF_SELECT && *gf==gid) {
-					hash_add_face(htable, mf);
+					hash_add_face(ehash, mf);
 				}
 				tf++; mf++; gf++;
 			}
@@ -280,21 +170,21 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 					mark= 0;
 	
 					if(!(tf->unwrap & TF_SEAM1))
-						if(edge_in_hash(htable, mf->v1, mf->v2))
+						if(BLI_edgehash_haskey(ehash, mf->v1, mf->v2))
 							mark= 1;
 					if(!(tf->unwrap & TF_SEAM2))
-						if(edge_in_hash(htable, mf->v2, mf->v3))
+						if(BLI_edgehash_haskey(ehash, mf->v2, mf->v3))
 							mark= 1;
 					if(!(tf->unwrap & TF_SEAM3)) {
 						if(mf->v4) {
-							if(edge_in_hash(htable, mf->v3, mf->v4))
+							if(BLI_edgehash_haskey(ehash, mf->v3, mf->v4))
 								mark= 1;
 						}
-						else if(edge_in_hash(htable, mf->v3, mf->v1))
+						else if(BLI_edgehash_haskey(ehash, mf->v3, mf->v1))
 							mark= 1;
 					}
 					if(mf->v4 && !(tf->unwrap & TF_SEAM4))
-						if(edge_in_hash(htable, mf->v4, mf->v1))
+						if(BLI_edgehash_haskey(ehash, mf->v4, mf->v1))
 							mark= 1;
 	
 					if(mark) {
@@ -307,7 +197,7 @@ static int make_seam_groups(Mesh *me, int **seamgroups)
 		}
 	}
 
-	free_hash_edge_table(htable);
+	BLI_edgehash_free(ehash, NULL);
 	*seamgroups= groups;
 
 	return gid;
@@ -1279,34 +1169,39 @@ void unwrap_lscm(void)
 void set_seamtface()
 {
 	Mesh *me;
-	HashEdge *htable;
+	EdgeHash *ehash;
 	int a;
 	MFace *mf;
 	TFace *tf;
+	MEdge *medge;
 
 	me= get_mesh(OBACT);
 	if(!me || !me->tface || !(G.f & G_FACESELECT)) return;
 	
-	htable= make_hash_edge_table(me, 1);
+	ehash= BLI_edgehash_new();
+
+	for(medge=me->medge, a=me->totedge; a>0; a--, medge++)
+		if(medge->flag & ME_SEAM)
+			BLI_edgehash_insert(ehash, medge->v1, medge->v2, NULL);
 
 	mf= me->mface;
 	tf= me->tface;
 	for(a=me->totface; a>0; a--, mf++, tf++) {
 		tf->unwrap &= ~(TF_SEAM1|TF_SEAM2|TF_SEAM3|TF_SEAM4);
 
-		if(!htable) continue;
+		if(!ehash) continue;
 
-		if(edge_in_hash(htable, mf->v1, mf->v2)) tf->unwrap |= TF_SEAM1;
-		if(edge_in_hash(htable, mf->v2, mf->v3)) tf->unwrap |= TF_SEAM2;
+		if(BLI_edgehash_haskey(ehash, mf->v1, mf->v2)) tf->unwrap |= TF_SEAM1;
+		if(BLI_edgehash_haskey(ehash, mf->v2, mf->v3)) tf->unwrap |= TF_SEAM2;
 
 		if(mf->v4) {
-			if(edge_in_hash(htable, mf->v3, mf->v4)) tf->unwrap |= TF_SEAM3;
-			if(edge_in_hash(htable, mf->v4, mf->v1)) tf->unwrap |= TF_SEAM4;
+			if(BLI_edgehash_haskey(ehash, mf->v3, mf->v4)) tf->unwrap |= TF_SEAM3;
+			if(BLI_edgehash_haskey(ehash, mf->v4, mf->v1)) tf->unwrap |= TF_SEAM4;
 		}
-		else if(edge_in_hash(htable, mf->v3, mf->v1)) tf->unwrap |= TF_SEAM3;
+		else if(BLI_edgehash_haskey(ehash, mf->v3, mf->v1)) tf->unwrap |= TF_SEAM3;
 	}
 
-	free_hash_edge_table(htable);
+	BLI_edgehash_free(ehash, NULL);
 }
 
 void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
@@ -1315,15 +1210,15 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	MFace *mf;
 	int a, doit=1, mark=0;
 	char *linkflag;
-	HashEdge *htable;
+	EdgeHash *ehash;
 
-	htable= make_hash_edge_table(me, 0);
+	ehash= BLI_edgehash_new();
 	linkflag= MEM_callocN(sizeof(char)*me->totface, "linkflaguv");
 
 	if (mode==0 || mode==1) {
 		/* only put face under cursor in array */
 		mf= ((MFace*)me->mface) + index;
-		hash_add_face(htable, mf);
+		hash_add_face(ehash, mf);
 		linkflag[index]= 1;
 	}
 	else {
@@ -1333,7 +1228,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 		for(a=0; a<me->totface; a++, tf++, mf++) {
 			if(tf->flag & TF_HIDE);
 			else if(tf->flag & TF_SELECT) {
-				hash_add_face(htable, mf);
+				hash_add_face(ehash, mf);
 				linkflag[a]= 1;
 			}
 		}
@@ -1351,26 +1246,26 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 				mark= 0;
 
 				if(!(tf->unwrap & TF_SEAM1))
-					if(edge_in_hash(htable, mf->v1, mf->v2))
+					if(BLI_edgehash_haskey(ehash, mf->v1, mf->v2))
 						mark= 1;
 				if(!(tf->unwrap & TF_SEAM2))
-					if(edge_in_hash(htable, mf->v2, mf->v3))
+					if(BLI_edgehash_haskey(ehash, mf->v2, mf->v3))
 						mark= 1;
 				if(!(tf->unwrap & TF_SEAM3)) {
 					if(mf->v4) {
-						if(edge_in_hash(htable, mf->v3, mf->v4))
+						if(BLI_edgehash_haskey(ehash, mf->v3, mf->v4))
 							mark= 1;
 					}
-					else if(edge_in_hash(htable, mf->v3, mf->v1))
+					else if(BLI_edgehash_haskey(ehash, mf->v3, mf->v1))
 						mark= 1;
 				}
 				if(mf->v4 && !(tf->unwrap & TF_SEAM4))
-					if(edge_in_hash(htable, mf->v4, mf->v1))
+					if(BLI_edgehash_haskey(ehash, mf->v4, mf->v1))
 						mark= 1;
 
 				if(mark) {
 					linkflag[a]= 1;
-					hash_add_face(htable, mf);
+					hash_add_face(ehash, mf);
 					doit= 1;
 				}
 			}
@@ -1402,7 +1297,7 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 		}
 	}
 	
-	free_hash_edge_table(htable);
+	BLI_edgehash_free(ehash, NULL);
 	MEM_freeN(linkflag);
 	
 	BIF_undo_push("Select linked UV face");

@@ -66,5 +66,8 @@ int				BLI_edgehash_haskey		(EdgeHash *eh, int v0, int v1);
 	/* Return number of keys in hash. */
 int				BLI_edgehash_size		(EdgeHash *eh);
 
+	/* Remove all edges from hash. */
+void			BLI_edgehash_clear		(EdgeHash *eh, EdgeHashFreeFP valfreefp);
+
 #endif
 

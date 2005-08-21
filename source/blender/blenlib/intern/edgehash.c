@@ -140,7 +140,7 @@ int BLI_edgehash_size(EdgeHash *eh) {
 	return eh->nentries;
 }
 
-void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
+void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 	int i;
 	
 	for (i=0; i<eh->nbuckets; i++) {
@@ -154,8 +154,14 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 			
 			e= n;
 		}
+		eh->buckets[i]= NULL;
 	}
+}
+
+void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
+	BLI_edgehash_clear(eh, valfreefp);
 	
 	free(eh->buckets);
 	MEM_freeN(eh);
 }
+
