@@ -2932,6 +2932,7 @@ void do_fpaintbuts(unsigned short event)
 			for(a=0; a<me->totvert; a++)
 				remove_vert_defgroup (ob, defGroup, a);
 			allqueue(REDRAWVIEW3D, 0);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
 	}
 }

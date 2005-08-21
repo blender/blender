@@ -732,10 +732,11 @@ static int calc_vp_alpha_dl(VPaint *vp, DerivedMesh *dm, int vert, short *mval)
 
 void wpaint_undo (void)
 {
+	Object *ob= OBACT;
 	Mesh	*me;
 	MDeformVert *swapbuf;
 
-	me = get_mesh(OBACT);
+	me = get_mesh(ob);
 	if (!me)
 		return;
 
@@ -762,7 +763,7 @@ void wpaint_undo (void)
 	/* now free previous mesh dverts */
 	free_dverts(swapbuf, me->totvert);
 
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	DAG_object_flush_update(G.scene, ob->parent, OB_RECALC_DATA);
 	scrarea_do_windraw(curarea);
 	
 }
@@ -939,10 +940,6 @@ void weight_paint(void)
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
 		create_dverts(me);
-	if(ob->defbase.first==NULL) {
-		add_defgroup(ob);
-		allqueue(REDRAWBUTSEDIT, 0);
-	}	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
 		if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
@@ -960,6 +957,10 @@ void weight_paint(void)
 			}
 		}
 	}
+	if(ob->defbase.first==NULL) {
+		add_defgroup(ob);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}	
 	
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	

@@ -720,8 +720,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		else
 			dvert= NULL;
 		
-		if(dvert) {	// use weight groups
-			MDeformVert *dvert = &dverts[i];
+		if(dvert && dvert->totweight) {	// use weight groups
 
 			for (j=0; j<dvert->totweight; j++){
 				pchan = defnrToPC[dvert->dw[j].def_nr];
