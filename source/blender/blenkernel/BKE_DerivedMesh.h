@@ -121,8 +121,8 @@ struct DerivedMesh {
 			 */
 	void (*drawEdges)(DerivedMesh *dm, int drawLooseEdges);
 	
-			/* Draw all edges for which (med->flag&mask)==value */
-	void (*drawEdgesFlag)(DerivedMesh *dm, unsigned int mask, unsigned int value);
+			/* Draw all loose edges (edges w/ no adjoining faces) */
+	void (*drawLooseEdges)(DerivedMesh *dm);
 
 			/* Draw all faces
 			 *  o Set face normal or vertex normal based on inherited face flag

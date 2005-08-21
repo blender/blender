@@ -197,63 +197,27 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditmesh, DispListMesh *dlm, MEdge *medge, TFace *tface)
 {
 	unsigned int flags = 0;
-	int j, N = ccgSubSurf_getEdgeNumFaces(ss, e);
+	int N = ccgSubSurf_getEdgeNumFaces(ss, e);
 
 	if (!N) flags |= ME_LOOSEEDGE;
 
 	if (ssFromEditmesh) {
 		EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
-		flags |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED;
+		flags |= ME_EDGEDRAW|ME_EDGERENDER;
 		if (eed->seam) {
 			flags |= ME_SEAM;
 		}
 	} else {
 		int makeFlags = 0, edgeIdx = (int) ccgSubSurf_getEdgeEdgeHandle(ss, e);
 
-		if (edgeIdx==-1) {
-			if (!medge) {
-				makeFlags = 1;
-			}
-		} else if (medge) { // can happen for loose edges on mesh with no medge
+		if (edgeIdx!=-1) {
 			MEdge *origMed = &medge[edgeIdx];
 
 			if (dlm) {
 				flags |= origMed->flag&~ME_EDGE_STEPINDEX;
 			} else {
-				flags |= (origMed->flag&ME_SEAM);
-				makeFlags = 1;
-			}
-		} else {
-			makeFlags = 1;
-		}
-		
-		if (makeFlags) {
-			flags |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED;
-
-			if (tface) {
-				for (j=0; j<N; j++) {
-					CCGFace *f = ccgSubSurf_getEdgeFace(ss, e, j);
-					int origIdx = (int) ccgSubSurf_getFaceFaceHandle(ss, f);
-					TFace *tf = &tface[origIdx];
-
-					if (!(tf->flag&TF_HIDE)) flags |= ME_EDGE_TFVISIBLE;
-					if (tf->flag&TF_SELECT) flags |= ME_EDGE_TFSEL;
-
-					if (tf->flag&TF_ACTIVE) {
-						int fN = ccgSubSurf_getFaceNumVerts(ss, f);
-						int k = ccgSubSurf_getFaceEdgeIndex(ss, f, e);
-
-						flags |= ME_EDGE_TFACT;
-
-						if (k==0) {
-							flags |= ME_EDGE_TFACTFIRST;
-						}
-						else if (k==fN-1) {
-							flags |= ME_EDGE_TFACTLAST;
-						} 
-					}
-				}
+				flags |= (origMed->flag&ME_SEAM)|ME_EDGEDRAW|ME_EDGERENDER;
 			}
 		}
 	}
@@ -450,9 +414,32 @@ static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, i
 	lastIndex = -1;
 	for (index=0; index<totedge; index++) {
 		CCGEdge *e= edgeMap2[index];
-		unsigned int flags = ss_getEdgeFlags(ss, e, ssFromEditmesh, inDLM, medge, tface);
 		int mapIndex = ccgDM_getEdgeMapIndex(ccgdm, ss, e);
 		int edgeStart = i;
+		unsigned int flags = 0;
+
+		if (!ccgSubSurf_getEdgeNumFaces(ss, e)) flags |= ME_LOOSEEDGE;
+
+		if (ssFromEditmesh) {
+			EditEdge *eed = ccgSubSurf_getEdgeEdgeHandle(ss, e);
+
+			flags |= ME_EDGEDRAW|ME_EDGERENDER;
+			if (eed->seam) {
+				flags |= ME_SEAM;
+			}
+		} else {
+			int edgeIdx = (int) ccgSubSurf_getEdgeEdgeHandle(ss, e);
+
+			if (edgeIdx!=-1) {
+				MEdge *origMed = &medge[edgeIdx];
+
+				if (inDLM) {
+					flags |= origMed->flag&~ME_EDGE_STEPINDEX;
+				} else {
+					flags |= (origMed->flag&ME_SEAM)|ME_EDGEDRAW|ME_EDGERENDER;
+				}
+			}
+		}
 
 		for (x=0; x<edgeSize-1; x++) {
 			MEdge *med = &dlm->medge[i];
@@ -974,25 +961,17 @@ static void ccgDM_drawEdges(DerivedMesh *dm, int drawLooseEdges) {
 	ccgFaceIterator_free(fi);
 	ccgEdgeIterator_free(ei);
 }
-static void ccgDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned int value) {
+static void ccgDM_drawLooseEdges(DerivedMesh *dm) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGEdgeIterator *ei = ccgSubSurf_getEdgeIterator(ss);
 	int i, edgeSize = ccgSubSurf_getEdgeSize(ss);
-	MEdge *medge = NULL;
-	TFace *tface = NULL;
-
-	if (!ccgdm->fromEditmesh) {
-		medge = ccgdm->dlm?ccgdm->dlm->medge:ccgdm->me->medge;
-		tface = ccgdm->dlm?ccgdm->dlm->tface:ccgdm->me->tface;
-	}
 
 	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
 		VertData *edgeData = ccgSubSurf_getEdgeDataArray(ss, e);
-		unsigned int flags = ss_getEdgeFlags(ss, e, ccgdm->fromEditmesh, ccgdm->dlm, medge, tface);
 
-		if ((flags&mask)==value) {
+		if (!ccgSubSurf_getEdgeNumFaces(ss, e)) {
 			glBegin(GL_LINE_STRIP);
 			for (i=0; i<edgeSize-1; i++) {
 				glVertex3fv(edgeData[i].co);
@@ -1417,7 +1396,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss, int fromEditmesh, int d
 	
 	ccgdm->dm.drawVerts = ccgDM_drawVerts;
 	ccgdm->dm.drawEdges = ccgDM_drawEdges;
-	ccgdm->dm.drawEdgesFlag = ccgDM_drawEdgesFlag;
+	ccgdm->dm.drawLooseEdges = ccgDM_drawLooseEdges;
 	ccgdm->dm.drawFacesSolid = ccgDM_drawFacesSolid;
 	ccgdm->dm.drawFacesColored = ccgDM_drawFacesColored;
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;

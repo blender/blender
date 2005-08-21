@@ -518,7 +518,7 @@ static DispListMesh *mirrorModifier__doMirror(MirrorModifierData *mmd, DispListM
 		*med = *inMED;
 		med->v1 = indexMap[inMED->v1][0];
 		med->v2 = indexMap[inMED->v2][0];
-		if (initFlags) med->flag |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED|ME_EDGE_STEPINDEX;
+		if (initFlags) med->flag |= ME_EDGEDRAW|ME_EDGERENDER|ME_EDGE_STEPINDEX;
 
 		if (indexMap[inMED->v1][1] || indexMap[inMED->v2][1]) {
 			MEdge *med2 = &dlm->medge[dlm->totedge++];
@@ -687,7 +687,7 @@ static void *mirrorModifier_applyModifierEM(ModifierData *md, Object *ob, void *
 			med->v1 = (int) eed->v1->prev;
 			med->v2 = (int) eed->v2->prev;
 			med->crease = (unsigned char) (eed->crease*255.0f);
-			med->flag = ME_EDGEDRAW|ME_EDGERENDER|ME_EDGEMAPPED|ME_EDGE_STEPINDEX;
+			med->flag = ME_EDGEDRAW|ME_EDGERENDER|ME_EDGE_STEPINDEX;
 			
 			if (eed->seam) med->flag |= ME_SEAM;
 			if (!eed->f2) med->flag |= ME_LOOSEEDGE;

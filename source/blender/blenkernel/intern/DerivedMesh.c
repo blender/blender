@@ -212,7 +212,22 @@ static void meshDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 	}
 	glEnd();
 }
-static void meshDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned int value)
+static void meshDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+{
+	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
+	Mesh *me= mdm->me;
+	int i;
+		
+	glBegin(GL_LINES);
+	for (i=0; i<me->totedge; i++) {
+		if (!setDrawOptions || setDrawOptions(userData, i)) {
+			glVertex3fv(mdm->verts[me->medge[i].v1].co);
+			glVertex3fv(mdm->verts[me->medge[i].v2].co);
+		}
+	}
+	glEnd();
+}
+static void meshDM_drawLooseEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->me;
@@ -222,7 +237,7 @@ static void meshDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned in
 
 	glBegin(GL_LINES);
 	for(a=me->totedge; a>0; a--, medge++) {
-		if (((medge->flag|ME_EDGEMAPPED)&mask)==value) {
+		if (medge->flag&ME_LOOSEEDGE) {
 			glVertex3fv(mdm->verts[medge->v1].co);
 			glVertex3fv(mdm->verts[medge->v2].co);
 		}
@@ -484,11 +499,13 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 
 	mdm->dm.drawUVEdges = meshDM_drawUVEdges;
 	mdm->dm.drawEdges = meshDM_drawEdges;
-	mdm->dm.drawEdgesFlag = meshDM_drawEdgesFlag;
+	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
 	
 	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
 	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
 	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
+
+	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
 	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
 
 	mdm->dm.release = meshDM_release;
@@ -1013,18 +1030,17 @@ static void ssDM_drawUVEdges(DerivedMesh *dm)
 		glEnd();
 	}
 }
-static void ssDM_drawEdgesFlag(DerivedMesh *dm, unsigned int mask, unsigned int value) 
+static void ssDM_drawLooseEdges(DerivedMesh *dm) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
 	MVert *mvert = dlm->mvert;
 	MEdge *medge= dlm->medge;
-	int tfaceFlags = (ME_EDGE_TFSEL|ME_EDGE_TFACT|ME_EDGE_TFVISIBLE|ME_EDGE_TFACTFIRST|ME_EDGE_TFACTLAST);
 	int i;
 
 	glBegin(GL_LINES);
 	for (i=0; i<dlm->totedge; i++, medge++) {
-		if ((medge->flag&mask)==value) {
+		if (medge->flag&ME_LOOSEEDGE) {
 			glVertex3fv(mvert[medge->v1].co); 
 			glVertex3fv(mvert[medge->v2].co);
 		}
@@ -1319,7 +1335,7 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 
 	ssdm->dm.drawUVEdges = ssDM_drawUVEdges;
 	ssdm->dm.drawEdges = ssDM_drawEdges;
-	ssdm->dm.drawEdgesFlag = ssDM_drawEdgesFlag;
+	ssdm->dm.drawLooseEdges = ssDM_drawLooseEdges;
 	
 	ssdm->dm.drawFacesSolid = ssDM_drawFacesSolid;
 	ssdm->dm.drawFacesColored = ssDM_drawFacesColored;

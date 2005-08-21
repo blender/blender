@@ -41,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 #include "IMB_imbuf_types.h"
 
@@ -488,7 +489,135 @@ void update_realtime_textures()
 	}
 }
 
+/***/
 
+	/* Flags for marked edges */
+enum {
+	eEdge_Visible = (1<<0),
+	eEdge_Select = (1<<1),
+	eEdge_Active = (1<<2),
+	eEdge_SelectAndActive = (1<<3),
+	eEdge_ActiveFirst = (1<<4),
+	eEdge_ActiveLast = (1<<5)
+};
+
+	/* Creates a hash of edges to flags indicating
+	 * adjacent tface select/active/etc flags.
+	 */
+static void get_marked_edge_info__orFlags(EdgeHash *eh, int v0, int v1, int flags)
+{
+	int *flags_p;
+
+	if (!BLI_edgehash_haskey(eh, v0, v1)) {
+		BLI_edgehash_insert(eh, v0, v1, 0);
+	}
+
+	flags_p = (int*) BLI_edgehash_lookup_p(eh, v0, v1);
+	*flags_p |= flags;
+}
+static EdgeHash *get_marked_edge_info(Mesh *me)
+{
+	EdgeHash *eh = BLI_edgehash_new();
+	int i;
+
+	for (i=0; i<me->totface; i++) {
+		MFace *mf = &me->mface[i];
+		TFace *tf = &me->tface[i];
+		
+		if (mf->v3) {
+			if (!(tf->flag&TF_HIDE)) {
+				unsigned int flags = eEdge_Visible;
+				if (tf->flag&TF_SELECT) flags |= eEdge_Select;
+				if (tf->flag&TF_ACTIVE) {
+					flags |= eEdge_Active;
+					if (tf->flag&TF_SELECT) flags |= eEdge_SelectAndActive;
+				}
+
+				get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
+				get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
+				if (mf->v4) {
+					get_marked_edge_info__orFlags(eh, mf->v3, mf->v4, flags);
+					get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
+				} else {
+					get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
+				}
+
+				if (tf->flag&TF_ACTIVE) {
+					get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, eEdge_ActiveFirst);
+					get_marked_edge_info__orFlags(eh, mf->v1, mf->v4?mf->v4:mf->v3, eEdge_ActiveLast);
+				}
+			}
+		}
+	}
+
+	return eh;
+}
+
+
+static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
+{
+	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	MEdge *med = &data->me->medge[index];
+	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+
+	if((G.f & G_DRAWSEAMS) && (med->flag&ME_SEAM)) {
+		return 0;
+	} else if(G.f & G_DRAWEDGES){ 
+		if (G.f&G_HIDDENEDGES) {
+			return 1;
+		} else {
+			return (flags & eEdge_Visible);
+		}
+	} else {
+		return (flags & eEdge_Select);
+	}
+}
+static int draw_tfaces3D__setSeamOpts(void *userData, int index)
+{
+	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	MEdge *med = &data->me->medge[index];
+	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+
+	if (med->flag&ME_SEAM) {
+		if (G.f&G_HIDDENEDGES) {
+			return 1;
+		} else {
+			return (flags & eEdge_Visible);
+		}
+	} else {
+		return 0;
+	}
+}
+static int draw_tfaces3D__setSelectOpts(void *userData, int index)
+{
+	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	MEdge *med = &data->me->medge[index];
+	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+
+	return flags & eEdge_Select;
+}
+static int draw_tfaces3D__setActiveOpts(void *userData, int index)
+{
+	struct { Mesh *me; EdgeHash *eh; } *data = userData;
+	MEdge *med = &data->me->medge[index];
+	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+
+	if (flags & eEdge_Active) {
+		if (flags & eEdge_ActiveLast) {
+			glColor3ub(255, 0, 0);
+		} else if (flags & eEdge_ActiveFirst) {
+			glColor3ub(0, 255, 0);
+		} else if (flags & eEdge_SelectAndActive) {
+			glColor3ub(255, 255, 0);
+		} else {
+			glColor3ub(255, 0, 255);
+		}
+
+		return 1;
+	} else {
+		return 0;
+	}
+}
 static int draw_tfaces3D__drawFaceOpts(TFace *tface, int matnr)
 {
 	if (tface && !(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT)) {
@@ -499,7 +628,10 @@ static int draw_tfaces3D__drawFaceOpts(TFace *tface, int matnr)
 }
 static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 {
-	int a;
+	struct { Mesh *me; EdgeHash *eh; } data;
+
+	data.me = me;
+	data.eh = get_marked_edge_info(me);
 
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_LIGHTING);
@@ -507,30 +639,19 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 
 		/* Draw (Hidden) Edges */
 	BIF_ThemeColor(TH_EDGE_FACESEL);
-	if((G.f & G_DRAWEDGES)){ 
-		if (G.f&G_HIDDENEDGES) {
-			dm->drawEdgesFlag(dm, ME_EDGEMAPPED, ME_EDGEMAPPED);
-		} else {
-			dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE, ME_EDGE_TFVISIBLE);
-		}
-	} else {
-		dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL);
-	}
+	dm->drawMappedEdges(dm, draw_tfaces3D__setHiddenOpts, &data);
 
+		/* Draw Seams */
 	if(G.f & G_DRAWSEAMS) {
 		BIF_ThemeColor(TH_EDGE_SEAM);
 		glLineWidth(2);
 
-		if (G.f&G_HIDDENEDGES) {
-			dm->drawEdgesFlag(dm, ME_EDGEMAPPED|ME_SEAM, ME_EDGEMAPPED|ME_SEAM);
-		} else {
-			dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_SEAM, ME_EDGE_TFVISIBLE|ME_SEAM);
-		}
+		dm->drawMappedEdges(dm, draw_tfaces3D__setSeamOpts, &data);
 
 		glLineWidth(1);
 	}
 
-	/* Draw Selected Faces in transparent purple */
+		/* Draw Selected Faces */
 	if(G.f & G_DRAWFACES) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -544,38 +665,16 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 	bglPolygonOffset(1.0);
 
 		/* Draw Stippled Outline for selected faces */
-	cpack(0xFFFFFF);
+	glColor3ub(255, 255, 255);
 	setlinestyle(1);
-	dm->drawEdgesFlag(dm, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL, ME_EDGE_TFVISIBLE|ME_EDGE_TFSEL);
+	dm->drawMappedEdges(dm, draw_tfaces3D__setSelectOpts, &data);
 	setlinestyle(0);
 
-		/* Draw active face */
-	for (a=0; a<me->totface; a++) {
-		TFace *tf = &me->tface[a];
-
-		if (me->mface[a].v3 && (tf->flag&TF_ACTIVE)) {
-			if (!(tf->flag&TF_HIDE)) {
-				glColor3ub(255, 0, 0);
-				dm->drawEdgesFlag(dm, ME_EDGE_TFACTLAST, ME_EDGE_TFACTLAST);
-				glColor3ub(0, 255, 0);
-				dm->drawEdgesFlag(dm, ME_EDGE_TFACTFIRST, ME_EDGE_TFACTFIRST);
-
-				if (tf->flag&TF_SELECT) {
-					glColor3ub(255, 255, 0);
-				} else {
-					glColor3ub(255, 0, 255);
-				}
-
-					/* Draw remaining edges of active fact that are not first or last */
-				dm->drawEdgesFlag(dm, ME_EDGE_TFACT|ME_EDGE_TFACTFIRST|ME_EDGE_TFACTLAST, ME_EDGE_TFACT|0|0);
-			}
-
-			break;
-		}
-	}
+	dm->drawMappedEdges(dm, draw_tfaces3D__setActiveOpts, &data);
 
 	bglPolygonOffset(0.0);	// resets correctly now, even after calling accumulated offsets
-#undef PASSVERT
+
+	BLI_edgehash_free(data.eh, NULL);
 }
 
 static int set_gl_light(Object *ob)
@@ -930,7 +1029,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		} else {
 			BIF_ThemeColor(TH_WIRE);
 		}
-		dm->drawEdgesFlag(dm, ME_LOOSEEDGE, ME_LOOSEEDGE);
+		dm->drawLooseEdges(dm);
 	}
 }
 

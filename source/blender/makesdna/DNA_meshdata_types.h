@@ -83,13 +83,7 @@ typedef struct MSticky {
 #define ME_FGON				(1<<3)
 						// reserve 16 for ME_HIDE
 #define ME_EDGERENDER		(1<<5)
-#define ME_EDGEMAPPED		(1<<6)
 #define ME_LOOSEEDGE		(1<<7)
-#define ME_EDGE_TFSEL		(1<<8)
-#define ME_EDGE_TFACT		(1<<9)
-#define ME_EDGE_TFVISIBLE	(1<<10)
-#define ME_EDGE_TFACTFIRST	(1<<11)
-#define ME_EDGE_TFACTLAST	(1<<12)
 #define ME_EDGE_STEPINDEX	(1<<15)
 
 /* puno = vertexnormal (mface) */

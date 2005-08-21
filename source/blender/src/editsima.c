@@ -115,10 +115,6 @@ void object_uvs_changed(Object *ob)
 
 void object_tface_flags_changed(Object *ob, int updateButtons)
 {
-	if (G.f&G_FACESELECT) {
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	}
-
 	if (updateButtons) allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);

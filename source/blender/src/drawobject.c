@@ -1733,7 +1733,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 		} else {
 			BIF_ThemeColor(TH_WIRE);
 		}
-		dm->drawEdgesFlag(dm, ME_LOOSEEDGE, ME_LOOSEEDGE);
+		dm->drawLooseEdges(dm);
 	}
 	else if(dt==OB_SHADED) {
 		if( (G.f & G_WEIGHTPAINT)) {
@@ -1772,7 +1772,7 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 			} else {
 				BIF_ThemeColor(TH_WIRE);
 			}
-			dm->drawEdgesFlag(dm, ME_LOOSEEDGE, ME_LOOSEEDGE);
+			dm->drawLooseEdges(dm);
 		}
 	}
 
