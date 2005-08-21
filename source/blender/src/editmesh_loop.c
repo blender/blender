@@ -155,8 +155,8 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines)
 		}
 	}
 	
-    if(previewlines > 0 && select == 0){
-        	persp(PERSP_VIEW);
+	if(previewlines > 0 && select == 0){
+			persp(PERSP_VIEW);
 			glPushMatrix();
 			mymultmatrix(G.obedit->obmat);
 			//glColor3ub(0, 255, 255);
@@ -165,89 +165,85 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines)
 			//glVertex3f(nearest->v2->co[0],nearest->v2->co[1],nearest->v2->co[2]);
 			//glEnd();
 			for(efa= em->faces.first; efa; efa= efa->next) {
-                if(efa->v4 == NULL) {  continue; }
-                if(efa->e1->f2 == 1){
-                    v[0][0] = efa->v1;
-                    v[0][1] = efa->v2;
-                    v[1][0] = efa->v4;
-                    v[1][1] = efa->v3;
-                } else if(efa->e2->f2 == 1){
-                    v[0][0] = efa->v2;
-                    v[0][1] = efa->v3;
-                    v[1][0] = efa->v1;
-                    v[1][1] = efa->v4;                    
-                } else { continue; }
-                                      
-    			for(i=1;i<=previewlines;i++){
-                    co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
-                    co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
-                    co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
+				if(efa->v4 == NULL) {  continue; }
+				if(efa->e1->f2 == 1){
+					v[0][0] = efa->v1;
+					v[0][1] = efa->v2;
+					v[1][0] = efa->v4;
+					v[1][1] = efa->v3;
+				} else if(efa->e2->f2 == 1){
+					v[0][0] = efa->v2;
+					v[0][1] = efa->v3;
+					v[1][0] = efa->v1;
+					v[1][1] = efa->v4;					
+				} else { continue; }
+									  
+				for(i=1;i<=previewlines;i++){
+					co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0])*(i/((float)previewlines+1))+v[0][0]->co[0];
+					co[0][1] = (v[0][1]->co[1] - v[0][0]->co[1])*(i/((float)previewlines+1))+v[0][0]->co[1];
+					co[0][2] = (v[0][1]->co[2] - v[0][0]->co[2])*(i/((float)previewlines+1))+v[0][0]->co[2];
 
-                    co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
-                    co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
-                    co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];                    
-                    glColor3ub(255, 0, 255);
-        			glBegin(GL_LINES);	
-        			glVertex3f(co[0][0],co[0][1],co[0][2]);
-        			glVertex3f(co[1][0],co[1][1],co[1][2]);
-        			glEnd();
-                }
-            }
+					co[1][0] = (v[1][1]->co[0] - v[1][0]->co[0])*(i/((float)previewlines+1))+v[1][0]->co[0];
+					co[1][1] = (v[1][1]->co[1] - v[1][0]->co[1])*(i/((float)previewlines+1))+v[1][0]->co[1];
+					co[1][2] = (v[1][1]->co[2] - v[1][0]->co[2])*(i/((float)previewlines+1))+v[1][0]->co[2];					
+					glColor3ub(255, 0, 255);
+					glBegin(GL_LINES);	
+					glVertex3f(co[0][0],co[0][1],co[0][2]);
+					glVertex3f(co[1][0],co[1][1],co[1][2]);
+					glEnd();
+				}
+			}
 			glPopMatrix();   
-    } else {	
+	} else {	
 	
-	   /* (de)select the edges */
-	   for(eed= em->edges.first; eed; eed= eed->next) {
-    		if(eed->f2) EM_select_edge(eed, select);
-	   }
-    }
+	/* (de)select the edges */
+		for(eed= em->edges.first; eed; eed= eed->next) {
+		if(eed->f2) EM_select_edge(eed, select);
+		}
+	}
 }
 void CutEdgeloop(int numcuts)
 {
-    EditMesh *em = G.editMesh;
+	EditMesh *em = G.editMesh;
 	EditEdge *nearest=NULL, *eed;
-    int keys = 0, holdnum=0, selectmode;
+	int keys = 0, holdnum=0, selectmode;
 	short mvalo[2] = {0,0}, mval[2];
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0,smooth=0;
-    char msg[128];
+	char msg[128];
 	
-    selectmode = G.scene->selectmode;
+	selectmode = G.scene->selectmode;
 		
 	if(G.scene->selectmode & SCE_SELECT_FACE){
-        G.scene->selectmode =  SCE_SELECT_EDGE;  
-        EM_selectmode_set();      
-    }
+		G.scene->selectmode =  SCE_SELECT_EDGE;
+		EM_selectmode_set();	  
+	}
 	
 	
 	BIF_undo_push("Loopcut Begin");
-    while(choosing){
-        if(cancel){
-            break;   
-        }
-        getmouseco_areawin(mval);
+	while(choosing){
+		if(cancel){
+			break;   
+		}
+		getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
-
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
-
 			dist= 50;
 			nearest = findnearestedge(&dist);	// returns actual distance in dist
-			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!        
-
-            
-            sprintf(msg,"Number of Cuts: %d",numcuts);
-        	if(smooth){
-                sprintf(msg,"%s (S)mooth: on",msg);       
-            } else {
-                sprintf(msg,"%s (S)mooth: off",msg);       
-            }
-            
-            headerprint(msg);
-
-            /* Need to figure preview */
-            if(nearest){
-	            edgering_sel(nearest, 0, numcuts);
-             }   
+			scrarea_do_windraw(curarea);	// after findnearestedge, backbuf!
+			
+			sprintf(msg,"Number of Cuts: %d",numcuts);
+			if(smooth){
+				sprintf(msg,"%s (S)mooth: on",msg);
+			} else {
+				sprintf(msg,"%s (S)mooth: off",msg);
+			}
+			
+			headerprint(msg);
+			/* Need to figure preview */
+			if(nearest){
+				edgering_sel(nearest, 0, numcuts);
+			 }   
 			screen_swapbuffers();
 			
 		/* backbuffer refresh for non-apples (no aux) */
@@ -264,9 +260,9 @@ void CutEdgeloop(int numcuts)
 			event= extern_qread(&val);
 			if(val && ((event==LEFTMOUSE || event==RETKEY) || (event == MIDDLEMOUSE || event==PADENTER)))
 			{
-                if(event == MIDDLEMOUSE){
-                    cuthalf = 1;   
-                }
+				if(event == MIDDLEMOUSE){
+					cuthalf = 1;
+				}
 				if (nearest==NULL)
 					cancel = 1;
 				choosing=0;
@@ -288,118 +284,118 @@ void CutEdgeloop(int numcuts)
 			}
 			else if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
 			{
-                if(numcuts > 1){
-    				numcuts--;
-    				mvalo[0] = -1;
-    				break;
-                } 
+				if(numcuts > 1){
+					numcuts--;
+					mvalo[0] = -1;
+					break;
+				} 
 			}
 			else if(val && event==SKEY)
 			{
-                if(smooth){smooth=0;} 
-                else { smooth=1; }
-    			mvalo[0] = -1;
-    			break;
+				if(smooth){smooth=0;} 
+				else { smooth=1; }
+				mvalo[0] = -1;
+				break;
 			}
 			else if(val){
-                holdnum = -1;
-                switch(event){
-                	case PAD9:
-                	case NINEKEY:
-                		holdnum = 9; break;
-                	case PAD8:
-                	case EIGHTKEY:
-                		holdnum = 8;break;
-                	case PAD7:
-                	case SEVENKEY:
-                		holdnum = 7;break;
-                	case PAD6:
-                	case SIXKEY:
-                		holdnum = 6;break;
-                	case PAD5:
-                	case FIVEKEY:
-                		holdnum = 5;break;
-                	case PAD4:
-                	case FOURKEY:
-                		holdnum = 4;break;
-                	case PAD3:
-                	case THREEKEY:
-                		holdnum = 3; break;
-                	case PAD2:
-                	case TWOKEY:
-                		holdnum = 2;break;
-                	case PAD1:
-                	case ONEKEY:
-                		holdnum = 1; break;
-                	case PAD0:
-                	case ZEROKEY:
-                		holdnum = 0;break;	
-                    case BACKSPACEKEY:
-                		holdnum = -2;break;			
-               }
-               if(holdnum >= 0 && numcuts*10 < 130){
-                    if(keys == 0){  // first level numeric entry
-                            if(holdnum > 0){
-                                       numcuts = holdnum;
-                                       keys++;        
-                            }
-                    } else if(keys > 0){//highrt level numeric entry
-                            numcuts *= 10;
-                            numcuts += holdnum;
-                            keys++;        
-                    }
-               } else if (holdnum == -2){// backspace
-                  if (keys > 1){
-                      numcuts /= 10;        
-                      keys--;
-                  } else {
-                      numcuts=1;
-                      keys = 0;   
-                  }      
-               }
-               mvalo[0] = -1;
-               break;
-            }
+				holdnum = -1;
+				switch(event){
+					case PAD9:
+					case NINEKEY:
+						holdnum = 9; break;
+					case PAD8:
+					case EIGHTKEY:
+						holdnum = 8;break;
+					case PAD7:
+					case SEVENKEY:
+						holdnum = 7;break;
+					case PAD6:
+					case SIXKEY:
+						holdnum = 6;break;
+					case PAD5:
+					case FIVEKEY:
+						holdnum = 5;break;
+					case PAD4:
+					case FOURKEY:
+						holdnum = 4;break;
+					case PAD3:
+					case THREEKEY:
+						holdnum = 3; break;
+					case PAD2:
+					case TWOKEY:
+						holdnum = 2;break;
+					case PAD1:
+					case ONEKEY:
+						holdnum = 1; break;
+					case PAD0:
+					case ZEROKEY:
+						holdnum = 0;break;	
+					case BACKSPACEKEY:
+						holdnum = -2;break;			
+				}
+				if(holdnum >= 0 && numcuts*10 < 130){
+					if(keys == 0){  // first level numeric entry
+							if(holdnum > 0){
+									numcuts = holdnum;
+									keys++;		
+							}
+					} else if(keys > 0){//highrt level numeric entry
+							numcuts *= 10;
+							numcuts += holdnum;
+							keys++;		
+					}
+				} else if (holdnum == -2){// backspace
+					if (keys > 1){
+						numcuts /= 10;		
+						keys--;
+					} else {
+						numcuts=1;
+						keys = 0;
+					}
+				}
+				mvalo[0] = -1;
+				break;
+			}
 		}	
-    }
-    scrarea_queue_winredraw(curarea);
-  
-    if(cancel){
-        return;   
-    }
-    /* clean selection */
-    for(eed=em->edges.first; eed; eed = eed->next){
-        EM_select_edge(eed,0);   
-    }
-    /* select edge ring */
+	}
+	scrarea_queue_winredraw(curarea);
+
+	if(cancel){
+		return;   
+	}
+	/* clean selection */
+	for(eed=em->edges.first; eed; eed = eed->next){
+		EM_select_edge(eed,0);
+	}
+	/* select edge ring */
 	edgering_sel(nearest, 1, 0);
 	
 	/* now cut the loops */
 	if(smooth){
-    	esubdivideflag(SELECT,0,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
-    } else {
-    	esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);
-    }
+		esubdivideflag(SELECT,0,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
+	} else {
+		esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);
+	}
 	/* if this was a single cut, enter edgeslide mode */
 	if(numcuts == 1){
-        if(cuthalf)
-            EdgeSlide(1,0.0);
-        else {
-            if(EdgeSlide(0,0.0) == -1){
-                BIF_undo();   
-            }   
-        }
-    }
-    
+		if(cuthalf)
+			EdgeSlide(1,0.0);
+		else {
+			if(EdgeSlide(0,0.0) == -1){
+				BIF_undo();
+			}
+		}
+	}
+	
 	if(G.scene->selectmode !=  selectmode){
-        G.scene->selectmode = selectmode;
-        EM_selectmode_set();      
-    }    
-    
-    //force_draw(0);
+		G.scene->selectmode = selectmode;
+		EM_selectmode_set();
+	}	
+	
+	//force_draw(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-    scrarea_queue_winredraw(curarea);	
-    return;
+	scrarea_queue_winredraw(curarea);	
+	return;
 }
 
 
@@ -632,9 +628,9 @@ void KnifeSubdivide(char mode)
 		mode = val;	// warning, mode is char, pupmenu returns -1 with ESC
 	}
 
-    if(mode == KNIFE_MULTICUT) {
-    	if(button(&numcuts, 2, 128, "Number of Cuts:")==0) return;
-    }
+	if(mode == KNIFE_MULTICUT) {
+		if(button(&numcuts, 2, 128, "Number of Cuts:")==0) return;
+	}
 
 	/* Set a knife cursor here */
 	oldcursor=get_cursor();
@@ -665,7 +661,7 @@ void KnifeSubdivide(char mode)
 		if      (mode==KNIFE_EXACT)    esubdivideflag(1, 0, B_KNIFE|B_PERCENTSUBD,1,SUBDIV_SELECT_ORIG);
 		else if (mode==KNIFE_MIDPOINT) esubdivideflag(1, 0, B_KNIFE,1,SUBDIV_SELECT_ORIG);
 		else if (mode==KNIFE_MULTICUT) esubdivideflag(1, 0, B_KNIFE,numcuts,SUBDIV_SELECT_ORIG);
-        		
+
 		eed=em->edges.first;
 		while(eed){
 			eed->f2=0;
