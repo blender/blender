@@ -193,10 +193,7 @@ void *MEM_mallocN(unsigned int len, char *str)
 	MemHead *memh;
 	MemTail *memt;
 
-	if(sizeof(long)==8)
-		len = (len + 3 ) & ~3; 	/* eenheden van 4 */
-	else 
-		len = (len + 7 ) & ~7; 	/* eenheden van 8 */
+	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 	
 	memh= (MemHead *)malloc(len+sizeof(MemHead)+sizeof(MemTail));
 
@@ -227,10 +224,7 @@ void *MEM_callocN(unsigned int len, char *str)
 	MemHead *memh;
 	MemTail *memt;
 
-	if(sizeof(long)==8)
-		len = (len + 3 ) & ~3; 	/* eenheden van 4 */
-	else 
-		len = (len + 7 ) & ~7; 	/* eenheden van 8 */
+	len = (len + 3 ) & ~3; 	/* allocate in units of 4 */
 
 	memh= (MemHead *)calloc(len+sizeof(MemHead)+sizeof(MemTail),1);
 
