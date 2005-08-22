@@ -97,7 +97,8 @@ private:
 	bool				m_bFixedTime;
 	
 	bool				m_firstframe;
-	
+	int					m_currentFrame;
+
 	double				m_previoustime;
 	double				m_deltatime;
 	static double			m_ticrate;

@@ -265,38 +265,26 @@ public:
 	 * @return a pointer to the physics controller owned by this class.
 	 */
 
-		KX_IPhysicsController* 
-	GetPhysicsController(
-	) ;
+	KX_IPhysicsController* GetPhysicsController() ;
 
-	void	SetPhysicsController
-		(KX_IPhysicsController*	physicscontroller) 
-	{ m_pPhysicsController1 = physicscontroller;};
+	void	SetPhysicsController(KX_IPhysicsController*	physicscontroller,bool isDynamic) 
+	{ 
+		m_bDyna = isDynamic;
+		m_pPhysicsController1 = physicscontroller;
+	}
 
 
 	/**
 	 * @section Coordinate system manipulation functions
 	 */
 
-		void						
-	NodeSetLocalPosition(
-		const MT_Point3& trans
-	);
+	void	NodeSetLocalPosition(const MT_Point3& trans	);
 
-		void						
-	NodeSetLocalOrientation(
-		const MT_Matrix3x3& rot
-	);
+	void	NodeSetLocalOrientation(const MT_Matrix3x3& rot	);
 
-		void						
-	NodeSetLocalScale(
-		const MT_Vector3& scale
-	);
+	void	NodeSetLocalScale(	const MT_Vector3& scale	);
 
-		void						
-	NodeSetRelativeScale(
-		const MT_Vector3& scale
-	);
+	void	NodeSetRelativeScale(	const MT_Vector3& scale	);
 
 		void						
 	NodeUpdateGS(
@@ -324,16 +312,13 @@ public:
 	 * @section scene graph node accessor functions.
 	 */
 
-		SG_Node*					
-	GetSGNode(
-	) { 
+	SG_Node*	GetSGNode(	) 
+	{ 
 		return m_pSGNode;
 	}
 
-	const 
-		SG_Node*				
-	GetSGNode(
-	) const	{ 
+	const 	SG_Node* GetSGNode(	) const	
+	{ 
 		return m_pSGNode;
 	}
 
@@ -345,19 +330,14 @@ public:
 	 * old node. This class takes ownership of the new
 	 * node.
 	 */
-		void						
-	SetSGNode(
-		SG_Node* node
-	){ 
-		m_pSGNode = node; 
-	}
+		void	SetSGNode(SG_Node* node	)
+		{ 
+			m_pSGNode = node; 
+		}
 	
-	/**
-	 * Deprecated & broken
-	 */
-		bool						
-	IsDynamic(
-	) const { 
+	//Is it a dynamic/physics object ?
+	bool	IsDynamic() const 
+	{ 
 		return m_bDyna; 
 	}
 	

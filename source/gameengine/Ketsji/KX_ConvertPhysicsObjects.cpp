@@ -305,7 +305,7 @@ static void	BL_RegisterSumoObject(
 
 		// need easy access, not via 'node' etc.
 		KX_SumoPhysicsController* physicscontroller = new KX_SumoPhysicsController(sumoScene,sumoObj,motionstate,isDynamic);
-		gameobj->SetPhysicsController(physicscontroller);
+		gameobj->SetPhysicsController(physicscontroller,isDynamic);
 
 		
 		if (!gameobj->getClientInfo())
@@ -1012,7 +1012,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	env->addCcdPhysicsController( physicscontroller);
 
 	
-	gameobj->SetPhysicsController(physicscontroller);
+	gameobj->SetPhysicsController(physicscontroller,dyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);

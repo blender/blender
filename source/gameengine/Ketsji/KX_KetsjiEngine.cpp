@@ -258,6 +258,10 @@ void KX_KetsjiEngine::StartEngine()
 	m_firstframe = true;
 	m_bInitialized = true;
 	m_ticrate = DEFAULT_LOGIC_TIC_RATE;
+	m_currentFrame = 0;
+
+	m_sceneconverter->ResetPhysicsObjectsAnimationIpo();
+
 }
 
 bool KX_KetsjiEngine::BeginFrame()
@@ -305,6 +309,8 @@ void KX_KetsjiEngine::EndFrame()
 	m_rendertools->EndFrame(m_rasterizer);
 	
 	m_canvas->EndDraw();
+	
+
 }
 
 
@@ -390,6 +396,9 @@ void KX_KetsjiEngine::NextFrame()
 				m_logger->StartLog(tc_physics, m_kxsystem->GetTimeInSeconds(), true);
 				scene->GetPhysicsEnvironment()->proceedDeltaTime(localtime,realDeltaTime);
 				m_previoustime = curtime;
+
+				m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame++);
+
 			} // suspended
 	
 			DoSound(scene);

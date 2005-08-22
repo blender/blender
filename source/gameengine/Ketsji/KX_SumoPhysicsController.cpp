@@ -157,9 +157,11 @@ void	KX_SumoPhysicsController::SetObject (SG_IObject* object)
 	SG_Controller::SetObject(object);
 
 	// cheating here...
-	KX_GameObject* gameobj = (KX_GameObject*)	object->GetSGClientObject();
-	gameobj->SetPhysicsController(this);
-	GetSumoObject()->setClientObject(gameobj->getClientInfo());
+//should not be necessary, is it for duplicates ?
+
+KX_GameObject* gameobj = (KX_GameObject*)	object->GetSGClientObject();
+gameobj->SetPhysicsController(this,gameobj->IsDynamic());
+GetSumoObject()->setClientObject(gameobj->getClientInfo());
 }
 
 

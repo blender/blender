@@ -39,6 +39,10 @@
 #include "KX_IpoConvert.h"
 #include "RAS_MeshObject.h"
 #include "KX_PhysicsEngineEnums.h"
+#include "PHY_IPhysicsEnvironment.h"
+#include "KX_KetsjiEngine.h"
+#include "Object.h"
+#include "KX_IPhysicsController.h"
 
 #include "DummyPhysicsEnvironment.h"
 
@@ -72,6 +76,10 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "BKE_main.h"
+
+#include "DNA_object_types.h"
+#include "DNA_ipo_types.h"
+#include "DNA_curve_types.h"
 
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
@@ -321,7 +329,9 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 	
 	m_map_blender_to_gameobject.clear();
 	m_map_mesh_to_gamemesh.clear();
-	m_map_gameobject_to_blender.clear();
+
+	//don't clear it yet, it is needed for the baking physics into ipo animation
+	//m_map_gameobject_to_blender.clear();
 }
 
 
@@ -466,6 +476,50 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 {
 	//todo,before 2.38/2.40 release, Erwin
+
+	KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
+	int numScenes = scenes->size();
+	int i;
+	for (i=0;i<numScenes;i++)
+	{
+		KX_Scene* scene = scenes->at(i);
+		//PHY_IPhysicsEnvironment* physEnv = scene->GetPhysicsEnvironment();
+		CListValue* parentList = scene->GetRootParentList();
+		int numObjects = parentList->GetCount();
+		int g;
+		for (g=0;g<numObjects;g++)
+		{
+			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
+			if (gameObj->IsDynamic())
+			{
+				//KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				
+				Object* blenderObject = FindBlenderObject(gameObj);
+				if (blenderObject)
+				{
+					//erase existing ipo's
+					Ipo* ipo = blenderObject->ipo;
+					if (ipo)
+					{
+
+						IpoCurve *icu;
+						int numCurves = 0;
+						for( icu = (IpoCurve*)ipo->curve.first; icu; icu = icu->next ) {
+							numCurves++;
+							
+						}
+
+					}
+				}
+			}
+
+		}
+		
+	
+	}
+
+
+
 }
 
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
@@ -595,6 +649,19 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 							/* create a bpy wrapper for the new ipo curve */
 							return IpoCurve_CreatePyObject( icu );
 						}
+
+						static PyObject *Ipo_getNcurves( BPy_Ipo * self )
+						{
+							int i = 0;
+
+							IpoCurve *icu;
+							for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+								i++;
+							}
+
+							return ( PyInt_FromLong( i ) );
+						}
+
 
 						static PyObject *Ipo_getNBezPoints( BPy_Ipo * self, PyObject * args )
 						{
