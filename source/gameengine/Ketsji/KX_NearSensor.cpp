@@ -63,15 +63,18 @@ KX_NearSensor::KX_NearSensor(SCA_EventManager* eventmgr,
 			 m_ResetMargin(resetmargin)
 
 {
+
 	gameobj->getClientInfo()->m_sensors.remove(this);
 	m_client_info = new KX_ClientObjectInfo(gameobj, KX_ClientObjectInfo::NEAR);
 	m_client_info->m_sensors.push_back(this);
 	
 	//DT_ShapeHandle shape = (DT_ShapeHandle) vshape;
 	m_physCtrl = ctrl;
-	m_physCtrl->SetMargin(m_Margin);
-	m_physCtrl->setNewClientInfo(m_client_info);
-	
+	if (m_physCtrl)
+	{
+		m_physCtrl->SetMargin(m_Margin);
+		m_physCtrl->setNewClientInfo(m_client_info);
+	}
 	SynchronizeTransform();
 }
 

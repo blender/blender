@@ -59,6 +59,13 @@ public:
 
 	virtual void	SetNewFileName(const STR_String& filename) = 0;
 	virtual bool	TryAndLoadNewFile() = 0;
+
+
+	virtual void	ResetPhysicsObjectsAnimationIpo() = 0;
+
+	///this generates ipo curves for position, rotation, allowing to use game physics in animation
+	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber) = 0;
+
 };
 
 #endif //__KX_ISCENECONVERTER_H

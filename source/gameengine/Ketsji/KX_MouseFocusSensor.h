@@ -138,7 +138,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * the object was hit.  */
 	MT_Vector3		 m_hitNormal;
 
-	class SCA_IObject*	m_hitObject;
+	SCA_IObject*	m_hitObject;
 
 
 	/**

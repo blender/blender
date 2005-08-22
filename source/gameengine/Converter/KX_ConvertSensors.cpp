@@ -68,6 +68,7 @@ probably misplaced */
 #include "SCA_JoystickSensor.h"
 #include "KX_NetworkMessageSensor.h"
 
+
 #include "SCA_PropertySensor.h"
 #include "SCA_RandomSensor.h"
 #include "KX_RaySensor.h"

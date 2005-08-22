@@ -65,7 +65,7 @@ RAS_Polygon::RAS_Polygon(RAS_MaterialBucket* bucket,
 		:m_bucket(bucket),
 		m_vertexindexbase(numverts),
 		m_numverts(numverts),
-		m_edgecode(0)
+		m_edgecode(65535)
 {
 	m_vertexindexbase.m_vtxarray = vtxarrayindex ;//m_bucket->FindVertexArray(numverts);
 	m_polyFlags.Visible = visible;

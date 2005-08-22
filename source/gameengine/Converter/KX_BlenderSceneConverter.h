@@ -115,6 +115,13 @@ public:
 	SCA_IController *FindGameController(struct bController *for_controller);
 
 	void RegisterWorldInfo(KX_WorldInfo *worldinfo);
+
+	virtual void	ResetPhysicsObjectsAnimationIpo();
+
+	///this generates ipo curves for position, rotation, allowing to use game physics in animation
+	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber);
+
+
 };
 
 #endif //__KX_BLENDERSCENECONVERTER_H
