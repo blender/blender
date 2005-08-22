@@ -140,22 +140,12 @@ float prlen=0.0;
 
 /* ********************* CONSTRAINT ***************************** */
 
-#if 0
-static void add_influence_key_to_constraint_func (void *arg1v, void *unused)
-{
-	bConstraint *con = arg1v;
-	add_influence_key_to_constraint(con);
-}
-#endif
-
 static void activate_constraint_ipo_func (void *arg1v, void *unused)
 {
-
+	Object *ob= OBACT;
 	bConstraint *con = arg1v;
 	bConstraintChannel *chan;
 	ListBase *conbase;
-
-	get_constraint_client(NULL, NULL, NULL);
 
 	conbase = get_constraint_client_channels(1);
 
@@ -177,11 +167,60 @@ static void activate_constraint_ipo_func (void *arg1v, void *unused)
 	}
 
 	/* Make this the active channel */
-	OBACT->activecon = chan;
-
-	allqueue(REDRAWIPO, 0);
+	ob->activecon = chan;
+	
+	/* make sure ipowin shows it */
+	ob->ipowin= IPO_CO;
+	allqueue(REDRAWIPO, IPO_CO);
 	allqueue(REDRAWNLA, 0);
 }
+
+
+static void add_influence_key_to_constraint_func (void *arg1v, void *unused)
+{
+	Object *ob= OBACT;
+	bConstraint *con = arg1v;
+	bConstraintChannel *chan;
+	ListBase *conbase;
+	IpoCurve *icu;
+	
+	conbase = get_constraint_client_channels(1);	// 1=make
+	
+	if (!conbase)
+		return;
+	
+	/* See if this list already has an appropriate channel */
+	chan = find_constraint_channel(conbase, con->name);
+	
+	if (!chan){
+		/* Add a new constraint channel */
+		chan = add_new_constraint_channel(con->name);
+		BLI_addtail(conbase, chan);
+	}
+	
+	/* Ensure there is an ipo to display */
+	if (!chan->ipo){
+		chan->ipo = add_ipo(con->name, IPO_CO);
+	}
+	
+	/* now insert an ipo key */
+	icu= get_ipocurve(NULL, IPO_CO, CO_ENFORCE, chan->ipo);
+	insert_vert_ipo(icu, CFRA, con->enforce);
+	
+	/* Make this the active channel */
+	ob->activecon = chan;
+	
+	/* make sure ipowin shows it */
+	ob->ipowin= IPO_CO;
+	allqueue(REDRAWIPO, IPO_CO);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	BIF_undo_push("Insert Influence Key");
+}
+
+
+
 
 static void del_constraint_func (void *arg1v, void *arg2v)
 {
@@ -760,14 +799,16 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 
 	if (con->type!=CONSTRAINT_TYPE_NULL) {
-		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Influence ", *xco+17, *yco, 197, 19, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
-		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Edit", *xco+215, *yco, 41, 19, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_CONSTRAINT_REDRAW, "Influence ", *xco, *yco, 197, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Show", *xco+200, *yco, 45, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show this constraint's ipo in the object's Ipo window");
 		/* If this is on an object, add the constraint to the object */
 		uiButSetFunc (but, activate_constraint_ipo_func, con, NULL);
 		/* If this is on a bone, add the constraint to the action (if any) */
-		//but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+227, *yco, 41, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
+		but = uiDefBut(block, BUT, B_CONSTRAINT_REDRAW, "Key", *xco+245, *yco, 40, 20, 0, 0.0, 1.0, 0.0, 0.0, "Add an influence keyframe to the constraint");
 		/* Add a keyframe to the influence IPO */
-		//uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
+		uiButSetFunc (but, add_influence_key_to_constraint_func, con, NULL);
+		uiBlockEndAlign(block);
 		(*yco)-=24;
 	} else {
 		(*yco)-=3;

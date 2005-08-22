@@ -1847,6 +1847,23 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 				select_actionchannel_by_name(ob->action, nearBone->name, 1);
 			}
 		}
+		
+		/* signal update to ipo window */
+		if(ob->ipowin==IPO_CO) {
+			bConstraintChannel *chan;
+			ListBase *conbase;
+			
+			conbase = get_constraint_client_channels(0);
+			if (conbase) {
+				for(chan= conbase->first; chan; chan= chan->next) {
+					if(chan->ipo)
+						break;
+				}
+				/* Make this the active channel */
+				ob->activecon = chan;
+			}
+			else ob->activecon = NULL;
+		}
 
 		/* in weightpaint we select the associated vertex group too */
 		if(G.f & G_WEIGHTPAINT) {

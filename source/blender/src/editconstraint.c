@@ -129,6 +129,7 @@ ListBase *get_constraint_client_channels (int forcevalid)
 			
 			return &achan->constraintChannels;
 		}
+		else return NULL;
 	}
 	/* else we return object constraints */
 	return &ob->constraintChannels;
