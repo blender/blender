@@ -1447,3 +1447,19 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 
 	return ob->modifiers.first;
 }
+
+int modifiers_isDeformedByArmature(Object *ob, Object *armOb)
+{
+	ModifierData *md;
+
+	for (md=ob->modifiers.first; md; md=md->next) {
+		if (md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+
+			if (amd->object==armOb)
+				return 1;
+		}
+	}
+
+	return 0;
+}

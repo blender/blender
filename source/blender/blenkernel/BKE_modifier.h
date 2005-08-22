@@ -201,6 +201,7 @@ void			modifiers_clearErrors		(struct Object *ob);
 int				modifiers_getCageIndex		(struct Object *ob, int *lastPossibleCageIndex_r);
 
 int				modifiers_isSoftbodyEnabled	(struct Object *ob);
+int				modifiers_isDeformedByArmature(struct Object *ob, struct Object *armOb);
 
 ModifierData*	modifiers_getVirtualModifierList	(struct Object *ob);
 
