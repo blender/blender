@@ -1294,7 +1294,6 @@ void mouse_select(void)
 			/* only do select */
 			deselectall_except(basact);
 			basact->flag |= SELECT;
-			draw_object_ext(basact);
 		}
 		else {
 			oldbasact= BASACT;
@@ -1344,9 +1343,6 @@ void mouse_select(void)
 				}
 			}
 			
-			/* also because multiple 3d windows can be open */
-			allqueue(REDRAWVIEW3D, 0);
-
 			allqueue(REDRAWBUTSLOGIC, 0);
 			allqueue(REDRAWDATASELECT, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
@@ -1354,8 +1350,10 @@ void mouse_select(void)
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWHEADERS, 0);	/* To force display update for the posebutton */
-			
 		}
+		/* also because multiple 3d windows can be open */
+		allqueue(REDRAWVIEW3D, 0);
+		
 	}
 
 	countall();

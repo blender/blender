@@ -409,7 +409,15 @@ void window_set_cursor(Window *win, int curs) {
 		GHOST_SetCursorVisibility(win->ghostwin, 0);
 	} else {
 		GHOST_SetCursorVisibility(win->ghostwin, 1);
-		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
+		
+		/* detect if we use system cursor or Blender cursor */
+		switch(curs) {
+			case CURSOR_VPAINT:
+				SetBlenderCursor(BC_KNIFECURSOR);
+				break;
+			default:
+				GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
+		}
 	}
 }
 

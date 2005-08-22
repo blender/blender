@@ -193,6 +193,13 @@ void recalcData(TransInfo *t)
 							ebo->rad_head= ebo->parent->rad_tail;
 					}
 				}
+				else if(t->mode!=TFM_BONE_ENVELOPE) {
+					/* if bones change length, lets do that for the deform distance as well */
+					ebo->dist*= ebo->length/ebo->oldlength;
+					ebo->rad_head*= ebo->length/ebo->oldlength;
+					ebo->rad_tail*= ebo->length/ebo->oldlength;
+					ebo->oldlength= ebo->length;
+				}
 			}
 			if(arm->flag & ARM_MIRROR_EDIT) 
 				transform_armature_mirror_update();
