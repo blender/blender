@@ -1576,8 +1576,7 @@ static void fill_quad_double_op(EditFace *efa, struct GHash *gh, int numcuts)
 	}	  
 }
 
-
-static void fill_quad_double_adj(EditFace *efa, struct GHash *gh, int numcuts)
+static void fill_quad_double_adj_path(EditFace *efa, struct GHash *gh, int numcuts)
 {
 	EditEdge *cedge[2]={NULL, NULL};
 	EditVert *v[4], **verts[2];
@@ -1644,6 +1643,167 @@ static void fill_quad_double_adj(EditFace *efa, struct GHash *gh, int numcuts)
 		facecopy(efa,hold);
 	}	  
 }
+static void fill_quad_double_adj_fan(EditFace *efa, struct GHash *gh, int numcuts)
+{
+	EditEdge *cedge[2]={NULL, NULL};
+	EditVert *v[4], *op, **verts[2];
+	EditFace *hold;
+	short start=0, start2=0, vertsize,i;
+							
+	v[0] = efa->v1;
+	v[1] = efa->v2;
+	v[2] = efa->v3;
+	v[3] = efa->v4;	 
+
+	if(efa->e1->f & SELECT && efa->e2->f & SELECT) {cedge[0] = efa->e1;  cedge[1] = efa->e2; start = 0; start2 = 1; op = efa->v4;}
+	if(efa->e2->f & SELECT && efa->e3->f & SELECT) {cedge[0] = efa->e2;  cedge[1] = efa->e3; start = 1; start2 = 2; op = efa->v1;}
+	if(efa->e3->f & SELECT && efa->e4->f & SELECT) {cedge[0] = efa->e3;  cedge[1] = efa->e4; start = 2; start2 = 3; op = efa->v2;}
+	if(efa->e4->f & SELECT && efa->e1->f & SELECT) {cedge[0] = efa->e4;  cedge[1] = efa->e1; start = 3; start2 = 0; op = efa->v3;}
+
+	
+	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
+	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
+	verts[1] = BLI_ghash_lookup(gh, cedge[1]);
+	//This is the index size of the verts array
+	vertsize = numcuts+2;
+
+	// Is the original v1 the same as the first vert on the selected edge?
+	// if not, the edge is running the opposite direction in this face so flip
+	// the array to the correct direction
+
+	if(verts[0][0] != v[start]){flipvertarray(verts[0],numcuts+2);}
+	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}	
+	/*
+	We should have something like this now
+
+			   end		 start				 
+				3   2   1   0   
+		start2 0|---*---*---|
+				|		   |
+			   1*		   |
+				|		   |
+			   2*		   |	   
+				|		   |
+		 end2  3|-----------|op   
+
+	We will fill this case like this or this (warning horrible ascii art follows)
+			   |---*---*---|
+			   | \  \   \  |
+			   *---\  \  \ |
+			   |   \ \ \  \|
+			   *---- \ \  \ |	   
+			   |    ---  \\\|
+			   |-----------|  
+	*/
+
+	for(i=0;i<=numcuts;i++){
+		hold = addfacelist(op,verts[1][numcuts-i],verts[1][numcuts-i+1],NULL,NULL,NULL);  
+		hold->e1->f2 |= EDGEINNER;
+		facecopy(efa,hold);
+
+		hold = addfacelist(op,verts[0][i],verts[0][i+1],NULL,NULL,NULL);  
+		hold->e3->f2 |= EDGEINNER;
+		facecopy(efa,hold);
+	}	  
+}
+static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numcuts)
+{
+	EditEdge *cedge[2]={NULL, NULL};
+	EditVert *v[4], *op, **verts[2],**inner;
+	EditFace *hold;
+	short start=0, start2=0, vertsize,i;
+	float co[3];
+						
+	v[0] = efa->v1;
+	v[1] = efa->v2;
+	v[2] = efa->v3;
+	v[3] = efa->v4;	 
+
+	if(efa->e1->f & SELECT && efa->e2->f & SELECT) {cedge[0] = efa->e1;  cedge[1] = efa->e2; start = 0; start2 = 1; op = efa->v4;}
+	if(efa->e2->f & SELECT && efa->e3->f & SELECT) {cedge[0] = efa->e2;  cedge[1] = efa->e3; start = 1; start2 = 2; op = efa->v1;}
+	if(efa->e3->f & SELECT && efa->e4->f & SELECT) {cedge[0] = efa->e3;  cedge[1] = efa->e4; start = 2; start2 = 3; op = efa->v2;}
+	if(efa->e4->f & SELECT && efa->e1->f & SELECT) {cedge[0] = efa->e4;  cedge[1] = efa->e1; start = 3; start2 = 0; op = efa->v3;}
+
+	
+	// Point verts[0] and [1] to the array of new verts for cedge[0] and cedge[1]
+	verts[0] = BLI_ghash_lookup(gh, cedge[0]);
+	verts[1] = BLI_ghash_lookup(gh, cedge[1]);
+	//This is the index size of the verts array
+	vertsize = numcuts+2;
+
+	// Is the original v1 the same as the first vert on the selected edge?
+	// if not, the edge is running the opposite direction in this face so flip
+	// the array to the correct direction
+
+	if(verts[0][0] != v[start]){flipvertarray(verts[0],numcuts+2);}
+	if(verts[1][0] != v[start2]){flipvertarray(verts[1],numcuts+2);}	
+	/*
+	We should have something like this now
+
+			   end		 start				 
+				3   2   1   0   
+		start2 0|---*---*---|
+				|		   |
+			   1*		   |
+				|		   |
+			   2*		   |	   
+				|		   |
+		 end2  3|-----------|op   
+
+	We will fill this case like this or this (warning horrible ascii art follows)
+			   |---*-----*---|
+			   | *     /     |
+			   *   \ /       |
+			   |   /*        |
+			   | /	  \	     |
+			   *        \    |	   
+			   |           \ |
+			   |-------------|  
+	*/
+
+	// Add Inner Vert(s)
+	inner = MEM_mallocN(sizeof(EditVert*)*numcuts,"New inner verts");
+	
+	for(i=0;i<numcuts;i++){
+			co[0] = (verts[0][numcuts-i]->co[0] + verts[1][i+1]->co[0] ) / 2 ;
+			co[1] = (verts[0][numcuts-i]->co[1] + verts[1][i+1]->co[1] ) / 2 ;
+			co[2] = (verts[0][numcuts-i]->co[2] + verts[1][i+1]->co[2] ) / 2 ;
+			inner[i] = addvertlist(co);
+	}
+	
+	// Add Corner Quad
+	hold = addfacelist(verts[0][numcuts+1],verts[1][1],inner[0],verts[0][numcuts],NULL,NULL);  
+	hold->e2->f2 |= EDGEINNER;
+	hold->e3->f2 |= EDGEINNER;
+	facecopy(efa,hold);	
+	// Add Bottom Quads
+	hold = addfacelist(verts[0][0],verts[0][1],inner[numcuts-1],op,NULL,NULL);  
+	hold->e2->f2 |= EDGEINNER;
+	facecopy(efa,hold);	
+
+	hold = addfacelist(op,inner[numcuts-1],verts[1][numcuts],verts[1][numcuts+1],NULL,NULL);  
+	hold->e2->f2 |= EDGEINNER;
+	facecopy(efa,hold);		
+	// Add Fill Quads (if # cuts > 1)
+
+	for(i=0;i<numcuts-1;i++){
+		hold = addfacelist(inner[i],verts[1][i+1],verts[1][i+2],inner[i+1],NULL,NULL);  
+		hold->e1->f2 |= EDGEINNER;
+		hold->e3->f2 |= EDGEINNER;
+		facecopy(efa,hold);
+
+		hold = addfacelist(inner[i],inner[i+1],verts[0][numcuts-1-i],verts[0][numcuts-i],NULL,NULL);  
+		hold->e2->f2 |= EDGEINNER;
+		hold->e4->f2 |= EDGEINNER;
+		facecopy(efa,hold);		
+	}	
+
+	
+	MEM_freeN(inner);  
+}
+
+
+
 
 static void fill_tri_double(EditFace *efa, struct GHash *gh, int numcuts)
 {
@@ -2128,7 +2288,9 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	struct GHash *gh;
 	int i,j,edgecount,facetype,hold;
 	float length[4];
-
+	short cornerval=1;
+	
+	cornerval = pupmenu("Quad Corners%t|Path%x1|Innervert%x2|Fan%x3");
 	//Set faces f1 to 0 cause we need it later
 			
 	for(ef=em->faces.first;ef;ef = ef->next){
@@ -2269,8 +2431,12 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					   (ef->e2->f & flag && ef->e4->f & flag)){
 						fill_quad_double_op(ef, gh, numcuts);							  
 					}else{
-						//printf("adj\n");
-						fill_quad_double_adj(ef, gh, numcuts);						  
+						switch(cornerval){
+							case 1:	fill_quad_double_adj_path(ef, gh, numcuts); break;
+							case 2:	fill_quad_double_adj_inner(ef, gh, numcuts); break;
+							case 3:	fill_quad_double_adj_fan(ef, gh, numcuts); break;
+						}
+												  
 					}
 						break;	
 				case 3: ef->f1 = SELECT;
