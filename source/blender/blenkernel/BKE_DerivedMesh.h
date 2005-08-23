@@ -155,7 +155,7 @@ struct DerivedMesh {
 			 * The setDrawOptions is allowed to not set drawSmooth (for example, when lighting
 			 * is disabled), in which case the implementation should draw as smooth shaded.
 			 */
-	void (*drawMappedFaces)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData);
+	void (*drawMappedFaces)(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors);
 
 			/* Draw mapped edges as lines
 			 *  o Only if !setDrawOptions or setDrawOptions(userData, mapped-edge) returns true

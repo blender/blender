@@ -591,7 +591,7 @@ static void initbuttons(void)
 	
 	BIF_resources_init();
 
-	glClearColor(.7, .7, .6, 0.0);
+	glClearColor(.7f, .7f, .6f, 0.0);
 	
 	G.font= BMF_GetFont(BMF_kHelvetica12);
 	G.fonts= BMF_GetFont(BMF_kHelvetica10);

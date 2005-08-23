@@ -1052,50 +1052,6 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 	}
 }
 
-////
-
-static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col)
-{
-	Mesh *me = ob->data;
-	float fr, fg, fb, input = 0.0f;
-	int i;
-
-	if (me->dvert) {
-		for (i=0; i<me->dvert[vert].totweight; i++)
-			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
-				input+=me->dvert[vert].dw[i].weight;		
-	}
-
-	CLAMP(input, 0.0f, 1.0f);
-	
-	weight_to_rgb(input, &fr, &fg, &fb);
-	
-	col[3] = (unsigned char)(fr * 255.0f);
-	col[2] = (unsigned char)(fg * 255.0f);
-	col[1] = (unsigned char)(fb * 255.0f);
-	col[0] = 255;
-}
-static unsigned char *calc_weightpaint_colors(Object *ob) 
-{
-	Mesh *me = ob->data;
-	MFace *mf = me->mface;
-	unsigned char *wtcol;
-	int i;
-	
-	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
-	
-	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
-	for (i=0; i<me->totface; i++, mf++){
-		calc_weightpaint_vert_color(ob, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
-		if (mf->v4)
-			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
-	}
-	
-	return wtcol;
-}
-
 /* ************** DRAW MESH ****************** */
 
 /* First section is all the "simple" draw routines, 
@@ -1268,7 +1224,7 @@ static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned 
 	unsigned char *cols[2];
 	cols[0] = baseCol;
 	cols[1] = selCol;
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, cols);
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, cols, 0);
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -1578,7 +1534,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glEnable(GL_LIGHTING);
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL);
+		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0);
 
 		glFrontFace(GL_CCW);
 		glDisable(GL_LIGHTING);
@@ -1737,35 +1693,32 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 	else if(dt==OB_SHADED) {
 		if( (G.f & G_WEIGHTPAINT)) {
-			unsigned char *wtcol = calc_weightpaint_colors(ob);
-			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, wtcol, 0);
-			MEM_freeN (wtcol);
+			dm->drawMappedFaces(dm, NULL, NULL, 1);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
-			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, (unsigned char*) me->mcol, 0);
+			dm->drawMappedFaces(dm, NULL, NULL, 1);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->tface) {
-			tface_to_mcol(me);
-			baseDM->drawFacesColored(baseDM, me->flag&ME_TWOSIDED, (unsigned char*) me->mcol, 0);
-			MEM_freeN(me->mcol);
-			me->mcol= 0;
+			dm->drawMappedFaces(dm, NULL, NULL, 1);
 		}
 		else {
-			unsigned int *obCol1, *obCol2;
-
 			dl = ob->disp.first;
 			if (!dl || !dl->col1) {
 				shadeDispList(ob);
 				dl = find_displist(&ob->disp, DL_VERTCOL);
 			}
-			obCol1 = dl->col1;
-			obCol2 = dl->col2;
 
 			if ((G.vd->flag&V3D_SELECT_OUTLINE) && (ob->flag&SELECT) && !draw_wire) {
 				draw_mesh_object_outline(ob, dm);
 			}
 
-			dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
+				/* False for dupliframe objects */
+			if (dl) {
+				unsigned int *obCol1 = dl->col1;
+				unsigned int *obCol2 = dl->col2;
+
+				dm->drawFacesColored(dm, me->flag&ME_TWOSIDED, (unsigned char*) obCol1, (unsigned char*) obCol2);
+			}
 
 			if(ob->flag & SELECT) {
 				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
@@ -3848,7 +3801,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	cpack(0);
 
 	if (facecol) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1, 0);
 
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -3860,7 +3813,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 
 		return 1+G.totface;
 	} else {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 0, 0);
 		return 1;
 	}
 }
@@ -3882,7 +3835,7 @@ static void bbs_mesh_solid(Object *ob)
 	DerivedMesh *dm = mesh_get_derived_final(ob, &dmNeedsFree);
 	
 	glColor3ub(0, 0, 0);
-	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, ob->data);
+	dm->drawMappedFaces(dm, bbs_mesh_solid__setDrawOpts, ob->data, 0);
 	
 	if (dmNeedsFree) {
 		dm->release(dm);

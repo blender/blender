@@ -54,8 +54,6 @@ void set_wpaint(void);
 void weight_paint(void);
 void wpaint_undo (void);
 void copy_wpaint_undo (struct MDeformVert *dverts, int dcount);
-void weight_to_rgb(float input, float *fr, float *fg, float *fb);
-
 
 #endif /*  BDR_VPAINT_H */
 

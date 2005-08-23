@@ -440,35 +440,6 @@ void sample_vpaint()	/* frontbuf */
 	addqueue(curarea->win, REDRAW, 1); // needed for when panel is open...
 }
 
-/* only used in drawobject.c now... */
-void weight_to_rgb(float input, float *fr, float *fg, float *fb)
-{
-	float blend;
-	
-	blend= ((input/2.0f)+0.5f);
-	
-	if (input<=0.25f){	// blue->cyan
-		*fr= 0.0f;
-		*fg= blend*input*4.0f;
-		*fb= blend;
-	}
-	else if (input<=0.50f){	// cyan->green
-		*fr= 0.0f;
-		*fg= blend;
-		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
-	}
-	else if (input<=0.75){	// green->yellow
-		*fr= blend * ((input-0.50f)*4.0f);
-		*fg= blend;
-		*fb= 0.0f;
-	}
-	else if (input<=1.0){ // yellow->red
-		*fr= blend;
-		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
-		*fb= 0.0f;
-	}
-}
-
 void init_vertexpaint()
 {
 	
@@ -1352,14 +1323,20 @@ void set_wpaint(void)		/* toggle */
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	
+		/* Weightpaint works by overriding colors in mesh,
+		 * so need to make sure we recalc on enter and
+		 * exit (exit needs doing regardless because we
+		 * should redeform).
+		 */
+	if (me) {
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	}
+
 	if(G.f & G_WEIGHTPAINT) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
 	}
 	else {
 		freefastshade();	/* to be sure */
-		if (me) {
-			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-		}
 		if(!(G.f & G_FACESELECT))
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	}

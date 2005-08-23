@@ -170,7 +170,7 @@ void schrijfplaatje(char *name)
 	}
 
 	if(ibuf == 0) {
-		ibuf= IMB_allocImBuf(R.rectx, R.recty, R.r.planes, 0, 0);
+		ibuf= IMB_allocImBuf(R.rectx, R.recty, (char) R.r.planes, 0, 0);
 	}
 
 	if(ibuf) {
@@ -259,7 +259,7 @@ void persptoetsen(unsigned short event)
 			view3d_set_1_to_1_viewborder(G.vd);
 		} else {
 			if (G.vd->persp==2) {
-				G.vd->camzoom= 0.0;
+				G.vd->camzoom= 0;
 			} else {
 				G.vd->dist= 10.0;
 			}
@@ -934,7 +934,7 @@ int blenderqread(unsigned short event, short val)
 					}
 				}
 			
-				time= (PIL_check_seconds_timer()-stime)*1000;
+				time= (int) ((PIL_check_seconds_timer()-stime)*1000);
 				
 				if(event==1) sprintf(tmpstr, "draw %%t|%d ms", time);
 				if(event==2) sprintf(tmpstr, "d+sw %%t|%d ms", time);

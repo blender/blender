@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <string.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -155,11 +157,11 @@ static void meshDM_drawVerts(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
-	int a;
+	int i;
 
 	glBegin(GL_POINTS);
-	for(a=0; a<me->totvert; a++) {
-		glVertex3fv(mdm->verts[ a].co);
+	for(i=0; i<me->totvert; i++) {
+		glVertex3fv(mdm->verts[i].co);
 	}
 	glEnd();
 }
@@ -201,13 +203,13 @@ static void meshDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->me;
 	MEdge *medge= me->medge;
-	int a;
+	int i;
 		
 	glBegin(GL_LINES);
-	for(a=me->totedge; a>0; a--, medge++) {
+	for(i=0; i<me->totedge; i++, medge++) {
 		if ((medge->flag&ME_EDGEDRAW) && (drawLooseEdges || !(medge->flag&ME_LOOSEEDGE))) {
-			glVertex3fv(mdm->verts[ medge->v1].co);
-			glVertex3fv(mdm->verts[ medge->v2].co);
+			glVertex3fv(mdm->verts[medge->v1].co);
+			glVertex3fv(mdm->verts[medge->v2].co);
 		}
 	}
 	glEnd();
@@ -233,10 +235,10 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 	Mesh *me= mdm->me;
 	MFace *mface = me->mface;
 	MEdge *medge= me->medge;
-	int a;
+	int i;
 
 	glBegin(GL_LINES);
-	for(a=me->totedge; a>0; a--, medge++) {
+	for (i=0; i<me->totedge; i++, medge++) {
 		if (medge->flag&ME_LOOSEEDGE) {
 			glVertex3fv(mdm->verts[medge->v1].co);
 			glVertex3fv(mdm->verts[medge->v2].co);
@@ -367,11 +369,11 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 	MFace *mface= me->mface;
 	TFace *tface = me->tface;
 	float *nors = mdm->nors;
-	int a;
+	int i;
 
-	for (a=0; a<me->totface; a++) {
-		MFace *mf= &mface[a];
-		TFace *tf = tface?&tface[a]:NULL;
+	for (i=0; i<me->totface; i++) {
+		MFace *mf= &mface[i];
+		TFace *tf = tface?&tface[i]:NULL;
 		int flag;
 		unsigned char *cp= NULL;
 		
@@ -383,12 +385,12 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 			if (tf) {
 				cp= (unsigned char*) tf->col;
 			} else if (me->mcol) {
-				cp= (unsigned char*) &me->mcol[a*4];
+				cp= (unsigned char*) &me->mcol[i*4];
 			}
 		}
 
 		if (!(mf->flag&ME_SMOOTH)) {
-			glNormal3fv(&nors[a*3]);
+			glNormal3fv(&nors[i*3]);
 		}
 
 		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
@@ -416,38 +418,58 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		glEnd();
 	}
 }
-static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData) 
+static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) 
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me = mdm->me;
 	MVert *mvert= mdm->verts;
 	MFace *mface= me->mface;
 	float *nors= mdm->nors;
-	int a;
+	int i;
 
-	for (a=0; a<me->totface; a++) {
-		MFace *mf= &mface[a];
+	for (i=0; i<me->totface; i++) {
+		MFace *mf= &mface[i];
 		int drawSmooth = 1;
 
-		if (!setDrawOptions || setDrawOptions(userData, a, &drawSmooth)) {
+		if (!setDrawOptions || setDrawOptions(userData, i, &drawSmooth)) {
+			unsigned char *cp = NULL;
+
+			if (useColors) {
+				if (me->tface) {
+					cp= (unsigned char*) me->tface[i].col;
+				} else if (me->mcol) {
+					cp= (unsigned char*) &me->mcol[i*4];
+				}
+			}
+
 			glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
 
 			if (!drawSmooth) {
-				glNormal3fv(&nors[a*3]);
+				glNormal3fv(&nors[i*3]);
 
+				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				glVertex3fv(mvert[mf->v1].co);
+				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				glVertex3fv(mvert[mf->v2].co);
+				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				glVertex3fv(mvert[mf->v3].co);
-				if(mf->v4) glVertex3fv(mvert[mf->v4].co);
+				if(mf->v4) {
+					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+					glVertex3fv(mvert[mf->v4].co);
+				}
 			} else {
+				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				glNormal3sv(mvert[mf->v1].no);
 				glVertex3fv(mvert[mf->v1].co);
+				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				glNormal3sv(mvert[mf->v2].no);
 				glVertex3fv(mvert[mf->v2].co);
+				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				glNormal3sv(mvert[mf->v3].no);
 				glVertex3fv(mvert[mf->v3].co);
 				if(mf->v4) {
+					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					glNormal3sv(mvert[mf->v4].no);
 					glVertex3fv(mvert[mf->v4].co);
 				}
@@ -703,7 +725,7 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 			eve->prev = preveve;
 	}
 }
-static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData)
+static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
@@ -1219,7 +1241,7 @@ static void ssDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf, i
 		glEnd();
 	}
 }
-static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData) 
+static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) 
 {
 	SSDerivedMesh *ssdm = (SSDerivedMesh*) dm;
 	DispListMesh *dlm = ssdm->dlm;
@@ -1235,27 +1257,49 @@ static void ssDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 		if (mf->flag&ME_FACE_STEPINDEX) index++;
 
 		if (index!=-1 && (!setDrawOptions || setDrawOptions(userData, index, &drawSmooth))) {
+			unsigned char *cp = NULL;
+
+			if (useColors) {
+				if (dlm->tface) {
+					cp= (unsigned char*) dlm->tface[i].col;
+				} else if (dlm->mcol) {
+					cp= (unsigned char*) &dlm->mcol[i*4];
+				}
+			}
+
 			glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+
 			if (!drawSmooth) {
 				glNormal3fv(&nors[i*3]);
 
+				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				glVertex3fv(mvert[mf->v1].co);
+				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				glVertex3fv(mvert[mf->v2].co);
+				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				glVertex3fv(mvert[mf->v3].co);
-				if(mf->v4) glVertex3fv(mvert[mf->v4].co);
+				if(mf->v4) {
+					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+					glVertex3fv(mvert[mf->v4].co);
+				}
 			} else {
+				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
 				glNormal3sv(mvert[mf->v1].no);
 				glVertex3fv(mvert[mf->v1].co);
+				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
 				glNormal3sv(mvert[mf->v2].no);
 				glVertex3fv(mvert[mf->v2].co);
+				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
 				glNormal3sv(mvert[mf->v3].no);
 				glVertex3fv(mvert[mf->v3].co);
 				if(mf->v4) {
+					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
 					glNormal3sv(mvert[mf->v4].no);
 					glVertex3fv(mvert[mf->v4].co);
 				}
 			}
+
 			glEnd();
 		}
 	}
@@ -1637,6 +1681,82 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
 
 /***/
 
+
+	/* Something of a hack, at the moment deal with weightpaint
+	 * by tucking into colors during modifier eval, only in
+	 * wpaint mode. Works ok but need to make sure recalc
+	 * happens on enter/exit wpaint.
+	 */
+
+static void weight_to_rgb(float input, float *fr, float *fg, float *fb)
+{
+	float blend;
+	
+	blend= ((input/2.0f)+0.5f);
+	
+	if (input<=0.25f){	// blue->cyan
+		*fr= 0.0f;
+		*fg= blend*input*4.0f;
+		*fb= blend;
+	}
+	else if (input<=0.50f){	// cyan->green
+		*fr= 0.0f;
+		*fg= blend;
+		*fb= blend*(1.0f-((input-0.25f)*4.0f)); 
+	}
+	else if (input<=0.75){	// green->yellow
+		*fr= blend * ((input-0.50f)*4.0f);
+		*fg= blend;
+		*fb= 0.0f;
+	}
+	else if (input<=1.0){ // yellow->red
+		*fr= blend;
+		*fg= blend * (1.0f-((input-0.75f)*4.0f)); 
+		*fb= 0.0f;
+	}
+}
+static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col)
+{
+	Mesh *me = ob->data;
+	float fr, fg, fb, input = 0.0f;
+	int i;
+
+	if (me->dvert) {
+		for (i=0; i<me->dvert[vert].totweight; i++)
+			if (me->dvert[vert].dw[i].def_nr==ob->actdef-1)
+				input+=me->dvert[vert].dw[i].weight;		
+	}
+
+	CLAMP(input, 0.0f, 1.0f);
+	
+	weight_to_rgb(input, &fr, &fg, &fb);
+	
+	col[3] = (unsigned char)(fr * 255.0f);
+	col[2] = (unsigned char)(fg * 255.0f);
+	col[1] = (unsigned char)(fb * 255.0f);
+	col[0] = 255;
+}
+static unsigned char *calc_weightpaint_colors(Object *ob) 
+{
+	Mesh *me = ob->data;
+	MFace *mf = me->mface;
+	unsigned char *wtcol;
+	int i;
+	
+	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
+	
+	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
+	for (i=0; i<me->totface; i++, mf++){
+		calc_weightpaint_vert_color(ob, mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
+		if (mf->v4)
+			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
+	}
+	
+	return wtcol;
+}
+
 static void clear_mesh_caches(Object *ob)
 {
 	Mesh *me= ob->data;
@@ -1661,13 +1781,28 @@ static void clear_mesh_caches(Object *ob)
 
 static void mesh_build_data(Object *ob)
 {
+	Mesh *me = ob->data;
 	float min[3], max[3];
 
 	if(ob->flag&OB_FROMDUPLI) return;
 
 	clear_mesh_caches(ob);
 
-	mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+	if( (G.f & G_WEIGHTPAINT)) {
+		MCol *mcol = me->mcol;
+		TFace *tface =  me->tface;
+
+		me->tface = NULL;
+		me->mcol = (MCol*) calc_weightpaint_colors(ob);
+
+		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+
+		MEM_freeN(me->mcol);
+		me->mcol = mcol;
+		me->tface = tface;
+	} else {
+		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+	}
 
 	INIT_MINMAX(min, max);
 
