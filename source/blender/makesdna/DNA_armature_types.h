@@ -126,10 +126,7 @@ typedef struct bArmature {
 #define		BONE_HIDDEN_A		1024
 			/* multiplies vgroup with envelope */
 #define		BONE_MULT_VG_ENV	2048
-
-/* bone->flag  bits */
-#define		BONE_IK_TOPARENTBIT		4
-#define		BONE_HIDDENBIT			6
+#define		BONE_NO_DEFORM		4096
 
 
 enum {

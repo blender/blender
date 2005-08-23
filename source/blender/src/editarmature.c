@@ -1181,7 +1181,6 @@ static EditBone *add_editbone(void)
 	bone->rad_head= 0.25;
 	bone->rad_tail= 0.1;
 	bone->segments= 1;
-	bone->boneclass = BONE_SKINNABLE;
 	
 	return bone;
 }
@@ -2017,7 +2016,7 @@ int ik_chain_looper(Object *ob, Bone *bone, void *data,
 
 static int bone_skinnable(Object *ob, Bone *bone, void *data)
 {
-    /* Bones that are not of boneclass BONE_UNSKINNABLE
+    /* Bones that are deforming
      * are regarded to be "skinnable" and are eligible for
      * auto-skinning.
      *
@@ -2041,7 +2040,7 @@ static int bone_skinnable(Object *ob, Bone *bone, void *data)
      */
     Bone ***hbone;
 
-    if ( bone->boneclass != BONE_UNSKINNABLE ) {
+    if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (data != NULL) {
 			hbone = (Bone ***) data;
             **hbone = bone;
@@ -2058,7 +2057,7 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data)
      * same name as bone (provided the bone is skinnable). 
 	 * If such a vertex group aleady exist the routine exits.
      */
-	if ( bone_skinnable(ob, bone, NULL) ) {
+	if (!(bone->flag & BONE_NO_DEFORM)) {
 		if (!get_named_vertexgroup(ob,bone->name)) {
 			add_defgroup_name(ob, bone->name);
 			return 1;

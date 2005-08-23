@@ -678,7 +678,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	
 	/* initialize B_bone matrices */
 	for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->boneclass==BONE_SKINNABLE)
+		if(!(pchan->bone->flag & BONE_NO_DEFORM))
 			if(pchan->bone->segments>1)
 				pchan_b_bone_defmats(pchan);
 	}
@@ -694,10 +694,11 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 				defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
 				for (i=0,dg=target->defbase.first; dg; i++,dg=dg->next) {
 					defnrToPC[i] = get_pose_channel(armOb->pose, dg->name);
-					/* exclude non-skinnable bones */
-					if(defnrToPC[i])
-						if(defnrToPC[i]->bone->boneclass!=BONE_SKINNABLE)
+					/* exclude non-deforming bones */
+					if(defnrToPC[i]) {
+						if(defnrToPC[i]->bone->flag & BONE_NO_DEFORM)
 							defnrToPC[i]= NULL;
+					}
 				}
 			}
 		}
@@ -736,7 +737,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		}
 		else if(use_envelope) {
 			for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if(pchan->bone->boneclass==BONE_SKINNABLE)
+				if(!(pchan->bone->flag & BONE_NO_DEFORM))
 					contrib+= dist_bone_deform(pchan, vec, co);
 			}
 		}
