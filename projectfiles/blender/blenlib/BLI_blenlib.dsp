@@ -163,6 +163,10 @@ SOURCE=..\..\..\source\blender\blenlib\intern\dynlib.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\blenlib\intern\edgehash.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\blenlib\intern\fileops.c
 # End Source File
 # Begin Source File
@@ -232,6 +236,10 @@ SOURCE=..\..\..\source\blender\blenlib\BLI_blenlib.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\blenlib\intern\BLI_callbacks.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\blenlib\BLI_edgehash.h
 # End Source File
 # Begin Source File
 
