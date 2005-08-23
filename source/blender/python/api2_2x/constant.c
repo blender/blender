@@ -34,6 +34,8 @@
 
 #include "gen_utils.h"
 
+PyTypeObject constant_Type;
+
 //------------------METHOD IMPLEMENTATIONS-----------------------------
 //------------------------constant.items()
 //Returns a list of key:value pairs like dict.items()

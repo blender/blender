@@ -38,7 +38,7 @@
 //-------------------TYPE CHECKS---------------------------------
 #define BPy_Constant_Check(v) ((v)->ob_type==&constant_Type)
 //-------------------TYPEOBJECT----------------------------------
-PyTypeObject constant_Type;
+extern PyTypeObject constant_Type;
 //-------------------STRUCT DEFINITION---------------------------
 typedef struct {
 	PyObject_HEAD 
