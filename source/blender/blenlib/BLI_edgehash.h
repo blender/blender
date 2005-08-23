@@ -36,7 +36,9 @@
 #define BLI_EDGEHASH_H
 
 struct EdgeHash;
+struct EdgeHashIterator;
 typedef struct EdgeHash EdgeHash;
+typedef struct EdgeHashIterator EdgeHashIterator;
 
 typedef	void	(*EdgeHashFreeFP)(void *key);
 
@@ -68,6 +70,30 @@ int				BLI_edgehash_size		(EdgeHash *eh);
 
 	/* Remove all edges from hash. */
 void			BLI_edgehash_clear		(EdgeHash *eh, EdgeHashFreeFP valfreefp);
+
+/***/
+
+	/**
+	 * Create a new EdgeHashIterator. The hash table must not be mutated
+	 * while the iterator is in use, and the iterator will step exactly
+	 * BLI_edgehash_size(gh) times before becoming done.
+	 */
+EdgeHashIterator*	BLI_edgehashIterator_new		(EdgeHash *eh);
+
+	/* Free an EdgeHashIterator. */
+void				BLI_edgehashIterator_free		(EdgeHashIterator *ehi);
+
+	/* Retrieve the key from an iterator. */
+void 				BLI_edgehashIterator_getKey		(EdgeHashIterator *ehi, int *v0_r, int *v1_r);
+	
+	/* Retrieve the value from an iterator. */
+void*				BLI_edgehashIterator_getValue	(EdgeHashIterator *ehi);
+
+	/* Steps the iterator to the next index. */
+void				BLI_edgehashIterator_step		(EdgeHashIterator *ehi);
+
+	/* Determine if an iterator is done. */
+int					BLI_edgehashIterator_isDone		(EdgeHashIterator *ehi);
 
 #endif
 

@@ -5,6 +5,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_arithb.h"
+#include "BLI_edgehash.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -803,6 +804,8 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	dmd->faceCount = 0;
 	if(LOD_LoadMesh(&lod) ) {
 		if( LOD_PreprocessMesh(&lod) ) {
+			EdgeHash *eh;
+			EdgeHashIterator *ehi;
 
 			/* we assume the decim_faces tells how much to reduce */
 
@@ -823,6 +826,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				VECCOPY(mv->co, vbCo);
 			}
 
+			eh = BLI_edgehash_new();
 			for(a=0; a<lod.face_num; a++) {
 				MFace *mf = &ndlm->mface[a];
 				int *tri = &lod.triangle_index_buffer[a*3];
@@ -830,7 +834,28 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				mf->v2 = tri[1];
 				mf->v3 = tri[2];
 				test_index_face(mface, NULL, NULL, 3);
+
+				if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
+					BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
+				if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
+					BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
+				if (!BLI_edgehash_haskey(eh, mf->v1, mf->v3))
+					BLI_edgehash_insert(eh, mf->v1, mf->v3, NULL);
 			}
+
+			ndlm->totedge = BLI_edgehash_size(eh);
+			ndlm->medge = MEM_callocN(ndlm->totedge*sizeof(MEdge), "mdge");
+			ehi = BLI_edgehashIterator_new(eh);
+			for (a=0; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
+				MEdge *med = &ndlm->medge[a++];
+
+				BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
+
+				med->flag = ME_EDGEDRAW|ME_EDGERENDER;
+			}
+			BLI_edgehashIterator_free(ehi);
+
+			BLI_edgehash_free(eh, NULL);
 		}
 		else {
 			modifier_setError(md, "Out of memory.");

@@ -167,3 +167,54 @@ void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 	MEM_freeN(eh);
 }
 
+
+/***/
+
+struct EdgeHashIterator {
+	EdgeHash *eh;
+	int curBucket;
+	Entry *curEntry;
+};
+
+EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh) {
+	EdgeHashIterator *ehi= malloc(sizeof(*ehi));
+	ehi->eh= eh;
+	ehi->curEntry= NULL;
+	ehi->curBucket= -1;
+	while (!ehi->curEntry) {
+		ehi->curBucket++;
+		if (ehi->curBucket==ehi->eh->nbuckets)
+			break;
+		ehi->curEntry= ehi->eh->buckets[ehi->curBucket];
+	}
+	return ehi;
+}
+void BLI_edgehashIterator_free(EdgeHashIterator *ehi) {
+	free(ehi);
+}
+
+void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, int *v0_r, int *v1_r) {
+	if (ehi->curEntry) {
+		*v0_r = ehi->curEntry->v0;
+		*v1_r = ehi->curEntry->v1;
+	}
+}
+void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi) {
+	return ehi->curEntry?ehi->curEntry->val:NULL;
+}
+
+void BLI_edgehashIterator_step(EdgeHashIterator *ehi) {
+	if (ehi->curEntry) {
+        ehi->curEntry= ehi->curEntry->next;
+		while (!ehi->curEntry) {
+			ehi->curBucket++;
+			if (ehi->curBucket==ehi->eh->nbuckets)
+				break;
+			ehi->curEntry= ehi->eh->buckets[ehi->curBucket];
+		}
+	}
+}
+int BLI_edgehashIterator_isDone(EdgeHashIterator *ehi) {
+	return !ehi->curEntry;
+}
+
