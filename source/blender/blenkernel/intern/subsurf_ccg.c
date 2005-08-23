@@ -776,40 +776,91 @@ static void ccgdm_getVertCos(DerivedMesh *dm, float (*cos)[3]) {
 	CCGVertIterator *vi;
 	CCGEdgeIterator *ei;
 	CCGFaceIterator *fi;
-
-	i = 0;
+	CCGFace **faceMap2;
+	CCGEdge **edgeMap2;
+	CCGVert **vertMap2;
+	int index, totvert, totedge, totface;
+	
+	totvert = ccgSubSurf_getNumVerts(ss);
+	vertMap2 = MEM_mallocN(totvert*sizeof(*vertMap2), "vertmap");
 	vi = ccgSubSurf_getVertIterator(ss);
 	for (; !ccgVertIterator_isStopped(vi); ccgVertIterator_next(vi)) {
 		CCGVert *v = ccgVertIterator_getCurrent(vi);
-		VecCopyf(cos[i++], ccgSubSurf_getVertData(ss, v));
+
+		if (ccgdm->fromEditmesh) {
+			vertMap2[ccgDM_getVertMapIndex(ccgdm,ss,v)] = v;
+		} else {
+			vertMap2[(int) ccgSubSurf_getVertVertHandle(ss, v)] = v;
+		}
 	}
 	ccgVertIterator_free(vi);
 
+	totedge = ccgSubSurf_getNumEdges(ss);
+	edgeMap2 = MEM_mallocN(totedge*sizeof(*edgeMap2), "edgemap");
 	ei = ccgSubSurf_getEdgeIterator(ss);
-	for (; !ccgEdgeIterator_isStopped(ei); ccgEdgeIterator_next(ei)) {
+	for (i=0; !ccgEdgeIterator_isStopped(ei); i++,ccgEdgeIterator_next(ei)) {
 		CCGEdge *e = ccgEdgeIterator_getCurrent(ei);
-		int x;
 
-		for (x=1; x<edgeSize-1; x++)
-			VecCopyf(cos[i++], ccgSubSurf_getEdgeData(ss, e, x));
+		if (ccgdm->fromEditmesh) {
+			edgeMap2[ccgDM_getEdgeMapIndex(ccgdm,ss,e)] = e;
+		} else {
+			edgeMap2[(int) ccgSubSurf_getEdgeEdgeHandle(ss, e)] = e;
+		}
 	}
-	ccgEdgeIterator_free(ei);
 
+	totface = ccgSubSurf_getNumFaces(ss);
+	faceMap2 = MEM_mallocN(totface*sizeof(*faceMap2), "facemap");
 	fi = ccgSubSurf_getFaceIterator(ss);
 	for (; !ccgFaceIterator_isStopped(fi); ccgFaceIterator_next(fi)) {
 		CCGFace *f = ccgFaceIterator_getCurrent(fi);
+
+		if (ccgdm->fromEditmesh) {
+			faceMap2[ccgDM_getFaceMapIndex(ccgdm,ss,f)] = f;
+		} else {
+			faceMap2[(int) ccgSubSurf_getFaceFaceHandle(ss, f)] = f;
+		}
+	}
+	ccgFaceIterator_free(fi);
+
+	i = 0;
+	for (index=0; index<totface; index++) {
+		CCGFace *f = faceMap2[index];
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 
 		VecCopyf(cos[i++], ccgSubSurf_getFaceCenterData(ss, f));
-		for (S=0; S<numVerts; S++)
-			for (x=1; x<gridSize-1; x++)
+		
+		for (S=0; S<numVerts; S++) {
+			for (x=1; x<gridSize-1; x++) {
 				VecCopyf(cos[i++], ccgSubSurf_getFaceGridEdgeData(ss, f, S, x));
-		for (S=0; S<numVerts; S++)
-			for (y=1; y<gridSize-1; y++)
-				for (x=1; x<gridSize-1; x++)
+			}
+		}
+
+		for (S=0; S<numVerts; S++) {
+			for (y=1; y<gridSize-1; y++) {
+				for (x=1; x<gridSize-1; x++) {
 					VecCopyf(cos[i++], ccgSubSurf_getFaceGridData(ss, f, S, x, y));
+				}
+			}
+		}
 	}
-	ccgFaceIterator_free(fi);
+
+	for (index=0; index<totedge; index++) {
+		CCGEdge *e= edgeMap2[index];
+		int x;
+
+		for (x=1; x<edgeSize-1; x++) {
+			VecCopyf(cos[i++], ccgSubSurf_getEdgeData(ss, e, x));
+		}
+	}
+
+	for (index=0; index<totvert; index++) {
+		CCGVert *v = vertMap2[index];
+		VecCopyf(cos[i++], ccgSubSurf_getVertData(ss, v));
+	}
+
+	MEM_freeN(vertMap2);
+	MEM_freeN(edgeMap2);
+	MEM_freeN(faceMap2);
 }
 static void ccgDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;

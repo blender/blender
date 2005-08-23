@@ -156,6 +156,8 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
 		}
 		eh->buckets[i]= NULL;
 	}
+
+	eh->nentries= 0;
 }
 
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp) {
