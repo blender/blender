@@ -441,11 +441,15 @@ ifeq ($(OS),windows)
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
 
     BINTARGETS = blenderdynamic
-	ifneq ($(FREE_WINDOWS),true)
-	    BINTARGETS += blenderplayer
-		BINTARGETS += blenderdynplayer
-	    BINTARGETS += plugin
-	endif
+    ifeq ($(FREE_WINDOWS),true)
+        ifneq ($(NAN_NO_KETSJI),true)
+            BINTARGETS += blenderplayer
+        endif
+    else
+        BINTARGETS += blenderplayer
+        BINTARGETS += blenderdynplayer
+        BINTARGETS += plugin
+    endif
 
     PULIB += $(OCGDIR)/blender/icons/$(DEBUG_DIR)winblender.res
     PULIB += $(NAN_ZLIB)/lib/libz.a
