@@ -115,4 +115,8 @@ ifeq ($(INTERNATIONAL), true)
     CPPFLAGS += -DINTERNATIONAL
 endif
 
+ifeq ($(NAN_TWEAK_MODE), true)
+    CPPFLAGS += -DTWEAK_MODE
+endif
+
 CPPFLAGS += -I$(OPENGL_HEADERS)
