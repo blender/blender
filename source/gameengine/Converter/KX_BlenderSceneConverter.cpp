@@ -41,7 +41,6 @@
 #include "KX_PhysicsEngineEnums.h"
 #include "PHY_IPhysicsEnvironment.h"
 #include "KX_KetsjiEngine.h"
-#include "Object.h"
 #include "KX_IPhysicsController.h"
 
 #include "DummyPhysicsEnvironment.h"
