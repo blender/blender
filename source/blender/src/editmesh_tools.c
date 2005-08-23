@@ -2288,9 +2288,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	struct GHash *gh;
 	int i,j,edgecount,facetype,hold;
 	float length[4];
-	short cornerval=1;
+	extern short cornertype;
 	
-	cornerval = pupmenu("Quad Corners%t|Path%x1|Innervert%x2|Fan%x3");
 	//Set faces f1 to 0 cause we need it later
 			
 	for(ef=em->faces.first;ef;ef = ef->next){
@@ -2368,9 +2367,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		}	
 	}
 
-
-
-
 	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp); 
 
 	// If we are knifing, We only need the selected edges that were cut, so deselect if it was not cut
@@ -2431,10 +2427,10 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					   (ef->e2->f & flag && ef->e4->f & flag)){
 						fill_quad_double_op(ef, gh, numcuts);							  
 					}else{
-						switch(cornerval){
-							case 1:	fill_quad_double_adj_path(ef, gh, numcuts); break;
-							case 2:	fill_quad_double_adj_inner(ef, gh, numcuts); break;
-							case 3:	fill_quad_double_adj_fan(ef, gh, numcuts); break;
+						switch(cornertype){
+							case 0:	fill_quad_double_adj_path(ef, gh, numcuts); break;
+							case 1:	fill_quad_double_adj_inner(ef, gh, numcuts); break;
+							case 2:	fill_quad_double_adj_fan(ef, gh, numcuts); break;
 						}
 												  
 					}

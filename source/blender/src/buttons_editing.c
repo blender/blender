@@ -155,6 +155,7 @@ static short degr= 90, step= 9, turn= 1;
 static float extr_offs= 1.0;
 static float editbutweight=1.0;
 short editbutflag= 1;
+short cornertype = 0;
 float doublimit= 0.001, editbutvweight=1;
 float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
 short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
@@ -2528,11 +2529,15 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Short",		    50,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
 
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
-	uiDefBut(block, BUT,B_FRACSUBDIV, "Fract Subd",	170,195,85,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
 
-	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",		10,175,80,19, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
-	uiDefBut(block, BUT,B_HASH,"Hash",				90,175,80,19, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
-	uiDefBut(block, BUT,B_XSORT,"Xsort",			170,175,85,19, 0, 0, 0, 0, 0, "Sorts selected vertice data in the X direction");
+	uiDefButS(block, MENU, B_DIFF, "Corner Cut Type %t|Path %x0|Innervert %x1|Fan %x2", 
+												170, 195, 85, 19, &cornertype, 0, 0, 0, 0, "Choose Quad Corner Cut Type");	
+
+	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",		10,175,60,19, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
+	uiDefBut(block, BUT,B_HASH,"Hash",				70,175,60,19, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
+	uiDefBut(block, BUT,B_XSORT,"Xsort",			130,175,60,19, 0, 0, 0, 0, 0, "Sorts selected vertice data in the X direction");
+	uiDefBut(block, BUT,B_FRACSUBDIV, "Fractal",	190,175,65,19, 0, 0, 0, 0, 0, "Subdivides selected faces with a random factor");
+
 
 	uiDefBut(block, BUT,B_TOSPHERE,"To Sphere",		10,155,80,19, 0, 0, 0, 0, 0, "Moves selected vertices outwards into a spherical shape");
 	uiDefBut(block, BUT,B_VERTEXSMOOTH,"Smooth",	90,155,80,19, 0, 0, 0, 0, 0, "Flattens angles of selected faces");
