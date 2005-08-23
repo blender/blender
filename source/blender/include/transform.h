@@ -105,6 +105,11 @@ typedef struct TransDataExtension {
 	float  obmat[3][3];	 /* Object matrix */  
 } TransDataExtension;
 
+typedef struct TransData2D {
+	float loc[3];		/* Location of data used to transform (x,y,0) */
+	float *loc2d;		/* Pointer to real 2d location of data */
+} TransData2D;
+
 typedef struct TransData {
 	float  dist;         /* Distance needed to affect element (for Proportionnal Editing)                  */
 	float  rdist;        /* Distance to the nearest element (for Proportionnal Editing)                    */
@@ -135,6 +140,7 @@ typedef struct TransInfo {
     int         total;          /* total number of transformed data     */
     TransData  *data;           /* transformed data (array)             */
 	TransDataExtension *ext;	/* transformed data extension (array)   */
+	TransData2D *data2d;		/* transformed data for 2d (array)      */
     TransCon    con;            /* transformed constraint               */
     NumInput    num;            /* numerical input                      */
     char        redraw;         /* redraw flag                          */
@@ -147,9 +153,13 @@ typedef struct TransInfo {
 	short       idx_max;		/* maximum index on the input vector	*/
 	float		snap[3];		/* Snapping Gears						*/
 	
-	float		viewmat[4][4];	/* copy from G.vd, prevents feedback    */
-	float		viewinv[4][4];
+	float		viewmat[4][4];	/* copy from G.vd, prevents feedback,   */
+	float		viewinv[4][4];  /* and to make sure we don't have to    */
+	float		persmat[4][4];  /* access G.vd from other space types   */
 	float		persinv[4][4];
+	short		persp;
+	short		around;
+	char		spacetype;		/* spacetype where transforming is      */
 	
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
@@ -184,6 +194,8 @@ typedef struct TransInfo {
 #define T_CAMERA		16
 		// when shift pressed, higher resolution transform. cannot rely on G.qual, need event!
 #define T_SHIFT_MOD		32
+	 	// trans on points, having no rotation/scale 
+#define T_POINTS		64
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	128
 
@@ -193,11 +205,14 @@ typedef struct TransInfo {
 #define T_NULL_ONE			512
 #define T_NO_ZERO			1024
 
-#define T_PROP_EDIT		 2048
-#define T_PROP_CONNECTED 4096
+#define T_PROP_EDIT			2048
+#define T_PROP_CONNECTED	4096
 
 /* if MMB is pressed or not */
-#define	T_MMB_PRESSED	8192
+#define	T_MMB_PRESSED		8192
+#define T_V3D_ALIGN			16384
+#define T_2D_EDIT			32768 /* for 2d views like uv or ipo */
+#define T_CLIP_UV			65536
 
 /* transinfo->con->mode */
 #define CON_APPLY		1
@@ -217,6 +232,14 @@ typedef struct TransInfo {
 #define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
 
 void checkFirstTime(void);
+
+void setTransformViewMatrices(TransInfo *t);
+void convertViewVec(TransInfo *t, float *vec, short dx, short dy);
+void projectIntView(TransInfo *t, float *vec, int *adr);
+void projectFloatView(TransInfo *t, float *vec, float *adr);
+
+void convertVecToDisplayNum(float *vec, float *num);
+void convertDisplayNumToVec(float *num, float *vec);
 
 void initWarp(TransInfo *t);
 int Warp(TransInfo *t, short mval[2]);
@@ -260,6 +283,8 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void count_bone_select(TransInfo *t, struct ListBase *lb, int do_it);
+void flushTransUVs(TransInfo *t);
+int clipUVTransform(TransInfo *t, float *vec, int resize);
 
 /*********************** exported from transform_manipulator.c ********** */
 struct ScrArea;

@@ -74,6 +74,7 @@
 #include "BIF_space.h"
 #include "BIF_editsima.h"
 #include "BIF_toolbox.h"
+#include "BIF_transform.h"
 #include "BIF_mywindow.h"
 
 #include "BSE_drawipo.h"
@@ -241,41 +242,7 @@ void clever_numbuts_sima(void)
 	}
 }
 
-static void sima_pixelgrid(float *loc, float sx, float sy)
-{
-	float y;
-	float x;
-
-	if(G.sima->flag & SI_PIXELSNAP) {
-		if(G.sima->image && G.sima->image->ibuf) {
-			x= G.sima->image->ibuf->x;
-			y= G.sima->image->ibuf->y;
-		
-			sx= floor(x*sx)/x;
-			if(G.sima->flag & SI_CLIP_UV) {
-				CLAMP(sx, 0, 1.0);
-			}
-			loc[0]= sx;
-			
-			sy= floor(y*sy)/y;
-			if(G.sima->flag & SI_CLIP_UV) {
-				CLAMP(sy, 0, 1.0);
-			}
-			loc[1]= sy;
-		}
-		else {
-			loc[0]= sx;
-			loc[1]= sy;
-		}
-	}
-	else {
-		loc[0]= sx;
-		loc[1]= sy;
-	}
-}
-
-
-static void be_square_tface_uv(Mesh *me)
+void be_square_tface_uv(Mesh *me)
 {
 	TFace *tface;
 	MFace *mface;
@@ -333,522 +300,32 @@ static void be_square_tface_uv(Mesh *me)
 			}
 		}
 	}
-
 }
 
-void tface_do_clip(void)
+void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 {
-	Mesh *me;
-	TFace *tface;
-	int a, b;
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-	tface= me->tface;
-	
-	for(a=0; a<me->totface; a++, tface++) {
-		if(tface->flag & TF_SELECT) {
-			for(b=0; b<4; b++) {
-				CLAMP(tface->uv[b][0], 0.0, 1.0);
-				CLAMP(tface->uv[b][1], 0.0, 1.0);
-			}
-		}
-	}
-	
+	int w, h;
+
+	transform_width_height_tface_uv(&w, &h);
+	*aspx= (float)w/256.0f;
+	*aspy= (float)h/256.0f;
 }
 
-void transform_tface_uv(int mode, int context)	// 2 args, for callback
+void transform_width_height_tface_uv(int *width, int *height)
 {
-	MFace *mface;
-	TFace *tface;
-	Mesh *me;
-	TransVert *transmain, *tv;
-
- 	float dist, xdist, ydist, aspx, aspy;
-	float asp, dx1, dx2, dy1, dy2, phi, dphi, co, si;
-	float size[2], sizefac;
-	float dx, dy, dvec2[2], dvec[2], div, cent[2];
-	float x, y, min[2], max[2], vec[2], xtra[2], ivec[2];
-	int xim, yim, tot=0, a, b, firsttime=1, afbreek=0;
-	int propmode= 0, proptot= 0, midtog= 0, proj= 0, prop_recalc= 1;
-	unsigned short event = 0;
-	short mval[2], val, xo, yo, xn, yn, xc, yc;
-	char str[80];
- 	extern float prop_size, prop_cent[3]; 
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-	
- 	if(G.scene->proportional) propmode= 1;
-  	
-	min[0]= min[1]= 10000.0;
-	max[0]= max[1]= -10000.0;
-	
-	calc_image_view(G.sima, 'f');
-	
 	if(G.sima->image && G.sima->image->ibuf) {
-		xim= G.sima->image->ibuf->x;
-		yim= G.sima->image->ibuf->y;
+		*width= G.sima->image->ibuf->x;
+		*height= G.sima->image->ibuf->y;
 	}
 	else {
-		xim= yim= 256;
+		*width= 256;
+		*height= 256;
 	}
-	aspx = (float)xim/256.0;
-	aspy = (float)yim/256.0;
-
-	/* which vertices are involved? */
-	tface= me->tface;
-	mface= me->mface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
-			if(tface->flag & TF_SEL1) tot++;
-			if(tface->flag & TF_SEL2) tot++;
-			if(tface->flag & TF_SEL3) tot++;
-			if(mface->v4 && (tface->flag & TF_SEL4)) tot++;
-			if(propmode) {
-				if(mface->v4) proptot+=4;
-				else proptot+=3;
-			}
-		}
-	}
-	if(tot==0) return;
-	if(propmode) tot= proptot;
-
-	G.moving= 1;
-	prop_size/= 3;
-	
-	tv=transmain= MEM_callocN(tot*sizeof(TransVert), "transmain");
-
-	tface= me->tface;
-	mface= me->mface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
-			if (tface->flag & TF_SEL1 || propmode) {
-				tv->loc= tface->uv[0];
-				if(tface->flag & TF_SEL1) tv->flag= 1;
-				tv++;
-			}
-			if (tface->flag & TF_SEL2 || propmode) {
-				tv->loc= tface->uv[1];
-				if(tface->flag & TF_SEL2) tv->flag= 1;
-				tv++;
-			}
-			if (tface->flag & TF_SEL3 || propmode) {
-				tv->loc= tface->uv[2];
-				if(tface->flag & TF_SEL3) tv->flag= 1;
-				tv++;
-			}
-			if(mface->v4) {
-				if (tface->flag & TF_SEL4 || propmode) {
-					tv->loc= tface->uv[3];
-					if(tface->flag & TF_SEL4) tv->flag= 1;
-					tv++;
-				}
-			}
-		}
-	}
-	
-	a= tot;
-	tv= transmain;
-	while(a--) {
-		tv->oldloc[0]= tv->loc[0];
-		tv->oldloc[1]= tv->loc[1];
-		if(tv->flag) {
-			DO_MINMAX2(tv->loc, min, max);
-		}
-		tv++;
-	}
-
-	cent[0]= (min[0]+max[0])/2.0;
-	cent[1]= (min[1]+max[1])/2.0;
-	prop_cent[0]= cent[0];
-	prop_cent[1]= cent[1];
-
-	ipoco_to_areaco_noclip(G.v2d, cent, mval);
-	xc= mval[0];
-	yc= mval[1];
-	
-	getmouseco_areawin(mval);
-	xo= xn= mval[0];
-	yo= yn= mval[1];
-	dvec[0]= dvec[1]= 0.0;
-	dx1= xc-xn; 
-	dy1= yc-yn;
-	phi= 0.0;
-	
-	
-	sizefac= sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) );
-	if(sizefac<2.0) sizefac= 2.0;
-
-	while(afbreek==0) {
-		getmouseco_areawin(mval);
-		if((mval[0]!=xo || mval[1]!=yo) || firsttime) {
-			if(propmode && prop_recalc && transmain) {
-				a= tot;
-				tv= transmain;
-
-				while(a--) {
-					if(tv->oldloc[0]<min[0]) xdist= tv->oldloc[0]-min[0];
-					else if(tv->oldloc[0]>max[0]) xdist= tv->oldloc[0]-max[0];
-					else xdist= 0.0;
-					xdist*= aspx;
-
-					if(tv->oldloc[1]<min[1]) ydist= tv->oldloc[1]-min[1];
-					else if(tv->oldloc[1]>max[1]) ydist= tv->oldloc[1]-max[1];
-					else ydist= 0.0;
-					ydist*= aspy;
-
-					dist= sqrt(xdist*xdist + ydist*ydist);
-					if(dist==0.0) tv->fac= 1.0;
-					else if(dist > prop_size) tv->fac= 0.0;
-					else {
-						dist= (prop_size-dist)/prop_size;
-
-						switch(G.scene->prop_mode) {
-						case PROP_SHARP:
-							tv->fac= dist*dist;
-							break;
-						case PROP_SMOOTH:
-							tv->fac= 3.0f*dist*dist - 2.0f*dist*dist*dist;
-							break;
-						case PROP_ROOT:
-							tv->fac= (float)sqrt(dist);
-							break;
-						case PROP_LIN:
-							tv->fac= dist;
-							break;
-						case PROP_CONST:
-							tv->fac= 1.0f;
-							break;
-						case PROP_SPHERE:
-							tv->fac= (float)sqrt(2*dist - dist * dist);
-							break;
-						default:
-							tv->fac= 1;
-						}
-					}
-					tv++;
-				}
-				prop_recalc= 0;
-			}
-			if(mode=='g') {
-			
-				dx= mval[0]- xo;
-				dy= mval[1]- yo;
-	
-				div= G.v2d->mask.xmax-G.v2d->mask.xmin;
-				dvec[0]+= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/div;
-	
-				div= G.v2d->mask.ymax-G.v2d->mask.ymin;
-				dvec[1]+= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
-				
-				if(midtog) dvec[proj]= 0.0;
-				
-				dvec2[0]= dvec[0];
-				dvec2[1]= dvec[1];
-				apply_keyb_grid(dvec2, 0.0, 1.0/8.0, 1.0/16.0, U.flag & USER_AUTOGRABGRID);
-				apply_keyb_grid(dvec2+1, 0.0, 1.0/8.0, 1.0/16.0, U.flag & USER_AUTOGRABGRID);
-
-				vec[0]= dvec2[0];
-				vec[1]= dvec2[1];
-				
-				if(G.sima->flag & SI_CLIP_UV) {
-					if(vec[0]< -min[0]) vec[0]= -min[0];
-					if(vec[1]< -min[1]) vec[1]= -min[1];
-					if(vec[0]> 1.0-max[0]) vec[0]= 1.0-max[0];
-					if(vec[1]> 1.0-max[1]) vec[1]= 1.0-max[1];
-				}
-				tv= transmain;
-				if (propmode) {
-					for(a=0; a<tot; a++, tv++) {
-						x= tv->oldloc[0]+tv->fac*vec[0];
-						y= tv->oldloc[1]+tv->fac*vec[1];
-						
-						sima_pixelgrid(tv->loc, x, y);
-					}
-				} else {
-					for(a=0; a<tot; a++, tv++) {
-						x= tv->oldloc[0]+vec[0];
-						y= tv->oldloc[1]+vec[1];
-						
-						sima_pixelgrid(tv->loc, x, y);
-					}
-				}
-					
-				if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
-	
-				if (G.sima->flag & SI_COORDFLOATS) {
-					ivec[0]= vec[0];
-					ivec[1]= vec[1];
-				}
-				else {
-					ivec[0]= (vec[0]*xim);
-					ivec[1]= (vec[1]*yim);
-				}
-		
-				sprintf(str, "X: %.4f   Y: %.4f  ", ivec[0], ivec[1]);
-				headerprint(str);
-			}
-			else if(mode=='r') {
-
-				dx2= xc-mval[0];
-				dy2= yc-mval[1];
-				
-				div= sqrt( (dx1*dx1+dy1*dy1)*(dx2*dx2+dy2*dy2));
-				if(div>1.0) {
-				
-					dphi= (dx1*dx2+dy1*dy2)/div;
-					dphi= saacos(dphi);
-					if( (dx1*dy2-dx2*dy1)<0.0 ) dphi= -dphi;
-					
-					if(G.qual & LR_SHIFTKEY) phi+= dphi/30.0;
-					else phi+= dphi;
-
-					apply_keyb_grid(&phi, 0.0, (5.0/180)*M_PI, (1.0/180)*M_PI, U.flag & USER_AUTOROTGRID);
-					
-					dx1= dx2; 
-					dy1= dy2;
-					
-					co= cos(phi);
-					si= sin(phi);
-					asp= (float)yim/(float)xim;
-
-					tv= transmain;
-					for(a=0; a<tot; a++, tv++) {
-						if(propmode) {
-							co= cos(phi*tv->fac);
-							si= sin(phi*tv->fac);
-						}
-						x= ( co*( tv->oldloc[0]-cent[0]) - si*asp*(tv->oldloc[1]-cent[1]) ) +cent[0];
-						y= ( si*( tv->oldloc[0]-cent[0])/asp + co*(tv->oldloc[1]-cent[1]) ) +cent[1];
-						sima_pixelgrid(tv->loc, x, y);
-						
-						if(G.sima->flag & SI_CLIP_UV) {
-							if(tv->loc[0]<0.0) tv->loc[0]= 0.0;
-							else if(tv->loc[0]>1.0) tv->loc[0]= 1.0;
-							if(tv->loc[1]<0.0) tv->loc[1]= 0.0;
-							else if(tv->loc[1]>1.0) tv->loc[1]= 1.0;
-						}
-					}					
-					
-					sprintf(str, "Rot: %.3f  ", phi*180.0/M_PI);
-					headerprint(str);
-				}
-			}
-			else if(mode=='s') {
-				size[0]= size[1]= (sqrt((float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc))))/sizefac;
-				if(midtog) size[proj]= 1.0;
-				
-				apply_keyb_grid(size, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
-				apply_keyb_grid(size+1, 0.0, 0.1, 0.01, U.flag & USER_AUTOSIZEGRID);
-
-				xtra[0]= xtra[1]= 0;
-
-				if(G.sima->flag & SI_CLIP_UV) {
-					/* boundbox limit: four step plan: XTRA X */
-	
-					a=b= 0;
-					if(size[0]*(min[0]-cent[0]) + cent[0] + xtra[0] < 0) 
-						a= -size[0]*(min[0]-cent[0]) - cent[0];
-					if(size[0]*(max[0]-cent[0]) + cent[0] + xtra[0] > 1.0) 
-						b= 1.0 - size[0]*(max[0]-cent[0]) - cent[0];
-					xtra[0]= (a+b)/2;
-					
-					/* SIZE X */
-					if(size[0]*(min[0]-cent[0]) + cent[0] + xtra[0] < 0) 
-						size[0]= (-cent[0]-xtra[0])/(min[0]-cent[0]);
-					if(size[0]*(max[0]-cent[0]) + cent[0] +xtra[0] > 1.0) 
-						size[0]= (1.0-cent[0]-xtra[0])/(max[0]-cent[0]);
-						
-					/* XTRA Y */
-					a=b= 0;
-					if(size[1]*(min[1]-cent[1]) + cent[1] + xtra[1] < 0) 
-						a= -size[1]*(min[1]-cent[1]) - cent[1];
-					if(size[1]*(max[1]-cent[1]) + cent[1] + xtra[1] > 1.0) 
-						b= 1.0 - size[1]*(max[1]-cent[1]) - cent[1];
-					xtra[1]= (a+b)/2;
-					
-					/* SIZE Y */
-					if(size[1]*(min[1]-cent[1]) + cent[1] +xtra[1] < 0) 
-						size[1]= (-cent[1]-xtra[1])/(min[1]-cent[1]);
-					if(size[1]*(max[1]-cent[1]) + cent[1] + xtra[1]> 1.0) 
-						size[1]= (1.0-cent[1]-xtra[1])/(max[1]-cent[1]);
-				}
-
-				/* if(midtog==0) { */
-				/* 	if(size[1]>size[0]) size[1]= size[0]; */
-				/* 	else if(size[0]>size[1]) size[0]= size[1]; */
-				/* } */
-
-				tv= transmain;
-				if (propmode) {
-					for(a=0; a<tot; a++, tv++) {
-					
-						x= (tv->fac*size[0] + 1.00-tv->fac)*(tv->oldloc[0]-cent[0])+ cent[0] + xtra[0];
-						y= (tv->fac*size[1] + 1.00-tv->fac)*(tv->oldloc[1]-cent[1])+ cent[1] + xtra[1];
-						sima_pixelgrid(tv->loc, x, y);
-					}
-
-				} else {
-					for(a=0; a<tot; a++, tv++) {
-					
-						x= size[0]*(tv->oldloc[0]-cent[0])+ cent[0] + xtra[0];
-						y= size[1]*(tv->oldloc[1]-cent[1])+ cent[1] + xtra[1];
-						sima_pixelgrid(tv->loc, x, y);
-					}
-				}
-				
-				sprintf(str, "sizeX: %.3f   sizeY: %.3f", size[0], size[1]);
-				headerprint(str);
-			}
-
-			xo= mval[0];
-			yo= mval[1];
-			
-				/* Need to force a recalculate since we may be 
-				 * drawing modified UVs.
-				 */
-			if(G.sima->flag & SI_DRAWSHADOW){
-				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);	
-				object_handle_update(OBACT);
-			}
-
-			if(G.sima->lock) {
-				force_draw_plus(SPACE_VIEW3D, 0);
-			}
-			else force_draw(0);
-			
-			firsttime= 0;
-			
-		}
-		else BIF_wait_for_statechange();
-		
-		while(qtest()) {
-			event= extern_qread(&val);
-			if(val) {
-				switch(event) {
-				case ESCKEY:
-				case RIGHTMOUSE:
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					afbreek= 1;
-					break;
-				case MIDDLEMOUSE:
-					midtog= ~midtog;
-					if(midtog) {
-						if( abs(mval[0]-xn) > abs(mval[1]-yn)) proj= 1;
-						else proj= 0;
-						firsttime= 1;
-					}
-					break;
-				case WHEELDOWNMOUSE:
-				case PADPLUSKEY:
-					if(propmode) {
-						prop_size*= 1.1;
-						prop_recalc= 1;
-						firsttime= 1;
-					}
-					break;
-				case WHEELUPMOUSE:
-				case PADMINUS:
-					if(propmode) {
-						prop_size*= 0.90909090;
-						prop_recalc= 1;
-						firsttime= 1;
-					}
-					break;
-				case WKEY:
-				case XKEY:
-				case YKEY:
-					if(midtog) {
-						if(event==XKEY) {
-							if(proj==1) midtog= ~midtog;
-							else if(proj==0) proj= 1;
-						}
-						else if(event==YKEY) {
-							if(proj==0) midtog= ~midtog;
-							else if(proj==1) proj= 0;
-						}
-					}
-					else {
-						if(event==XKEY) {
-							midtog= ~midtog;
-							proj= 1;
-						}
-						else if(event==YKEY) {
-							midtog= ~midtog;
-							proj= 0;
-						}
-					}
-					firsttime= 1;
-					break;
-				default:
-					arrows_move_cursor(event);
-				}
-			}
-
-			if(afbreek) break;
-		}
-	}
-	
-	if(event==ESCKEY || event == RIGHTMOUSE) {
-		tv= transmain;
-		for(a=0; a<tot; a++, tv++) {
-			tv->loc[0]= tv->oldloc[0];
-			tv->loc[1]= tv->oldloc[1];
-		}
-	}
-
-	MEM_freeN(transmain);
-	
-	if(mode=='g') if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
-
-	G.moving= 0;
-	prop_size*= 3;
-	
-	object_uvs_changed(OBACT);
-
-	if(event!=ESCKEY && event!=RIGHTMOUSE)
-		BIF_undo_push("Transform UV");
 }
 
 void mirror_tface_uv(char mirroraxis)
 {
-	MFace *mface;
-	TFace *tface;
-	Mesh *me;
-	float min[2], max[2], cent[2];
-	int a, axis;
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-	
-	if (!minmax_tface_uv(min, max))
-		return;
-
-	cent[0]= min[0]+max[0];
-	cent[1]= min[1]+max[1];
-
-	if(mirroraxis=='x') axis= 0;
-	else axis= 1;
-
-	tface= me->tface;
-	mface= me->mface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
-			if(tface->flag & TF_SEL1)
-				tface->uv[0][axis]= cent[axis] - tface->uv[0][axis];
-			if(tface->flag & TF_SEL2)
-				tface->uv[1][axis]= cent[axis] - tface->uv[1][axis];
-			if(tface->flag & TF_SEL3)
-				tface->uv[2][axis]= cent[axis] - tface->uv[2][axis];
-			if(mface->v4 && (tface->flag & TF_SEL4))
-				tface->uv[3][axis]= cent[axis] - tface->uv[3][axis];
-		}
-	}
-
-	object_uvs_changed(OBACT);
+	Mirror((short)mirroraxis);
 }
 
 void mirrormenu_tface_uv(void)
@@ -938,6 +415,7 @@ void weld_align_menu_tface_uv(void)
 	if(mode==1) BIF_undo_push("Weld UV");
 	else if(mode==2 || mode==3) BIF_undo_push("Align UV");
 }
+
 void select_swap_tface_uv(void)
 {
 	Mesh *me;
@@ -997,8 +475,8 @@ static void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
 	Mesh *me;
 	TFace *tf;
 	MFace *mf;
-	int a, i, nverts, mindist, dist, fcenter[2];
-	short mval[2], uval[2];
+	int a, i, nverts, mindist, dist, fcenter[2], uval[2];
+	short mval[2];
 
 	getmouseco_areawin(mval);	
 
@@ -1034,7 +512,7 @@ static void find_nearest_tface(TFace **nearesttf, MFace **nearestmf)
 	}
 }
 
-static int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, short *uval)
+static int nearest_uv_between(TFace *tf, int nverts, int id, short *mval, int *uval)
 {
 	float m[3], v1[3], v2[3], c1, c2;
 	int id1, id2;
@@ -1066,8 +544,8 @@ static void find_nearest_uv(TFace **nearesttf, unsigned int *nearestv, int *near
 	Mesh *me;
 	TFace *tf;
 	MFace *mf;
-	int a, i, nverts, mindist, dist;
-	short mval[2], uval[2];
+	int a, i, nverts, mindist, dist, uval[2];
+	short mval[2];
 
 	getmouseco_areawin(mval);	
 
@@ -1263,7 +741,7 @@ void mouse_select_sima(void)
 	force_draw(1);
 	
 	BIF_undo_push("Select UV");
-	std_rmouse_transform(transform_tface_uv);
+	rightmouse_transform();
 }
 
 void borderselect_sima(void)
@@ -1651,7 +1129,6 @@ void stitch_uv_tface(int mode)
 	MEM_freeN(sortblock);
 
 	if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
-	if(G.sima->flag & SI_CLIP_UV) tface_do_clip();
 
 	BIF_undo_push("Stitch UV");
 

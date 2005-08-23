@@ -30,6 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+struct Mesh;
+
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
@@ -40,12 +42,17 @@ void object_tface_flags_changed(struct Object *ob, int updateButtons);
 
 int is_uv_tface_editing_allowed(void);
 int is_uv_tface_editing_allowed_silent(void);
+
+void get_connected_limit_tface_uv(float *limit);
+int minmax_tface_uv(float *min, float *max);
+
+void transform_width_height_tface_uv(int *width, int *height);
+void transform_aspect_ratio_tface_uv(float *aspx, float *aspy);
+
 void borderselect_sima(void);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);
 void select_swap_tface_uv(void);
-void tface_do_clip(void);
-void transform_tface_uv(int mode, int context);
 void mirrormenu_tface_uv(void);
 void mirror_tface_uv(char mirroraxis);
 void hide_tface_uv(int swap);
@@ -55,8 +62,7 @@ void unlink_selection(void);
 void select_linked_tface_uv(int mode);
 void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
-int minmax_tface_uv(float *min, float *max);
 void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
-void get_connected_limit_tface_uv(float *limit);
+void be_square_tface_uv(struct Mesh *me);
 

@@ -3441,6 +3441,10 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 #endif
 				Transform();
 			}
+			else if(curarea->spacetype==SPACE_IMAGE) {
+				initTransform(TFM_TRANSLATION, CTX_NONE);
+				Transform();
+			}
 			else if(xf_func)
 				xf_func('g', 0);
 

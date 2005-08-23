@@ -46,7 +46,7 @@ void image_viewmove(int mode);
 void image_viewzoom(unsigned short event, int invert);
 void image_viewcentre(void);
 void uvco_to_areaco(float *vec, short *mval);
-void uvco_to_areaco_noclip(float *vec, short *mval);
+void uvco_to_areaco_noclip(float *vec, int *mval);
 void what_image(struct SpaceImage *sima);
 
 #endif

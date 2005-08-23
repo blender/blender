@@ -80,6 +80,7 @@
 #include "BIF_glutil.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
+#include "BIF_transform.h"
 
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
@@ -88,8 +89,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"  // event codes
-
-float prop_cent[3]= {0.0, 0.0, 0.0}, prop_size= 0.1;
 
 /**
  * Sets up the fields of the View2D member of the SpaceImage struct
@@ -239,7 +238,7 @@ void uvco_to_areaco(float *vec, short *mval)
 	}
 }
 
-void uvco_to_areaco_noclip(float *vec, short *mval)
+void uvco_to_areaco_noclip(float *vec, int *mval)
 {
 	float x, y;
 
@@ -509,28 +508,12 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
-/* now only in use by drawimage.c */
-static void draw_prop_circle()
+static void draw_image_transform(ImBuf *ibuf)
 {
-	if (G.scene->proportional) {
-		float tmat[4][4], imat[4][4];
-		
-		if(G.moving) {
-			BIF_ThemeColor(TH_GRID);
-			
-			mygetmatrix(tmat);
-			Mat4Invert(imat, tmat);
-			
-	 		drawcircball(GL_LINE_LOOP, prop_cent, prop_size, imat);
-		}
-	}
-}
+	if(G.moving) {
+		float aspx, aspy, center[3];
 
-static void draw_image_prop_circle(ImBuf *ibuf)
-{
-	float aspx, aspy;
-
-	if(G.moving && G.scene->proportional) {
+        BIF_drawConstraint();
 
 		if(ibuf==0 || ibuf->rect==0 || ibuf->x==0 || ibuf->y==0) {
 			aspx= aspy= 1.0;
@@ -540,12 +523,16 @@ static void draw_image_prop_circle(ImBuf *ibuf)
 			aspy= 256.0/ibuf->y;
 		}
 
+		BIF_getPropCenter(center);
+
 		/* scale and translate the circle into place and draw it */
 		glPushMatrix();
 		glScalef(aspx, aspy, 1.0);
-		glTranslatef((1/aspx)*prop_cent[0] - prop_cent[0],
-		             (1/aspy)*prop_cent[1] - prop_cent[1], 0.0);
-		draw_prop_circle();
+		glTranslatef((1/aspx)*center[0] - center[0],
+		             (1/aspy)*center[1] - center[1], 0.0);
+
+		BIF_drawPropCircle();
+
 		glPopMatrix();
 	}
 }
@@ -937,7 +924,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		calc_image_view(G.sima, 'f');	/* float */
 	}
 
-	draw_image_prop_circle(ibuf);
+	draw_image_transform(ibuf);
 
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 	draw_image_view_icon();
@@ -1111,7 +1098,7 @@ void image_viewcentre(void)
 	
 	if(size<=0.01) size= 0.01;
 
-	G.sima->zoom= 1.0/size;
+	G.sima->zoom= 0.7/size;
 
 	calc_image_view(G.sima, 'p');
 

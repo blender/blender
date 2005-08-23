@@ -74,6 +74,7 @@ void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
+void BIF_getPropCenter(float *center);
 
 void BIF_TransformSetUndo(char *str);
 

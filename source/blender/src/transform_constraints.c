@@ -62,6 +62,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BIF_screen.h"
@@ -512,8 +513,9 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 	float mtx[3][3];
 	char text[40];
+	short twmode= (t->spacetype==SPACE_VIEW3D)? G.vd->twmode: V3D_MANIP_GLOBAL;
 
-	switch(G.vd->twmode) {
+	switch(twmode) {
 	case V3D_MANIP_GLOBAL:
 		sprintf(text, ftext, "global");
 		Mat3One(mtx);
@@ -630,13 +632,15 @@ void BIF_drawConstraint(void)
 	TransInfo *t = BIF_GetTransInfo();
 	TransCon *tc = &(t->con);
 
+	if (t->spacetype!=SPACE_VIEW3D)
+		return;
 	if (!(tc->mode & CON_APPLY))
 		return;
 	if (t->flag & T_USES_MANIPULATOR)
 		return;
 	
 	/* nasty exception for Z constraint in camera view */
-	if( (t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) 
+	if((t->flag & T_OBJECT) && G.vd->camera==OBACT && G.vd->persp>1) 
 		return;
 
 	if (tc->drawExtra) {
@@ -648,7 +652,7 @@ void BIF_drawConstraint(void)
 			short mval[2];
 			char col2[3] = {255,255,255};
 			getmouseco_areawin(mval);
-			window_to_3d(vec, (short)(mval[0] - t->con.imval[0]), (short)(mval[1] - t->con.imval[1]));
+			convertViewVec(t, vec, (short)(mval[0] - t->con.imval[0]), (short)(mval[1] - t->con.imval[1]));
 			VecAddf(vec, vec, tc->center);
 
 			drawLine(tc->center, tc->mtx[0], 'x', 0);
@@ -694,7 +698,7 @@ void BIF_drawPropCircle()
 		
 		mygetmatrix(tmat);
 		Mat4Invert(imat, tmat);
-		
+
  		drawcircball(GL_LINE_LOOP, t->center, t->propsize, imat);
 		
 		/* if editmode we restore */
@@ -702,6 +706,16 @@ void BIF_drawPropCircle()
 	}
 }
 
+void BIF_getPropCenter(float *center)
+{
+	TransInfo *t = BIF_GetTransInfo();
+
+	if (t && t->flag & T_PROP_EDIT) {
+		VECCOPY(center, t->center);
+	}
+	else
+		center[0] = center[1] = center[2] = 0.0f;
+}
 
 static void drawObjectConstraint(TransInfo *t) {
 	int i;
@@ -844,8 +858,8 @@ void setNearestAxis(TransInfo *t)
 	   of two 2D points 30 pixels apart (that's the last factor in the formula) after
 	   projecting them with window_to_3d and then get the length of that vector.
 	*/
-	zfac= G.vd->persmat[0][3]*t->center[0]+ G.vd->persmat[1][3]*t->center[1]+ G.vd->persmat[2][3]*t->center[2]+ G.vd->persmat[3][3];
-	zfac = VecLength(G.vd->persinv[0]) * 2.0f/curarea->winx * zfac * 30.0f;
+	zfac= t->persmat[0][3]*t->center[0]+ t->persmat[1][3]*t->center[1]+ t->persmat[2][3]*t->center[2]+ t->persmat[3][3];
+	zfac = VecLength(t->persinv[0]) * 2.0f/curarea->winx * zfac * 30.0f;
 
 	for (i = 0; i<3; i++) {
 		VECCOPY(axis, t->con.mtx[i]);
@@ -853,7 +867,7 @@ void setNearestAxis(TransInfo *t)
 		VecMulf(axis, zfac);
 		/* now we can project to get window coordinate */
 		VecAddf(axis, axis, t->con.center);
-		project_int(axis, icoord);
+		projectIntView(t, axis, icoord);
 		
 		axis[0] = (float)(icoord[0] - t->center2d[0]);
 		axis[1] = (float)(icoord[1] - t->center2d[1]);

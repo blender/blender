@@ -43,6 +43,9 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BIF_screen.h"
 #include "BIF_resources.h"
@@ -50,6 +53,7 @@
 #include "BIF_gl.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editsima.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -61,6 +65,7 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -83,8 +88,11 @@ extern TransInfo Trans;	/* From transform.c */
 /* ************************** Functions *************************** */
 
 
-void getViewVector(float coord[3], float vec[3]) {
-	if (G.vd->persp)
+void getViewVector(float coord[3], float vec[3])
+{
+	TransInfo *t = BIF_GetTransInfo();
+
+	if (t->persp)
 	{
 		float p1[4], p2[4];
 
@@ -92,18 +100,18 @@ void getViewVector(float coord[3], float vec[3]) {
 		p1[3] = 1.0f;
 		VECCOPY(p2, p1);
 		p2[3] = 1.0f;
-		Mat4MulVec4fl(G.vd->viewmat, p2);
+		Mat4MulVec4fl(t->viewmat, p2);
 
 		p2[0] = 2.0f * p2[0];
 		p2[1] = 2.0f * p2[1];
 		p2[2] = 2.0f * p2[2];
 
-		Mat4MulVec4fl(G.vd->viewinv, p2);
+		Mat4MulVec4fl(t->viewinv, p2);
 
 		VecSubf(vec, p1, p2);
 	}
 	else {
-		VECCOPY(vec, G.vd->viewinv[2]);
+		VECCOPY(vec, t->viewinv[2]);
 	}
 	Normalise(vec);
 }
@@ -224,6 +232,9 @@ void recalcData(TransInfo *t)
 		else
 			where_is_pose(ob);
 	}
+	else if(t->spacetype==SPACE_IMAGE) {
+		flushTransUVs(t);
+	}
 	else {
 		Base *base;
 		
@@ -256,7 +267,8 @@ void recalcData(TransInfo *t)
 	}
 	
 	/* update shaded drawmode while transform */
-	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
+	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
+		reshadeall_displist();
 	
 }
 
@@ -366,9 +378,15 @@ void initTrans (TransInfo *t)
 	
 	Mat3One(t->mat);
 	
-	Mat4CpyMat4(t->viewmat, G.vd->viewmat);
-	Mat4CpyMat4(t->viewinv, G.vd->viewinv);
-	Mat4CpyMat4(t->persinv, G.vd->persinv);
+	t->spacetype = curarea->spacetype;
+	if(t->spacetype==SPACE_VIEW3D) {
+		if(G.vd->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
+		t->around = G.vd->around;
+	}
+	else
+		t->around = V3D_CENTRE;
+
+	setTransformViewMatrices(t);
 }
 
 /* Here I would suggest only TransInfo related issues, like free data & reset vars. Not redraws */
@@ -391,17 +409,29 @@ void postTrans (TransInfo *t)
 	}
 
 	if (t->ext) MEM_freeN(t->ext);
-	
+	if (t->data2d) {
+		MEM_freeN(t->data2d);
+		t->data2d= NULL;
+	}
 }
 
-static void apply_grid3(float *val, int max_index, float fac1, float fac2, float fac3)
+static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, float fac2, float fac3)
 {
 	/* fac1 is for 'nothing', fac2 for CTRL, fac3 for SHIFT */
 	int invert = U.flag & USER_AUTOGRABGRID;
 	int ctrl;
 	int i;
+	float asp= 1.0f;
 
 	for (i=0; i<=max_index; i++) {
+
+		/* evil hack - snapping needs to be adapted for image aspect ratio */
+		if(t->spacetype==SPACE_IMAGE) {
+			float aspx, aspy;
+			transform_aspect_ratio_tface_uv(&aspx, &aspy);
+			if(i==0) asp= aspx;
+			else asp= aspy;
+		}
 
 		if(invert) {
 			if(G.qual & LR_CTRLKEY) ctrl= 0;
@@ -412,21 +442,21 @@ static void apply_grid3(float *val, int max_index, float fac1, float fac2, float
 		if(ctrl && (G.qual & LR_SHIFTKEY)) {
 			if(fac3!= 0.0) {
 				for (i=0; i<=max_index; i++) {
-					val[i]= fac3*(float)floor(val[i]/fac3 +.5);
+					val[i]= fac3*asp*(float)floor(val[i]/(fac3*asp) +.5);
 				}
 			}
 		}
 		else if(ctrl) {
 			if(fac2!= 0.0) {
 				for (i=0; i<=max_index; i++) {
-					val[i]= fac2*(float)floor(val[i]/fac2 +.5);
+					val[i]= fac2*asp*(float)floor(val[i]/(fac2*asp) +.5);
 				}
 			}
 		}
 		else {
 			if(fac1!= 0.0) {
 				for (i=0; i<=max_index; i++) {
-					val[i]= fac1*(float)floor(val[i]/fac1 +.5);
+					val[i]= fac1*asp*(float)floor(val[i]/(fac1*asp) +.5);
 				}
 			}
 		}
@@ -434,7 +464,7 @@ static void apply_grid3(float *val, int max_index, float fac1, float fac2, float
 }
 
 void snapGrid(TransInfo *t, float *val) {
-	apply_grid3(val, t->idx_max, t->snap[0], t->snap[1], t->snap[2]);
+	apply_grid3(t, val, t->idx_max, t->snap[0], t->snap[1], t->snap[2]);
 }
 
 void applyTransObjects(TransInfo *t)
@@ -530,10 +560,10 @@ void calculateCenterCursor(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_int(vec, t->center2d);
+		projectIntView(t, vec, t->center2d);
 	}
 	else {
-		project_int(t->center, t->center2d);
+		projectIntView(t, t->center, t->center2d);
 	}
 }
 
@@ -562,10 +592,10 @@ void calculateCenterMedian(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_int(vec, t->center2d);
+		projectIntView(t, vec, t->center2d);
 	}
 	else {
-		project_int(t->center, t->center2d);
+		projectIntView(t, t->center, t->center2d);
 	}
 }
 
@@ -601,16 +631,16 @@ void calculateCenterBound(TransInfo *t)
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
-		project_int(vec, t->center2d);
+		projectIntView(t, vec, t->center2d);
 	}
 	else {
-		project_int(t->center, t->center2d);
+		projectIntView(t, t->center, t->center2d);
 	}
 }
 
 void calculateCenter(TransInfo *t) 
 {
-	switch(G.vd->around) {
+	switch(t->around) {
 	case V3D_CENTRE:
 		calculateCenterBound(t);
 		break;
@@ -631,7 +661,7 @@ void calculateCenter(TransInfo *t)
 			Object *ob= OBACT;
 			if(ob) {
 				VECCOPY(t->center, ob->obmat[3]);
-				project_int(t->center, t->center2d);
+				projectIntView(t, t->center, t->center2d);
 			}
 		}
 		
@@ -649,7 +679,7 @@ void calculateCenter(TransInfo *t)
 		if( G.vd->camera==OBACT && G.vd->persp>1) {
 			float axis[3];
 			/* persinv is nasty, use viewinv instead, always right */
-			VECCOPY(axis, G.vd->viewinv[2]);
+			VECCOPY(axis, t->viewinv[2]);
 			Normalise(axis);
 
 			/* 6.0 = 6 grid units */
@@ -657,13 +687,15 @@ void calculateCenter(TransInfo *t)
 			axis[1]= t->center[1]- 6.0f*axis[1];
 			axis[2]= t->center[2]- 6.0f*axis[2];
 			
-			project_int(axis, t->center2d);
+			projectIntView(t, axis, t->center2d);
 			
 			/* rotate only needs correct 2d center, grab needs initgrabz() value */
 			if(t->mode==TFM_TRANSLATION) VECCOPY(t->center, axis);
 		}
 	}	
-	initgrabz(t->center[0], t->center[1], t->center[2]);
+
+	if(t->spacetype==SPACE_VIEW3D)
+		initgrabz(t->center[0], t->center[1], t->center[2]);
 }
 
 void calculatePropRatio(TransInfo *t)

@@ -70,6 +70,7 @@
 #include "BIF_space.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
+#include "BIF_transform.h"
 #include "BIF_writeimage.h"
 
 #include "BSE_filesel.h"
@@ -298,12 +299,6 @@ void do_image_buttons(unsigned short event)
 				allqueue(REDRAWIMAGE, 0);
 			}
 		}
-		break;
-
-	case B_CLIP_UV:
-		tface_do_clip();
-		
-		if (OBACT) object_uvs_changed(OBACT);
 		break;
 
 	case B_SIMAGEPAINTTOOL:
@@ -843,13 +838,16 @@ static void do_image_uvs_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* Grab */
-		transform_tface_uv('g', 0);
+		initTransform(TFM_TRANSLATION, CTX_NONE);
+		Transform();
 		break;
 	case 1: /* Rotate */
-		transform_tface_uv('r', 0);
+		initTransform(TFM_ROTATION, CTX_NONE);
+		Transform();
 		break;
 	case 2: /* Scale */
-		transform_tface_uv('s', 0);
+		initTransform(TFM_RESIZE, CTX_NONE);
+		Transform();
 		break;
 	}
 }

@@ -781,19 +781,23 @@ int gesture(void)
 			
 			if(i) {
 				if(curarea->spacetype==SPACE_IPO) transform_ipo(i);
-				else if(curarea->spacetype==SPACE_IMAGE) transform_tface_uv(i, 0);
 				else if(curarea->spacetype==SPACE_OOPS) transform_oops('g', 0);
 				else {
+					int context;
+
+					if(curarea->spacetype==SPACE_IMAGE) context= CTX_NONE;
+					else context= CTX_NONE;
+
 					if(i=='g') {
-						initTransform(TFM_TRANSLATION, CTX_NONE);
+						initTransform(TFM_TRANSLATION, context);
 						Transform();
 					}
 					else if(i=='r') {
-						initTransform(TFM_ROTATION, CTX_NONE);
+						initTransform(TFM_ROTATION, context);
 						Transform();
 					}
 					else {
-						initTransform(TFM_RESIZE, CTX_NONE);
+						initTransform(TFM_RESIZE, context);
 						Transform();
 					}
 				}

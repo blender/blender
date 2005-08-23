@@ -3871,8 +3871,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					unwrap_lscm();
 				break;
 			case GKEY:
-				if((G.qual==0))
-					transform_tface_uv('g', 0);
+				if((G.qual==0) && is_uv_tface_editing_allowed()) {
+					initTransform(TFM_TRANSLATION, CTX_NONE);
+					Transform();
+				}
 				break;
 			case HKEY:
 				if(G.qual==LR_ALTKEY)
@@ -3916,12 +3918,16 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					pin_tface_uv(1);
 				break;
 			case RKEY:
-				if((G.qual==0))
-					transform_tface_uv('r', 0);
+				if((G.qual==0) && is_uv_tface_editing_allowed()) {
+					initTransform(TFM_ROTATION, CTX_NONE);
+					Transform();
+				}
 				break;
 			case SKEY:
-				if((G.qual==0))
-					transform_tface_uv('s', 0);
+				if((G.qual==0) && is_uv_tface_editing_allowed()) {
+					initTransform(TFM_RESIZE, CTX_NONE);
+					Transform();
+				}
 				break;
 			case VKEY:
 				if((G.qual==0))

@@ -39,6 +39,8 @@
 #else
 #include <io.h>
 #endif
+#include <string.h>
+#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -60,6 +62,7 @@
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
@@ -81,6 +84,7 @@
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_softbody.h"
@@ -92,6 +96,7 @@
 #include "BIF_editconstraint.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editsima.h"
 #include "BIF_gl.h"
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
@@ -209,14 +214,13 @@ static void sort_trans_data(TransInfo *t)
 	}
 }
 
-
 /* distance calculated from not-selected vertex to nearest selected vertex
    warning; this is loops inside loop, has minor N^2 issues, but by sorting list it is OK */
 static void set_prop_dist(TransInfo *t, short with_dist)
 {
 	TransData *tob;
 	int a;
-	
+
 	for(a=0, tob= t->data; a<t->total; a++, tob++) {
 		
 		tob->rdist= 0.0f; // init, it was mallocced
@@ -483,6 +487,7 @@ static void createTransPose(Object *ob, TransInfo *t)
 	if (!(ob->lay & G.vd->lay)) return;
 
 	/* count total */
+	t->total= 0;
 	count_bone_select(t, &arm->bonebase, 1);
 
 	if(t->total==0 && t->mode==TFM_TRANSLATION) {
@@ -490,7 +495,7 @@ static void createTransPose(Object *ob, TransInfo *t)
 		count_bone_select(t, &arm->bonebase, 1);
 	}		
 	if(t->total==0) return;
-	
+
 	t->flag |= T_POSE;
 	t->poseobj= ob;	// we also allow non-active objects to be transformed, in weightpaint
 	
@@ -1077,7 +1082,6 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 	}
 }
 
-
 static void VertsToTransData(TransData *td, EditVert *eve)
 {
 	td->flag = 0;
@@ -1195,6 +1199,181 @@ static void createTransEditVerts(TransInfo *t)
 		MEM_freeN(nears);
 	}
 
+}
+
+/* ********************* UV ****************** */
+
+static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
+{
+	float aspx, aspy;
+
+	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+
+	/* uv coords are scaled by aspects. this is needed for rotations and
+	   proportional editing to be consistent with the stretchted uv coords
+	   that are displayed. this also means that for display and numinput,
+	   and when the the uv coords are flushed, these are converted each time */
+	td2d->loc[0] = uv[0]*aspx;
+	td2d->loc[1] = uv[1]*aspy;
+	td2d->loc[2] = 0.0f;
+	td2d->loc2d = uv;
+
+	td->flag = 0;
+	td->loc = td2d->loc;
+	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	if(selected) {
+		td->flag |= TD_SELECTED;
+		td->dist= 0.0;
+	}
+	else
+		td->dist= MAXFLOAT;
+	
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
+}
+
+static void createTransUVs(TransInfo *t)
+{
+	TransData *td = NULL;
+	TransData2D *td2d = NULL;
+	Mesh *me;
+	TFace *tf;
+	MFace *mf;
+	int a, count=0, countsel=0;
+	int propmode = t->flag & T_PROP_EDIT;
+	
+	if(is_uv_tface_editing_allowed()==0) return;
+	me= get_mesh(OBACT);
+
+	/* count */
+	tf= me->tface;
+	mf= me->mface;
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if(mf->v3 && tf->flag & TF_SELECT) {
+			if(tf->flag & TF_SEL1) countsel++;
+			if(tf->flag & TF_SEL2) countsel++;
+			if(tf->flag & TF_SEL3) countsel++;
+			if(mf->v4 && (tf->flag & TF_SEL4)) countsel++;
+			if(propmode)
+				count += (mf->v4)? 4: 3;
+		}
+	}
+
+ 	/* note: in prop mode we need at least 1 selected */
+	if (countsel==0) return;
+	
+	t->total= (propmode)? count: countsel;
+	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
+	/* for each 2d uv coord a 3d vector is allocated, so that they can be
+	   treated just as if they were 3d verts */
+	t->data2d= MEM_mallocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
+
+	if(G.sima->flag & SI_CLIP_UV)
+		t->flag |= T_CLIP_UV;
+
+	td= t->data;
+	td2d= t->data2d;
+	tf= me->tface;
+	mf= me->mface;
+	for(a=me->totface; a>0; a--, tf++, mf++) {
+		if(mf->v3 && tf->flag & TF_SELECT) {
+			if(tf->flag & TF_SEL1 || propmode)
+				UVsToTransData(td++, td2d++, tf->uv[0], (tf->flag & TF_SEL1));
+			if(tf->flag & TF_SEL2 || propmode)
+				UVsToTransData(td++, td2d++, tf->uv[1], (tf->flag & TF_SEL2));
+			if(tf->flag & TF_SEL3 || propmode)
+				UVsToTransData(td++, td2d++, tf->uv[2], (tf->flag & TF_SEL3));
+
+			if(mf->v4 && (tf->flag & TF_SEL4 || propmode))
+				UVsToTransData(td++, td2d++, tf->uv[3], (tf->flag & TF_SEL4));
+		}
+	}
+}
+
+void flushTransUVs(TransInfo *t)
+{
+	TransData2D *td;
+	int a, width, height;
+	Object *ob= OBACT;
+	Mesh *me= get_mesh(ob);
+	float aspx, aspy, invx, invy;
+
+	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	transform_width_height_tface_uv(&width, &height);
+	invx= 1.0f/aspx;
+	invy= 1.0f/aspy;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for(a=0, td= t->data2d; a<t->total; a++, td++) {
+		td->loc2d[0]= td->loc[0]*invx;
+		td->loc2d[1]= td->loc[1]*invy;
+		
+		if((G.sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL)) {
+			td->loc2d[0]= floor(width*td->loc2d[0])/width;
+			td->loc2d[1]= floor(height*td->loc2d[1])/height;
+		}
+	}
+
+	if((G.sima->flag & SI_BE_SQUARE) && (t->state != TRANS_CANCEL))
+		be_square_tface_uv(me);
+
+	/* this is overkill if G.sima->lock is not set, but still needed */
+	object_uvs_changed(ob);
+}
+
+int clipUVTransform(TransInfo *t, float *vec, int resize)
+{
+	TransData *td;
+	int a, clipx=1, clipy=1;
+	float aspx, aspy, min[2], max[2];
+
+	transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	min[0]= min[1]= 0.0f;
+	max[0]= aspx; max[1]= aspy;
+
+	for(a=0, td= t->data; a<t->total; a++, td++) {
+		DO_MINMAX2(td->loc, min, max);
+	}
+
+	if(resize) {
+		if(min[0] < 0.0f && t->center[0] > 0.0f && t->center[0] < aspx*0.5f)
+			vec[0] *= t->center[0]/(t->center[0] - min[0]);
+		else if(max[0] > aspx && t->center[0] < aspx)
+			vec[0] *= (t->center[0] - aspx)/(t->center[0] - max[0]);
+		else
+			clipx= 0;
+
+		if(min[1] < 0.0f && t->center[1] > 0.0f && t->center[1] < aspy*0.5f)
+			vec[1] *= t->center[1]/(t->center[1] - min[1]);
+		else if(max[1] > aspy && t->center[1] < aspy)
+			vec[1] *= (t->center[1] - aspy)/(t->center[1] - max[1]);
+		else
+			clipy= 0;
+	}
+	else {
+		if(min[0] < 0.0f)
+			vec[0] -= min[0];
+		else if(max[0] > aspx)
+			vec[0] -= max[0]-aspx;
+		else
+			clipx= 0;
+
+		if(min[1] < 0.0f)
+			vec[1] -= min[1];
+		else if(max[1] > aspy)
+			vec[1] -= max[1]-aspy;
+		else
+			clipy= 0;
+	}	
+
+	return (clipx || clipy);
 }
 
 /* **************** IpoKey stuff, for Object TransData ********** */
@@ -1527,8 +1706,8 @@ void special_aftertrans_update(TransInfo *t)
 	reset_slowparents();
 	
 	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
-	if(G.vd->drawtype == OB_SHADED) reshadeall_displist();
-	
+	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
+		reshadeall_displist();
 }
 
 static void createTransObject(TransInfo *t)
@@ -1664,6 +1843,15 @@ void createTransData(TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
+	else if (t->spacetype == SPACE_IMAGE) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransUVs(t);
+		if(t->data && (t->flag & T_PROP_EDIT)) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
+	}
 	else if (G.obedit) {
 		t->ext = NULL;
 		if (G.obedit->type == OB_MESH) {
@@ -1697,11 +1885,12 @@ void createTransData(TransInfo *t)
 				sort_trans_data_dist(t);
 			}
 		}
-		t->flag |= T_EDIT;
+
+		t->flag |= T_EDIT|T_POINTS;
 		
 		/* exception... hackish, we want bonesize to use bone orientation matrix (ton) */
 		if(t->mode==TFM_BONESIZE) {
-			t->flag &= ~T_EDIT;
+			t->flag &= ~(T_EDIT|T_POINTS);
 			t->flag |= T_POSE;
 			t->poseobj= ob;	/* <- tsk tsk, this is going to give issues one day */
 		}
