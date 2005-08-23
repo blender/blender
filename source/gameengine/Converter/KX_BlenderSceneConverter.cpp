@@ -77,16 +77,27 @@
 #include "DNA_world_types.h"
 #include "BKE_main.h"
 
+extern "C"
+{
 #include "DNA_object_types.h"
-#include "DNA_ipo_types.h"
 #include "DNA_curve_types.h"
+#include "BLI_blenlib.h"
+#include "MEM_guardedalloc.h"
+#include "BSE_editipo.h"
+#include "BSE_editipo_types.h"
+#include "DNA_ipo_types.h"
+#include "BKE_global.h"
+#include "DNA_space_types.h"
+}
 
 
 KX_BlenderSceneConverter::KX_BlenderSceneConverter(
 							struct Main* maggie,
+							struct SpaceIpo*	sipo,
 							class KX_KetsjiEngine* engine
 							)
 							: m_maggie(maggie),
+							m_sipo(sipo),
 							m_ketsjiEngine(engine),
 							m_alwaysUseExpandFraming(false)
 {
@@ -472,6 +483,68 @@ void KX_BlenderSceneConverter::RegisterWorldInfo(
 	m_worldinfos.push_back(worldinfo);
 }
 
+/*
+ * When deleting an IPO curve from Python, check if the IPO is being
+ * edited and if so clear the pointer to the old curve.
+ */
+void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo)
+{
+	if (!sipo)
+		return;
+
+	int i;
+	EditIpo *ei= (EditIpo *)sipo->editipo;
+	if (!ei) return;
+
+	for(i=0; i<G.sipo->totipo; i++, ei++) {
+                if ( ei->icu == icu ) {
+			ei->flag &= ~(IPO_SELECT | IPO_EDIT);
+			ei->icu= 0;
+			return;
+		}
+	}
+}
+
+//quick hack
+extern "C"
+{
+	Ipo *add_ipo( char *name, int idcode );
+	char *getIpoCurveName( IpoCurve * icu );
+	struct IpoCurve *get_ipocurve(struct ID *from, short type, int adrcode, struct Ipo *useipo);
+	void testhandles_ipocurve(struct IpoCurve *icu);
+	void Mat3ToEul(float tmat[][3], float *eul);
+
+}
+
+IpoCurve* findIpoCurve(IpoCurve* first,char* searchName)
+{
+	IpoCurve* icu1;
+	for( icu1 = first; icu1; icu1 = icu1->next ) 
+	{
+		char* curveName = getIpoCurveName( icu1 );
+		if( !strcmp( curveName, searchName) )
+		{
+			return icu1;
+		}
+	}
+	return 0;
+}
+
+Ipo* KX_BlenderSceneConverter::findIpoForName(char* objName)
+{
+	Ipo* ipo_iter = (Ipo*)m_maggie->ipo.first;
+
+	while( ipo_iter )
+	{
+		if( strcmp( objName, ipo_iter->id.name + 2 ) == 0 ) 
+		{
+			return ipo_iter;
+		}
+		ipo_iter = (Ipo*)ipo_iter->id.next;
+	}
+	return 0;
+}
+
 
 void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 {
@@ -498,18 +571,35 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 				if (blenderObject)
 				{
 					//erase existing ipo's
-					Ipo* ipo = blenderObject->ipo;
+					Ipo* ipo = findIpoForName(blenderObject->id.name+2);
 					if (ipo)
 					{
-
-						IpoCurve *icu;
+						//clear the curve data
+						IpoCurve *icu1;
 						int numCurves = 0;
-						for( icu = (IpoCurve*)ipo->curve.first; icu; icu = icu->next ) {
-							numCurves++;
+						for( icu1 = (IpoCurve*)ipo->curve.first; icu1;  ) {
 							
+							IpoCurve* tmpicu = icu1;
+							icu1 = icu1->next;
+							numCurves++;
+			
+							BLI_remlink( &( blenderObject->ipo->curve ), tmpicu );
+							if( tmpicu->bezt )
+								MEM_freeN( tmpicu->bezt );
+							MEM_freeN( tmpicu );
+							localDel_ipoCurve( tmpicu ,m_sipo);
 						}
+					} else
+					{
+						ipo = add_ipo(blenderObject->id.name+2, ID_OB);
+						blenderObject->ipo = ipo;
 
 					}
+				
+					
+
+					
+
 				}
 			}
 
@@ -522,9 +612,146 @@ void	KX_BlenderSceneConverter::ResetPhysicsObjectsAnimationIpo()
 
 }
 
+
+
+
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 {
+
+	KX_SceneList* scenes = m_ketsjiEngine->CurrentScenes();
+	int numScenes = scenes->size();
+	int i;
+	for (i=0;i<numScenes;i++)
+	{
+		KX_Scene* scene = scenes->at(i);
+		//PHY_IPhysicsEnvironment* physEnv = scene->GetPhysicsEnvironment();
+		CListValue* parentList = scene->GetRootParentList();
+		int numObjects = parentList->GetCount();
+		int g;
+		for (g=0;g<numObjects;g++)
+		{
+			KX_GameObject* gameObj = (KX_GameObject*)parentList->GetValue(g);
+			if (gameObj->IsDynamic())
+			{
+				KX_IPhysicsController* physCtrl = gameObj->GetPhysicsController();
+				
+				Object* blenderObject = FindBlenderObject(gameObj);
+				if (blenderObject)
+				{
+
+					const MT_Matrix3x3& orn = gameObj->NodeGetWorldOrientation();
+					float eulerAngles[3];	
+					float tmat[3][3];
+					for (int r=0;r<3;r++)
+					{
+						for (int c=0;c<3;c++)
+						{
+							tmat[r][c] = orn[c][r];
+						}
+					}
+					Mat3ToEul(tmat, eulerAngles);
+					
+					for(int x = 0; x < 3; x++) {
+						eulerAngles[x] *= (float) (180 / 3.14159265f);
+					}
+
+					eulerAngles[0]/=10.f;
+					eulerAngles[1]/=10.f;
+					eulerAngles[2]/=10.f;
+
+
+
+					const MT_Vector3& scale = gameObj->NodeGetWorldScaling();
+					const MT_Point3& position = gameObj->NodeGetWorldPosition();
+					
+					Ipo* ipo = blenderObject->ipo;
+					if (ipo)
+					{
+
+						//create the curves, if not existing
+
+					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_X, ipo );
+					
+					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_Y, ipo );
+					
+					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_Z, ipo );
+
+					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_X, ipo );
+
+					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_Y, ipo );
+
+					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
+					if (!icu1)
+						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_Z, ipo );
+
+
+
+					//fill the curves with data
+
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
+						if (icu1)
+						{
+							float curVal = position.x();
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
+						if (icu1)
+						{
+							float curVal = position.y();
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
+						if (icu1)
+						{
+							float curVal = position.z();
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
+						if (icu1)
+						{
+							float curVal = eulerAngles[0];
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
+						if (icu1)
+						{
+							float curVal = eulerAngles[1];
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+						icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
+						if (icu1)
+						{
+							float curVal = eulerAngles[2];
+							insert_vert_ipo(icu1, frameNumber, curVal);
+							testhandles_ipocurve(icu1);
+						}
+
+					}
+				}
+			}
+
+		}
+		
+	
+	}
+
+
 	//todo, before 2.38/2.40 release, Erwin
 #ifdef TURN_THIS_PYTHON_CODE_INTO_CPP
 

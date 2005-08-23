@@ -91,10 +91,13 @@ static BlendFileData *load_game_data(char *filename) {
 extern "C" void StartKetsjiShell(struct ScrArea *area,
 								 char* scenename,
 								 struct Main* maggie,
+								 struct SpaceIpo *sipo,
 								 int always_use_expand_framing)
 {
 	int exitrequested = KX_EXIT_REQUEST_NO_REQUEST;
+	
 	Main* blenderdata = maggie;
+
 	char* startscenename = scenename;
 	char pathname[160];
 	strcpy (pathname, maggie->name);
@@ -113,7 +116,8 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		bool usefixed = (SYS_GetCommandLineInt(syshandle, "fixedtime", 0) != 0);
 		bool profile = (SYS_GetCommandLineInt(syshandle, "show_profile", 0) != 0);
 		bool frameRate = (SYS_GetCommandLineInt(syshandle, "show_framerate", 0) != 0);
-		
+		bool game2ipo = (SYS_GetCommandLineInt(syshandle, "game2ipo", 0) != 0);
+
 		// create the canvas, rasterizer and rendertools
 		RAS_ICanvas* canvas = new KX_BlenderCanvas(area);
 		canvas->SetMouseState(RAS_ICanvas::MOUSE_INVISIBLE);
@@ -159,7 +163,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		ketsjiengine->SetAudioDevice(audiodevice);
 		ketsjiengine->SetUseFixedTime(usefixed);
 		ketsjiengine->SetTimingDisplay(frameRate, profile, properties);
+
 		
+	
 		// some blender stuff
 		MT_CmMatrix4x4 projmat;
 		MT_CmMatrix4x4 viewmat;
@@ -239,6 +245,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			blscene = bfd->curscene;
 		}
 
+		if (blscene)
+		{
+			int startFrame = blscene->r.cfra;
+			ketsjiengine->SetGame2IpoMode(game2ipo,startFrame);
+		}
+
+
 		// Quad buffered needs a special window.
 		if (blscene->r.stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 			rasterizer->SetStereoMode((RAS_IRasterizer::StereoMode) blscene->r.stereomode);
@@ -254,7 +267,7 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 			}
 			
 			// create a scene converter, create and convert the startingscene
-			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(blenderdata, ketsjiengine);
+			KX_ISceneConverter* sceneconverter = new KX_BlenderSceneConverter(maggie,sipo, ketsjiengine);
 			ketsjiengine->SetSceneConverter(sceneconverter);
 			
 			if (always_use_expand_framing)

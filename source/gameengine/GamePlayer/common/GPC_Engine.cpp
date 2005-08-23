@@ -185,7 +185,7 @@ bool GPC_Engine::StartKetsji(void)
 	m_portal = new KetsjiPortal(ketsjieng);
 	m_portal->setSecurity(psl_Highest);
 		
-	KX_ISceneConverter *sceneconverter = new KX_BlenderSceneConverter(G.main, ketsjieng);
+	KX_ISceneConverter *sceneconverter = new KX_BlenderSceneConverter(&G, ketsjieng);
 		
 	m_portal->Enter(
 			startSceneName,

@@ -155,6 +155,9 @@ private:
 
 	bool					m_show_debug_properties;
 
+	/** record physics into keyframes */
+	bool					m_game2ipo;
+
 	/** Hide cursor every frame? */
 	bool					m_hideCursor;
 
@@ -189,6 +192,8 @@ public:
 	void			SetRasterizer(RAS_IRasterizer* rasterizer);
 	void			SetPythonDictionary(PyObject* pythondictionary);
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
+	void			SetGame2IpoMode(bool game2ipo,int startFrame);
+
 
 	void			NextFrame();
 	void			Render();

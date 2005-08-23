@@ -107,9 +107,9 @@ static void frameTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
 static GHOST_ISystem* fSystem = 0;
 static const int kTimerFreq = 10;
 
-GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main *maggie, STR_String startSceneName)
+GPG_Application::GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName)
 	: m_startSceneName(startSceneName), 
-	  m_maggie(maggie), 
+	  m_maggie(maggie),
 	  m_exitRequested(0),
 	  m_system(system), 
 	  m_mainWindow(0), 
@@ -141,7 +141,7 @@ GPG_Application::~GPG_Application(void)
 
 
 
-bool GPG_Application::SetGameEngineData(struct Main *maggie, STR_String startSceneName)
+bool GPG_Application::SetGameEngineData(struct Main* maggie, STR_String startSceneName)
 {
 	bool result = false;
 
@@ -598,7 +598,7 @@ bool GPG_Application::startEngine(void)
 	*/
 	
 	// create a scene converter, create and convert the stratingscene
-	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie, m_ketsjiengine);
+	m_sceneconverter = new KX_BlenderSceneConverter(m_maggie,0, m_ketsjiengine);
 	if (m_sceneconverter)
 	{
 		STR_String startscenename = m_startSceneName.Ptr();

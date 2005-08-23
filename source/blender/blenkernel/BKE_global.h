@@ -182,6 +182,7 @@ typedef struct Global {
 #define G_FILE_SIGN              (1 << 8)
 #define G_FILE_PUBLISH			 (1 << 9)
 #define G_FILE_NO_UI			 (1 << 10)
+#define G_FILE_GAME_TO_IPO		 (1 << 11)
 
 /* G.windowstate */
 #define G_WINDOWSTATE_USERDEF		0

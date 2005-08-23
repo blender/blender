@@ -57,10 +57,10 @@ struct Main;
 class GPG_Application : public GHOST_IEventConsumer
 {
 public:
-	GPG_Application(GHOST_ISystem* system, struct Main *maggie, STR_String startSceneName);
+	GPG_Application(GHOST_ISystem* system, struct Main* maggie, STR_String startSceneName);
 	~GPG_Application(void);
 
-			bool SetGameEngineData(struct Main *maggie, STR_String startSceneName);
+			bool SetGameEngineData(struct Main* maggie,STR_String startSceneName);
 			bool startWindow(STR_String& title, int windowLeft, int windowTop, int windowWidth, int windowHeight,
 			const bool stereoVisual, const int stereoMode);
 			bool startFullScreen(int width, int height, int bpp, int frequency, const bool stereoVisual, const int stereoMode);

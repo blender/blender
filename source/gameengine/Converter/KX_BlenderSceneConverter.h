@@ -44,6 +44,9 @@ class SCA_IController;
 class RAS_MeshObject;
 class RAS_IPolyMaterial;
 class BL_InterpolatorList;
+struct IpoCurve;
+struct Main;
+struct SpaceIpo;
 
 class KX_BlenderSceneConverter : public KX_ISceneConverter
 {
@@ -62,14 +65,20 @@ class KX_BlenderSceneConverter : public KX_ISceneConverter
 	
 	GEN_Map<CHashedPtr,BL_InterpolatorList*> m_map_blender_to_gameipolist;
 	
-	struct Main*			m_maggie;
+	Main*					m_maggie;
+	SpaceIpo*				m_sipo;
+
 	STR_String				m_newfilename;
 	class KX_KetsjiEngine*	m_ketsjiEngine;
 	bool					m_alwaysUseExpandFraming;
 	
+	void localDel_ipoCurve ( IpoCurve * icu ,struct SpaceIpo*	sipo);
+	struct Ipo* findIpoForName(char* objName);
+
 public:
 	KX_BlenderSceneConverter(
-		struct Main* maggie,
+		Main* maggie,
+		SpaceIpo *sipo,
 		class KX_KetsjiEngine* engine
 	);
 

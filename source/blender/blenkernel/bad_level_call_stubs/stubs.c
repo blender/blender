@@ -55,6 +55,22 @@ void freeAllRad(void){}
 void free_editText(void){}
 void free_editArmature(void){}
 
+char* getIpoCurveName( struct IpoCurve * icu ) 
+{
+	return 0;
+};
+
+struct IpoCurve *get_ipocurve(struct ID *from, short type, int adrcode, struct Ipo *useipo)
+{
+	return 0;
+}
+
+void insert_vert_ipo(struct IpoCurve *icu, float x, float y)
+{
+
+}
+
+
 
 void setscreen(struct bScreen *sc){}
 void force_draw_all(int header){}

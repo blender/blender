@@ -1032,6 +1032,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 							  bool alwaysUseExpandFraming
 							  )
 {	
+
 	Scene *blenderscene = GetSceneForName(maggie, scenename);
 
 	// Get the frame settings of the canvas.

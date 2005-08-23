@@ -866,7 +866,7 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	assert(env);
 	
 
-	bool dyna = false;
+	bool isbulletdyna = false;
 	CcdConstructionInfo ci;
 	class PHY_IMotionState* motionstate = new KX_MotionState(gameobj->GetSGNode());
 
@@ -874,7 +874,8 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	ci.m_gravity = SimdVector3(0,0,0);
 	ci.m_localInertiaTensor =SimdVector3(0,0,0);
 	ci.m_mass = objprop->m_dyna ? shapeprops->m_mass : 0.f;
-	
+	isbulletdyna = objprop->m_dyna;
+
 	ci.m_localInertiaTensor = SimdVector3(ci.m_mass/3.f,ci.m_mass/3.f,ci.m_mass/3.f);
 	
 	SimdTransform trans;
@@ -1008,11 +1009,11 @@ void	KX_ConvertBulletObject(	class	KX_GameObject* gameobj,
 	//need a bit of damping, else system doesn't behave well
 	
 
-	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,dyna);
+	KX_BulletPhysicsController* physicscontroller = new KX_BulletPhysicsController(ci,isbulletdyna);
 	env->addCcdPhysicsController( physicscontroller);
 
 	
-	gameobj->SetPhysicsController(physicscontroller,dyna);
+	gameobj->SetPhysicsController(physicscontroller,isbulletdyna);
 	physicscontroller->setNewClientInfo(gameobj->getClientInfo());		
 	bool isActor = objprop->m_isactor;
 	gameobj->getClientInfo()->m_type = (isActor ? KX_ClientObjectInfo::ACTOR : KX_ClientObjectInfo::STATIC);

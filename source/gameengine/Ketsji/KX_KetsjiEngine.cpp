@@ -120,6 +120,7 @@ KX_KetsjiEngine::KX_KetsjiEngine(KX_ISystem* system)
 	m_bInitialized(false),
 	m_activecam(0),
 	m_bFixedTime(false),
+	m_game2ipo(false),
 	
 	m_firstframe(true),
 	
@@ -397,7 +398,10 @@ void KX_KetsjiEngine::NextFrame()
 				scene->GetPhysicsEnvironment()->proceedDeltaTime(localtime,realDeltaTime);
 				m_previoustime = curtime;
 
-				m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame++);
+				if (m_game2ipo)
+				{
+					m_sceneconverter->WritePhysicsObjectToAnimationIpo(m_currentFrame++);
+				}
 
 			} // suspended
 	
@@ -1197,6 +1201,11 @@ void KX_KetsjiEngine::SetUseFixedTime(bool bUseFixedTime)
 }
 
 
+void	KX_KetsjiEngine::SetGame2IpoMode(bool game2ipo,int startFrame)
+{
+	m_game2ipo = game2ipo;
+	m_currentFrame = startFrame;
+}
 
 bool KX_KetsjiEngine::GetUseFixedTime(void) const
 {

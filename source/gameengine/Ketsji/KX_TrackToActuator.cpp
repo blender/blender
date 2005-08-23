@@ -107,7 +107,7 @@ MT_Matrix3x3 EulToMat3(float *eul)
 
 
 /* old function from Blender */
-void Mat3ToEul(MT_Matrix3x3 mat, float *eul)
+void Mat3ToEulOld(MT_Matrix3x3 mat, float *eul)
 {
 	MT_Scalar cy;
 	
@@ -154,8 +154,8 @@ MT_Matrix3x3 matrix3x3_interpol(MT_Matrix3x3 oldmat, MT_Matrix3x3 mat, int m_tim
 {
 	float eul[3], oldeul[3];	
 
-	Mat3ToEul(oldmat, oldeul);
-	Mat3ToEul(mat, eul);
+	Mat3ToEulOld(oldmat, oldeul);
+	Mat3ToEulOld(mat, eul);
 	compatible_eulFast(eul, oldeul);
 	
 	eul[0]= (m_time*oldeul[0] + eul[0])/(1.0+m_time);

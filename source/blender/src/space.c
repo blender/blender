@@ -155,7 +155,8 @@
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
-extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, int always_use_expand_framing);
+
+extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
 
 /**
  * When the mipmap setting changes, we want to redraw the view right
@@ -358,6 +359,11 @@ void space_set_commmandline_options(void) {
 
 		a= (G.fileflags & G_FILE_ENABLE_ALL_FRAMES);
 		SYS_WriteCommandLineInt(syshandle, "fixedtime", a);
+
+		a= (G.fileflags & G_FILE_GAME_TO_IPO);
+		SYS_WriteCommandLineInt(syshandle, "game2ipo", a);
+
+
 	}
 }
 
@@ -399,7 +405,9 @@ static LinkNode *save_and_reset_all_scene_cfra(void)
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
 		BLI_linklist_prepend(&storelist, (void*) (long) sc->r.cfra);
-		sc->r.cfra= 1;
+
+		//why is this reset to 1 ?
+		//sc->r.cfra= 1;
 
 		set_scene_bg(sc);
 	}
@@ -472,7 +480,7 @@ void start_game(void)
 	space_set_commmandline_options();
 
 	SaveState();
-	StartKetsjiShell(curarea, startscene->id.name+2, G.main, 1);
+	StartKetsjiShell(curarea, startscene->id.name+2, G.main,G.sipo, 1);
 	RestoreState();
 
 	/* Restart BPY - unload the game engine modules. */
