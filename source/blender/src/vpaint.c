@@ -1101,6 +1101,7 @@ void weight_paint(void)
 		
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
 
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			scrarea_do_windraw(curarea);
 			
 			if(Gwp.flag & (VP_AREA|VP_SOFT)) {

@@ -77,6 +77,7 @@ typedef struct {
 	Mesh *me;
 	MVert *verts;
 	float *nors;
+	MCol *wpaintMCol;
 
 	int freeNors, freeVerts;
 } MeshDerivedMesh;
@@ -382,7 +383,9 @@ static void meshDM_drawFacesTex(DerivedMesh *dm, int (*setDrawParams)(TFace *tf,
 		if (flag==0) {
 			continue;
 		} else if (flag==1) {
-			if (tf) {
+			if (mdm->wpaintMCol) {
+				cp= (unsigned char*) &mdm->wpaintMCol[i*4];
+			} else if (tf) {
 				cp= (unsigned char*) tf->col;
 			} else if (me->mcol) {
 				cp= (unsigned char*) &me->mcol[i*4];
@@ -435,7 +438,9 @@ static void meshDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *
 			unsigned char *cp = NULL;
 
 			if (useColors) {
-				if (me->tface) {
+				if (mdm->wpaintMCol) {
+					cp= (unsigned char*) &mdm->wpaintMCol[i*4];
+				} else if (me->tface) {
 					cp= (unsigned char*) me->tface[i].col;
 				} else if (me->mcol) {
 					cp= (unsigned char*) &me->mcol[i*4];
@@ -498,6 +503,7 @@ static void meshDM_release(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 
+	if (mdm->wpaintMCol) MEM_freeN(mdm->wpaintMCol);
 	if (mdm->freeNors) MEM_freeN(mdm->nors);
 	if (mdm->freeVerts) MEM_freeN(mdm->verts);
 	MEM_freeN(mdm);
@@ -531,7 +537,12 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
 
 	mdm->dm.release = meshDM_release;
-	
+
+		/* Works in conjunction with hack during modifier calc */
+	if (G.f & G_WEIGHTPAINT) {
+		mdm->wpaintMCol = MEM_dupallocN(me->mcol);
+	}
+
 	mdm->ob = ob;
 	mdm->me = me;
 	mdm->verts = me->mvert;
