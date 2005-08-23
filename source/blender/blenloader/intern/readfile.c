@@ -4863,9 +4863,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 
 		for(ob=main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
+
+			for (md=ob->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Subsurf) {
+					SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+					smd->flags &= ~(eSubsurfModifierFlag_Incremental|eSubsurfModifierFlag_DebugIncr);
+				}
+			}
+
 			if ((ob->softflag&OB_SB_ENABLE) && !modifiers_findByType(ob, eModifierType_Softbody)) {
 				if (ob->softflag&OB_SB_POSTDEF) {
-					ModifierData *md = ob->modifiers.first;
+					md = ob->modifiers.first;
 
 					while (md && modifierType_getInfo(md->type)->type==eModifierTypeType_OnlyDeform) {
 						md = md->next;

@@ -961,7 +961,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		int lx = x + width - 60 - 15;
 
 		if (md->type==eModifierType_Subsurf) {
-			height = 106;
+			height = 86;
 		} else if (md->type==eModifierType_Lattice) {
 			height = 46;
 		} else if (md->type==eModifierType_Curve) {
@@ -1010,8 +1010,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Levels:",		lx, (cy-=19), buttonWidth,19, &smd->levels, 1, 6, 0, 0, "Number subdivisions to perform");
 			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Render Levels:",		lx, (cy-=19), buttonWidth,19, &smd->renderLevels, 1, 6, 0, 0, "Number subdivisions to perform when rendering");
 
+			/* Disabled until non-EM DerivedMesh implementation is complete */
+
+			/*
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_Incremental, B_MODIFIER_RECALC, "Incremental", lx, (cy-=19),90,19,&smd->flags, 0, 0, 0, 0, "Use incremental calculation, even outside of mesh mode");
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_DebugIncr, B_MODIFIER_RECALC, "Debug", lx+90, cy,buttonWidth-90,19,&smd->flags, 0, 0, 0, 0, "Visualize the subsurf incremental calculation, for debugging effect of other modifiers");
+			*/
 
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
 		} else if (md->type==eModifierType_Lattice) {
