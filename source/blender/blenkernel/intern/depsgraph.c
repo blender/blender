@@ -1463,7 +1463,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 {
 	Base *base;
 	
-	if(ob==NULL) return;
+	if(ob==NULL || sce->theDag==NULL) return;
 	ob->recalc |= flag;
 	
 	/* all users of this ob->data should be checked */
