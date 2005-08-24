@@ -143,6 +143,11 @@ void free_scene(Scene *sce)
 	
 	BLI_freelistN(&sce->markers);
 	
+	if(sce->toolsettings){
+		MEM_freeN(sce->toolsettings);
+		sce->toolsettings = NULL;	
+	}
+	
 	if (sce->theDag) {
 		free_forest(sce->theDag);
 		MEM_freeN(sce->theDag);
@@ -192,6 +197,18 @@ Scene *add_scene(char *name)
 	sce->r.depth= 32;
 
 	sce->r.stereomode = 1;  // no stereo
+
+	sce->toolsettings = MEM_mallocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings->cornertype=0;
+	sce->toolsettings->degr = 90; 
+	sce->toolsettings->step = 9;
+	sce->toolsettings->turn = 1; 				
+	sce->toolsettings->extr_offs = 1; 
+	sce->toolsettings->doublimit = 0.001;
+	sce->toolsettings->segments = 32;
+	sce->toolsettings->rings = 32;
+	sce->toolsettings->vertices = 32;
+	sce->toolsettings->editbutflag = 1;
 
 	strcpy(sce->r.backbuf, "//backbuf");
 	strcpy(sce->r.pic, U.renderdir);

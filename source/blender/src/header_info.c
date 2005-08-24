@@ -309,6 +309,8 @@ Scene *copy_scene(Scene *sce, int level)
 	scen->ed= NULL;
 	scen->radio= NULL;
 	scen->theDag= NULL;
+	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
+
 
 	obase= sce->base.first;
 	base= scen->base.first;
@@ -324,6 +326,7 @@ Scene *copy_scene(Scene *sce, int level)
 
 	/* level 1 */
 	G.scene= scen;
+	
 	single_object_users(0);
 
 	/*	camera */
@@ -340,12 +343,12 @@ Scene *copy_scene(Scene *sce, int level)
 		single_tex_users_expand();
 		
 		scen->radio= MEM_dupallocN(sce->radio);
+		
 	}
 
 	clear_id_newpoins();
 
 	BPY_copy_scriptlink(&sce->scriptlink);
-
 	// make a private copy of the avicodecdata
 
 	if (sce->r.avicodecdata) {

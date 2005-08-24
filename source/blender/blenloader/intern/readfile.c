@@ -2561,7 +2561,9 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->basact= newdataadr(fd, sce->basact);
 
 	sce->radio= newdataadr(fd, sce->radio);
-
+	
+	sce->toolsettings= newdataadr(fd, sce->toolsettings);
+	
 	if(sce->ed) {
 		ed= sce->ed= newdataadr(fd, sce->ed);
 
@@ -4849,6 +4851,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		bArmature *arm;
 		Mesh *me;
+		Scene *sce= main->scene.first;
+
+		while(sce){
+			if(sce->toolsettings == NULL){
+				sce->toolsettings = MEM_mallocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
+				sce->toolsettings->cornertype=0;
+				sce->toolsettings->degr = 90; 
+				sce->toolsettings->step = 9;
+				sce->toolsettings->turn = 1; 				
+				sce->toolsettings->extr_offs = 1; 
+				sce->toolsettings->doublimit = 0.001;
+				sce->toolsettings->segments = 32;
+				sce->toolsettings->rings = 32;
+				sce->toolsettings->vertices = 32;
+				sce->toolsettings->editbutflag =1;
+			}
+			sce= sce->id.next;	
+		}
 
 		for (lt=main->latt.first; lt; lt=lt->id.next) {
 			if (lt->fu==0.0 && lt->fv==0.0 && lt->fw==0.0) {

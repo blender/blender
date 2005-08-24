@@ -695,7 +695,6 @@ void extrude_repeat_mesh(int steps, float offs)
 
 void spin_mesh(int steps,int degr,float *dvec, int mode)
 {
-	extern short editbutflag;
 	EditMesh *em = G.editMesh;
 	EditVert *eve,*nextve;
 	float nor[3]= {0.0, 0.0, 0.0};
@@ -719,7 +718,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 
 	phi= (float)(degr*M_PI/360.0);
 	phi/= steps;
-	if(editbutflag & B_CLOCKWISE) phi= -phi;
+	if(G.scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
 		n[0]=n[1]= 0.0;
@@ -741,7 +740,7 @@ void spin_mesh(int steps,int degr,float *dvec, int mode)
 	Mat3MulMat3(tmat,cmat,bmat);
 	Mat3MulMat3(bmat,imat,tmat);
 
-	if(mode==0) if(editbutflag & B_KEEPORIG) adduplicateflag(1);
+	if(mode==0) if(G.scene->toolsettings->editbutflag & B_KEEPORIG) adduplicateflag(1);
 	ok= 1;
 
 	for(a=0;a<steps;a++) {
@@ -2288,7 +2287,6 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	struct GHash *gh;
 	int i,j,edgecount,facetype,hold;
 	float length[4];
-	extern short cornertype;
 	
 	//Set faces f1 to 0 cause we need it later
 			
@@ -2427,7 +2425,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 					   (ef->e2->f & flag && ef->e4->f & flag)){
 						fill_quad_double_op(ef, gh, numcuts);							  
 					}else{
-						switch(cornertype){
+						switch(G.scene->toolsettings->cornertype){
 							case 0:	fill_quad_double_adj_path(ef, gh, numcuts); break;
 							case 1:	fill_quad_double_adj_inner(ef, gh, numcuts); break;
 							case 2:	fill_quad_double_adj_fan(ef, gh, numcuts); break;
@@ -5350,7 +5348,6 @@ void subdivideflag(int flag, float rad, int beauty)
 	/* subdivide all with (vertflag & flag) */
 	/* if rad>0.0 it's a 'sphere' subdivide */
 	/* if rad<0.0 it's a fractal subdivide */
-	extern float doublimit;
 	EditVert *eve;
 	EditEdge *eed, *e1, *e2, *e3, *e4, *nexted;
 	EditFace *efa, efapin;
@@ -5384,7 +5381,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				
 					/* area */
 					len1= AreaQ3Dfl(efa->v1->co, efa->v2->co, efa->v3->co, efa->v4->co);
-					if(len1 <= doublimit) {
+					if(len1 <= G.scene->toolsettings->doublimit) {
 						efa->e1->f2 = 0;
 						efa->e2->f2 = 0;
 						efa->e3->f2 = 0;
@@ -5407,7 +5404,7 @@ void subdivideflag(int flag, float rad, int beauty)
 				else {
 					/* area */
 					len1= AreaT3Dfl(efa->v1->co, efa->v2->co, efa->v3->co);
-					if(len1 <= doublimit) {
+					if(len1 <= G.scene->toolsettings->doublimit) {
 						efa->e1->f2 = 0;
 						efa->e2->f2 = 0;
 						efa->e3->f2 = 0;

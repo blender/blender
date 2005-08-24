@@ -254,6 +254,31 @@ typedef struct TimeMarker {
 	unsigned int flag;
 } TimeMarker;
 
+typedef struct ToolSettings {
+	// Subdivide Settings
+	short cornertype;
+	short editbutflag;
+	// Extrude Tools
+	short degr; 
+	short step;
+	short turn; 
+
+	short pad1;
+	
+	float extr_offs; 
+	float doublimit;
+	
+	// Primitive Settings
+	// UV Sphere
+	short segments;
+	short rings;
+	
+	// Cylinder - Tube - Circle
+	short vertices;
+
+	char pad2,pad3;
+} ToolSettings;
+
 typedef struct Scene {
 	ID id;
 	struct Object *camera;
@@ -281,6 +306,8 @@ typedef struct Scene {
 	void *sumohandle;
 	
 	struct GameFraming framing;
+
+	struct ToolSettings *toolsettings;
 
 	/* migrate or replace? depends on some internal things... */
 	/* no, is on the right place (ton) */

@@ -1882,8 +1882,6 @@ void split_font()
 void special_editmenu(void)
 {
 	Object *ob= OBACT;
-	extern short editbutflag;
-	extern float doublimit;
 	float fac;
 	int nr,ret;
 	short randfac,numcuts;
@@ -2028,7 +2026,7 @@ void special_editmenu(void)
 		case 1:
             numcuts = 1;
 			waitcursor(1);
-            esubdivideflag(1, 0.0, editbutflag,numcuts,0);
+            esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
 			
 			BIF_undo_push("ESubdivide Single");            
 			break;
@@ -2036,7 +2034,7 @@ void special_editmenu(void)
             numcuts = 2;
             if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
-            esubdivideflag(1, 0.0, editbutflag,numcuts,0);
+            esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
 			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
@@ -2046,7 +2044,7 @@ void special_editmenu(void)
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, editbutflag,numcuts,0);
+			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,numcuts,0);
 			BIF_undo_push("Subdivide Fractal");
 			break;
 
@@ -2054,7 +2052,7 @@ void special_editmenu(void)
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
@@ -2080,12 +2078,12 @@ void special_editmenu(void)
             numcuts = 2;
             if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
-			esubdivideflag(1, 0.0, editbutflag | B_SMOOTH,numcuts,0);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,numcuts,0);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
 		case 13:
 			waitcursor(1);
-			subdivideflag(1, 0.0, editbutflag | B_SMOOTH);
+			subdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
 		}

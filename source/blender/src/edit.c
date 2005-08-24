@@ -1506,7 +1506,6 @@ void snapmenu()
 
 void mergemenu(void)
 {
-	extern float doublimit;
 	short event;
 
 	event = pupmenu("Merge %t|At Center%x1|At Cursor%x2");
@@ -1518,7 +1517,7 @@ void mergemenu(void)
 	else
 		snap_sel_to_curs(); /*Merge at Cursor*/
 
-	notice("Removed %d Vertices", removedoublesflag(1, doublimit));
+	notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 	BIF_undo_push("Merge"); /* push the mesh down the undo pipe */

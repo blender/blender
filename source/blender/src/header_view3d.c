@@ -2045,7 +2045,6 @@ static uiBlock *view3d_edit_propfalloffmenu(void *arg_unused)
 
 void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 {
-	extern float doublimit;
 	
 	switch(event) {
 		 
@@ -2053,7 +2052,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		make_parent();
 		break;
 	case 1: /* remove doubles */
-		notice("Removed: %d", removedoublesflag(1, doublimit));
+		notice("Removed: %d", removedoublesflag(1, G.scene->toolsettings->doublimit));
 		break;
 	case 2: /* smooth */
 		vertexsmooth();
@@ -2103,25 +2102,24 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 
 void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 {
-	extern short editbutflag;
 	float fac;
 	short randfac;
 
 	switch(event) {
 		 
 	case 0: /* subdivide smooth */
-		esubdivideflag(1, 0.0, editbutflag | B_SMOOTH,1,0);
+		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,1,0);
 		BIF_undo_push("Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
-		esubdivideflag(1, fac, editbutflag,1,0);
+		esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,1,0);
 		BIF_undo_push("Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
-		esubdivideflag(1, 0.0, editbutflag,1,0);
+		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,1,0);
 		BIF_undo_push("Subdivide");
 		break;
 	case 3: /* knife subdivide */

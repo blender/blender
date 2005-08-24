@@ -151,12 +151,8 @@
 
 #include "butspace.h" // own module
 
-static short degr= 90, step= 9, turn= 1;
-static float extr_offs= 1.0;
 static float editbutweight=1.0;
-short editbutflag= 1;
-short cornertype = 0;
-float doublimit= 0.001, editbutvweight=1;
+float editbutvweight=1;
 float uv_calc_radius= 1.0, uv_calc_cubesize= 1.0;
 short uv_calc_mapdir= 1, uv_calc_mapalign= 1, facesel_draw_edges= 0;
 
@@ -2447,10 +2443,10 @@ void do_meshbuts(unsigned short event)
 
 	switch(event) {
 	case B_SPIN:
-		if( select_area(SPACE_VIEW3D)) spin_mesh(step, degr, 0, 0);
+		if( select_area(SPACE_VIEW3D)) spin_mesh(G.scene->toolsettings->step, G.scene->toolsettings->degr, 0, 0);
 		break;
 	case B_SPINDUP:
-		if( select_area(SPACE_VIEW3D)) spin_mesh(step, degr, 0, 1);
+		if( select_area(SPACE_VIEW3D)) spin_mesh(G.scene->toolsettings->step, G.scene->toolsettings->degr, 0, 1);
 		break;
 	case B_EXTR:
 		G.f |= G_DISABLE_OK;
@@ -2458,10 +2454,10 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_SCREW:
-		if( select_area(SPACE_VIEW3D)) screw_mesh(step, turn);
+		if( select_area(SPACE_VIEW3D)) screw_mesh(G.scene->toolsettings->step, G.scene->toolsettings->turn);
 		break;
 	case B_EXTREP:
-		if( select_area(SPACE_VIEW3D)) extrude_repeat_mesh(step, extr_offs);
+		if( select_area(SPACE_VIEW3D)) extrude_repeat_mesh(G.scene->toolsettings->step, G.scene->toolsettings->extr_offs);
 		break;
 	case B_SPLIT:
 		G.f |= G_DISABLE_OK;
@@ -2469,13 +2465,13 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
-		notice("Removed: %d", removedoublesflag(1, doublimit));
+		notice("Removed: %d", removedoublesflag(1, G.scene->toolsettings->doublimit));
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rem Doubles");
 		break;
 	case B_SUBDIV:
 		waitcursor(1);
-		esubdivideflag(1, 0.0, editbutflag & B_BEAUTY,1,0);
+		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -2486,7 +2482,7 @@ void do_meshbuts(unsigned short event)
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		waitcursor(1);
 		fac= -( (float)randfac )/100;
-		esubdivideflag(1, fac, editbutflag & B_BEAUTY,1,0);
+		esubdivideflag(1, fac, G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
 		countall();
 		waitcursor(0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -2529,13 +2525,13 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, B_BEAUTY, 0, "Beauty",		    10,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
-	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Short",		    50,195,40,19, &editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
+	uiDefButBitS(block, TOG, B_BEAUTY, 0, "Beauty",		    10,195,40,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
+	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Short",		    50,195,40,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
 
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
 
 	uiDefButS(block, MENU, B_DIFF, "Corner Cut Type %t|Path %x0|Innervert %x1|Fan %x2", 
-												170, 195, 85, 19, &cornertype, 0, 0, 0, 0, "Choose Quad Corner Cut Type");	
+												170, 195, 85, 19, &G.scene->toolsettings->cornertype , 0, 0, 0, 0, "Choose Quad Corner Cut Type");	
 
 	uiDefBut(block, BUT,B_VERTEXNOISE,"Noise",		10,175,60,19, 0, 0, 0, 0, 0, "Use vertex coordinate as texture coordinate");
 	uiDefBut(block, BUT,B_HASH,"Hash",				70,175,60,19, 0, 0, 0, 0, 0, "Randomizes selected vertice sequence data");
@@ -2549,7 +2545,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 
 	uiDefBut(block, BUT,B_FLIPNORM,"Flip Normals",	10,135,80,19, 0, 0, 0, 0, 0, "Toggles the direction of the selected face's normals");
 	uiDefBut(block, BUT,B_REMDOUB,"Rem Doubles",	90,135,80,19, 0, 0, 0, 0, 0, "Removes duplicates from selected vertices");
-	uiDefButF(block, NUM, B_DIFF, "Limit:",			170,135,85,19, &doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
+	uiDefButF(block, NUM, B_DIFF, "Limit:",			170,135,85,19, &G.scene->toolsettings->doublimit, 0.0001, 1.0, 10, 0, "Specifies the max distance 'Rem Doubles' will consider vertices as 'doubled'");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, BUT,B_EXTR,"Extrude",			10,105,245,24, 0, 0, 0, 0, 0, "Converts selected edges to faces and selects the new vertices");
@@ -2559,15 +2555,15 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_SPIN, "Spin",				90,75,80,24, 0, 0, 0, 0, 0, "Extrudes the selected vertices in a circle around the cursor in the indicated viewport");
 	uiDefBut(block, BUT,B_SPINDUP,"Spin Dup",		170,75,85,24, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a circle around the cursor in the indicated viewport");
 
-	uiDefButS(block, NUM, B_DIFF, "Degr:",			10,55,80,19, &degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
-	uiDefButS(block, NUM, B_DIFF, "Steps:",			90,55,80,19, &step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
-	uiDefButS(block, NUM, B_DIFF, "Turns:",			170,55,85,19, &turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
-	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,160,19, &editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
-	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	170,35,85,19, &editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiDefButS(block, NUM, B_DIFF, "Degr:",			10,55,80,19, &G.scene->toolsettings->degr,10.0,360.0, 0, 0, "Specifies the number of degrees 'Spin' revolves");
+	uiDefButS(block, NUM, B_DIFF, "Steps:",			90,55,80,19, &G.scene->toolsettings->step,1.0,180.0, 0, 0, "Specifies the total number of 'Spin' slices");
+	uiDefButS(block, NUM, B_DIFF, "Turns:",			170,55,85,19, &G.scene->toolsettings->turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
+	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,160,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
+	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	170,35,85,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,120,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
-	uiDefButF(block, NUM, B_DIFF, "Offset:",		130,10,125,19, &extr_offs, 0.01, 100.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
+	uiDefButF(block, NUM, B_DIFF, "Offset:",		130,10,125,19, &G.scene->toolsettings->extr_offs, 0.01, 100.0, 100, 0, "Sets the distance between each copy for 'Extrude Dup'");
 	uiBlockEndAlign(block);
 }
 

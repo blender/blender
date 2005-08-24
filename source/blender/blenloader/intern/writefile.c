@@ -1086,7 +1086,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 		}
 
 		writestruct(wd, DATA, "Radio", 1, sce->radio);
-
+		writestruct(wd, DATA, "ToolSettings", 1, sce->toolsettings);
+		
 		ed= sce->ed;
 		if(ed) {
 			writestruct(wd, DATA, "Editing", 1, ed);
