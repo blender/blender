@@ -2145,8 +2145,6 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
 
-//			ob->activecon = newglobadr(fd, ob->activecon);
-
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 
@@ -2325,8 +2323,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 	link_list(fd, &ob->defbase);
 	link_list(fd, &ob->nlastrips);
 	link_list(fd, &ob->constraintChannels);
-
-	ob->activecon = newdataadr(fd, ob->activecon);
 
 	direct_link_scriptlink(fd, &ob->scriptlink);
 

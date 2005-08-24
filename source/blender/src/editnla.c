@@ -1764,10 +1764,6 @@ void delete_nlachannels(void){
 				nextchan = conchan->next;
 				
 				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-					/* If we're the active constraint, unlink us */
-					if (conchan==base->object->activecon)
-						base->object->activecon = NULL;
-					
 					if (conchan->ipo)
 						conchan->ipo->id.us--;
 					BLI_freelinkN(&base->object->constraintChannels, conchan);

@@ -92,6 +92,7 @@
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editkey.h"
 #include "BIF_editseq.h"
 #include "BIF_editview.h"
@@ -562,9 +563,12 @@ Ipo *get_ipo_to_edit(ID **from)
 		if(last_seq) return last_seq->ipo;
 	}
 	else if(G.sipo->blocktype==IPO_CO){
-		if (ob && ob->activecon){
-			*from= (ID*) ob;
-			return ob->activecon->ipo;
+		if (ob) {
+			bConstraintChannel *chan= get_active_constraint_channel(ob);
+			if(chan) {
+				*from= (ID*) ob;
+				return chan->ipo;
+			}
 		}
 	}
 	else if(G.sipo->blocktype==ID_AC) {
@@ -1793,100 +1797,104 @@ Ipo *get_ipo(ID *from, short type, int make)
 	World *wo;
 	Lamp *la;
 	Camera *ca;
-	Ipo *ipo= 0;
+	Ipo *ipo= NULL;
 	bAction *act;
 
 	if( type==ID_OB) {
 		ob= (Object *)from;
-		if(ob->id.lib) return 0;
+		if(ob->id.lib) return NULL;
 		
 		ipo= ob->ipo;
-		if(make && ipo==0) ipo= ob->ipo= add_ipo("ObIpo", ID_OB);	
+		if(make && ipo==NULL) ipo= ob->ipo= add_ipo("ObIpo", ID_OB);	
 	}
 	else if( type==IPO_CO){
+		bConstraintChannel *chan;
+		
 		ob= (Object *)from;
-		if(ob->id.lib) return 0;
+		if(ob->id.lib) return NULL;
+		
+		chan= get_active_constraint_channel(ob);
 
-		if (ob->activecon){
-			ipo= ob->activecon->ipo;
-			if(make && ipo==0) ipo= ob->activecon->ipo= add_ipo("CoIpo", IPO_CO);	
+		if (chan){
+			ipo= chan->ipo;
+			if(make && ipo==NULL) ipo= chan->ipo= add_ipo("CoIpo", IPO_CO);	
 		}
 	}
 	else if( type==ID_AC) {
 		act= (bAction *)from;
-		if (!act->achan) return 0;
-		if (act->id.lib) return 0;
+		if (!act->achan) return NULL;
+		if (act->id.lib) return NULL;
 		ipo= act->achan->ipo;
 
 		/* This should never happen */
-		if(make && ipo==0) ipo= act->achan->ipo= add_ipo("AcIpo", ID_AC);
+		if(make && ipo==NULL) ipo= act->achan->ipo= add_ipo("AcIpo", ID_AC);
 	}
 	else if( type==ID_MA) {
 		ma= (Material *)from;
-		if(ma->id.lib) return 0;
+		if(ma->id.lib) return NULL;
 		ipo= ma->ipo;
 		
-		if(make && ipo==0) ipo= ma->ipo= add_ipo("MatIpo", ID_MA);
+		if(make && ipo==NULL) ipo= ma->ipo= add_ipo("MatIpo", ID_MA);
 	}
 	else if( type==ID_TE) {
 		tex= (Tex *)from;
-		if(tex->id.lib) return 0;
+		if(tex->id.lib) return NULL;
 		ipo= tex->ipo;
 		
-		if(make && ipo==0) ipo= tex->ipo= add_ipo("TexIpo", ID_TE);
+		if(make && ipo==NULL) ipo= tex->ipo= add_ipo("TexIpo", ID_TE);
 	}
 	else if( type==ID_SEQ) {
 		seq= (Sequence *)from;
 
 		if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
 			ipo= seq->ipo;
-			if(make && ipo==0) ipo= seq->ipo= add_ipo("SeqIpo", ID_SEQ);
+			if(make && ipo==NULL) ipo= seq->ipo= add_ipo("SeqIpo", ID_SEQ);
 		}
-		else return 0;
+		else return NULL;
 	}		
 	else if( type==ID_CU) {
 		cu= (Curve *)from;
-		if(cu->id.lib) return 0;
+		if(cu->id.lib) return NULL;
 		ipo= cu->ipo;
 		
-		if(make && ipo==0) ipo= cu->ipo= add_ipo("CuIpo", ID_CU);
+		if(make && ipo==NULL) ipo= cu->ipo= add_ipo("CuIpo", ID_CU);
 	}
 	else if( type==ID_KE) {
 		key= (Key *)from;
-		if(key->id.lib) return 0;
+		if(key->id.lib) return NULL;
 		ipo= key->ipo;
 		
-		if(make && ipo==0) ipo= key->ipo= add_ipo("KeyIpo", ID_KE);
+		if(make && ipo==NULL) ipo= key->ipo= add_ipo("KeyIpo", ID_KE);
 	}
 	else if( type==ID_WO) {
 		wo= (World *)from;
-		if(wo->id.lib) return 0;
+		if(wo->id.lib) return NULL;
 		ipo= wo->ipo;
 		
-		if(make && ipo==0) ipo= wo->ipo= add_ipo("WoIpo", ID_WO);
+		if(make && ipo==NULL) ipo= wo->ipo= add_ipo("WoIpo", ID_WO);
 	}
 	else if( type==ID_LA) {
 		la= (Lamp *)from;
-		if(la->id.lib) return 0;
+		if(la->id.lib) return NULL;
 		ipo= la->ipo;
 		
-		if(make && ipo==0) ipo= la->ipo= add_ipo("LaIpo", ID_LA);
+		if(make && ipo==NULL) ipo= la->ipo= add_ipo("LaIpo", ID_LA);
 	}
 	else if( type==ID_CA) {
 		ca= (Camera *)from;
-		if(ca->id.lib) return 0;
+		if(ca->id.lib) return NULL;
 		ipo= ca->ipo;
 		
-		if(make && ipo==0) ipo= ca->ipo= add_ipo("CaIpo", ID_CA);
+		if(make && ipo==NULL) ipo= ca->ipo= add_ipo("CaIpo", ID_CA);
 	}
 	else if( type==ID_SO) {
 		bSound *snd= (bSound *)from;
-		if(snd->id.lib) return 0;
+		if(snd->id.lib) return NULL;
 		ipo= snd->ipo;
 		
-		if(make && ipo==0) ipo= snd->ipo= add_ipo("SndIpo", ID_SO);
+		if(make && ipo==NULL) ipo= snd->ipo= add_ipo("SndIpo", ID_SO);
 	}
-	else return 0;
+	else return NULL;
 	
 	return ipo;	
 }

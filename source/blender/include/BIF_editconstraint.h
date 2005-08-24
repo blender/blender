@@ -38,27 +38,18 @@ struct Object;
 struct bConstraint;
 struct bConstraintChannel;
 
-typedef struct ConstraintElement{
-	struct ConstraintElement *next, *prev;
-	struct ConstraintElement *parent;
-	Object		*ob;
-	int			flag;
-	const char	*substring;
-	void		*subdata;
-} ConstraintElement;
+struct bConstraint *add_new_constraint(short type);
 
-struct bConstraintChannel *add_new_constraint_channel(const char *name);
-struct bConstraint * add_new_constraint(char type);
-void add_influence_key_to_constraint (struct bConstraint *con);
 void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
-void add_constraint_to_client(struct bConstraint *con);
-struct ListBase *get_constraint_client_channels (int forcevalid);
-struct ListBase *get_constraint_client(char *name, short *clienttype, void** clientdata);
+
+struct ListBase *get_active_constraints(struct Object *ob);
+struct bConstraint *get_active_constraint(struct Object *ob);
+struct ListBase *get_active_constraint_channels (struct Object *ob, int forcevalid);
+struct bConstraintChannel *get_active_constraint_channel(struct Object *ob);
 
 void object_test_constraints(struct Object *owner);
 
-char *get_con_subtarget_name(struct bConstraint *constraint, 
-							 struct Object *target);
+char *get_con_subtarget_name(struct bConstraint *con, struct Object *target);
 
 #endif
 

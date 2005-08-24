@@ -281,7 +281,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 				if(ob==NULL) {
 					if(G.sipo->blocktype!=ID_SEQ && G.sipo->blocktype!=ID_WO) {
 						id= NULL; 
-						idwasnul= 0;
+						idwasnul= NULL;
 					}
 				}
 			}
@@ -657,7 +657,7 @@ void do_global_buttons(unsigned short event)
 
 	ob= OBACT;
 
-	id= 0;	/* id at null for texbrowse */
+	id= NULL;	/* id at null for texbrowse */
 
 
 	switch(event) {
@@ -829,7 +829,7 @@ void do_global_buttons(unsigned short event)
 					if(mtex) {
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
-						ma->mtex[ ma->texact ]= 0;
+						ma->mtex[ ma->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
@@ -843,7 +843,7 @@ void do_global_buttons(unsigned short event)
 					if(mtex) {
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
-						wrld->mtex[ wrld->texact ]= 0;
+						wrld->mtex[ wrld->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
@@ -857,7 +857,7 @@ void do_global_buttons(unsigned short event)
 					if(mtex) {
 						if(mtex->tex) mtex->tex->id.us--;
 						MEM_freeN(mtex);
-						la->mtex[ la->texact ]= 0;
+						la->mtex[ la->texact ]= NULL;
 						allqueue(REDRAWBUTSSHADING, 0);
 						allqueue(REDRAWIPO, 0);
 						BIF_preview_changed(G.buts);
@@ -874,7 +874,7 @@ void do_global_buttons(unsigned short event)
 			
 			id= G.buts->lockpoin;
 			if(event==B_EXTEXBROWSE) {
-				id= 0;
+				id= NULL;
 				ma= give_current_material(ob, ob->actcol);
 				if(ma) {
 					mtex= ma->mtex[ ma->texact ];
@@ -891,7 +891,7 @@ void do_global_buttons(unsigned short event)
 			
 		}
 		else {
-			id= 0;
+			id= NULL;
 			
 			ma= give_current_material(ob, ob->actcol);
 			if(ma) {
@@ -988,7 +988,6 @@ void do_global_buttons(unsigned short event)
 				act= (bAction *)idtest;
 				
 				ob->action= act;
-				ob->activecon=NULL;
 				id_us_plus(idtest);
 				
 				if(id) id->us--;
@@ -1043,7 +1042,7 @@ void do_global_buttons(unsigned short event)
 					nr= GS(from->name);
 					if(nr==ID_OB){
 						if (G.sipo->blocktype==IPO_CO)
-							idtest= (ID *)add_ipo("CoIpo", IPO_CO); /* BLEARGH! */
+							idtest= (ID *)add_ipo("CoIpo", IPO_CO); /* constraint channel is no ID data... */
 						else
 							idtest= (ID *)add_ipo("ObIpo", nr);
 					}
@@ -1057,7 +1056,7 @@ void do_global_buttons(unsigned short event)
 					else if(nr==ID_CA) idtest= (ID *)add_ipo("CaIpo", nr);
 					else if(nr==ID_SO) idtest= (ID *)add_ipo("SndIpo", nr);
 					else if(nr==ID_AC) idtest= (ID *)add_ipo("ActIpo", nr);
-					else error("Warn bugs@blender.nl!");
+					else error("Warn bugtracker!");
 				}
 				idtest->us--;
 			}
@@ -1065,11 +1064,14 @@ void do_global_buttons(unsigned short event)
 				ipo= (Ipo *)idtest;
 		
 				if (ipo->blocktype==IPO_CO){
-					((Object*)from)->activecon->ipo = ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWVIEW3D, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
+					bConstraintChannel *chan= get_active_constraint_channel((Object*)from);
+					if(chan) {
+						chan->ipo = ipo;
+						id_us_plus(idtest);
+						allqueue(REDRAWVIEW3D, 0);
+						allqueue(REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+					}
 				}
 				else if(ipo->blocktype==ID_OB) {
 					( (Object *)from)->ipo= ipo;
@@ -1155,25 +1157,27 @@ void do_global_buttons(unsigned short event)
 		
 		ipo->id.us--;
 		
-		if(ipo->blocktype==ID_OB) ( (Object *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_MA) ( (Material *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_TE) ( (Tex *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_SEQ) ( (Sequence *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_CU) ( (Curve *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_KE) ( (Key *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_LA) ( (Lamp *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_CA) ( (Camera *)from)->ipo= 0;
-		else if(ipo->blocktype==ID_SO) ( (bSound *)from)->ipo= 0;
+		if(ipo->blocktype==ID_OB) ( (Object *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_MA) ( (Material *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_TE) ( (Tex *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_SEQ) ( (Sequence *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_CU) ( (Curve *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_KE) ( (Key *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_LA) ( (Lamp *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_CA) ( (Camera *)from)->ipo= NULL;
+		else if(ipo->blocktype==ID_SO) ( (bSound *)from)->ipo= NULL;
 		else if(ipo->blocktype==ID_AC) {
 			bAction *act = (bAction*) from;
 			bActionChannel *chan = 
 				get_hilighted_action_channel((bAction*)from);
 			BLI_freelinkN (&act->chanbase, chan);
 		}
-		else if(ipo->blocktype==IPO_CO) ((Object *)from)->activecon->ipo= 0;
-
+		else if(ipo->blocktype==IPO_CO) {
+			bConstraintChannel *chan= get_active_constraint_channel((Object*)from);
+			if(chan) chan->ipo= NULL;
+		}
 		else error("Warn bugtracker!");
 		
 		editipo_changed(G.sipo, 1); /* doredraw */
@@ -1226,7 +1230,7 @@ void do_global_buttons(unsigned short event)
 	case B_WORLDDELETE:
 		if(G.scene->world) {
 			G.scene->world->id.us--;
-			G.scene->world= 0;
+			G.scene->world= NULL;
 
 			BIF_undo_push("Unlink World");
 			allqueue(REDRAWBUTSSHADING, 0);
@@ -1237,7 +1241,7 @@ void do_global_buttons(unsigned short event)
 	case B_WTEXBROWSE:
 
 		if(G.buts->texnr== -2) {
-			id= 0;
+			id= NULL;
 			wrld= G.scene->world;
 			if(wrld) {
 				mtex= wrld->mtex[ wrld->texact ];
@@ -1253,7 +1257,7 @@ void do_global_buttons(unsigned short event)
 			
 		}
 		else {
-			id= 0;
+			id= NULL;
 			
 			wrld= G.scene->world;
 			if(wrld) {
@@ -1338,7 +1342,7 @@ void do_global_buttons(unsigned short event)
 		if(ob->type!=OB_LAMP) return;
 
 		if(G.buts->texnr== -2) {
-			id= 0;
+			id= NULL;
 			la= ob->data;
 			mtex= la->mtex[ la->texact ];
 			if(mtex) id= (ID *)mtex->tex;
@@ -1352,7 +1356,7 @@ void do_global_buttons(unsigned short event)
 			
 		}
 		else {
-			id= 0;
+			id= NULL;
 			
 			la= ob->data;
 			mtex= la->mtex[ la->texact ];
@@ -1391,7 +1395,7 @@ void do_global_buttons(unsigned short event)
 		break;
 	
 	case B_IMAGEDELETE:
-		G.sima->image= 0;
+		G.sima->image= NULL;
 		image_changed(G.sima, 0);
 		BIF_undo_push("Unlink Image");
 		allqueue(REDRAWIMAGE, 0);
@@ -1744,7 +1748,6 @@ void do_global_buttons2(short event)
 			if(act->id.us>1) {
 				if(okee("Single user")) {
 					ob->action=copy_action(act);
-					ob->activecon=NULL;
 					act->id.us--;
 					allqueue(REDRAWACTION, 0);
 				}
@@ -1997,9 +2000,11 @@ void do_global_buttons2(short event)
 					else if(ipo->blocktype==ID_WO) ((World *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_CA) ((Camera *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_SO) ((bSound *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_AC) get_hilighted_action_channel((bAction *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==IPO_CO) ((Object *)idfrom)->activecon->ipo= copy_ipo(ipo);
-					else error("Warn ton!");
+					else if(ipo->blocktype==ID_AC) 
+						get_hilighted_action_channel((bAction *)idfrom)->ipo= copy_ipo(ipo);
+					else if(ipo->blocktype==IPO_CO) 
+						get_active_constraint_channel((Object*)idfrom)->ipo= copy_ipo(ipo);
+					else error("Warn bugtracker!");
 					
 					ipo->id.us--;
 					allqueue(REDRAWIPO, 0);

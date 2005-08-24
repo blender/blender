@@ -40,6 +40,7 @@
 
 struct Action;
 
+/* channels reside in Object or Action (ListBase) constraintChannels */
 typedef struct bConstraintChannel{
 	struct bConstraintChannel *next, *prev;
 	Ipo			*ipo;
@@ -50,17 +51,12 @@ typedef struct bConstraintChannel{
 typedef struct bConstraint{
 	struct bConstraint *next, *prev;
 	void		*data;		/*	Constraint data	(a valid constraint type) */
-	char		type;		/*	Constraint type	*/
-	char		otype;		/*	Old type - for menu callbacks */
+	short		type;		/*	Constraint type	*/
 	short		flag;		/*	Flag */
 	short		reserved1;	
 	char		name[30];	/*	Constraint name	*/
 
 	float		enforce;
-	float		time;		
-	float		offset[3];	/* Target location offset */
-	float		orient[3];	/* Target orientation offset */
-	float		roll[3];	/* Target roll offset (needed?) */
 } bConstraint;
 
 /* Single-target subobject constraints */
@@ -173,44 +169,47 @@ typedef struct bStretchToConstraint{
 
 
 /* bConstraint.flag */
-#define CONSTRAINT_EXPAND		0x00000001
-#define CONSTRAINT_DONE			0x00000002
-#define CONSTRAINT_DISABLE		0x00000004
-#define CONSTRAINT_LOOPTESTED	0x00000008
+		/* expand for UI */
+#define CONSTRAINT_EXPAND		0x01
+		/* pre-check for illegal object name or bone name */
+#define CONSTRAINT_DISABLE		0x04
+		/* flags 0x2 and 0x8 were used in past, skip this */
+		/* to indicate which Ipo should be shown, maybe for 3d access later too */
+#define CONSTRAINT_ACTIVE		0x10
 
 /* bConstraintChannel.flag */
-#define CONSTRAINT_CHANNEL_SELECT	0x00000001
+#define CONSTRAINT_CHANNEL_SELECT	0x01
 
 /* bLocateLikeConstraint.flag */
-#define LOCLIKE_X		0x00000001
-#define LOCLIKE_Y		0x00000002
-#define LOCLIKE_Z		0x00000004
-#define LOCSPACE		0x00000008
+#define LOCLIKE_X		0x01
+#define LOCLIKE_Y		0x02
+#define LOCLIKE_Z		0x04
+#define LOCSPACE		0x08
 
 /* Axis flags */
-#define LOCK_X		0x00000000
-#define LOCK_Y		0x00000001
-#define LOCK_Z		0x00000002
+#define LOCK_X		0x00
+#define LOCK_Y		0x01
+#define LOCK_Z		0x02
 
-#define UP_X		0x00000000
-#define UP_Y		0x00000001
-#define UP_Z		0x00000002
+#define UP_X		0x00
+#define UP_Y		0x01
+#define UP_Z		0x02
 
-#define TRACK_X		0x00000000
-#define TRACK_Y		0x00000001
-#define TRACK_Z		0x00000002
-#define TRACK_nX	0x00000003
-#define TRACK_nY	0x00000004
-#define TRACK_nZ	0x00000005
+#define TRACK_X		0x00
+#define TRACK_Y		0x01
+#define TRACK_Z		0x02
+#define TRACK_nX	0x03
+#define TRACK_nY	0x04
+#define TRACK_nZ	0x05
 
-#define VOLUME_XZ	0x00000000
-#define VOLUME_X	0x00000001
-#define VOLUME_Z	0x00000002
-#define NO_VOLUME	0x00000003
+#define VOLUME_XZ	0x00
+#define VOLUME_X	0x01
+#define VOLUME_Z	0x02
+#define NO_VOLUME	0x03
 
-#define PLANE_X		0x00000000
-#define PLANE_Y		0x00000001
-#define PLANE_Z		0x00000002
+#define PLANE_X		0x00
+#define PLANE_Y		0x01
+#define PLANE_Z		0x02
 
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1

@@ -35,6 +35,7 @@
 
 
 struct Object;
+struct bPoseChannel;
 
 void enter_posemode(void);
 void exit_posemode(void);
@@ -42,6 +43,7 @@ void exit_posemode(void);
  // sets chan->flag to POSE_KEY if bone selected
 void set_pose_keys(struct Object *ob);
 
+struct bPoseChannel *get_active_posechannel (struct Object *ob);
 
 /* tools */
 void pose_select_constraint_target(void);

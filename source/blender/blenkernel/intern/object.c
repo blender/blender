@@ -413,6 +413,8 @@ int exist_object(Object *obtest)
 {
 	Object *ob;
 	
+	if(obtest==NULL) return 0;
+	
 	ob= G.main->object.first;
 	while(ob) {
 		if(ob==obtest) return 1;
@@ -784,7 +786,6 @@ Object *copy_object(Object *ob)
 	Object *obn;
 	ModifierData *md;
 	int a;
-	bConstraintChannel *actcon;
 
 	obn= copy_libblock(ob);
 	
@@ -819,11 +820,7 @@ Object *copy_object(Object *ob)
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
 	copy_constraints (&obn->constraints, &ob->constraints);
 
-	actcon = clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels, ob->activecon);
-	/* If the active constraint channel was in this list, update it */
-	if (actcon)
-		obn->activecon = actcon;
-
+	clone_constraint_channels (&obn->constraintChannels, &ob->constraintChannels);
 
 	/* increase user numbers */
 	id_us_plus((ID *)obn->data);
@@ -1531,7 +1528,9 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 	for (con = ob->constraints.first; con; con=con->next) {
 		// inverse kinematics is solved seperate 
 		if (con->type==CONSTRAINT_TYPE_KINEMATIC) continue;
-		
+		// and this we can skip completely
+		if (con->flag & CONSTRAINT_DISABLE) continue;
+			
 		/* Clear accumulators if necessary*/
 		if (clear) {
 			clear= 0;
@@ -1542,32 +1541,29 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 			memset(asize, 0, sizeof(float)*3);
 		}
 		
-		/* Check this constraint only if it has some enforcement */
-		if (!(con->flag & CONSTRAINT_DISABLE)) {
-			enf = con->enforce;	// value from ipos (from action channels)
+		enf = con->enforce;	// value from ipos (from action channels)
 
-			/* Get the targetmat */
-			get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
-			
-			Mat4CpyMat4(focusmat, tmat);
-			
-			/* Extract the components & accumulate */
-			Mat4ToQuat(focusmat, quat);
-			VECCOPY(loc, focusmat[3]);
-			Mat3CpyMat4(mat, focusmat);
-			Mat3ToSize(mat, size);
-			
-			a+= enf;
-			tot++;
-			
-			for(i=0; i<3; i++) {
-				aquat[i+1]+=(quat[i+1]) * enf;
-				aloc[i]+=(loc[i]) * enf;
-				asize[i]+=(size[i]-1.0f) * enf;
-			}
-			aquat[0]+=(quat[0])*enf;
-			Mat4CpyMat4(lastmat, focusmat);
+		/* Get the targetmat */
+		get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
+		
+		Mat4CpyMat4(focusmat, tmat);
+		
+		/* Extract the components & accumulate */
+		Mat4ToQuat(focusmat, quat);
+		VECCOPY(loc, focusmat[3]);
+		Mat3CpyMat4(mat, focusmat);
+		Mat3ToSize(mat, size);
+		
+		a+= enf;
+		tot++;
+		
+		for(i=0; i<3; i++) {
+			aquat[i+1]+=(quat[i+1]) * enf;
+			aloc[i]+=(loc[i]) * enf;
+			asize[i]+=(size[i]-1.0f) * enf;
 		}
+		aquat[0]+=(quat[0])*enf;
+		Mat4CpyMat4(lastmat, focusmat);
 		
 		/* If the next constraint is not the same type (or there isn't one),
 		 *	then evaluate the accumulator & request a clear */

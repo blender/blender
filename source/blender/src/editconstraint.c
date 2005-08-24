@@ -56,6 +56,7 @@
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editconstraint.h"
+#include "BIF_poseobject.h"
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
@@ -64,33 +65,9 @@
 #include "nla.h"
 
 
-/* called by buttons to find a bone to display/edit values for */
-static bPoseChannel *get_active_posechannel (void)
+ListBase *get_active_constraint_channels (Object *ob, int forcevalid)
 {
-	Object *ob= OBACT;
-	bPoseChannel *pchan;
-	bArmature *arm;
-	
-	arm = get_armature(OBACT);
-	if (!arm)
-		return NULL;
-	
-	/* find for active */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE))
-			return pchan;
-	}
-	
-	return NULL;
-}
-
-
-ListBase *get_constraint_client_channels (int forcevalid)
-{
-	Object *ob;
 	char ipstr[64];
-
-	ob=OBACT;
 	
 	if (!ob)
 		return NULL;
@@ -100,7 +77,7 @@ ListBase *get_constraint_client_channels (int forcevalid)
 		bActionChannel *achan;
 		bPoseChannel *pchan;
 
-		pchan = get_active_posechannel();
+		pchan = get_active_posechannel(ob);
 		if (pchan) {
 			
 			/* Make sure we have an action */
@@ -135,49 +112,87 @@ ListBase *get_constraint_client_channels (int forcevalid)
 	return &ob->constraintChannels;
 }
 
-ListBase *get_constraint_client(char *name, short *clientType, void **clientdata)
-{
-	Object *ob;
-	ListBase *list;
 
-	ob=OBACT;
-	if (clientType)
-		*clientType = -1;
+/* if object in posemode, active bone constraints, else object constraints */
+ListBase *get_active_constraints(Object *ob)
+{
+	ListBase *list;
 
 	if (!ob)
 		return NULL;
 
 	list = &ob->constraints;
 
-	/* Prep the object's constraint channels */
-	if (clientType)
-		*clientType = TARGET_OBJECT;
-	
-	if (name)
-		strcpy (name, ob->id.name+2);
-
 	if (ob->flag & OB_POSEMODE) {
 		bPoseChannel *pchan;
 
-		pchan = get_active_posechannel();
-		if (pchan) {
-
-			/* Is the bone the client? */
-			if (clientType)
-				*clientType = TARGET_BONE;
-			if (clientdata)
-				*clientdata = pchan->bone;
-			if (name)
-				sprintf (name, "%s>>%s", name, pchan->name);
-
+		pchan = get_active_posechannel(ob);
+		if (pchan)
 			list = &pchan->constraints;
-		}
 	}
 
 	return list;
 }
 
-bConstraint * add_new_constraint(char type)
+/* single constraint */
+bConstraint *get_active_constraint(Object *ob)
+{
+	ListBase *lb= get_active_constraints(ob);
+
+	if(lb) {
+		bConstraint *con;
+		for(con= lb->first; con; con=con->next)
+			if(con->flag & CONSTRAINT_ACTIVE)
+				return con;
+	}
+	return NULL;
+}
+
+/* single channel, for ipo */
+bConstraintChannel *get_active_constraint_channel(Object *ob)
+{
+	bConstraint *con;
+	bConstraintChannel *chan;
+	
+	if (ob->flag & OB_POSEMODE) {
+		if(ob->action) {
+			bPoseChannel *pchan;
+			
+			pchan = get_active_posechannel(ob);
+			if(pchan) {
+				for(con= pchan->constraints.first; con; con= con->next)
+					if(con->flag & CONSTRAINT_ACTIVE)
+						break;
+				if(con) {
+					bActionChannel *achan = get_named_actionchannel(ob->action, pchan->name);
+					if(achan) {
+						for(chan= achan->constraintChannels.first; chan; chan= chan->next)
+							if(!strcmp(chan->name, con->name))
+								break;
+						return chan;
+					}
+				}
+			}
+		}
+	}
+	else {
+		for(con= ob->constraints.first; con; con= con->next)
+			if(con->flag & CONSTRAINT_ACTIVE)
+				break;
+		if(con) {
+			for(chan= ob->constraintChannels.first; chan; chan= chan->next)
+				if(!strcmp(chan->name, con->name))
+					break;
+			return chan;
+		}
+	}
+	
+	return NULL;
+}
+
+
+
+bConstraint *add_new_constraint(short type)
 {
 	bConstraint *con;
 
@@ -197,86 +212,65 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 {
 	ListBase *list;
 	list = &ob->constraints;
-	if (list)
-	{
-		unique_constraint_name(con, list);
-		BLI_addtail(list, con);
-	}
-}
-
-void add_constraint_to_client(bConstraint *con)
-{
-	ListBase *list;
-	short type;
-	list = get_constraint_client(NULL, &type, NULL);
-	if (list)
-	{
-		unique_constraint_name(con, list);
-		BLI_addtail(list, con);
-	}
-}
-
-bConstraintChannel *add_new_constraint_channel(const char* name)
-{
-	bConstraintChannel *chan = NULL;
-
-	chan = MEM_callocN(sizeof(bConstraintChannel), "constraintChannel");
-	strcpy(chan->name, name);
 	
-	return chan;
+	if (list) {
+		unique_constraint_name(con, list);
+		BLI_addtail(list, con);
+		
+		con->flag |= CONSTRAINT_ACTIVE;
+		for(con= con->prev; con; con= con->prev)
+			con->flag &= ~CONSTRAINT_ACTIVE;
+	}
 }
 
-void add_influence_key_to_constraint (bConstraint *con){
-	printf("doesn't do anything yet\n");
-}
 
-char *get_con_subtarget_name(bConstraint *constraint, Object *target)
+char *get_con_subtarget_name(bConstraint *con, Object *target)
 {
 	/*
 	 * If the target for this constraint is target, return a pointer 
 	 * to the name for this constraints subtarget ... NULL otherwise
 	 */
-	switch (constraint->type) {
+	switch (con->type) {
 
 		case CONSTRAINT_TYPE_ACTION:
 		{
-			bActionConstraint *data = constraint->data;
+			bActionConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_LOCLIKE:
 		{
-			bLocateLikeConstraint *data = constraint->data;
+			bLocateLikeConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_ROTLIKE:
 		{
-			bRotateLikeConstraint *data = constraint->data;
+			bRotateLikeConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 		{
-			bKinematicConstraint *data = constraint->data;
+			bKinematicConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_TRACKTO:
 		{
-			bTrackToConstraint *data = constraint->data;
+			bTrackToConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 		{
-			bLockTrackConstraint *data = constraint->data;
+			bLockTrackConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
 		case CONSTRAINT_TYPE_STRETCHTO:
 		{
-			bStretchToConstraint *data = constraint->data;
+			bStretchToConstraint *data = con->data;
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
@@ -286,7 +280,7 @@ char *get_con_subtarget_name(bConstraint *constraint, Object *target)
 			 */
 		{
 			/*
-			 * bFollowPathConstraint *data = constraint->data;
+			 * bFollowPathConstraint *data = con->data;
 			 */
 			return NULL;
 		}
@@ -354,6 +348,7 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -371,6 +366,7 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -388,6 +384,7 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -404,6 +401,7 @@ static void test_constraints (Object *owner, const char* substring)
 					bKinematicConstraint *data = curcon->data;
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -420,6 +418,7 @@ static void test_constraints (Object *owner, const char* substring)
 					bTrackToConstraint *data = curcon->data;
 					if (!exist_object(data->tar)) {
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -445,6 +444,7 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -471,6 +471,7 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
@@ -488,10 +489,12 @@ static void test_constraints (Object *owner, const char* substring)
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					if (data->tar->type != OB_CURVE){
 						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					if (data->upflag==data->trackflag){

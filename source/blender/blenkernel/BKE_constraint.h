@@ -46,8 +46,8 @@ void *new_constraint_data (short type);
 void evaluate_constraint (struct bConstraint *constraint, struct Object *ob, short ownertype, void *ownerdata, float targetmat[][4]);
 void free_constraints (struct ListBase *conlist);
 void copy_constraints (struct ListBase *dst, struct ListBase *src);
-void *copy_constraint_channels (ListBase *dst, ListBase *src);
-struct bConstraintChannel *clone_constraint_channels (struct ListBase *dst, struct ListBase *src, struct bConstraintChannel *oldact);
+void copy_constraint_channels (ListBase *dst, ListBase *src);
+void clone_constraint_channels (struct ListBase *dst, struct ListBase *src);
 void relink_constraints (struct ListBase *list);
 void free_constraint_data (struct bConstraint *con);
 

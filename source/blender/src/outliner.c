@@ -507,7 +507,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					temod->name = "Modifiers";
 					for (index=0,md=ob->modifiers.first; md; index++,md=md->next) {
 						TreeElement *te = outliner_add_element(soops, &temod->subtree, ob, temod, TSE_MODIFIER, index);
-						if(te) te->name= md->name;
+						te->name= md->name;
 
 						if (md->type==eModifierType_Lattice) {
 							outliner_add_element(soops, &te->subtree, ((LatticeModifierData*) md)->object, te, TSE_MODIFIER_OB, 0);

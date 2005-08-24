@@ -2769,9 +2769,7 @@ void copy_attr(short event)
 					if (U.dupflag& USER_DUP_IPO)
 						copy_constraint_channels(&base->object->constraintChannels, &ob->constraintChannels);
 					else
-						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels, NULL);
-
-					base->object->activecon = NULL;
+						clone_constraint_channels (&base->object->constraintChannels, &ob->constraintChannels);
 				}
 				else if(event==23) {
 					base->object->softflag= ob->softflag;
@@ -3622,8 +3620,7 @@ void single_obdata_users(int flag)
 					id_us_plus(id->newid);
 				}
 				else {
-					ob->action=copy_action(ob->action);
-					ob->activecon=NULL;
+					ob->action= copy_action(ob->action);
 					id->us--;
 					id->newid=(ID *)ob->action;
 				}
@@ -4086,7 +4083,7 @@ void adduplicate(int noTrans)
 					id= (ID *)obn->ipo;
 					if(id) {
 						ID_NEW_US( obn->ipo)
-							else obn->ipo= copy_ipo(obn->ipo);
+						else obn->ipo= copy_ipo(obn->ipo);
 						id->us--;
 					}
 					/* Handle constraint ipos */
@@ -4094,7 +4091,7 @@ void adduplicate(int noTrans)
 						id= (ID *)chan->ipo;
 						if(id) {
 							ID_NEW_US( chan->ipo)
-								else chan->ipo= copy_ipo(chan->ipo);
+							else chan->ipo= copy_ipo(chan->ipo);
 							id->us--;
 						}
 					}
@@ -4103,9 +4100,8 @@ void adduplicate(int noTrans)
 					id= (ID *)obn->action;
 					if (id){
 						ID_NEW_US(obn->action)
-							else{
+						else{
 							obn->action= copy_action(obn->action);
-							obn->activecon=NULL;
 						}
 						id->us--;
 					}

@@ -2086,6 +2086,7 @@ static int ui_do_but_SLI(uiBut *but)
 				ui_set_but_val(but, tempf);
 
 		}
+		uibut_do_func(but);
 	}
 	ui_check_but(but);
 	ui_draw_but(but);
@@ -2864,6 +2865,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 		if(uevent->val) retval= ui_do_but_NUMSLI(but);
 		break;
 		
+	case ROUNDBOX:	
 	case LABEL:	
 		if(uevent->val) retval= ui_do_but_LABEL(but);
 		break;

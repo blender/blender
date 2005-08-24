@@ -148,6 +148,22 @@ void exit_posemode(void)
 	scrarea_queue_headredraw(curarea);
 }
 
+/* called by buttons to find a bone to display/edit values for */
+bPoseChannel *get_active_posechannel (Object *ob)
+{
+	bPoseChannel *pchan;
+	
+	/* find active */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE))
+			return pchan;
+	}
+	
+	return NULL;
+}
+
+
+
 void pose_select_constraint_target(void)
 {
 	Object *ob= OBACT;

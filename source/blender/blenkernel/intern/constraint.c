@@ -193,10 +193,9 @@ void relink_constraints (struct ListBase *list)
 	}
 }
 
-void *copy_constraint_channels (ListBase *dst, ListBase *src)
+void copy_constraint_channels (ListBase *dst, ListBase *src)
 {
 	bConstraintChannel *dchan, *schan;
-	bConstraintChannel *newact=NULL;
 	
 	dst->first=dst->last=NULL;
 	duplicatelist(dst, src);
@@ -204,25 +203,18 @@ void *copy_constraint_channels (ListBase *dst, ListBase *src)
 	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
 		dchan->ipo = copy_ipo(schan->ipo);
 	}
-	
-	return newact;
 }
 
-bConstraintChannel *clone_constraint_channels (ListBase *dst, ListBase *src, bConstraintChannel *oldact)
+void clone_constraint_channels (ListBase *dst, ListBase *src)
 {
 	bConstraintChannel *dchan, *schan;
-	bConstraintChannel *newact=NULL;
 	
 	dst->first=dst->last=NULL;
 	duplicatelist(dst, src);
 	
 	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
 		id_us_plus((ID *)dchan->ipo);
-		if (schan==oldact)
-			newact=dchan;
 	}
-	
-	return newact;
 }
 
 void copy_constraints (ListBase *dst, ListBase *src)

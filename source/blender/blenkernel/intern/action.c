@@ -118,7 +118,6 @@ void make_local_action(bAction *act)
 				
 				if(ob->id.lib==0) {
 					ob->action = actn;
-					ob->activecon = NULL;
 					actn->id.us++;
 					act->id.us--;
 				}

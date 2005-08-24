@@ -93,14 +93,13 @@ typedef struct Object {
 	struct bPose *pose;	
 	void *data;
 	
-	struct bConstraintChannel *activecon;		
 	ListBase constraintChannels;
-
 	ListBase effect;
 	ListBase network;
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
+	
 	struct Material **mat;
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
@@ -190,7 +189,7 @@ typedef struct Object {
 	LBuf lbuf;
 	LBuf port;
 	
-	float toonedge, smoothresh;	/* smoothresh is phong interpolation ray_shadow correction in render */
+	float pad3, smoothresh;		/* smoothresh is phong interpolation ray_shadow correction in render */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 } Object;

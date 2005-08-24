@@ -1847,23 +1847,6 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 			}
 		}
 		
-		/* signal update to ipo window */
-		if(ob->ipowin==IPO_CO) {
-			bConstraintChannel *chan;
-			ListBase *conbase;
-			
-			conbase = get_constraint_client_channels(0);
-			if (conbase) {
-				for(chan= conbase->first; chan; chan= chan->next) {
-					if(chan->ipo)
-						break;
-				}
-				/* Make this the active channel */
-				ob->activecon = chan;
-			}
-			else ob->activecon = NULL;
-		}
-
 		/* in weightpaint we select the associated vertex group too */
 		if(G.f & G_WEIGHTPAINT) {
 			if(nearBone->flag & BONE_ACTIVE) {
@@ -1873,7 +1856,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWIPO, 0);		/* To force action ipo update */
+		allqueue(REDRAWIPO, 0);		/* To force action/constraint ipo update */
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWOOPS, 0);
