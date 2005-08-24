@@ -234,7 +234,6 @@ static void meshDM_drawLooseEdges(DerivedMesh *dm)
 {
 	MeshDerivedMesh *mdm = (MeshDerivedMesh*) dm;
 	Mesh *me= mdm->me;
-	MFace *mface = me->mface;
 	MEdge *medge= me->medge;
 	int i;
 

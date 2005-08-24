@@ -194,6 +194,7 @@ static int getFaceIndex(CCGSubSurf *ss, CCGFace *f, int S, int x, int y, int edg
 	}
 }
 
+#if 0
 static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditmesh, DispListMesh *dlm, MEdge *medge, TFace *tface)
 {
 	unsigned int flags = 0;
@@ -209,8 +210,6 @@ static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditme
 			flags |= ME_SEAM;
 		}
 	} else {
-		int makeFlags = 0, edgeIdx = (int) ccgSubSurf_getEdgeEdgeHandle(ss, e);
-
 		if (edgeIdx!=-1) {
 			MEdge *origMed = &medge[edgeIdx];
 
@@ -224,6 +223,7 @@ static unsigned int ss_getEdgeFlags(CCGSubSurf *ss, CCGEdge *e, int ssFromEditme
 
 	return flags;
 }
+#endif
 
 static DispListMesh *ss_to_displistmesh(CCGSubSurf *ss, CCGDerivedMesh *ccgdm, int ssFromEditmesh, int drawInteriorEdges, Mesh *inMe, DispListMesh *inDLM) {
 	DispListMesh *dlm = MEM_callocN(sizeof(*dlm), "dlm");

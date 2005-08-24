@@ -1646,7 +1646,7 @@ static void fill_quad_double_adj_path(EditFace *efa, struct GHash *gh, int numcu
 static void fill_quad_double_adj_fan(EditFace *efa, struct GHash *gh, int numcuts)
 {
 	EditEdge *cedge[2]={NULL, NULL};
-	EditVert *v[4], *op, **verts[2];
+	EditVert *v[4], *op=NULL, **verts[2];
 	EditFace *hold;
 	short start=0, start2=0, vertsize,i;
 							
@@ -1709,7 +1709,7 @@ static void fill_quad_double_adj_fan(EditFace *efa, struct GHash *gh, int numcut
 static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numcuts)
 {
 	EditEdge *cedge[2]={NULL, NULL};
-	EditVert *v[4], *op, **verts[2],**inner;
+	EditVert *v[4], *op=NULL, **verts[2],**inner;
 	EditFace *hold;
 	short start=0, start2=0, vertsize,i;
 	float co[3];
@@ -1754,7 +1754,7 @@ static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numc
 			   |---*-----*---|
 			   | *     /     |
 			   *   \ /       |
-			   |   /*        |
+			   |    *        |
 			   | /	  \	     |
 			   *        \    |	   
 			   |           \ |

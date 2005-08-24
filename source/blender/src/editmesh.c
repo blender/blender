@@ -582,6 +582,7 @@ static void edge_normal_compare(EditEdge *eed, EditFace *efa1)
 	if(inp < -0.001 ) eed->f1= 1;
 }
 
+#if 0
 typedef struct {
 	EditEdge *eed;
 	float noLen,no[3];
@@ -597,6 +598,7 @@ static int edgeDrawFlagInfo_cmp(const void *av, const void *bv)
 	else if (a->noLen>b->noLen) return 1;
 	else return 0;
 }
+#endif
 
 static void edge_drawflags(void)
 {
@@ -701,7 +703,6 @@ static void edge_drawflags(void)
 /* turns Mesh into editmesh */
 void make_editMesh()
 {
-	EditMesh *em = G.editMesh;
 	Mesh *me= G.obedit->data;
 	MFace *mface;
 	TFace *tface;

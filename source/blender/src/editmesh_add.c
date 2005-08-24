@@ -263,8 +263,6 @@ static void make_fgon(void)
 		error("Didn't find FGon to create");
 	}
 	else {
-		Mesh *me= G.obedit->data;
-		
 		EM_fgon_flags();	// redo flags and indices for fgons
 
 		allqueue(REDRAWVIEW3D, 0);

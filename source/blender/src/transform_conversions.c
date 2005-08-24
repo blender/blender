@@ -315,7 +315,6 @@ static void createTransEdge(TransInfo *t) {
 	TransData *td = NULL;
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
-	Mesh *me = G.obedit->data;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
