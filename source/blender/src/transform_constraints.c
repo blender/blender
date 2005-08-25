@@ -166,6 +166,9 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
 	float norm[3], n[3], n2[3], vec[3], factor;
+	
+	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
+		return;
 
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
@@ -182,32 +185,26 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		VecMulf(out, -factor);	/* -factor makes move down going backwards */
 	}
 	else {
-		// prevent division by zero, happens on constrainting without initial delta transform */
-		if(in[0]!=0.0f || in[1]!=0.0f || in[2]!=0.0f) {
-			/* project axis on viewplane		*/
-			Projf(vec, axis, t->viewinv[2]);
-			VecSubf(vec, axis, vec);
-			/* project input on the new axis	*/
-			Projf(vec, in, vec);
-			/* get view vector on that point (account for perspective)	*/
-			VecAddf(vec, vec, t->con.center);
-			getViewVector(vec, norm);
+		float cb[3], ab[3];
+		
+		VECCOPY(out, axis);
 
-			/* cross product twice to get a full space definition */
-			Crossf(n, axis, norm);
-			Crossf(n2, norm, n);
-
-			/* Project input on plane perpendicular to the axis (as drawn on screen) */
-			Projf(vec, in, n2);
-
-			/* Adjust output */
-			factor = Inpf(axis, vec);
-			if (factor == 0.0f) return; /* prevent divide by zero */
-			factor = Inpf(vec, vec) / factor;
-
-			VecMulf(axis, factor);
-			VECCOPY(out, axis);
-		}
+		/* Get view vector on axis to define a plane */
+		getViewVector(t->con.center, norm);
+		Crossf(vec, norm, axis);
+		
+		/* Project input vector on the plane passing on axis */
+		Projf(vec, in, vec);
+		VecSubf(vec, in, vec);
+		
+		/* Get the view vector there */
+		getViewVector(vec, norm);
+		
+		/* intersect the two lines: axis and norm */
+		Crossf(cb, vec, norm);
+		Crossf(ab, axis, norm);
+		
+		VecMulf(out, Inpf(cb, ab) / Inpf(ab, ab));
 	}
 }
 
