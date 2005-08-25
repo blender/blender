@@ -2253,7 +2253,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButS(block, NUM, B_ARM_RECALCDATA, "Segm: ", bx-10,by-19,117,18, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:", bx+110, by-19, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", bx+223, by-19,110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
-			printf("bone name %s class %d\n", curBone->name, curBone->boneclass);		
+
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		bx-10,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	bx+75, by-38, 85, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
