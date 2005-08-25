@@ -188,6 +188,13 @@ void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi)
 
 
 /* --------------------------------------------------------------------- */
+/* ray.c (2)                                                        */
+/* --------------------------------------------------------------------- */
+void init_jitter_plane(LampRen *lar);
+void init_ao_sphere(float *sphere, int tot, int iter);
+
+
+/* --------------------------------------------------------------------- */
 /* renderdatabase (3)                                                    */
 /* --------------------------------------------------------------------- */
 struct VlakRen *RE_findOrAddVlak(int nr);

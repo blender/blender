@@ -876,7 +876,7 @@ static void yafrayRender(void)
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 // exported to other files, belongs in include... later
-SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL, *make_table_lock= NULL;
+SDL_mutex *render_abuf_lock=NULL, *load_ibuf_lock=NULL;
 
 
 static void renderloop_setblending(void)
@@ -920,7 +920,6 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	/* create mutexes for threaded render */
 	render_abuf_lock = SDL_CreateMutex();
 	load_ibuf_lock = SDL_CreateMutex();
-	make_table_lock = SDL_CreateMutex();
 	
 	if(R.rectz) MEM_freeN(R.rectz);
 	R.rectz = NULL;
@@ -944,7 +943,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	for(fi=0; fi<fields; fi++) {
 
 		/* INIT */
-		BLI_srand( 2*(G.scene->r.cfra)+fi);
+		BLI_srandom( 2*(G.scene->r.cfra)+fi);
 			
 		R.flag|= R_RENDERING;
 		if(fi==1) R.flag |= R_SEC_FIELD;
@@ -961,7 +960,6 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 			R.ystart= -R.afmy;
 			R.xend= R.xstart+R.rectx-1;
 			R.yend= R.ystart+R.recty-1;
-
 
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
@@ -1175,10 +1173,8 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 	/* mutexes free */
 	SDL_DestroyMutex(load_ibuf_lock);
 	SDL_DestroyMutex(render_abuf_lock);
-	SDL_DestroyMutex(make_table_lock);
 	load_ibuf_lock= NULL;
 	render_abuf_lock= NULL;
-	make_table_lock= NULL;
 }
 
 void render() {

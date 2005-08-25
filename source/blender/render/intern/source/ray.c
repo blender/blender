@@ -121,7 +121,6 @@ static int accepted, rejected, coherent_ray;
 /* prototypes ------------------------ */
 void freeoctree(void);
 void makeoctree(void);
-float *test_jitter(int resol, int iter, float xsize, float ysize);
 int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr);
 
 /* **************** ocval method ******************* */
@@ -1594,29 +1593,6 @@ static void DP_energy(float *table, float *vec, int tot, float xsize, float ysiz
 	vec[1]= vec[1] - ysize*floor(vec[1]/ysize + 0.5);
 }
 
-
-float *test_jitter(int resol, int iter, float xsize, float ysize)
-{
-	static float jitter[2*256];
-	float *fp;
-	int x;
-	
-	/* fill table with random locations, area_size large */
-	fp= jitter;
-	for(x=0; x<resol*resol; x++, fp+=2) {
-		fp[0]= (BLI_frand()-0.5)*xsize;
-		fp[1]= (BLI_frand()-0.5)*ysize;
-	}
-	
-	while(iter--) {
-		fp= jitter;
-		for(x=0; x<resol*resol; x++, fp+=2) {
-			DP_energy(jitter, fp, resol*resol, xsize, ysize);
-		}
-	}
-	return jitter;
-}
-
 // random offset of 1 in 2
 static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float sizex, float sizey, float ofsx, float ofsy)
 {
@@ -1633,57 +1609,56 @@ static void jitter_plane_offset(float *jitter1, float *jitter2, int tot, float s
 	}
 }
 
-/* table around origin, -0.5*size to 0.5*size */
-static float *jitter_plane(LampRen *lar, int xs, int ys)
+/* called from convertBlenderScene.c */
+/* we do this in advance to get consistant random, not alter the render seed, and be threadsafe */
+void init_jitter_plane(LampRen *lar)
 {
 	float *fp;
-	int tot, x, iter=12;
+	int x, iter=12, tot= lar->ray_totsamp;
+	
+	fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
+	
+	/* set per-lamp fixed seed */
+	BLI_srandom(tot);
+	
+	/* fill table with random locations, area_size large */
+	for(x=0; x<tot; x++, fp+=2) {
+		fp[0]= (BLI_frand()-0.5)*lar->area_size;
+		fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
+	}
+	
+	while(iter--) {
+		fp= lar->jitter;
+		for(x=tot; x>0; x--, fp+=2) {
+			DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
+		}
+	}
+	
+	/* create the dithered tables */
+	jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
+	jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
+	jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
+}
+
+/* table around origin, -0.5*size to 0.5*size */
+static float *give_jitter_plane(LampRen *lar, int xs, int ys)
+{
+	int tot;
 	
 	tot= lar->ray_totsamp;
-	
-	if(lar->jitter==NULL) {
-		extern SDL_mutex *make_table_lock; // initrender.c
-		if(make_table_lock) SDL_mutexP(make_table_lock);
-		
-		/* check again, since other thread could have entered */
-		if(lar->jitter==NULL) {
 			
-			
-			fp=lar->jitter= MEM_mallocN(4*tot*2*sizeof(float), "lamp jitter tab");
-			
-			/* fill table with random locations, area_size large */
-			for(x=0; x<tot; x++, fp+=2) {
-				fp[0]= (BLI_frand()-0.5)*lar->area_size;
-				fp[1]= (BLI_frand()-0.5)*lar->area_sizey;
-			}
-			
-			while(iter--) {
-				fp= lar->jitter;
-				for(x=tot; x>0; x--, fp+=2) {
-					DP_energy(lar->jitter, fp, tot, lar->area_size, lar->area_sizey);
-				}
-			}
-			
-			jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.0);
-			jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, 0.5, 0.5);
-			jitter_plane_offset(lar->jitter, lar->jitter+6*tot, tot, lar->area_size, lar->area_sizey, 0.0, 0.5);
-		}
-		
-		if(make_table_lock) SDL_mutexV(make_table_lock);
-	}
-		
 	if(lar->ray_samp_type & LA_SAMP_JITTER) {
 		/* made it threadsafe */
 		if(ys & 1) {
 			if(lar->xold1!=xs || lar->yold1!=ys) {
-				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
+				jitter_plane_offset(lar->jitter, lar->jitter+2*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(1), BLI_thread_frand(1));
 				lar->xold1= xs; lar->yold1= ys;
 			}
 			return lar->jitter+2*tot;
 		}
 		else {
 			if(lar->xold2!=xs || lar->yold2!=ys) {
-				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_frand(), BLI_frand());
+				jitter_plane_offset(lar->jitter, lar->jitter+4*tot, tot, lar->area_size, lar->area_sizey, BLI_thread_frand(0), BLI_thread_frand(0));
 				lar->xold2= xs; lar->yold2= ys;
 			}
 			return lar->jitter+4*tot;
@@ -1907,11 +1882,15 @@ static void DS_energy(float *sphere, int tot, float *vec)
 	
 }
 
-static void DistributedSpherical(float *sphere, int tot, int iter)
+/* called from convertBlenderScene.c */
+/* creates an equally distributed spherical sample pattern */
+void init_ao_sphere(float *sphere, int tot, int iter)
 {
 	float *fp;
 	int a;
 
+	BLI_srandom(tot);
+	
 	/* init */
 	fp= sphere;
 	for(a=0; a<tot; a++, fp+= 3) {
@@ -1948,56 +1927,51 @@ static float *threadsafe_table_sphere(int test, int xs, int ys)
 
 static float *sphere_sampler(int type, int resol, int xs, int ys)
 {
-	static float sphere[2*3*256];
-	float *sphere1;
 	int tot;
 	float *vec;
 	
-	if(resol>16) return sphere;
+	if(resol>16) resol= 16;
 	
 	tot= 2*resol*resol;
 
 	if (type & WO_AORNDSMP) {
+		static float sphere[2*3*256];
 		int a;
 		
-		/* total random sampling */
+		/* total random sampling. NOT THREADSAFE! (should be removed, is not useful) */
 		vec= sphere;
 		for (a=0; a<tot; a++, vec+=3) {
 			RandomSpherical(vec);
 		}
+		
+		return sphere;
 	} 
 	else {
-		static int last_distr= 0;
+		float *sphere;
 		float cosf, sinf, cost, sint;
 		float ang, *vec1;
 		int a;
 		
-		if(last_distr!=resol) {
-			last_distr= resol;
-			DistributedSpherical(sphere, tot, 16);
-		}
-		
-		sphere1= threadsafe_table_sphere(1, xs, ys);
-		if(sphere1==NULL) {
-			sphere1= threadsafe_table_sphere(0, xs, ys);
+		sphere= threadsafe_table_sphere(1, xs, ys);	// returns table if xs and ys were equal to last call
+		if(sphere==NULL) {
+			sphere= threadsafe_table_sphere(0, xs, ys);
 			
 			// random rotation
-			ang= BLI_frand();
+			ang= BLI_thread_frand(ys & 1);
 			sinf= sin(ang); cosf= cos(ang);
-			ang= BLI_frand();
+			ang= BLI_thread_frand(ys & 1);
 			sint= sin(ang); cost= cos(ang);
 			
-			vec= sphere;
-			vec1= sphere1;
+			vec= R.wrld.aosphere;
+			vec1= sphere;
 			for (a=0; a<tot; a++, vec+=3, vec1+=3) {
 				vec1[0]= cost*cosf*vec[0] - sinf*vec[1] + sint*cosf*vec[2];
 				vec1[1]= cost*sinf*vec[0] + cosf*vec[1] + sint*sinf*vec[2];
 				vec1[2]= -sint*vec[0] + cost*vec[2];			
 			}
 		}
-		return sphere1;
+		return sphere;
 	}
-	return sphere;
 }
 
 
@@ -2157,7 +2131,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		else shadfac[3]= 1.0;							// 1.0=full light
 		
 		fac= 0.0;
-		jitlamp= jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
+		jitlamp= give_jitter_plane(lar, floor(shi->xs+0.5), floor(shi->ys+0.5));
 
 		a= lar->ray_totsamp;
 		

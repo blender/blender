@@ -1540,7 +1540,7 @@ static void area_lamp_vectors(LampRen *lar)
 }
 
 /* If lar takes more lamp data, the decoupling will be better. */
-void RE_add_render_lamp(Object *ob, int doshadbuf)
+void RE_add_render_lamp(Object *ob, int actual_render)
 {
 	Lamp *la;
 	LampRen *lar, **temp;
@@ -1715,13 +1715,17 @@ void RE_add_render_lamp(Object *ob, int doshadbuf)
 		}
 	}
 
-	/* yafray: shadowbuffers only needed for internal render */
-	if (R.r.renderer==R_INTERN)
-	{
-		if( (R.r.mode & R_SHADOW) && (lar->mode & LA_SHAD) && (la->type==LA_SPOT) && doshadbuf ) {
-		/* Per lamp, one shadow buffer is made. */
-			Mat4CpyMat4(mat, ob->obmat);
-			RE_initshadowbuf(lar, mat);	// mat is altered
+	/* yafray: shadowbuffers and jitter only needed for internal render */
+	if (actual_render && R.r.renderer==R_INTERN) {
+		if(R.r.mode & R_SHADOW) {
+			if (la->type==LA_SPOT && (lar->mode & LA_SHAD) ) {
+				/* Per lamp, one shadow buffer is made. */
+				Mat4CpyMat4(mat, ob->obmat);
+				RE_initshadowbuf(lar, mat);	// mat is altered
+			}
+			else if(la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) ) {
+				init_jitter_plane(lar);
+			}
 		}
 	}
 	
@@ -2300,6 +2304,10 @@ void RE_freeRotateBlenderScene(void)
 	end_render_textures();
 	end_render_materials();
 	end_radio_render();
+	if(R.wrld.aosphere) {
+		MEM_freeN(R.wrld.aosphere);
+		R.wrld.aosphere= NULL;
+	}
 	
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
 }
@@ -2484,6 +2492,10 @@ void RE_rotateBlenderScene(void)
 	}
 
 	init_render_world();	/* do first, because of ambient. also requires R.osa set correct */
+	if( (R.wrld.mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) ) {
+		R.wrld.aosphere= MEM_mallocN(2*3*R.wrld.aosamp*R.wrld.aosamp*sizeof(float), "AO sphere");
+		init_ao_sphere(R.wrld.aosphere, R.wrld.aosamp*R.wrld.aosamp, 16);
+	}
 	init_render_textures();
 	init_render_materials();
 

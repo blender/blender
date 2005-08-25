@@ -55,6 +55,9 @@ void		rng_shuffleArray(struct RNG *rng, void *data, int elemSize, int numElems);
 	/** Seed the random number generator */
 void	BLI_srand		(unsigned int seed);
 
+	/** Better seed for the random number generator, using noise.c hash[] */
+void	BLI_srandom		(unsigned int seed);
+
 	/** Return a pseudo-random number N where 0<=N<(2^31) */
 int		BLI_rand		(void);
 
@@ -76,6 +79,21 @@ void	BLI_fillrand	(void *addr, int len);
 	 * the state of the BLI random number generator.
 	 */
 void	BLI_array_randomize	(void *data, int elemSize, int numElems, unsigned int seed);
+
+
+	/** Better seed for the random number generator, using noise.c hash[] */
+	/** Allows up to 16 threads to address */
+void	BLI_thread_srandom	(int thread, unsigned int seed);
+
+	/** Return a pseudo-random number N where 0<=N<(2^31) */
+	/** Allows up to 16 threads to address */
+int		BLI_thread_rand		(int thread);
+
+	/** Return a pseudo-random number N where 0.0f<=N<1.0f */
+	/** Allows up to 16 threads to address */
+float	BLI_thread_frand	(int thread);
+
+
 
 #endif
 

@@ -48,7 +48,7 @@ typedef unsigned __int64	r_uint64;
 typedef unsigned long long	r_uint64;
 #endif
 
-#define MULTIPLIER	0x5DEECE66D
+#define MULTIPLIER	0x5DEECE66DLL
 #define ADDEND		0xB
 
 #define LOWSEED		0x330E
@@ -78,7 +78,7 @@ void rng_seed(RNG *rng, unsigned int seed) {
 }
 
 int rng_getInt(RNG *rng) {
-	rng->X= (MULTIPLIER*rng->X + ADDEND)&0x0000FFFFFFFFFFFF;
+	rng->X= (MULTIPLIER*rng->X + ADDEND)&0x0000FFFFFFFFFFFFLL;
 	return (int) (rng->X>>17);
 }
 
@@ -112,8 +112,20 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 
 static RNG theBLI_rng = {0};
 
+/* note, this one creates periodical patterns */
 void BLI_srand(unsigned int seed) {
 	rng_seed(&theBLI_rng, seed);
+}
+
+/* using hash table to create better seed */
+void BLI_srandom(unsigned int seed) {
+	extern unsigned char hash[];	// noise.c
+	
+	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
+	seed= rng_getInt(&theBLI_rng);
+	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
+	seed= rng_getInt(&theBLI_rng);
+	rng_seed(&theBLI_rng, seed + hash[seed & 255]);
 }
 
 int BLI_rand(void) {
@@ -142,5 +154,29 @@ void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int se
 
 	rng_seed(&rng, seed);
 	rng_shuffleArray(&rng, data, elemSize, numElems);
+}
+
+/* ********* for threaded random ************** */
+#define MAX_RNG_THREADS		16
+
+static RNG rng_tab[MAX_RNG_THREADS];
+
+void BLI_thread_srandom(int thread, unsigned int seed)
+{
+	extern unsigned char hash[];	// noise.c
+	
+	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
+	seed= rng_getInt(&rng_tab[thread]);
+	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
+	seed= rng_getInt(&rng_tab[thread]);
+	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
+}
+
+int BLI_thread_rand(int thread) {
+	return rng_getInt(&rng_tab[thread]);
+}
+
+float BLI_thread_frand(int thread) {
+	return rng_getFloat(&rng_tab[thread]);
 }
 

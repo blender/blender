@@ -88,6 +88,7 @@ typedef struct World {
 	 * bit 3: (gameengine): Activity culling is enabled.
 	 */
 	short mode;
+	int physicsEngine;	/* here it's aligned */
 	
 	float misi, miststa, mistdist, misthi;
 	
@@ -101,9 +102,8 @@ typedef struct World {
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
+	float *aosphere;
 	
-	int physicsEngine;
-
 	struct Ipo *ipo;
 	struct MTex *mtex[10];
 

@@ -2536,8 +2536,11 @@ static int do_renderlineDA(void *poin)
 	float fcol[4], *acol=NULL, *rb1, *rb2, *rb3;
 	long *rd= rl->rd;
 	int zbuf, samp, curmask, face, mask, fullmask;
-	int b, x, full_osa;
-		
+	int b, x, full_osa, seed;
+	
+	/* we set per pixel a fixed seed, for random AO and shadow samples */
+	seed= (R.ystart + rl->y + R.afmy)*R.r.xsch + R.xstart + R.afmx;
+	
 	fullmask= (1<<R.osa)-1;
 	rb1= rl->rb1;
 	rb2= rl->rb2;
@@ -2549,7 +2552,9 @@ static int do_renderlineDA(void *poin)
 	}
 
 	for(x=0; x<R.rectx; x++, rd++) {
-				
+		
+		BLI_thread_srandom(rl->y & 1, seed+x);
+		
 		ps= (PixStr *)(*rd);
 		mask= 0;
 		
@@ -2829,7 +2834,10 @@ static int do_renderline(void *poin)
 	struct renderline *rl= poin;
 	float *fcol= rl->rowbuf;
 	float *acol=NULL;
-	int x, *rz, *rp;
+	int x, *rz, *rp, seed;
+	
+	/* we set per pixel a fixed seed, for random AO and shadow samples */
+	seed= (R.ystart + rl->y + R.afmy)*R.r.xsch + R.xstart + R.afmx;
 	
 	if(R.flag & R_ZTRA) {		/* zbuf tra */
 		abufsetrow(rl->acol, rl->ys); 
@@ -2837,6 +2845,8 @@ static int do_renderline(void *poin)
 	}
 	
 	for(x=0, rz= rl->rz, rp= rl->rp; x<R.rectx; x++, rz++, rp++, fcol+=4) {
+		BLI_thread_srandom(rl->ys & 1, seed+x);
+		
 		shadepixel_sky((float)x, rl->y, *rz, *rp, 0, fcol);
 		if(acol) {
 			if(acol[3]!=0.0) addAlphaOverFloat(fcol, acol);
@@ -2848,7 +2858,7 @@ static int do_renderline(void *poin)
 		scanlinehalo(rl->rz, rl->rowbuf, rl->ys);
 	}
 
-	transferColourBufferToOutput(rl->rowbuf, rl->y);
+	transferColourBufferToOutput(rl->rowbuf, rl->ys);
 
 	if(R.rectftot) {
 		memcpy(R.rectftot + 4*rl->ys*R.rectx, rl->rowbuf, 4*sizeof(float)*R.rectx);

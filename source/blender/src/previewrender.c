@@ -1140,7 +1140,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 		init_render_world();
 		init_render_textures();	/* do not do it twice!! (brightness) */
 		R.totlamp= 0;
-		RE_add_render_lamp(ob, 0);	/* 0=no shadbuf */
+		RE_add_render_lamp(ob, 0);	/* 0=no shadbuf or tables */
 		lar= R.la[0];
 		
 		/* exceptions: */
