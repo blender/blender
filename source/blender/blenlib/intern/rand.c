@@ -44,11 +44,16 @@
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef unsigned __int64	r_uint64;
+
+#define MULTIPLIER	0x5DEECE66Di64 
+#define MASK		0x0000FFFFFFFFFFFFi64
 #else
 typedef unsigned long long	r_uint64;
+
+#define MULTIPLIER	0x5DEECE66Dll
+#define MASK		0x0000FFFFFFFFFFFFll
 #endif
 
-#define MULTIPLIER	0x5DEECE66DLL
 #define ADDEND		0xB
 
 #define LOWSEED		0x330E
@@ -78,7 +83,7 @@ void rng_seed(RNG *rng, unsigned int seed) {
 }
 
 int rng_getInt(RNG *rng) {
-	rng->X= (MULTIPLIER*rng->X + ADDEND)&0x0000FFFFFFFFFFFFLL;
+	rng->X= (MULTIPLIER*rng->X + ADDEND)&MASK;
 	return (int) (rng->X>>17);
 }
 
