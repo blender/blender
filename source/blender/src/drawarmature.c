@@ -1429,7 +1429,7 @@ void draw_armature(Base *base, int dt)
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	
-	if(dt>OB_WIRE) {
+	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
 		glEnable(GL_COLOR_MATERIAL);

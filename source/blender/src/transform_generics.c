@@ -37,15 +37,18 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_userdef_types.h"
-#include "DNA_constraint_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
+#include "DNA_object_force.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BIF_screen.h"
 #include "BIF_resources.h"
@@ -66,6 +69,7 @@
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -154,7 +158,8 @@ static void transform_armature_mirror_update(void)
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
-	
+	Base *base;
+		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
@@ -227,8 +232,17 @@ void recalcData(TransInfo *t)
 		bArmature *arm= ob->data;
 		
 		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) 
+		if (!(arm->flag & ARM_DELAYDEFORM)) {
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+			
+			/* bah, softbody exception... recalcdata doesnt reset */
+			for(base= FIRSTBASE; base; base= base->next) {
+				if(base->object->recalc & OB_RECALC_DATA)
+					if(modifiers_isSoftbodyEnabled(base->object)) {
+						base->object->softflag |= OB_SB_REDO;
+				}
+			}
+		}
 		else
 			where_is_pose(ob);
 	}
@@ -236,10 +250,7 @@ void recalcData(TransInfo *t)
 		flushTransUVs(t);
 	}
 	else {
-		Base *base;
-		
-		base= FIRSTBASE;
-		while(base) {
+		for(base= FIRSTBASE; base; base= base->next) {
 			/* this flag is from depgraph, was stored in nitialize phase, handled in drawview.c */
 			if(base->flag & BA_HAS_RECALC_OB)
 				base->object->recalc |= OB_RECALC_OB;
@@ -262,7 +273,11 @@ void recalcData(TransInfo *t)
 				}				
 			}
 			
-			base= base->next;
+			/* softbody exception */
+			if(modifiers_isSoftbodyEnabled(base->object)) {
+				if(base->object->recalc & OB_RECALC_DATA)
+					base->object->softflag |= OB_SB_REDO;
+			}
 		} 
 	}
 	

@@ -1851,6 +1851,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 		if(G.f & G_WEIGHTPAINT) {
 			if(nearBone->flag & BONE_ACTIVE) {
 				vertexgroup_select_by_name(OBACT, nearBone->name);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 		}
 		

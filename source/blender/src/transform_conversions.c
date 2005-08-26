@@ -1665,7 +1665,7 @@ void special_aftertrans_update(TransInfo *t)
 			
 			ob= base->object;
 
-			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_RESET;
+			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
 			
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){

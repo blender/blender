@@ -880,7 +880,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	/* rounded header */
 	uiBlockSetCol(block, color);
 		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
-	uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 26, NULL, 7.0, 0.0, 
+	uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
 			 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, -20, ""); 
 	uiBlockSetCol(block, TH_AUTO);
 	
