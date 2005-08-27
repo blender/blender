@@ -588,3 +588,172 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
 
 	return EXPP_incr_ret (Py_None);		/* normal exit */
 }
+
+/*
+ * Utility routines to clamp and store various datatypes.  The object type 
+ * is checked and a exception is raised if it's not the correct type.  
+ *
+ * Inputs:
+ *    value: PyObject containing the new value
+ *    param: pointer to destination variable
+ *    max, min: range of values for clamping
+ *
+ * Return 0 on success, -1 on error.
+ */
+
+int EXPP_setCharClamped ( PyObject *value, char *param,
+								short min, short max )
+{
+	/* if value not of correct type, raise Type exception */
+
+	if( !PyInt_CheckExact( value ) ) {
+		char errstr[128];
+		sprintf ( errstr, "expected char argument in [%d,%d]", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+
+	/* clamp and store value */
+
+	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
+	return 0;
+}
+
+int EXPP_setShortClamped ( PyObject *value, short *param,
+								short min, short max )
+{
+	if( !PyInt_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+
+	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
+
+	return 0;
+}
+
+int EXPP_setIntClamped ( PyObject *value, int *param,
+								int min, int max )
+{
+	if( !PyInt_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+
+	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
+
+	return 0;
+}
+
+int EXPP_setFloatClamped ( PyObject *value, float *param,
+								float min, float max )
+{
+	if( !PyFloat_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr, "expected float argument in [%f,%f]", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+
+	*param = EXPP_ClampFloat( PyFloat_AS_DOUBLE( value ), min, max );
+
+	return 0;
+}
+
+/*
+ * Utility routines to range-check and store various datatypes.  The object 
+ * type is checked and a exception is raised if it's not the correct type.  
+ * An exception is also raised if the value lies outside of the specified
+ * range.  
+ *
+ * Inputs:
+ *    value: PyObject containing the new value
+ *    param: pointer to destination variable
+ *    max, min: valid range for value
+ *
+ * Return 0 on success, -1 on error.
+ */
+
+int EXPP_setCharRange ( PyObject *value, char *param,
+								short min, short max )
+{
+	char errstr[128];
+	short number;
+
+	/* build exception error string */
+
+	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+
+	/* if value not of correct type, raise Type exception */
+
+	if( !PyInt_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+
+	/* if value out of range, raise Value exception */
+
+	number = PyInt_AS_LONG ( value );
+	if ( number < min || number > max )
+		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
+
+	/* store value */
+
+	*param = number;
+	return 0;
+}
+
+int EXPP_setShortRange ( PyObject *value, short *param,
+								short min, short max )
+{
+	char errstr[128];
+	short number;
+
+	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+
+	if( !PyInt_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+
+	number = PyInt_AS_LONG ( value );
+	if ( number < min || number > max )
+		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
+
+	*param = number;
+	return 0;
+}
+
+int EXPP_setIntRange ( PyObject *value, int *param,
+								int min, int max )
+{
+	char errstr[128];
+	int number;
+
+	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+
+	if( !PyInt_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+
+	number = PyInt_AS_LONG ( value );
+	if ( number < min || number > max )
+		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
+
+	*param = number;
+	return 0;
+}
+
+int EXPP_setFloatRange ( PyObject *value, float *param,
+								float min, float max )
+{
+	char errstr[128];
+	short number;
+
+	sprintf ( errstr, "expected int argument in [%f,%f]", min, max );
+
+	if( !PyFloat_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+
+	number = PyFloat_AS_DOUBLE( value );
+	if ( number < min || number > max )
+		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
+
+	*param = number;
+	return 0;
+}

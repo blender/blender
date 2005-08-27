@@ -116,6 +116,11 @@
 #define EXPP_LAMP_COL_MIN 0.0
 #define EXPP_LAMP_COL_MAX 1.0
 
+/* Lamp_setComponent() keys for which color to get/set */
+#define	EXPP_LAMP_COMP_R			0x00
+#define	EXPP_LAMP_COMP_G			0x01
+#define	EXPP_LAMP_COMP_B			0x02
+
 #define IPOKEY_RGB       0
 #define IPOKEY_ENERGY    1
 #define IPOKEY_SPOTSIZE  2
@@ -167,7 +172,9 @@ struct PyMethodDef M_Lamp_methods[] = {
 /*****************************************************************************/
 static PyObject *Lamp_getName( BPy_Lamp * self );
 static PyObject *Lamp_getType( BPy_Lamp * self );
+static PyObject *Lamp_getTypesConst( void );
 static PyObject *Lamp_getMode( BPy_Lamp * self );
+static PyObject *Lamp_getModesConst( void );
 static PyObject *Lamp_getSamples( BPy_Lamp * self );
 static PyObject *Lamp_getBufferSize( BPy_Lamp * self );
 static PyObject *Lamp_getHaloStep( BPy_Lamp * self );
@@ -184,34 +191,52 @@ static PyObject *Lamp_getQuad1( BPy_Lamp * self );
 static PyObject *Lamp_getQuad2( BPy_Lamp * self );
 static PyObject *Lamp_getCol( BPy_Lamp * self );
 static PyObject *Lamp_getIpo( BPy_Lamp * self );
+static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure );
+static PyObject *Lamp_getUsers( BPy_Lamp * self );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
-static PyObject *Lamp_setIpo( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setName( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setType( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setIntType( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setMode( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setIntMode( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setSamples( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setBufferSize( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setHaloStep( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setEnergy( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setDist( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setSpotSize( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setSpotBlend( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setClipStart( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setClipEnd( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setBias( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setSoftness( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setHaloInt( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setQuad1( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setQuad2( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setCol( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_setColorComponent( BPy_Lamp * self, char *key,
-					 PyObject * args );
+static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetBufferSize( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetHaloStep( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetEnergy( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetDist( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetSpotSize( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetSpotBlend( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetClipStart( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetClipEnd( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetBias( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetSoftness( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetHaloInt( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetQuad1( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetQuad2( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetCol( BPy_Lamp * self, PyObject * args );
+static int Lamp_setIpo( BPy_Lamp * self, PyObject * args );
+static int Lamp_setName( BPy_Lamp * self, PyObject * args );
+static int Lamp_setType( BPy_Lamp * self, PyObject * args );
+static int Lamp_setMode( BPy_Lamp * self, PyObject * args );
+static int Lamp_setSamples( BPy_Lamp * self, PyObject * args );
+static int Lamp_setBufferSize( BPy_Lamp * self, PyObject * args );
+static int Lamp_setHaloStep( BPy_Lamp * self, PyObject * args );
+static int Lamp_setEnergy( BPy_Lamp * self, PyObject * args );
+static int Lamp_setDist( BPy_Lamp * self, PyObject * args );
+static int Lamp_setSpotSize( BPy_Lamp * self, PyObject * args );
+static int Lamp_setSpotBlend( BPy_Lamp * self, PyObject * args );
+static int Lamp_setClipStart( BPy_Lamp * self, PyObject * args );
+static int Lamp_setClipEnd( BPy_Lamp * self, PyObject * args );
+static int Lamp_setBias( BPy_Lamp * self, PyObject * args );
+static int Lamp_setSoftness( BPy_Lamp * self, PyObject * args );
+static int Lamp_setHaloInt( BPy_Lamp * self, PyObject * args );
+static int Lamp_setQuad1( BPy_Lamp * self, PyObject * args );
+static int Lamp_setQuad2( BPy_Lamp * self, PyObject * args );
+static int Lamp_setCol( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
+static int Lamp_setComponent( BPy_Lamp * self, PyObject * value, void * closure );
 
 /*****************************************************************************/
 /* Python BPy_Lamp methods table:                                            */
@@ -254,41 +279,41 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - return light intensity value #2 for a Quad Lamp"},
 	{"getCol", ( PyCFunction ) Lamp_getCol, METH_NOARGS,
 	 "() - return light rgb color triplet"},
-	{"setName", ( PyCFunction ) Lamp_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Lamp_oldsetName, METH_VARARGS,
 	 "(str) - rename Lamp"},
-	{"setType", ( PyCFunction ) Lamp_setType, METH_VARARGS,
+	{"setType", ( PyCFunction ) Lamp_oldsetType, METH_VARARGS,
 	 "(str) - change Lamp type, which can be 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', 'Photon'"},
-	{"setMode", ( PyCFunction ) Lamp_setMode, METH_VARARGS,
+	{"setMode", ( PyCFunction ) Lamp_oldsetMode, METH_VARARGS,
 	 "([up to eight str's]) - Set Lamp mode flag(s)"},
-	{"setSamples", ( PyCFunction ) Lamp_setSamples, METH_VARARGS,
+	{"setSamples", ( PyCFunction ) Lamp_oldsetSamples, METH_VARARGS,
 	 "(int) - change Lamp samples value"},
-	{"setBufferSize", ( PyCFunction ) Lamp_setBufferSize, METH_VARARGS,
+	{"setBufferSize", ( PyCFunction ) Lamp_oldsetBufferSize, METH_VARARGS,
 	 "(int) - change Lamp buffer size value"},
-	{"setHaloStep", ( PyCFunction ) Lamp_setHaloStep, METH_VARARGS,
+	{"setHaloStep", ( PyCFunction ) Lamp_oldsetHaloStep, METH_VARARGS,
 	 "(int) - change Lamp halo step value"},
-	{"setEnergy", ( PyCFunction ) Lamp_setEnergy, METH_VARARGS,
+	{"setEnergy", ( PyCFunction ) Lamp_oldsetEnergy, METH_VARARGS,
 	 "(float) - change Lamp energy value"},
-	{"setDist", ( PyCFunction ) Lamp_setDist, METH_VARARGS,
+	{"setDist", ( PyCFunction ) Lamp_oldsetDist, METH_VARARGS,
 	 "(float) - change Lamp clipping distance value"},
-	{"setSpotSize", ( PyCFunction ) Lamp_setSpotSize, METH_VARARGS,
+	{"setSpotSize", ( PyCFunction ) Lamp_oldsetSpotSize, METH_VARARGS,
 	 "(float) - change Lamp spot size value"},
-	{"setSpotBlend", ( PyCFunction ) Lamp_setSpotBlend, METH_VARARGS,
+	{"setSpotBlend", ( PyCFunction ) Lamp_oldsetSpotBlend, METH_VARARGS,
 	 "(float) - change Lamp spot blend value"},
-	{"setClipStart", ( PyCFunction ) Lamp_setClipStart, METH_VARARGS,
+	{"setClipStart", ( PyCFunction ) Lamp_oldsetClipStart, METH_VARARGS,
 	 "(float) - change Lamp clip start value"},
-	{"setClipEnd", ( PyCFunction ) Lamp_setClipEnd, METH_VARARGS,
+	{"setClipEnd", ( PyCFunction ) Lamp_oldsetClipEnd, METH_VARARGS,
 	 "(float) - change Lamp clip end value"},
-	{"setBias", ( PyCFunction ) Lamp_setBias, METH_VARARGS,
+	{"setBias", ( PyCFunction ) Lamp_oldsetBias, METH_VARARGS,
 	 "(float) - change Lamp draw size value"},
-	{"setSoftness", ( PyCFunction ) Lamp_setSoftness, METH_VARARGS,
+	{"setSoftness", ( PyCFunction ) Lamp_oldsetSoftness, METH_VARARGS,
 	 "(float) - change Lamp softness value"},
-	{"setHaloInt", ( PyCFunction ) Lamp_setHaloInt, METH_VARARGS,
+	{"setHaloInt", ( PyCFunction ) Lamp_oldsetHaloInt, METH_VARARGS,
 	 "(float) - change Lamp halo intensity value"},
-	{"setQuad1", ( PyCFunction ) Lamp_setQuad1, METH_VARARGS,
+	{"setQuad1", ( PyCFunction ) Lamp_oldsetQuad1, METH_VARARGS,
 	 "(float) - change light intensity value #1 for a Quad Lamp"},
-	{"setQuad2", ( PyCFunction ) Lamp_setQuad2, METH_VARARGS,
+	{"setQuad2", ( PyCFunction ) Lamp_oldsetQuad2, METH_VARARGS,
 	 "(float) - change light intensity value #2 for a Quad Lamp"},
-	{"setCol", ( PyCFunction ) Lamp_setCol, METH_VARARGS,
+	{"setCol", ( PyCFunction ) Lamp_oldsetCol, METH_VARARGS,
 	 "(f,f,f) or ([f,f,f]) - change light's rgb color triplet"},
 	{"getScriptLinks", ( PyCFunction ) Lamp_getScriptLinks, METH_VARARGS,
 	 "(eventname) - Get a list of this lamp's scriptlinks (Text names) "
@@ -306,7 +331,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - get IPO for this lamp"},
 	{"clearIpo", ( PyCFunction ) Lamp_clearIpo, METH_NOARGS,
 	 "() - unlink the IPO for this lamp"},
-	{"setIpo", ( PyCFunction ) Lamp_setIpo, METH_VARARGS,
+	{"setIpo", ( PyCFunction ) Lamp_oldsetIpo, METH_VARARGS,
 	 "( lamp-ipo ) - link an IPO to this lamp"},
 	 {"insertIpoKey", ( PyCFunction ) Lamp_insertIpoKey, METH_VARARGS,
 	 "( Lamp IPO type ) - Inserts a key into IPO"},
@@ -315,41 +340,214 @@ static PyMethodDef BPy_Lamp_methods[] = {
 };
 
 /*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+static PyGetSetDef BPy_Lamp_getseters[] = {
+	{"bias",
+	 (getter)Lamp_getBias, (setter)Lamp_setBias,
+	 "Lamp shadow map sampling bias",
+	 NULL},
+	{"bufferSize",
+	 (getter)Lamp_getBufferSize, (setter)Lamp_setBufferSize,
+	 "Lamp shadow buffer size",
+	 NULL},
+	{"clipEnd",
+	 (getter)Lamp_getClipEnd, (setter)Lamp_setClipEnd,
+	 "Lamp shadow map clip end",
+	 NULL},
+	{"clipStart",
+	 (getter)Lamp_getClipStart, (setter)Lamp_setClipStart,
+	 "Lamp shadow map clip start",
+	 NULL},
+	{"col",
+	 (getter)Lamp_getCol, (setter)Lamp_setCol,
+	 "Lamp RGB color triplet",
+	 NULL},
+	{"dist",
+	 (getter)Lamp_getDist, (setter)Lamp_setDist,
+	 "Lamp clipping distance",
+	 NULL},
+	{"energy",
+	 (getter)Lamp_getEnergy, (setter)Lamp_setEnergy,
+	 "Lamp light intensity",
+	 NULL},
+	{"haloInt",
+	 (getter)Lamp_getHaloInt, (setter)Lamp_setHaloInt,
+	 "Lamp spotlight halo intensity",
+	 NULL},
+	{"haloStep",
+	 (getter)Lamp_getHaloStep, (setter)Lamp_setHaloStep,
+	 "Lamp volumetric halo sampling frequency",
+	 NULL},
+	{"ipo",
+	 (getter)Lamp_getIpo, (setter)Lamp_setIpo,
+	 "Lamp Ipo",
+	 NULL},
+	{"mode",
+	 (getter)Lamp_getMode, (setter)Lamp_setMode,
+	 "Lamp mode bitmask",
+	 NULL},
+	{"name",
+	 (getter)Lamp_getName, (setter)Lamp_setName,
+	 "Lamp data name",
+	 NULL},
+	{"quad1",
+	 (getter)Lamp_getQuad1, (setter)Lamp_setQuad1,
+	 "Quad lamp linear distance attenuatation",
+	 NULL},
+	{"quad2",
+	 (getter)Lamp_getQuad2, (setter)Lamp_setQuad2,
+	 "Quad lamp quadratic distance attenuatation",
+	 NULL},
+	{"samples",
+	 (getter)Lamp_getSamples, (setter)Lamp_setSamples,
+	 "Lamp shadow map samples",
+	 NULL},
+	{"softness",
+	 (getter)Lamp_getSoftness, (setter)Lamp_setSoftness,
+	 "Lamp shadow sample area size",
+	 NULL},
+	{"spotBlend",
+	 (getter)Lamp_getSpotBlend, (setter)Lamp_setSpotBlend,
+	 "Lamp spotlight edge softness",
+	 NULL},
+	{"spotSize",
+	 (getter)Lamp_getSpotSize, (setter)Lamp_setSpotSize,
+	 "Lamp spotlight beam angle (in degrees)",
+	 NULL},
+	{"type",
+	 (getter)Lamp_getType, (setter)Lamp_setType,
+	 "Lamp type",
+	 NULL},
+	{"R",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color red component",
+	 (void *)EXPP_LAMP_COMP_R},
+	{"r",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color red component",
+	 (void *)EXPP_LAMP_COMP_R},
+	{"G",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color green component",
+	 (void *)EXPP_LAMP_COMP_G},
+	{"g",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color green component",
+	 (void *)EXPP_LAMP_COMP_G},
+	{"B",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color blue component",
+	 (void *)EXPP_LAMP_COMP_B},
+	{"b",
+	 (getter)Lamp_getComponent, (setter)Lamp_setComponent,
+	 "Lamp color blue component",
+	 (void *)EXPP_LAMP_COMP_B},
+	{"users",
+	 (getter)Lamp_getUsers, (setter)NULL,
+	 "Number of lamp users",
+	 NULL},
+	{"Modes",
+	 (getter)Lamp_getModesConst, (setter)NULL,
+	 "Dictionary of values for 'mode' attribute",
+	 NULL},
+	{"Types",
+	 (getter)Lamp_getTypesConst, (setter)NULL,
+	 "Dictionary of values for 'type' attribute",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
 /* Python TypeLamp callback function prototypes:                             */
 /*****************************************************************************/
 static void Lamp_dealloc( BPy_Lamp * lamp );
-static PyObject *Lamp_getAttr( BPy_Lamp * lamp, char *name );
-static int Lamp_setAttr( BPy_Lamp * lamp, char *name, PyObject * v );
 static int Lamp_compare( BPy_Lamp * a, BPy_Lamp * b );
 static PyObject *Lamp_repr( BPy_Lamp * lamp );
-
 
 /*****************************************************************************/
 /* Python TypeLamp structure definition:                                     */
 /*****************************************************************************/
 PyTypeObject Lamp_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender Lamp",		/* tp_name */
-	sizeof( BPy_Lamp ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Lamp_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Lamp_getAttr,	/* tp_getattr */
-	( setattrfunc ) Lamp_setAttr,	/* tp_setattr */
-	( cmpfunc ) Lamp_compare,	/* tp_compare */
-	( reprfunc ) Lamp_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Lamp_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender Lamp",             /* char *tp_name; */
+	sizeof( BPy_Lamp ),         /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Lamp_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	( cmpfunc ) Lamp_compare,   /* cmpfunc tp_compare; */
+	( reprfunc ) Lamp_repr,     /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Lamp_methods,           /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Lamp_getseters,         /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
 /*****************************************************************************/
@@ -547,7 +745,8 @@ PyObject *Lamp_Init( void )
 {
 	PyObject *submodule, *Types, *Modes;
 
-	Lamp_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Lamp_Type ) < 0)
+		return NULL;
 
 	Types = Lamp_TypesDict(  );
 	Modes = Lamp_ModesDict(  );
@@ -837,387 +1036,219 @@ static PyObject *Lamp_getCol( BPy_Lamp * self )
 	return rgbTuple_getCol( self->color );
 }
 
-static PyObject *Lamp_setName( BPy_Lamp * self, PyObject * args )
+static int Lamp_setName( BPy_Lamp * self, PyObject * value )
 {
 	char *name = NULL;
 	char buf[21];
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	rename_id( &self->lamp->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
 
-static PyObject *Lamp_setType( BPy_Lamp * self, PyObject * args )
+static int Lamp_setType( BPy_Lamp * self, PyObject * value )
 {
-	char *type;
-
-	if( !PyArg_ParseTuple( args, "s", &type ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
-
-	if( strcmp( type, "Lamp" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_LAMP;
-	else if( strcmp( type, "Sun" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_SUN;
-	else if( strcmp( type, "Spot" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_SPOT;
-	else if( strcmp( type, "Hemi" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_HEMI;
-	else if( strcmp( type, "Area" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_AREA;
-	else if( strcmp( type, "Photon" ) == 0 )
-		self->lamp->type = ( short ) EXPP_LAMP_TYPE_YF_PHOTON;
-	else
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"unknown lamp type" ) );
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	return EXPP_setShortRange ( value, &self->lamp->type,
+				  				0, EXPP_LAMP_TYPE_MAX );
 }
 
-/* This one is 'private'. It is not really a method, just a helper function for
- * when script writers use Lamp.type = t instead of Lamp.setType(t), since in
- * the first case t shoud be an int and in the second it should be a string. So
- * while the method setType expects a string  or an empty
- * argument, this function should receive an int (0 or 1). */
-static PyObject *Lamp_setIntType( BPy_Lamp * self, PyObject * args )
+static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 {
-	short value;
+	short param;
+	static short bitmask = EXPP_LAMP_MODE_SHADOWS
+				| EXPP_LAMP_MODE_HALO
+				| EXPP_LAMP_MODE_LAYER
+				| EXPP_LAMP_MODE_QUAD
+				| EXPP_LAMP_MODE_NEGATIVE
+				| EXPP_LAMP_MODE_ONLYSHADOW
+				| EXPP_LAMP_MODE_SPHERE
+				| EXPP_LAMP_MODE_SQUARE
+				| EXPP_LAMP_MODE_NODIFFUSE
+				| EXPP_LAMP_MODE_NOSPECULAR;
 
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [0,5]" ) );
+	if( !PyInt_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+	}
+	param = PyInt_AS_LONG ( value );
 
-	if( value >= 0 && value <= EXPP_LAMP_TYPE_MAX )
-		self->lamp->type = value;
-	else
-		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
-						"expected int argument in [0,5]" ) );
+	if ( ( param & bitmask ) != param )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+						"invalid bit(s) set in mask" );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	self->lamp->mode = param; 
+
+	return 0;
 }
 
-static PyObject *Lamp_setMode( BPy_Lamp * self, PyObject * args )
+static int Lamp_setSamples( BPy_Lamp * self, PyObject * value )
 {
-	char *m[10] =
-		{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-	short i, flag = 0;
+	return EXPP_setShortClamped ( value, &self->lamp->samp,
+								EXPP_LAMP_SAMPLES_MIN,
+								EXPP_LAMP_SAMPLES_MAX );
+}
 
-	if( !PyArg_ParseTuple( args, "|ssssssss", &m[0], &m[1], &m[2],
-			       &m[3], &m[4], &m[5], &m[6], &m[7], &m[8],
-			       &m[9] ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected from none to 10 string argument(s)" ) );
+static int Lamp_setBufferSize( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setShortClamped ( value, &self->lamp->bufsize,
+								EXPP_LAMP_BUFFERSIZE_MIN,
+								EXPP_LAMP_BUFFERSIZE_MAX );
+}
 
-	for( i = 0; i < 10; i++ ) {
-		if( m[i] == NULL )
-			break;
-		if( strcmp( m[i], "Shadows" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_SHADOWS;
-		else if( strcmp( m[i], "Halo" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_HALO;
-		else if( strcmp( m[i], "Layer" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_LAYER;
-		else if( strcmp( m[i], "Quad" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_QUAD;
-		else if( strcmp( m[i], "Negative" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_NEGATIVE;
-		else if( strcmp( m[i], "OnlyShadow" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_ONLYSHADOW;
-		else if( strcmp( m[i], "Sphere" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_SPHERE;
-		else if( strcmp( m[i], "Square" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_SQUARE;
-		else if( strcmp( m[i], "NoDiffuse" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_NODIFFUSE;
-		else if( strcmp( m[i], "NoSpecular" ) == 0 )
-			flag |= ( short ) EXPP_LAMP_MODE_NOSPECULAR;
-		else
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"unknown lamp flag argument" ) );
+static int Lamp_setHaloStep( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setShortClamped ( value, &self->lamp->shadhalostep,
+								EXPP_LAMP_HALOSTEP_MIN,
+								EXPP_LAMP_HALOSTEP_MAX );
+}
+
+static int Lamp_setEnergy( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->energy, 
+								EXPP_LAMP_ENERGY_MIN,
+								EXPP_LAMP_ENERGY_MAX );
+}
+
+static int Lamp_setDist( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->dist, 
+								EXPP_LAMP_DIST_MIN,
+								EXPP_LAMP_DIST_MAX );
+}
+
+static int Lamp_setSpotSize( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->spotsize, 
+								EXPP_LAMP_SPOTSIZE_MIN,
+								EXPP_LAMP_SPOTSIZE_MAX );
+}
+
+static int Lamp_setSpotBlend( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->spotblend, 
+								EXPP_LAMP_SPOTBLEND_MIN,
+								EXPP_LAMP_SPOTBLEND_MAX );
+}
+
+static int Lamp_setClipStart( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->clipsta, 
+								EXPP_LAMP_CLIPSTART_MIN,
+								EXPP_LAMP_CLIPSTART_MAX );
+}
+
+static int Lamp_setClipEnd( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->clipend, 
+								EXPP_LAMP_CLIPEND_MIN,
+								EXPP_LAMP_CLIPEND_MAX );
+}
+
+static int Lamp_setBias( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->bias,
+								EXPP_LAMP_BIAS_MIN,
+								EXPP_LAMP_BIAS_MAX );
+}
+
+static int Lamp_setSoftness( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->soft,
+								EXPP_LAMP_SOFTNESS_MIN,
+								EXPP_LAMP_SOFTNESS_MAX );
+}
+
+static int Lamp_setHaloInt( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->haint,
+								EXPP_LAMP_HALOINT_MIN,
+								EXPP_LAMP_HALOINT_MAX );
+}
+
+static int Lamp_setQuad1( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->att1,
+								EXPP_LAMP_QUAD1_MIN,
+								EXPP_LAMP_QUAD1_MAX );
+}
+
+static int Lamp_setQuad2( BPy_Lamp * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->lamp->att2,
+								EXPP_LAMP_QUAD2_MIN,
+								EXPP_LAMP_QUAD2_MAX );
+}
+
+static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure )
+{
+	PyObject *attr = NULL;
+
+	switch ( (int)closure ) {
+	case EXPP_LAMP_COMP_R:
+		attr = PyFloat_FromDouble( self->lamp->r );
+		break;
+	case EXPP_LAMP_COMP_G:
+		attr = PyFloat_FromDouble( self->lamp->g );
+		break;
+	case EXPP_LAMP_COMP_B:
+		attr = PyFloat_FromDouble( self->lamp->b );
+		break;
+	default:
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"unknown color component specified" );
 	}
 
-	self->lamp->mode = flag;
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"PyFloat_FromDouble() failed" );
+	return attr;
 }
 
-/* Another helper function, for the same reason.
- * (See comment before Lamp_setIntType above). */
-static PyObject *Lamp_setIntMode( BPy_Lamp * self, PyObject * args )
+static int Lamp_setComponent( BPy_Lamp * self, PyObject * value,
+							void * closure )
 {
-	short value;
+	float color;
 
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument" ) );
+	if( !PyFloat_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected float argument in [0.0,1.0]" );
 
-/* well, with so many flag bits, we just accept any short int, no checking */
-	self->lamp->mode = value;
+	color = PyFloat_AS_DOUBLE( value );
+	color = EXPP_ClampFloat( color, EXPP_LAMP_COL_MIN, EXPP_LAMP_COL_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	switch ( (int)closure ) {
+	case EXPP_LAMP_COMP_R:
+		self->lamp->r = color;
+		return 0;
+	case EXPP_LAMP_COMP_G:
+		self->lamp->g = color;
+		return 0;
+	case EXPP_LAMP_COMP_B:
+		self->lamp->b = color;
+		return 0;
+	}
+	return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"unknown color component specified" );
 }
 
-static PyObject *Lamp_setSamples( BPy_Lamp * self, PyObject * args )
+static int Lamp_setCol( BPy_Lamp * self, PyObject * args )
 {
-	short value;
+	PyObject *error;
 
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [1,16]" ) );
-
-	self->lamp->samp = (short)EXPP_ClampInt( value,
-					  EXPP_LAMP_SAMPLES_MIN,
-					  EXPP_LAMP_SAMPLES_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setBufferSize( BPy_Lamp * self, PyObject * args )
-{
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [512, 5120]" ) );
-
-	self->lamp->bufsize = (short)EXPP_ClampInt( value,
-					     EXPP_LAMP_BUFFERSIZE_MIN,
-					     EXPP_LAMP_BUFFERSIZE_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setHaloStep( BPy_Lamp * self, PyObject * args )
-{
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [0,12]" ) );
-
-	self->lamp->shadhalostep = (short)EXPP_ClampInt( value,
-						  EXPP_LAMP_HALOSTEP_MIN,
-						  EXPP_LAMP_HALOSTEP_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setEnergy( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->energy = EXPP_ClampFloat( value,
-					      EXPP_LAMP_ENERGY_MIN,
-					      EXPP_LAMP_ENERGY_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setDist( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->dist = EXPP_ClampFloat( value,
-					    EXPP_LAMP_DIST_MIN,
-					    EXPP_LAMP_DIST_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setSpotSize( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->spotsize = EXPP_ClampFloat( value,
-						EXPP_LAMP_SPOTSIZE_MIN,
-						EXPP_LAMP_SPOTSIZE_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setSpotBlend( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->spotblend = EXPP_ClampFloat( value,
-						 EXPP_LAMP_SPOTBLEND_MIN,
-						 EXPP_LAMP_SPOTBLEND_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setClipStart( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->clipsta = EXPP_ClampFloat( value,
-					       EXPP_LAMP_CLIPSTART_MIN,
-					       EXPP_LAMP_CLIPSTART_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setClipEnd( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->clipend = EXPP_ClampFloat( value,
-					       EXPP_LAMP_CLIPEND_MIN,
-					       EXPP_LAMP_CLIPEND_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setBias( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->bias = EXPP_ClampFloat( value,
-					    EXPP_LAMP_BIAS_MIN,
-					    EXPP_LAMP_BIAS_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setSoftness( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->soft = EXPP_ClampFloat( value,
-					    EXPP_LAMP_SOFTNESS_MIN,
-					    EXPP_LAMP_SOFTNESS_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setHaloInt( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->haint = EXPP_ClampFloat( value,
-					     EXPP_LAMP_HALOINT_MIN,
-					     EXPP_LAMP_HALOINT_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setQuad1( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->att1 = EXPP_ClampFloat( value,
-					    EXPP_LAMP_QUAD1_MIN,
-					    EXPP_LAMP_QUAD1_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setQuad2( BPy_Lamp * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument" ) );
-
-	self->lamp->att2 = EXPP_ClampFloat( value,
-					    EXPP_LAMP_QUAD2_MIN,
-					    EXPP_LAMP_QUAD2_MAX );
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setColorComponent( BPy_Lamp * self, char *key,
-					 PyObject * args )
-{				/* for compatibility with old bpython */
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	value = EXPP_ClampFloat( value, EXPP_LAMP_COL_MIN, EXPP_LAMP_COL_MAX );
-
-	if( !strcmp( key, "R" ) )
-		self->lamp->r = value;
-	else if( !strcmp( key, "G" ) )
-		self->lamp->g = value;
-	else if( !strcmp( key, "B" ) )
-		self->lamp->b = value;
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_setCol( BPy_Lamp * self, PyObject * args )
-{
-	return rgbTuple_setCol( self->color, args );
+	error =	rgbTuple_setCol( self->color, args );
+	if ( error ) {
+		Py_DECREF ( error );
+		return 0;
+	}
+	return -1;
 }
 
 /* lamp.addScriptLink */
@@ -1271,195 +1302,11 @@ static void Lamp_dealloc( BPy_Lamp * self )
 }
 
 /*****************************************************************************/
-/* Function:    Lamp_getAttr                                                 */
-/* Description: This is a callback function for the BPy_Lamp type. It is     */
-/*              the function that accesses BPy_Lamp member variables and     */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *Lamp_getAttr( BPy_Lamp * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->lamp->id.name + 2 );
-	else if( strcmp( name, "type" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->type );
-	else if( strcmp( name, "mode" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->mode );
-	else if( strcmp( name, "samples" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->samp );
-	else if( strcmp( name, "bufferSize" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->bufsize );
-	else if( strcmp( name, "haloStep" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->shadhalostep );
-	else if( strcmp( name, "R" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->r );
-	else if( strcmp( name, "G" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->g );
-	else if( strcmp( name, "B" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->b );
-	else if( strcmp( name, "col" ) == 0 )
-		attr = Lamp_getCol( self );
-	else if( strcmp( name, "energy" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->energy );
-	else if( strcmp( name, "dist" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->dist );
-	else if( strcmp( name, "spotSize" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->spotsize );
-	else if( strcmp( name, "spotBlend" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->spotblend );
-	else if( strcmp( name, "clipStart" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->clipsta );
-	else if( strcmp( name, "clipEnd" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->clipend );
-	else if( strcmp( name, "bias" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->bias );
-	else if( strcmp( name, "softness" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->soft );
-	else if( strcmp( name, "haloInt" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->haint );
-	else if( strcmp( name, "quad1" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->att1 );
-	else if( strcmp( name, "quad2" ) == 0 )
-		attr = PyFloat_FromDouble( self->lamp->att2 );
-	else if( strcmp( name, "users" ) == 0 )
-		attr = PyInt_FromLong( self->lamp->id.us );
-	
-	else if( strcmp( name, "Types" ) == 0 ) {
-		attr = Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
-				      "Lamp", EXPP_LAMP_TYPE_LAMP,
-				      "Sun", EXPP_LAMP_TYPE_SUN,
-				      "Spot", EXPP_LAMP_TYPE_SPOT,
-				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
-				      "Area", EXPP_LAMP_TYPE_AREA, 
-				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON 
-			);
-	}
-
-	else if( strcmp( name, "Modes" ) == 0 ) {
-		attr = Py_BuildValue
-			( "{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
-			  "Shadows", EXPP_LAMP_MODE_SHADOWS, "Halo",
-			  EXPP_LAMP_MODE_HALO, "Layer", EXPP_LAMP_MODE_LAYER,
-			  "Quad", EXPP_LAMP_MODE_QUAD, "Negative",
-			  EXPP_LAMP_MODE_NEGATIVE, "OnlyShadow",
-			  EXPP_LAMP_MODE_ONLYSHADOW, "Sphere",
-			  EXPP_LAMP_MODE_SPHERE, "Square",
-			  EXPP_LAMP_MODE_SQUARE, "NoDiffuse",
-			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
-			  EXPP_LAMP_MODE_NOSPECULAR );
-	}
-	
-	else if( strcmp( name, "__members__" ) == 0 ) {
-		/* 23 entries */
-		attr = Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
-			  "name", "type", "mode", "samples", "bufferSize",
-			  "haloStep", "R", "G", "B", "energy", "dist",
-			  "spotSize", "spotBlend", "clipStart", "clipEnd",
-			  "bias", "softness", "haloInt", "quad1", "quad2",
-			  "Types", "Modes", "col", "users" );
-	}
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* member attribute found, return it */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Lamp_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:    Lamp_setAttr                                                 */
-/* Description: This is a callback function for the BPy_Lamp type. It is the */
-/*              function that changes Lamp Data members values. If this      */
-/*              data is linked to a Blender Lamp, it also gets updated.      */
-/*****************************************************************************/
-static int Lamp_setAttr( BPy_Lamp * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	valtuple = Py_BuildValue( "(O)", value );	/*the set* functions expect a tuple */
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "LampSetAttr: couldn't create tuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = Lamp_setName( self, valtuple );
-	else if( strcmp( name, "type" ) == 0 )
-		error = Lamp_setIntType( self, valtuple );	/* special case */
-	else if( strcmp( name, "mode" ) == 0 )
-		error = Lamp_setIntMode( self, valtuple );	/* special case */
-	else if( strcmp( name, "samples" ) == 0 )
-		error = Lamp_setSamples( self, valtuple );
-	else if( strcmp( name, "bufferSize" ) == 0 )
-		error = Lamp_setBufferSize( self, valtuple );
-	else if( strcmp( name, "haloStep" ) == 0 )
-		error = Lamp_setHaloStep( self, valtuple );
-	else if( strcmp( name, "R" ) == 0 )
-		error = Lamp_setColorComponent( self, "R", valtuple );
-	else if( strcmp( name, "G" ) == 0 )
-		error = Lamp_setColorComponent( self, "G", valtuple );
-	else if( strcmp( name, "B" ) == 0 )
-		error = Lamp_setColorComponent( self, "B", valtuple );
-	else if( strcmp( name, "energy" ) == 0 )
-		error = Lamp_setEnergy( self, valtuple );
-	else if( strcmp( name, "dist" ) == 0 )
-		error = Lamp_setDist( self, valtuple );
-	else if( strcmp( name, "spotSize" ) == 0 )
-		error = Lamp_setSpotSize( self, valtuple );
-	else if( strcmp( name, "spotBlend" ) == 0 )
-		error = Lamp_setSpotBlend( self, valtuple );
-	else if( strcmp( name, "clipStart" ) == 0 )
-		error = Lamp_setClipStart( self, valtuple );
-	else if( strcmp( name, "clipEnd" ) == 0 )
-		error = Lamp_setClipEnd( self, valtuple );
-	else if( strcmp( name, "bias" ) == 0 )
-		error = Lamp_setBias( self, valtuple );
-	else if( strcmp( name, "softness" ) == 0 )
-		error = Lamp_setSoftness( self, valtuple );
-	else if( strcmp( name, "haloInt" ) == 0 )
-		error = Lamp_setHaloInt( self, valtuple );
-	else if( strcmp( name, "quad1" ) == 0 )
-		error = Lamp_setQuad1( self, valtuple );
-	else if( strcmp( name, "quad2" ) == 0 )
-		error = Lamp_setQuad2( self, valtuple );
-	else if( strcmp( name, "col" ) == 0 )
-		error = Lamp_setCol( self, valtuple );
-
-	else {			/* Error */
-		Py_DECREF( valtuple );
-
-		if( ( strcmp( name, "Types" ) == 0 ) ||	/* user tried to change a */
-		    ( strcmp( name, "Modes" ) == 0 ) )	/* constant dict type ... */
-			return ( EXPP_ReturnIntError( PyExc_AttributeError,
-						      "constant dictionary -- cannot be changed" ) );
-
-		else	/* ... or no member with the given name was found */
-			return ( EXPP_ReturnIntError( PyExc_AttributeError,
-						      "attribute not found" ) );
-	}
-
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-	Py_DECREF( Py_None );	/* was incref'ed by the called Lamp_set* function */
-	return 0;		/* normal exit */
-}
-
-/*****************************************************************************/
 /* Function:    Lamp_compare                                                 */
 /* Description: This is a callback function for the BPy_Lamp type. It        */
 /*              compares two Lamp_Type objects. Only the "==" and "!="       */
-/*              comparisons are meaninful. Returns 0 for equality and -1 if  */
-/*              they don't point to the same Blender Lamp struct.            */
+/*              comparisons are meaningful. Returns 0 for equality and -1    */
+/*              if they don't point to the same Blender Lamp struct.         */
 /*              In Python it becomes 1 if they are equal, 0 otherwise.       */
 /*****************************************************************************/
 static int Lamp_compare( BPy_Lamp * a, BPy_Lamp * b )
@@ -1490,58 +1337,52 @@ static PyObject *Lamp_getIpo( BPy_Lamp * self )
 	return Ipo_CreatePyObject( ipo );
 }
 
-extern PyTypeObject Ipo_Type;
+/*
+ * this should accept a Py_None argument and just delete the Ipo link
+ * (as Lamp_clearIpo() does)
+ */
 
-static PyObject *Lamp_setIpo( BPy_Lamp * self, PyObject * args )
+static int Lamp_setIpo( BPy_Lamp * self, PyObject * value )
 {
-	PyObject *pyipo = 0;
 	Ipo *ipo = NULL;
-	Ipo *oldipo;
+	Ipo *oldipo = self->lamp->ipo;
+	ID *id;
 
-	if( !PyArg_ParseTuple( args, "O!", &Ipo_Type, &pyipo ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected Ipo as argument" );
+	/* if parameter is not None, check for valid Ipo */
 
-	ipo = Ipo_FromPyObject( pyipo );
+	if ( value != Py_None ) {
+		if ( !Ipo_CheckPyObject( value ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"expected an Ipo object" );
 
-	if( !ipo )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "null ipo!" );
+		ipo = Ipo_FromPyObject( value );
 
-	if( ipo->blocktype != ID_LA )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "this ipo is not a lamp data ipo" );
+		if( !ipo )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"null ipo!" );
 
-	oldipo = self->lamp->ipo;
-	if( oldipo ) {
-		ID *id = &oldipo->id;
+		if( ipo->blocktype != ID_LA )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					      	"Ipo is not a lamp data Ipo" );
+	}
+
+	/* if already linked to Ipo, delete link */
+
+	if ( oldipo ) {
+		id = &oldipo->id;
 		if( id->us > 0 )
 			id->us--;
 	}
 
-	( ( ID * ) & ipo->id )->us++;
+	/* assign new Ipo and increment user count, or set to NULL if deleting */
 
 	self->lamp->ipo = ipo;
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Lamp_clearIpo( BPy_Lamp * self )
-{
-	Lamp *lamp = self->lamp;
-	Ipo *ipo = ( Ipo * ) lamp->ipo;
-
-	if( ipo ) {
-		ID *id = &ipo->id;
-		if( id->us > 0 )
-			id->us--;
-		lamp->ipo = NULL;
-
-		return EXPP_incr_ret_True();
+	if ( ipo ) {
+		id = &ipo->id;
+		id->us++;
 	}
 
-	return EXPP_incr_ret_False(); /* no ipo found */
+	return 0;
 }
 
 /*
@@ -1588,4 +1429,285 @@ static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
 	EXPP_allqueue(REDRAWNLA, 0);
 
 	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Lamp_getModesConst( void )
+{
+	PyObject * attr = Py_BuildValue
+			( "{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
+			  "Shadows", EXPP_LAMP_MODE_SHADOWS, "Halo",
+			  EXPP_LAMP_MODE_HALO, "Layer", EXPP_LAMP_MODE_LAYER,
+			  "Quad", EXPP_LAMP_MODE_QUAD, "Negative",
+			  EXPP_LAMP_MODE_NEGATIVE, "OnlyShadow",
+			  EXPP_LAMP_MODE_ONLYSHADOW, "Sphere",
+			  EXPP_LAMP_MODE_SPHERE, "Square",
+			  EXPP_LAMP_MODE_SQUARE, "NoDiffuse",
+			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
+			  EXPP_LAMP_MODE_NOSPECULAR );
+
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Lamp.Modes attribute" );
+
+	return attr;
+}
+
+static PyObject *Lamp_getTypesConst( void )
+{
+	PyObject *attr = Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
+				      "Lamp", EXPP_LAMP_TYPE_LAMP,
+				      "Sun", EXPP_LAMP_TYPE_SUN,
+				      "Spot", EXPP_LAMP_TYPE_SPOT,
+				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
+				      "Area", EXPP_LAMP_TYPE_AREA, 
+				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON );
+
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't get Lamp.Types attribute" );
+
+	return attr;
+}
+
+static PyObject *Lamp_getUsers( BPy_Lamp * self )
+{
+	return PyInt_FromLong( self->lamp->id.us );
+}
+
+/* #####DEPRECATED###### */
+
+/*
+ * Procedure to handle older setStuff() methods.  Assumes that argument 
+ * is a tuple with one object, and so grabs the object and passes it to
+ * the specified tp_getset setter for the corresponding attribute.
+ */
+
+static PyObject *Lamp_setterWrapper ( BPy_Lamp * self, PyObject * args,
+									int (*func)( BPy_Lamp * self, PyObject * args ))
+{
+	int error;
+
+	if ( !PyTuple_Check( args ) || PyTuple_Size( args ) != 1 )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "expected tuple of one item" );
+
+	error = func ( self, PySequence_Fast_GET_ITEM( args, 0 ) );
+	if ( !error ) {
+		Py_INCREF( Py_None );
+		return Py_None;
+	} else
+		return NULL;
+}
+
+static PyObject *Lamp_oldsetName( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setName );
+}
+
+
+static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setSamples );
+}
+
+static PyObject *Lamp_oldsetBufferSize( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setBufferSize );
+}
+
+static PyObject *Lamp_oldsetHaloStep( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setHaloStep );
+}
+
+static PyObject *Lamp_oldsetEnergy( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setEnergy );
+}
+
+static PyObject *Lamp_oldsetDist( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setDist );
+}
+
+static PyObject *Lamp_oldsetSpotSize( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setSpotSize );
+}
+
+static PyObject *Lamp_oldsetSpotBlend( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setSpotBlend );
+}
+
+static PyObject *Lamp_oldsetClipStart( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setClipStart );
+}
+
+static PyObject *Lamp_oldsetClipEnd( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setClipEnd );
+}
+
+static PyObject *Lamp_oldsetBias( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setBias );
+}
+
+static PyObject *Lamp_oldsetSoftness( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setSoftness );
+}
+
+static PyObject *Lamp_oldsetHaloInt( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setHaloInt );
+}
+
+static PyObject *Lamp_oldsetQuad1( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setQuad1 );
+}
+
+static PyObject *Lamp_oldsetQuad2( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setQuad2 );
+}
+
+static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args )
+{
+	return Lamp_setterWrapper ( self, args, Lamp_setIpo );
+}
+
+/* 
+ * the "not-well-behaved" methods which require more processing than 
+ * just the simple wrapper
+ */
+
+/*
+ * clearIpo() returns True/False depending on whether lamp has an Ipo
+ */
+
+static PyObject *Lamp_clearIpo( BPy_Lamp * self )
+{
+	/* if Ipo defined, delete it and return true */
+
+	if( self->lamp->ipo ) {
+		PyObject *value = Py_BuildValue( "(O)", Py_None );
+		Lamp_setterWrapper ( self, value, Lamp_setIpo );
+		Py_DECREF ( value );
+		return EXPP_incr_ret_True();
+	}
+	return EXPP_incr_ret_False(); /* no ipo found */
+}
+
+/*
+ * setType() accepts a string while mode setter takes an integer
+ */
+
+static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args )
+{
+	char *type;
+	PyObject *value, *error;
+
+	/* parse string argument */
+
+	if( !PyArg_ParseTuple( args, "s", &type ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected string argument" ) );
+
+	/* check for valid arguments, set type accordingly */
+
+	if( !strcmp( type, "Lamp" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_LAMP;
+	else if( !strcmp( type, "Sun" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_SUN;
+	else if( !strcmp( type, "Spot" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_SPOT;
+	else if( !strcmp( type, "Hemi" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_HEMI;
+	else if( !strcmp( type, "Area" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_AREA;
+	else if( !strcmp( type, "Photon" ) )
+		self->lamp->type = ( short ) EXPP_LAMP_TYPE_YF_PHOTON;
+	else
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"unknown lamp type" );
+
+	/* build tuple, call wrapper */
+
+	value = Py_BuildValue( "(i)", type );
+	error = Lamp_setterWrapper ( self, value, Lamp_setType );
+	Py_DECREF ( value );
+	return error;
+}
+
+/*
+ * setMode() accepts up to ten strings while mode setter takes an integer
+ */
+
+static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
+{
+	short i, flag = 0;
+	PyObject *error, *value;
+	char *name;
+
+	/* check that we're passed a tuple of no more than 10 args*/
+
+	if ( !PyTuple_Check( args ) || PyTuple_Size( args ) > 10 )
+		return EXPP_ReturnPyObjError ( PyExc_AttributeError,
+					"expected up to 10 string arguments" );
+
+	/* check each argument for type, find its value */
+
+	for ( i = PyTuple_Size( args ); i-- ; ) {
+		name = PyString_AsString ( PySequence_Fast_GET_ITEM( args, i ) );
+		if( !name )
+			return EXPP_ReturnPyObjError ( PyExc_AttributeError,
+					"expected string argument" );
+
+		if( !strcmp( name, "Shadows" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_SHADOWS;
+		else if( !strcmp( name, "Halo" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_HALO;
+		else if( !strcmp( name, "Layer" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_LAYER;
+		else if( !strcmp( name, "Quad" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_QUAD;
+		else if( !strcmp( name, "Negative" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_NEGATIVE;
+		else if( !strcmp( name, "OnlyShadow" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_ONLYSHADOW;
+		else if( !strcmp( name, "Sphere" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_SPHERE;
+		else if( !strcmp( name, "Square" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_SQUARE;
+		else if( !strcmp( name, "NoDiffuse" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_NODIFFUSE;
+		else if( !strcmp( name, "NoSpecular" ) )
+			flag |= ( short ) EXPP_LAMP_MODE_NOSPECULAR;
+		else
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+							"unknown lamp flag argument" );
+	}
+
+	/* build tuple, call wrapper */
+
+	value = Py_BuildValue( "(i)", flag );
+	error = Lamp_setterWrapper ( self, value, Lamp_setMode );
+	Py_DECREF ( value );
+	return error;
+}
+
+/*
+ * This one isn't changed at all since rgbTuple_setCol() hasn't changed
+ * either, and the new attribute setter expects a tuple with a single
+ * argument.  It's valid to do "lamp.setCol(r,g,b)", which passes three-
+ * argument tuple.
+ */
+
+static PyObject *Lamp_oldsetCol( BPy_Lamp * self, PyObject * args )
+{
+	return rgbTuple_setCol( self->color, args );
 }

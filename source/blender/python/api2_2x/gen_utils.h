@@ -97,6 +97,26 @@ int EXPP_map_getShortVal( const EXPP_map_pair * map,
 int EXPP_map_getStrVal( const EXPP_map_pair * map,
 			int ival, const char **sval );
 
+/* clamping and range-checking utilities */
+
+int EXPP_setCharClamped ( PyObject *value, char *param,
+			short min, short max);
+int EXPP_setShortClamped ( PyObject *value, short *param,
+			short min, short max);
+int EXPP_setIntClamped ( PyObject *value, int *param,
+			int min, int max);
+int EXPP_setFloatClamped ( PyObject *value, float *param,
+			float min, float max);
+
+int EXPP_setChrRange ( PyObject *value, char *param,
+			short min, short max);
+int EXPP_setShortRange ( PyObject *value, short *param,
+			short min, short max);
+int EXPP_setIntRange ( PyObject *value, int *param,
+			int min, int max);
+int EXPP_setFloatRange ( PyObject *value, float *param,
+			float min, float max);
+
 /* scriplinks-related: */
 PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *args, int is_scene);
 PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene);
@@ -106,3 +126,4 @@ PyObject *EXPP_clearScriptLinks(ScriptLink *slink, PyObject *args);
 void EXPP_allqueue(unsigned short event, short val);
 
 #endif				/* EXPP_gen_utils_h */
+
