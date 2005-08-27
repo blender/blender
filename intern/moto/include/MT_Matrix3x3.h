@@ -79,6 +79,15 @@ public:
     
     MT_Vector3&       operator[](int i)       { return m_el[i]; }
     const MT_Vector3& operator[](int i) const { return m_el[i]; }
+
+	MT_Vector3 getColumn(int i) const {
+		return MT_Vector3(m_el[0][i], m_el[1][i], m_el[2][i]);
+	}
+	void setColumn(int i, const MT_Vector3& v) {
+		m_el[0][i] = v[0];
+		m_el[1][i] = v[1];
+		m_el[2][i] = v[2];
+	}
     
     void setValue(const float *m) {
         m_el[0][0] = *m++; m_el[1][0] = *m++; m_el[2][0] = *m++; m++;

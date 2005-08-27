@@ -75,6 +75,12 @@ public:
 		setBasis(m);
 	}
 
+	static MT_Transform Identity()
+	{
+		MT_Transform t;
+		t.setIdentity();
+		return t;
+	}
 
 
     MT_Point3 operator()(const MT_Point3& p) const {
@@ -82,11 +88,22 @@ public:
                          MT_dot(m_basis[1], p) + m_origin[1], 
                          MT_dot(m_basis[2], p) + m_origin[2]);
     }
+
+    MT_Vector3 operator()(const MT_Vector3& p) const {
+        return MT_Vector3(MT_dot(m_basis[0], p) + m_origin[0], 
+                         MT_dot(m_basis[1], p) + m_origin[1], 
+                         MT_dot(m_basis[2], p) + m_origin[2]);
+    }
     
     MT_Point3 operator*(const MT_Point3& p) const {
         return (*this)(p);
     }
-    
+ 
+    MT_Vector3 operator*(const MT_Vector3& p) const {
+        return (*this)(p);
+    }
+
+
     MT_Matrix3x3&         getBasis()          { return m_basis; }
     const MT_Matrix3x3&   getBasis()    const { return m_basis; }
     MT_Point3&            getOrigin()         { return m_origin; }
