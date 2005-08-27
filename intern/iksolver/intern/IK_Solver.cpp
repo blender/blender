@@ -144,11 +144,14 @@ void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
 
 void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
 {
-	if (stiffness < 1.0)
+	if (stiffness < 0.0)
 		return;
+	
+	if (stiffness > 0.99)
+		stiffness = 0.99;
 
 	IK_QSegment *qseg = (IK_QSegment*)seg;
-	MT_Scalar weight = 1.0/stiffness;
+	MT_Scalar weight = 1.0-stiffness;
 
 	if (axis == IK_X)
 		qseg->SetWeight(0, weight);

@@ -48,6 +48,7 @@ public:
 		bool active,
 		const IK_QSegment *segment
 	);
+	virtual ~IK_QTask() {};
 
 	int Id() const
 	{ return m_size; }

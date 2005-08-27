@@ -4908,8 +4908,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				bPoseChannel *pchan;
 				bConstraint *con;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					if (pchan->stiffness[0] == 0.0f) {
-						pchan->stiffness[0]= pchan->stiffness[1]= pchan->stiffness[2]= 1.0;
+					if (pchan->limitmin[0] == 0.0f && pchan->limitmax[0] == 0.0f) {
 						pchan->limitmin[0]= pchan->limitmin[1]= pchan->limitmin[2]= -180.0f;
 						pchan->limitmax[0]= pchan->limitmax[1]= pchan->limitmax[2]= 180.0f;
 						

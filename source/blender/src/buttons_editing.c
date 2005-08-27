@@ -2326,7 +2326,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOG, BONE_IK_NO_XDOF, B_ARM_RECALCDATA, "No X DoF", bx-10,by-60,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable X DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_XDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 1.0, 100.0, 10.0f, 2.0f, "Resistance to bending for X axis");
+				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
 				uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
 				if ((pchan->ikflag & BONE_IK_XLIMIT)) {
 					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, 180.0f, 10.0f, 0.0f, "Minimum X limit");
@@ -2340,7 +2340,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "No Y DoF", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_YDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 1.0, 100.0, 10.0f, 2.0f, "Resistance to bending for Y axis");
+				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
 				uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
 				if ((pchan->ikflag & BONE_IK_YLIMIT)) {
 					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, 180.0f, 10.0f, 0.0f, "Minimum Y limit");
@@ -2354,7 +2354,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOG, BONE_IK_NO_ZDOF, B_ARM_RECALCDATA, "No Z DoF", bx+217,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Z DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_ZDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 1.0, 100.0, 10.0f, 2.0f, "Resistance to bending for Z axis");
+				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
 				uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->flag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
 				if ((pchan->flag & BONE_IK_ZLIMIT)) {
 					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, 180.0f, 10.0f, 0.0f, "Minimum Z limit");
