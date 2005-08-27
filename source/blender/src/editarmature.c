@@ -1248,7 +1248,7 @@ void add_primitiveArmature(int type)
 /* the ctrl-click method */
 void addvert_armature(void)
 {
-	EditBone *ebone, *newbone, *partest;
+	EditBone *ebone, *newbone;
 	float *curs, mat[3][3],imat[3][3];
 	int to_root= 0;
 	
@@ -1279,16 +1279,8 @@ void addvert_armature(void)
 	else {
 		VECCOPY(newbone->head, ebone->tail);
 
-		
-		/* See if there are any ik children of the parent */
-		for (partest = G.edbo.first; partest; partest= partest->next){
-			if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
-				break;
-		}
-		if(!partest)
-			newbone->flag |= BONE_IK_TOPARENT;
-		
 		newbone->parent= ebone;
+		newbone->flag |= BONE_IK_TOPARENT;
 	}
 	
 	curs= give_cursor();
@@ -1453,37 +1445,6 @@ void show_all_armature_bones(void)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-
-
-/* the "IK" button in editbuttons */
-void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
-{
-	EditBone *ebone= bonev;
-	attach_bone_to_parent(ebone);
-}
-
-void attach_bone_to_parent(EditBone *bone)
-{
-	EditBone *ebone;
-
-	if (bone->flag & BONE_IK_TOPARENT) {
-
-		/* See if there are any other bones that refer to the same 
-		 * parent and disconnect them 
-		 */
-		for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-			if (ebone!=bone){
-				if (ebone->parent && (ebone->parent == bone->parent) && 
-					(ebone->flag & BONE_IK_TOPARENT))
-						ebone->flag &= ~BONE_IK_TOPARENT;
-			}
-		}
-
-        /* Attach this bone to its parent */
-		VECCOPY(bone->head, bone->parent->tail);
-	}
-}
-
 void make_bone_parent(void)
 {
 	EditBone *ebone;
@@ -1631,7 +1592,7 @@ void unique_editbone_name (char *name)
 void extrude_armature(int forked)
 {
 	bArmature *arm= G.obedit->data;
-	EditBone *newbone, *ebone, *flipbone, *first=NULL, *partest;
+	EditBone *newbone, *ebone, *flipbone, *first=NULL;
 	int a, totbone= 0, do_extrude;
 	
 	TEST_EDITARMATURE;
@@ -1713,16 +1674,7 @@ void extrude_armature(int forked)
 				newbone->segments= 1;
 				newbone->boneclass= ebone->boneclass;
 				
-				/* See if there are any ik children of the parent */
-				if(do_extrude==1) {
-					for (partest = G.edbo.first; partest; partest=partest->next){
-						if ((partest->parent == ebone) && (partest->flag & BONE_IK_TOPARENT))
-							break;
-					}
-					
-					if (!partest)
-						newbone->flag |= BONE_IK_TOPARENT;
-				}
+				newbone->flag |= BONE_IK_TOPARENT;
 				
 				strcpy (newbone->name, ebone->name);
 				

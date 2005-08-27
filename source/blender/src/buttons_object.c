@@ -608,10 +608,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
 				uiBlockEndAlign(block);
 				
-				uiDefBut(block, TEX, B_CONSTRAINT_TEST, "IK group:", *xco+((width/2)-117), *yco-86,120,18, &data->group, 0, 24, 0, 0, "IK group name");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TREE, B_CONSTRAINT_TEST, "Tree IK", *xco+((width/2)-117), *yco-86,120,18, &data->flag, 0, 0, 0, 0, "IK chain becomes tree, when it shares Root with other Chains");
 				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-86, 120, 18, &data->weight, 0.0, 1.0, 0.0, 0.0, "Weight of position control for this target");
 				
-				uiDefButBitS(block, TOG, KINEMATIC_ORIENTATION, B_CONSTRAINT_TEST, "Orientation", *xco+((width/2)-117), *yco-108,120,18, &data->flag, 0, 0, 0, 0, "Follow orientation of target");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Orientation", *xco+((width/2)-117), *yco-108,120,18, &data->flag, 0, 0, 0, 0, "Follow orientation of target");
 				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-108, 120, 18, &data->orientweight, 0.0, 1.0, 0.0, 0.0, "Weight of orientation control for this target");
 			}
 			break;

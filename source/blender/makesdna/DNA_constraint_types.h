@@ -67,9 +67,8 @@ typedef struct bKinematicConstraint{
 	short		flag;			/* Like IK to Tip */
 	char		subtarget[32];	/* String to specify sub-object target */
 
-	char		group[32];		/* Name of group */
-	float		weight;			/* Weight of goal in IK group */
-	float		orientweight;
+	float		weight;			/* Weight of goal in IK tree */
+	float		orientweight;	/* Amount of rotation a target applies on chain */
 } bKinematicConstraint;
 
 typedef struct bTrackToConstraint{
@@ -214,8 +213,9 @@ typedef struct bStretchToConstraint{
 #define PLANE_Z		0x02
 
 /* bKinematicConstraint->flag */
-#define CONSTRAINT_IK_TIP			1
-#define KINEMATIC_ORIENTATION		2
+#define CONSTRAINT_IK_TIP		1
+#define CONSTRAINT_IK_ROT		2
+#define CONSTRAINT_IK_TREE		4
 
 #endif
 

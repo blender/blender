@@ -1012,10 +1012,10 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	/* setup the chain data */
 	chain = NULL;
 
-	/* if part of group, look for existing chain */
-	if(strlen(data->group) > 0)
+	/* if tree-IK, look for mathing chain */
+	if(data->flag & CONSTRAINT_IK_TREE) 
 		for(chain= pchan_root->chain.first; chain; chain= chain->next)
-			if(strcmp(data->group, chain->group)==0) break;
+			if(chain->tree) break;
 
 	/* create a target */
 	target= MEM_callocN(sizeof(PoseTarget), "posetarget");
@@ -1025,7 +1025,7 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 		/* make new chain */
 		chain= MEM_callocN(sizeof(PoseChain), "posechain");
 
-		strcpy(chain->group, data->group);
+		chain->tree= data->flag & CONSTRAINT_IK_TREE;
 		chain->tolerance= data->tolerance;
 		chain->iterations= data->iterations;
 		chain->totchannel= segcount;
@@ -1223,7 +1223,7 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 
 		if(data->weight != 0.0)
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
-		if((data->flag & KINEMATIC_ORIENTATION) && (data->orientweight != 0.0))
+		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
 			IK_SolverAddGoalOrientation(solver, iktarget, goalrot, data->orientweight);
 	}
 

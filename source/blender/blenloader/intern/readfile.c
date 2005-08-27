@@ -4917,7 +4917,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 								data->weight = 1.0f;
 								data->orientweight = 0.0f;
-								data->flag &= ~KINEMATIC_ORIENTATION;
+								data->flag &= ~CONSTRAINT_IK_ROT;
 							}	
 						}
 					}

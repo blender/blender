@@ -55,12 +55,12 @@ typedef struct PoseTarget
 
 typedef struct PoseChain
 {
-	struct PoseChain *next, *prev;  // hurms
+	struct PoseChain *next, *prev;
 	struct bPoseChannel	**pchanchain;
 	struct ListBase targets;
 	int		totchannel;
+	int		tree;		// true or false
 	float	(*basis_change)[3][3];
-	char 	group[32];
 	float	tolerance;
 	int		iterations;
 } PoseChain;

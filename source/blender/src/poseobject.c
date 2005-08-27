@@ -299,6 +299,12 @@ void pose_add_IK(void)
 		set_constraint_target(con, ob, pchansel->name);
 	}
 	
+	/* active flag */
+	con->flag |= CONSTRAINT_ACTIVE;
+	for(con= con->prev; con; con= con->prev)
+		con->flag &= ~CONSTRAINT_ACTIVE;
+	
+	
 	ob->pose->flag |= POSE_RECALC;	// sort pose channels
 	DAG_scene_sort(G.scene);		// sort order of objects
 	

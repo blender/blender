@@ -2065,6 +2065,18 @@ static int editbone_to_parnr (EditBone *bone)
 	return -1;
 }
 
+
+/* the "IK" button in editbuttons */
+static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
+{
+	EditBone *ebone= bonev;
+	
+	if (ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) {
+		/* Attach this bone to its parent */
+		VECCOPY(ebone->head, ebone->parent->tail);
+	}
+}
+
 static void parnr_to_editbone(EditBone *bone)
 {
 	if (bone->parNr == -1){
@@ -2073,7 +2085,7 @@ static void parnr_to_editbone(EditBone *bone)
 	}
 	else{
 		bone->parent = BLI_findlink(&G.edbo, bone->parNr);
-		attach_bone_to_parent(bone);
+		attach_bone_to_parent_cb(bone, NULL);
 	}
 }
 
@@ -2201,6 +2213,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,40,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	
 }
+
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 {
