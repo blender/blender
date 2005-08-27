@@ -33,7 +33,8 @@
 
 LIBNAME = iksolver
 DIR = $(OCGDIR)/intern/$(LIBNAME)
-CCSRCS = IK_QChain.cpp IK_QJacobianSolver.cpp IK_QSegment.cpp MT_ExpMap.cpp IK_Solver.cpp
+CCSRCS = IK_QJacobianSolver.cpp IK_QSegment.cpp IK_Solver.cpp IK_QJacobian.cpp
+CCSRCS += IK_QTask.cpp
 
 include nan_compile.mk
 

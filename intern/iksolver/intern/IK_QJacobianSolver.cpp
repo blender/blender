@@ -24,308 +24,224 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Original Author: Laurence
+ * Contributor(s): Brecht
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "IK_QJacobianSolver.h"
 
-#include "TNT/svd.h"
+//#include "analyze.h"
 
+#include <iostream>
 using namespace std;
 
-	IK_QJacobianSolver *
-IK_QJacobianSolver::
-New(
-){
-	return new IK_QJacobianSolver();
+void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
+{
+	m_segments.push_back(seg);
+
+	IK_QSegment *child;
+	for (child = seg->Child(); child; child = child->Sibling())
+		AddSegmentList(child);
 }
 
-	bool
-IK_QJacobianSolver::
-Solve(
-	IK_QChain &chain,
-	const MT_Vector3 &g_position,
-	const MT_Vector3 &g_pose,
-	const MT_Scalar tolerance,
-	const int max_iterations,
-	const MT_Scalar max_angle_change
-){
+bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
+{
+	m_segments.clear();
+	AddSegmentList(root);
 
-	const vector<IK_QSegment> & segs = chain.Segments();
-	if (segs.size() == 0) return false;
-	
-	// compute the goal direction from the base of the chain
-	// in global coordinates
+	// assing each segment a unique id for the jacobian
+	std::vector<IK_QSegment*>::iterator seg;
+	int num_dof = 0;
 
-	MT_Vector3 goal_dir = g_position - segs[0].GlobalSegmentStart();
-	
-
-	const MT_Scalar chain_max_extension = chain.MaxExtension();
-
-	bool do_parallel_check(false);
-
-	if (chain_max_extension < goal_dir.length()) {
-		do_parallel_check = true;
+	for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
+		(*seg)->SetDoFId(num_dof);
+		num_dof += (*seg)->NumberOfDoF();
 	}
 
-	goal_dir.normalize();
+	// compute task id's and assing weights to task
+	int primary_size = 0, primary = 0;
+	int secondary_size = 0, secondary = 0;
+	MT_Scalar primary_weight = 0.0, secondary_weight = 0.0;
+	std::list<IK_QTask*>::iterator task;
 
+	for (task = tasks.begin(); task != tasks.end(); task++) {
+		IK_QTask *qtask = *task;
 
-	ArmMatrices(chain.DoF());
-
-	for (int iterations = 0; iterations < max_iterations; iterations++) {
-		
-		// check to see if the chain is pointing in the right direction
-
-		if (iterations%32 && do_parallel_check && ParallelCheck(chain,goal_dir)) {
-
-			return false;
+		if (qtask->Primary()) {
+			qtask->SetId(primary_size);
+			primary_size += qtask->Size();
+			primary_weight += qtask->Weight();
+			primary++;
 		}
-		
-		MT_Vector3 end_effector = chain.EndEffector();
-		MT_Vector3 d_pos = g_position - end_effector;
-		const MT_Scalar x_length = d_pos.length();
-		
-		if (x_length < tolerance) {
-			return true;
-		}	
-
-		chain.ComputeJacobian();
-
-        try {
-		    ComputeInverseJacobian(chain,x_length,max_angle_change);
-        }
-        catch(...) {
-            return false;
-        }
-		
-		ComputeBetas(chain,d_pos);
-		UpdateChain(chain);
-		chain.UpdateGlobalTransformations();
-	}
-
-
-	return false;
-};
-
-IK_QJacobianSolver::
-~IK_QJacobianSolver(
-){
-	// nothing to do
-}
-
-
-IK_QJacobianSolver::
-IK_QJacobianSolver(
-){
-	// nothing to do
-};
- 
-	void
-IK_QJacobianSolver::
-ComputeBetas(
-	IK_QChain &chain,
-	const MT_Vector3 d_pos
-){	
-
-	m_beta = 0;
-
-	m_beta[0] = d_pos.x();
-	m_beta[1] = d_pos.y();
-	m_beta[2] = d_pos.z();
-	
-	TNT::matmult(m_d_theta,m_svd_inverse,m_beta);
-
-};	
-
-
-	int
-IK_QJacobianSolver::
-ComputeInverseJacobian(
-	IK_QChain &chain,
-	const MT_Scalar x_length,
-	const MT_Scalar max_angle_change
-) {
-
-	int dimension = 0;
-
-	m_svd_u = MT_Scalar(0);
-
-	// copy first 3 rows of jacobian into m_svd_u
-
-	int row, column;
-
-	for (row = 0; row < 3; row ++) {
-		for (column = 0; column < chain.Jacobian().num_cols(); column ++) {
-			m_svd_u[row][column] = chain.Jacobian()[row][column];
+		else {
+			qtask->SetId(secondary_size);
+			secondary_size += qtask->Size();
+			secondary_weight += qtask->Weight();
+			secondary++;
 		}
 	}
 
-	m_svd_w = MT_Scalar(0);
-	m_svd_v = MT_Scalar(0);
-
-    m_svd_work_space = MT_Scalar(0);
-
-	TNT::SVD(m_svd_u,m_svd_w,m_svd_v,m_svd_work_space);
-
-	// invert the SVD and compute inverse
-
-	TNT::transpose(m_svd_v,m_svd_v_t);
-	TNT::transpose(m_svd_u,m_svd_u_t);
-
-	// Compute damped least squares inverse of pseudo inverse
-	// Compute damping term lambda
-
-	// Note when lambda is zero this is equivalent to the
-	// least squares solution. This is fine when the m_jjt is
-	// of full rank. When m_jjt is near to singular the least squares
-	// inverse tries to minimize |J(dtheta) - dX)| and doesn't 
-	// try to minimize  dTheta. This results in eratic changes in angle.
-	// Damped least squares minimizes |dtheta| to try and reduce this
-	// erratic behaviour.
-
-	// We don't want to use the damped solution everywhere so we
-	// only increase lamda from zero as we approach a singularity.
-
-	// find the smallest non-zero m_svd_w value
-
-	int i = 0;
-
-	MT_Scalar w_min = MT_INFINITY;
-
-	// anything below epsilon is treated as zero
-
-	MT_Scalar epsilon = MT_Scalar(1e-10);
-
-	for ( i = 0; i <m_svd_w.size() ; i++) {
-
-		if (m_svd_w[i] > epsilon && m_svd_w[i] < w_min) {
-			w_min = m_svd_w[i];
-		}
-	}
-
-	MT_Scalar lambda(0);
-
-	MT_Scalar d = x_length/max_angle_change;
-
-	if (w_min <= d/2) {
-		lambda = d/2;
-	} else
-	if (w_min < d) {
-		lambda = sqrt(w_min*(d - w_min));
-	} else {
-		lambda = MT_Scalar(0);
-	}
-
-
-	lambda *= lambda;
-
-	for (i= 0; i < m_svd_w.size(); i++) {
-		if (m_svd_w[i] < epsilon) {
-			m_svd_w[i] = MT_Scalar(0);
-		} else {
-			m_svd_w[i] = m_svd_w[i] / (m_svd_w[i] * m_svd_w[i] + lambda);
-		}
-	}
-
-
-	TNT::matmultdiag(m_svd_temp1,m_svd_w,m_svd_u_t);
-	TNT::matmult(m_svd_inverse,m_svd_v,m_svd_temp1);
-
-	return dimension;
-
-}
-
-	void
-IK_QJacobianSolver::
-UpdateChain(
-	IK_QChain &chain
-){
-
-	// iterate through the set of angles and 
-	// update their values from the d_thetas
-
-	vector<IK_QSegment> &segs = chain.Segments(); 
-	
-	unsigned int seg_ind = 0;
-	for (seg_ind = 0;seg_ind < segs.size(); seg_ind++) {
-	
-		MT_Vector3 dq;
-		dq[0] = m_d_theta[3*seg_ind];
-		dq[1] = m_d_theta[3*seg_ind + 1];
-		dq[2] = m_d_theta[3*seg_ind + 2];
-		segs[seg_ind].IncrementAngle(dq);	
-	}
-
-};
-	
-	void
-IK_QJacobianSolver::
-ArmMatrices(
-	int dof
-){
-
-	m_beta.newsize(dof);
-	m_d_theta.newsize(dof);
-
-	m_svd_u.newsize(dof,dof);
-	m_svd_v.newsize(dof,dof);
-	m_svd_w.newsize(dof);
-
-    m_svd_work_space.newsize(dof);
-
-	m_svd_u = MT_Scalar(0);
-	m_svd_v = MT_Scalar(0);
-	m_svd_w = MT_Scalar(0);
-
-	m_svd_u_t.newsize(dof,dof);
-	m_svd_v_t.newsize(dof,dof);
-	m_svd_w_diag.newsize(dof,dof);
-	m_svd_inverse.newsize(dof,dof);
-	m_svd_temp1.newsize(dof,dof);
-
-};
-
-	bool
-IK_QJacobianSolver::
-ParallelCheck(
-	const IK_QChain &chain,
-	const MT_Vector3 goal_dir
-) const {
-	
-	// compute the start of the chain in global coordinates
-	const vector<IK_QSegment> &segs = chain.Segments(); 
-
-	int num_segs = segs.size();
-	
-	if (num_segs == 0) {
+	if (primary_size == 0 || MT_fuzzyZero(primary_weight))
 		return false;
+
+	m_secondary_enabled = (secondary > 0);
+	
+	// rescale weights of tasks to sum up to 1
+	MT_Scalar primary_rescale = 1.0/primary_weight;
+	MT_Scalar secondary_rescale;
+	if (MT_fuzzyZero(secondary_weight))
+		secondary_rescale = 0.0;
+	else
+		secondary_rescale = 1.0/secondary_weight;
+	
+	for (task = tasks.begin(); task != tasks.end(); task++) {
+		IK_QTask *qtask = *task;
+
+		if (qtask->Primary())
+			qtask->SetWeight(qtask->Weight()*primary_rescale);
+		else
+			qtask->SetWeight(qtask->Weight()*secondary_rescale);
 	}
 
-	MT_Scalar crossp_sum = 0;
+	// set matrix sizes
+	m_jacobian.ArmMatrices(num_dof, primary_size, primary);
+	if (secondary > 0)
+		m_jacobian_sub.ArmMatrices(num_dof, secondary_size, secondary);
 
+	// set dof weights
 	int i;
-	for (i = 0; i < num_segs; i++) {
-		MT_Vector3 global_seg_direction = segs[i].GlobalSegmentEnd() - 
-			segs[i].GlobalSegmentStart();
 
-		global_seg_direction.normalize();	
+	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+		for (i = 0; i < (*seg)->NumberOfDoF(); i++)
+			m_jacobian.SetDoFWeight((*seg)->DoFId()+i, (*seg)->Weight(i));
 
-		MT_Scalar crossp = (global_seg_direction.cross(goal_dir)).length();
-		crossp_sum += MT_Scalar(fabs(crossp));
-	}
-
-	if (crossp_sum < MT_Scalar(0.01)) {
-		return true;
-	} else {
-		return false;
-	}
+	return true;
 }
 
+bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
+{
+	// assing each segment a unique id for the jacobian
+	std::vector<IK_QSegment*>::iterator seg;
+	IK_QSegment *qseg, *minseg = NULL;
+	MT_Scalar minabsdelta = 1e10, absdelta;
+	MT_Vector3 delta, mindelta;
+	bool locked = false, clamp[3];
+	int i, mindof = 0;
+
+	for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
+		qseg = *seg;
+		if (qseg->UpdateAngle(m_jacobian, delta, clamp)) {
+			for (i = 0; i < qseg->NumberOfDoF(); i++) {
+				if (clamp[i] && !qseg->Locked(i)) {
+					absdelta = MT_abs(delta[i]);
+
+					if (absdelta < MT_EPSILON) {
+						qseg->Lock(i, m_jacobian, delta);
+						locked = true;
+					}
+					else if (absdelta < minabsdelta) {
+						minabsdelta = absdelta;
+						mindelta = delta;
+						minseg = qseg;
+						mindof = i;
+					}
+				}
+			}
+		}
+	}
+
+	if (minseg) {
+		minseg->Lock(mindof, m_jacobian, mindelta);
+		locked = true;
+
+		if (minabsdelta > norm)
+			norm = minabsdelta;
+	}
+
+	if (locked == false)
+		for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
+			(*seg)->UnLock();
+			(*seg)->UpdateAngleApply();
+		}
+	
+	return locked;
+}
+
+bool IK_QJacobianSolver::Solve(
+	IK_QSegment *root,
+	std::list<IK_QTask*> tasks,
+	MT_Scalar,
+	int max_iterations
+)
+{
+	//double dt = analyze_time();
+
+	if (!Setup(root, tasks))
+		return false;
+
+	// iterate
+	for (int iterations = 0; iterations < max_iterations; iterations++) {
+		// update transform
+		root->UpdateTransform(MT_Transform::Identity());
+
+		std::list<IK_QTask*>::iterator task;
+
+		//bool done = true;
+
+		// compute jacobian
+		for (task = tasks.begin(); task != tasks.end(); task++) {
+			if ((*task)->Primary())
+				(*task)->ComputeJacobian(m_jacobian);
+			else
+				(*task)->ComputeJacobian(m_jacobian_sub);
+
+			//printf("#> %f\n", (*task)->Distance());
+			//if ((*task)->Distance() > 1e-4)
+			//	done = false;
+		}
+
+		/*if (done) {
+			//analyze_add_run(iterations, analyze_time()-dt);
+			return true;
+		}*/
+
+		MT_Scalar norm = 0.0;
+
+		do {
+			// invert jacobian
+			try {
+				m_jacobian.Invert();
+				if (m_secondary_enabled)
+					m_jacobian.SubTask(m_jacobian_sub);
+			}
+			catch (...) {
+				printf("IK Exception\n");
+				return false;
+			}
+
+			// update angles and check limits
+		} while (UpdateAngles(norm));
+
+		// unlock segments again after locking in clamping loop
+		std::vector<IK_QSegment*>::iterator seg;
+		for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+			(*seg)->UnLock();
+
+		// compute angle update norm
+		MT_Scalar maxnorm = m_jacobian.AngleUpdateNorm();
+		if (maxnorm > norm)
+			norm = maxnorm;
+
+		// check for convergence
+		if (norm < 1e-3) {
+			//analyze_add_run(iterations, analyze_time()-dt);
+			return true;
+		}
+	}
+
+	//analyze_add_run(max_iterations, analyze_time()-dt);
+	return false;
+}
 

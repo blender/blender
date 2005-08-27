@@ -24,39 +24,30 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Original author: Laurence
+ * Contributor(s): Brecht
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- *
- * @author Laurence
- */
 #ifndef NAN_INCLUDED_IK_QSegment_h
 #define NAN_INCLUDED_IK_QSegment_h
-
 
 #include "MT_Vector3.h"
 #include "MT_Transform.h"
 #include "MT_Matrix4x4.h"
-#include "MT_ExpMap.h"
+#include "IK_QJacobian.h"
+#include "MEM_SmartPtr.h"
 
 #include <vector>
 
 /**
  * An IK_Qsegment encodes information about a segments
  * local coordinate system.
- * In these segments exponential maps are used to parameterize
- * the 3 DOF joints. Please see the file MT_ExpMap.h for more
- * information on this parameterization.
  * 
  * These segments always point along the y-axis.
  * 
- * Here wee define the local coordinates of a joint as
+ * Here we define the local coordinates of a joint as
  * local_transform = 
  * translate(tr1) * rotation(A) * rotation(q) * translate(0,length,0)
  * We use the standard moto column ordered matrices. You can read
@@ -71,220 +62,263 @@
  * use exactly the same transformations when displaying the segments
  */
 
-class IK_QSegment {
+class IK_QSegment
+{
+public:
+	virtual ~IK_QSegment();
 
-public :
+	// start: a user defined translation
+	// rest_basis: a user defined rotation
+	// basis: a user defined rotation
+	// length: length of this segment
 
-	/**
-	 * Constructor.
-	 * @param tr1 a user defined translation 
-	 * @param a used defined rotation matrix representin
-	 * the rest position of the bone.
-	 * @param the length of the bone.
-	 * @param an exponential map can also be used to 
-	 * define the bone rest position.
-	 */
-
-	IK_QSegment(
-		const MT_Point3 tr1,
-		const MT_Matrix3x3 A,
-		const MT_Scalar length,
-		const MT_ExpMap q
+	void SetTransform(
+		const MT_Vector3& start,
+		const MT_Matrix3x3& rest_basis,
+		const MT_Matrix3x3& basis,
+		const MT_Scalar length
 	);
 
-	/** 
-	 * Default constructor
-	 * Defines identity local coordinate system,
-	 * with a bone length of 1.
-	 */
-	
+	// tree structure access
+	void SetParent(IK_QSegment *parent);
 
-	IK_QSegment(
-	);
+	IK_QSegment *Child() const
+	{ return m_child; }
 
+	IK_QSegment *Sibling() const
+	{ return m_sibling; }
 
-	/**
-     * @return The length of the segment
-     */
+	IK_QSegment *Parent() const
+	{ return m_parent; }
 
-	const
-		MT_Scalar
-	Length(
-	) const ;
+	// number of degrees of freedom
+	int NumberOfDoF() const
+	{ return m_num_DoF; }
 
-	/**
-	 * @return the max distance of the end of this
-	 * bone from the local origin.
-	 */
+	// unique id for this segment, for identification in the jacobian
+	int DoFId() const
+	{ return m_DoF_id; }
 
-	const 
-		MT_Scalar
-	MaxExtension(
-	) const ;
+	void SetDoFId(int dof_id)
+	{ m_DoF_id = dof_id; }
 
-	/**
-     * @return The transform from adjacent
-	 * coordinate systems in the chain.
-     */
+	// the max distance of the end of this bone from the local origin.
+	const MT_Scalar MaxExtension() const
+	{ return m_max_extension; }
 
-	const 
-		MT_Transform &
-	LocalTransform(
-	) const ;
+	// the change in rotation and translation w.r.t. the rest pose
+	MT_Matrix3x3 BasisChange() const;
+	MT_Vector3 TranslationChange() const;
 
-	const
-		MT_ExpMap &
-	LocalJointParameter(
-	) const;
+	// the start and end of the segment
+	const MT_Point3 &GlobalStart() const
+	{ return m_global_start; }
 
-	/**
-	 * Update the global coordinates of this segment.
-	 * @param global the global coordinates of the
-	 * previous bone in the chain
-	 * @return the global coordinates of this segment.
-	 */
+	const MT_Point3 &GlobalEnd() const
+	{ return m_global_transform.getOrigin(); }
 
-		MT_Transform
-	UpdateGlobal(
-		const MT_Transform & global
-	);
+	// the global transformation at the end of the segment
+	const MT_Transform &GlobalTransform() const
+	{ return m_global_transform; }
 
-	/**
-	 * @return The global transformation 
-	 */
+	// is a translational segment?
+	bool Translational() const
+	{ return m_translational; }
 
-		MT_Transform
-	GlobalTransform(
-	) const;
- 
-	
-	/** 
-	 * Update the accumulated local transform of this segment
-	 * The accumulated local transform is the end effector
-	 * transform in the local coordinates of this segment.
-	 * @param acc_local the accumulated local transform of 
-	 * the child of this bone.
-	 * @return the accumulated local transorm of this segment
-	 */
-	
-		MT_Transform
-	UpdateAccumulatedLocal(
-		const MT_Transform & acc_local
-	);
+	// locking (during inner clamping loop)
+	bool Locked(int dof) const
+	{ return m_locked[dof]; }
 
-	/**
-	 * @return A const reference to accumulated local 
-	 * transform of this segment.
-	 */
+	void UnLock()
+	{ m_locked[0] = m_locked[1] = m_locked[2] = false; }
 
-	const 
-		MT_Transform &
-	AccumulatedLocal(
-	) const;
-		
-	/**
-	 * @return A const Reference to start of segment in global 
-     * coordinates
-	 */
-	
-	const 	
-		MT_Vector3 &
-	GlobalSegmentStart(
-	) const;
+	// per dof joint weighting
+	MT_Scalar Weight(int dof) const
+	{ return m_weight[dof]; }
 
-	/**
-	 * @return A const Reference to end of segment in global 
-     * coordinates
-	 */
+	void ScaleWeight(int dof, MT_Scalar scale)
+	{ m_weight[dof] *= scale; }
 
-	const 
-		MT_Vector3 &
-	GlobalSegmentEnd(
-	) const;
+	// recursively update the global coordinates of this segment, 'global'
+	// is the global transformation from the parent segment
+	void UpdateTransform(const MT_Transform &global);
 
+	// get axis from rotation matrix for derivative computation
+	virtual MT_Vector3 Axis(int dof) const=0;
 
-	/**
-	 * @return the partial derivative of the end effector 
-	 * with respect to one of the degrees of freedom of this 
-	 * segment.
-	 * @param angle the angle parameter you want to compute
-	 * the partial derivatives for. For these segments this
-	 * must be in the range [0,2]
-	 */
+	// update the angles using the dTheta's computed using the jacobian matrix
+	virtual bool UpdateAngle(const IK_QJacobian&, MT_Vector3&, bool*)=0;
+	virtual void Lock(int, IK_QJacobian&, MT_Vector3&) {}
+	virtual void UpdateAngleApply()=0;
 
-		MT_Vector3 	
-	ComputeJacobianColumn(
-		int angle
-	) const ;
-		
-	/**
-	 * Explicitly set the angle parameterization value. 
-	 */
+	// set joint limits
+	virtual void SetLimit(int, MT_Scalar, MT_Scalar) {};
 
-		void
-	SetAngle(
-		const MT_ExpMap &q
-	);
+	// set joint weights (per axis)
+	virtual void SetWeight(int, MT_Scalar) {};
 
-	/**
-	 * Increment the angle parameterization value. 
-	 */
+protected:
 
-		void
-	IncrementAngle(
-		const MT_Vector3 &dq
-	);	
+	// num_DoF: number of degrees of freedom
+	IK_QSegment(int num_DoF, bool translational);
 
+	// remove child as a child of this segment
+	void RemoveChild(IK_QSegment *child);
 
-	/**
-	 * Return the parameterization of this angle
-	 */
+	// tree structure variables
+	IK_QSegment *m_parent;
+	IK_QSegment *m_child;
+	IK_QSegment *m_sibling;
 
-	const 
-		MT_ExpMap &
-	ExpMap(
-	) const {
-		return m_q;
-	};
+	// full transform = 
+	// start * rest_basis * basis * translation
+	MT_Vector3 m_start;
+	MT_Matrix3x3 m_rest_basis;
+	MT_Matrix3x3 m_basis;
+	MT_Vector3 m_translation;
 
+	// original basis
+	MT_Matrix3x3 m_orig_basis;
+	MT_Vector3 m_orig_translation;
 
-private :
-	
-		void
-	UpdateLocalTransform(
-	);
-
-
-private :
-
-	/** 
-	 * m_transform The user defined transformation, composition of the 
-	 * translation and rotation from constructor.
-     */
-	MT_Transform m_transform;
-
-	/**
-	 * The exponential map parameterization of this joint.
-	 */
-
-	MT_Scalar m_length;
-	MT_ExpMap m_q;
-
-	/**
-	 * The maximum extension of this segment
-	 * This is the magnitude of the user offset + the length of the 
-	 * chain 
-	 */
-
+	// maximum extension of this segment
 	MT_Scalar m_max_extension;
 
-	MT_Transform m_local_transform;
+	// accumulated transformations starting from root
+	MT_Point3 m_global_start;
 	MT_Transform m_global_transform;
-	MT_Transform m_accum_local;
 
-	MT_Vector3 m_seg_start;
-	MT_Vector3 m_seg_end;
+	// number degrees of freedom, (first) id of this segments DOF's
+	int m_num_DoF, m_DoF_id;
 
+	bool m_locked[3];
+	bool m_translational;
+	MT_Scalar m_weight[3];
+};
+
+class IK_QSphericalSegment : public IK_QSegment
+{
+public:
+	IK_QSphericalSegment();
+
+	MT_Vector3 Axis(int dof) const;
+
+	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	void UpdateAngleApply();
+
+	bool ComputeClampRotation(MT_Vector3& clamp);
+
+	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+	void SetWeight(int axis, MT_Scalar weight);
+
+private:
+	MT_Matrix3x3 m_new_basis;
+	bool m_limit_x, m_limit_y, m_limit_z;
+	MT_Scalar m_min_y, m_max_y, m_max_x, m_max_z, m_offset_x, m_offset_z;
+	MT_Scalar m_locked_ax, m_locked_ay, m_locked_az;
+};
+
+class IK_QNullSegment : public IK_QSegment
+{
+public:
+	IK_QNullSegment();
+
+	bool UpdateAngle(const IK_QJacobian&, MT_Vector3&, bool*) { return false; }
+	void UpdateAngleApply() {}
+
+	MT_Vector3 Axis(int) const { return MT_Vector3(0, 0, 0); }
+};
+
+class IK_QRevoluteSegment : public IK_QSegment
+{
+public:
+	// axis: the axis of the DoF, in range 0..2
+	IK_QRevoluteSegment(int axis);
+
+	MT_Vector3 Axis(int dof) const;
+
+	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	void UpdateAngleApply();
+
+	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+	void SetWeight(int axis, MT_Scalar weight);
+
+private:
+	int m_axis;
+	MT_Scalar m_angle, m_new_angle;
+	MT_Scalar m_limit;
+	MT_Scalar m_min, m_max;
+};
+
+class IK_QSwingSegment : public IK_QSegment
+{
+public:
+	// XZ DOF, uses one direct rotation
+	IK_QSwingSegment();
+
+	MT_Vector3 Axis(int dof) const;
+
+	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	void UpdateAngleApply();
+
+	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+	void SetWeight(int axis, MT_Scalar weight);
+
+private:
+	MT_Matrix3x3 m_new_basis;
+	bool m_limit_x, m_limit_z;
+	MT_Scalar m_max_x, m_max_z, m_offset_x, m_offset_z;
+};
+
+class IK_QElbowSegment : public IK_QSegment
+{
+public:
+	// XY or ZY DOF, uses two sequential rotations: first rotate around
+	// X or Z, then rotate around Y (twist)
+	IK_QElbowSegment(int axis);
+
+	MT_Vector3 Axis(int dof) const;
+
+	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
+	void Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta);
+	void UpdateAngleApply();
+
+	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+	void SetWeight(int axis, MT_Scalar weight);
+
+private:
+	int m_axis;
+
+	MT_Scalar m_twist, m_angle, m_new_twist, m_new_angle;
+	MT_Scalar m_cos_twist, m_sin_twist;
+
+	bool m_limit, m_limit_twist;
+	MT_Scalar m_min, m_max, m_min_twist, m_max_twist;
+};
+
+class IK_QTranslateSegment : public IK_QSegment
+{
+public:
+	// Revolute, 2DOF or 3DOF translational segments
+	IK_QTranslateSegment(int axis1);
+	IK_QTranslateSegment(int axis1, int axis2);
+	IK_QTranslateSegment();
+
+	MT_Vector3 Axis(int dof) const;
+
+	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
+	void Lock(int, IK_QJacobian&, MT_Vector3&) {};
+	void UpdateAngleApply();
+
+	void SetWeight(int axis, MT_Scalar weight);
+
+private:
+	int m_axis[3];
+	bool m_axis_enabled[3];
+	MT_Vector3 m_new_translation;
 };
 
 #endif

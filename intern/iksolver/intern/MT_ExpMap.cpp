@@ -24,22 +24,11 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Original Author: Laurence
+ * Contributor(s): Brecht
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
-
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- *
- * @author Laurence
- */
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #include "MT_ExpMap.h"
 
@@ -52,21 +41,19 @@ MT_ExpMap::
 setRotation(
 	const MT_Quaternion &q
 ) {
-	// ok first normailize the quaternion
+	// ok first normalize the quaternion
 	// then compute theta the axis-angle and the normalized axis v
 	// scale v by theta and that's it hopefully!
 
-	MT_Quaternion qt = q.normalized();
+	m_q = q.normalized();
+	m_v = MT_Vector3(m_q.x(), m_q.y(), m_q.z());
 
-	MT_Vector3 axis(qt.x(),qt.y(),qt.z());
-	MT_Scalar cosp = qt.w();
-	MT_Scalar sinp = axis.length();
-	axis /= sinp;
+	MT_Scalar cosp = m_q.w();
+	m_sinp = m_v.length();
+	m_v /= m_sinp;
 
-	MT_Scalar theta = atan2(double(sinp),double(cosp));
-
-	axis *= theta;	
-	m_v = axis;
+	m_theta = atan2(double(m_sinp),double(cosp));
+	m_v *= m_theta;
 }
  	
 /** 
@@ -74,35 +61,11 @@ setRotation(
  * representation
  */	
 
-	MT_Quaternion 
+	const MT_Quaternion&
 MT_ExpMap::
 getRotation(
 ) const {
-    MT_Scalar  cosp, sinp, theta;
-
-	MT_Quaternion q;
-
-	theta = m_v.length();
-    
-    cosp = MT_Scalar(cos(.5*theta));
-    sinp = MT_Scalar(sin(.5*theta));
-
-    q.w() = cosp;
-
-    if (theta < MT_EXPMAP_MINANGLE) {
-
-		MT_Vector3 temp = m_v * MT_Scalar(MT_Scalar(.5) - theta*theta/MT_Scalar(48.0)); /* Taylor Series for sinc */
-		q.x() = temp.x();
-		q.y() = temp.y();
-		q.z() = temp.z();
-	} else {
-		MT_Vector3 temp = m_v * (sinp/theta); /* Taylor Series for sinc */
-		q.x() = temp.x();
-		q.y() = temp.y();
-		q.z() = temp.z();
-	}
-
-    return q;
+	return m_q;
 }
 	
 /** 
@@ -113,114 +76,82 @@ getRotation(
 MT_ExpMap::
 getMatrix(
 ) const {
-
-	MT_Quaternion q = getRotation();
-	return MT_Matrix3x3(q);
+	return MT_Matrix3x3(m_q);
 }
 
-
-
-
 /** 
- * Force a reparameterization of the exponential
- * map.
+ * Update & reparameterizate the exponential map
  */
 
-	bool
+	void
 MT_ExpMap::
-reParameterize(
-	MT_Scalar &theta
+update(
+	const MT_Vector3& dv
 ){
-    bool rep(false);
-    theta = m_v.length();
+	m_v += dv;
 
-    if (theta > MT_PI){
-		MT_Scalar scl = theta;
-		if (theta > MT_2_PI){	/* first get theta into range 0..2PI */
-			theta = MT_Scalar(fmod(theta, MT_2_PI));
-			scl = theta/scl;
-			m_v *= scl;
-			rep = true;
-		}
-		if (theta > MT_PI){
-			scl = theta;
-			theta = MT_2_PI - theta;
-			scl = MT_Scalar(1.0) - MT_2_PI/scl;
-			m_v *= scl;
-			rep = true;
-		}
-    }
-	return rep;
-
+	angleUpdated();
 }
 
 /**
  * Compute the partial derivatives of the exponential
- * map  (dR/de - where R is a 4x4 rotation matrix formed 
- * from the map) and return them as a 4x4 matrix
+ * map  (dR/de - where R is a 3x3 rotation matrix formed 
+ * from the map) and return them as a 3x3 matrix
  */
 
-	MT_Matrix4x4
+	void
 MT_ExpMap::
 partialDerivatives(
-	const int i
+	MT_Matrix3x3& dRdx,
+	MT_Matrix3x3& dRdy,
+	MT_Matrix3x3& dRdz
 ) const {
 	
-	MT_Quaternion q = getRotation();
-	MT_Quaternion dQdx;
+	MT_Quaternion dQdx[3];
 
-	MT_Matrix4x4 output;
+	compute_dQdVi(dQdx);
 
-	compute_dQdVi(i,dQdx);
-	compute_dRdVi(q,dQdx,output);
-
-	return output;
+	compute_dRdVi(dQdx[0], dRdx);
+	compute_dRdVi(dQdx[1], dRdy);
+	compute_dRdVi(dQdx[2], dRdz);
 }
 
 	void
 MT_ExpMap::
 compute_dRdVi(
-	const MT_Quaternion &q,
 	const MT_Quaternion &dQdvi,
-	MT_Matrix4x4 & dRdvi
+	MT_Matrix3x3 & dRdvi
 ) const {
 
-    MT_Scalar  prod[9];
-    
-    /* This efficient formulation is arrived at by writing out the
-     * entire chain rule product dRdq * dqdv in terms of 'q' and 
-     * noticing that all the entries are formed from sums of just
-     * nine products of 'q' and 'dqdv' */
+	MT_Scalar  prod[9];
+	
+	/* This efficient formulation is arrived at by writing out the
+	 * entire chain rule product dRdq * dqdv in terms of 'q' and 
+	 * noticing that all the entries are formed from sums of just
+	 * nine products of 'q' and 'dqdv' */
 
-    prod[0] = -MT_Scalar(4)*q.x()*dQdvi.x();
-    prod[1] = -MT_Scalar(4)*q.y()*dQdvi.y();
-    prod[2] = -MT_Scalar(4)*q.z()*dQdvi.z();
-    prod[3] = MT_Scalar(2)*(q.y()*dQdvi.x() + q.x()*dQdvi.y());
-    prod[4] = MT_Scalar(2)*(q.w()*dQdvi.z() + q.z()*dQdvi.w());
-    prod[5] = MT_Scalar(2)*(q.z()*dQdvi.x() + q.x()*dQdvi.z());
-    prod[6] = MT_Scalar(2)*(q.w()*dQdvi.y() + q.y()*dQdvi.w());
-    prod[7] = MT_Scalar(2)*(q.z()*dQdvi.y() + q.y()*dQdvi.z());
-    prod[8] = MT_Scalar(2)*(q.w()*dQdvi.x() + q.x()*dQdvi.w());
+	prod[0] = -MT_Scalar(4)*m_q.x()*dQdvi.x();
+	prod[1] = -MT_Scalar(4)*m_q.y()*dQdvi.y();
+	prod[2] = -MT_Scalar(4)*m_q.z()*dQdvi.z();
+	prod[3] = MT_Scalar(2)*(m_q.y()*dQdvi.x() + m_q.x()*dQdvi.y());
+	prod[4] = MT_Scalar(2)*(m_q.w()*dQdvi.z() + m_q.z()*dQdvi.w());
+	prod[5] = MT_Scalar(2)*(m_q.z()*dQdvi.x() + m_q.x()*dQdvi.z());
+	prod[6] = MT_Scalar(2)*(m_q.w()*dQdvi.y() + m_q.y()*dQdvi.w());
+	prod[7] = MT_Scalar(2)*(m_q.z()*dQdvi.y() + m_q.y()*dQdvi.z());
+	prod[8] = MT_Scalar(2)*(m_q.w()*dQdvi.x() + m_q.x()*dQdvi.w());
 
-    /* first row, followed by second and third */
-    dRdvi[0][0] = prod[1] + prod[2];
-    dRdvi[0][1] = prod[3] - prod[4];
-    dRdvi[0][2] = prod[5] + prod[6];
+	/* first row, followed by second and third */
+	dRdvi[0][0] = prod[1] + prod[2];
+	dRdvi[0][1] = prod[3] - prod[4];
+	dRdvi[0][2] = prod[5] + prod[6];
 
-    dRdvi[1][0] = prod[3] + prod[4];
-    dRdvi[1][1] = prod[0] + prod[2];
-    dRdvi[1][2] = prod[7] - prod[8];
+	dRdvi[1][0] = prod[3] + prod[4];
+	dRdvi[1][1] = prod[0] + prod[2];
+	dRdvi[1][2] = prod[7] - prod[8];
 
-    dRdvi[2][0] = prod[5] - prod[6];
-    dRdvi[2][1] = prod[7] + prod[8];
-    dRdvi[2][2] = prod[0] + prod[1];
-
-    /* the 4th row and column are all zero */
-    int       i;
-
-    for (i=0; i<3; i++)	
-      dRdvi[3][i] = dRdvi[i][3] = MT_Scalar(0);
-    dRdvi[3][3] = 0;
+	dRdvi[2][0] = prod[5] - prod[6];
+	dRdvi[2][1] = prod[7] + prod[8];
+	dRdvi[2][2] = prod[0] + prod[1];
 }
 
 // compute partial derivatives dQ/dVi
@@ -228,44 +159,93 @@ compute_dRdVi(
 	void
 MT_ExpMap::
 compute_dQdVi(
-	const int i,
-	MT_Quaternion & dQdX
+	MT_Quaternion *dQdX
 ) const {
 
-    MT_Scalar   theta = m_v.length();
-    MT_Scalar   cosp(cos(MT_Scalar(.5)*theta)), sinp(sin(MT_Scalar(.5)*theta));
-    
-    MT_assert(i>=0 && i<3);
+	/* This is an efficient implementation of the derivatives given
+	 * in Appendix A of the paper with common subexpressions factored out */
 
-    /* This is an efficient implementation of the derivatives given
-     * in Appendix A of the paper with common subexpressions factored out */
-    if (theta < MT_EXPMAP_MINANGLE){
-		const int i2 = (i+1)%3, i3 = (i+2)%3;
-		MT_Scalar Tsinc = MT_Scalar(0.5) - theta*theta/MT_Scalar(48.0);
-		MT_Scalar vTerm = m_v[i] * (theta*theta/MT_Scalar(40.0) - MT_Scalar(1.0)) / MT_Scalar(24.0);
+	MT_Scalar sinc, termCoeff;
+
+	if (m_theta < MT_EXPMAP_MINANGLE) {
+		sinc = 0.5 - m_theta*m_theta/48.0;
+		termCoeff = (m_theta*m_theta/40.0 - 1.0)/24.0;
+	}
+	else {
+		MT_Scalar cosp = m_q.w();
+		MT_Scalar ang = 1.0/m_theta;
+
+		sinc = m_sinp*ang;
+		termCoeff = ang*ang*(0.5*cosp - sinc);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		MT_Quaternion& dQdx = dQdX[i];
+		int i2 = (i+1)%3;
+		int i3 = (i+2)%3;
+
+		MT_Scalar term = m_v[i]*termCoeff;
 		
-		dQdX.w() = -.5*m_v[i]*Tsinc;
-		dQdX[i]  = m_v[i]* vTerm + Tsinc;
-		dQdX[i2] = m_v[i2]*vTerm;
-		dQdX[i3] = m_v[i3]*vTerm;
-    } else {
-		const int i2 = (i+1)%3, i3 = (i+2)%3;
-		const MT_Scalar  ang = 1.0/theta, ang2 = ang*ang*m_v[i], sang = sinp*ang;
-		const MT_Scalar  cterm = ang2*(.5*cosp - sang);
-		
-		dQdX[i]  = cterm*m_v[i] + sang;
-		dQdX[i2] = cterm*m_v[i2];
-		dQdX[i3] = cterm*m_v[i3];
-		dQdX.w() = MT_Scalar(-.5)*m_v[i]*sang;
-    }
+		dQdx[i] = term*m_v[i] + sinc;
+		dQdx[i2] = term*m_v[i2];
+		dQdx[i3] = term*m_v[i3];
+		dQdx.w() = -0.5*m_v[i]*sinc;
+	}
 }
 
- 
+// reParametize away from singularity, updating
+// m_v and m_theta
 
+	void
+MT_ExpMap::
+reParametrize(
+){
+	if (m_theta > MT_PI) {
+		MT_Scalar scl = m_theta;
+		if (m_theta > MT_2_PI){	/* first get theta into range 0..2PI */
+			m_theta = MT_Scalar(fmod(m_theta, MT_2_PI));
+			scl = m_theta/scl;
+			m_v *= scl;
+		}
+		if (m_theta > MT_PI){
+			scl = m_theta;
+			m_theta = MT_2_PI - m_theta;
+			scl = MT_Scalar(1.0) - MT_2_PI/scl;
+			m_v *= scl;
+		}
+	}
+}
 
+// compute cached variables
 
+	void
+MT_ExpMap::
+angleUpdated(
+){
+	m_theta = m_v.length();
 
+	reParametrize();
 
+	// compute quaternion, sinp and cosp
 
+	if (m_theta < MT_EXPMAP_MINANGLE) {
+		m_sinp = MT_Scalar(0.0);
 
+		/* Taylor Series for sinc */
+		MT_Vector3 temp = m_v * MT_Scalar(MT_Scalar(.5) - m_theta*m_theta/MT_Scalar(48.0));
+		m_q.x() = temp.x();
+		m_q.y() = temp.y();
+		m_q.z() = temp.z();
+		m_q.w() = MT_Scalar(1.0);
+	} else {
+		m_sinp = MT_Scalar(sin(.5*m_theta));
+
+		/* Taylor Series for sinc */
+		MT_Vector3 temp = m_v * (m_sinp/m_theta);
+		m_q.x() = temp.x();
+		m_q.y() = temp.y();
+		m_q.z() = temp.z();
+		m_q.w() = MT_Scalar(cos(.5*m_theta));
+	}
+}
 

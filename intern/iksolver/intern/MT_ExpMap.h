@@ -24,17 +24,10 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Original author: Laurence
+ * Contributor(s): Brecht
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
-
-/**
-
- * $Id$
- * Copyright (C) 2001 NaN Technologies B.V.
- *
- * @author Laurence
  */
 
 #ifndef MT_ExpMap_H
@@ -93,13 +86,13 @@ public:
 	 */ 
 
     MT_ExpMap() {}
-    MT_ExpMap(const MT_Vector3& v) : m_v(v) {}
+    MT_ExpMap(const MT_Vector3& v) : m_v(v) { angleUpdated(); }
 
-    MT_ExpMap(const float v[3]) : m_v(v) {}
-    MT_ExpMap(const double v[3]) : m_v(v) {}
+    MT_ExpMap(const float v[3]) : m_v(v) { angleUpdated(); }
+    MT_ExpMap(const double v[3]) : m_v(v) { angleUpdated(); }
 
     MT_ExpMap(MT_Scalar x, MT_Scalar y, MT_Scalar z) :
-        m_v(x, y, z) {}
+        m_v(x, y, z) { angleUpdated(); }
 
 	/** 
 	 * Construct an exponential map from a quaternion
@@ -118,12 +111,6 @@ public:
 	 * it is very dangerous to use MT_Vector3 functions
 	 * on this class and some of them have no direct meaning.
 	 */
-
-		MT_Vector3 &
-	vector(
-	) {
-		return m_v;
-	};
 
 	const 
 		MT_Vector3 &
@@ -146,7 +133,7 @@ public:
 	 * representation
 	 */	
 	
-		MT_Quaternion 
+		const MT_Quaternion&
 	getRotation(
 	) const;
 
@@ -159,17 +146,13 @@ public:
 	) const; 
 	
 	/** 
-	 * Force a reparameterization check of the exponential
-	 * map.
-	 * @param theta returns the new axis-angle.
-	 * @return true iff a reParameterization took place.
-	 * Use this function whenever you adjust the  vector
-	 * representing the exponential map.
+	 * Update (and reparameterize) the expontial map
+	 * @param dv delta update values.
 	 */
 
-		bool
-	reParameterize(
-		MT_Scalar &theta
+		void
+	update(
+		const MT_Vector3& dv
 	);
 
 	/**
@@ -178,37 +161,51 @@ public:
 	 * from the map) and return them as a 4x4 matrix
 	 */
 
-		MT_Matrix4x4
+		void
 	partialDerivatives(
-		const int i
+		MT_Matrix3x3& dRdx,
+		MT_Matrix3x3& dRdy,
+		MT_Matrix3x3& dRdz
 	) const ;
 	
 private :
+
+	// m_v contains the exponential map, the other variables are
+	// cached for efficiency
 	
 	MT_Vector3 m_v;
+	MT_Scalar m_theta, m_sinp;
+	MT_Quaternion m_q;
 
 	// private methods
 
 	// Compute partial derivatives dR (3x3 rotation matrix) / dVi (EM vector)
 	// given the partial derivative dQ (Quaternion) / dVi (ith element of EM vector)
 
-
 		void
 	compute_dRdVi(
-		const MT_Quaternion &q,
 		const MT_Quaternion &dQdV,
-		MT_Matrix4x4 & dRdVi
+		MT_Matrix3x3 & dRdVi
 	) const;
 
 	// compute partial derivatives dQ/dVi
 
 		void
 	compute_dQdVi(
-		int i,
-		MT_Quaternion & dQdX
+		MT_Quaternion *dQdX
 	) const ; 
 
-		
+	// reparametrize away from singularity
+
+		void
+	reParametrize(
+	);
+
+	// (re-)compute cached variables
+
+		void
+	angleUpdated(
+	);
 };
 
 #endif

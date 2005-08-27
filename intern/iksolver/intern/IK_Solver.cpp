@@ -24,177 +24,258 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Original Author: Laurence
+ * Contributor(s): Brecht
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
-#define IK_USE_EXPMAP
-
-
-
-#ifdef IK_USE_EXPMAP 
-#	include "IK_QSolver_Class.h"
-#else 
-#	include "IK_Solver_Class.h"
-#endif
 #include "../extern/IK_solver.h"
 
+#include "IK_QJacobianSolver.h"
+#include "IK_QSegment.h"
+#include "IK_QTask.h"
+
+#include <list>
 #include <iostream>
+using namespace std;
 
-	IK_Chain_ExternPtr  
-IK_CreateChain(
-	void
-) {
+typedef struct {
+	IK_QJacobianSolver solver;
+	IK_QSegment *root;
+	std::list<IK_QTask*> tasks;
+} IK_QSolver;
 
-	MEM_SmartPtr<IK_Chain_Extern> output (new IK_Chain_Extern);
-	MEM_SmartPtr<IK_QSolver_Class> output_void (IK_QSolver_Class::New()); 	
-	
+IK_Segment *IK_CreateSegment(int flag)
+{
+	int ndof = 0;
+	ndof += (flag & IK_XDOF)? 1: 0;
+	ndof += (flag & IK_YDOF)? 1: 0;
+	ndof += (flag & IK_ZDOF)? 1: 0;
 
-	if (output == NULL || output_void == NULL) {
-		return NULL;
+	IK_QSegment *seg;
+
+	if (ndof == 0)
+		seg = new IK_QNullSegment();
+	else if (ndof == 1) {
+		int axis;
+
+		if (flag & IK_XDOF) axis = 0;
+		else if (flag & IK_YDOF) axis = 1;
+		else axis = 2;
+
+		if (flag & IK_TRANSLATIONAL)
+			seg = new IK_QTranslateSegment(axis);
+		else
+			seg = new IK_QRevoluteSegment(axis);
+	}
+	else if (ndof == 2) {
+		int axis1, axis2;
+
+		if (flag & IK_XDOF) {
+			axis1 = 0;
+			axis2 = (flag & IK_YDOF)? 1: 2;
+		}
+		else {
+			axis1 = 1;
+			axis2 = 2;
+		}
+
+		if (flag & IK_TRANSLATIONAL)
+			seg = new IK_QTranslateSegment(axis1, axis2);
+		else {
+			if (axis1 + axis2 == 2)
+				seg = new IK_QSwingSegment();
+			else
+				seg = new IK_QElbowSegment((axis1 == 0)? 0: 2);
+		}
+	}
+	else {
+		if (flag & IK_TRANSLATIONAL)
+			seg = new IK_QTranslateSegment();
+		else
+			seg = new IK_QSphericalSegment();
 	}
 
-	output->chain_dof = 0;
-	output->num_segments = 0;
-	output->segments = NULL;
-	output->intern = output_void.Release();
-	return output.Release();
-};
-
-
-	int 
-IK_LoadChain(
-	IK_Chain_ExternPtr chain,
-	IK_Segment_ExternPtr segments,
-	int num_segs
-) {
-
-	if (chain == NULL || segments == NULL) return 0;
-
-	IK_QSolver_Class *intern_cpp = (IK_QSolver_Class *)chain->intern;
-	if (intern_cpp == NULL) return 0;
-
-	std::vector<IK_QSegment> & segs = intern_cpp->Chain().Segments();	
-	if (segs.size() != (unsigned int) num_segs) {
-		segs = std::vector<IK_QSegment>(num_segs);
-	}
-
-	std::vector<IK_QSegment>::const_iterator seg_end= segs.end();
-	std::vector<IK_QSegment>::iterator seg_begin= segs.begin();
-
-	IK_Segment_ExternPtr extern_seg_it = segments;
-	
-
-	for (;seg_begin != seg_end; ++seg_begin,++extern_seg_it) {
-	
-		MT_Point3 tr1(extern_seg_it->seg_start);
-
-		MT_Matrix3x3 A(
-			extern_seg_it->basis[0],extern_seg_it->basis[1],extern_seg_it->basis[2],
-			extern_seg_it->basis[3],extern_seg_it->basis[4],extern_seg_it->basis[5],
-			extern_seg_it->basis[6],extern_seg_it->basis[7],extern_seg_it->basis[8]
-		);
-
-		MT_Scalar length(extern_seg_it->length);
-
-
-		*seg_begin = IK_QSegment( 
-			tr1,A,length,MT_Vector3(0,0,0)
-		);
-
-	}
-
-
-	intern_cpp->Chain().UpdateGlobalTransformations();
-	intern_cpp->Chain().ComputeJacobian();
-	
-	chain->num_segments = num_segs;
-	chain->chain_dof = intern_cpp->Chain().DoF();
-	chain->segments = segments;
-
-	return 1;
-};		
-		
-	int 
-IK_SolveChain(
-	IK_Chain_ExternPtr chain,
-	float goal[3],
-	float tolerance,
-	int max_iterations,
-	float max_angle_change, 
-	IK_Segment_ExternPtr output
-){
-	if (chain == NULL || output == NULL) return 0;
-	if (chain->intern == NULL) return 0;
-
-	IK_QSolver_Class *intern_cpp = (IK_QSolver_Class *)chain->intern;
-
-	IK_QJacobianSolver & solver = intern_cpp->Solver();
-
-	bool solve_result = solver.Solve(
-		intern_cpp->Chain(),
-		MT_Vector3(goal),
-		MT_Vector3(0,0,0),
-		MT_Scalar(tolerance),
-		max_iterations,
-		MT_Scalar(max_angle_change)	
-	);
-	
-	// turn the computed role->pitch->yaw into a quaternion and 
-	// return the result in output
-	
-	std::vector<IK_QSegment> & segs = intern_cpp->Chain().Segments();	
-	std::vector<IK_QSegment>::const_iterator seg_end= segs.end();
-	std::vector<IK_QSegment>::iterator seg_begin= segs.begin();
-
-	for (;seg_begin != seg_end; ++seg_begin, ++output) {
-		MT_Matrix3x3 qrot = seg_begin->ExpMap().getMatrix();
-
-		// don't forget to transpose this qrot for use by blender!
-
-		qrot.transpose(); // blender uses transpose here ????
-
-		output->basis_change[0] = float(qrot[0][0]);
-		output->basis_change[1] = float(qrot[0][1]);
-		output->basis_change[2] = float(qrot[0][2]);
-		output->basis_change[3] = float(qrot[1][0]);
-		output->basis_change[4] = float(qrot[1][1]);
-		output->basis_change[5] = float(qrot[1][2]);
-		output->basis_change[6] = float(qrot[2][0]);
-		output->basis_change[7] = float(qrot[2][1]);
-		output->basis_change[8] = float(qrot[2][2]);
-
-	}
-
-
-	return solve_result ? 1 : 0;
+	return (IK_Segment*)seg;
 }
 
-	void 
-IK_FreeChain(
-	IK_Chain_ExternPtr chain
-){
-	IK_QSolver_Class *intern_cpp = (IK_QSolver_Class *)chain->intern;
+void IK_FreeSegment(IK_Segment *seg)
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
 
-	delete(intern_cpp);
-	delete(chain);
+	delete qseg;
+}
 
-}	
+void IK_SetParent(IK_Segment *seg, IK_Segment *parent)
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
 
+	qseg->SetParent((IK_QSegment*)parent);
+}
 
+void IK_SetTransform(IK_Segment *seg, float start[3], float rest[][3], float basis[][3], float length)
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
 
+	MT_Vector3 mstart(start);
+	// convert from blender column major to moto row major
+	MT_Matrix3x3 mbasis(basis[0][0], basis[1][0], basis[2][0],
+	                    basis[0][1], basis[1][1], basis[2][1],
+	                    basis[0][2], basis[1][2], basis[2][2]);
+	MT_Matrix3x3 mrest(rest[0][0], rest[1][0], rest[2][0],
+	                   rest[0][1], rest[1][1], rest[2][1],
+	                   rest[0][2], rest[1][2], rest[2][2]);
+	MT_Scalar mlength(length);
 
+	qseg->SetTransform(mstart, mrest, mbasis, mlength);
+}
 
+void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lmin, float lmax)
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
+
+	if (axis == IK_X)
+		qseg->SetLimit(0, lmin, lmax);
+	else if (axis == IK_Y)
+		qseg->SetLimit(1, lmin, lmax);
+	else if (axis == IK_Z)
+		qseg->SetLimit(2, lmin, lmax);
+}
+
+void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness)
+{
+	if (stiffness < 1.0)
+		return;
+
+	IK_QSegment *qseg = (IK_QSegment*)seg;
+	MT_Scalar weight = 1.0/stiffness;
+
+	if (axis == IK_X)
+		qseg->SetWeight(0, weight);
+	else if (axis == IK_Y)
+		qseg->SetWeight(1, weight);
+	else if (axis == IK_Z)
+		qseg->SetWeight(2, weight);
+}
+
+void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3])
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
+	const MT_Matrix3x3& change = qseg->BasisChange();
+
+	// convert from moto row major to blender column major
+	basis_change[0][0] = (float)change[0][0];
+	basis_change[1][0] = (float)change[0][1];
+	basis_change[2][0] = (float)change[0][2];
+	basis_change[0][1] = (float)change[1][0];
+	basis_change[1][1] = (float)change[1][1];
+	basis_change[2][1] = (float)change[1][2];
+	basis_change[0][2] = (float)change[2][0];
+	basis_change[1][2] = (float)change[2][1];
+	basis_change[2][2] = (float)change[2][2];
+}
+
+void IK_GetTranslationChange(IK_Segment *seg, float *translation_change)
+{
+	IK_QSegment *qseg = (IK_QSegment*)seg;
+	const MT_Vector3& change = qseg->TranslationChange();
+
+	translation_change[0] = (float)change[0];
+	translation_change[1] = (float)change[1];
+	translation_change[2] = (float)change[2];
+}
+
+IK_Solver *IK_CreateSolver(IK_Segment *root)
+{
+	if (root == NULL)
+		return NULL;
 	
+	IK_QSolver *solver = new IK_QSolver();
+	solver->root = (IK_QSegment*)root;
+
+	return (IK_Solver*)solver;
+}
+
+void IK_FreeSolver(IK_Solver *solver)
+{
+	if (solver == NULL)
+		return;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	std::list<IK_QTask*>& tasks = qsolver->tasks;
+	std::list<IK_QTask*>::iterator task;
+
+	for (task = tasks.begin(); task != tasks.end(); task++)
+		delete (*task);
 	
+	delete qsolver;
+}
 
+void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight)
+{
+	if (solver == NULL || tip == NULL)
+		return;
 
-	
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSegment *qtip = (IK_QSegment*)tip;
 
+	MT_Vector3 pos(goal);
 
+	// qsolver->tasks.empty()
+	IK_QTask *ee = new IK_QPositionTask(true, qtip, pos);
+	ee->SetWeight(weight);
+	qsolver->tasks.push_back(ee);
+}
+
+void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight)
+{
+	if (solver == NULL || tip == NULL)
+		return;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSegment *qtip = (IK_QSegment*)tip;
+
+	// convert from blender column major to moto row major
+	MT_Matrix3x3 rot(goal[0][0], goal[1][0], goal[2][0],
+	                 goal[0][1], goal[1][1], goal[2][1],
+	                 goal[0][2], goal[1][2], goal[2][2]);
+
+	IK_QTask *orient = new IK_QOrientationTask(false, qtip, rot);
+	orient->SetWeight(weight);
+	qsolver->tasks.push_back(orient);
+}
+
+void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
+{
+	if (solver == NULL || root == NULL)
+		return;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSegment *qroot = (IK_QSegment*)root;
+
+	// convert from blender column major to moto row major
+	MT_Vector3 center(goal);
+
+	IK_QTask *com = new IK_QCenterOfMassTask(true, qroot, center);
+	com->SetWeight(weight);
+	qsolver->tasks.push_back(com);
+}
+
+int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
+{
+	if (solver == NULL)
+		return 0;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+
+	IK_QSegment *root = qsolver->root;
+	IK_QJacobianSolver& jacobian = qsolver->solver;
+	std::list<IK_QTask*>& tasks = qsolver->tasks;
+	MT_Scalar tol = tolerance;
+
+	bool result = jacobian.Solve(root, tasks, tol, max_iterations);
+
+	return ((result)? 1: 0);
+}
 
