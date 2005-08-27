@@ -57,6 +57,9 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 		num_dof += (*seg)->NumberOfDoF();
 	}
 
+	if (num_dof == 0)
+		return false;
+
 	// compute task id's and assing weights to task
 	int primary_size = 0, primary = 0;
 	int secondary_size = 0, secondary = 0;
