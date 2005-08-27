@@ -33,9 +33,6 @@
 #include "IK_QJacobian.h"
 #include "TNT/svd.h"
 
-#include <iostream>
-using namespace std;
-
 IK_QJacobian::IK_QJacobian()
 : m_sdls(true), m_min_damp(1.0)
 {
@@ -72,14 +69,15 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size, int tasks)
 	m_weight = 1.0;
 	m_weight_sqrt = 1.0;
 
-	// m_svd_work_space.newsize(dof); // TNT resizes this?
-
 	if (task_size >= dof) {
 		m_transpose = false;
 
 		m_svd_u.newsize(task_size, dof);
 		m_svd_v.newsize(dof, dof);
 		m_svd_w.newsize(dof);
+
+		m_work1.newsize(task_size);
+		m_work2.newsize(dof);
 
 		m_svd_u_t.newsize(dof, task_size);
 		m_svd_u_beta.newsize(dof);
@@ -89,9 +87,14 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size, int tasks)
 		// as the original, and often allows using smaller matrices.
 		m_transpose = true;
 
+		m_jacobian_t.newsize(dof, task_size);
+
 		m_svd_u.newsize(task_size, task_size);
 		m_svd_v.newsize(dof, task_size);
 		m_svd_w.newsize(task_size);
+
+		m_work1.newsize(dof);
+		m_work2.newsize(task_size);
 
 		m_svd_u_t.newsize(task_size, task_size);
 		m_svd_u_beta.newsize(task_size);
@@ -121,51 +124,19 @@ void IK_QJacobian::Invert()
 	if (m_transpose) {
 		// SVD will decompose Jt into V*W*Ut with U,V orthogonal and W diagonal,
 		// so J = U*W*Vt and Jinv = V*Winv*Ut
-		TNT::transpose(m_jacobian, m_svd_v);
-
-		TNT::SVD(m_svd_v, m_svd_w, m_svd_u, m_svd_work_space);
+		TNT::transpose(m_jacobian, m_jacobian_t);
+		TNT::SVD(m_jacobian_t, m_svd_v, m_svd_w, m_svd_u, m_work1, m_work2);
 	}
 	else {
 		// SVD will decompose J into U*W*Vt with U,V orthogonal and W diagonal,
 		// so Jinv = V*Winv*Ut
-		m_svd_u = m_jacobian;
-
-		TNT::SVD(m_svd_u, m_svd_w, m_svd_v, m_svd_work_space);
+		TNT::SVD(m_jacobian, m_svd_u, m_svd_w, m_svd_v, m_work1, m_work2);
 	}
 
 	if (m_sdls)
 		InvertSDLS();
 	else
 		InvertDLS();
-	
-#if 0
-	if (!ComputeNullProjection())
-		return;
-	
-	int i, j;
-	for (i = 0; i < m_weight.size(); i++)
-		m_weight[i] = 1.0 - m_weight[i];
-
-	TNT::matmultdiag(m_null, m_null, m_weight);
-
-	for (i = 0; i < m_null.num_rows(); i++)
-		for (j = 0; j < m_null.num_cols(); j++)
-			if (i == j)
-				m_null[i][j] = 1.0 - m_null[i][j];
-			else
-				m_null[i][j] = -m_null[i][j];
-	
-	TVector ntheta(m_d_theta);
-	TNT::matmult(ntheta, m_null, m_d_theta);
-
-	cout << "#" << endl;
-	for (i = 0; i < m_d_theta.size(); i++)
-		printf("%f >> %f (%f)\n", m_d_theta[i], ntheta[i], m_weight[i]);
-	m_d_theta = ntheta;
-
-	for (i = 0; i < m_weight.size(); i++)
-		m_weight[i] = 1.0 - m_weight[i];
-#endif
 }
 
 bool IK_QJacobian::ComputeNullProjection()
@@ -209,36 +180,6 @@ void IK_QJacobian::SubTask(IK_QJacobian& jacobian)
 {
 	if (!ComputeNullProjection())
 		return;
-	
-#if 0
-	int i, j;
-
-	m_null.newsize(m_d_theta.size(), m_d_theta.size());
-
-	for (i = 0; i < m_d_theta.size(); i++)
-		for (j = 0; j < m_d_theta.size(); j++)
-			if (i == j)
-				m_null[i][j] = 1.0;
-			else
-				m_null[i][j] = 0.0;
-
-	// restrict lower priority jacobian
-	//jacobian.Restrict(m_d_theta, m_null);
-
-	// add angle update from lower priority
-	jacobian.Invert();
-
-	TVector d2(m_d_theta.size());
-	TVector n2(m_d_theta.size());
-
-	for (i = 0; i < m_d_theta.size(); i++)
-		d2[i] = jacobian.AngleUpdate(i);
-	
-	TNT::matmult(n2, m_null, d2);
-
-	m_d_theta = m_d_theta + n2;
-#else
-	int i;
 
 	// restrict lower priority jacobian
 	jacobian.Restrict(m_d_theta, m_null);
@@ -249,9 +190,9 @@ void IK_QJacobian::SubTask(IK_QJacobian& jacobian)
 	// note: now damps secondary angles with minimum damping value from
 	// SDLS, to avoid shaking when the primary task is near singularities,
 	// doesn't work well at all
+	int i;
 	for (i = 0; i < m_d_theta.size(); i++)
 		m_d_theta[i] = m_d_theta[i] + /*m_min_damp**/jacobian.AngleUpdate(i);
-#endif
 }
 
 void IK_QJacobian::Restrict(TVector& d_theta, TMatrix& null)
@@ -471,23 +412,6 @@ void IK_QJacobian::Lock(int dof_id, MT_Scalar delta)
 	m_norm[dof_id] = 0.0; // unneeded
 	m_d_theta[dof_id] = 0.0;
 }
-
-#if 0
-void IK_QJacobian::SetSecondary(int dof_id, MT_Scalar d)
-{
-	m_alpha[dof_id] = d;
-}
-
-void IK_QJacobian::SolveSecondary()
-{
-	if (!ComputeNullProjection())
-		return;
-	
-	TNT::matmult(m_d_theta, m_null, m_alpha);
-
-	m_alpha = 0;
-}
-#endif
 
 MT_Scalar IK_QJacobian::AngleUpdate(int dof_id) const
 {

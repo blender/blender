@@ -34,9 +34,6 @@
 
 // IK_QTask
 
-#include <iostream>
-using namespace std;
-
 IK_QTask::IK_QTask(
 	int size,
 	bool primary,
@@ -84,6 +81,7 @@ void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
 		d_pos = (m_clamp_length/length)*d_pos;
 	
 	jacobian.SetBetas(m_id, m_size, m_weight*d_pos);
+
 
 	// compute derivatives
 	int i;

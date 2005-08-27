@@ -34,9 +34,6 @@
 
 //#include "analyze.h"
 
-#include <iostream>
-using namespace std;
-
 void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
 {
 	m_segments.push_back(seg);
@@ -130,6 +127,9 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 	bool locked = false, clamp[3];
 	int i, mindof = 0;
 
+	// here we check if any angle limits were violated. angles whose clamped
+	// position is the same as it was before, are locked immediate. of the
+	// other violation angles the most violating angle is rememberd
 	for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
 		qseg = *seg;
 		if (qseg->UpdateAngle(m_jacobian, delta, clamp)) {
@@ -152,6 +152,7 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 		}
 	}
 
+	// lock most violating angle
 	if (minseg) {
 		minseg->Lock(mindof, m_jacobian, mindelta);
 		locked = true;
@@ -161,11 +162,13 @@ bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
 	}
 
 	if (locked == false)
+		// no locking done, last inner iteration, apply the angles
 		for (seg = m_segments.begin(); seg != m_segments.end(); seg++) {
 			(*seg)->UnLock();
 			(*seg)->UpdateAngleApply();
 		}
 	
+	// signal if another inner iteration is needed
 	return locked;
 }
 
@@ -188,24 +191,13 @@ bool IK_QJacobianSolver::Solve(
 
 		std::list<IK_QTask*>::iterator task;
 
-		//bool done = true;
-
 		// compute jacobian
 		for (task = tasks.begin(); task != tasks.end(); task++) {
 			if ((*task)->Primary())
 				(*task)->ComputeJacobian(m_jacobian);
 			else
 				(*task)->ComputeJacobian(m_jacobian_sub);
-
-			//printf("#> %f\n", (*task)->Distance());
-			//if ((*task)->Distance() > 1e-4)
-			//	done = false;
 		}
-
-		/*if (done) {
-			//analyze_add_run(iterations, analyze_time()-dt);
-			return true;
-		}*/
 
 		MT_Scalar norm = 0.0;
 

@@ -32,9 +32,6 @@
 
 #include "IK_QSegment.h"
 
-#include <iostream>
-using namespace std;
-
 // Utility functions
 
 static MT_Matrix3x3 RotationMatrix(MT_Scalar sine, MT_Scalar cosine, int axis)

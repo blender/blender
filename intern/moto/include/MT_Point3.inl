@@ -15,6 +15,11 @@ GEN_INLINE MT_Point3& MT_Point3::operator=(const MT_Vector3& v) {
     return *this;
 }
 
+GEN_INLINE MT_Point3& MT_Point3::operator=(const MT_Point3& v) {
+    m_co[0] = v[0]; m_co[1] = v[1]; m_co[2] = v[2];
+    return *this;
+}
+
 GEN_INLINE MT_Scalar MT_Point3::distance(const MT_Point3& p) const {
     return (p - *this).length();
 }

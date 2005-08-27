@@ -37,7 +37,6 @@
 #include "IK_QTask.h"
 
 #include <list>
-#include <iostream>
 using namespace std;
 
 typedef struct {
@@ -241,7 +240,7 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	                 goal[0][1], goal[1][1], goal[2][1],
 	                 goal[0][2], goal[1][2], goal[2][2]);
 
-	IK_QTask *orient = new IK_QOrientationTask(false, qtip, rot);
+	IK_QTask *orient = new IK_QOrientationTask(true, qtip, rot);
 	orient->SetWeight(weight);
 	qsolver->tasks.push_back(orient);
 }

@@ -58,6 +58,7 @@ public:
     MT_Point3& operator+=(const MT_Vector3& v);
     MT_Point3& operator-=(const MT_Vector3& v);
     MT_Point3& operator=(const MT_Vector3& v);
+    MT_Point3& operator=(const MT_Point3& v);
 
     MT_Scalar  distance(const MT_Point3& p) const;
     MT_Scalar  distance2(const MT_Point3& p) const;

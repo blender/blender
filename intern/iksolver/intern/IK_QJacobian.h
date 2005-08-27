@@ -36,7 +36,6 @@
 #define NAN_INCLUDED_IK_QJacobian_h
 
 #include "TNT/cmat.h"
-#include "TNT/fmat.h"
 #include <vector>
 #include "MT_Vector3.h"
 
@@ -44,7 +43,7 @@ class IK_QJacobian
 {
 public:
 	typedef TNT::Matrix<MT_Scalar> TMatrix;
-	typedef TNT::Vector<MT_Scalar>TVector;
+	typedef TNT::Vector<MT_Scalar> TVector;
 
 	IK_QJacobian();
 	~IK_QJacobian();
@@ -71,11 +70,6 @@ public:
 	void Restrict(TVector& d_theta, TMatrix& null);
 	void SubTask(IK_QJacobian& jacobian);
 
-#if 0
-	void SetSecondary(int dof_id, MT_Scalar d);
-	void SolveSecondary();
-#endif
-
 private:
 	
 	void InvertSDLS();
@@ -85,7 +79,7 @@ private:
 	bool m_transpose;
 
 	// the jacobian matrix and it's null space projector
-	TMatrix m_jacobian;
+	TMatrix m_jacobian, m_jacobian_t;
 	TMatrix m_null;
 
 	/// the vector of intermediate betas
@@ -97,9 +91,10 @@ private:
 	/// space required for SVD computation
 
 	TVector m_svd_w;
-    TVector m_svd_work_space;        
 	TMatrix m_svd_v;
 	TMatrix m_svd_u;
+    TVector m_work1;
+    TVector m_work2;
 
 	TMatrix m_svd_u_t;
 	TVector m_svd_u_beta;

@@ -11,430 +11,414 @@
 // ,W a diagonal matrix and V an orthogonal square matrix s.t. 
 // A = U.W.Vt. From this decomposition it is trivial to compute the 
 // inverse of A as Ainv = V.Winv.tranpose(U).
-// work_space is a temporary vector used by this class to compute
-// intermediate values during the computation of the SVD. This should
-// be of length a.num_cols. This is not checked
+//
+// s = diagonal elements of W
+// work1 = workspace, length must be A.num_rows
+// work2 = workspace, length must be A.num_cols
 
 #include "tntmath.h"
 
 namespace TNT
 {
 
-
 template <class MaTRiX, class VecToR >
-void SVD(MaTRiX &a, VecToR &w,  MaTRiX &v, VecToR &work_space) {
+void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work2) {
 
-		int n = a.num_cols();
-	int m = a.num_rows();
+	int m = A.num_rows();
+	int n = A.num_cols();
+	int nu = min(m,n);
 
-	int flag,i,its,j,jj,k,l(0),nm(0);
-	typename MaTRiX::value_type c,f,h,x,y,z;
-	typename MaTRiX::value_type anorm(0),g(0),scale(0);
-    typename MaTRiX::value_type s(0);
+	VecToR& work = work1;
+	VecToR& e = work2;
 
-    work_space.newsize(n);
+	U = 0;
+	s = 0;
 
-	for (i=1;i<=n;i++) {
-		l=i+1;
-		work_space(i)=scale*g;
+	int i=0, j=0, k=0;
 
-		g = (typename MaTRiX::value_type)0;
+	// Reduce A to bidiagonal form, storing the diagonal elements
+	// in s and the super-diagonal elements in e.
 
-		s = (typename  MaTRiX::value_type)0;
-        scale = (typename  MaTRiX::value_type)0;
+	int nct = min(m-1,n);
+	int nrt = max(0,min(n-2,m));
+	for (k = 0; k < max(nct,nrt); k++) {
+		if (k < nct) {
 
-		if (i <= m) {
-			for (k=i;k<=m;k++) scale += TNT::abs(a(k,i));
-			if (scale > (typename  MaTRiX::value_type)0) {
-				for (k=i;k<=m;k++) {
-					a(k,i) /= scale;
-					s += a(k,i)*a(k,i);
+			// Compute the transformation for the k-th column and
+			// place the k-th diagonal in s[k].
+			// Compute 2-norm of k-th column without under/overflow.
+			s[k] = 0;
+			for (i = k; i < m; i++) {
+				s[k] = hypot(s[k],A[i][k]);
+			}
+			if (s[k] != 0.0) {
+				if (A[k][k] < 0.0) {
+					s[k] = -s[k];
 				}
-				f=a(i,i);
-				g = -TNT::sign(sqrt(s),f);
-				h=f*g-s;
-				a(i,i)=f-g;
-				if (i != n) {
-					for (j=l;j<=n;j++) {
-                        s = (typename  MaTRiX::value_type)0;
-						for (k=i;k<=m;k++) s += a(k,i)*a(k,j);
-						f=s/h;
-						for (k=i;k<=m;k++) a(k,j) += f*a(k,i);
+				for (i = k; i < m; i++) {
+					A[i][k] /= s[k];
+				}
+				A[k][k] += 1.0;
+			}
+			s[k] = -s[k];
+		}
+		for (j = k+1; j < n; j++) {
+			if ((k < nct) && (s[k] != 0.0))  {
+
+			// Apply the transformation.
+
+				typename MaTRiX::value_type t = 0;
+				for (i = k; i < m; i++) {
+					t += A[i][k]*A[i][j];
+				}
+				t = -t/A[k][k];
+				for (i = k; i < m; i++) {
+					A[i][j] += t*A[i][k];
+				}
+			}
+
+			// Place the k-th row of A into e for the
+			// subsequent calculation of the row transformation.
+
+			e[j] = A[k][j];
+		}
+		if (k < nct) {
+
+			// Place the transformation in U for subsequent back
+			// multiplication.
+
+			for (i = k; i < m; i++)
+				U[i][k] = A[i][k];
+		}
+		if (k < nrt) {
+
+			// Compute the k-th row transformation and place the
+			// k-th super-diagonal in e[k].
+			// Compute 2-norm without under/overflow.
+			e[k] = 0;
+			for (i = k+1; i < n; i++) {
+				e[k] = hypot(e[k],e[i]);
+			}
+			if (e[k] != 0.0) {
+				if (e[k+1] < 0.0) {
+					e[k] = -e[k];
+				}
+				for (i = k+1; i < n; i++) {
+					e[i] /= e[k];
+				}
+				e[k+1] += 1.0;
+			}
+			e[k] = -e[k];
+			if ((k+1 < m) & (e[k] != 0.0)) {
+
+			// Apply the transformation.
+
+				for (i = k+1; i < m; i++) {
+					work[i] = 0.0;
+				}
+				for (j = k+1; j < n; j++) {
+					for (i = k+1; i < m; i++) {
+						work[i] += e[j]*A[i][j];
 					}
 				}
-				for (k=i;k<=m;k++) a(k,i) *= scale;
-			}
-		}
-		w(i)=scale*g;
-        g = (typename  MaTRiX::value_type)0;
-        s = (typename  MaTRiX::value_type)0;
-        scale = (typename  MaTRiX::value_type)0;
-		if (i <= m && i != n) {
-			for (k=l;k<=n;k++) scale += TNT::abs(a(i,k));
-			if (scale > (typename  MaTRiX::value_type)0) {
-				for (k=l;k<=n;k++) {
-					a(i,k) /= scale;
-					s += a(i,k)*a(i,k);
-				}
-				f=a(i,l);
-				g = -TNT::sign(sqrt(s),f);
-				h=f*g-s;
-				a(i,l)=f-g;
-				for (k=l;k<=n;k++) work_space(k)=a(i,k)/h;
-				if (i != m) {
-					for (j=l;j<=m;j++) {
-                        s = (typename  MaTRiX::value_type)0;
-						for (k=l;k<=n;k++) s += a(j,k)*a(i,k);
-						for (k=l;k<=n;k++) a(j,k) += s*work_space(k);
+				for (j = k+1; j < n; j++) {
+					typename MaTRiX::value_type t = -e[j]/e[k+1];
+					for (i = k+1; i < m; i++) {
+						A[i][j] += t*work[i];
 					}
 				}
-				for (k=l;k<=n;k++) a(i,k) *= scale;
 			}
+
+			// Place the transformation in V for subsequent
+			// back multiplication.
+
+			for (i = k+1; i < n; i++)
+				V[i][k] = e[i];
 		}
-		anorm=TNT::max(anorm,(TNT::abs(w(i))+TNT::abs(work_space(i))));
 	}
-	for (i=n;i>=1;i--) {
-		if (i < n) {
-			if (g != (typename  MaTRiX::value_type)0) {
-				for (j=l;j<=n;j++)
-					v(j,i)=(a(i,j)/a(i,l))/g;
-				for (j=l;j<=n;j++) {
-                    s = (typename  MaTRiX::value_type)0;
-					for (k=l;k<=n;k++) s += a(i,k)*v(k,j);
-					for (k=l;k<=n;k++) v(k,j) += s*v(k,i);
+
+	// Set up the final bidiagonal matrix or order p.
+
+	int p = min(n,m+1);
+	if (nct < n) {
+		s[nct] = A[nct][nct];
+	}
+	if (m < p) {
+		s[p-1] = 0.0;
+	}
+	if (nrt+1 < p) {
+		e[nrt] = A[nrt][p-1];
+	}
+	e[p-1] = 0.0;
+
+	// If required, generate U.
+
+	for (j = nct; j < nu; j++) {
+		for (i = 0; i < m; i++) {
+			U[i][j] = 0.0;
+		}
+		U[j][j] = 1.0;
+	}
+	for (k = nct-1; k >= 0; k--) {
+		if (s[k] != 0.0) {
+			for (j = k+1; j < nu; j++) {
+				typename MaTRiX::value_type t = 0;
+				for (i = k; i < m; i++) {
+					t += U[i][k]*U[i][j];
+				}
+				t = -t/U[k][k];
+				for (i = k; i < m; i++) {
+					U[i][j] += t*U[i][k];
 				}
 			}
-			for (j=l;j<=n;j++) v(i,j)=v(j,i)= (typename  MaTRiX::value_type)0;
-		}
-		v(i,i)= (typename  MaTRiX::value_type)1;
-		g=work_space(i);
-		l=i;
-	}
-	for (i=n;i>=1;i--) {
-		l=i+1;
-		g=w(i);
-		if (i < n) {
-			for (j=l;j<=n;j++) a(i,j)= (typename  MaTRiX::value_type)0;
-		}
-		if (g !=  (typename  MaTRiX::value_type)0) {
-			g= ((typename  MaTRiX::value_type)1)/g;
-			if (i != n) {
-				for (j=l;j<=n;j++) {
-                    s =  (typename  MaTRiX::value_type)0;
-					for (k=l;k<=m;k++) s += a(k,i)*a(k,j);
-					f=(s/a(i,i))*g;
-					for (k=i;k<=m;k++) a(k,j) += f*a(k,i);
-				}
+			for (i = k; i < m; i++ ) {
+				U[i][k] = -U[i][k];
 			}
-			for (j=i;j<=m;j++) a(j,i) *= g;
+			U[k][k] = 1.0 + U[k][k];
+			for (i = 0; i < k-1; i++) {
+				U[i][k] = 0.0;
+			}
 		} else {
-			for (j=i;j<=m;j++) a(j,i)= (typename  MaTRiX::value_type)0;
+			for (i = 0; i < m; i++) {
+				U[i][k] = 0.0;
+			}
+			U[k][k] = 1.0;
 		}
-		++a(i,i);
 	}
-	for (k=n;k>=1;k--) {
-		for (its=1;its<=30;its++) {
-			flag=1;
-			for (l=k;l>=1;l--) {
-				nm=l-1;
-				if (TNT::abs(work_space(l))+anorm == anorm) {
-					flag=0;
+
+	// If required, generate V.
+
+	for (k = n-1; k >= 0; k--) {
+		if ((k < nrt) & (e[k] != 0.0)) {
+			for (j = k+1; j < nu; j++) {
+				typename MaTRiX::value_type t = 0;
+				for (i = k+1; i < n; i++) {
+					t += V[i][k]*V[i][j];
+				}
+				t = -t/V[k+1][k];
+				for (i = k+1; i < n; i++) {
+					V[i][j] += t*V[i][k];
+				}
+			}
+		}
+		for (i = 0; i < n; i++) {
+			V[i][k] = 0.0;
+		}
+		V[k][k] = 1.0;
+	}
+
+	// Main iteration loop for the singular values.
+
+	int pp = p-1;
+	int iter = 0;
+	typename MaTRiX::value_type eps = pow(2.0,-52.0);
+	while (p > 0) {
+		int kase=0;
+		k=0;
+
+		// Here is where a test for too many iterations would go.
+
+		// This section of the program inspects for
+		// negligible elements in the s and e arrays.  On
+		// completion the variables kase and k are set as follows.
+
+		// kase = 1	  if s(p) and e[k-1] are negligible and k<p
+		// kase = 2	  if s(k) is negligible and k<p
+		// kase = 3	  if e[k-1] is negligible, k<p, and
+		//				  s(k), ..., s(p) are not negligible (qr step).
+		// kase = 4	  if e(p-1) is negligible (convergence).
+
+		for (k = p-2; k >= -1; k--) {
+			if (k == -1) {
+				break;
+			}
+			if (abs(e[k]) <= eps*(abs(s[k]) + abs(s[k+1]))) {
+				e[k] = 0.0;
+				break;
+			}
+		}
+		if (k == p-2) {
+			kase = 4;
+		} else {
+			int ks;
+			for (ks = p-1; ks >= k; ks--) {
+				if (ks == k) {
 					break;
 				}
-				if (TNT::abs(w(nm))+anorm == anorm) break;
+				typename MaTRiX::value_type t = (ks != p ? abs(e[ks]) : 0.) + 
+							  (ks != k+1 ? abs(e[ks-1]) : 0.);
+				if (abs(s[ks]) <= eps*t)  {
+					s[ks] = 0.0;
+					break;
+				}
 			}
-			if (flag) {
-				c= (typename  MaTRiX::value_type)0;
-				s= (typename  MaTRiX::value_type)1;
-				for (i=l;i<=k;i++) {
-					f=s*work_space(i);
-					if (TNT::abs(f)+anorm != anorm) {
-						g=w(i);
-						h= (typename  MaTRiX::value_type)TNT::pythag(float(f),float(g));
-						w(i)=h;
-						h= ((typename  MaTRiX::value_type)1)/h;
-						c=g*h;
-						s=(-f*h);
-						for (j=1;j<=m;j++) {
-							y=a(j,nm);
-							z=a(j,i);
-							a(j,nm)=y*c+z*s;
-							a(j,i)=z*c-y*s;
+			if (ks == k) {
+				kase = 3;
+			} else if (ks == p-1) {
+				kase = 1;
+			} else {
+				kase = 2;
+				k = ks;
+			}
+		}
+		k++;
+
+		// Perform the task indicated by kase.
+
+		switch (kase) {
+
+			// Deflate negligible s(p).
+
+			case 1: {
+				typename MaTRiX::value_type f = e[p-2];
+				e[p-2] = 0.0;
+				for (j = p-2; j >= k; j--) {
+					typename MaTRiX::value_type t = hypot(s[j],f);
+					typename MaTRiX::value_type cs = s[j]/t;
+					typename MaTRiX::value_type sn = f/t;
+					s[j] = t;
+					if (j != k) {
+						f = -sn*e[j-1];
+						e[j-1] = cs*e[j-1];
+					}
+
+					for (i = 0; i < n; i++) {
+						t = cs*V[i][j] + sn*V[i][p-1];
+						V[i][p-1] = -sn*V[i][j] + cs*V[i][p-1];
+						V[i][j] = t;
+					}
+				}
+			}
+			break;
+
+			// Split at negligible s(k).
+
+			case 2: {
+				typename MaTRiX::value_type f = e[k-1];
+				e[k-1] = 0.0;
+				for (j = k; j < p; j++) {
+					typename MaTRiX::value_type t = hypot(s[j],f);
+					typename MaTRiX::value_type cs = s[j]/t;
+					typename MaTRiX::value_type sn = f/t;
+					s[j] = t;
+					f = -sn*e[j];
+					e[j] = cs*e[j];
+
+					for (i = 0; i < m; i++) {
+						t = cs*U[i][j] + sn*U[i][k-1];
+						U[i][k-1] = -sn*U[i][j] + cs*U[i][k-1];
+						U[i][j] = t;
+					}
+				}
+			}
+			break;
+
+			// Perform one qr step.
+
+			case 3: {
+
+				// Calculate the shift.
+
+				typename MaTRiX::value_type scale = max(max(max(max(
+						  abs(s[p-1]),abs(s[p-2])),abs(e[p-2])), 
+						  abs(s[k])),abs(e[k]));
+				typename MaTRiX::value_type sp = s[p-1]/scale;
+				typename MaTRiX::value_type spm1 = s[p-2]/scale;
+				typename MaTRiX::value_type epm1 = e[p-2]/scale;
+				typename MaTRiX::value_type sk = s[k]/scale;
+				typename MaTRiX::value_type ek = e[k]/scale;
+				typename MaTRiX::value_type b = ((spm1 + sp)*(spm1 - sp) + epm1*epm1)/2.0;
+				typename MaTRiX::value_type c = (sp*epm1)*(sp*epm1);
+				typename MaTRiX::value_type shift = 0.0;
+				if ((b != 0.0) || (c != 0.0)) {
+					shift = sqrt(b*b + c);
+					if (b < 0.0) {
+						shift = -shift;
+					}
+					shift = c/(b + shift);
+				}
+				typename MaTRiX::value_type f = (sk + sp)*(sk - sp) + shift;
+				typename MaTRiX::value_type g = sk*ek;
+
+				// Chase zeros.
+
+				for (j = k; j < p-1; j++) {
+					typename MaTRiX::value_type t = hypot(f,g);
+					typename MaTRiX::value_type cs = f/t;
+					typename MaTRiX::value_type sn = g/t;
+					if (j != k) {
+						e[j-1] = t;
+					}
+					f = cs*s[j] + sn*e[j];
+					e[j] = cs*e[j] - sn*s[j];
+					g = sn*s[j+1];
+					s[j+1] = cs*s[j+1];
+
+					for (i = 0; i < n; i++) {
+						t = cs*V[i][j] + sn*V[i][j+1];
+						V[i][j+1] = -sn*V[i][j] + cs*V[i][j+1];
+						V[i][j] = t;
+					}
+
+					t = hypot(f,g);
+					cs = f/t;
+					sn = g/t;
+					s[j] = t;
+					f = cs*e[j] + sn*s[j+1];
+					s[j+1] = -sn*e[j] + cs*s[j+1];
+					g = sn*e[j+1];
+					e[j+1] = cs*e[j+1];
+					if (j < m-1) {
+						for (i = 0; i < m; i++) {
+							t = cs*U[i][j] + sn*U[i][j+1];
+							U[i][j+1] = -sn*U[i][j] + cs*U[i][j+1];
+							U[i][j] = t;
 						}
 					}
 				}
+				e[p-2] = f;
+				iter = iter + 1;
 			}
-			z=w(k);
-			if (l == k) {
-				if (z <  (typename  MaTRiX::value_type)0) {
-					w(k) = -z;
-					for (j=1;j<=n;j++) v(j,k)=(-v(j,k));
-				}
-				break;
-			}
+			break;
 
+			// Convergence.
 
-#if 1
-			if (its == 30)
-			{
-                                TNTException an_exception;
-                                an_exception.i = 0;
-                                throw an_exception;
+			case 4: {
 
-                                return ;
-				assert(false);
-			}
-#endif
-			x=w(l);
-			nm=k-1;
-			y=w(nm);
-			g=work_space(nm);
-			h=work_space(k);
-			f=((y-z)*(y+z)+(g-h)*(g+h))/(((typename  MaTRiX::value_type)2)*h*y);
-			g=(typename  MaTRiX::value_type)TNT::pythag(float(f), float(1));
-			f=((x-z)*(x+z)+h*((y/(f+TNT::sign(g,f)))-h))/x;
-                        c =  (typename  MaTRiX::value_type)1;
-                        s =  (typename  MaTRiX::value_type)1;
-			for (j=l;j<=nm;j++) {
-				i=j+1;
-				g=work_space(i);
-				y=w(i);
-				h=s*g;
-				g=c*g;
-				z=(typename  MaTRiX::value_type)TNT::pythag(float(f),float(h));
-				work_space(j)=z;
-				c=f/z;
-				s=h/z;
-				f=x*c+g*s;
-				g=g*c-x*s;
-				h=y*s;
-				y=y*c;
-				for (jj=1;jj<=n;jj++) {
-					x=v(jj,j);
-					z=v(jj,i);
-					v(jj,j)=x*c+z*s;
-					v(jj,i)=z*c-x*s;
-				}
-				z=(typename  MaTRiX::value_type)TNT::pythag(float(f),float(h));
-				w(j)=z;
-				if (z !=  (typename  MaTRiX::value_type)0) {
-					z= ((typename  MaTRiX::value_type)1)/z;
-					c=f*z;
-					s=h*z;
-				}
-				f=(c*g)+(s*y);
-				x=(c*y)-(s*g);
-				for (jj=1;jj<=m;jj++) {
-					y=a(jj,j);
-					z=a(jj,i);
-					a(jj,j)=y*c+z*s;
-					a(jj,i)=z*c-y*s;
-				}
-			}
-			work_space(l)= (typename  MaTRiX::value_type)0;
-			work_space(k)=f;
-			w(k)=x;
-		}
-	}
-}
+				// Make the singular values positive.
 
-// A is replaced by the column orthogonal matrix U 
+				if (s[k] <= 0.0) {
+					s[k] = (s[k] < 0.0 ? -s[k] : 0.0);
 
-template <class MaTRiX, class VecToR >
-void SVD_a( MaTRiX &a, VecToR &w,  MaTRiX &v) {
-
-	int n = a.num_cols();
-	int m = a.num_rows();
-
-	int flag,i,its,j,jj,k,l,nm;
-	typename MaTRiX::value_type anorm,c,f,g,h,s,scale,x,y,z;
-
-	VecToR work_space;
-	work_space.newsize(n);
-
-	g = scale = anorm = 0.0;
-	
-	for (i=1;i <=n;i++) {
-		l = i+1;
-		work_space(i) = scale*g;
-		g = s=scale=0.0;
-
-		if (i <= m) {
-			for(k=i; k<=m; k++) scale += abs(a(k,i));
-
-			if (scale) {
-				for (k = i; k <=m ; k++) {
-					a(k,i) /= scale;
-					s += a(k,i)*a(k,i);
-				}
-				f = a(i,i);
-				g = -sign(sqrt(s),f);
-				h = f*g -s;
-				a(i,i) = f-g;
-	
-				for (j = l; j <=n; j++) {
-					for (s = 0.0,k =i;k<=m;k++) s += a(k,i)*a(k,j);
-					f = s/h;
-					for (k = i; k <= m; k++) a(k,j) += f*a(k,i);
-				}
-				for (k = i; k <=m;k++) a(k,i) *= scale;
-			}
-		}
-
-		w(i) = scale*g;
-		g = s = scale = 0.0;
-
-		if (i <=m && i != n) {
-			for (k = l; k <=n;k++) scale += abs(a(i,k));
-			if (scale) {
-				for(k = l;k <=n;k++) {
-					a(i,k) /= scale;
-					s += a(i,k) * a(i,k);
+					for (i = 0; i <= pp; i++)
+						V[i][k] = -V[i][k];
 				}
 
-				f = a(i,l);
-				g = -sign(sqrt(s),f);
-				h= f*g -s;
-				a(i,l) = f-g;
-				for(k=l;k<=n;k++) work_space(k) = a(i,k)/h;
-				for (j=l;j<=m;j++) {
-					for(s = 0.0,k=l;k<=n;k++) s+= a(j,k)*a(i,k);
-					for(k=l;k<=n;k++) a(j,k) += s*work_space(k);
-				}
-				for(k=l;k<=n;k++) a(i,k)*=scale;
-			}
-		}
-		anorm = max(anorm,(abs(w(i)) + abs(work_space(i))));
-	}
-	for (i=n;i>=1;i--) {
-		if (i <n) {
-			if (g) {
-				for(j=l;j<=n;j++) v(j,i) = (a(i,j)/a(i,l))/g;
-				for(j=l;j<=n;j++) {
-					for(s=0.0,k=l;k<=n;k++) s += a(i,k)*v(k,j);
-					for(k=l; k<=n;k++) v(k,j) +=s*v(k,i);
-				}
-			}
-			for(j=l;j <=n;j++) v(i,j) = v(j,i) = 0.0;
-		}
-		v(i,i) = 1.0;
-		g = work_space(i);
-		l = i;
-	}
+				// Order the singular values.
 
-	for (i = min(m,n);i>=1;i--) {
-		l = i+1;
-		g = w(i);
-		for (j=l;j <=n;j++) a(i,j) = 0.0;
-		if (g) {
-			g = 1.0/g;
-			for (j=l;j<=n;j++) {
-				for (s = 0.0,k=l;k<=m;k++) s += a(k,i)*a(k,j);
-				f = (s/a(i,i))*g;
-				for (k=i;k<=m;k++) a(k,j) += f*a(k,i);	
-			}
-			for (j=i;j<=m;j++) a(j,i)*=g;
-		} else {
-			for (j=i;j<=m;j++) a(j,i) = 0.0;
-		}
-		++a(i,i);
-	}
-
-	for (k=n;k>=1;k--) {
-		for (its=1;its<=30;its++) {
-			flag=1;
-			for(l=k;l>=1;l--) {
-				nm = l-1;
-				if (abs(work_space(l)) + anorm == anorm) {
-					flag = 0;
-					break;
-				}
-				if (abs(w(nm)) + anorm == anorm) break;
-			}
-			if (flag) {
-				c = 0.0;
-				s = 1.0;
-				for (i=l;i<=k;i++) {
-					f = s*work_space(i);
-					work_space(i) = c*work_space(i);
-					if (abs(f) +anorm == anorm) break;
-					g = w(i);
-					h  = pythag(f,g);
-					w(i) = h;
-					h = 1.0/h;
-					c = g*h;
-					s = -f*h;
-					for (j=1;j<=m;j++) {
-						y= a(j,nm);
-						z=a(j,i);
-						a(j,nm) = y*c + z*s;
-						a(j,i) = z*c - y*s;
+				while (k < pp) {
+					if (s[k] >= s[k+1]) {
+						break;
 					}
+					typename MaTRiX::value_type t = s[k];
+					s[k] = s[k+1];
+					s[k+1] = t;
+					if (k < n-1) {
+						for (i = 0; i < n; i++) {
+							t = V[i][k+1]; V[i][k+1] = V[i][k]; V[i][k] = t;
+						}
+					}
+					if (k < m-1) {
+						for (i = 0; i < m; i++) {
+							t = U[i][k+1]; U[i][k+1] = U[i][k]; U[i][k] = t;
+						}
+					}
+					k++;
 				}
+				iter = 0;
+				p--;
 			}
-			z=w(k);
-			if (l==k) {
-				if (z <0.0) {
-					w(k) = -z;
-					for (j=1;j<=n;j++) v(j,k) = -v(j,k);
-				}
-				break;
-			}
-
-			if (its == 30) assert(false);
-
-			x=w(l);
-			nm=k-1;
-			y=w(nm);
-			g=work_space(nm);
-			h=work_space(k);
-			
-			f= ((y-z)*(y+z) + (g-h)*(g+h))/(2.0*h*y);
-			g = pythag(f,1.0);
-			f= ((x-z)*(x+z) + h*((y/(f + sign(g,f)))-h))/x;
-			c=s=1.0;
-
-			for (j=l;j<=nm;j++) {
-				i=j+1;
-				g = work_space(i);
-				y=w(i);
-				h=s*g;
-				g=c*g;
-				z=pythag(f,h);
-				work_space(j) = z;
-				c=f/z;
-				s=h/z;
-				f=x*c + g*s;
-				g= g*c - x*s;
-				h=y*s;
-				y*=c;
-				for(jj=1;jj<=n;jj++) {
-					x=v(jj,j);
-					z=v(jj,i);
-					v(jj,j) = x*c + z*s;
-					v(jj,i) = z*c- x*s;
-				}
-				z=pythag(f,h);
-				w(j)=z;
-				if(z) {
-					z = 1.0/z;
-					c=f*z;
-					s=h*z;
-				}
-				f=c*g + s*y;
-				x= c*y-s*g;
-			
-				for(jj=1;jj<=m;jj++) {
-					y=a(jj,j);
-					z=a(jj,i);
-					a(jj,j) = y*c+z*s;
-					a(jj,i) = z*c - y*s;
-				}
-			}
-
-			work_space(l) = 0.0;
-			work_space(k) = f;
-			w(k) = x;
+			break;
 		}
 	}
 }

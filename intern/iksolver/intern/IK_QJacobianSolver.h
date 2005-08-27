@@ -53,16 +53,7 @@ public:
 	IK_QJacobianSolver() {};
 	~IK_QJacobianSolver() {};
 
-	/**
-	 * Compute a solution for a chain.
-     * @param root Pointer to root segment.
-	 * @param tasks List of tasks.
-	 * @param tolerance The maximum allowed distance between solution
-     * and goal for termination.
-	 * @param max_iterations should be in the range (50 - 500) 
-	 *
-     * @return True iff goal position reached.
-     */
+	// returns true if converged, false if max number of iterations was used
 
 	bool Solve(
 		IK_QSegment *root,
@@ -77,10 +68,12 @@ private:
 	bool UpdateAngles(MT_Scalar& norm);
 
 private:
-	// the jacobian matrix
+
 	IK_QJacobian m_jacobian;
 	IK_QJacobian m_jacobian_sub;
+
 	bool m_secondary_enabled;
+
 	std::vector<IK_QSegment*> m_segments;
 };
 

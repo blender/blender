@@ -4,11 +4,11 @@ Import ('library_env')
 
 iksolver_env = library_env.Copy ()
 
-source_files = ['intern/IK_QChain.cpp',
+source_files = ['intern/IK_QTask.cpp',
                 'intern/IK_QJacobianSolver.cpp',
                 'intern/IK_QSegment.cpp',
-                'intern/IK_Solver.cpp',
-                'intern/MT_ExpMap.cpp']
+                'intern/IK_QJacobian.cpp',
+                'intern/IK_Solver.cpp']
 
 iksolver_env.Append (CPPPATH = ['intern',
                                 '../moto/include',
