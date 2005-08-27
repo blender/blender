@@ -585,7 +585,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bKinematicConstraint *data = con->data;
 				bArmature *arm;
 				
-				height = 66;
+				height = 108;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -608,6 +608,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
 				uiBlockEndAlign(block);
 				
+				uiDefBut(block, TEX, B_CONSTRAINT_TEST, "IK group:", *xco+((width/2)-117), *yco-86,120,18, &data->group, 0, 24, 0, 0, "IK group name");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-86, 120, 18, &data->weight, 0.0, 1.0, 0.0, 0.0, "Weight of position control for this target");
+				
+				uiDefButBitS(block, TOG, KINEMATIC_ORIENTATION, B_CONSTRAINT_TEST, "Orientation", *xco+((width/2)-117), *yco-108,120,18, &data->flag, 0, 0, 0, 0, "Follow orientation of target");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-108, 120, 18, &data->orientweight, 0.0, 1.0, 0.0, 0.0, "Weight of orientation control for this target");
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:

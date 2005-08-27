@@ -170,33 +170,24 @@ void BPY_do_all_scripts (short int event){}
 
 /* IKsolver stubs */
 #include "IK_solver.h"
-extern int IK_LoadChain(IK_Chain_ExternPtr chain,IK_Segment_ExternPtr segments, int num_segs)
-{
-	return 0;
-}
 
-extern int IK_SolveChain(
-	IK_Chain_ExternPtr chain,
-	float goal[3],
-	float tolerance,
-	int max_iterations,
-	float max_angle_change, 
-	IK_Segment_ExternPtr output
-	)
-{
-	return 0;
-}
+IK_Segment *IK_CreateSegment(int flag) { return 0; }
+void IK_FreeSegment(IK_Segment *seg) {}
 
-extern void IK_FreeChain(IK_Chain_ExternPtr chain)
-{
-	;
-}
+void IK_SetParent(IK_Segment *seg, IK_Segment *parent) {}
+void IK_SetTransform(IK_Segment *seg, float start[3], float rest_basis[][3], float basis[][3], float length) {}
+void IK_GetBasisChange(IK_Segment *seg, float basis_change[][3]) {}
+void IK_GetTranslationChange(IK_Segment *seg, float *translation_change) {};
+void IK_SetLimit(IK_Segment *seg, IK_SegmentAxis axis, float lower, float upper) {};
+void IK_SetStiffness(IK_Segment *seg, IK_SegmentAxis axis, float stiffness) {};
 
+IK_Solver *IK_CreateSolver(IK_Segment *root) { return 0; }
+void IK_FreeSolver(IK_Solver *solver) {};
 
-extern IK_Chain_ExternPtr IK_CreateChain(void)
-{
-	return 0;
-}
+void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight) {}
+void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight) {}
+void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight) {}
+int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations) { return 0; }
 
 /* exotic.c */
 int BPY_call_importloader(char *name)

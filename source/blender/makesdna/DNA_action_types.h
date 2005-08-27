@@ -47,7 +47,8 @@ typedef struct bPoseChannel {
 	
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
-	int					pad;
+	short				ikflag;		/* settings for IK bones */
+	short				pad;
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
@@ -65,7 +66,10 @@ typedef struct bPoseChannel {
 	
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */
-	int pad1;
+	
+	float		limitmin[3], limitmax[3];	/* DOF constraint */
+	float		stiffness[3];				/* DOF stiffness */
+	
 } bPoseChannel;
 
 
@@ -135,11 +139,21 @@ enum	{
 	POSE_KEY		=	0x1000
 };
 
-/* Pose Channel constflag (constraint detection) */
+/* PoseChannel constflag (constraint detection) */
 #define PCHAN_HAS_IK		1
 #define PCHAN_HAS_CONST		2
 	/* only used for drawing Posemode, not stored in channel */
 #define PCHAN_HAS_ACTION	4
+
+/* PoseChannel->ikflag */
+#define		BONE_IK_NO_XDOF 1
+#define		BONE_IK_NO_YDOF 2
+#define		BONE_IK_NO_ZDOF 4
+
+#define		BONE_IK_XLIMIT	8
+#define		BONE_IK_YLIMIT	16
+#define		BONE_IK_ZLIMIT	32
+
 
 #endif
 

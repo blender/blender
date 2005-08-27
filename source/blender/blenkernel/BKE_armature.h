@@ -46,19 +46,23 @@ struct Mesh;
 struct PoseChain;
 struct ListBase;
 
+typedef struct PoseTarget
+{
+	struct PoseTarget *next, *prev;
+	struct bConstraint *con;
+	int tip;
+} PoseTarget;
+
 typedef struct PoseChain
 {
 	struct PoseChain *next, *prev;  // hurms
 	struct bPoseChannel	**pchanchain;
-	struct bConstraint *con;
-	struct Bone *root, *target;
-	struct bPose *pose;
-	int totchannel;
-	float	goal[3];
+	struct ListBase targets;
+	int		totchannel;
+	float	(*basis_change)[3][3];
+	char 	group[32];
 	float	tolerance;
 	int		iterations;
-	float	goalinv[4][4];
-	struct IK_Chain_Extern *solver;
 } PoseChain;
 
 /*	Core armature functionality */

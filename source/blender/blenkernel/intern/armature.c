@@ -967,15 +967,17 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 /* ********************** THE IK SOLVER ******************* */
 
 
+
 /* allocates PoseChain, and links that to root bone/channel */
 /* note; if we got this working, it can become static too? */
 static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 {
-	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256];
+	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256], **oldchan;
 	PoseChain *chain;
+	PoseTarget *target;
 	bConstraint *con;
 	bKinematicConstraint *data;
-	int a, segcount= 0;
+	int a, segcount= 0, size, newsize;
 	
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
@@ -1006,75 +1008,128 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 			break;
 	}
 	if (!segcount) return;
-	
+
 	/* setup the chain data */
-	chain = MEM_callocN(sizeof(PoseChain), "posechain");
-	chain->totchannel= segcount;
-	chain->solver = IK_CreateChain();
-	chain->con= con;
-	
-	chain->iterations = data->iterations;
-	chain->tolerance = data->tolerance;
-	
-	chain->pchanchain= MEM_callocN(segcount*sizeof(void *), "channel chain");
-	for(a=0; a<segcount; a++) {
-		chain->pchanchain[a]= chanlist[segcount-a-1];
+	chain = NULL;
+
+	/* if part of group, look for existing chain */
+	if(strlen(data->group) > 0)
+		for(chain= pchan_root->chain.first; chain; chain= chain->next)
+			if(strcmp(data->group, chain->group)==0) break;
+
+	/* create a target */
+	target= MEM_callocN(sizeof(PoseTarget), "posetarget");
+	target->con= con;
+
+	if(chain==NULL) {
+		/* make new chain */
+		chain= MEM_callocN(sizeof(PoseChain), "posechain");
+
+		strcpy(chain->group, data->group);
+		chain->tolerance= data->tolerance;
+		chain->iterations= data->iterations;
+		chain->totchannel= segcount;
+		
+		chain->pchanchain= MEM_callocN(segcount*sizeof(void *), "channel chain");
+		for(a=0; a<segcount; a++)
+			chain->pchanchain[a]= chanlist[segcount-a-1];
+
+		target->tip= segcount-1;
+		
+		/* AND! link the chain to the root */
+		BLI_addtail(&pchan_root->chain, chain);
 	}
-	
-	/* AND! link the chain to the root */
-	BLI_addtail(&pchan_root->chain, chain);
+	else {
+		chain->tolerance= MIN2(chain->tolerance, data->tolerance);
+		chain->iterations= MAX2(data->iterations, chain->iterations);
+
+		/* skip common pose channels and add remaining*/
+		size= MIN2(segcount, chain->totchannel);
+		for(a=0; a<size && chain->pchanchain[a]==chanlist[segcount-a-1]; a++);
+
+		segcount= segcount-a;
+
+		target->tip= chain->totchannel + segcount - 1;
+
+		if (segcount > 0) {
+			/* resize array */
+			newsize= chain->totchannel + segcount;
+			oldchan= chain->pchanchain;
+
+			chain->pchanchain= MEM_callocN(newsize*sizeof(void*), "channel chain");
+			memcpy(chain->pchanchain, oldchan, sizeof(void*)*chain->totchannel);
+			MEM_freeN(oldchan);
+
+			/* add new pose channels at the end, in reverse order */
+			for(a=0; a<segcount; a++)
+				chain->pchanchain[chain->totchannel+a]= chanlist[segcount-a-1];
+
+			chain->totchannel= newsize;
+		}
+
+		/* move chain to end of list, for correct evaluation order */
+		BLI_remlink(&pchan_root->chain, chain);
+		BLI_addtail(&pchan_root->chain, chain);
+	}
+
+	/* add target to the chain */
+	BLI_addtail(&chain->targets, target);
 }
 
 /* called from within the core where_is_pose loop, all animsystems and constraints
 were executed & assigned. Now as last we do an IK pass */
 static void execute_posechain(Object *ob, PoseChain *chain)
 {
-	IK_Segment_Extern	*segs;
-	bPoseChannel *pchan;
 	float R_parmat[3][3];
 	float iR_parmat[3][3];
 	float R_bonemat[3][3];
+	float goalrot[3][3], goalpos[3];
 	float rootmat[4][4], imat[4][4];
-	float size[3];
-	int curseg;
+	float goal[4][4], goalinv[4][4];
+	float size[3], bonesize[3], irest_basis[3][3], full_basis[3][3];
+	float length, basis[3][3], rest_basis[3][3], start[3];
+	int a, b, flag;
+	bPoseChannel *pchan;
+	IK_Segment *seg, *parent, **ikchain, *iktarget;
+	IK_Solver *solver;
+	PoseTarget *target;
+	bKinematicConstraint *data;
+	Bone *bone;
+
+	if (chain->totchannel == 0)
+		return;
+
+	ikchain= MEM_mallocN(sizeof(void*)*chain->totchannel, "ik chain");
+
+	for(a=0; a<chain->totchannel; a++) {
+		pchan= chain->pchanchain[a];
+		bone = pchan->bone;
+
+		/* set DoF flag */
+		flag= 0;
+		if((pchan->ikflag & BONE_IK_NO_XDOF) == 0)
+			flag |= IK_XDOF;
+		if((pchan->ikflag & BONE_IK_NO_YDOF) == 0)
+			flag |= IK_YDOF;
+		if((pchan->ikflag & BONE_IK_NO_ZDOF) == 0)
+			flag |= IK_ZDOF;
+
+		seg= ikchain[a]= IK_CreateSegment(flag);
+
+		/* find parent */
+		if(a == 0)
+			parent= NULL;
+		else {
+			for(b=a-1; chain->pchanchain[b]!=pchan->parent; b--);
+			parent= ikchain[b];
+		}
+
+		IK_SetParent(seg, parent);
 	
-	/* first set the goal inverse transform, assuming the root of chain was done ok! */
-	pchan= chain->pchanchain[0];
-	Mat4One(rootmat);
-	VECCOPY(rootmat[3], pchan->pose_head);
-	
-	Mat4MulMat4 (imat, rootmat, ob->obmat);
-	Mat4Invert (chain->goalinv, imat);
-	
-	/* and set and transform goal */
-	get_constraint_target_matrix(chain->con, TARGET_BONE, NULL, rootmat, size, 1.0);   // 1.0=ctime
-	VECCOPY (chain->goal, rootmat[3]);
-	/* do we need blending? */
-	if(chain->con->enforce!=1.0) {
-		float vec[3];
-		float fac= chain->con->enforce;
-		float mfac= 1.0-fac;
-		
-		pchan= chain->pchanchain[chain->totchannel-1];	// last bone
-		VECCOPY(vec, pchan->pose_tail);
-		Mat4MulVecfl(ob->obmat, vec);					// world space
-		chain->goal[0]= fac*chain->goal[0] + mfac*vec[0];
-		chain->goal[1]= fac*chain->goal[1] + mfac*vec[1];
-		chain->goal[2]= fac*chain->goal[2] + mfac*vec[2];
-	}
-	Mat4MulVecfl (chain->goalinv, chain->goal);
-	
-	/* Now we construct the IK segments */
-	segs = MEM_callocN (sizeof(IK_Segment_Extern)*chain->totchannel, "iksegments");
-	
-	for (curseg=0; curseg<chain->totchannel; curseg++){
-		
-		pchan= chain->pchanchain[curseg];
-		
-		/* Get the matrix that transforms from prevbone into this bone */
+		/* get the matrix that transforms from prevbone into this bone */
 		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
 		
-		if (pchan->parent && (pchan->bone->flag & BONE_IK_TOPARENT)) {
+		if(pchan->parent && (bone->flag & BONE_IK_TOPARENT)) {
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
 		}
 		else
@@ -1082,33 +1137,116 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		
 		Mat3Inv(iR_parmat, R_parmat);
 		
-		/* Mult and Copy the matrix into the basis and transpose (IK lib likes it) */
-		Mat3MulMat3((void *)segs[curseg].basis, iR_parmat, R_bonemat);
-		Mat3Transp((void *)segs[curseg].basis);
-		
-		/* Fill out the IK segment */
-		segs[curseg].length = pchan->bone->length; 
+		/* gather transformations for this IK segment */
+		start[0]= start[1]= start[2]= 0.0;
+
+		/* change length based on bone size */
+		Mat3ToSize(R_bonemat, bonesize);
+		length= bone->length*bonesize[1];
+
+		Mat3CpyMat3(rest_basis, bone->bone_mat);
+
+		/* compute basis with rest_basis removed */
+		Mat3Inv(irest_basis, rest_basis);
+		Mat3MulMat3(full_basis, iR_parmat, R_bonemat);
+		Mat3MulMat3(basis, irest_basis, full_basis);
+
+		/* basis must be pure rotation, size was extracted for length already */
+		Mat3Ortho(rest_basis);
+		Mat3Ortho(basis);
+
+		IK_SetTransform(seg, start, rest_basis, basis, length);
+
+		if (pchan->ikflag & BONE_IK_XLIMIT)
+			IK_SetLimit(seg, IK_X, pchan->limitmin[0], pchan->limitmax[0]);
+		if (pchan->ikflag & BONE_IK_YLIMIT)
+			IK_SetLimit(seg, IK_Y, pchan->limitmin[1], pchan->limitmax[1]);
+		if (pchan->ikflag & BONE_IK_ZLIMIT)
+			IK_SetLimit(seg, IK_Z, pchan->limitmin[2], pchan->limitmax[2]);
+
+		IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
+		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
+		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
+	}
+
+	solver= IK_CreateSolver(ikchain[0]);
+
+	/* set solver goals */
+
+	/* first set the goal inverse transform, assuming the root of chain was done ok! */
+	pchan= chain->pchanchain[0];
+	Mat4One(rootmat);
+	VECCOPY(rootmat[3], pchan->pose_head);
+	
+	Mat4MulMat4 (imat, rootmat, ob->obmat);
+	Mat4Invert (goalinv, imat);
+	
+	for(target=chain->targets.first; target; target=target->next) {
+		data= (bKinematicConstraint*)target->con->data;
+
+		/* 1.0=ctime */
+		get_constraint_target_matrix(target->con, TARGET_BONE, NULL, rootmat, size, 1.0);
+
+		/* and set and transform goal */
+		Mat4MulMat4(goal, rootmat, goalinv);
+
+		VECCOPY(goalpos, goal[3]);
+		Mat3CpyMat4(goalrot, goal);
+
+		/* do we need blending? */
+		if(target->con->enforce!=1.0) {
+			float vec[3], q1[4], q2[4], q[4];
+			float fac= target->con->enforce;
+			float mfac= 1.0-fac;
+			
+			pchan= chain->pchanchain[target->tip];
+
+			/* blend position */
+			VECCOPY(vec, pchan->pose_tail);
+			Mat4MulVecfl(ob->obmat, vec); // world space
+			Mat4MulVecfl(goalinv, vec);
+			goalpos[0]= fac*goalpos[0] + mfac*vec[0];
+			goalpos[1]= fac*goalpos[1] + mfac*vec[1];
+			goalpos[2]= fac*goalpos[2] + mfac*vec[2];
+
+			/* blend rotation */
+			Mat3ToQuat(goalrot, q1);
+			Mat3CpyMat4(R_bonemat, pchan->pose_mat);
+			Mat3ToQuat(R_bonemat, q2);
+			QuatInterpol(q, q1, q2, mfac);
+			QuatToMat3(q, goalrot);
+		}
+
+		iktarget= ikchain[target->tip];
+
+		/*IK_SolverAddCenterOfMass(solver, ikchain[0], goalpos, data->weight);*/
+
+		if(data->weight != 0.0)
+			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
+		if((data->flag & KINEMATIC_ORIENTATION) && (data->orientweight != 0.0))
+			IK_SolverAddGoalOrientation(solver, iktarget, goalrot, data->orientweight);
+	}
+
+	/* solve */
+	IK_Solve(solver, chain->tolerance, chain->iterations);
+	IK_FreeSolver(solver);
+
+	/* gather basis changes */
+	chain->basis_change= MEM_mallocN(sizeof(float[3][3])*chain->totchannel, "ik basis change");
+
+	for(a=0; a<chain->totchannel; a++) {
+		IK_GetBasisChange(ikchain[a], chain->basis_change[a]);
+		IK_FreeSegment(ikchain[a]);
 	}
 	
-	/*	Solve the chain */
-	
-	IK_LoadChain(chain->solver, segs, chain->totchannel);
-	
-	IK_SolveChain(chain->solver, chain->goal, chain->tolerance,  
-				  chain->iterations,  0.1f, chain->solver->segments);
-	
-	
-	/* not yet free! */
+	MEM_freeN(ikchain);
 }
 
 void free_posechain (PoseChain *chain)
 {
-	if (chain->solver) {
-		MEM_freeN (chain->solver->segments);
-		chain->solver->segments = NULL;
-		IK_FreeChain(chain->solver);
-	}
+	BLI_freelistN(&chain->targets);
 	if(chain->pchanchain) MEM_freeN(chain->pchanchain);
+	if(chain->basis_change) MEM_freeN(chain->basis_change);
 	MEM_freeN(chain);
 }
 
@@ -1325,16 +1463,19 @@ void where_is_pose (Object *ob)
 							if(!(chain->pchanchain[a]->flag & POSE_DONE))	// successive chains can set the flag
 								where_is_pose_bone(ob, chain->pchanchain[a]);
 						}
-						/* 5. execute the IK solver */
-						execute_posechain(ob, chain);   // calculates 3x3 difference matrices
+						/* 5. execute the IK solver, applying differences to
+							the channels and setting POSE_DONE */
+						execute_posechain(ob, chain);
+						
 						/* 6. apply the differences to the channels, we calculate the original differences first */
 						for(a=0; a<chain->totchannel; a++)
 							make_dmats(chain->pchanchain[a]);
-						for(a=0; a<chain->totchannel; a++)
-							where_is_ik_bone(chain->pchanchain[a], (void *)chain->solver->segments[a].basis_change);
-							// (sets POSE_DONE)
 						
-						/* 6. and free */
+						for(a=0; a<chain->totchannel; a++)
+							/* sets POSE_DONE */
+							where_is_ik_bone(chain->pchanchain[a], chain->basis_change[a]);
+						
+						/* 7. and free */
 						BLI_remlink(&pchan->chain, chain);
 						free_posechain(chain);
 					}

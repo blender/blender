@@ -4904,6 +4904,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				ob->softflag &= ~OB_SB_ENABLE;
 			}
+			if(ob->pose) {
+				bPoseChannel *pchan;
+				bConstraint *con;
+				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					if (pchan->stiffness[0] == 0.0f) {
+						pchan->stiffness[0]= pchan->stiffness[1]= pchan->stiffness[2]= 1.0;
+						pchan->limitmin[0]= pchan->limitmin[1]= pchan->limitmin[2]= -180.0f;
+						pchan->limitmax[0]= pchan->limitmax[1]= pchan->limitmax[2]= 180.0f;
+						
+						for(con= pchan->constraints.first; con; con= con->next) {
+							if(con->type == CONSTRAINT_TYPE_KINEMATIC) {
+								bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+								data->weight = 1.0f;
+								data->orientweight = 0.0f;
+								data->flag &= ~KINEMATIC_ORIENTATION;
+							}	
+						}
+					}
+				}
+			}
 		}
 		
 		for(arm=main->armature.first; arm; arm= arm->id.next) {
