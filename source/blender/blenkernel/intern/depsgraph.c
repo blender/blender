@@ -1537,13 +1537,12 @@ void DAG_pose_sort(Object *ob)
 								parchan= pchan;
 							
 							/* Walk to the chain's root */
-							while (parchan->parent){
-								segcount++;
-								if(segcount==data->rootbone || segcount>255) break; // 255 is weak
-								
+							while (parchan){
 								node3= dag_get_node(dag, parchan);
 								dag_add_relation(dag, node2, node3, 0);
 								
+								segcount++;
+								if(segcount==data->rootbone || segcount>255) break; // 255 is weak
 								parchan= parchan->parent;
 							}
 						}
