@@ -2049,6 +2049,7 @@ void do_armbuts(unsigned short event)
 	case B_ARM_RECALCDATA:
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
 
@@ -2342,8 +2343,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
 				uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
 				if ((pchan->ikflag & BONE_IK_XLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, pchan->limitmax[0], 10.0f, 0.0f, "Minimum X limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], pchan->limitmin[0], 180.0f, 10.0f, 0.0f, "Maximum X limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, pchan->limitmax[0], 10, 2, "Minimum X limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], pchan->limitmin[0], 180.0f, 10, 2, "Maximum X limit");
 					zerolimit = 0;
 				}
 				zerodof = 0;
@@ -2356,8 +2357,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
 				uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
 				if ((pchan->ikflag & BONE_IK_YLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, pchan->limitmax[1], 10.0f, 0.0f, "Minimum Y limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], pchan->limitmax[1], 180.0f, 10.0f, 0.0f, "Maximum Y limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, pchan->limitmax[1], 10, 2, "Minimum Y limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], pchan->limitmin[1], 180.0f, 10, 2, "Maximum Y limit");
 					zerolimit = 0;
 				}
 				zerodof = 0;
@@ -2370,8 +2371,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
 				uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
 				if ((pchan->ikflag & BONE_IK_ZLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, pchan->limitmax[2], 10.0f, 0.0f, "Minimum Z limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], pchan->limitmin[2], 180.0f, 10.0f, 0.0f, "Maximum Z limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, pchan->limitmax[2], 10, 2, "Minimum Z limit");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], pchan->limitmin[2], 180.0f, 10, 2, "Maximum Z limit");
 					zerolimit = 0;
 				}
 				zerodof = 0;
