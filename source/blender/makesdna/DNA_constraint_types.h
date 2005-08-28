@@ -64,7 +64,8 @@ typedef struct bKinematicConstraint{
 	Object		*tar;
 	float		tolerance;		/* Acceptable distance from target */
 	short		iterations;		/* Maximum number of iterations to try */
-	short		flag;			/* Like IK to Tip */
+	short		flag;			/* Like CONSTRAINT_IK_TIP */
+	int			rootbone, pad;	/* index to rootbone, if zero go all the way to mother bone */
 	char		subtarget[32];	/* String to specify sub-object target */
 
 	float		weight;			/* Weight of goal in IK tree */
@@ -215,7 +216,6 @@ typedef struct bStretchToConstraint{
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1
 #define CONSTRAINT_IK_ROT		2
-#define CONSTRAINT_IK_TREE		4
 
 #endif
 

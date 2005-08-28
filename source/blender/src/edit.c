@@ -589,8 +589,8 @@ void countall()
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				G.totbone++;
 				
-				/* Sync selection to parent for ik children */
-				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
+				/* Sync selection to parent for connected children */
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					G.totvert--;
 					if (ebo->parent->flag & BONE_TIPSEL)
 						ebo->flag |= BONE_ROOTSEL;
@@ -610,8 +610,8 @@ void countall()
 				
 				if(ebo->flag & BONE_SELECTED) G.totbonesel++;
 
-				//	If this is an IK child and it's parent is being moved, remove our root
-				if ((ebo->flag & BONE_IK_TOPARENT)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL)){
+				//	If this is a connected child and it's parent is being moved, remove our root
+				if ((ebo->flag & BONE_CONNECTED)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL)){
 					G.totvertsel--;
 				}
 
@@ -752,7 +752,7 @@ static void special_transvert_update(void)
 			/* Ensure all bones are correctly adjusted */
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
 				
-				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					/* If this bone has a parent tip that has been moved */
 					if (ebo->parent->flag & BONE_TIPSEL){
 						VECCOPY (ebo->head, ebo->parent->tail);
@@ -880,9 +880,9 @@ static void make_trans_verts(float *min, float *max, int mode)
 				tottrans++;
 			}
 
-			/*  Only add the root if there is no selected IK parent */
+			/*  Only add the root if there is no connection */
 			if (ebo->flag & BONE_ROOTSEL){
-				if (!(ebo->parent && (ebo->flag & BONE_IK_TOPARENT) && ebo->parent->flag & BONE_TIPSEL)){
+				if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
 					VECCOPY (tv->oldloc, ebo->head);
 					tv->loc= ebo->head;
 					tv->nor= NULL;

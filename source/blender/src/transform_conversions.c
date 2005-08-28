@@ -382,8 +382,8 @@ void count_bone_select(TransInfo *t, ListBase *lb, int do_it)
 		do_next= do_it;
 		if(do_it) {
 			if (bone->flag & BONE_SELECTED) {
-				/* We don't let IK children get "grabbed" */
-				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+				/* We don't let connected children get "grabbed" */
+				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
 					bone->flag |= BONE_TRANSFORM;
 					t->total++;
 					do_next= 0;	// no transform on children if one parent bone is selected
@@ -402,8 +402,8 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 
 	if(bone) {
 		if (bone->flag & BONE_TRANSFORM) {
-			/* We don't let IK children get "grabbed" */
-			if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_IK_TOPARENT)==0 ) {
+			/* We don't let connected children get "grabbed" */
+			if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
 				
 				VECCOPY(vec, pchan->pose_mat[3]);
 				VECCOPY(td->center, vec);

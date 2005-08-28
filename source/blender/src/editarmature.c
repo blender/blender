@@ -132,7 +132,7 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		/* fix selection flags */
 		if(eBone->flag & BONE_SELECTED) {
 			eBone->flag |= BONE_TIPSEL;
-			if(eBone->parent && (eBone->flag & BONE_IK_TOPARENT))
+			if(eBone->parent && (eBone->flag & BONE_CONNECTED))
 				eBone->parent->flag |= BONE_TIPSEL;
 			else 
 				eBone->flag |= BONE_ROOTSEL;
@@ -579,7 +579,7 @@ static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 {
 	Bone *curBone;
 	
-	if (!(bone->flag & BONE_IK_TOPARENT))
+	if (!(bone->flag & BONE_CONNECTED))
 		return;
 	
 	select_actionchannel_by_name (ob->action, bone->name, !(G.qual & LR_SHIFTKEY));
@@ -618,7 +618,7 @@ void selectconnected_posearmature(void)
 		else
 			curBone->flag |= BONE_SELECTED;
 		
-		if (curBone->flag & BONE_IK_TOPARENT)
+		if (curBone->flag & BONE_CONNECTED)
 			next=curBone->parent;
 		else
 			next=NULL;
@@ -701,7 +701,7 @@ void selectconnected_armature(void)
 			curBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 		}
 
-		if (curBone->flag & BONE_IK_TOPARENT)
+		if (curBone->flag & BONE_CONNECTED)
 			next=curBone->parent;
 		else
 			next=NULL;
@@ -712,7 +712,7 @@ void selectconnected_armature(void)
 		for (curBone=G.edbo.first; curBone; curBone=next){
 			next = curBone->next;
 			if (curBone->parent == bone){
-				if (curBone->flag & BONE_IK_TOPARENT){
+				if (curBone->flag & BONE_CONNECTED){
 					if (G.qual & LR_SHIFTKEY)
 						curBone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL);
 					else
@@ -833,7 +833,7 @@ static void delete_bone(EditBone* exBone)
 	for (curBone=G.edbo.first;curBone;curBone=curBone->next){
 		if (curBone->parent==exBone){
 			curBone->parent=exBone->parent;
-			curBone->flag &= ~BONE_IK_TOPARENT;
+			curBone->flag &= ~BONE_CONNECTED;
 		}
 	}
 	
@@ -907,12 +907,12 @@ void mouse_armature(void)
 			deselectall_armature(0);
 		}
 		
-		/* by definition the non-root non-IK bones have no root point drawn,
+		/* by definition the non-root non-connected bones have no root point drawn,
 	       so a root selection needs to be delivered to the parent tip,
 	       countall() (bad location) flushes these flags */
 		
 		if(selmask & BONE_SELECTED) {
-			if(nearBone->parent && (nearBone->flag & BONE_IK_TOPARENT)) {
+			if(nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
 				/* click in a chain */
 				if(G.qual & LR_SHIFTKEY) {
 					/* hold shift inverts this bone's selection */
@@ -1280,7 +1280,7 @@ void addvert_armature(void)
 		VECCOPY(newbone->head, ebone->tail);
 
 		newbone->parent= ebone;
-		newbone->flag |= BONE_IK_TOPARENT;
+		newbone->flag |= BONE_CONNECTED;
 	}
 	
 	curs= give_cursor();
@@ -1368,7 +1368,7 @@ void adduplicate_armature(void)
 				*/
 			else {
 				eBone->parent=(EditBone*) curBone->parent; 
-				eBone->flag &= ~BONE_IK_TOPARENT;
+				eBone->flag &= ~BONE_CONNECTED;
 			}
 			
 			/* Lets try to fix any constraint subtargets that might
@@ -1473,10 +1473,20 @@ void make_bone_parent(void)
 				}
 			}
 		}
-		if(selbone==NULL) error("Need one active and one selected bone");
+		if(selbone==NULL) {
+			/* we make sure bone is connected */
+			if(val==1 && actbone->parent) {
+				actbone->flag |= BONE_CONNECTED;
+				VECCOPY(actbone->head, actbone->parent->tail);
+				countall(); // checks selection
+				allqueue(REDRAWVIEW3D, 0);
+				BIF_undo_push("Connect to Parent");
+			}
+			else error("Need one active and one selected bone");
+		}
 		else {
 			/* if selbone had a parent we clear parent tip */
-			if(selbone->parent && (selbone->flag & BONE_IK_TOPARENT))
+			if(selbone->parent && (selbone->flag & BONE_CONNECTED))
 			   selbone->parent->flag &= ~(BONE_TIPSEL);
 			
 			selbone->parent= actbone;
@@ -1485,12 +1495,12 @@ void make_bone_parent(void)
 			for(ebone= actbone->parent; ebone; ebone= ebone->parent) {
 				if(ebone->parent==selbone) {
 					ebone->parent= NULL;
-					ebone->flag &= ~BONE_IK_TOPARENT;
+					ebone->flag &= ~BONE_CONNECTED;
 				}
 			}
 			
 			if(val==1) {	// connected
-				selbone->flag |= BONE_IK_TOPARENT;
+				selbone->flag |= BONE_CONNECTED;
 				VecSubf(offset, actbone->tail, selbone->head);
 				
 				VECCOPY(selbone->head, actbone->tail);
@@ -1509,16 +1519,16 @@ void make_bone_parent(void)
 				}
 			}
 			else {
-				selbone->flag &= ~BONE_IK_TOPARENT;
+				selbone->flag &= ~BONE_CONNECTED;
 			}
 			
 			countall(); // checks selection
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWOOPS, 0);
+			BIF_undo_push("Make Parent");
 		}
 	}
-	return;
 }
 
 void clear_bone_parent(void)
@@ -1526,7 +1536,7 @@ void clear_bone_parent(void)
 	EditBone *ebone;
 	short val;
 	
-	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect IK%x2");
+	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect Bone%x2");
 	
 	if(val<1) return;
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
@@ -1536,8 +1546,7 @@ void clear_bone_parent(void)
 				ebone->parent->flag &= ~(BONE_TIPSEL);
 				
 				if(val==1) ebone->parent= NULL;
-				ebone->flag &= ~BONE_IK_TOPARENT;
-				
+				ebone->flag &= ~BONE_CONNECTED;
 			}
 		}
 	}
@@ -1545,6 +1554,7 @@ void clear_bone_parent(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Clear Parent");
 }
 	
 
@@ -1600,7 +1610,7 @@ void extrude_armature(int forked)
 	/* since we allow root extrude too, we have to make sure selection is OK */
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
 		if(ebone->flag & BONE_ROOTSEL) {
-			if(ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) {
+			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 				if(ebone->parent->flag & BONE_TIPSEL)
 					ebone->flag &= ~BONE_ROOTSEL;
 			}
@@ -1674,7 +1684,7 @@ void extrude_armature(int forked)
 				newbone->segments= 1;
 				newbone->boneclass= ebone->boneclass;
 				
-				newbone->flag |= BONE_IK_TOPARENT;
+				if(newbone->parent) newbone->flag |= BONE_CONNECTED;
 				
 				strcpy (newbone->name, ebone->name);
 				
@@ -1934,14 +1944,14 @@ int ik_chain_looper(Object *ob, Bone *bone, void *data,
 		for (curBone = bone; curBone; curBone=curBone->parent) {
 			if (!curBone->parent)
 				break;
-			else if (!(curBone->flag & BONE_IK_TOPARENT))
+			else if (!(curBone->flag & BONE_CONNECTED))
 				break;
 			count += bone_func(ob, curBone->parent, data);
 		}
 
 		/* The children */
 		for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-			if (curBone->flag & BONE_IK_TOPARENT) {
+			if (curBone->flag & BONE_CONNECTED) {
 				count += bone_func(ob, curBone, data);
 			}
 		}

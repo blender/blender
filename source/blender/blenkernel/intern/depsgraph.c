@@ -1526,15 +1526,25 @@ void DAG_pose_sort(Object *ob)
 						dag_add_relation(dag, node2, node, 0);
 						
 						if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
-							bPoseChannel *par= pchan->parent;
+							bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+							bPoseChannel *parchan;
+							int segcount= 0;
 							
-							while(par) {
-								node3= dag_get_node(dag, par);
+							/* exclude tip from chain? */
+							if(!(data->flag & CONSTRAINT_IK_TIP))
+								parchan= pchan->parent;
+							else
+								parchan= pchan;
+							
+							/* Walk to the chain's root */
+							while (parchan->parent){
+								segcount++;
+								if(segcount==data->rootbone || segcount>255) break; // 255 is weak
+								
+								node3= dag_get_node(dag, parchan);
 								dag_add_relation(dag, node2, node3, 0);
 								
-								if(par->bone->flag & BONE_IK_TOPARENT)
-									par= par->parent;
-								else break;
+								parchan= parchan->parent;
 							}
 						}
 					}

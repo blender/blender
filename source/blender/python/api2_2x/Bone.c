@@ -1593,14 +1593,14 @@ static PyObject *Bone_hasIK( BPy_Bone * self )
 {
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
-		if( self->flag & BONE_IK_TOPARENT ) {
+		if( self->flag & BONE_CONNECTED ) {
 			return EXPP_incr_ret_True();
 		} else {
 			return EXPP_incr_ret_False();
 		}
 	} else {
 		//use bone datastruct
-		if( self->bone->flag & BONE_IK_TOPARENT ) {
+		if( self->bone->flag & BONE_CONNECTED ) {
 			return EXPP_incr_ret_True();
 		} else {
 			return EXPP_incr_ret_False();

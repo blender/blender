@@ -2071,7 +2071,7 @@ static void attach_bone_to_parent_cb(void *bonev, void *arg2_unused)
 {
 	EditBone *ebone= bonev;
 	
-	if (ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) {
+	if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 		/* Attach this bone to its parent */
 		VECCOPY(ebone->head, ebone->parent->tail);
 	}
@@ -2081,7 +2081,7 @@ static void parnr_to_editbone(EditBone *bone)
 {
 	if (bone->parNr == -1){
 		bone->parent = NULL;
-		bone->flag &= ~BONE_IK_TOPARENT;
+		bone->flag &= ~BONE_CONNECTED;
 	}
 	else{
 		bone->parent = BLI_findlink(&G.edbo, bone->parNr);
@@ -2255,9 +2255,9 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 
 			MEM_freeN(boneString);
 
-			/* IK to parent flag */
+			/* Connect to parent flag */
 			if (curBone->parent){
-				but=uiDefButBitI(block, TOG, BONE_IK_TOPARENT, B_ARM_RECALCDATA, "IK", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "IK link to parent");
+				but=uiDefButBitI(block, TOG, BONE_CONNECTED, B_ARM_RECALCDATA, "Con", bx+300,by,32,18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Connect this Bone to Parent");
 				uiButSetFunc(but, attach_bone_to_parent_cb, curBone, NULL);
 			}
 
@@ -2337,7 +2337,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			zerolimit = 1;
 			
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_XDOF, B_ARM_RECALCDATA, "No X DoF", bx-10,by-60,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable X DoF for IK");
+			uiDefButBitS(block, TOG, BONE_IK_NO_XDOF, B_ARM_RECALCDATA, "Lock X Rot", bx-10,by-60,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable X DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_XDOF)==0) {
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
 				uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
@@ -2351,7 +2351,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockEndAlign(block);
 			
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "No Y DoF", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
+			uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "Lock Y Rot", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_YDOF)==0) {
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
 				uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
@@ -2365,7 +2365,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockEndAlign(block);
 			
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_ZDOF, B_ARM_RECALCDATA, "No Z DoF", bx+217,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Z DoF for IK");
+			uiDefButBitS(block, TOG, BONE_IK_NO_ZDOF, B_ARM_RECALCDATA, "Lock Z Rot", bx+217,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Z DoF for IK");
 			if ((pchan->ikflag & BONE_IK_NO_ZDOF)==0) {
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
 				uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->flag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
@@ -3343,6 +3343,7 @@ void editing_panels()
 		}
 		else if(ob->flag & OB_POSEMODE) {
 			editing_panel_pose_bones(ob, arm);
+			object_panel_constraint("Editing");
 		}		
 		break;
 	}

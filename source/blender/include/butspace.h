@@ -63,6 +63,7 @@ extern void do_soundbuts(unsigned short event);
 extern void object_panels(void);
 extern void do_object_panels(unsigned short event);
 extern void do_constraintbuts(unsigned short event);
+extern void object_panel_constraint(char *context);
 
 /* effects */
 extern void effects_panels(void);

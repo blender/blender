@@ -1365,17 +1365,6 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	}
 }
 
-/* unused */
-static void lib_link_bone(FileData *fd, ID *id, Bone *bone)
-{
-//	Bone *curBone;
-
-//	for (curBone=bone->childbase.first; curBone; curBone=curBone->next) {
-//		lib_link_bone(fd, id, curBone);
-//	}
-}
-
-
 static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
 	bPoseChannel *chan;
@@ -1393,7 +1382,6 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 static void lib_link_armature(FileData *fd, Main *main)
 {
 	bArmature *arm;
-//	Bone *bone;
 
 	arm= main->armature.first;
 
@@ -1401,11 +1389,6 @@ static void lib_link_armature(FileData *fd, Main *main)
 		if(arm->id.flag & LIB_NEEDLINK) {
 			arm->id.flag -= LIB_NEEDLINK;
 		}
-
-//		for (bone=arm->bonebase.first; bone; bone=bone->next) {
-//			lib_link_bone(fd, &arm->id, bone);
-//		}
-
 		arm= arm->id.next;
 	}
 }
@@ -4905,9 +4888,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->softflag &= ~OB_SB_ENABLE;
 			}
 			if(ob->pose) {
-				bPoseChannel *pchan;
+				bPoseChannel *pchan, *parchan;
 				bConstraint *con;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					/* 2.38 files can be saved wrong still... */
+					if(pchan->bone==NULL)
+						ob->pose->flag |= POSE_RECALC;
+							
 					if (pchan->limitmin[0] == 0.0f && pchan->limitmax[0] == 0.0f) {
 						pchan->limitmin[0]= pchan->limitmin[1]= pchan->limitmin[2]= -180.0f;
 						pchan->limitmax[0]= pchan->limitmax[1]= pchan->limitmax[2]= 180.0f;
@@ -4916,12 +4903,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							if(con->type == CONSTRAINT_TYPE_KINEMATIC) {
 								bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 								data->weight = 1.0f;
-								data->orientweight = 0.0f;
+								data->orientweight = 1.0f;
 								data->flag &= ~CONSTRAINT_IK_ROT;
+								
+								/* enforce conversion from old IK_TOPARENT to rootbone index */
+								data->rootbone= -1;
 							}	
 						}
 					}
 				}
+				/* update_pose_etc handles rootbone==-1 */
+				if(!(ob->pose->flag & POSE_RECALC))
+					update_pose_constraint_flags(ob->pose);
 			}
 		}
 		

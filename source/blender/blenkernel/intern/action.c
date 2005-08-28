@@ -273,7 +273,7 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 /* pose should be entirely OK */
 void update_pose_constraint_flags(bPose *pose)
 {
-	bPoseChannel *pchan;
+	bPoseChannel *pchan, *parchan;
 	bConstraint *con;
 	
 	/* clear */
@@ -284,7 +284,23 @@ void update_pose_constraint_flags(bPose *pose)
 	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
 		for(con= pchan->constraints.first; con; con= con->next) {
 			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+				
 				pchan->constflag |= PCHAN_HAS_IK;
+				/* negative rootbone = recalc rootbone index. used in do_versions */
+				if(data->rootbone<0) {
+					data->rootbone= 0;
+					
+					if(data->flag & CONSTRAINT_IK_TIP) parchan= pchan;
+					else parchan= pchan->parent;
+					
+					while(parchan) {
+						data->rootbone++;
+						if((parchan->bone->flag & BONE_CONNECTED)==0)
+							break;
+						parchan= parchan->parent;
+					}
+				}
 			}
 			else pchan->constflag |= PCHAN_HAS_CONST;
 		}

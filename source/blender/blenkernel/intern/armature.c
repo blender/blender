@@ -432,7 +432,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 	hlength2= bone->ease2*length*0.390464f;
 	
 	/* evaluate next and prev bones */
-	if(bone->flag & BONE_IK_TOPARENT)
+	if(bone->flag & BONE_CONNECTED)
 		prev= pchan->parent;
 	else
 		prev= NULL;
@@ -912,8 +912,8 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 	
 	for(bone= bone->childbase.first; bone; bone= bone->next) {
 		counter= rebuild_pose_bone(pose, bone, pchan, counter);
-		/* for quick detecting of next bone in chain */
-		if(bone->flag & BONE_IK_TOPARENT)
+		/* for quick detecting of next bone in chain, only b-bone uses it now */
+		if(bone->flag & BONE_CONNECTED)
 			pchan->child= get_pose_channel(pose, bone->name);
 	}
 	
@@ -990,50 +990,53 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	if(data->tar==NULL) return;
 	if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
 	
+	/* exclude tip from chain? */
+	if(!(data->flag & CONSTRAINT_IK_TIP))
+		pchan_tip= pchan_tip->parent;
+	
 	/* Find the chain's root & count the segments needed */
 	for (curchan = pchan_tip; curchan; curchan=curchan->parent){
 		pchan_root = curchan;
 		
+		curchan->flag |= POSE_CHAIN;	// don't forget to clear this
 		chanlist[segcount]=curchan;
 		segcount++;
 		
-		/* exclude tip from chain? */
-		if(curchan==pchan_tip) {
-			if(!(data->flag & CONSTRAINT_IK_TIP)) segcount--;
-		}
-		
-		if(segcount>255) break; // also weak
-		
-		if (!(curchan->bone->flag & BONE_IK_TOPARENT))
-			break;
+		if(segcount==data->rootbone || segcount>255) break; // 255 is weak
 	}
 	if (!segcount) return;
 
 	/* setup the chain data */
-	chain = NULL;
-
-	/* if tree-IK, look for mathing chain */
-	if(data->flag & CONSTRAINT_IK_TREE) 
-		for(chain= pchan_root->chain.first; chain; chain= chain->next)
-			if(chain->tree) break;
+	
+	/* we make tree-IK, unless all existing targets are in this chain */
+	for(chain= pchan_root->chain.first; chain; chain= chain->next) {
+		for(target= chain->targets.first; target; target= target->next) {
+			curchan= chain->pchanchain[target->tip];
+			if(curchan->flag & POSE_CHAIN)
+				curchan->flag &= ~POSE_CHAIN;
+			else
+				break;
+		}
+		if(target) break;
+	}
 
 	/* create a target */
 	target= MEM_callocN(sizeof(PoseTarget), "posetarget");
 	target->con= con;
+	pchan_tip->flag &= ~POSE_CHAIN;
 
 	if(chain==NULL) {
 		/* make new chain */
 		chain= MEM_callocN(sizeof(PoseChain), "posechain");
 
-		chain->tree= data->flag & CONSTRAINT_IK_TREE;
 		chain->tolerance= data->tolerance;
 		chain->iterations= data->iterations;
 		chain->totchannel= segcount;
 		
 		chain->pchanchain= MEM_callocN(segcount*sizeof(void *), "channel chain");
-		for(a=0; a<segcount; a++)
+		for(a=0; a<segcount; a++) {
 			chain->pchanchain[a]= chanlist[segcount-a-1];
-
+		}
 		target->tip= segcount-1;
 		
 		/* AND! link the chain to the root */
@@ -1048,7 +1051,6 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 		for(a=0; a<size && chain->pchanchain[a]==chanlist[segcount-a-1]; a++);
 
 		segcount= segcount-a;
-
 		target->tip= chain->totchannel + segcount - 1;
 
 		if (segcount > 0) {
@@ -1063,7 +1065,7 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 			/* add new pose channels at the end, in reverse order */
 			for(a=0; a<segcount; a++)
 				chain->pchanchain[chain->totchannel+a]= chanlist[segcount-a-1];
-
+			
 			chain->totchannel= newsize;
 		}
 
@@ -1129,7 +1131,7 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		/* get the matrix that transforms from prevbone into this bone */
 		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
 		
-		if(pchan->parent && (bone->flag & BONE_IK_TOPARENT)) {
+		if(a>0 && pchan->parent) {
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
 		}
 		else
@@ -1138,8 +1140,7 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		Mat3Inv(iR_parmat, R_parmat);
 		
 		/* gather transformations for this IK segment */
-		start[0]= start[1]= start[2]= 0.0;
-
+		
 		/* change length based on bone size */
 		Mat3ToSize(R_bonemat, bonesize);
 		length= bone->length*bonesize[1];
@@ -1155,6 +1156,14 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		Mat3Ortho(rest_basis);
 		Mat3Ortho(basis);
 
+		/* Bone offset */
+		if(a>0 && pchan->parent) {
+			VECCOPY(start, bone->head);
+//			Mat3MulVecfl(R_parmat, start);
+		}
+		else
+			start[0]= start[1]= start[2]= 0.0f;
+		
 		IK_SetTransform(seg, start, rest_basis, basis, length);
 
 		if (pchan->ikflag & BONE_IK_XLIMIT)
@@ -1272,7 +1281,7 @@ void chan_calc_mat(bPoseChannel *chan)
 	
 	/* prevent action channels breaking chains */
 	/* need to check for bone here, CONSTRAINT_TYPE_ACTION uses this call */
-	if (chan->bone==NULL || !(chan->bone->flag & BONE_IK_TOPARENT)) {
+	if (chan->bone==NULL || !(chan->bone->flag & BONE_CONNECTED)) {
 		VECCOPY(chan->chan_mat[3], chan->loc);
 	}
 
@@ -1398,7 +1407,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
 		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);
 		
 		/* prevent constraints breaking a chain */
-		if(pchan->bone->flag & BONE_IK_TOPARENT)
+		if(pchan->bone->flag & BONE_CONNECTED)
 			VECCOPY(pchan->pose_mat[3], vec);
 
 	}
@@ -1444,43 +1453,44 @@ void where_is_pose (Object *ob)
 
 		/* 1. construct the PoseChains, clear flags */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			pchan->flag &= ~POSE_DONE;
+			pchan->flag &= ~(POSE_DONE|POSE_CHAIN);
 			if(pchan->constflag & PCHAN_HAS_IK) // flag is set on editing constraints
 				initialize_posechain(ob, pchan);	// will attach it to root!
 		}
 		
 		/* 2. the main loop, channels are already hierarchical sorted from root to children */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(!(pchan->flag & POSE_DONE)) {
-				/* 3. if we find an IK root, we handle it separated */
-				if(pchan->chain.first) {
-					while(pchan->chain.first) {
-						PoseChain *chain= pchan->chain.first;
-						int a;
-						
-						/* 4. walk over the chain for regular solving */
-						for(a=0; a<chain->totchannel; a++) {
-							if(!(chain->pchanchain[a]->flag & POSE_DONE))	// successive chains can set the flag
-								where_is_pose_bone(ob, chain->pchanchain[a]);
-						}
-						/* 5. execute the IK solver, applying differences to
-							the channels and setting POSE_DONE */
-						execute_posechain(ob, chain);
-						
-						/* 6. apply the differences to the channels, we calculate the original differences first */
-						for(a=0; a<chain->totchannel; a++)
-							make_dmats(chain->pchanchain[a]);
-						
-						for(a=0; a<chain->totchannel; a++)
-							/* sets POSE_DONE */
-							where_is_ik_bone(chain->pchanchain[a], chain->basis_change[a]);
-						
-						/* 7. and free */
-						BLI_remlink(&pchan->chain, chain);
-						free_posechain(chain);
+			
+			/* 3. if we find an IK root, we handle it separated */
+			if(pchan->chain.first) {
+				while(pchan->chain.first) {
+					PoseChain *chain= pchan->chain.first;
+					int a;
+					
+					/* 4. walk over the chain for regular solving */
+					for(a=0; a<chain->totchannel; a++) {
+						if(!(chain->pchanchain[a]->flag & POSE_DONE))	// successive chains can set the flag
+							where_is_pose_bone(ob, chain->pchanchain[a]);
 					}
+					/* 5. execute the IK solver */
+					execute_posechain(ob, chain);
+					
+					/* 6. apply the differences to the channels, 
+						  we need to calculate the original differences first */
+					for(a=0; a<chain->totchannel; a++)
+						make_dmats(chain->pchanchain[a]);
+					
+					for(a=0; a<chain->totchannel; a++)
+						/* sets POSE_DONE */
+						where_is_ik_bone(chain->pchanchain[a], chain->basis_change[a]);
+					
+					/* 7. and free */
+					BLI_remlink(&pchan->chain, chain);
+					free_posechain(chain);
 				}
-				else where_is_pose_bone(ob, pchan);
+			}
+			else if(!(pchan->flag & POSE_DONE)) {
+				where_is_pose_bone(ob, pchan);
 			}
 		}
 	}

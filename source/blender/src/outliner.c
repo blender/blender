@@ -1294,7 +1294,7 @@ static int tree_element_active_ebone(TreeElement *te, TreeStoreElem *tselem, int
 
 			ebone->flag |= BONE_SELECTED|BONE_ROOTSEL|BONE_TIPSEL|BONE_ACTIVE;
 			// flush to parent?
-			if(ebone->parent && (ebone->flag & BONE_IK_TOPARENT)) ebone->parent->flag |= BONE_TIPSEL;
+			if(ebone->parent && (ebone->flag & BONE_CONNECTED)) ebone->parent->flag |= BONE_TIPSEL;
 			
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWOOPS, 0);

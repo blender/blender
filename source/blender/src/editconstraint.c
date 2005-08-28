@@ -116,22 +116,20 @@ ListBase *get_active_constraint_channels (Object *ob, int forcevalid)
 /* if object in posemode, active bone constraints, else object constraints */
 ListBase *get_active_constraints(Object *ob)
 {
-	ListBase *list;
-
 	if (!ob)
 		return NULL;
-
-	list = &ob->constraints;
 
 	if (ob->flag & OB_POSEMODE) {
 		bPoseChannel *pchan;
 
 		pchan = get_active_posechannel(ob);
 		if (pchan)
-			list = &pchan->constraints;
+			return &pchan->constraints;
 	}
+	else 
+		return &ob->constraints;
 
-	return list;
+	return NULL;
 }
 
 /* single constraint */

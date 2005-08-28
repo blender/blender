@@ -333,8 +333,8 @@ static void draw_bone_solid_octahedral(void)
 
 static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
 {
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
+	/*	Draw root point if we are not connected */
+	if (!(boneflag & BONE_CONNECTED)){
 		if (id != -1)
 			glLoadName (id | BONESEL_ROOT);
 		
@@ -413,7 +413,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 		length= ebone->length;
 		tail= ebone->rad_tail;
 		dist= ebone->dist;
-		if (ebone->parent && (ebone->flag & BONE_IK_TOPARENT))
+		if (ebone->parent && (ebone->flag & BONE_CONNECTED))
 			head= ebone->parent->rad_tail;
 		else
 			head= ebone->rad_head;
@@ -424,7 +424,7 @@ static void draw_sphere_bone_dist(float smat[][4], float imat[][4], int boneflag
 		length= pchan->bone->length;
 		tail= pchan->bone->rad_tail;
 		dist= pchan->bone->dist;
-		if (pchan->parent && (pchan->bone->flag & BONE_IK_TOPARENT))
+		if (pchan->parent && (pchan->bone->flag & BONE_CONNECTED))
 			head= pchan->parent->bone->rad_tail;
 		else
 			head= pchan->bone->rad_head;
@@ -522,7 +522,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 
 		length= ebone->length;
 		tail= ebone->rad_tail;
-		if (ebone->parent && (boneflag & BONE_IK_TOPARENT))
+		if (ebone->parent && (boneflag & BONE_CONNECTED))
 			head= ebone->parent->rad_tail;
 		else
 			head= ebone->rad_head;
@@ -532,7 +532,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 	else {
 		length= pchan->bone->length;
 		tail= pchan->bone->rad_tail;
-		if (pchan->parent && (boneflag & BONE_IK_TOPARENT))
+		if (pchan->parent && (boneflag & BONE_CONNECTED))
 			head= pchan->parent->bone->rad_tail;
 		else
 			head= pchan->bone->rad_head;
@@ -552,8 +552,8 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4], int armflag,
 		else BIF_ThemeColor(TH_WIRE);
 	}
 	
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
+	/*	Draw root point if we are not connected */
+	if (!(boneflag & BONE_CONNECTED)){
 		if (id != -1)
 			glLoadName (id | BONESEL_ROOT);
 		
@@ -636,7 +636,7 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 	if(ebone) {
 		length= ebone->length;
 		tail= ebone->rad_tail;
-		if (ebone->parent && (boneflag & BONE_IK_TOPARENT))
+		if (ebone->parent && (boneflag & BONE_CONNECTED))
 			head= ebone->parent->rad_tail;
 		else
 			head= ebone->rad_head;
@@ -644,7 +644,7 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 	else {
 		length= pchan->bone->length;
 		tail= pchan->bone->rad_tail;
-		if (pchan->parent && (boneflag & BONE_IK_TOPARENT))
+		if (pchan->parent && (boneflag & BONE_CONNECTED))
 			head= pchan->parent->bone->rad_tail;
 		else
 			head= pchan->bone->rad_head;
@@ -679,8 +679,8 @@ static void draw_sphere_bone(int dt, int armflag, int boneflag, int constflag, u
 	else if(dt==OB_SOLID) 
 		BIF_ThemeColorShade(TH_BONE_SOLID, -30);
 	
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
+	/*	Draw root point if we are not connected */
+	if (!(boneflag & BONE_CONNECTED)){
 		if (id != -1)
 			glLoadName (id | BONESEL_ROOT);
 		gluSphere( qobj, head, 16, 10);
@@ -788,8 +788,8 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 			BIF_ThemeColor(TH_WIRE);
 		}
 		
-		/*	Draw root point if we have no IK parent */
-		if (!(boneflag & BONE_IK_TOPARENT)){
+		/*	Draw root point if we are not connected */
+		if (!(boneflag & BONE_CONNECTED)){
 			if (G.f & G_PICKSEL) {	// no bitmap in selection mode, crashes 3d cards...
 				glLoadName (id | BONESEL_ROOT);
 				glBegin(GL_POINTS);
@@ -839,8 +839,8 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 	
 	glLineWidth(2.0);
 	
-	/*	Draw root point if we have no IK parent */
-	if (!(boneflag & BONE_IK_TOPARENT)){
+	/*	Draw root point if we are not connected */
+	if (!(boneflag & BONE_CONNECTED)){
 		if ((G.f & G_PICKSEL)==0) {	// no bitmap in selection mode, crashes 3d cards...
 			if(armflag & ARM_EDITMODE) {
 				if (boneflag & BONE_ROOTSEL) BIF_ThemeColor(TH_VERTEX_SELECT);
@@ -1064,6 +1064,43 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	}
 }
 
+static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
+{
+	bConstraint *con;
+	bPoseChannel *parchan;
+	
+	for(con= pchan->constraints.first; con; con= con->next) {
+		if(con->type == CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+			int segcount= 0;
+			
+			setlinestyle(3);
+			glBegin(GL_LINES);
+			
+			/* exclude tip from chain? */
+			if(!(data->flag & CONSTRAINT_IK_TIP))
+				parchan= pchan->parent;
+			else
+				parchan= pchan;
+			
+			glVertex3fv(parchan->pose_tail);
+			
+			/* Find the chain's root */
+			while (parchan->parent){
+				segcount++;
+				if(segcount==data->rootbone || segcount>255) break; // 255 is weak
+				parchan= parchan->parent;
+			}
+			if(parchan)
+				glVertex3fv(parchan->pose_head);
+			
+			glEnd();
+			setlinestyle(0);
+		}
+	}
+}
+
+
 /* assumes object is Armature with pose */
 static void draw_pose_channels(Base *base, int dt)
 {
@@ -1127,7 +1164,7 @@ static void draw_pose_channels(Base *base, int dt)
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
-					flag &= ~BONE_IK_TOPARENT;
+					flag &= ~BONE_CONNECTED;
 				
 				if(arm->drawtype==ARM_ENVELOPE)
 					draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
@@ -1161,19 +1198,31 @@ static void draw_pose_channels(Base *base, int dt)
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
-					
-				//	Draw a line from our root to the parent's tip
-				if (do_dashed && bone->parent && !(bone->flag & BONE_IK_TOPARENT) ){
-					if (arm->flag & ARM_POSEMODE) {
-						glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
-						BIF_ThemeColor(TH_WIRE);
+	
+				if (do_dashed && bone->parent) {
+					//	Draw a line from our root to the parent's tip
+					if(!(bone->flag & BONE_CONNECTED) ){
+						if (arm->flag & ARM_POSEMODE) {
+							glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
+							BIF_ThemeColor(TH_WIRE);
+						}
+						setlinestyle(3);
+						glBegin(GL_LINES);
+						glVertex3fv(pchan->pose_head);
+						glVertex3fv(pchan->parent->pose_tail);
+						glEnd();
+						setlinestyle(0);
 					}
-					setlinestyle(3);
-					glBegin(GL_LINES);
-					glVertex3fv(pchan->pose_head);
-					glVertex3fv(pchan->parent->pose_tail);
-					glEnd();
-					setlinestyle(0);
+					//	Draw a line to IK root bone
+					if(arm->flag & ARM_POSEMODE) {
+						if(pchan->constflag & PCHAN_HAS_IK) {
+							if(bone->flag & BONE_SELECTED) {
+								glLoadName (index & 0xFFFF);
+								glColor3ub(200, 200, 50);	// add theme!
+								pchan_draw_IK_root_lines(pchan);
+							}
+						}
+					}
 				}
 				
 				if(arm->drawtype!=ARM_ENVELOPE) {
@@ -1184,7 +1233,7 @@ static void draw_pose_channels(Base *base, int dt)
 				/* catch exception for bone with hidden parent */
 				flag= bone->flag;
 				if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
-					flag &= ~BONE_IK_TOPARENT;
+					flag &= ~BONE_CONNECTED;
 				
 				/* extra draw service for pose mode */
 				constflag= pchan->constflag;
@@ -1321,7 +1370,7 @@ static void draw_ebones(Object *ob, int dt)
 				/* catch exception for bone with hidden parent */
 				flag= eBone->flag;
 				if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
-					flag &= ~BONE_IK_TOPARENT;
+					flag &= ~BONE_CONNECTED;
 				
 				if(arm->drawtype==ARM_ENVELOPE)
 					draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
@@ -1338,6 +1387,7 @@ static void draw_ebones(Object *ob, int dt)
 	
 	/* if wire over solid, set offset */
 	index= -1;
+	glLoadName(-1);
 	if(arm->drawtype==ARM_LINE) {
 		if(G.f & G_PICKSEL)
 			index= 0;
@@ -1353,7 +1403,7 @@ static void draw_ebones(Object *ob, int dt)
 			/* catch exception for bone with hidden parent */
 			flag= eBone->flag;
 			if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
-				flag &= ~BONE_IK_TOPARENT;
+				flag &= ~BONE_CONNECTED;
 			
 			if(arm->drawtype==ARM_ENVELOPE) {
 				if(dt<OB_SOLID)

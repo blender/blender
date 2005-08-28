@@ -183,7 +183,7 @@ void recalcData(TransInfo *t)
 			/* Ensure all bones are correctly adjusted */
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
 				
-				if ((ebo->flag & BONE_IK_TOPARENT) && ebo->parent){
+				if ((ebo->flag & BONE_CONNECTED) && ebo->parent){
 					/* If this bone has a parent tip that has been moved */
 					if (ebo->parent->flag & BONE_TIPSEL){
 						VECCOPY (ebo->head, ebo->parent->tail);

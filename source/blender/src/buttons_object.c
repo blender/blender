@@ -423,7 +423,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	
 	/* rounded header */
 	rb_col= (con->flag & CONSTRAINT_ACTIVE)?10:-10;
-	uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-1, width+30, 22, NULL, 5.0, 0.0, 
+	uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-1, width+40, 22, NULL, 5.0, 0.0, 
 			 (con->flag & CONSTRAINT_EXPAND)?3:15 , rb_col-20, ""); 
 	
 	/* open/close */
@@ -495,7 +495,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 
 				height = 88;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -533,7 +533,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 66;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -563,7 +563,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 46;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -586,33 +586,32 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 108;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
+				
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm)
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 				else
 					strcpy (data->subtarget, "");
-				uiBlockEndAlign(block);
 	
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco+((width/2)-117), *yco-42, 80, 18, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco, *yco-64, 142, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
+				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco+142, *yco-64,143,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Tolerance:", *xco+((width/2)-117), *yco-64, 120, 18, &data->tolerance, 0.0001f, 1.0, 0.0, 0.0, "Maximum distance to target after solving"); 
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+((width/2)+3), *yco-64, 120, 18, &data->iterations, 1, 10000, 0.0, 0.0, "Maximum number of solving iterations"); 
-				uiBlockEndAlign(block);
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco, *yco-86, 142, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+142, *yco-86, 143, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Tolerance:", *xco, *yco-106, 142, 19, &data->tolerance, 0.0001f, 1.0, 0, 0, "Maximum distance to target after solving"); 
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+142, *yco-106, 143, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
 				
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TREE, B_CONSTRAINT_TEST, "Tree IK", *xco+((width/2)-117), *yco-86,120,18, &data->flag, 0, 0, 0, 0, "IK chain becomes tree, when it shares Root with other Chains");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-86, 120, 18, &data->weight, 0.0, 1.0, 0.0, 0.0, "Weight of position control for this target");
-				
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Orientation", *xco+((width/2)-117), *yco-108,120,18, &data->flag, 0, 0, 0, 0, "Follow orientation of target");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Weight ", *xco+((width/2)+3), *yco-108, 120, 18, &data->orientweight, 0.0, 1.0, 0.0, 0.0, "Weight of orientation control for this target");
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -621,7 +620,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 
 				height = 66;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -662,7 +661,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bLockTrackConstraint *data = con->data;
 				bArmature *arm;
 				height = 66;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -703,7 +702,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bFollowPathConstraint *data = con->data;
 
 				height = 66;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -742,7 +741,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bArmature *arm;
 				
 				height = 105;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
@@ -786,7 +785,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
-				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+30,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 			}
 			break;
@@ -973,7 +972,7 @@ void do_constraintbuts(unsigned short event)
 	allqueue (REDRAWBUTSOBJECT, 0);
 }
 
-static void object_panel_constraint(void)
+void object_panel_constraint(char *context)
 {
 	uiBlock *block;
 	Object *ob= OBACT;
@@ -983,7 +982,7 @@ static void object_panel_constraint(void)
 	char str[64];
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Constraints", "Object", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Constraints", context, 640, 0, 318, 204)==0) return;
 
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
 	/* so first we make it default height */
@@ -1758,7 +1757,7 @@ void object_panels()
 
 		object_panel_anim(ob);
 		object_panel_draw(ob);
-		object_panel_constraint();
+		object_panel_constraint("Object");
 		if(ob->type==OB_MESH) {
 			object_panel_effects(ob);
 		}

@@ -219,8 +219,8 @@ int calc_manipulator_stats(ScrArea *sa)
 			EditBone *ebo;
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 				
-				//	If this is an IK child and it's parent is being moved, don't count as selected
-				if ((ebo->flag & BONE_IK_TOPARENT)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL));
+				//	If this is a connected child and it's parent is being moved, don't count as selected
+				if ((ebo->flag & BONE_CONNECTED)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL));
 				else {
 					if (ebo->flag & BONE_TIPSEL) {
 						calc_tw_center(ebo->tail);

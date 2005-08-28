@@ -112,7 +112,7 @@ typedef struct bArmature {
 #define		BONE_TIPSEL		4
 			/* Used instead of BONE_SELECTED during transform */
 #define		BONE_TRANSFORM  8
-#define		BONE_IK_TOPARENT 16
+#define		BONE_CONNECTED 16
 			/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */
 			/* hidden Bones when drawing Posechannels */
 #define		BONE_HIDDEN_P		64

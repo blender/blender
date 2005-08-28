@@ -261,14 +261,21 @@ void pose_add_IK(void)
 		bPoseChannel *pchan= pchanact;
 		while(pchan) {
 			if(pchan==pchansel) break;
-			if(pchan->bone->flag & BONE_IK_TOPARENT)
-				pchan= pchan->parent;
-			else pchan= NULL;
+			pchan= pchan->parent;
 		}
 		if(pchan) {
-			error("IK target should not be in the IK chain itself");
+			error("IK root cannot be linked to IK tip");
 			return;
 		}
+		pchan= pchansel;
+		while(pchan) {
+			if(pchan==pchanact) break;
+			pchan= pchan->parent;
+		}
+		if(pchan) {
+			error("IK tip cannot be linked to IK root");
+			return;
+		}		
 	}
 
 	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);

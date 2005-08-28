@@ -1669,13 +1669,13 @@ void do_viewbuts(unsigned short event)
 			if (ebone) {
 				ebone->roll= M_PI*ob_eul[0]/180.0;
 				//	Update our parent
-				if (ebone->parent && ebone->flag & BONE_IK_TOPARENT){
+				if (ebone->parent && ebone->flag & BONE_CONNECTED){
 					VECCOPY (ebone->parent->tail, ebone->head);
 				}
 			
 				//	Update our children if necessary
 				for (child = G.edbo.first; child; child=child->next){
-					if (child->parent == ebone && (child->flag & BONE_IK_TOPARENT)){
+					if (child->parent == ebone && (child->flag & BONE_CONNECTED)){
 						VECCOPY (child->head, ebone->tail);
 					}
 				}
@@ -1687,13 +1687,13 @@ void do_viewbuts(unsigned short event)
 						eboflip->tail[0]= -ebone->tail[0];
 						
 						//	Update our parent
-						if (eboflip->parent && eboflip->flag & BONE_IK_TOPARENT){
+						if (eboflip->parent && eboflip->flag & BONE_CONNECTED){
 							VECCOPY (eboflip->parent->tail, eboflip->head);
 						}
 						
 						//	Update our children if necessary
 						for (child = G.edbo.first; child; child=child->next){
-							if (child->parent == eboflip && (child->flag & BONE_IK_TOPARENT)){
+							if (child->parent == eboflip && (child->flag & BONE_CONNECTED)){
 								VECCOPY (child->head, eboflip->tail);
 							}
 						}
