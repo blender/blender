@@ -79,7 +79,7 @@ private:
 	bool m_transpose;
 
 	// the jacobian matrix and it's null space projector
-	TMatrix m_jacobian, m_jacobian_t;
+	TMatrix m_jacobian, m_jacobian_tmp;
 	TMatrix m_null;
 
 	/// the vector of intermediate betas

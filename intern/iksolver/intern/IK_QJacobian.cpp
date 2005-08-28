@@ -72,6 +72,8 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size, int tasks)
 	if (task_size >= dof) {
 		m_transpose = false;
 
+		m_jacobian_tmp.newsize(task_size, dof);
+
 		m_svd_u.newsize(task_size, dof);
 		m_svd_v.newsize(dof, dof);
 		m_svd_w.newsize(dof);
@@ -87,7 +89,7 @@ void IK_QJacobian::ArmMatrices(int dof, int task_size, int tasks)
 		// as the original, and often allows using smaller matrices.
 		m_transpose = true;
 
-		m_jacobian_t.newsize(dof, task_size);
+		m_jacobian_tmp.newsize(dof, task_size);
 
 		m_svd_u.newsize(task_size, task_size);
 		m_svd_v.newsize(dof, task_size);
@@ -106,8 +108,6 @@ void IK_QJacobian::SetBetas(int id, int, const MT_Vector3& v)
 	m_beta[id] = v.x();
 	m_beta[id+1] = v.y();
 	m_beta[id+2] = v.z();
-
-	//printf("#: %f %f %f\n", v.x(), v.y(), v.z());
 }
 
 void IK_QJacobian::SetDerivatives(int id, int dof_id, const MT_Vector3& v)
@@ -115,8 +115,6 @@ void IK_QJacobian::SetDerivatives(int id, int dof_id, const MT_Vector3& v)
 	m_jacobian[id][dof_id] = v.x()*m_weight_sqrt[dof_id];
 	m_jacobian[id+1][dof_id] = v.y()*m_weight_sqrt[dof_id];
 	m_jacobian[id+2][dof_id] = v.z()*m_weight_sqrt[dof_id];
-
-	//printf("%d: %f %f %f\n", dof_id, v.x(), v.y(), v.z());
 }
 
 void IK_QJacobian::Invert()
@@ -124,13 +122,14 @@ void IK_QJacobian::Invert()
 	if (m_transpose) {
 		// SVD will decompose Jt into V*W*Ut with U,V orthogonal and W diagonal,
 		// so J = U*W*Vt and Jinv = V*Winv*Ut
-		TNT::transpose(m_jacobian, m_jacobian_t);
-		TNT::SVD(m_jacobian_t, m_svd_v, m_svd_w, m_svd_u, m_work1, m_work2);
+		TNT::transpose(m_jacobian, m_jacobian_tmp);
+		TNT::SVD(m_jacobian_tmp, m_svd_v, m_svd_w, m_svd_u, m_work1, m_work2);
 	}
 	else {
 		// SVD will decompose J into U*W*Vt with U,V orthogonal and W diagonal,
 		// so Jinv = V*Winv*Ut
-		TNT::SVD(m_jacobian, m_svd_u, m_svd_w, m_svd_v, m_work1, m_work2);
+		m_jacobian_tmp = m_jacobian;
+		TNT::SVD(m_jacobian_tmp, m_svd_u, m_svd_w, m_svd_v, m_work1, m_work2);
 	}
 
 	if (m_sdls)
