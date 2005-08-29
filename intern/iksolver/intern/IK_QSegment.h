@@ -157,6 +157,8 @@ public:
 	// set joint weights (per axis)
 	virtual void SetWeight(int, MT_Scalar) {};
 
+	virtual void SetBasis(const MT_Matrix3x3& basis) { m_basis = basis; }
+
 protected:
 
 	// num_DoF: number of degrees of freedom
@@ -228,6 +230,7 @@ public:
 	void UpdateAngleApply() {}
 
 	MT_Vector3 Axis(int) const { return MT_Vector3(0, 0, 0); }
+	void SetBasis(const MT_Matrix3x3&) { m_basis.setIdentity(); }
 };
 
 class IK_QRevoluteSegment : public IK_QSegment
@@ -244,6 +247,7 @@ public:
 
 	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
 	void SetWeight(int axis, MT_Scalar weight);
+	void SetBasis(const MT_Matrix3x3& basis);
 
 private:
 	int m_axis;
@@ -266,6 +270,7 @@ public:
 
 	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
 	void SetWeight(int axis, MT_Scalar weight);
+	void SetBasis(const MT_Matrix3x3& basis);
 
 private:
 	MT_Matrix3x3 m_new_basis;
@@ -288,6 +293,7 @@ public:
 
 	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
 	void SetWeight(int axis, MT_Scalar weight);
+	void SetBasis(const MT_Matrix3x3& basis);
 
 private:
 	int m_axis;

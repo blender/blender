@@ -55,6 +55,22 @@ static MT_Matrix3x3 RotationMatrix(MT_Scalar angle, int axis)
 	return RotationMatrix(sin(angle), cos(angle), axis);
 }
 
+
+static MT_Scalar EulerAngleFromMatrix(const MT_Matrix3x3& R, int axis)
+{
+	MT_Scalar t = sqrt(R[0][0]*R[0][0] + R[0][1]*R[0][1]);
+
+    if (t > 16.0*MT_EPSILON) {
+		if (axis == 0) return atan2(R[1][2], R[2][2]);
+        else if(axis == 1) return atan2(-R[0][2], t);
+        else return atan2(R[0][1], R[0][0]);
+    } else {
+		if (axis == 0) return atan2(-R[2][1], R[1][1]);
+        else if(axis == 1) return atan2(-R[0][2], t);
+        else return 0.0f;
+    }
+}
+
 static MT_Scalar safe_acos(MT_Scalar f)
 {
 	if (f <= -1.0f)
@@ -173,10 +189,11 @@ void IK_QSegment::SetTransform(
 
 	m_start = start;
 	m_rest_basis = rest_basis;
-	m_basis = basis;
-	m_translation = MT_Vector3(0, length, 0);
 
-	m_orig_basis = m_basis;
+	m_orig_basis = basis;
+	SetBasis(basis);
+
+	m_translation = MT_Vector3(0, length, 0);
 	m_orig_translation = m_translation;
 }
 
@@ -485,6 +502,18 @@ IK_QRevoluteSegment::IK_QRevoluteSegment(int axis)
 {
 }
 
+void IK_QRevoluteSegment::SetBasis(const MT_Matrix3x3& basis)
+{
+	if (m_axis == 1) {
+		m_angle = ComputeTwist(basis);
+		m_basis = ComputeTwistMatrix(m_angle);
+	}
+	else {
+		m_angle = EulerAngleFromMatrix(basis, m_axis);
+		m_basis = RotationMatrix(m_angle, m_axis);
+	}
+}
+
 MT_Vector3 IK_QRevoluteSegment::Axis(int) const
 {
 	return m_global_transform.getBasis().getColumn(m_axis);
@@ -524,8 +553,7 @@ void IK_QRevoluteSegment::Lock(int, IK_QJacobian& jacobian, MT_Vector3& delta)
 void IK_QRevoluteSegment::UpdateAngleApply()
 {
 	m_angle = m_new_angle;
-
-	m_basis = m_orig_basis*RotationMatrix(m_angle, m_axis);
+	m_basis = RotationMatrix(m_angle, m_axis);
 }
 
 void IK_QRevoluteSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
@@ -554,6 +582,12 @@ void IK_QRevoluteSegment::SetWeight(int axis, MT_Scalar weight)
 IK_QSwingSegment::IK_QSwingSegment()
 : IK_QSegment(2, false), m_limit_x(false), m_limit_z(false)
 {
+}
+
+void IK_QSwingSegment::SetBasis(const MT_Matrix3x3& basis)
+{
+	m_basis = basis;
+	RemoveTwist(m_basis);
 }
 
 MT_Vector3 IK_QSwingSegment::Axis(int dof) const
@@ -736,6 +770,17 @@ IK_QElbowSegment::IK_QElbowSegment(int axis)
 {
 }
 
+void IK_QElbowSegment::SetBasis(const MT_Matrix3x3& basis)
+{
+	m_basis = basis;
+
+	m_twist = ComputeTwist(m_basis);
+	RemoveTwist(m_basis);
+	m_angle = EulerAngleFromMatrix(basis, m_axis);
+
+	m_basis = RotationMatrix(m_angle, m_axis)*ComputeTwistMatrix(m_twist);
+}
+
 MT_Vector3 IK_QElbowSegment::Axis(int dof) const
 {
 	if (dof == 0) {
@@ -818,7 +863,7 @@ void IK_QElbowSegment::UpdateAngleApply()
 	MT_Matrix3x3 A = RotationMatrix(m_angle, m_axis);
 	MT_Matrix3x3 T = RotationMatrix(m_sin_twist, m_cos_twist, 1);
 
-	m_basis = m_orig_basis*A*T;
+	m_basis = A*T;
 }
 
 void IK_QElbowSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
