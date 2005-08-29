@@ -162,7 +162,21 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
-
+int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
+{
+	bConstraint *con;
+	Bone *bone;
+	
+	for(con= pchan->constraints.first; con; con= con->next) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) return 1;
+	}
+	for(bone= pchan->bone->childbase.first; bone; bone= bone->next) {
+		pchan= get_pose_channel(ob->pose, bone->name);
+		if(pchan && pose_channel_in_IK_chain(ob, pchan))
+			return 1;
+	}
+	return 0;
+}
 
 void pose_select_constraint_target(void)
 {

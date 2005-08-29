@@ -98,6 +98,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -2345,53 +2346,60 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_HIDDEN_P, REDRAWVIEW3D, "Hide",	bx+245,by-38,88,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Pose Mode");
 			uiBlockEndAlign(block);
 			
+			/* DOFs only for IK chains */
 			zerodof = 1;
 			zerolimit = 1;
-			
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_XDOF, B_ARM_RECALCDATA, "Lock X Rot", bx-10,by-60,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable X DoF for IK");
-			if ((pchan->ikflag & BONE_IK_NO_XDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
-				uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
-				if ((pchan->ikflag & BONE_IK_XLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, pchan->limitmax[0], 10, 2, "Minimum X limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], pchan->limitmin[0], 180.0f, 10, 2, "Maximum X limit");
-					zerolimit = 0;
+			if(pose_channel_in_IK_chain(ob, pchan)) {
+				
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, BONE_IK_NO_XDOF, B_ARM_RECALCDATA, "Lock X Rot", bx-10,by-60,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable X DoF for IK");
+				if ((pchan->ikflag & BONE_IK_NO_XDOF)==0) {
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
+					uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
+					if ((pchan->ikflag & BONE_IK_XLIMIT)) {
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, pchan->limitmax[0], 1000, 1, "Minimum X limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], pchan->limitmin[0], 180.0f, 1000, 1, "Maximum X limit");
+						zerolimit = 0;
+					}
+					zerodof = 0;
 				}
-				zerodof = 0;
-			}
-			uiBlockEndAlign(block);
-			
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "Lock Y Rot", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
-			if ((pchan->ikflag & BONE_IK_NO_YDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
-				uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
-				if ((pchan->ikflag & BONE_IK_YLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, pchan->limitmax[1], 10, 2, "Minimum Y limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], pchan->limitmin[1], 180.0f, 10, 2, "Maximum Y limit");
-					zerolimit = 0;
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "Lock Y Rot", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
+				if ((pchan->ikflag & BONE_IK_NO_YDOF)==0) {
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
+					uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
+					if ((pchan->ikflag & BONE_IK_YLIMIT)) {
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, pchan->limitmax[1], 1000, 1, "Minimum Y limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], pchan->limitmin[1], 180.0f, 1000, 1, "Maximum Y limit");
+						zerolimit = 0;
+					}
+					zerodof = 0;
 				}
-				zerodof = 0;
-			}
-			uiBlockEndAlign(block);
-			
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, BONE_IK_NO_ZDOF, B_ARM_RECALCDATA, "Lock Z Rot", bx+217,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Z DoF for IK");
-			if ((pchan->ikflag & BONE_IK_NO_ZDOF)==0) {
-				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
-				uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
-				if ((pchan->ikflag & BONE_IK_ZLIMIT)) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, pchan->limitmax[2], 10, 2, "Minimum Z limit");
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], pchan->limitmin[2], 180.0f, 10, 2, "Maximum Z limit");
-					zerolimit = 0;
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, BONE_IK_NO_ZDOF, B_ARM_RECALCDATA, "Lock Z Rot", bx+217,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Z DoF for IK");
+				if ((pchan->ikflag & BONE_IK_NO_ZDOF)==0) {
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
+					uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
+					if ((pchan->ikflag & BONE_IK_ZLIMIT)) {
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, pchan->limitmax[2], 1000, 1, "Minimum Z limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], pchan->limitmin[2], 180.0f, 1000, 1, "Maximum Z limit");
+						zerolimit = 0;
+					}
+					zerodof = 0;
 				}
-				zerodof = 0;
+				uiBlockEndAlign(block);
+				
 			}
-			uiBlockEndAlign(block);
+			else {
+				uiDefBut(block, LABEL, 0, "(DoF options only for IK chains)", bx-10,by-60, 300, 20, 0, 0, 0, 0, 0, "");
+			}
 			
 			by -= (zerodof)? 82: (zerolimit)? 122: 162;
-			
+				
 			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
 	}

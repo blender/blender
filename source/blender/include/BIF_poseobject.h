@@ -44,6 +44,7 @@ void exit_posemode(void);
 void set_pose_keys(struct Object *ob);
 
 struct bPoseChannel *get_active_posechannel (struct Object *ob);
+int pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan);
 
 /* tools */
 void pose_select_constraint_target(void);
