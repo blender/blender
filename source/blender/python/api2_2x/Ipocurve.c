@@ -279,8 +279,6 @@ static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self )
 
 static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 {
-	short MEM_freeN( void *vmemh );
-	void *MEM_mallocN( unsigned int len, char *str );
 	float x, y;
 	int npoints;
 	IpoCurve *icu;
@@ -331,8 +329,6 @@ static PyObject *IpoCurve_addBezier( C_IpoCurve * self, PyObject * args )
 
 static PyObject *IpoCurve_delBezier( C_IpoCurve * self, PyObject * args )
 {
-	//short MEM_freeN( void *vmemh );
-	//void *MEM_mallocN( unsigned int len, char *str );
 	int npoints;
 	int index;
 	IpoCurve *icu;
