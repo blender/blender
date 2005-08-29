@@ -201,11 +201,11 @@ SOURCE=..\..\intern\TNT\version.h
 # End Group
 # Begin Source File
 
-SOURCE=..\..\intern\IK_QChain.cpp
+SOURCE=..\..\intern\IK_QJacobian.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\IK_QChain.h
+SOURCE=..\..\intern\IK_QJacobian.h
 # End Source File
 # Begin Source File
 
@@ -226,6 +226,14 @@ SOURCE=..\..\intern\IK_QSegment.h
 # Begin Source File
 
 SOURCE=..\..\intern\IK_QSolver_Class.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\IK_QTask.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\IK_QTask.h
 # End Source File
 # Begin Source File
 
