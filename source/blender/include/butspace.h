@@ -404,7 +404,9 @@ enum {
 #define B_FASTFONT		2209
 #define B_INSTB			2210
 #define B_DELTB			2211
-#define B_STYLETOSEL	2212
+#define B_STYLETOSELB	2212
+#define B_STYLETOSELU	2213
+#define B_STYLETOSELI	2214
 
 /* *********************** */
 #define B_ARMBUTS		2400

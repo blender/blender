@@ -151,11 +151,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 		}
 		
 		if (pf) {
-#ifdef WITH_FREETYPE2
-			vfont->data= BLI_vfontdata_from_freetypefont(pf);
-#else
 			vfont->data= BLI_vfontdata_from_psfont(pf);
-#endif			
 			if (pf != vfont->packedfile) {
 				freePackedFile(pf);
 			}
@@ -192,11 +188,7 @@ VFont *load_vfont(char *name)
 		
 		waitcursor(1);
 
-#ifdef WITH_FREETYPE2
-		vfd= BLI_vfontdata_from_freetypefont(pf);
-#else
 		vfd= BLI_vfontdata_from_psfont(pf);
-#endif			
 		
 		if (vfd) {
 			vfont = alloc_libblock(&G.main->vfont, ID_VF, filename);
@@ -231,6 +223,54 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
    		default:
    			return(cu->vfont);
    	}			
+}
+
+static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
+{
+	Nurb *nu2;
+	BPoint *bp;
+	
+	nu2 =(Nurb*) MEM_callocN(sizeof(Nurb),"underline_nurb");
+	if (nu2 == NULL) return;
+	nu2->resolu= cu->resolu;
+	nu2->bezt = NULL;
+	nu2->knotsu = nu2->knotsv = 0;
+	nu2->flag= 0;
+	nu2->charidx = charidx+1000;
+	nu2->mat_nr= mat_nr;
+	nu2->pntsu = 4;
+	nu2->pntsv = 1;
+	nu2->orderu = 4;
+	nu2->orderv = 1;
+	nu2->flagu = CU_CYCLIC;
+
+	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint),"underline_bp"); 
+	if (bp == 0){
+		MEM_freeN(nu2);
+		return;
+	}
+	nu2->bp = bp;
+
+	nu2->bp[0].vec[0] = x1;
+	nu2->bp[0].vec[1] = y1;	
+	nu2->bp[0].vec[2] = 0;
+	nu2->bp[0].vec[3] = 1.0;
+	nu2->bp[1].vec[0] = x2;
+	nu2->bp[1].vec[1] = y1;
+	nu2->bp[1].vec[2] = 0;	
+	nu2->bp[1].vec[3] = 1.0;	
+	nu2->bp[2].vec[0] = x2;
+	nu2->bp[2].vec[1] = y2;	
+	nu2->bp[2].vec[2] = 0;
+	nu2->bp[2].vec[3] = 1.0; 
+	nu2->bp[3].vec[0] = x1;
+	nu2->bp[3].vec[1] = y2;
+	nu2->bp[3].vec[2] = 0;	
+	nu2->bp[3].vec[3] = 1.0;	
+	
+	nu2->type = CU_2D;
+	BLI_addtail(&(cu->nurb), nu2);	
+
 }
 
 static void buildchar(Curve *cu, unsigned char ascii, CharInfo *info, float ofsx, float ofsy, float rot, int charidx)
@@ -272,7 +312,12 @@ static void buildchar(Curve *cu, unsigned char ascii, CharInfo *info, float ofsx
 			nu2->knotsu = nu2->knotsv = 0;
 			nu2->flag= CU_SMOOTH;
 			nu2->charidx = charidx;
-			if (info->mat_nr) nu2->mat_nr= info->mat_nr-1;
+			if (info->mat_nr) {
+				nu2->mat_nr= info->mat_nr-1;
+			}
+			else {
+				nu2->mat_nr= 0;
+			}
 			/* nu2->trim.first = 0; */
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;
@@ -363,14 +408,15 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	struct chartrans *chartransdata, *ct;
 	float distfac, tabfac, ctime, dtime, tvec[4], vec[4], rotvec[3], minx, maxx, miny, maxy;
 	float cmat[3][3], timeofs, si, co, sizefac;
-	float *f, maxlen=0, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3;
+	float *f, maxlen=0, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
 	int i, slen, oldflag, j;
-	short cnr=0, lnr=0;
+	short cnr=0, lnr=0, wsnr= 0;
 	char ascii, *mem;
 	int outta;
-	float vecyo[3];
+	float vecyo[3], curofs;
 	CharInfo *info;
 	float wsfac;
+	float ulwidth, uloverlap;
 	TextBox *tb;
 	int curbox;
 	int selstart, selend;
@@ -383,9 +429,10 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 
 	cu= ob->data;
 	mem= cu->str;
-	if (cu->str==0) return 0;
 	slen = strlen(mem);	
 
+	if (cu->ulheight == 0.0) cu->ulheight = 0.05;
+	if (cu->str==0) return 0;
 	if (cu->strinfo==NULL) {	/* old file */
 		cu->strinfo = MEM_callocN((slen+1) * sizeof(CharInfo), "strinfo compat");
 	}
@@ -399,6 +446,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	linedata= MEM_mallocN(sizeof(float)*(slen+2),"buildtext2");
 	linedata2= MEM_mallocN(sizeof(float)*(slen+2),"buildtext3");
 	linedata3= MEM_callocN(sizeof(float)*(slen+2),"buildtext4");	
+	linedata4= MEM_callocN(sizeof(float)*(slen+2),"buildtext5");		
 	
 	linedist= cu->linedist;
 	
@@ -432,9 +480,11 @@ struct chartrans *text_to_curve(Object *ob, int mode)
     	if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+vfd->width[ascii])*cu->fsize) > tb->w) {
 //     		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", cu->str[i], cu->str[i+1], cu->str[i+2]);
     		for (j=i; j && (cu->str[j] != '\n') && (cu->str[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
-    			if (cu->str[j]==' ') {
+    			if (cu->str[j]==' ' || cu->str[j]=='-') {
 					ct -= (i-(j-1));
 					cnr -= (i-(j-1));
+					if (cu->str[j] == ' ') wsnr--;
+					if (cu->str[j] == '-') wsnr++;
 					i = j-1;
 					xof = ct->xof;
 					ct[1].dobreak = 1;
@@ -465,6 +515,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			linedata[lnr]= xof-tb->x/cu->fsize;
 			linedata2[lnr]= cnr;
 			linedata3[lnr]= tb->w/cu->fsize;
+			linedata4[lnr]= wsnr;
 			
 			if ( (tb->h != 0.0) &&
 			     ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize))) &&
@@ -478,6 +529,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			xof= cu->xof + (tb->x/cu->fsize);
 			lnr++;
 			cnr= 0;
+			wsnr= 0;
 		}
 		else if(ascii==9) {	/* TAB */
 			ct->xof= xof;
@@ -502,13 +554,18 @@ struct chartrans *text_to_curve(Object *ob, int mode)
     			sb->w = xof*cu->fsize;
     		}
 	
-			if (ascii==32) wsfac = cu->wordspace; else wsfac = 1.0;
+			if (ascii==32) {
+				wsfac = cu->wordspace; 
+				wsnr++;
+			} else wsfac = 1.0;
 			xof += (vfd->width[ascii]*wsfac*(1.0+(info->kern/40.0)) ) + xtrax;
 			
 			if (selboxes && (i>=selstart) && (i<=selend)) sb->w = (xof*cu->fsize) - sb->w;
 		}
 		ct++;
 	}
+	
+
 	
 	cu->lines= 1;
 	ct= chartransdata;
@@ -520,8 +577,9 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	// linedata is now: width of line
 	// linedata2 is now: number of characters
 	// linedata3 is now: maxlen of that line
+	// linedata4 is now: number of whitespaces of line
 
-	if(cu->spacemode!=CU_LEFT && lnr>1) {
+	if(cu->spacemode!=CU_LEFT) {
 		ct= chartransdata;
 
 		if(cu->spacemode==CU_RIGHT) {
@@ -536,7 +594,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				ct->xof+= linedata[ct->linenr];
 				ct++;
 			}
-		} else if((cu->spacemode==CU_FLUSH || cu->spacemode==CU_FORCEFLUSH) &&
+		} else if((cu->spacemode==CU_FLUSH) &&
 		          (cu->tb[0].w != 0.0)) {
 			for(i=0;i<lnr;i++)
 				if(linedata2[i]>1)
@@ -544,12 +602,25 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			for (i=0; i<=slen; i++) {
 				for (j=i; (cu->str[j]) && (cu->str[j]!='\n') && 
 				          (cu->str[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
-				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') && 
-				    (cu->spacemode==CU_FORCEFLUSH || (chartransdata[j].dobreak!=0))) {
+//				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') && (cu->str[j])) {
 					ct->xof+= ct->charnr*linedata[ct->linenr];
-				}
+//				}
 				ct++;
 			}
+		} else if((cu->spacemode==CU_JUSTIFY) &&
+		          (cu->tb[0].w != 0.0)) {
+			curofs= 0;
+			for (i=0; i<=slen; i++) {
+				for (j=i; (cu->str[j]) && (cu->str[j]!='\n') && 
+				          (cu->str[j]!='\r') && (chartransdata[j].dobreak==0) && (j<slen); j++);
+				if ((cu->str[j]!='\r') && (cu->str[j]!='\n') &&
+				    ((chartransdata[j].dobreak!=0))) {
+				    if (cu->str[i]==' ') curofs += (linedata3[ct->linenr]-linedata[ct->linenr])/linedata4[ct->linenr];
+					ct->xof+= curofs;
+				}
+				if (cu->str[i]=='\n' || cu->str[i]=='\r' || chartransdata[i].dobreak) curofs= 0;
+				ct++;
+			}			
 		}
 	}
 	
@@ -593,7 +664,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				else if(cu->spacemode==CU_MIDDLE) {
 					timeofs= (1.0f-distfac)/2.0f;
 				}
-				else if(cu->spacemode==CU_FLUSH || cu->spacemode==CU_FORCEFLUSH) distfac= 1.0f;
+				else if(cu->spacemode==CU_FLUSH) distfac= 1.0f;
 				
 			}
 			else distfac= 1.0;
@@ -696,11 +767,13 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		
 	}
 
+	MEM_freeN(linedata);
+	MEM_freeN(linedata2);		
+	MEM_freeN(linedata3);
+	MEM_freeN(linedata4);
+
 	if (mode == FO_SELCHANGE) {
 		MEM_freeN(chartransdata);
-		MEM_freeN(linedata);
-		MEM_freeN(linedata2);		
-		MEM_freeN(linedata3);
 		return NULL;
 	}
 
@@ -714,7 +787,24 @@ struct chartrans *text_to_curve(Object *ob, int mode)
     		for (i= 0; i<slen; i++) {
     			ascii = cu->str[i];
     			info = &(cu->strinfo[i]);
+    			if (info->mat_nr > (ob->totcol)) {
+    				printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr);
+    				info->mat_nr = 0;
+    			}
    				buildchar(cu, ascii, info, ct->xof, ct->yof, ct->rot, i);
+   				if ((info->flag & CU_UNDERLINE) && (ascii != '\n') && (ascii != '\r')) {
+   					uloverlap = 0;
+   					if ( (i<(slen-1)) && (cu->str[i+1] != '\n') && (cu->str[i+1] != '\r') &&
+   					     ((cu->str[i+1] != ' ') || (cu->strinfo[i+1].flag & CU_UNDERLINE)) && ((cu->strinfo[i+1].flag & CU_WRAP)==0)
+   					   ) {
+	   					uloverlap = xtrax + 0.1;
+	   				}
+   					ulwidth = cu->fsize * ((vfd->width[ascii]* (1.0+(info->kern/40.0)))+uloverlap);
+   					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
+   					                ct->xof*cu->fsize + ulwidth, 
+   					                ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize - cu->ulheight*cu->fsize, 
+   					                i, info->mat_nr);
+   				}
     			ct++;
     		}
 		}
@@ -742,10 +832,6 @@ struct chartrans *text_to_curve(Object *ob, int mode)
     	}
 	}
 
-	MEM_freeN(linedata);
-	MEM_freeN(linedata2);
-	MEM_freeN(linedata3);	
-
 	if(mode==FO_DUPLI) {
 		return chartransdata;
 	}
@@ -753,7 +839,6 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	MEM_freeN(chartransdata);
 	return 0;
 }
-
 
 /* ***************** DUPLI  ***************** */
 

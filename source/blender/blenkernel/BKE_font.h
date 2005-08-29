@@ -51,7 +51,7 @@ void free_vfont(struct VFont *sc);
 struct VFont *load_vfont(char *name);
 
 struct chartrans *text_to_curve(struct Object *ob, int mode);
-int style_to_sel(void);
+int style_to_sel(int style, int toggle);
 int mat_to_sel(void);
 void font_duplilist(struct Object *par);
 int getselection(int *start, int *end);

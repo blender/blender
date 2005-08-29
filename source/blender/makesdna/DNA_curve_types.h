@@ -149,7 +149,7 @@ typedef struct Curve {
 	
 	/* font part */
 	short len, lines, pos, spacemode;
-	float spacing, linedist, shear, fsize, wordspace;
+	float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
 	float xof, yof;
 	float linewidth;
 
@@ -211,8 +211,8 @@ typedef struct IpoCurve {
 #define CU_LEFT			0
 #define CU_MIDDLE		1
 #define CU_RIGHT		2
-#define CU_FLUSH		3
-#define CU_FORCEFLUSH	4
+#define CU_JUSTIFY		3
+#define CU_FLUSH		4
 
 /* flag (nurb) */
 #define CU_SMOOTH		1

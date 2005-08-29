@@ -523,7 +523,8 @@ static void pasteselection(void)
 	}
 }
 
-int style_to_sel(void) {
+int style_to_sel(int style, int toggle) 
+{
 	int selstart, selend;
 	int i;
 	Curve *cu;
@@ -533,8 +534,11 @@ int style_to_sel(void) {
 		
 		if (getselection(&selstart, &selend)) {
 			for (i=selstart; i<=selend; i++) {
-				textbufinfo[i].flag &= ~CU_STYLE;
-				textbufinfo[i].flag |= (cu->curinfo.flag & CU_STYLE);
+				if (toggle==0) {
+					textbufinfo[i].flag &= ~style;
+				} else {
+					textbufinfo[i].flag |= style;
+				}
 			}
 			return 1;
 		}
@@ -789,7 +793,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
    		case IKEY:
    			if (G.qual & LR_CTRLKEY) {
    				cu->curinfo.flag ^= CU_ITALIC;
-   				if (style_to_sel()) doit= 1;   				
+   				if (style_to_sel(CU_ITALIC, cu->curinfo.flag & CU_ITALIC)) doit= 1;   				
    				allqueue(REDRAWBUTSEDIT, 0);
    			}
    			break;
@@ -797,10 +801,18 @@ void do_textedit(unsigned short event, short val, char _ascii)
    		case BKEY:
    			if (G.qual & LR_CTRLKEY) {
    				cu->curinfo.flag ^= CU_BOLD;
-   				if (style_to_sel()) doit= 1;
+   				if (style_to_sel(CU_BOLD, cu->curinfo.flag & CU_BOLD)) doit= 1;
    				allqueue(REDRAWBUTSEDIT, 0);
    			}
    			break;			
+   			
+   		case UKEY:
+   			if (G.qual & LR_CTRLKEY) {
+   				cu->curinfo.flag ^= CU_UNDERLINE;
+   				if (style_to_sel(CU_UNDERLINE, cu->curinfo.flag & CU_UNDERLINE)) doit= 1;
+   				allqueue(REDRAWBUTSEDIT, 0);
+   			}
+   			break;			   			
    			
    		case XKEY:
    			if (G.qual & LR_CTRLKEY) {

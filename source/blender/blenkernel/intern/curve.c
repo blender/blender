@@ -131,6 +131,7 @@ Curve *add_curve(int type)
 	cu->wordspace = 1.0;
 	cu->spacing= cu->linedist= 1.0;
 	cu->fsize= 1.0;
+	cu->ulheight = 0.05;	
 	cu->texflag= CU_AUTOSPACE;
 	
 	cu->bb= unit_boundbox();
@@ -696,6 +697,9 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 	/* allocate and initialize */
 	len= nu->pntsu*nu->pntsv;
 	if(len==0) return;
+	
+
+	
 	sum= (float *)MEM_callocN(sizeof(float)*len, "makeNurbfaces1");
 
 	resolu= nu->resolu;
@@ -825,6 +829,11 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 		}
 		u+= ustep;
 		if (rowstride!=0) in = (float*) (((unsigned char*) in) + (rowstride - 3*nu->resolv*sizeof(*in)));
+	}
+
+	for (i=0; i<144*3; i++) {
+//		fprintf(stderr, "%f %f %f\n", nu->bp[i].vec[0], nu->bp[i].vec[1], nu->bp[i].vec[2]);
+		fprintf(stderr, "%f ", data[i]);
 	}
 
 	/* free */

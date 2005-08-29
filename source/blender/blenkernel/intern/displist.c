@@ -1138,6 +1138,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 				dl->parts= 1;
 				dl->nr= len;
 				dl->col= nu->mat_nr;
+				dl->charidx = nu->charidx;
 
 				data= dl->verts;
 				if(nu->flagu & 1) dl->type= DL_POLY;

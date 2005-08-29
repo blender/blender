@@ -1251,7 +1251,7 @@ void do_fontbuts(unsigned short event)
 	Object *ob;
 	ScrArea *sa;
 	char str[80];
-	int i;
+	int i, style;
 
 	ob= OBACT;
 
@@ -1261,13 +1261,21 @@ void do_fontbuts(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 
-	case B_STYLETOSEL:
-		if (style_to_sel()) {
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	case B_STYLETOSELU:	
+	case B_STYLETOSELB:
+	case B_STYLETOSELI:
+		switch (event) {
+			case B_STYLETOSELU: style = CU_UNDERLINE; break;
+			case B_STYLETOSELB: style = CU_BOLD; break;			
+			case B_STYLETOSELI: style = CU_ITALIC; break;
+		}
+		if (style_to_sel(style, ((Curve*)ob->data)->curinfo.flag & style)) {
+			text_to_curve(ob, 0);
+			makeDispListCurveTypes(ob, 0);
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		allqueue(REDRAWBUTSEDIT, 0);
-		break;
+		break;		
 		
 	case B_FASTFONT:
 		if (G.obedit) {
@@ -1447,9 +1455,10 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 
 	uiDefBut(block, BUT, B_LOAD3DTEXT, "Insert Text", 480, 165, 90, 20, 0, 0, 0, 0, 0, "Insert text file at cursor");
 	uiDefBut(block, BUT, B_LOREM, "Lorem", 575, 165, 70, 20, 0, 0, 0, 0, 0, "Insert a paragraph of Lorem Ipsum at cursor");	
+	uiDefButC(block, TOG|BIT|2,B_STYLETOSELU, "U",		727,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");	
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, CU_BOLD, B_STYLETOSEL, "B",		752,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");
-	uiDefButBitC(block, TOG, CU_ITALIC, B_STYLETOSEL, "i",		772,165,20,20, &(cu->curinfo.flag), 0, 0, 0, 0, "");	
+	uiDefButBitC(block, TOG, CU_BOLD, B_STYLETOSELB, "B",		752,165,20,20, &(cu->curinfo.flag), 0,0, 0, 0, "");
+	uiDefButBitC(block, TOG, CU_ITALIC, B_STYLETOSELI, "i",		772,165,20,20, &(cu->curinfo.flag), 0, 0, 0, 0, "");	
 	uiBlockEndAlign(block);
 
 	MEM_freeN(strp);
@@ -1458,8 +1467,8 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefButS(block, ROW,B_MAKEFONT, "Left",		480,135,47,20, &cu->spacemode, 0.0,0.0, 0, 0, "Left align the text from the object centre");
 	uiDefButS(block, ROW,B_MAKEFONT, "Center",		527,135,47,20, &cu->spacemode, 0.0,1.0, 0, 0, "Middle align the text from the object centre");
 	uiDefButS(block, ROW,B_MAKEFONT, "Right",		574,135,47,20, &cu->spacemode, 0.0,2.0, 0, 0, "Right align the text from the object centre");
-	uiDefButS(block, ROW,B_MAKEFONT, "Justify",		621,135,47,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill completed lines to maximum textframe width");
-	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		668,135,47,20, &cu->spacemode, 0.0,4.0, 0, 0, "Always fill to maximum textframe width");	
+	uiDefButS(block, ROW,B_MAKEFONT, "Justify",		621,135,47,20, &cu->spacemode, 0.0,3.0, 0, 0, "Fill completed lines to maximum textframe width by expanding whitespace");
+	uiDefButS(block, ROW,B_MAKEFONT, "Flush",		668,135,47,20, &cu->spacemode, 0.0,4.0, 0, 0, "Fill every line to maximum textframe width, distributing space among all characters");	
 	uiDefBut(block, BUT, B_TOUPPER, "ToUpper",		715,135,78,20, 0, 0, 0, 0, 0, "Toggle between upper and lower case in editmode");
 	uiBlockEndAlign(block);
 	uiDefButBitS(block, TOG, CU_FAST, B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
@@ -1473,9 +1482,11 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiDefButF(block, NUM,B_MAKEFONT, "Word spacing:",	795,56,155,20, &cu->wordspace, 0.0,10.0, 10, 0, "Distance factor between words");		
 	uiDefButF(block, NUM,B_MAKEFONT, "Spacing:",	480,34,155,20, &cu->spacing, 0.0,10.0, 10, 0, "Spacing of individual characters");
 	uiDefButF(block, NUM,B_MAKEFONT, "X offset:",	640,34,155,20, &cu->xof, -50.0,50.0, 10, 0, "Horizontal position from object centre");
+	uiDefButF(block, NUM,B_MAKEFONT, "UL position:",	795,34,155,20, &cu->ulpos, -0.2,0.8, 10, 0, "Vertical position of underline");			
 	uiDefButF(block, NUM,B_MAKEFONT, "Shear:",		480,12,155,20, &cu->shear, -1.0,1.0, 10, 0, "Italic angle of the characters");
 	uiDefButF(block, NUM,B_MAKEFONT, "Y offset:",	640,12,155,20, &cu->yof, -50.0,50.0, 10, 0, "Vertical position from object centre");
-	uiBlockEndAlign(block);
+	uiDefButF(block, NUM,B_MAKEFONT, "UL height:",	795,12,155,20, &cu->ulheight, 0.01,0.5, 10, 0, "Thickness of underline");				
+	uiBlockEndAlign(block);	
 	
 	sprintf(str, "%d TextFrame: ", cu->totbox);
 	uiBlockBeginAlign(block);
