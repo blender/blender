@@ -473,6 +473,8 @@ static void createTransPose(Object *ob, TransInfo *t)
 	TransDataExtension *tdx;
 	int i;
 	
+	t->total= 0;
+	
 	/* check validity of state */
 	arm=get_armature (ob);
 	if (arm==NULL || ob->pose==NULL) return;
@@ -486,7 +488,6 @@ static void createTransPose(Object *ob, TransInfo *t)
 	if (!(ob->lay & G.vd->lay)) return;
 
 	/* count total */
-	t->total= 0;
 	count_bone_select(t, &arm->bonebase, 1);
 
 	if(t->total==0 && t->mode==TFM_TRANSLATION) {
