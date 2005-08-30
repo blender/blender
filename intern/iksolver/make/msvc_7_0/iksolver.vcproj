@@ -247,10 +247,10 @@ ECHO Done
 			Name="intern"
 			Filter="">
 			<File
-				RelativePath="..\..\intern\IK_QChain.cpp">
+				RelativePath="..\..\intern\IK_QJacobian.cpp">
 			</File>
 			<File
-				RelativePath="..\..\intern\IK_QChain.h">
+				RelativePath="..\..\intern\IK_QJacobian.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\IK_QJacobianSolver.cpp">
@@ -265,7 +265,10 @@ ECHO Done
 				RelativePath="..\..\intern\IK_QSegment.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\IK_QSolver_Class.h">
+				RelativePath="..\..\intern\IK_QTask.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\IK_QTask.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\IK_Solver.cpp">

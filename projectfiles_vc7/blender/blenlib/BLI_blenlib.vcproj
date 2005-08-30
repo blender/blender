@@ -352,6 +352,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\edgehash.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\fileops.c">
 			</File>
 			<File
@@ -405,6 +408,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_callbacks.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_edgehash.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_editVert.h">
