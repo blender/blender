@@ -4453,8 +4453,8 @@ int EdgeSlide(short immediate, float imperc)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	SlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4];
-	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0;
+	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4], len;
+	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
@@ -4795,6 +4795,23 @@ int EdgeSlide(short immediate, float imperc)
 			}
 			else {
 				//Non prop code  
+				look = vertlist;	  
+				while(look){ 
+					float newlen;
+					EditVert *tempev;
+					ev = look->link;
+					tempsv = BLI_ghash_lookup(vertgh,ev);
+					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
+					if(newlen > 1.0){newlen = 1.0;}
+					if(newlen < 0.0){newlen = 0.0;}
+					if(flip == 0){
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->down,ev)->co, editedge_getOtherVert(tempsv->up,ev)->co, fabs(newlen));									
+					} else{
+						VecLerpf(ev->co, editedge_getOtherVert(tempsv->up,ev)->co, editedge_getOtherVert(tempsv->down,ev)->co, fabs(newlen));				
+					}
+					look = look->next;	 
+				}
+
 			}
 			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
@@ -4841,7 +4858,18 @@ int EdgeSlide(short immediate, float imperc)
 				perc = floor(perc);
 				perc /= 10;				   
 			}			
-			sprintf(str, "Percentage %f", perc);
+			if(prop){
+				sprintf(str, "(P)ercentage: %f", perc);
+			} else {
+				len = VecLenf(upVert->co,downVert->co)*((perc+1)/2);
+				if(flip == 1){
+					len = VecLenf(upVert->co,downVert->co) - len;
+				} 
+				sprintf(str, "Non (P)rop Length: %f, Press (F) to flip control side", len);
+			}
+
+			
+			
 			headerprint(str);
 			screen_swapbuffers();			
 		}
@@ -4862,6 +4890,10 @@ int EdgeSlide(short immediate, float imperc)
 					} else if(event==MIDDLEMOUSE) {
 							perc = 0;  
 							immediate = 1;
+					} else if(event==PKEY) {
+							(prop == 1) ? (prop = 0):(prop = 1);  
+					} else if(event==FKEY) {
+							(flip == 1) ? (flip = 0):(flip = 1);  
 					} else if(ELEM(event, RIGHTARROWKEY, WHEELUPMOUSE)) { // Scroll through Control Edges
 						look = vertlist;	
 				 		while(look){	
