@@ -4794,7 +4794,7 @@ int EdgeSlide(short immediate, float imperc)
 				}
 			}
 			else {
-				//Non prop code   
+				//Non prop code  
 			}
 			
 			tempsv = BLI_ghash_lookup(vertgh,nearest);
@@ -4856,6 +4856,7 @@ int EdgeSlide(short immediate, float imperc)
 							perc = 0; // Set back to begining %
 							immediate = 1; //Run through eval code 1 more time
 							cancel = 1;   // Return -1
+							mvalo[0] = -1;
 					} else if(ELEM3(event, PADENTER, LEFTMOUSE, RETKEY)) {
 							draw = 0; // End looping now
 					} else if(event==MIDDLEMOUSE) {
