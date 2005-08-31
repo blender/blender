@@ -683,13 +683,12 @@ void mesh_strip_loose_faces(Mesh *me)
 	int a,b;
 
 	for (a=b=0; a<me->totface; a++) {
-		if (!me->mface[a].v3) {
+		if (me->mface[a].v3) {
 			if (a!=b) {
 				memcpy(&me->mface[b],&me->mface[a],sizeof(me->mface[b]));
 				if (me->tface) memcpy(&me->tface[b],&me->tface[a],sizeof(me->tface[b]));
-				if (me->mcol) memcpy(&me->mcol[b],&me->mcol[a],sizeof(me->mcol[b])*4);
+				if (me->mcol) memcpy(&me->mcol[b*4],&me->mcol[a*4],sizeof(me->mcol[b])*4);
 			}
-		} else {
 			b++;
 		}
 	}
