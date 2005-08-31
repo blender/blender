@@ -82,7 +82,6 @@ void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
 	
 	jacobian.SetBetas(m_id, m_size, m_weight*d_pos);
 
-
 	// compute derivatives
 	int i;
 	const IK_QSegment *seg;
@@ -92,7 +91,7 @@ void IK_QPositionTask::ComputeJacobian(IK_QJacobian& jacobian)
 
 		for (i = 0; i < seg->NumberOfDoF(); i++) {
 			MT_Vector3 axis = seg->Axis(i)*m_weight;
-			
+
 			if (seg->Translational())
 				jacobian.SetDerivatives(m_id, seg->DoFId()+i, axis);
 			else {

@@ -158,11 +158,69 @@ static MT_Vector3 MatrixToAxisAngle(const MT_Matrix3x3& R)
 	return delta;
 }
 
+static bool EllipseClamp(MT_Scalar& ax, MT_Scalar& az, MT_Scalar *amin, MT_Scalar *amax)
+{
+	MT_Scalar xlim, zlim, x, z;
+
+	if (ax < 0.0) {
+		x = -ax;
+		xlim = -amin[0];
+	}
+	else {
+		x = ax;
+		xlim = amax[0];
+	}
+
+	if (az < 0.0) {
+		z = -az;
+		zlim = -amin[1];
+	}
+	else {
+		z = az;
+		zlim = amax[1];
+	}
+
+	if (MT_fuzzyZero(xlim) || MT_fuzzyZero(zlim)) {
+		if (x <= xlim && z <= zlim)
+			return false;
+
+		if (x > xlim)
+			x = xlim;
+		if (z > zlim)
+			z = zlim;
+	}
+	else {
+		MT_Scalar invx = 1.0/(xlim*xlim);
+		MT_Scalar invz = 1.0/(zlim*zlim);
+
+		if ((x*x*invx + z*z*invz) <= 1.0)
+			return false;
+
+		if (MT_fuzzyZero(x)) {
+			x = 0.0;
+			z = zlim;
+		}
+		else {
+			MT_Scalar rico = z/x;
+			MT_Scalar old_x = x;
+			x = sqrt(1.0/(invx + invz*rico*rico));
+			if (old_x < 0.0)
+				x = -x;
+			z = rico*x;
+		}
+	}
+
+	ax = (ax < 0.0)? -x: x;
+	az = (az < 0.0)? -z: z;
+
+	return true;
+}
+
 // IK_QSegment
 
 IK_QSegment::IK_QSegment(int num_DoF, bool translational)
-: m_parent(NULL), m_child(NULL), m_sibling(NULL), m_num_DoF(num_DoF),
-  m_translational(translational)
+: m_parent(NULL), m_child(NULL), m_sibling(NULL), m_composite(NULL),
+  m_num_DoF(num_DoF), m_translational(translational)
 {
 	m_locked[0] = m_locked[1] = m_locked[2] = false;
 	m_weight[0] = m_weight[1] = m_weight[2] = 1.0;
@@ -232,6 +290,11 @@ void IK_QSegment::SetParent(IK_QSegment *parent)
 	m_parent = parent;
 }
 
+void IK_QSegment::SetComposite(IK_QSegment *seg)
+{
+	m_composite = seg;
+}
+
 void IK_QSegment::RemoveChild(IK_QSegment *child)
 {
 	if (m_child == NULL)
@@ -297,19 +360,15 @@ void IK_QSphericalSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 		lmin = sin(MT_radians(lmin)*0.5);
 		lmax = sin(MT_radians(lmax)*0.5);
 
-		// put center of ellispe in the middle between min and max
-		MT_Scalar offset = 0.5*(lmin + lmax);
-		lmax = lmax - offset;
-
 		if (axis == 0) {
+			m_min[0] = -lmax;
+			m_max[0] = -lmin;
 			m_limit_x = true;
-			m_offset_x = offset;
-			m_max_x = lmax;
 		}
 		else if (axis == 2) {
+			m_min[1] = -lmax;
+			m_max[1] = -lmin;
 			m_limit_z = true;
-			m_offset_z = offset;
-			m_max_z = lmax;
 		}
 	}
 }
@@ -391,62 +450,28 @@ bool IK_QSphericalSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&
 	}
 
 	if (m_limit_x && m_limit_z) {
-		/* check in ellipsoid region */
-		ax = a.x() + m_offset_x;
-		az = a.z() + m_offset_z;
-
-		MT_Scalar invX = 1.0/(m_max_x*m_max_x);
-		MT_Scalar invZ = 1.0/(m_max_z*m_max_z);
-
-		if ((ax*ax*invX + az*az*invZ) > 1.0) {
+		if (EllipseClamp(ax, az, m_min, m_max))
 			clamp[0] = clamp[2] = true;
-
-			if (MT_fuzzyZero(ax)) {
-				ax = 0.0;
-				az = (az > 0)? m_max_z: -m_max_z;
-			}
-			else {
-				MT_Scalar rico = az/ax;
-				MT_Scalar old_ax = ax;
-				ax = sqrt(1.0/(invX + invZ*rico*rico));
-				if (old_ax < 0.0)
-					ax = -ax;
-				az = rico*ax;
-			}
-		}
-
-		ax = ax - m_offset_x;
-		az = az - m_offset_z;
 	}
 	else if (m_limit_x) {
-		ax = a.x() + m_offset_x;
-
-		if (ax < -m_max_x) {
-			ax = -m_max_x;
+		if (ax < m_min[0]) {
+			ax = m_min[0];
 			clamp[0] = true;
 		}
-		else if (ax > m_max_x) {
-			ax = m_max_x;
+		else if (ax > m_max[0]) {
+			ax = m_max[0];
 			clamp[0] = true;
 		}
-
-		ax = ax - m_offset_x;
-		az = a.z();
 	}
 	else if (m_limit_z) {
-		az = a.z() + m_offset_z;
-
-		if (az < -m_max_z) {
-			az = -m_max_z;
+		if (az < m_min[1]) {
+			az = m_min[1];
 			clamp[2] = true;
 		}
-		else if (az > m_max_z) {
-			az = m_max_z;
+		else if (az > m_max[1]) {
+			az = m_max[1];
 			clamp[2] = true;
 		}
-
-		ax = a.x();
-		az = az - m_offset_z;
 	}
 
 	if (clamp[0] == false && clamp[1] == false && clamp[2] == false) {
@@ -645,62 +670,31 @@ bool IK_QSwingSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& del
 	clamp[0] = clamp[1] = false;
 	
 	if (m_limit_x && m_limit_z) {
-		/* check in ellipsoid region */
-		ax = a.x() + m_offset_x;
-		az = a.z() + m_offset_z;
+		ax = a.x();
+		az = a.z();
 
-		MT_Scalar invX = 1.0/(m_max_x*m_max_x);
-		MT_Scalar invZ = 1.0/(m_max_z*m_max_z);
-
-		if ((ax*ax*invX + az*az*invZ) > 1.0) {
+		if (EllipseClamp(ax, az, m_min, m_max))
 			clamp[0] = clamp[1] = true;
-
-			if (MT_fuzzyZero(ax)) {
-				ax = 0.0;
-				az = (az > 0)? m_max_z: -m_max_z;
-			}
-			else {
-				MT_Scalar rico = az/ax;
-				MT_Scalar old_ax = ax;
-				ax = sqrt(1.0/(invX + invZ*rico*rico));
-				if (old_ax < 0.0)
-					ax = -ax;
-				az = rico*ax;
-			}
-		}
-
-		ax = ax - m_offset_x;
-		az = az - m_offset_z;
 	}
 	else if (m_limit_x) {
-		ax = a.x() + m_offset_x;
-
-		if (ax < -m_max_x) {
-			ax = -m_max_x;
+		if (ax < m_min[0]) {
+			ax = m_min[0];
 			clamp[0] = true;
 		}
-		else if (ax > m_max_x) {
-			ax = m_max_x;
+		else if (ax > m_max[0]) {
+			ax = m_max[0];
 			clamp[0] = true;
 		}
-
-		ax = ax - m_offset_x;
-		az = a.z();
 	}
 	else if (m_limit_z) {
-		az = a.z() + m_offset_z;
-
-		if (az < -m_max_z) {
-			az = -m_max_z;
+		if (az < m_min[1]) {
+			az = m_min[1];
 			clamp[1] = true;
 		}
-		else if (az > m_max_z) {
-			az = m_max_z;
+		else if (az > m_max[1]) {
+			az = m_max[1];
 			clamp[1] = true;
 		}
-
-		ax = a.x();
-		az = az - m_offset_z;
 	}
 
 	if (clamp[0] == false && clamp[1] == false)
@@ -740,14 +734,20 @@ void IK_QSwingSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 
 	// put center of ellispe in the middle between min and max
 	MT_Scalar offset = 0.5*(lmin + lmax);
-	lmax = lmax - offset;
+	//lmax = lmax - offset;
 
 	if (axis == 0) {
+		m_min[0] = -lmax;
+		m_max[0] = -lmin;
+
 		m_limit_x = true;
 		m_offset_x = offset;
 		m_max_x = lmax;
 	}
 	else if (axis == 2) {
+		m_min[1] = -lmax;
+		m_max[1] = -lmin;
+
 		m_limit_z = true;
 		m_offset_z = offset;
 		m_max_z = lmax;
@@ -907,6 +907,8 @@ IK_QTranslateSegment::IK_QTranslateSegment(int axis1)
 	m_axis_enabled[axis1] = true;
 
 	m_axis[0] = axis1;
+
+	m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
 IK_QTranslateSegment::IK_QTranslateSegment(int axis1, int axis2)
@@ -918,6 +920,8 @@ IK_QTranslateSegment::IK_QTranslateSegment(int axis1, int axis2)
 
 	m_axis[0] = axis1;
 	m_axis[1] = axis2;
+
+	m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
 IK_QTranslateSegment::IK_QTranslateSegment()
@@ -928,6 +932,8 @@ IK_QTranslateSegment::IK_QTranslateSegment()
 	m_axis[0] = 0;
 	m_axis[1] = 1;
 	m_axis[2] = 2;
+
+	m_limit[0] = m_limit[1] = m_limit[2] = false;
 }
 
 MT_Vector3 IK_QTranslateSegment::Axis(int dof) const
@@ -935,18 +941,42 @@ MT_Vector3 IK_QTranslateSegment::Axis(int dof) const
 	return m_global_transform.getBasis().getColumn(m_axis[dof]);
 }
 
-bool IK_QTranslateSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3&, bool*)
+bool IK_QTranslateSegment::UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp)
 {
-	int dof_id = m_DoF_id;
+	int dof_id = m_DoF_id, dof = 0, i, clamped = false;
 
-	MT_Vector3 dx;
-	dx.x() = (m_axis_enabled[0])? jacobian.AngleUpdate(dof_id++): 0.0;
-	dx.y() = (m_axis_enabled[1])? jacobian.AngleUpdate(dof_id++): 0.0;
-	dx.z() = (m_axis_enabled[2])? jacobian.AngleUpdate(dof_id++): 0.0;
+	MT_Vector3 dx(0.0, 0.0, 0.0);
 
-	m_new_translation = m_translation + dx;
+	for (i = 0; i < 3; i++) {
+		if (!m_axis_enabled[i]) {
+			m_new_translation[i] = m_translation[i];
+			continue;
+		}
 
-	return false;
+		clamp[dof] = false;
+
+		if (!m_locked[dof]) {
+			m_new_translation[i] = m_translation[i] + jacobian.AngleUpdate(dof_id);
+
+			if (m_limit[i]) {
+				if (m_new_translation[i] > m_max[i]) {
+					delta[dof] = m_max[i] - m_translation[i];
+					m_new_translation[i] = m_max[i];
+					clamped = clamp[dof] = true;
+				}
+				else if (m_new_translation[i] < m_min[i]) {
+					delta[dof] = m_min[i] - m_translation[i];
+					m_new_translation[i] = m_min[i];
+					clamped = clamp[dof] = true;
+				}
+			}
+		}
+
+		dof_id++;
+		dof++;
+	}
+
+	return clamped;
 }
 
 void IK_QTranslateSegment::UpdateAngleApply()
@@ -954,8 +984,28 @@ void IK_QTranslateSegment::UpdateAngleApply()
 	m_translation = m_new_translation;
 }
 
+void IK_QTranslateSegment::Lock(int dof, IK_QJacobian& jacobian, MT_Vector3& delta)
+{
+	m_locked[dof] = true;
+	jacobian.Lock(m_DoF_id+dof, delta[dof]);
+}
+
 void IK_QTranslateSegment::SetWeight(int axis, MT_Scalar weight)
 {
-	m_weight[axis] = weight;
+	int i;
+
+	for (i = 0; i < m_num_DoF; i++)
+		if (m_axis[i] == axis)
+			m_weight[i] = weight;
+}
+
+void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
+{
+	if (lmax < lmin)
+		return;
+
+	m_min[axis]= lmin;
+	m_max[axis]= lmax;
+	m_limit[axis]= true;
 }
 

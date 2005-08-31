@@ -53,7 +53,7 @@ typedef struct bPoseChannel {
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
 	struct bPoseChannel *child;		/* set on read file or rebuild pose, the 'ik' child, for b-bones */
-	struct ListBase		 chain;		/* only while evaluating pose */
+	struct ListBase		 iktree;		/* only while evaluating pose */
 	void				*b_bone_mats;	/* only while deform, stores precalculated b_bone deform mats */
 	
 	float		loc[3];				/* written in by actions or transform */
@@ -62,13 +62,13 @@ typedef struct bPoseChannel {
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
 	float		pose_mat[4][4];		/* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat */
-	float		ik_mat[3][3];		/* for itterative IK */
 	
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */
 	
 	float		limitmin[3], limitmax[3];	/* DOF constraint */
 	float		stiffness[3];				/* DOF stiffness */
+	float		ikstretch;
 	
 } bPoseChannel;
 

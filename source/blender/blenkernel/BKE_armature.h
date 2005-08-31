@@ -43,27 +43,29 @@ struct bConstraint;
 struct Object;
 struct MDeformVert;
 struct Mesh;
-struct PoseChain;
+struct PoseTree;
 struct ListBase;
 
 typedef struct PoseTarget
 {
 	struct PoseTarget *next, *prev;
-	struct bConstraint *con;
-	int tip;
+
+	struct bConstraint *con;		/* the constrait of this target */
+	int tip;						/* index of tip pchan in PoseTree */
 } PoseTarget;
 
-typedef struct PoseChain
+typedef struct PoseTree
 {
-	struct PoseChain *next, *prev;
-	struct bPoseChannel	**pchanchain;
-	struct ListBase targets;
-	int		totchannel;
-	int		tree;		// true or false
-	float	(*basis_change)[3][3];
-	float	tolerance;
-	int		iterations;
-} PoseChain;
+	struct PoseTree *next, *prev;
+
+	struct ListBase targets;		/* list of targets of the tree */
+	struct bPoseChannel	**pchan;	/* array of pose channels */
+	int		*parent;				/* and their parents */
+	int		totchannel;				/* number of pose channels */
+	float	(*basis_change)[3][3]; 	/* basis change result from solver */
+	float	tolerance;				/* tolerance from the constraint */
+	int		iterations;				/* iterations from the constraint */
+} PoseTree;
 
 /*	Core armature functionality */
 #ifdef __cplusplus
@@ -91,13 +93,14 @@ void where_is_pose (struct Object *ob);
 /* get_objectspace_bone_matrix has to be removed still */
 void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
 void vec_roll_to_mat3(float *vec, float roll, float mat[][3]);
+void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 
 
 /*	Animation functions */
 
-struct PoseChain *ik_chain_to_posechain (struct Object *ob, struct Bone *bone);
-void solve_posechain (PoseChain *chain);
-void free_posechain (PoseChain *chain);
+struct PoseTree *ik_tree_to_posetree(struct Object *ob, struct Bone *bone);
+void solve_posetree(PoseTree *tree);
+void free_posetree(PoseTree *tree);
 
 /*	Gameblender hacks */
 void GB_init_armature_deform(struct ListBase *defbase, float premat[][4], float postmat[][4]);

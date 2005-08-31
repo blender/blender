@@ -205,7 +205,6 @@ bPoseChannel *verify_pose_channel(bPose* pose, const char* name)
 	/* init vars to prevent mat errors */
 	chan->quat[0] = 1.0F;
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0F;
-	Mat3One(chan->ik_mat);
 	
 	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
 	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;

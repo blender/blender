@@ -296,11 +296,16 @@ void IK_QJacobian::InvertSDLS()
 
 		MT_Scalar damp = (gamma < max_dtheta)? gamma/max_dtheta: 1.0;
 
-		for (j = 0; j < m_d_theta.size(); j++)
+		for (j = 0; j < m_d_theta.size(); j++) {
 			// slight hack: we do 0.80*, so that if there is some oscillation,
 			// the system can still converge (for joint limits). also, it's
 			// better to go a little to slow than to far
-			m_d_theta[j] += 0.80*damp*m_d_theta_tmp[j];
+			
+			MT_Scalar dofdamp = damp/m_weight[j];
+			if (dofdamp > 1.0) dofdamp = 1.0;
+			
+			m_d_theta[j] += 0.80*dofdamp*m_d_theta_tmp[j];
+		}
 
 		if (damp < m_min_damp)
 			m_min_damp = damp;

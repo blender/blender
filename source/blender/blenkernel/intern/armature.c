@@ -968,16 +968,16 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 
 
 
-/* allocates PoseChain, and links that to root bone/channel */
+/* allocates PoseTree, and links that to root bone/channel */
 /* note; if we got this working, it can become static too? */
-static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
+static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 {
 	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256], **oldchan;
-	PoseChain *chain;
+	PoseTree *tree;
 	PoseTarget *target;
 	bConstraint *con;
 	bKinematicConstraint *data;
-	int a, segcount= 0, size, newsize;
+	int a, segcount= 0, size, newsize, *oldparent, parent;
 	
 	/* find IK constraint, and validate it */
 	for(con= pchan_tip->constraints.first; con; con= con->next) {
@@ -1009,9 +1009,9 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	/* setup the chain data */
 	
 	/* we make tree-IK, unless all existing targets are in this chain */
-	for(chain= pchan_root->chain.first; chain; chain= chain->next) {
-		for(target= chain->targets.first; target; target= target->next) {
-			curchan= chain->pchanchain[target->tip];
+	for(tree= pchan_root->iktree.first; tree; tree= tree->next) {
+		for(target= tree->targets.first; target; target= target->next) {
+			curchan= tree->pchan[target->tip];
 			if(curchan->flag & POSE_CHAIN)
 				curchan->flag &= ~POSE_CHAIN;
 			else
@@ -1025,62 +1025,72 @@ static void initialize_posechain(struct Object *ob, bPoseChannel *pchan_tip)
 	target->con= con;
 	pchan_tip->flag &= ~POSE_CHAIN;
 
-	if(chain==NULL) {
-		/* make new chain */
-		chain= MEM_callocN(sizeof(PoseChain), "posechain");
+	if(tree==NULL) {
+		/* make new tree */
+		tree= MEM_callocN(sizeof(PoseTree), "posetree");
 
-		chain->tolerance= data->tolerance;
-		chain->iterations= data->iterations;
-		chain->totchannel= segcount;
+		tree->tolerance= data->tolerance;
+		tree->iterations= data->iterations;
+		tree->totchannel= segcount;
 		
-		chain->pchanchain= MEM_callocN(segcount*sizeof(void *), "channel chain");
+		tree->pchan= MEM_callocN(segcount*sizeof(void*), "ik tree pchan");
+		tree->parent= MEM_callocN(segcount*sizeof(int), "ik tree parent");
 		for(a=0; a<segcount; a++) {
-			chain->pchanchain[a]= chanlist[segcount-a-1];
+			tree->pchan[a]= chanlist[segcount-a-1];
+			tree->parent[a]= a-1;
 		}
 		target->tip= segcount-1;
 		
-		/* AND! link the chain to the root */
-		BLI_addtail(&pchan_root->chain, chain);
+		/* AND! link the tree to the root */
+		BLI_addtail(&pchan_root->iktree, tree);
 	}
 	else {
-		chain->tolerance= MIN2(chain->tolerance, data->tolerance);
-		chain->iterations= MAX2(data->iterations, chain->iterations);
+		tree->tolerance= MIN2(tree->tolerance, data->tolerance);
+		tree->iterations= MAX2(data->iterations, tree->iterations);
 
 		/* skip common pose channels and add remaining*/
-		size= MIN2(segcount, chain->totchannel);
-		for(a=0; a<size && chain->pchanchain[a]==chanlist[segcount-a-1]; a++);
+		size= MIN2(segcount, tree->totchannel);
+		for(a=0; a<size && tree->pchan[a]==chanlist[segcount-a-1]; a++);
+		parent= a-1;
 
 		segcount= segcount-a;
-		target->tip= chain->totchannel + segcount - 1;
+		target->tip= tree->totchannel + segcount - 1;
 
 		if (segcount > 0) {
 			/* resize array */
-			newsize= chain->totchannel + segcount;
-			oldchan= chain->pchanchain;
+			newsize= tree->totchannel + segcount;
+			oldchan= tree->pchan;
+			oldparent= tree->parent;
 
-			chain->pchanchain= MEM_callocN(newsize*sizeof(void*), "channel chain");
-			memcpy(chain->pchanchain, oldchan, sizeof(void*)*chain->totchannel);
+			tree->pchan= MEM_callocN(newsize*sizeof(void*), "ik tree pchan");
+			tree->parent= MEM_callocN(newsize*sizeof(int), "ik tree parent");
+			memcpy(tree->pchan, oldchan, sizeof(void*)*tree->totchannel);
+			memcpy(tree->parent, oldparent, sizeof(int)*tree->totchannel);
 			MEM_freeN(oldchan);
+			MEM_freeN(oldparent);
 
 			/* add new pose channels at the end, in reverse order */
-			for(a=0; a<segcount; a++)
-				chain->pchanchain[chain->totchannel+a]= chanlist[segcount-a-1];
+			for(a=0; a<segcount; a++) {
+				tree->pchan[tree->totchannel+a]= chanlist[segcount-a-1];
+				tree->parent[tree->totchannel+a]= tree->totchannel+a-1;
+			}
+			tree->parent[tree->totchannel]= parent;
 			
-			chain->totchannel= newsize;
+			tree->totchannel= newsize;
 		}
 
-		/* move chain to end of list, for correct evaluation order */
-		BLI_remlink(&pchan_root->chain, chain);
-		BLI_addtail(&pchan_root->chain, chain);
+		/* move tree to end of list, for correct evaluation order */
+		BLI_remlink(&pchan_root->iktree, tree);
+		BLI_addtail(&pchan_root->iktree, tree);
 	}
 
-	/* add target to the chain */
-	BLI_addtail(&chain->targets, target);
+	/* add target to the tree */
+	BLI_addtail(&tree->targets, target);
 }
 
 /* called from within the core where_is_pose loop, all animsystems and constraints
 were executed & assigned. Now as last we do an IK pass */
-static void execute_posechain(Object *ob, PoseChain *chain)
+static void execute_posetree(Object *ob, PoseTree *tree)
 {
 	float R_parmat[3][3];
 	float iR_parmat[3][3];
@@ -1088,24 +1098,24 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 	float goalrot[3][3], goalpos[3];
 	float rootmat[4][4], imat[4][4];
 	float goal[4][4], goalinv[4][4];
-	float size[3], bonesize[3], irest_basis[3][3], full_basis[3][3];
-	float length, basis[3][3], rest_basis[3][3], start[3];
-	int a, b, flag;
+	float size[3], irest_basis[3][3], full_basis[3][3];
+	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
+	int a, flag, hasstretch=0;
 	bPoseChannel *pchan;
-	IK_Segment *seg, *parent, **ikchain, *iktarget;
+	IK_Segment *seg, *parent, **iktree, *iktarget;
 	IK_Solver *solver;
 	PoseTarget *target;
 	bKinematicConstraint *data;
 	Bone *bone;
 
-	if (chain->totchannel == 0)
+	if (tree->totchannel == 0)
 		return;
 
-	ikchain= MEM_mallocN(sizeof(void*)*chain->totchannel, "ik chain");
+	iktree= MEM_mallocN(sizeof(void*)*tree->totchannel, "ik tree");
 
-	for(a=0; a<chain->totchannel; a++) {
-		pchan= chain->pchanchain[a];
-		bone = pchan->bone;
+	for(a=0; a<tree->totchannel; a++) {
+		pchan= tree->pchan[a];
+		bone= pchan->bone;
 
 		/* set DoF flag */
 		flag= 0;
@@ -1116,54 +1126,51 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		if((pchan->ikflag & BONE_IK_NO_ZDOF) == 0)
 			flag |= IK_ZDOF;
 
-		seg= ikchain[a]= IK_CreateSegment(flag);
+		if(pchan->ikstretch > 0.0) {
+			flag |= IK_TRANS_YDOF;
+			hasstretch = 1;
+		}
+
+		seg= iktree[a]= IK_CreateSegment(flag);
 
 		/* find parent */
 		if(a == 0)
 			parent= NULL;
-		else {
-			for(b=a-1; chain->pchanchain[b]!=pchan->parent; b--);
-			parent= ikchain[b];
-		}
+		else
+			parent= iktree[tree->parent[a]];
 
 		IK_SetParent(seg, parent);
 	
 		/* get the matrix that transforms from prevbone into this bone */
 		Mat3CpyMat4(R_bonemat, pchan->pose_mat);
-		
+
+		/* gather transformations for this IK segment */
+
 		if(a>0 && pchan->parent) {
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
+			VECCOPY(start, bone->head); /* bone offset */
 		}
-		else
-			Mat3One (R_parmat);
-		
-		Mat3Inv(iR_parmat, R_parmat);
-		
-		/* gather transformations for this IK segment */
+		else {
+			Mat3One(R_parmat);
+			start[0]= start[1]= start[2]= 0.0f;
+		}
 		
 		/* change length based on bone size */
-		Mat3ToSize(R_bonemat, bonesize);
-		length= bone->length*bonesize[1];
+		length= bone->length*VecLength(R_bonemat[1]);
 
+		/* compute rest basis and its inverse */
 		Mat3CpyMat3(rest_basis, bone->bone_mat);
+		Mat3CpyMat3(irest_basis, bone->bone_mat);
+		Mat3Transp(irest_basis);
 
 		/* compute basis with rest_basis removed */
-		Mat3Inv(irest_basis, rest_basis);
+		Mat3Inv(iR_parmat, R_parmat);
 		Mat3MulMat3(full_basis, iR_parmat, R_bonemat);
 		Mat3MulMat3(basis, irest_basis, full_basis);
 
-		/* basis must be pure rotation, size was extracted for length already */
-		Mat3Ortho(rest_basis);
+		/* basis must be pure rotation */
 		Mat3Ortho(basis);
 
-		/* Bone offset */
-		if(a>0 && pchan->parent) {
-			VECCOPY(start, bone->head);
-//			Mat3MulVecfl(R_parmat, start);
-		}
-		else
-			start[0]= start[1]= start[2]= 0.0f;
-		
 		IK_SetTransform(seg, start, rest_basis, basis, length);
 
 		if (pchan->ikflag & BONE_IK_XLIMIT)
@@ -1176,21 +1183,27 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 		IK_SetStiffness(seg, IK_X, pchan->stiffness[0]);
 		IK_SetStiffness(seg, IK_Y, pchan->stiffness[1]);
 		IK_SetStiffness(seg, IK_Z, pchan->stiffness[2]);
+
+		if(pchan->ikstretch > 0.0) {
+			float ikstretch = pchan->ikstretch*pchan->ikstretch;
+			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
+			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
+		}
 	}
 
-	solver= IK_CreateSolver(ikchain[0]);
+	solver= IK_CreateSolver(iktree[0]);
 
 	/* set solver goals */
 
-	/* first set the goal inverse transform, assuming the root of chain was done ok! */
-	pchan= chain->pchanchain[0];
+	/* first set the goal inverse transform, assuming the root of tree was done ok! */
+	pchan= tree->pchan[0];
 	Mat4One(rootmat);
 	VECCOPY(rootmat[3], pchan->pose_head);
 	
 	Mat4MulMat4 (imat, rootmat, ob->obmat);
 	Mat4Invert (goalinv, imat);
 	
-	for(target=chain->targets.first; target; target=target->next) {
+	for(target=tree->targets.first; target; target=target->next) {
 		data= (bKinematicConstraint*)target->con->data;
 
 		/* 1.0=ctime */
@@ -1208,7 +1221,7 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
 			
-			pchan= chain->pchanchain[target->tip];
+			pchan= tree->pchan[target->tip];
 
 			/* blend position */
 			VECCOPY(vec, pchan->pose_tail);
@@ -1226,9 +1239,7 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 			QuatToMat3(q, goalrot);
 		}
 
-		iktarget= ikchain[target->tip];
-
-		/*IK_SolverAddCenterOfMass(solver, ikchain[0], goalpos, data->weight);*/
+		iktarget= iktree[target->tip];
 
 		if(data->weight != 0.0)
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
@@ -1237,26 +1248,57 @@ static void execute_posechain(Object *ob, PoseChain *chain)
 	}
 
 	/* solve */
-	IK_Solve(solver, chain->tolerance, chain->iterations);
+	IK_Solve(solver, tree->tolerance, tree->iterations);
 	IK_FreeSolver(solver);
 
 	/* gather basis changes */
-	chain->basis_change= MEM_mallocN(sizeof(float[3][3])*chain->totchannel, "ik basis change");
+	tree->basis_change= MEM_mallocN(sizeof(float[3][3])*tree->totchannel, "ik basis change");
+	if(hasstretch)
+		ikstretch= MEM_mallocN(sizeof(float)*tree->totchannel, "ik stretch");
 
-	for(a=0; a<chain->totchannel; a++) {
-		IK_GetBasisChange(ikchain[a], chain->basis_change[a]);
-		IK_FreeSegment(ikchain[a]);
+	for(a=0; a<tree->totchannel; a++) {
+		IK_GetBasisChange(iktree[a], tree->basis_change[a]);
+
+		if(hasstretch) {
+			/* have to compensate for scaling received from parent */
+			float parentstretch, stretch;
+
+			pchan= tree->pchan[a];
+			parentstretch= (tree->parent[a] >= 0)? ikstretch[tree->parent[a]]: 1.0;
+
+			if(pchan->ikstretch > 0.0) {
+				float trans[3], length;
+
+				IK_GetTranslationChange(iktree[a], trans);
+				length= pchan->bone->length*VecLength(pchan->pose_mat[1]);
+
+				ikstretch[a]= (length == 0.0)? 1.0: (trans[1]+length)/length;
+			}
+			else
+				ikstretch[a] = 1.0;
+
+			stretch= (parentstretch == 0.0)? 1.0: ikstretch[a]/parentstretch;
+
+			VecMulf(tree->basis_change[a][0], stretch);
+			VecMulf(tree->basis_change[a][1], stretch);
+			VecMulf(tree->basis_change[a][2], stretch);
+
+		}
+
+		IK_FreeSegment(iktree[a]);
 	}
 	
-	MEM_freeN(ikchain);
+	MEM_freeN(iktree);
+	if(ikstretch) MEM_freeN(ikstretch);
 }
 
-void free_posechain (PoseChain *chain)
+void free_posetree(PoseTree *tree)
 {
-	BLI_freelistN(&chain->targets);
-	if(chain->pchanchain) MEM_freeN(chain->pchanchain);
-	if(chain->basis_change) MEM_freeN(chain->basis_change);
-	MEM_freeN(chain);
+	BLI_freelistN(&tree->targets);
+	if(tree->pchan) MEM_freeN(tree->pchan);
+	if(tree->parent) MEM_freeN(tree->parent);
+	if(tree->basis_change) MEM_freeN(tree->basis_change);
+	MEM_freeN(tree);
 }
 
 /* ********************** THE POSE SOLVER ******************* */
@@ -1451,42 +1493,42 @@ void where_is_pose (Object *ob)
 	else {
 		Mat4Invert(ob->imat, ob->obmat);	// imat is needed 
 
-		/* 1. construct the PoseChains, clear flags */
+		/* 1. construct the PoseTrees, clear flags */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			pchan->flag &= ~(POSE_DONE|POSE_CHAIN);
 			if(pchan->constflag & PCHAN_HAS_IK) // flag is set on editing constraints
-				initialize_posechain(ob, pchan);	// will attach it to root!
+				initialize_posetree(ob, pchan);	// will attach it to root!
 		}
 		
 		/* 2. the main loop, channels are already hierarchical sorted from root to children */
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			
 			/* 3. if we find an IK root, we handle it separated */
-			if(pchan->chain.first) {
-				while(pchan->chain.first) {
-					PoseChain *chain= pchan->chain.first;
+			if(pchan->iktree.first) {
+				while(pchan->iktree.first) {
+					PoseTree *tree= pchan->iktree.first;
 					int a;
 					
-					/* 4. walk over the chain for regular solving */
-					for(a=0; a<chain->totchannel; a++) {
-						if(!(chain->pchanchain[a]->flag & POSE_DONE))	// successive chains can set the flag
-							where_is_pose_bone(ob, chain->pchanchain[a]);
+					/* 4. walk over the tree for regular solving */
+					for(a=0; a<tree->totchannel; a++) {
+						if(!(tree->pchan[a]->flag & POSE_DONE))	// successive trees can set the flag
+							where_is_pose_bone(ob, tree->pchan[a]);
 					}
 					/* 5. execute the IK solver */
-					execute_posechain(ob, chain);
+					execute_posetree(ob, tree);
 					
 					/* 6. apply the differences to the channels, 
 						  we need to calculate the original differences first */
-					for(a=0; a<chain->totchannel; a++)
-						make_dmats(chain->pchanchain[a]);
+					for(a=0; a<tree->totchannel; a++)
+						make_dmats(tree->pchan[a]);
 					
-					for(a=0; a<chain->totchannel; a++)
+					for(a=0; a<tree->totchannel; a++)
 						/* sets POSE_DONE */
-						where_is_ik_bone(chain->pchanchain[a], chain->basis_change[a]);
+						where_is_ik_bone(tree->pchan[a], tree->basis_change[a]);
 					
 					/* 7. and free */
-					BLI_remlink(&pchan->chain, chain);
-					free_posechain(chain);
+					BLI_remlink(&pchan->iktree, tree);
+					free_posetree(tree);
 				}
 			}
 			else if(!(pchan->flag & POSE_DONE)) {

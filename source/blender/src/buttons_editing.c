@@ -1252,7 +1252,7 @@ void do_fontbuts(unsigned short event)
 	Object *ob;
 	ScrArea *sa;
 	char str[80];
-	int i, style;
+	int i, style=0;
 
 	ob= OBACT;
 
@@ -2357,8 +2357,8 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff X:", bx-10, by-80, 114, 19, &pchan->stiffness[0], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for X axis");
 					uiDefButBitS(block, TOG, BONE_IK_XLIMIT, B_ARM_RECALCDATA, "Limit X", bx-10,by-100,114,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over X axis");
 					if ((pchan->ikflag & BONE_IK_XLIMIT)) {
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0f, pchan->limitmax[0], 1000, 1, "Minimum X limit");
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], pchan->limitmin[0], 180.0f, 1000, 1, "Maximum X limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min X:", bx-10, by-120, 114, 19, &pchan->limitmin[0], -180.0, 0.0, 1000, 1, "Minimum X limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max X:", bx-10, by-140, 114, 19, &pchan->limitmax[0], 0.0, 180.0f, 1000, 1, "Maximum X limit");
 						zerolimit = 0;
 					}
 					zerodof = 0;
@@ -2368,11 +2368,11 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 				uiBlockBeginAlign(block);
 				uiDefButBitS(block, TOG, BONE_IK_NO_YDOF, B_ARM_RECALCDATA, "Lock Y Rot", bx+104,by-60,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Disable Y DoF for IK");
 				if ((pchan->ikflag & BONE_IK_NO_YDOF)==0) {
-					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Y axis");
+					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Y:", bx+104, by-80, 114, 19, &pchan->stiffness[1], 0.0, 0.99, 1.0, 0.0, "Resistance to twisting over Y axis");
 					uiDefButBitS(block, TOG, BONE_IK_YLIMIT, B_ARM_RECALCDATA, "Limit Y", bx+104,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Y axis");
 					if ((pchan->ikflag & BONE_IK_YLIMIT)) {
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0f, pchan->limitmax[1], 1000, 1, "Minimum Y limit");
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], pchan->limitmin[1], 180.0f, 1000, 1, "Maximum Y limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Y:", bx+104, by-120, 113, 19, &pchan->limitmin[1], -180.0, 0.0, 1000, 1, "Minimum Y limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Y:", bx+104, by-140, 113, 19, &pchan->limitmax[1], 0.0, 180.0, 1000, 1, "Maximum Y limit");
 						zerolimit = 0;
 					}
 					zerodof = 0;
@@ -2385,20 +2385,28 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 					uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stiff Z:", bx+217, by-80, 114, 19, &pchan->stiffness[2], 0.0, 0.99, 1.0, 0.0, "Resistance to bending for Z axis");
 					uiDefButBitS(block, TOG, BONE_IK_ZLIMIT, B_ARM_RECALCDATA, "Limit Z", bx+217,by-100,113,19, &pchan->ikflag, 0.0, 0.0, 0.0, 0.0, "Limit rotation over Z axis");
 					if ((pchan->ikflag & BONE_IK_ZLIMIT)) {
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0f, pchan->limitmax[2], 1000, 1, "Minimum Z limit");
-						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], pchan->limitmin[2], 180.0f, 1000, 1, "Maximum Z limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Min Z:", bx+217, by-120, 113, 19, &pchan->limitmin[2], -180.0, 0.0, 1000, 1, "Minimum Z limit");
+						uiDefButF(block, NUM, B_ARM_RECALCDATA, "Max Z:", bx+217, by-140, 113, 19, &pchan->limitmax[2], 0.0, 180.0, 1000, 1, "Maximum Z limit");
 						zerolimit = 0;
 					}
 					zerodof = 0;
 				}
 				uiBlockEndAlign(block);
 				
+				by -= (zerodof)? 82: (zerolimit)? 122: 162;
+
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stretch:", bx-10, by, 113, 19, &pchan->ikstretch, 0.0, 1.0, 1.0, 0.0, "Allow scaling of the bone for IK");
+				uiBlockEndAlign(block);
+
+				by -= 20;
 			}
 			else {
 				uiDefBut(block, LABEL, 0, "(DoF options only for IK chains)", bx-10,by-60, 300, 20, 0, 0, 0, 0, 0, "");
+
+				by -= 82;
 			}
 			
-			by -= (zerodof)? 82: (zerolimit)? 122: 162;
 				
 			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}

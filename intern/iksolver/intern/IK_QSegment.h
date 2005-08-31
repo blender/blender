@@ -91,6 +91,12 @@ public:
 	IK_QSegment *Parent() const
 	{ return m_parent; }
 
+	// for combining two joints into one from the interface
+	void SetComposite(IK_QSegment *seg);
+	
+	IK_QSegment *Composite() const
+	{ return m_composite; }
+
 	// number of degrees of freedom
 	int NumberOfDoF() const
 	{ return m_num_DoF; }
@@ -171,6 +177,7 @@ protected:
 	IK_QSegment *m_parent;
 	IK_QSegment *m_child;
 	IK_QSegment *m_sibling;
+	IK_QSegment *m_composite;
 
 	// full transform = 
 	// start * rest_basis * basis * translation
@@ -217,6 +224,7 @@ public:
 private:
 	MT_Matrix3x3 m_new_basis;
 	bool m_limit_x, m_limit_y, m_limit_z;
+	MT_Scalar m_min[2], m_max[2];
 	MT_Scalar m_min_y, m_max_y, m_max_x, m_max_z, m_offset_x, m_offset_z;
 	MT_Scalar m_locked_ax, m_locked_ay, m_locked_az;
 };
@@ -252,7 +260,7 @@ public:
 private:
 	int m_axis;
 	MT_Scalar m_angle, m_new_angle;
-	MT_Scalar m_limit;
+	bool m_limit;
 	MT_Scalar m_min, m_max;
 };
 
@@ -275,6 +283,7 @@ public:
 private:
 	MT_Matrix3x3 m_new_basis;
 	bool m_limit_x, m_limit_z;
+	MT_Scalar m_min[2], m_max[2];
 	MT_Scalar m_max_x, m_max_z, m_offset_x, m_offset_z;
 };
 
@@ -308,7 +317,7 @@ private:
 class IK_QTranslateSegment : public IK_QSegment
 {
 public:
-	// Revolute, 2DOF or 3DOF translational segments
+	// 1DOF, 2DOF or 3DOF translational segments
 	IK_QTranslateSegment(int axis1);
 	IK_QTranslateSegment(int axis1, int axis2);
 	IK_QTranslateSegment();
@@ -316,15 +325,17 @@ public:
 	MT_Vector3 Axis(int dof) const;
 
 	bool UpdateAngle(const IK_QJacobian &jacobian, MT_Vector3& delta, bool *clamp);
-	void Lock(int, IK_QJacobian&, MT_Vector3&) {};
+	void Lock(int, IK_QJacobian&, MT_Vector3&);
 	void UpdateAngleApply();
 
 	void SetWeight(int axis, MT_Scalar weight);
+	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
 
 private:
 	int m_axis[3];
-	bool m_axis_enabled[3];
+	bool m_axis_enabled[3], m_limit[3];
 	MT_Vector3 m_new_translation;
+	MT_Scalar m_min[3], m_max[3];
 };
 
 #endif

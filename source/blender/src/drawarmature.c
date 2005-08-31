@@ -1100,6 +1100,81 @@ static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
 	}
 }
 
+static void bgl_sphere_project(float ax, float az)
+{
+	float dir[3], sine, q3;
+
+	sine= 1.0f-ax*ax-az*az;
+	q3= 2.0*sqrt((sine < 0.0f)? 0.0f: sine);
+
+	dir[0]= -az*q3;
+	dir[1]= 1.0-2.0*sine;
+	dir[2]= ax*q3;
+
+	glVertex3fv(dir);
+}
+
+static void draw_dof_ellipse(float ax, float az)
+{
+	static float staticSine[16] = {
+		0.0, 0.104528463268, 0.207911690818, 0.309016994375,
+		0.406736643076, 0.5, 0.587785252292, 0.669130606359,
+		0.743144825477, 0.809016994375, 0.866025403784,
+		0.913545457643, 0.951056516295, 0.978147600734,
+		0.994521895368, 1.0
+	};
+
+	int i, j, n=16;
+	float x, z, px, pz;
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glDepthMask(0);
+
+	glColor4ub(70, 70, 70, 50);
+
+	glBegin(GL_QUADS);
+	pz= 0.0;
+	for(i=1; i<n; i++) {
+		z= staticSine[i];
+
+		px= 0.0;
+		for(j=1; j<n-i+1; j++) {
+			x = staticSine[j];
+
+			if(j == n-i) {
+				glEnd();
+				glBegin(GL_TRIANGLES);
+				bgl_sphere_project(ax*px, az*z);
+				bgl_sphere_project(ax*px, az*pz);
+				bgl_sphere_project(ax*x, az*pz);
+				glEnd();
+				glBegin(GL_QUADS);
+			}
+			else {
+				bgl_sphere_project(ax*x, az*z);
+				bgl_sphere_project(ax*x, az*pz);
+				bgl_sphere_project(ax*px, az*pz);
+				bgl_sphere_project(ax*px, az*z);
+			}
+
+			px= x;
+		}
+		pz= z;
+	}
+	glEnd();
+
+	glDisable(GL_BLEND);
+	glDepthMask(1);
+
+	glColor3ub(0, 0, 0);
+
+	glBegin(GL_LINE_STRIP);
+	for(i=0; i<n; i++)
+		bgl_sphere_project(staticSine[n-i-1]*ax, staticSine[i]*az);
+	glEnd();
+}
+
 static void draw_pose_dofs(Object *ob)
 {
 	bPoseChannel *pchan;
@@ -1111,9 +1186,8 @@ static void draw_pose_dofs(Object *ob)
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
 				if(bone->flag & BONE_SELECTED) {
 					if(pose_channel_in_IK_chain(ob, pchan)) {
-						float corner[4][3], vec[4][3], handle1[3], handle2[3];
-						float mat[4][4];
-						float phi=0.0f, theta=0.0f;
+						float corner[4][3], mat[4][4];
+						float phi=0.0f, theta=0.0f, scale;
 						int a, i;
 						
 						/* in parent-bone pose, but own restspace */
@@ -1125,19 +1199,37 @@ static void draw_pose_dofs(Object *ob)
 						glTranslatef(bone->head[0], bone->head[1], bone->head[2]);
 						Mat4CpyMat3(mat, pchan->bone->bone_mat);
 						glMultMatrixf(mat);
-						
-						/* center of the cone */
-						if(pchan->ikflag & BONE_IK_XLIMIT)
-							phi=  0.5*( pchan->limitmin[0]+pchan->limitmax[0]);
-						if(pchan->ikflag & BONE_IK_ZLIMIT)
-							theta= 0.5*(pchan->limitmin[2]+pchan->limitmax[2]);
-						
-						/* now move to cone space */
-						glRotatef(phi, 1.0f, 0.0f, 0.0f);
-						glRotatef(theta, 0.0f, 0.0f, 1.0f);
+
+						scale= bone->length*pchan->size[1];
+						glScalef(scale, scale, scale);
+
+						if(pchan->ikflag & BONE_IK_XLIMIT) {
+							if(pchan->ikflag & BONE_IK_ZLIMIT) {
+								float amin[3], amax[3];
+
+								for(i=0; i<3; i++) {
+									amin[i]= sin(pchan->limitmin[i]*M_PI/360.0);
+									amax[i]= sin(pchan->limitmax[i]*M_PI/360.0);
+								}
+								
+								glScalef(1.0, -1.0, 1.0);
+								if (amin[0] != 0.0 && amin[2] != 0.0)
+									draw_dof_ellipse(amin[0], amin[2]);
+								if (amin[0] != 0.0 && amax[2] != 0.0)
+									draw_dof_ellipse(amin[0], amax[2]);
+								if (amax[0] != 0.0 && amin[2] != 0.0)
+									draw_dof_ellipse(amax[0], amin[2]);
+								if (amax[0] != 0.0 && amax[2] != 0.0)
+									draw_dof_ellipse(amax[0], amax[2]);
+								glScalef(1.0, -1.0, 1.0);
+							}
+						}
 						
 						/* arcs */
 						if(pchan->ikflag & BONE_IK_ZLIMIT) {
+							theta= 0.5*(pchan->limitmin[2]+pchan->limitmax[2]);
+							glRotatef(theta, 0.0f, 0.0f, 1.0f);
+
 							glColor3ub(50, 50, 255);	// blue, Z axis limit
 							glBegin(GL_LINE_STRIP);
 							for(a=-16; a<=16; a++) {
@@ -1145,14 +1237,20 @@ static void draw_pose_dofs(Object *ob)
 								phi= fac*(M_PI/360.0f)*(pchan->limitmax[2]-pchan->limitmin[2]);
 								
 								if(a==-16) i= 0; else i= 1;
-								corner[i][0]= bone->length*sin(phi);
-								corner[i][1]= bone->length*cos(phi);
+								corner[i][0]= sin(phi);
+								corner[i][1]= cos(phi);
 								corner[i][2]= 0.0f;
 								glVertex3fv(corner[i]);
 							}
 							glEnd();
+
+							glRotatef(-theta, 0.0f, 0.0f, 1.0f);
 						}					
+
 						if(pchan->ikflag & BONE_IK_XLIMIT) {
+							theta=  0.5*( pchan->limitmin[0]+pchan->limitmax[0]);
+							glRotatef(theta, 1.0f, 0.0f, 0.0f);
+
 							glColor3ub(255, 50, 50);	// Red, X axis limit
 							glBegin(GL_LINE_STRIP);
 							for(a=-16; a<=16; a++) {
@@ -1161,72 +1259,15 @@ static void draw_pose_dofs(Object *ob)
 
 								if(a==-16) i= 2; else i= 3;
 								corner[i][0]= 0.0f;
-								corner[i][1]= bone->length*sin(phi);
-								corner[i][2]= bone->length*cos(phi);
+								corner[i][1]= sin(phi);
+								corner[i][2]= cos(phi);
 								glVertex3fv(corner[i]);
 							}
 							glEnd();
-						}
-						
-						if(pchan->ikflag & BONE_IK_XLIMIT) {
-							if(pchan->ikflag & BONE_IK_ZLIMIT) {
 
-								/* using corners to draw the influence area */
-								/* we set up beziers for it */
-								
-								VecSubf(handle1, corner[2], corner[3]);
-								VecMulf(handle1, 0.27614f);				// 0.5 * kappa, 0.5522847498
-								VecSubf(handle2, corner[0], corner[1]);
-								VecMulf(handle2, 0.27614f);	
-
-								cpack(0x0);
-								glEnable(GL_MAP1_VERTEX_3);
-								
-								/* bezier part */
-								VECCOPY(vec[0], corner[0]);	// 0 and 3 are cv's, 1 and 2 handles
-								VecAddf(vec[1], corner[0], handle1);
-								VecAddf(vec[2], corner[2], handle2);
-								VECCOPY(vec[3], corner[2]);
-								glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-								
-								glBegin(GL_LINE_STRIP);
-								for(a=0; a<=16; a++) glEvalCoord1f((float)a/16.0);
-								glEnd();
-								
-								/* bezier part */
-								VECCOPY(vec[0], corner[2]);	// 0 and 3 are cv's, 1 and 2 handles
-								VecSubf(vec[1], corner[2], handle2);
-								VecAddf(vec[2], corner[1], handle1);
-								VECCOPY(vec[3], corner[1]);
-								glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-								
-								glBegin(GL_LINE_STRIP);
-								for(a=0; a<=16; a++) glEvalCoord1f((float)a/16.0);
-								glEnd();
-								
-								/* bezier part */
-								VECCOPY(vec[0], corner[1]);	// 0 and 3 are cv's, 1 and 2 handles
-								VecSubf(vec[1], corner[1], handle1);
-								VecSubf(vec[2], corner[3], handle2);
-								VECCOPY(vec[3], corner[3]);
-								glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-								
-								glBegin(GL_LINE_STRIP);
-								for(a=0; a<=16; a++) glEvalCoord1f((float)a/16.0);
-								glEnd();
-								
-								/* bezier part */
-								VECCOPY(vec[0], corner[3]);	// 0 and 3 are cv's, 1 and 2 handles
-								VecAddf(vec[1], corner[3], handle2);
-								VecSubf(vec[2], corner[0], handle1);
-								VECCOPY(vec[3], corner[0]);
-								glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
-								
-								glBegin(GL_LINE_STRIP);
-								for(a=0; a<=16; a++) glEvalCoord1f((float)a/16.0);
-								glEnd();
-							}
+							glRotatef(-theta, 1.0f, 0.0f, 0.0f);
 						}
+
 						glPopMatrix(); // out of cone, out of bone
 					}
 				}

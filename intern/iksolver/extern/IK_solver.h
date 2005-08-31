@@ -84,14 +84,13 @@ extern "C" {
  * - free all segments
  */
 
-
 /**
  * IK_Segment defines a single segment of an IK tree. 
  * - Individual segments are always defined in local coordinates.
  * - The segment is assumed to be oriented in the local 
- * y-direction.
+ *   y-direction.
  * - start is the start of the segment relative to the end 
- * of the parent segment.
+ *   of the parent segment.
  * - rest_basis is a column major matrix defineding the rest
  *   position (w.r.t. which the limits are defined), must
  *   be a pure rotation
@@ -100,15 +99,12 @@ extern "C" {
  * - length is the length of the bone.  
  *
  * - basis_change and translation_change respectively define
- * the change in rotation or translation for rotational joints
- * and translational joints. basis_change is a column major 3x3
- * matrix.
+ *   the change in rotation or translation. basis_change is a
+ *   column major 3x3 matrix.
  *
- * For rotational joints the local transformation is then defined as:
- * start*rest_basis*basis*basis_change*translate(0,length,0) 
+ * The local transformation is then defined as:
+ * start * rest_basis * basis * basis_change * translation_change * translate(0,length,0) 
  *
- * For translational joints:
- * start*rest_basis*basis*translation_change*translate(0,length,0) 
  */
 
 typedef void IK_Segment;
@@ -117,13 +113,18 @@ enum IK_SegmentFlag {
 	IK_XDOF = 1,
 	IK_YDOF = 2,
 	IK_ZDOF = 4,
-	IK_TRANSLATIONAL = 8
+	IK_TRANS_XDOF = 8,
+	IK_TRANS_YDOF = 16,
+	IK_TRANS_ZDOF = 32
 };
 
 typedef enum IK_SegmentAxis {
-	IK_X,
-	IK_Y,
-	IK_Z
+	IK_X = 0,
+	IK_Y = 1,
+	IK_Z = 2,
+	IK_TRANS_X = 3,
+	IK_TRANS_Y = 4,
+	IK_TRANS_Z = 5
 } IK_SegmentAxis;
 
 extern IK_Segment *IK_CreateSegment(int flag);

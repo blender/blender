@@ -186,7 +186,6 @@ void IK_FreeSolver(IK_Solver *solver) {};
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight) {}
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight) {}
-void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight) {}
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations) { return 0; }
 
 /* exotic.c */
