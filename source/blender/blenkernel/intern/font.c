@@ -150,6 +150,12 @@ static VFontData *vfont_get_data(VFont *vfont)
 			}
 		}
 		
+#ifdef WITH_FREETYPE2 	 
+		vfont->data= BLI_vfontdata_from_freetypefont(pf); 	 
+#else 	 
+		vfont->data= BLI_vfontdata_from_psfont(pf);	                         
+#endif
+
 		if (pf) {
 			vfont->data= BLI_vfontdata_from_psfont(pf);
 			if (pf != vfont->packedfile) {
