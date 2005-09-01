@@ -4831,6 +4831,21 @@ int EdgeSlide(short immediate, float imperc)
 			glVertex3fv(upVert->co);
 			glVertex3fv(downVert->co);
 			glEnd(); 
+			
+			if(prop == 0){
+				// draw start edge for non-prop
+				glPointSize(5);
+				glBegin(GL_POINTS);
+				glColor3ub(255,0,255);
+				if(flip){
+					glVertex3fv(upVert->co);
+				} else {
+					glVertex3fv(downVert->co);					
+				}
+				glEnd();	
+			}
+			
+			
 			glPopMatrix();		 
 
 			view3d_project_float(curarea, upVert->co, v2, projectMat);
