@@ -2612,8 +2612,9 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools", "Editing", 640, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, B_BEAUTY, 0, "Beauty",		    10,195,40,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
-	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Short",		    50,195,40,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
+	uiDefButBitS(block, TOG, B_AUTOFGON, 0, "FGon",		    10,195,30,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' To create FGon on inner edges where possible");
+	uiDefButBitS(block, TOG, B_BEAUTY, 0, "Bty",		    30,195,30,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Long Edges Unless short is selected");
+	uiDefButBitS(block, TOG, B_BEAUTY_SHORT, 0, "Shrt",		    60,195,30,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Causes 'Subdivide' to split faces in halves instead of quarters using Short Edges");
 
 	uiDefBut(block, BUT,B_SUBDIV,"Subdivide",		90,195,80,19, 0, 0, 0, 0, 0, "Splits selected faces into halves or quarters");
 

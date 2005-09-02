@@ -1440,7 +1440,7 @@ static void fill_quad_single(EditFace *efa, struct GHash *gh, int numcuts, int s
 		 		hold->e3->f2 |= EDGEINNER;
             }
 		}
-	}	  
+	}	 
 }
 
 static void fill_tri_single(EditFace *efa, struct GHash *gh, int numcuts, int seltype)
@@ -1634,13 +1634,18 @@ static void fill_quad_double_adj_path(EditFace *efa, struct GHash *gh, int numcu
 	hold = addfacelist(verts[0][0],verts[1][vertsize-1],v[(start2+2)%4],NULL,NULL,NULL);
 	hold->e1->f2 |= EDGEINNER;  
 	facecopy(efa,hold);			   
+	if(G.scene->toolsettings->editbutflag & B_AUTOFGON){
+		hold->e1->h |= EM_FGON;
+	}	
 	// Make side faces
 
 	for(i=0;i<numcuts;i++){
 		hold = addfacelist(verts[0][i],verts[0][i+1],verts[1][vertsize-1-(i+1)],verts[1][vertsize-1-i],NULL,NULL);  
 		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);
-	}	  
+	}
+	EM_fgon_flags();
+		  
 }
 static void fill_quad_double_adj_fan(EditFace *efa, struct GHash *gh, int numcuts)
 {
@@ -1783,6 +1788,10 @@ static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numc
 	hold = addfacelist(op,inner[numcuts-1],verts[1][numcuts],verts[1][numcuts+1],NULL,NULL);  
 	hold->e2->f2 |= EDGEINNER;
 	facecopy(efa,hold);		
+	
+	if(G.scene->toolsettings->editbutflag & B_AUTOFGON){
+		hold->e1->h |= EM_FGON;
+	}	
 	// Add Fill Quads (if # cuts > 1)
 
 	for(i=0;i<numcuts-1;i++){
@@ -1794,9 +1803,14 @@ static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numc
 		hold = addfacelist(inner[i],inner[i+1],verts[0][numcuts-1-i],verts[0][numcuts-i],NULL,NULL);  
 		hold->e2->f2 |= EDGEINNER;
 		hold->e4->f2 |= EDGEINNER;
-		facecopy(efa,hold);		
+		facecopy(efa,hold);	
+		
+		if(G.scene->toolsettings->editbutflag & B_AUTOFGON){
+			hold->e1->h |= EM_FGON;
+		}	
 	}	
-
+	
+	EM_fgon_flags();
 	
 	MEM_freeN(inner);  
 }
@@ -2001,12 +2015,18 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 		// Also Make inner quad
 		hold = addfacelist(verts[1][numcuts/2],verts[1][(numcuts/2)+1],verts[2][numcuts/2],verts[0][(numcuts/2)+1],NULL,NULL);		   
 		hold->e3->f2 |= EDGEINNER;
+		if(G.scene->toolsettings->editbutflag & B_AUTOFGON){
+			hold->e3->h |= EM_FGON;
+		}
 		facecopy(efa,hold);
 		repeats = (numcuts / 2) -1;
 	} else {
 		// Make inner tri	 
 		hold = addfacelist(verts[1][(numcuts/2)+1],verts[2][(numcuts/2)+1],verts[0][(numcuts/2)+1],NULL,NULL,NULL);		   
 		hold->e2->f2 |= EDGEINNER;
+		if(G.scene->toolsettings->editbutflag & B_AUTOFGON){
+			hold->e2->h |= EM_FGON;
+		}
 		facecopy(efa,hold);   
 		repeats = ((numcuts+1) / 2)-1;
 	}
@@ -2032,6 +2052,7 @@ static void fill_quad_triple(EditFace *efa, struct GHash *gh, int numcuts)
 		hold->e2->f2 |= EDGEINNER;
 		facecopy(efa,hold);				
 	}	
+	EM_fgon_flags();
 }
 
 static void fill_quad_quadruple(EditFace *efa, struct GHash *gh, int numcuts,float rad,int beauty)

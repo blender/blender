@@ -377,6 +377,7 @@
 #define B_BEAUTY		4
 #define B_SMOOTH		8
 #define B_BEAUTY_SHORT  16
+#define B_AUTOFGON		32
 #define B_KNIFE			0x80
 #define B_PERCENTSUBD	0x40
 
