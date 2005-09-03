@@ -1583,7 +1583,7 @@ static int ui_do_but_TEX(uiBut *but)
 	ui_draw_but(but);
 	
 	if(dev!=ESCKEY) return but->retval;
-	else return 0;
+	else return B_NOP;	// prevent event to be passed on
 }
 
 
