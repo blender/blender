@@ -1457,22 +1457,38 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	
 	if(hits==1) return buffer[3];
 	else if(hits>1) {
-		GLuint mindep, minval;
+		GLuint val, dep, mindep=0, mindeprot=0, minval=0, minvalrot=0;
 		int a;
 		
 		/* we compare the hits in buffer, but value centers highest */
-		mindep= buffer[1];
-		minval= buffer[3];
+		/* we also store the rotation hits separate (because of arcs) and return hits on other widgets if there are */
 
-		for(a=1; a<hits; a++) {
-			if(minval==MAN_TRANS_C || minval==MAN_SCALE_C) break;
+		for(a=0; a<hits; a++) {
+			dep= buffer[4*a + 1];
+			val= buffer[4*a + 3];
 			
-			if(buffer[4*a + 3]==MAN_TRANS_C || buffer[4*a + 3]==MAN_SCALE_C || buffer[4*a + 1] < mindep) {
-				mindep= buffer[4*a + 1];
-				minval= buffer[4*a + 3];
+			if(val==MAN_TRANS_C) return MAN_TRANS_C;
+			else if(val==MAN_SCALE_C) return MAN_SCALE_C;
+			else {
+				if(val & MAN_ROT_C) {
+					if(minvalrot==0 || dep<mindeprot) {
+						mindeprot= dep;
+						minvalrot= val;
+					}
+				}
+				else {
+					if(minval==0 || dep<mindep) {
+						mindep= dep;
+						minval= val;
+					}
+				}
 			}
 		}
-		return minval;
+		
+		if(minval)
+			return minval;
+		else
+			return minvalrot;
 	}
 	return 0;
 }
