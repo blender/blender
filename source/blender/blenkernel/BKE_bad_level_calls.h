@@ -171,5 +171,9 @@ void bglVertex3fv(float *vec);
 void bglVertex3f(float x, float y, float z);
 void bglEnd(void);
 
+struct DispListMesh;
+struct Object;
+struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type);
+
 #endif
 
