@@ -830,7 +830,7 @@ static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 
 	z = sima->zoom;
 
-	if (img) {
+	if (img && img->ibuf) {
 		xy[0] = img->ibuf->x * z;
 		xy[1] = img->ibuf->y * z;
 	} else {
