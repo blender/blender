@@ -4844,7 +4844,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->step = 9;
 				sce->toolsettings->turn = 1; 				
 				sce->toolsettings->extr_offs = 1; 
-				sce->toolsettings->doublimit = 0.001;
+				sce->toolsettings->doublimit = 0.001f;
 				sce->toolsettings->segments = 32;
 				sce->toolsettings->rings = 32;
 				sce->toolsettings->vertices = 32;
@@ -4888,7 +4888,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ob->softflag &= ~OB_SB_ENABLE;
 			}
 			if(ob->pose) {
-				bPoseChannel *pchan, *parchan;
+				bPoseChannel *pchan;
 				bConstraint *con;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 					/* 2.38 files can be saved wrong still... */

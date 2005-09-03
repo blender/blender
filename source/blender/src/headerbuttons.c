@@ -281,7 +281,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 				if(ob==NULL) {
 					if(G.sipo->blocktype!=ID_SEQ && G.sipo->blocktype!=ID_WO) {
 						id= NULL; 
-						idwasnul= NULL;
+						idwasnul= 0;
 					}
 				}
 			}

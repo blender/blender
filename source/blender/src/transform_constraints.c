@@ -165,7 +165,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3]) {
 }
 
 static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3]) {
-	float norm[3], n[3], n2[3], vec[3], factor;
+	float norm[3], vec[3], factor;
 	
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;

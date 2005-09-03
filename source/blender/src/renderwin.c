@@ -219,8 +219,8 @@ static int renderwin_win_to_ndc(RenderWin *rw, int win_co[2], float ndc_r[2])
 	window_get_size(rw->win, &w, &h);
 	h-= RW_HEADERY;
 
-	ndc_r[0]=  ((float)(win_co[0]*2)/(w-1) - 1.0);
-	ndc_r[1]=  ((float)(win_co[1]*2)/(h-1) - 1.0);
+	ndc_r[0]=  ((float)(win_co[0]*2)/(w-1) - 1.0f);
+	ndc_r[1]=  ((float)(win_co[1]*2)/(h-1) - 1.0f);
 
 	return (fabs(ndc_r[0])<=1.0 && fabs(ndc_r[1])<=1.0);
 }

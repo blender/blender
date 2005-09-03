@@ -4474,7 +4474,7 @@ int EdgeSlide(short immediate, float imperc)
 	LinkNode *edgelist = NULL, *vertlist=NULL, *look;
 	GHash *vertgh;
 	SlideVert *tempsv;
-	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4], len;
+	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4];
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
 	short event, draw=1;
 	short mval[2], mvalo[2];
@@ -4819,7 +4819,6 @@ int EdgeSlide(short immediate, float imperc)
 				look = vertlist;	  
 				while(look){ 
 					float newlen;
-					EditVert *tempev;
 					ev = look->link;
 					tempsv = BLI_ghash_lookup(vertgh,ev);
 					newlen = (len / VecLenf(editedge_getOtherVert(tempsv->up,ev)->co,editedge_getOtherVert(tempsv->down,ev)->co));
