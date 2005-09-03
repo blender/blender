@@ -1,3 +1,5 @@
+#if 0
+
 /**
  * $Id$
  *
@@ -302,3 +304,5 @@ NewBooleanMeshTest(
 	return 1;
 }
 
+
+#endif

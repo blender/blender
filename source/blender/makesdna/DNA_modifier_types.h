@@ -17,6 +17,7 @@ typedef enum ModifierType {
 	eModifierType_Armature,
 	eModifierType_Hook,
 	eModifierType_Softbody,
+	eModifierType_Boolean,
 
 	NUM_MODIFIER_TYPES
 } ModifierType;
@@ -122,5 +123,17 @@ typedef struct HookModifierData {
 typedef struct SoftbodyModifierData {
 	ModifierData modifier;
 } SoftbodyModifierData;
+
+typedef enum {
+	eBooleanModifierOp_Intersect,
+	eBooleanModifierOp_Union,
+	eBooleanModifierOp_Difference,
+} BooleanModifierOp;
+typedef struct BooleanModifierData {
+	ModifierData modifier;
+
+	struct Object *object;
+	int operation, pad;
+} BooleanModifierData;
 
 #endif

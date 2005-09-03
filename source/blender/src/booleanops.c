@@ -64,6 +64,13 @@
 #include "BLI_linklist.h"
 #include "BLI_memarena.h"
 
+static void ConvertCSGDescriptorsToDLM(
+	DispListMesh *dlm,
+	Object *ob,
+	CSG_MeshPropertyDescriptor *props,
+	CSG_FaceIteratorDescriptor *face_it,
+	CSG_VertexIteratorDescriptor *vertex_it,
+	float parinv[][4]);
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -363,6 +370,193 @@ InterpFaceVertexData(
  * Assumes mesh is valid and forms part of a fresh
  * blender object.
  */
+DispListMesh *NewBooleanMeshDLM(Object *ob, Object *ob_select, int int_op_type)
+{
+	Mesh *me2 = get_mesh(ob_select);
+	Mesh *me = get_mesh(ob);
+	int free_tface1,free_tface2;
+	DispListMesh *dlm = NULL;
+
+	float inv_mat[4][4];
+	int success = 0;
+	// build and fill new descriptors for these meshes
+	CSG_VertexIteratorDescriptor vd_1;
+	CSG_VertexIteratorDescriptor vd_2;
+	CSG_FaceIteratorDescriptor fd_1;
+	CSG_FaceIteratorDescriptor fd_2;
+
+	CSG_MeshPropertyDescriptor mpd1,mpd2;
+
+	// work out the operation they chose and pick the appropriate 
+	// enum from the csg module.
+
+	CSG_OperationType op_type;
+
+	if (me == NULL || me2 == NULL) return 0;
+
+	if(!me->totface || !me2->totface) return 0;
+	
+	success = 0;
+
+	switch (int_op_type) {
+		case 1 : op_type = e_csg_intersection; break;
+		case 2 : op_type = e_csg_union; break;
+		case 3 : op_type = e_csg_difference; break;
+		case 4 : op_type = e_csg_classify; break;
+		default : op_type = e_csg_intersection;
+	}
+
+	// Here is the section where we describe the properties of
+	// both meshes to the bsp module.
+
+	if (me->mcol != NULL) {
+		// Then this mesh has vertex colors only 
+		// well this is awkward because there is no equivalent 
+		// test_index_mface just for vertex colors!
+		// as a temporary hack we can convert these vertex colors 
+		// into tfaces do the operation and turn them back again.
+
+		// create some memory for the tfaces.
+		me->tface = (TFace *)MEM_callocN(sizeof(TFace)*me->totface,"BooleanOps_TempTFace");
+		mcol_to_tface(me,1);
+		free_tface1 = 1;
+	} else {
+		free_tface1 = 0;
+	}
+
+	mpd1.user_face_vertex_data_size = 0;
+	mpd1.user_data_size = sizeof(FaceData);
+
+	if (me->tface) {
+		mpd1.user_face_vertex_data_size = sizeof(FaceVertexData);
+	}
+	
+	// same for mesh2
+
+	if (me2->mcol != NULL) {
+		// create some memory for the tfaces.
+		me2->tface = (TFace *)MEM_callocN(sizeof(TFace)*me2->totface,"BooleanOps_TempTFace");
+		mcol_to_tface(me2,1);
+		free_tface2 = 1;
+	} else {
+		free_tface2 = 0;
+	}
+
+	mpd2.user_face_vertex_data_size = 0;
+	mpd2.user_data_size = sizeof(FaceData);
+
+	if (me2->tface) {
+		mpd2.user_face_vertex_data_size = sizeof(FaceVertexData);
+	}
+
+	// we map the final object back into object 1's (ob)
+	// local coordinate space. For this we need to compute
+	// the inverse transform from global to local.	
+	
+	Mat4Invert(inv_mat,ob_select->obmat);
+
+	// make a boolean operation;
+	{
+		CSG_BooleanOperation * bool_op = CSG_NewBooleanFunction();
+		CSG_MeshPropertyDescriptor output_mpd = CSG_DescibeOperands(bool_op,mpd1,mpd2);
+		// analyse the result and choose mesh descriptors accordingly
+		int output_type;			
+		if (output_mpd.user_face_vertex_data_size) {
+			output_type = 1;
+		} else {
+			output_type = 0;
+		}
+		
+		BuildMeshDescriptors(
+			ob,
+			&fd_1,
+			&vd_1
+		);
+		BuildMeshDescriptors(
+			ob_select,
+			&fd_2,
+			&vd_2
+		);
+
+		// perform the operation
+
+		if (output_type == 0) {
+
+			success = 
+			CSG_PerformBooleanOperation(
+				bool_op,
+				op_type,
+				fd_1,vd_1,fd_2,vd_2,
+				InterpNoUserData	
+			);
+		} else {
+			success = 
+			CSG_PerformBooleanOperation(
+				bool_op,
+				op_type,
+				fd_1,vd_1,fd_2,vd_2,
+				InterpFaceVertexData	
+			);
+		}
+		
+		if (success) {
+			// descriptions of the output;
+			CSG_VertexIteratorDescriptor vd_o;
+			CSG_FaceIteratorDescriptor fd_o;
+			
+			dlm = MEM_callocN(sizeof(*dlm),"dlm");
+
+			CSG_OutputFaceDescriptor(bool_op,&fd_o);
+			CSG_OutputVertexDescriptor(bool_op,&vd_o);
+
+			// iterate through results of operation and insert into new object
+
+			ConvertCSGDescriptorsToDLM(
+				dlm,
+				NULL,
+				&output_mpd,
+				&fd_o,
+				&vd_o,
+				inv_mat
+			);
+
+			// free up the memory
+
+			CSG_FreeVertexDescriptor(&vd_o);
+			CSG_FreeFaceDescriptor(&fd_o);
+		}
+
+		CSG_FreeBooleanOperation(bool_op);
+		bool_op = NULL;
+
+	}
+
+	// We may need to map back the tfaces to mcols here.
+	if (free_tface1) {
+		tface_to_mcol(me);
+		MEM_freeN(me->tface);
+		me->tface = NULL;
+	}
+	if (free_tface2) {
+		tface_to_mcol(me2);
+		MEM_freeN(me2->tface);
+		me2->tface = NULL;
+	}
+
+	if (free_tface1 && free_tface2) {
+		// then we need to map the output tfaces into mcols
+		if (dlm) {
+			dlm->mcol = tface_to_mcol_p(dlm->tface, dlm->totface);
+			MEM_freeN(dlm->tface);
+			dlm->tface = NULL;
+		}
+	}
+	
+	FreeMeshDescriptors(&fd_1,&vd_1);
+	FreeMeshDescriptors(&fd_2,&vd_2);
+
+	return dlm;
+}
 
 	int
 NewBooleanMesh(
@@ -504,6 +698,7 @@ NewBooleanMesh(
 			// descriptions of the output;
 			CSG_VertexIteratorDescriptor vd_o;
 			CSG_FaceIteratorDescriptor fd_o;
+			DispListMesh dlm;
 
 			// Create a new blender mesh object - using 'base' as 
 			// a template for the new object.
@@ -518,13 +713,26 @@ NewBooleanMesh(
 			// iterate through results of operation and insert into new object
 			// see subsurf.c 
 
-			ConvertCSGDescriptorsToMeshObject(
-				ob_new,
+			ConvertCSGDescriptorsToDLM(
+				&dlm,
+				ob,
 				&output_mpd,
 				&fd_o,
 				&vd_o,
 				inv_mat
 			);
+
+			if (dlm.nors) MEM_freeN(dlm.nors);
+
+			me->mvert = dlm.mvert;
+			me->medge = dlm.medge;
+			me->mface = dlm.mface;
+			me->tface = dlm.tface;
+			me->mcol = dlm.mcol;
+			me->totvert = dlm.totvert;
+			me->totedge = dlm.totedge;
+			me->totface = dlm.totface;
+
 
 			// free up the memory
 
@@ -615,15 +823,15 @@ AddNewBlenderMesh(
  * the CSG module. It declares all the necessary blender cruft and 
  * fills in the vertex and face arrays.
  */
-	int
-ConvertCSGDescriptorsToMeshObject(
+	static void 
+ConvertCSGDescriptorsToDLM(
+	DispListMesh *dlm,
 	Object *ob,
 	CSG_MeshPropertyDescriptor *props,
 	CSG_FaceIteratorDescriptor *face_it,
 	CSG_VertexIteratorDescriptor *vertex_it,
 	float parinv[][4]
 ){
-	Mesh *me = ob->data;
 	FaceVertexData *user_face_vertex_data;
 	GHash *material_hash;
 	CSG_IVertex vert;
@@ -634,11 +842,6 @@ ConvertCSGDescriptorsToMeshObject(
 	int fi_insert_pos, nmaterials;
 
 	// create some memory for the Iface according to output mesh props.
-
-	if (face_it == NULL || vertex_it == NULL || props == NULL || me == NULL) {
-		return 0;
-	}
-	if (vertex_it->num_elements > MESH_MAX_VERTS) return 0;
 
 	// initialize the face structure for readback
 	
@@ -656,21 +859,18 @@ ConvertCSGDescriptorsToMeshObject(
 	
 	// create memory for the vertex array.
 
-	me->mvert = MEM_callocN(sizeof(MVert) * vertex_it->num_elements,"BooleanOp_VertexArray");
-	me->mface = MEM_callocN(sizeof(MFace) * face_it->num_elements,"BooleanOp_FaceArray");
+	dlm->mvert = MEM_callocN(sizeof(MVert) * vertex_it->num_elements,"BooleanOp_VertexArray");
+	dlm->mface = MEM_callocN(sizeof(MFace) * face_it->num_elements,"BooleanOp_FaceArray");
 
 	if (user_face_vertex_data) {
-		me->tface = MEM_callocN(sizeof(TFace) * face_it->num_elements,"BooleanOp_TFaceArray");
-		if (me->tface == NULL) return 0;
+		dlm->tface = MEM_callocN(sizeof(TFace) * face_it->num_elements,"BooleanOp_TFaceArray");
 	} else {
-		me->tface = NULL;
+		dlm->tface = NULL;
 	}
 
-	if (me->mvert == NULL || me->mface == NULL) return 0;
-
-	insert_pos = me->mvert;
-	mfaces = me->mface;
-	tfaces = me->tface;
+	insert_pos = dlm->mvert;
+	mfaces = dlm->mface;
+	tfaces = dlm->tface;
 
 	fi_insert_pos = 0;
 
@@ -691,7 +891,7 @@ ConvertCSGDescriptorsToMeshObject(
 		vertex_it->Step(vertex_it->it);
 	}
 
-	me->totvert = vertex_it->num_elements;
+	dlm->totvert = vertex_it->num_elements;
 
 	// a hash table to remap materials to indices with
 	material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
@@ -717,7 +917,7 @@ ConvertCSGDescriptorsToMeshObject(
 		 * hash table, just tuck the int into a void *.
 		 */
 		
-		if (!BLI_ghash_haskey(material_hash, fdata->material)) {
+		if (ob && !BLI_ghash_haskey(material_hash, fdata->material)) {
 			int matnr = nmaterials++;
 			BLI_ghash_insert(material_hash, fdata->material, (void*) matnr);
 			assign_material(ob, fdata->material, matnr+1);
@@ -761,17 +961,17 @@ ConvertCSGDescriptorsToMeshObject(
 
 	BLI_ghash_free(material_hash, NULL, NULL);
 
-	me->totface = face_it->num_elements;
+	dlm->totface = face_it->num_elements;
 
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	displistmesh_add_edges(dlm);
+
+	mesh_calc_normals(dlm->mvert, dlm->totvert, dlm->mface, dlm->totface, &dlm->nors);
 		
 	// thats it!
 	if (user_face_vertex_data) {
 		MEM_freeN(user_face_vertex_data);
 	}
 	MEM_freeN(face.user_face_data);
-
-	return 1;
 }	
 	
 	void

@@ -952,22 +952,26 @@ void nurbs_to_mesh(Object *ob)
 
 }
 
-void tface_to_mcol(Mesh *me)
+MCol *tface_to_mcol_p(TFace *tface, int totface)
 {
-	TFace *tface;
-	unsigned int *mcol;
+	unsigned int *mcol, *mcoldata;
 	int a;
 	
-	me->mcol= MEM_mallocN(4*sizeof(int)*me->totface, "nepmcol");
-	mcol= (unsigned int *)me->mcol;
+	mcol= mcoldata= MEM_mallocN(4*sizeof(int)*totface, "nepmcol");
 	
-	a= me->totface;
-	tface= me->tface;
+	a= totface;
 	while(a--) {
 		memcpy(mcol, tface->col, 16);
 		mcol+= 4;
 		tface++;
 	}
+
+	return (MCol*) mcoldata;
+}
+
+void tface_to_mcol(Mesh *me)
+{
+	me->mcol = tface_to_mcol_p(me->tface, me->totface);
 }
 
 void mcol_to_tface(Mesh *me, int freedata)

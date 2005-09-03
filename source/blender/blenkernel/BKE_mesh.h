@@ -68,6 +68,7 @@ void set_mesh(struct Object *ob, struct Mesh *me);
 void mball_to_mesh(struct ListBase *lb, struct Mesh *me);
 void nurbs_to_mesh(struct Object *ob);
 void mcol_to_tface(struct Mesh *me, int freedata);
+struct MCol *tface_to_mcol_p(struct TFace *tface, int totface);
 void tface_to_mcol(struct Mesh *me);
 void free_dverts(struct MDeformVert *dvert, int totvert);
 void copy_dverts(struct MDeformVert *dst, struct MDeformVert *src, int totvert); /* __NLA */

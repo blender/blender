@@ -664,6 +664,23 @@ static void modifier_testCurveObj(char *name, ID **idpp)
 	*idpp= 0;
 }
 
+static void modifier_testMeshObj(char *name, ID **idpp)
+{
+	ID *id;
+
+	for (id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_MESH) {
+				error ("Boolean modifier object must be a mesh");
+				break;
+			} 
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= 0;
+}
+
 static void modifier_testArmatureObj(char *name, ID **idpp)
 {
 	ID *id;
@@ -979,6 +996,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				height += 20;
 		} else if (md->type==eModifierType_Softbody) {
 			height = 26;
+		} else if (md->type==eModifierType_Boolean) {
+			height = 46;
 		}
 
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -1076,6 +1095,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			}
 		} else if (md->type==eModifierType_Softbody) {
 			uiDefBut(block, LABEL, 1, "See Softbody panel.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_Boolean) {
+			BooleanModifierData *bmd = (BooleanModifierData*) md;
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
+			uiDefIDPoinBut(block, modifier_testMeshObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &bmd->object, "Mesh object to use for boolean operation");
 		}
 		uiBlockEndAlign(block);
 

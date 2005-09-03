@@ -55,6 +55,8 @@ NewBooleanMesh(
 	int op_type
 );
 
+struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type);
+
 	
 /**
  * Functions exposed for use by BKE_booleanops_mesh
@@ -79,16 +81,6 @@ extern
 FreeMeshDescriptors(
 	struct CSG_FaceIteratorDescriptor * face_it,
 	struct CSG_VertexIteratorDescriptor * vertex_it
-);
-
-extern
-	int
-ConvertCSGDescriptorsToMeshObject(
-	struct Object *ob,
-	struct CSG_MeshPropertyDescriptor * props,
-	struct CSG_FaceIteratorDescriptor * face_it,
-	struct CSG_VertexIteratorDescriptor * vertex_it,
-	float parinv[][4]
 );
 
 /**

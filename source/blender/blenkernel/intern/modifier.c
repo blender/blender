@@ -5,7 +5,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_rand.h"
 #include "BLI_arithb.h"
-#include "BLI_edgehash.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -22,6 +21,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_booleanops.h"
 #include "BKE_displist.h"
 #include "BKE_modifier.h"
 #include "BKE_lattice.h"
@@ -804,9 +804,6 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 	dmd->faceCount = 0;
 	if(LOD_LoadMesh(&lod) ) {
 		if( LOD_PreprocessMesh(&lod) ) {
-			EdgeHash *eh;
-			EdgeHashIterator *ehi;
-
 			/* we assume the decim_faces tells how much to reduce */
 
 			while(lod.face_num > numTris*dmd->percent) {
@@ -826,7 +823,6 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				VECCOPY(mv->co, vbCo);
 			}
 
-			eh = BLI_edgehash_new();
 			for(a=0; a<lod.face_num; a++) {
 				MFace *mf = &ndlm->mface[a];
 				int *tri = &lod.triangle_index_buffer[a*3];
@@ -834,28 +830,9 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				mf->v2 = tri[1];
 				mf->v3 = tri[2];
 				test_index_face(mface, NULL, NULL, 3);
-
-				if (!BLI_edgehash_haskey(eh, mf->v1, mf->v2))
-					BLI_edgehash_insert(eh, mf->v1, mf->v2, NULL);
-				if (!BLI_edgehash_haskey(eh, mf->v2, mf->v3))
-					BLI_edgehash_insert(eh, mf->v2, mf->v3, NULL);
-				if (!BLI_edgehash_haskey(eh, mf->v1, mf->v3))
-					BLI_edgehash_insert(eh, mf->v1, mf->v3, NULL);
 			}
 
-			ndlm->totedge = BLI_edgehash_size(eh);
-			ndlm->medge = MEM_callocN(ndlm->totedge*sizeof(MEdge), "mdge");
-			ehi = BLI_edgehashIterator_new(eh);
-			for (a=0; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
-				MEdge *med = &ndlm->medge[a++];
-
-				BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
-
-				med->flag = ME_EDGEDRAW|ME_EDGERENDER;
-			}
-			BLI_edgehashIterator_free(ehi);
-
-			BLI_edgehash_free(eh, NULL);
+			displistmesh_add_edges(ndlm);
 		}
 		else {
 			modifier_setError(md, "Out of memory.");
@@ -1130,6 +1107,42 @@ static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *der
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+/* Boolean */
+
+static int booleanModifier_isDisabled(ModifierData *md)
+{
+	BooleanModifierData *bmd = (BooleanModifierData*) md;
+
+	return !bmd->object;
+}
+
+static void booleanModifier_foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+{
+	BooleanModifierData *bmd = (BooleanModifierData*) md;
+
+	walk(userData, ob, &bmd->object);
+}
+
+static void booleanModifier_updateDepgraph(ModifierData *md, DagForest *forest, Object *ob, DagNode *obNode)
+{
+	BooleanModifierData *bmd = (BooleanModifierData*) md;
+
+	if (bmd->object) {
+		DagNode *curNode = dag_get_node(forest, bmd->object);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+	}
+}
+
+static void *booleanModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
+{	
+		// XXX doesn't handle derived data
+	BooleanModifierData *bmd = (BooleanModifierData*) md;
+	DispListMesh *dlm = NewBooleanMeshDLM(bmd->object, ob, 1+bmd->operation);
+
+	return derivedmesh_from_displistmesh(dlm, NULL);
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -1247,6 +1260,14 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+
+		mti = INIT_TYPE(Boolean);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->isDisabled = booleanModifier_isDisabled;
+		mti->applyModifier = booleanModifier_applyModifier;
+		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
+		mti->updateDepgraph = booleanModifier_updateDepgraph;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
