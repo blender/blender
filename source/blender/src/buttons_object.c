@@ -713,7 +713,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
 
 				/* Draw Offset number button */
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -9000, 9000, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -MAXFRAMEF, MAXFRAMEF, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
 
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Fw:", *xco+12, *yco-64, 27, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -1269,7 +1269,7 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitC(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,17,115,30, &ob->sf, -9000.0, 9000.0, 100, 0, "Specify an offset in frames");
+	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,17,115,30, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");
 	uiDefBut(block, BUT, B_AUTOTIMEOFS, "Automatic Time",	139,17,104,31, 0, 0, 0, 0, 0, "Generate automatic timeoffset values for all selected frames");
 	uiDefBut(block, BUT, B_PRINTSPEED,	"PrSpeed",			248,17,67,31, 0, 0, 0, 0, 0, "Print objectspeed");
 	uiBlockEndAlign(block);
@@ -1692,10 +1692,10 @@ static void object_panel_effects(Object *ob)
 				uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	644,146,84+97,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
 			}
 			else {
-				uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		644,146,84,20, &paf->sta, -250.0, 9000.0, 100, 0, "Specify the startframe");
-				uiDefButF(block, NUM, B_CALCEFFECT, "End:",		731,146,97,20, &paf->end, 1.0, 9000.0, 100, 0, "Specify the endframe");
+				uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		644,146,84,20, &paf->sta, -250.0, MAXFRAMEF, 100, 0, "Specify the startframe");
+				uiDefButF(block, NUM, B_CALCEFFECT, "End:",		731,146,97,20, &paf->end, 1.0, MAXFRAMEF, 100, 0, "Specify the endframe");
 			}
-			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,146,88,20, &paf->lifetime, 1.0, 9000.0, 100, 0, "Specify the life span of the particles");
+			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,146,88,20, &paf->lifetime, 1.0, MAXFRAMEF, 100, 0, "Specify the life span of the particles");
 			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
 			
 			uiDefButS(block, NUM, B_REDR,		"CurMul:",		550,124,91,20, &paf->curmult, 0.0, 3.0, 0, 0, "Multiply the particles");

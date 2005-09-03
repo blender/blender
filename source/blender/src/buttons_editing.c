@@ -1023,10 +1023,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, 9000.0, 100, 0, "Specify the start frame of the effect");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:", lx, (cy-=19), buttonWidth,19, &bmd->length, 1.0, 9000.0, 100, 0, "Specify the total time the build effect requires");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, MAXFRAMEF, 100, 0, "Specify the start frame of the effect");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Length:", lx, (cy-=19), buttonWidth,19, &bmd->length, 1.0, MAXFRAMEF, 100, 0, "Specify the total time the build effect requires");
 			uiDefButI(block, TOG, B_MODIFIER_RECALC, "Randomize", lx, (cy-=19), buttonWidth,19, &bmd->randomize, 0, 0, 1, 0, "Randomize the faces or edges during build.");
-			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), buttonWidth,19, &bmd->seed, 1.0, 9000.0, 100, 0, "Specify the seed for random if used.");
+			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), buttonWidth,19, &bmd->seed, 1.0, MAXFRAMEF, 100, 0, "Specify the seed for random if used.");
 		} else if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), buttonWidth,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
@@ -1778,7 +1778,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 			uiDefBut(block, LABEL, 0, str,						675,135,75,19, 0, 1.0, 0, 0, 0, "");
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 9000.0, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
+			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, MAXFRAMEF, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
 			uiDefButBitS(block, TOG, CU_PATH, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "Enables curve to become translation path");
 			uiDefButBitS(block, TOG, CU_FOLLOW, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "Makes curve path children to rotate along path");
 			uiDefButBitS(block, TOG, CU_STRETCH, B_CURVECHECK, "CurveStretch", 600,10,150,19, &cu->flag, 0, 0, 0, 0, "Option for curve-deform: makes deformed child to stretch along entire path");

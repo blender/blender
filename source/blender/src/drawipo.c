@@ -1652,8 +1652,8 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 		extern int totipo_vertsel;	// editipo.c
 		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
 		
-		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, 18000.0, 100, 0, "");
-		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, G.sipo->tot.ymin-1000.0, 18000.0, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, MAXFRAMEF, 100, 0, "");
+		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, G.sipo->tot.ymin-1000.0, MAXFRAMEF, 100, 0, "");
 		
 		uiDefButF(block, NUM, B_MUL_IPO, "Ymin:",		10, 160, 150, 19, &G.sipo->tot.ymin, G.sipo->tot.ymin-1000.0, 5000.0, 100, 0, "");
 		uiDefButF(block, NUM, B_MUL_IPO, "Ymax:",		160, 160, 150, 19, &G.sipo->tot.ymax, G.sipo->tot.ymin-1000.0, 5000.0, 100, 0, "");
@@ -1666,7 +1666,7 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 	}
 
 	/* this one also does keypositions */
-	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, -10000, 18000);
+	if(G.sipo->ipo) ipo_editvertex_buts(block, G.sipo, -10000, MAXFRAMEF);
 }
 
 static void ipo_blockhandlers(ScrArea *sa)

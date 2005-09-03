@@ -488,6 +488,13 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			strncpy(str, but->poin, but->max);
 		}
 		else {
+			char backstr[UI_MAX_DRAW_STR];
+			/* give butfunc the original text too */
+			/* feature used for bone renaming, channels, etc */
+			if(but->func_arg2==NULL) {
+				strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
+				but->func_arg2= backstr;
+			}
 			strncpy(but->poin, str, but->max);
 			uibut_do_func(but);
 			ui_check_but(but);

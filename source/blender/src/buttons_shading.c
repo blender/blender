@@ -1214,10 +1214,10 @@ static void texture_panel_image1(Tex *tex)
 	else uiDefBut(block, LABEL, 0, "<",      802, 110, 20, 18, 0, 0, 0, 0, 0, "");
 			
 	uiDefButS(block, NUM, B_TEXPRV, "Frames :",	642,110,150,19, &tex->frames, 0.0, MAXFRAMEF, 0, 0, "Sets the number of frames of a movie to use and activates animation options");
-	uiDefButS(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -9000.0, 9000.0, 0, 0, "Offsets the number of the first movie frame to use in the animation");
+	uiDefButS(block, NUM, B_TEXPRV, "Offset :",	642,90,150,19, &tex->offset, -MAXFRAMEF, MAXFRAMEF, 0, 0, "Offsets the number of the first movie frame to use in the animation");
 	uiDefButS(block, NUM, B_TEXPRV, "Fie/Ima:",	642,60,98,19, &tex->fie_ima, 1.0, 200.0, 0, 0, "Sets the number of fields per rendered frame");
-	uiDefButS(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, 9000.0, 0, 0, "Sets the starting frame of the movie to use in animation");
-	uiDefButS(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, 9000.0, 0, 0, "Sets the number of movie frames to use in animation: 0=all");
+	uiDefButS(block, NUM, B_TEXPRV, "StartFr:",	642,30,150,19, &tex->sfra, 1.0, MAXFRAMEF, 0, 0, "Sets the starting frame of the movie to use in animation");
+	uiDefButS(block, NUM, B_TEXPRV, "Len:",		642,10,150,19, &tex->len, 0.0, MAXFRAMEF, 0, 0, "Sets the number of movie frames to use in animation: 0=all");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, B_TEXPRV, "Fra:",		802,70,73,19, &(tex->fradur[0][0]), 0.0, MAXFRAMEF, 0, 0, "Montage mode: frame start");
