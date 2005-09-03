@@ -197,6 +197,7 @@ void recalcData(TransInfo *t)
 				}
 				
 				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+				ebo->length= VecLenf(ebo->head, ebo->tail);
 				if(ebo->oldlength==0.0f) {
 					ebo->rad_head= 0.25f*ebo->length;
 					ebo->rad_tail= 0.10f*ebo->length;
