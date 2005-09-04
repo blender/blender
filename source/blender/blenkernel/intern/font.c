@@ -150,14 +150,12 @@ static VFontData *vfont_get_data(VFont *vfont)
 			}
 		}
 		
-#ifdef WITH_FREETYPE2 	 
-		vfont->data= BLI_vfontdata_from_freetypefont(pf); 	 
-#else 	 
-		vfont->data= BLI_vfontdata_from_psfont(pf);	                         
-#endif
-
 		if (pf) {
+#ifdef WITH_FREETYPE2
+			vfont->data= BLI_vfontdata_from_freetypefont(pf);
+#else
 			vfont->data= BLI_vfontdata_from_psfont(pf);
+#endif			
 			if (pf != vfont->packedfile) {
 				freePackedFile(pf);
 			}
@@ -194,7 +192,11 @@ VFont *load_vfont(char *name)
 		
 		waitcursor(1);
 
+#ifdef WITH_FREETYPE2
+		vfd= BLI_vfontdata_from_freetypefont(pf);
+#else
 		vfd= BLI_vfontdata_from_psfont(pf);
+#endif			
 		
 		if (vfd) {
 			vfont = alloc_libblock(&G.main->vfont, ID_VF, filename);
