@@ -1746,6 +1746,8 @@ void subdivide_armature(void)
 
 			newbone->flag |= BONE_CONNECTED;
 			
+			unique_editbone_name (newbone->name);
+			
 			/* correct parent bones */
 			for (tbone = G.edbo.first; tbone; tbone=tbone->next){
 				if(tbone->parent==ebone)
