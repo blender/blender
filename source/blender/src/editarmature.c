@@ -1173,13 +1173,13 @@ static EditBone *add_editbone(void)
 	
 	bone->flag |= BONE_TIPSEL;
 	bone->weight= 1.0F;
-	bone->dist= 0.5F;
+	bone->dist= 0.25F;
 	bone->xwidth= 0.1;
 	bone->zwidth= 0.1;
 	bone->ease1= 1.0;
 	bone->ease2= 1.0;
-	bone->rad_head= 0.25;
-	bone->rad_tail= 0.1;
+	bone->rad_head= 0.10;
+	bone->rad_tail= 0.05;
 	bone->segments= 1;
 	
 	return bone;
@@ -1292,8 +1292,8 @@ void addvert_armature(void)
 	Mat3MulVecfl(imat, newbone->tail);
 
 	newbone->length= VecLenf(newbone->head, newbone->tail);
-	newbone->rad_tail= newbone->length*0.1f;
-	newbone->dist= newbone->length*0.25f;
+	newbone->rad_tail= newbone->length*0.05f;
+	newbone->dist= newbone->length*0.1f;
 	
 	countall();
 	
@@ -1724,6 +1724,36 @@ void extrude_armature(int forked)
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWOOPS, 0);
+}
+
+/* context; editmode armature */
+void subdivide_armature(void)
+{
+	EditBone *ebone, *newbone, *tbone;
+	
+	for (ebone = G.edbo.last; ebone; ebone=ebone->prev){
+		if(ebone->flag & BONE_SELECTED) {
+			newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+			*newbone = *ebone;
+			BLI_addtail(&G.edbo, newbone);
+			
+			VecMidf(newbone->head, ebone->head, ebone->tail);
+			VECCOPY(newbone->tail, ebone->tail);
+			VECCOPY(ebone->tail, newbone->head);
+			
+			newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
+			ebone->rad_tail= newbone->rad_head;
+
+			newbone->flag |= BONE_CONNECTED;
+			
+			/* correct parent bones */
+			for (tbone = G.edbo.first; tbone; tbone=tbone->next){
+				if(tbone->parent==ebone)
+					tbone->parent= newbone;
+			}
+			newbone->parent= ebone;
+		}
+	}
 }
 
 /* ***************** Pose tools ********************* */

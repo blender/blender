@@ -2109,10 +2109,11 @@ void special_editmenu(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Flip Left-Right Names%x1");
-		if(nr==1) {
+		nr= pupmenu("Specials%t|Subdivide %x1|Flip Left-Right Names%x2");
+		if(nr==1)
+			subdivide_armature();
+		else if(nr==2)
 			armature_flip_names();
-		}
 	}
 
 	countall();
