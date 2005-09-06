@@ -51,6 +51,10 @@ public:
 
 
 	virtual void	setLocalScaling(const SimdVector3& scaling);
+	virtual const SimdVector3& getLocalScaling() const 
+	{
+		return m_localScaling;
+	}
 
 
 	virtual void	SetMargin(float margin)

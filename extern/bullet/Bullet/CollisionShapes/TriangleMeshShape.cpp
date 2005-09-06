@@ -100,6 +100,13 @@ void TriangleMeshShape::setLocalScaling(const SimdVector3& scaling)
 	m_meshInterface->setScaling(scaling);
 }
 
+const SimdVector3& TriangleMeshShape::getLocalScaling() const
+{
+	return m_meshInterface->getScaling();
+}
+
+
+
 void	TriangleMeshShape::ProcessAllTriangles(TriangleCallback* callback,const SimdVector3& aabbMin,const SimdVector3& aabbMax) const
 {
 

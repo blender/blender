@@ -53,6 +53,7 @@ public:
 	virtual void	CalculateLocalInertia(SimdScalar mass,SimdVector3& inertia);
 
 	virtual void	setLocalScaling(const SimdVector3& scaling);
+	virtual const SimdVector3& getLocalScaling() const;
 	
 
 	//debugging

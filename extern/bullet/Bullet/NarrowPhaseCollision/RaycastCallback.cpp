@@ -26,6 +26,8 @@ RaycastCallback::RaycastCallback(const SimdVector3& from,const SimdVector3& to)
 
 void RaycastCallback::ProcessTriangle(SimdVector3* triangle)
 {
+	
+
 	const SimdVector3 &vert0=triangle[0];
 	const SimdVector3 &vert1=triangle[1];
 	const SimdVector3 &vert2=triangle[2];

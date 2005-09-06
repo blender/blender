@@ -24,6 +24,11 @@ class CylinderShape : public BoxShape
 public:
 	CylinderShape (const SimdVector3& halfExtents);
 	
+	///GetAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
+	void GetAabb(const SimdTransform& t,SimdVector3& aabbMin,SimdVector3& aabbMax) const
+	{
+		GetAabbSlow(t,aabbMin,aabbMax);
+	}
 
 	virtual SimdVector3	LocalGetSupportingVertexWithoutMargin(const SimdVector3& vec)const;
 
