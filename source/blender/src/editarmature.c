@@ -1336,15 +1336,7 @@ void adduplicate_armature(void)
 			/* temporal removed (ton) */
 		}
 	}
-	
-	if (eBone){
-		/*	Fix the head and tail */	
-		if (eBone->parent && !eBone->parent->flag & BONE_SELECTED){
-			VecSubf (eBone->tail, eBone->tail, eBone->head);
-			VecSubf (eBone->head, eBone->head, eBone->head);
-		}
-	}
-	
+
 	/*	Run though the list and fix the pointers */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
 		
@@ -1729,31 +1721,46 @@ void extrude_armature(int forked)
 /* context; editmode armature */
 void subdivide_armature(void)
 {
-	EditBone *ebone, *newbone, *tbone;
+	bArmature *arm= G.obedit->data;
+	EditBone *ebone, *newbone, *tbone, *mbone;
+	int a;
 	
-	for (ebone = G.edbo.last; ebone; ebone=ebone->prev){
-		if(ebone->flag & BONE_SELECTED) {
-			newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
-			*newbone = *ebone;
-			BLI_addtail(&G.edbo, newbone);
+	for (mbone = G.edbo.last; mbone; mbone= mbone->prev) {
+		if(mbone->flag & BONE_SELECTED) {
 			
-			VecMidf(newbone->head, ebone->head, ebone->tail);
-			VECCOPY(newbone->tail, ebone->tail);
-			VECCOPY(ebone->tail, newbone->head);
-			
-			newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
-			ebone->rad_tail= newbone->rad_head;
+			/* take care of mirrored stuff */
+			for(a=0; a<2; a++) {
+				if(a==0) ebone= mbone;
+				else {
+					if(arm->flag & ARM_MIRROR_EDIT)
+						ebone= armature_bone_get_mirrored(mbone);
+					else ebone= NULL;
+				}
+				if(ebone) {
 
-			newbone->flag |= BONE_CONNECTED;
-			
-			unique_editbone_name (newbone->name);
-			
-			/* correct parent bones */
-			for (tbone = G.edbo.first; tbone; tbone=tbone->next){
-				if(tbone->parent==ebone)
-					tbone->parent= newbone;
+					newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+					*newbone = *ebone;
+					BLI_addtail(&G.edbo, newbone);
+					
+					VecMidf(newbone->head, ebone->head, ebone->tail);
+					VECCOPY(newbone->tail, ebone->tail);
+					VECCOPY(ebone->tail, newbone->head);
+					
+					newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
+					ebone->rad_tail= newbone->rad_head;
+
+					newbone->flag |= BONE_CONNECTED;
+					
+					unique_editbone_name (newbone->name);
+					
+					/* correct parent bones */
+					for (tbone = G.edbo.first; tbone; tbone=tbone->next){
+						if(tbone->parent==ebone)
+							tbone->parent= newbone;
+					}
+					newbone->parent= ebone;
+				}
 			}
-			newbone->parent= ebone;
 		}
 	}
 }
