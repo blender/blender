@@ -4926,9 +4926,11 @@ int EdgeSlide(short immediate, float imperc)
 							perc = 0;  
 							immediate = 1;
 					} else if(event==PKEY) {
-							(prop == 1) ? (prop = 0):(prop = 1);  
+							(prop == 1) ? (prop = 0):(prop = 1);
+							mvalo[0] = -1;  
 					} else if(event==FKEY) {
-							(flip == 1) ? (flip = 0):(flip = 1);  
+							(flip == 1) ? (flip = 0):(flip = 1); 
+							mvalo[0] = -1; 
 					} else if(ELEM(event, RIGHTARROWKEY, WHEELUPMOUSE)) { // Scroll through Control Edges
 						look = vertlist;	
 				 		while(look){	
