@@ -728,8 +728,10 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 				pchan = defnrToPC[dvert->dw[j].def_nr];
 				if (pchan) {
 					float weight= dvert->dw[j].weight;
-					if(pchan->bone->flag & BONE_MULT_VG_ENV) {
-						Bone *bone= pchan->bone;
+					Bone *bone= pchan->bone;
+					
+					if(bone && bone->flag & BONE_MULT_VG_ENV) {
+						
 						weight*= distfactor_to_bone(co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 					}
 					pchan_bone_deform(pchan, weight, vec, co, &contrib);

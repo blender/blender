@@ -55,6 +55,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_screen_types.h"
@@ -68,6 +69,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -734,7 +736,8 @@ void wpaint_undo (void)
 	/* now free previous mesh dverts */
 	free_dverts(swapbuf, me->totvert);
 
-	DAG_object_flush_update(G.scene, ob->parent, OB_RECALC_DATA);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	DAG_object_flush_update(G.scene, modifiers_isDeformedByArmature(ob), OB_RECALC_DATA);
 	scrarea_do_windraw(curarea);
 	
 }
@@ -911,11 +914,13 @@ void weight_paint(void)
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
 		create_dverts(me);
+	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
-		if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
+		Object *modob;
+		if(modob = modifiers_isDeformedByArmature(ob)) {
 			bPoseChannel *pchan;
-			for(pchan= ob->parent->pose->chanbase.first; pchan; pchan= pchan->next)
+			for(pchan= modob->pose->chanbase.first; pchan; pchan= pchan->next)
 				if(pchan->bone->flag & SELECT)
 					break;
 			if(pchan) {

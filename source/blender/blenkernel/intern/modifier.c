@@ -1494,18 +1494,20 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 	return ob->modifiers.first;
 }
 
-int modifiers_isDeformedByArmature(Object *ob, Object *armOb)
+Object *modifiers_isDeformedByArmature(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 
 	for (; md; md=md->next) {
 		if (md->type==eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-
-			if (amd->object==armOb)
-				return 1;
+			return amd->object;
 		}
 	}
+	
+	if(ob->parent && ob->parent->type==OB_ARMATURE)
+		if(ob->partype==PARSKEL)
+			return ob->parent;
 
-	return 0;
+	return NULL;
 }

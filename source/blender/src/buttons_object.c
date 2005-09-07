@@ -685,7 +685,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					strcpy (data->subtarget, "");
 				uiBlockEndAlign(block);
 
-				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 54, 18, &data->sticky, 0, 24, 0, 0, "Immobilize object while constrained");
+				but=uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 54, 18, &data->sticky, 0, 24, 0, 0, "Immobilize object while constrained");
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Max/Min:", *xco-8, *yco-64, 54, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 

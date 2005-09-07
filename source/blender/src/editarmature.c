@@ -2400,7 +2400,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldnam
 /* seems messy, but thats what you get with not using pointers but channel names :) */
 void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 {
-	Object *ob;
+	Object *ob, *modob;
 	char newname[MAXBONENAME];
 	char oldname[MAXBONENAME];
 	
@@ -2481,13 +2481,15 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					if (!strcmp(ob->parsubstr, oldname))
 						BLI_strncpy(ob->parsubstr, newname, MAXBONENAME);
 				}
-				else if(ob->partype==PARSKEL) {
-					bDeformGroup *dg;
-					/* bone name in defgroup */
-					for (dg=ob->defbase.first; dg; dg=dg->next) {
-						if(!strcmp(dg->name, oldname))
-						   BLI_strncpy(dg->name, newname, MAXBONENAME);
-					}
+			}
+			/* or is there an armature deforming object */
+			modob = modifiers_isDeformedByArmature(ob);
+			if(modob) {
+				bDeformGroup *dg;
+				/* bone name in defgroup */
+				for (dg=ob->defbase.first; dg; dg=dg->next) {
+					if(!strcmp(dg->name, oldname))
+					   BLI_strncpy(dg->name, newname, MAXBONENAME);
 				}
 			}
 		}

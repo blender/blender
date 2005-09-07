@@ -109,7 +109,7 @@ the specified defweight group */
 	int	i;
 	MDeformWeight *newdw;
 
-	if (!dv)
+	if (!dv || defgroup<0)
 		return NULL;
 
 	for (i=0; i<dv->totweight; i++){
