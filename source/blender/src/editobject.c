@@ -159,7 +159,7 @@
 #include "nla.h"
 
 #include "blendef.h"
-
+#include "butspace.h"
 #include "BIF_transform.h"
 
 #include "BIF_poseobject.h"
@@ -1973,7 +1973,8 @@ void special_editmenu(void)
 			if (me && ob->id.lib==NULL) {
 				
 				// Bring up a little menu with the boolean operation choices on.
-				nr= pupmenu("Boolean %t|Intersect%x1|Union%x2|Difference%x3");
+				nr= pupmenu("Boolean Tools%t|Intersect%x1|Union%x2|Difference%x3|Add Intersect Modifier%x4|Add Union Modifier%x5|Add Difference Modifier%x6");
+
 				if (nr > 0) {
 					// user has made a choice of a menu element.
 					// All of the boolean functions require 2 mesh objects 
@@ -1988,16 +1989,31 @@ void special_editmenu(void)
 
 					if (base_select) {
 						if (get_mesh(base_select->object)) {
-							waitcursor(1);
-							ret = NewBooleanMesh(BASACT,base_select,nr);
- 							if (ret==0) {
-								error("An internal error occurred -- sorry!");
- 							} else if(ret==-1) {
-								error("Selected meshes must have faces to perform boolean operations");
-							}
-							else BIF_undo_push("Boolean");
-
-							waitcursor(0);
+							if(nr <= 3){
+								waitcursor(1);
+								ret = NewBooleanMesh(BASACT,base_select,nr);
+								if (ret==0) {
+									error("An internal error occurred -- sorry!");
+								} else if(ret==-1) {
+									error("Selected meshes must have faces to perform boolean operations");
+								}
+								else BIF_undo_push("Boolean");
+								waitcursor(0);
+							} else {
+								ModifierTypeInfo *mti = modifierType_getInfo(eModifierType_Boolean);
+								BooleanModifierData *bmd = NULL;
+								bmd = (BooleanModifierData *)modifier_new(eModifierType_Boolean);
+								BLI_addtail(&ob->modifiers, bmd);
+								bmd->object = base_select->object;
+								bmd->modifier.mode |= eModifierMode_Realtime;
+								switch(nr){
+									case 4: bmd->operation = eBooleanModifierOp_Intersect; break;
+									case 5: bmd->operation = eBooleanModifierOp_Union; break;
+									case 6:	bmd->operation = eBooleanModifierOp_Difference; break;
+								}
+								do_common_editbuts(B_CHANGEDEP);
+								BIF_undo_push("Add Boolean modifier");								
+							}								
 						} else {
 							error("Please select 2 meshes");
 						}
@@ -2019,27 +2035,27 @@ void special_editmenu(void)
 		}
 	}
 	else if(G.obedit->type==OB_MESH) {
-        
+
 		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
 		
 		switch(nr) {
 		case 1:
-            numcuts = 1;
+			numcuts = 1;
 			waitcursor(1);
-            esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
 			
 			BIF_undo_push("ESubdivide Single");            
 			break;
 		case 2:
-            numcuts = 2;
-            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+		numcuts = 2;
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
-            esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
 			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
-            numcuts = 2;
-            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			numcuts = 2;
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
@@ -2075,8 +2091,8 @@ void special_editmenu(void)
 			bevel_menu();
 			break;
 		case 12:
-            numcuts = 2;
-            if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			numcuts = 2;
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
 			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,numcuts,0);
 			BIF_undo_push("Subdivide Smooth");
