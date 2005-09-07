@@ -260,6 +260,12 @@ char *get_con_subtarget_name(bConstraint *con, Object *target)
 			if (data->tar==target) return data->subtarget;
 		}
 		break;
+		case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data = con->data;
+			if (data->tar==target) return data->subtarget;
+		}
+		break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 		{
 			bLockTrackConstraint *data = con->data;
@@ -361,6 +367,24 @@ static void test_constraints (Object *owner, const char* substring)
 				case CONSTRAINT_TYPE_LOCLIKE:
 				{
 					bLocateLikeConstraint *data = curcon->data;
+					
+					if (!exist_object(data->tar)){
+						data->tar = NULL;
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					
+					if ( (data->tar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->subtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+				}
+					break;
+				case CONSTRAINT_TYPE_MINMAX:
+				{
+					bMinMaxConstraint *data = curcon->data;
 					
 					if (!exist_object(data->tar)){
 						data->tar = NULL;

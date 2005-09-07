@@ -140,6 +140,14 @@ void relink_constraints (struct ListBase *list)
 				ID_NEW(data->tar);
 			}
 				break;
+			case CONSTRAINT_TYPE_MINMAX:
+			{
+				bMinMaxConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
 			case CONSTRAINT_TYPE_LOCKTRACK:
 			{
 				bLockTrackConstraint *data;
@@ -272,6 +280,13 @@ char constraint_has_target (bConstraint *con)
 				return 1;
 		}
 		break;
+	case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
 	case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
@@ -335,6 +350,13 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
+			*subtarget= data->subtarget;
+			return data->tar;
+		}
+		break;
+	case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data = con->data;
 			*subtarget= data->subtarget;
 			return data->tar;
 		}
@@ -505,6 +527,22 @@ void *new_constraint_data (short type)
 
 			data->reserved1 = TRACK_Y;
 			data->reserved2 = UP_Z;
+
+			result = data;
+
+		}
+		break;
+	case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data;
+			data = MEM_callocN(sizeof(bMinMaxConstraint), "minmaxConstraint");
+
+
+			data->minmaxflag = TRACK_Z;
+			data->offset = 0.0f;
+			data->cache[0] = data->cache[1] = data->cache[2] = 0.0f;
+			data->sticky = 0;
+			data->stuck = 0;
 
 			result = data;
 
@@ -801,6 +839,18 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Mat4One (mat);
 		} 
 		break;
+	case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data = (bMinMaxConstraint*)con->data;
+
+			if (data->tar){
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
+				valid=1;
+			}
+			else
+				Mat4One (mat);
+		} 
+		break;
 	case CONSTRAINT_TYPE_ROTLIKE:
 		{
 			bRotateLikeConstraint *data;
@@ -991,6 +1041,64 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		break;
 	case CONSTRAINT_TYPE_NULL:
 		{
+		}
+		break;
+	case CONSTRAINT_TYPE_MINMAX:
+		{
+			float val1, val2;
+			int index;
+			bMinMaxConstraint *data;
+
+			data = constraint->data;
+
+			switch (data->minmaxflag){
+			case TRACK_Z:
+				val1 = targetmat[3][2];
+				val2 = ob->obmat[3][2]-data->offset;
+				index = 2;
+				break;
+			case TRACK_Y:
+				val1 = targetmat[3][1];
+				val2 = ob->obmat[3][1]-data->offset;
+				index = 1;
+				break;
+			case TRACK_X:
+				val1 = targetmat[3][0];
+				val2 = ob->obmat[3][0]-data->offset;
+				index = 0;
+				break;
+			case TRACK_nZ:
+				val2 = targetmat[3][2];
+				val1 = ob->obmat[3][2]-data->offset;
+				index = 2;
+				break;
+			case TRACK_nY:
+				val2 = targetmat[3][1];
+				val1 = ob->obmat[3][1]-data->offset;
+				index = 1;
+				break;
+			case TRACK_nX:
+				val2 = targetmat[3][0];
+				val1 = ob->obmat[3][0]-data->offset;
+				index = 0;
+				break;
+			default:
+				return;
+			}
+			
+			if (val1 > val2) {
+				ob->obmat[3][index] = targetmat[3][index] + data->offset;
+				if (data->sticky==1) {
+					if (data->stuck==1) {
+						VECCOPY(ob->obmat[3], data->cache);
+					} else {
+						VECCOPY(data->cache, ob->obmat[3]);
+						data->stuck = 1;
+					}
+				}
+			} else {
+				data->stuck=0;
+			}
 		}
 		break;
 	case CONSTRAINT_TYPE_TRACKTO:

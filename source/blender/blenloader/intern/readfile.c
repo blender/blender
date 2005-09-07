@@ -1320,6 +1320,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_MINMAX:
+			{
+				bMinMaxConstraint *data;
+				data = ((bMinMaxConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 			{
 				bLockTrackConstraint *data;
@@ -5275,6 +5282,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data = (bTrackToConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				break;
+			}
+		case CONSTRAINT_TYPE_MINMAX:
+			{
+				bMinMaxConstraint *data = (bMinMaxConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				break;
 			}

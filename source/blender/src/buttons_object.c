@@ -313,6 +313,9 @@ static void get_constraint_typestring (char *str, bConstraint *con)
 	case CONSTRAINT_TYPE_TRACKTO:
 		strcpy (str, "Track To");
 		return;
+	case CONSTRAINT_TYPE_MINMAX:
+		strcpy (str, "Floor");
+		return;
 	case CONSTRAINT_TYPE_KINEMATIC:
 		strcpy (str, "IK Solver");
 		return;
@@ -352,6 +355,8 @@ static int get_constraint_col(bConstraint *con)
 	case CONSTRAINT_TYPE_ROTLIKE:
 		return TH_BUT_SETTING1;
 	case CONSTRAINT_TYPE_LOCLIKE:
+		return TH_BUT_POPUP;
+	case CONSTRAINT_TYPE_MINMAX:
 		return TH_BUT_POPUP;
 	case CONSTRAINT_TYPE_ACTION:
 		return TH_BUT_ACTION;
@@ -656,6 +661,44 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 			}
 			break;
+		case CONSTRAINT_TYPE_MINMAX:
+			{
+				bMinMaxConstraint *data = con->data;
+				bArmature *arm;
+
+				height = 66;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco, *yco-44, 100, 18, &data->offset, -100, 100, 100.0, 0.0, "Offset from the position of the object center"); 
+
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+
+				arm = get_armature(data->tar);
+				if (arm){
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+				}
+				else
+					strcpy (data->subtarget, "");
+				uiBlockEndAlign(block);
+
+				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 54, 18, &data->sticky, 0, 24, 0, 0, "Immobilize object while constrained");
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Max/Min:", *xco-8, *yco-64, 54, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				uiBlockBeginAlign(block);			
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+51, *yco-64,17,18, &data->minmaxflag, 12.0, 0.0, 0, 0, "Will not pass below X of target");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+67, *yco-64,17,18, &data->minmaxflag, 12.0, 1.0, 0, 0, "Will not pass below Y of target");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+85, *yco-64,17,18, &data->minmaxflag, 12.0, 2.0, 0, 0, "Will not pass below Z of target");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+102, *yco-64,24,18, &data->minmaxflag, 12.0, 3.0, 0, 0, "Will not pass above X of target");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+126, *yco-64,24,18, &data->minmaxflag, 12.0, 4.0, 0, 0, "Will not pass above Y of target");
+				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+150, *yco-64,24,18, &data->minmaxflag, 12.0, 5.0, 0, 0, "Will not pass above Z of target");
+				uiBlockEndAlign(block);
+			}
+			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 			{
 				bLockTrackConstraint *data = con->data;
@@ -831,6 +874,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_TRACKTO,"Track To",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX,"Floor",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK,"Locked Track",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH,"Follow Path",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
@@ -893,6 +937,16 @@ void do_constraintbuts(unsigned short event)
 			bConstraint *con;
 
 			con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+			add_constraint_to_active(ob, con);
+
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_MINMAX:
+		{
+			bConstraint *con;
+
+			con = add_new_constraint(CONSTRAINT_TYPE_MINMAX);
 			add_constraint_to_active(ob, con);
 
 			BIF_undo_push("Add constraint");

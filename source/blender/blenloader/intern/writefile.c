@@ -612,6 +612,9 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_STRETCHTO:
 			writestruct(wd, DATA, "bStretchToConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_MINMAX:
+			writestruct(wd, DATA, "bMinMaxConstraint", 1, con->data);
+			break;
 		default:
 			break;
 		}

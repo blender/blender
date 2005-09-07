@@ -93,6 +93,16 @@ typedef struct bLocateLikeConstraint{
 	char		subtarget[32];
 } bLocateLikeConstraint;
 
+typedef struct bMinMaxConstraint{
+	Object		*tar;
+	int			minmaxflag;
+	float			offset;
+	short			sticky;
+	short			stuck;
+	float			cache[3];
+	char		subtarget[32];
+} bMinMaxConstraint;
+
 typedef struct bActionConstraint{
 	Object		*tar;
 	short		type;
@@ -168,6 +178,7 @@ typedef struct bStretchToConstraint{
 #define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
 #define CONSTRAINT_TYPE_DISTANCELIMIT	14 
 #define CONSTRAINT_TYPE_STRETCHTO	15  /* claiming this to be mine :) is in tuhopuu bjornmose */ 
+#define CONSTRAINT_TYPE_MINMAX      16  /* floor constraint */
 
 
 /* bConstraint.flag */
