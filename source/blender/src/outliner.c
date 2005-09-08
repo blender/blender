@@ -1,15 +1,12 @@
 /**
- * $Id: ooutliner.c
+ * $Id:
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #include <string.h>
@@ -1907,7 +1904,7 @@ void outliner_operation_menu(ScrArea *sa)
 
 /* ***************** DRAW *************** */
 
-static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem)
+static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElement *te)
 {
 	if(tselem->type) {
 		switch( tselem->type) {
@@ -1923,9 +1920,41 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem)
 			case TSE_CONSTRAINT_BASE:
 				BIF_draw_icon(x, y, ICON_CONSTRAINT); break;
 			case TSE_MODIFIER_BASE:
-				BIF_draw_icon(x, y, ICON_HOOK); break;
+				BIF_draw_icon(x, y, ICON_MODIFIER); break;
 			case TSE_MODIFIER_OB:
 				BIF_draw_icon(x, y, ICON_OBJECT); break;
+			case TSE_MODIFIER:
+			{
+				Object *ob= (Object *)tselem->id;
+				ModifierData *md= BLI_findlink(&ob->modifiers, tselem->nr);
+				switch(md->type) {
+					case eModifierType_Subsurf: 
+						BIF_draw_icon(x, y, ICON_MOD_SUBSURF); break;
+					case eModifierType_Armature: 
+						BIF_draw_icon(x, y, ICON_ARMATURE); break;
+					case eModifierType_Lattice: 
+						BIF_draw_icon(x, y, ICON_LATTICE); break;
+					case eModifierType_Curve: 
+						BIF_draw_icon(x, y, ICON_CURVE); break;
+					case eModifierType_Build: 
+						BIF_draw_icon(x, y, ICON_MOD_BUILD); break;
+					case eModifierType_Mirror: 
+						BIF_draw_icon(x, y, ICON_MOD_MIRROR); break;
+					case eModifierType_Decimate: 
+						BIF_draw_icon(x, y, ICON_MOD_DECIM); break;
+					case eModifierType_Wave: 
+						BIF_draw_icon(x, y, ICON_MOD_WAVE); break;
+					case eModifierType_Hook: 
+						BIF_draw_icon(x, y, ICON_HOOK); break;
+					case eModifierType_Softbody: 
+						BIF_draw_icon(x, y, ICON_MOD_SOFT); break;
+					case eModifierType_Boolean: 
+						BIF_draw_icon(x, y, ICON_MOD_BOOLEAN); break;
+					default:
+						BIF_draw_icon(x, y, ICON_DOT); break;
+				}
+				break;
+			}
 			case TSE_SCRIPT_BASE:
 				BIF_draw_icon(x, y, ICON_TEXT); break;
 			case TSE_POSE_BASE:
@@ -1963,7 +1992,7 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem)
 			case ID_SO:
 				BIF_draw_icon(x, y, ICON_SPEAKER); break;
 			case ID_AR:
-				BIF_draw_icon(x, y, ICON_WPAINT_DEHLT); break;
+				BIF_draw_icon(x, y, ICON_ARMATURE); break;
 			case ID_CA:
 				BIF_draw_icon(x, y, ICON_CAMERA_DEHLT); break;
 			case ID_KE:
@@ -2008,7 +2037,7 @@ static void outliner_draw_iconrow(SpaceOops *soops, ListBase *lb, int level, int
 				glEnable(GL_BLEND);
 			}
 			
-			tselem_draw_icon(*offsx, ys, tselem);
+			tselem_draw_icon(*offsx, ys, tselem, te);
 			te->xs= *offsx;
 			te->ys= ys;
 			te->xend= *offsx+OL_X;
@@ -2102,7 +2131,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		/* datatype icon */
 		
 			// icons a bit higher
-		tselem_draw_icon(startx+offsx, *starty+2, tselem);
+		tselem_draw_icon(startx+offsx, *starty+2, tselem, te);
 		offsx+= OL_X;
 		glDisable(GL_BLEND);
 
