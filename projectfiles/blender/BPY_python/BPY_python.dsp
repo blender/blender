@@ -171,6 +171,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Ipocurve.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\python\api2_2x\Key.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\python\api2_2x\Lamp.c
 # End Source File
 # Begin Source File
@@ -388,6 +392,10 @@ SOURCE=..\..\..\source\blender\python\api2_2x\Ipo.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\python\api2_2x\Ipocurve.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\python\api2_2x\Key.h
 # End Source File
 # Begin Source File
 
