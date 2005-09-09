@@ -357,6 +357,7 @@ class NMesh:
   @ivar mode:  The mode flags for this mesh.  See L{setMode}.
   @ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
   @ivar maxSmoothAngle: The max angle for auto smoothing.  See L{setMode}.
+  @cvar key: The L{Key.Key} object attached to this mesh, if any.
   """
 
   def addEdge(v1, v2):
@@ -530,6 +531,13 @@ class NMesh:
     @rtype: list of lists
     @return: List of pairs (name, weight), where name is the bone name (string)
         and its weight is a float value.
+    """
+
+  def getKey():
+    """
+    Get the Key object representing the Vertex Keys (absolute or
+    relative) assigned to this mesh.
+    @rtype: L{Key.Key} object or None
     """
 
   def insertKey(frame = None, type = 'relative'):

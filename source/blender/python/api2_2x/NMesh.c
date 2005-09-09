@@ -26,7 +26,8 @@
  * This is a new part of Blender, but it borrows all the old NMesh code.
  *
  * Contributor(s): Willian P. Germano, Jordi Rovira i Bonet, Joseph Gilbert,
- * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton, Ken Hughes
+ * Bala Gi, Alexander Szakaly, Stephane Soppera, Campbell Barton, Ken Hughes,
+ * Daniel Dunbar.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -68,6 +69,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 #include "Object.h"
+#include "Key.h"
 #include "Mathutils.h"
 #include "constant.h"
 #include "gen_utils.h"
@@ -107,6 +109,9 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args);
 
 static char NMesh_printDebug_doc[] =
   "print debug info about the mesh.";
+
+static char NMesh_getKey_doc[] =
+	"get the Key object linked to this mesh";
 
 static char NMesh_addEdge_doc[] =
   "create an edge between two vertices.\n\
@@ -1113,6 +1118,18 @@ static PyObject *NMesh_addMaterial( PyObject * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *NMesh_getKey( BPy_NMesh * self )
+{
+	PyObject *keyobj;
+
+	if( self->mesh->key )
+		keyobj = Key_CreatePyObject(self->mesh->key);
+	else
+		keyobj = EXPP_incr_ret(Py_None);
+	
+	return keyobj;
+}
+
 static PyObject *NMesh_removeAllKeys( PyObject * self, PyObject * args )
 {
 	BPy_NMesh *nm = ( BPy_NMesh * ) self;
@@ -1602,6 +1619,7 @@ static struct PyMethodDef NMesh_methods[] = {
 	MethodDef( printDebug ),
 	MethodDef( getVertGroupNames ),
 	MethodDef( getActiveFace ),
+	MethodDef( getKey ),
 	MethodDef( getMode ),
 	MethodDef( getMaxSmoothAngle ),
 	MethodDef( getSubDivLevels ),
@@ -1648,6 +1666,8 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
 			return Py_BuildValue( "i", 0 );
 		}
 	}
+	else if (strcmp( name, "key") == 0)
+		return NMesh_getKey((BPy_NMesh*)self);
 
 	else if( strcmp( name, "faces" ) == 0 )
 		return EXPP_incr_ret( me->faces );
@@ -1691,10 +1711,10 @@ static PyObject *NMesh_getattr( PyObject * self, char *name )
     return EXPP_incr_ret(Py_None);
   }	
 	else if( strcmp( name, "__members__" ) == 0 )
-		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s]",
+		return Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
 				      "name", "materials", "verts", "users",
 				      "faces", "maxSmoothAngle",
-				      "subdivLevels", "edges", "oopsLoc", "oopsSel" );
+				      "subdivLevels", "edges", "oopsLoc", "oopsSel", "key" );
 
 	return Py_FindMethod( NMesh_methods, ( PyObject * ) self, name );
 }

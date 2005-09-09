@@ -49,6 +49,7 @@
 #include "blendef.h"
 #include "gen_utils.h"
 
+#include "Key.h"
 
 /*****************************************************************************/
 /* Python API function prototypes for the Lattice module.	*/
@@ -87,11 +88,12 @@ struct PyMethodDef M_Lattice_methods[] = {
 static PyObject *Lattice_getName( BPy_Lattice * self );
 static PyObject *Lattice_setName( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getPartitions( BPy_Lattice * self, PyObject * args );
+static PyObject *Lattice_getPartitions( BPy_Lattice * self );
+static PyObject *Lattice_getKey( BPy_Lattice * self );
 static PyObject *Lattice_setKeyTypes( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getKeyTypes( BPy_Lattice * self, PyObject * args );
+static PyObject *Lattice_getKeyTypes( BPy_Lattice * self );
 static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args );
-static PyObject *Lattice_getMode( BPy_Lattice * self, PyObject * args );
+static PyObject *Lattice_getMode( BPy_Lattice * self );
 static PyObject *Lattice_setPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_getPoint( BPy_Lattice * self, PyObject * args );
 static PyObject *Lattice_applyDeform( BPy_Lattice * self, PyObject *args );
@@ -112,6 +114,9 @@ static char Lattice_setPartitions_doc[] =
 
 static char Lattice_getPartitions_doc[] =
 	"(str) - Get the number of Partitions in x,y,z";
+
+static char Lattice_getKey_doc[] =
+	"() - Get the Key object attached to this Lattice";
 
 static char Lattice_setKeyTypes_doc[] =
 	"(str) - Set the key types for x,y,z dimensions";
@@ -153,6 +158,8 @@ static PyMethodDef BPy_Lattice_methods[] = {
 	 Lattice_setPartitions_doc},
 	{"getPartitions", ( PyCFunction ) Lattice_getPartitions, METH_NOARGS,
 	 Lattice_getPartitions_doc},
+	{"getKey", ( PyCFunction ) Lattice_getKey, METH_NOARGS,
+	 Lattice_getKey_doc},
 	{"setKeyTypes", ( PyCFunction ) Lattice_setKeyTypes, METH_VARARGS,
 	 Lattice_setKeyTypes_doc},
 	{"getKeyTypes", ( PyCFunction ) Lattice_getKeyTypes, METH_NOARGS,
@@ -429,7 +436,7 @@ static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
 	return Py_None;
 }
 
-static PyObject *Lattice_getPartitions( BPy_Lattice * self, PyObject * args )
+static PyObject *Lattice_getPartitions( BPy_Lattice * self )
 {
 	Lattice *bl_Lattice;
 	bl_Lattice = self->Lattice;
@@ -439,7 +446,18 @@ static PyObject *Lattice_getPartitions( BPy_Lattice * self, PyObject * args )
 			      ( int ) bl_Lattice->pntsw );
 }
 
-static PyObject *Lattice_getKeyTypes( BPy_Lattice * self, PyObject * args )
+static PyObject *Lattice_getKey( BPy_Lattice * self )
+{
+	Key *key = self->Lattice->key;
+
+	if (key)
+		return Key_CreatePyObject(key);
+	else {
+		return EXPP_incr_ret(Py_None);
+	}
+}
+
+static PyObject *Lattice_getKeyTypes( BPy_Lattice * self )
 {
 	Lattice *bl_Lattice;
 	char *linear = "linear";
@@ -553,7 +571,7 @@ static PyObject *Lattice_setMode( BPy_Lattice * self, PyObject * args )
 	return Py_None;
 }
 
-static PyObject *Lattice_getMode( BPy_Lattice * self, PyObject * args )
+static PyObject *Lattice_getMode( BPy_Lattice * self )
 {
 	char type[24];
 	Lattice *bl_Lattice;
@@ -825,12 +843,13 @@ static PyObject *Lattice_getAttr( BPy_Lattice * self, char *name )
 				      self->Lattice->pntsw );
 	} else if( strcmp( name, "users" ) == 0 ) {
 		attr = PyInt_FromLong( self->Lattice->id.us );
-	
+	} else if( strcmp( name, "key" ) == 0 ) {
+		return Lattice_getKey(self);
 	} else if( strcmp( name, "__members__" ) == 0 )
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s]", "name", "width",
+		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s]", "name", "width",
 				      "height", "depth", "widthType",
 				      "heightType", "depthType", "mode",
-				      "latSize", "users" );
+				      "latSize", "users", "key" );
 	
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,

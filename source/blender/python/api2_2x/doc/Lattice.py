@@ -76,6 +76,7 @@ class Lattice:
   @ivar depthType: The z dimension key type.
   @ivar mode: The current mode of the Lattice.
   @ivar latSize: The number of points in this Lattice.
+  @cvar key: The L{Key.Key} object associated with this Lattice.
   """
 
   def getName():
@@ -187,6 +188,13 @@ class Lattice:
       method will apply the deformation a second time, giving double
       deformation, which can be a feature (set force = True if you want it) or
       much probably an undesired effect.
+    """
+
+  def getKey():
+    """
+    Returns the L{Key.Key} object associated with this Lattice.
+    @rtype: L{Key.Key}
+    @return: A key object representing the keyframes of the lattice or None.
     """
 
   def insertKey(frame):

@@ -40,6 +40,7 @@
 #include "CurNurb.h"
 #include "Material.h"
 #include "Object.h"
+#include "Key.h"
 #include "gen_utils.h"
 
 
@@ -100,6 +101,7 @@ static PyObject *Curve_setRot( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getSize( BPy_Curve * self );
 static PyObject *Curve_setSize( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_getNumCurves( BPy_Curve * self );
+static PyObject *Curve_getKey( BPy_Curve * self );
 static PyObject *Curve_isNurb( BPy_Curve * self, PyObject * args );
 static PyObject *Curve_isCyclic( BPy_Curve * self, PyObject * args);
 static PyObject *Curve_getNumPoints( BPy_Curve * self, PyObject * args );
@@ -199,6 +201,8 @@ Sets a control point "},
 	 METH_VARARGS, "(3-tuple) - Sets curve size"},
 	{"getNumCurves", ( PyCFunction ) Curve_getNumCurves,
 	 METH_NOARGS, "() - Gets number of curves in Curve"},
+	{"getKey", ( PyCFunction ) Curve_getKey,
+	 METH_NOARGS, "() - Gets curve key"},
 	{"isNurb", ( PyCFunction ) Curve_isNurb,
 	 METH_VARARGS,
 	 "(nothing or integer) - returns 1 if curve is type Nurb, O otherwise."},
@@ -995,6 +999,20 @@ static PyObject *Curve_getNumCurves( BPy_Curve * self )
 					"couldn't get number of curves" ) );
 }
 
+/*
+ * get the key object linked to this curve
+ */
+
+static PyObject *Curve_getKey( BPy_Curve * self )
+{
+	PyObject *keyObj;
+
+	if (self->curve->key)
+		keyObj = Key_CreatePyObject(self->curve->key);
+	else keyObj = EXPP_incr_ret(Py_None);
+
+	return keyObj;
+}
 
 /*
  * count the number of points in a given spline
@@ -1443,34 +1461,36 @@ static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
 
 	if( strcmp( name, "name" ) == 0 )
 		attr = PyString_FromString( self->curve->id.name + 2 );
-	if( strcmp( name, "pathlen" ) == 0 )
+	else if( strcmp( name, "pathlen" ) == 0 )
 		attr = PyInt_FromLong( self->curve->pathlen );
-	if( strcmp( name, "totcol" ) == 0 )
+	else if( strcmp( name, "totcol" ) == 0 )
 		attr = PyInt_FromLong( self->curve->totcol );
-	if( strcmp( name, "flag" ) == 0 )
+	else if( strcmp( name, "flag" ) == 0 )
 		attr = PyInt_FromLong( self->curve->flag );
-	if( strcmp( name, "bevresol" ) == 0 )
+	else if( strcmp( name, "bevresol" ) == 0 )
 		attr = PyInt_FromLong( self->curve->bevresol );
-	if( strcmp( name, "resolu" ) == 0 )
+	else if( strcmp( name, "resolu" ) == 0 )
 		attr = PyInt_FromLong( self->curve->resolu );
-	if( strcmp( name, "resolv" ) == 0 )
+	else if( strcmp( name, "resolv" ) == 0 )
 		attr = PyInt_FromLong( self->curve->resolv );
-	if( strcmp( name, "width" ) == 0 )
+	else if( strcmp( name, "width" ) == 0 )
 		attr = PyFloat_FromDouble( self->curve->width );
-	if( strcmp( name, "ext1" ) == 0 )
+	else if( strcmp( name, "ext1" ) == 0 )
 		attr = PyFloat_FromDouble( self->curve->ext1 );
-	if( strcmp( name, "ext2" ) == 0 )
+	else if( strcmp( name, "ext2" ) == 0 )
 		attr = PyFloat_FromDouble( self->curve->ext2 );
-	if( strcmp( name, "loc" ) == 0 )
+	else if( strcmp( name, "loc" ) == 0 )
 		return Curve_getLoc( self );
-	if( strcmp( name, "rot" ) == 0 )
+	else if( strcmp( name, "rot" ) == 0 )
 		return Curve_getRot( self );
-	if( strcmp( name, "size" ) == 0 )
+	else if( strcmp( name, "size" ) == 0 )
 		return Curve_getSize( self );
-	if( strcmp( name, "bevob" ) == 0 )
+	else if( strcmp( name, "bevob" ) == 0 )
 		return Curve_getBevOb( self );
+	else if( strcmp( name, "key" ) == 0 )
+		return Curve_getKey( self );
 #if 0
-	if( strcmp( name, "numpts" ) == 0 )
+	else if( strcmp( name, "numpts" ) == 0 )
 		return Curve_getNumPoints( self );
 #endif
 

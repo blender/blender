@@ -78,7 +78,7 @@
 *support for packages here e.g. import `package.module` */
 static struct _inittab BPy_Inittab_Modules[] = {
 	{"Blender", M_Blender_Init},
-	{NULL}
+	{NULL, NULL}
 };
 
 /*************************************************************************
@@ -1271,9 +1271,13 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 
 		/* tell we're running a scriptlink.  The sum also tells if this script
 		 * is running nested inside another.  Blender.Load needs this info to
-		 * avoid trouble with invalid slink pointers. */
-		during_slink++;
-		disable_where_scriptlink( (short)during_slink );
+		 * avoid trouble with invalid slink pointers.
+		 * Update (test): allow EVENT space handlers to call file/image selectors,
+		 * still disabled for DRAW space handlers: */
+		if (event == 0) { /* event = 0: DRAW space handler */
+			during_slink++;
+			disable_where_scriptlink( (short)during_slink );
+		}
 
 		/* set globals in Blender module to identify space handler scriptlink */
 		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_True());
@@ -1331,11 +1335,10 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 				glMatrixMode(GL_MODELVIEW);
 				glPopMatrix();
 				glPopAttrib();
+				disable_where_scriptlink( (short)(during_slink - 1) );
 			}
 
 		}
-
-		disable_where_scriptlink( (short)(during_slink - 1) );
 
 		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_False());
 		PyDict_SetItemString(g_blenderdict, "link", EXPP_incr_ret(Py_None));

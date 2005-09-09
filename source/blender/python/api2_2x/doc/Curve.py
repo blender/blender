@@ -74,6 +74,7 @@ class Curve:
   @ivar rot: The Curve Data rotation(from the center).
   @ivar size: The Curve Data size(from the center).
   @ivar bevob: The Curve Bevel Object
+  @cvar key: The L{Key.Key} object associated with this Curve, if any.
   """
 
   def getName():
@@ -381,6 +382,14 @@ class Curve:
       @param curve_num: zero-based index into list of curves in this Curve
       @rtype: integer
       """
+
+  def getKey():
+      """
+      Return the L{Key.Key} object containing the keyframes for this
+      curve, if any.
+      @rtype: L{Key.Key} object or None
+      """
+
 
 class CurNurb:
     """

@@ -67,6 +67,7 @@ struct ID; /*keep me up here */
 #include "Effect.h"
 #include "Ipo.h"
 #include "Ipocurve.h"
+#include "Key.h"
 #include "Lamp.h"
 #include "Lattice.h"
 #include "Mathutils.h"
@@ -799,6 +800,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Ipo", Ipo_Init());
 	PyDict_SetItemString(dict, "IpoCurve", IpoCurve_Init());
 	PyDict_SetItemString(dict, "Image", Image_Init());
+	PyDict_SetItemString(dict, "Key", Key_Init());
 	PyDict_SetItemString(dict, "Lamp", Lamp_Init());
 	PyDict_SetItemString(dict, "Lattice", Lattice_Init());
 	PyDict_SetItemString(dict, "Library", Library_Init());
@@ -809,9 +811,9 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
 	PyDict_SetItemString(dict, "Registry", Registry_Init());
-	PyDict_SetItemString(dict, "sys", sys_Init());
 	PyDict_SetItemString(dict, "Scene", Scene_Init());
 	PyDict_SetItemString(dict, "Sound", Sound_Init());
+	PyDict_SetItemString(dict, "sys", sys_Init());
 	PyDict_SetItemString(dict, "Types", Types_Init());
 	PyDict_SetItemString(dict, "Text", Text_Init());
 	PyDict_SetItemString(dict, "Text3d", Text3d_Init());

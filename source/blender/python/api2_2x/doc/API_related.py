@@ -224,7 +224,7 @@ Introduction:
   # SPACEHANDLER.VIEW3D.EVENT
 
   import Blender
-  from Blender import DRAW
+  from Blender import Draw
   evt = Blender.event
   return_it = False
 
