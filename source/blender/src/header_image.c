@@ -81,6 +81,9 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
+#include "IMG_Api.h"
+#include "BSE_trans_types.h"
+
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -716,6 +719,54 @@ static void do_image_imagemenu(void *arg, int event)
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case 7: /* New Image */
+		{
+// #ifdef BM_TEXTUREPAINT
+			static int x=256,y=256;
+			short depth;
+			char  str[256];
+			Image *ima;
+            ImBuf *ibuf;
+			char name[256];
+			BrushUIdata *data = NULL;
+			extern short UVTEXTTOOL_INDEX;
+			extern BrushUIdata UVTEXTTOOL_DATA[] ;
+			IMG_CanvasPtr canvas;
+			int rowBytes;
+			data = &UVTEXTTOOL_DATA[UVTEXTTOOL_INDEX];
+			strcpy(str, "MEMORY");
+			/* i must get used to this may to create a modal dialog  BM :) */
+			add_numbut(0, TEX, "Name IM:",0 , 255, str, NULL);
+			add_numbut(1, NUM|INT, "Width:", 1, 5000, &x, NULL);
+			add_numbut(2, NUM|INT, "Height:", 1, 5000, &y, NULL);
+			if (!do_clever_numbuts("New Image", 3, REDRAW))
+				return;
+			
+			
+			ima = alloc_libblock(&G.main->image, ID_IM, str);
+			if (ima)
+			{
+				depth= 24;				
+				ibuf = IMB_allocImBuf(x, y, depth, IB_rect, 0);
+				ima->ibuf = ibuf;
+				strcpy(ibuf->name,"UNTITLED");
+				strcpy(ima->name, "UNTITLED");
+				G.sima->image = ima;
+				
+				rowBytes = G.sima->image->ibuf->skipx ? G.sima->image->ibuf->skipx : G.sima->image->ibuf->x * 4;
+				canvas = IMG_CanvasCreateFromPtr(G.sima->image->ibuf->rect, G.sima->image->ibuf->x, G.sima->image->ibuf->y, rowBytes);
+				IMG_CanvasFill(canvas,data->r,data->g,data->b,0.0);
+				IMG_CanvasDispose(canvas);
+				ima->ok= 1;
+				image_changed(G.sima, 0);
+				
+			}
+			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWVIEW3D, 0);
+// #endif
+			break;
+		}
+
 	}
 }
 
@@ -727,6 +778,7 @@ static uiBlock *image_imagemenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_imagemenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_imagemenu, NULL);
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	
 	if (G.sima->image) {

@@ -49,6 +49,11 @@
 
 class IMG_PixmapRGBA32 : public IMG_Pixmap {
 public:
+	virtual void blendPixmapTorus(TUns32 x, TUns32 y,const  IMG_PixmapRGBA32& pixmap);
+	void setRGBAat(TUns32 x, TUns32 y, float* R, float* G, float* B,float* A);
+	int  getRGBAat(TUns32 x, TUns32 y, float* R, float* G, float* B,float* A) const;
+	int  getRGBAatTorus(int x, int y, float *R, float *G, float *B, float *A);
+		
 	/**
 	 * The pixel type in this pixmap.
 	 */

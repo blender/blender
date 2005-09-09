@@ -85,5 +85,14 @@ typedef struct VPaint {
 	short mode, flag;
 } VPaint;
 
+/*BM_TEXTUREPAINT */
+typedef struct BrushUIdata {
+	float r, g, b, a;
+	float size;		
+	float softradius;
+	float brushtiming;
+} BrushUIdata;
+#define PAINTPANELMESSAGEEATER 9000
+
 #endif /* BSE_TRANS_TYPES_H */
 

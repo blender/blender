@@ -3775,67 +3775,21 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 	
 	if (sima->flag & SI_DRAWTOOL) {
-#ifdef NAN_TPT
-		/* Draw tool is active */
 		switch(event) {
-			case LEFTMOUSE:
-				/* Paranoia checks */
-				if (!sima) break;
-				if (!sima->image) break;
-				if (!sima->image->ibuf) break;
-				if (sima->image->packedfile) {
-					error("Painting in packed images not supported");
-					break;
-				}
-			
-				brush = IMG_BrushCreate(Gvp.size, Gvp.size, Gvp.r, Gvp.g, Gvp.b, Gvp.a);
-				/* skipx is not set most of the times. Make a guess. */
-				rowBytes = sima->image->ibuf->skipx ? sima->image->ibuf->skipx : sima->image->ibuf->x * 4;
-				canvas = IMG_CanvasCreateFromPtr(sima->image->ibuf->rect, sima->image->ibuf->x, sima->image->ibuf->y, rowBytes);
-
-				getmouseco_areawin(xy_prev);
-				while (get_mbut() & mousebut) {
-					getmouseco_areawin(xy_curr);
-					/* Check if mouse position changed */
-					if ((xy_prev[0] != xy_curr[0]) || (xy_prev[1] != xy_curr[1])) {
-						/* Convert mouse coordinates to u,v and draw */
-						areamouseco_to_ipoco(v2d, xy_prev, &uv_prev[0], &uv_prev[1]);
-						areamouseco_to_ipoco(v2d, xy_curr, &uv_curr[0], &uv_curr[1]);
-						IMG_CanvasDrawLineUV(canvas, brush, uv_prev[0], uv_prev[1], uv_curr[0], uv_curr[1]);
-						if (G.sima->lock) {
-							/* Make OpenGL aware of a changed texture */
-							free_realtime_image(sima->image);
-							/* Redraw this view and the 3D view */
-							force_draw_plus(SPACE_VIEW3D, 0);
-						}
-						else {
-							/* Redraw only this view */
-							force_draw(0);
-						}
-						xy_prev[0] = xy_curr[0];
-						xy_prev[1] = xy_curr[1];
-					}
-				}
-				/* Set the dirty bit in the image so that it is clear that it has been modified. */
-				sima->image->ibuf->userflags |= IB_BITMAPDIRTY;
-				if (!G.sima->lock) {
-					/* Make OpenGL aware of a changed texture */
-					free_realtime_image(sima->image);
-					/* Redraw this view and the 3D view */
-					force_draw_plus(SPACE_VIEW3D, 1);
-				}
-				IMG_BrushDispose(brush);
-				IMG_CanvasDispose(canvas);
-				allqueue(REDRAWHEADERS, 0);
-				break;
-			case RIGHTMOUSE:
-				sample_vpaint();
-				break;
+		case CKEY: 
+			add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+			scrarea_queue_winredraw(curarea);
+			break;
+		default:
+			UVTexturePaintMsg(spacedata,event,val);           
 		}
-#endif /* NAN_TPT */
+		
 	}
 	else {
 		/* Draw tool is inactive */
+// #ifdef BM_TEXTUREPAINT
+		texturepaintoff();
+// #endif /* else BM_TEXTUREPAINT*/
 
 		switch(event) {
 			case LEFTMOUSE:

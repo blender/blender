@@ -423,6 +423,10 @@ SOURCE=..\..\..\source\blender\src\headerbuttons.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\imagepaint.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\imasel.c
 # End Source File
 # Begin Source File

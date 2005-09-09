@@ -59,6 +59,23 @@ void IMG_BrushDispose(IMG_BrushPtr brush)
 	}
 }
 
+void IMG_BrushSetInnerRaduisRatio(IMG_BrushPtr brush,float aspect)
+{
+	if (brush) {
+		TUns32 he = ((IMG_BrushRGBA32*)brush)->getHeight();
+		TUns32 we = ((IMG_BrushRGBA32*)brush)->getWidth();
+        TUns32 si = we;
+		if (he > si) si = we;
+		he = si/2;
+		we = (TUns32)(aspect*si/2);
+		if (we < 2) we = 2;
+
+
+		((IMG_BrushRGBA32*)brush)->setRadii(we,he);
+	}
+}
+
+
 
 IMG_CanvasPtr IMG_CanvasCreate(unsigned int w, unsigned int h)
 {
@@ -121,3 +138,34 @@ void IMG_CanvasDrawLineUV(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart
 	if (!(canvas && brush)) return;
 	((IMG_CanvasRGBA32*)canvas)->blendPixmap(uStart, vStart, uEnd, vEnd, *((IMG_BrushRGBA32*)brush));
 }
+
+void IMG_CanvasDrawLineUVEX(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd,char mode)
+{
+	if (!(canvas && brush)) return;
+	((IMG_CanvasRGBA32*)canvas)->blendPixmap(uStart, vStart, uEnd, vEnd, *((IMG_BrushRGBA32*)brush),mode);
+}
+
+void IMG_CanvasSoftenAt(IMG_CanvasPtr canvas,float u, float v, unsigned int size,float alpha, float aspect,char mode)
+{
+	((IMG_CanvasRGBA32*)canvas)->SoftenAt(u,v,(TUns32)size,alpha,aspect,mode);
+}
+
+void IMG_CanvasFill(IMG_CanvasPtr canvas,float red, float green, float blue, float alpha)
+{
+		IMG_ColorRGB c (red, green, blue);
+		IMG_Rect R (0, 0, ((IMG_CanvasRGBA32*)canvas)->getWidth(),
+			              ((IMG_CanvasRGBA32*)canvas)->getHeight());	// Bounds of this pixmap
+		((IMG_CanvasRGBA32*)canvas)->fillRect(R,c);
+}
+
+void IMG_CanvasSmear(IMG_CanvasPtr canvas,float uStart, float vStart, float uEnd, float vEnd, unsigned int size, float alpha, float aspect,char mode)
+{
+	((IMG_CanvasRGBA32*)canvas)->Smear(uStart,vStart,uEnd,vEnd,size,alpha,aspect,mode);
+
+}
+
+void IMG_CanvasCloneAt(IMG_CanvasPtr canvas,IMG_CanvasPtr other,float u,float v,float cu,float cv,int size,float alpha,float aspect)
+{
+     ((IMG_CanvasRGBA32*)canvas)->CloneAt((IMG_CanvasRGBA32*)other, u, v, cu, cv, size, alpha, aspect);
+}
+

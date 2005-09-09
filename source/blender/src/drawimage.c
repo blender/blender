@@ -89,6 +89,64 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"  // event codes
+// #ifdef BM_TEXTUREPAINT
+
+extern Image* UVTEXTTOOL_cloneimage;
+extern short UVTEXTTOOL_imanr;
+extern short UVTEXTTOOL_POS[];
+extern float UVTEXTTOOL_RAD[];
+extern short UVTEXTTOOL_SHAPE;
+extern short UVTEXTTOOL_INDEX;
+extern short UVTEXTTOOL_uiflags;
+extern float UVTEXTTOOL_cloneoffx;
+extern float UVTEXTTOOL_cloneoffy;
+extern float UVTEXTTOOL_clonealpha;
+extern BrushUIdata UVTEXTTOOL_DATA[];
+
+
+
+void setcloneimagealpha(char a,unsigned int *rect)
+{
+    unsigned int size;
+	char *cp= (char *)rect;
+	if (UVTEXTTOOL_cloneimage == NULL) return;
+	if (rect == NULL) return;
+
+	size = UVTEXTTOOL_cloneimage->ibuf->x*UVTEXTTOOL_cloneimage->ibuf->y;
+	while(size-- > 0) {
+		cp[3]= a;
+		cp+= 4;
+	}
+}
+
+/* resolve UVTEXTTOOL_imanr to set UVTEXTTOOL_cloneimage pointer */
+void setcloneimage()
+{
+	int nr;
+	ID *id, *idtest;
+	UVTEXTTOOL_cloneimage = NULL;
+	if (UVTEXTTOOL_imanr){	
+		nr= 1;
+		id= (ID *)UVTEXTTOOL_cloneimage;
+		idtest= G.main->image.first;
+		while(idtest) {
+			if(nr==UVTEXTTOOL_imanr) {
+				break;
+			}
+			nr++;
+			idtest= idtest->next;
+		}
+		
+		if(idtest==0) { 
+			return;
+		}
+		
+		if(idtest!=id) {
+			UVTEXTTOOL_cloneimage= (Image *)idtest;
+		}
+	}
+}
+
 
 /**
  * Sets up the fields of the View2D member of the SpaceImage struct
@@ -561,6 +619,17 @@ static void draw_image_view_icon(void)
 	glDisable(GL_BLEND);
 }
 
+// #ifdef BM_TEXTUREPAINT
+
+static void draw_image_view_tool(void)
+{
+	if(UVTEXTTOOL_SHAPE) {
+   fdrawXORcirc(UVTEXTTOOL_POS[0],UVTEXTTOOL_POS[1],UVTEXTTOOL_RAD[0]);
+   if ( UVTEXTTOOL_RAD[0] != UVTEXTTOOL_RAD[1])
+   fdrawXORcirc(UVTEXTTOOL_POS[0],UVTEXTTOOL_POS[1],UVTEXTTOOL_RAD[1]);
+	}
+}
+
 /* ************ panel stuff ************* */
 
 // button define is local, only events defined here possible
@@ -726,6 +795,23 @@ void do_imagebuts(unsigned short event)
 			}
 		}
 		break;
+// #ifdef BM_TEXTUREPAINT
+	case B_SIMABROWSE:
+		setcloneimage();
+		UVTEXTTOOL_cloneoffx = 0.0;
+		UVTEXTTOOL_cloneoffy = 0.0;
+		allqueue(REDRAWIMAGE, 0);
+		image_changed(G.sima, 0); 
+		break;
+		
+	case B_IMAGEDELETE:
+		UVTEXTTOOL_cloneimage=NULL;
+		UVTEXTTOOL_imanr = -2;
+		allqueue(REDRAWIMAGE, 0);
+		image_changed(G.sima, 0); 
+		break;
+					   
+		
 	}
 }
 
@@ -762,24 +848,65 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	image_editvertex_buts(block);
 }
 
+// #ifdef BM_TEXTUREPAINT
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 {
-	extern VPaint Gvp;         /* from vpaint - this was copied from the paint panel*/
-	static float hsv[3], old[3];	// used as temp mem for picker
+	BrushUIdata *data = NULL;
 	uiBlock *block;
 
+	data = &UVTEXTTOOL_DATA[UVTEXTTOOL_INDEX];
+	if (!data) return;
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_paint", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PAINT);  // for close and esc
-	if(uiNewPanel(curarea, block, "Paint", "Image", 10, 230, 318, 204)==0)
+	if(uiNewPanel(curarea, block, "Image Paint", "Image", 10, 230, 318, 204)==0)
 		return;
 
-	uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'f', B_NOP);	/* 'f' is for floating panel */
-
-	//	offset= FPICK+2*DPICK+BPICK in interface.c... this goes wrong when defines change
+/* Having that nice color picker we won't need that
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NOP, "A: ",		180+12+24,160,80,20, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-	uiDefButF(block, NUM, B_NOP, "Size ",	180+12+24,140,80,20, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+	uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &data->r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
+	uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &data->g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
+	uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &data->b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
+	uiBlockEndAlign(block);
+*/
+//	uiDefButF(block, COL, B_VPCOLSLI, "",		979,160,230,19, &(data->r), 0, 0, 0, 0, "");
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_VPCOLSLI, "",		979,160,230,19, &(data->r), 0, 0, 0, 0, "");
+	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,140,230,19, &data->a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+	uiDefButF(block, NUMSLI, 0, "Size ",		979,120,230,19, &data->size, 2.0, 64.0, 0, 0, "The size of the brush");
+	uiDefButF(block, NUMSLI, 0, "Fall ",		979,100,230,19, &data->softradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+	if((UVTEXTTOOL_INDEX ==0) || (UVTEXTTOOL_INDEX ==5) ){	/* brush has no flow */
+	uiDefButF(block, NUMSLI, 0, "Stepsize ",	979,80,230,19, &data->brushtiming, 1.0, 100.0, 0, 0, "Repeating Paint On %of Brush diameter");
+	}
+	else { /* but stepsize */
+	uiDefButF(block, NUMSLI, 0, "Flow ",	979,80,230,19, &data->brushtiming, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
+	}
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	/* FLOATPANELMESSAGEEATER catching LMB on the panel buttons */
+	/* so LMB does not "GO" through the floating panel */
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Brush",890,160,80,19,&UVTEXTTOOL_INDEX, 7.0, 0.0, 0, 0,  "Brush");
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"AirBrush" ,890,140,80,19,&UVTEXTTOOL_INDEX, 7.0, 1.0, 0, 0,  "AirBrush");
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Soften" ,890,120,80,19,&UVTEXTTOOL_INDEX, 7.0, 2.0, 0, 0,  "Soften");
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Aux AB1" ,890,100,80,19,&UVTEXTTOOL_INDEX, 7.0, 3.0, 0, 0,  "Aux Air Brush1");
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Aux AB2" ,890,80,80,19,&UVTEXTTOOL_INDEX, 7.0, 4.0, 0, 0,  "Aux Air Brush2");	
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Smear  " ,890,60,80,19,&UVTEXTTOOL_INDEX, 7.0, 5.0, 0, 0,  "Smaer");	
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Clone  " ,890,40,80,19,&UVTEXTTOOL_INDEX, 7.0, 6.0, 0, 0,  "Clone Brush / use RMB  to drag source image");	
+	uiBlockEndAlign(block);
+
+	setcloneimage();
+	uiBlockBeginAlign(block);	
+	std_libbuttons(block, 979, 40, 0, NULL, B_SIMABROWSE, (ID *)UVTEXTTOOL_cloneimage , 0,&UVTEXTTOOL_imanr, 0, 0, B_IMAGEDELETE, 0, 0);
+	uiDefButF(block, NUMSLI, 0, "B ",979,20,230,19,&UVTEXTTOOL_clonealpha , 0.0, 1.0, 0, 0, "Blend clone image");
+	uiBlockEndAlign(block);
+
+//	uiDefButF(block, NUMSLI, 0, "B",	1100,1,100,19,&UVTEXTTOOL_clonealpha , 0.0, 1.0, 0, 0, "Blend clone image");
+	uiDefButS(block, TOG|BIT|0, 9999, "TD",890,1,50,19,&UVTEXTTOOL_uiflags, 0, 0, 0, 0, "Enables tool shape while drawing");
+	uiDefButS(block, TOG|BIT|1, 9999, "TP",940,1,50,19,&UVTEXTTOOL_uiflags, 0, 0, 0, 0, "Enables tool shape while not drawing");
+	uiDefButS(block, TOG|BIT|2, 9999, "Torus",990,1,50,19,&UVTEXTTOOL_uiflags, 0, 0, 0, 0, "Enables torus wrapping");
+
 }
 
 static void image_blockhandlers(ScrArea *sa)
@@ -841,7 +968,6 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		tag_image_time(G.sima->image);
 		ibuf= G.sima->image->ibuf;
 	}
-	
 	if(ibuf==0 || ibuf->rect==0) {
 		calc_image_view(G.sima, 'f');
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
@@ -916,6 +1042,37 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			else 
 				glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
 			
+			// #ifdef BM_TEXTUREPAINT
+			setcloneimage();
+			if (UVTEXTTOOL_cloneimage){
+				unsigned int* clonedrect=NULL;
+				if(UVTEXTTOOL_cloneimage->ibuf==0) {
+					load_image(UVTEXTTOOL_cloneimage, IB_rect, G.sce, G.scene->r.cfra);
+				}
+				if (UVTEXTTOOL_cloneimage->ibuf){ /* full paranoia check */
+					if (UVTEXTTOOL_cloneimage->ibuf->rect){
+						/* make a copy of image data so we can modify alpha for drawing */
+						/* ok this is kind of brute force, since it copies all the time */
+						/* but keeps code simple .. no need for globals etc..           */
+						/* and is save if global UVTEXTTOOL_cloneimage is changed to 
+						something 2d space specific */
+						clonedrect= MEM_dupallocN(UVTEXTTOOL_cloneimage->ibuf->rect);			
+					}
+					if (clonedrect){
+						int offx,offy;
+						offx = G.sima->zoom*ibuf->x * + UVTEXTTOOL_cloneoffx;
+						offy = G.sima->zoom*ibuf->y * + UVTEXTTOOL_cloneoffy;
+						setcloneimagealpha(255*UVTEXTTOOL_clonealpha,clonedrect);
+						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+						glEnable(GL_BLEND);
+						glaDrawPixelsSafe(x1+offx, y1+offy, UVTEXTTOOL_cloneimage->ibuf->x, UVTEXTTOOL_cloneimage->ibuf->y, clonedrect);
+						MEM_freeN(clonedrect); /* clean up ! */
+						glDisable(GL_BLEND);
+					}
+				}
+			}
+			
+			// #endif
 			glPixelZoom(1.0, 1.0);
 			
 			draw_tfaces();
@@ -927,6 +1084,9 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	draw_image_transform(ibuf);
 
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
+// #ifdef BM_TEXTUREPAINT
+	draw_image_view_tool();
+// #endif
 	draw_image_view_icon();
 	draw_area_emboss(sa);
 

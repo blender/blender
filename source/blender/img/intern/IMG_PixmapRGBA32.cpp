@@ -262,3 +262,71 @@ void IMG_PixmapRGBA32::blendPixmap(float u, float v, const IMG_PixmapRGBA32& pix
 	getPixelAddress(u, v, x, y);
 	blendPixmap(x, y, pixmap);
 }
+
+int IMG_PixmapRGBA32::getRGBAat(TUns32 x, TUns32 y, float *R, float *G, float *B, float *A) const
+{
+		TPixelPtr srcPtr = 0;
+        if ((x >= m_width) || (y >= m_height) ) return 0;
+		srcPtr = getPixelPtr(x,y);
+		if (srcPtr){
+		IMG_ColorRGBA srcColor;
+		getColor(*srcPtr, srcColor);
+		if(R) *R = srcColor.m_r;
+		if(G) *G = srcColor.m_g;
+		if(B) *B = srcColor.m_b;
+		if(A) *A = srcColor.m_a;
+		return 1;
+		}
+		return 0;
+
+}
+
+int IMG_PixmapRGBA32::getRGBAatTorus(int x, int y, float *R, float *G, float *B, float *A)
+{
+	x %= m_width;
+	y %= m_height;
+	return getRGBAat(x,y,R,G,B,A);
+}
+
+void IMG_PixmapRGBA32::setRGBAat(TUns32 x, TUns32 y, float *R, float *G, float *B, float *A)
+{
+		TPixelPtr desPtr = 0;
+		desPtr = getPixelPtr(x,y);
+		if (desPtr){
+		if(R) ((TUns8*)desPtr)[bi_r] = (TUns8)(*R);
+		if(G) ((TUns8*)desPtr)[bi_g] = (TUns8)(*G);
+		if(B) ((TUns8*)desPtr)[bi_b] = (TUns8)(*B);
+		if(A) ((TUns8*)desPtr)[bi_a] = (TUns8)(*A);
+
+
+		}
+
+}
+
+void IMG_PixmapRGBA32::blendPixmapTorus(TUns32 x, TUns32 y,const IMG_PixmapRGBA32 &pixmap)
+{
+	float sR,sG,sB,sA, bR,bG,bB,bA;
+	IMG_Rect bnds;
+	pixmap.getBounds(bnds);
+	int ym = bnds.getHeight();
+	int xm = bnds.getWidth();
+    for (int xa = 0; xa < xm; xa ++)
+    for (int ya = 0; ya < ym; ya ++){
+		 int xt = (xa-xm/2 + x) % (m_width );
+		 int yt = (ya-xm/2 + y) % (m_height);
+
+         getRGBAat(xt,yt,&sR,&sG,&sB,&sA);
+         
+		 pixmap.getRGBAat(xa,ya,&bR,&bG,&bB,&bA);
+		 
+		 sR = sR*(1-bA) + bR*bA;
+		 sG = sG*(1-bA) + bG*bA;
+		 sB = sB*(1-bA) + bB*bA;
+
+			sR *= 255.0f;
+			sG *= 255.0f;
+			sB *= 255.0f;
+
+         setRGBAat(xt,yt,&sR,&sG,&sB,0);
+	}
+}
