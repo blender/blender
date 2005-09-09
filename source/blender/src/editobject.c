@@ -1958,7 +1958,7 @@ void special_editmenu(void)
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
 				if(nr==1) {
 					Mesh *me= ob->data;
-					copy_wpaint_undo(me->dvert, me->totvert);
+					if(me->dvert) copy_wpaint_undo(me->dvert, me->totvert);
 					pose_adds_vgroups(ob);
 				}
 			}
