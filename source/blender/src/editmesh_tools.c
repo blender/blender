@@ -2489,7 +2489,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	} 
 	free_tagged_edgelist(em->edges.first); 
 	
-	if(seltype == SUBDIV_SELECT_ORIG  && G.qual != LR_CTRLKEY){
+	if(seltype == SUBDIV_SELECT_ORIG  && G.qual  != LR_CTRLKEY){
 		for(eed = em->edges.first;eed;eed = eed->next){
 			if(eed->f2 & EDGENEW){
 				eed->f |= flag;
@@ -4479,6 +4479,8 @@ int EdgeSlide(short immediate, float imperc)
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
+	int wasshift = 0;
+	float shiftlabda;
 	
 	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
 	
@@ -4794,8 +4796,10 @@ int EdgeSlide(short immediate, float imperc)
 		if (!immediate && (mval[0] == mvalo[0] && mval[1] ==  mvalo[1])) {
 			PIL_sleep_ms(10);
 		} else {
+
 			mvalo[0] = mval[0];
 			mvalo[1] = mval[1];
+			
 			//Adjust Edgeloop
 			if(immediate){
 				perc = imperc;   
@@ -4877,7 +4881,19 @@ int EdgeSlide(short immediate, float imperc)
 			rc[1]= v3[1]-v2[1];   
 			len= rc[0]*rc[0]+ rc[1]*rc[1];
 			if (len==0) {len = 0.0001;}
-			labda= ( rc[0]*(mval[0]-v2[0]) + rc[1]*(mval[1]-v2[1]) )/len;   
+
+			if ((G.qual & LR_SHIFTKEY)==0) {
+				wasshift = 0;
+				labda= ( rc[0]*((mval[0]-v2[0])) + rc[1]*((mval[1]-v2[1])) )/len;   
+			}
+			else {
+				if (wasshift==0) {
+					wasshift = 1;
+					shiftlabda = labda;
+				}							
+				labda= ( rc[0]*((mval[0]-v2[0])) + rc[1]*((mval[1]-v2[1])) )/len / 10.0 + shiftlabda;   			
+			}
+			
 
 			if(labda<=0.0) labda=0.0;   
 			else if(labda>=1.0)labda=1.0;   
