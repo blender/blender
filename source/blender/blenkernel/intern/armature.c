@@ -722,19 +722,29 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		else
 			dvert= NULL;
 		
-		if(dvert && dvert->totweight) {	// use weight groups
-
+		if(dvert && dvert->totweight) {	// use weight groups ?
+			int deformed= 0;
+			
 			for (j=0; j<dvert->totweight; j++){
 				pchan = defnrToPC[dvert->dw[j].def_nr];
 				if (pchan) {
 					float weight= dvert->dw[j].weight;
 					Bone *bone= pchan->bone;
 					
+					deformed= 1;
+					
 					if(bone && bone->flag & BONE_MULT_VG_ENV) {
 						
 						weight*= distfactor_to_bone(co, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 					}
 					pchan_bone_deform(pchan, weight, vec, co, &contrib);
+				}
+			}
+			/* if there are vertexgroups but not groups with bones (like for softbody groups) */
+			if(deformed==0 && use_envelope) {
+				for(pchan= armOb->pose->chanbase.first; pchan; pchan= pchan->next) {
+					if(!(pchan->bone->flag & BONE_NO_DEFORM))
+						contrib+= dist_bone_deform(pchan, vec, co);
 				}
 			}
 		}
