@@ -2458,24 +2458,15 @@ void do_meshbuts(unsigned short event)
 		if(me==0) return;
 
 		switch(event) {
-		case B_AUTOVGROUP:
-			if (!get_armature(ob->parent)){
-				error ("Mesh must be the child of an armature");
-				break;
-			}
-				/* Verify that there are vertex groups for bones in armature */
-				/* Remove selected vertices from all defgroups */
-				/* Perform assignment for selected vertices */
-
-			allqueue (REDRAWVIEW3D, 1);
-			break;
 		case B_NEWVGROUP:
 			add_defgroup (G.obedit);
 			scrarea_queue_winredraw(curarea);
+			allqueue(REDRAWOOPS, 0);
 			break;
 		case B_DELVGROUP:
 			del_defgroup (G.obedit);
 			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Delete vertex group");
 			break;
 		case B_ASSIGNVGROUP:
@@ -2486,15 +2477,18 @@ void do_meshbuts(unsigned short event)
 		case B_REMOVEVGROUP:
 			remove_verts_defgroup (0);
 			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Remove from vertex group");
 			break;
 		case B_SELVGROUP:
 			sel_verts_defgroup(1);
 			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
 			break;
 		case B_DESELVGROUP:
 			sel_verts_defgroup(0);
 			allqueue (REDRAWVIEW3D, 1);
+			allqueue(REDRAWOOPS, 0);
 			break;
 		case B_DELSTICKY:
 
@@ -2887,7 +2881,6 @@ static void editing_panel_links(Object *ob)
 
 		if (G.obedit && G.obedit==ob){
 			uiBlockBeginAlign(block);
-	/*		uiDefBut(block, BUT,B_AUTOVGROUP,"Auto Weight",			740,by-=22,93,18, 0, 0, 0, 0, 0, "Automatically assigns deformation groups"); */
 			uiDefBut(block, BUT,B_NEWVGROUP,"New",			143,90,70,21, 0, 0, 0, 0, 0, "Creates a new vertex group");
 			uiDefBut(block, BUT,B_DELVGROUP,"Delete",		213,90,70,21, 0, 0, 0, 0, 0, "Removes the current vertex group");
 
