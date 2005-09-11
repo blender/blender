@@ -619,7 +619,6 @@ static PyObject *M_Bone_New( PyObject * self, PyObject * args )
 	BLI_strncpy( py_bone->parent, parent_str, strlen( parent_str ) + 1 );
 	py_bone->roll = 0.0f;
 	py_bone->flag = 32;
-	py_bone->boneclass = BONE_SKINNABLE;
 	py_bone->dist = 1.0f;
 	py_bone->weight = 1.0f;
 	Vector_Zero( py_bone->head );

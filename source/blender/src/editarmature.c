@@ -1961,43 +1961,6 @@ int bone_looper(Object *ob, Bone *bone, void *data,
     return count;
 }
 
-int ik_chain_looper(Object *ob, Bone *bone, void *data,
-				   int (*bone_func)(Object *, Bone *, void *)) 
-{
-
-    /* We want to apply the function bone_func to every bone 
-     * in an ik chain -- feed ikchain_looper a bone in the chain and 
-     * a pointer to the bone_func and watch it go!. The int count 
-     * can be useful for counting bones with a certain property
-     * (e.g. skinnable)
-     */
-	Bone *curBone;
-    int   count = 0;
-
-    if (bone) {
-
-        /* This bone */
-        count += bone_func(ob, bone, data);
-
-        /* The parents */
-		for (curBone = bone; curBone; curBone=curBone->parent) {
-			if (!curBone->parent)
-				break;
-			else if (!(curBone->flag & BONE_CONNECTED))
-				break;
-			count += bone_func(ob, curBone->parent, data);
-		}
-
-		/* The children */
-		for (curBone = bone->childbase.first; curBone; curBone=curBone->next){
-			if (curBone->flag & BONE_CONNECTED) {
-				count += bone_func(ob, curBone, data);
-			}
-		}
-    }
-
-    return count;
-}
 
 static int bone_skinnable(Object *ob, Bone *bone, void *data)
 {
@@ -2053,7 +2016,7 @@ static int add_defgroup_unique_bone(Object *ob, Bone *bone, void *data)
 
 static int dgroup_skinnable(Object *ob, Bone *bone, void *data) 
 {
-    /* Bones that are not of boneclass BONE_UNSKINNABLE
+    /* Bones that are deforming
      * are regarded to be "skinnable" and are eligible for
      * auto-skinning.
      *
@@ -2078,7 +2041,7 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *data)
      */
     bDeformGroup ***hgroup, *defgroup;
 
-    if ( bone->boneclass != BONE_UNSKINNABLE ) {
+   if (!(bone->flag & BONE_NO_DEFORM)) {
         if ( !(defgroup = get_named_vertexgroup(ob, bone->name)) ) {
             defgroup = add_defgroup_name(ob, bone->name);
         }
@@ -2138,7 +2101,7 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
     /* count the number of skinnable bones */
     numbones = bone_looper(ob, arm->bonebase.first, NULL,
                                   bone_skinnable);
-
+	
     /* create an array of pointer to bones that are skinnable
      * and fill it with all of the skinnable bones
      */

@@ -115,8 +115,6 @@ void show_all_pose_bones(void);
 
 int bone_looper(Object *ob, struct Bone *bone, void *data,
 				int (*bone_func)(Object *, struct Bone *, void *));
-int ik_chain_looper(Object *ob, struct Bone *bone, void *data,
-				   int (*bone_func)(Object *, struct Bone *, void *));
 
 void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);

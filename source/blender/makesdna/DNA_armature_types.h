@@ -129,9 +129,4 @@ typedef struct bArmature {
 #define		BONE_NO_DEFORM		4096
 
 
-enum {
-		BONE_SKINNABLE  =       0,
-		BONE_UNSKINNABLE
-};
-
 #endif
