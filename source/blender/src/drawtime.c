@@ -148,9 +148,15 @@ static void draw_marker(TimeMarker *marker)
 	glDisable(GL_BLEND);		
 
 	/* and the marker name too, shifted slightly to the top-right */
-	BIF_ThemeColor(TH_TEXT);
-	glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
-		
+	if(marker->flag & SELECT) {
+		BIF_ThemeColor(TH_TEXT_HI);
+		glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 27.0*yspace/ypixels);
+	}
+	else {
+		BIF_ThemeColor(TH_TEXT);
+		glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
+	}
+	
 	BMF_DrawString(G.font, marker->name);
 }
 
