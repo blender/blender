@@ -49,6 +49,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
@@ -576,18 +577,49 @@ void paste_posebuf (int flip)
 
 /* ********************************************** */
 
+struct vgroup_map {
+	float head[3], tail[3];
+	Bone *bone;
+	bDeformGroup *dg;
+	Object *meshobj;
+};
+
+static void pose_adds_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	struct vgroup_map *map= userData;
+	float vec[3], fac;
+	
+
+	VECCOPY(vec, co);
+	Mat4MulVecfl(map->meshobj->obmat, vec);
+		
+	/* get the distance-factor from the vertex to bone */
+	fac= distfactor_to_bone (vec, map->head, map->tail, map->bone->rad_head, map->bone->rad_tail, map->bone->dist);
+	
+	/* add to vgroup. this call also makes me->dverts */
+	if(fac!=0.0f) 
+		add_vert_to_defgroup (map->meshobj, map->dg, index, fac, WEIGHT_REPLACE);
+	else
+		remove_vert_defgroup (map->meshobj, map->dg, index);
+	
+}
+
+
 void pose_adds_vgroups(Object *meshobj)
 {
+	struct vgroup_map map;
+	DerivedMesh *dm;
 	Object *poseobj= meshobj->parent;
 	bPoseChannel *pchan;
 	Bone *bone;
 	bDeformGroup *dg;
-	Mesh *me= meshobj->data;
-	MVert *mvert;
-	float head[3], tail[3], vec[3], fac;
-	int i;
+	int DMneedsFree;
 	
 	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
+	
+	dm = mesh_get_derived_final(meshobj, &DMneedsFree);
+	
+	map.meshobj= meshobj;
 	
 	for(pchan= poseobj->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
@@ -599,31 +631,30 @@ void pose_adds_vgroups(Object *meshobj)
 				dg= add_defgroup_name(meshobj, bone->name);
 			
 			/* get the root of the bone in global coords */
-			VECCOPY(head, bone->arm_head);
-			Mat4MulVecfl(poseobj->obmat, head);
+			VECCOPY(map.head, bone->arm_head);
+			Mat4MulVecfl(poseobj->obmat, map.head);
 			
             /* get the tip of the bone in global coords */
-			VECCOPY(tail, bone->arm_tail);
-            Mat4MulVecfl(poseobj->obmat, tail);
+			VECCOPY(map.tail, bone->arm_tail);
+            Mat4MulVecfl(poseobj->obmat, map.tail);
 			
-			/* todo; get the optimal vertices instead of mverts */
-			mvert= me->mvert;
-			for ( i=0 ; i < me->totvert ; i++ , mvert++) {
-				VECCOPY(vec, mvert->co);
-				 Mat4MulVecfl(meshobj->obmat, vec);
-				 
-				 /* get the distance-factor from the vertex to bone */
-				 fac= distfactor_to_bone (vec, head, tail, bone->rad_head, bone->rad_tail, bone->dist);
-				 
-				 /* add to vgroup. this call also makes me->dverts */
-				 if(fac!=0.0f) 
-					 add_vert_to_defgroup (meshobj, dg, i, fac, WEIGHT_REPLACE);
-				 else
-					 remove_vert_defgroup (meshobj, dg, i);
+			/* use the optimal vertices instead of mverts */
+			map.dg= dg;
+			map.bone= bone;
+			if(dm->foreachMappedVert) 
+				dm->foreachMappedVert(dm, pose_adds_vgroups__mapFunc, (void*) &map);
+			else {
+				Mesh *me= meshobj->data;
+				int i;
+				for(i=0; i<me->totvert; i++) 
+					pose_adds_vgroups__mapFunc(&map, i, (me->mvert+i)->co, NULL, NULL);
 			}
+			
 		}
 	}
 	
+	if (DMneedsFree) dm->release(dm);
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	
