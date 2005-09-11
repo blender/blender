@@ -1765,7 +1765,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 	}
 
-	lim= 1000.0*MAX2(1.0, G.vd->grid);
+	lim= 10000.0f*MAX2(1.0, G.vd->grid);
 
 	if(ob==G.obedit) {
 		if(ob->type==OB_ARMATURE) v3d_editarmature_buts(block, ob, lim);
