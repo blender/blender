@@ -3842,7 +3842,7 @@ void do_view3d_buttons(short event)
 		} 
 		else if (G.vd->modeselect == V3D_POSEMODE_SEL) {
 			
-			if (ob && !(ob->flag & OB_POSEMODE)) {
+			if (ob) {
 				G.vd->flag &= ~V3D_MODE;
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
