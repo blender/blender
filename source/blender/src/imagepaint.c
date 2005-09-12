@@ -145,7 +145,7 @@ void UVTexturePaintToolAt(short* where)
 	UVTEXTTOOL_RAD[1] = data->softradius*data->size*sima->zoom/2;
 }
 
-void UVTexturePaintMsg( void *spacedata, unsigned short event,short val)
+void UVTexturePaintMsg( void *spacedata, unsigned short event,short val,short paintmousebut)
 /* handle events in texturepaint mode of UV-Image Editor*/
 {
 	SpaceImage *sima= curarea->spacedata.first;
@@ -220,7 +220,7 @@ void UVTexturePaintMsg( void *spacedata, unsigned short event,short val)
 		}		
 		getmouseco_areawin(xy_prev);
 		brushtime = PIL_check_seconds_timer();
-		while (get_mbut() & L_MOUSE) {
+		while (get_mbut() & paintmousebut) {
 			UVTEXTTOOL_SHAPE = 0;
 			getmouseco_areawin(xy_curr);
 			/* check for timed actions */
@@ -325,7 +325,7 @@ void UVTexturePaintMsg( void *spacedata, unsigned short event,short val)
 					/* call the color lifter */
 					if (UVTEXTTOOL_INDEX==6){
 						getmouseco_areawin(xy_prev);
-						while (get_mbut() & R_MOUSE) {
+						while (get_mbut() & paintmousebut) {
 							getmouseco_areawin(xy_curr);
 							/* check for movement actions */
 							if ((xy_prev[0] != xy_curr[0]) || (xy_prev[1] != xy_curr[1]) ) {

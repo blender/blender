@@ -892,7 +892,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Soften" ,890,120,80,19,&UVTEXTTOOL_INDEX, 7.0, 2.0, 0, 0,  "Soften");
 	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Aux AB1" ,890,100,80,19,&UVTEXTTOOL_INDEX, 7.0, 3.0, 0, 0,  "Aux Air Brush1");
 	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Aux AB2" ,890,80,80,19,&UVTEXTTOOL_INDEX, 7.0, 4.0, 0, 0,  "Aux Air Brush2");	
-	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Smear  " ,890,60,80,19,&UVTEXTTOOL_INDEX, 7.0, 5.0, 0, 0,  "Smaer");	
+	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Smear  " ,890,60,80,19,&UVTEXTTOOL_INDEX, 7.0, 5.0, 0, 0,  "Smear");	
 	uiDefButS(block,ROW, PAINTPANELMESSAGEEATER ,"Clone  " ,890,40,80,19,&UVTEXTTOOL_INDEX, 7.0, 6.0, 0, 0,  "Clone Brush / use RMB  to drag source image");	
 	uiBlockEndAlign(block);
 

@@ -3759,23 +3759,28 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	float uv_prev[2], uv_curr[2];
 	extern VPaint Gvp;
 #endif /* NAN_TPT */
-	short mousebut = L_MOUSE;
+	short paintmousebut;
 	
 	if(val==0) return;
 
 	if(uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 	
 	/* swap mouse buttons based on user preference */
+	if (event == LEFTMOUSE) {
+		paintmousebut = L_MOUSE;
+	} else if (event == RIGHTMOUSE) {
+		paintmousebut = R_MOUSE;
+	}
+
 	if (U.flag & USER_LMOUSESELECT) {
 		if (event == LEFTMOUSE) {
 			event = RIGHTMOUSE;
-			mousebut = R_MOUSE;
 		} else if (event == RIGHTMOUSE) {
 			event = LEFTMOUSE;
-			mousebut = L_MOUSE;
 		}
 	}
-	
+
+
 	if (sima->flag & SI_DRAWTOOL) {
 		switch(event) {
 		case CKEY: 
@@ -3783,7 +3788,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			scrarea_queue_winredraw(curarea);
 			break;
 		default:
-			UVTexturePaintMsg(spacedata,event,val);           
+			UVTexturePaintMsg(spacedata,event,val,paintmousebut);           
 		}
 		
 	}
