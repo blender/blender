@@ -1669,10 +1669,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if(G.qual==LR_CTRLKEY) {
-					make_track();
+					if(ob && (ob->flag & OB_POSEMODE));
+					else make_track();
 				}
 				else if(G.qual==LR_ALTKEY) {
-					clear_track();
+					if(ob && (ob->flag & OB_POSEMODE));
+					else clear_track();
 				}
 				else if((G.qual==0)){
 					texspace_edit();

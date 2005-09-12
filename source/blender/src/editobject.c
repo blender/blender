@@ -904,7 +904,7 @@ void clear_object(char mode)
 				// no test if we got armature; could be in future...
 				clear_armature(ob, mode);
 			}
-			else {
+			else if((G.f & G_WEIGHTPAINT)==0) {
 				
 				if(mode=='r') {
 					memset(ob->rot, 0, 3*sizeof(float));
@@ -2000,7 +2000,6 @@ void special_editmenu(void)
 								else BIF_undo_push("Boolean");
 								waitcursor(0);
 							} else {
-								ModifierTypeInfo *mti = modifierType_getInfo(eModifierType_Boolean);
 								BooleanModifierData *bmd = NULL;
 								bmd = (BooleanModifierData *)modifier_new(eModifierType_Boolean);
 								BLI_addtail(&ob->modifiers, bmd);
