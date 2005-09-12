@@ -1430,6 +1430,7 @@ void do_fontbuts(unsigned short event)
 				cu->textoncurve= 0;
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
+			DAG_scene_sort(G.scene); // makes new dag
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
