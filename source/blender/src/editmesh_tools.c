@@ -4932,7 +4932,8 @@ int EdgeSlide(short immediate, float imperc)
 				/* val==0 on key-release event */
 				if (val) {
 					if(ELEM(event, ESCKEY, RIGHTMOUSE)) {
-							perc = 0; // Set back to begining %
+							prop = 1; // Go back to prop mode
+							imperc = 0; // This is the % that gets set for immediate
 							immediate = 1; //Run through eval code 1 more time
 							cancel = 1;   // Return -1
 							mvalo[0] = -1;
