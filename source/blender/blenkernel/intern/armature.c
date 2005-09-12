@@ -965,13 +965,13 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 			BLI_freelinkN(&pose->chanbase, pchan);  // constraints?
 		}
 	}
-	//printf("rebuild pose, %d bones\n", counter);
-	if(counter<2) return;
+//	printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
 	
 	update_pose_constraint_flags(ob->pose); // for IK detection for example
 	
 	/* the sorting */
-	DAG_pose_sort(ob);
+	if(counter>1)
+		DAG_pose_sort(ob);
 	
 	ob->pose->flag &= ~POSE_RECALC;
 }

@@ -1374,15 +1374,15 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 
 static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 {
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	bArmature *arm= ob->data;
 	if (!pose)
 		return;
 
-	for (chan = pose->chanbase.first; chan; chan=chan->next) {
-		lib_link_constraints(fd, (ID *)ob, &chan->constraints);
+	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
 		// hurms... loop in a loop, but yah... later... (ton)
-		chan->bone= get_named_bone(arm, chan->name);
+		pchan->bone= get_named_bone(arm, pchan->name);
 	}
 }
 
@@ -4193,7 +4193,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bScreen *sc;
 		Object *ob;
 
-
 		/*  As of now, this insures that the transition from the old Track system
 		    to the new full constraint Track is painless for everyone. - theeth
 		*/
@@ -4791,10 +4790,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			// btw. armature_rebuild_pose is further only called on leave editmode
 			if(ob->type==OB_ARMATURE) {
-				if(ob->pose) {
+				if(ob->pose)
 					ob->pose->flag |= POSE_RECALC;
-					ob->recalc |= OB_RECALC;
-				}
+				ob->recalc |= OB_RECALC;	// cannot call stuff now (pointers!), done in setup_app_data
+
 				/* new generic xray option */
 				arm= newlibadr(fd, lib, ob->data);
 				if(arm->flag & ARM_DRAWXRAY) {
@@ -4898,10 +4897,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				bPoseChannel *pchan;
 				bConstraint *con;
 				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-					/* 2.38 files can be saved wrong still... */
-					if(pchan->bone==NULL)
-						ob->pose->flag |= POSE_RECALC;
-							
+					// note, pchan->bone is also lib-link stuff
 					if (pchan->limitmin[0] == 0.0f && pchan->limitmax[0] == 0.0f) {
 						pchan->limitmin[0]= pchan->limitmin[1]= pchan->limitmin[2]= -180.0f;
 						pchan->limitmax[0]= pchan->limitmax[1]= pchan->limitmax[2]= 180.0f;
