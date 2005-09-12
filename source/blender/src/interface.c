@@ -3359,7 +3359,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	case CKEY:
 		if(uevent->val && (uevent->qual & (LR_CTRLKEY|LR_COMMANDKEY))) {
 			for(but= block->buttons.first; but; but= but->next) {
-				if(but->type!=LABEL) {
+				if(but->type!=LABEL && but->type!=ROUNDBOX) {
 					if(but->flag & UI_ACTIVE) {
 						int doit=0;
 						
