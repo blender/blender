@@ -338,6 +338,23 @@ class Curve:
     @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or PyNone
     """
 
+  def getTaperOb():
+    """
+    Returns the Taper Object (TaperOb) assigned to the Curve.
+    @rtype: Blender Object or PyNone
+    @return: Taper Object (TaperOb) assigned to the Curve.
+    """
+
+  def setTaperOb( object ):
+    """
+    Assign a Taper Object (TaperOb) to the Curve.  Passing None as the object parameter removes the taper.
+    @rtype: PyNone
+    @return: PyNone
+    @type object: Curve type Blender Object
+    @param object: Blender Object to assign as Taper Object (TaperOb)
+    @raise TypeError: throws exception if the parameter is not a Curve type Blender Object or PyNone
+    """
+
   def update():
     """
     Updates display list for a Curve.
@@ -401,7 +418,7 @@ class CurNurb:
 
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
 
-    @ivar flagU: The CurNurb knot flag U (0: uniform, 1: endpoints, 2: bezier)
+    @ivar flagU: The CurNurb knot flag U.  See L{setFlagU} for bit definitions.
     @ivar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
     @ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
     """
@@ -467,16 +484,19 @@ class CurNurb:
 
     def getFlagU():
       """
-      Get the CurNurb knot flag U 
+      Get the CurNurb knot flag U.  This flag is a bitfield.  See L{setFlagU} for bit definitions.
       @rtype: integer
-      @return: 0 - uniform, 1 - endpoints, 2 - bezier
+      @return: 0 - uniform, 2 - endpoints, 4 - bezier
       """
 
     def setFlagU( value ):
       """
-      Set the CurNurb knot flag U (knots are recalculated automatically)
+      Set the entire CurNurb knot flag U (knots are recalculated automatically).  Another of Blender's bitfields.
+        - bit 0:  continuous.
+        - bit 1:  endpoints.
+        - bit 2:  bezier.
       @type value: integer
-      @param value: CurNurb knot flag (0 - uniform, 1 - endpoints, 2 - bezier)
+      @param value: CurNurb knot flag (0 - uniform, 2 - endpoints, 4 - bezier)
       @rtype: PyNone
       @return: PyNone
       """

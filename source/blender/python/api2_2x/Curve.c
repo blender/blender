@@ -115,6 +115,9 @@ static PyObject *Curve_getMaterials( BPy_Curve * self );
 static PyObject *Curve_getBevOb( BPy_Curve * self );
 static PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args );
 
+static PyObject *Curve_getTaperOb( BPy_Curve * self );
+static PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args );
+
 static PyObject *Curve_getIter( BPy_Curve * self );
 static PyObject *Curve_iterNext( BPy_Curve * self );
 
@@ -223,6 +226,10 @@ Sets a control point "},
 	 "() - returns Bevel Object assigned to this Curve"},
 	{"setBevOb", ( PyCFunction ) Curve_setBevOb, METH_VARARGS,
 	 "() - assign a Bevel Object to this Curve"},
+	{"getTaperOb", ( PyCFunction ) Curve_getTaperOb, METH_NOARGS,
+	 "() - returns Taper Object assigned to this Curve"},
+	{"setTaperOb", ( PyCFunction ) Curve_setTaperOb, METH_VARARGS,
+	 "() - assign a Taper Object to this Curve"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1336,6 +1343,54 @@ PyObject *Curve_setBevOb( BPy_Curve * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+/*****************************************************************************/
+/* Function:    Curve_getTaperOb                                               */
+/* Description: Get the taper object assign to the curve.                    */
+/*****************************************************************************/
+
+
+static PyObject *Curve_getTaperOb( BPy_Curve * self)
+{
+	if( self->curve->taperobj ) {
+		return Object_CreatePyObject( self->curve->taperobj );
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
+
+/*****************************************************************************/
+/* Function:    Curve_setTaperOb                                               */
+/* Description: Assign a taper object to the curve.                          */
+/*****************************************************************************/
+
+PyObject *Curve_setTaperOb( BPy_Curve * self, PyObject * args )
+{
+	BPy_Object *pytaperobj;
+
+	/* Parse and check input args */
+	if( !PyArg_ParseTuple( args, "O", &pytaperobj) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"expected object or None argument" ) );
+	}
+
+	/* Accept None */
+	if( (PyObject *)pytaperobj == Py_None ) {
+		self->curve->taperobj = (Object *)NULL;
+	} else {
+	/* Accept Object with type 'Curve' */
+		if( Object_CheckPyObject( ( PyObject * ) pytaperobj ) && 
+			pytaperobj->object->type == OB_CURVE) {
+			self->curve->taperobj = 
+				Object_FromPyObject( ( PyObject * ) pytaperobj );
+		} else {
+			return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected Curve object type or None argument" ) );
+		}
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
+
 /*
  * Curve_getIter
  *
@@ -1487,6 +1542,8 @@ static PyObject *CurveGetAttr( BPy_Curve * self, char *name )
 		return Curve_getSize( self );
 	else if( strcmp( name, "bevob" ) == 0 )
 		return Curve_getBevOb( self );
+	else if( strcmp( name, "taperob" ) == 0 )
+		return Curve_getTaperOb( self );
 	else if( strcmp( name, "key" ) == 0 )
 		return Curve_getKey( self );
 #if 0
@@ -1545,6 +1602,8 @@ static int CurveSetAttr( BPy_Curve * self, char *name, PyObject * value )
 		error = Curve_setSize( self, valtuple );
 	else if( strcmp( name, "bevob" ) == 0 )
 		error = Curve_setBevOb( self, valtuple );
+	else if( strcmp( name, "taperob" ) == 0 )
+		error = Curve_setTaperOb( self, valtuple );
 
 	else {			/* Error */
 		Py_DECREF( valtuple );
