@@ -671,7 +671,7 @@ PyObject *newVectorObject(float *vec, int size, int type)
 	}else{ //bad type
 		return NULL;
 	}
-	return (PyObject *) EXPP_incr_ret((PyObject *)self);
+	return (PyObject *) self;
 }
 
 //#############################DEPRECATED################################

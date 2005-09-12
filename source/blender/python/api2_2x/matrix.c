@@ -837,5 +837,5 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 	}else{ //bad type
 		return NULL;
 	}
-	return (PyObject *) EXPP_incr_ret((PyObject *)self);
+	return (PyObject *) self;
 }

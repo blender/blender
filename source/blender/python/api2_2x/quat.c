@@ -587,5 +587,5 @@ PyObject *newQuaternionObject(float *quat, int type)
 	}else{ //bad type
 		return NULL;
 	}
-	return (PyObject *) EXPP_incr_ret((PyObject *)self);
+	return (PyObject *) self;
 }
