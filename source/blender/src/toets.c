@@ -520,6 +520,7 @@ int blenderqread(unsigned short event, short val)
 	/* here do the general keys handling (not screen/window/space) */
 	/* return 0: do not pass on to the other queues */
 	extern int textediting;
+	extern void playback_anim();
 	ScrArea *sa;
 	Object *ob;
 	int textspace=0;
@@ -655,6 +656,9 @@ int blenderqread(unsigned short event, short val)
 			newspace(curarea, SPACE_TEXT);
 			return 0;
 		}
+		else if (G.qual==LR_CTRLKEY) {
+			playback_anim();
+		}
 		else if(G.qual==0) {
 			BIF_toggle_render_display();
 			return 0;
@@ -668,6 +672,9 @@ int blenderqread(unsigned short event, short val)
 		else if (G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
 			newspace(curarea, SPACE_NLA);
 			return 0;
+		}
+		else if (G.qual==LR_CTRLKEY) {
+			BIF_do_render(1);
 		}
 		else {
 			/* ctrl/alt + f12 should render too, for some macs have f12 assigned to cd eject */

@@ -96,6 +96,8 @@
    - anim settings, audio
 */
 
+/* prototypes */
+void playback_anim(void);
 
 /* ************************ SOUND *************************** */
 static void load_new_sample(char *str)	/* called from fileselect */
@@ -477,11 +479,32 @@ static void run_playanim(char *file) {
 	system(str);
 }
 
+void playback_anim(void)
+{	
+	char file[FILE_MAXDIR+FILE_MAXFILE];
+	
+#ifdef WITH_QUICKTIME
+	if(G.scene->r.imtype == R_QUICKTIME)
+		makeqtstring(file);
+	else
+#endif
+		makeavistring(file);
+	if(BLI_exist(file)) {
+		run_playanim(file);
+	}
+	else {
+		makepicstring(file, G.scene->r.sfra);
+		if(BLI_exist(file)) {
+			run_playanim(file);
+		}
+		else error("Can't find image: %s", file);
+	}
+}
+
 void do_render_panels(unsigned short event)
 {
 	ScrArea *sa;
 	ID *id;
-	char file[FILE_MAXDIR+FILE_MAXFILE];
 
 	switch(event) {
 
@@ -497,22 +520,7 @@ void do_render_panels(unsigned short event)
 		allqueue(REDRAWBUTSSCENE, 0);
 		break;
 	case B_PLAYANIM:
-#ifdef WITH_QUICKTIME
-		if(G.scene->r.imtype == R_QUICKTIME)
-			makeqtstring(file);
-		else
-#endif
-			makeavistring(file);
-		if(BLI_exist(file)) {
-			run_playanim(file);
-		}
-		else {
-			makepicstring(file, G.scene->r.sfra);
-			if(BLI_exist(file)) {
-				run_playanim(file);
-			}
-			else error("Can't find image: %s", file);
-		}
+		playback_anim();
 		break;
 		
 	case B_DOANIM:

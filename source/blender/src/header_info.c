@@ -1464,8 +1464,7 @@ static void do_info_rendermenu(void *arg, int event)
 {
 	char file[FILE_MAXDIR+FILE_MAXFILE];
 
-	extern void makeavistring(char *string);
-	extern void makeqtstring (char *string);
+	extern void playback_anim();
 
 	switch(event) {
 		
@@ -1483,22 +1482,7 @@ static void do_info_rendermenu(void *arg, int event)
 		BIF_toggle_render_display();
 		break;
 	case 5:
-#ifdef WITH_QUICKTIME
-		if(G.scene->r.imtype == R_QUICKTIME)
-			makeqtstring(file);
-		else
-#endif
-			makeavistring(file);
-		if(BLI_exist(file)) {
-			run_playanim(file);
-		}
-		else {
-			makepicstring(file, G.scene->r.sfra);
-			if(BLI_exist(file)) {
-				run_playanim(file);
-			}
-			else error("Can't find image: %s", file);
-		}
+		playback_anim();
 		break;
 	case 6:
 		/* dodgy hack turning on SHIFT key to do a proper render border select
