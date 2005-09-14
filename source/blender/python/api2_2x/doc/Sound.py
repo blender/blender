@@ -16,6 +16,10 @@ Example::
   print "Sound from", sound.getFilename(),
   print "loaded to obj", sound.getName())
   print "All Sounds available now:", Sound.Get()
+
+No way to get the actual audio data is provided by this library,
+but it is included in the Python standard library (module audioop).
+Note that using that module requires a full/normal Python installation.
 """
 
 def Load (filename):
