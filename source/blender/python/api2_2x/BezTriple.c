@@ -440,6 +440,7 @@ PyObject *newBezTriple( PyObject *args)
 	BPy_BezTriple *pybez = NULL;
 	int length;
 	float numbuf[9];
+	int status;
 /*
   check input args:
     sequence of nine floats - x,y,z for h1, pt, h2
@@ -459,23 +460,32 @@ PyObject *newBezTriple( PyObject *args)
 					       "wrong number of points");
 	{
 		int i;
-		PyObject *pyo;
-		for( i = 0; i < length; i++) {
-			pyo = PySequence_GetItem( args, i );
-			if( !pyo )
-				return EXPP_ReturnPyObjError
-					( PyExc_AttributeError,
-					  "wrong number of points");
-			if( !PyFloat_Check( pyo ))
-				return EXPP_ReturnPyObjError
-					( PyExc_AttributeError,
-					  "sequence item not number");
+		if (length == 9)
+			status = PyArg_ParseTuple( args, "fffffffff", 
+						   &numbuf[0], 
+						   &numbuf[1], 
+						   &numbuf[2], 
+						   &numbuf[3], 
+						   &numbuf[4], 
+						   &numbuf[5], 
+						   &numbuf[6], 
+						   &numbuf[7], 
+						   &numbuf[8]);
 
-			numbuf[i] = (float) PyFloat_AsDouble( pyo );
-			Py_DECREF( pyo );  /* from GetItem() */
-		}
+		else if (length == 3)
+			status = PyArg_ParseTuple( args, "fff",
+						   &numbuf[0], 
+						   &numbuf[1], 
+						   &numbuf[2]);     
+		else
+			return EXPP_ReturnPyObjError
+				( PyExc_AttributeError,
+				  "wrong number of points");
+		if ( !status )
+			return EXPP_ReturnPyObjError
+				( PyExc_AttributeError,
+				  "sequence item not number");
 	}
-				
 
 	/* create our bpy object */
 	pybez = ( BPy_BezTriple* ) PyObject_New( BPy_BezTriple,
@@ -486,7 +496,8 @@ PyObject *newBezTriple( PyObject *args)
 	pybez->beztriple = MEM_callocN( sizeof( BezTriple ), "new bpytriple");
 	/* check malloc */
 
-	pybez->own_memory = 1;  /* we own it. must free later */
+	pybez->own_memory = 0;  /* we own it. must free later */
+	/* set to 0 for creating to work. how should freeing be done? */
 
 	
 	switch( length ) {
@@ -518,8 +529,8 @@ PyObject *newBezTriple( PyObject *args)
 	}
 
 
-	pybez->beztriple->h1 = HD_AUTO;
-	pybez->beztriple->h2 = HD_AUTO;
+	pybez->beztriple->h1 = HD_ALIGN;
+	pybez->beztriple->h2 = HD_ALIGN;
 
 	return ( PyObject* ) pybez;
 }

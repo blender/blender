@@ -498,9 +498,11 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 				 ( PyExc_MemoryError, "allocation failed" ) );
 
 		/* copy old points to new */
-		memmove( nurb->bezt, tmp, sizeof( BezTriple ) * npoints );
-		if( tmp )
+		if( tmp ) {
+			memmove( nurb->bezt, tmp, sizeof( BezTriple ) * npoints );
 			MEM_freeN( tmp );
+		}
+
 		nurb->pntsu++;
 		/* add new point to end of list */
 		memcpy( nurb->bezt + npoints,
