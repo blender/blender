@@ -373,6 +373,9 @@
 				RelativePath="..\..\..\source\blender\src\headerbuttons.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\imagepaint.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\imasel.c">
 			</File>
 			<File

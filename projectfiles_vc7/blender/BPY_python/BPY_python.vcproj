@@ -33,6 +33,7 @@
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\python\debug\"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"
 				CompileAs="0"
 				DisableSpecificWarnings="4100"/>
@@ -86,6 +87,7 @@
 				ProgramDataBaseFileName="..\..\..\..\build\msvc_7\source\blender\python\"
 				WarningLevel="4"
 				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="FALSE"
 				CompileAs="0"
 				DisableSpecificWarnings="4100"/>
 			<Tool
@@ -150,6 +152,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Ipo.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Key.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lamp.c">
@@ -317,6 +322,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Ipo.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Key.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lamp.h">
