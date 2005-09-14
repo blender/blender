@@ -117,6 +117,11 @@ typedef struct Global {
 	/* Rob's variables */
 	int have_quicktime;
 	int ui_international;
+	int charstart;
+	int charmin;
+	int charmax;
+	struct VFont *selfont;
+	struct ListBase ttfdata;
 
     /* this variable is written to / read from FileGlobal->fileflags */
     int fileflags;

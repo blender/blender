@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
+#include <wchar.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -86,7 +87,7 @@ int textediting=0;
 
 extern struct SelBox *selboxes;		/* from blenkernel/font.c */
 
-static char findaccent(char char1, char code)
+static char findaccent(char char1, unsigned int code)
 {
 	char new= 0;
 	
@@ -217,15 +218,25 @@ static char findaccent(char char1, char code)
 	else return char1;
 }
 
-char *copybuf=NULL;
-char *copybufinfo=NULL;
+wchar_t *copybuf=NULL;
+wchar_t *copybufinfo=NULL;
 
-static char *textbuf=NULL;
+static wchar_t *textbuf=NULL;
 static CharInfo *textbufinfo=NULL;
-static char *oldstr=NULL;
+static wchar_t *oldstr=NULL;
 static CharInfo *oldstrinfo=NULL;
 
-static int insert_into_textbuf(Curve *cu, char c)
+void update_string(Curve *cu)
+{
+	int len;
+	
+	MEM_freeN(cu->str);
+	len = wcsleninu8(textbuf);
+	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
+	wcs2utf8s(cu->str, textbuf);
+}
+
+static int insert_into_textbuf(Curve *cu, unsigned long c)
 {
 	if (cu->len<MAXTEXT-1) {
 		int x;
@@ -243,6 +254,8 @@ static int insert_into_textbuf(Curve *cu, char c)
 		cu->pos++;
 		cu->len++;
 		textbuf[cu->len]='\0';
+
+		update_string(cu);
 
 		return 1;
 	} else {
@@ -280,16 +293,36 @@ void add_lorem(void)
 void load_3dtext_fs(char *file) 
 {
 	FILE *fp;
-	int c;
+	int filelen;
+	char *strp;
+	Curve *cu=G.obedit->data;
 
 	fp= fopen(file, "r");
 	if (!fp) return;
-	
-	while (!feof(fp)) {
-		c = fgetc(fp);
-		if (c!=EOF) insert_into_textbuf(OBACT->data, c);
-	}
+
+	fseek(fp, 0L, SEEK_END);
+	filelen = ftell(fp);
+	fseek(fp, 0L, SEEK_SET);	
+
+	strp = MEM_callocN(filelen+4, "tempstr");	
+
+	filelen = fread(strp, 1, filelen, fp);
 	fclose(fp);
+	strp[filelen]= 0;
+	
+	if(cu->len+filelen<MAXTEXT)
+	{
+		int tmplen;
+		wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
+		tmplen = utf8towchar_(mem, strp);
+		wcscat(textbuf, mem);
+		MEM_freeN(mem);
+		cu->len += tmplen;
+		cu->pos= cu->len;
+	}
+	MEM_freeN(strp);
+
+	update_string(cu);
 
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);	
@@ -479,6 +512,7 @@ static int killselection(int ins)	/* 1 == new character */
 
 	direction = getselection(&selstart, &selend);
 	if (direction) {
+		int size;
 		if (ins) offset = 1;
 		if (cu->pos >= selstart) cu->pos = selstart+offset;
 		if ((direction == -1) && ins) {
@@ -487,7 +521,8 @@ static int killselection(int ins)	/* 1 == new character */
 		}
 		getfrom = selend+offset;
 		if (ins==0) getfrom++;
-		memmove(textbuf+selstart, textbuf+getfrom, (cu->len-selstart)+offset);
+		size = (cu->len * sizeof(wchar_t)) - (selstart * sizeof(wchar_t)) + (offset*sizeof(wchar_t));
+		memmove(textbuf+selstart, textbuf+getfrom, size);
 		memmove(textbufinfo+selstart, textbufinfo+getfrom, ((cu->len-selstart)+offset)*sizeof(CharInfo));
 		cu->len -= (selend-selstart)+offset;
 		cu->selstart = cu->selend = 0;
@@ -500,7 +535,7 @@ static void copyselection(void)
 	int selstart, selend;
 	
 	if (getselection(&selstart, &selend)) {
-		memcpy(copybuf, textbuf+selstart, (selend-selstart)+1);
+		memcpy(copybuf, textbuf+selstart, ((selend-selstart)+1)*sizeof(wchar_t));
 		copybuf[(selend-selstart)+1]=0;
 		memcpy(copybufinfo, textbufinfo+selstart, ((selend-selstart)+1)*sizeof(CharInfo));	
 	}
@@ -509,11 +544,12 @@ static void copyselection(void)
 static void pasteselection(void)
 {
 	Curve *cu= G.obedit->data;
-	int len= strlen(copybuf);
+	int len= wcslen(copybuf);
 	
 	if (len) {
-		memmove(textbuf+cu->pos+len, textbuf+cu->pos, cu->len-cu->pos+1);
-		memcpy(textbuf+cu->pos, copybuf, len);
+		int size = (cu->len * sizeof(wchar_t)) - (cu->pos*sizeof(wchar_t)) + sizeof(wchar_t);
+		memmove(textbuf+cu->pos+len, textbuf+cu->pos, size);
+		memcpy(textbuf+cu->pos, copybuf, len * sizeof(wchar_t));
 		
 		memmove(textbufinfo+cu->pos+len, textbufinfo+cu->pos, (cu->len-cu->pos+1)*sizeof(CharInfo));
 		memcpy(textbufinfo+cu->pos, copybufinfo, len*sizeof(CharInfo));	
@@ -564,12 +600,12 @@ int mat_to_sel(void) {
 	return 0;
 }
 
-void do_textedit(unsigned short event, short val, char _ascii)
+void do_textedit(unsigned short event, short val, unsigned long _ascii)
 {
 	Curve *cu;
 	static int accentcode= 0;
 	int x, doit=0, cursmove=0;
-	int ascii = _ascii;
+	unsigned long ascii = _ascii;
 	short kern;
 
 	cu= G.obedit->data;
@@ -608,7 +644,6 @@ void do_textedit(unsigned short event, short val, char _ascii)
 					else if(ascii=='>') ascii= 187;
 					else if(ascii=='<') ascii= 171;
 				}
-				
 				if(ascii==1001) {
 					int file, filelen;
 					char *strp;
@@ -627,9 +662,14 @@ void do_textedit(unsigned short event, short val, char _ascii)
 						read(file, strp, filelen);
 						close(file);
 						strp[filelen]= 0;
+
 						if(cu->len+filelen<MAXTEXT) {
-							strcat( textbuf, strp);
-							cu->len= strlen(textbuf);
+							int tmplen;
+							wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
+							tmplen = utf8towchar_(mem, strp);
+							wcscat(textbuf, mem);
+							MEM_freeN(mem);
+							cu->len += tmplen;
 							cu->pos= cu->len;
 						}
 						MEM_freeN(strp);
@@ -643,6 +683,11 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			killselection(1);
 			
 			doit= 1;
+		}
+		else
+		{
+			insert_into_textbuf(cu, ascii);
+			doit = 1;
 		}
 	}
 	else if(val) {
@@ -841,6 +886,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			if ((G.qual & LR_SHIFTKEY)==0) {
 				if (cu->selstart) {
 					cu->selstart = cu->selend = 0;
+					update_string(cu);
 					text_to_curve(G.obedit, FO_SELCHANGE);
 					allqueue(REDRAWVIEW3D, 0);
 				}
@@ -860,6 +906,7 @@ void do_textedit(unsigned short event, short val, char _ascii)
 			G.obedit->actcol = textbufinfo[cu->pos-1].mat_nr;
 		}
 		allqueue(REDRAWBUTSEDIT, 0);
+		update_string(cu);
 		text_to_curve(G.obedit, cursmove);
 		if (cursmove && (G.qual & LR_SHIFTKEY)) {
 			cu->selend = cu->pos;
@@ -874,16 +921,64 @@ void do_textedit(unsigned short event, short val, char _ascii)
 	}
 }
 
+void paste_unicodeText(char *filename)
+{
+	Curve *cu;
+	int filelen, doit= 0;
+	char *strp;
+	FILE *fp = NULL;
+
+	fp= fopen(filename, "r");
+
+	if(fp) {
+		cu= G.obedit->data;
+
+		fseek( fp, 0L, SEEK_END );
+		filelen = ftell( fp );
+		fseek( fp, 0L, SEEK_SET );
+			
+		strp= MEM_mallocN(filelen+4, "tempstr");
+		//fread() instead of read(),
+		//because windows read() converts text to DOS \r\n linebreaks
+		//causing double linebreaks in the 3d text
+		filelen = fread(strp, 1, filelen, fp);
+		fclose(fp);
+		strp[filelen]= 0;
+
+
+		if(cu->len+filelen<MAXTEXT) 
+		{
+			int tmplen;
+			wchar_t *mem = MEM_callocN((sizeof(wchar_t)*filelen)+(4*sizeof(wchar_t)), "temporary");
+			tmplen = utf8towchar_(mem, strp);
+//			mem =utf8s2wc(strp);
+			wcscat(textbuf, mem);
+			MEM_freeN(mem);
+//			cu->len = wcslen(textbuf);
+			cu->len += tmplen;
+			cu->pos= cu->len;
+		}
+		MEM_freeN(strp);
+		doit = 1;
+	}
+	if(doit) {
+		update_string(cu);
+		text_to_curve(G.obedit, 0);
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Paste text");
+	}
+}
 
 void paste_editText(void)
 {
 	Curve *cu;
-	int file, filelen, doit= 0;
+	int filelen, doit= 0;
 	char *strp;
-
+  FILE *fp = NULL;
 
 #ifdef WIN32
-	file= open("C:\\windows\\temp\\cutbuf.txt", O_BINARY|O_RDONLY);
+	fp= fopen("C:\\windows\\temp\\cutbuf.txt", "r");
 
 //	The following is more likely to work on all Win32 installations.
 //	suggested by Douglas Toltzman. Needs windows include files...
@@ -900,26 +995,39 @@ void paste_editText(void)
 	}
 */
 #else
-	file= open("/tmp/.cutbuffer", O_BINARY|O_RDONLY);
+	fp= fopen("/tmp/.cutbuffer", "r");
 #endif
 
-	if(file>0) {
+	if(fp) {
 		cu= G.obedit->data;
-		filelen = BLI_filesize(file);
+		
+		fseek(fp, 0L, SEEK_END);		
+		filelen = ftell( fp );
+		fseek(fp, 0L, SEEK_SET);
 				
 		strp= MEM_mallocN(filelen+4, "tempstr");
-		read(file, strp, filelen);
-		close(file);
+		// fread() instead of read(),
+		// because windows read() converts text to DOS \r\n linebreaks
+		// causing double linebreaks in the 3d text
+		filelen = fread(strp, 1, filelen, fp);
+		fclose(fp);
 		strp[filelen]= 0;
+		
 		if(cu->len+filelen<MAXTEXT) {
-			strcat( textbuf, strp);
-			cu->len= strlen(textbuf);
-			cu->pos= cu->len;
+		  int tmplen;
+		  wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
+		  tmplen = utf8towchar_(mem, strp);
+		  wcscat(textbuf, mem);
+		  MEM_freeN(mem);
+		  cu->len += tmplen;
+		  cu->pos= cu->len;
 		}
 		MEM_freeN(strp);
 		doit = 1;
 	}
 	if(doit) {
+		update_string(cu);
+		text_to_curve(G.obedit, 0);
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Paste text");
@@ -930,19 +1038,23 @@ void paste_editText(void)
 void make_editText(void)
 {
 	Curve *cu;
-
 	cu= G.obedit->data;
-	if(textbuf==NULL) textbuf= MEM_mallocN(MAXTEXT+4, "texteditbuf");
+	
+	if(textbuf==NULL) textbuf= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "texteditbuf");
 	if(textbufinfo==NULL) textbufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditbufinfo");
-	if(copybuf==NULL) copybuf= MEM_callocN(MAXTEXT+4, "texteditcopybuf");
+	if(copybuf==NULL) copybuf= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "texteditcopybuf");
 	if(copybufinfo==NULL) copybufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditcopybufinfo");	
-	BLI_strncpy(textbuf, cu->str, MAXTEXT);
-	cu->len= strlen(textbuf);
+	if(oldstr==NULL) oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
+	
+  // Convert the original text to wchar_t
+  utf8towchar_(textbuf, cu->str);
+	wcscpy(oldstr, textbuf);
+		
+	cu->len= wcslen(textbuf);
 	
 	memcpy(textbufinfo, cu->strinfo, (cu->len)*sizeof(CharInfo));
-	oldstr= cu->str;
+	
 	oldstrinfo= cu->strinfo;
-	cu->str= textbuf;
 	cu->strinfo= textbufinfo;
 
 	if(cu->pos>cu->len) cu->pos= cu->len;
@@ -950,6 +1062,9 @@ void make_editText(void)
 	if (cu->pos) {
 		cu->curinfo = textbufinfo[cu->pos-1];
 	} else cu->curinfo = textbufinfo[0];
+	
+	// Convert to UTF-8
+	update_string(cu);
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
@@ -969,8 +1084,8 @@ void load_editText(void)
 	MEM_freeN(oldstrinfo);
 	oldstrinfo= NULL;
 	
-	cu->str= MEM_mallocN(cu->len+4, "textedit");
-	strcpy(cu->str, textbuf);
+	update_string(cu);
+	
 	cu->strinfo= MEM_callocN((cu->len+4)*sizeof(CharInfo), "texteditinfo");
 	memcpy(cu->strinfo, textbufinfo, (cu->len)*sizeof(CharInfo));
 
@@ -1000,7 +1115,10 @@ void remake_editText(void)
 		
 	if(okee("Reload original text")==0) return;
 	
-	BLI_strncpy(textbuf, oldstr, MAXTEXT);
+	// Copy the oldstr to textbuf temporary global variable
+	wcscpy(textbuf, oldstr);
+
+	// Set the object length and position	
 	cu= G.obedit->data;
 	cu->len= strlen(textbuf);
 	if(cu->pos>cu->len) cu->pos= cu->len;
@@ -1055,7 +1173,7 @@ void to_upper(void)
 {
 	Curve *cu;
 	int len, ok;
-	char *str;
+	wchar_t *str;
 	
 	if(G.obedit==0) {
 		return;
@@ -1064,8 +1182,8 @@ void to_upper(void)
 	ok= 0;
 	cu= G.obedit->data;
 	
-	len= strlen(cu->str);
-	str= cu->str;
+	len= wcslen(textbuf);
+	str= textbuf;
 	while(len) {
 		if( *str>=97 && *str<=122) {
 			ok= 1;
@@ -1076,8 +1194,8 @@ void to_upper(void)
 	}
 	
 	if(ok==0) {
-		len= strlen(cu->str);
-		str= cu->str;
+		len= wcslen(textbuf);
+		str= textbuf;
 		while(len) {
 			if( *str>=65 && *str<=90) {
 				*str+= 32;
@@ -1089,6 +1207,8 @@ void to_upper(void)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("To upper");
+
+	update_string(cu);
 }
 
 
@@ -1099,9 +1219,10 @@ static void undoFont_to_editFont(void *strv)
 	Curve *cu= G.obedit->data;
 	char *str= strv;
 	
-	strncpy(textbuf, str+2, MAXTEXT);
+	utf8towchar_(textbuf, str);
+	
 	cu->pos= *((short *)str);
-	cu->len= strlen(textbuf);
+	cu->len= wcslen(textbuf);
 
 	memcpy(textbufinfo, str+2+cu->len+1, cu->len*sizeof(CharInfo));
 	cu->selstart = cu->selend = 0;
@@ -1117,7 +1238,8 @@ static void *editFont_to_undoFont(void)
 	
 	str= MEM_callocN(MAXTEXT+4+(MAXTEXT+4)*sizeof(CharInfo), "string undo");
 	
-	strncpy(str+2, textbuf, MAXTEXT);
+	wcs2utf8s(str, textbuf);
+	
 	*((short *)str)= cu->pos;
 	memcpy(str+2+cu->len+1, textbufinfo, cu->len*sizeof(CharInfo));
 	

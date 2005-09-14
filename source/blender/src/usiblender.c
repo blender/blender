@@ -78,6 +78,8 @@
 #include "BKE_packedFile.h"
 #include "BKE_utildefines.h"
 
+#include "BLI_vfontdata.h"
+
 #include "BIF_fsmenu.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
@@ -291,9 +293,20 @@ int BIF_read_homefile(void)
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
 	int success;
+	struct TmpFont *tf;
 	
 	BLI_clean(home);
 
+	tf= G.ttfdata.first;
+	while(tf)
+	{
+		freePackedFile(tf->pf);
+		tf->pf = NULL;
+		tf->vfont = NULL;
+		tf= tf->next;
+	}
+	BLI_freelistN(&G.ttfdata);
+	
 #if 0
 //#ifdef _WIN32	// FULLSCREEN
 	static int screenmode = -1;
@@ -632,6 +645,17 @@ extern ListBase editelems;
 
 void exit_usiblender(void)
 {
+  struct TmpFont *tf;
+  tf= G.ttfdata.first;
+  while(tf)
+  {
+  	freePackedFile(tf->pf);
+  	tf->pf= NULL;
+  	tf->vfont= NULL;
+  	tf= tf->next;
+  }
+  BLI_freelistN(&G.ttfdata);
+
 	freeAllRad();
 	BKE_freecubetable();
 

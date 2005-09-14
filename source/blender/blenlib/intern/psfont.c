@@ -1956,6 +1956,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 	struct Nurb *nu;
 	struct BezTriple *bezt, *bez2;
 	float scale, dx, dy;
+	struct VChar *che;
 
 	if (!fnt || (fnt->type!=SP_TYPE)) {
 		return NULL;
@@ -1967,7 +1968,10 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 	for (i = 0; i < MAX_VF_CHARS; i++) {
 		cd = getchardesc(fnt, i);
 		if (cd && cd->data && cd->datalen) {
-			vfd->width[i] = scale * cd->movex;
+			che = (VChar *) MEM_callocN(sizeof(VChar), "objfnt_char");
+			BLI_addtail(&vfd->characters, che);
+			che->index = i;
+			che->width = scale * cd->movex;
 
 			_data = data = cd->data;
 
@@ -2015,7 +2019,7 @@ static VFontData *objfnt_to_vfontdata(objfnt *fnt)
 					nu  =  (Nurb*)MEM_callocN(sizeof(struct Nurb),"objfnt_nurb");
 					bezt = (BezTriple*)MEM_callocN((count)* sizeof(BezTriple),"objfnt_bezt") ;
 					if (nu != 0 && bezt != 0) {
-						BLI_addtail(&vfd->nurbsbase[i], nu);
+						BLI_addtail(&che->nurbsbase, nu);
 						nu->type= CU_BEZIER+CU_2D;
 						nu->pntsu = count;
 						nu->resolu= 8;

@@ -217,6 +217,10 @@ void initglobals(void)
 #endif
 
 	clear_workob();	/* object.c */
+
+	G.charstart = 0x0000;
+	G.charmin = 0x0000;
+	G.charmax = 0xffff;
 }
 
 /***/

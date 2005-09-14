@@ -56,6 +56,10 @@ int mat_to_sel(void);
 void font_duplilist(struct Object *par);
 int getselection(int *start, int *end);
 
+void chtoutf8(unsigned long c, char *o);
+void wcs2utf8s(char *dst, wchar_t *src);
+int wcsleninu8(wchar_t *src);
+int utf8towchar_(wchar_t *w, char *c);
 
 #endif
 

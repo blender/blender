@@ -30,16 +30,26 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <wchar.h>
+
 #ifndef BIF_EDITFONT_H
 #define BIF_EDITFONT_H
 
 struct Text;
 
 extern char *BIF_lorem;
-extern char *copybuf;
-extern char *copybufinfo;
+extern wchar_t *copybuf;
+extern wchar_t *copybufinfo;
 
-void do_textedit(unsigned short event, short val, char _ascii);
+typedef struct unicodect
+{
+	char *name;
+	char *longname;
+	int   start;
+	int   end;
+} unicodect;
+
+void do_textedit(unsigned short event, short val, unsigned long _ascii);
 void make_editText(void);
 void load_editText(void);
 void remake_editText(void);

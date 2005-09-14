@@ -41,16 +41,35 @@
 #include "DNA_listBase.h"
 
 struct PackedFile;
+struct VFont;
 
 #define MAX_VF_CHARS 256
 
 typedef struct VFontData {
-	ListBase nurbsbase[MAX_VF_CHARS];
-	float	    resol[MAX_VF_CHARS];
-	float	    width[MAX_VF_CHARS];
-	float	    *points[MAX_VF_CHARS];
-	char		name[128];
+	ListBase characters;
+	// ListBase nurbsbase[MAX_VF_CHARS];
+	// float	    resol[MAX_VF_CHARS];
+	// float	    width[MAX_VF_CHARS];
+	// float	    *points[MAX_VF_CHARS];
+	 char		name[128];	
 } VFontData;
+
+typedef struct VChar {
+	struct VChar    *next, *prev;
+ 	ListBase        nurbsbase;
+	unsigned long   index;
+	float           resol;
+	float           width;
+	float           *points;
+} VChar;
+
+struct TmpFont
+{
+	struct TmpFont *next, *prev;
+	struct PackedFile *pf;
+	struct VFont *vfont;
+};
+
 
 /**
  * Construct a new VFontData structure from 
@@ -75,5 +94,10 @@ BLI_vfontdata_from_psfont(
 	VFontData*
 BLI_vfontdata_from_freetypefont(
 	struct PackedFile *pf);
+
+	int
+BLI_vfontchar_from_freetypefont(
+        struct VFont *vfont, unsigned long character);
+
 #endif
 

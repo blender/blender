@@ -68,6 +68,8 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
+#include "DNA_object_types.h"
+#include "DNA_vfont_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_utildefines.h"
@@ -2687,6 +2689,56 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 	return but->retval;
 }
 
+#ifdef INTERNATIONAL
+
+static int ui_do_but_CHARTAB(uiBut *but)
+{
+        /* Variables */
+        short mval[2];
+        float sx, sy, ex, ey;
+        float width, height;
+        float butw, buth;
+        int x, y;
+        unsigned long cs;
+        unsigned long che;
+
+        /* Check the position */
+        uiGetMouse(mywinget(), mval);
+
+        /* Calculate the size of the button */
+        width = abs(but->x2 - but->x1);
+        height = abs(but->y2 - but->y1);
+
+        butw = floor(width / 12);
+        buth = floor(height / 6);
+
+        /* Initialize variables */
+        sx = but->x1;
+        ex = but->x1 + butw;
+        sy = but->y1 + height - buth;
+        ey = but->y1 + height;
+
+        cs = G.charstart;
+
+        /* And the character is */
+        x = (int) ((mval[0] / butw) - 0.5);
+        y = (int) (6 - ((mval[1] / buth) - 0.5));
+
+        che = cs + (y*12) + x;
+
+        if(che > G.charmax)
+                che = 0;
+
+        if(G.obedit)
+        {
+                do_textedit(0,0,che);
+        }
+
+        return but->retval;
+}
+
+#endif
+
 
 /* ************************************************ */
 
@@ -2925,6 +2977,12 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case HSVCUBE:
 		retval= ui_do_but_HSVCUBE(but);
 		break;
+		
+#ifdef INTERNATIONAL
+	case CHARTAB:
+		retval= ui_do_but_CHARTAB(but);
+		break;
+#endif
 	}
 	
 	block->flag &= ~UI_BLOCK_BUSY;
@@ -3383,7 +3441,66 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 		}
 		break;
+
+
+#ifdef INTERNATIONAL
+	//HACK to let the chartab button react to the mousewheel and PGUP/PGDN keys
+	case WHEELUPMOUSE:
+	case PAGEUPKEY:
+		for(but= block->buttons.first; but; but= but->next)
+		{
+			if(but->type == CHARTAB && (but->flag & UI_MOUSE_OVER))
+			{
+				G.charstart = G.charstart - (12*6);
+				if(G.charstart < 0)
+					G.charstart = 0;
+				if(G.charstart < G.charmin)
+					G.charstart = G.charmin;
+				ui_draw_but(but);
+
+				//Really nasty... to update the num button from the same butblock
+				for(bt= block->buttons.first; bt; bt= bt->next)
+				{
+					if(bt->type == NUM) {
+						ui_check_but(bt);
+						ui_draw_but(bt);
+					}
+				}
+				retval=UI_CONT;
+				break;
+			}
+		}
+		break;
 		
+	case WHEELDOWNMOUSE:
+	case PAGEDOWNKEY:
+		for(but= block->buttons.first; but; but= but->next)
+		{
+			if(but->type == CHARTAB && (but->flag & UI_MOUSE_OVER))
+			{
+				G.charstart = G.charstart + (12*6);
+				if(G.charstart > (0xffff - 12*6))
+					G.charstart = 0xffff - (12*6);
+				if(G.charstart > G.charmax - 12*6)
+					G.charstart = G.charmax - 12*6;
+				ui_draw_but(but);
+
+				for(bt= block->buttons.first; bt; bt= bt->next)
+				{
+					if(bt->type == NUM) {
+						ui_check_but(bt);
+						ui_draw_but(bt);
+					}
+				}
+				
+				but->flag |= UI_ACTIVE;
+				retval=UI_RETURN_OK;
+				break;
+			}
+		}
+		break;
+#endif
+				
 	case PADENTER:
 	case RETKEY:	// prevent treating this as mousemove. for example when you enter at popup 
 		if(block->flag & UI_BLOCK_LOOP) break;

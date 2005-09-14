@@ -408,6 +408,12 @@ enum {
 #define B_STYLETOSELU	2213
 #define B_STYLETOSELI	2214
 
+#define B_SETCHAR               2215
+#define B_SETUPCHAR             2216
+#define B_SETDOWNCHAR   	2217
+#define B_SETCAT                2218
+#define B_SETUNITEXT    	2219
+
 /* *********************** */
 #define B_ARMBUTS		2400
 

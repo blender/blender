@@ -1,3 +1,4 @@
+
 /**
  * $Id$
  *
@@ -58,6 +59,8 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_vec_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_packedFile_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_utildefines.h"
@@ -78,6 +81,8 @@
 #include "BIF_language.h"
 
 #include "BSE_view.h"
+
+#include "FTF_Api.h"
 
 #include "mydevice.h"
 #include "interface.h"
@@ -1698,6 +1703,129 @@ static void ui_draw_but_HSVCUBE(uiBut *but)
 	fdrawbox((but->x1), (but->y1), (but->x2), (but->y2));
 }
 
+#ifdef INTERNATIONAL
+static void ui_draw_but_CHARTAB(uiBut *but)
+{
+	/* Some local variables */
+	float sx, sy, ex, ey;
+	float width, height;
+	float butw, buth;
+	int x, y;
+	unsigned long cs;
+	wchar_t wstr[2];
+	unsigned char ustr[16];
+	PackedFile *pf;
+
+	/* Calculate the size of the button */
+	width = abs(but->x2 - but->x1);
+	height = abs(but->y2 - but->y1);
+	
+	butw = floor(width / 12);
+	buth = floor(height / 6);
+	
+	/* Initialize variables */
+	sx = but->x1;
+	ex = but->x1 + butw;
+	sy = but->y1 + height - buth;
+	ey = but->y1 + height;
+
+	cs = G.charstart;
+
+	/* Set the font */
+	if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
+	{
+		char tmpStr[256];
+
+		// Is the font file packed, if so then use the packed file
+		if(G.selfont->packedfile)
+		{
+			pf = G.selfont->packedfile;		
+			FTF_SetFont(pf->data, pf->size, 14.0);
+		}
+		else
+		{
+			int err;
+
+			strcpy(tmpStr, G.selfont->name);
+			BLI_convertstringcode(tmpStr, G.sce, 0);
+			err = FTF_SetFont(tmpStr, 0, 14.0);
+		}
+	}
+
+	/* Start drawing the button itself */
+	glShadeModel(GL_SMOOTH);
+
+	glColor3ub(200,  200,  200);
+	glRectf((but->x1), (but->y1), (but->x2), (but->y2));
+
+	glColor3ub(0,  0,  0);
+	for(y = 0; y < 6; y++)
+	{
+		// Do not draw more than the category allows
+		if(cs > G.charmax) break;
+
+		for(x = 0; x < 12; x++)
+		{
+			// Do not draw more than the category allows
+			if(cs > G.charmax) break;
+
+			// Draw one grid cell
+			glBegin(GL_LINE_LOOP);
+				glVertex2f(sx, sy);
+				glVertex2f(ex, sy);
+				glVertex2f(ex, ey);
+				glVertex2f(sx, ey);				
+			glEnd();	
+
+			// Draw character inside the cell
+			memset(wstr, 0, sizeof(wchar_t)*2);
+			memset(ustr, 0, 16);
+			
+			wstr[0] = cs;
+			wcs2utf8s(ustr, wstr);
+
+			if(G.selfont && strcmp(G.selfont->name, "<builtin>"))
+			{
+				float wid;
+				float llx, lly, llz, urx, ury, urz;
+				float dx, dy;
+				float px, py;
+	
+				// Calculate the position
+				wid = FTF_GetStringWidth(ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				FTF_GetBoundingBox(ustr, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+				dx = urx-llx;
+				dy = ury-lly;
+
+				// This isn't fully functional since the but->aspect isn't working like I suspected
+				px = sx + ((butw/but->aspect)-dx)/2;
+				py = sy + ((buth/but->aspect)-dy)/2;
+
+				// Set the position and draw the character
+				ui_rasterpos_safe(px, py, but->aspect);
+				FTF_DrawString(ustr, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+			}
+			else
+			{
+				ui_rasterpos_safe(sx + butw/2, sy + buth/2, but->aspect);
+				BIF_DrawString(but->font, ustr, 0);
+			}
+	
+			// Calculate the next position and character
+			sx += butw; ex +=butw;
+			cs++;
+		}
+		/* Add the y position and reset x position */
+		sy -= buth; 
+		ey -= buth;
+		sx = but->x1;
+		ex = but->x1 + butw;
+	}	
+	glShadeModel(GL_FLAT);
+}
+
+#endif // INTERNATIONAL
+
 static void ui_draw_roundbox(uiBut *but)
 {
 	BIF_ThemeColorShade(but->themecol, but->a2);
@@ -1754,7 +1882,6 @@ void ui_set_embossfunc(uiBut *but, int drawtype)
 	// note: if you want aligning, adapt the call uiBlockEndAlign in interface.c 
 }
 
-
 void ui_draw_but(uiBut *but)
 {
 	double value;
@@ -1795,6 +1922,13 @@ void ui_draw_but(uiBut *but)
 	case HSVCUBE:
 		ui_draw_but_HSVCUBE(but);  // box for colorpicker, three types
 		break;
+
+#ifdef INTERNATIONAL
+	case CHARTAB:
+		value= ui_get_but_val(but);
+		ui_draw_but_CHARTAB(but);
+		break;
+#endif
 
 	case LINK:
 	case INLINK:

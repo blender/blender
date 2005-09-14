@@ -848,6 +848,13 @@ static void write_mballs(WriteData *wd, ListBase *idbase)
 	}
 }
 
+int amount_of_chars(char *str)
+{
+	// Since the data is saved as UTF-8 to the cu->str
+	// The cu->len is not same as the strlen(cu->str)
+	return strlen(str);
+}
+
 static void write_curves(WriteData *wd, ListBase *idbase)
 {
 	Curve *cu;
@@ -863,7 +870,7 @@ static void write_curves(WriteData *wd, ListBase *idbase)
 			writedata(wd, DATA, sizeof(void *)*cu->totcol, cu->mat);
 
 			if(cu->vfont) {
-				writedata(wd, DATA, cu->len+1, cu->str);
+				writedata(wd, DATA, amount_of_chars(cu->str)+1, cu->str);
 				writestruct(wd, DATA, "CharInfo", cu->len, cu->strinfo);
 				writestruct(wd, DATA, "TextBox", cu->totbox, cu->tb);				
 			}
