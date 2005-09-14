@@ -34,6 +34,8 @@
 #ifndef BKE_VFONT_H
 #define BKE_VFONT_H
 
+#include <wchar.h>
+
 struct VFont;
 struct Object;
 struct Curve;
