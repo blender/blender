@@ -404,6 +404,7 @@ PyObject *BezTriple_CreatePyObject( BezTriple * bzt )
 					      "couldn't create BPy_BezTriple object" );
 
 	pybeztriple->beztriple = bzt;
+	pybeztriple->own_memory = 0;
 
 	return ( PyObject * ) pybeztriple;
 }
@@ -496,9 +497,7 @@ PyObject *newBezTriple( PyObject *args)
 	pybez->beztriple = MEM_callocN( sizeof( BezTriple ), "new bpytriple");
 	/* check malloc */
 
-	pybez->own_memory = 0;  /* we own it. must free later */
-	/* set to 0 for creating to work. how should freeing be done? */
-
+	pybez->own_memory = 1;  /* we own it. must free later */
 	
 	switch( length ) {
 	case 9: {
