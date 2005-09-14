@@ -413,7 +413,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 		lcode = charcode;
 	}
 	
-	err = FT_Set_Charmap( face, FT_ENCODING_UNICODE );
+	err = FT_Set_Charmap( face, (FT_CharMap) FT_ENCODING_UNICODE );
 
 	return vfd;	
 }

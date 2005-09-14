@@ -232,7 +232,7 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 			if (k == -1) {
 				break;
 			}
-			if (abs(e[k]) <= eps*(abs(s[k]) + abs(s[k+1]))) {
+			if (TNT::abs(e[k]) <= eps*(TNT::abs(s[k]) + TNT::abs(s[k+1]))) {
 				e[k] = 0.0;
 				break;
 			}
@@ -245,9 +245,9 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 				if (ks == k) {
 					break;
 				}
-				typename MaTRiX::value_type t = (ks != p ? abs(e[ks]) : 0.) + 
-							  (ks != k+1 ? abs(e[ks-1]) : 0.);
-				if (abs(s[ks]) <= eps*t)  {
+				typename MaTRiX::value_type t = (ks != p ? TNT::abs(e[ks]) : 0.) + 
+							  (ks != k+1 ? TNT::abs(e[ks-1]) : 0.);
+				if (TNT::abs(s[ks]) <= eps*t)  {
 					s[ks] = 0.0;
 					break;
 				}
@@ -320,8 +320,8 @@ void SVD(MaTRiX &A, MaTRiX &U, VecToR &s, MaTRiX &V, VecToR &work1, VecToR &work
 				// Calculate the shift.
 
 				typename MaTRiX::value_type scale = max(max(max(max(
-						  abs(s[p-1]),abs(s[p-2])),abs(e[p-2])), 
-						  abs(s[k])),abs(e[k]));
+						  TNT::abs(s[p-1]),TNT::abs(s[p-2])),TNT::abs(e[p-2])), 
+						  TNT::abs(s[k])),TNT::abs(e[k]));
 				typename MaTRiX::value_type sp = s[p-1]/scale;
 				typename MaTRiX::value_type spm1 = s[p-2]/scale;
 				typename MaTRiX::value_type epm1 = e[p-2]/scale;

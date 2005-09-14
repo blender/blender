@@ -95,6 +95,7 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	KX_PYMETHOD_DOC(KX_MouseFocusSensor,GetRayDirection);
 
 	/* --------------------------------------------------------------------- */
+	SCA_IObject*	m_hitObject;
 
  private:
 	/**
@@ -137,8 +138,6 @@ class KX_MouseFocusSensor : public SCA_MouseSensor
 	 * (in game world coordinates) the face normal of the vertex where
 	 * the object was hit.  */
 	MT_Vector3		 m_hitNormal;
-
-	SCA_IObject*	m_hitObject;
 
 
 	/**
