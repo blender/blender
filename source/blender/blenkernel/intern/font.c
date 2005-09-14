@@ -86,7 +86,7 @@ void
 chtoutf8(unsigned long c, char *o)
 {
 	// Variables and initialization
-	memset(o, 0, 16);
+/*	memset(o, 0, 16);	*/
 
 	// Create the utf-8 string
 	if (c < 0x80)
