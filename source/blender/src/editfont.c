@@ -389,6 +389,9 @@ void txt_export_to_object(struct Text *text)
 
 	cu->str= MEM_mallocN(nchars+4, "str");
 	cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
+	cu->totbox= cu->actbox= 1;
+	cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+	cu->tb[0].w = cu->tb[0].h = 0.0;
 	
 	tmp= text->lines.first;
 	strcpy(cu->str, tmp->line);
@@ -468,6 +471,9 @@ void txt_export_to_objects(struct Text *text)
 	
 		cu->str= MEM_mallocN(nchars+4, "str");
 		cu->strinfo= MEM_callocN((nchars+4)*sizeof(CharInfo), "strinfo");
+		cu->totbox= cu->actbox= 1;
+		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+		cu->tb[0].w = cu->tb[0].h = 0.0;
 		
 		strcpy(cu->str, curline->line);
 		cu->len= strlen(curline->line);
