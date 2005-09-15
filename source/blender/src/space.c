@@ -3750,16 +3750,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	unsigned short event= evt->event;
 	short val= evt->val;
 	SpaceImage *sima= curarea->spacedata.first;
-	View2D *v2d= &sima->v2d;
-#ifdef NAN_TPT
-	IMG_BrushPtr brush;
-	IMG_CanvasPtr canvas;
-	int rowBytes;
-	short xy_prev[2], xy_curr[2];
-	float uv_prev[2], uv_curr[2];
-	extern VPaint Gvp;
-#endif /* NAN_TPT */
-	short paintmousebut;
+	short paintmousebut=0;
 	
 	if(val==0) return;
 

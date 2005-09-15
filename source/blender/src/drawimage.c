@@ -82,6 +82,7 @@
 #include "BIF_screen.h"
 #include "BIF_transform.h"
 
+#include "BSE_headerbuttons.h"
 #include "BSE_trans_types.h"
 #include "BSE_view.h"
 

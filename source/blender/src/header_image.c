@@ -728,7 +728,6 @@ static void do_image_imagemenu(void *arg, int event)
 			char  str[256];
 			Image *ima;
             ImBuf *ibuf;
-			char name[256];
 			BrushUIdata *data = NULL;
 			extern short UVTEXTTOOL_INDEX;
 			extern BrushUIdata UVTEXTTOOL_DATA[] ;

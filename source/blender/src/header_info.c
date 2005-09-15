@@ -1447,22 +1447,8 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 /************************** RENDER *****************************/
 
-/* copied from buttons.c. .. probably not such a good idea!? */
-static void run_playanim(char *file)
-{
-	extern char bprogname[];	/* usiblender.c */
-	char str[FILE_MAXDIR+FILE_MAXFILE];
-	int pos[2], size[2];
-
-	calc_renderwin_rectangle(G.winpos, pos, size);
-
-	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
-	system(str);
-}
-
 static void do_info_rendermenu(void *arg, int event)
 {
-	char file[FILE_MAXDIR+FILE_MAXFILE];
 
 	extern void playback_anim();
 

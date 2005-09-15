@@ -64,6 +64,7 @@
 
 #include "BKE_blender.h"
 #include "BKE_utildefines.h"
+#include "BKE_font.h"
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
