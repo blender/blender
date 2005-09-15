@@ -154,14 +154,14 @@ endif
 
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
-    export NAN_JPEG ?= /sw
-    export NAN_PNG ?= /sw
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
-    export NAN_FREETYPE ?= /sw
+    export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
