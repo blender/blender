@@ -55,6 +55,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
@@ -1235,7 +1236,7 @@ void build_particle_system(Object *ob)
 					do_ob_key(par);
 					if(par->type==OB_ARMATURE) {
 						do_all_actions(par);	// only does this object actions
-//						clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+						where_is_pose(par);
 					}
 					par= par->parent;
 				}
@@ -1318,7 +1319,7 @@ void build_particle_system(Object *ob)
 		
 		if(par->type==OB_ARMATURE) {
 			do_all_actions(par);	// only does this object actions
-//			clear_object_constraint_status(par);	// mysterious call, otherwise do_actions doesnt work???
+			where_is_pose(par);
 		}
 		par= par->parent;
 	}
