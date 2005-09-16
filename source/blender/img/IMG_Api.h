@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 
-extern IMG_BrushPtr	IMG_BrushCreate(unsigned int width, unsigned int height, float red, float green, float blue, float alpha);
+extern IMG_BrushPtr	IMG_BrushCreate(unsigned int width, unsigned int height, float *rgba);
 extern void			IMG_BrushDispose(IMG_BrushPtr brush);
 extern void			IMG_BrushSetInnerRaduisRatio(IMG_BrushPtr brush,float aspect);
 
@@ -55,10 +55,10 @@ extern void				IMG_CanvasDraw(IMG_CanvasPtr canvas, IMG_BrushPtr brush, unsigned
 extern void				IMG_CanvasDrawUV(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float u, float v);
 extern void				IMG_CanvasDrawLine(IMG_CanvasPtr canvas, IMG_BrushPtr brush, unsigned int xStart, unsigned int yStart, unsigned int xEns, unsigned int yEnd);
 extern void				IMG_CanvasDrawLineUV(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd);
-extern void				IMG_CanvasDrawLineUVEX(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd,char mode);
-extern void             IMG_CanvasSoftenAt(IMG_CanvasPtr canvas,float u, float v, unsigned int size,float alpha, float aspect,char mode);
-extern void	            IMG_CanvasFill(IMG_CanvasPtr canvas, float red, float green, float blue, float alpha);
-extern void             IMG_CanvasSmear(IMG_CanvasPtr canvas,float uStart, float vStart, float uEnd, float vEnd, unsigned int size, float alpha, float aspect,char mode);
+extern void				IMG_CanvasDrawLineUVEX(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd, int torus);
+extern void             IMG_CanvasSoftenAt(IMG_CanvasPtr canvas,float u, float v, unsigned int size,float alpha, float aspect, int torus);
+extern void	            IMG_CanvasFill(IMG_CanvasPtr canvas, float *rgba);
+extern void             IMG_CanvasSmear(IMG_CanvasPtr canvas,float uStart, float vStart, float uEnd, float vEnd, unsigned int size, float alpha, float aspect, int torus);
 extern void             IMG_CanvasCloneAt(IMG_CanvasPtr canvas,IMG_CanvasPtr other,float u,float v,float cu,float cv,int size,float alpha,float aspect);
 
 #ifdef __cplusplus

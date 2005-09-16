@@ -48,17 +48,17 @@ IMG_CanvasRGBA32::IMG_CanvasRGBA32(void* image, TUns32 width, TUns32 height, TUn
 
 void IMG_CanvasRGBA32::blendPixmap(
 	TUns32 xStart, TUns32 yStart, TUns32 xEnd, TUns32 yEnd,
-	const IMG_PixmapRGBA32& pixmap,char mode)
+	const IMG_PixmapRGBA32& pixmap, bool torus)
 {
 	// Determine visibility of the line
 	IMG_Line l (xStart, yStart, xEnd, yEnd);	// Line used for blending
 	IMG_Rect bnds (0, 0, m_width, m_height);	// Bounds of this pixmap
 	TVisibility v = bnds.getVisibility(l);
-	if (mode == 'c'){
-	if (v == kNotVisible) return;
-	if (v == kPartiallyVisible) {
-		bnds.clip(l);
-	}
+	if (!torus) {
+		if (v == kNotVisible)
+			return;
+		if (v == kPartiallyVisible)
+			bnds.clip(l);
 	}
 
 	float numSteps = (((float)l.getLength()) / ((float)pixmap.getWidth() / 4));
@@ -68,12 +68,10 @@ void IMG_CanvasRGBA32::blendPixmap(
 	TInt32 x, y;
     for (TUns32 s = 0; s < numSteps; s++) {
 		l.getPoint(step, x, y);
-		if (mode == 'c') {
-		IMG_PixmapRGBA32::blendPixmap((TUns32)x, (TUns32)y, pixmap);
-		}
-		else {
-			if (mode == 't') IMG_PixmapRGBA32::blendPixmapTorus((TUns32)x, (TUns32)y, pixmap);
-		}
+		if (torus)
+			IMG_PixmapRGBA32::blendPixmapTorus((TUns32)x, (TUns32)y, pixmap);
+		else
+			IMG_PixmapRGBA32::blendPixmap((TUns32)x, (TUns32)y, pixmap);
 		step += stepSize;
 	}
 }
@@ -81,16 +79,16 @@ void IMG_CanvasRGBA32::blendPixmap(
 
 void IMG_CanvasRGBA32::blendPixmap(
 	float uStart, float vStart, float uEnd, float vEnd,
-	const IMG_PixmapRGBA32& pixmap, char mode)
+	const IMG_PixmapRGBA32& pixmap, bool torus)
 {
 	TUns32 xStart, yStart, xEnd, yEnd;
 	getPixelAddress(uStart, vStart, xStart, yStart);
 	getPixelAddress(uEnd, vEnd, xEnd, yEnd);
-	blendPixmap(xStart, yStart, xEnd, yEnd, pixmap,mode);
+	blendPixmap(xStart, yStart, xEnd, yEnd, pixmap, torus);
 }
 
 
-void IMG_CanvasRGBA32::SoftenAt(float u, float v, TUns32 size, float alpha, float aspect,char mode)
+void IMG_CanvasRGBA32::SoftenAt(float u, float v, TUns32 size, float alpha, float aspect, bool torus)
 {
 	IMG_BrushRGBA32* brush = 0;
 	int flag=0;
@@ -116,7 +114,7 @@ void IMG_CanvasRGBA32::SoftenAt(float u, float v, TUns32 size, float alpha, floa
 	getPixelAddress(u, v, x, y);
 	xx = x - size/2;
 	yy = y - size/2;
-    if(mode == 't') flag = 1;
+    if(torus) flag = 1;
 
 	/* now modify brush */
 	for (int i= 0 ; i<(int)size;i++){
@@ -125,11 +123,11 @@ void IMG_CanvasRGBA32::SoftenAt(float u, float v, TUns32 size, float alpha, floa
 			float sR,sG,sB,sA;
 			float cR,cG,cB=0.0;
 			
-if(mode == 't')
-			IMG_PixmapRGBA32::getRGBAatTorus(xx+i,yy+j ,&cR,&cG,&cB,0);
+			if (torus)
+				IMG_PixmapRGBA32::getRGBAatTorus(xx+i,yy+j ,&cR,&cG,&cB,0);
+			else
+  				IMG_PixmapRGBA32::getRGBAat(xx+i,yy+j ,&cR,&cG,&cB,0);
 
-else
-  		IMG_PixmapRGBA32::getRGBAat(xx+i,yy+j ,&cR,&cG,&cB,0);
 			int ccount = 1;
 			/*
 			cR += 7.0*cR;
@@ -160,10 +158,11 @@ add_if_in(xx+i-1,yy+j-1,cR,cG,cB,ccount,flag);
 	}
 
 	/* apply */
-if(mode == 't')
-	IMG_PixmapRGBA32::blendPixmapTorus(x, y, *brush);
-else
-	IMG_PixmapRGBA32::blendPixmap(x, y, *brush);
+	if (torus)
+		IMG_PixmapRGBA32::blendPixmapTorus(x, y, *brush);
+	else
+		IMG_PixmapRGBA32::blendPixmap(x, y, *brush);
+
 	/* done  clean up */
    	if (brush) {
 		delete ((IMG_BrushRGBA32*)brush);
@@ -261,24 +260,25 @@ IMG_BrushRGBA32* IMG_CanvasRGBA32::LiftBrush(float u, float v, TUns32 size, floa
 	return(brush);
 }
 
-void IMG_CanvasRGBA32::Smear(float uStart, float vStart, float uEnd, float vEnd, TUns32 size, float alpha, float aspect,char mode)
+void IMG_CanvasRGBA32::Smear(float uStart, float vStart, float uEnd, float vEnd, TUns32 size, float alpha, float aspect, bool torus)
 {
 	IMG_BrushRGBA32* brush = NULL;
 	float du,dv;
 	du = uEnd - uStart;
 	dv = vEnd - vStart;
+
 	try {
-		brush = LiftBrush(uStart-du,vStart-dv,size,alpha,aspect,1);
+		brush = LiftBrush(uStart-du, vStart-dv, size, alpha, aspect, 1);
 	}
 	catch (...) {
 		/* no brush , no fun ! */
 		return;
 	}
-	if (brush){
-	blendPixmap(uStart,vStart,uEnd,vEnd,*brush,mode);
-	delete(brush);
-	}
 
+	if (brush) {
+		blendPixmap(uStart, vStart, uEnd, vEnd, *brush, torus);
+		delete(brush);
+	}
 }
 
 void IMG_CanvasRGBA32::CloneAt(IMG_CanvasRGBA32* other,float u,float v,float cu,float cv,TUns32 size,float alpha,float aspect)

@@ -47,6 +47,7 @@ void free_image(struct Image *me);
 void free_image_buffers(struct Image *ima);
 struct Image *add_image(char *name);
 void free_unused_animimages(void);
+struct Image *new_image(int width, int height, char *name);
 
 void makepicstring(char *string, int frame);
 void addImageExtension(char *string);

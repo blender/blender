@@ -171,8 +171,6 @@
 #include "nla.h"	/* __NLA : To be removed later */
 #include "butspace.h"  // test_idbutton
 
-#include "TPT_DependKludge.h"
-
 #include "BIF_poseobject.h"
 
 #include "SYS_System.h"

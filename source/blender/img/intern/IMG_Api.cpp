@@ -37,19 +37,18 @@
 #include <config.h>
 #endif
 
-IMG_BrushPtr IMG_BrushCreate(unsigned int w, unsigned int h, float r, float g, float b, float a)
+IMG_BrushPtr IMG_BrushCreate(unsigned int w, unsigned int h, float *rgba)
 {
 	IMG_BrushPtr brush = 0;
 	try {
-		IMG_ColorRGB c (r, g, b);
-		brush = new IMG_BrushRGBA32 (w, h, c, a);
+		IMG_ColorRGB c (rgba[0], rgba[1], rgba[2]);
+		brush = new IMG_BrushRGBA32 (w, h, c, rgba[3]);
 	}
 	catch (...) {
 		brush = 0;
 	}
 	return brush;
 }
-
 
 void IMG_BrushDispose(IMG_BrushPtr brush)
 {
@@ -75,8 +74,6 @@ void IMG_BrushSetInnerRaduisRatio(IMG_BrushPtr brush,float aspect)
 	}
 }
 
-
-
 IMG_CanvasPtr IMG_CanvasCreate(unsigned int w, unsigned int h)
 {
 	IMG_CanvasPtr canvas = 0;
@@ -88,7 +85,6 @@ IMG_CanvasPtr IMG_CanvasCreate(unsigned int w, unsigned int h)
 	}
 	return canvas;
 }
-
 
 IMG_CanvasPtr IMG_CanvasCreateFromPtr(void* imagePtr, unsigned int w, unsigned int h, size_t rowBytes)
 {
@@ -139,28 +135,28 @@ void IMG_CanvasDrawLineUV(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart
 	((IMG_CanvasRGBA32*)canvas)->blendPixmap(uStart, vStart, uEnd, vEnd, *((IMG_BrushRGBA32*)brush));
 }
 
-void IMG_CanvasDrawLineUVEX(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd,char mode)
+void IMG_CanvasDrawLineUVEX(IMG_CanvasPtr canvas, IMG_BrushPtr brush, float uStart, float vStart, float uEnd, float vEnd, int torus)
 {
 	if (!(canvas && brush)) return;
-	((IMG_CanvasRGBA32*)canvas)->blendPixmap(uStart, vStart, uEnd, vEnd, *((IMG_BrushRGBA32*)brush),mode);
+	((IMG_CanvasRGBA32*)canvas)->blendPixmap(uStart, vStart, uEnd, vEnd, *((IMG_BrushRGBA32*)brush), torus);
 }
 
-void IMG_CanvasSoftenAt(IMG_CanvasPtr canvas,float u, float v, unsigned int size,float alpha, float aspect,char mode)
+void IMG_CanvasSoftenAt(IMG_CanvasPtr canvas,float u, float v, unsigned int size,float alpha, float aspect, int torus)
 {
-	((IMG_CanvasRGBA32*)canvas)->SoftenAt(u,v,(TUns32)size,alpha,aspect,mode);
+	((IMG_CanvasRGBA32*)canvas)->SoftenAt(u, v, (TUns32)size, alpha, aspect, torus);
 }
 
-void IMG_CanvasFill(IMG_CanvasPtr canvas,float red, float green, float blue, float alpha)
+void IMG_CanvasFill(IMG_CanvasPtr canvas, float *rgba)
 {
-		IMG_ColorRGB c (red, green, blue);
+		IMG_ColorRGB c (rgba[0], rgba[1], rgba[2]);
 		IMG_Rect R (0, 0, ((IMG_CanvasRGBA32*)canvas)->getWidth(),
 			              ((IMG_CanvasRGBA32*)canvas)->getHeight());	// Bounds of this pixmap
-		((IMG_CanvasRGBA32*)canvas)->fillRect(R,c);
+		((IMG_CanvasRGBA32*)canvas)->fillRect(R, c);
 }
 
-void IMG_CanvasSmear(IMG_CanvasPtr canvas,float uStart, float vStart, float uEnd, float vEnd, unsigned int size, float alpha, float aspect,char mode)
+void IMG_CanvasSmear(IMG_CanvasPtr canvas,float uStart, float vStart, float uEnd, float vEnd, unsigned int size, float alpha, float aspect, int torus)
 {
-	((IMG_CanvasRGBA32*)canvas)->Smear(uStart,vStart,uEnd,vEnd,size,alpha,aspect,mode);
+	((IMG_CanvasRGBA32*)canvas)->Smear(uStart, vStart, uEnd, vEnd, size, alpha, aspect, torus);
 
 }
 

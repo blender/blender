@@ -148,6 +148,38 @@ Image *add_image(char *name)
 	return ima;
 }
 
+Image *new_image(int width, int height, char *name)
+{
+	Image *ima;
+			
+	ima = alloc_libblock(&G.main->image, ID_IM, name);
+
+	if (ima)
+	{
+		ImBuf *ibuf;
+		unsigned char *rect;
+		int x, y;
+
+		strcpy(ima->name, "Untitled");
+
+		ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
+		strcpy(ibuf->name, "Untitled");
+		ima->ibuf= ibuf;
+
+		rect= (unsigned char*)ibuf->rect;
+		for(y=0; y<ibuf->y; y++) {
+			for(x=0; x<ibuf->x; x++, rect+=4) {
+				rect[0]= rect[1]= rect[2]= 0;
+				rect[3]= 255;
+			}
+		}
+
+		ima->ok= 1;
+	}
+
+	return ima;
+}
+
 void tag_image_time(Image *ima)
 {
 	if (ima)

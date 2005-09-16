@@ -90,12 +90,8 @@
 #include "blendef.h"
 #include "butspace.h"
 
-#include "TPT_DependKludge.h"
-
-#ifdef NAN_TPT
 #include "../img/IMG_Api.h"
 #include "BSE_trans_types.h"
-#endif /* NAN_TPT */
 
 #include "BDR_unwrapper.h"
 
@@ -1200,7 +1196,6 @@ void set_faceselect()	/* toggle */
 }
 
 
-#ifdef NAN_TPT
 /**
  * Get the view ray through the screen point.
  * Uses the OpenGL settings of the active view port.
@@ -1487,7 +1482,7 @@ void face_draw()
 		error("The active object does not have a mesh obData"); return;
 	}
 
-	brush = IMG_BrushCreate(Gvp.size, Gvp.size, Gvp.r, Gvp.g, Gvp.b, Gvp.a);
+	brush = IMG_BrushCreate(Gvp.size, Gvp.size, &Gvp.r);
 	if (!brush) {
 		error("Can't create brush"); return;
 	}
@@ -1678,4 +1673,4 @@ void get_same_uv(void)
 
 	object_tface_flags_changed(OBACT, 0);
 }
-#endif /* NAN_TPT */
+

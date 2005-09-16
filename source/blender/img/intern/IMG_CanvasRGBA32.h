@@ -46,12 +46,12 @@
 
 class IMG_CanvasRGBA32 : public IMG_PixmapRGBA32 {
 public:
-	int add_if_in(int x, int y,float &R,float &G,float &B, int &count, short flags);
-	void Smear(float uStart, float vStart, float uEnd, float vEnd ,TUns32 size, float alpha, float aspect,char mode);
+	int add_if_in(int x, int y, float &R, float &G, float &B, int &count, short flags);
+	void Smear(float uStart, float vStart, float uEnd, float vEnd ,TUns32 size, float alpha, float aspect, bool torus=false);
 	IMG_BrushRGBA32* LiftBrush(float u, float v, TUns32 size, float alpha, float aspect, short flags );
 	IMG_BrushRGBA32* LiftBrush(TUns32 x, TUns32 y, TUns32 size, float alpha, float aspect, short flags);
-	void SoftenAt(float u,float v,TUns32 size,float alpha,float aspect,char mode);
-	void CloneAt(IMG_CanvasRGBA32* other,float u,float v,float cu,float cv,TUns32 size,float alpha,float aspect);
+	void SoftenAt(float u, float v, TUns32 size, float alpha, float aspect, bool torus=false);
+	void CloneAt(IMG_CanvasRGBA32* other, float u, float v, float cu, float cv, TUns32 size, float alpha, float aspect);
 	/**
 	 * Constructor.
 	 * @throw <IMG_MemPtr::Size>	when an invalid width and/or height is passed.
@@ -82,7 +82,7 @@ public:
 	 * @param	y		y-coordinate of the center location of the image.
 	 * @param	pixmap	the pixmap to blend
 	 */
-	virtual void blendPixmap(TUns32 xStart, TUns32 yStart, TUns32 xEnd, TUns32 yEnd, const IMG_PixmapRGBA32& pixmap,char mode = 'c');
+	virtual void blendPixmap(TUns32 xStart, TUns32 yStart, TUns32 xEnd, TUns32 yEnd, const IMG_PixmapRGBA32& pixmap, bool torus=false);
 
 	/**
 	 * Blends a pixmap into this pixmap over a line in (u,v) coordinates.
@@ -94,7 +94,7 @@ public:
 	 * @param	v		v-coordinate of the center location of the image.
 	 * @param	pixmap	the pixmap to blend
 	 */
-	virtual void blendPixmap(float uStart, float vStart, float uEnd, float vEnd, const IMG_PixmapRGBA32& pixmap,char mode = 'c');
+	virtual void blendPixmap(float uStart, float vStart, float uEnd, float vEnd, const IMG_PixmapRGBA32& pixmap, bool torus=false);
 };
 
 

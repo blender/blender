@@ -131,6 +131,7 @@
 #include "BDR_editface.h"
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
+#include "BDR_imagepaint.h"
 #include "BDR_unwrapper.h"
 
 #include "BLO_readfile.h" /* for BLO_blendhandle_close */
@@ -147,11 +148,8 @@
 
 #include "BKE_depsgraph.h"
 
-#include "TPT_DependKludge.h"
-#ifdef NAN_TPT
 #include "BSE_trans_types.h"
 #include "IMG_Api.h"
-#endif /* NAN_TPT */
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
 
@@ -673,6 +671,8 @@ void BIF_undo(void)
 			wpaint_undo();
 		else if(G.f & G_VERTEXPAINT)
 			vpaint_undo();
+		else if(G.f & G_TEXTUREPAINT); /* no texture paint undo yet */
+		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL));
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) BKE_undo_step(1);
@@ -3747,22 +3747,14 @@ void free_soundspace(SpaceSound *ssound)
 
 static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
-	unsigned short event= evt->event;
+	unsigned short event= evt->event, origevent= evt->event;
 	short val= evt->val;
 	SpaceImage *sima= curarea->spacedata.first;
-	short paintmousebut=0;
 	
 	if(val==0) return;
 
 	if(uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 	
-	/* swap mouse buttons based on user preference */
-	if (event == LEFTMOUSE) {
-		paintmousebut = L_MOUSE;
-	} else if (event == RIGHTMOUSE) {
-		paintmousebut = R_MOUSE;
-	}
-
 	if (U.flag & USER_LMOUSESELECT) {
 		if (event == LEFTMOUSE) {
 			event = RIGHTMOUSE;
@@ -3771,24 +3763,22 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-
 	if (sima->flag & SI_DRAWTOOL) {
 		switch(event) {
-		case CKEY: 
-			add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
-			scrarea_queue_winredraw(curarea);
-			break;
-		default:
-			UVTexturePaintMsg(spacedata,event,val,paintmousebut);           
+			case CKEY: 
+				add_blockhandler(curarea, IMAGE_HANDLER_PAINT, UI_PNL_UNSTOW);
+				scrarea_queue_winredraw(curarea);
+				break;
+			case LEFTMOUSE:
+				imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
+				break;
+			case RIGHTMOUSE:
+				imagepaint_pick(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
+				break;
 		}
-		
 	}
 	else {
 		/* Draw tool is inactive */
-// #ifdef BM_TEXTUREPAINT
-		texturepaintoff();
-// #endif /* else BM_TEXTUREPAINT*/
-
 		switch(event) {
 			case LEFTMOUSE:
 				if(G.qual & LR_SHIFTKEY) mouseco_to_curtile();

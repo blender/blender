@@ -215,11 +215,10 @@ typedef struct SpaceImage {
 	
 	struct Image *image;
 	float zoom;
-	short mode, pin;
+	short mode, menunr;
 	short imanr, curtile;
 	float xof, yof;
 	short flag, lock;
-	
 } SpaceImage;
 
 typedef struct SpaceNla{

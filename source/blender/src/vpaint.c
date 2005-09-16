@@ -918,7 +918,7 @@ void weight_paint(void)
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
 		Object *modob;
-		if(modob = modifiers_isDeformedByArmature(ob)) {
+		if((modob = modifiers_isDeformedByArmature(ob))) {
 			bPoseChannel *pchan;
 			for(pchan= modob->pose->chanbase.first; pchan; pchan= pchan->next)
 				if(pchan->bone->flag & SELECT)

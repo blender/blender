@@ -82,14 +82,10 @@
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
-#include "IMG_Api.h"
 #include "BSE_trans_types.h"
-
 
 #include "blendef.h"
 #include "mydevice.h"
-
-#include "TPT_DependKludge.h"
 
 static void load_space_image(char *str)	/* called from fileselect */
 {
@@ -722,51 +718,25 @@ static void do_image_imagemenu(void *arg, int event)
 		break;
 	case 7: /* New Image */
 		{
-// #ifdef BM_TEXTUREPAINT
-			static int x=256,y=256;
-			short depth;
-			char  str[256];
-			Image *ima;
-            ImBuf *ibuf;
-			BrushUIdata *data = NULL;
-			extern short UVTEXTTOOL_INDEX;
-			extern BrushUIdata UVTEXTTOOL_DATA[] ;
-			IMG_CanvasPtr canvas;
-			int rowBytes;
-			data = &UVTEXTTOOL_DATA[UVTEXTTOOL_INDEX];
-			strcpy(str, "MEMORY");
-			/* i must get used to this may to create a modal dialog  BM :) */
-			add_numbut(0, TEX, "Name IM:",0 , 255, str, NULL);
-			add_numbut(1, NUM|INT, "Width:", 1, 5000, &x, NULL);
-			add_numbut(2, NUM|INT, "Height:", 1, 5000, &y, NULL);
+			static int width= 256, height= 256;
+			char name[256];
+
+			strcpy(name, "Image");
+
+			add_numbut(0, TEX, "Name:", 0, 255, name, NULL);
+			add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
+			add_numbut(2, NUM|INT, "Height:", 1, 5000, &height, NULL);
 			if (!do_clever_numbuts("New Image", 3, REDRAW))
 				return;
-			
-			
-			ima = alloc_libblock(&G.main->image, ID_IM, str);
-			if (ima)
-			{
-				depth= 24;				
-				ibuf = IMB_allocImBuf(x, y, depth, IB_rect, 0);
-				ima->ibuf = ibuf;
-				strcpy(ibuf->name,"UNTITLED");
-				strcpy(ima->name, "UNTITLED");
-				G.sima->image = ima;
-				
-				rowBytes = G.sima->image->ibuf->skipx ? G.sima->image->ibuf->skipx : G.sima->image->ibuf->x * 4;
-				canvas = IMG_CanvasCreateFromPtr(G.sima->image->ibuf->rect, G.sima->image->ibuf->x, G.sima->image->ibuf->y, rowBytes);
-				IMG_CanvasFill(canvas,data->r,data->g,data->b,0.0);
-				IMG_CanvasDispose(canvas);
-				ima->ok= 1;
-				image_changed(G.sima, 0);
-				
-			}
+
+			G.sima->image= new_image(width, height, name);
+			image_changed(G.sima, 0);
+
 			allqueue(REDRAWIMAGE, 0);
 			allqueue(REDRAWVIEW3D, 0);
-// #endif
+
 			break;
 		}
-
 	}
 }
 
@@ -1161,36 +1131,12 @@ void image_buttons(void)
 		xco+= xmax;
 	}
 	
-	
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	// xco+=XIC;
-
-	/*xco = 8;
-	
-	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-*/
-	// xco+= XIC+22;
-	
-	/* FULL WINDOW */
-	/* if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-	*/
-	
-	/* HOME*/
-	/*	uiDefIconBut(block, BUT, B_SIMAGEHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)"); 
-	
-	
-	uiDefIconButBitS(block, TOG, SI_BE_SQUARE, B_BE_SQUARE, ICON_KEEPRECT,	xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles constraining UV polygons to squares while editing");
-	uiDefIconButBitS(block, ICONTOG, SI_CLIP_UV, B_CLIP_UV, ICON_CLIPUV_DEHLT,xco+=XIC,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Toggles clipping UV with image size");
-	*/
-    
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, (ID *)G.sima->image, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
-	
 	if (G.sima->image) {
-	
 		xco+= 8;
 	
 		if (G.sima->image->packedfile) {
@@ -1200,52 +1146,12 @@ void image_buttons(void)
 		
 		xco+= XIC;
 	}
-	
-	
-	/*
-	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT, B_SIMAGELOAD, "Load",		xco, 0, 2*XIC, YIC, 0, 0, 0, 0, 0, "Loads image - file select");
-	xco+= 2*XIC;
-	
-	if (G.sima->image) {
-		uiBlockSetCol(block, TH_AUTO);
-		uiDefBut(block, BUT, B_SIMAGEREPLACE, "Replace",xco,0,(short)(3*XIC),YIC, 0, 0, 0, 0, 0, "Replaces current image - file select");
-		xco+= 3.5*XIC;
-		uiDefIconButBitS(block, TOG, 16, 0, ICON_ENVMAP, xco,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "Uses this image as a reflection map (Ignores UV Coordinates)");
-
-		uiDefIconButBitS(block, TOG, 1, B_SIMAGEDRAW1, ICON_GRID, xco+=XIC,0,XIC,YIC, &G.sima->image->flag, 0, 0, 0, 0, "");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
-	
-		uiDefButBitS(block, TOG, IMA_TWINANIM, B_TWINANIM, "Anim", xco,0,(2*XIC),YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of animated texture");
-		xco+= XIC;
-		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twsta, 0.0, 128.0, 0, 0, "Displays the start frame of an animated texture. Click to change.");
-		uiDefButS(block, NUM, B_TWINANIM, "",	xco+=XIC,0,XIC,YIC, &G.sima->image->twend, 0.0, 128.0, 0, 0, "Displays the end frame of an animated texture. Click to change.");
-//		uiDefButBitS(block, TOG, IMA_COLCYCLE, 0, "Cycle", xco+=XIC,0,2*XIC,YIC, &G.sima->image->tpageflag, 0, 0, 0, 0, "");
-		
-		uiDefButS(block, NUM, 0, "Speed", xco,0,4*XIC,YIC, &G.sima->image->animspeed, 1.0, 100.0, 0, 0, "Displays Speed of the animation in frames per second. Click to change.");
-		xco+= 4.5*XIC;
-
-		// texture paint button used to be here
-		
-		xco+= XIC;
-		if (G.sima->image && G.sima->image->ibuf && (G.sima->image->ibuf->userflags & IB_BITMAPDIRTY)) {
-			uiDefBut(block, BUT, B_SIMAGESAVE, "Save",		xco,0,2*XIC,YIC, 0, 0, 0, 0, 0, "Saves image");
-			xco += 2*XIC;
-		}
-	}
-*/
 
 	xco+= 8;
 
 	if (G.sima->image) {
-
-#ifdef NAN_TPT
-		
 		uiDefIconButBitS(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		xco+= XIC+8;
-#endif /* NAN_TPT */
-
 	}
 
 	/* draw LOCK */

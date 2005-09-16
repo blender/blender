@@ -113,8 +113,6 @@
 
 #include "BIF_poseobject.h"
 
-#include "TPT_DependKludge.h"
-
 /* View3d->modeselect 
  * This is a bit of a dodgy hack to enable a 'mode' menu with icons+labels
  * rather than those buttons.
