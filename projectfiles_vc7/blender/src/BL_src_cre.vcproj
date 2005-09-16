@@ -131,6 +131,12 @@
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\..\source\blender\include\keyed_functions.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\license_key.h">
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
