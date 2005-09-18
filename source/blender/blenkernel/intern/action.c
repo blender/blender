@@ -64,6 +64,7 @@
 #include "BLI_blenlib.h"
 
 #include "nla.h"
+#include "render.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 
@@ -511,6 +512,34 @@ static void rest_pose(bPose *pose, int clearflag)
 	}
 }
 
+/* ************** time ****************** */
+
+/* this now only used for repeating cycles, to enable fields and blur. */
+/* the whole time control in blender needs serious thinking... */
+static float nla_time(float cfra, float unit)
+{
+	extern float bluroffs;	// bad construct, borrowed from object.c for now
+	
+	/* 2nd field */
+	if(R.flag & R_SEC_FIELD) {
+		if(R.r.mode & R_FIELDSTILL); else cfra+= 0.5f*unit;
+	}
+	
+	/* motion blur */
+	cfra+= unit*bluroffs;
+		
+	/* global time */
+	cfra*= G.scene->r.framelen;	
+
+
+	/* decide later... */
+//	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
+
+	return cfra;
+}
+
+/* ************** do the action ************ */
+
 void do_all_actions(Object *ob)
 {
 	bPose *tpose=NULL;
@@ -597,7 +626,7 @@ void do_all_actions(Object *ob)
 						striptime = (float)fmod (striptime, 1.0);
 						
 						frametime = (striptime * actlength) + strip->actstart;
-						extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
+						extract_pose_from_action (tpose, strip->act, nla_time(frametime, (float)strip->repeat));
 						doit=1;
 					}
 					/* Handle extend */
