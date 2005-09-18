@@ -1013,6 +1013,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		for (i=0; i<=selend; i++, ct++) {
 			if (i>=selstart) {
 				selboxes[i-selstart].x = ct->xof*cu->fsize;
+				selboxes[i-selstart].y = ct->yof*cu->fsize;				
 			}
 		}
 	}
