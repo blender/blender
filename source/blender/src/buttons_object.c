@@ -1,5 +1,5 @@
 /**
- * $Id: 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -50,6 +50,7 @@
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_softbody.h"
+#include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -97,6 +98,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -126,6 +128,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
+#include "LBM_fluidsim.h"
 
 #include "BIF_editconstraint.h"
 #include "BSE_editipo.h"
@@ -1182,6 +1185,57 @@ static void softbody_bake(Object *ob)
 }
 
 
+// NT store processed path & file prefix for fluidsim bake directory
+void fluidsimFilesel(char *selection)
+{
+	Object *ob = OBACT;
+	char srcDir[FILE_MAXDIR], srcFile[FILE_MAXFILE];
+	char prefix[FILE_MAXFILE];
+	char *srch, *srchSub, *srchExt, *lastFound;
+	int isElbeemSurf = 0;
+
+	strcpy(srcDir, selection);
+	BLI_splitdirstring(srcDir, srcFile);
+
+	// make prefix
+	strcpy(prefix, srcFile);
+	// check if this is a previously generated surface mesh file
+	srch = strstr(prefix, "_surface_");
+	if(srch) {
+		srchSub = strstr(prefix,"_preview_");
+		if(!srchSub) srchSub = strstr(prefix,"_final_");
+		srchExt = strstr(prefix,".gz.bobj");
+		if(!srchExt) srchExt = strstr(prefix,".bobj");
+		if(srchSub && srchExt) {
+			*srch = '\0';
+			isElbeemSurf = 1;
+		}
+	}
+	if(!isElbeemSurf) {
+		// try to remove suffix
+		lastFound = NULL;
+		srch = strchr(prefix, '.'); // search last . from extension
+		while(srch) {
+			lastFound = srch;
+			if(srch) {
+				srch++;
+				srch = strchr(srch, '.');
+			}
+		}
+		if(lastFound) {
+			*lastFound = '\0';
+		} 
+	}
+
+	// TODO check srcDir for file path from sce?
+	
+	
+		strcpy(ob->fluidsimSettings->surfdataDir, srcDir);
+		strcpy(ob->fluidsimSettings->surfdataPrefix, prefix);
+		//fprintf(stderr,"fluidsimFilesel: Using surfdata path '%s', prefix '%s' \n", ob->fluidsimSettings->surfdataDir,ob->fluidsimSettings->surfdataPrefix); // DEBUG
+	
+}
+
 void do_object_panels(unsigned short event)
 {
 	Object *ob;
@@ -1260,6 +1314,22 @@ void do_object_panels(unsigned short event)
 		if(ob && ob->soft) sbObjectToSoftbody(ob);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
+		break;
+
+	case B_FLUIDSIM_BAKE:
+		ob= OBACT;
+		/* write config files (currently no simulation) */
+		fluidsimBake(ob);
+		break;
+	case B_FLUIDSIM_SELDIR: {
+			char str[FILE_MAXDIR+FILE_MAXFILE];
+			ScrArea *sa = closest_bigger_area();
+			strcpy(str,"//");
+			ob= OBACT;
+			/* chosse dir for surface files */
+			areawinset(sa->win);
+			activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
+		}
 		break;
 		
 	default:
@@ -1800,6 +1870,119 @@ static void object_panel_effects(Object *ob)
 	}
 }
 
+/* NT - Panel for fluidsim settings */
+static void object_panel_fluidsim(Object *ob)
+{
+	uiBlock *block;
+	int yline = 160;
+	const int lineHeight = 20;
+	const int objHeight = 20;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Constraints", "Object");
+	if(uiNewPanel(curarea, block, "Fluidsim", "Object", 640, 0, 318, 204)==0) return;
+
+	uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
+			&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
+
+	if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
+		FluidsimSettings *fss= ob->fluidsimSettings;
+		
+		if(fss==NULL) {
+			fss = ob->fluidsimSettings = fluidsimSettingsNew(ob); // sbNew();
+		}
+
+		if(ob->type==OB_MESH) {
+
+			uiBlockBeginAlign(block);
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,   0.0, 0.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,    0.0, 0.0, "Object represents a volume of fluid in the simulation.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE, 0.0, 0.0, "Object is a fixed obstacle.");
+			yline -= lineHeight;
+			yline -= 5;
+
+			/* display specific settings for each type */
+			if(fss->type == OB_FLUIDSIM_DOMAIN) {
+				const int maxRes = 200;
+
+				uiDefButS(block, NUM, B_DIFF, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
+				uiDefButS(block, NUM, B_DIFF, "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+				yline -= lineHeight;
+				uiDefButF(block, NUM, B_DIFF, "Real-size:",   0, yline,150,objHeight, &fss->realsize, 0.0, 1.0, 10, 0, "Size of the simulation domain in meters.");
+				yline -= lineHeight;
+
+				uiDefButF(block, NUM, B_DIFF, "GravX:",   0, yline, 100,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction");
+				uiDefButF(block, NUM, B_DIFF, "GravY:", 100, yline, 100,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
+				uiDefButF(block, NUM, B_DIFF, "GravZ:", 200, yline, 100,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
+				yline -= lineHeight;
+				uiDefButF(block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame.");
+				uiDefButF(block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame.");
+				yline -= lineHeight;
+
+				/* "advanced" settings */
+				yline -= 5;
+
+				/* could also be char? */
+				uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
+						0,yline,100,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
+				if(fss->viscosityMode==1) {
+					uiDefButF(block, NUM, B_DIFF, "Value:", 100, yline, 100,objHeight, &fss->viscosityValue,       0.0, 1.0, 10, 0, "Viscosity setting, value that is multiplied by 10 to the power of (exponent*-1).");
+					uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 200, yline, 100,objHeight, &fss->viscosityExponent, 0, 10, 10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
+				} else {
+					// display preset values
+					uiDefBut(block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode], 100,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+				}
+				yline -= lineHeight;
+
+				uiDefBut(block, LABEL,   0, "Gui:",		 0,yline,50,objHeight, NULL, 0.0, 0, 0, 0, "");
+				uiDefButS(block, MENU, REDRAWVIEW3D, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+						 50,yline,100,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
+				uiDefBut(block, LABEL,   0, "Rend:", 150,yline,50,objHeight, NULL, 0.0, 0, 0, 0, "");
+				uiDefButS(block, MENU, REDRAWVIEW3D, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+						200,yline,100,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
+				yline -= lineHeight;
+
+				uiDefBut(block, BUT, B_FLUIDSIM_SELDIR, "Select Output Directory",	0, yline,100,objHeight, NULL, 0.0, 0.0, 10, 0, "Select Directory (and/or filenames) to store baked fluid simulation files in");
+				uiDefBut(block, LABEL, 0, fss->surfdataDir,    100,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, fss->surfdataPrefix, 200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
+				yline -= lineHeight;
+
+				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",	0, yline,300,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
+			}
+			else if(fss->type == OB_FLUIDSIM_FLUID) {
+				yline -= lineHeight + 5;
+				uiDefBut(block, LABEL, 0, "Initial velocity:",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+				yline -= lineHeight;
+				uiDefButF(block, NUM, B_DIFF, "X:",   0, yline, 100,objHeight, &fss->iniVelx, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in X direction");
+				uiDefButF(block, NUM, B_DIFF, "Y:", 100, yline, 100,objHeight, &fss->iniVely, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in Y direction");
+				uiDefButF(block, NUM, B_DIFF, "Z:", 200, yline, 100,objHeight, &fss->iniVelz, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in Z direction");
+				yline -= lineHeight;
+			}
+			else if(fss->type == OB_FLUIDSIM_OBSTACLE) {
+				yline -= lineHeight + 5;
+				uiDefBut(block, LABEL, 0, "No additional settings as of now...",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+				yline -= lineHeight;
+			}
+			else {
+				yline -= lineHeight + 5;
+				/* not yet set */
+				uiDefBut(block, LABEL, 0, "Select object type for simulation",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+				yline -= lineHeight;
+			}
+
+		} else {
+			yline -= lineHeight + 5;
+			uiDefBut(block, LABEL, 0, "Sorry - only meshes supported", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+			yline -= lineHeight;
+		}
+	} else {
+		yline -= lineHeight + 5;
+		uiDefBut(block, LABEL, 0, "Object not enabled for fluid simulation...", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+		yline -= lineHeight;
+	}
+	uiBlockEndAlign(block);
+}
+
 void object_panels()
 {
 	Object *ob;
@@ -1817,6 +2000,7 @@ void object_panels()
 		}
 		object_panel_deflectors(ob);
 		object_softbodies(ob);
+		object_panel_fluidsim(ob);
 
 		uiClearButLock();
 	}

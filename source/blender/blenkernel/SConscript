@@ -56,6 +56,7 @@ blenkernel_env.Append (CPPPATH = ['.',
                                   '../../../intern/decimation/extern',
                                   '../imbuf',
                                   '../avi',
+                                  '#/intern/elbeem/extern',
                                   '#/intern/iksolver/extern',
                                   '../blenloader'])
 
@@ -71,3 +72,4 @@ SConscript(['bad_level_call_stubs/SConscript'])
 
 blenkernel_env.Append (CPPPATH = user_options_dict['OPENGL_INCLUDE'])
 blenkernel_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
+blenkernel_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])

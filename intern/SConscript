@@ -9,6 +9,7 @@ SConscript(['SoundSystem/SConscript',
             'memutil/SConscript/',
             'decimation/SConscript',
             'iksolver/SConscript',
+            'elbeem/SConscript',
             'opennl/SConscript'])
 
 NEW_CSG='false'

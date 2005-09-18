@@ -62,7 +62,8 @@ def blender_libs(env):
 		'blender_blenkernel',
 		'blender_LOD',
 		'blender_IK',
-		'blender_ONL'])
+		'blender_ONL',
+		'blender_elbeem' ])
 
 def ketsji_libs(env):
 	"""

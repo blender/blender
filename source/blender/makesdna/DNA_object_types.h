@@ -53,6 +53,7 @@ struct Material;
 struct bConstraintChannel;
 struct PartDeflect;
 struct SoftBody;
+struct FluidsimSettings;
 struct DerivedMesh;
 
 typedef struct bDeformGroup {
@@ -190,6 +191,10 @@ typedef struct Object {
 	LBuf port;
 	
 	float pad3, smoothresh;		/* smoothresh is phong interpolation ray_shadow correction in render */
+
+	short fluidsimFlag;  /* NT toggle fluidsim participation on/off */
+	short dnapadFluidsimDummy1, dnapadFluidsimDummy2, dnapadFluidsimDummy3; /* 8byte align */
+	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 } Object;

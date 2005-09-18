@@ -216,6 +216,7 @@ void free_object(Object *ob)
 	
 	if(ob->pd) MEM_freeN(ob->pd);
 	if(ob->soft) sbFree(ob->soft);
+	if(ob->fluidsimSettings) MEM_freeN(ob->fluidsimSettings); /* NT */
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
@@ -730,6 +731,10 @@ Object *add_object(int type)
 	ob->anisotropicFriction[1] = 1.0f;
 	ob->anisotropicFriction[2] = 1.0f;
 	ob->gameflag= OB_PROP;
+
+	/* NT fluid sim defaults */
+	ob->fluidsimFlag = 0;
+	ob->fluidsimSettings = NULL;
 	
 	ob->data= add_obdata_from_type(type);
 	
@@ -832,6 +837,10 @@ Object *copy_object(Object *ob)
 	
 	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
 	obn->soft= copy_softbody(ob->soft);
+
+	/* NT copy fluid sim setting memory */
+	if(ob->fluidsimSettings) ob->fluidsimSettings = MEM_dupallocN(ob->fluidsimSettings);
+	else ob->fluidsimSettings = NULL;
 	
 	ob->derivedDeform = NULL;
 	ob->derivedFinal = NULL;

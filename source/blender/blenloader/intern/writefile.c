@@ -712,6 +712,7 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 					}
 				}
 			}
+			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
 			write_modifiers(wd, &ob->modifiers);
 		}

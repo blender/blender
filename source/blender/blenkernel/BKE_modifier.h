@@ -205,5 +205,13 @@ struct Object*	modifiers_isDeformedByArmature(struct Object *ob);
 
 ModifierData*	modifiers_getVirtualModifierList	(struct Object *ob);
 
+	/* Modifier utility calls, do call through type pointer and return
+	 * default values if pointer is optional.
+	 */
+struct ModifierData*	modifier_new			(int type);
+void					modifier_free			(struct ModifierData *md);
+
+int						modifier_dependsOnTime	(struct ModifierData *md);
+
 #endif
 

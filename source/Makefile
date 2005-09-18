@@ -218,6 +218,7 @@ endif
 
     PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
     PULIB += $(NAN_MOTO)/lib/libmoto.a
+    PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
     PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
     PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
 

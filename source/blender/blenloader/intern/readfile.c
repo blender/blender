@@ -85,6 +85,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_fluidsim.h" // NT
 #include "DNA_oops_types.h"
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
@@ -2384,6 +2385,11 @@ static void direct_link_object(FileData *fd, Object *ob)
 				sb->keys[a]= newdataadr(fd, sb->keys[a]);
 			}
 		}
+	}
+	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
+	if(ob->fluidsimSettings) {
+		// not much to do for now... fprintf(stderr, "FLUIDSIMT newdataadr\n");
+		ob->fluidsimSettings->orgMesh = NULL;
 	}
 	
 	link_list(fd, &ob->prop);

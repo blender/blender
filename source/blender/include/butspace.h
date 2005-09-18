@@ -234,6 +234,10 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 	/* this has MAX_EFFECT settings! Next free define is 1450... */
 #define B_SELEFFECT	1430	
 
+/* Fluidsim button defines */
+#define B_FLUIDSIM_BAKE	  1450
+#define B_FLUIDSIM_SELDIR	1451
+
 
 /* *********************** */
 #define B_WORLDBUTS		1600

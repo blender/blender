@@ -85,6 +85,7 @@ endif
     export NAN_TEST_VERBOSITY ?= 1
     export NAN_BMFONT ?= $(LCGDIR)/bmfont
     export NAN_OPENNL ?= $(LCGDIR)/opennl
+    export NAN_ELBEEM ?= $(LCGDIR)/elbeem
     export NAN_SUPERLU ?= $(LCGDIR)/superlu
     ifeq ($(FREE_WINDOWS), true)
       export NAN_FTGL ?= $(LCGDIR)/gcc/ftgl

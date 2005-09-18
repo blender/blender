@@ -51,6 +51,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_oops_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -1437,6 +1438,16 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 				case OB_MESH:
 					me= ob->data;
 					if(me->key) ob->recalc |= OB_RECALC_DATA;
+					else if(ob->effect.first) {
+						Effect *eff= ob->effect.first;
+						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
+					}
+					if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (ob->fluidsimSettings)) {
+						// fluidsimSettings might not be initialized during load...
+						if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
+							ob->recalc |= OB_RECALC_DATA; // NT
+						}
+					}
 					break;
 				case OB_CURVE:
 				case OB_SURF:
