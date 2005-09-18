@@ -1098,7 +1098,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				// We do not want to see any character for \n or \r
 				if(cha != '\n' && cha != '\r')
    					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);
-   				if ((info->flag & CU_UNDERLINE) && (cha != '\n') && (cha != '\r')) {
+   				if ((info->flag & CU_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
    					uloverlap = 0;
    					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
    					     ((mem[i+1] != ' ') || (cu->strinfo[i+1].flag & CU_UNDERLINE)) && ((cu->strinfo[i+1].flag & CU_WRAP)==0)
