@@ -697,6 +697,7 @@ void do_view3d_select_object_linkedmenu(void *arg, int event)
 		selectlinks(event);
 		break;
 	}
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 }
 

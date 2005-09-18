@@ -1883,7 +1883,7 @@ static TBitem tb_view_dt[]= {
 {	ICON_BBOX, "Bounding Box", 	1, NULL},
 {	ICON_WIRE, "Wireframe|Z", 	2, NULL},
 {	ICON_SOLID, "Solid|Z", 		3, NULL},
-{	ICON_SMOOTH, "Shaded|Ctrl Z", 		4, NULL},
+{	ICON_SMOOTH, "Shaded|Shift Z", 		4, NULL},
 {	ICON_POTATO, "Textured|Alt Z", 	5, NULL},
 {  -1, "", 			0, tb_do_view_dt}};
 

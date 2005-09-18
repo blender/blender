@@ -4397,6 +4397,7 @@ void selectlinks(int nr)
 		}
 		base= base->next;
 	}
+	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWDATASELECT, 0);
 	allqueue(REDRAWOOPS, 0);

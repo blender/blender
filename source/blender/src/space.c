@@ -615,6 +615,7 @@ void select_group(short nr)
 	else if(nr==1) select_children(OBACT, 1);
 	else if(nr==3) select_parent();
 	
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allspace(REMAKEIPO, 0);

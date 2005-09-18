@@ -2526,7 +2526,7 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 
 	uiDefBut(block, LABEL, 0, "Editing Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 160,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 160,150,20, &arm->flag, 0, 0, 0, 0, "Enable X-axis mirrored editing");
 	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",				160,160,150,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
 	uiBlockEndAlign(block);
 	
