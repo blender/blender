@@ -46,3 +46,8 @@ CPPFLAGS += -I../extern
 CPPFLAGS += $(NAN_SDLCFLAGS)
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_PNG)/include/libpng
+
+# zlib
+ifeq ($(OS),$(findstring $(OS), "solaris windows"))
+    CPPFLAGS += -I$(NAN_ZLIB)/include
+endif
