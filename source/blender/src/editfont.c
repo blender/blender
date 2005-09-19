@@ -433,7 +433,7 @@ void txt_export_to_objects(struct Text *text)
 
 	curline = text->lines.first;
 	while(curline){	
-	 	/*skip lines with no text, but still make space for them*/
+		/*skip lines with no text, but still make space for them*/
 		if(curline->line[0] == '\0'){
 			linenum++;
 			curline = curline->next;
@@ -739,13 +739,13 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 				cu->pos= next_word(cu);
 				cursmove= FO_CURS;				
 			} 
-   			else if (G.qual & LR_ALTKEY) {
-   				kern = textbufinfo[cu->pos-1].kern;
-   				kern += 1;
-   				if (kern>20) kern = 20;
-   				textbufinfo[cu->pos-1].kern = kern;
-   				doit = 1;
-   			}
+			else if (G.qual & LR_ALTKEY) {
+				kern = textbufinfo[cu->pos-1].kern;
+				kern += 1;
+				if (kern>20) kern = 20;
+				textbufinfo[cu->pos-1].kern = kern;
+				doit = 1;
+			}
 			else {
 				cu->pos++;
 				cursmove= FO_CURS;				
@@ -759,13 +759,13 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 				cu->pos= prev_word(cu);
 				cursmove= FO_CURS;
 			} 
-   			else if (G.qual & LR_ALTKEY) {
-   				kern = textbufinfo[cu->pos-1].kern;
-   				kern -= 1;
-   				if (kern<-20) kern = -20;
-   				textbufinfo[cu->pos-1].kern = kern;
-   				doit = 1;
-   			}
+			else if (G.qual & LR_ALTKEY) {
+				kern = textbufinfo[cu->pos-1].kern;
+				kern -= 1;
+				if (kern<-20) kern = -20;
+				textbufinfo[cu->pos-1].kern = kern;
+				doit = 1;
+			}
 			else {
 				cu->pos--;
 				cursmove=FO_CURS;
@@ -841,52 +841,52 @@ void do_textedit(unsigned short event, short val, unsigned long _ascii)
 			}
 			break;
 		
-   		case IKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				cu->curinfo.flag ^= CU_ITALIC;
-   				if (style_to_sel(CU_ITALIC, cu->curinfo.flag & CU_ITALIC)) doit= 1;   				
-   				allqueue(REDRAWBUTSEDIT, 0);
-   			}
-   			break;
+		case IKEY:
+			if (G.qual & LR_CTRLKEY) {
+				cu->curinfo.flag ^= CU_ITALIC;
+				if (style_to_sel(CU_ITALIC, cu->curinfo.flag & CU_ITALIC)) doit= 1;   				
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
 
-   		case BKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				cu->curinfo.flag ^= CU_BOLD;
-   				if (style_to_sel(CU_BOLD, cu->curinfo.flag & CU_BOLD)) doit= 1;
-   				allqueue(REDRAWBUTSEDIT, 0);
-   			}
-   			break;			
-   			
-   		case UKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				cu->curinfo.flag ^= CU_UNDERLINE;
-   				if (style_to_sel(CU_UNDERLINE, cu->curinfo.flag & CU_UNDERLINE)) doit= 1;
-   				allqueue(REDRAWBUTSEDIT, 0);
-   			}
-   			break;			   			
-   			
-   		case XKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				copyselection();
-   				killselection(0);
-   				doit= 1;
-   			}
-   			break;
-   			
-   		case CKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				copyselection();
-   			}
-   			break;   			
-   			
-   		case VKEY:
-   			if (G.qual & LR_CTRLKEY) {
-   				pasteselection();
-   				doit= 1;
-   			}
-   			break;   			   			
-   		
-   		}
+		case BKEY:
+			if (G.qual & LR_CTRLKEY) {
+				cu->curinfo.flag ^= CU_BOLD;
+				if (style_to_sel(CU_BOLD, cu->curinfo.flag & CU_BOLD)) doit= 1;
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;			
+			
+		case UKEY:
+			if (G.qual & LR_CTRLKEY) {
+				cu->curinfo.flag ^= CU_UNDERLINE;
+				if (style_to_sel(CU_UNDERLINE, cu->curinfo.flag & CU_UNDERLINE)) doit= 1;
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
+			
+		case XKEY:
+			if (G.qual & LR_CTRLKEY) {
+				copyselection();
+				killselection(0);
+				doit= 1;
+			}
+			break;
+			
+		case CKEY:
+			if (G.qual & LR_CTRLKEY) {
+				copyselection();
+			}
+			break;   			
+			
+		case VKEY:
+			if (G.qual & LR_CTRLKEY) {
+				pasteselection();
+				doit= 1;
+			}
+			break;
+		
+		}
 			
 		if(cursmove) {
 			if ((G.qual & LR_SHIFTKEY)==0) {
@@ -981,7 +981,7 @@ void paste_editText(void)
 	Curve *cu;
 	int filelen, doit= 0;
 	char *strp;
-  FILE *fp = NULL;
+	FILE *fp = NULL;
 
 #ifdef WIN32
 	fp= fopen("C:\\windows\\temp\\cutbuf.txt", "r");
@@ -1020,13 +1020,13 @@ void paste_editText(void)
 		strp[filelen]= 0;
 		
 		if(cu->len+filelen<MAXTEXT) {
-		  int tmplen;
-		  wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
-		  tmplen = utf8towchar_(mem, strp);
-		  wcscat(textbuf, mem);
-		  MEM_freeN(mem);
-		  cu->len += tmplen;
-		  cu->pos= cu->len;
+			int tmplen;
+			wchar_t *mem = MEM_callocN((sizeof(wchar_t) * filelen) + (4 * sizeof(wchar_t)), "temporary");
+			tmplen = utf8towchar_(mem, strp);
+			wcscat(textbuf, mem);
+			MEM_freeN(mem);
+			cu->len += tmplen;
+			cu->pos= cu->len;
 		}
 		MEM_freeN(strp);
 		doit = 1;
@@ -1052,8 +1052,8 @@ void make_editText(void)
 	if(copybufinfo==NULL) copybufinfo= MEM_callocN((MAXTEXT+4)*sizeof(CharInfo), "texteditcopybufinfo");	
 	if(oldstr==NULL) oldstr= MEM_callocN((MAXTEXT+4)*sizeof(wchar_t), "oldstrbuf");
 	
-  // Convert the original text to wchar_t
-  utf8towchar_(textbuf, cu->str);
+	// Convert the original text to wchar_t
+	utf8towchar_(textbuf, cu->str);
 	wcscpy(oldstr, textbuf);
 		
 	cu->len= wcslen(textbuf);
@@ -1126,8 +1126,10 @@ void remake_editText(void)
 
 	// Set the object length and position	
 	cu= G.obedit->data;
-	cu->len= strlen(textbuf);
+	cu->len= wcslen(textbuf);
 	if(cu->pos>cu->len) cu->pos= cu->len;
+
+	update_string(cu);
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	allqueue(REDRAWVIEW3D, 0);

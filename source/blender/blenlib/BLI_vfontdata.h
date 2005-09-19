@@ -97,7 +97,7 @@ BLI_vfontdata_from_freetypefont(
 
 	int
 BLI_vfontchar_from_freetypefont(
-        struct VFont *vfont, unsigned long character);
+	struct VFont *vfont, unsigned long character);
 
 #endif
 

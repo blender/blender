@@ -171,41 +171,40 @@ utf8slen(char *src)
 
 int utf8towchar_(wchar_t *w, char *c)
 {
-  int len=0;
-  if(w==NULL || c==NULL) return(0);
-  //printf("%s\n",c);
-  while(*c)
-  {
-    if(*c & 0x80)
-    {
-      if(*c & 0x40)
-      {
-        if(*c & 0x20)
-        {
-          if(*c & 0x10)
-          {
-            *w=(c[0] & 0x0f)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x7f);
-            c++;
-          }
-          else
-            *w=(c[0] & 0x1f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x7f);
-          c++;
-        }
-        else
-          *w=(((c[0] &0x3f)<<6) | (c[1]&0x7f));
-        c++;
-      }
-      else
-        *w=(c[0] & 0x7f);
-    }
-    else
-      *w=(c[0] & 0x7f);
-
-    c++;
-    w++;
-    len++;
-  }
-  return len;
+	int len=0;
+	if(w==NULL || c==NULL) return(0);
+	//printf("%s\n",c);
+	while(*c)
+	{
+		if(*c & 0x80)
+		{
+			if(*c & 0x40)
+			{
+				if(*c & 0x20)
+				{
+					if(*c & 0x10)
+					{
+						*w=(c[0] & 0x0f)<<18 | (c[1]&0x1f)<<12 | (c[2]&0x3f)<<6 | (c[3]&0x7f);
+						c++;
+					}
+					else
+						*w=(c[0] & 0x1f)<<12 | (c[1]&0x3f)<<6 | (c[2]&0x7f);
+					c++;
+				}
+				else
+					*w=(((c[0] &0x3f)<<6) | (c[1]&0x7f));
+				c++;
+			}
+			else
+				*w=(c[0] & 0x7f);
+			}
+			else
+				*w=(c[0] & 0x7f);
+			c++;
+			w++;
+			len++;
+		}
+	return len;
 }
 
 /* The vfont code */
@@ -408,16 +407,16 @@ VFont *load_vfont(char *name)
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
-   	switch(info->flag & CU_STYLE) {
-   		case CU_BOLD:
-   			return(cu->vfontb);
-   		case CU_ITALIC:
-   			return(cu->vfonti);
-   		case (CU_BOLD|CU_ITALIC):
-   			return(cu->vfontbi);
-   		default:
-   			return(cu->vfont);
-   	}			
+	switch(info->flag & CU_STYLE) {
+		case CU_BOLD:
+			return(cu->vfontb);
+		case CU_ITALIC:
+			return(cu->vfonti);
+		case (CU_BOLD|CU_ITALIC):
+			return(cu->vfontbi);
+		default:
+			return(cu->vfont);
+	}			
 }
 
 static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, int charidx, short mat_nr)
@@ -727,12 +726,12 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 #endif
 
 
-    	if (vfont==0) goto errcse;
-    	if (vfont != oldvfont) {
-    		vfd= vfont_get_data(vfont);
-    		oldvfont = vfont;
-    	}
-    	if (!vfd) goto errcse;    	
+	if (vfont==0) goto errcse;
+	if (vfont != oldvfont) {
+		vfd= vfont_get_data(vfont);
+		oldvfont = vfont;
+	}
+	if (!vfd) goto errcse;    	
 
 	// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
 	if(!che)
@@ -745,10 +744,10 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	}
 
 	// Calculate positions
-    	if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
-//     		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
-    		for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
-    			if (mem[j]==' ' || mem[j]=='-') {
+	if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
+//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
+		for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
+			if (mem[j]==' ' || mem[j]=='-') {
 					ct -= (i-(j-1));
 					cnr -= (i-(j-1));
 					if (mem[j] == ' ') wsnr--;
@@ -758,19 +757,19 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 					ct[1].dobreak = 1;
 					cu->strinfo[i+1].flag |= CU_WRAP;
 					goto makebreak;
-    			}
-    			if (chartransdata[j].dobreak) {
-//    				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
-    				ct->dobreak= 1;
-    				cu->strinfo[i+1].flag |= CU_WRAP;
-    				ct -= 1;
-    				cnr -= 1;
-    				i--;
-    				xof = ct->xof;
-    				goto makebreak;
-    			}
-    		}
-    	}
+			}
+			if (chartransdata[j].dobreak) {
+//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
+				ct->dobreak= 1;
+				cu->strinfo[i+1].flag |= CU_WRAP;
+				ct -= 1;
+				cnr -= 1;
+				i--;
+				xof = ct->xof;
+				goto makebreak;
+			}
+		}
+	}
 		if(ascii== '\n' || ascii== '\r' || ascii==0 || ct->dobreak) {
 			ct->xof= xof;
 			ct->yof= yof;
@@ -820,12 +819,12 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct->linenr= lnr;
 			ct->charnr= cnr++;
 
-   			if (selboxes && (i>=selstart) && (i<=selend)) {
-    			sb = &(selboxes[i-selstart]);
-    			sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
-    			sb->h = linedist*cu->fsize;
-    			sb->w = xof*cu->fsize;
-    		}
+			if (selboxes && (i>=selstart) && (i<=selend)) {
+			sb = &(selboxes[i-selstart]);
+			sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
+			sb->h = linedist*cu->fsize;
+			sb->w = xof*cu->fsize;
+		}
 	
 			if (ascii==32) {
 				wsfac = cu->wordspace; 
@@ -1089,26 +1088,26 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		
 		ct= chartransdata;
 		if (cu->sepchar==0) {
-    		for (i= 0; i<slen; i++) {
+		for (i= 0; i<slen; i++) {
 			cha = (unsigned long) mem[i];
-    			info = &(cu->strinfo[i]);
-    			if (info->mat_nr > (ob->totcol)) {
-    				printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr);
-    				info->mat_nr = 0;
-    			}
+			info = &(cu->strinfo[i]);
+			if (info->mat_nr > (ob->totcol)) {
+				printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr);
+				info->mat_nr = 0;
+			}
 				// We do not want to see any character for \n or \r
 				if(cha != '\n' && cha != '\r')
-   					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);
-   				if ((info->flag & CU_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
-   					uloverlap = 0;
-   					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
-   					     ((mem[i+1] != ' ') || (cu->strinfo[i+1].flag & CU_UNDERLINE)) && ((cu->strinfo[i+1].flag & CU_WRAP)==0)
-   					   ) {
-	   					uloverlap = xtrax + 0.1;
-	   				}
- 					// Find the character, the characters has to be in the memory already 
- 					// since character checking has been done earlier already.
- 					che = vfd->characters.first;
+					buildchar(cu, cha, info, ct->xof, ct->yof, ct->rot, i);
+				if ((info->flag & CU_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
+					uloverlap = 0;
+					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
+					     ((mem[i+1] != ' ') || (cu->strinfo[i+1].flag & CU_UNDERLINE)) && ((cu->strinfo[i+1].flag & CU_WRAP)==0)
+					   ) {
+						uloverlap = xtrax + 0.1;
+					}
+					// Find the character, the characters has to be in the memory already 
+					// since character checking has been done earlier already.
+					che = vfd->characters.first;
 					while(che)
 					{
 						if(che->index == cha)
@@ -1117,20 +1116,20 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 					}
 
 					if(!che) twidth =0; else twidth=che->width;
-   					ulwidth = cu->fsize * ((twidth* (1.0+(info->kern/40.0)))+uloverlap);
-   					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
-   					                ct->xof*cu->fsize + ulwidth, 
-   					                ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize - cu->ulheight*cu->fsize, 
-   					                i, info->mat_nr);
-   				}
-    			ct++;
-    		}
+					ulwidth = cu->fsize * ((twidth* (1.0+(info->kern/40.0)))+uloverlap);
+					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize, 
+							ct->xof*cu->fsize + ulwidth, 
+							ct->yof*cu->fsize + (cu->ulpos-0.05)*cu->fsize - cu->ulheight*cu->fsize, 
+							i, info->mat_nr);
+				}
+			ct++;
+		}
 		}
 		else {
-    		outta = 0;
-    		for (i= 0; (i<slen) && (outta==0); i++) {
-    			ascii = mem[i];
-    			info = &(cu->strinfo[i]);
+		outta = 0;
+		for (i= 0; (i<slen) && (outta==0); i++) {
+			ascii = mem[i];
+			info = &(cu->strinfo[i]);
 				if (cu->sepchar == (i+1)) {
 					mem[0] = ascii;
 					mem[1] = 0;
@@ -1142,12 +1141,12 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 					vecyo[2] = 0;
 					Mat4MulVecfl(ob->obmat, vecyo);
 					VECCOPY(ob->loc, vecyo);
- 					outta = 1;
- 					cu->sepchar = 0;
+					outta = 1;
+					cu->sepchar = 0;
 				}
-    			ct++;
-    		}
-    	}
+			ct++;
+		}
+	}
 	}
 
 	if(mode==FO_DUPLI) {

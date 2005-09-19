@@ -329,7 +329,7 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 	VFontData *vfd;
 
 /*
-    FT_CharMap  found = 0;
+	FT_CharMap  found = 0;
 	FT_CharMap  charmap;
 	FT_UShort my_platform_id = TT_PLATFORM_MICROSOFT;
 	FT_UShort my_encoding_id = TT_MS_ID_UNICODE_CS;
@@ -345,22 +345,22 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile * pf)
 
 	if(err) return NULL;
 /*
-    for ( n = 0; n < face->num_charmaps; n++ )
-    {
-      charmap = face->charmaps[n];
-      if ( charmap->platform_id == my_platform_id &&
-           charmap->encoding_id == my_encoding_id )
-      {
-        found = charmap;
-        break;
-      }
-    }
+	for ( n = 0; n < face->num_charmaps; n++ )
+	{
+		charmap = face->charmaps[n];
+		if ( charmap->platform_id == my_platform_id &&
+			charmap->encoding_id == my_encoding_id )
+		{
+			found = charmap;
+			break;
+		}
+	}
 
-    if ( !found ) { return NULL; }
+	if ( !found ) { return NULL; }
 
-    // now, select the charmap for the face object
-    err = FT_Set_Charmap( face, found );
-    if ( err ) { return NULL; }
+	// now, select the charmap for the face object
+	err = FT_Set_Charmap( face, found );
+	if ( err ) { return NULL; }
 */
 
 	// allocate blender font
@@ -487,7 +487,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	//init Freetype	
 	err = FT_Init_FreeType( &library);
 	if(err) {
-	    error("Failed to load the Freetype font library");
+		error("Failed to load the Freetype font library");
 		return 0;
 	}
 

@@ -645,16 +645,16 @@ extern ListBase editelems;
 
 void exit_usiblender(void)
 {
-  struct TmpFont *tf;
-  tf= G.ttfdata.first;
-  while(tf)
-  {
-  	freePackedFile(tf->pf);
-  	tf->pf= NULL;
-  	tf->vfont= NULL;
-  	tf= tf->next;
-  }
-  BLI_freelistN(&G.ttfdata);
+	struct TmpFont *tf;
+	tf= G.ttfdata.first;
+	while(tf)
+	{
+		freePackedFile(tf->pf);
+		tf->pf= NULL;
+		tf->vfont= NULL;
+		tf= tf->next;
+	}
+	BLI_freelistN(&G.ttfdata);
 
 	freeAllRad();
 	BKE_freecubetable();

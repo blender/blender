@@ -165,142 +165,142 @@ unicodect uctabname[125] = {
 	{"All", "All", 0x0000, 0xffff},
 	{"Basic Latin", "Basic Latin", 0x0000, 0x007f},
 	{"Latin 1 Supp", "Latin-1 Supplement", 0x0080, 0x00ff}, 
-  			    
+
 	{"Latin Ext. A.", "Latin Extended-A", 0x0100, 0x017F},
 	{"Latin Ext. B.", "Latin Extended-B", 0x0180,0x024F}, 
 	{"Latin Ext. Add.", "Latin Extended Additional", 0x1e00, 0x1eff},
-			    
+
 	{"IPA Ext", "IPA Extensions", 0x0250, 0x02AF},
 	{"Spacing Mod.", "Spacing Modifier Letters", 0x02b0, 0x02ff},
-			    
+
 	{"Comb. Dia.", "Combining Diacritical Marks", 0x0300, 0x036F},
 	{"Greek, Coptic", "Greek and Coptic", 0x0370, 0x03ff},
 	{"Greek Ext.", "Greek Extended", 0x1f00, 0x1fff},
-			    
+
 	{"Cyrillic", "Cyrillic", 0x0400, 0x04ff},
 	{"Cyrillic Supp.", "Cyrillic Supplementary", 0x0500, 0x052f},
-			    
+
 	{"Armenian", "Armenian", 0x0530, 0x058f},
 	{"Hebrew", "Hebrew", 0x0590, 0x05ff},
-			    
+
 	
 	{"Arabic", "Arabic", 0x0600, 0x06ff},
 	{"Syriac", "Syriac", 0x0700, 0x074f},
-			    
+
 	{"Thaana", "Thaana", 0x0780, 0x07bf},
 	{"Devanagari", "Devanagari", 0x0900, 0x097f},
-			    
+
 	{"Bengali", "Bengali", 0x0980, 0x09ff},
 	{"Gurmukhi", "Gurmukhi", 0x0a00, 0x0a7f},
-			    
+
 	{"Gujarati", "Gujarati", 0x0a80, 0x0aff},
 	{"Oriya", "Oriya", 0x0b00, 0x0b7f},
-			    
+
 	{"Tamil", "Tamil", 0x0b80, 0x0bff},
 	{"Tegulu", "Tegulu", 0x0c00, 0x0c7f},
-			    
+
 	{"Kannada", "Kannada", 0x0c80, 0x0cff},
 	{"Malayalam", "Malayalam", 0x0d00, 0x0d7f},
-			    
+
 	{"Sinhala", "Sinhala", 0x0d80, 0x0dff},
 	{"Thai", "Thai", 0x0e00, 0x0e7f},
-			    
+
 	{"Lao", "Lao", 0x0e80, 0x0eff},
 	{"Tibetan", "Tibetan", 0x0f00, 0x0fff},
-			    
+
 	{"Myanmar", "Myanmar", 0x1000, 0x109f},
 	{"Georgian", "Georgian", 0x10a0, 0x10ff},
-			    
+
 	{"Ethiopic", "Ethiopic", 0x1200, 0x137f},
-			    
+
 	{"Cherokee", "Cherokee", 0x13a0, 0x13ff},
 	{"Unif. Canadian", "Unified Canadian Aboriginal Syllabics", 0x1400, 0x167f},
-			    
+
 	{"Ogham", "Ogham", 0x1680, 0x169f},
 	{"Runic", "Runic", 0x16a0, 0x16ff},
-			    
+
 	{"Tagalog", "Tagalog", 0x1700, 0x171f},
 	{"Hanunoo", "Hanunoo", 0x1720, 0x173f},
-			    
+
 	{"Buhid", "Buhid", 0x1740, 0x175f},
 	{"Tagbanwa", "Tagbanwa", 0x1760, 0x177f},
-			    
+
 	{"Khmer", "Khmer", 0x1780, 0x17ff},
 	{"Khmer Symb", "Khmer Symbols", 0x19e0, 0x19ff},
 
 	{"Mongolian", "Mongolian", 0x1800, 0x18af},
-			    
+
 	{"Limbu", "Limbu", 0x1900, 0x194f},
 	{"Tai Le", "Tai Le", 0x1950, 0x197f},
-			    
+
 	{"Phon. Ext.", "Phonetic Extensions", 0x1d00, 0x1d7f},
-			    
-			    
+
+
 	{"Gen. Punct.", "General Punctutation", 0x2000, 0x206f},
 	{"Super, Sub", "Superscripts and Subscripts", 0x2070, 0x209f},
-			    
+
 	{"Curr. Symb.", "Currency Symbols", 0x20a0, 0x20cf},
 	{"Comb. Diacrit.", "Combining Diacritical Marks for Symbols", 0x20d0, 0x20ff},
-			    
+
 	{"Letter Symb", "Letterlike Symbols", 0x2100, 0x214f},
 	{"Numb. Forms", "Number Forms", 0x2150, 0x218f},
-			    
+
 	{"Arrows", "Arrows", 0x2190, 0x21ff},
 	{"Math Oper.", "Mathematical Operators", 0x2200, 0x22ff},
-			   
+
 	{"Misc. Tech.", "Miscellaneous Technical", 0x2300, 0x23ff},
 	{"Ctrl. Pict.", "Control Pictures", 0x2400, 0x243f},
-			    
+
 	{"OCR", "Optical Character Recognition", 0x2440, 0x245f},
 	{"Enc. Alpha", "Enclosed Alphanumerics", 0x2460, 0x24ff},
-			    
+
 	{"Bow Drawing", "Box Drawing", 0x2500, 0x257f},
 	{"BLock Elem.", "Block Elements", 0x2580, 0x259f},
-			    
+
 	{"Geom. Shapes", "Geometric Shapes", 0x25a0, 0x25ff},
 	{"Misc. Symb.", "Miscellaneous Symbols", 0x2600, 0x26ff},
-			    
+
 	{"Dingbats", "Dingbats", 0x2700, 0x27bf},
 	{"Misc. Math A", "Miscellaneous Mathematical Symbols-A", 0x27c0, 0x27ef},
-			    
+
 	{"Supp. Arrows-A", "Supplemental Arrows-A", 0x27f0, 0x27ff},
 	{"Braille Pat.", "Braille Patterns", 0x2800, 0x28ff},
-			    
+
 	{"Supp. Arrows-B", "Supplemental Arrows-B", 0x2900, 0x297f},
 	{"Misc. Math B", "Miscellaneous Mathematical Symbols-B", 0x2980, 0x29ff},
-			    
+
 	{"Supp. Math Op.", "Supplemental Mathematical Operators", 0x2a00, 0x2aff},
 	{"Misc. Symb.", "Miscellaneous Symbols and Arrows", 0x2b00, 0x2bff},
-			    
+
 	{"Kangxi Rad.", "Kangxi Radicals", 0x2f00, 0x2fdf},
-			    
+
 	{"Ideographic", "Ideographic Description Characters", 0x2ff0, 0x2fff},
-			    
+
 	{"Hiragana", "Hiragana", 0x3040, 0x309f},
 	{"Katakana", "Katakana", 0x30a0, 0x30ff},
 	{"Katakana Ext.", "Katakana Phonetic Extensions", 0x31f0, 0x31ff},
-			    
+
 	{"Bopomofo", "Bopomofo", 0x3100, 0x312f},
 	{"Bopomofo Ext.", "Bopomofo Extended", 0x31a0, 0x31bf},
 
 	{"Hangul", "Hangul Jamo", 0x1100, 0x11ff},
 	{"Hangul Comp.", "Hangul Compatibility Jamo", 0x3130, 0x318f},
 	{"Hangul Syll.", "Hangul Syllables", 0xac00, 0xd7af},
-			    
+
 	{"Kanbun", "Kanbun", 0x3190, 0x319f},
-			    
-			    
-			    
+
+
+
 	{"Yijing Hex.", "Yijing Hexagram Symbols", 0x4dc0, 0x4dff},
-			    
+
 	{"Yi Syllables", "Yi Syllables", 0xa000, 0xa48f},
 	{"Yi Radicals", "Yi Radicals", 0xa490, 0xa4cf},
-			    
+
 	{"High Surr.", "High Surrogate Area", 0xd800, 0xdbff},
-			    
+
 	{"Low Surr.", "Low Surrogates", 0xdc00, 0xdfff},
 	{"Priv. Use Area", "Private Use Area", 0xe000, 0xf8ff},
-			    
+
 	{"CJK Rad. Supp.", "CJK Radicals Supplement", 0x2e80, 0x2eff},
 	{"CJK Ideographs", "CJK Unified Ideographs", 0x4e00, 0x9faf},
 	{"CJK Ideog. Ext. A", "CJK Unified Ideographs Extension A", 0x3400, 0x4dbf},
@@ -313,47 +313,46 @@ unicodect uctabname[125] = {
 	{"CJK Comp. Supp.", "CJK Compatibility Ideographs Supplement", 0x2f800, 0x2fa1f},
 
 	{"Alpha. Pres. Forms", "Alphabetic Presentation Forms", 0xfb00, 0xfb4f},
-			    
+
 	{"Arabic Pres. A", "Arabic Presentation Forms-A", 0xfb50, 0xfdff},
 	{"Arabic Pres. B", "Arabic Presentation Forms-B", 0xfe70, 0xfeff},
 
 	{"Var. Sel.", "Variation Selectors", 0xfe00, 0xfe0f},
-			    
+
 	{"Comb. Half", "Combining Half Marks", 0xfe20, 0xfe2f},
-			    
+
 	{"Sml. From Var.", "Small Form Variants", 0xfe50, 0xfe6f},
-			    
+
 	{"Half, Full Forms", "Halfwidth and Fullwidth Forms", 0xff00, 0xffef},
 	{"Specials", "Specials", 0xfff0, 0xffff},
-			    
+
 	{"Lin. B Syllab.", "Linear B Syllabary", 0x10000, 0x1007f},
 	{"Lin. B Idog.", "Linear B Ideograms", 0x10080, 0x100ff},
-			    
+
 	{"Aegean Num.", "Aegean Numbers", 0x10100, 0x1013f},
 	{"Old Italic", "Old Italic", 0x10300, 0x1032f},
-			   
+
 	{"Gothic", "Gothic", 0x10330, 0x1034f},
 	{"Ugaritic", "Ugaritic", 0x10380, 0x1039f},
-			    
+
 	{"Deseret", "Deseret", 0x10400, 0x1044f},
 	{"Shavian", "Shavian", 0x10450, 0x1047f},
-			    
+
 	{"Osmanya", "Osmanya", 0x10480, 0x104af},
 	{"Cypriot Syll", "Cypriot Syllabary", 0x10800, 0x1083f},
-			    
+
 	{"Bysantine Mus.", "Bysantine Musical Symbols", 0x1d000, 0x1d0ff},
 	{"Music Symb.", "Musical Symbols", 0x1d100, 0x1d1ff},
-			    
+
 	{"Tai Xuan Symb", "Tai Xuan Jing Symbols", 0x1d300, 0x1d35f},
 	{"Math. Alpha Symb.", "Mathematical Alpanumeric Symbols", 0x1d400, 0x1d7ff},
-			    
-			    
+
+
 	{"Tags", "Tags", 0xe0000, 0xe007f},
 	{"Var. Supp", "Variation Selectors Supplement", 0xe0100, 0xe01ef},
-			    
+
 	{"Supp. Priv. A", "Supplementary Private Use Area-A", 0xf0000, 0xffffd},
 	{"Supp. Priv. B", "Supplementary Private Use Area-B", 0x100000, 0x10fffd}
-			
 };
 
 

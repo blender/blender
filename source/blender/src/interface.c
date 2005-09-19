@@ -2662,12 +2662,12 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 				// hsv_to_rgb(x, y, v, col, col+1, col+2);
 			}
 			else if(but->a1==2) {
- 				but->hsv[2]= x; 
- 				but->hsv[1]= y; 
+				but->hsv[2]= x; 
+				but->hsv[1]= y; 
 				// hsv_to_rgb(h, y, x, col, col+1, col+2);
 			}
 			else {
- 				but->hsv[0]= x; 
+				but->hsv[0]= x; 
 				// hsv_to_rgb(x, s, v, col, col+1, col+2);
 			}
 	
@@ -2693,48 +2693,48 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 
 static int ui_do_but_CHARTAB(uiBut *but)
 {
-        /* Variables */
-        short mval[2];
-        float sx, sy, ex, ey;
-        float width, height;
-        float butw, buth;
-        int x, y;
-        unsigned long cs;
-        unsigned long che;
+	/* Variables */
+	short mval[2];
+	float sx, sy, ex, ey;
+	float width, height;
+	float butw, buth;
+	int x, y;
+	unsigned long cs;
+	unsigned long che;
 
-        /* Check the position */
-        uiGetMouse(mywinget(), mval);
+	/* Check the position */
+	uiGetMouse(mywinget(), mval);
 
-        /* Calculate the size of the button */
-        width = abs(but->x2 - but->x1);
-        height = abs(but->y2 - but->y1);
+	/* Calculate the size of the button */
+	width = abs(but->x2 - but->x1);
+	height = abs(but->y2 - but->y1);
 
-        butw = floor(width / 12);
-        buth = floor(height / 6);
+	butw = floor(width / 12);
+	buth = floor(height / 6);
 
-        /* Initialize variables */
-        sx = but->x1;
-        ex = but->x1 + butw;
-        sy = but->y1 + height - buth;
-        ey = but->y1 + height;
+	/* Initialize variables */
+	sx = but->x1;
+	ex = but->x1 + butw;
+	sy = but->y1 + height - buth;
+	ey = but->y1 + height;
 
-        cs = G.charstart;
+	cs = G.charstart;
 
-        /* And the character is */
-        x = (int) ((mval[0] / butw) - 0.5);
-        y = (int) (6 - ((mval[1] / buth) - 0.5));
+	/* And the character is */
+	x = (int) ((mval[0] / butw) - 0.5);
+	y = (int) (6 - ((mval[1] / buth) - 0.5));
 
-        che = cs + (y*12) + x;
+	che = cs + (y*12) + x;
 
-        if(che > G.charmax)
-                che = 0;
+	if(che > G.charmax)
+		che = 0;
 
-        if(G.obedit)
-        {
-                do_textedit(0,0,che);
-        }
+	if(G.obedit)
+	{
+		do_textedit(0,0,che);
+	}
 
-        return but->retval;
+	return but->retval;
 }
 
 #endif
@@ -3666,12 +3666,12 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
 		}
 	} else {
-  		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  		y1= but->y1-30; y2= but->y1-12;
+		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
+		y1= but->y1-30; y2= but->y1-12;
 	}
 #else
-  	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-  	y1= but->y1-30; y2= but->y1-12;
+	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
+	y1= but->y1-30; y2= but->y1-12;
 #endif
 
 	/* for pulldown menus it doesnt work */
