@@ -41,6 +41,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "BKE_global.h"
+
 #include "IMB_cmap.h"
 #include "IMB_allocimbuf.h"
 #include "IMB_bitplanes.h"
@@ -529,7 +531,7 @@ struct ImBuf *imb_loadamiga(int *iffmem,int flags)
 
 	if (ibuf) {
 		if (ibuf->rect) 
-			IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
+			if (G.order == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
 	}
 	
 	return (ibuf);
