@@ -83,7 +83,9 @@
 
 #include "BSE_view.h"
 
+#ifdef INTERNATIONAL
 #include "FTF_Api.h"
+#endif
 
 #include "mydevice.h"
 #include "interface.h"
