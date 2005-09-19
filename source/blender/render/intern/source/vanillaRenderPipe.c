@@ -916,7 +916,7 @@ static void integratePerSubStack(float *sampcol, struct RE_faceField* stack,
 		subStackPtr = subStackSize - 1;
 		while (subStackPtr >= 0) {
 			/* we can make a general meachanism here for operations */
-			if (stack[subStack[subStackPtr]].faceType == RE_POLY){ 
+			if (stack[subStack[subStackPtr]].faceType & RE_POLY){ 
 				VlakRen* vlr = (VlakRen*) stack[subStack[subStackPtr]].data;
 				if (vlr->mat) {
 					/* ENV faces */
