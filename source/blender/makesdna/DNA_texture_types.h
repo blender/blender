@@ -259,6 +259,15 @@ typedef struct Tex {
 #define TEX_SHARP		1
 #define TEX_SHARPER		2
 
+/* tex->stype in texture.c - blend types */
+#define TEX_LIN			0
+#define TEX_QUAD		1
+#define TEX_EASE		2
+#define TEX_DIAG		3
+#define TEX_SPHERE		4
+#define TEX_HALO		5
+#define TEX_RAD			6
+
 /* wrap */
 #define MTEX_FLAT		0
 #define MTEX_CUBE		1

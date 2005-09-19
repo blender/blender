@@ -860,9 +860,10 @@ static void texture_panel_blend(Tex *tex)
 	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates a progression easing from one step to the next"); 
 	uiDefButBitS(block, TOG, TEX_FLIPBLEND, B_TEXPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flips the direction of the progression 90 degrees");
 
-	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 100, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
-	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	110, 160, 100, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_TEXPRV, "Halo",		210, 160, 100, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, 6.0, 0, 0, "Use a polar progression");
 	
 }
 

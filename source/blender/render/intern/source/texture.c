@@ -283,15 +283,15 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 		y= texvec[1];
 	}
 
-	if(tex->stype==0) {	/* lin */
+	if(tex->stype==TEX_LIN) {	/* lin */
 		texres->tin= (1.0+x)/2.0;
 	}
-	else if(tex->stype==1) {	/* quad */
+	else if(tex->stype==TEX_QUAD) {	/* quad */
 		texres->tin= (1.0+x)/2.0;
 		if(texres->tin<0.0) texres->tin= 0.0;
 		else texres->tin*= texres->tin;
 	}
-	else if(tex->stype==2) {	/* ease */
+	else if(tex->stype==TEX_EASE) {	/* ease */
 		texres->tin= (1.0+x)/2.0;
 		if(texres->tin<=.0) texres->tin= 0.0;
 		else if(texres->tin>=1.0) texres->tin= 1.0;
@@ -300,10 +300,13 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 			texres->tin= (3.0*t-2.0*t*texres->tin);
 		}
 	}
-	else if(tex->stype==3) { /* diag */
+	else if(tex->stype==TEX_DIAG) { /* diag */
 		texres->tin= (2.0+x+y)/4.0;
 	}
-	else {  /* sphere */
+	else if(tex->stype==TEX_RAD) { /* radial */
+		texres->tin= (atan2(y,x) / (2*M_PI) + 0.5);
+	}
+	else {  /* sphere TEX_SPHERE */
 		texres->tin= 1.0-sqrt(x*x+	y*y+texvec[2]*texvec[2]);
 		if(texres->tin<0.0) texres->tin= 0.0;
 		if(tex->stype==5) texres->tin*= texres->tin;  /* halo */
