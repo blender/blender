@@ -2499,7 +2499,8 @@ void RE_rotateBlenderScene(void)
 	init_render_world();	/* do first, because of ambient. also requires R.osa set correct */
 	if( (R.wrld.mode & WO_AMB_OCC) && (R.r.mode & R_RAYTRACE) ) {
 		R.wrld.aosphere= MEM_mallocN(2*3*R.wrld.aosamp*R.wrld.aosamp*sizeof(float), "AO sphere");
-		init_ao_sphere(R.wrld.aosphere, R.wrld.aosamp*R.wrld.aosamp, 16);
+		/* we make twice the amount of samples, because only a hemisphere is used */
+		init_ao_sphere(R.wrld.aosphere, 2*R.wrld.aosamp*R.wrld.aosamp, 16);
 	}
 	init_render_textures();
 	init_render_materials();
