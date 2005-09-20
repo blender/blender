@@ -202,151 +202,111 @@ void get_format_string(void)
 	
 	while(tmp) {
 		in_line = tmp->line;
-		len = strlen(in_line);
-		spot = 0;
-		tabs = 0;
-		//see how many tabs we have
-		for(a = 0; a <len; a++) {
-			c = (unsigned char) in_line[a];
-			if(c == '\t') {
-				tabs++;
-			}
-		}
-		//calculate the amount of MEM_mallocN we neen
-		mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len; // +2 for good measure
-		if (tmp->format) MEM_freeN(tmp->format);
-		tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
 		
-		for (a = 0; a < len; a++) {
-			c = (unsigned char) in_line[a];
+		len = strlen(in_line);
+		/* weak code... but we dont want crashes (ton) */
+		if(len>2000-1) {
+			if (tmp->format) MEM_freeN(tmp->format);
+			tmp->format= NULL;
+		}
+		else {
+			
+			spot = 0;
+			tabs = 0;
+			//see how many tabs we have
+			for(a = 0; a <len; a++) {
+				c = (unsigned char) in_line[a];
+				if(c == '\t') {
+					tabs++;
+				}
+			}
+			//calculate the amount of MEM_mallocN we neen
+			mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len; // +2 for good measure
+			if (tmp->format) MEM_freeN(tmp->format);
+			tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
+			
+			for (a = 0; a < len; a++) {
+				c = (unsigned char) in_line[a];
 
-			check[0] = c;
-			check[1] = '\0';
+				check[0] = c;
+				check[1] = '\0';
 
-			if (check_delim(check))
-			{
-				switch (c) {
-					case '\"':
-						if(in_line[a] == '\"' && in_line[a+1] == '\"' && in_line[a+2] == '\"') { 
-							format[spot] = format[spot+1] = format[spot+2] = 'l';
-							spot +=3;
-							a += 3;
-							while(in_line[a] != '\"' || in_line[a-1] != '\"' || in_line[a-2] != '\"') {
-								c = (unsigned char) in_line[a];
-								if(a >= len) {
-									format[spot] = '\0';
-									memcpy(tmp->format, format, strlen(format));
-									if(!(tmp= tmp->next)) {
-										return;
-									} else {
-										in_line = tmp->line;
-										len = strlen(in_line);
-										tabs = 0;
-										for(b = 0; b <len; b++) {
-											c = (unsigned char) in_line[b];
-											if(c == '\t') {
-												tabs++;
-											}
-										}
-										mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-										if (tmp->format) MEM_freeN(tmp->format);
-										tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-										a = 0; spot = 0;
-									}
-								} else {
-									if(c == '\t' || c == ' ') {
-										if(c == '\t') {
-											for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-												format[spot] = ' ';
-												spot++;
-											}
-											a++;
+				if (check_delim(check))
+				{
+					switch (c) {
+						case '\"':
+							if(in_line[a] == '\"' && in_line[a+1] == '\"' && in_line[a+2] == '\"') { 
+								format[spot] = format[spot+1] = format[spot+2] = 'l';
+								spot +=3;
+								a += 3;
+								while(in_line[a] != '\"' || in_line[a-1] != '\"' || in_line[a-2] != '\"') {
+									c = (unsigned char) in_line[a];
+									if(a >= len) {
+										format[spot] = '\0';
+										memcpy(tmp->format, format, strlen(format));
+										if(!(tmp= tmp->next)) {
+											return;
 										} else {
-											format[spot] = ' ';
+											in_line = tmp->line;
+											len = strlen(in_line);
+											tabs = 0;
+											for(b = 0; b <len; b++) {
+												c = (unsigned char) in_line[b];
+												if(c == '\t') {
+													tabs++;
+												}
+											}
+											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
+											if (tmp->format) MEM_freeN(tmp->format);
+											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
+											a = 0; spot = 0;
+										}
+									} else {
+										if(c == '\t' || c == ' ') {
+											if(c == '\t') {
+												for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
+													format[spot] = ' ';
+													spot++;
+												}
+												a++;
+											} else {
+												format[spot] = ' ';
+												a++; spot++;
+										}
+										} else {
+											format[spot] = 'l';
 											a++; spot++;
-									}
-									} else {
-										format[spot] = 'l';
-										a++; spot++;
+										}
 									}
 								}
-							}
-							format[spot] = 'l';
-							spot++;
-						} else {
-							format[spot] = 'l';
-							a++; spot++;
-							while(in_line[a] != '\"') {
-								c = (unsigned char) in_line[a];
-								if(a >= len) {
-									format[spot] = '\0';
-									memcpy(tmp->format, format, strlen(format));
-									if(!(tmp= tmp->next)) {
-										return;
-									} else {
-										in_line = tmp->line;
-										len = strlen(in_line);
-										for(b = 0; b <len; b++) {
-											c = (unsigned char) in_line[b];
-											if(c == '\t') {
-												tabs++;
+								format[spot] = 'l';
+								spot++;
+							} else {
+								format[spot] = 'l';
+								a++; spot++;
+								while(in_line[a] != '\"') {
+									c = (unsigned char) in_line[a];
+									if(a >= len) {
+										format[spot] = '\0';
+										memcpy(tmp->format, format, strlen(format));
+										if(!(tmp= tmp->next)) {
+											return;
+										} else {
+											in_line = tmp->line;
+											len = strlen(in_line);
+											for(b = 0; b <len; b++) {
+												c = (unsigned char) in_line[b];
+												if(c == '\t') {
+													tabs++;
+												}
 											}
+											//calculate the amount of MEM_mallocN we neen
+											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
+											if (tmp->format) MEM_freeN(tmp->format);
+											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
+											a = 0; spot = 0;
 										}
-										//calculate the amount of MEM_mallocN we neen
-										mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-										if (tmp->format) MEM_freeN(tmp->format);
-										tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-										a = 0; spot = 0;
 									}
-								}
-								if(c == '\t' || c == ' ') {
-									if(c == '\t') {
-										for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-											format[spot] = ' ';
-											spot++;
-										}
-										a++;
-									} else {
-										format[spot] = ' ';
-										a++; spot++;
-									}
-								} else {
-									format[spot] = 'l';
-									a++; spot++;
-								}
-							}
-							format[spot] = 'l';
-							spot++;
-						}
-						break;
-					case '\'':
-						if(in_line[a] == '\'' && in_line[a+1] == '\'' && in_line[a+2] == '\'') { 
-							format[spot] = format[spot+1] = format[spot+2] = 'l';
-							spot +=3;
-							a += 3;
-							while(in_line[a] != '\'' || in_line[a-1] != '\'' || in_line[a-2] != '\'') {
-								c = (unsigned char) in_line[a];
-								if(a >= len) {
-									format[spot] = '\0';
-									memcpy(tmp->format, format, strlen(format));
-									if(!(tmp= tmp->next)) {
-										return;
-									} else {
-										in_line = tmp->line;
-										len = strlen(in_line);
-										tabs = 0;
-										for(b = 0; b <len; b++) {
-											c = (unsigned char) in_line[b];
-											if(c == '\t') {
-												tabs++;
-											}
-										}
-										mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-										if (tmp->format) MEM_freeN(tmp->format);
-										tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-										a = 0; spot = 0;
-									}
-								} else {
 									if(c == '\t' || c == ' ') {
 										if(c == '\t') {
 											for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
@@ -363,132 +323,152 @@ void get_format_string(void)
 										a++; spot++;
 									}
 								}
+								format[spot] = 'l';
+								spot++;
 							}
-							format[spot] = 'l';
-							spot++;
-						} else {
-							format[spot] = 'l';
-							a++; spot++;
-							while(in_line[a] != '\'') {
-								c = (unsigned char) in_line[a];
-								if(a >= len) {
-									format[spot] = '\0';
-									memcpy(tmp->format, format, strlen(format));
-									if(!(tmp= tmp->next)) {
-										return;
-									} else {
-										in_line = tmp->line;
-										len = strlen(in_line);
-										for(b = 0; b <len; b++) {
-											c = (unsigned char) in_line[b];
-											if(c == '\t') {
-												tabs++;
+							break;
+						case '\'':
+							if(in_line[a] == '\'' && in_line[a+1] == '\'' && in_line[a+2] == '\'') { 
+								format[spot] = format[spot+1] = format[spot+2] = 'l';
+								spot +=3;
+								a += 3;
+								while(in_line[a] != '\'' || in_line[a-1] != '\'' || in_line[a-2] != '\'') {
+									c = (unsigned char) in_line[a];
+									if(a >= len) {
+										format[spot] = '\0';
+										memcpy(tmp->format, format, strlen(format));
+										if(!(tmp= tmp->next)) {
+											return;
+										} else {
+											in_line = tmp->line;
+											len = strlen(in_line);
+											tabs = 0;
+											for(b = 0; b <len; b++) {
+												c = (unsigned char) in_line[b];
+												if(c == '\t') {
+													tabs++;
+												}
 											}
+											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
+											if (tmp->format) MEM_freeN(tmp->format);
+											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
+											a = 0; spot = 0;
 										}
-										//calculate the amount of MEM_mallocN we neen
-										mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
-										if (tmp->format) MEM_freeN(tmp->format);
-										tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
-										a = 0; spot = 0;
+									} else {
+										if(c == '\t' || c == ' ') {
+											if(c == '\t') {
+												for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
+													format[spot] = ' ';
+													spot++;
+												}
+												a++;
+											} else {
+												format[spot] = ' ';
+												a++; spot++;
+											}
+										} else {
+											format[spot] = 'l';
+											a++; spot++;
+										}
 									}
 								}
+								format[spot] = 'l';
+								spot++;
+							} else {
+								format[spot] = 'l';
+								a++; spot++;
+								while(in_line[a] != '\'') {
+									c = (unsigned char) in_line[a];
+									if(a >= len) {
+										format[spot] = '\0';
+										memcpy(tmp->format, format, strlen(format));
+										if(!(tmp= tmp->next)) {
+											return;
+										} else {
+											in_line = tmp->line;
+											len = strlen(in_line);
+											for(b = 0; b <len; b++) {
+												c = (unsigned char) in_line[b];
+												if(c == '\t') {
+													tabs++;
+												}
+											}
+											//calculate the amount of MEM_mallocN we neen
+											mem_amount = (((tabs*st->tabnumber)-tabs)+2)+len;
+											if (tmp->format) MEM_freeN(tmp->format);
+											tmp->format = MEM_mallocN(mem_amount, "Syntax_format");
+											a = 0; spot = 0;
+										}
+									}
+									if(c == '\t' || c == ' ') {
+										if(c == '\t') {
+											for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
+												format[spot] = ' ';
+												spot++;
+											}
+											a++;
+										} else {
+											format[spot] = ' ';
+											a++; spot++;
+										}
+									} else {
+										format[spot] = 'l';
+										a++; spot++;
+									}
+								}
+								format[spot] = 'l';
+								spot++;
+							}
+							break;
+						case '#':
+							while(a<len) {
+								c = (unsigned char) in_line[a];
 								if(c == '\t' || c == ' ') {
 									if(c == '\t') {
 										for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
-											format[spot] = ' ';
+											format[spot] = '#';
 											spot++;
 										}
 										a++;
 									} else {
-										format[spot] = ' ';
-										a++; spot++;
-									}
-								} else {
-									format[spot] = 'l';
-									a++; spot++;
-								}
-							}
-							format[spot] = 'l';
-							spot++;
-						}
-						break;
-					case '#':
-						while(a<len) {
-							c = (unsigned char) in_line[a];
-							if(c == '\t' || c == ' ') {
-								if(c == '\t') {
-									for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
 										format[spot] = '#';
-										spot++;
+										a++; spot++;
 									}
-									a++;
 								} else {
 									format[spot] = '#';
 									a++; spot++;
 								}
-							} else {
-								format[spot] = '#';
-								a++; spot++;
 							}
-						}
-						break;
-					case ' ':
-						format[spot] = ' ';
-						spot++;
-						break;
-					case '\t':
-						for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
+							break;
+						case ' ':
 							format[spot] = ' ';
 							spot++;
+							break;
+						case '\t':
+							for(b = st->tabnumber-(spot%st->tabnumber); b > 0; b--) {
+								format[spot] = ' ';
+								spot++;
+							}
+							break;
+						default:
+							format[spot] = 'q';
+							spot++;
+							 
+							break;
+					}
+				} else if (check_numbers(check)) {
+					while (a < len) {
+						c = (unsigned char) in_line[a];
+						other[0] = c;
+						other[1] = '\0';
+						if (check_delim(other) && c != '.') {
+							a--; break;
+						} else {
+							format[spot] = 'n';
+							a++; spot++;
 						}
-						break;
-					default:
-						format[spot] = 'q';
-						spot++;
-						 
-						break;
-				}
-			} else if (check_numbers(check)) {
-				while (a < len) {
-					c = (unsigned char) in_line[a];
-					other[0] = c;
-					other[1] = '\0';
-					if (check_delim(other) && c != '.') {
-						a--; break;
-					} else {
-						format[spot] = 'n';
-						a++; spot++;
 					}
-				}
-			} else {
-				letter = 0;
-				while (a < len) {
-					c = (unsigned char) in_line[a];
-					other[0] = c;
-					other[1] = '\0';
-					if (check_delim(other)) {
-						a--; 
-						break;
-					} else {
-						check[letter] = (unsigned char) in_line[a];
-						letter++; 
-						a++;
-					}
-				}
-				check[letter] = '\0';
-				if (check_builtinfuncs(check)) {
-					for (b = 0; b < strlen(check); b++) {
-						format[spot] = 'b'; 
-						spot++;
-					}
-				} else if (check_specialvars(check)) { /*If TRUE then color and color next word*/
-					for (b = 0; b < strlen(check); b++) {
-						format[spot] = 'b';
-						spot++;
-					}
-					a++;
-					format[spot] = 'q';
-					spot++; a++;
+				} else {
 					letter = 0;
 					while (a < len) {
 						c = (unsigned char) in_line[a];
@@ -504,20 +484,50 @@ void get_format_string(void)
 						}
 					}
 					check[letter] = '\0';
-					for (b = 0; b < strlen(check); b++) {
-						format[spot] = 'v';
-						spot++;
-					}
-				}else {
-					for (b = 0; b < strlen(check); b++) {
+					if (check_builtinfuncs(check)) {
+						for (b = 0; b < strlen(check); b++) {
+							format[spot] = 'b'; 
+							spot++;
+						}
+					} else if (check_specialvars(check)) { /*If TRUE then color and color next word*/
+						for (b = 0; b < strlen(check); b++) {
+							format[spot] = 'b';
+							spot++;
+						}
+						a++;
 						format[spot] = 'q';
-						spot++;
+						spot++; a++;
+						letter = 0;
+						while (a < len) {
+							c = (unsigned char) in_line[a];
+							other[0] = c;
+							other[1] = '\0';
+							if (check_delim(other)) {
+								a--; 
+								break;
+							} else {
+								check[letter] = (unsigned char) in_line[a];
+								letter++; 
+								a++;
+							}
+						}
+						check[letter] = '\0';
+						for (b = 0; b < strlen(check); b++) {
+							format[spot] = 'v';
+							spot++;
+						}
+					}else {
+						for (b = 0; b < strlen(check); b++) {
+							format[spot] = 'q';
+							spot++;
+						}
 					}
 				}
 			}
+			format[spot] = '\0';
+			memcpy(tmp->format, format, strlen(format));
 		}
-		format[spot] = '\0';
-		memcpy(tmp->format, format, strlen(format));
+		
 		tmp = tmp->next;
 	}
 }
@@ -535,7 +545,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	w= w-cshift;
 
 	if (draw) {
-		if(st->showsyntax) {
+		if(st->showsyntax && format) {
 			int amount, a;
 			char out[2];
 			format = format+cshift;
