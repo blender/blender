@@ -3253,6 +3253,7 @@ void do_fpaintbuts(unsigned short event)
 					tface++;
 				}
 			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			do_shared_vertexcol(me);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWIMAGE, 0);

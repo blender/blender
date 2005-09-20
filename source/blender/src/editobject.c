@@ -1930,6 +1930,7 @@ void special_editmenu(void)
 					}
 				}
 			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSEDIT, 0);
 			BIF_undo_push("Change texture face");
