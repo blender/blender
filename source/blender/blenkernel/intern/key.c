@@ -641,8 +641,8 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 				from= kb->data;
 				
 				poin+= start*ofs[0];
-				reffrom+= elemsize*start;
-				from+= elemsize*start;
+				reffrom+= key->elemsize*start;	// key elemsize yes!
+				from+= key->elemsize*start;
 				
 				for(b=start; b<end; b++) {
 				
@@ -678,6 +678,7 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 					reffrom+= elemsize;
 					from+= elemsize;
 					
+					if(mode==KEY_BEZTRIPLE) b+= 2;
 				}
 			}
 		}
@@ -1034,9 +1035,9 @@ static void do_rel_cu_key(Curve *cu, float ctime)
 			poin -= a*sizeof(BezTriple);
 
 			do_rel_key(a, a+step, tot, poin, cu->key, ctime, KEY_BEZTRIPLE);
-			
 		}
 		a+= step;
+		
 		nu=nu->next;
 	}
 }

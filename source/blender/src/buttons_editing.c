@@ -2077,17 +2077,16 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButBitS(block, TOG, CU_NOPUNOFLIP, REDRAWVIEW3D, "No Puno Flip",	600,140,150,19, &cu->flag, 0, 0, 0, 0, "Don't flip vertex normals while render");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 150, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
-	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
-	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 75, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
+	uiDefBut(block, BUT,B_DOCENTRE, "Centre",					600, 115, 55, 19, 0, 0, 0, 0, 0, "Shifts object data to be centered about object's origin");
+	uiDefBut(block, BUT,B_DOCENTRENEW, "Centre New",			655, 115, 95, 19, 0, 0, 0, 0, 0, "Shifts object's origin to center of object data");
+	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		600, 95, 150, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 	uiBlockEndAlign(block);
 
-	if(ob->type==OB_SURF) {
-		if(cu->key) {
-			/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			600,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
-			uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	600,45,140,19, &cu->key->type, 0, 0, 0, 0, "");
-		}
+	if(cu->key) {
+		/* uiDefButS(block, NUM, B_DIFF, "Slurph:",			600,25,140,19, &(cu->key->slurph), -500.0, 500.0,0,0); ,""*/
+		uiDefButS(block, TOG, B_RELKEY, "Relative Keys",	600, 72,150,19, &cu->key->type, 0, 0, 0, 0, "");
 	}
+
 
 	if(ob->type!=OB_SURF) {
 	

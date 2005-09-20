@@ -831,11 +831,6 @@ void makeNurbfaces(Nurb *nu, float *data, int rowstride)
 		if (rowstride!=0) in = (float*) (((unsigned char*) in) + (rowstride - 3*nu->resolv*sizeof(*in)));
 	}
 
-	for (i=0; i<144*3; i++) {
-//		fprintf(stderr, "%f %f %f\n", nu->bp[i].vec[0], nu->bp[i].vec[1], nu->bp[i].vec[2]);
-		fprintf(stderr, "%f ", data[i]);
-	}
-
 	/* free */
 	MEM_freeN(sum);
 	MEM_freeN(basisu);

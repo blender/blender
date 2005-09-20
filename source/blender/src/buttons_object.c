@@ -1282,6 +1282,7 @@ void do_object_panels(unsigned short event)
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWIPO, 0);
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		break;
 	case B_CURVECHECK:
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);

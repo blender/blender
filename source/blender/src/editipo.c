@@ -3921,6 +3921,7 @@ void common_insertkey()
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
 			return;
 		}
 		
