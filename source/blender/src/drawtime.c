@@ -32,6 +32,7 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -148,19 +149,22 @@ static void draw_marker(TimeMarker *marker)
 	glDisable(GL_BLEND);		
 
 	/* and the marker name too, shifted slightly to the top-right */
-	if(marker->flag & SELECT) {
-		BIF_ThemeColor(TH_TEXT_HI);
-		glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 27.0*yspace/ypixels);
+	if(strlen(marker->name)>0) {
+		if(marker->flag & SELECT) {
+			BIF_ThemeColor(TH_TEXT_HI);
+			glRasterPos2f(xpos+(4.0*(xspace/xpixels)),
+					((ypixels<=39.0)?(ypixels-10.0):29.0)*yspace/ypixels);
+		}
+		else {
+			BIF_ThemeColor(TH_TEXT);
+			if((marker->frame <= G.scene->r.cfra) && (marker->frame+5 > G.scene->r.cfra))
+				glRasterPos2f(xpos+(4.0*(xspace/xpixels)),
+						((ypixels<=39.0)?(ypixels-10.0):29.0)*yspace/ypixels);
+			else
+				glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
+		}
+		BMF_DrawString(G.font, marker->name);
 	}
-	else {
-		BIF_ThemeColor(TH_TEXT);
-		if((marker->frame <= G.scene->r.cfra) && (marker->frame+5 > G.scene->r.cfra))
-			glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 27.0*yspace/ypixels);
-		else
-			glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
-	}
-	
-	BMF_DrawString(G.font, marker->name);
 }
 
 static void draw_markers_time(SpaceTime *stime)
