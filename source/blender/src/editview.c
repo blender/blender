@@ -1573,28 +1573,52 @@ void borderselect(void)
 		}
 		else if(G.obedit->type==OB_ARMATURE) {
 			EditBone *ebone;
-
+			
+			/* clear flag we use to detect point was affected */
+			for(ebone= G.edbo.first; ebone; ebone= ebone->next)
+				ebone->flag &= ~BONE_DONE;
+			
 			hits= view3d_opengl_select(buffer, MAXPICKBUF, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
-
-			base= FIRSTBASE;
+			
+			/* first we only check points inside the border */
 			for (a=0; a<hits; a++){
 				index = buffer[(4*a)+3];
-				if (val==LEFTMOUSE){
-					if (index!=-1) {
-						ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
-						if (index & (BONESEL_TIP|BONESEL_BONE))
-							ebone->flag |= BONE_TIPSEL;
-						if (index & (BONESEL_ROOT|BONESEL_BONE))
-							ebone->flag |= BONE_ROOTSEL;
+				if (index!=-1) {
+					ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+					if (index & BONESEL_TIP) {
+						ebone->flag |= BONE_DONE;
+						if (val==LEFTMOUSE) ebone->flag |= BONE_TIPSEL;
+						else ebone->flag &= ~BONE_TIPSEL;
+					}
+					
+					if (index & BONESEL_ROOT) {
+						ebone->flag |= BONE_DONE;
+						if (val==LEFTMOUSE) ebone->flag |= BONE_ROOTSEL;
+						else ebone->flag &= ~BONE_ROOTSEL;
 					}
 				}
-				else{
-					if (index!=-1){
-						ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
-						if (index & (BONESEL_TIP|BONESEL_BONE))
-							ebone->flag &= ~BONE_TIPSEL;
-						if (index & (BONESEL_ROOT|BONESEL_BONE))
-							ebone->flag &= ~BONE_ROOTSEL;
+			}
+			
+			/* now we have to flush tag from parents... */
+			for(ebone= G.edbo.first; ebone; ebone= ebone->next) {
+				if(ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+					if(ebone->parent->flag & BONE_DONE)
+						ebone->flag |= BONE_DONE;
+				}
+			}
+			
+			/* only select/deselect entire bones when no points where in the rect */
+			for (a=0; a<hits; a++){
+				index = buffer[(4*a)+3];
+				if (index!=-1) {
+					ebone = BLI_findlink(&G.edbo, index & ~(BONESEL_ANY));
+					if (index & BONESEL_BONE) {
+						if(!(ebone->flag & BONE_DONE)) {
+							if (val==LEFTMOUSE)
+								ebone->flag |= (BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
+							else
+								ebone->flag &= ~(BONE_ROOTSEL|BONE_TIPSEL|BONE_SELECTED);
+						}
 					}
 				}
 			}

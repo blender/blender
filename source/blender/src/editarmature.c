@@ -907,7 +907,7 @@ void mouse_armature(void)
 			deselectall_armature(0);
 		}
 		
-		/* by definition the non-root non-connected bones have no root point drawn,
+		/* by definition the non-root connected bones have no root point drawn,
 	       so a root selection needs to be delivered to the parent tip,
 	       countall() (bad location) flushes these flags */
 		
