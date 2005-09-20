@@ -149,7 +149,7 @@ static void draw_marker(TimeMarker *marker)
 	glDisable(GL_BLEND);		
 
 	/* and the marker name too, shifted slightly to the top-right */
-	if(strlen(marker->name)>0) {
+	if(marker->name && marker->name[0]) {
 		if(marker->flag & SELECT) {
 			BIF_ThemeColor(TH_TEXT_HI);
 			glRasterPos2f(xpos+(4.0*(xspace/xpixels)),
