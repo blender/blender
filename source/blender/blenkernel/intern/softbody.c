@@ -297,7 +297,7 @@ static void free_softbody_baked(SoftBody *sb)
 {
 	SBVertex *key;
 	int k;
-	
+
 	for(k=0; k<sb->totkey; k++) {
 		key= *(sb->keys + k);
 		if(key) MEM_freeN(key);
@@ -1238,7 +1238,9 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 
 	/* precondition check */
 	if(sb==NULL || sb->keys==NULL || sb->totkey==0) return 0;
-	
+	/* so we got keys, but no bodypoints... even without simul we need it for the bake */	 
+	if(sb->bpoint==NULL) sb->bpoint= MEM_callocN( sb->totpoint*sizeof(BodyPoint), "bodypoint");	 
+ 	
 	/* convert cfra time to system time */
 	sfra= (float)sb->sfra;
 	cfra= bsystem_time(ob, NULL, framenr, 0.0);
@@ -1402,7 +1404,12 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	float ctime, forcetime;
 	float err;
 	
-		/* remake softbody if: */
+	/* baking works with global time */
+	if(!(ob->softflag & OB_SB_BAKEDO) )
+		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
+
+	
+	/* remake softbody if: */
 	if(		(ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 			(ob->soft==NULL) ||					// just to be nice we allow full init
 			(ob->soft->bpoint==NULL) || 		// after reading new file, or acceptable as signal to refresh
@@ -1426,10 +1433,6 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		ob->softflag &= ~OB_SB_REDO;
 	}
 
-	/* baking works with global time */
-	if(!(ob->softflag & OB_SB_BAKEDO) )
-		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
-	
 	sb= ob->soft;
 
 	/* still no points? go away */
