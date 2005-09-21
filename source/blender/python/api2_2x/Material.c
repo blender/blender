@@ -35,6 +35,7 @@
 
 #include "DNA_oops_types.h"
 #include "DNA_space_types.h"
+#include "DNA_material_types.h"
 #include "BKE_main.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
@@ -54,34 +55,6 @@
 /*****************************************************************************/
 /* Python BPy_Material defaults: */
 /*****************************************************************************/
-#define EXPP_MAT_MODE_TRACEABLE			MA_TRACEBLE
-#define EXPP_MAT_MODE_SHADOW			MA_SHADOW
-#define EXPP_MAT_MODE_SHADELESS			MA_SHLESS
-#define EXPP_MAT_MODE_WIRE			MA_WIRE
-#define EXPP_MAT_MODE_VCOL_LIGHT		MA_VERTEXCOL
-#define EXPP_MAT_MODE_HALO			MA_HALO
-#define EXPP_MAT_MODE_ZTRANSP			MA_ZTRA
-#define EXPP_MAT_MODE_VCOL_PAINT	        MA_VERTEXCOLP
-#define EXPP_MAT_MODE_ZINVERT			MA_ZINV
-#define EXPP_MAT_MODE_HALORINGS			MA_HALO_RINGS
-#define EXPP_MAT_MODE_ENV			MA_ENV
-#define EXPP_MAT_MODE_HALOLINES			MA_HALO_LINES
-#define EXPP_MAT_MODE_ONLYSHADOW		MA_ONLYSHADOW
-#define EXPP_MAT_MODE_HALOXALPHA		MA_HALO_XALPHA
-#define EXPP_MAT_MODE_HALOSTAR			MA_STAR
-#define EXPP_MAT_MODE_TEXFACE			MA_FACETEXTURE
-#define EXPP_MAT_MODE_HALOTEX			MA_HALOTEX
-#define EXPP_MAT_MODE_HALOPUNO		        MA_HALOPUNO
-#define EXPP_MAT_MODE_NOMIST			MA_NOMIST
-#define EXPP_MAT_MODE_HALOSHADE			MA_HALO_SHADE
-#define EXPP_MAT_MODE_HALOFLARE			MA_HALO_FLARE
-#define EXPP_MAT_MODE_RADIO			MA_RADIO
-#define EXPP_MAT_MODE_RAYMIRROR			MA_RAYMIRROR
-#define EXPP_MAT_MODE_ZTRA			MA_ZTRA
-#define EXPP_MAT_MODE_RAYTRANSP			MA_RAYTRANSP
-#define EXPP_MAT_MODE_ONLYSHADOW		MA_ONLYSHADOW
-#define EXPP_MAT_MODE_NOMIST			MA_NOMIST
-#define EXPP_MAT_MODE_ENV			MA_ENV
 /* Material MIN, MAX values */
 #define EXPP_MAT_ADD_MIN			 0.0f
 #define EXPP_MAT_ADD_MAX			 1.0f
@@ -100,11 +73,7 @@
 #define EXPP_MAT_SPECTRA_MIN	 0.0f
 #define EXPP_MAT_SPECTRA_MAX	 1.0f
 
-/* Shader spesific settings */
-#define EXPP_MAT_SPEC_SHADER_MIN			 0
-#define EXPP_MAT_SPEC_SHADER_MAX			 4
-#define EXPP_MAT_DIFFUSE_SHADER_MIN			 0
-#define EXPP_MAT_DIFFUSE_SHADER_MAX			 3
+/* Shader specific settings */
 
 #define EXPP_MAT_ROUGHNESS_MIN			 0.0f
 #define EXPP_MAT_ROUGHNESS_MAX			 3.140f
@@ -123,31 +92,6 @@
 #define EXPP_MAT_RMS_MIN			 0.0f
 #define EXPP_MAT_RMS_MAX			 0.4f
 /* End shader settings */
-
-/* diff_shader */
-#define MA_DIFF_LAMBERT		0
-#define MA_DIFF_ORENNAYAR	1
-#define MA_DIFF_TOON		2
-#define MA_DIFF_MINNAERT    3
-
-/* spec_shader */
-#define MA_SPEC_COOKTORR	0
-#define MA_SPEC_PHONG		1
-#define MA_SPEC_BLINN		2
-#define MA_SPEC_TOON		3
-#define MA_SPEC_WARDISO		4
-
-/* shader dicts - Diffuse */
-#define EXPP_MAT_SHADER_DIFFUSE_LAMBERT		MA_DIFF_LAMBERT
-#define EXPP_MAT_SHADER_DIFFUSE_ORENNAYAR	MA_DIFF_ORENNAYAR
-#define EXPP_MAT_SHADER_DIFFUSE_TOON		MA_DIFF_TOON
-#define EXPP_MAT_SHADER_DIFFUSE_MINNAERT	MA_DIFF_MINNAERT
-/* shader dicts - Specular */
-#define EXPP_MAT_SHADER_SPEC_COOKTORR		MA_SPEC_COOKTORR
-#define EXPP_MAT_SHADER_SPEC_PHONG			MA_SPEC_PHONG
-#define EXPP_MAT_SHADER_SPEC_BLINN			MA_SPEC_BLINN
-#define EXPP_MAT_SHADER_SPEC_TOON			MA_SPEC_TOON
-#define EXPP_MAT_SHADER_SPEC_WARDISO		MA_SPEC_WARDISO
 
 #define EXPP_MAT_ZOFFS_MIN			 0.0
 #define EXPP_MAT_ZOFFS_MAX			10.0
@@ -202,6 +146,17 @@
 #define EXPP_MAT_MIRRTRANSADD_MIN			0.0
 #define EXPP_MAT_MIRRTRANSADD_MAX			1.0
 
+/* closure values for getColorComponent()/setColorComponent() */
+
+#define	EXPP_MAT_COMP_R		0
+#define	EXPP_MAT_COMP_G		1
+#define	EXPP_MAT_COMP_B		2
+#define	EXPP_MAT_COMP_SPECR	3
+#define	EXPP_MAT_COMP_SPECG	4
+#define	EXPP_MAT_COMP_SPECB	5
+#define	EXPP_MAT_COMP_MIRR	6
+#define	EXPP_MAT_COMP_MIRG	7
+#define	EXPP_MAT_COMP_MIRB	8
 
 #define IPOKEY_RGB          0
 #define IPOKEY_ALPHA        1 
@@ -213,11 +168,8 @@
 #define IPOKEY_SIZE         13
 #define IPOKEY_ALLMAPPING   11
 
-
-
-
 /*****************************************************************************/
-/* Python API function prototypes for the Material module.	 */
+/* Python API function prototypes for the Material module.                   */
 /*****************************************************************************/
 static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords );
@@ -226,11 +178,10 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args );
 /* Not exposed nor used */
 Material *GetMaterialByName( char *name );
 
-
 /*****************************************************************************/
-/* The following string definitions are used for documentation strings.	 */
-/* In Python these will be written to the console when doing a		 */
-/* Blender.Material.__doc__						 */
+/* The following string definitions are used for documentation strings.  In  */
+/* Python these will be written to the console when doing a                  */
+/* Blender.Material.__doc__                                                  */
 /*****************************************************************************/
 static char M_Material_doc[] = "The Blender Material module";
 
@@ -243,7 +194,7 @@ static char M_Material_Get_doc[] =
 () - return a list of all materials in the current scene.";
 
 /*****************************************************************************/
-/* Python method structure definition for Blender.Material module:	 */
+/* Python method structure definition for Blender.Material module:           */
 /*****************************************************************************/
 struct PyMethodDef M_Material_methods[] = {
 	{"New", ( PyCFunction ) M_Material_New, METH_VARARGS | METH_KEYWORDS,
@@ -254,8 +205,8 @@ struct PyMethodDef M_Material_methods[] = {
 };
 
 /*****************************************************************************/
-/* Function:	M_Material_New	 */
-/* Python equivalent:		Blender.Material.New */
+/* Function:	M_Material_New                                               */
+/* Python equivalent:		Blender.Material.New                             */
 /*****************************************************************************/
 static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords )
@@ -368,44 +319,34 @@ static PyObject *Material_ModesDict( void )
 {
 	PyObject *Modes = PyConstant_New(  );
 
-#undef EXPP_ADDCONST
-#define EXPP_ADDCONST(name) \
-	PyConstant_Insert(c, #name, PyInt_FromLong(EXPP_MAT_MODE_##name))
-
-/* So that:
- * EXPP_ADDCONST(TRACEABLE) becomes:
- * constant_insert(c, "TRACEABLE", PyInt_FromLong(EXPP_MAT_MODE_TRACEABLE))
- */
-
 	if( Modes ) {
 		BPy_constant *c = ( BPy_constant * ) Modes;
 
-		EXPP_ADDCONST( TRACEABLE );
-		EXPP_ADDCONST( SHADOW );
-		EXPP_ADDCONST( SHADELESS );
-		EXPP_ADDCONST( WIRE );
-		EXPP_ADDCONST( VCOL_LIGHT );
-		EXPP_ADDCONST( HALO );
-		EXPP_ADDCONST( ZTRANSP );
-		EXPP_ADDCONST( VCOL_PAINT );
-		EXPP_ADDCONST( ZINVERT );
-		EXPP_ADDCONST( HALORINGS );
-		EXPP_ADDCONST( ENV );
-		EXPP_ADDCONST( HALOLINES );
-		EXPP_ADDCONST( ONLYSHADOW );
-		EXPP_ADDCONST( HALOXALPHA );
-		EXPP_ADDCONST( HALOSTAR );
-		EXPP_ADDCONST( TEXFACE );
-		EXPP_ADDCONST( HALOTEX );
-		EXPP_ADDCONST( HALOPUNO );
-		EXPP_ADDCONST( NOMIST );
-		EXPP_ADDCONST( HALOSHADE );
-		EXPP_ADDCONST( HALOFLARE );
-		EXPP_ADDCONST( RADIO );
-		EXPP_ADDCONST( RAYMIRROR );
-		EXPP_ADDCONST( ZTRA );
-		EXPP_ADDCONST( RAYTRANSP );
-
+		PyConstant_Insert(c, "TRACEABLE", PyInt_FromLong(MA_TRACEBLE));
+		PyConstant_Insert(c, "SHADOW", PyInt_FromLong(MA_SHADOW));
+		PyConstant_Insert(c, "SHADELESS", PyInt_FromLong(MA_SHLESS));
+		PyConstant_Insert(c, "WIRE", PyInt_FromLong(MA_WIRE));
+		PyConstant_Insert(c, "VCOL_LIGHT", PyInt_FromLong(MA_VERTEXCOL));
+		PyConstant_Insert(c, "HALO", PyInt_FromLong(MA_HALO));
+		PyConstant_Insert(c, "ZTRANSP", PyInt_FromLong(MA_ZTRA));
+		PyConstant_Insert(c, "VCOL_PAINT", PyInt_FromLong(MA_VERTEXCOLP));
+		PyConstant_Insert(c, "ZINVERT", PyInt_FromLong(MA_ZINV));
+		PyConstant_Insert(c, "HALORINGS", PyInt_FromLong(MA_HALO_RINGS));
+		PyConstant_Insert(c, "ENV", PyInt_FromLong(MA_ENV));
+		PyConstant_Insert(c, "HALOLINES", PyInt_FromLong(MA_HALO_LINES));
+		PyConstant_Insert(c, "ONLYSHADOW", PyInt_FromLong(MA_ONLYSHADOW));
+		PyConstant_Insert(c, "HALOXALPHA", PyInt_FromLong(MA_HALO_XALPHA));
+		PyConstant_Insert(c, "HALOSTAR", PyInt_FromLong(MA_STAR));
+		PyConstant_Insert(c, "TEXFACE", PyInt_FromLong(MA_FACETEXTURE));
+		PyConstant_Insert(c, "HALOTEX", PyInt_FromLong(MA_HALOTEX));
+		PyConstant_Insert(c, "HALOPUNO", PyInt_FromLong(MA_HALOPUNO));
+		PyConstant_Insert(c, "NOMIST", PyInt_FromLong(MA_NOMIST));
+		PyConstant_Insert(c, "HALOSHADE", PyInt_FromLong(MA_HALO_SHADE));
+		PyConstant_Insert(c, "HALOFLARE", PyInt_FromLong(MA_HALO_FLARE));
+		PyConstant_Insert(c, "RADIO", PyInt_FromLong(MA_RADIO));
+		PyConstant_Insert(c, "RAYMIRROR", PyInt_FromLong(MA_RAYMIRROR));
+		PyConstant_Insert(c, "ZTRA", PyInt_FromLong(MA_ZTRA));
+		PyConstant_Insert(c, "RAYTRANSP", PyInt_FromLong(MA_RAYTRANSP));
 	}
 
 	return Modes;
@@ -416,28 +357,19 @@ static PyObject *Material_ShadersDict( void )
 {
 	PyObject *Shaders = PyConstant_New(  );
 
-#undef EXPP_ADDCONST
-#define EXPP_ADDCONST(name) \
-	PyConstant_Insert(c, #name, PyInt_FromLong(EXPP_MAT_SHADER_##name))
-
-/* So that:
- * EXPP_ADDCONST(DIFFUSE_LAMBERT) becomes:
- * constant_insert(c, "TRACEABLE", PyInt_FromLong(EXPP_MAT_SHADER_DIFFUSE_LAMBERT))
- */
-
 	if( Shaders ) {
 		BPy_constant *c = ( BPy_constant * ) Shaders;
 
-		EXPP_ADDCONST( DIFFUSE_LAMBERT );
-		EXPP_ADDCONST( DIFFUSE_ORENNAYAR );
-		EXPP_ADDCONST( DIFFUSE_TOON );
-		EXPP_ADDCONST( DIFFUSE_MINNAERT );
-		
-		EXPP_ADDCONST( SPEC_COOKTORR );
-		EXPP_ADDCONST( SPEC_PHONG );
-		EXPP_ADDCONST( SPEC_BLINN );
-		EXPP_ADDCONST( SPEC_TOON );
-		EXPP_ADDCONST( SPEC_WARDISO );
+		PyConstant_Insert(c, "DIFFUSE_LAMBERT", PyInt_FromLong(MA_DIFF_LAMBERT));
+		PyConstant_Insert(c, "DIFFUSE_ORENNAYAR", PyInt_FromLong(MA_DIFF_ORENNAYAR));
+		PyConstant_Insert(c, "DIFFUSE_TOON", PyInt_FromLong(MA_DIFF_TOON));
+		PyConstant_Insert(c, "DIFFUSE_MINNAERT", PyInt_FromLong(MA_DIFF_MINNAERT));
+		PyConstant_Insert(c, "SPEC_COOKTORR", PyInt_FromLong(MA_SPEC_COOKTORR));
+		PyConstant_Insert(c, "SPEC_PHONG", PyInt_FromLong(MA_SPEC_PHONG));
+		PyConstant_Insert(c, "SPEC_BLINN", PyInt_FromLong(MA_SPEC_BLINN));
+		PyConstant_Insert(c, "SPEC_TOON", PyInt_FromLong(MA_SPEC_TOON));
+		PyConstant_Insert(c, "SPEC_WARDISO", PyInt_FromLong(MA_SPEC_WARDISO));
+
 	}
 
 	return Shaders;
@@ -451,7 +383,8 @@ PyObject *Material_Init( void )
 {
 	PyObject *submodule, *Modes, *Shaders;
 
-	Material_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Material_Type ) < 0)
+		return NULL;
 
 	Modes = Material_ModesDict(  );
 	Shaders = Material_ShadersDict(  );
@@ -480,6 +413,108 @@ PyObject *Material_Init( void )
 /***************************/
 /*** The Material PyType ***/
 /***************************/
+
+static PyObject *Matr_oldsetAdd( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetAlpha( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetAmb( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetEmit( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFilter( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFlareBoost( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFlareSeed( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFlareSize( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFresnelMirr( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFresnelMirrFac( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFresnelTrans( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetFresnelTransFac( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetHaloSeed( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetHaloSize( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetHardness( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetIOR( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetName( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetNFlares( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetNLines( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetNRings( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetNStars( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRayMirr( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetMirrDepth( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRef( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpec( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpecTransp( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSubSize( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetTransDepth( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetZOffset( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetIpo( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRGBCol( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpecCol( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpecShader( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetMirCol( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetDiffuseShader( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRoughness( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpecSize( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetDiffuseSize( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetSpecSmooth( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetDiffuseSmooth( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetDiffuseDarkness( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRefracIndex( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetRms( BPy_Material * self, PyObject * args );
+static PyObject *Matr_oldsetTranslucency( BPy_Material * self, PyObject * args );
+;
+static int Material_setIpo( BPy_Material * self, PyObject * value );
+static int Material_setName( BPy_Material * self, PyObject * value );
+static int Material_setMode( BPy_Material * self, PyObject * value );
+static int Material_setRGBCol( BPy_Material * self, PyObject * value );
+static int Material_setSpecCol( BPy_Material * self, PyObject * value );
+static int Material_setMirCol( BPy_Material * self, PyObject * value );
+static int Material_setColorComponent( BPy_Material * self, PyObject * value,
+							void * closure );
+static int Material_setAmb( BPy_Material * self, PyObject * value );
+static int Material_setEmit( BPy_Material * self, PyObject * value );
+static int Material_setSpecTransp( BPy_Material * self, PyObject * value );
+static int Material_setAlpha( BPy_Material * self, PyObject * value );
+static int Material_setRef( BPy_Material * self, PyObject * value );
+static int Material_setSpec( BPy_Material * self, PyObject * value );
+static int Material_setZOffset( BPy_Material * self, PyObject * value );
+static int Material_setAdd( BPy_Material * self, PyObject * value );
+static int Material_setHaloSize( BPy_Material * self, PyObject * value );
+static int Material_setFlareSize( BPy_Material * self, PyObject * value );
+static int Material_setFlareBoost( BPy_Material * self, PyObject * value );
+static int Material_setSubSize( BPy_Material * self, PyObject * value );
+static int Material_setHaloSeed( BPy_Material * self, PyObject * value );
+static int Material_setFlareSeed( BPy_Material * self, PyObject * value );
+static int Material_setHardness( BPy_Material * self, PyObject * value );
+static int Material_setNFlares( BPy_Material * self, PyObject * value );
+static int Material_setNStars( BPy_Material * self, PyObject * value );
+static int Material_setNLines( BPy_Material * self, PyObject * value );
+static int Material_setNRings( BPy_Material * self, PyObject * value );
+static int Material_setRayMirr( BPy_Material * self, PyObject * value );
+static int Material_setMirrDepth( BPy_Material * self, PyObject * value );
+static int Material_setFresnelMirr( BPy_Material * self, PyObject * value );
+static int Material_setFresnelMirrFac( BPy_Material * self, PyObject * value );
+static int Material_setIOR( BPy_Material * self, PyObject * value );
+static int Material_setTransDepth( BPy_Material * self, PyObject * value );
+static int Material_setFresnelTrans( BPy_Material * self, PyObject * value );
+static int Material_setFresnelTransFac( BPy_Material * self, PyObject * value );
+static int Material_setOopsLoc ( BPy_Material * self, PyObject * value );
+static int Material_setOopsSel ( BPy_Material * self, PyObject * value );
+static int Material_setSpecShader( BPy_Material * self, PyObject * value );
+static int Material_setDiffuseShader( BPy_Material * self, PyObject * value );
+static int Material_setRoughness( BPy_Material * self, PyObject * value );
+static int Material_setSpecSize( BPy_Material * self, PyObject * value );
+static int Material_setDiffuseSize( BPy_Material * self, PyObject * value );
+static int Material_setSpecSmooth( BPy_Material * self, PyObject * value );
+static int Material_setDiffuseSmooth( BPy_Material * self, PyObject * value );
+static int Material_setDiffuseDarkness( BPy_Material * self, PyObject * value );
+static int Material_setRefracIndex( BPy_Material * self, PyObject * value );
+static int Material_setRms( BPy_Material * self, PyObject * value );
+static int Material_setFilter( BPy_Material * self, PyObject * value );
+static int Material_setTranslucency( BPy_Material * self, PyObject * value );
+
+static PyObject *Material_getColorComponent( BPy_Material * self,
+							void * closure );
+static PyObject *Material_getOopsLoc( BPy_Material * self );
+static PyObject *Material_getOopsSel( BPy_Material * self );
+static PyObject *Material_getUsers( BPy_Material * self );
 
 /*****************************************************************************/
 /* Python BPy_Material methods declarations: */
@@ -533,73 +568,10 @@ static PyObject *Material_getFresnelTransFac( BPy_Material * self );
 static PyObject *Material_getFilter( BPy_Material * self );
 static PyObject *Material_getTranslucency( BPy_Material * self );
 static PyObject *Material_getTextures( BPy_Material * self );
-static PyObject *Material_setIpo( BPy_Material * self, PyObject * args );
 static PyObject *Material_clearIpo( BPy_Material * self );
-static PyObject *Material_setName( BPy_Material * self, PyObject * args );
-static PyObject *Material_setMode( BPy_Material * self, PyObject * args );
-static PyObject *Material_setIntMode( BPy_Material * self, PyObject * args );
-static PyObject *Material_setRGBCol( BPy_Material * self, PyObject * args );
-/*static PyObject *Material_setAmbCol(BPy_Material *self, PyObject *args);*/
-static PyObject *Material_setSpecCol( BPy_Material * self, PyObject * args );
-static PyObject *Material_setMirCol( BPy_Material * self, PyObject * args );
-static PyObject *Material_setAmb( BPy_Material * self, PyObject * args );
-static PyObject *Material_setEmit( BPy_Material * self, PyObject * args );
-static PyObject *Material_setAlpha( BPy_Material * self, PyObject * args );
-static PyObject *Material_setRef( BPy_Material * self, PyObject * args );
-static PyObject *Material_setSpec( BPy_Material * self, PyObject * args );
-static PyObject *Material_setSpecTransp( BPy_Material * self,
-					 PyObject * args );
-static PyObject *Material_setAdd( BPy_Material * self, PyObject * args );
-static PyObject *Material_setZOffset( BPy_Material * self, PyObject * args );
-static PyObject *Material_setHaloSize( BPy_Material * self, PyObject * args );
-static PyObject *Material_setHaloSeed( BPy_Material * self, PyObject * args );
-static PyObject *Material_setFlareSize( BPy_Material * self, PyObject * args );
-static PyObject *Material_setFlareSeed( BPy_Material * self, PyObject * args );
-static PyObject *Material_setFlareBoost( BPy_Material * self,
-					 PyObject * args );
-static PyObject *Material_setSubSize( BPy_Material * self, PyObject * args );
-static PyObject *Material_setHardness( BPy_Material * self, PyObject * args );
-static PyObject *Material_setNFlares( BPy_Material * self, PyObject * args );
-static PyObject *Material_setNStars( BPy_Material * self, PyObject * args );
-static PyObject *Material_setNLines( BPy_Material * self, PyObject * args );
-static PyObject *Material_setNRings( BPy_Material * self, PyObject * args );
 
-/* Shader */
-static PyObject *Material_setSpecShader( BPy_Material * self, PyObject * args );
-static PyObject *Material_setDiffuseShader( BPy_Material * self, PyObject * args );
-static PyObject *Material_setRoughness( BPy_Material * self, PyObject * args );
-static PyObject *Material_setSpecSize( BPy_Material * self, PyObject * args );
-static PyObject *Material_setDiffuseSize( BPy_Material * self, PyObject * args );
-static PyObject *Material_setSpecSmooth( BPy_Material * self, PyObject * args );
-static PyObject *Material_setDiffuseSmooth( BPy_Material * self, PyObject * args );
-static PyObject *Material_setDiffuseDarkness( BPy_Material * self, PyObject * args );
-static PyObject *Material_setRefracIndex( BPy_Material * self, PyObject * args );
-static PyObject *Material_setRms( BPy_Material * self, PyObject * args );
-
-/* ** Mirror and transp ** */
-static PyObject *Material_setRayMirr( BPy_Material * self, PyObject * args );
-static PyObject *Material_setMirrDepth( BPy_Material * self, PyObject * args );
-static PyObject *Material_setFresnelMirr( BPy_Material * self,
-					  PyObject * args );
-static PyObject *Material_setFresnelMirrFac( BPy_Material * self,
-					     PyObject * args );
-static PyObject *Material_setFilter( BPy_Material * self,
-					     PyObject * args );
-static PyObject *Material_setTranslucency( BPy_Material * self,
-					     PyObject * args );
-static PyObject *Material_setIOR( BPy_Material * self, PyObject * args );
-static PyObject *Material_setTransDepth( BPy_Material * self,
-					 PyObject * args );
-static PyObject *Material_setFresnelTrans( BPy_Material * self,
-					   PyObject * args );
-static PyObject *Material_setFresnelTransFac( BPy_Material * self,
-					      PyObject * args );
-/* ** */
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args );
 static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args );
-
-static PyObject *Material_setColorComponent( BPy_Material * self, char *key,
-					     PyObject * args );
 
 static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * args );
 static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
@@ -692,138 +664,126 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "() - Return mount mirror"},
 	{"getMirrDepth", ( PyCFunction ) Material_getMirrDepth, METH_NOARGS,
 	 "() - Return amount mirror depth"},
-	{"getFresnelMirr", ( PyCFunction ) Material_getFresnelMirr,
-	 METH_NOARGS,
+	{"getFresnelMirr", ( PyCFunction ) Material_getFresnelMirr, METH_NOARGS,
 	 "() - Return fresnel power for refractions"},
-	{"getFresnelMirrFac", ( PyCFunction ) Material_getFresnelMirrFac,
-	 METH_NOARGS,
+	{"getFresnelMirrFac", ( PyCFunction ) Material_getFresnelMirrFac, METH_NOARGS,
 	 "() - Return fresnel power for refractions factor"},
-	{"getFilter", ( PyCFunction ) Material_getFilter,
-	 METH_NOARGS,
+	{"getFilter", ( PyCFunction ) Material_getFilter, METH_NOARGS,
 	 "() - Return the amount of filtering when transparent raytrace is enabled"},
-	{"getTranslucency", ( PyCFunction ) Material_getTranslucency,
-	 METH_NOARGS,
+	{"getTranslucency", ( PyCFunction ) Material_getTranslucency, METH_NOARGS,
 	 "() - Return the Translucency, the amount of diffuse shading of the back side"},
 	{"getIOR", ( PyCFunction ) Material_getIOR, METH_NOARGS,
 	 "() - Return IOR"},
 	{"getTransDepth", ( PyCFunction ) Material_getTransDepth, METH_NOARGS,
 	 "() - Return amount inter-refractions"},
-	{"getFresnelTrans", ( PyCFunction ) Material_getFresnelTrans,
-	 METH_NOARGS,
+	{"getFresnelTrans", ( PyCFunction ) Material_getFresnelTrans, METH_NOARGS,
 	 "() - Return fresnel power for refractions"},
-	{"getFresnelTransFac", ( PyCFunction ) Material_getFresnelTransFac,
-	 METH_NOARGS,
+	{"getFresnelTransFac", ( PyCFunction ) Material_getFresnelTransFac, METH_NOARGS,
 	 "() - Return fresnel power for refractions factor"},
 	{"getTextures", ( PyCFunction ) Material_getTextures, METH_NOARGS,
 	 "() - Return Material's texture list as a tuple"},
-	{"setName", ( PyCFunction ) Material_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Matr_oldsetName, METH_VARARGS,
 	 "(s) - Change Material's name"},
-	{"setIpo", ( PyCFunction ) Material_setIpo, METH_VARARGS,
+	{"setIpo", ( PyCFunction ) Matr_oldsetIpo, METH_VARARGS,
 	 "(Blender Ipo) - Change Material's Ipo"},
 	{"clearIpo", ( PyCFunction ) Material_clearIpo, METH_NOARGS,
 	 "(Blender Ipo) - Unlink Ipo from this Material"},
 	{"insertIpoKey", ( PyCFunction ) Material_insertIpoKey, METH_VARARGS,
 	 "(Material Ipo Constant) - Insert IPO Key at current frame"},	 
-	{"setMode", ( PyCFunction ) Material_setMode, METH_VARARGS,
+	{"setMode", ( PyCFunction ) Matr_oldsetMode, METH_VARARGS,
 	 "([s[,s]]) - Set Material's mode flag(s)"},
-	{"setRGBCol", ( PyCFunction ) Material_setRGBCol, METH_VARARGS,
+	{"setRGBCol", ( PyCFunction ) Matr_oldsetRGBCol, METH_VARARGS,
 	 "(f,f,f or [f,f,f]) - Set Material's rgb color triplet"},
-/*	{"setAmbCol", (PyCFunction)Material_setAmbCol, METH_VARARGS,
+/*	{"setAmbCol", (PyCFunction)Matr_oldsetAmbCol, METH_VARARGS,
 			"(f,f,f or [f,f,f]) - Set Material's ambient color"},*/
-	{"setSpecCol", ( PyCFunction ) Material_setSpecCol, METH_VARARGS,
+	{"setSpecCol", ( PyCFunction ) Matr_oldsetSpecCol, METH_VARARGS,
 	 "(f,f,f or [f,f,f]) - Set Material's specular color"},
 	 
 	/* Shader spesific settings */
-	{"setSpecShader", ( PyCFunction ) Material_setSpecShader, METH_VARARGS,
+	{"setSpecShader", ( PyCFunction ) Matr_oldsetSpecShader, METH_VARARGS,
 	 "(i) - Set the Material's specular shader" },
-	{"setDiffuseShader", ( PyCFunction ) Material_setDiffuseShader, METH_VARARGS,
+	{"setDiffuseShader", ( PyCFunction ) Matr_oldsetDiffuseShader, METH_VARARGS,
 	 "(i) - Set the Material's diffuse shader" },
-	 {"setRoughness", ( PyCFunction ) Material_setRoughness, METH_VARARGS,
+	 {"setRoughness", ( PyCFunction ) Matr_oldsetRoughness, METH_VARARGS,
 	 "(f) - Set the Material's Roughness (applies to the \"Oren Nayar\" Diffuse Shader only)" },
-	{"setSpecSize", ( PyCFunction ) Material_setSpecSize, METH_VARARGS,
+	{"setSpecSize", ( PyCFunction ) Matr_oldsetSpecSize, METH_VARARGS,
 	 "(f) - Set the Material's size of specular area (applies to the \"Toon\" Specular Shader only)" },
-	{"setDiffuseSize", ( PyCFunction ) Material_setDiffuseSize, METH_VARARGS,
+	{"setDiffuseSize", ( PyCFunction ) Matr_oldsetDiffuseSize, METH_VARARGS,
 	 "(f) - Set the Material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only)" },
-	{"setSpecSmooth", ( PyCFunction ) Material_setSpecSmooth, METH_VARARGS,
+	{"setSpecSmooth", ( PyCFunction ) Matr_oldsetSpecSmooth, METH_VARARGS,
 	 "(f) - Set the Material's smoothing of specular area (applies to the \"Toon\" Specular Shader only)" },
-	{"setDiffuseSmooth", ( PyCFunction ) Material_setDiffuseSmooth, METH_VARARGS,
+	{"setDiffuseSmooth", ( PyCFunction ) Matr_oldsetDiffuseSmooth, METH_VARARGS,
 	 "(f) - Set the Material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only)" },
-	{"setDiffuseDarkness", ( PyCFunction ) Material_setDiffuseDarkness, METH_VARARGS,
+	{"setDiffuseDarkness", ( PyCFunction ) Matr_oldsetDiffuseDarkness, METH_VARARGS,
 	 "(f) - Set the Material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only)" },
-	{"setRefracIndex", ( PyCFunction ) Material_setRefracIndex, METH_VARARGS,
+	{"setRefracIndex", ( PyCFunction ) Matr_oldsetRefracIndex, METH_VARARGS,
 	 "(f) - Set the Material's Index of Refraction (applies to the \"Blinn\" Specular Shader only)" },	 
-	{"setRms", ( PyCFunction ) Material_setRms, METH_VARARGS,
+	{"setRms", ( PyCFunction ) Matr_oldsetRms, METH_VARARGS,
 	 "(f) - Set the Material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only)" },
 	/* End shader settings */
 	 
-	{"setMirCol", ( PyCFunction ) Material_setMirCol, METH_VARARGS,
+	{"setMirCol", ( PyCFunction ) Matr_oldsetMirCol, METH_VARARGS,
 	 "(f,f,f or [f,f,f]) - Set Material's mirror color"},
-	{"setAmb", ( PyCFunction ) Material_setAmb, METH_VARARGS,
+	{"setAmb", ( PyCFunction ) Matr_oldsetAmb, METH_VARARGS,
 	 "(f) - Set how much the Material's color is affected"
 	 " by \nthe global ambient colors - [0.0, 1.0]"},
-	{"setEmit", ( PyCFunction ) Material_setEmit, METH_VARARGS,
+	{"setEmit", ( PyCFunction ) Matr_oldsetEmit, METH_VARARGS,
 	 "(f) - Set Material's emitting light intensity - [0.0, 1.0]"},
-	{"setAlpha", ( PyCFunction ) Material_setAlpha, METH_VARARGS,
+	{"setAlpha", ( PyCFunction ) Matr_oldsetAlpha, METH_VARARGS,
 	 "(f) - Set Material's alpha (transparency) - [0.0, 1.0]"},
-	{"setRef", ( PyCFunction ) Material_setRef, METH_VARARGS,
+	{"setRef", ( PyCFunction ) Matr_oldsetRef, METH_VARARGS,
 	 "(f) - Set Material's reflectivity - [0.0, 1.0]"},
-	{"setSpec", ( PyCFunction ) Material_setSpec, METH_VARARGS,
+	{"setSpec", ( PyCFunction ) Matr_oldsetSpec, METH_VARARGS,
 	 "(f) - Set Material's specularity - [0.0, 2.0]"},
-	{"setSpecTransp", ( PyCFunction ) Material_setSpecTransp, METH_VARARGS,
+	{"setSpecTransp", ( PyCFunction ) Matr_oldsetSpecTransp, METH_VARARGS,
 	 "(f) - Set Material's specular transparency - [0.0, 1.0]"},
-	{"setAdd", ( PyCFunction ) Material_setAdd, METH_VARARGS,
+	{"setAdd", ( PyCFunction ) Matr_oldsetAdd, METH_VARARGS,
 	 "(f) - Set Material's glow factor - [0.0, 1.0]"},
-	{"setZOffset", ( PyCFunction ) Material_setZOffset, METH_VARARGS,
+	{"setZOffset", ( PyCFunction ) Matr_oldsetZOffset, METH_VARARGS,
 	 "(f) - Set Material's artificial offset - [0.0, 10.0]"},
-	{"setHaloSize", ( PyCFunction ) Material_setHaloSize, METH_VARARGS,
+	{"setHaloSize", ( PyCFunction ) Matr_oldsetHaloSize, METH_VARARGS,
 	 "(f) - Set Material's halo size - [0.0, 100.0]"},
-	{"setHaloSeed", ( PyCFunction ) Material_setHaloSeed, METH_VARARGS,
+	{"setHaloSeed", ( PyCFunction ) Matr_oldsetHaloSeed, METH_VARARGS,
 	 "(i) - Set Material's halo seed - [0, 255]"},
-	{"setFlareSize", ( PyCFunction ) Material_setFlareSize, METH_VARARGS,
+	{"setFlareSize", ( PyCFunction ) Matr_oldsetFlareSize, METH_VARARGS,
 	 "(f) - Set Material's factor: (flare size)/(halo size) - [0.1, 25.0]"},
-	{"setFlareSeed", ( PyCFunction ) Material_setFlareSeed, METH_VARARGS,
+	{"setFlareSeed", ( PyCFunction ) Matr_oldsetFlareSeed, METH_VARARGS,
 	 "(i) - Set Material's flare seed - [0, 255]"},
-	{"setFlareBoost", ( PyCFunction ) Material_setFlareBoost, METH_VARARGS,
+	{"setFlareBoost", ( PyCFunction ) Matr_oldsetFlareBoost, METH_VARARGS,
 	 "(f) - Set Material's flare boost - [0.1, 10.0]"},
-	{"setSubSize", ( PyCFunction ) Material_setSubSize, METH_VARARGS,
+	{"setSubSize", ( PyCFunction ) Matr_oldsetSubSize, METH_VARARGS,
 	 "(f) - Set Material's dimension of subflare,"
 	 " dots and circles - [0.1, 25.0]"},
-	{"setHardness", ( PyCFunction ) Material_setHardness, METH_VARARGS,
+	{"setHardness", ( PyCFunction ) Matr_oldsetHardness, METH_VARARGS,
 	 "(i) - Set Material's hardness - [1, 255 (127 if halo mode is ON)]"},
-	{"setNFlares", ( PyCFunction ) Material_setNFlares, METH_VARARGS,
+	{"setNFlares", ( PyCFunction ) Matr_oldsetNFlares, METH_VARARGS,
 	 "(i) - Set Material's number of flares in halo - [1, 32]"},
-	{"setNStars", ( PyCFunction ) Material_setNStars, METH_VARARGS,
+	{"setNStars", ( PyCFunction ) Matr_oldsetNStars, METH_VARARGS,
 	 "(i) - Set Material's number of stars in halo - [3, 50]"},
-	{"setNLines", ( PyCFunction ) Material_setNLines, METH_VARARGS,
+	{"setNLines", ( PyCFunction ) Matr_oldsetNLines, METH_VARARGS,
 	 "(i) - Set Material's number of lines in halo - [0, 250]"},
-	{"setNRings", ( PyCFunction ) Material_setNRings, METH_VARARGS,
+	{"setNRings", ( PyCFunction ) Matr_oldsetNRings, METH_VARARGS,
 	 "(i) - Set Material's number of rings in halo - [0, 24]"},
-	{"setRayMirr", ( PyCFunction ) Material_setRayMirr, METH_VARARGS,
+	{"setRayMirr", ( PyCFunction ) Matr_oldsetRayMirr, METH_VARARGS,
 	 "(f) - Set amount mirror - [0.0, 1.0]"},
-	{"setMirrDepth", ( PyCFunction ) Material_setMirrDepth, METH_VARARGS,
+	{"setMirrDepth", ( PyCFunction ) Matr_oldsetMirrDepth, METH_VARARGS,
 	 "(i) - Set amount inter-reflections - [0, 10]"},
-	{"setFresnelMirr", ( PyCFunction ) Material_setFresnelMirr,
-	 METH_VARARGS,
+	{"setFresnelMirr", ( PyCFunction ) Matr_oldsetFresnelMirr, METH_VARARGS,
 	 "(f) - Set fresnel power for mirror - [0.0, 5.0]"},
-	{"setFresnelMirrFac", ( PyCFunction ) Material_setFresnelMirrFac,
-	 METH_VARARGS,
+	{"setFresnelMirrFac", ( PyCFunction ) Matr_oldsetFresnelMirrFac, METH_VARARGS,
 	 "(f) - Set blend fac for mirror fresnel - [1.0, 5.0]"},
-	{"setFilter", ( PyCFunction ) Material_setFilter,
-	 METH_VARARGS,
+	{"setFilter", ( PyCFunction ) Matr_oldsetFilter, METH_VARARGS,
 	 "(f) - Set the amount of filtering when transparent raytrace is enabled"},
-	{"setTranslucency", ( PyCFunction ) Material_setTranslucency,
-	 METH_VARARGS,
+	{"setTranslucency", ( PyCFunction ) Matr_oldsetTranslucency, METH_VARARGS,
 	 "(f) - Set the Translucency, the amount of diffuse shading of the back side"},
-	{"setIOR", ( PyCFunction ) Material_setIOR, METH_VARARGS,
+	{"setIOR", ( PyCFunction ) Matr_oldsetIOR, METH_VARARGS,
 	 "(f) - Set IOR - [1.0, 3.0]"},
-	{"setTransDepth", ( PyCFunction ) Material_setTransDepth, METH_VARARGS,
+	{"setTransDepth", ( PyCFunction ) Matr_oldsetTransDepth, METH_VARARGS,
 	 "(i) - Set amount inter-refractions - [0, 10]"},
-	{"setFresnelTrans", ( PyCFunction ) Material_setFresnelTrans,
-	 METH_VARARGS,
+	{"setFresnelTrans", ( PyCFunction ) Matr_oldsetFresnelTrans, METH_VARARGS,
 	 "(f) - Set fresnel power for refractions - [0.0, 5.0]"},
-	{"setFresnelTransFac", ( PyCFunction ) Material_setFresnelTransFac,
-	 METH_VARARGS,
-	 "(f) - Set fresnel power for refractions factot- [0.0, 5.0]"},
+	{"setFresnelTransFac", ( PyCFunction ) Matr_oldsetFresnelTransFac, METH_VARARGS,
+	 "(f) - Set fresnel power for refractions factor- [0.0, 5.0]"},
 	{"setTexture", ( PyCFunction ) Material_setTexture, METH_VARARGS,
 	 "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
 	{"clearTexture", ( PyCFunction ) Material_clearTexture, METH_VARARGS,
@@ -837,47 +797,337 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(text, evt) - Add a new material scriptlink.\n"
 	 "(text) - string: an existing Blender Text name;\n"
 	 "(evt) string: FrameChanged, Redraw or Render."},
-	{"clearScriptLinks", ( PyCFunction ) Material_clearScriptLinks,
-	 METH_VARARGS,
+	{"clearScriptLinks", ( PyCFunction ) Material_clearScriptLinks, METH_VARARGS,
 	 "() - Delete all scriptlinks from this material.\n"
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this material."},
 	{NULL, NULL, 0, NULL}
 };
 
 /*****************************************************************************/
+/* Python attributes get/set structure:                                      */
+/*****************************************************************************/
+
+static PyGetSetDef BPy_Material_getseters[] = {
+	{"add",
+	 (getter)Material_getAdd, (setter)Material_setAdd,
+	 "Strength of the add effect",
+	 NULL},
+	{"alpha",
+	 (getter)Material_getAlpha, (setter)Material_setAlpha,
+	 "Alpha setting ",
+	 NULL},
+	{"amb",
+	 (getter)Material_getAmb, (setter)Material_setAmb,
+	 "Amount of global ambient color material receives",
+	 NULL},
+	{"diffuseDarkness",
+	 (getter)Material_getDiffuseDarkness, (setter)Material_setDiffuseDarkness,
+	 "Material's diffuse darkness (\"Minnaert\" diffuse shader only)",
+	 NULL},
+	{"diffuseShader",
+	 (getter)Material_getDiffuseShader, (setter)Material_setDiffuseShader,
+	 "Diffuse shader type",
+	 NULL},
+	{"diffuseSize",
+	 (getter)Material_getDiffuseSize, (setter)Material_setDiffuseSize,
+	 "Material's diffuse area size (\"Toon\" diffuse shader only)",
+	 NULL},
+	{"diffuseSmooth",
+	 (getter)Material_getDiffuseSmooth, (setter)Material_setDiffuseSmooth,
+	 "Material's diffuse area smoothing (\"Toon\" diffuse shader only)",
+	 NULL},
+	{"emit",
+	 (getter)Material_getEmit, (setter)Material_setEmit,
+	 "Amount of light the material emits",
+	 NULL},
+	{"filter",
+	 (getter)Material_getFilter, (setter)Material_setFilter,
+	 "Amount of filtering when transparent raytrace is enabled",
+	 NULL},
+	{"flareBoost",
+	 (getter)Material_getFlareBoost, (setter)Material_setFlareBoost,
+	 "Flare's extra strength",
+	 NULL},
+	{"flareSeed",
+	 (getter)Material_getFlareSeed, (setter)Material_setFlareSeed,
+	 "Offset in the flare seed table",
+	 NULL},
+	{"flareSize",
+	 (getter)Material_getFlareSize, (setter)Material_setFlareSize,
+	 "Ratio of flare size to halo size",
+	 NULL},
+	{"fresnelDepth",
+	 (getter)Material_getFresnelMirr, (setter)Material_setFresnelMirr,
+	 "Power of Fresnel for mirror reflection",
+	 NULL},
+	{"fresnelDepthFac",
+	 (getter)Material_getFresnelMirrFac, (setter)Material_setFresnelMirrFac,
+	 "Blending factor for Fresnel mirror",
+	 NULL},
+	{"fresnelTrans",
+	 (getter)Material_getFresnelTrans, (setter)Material_setFresnelTrans,
+	 "Power of Fresnel for transparency",
+	 NULL},
+	{"fresnelTransFac",
+	 (getter)Material_getFresnelTransFac, (setter)Material_setFresnelTransFac,
+	 "Blending factor for Fresnel transparency",
+	 NULL},
+	{"haloSeed",
+	 (getter)Material_getHaloSeed, (setter)Material_setHaloSeed,
+	 "Randomizes halo ring dimension and line location",
+	 NULL},
+	{"haloSize",
+	 (getter)Material_getHaloSize, (setter)Material_setHaloSize,
+	 "Dimension of the halo",
+	 NULL},
+	{"hard",
+	 (getter)Material_getHardness, (setter)Material_setHardness,
+	 "Specularity hardness",
+	 NULL},
+	{"IOR",
+	 (getter)Material_getIOR, (setter)Material_setIOR,
+	 "Angular index of refraction for raytrace",
+	 NULL},
+	{"ipo",
+	 (getter)Material_getIpo, (setter)Material_setIpo,
+	 "Material Ipo data",
+	 NULL},
+	{"mirCol",
+	 (getter)Material_getMirCol, (setter)Material_setMirCol,
+	 "Mirror RGB color triplet",
+	 NULL},
+	{"mirR",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Mirror color red component",
+	 (void *) EXPP_MAT_COMP_MIRR },
+	{"mirG",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Mirror color green component",
+	 (void *) EXPP_MAT_COMP_MIRG },
+	{"mirB",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Mirror color blue component",
+	 (void *) EXPP_MAT_COMP_MIRB },
+	{"mode",
+	 (getter)Material_getMode, (setter)Material_setMode,
+	 "Material mode bitmask",
+	 NULL},
+	{"name",
+	 (getter)Material_getName, (setter)Material_setName,
+	 "Material data name",
+	 NULL},
+	{"nFlares",
+	 (getter)Material_getNFlares, (setter)Material_setNFlares,
+	 "Number of subflares with halo",
+	 NULL},
+	{"nLines",
+	 (getter)Material_getNLines, (setter)Material_setNLines,
+	 "Number of star-shaped lines with halo",
+	 NULL},
+	{"nRings",
+	 (getter)Material_getNRings, (setter)Material_setNRings,
+	 "Number of rings with halo",
+	 NULL},
+	{"nStars",
+	 (getter)Material_getNStars, (setter)Material_setNStars,
+	 "Number of star points with halo",
+	 NULL},
+	{"oopsLoc",
+	 (getter)Material_getOopsLoc, (setter)Material_setOopsLoc,
+	 "Material OOPs location",
+	 NULL},
+	{"oopsSel",
+	 (getter)Material_getOopsSel, (setter)Material_setOopsSel,
+	 "Material OOPs selection flag",
+	 NULL},
+	{"rayMirr",
+	 (getter)Material_getRayMirr, (setter)Material_setRayMirr,
+	 "Mirror reflection amount for raytrace",
+	 NULL},
+	{"rayMirrDepth",
+	 (getter)Material_getMirrDepth, (setter)Material_setMirrDepth,
+	 "Amount of raytrace inter-reflections",
+	 NULL},
+	{"ref",
+	 (getter)Material_getRef, (setter)Material_setRef,
+	 "Amount of reflections (for shader)",
+	 NULL},
+	{"refracIndex",
+	 (getter)Material_getRefracIndex, (setter)Material_setRefracIndex,
+	 "Material's Index of Refraction (applies to the \"Blinn\" Specular Shader only",
+	 NULL},
+	{"rgbCol",
+	 (getter)Material_getRGBCol, (setter)Material_setRGBCol,
+	 "Diffuse RGB color triplet",
+	 NULL},
+	{"rms",
+	 (getter)Material_getRms, (setter)Material_setRms,
+	 "Material's surface slope standard deviation (\"WardIso\" specular shader only)",
+	 NULL},
+	{"roughness",
+	 (getter)Material_getRoughness, (setter)Material_setRoughness,
+	 "Material's roughness (\"Oren Nayar\" diffuse shader only)",
+	 NULL},
+	{"spec",
+	 (getter)Material_getSpec, (setter)Material_setSpec,
+	 "Degree of specularity",
+	 NULL},
+	{"specCol",
+	 (getter)Material_getSpecCol, (setter)Material_setSpecCol,
+	 "Specular RGB color triplet",
+	 NULL},
+	{"specR",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Specular color red component",
+	 (void *) EXPP_MAT_COMP_SPECR },
+	{"specG",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Specular color green component",
+	 (void *) EXPP_MAT_COMP_SPECG },
+	{"specB",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Specular color blue component",
+	 (void *) EXPP_MAT_COMP_SPECB },
+	{"specTransp",
+	 (getter)Material_getSpecTransp, (setter)Material_setSpecTransp,
+	 "Makes specular areas opaque on transparent materials",
+	 NULL},
+	{"specShader",
+	 (getter)Material_getSpecShader, (setter)Material_setSpecShader,
+	 "Specular shader type",
+	 NULL},
+	{"specSize",
+	 (getter)Material_getSpecSize, (setter)Material_setSpecSize,
+	 "Material's specular area size (\"Toon\" specular shader only)",
+	 NULL},
+	{"specSmooth",
+	 (getter)Material_getSpecSmooth, (setter)Material_setSpecSmooth,
+	 "Sets the smoothness of specular toon area",
+	 NULL},
+	{"subSize",
+	 (getter)Material_getSubSize, (setter)Material_setSubSize,
+	 "Dimension of subflares, dots and circles",
+	 NULL},
+	{"transDepth",
+	 (getter)Material_getTransDepth, (setter)Material_setTransDepth,
+	 "Amount of refractions for raytrace",
+	 NULL},
+	{"translucency",
+	 (getter)Material_getTranslucency, (setter)Material_setTranslucency,
+	 "Amount of diffuse shading of the back side",
+	 NULL},
+	{"zOffset",
+	 (getter)Material_getZOffset, (setter)Material_setZOffset,
+	 "Artificial offset in the Z buffer (for Ztransp option)",
+	 NULL},
+	{"R",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Diffuse color red component",
+	 (void *) EXPP_MAT_COMP_R },
+	{"G",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Diffuse color green component",
+	 (void *) EXPP_MAT_COMP_G },
+	{"B",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "Diffuse color blue component",
+	 (void *) EXPP_MAT_COMP_B },
+	{"users",
+	 (getter)Material_getUsers, (setter)NULL,
+	 "Number of material users",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+/*****************************************************************************/
 /* Python Material_Type callback function prototypes: */
 /*****************************************************************************/
 static void Material_dealloc( BPy_Material * self );
-static int Material_setAttr( BPy_Material * self, char *name, PyObject * v );
-static PyObject *Material_getAttr( BPy_Material * self, char *name );
 static PyObject *Material_repr( BPy_Material * self );
 
 /*****************************************************************************/
-/* Python Material_Type structure definition: */
+/* Python Material_Type structure definition:                                */
 /*****************************************************************************/
 PyTypeObject Material_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender Material",	/* tp_name */
-	sizeof( BPy_Material ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Material_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Material_getAttr,	/* tp_getattr */
-	( setattrfunc ) Material_setAttr,	/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) Material_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Material_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, /* up to tp_del to avoid a warning */
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender Material",         /* char *tp_name; */
+	sizeof( BPy_Material ),     /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) Material_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	NULL,                       /* cmpfunc tp_compare; */
+	( reprfunc ) Material_repr, /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	BPy_Material_methods,       /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Material_getseters,     /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
 /*****************************************************************************/
@@ -1513,57 +1763,54 @@ static PyObject *Material_getTextures( BPy_Material * self )
 	return tuple;
 }
 
-PyObject *Material_setIpo( BPy_Material * self, PyObject * args )
+/*
+ * this should accept a Py_None argument and just delete the Ipo link
+ * (as Lamp_clearIpo() does)
+ */
+
+static int Material_setIpo( BPy_Material * self, PyObject * value )
 {
-	PyObject *pyipo = 0;
 	Ipo *ipo = NULL;
-	Ipo *oldipo;
+	Ipo *oldipo = self->material->ipo;
+	ID *id;
 
-	if( !PyArg_ParseTuple( args, "O!", &Ipo_Type, &pyipo ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected Ipo as argument" );
+	/* if parameter is not None, check for valid Ipo */
 
-	ipo = Ipo_FromPyObject( pyipo );
+	if ( value != Py_None ) {
+		if ( !Ipo_CheckPyObject( value ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"expected an Ipo object" );
 
-	if( !ipo )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "null ipo!" );
+		ipo = Ipo_FromPyObject( value );
 
-	if( ipo->blocktype != ID_MA )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "this ipo is not a Material type ipo" );
+		if( !ipo )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"null ipo!" );
 
-	oldipo = self->material->ipo;
-	if( oldipo ) {
-		ID *id = &oldipo->id;
+		if( ipo->blocktype != ID_MA )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					      	"Ipo is not a material data Ipo" );
+	}
+
+	/* if already linked to Ipo, delete link */
+
+	if ( oldipo ) {
+		id = &oldipo->id;
 		if( id->us > 0 )
 			id->us--;
 	}
 
-	( ( ID * ) & ipo->id )->us++;
+	/* assign new Ipo and increment user count, or set to NULL if deleting */
 
 	self->material->ipo = ipo;
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Material_clearIpo( BPy_Material * self )
-{
-	Material *mat = self->material;
-	Ipo *ipo = ( Ipo * ) mat->ipo;
-
-	if( ipo ) {
-		ID *id = &ipo->id;
-		if( id->us > 0 )
-			id->us--;
-		mat->ipo = NULL;
-
-		return EXPP_incr_ret_True();
+	if ( ipo ) {
+		id = &ipo->id;
+		id->us++;
 	}
 
-	return EXPP_incr_ret_False(); /* no ipo found */
+	return 0;
 }
+
 
 
 /* 
@@ -1645,779 +1892,408 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
 	return  EXPP_incr_ret( Py_None );		
 }
 
-
-static PyObject *Material_setName( BPy_Material * self, PyObject * args )
+static int Material_setName( BPy_Material * self, PyObject * value )
 {
 	char *name;
 	char buf[21];
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected string argument" ) );
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );
 
 	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
 
 	rename_id( &self->material->id, buf );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
 
-/* Possible modes are traceable, shadow, shadeless, wire, vcolLight,
- * vcolPaint, halo, ztransp, zinvert, haloRings, env, haloLines,
- * onlyShadow, xalpha, star, faceTexture, haloTex, haloPuno, noMist,
- * haloShaded, haloFlare */
-static PyObject *Material_setMode( BPy_Material * self, PyObject * args )
+static int Material_setMode( BPy_Material * self, PyObject * value )
 {
-	unsigned int i, flag = 0, ok = 0;
+	int param;
+	int bitmask = MA_TRACEBLE
+				| MA_SHADOW
+				| MA_SHLESS
+				| MA_WIRE
+				| MA_VERTEXCOL
+				| MA_VERTEXCOLP
+				| MA_HALO
+				| MA_ZTRA
+				| MA_ZINV
+				| MA_HALO_RINGS
+				| MA_HALO_LINES
+				| MA_ONLYSHADOW
+				| MA_HALO_XALPHA
+				| MA_STAR
+				| MA_FACETEXTURE
+				| MA_HALOTEX
+				| MA_HALOPUNO
+				| MA_NOMIST
+				| MA_HALO_SHADE
+				| MA_HALO_FLARE
+				| MA_RADIO
+				| MA_RAYMIRROR
+				| MA_ZTRA
+				| MA_RAYTRANSP
+				| MA_ONLYSHADOW
+				| MA_NOMIST
+				| MA_ENV;
 
-	char *m[28] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-		NULL, NULL, NULL, NULL, NULL, NULL
-	};
-
-	/* 
-	 * check for a single integer argument; do a quick check for now
-	 * that the value is not larger than double the highest flag bit
-	 */
-
-	if ( (PySequence_Size( args ) == 1)
-		    && PyInt_Check ( PySequence_Fast_GET_ITEM ( args , 0 ) )
-		    && PyArg_ParseTuple( args, "i", &flag ) 
-		    && flag < (EXPP_MAT_MODE_RAYMIRROR >> 1) ) {
-			ok = 1;
-
-	/*
-	 * check for either an empty argument list, or up to 22 strings
-	 */
-
-	} else if( PyArg_ParseTuple( args, "|ssssssssssssssssssssssssssss",
-			       &m[0], &m[1], &m[2], &m[3], &m[4], &m[5], &m[6],
-			       &m[7], &m[8], &m[9], &m[10], &m[11], &m[12],
-			       &m[13], &m[14], &m[15], &m[16], &m[17], &m[18],
-			       &m[19], &m[20], &m[21], &m[22], &m[23], &m[24],
-			       &m[25], &m[26], &m[27] ) ) {
-		for( i = 0; i < 28; i++ ) {
-			if( m[i] == NULL )
-				break;
-			if( strcmp( m[i], "Traceable" ) == 0 )
-				flag |= EXPP_MAT_MODE_TRACEABLE;
-			else if( strcmp( m[i], "Shadow" ) == 0 )
-				flag |= EXPP_MAT_MODE_SHADOW;
-			else if( strcmp( m[i], "Shadeless" ) == 0 )
-				flag |= EXPP_MAT_MODE_SHADELESS;
-			else if( strcmp( m[i], "Wire" ) == 0 )
-				flag |= EXPP_MAT_MODE_WIRE;
-			else if( strcmp( m[i], "VColLight" ) == 0 )
-				flag |= EXPP_MAT_MODE_VCOL_LIGHT;
-			else if( strcmp( m[i], "VColPaint" ) == 0 )
-				flag |= EXPP_MAT_MODE_VCOL_PAINT;
-			else if( strcmp( m[i], "Halo" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALO;
-			else if( strcmp( m[i], "ZTransp" ) == 0 )
-				flag |= EXPP_MAT_MODE_ZTRANSP;
-			else if( strcmp( m[i], "ZInvert" ) == 0 )
-				flag |= EXPP_MAT_MODE_ZINVERT;
-			else if( strcmp( m[i], "HaloRings" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALORINGS;
-			else if( strcmp( m[i], "HaloLines" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOLINES;
-			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
-				flag |= EXPP_MAT_MODE_ONLYSHADOW;
-			else if( strcmp( m[i], "HaloXAlpha" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOXALPHA;
-			else if( strcmp( m[i], "HaloStar" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOSTAR;
-			else if( strcmp( m[i], "TexFace" ) == 0 )
-				flag |= EXPP_MAT_MODE_TEXFACE;
-			else if( strcmp( m[i], "HaloTex" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOTEX;
-			else if( strcmp( m[i], "HaloPuno" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOPUNO;
-			else if( strcmp( m[i], "NoMist" ) == 0 )
-				flag |= EXPP_MAT_MODE_NOMIST;
-			else if( strcmp( m[i], "HaloShaded" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOSHADE;
-			else if( strcmp( m[i], "HaloFlare" ) == 0 )
-				flag |= EXPP_MAT_MODE_HALOFLARE;
-			else if( strcmp( m[i], "Radio" ) == 0 )
-				flag |= EXPP_MAT_MODE_RADIO;
-			/* ** Mirror ** */
-			else if( strcmp( m[i], "RayMirr" ) == 0 )
-				flag |= EXPP_MAT_MODE_RAYMIRROR;
-			else if( strcmp( m[i], "ZTransp" ) == 0 )
-				flag |= EXPP_MAT_MODE_ZTRA;
-			else if( strcmp( m[i], "RayTransp" ) == 0 )
-				flag |= EXPP_MAT_MODE_RAYTRANSP;
-			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
-				flag |= EXPP_MAT_MODE_ONLYSHADOW;
-			else if( strcmp( m[i], "NoMist" ) == 0 )
-				flag |= EXPP_MAT_MODE_NOMIST;
-			else if( strcmp( m[i], "Env" ) == 0 )
-				flag |= EXPP_MAT_MODE_ENV;
-			/* ** */
-			else
-				return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-								"unknown Material mode argument" ) );
-		}
-	    	ok = 1;
+	if( !PyInt_CheckExact ( value ) ) {
+		char errstr[128];
+		sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
+	param = PyInt_AS_LONG ( value );
 
-	/* if neither input method worked, then throw an exception */
+	if ( ( param & bitmask ) != param )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+						"invalid bit(s) set in mask" );
 
-	if ( ok == 0 )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected nothing, an integer or up to 22 string argument(s)" ) );
+	self->material->mode = param;
 
-	/* update the mode flag, return None */
-
-	self->material->mode = flag;
-
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 0;
 }
 
-/* Another helper function, for the same reason.
- * (See comment before Material_setIntType above). */
-static PyObject *Material_setIntMode( BPy_Material * self, PyObject * args )
+static int Material_setRGBCol( BPy_Material * self, PyObject * value )
 {
-	int value;
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument" ) );
-
-	self->material->mode = value;
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
-
-static PyObject *Material_setRGBCol( BPy_Material * self, PyObject * args )
-{
-	return rgbTuple_setCol( self->col, args );
+	return rgbTuple_setCol( self->col, value );
 }
 
 /*
-static PyObject *Material_setAmbCol (BPy_Material *self, PyObject *args)
+static PyObject *Material_setAmbCol (BPy_Material *self, PyObject * value )
 {
-	return rgbTuple_setCol(self->amb, args);
+	return rgbTuple_setCol(self->amb, value);
 }
 */
-static PyObject *Material_setSpecCol( BPy_Material * self, PyObject * args )
+
+static int Material_setSpecCol( BPy_Material * self, PyObject * value )
 {
-	return rgbTuple_setCol( self->spec, args );
+	return rgbTuple_setCol( self->spec, value );
 }
 
-static PyObject *Material_setMirCol( BPy_Material * self, PyObject * args )
+static int Material_setMirCol( BPy_Material * self, PyObject * value )
 {
-	return rgbTuple_setCol( self->mir, args );
+	return rgbTuple_setCol( self->mir, value );
 }
 
-
-static PyObject *Material_setSpecShader( BPy_Material * self, PyObject * args )
+static int Material_setColorComponent( BPy_Material * self, PyObject * value,
+							void * closure )
 {
-	int value;
+	float param;
 
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument" ) );
+	if( !PyNumber_Check ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						"expected float argument in [0.0,1.0]" );
 
-	self->material->spec_shader = (short)EXPP_ClampInt( value, EXPP_MAT_SPEC_SHADER_MIN,
-					       EXPP_MAT_SPEC_SHADER_MAX );
-	
-	Py_INCREF( Py_None );
-	return Py_None;
+	param = PyFloat_AsDouble( value );
+	param = EXPP_ClampFloat( param, EXPP_MAT_COL_MIN, EXPP_MAT_COL_MAX );
+
+	switch ( (int)closure ) {
+	case EXPP_MAT_COMP_R:
+		self->material->r = param;
+		return 0;
+	case EXPP_MAT_COMP_G:
+		self->material->g = param;
+		return 0;
+	case EXPP_MAT_COMP_B:
+		self->material->b = param;
+		return 0;
+	case EXPP_MAT_COMP_SPECR:
+		self->material->specr = param;
+		return 0;
+	case EXPP_MAT_COMP_SPECG:
+		self->material->specg = param;
+		return 0;
+	case EXPP_MAT_COMP_SPECB:
+		self->material->specb = param;
+		return 0;
+	case EXPP_MAT_COMP_MIRR:
+		self->material->mirr = param;
+		return 0;
+	case EXPP_MAT_COMP_MIRG:
+		self->material->mirg = param;
+		return 0;
+	case EXPP_MAT_COMP_MIRB:
+		self->material->mirb = param;
+		return 0;
+	}
+	return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"unknown color component specified" );
 }
 
-static PyObject *Material_setDiffuseShader( BPy_Material * self, PyObject * args )
+static int Material_setAmb( BPy_Material * self, PyObject * value )
 {
-	int value;
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument" ) );
-
-	self->material->diff_shader = (short)EXPP_ClampInt( value, EXPP_MAT_DIFFUSE_SHADER_MIN,
-					       EXPP_MAT_DIFFUSE_SHADER_MAX );
-	
-	Py_INCREF( Py_None );
-	return Py_None;
+	return EXPP_setFloatClamped ( value, &self->material->amb,
+								EXPP_MAT_AMB_MIN,
+					       		EXPP_MAT_AMB_MAX );
 }
 
-
-static PyObject *Material_setRoughness( BPy_Material * self, PyObject * args )
+static int Material_setEmit( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 3.14]" ) );
-
-	self->material->roughness = EXPP_ClampFloat( value, EXPP_MAT_ROUGHNESS_MIN,
-						EXPP_MAT_ROUGHNESS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->emit,
+								EXPP_MAT_EMIT_MIN,
+								EXPP_MAT_EMIT_MAX );
 }
 
-
-static PyObject *Material_setSpecSize( BPy_Material * self, PyObject * args )
+static int Material_setSpecTransp( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.53]" ) );
-
-	self->material->param[2] = EXPP_ClampFloat( value, EXPP_MAT_SPECSIZE_MIN,
-						EXPP_MAT_SPECSIZE_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->spectra,
+								EXPP_MAT_SPECTRA_MIN,
+								EXPP_MAT_SPECTRA_MAX );
 }
 
-
-static PyObject *Material_setDiffuseSize( BPy_Material * self, PyObject * args )
+static int Material_setAlpha( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 3.14]" ) );
-
-	self->material->param[0] = EXPP_ClampFloat( value, EXPP_MAT_DIFFUSESIZE_MIN,
-						EXPP_MAT_DIFFUSESIZE_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->alpha,
+								EXPP_MAT_ALPHA_MIN,
+								EXPP_MAT_ALPHA_MAX );
 }
 
-
-static PyObject *Material_setSpecSmooth( BPy_Material * self, PyObject * args )
+static int Material_setRef( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->param[3] = EXPP_ClampFloat( value, EXPP_MAT_SPECSMOOTH_MIN,
-						EXPP_MAT_SPECSMOOTH_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->ref,
+								EXPP_MAT_REF_MIN,
+								EXPP_MAT_REF_MAX );
 }
 
-
-static PyObject *Material_setDiffuseSmooth( BPy_Material * self, PyObject * args )
+static int Material_setSpec( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->param[1] = EXPP_ClampFloat( value, EXPP_MAT_DIFFUSESMOOTH_MIN,
-						EXPP_MAT_DIFFUSESMOOTH_MAX );
-
-	return EXPP_incr_ret( Py_None );
-}
-	
-
-static PyObject *Material_setDiffuseDarkness( BPy_Material * self, PyObject * args )
-{
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 2.0]" ) );
-
-	self->material->darkness = EXPP_ClampFloat( value, EXPP_MAT_DIFFUSE_DARKNESS_MIN,
-						EXPP_MAT_DIFFUSE_DARKNESS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->spec,
+								EXPP_MAT_SPEC_MIN,
+								EXPP_MAT_SPEC_MAX );
 }
 
-
-static PyObject *Material_setRefracIndex( BPy_Material * self, PyObject * args )
+static int Material_setZOffset( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [1.0, 10.0]" ) );
-
-	self->material->refrac = EXPP_ClampFloat( value, EXPP_MAT_REFRACINDEX_MIN,
-						EXPP_MAT_REFRACINDEX_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->zoffs,
+		   						EXPP_MAT_ZOFFS_MIN,
+								EXPP_MAT_ZOFFS_MAX );
 }
 
-
-static PyObject *Material_setRms( BPy_Material * self, PyObject * args )
+static int Material_setAdd( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 0.4]" ) );
-
-	self->material->rms = EXPP_ClampFloat( value, EXPP_MAT_RMS_MIN,
-						EXPP_MAT_RMS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->add,
+								EXPP_MAT_ADD_MIN,
+								EXPP_MAT_ADD_MAX );
 }
 
-
-static PyObject *Material_setColorComponent( BPy_Material * self, char *key,
-					     PyObject * args )
-{				/* for compatibility with old bpython */
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	value = EXPP_ClampFloat( value, EXPP_MAT_COL_MIN, EXPP_MAT_COL_MAX );
-
-	if( !strcmp( key, "R" ) )
-		self->material->r = value;
-	else if( !strcmp( key, "G" ) )
-		self->material->g = value;
-	else if( !strcmp( key, "B" ) )
-		self->material->b = value;
-	else if( !strcmp( key, "specR" ) )
-		self->material->specr = value;
-	else if( !strcmp( key, "specG" ) )
-		self->material->specg = value;
-	else if( !strcmp( key, "specB" ) )
-		self->material->specb = value;
-
-	return EXPP_incr_ret( Py_None );
+static int Material_setHaloSize( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->hasize,
+		   						EXPP_MAT_HALOSIZE_MIN,
+								EXPP_MAT_HALOSIZE_MAX );
 }
 
-static PyObject *Material_setAmb( BPy_Material * self, PyObject * args )
+static int Material_setFlareSize( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->amb = EXPP_ClampFloat( value, EXPP_MAT_AMB_MIN,
-					       EXPP_MAT_AMB_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->flaresize,
+								EXPP_MAT_FLARESIZE_MIN,
+								EXPP_MAT_FLARESIZE_MAX );
 }
 
-static PyObject *Material_setEmit( BPy_Material * self, PyObject * args )
+static int Material_setFlareBoost( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->emit = EXPP_ClampFloat( value, EXPP_MAT_EMIT_MIN,
-						EXPP_MAT_EMIT_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->flareboost,
+								EXPP_MAT_FLAREBOOST_MIN,
+								EXPP_MAT_FLAREBOOST_MAX );
 }
 
-static PyObject *Material_setSpecTransp( BPy_Material * self, PyObject * args )
+static int Material_setSubSize( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->spectra = EXPP_ClampFloat( value, EXPP_MAT_SPECTRA_MIN,
-						   EXPP_MAT_SPECTRA_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->subsize,
+								EXPP_MAT_SUBSIZE_MIN,
+								EXPP_MAT_SUBSIZE_MAX );
 }
 
-static PyObject *Material_setAlpha( BPy_Material * self, PyObject * args )
+static int Material_setHaloSeed( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->alpha = EXPP_ClampFloat( value, EXPP_MAT_ALPHA_MIN,
-						 EXPP_MAT_ALPHA_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->seed1,
+								EXPP_MAT_HALOSEED_MIN,
+								EXPP_MAT_HALOSEED_MAX, 'b' );
 }
 
-static PyObject *Material_setRef( BPy_Material * self, PyObject * args )
+static int Material_setFlareSeed( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->ref = EXPP_ClampFloat( value, EXPP_MAT_REF_MIN,
-					       EXPP_MAT_REF_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->seed2,
+								EXPP_MAT_FLARESEED_MIN,
+								EXPP_MAT_FLARESEED_MAX, 'b' );
 }
 
-static PyObject *Material_setSpec( BPy_Material * self, PyObject * args )
+static int Material_setHardness( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 2.0]" ) );
-
-	self->material->spec = EXPP_ClampFloat( value, EXPP_MAT_SPEC_MIN,
-						EXPP_MAT_SPEC_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->har,
+		   						EXPP_MAT_HARD_MIN,
+								EXPP_MAT_HARD_MAX, 'h' );
 }
 
-static PyObject *Material_setZOffset( BPy_Material * self, PyObject * args )
+static int Material_setNFlares( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 10.0]" ) );
-
-	self->material->zoffs = EXPP_ClampFloat( value, EXPP_MAT_ZOFFS_MIN,
-						 EXPP_MAT_ZOFFS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->flarec,
+								EXPP_MAT_NFLARES_MIN,
+								EXPP_MAT_NFLARES_MAX, 'h' );
 }
 
-static PyObject *Material_setAdd( BPy_Material * self, PyObject * args )
+static int Material_setNStars( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->add = EXPP_ClampFloat( value, EXPP_MAT_ADD_MIN,
-					       EXPP_MAT_ADD_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->starc,
+								EXPP_MAT_NSTARS_MIN,
+								EXPP_MAT_NSTARS_MAX, 'h' );
 }
 
-static PyObject *Material_setHaloSize( BPy_Material * self, PyObject * args )
+static int Material_setNLines( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 100.0]" ) );
-
-	self->material->hasize = EXPP_ClampFloat( value, EXPP_MAT_HALOSIZE_MIN,
-						  EXPP_MAT_HALOSIZE_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->linec,
+								EXPP_MAT_NLINES_MIN,
+								EXPP_MAT_NLINES_MAX, 'h' );
 }
 
-static PyObject *Material_setFlareSize( BPy_Material * self, PyObject * args )
+static int Material_setNRings( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.1, 25.0]" ) );
-
-	self->material->flaresize =
-		EXPP_ClampFloat( value, EXPP_MAT_FLARESIZE_MIN,
-				 EXPP_MAT_FLARESIZE_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->ringc,
+		   						EXPP_MAT_NRINGS_MIN,
+								EXPP_MAT_NRINGS_MAX, 'h' );
 }
 
-static PyObject *Material_setFlareBoost( BPy_Material * self, PyObject * args )
+static int Material_setRayMirr( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.1, 10.0]" ) );
-
-	self->material->flareboost =
-		EXPP_ClampFloat( value, EXPP_MAT_FLAREBOOST_MIN,
-				 EXPP_MAT_FLAREBOOST_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->ray_mirror,
+								EXPP_MAT_RAYMIRR_MIN,
+								EXPP_MAT_RAYMIRR_MAX );
 }
 
-static PyObject *Material_setSubSize( BPy_Material * self, PyObject * args )
+static int Material_setMirrDepth( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.1, 25.0]" ) );
-
-	self->material->subsize = EXPP_ClampFloat( value, EXPP_MAT_SUBSIZE_MIN,
-						   EXPP_MAT_SUBSIZE_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->ray_depth,
+								EXPP_MAT_MIRRDEPTH_MIN,
+								EXPP_MAT_MIRRDEPTH_MAX, 'h' );
 }
 
-static PyObject *Material_setHaloSeed( BPy_Material * self, PyObject * args )
+static int Material_setFresnelMirr( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [1, 255]" ) );
-
-	self->material->seed1 = (char)EXPP_ClampInt( value, EXPP_MAT_HALOSEED_MIN,
-					       EXPP_MAT_HALOSEED_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->fresnel_mir,
+								EXPP_MAT_FRESNELMIRR_MIN,
+								EXPP_MAT_FRESNELMIRR_MAX );
 }
 
-static PyObject *Material_setFlareSeed( BPy_Material * self, PyObject * args )
+static int Material_setFresnelMirrFac( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [1, 255]" ) );
-
-	self->material->seed2 = (char)EXPP_ClampInt( value, EXPP_MAT_FLARESEED_MIN,
-					       EXPP_MAT_FLARESEED_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->fresnel_mir_i,
+								EXPP_MAT_FRESNELMIRRFAC_MIN,
+								EXPP_MAT_FRESNELMIRRFAC_MAX );
 }
 
-
-static PyObject *Material_setHardness( BPy_Material * self, PyObject * args )
+static int Material_setIOR( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [1, 255]" ) );
-
-	self->material->har = (short)EXPP_ClampInt( value, EXPP_MAT_HARD_MIN,
-					     EXPP_MAT_HARD_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->ang,
+								EXPP_MAT_IOR_MIN,
+								EXPP_MAT_IOR_MAX );
 }
 
-static PyObject *Material_setNFlares( BPy_Material * self, PyObject * args )
+static int Material_setTransDepth( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [1, 32]" ) );
-
-	self->material->flarec = (short)EXPP_ClampInt( value, EXPP_MAT_NFLARES_MIN,
-						EXPP_MAT_NFLARES_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueClamped ( value, &self->material->ray_depth_tra,
+								EXPP_MAT_TRANSDEPTH_MIN,
+								EXPP_MAT_TRANSDEPTH_MAX, 'h' );
 }
 
-static PyObject *Material_setNStars( BPy_Material * self, PyObject * args )
+static int Material_setFresnelTrans( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [3, 50]" ) );
-
-	self->material->starc = (short)EXPP_ClampInt( value, EXPP_MAT_NSTARS_MIN,
-					       EXPP_MAT_NSTARS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->fresnel_tra,
+								EXPP_MAT_FRESNELTRANS_MIN,
+								EXPP_MAT_FRESNELTRANS_MAX );
 }
 
-static PyObject *Material_setNLines( BPy_Material * self, PyObject * args )
+static int Material_setFresnelTransFac( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [0, 250]" ) );
-
-	self->material->linec = (short)EXPP_ClampInt( value, EXPP_MAT_NLINES_MIN,
-					       EXPP_MAT_NLINES_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->fresnel_tra_i,
+								EXPP_MAT_FRESNELTRANSFAC_MIN,
+								EXPP_MAT_FRESNELTRANSFAC_MAX );
 }
 
-static PyObject *Material_setNRings( BPy_Material * self, PyObject * args )
+static int Material_setSpecShader( BPy_Material * self, PyObject * value )
 {
-	short value;
-
-	if( !PyArg_ParseTuple( args, "h", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int argument in [0, 24]" ) );
-
-	self->material->ringc = (short)EXPP_ClampInt( value, EXPP_MAT_NRINGS_MIN,
-					       EXPP_MAT_NRINGS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueRange( value, &self->material->spec_shader,
+								MA_SPEC_COOKTORR,
+								MA_SPEC_WARDISO, 'h' );
 }
 
-static PyObject *Material_setRayMirr( BPy_Material * self, PyObject * args )
+static int Material_setDiffuseShader( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->ray_mirror =
-		EXPP_ClampFloat( value, EXPP_MAT_RAYMIRR_MIN,
-				 EXPP_MAT_RAYMIRR_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setIValueRange( value, &self->material->diff_shader,
+								MA_DIFF_LAMBERT,
+								MA_DIFF_MINNAERT, 'h' );
 }
 
-static PyObject *Material_setMirrDepth( BPy_Material * self, PyObject * args )
+static int Material_setRoughness( BPy_Material * self, PyObject * value )
 {
-	int value;
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0, 10]" ) );
-
-	self->material->ray_depth =
-		(short)EXPP_ClampInt( value, EXPP_MAT_MIRRDEPTH_MIN,
-			       EXPP_MAT_MIRRDEPTH_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->roughness,
+								EXPP_MAT_ROUGHNESS_MIN,
+								EXPP_MAT_ROUGHNESS_MAX );
 }
 
-static PyObject *Material_setFresnelMirr( BPy_Material * self,
-					  PyObject * args )
+static int Material_setSpecSize( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 5.0]" ) );
-
-	self->material->fresnel_mir =
-		EXPP_ClampFloat( value, EXPP_MAT_FRESNELMIRR_MIN,
-				 EXPP_MAT_FRESNELMIRR_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->param[2],
+								EXPP_MAT_SPECSIZE_MIN,
+								EXPP_MAT_SPECSIZE_MAX );
 }
 
-static PyObject *Material_setFresnelMirrFac( BPy_Material * self,
-					     PyObject * args )
+static int Material_setDiffuseSize( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 5.0]" ) );
-
-	self->material->fresnel_mir_i =
-		EXPP_ClampFloat( value, EXPP_MAT_FRESNELMIRRFAC_MIN,
-				 EXPP_MAT_FRESNELMIRRFAC_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->param[0],
+								EXPP_MAT_DIFFUSESIZE_MIN,
+								EXPP_MAT_DIFFUSESIZE_MAX );
 }
 
-static PyObject *Material_setFilter( BPy_Material * self,
-					     PyObject * args )
+static int Material_setSpecSmooth( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->filter =
-		EXPP_ClampFloat( value, EXPP_MAT_FILTER_MIN,
-				 EXPP_MAT_FILTER_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->param[3],
+								EXPP_MAT_SPECSMOOTH_MIN,
+								EXPP_MAT_SPECSMOOTH_MAX );
 }
 
-static PyObject *Material_setTranslucency( BPy_Material * self,
-					     PyObject * args )
+static int Material_setDiffuseSmooth( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 1.0]" ) );
-
-	self->material->translucency =
-		EXPP_ClampFloat( value, EXPP_MAT_TRANSLUCENCY_MIN,
-				 EXPP_MAT_TRANSLUCENCY_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->param[1],
+								EXPP_MAT_DIFFUSESMOOTH_MIN,
+								EXPP_MAT_DIFFUSESMOOTH_MAX );
 }
 
-static PyObject *Material_setIOR( BPy_Material * self, PyObject * args )
+static int Material_setDiffuseDarkness( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 5.0]" ) );
-
-	self->material->ang = EXPP_ClampFloat( value, EXPP_MAT_IOR_MIN,
-					       EXPP_MAT_IOR_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->darkness,
+								EXPP_MAT_DIFFUSE_DARKNESS_MIN,
+								EXPP_MAT_DIFFUSE_DARKNESS_MAX );
 }
 
-static PyObject *Material_setTransDepth( BPy_Material * self, PyObject * args )
+static int Material_setRefracIndex( BPy_Material * self, PyObject * value )
 {
-	int value;
-
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0, 10]" ) );
-
-	self->material->ray_depth_tra =
-		(short)EXPP_ClampInt( value, EXPP_MAT_TRANSDEPTH_MIN,
-			       EXPP_MAT_TRANSDEPTH_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->refrac,
+								EXPP_MAT_REFRACINDEX_MIN,
+								EXPP_MAT_REFRACINDEX_MAX );
 }
 
-static PyObject *Material_setFresnelTrans( BPy_Material * self,
-					   PyObject * args )
+static int Material_setRms( BPy_Material * self, PyObject * value )
 {
-	float value;
-
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 5.0]" ) );
-
-	self->material->fresnel_tra =
-		EXPP_ClampFloat( value, EXPP_MAT_FRESNELTRANS_MIN,
-				 EXPP_MAT_FRESNELTRANS_MAX );
-
-	return EXPP_incr_ret( Py_None );
+	return EXPP_setFloatClamped ( value, &self->material->rms,
+								EXPP_MAT_RMS_MIN,
+								EXPP_MAT_RMS_MAX );
 }
 
-static PyObject *Material_setFresnelTransFac( BPy_Material * self,
-					      PyObject * args )
+static int Material_setFilter( BPy_Material * self, PyObject * value )
 {
-	float value;
+	return EXPP_setFloatClamped ( value, &self->material->filter,
+								EXPP_MAT_FILTER_MIN,
+								EXPP_MAT_FILTER_MAX );
+}
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected float argument in [0.0, 5.0]" ) );
-
-	self->material->fresnel_tra_i =
-		EXPP_ClampFloat( value, EXPP_MAT_FRESNELTRANSFAC_MIN,
-				 EXPP_MAT_FRESNELTRANSFAC_MAX );
-
-	return EXPP_incr_ret( Py_None );
-
+static int Material_setTranslucency( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->translucency,
+								EXPP_MAT_TRANSLUCENCY_MIN,
+								EXPP_MAT_TRANSLUCENCY_MAX );
 }
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
@@ -2510,401 +2386,15 @@ static PyObject *Material_getScriptLinks( BPy_Material * self,
 
 	slink = &( mat )->scriptlink;
 
+	/* can't this just return?  EXP_getScriptLinks() returns a PyObject*
+	 * or NULL anyway */
+
 	ret = EXPP_getScriptLinks( slink, args, 0 );
 
 	if( ret )
 		return ret;
 	else
 		return NULL;
-}
-
-/*****************************************************************************/
-/* Function:	Material_getAttr	 */
-/* Description: This is a callback function for the BPy_Material type. It is */
-/*		the function that accesses BPy_Material "member variables"  */
-/*		and methods.                                         */
-/*****************************************************************************/
-static PyObject *Material_getAttr( BPy_Material * self, char *name )
-{
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = PyString_FromString( self->material->id.name + 2 );
-	else if( strcmp( name, "mode" ) == 0 )
-		attr = PyInt_FromLong( self->material->mode );
-	else if( strcmp( name, "rgbCol" ) == 0 )
-		attr = Material_getRGBCol( self );
-/*	else if (strcmp(name, "ambCol") == 0)
-		attr = Material_getAmbCol(self);*/
-	else if( strcmp( name, "specCol" ) == 0 )
-		attr = Material_getSpecCol( self );
-	else if( strcmp( name, "mirCol" ) == 0 )
-		attr = Material_getMirCol( self );
-	else if( strcmp( name, "R" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->r );
-	else if( strcmp( name, "G" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->g );
-	else if( strcmp( name, "B" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->b );
-	else if( strcmp( name, "specR" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->specr );
-	else if( strcmp( name, "specG" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->specg );
-	else if( strcmp( name, "specB" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->specb );
-	else if( strcmp( name, "amb" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->amb );
-	else if( strcmp( name, "emit" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->emit );
-	else if( strcmp( name, "alpha" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->alpha );
-	else if( strcmp( name, "ref" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->ref );
-	else if( strcmp( name, "spec" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->spec );
-	else if( strcmp( name, "specTransp" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   spectra );
-	else if( strcmp( name, "add" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->add );
-	else if( strcmp( name, "zOffset" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->zoffs );
-	else if( strcmp( name, "haloSize" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->hasize );
-	else if( strcmp( name, "haloSeed" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->seed1 );
-	else if( strcmp( name, "flareSize" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   flaresize );
-	else if( strcmp( name, "flareBoost" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   flareboost );
-	else if( strcmp( name, "flareSeed" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->seed2 );
-	else if( strcmp( name, "subSize" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   subsize );
-	else if( strcmp( name, "hard" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->har );
-	else if( strcmp( name, "nFlares" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->flarec );
-	else if( strcmp( name, "nStars" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->starc );
-	else if( strcmp( name, "nLines" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->linec );
-	else if( strcmp( name, "nRings" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->ringc );
-	else if( strcmp( name, "rayMirr" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   ray_mirror );
-	else if( strcmp( name, "rayMirrDepth" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->ray_depth );
-	else if( strcmp( name, "fresnelDepth" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   fresnel_mir );
-	else if( strcmp( name, "fresnelDepthFac" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   fresnel_mir_i );
-	else if( strcmp( name, "filter" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   filter );
-	else if( strcmp( name, "translucency" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   translucency );
-	else if( strcmp( name, "IOR" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->ang );
-	else if( strcmp( name, "transDepth" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->
-				       ray_depth_tra );
-	else if( strcmp( name, "fresnelTrans" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   fresnel_tra );
-	else if( strcmp( name, "fresnelTransFac" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   fresnel_tra_i );
-	else if( strcmp( name, "users" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->
-					   id.us );
-	/* Shader settings*/
-	else if( strcmp( name, "specShader" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->
-					   spec_shader );
-	else if( strcmp( name, "diffuseShader" ) == 0 )
-		attr = PyInt_FromLong( ( long ) self->material->
-					   diff_shader );
-	else if( strcmp( name, "roughness" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   roughness );
-	else if( strcmp( name, "specSize" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   param[2] );
-	else if( strcmp( name, "diffuseSize" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   param[0] );
-	else if( strcmp( name, "specSmooth" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   param[3] );
-	else if( strcmp( name, "diffuseSmooth" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   param[1] );
-	else if( strcmp( name, "diffuseDarkness" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   darkness );
-	else if( strcmp( name, "refracIndex" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   refrac );
-	else if( strcmp( name, "rms" ) == 0 )
-		attr = PyFloat_FromDouble( ( double ) self->material->
-					   rms );
-	
-  else if (strcmp(name, "oopsLoc") == 0) {
-    if (G.soops) { 
-      Oops *oops= G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_MA) {
-          if ((Material *)oops->id == self->material) {
-            return (Py_BuildValue ("ff", oops->x, oops->y));
-          }
-        }
-        oops= oops->next;
-      }
-    }
-    Py_INCREF (Py_None);
-    return (Py_None);
-  }
-  /* Select in the oops view only since its a mesh */
-  else if (strcmp(name, "oopsSel") == 0) {
-    if (G.soops) {
-      Oops *oops= G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_MA) {
-          if ((Material *)oops->id == self->material) {
-            if (oops->flag & SELECT)
-							return EXPP_incr_ret_True();
-            else
-							return EXPP_incr_ret_False();
-          }
-        }
-        oops= oops->next;
-      }
-    }
-    Py_INCREF (Py_None);
-		return (Py_None);    
-  }    
-	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr =		/* 30 items */
-			Py_BuildValue
-			( "[s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,					s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s]",
-			  "name", "mode", "rgbCol", "specCol", "mirCol", "R",
-			  "G", "B", "alpha", "amb", "emit", "ref",
-				"spec", "specTransp", "add", "zOffset", "haloSize", "haloSeed",
-				"flareSize", "flareBoost", "flareSeed", "subSize", "hard", "nFlares",
-				"nStars", "nLines", "nRings", "rayMirr", "rayMirrDepth", "fresnelDepth",
-			  "fresnelDepthFac", "IOR", "transDepth",
-				"fresnelTrans", "fresnelTransFac", "users",
-				"oopsLoc", "oopsSel", "filter", "translucency", "shader", "roughness",
-				"specSize", "diffuseSize", "specSmooth",
-			  "diffuseSmooth", "diffuseDarkness", "refracIndex", "rms");
-	}	
-	
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* member attribute found, return it */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Material_methods, ( PyObject * ) self,
-			      name );
-}
-
-/****************************************************************************/
-/* Function:	Material_setAttr	*/
-/* Description: This is a callback function for the BPy_Material type.	*/
-/*		It is the function that sets Material attributes (member */
-/*		variables).				*/
-/****************************************************************************/
-static int Material_setAttr( BPy_Material * self, char *name,
-			     PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-/* We're playing a trick on the Python API users here.	Even if they use
- * Material.member = val instead of Material.setMember(val), we end up using 
- * the  function anyway, since it already has error checking, clamps to the 
- * right  interval and updates the Blender Material structure when necessary. 
- */
-
-/* First we put "value" in a tuple, because we want to pass it to functions
- * that only accept PyTuples. */
-	valtuple = Py_BuildValue( "(O)", value );
-
-	if( !valtuple )		/* everything OK with our PyObject? */
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "MaterialSetAttr: couldn't create PyTuple" );
-
-/* Now we just compare "name" with all possible BPy_Material member variables */
-	if( strcmp( name, "name" ) == 0 )
-		error = Material_setName( self, valtuple );
-	else if( strcmp( name, "mode" ) == 0 )
-		error = Material_setIntMode( self, valtuple );	/* special case */
-	else if( strcmp( name, "rgbCol" ) == 0 )
-		error = Material_setRGBCol( self, valtuple );
-/*	else if (strcmp (name, "ambCol") == 0)
-		error = Material_setAmbCol (self, valtuple);*/
-	else if( strcmp( name, "specCol" ) == 0 )
-		error = Material_setSpecCol( self, valtuple );
-	else if( strcmp( name, "mirCol" ) == 0 )
-		error = Material_setMirCol( self, valtuple );
-	else if( strcmp( name, "R" ) == 0 )
-		error = Material_setColorComponent( self, "R", valtuple );
-	else if( strcmp( name, "G" ) == 0 )
-		error = Material_setColorComponent( self, "G", valtuple );
-	else if( strcmp( name, "B" ) == 0 )
-		error = Material_setColorComponent( self, "B", valtuple );
-	else if( strcmp( name, "specR" ) == 0 )
-		error = Material_setColorComponent( self, "specR", valtuple );
-	else if( strcmp( name, "specG" ) == 0 )
-		error = Material_setColorComponent( self, "specG", valtuple );
-	else if( strcmp( name, "specB" ) == 0 )
-		error = Material_setColorComponent( self, "specB", valtuple );
-	else if( strcmp( name, "amb" ) == 0 )
-		error = Material_setAmb( self, valtuple );
-	else if( strcmp( name, "emit" ) == 0 )
-		error = Material_setEmit( self, valtuple );
-	else if( strcmp( name, "alpha" ) == 0 )
-		error = Material_setAlpha( self, valtuple );
-	else if( strcmp( name, "ref" ) == 0 )
-		error = Material_setRef( self, valtuple );
-	else if( strcmp( name, "spec" ) == 0 )
-		error = Material_setSpec( self, valtuple );
-	else if( strcmp( name, "specTransp" ) == 0 )
-		error = Material_setSpecTransp( self, valtuple );
-	else if( strcmp( name, "add" ) == 0 )
-		error = Material_setAdd( self, valtuple );
-	else if( strcmp( name, "zOffset" ) == 0 )
-		error = Material_setZOffset( self, valtuple );
-	else if( strcmp( name, "haloSize" ) == 0 )
-		error = Material_setHaloSize( self, valtuple );
-	else if( strcmp( name, "haloSeed" ) == 0 )
-		error = Material_setHaloSeed( self, valtuple );
-	else if( strcmp( name, "flareSize" ) == 0 )
-		error = Material_setFlareSize( self, valtuple );
-	else if( strcmp( name, "flareBoost" ) == 0 )
-		error = Material_setFlareBoost( self, valtuple );
-	else if( strcmp( name, "flareSeed" ) == 0 )
-		error = Material_setFlareSeed( self, valtuple );
-	else if( strcmp( name, "subSize" ) == 0 )
-		error = Material_setSubSize( self, valtuple );
-	else if( strcmp( name, "hard" ) == 0 )
-		error = Material_setHardness( self, valtuple );
-	else if( strcmp( name, "nFlares" ) == 0 )
-		error = Material_setNFlares( self, valtuple );
-	else if( strcmp( name, "nStars" ) == 0 )
-		error = Material_setNStars( self, valtuple );
-	else if( strcmp( name, "nLines" ) == 0 )
-		error = Material_setNLines( self, valtuple );
-	else if( strcmp( name, "nRings" ) == 0 )
-		error = Material_setNRings( self, valtuple );
-	else if( strcmp( name, "rayMirr" ) == 0 )
-		error = Material_setRayMirr( self, valtuple );
-	else if( strcmp( name, "rayMirrDepth" ) == 0 )
-		error = Material_setMirrDepth( self, valtuple );
-	else if( strcmp( name, "fresnelDepth" ) == 0 )
-		error = Material_setFresnelMirr( self, valtuple );
-	else if( strcmp( name, "fresnelDepthFac" ) == 0 )
-		error = Material_setFresnelMirrFac( self, valtuple );
-	else if( strcmp( name, "filter" ) == 0 )
-		error = Material_setFilter( self, valtuple );
-	else if( strcmp( name, "translucency" ) == 0 )
-		error = Material_setTranslucency( self, valtuple );
-	else if( strcmp( name, "IOR" ) == 0 )
-		error = Material_setIOR( self, valtuple );
-	else if( strcmp( name, "transDepth" ) == 0 )
-		error = Material_setTransDepth( self, valtuple );
-	else if( strcmp( name, "fresnelTrans" ) == 0 )
-		error = Material_setFresnelTrans( self, valtuple );
-	else if( strcmp( name, "fresnelTransFac" ) == 0 )
-		error = Material_setFresnelTransFac( self, valtuple );
-	/* Shader settings */
-	else if( strcmp( name, "specShader" ) == 0 )
-		error = Material_setSpecShader( self, valtuple );
-	else if( strcmp( name, "diffuseShader" ) == 0 )
-		error = Material_setDiffuseShader( self, valtuple );	
-	else if( strcmp( name, "roughness" ) == 0 )
-		error = Material_setRoughness( self, valtuple );
-	else if( strcmp( name, "specSize" ) == 0 )
-		error = Material_setSpecSize( self, valtuple );
-	else if( strcmp( name, "diffuseSize" ) == 0 )
-		error = Material_setDiffuseSize( self, valtuple );
-	else if( strcmp( name, "specSmooth" ) == 0 )
-		error = Material_setSpecSmooth( self, valtuple );
-	else if( strcmp( name, "diffuseSmooth" ) == 0 )
-		error = Material_setDiffuseSmooth( self, valtuple );
-	else if( strcmp( name, "diffuseDarkness" ) == 0 )
-		error = Material_setDiffuseDarkness( self, valtuple );
-	else if( strcmp( name, "refracIndex" ) == 0 )
-		error = Material_setRefracIndex( self, valtuple );
-	else if( strcmp( name, "rms" ) == 0 )
-		error = Material_setRms( self, valtuple );	
-  else if (strcmp (name, "oopsLoc") == 0) {
-    if (G.soops) {
-      Oops *oops= G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_MA) {
-          if ((Material *)oops->id == self->material) {
-            if (!PyArg_ParseTuple  (value, "ff", &(oops->x),&(oops->y)))
-							PyErr_SetString(PyExc_AttributeError,
-								"expected two floats as arguments");
-            break;
-          }
-        }
-        oops= oops->next;
-      }
-			if (!oops)
-				PyErr_SetString(PyExc_RuntimeError,
-					"couldn't find oopsLoc data for this material!");
-			else error = EXPP_incr_ret (Py_None);
-    }
-  }
-  /* Select in the oops view only since its a mesh */
-  else if (strcmp (name, "oopsSel") == 0) {
-    int sel;
-    if (!PyArg_Parse (value, "i", &sel))
-      PyErr_SetString (PyExc_TypeError, "expected an integer, 0 or 1");
-		else if (G.soops) {
-      Oops *oops= G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_MA) {
-          if ((Material *)oops->id == self->material) {
-            if(sel == 0) oops->flag &= ~SELECT;
-            else oops->flag |= SELECT;
-            break;
-          }
-        }
-        oops= oops->next;
-      }
-    	error = EXPP_incr_ret (Py_None);
-    }
-  }	
-	else {			/* Error */
-		Py_DECREF( valtuple );
-		return ( EXPP_ReturnIntError( PyExc_AttributeError, name ) );
-	}
-
-/* valtuple won't be returned to the caller, so we need to DECREF it */
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-/* Py_None was incref'ed by the called Material_set* function. We probably
- * don't need to decref Py_None (!), but since Python/C API manual tells us
- * to treat it like any other PyObject regarding ref counting ... */
-	Py_DECREF( Py_None );
-	return 0;		/* normal exit */
 }
 
 /*****************************************************************************/
@@ -3076,4 +2566,497 @@ void EXPP_incr_mats_us( Material ** matlist, int len )
 	}
 
 	return;
+}
+
+static PyObject *Material_getColorComponent( BPy_Material * self, 
+							void * closure )
+{
+	PyObject *attr = NULL;
+
+	switch ( (int)closure ) {
+	case EXPP_MAT_COMP_R:
+		attr = PyFloat_FromDouble( ( double ) self->material->r );
+		break;
+	case EXPP_MAT_COMP_G:
+		attr = PyFloat_FromDouble( ( double ) self->material->g );
+		break;
+	case EXPP_MAT_COMP_B:
+		attr = PyFloat_FromDouble( ( double ) self->material->b );
+		break;
+	case EXPP_MAT_COMP_SPECR:
+		attr = PyFloat_FromDouble( ( double ) self->material->specr );
+		break;
+	case EXPP_MAT_COMP_SPECG:
+		attr = PyFloat_FromDouble( ( double ) self->material->specg );
+		break;
+	case EXPP_MAT_COMP_SPECB:
+		attr = PyFloat_FromDouble( ( double ) self->material->specb );
+		break;
+	case EXPP_MAT_COMP_MIRR:
+		attr = PyFloat_FromDouble( ( double ) self->material->mirr );
+		break;
+	case EXPP_MAT_COMP_MIRG:
+		attr = PyFloat_FromDouble( ( double ) self->material->mirg );
+		break;
+	case EXPP_MAT_COMP_MIRB:
+		attr = PyFloat_FromDouble( ( double ) self->material->mirb );
+		break;
+	default:
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"unknown color component specified" );
+	}
+
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"PyFloat_FromDouble() failed" );
+	return attr;
+}
+
+static PyObject *Material_getOopsLoc ( BPy_Material * self )
+{
+	if( G.soops ) { 
+		Oops *oops = G.soops->oops.first;
+		while( oops ) {
+			if( oops->type == ID_MA && (Material *)oops->id == self->material )
+				return Py_BuildValue( "ff", oops->x, oops->y );
+			oops = oops->next;
+		}
+	}
+	Py_INCREF( Py_None );
+	return Py_None;
+}
+
+static PyObject *Material_getOopsSel ( BPy_Material * self )
+{
+	if( G.soops ) {
+		Oops *oops= G.soops->oops.first;
+		while( oops ) {
+			if( oops->type == ID_MA
+						&& (Material *)oops->id == self->material ) {
+				if( oops->flag & SELECT )
+					return EXPP_incr_ret_True();
+				else
+					return EXPP_incr_ret_False();
+			}
+			oops = oops->next;
+	  	}
+	}
+	Py_INCREF( Py_None );
+	return Py_None;    
+}
+
+static int Material_setOopsLoc ( BPy_Material * self, PyObject * value )
+{
+	if( G.soops ) {
+		Oops *oops= G.soops->oops.first;
+		while( oops ) {
+			if( oops->type == ID_MA ) {
+				if ( (Material *)oops->id == self->material ) {
+					if ( PyArg_ParseTuple( value, "ff", &(oops->x),&(oops->y)))
+						return 0;
+					else
+						return EXPP_ReturnIntError( PyExc_AttributeError,
+								"expected two floats as arguments" );
+				}
+			}
+			oops = oops->next;
+		}
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"couldn't find oopsLoc data for material" );
+	}
+	return 0;
+}
+
+static int Material_setOopsSel ( BPy_Material * self, PyObject * value )
+{
+	int param;
+
+	if( !PyInt_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected an integer, 0 or 1" );
+
+	param = PyInt_AS_LONG ( value );
+	if( param < 0 || param > 1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected an integer, 0 or 1" );
+
+	if( G.soops ) {
+		Oops *oops = G.soops->oops.first;
+		while( oops ) {
+			if( oops->type==ID_MA ) {
+				if( (Material *)oops->id == self->material ) {
+					if( !param )
+						oops->flag &= ~SELECT;
+					else
+						oops->flag |= SELECT;
+					return 0;
+				}
+			}
+			oops= oops->next;
+		}
+	}
+	return 0;
+}
+
+static PyObject *Material_getUsers( BPy_Material * self )
+{
+	return PyInt_FromLong( self->material->id.us );
+}
+
+/* #####DEPRECATED###### */
+
+static PyObject *Matr_oldsetAdd( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setAdd );
+}
+
+static PyObject *Matr_oldsetAlpha( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setAlpha );
+}
+
+static PyObject *Matr_oldsetAmb( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setAmb );
+}
+
+static PyObject *Matr_oldsetDiffuseDarkness( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setDiffuseDarkness );
+}
+
+static PyObject *Matr_oldsetDiffuseShader( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setDiffuseShader );
+}
+
+static PyObject *Matr_oldsetDiffuseSize( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setDiffuseSize );
+}
+
+static PyObject *Matr_oldsetDiffuseSmooth( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setDiffuseSmooth );
+}
+
+static PyObject *Matr_oldsetEmit( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setEmit );
+}
+
+static PyObject *Matr_oldsetFilter( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFilter );
+}
+
+static PyObject *Matr_oldsetFlareBoost( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFlareBoost );
+}
+
+static PyObject *Matr_oldsetFlareSeed( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFlareSeed );
+}
+
+static PyObject *Matr_oldsetFlareSize( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFlareSize );
+}
+
+static PyObject *Matr_oldsetFresnelMirr( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFresnelMirr );
+}
+
+static PyObject *Matr_oldsetFresnelMirrFac( BPy_Material * self,
+					     PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFresnelMirrFac );
+}
+
+static PyObject *Matr_oldsetFresnelTrans( BPy_Material * self,
+					   PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFresnelTrans );
+}
+
+static PyObject *Matr_oldsetFresnelTransFac( BPy_Material * self,
+					      PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setFresnelTransFac );
+}
+
+static PyObject *Matr_oldsetHaloSeed( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setHaloSeed );
+}
+
+static PyObject *Matr_oldsetHaloSize( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setHaloSize );
+}
+
+static PyObject *Matr_oldsetHardness( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setHardness );
+}
+
+static PyObject *Matr_oldsetIOR( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setIOR );
+}
+
+static PyObject *Matr_oldsetName( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setName );
+}
+
+static PyObject *Matr_oldsetNFlares( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setNFlares );
+}
+
+static PyObject *Matr_oldsetNLines( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setNLines );
+}
+
+static PyObject *Matr_oldsetNRings( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setNRings );
+}
+
+static PyObject *Matr_oldsetNStars( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setNStars );
+}
+
+static PyObject *Matr_oldsetRayMirr( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRayMirr );
+}
+
+static PyObject *Matr_oldsetRoughness( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRoughness );
+}
+
+static PyObject *Matr_oldsetMirrDepth( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setMirrDepth );
+}
+
+static PyObject *Matr_oldsetRef( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRef );
+}
+
+static PyObject *Matr_oldsetRefracIndex( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRefracIndex );
+}
+
+static PyObject *Matr_oldsetRms( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRms );
+}
+
+static PyObject *Matr_oldsetSpec( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpec );
+}
+
+static PyObject *Matr_oldsetSpecShader( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecShader );
+}
+
+static PyObject *Matr_oldsetSpecSize( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecSize );
+}
+
+static PyObject *Matr_oldsetSpecSmooth( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecSmooth );
+}
+
+static PyObject *Matr_oldsetSpecTransp( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecTransp );
+}
+
+static PyObject *Matr_oldsetSubSize( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSubSize );
+}
+
+static PyObject *Matr_oldsetTranslucency( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setTranslucency );
+}
+
+static PyObject *Matr_oldsetTransDepth( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setTransDepth );
+}
+
+static PyObject *Matr_oldsetZOffset( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setZOffset );
+}
+
+static PyObject *Matr_oldsetRGBCol( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setRGBCol );
+}
+
+static PyObject *Matr_oldsetSpecCol( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setSpecCol );
+}
+
+static PyObject *Matr_oldsetMirCol( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setMirCol );
+}
+
+
+/* Possible modes are traceable, shadow, shadeless, wire, vcolLight,
+ * vcolPaint, halo, ztransp, zinvert, haloRings, env, haloLines,
+ * onlyShadow, xalpha, star, faceTexture, haloTex, haloPuno, noMist,
+ * haloShaded, haloFlare */
+
+static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
+{
+	unsigned int i, flag = 0, ok = 0;
+	PyObject *value, *error;
+	char *m[28] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		NULL, NULL, NULL, NULL, NULL, NULL
+	};
+
+	/* 
+	 * check for a single integer argument; do a quick check for now
+	 * that the value is not larger than double the highest flag bit
+	 */
+
+	if ( (PySequence_Size( args ) == 1)
+		    && PyInt_Check ( PySequence_Fast_GET_ITEM ( args , 0 ) )
+		    && PyArg_ParseTuple( args, "i", &flag ) 
+		    && flag < (MA_RAYMIRROR >> 1) ) {
+			ok = 1;
+
+	/*
+	 * check for either an empty argument list, or up to 28 strings
+	 */
+
+	} else if( PyArg_ParseTuple( args, "|ssssssssssssssssssssssssssss",
+			       &m[0], &m[1], &m[2], &m[3], &m[4], &m[5], &m[6],
+			       &m[7], &m[8], &m[9], &m[10], &m[11], &m[12],
+			       &m[13], &m[14], &m[15], &m[16], &m[17], &m[18],
+			       &m[19], &m[20], &m[21], &m[22], &m[23], &m[24],
+			       &m[25], &m[26], &m[27] ) ) {
+		for( i = 0; i < 28; i++ ) {
+			if( m[i] == NULL )
+				break;
+			if( strcmp( m[i], "Traceable" ) == 0 )
+				flag |= MA_TRACEBLE;
+			else if( strcmp( m[i], "Shadow" ) == 0 )
+				flag |= MA_SHADOW;
+			else if( strcmp( m[i], "Shadeless" ) == 0 )
+				flag |= MA_SHLESS;
+			else if( strcmp( m[i], "Wire" ) == 0 )
+				flag |= MA_WIRE;
+			else if( strcmp( m[i], "VColLight" ) == 0 )
+				flag |= MA_VERTEXCOL;
+			else if( strcmp( m[i], "VColPaint" ) == 0 )
+				flag |= MA_VERTEXCOLP;
+			else if( strcmp( m[i], "Halo" ) == 0 )
+				flag |= MA_HALO;
+			else if( strcmp( m[i], "ZTransp" ) == 0 )
+				flag |= MA_ZTRA;
+			else if( strcmp( m[i], "ZInvert" ) == 0 )
+				flag |= MA_ZINV;
+			else if( strcmp( m[i], "HaloRings" ) == 0 )
+				flag |= MA_HALO_RINGS;
+			else if( strcmp( m[i], "HaloLines" ) == 0 )
+				flag |= MA_HALO_LINES;
+			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
+				flag |= MA_ONLYSHADOW;
+			else if( strcmp( m[i], "HaloXAlpha" ) == 0 )
+				flag |= MA_HALO_XALPHA;
+			else if( strcmp( m[i], "HaloStar" ) == 0 )
+				flag |= MA_STAR;
+			else if( strcmp( m[i], "TexFace" ) == 0 )
+				flag |= MA_FACETEXTURE;
+			else if( strcmp( m[i], "HaloTex" ) == 0 )
+				flag |= MA_HALOTEX;
+			else if( strcmp( m[i], "HaloPuno" ) == 0 )
+				flag |= MA_HALOPUNO;
+			else if( strcmp( m[i], "NoMist" ) == 0 )
+				flag |= MA_NOMIST;
+			else if( strcmp( m[i], "HaloShaded" ) == 0 )
+				flag |= MA_HALO_SHADE;
+			else if( strcmp( m[i], "HaloFlare" ) == 0 )
+				flag |= MA_HALO_FLARE;
+			else if( strcmp( m[i], "Radio" ) == 0 )
+				flag |= MA_RADIO;
+			/* ** Mirror ** */
+			else if( strcmp( m[i], "RayMirr" ) == 0 )
+				flag |= MA_RAYMIRROR;
+			else if( strcmp( m[i], "ZTransp" ) == 0 )
+				flag |= MA_ZTRA;
+			else if( strcmp( m[i], "RayTransp" ) == 0 )
+				flag |= MA_RAYTRANSP;
+			else if( strcmp( m[i], "OnlyShadow" ) == 0 )
+				flag |= MA_ONLYSHADOW;
+			else if( strcmp( m[i], "NoMist" ) == 0 )
+				flag |= MA_NOMIST;
+			else if( strcmp( m[i], "Env" ) == 0 )
+				flag |= MA_ENV;
+			else
+				return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+								"unknown Material mode argument" ) );
+		}
+		ok = 1;
+	}
+
+	/* if neither input method worked, then throw an exception */
+
+	if ( ok == 0 )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_AttributeError,
+			   "expected nothing, an integer or up to 22 string argument(s)" ) );
+	/* build tuple, call wrapper */
+
+	value = Py_BuildValue( "(i)", flag );
+	error = EXPP_setterWrapper( (void *)self, value, (setter)Material_setMode );
+	Py_DECREF ( value );
+	return error;
+}
+
+static PyObject *Matr_oldsetIpo( BPy_Material * self, PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args, (setter)Material_setIpo );
+}
+
+/*
+ * clearIpo() returns True/False depending on whether material has an Ipo
+ */
+
+static PyObject *Material_clearIpo( BPy_Material * self )
+{
+	/* if Ipo defined, delete it and return true */
+
+	if( self->material->ipo ) {
+		PyObject *value = Py_BuildValue( "(O)", Py_None );
+		EXPP_setterWrapper( (void *)self, value, (setter)Material_setIpo );
+		Py_DECREF ( value );
+		return EXPP_incr_ret_True();
+	}
+	return EXPP_incr_ret_False(); /* no ipo found */
 }

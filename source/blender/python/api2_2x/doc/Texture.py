@@ -4,7 +4,6 @@
 # Written by Alex Mole
 # 
 
-
 """
 The Blender.Texture submodule.
 
@@ -46,11 +45,16 @@ Example::
     - IMAGE - Image texture
     - PLUGIN - Plugin texture
     - ENVMAP - EnvMap texture
+    - MUSGRAVE - Musgrave procedural texture
+    - VORONOI - Voronoi procedural texture
+    - DISTNOISE - Distorted noise texture
 
 @type Flags: readonly dictionary
 @var Flags: The available Texture flags:
     - FLIPBLEND - Flips the blend texture's X and Y directions
     - NEGALPHA - Reverse the alpha value
+    - CHECKER_ODD - Fill the "odd" checkerboard tiles
+    - CHECKER_EVEN - Fill the "even" checkerboard tiles
 
 @type ImageFlags: readonly dictionary
 @var ImageFlags: The available image flags for Texture.imageFlags:
@@ -67,11 +71,31 @@ Example::
     - NORMALMAP - Use image RGB values for normal mapping
 
 @type ExtendModes: readonly dictionary
-@var ExtendModes: Extend, clamp or repeat modes for images
+@var ExtendModes: Extend, clip, repeat or checker modes for image textures
     - EXTEND - Extends the colour of the edge
     - CLIP - Return alpha 0.0 outside image
     - CLIPCUBE - Return alpha 0.0 around cube-shaped area around image
     - REPEAT - Repeat image vertically and horizontally
+    - CHECKER - Repeat image in checkerboard pattern
+
+@type Noise: readonly dictionary
+@var Noise: Noise types and bases.  SINE, SAW and TRI are only used for
+    marble and wood textures, while the remainder are used for all textures
+    which has a noise basis function (for these textures, the constant should
+    be used with the second noise basis setting).
+        - SINE - Produce bands using sine wave (marble, wood textures)
+        - SAW - Produce bands using saw wave (marble, wood textures)
+        - TRI - Produce bands using triangle wave (marble, wood textures)
+        - BLENDER - Original Blender algorithm
+        - PERLIN - Ken Perlin's original (1985) algorithm
+        - IMPROVEPERLIN - Ken Perlin's newer (2002) algorithm
+        - VORONOIF1 - none
+        - VORONOIF2 - none
+        - VORONOIF3 - none
+        - VORONOIF4 - none
+        - VORONOIF2F1 - none
+        - VORONOICRACKLE - none
+        - CELLNOISE - Steven Worley's cellular basis algorithm (1996)
 
 @type STypes: readonly dictionary
 @var STypes: Texture-type specific data. Depending on the value of
@@ -113,6 +137,28 @@ Example::
             - ENV_STATIC - Calculate map only once
             - ENV_ANIM - Calculate map each rendering
             - ENV_LOAD - Load map from disk
+        11. Musgrave type
+            - MUS_MFRACTAL - Hetero Multifractal
+            - MUS_RIDGEDMF - Ridged Multifractal
+            - MUS_HYBRIDMF - Hybrid Multifractal
+            - MUS_FBM - Fractal Brownian Motion
+            - MUS_HTERRAIN - Hetero Terrain
+        12. Voronoi type
+            - VN_INT - Only calculate intensity
+            - VN_COL1 - Color cells by position
+            - VN_COL2 - Same as Col1 plus outline based on F2-F1
+            - VN_COL3 - Same as Col2 multiplied by intensity
+        13. Distorted noise type
+            - DN_BLENDER - Original Blender algorithm
+            - DN_PERLIN - Ken Perlin's original (1985) algorithm
+            - DN_IMPROVEPERLIN - Ken Perlin's newer (2002) algorithm
+            - DN_VORONOIF1 - none
+            - DN_VORONOIF2 - none
+            - DN_VORONOIF3 - none
+            - DN_VORONOIF4 - none
+            - DN_VORONOIF2F1 - none
+            - DN_VORONOICRACKLE - none
+            - DN_CELLNOISE - Steven Worley's cellular basis algorithm (1996)
 
 @var TexCo: Flags for MTex.texco.
     - ORCO - Use the original coordinates of the mesh
@@ -166,41 +212,146 @@ class Texture:
     ==================
     This object gives access to Texture-specific data in Blender.
 
-    Note that many of the attributes of this object are only relevant if
-    specific modes are enabled.
-  
-    @ivar name: The Texture name.
-    @ivar type: The Texture type. See L{Types}
-    @ivar flags: The texture flags (OR'd together). See L{Flags}
-    @ivar imageFlags: The texture image flags (OR'd tegether). 
-        See L{ImageFlags}
-    @ivar stype: Texture-type specific data. See L{STypes}
-    @ivar image: The image associated with this texture, or None.
-    @type image: Blender Image
-    @ivar rgbCol: The texture's RGB color triplet.
-    @ivar brightness: The brightness in range [0,2].
-    @ivar contrast: The contrast in range [0,2].
-    @ivar filterSize: The filter size for the image.
-    @ivar extend: Texture extend/repeat mode. See L{ExtendModes}
-    @ivar crop: Tuple of image crop values as floats, 
-        like C{(xmin, ymin, xmax, ymax)}
-    @ivar repeat: Tuple of image repeat values as ints, like 
-        C{(xrepeat, yrepeat)}
-    @ivar noiseSize: The noise size.
-    @ivar noiseDepth: The noise depth.
-    @ivar noiseType: The noise type: 'soft' or 'hard'.
-    @ivar animLength: Length of the animation.
-    @ivar animFrames: Frames of the animation.
-    @ivar animOffset: The number of the first picture of the animation.
-    @ivar animStart: Start frame of the animation.
-    @ivar fieldsPerImage: The number of fields per rendered frame.
-    @ivar animMontage: Montage mode data as a tuple of tuples, like
-        C{( (fra1,dur1), (fra2,dur2), (fra3,dur3), (fra4,dur4) )}
+    Note that many of the attributes of this object are only relevant for
+    specific texture types.
+
+	@ivar animFrames:  Number of frames of a movie to use.
+	Value is clamped to the range [0,30000].
+	@type animFrames:  int
+	@ivar animLength:  Number of frames of a movie to use (0 for all).
+	Value is clamped to the range [0,9000].
+	@type animLength:  int
+	@ivar animMontage: Montage mode, start frames and durations. Example: C{( (fra1,dur1), (fra2,dur2), (fra3,dur3), (fra4,dur4) )}.
+	@type animMontage:  tuple of 4 (int,int)
+	@ivar animOffset:  Offsets the number of the first movie frame to use.
+	Value is clamped to the range [-9000,9000].
+	@type animOffset:  int
+	@ivar animStart:  Starting frame of the movie to use.
+	Value is clamped to the range [1,9000].
+	@type animStart:  int
+	@ivar anti:  Image anti-aliasing enabled.  Also see L{ImageFlags}.
+	@type anti:  int
+	@ivar brightness:  Changes the brightness of a texture's color.
+	Value is clamped to the range [0.0,2.0].
+	@type brightness:  float
+	@ivar calcAlpha:  Calculation of image's alpha channel enabled. Also see L{ImageFlags}.
+	@type calcAlpha:  int
+	@ivar contrast:  Changes the contrast of a texture's color.
+	Value is clamped to the range [0.01,5.0].
+	@type contrast:  float
+	@ivar crop:  Sets the cropping extents (for image textures).
+	@type crop:  tuple of 4 ints
+	@ivar cyclic:  Looping of animated frames enabled. Also see L{ImageFlags}.
+	@type cyclic:  int
+	@ivar distAmnt:  Amount of distortion (for distorted noise textures).
+	Value is clamped to the range [0.0,10.0].
+	@type distAmnt:  float
+	@ivar distMetric:  The distance metric (for Voronoi textures).
+	@type distMetric:  int
+	@ivar exp:  Minkovsky exponent (for Minkovsky Voronoi textures).
+	Value is clamped to the range [0.01,10.0].
+	@type exp:  float
+	@ivar extend:  Texture's 'Extend' mode (for image textures). See L{ExtendModes}.
+	@type extend:  int
+	@ivar fields:  Use of image's fields enabled. Also see L{ImageFlags}.
+	@type fields:  int
+	@ivar fieldsPerImage:  Number of fields per rendered frame.
+	Value is clamped to the range [1,200].
+	@type fieldsPerImage:  int
+	@ivar filterSize:  The filter size (for image and envmap textures).
+	Value is clamped to the range [0.1,25.0].
+	@type filterSize:  float
+	@ivar flags:  Texture's 'Flag' bitfield.  See L{Flags}.
+	bitmask.
+	@type flags:  int
+	@ivar hFracDim:  Highest fractional dimension (for Musgrave textures).
+	Value is clamped to the range [0.0001,2.0].
+	@type hFracDim:  float
+	@ivar iScale:  Intensity output scale (for Musgrave and Voronoi textures).
+	Value is clamped to the range [0.0,10.0].
+	@type iScale:  float
+	@ivar image:  Texture's image object.
+	@type image:  Blender Image (or None)
+	@ivar imageFlags:  Texture's 'ImageFlags' bits.
+	@type imageFlags:  int
+	@ivar interpol:  Interpolate image's pixels to fit texture mapping enabled. Also see L{ImageFlags}.
+	@type interpol:  int
+	@ivar ipo:  Texture Ipo data.
+	Contains the Ipo if one is assigned to the object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
+	@type ipo:  Blender Ipo
+	@ivar lacunarity:  Gap between succesive frequencies (for Musgrave textures).
+	Value is clamped to the range [0.0,6.0].
+	@type lacunarity:  float
+	@ivar mipmap:  Mipmaps enabled. Also see L{ImageFlags}.
+	@type mipmap:  int
+	@ivar movie:  Movie frames as images enabled. Also see L{ImageFlags}.
+	@type movie:  int
+	@ivar name:  Texture data name.
+	@type name:  string
+	@ivar noiseBasis:  Noise basis type (wood, stucci, marble, clouds,
+	Musgrave, distorted).  See L{Noise} dictionary.
+	@type noiseBasis:  int
+	@ivar noiseBasis2:  Additional noise basis type (wood, marble, distorted
+	noise).  See L{Noise} dictionary.
+	@type noiseBasis2:  int
+	@ivar noiseDepth:  Noise depth (magic, marble, clouds).
+	Value is clamped to the range [0,6].
+	@type noiseDepth:  int
+	@ivar noiseSize:  Noise size (wood, stucci, marble, clouds, Musgrave,
+	distorted noise).
+	Value is clamped to the range [0.0001,2.0].
+	@type noiseSize:  float
+	@ivar noiseType:  Noise type (for wood, stucci, marble, clouds textures).		Valid values are 'hard' or 'soft'.
+	@type noiseType:  string 
+	@ivar normalMap:  Use of image RGB values for normal mapping enabled. 
+	Also see L{ImageFlags}.
+	@type normalMap:  int
+	@ivar octs:  Number of frequencies (for Musgrave textures).
+	Value is clamped to the range [0.0,8.0].
+	@type octs:  float
+	@ivar repeat:  Repetition multiplier (for image textures).
+	@type repeat:  tuple of 2 ints
+	@ivar rgbCol:  RGB color tuple.
+	@type rgbCol:  tuple of 3 floats
+	@ivar rot90:  X/Y flip for rendering enabled. Also see L{ImageFlags}.
+	@type rot90:  int
+	@ivar saw:  Produce bands using saw wave (marble, wood textures). Also see L{Noise}.
+	@type saw:  int
+	@ivar sine:  Produce bands using sine wave (marble, wood textures). Also see L{Noise}.
+	@type sine:  int
+	@ivar stField:  Standard field deinterlacing enabled. Also see L{ImageFlags}.
+	@type stField:  int
+	@ivar stype:  Texture's 'SType' mode.  See L{STypes}.
+	@type stype:  int
+	@ivar tri:  Produce bands using triangle wave (marble, wood textures). Also see L{Noise}.
+	@type tri:  int
+	@ivar turbulence:  Turbulence (for magic, wood, stucci, marble textures).
+	Value is clamped to the range [0.0,200.0].
+	@type turbulence:  float
+	@ivar type:  Texture's 'Type' mode. See L{Types}.
+	Value must be in the range [0,13].
+	@type type:  int
+	@ivar useAlpha:  Use of image's alpha channel enabled. Also see L{ImageFlags}.
+	@type useAlpha:  int
+	@ivar users:  Number of texture users.  Read-only.
+	@type users:  int
+	@ivar weight1:  Weight 1 (for Voronoi textures).
+	Value is clamped to the range [-2.0,2.0].
+	@type weight1:  float
+	@ivar weight2:  Weight 2 (for Voronoi textures).
+	Value is clamped to the range [-2.0,2.0].
+	@type weight2:  float
+	@ivar weight3:  Weight 3 (for Voronoi textures).
+	Value is clamped to the range [-2.0,2.0].
+	@type weight3:  float
+	@ivar weight4:  Weight 4 (for Voronoi textures).
+	Value is clamped to the range [-2.0,2.0].
+	@type weight4:  float
     """
     
     def getExtend():
         """
-        Get the extend mode of the texture. See L{setExtend}
+        Get the extend mode of the texture. See L{setExtend}.
         @rtype: string.
         """
     
@@ -218,9 +369,8 @@ class Texture:
 
     def getType():
         """
-        Get this Texture's type.
+        Get this Texture's type.  See L{setType}.
         @rtype: string
-        @return: The Texture's type. See L{setType}
         """
 
     def setExtend(extendmode):
@@ -231,12 +381,12 @@ class Texture:
         @type extendmode: string
         """
 
-    def setFlags(f=None, f2=None, f3=None):
+    def setFlags(f1=None, f2=None, f3=None, f4=None):
         """
         Set this object's flags.
-        @param f: Flags to be set (omitted flags are cleared). Can be any of 
-            'ColorBand', 'FlipBlendXY', and 'NegAlpha'
-        @type f: string
+        @param f1,f2,f3,f4: Flags to be set (omitted flags are cleared). Can be any of 
+            'FlipBlendXY', 'NegAlpha', 'CheckerOdd', and 'CheckerEven'
+        @type f1,f2,f3,f4: string
         """
  
     def setImage(image):
@@ -247,14 +397,14 @@ class Texture:
         @warning: This sets the texture's type to 'Image' if it is not already.
         """
 
-    def setImageFlags(f=None, f2=None, f3=None, and_so_on=None):
+    def setImageFlags(f1=None, f2=None, f3=None, etc=None):
         """
         Set the Image flags (only makes sense for IMAGE textures). Omitted
         flags are cleared.
-        @param f: Flag to set. See L{ImageFlags} for their meanings. Can be 
+        @param f1, f2, f3, etc: Flag to set. See L{ImageFlags} for their meanings. Can be 
             any of: 'InterPol', 'UseAlpha', 'MipMap', 'Fields', 'Rot90',
-            'CalcAlpha', 'StField', 'Movie' and 'Cyclic'
-        @type f: string
+            'CalcAlpha', 'Cyclic', 'Movie', 'StField', 'Anti' and 'NormalMap'
+        @type f1, f2, f3, etc: string
         """
  
     def setName(name):
@@ -267,24 +417,22 @@ class Texture:
     def setSType(stype):
         """
         Set the SType.
-        @param stype: The new stype. This can be one of the following values
-            or 'Default' which sets the stype to the default value. See 
-            L{STypes} for their meanings.
-            'CloudDefault', 'CloudColor', 'WoodBands', 'WoodRings',
-            'WoodBandNoise', 'WoodRingNoise', 'MarbleSoft', 'MarbleSharp',
-            'MarbleSharper', 'BlendLin', 'BlendQuad', 'BlendEase',
-            'BlendDiag', 'BlendSphere', 'BlendHalo', 'StucciPlastic',
-            'StucciWallIn', 'StucciWallOut', 'EnvmapStatic', 'EnvmapAnim',
-            'EnvmapLoad'
+        @param stype: The new stype. This can be any of the values listed in
+             L{STypes} or 'Default' which sets the stype to the default value.
         @type stype: string
+
+        @note: the set of valid parameters is dependent on the current
+        texture type.  Be sure to always set the texture type B{before}
+        setting the texture's stype; otherwise an exception might occur.
         """
-        
+
     def setType(type):
         """
         Set this Texture's type.
         @param type: The new type. Possible options are: 
             'None', 'Clouds', 'Wood', 'Marble', 'Magic', 'Blend', 'Stucci', 
-            'Noise', 'Image', 'Plugin' and 'EnvMap'
+            'Noise', 'Image', 'Plugin', 'EnvMap', 'Musgrave', 'Voronoi'
+            and 'DistNoise'
         @type type: string
         """
 

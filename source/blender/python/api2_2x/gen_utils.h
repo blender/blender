@@ -38,6 +38,8 @@
 #include "DNA_scriptlink_types.h"
 #include "DNA_listBase.h"
 
+#include "constant.h"
+
 #define Py_PI  3.14159265358979323846
 #define Py_WRAP 1024
 #define Py_NEW  2048
@@ -99,23 +101,35 @@ int EXPP_map_getStrVal( const EXPP_map_pair * map,
 
 /* clamping and range-checking utilities */
 
-int EXPP_setCharClamped ( PyObject *value, char *param,
-			short min, short max);
-int EXPP_setShortClamped ( PyObject *value, short *param,
-			short min, short max);
-int EXPP_setIntClamped ( PyObject *value, int *param,
-			int min, int max);
+int EXPP_setIValueClamped( PyObject *value, void *param,
+		int min, int max, char type );
 int EXPP_setFloatClamped ( PyObject *value, float *param,
 			float min, float max);
-
-int EXPP_setChrRange ( PyObject *value, char *param,
-			short min, short max);
-int EXPP_setShortRange ( PyObject *value, short *param,
-			short min, short max);
-int EXPP_setIntRange ( PyObject *value, int *param,
-			int min, int max);
+int EXPP_setIValueRange( PyObject *value, void *param,
+		int min, int max, char type );
 int EXPP_setFloatRange ( PyObject *value, float *param,
 			float min, float max);
+
+/* utility routine for PyType attributes setters with module constant */
+
+int EXPP_setModuleConstant ( BPy_constant *constant, void *param,
+			char type );
+
+/* utilities to get/set bits in bitfields */
+
+PyObject *EXPP_getBitfield( void *param, int setting, char type );
+int EXPP_setBitfield( PyObject * value, void *param, int setting, char type );
+
+/*
+ * Procedures to handle older setStuff() methods, which now access 
+ * a PyType's setter attributes using the tp_getset mechanism.
+ */
+
+PyObject *EXPP_setterWrapper ( PyObject * self, PyObject * args,
+				setter func);
+
+PyObject *EXPP_setterWrapperTuple ( PyObject * self, PyObject * args,
+				setter func);
 
 /* scriplinks-related: */
 PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *args, int is_scene);

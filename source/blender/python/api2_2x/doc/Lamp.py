@@ -17,6 +17,25 @@ Example::
   l.setMode('square', 'shadow')   # set these two lamp mode flags
   ob = Object.New('Lamp')         # create new lamp object
   ob.link(l)                      # link lamp obj with lamp data
+
+@type Types: read-only dictionary
+@var Types: The lamp types.
+  - 'Lamp': 0
+  - 'Sun' : 1
+  - 'Spot': 2
+  - 'Hemi': 3
+  - 'Area': 4
+  - 'Photon': 5
+@type Modes: read-only dictionary
+@var Modes: The lamp modes.  Modes may be ORed together.
+  - 'Shadows'
+  - 'Halo'
+  - 'Layer'
+  - 'Quad'
+  - 'Negative'
+  - 'OnlyShadow'
+  - 'Sphere'
+  - 'Square'
 """
 
 def New (type = 'Lamp', name = 'LampData'):
@@ -46,44 +65,73 @@ class Lamp:
   The Lamp Data object
   ====================
     This object gives access to Lamp-specific data in Blender.
-  @ivar name: The Lamp Data name.
-  @ivar type: The Lamp type (see the Types dict).
-  @cvar Types: The Types dictionary.
-      - 'Lamp': 0
-      - 'Sun' : 1
-      - 'Spot': 2
-      - 'Hemi': 3
-      - 'Area': 4
-      - 'Photon': 5
-  @ivar mode: The mode flags: B{or'ed value} of the flags in the Modes dict.
-  @cvar Modes: The Modes dictionary.
-      - 'Shadows'
-      - 'Halo'
-      - 'Layer'
-      - 'Quad'
-      - 'Negative'
-      - 'OnlyShadow'
-      - 'Sphere'
-      - 'Square'
-  @ivar samples: The number of shadow map samples in [1, 16].
-  @ivar bufferSize: The size of the shadow buffer in [512, 5120].
-  @ivar haloStep: Volumetric halo sampling frequency in [0, 12].
-  @ivar energy: The intensity of the light in [0.0, 10.0].
-  @ivar dist: The distance value in [0.1, 5000.0].
-  @ivar spotSize: The angle of the spot beam in degrees in [1.0, 180.0].
-  @ivar spotBlend: The softness of the spot edge in [0.0, 1.0].
-  @ivar clipStart: The shadow map clip start in [0.1, 1000.0].
-  @ivar clipEnd: The shadow map clip end in [1.0, 5000.0].
-  @ivar bias: The shadow map sampling bias in [0.01, 5.00].
-  @ivar softness: The size of the shadow sample area in [1.0, 100.0].
-  @ivar haloInt: The intensity of the spot halo in [0.0, 5.0].
-  @ivar quad1: Light intensity value 1 for a Quad lamp in [0.0, 1.0].
-  @ivar quad2: Light intensity value 2 for a Quad lamp in [0.0, 1.0].
-  @ivar col: The color of the light, with each rgb component in [0.0, 1.0].
-      This is an rgb tuple whose values can be accessed in many ways:
-        - as a tuple: lamp.col, lamp.col[0], same for 1 and 2.
-        - as a dictionary: lamp.col['R'], same for 'G' and 'B'.
-        - as an object: lamp.col.R, same for G and B.
+
+  @ivar B:  Lamp color blue component.
+  Value is clamped to the range [0.0,1.0].
+  @type B:  float
+  @ivar G:  Lamp color green component.
+  Value is clamped to the range [0.0,1.0].
+  @type G:  float
+  @ivar R:  Lamp color red component.
+  Value is clamped to the range [0.0,1.0].
+  @type R:  float
+  @ivar bias:  Lamp shadow map sampling bias.
+  Value is clamped to the range [0.01,5.0].
+  @type bias:  float
+  @ivar bufferSize:  Lamp shadow buffer size.
+  Value is clamped to the range [512,5120].
+  @type bufferSize:  int
+  @ivar clipEnd:  Lamp shadow map clip end.
+  Value is clamped to the range [1.0,5000.0].
+  @type clipEnd:  float
+  @ivar clipStart:  Lamp shadow map clip start.
+  Value is clamped to the range [0.1,1000.0].
+  @type clipStart:  float
+  @ivar col:  Lamp RGB color triplet.
+  Components are clamped to the range [0.0,1.0].
+  @type col:  RGB tuple
+  @ivar dist:  Lamp clipping distance.
+  Value is clamped to the range [0.1,5000.0].
+  @type dist:  float
+  @ivar energy:  Lamp light intensity.
+  Value is clamped to the range [0.0,10.0].
+  @type energy:  float
+  @ivar haloInt:  Lamp spotlight halo intensity.
+  Value is clamped to the range [0.0,5.0].
+  @type haloInt:  float
+  @ivar haloStep:  Lamp volumetric halo sampling frequency.
+  Value is clamped to the range [0,12].
+  @type haloStep:  int
+  @ivar ipo:  Lamp Ipo.
+  Contains the Ipo if one is assigned to the object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
+  @type ipo:  Blender Ipo
+  @ivar mode:  Lamp mode bitfield.  See L{Modes} for values.
+  @type mode:  int
+  @ivar name:  Lamp data name.
+  @type name:  str
+  @ivar quad1:  Quad lamp linear distance attenuation.
+  Value is clamped to the range [0.0,1.0].
+  @type quad1:  float
+  @ivar quad2:  Quad lamp quadratic distance attenuation.
+  Value is clamped to the range [0.0,1.0].
+  @type quad2:  float
+  @ivar samples:  Lamp shadow map samples.
+  Value is clamped to the range [1,16].
+  @type samples:  int
+  @ivar softness:  Lamp shadow sample area size.
+  Value is clamped to the range [1.0,100.0].
+  @type softness:  float
+  @ivar spotBlend:  Lamp spotlight edge softness.
+  Value is clamped to the range [0.0,1.0].
+  @type spotBlend:  float
+  @ivar spotSize:  Lamp spotlight beam angle (in degrees).
+  Value is clamped to the range [1.0,180.0].
+  @type spotSize:  float
+  @ivar type:  Lamp type.  See L{Types} for values.
+  @type type:  int
+  @ivar users:  Number of lamp users.
+  @type users:  int
+
   @warning: Most member variables assume values in some [Min, Max] interval.
       When trying to set them, the given parameter will be clamped to lie in
       that range: if val < Min, then val = Min, if val > Max, then val = Max.

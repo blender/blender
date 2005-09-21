@@ -51,6 +51,6 @@ typedef struct {
 /*****************************************************************************/
 PyObject *rgbTuple_New( float *rgb[3] );
 PyObject *rgbTuple_getCol( BPy_rgbTuple * self );
-PyObject *rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args );
+int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args );
 
 #endif				/* EXPP_rgbTuple_H */

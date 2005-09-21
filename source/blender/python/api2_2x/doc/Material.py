@@ -57,7 +57,6 @@ Example::
     uses an already taken value is preceded by "-" and appear below the normal
     mode which also uses that value.
 
-
 @type Shaders: readonly dictionary
 @var Shaders: The available Material Shaders.
     - DIFFUSE_LAMBERT    - Make Material use the lambert diffuse shader.
@@ -96,59 +95,173 @@ class Material:
   The Material object
   ===================
    This object gives access to Materials in Blender.
-  @ivar name: Material's name.
-  @type mode: int
-  @ivar mode: Mode flags as an or'ed int value.  See the Modes dictionary keys
-      and descriptions in L{Modes}.
-  @ivar rgbCol: Material's RGB color triplet sequence.
-  @ivar specCol: Specular color rgb triplet sequence.
-  @ivar mirCol: Mirror color rgb triplet sequence.
-  @ivar R: Red component of L{rgbCol} - [0.0, 1.0].
-  @ivar G: Green component of L{rgbCol} - [0.0, 1.0].
-  @ivar B: Blue component of L{rgbCol} - [0.0, 1.0].
-  @ivar alpha: Alpha (translucency) component of the Material - [0.0, 1.0].
-  @ivar amb: Ambient factor - [0.0, 1.0].
-  @ivar emit: Emitting light intensity - [0.0, 1.0].
-  @ivar ref:  Reflectivity - [0.0, 1.0].
-  @ivar spec: Specularity - [0.0, 2.0].
-  @ivar specTransp: Specular transparency - [0.0, 1.0].
-  @ivar add: Glow factor - [0.0, 1.0].
-  @ivar zOffset: Artificial Z offset for faces - [0.0, 10.0].
-  @ivar haloSize: Dimension of the halo - [0.0, 100.0].
-  @ivar flareSize: Factor the flare is larger than the halo - [0.1, 25.0].
-  @ivar flareBoost: Flare's extra strength - [0.1, 10.0].
-  @ivar haloSeed: To use random values for ring dimension and line location -
-     [0, 255].
-  @ivar flareSeed: Offset in the seed table - [0, 255].
-  @ivar subSize:  Dimension of subflares, dots and circles - [0.1, 25.0].
-  @ivar hard: Hardness of the specularity - [1, 255].
-  @ivar nFlares: Number of halo subflares - [1, 32].
-  @ivar nStars: Number of points on the halo stars - [3, 50].
-  @ivar nLines: Number of star shaped lines on each halo - [0, 250].
-  @ivar nRings: Number of halo rings - [0, 24].
-  @type ipo: Blender Ipo
-  @ivar ipo: This Material's ipo.
-  @ivar rayMirr: Amount mirror reflection for raytrace.
-  @ivar rayMirrDepth: Amount of inter-reflections calculated maximal.
-  @ivar fresnelDepth: Power of Fresnel for mirror reflection. 
-  @ivar fresnelDepthFac: Blending factor for Fresnel. 
-  @ivar IOR: Sets the angular index of refraction for raytrace. 
-  @ivar transDepth: Amount of refractions calculated maximal. 
-  @ivar fresnelTrans: Power of Fresnel for transparency.
-  @ivar fresnelTransFac: Blending factor for Fresnel.
-  @ivar specTrans: Makes specular areas opaque on transparent materials.
-  @cvar specShader: Specular shader from one of the shaders in Material.Shaders dict - [0, 4].
-  @cvar diffuseShader: Diffuse shader from one of the shaders in Material.Shaders dict - [0, 3].
-  @cvar roughness: Material's Roughness (applies to the \"Oren Nayar\" Diffuse Shader only) - [0.0, 3.14].
-  @cvar specSize: Material's size of speculara area (applies to the \"Toon\" Specular Shader only) - [0.0, 1.53].
-  @cvar diffuseSize: Material's size of diffuse area (applies to the \"Toon\" Diffuse Shader only) - [0.0, 3.14].
-  @cvar specSmooth: Material's smoothing of specular area (applies to the \"Toon\" Specular Shader only) - [0.0, 1.0].
-  @cvar diffuseSmooth: Material's smoothing of diffuse area (applies to the \"Toon\" Diffuse Shader only) - [0.0, 1.0].
-  @cvar diffuseDarkness: Material's diffuse darkness (applies to the \"Minnaert\" Diffuse Shader only) - [0.0, 2.0].
-  @cvar refracIndex: Material's Index of Refraction (applies to the \"Blinn\" Specular Shader only) - [1.0, 10.0].
-  @cvar rms: Material's standard deviation of surface slope (applies to the \"WardIso\" Specular Shader only) - [0.0, 0.4].
-  @cvar filter: Amount of filtering when transparent raytrace is enabled - [0.0, 1.0].
-  @cvar translucency: Amount of diffuse shading of the back side - [0.0, 1.0].
+  @ivar B:  Diffuse color (L{rgbCol}) blue component.
+  Value is clamped to the range [0.0,1.0].
+  @type B:  float
+  @ivar G:  Diffuse color (L{rgbCol}) green component.
+  Value is clamped to the range [0.0,1.0].
+  @type G:  float
+  @ivar IOR:  Angular index of refraction for raytrace.
+  Value is clamped to the range [1.0,3.0].
+  @type IOR:  float
+  @ivar R:  Diffuse color (L{rgbCol}) red component.
+  Value is clamped to the range [0.0,1.0].
+  @type R:  float
+  @ivar add:  Strength of the add effect.
+  Value is clamped to the range [0.0,1.0].
+  @type add:  float
+  @ivar alpha:  Alpha (translucency) component of the material.
+  Value is clamped to the range [0.0,1.0].
+  @type alpha:  float
+  @ivar amb:  Amount of global ambient color material receives.
+  Value is clamped to the range [0.0,1.0].
+  @type amb:  float
+  @ivar diffuseDarkness:  Material's diffuse darkness ("Minnaert" diffuse shader only).
+  Value is clamped to the range [0.0,2.0].
+  @type diffuseDarkness:  float
+  @ivar diffuseShader:  Diffuse shader type (see L{Shaders}).
+  Value must be in the range [0,3].
+  @type diffuseShader:  int
+  @ivar diffuseSize:  Material's diffuse area size ("Toon" diffuse shader only).
+  Value is clamped to the range [0.0,3.14].
+  @type diffuseSize:  float
+  @ivar diffuseSmooth:  Material's diffuse area smoothing ("Toon" diffuse shader only).
+  Value is clamped to the range [0.0,1.0].
+  @type diffuseSmooth:  float
+  @ivar emit:  Amount of light the material emits.
+  Value is clamped to the range [0.0,1.0].
+  @type emit:  float
+  @ivar filter:  Amount of filtering when transparent raytrace is enabled.
+  Value is clamped to the range [0.0,1.0].
+  @type filter:  float
+  @ivar flareBoost:  Flare's extra strength.
+  Value is clamped to the range [0.1,1.0].
+  @type flareBoost:  float
+  @ivar flareSeed:  Offset in the flare seed table.
+  Value is clamped to the range [1,255].
+  @type flareSeed:  int
+  @ivar flareSize:  Ratio of flare size to halo size.
+  Value is clamped to the range [0.1,25.0].
+  @type flareSize:  float
+  @ivar fresnelDepth:  Power of Fresnel for mirror reflection.
+  Value is clamped to the range [0.0,5.0].
+  @type fresnelDepth:  float
+  @ivar fresnelDepthFac:  Blending factor for Fresnel mirror.
+  Value is clamped to the range [1.0,5.0].
+  @type fresnelDepthFac:  float
+  @ivar fresnelTrans:  Power of Fresnel for transparency.
+  Value is clamped to the range [0.0,5.0].
+  @type fresnelTrans:  float
+  @ivar fresnelTransFac:  Blending factor for Fresnel transparency.
+  Value is clamped to the range [1.0,5.0].
+  @type fresnelTransFac:  float
+  @ivar haloSeed:  Randomizes halo ring dimension and line location.
+  Value is clamped to the range [1,255].
+  @type haloSeed:  int
+  @ivar haloSize:  Dimension of the halo.
+  Value is clamped to the range [0.0,100.0].
+  @type haloSize:  float
+  @ivar hard:  Hardness of the specularity.
+  Value is clamped to the range [1,255].
+  @type hard:  int
+  @ivar ipo:  Material Ipo data.
+  Contains the Ipo if one is assigned to the object, None otherwise.  Setting to None clears the current Ipo.
+  @type ipo:  Blender Ipo
+  @ivar mirB:  Mirror color (L{mirCol}) blue component.
+  Value is clamped to the range [0.0,1.0].
+  @type mirB:  float
+  @ivar mirCol:  Mirror RGB color triplet.
+  Components are clamped to the range [0.0,1.0].
+  @type mirCol:  list of 3 floats
+  @ivar mirG:  Mirror color (L{mirCol}) green component.
+  Value is clamped to the range [0.0,1.0].
+  @type mirG:  float
+  @ivar mirR:  Mirror color (L{mirCol}) red component.
+  Value is clamped to the range [0.0,1.0].
+  @type mirR:  float
+  @ivar mode:  Mode mode bitfield.  See L{the Modes dictionary<Modes>} keys and descriptions.
+  @type mode:  int
+  @ivar nFlares:  Number of subflares with halo.
+  Value is clamped to the range [1,32].
+  @type nFlares:  int
+  @ivar nLines:  Number of star-shaped lines with halo.
+  Value is clamped to the range [0,250].
+  @type nLines:  int
+  @ivar nRings:  Number of rings with halo.
+  Value is clamped to the range [0,24].
+  @type nRings:  int
+  @ivar nStars:  Number of star points with halo.
+  Value is clamped to the range [3,50].
+  @type nStars:  int
+  @ivar name:  Material data name.
+  @type name:  str
+  @ivar oopsLoc: Material OOPs location.  Returns None if materal not found in list.
+  @type oopsLoc:  list of 2 floats
+  @ivar oopsSel:  Material OOPs selection flag.
+  Value must be in the range [0,1].
+  @type oopsSel:  int
+  @ivar rayMirr:  Mirror reflection amount for raytrace.
+  Value is clamped to the range [0.0,1.0].
+  @type rayMirr:  float
+  @ivar rayMirrDepth:  Amount of raytrace inter-reflections.
+  Value is clamped to the range [0,10].
+  @type rayMirrDepth:  int
+  @ivar ref:   Amount of reflections (for shader).
+  Value is clamped to the range [0.0,1.0].
+  @type ref:  float
+  @ivar refracIndex:  Material's Index of Refraction (applies to the "Blinn" Specular Shader only.
+  Value is clamped to the range [1.0,10.0].
+  @type refracIndex:  float
+  @ivar rgbCol:  Diffuse RGB color triplet.
+  Components are clamped to the range [0.0,1.0].
+  @type rgbCol:  list of 3 floats
+  @ivar rms: Material's surface slope standard deviation ("WardIso" specular shader only).
+  Value is clamped to the range [0.0,0.4].
+  @type rms:  float
+  @ivar roughness:  Material's roughness ("Oren Nayar" diffuse shader only).
+  Value is clamped to the range [0.0,3.14].
+  @type roughness:  float
+  @ivar spec:  Degree of specularity.
+  Value is clamped to the range [0.0,2.0].
+  @type spec:  float
+  @ivar specB:  Specular color (L{specCol}) blue component.
+  Value is clamped to the range [0.0,1.0].
+  @type specB:  float
+  @ivar specCol:  Specular RGB color triplet.
+  Components are clamped to the range [0.0,1.0].
+  @type specCol:  list of 3 floats
+  @ivar specG:  Specular color (L{specCol}) green component.
+  Value is clamped to the range [0.0,1.0].
+  @type specG:  float
+  @ivar specR:  Specular color (L{specCol}) red component.
+  Value is clamped to the range [0.0,1.0].
+  @type specR:  float
+  @ivar specShader: Specular shader type.  See L{Shaders}.
+  Value must be in the range [0,4].
+  @type specShader:  int
+  @ivar specSize:  Material's specular area size ("Toon" specular shader only).
+  Value is clamped to the range [0.0,1.53].
+  @type specSize:  float
+  @ivar specSmooth:  Sets the smoothness of specular toon area.
+  Value is clamped to the range [0.0,1.0].
+  @type specSmooth:  float
+  @ivar specTransp:  Makes specular areas opaque on transparent materials.
+  Value is clamped to the range [0.0,1.0].
+  @type specTransp:  float
+  @ivar subSize:   Dimension of subflares, dots and circles.
+  Value is clamped to the range [0.1,25.0].
+  @type subSize:  float
+  @ivar transDepth:  calculated maximal.  Amount of refractions for raytrace.
+  Value is clamped to the range [0,10].
+  @type transDepth:  int
+  @ivar translucency:  Amount of diffuse shading of the back side.
+  Value is clamped to the range [0.0,1.0].
+  @type translucency:  float
+  @ivar users:  Number of material users.
+  @type users:  int
+  @ivar zOffset:  Artificial offset in the Z buffer (for Ztransp option).
+  Value is clamped to the range [0.0,10.0].
+  @type zOffset:  float
   @warning: Most member variables assume values in some [Min, Max] interval.
    When trying to set them, the given parameter will be clamped to lie in
    that range: if val < Min, then val = Min, if val > Max, then val = Max.

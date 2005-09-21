@@ -39,6 +39,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#include "constant.h"
+
 //---------------------- EXPP_GetModuleConstant -------------------------
 //Helper function for returning a module constant
 PyObject *EXPP_GetModuleConstant(char *module, char *constant)
@@ -597,68 +599,58 @@ PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene)
  *    value: PyObject containing the new value
  *    param: pointer to destination variable
  *    max, min: range of values for clamping
+ *    type: kind of pointer and data (uses the same characters as
+ *       PyArgs_ParseTuple() and Py_BuildValue()
  *
  * Return 0 on success, -1 on error.
  */
 
-int EXPP_setCharClamped ( PyObject *value, char *param,
-								short min, short max )
-{
-	/* if value not of correct type, raise Type exception */
-
-	if( !PyInt_CheckExact( value ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected char argument in [%d,%d]", min, max );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
-
-	/* clamp and store value */
-
-	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
-	return 0;
-}
-
-int EXPP_setShortClamped ( PyObject *value, short *param,
-								short min, short max )
-{
-	if( !PyInt_CheckExact ( value ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
-
-	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
-
-	return 0;
-}
-
-int EXPP_setIntClamped ( PyObject *value, int *param,
-								int min, int max )
-{
-	if( !PyInt_CheckExact ( value ) ) {
-		char errstr[128];
-		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-	}
-
-	*param = EXPP_ClampInt( PyInt_AS_LONG ( value ), min, max );
-
-	return 0;
-}
-
-int EXPP_setFloatClamped ( PyObject *value, float *param,
+int EXPP_setFloatClamped( PyObject *value, float *param,
 								float min, float max )
 {
-	if( !PyFloat_CheckExact ( value ) ) {
+	if( !PyNumber_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr, "expected float argument in [%f,%f]", min, max );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 
-	*param = EXPP_ClampFloat( PyFloat_AS_DOUBLE( value ), min, max );
+	*param = EXPP_ClampFloat( PyFloat_AsDouble( value ), min, max );
 
 	return 0;
 }
+
+int EXPP_setIValueClamped( PyObject *value, void *param,
+								int min, int max, char type )
+{
+	char errstr[128];
+	int number;
+
+	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
+
+	if( !PyInt_CheckExact ( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
+
+	number = PyInt_AS_LONG( value );
+
+	switch ( type ) {
+	case 'b':
+		*(char *)param = EXPP_ClampInt( number, min, max );
+		return 0;
+	case 'h':
+		*(short *)param = EXPP_ClampInt( number, min, max );
+		return 0;
+	case 'H':
+		*(unsigned short *)param = EXPP_ClampInt( number, min, max );
+		return 0;
+	case 'i':
+		*(int *)param = EXPP_ClampInt( number, min, max );
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			   "EXPP_setIValueClamped(): invalid type code" );
+	}
+}
+
 
 /*
  * Utility routines to range-check and store various datatypes.  The object 
@@ -670,49 +662,24 @@ int EXPP_setFloatClamped ( PyObject *value, float *param,
  *    value: PyObject containing the new value
  *    param: pointer to destination variable
  *    max, min: valid range for value
+ *    type: kind of pointer and data (uses the same characters as
+ *       PyArgs_ParseTuple() and Py_BuildValue()
  *
  * Return 0 on success, -1 on error.
  */
 
-int EXPP_setCharRange ( PyObject *value, char *param,
-								short min, short max )
+int EXPP_setFloatRange( PyObject *value, float *param,
+								float min, float max )
 {
 	char errstr[128];
 	short number;
 
-	/* build exception error string */
+	sprintf ( errstr, "expected int argument in [%f,%f]", min, max );
 
-	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
-
-	/* if value not of correct type, raise Type exception */
-
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyNumber_Check ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
-	/* if value out of range, raise Value exception */
-
-	number = PyInt_AS_LONG ( value );
-	if ( number < min || number > max )
-		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
-
-	/* store value */
-
-	*param = number;
-	return 0;
-}
-
-int EXPP_setShortRange ( PyObject *value, short *param,
-								short min, short max )
-{
-	char errstr[128];
-	short number;
-
-	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
-
-	if( !PyInt_CheckExact ( value ) )
-		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
-
-	number = PyInt_AS_LONG ( value );
+	number = PyFloat_AsDouble( value );
 	if ( number < min || number > max )
 		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
 
@@ -720,8 +687,8 @@ int EXPP_setShortRange ( PyObject *value, short *param,
 	return 0;
 }
 
-int EXPP_setIntRange ( PyObject *value, int *param,
-								int min, int max )
+int EXPP_setIValueRange( PyObject *value, void *param,
+								int min, int max, char type )
 {
 	char errstr[128];
 	int number;
@@ -731,29 +698,179 @@ int EXPP_setIntRange ( PyObject *value, int *param,
 	if( !PyInt_CheckExact ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
-	number = PyInt_AS_LONG ( value );
-	if ( number < min || number > max )
+	number = PyInt_AS_LONG( value );
+	if( number < min || number > max )
 		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
 
-	*param = number;
-	return 0;
+	switch ( type ) {
+	case 'b':
+		*(char *)param = number;
+		return 0;
+	case 'h':
+		*(short *)param = number;
+		return 0;
+	case 'H':
+		*(unsigned short *)param = number;
+		return 0;
+	case 'i':
+		*(int *)param = number;
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			   "EXPP_setIValueRange(): invalid type code" );
+	}
 }
 
-int EXPP_setFloatRange ( PyObject *value, float *param,
-								float min, float max )
+/*
+ * Utility routines to handle all attribute setters which use module
+ * constants.  Generic pointer to destination variable is used, and typecast
+ * to the appropriate type based on the "type" specifier.
+ *
+ * Inputs:
+ *    constant: constant_Type value 
+ *    param: pointer to destination variable
+ *    type: kind of pointer and data
+ *
+ * Return 0 on success, -1 on error.
+ */
+
+int EXPP_setModuleConstant ( BPy_constant *constant, void *param, char type )
 {
-	char errstr[128];
-	short number;
+	PyObject *item;
 
-	sprintf ( errstr, "expected int argument in [%f,%f]", min, max );
+	if( constant->ob_type != &constant_Type )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+			   "expected module constant" );
 
-	if( !PyFloat_CheckExact ( value ) )
+	item = PyDict_GetItemString( constant->dict, "value" );
+	if( !item )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			   "module constant has no \"value\" key" );
+
+	switch ( type ) {
+	case 'h':
+		*(short *)param = PyInt_AS_LONG( item );
+		return 0;
+	case 'i':
+		*(int *)param = PyInt_AS_LONG( item );
+		return 0;
+	case 'f':
+		*(float *)param = PyFloat_AS_DOUBLE( item );
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			   "EXPP_setModuleConstant(): invalid type code" );
+	}
+}
+
+/*
+ * Utility routines to get/set bits in bitfields.  Adapted from code in 
+ * sceneRender.c (thanks, ascotan!).  
+ *
+ * Inputs:
+ *    param: pointer to source/destination variable
+ *    setting: the bit to get/set
+ *    type: pointer type ('h' == short, 'i' == integer)
+ */
+
+PyObject *EXPP_getBitfield( void *param, int setting, char type )
+{
+	switch ( type ) {
+	case 'b':
+		return (*(char *)param & setting)
+				? EXPP_incr_ret_True() : EXPP_incr_ret_False();
+	case 'h':
+		return (*(short *)param & setting)
+				? EXPP_incr_ret_True() : EXPP_incr_ret_False();
+	case 'i':
+		return (*(int *)param & setting)
+				? EXPP_incr_ret_True() : EXPP_incr_ret_False();
+	default:
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			   "EXPP_getBit(): invalid type code" );
+	}
+}
+
+int EXPP_setBitfield( PyObject * value, void *param, int setting, char type )
+{
+	int flag;
+	char errstr[] = "expected TRUE or FALSE (1 or 0)";
+
+	if( !PyInt_CheckExact ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
-	number = PyFloat_AS_DOUBLE( value );
-	if ( number < min || number > max )
+	flag = PyInt_AS_LONG ( value );
+	if( flag != 0 && flag != 1 )
 		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
 
-	*param = number;
-	return 0;
+	switch ( type ) {
+	case 'b':
+		if ( flag )
+			*(char *)param |= setting;
+		else
+			*(char *)param &= ~setting;
+		return 0;
+	case 'h':
+		if ( flag )
+			*(short *)param |= setting;
+		else
+			*(short *)param &= ~setting;
+		return 0;
+	case 'i':
+		if ( flag )
+			*(int *)param |= setting;
+		else
+			*(int *)param &= ~setting;
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+			   "EXPP_setBit(): invalid type code" );
+	}
 }
+
+/*
+ * Procedure to handle older setStuff() methods.  Assumes that argument 
+ * is a tuple with one object, and so grabs the object and passes it to
+ * the specified tp_getset setter for the corresponding attribute.
+ */
+
+PyObject *EXPP_setterWrapper ( PyObject * self, PyObject * args,
+				setter func)
+{
+	int error;
+
+	if ( !PyTuple_Check( args ) || PyTuple_Size( args ) != 1 )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "expected tuple of one item" );
+
+	error = func ( self, PySequence_Fast_GET_ITEM( args, 0 ), NULL );
+	if ( !error ) {
+		Py_INCREF( Py_None );
+		return Py_None;
+	} else
+		return NULL;
+}
+
+/*
+ * Procedure to handle older setStuff() methods.  Assumes that argument 
+ * is a tuple, so just passes it to the specified tp_getset setter for 
+ * the corresponding attribute.
+ */
+
+PyObject *EXPP_setterWrapperTuple ( PyObject * self, PyObject * args,
+									setter func)
+{
+	int error;
+
+	if ( !PyTuple_Check( args ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "expected tuple" );
+
+	error = func ( self, args, NULL );
+	if ( !error ) {
+		Py_INCREF( Py_None );
+		return Py_None;
+	} else
+		return NULL;
+}
+

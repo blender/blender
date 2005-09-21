@@ -45,7 +45,7 @@ static PyObject *rgbTuple_getAttr( BPy_rgbTuple * self, char *name );
 static int rgbTuple_setAttr( BPy_rgbTuple * self, char *name, PyObject * v );
 static PyObject *rgbTuple_repr( BPy_rgbTuple * self );
 
-static int rgbTupleLength( BPy_rgbTuple * self );
+static int rgbTupleLength( void );
 
 static PyObject *rgbTupleSubscript( BPy_rgbTuple * self, PyObject * key );
 static int rgbTupleAssSubscript( BPy_rgbTuple * self, PyObject * who,
@@ -138,39 +138,47 @@ PyObject *rgbTuple_New( float *rgb[3] )
 /*****************************************************************************/
 PyObject *rgbTuple_getCol( BPy_rgbTuple * self )
 {
-	PyObject *list = PyList_New( 3 );
-
-	if( !list )
+	PyObject *attr = Py_BuildValue( "[fff]", *(self->rgb[0]),
+			 			*(self->rgb[1]), *(self->rgb[2]));
+	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyList" );
-
-	PyList_SET_ITEM( list, 0, Py_BuildValue( "f", *( self->rgb[0] ) ) );
-	PyList_SET_ITEM( list, 1, Py_BuildValue( "f", *( self->rgb[1] ) ) );
-	PyList_SET_ITEM( list, 2, Py_BuildValue( "f", *( self->rgb[2] ) ) );
-
-	return list;
+					      "Py_BuildValue() failed" );
+	return attr;
 }
 
-PyObject *rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )
+int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )
 {
-	int ok;
+	int ok = 0;
 	float r = 0, g = 0, b = 0;
 
-	if( PyObject_Length( args ) == 3 )
-		ok = PyArg_ParseTuple( args, "fff", &r, &g, &b );
+	/*
+	 * since rgbTuple_getCol() returns a list, be sure we accept a list
+	 * as valid input
+	 */
 
-	else
+	if( PyObject_Length( args ) == 3 ) {
+		if ( PyList_Check ( args ) &&
+				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 0 ) ) &&
+				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 1 ) ) &&
+				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 2 ) ) ) {
+			r = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 0 ) );
+			g = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 1 ) );
+			b = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 2 ) );
+			ok = 1;
+		} else
+			ok = PyArg_ParseTuple( args, "fff", &r, &g, &b );
+	} else
 		ok = PyArg_ParseTuple( args, "|(fff)", &r, &g, &b );
 
 	if( !ok )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected [f,f,f] or f,f,f as arguments (or nothing)" );
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected [f,f,f], (f,f,f) or f,f,f as arguments (or nothing)" );
 
 	*( self->rgb[0] ) = EXPP_ClampFloat( r, 0.0, 1.0 );
 	*( self->rgb[1] ) = EXPP_ClampFloat( g, 0.0, 1.0 );
 	*( self->rgb[2] ) = EXPP_ClampFloat( b, 0.0, 1.0 );
 
-	return EXPP_incr_ret( Py_None );
+	return 0;
 }
 
 /*****************************************************************************/
@@ -245,7 +253,7 @@ static int rgbTuple_setAttr( BPy_rgbTuple * self, char *name, PyObject * v )
 /*             These functions provide code to access rgbTuple objects as    */
 /*             mappings.                                                     */
 /*****************************************************************************/
-static int rgbTupleLength( BPy_rgbTuple * self )
+static int rgbTupleLength( void )
 {
 	return 3;
 }
