@@ -4,24 +4,14 @@ Import('user_options_dict');
 
 print "Including El'Beem Fluid Simulation..."
 elbeem_env = library_env.Copy();
-elbeem_env.Append(CXXFLAGS= ' -DNOGUI -DELBEEM_BLENDER=1  ');
-elbeem_env.Append(CCFLAGS=  ' -DNOGUI -DELBEEM_BLENDER=1  ');
-#elbeem_env.Append(CPPPATH= '../src');
-#elbeem_env.Append(CCPATH=  '../src');
+elbeem_env.Append(CPPDEFINES= 'NOGUI');
+elbeem_env.Append(CPPDEFINES= 'ELBEEM_BLENDER=1');
   
 elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
 elbeem_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
 elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
-elbeem_env.Append (CCPATH = user_options_dict['PNG_INCLUDE'])
-elbeem_env.Append (CCPATH = user_options_dict['Z_INCLUDE'])
-elbeem_env.Append (CCPATH = user_options_dict['SDL_INCLUDE'])
-
-#Export('elbeem_env');
-#SConscript(['src/SConscript'])
 
 # main build----------------------------------------
-#Import('elbeem_env');
-#srcenv = elbeem_env.Copy();
 
 Sources = [ 
 

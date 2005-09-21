@@ -254,7 +254,7 @@ void fluidsimBake(struct Object *ob)
 	// it would be more accurate to take into account geometry and no.
 	// fluid cells... max 1 for now...
 	if(fssDomain->resolutionxyz>128) {
-		fssDomain->maxRefine = 1;
+		fssDomain->maxRefine = 0; // disable for now
 	} else
 	if(fssDomain->resolutionxyz>64) {
 		fssDomain->maxRefine = 0;
@@ -336,7 +336,6 @@ void fluidsimBake(struct Object *ob)
 		
 		"  geoinit   = 1; \n" 
 		"  geoinitid = 1;  \n"  "\n" 
-		//"  p_setup = \"caro\"; \n"  // FIXME REMOVE?
 		"  p_gravity = " "%f %f %f" /* 3,4,5 pGravity*/ "; #cfgset \n"  "\n" 
 		
 		"  timeadap = 1;  \n" 
