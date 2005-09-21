@@ -1710,16 +1710,25 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 	if(se==0) return 0;
 	if(seq->startdisp >cfra || seq->enddisp <= cfra) return 0;
 
+	if(seq->flag&SEQ_REVERSE_FRAMES)	{	
+		/*reverse frame in this sequence */
+		if(cfra <= seq->start) nr= seq->len-1;
+		else if(cfra >= seq->start+seq->len-1) nr= 0;
+		else nr= (seq->start + seq->len) - cfra;
+	} else {
 	if(cfra <= seq->start) nr= 0;
 	else if(cfra >= seq->start+seq->len-1) nr= seq->len-1;
 	else nr= cfra-seq->start;
+	}
 
-	se+= nr;
+
+	se+= nr; /* don't get confused by the increment, this is the same as strip->stripdata[nr], which works on some compilers...*/
 	se->nr= nr;
 
 	return se;
 }
 
+ 
 void set_meta_stripdata(Sequence *seqm)
 {
 	Sequence *seq, *seqim, *seqeff;
@@ -1951,8 +1960,11 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						doseq= G.scene->r.scemode & R_DOSEQ;
 						G.scene->r.scemode &= ~R_DOSEQ;
 
-						/* store stuffies */
-						oldcfra= CFRA; CFRA= seq->sfra + se->nr;
+						/* store Current FRAme */
+						oldcfra= CFRA;
+
+						CFRA= ( seq->sfra + se->nr );
+
 						waitcursor(1);
 
 						rectot= R.rectot; R.rectot= NULL;

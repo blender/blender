@@ -82,7 +82,7 @@ typedef struct PluginSeq {
 	void (*callback)(void);
 } PluginSeq;
 
-
+/* The sequence structure is the basic struct used by any strip. each of the strips uses a different sequence structure.*/
 /* WATCH IT: first part identical to ID (for use in ipo's) */
 
 typedef struct Sequence {
@@ -91,14 +91,14 @@ typedef struct Sequence {
 	void *lib;
 	char name[24];
 
-	short flag, type;
+	short flag, type;			/*flags bitmap (see below) and the type of sequence*/
 	int len;
 	int start, startofs, endofs;
 	int startstill, endstill;
 	int machine, depth;
-	int startdisp, enddisp;
+	int startdisp, enddisp;		/*starting and ending points in the sequence*/
 	float mul, handsize;
-	int sfra;
+	int sfra;				/* starting frame according to the timeline of the scene */
 
 	Strip *strip;
 	StripElem *curelem;
@@ -164,8 +164,9 @@ typedef struct GlowVars {
 #define SEQ_FILTERY		16
 #define SEQ_MUTE		32
 #define SEQ_MAKE_PREMUL	64
+#define SEQ_REVERSE_FRAMES	128
 
-/* seq->type WATCH IT: BIT 3!!! */
+/* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
 #define SEQ_META		1
 #define SEQ_SCENE		2
