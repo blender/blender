@@ -3675,7 +3675,7 @@ static char *around_pup(void)
 	strcat(string, "|Bounding Box Center %x0"); 
 	strcat(string, "|Median Point %x3");
 	strcat(string, "|3D Cursor %x1");
-	strcat(string, "|Individual Object Centers %x2");
+	strcat(string, "|Individual Centers %x2");
 	strcat(string, "|Active Object %x4");
 	return (string);
 }

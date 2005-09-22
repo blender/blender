@@ -1670,7 +1670,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		/* local constraint shouldn't alter center */
 		if (t->around == V3D_LOCAL) {
-			if (t->flag & T_OBJECT)
+			if (t->flag & (T_OBJECT|T_POSE))
 				VECCOPY(t->center, td->center);		// not supported in editmode yet
 		}
 		
