@@ -952,7 +952,6 @@ void rad_addmesh(void)
 		me->mface= MEM_callocN(me->totface*sizeof(MFace), "mface");
 		me->tface= MEM_callocN(me->totface*sizeof(TFace), "tface");
 
-
 		/* materials, and set VCOL flag */
 		for(a=0; a<RG.totmat; a++) {
 			assign_material(ob, RG.matar[a], a+1);
@@ -1029,6 +1028,8 @@ void rad_addmesh(void)
 				if( *cd < 0x1000000 ) *cd= coldata[*cd];
 			}
 		}
+		/* by default, meshes need edge list */
+		make_edges(me);	
 	}
 		
 	MEM_freeN(coldata);

@@ -37,7 +37,7 @@ struct Bone;
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	char pad, mat_nr;
-	char pad2, flag;
+	char edcode, flag;	/* we keep edcode, for conversion to edges draw flags in old files */
 } MFace;
 
 typedef struct MEdge {

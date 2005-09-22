@@ -578,11 +578,11 @@ void set_mesh(Object *ob, Mesh *me)
 
 struct edgesort {
 	int v1, v2;
-	int is_loose;
+	short is_loose, is_draw;
 };
 
 /* edges have to be added with lowest index first for sorting */
-static void to_edgesort(struct edgesort *ed, int v1, int v2, int is_loose)
+static void to_edgesort(struct edgesort *ed, int v1, int v2, short is_loose, short is_draw)
 {
 	if(v1<v2) {
 		ed->v1= v1; ed->v2= v2;
@@ -591,6 +591,7 @@ static void to_edgesort(struct edgesort *ed, int v1, int v2, int is_loose)
 		ed->v1= v2; ed->v2= v1;
 	}
 	ed->is_loose= is_loose;
+	ed->is_draw= is_draw;
 }
 
 static int vergedgesort(const void *v1, const void *v2)
@@ -631,15 +632,15 @@ void make_edges(Mesh *me)
 	ed= edsort= MEM_mallocN(totedge*sizeof(struct edgesort), "edgesort");
 	
 	for(a= me->totface, mface= me->mface; a>0; a--, mface++) {
-		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3);
+		to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
 		if(mface->v4) {
-			to_edgesort(ed++, mface->v2, mface->v3, 0);
-			to_edgesort(ed++, mface->v3, mface->v4, 0);
-			to_edgesort(ed++, mface->v4, mface->v1, 0);
+			to_edgesort(ed++, mface->v2, mface->v3, 0, mface->edcode & ME_V2V3);
+			to_edgesort(ed++, mface->v3, mface->v4, 0, mface->edcode & ME_V3V4);
+			to_edgesort(ed++, mface->v4, mface->v1, 0, mface->edcode & ME_V4V1);
 		}
 		else if(mface->v3) {
-			to_edgesort(ed++, mface->v2, mface->v3, 0);
-			to_edgesort(ed++, mface->v3, mface->v1, 0);
+			to_edgesort(ed++, mface->v2, mface->v3, 0, mface->edcode & ME_V2V3);
+			to_edgesort(ed++, mface->v3, mface->v1, 0, mface->edcode & ME_V3V1);
 		}
 	}
 	
@@ -660,10 +661,13 @@ void make_edges(Mesh *me)
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) {
 			medge->v1= ed->v1;
 			medge->v2= ed->v2;
-			medge->flag= ME_EDGEDRAW;
+			if(ed->is_draw) medge->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
-			medge->flag |= ME_EDGERENDER;
 			medge++;
+		}
+		else {
+			/* equal edge, we merge the drawflag */
+			(ed+1)->is_draw |= ed->is_draw;
 		}
 	}
 	/* last edge */
