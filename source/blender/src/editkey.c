@@ -593,15 +593,26 @@ void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
 
 
 
-void insert_curvekey(Curve *cu)
+void insert_curvekey(Curve *cu) /* must be fixed for non-UI use when bpy support is added.
+				   see insert_meshkey. and fix callers to this of course.  */
 {
 	Key *key;
 	KeyBlock *kb, *kkb;
 	float curpos;
+	short rel;
 	
 	if(cu->key==0) {
 		cu->key= add_key( (ID *)cu);
-		default_key_ipo(cu->key);
+		rel = pupmenu("Insert Vertex Keys %t|"
+			      "Relative Keys %x1|Absolute Keys %x2");
+
+		switch (rel) {
+		case 1: cu->key->type = KEY_RELATIVE;
+			break;
+		default:
+			default_key_ipo(cu->key);
+			break;
+		}
 	}
 	key= cu->key;
 	
