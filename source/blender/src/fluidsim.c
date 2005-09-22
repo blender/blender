@@ -83,7 +83,7 @@
 #include <sys/stat.h>
 
 #ifdef WIN32	/* Windos */
-#include "BLI_winstuff.h"
+//#include "BLI_winstuff.h"
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
