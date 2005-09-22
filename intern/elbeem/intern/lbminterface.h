@@ -21,6 +21,9 @@
 #if LBM_USE_GUI==1
 #define USE_GLUTILITIES
 // for debug display
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <GL/gl.h>
 #include "../gui/guifuncs.h"
 #endif
