@@ -1169,7 +1169,7 @@ static void texture_panel_envmap(Tex *tex)
 		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 		uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 		uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
-		uiDefButF(block, NUM, 0, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
+		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 5000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
 		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL, 0, "Don't render layer:",		10,10,140,22, 0, 0.0, 0.0, 0, 0, "");	
@@ -1620,16 +1620,16 @@ static void radio_panel_calculation(Radio *rad, int flag)
 	uiDefBut(block,  BUT, B_RAD_GO, "GO",					0, 0, 10, 15, NULL, 0, 0, 0, 0, "Starts the radiosity simulation");
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButS(block,  NUM, 0, "SubSh Patch:", 				1, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Sets the number of times the environment is tested to detect pathes");
-	uiDefButS(block,  NUM, 0, "SubSh Element:", 			1, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Sets the number of times the environment is tested to detect elements");
+	uiDefButS(block,  NUM, B_NOP, "SubSh Patch:", 				1, 0, 10, 10, &rad->subshootp, 0.0, 10.0, 0, 0, "Sets the number of times the environment is tested to detect pathes");
+	uiDefButS(block,  NUM, B_NOP, "SubSh Element:", 			1, 0, 10, 10, &rad->subshoote, 0.0, 10.0, 0, 0, "Sets the number of times the environment is tested to detect elements");
 
 	if(flag != RAD_PHASE_PATCHES) uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	uiDefBut(block,  BUT, B_RAD_SHOOTE, "Subdiv Shoot Element", 2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, Detects high energy changes and subdivide Elements");
 	uiDefBut(block,  BUT, B_RAD_SHOOTP, "Subdiv Shoot Patch",	2, 0, 10, 10, NULL, 0, 0, 0, 0, "For pre-subdivision, Detects high energy changes and subdivide Patches");
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButI(block,  NUM, 0, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Sets the maximum allowed number of elements");
-	uiDefButS(block,  NUM, 0, "Max Subdiv Shoot:", 			3, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Sets the maximum number of initial shoot patches that are evaluated");
+	uiDefButI(block,  NUM, B_NOP, "MaxEl:",						3, 0, 10, 10, &rad->maxnode, 1.0, 250000.0, 0, 0, "Sets the maximum allowed number of elements");
+	uiDefButS(block,  NUM, B_NOP, "Max Subdiv Shoot:", 			3, 0, 10, 10, &rad->maxsublamp, 1.0, 250.0, 0, 0, "Sets the maximum number of initial shoot patches that are evaluated");
 
 	if(flag & RAD_PHASE_FACES);
 	else uiBlockSetCol(block, TH_BUT_NEUTRAL);
@@ -1638,7 +1638,7 @@ static void radio_panel_calculation(Radio *rad, int flag)
 
 	uiDefBut(block,  BUT, B_RAD_NODELIM, "RemoveDoubles",	5, 0, 30, 10, NULL, 0.0, 50.0, 0, 0, "Joins elements which differ less than 'Lim'");
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefButS(block,  NUM, 0, "Lim:",						5, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Sets the range for removing doubles");
+	uiDefButS(block,  NUM, B_NOP, "Lim:",						5, 0, 10, 10, &rad->nodelim, 0.0, 50.0, 0, 0, "Sets the range for removing doubles");
 
 
 }
@@ -1688,10 +1688,10 @@ static void radio_panel_render(Radio *rad)
 	uiAutoBlock(block, 210, 30, 230, 150, UI_BLOCK_ROWS);
 
 	uiDefButS(block,  NUMSLI, B_RAD_LIMITS, "Hemires:", 0, 0, 10, 10, &rad->hemires, 100.0, 1000.0, 100, 0, "Sets the size of a hemicube");
-	uiDefButS(block,  NUM, 0, "Max Iterations:", 		2, 0, 10, 15, &rad->maxiter, 0.0, 10000.0, 0, 0, "Limits the maximum number of radiosity rounds");
+	uiDefButS(block,  NUM, B_NOP, "Max Iterations:", 		2, 0, 10, 15, &rad->maxiter, 0.0, 10000.0, 0, 0, "Limits the maximum number of radiosity rounds");
 	uiDefButF(block,  NUM, B_RAD_FAC, "Mult:",			3, 0, 10, 15, &rad->radfac, 0.001, 250.0, 100, 0, "Mulitplies the energy values");
 	uiDefButF(block,  NUM, B_RAD_FAC, "Gamma:",			3, 0, 10, 15, &rad->gamma, 0.2, 10.0, 10, 0, "Changes the contrast of the energy values");
-	uiDefButF(block,  NUMSLI, 0, "Convergence:", 		5, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Sets the lower threshold of unshot energy");
+	uiDefButF(block,  NUMSLI, B_NOP, "Convergence:", 		5, 0, 10, 10, &rad->convergence, 0.0, 1.0, 10, 0, "Sets the lower threshold of unshot energy");
 }
 
 
@@ -3153,8 +3153,8 @@ static void material_panel_material(Object *ob, Material *ma)
 		uiDefButF(block, NUMSLI, B_DIFF, "Friction ",  		128,100 ,175,20, &ma->friction, 0.0, 100.0, 0, 0,   "Coulomb friction coefficient");
 		uiDefButF(block, NUMSLI, B_DIFF, "Fh Force ",		128,80 ,175,20, &ma->fh, 0.0, 1.0, 0, 0, "Upward spring force within the Fh area");
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, 0,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
-		uiDefButF(block, NUM, 0, "Fh Dist ",			8,100 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
+		uiDefButF(block, NUM, B_NOP,	 "Fh Damp ",		8,120,100,20, &ma->xyfrict, 0.0, 1.0, 10, 0, "Damping of the Fh spring force");
+		uiDefButF(block, NUM, B_NOP, "Fh Dist ",			8,100 ,100,20, &ma->fhdist, 0.0, 20.0, 10, 0, "Height of the Fh area");
 		uiDefButBitS(block, TOG, MA_FH_NOR, 0, "Fh Norm",		8,80 ,100,20, &ma->dynamode, 0.0, 0.0, 0, 0, "Add a horizontal spring force on slopes");
 	}
 	else {

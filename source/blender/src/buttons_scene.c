@@ -792,9 +792,9 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	uiDefBut(block, LABEL, 0, "",  290, -15, 220, 115, NULL,  0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, 0,"Eint:",  	370,75,135,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
+	uiDefButS(block, NUM, B_NOP,"Eint:",  	370,75,135,19,  &G.scene->r.edgeint, 0.0, 255.0, 0, 0,
 		  "Sets edge intensity for Toon shading");
-	uiDefButS(block, NUM, 0,"AntiShift",370,55,135,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
+	uiDefButS(block, NUM, B_NOP,"AntiShift",370,55,135,19,  &(G.scene->r.same_mat_redux), 0, 255.0, 0, 0,
 		  "For unified renderer: reduce intensity on boundaries "
 		  "with identical materials with this number.");
 
@@ -809,11 +809,11 @@ static uiBlock *edge_render_menu(void *arg_unused)
 	uiDefButF(block, COL, 0, "", 		295,-10,30,60,  &(G.scene->r.edgeR), 0, 0, 0, B_EDGECOLSLI, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ",   330, 30, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, B_NOP, "R ",   330, 30, 175,19,   &G.scene->r.edgeR, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "G ",  	330, 10, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, B_NOP, "G ",  	330, 10, 175,19,  &G.scene->r.edgeG, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
-	uiDefButF(block, NUMSLI, 0, "B ",  	330, -10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
+	uiDefButF(block, NUMSLI, B_NOP, "B ",  	330, -10, 175,19,  &G.scene->r.edgeB, 0.0, 1.0, B_EDGECOLSLI, 0,
 		  "For unified renderer: Colour for edges in toon shading mode.");
 
 	
@@ -831,11 +831,11 @@ static uiBlock *post_render_menu(void *arg_unused)
 	/* use this for a fake extra empy space around the buttons */
 	uiDefBut(block, LABEL, 0, "",			-10, -10, 200, 120, NULL, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "Add:",		0,80,180,19, &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Mul:",		0,60,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Gamma:",	0,40,180,19,  &G.scene->r.postgamma, 0.1, 4.0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Hue:",		0,20,180,19,  &G.scene->r.posthue, -0.5, 0.5, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Sat:",		0, 0,180,19,  &G.scene->r.postsat, 0.0, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_NOP, "Add:",		0,80,180,19, &G.scene->r.postadd, -1.0, 1.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_NOP, "Mul:",		0,60,180,19,  &G.scene->r.postmul, 0.01, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_NOP, "Gamma:",	0,40,180,19,  &G.scene->r.postgamma, 0.1, 4.0, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_NOP, "Hue:",		0,20,180,19,  &G.scene->r.posthue, -0.5, 0.5, 0, 0, "");
+	uiDefButF(block, NUMSLI, B_NOP, "Sat:",		0, 0,180,19,  &G.scene->r.postsat, 0.0, 4.0, 0, 0, "");
 
 	uiBlockSetDirection(block, UI_TOP);
 	
@@ -869,21 +869,21 @@ static uiBlock *framing_render_menu(void *arg_unused)
 	uiDefButF(block, COL, 0, "",                0, yco - 58 + 18, 33, 58, &G.scene->framing.col[0], 0, 0, 0, randomcolorindex, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, 0, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
+	uiDefButF(block, NUMSLI, B_NOP, "R ", xco,yco,243,18, &G.scene->framing.col[0], 0.0, 1.0, randomcolorindex, 0, "Set the red component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "G ", xco,yco,243,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
+	uiDefButF(block, NUMSLI, B_NOP, "G ", xco,yco,243,18, &G.scene->framing.col[1], 0.0, 1.0, randomcolorindex, 0, "Set the green component of the bars");
 	yco -= 20;
-	uiDefButF(block, NUMSLI, 0, "B ", xco,yco,243,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
+	uiDefButF(block, NUMSLI, B_NOP, "B ", xco,yco,243,18, &G.scene->framing.col[2], 0.0, 1.0, randomcolorindex, 0, "Set the blue component of the bars");
 	uiBlockEndAlign(block);
 	
 	xco = 0;
 	uiDefBut(block, LABEL, 0, "Fullscreen:",		xco, yco-=30, 100, 19, 0, 0.0, 0.0, 0, 0, "");
 	uiDefButS(block, TOG, 0, "Fullscreen", xco+70, yco, 68, 19, &G.scene->r.fullscreen, 0.0, 0.0, 0, 0, "Starts player in a new fullscreen display");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, 0, "X:",		xco+40, yco-=27, 100, 19, &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
-	uiDefButS(block, NUM, 0, "Y:",		xco+140, yco, 100, 19, &G.scene->r.yplay,    10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
-	uiDefButS(block, NUM, 0, "Freq:",	xco+40, yco-=21, 100, 19, &G.scene->r.freqplay, 10.0, 2000.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
-	uiDefButS(block, NUM, 0, "Bits:",	xco+140, yco, 100, 19, &G.scene->r.depth, 8.0, 32.0, 800.0, 0, "Displays bit depth of full screen display. Click to change.");
+	uiDefButS(block, NUM, B_NOP, "X:",		xco+40, yco-=27, 100, 19, &G.scene->r.xplay, 10.0, 2000.0, 0, 0, "Displays current X screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, B_NOP, "Y:",		xco+140, yco, 100, 19, &G.scene->r.yplay,    10.0, 2000.0, 0, 0, "Displays current Y screen/window resolution. Click to change.");
+	uiDefButS(block, NUM, B_NOP, "Freq:",	xco+40, yco-=21, 100, 19, &G.scene->r.freqplay, 10.0, 2000.0, 0, 0, "Displays clock frequency of fullscreen display. Click to change.");
+	uiDefButS(block, NUM, B_NOP, "Bits:",	xco+140, yco, 100, 19, &G.scene->r.depth, 8.0, 32.0, 800.0, 0, "Displays bit depth of full screen display. Click to change.");
 	uiBlockEndAlign(block);
 
 	/* stereo settings */
@@ -1066,7 +1066,7 @@ static void render_panel_output(void)
 	
 	/* removed, for time being unified and normal render will use same gamma for blending (2.0) */
 	//if (G.scene->r.mode & R_GAMMA) {
-	//	uiDefButF(block, NUMSLI, 0,"Gamma:",		10, 68, 142, 20,
+	//	uiDefButF(block, NUMSLI, B_NOP,"Gamma:",		10, 68, 142, 20,
 	//			 &(G.scene->r.gamma), 0.2, 5.0, B_GAMMASLI, 0,
 	//			 "The gamma value for blending oversampled images (1.0 = no correction).");
 	//}

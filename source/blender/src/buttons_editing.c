@@ -2232,7 +2232,7 @@ static void editing_panel_mball_type(Object *ob, MetaBall *mb)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_RECALCMBALL, "Wiresize:", 470,178,250,19, &mb->wiresize, 0.05, 1.0, 1, 0, "Polygonization resolution in 3d window");
-	uiDefButF(block, NUM, 0, "Rendersize:", 470,158,250,19, &mb->rendersize, 0.05, 1.0, 1, 0, "Polygonization resolution in rendering");
+	uiDefButF(block, NUM, B_NOP, "Rendersize:", 470,158,250,19, &mb->rendersize, 0.05, 1.0, 1, 0, "Polygonization resolution in rendering");
 	uiDefButF(block, NUM, B_RECALCMBALL, "Threshold:", 470,138,250,19, &mb->thresh, 0.0001, 5.0, 1, 0, "Defines influence of meta elements");
 
 	uiBlockBeginAlign(block);
@@ -3372,7 +3372,7 @@ static void editing_panel_mesh_paint(void)
 		uiDefBut(block, BUT, B_WEIGHT3_4 , "3/4",		 145,140,45,19, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_WEIGHT1_0 , "1",			 190,140,45,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUMSLI, 0, "Opacity ",		10,120,225,19, &Gwp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		10,120,225,19, &Gwp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
 		
 		uiDefBut(block, BUT, B_OPA1_8 , "1/8",		10,100,45,19, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_OPA1_4 , "1/4",		55,100,45,19, 0, 0, 0, 0, 0, "");
@@ -3380,7 +3380,7 @@ static void editing_panel_mesh_paint(void)
 		uiDefBut(block, BUT, B_OPA3_4 , "3/4",		145,100,45,19, 0, 0, 0, 0, 0, "");
 		uiDefBut(block, BUT, B_OPA1_0 , "1",		190,100,45,19, 0, 0, 0, 0, 0, "");
 		
-		uiDefButF(block, NUMSLI, 0, "Size ",		10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+		uiDefButF(block, NUMSLI, B_NOP, "Size ",		10,80,225,19, &Gwp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 
 		uiBlockBeginAlign(block);
 		uiDefButS(block, ROW, B_DIFF, "Mix",		250,160,60,19, &Gwp.mode, 1.0, 0.0, 0, 0, "Mix the vertex colours");
@@ -3406,13 +3406,13 @@ static void editing_panel_mesh_paint(void)
 		extern VPaint Gvp;         /* from vpaint */
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, 0, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
-		uiDefButF(block, NUMSLI, 0, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
-		uiDefButF(block, NUMSLI, 0, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
+		uiDefButF(block, NUMSLI, B_NOP, "R ",			979,160,194,19, &Gvp.r, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of red used for painting");
+		uiDefButF(block, NUMSLI, B_NOP, "G ",			979,140,194,19, &Gvp.g, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of green used for painting");
+		uiDefButF(block, NUMSLI, B_NOP, "B ",			979,120,194,19, &Gvp.b, 0.0, 1.0, B_VPCOLSLI, 0, "The amount of blue used for painting");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, 0, "Opacity ",		979,95,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-		uiDefButF(block, NUMSLI, 0, "Size ",		979,75,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
+		uiDefButF(block, NUMSLI, B_NOP, "Opacity ",		979,95,194,19, &Gvp.a, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+		uiDefButF(block, NUMSLI, B_NOP, "Size ",		979,75,194,19, &Gvp.size, 2.0, 64.0, 0, 0, "The size of the brush");
 		uiBlockEndAlign(block);
 		
 		uiDefButF(block, COL, B_REDR, "",			1176,120,28,60, &(Gvp.r), 0, 0, 0, B_VPCOLSLI, "");
