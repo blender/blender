@@ -79,7 +79,8 @@ void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 struct BoundBox *mesh_get_bb(struct Mesh *me);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
 
-void make_edges(struct Mesh *me);
+/* if old, it converts mface->edcode to edge drawflags */
+void make_edges(struct Mesh *me, int old);
 void mesh_strip_loose_faces(struct Mesh *me);
 
 	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL

@@ -1029,7 +1029,7 @@ void rad_addmesh(void)
 			}
 		}
 		/* by default, meshes need edge list */
-		make_edges(me);	
+		make_edges(me, 0);	
 	}
 		
 	MEM_freeN(coldata);

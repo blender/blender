@@ -1790,7 +1790,7 @@ static void draw_mesh_object(Base *base, int dt)
 			DerivedMesh *realDM = mesh_get_derived_final(ob, &realDMneedsFree);
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
-			draw_mesh_fancy(ob, baseDM, realDM, dt);
+			if(baseDM && realDM) draw_mesh_fancy(ob, baseDM, realDM, dt);
 
 			if (baseDMneedsFree) baseDM->release(baseDM);
 			if (realDMneedsFree) realDM->release(realDM);

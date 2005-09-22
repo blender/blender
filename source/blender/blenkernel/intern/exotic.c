@@ -302,8 +302,7 @@ static void read_stl_mesh_binary(char *str)
 			me->totvert = totvert;
 
 			mesh_add_normals_flags(me);
-			make_edges(me);
-			mesh_strip_loose_faces(me);
+			make_edges(me, 0);
 		}
 		waitcursor(1);
 	}
@@ -468,8 +467,7 @@ static void read_stl_mesh_ascii(char *str)
 	free(vertdata);
 
 	mesh_add_normals_flags(me);
-	make_edges(me);
-	mesh_strip_loose_faces(me);
+	make_edges(me, 0);
 
 	waitcursor(1);
 }
@@ -679,8 +677,7 @@ static void read_videoscape_mesh(char *str)
 	MEM_freeN(vertdata);
 	
 	mesh_add_normals_flags(me);
-	make_edges(me);
-	mesh_strip_loose_faces(me);
+	make_edges(me, 0);
 
 	waitcursor(1);
 }
@@ -860,8 +857,7 @@ static void read_radiogour(char *str)
 	MEM_freeN(vertdata);
 	
 	mesh_add_normals_flags(me);
-	make_edges(me);
-	mesh_strip_loose_faces(me);
+	make_edges(me, 0);
 
 	waitcursor(1);
 }
@@ -2230,8 +2226,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	}
 
 	mesh_add_normals_flags(me);
-	make_edges(me);
-	mesh_strip_loose_faces(me);
+	make_edges(me, 0);
 }
 
 static void displist_to_objects(ListBase *lbase)
@@ -4971,7 +4966,6 @@ static void dxf_read(char *filename)
 	}
 	for (; lastMe; lastMe=lastMe->id.next) {
 		mesh_add_normals_flags(lastMe);
-		make_edges(lastMe);
-		mesh_strip_loose_faces(lastMe);
+		make_edges(lastMe, 0);
 	}
 }

@@ -2027,12 +2027,7 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 		return getMeshDerivedMesh(mesh , srcob, NULL);
 	}
 	if((mesh)&&(mesh->totvert>0)) {
-		make_edges(mesh);
-		for(i=0;i<mesh->totedge;i++) {
-			// force all edge draw
-			mesh->medge[i].flag |= ME_EDGEDRAW;
-			//fprintf(stderr,"INI %d a%d f%d\n",fsdm->fsmesh->totedge,i, (fsdm->fsmesh->medge[i].flag & ME_EDGEDRAW) );
-		}
+		make_edges(mesh, 0);	// 0 = make all edges draw
 	}
 
 	// WARNING copied from getMeshDerivedMesh

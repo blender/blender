@@ -4934,7 +4934,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(me=main->mesh.first; me; me= me->id.next) {
 			if (!me->medge) {
-				make_edges(me);
+				make_edges(me, 1);	/* 1 = use mface->edcode */
 			} else {
 				mesh_strip_loose_faces(me);
 			}

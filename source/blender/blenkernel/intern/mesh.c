@@ -607,7 +607,7 @@ static int vergedgesort(const void *v1, const void *v2)
 }
 
 
-void make_edges(Mesh *me)
+void make_edges(Mesh *me, int old)
 {
 	MFace *mface;
 	MEdge *medge;
@@ -661,7 +661,7 @@ void make_edges(Mesh *me)
 		if(ed->v1 != (ed+1)->v1 || ed->v2 != (ed+1)->v2) {
 			medge->v1= ed->v1;
 			medge->v2= ed->v2;
-			if(ed->is_draw) medge->flag= ME_EDGEDRAW|ME_EDGERENDER;
+			if(old==0 || ed->is_draw) medge->flag= ME_EDGEDRAW|ME_EDGERENDER;
 			if(ed->is_loose) medge->flag|= ME_LOOSEEDGE;
 			medge++;
 		}
@@ -933,7 +933,7 @@ void nurbs_to_mesh(Object *ob)
 		dl= dl->next;
 	}
 
-	make_edges(me);
+	make_edges(me, 0);	// all edges
 	mesh_strip_loose_faces(me);
 
 	if(ob->data) {

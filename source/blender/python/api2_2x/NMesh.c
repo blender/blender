@@ -2818,7 +2818,7 @@ static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
   valid_nmedges=MEM_callocN(nmeshtotedges*sizeof(BPy_NMEdge *), "make BPy_NMEdge");
 
   /* First compute the list of edges that exists because faces exists */
-  make_edges(mesh);
+  make_edges(mesh, 0);	/* 0 = draw all edges */
 
   faces_edges=mesh->medge;
   tot_faces_edges=mesh->totedge;
