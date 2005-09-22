@@ -4,6 +4,7 @@
 	Version="7.0"
 	Name="BRE_yafray"
 	ProjectGUID="{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}"
+	RootNamespace="BRE_yafray"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
