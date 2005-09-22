@@ -714,7 +714,7 @@ void splash(void *data, int datasize, char *string)
 }
 
 static void moveareas(ScrEdge *edge);
-static void joinarea(ScrArea *sa, ScrEdge *onedge);
+static void joinarea_interactive(ScrArea *area, ScrEdge *onedge);
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge);
 
 static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt, short val) 
@@ -739,7 +739,7 @@ static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt
 			if (edgeop==1) {
 				splitarea_interactive(actarea, actedge);
 			} else if (edgeop==2) {
-				joinarea(actarea, actedge);
+				joinarea_interactive(actarea, actedge);
 			} else if (edgeop==3) {
 				scrarea_change_headertype(actarea, actarea->headertype?0:HEADERDOWN);
 			}
@@ -2388,35 +2388,202 @@ void duplicate_screen(void)
 /* ************ END SCREEN MANAGEMENT ************** */
 /* ************  JOIN/SPLIT/MOVE ************** */
 
-static void joinarea(ScrArea *sa, ScrEdge *onedge)
-{
-	ScrArea *sa2;
-	ScrArea *up=0, *down=0, *right=0, *left=0;
-	ScrEdge *setest;
-	short val=0;
-	
-	sa= test_edge_area(sa, onedge);
-	if (sa==0) return;
+typedef struct point{
+	float x,y;
+}_point;
 
-	/* which edges? */
+/* draw vertical shape visualising future joining (left as well
+ * right direction of future joining) */
+static void draw_horizontal_join_shape(ScrArea *sa, char dir)
+{
+	_point points[10];
+	short i;
+	float w, h;
+	float width = sa->v3->vec.x - sa->v1->vec.x;
+	float height = sa->v3->vec.y - sa->v1->vec.y;
+
+	if(height<width) {
+		h = height/8;
+		w = height/4;
+	}
+	else {
+		h = width/8;
+		w = width/4;
+	}
+
+	points[0].x = sa->v1->vec.x;
+	points[0].y = sa->v1->vec.y + height/2;
+
+	points[1].x = sa->v1->vec.x;
+	points[1].y = sa->v1->vec.y;
+
+	points[2].x = sa->v4->vec.x - w;
+	points[2].y = sa->v4->vec.y;
+
+	points[3].x = sa->v4->vec.x - w;
+	points[3].y = sa->v4->vec.y + height/2 - 2*h;
+
+	points[4].x = sa->v4->vec.x - 2*w;
+	points[4].y = sa->v4->vec.y + height/2;
+
+	points[5].x = sa->v4->vec.x - w;
+	points[5].y = sa->v4->vec.y + height/2 + 2*h;
+
+	points[6].x = sa->v3->vec.x - w;
+	points[6].y = sa->v3->vec.y;
+
+	points[7].x = sa->v2->vec.x;
+	points[7].y = sa->v2->vec.y;
+
+	points[8].x = sa->v4->vec.x;
+	points[8].y = sa->v4->vec.y + height/2 - h;
+
+	points[9].x = sa->v4->vec.x;
+	points[9].y = sa->v4->vec.y + height/2 + h;
+
+	if(dir=='l') {
+		/* when direction is left, then we flip direction of arrow */
+		float cx = sa->v1->vec.x + width;
+		for(i=0;i<10;i++) {
+			points[i].x -= cx;
+			points[i].x = -points[i].x;
+			points[i].x += sa->v1->vec.x;
+		}
+	}
+
+	glBegin(GL_POLYGON);
+	for(i=0;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+
+	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
+	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+}
+
+/* draw vertical shape visualising future joining (up/down direction) */
+static void draw_vertical_join_shape(ScrArea *sa, char dir)
+{
+	_point points[10];
+	short i;
+	float w, h;
+	float width = sa->v3->vec.x - sa->v1->vec.x;
+	float height = sa->v3->vec.y - sa->v1->vec.y;
+
+	if(height<width) {
+		h = height/4;
+		w = height/8;
+	}
+	else {
+		h = width/4;
+		w = width/8;
+	}
+
+	points[0].x = sa->v1->vec.x + width/2;
+	points[0].y = sa->v3->vec.y;
+
+	points[1].x = sa->v2->vec.x;
+	points[1].y = sa->v2->vec.y;
+
+	points[2].x = sa->v1->vec.x;
+	points[2].y = sa->v1->vec.y + h;
+
+	points[3].x = sa->v1->vec.x + width/2 - 2*w;
+	points[3].y = sa->v1->vec.y + h;
+
+	points[4].x = sa->v1->vec.x + width/2;
+	points[4].y = sa->v1->vec.y + 2*h;
+
+	points[5].x = sa->v1->vec.x + width/2 + 2*w;
+	points[5].y = sa->v1->vec.y + h;
+
+	points[6].x = sa->v4->vec.x;
+	points[6].y = sa->v4->vec.y + h;
+	
+	points[7].x = sa->v3->vec.x;
+	points[7].y = sa->v3->vec.y;
+
+	points[8].x = sa->v1->vec.x + width/2 - w;
+	points[8].y = sa->v1->vec.y;
+
+	points[9].x = sa->v1->vec.x + width/2 + w;
+	points[9].y = sa->v1->vec.y;
+
+	if(dir=='u') {
+		/* when direction is up, then we flip direction of arrow */
+		float cy = sa->v1->vec.y + height;
+		for(i=0;i<10;i++) {
+			points[i].y -= cy;
+			points[i].y = -points[i].y;
+			points[i].y += sa->v1->vec.y;
+		}
+	}
+
+	glBegin(GL_POLYGON);
+	for(i=0;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+
+	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
+	glRectf(points[6].x, points[6].y, points[9].x, points[9].y);
+}
+
+/* draw join shape due to direction of joining */
+static void draw_join_shape(ScrArea *sa, char dir)
+{
+	if(dir=='u' || dir=='d')
+		draw_vertical_join_shape(sa, dir);
+	else
+		draw_horizontal_join_shape(sa, dir);
+}
+
+/* draw screen area darker with arrow (visualisation of future joining) */
+static void scrarea_draw_shape_dark(ScrArea *sa, char dir)
+{
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glColor4ub(0, 0, 0, 105);
+	draw_join_shape(sa, dir);
+	glDisable(GL_BLEND);
+}
+
+/* draw screen area ligher with arrow shape ("eraser" of previous dark shape) */
+static void scrarea_draw_shape_light(ScrArea *sa, char dir)
+{
+	glBlendFunc(GL_DST_COLOR, GL_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	/* value 181 was hardly computed: 181~105 */
+	glColor4ub(255, 255, 255, 181);		
+	draw_join_shape(sa, dir);
+	glDisable(GL_BLEND);
+}
+
+static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
+{
+	struct ScrArea *sa1 = area, *sa2, *scr;
+	struct ScrArea *up=0, *down=0, *right=0, *left=0;
+	struct ScrEdge *se;
+	unsigned short event;
+	short ok=0, val=0, mval[2];
+	char dir;
+
+	sa1 = test_edge_area(sa1, onedge);
+	if(sa1==0) return;
+
 	/* find directions with same edge */
 	sa2= G.curscreen->areabase.first;
 	while(sa2) {
-		if(sa2 != sa) {
-			setest= screen_findedge(G.curscreen, sa2->v1, sa2->v2);
-			if(onedge==setest) right= sa2;
-			setest= screen_findedge(G.curscreen, sa2->v2, sa2->v3);
-			if(onedge==setest) down= sa2;
-			setest= screen_findedge(G.curscreen, sa2->v3, sa2->v4);
-			if(onedge==setest) left= sa2;
-			setest= screen_findedge(G.curscreen, sa2->v4, sa2->v1);
-			if(onedge==setest) up= sa2;
+		if(sa2 != sa1) {
+			se= screen_findedge(G.curscreen, sa2->v1, sa2->v2);
+			if(onedge==se) right= sa2;
+			se= screen_findedge(G.curscreen, sa2->v2, sa2->v3);
+			if(onedge==se) down= sa2;
+			se= screen_findedge(G.curscreen, sa2->v3, sa2->v4);
+			if(onedge==se) left= sa2;
+			se= screen_findedge(G.curscreen, sa2->v4, sa2->v1);
+			if(onedge==se) up= sa2;
 		}
 		sa2= sa2->next;
 	}
-	
-	sa2= 0;
-	setest= 0;
 	
 	if(left) val++;
 	if(up) val++;
@@ -2425,55 +2592,154 @@ static void joinarea(ScrArea *sa, ScrEdge *onedge)
 	
 	if(val==0) return;
 	else if(val==1) {
-		if(left) sa2= left;
-		else if(up) sa2= up;
-		else if(right) sa2= right;
-		else if(down) sa2= down;
+		if(left) {
+			right = sa1;
+			sa2 = left;
+			dir = 'h';
+		}
+		else if(right) {
+			left = sa1;
+			sa2 = right;
+			dir = 'h';
+		}
+		else if(up) {
+			down = sa1;
+			sa2= up;
+			dir = 'v';
+		}
+		else if(down) {
+			up = sa1;
+			sa2 = down;
+			dir = 'v';
+		}
 	}
-	
-	
-	if(sa2) {
-		/* new area is old sa */
+
+	mywinset(G.curscreen->mainwin);
+
+	/* initial set up screen area asigned for destroying */
+	scr = sa2;
+
+	/* set up standard cursor */
+	set_cursor(CURSOR_STD);
+
+	/* should already have a good matrix */
+	glReadBuffer(GL_FRONT);
+	glDrawBuffer(GL_FRONT);
+
+	/* to prevent flickering after clicking at "Join Areas " */
+	getmouseco_sc(mval);
+	if(dir=='h') {
+		if(scr==left && mval[0]<=onedge->v1->vec.x) scr = right;
+		else if(scr==right && mval[0]>onedge->v1->vec.x) scr = left;
+	}
+	else if(dir=='v') {
+		if(scr==down && mval[1]<=onedge->v1->vec.y) scr = up;
+		else if(scr==up && mval[1]>onedge->v1->vec.y) scr = down;
+	}
+
+	/* draw scr screen area with dark shape */
+	if(scr==left)
+		scrarea_draw_shape_dark(scr,'r');
+	else if(scr==right)
+		scrarea_draw_shape_dark(scr,'l');
+	else if(scr==up)
+		scrarea_draw_shape_dark(scr,'d');
+	else if(scr==down)
+		scrarea_draw_shape_dark(scr,'u');
+	glFlush();
+
+	/* "never ending loop" of interactive selection */
+	while(!ok) {
+		getmouseco_sc(mval);
+
+		/* test if position of mouse is on the "different side" of
+		 * "joining edge" */
+		if(dir=='h') {
+			if(scr==left && mval[0]<=onedge->v1->vec.x) {
+				scrarea_draw_shape_light(scr,'r');
+				scr = right;
+				scrarea_draw_shape_dark(scr,'l');
+			}
+			else if(scr==right && mval[0]>onedge->v1->vec.x) {
+				scrarea_draw_shape_light(scr,'l');
+				scr = left;
+				scrarea_draw_shape_dark(scr,'r');
+			}
+		}
+		else if(dir=='v') {
+			if(scr==down && mval[1]<=onedge->v1->vec.y) {
+				scrarea_draw_shape_light(scr,'u');
+				scr = up;
+				scrarea_draw_shape_dark(scr,'d');
+			}
+			else if(scr==up && mval[1]>onedge->v1->vec.y){
+				scrarea_draw_shape_light(scr,'d');
+				scr = down;
+				scrarea_draw_shape_dark(scr,'u');
+			}
+		}
+
+
+		/* get pressed keys and mouse buttons */
+		event = extern_qread(&val);
+
+		/* confirm joining of two screen areas */
+		if(val && event==LEFTMOUSE) ok= 1;
+
+		/* cancel joining of joining */
+		if(val && (event==ESCKEY || event==RIGHTMOUSE)) ok= -1;
+
+		glFlush();
+	}
+
+	glReadBuffer(GL_BACK);
+	glDrawBuffer(GL_BACK);
+
+	/* joining af screen areas was confirmed ... proceed joining */
+	if(ok==1) {
+		if(sa2!=scr) {
+			sa1 = sa2;
+			sa2 = scr;
+		}
+
 		if(sa2==left) {
-			sa->v1= sa2->v1;
-			sa->v2= sa2->v2;
-			screen_addedge(G.curscreen, sa->v2, sa->v3);
-			screen_addedge(G.curscreen, sa->v1, sa->v4);
+			sa1->v1= sa2->v1;
+			sa1->v2= sa2->v2;
+			screen_addedge(G.curscreen, sa1->v2, sa1->v3);
+			screen_addedge(G.curscreen, sa1->v1, sa1->v4);
 		}
 		else if(sa2==up) {
-			sa->v2= sa2->v2;
-			sa->v3= sa2->v3;
-			screen_addedge(G.curscreen, sa->v1, sa->v2);
-			screen_addedge(G.curscreen, sa->v3, sa->v4);
+			sa1->v2= sa2->v2;
+			sa1->v3= sa2->v3;
+			screen_addedge(G.curscreen, sa1->v1, sa1->v2);
+			screen_addedge(G.curscreen, sa1->v3, sa1->v4);
 		}
 		else if(sa2==right) {
-			sa->v3= sa2->v3;
-			sa->v4= sa2->v4;
-			screen_addedge(G.curscreen, sa->v2, sa->v3);
-			screen_addedge(G.curscreen, sa->v1, sa->v4);
+			sa1->v3= sa2->v3;
+			sa1->v4= sa2->v4;
+			screen_addedge(G.curscreen, sa1->v2, sa1->v3);
+			screen_addedge(G.curscreen, sa1->v1, sa1->v4);
 		}
 		else if(sa2==down) {
-			sa->v1= sa2->v1;
-			sa->v4= sa2->v4;
-			screen_addedge(G.curscreen, sa->v1, sa->v2);
-			screen_addedge(G.curscreen, sa->v3, sa->v4);
+			sa1->v1= sa2->v1;
+			sa1->v4= sa2->v4;
+			screen_addedge(G.curscreen, sa1->v1, sa1->v2);
+			screen_addedge(G.curscreen, sa1->v3, sa1->v4);
 		}
 	
-		/* remove edge and area */
-		/* remlink(&G.curscreen->edgebase, setest); */
-		/* freeN(setest); */
 		del_area(sa2);
 		BLI_remlink(&G.curscreen->areabase, sa2);
 		MEM_freeN(sa2);
 		
 		removedouble_scredges();
 		removenotused_scredges();
-		removenotused_scrverts();	/* as last */
+		removenotused_scrverts();
 		
 		testareas();
 		mainqenter(DRAWEDGES, 1);
-			/* test cursor en inputwindow */
-		mainqenter(MOUSEY, -1);		
+
+		/* test cursor en inputwindow */
+		mainqenter(MOUSEY, -1);
 	}
 }
 
@@ -2606,8 +2872,7 @@ static void scrarea_draw_splitpoint(ScrArea *sa, char dir, float fac)
 
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 {
-	ScrArea *sa= area;
-	ScrArea *scr;
+	ScrArea *scr, *sa= area;
 	float fac= 0.0;
 	unsigned short event;
 	short ok= 0, val, split = 0, mval[2], mvalo[2], first= 1;
