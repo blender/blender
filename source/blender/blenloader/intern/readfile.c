@@ -2319,6 +2319,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	ob->mat= newdataadr(fd, ob->mat);
 	test_pointer_array(fd, (void **)&ob->mat);
+	
+	/* do it here, below old data gets converted */
+	direct_link_modifiers(fd, &ob->modifiers);
+	
 	link_list(fd, &ob->effect);
 	paf= ob->effect.first;
 	while(paf) {
@@ -2426,8 +2430,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 		act->data= newdataadr(fd, act->data);
 		act= act->next;
 	}
-
-	direct_link_modifiers(fd, &ob->modifiers);
 
 	link_list(fd, &ob->hooks);
 	while (ob->hooks.first) {
