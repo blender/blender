@@ -757,11 +757,17 @@ static void drawfloor(void)
 
 }
 
-static void drawcursor(void)
+static void drawcursor(View3D *v3d)
 {
 	short mx,my,co[2];
+	int flag;
 	
+	/* we dont want the clipping for cursor */
+	flag= v3d->flag;
+	v3d->flag= 0;
 	project_short( give_cursor(), co);
+	v3d->flag= flag;
+	
 	mx = co[0];
 	my = co[1];
 
@@ -2215,7 +2221,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	persp(PERSP_WIN);  // set ortho
 	
 	if(v3d->persp>1) drawviewborder();
-	if(!(G.f & G_PLAYANIM)) drawcursor();
+	if(!(G.f & G_PLAYANIM)) drawcursor(v3d);
 	draw_view_icon();
 
 	ob= OBACT;

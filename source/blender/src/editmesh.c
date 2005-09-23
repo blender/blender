@@ -1351,6 +1351,7 @@ void separate_mesh(void)
 	/* hashedges are freed now, make new! */
 	editMesh_set_hash();
 	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	G.obedit= oldob;
 	BASACT= oldbase;
 	BASACT->flag |= SELECT;
