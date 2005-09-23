@@ -15,27 +15,6 @@
 #include "ntl_renderglobals.h"
 
 
-/* Minimum value for refl/refr to be traced */
-#define RAY_THRESHOLD 0.001
-
-#if GFX_PRECISION==1
-// float values
-//! the minimal triangle determinant length
-#define RAY_TRIANGLE_EPSILON (1e-08)
-//! Minimal contribution for rays to be traced on
-#define RAY_MINCONTRIB (1e-04)
-
-#else 
-// double values
-//! the minimal triangle determinant length
-#define RAY_TRIANGLE_EPSILON (1e-15)
-//! Minimal contribution for rays to be traced on
-#define RAY_MINCONTRIB (1e-05)
-
-#endif 
-
-
-
 //! store data for an intersection of a ray and a triangle
 // NOT YET USED
 class ntlIntersection {
@@ -84,8 +63,11 @@ public:
   void intersectFrontAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, ntlVec3Gfx &normal, ntlVec3Gfx &retcoord) const;
   void intersectBackAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, ntlVec3Gfx &normal, ntlVec3Gfx &retcoord) const;
   void intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &tmin, gfxReal &tmax) const;
+	// intersection routines in bsptree.cpp
   //! optimized intersect ray with triangle
   inline void intersectTriangle(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const;
+  //! optimized intersect ray with triangle along +X axis dir
+  inline void intersectTriangleX(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const;
   //! intersect only with front side
   inline void intersectTriangleFront(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const;
   //! intersect ray only with backsides
@@ -151,82 +133,9 @@ private:
 
 
 
-
-/******************************************************************
- * triangle intersection with triangle pointer,
- * returns t,u,v by references 
- */
-inline void ntlRay::intersectTriangle(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
-{
-  /* (cf. moeller&haines, page 305) */
-  t = GFX_REAL_MAX;
-  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
-  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
-  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
-  ntlVec3Gfx  p  = cross( mDirection, e2 );
-  gfxReal a  = dot(e1, p);	
-  if((a > -RAY_TRIANGLE_EPSILON)&&(a < RAY_TRIANGLE_EPSILON)) return;
-      
-  gfxReal f  = 1/a;
-  ntlVec3Gfx  s  = mOrigin - e0;
-  u  = f * dot(s, p);
-  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  ntlVec3Gfx  q  = cross( s,e1 );
-  v  = f * dot(mDirection, q);
-  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  t = f * dot(e2, q);      
-}
-/******************************************************************
- * intersect only front or backsides
- */
-inline void ntlRay::intersectTriangleFront(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
-{
-  t = GFX_REAL_MAX;
-  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
-  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
-  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
-  ntlVec3Gfx  p  = cross( mDirection, e2 );
-  gfxReal a  = dot(e1, p);	
-  //if((a > -RAY_TRIANGLE_EPSILON)&&(a < RAY_TRIANGLE_EPSILON)) return;
-  if(a < RAY_TRIANGLE_EPSILON) return; // cull backsides
-      
-  gfxReal f  = 1/a;
-  ntlVec3Gfx  s  = mOrigin - e0;
-  u  = f * dot(s, p);
-  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  ntlVec3Gfx  q  = cross( s,e1 );
-  v  = f * dot(mDirection, q);
-  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  t = f * dot(e2, q);      
-}
-inline void ntlRay::intersectTriangleBack(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
-{
-  t = GFX_REAL_MAX;
-  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
-  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
-  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
-  ntlVec3Gfx  p  = cross( mDirection, e2 );
-  gfxReal a  = dot(e1, p);	
-  //if((a > -RAY_TRIANGLE_EPSILON)&&(a < RAY_TRIANGLE_EPSILON)) return;
-  if(a > -RAY_TRIANGLE_EPSILON) return; // cull frontsides
-      
-  gfxReal f  = 1/a;
-  ntlVec3Gfx  s  = mOrigin - e0;
-  u  = f * dot(s, p);
-  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  ntlVec3Gfx  q  = cross( s,e1 );
-  v  = f * dot(mDirection, q);
-  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
-      
-  t = f * dot(e2, q);      
-}
-
-
+// triangle intersection code in bsptree.cpp
+// intersectTriangle(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v);
+// ...
 
 
 

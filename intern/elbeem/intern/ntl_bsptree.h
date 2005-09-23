@@ -48,6 +48,8 @@ class ntlTree
 
 		//! intersect ray with BSPtree
 		void intersect(const ntlRay &ray, gfxReal &distance, ntlVec3Gfx &normal, ntlTriangle *&tri, int flags, bool forceNonsmooth) const;
+		//! intersect along +X ray
+		void intersectX(const ntlRay &ray, gfxReal &distance, ntlVec3Gfx &normal, ntlTriangle *&tri, int flags, bool forceNonsmooth) const;
 
 		//! Returns number of nodes
 		int getCurrentNodes( void ) { return mCurrentNodes; }

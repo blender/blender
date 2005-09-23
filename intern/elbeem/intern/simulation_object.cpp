@@ -71,7 +71,10 @@ SimulationObject::~SimulationObject()
 /*! init tree for certain geometry init */
 /*****************************************************************************/
 void SimulationObject::initGeoTree(int id) {
-	if(mpGlob == NULL) { errorOut("SimulationObject::initGeoTree error: Requires globals!"); exit(1); }
+	if(mpGlob == NULL) { 
+		errFatal("SimulationObject::initGeoTree error","Requires globals!", SIMWORLD_INITERROR); 
+		return;
+	}
 	mGeoInitId = id;
 	ntlScene *scene = mpGlob->getScene();
 	mpGiObjects = scene->getObjects();
@@ -113,15 +116,15 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		mpLbm = createSolverOld();
 #endif // LBM_TESTSOLVER
 	} else {
-		errorOut("SimulationObject::initializeLbmSimulation : Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead");
-		exit(1);
+		errFatal("SimulationObject::initializeLbmSimulation","Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead", SIMWORLD_INITERROR);
+		return 1;
 	}
 
 
   /* check lbm pointer */
 	if(mpLbm == NULL) {
-		errorOut("SimulationObject::initializeLbmSimulation : Unable to init dim"<<mSolverType<<" LBM solver! ");
-		exit(1);
+		errFatal("SimulationObject::initializeLbmSimulation","Unable to init dim"<<mSolverType<<" LBM solver! ", SIMWORLD_INITERROR);
+		return 1;
 	}
 	debugOut("SimulationObject::initialized "<< mpLbm->getIdString() <<" LBM solver! ", 2);
 
@@ -300,8 +303,8 @@ void SimulationObject::drawDebugDisplay() {
 	if(!getVisible()) return;
 
 	if( mDebugType > (MAX_DEBDISPSET-1) ){
-		errorOut("SimulationObject::drawDebugDisplay : Invalid debug type!");
-		exit(1);
+		errFatal("SimulationObject::drawDebugDisplay","Invalid debug type!", SIMWORLD_GENERICERROR);
+		return;
 	}
 
 	mDebDispSet[ mDebugType ].on = true;

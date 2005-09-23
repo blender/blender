@@ -115,12 +115,8 @@ int ntlGeometryObjModel::loadBobjModel(string filename)
 	gzFile gzf;
 	gzf = gzopen(filename.c_str(), "rb");
 	if (!gzf) {
-		errMsg("ntlGeometryObjModel::loadBobjModel","Reading GZ_BOBJ, Unable to open '"<< filename <<"'...\n" );
-#if ELBEEM_BLENDER==1
-		exit(1);
-#else // ELBEEM_BLENDER==1
+		errFatal("ntlGeometryObjModel::loadBobjModel","Reading GZ_BOBJ, Unable to open '"<< filename <<"'...\n", SIMWORLD_INITERROR );
 		return 1;
-#endif // ELBEEM_BLENDER==1
 	}
 
 	int wri;
@@ -191,12 +187,8 @@ int ntlGeometryObjModel::loadBobjModel(string filename)
 	return 0;
 gzreaderror:
 	gzclose( gzf );
-#if ELBEEM_BLENDER==1
-	errMsg("ntlGeometryObjModel::loadBobjModel","Reading GZ_BOBJ, Unable to load '"<< filename <<"', exiting...\n" );
-	exit(1);
-#else // ELBEEM_BLENDER==1
+	errFatal("ntlGeometryObjModel::loadBobjModel","Reading GZ_BOBJ, Unable to load '"<< filename <<"', exiting...\n", SIMWORLD_INITERROR );
 	return 1;
-#endif // ELBEEM_BLENDER==1
 }
 
 

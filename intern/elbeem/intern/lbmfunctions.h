@@ -11,11 +11,10 @@
 #ifndef LBMFUNCTIONS_H
 
 
-#if LBM_USE_GUI==1
-#endif
-
 
 #if LBM_USE_GUI==1
+#define USE_GLUTILITIES
+#include "../gui/gui_utilities.h"
 
 //! display a single node
 template<typename D> 
@@ -31,6 +30,13 @@ debugDisplayNode(fluidDispSettings *dispset, D *lbm, typename D::CellIdentifier 
 	int      linewidth = 1;
 	ntlColor col(0.5);
 	LbmFloat cscale = dispset->scale;
+
+#define DRAWDISPCUBE(col,scale) \
+	{	glLineWidth( linewidth ); \
+	  glColor3f( (col)[0], (col)[1], (col)[2]); \
+		ntlVec3Gfx s = org-(halfsize * (scale)); \
+		ntlVec3Gfx e = org+(halfsize * (scale)); \
+		drawCubeWire( s,e ); }
 
 	switch(dispset->type) {
 		case FLUIDDISPNothing: {
@@ -54,46 +60,36 @@ debugDisplayNode(fluidDispSettings *dispset, D *lbm, typename D::CellIdentifier 
 				else
 				if(flag& CFFluid    )    { if(!guiShowFluid    ) return; }
 
-
-				if(flag& CFNoDelete) { // TEST SOLVER debug, mark nodel cells
-					glLineWidth( linewidth );
-					ntlColor col(0.7,0.0,0.0);
-					glColor3f( col[0], col[1], col[2]);
-					ntlVec3Gfx s = org-(halfsize * 0.1);
-					ntlVec3Gfx e = org+(halfsize * 0.1);
-					drawCubeWire( s,e );
+				if(flag& CFNoDelete) { // debug, mark nodel cells
+					ntlColor ccol(0.7,0.0,0.0);
+					DRAWDISPCUBE(ccol, 0.1);
+				}
+				if(flag& CFPersistMask) { // mark persistent flags
+					ntlColor ccol(0.5);
+					DRAWDISPCUBE(ccol, 0.125);
+				}
+				if(flag& CFNoBndFluid) { // mark persistent flags
+					ntlColor ccol(0,0,1);
+					DRAWDISPCUBE(ccol, 0.075);
 				}
 
 				/*if(flag& CFAccelerator) {
 					cscale = 0.55;
 					col = ntlColor(0,1,0);
-					//showcell=false; // DEBUG
 				} */
 				if(flag& CFInvalid) {
 					cscale = 0.50;
 					col = ntlColor(0.0,0,0.0);
-					//showcell=false; // DEBUG
 				}
 				/*else if(flag& CFSpeedSet) {
 					cscale = 0.55;
 					col = ntlColor(0.2,1,0.2);
-					//showcell=false; // DEBUG
 				}*/
 				else if(flag& CFBnd) {
 					cscale = 0.59;
-					col = ntlColor(0.0);
-					col = ntlColor(0.4); // DEBUG
-					//if(lbm->getSizeZ()>2) { showcell=false; } // DEBUG, 3D no obstacles
+					col = ntlColor(0.4);
 				}
 
-				/*else if(flag& CFIfFluid) { // TEST SOLVER if inner fluid if
-					cscale = 0.55;
-					col = ntlColor(0,1,0);
-				}
-				else if(flag& CFIfEmpty) { // TEST SOLVER if outer empty if
-					cscale = 0.55;
-					col = ntlColor(0,0.5,0.5);
-				}*/
 				else if(flag& CFInter) {
 					cscale = 0.55;
 					col = ntlColor(0,1,1);
@@ -101,55 +97,33 @@ debugDisplayNode(fluidDispSettings *dispset, D *lbm, typename D::CellIdentifier 
 				} else if(flag& CFGrFromCoarse) {
 					// draw as - with marker
 					ntlColor col2(0.0,1.0,0.3);
-					glColor3f( col2[0], col2[1], col2[2]);
-					ntlVec3Gfx s = org-(halfsize * 0.4);
-					ntlVec3Gfx e = org+(halfsize * 0.4);
-					drawCubeWire( s,e );
+					DRAWDISPCUBE(col2, 0.1);
 					cscale = 0.5;
-					//col = ntlColor(0,0,1);
 					showcell=false; // DEBUG
 				}
 				else if(flag& CFFluid) {
 					cscale = 0.5;
-					/*if(flag& CFCoarseInner) {
-						col = ntlColor(0.3, 0.3, 1.0);
-					} else */
 					if(flag& CFGrToFine) {
-						glLineWidth( linewidth );
 						ntlColor col2(0.5,0.0,0.5);
-						glColor3f( col2[0], col2[1], col2[2]);
-						ntlVec3Gfx s = org-(halfsize * 0.31);
-						ntlVec3Gfx e = org+(halfsize * 0.31);
-						drawCubeWire( s,e );
+						DRAWDISPCUBE(col2, 0.1);
 						col = ntlColor(0,0,1);
 					}
 					if(flag& CFGrFromFine) {
-						glLineWidth( linewidth );
 						ntlColor col2(1.0,1.0,0.0);
-						glColor3f( col2[0], col2[1], col2[2]);
-						ntlVec3Gfx s = org-(halfsize * 0.56);
-						ntlVec3Gfx e = org+(halfsize * 0.56);
-						drawCubeWire( s,e );
+						DRAWDISPCUBE(col2, 0.1);
 						col = ntlColor(0,0,1);
 					} else if(flag& CFGrFromCoarse) {
 						// draw as fluid with marker
 						ntlColor col2(0.0,1.0,0.3);
-						glColor3f( col2[0], col2[1], col2[2]);
-						ntlVec3Gfx s = org-(halfsize * 0.41);
-						ntlVec3Gfx e = org+(halfsize * 0.41);
-						drawCubeWire( s,e );
+						DRAWDISPCUBE(col2, 0.1);
 						col = ntlColor(0,0,1);
 					} else {
 						col = ntlColor(0,0,1);
-						//showcell=false; // DEBUG
 					}
 				}
 				else if(flag& CFEmpty) {
 					showcell=false;
 				}
-
-				// smaller for new lbmqt
-				//cscale *= 0.5;
 
 			} break;
 		case FLUIDDISPVelocities: {
@@ -209,15 +183,7 @@ debugDisplayNode(fluidDispSettings *dispset, D *lbm, typename D::CellIdentifier 
 	}
 
 	if(!showcell) return;
-	glLineWidth( linewidth );
-	glColor4f( col[0], col[1], col[2], 0.0);
-
-	ntlVec3Gfx s = org-(halfsize * cscale);
-	ntlVec3Gfx e = org+(halfsize * cscale);
-	//if(D::cDimension==2) {
-		//s[2] = e[2] = (s[2]+e[2])*0.5;
-	//}
-	drawCubeWire( s,e );
+	DRAWDISPCUBE(col, cscale);
 }
 
 //! debug display function
@@ -256,8 +222,9 @@ lbmMarkedCellDisplay(D *lbm) {
 	glDisable( GL_LIGHTING ); // dont light lines
 	
 	typename D::CellIdentifier cid = lbm->markedGetFirstCell();
-	for(; lbm->markedNoEndCell( cid );
-	      lbm->markedAdvanceCell( cid ) ) {
+	while(cid) {
+	//for(; lbm->markedNoEndCell( cid );
+	      //cid = lbm->markedAdvanceCell( cid ) ) {
 		// display... FIXME? this is a bit inconvenient...
 		//MarkedCellIdentifier *mid = dynamic_cast<MarkedCellIdentifier *>( cid );
 #if (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
@@ -267,13 +234,14 @@ lbmMarkedCellDisplay(D *lbm) {
 		//debugDisplayNode<D>(&dispset, lbm, mid->mpCell );
 		debugDisplayNode<D>(&dispset, lbm, cid );
 #endif
+		cid = lbm->markedAdvanceCell();
 	}
 	delete cid;
 
 	glEnable( GL_LIGHTING ); // dont light lines
 }
 
-#endif
+#endif // LBM_USE_GUI
 
 //! display a single node
 template<typename D> 
@@ -305,7 +273,8 @@ debugPrintNodeInfo(D *lbm, typename D::CellIdentifier cell, string printInfo,
 			case 'g': printGeom = true; break;
 			case 'm': printMass = true; break;
 			case 's': printBothSets = true; break;
-			default: errMsg("debugPrintNodeInfo","Invalid node info id "<<what); exit(1);
+			default: 
+				errFatal("debugPrintNodeInfo","Invalid node info id "<<what,SIMWORLD_GENERICERROR); return;
 		}
 	}
 

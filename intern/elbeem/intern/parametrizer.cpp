@@ -50,7 +50,8 @@ Parametrizer::Parametrizer( void ) :
 	mStepTime(0.01), mDesiredStepTime(-1.0),
 	mSizex(50), mSizey(50), mSizez(50),
 	mTimeFactor( 1.0 ),
-	mAniFrames(0), mAniFrameTime(0.0), mAniStart(0.0),
+	//mAniFrames(0), 
+	mAniFrameTime(0.0), mAniStart(0.0),
 	mExtent(1.0, 1.0, 1.0), mSurfaceTension( 0.0 ),
 	mDensity(1000.0), mGStar(0.0001), mFluidVolumeHeight(0.0),
 	mMaxSpeed(0.0), mSimulationMaxSpeed(0.0),
@@ -75,8 +76,8 @@ Parametrizer::~Parametrizer()
 void Parametrizer::parseAttrList() 
 {
 	if(!mpAttrs) {
-		errMsg("Parametrizer::parseAttrList", "mpAttrs pointer not initialized!");
-		exit(1);
+		errFatal("Parametrizer::parseAttrList", "mpAttrs pointer not initialized!", SIMWORLD_INITERROR);
+		return;
 	}
 
 	//mActive = mpAttrs->readBool("p_active",mActive, "Parametrizer","mActive", false);
@@ -99,17 +100,11 @@ void Parametrizer::parseAttrList()
 	mGravity = mpAttrs->readVec3d("p_gravity",mGravity, "Parametrizer","mGravity", false); 
 	if(getAttributeList()->exists("p_gravity")) seenThis( PARAM_GRAVITY );
 
-	//mTimeLength = mpAttrs->readFloat("p_timelength",mTimeLength, "Parametrizer","mTimeLength", false); 
-	//if(getAttributeList()->exists("p_timelength")) seenThis( PARAM_TIMELENGTH );
-
 	mStepTime = mpAttrs->readFloat("p_steptime",mStepTime, "Parametrizer","mStepTime", false); 
 	if(getAttributeList()->exists("p_steptime")) seenThis( PARAM_STEPTIME );
 
 	mTimeFactor = mpAttrs->readFloat("p_timefactor",mTimeFactor, "Parametrizer","mTimeFactor", false); 
 	if(getAttributeList()->exists("p_timefactor")) seenThis( PARAM_TIMEFACTOR );
-
-	mAniFrames = mpAttrs->readInt("p_aniframes",mAniFrames, "Parametrizer","mAniFrames", false); 
-	if(getAttributeList()->exists("p_aniframes")) seenThis( PARAM_ANIFRAMES );
 
 	mAniFrameTime = mpAttrs->readFloat("p_aniframetime",mAniFrameTime, "Parametrizer","mAniFrameTime", false); 
 	if(getAttributeList()->exists("p_aniframetime")) seenThis( PARAM_ANIFRAMETIME );
@@ -202,11 +197,11 @@ int Parametrizer::calculateAniStart( void )   {
 	return (int)(mAniStart/mStepTime); 
 }
 
-/*! get no of steps for a singel animation frame */
+/*! get no of steps for a single animation frame */
 int Parametrizer::calculateAniStepsPerFrame( void )   { 
 	if(!checkSeenValues(PARAM_ANIFRAMETIME)) {
-		errMsg("Parametrizer::calculateAniStepsPerFrame", " Missing ani frame time argument!");
-		exit(1);
+		errFatal("Parametrizer::calculateAniStepsPerFrame", " Missing ani frame time argument!", SIMWORLD_INITERROR);
+		return 1;
 	}
 	return (int)(mAniFrameTime/mStepTime); 
 }
@@ -449,14 +444,11 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 		mExtent = ParamVec( mCellSize*mSizex, mCellSize*mSizey, mCellSize*mSizez );
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," domain extent = "<<PRINT_NTLVEC(mExtent)<<"m ",1);
 		
-		if(checkSeenValues(PARAM_ANIFRAMETIME)) {
-			if(checkSeenValues(PARAM_ANIFRAMES)) {
-				if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," Warning - ani frame time and ani frames given!", 1);
-				exit(1);
-			}
-		} else {
-			mAniFrameTime = mAniFrames * mStepTime;
-		}
+		if(!checkSeenValues(PARAM_ANIFRAMETIME)) {
+			errFatal("Parametrizer::calculateAllMissingValues"," Warning no ani frame time given!", SIMWORLD_INITERROR);
+			mAniFrameTime = mStepTime;
+		} 
+		//mAniFrameTime = mAniFrames * mStepTime;
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," ani frame steps = "<<calculateAniStepsPerFrame()<<" ", 1);
 
 		if((checkSeenValues(PARAM_ANISTART))&&(calculateAniStart()>0)) {

@@ -29,6 +29,18 @@
 #endif
 #endif // NOPNG
 
+// global debug level
+#ifdef DEBUG 
+int gDebugLevel = DEBUG;
+#else // DEBUG 
+int gDebugLevel = 0;
+#endif // DEBUG 
+
+// global world state
+int gWorldState = SIMWORLD_INVALID;
+// last error as string
+char gWorldStringState[256] = {'-','\0' };
+
 //! for interval debugging output
 myTime_t globalIntervalTime = 0;
 //! color output setting for messages (0==off, else on)
@@ -190,8 +202,8 @@ bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, std::string checker) {
 	if( (s[0]>e[0]) ||
 			(s[1]>e[1]) ||
 			(s[2]>e[2]) ) {
-		errMsg("checkBoundingBox","Check by '"<<checker<<"' for BB "<<s<<":"<<e<<" failed! Aborting...");
-		exit(1);
+		errFatal("checkBoundingBox","Check by '"<<checker<<"' for BB "<<s<<":"<<e<<" failed! Aborting...",SIMWORLD_INITERROR);
+		return 1;
 	}
 	return 0;
 }
@@ -227,7 +239,7 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 	}
 
 	// colors off?
-	if(globalColorSetting==0) {
+	if((globalColorSetting==0) || (id==DM_FATAL) ){
 		// only reset once
 		col_std = col_black = col_dark_gray = col_bright_gray =  
 		col_red =  col_bright_red =  col_green =  
@@ -258,14 +270,25 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 			case DM_ERROR:
 				sout << col_red << " error:" << col_red;
 				break;
+			case DM_FATAL:
+				sout << col_red << " fatal("<<gWorldState<<"):" << col_red;
+				break;
 			default:
 				// this shouldnt happen...
 				sout << col_red << " --- messageOutputFunc error: invalid id ("<<id<<") --- aborting... \n\n" << col_std;
-				exit(1);
+				//xit(1); // unecessary?
 				break;
 		}
 		sout <<" "<< msg << col_std;
 	}
+
+	if(id==DM_FATAL) {
+		strncpy(gWorldStringState,sout.str().c_str(), 256);
+		// dont print?
+		if(gDebugLevel==0) return;
+		sout << "\n"; // add newline for output
+	}
+
 #ifdef ELBEEM_BLENDER
 	fprintf(GEN_userstream, "%s",sout.str().c_str() );
 	if(id!=DM_DIRECT) fflush(GEN_userstream); 
@@ -287,6 +310,9 @@ bool debugOutInterTest(myTime_t interval) {
 
 #endif
 
+
+//-----------------------------------------------------------------------------
+// save exit function
 
 
 

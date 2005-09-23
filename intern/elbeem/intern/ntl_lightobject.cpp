@@ -97,6 +97,7 @@ ntlLightObject::getShadedColor(const ntlRay &reflectedRay, const ntlVec3Gfx ligh
  *****************************************************************************/
 void ntlLightObject::prepare( bool doCaustics )
 {
+	doCaustics = false; // unused
 	if(!mActive) { return; }
 }
 

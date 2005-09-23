@@ -19,24 +19,17 @@ class ntlRay;
 class ntlGeometryObject;
 
 /*! fluid geometry init types */
-#define FGI_FLAGSTART 16
-#define FGI_FLUID			(1<<(FGI_FLAGSTART+0))
-#define FGI_NO_FLUID	(1<<(FGI_FLAGSTART+1))
-#define FGI_BNDNO			(1<<(FGI_FLAGSTART+2))
-#define FGI_BNDFREE		(1<<(FGI_FLAGSTART+3))
-#define FGI_NO_BND		(1<<(FGI_FLAGSTART+4))
-#define FGI_ACC				(1<<(FGI_FLAGSTART+5))
-#define FGI_NO_ACC		(1<<(FGI_FLAGSTART+6))
-#define FGI_SPEEDSET		(1<<(FGI_FLAGSTART+7))
-#define FGI_NO_SPEEDSET	(1<<(FGI_FLAGSTART+8))
+#define FGI_FLAGSTART   16
+#define FGI_FLUID			  (1<<(FGI_FLAGSTART+ 0))
+#define FGI_NO_FLUID	  (1<<(FGI_FLAGSTART+ 1))
+#define FGI_BNDNO			  (1<<(FGI_FLAGSTART+ 2))
+#define FGI_BNDFREE		  (1<<(FGI_FLAGSTART+ 3))
+#define FGI_BNDPART		  (1<<(FGI_FLAGSTART+ 4))
+#define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
+#define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
+#define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
 
-#define FGI_ALLBOUNDS (FGI_BNDNO | FGI_BNDFREE)
-
-#define FGI_REFP1			(1<<(FGI_FLAGSTART+0))
-#define FGI_REFP2			(1<<(FGI_FLAGSTART+1))
-#define FGI_REFP3			(1<<(FGI_FLAGSTART+2))
-
-#define FGI_ALLREFS 	(FGI_REFP1 | FGI_REFP2 | FGI_REFP3)
+#define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
 
 
 //! convenience macro for adding triangles
@@ -46,8 +39,8 @@ class ntlGeometryObject;
 	int tempVert;\
   \
 	if(normals->size() != vertices->size()) {\
-		errorOut("getTriangles Error for '"<<mName<<"': Vertices and normals sizes to not match!!!");\
-		exit(1); }\
+		errFatal("getTriangles","For '"<<mName<<"': Vertices and normals sizes to not match!!!",SIMWORLD_GENERICERROR);\
+	} else {\
   \
 	vertices->push_back( p1 ); \
 	normals->push_back( pn1 ); \
@@ -91,6 +84,7 @@ class ntlGeometryObject;
 	tri.setSmoothNormals( smooth );\
 	tri.setObjectId( objectId );\
 	triangles->push_back( tri ); \
+	} /* normals check*/ \
 	}\
 
 
@@ -109,17 +103,17 @@ public:
 
 	/*! Acces a certain object */
 	inline ntlGeometryObject *getObject(int id) { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getObject","Scene not inited!"); exit(1); }
+		if(!mSceneBuilt) { errMsg("ntlScene::getObject","Scene not inited!"); return NULL; }
 		return mObjects[id]; }
 
 	/*! Acces object array */
 	inline vector<ntlGeometryObject*> *getObjects() { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getObjects[]","Scene not inited!"); exit(1); }
+		if(!mSceneBuilt) { errMsg("ntlScene::getObjects[]","Scene not inited!"); return NULL; }
 		return &mObjects; }
 
 	/*! Acces geo class array */
 	inline vector<ntlGeometryClass*> *getGeoClasses() { 
-		if(!mSceneBuilt) { errMsg("ntlScene::getGeoClasses[]","Scene not inited!"); exit(1); }
+		if(!mSceneBuilt) { errMsg("ntlScene::getGeoClasses[]","Scene not inited!"); return NULL; }
 		return &mGeos; }
 
 	/*! draw scene with opengl */

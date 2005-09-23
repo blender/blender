@@ -87,8 +87,8 @@ void ntlScene::buildScene( void )
 		}
 
 		if(!geoinit) {
-			errMsg("ntlScene::BuildScene","Invalid geometry class!");
-			exit(1);
+			errFatal("ntlScene::BuildScene","Invalid geometry class!", SIMWORLD_INITERROR);
+			return;
 		}
 	}
 
@@ -175,16 +175,16 @@ void ntlScene::buildScene( void )
 	// check unused attributes (for classes and objects!)
   for (vector<ntlGeometryObject*>::iterator iter = mObjects.begin(); iter != mObjects.end(); iter++) {
 		if((*iter)->getAttributeList()->checkUnusedParams()) {
-			debMsgStd("ntlScene::buildScene",DM_WARNING,"Unused params for object '"<< (*iter)->getName() <<"' !", 1 );
 			(*iter)->getAttributeList()->print(); // DEBUG
-			exit(1);
+			errFatal("ntlScene::buildScene","Unused params for object '"<< (*iter)->getName() <<"' !", SIMWORLD_INITERROR );
+			return;
 		}
 	}
 	for (vector<ntlGeometryClass*>::iterator iter = mGeos.begin(); iter != mGeos.end(); iter++) { 
 		if((*iter)->getAttributeList()->checkUnusedParams()) {
-			debMsgStd("ntlScene::buildScene",DM_WARNING,"Unused params for object '"<< (*iter)->getName() <<"' !", 1 );
 			(*iter)->getAttributeList()->print(); // DEBUG
-			exit(1);
+			errFatal("ntlScene::buildScene","Unused params for object '"<< (*iter)->getName() <<"' !", SIMWORLD_INITERROR );
+			return;
 		}
 	}
 

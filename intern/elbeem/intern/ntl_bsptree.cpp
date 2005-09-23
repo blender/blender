@@ -30,6 +30,8 @@ int doSort = 0;
 //! struct for a single node in the bsp tree
 class BSPNode {
 	public:
+		BSPNode() {};
+
 		ntlVec3Gfx min,max;              /* AABB for node */
 		vector<ntlTriangle *> *members;  /* stored triangles */
 		BSPNode *child[2]; /* pointer to children nodes */
@@ -131,8 +133,8 @@ ntlTree::ntlTree() :
   mpNodeStack( NULL), mpVertices( NULL ), mpVertNormals( NULL ), mpTriangles( NULL ),
   mCurrentDepth(0), mCurrentNodes(0), mTriDoubles(0)
 {
-  errorOut( "ntlTree Cons: Uninitialized BSP Tree!\n" );
-  exit(1);
+  errFatal( "ntlTree","Uninitialized BSP Tree!\n",SIMWORLD_INITERROR );
+  return;
 }
 
 
@@ -153,8 +155,8 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
 	mTriangleMask = triFlagMask;
 
   if(mpTriangles == NULL) {
-    errorOut( "ntlTree Cons: no triangle list!\n");
-    exit(1);
+    errFatal( "ntlTree Cons","no triangle list!\n",SIMWORLD_INITERROR);
+    return;
   }
   if(mpTriangles->size() == 0) {
     warnMsg( "ntlTree::ntlTree","No triangles ("<< mpTriangles->size()  <<")!\n");
@@ -162,8 +164,8 @@ ntlTree::ntlTree(int depth, int objnum, ntlScene *scene, int triFlagMask) :
     return;
   }
   if(depth>=BSP_STACK_SIZE) {
-    errMsg( "ntlTree::ntlTree","Depth to high ("<< mMaxDepth  <<")!\n" );
-    exit(1);
+    errFatal( "ntlTree::ntlTree","Depth to high ("<< mMaxDepth  <<")!\n", SIMWORLD_INITERROR );
+    return;
   }
 
   /* check triangles (a bit inefficient, but we dont know which vertices belong
@@ -363,10 +365,10 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 
 				/* add triangle, check bounding box axis */
 				TriangleBBox *bbox = &mpTBB[ (*iter)->getBBoxId() ];
-				bool intersect = true;
-				if( bbox->end[axis]   < node->child[i]->min[axis] ) intersect = false;
-				else if( bbox->start[axis] > node->child[i]->max[axis] ) intersect = false;
-				if(intersect) {
+				bool isintersect = true;
+				if( bbox->end[axis]   < node->child[i]->min[axis] ) isintersect = false;
+				else if( bbox->start[axis] > node->child[i]->max[axis] ) isintersect = false;
+				if(isintersect) {
 					// add flag to vector 
 					mpTriDist[t] |= (1<<i);
 					// count no. of triangles for vector init
@@ -439,9 +441,48 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 	} /* subdivision necessary */
 }
 
+/******************************************************************
+ * triangle intersection with triangle pointer,
+ * returns t,u,v by references 
+ */
+#if GFX_PRECISION==1
+// float values
+//! the minimal triangle determinant length
+#define RAY_TRIANGLE_EPSILON (1e-07)
+
+#else 
+// double values
+//! the minimal triangle determinant length
+#define RAY_TRIANGLE_EPSILON (1e-15)
+
+#endif 
+
+
 /******************************************************************************
  * intersect ray with BSPtree
  *****************************************************************************/
+inline void ntlRay::intersectTriangle(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
+{
+  /* (cf. moeller&haines, page 305) */
+  t = GFX_REAL_MAX;
+  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
+  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
+  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
+  ntlVec3Gfx  p  = cross( mDirection, e2 );
+  gfxReal divisor  = dot(e1, p);	
+  if((divisor > -RAY_TRIANGLE_EPSILON)&&(divisor < RAY_TRIANGLE_EPSILON)) return;
+      
+  gfxReal invDivisor  = 1/divisor;
+  ntlVec3Gfx  s  = mOrigin - e0;
+  u  = invDivisor * dot(s, p);
+  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  ntlVec3Gfx  q  = cross( s,e1 );
+  v  = invDivisor * dot(mDirection, q);
+  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  t = invDivisor * dot(e2, q);      
+}
 void ntlTree::intersect(const ntlRay &ray, gfxReal &distance, 
 		ntlVec3Gfx &normal, 
 		ntlTriangle *&tri, 
@@ -623,6 +664,215 @@ void ntlTree::intersect(const ntlRay &ray, gfxReal &distance,
 	return;
 }
 
+inline void ntlRay::intersectTriangleX(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
+{
+  /* (cf. moeller&haines, page 305) */
+  t = GFX_REAL_MAX;
+  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
+  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
+  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
+
+  //ntlVec3Gfx  p  = cross( mDirection, e2 );
+  //ntlVector3Dim<Scalar> cp( (-), (- (1.0 *v[2])), ((1.0 *v[1]) -) );
+  ntlVec3Gfx  p(0.0, -e2[2], e2[1]);
+
+  gfxReal divisor  = dot(e1, p);	
+  if((divisor > -RAY_TRIANGLE_EPSILON)&&(divisor < RAY_TRIANGLE_EPSILON)) return;
+      
+  gfxReal invDivisor  = 1/divisor;
+  ntlVec3Gfx  s  = mOrigin - e0;
+  u  = invDivisor * dot(s, p);
+  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  ntlVec3Gfx  q  = cross( s,e1 );
+  //v  = invDivisor * dot(mDirection, q);
+  v  = invDivisor * q[0];
+  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  t = invDivisor * dot(e2, q);
+}
+void ntlTree::intersectX(const ntlRay &ray, gfxReal &distance, 
+		ntlVec3Gfx &normal, 
+		ntlTriangle *&tri, 
+		int flags, bool forceNonsmooth) const
+{
+  gfxReal mint = GFX_REAL_MAX;  /* current minimal t */
+  ntlVec3Gfx  retnormal;       /* intersection (interpolated) normal */
+	gfxReal mintu=0.0, mintv=0.0;    /* u,v for min t intersection */
+
+  BSPNode *curr, *nearChild, *farChild; /* current node and children */
+  gfxReal  planedist, mindist, maxdist;
+  ntlVec3Gfx   pos;
+
+	ntlTriangle *hit = NULL;
+	tri = NULL;
+
+  ray.intersectCompleteAABB(mStart,mEnd,mindist,maxdist); // +X
+
+  if((maxdist < 0.0) ||
+     (mindist == GFX_REAL_MAX) ||
+     (maxdist == GFX_REAL_MAX) ) {
+    distance = -1.0;
+    return;
+  }
+  mindist -= getVecEpsilon();
+  maxdist += getVecEpsilon();
+
+  /* stack init */
+  mpNodeStack->elem[0].node = NULL;
+  mpNodeStack->stackPtr = 1;
+
+  curr = mpRoot;  
+  mint = GFX_REAL_MAX;
+  while(curr != NULL) { // +X
+
+    while( !curr->isLeaf() ) {
+      planedist = distanceToPlane(curr, curr->child[0]->max, ray );
+      getChildren(curr, ray.getOrigin(), nearChild, farChild );
+
+			// check ray direction for small plane distances
+      if( (planedist>-getVecEpsilon() )&&(planedist< getVecEpsilon() ) ) {
+				// ray origin on intersection plane
+				planedist = 0.0;
+				if(ray.getDirection()[curr->axis]>getVecEpsilon() ) {
+					// larger coords
+					curr = curr->child[1];
+				} else if(ray.getDirection()[curr->axis]<-getVecEpsilon() ) {
+					// smaller coords
+					curr = curr->child[0];
+				} else {
+					// paralell, order doesnt really matter are min/max/plane ok?
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].node    = curr->child[0];
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].mindist = planedist;
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].maxdist = maxdist;
+					(mpNodeStack->stackPtr)++;
+					curr    = curr->child[1];
+					maxdist = planedist;
+				}
+			} else {
+				// normal ray
+				if( (planedist>maxdist) || (planedist<0.0-getVecEpsilon() ) ) {
+					curr = nearChild;
+				} else if(planedist < mindist) {
+					curr = farChild;
+				} else {
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].node    = farChild;
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].mindist = planedist;
+					mpNodeStack->elem[ mpNodeStack->stackPtr ].maxdist = maxdist;
+					(mpNodeStack->stackPtr)++;
+
+					curr    = nearChild;
+					maxdist = planedist;
+				}
+			} 
+    } // +X
+	
+    
+    /* intersect with current node */
+    for (vector<ntlTriangle *>::iterator iter = curr->members->begin();
+				 iter != curr->members->end(); iter++ ) {
+
+			/* check for triangle flags before intersecting */
+			if((!flags) || ( ((*iter)->getFlags() & flags) > 0 )) {
+
+				if( ((*iter)->getLastRay() == ray.getID() )&&((*iter)->getLastRay()>0) ) {
+					// was already intersected...
+				} else {
+					// we still need to intersect this triangle
+					gfxReal u=0.0,v=0.0, t=-1.0;
+					ray.intersectTriangleX( mpVertices, (*iter), t,u,v);
+					(*iter)->setLastRay( ray.getID() );
+					
+					if( (t > 0.0) && (t<mint) )  {
+						mint = t;	  
+						hit = (*iter);
+						mintu = u; mintv = v;
+						
+						if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
+							errorOut("Tree tri hit at "<<t<<","<<mint<<" triangle: "<<PRINT_TRIANGLE( (*hit), (*mpVertices) ) );
+							gfxReal u1=0.0,v1=0.0, t1=-1.0;
+							ray.intersectTriangleX( mpVertices, hit, t1,u1,v1);
+							errorOut("Tree second test1 :"<<t1<<" u1:"<<u1<<" v1:"<<v1 );
+							if(t==GFX_REAL_MAX) errorOut( "Tree MAX t " );
+							//errorOut( mpVertices[ (*iter).getPoints()[0] ][0] );
+						}
+
+						//retnormal = -(e2-e0).crossProd(e1-e0); // DEBUG
+
+					}
+				}
+
+			} // flags check
+    } // +X
+
+    /* check if intersection is valid */
+    if( (mint>0.0) && (mint < GFX_REAL_MAX) ) {
+      pos = ray.getOrigin() + ray.getDirection()*mint;
+
+      if( (pos[0] >= curr->min[0]) && (pos[0] <= curr->max[0]) &&
+					(pos[1] >= curr->min[1]) && (pos[1] <= curr->max[1]) &&
+					(pos[2] >= curr->min[2]) && (pos[2] <= curr->max[2]) ) 
+			{
+
+				if(forceNonsmooth) {
+					// calculate triangle normal
+					ntlVec3Gfx e0,e1,e2;
+					e0 = (*mpVertices)[ hit->getPoints()[0] ];
+					e1 = (*mpVertices)[ hit->getPoints()[1] ];
+					e2 = (*mpVertices)[ hit->getPoints()[2] ];
+					retnormal = cross( -(e2-e0), (e1-e0) );
+				} else {
+					// calculate interpolated normal
+					retnormal = (*mpVertNormals)[ hit->getPoints()[0] ] * (1.0-mintu-mintv)+
+						(*mpVertNormals)[ hit->getPoints()[1] ]*mintu +
+						(*mpVertNormals)[ hit->getPoints()[2] ]*mintv;
+				}
+				normalize(retnormal);
+				normal = retnormal;
+				distance = mint;
+				tri = hit;
+				return;
+      }
+    }     // +X
+
+    (mpNodeStack->stackPtr)--;
+    curr    = mpNodeStack->elem[ mpNodeStack->stackPtr ].node;
+    mindist = mpNodeStack->elem[ mpNodeStack->stackPtr ].mindist;
+    maxdist = mpNodeStack->elem[ mpNodeStack->stackPtr ].maxdist;
+  } /* traverse tree */
+
+	if(mint == GFX_REAL_MAX) {
+		distance = -1.0;
+	} else {
+		if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
+			errorOut("Intersection outside BV ");
+		}
+
+		// intersection outside the BSP bounding volumes might occur due to roundoff...
+		//retnormal = (*mpVertNormals)[ hit->getPoints()[0] ] * (1.0-mintu-mintv)+ (*mpVertNormals)[ hit->getPoints()[1] ]*mintu + (*mpVertNormals)[ hit->getPoints()[2] ]*mintv;
+		if(forceNonsmooth) {
+			// calculate triangle normal
+			ntlVec3Gfx e0,e1,e2;
+			e0 = (*mpVertices)[ hit->getPoints()[0] ];
+			e1 = (*mpVertices)[ hit->getPoints()[1] ];
+			e2 = (*mpVertices)[ hit->getPoints()[2] ];
+			retnormal = cross( -(e2-e0), (e1-e0) );
+		} else {
+			// calculate interpolated normal
+			retnormal = (*mpVertNormals)[ hit->getPoints()[0] ] * (1.0-mintu-mintv)+
+				(*mpVertNormals)[ hit->getPoints()[1] ]*mintu +
+				(*mpVertNormals)[ hit->getPoints()[2] ]*mintv;
+		}
+
+		normalize(retnormal);
+		normal = retnormal;
+		distance = mint;
+		tri = hit;
+	} // +X
+	return;
+}
+
+
 
 /******************************************************************************
  * distance to plane function for nodes
@@ -664,5 +914,57 @@ void ntlTree::deleteNode(BSPNode *curr)
   if(curr->members != NULL) delete curr->members;
   delete curr;
 }
+
+
+
+/******************************************************************
+ * intersect only front or backsides
+ * currently unused
+ */
+inline void ntlRay::intersectTriangleFront(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
+{
+  t = GFX_REAL_MAX;
+  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
+  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
+  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
+  ntlVec3Gfx  p  = cross( mDirection, e2 );
+  gfxReal a  = dot(e1, p);	
+  //if((a > -RAY_TRIANGLE_EPSILON)&&(a < RAY_TRIANGLE_EPSILON)) return;
+  if(a < RAY_TRIANGLE_EPSILON) return; // cull backsides
+      
+  gfxReal f  = 1/a;
+  ntlVec3Gfx  s  = mOrigin - e0;
+  u  = f * dot(s, p);
+  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  ntlVec3Gfx  q  = cross( s,e1 );
+  v  = f * dot(mDirection, q);
+  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  t = f * dot(e2, q);      
+}
+inline void ntlRay::intersectTriangleBack(vector<ntlVec3Gfx> *mpV, ntlTriangle *tri, gfxReal &t, gfxReal &u, gfxReal &v) const
+{
+  t = GFX_REAL_MAX;
+  ntlVec3Gfx  e0 = (*mpV)[ tri->getPoints()[0] ];
+  ntlVec3Gfx  e1 = (*mpV)[ tri->getPoints()[1] ] - e0;
+  ntlVec3Gfx  e2 = (*mpV)[ tri->getPoints()[2] ] - e0;
+  ntlVec3Gfx  p  = cross( mDirection, e2 );
+  gfxReal a  = dot(e1, p);	
+  //if((a > -RAY_TRIANGLE_EPSILON)&&(a < RAY_TRIANGLE_EPSILON)) return;
+  if(a > -RAY_TRIANGLE_EPSILON) return; // cull frontsides
+      
+  gfxReal f  = 1/a;
+  ntlVec3Gfx  s  = mOrigin - e0;
+  u  = f * dot(s, p);
+  if( (u<0.0-RAY_TRIANGLE_EPSILON) || (u>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  ntlVec3Gfx  q  = cross( s,e1 );
+  v  = f * dot(mDirection, q);
+  if( (v<0.0-RAY_TRIANGLE_EPSILON) || ((u+v)>1.0+RAY_TRIANGLE_EPSILON) ) return;
+      
+  t = f * dot(e2, q);      
+}
+
 
 

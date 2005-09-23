@@ -51,6 +51,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_screen_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -226,7 +227,15 @@ void fluidsimBake(struct Object *ob)
 	char curWd[FILE_MAXDIR];
 	int dirExist = 0;
 	const int maxRes = 200;
-	 
+	int debugBake = 0;
+
+	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
+	if(getenv(strEnvName)) {
+		int dlevel = atoi(getenv(strEnvName));
+		if((dlevel>0) && (dlevel<=10)) debugBake = 1;
+		if(debugBake) fprintf(stderr,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName);
+	}
+
 	/* check if there's another domain... */
 	for(obit= G.main->object.first; obit; obit= obit->id.next) {
 		if((obit->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(obit->type==OB_MESH)) {
@@ -250,17 +259,18 @@ void fluidsimBake(struct Object *ob)
 		fssDomain->previewresxyz = fssDomain->resolutionxyz;
 	}
 	// set adaptive coarsening according to resolutionxyz
-	// this should do as an approximation,
-	// it would be more accurate to take into account geometry and no.
-	// fluid cells... max 1 for now...
+	// this should do as an approximation, with in/outflow
+	// doing this more accurate would be overkill
+	// perhaps add manual setting?
 	if(fssDomain->resolutionxyz>128) {
-		fssDomain->maxRefine = 0; // disable for now
+		fssDomain->maxRefine = 2;
 	} else
 	if(fssDomain->resolutionxyz>64) {
-		fssDomain->maxRefine = 0;
+		fssDomain->maxRefine = 1;
 	} else {
 		fssDomain->maxRefine = 0;
 	}
+	if(debugBake) fprintf(stderr,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , fssDomain->maxRefine );
 	
 	// prepare names...
 	strcpy(curWd, G.sce);
@@ -398,7 +408,6 @@ void fluidsimBake(struct Object *ob)
 	{
 		char *rayString = "\n" 
 			"  anistart=     0; \n" 
-			"  aniframetime= 10; \n" 
 			"  aniframes=    " "%d" /*1 frameEnd-frameStart+0*/ "; #cfgset \n" 
 			"  frameSkip=    false; \n" 
 			"  filename=     \"" "%s" /* rayPicFilename*/  "\"; #cfgset \n" 
@@ -484,8 +493,6 @@ void fluidsimBake(struct Object *ob)
 		//bb = NULL; // TODO test existing bounding box...
 
 		//if(!bb && (mesh->totvert>0) ) 
-	
-		
 		{ 
 			int i;
 			float vec[3];
@@ -573,7 +580,7 @@ void fluidsimBake(struct Object *ob)
 
 	fprintf(fileCfg, "} // end raytracing\n");
 	fclose(fileCfg);
-	fprintf(stderr,"fluidsimBake::msg: Wrote %s\n", fnameCfg);
+	if(debugBake) fprintf(stderr,"fluidsimBake::msg: Wrote %s\n", fnameCfg);
 
 	// perform simulation
 	{
@@ -595,6 +602,7 @@ void fluidsimBake(struct Object *ob)
 			short val;
 			float noFramesf = G.scene->r.efra - G.scene->r.sfra;
 			float percentdone = 0.0;
+			int lastRedraw = -1;
 			
 			start_progress_bar();
 
@@ -608,7 +616,7 @@ void fluidsimBake(struct Object *ob)
 				sprintf(busy_mess, "baking fluids %d / %d       |||", globalBakeFrame, (int) noFramesf);
 				progress_bar(percentdone, busy_mess );
 				
-				SDL_Delay(1000);
+				SDL_Delay(2000); // longer delay to prevent frequent redrawing
 				SDL_mutexP(globalBakeLock);
 				if(globalBakeState == 1) done = 1;
 				SDL_mutexV(globalBakeLock);
@@ -619,13 +627,25 @@ void fluidsimBake(struct Object *ob)
 						// abort...
 						SDL_mutexP(globalBakeLock);
 						done = -1;
-						//SDL_KillThread(simthr);
 						globalBakeFrame = 0;
 						globalBakeState = -1;
 						SDL_mutexV(globalBakeLock);
 						break;
 					}
 				} 
+
+				// redraw the 3D for showing progress once in a while...
+				if(lastRedraw!=globalBakeFrame) {
+					ScrArea *sa;
+					G.scene->r.cfra = lastRedraw = globalBakeFrame;
+					update_for_newframe_muted();
+					sa= G.curscreen->areabase.first;
+					while(sa) {
+						if(sa->spacetype == SPACE_VIEW3D) { scrarea_do_windraw(sa); }
+						sa= sa->next;	
+					} 
+					screen_swapbuffers();
+				} // redraw
 			}
 			SDL_WaitThread(simthr,NULL);
 			end_progress_bar();

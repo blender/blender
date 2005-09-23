@@ -24,21 +24,17 @@ using std::vector;
 using std::string;
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #ifdef __APPLE_CC__
 // apple
 #else
 #ifdef WIN32
 
-// windos, hardcoded limits for now...
-// windos fixes...
-// for windos MSVC compiler...
-#ifndef __FLT_MAX__
-#define __FLT_MAX__ 3.402823466e+38f
-#endif // __FLT_MAX__
-#ifndef __DBL_MAX__
-#define __DBL_MAX__ 1.7976931348623158e+308
-#endif // __DBL_MAX__
+// windows values missing, see below
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
 #ifndef bool
 #define bool int
 #endif
@@ -47,12 +43,6 @@ using std::string;
 #endif
 #ifndef true
 #define true 1
-#endif
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#ifndef M_PI
-#define M_PI 3.1415926536
 #endif
 
 #else // WIN32
@@ -63,7 +53,28 @@ using std::string;
 #endif // WIN32
 #endif // __APPLE_CC__
 
+// windos, hardcoded limits for now...
+// for e.g. MSVC compiler...
+// some of these defines can be needed
+// for linux systems as well (e.g. FLT_MAX)
+#ifndef __FLT_MAX__
+#	ifdef FLT_MAX  // try to use it instead
+#		define __FLT_MAX__ FLT_MAX
+#	else // FLT_MAX
+#		define __FLT_MAX__ 3.402823466e+38f
+#	endif // FLT_MAX
+#endif // __FLT_MAX__
+#ifndef __DBL_MAX__
+#	ifdef DBL_MAX // try to use it instead
+#		define __DBL_MAX__ DBL_MAX
+#	else // DBL_MAX
+#		define __DBL_MAX__ 1.7976931348623158e+308
+#	endif // DBL_MAX
+#endif // __DBL_MAX__
 
+#ifndef M_PI
+#define M_PI 3.1415926536
+#endif
 
 
 // basic inlined vector class
@@ -214,18 +225,18 @@ inline ntlVector3Dim<Scalar>::ntlVector3Dim( const ntlVector3Dim<Scalar> &v )
   value[2] = v.value[2];
 }
 template<class Scalar>
-inline ntlVector3Dim<Scalar>::ntlVector3Dim( const float *value)
+inline ntlVector3Dim<Scalar>::ntlVector3Dim( const float *fvalue)
 {
-  value[0] = (Scalar)value[0];
-  value[1] = (Scalar)value[1];
-  value[2] = (Scalar)value[2];
+  value[0] = (Scalar)fvalue[0];
+  value[1] = (Scalar)fvalue[1];
+  value[2] = (Scalar)fvalue[2];
 }
 template<class Scalar>
-inline ntlVector3Dim<Scalar>::ntlVector3Dim( const double *value)
+inline ntlVector3Dim<Scalar>::ntlVector3Dim( const double *fvalue)
 {
-  value[0] = (Scalar)value[0];
-  value[1] = (Scalar)value[1];
-  value[2] = (Scalar)value[2];
+  value[0] = (Scalar)fvalue[0];
+  value[1] = (Scalar)fvalue[1];
+  value[2] = (Scalar)fvalue[2];
 }
 
 
@@ -755,7 +766,6 @@ template<class T> inline ntlColor vec2Col(T v) { return ntlColor(v[0],v[1],v[2])
 
 
 // use which fp-precision for raytracing? 1=float, 2=double
-#define GFX_PRECISION 1
 
 /* VECTOR_EPSILON is the minimal vector length
    In order to be able to discriminate floating point values near zero, and

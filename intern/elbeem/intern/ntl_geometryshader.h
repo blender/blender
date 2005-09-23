@@ -32,7 +32,7 @@ class ntlGeometryShader :
 		virtual int initializeShader() = 0;
 
 		/*! Do further object initialization after all geometry has been constructed, should return !=0 upon error */
-		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { return 0; };
+		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { glob=NULL; /*unused*/ return 0; };
 
 		/*! Get start iterator for all objects */
 		virtual std::vector<ntlGeometryObject *>::iterator getObjectsBegin() { return mObjects.begin(); }

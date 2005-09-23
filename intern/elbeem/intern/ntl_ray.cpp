@@ -12,6 +12,23 @@
 #include "ntl_scene.h"
 
 
+/* Minimum value for refl/refr to be traced */
+#define RAY_THRESHOLD 0.001
+
+#if GFX_PRECISION==1
+// float values
+//! Minimal contribution for rays to be traced on
+#define RAY_MINCONTRIB (1e-04)
+
+#else 
+// double values
+//! Minimal contribution for rays to be traced on
+#define RAY_MINCONTRIB (1e-05)
+
+#endif 
+
+
+
 
 
 /******************************************************************************
@@ -25,8 +42,8 @@ ntlRay::ntlRay( void )
   , mpGlob(NULL)
   , mIsRefracted(0)
 {
-  errorOut("ntlRay::ntlRay() Error: don't use uninitialized rays !");
-	exit(-1);
+  errFatal("ntlRay::ntlRay()","Don't use uninitialized rays !", SIMWORLD_GENERICERROR);
+	return;
 }
 
 
@@ -565,7 +582,6 @@ const ntlColor ntlRay::shade() //const
 							intersectionPosition2 += ( triangleNormal2*getVecEpsilon() );
 							reflectedRay = ntlRay(intersectionPosition2, reflectedDir, mDepth+1, mContribution*currRefl, mpGlob);
 						} else { 
-							/*exit(-1);*/ 
 							// ray seems to work, continue normally ?
 						}
 

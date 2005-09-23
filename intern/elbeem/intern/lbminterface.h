@@ -21,9 +21,6 @@
 #if LBM_USE_GUI==1
 #define USE_GLUTILITIES
 // for debug display
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include <GL/gl.h>
 #include "../gui/guifuncs.h"
 #endif
@@ -76,51 +73,48 @@ template<class T> inline ParamVec   vec2P(T v) { return ParamVec(v[0],v[1],v[2])
 typedef int BubbleId;
 
 // for both short int/char
-// 1
 #define CFUnused              (1<< 0)
-// 2
 #define CFEmpty               (1<< 1)
-// 4
 #define CFBnd                 (1<< 2)
-// 8, force symmetry for flag reinit
-#define CFNoInterpolSrc       (1<< 3) 
-// 16
-#define CFFluid               (1<< 4)
-// 32
-#define CFInter               (1<< 5)
-// 64
-#define CFNoNbFluid           (1<< 6)
-// 128
-#define CFNoNbEmpty           (1<< 7)
-// 256
-#define CFNoDelete            (1<< 8)
-
-// 512
-#define CFNoBndFluid          (1<< 9)
-// 1024
-#define CFBndMARK             (1<<10) 
+#define CFBndNoslip           (1<< 3)
+#define CFBndFreeslip         (1<< 4)
+#define CFBndPartslip         (1<< 5)
+// force symmetry for flag reinit
+#define CFNoInterpolSrc       (1<< 6) 
+#define CFFluid               (1<< 7)
+#define CFInter               (1<< 8)
+#define CFNoNbFluid           (1<< 9)
+#define CFNoNbEmpty           (1<<10)
+#define CFNoDelete            (1<<11)
+#define CFNoBndFluid          (1<<12)
 	
 //! refinement tags
 // cell treated normally on coarser grids
-// 2048
-#define CFGrNorm              (1<<11)
+#define CFGrNorm              (1<<13)
 // border cells to be interpolated from finer grid
-// 4096
-#define CFGrFromFine          (1<<12)
-// 8192
-#define CFGrFromCoarse        (1<<13)
-// 16384
-#define CFGrCoarseInited      (1<<14)
-// 32k (aux marker, no real action)
-#define CFGrToFine            (1<<15)
+#define CFGrFromFine          (1<<14)
+#define CFGrFromCoarse        (1<<15)
+#define CFGrCoarseInited      (1<<16)
+// 32k aux border marker 
+#define CFGrToFine            (1<<17)
+#define CFMbndInflow          (1<<18)
+#define CFMbndOutflow         (1<<19)
+
+// above 24 is used to encode in/outflow object type
+#define CFPersistMask (0xFF000000 | CFMbndInflow | CFMbndOutflow)
 
 // nk
 #define CFInvalid             (CellFlagType)(1<<31)
 
-// use 16bit flag types
-//#define CellFlagType unsigned short int
 // use 32bit flag types
-#define CellFlagType unsigned long int
+#ifdef __x86_64__
+ typedef int cfINT32;
+#else
+ typedef long cfINT32;
+#endif // defined (_IA64)  
+#define CellFlagType cfINT32
+#define CellFlagTypeSize 4
+
 
 
 /*****************************************************************************/
@@ -225,7 +219,7 @@ typedef struct fluidDispSettings_T {
 class CellIdentifierInterface {
 	public:
 		//! reset constructor
-		CellIdentifierInterface() : mEnd (false) { };
+		CellIdentifierInterface():mEnd(false) { };
 		//! virtual destructor
 		virtual ~CellIdentifierInterface() {};
 
@@ -235,48 +229,14 @@ class CellIdentifierInterface {
 		//! compare cids
 		virtual bool equal(CellIdentifierInterface* other) = 0;
 
-		//! set/get end flag
+		//! set/get end flag for grid traversal (not needed for marked cells)
 		inline void setEnd(bool set){ mEnd = set;  }
 		inline bool getEnd( )       { return mEnd; }
 
-	protected:
-		
 		//! has the grid been traversed?
 		bool mEnd;
 
 };
-
-
-/*****************************************************************************/
-/*! marked cell access class *
-class MarkedCellIdentifier : 
-	public CellIdentifierInterface 
-{
-	public:
-		//! cell pointer
-		CellIdentifierInterface *mpCell;
-		//! location in mMarkedCells vector
-		int mIndex;
-
-		//! reset constructor
-		MarkedCellIdentifier() :
-			mpCell( NULL ), mIndex(0)
-			{ };
-
-		// implement CellIdentifierInterface
-		virtual std::string getAsString() {
-			std::ostringstream ret;
-			ret <<"{MC i"<<mIndex<<" }";
-			return ret.str();
-		}
-
-		virtual bool equal(CellIdentifierInterface* other) {
-			MarkedCellIdentifier *cid = dynamic_cast<MarkedCellIdentifier *>( other );
-			if(!cid) return false;
-			if( mpCell==cid->mpCell ) return true;
-			return false;
-		}
-}; */
 
 
 
@@ -326,8 +286,6 @@ class LbmSolverInterface
 		void initGeoTree(int id);
 		/*! destroy tree etc. when geometry init done */
 		void freeGeoTree();
-		/*! get fluid init type at certain position */
-		// DEPRECATED CellFlagType geoInitGetPointType(ntlVec3Gfx org, ntlVec3Gfx nodesize, ntlGeometryObject **mpObj, gfxReal &distance);
 		/*! check for a certain flag type at position org (needed for e.g. quadtree refinement) */
 		bool geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance);
 		/*! set render globals, for scene/tree access */
@@ -341,13 +299,6 @@ class LbmSolverInterface
 		char* getIsoVertexArray() { return mpIso->getIsoVertexArray(); }
 		unsigned int *getIsoIndexArray() { return mpIso->getIsoIndexArray(); }
 		void triangulateSurface() { return mpIso->triangulate(); }
-		// drop stuff
-		//virtual void addDrop(bool active, float mx, float my) = 0;
-		//! avg. used cell count stats
-		//virtual void printCellStats() = 0;
-		//! check end time for gfx ani
-		//virtual int checkGfxEndTime() = 0;
-		//virtual int getGfxGeoSetup() = 0;
 
 		/* access functions */
 
@@ -434,8 +385,7 @@ class LbmSolverInterface
 		void addCellToMarkedList( CellIdentifierInterface *cid );
 		//! marked cell iteration methods
 		CellIdentifierInterface* markedGetFirstCell( );
-		void markedAdvanceCell( CellIdentifierInterface* pcid );
-		bool markedNoEndCell( CellIdentifierInterface* cid );
+		CellIdentifierInterface* markedAdvanceCell();
 		void markedClearList();
 
 #ifndef LBMDIM
@@ -481,8 +431,6 @@ class LbmSolverInterface
 		LbmFloat mSurfaceTension;
 
 
-		/*! initial mass to display changes */
-		LbmFloat mInitialMass;
 		/* boundary inits */
 		CellFlagType mBoundaryEast, mBoundaryWest, 
 		  mBoundaryNorth, mBoundarySouth, 
@@ -557,6 +505,7 @@ class LbmSolverInterface
 
 		// list for marked cells
 		std::vector<CellIdentifierInterface *> mMarkedCells;
+		int mMarkedCellIndex;
 };
 
 

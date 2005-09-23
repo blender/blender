@@ -138,11 +138,9 @@ ntlMat4Gfx Attribute::getAsMat4Gfx()
 	bool success = true;
 	ntlMat4Gfx ret(0.0);
 	char *endptr;
-	const char *str = NULL;
 
 	if(mValue.size()==1) {
 		const char *str = mValue[0].c_str();
-		char *endptr;
 		double rval = strtod(str, &endptr);
 		if( (str==endptr) ||
 				((str!=endptr) && (*endptr != '\0')) )success = false;
@@ -157,7 +155,7 @@ ntlMat4Gfx Attribute::getAsMat4Gfx()
 		// 3x3
 		for(int i=0; i<3;i++) {
 			for(int j=0; j<3;j++) {
-				str = mValue[i*3+j].c_str();
+				const char *str = mValue[i*3+j].c_str();
 				ret.value[i][j] = strtod(str, &endptr);
 				if( (str==endptr) ||
 						((str!=endptr) && (*endptr != '\0')) ) success = false;
@@ -167,7 +165,7 @@ ntlMat4Gfx Attribute::getAsMat4Gfx()
 		// 4x4
 		for(int i=0; i<4;i++) {
 			for(int j=0; j<4;j++) {
-				str = mValue[i*4+j].c_str();
+				const char *str = mValue[i*4+j].c_str();
 				ret.value[i][j] = strtod(str, &endptr);
 				if( (str==endptr) ||
 						((str!=endptr) && (*endptr != '\0')) ) success = false;
@@ -210,7 +208,7 @@ bool AttributeList::checkUnusedParams()
 			i != mAttrs.end(); i++) {
 		if((*i).second) {
 			if(!(*i).second->getUsed()) {
-				errorOut("Attribute "<<mName<<" has unknown parameter '"<<(*i).first<<"' = '"<< mAttrs[(*i).first]->getAsString() <<"' ");
+				errMsg("AttributeList::checkUnusedParams", "List "<<mName<<" has unknown parameter '"<<(*i).first<<"' = '"<< mAttrs[(*i).first]->getAsString() <<"' ");
 				found = true;
 			}
 		}
@@ -232,7 +230,7 @@ void AttributeList::setAllUsed() {
  *****************************************************************************/
 int AttributeList::readInt(string name, int defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readInt error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
@@ -241,7 +239,7 @@ int AttributeList::readInt(string name, int defaultValue, string source,string t
 }
 bool AttributeList::readBool(string name, bool defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readBool error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readBool","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
@@ -250,7 +248,7 @@ bool AttributeList::readBool(string name, bool defaultValue, string source,strin
 }
 double AttributeList::readFloat(string name, double defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readFloat error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readFloat","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
@@ -259,7 +257,7 @@ double AttributeList::readFloat(string name, double defaultValue, string source,
 }
 string AttributeList::readString(string name, string defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readInt error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
@@ -268,7 +266,7 @@ string AttributeList::readString(string name, string defaultValue, string source
 }
 ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readInt error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }
@@ -278,7 +276,7 @@ ntlVec3d AttributeList::readVec3d(string name, ntlVec3d defaultValue, string sou
 
 ntlMat4Gfx AttributeList::readMat4Gfx(string name, ntlMat4Gfx defaultValue, string source,string target, bool needed) {
 	if(!exists(name)) {
-		if(needed) { errorOut("AttributeList::readInt error: Required attribute '"<<name<<"' for "<< source <<"  not set! "); exit(1); }
+		if(needed) { errFatal("AttributeList::readInt","Required attribute '"<<name<<"' for "<< source <<"  not set! ", SIMWORLD_INITERROR); }
 		return defaultValue;
 	} 
 	if(DEBUG_ATTRIBUTES==1) { debugOut( source << " Var '"<< target <<"' set to '"<< find(name)->getCompleteString() <<"' as type int " , 3); }

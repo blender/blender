@@ -25,6 +25,7 @@
 #define PARALLEL 0
 #endif // PARALLEL
 
+// blender interface
 #if ELBEEM_BLENDER==1
 #include "SDL.h"
 #include "SDL_thread.h"
@@ -43,6 +44,8 @@ ERROR - define model first!
 #endif // LBMMODEL_DEFINED
 
 
+// general solver setting defines
+
 //! debug coordinate accesses and the like? (much slower)
 #define FSGR_STRICT_DEBUG 0
 
@@ -60,9 +63,6 @@ ERROR - define model first!
 
 //! refinement border method (1 = small border / 2 = larger)
 #define REFINEMENTBORDER 1
-
-// interpolateCellFromCoarse test
-#define INTCFCOARSETEST 1
 
 // use optimized 3D code?
 #if LBMDIM==2
@@ -86,16 +86,6 @@ ERROR - define model first!
 #define COMPRESSGRIDS 0
 #endif 
 
-// cell mark debugging
-#if FSGR_STRICT_DEBUG==10
-#define debugMarkCell(lev,x,y,z) \
-	errMsg("debugMarkCell",D::mName<<" step: "<<D::mStepCnt<<" lev:"<<(lev)<<" marking "<<PRINT_VEC((x),(y),(z))<<" line "<< __LINE__ ); \
-	debugMarkCellCall((lev),(x),(y),(z));
-#else // FSGR_STRICT_DEBUG==1
-#define debugMarkCell(lev,x,y,z) \
-	debugMarkCellCall((lev),(x),(y),(z));
-#endif // FSGR_STRICT_DEBUG==1
-
 
 //! threshold for level set fluid generation/isosurface
 #define LS_FLUIDTHRESHOLD 0.5
@@ -109,6 +99,409 @@ ERROR - define model first!
 #define FSGR_LISTTTHRESHFULL    0.90
 #define FSGR_MAGICNR            0.025
 //0.04
+
+
+// helper for comparing floats with epsilon
+#define GFX_FLOATNEQ(x,y) ( ABS((x)-(y)) > (VECTOR_EPSILON) )
+#define LBM_FLOATNEQ(x,y) ( ABS((x)-(y)) > (10.0*LBM_EPSILON) )
+
+
+// macros for loops over all DFs
+#define FORDF0 for(int l= 0; l< LBM_DFNUM; ++l)
+#define FORDF1 for(int l= 1; l< LBM_DFNUM; ++l)
+// and with different loop var to prevent shadowing
+#define FORDF0M for(int m= 0; m< LBM_DFNUM; ++m)
+#define FORDF1M for(int m= 1; m< LBM_DFNUM; ++m)
+
+// aux. field indices (same for 2d)
+#define dFfrac 19
+#define dMass 20
+#define dFlux 21
+// max. no. of cell values for 3d
+#define dTotalNum 22
+
+// iso value defines
+// border for marching cubes
+#define ISOCORR 3
+
+
+/*****************************************************************************/
+/*! cell access classes */
+template<typename D>
+class UniformFsgrCellIdentifier : 
+	public CellIdentifierInterface 
+{
+	public:
+		//! which grid level?
+		int level;
+		//! location in grid
+		int x,y,z;
+
+		//! reset constructor
+		UniformFsgrCellIdentifier() :
+			x(0), y(0), z(0) { };
+
+		// implement CellIdentifierInterface
+		virtual string getAsString() {
+			std::ostringstream ret;
+			ret <<"{ i"<<x<<",j"<<y;
+			if(D::cDimension>2) ret<<",k"<<z;
+			ret <<" }";
+			return ret.str();
+		}
+
+		virtual bool equal(CellIdentifierInterface* other) {
+			//UniformFsgrCellIdentifier<D> *cid = dynamic_cast<UniformFsgrCellIdentifier<D> *>( other );
+			UniformFsgrCellIdentifier<D> *cid = (UniformFsgrCellIdentifier<D> *)( other );
+			if(!cid) return false;
+			if( x==cid->x && y==cid->y && z==cid->z && level==cid->level ) return true;
+			return false;
+		}
+};
+
+//! information needed for each level in the simulation
+class FsgrLevelData {
+public:
+	int id; // level number
+
+	//! node size on this level (geometric, in world coordinates, not simulation units!) 
+	LbmFloat nodeSize;
+	//! node size on this level in simulation units 
+	LbmFloat simCellSize;
+	//! quadtree node relaxation parameter 
+	LbmFloat omega;
+	//! size this level was advanced to 
+	LbmFloat time;
+	//! size of a single lbm step in time units on this level 
+	LbmFloat stepsize;
+	//! step count
+	int lsteps;
+	//! gravity force for this level
+	LbmVec gravity;
+	//! level array 
+	LbmFloat *mprsCells[2];
+	CellFlagType *mprsFlags[2];
+
+	//! smago params and precalculated values
+	LbmFloat lcsmago;
+	LbmFloat lcsmago_sqr;
+	LbmFloat lcnu;
+
+	// LES statistics per level
+	double avgOmega;
+	double avgOmegaCnt;
+
+	//! current set of dist funcs 
+	int setCurr;
+	//! target/other set of dist funcs 
+	int setOther;
+
+	//! mass&volume for this level
+	LbmFloat lmass;
+	LbmFloat lvolume;
+	LbmFloat lcellfactor;
+
+	//! local storage of mSizes
+	int lSizex, lSizey, lSizez;
+	int lOffsx, lOffsy, lOffsz;
+
+};
+
+
+
+/*****************************************************************************/
+/*! class for solving a LBM problem */
+template<class D>
+class LbmFsgrSolver : 
+	public /*? virtual */ D // this means, the solver is a lbmData object and implements the lbmInterface
+{
+
+	public:
+		//! Constructor 
+		LbmFsgrSolver();
+		//! Destructor 
+		virtual ~LbmFsgrSolver();
+		//! id string of solver
+		virtual string getIdString() { return string("FsgrSolver[") + D::getIdString(); }
+
+		//! initilize variables fom attribute list 
+		virtual void parseAttrList();
+		//! Initialize omegas and forces on all levels (for init/timestep change)
+		void initLevelOmegas();
+		//! finish the init with config file values (allocate arrays...) 
+		virtual bool initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
+
+#if LBM_USE_GUI==1
+		//! show simulation info (implement SimulationObject pure virtual func)
+		virtual void debugDisplay(fluidDispSettings *set);
+#endif
+		
+		
+		// implement CellIterator<UniformFsgrCellIdentifier> interface
+		typedef UniformFsgrCellIdentifier<typename D::LbmCellContents> stdCellId;
+		virtual CellIdentifierInterface* getFirstCell( );
+		virtual void advanceCell( CellIdentifierInterface* );
+		virtual bool noEndCell( CellIdentifierInterface* );
+		virtual void deleteCellIterator( CellIdentifierInterface** );
+		virtual CellIdentifierInterface* getCellAt( ntlVec3Gfx pos );
+		virtual int        getCellSet      ( CellIdentifierInterface* );
+		virtual ntlVec3Gfx getCellOrigin   ( CellIdentifierInterface* );
+		virtual ntlVec3Gfx getCellSize     ( CellIdentifierInterface* );
+		virtual int        getCellLevel    ( CellIdentifierInterface* );
+		virtual LbmFloat   getCellDensity  ( CellIdentifierInterface* ,int set);
+		virtual LbmVec     getCellVelocity ( CellIdentifierInterface* ,int set);
+		virtual LbmFloat   getCellDf       ( CellIdentifierInterface* ,int set, int dir);
+		virtual LbmFloat   getCellMass     ( CellIdentifierInterface* ,int set);
+		virtual LbmFloat   getCellFill     ( CellIdentifierInterface* ,int set);
+		virtual CellFlagType getCellFlag   ( CellIdentifierInterface* ,int set);
+		virtual LbmFloat   getEquilDf      ( int );
+		virtual int        getDfNum        ( );
+		// convert pointers
+		stdCellId* convertBaseCidToStdCid( CellIdentifierInterface* basecid);
+
+		//! perform geometry init (if switched on) 
+		bool initGeometryFlags();
+		//! init part for all freesurface testcases 
+		void initFreeSurfaces();
+		//! init density gradient if enabled
+		void initStandingFluidGradient();
+
+ 		/*! init a given cell with flag, density, mass and equilibrium dist. funcs */
+		inline void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
+		inline void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
+		inline void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
+
+		/*! perform a single LBM step */
+		virtual void step() { stepMain(); }
+		void stepMain();
+		void fineAdvance();
+		void coarseAdvance(int lev);
+		void coarseCalculateFluxareas(int lev);
+		// coarsen a given level (returns true if sth. was changed)
+		bool performRefinement(int lev);
+		bool performCoarsening(int lev);
+		//void oarseInterpolateToFineSpaceTime(int lev,LbmFloat t);
+		void interpolateFineFromCoarse(int lev,LbmFloat t);
+		void coarseRestrictFromFine(int lev);
+
+		/*! init particle positions */
+		virtual int initParticles(ParticleTracer *partt);
+		/*! move all particles */
+		virtual void advanceParticles(ParticleTracer *partt );
+
+
+		/*! debug object display (used e.g. for preview surface) */
+		virtual vector<ntlGeometryObject*> getDebugObjects();
+
+		//! access the fillfrac field (for viz)
+		inline float getFillFrac(int i, int j, int k);
+
+		//! retrieve the fillfrac field ready to display
+		void getIsofieldWeighted(float *iso);
+		void getIsofield(float *iso){ return getIsofieldWeighted(iso); }
+		//! for raytracing, preprocess
+		void prepareVisualization( void );
+
+		// rt interface
+		void addDrop(bool active, float mx, float my);
+		void initDrop(float mx, float my);
+		void printCellStats();
+		int checkGfxEndTime(); // {return 9;};
+		//! get gfx geo setup id
+		int getGfxGeoSetup() { return mGfxGeoSetup; }
+
+		/*! type for cells */
+		typedef typename D::LbmCell LbmCell;
+		
+	protected:
+
+		//! internal quick print function (for debugging) 
+		void printLbmCell(int level, int i, int j, int k,int set);
+		// debugging use CellIterator interface to mark cell
+		void debugMarkCellCall(int level, int vi,int vj,int vk);
+
+		void mainLoop(int lev);
+		void adaptTimestep();
+		//! init mObjectSpeeds for current parametrization
+		void recalculateObjectSpeeds();
+		//! flag reinit step - always works on finest grid!
+		void reinitFlags( int workSet );
+		//! mass dist weights
+		LbmFloat getMassdWeight(bool dirForw, int i,int j,int k,int workSet, int l);
+		//! add point to mListNewInter list
+		inline void addToNewInterList( int ni, int nj, int nk );	
+		//! cell is interpolated from coarse level (inited into set, source sets are determined by t)
+		inline void interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet,bool markNbs);
+
+		//! minimal and maximal z-coords (for 2D/3D loops)
+		int getForZMinBnd() { return 0; }
+		int getForZMin1()   { 
+			if(D::cDimension==2) return 0;
+			return 1; 
+		}
+
+		int getForZMaxBnd(int lev) { 
+			if(D::cDimension==2) return 1;
+			return mLevel[lev].lSizez -0;
+		}
+		int getForZMax1(int lev)   { 
+			if(D::cDimension==2) return 1;
+			return mLevel[lev].lSizez -1;
+		}
+
+
+		// member vars
+
+		//! mass calculated during streaming step
+		LbmFloat mCurrentMass;
+		LbmFloat mCurrentVolume;
+		LbmFloat mInitialMass;
+
+		//! count problematic cases, that occured so far...
+		int mNumProblems;
+
+		// average mlsups, count how many so far...
+		double mAvgMLSUPS;
+		double mAvgMLSUPSCnt;
+
+		//! Mcubes object for surface reconstruction 
+		IsoSurface *mpPreviewSurface;
+		int mLoopSubdivs;
+		float mSmoothSurface;
+		float mSmoothNormals;
+		
+		//! use time adaptivity? 
+		bool mTimeAdap;
+
+		//! output surface preview? if >0 yes, and use as reduzed size 
+		int mOutputSurfacePreview;
+		LbmFloat mPreviewFactor;
+		//! fluid vol height
+		LbmFloat mFVHeight;
+		LbmFloat mFVArea;
+		bool mUpdateFVHeight;
+
+		//! require some geo setup from the viz?
+		int mGfxGeoSetup;
+		//! force quit for gfx
+		LbmFloat mGfxEndTime;
+		//! smoother surface initialization?
+		int mInitSurfaceSmoothing;
+
+		int mTimestepReduceLock;
+		int mTimeSwitchCounts;
+		//! total simulation time so far 
+		LbmFloat mSimulationTime;
+		//! smallest and largest step size so far 
+		LbmFloat mMinStepTime, mMaxStepTime;
+		//! track max. velocity
+		LbmFloat mMxvx, mMxvy, mMxvz, mMaxVlen;
+
+		//! list of the cells to empty at the end of the step 
+		vector<LbmPoint> mListEmpty;
+		//! list of the cells to make fluid at the end of the step 
+		vector<LbmPoint> mListFull;
+		//! list of new interface cells to init
+  	vector<LbmPoint> mListNewInter;
+		//! class for handling redist weights in reinit flag function
+		class lbmFloatSet {
+			public:
+				LbmFloat val[dTotalNum];
+				LbmFloat numNbs;
+		};
+		//! normalized vectors for all neighboring cell directions (for e.g. massdweight calc)
+		LbmVec mDvecNrm[27];
+		
+		
+		//! debugging
+		bool checkSymmetry(string idstring);
+		//! symmetric init?
+		//bool mStartSymm;
+		//! kepp track of max/min no. of filled cells
+		int mMaxNoCells, mMinNoCells;
+		long long int mAvgNumUsedCells;
+
+		//! for interactive - how to drop drops?
+		int mDropMode;
+		LbmFloat mDropSize;
+		LbmVec mDropSpeed;
+		//! dropping variables
+		bool mDropping;
+		LbmFloat mDropX, mDropY;
+		LbmFloat mDropHeight;
+		//! precalculated objects speeds for current parametrization
+		vector<LbmVec> mObjectSpeeds;
+
+		//! get isofield weights
+		int mIsoWeightMethod;
+		float mIsoWeight[27];
+
+		// grid coarsening vars
+		
+		/*! vector for the data for each level */
+#		define MAX_LEV 5
+		FsgrLevelData mLevel[MAX_LEV];
+
+		/*! minimal and maximal refinement levels */
+		int mMaxRefine;
+
+		/*! df scale factors for level up/down */
+		LbmFloat mDfScaleUp, mDfScaleDown;
+
+		/*! precomputed cell area values */
+		LbmFloat mFsgrCellArea[27];
+
+		/*! LES C_smago paramter for finest grid */
+		float mInitialCsmago;
+		/*! LES C_smago paramter for coarser grids */
+		float mInitialCsmagoCoarse;
+		/*! LES stats for non OPT3D */
+		LbmFloat mDebugOmegaRet;
+
+		//! fluid stats
+		int mNumInterdCells;
+		int mNumInvIfCells;
+		int mNumInvIfTotal;
+		int mNumFsgrChanges;
+
+		//! debug function to disable standing f init
+		int mDisableStandingFluidInit;
+		//! debug function to force tadap syncing
+		int mForceTadapRefine;
+
+
+		// strict debug interface
+#		if FSGR_STRICT_DEBUG==1
+		int debLBMGI(int level, int ii,int ij,int ik, int is);
+		CellFlagType& debRFLAG(int level, int xx,int yy,int zz,int set);
+		CellFlagType& debRFLAG_NB(int level, int xx,int yy,int zz,int set, int dir);
+		CellFlagType& debRFLAG_NBINV(int level, int xx,int yy,int zz,int set, int dir);
+		int debLBMQI(int level, int ii,int ij,int ik, int is, int l);
+		LbmFloat& debQCELL(int level, int xx,int yy,int zz,int set,int l);
+		LbmFloat& debQCELL_NB(int level, int xx,int yy,int zz,int set, int dir,int l);
+		LbmFloat& debQCELL_NBINV(int level, int xx,int yy,int zz,int set, int dir,int l);
+		LbmFloat* debRACPNT(int level,  int ii,int ij,int ik, int is );
+		LbmFloat& debRAC(LbmFloat* s,int l);
+#		endif // FSGR_STRICT_DEBUG==1
+};
+
+
+
+/*****************************************************************************/
+// relaxation_macros
+
+
+
+// cell mark debugging
+#if FSGR_STRICT_DEBUG==10
+#define debugMarkCell(lev,x,y,z) \
+	errMsg("debugMarkCell",D::mName<<" step: "<<D::mStepCnt<<" lev:"<<(lev)<<" marking "<<PRINT_VEC((x),(y),(z))<<" line "<< __LINE__ ); \
+	debugMarkCellCall((lev),(x),(y),(z));
+#else // FSGR_STRICT_DEBUG==1
+#define debugMarkCell(lev,x,y,z) \
+	debugMarkCellCall((lev),(x),(y),(z));
+#endif // FSGR_STRICT_DEBUG==1
+
 
 // flag array defines -----------------------------------------------------------------------------------------------
 
@@ -244,11 +637,7 @@ ERROR - define model first!
 #define dWB 18
 #define LBM_DFNUM 19
 #endif
-#define dFfrac 19
-#define dMass 20
-#define dFlux 21
-#define dTotalNum 22
-#define dWB 18
+//? #define dWB 18
 
 // default init for dFlux values
 #define FLUX_INIT 0.5f * (float)(D::cDfNum)
@@ -335,6 +724,26 @@ ERROR - define model first!
 #define CCEL_EB   RAC(ccel, dEB)
 #define CCEL_WT   RAC(ccel, dWT)
 #define CCEL_WB   RAC(ccel, dWB)
+// for coarse to fine interpol access
+#define CCELG_C(f)    (RAC(ccel, dC )*mGaussw[(f)])
+#define CCELG_N(f)    (RAC(ccel, dN )*mGaussw[(f)])
+#define CCELG_S(f)    (RAC(ccel, dS )*mGaussw[(f)])
+#define CCELG_E(f)    (RAC(ccel, dE )*mGaussw[(f)])
+#define CCELG_W(f)    (RAC(ccel, dW )*mGaussw[(f)])
+#define CCELG_T(f)    (RAC(ccel, dT )*mGaussw[(f)])
+#define CCELG_B(f)    (RAC(ccel, dB )*mGaussw[(f)])
+#define CCELG_NE(f)   (RAC(ccel, dNE)*mGaussw[(f)])
+#define CCELG_NW(f)   (RAC(ccel, dNW)*mGaussw[(f)])
+#define CCELG_SE(f)   (RAC(ccel, dSE)*mGaussw[(f)])
+#define CCELG_SW(f)   (RAC(ccel, dSW)*mGaussw[(f)])
+#define CCELG_NT(f)   (RAC(ccel, dNT)*mGaussw[(f)])
+#define CCELG_NB(f)   (RAC(ccel, dNB)*mGaussw[(f)])
+#define CCELG_ST(f)   (RAC(ccel, dST)*mGaussw[(f)])
+#define CCELG_SB(f)   (RAC(ccel, dSB)*mGaussw[(f)])
+#define CCELG_ET(f)   (RAC(ccel, dET)*mGaussw[(f)])
+#define CCELG_EB(f)   (RAC(ccel, dEB)*mGaussw[(f)])
+#define CCELG_WT(f)   (RAC(ccel, dWT)*mGaussw[(f)])
+#define CCELG_WB(f)   (RAC(ccel, dWB)*mGaussw[(f)])
 
 
 #if PARALLEL==1
@@ -807,457 +1216,20 @@ f__printf(stderr,"QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcs
 			} /* stats */ 
 
 
-// iso value defines
-// border for marching cubes
-#define ISOCORR 3
-
-
-// helper for comparing floats with epsilon
-#define GFX_FLOATNEQ(x,y) ( ABS((x)-(y)) > (VECTOR_EPSILON) )
-#define LBM_FLOATNEQ(x,y) ( ABS((x)-(y)) > (10.0*LBM_EPSILON) )
-
-
-// macros for loops over all DFs
-#define FORDF0 for(int l= 0; l< LBM_DFNUM; ++l)
-#define FORDF1 for(int l= 1; l< LBM_DFNUM; ++l)
-
-/*****************************************************************************/
-/*! cell access classes */
-// WARNING - can be shadowed by class from lbmstdsolver.h 's
-template<typename D>
-class UniformFsgrCellIdentifier : 
-	public CellIdentifierInterface 
-{
-	public:
-		//! which grid level?
-		int level;
-		//! location in grid
-		int x,y,z;
-
-		//! reset constructor
-		UniformFsgrCellIdentifier() :
-			x(0), y(0), z(0) { };
-
-		// implement CellIdentifierInterface
-		virtual string getAsString() {
-			std::ostringstream ret;
-			ret <<"{ i"<<x<<",j"<<y;
-			if(D::cDimension>2) ret<<",k"<<z;
-			ret <<" }";
-			return ret.str();
-		}
-
-		virtual bool equal(CellIdentifierInterface* other) {
-			//UniformFsgrCellIdentifier<D> *cid = dynamic_cast<UniformFsgrCellIdentifier<D> *>( other );
-			UniformFsgrCellIdentifier<D> *cid = (UniformFsgrCellIdentifier<D> *)( other );
-			if(!cid) return false;
-			if( x==cid->x && y==cid->y && z==cid->z && level==cid->level ) return true;
-			return false;
-		}
-};
-
-//! information needed for each level in the simulation
-class FsgrLevelData {
-public:
-	int id; // level number
-
-	//! node size on this level (geometric, in world coordinates, not simulation units!) 
-	LbmFloat nodeSize;
-	//! node size on this level in simulation units 
-	LbmFloat simCellSize;
-	//! quadtree node relaxation parameter 
-	LbmFloat omega;
-	//! size this level was advanced to 
-	LbmFloat time;
-	//! size of a single lbm step in time units on this level 
-	LbmFloat stepsize;
-	//! step count
-	int lsteps;
-	//! gravity force for this level
-	LbmVec gravity;
-	//! level array 
-	LbmFloat *mprsCells[2];
-	CellFlagType *mprsFlags[2];
-
-	//! smago params and precalculated values
-	LbmFloat lcsmago;
-	LbmFloat lcsmago_sqr;
-	LbmFloat lcnu;
-
-	// LES statistics per level
-	double avgOmega;
-	double avgOmegaCnt;
-
-	//! current set of dist funcs 
-	int setCurr;
-	//! target/other set of dist funcs 
-	int setOther;
-
-	//! mass&volume for this level
-	LbmFloat lmass;
-	LbmFloat lvolume;
-	LbmFloat lcellfactor;
-
-	//! local storage of mSizes
-	int lSizex, lSizey, lSizez;
-	int lOffsx, lOffsy, lOffsz;
-
-};
-
-
-
-/*****************************************************************************/
-/*! class for solving a LBM problem */
-template<class D>
-class LbmFsgrSolver : 
-	public /*? virtual */ D // this means, the solver is a lbmData object and implements the lbmInterface
-{
-
-	public:
-		//! Constructor 
-		LbmFsgrSolver();
-		//! Destructor 
-		virtual ~LbmFsgrSolver();
-		//! id string of solver
-		virtual string getIdString() { return string("FsgrSolver[") + D::getIdString(); }
-
-		//! initilize variables fom attribute list 
-		virtual void parseAttrList();
-		//! Initialize omegas and forces on all levels (for init/timestep change)
-		void initLevelOmegas();
-		//! finish the init with config file values (allocate arrays...) 
-		virtual bool initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
-
-#if LBM_USE_GUI==1
-		//! show simulation info (implement SimulationObject pure virtual func)
-		virtual void debugDisplay(fluidDispSettings *set);
-#endif
-		
-		
-		// implement CellIterator<UniformFsgrCellIdentifier> interface
-		typedef UniformFsgrCellIdentifier<typename D::LbmCellContents> stdCellId;
-		virtual CellIdentifierInterface* getFirstCell( );
-		virtual void advanceCell( CellIdentifierInterface* );
-		virtual bool noEndCell( CellIdentifierInterface* );
-		virtual void deleteCellIterator( CellIdentifierInterface** );
-		virtual CellIdentifierInterface* getCellAt( ntlVec3Gfx pos );
-		virtual int        getCellSet      ( CellIdentifierInterface* );
-		virtual ntlVec3Gfx getCellOrigin   ( CellIdentifierInterface* );
-		virtual ntlVec3Gfx getCellSize     ( CellIdentifierInterface* );
-		virtual int        getCellLevel    ( CellIdentifierInterface* );
-		virtual LbmFloat   getCellDensity  ( CellIdentifierInterface* ,int set);
-		virtual LbmVec     getCellVelocity ( CellIdentifierInterface* ,int set);
-		virtual LbmFloat   getCellDf       ( CellIdentifierInterface* ,int set, int dir);
-		virtual LbmFloat   getCellMass     ( CellIdentifierInterface* ,int set);
-		virtual LbmFloat   getCellFill     ( CellIdentifierInterface* ,int set);
-		virtual CellFlagType getCellFlag   ( CellIdentifierInterface* ,int set);
-		virtual LbmFloat   getEquilDf      ( int );
-		virtual int        getDfNum        ( );
-		// convert pointers
-		stdCellId* convertBaseCidToStdCid( CellIdentifierInterface* basecid);
-
-		//! perform geometry init (if switched on) 
-		bool initGeometryFlags();
-		//! init part for all freesurface testcases 
-		void initFreeSurfaces();
-		//! init density gradient if enabled
-		void initStandingFluidGradient();
-
- 		/*! init a given cell with flag, density, mass and equilibrium dist. funcs */
-		inline void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
-		void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
-
-		/*! perform a single LBM step */
-		virtual void step() { stepMain(); }
-		void stepMain();
-		void fineAdvance();
-		void coarseAdvance(int lev);
-		void coarseCalculateFluxareas(int lev);
-		// coarsen a given level (returns true if sth. was changed)
-		bool performCoarsening(int lev);
-		bool performRefinement(int lev);
-		//void oarseInterpolateToFineSpaceTime(int lev,LbmFloat t);
-		void interpolateFineFromCoarse(int lev,LbmFloat t);
-		void coarseRestrictFromFine(int lev);
-
-		/*! init particle positions */
-		virtual int initParticles(ParticleTracer *partt);
-		/*! move all particles */
-		virtual void advanceParticles(ParticleTracer *partt );
-
-
-		/*! debug object display (used e.g. for preview surface) */
-		virtual vector<ntlGeometryObject*> getDebugObjects();
-
-		//! access the fillfrac field (for viz)
-		float getFillFrac(int i, int j, int k) {
-			return QCELL(mMaxRefine, i,j,k,mLevel[mMaxRefine].setOther, dFfrac);
-		}
-
-		//! retrieve the fillfrac field ready to display
-		void getIsofieldWeighted(float *iso);
-		void getIsofield(float *iso){ return getIsofieldWeighted(iso); }
-		//! for raytracing, preprocess
-		void prepareVisualization( void );
-
-		// rt interface
-		void addDrop(bool active, float mx, float my);
-		void initDrop(float mx, float my);
-		void printCellStats();
-		int checkGfxEndTime(); // {return 9;};
-		//! get gfx geo setup id
-		int getGfxGeoSetup() { return mGfxGeoSetup; }
-
-		/*! type for cells */
-		typedef typename D::LbmCell LbmCell;
-		
-	protected:
-
-		//! internal quick print function (for debugging) 
-		void printLbmCell(int level, int i, int j, int k,int set);
-		// debugging use CellIterator interface to mark cell
-		void debugMarkCellCall(int level, int vi,int vj,int vk);
-
-		void mainLoop(int lev);
-		void adaptTimestep();
-		//! flag reinit step - always works on finest grid!
-		void reinitFlags( int workSet );
-		//! mass dist weights
-		LbmFloat getMassdWeight(bool dirForw, int i,int j,int k,int workSet, int l);
-		//! add point to mListNewInter list
-		inline void addToNewInterList( int ni, int nj, int nk );	
-		//! cell is interpolated from coarse level (inited into set, source sets are determined by t)
-		inline void interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet,bool markNbs);
-
-		//! minimal and maximal z-coords (for 2D/3D loops)
-		int getForZMinBnd(int lev) { 
-			return 0; 
-		}
-		int getForZMaxBnd(int lev) { 
-			if(D::cDimension==2) return 1;
-			//return D::getSizeZ()-0; 
-			return mLevel[lev].lSizez -0;
-		}
-		int getForZMin1(int lev)   { 
-			if(D::cDimension==2) return 0;
-			return 1; 
-		}
-		int getForZMax1(int lev)   { 
-			if(D::cDimension==2) return 1;
-			//return D::getSizeZ()-1; 
-			return mLevel[lev].lSizez -1;
-		}
-
-
-		// member vars
-
-		//! mass calculated during streaming step
-		LbmFloat mCurrentMass;
-		LbmFloat mCurrentVolume;
-		LbmFloat mInitialMass;
-
-		//! count problematic cases, that occured so far...
-		int mNumProblems;
-
-		// average mlsups, count how many so far...
-		double mAvgMLSUPS;
-		double mAvgMLSUPSCnt;
-
-		//! Mcubes object for surface reconstruction 
-		IsoSurface *mpPreviewSurface;
-		int mLoopSubdivs;
-		float mSmoothSurface;
-		float mSmoothNormals;
-		
-		//! use time adaptivity? 
-		bool mTimeAdap;
-
-		//! output surface preview? if >0 yes, and use as reduzed size 
-		int mOutputSurfacePreview;
-		LbmFloat mPreviewFactor;
-		//! fluid vol height
-		LbmFloat mFVHeight;
-		LbmFloat mFVArea;
-		bool mUpdateFVHeight;
-
-		//! require some geo setup from the viz?
-		int mGfxGeoSetup;
-		//! force quit for gfx
-		LbmFloat mGfxEndTime;
-		//! smoother surface initialization?
-		int mInitSurfaceSmoothing;
-
-		int mTimestepReduceLock;
-		int mTimeSwitchCounts;
-		//! total simulation time so far 
-		LbmFloat mSimulationTime;
-		//! smallest and largest step size so far 
-		LbmFloat mMinStepTime, mMaxStepTime;
-		//! track max. velocity
-		LbmFloat mMxvx, mMxvy, mMxvz, mMaxVlen;
-
-		//! list of the cells to empty at the end of the step 
-		vector<LbmPoint> mListEmpty;
-		//! list of the cells to make fluid at the end of the step 
-		vector<LbmPoint> mListFull;
-		//! list of new interface cells to init
-  	vector<LbmPoint> mListNewInter;
-		//! class for handling redist weights in reinit flag function
-		class lbmFloatSet {
-			public:
-				LbmFloat val[dTotalNum];
-		};
-		//! normalized vectors for all neighboring cell directions (for e.g. massdweight calc)
-		LbmVec mDvecNrm[27];
-		
-		
-		//! debugging
-		bool checkSymmetry(string idstring);
-		//! symmetric init?
-		//bool mStartSymm;
-		//! kepp track of max/min no. of filled cells
-		int mMaxNoCells, mMinNoCells;
-		long long int mAvgNumUsedCells;
-
-		//! for interactive - how to drop drops?
-		int mDropMode;
-		LbmFloat mDropSize;
-		LbmVec mDropSpeed;
-		//! dropping variables
-		bool mDropping;
-		LbmFloat mDropX, mDropY;
-		LbmFloat mDropHeight;
-
-		//! get isofield weights
-		int mIsoWeightMethod;
-		float mIsoWeight[27];
-
-		// grid coarsening vars
-		
-		/*! vector for the data for each level */
-#		define MAX_LEV 5
-		FsgrLevelData mLevel[MAX_LEV];
-
-		/*! minimal and maximal refinement levels */
-		int mMaxRefine;
-
-		/*! df scale factors for level up/down */
-		LbmFloat mDfScaleUp, mDfScaleDown;
-
-		/*! precomputed cell area values */
-		LbmFloat mFsgrCellArea[27];
-
-		/*! LES C_smago paramter for finest grid */
-		float mInitialCsmago;
-		float mCsmagoRefineMultiplier;
-		/*! LES stats for non OPT3D */
-		LbmFloat mDebugOmegaRet;
-
-		//! fluid stats
-		int mNumInterdCells;
-		int mNumInvIfCells;
-		int mNumInvIfTotal;
-
-		//! debug function to disable standing f init
-		int mDisableStandingFluidInit;
-		//! debug function to force tadap syncing
-		int mForceTadapRefine;
-
-
-#		if FSGR_STRICT_DEBUG==1
-#		define STRICT_EXIT *((int *)0)=0;
-		int debLBMGI(int level, int ii,int ij,int ik, int is) {
-			if(level <  0){ errMsg("LbmStrict::debLBMGI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
-			if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMGI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
-			
-			if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			return _LBMGI(level, ii,ij,ik, is);
-		};
-		CellFlagType& debRFLAG(int level, int xx,int yy,int zz,int set){
-			return _RFLAG(level, xx,yy,zz,set);   
-		};
-		CellFlagType& debRFLAG_NB(int level, int xx,int yy,int zz,int set, int dir) {
-			if(dir<0)         { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			// warning might access all spatial nbs
-			if(dir>D::cDirNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			return _RFLAG_NB(level, xx,yy,zz,set, dir);
-		};
-		CellFlagType& debRFLAG_NBINV(int level, int xx,int yy,int zz,int set, int dir) {
-			if(dir<0)         { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			if(dir>D::cDirNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			return _RFLAG_NBINV(level, xx,yy,zz,set, dir);
-		};
-		int debLBMQI(int level, int ii,int ij,int ik, int is, int l) {
-			if(level <  0){ errMsg("LbmStrict::debLBMQI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
-			if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMQI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
-			
-			if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
-			if(l<0)        { errMsg("LbmStrict"," invD- "<<" l"<<l); STRICT_EXIT; }
-			if(l>D::cDfNum){  // dFfrac is an exception
-			if((l != dMass) && (l != dFfrac) && (l != dFlux)){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } }
-#if COMPRESSGRIDS==1
-			//if((!D::mInitDone) && (is!=mLevel[level].setCurr)){ STRICT_EXIT; } // COMPRT debug
-#endif // COMPRESSGRIDS==1
-			return _LBMQI(level, ii,ij,ik, is, l);
-		};
-		LbmFloat& debQCELL(int level, int xx,int yy,int zz,int set,int l) {
-			//errMsg("LbmStrict","debQCELL debug: l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" l"<<l<<" index"<<LBMGI(level, xx,yy,zz,set)); 
-			return _QCELL(level, xx,yy,zz,set,l);
-		};
-		LbmFloat& debQCELL_NB(int level, int xx,int yy,int zz,int set, int dir,int l) {
-			if(dir<0)        { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			if(dir>D::cDfNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			return _QCELL_NB(level, xx,yy,zz,set, dir,l);
-		};
-		LbmFloat& debQCELL_NBINV(int level, int xx,int yy,int zz,int set, int dir,int l) {
-			if(dir<0)        { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			if(dir>D::cDfNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
-			return _QCELL_NBINV(level, xx,yy,zz,set, dir,l);
-		};
-		LbmFloat* debRACPNT(int level,  int ii,int ij,int ik, int is ) {
-			return _RACPNT(level, ii,ij,ik, is );
-		};
-		LbmFloat& debRAC(LbmFloat* s,int l) {
-			if(l<0)        { errMsg("LbmStrict"," invD- "<<" l"<<l); STRICT_EXIT; }
-			if(l>dTotalNum){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } 
-			//if(l>D::cDfNum){ // dFfrac is an exception 
-			//if((l != dMass) && (l != dFfrac) && (l != dFlux)){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } }
-			return _RAC(s,l);
-		};
-#		endif // FSGR_STRICT_DEBUG==1
-};
-
-
-
-/*****************************************************************************/
-// compilation settings
-
 
 // loops over _all_ cells (including boundary layer)
 #define FSGR_FORIJK_BOUNDS(leveli) \
-	for(int k= getForZMinBnd(leveli); k< getForZMaxBnd(leveli); ++k) \
+	for(int k= getForZMinBnd(); k< getForZMaxBnd(leveli); ++k) \
    for(int j=0;j<mLevel[leveli].lSizey-0;++j) \
     for(int i=0;i<mLevel[leveli].lSizex-0;++i) \
 	
 // loops over _only inner_ cells 
 #define FSGR_FORIJK1(leveli) \
-	for(int k= getForZMin1(leveli); k< getForZMax1(leveli); ++k) \
+	for(int k= getForZMin1(); k< getForZMax1(leveli); ++k) \
    for(int j=1;j<mLevel[leveli].lSizey-1;++j) \
     for(int i=1;i<mLevel[leveli].lSizex-1;++i) \
+
+// relaxation_macros end
 
 
 /******************************************************************************
@@ -1286,20 +1258,21 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	mIsoWeightMethod(2),
 	mMaxRefine(1), 
 	mDfScaleUp(-1.0), mDfScaleDown(-1.0),
-	mInitialCsmago(0.04), mCsmagoRefineMultiplier(8.0), mDebugOmegaRet(0.0),
-	mNumInvIfTotal(0),
+	mInitialCsmago(0.04), mInitialCsmagoCoarse(1.0), mDebugOmegaRet(0.0),
+	mNumInvIfTotal(0), mNumFsgrChanges(0),
 	mDisableStandingFluidInit(0),
 	mForceTadapRefine(-1)
 {
-  /* not much to do here... */
+  // not much to do here... 
 	D::mpIso = new IsoSurface( D::mIsoValue, false );
 
-  /* init equilibrium dist. func */
+  // init equilibrium dist. func 
   LbmFloat rho=1.0;
   FORDF0 {
 		D::dfEquil[l] = D::getCollideEq( l,rho,  0.0, 0.0, 0.0);
   }
 
+	// init LES
 	int odm = 0;
 	for(int m=0; m<D::cDimension; m++) { 
 		for(int l=0; l<D::cDfNum; l++) { 
@@ -1309,34 +1282,30 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	}
 	for(int m=0; m<D::cDimension; m++) { 
 		for(int n=0; n<D::cDimension; n++) { 
-			//LbmFloat qadd = 0.0;
 			for(int l=1; l<D::cDfNum; l++) { 
 				LbmFloat em;
 				switch(m) {
 					case 0: em = D::dfDvecX[l]; break;
 					case 1: em = D::dfDvecY[l]; break;
 					case 2: em = D::dfDvecZ[l]; break;
-					default: em = -1.0; errMsg("SMAGO","err m="<<m); exit(1);
+					default: em = -1.0; errFatal("SMAGO1","err m="<<m, SIMWORLD_GENERICERROR);
 				}
 				LbmFloat en;
 				switch(n) {
 					case 0: en = D::dfDvecX[l]; break;
 					case 1: en = D::dfDvecY[l]; break;
 					case 2: en = D::dfDvecZ[l]; break;
-					default: en = -1.0; errMsg("SMAGO","err n="<<n); exit(1);
+					default: en = -1.0; errFatal("SMAGO2","err n="<<n, SIMWORLD_GENERICERROR);
 				}
 				const LbmFloat coeff = em*en;
 				if(m==n) {
 					D::lesCoeffDiag[m][l] = coeff;
-					// f__printf(stderr,"QSMDEB: CF DIAG m:%d l:%d = %f \n", m,l, coeff);
 				} else {
 					if(m>n) {
 						D::lesCoeffOffdiag[odm][l] = coeff;
-						// f__printf(stderr,"QSMDEB: CF OFFDIAG odm:%d l:%d = %f \n", odm,l, coeff);
 					}
 				}
 			}
-
 
 			if(m==n) {
 			} else {
@@ -1407,7 +1376,7 @@ LbmFsgrSolver<D>::parseAttrList()
 	mSmoothNormals = D::mpAttrs->readFloat("smoothnormals", mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
 
 	mInitialCsmago = D::mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
-	mCsmagoRefineMultiplier = D::mpAttrs->readFloat("csmago_refinemultiplier", mCsmagoRefineMultiplier, "SimulationLbm","mCsmagoRefineMultiplier", false );
+	mInitialCsmagoCoarse = D::mpAttrs->readFloat("csmago_coarse", mInitialCsmagoCoarse, "SimulationLbm","mInitialCsmagoCoarse", false );
 
 	// refinement
 	mMaxRefine  = D::mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", true);
@@ -1442,18 +1411,20 @@ LbmFsgrSolver<D>::initLevelOmegas()
 
 	if(mInitialCsmago<=0.0) {
 		if(OPT3D==1) {
-			errMsg("LbmFsgrSolver::initLevelOmegas","Csmago-LES = 0 not supported for optimized 3D version..."); 
-			exit(1);
+			errFatal("LbmFsgrSolver::initLevelOmegas","Csmago-LES = 0 not supported for optimized 3D version...",SIMWORLD_INITERROR); 
+			return;
 		}
 	}
 
 	// use Tau instead of Omega for calculations
-	int i = mMaxRefine;
-	mLevel[i].omega    = D::mOmega;
-	mLevel[i].stepsize = D::mpParam->getStepTime();
-	mLevel[i].lcsmago = mInitialCsmago; //CSMAGO_INITIAL;
-	mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
-	mLevel[i].lcnu = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
+	{ // init base level
+		int i = mMaxRefine;
+		mLevel[i].omega    = D::mOmega;
+		mLevel[i].stepsize = D::mpParam->getStepTime();
+		mLevel[i].lcsmago = mInitialCsmago; //CSMAGO_INITIAL;
+		mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
+		mLevel[i].lcnu = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
+	}
 
 	// init all sub levels
 	for(int i=mMaxRefine-1; i>=0; i--) {
@@ -1462,7 +1433,14 @@ LbmFsgrSolver<D>::initLevelOmegas()
 		nomega                = 1.0/nomega;
 		mLevel[i].omega       = (LbmFloat)nomega;
 		mLevel[i].stepsize    = 2.0 * mLevel[i+1].stepsize;
-		mLevel[i].lcsmago     = mLevel[i+1].lcsmago*mCsmagoRefineMultiplier;
+		//mLevel[i].lcsmago     = mLevel[i+1].lcsmago*mCsmagoRefineMultiplier;
+		//if(mLevel[i].lcsmago>1.0) mLevel[i].lcsmago = 1.0;
+		//if(strstr(D::getName().c_str(),"Debug")){ 
+		//mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago; // DEBUG
+		// if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * (LbmFloat)(mMaxRefine-i)*0.5+1.0; 
+		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * ((LbmFloat)(mMaxRefine-i)*1.0 + 1.0 ); 
+		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = 0.99;
+		mLevel[i].lcsmago = mInitialCsmagoCoarse;
 		mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
 		mLevel[i].lcnu        = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
 	}
@@ -1530,16 +1508,10 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	if(PARALLEL==1) maskBits+=2;
 	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
 	sizeMask = ~sizeMask;
-  if(debugGridsizeInit) debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<" m"<<convertFlags2String(sizeMask) ,10);
+  if(debugGridsizeInit) debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<" m"<<convertCellFlagType2String(sizeMask) ,10);
 	D::mSizex &= sizeMask;
 	D::mSizey &= sizeMask;
 	D::mSizez &= sizeMask;
-	if(PARALLEL==1) {
-		// make (size+2)%4 == 0 , assumes MAX_THREADS=4
-		D::mSizex += 2;
-		D::mSizey += 2;
-		D::mSizez += 2;
-	}
 	// force geom size to match rounded grid sizes
 	D::mvGeoEnd[0] = D::mvGeoStart[0] + cellSize*(LbmFloat)D::mSizex;
 	D::mvGeoEnd[1] = D::mvGeoStart[1] + cellSize*(LbmFloat)D::mSizey;
@@ -1559,7 +1531,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 		<<"INTORDER="<<INTORDER        <<" "
 		<<"TIMEINTORDER="<<TIMEINTORDER        <<" "
 		<<"REFINEMENTBORDER="<<REFINEMENTBORDER        <<" "
-		<<"INTCFCOARSETEST="<<INTCFCOARSETEST<<" "
 		<<"OPT3D="<<OPT3D        <<" "
 		<<"COMPRESSGRIDS="<<COMPRESSGRIDS<<" "
 		<<"LS_FLUIDTHRESHOLD="<<LS_FLUIDTHRESHOLD        <<" "
@@ -1585,16 +1556,17 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	}
 
 	if(!D::mpParam->calculateAllMissingValues()) {
-		errMsg("LbmFsgrSolver::initialize","Fatal: failed to init parameters! Aborting...");
-		exit(1);
+		errFatal("LbmFsgrSolver::initialize","Fatal: failed to init parameters! Aborting...",SIMWORLD_INITERROR);
+		return false;
 	}
+	// recalc objects speeds in geo init
 
 
 
 	// init vectors
 	if(mMaxRefine >= MAX_LEV) {
-		errMsg("LbmFsgrSolver::initializeLbmGridref"," error: Too many levels!");
-		exit(1);
+		errFatal("LbmFsgrSolver::initializeLbmGridref"," error: Too many levels!", SIMWORLD_INITERROR);
+		return false;
 	}
 	for(int i=0; i<=mMaxRefine; i++) {
 		mLevel[i].id = i;
@@ -1621,13 +1593,10 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 		mLevel[i].lSizex = mLevel[i+1].lSizex/2;
 		mLevel[i].lSizey = mLevel[i+1].lSizey/2;
 		mLevel[i].lSizez = mLevel[i+1].lSizez/2;
-		if( 
-		  ((mLevel[i].lSizex % 4) != 0) ||
-		  ((mLevel[i].lSizey % 4) != 0) ||
-		  ((mLevel[i].lSizez % 4) != 0) ) {
+		/*if( ((mLevel[i].lSizex % 4) != 0) || ((mLevel[i].lSizey % 4) != 0) || ((mLevel[i].lSizez % 4) != 0) ) {
 			errMsg("LbmFsgrSolver","Init: error invalid sizes on level "<<i<<" "<<PRINT_VEC(mLevel[i].lSizex,mLevel[i].lSizey,mLevel[i].lSizez) );
-			exit(1);
-		}
+			xit(1);
+		}// old QUAD handling */
 	}
 
 	// estimate memory usage
@@ -1656,6 +1625,12 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Required Grid memory: "<< memd <<" "<< sizeStr<<" ",4);
 	}
 
+	// safety check
+	if(sizeof(CellFlagType) != CellFlagTypeSize) {
+		errFatal("LbmFsgrSolver::initialize","Fatal Error: CellFlagType has wrong size! Is:"<<sizeof(CellFlagType)<<", should be:"<<CellFlagTypeSize, SIMWORLD_GENERICERROR);
+		return false;
+	}
+
 	mLevel[ mMaxRefine ].nodeSize = ((D::mvGeoEnd[0]-D::mvGeoStart[0]) / (LbmFloat)(D::mSizex));
 	mLevel[ mMaxRefine ].simCellSize = D::mpParam->getCellSize();
 	mLevel[ mMaxRefine ].lcellfactor = 1.0;
@@ -1671,14 +1646,15 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	unsigned long int compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +compressOffset +4 ];
 	mLevel[ mMaxRefine ].mprsCells[0] = mLevel[ mMaxRefine ].mprsCells[1]+compressOffset;
+	//errMsg("CGD","rcs:"<<rcellSize<<" cpff:"<<compressOffset<< " c0:"<<mLevel[ mMaxRefine ].mprsCells[0]<<" c1:"<<mLevel[ mMaxRefine ].mprsCells[1]<< " c0e:"<<(mLevel[ mMaxRefine ].mprsCells[0]+rcellSize)<<" c1:"<<(mLevel[ mMaxRefine ].mprsCells[1]+rcellSize)); // DEBUG
 #endif // COMPRESSGRIDS==0
 
+	LbmFloat lcfdimFac = 8.0;
+	if(D::cDimension==2) lcfdimFac = 4.0;
 	for(int i=mMaxRefine-1; i>=0; i--) {
 		mLevel[i].nodeSize = 2.0 * mLevel[i+1].nodeSize;
 		mLevel[i].simCellSize = 2.0 * mLevel[i+1].simCellSize;
-		LbmFloat dimFac = 8.0;
-		if(D::cDimension==2) dimFac = 4.0;
-		mLevel[i].lcellfactor = mLevel[i+1].lcellfactor * dimFac;
+		mLevel[i].lcellfactor = mLevel[i+1].lcellfactor * lcfdimFac;
 
 		if(D::cDimension==2){ mLevel[i].lSizez = 1; } // 2D
 		rcellSize = ((mLevel[i].lSizex*mLevel[i].lSizey*mLevel[i].lSizez) *dTotalNum);
@@ -1763,6 +1739,7 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
   /* init array (set all invalid first) */
 	for(int lev=0; lev<=mMaxRefine; lev++) {
 		FSGR_FORIJK_BOUNDS(lev) {
+			RFLAG(lev,i,j,k,0) = RFLAG(lev,i,j,k,0) = 0; // reset for changeFlag usage
 			initEmptyCell(lev, i,j,k, CFEmpty, -1.0, -1.0); 
 		}
 	}
@@ -1800,11 +1777,21 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
   for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
     for(int j=0;j<mLevel[mMaxRefine].lSizey;j++) {
 			initEmptyCell(mMaxRefine, 0,j,k, CFBnd, 0.0, BND_FILL); 
-			// for quads! tag +x border... CF4_EMPTY, CF4_BND, CF4_UNUSED
-			// do this last to prevent any overwriting...
-			//initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-1,j,k, CFBnd|CFBndMARK, 0.0, BND_FILL); 
 			initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-1,j,k, CFBnd, 0.0, BND_FILL); 
+			// DEBUG BORDER!
+			//initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-2,j,k, CFBnd, 0.0, BND_FILL); 
     }
+
+	// TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+  /*for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
+    for(int j=0;j<mLevel[mMaxRefine].lSizey;j++) {
+			initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-2,j,k, CFBnd, 0.0, BND_FILL); 
+    }
+  for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
+    for(int i=0;i<mLevel[mMaxRefine].lSizex;i++) {      
+			initEmptyCell(mMaxRefine, i,1,k, CFBnd, 0.0, BND_FILL); 
+    }
+	// */
 
 	/*for(int ii=0; ii<(int)pow(2.0,mMaxRefine)-1; ii++) {
 		errMsg("BNDTESTSYMM","set "<<mLevel[mMaxRefine].lSizex-2-ii );
@@ -1821,15 +1808,16 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 
 	// prepare interface cells
 	initFreeSurfaces();
-	D::mInitialMass = 0.0;
 	initStandingFluidGradient();
 
 	// perform first step to init initial mass
 	mInitialMass = 0.0;
 	int inmCellCnt = 0;
 	FSGR_FORIJK1(mMaxRefine) {
-		if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr),        CFFluid) ) {
-			mInitialMass += 1.0;
+		if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr), CFFluid) ) {
+			LbmFloat fluidRho = QCELL(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr, 0); 
+			FORDF1 { fluidRho += QCELL(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr, l); }
+			mInitialMass += fluidRho;
 			inmCellCnt ++;
 		} else if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr), CFInter) ) {
 			mInitialMass += QCELL(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr, dMass);
@@ -1843,6 +1831,7 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	inmCellCnt = 1;
 	double nrmMass = (double)mInitialMass / (double)(inmCellCnt) *cspv[0]*cspv[1]*cspv[2] * 1000.0;
 	debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Initial Mass:"<<mInitialMass<<" normalized:"<<nrmMass, 3);
+	mInitialMass = 0.0; // reset, and use actual value after first step
 
 	//mStartSymm = false;
 #if ELBEEM_BLENDER!=1
@@ -1860,14 +1849,23 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	// coarsen region
 	myTime_t fsgrtstart = getTime(); 
 	for(int lev=mMaxRefine-1; lev>=0; lev--) {
-		while(performCoarsening(lev)){
-			coarseRestrictFromFine(lev);
-			debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Coarsening level "<<lev<<".",8);
-		}
+		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Coarsening level "<<lev<<".",8);
+		performRefinement(lev);
+		performCoarsening(lev);
+		coarseRestrictFromFine(lev);
+		performRefinement(lev);
+		performCoarsening(lev);
+		coarseRestrictFromFine(lev);
+		
+		//while( performRefinement(lev) | performCoarsening(lev)){
+			//coarseRestrictFromFine(lev);
+			//debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Coarsening level "<<lev<<".",8);
+		//}
 	}
 	D::markedClearList();
 	myTime_t fsgrtend = getTime(); 
-	if(!D::mSilent){ debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"FSGR init done ("<< ((fsgrtend-fsgrtstart)/(double)1000.0)<<"s) " , 10 ); }
+	if(!D::mSilent){ debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"FSGR init done ("<< ((fsgrtend-fsgrtstart)/(double)1000.0)<<"s), changes:"<<mNumFsgrChanges , 10 ); }
+	mNumFsgrChanges = 0;
 
 	for(int l=0; l<D::cDirNum; l++) { 
 		LbmFloat area = 0.5 * 0.5 *0.5;
@@ -1913,25 +1911,12 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	FSGR_FORIJK_BOUNDS(lev) {
 		RFLAG(lev, i,j,k,mLevel[lev].setOther) = RFLAG(lev, i,j,k,mLevel[lev].setCurr);
 	} } // first copy flags */
-#if COMPRESSGRIDS==0
-	/*for(int lev=0; lev<=mMaxRefine; lev++) {
-	FSGR_FORIJK_BOUNDS(lev) {
-		// copy from other to curr
-		for(int l=0; l<D::cDfNum; l++) {
-			QCELL(lev, i,j,k,mLevel[lev].setOther, l) = QCELL(lev, i,j,k,mLevel[lev].setCurr, l);
-		}
-		QCELL(lev, i,j,k,mLevel[lev].setOther, dMass) = QCELL(lev, i,j,k,mLevel[lev].setCurr, dMass);
-		QCELL(lev, i,j,k,mLevel[lev].setOther, dFfrac) = QCELL(lev, i,j,k,mLevel[lev].setCurr, dFfrac);
-		QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux);
-	} } // COMPRT OFF */
-#endif // COMPRESSGRIDS==0
-
 
 
 	
 	if(mOutputSurfacePreview) {
 		if(D::cDimension==2) {
-			errMsg("LbmFsgrSolver::init","No preview in 2D allowed!"); exit (1); 
+			errFatal("LbmFsgrSolver::init","No preview in 2D allowed!",SIMWORLD_INITERROR); return false;
 		}
 
 		//int previewSize = mOutputSurfacePreview;
@@ -1944,8 +1929,8 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 
 		mpPreviewSurface->setStart( vec2G(isostart) );
 		mpPreviewSurface->setEnd(   vec2G(isoend) );
-		LbmVec isodist = isoend-isostart;
-		mpPreviewSurface->initializeIsosurface( (int)(mPreviewFactor*D::mSizex)+2, (int)(mPreviewFactor*D::mSizey)+2, (int)(mPreviewFactor*D::mSizez)+2, vec2G(isodist) );
+		LbmVec pisodist = isoend-isostart;
+		mpPreviewSurface->initializeIsosurface( (int)(mPreviewFactor*D::mSizex)+2, (int)(mPreviewFactor*D::mSizey)+2, (int)(mPreviewFactor*D::mSizez)+2, vec2G(pisodist) );
 		//mpPreviewSurface->setName( D::getName() + "preview" );
 		mpPreviewSurface->setName( "preview" );
 	
@@ -1986,7 +1971,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 template<class D>
 bool 
 LbmFsgrSolver<D>::initGeometryFlags() {
-	if(!D::mPerformGeoInit) return false;
 	int level = mMaxRefine;
 	myTime_t geotimestart = getTime(); 
 	ntlGeometryObject *pObj;
@@ -2014,14 +1998,13 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		maxIniVel = vec2G( D::mpParam->calculateLattVelocityFromRw( vec2P(D::getGeoMaxInitialVelocity()) ));
 		debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"New maximum Velocity from geo init="<< maxIniVel,5);
 	}
-
+	recalculateObjectSpeeds();
 
 	ntlVec3Gfx pos,iniPos; // position of current cell
 	LbmFloat rhomass = 0.0;
 	int savedNodes = 0;
 	int OId = -1;
 	gfxReal distance;
-	LbmVec nodevel(0.0);
 
 	// 2d display as rectangles
 	if(D::cDimension==2) {
@@ -2030,7 +2013,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		//iniPos =(D::mvGeoStart + ntlVec3Gfx( 0.0 ))+dvec;
 	} else {
 		iniPos =(D::mvGeoStart + ntlVec3Gfx( 0.0 ))-(dvec*0.0);
-		iniPos[2] = D::mvGeoStart[2] + dvec[2]*getForZMin1(level);
+		iniPos[2] = D::mvGeoStart[2] + dvec[2]*getForZMin1();
 	}
 
 
@@ -2039,163 +2022,96 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 						ntlVec3Gfx( iniPos[0]+ dvec[0]*(gfxReal)(i), \
 						iniPos[1]+ dvec[1]*(gfxReal)(j), \
 						iniPos[2]+ dvec[2]*(gfxReal)(k) )
-	//pos = iniPos;
-	for(int k= getForZMin1(level); k< getForZMax1(level); ++k) {
-		//pos[1] = D::mvGeoStart[1] + dvec[1]*1.0;
+	for(int k= getForZMin1(); k< getForZMax1(level); ++k) {
 		for(int j=1;j<mLevel[level].lSizey-1;j++) {
-			//pos[0] = D::mvGeoStart[0] + dvec[0]*1.0;
 			for(int i=1;i<mLevel[level].lSizex-1;i++) {
-
-				//CellFlagType ntype = D::geoInitGetPointType( pos, nodesize, &pObj, distance );
 				CellFlagType ntype = CFInvalid;
 				if(D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_ALLBOUNDS, OId, distance)) {
-					ntype = CFBnd;
 					pObj = (*D::mpGiObjects)[OId];
+					switch( pObj->getGeoInitType() ){
+					case FGI_MBNDINFLOW:  
+						rhomass = 1.0;
+						ntype = CFFluid|CFMbndInflow; 
+						break;
+					case FGI_MBNDOUTFLOW: 
+						rhomass = 0.0;
+						ntype = CFEmpty|CFMbndOutflow; 
+						break;
+					default:
+						rhomass = BND_FILL;
+						ntype = CFBnd; break;
+					}
 				}
-				//CellFlagType  convntype = ntype;
 				if(ntype != CFInvalid) {
 					// initDefaultCell
-					nodevel = LbmVec(0.0);
-					rhomass = BND_FILL;
-					initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, nodevel );
+					if((ntype == CFMbndInflow) || (ntype == CFMbndOutflow) ) {
+						ntype |= (OId<<24);
+					}
+
+					initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
 				}
 
 				// walk along x until hit for following inits
 				if(distance<=-1.0) { distance = 100.0; }
 				if(distance>0.0) {
-					//distance += pos[0];
-					//while(((pos[0]+dvec[0])<distance)&&(i+1<mLevel[level].lSizex-1)) {
 					gfxReal dcnt=dvec[0];
-					while((dcnt<distance)&&(i+1<mLevel[level].lSizex-1)) {
+					while(( dcnt< distance )&&(i+1<mLevel[level].lSizex-1)) {
 						dcnt += dvec[0]; i++;
 						savedNodes++;
 						if(ntype != CFInvalid) {
-							// nodevel&rhomass are still inited from above
-							initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, nodevel );
+							// rhomass are still inited from above
+							initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
 						}
 					}
-				} //pos[0] += dvec[0];
-			} //pos[1] += dvec[1];
-		} //pos[2] += dvec[2];
+				} 
+				// */
+
+			} 
+		} 
 	} // zmax
 
 
 	// now init fluid layer
-	//pos = iniPos;
-	for(int k= getForZMin1(level); k< getForZMax1(level); ++k) {
-		//pos[1] = D::mvGeoStart[1] + dvec[1]*1.0;
+	for(int k= getForZMin1(); k< getForZMax1(level); ++k) {
 		for(int j=1;j<mLevel[level].lSizey-1;j++) {
-			//pos[0] = D::mvGeoStart[0] + dvec[0]*1.0;
 			for(int i=1;i<mLevel[level].lSizex-1;i++) {
-				if(!(RFLAG(level, i,j,k, mLevel[level].setCurr)&CFEmpty)) continue;
+				if(!(RFLAG(level, i,j,k, mLevel[level].setCurr)==CFEmpty)) continue;
 
-				//CellFlagType ntype = D::geoInitGetPointType( pos, nodesize, &pObj, distance );
 				CellFlagType ntype = CFInvalid;
+				int inits = 0;
 				if(D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_FLUID, OId, distance)) {
 					ntype = CFFluid;
-					pObj = (*D::mpGiObjects)[OId];
 				}
-				//CellFlagType  convntype = ntype;
 				if(ntype != CFInvalid) {
 					// initDefaultCell
-					nodevel = vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P(pObj->getInitialVelocity() )));
 					rhomass = 1.0;
-					initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, nodevel );
+					initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
+					inits++;
 				}
 
 				// walk along x until hit for following inits
 				if(distance<=-1.0) { distance = 100.0; }
 				if(distance>0.0) {
-					//distance += pos[0];
-					//while(((pos[0]+dvec[0])<distance)&&(i+1<mLevel[level].lSizex-1)) {
-						//pos[0] += dvec[0]; i++;
 					gfxReal dcnt=dvec[0];
-					while((dcnt<distance)&&(i+1<mLevel[level].lSizex-1)) {
+					while((dcnt< distance )&&(i+1<mLevel[level].lSizex-1)) {
 						dcnt += dvec[0]; i++;
 						savedNodes++;
-						if(!(RFLAG(level, i,j,k, mLevel[level].setCurr)&CFEmpty)) continue;
+						if(!(RFLAG(level, i,j,k, mLevel[level].setCurr)==CFEmpty)) continue;
 						if(ntype != CFInvalid) {
-							// nodevel&rhomass are still inited from above
-							initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, nodevel );
+							// rhomass are still inited from above
+							initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
+							inits++;
 						}
 					}
-				} //pos[0] += dvec[0];
-			} //pos[1] += dvec[1];
-		} //pos[2] += dvec[2];
+				} // distance>0
+				
+			} 
+		} 
 	} // zmax
-
-	/*
-	// now init fluid layer
-	if(D::cDimension==2) {
-		dvec[2] = 0.0; 
-		pos =(D::mvGeoStart + ntlVec3Gfx( 0.0, 0.0, (D::mvGeoEnd[2]-D::mvGeoStart[2])*0.5 ))+dvec;
-		pos[2] = D::mvGeoStart[2] + dvec[2]*getForZMin1(mMaxRefine);
-	} else {
-		pos =(D::mvGeoStart + ntlVec3Gfx( 0.0, 0.0, 0.0 ))+dvec;
-	}
-	for(int k= getForZMin1(mMaxRefine); k< getForZMax1(mMaxRefine); ++k) {
-		pos[1] = D::mvGeoStart[1] + dvec[1]*1.0;
-		for(int j=1;j<mLevel[mMaxRefine].lSizey-1;j++) {
-			pos[0] = D::mvGeoStart[0] + dvec[0]*1.0;
-			for(int i=1;i<mLevel[mMaxRefine].lSizex-1;i++) {
-				//debMsgInter("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Checking"<<PRINT_IJK,2,2000 );
-				if(RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr)&CFEmpty) {
-					// overwrite these...
-				} else {
-					continue;
-				}
-
-				CellFlagType ntype = D::geoInitGetPointType( pos, nodesize, &pObj, distance );
-				CellFlagType  convntype = ntype;
-				if(ntype != CFInvalid) {
-					// initDefaultCell
-					if(convntype & CFFluid) { nodevel = vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P(pObj->getInitialVelocity() ))); }
-					else { nodevel = LbmVec(0.0); }
-
-					if(convntype & CFFluid) { rhomass = 1.0; }
-					else if(convntype & CFBnd) { rhomass = BND_FILL; }
-					else { rhomass = 0.0; } // empty, inter
-					//initEmptyCell(mMaxRefine, i,j,k, convntype, rhomass, rhomass );
-					initVelocityCell(mMaxRefine, i,j,k, convntype, rhomass, rhomass, nodevel );
-					//errMsg(" DT ",PRINT_IJK<<" "<<distance<<" "<<pos<<" i"<<i<<"  "<<ntype );
-				}
-
-				// walk along x until hit for following inits
-				//if(distance==-1.0) { distance = 100.0; }
-				if(distance<=-1.0) { distance = 100.0; }
-				if(distance>0.0) {
-					distance += pos[0];
-					//errMsg(" DS "," "<<distance<<" "<<pos<<" i"<<i<<"  type:"<<ntype<<" "<<convertFlags2String(ntype) );
-					while(((pos[0]+dvec[0])<distance)&&(i+1<mLevel[mMaxRefine].lSizex-1)) {
-						if(RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr)&CFEmpty) {
-							// overwrite these...
-						} else {
-							continue;
-						}
-						pos[0] += dvec[0]; i++;
-						savedNodes++;
-						//errMsg(" DT "," "<<distance<<" "<<pos<<" i"<<i<<"  "<<ntype );
-						if(ntype != CFInvalid) {
-							// initDefaultCell
-							// nodevel is still inited from above
-							if(convntype & CFFluid) { rhomass = 1.0; }
-							else if(convntype & CFBnd) { rhomass = BND_FILL; }
-							else { rhomass = 0.0; } // empty, inter
-							//initEmptyCell(mMaxRefine, i,j,k, convntype, rhomass, rhomass );
-							initVelocityCell(mMaxRefine, i,j,k, convntype, rhomass, rhomass, nodevel );
-						}
-					}
-				}
-				pos[0] += dvec[0];
-			}
-			pos[1] += dvec[1];
-		}
-		pos[2] += dvec[2];
-	} // */
 
 	D::freeGeoTree();
 	myTime_t geotimeend = getTime(); 
-	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Geometry init done ("<< ((geotimeend-geotimestart)/(double)1000.0)<<"s) " , 10 ); 
+	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Geometry init done ("<< ((geotimeend-geotimestart)/(double)1000.0)<<"s,"<<savedNodes<<") " , 10 ); 
 	//errMsg(" SAVED "," "<<savedNodes<<" of "<<(mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez));
 	return true;
 }
@@ -2278,25 +2194,13 @@ LbmFsgrSolver<D>::initFreeSurfaces() {
 	for(int lev=0; lev<=mMaxRefine; lev++) {
 	FSGR_FORIJK_BOUNDS(lev) {
 		if( (RFLAG(lev, i,j,k,0) & (CFBnd)) ) { 
-			QCELL(lev, i,j,k,mLevel[mMaxRefine].setCurr, dFfrac) = 
-				//QCELL(lev, i,j,k,mLevel[mMaxRefine].setOther, dFfrac) =  // COMPRT OFF
-				BND_FILL;
+			QCELL(lev, i,j,k,mLevel[mMaxRefine].setCurr, dFfrac) = BND_FILL;
 			continue;
 		}
 		if( (RFLAG(lev, i,j,k,0) & (CFEmpty)) ) { 
-			QCELL(lev, i,j,k,mLevel[mMaxRefine].setCurr, dFfrac) = 
-				//QCELL(lev, i,j,k,mLevel[mMaxRefine].setOther, dFfrac) =  // COMPRT OFF
-				0.0;
+			QCELL(lev, i,j,k,mLevel[mMaxRefine].setCurr, dFfrac) = 0.0;
 			continue;
 		}
-
-		// copy from other to curr
-		//?? RFLAG(lev, i,j,k,mLevel[lev].setOther) = RFLAG(lev, i,j,k,mLevel[lev].setCurr);
-		//?? for(int l=0; l<D::cDfNum; l++) {
-			//?? QCELL(lev, i,j,k,mLevel[lev].setOther, l) = QCELL(lev, i,j,k,mLevel[lev].setCurr, l);
-		//?? }
-		//?? QCELL(lev, i,j,k,mLevel[lev].setOther, dMass) = QCELL(lev, i,j,k,mLevel[lev].setCurr, dMass);
-		//?? QCELL(lev, i,j,k,mLevel[lev].setOther, dFfrac) = QCELL(lev, i,j,k,mLevel[lev].setCurr, dFfrac);
 	} }
 
 	// ----------------------------------------------------------------------
@@ -2304,7 +2208,7 @@ LbmFsgrSolver<D>::initFreeSurfaces() {
 	if(mInitSurfaceSmoothing>0) {
 		debMsgStd("Surface Smoothing init", DM_MSG, "Performing "<<(mInitSurfaceSmoothing)<<" smoothing steps ",10);
 #if COMPRESSGRIDS==1
-		errMsg("NYI","COMPRESSGRIDS mInitSurfaceSmoothing"); exit(1);
+		errFatal("NYI","COMPRESSGRIDS mInitSurfaceSmoothing",SIMWORLD_INITERROR); return;
 #endif // COMPRESSGRIDS==0
 	}
 	for(int s=0; s<mInitSurfaceSmoothing; s++) {
@@ -2332,17 +2236,7 @@ LbmFsgrSolver<D>::initFreeSurfaces() {
 		mLevel[mMaxRefine].setOther = mLevel[mMaxRefine].setCurr;
 		mLevel[mMaxRefine].setCurr ^= 1;
 	}
-
-	// copy back...
-	/*for(int lev=0; lev<=mMaxRefine; lev++) {
-		FSGR_FORIJK1(lev) {
-			if( TESTFLAG( RFLAG(lev, i,j,k, mLevel[lev].setCurr), CFInter) ) {
-				QCELL(lev, i,j,k, mLevel[lev].setOther, dMass ) = QCELL(lev, i,j,k, mLevel[lev].setCurr, dMass);
-				QCELL(lev, i,j,k, mLevel[lev].setOther, dFfrac) = QCELL(lev, i,j,k, mLevel[lev].setCurr, dFfrac);
-				QCELL(lev, i,j,k, mLevel[lev].setOther, dFlux) = QCELL(lev, i,j,k, mLevel[lev].setCurr, dFlux);
-			}
-		}
-	} // COMPRT OFF */
+	// copy back...?
 
 }
 
@@ -2431,8 +2325,29 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 		haveStandingFluid=0;
 	}
 
+	// copy flags and init , as no flags will be changed during grav init
+	// also important for corasening later on
+	const int lev = mMaxRefine;
+	CellFlagType nbflag[LBM_DFNUM], nbored; 
+	for(int k=D::getForZMinBnd();k<D::getForZMaxBnd();++k) {
+		for(int j=0;j<mLevel[lev].lSizey-0;++j) {
+			for(int i=0;i<mLevel[lev].lSizex-0;++i) {
+				if( (RFLAG(lev, i,j,k,SRCS(lev)) & (CFFluid)) ) {
+					nbored = 0;
+					FORDF1 {
+						nbflag[l] = RFLAG_NB(lev, i,j,k, SRCS(lev),l);
+						nbored |= nbflag[l];
+					} 
+					if(nbored&CFBnd) {
+						RFLAG(lev, i,j,k,SRCS(lev)) &= (~CFNoBndFluid);
+					} else {
+						RFLAG(lev, i,j,k,SRCS(lev)) |= CFNoBndFluid;
+					}
+				}
+				RFLAG(lev, i,j,k,TSET(lev)) = RFLAG(lev, i,j,k,SRCS(lev));
+	} } }
+
 	if(haveStandingFluid) {
-		int lev = mMaxRefine;
 		int rhoworkSet = mLevel[lev].setCurr;
 		myTime_t timestart = getTime(); // FIXME use user time here?
 #if OPT3D==true 
@@ -2466,26 +2381,6 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 		} // GRAVLOOP
 		debMsgStd("Standing fluid preinit", DM_MSG, "Density gradient inited", 8);
 		
-		// copy flags and init , as no flags will be changed during grav init
-		CellFlagType nbflag[LBM_DFNUM], nbored; 
-		for(int k=D::getForZMinBnd();k<D::getForZMaxBnd();++k) {
-		for(int j=0;j<mLevel[lev].lSizey-0;++j) {
-		for(int i=0;i<mLevel[lev].lSizex-0;++i) {
-				if( (RFLAG(lev, i,j,k,SRCS(lev)) & (CFFluid)) ) {
-					nbored = 0;
-					FORDF1 {
-						nbflag[l] = RFLAG_NB(lev, i,j,k, SRCS(lev),l);
-						nbored |= nbflag[l];
-					} 
-					if(nbored&CFBnd) {
-						RFLAG(lev, i,j,k,SRCS(lev)) &= (~CFNoBndFluid);
-					} else {
-						RFLAG(lev, i,j,k,SRCS(lev)) |= CFNoBndFluid;
-					}
-				}
-				RFLAG(lev, i,j,k,TSET(lev)) = RFLAG(lev, i,j,k,SRCS(lev));
-		} } }
-
 		int preinitSteps = (haveStandingFluid* ((mLevel[lev].lSizey+mLevel[lev].lSizez+mLevel[lev].lSizex)/3) );
 		preinitSteps = (haveStandingFluid>>2); // not much use...?
 		//preinitSteps = 4; // DEBUG!!!!
@@ -2495,7 +2390,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 		for(int s=0; s<preinitSteps; s++) {
 			int workSet = SRCS(lev); //mLevel[lev].setCurr;
 			int otherSet = TSET(lev); //mLevel[lev].setOther;
-			//debMsgDirect(".");
+			debMsgDirect(".");
 			if(debugStandingPreinit) debMsgStd("Standing fluid preinit", DM_MSG, "s="<<s<<" curset="<<workSet<<" srcs"<<SRCS(lev), 10);
 			LbmFloat *ccel;
 			LbmFloat *tcel;
@@ -2553,7 +2448,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 		// */
 
 		myTime_t timeend = getTime();
-		//debMsgDirect(" done, "<<((timeend-timestart)/(double)1000.0)<<"s \n");
+		debMsgDirect(" done, "<<((timeend-timestart)/(double)1000.0)<<"s \n");
 #undef  NBFLAG
 	}
 }
@@ -2562,6 +2457,13 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 
 /*****************************************************************************/
 /* init a given cell with flag, density, mass and equilibrium dist. funcs */
+
+template<class D>
+void LbmFsgrSolver<D>::changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag) {
+	CellFlagType pers = RFLAG(level,xx,yy,zz,set) & CFPersistMask;
+	RFLAG(level,xx,yy,zz,set) = newflag | pers;
+}
+
 template<class D>
 void 
 LbmFsgrSolver<D>::initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass) {
@@ -2574,17 +2476,11 @@ LbmFsgrSolver<D>::initEmptyCell(int level, int i,int j,int k, CellFlagType flag,
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
-	RFLAG(level, i,j,k, workSet)= flag;
+	//RFLAG(level, i,j,k, workSet)= flag;
+	changeFlag(level, i,j,k, workSet, flag);
 
   workSet ^= 1;
-#if COMPRESSGRIDS==0
-	/*ecel = RACPNT(level, i,j,k, workSet); FIXME why doesnt this work with COMPRESSGRIDS off?
-	FORDF0 { RAC(ecel, l) = D::dfEquil[l] * rho; }
-	RAC(ecel, dMass) = mass;
-	RAC(ecel, dFfrac) = mass/rho;
-	RAC(ecel, dFlux) = FLUX_INIT; // COMPRT OFF */
-#endif // COMPRESSGRIDS==0
-	RFLAG(level, i,j,k, workSet)= flag; 
+	changeFlag(level, i,j,k, workSet, flag);
 	return;
 }
 
@@ -2599,17 +2495,11 @@ LbmFsgrSolver<D>::initVelocityCell(int level, int i,int j,int k, CellFlagType fl
 	RAC(ecel, dMass) = mass;
 	RAC(ecel, dFfrac) = mass/rho;
 	RAC(ecel, dFlux) = FLUX_INIT;
-	RFLAG(level, i,j,k, workSet) = flag;
+	//RFLAG(level, i,j,k, workSet) = flag;
+	changeFlag(level, i,j,k, workSet, flag);
 
   workSet ^= 1;
-#if COMPRESSGRIDS==0
-	/*ecel = RACPNT(level, i,j,k, workSet); FIXME why doesnt this work with COMPRESSGRIDS off?
-	FORDF0 { RAC(ecel, l) = D::getCollideEq(l, rho,vel[0],vel[1],vel[2]); }
-	RAC(ecel, dMass) = mass;
-	RAC(ecel, dFfrac) = mass/rho;
-	RAC(ecel, dFlux) = FLUX_INIT; // COMPRT OFF */
-#endif // COMPRESSGRIDS==0
-	RFLAG(level, i,j,k, workSet) = flag;
+	changeFlag(level, i,j,k, workSet, flag);
 	return;
 }
 
@@ -2652,10 +2542,8 @@ LbmFsgrSolver<D>::checkSymmetry(string idstring)
 			if( LBM_FLOATNEQ(QCELL(lev, i,j,k,s, dMass), QCELL(lev, inb,j,k,s, dMass)) ) { erro = true;
 				if(D::cDimension==2) {
 					if(msgs<maxMsgs) { msgs++;
-						/*
-						debMsgDirect(" mass1 "<<QCELL(lev, i,j,k,s, dMass)<<" mass2 "<<QCELL(lev, inb,j,k,s, dMass) <<std::endl);
+						//debMsgDirect(" mass1 "<<QCELL(lev, i,j,k,s, dMass)<<" mass2 "<<QCELL(lev, inb,j,k,s, dMass) <<std::endl);
 						errMsg("EMASS", PRINT_IJK<<"s"<<s<<" mass "<<QCELL(lev, i,j,k,s, dMass)<<" , at "<<PRINT_VEC(inb,j,k)<<"s"<<s<<" mass "<<QCELL(lev, inb,j,k,s, dMass) );
-						*/
 					}
 				}
 				if(markCells){ debugMarkCell(lev, i,j,k); debugMarkCell(lev, inb,j,k); }
@@ -2760,8 +2648,9 @@ LbmFsgrSolver<D>::stepMain()
 	mMaxVlen = mMxvz = mMxvy = mMxvx = 0.0;
 
 	//change to single step advance!
+	int levsteps = 0;
 	int dsbits = D::mStepCnt ^ (D::mStepCnt-1);
-	//errMsg("S"," step:"<<D::mStepCnt<<" s-1:"<<(D::mStepCnt-1)<<" xf:"<<convertFlags2String(dsbits));
+	//errMsg("S"," step:"<<D::mStepCnt<<" s-1:"<<(D::mStepCnt-1)<<" xf:"<<convertCellFlagType2String(dsbits));
 	for(int lev=0; lev<=mMaxRefine; lev++) {
 		//if(! (D::mStepCnt&(1<<lev)) ) {
 		if( dsbits & (1<<(mMaxRefine-lev)) ) {
@@ -2793,16 +2682,7 @@ LbmFsgrSolver<D>::stepMain()
 #else // TIMEINTORDER==0
 			interTime = 0.0;
 #endif // TIMEINTORDER==1
-
-			// test mix! , double 0.5 stablest?
-#if INTCFCOARSETEST==1
-			//if(lev!=mMaxRefine) { interpolateFineFromCoarse(lev,interTime); } // test!
-#else // INTCFCOARSETEST==1
-			interpolateFineFromCoarse(lev,interTime);
-			ooo
-#endif // INTCFCOARSETEST==1
-			// */
-
+			levsteps++;
 		}
 		mCurrentMass   += mLevel[lev].lmass;
 		mCurrentVolume += mLevel[lev].lvolume;
@@ -2822,7 +2702,7 @@ LbmFsgrSolver<D>::stepMain()
 	if(D::mMLSUPS>10000){ D::mMLSUPS = -1; }
 	else { mAvgMLSUPS += D::mMLSUPS; mAvgMLSUPSCnt += 1.0; } // track average mlsups
 	
-	LbmFloat totMLSUPS = ( ((mLevel[mMaxRefine].lSizex-2)*(mLevel[mMaxRefine].lSizey-2)*(getForZMax1(mMaxRefine)-getForZMin1(mMaxRefine))) / ((timeend-timestart)/(double)1000.0) ) / (1000000);
+	LbmFloat totMLSUPS = ( ((mLevel[mMaxRefine].lSizex-2)*(mLevel[mMaxRefine].lSizey-2)*(getForZMax1(mMaxRefine)-getForZMin1())) / ((timeend-timestart)/(double)1000.0) ) / (1000000);
 	if(totMLSUPS>10000) totMLSUPS = -1;
 	mNumInvIfTotal += mNumInvIfCells; // debug
 
@@ -2837,6 +2717,7 @@ LbmFsgrSolver<D>::stepMain()
 			" intd:"<<mNumInterdCells<< sepStr<<
 			" invif:"<<mNumInvIfCells<< sepStr<<
 			" invift:"<<mNumInvIfTotal<< sepStr<<
+			" fsgrcs:"<<mNumFsgrChanges<< sepStr<<
 			" filled:"<<D::mNumFilledCells<<", emptied:"<<D::mNumEmptiedCells<< sepStr<<
 			" mMxv:"<<mMxvx<<","<<mMxvy<<","<<mMxvz<<", tscnts:"<<mTimeSwitchCounts<< sepStr<<
 			/*" rhoMax:"<<mRhoMax<<", rhoMin:"<<mRhoMin<<", vlenMax:"<<mMaxVlen<<", "*/
@@ -2845,17 +2726,18 @@ LbmFsgrSolver<D>::stepMain()
 			" for '"<<D::mName<<"' " );
 
 		//wrong?
-		debMsgDirect(", dccd:"<< mCurrentMass<<"/"<<mCurrentVolume<<"("<<D::mFixMass<<")" );
+		//debMsgDirect(", dccd:"<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix:"<<D::mFixMass<<",ini:"<<mInitialMass<<") ");
+		debMsgDirect(std::endl);
+		debMsgDirect(D::mStepCnt<<": dccd="<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix="<<D::mFixMass<<",ini="<<mInitialMass<<") ");
 		debMsgDirect(std::endl);
 
 		// nicer output
 		debMsgDirect(std::endl); // 
 		//debMsgStd(" ",DM_MSG," ",10);
-	} 
-	// else {
-		//debMsgDirect(".");
+	} else {
+		debMsgDirect(".");
 		//if((mStepCnt%10)==9) debMsgDirect("\n");
-	//}
+	}
 
 	if(D::mStepCnt==1) {
 		mMinNoCells = mMaxNoCells = D::mNumUsedCells;
@@ -2865,7 +2747,7 @@ LbmFsgrSolver<D>::stepMain()
 	}
 	
 	// mass scale test
-	if(mMaxRefine>0) {
+	if((mMaxRefine>0)&&(mInitialMass>0.0)) {
 		LbmFloat mscale = mInitialMass/mCurrentMass;
 
 		mscale = 1.0;
@@ -2873,10 +2755,15 @@ LbmFsgrSolver<D>::stepMain()
 		if(mCurrentMass<mInitialMass) mscale = 1.0+dchh;
 		if(mCurrentMass>mInitialMass) mscale = 1.0-dchh;
 
+		// use mass rescaling?
+		// with float precision this seems to be nonsense...
+		const bool MREnable = false;
+
 		const int MSInter = 2;
 		static int mscount = 0;
-		if( (1) && ((mLevel[0].lsteps%MSInter)== (MSInter-1)) && ( ABS( (mInitialMass/mCurrentMass)-1.0 ) > 0.01) && ( dsbits & (1<<(mMaxRefine-0)) ) ){
+		if( (MREnable) && ((mLevel[0].lsteps%MSInter)== (MSInter-1)) && ( ABS( (mInitialMass/mCurrentMass)-1.0 ) > 0.01) && ( dsbits & (1<<(mMaxRefine-0)) ) ){
 			// example: FORCE RESCALE MASS! ini:1843.5, cur:1817.6, f=1.01425 step:22153 levstep:5539 msc:37
+			// mass rescale MASS RESCALE check
 			errMsg("MDTDD","\n\n");
 			errMsg("MDTDD","FORCE RESCALE MASS! "
 					<<"ini:"<<mInitialMass<<", cur:"<<mCurrentMass<<", f="<<ABS(mInitialMass/mCurrentMass)
@@ -2913,6 +2800,13 @@ LbmFsgrSolver<D>::stepMain()
 
 		mCurrentMass *= mscale;
 	}// if mass scale test */
+	else {
+		// use current mass after full step for initial setting
+		if((mMaxRefine>0)&&(mInitialMass<=0.0) && (levsteps == (mMaxRefine+1))) {
+			mInitialMass = mCurrentMass;
+			debMsgStd("MDTDD",DM_NOTIFY,"Second Initial Mass Init: "<<mInitialMass, 2);
+		}
+	}
 
 	// one of the last things to do - adapt timestep
 	// was in fineAdvance before... 
@@ -2984,15 +2878,9 @@ LbmFsgrSolver<D>::fineAdvance()
 
 	// advance time before timestep change
 	mSimulationTime += D::mpParam->getStepTime();
-
 	// time adaptivity
 	D::mpParam->setSimulationMaxSpeed( sqrt(mMaxVlen / 1.5) );
-	if(mTimeAdap) {
-		// ORG adaptTimestep();
-	} // time adaptivity
-
 	//if(mStartSymm) { checkSymmetry("step2"); } // DEBUG 
-
 	if(!D::mSilent){ errMsg("fineAdvance"," stepped from "<<mLevel[mMaxRefine].setCurr<<" to "<<mLevel[mMaxRefine].setOther<<" step"<< (mLevel[mMaxRefine].lsteps) ); }
 
 	// update other set
@@ -3029,7 +2917,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 #include "paraloop.h"
 #else // PARALLEL==1
   { // main loop region
-  const int id = 0, Nthrds = 1;
 	int kstart=D::getForZMin1(), kend=D::getForZMax1();
 #define PERFORM_USQRMAXCHECK USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
 #endif // PARALLEL==1
@@ -3079,7 +2966,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 	// nutshell outflow HACK
 	if(mGfxGeoSetup==2) {
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
 	{const int j=1;
   for(int i=1;i<mLevel[mMaxRefine].lSizex-1;++i) {
 		if(RFLAG(lev, i,j,k,SRCS(lev)) & CFFluid) {
@@ -3099,8 +2986,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	// now stream etc.
 
 	// use template functions for 2D/3D
-	//#pragma omp for schedule(static,1) nowait 
-	//for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
 #if COMPRESSGRIDS==0
   for(int k=kstart;k<kend;++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
@@ -3114,12 +2999,18 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		kstart = temp-1;
 	} // COMPRT
 
-  const int Nj = D::mSizey-2;
-	const int jstart = 1+( id * (Nj / Nthrds) );
-	const int jend   = 1+( (id+1) * (Nj / Nthrds) );
+#if PARALLEL==0
+  const int id = 0, Nthrds = 1;
+#endif // PARALLEL==1
+  const int Nj = mLevel[mMaxRefine].lSizey;
+	int jstart = 0+( id * (Nj / Nthrds) );
+	int jend   = 0+( (id+1) * (Nj / Nthrds) );
   if( ((Nj/Nthrds) *Nthrds) != Nj) {
     errMsg("LbmFsgrSolver","Invalid domain size Nj="<<Nj<<" Nthrds="<<Nthrds);
   }
+	// cutoff obstacle boundary
+	if(jstart<1) jstart = 1;
+	if(jend>mLevel[mMaxRefine].lSizey-1) jend = mLevel[mMaxRefine].lSizey-1;
 
 #if PARALLEL==1
 	errMsg("LbmFsgrSolver::mainLoop","id="<<id<<" js="<<jstart<<" je="<<jend<<" jdir="<<(1) ); // debug
@@ -3159,11 +3050,11 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 			D::mPanic=1;
 		}	
 #endif
+		oldFlag = *pFlagSrc;
 		// stream from current set to other, then collide and store
 		
-#if INTCFCOARSETEST==1
-		//if(RFLAG(lev, i,j,k,mLevel[lev].setCurr)&CFGrFromCoarse) {
-		if( ((*pFlagSrc) & (CFGrFromCoarse)) ) {  // interpolateFineFromCoarse test!
+		// old INTCFCOARSETEST==1
+		if( (oldFlag & (CFGrFromCoarse)) ) {  // interpolateFineFromCoarse test!
 			if(( D::mStepCnt & (1<<(mMaxRefine-lev)) ) ==1) {
 				FORDF0 { RAC(tcel,l) = RAC(ccel,l); }
 			} else {
@@ -3171,20 +3062,70 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 				calcNumUsedCells++;
 			}
 			continue; // interpolateFineFromCoarse test!
-		} // interpolateFineFromCoarse test!
-#else // INTCFCOARSETEST==1
-		done in main loop afterwards..
-#endif // INTCFCOARSETEST==1
+		} // interpolateFineFromCoarse test!  old INTCFCOARSETEST==1
 	
-		if( ((*pFlagSrc) & (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)) ) { 
-			*pFlagDst = *pFlagSrc;
+		if(oldFlag & (CFMbndInflow)) {
+			// fluid & if are ok, fill if later on
+			int isValid = oldFlag & (CFFluid|CFInter);
+			const LbmFloat iniRho = 1.0;
+			const int OId = oldFlag>>24;
+			if(!isValid) {
+				// make new if cell
+				const LbmVec vel(mObjectSpeeds[OId]);
+				// TODO add OPT3D treatment
+				FORDF0 { RAC(tcel, l) = D::getCollideEq(l, iniRho,vel[0],vel[1],vel[2]); }
+				RAC(tcel, dMass) = RAC(tcel, dFfrac) = iniRho;
+				RAC(tcel, dFlux) = FLUX_INIT;
+				changeFlag(lev, i,j,k, TSET(lev), CFInter);
+				calcCurrentMass += iniRho; calcCurrentVolume += 1.0; calcNumUsedCells++;
+				mInitialMass += iniRho;
+				// dont treat cell until next step
+				continue;
+			} 
+		} 
+		else  // these are exclusive
+		if(oldFlag & (CFMbndOutflow)) {
+			//errMsg("OUTFLOW"," ar "<<PRINT_IJK );
+			int isnotValid = oldFlag & (CFFluid);
+			if(isnotValid) {
+				// remove fluid cells, shouldnt be here anyway
+				//const int OId = oldFlag>>24;
+				LbmFloat fluidRho = m[0]; FORDF1 { fluidRho += m[l]; }
+				mInitialMass -= fluidRho;
+				const LbmFloat iniRho = 0.0;
+				RAC(tcel, dMass) = RAC(tcel, dFfrac) = iniRho;
+				RAC(tcel, dFlux) = FLUX_INIT;
+				changeFlag(lev, i,j,k, TSET(lev), CFInter);
+
+				// same as ifemptied for if below
+				LbmPoint emptyp;
+				emptyp.x = i; emptyp.y = j; emptyp.z = k;
+#if PARALLEL==1
+				calcListEmpty[id].push_back( emptyp );
+#else // PARALLEL==1
+				mListEmpty.push_back( emptyp );
+#endif // PARALLEL==1
+				calcCellsEmptied++;
+				continue;
+			}
+		}
+
+		if(oldFlag & (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)) { 
+			*pFlagDst = oldFlag;
 			//RAC(tcel,dFfrac) = 0.0;
 			//RAC(tcel,dFlux) = FLUX_INIT; // necessary?
 			continue;
 		}
+		/*if( oldFlag & CFNoBndFluid ) {  // TEST ME FASTER?
+			OPTIMIZED_STREAMCOLLIDE; PERFORM_USQRMAXCHECK;
+			RAC(tcel,dFfrac) = 1.0; 
+			*pFlagDst = (CellFlagType)oldFlag; // newFlag;
+			calcCurrentMass += rho; calcCurrentVolume += 1.0;
+			calcNumUsedCells++;
+			continue;
+		}// TEST ME FASTER? */
 
 		// only neighbor flags! not own flag
-		oldFlag = * pFlagSrc;
 		nbored = 0;
 		
 #if OPT3D==false
@@ -3223,28 +3164,40 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 		// FLUID cells 
 		if( oldFlag & CFFluid ) { 
-
 			// only standard fluid cells (with nothing except fluid as nbs
-			if(!( (nbored) & (~(CFFluid)) )) {
-				// do standard stream/collide
-				OPTIMIZED_STREAMCOLLIDE;
-				// FIXME check for which cells this is executed!
-			} else {
+
+			if(oldFlag&CFMbndInflow) {
+				// force velocity for inflow
+				const int OId = oldFlag>>24;
 				DEFAULT_STREAM;
-				ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; 
-				DEFAULT_COLLIDE;
-			}
-			if(nbored&CFBnd) {
-				oldFlag &= (~CFNoBndFluid);
+				//const LbmFloat fluidRho = 1.0;
+				// for submerged inflows, streaming would have to be performed...
+				LbmFloat fluidRho = m[0]; FORDF1 { fluidRho += m[l]; }
+				const LbmVec vel(mObjectSpeeds[OId]);
+				ux=vel[0], uy=vel[1], uz=vel[2]; 
+				usqr = 1.5 * (ux*ux + uy*uy + uz*uz);
+				FORDF0 { RAC(tcel, l) = D::getCollideEq(l, fluidRho,ux,uy,uz); }
 			} else {
-				oldFlag |= CFNoBndFluid;
+				if(nbored&CFBnd) {
+					DEFAULT_STREAM;
+					ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; 
+					DEFAULT_COLLIDE;
+					oldFlag &= (~CFNoBndFluid);
+				} else {
+					// do standard stream/collide
+					OPTIMIZED_STREAMCOLLIDE;
+					// FIXME check for which cells this is executed!
+					oldFlag |= CFNoBndFluid;
+				} 
 			}
 
 			PERFORM_USQRMAXCHECK;
 			// "normal" fluid cells
 			RAC(tcel,dFfrac) = 1.0; 
 			*pFlagDst = (CellFlagType)oldFlag; // newFlag;
-			calcCurrentMass += rho; 
+			LbmFloat ofrho=RAC(ccel,0);
+			for(int l=1; l<D::cDfNum; l++) { ofrho += RAC(ccel,l); }
+			calcCurrentMass += ofrho; 
 			calcCurrentVolume += 1.0;
 			continue;
 		}
@@ -3253,12 +3206,11 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		// make sure: check which flags to really unset...!
 		newFlag = newFlag & (~( 
 					CFNoNbFluid|CFNoNbEmpty| CFNoDelete 
-					|CFNoInterpolSrc
-					|CFNoBndFluid
+					| CFNoInterpolSrc
+					| CFNoBndFluid
 					));
-
 		// unnecessary for interface cells... !?
-		if(nbored&CFBnd) { } else { newFlag |= CFNoBndFluid; }
+		//if(nbored&CFBnd) { } else { newFlag |= CFNoBndFluid; }
 
 		// store own dfs and mass
 		mass = RAC(ccel,dMass);
@@ -3471,6 +3423,14 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		// only with interface neighbors...?
 		PERFORM_USQRMAXCHECK;
 
+		if(oldFlag & (CFMbndInflow)) {
+			// fill if cells in inflow region
+			if(myfrac<0.5) { 
+				mass += 0.25; 
+				mInitialMass += 0.25;
+			}
+		} 
+
 		// interface cell filled or emptied?
 		iffilled = ifemptied = 0;
 		// interface cells empty/full?, WARNING: to mark these cells, better do it at the end of reinitCellFlags
@@ -3478,6 +3438,12 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		if( (mass) >= (rho * (1.0+FSGR_MAGICNR)) ) { iffilled = 1; }
 		// interface cell if empty?
 		if( (mass) <= (rho * (   -FSGR_MAGICNR)) ) { ifemptied = 1; }
+
+		if(oldFlag & (CFMbndOutflow)) {
+			mInitialMass -= mass;
+			mass = myfrac = 0.0;
+			iffilled = 0; ifemptied = 1;
+		}
 
 		// looks much nicer... LISTTRICK
 #if FSGR_LISTTRICK==true
@@ -3580,7 +3546,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	D::mNumEmptiedCells = calcCellsEmptied;
 	D::mNumUsedCells = calcNumUsedCells;
 #if PARALLEL==1
-	errMsg("PARALLELusqrcheck"," curr: "<<mMaxVlen<<"|"<<mMxvx<<","<<mMxvy<<","<<mMxvz);
+	//errMsg("PARALLELusqrcheck"," curr: "<<mMaxVlen<<"|"<<mMxvx<<","<<mMxvy<<","<<mMxvz);
 	for(int i=0; i<MAX_THREADS; i++) {
 		for(int j=0; j<calcListFull[i].size() ; j++) mListFull.push_back( calcListFull[i][j] );
 		for(int j=0; j<calcListEmpty[i].size(); j++) mListEmpty.push_back( calcListEmpty[i][j] );
@@ -3591,7 +3557,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 			mMaxVlen = calcMaxVlen[i]; 
 		} 
 		errMsg("PARALLELusqrcheck"," curr: "<<mMaxVlen<<"|"<<mMxvx<<","<<mMxvy<<","<<mMxvz<<
-				" calc["<<i<<": "<<calcMaxVlen[i]<<"|"<<calcMxvx[i]<<","<<calcMxvy[i]<<","<<calcMxvz[i] );
+				"      calc["<<i<<": "<<calcMaxVlen[i]<<"|"<<calcMxvx[i]<<","<<calcMxvy[i]<<","<<calcMxvz[i]<<"]  " );
 	}
 #endif // PARALLEL==1
 
@@ -3658,49 +3624,18 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 	m[0] = tmp = usqr = 0.0;
 
 	coarseCalculateFluxareas(lev);
-	/*
-	//for(int lev=0; lev<mMaxRefine; lev++) { TEST DEBUG
-	FSGR_FORIJK_BOUNDS(lev) {
-		if( RFLAG(lev, i,j,k,mLevel[lev].setCurr) & CFFluid) {
-			if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFGrFromCoarse) {
-				LbmFloat totArea = mFsgrCellArea[0]; // for l=0
-				for(int l=1; l<D::cDirNum; l++) { 
-					int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&
-							(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-							) { 
-						totArea += mFsgrCellArea[l];
-					}
-				} // l
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = totArea;
-				//continue;
-			} else
-			if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & (CFEmpty|CFUnused)) {
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = 1.0;
-				//continue;
-			} else {
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = 0.0;
-			}
-		//errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) ); 
-		}
-	} // } TEST DEBUG */
-	
 	// copied from fineAdv.
-	CellFlagType *pFlagSrc = &RFLAG(lev, 1,1,getForZMin1(lev),SRCS(lev));
-	CellFlagType *pFlagDst = &RFLAG(lev, 1,1,getForZMin1(lev),TSET(lev));
+	CellFlagType *pFlagSrc = &RFLAG(lev, 1,1,getForZMin1(),SRCS(lev));
+	CellFlagType *pFlagDst = &RFLAG(lev, 1,1,getForZMin1(),TSET(lev));
 	pFlagSrc -= 1;
 	pFlagDst -= 1;
-	ccel = RACPNT(lev, 1,1,getForZMin1(lev) ,SRCS(lev)); // QTEST
+	ccel = RACPNT(lev, 1,1,getForZMin1() ,SRCS(lev)); // QTEST
 	ccel -= QCELLSTEP;
-	tcel = RACPNT(lev, 1,1,getForZMin1(lev) ,TSET(lev)); // QTEST
+	tcel = RACPNT(lev, 1,1,getForZMin1() ,TSET(lev)); // QTEST
 	tcel -= QCELLSTEP;
+	//if(strstr(D::getName().c_str(),"Debug")){ errMsg("DEBUG","DEBUG!!!!!!!!!!!!!!!!!!!!!!!"); }
 
-	// use template functions for 2D/3D
-	//for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
-  //for(int j=1;j<mLevel[lev].lSizey-1;++j) {
-  //for(int i=1;i<mLevel[lev].lSizex-1;++i) {
-		//CellFlagType *pFlagSrc = &RFLAG(lev, i,j,k,SRCS(lev));
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
   for(int i=1;i<mLevel[lev].lSizex-1;++i) {
 #if FSGR_STRICT_DEBUG==1
@@ -3710,13 +3645,6 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 		pFlagDst++;
 		ccel += QCELLSTEP;
 		tcel += QCELLSTEP;
-		/*if( 
-				//((*((ULLI*) pFlagSrc))==CF4_EMPTY ) ||
-				((*((ULLI*) pFlagSrc))==CF4_UNUSED ) 
-					) {
-			//ebugMarkCell(mMaxRefine, i,j,k);
-			ADVANCE_POINTERS(3); continue;
-		}	//else  */
 
 		// from coarse cells without unused nbs are not necessary...! -> remove
 		if( ((*pFlagSrc) & (CFGrFromCoarse)) ) { 
@@ -3729,13 +3657,18 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 #if ELBEEM_BLENDER!=1
 				errMsg("coarseAdvance","FC2NRM_CHECK Converted CFGrFromCoarse to Norm at "<<lev<<" "<<PRINT_IJK);
 #endif // ELBEEM_BLENDER!=1
-				// FIXME add debug check for these types of cells?
+				// FIXME add debug check for these types of cells?, move to perform coarsening?
 			}
 		} // */
 
 		//*(pFlagSrc+pFlagTarOff) = *pFlagSrc; // always set other set...
+#if FSGR_STRICT_DEBUG==1
 		*pFlagDst = *pFlagSrc; // always set other set...
-#if INTCFCOARSETEST==1
+#else
+		*pFlagDst = (*pFlagSrc & (~CFGrCoarseInited)); // always set other set... , remove coarse inited flag
+#endif
+
+		// old INTCFCOARSETEST==1
 		if((*pFlagSrc) & CFGrFromCoarse) {  // interpolateFineFromCoarse test!
 			if(( D::mStepCnt & (1<<(mMaxRefine-lev)) ) ==1) {
 				FORDF0 { RAC(tcel,l) = RAC(ccel,l); }
@@ -3744,49 +3677,7 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 				D::mNumUsedCells++;
 			}
 			continue; // interpolateFineFromCoarse test!
-		} // interpolateFineFromCoarse test!
-#else // INTCFCOARSETEST==1
-		//done in main loop afterwards..
-#endif // INTCFCOARSETEST==1
-
-		/*if( ( (*((ULLI*) pFlagSrc))==CF4_NOBND_NORMFLUID ) ) { 
-			//ebugMarkCell(lev,i,j,k);
-			// WARNING removed iis stuff
-			// -------------------------------------------------------------------------------------------------------------
-			//tcel = (ccel+(pFlagTarOff*dTotalNum));
-			OPTIMIZED_STREAMCOLLIDE;
-			//USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-			calcCurrentVolume += RAC(ccel,dFlux); calcCurrentMass += RAC(ccel,dFlux)*rho;
-			RAC(tcel,dFfrac) = 1.0; 
-			*pFlagDst = *pFlagSrc;
-			ADVANCE_POINTERS(1); //tcel += (QCELLSTEP);
-			// -------------------------------------------------------------------------------------------------------------
-			OPTIMIZED_STREAMCOLLIDE;
-			//USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-			//calcCurrentVolume += 1.0; calcCurrentMass += rho;
-			calcCurrentVolume += RAC(ccel,dFlux); calcCurrentMass += RAC(ccel,dFlux)*rho;
-			tcel[dFfrac] = 1.0; 
-			*pFlagDst = *pFlagSrc;
-			ADVANCE_POINTERS(1); //tcel += (QCELLSTEP);
-			// -------------------------------------------------------------------------------------------------------------
-			OPTIMIZED_STREAMCOLLIDE;
-			//USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-			//calcCurrentVolume += 1.0; calcCurrentMass += rho;
-			calcCurrentVolume += RAC(ccel,dFlux); calcCurrentMass += RAC(ccel,dFlux)*rho;
-			tcel[dFfrac] = 1.0; 
-			*pFlagDst = *pFlagSrc;
-			ADVANCE_POINTERS(1); //tcel += (QCELLSTEP);
-			// -------------------------------------------------------------------------------------------------------------
-			OPTIMIZED_STREAMCOLLIDE;
-			//USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-			//calcCurrentVolume += 1.0; calcCurrentMass += rho;
-			calcCurrentVolume += RAC(ccel,dFlux); calcCurrentMass += RAC(ccel,dFlux)*rho;
-			tcel[dFfrac] = 1.0; 
-			*pFlagDst = *pFlagSrc;
-
-			D::mNumUsedCells+=4;
-			continue; // nobnd fluid case
-		}	 // */
+		} // interpolateFineFromCoarse test! old INTCFCOARSETEST==1
 
 		if( ((*pFlagSrc) & (CFFluid)) ) { 
 			ccel = RACPNT(lev, i,j,k ,SRCS(lev)); 
@@ -3803,13 +3694,9 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 			}
 
 			OPTIMIZED_STREAMCOLLIDE;
-			//USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
-
-			//if(nbored&CFBnd) { oldFlag &= (~CFNoBndFluid); } else { }
 			*pFlagDst |= CFNoBndFluid; // test?
-			//calcCurrentVolume += 1.0; calcCurrentMass += rho;
-			calcCurrentVolume += RAC(ccel,dFlux); calcCurrentMass += RAC(ccel,dFlux)*rho;
-
+			calcCurrentVolume += RAC(ccel,dFlux); 
+			calcCurrentMass   += RAC(ccel,dFlux)*rho;
 			//ebugMarkCell(lev+1, 2*i+1,2*j+1,2*k  );
 #if FSGR_STRICT_DEBUG==1
 			if(rho<-1.0){ debugMarkCell(lev, i,j,k ); 
@@ -3843,80 +3730,16 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
   mLevel[lev].lsteps++;
   mLevel[lev].lmass   = calcCurrentMass   * mLevel[lev].lcellfactor;
   mLevel[lev].lvolume = calcCurrentVolume * mLevel[lev].lcellfactor;
-  //errMsg("DFINI", " m l"<<lev<<" m="<<mLevel[lev].lmass<<" c="<<calcCurrentMass<<"  lcf="<< mLevel[lev].lcellfactor );
-  //errMsg("DFINI", " v l"<<lev<<" v="<<mLevel[lev].lvolume<<" c="<<calcCurrentVolume<<"  lcf="<< mLevel[lev].lcellfactor );
+#ifndef ELBEEM_BLENDER
+  errMsg("DFINI", " m l"<<lev<<" m="<<mLevel[lev].lmass<<" c="<<calcCurrentMass<<"  lcf="<< mLevel[lev].lcellfactor );
+  errMsg("DFINI", " v l"<<lev<<" v="<<mLevel[lev].lvolume<<" c="<<calcCurrentVolume<<"  lcf="<< mLevel[lev].lcellfactor );
+#endif // ELBEEM_BLENDER
 }
 
 /*****************************************************************************/
 //! multi level functions
 /*****************************************************************************/
 
-#define MARK_INT_CELLS false
-#define SHOWALL_INT_CELLS true
-// interpolate from level lev-1 to lev at borders CFGrFromCoarse
-template<class D>
-void 
-LbmFsgrSolver<D>::interpolateFineFromCoarse(int lev, LbmFloat t)
-{
-	if((lev-1<0) || ((lev)>mMaxRefine)) return;
-
-#	if FSGR_STRICT_DEBUG==1
-	// reset all unused cell values to invalid
-	{ int dlev = lev; //mMaxRefine;
-		int unuCnt = 0;
-		for(int k= getForZMin1(dlev); k< getForZMax1(dlev); ++k) {
-		for(int j=1;j<mLevel[dlev].lSizey-1;++j) {
-		for(int i=1;i<mLevel[dlev].lSizex-1;++i) {
-			if( (RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) & CFGrFromCoarse ) ||					
-			    (RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) & CFUnused ) ||
-			    (RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) & CFEmpty ) ) {
-				if(RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) & CFGrFromCoarse ) { RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) = CFFluid|CFGrFromCoarse; }
-				FORDF0 { QCELL(dlev,i,j,k,mLevel[dlev].setCurr,l) = -100.0; }
-				unuCnt++;
-			}
-		} } }
-		errMsg("interpolateFineFromCoarse"," reset l"<<dlev<<" "<<unuCnt<<" cells unused ");
-	} // dlev
-#	endif // FSGR_STRICT_DEBUG==1
-
-
-//    INTCFCOARSETEST
-	// now set fine bc
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
-	for(int j=1;j<mLevel[lev].lSizey-1;++j) {
-	for(int i=1;i<mLevel[lev].lSizex-1;++i) {
-		if(RFLAG(lev, i,j,k,mLevel[lev].setCurr)&CFGrFromCoarse) {
-			/*if((i&1) && (j&1) && ( (D::cDimension==2) || (k&1) ) ){
-				errMsg("IFFC_CHECK", " betXYZ cell? on lev "<<lev<<" "<<PRINT_IJK); 
-				debugMarkCell(lev,i,j,k);
-				D::mPanic=1; 
-			} // */
-			interpolateCellFromCoarse( lev,i,j,k, mLevel[lev].setCurr, t, CFFluid|CFGrFromCoarse, false);
-			D::mNumUsedCells++;
-					//int lev, int i, int j,int k, int set, LbmFloat t, CellFlagType flagSet) {
-		}
-	} } }
-
-
-#	if FSGR_STRICT_DEBUG==1
-	// check that all values are now correctly inited
-	{ int dlev = lev; //mMaxRefine;
-		for(int k= getForZMin1(dlev); k< getForZMax1(dlev); ++k) {
-		for(int j=1;j<mLevel[dlev].lSizey-1;++j) {
-		for(int i=1;i<mLevel[dlev].lSizex-1;++i) {
-			if(RFLAG(dlev, i,j,k,mLevel[dlev].setCurr) & CFGrFromCoarse ) {
-				FORDF0 { if(QCELL(dlev,i,j,k,mLevel[dlev].setCurr,l)<-1.0){
-					errMsg("CHECKFCINITS"," l"<<(dlev)<<" "<< PRINT_IJK <<" was not inited! ");
-					debugMarkCell(dlev,i,j,k);
-					D::mPanic = 1; 
-				} }
-			}
-		} } }
-	} // dlev
-#	endif // FSGR_STRICT_DEBUG==1
-
-	if(!D::mSilent){ errMsg("interpolateFineFromCoarse"," to l"<<lev<<" s"<<mLevel[lev].setCurr<<", from "<<(lev-1)<<" (s"<< mLevel[lev-1].setCurr<<"*"<<(1.0-(t))<<"+ s"<<mLevel[lev-1].setOther<<"*"<<((t))<<")" <<" "); }
-}
 
 // get dfs from level (lev+1) to (lev) coarse border nodes
 template<class D>
@@ -3927,7 +3750,7 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 #if FSGR_STRICT_DEBUG==1
 	// reset all unused cell values to invalid
 	int unuCnt = 0;
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
 	for(int j=1;j<mLevel[lev].lSizey-1;++j) {
 	for(int i=1;i<mLevel[lev].lSizex-1;++i) {
 		CellFlagType *pFlagSrc = &RFLAG(lev, i,j,k,mLevel[lev].setCurr);
@@ -3951,23 +3774,51 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 	const int dstSet = mLevel[lev].setCurr;
 
 	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;			
-	LbmFloat omegaDst, omegaSrc;
-	LbmFloat df[LBM_DFNUM];
-	LbmFloat feq[LBM_DFNUM];
-	LbmFloat dfScale = mDfScaleUp;
 	LbmFloat *ccel = NULL;
 	LbmFloat *tcel = NULL;
 #if OPT3D==true 
+	LbmFloat m[LBM_DFNUM];
 	// for macro add
 	LbmFloat usqr;
 	//LbmFloat *addfcel, *dstcell;
 	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM];
 	LbmFloat lcsmDstOmega, lcsmSrcOmega, lcsmdfscale;
+#else // OPT3D==true 
+	LbmFloat df[LBM_DFNUM];
+	LbmFloat omegaDst, omegaSrc;
+	LbmFloat feq[LBM_DFNUM];
+	LbmFloat dfScale = mDfScaleUp;
 #endif // OPT3D==true 
 
+	LbmFloat mGaussw[27];
+	LbmFloat totGaussw = 0.0;
+	const LbmFloat alpha = 1.0;
+	const LbmFloat gw = sqrt(2.0*D::cDimension);
+#ifndef ELBEEM_BLENDER
+errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
+#endif
+	for(int n=0;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
+	//for(int n=0;(n<D::cDirNum); n++) { 
+	for(int n=0;(n<D::cDfNum); n++) { 
+		const LbmFloat d = norm(LbmVec(D::dfVecX[n], D::dfVecY[n], D::dfVecZ[n]));
+		LbmFloat w = expf( -alpha*d*d ) - expf( -alpha*gw*gw );
+		//errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 cell  n"<<n<<" d"<<d<<" w"<<w);
+		mGaussw[n] = w;
+		totGaussw += w;
+	}
+	for(int n=0;(n<D::cDirNum); n++) { 
+		mGaussw[n] = mGaussw[n]/totGaussw;
+	}
+	//totGaussw = 1.0/totGaussw;
+
+	//if(!D::mInitDone) {
+//errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test pre init");
+		//mGaussw[0] = 1.0;
+		//for(int n=1;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
+	//}
 
 	//restrict
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
 	for(int j=1;j<mLevel[lev].lSizey-1;++j) {
 	for(int i=1;i<mLevel[lev].lSizex-1;++i) {
 		CellFlagType *pFlagSrc = &RFLAG(lev, i,j,k,dstSet);
@@ -3979,24 +3830,34 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 				ccel = RACPNT(lev+1, 2*i,2*j,2*k,srcSet);
 				tcel = RACPNT(lev  , i,j,k      ,dstSet);
 
-#if OPT3D==false
-				rho= ux= uy= uz=0.0;			
-				FORDF0{
-					df[l] = RAC(ccel,l); //QCELL(lev+1, 2*i,2*j,2*k,srcSet, l);
-					//df[l] = QCELL(lev+1, 2*i,2*j,2*k,srcSet, l); // OLD
-#if FSGR_STRICT_DEBUG==1
-					if( df[l]<-1.0 ){ errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]); }
-#endif
-					rho += df[l]; 
-					ux  += (D::dfDvecX[l]*df[l]); 
-					uy  += (D::dfDvecY[l]*df[l]);  
-					uz  += (D::dfDvecZ[l]*df[l]);  
+#				if OPT3D==false
+				// add up weighted dfs
+				FORDF0{ df[l] = 0.0;}
+				for(int n=0;(n<D::cDirNum); n++) { 
+					int ni=2*i+1*D::dfVecX[n], nj=2*j+1*D::dfVecY[n], nk=2*k+1*D::dfVecZ[n];
+					ccel = RACPNT(lev+1, ni,nj,nk,srcSet);// CFINTTEST
+					const LbmFloat weight = mGaussw[n];
+					FORDF0{
+						LbmFloat cdf = weight * RAC(ccel,l);
+#						if FSGR_STRICT_DEBUG==1
+						if( cdf<-1.0 ){ errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]); }
+#						endif
+						//errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]<<" = "<<cdf<<" , w"<<weight); 
+						df[l] += cdf;
+					}
 				}
 
+				// calc rho etc. from weighted dfs
+				rho = ux  = uy  = uz  = 0.0;
 				FORDF0{
-					feq[l] = D::getCollideEq(l, rho,ux,uy,uz);
-					//df[l] = QCELL(lev+1, 2*i,2*j,2*k,srcSet, l); // OLD
+					LbmFloat cdf = df[l];
+					rho += cdf; 
+					ux  += (D::dfDvecX[l]*cdf); 
+					uy  += (D::dfDvecY[l]*cdf);  
+					uz  += (D::dfDvecZ[l]*cdf);  
 				}
+
+				FORDF0{ feq[l] = D::getCollideEq(l, rho,ux,uy,uz); }
 				if(mLevel[lev  ].lcsmago>0.0) {
 					const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feq);
 					omegaDst  = D::getLesOmega(mLevel[lev  ].omega,mLevel[lev  ].lcsmago,Qo);
@@ -4005,62 +3866,97 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 					omegaDst = mLevel[lev+0].omega; /* NEWSMAGOT*/ 
 					omegaSrc = mLevel[lev+1].omega;
 				}
-				//LbmFloat dfScaleFac = (newSteptime/1.0)/(levOldStepsize[lev]/levOldOmega[lev]);
 				dfScale   = (mLevel[lev  ].stepsize/mLevel[lev+1].stepsize)* (1.0/omegaDst-1.0)/ (1.0/omegaSrc-1.0); // yu
-				//dfScale = 1.0; 
 				FORDF0{
-					//QCELL(lev, i,j,k,dstSet, l) = feq[l]+ (df[l]-feq[l])*dfScale; // OLD
 					RAC(tcel, l) = feq[l]+ (df[l]-feq[l])*dfScale;
 				} 
-#else // OPT3D
-				/*test this*/
+#				else // OPT3D
 				// similar to OPTIMIZED_STREAMCOLLIDE_UNUSED
-				rho = CCEL_C  + CCEL_N + CCEL_S  + CCEL_E + CCEL_W  + CCEL_T  \
-					+ CCEL_B  + CCEL_NE + CCEL_NW + CCEL_SE + CCEL_SW + CCEL_NT \
-					+ CCEL_NB + CCEL_ST + CCEL_SB + CCEL_ET + CCEL_EB + CCEL_WT + CCEL_WB; \
-				ux = CCEL_E - CCEL_W + CCEL_NE - CCEL_NW + CCEL_SE - CCEL_SW \
-					+ CCEL_ET + CCEL_EB - CCEL_WT - CCEL_WB;  \
-				uy = CCEL_N - CCEL_S + CCEL_NE + CCEL_NW - CCEL_SE - CCEL_SW \
-					+ CCEL_NT + CCEL_NB - CCEL_ST - CCEL_SB;  \
-				uz = CCEL_T - CCEL_B + CCEL_NT - CCEL_NB + CCEL_ST - CCEL_SB \
-					+ CCEL_ET - CCEL_EB + CCEL_WT - CCEL_WB;  \
+                      
+				//rho = ux = uy = uz = 0.0;
+				MSRC_C  = CCELG_C(0) ;
+				MSRC_N  = CCELG_N(0) ;
+				MSRC_S  = CCELG_S(0) ;
+				MSRC_E  = CCELG_E(0) ;
+				MSRC_W  = CCELG_W(0) ;
+				MSRC_T  = CCELG_T(0) ;
+				MSRC_B  = CCELG_B(0) ;
+				MSRC_NE = CCELG_NE(0);
+				MSRC_NW = CCELG_NW(0);
+				MSRC_SE = CCELG_SE(0);
+				MSRC_SW = CCELG_SW(0);
+				MSRC_NT = CCELG_NT(0);
+				MSRC_NB = CCELG_NB(0);
+				MSRC_ST = CCELG_ST(0);
+				MSRC_SB = CCELG_SB(0);
+				MSRC_ET = CCELG_ET(0);
+				MSRC_EB = CCELG_EB(0);
+				MSRC_WT = CCELG_WT(0);
+				MSRC_WB = CCELG_WB(0);
+				for(int n=1;(n<D::cDirNum); n++) { 
+					ccel = RACPNT(lev+1,  2*i+1*D::dfVecX[n], 2*j+1*D::dfVecY[n], 2*k+1*D::dfVecZ[n]  ,srcSet);
+					MSRC_C  += CCELG_C(n) ;
+					MSRC_N  += CCELG_N(n) ;
+					MSRC_S  += CCELG_S(n) ;
+					MSRC_E  += CCELG_E(n) ;
+					MSRC_W  += CCELG_W(n) ;
+					MSRC_T  += CCELG_T(n) ;
+					MSRC_B  += CCELG_B(n) ;
+					MSRC_NE += CCELG_NE(n);
+					MSRC_NW += CCELG_NW(n);
+					MSRC_SE += CCELG_SE(n);
+					MSRC_SW += CCELG_SW(n);
+					MSRC_NT += CCELG_NT(n);
+					MSRC_NB += CCELG_NB(n);
+					MSRC_ST += CCELG_ST(n);
+					MSRC_SB += CCELG_SB(n);
+					MSRC_ET += CCELG_ET(n);
+					MSRC_EB += CCELG_EB(n);
+					MSRC_WT += CCELG_WT(n);
+					MSRC_WB += CCELG_WB(n);
+				}
+				rho = MSRC_C  + MSRC_N + MSRC_S  + MSRC_E + MSRC_W  + MSRC_T  
+					+ MSRC_B  + MSRC_NE + MSRC_NW + MSRC_SE + MSRC_SW + MSRC_NT 
+					+ MSRC_NB + MSRC_ST + MSRC_SB + MSRC_ET + MSRC_EB + MSRC_WT + MSRC_WB; 
+				ux = MSRC_E - MSRC_W + MSRC_NE - MSRC_NW + MSRC_SE - MSRC_SW 
+					+ MSRC_ET + MSRC_EB - MSRC_WT - MSRC_WB;  
+				uy = MSRC_N - MSRC_S + MSRC_NE + MSRC_NW - MSRC_SE - MSRC_SW 
+					+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB;  
+				uz = MSRC_T - MSRC_B + MSRC_NT - MSRC_NB + MSRC_ST - MSRC_SB 
+					+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB;  
 				usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
 				\
 				lcsmeq[dC] = EQC ; \
 				COLL_CALCULATE_DFEQ(lcsmeq); \
-				COLL_CALCULATE_NONEQTENSOR(lev+0, CCEL_ )\
+				COLL_CALCULATE_NONEQTENSOR(lev+0, MSRC_ )\
 				COLL_CALCULATE_CSMOMEGAVAL(lev+0, lcsmDstOmega); \
 				COLL_CALCULATE_CSMOMEGAVAL(lev+1, lcsmSrcOmega); \
 				\
 				lcsmdfscale   = (mLevel[lev+0].stepsize/mLevel[lev+1].stepsize)* (1.0/lcsmDstOmega-1.0)/ (1.0/lcsmSrcOmega-1.0);  \
-				RAC(tcel, dC ) = (lcsmeq[dC ] + (CCEL_C -lcsmeq[dC ] )*lcsmdfscale);\
-				RAC(tcel, dN ) = (lcsmeq[dN ] + (CCEL_N -lcsmeq[dN ] )*lcsmdfscale);\
-				RAC(tcel, dS ) = (lcsmeq[dS ] + (CCEL_S -lcsmeq[dS ] )*lcsmdfscale);\
-				RAC(tcel, dE ) = (lcsmeq[dE ] + (CCEL_E -lcsmeq[dE ] )*lcsmdfscale);\
-				RAC(tcel, dW ) = (lcsmeq[dW ] + (CCEL_W -lcsmeq[dW ] )*lcsmdfscale);\
-				RAC(tcel, dT ) = (lcsmeq[dT ] + (CCEL_T -lcsmeq[dT ] )*lcsmdfscale);\
-				RAC(tcel, dB ) = (lcsmeq[dB ] + (CCEL_B -lcsmeq[dB ] )*lcsmdfscale);\
-				RAC(tcel, dNE) = (lcsmeq[dNE] + (CCEL_NE-lcsmeq[dNE] )*lcsmdfscale);\
-				RAC(tcel, dNW) = (lcsmeq[dNW] + (CCEL_NW-lcsmeq[dNW] )*lcsmdfscale);\
-				RAC(tcel, dSE) = (lcsmeq[dSE] + (CCEL_SE-lcsmeq[dSE] )*lcsmdfscale);\
-				RAC(tcel, dSW) = (lcsmeq[dSW] + (CCEL_SW-lcsmeq[dSW] )*lcsmdfscale);\
-				RAC(tcel, dNT) = (lcsmeq[dNT] + (CCEL_NT-lcsmeq[dNT] )*lcsmdfscale);\
-				RAC(tcel, dNB) = (lcsmeq[dNB] + (CCEL_NB-lcsmeq[dNB] )*lcsmdfscale);\
-				RAC(tcel, dST) = (lcsmeq[dST] + (CCEL_ST-lcsmeq[dST] )*lcsmdfscale);\
-				RAC(tcel, dSB) = (lcsmeq[dSB] + (CCEL_SB-lcsmeq[dSB] )*lcsmdfscale);\
-				RAC(tcel, dET) = (lcsmeq[dET] + (CCEL_ET-lcsmeq[dET] )*lcsmdfscale);\
-				RAC(tcel, dEB) = (lcsmeq[dEB] + (CCEL_EB-lcsmeq[dEB] )*lcsmdfscale);\
-				RAC(tcel, dWT) = (lcsmeq[dWT] + (CCEL_WT-lcsmeq[dWT] )*lcsmdfscale);\
-				RAC(tcel, dWB) = (lcsmeq[dWB] + (CCEL_WB-lcsmeq[dWB] )*lcsmdfscale);\
-				// */
-				/* IDF_WRITEBACK optimized */
-				//errMsg("coarseRestrictFromFine", "CRFF_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" "<<lcsmdfscale<<","<<lcsmDstOmega<<","<<lcsmSrcOmega ); 
-#endif // OPT3D==false
+				RAC(tcel, dC ) = (lcsmeq[dC ] + (MSRC_C -lcsmeq[dC ] )*lcsmdfscale);
+				RAC(tcel, dN ) = (lcsmeq[dN ] + (MSRC_N -lcsmeq[dN ] )*lcsmdfscale);
+				RAC(tcel, dS ) = (lcsmeq[dS ] + (MSRC_S -lcsmeq[dS ] )*lcsmdfscale);
+				RAC(tcel, dE ) = (lcsmeq[dE ] + (MSRC_E -lcsmeq[dE ] )*lcsmdfscale);
+				RAC(tcel, dW ) = (lcsmeq[dW ] + (MSRC_W -lcsmeq[dW ] )*lcsmdfscale);
+				RAC(tcel, dT ) = (lcsmeq[dT ] + (MSRC_T -lcsmeq[dT ] )*lcsmdfscale);
+				RAC(tcel, dB ) = (lcsmeq[dB ] + (MSRC_B -lcsmeq[dB ] )*lcsmdfscale);
+				RAC(tcel, dNE) = (lcsmeq[dNE] + (MSRC_NE-lcsmeq[dNE] )*lcsmdfscale);
+				RAC(tcel, dNW) = (lcsmeq[dNW] + (MSRC_NW-lcsmeq[dNW] )*lcsmdfscale);
+				RAC(tcel, dSE) = (lcsmeq[dSE] + (MSRC_SE-lcsmeq[dSE] )*lcsmdfscale);
+				RAC(tcel, dSW) = (lcsmeq[dSW] + (MSRC_SW-lcsmeq[dSW] )*lcsmdfscale);
+				RAC(tcel, dNT) = (lcsmeq[dNT] + (MSRC_NT-lcsmeq[dNT] )*lcsmdfscale);
+				RAC(tcel, dNB) = (lcsmeq[dNB] + (MSRC_NB-lcsmeq[dNB] )*lcsmdfscale);
+				RAC(tcel, dST) = (lcsmeq[dST] + (MSRC_ST-lcsmeq[dST] )*lcsmdfscale);
+				RAC(tcel, dSB) = (lcsmeq[dSB] + (MSRC_SB-lcsmeq[dSB] )*lcsmdfscale);
+				RAC(tcel, dET) = (lcsmeq[dET] + (MSRC_ET-lcsmeq[dET] )*lcsmdfscale);
+				RAC(tcel, dEB) = (lcsmeq[dEB] + (MSRC_EB-lcsmeq[dEB] )*lcsmdfscale);
+				RAC(tcel, dWT) = (lcsmeq[dWT] + (MSRC_WT-lcsmeq[dWT] )*lcsmdfscale);
+				RAC(tcel, dWB) = (lcsmeq[dWB] + (MSRC_WB-lcsmeq[dWB] )*lcsmdfscale);
+#				endif // OPT3D==false
 
-				if( ((lev)<mMaxRefine) || (SHOWALL_INT_CELLS))
-					if((MARK_INT_CELLS)&&(D::cDimension==2)) { debugMarkCell(lev,i,j,k); }
+				//? if((lev<mMaxRefine)&&(D::cDimension==2)) { debugMarkCell(lev,i,j,k); }
 #			if FSGR_STRICT_DEBUG==1
-				errMsg("coarseRestrictFromFine", "CRFF_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" " ); 
+				//errMsg("coarseRestrictFromFine", "CRFF_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" " ); 
 #			endif // FSGR_STRICT_DEBUG==1
 				D::mNumUsedCells++;
 			} // from fine & fluid
@@ -4078,298 +3974,69 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 
 template<class D>
 bool 
-LbmFsgrSolver<D>::performCoarsening(int lev) {
-	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
-	bool change = false;
-	bool nbsok;
-
-	// use template functions for 2D/3D
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
-  for(int j=1;j<mLevel[lev].lSizey-1;++j) {
-  for(int i=1;i<mLevel[lev].lSizex-1;++i) {
-
-			// from coarse cells without unused nbs are not necessary...! -> remove
-			// perform check from coarseAdvance here?
-			if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrFromFine) {
-				nbsok = true;
-				if((lev+1 == mMaxRefine) && (RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)&(CFInter))) { 
-					// dont turn CFGrFromFine above interface cells into CFGrNorm
-					nbsok=false;
-				}
-				if(lev+1 == mMaxRefine) {
-					for(int l=1; l<D::cDirNum && nbsok; l++) { 
-						int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(CFInter)) { // dont coarsen when near interface
-							nbsok = false;
-						}
-					} // l
-				} else {
-					for(int l=1; l<D::cDirNum && nbsok; l++) { 
-						int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(CFGrFromFine)) { // dont coarsen when near interface
-							nbsok = false;
-						}
-					} // l
-				}
-					// dont turn CFGrFromFine above interface cells into CFGrNorm
-				// now check nbs on same level
-				for(int l=1; l<D::cDirNum && nbsok; l++) { 
-					int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
-					if(RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)&(CFFluid)) { //ok
-					} else {
-						nbsok = false;
-					}
-				} // l
-				if(nbsok) {
-					// conversion to coarse fluid cell
-					change = true;
-					RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrNorm;
-					// dfs are already ok...
-					//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine changed to CFGrNorm at lev"<<lev<<" " <<PRINT_IJK );
-					if(D::cDimension==2) debugMarkCell(lev,i,j,k); 
-
-					// only check complete cubes
-					for(int dx=-1;dx<=1;dx+=2) {
-					for(int dy=-1;dy<=1;dy+=2) {
-					for(int dz=-1*(LBMDIM&1);dz<=1*(LBMDIM&1);dz+=2) { // 2d/3d
-						// check for norm and from coarse, as the coarse level might just have been refined...
-						/*if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subc check "<<
-									"x"<<convertFlags2String( RFLAG(lev, i+dx, j   , k   ,  mLevel[lev].setCurr))<<" "
-									"y"<<convertFlags2String( RFLAG(lev, i   , j+dy, k   ,  mLevel[lev].setCurr))<<" "
-									"z"<<convertFlags2String( RFLAG(lev, i   , j   , k+dz,  mLevel[lev].setCurr))<<" "
-									"xy"<<convertFlags2String( RFLAG(lev, i+dx, j+dy, k   ,  mLevel[lev].setCurr))<<" "
-									"xz"<<convertFlags2String( RFLAG(lev, i+dx, j   , k+dz,  mLevel[lev].setCurr))<<" "
-									"yz"<<convertFlags2String( RFLAG(lev, i   , j+dy, k+dz,  mLevel[lev].setCurr))<<" "
-									"xyz"<<convertFlags2String( RFLAG(lev, i+dx, j+dy, k+dz,  mLevel[lev].setCurr))<<" " ); // */
-						if( 
-								// we now the flag of the current cell! ( RFLAG(lev, i   , j   , k   ,  mLevel[lev].setCurr)&(CFGrNorm)) &&
-								( RFLAG(lev, i+dx, j   , k   ,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-								( RFLAG(lev, i   , j+dy, k   ,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-								( RFLAG(lev, i   , j   , k+dz,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-
-								( RFLAG(lev, i+dx, j+dy, k   ,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-								( RFLAG(lev, i+dx, j   , k+dz,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-								( RFLAG(lev, i   , j+dy, k+dz,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) &&
-								( RFLAG(lev, i+dx, j+dy, k+dz,  mLevel[lev].setCurr)&(CFGrNorm|CFGrFromCoarse)) 
-							) {
-							// middle source node on higher level
-							int dstlev = lev+1;
-							int dstx = (2*i)+dx;
-							int dsty = (2*j)+dy;
-							int dstz = (2*k)+dz;
-
-							RFLAG(dstlev, dstx,dsty,dstz, mLevel[dstlev].setCurr) = CFUnused;
-							RFLAG(dstlev, dstx,dsty,dstz, mLevel[dstlev].setOther) = CFUnused; // FLAGTEST
-							//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init center unused set l"<<dstlev<<" at "<<PRINT_VEC(dstx,dsty,dstz) );
-
-							for(int l=1; l<D::cDirNum; l++) { 
-								int dstni=dstx+D::dfVecX[l], dstnj=dsty+D::dfVecY[l], dstnk=dstz+D::dfVecZ[l];
-								if(RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr)&(CFFluid)) { 
-									RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr) = CFFluid|CFGrFromCoarse;
-								}
-								if(RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr)&(CFInter)) { 
-									//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init CHECK Warning - deleting interface cell...");
-									D::mFixMass += QCELL( dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr, dMass);
-									RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr) = CFFluid|CFGrFromCoarse;
-								}
-							} // l
-
-							// again check nb flags of all surrounding cells to see if any from coarse
-							// can be convted to unused
-							for(int l=1; l<D::cDirNum; l++) { 
-								int dstni=dstx+D::dfVecX[l], dstnj=dsty+D::dfVecY[l], dstnk=dstz+D::dfVecZ[l];
-								// have to be at least from coarse here...
-								//errMsg("performCoarsening","CFGrFromFine subcube init unused check l"<<dstlev<<" at "<<PRINT_VEC(dstni,dstnj,dstnk)<<" "<< convertFlags2String(RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr)) );
-								if(!(RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr)&(CFUnused) )) { 
-									bool delok = true;
-									// careful long range here... check domain bounds?
-									for(int m=1; m<D::cDirNum; m++) { 										
-										int chkni=dstni+D::dfVecX[m], chknj=dstnj+D::dfVecY[m], chknk=dstnk+D::dfVecZ[m];
-										if(RFLAG(dstlev, chkni,chknj,chknk, mLevel[dstlev].setCurr)&(CFUnused|CFGrFromCoarse)) { 
-											// this nb cell is ok for deletion
-										} else { 
-											delok=false; // keep it!
-										}
-										//errMsg("performCoarsening"," CHECK "<<PRINT_VEC(dstni,dstnj,dstnk)<<" to "<<PRINT_VEC( chkni,chknj,chknk )<<" f:"<< convertFlags2String( RFLAG(dstlev, chkni,chknj,chknk, mLevel[dstlev].setCurr))<<" nbsok"<<delok );
-									}
-									//errMsg("performCoarsening","CFGrFromFine subcube init unused check l"<<dstlev<<" at "<<PRINT_VEC(dstni,dstnj,dstnk)<<" ok"<<delok );
-									if(delok) {
-										RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setCurr) = CFUnused;
-										RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setOther) = CFUnused; // FLAGTEST
-										if(D::cDimension==2) debugMarkCell(dstlev,dstni,dstnj,dstnk); 
-									}
-								}
-							} // l
-							// treat subcube
-							//ebugMarkCell(lev,i+dx,j+dy,k+dz); 
-							//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init, dir:"<<PRINT_VEC(dx,dy,dz) );
-						}
-					} } }
-
-				}   // ?
-			} // convert regions of from fine
-
-					// reinit cell area value
-					/*if( RFLAG(lev, i,j,k,mLevel[lev].setCurr) & CFFluid) {
-						if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFGrFromCoarse) {
-							LbmFloat totArea = mFsgrCellArea[0]; // for l=0
-							for(int l=1; l<D::cDirNum; l++) { 
-								int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-								if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&
-										(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-										//(CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-										) { 
-									//LbmFloat area = 0.25; if(D::dfVecX[l]!=0) area *= 0.5; if(D::dfVecY[l]!=0) area *= 0.5; if(D::dfVecZ[l]!=0) area *= 0.5;
-									totArea += mFsgrCellArea[l];
-								}
-							} // l
-							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
-							QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = totArea;
-						} else {
-							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
-							QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = 1.0;
-						}
-						//errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) );
-					}
-				// */
-
-			if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFEmpty) {
-				bool changeToFromFine = false;
-				const CellFlagType notAllowed = (CFInter|CFGrFromCoarse|CFGrFromFine|CFGrToFine);
-				const CellFlagType notNbAllowed = (CFEmpty|CFGrFromFine|CFInter|CFBnd);
-#if REFINEMENTBORDER==1
-				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (CFFluid)) &&
-				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (notAllowed)) )  ){
-					changeToFromFine=true;
-				}
-#elif REFINEMENTBORDER==2 // REFINEMENTBORDER==1
-				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (CFFluid)) &&
-				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (notAllowed)) )  ){
-					changeToFromFine=true;
-					for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) { 
-						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					}
-					/*for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) {  // FARBORD
-						int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					} // FARBORD*/
-				}
-#elif REFINEMENTBORDER==3 // REFINEMENTBORDER==3
-				if(lev+1==mMaxRefine) { // mixborder
-					if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (CFFluid|CFInter)) &&
-							(!(RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (notAllowed)) )  ){
-						changeToFromFine=true;
-					}
-				} else {
-				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (CFFluid)) &&
-				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), mLevel[lev+1].setCurr) & (notAllowed)) )  ){
-					changeToFromFine=true;
-					for(int l=0; l<D::cDirNum; l++) { 
-						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					}
-				} } // mixborder
-#else // REFINEMENTBORDER==3
-				ERROR
-#endif // REFINEMENTBORDER==1
-				if(changeToFromFine) {
-					change = true;
-					RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrFromFine;
-					if(D::cDimension==2) debugMarkCell(lev,i,j,k); 
-					// same as restr from fine func! not necessary ?!
-					// coarseRestrictFromFine part */
-				}
-			} // only check empty cells
-
-	} } }
-
-	if(!D::mSilent){ errMsg("performCoarsening"," for l"<<lev<<" done " ); }
-	return change;
-}
-
-template<class D>
-bool 
 LbmFsgrSolver<D>::performRefinement(int lev) {
 	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
 	bool change = false;
 	//bool nbsok;
 	// TIMEINTORDER ?
 	LbmFloat interTime = 0.0;
+	// update curr from other, as streaming afterwards works on curr
+	// thus read only from srcSet, modify other
+	const int srcSet = mLevel[lev].setOther;
+	const int dstSet = mLevel[lev].setCurr;
+	const int srcFineSet = mLevel[lev+1].setCurr;
+	const bool debugRefinement = false;
 
 	// use template functions for 2D/3D
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
   for(int i=1;i<mLevel[lev].lSizex-1;++i) {
 
-		// ????
-		/*if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrFromFine) {
-			// from fine cells without fluid nbs are not necessary...! -> remove
-			bool fluidNb = false;
-			for(int l=1; l<D::cDirNum; l++) { 
-				if(RFLAG_NB(lev, i, j, k, mLevel[lev].setCurr, l) & CFFluid) { fluidNb = true; }
-			}   
-			if(!fluidNb) {
-				RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrNorm;
-			} 
-		} // */
-			
-		// check for "inactive" norm cells (without finer border near)?
-		if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrNorm) {
-			if(lev+1 == mMaxRefine) {
-				for(int l=0; l<D::cDirNum; l++) { 
-					int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&(CFInter)) { // dont compute
-						//nbsok = false;
-						RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrFromFine;
-						if(D::cDimension==2) debugMarkCell(lev,i,j,k); 
-						l = D::cDirNum;
-					}
-				} // l
-			} 
-
-		}
-
-		if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrFromFine) {
-
-			// remove from coarse cells in neighborhood !?
-			//for(int l=0; l<D::cDirNum; l++) { 
-			//}
+		if(RFLAG(lev, i,j,k, srcSet) & CFGrFromFine) {
 			bool removeFromFine = false;
-			const CellFlagType notSrcAllowed = (CFEmpty|CFGrFromFine|CFInter|CFBnd|CFGrToFine);
+			const CellFlagType notAllowed = (CFInter|CFGrFromFine|CFGrToFine);
+			CellFlagType reqType = CFGrNorm;
+			if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
 			
 #if REFINEMENTBORDER==1
-			if(RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)&notSrcAllowed) { 
+			if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), srcFineSet) & reqType) &&
+			    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), srcFineSet) & (notAllowed)) )  ){ // ok
+			} else {
 				removeFromFine=true;
 			}
+			/*if(strstr(D::getName().c_str(),"Debug"))
+			if(lev+1==mMaxRefine) { // mixborder
+				for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) {  // FARBORD
+					int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+					if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&CFBnd) { // NEWREFT
+						removeFromFine=true;
+					}
+				}
+			} // FARBORD */
 #elif REFINEMENTBORDER==2 // REFINEMENTBORDER==1
+			FIX
 			for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) { 
 				int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-				if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&notSrcAllowed) { // NEWREFT
+				if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
 					removeFromFine=true;
 				}
 			}
 			/*for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) {  // FARBORD
 				int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-				if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&notSrcAllowed) { // NEWREFT
+				if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
 					removeFromFine=true;
 				}
 			} // FARBORD */
 #elif REFINEMENTBORDER==3 // REFINEMENTBORDER==1
+			FIX
 			if(lev+1==mMaxRefine) { // mixborder
-				if(RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)&notSrcAllowed) { 
+				if(RFLAG(lev+1, 2*i,2*j,2*k, srcFineSet)&notSrcAllowed) { 
 					removeFromFine=true;
 				}
 			} else { // mixborder
 				for(int l=0; l<D::cDirNum; l++) { 
 					int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&notSrcAllowed) { // NEWREFT
+					if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
 						removeFromFine=true;
 					}
 				}
@@ -4381,54 +4048,159 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 
 			if(removeFromFine) {
 				// dont turn CFGrFromFine above interface cells into CFGrNorm
-				//errMsg("performRefinement","Removing CFGrFromFine on lev"<<lev<<" " <<PRINT_IJK );
-				RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFEmpty;
-				RFLAG(lev, i,j,k, mLevel[lev].setOther) = CFEmpty; // FLAGTEST
-				if(D::cDimension==2) debugMarkCell(lev,i,j,k); 
+				//errMsg("performRefinement","Removing CFGrFromFine on lev"<<lev<<" " <<PRINT_IJK<<" srcflag:"<<convertCellFlagType2String(RFLAG(lev+1, (2*i),(2*j),(2*k), srcFineSet)) <<" set:"<<dstSet );
+				RFLAG(lev, i,j,k, dstSet) = CFEmpty;
+#if FSGR_STRICT_DEBUG==1
+				// for interpolation later on during fine grid fixing
+				// these cells are still correctly inited
+				RFLAG(lev, i,j,k, dstSet) |= CFGrCoarseInited;  // remove later on? FIXME?
+#endif // FSGR_STRICT_DEBUG==1
+				//RFLAG(lev, i,j,k, mLevel[lev].setOther) = CFEmpty; // FLAGTEST
+				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev,i,j,k); 
 				change=true;
+				mNumFsgrChanges++;
 				for(int l=1; l<D::cDirNum; l++) { 
 					int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
-					if(RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)&(CFFluid)) { //ok
-						RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr) = CFFluid|CFGrFromFine;
-						if(D::cDimension==2) debugMarkCell(lev,ni,nj,nk); 
+					//errMsg("performRefinement","On lev:"<<lev<<" check: "<<PRINT_VEC(ni,nj,nk)<<" set:"<<dstSet<<" = "<<convertCellFlagType2String(RFLAG(lev, ni,nj,nk, srcSet)) );
+					if( (  RFLAG(lev, ni,nj,nk, srcSet)&CFFluid      ) &&
+							(!(RFLAG(lev, ni,nj,nk, srcSet)&CFGrFromFine)) ) { // dont change status of nb. from fine cells
+						// tag as inited for debugging, cell contains fluid DFs anyway
+						RFLAG(lev, ni,nj,nk, dstSet) = CFFluid|CFGrFromFine|CFGrCoarseInited;
+						//errMsg("performRefinement","On lev:"<<lev<<" set to from fine: "<<PRINT_VEC(ni,nj,nk)<<" set:"<<dstSet);
+						//if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev,ni,nj,nk); 
 					}
 				} // l 
+
+				// FIXME fix fine level?
 			}
 
 			// recheck from fine flag
 		}
+	}}} // TEST
 
-		if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrFromFine) {
-			if((RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)&(CFGrFromCoarse))) { 
+
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) { // TEST
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) { // TEST
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) { // TEST
+
+		// test from coarseAdvance
+		// from coarse cells without unused nbs are not necessary...! -> remove
+		/*if( ((*pFlagSrc) & (CFGrFromCoarse)) ) { 
+			bool invNb = false;
+			FORDF1 { 
+				if(RFLAG_NB(lev, i, j, k, SRCS(lev), l) & CFUnused) { invNb = true; }
+			}   
+			if(!invNb) {
+				*pFlagSrc = CFFluid|CFGrNorm;
+				errMsg("coarseAdvance","FC2NRM_CHECK Converted CFGrFromCoarse to Norm at "<<lev<<" "<<PRINT_IJK);
+			}
+		} // */
+
+		if(RFLAG(lev, i,j,k, srcSet) & CFGrFromCoarse) {
+
+			// from coarse cells without unused nbs are not necessary...! -> remove
+			bool invNb = false;
+			bool fluidNb = false;
+			for(int l=1; l<D::cDirNum; l++) { 
+				if(RFLAG_NB(lev, i, j, k, srcSet, l) & CFUnused) { invNb = true; }
+				if(RFLAG_NB(lev, i, j, k, srcSet, l) & (CFGrNorm)) { fluidNb = true; }
+			}   
+			if(!invNb) {
+				// no unused cells around -> calculate normally from now on
+				RFLAG(lev, i,j,k, dstSet) = CFFluid|CFGrNorm;
+				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev, i, j, k); 
+				change=true;
+				mNumFsgrChanges++;
+			} // from advance */
+			if(!fluidNb) {
+				// no fluid cells near -> no transfer necessary
+				RFLAG(lev, i,j,k, dstSet) = CFUnused;
+				//RFLAG(lev, i,j,k, mLevel[lev].setOther) = CFUnused; // FLAGTEST
+				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev, i, j, k); 
+				change=true;
+				mNumFsgrChanges++;
+			} // from advance */
+
+
+			// dont allow double transfer
+			// this might require fixing the neighborhood
+			if(RFLAG(lev+1, 2*i,2*j,2*k, srcFineSet)&(CFGrFromCoarse)) { 
+				// dont turn CFGrFromFine above interface cells into CFGrNorm
+				//errMsg("performRefinement","Removing CFGrFromCoarse on lev"<<lev<<" " <<PRINT_IJK<<" due to finer from coarse cell " );
+				RFLAG(lev, i,j,k, dstSet) = CFFluid|CFGrNorm;
+				if(lev>0) RFLAG(lev-1, i/2,j/2,k/2, mLevel[lev-1].setCurr) &= (~CFGrToFine); // TODO add more of these?
+				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev, i, j, k); 
+				change=true;
+				mNumFsgrChanges++;
+				for(int l=1; l<D::cDirNum; l++) { 
+					int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
+					if(RFLAG(lev, ni,nj,nk, srcSet)&(CFGrNorm)) { //ok
+						for(int m=1; m<D::cDirNum; m++) { 
+							int mi=  ni +D::dfVecX[m], mj=  nj +D::dfVecY[m], mk=  nk +D::dfVecZ[m];
+							if(RFLAG(lev,  mi, mj, mk, srcSet)&CFUnused) {
+								// norm cells in neighborhood with unused nbs have to be new border...
+								RFLAG(lev, ni,nj,nk, dstSet) = CFFluid|CFGrFromCoarse;
+								if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev,ni,nj,nk); 
+							}
+						}
+						// these alreay have valid values...
+					}
+					else if(RFLAG(lev, ni,nj,nk, srcSet)&(CFUnused)) { //ok
+						// this should work because we have a valid neighborhood here for now
+						interpolateCellFromCoarse(lev,  ni, nj, nk, dstSet /*mLevel[lev].setCurr*/, interTime, CFFluid|CFGrFromCoarse, false);
+						if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev,ni,nj,nk); 
+						mNumFsgrChanges++;
+					}
+				} // l 
+			} // double transer
+
+		} // from coarse
+
+	} } }
+
+
+	// fix dstSet from fine cells here
+	// warning - checks CFGrFromFine on dstset changed before!
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) { // TEST
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) { // TEST
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) { // TEST
+
+		//if(RFLAG(lev, i,j,k, srcSet) & CFGrFromFine) {
+		if(RFLAG(lev, i,j,k, dstSet) & CFGrFromFine) {
+			// modify finer level border
+			if((RFLAG(lev+1, 2*i,2*j,2*k, srcFineSet)&(CFGrFromCoarse))) { 
 				//errMsg("performRefinement","Removing CFGrFromCoarse on lev"<<(lev+1)<<" from l"<<lev<<" " <<PRINT_IJK );
 				CellFlagType setf = CFFluid;
 				if(lev+1 < mMaxRefine) setf = CFFluid|CFGrNorm;
-				RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)=setf;
+				RFLAG(lev+1, 2*i,2*j,2*k, srcFineSet)=setf;
 				change=true;
+				mNumFsgrChanges++;
 				for(int l=1; l<D::cDirNum; l++) { 
 					int bi=(2*i)+D::dfVecX[l], bj=(2*j)+D::dfVecY[l], bk=(2*k)+D::dfVecZ[l];
-					if(RFLAG(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr)&(CFGrFromCoarse)) {
+					if(RFLAG(lev+1,  bi, bj, bk, srcFineSet)&(CFGrFromCoarse)) {
 						//errMsg("performRefinement","Removing CFGrFromCoarse on lev"<<(lev+1)<<" "<<PRINT_VEC(bi,bj,bk) );
-						RFLAG(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr) = setf;
-						if(D::cDimension==2) debugMarkCell(lev+1,bi,bj,bk); 
+						RFLAG(lev+1,  bi, bj, bk, srcFineSet) = setf;
+						if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev+1,bi,bj,bk); 
 					}
-					else if(RFLAG(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr)&(CFUnused      )) { 
+					else if(RFLAG(lev+1,  bi, bj, bk, srcFineSet)&(CFUnused      )) { 
 						//errMsg("performRefinement","Removing CFUnused on lev"<<(lev+1)<<" "<<PRINT_VEC(bi,bj,bk) );
-						interpolateCellFromCoarse(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr, interTime, setf, false);
-						if(D::cDimension==2) debugMarkCell(lev+1,bi,bj,bk); 
+						interpolateCellFromCoarse(lev+1,  bi, bj, bk, srcFineSet, interTime, setf, false);
+						if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev+1,bi,bj,bk); 
+						mNumFsgrChanges++;
 					}
 				}
 				for(int l=1; l<D::cDirNum; l++) { 
 					int bi=(2*i)+D::dfVecX[l], bj=(2*j)+D::dfVecY[l], bk=(2*k)+D::dfVecZ[l];
-					if(   (RFLAG(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr)&CFFluid       ) &&
-							(!(RFLAG(lev+1,  bi, bj, bk, mLevel[lev+1].setCurr)&CFGrFromCoarse)) ) {
+					if(   (RFLAG(lev+1,  bi, bj, bk, srcFineSet)&CFFluid       ) &&
+							(!(RFLAG(lev+1,  bi, bj, bk, srcFineSet)&CFGrFromCoarse)) ) {
 						// all unused nbs now of coarse have to be from coarse
 						for(int m=1; m<D::cDirNum; m++) { 
 							int mi=  bi +D::dfVecX[m], mj=  bj +D::dfVecY[m], mk=  bk +D::dfVecZ[m];
-							if(RFLAG(lev+1,  mi, mj, mk, mLevel[lev+1].setCurr)&CFUnused) {
+							if(RFLAG(lev+1,  mi, mj, mk, srcFineSet)&CFUnused) {
 								//errMsg("performRefinement","Changing CFUnused on lev"<<(lev+1)<<" "<<PRINT_VEC(mi,mj,mk) );
-								interpolateCellFromCoarse(lev+1,  mi, mj, mk, mLevel[lev+1].setCurr, interTime, CFFluid|CFGrFromCoarse, false);
-								if(D::cDimension==2) debugMarkCell(lev+1,mi,mj,mk); 
+								interpolateCellFromCoarse(lev+1,  mi, mj, mk, srcFineSet, interTime, CFFluid|CFGrFromCoarse, false);
+								if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev+1,mi,mj,mk); 
+								mNumFsgrChanges++;
 							}
 						}
 						// nbs prepared...
@@ -4437,65 +4209,264 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 			}
 			
 		} // convert regions of from fine
-
-		if(RFLAG(lev, i,j,k, mLevel[lev].setCurr) & CFGrFromCoarse) {
-
-			// from coarse cells without unused nbs are not necessary...! -> remove
-			bool invNb = false;
-			bool fluidNb = false;
-			for(int l=1; l<D::cDirNum; l++) { 
-				if(RFLAG_NB(lev, i, j, k, mLevel[lev].setCurr, l) & CFUnused) { invNb = true; }
-				if(RFLAG_NB(lev, i, j, k, mLevel[lev].setCurr, l) & (CFGrNorm)) { fluidNb = true; }
-			}   
-			if(!invNb) {
-				RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrNorm;
-				if(D::cDimension==2) debugMarkCell(lev, i, j, k); 
-				change=true;
-			} // from advance */
-			if(!fluidNb) {
-				RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFUnused;
-				RFLAG(lev, i,j,k, mLevel[lev].setOther) = CFUnused; // FLAGTEST
-				if(D::cDimension==2) debugMarkCell(lev, i, j, k); 
-				change=true;
-			} // from advance */
-
-
-			// dont allow double transfer
-			if(RFLAG(lev+1, 2*i,2*j,2*k, mLevel[lev+1].setCurr)&(CFGrFromCoarse)) { 
-				// dont turn CFGrFromFine above interface cells into CFGrNorm
-				//errMsg("performRefinement","Removing CFGrFromCoarse on lev"<<lev<<" " <<PRINT_IJK<<" due to finer from coarse cell " );
-				RFLAG(lev, i,j,k, mLevel[lev].setCurr) = CFFluid|CFGrNorm;
-				if(D::cDimension==2) debugMarkCell(lev, i, j, k); 
-				change=true;
-				for(int l=1; l<D::cDirNum; l++) { 
-					int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
-					if(RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)&(CFGrNorm)) { //ok
-						for(int m=1; m<D::cDirNum; m++) { 
-							int mi=  ni +D::dfVecX[m], mj=  nj +D::dfVecY[m], mk=  nk +D::dfVecZ[m];
-							if(RFLAG(lev,  mi, mj, mk, mLevel[lev].setCurr)&CFUnused) {
-								// norm cells in neighborhood with unused nbs have to be new border...
-								RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr) = CFFluid|CFGrFromCoarse;
-								if(D::cDimension==2) debugMarkCell(lev,ni,nj,nk); 
-							}
-						}
-						// these alreay have valid values...
-					}
-					else if(RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr)&(CFUnused)) { //ok
-						//RFLAG(lev, ni,nj,nk, mLevel[lev].setCurr) = CFFluid|CFGrFromFine;
-						// is this guaranteed to always work?
-						interpolateCellFromCoarse(lev,  ni, nj, nk, mLevel[lev].setCurr, interTime, CFFluid|CFGrFromCoarse, false);
-						if(D::cDimension==2) debugMarkCell(lev,ni,nj,nk); 
-					}
-				} // l 
-			}
-		} // from coarse
-
-	} } }
+	}}} // TEST
 
 	if(!D::mSilent){ errMsg("performRefinement"," for l"<<lev<<" done ("<<change<<") " ); }
 	return change;
 }
 
+
+// done after refinement
+template<class D>
+bool 
+LbmFsgrSolver<D>::performCoarsening(int lev) {
+	//if(D::mInitDone){ errMsg("performCoarsening","skip"); return 0;} // DEBUG
+					
+	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
+	bool change = false;
+	bool nbsok;
+	// hence work on modified curr set
+	const int srcSet = mLevel[lev].setCurr;
+	const int dstlev = lev+1;
+	const int dstFineSet = mLevel[dstlev].setCurr;
+	const bool debugCoarsening = false;
+
+	// use template functions for 2D/3D
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) {
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) {
+
+			// from coarse cells without unused nbs are not necessary...! -> remove
+			// perform check from coarseAdvance here?
+			if(RFLAG(lev, i,j,k, srcSet) & CFGrFromFine) {
+				// remove from fine cells now that are completely in fluid
+				// FIXME? check that new from fine in performRefinement never get deleted here afterwards?
+				// or more general, one cell never changed more than once?
+				const CellFlagType notAllowed = (CFInter|CFGrFromFine|CFGrToFine);
+				//const CellFlagType notNbAllowed = (CFInter|CFBnd|CFGrFromFine); unused
+				CellFlagType reqType = CFGrNorm;
+				if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
+
+				nbsok = true;
+				for(int l=0; l<D::cDirNum && nbsok; l++) { 
+					int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
+					if(   (RFLAG(lev+1, ni,nj,nk, dstFineSet) & reqType) &&
+							(!(RFLAG(lev+1, ni,nj,nk, dstFineSet) & (notAllowed)) )  ){
+						// ok
+					} else {
+						nbsok=false;
+					}
+					/*if(strstr(D::getName().c_str(),"Debug"))
+					if((nbsok)&&(lev+1==mMaxRefine)) { // mixborder
+						for(int l=0;((l<D::cDirNum) && (nbsok)); l++) {  // FARBORD
+							int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+							if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
+								nbsok=false;
+							}
+						}
+					} // FARBORD */
+				}
+				// dont turn CFGrFromFine above interface cells into CFGrNorm
+				// now check nbs on same level
+				for(int l=1; l<D::cDirNum && nbsok; l++) { 
+					int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
+					if(RFLAG(lev, ni,nj,nk, srcSet)&(CFFluid)) { //ok
+					} else {
+						nbsok = false;
+					}
+				} // l
+
+				if(nbsok) {
+					// conversion to coarse fluid cell
+					change = true;
+					mNumFsgrChanges++;
+					RFLAG(lev, i,j,k, srcSet) = CFFluid|CFGrNorm;
+					// dfs are already ok...
+					//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine changed to CFGrNorm at lev"<<lev<<" " <<PRINT_IJK );
+					if((D::cDimension==2)&&(debugCoarsening)) debugMarkCell(lev,i,j,k); 
+
+					// only check complete cubes
+					for(int dx=-1;dx<=1;dx+=2) {
+					for(int dy=-1;dy<=1;dy+=2) {
+					for(int dz=-1*(LBMDIM&1);dz<=1*(LBMDIM&1);dz+=2) { // 2d/3d
+						// check for norm and from coarse, as the coarse level might just have been refined...
+						/*if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subc check "<< "x"<<convertCellFlagType2String( RFLAG(lev, i+dx, j   , k   ,  srcSet))<<" "
+									"y"<<convertCellFlagType2String( RFLAG(lev, i   , j+dy, k   ,  srcSet))<<" " "z"<<convertCellFlagType2String( RFLAG(lev, i   , j   , k+dz,  srcSet))<<" "
+									"xy"<<convertCellFlagType2String( RFLAG(lev, i+dx, j+dy, k   ,  srcSet))<<" " "xz"<<convertCellFlagType2String( RFLAG(lev, i+dx, j   , k+dz,  srcSet))<<" "
+									"yz"<<convertCellFlagType2String( RFLAG(lev, i   , j+dy, k+dz,  srcSet))<<" " "xyz"<<convertCellFlagType2String( RFLAG(lev, i+dx, j+dy, k+dz,  srcSet))<<" " ); // */
+						if( 
+								// we now the flag of the current cell! ( RFLAG(lev, i   , j   , k   ,  srcSet)&(CFGrNorm)) &&
+								( RFLAG(lev, i+dx, j   , k   ,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+								( RFLAG(lev, i   , j+dy, k   ,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+								( RFLAG(lev, i   , j   , k+dz,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+
+								( RFLAG(lev, i+dx, j+dy, k   ,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+								( RFLAG(lev, i+dx, j   , k+dz,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+								( RFLAG(lev, i   , j+dy, k+dz,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
+								( RFLAG(lev, i+dx, j+dy, k+dz,  srcSet)&(CFGrNorm|CFGrFromCoarse)) 
+							) {
+							// middle source node on higher level
+							int dstx = (2*i)+dx;
+							int dsty = (2*j)+dy;
+							int dstz = (2*k)+dz;
+
+							mNumFsgrChanges++;
+							RFLAG(dstlev, dstx,dsty,dstz, dstFineSet) = CFUnused;
+							RFLAG(dstlev, dstx,dsty,dstz, mLevel[dstlev].setOther) = CFUnused; // FLAGTEST
+							//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init center unused set l"<<dstlev<<" at "<<PRINT_VEC(dstx,dsty,dstz) );
+
+							for(int l=1; l<D::cDirNum; l++) { 
+								int dstni=dstx+D::dfVecX[l], dstnj=dsty+D::dfVecY[l], dstnk=dstz+D::dfVecZ[l];
+								if(RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet)&(CFFluid)) { 
+									RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet) = CFFluid|CFGrFromCoarse;
+								}
+								if(RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet)&(CFInter)) { 
+									//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init CHECK Warning - deleting interface cell...");
+									D::mFixMass += QCELL( dstlev, dstni,dstnj,dstnk, dstFineSet, dMass);
+									RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet) = CFFluid|CFGrFromCoarse;
+								}
+							} // l
+
+							// again check nb flags of all surrounding cells to see if any from coarse
+							// can be convted to unused
+							for(int l=1; l<D::cDirNum; l++) { 
+								int dstni=dstx+D::dfVecX[l], dstnj=dsty+D::dfVecY[l], dstnk=dstz+D::dfVecZ[l];
+								// have to be at least from coarse here...
+								//errMsg("performCoarsening","CFGrFromFine subcube init unused check l"<<dstlev<<" at "<<PRINT_VEC(dstni,dstnj,dstnk)<<" "<< convertCellFlagType2String(RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet)) );
+								if(!(RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet)&(CFUnused) )) { 
+									bool delok = true;
+									// careful long range here... check domain bounds?
+									for(int m=1; m<D::cDirNum; m++) { 										
+										int chkni=dstni+D::dfVecX[m], chknj=dstnj+D::dfVecY[m], chknk=dstnk+D::dfVecZ[m];
+										if(RFLAG(dstlev, chkni,chknj,chknk, dstFineSet)&(CFUnused|CFGrFromCoarse)) { 
+											// this nb cell is ok for deletion
+										} else { 
+											delok=false; // keep it!
+										}
+										//errMsg("performCoarsening"," CHECK "<<PRINT_VEC(dstni,dstnj,dstnk)<<" to "<<PRINT_VEC( chkni,chknj,chknk )<<" f:"<< convertCellFlagType2String( RFLAG(dstlev, chkni,chknj,chknk, dstFineSet))<<" nbsok"<<delok );
+									}
+									//errMsg("performCoarsening","CFGrFromFine subcube init unused check l"<<dstlev<<" at "<<PRINT_VEC(dstni,dstnj,dstnk)<<" ok"<<delok );
+									if(delok) {
+										mNumFsgrChanges++;
+										RFLAG(dstlev, dstni,dstnj,dstnk, dstFineSet) = CFUnused;
+										RFLAG(dstlev, dstni,dstnj,dstnk, mLevel[dstlev].setOther) = CFUnused; // FLAGTEST
+										if((D::cDimension==2)&&(debugCoarsening)) debugMarkCell(dstlev,dstni,dstnj,dstnk); 
+									}
+								}
+							} // l
+							// treat subcube
+							//ebugMarkCell(lev,i+dx,j+dy,k+dz); 
+							//if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subcube init, dir:"<<PRINT_VEC(dx,dy,dz) );
+						}
+					} } }
+
+				}   // ?
+			} // convert regions of from fine
+	}}} // TEST!
+
+					// reinit cell area value
+					/*if( RFLAG(lev, i,j,k,srcSet) & CFFluid) {
+						if( RFLAG(lev+1, i*2,j*2,k*2,dstFineSet) & CFGrFromCoarse) {
+							LbmFloat totArea = mFsgrCellArea[0]; // for l=0
+							for(int l=1; l<D::cDirNum; l++) { 
+								int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
+								if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&
+										(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
+										//(CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
+										) { 
+									//LbmFloat area = 0.25; if(D::dfVecX[l]!=0) area *= 0.5; if(D::dfVecY[l]!=0) area *= 0.5; if(D::dfVecZ[l]!=0) area *= 0.5;
+									totArea += mFsgrCellArea[l];
+								}
+							} // l
+							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
+							QCELL(lev, i,j,k,srcSet, dFlux) = totArea;
+						} else {
+							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
+							QCELL(lev, i,j,k,srcSet, dFlux) = 1.0;
+						}
+						//errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,srcSet, dFlux) );
+					}
+				// */
+
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) {
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) {
+
+
+			if(RFLAG(lev, i,j,k, srcSet) & CFEmpty) {
+				// check empty -> from fine conversion
+				bool changeToFromFine = false;
+				const CellFlagType notAllowed = (CFInter|CFGrFromFine|CFGrToFine);
+				CellFlagType reqType = CFGrNorm;
+				if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
+
+#if REFINEMENTBORDER==1
+				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & reqType) &&
+				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+					changeToFromFine=true;
+				}
+			/*if(strstr(D::getName().c_str(),"Debug"))
+			if((changeToFromFine)&&(lev+1==mMaxRefine)) { // mixborder
+				for(int l=0;((l<D::cDirNum) && (changeToFromFine)); l++) {  // FARBORD
+					int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+					if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
+						changeToFromFine=false;
+					}
+				} 
+			}// FARBORD */
+#elif REFINEMENTBORDER==2 // REFINEMENTBORDER==1
+				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & reqType) &&
+				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+					changeToFromFine=true;
+					for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) { 
+						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
+						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
+							changeToFromFine=false;
+						}
+					}
+					/*for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) {  // FARBORD
+						int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
+							changeToFromFine=false;
+						}
+					} // FARBORD*/
+				}
+#elif REFINEMENTBORDER==3 // REFINEMENTBORDER==3
+				FIX!!!
+				if(lev+1==mMaxRefine) { // mixborder
+					if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (CFFluid|CFInter)) &&
+							(!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+						changeToFromFine=true;
+					}
+				} else {
+				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (CFFluid)) &&
+				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+					changeToFromFine=true;
+					for(int l=0; l<D::cDirNum; l++) { 
+						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
+						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
+							changeToFromFine=false;
+						}
+					}
+				} } // mixborder
+#else // REFINEMENTBORDER==3
+				ERROR
+#endif // REFINEMENTBORDER==1
+				if(changeToFromFine) {
+					change = true;
+					mNumFsgrChanges++;
+					RFLAG(lev, i,j,k, srcSet) = CFFluid|CFGrFromFine;
+					if((D::cDimension==2)&&(debugCoarsening)) debugMarkCell(lev,i,j,k); 
+					// same as restr from fine func! not necessary ?!
+					// coarseRestrictFromFine part */
+				}
+			} // only check empty cells
+
+	}}} // TEST!
+
+	if(!D::mSilent){ errMsg("performCoarsening"," for l"<<lev<<" done " ); }
+	return change;
+}
 
 
 /*****************************************************************************/
@@ -4556,7 +4527,7 @@ LbmFsgrSolver<D>::adaptTimestep()
 		if((newdt>levOldStepsize[mMaxRefine])&&(mTimestepReduceLock)) {
 			// wait some more...
 			//debMsgNnl("LbmFsgrSolver::TAdp",DM_NOTIFY," Delayed... "<<mTimestepReduceLock<<" ",10);
-			//debMsgDirect("D");
+			debMsgDirect("D");
 		} else {
 			D::mpParam->setDesiredStepTime( newdt );
 			rescale = true;
@@ -4571,17 +4542,20 @@ LbmFsgrSolver<D>::adaptTimestep()
 
 	if(mTimestepReduceLock>0) mTimestepReduceLock--;
 
+	
 	/*
 	// forced back and forth switchting (for testing)
-	const int tadtogInter = 40;
+	const int tadtogInter = 300;
 	const double tadtogSwitch = 0.66;
 	errMsg("TIMESWITCHTOGGLETEST","warning enabled "<< tadtogSwitch<<","<<tadtogSwitch<<" !!!!!!!!!!!!!!!!!!!");
-	if((D::mStepCnt% tadtogInter)== tadtogInter/2-1) {
+	if( ((D::mStepCnt% tadtogInter)== (tadtogInter/4*1)-1) ||
+	    ((D::mStepCnt% tadtogInter)== (tadtogInter/4*2)-1) ){
 		rescale = true; minCutoff = false;
 		newdt = tadtogSwitch * D::mpParam->getStepTime();
 		D::mpParam->setDesiredStepTime( newdt );
 	} else 
-	if((D::mStepCnt% tadtogInter)== tadtogInter-1) {
+	if( ((D::mStepCnt% tadtogInter)== (tadtogInter/4*3)-1) ||
+	    ((D::mStepCnt% tadtogInter)== (tadtogInter/4*4)-1) ){
 		rescale = true; minCutoff = false;
 		newdt = D::mpParam->getStepTime()/tadtogSwitch ;
 		D::mpParam->setDesiredStepTime( newdt );
@@ -4599,6 +4573,7 @@ LbmFsgrSolver<D>::adaptTimestep()
 
 		mTimeSwitchCounts++;
 		D::mpParam->calculateAllMissingValues( D::mSilent );
+		recalculateObjectSpeeds();
 		// calc omega, force for all levels
 		initLevelOmegas();
 		if(D::mpParam->getStepTime()<mMinStepTime) mMinStepTime = D::mpParam->getStepTime();
@@ -4606,12 +4581,11 @@ LbmFsgrSolver<D>::adaptTimestep()
 
 		for(int lev=mMaxRefine; lev>=0 ; lev--) {
 			LbmFloat newSteptime = mLevel[lev].stepsize;
-			LbmFloat newOmega = mLevel[lev].omega;
 			LbmFloat dfScaleFac = (newSteptime/1.0)/(levOldStepsize[lev]/levOldOmega[lev]);
 
 			if(!D::mSilent) {
 				debMsgStd("LbmFsgrSolver::TAdp",DM_NOTIFY,"Level: "<<lev<<" Timestep change: "<<
-						" scaleFac="<<dfScaleFac<<" newDt="<<newSteptime<<" newOmega="<<newOmega,10);
+						" scaleFac="<<dfScaleFac<<" newDt="<<newSteptime<<" newOmega="<<mLevel[lev].omega,10);
 			}
 			if(lev!=mMaxRefine) coarseCalculateFluxareas(lev);
 
@@ -4764,7 +4738,7 @@ LbmFsgrSolver<D>::adaptTimestep()
 			} 
 #ifndef WIN32
 			if (!finite(rho)) {
-				//errMsg("adaptTimestep","Brute force non-finite rho at"<<PRINT_IJK);  // DEBUG!
+				errMsg("adaptTimestep","Brute force non-finite rho at"<<PRINT_IJK);  // DEBUG!
 				rho = 1.0;
 				ux = uy = uz = 0.0;
 				QCELL(lev, i, j, k, workSet, dMass) = 1.0;
@@ -4780,7 +4754,7 @@ LbmFsgrSolver<D>::adaptTimestep()
 				for(int l=0; l<D::cDfNum; l++) {
 					QCELL(lev, i, j, k, workSet, l) = D::getCollideEq(l, rho, ux,uy,uz); }
 				rescs++;
-				//debMsgDirect("B");
+				debMsgDirect("B");
 			}
 
 		} } 
@@ -4834,7 +4808,7 @@ LbmFsgrSolver<D>::getMassdWeight(bool dirForw, int i,int j,int k,int workSet, in
 		if(scal>-LBM_EPSILON) ret = 0.0;
 		else ret = scal * -1.0;
 	}
-	//errMsg("massd", PRINT_IJK<<" nv"<<nvel<<" : ret="<<ret ); //exit(1); //VECDEB
+	//errMsg("massd", PRINT_IJK<<" nv"<<nvel<<" : ret="<<ret ); //xit(1); //VECDEB
 	return ret;
 }
 
@@ -4892,7 +4866,9 @@ void LbmFsgrSolver<D>::addToNewInterList( int ni, int nj, int nk ) {
 #define ADD_INT_FLAGCHECK(alev, ai,aj,ak, at, afac) \
 				if(	(((1.0-(at))>0.0) && (!(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr )&(CFInter|CFFluid|CFGrCoarseInited) ))) || \
 						(((    (at))>0.0) && (!(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setOther)&(CFInter|CFFluid|CFGrCoarseInited) ))) ){ \
-					errMsg("INVFLAGCINTCHECK", " l"<<(alev)<<" "<<PRINT_VEC((ai),(aj),(ak))<<" fc:"<<RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr ) <<"="<<convertFlags2String(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr ))<<" fold:"<<RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setOther ) ); \
+					errMsg("INVFLAGCINTCHECK", " l"<<(alev)<<" at:"<<(at)<<" "<<PRINT_VEC((ai),(aj),(ak))<<\
+							" fc:"<<   convertCellFlagType2String(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setCurr  )) <<\
+							" fold:"<< convertCellFlagType2String(RFLAG((alev), (ai),(aj),(ak),mLevel[(alev)].setOther )) ); \
 					debugMarkCell((alev), (ai),(aj),(ak));\
 					D::mPanic = 1; \
 				}
@@ -4928,7 +4904,7 @@ void LbmFsgrSolver<D>::addToNewInterList( int ni, int nj, int nk ) {
 
 #if FSGR_STRICT_DEBUG==1
 #define INTDEBOUT \
-		{ LbmFloat rho,ux,uy,uz; \
+		{ /*LbmFloat rho,ux,uy,uz;*/ \
 			rho = ux=uy=uz=0.0; \
 			FORDF0{ LbmFloat m = QCELL(lev,i,j,k, dstSet, l); \
 				rho += m; ux  += (D::dfDvecX[l]*m); uy  += (D::dfDvecY[l]*m); uz  += (D::dfDvecZ[l]*m);  \
@@ -4937,13 +4913,13 @@ void LbmFsgrSolver<D>::addToNewInterList( int ni, int nj, int nk ) {
 			}  \
 			/*if(D::mPanic) { errMsg("interpolateCellFromCoarse", "ICFC_DFOUT cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); }*/ \
 			if(markNbs) errMsg("interpolateCellFromCoarse", " cell "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) );  \
-			errMsg("interpolateCellFromCoarse", "ICFC_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); \
+			/*errMsg("interpolateCellFromCoarse", "ICFC_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" b"<<PRINT_VEC(betx,bety,betz) ); */\
 		} \
 		/* both cases are ok to interpolate */	\
 		if( (!(RFLAG(lev,i,j,k, dstSet) & CFGrFromCoarse)) &&	\
 				(!(RFLAG(lev,i,j,k, dstSet) & CFUnused)) ) {	\
 			/* might also have CFGrCoarseInited (shouldnt be a problem here)*/	\
-			errMsg("interpolateCellFromCoarse", "CHECK cell not CFGrFromCoarse? "<<PRINT_IJK<<" flag:"<< RFLAG(lev,i,j,k, dstSet)<<" fstr:"<<convertFlags2String(  RFLAG(lev,i,j,k, dstSet) ));	\
+			errMsg("interpolateCellFromCoarse", "CHECK cell not CFGrFromCoarse? "<<PRINT_IJK<<" flag:"<< RFLAG(lev,i,j,k, dstSet)<<" fstr:"<<convertCellFlagType2String(  RFLAG(lev,i,j,k, dstSet) ));	\
 			/* FIXME check this warning...? return; this can happen !? */	\
 			/*D::mPanic = 1;*/	\
 		}	\
@@ -5145,8 +5121,8 @@ void LbmFsgrSolver<D>::addToNewInterList( int ni, int nj, int nk ) {
 
 template<class D>
 void LbmFsgrSolver<D>::interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet, bool markNbs) {
-	//errMsg("INV DEBUG REINIT! off!",""); exit(1); // DEBUG exit
-	//if(markNbs) errMsg("interpolateCellFromCoarse"," l"<<lev<<" "<<PRINT_VEC(i,j,k)<<" s"<<dstSet<<" t"<<t); //exit(1); // DEBUG exit
+	//errMsg("INV DEBUG REINIT! off!",""); xit(1); // DEBUG quit
+	//if(markNbs) errMsg("interpolateCellFromCoarse"," l"<<lev<<" "<<PRINT_VEC(i,j,k)<<" s"<<dstSet<<" t"<<t); //xit(1); // DEBUG quit
 
 	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;
 	//LbmFloat intDf[LBM_DFNUM];
@@ -5423,8 +5399,8 @@ void LbmFsgrSolver<D>::interpolateCellFromCoarse(int lev, int i, int j,int k, in
 		return;
 	}
 
-	errMsg("interpolateCellFromCoarse","Invalid!?");
-	exit(1);
+	D::mPanic=1;
+	errFatal("interpolateCellFromCoarse","Invalid!?", SIMWORLD_GENERICERROR);
 }
 
 template<class D>
@@ -5474,7 +5450,7 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 					LbmFloat avgux = 0.0, avguy = 0.0, avguz = 0.0;
 					LbmFloat cellcnt = 0.0;
 					LbmFloat avgnbdf[LBM_DFNUM];
-					FORDF0 { avgnbdf[l]= 0.0; }
+					FORDF0M { avgnbdf[m]= 0.0; }
 
 					for(int nbl=1; nbl< D::cDfNum ; ++nbl) {
 						if( (RFLAG_NB(workLev,ei,ej,ek,workSet,nbl) & CFFluid) || 
@@ -5499,38 +5475,41 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 						avgux = avguy = avguz = 0.0;
 						//TTT mNumProblems++;
 #if ELBEEM_BLENDER!=1
-						errMsg("NYI2",""); exit(1);
+						D::mPanic=1; errFatal("NYI2","cellcnt<=0.0",SIMWORLD_GENERICERROR);
 #endif // ELBEEM_BLENDER
 					} else {
 						// init speed
 						avgux /= cellcnt; avguy /= cellcnt; avguz /= cellcnt;
 						avgrho /= cellcnt;
-						FORDF0 { avgnbdf[l] /= cellcnt; } // CHECK FIXME test?
+						FORDF0M { avgnbdf[m] /= cellcnt; } // CHECK FIXME test?
 					}
 
 					// careful with l's...
-					FORDF0 { 
-						QCELL(workLev,ei,ej,ek, workSet, l) = D::getCollideEq( l,avgrho,  avgux, avguy, avguz ); 
+					FORDF0M { 
+						QCELL(workLev,ei,ej,ek, workSet, m) = D::getCollideEq( m,avgrho,  avgux, avguy, avguz ); 
 						//QCELL(workLev,ei,ej,ek, workSet, l) = avgnbdf[l]; // CHECK FIXME test?
 					}
 					//errMsg("FNEW", PRINT_VEC(ei,ej,ek)<<" mss"<<QCELL(workLev, i,j,k, workSet, dMass) <<" rho"<<avgrho<<" vel"<<PRINT_VEC(avgux,avguy,avguz) ); // DEBUG SYMM
 					QCELL(workLev,ei,ej,ek, workSet, dMass) = 0.0; //?? new
 					QCELL(workLev,ei,ej,ek, workSet, dFfrac) = 0.0; //?? new
-					RFLAG(workLev,ei,ej,ek,workSet) = (CellFlagType)(CFInter|CFNoInterpolSrc);
+					//RFLAG(workLev,ei,ej,ek,workSet) = (CellFlagType)(CFInter|CFNoInterpolSrc);
+					changeFlag(workLev,ei,ej,ek,workSet, (CFInter|CFNoInterpolSrc));
 					if(debugFlagreinit) errMsg("NEWE", PRINT_IJK<<" newif "<<PRINT_VEC(ei,ej,ek)<<" rho"<<avgrho<<" vel("<<avgux<<","<<avguy<<","<<avguz<<") " );
 				} 
       }
 			/* prevent surrounding interface cells from getting removed as empty cells 
 			 * (also cells that are not newly inited) */
       if( RFLAG(workLev,ni,nj,nk, workSet) & CFInter) {
-				RFLAG(workLev,ni,nj,nk, workSet) = (CellFlagType)(RFLAG(workLev,ni,nj,nk, workSet) | CFNoDelete);
+				//RFLAG(workLev,ni,nj,nk, workSet) = (CellFlagType)(RFLAG(workLev,ni,nj,nk, workSet) | CFNoDelete);
+				changeFlag(workLev,ni,nj,nk, workSet, (RFLAG(workLev,ni,nj,nk, workSet) | CFNoDelete));
 				// also add to list...
 				addToNewInterList(ni,nj,nk);
 			} // NEW?
     }
 
 		// NEW? no extra loop...
-		RFLAG(workLev,i,j,k, workSet) = CFFluid;
+		//RFLAG(workLev,i,j,k, workSet) = CFFluid;
+		changeFlag(workLev,i,j,k, workSet,CFFluid);
 	}
 
 	/* remove empty interface cells that are not allowed to be removed anyway
@@ -5563,7 +5542,8 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 			int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
       if( RFLAG(workLev,ni,nj,nk, workSet) & CFFluid){
 				// init fluid->interface 
-				RFLAG(workLev,ni,nj,nk, workSet) = (CellFlagType)(CFInter); 
+				//RFLAG(workLev,ni,nj,nk, workSet) = (CellFlagType)(CFInter); 
+				changeFlag(workLev,ni,nj,nk, workSet, CFInter); 
 				/* new mass = current density */
 				LbmFloat nbrho = QCELL(workLev,ni,nj,nk, workSet, dC);
     		for(int rl=1; rl< D::cDfNum ; ++rl) { nbrho += QCELL(workLev,ni,nj,nk, workSet, rl); }
@@ -5580,14 +5560,14 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
     }
 
 		/* for symmetry, set our flag right now */
-		RFLAG(workLev,i,j,k, workSet) = CFEmpty;
+		//RFLAG(workLev,i,j,k, workSet) = CFEmpty;
+		changeFlag(workLev,i,j,k, workSet, CFEmpty);
 		// mark cell not be changed mass... - not necessary, not in list anymore anyway!
 	} // emptylist
 
 
 	
-	/* precompute weights! */
-	//vector<LbmFloat[dTotalNum]> vWeights;
+	// precompute weights to get rid of order dependancies
 	vector<lbmFloatSet> vWeights;
 	vWeights.reserve( mListFull.size() + mListEmpty.size() );
 	int weightIndex = 0;
@@ -5597,9 +5577,6 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 	for( vector<LbmPoint>::iterator iter=mListFull.begin();
        iter != mListFull.end(); iter++ ) {
     int i=iter->x, j=iter->y, k=iter->z;
-    //int nbCount = 0;
-		//LbmFloat nbWeights[LBM_DFNUM];
-		//LbmFloat nbTotWeights = 0.0;
     nbCount = 0; nbTotWeights = 0.0;
     FORDF1 {
 			int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
@@ -5615,8 +5592,11 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 			//errMsg("FF  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeights);
     	vWeights[weightIndex].val[0] = nbTotWeights;
     	FORDF1 { vWeights[weightIndex].val[l] = nbWeights[l]; }
-			weightIndex++;
-		} else { }
+    	vWeights[weightIndex].numNbs = (LbmFloat)nbCount;
+		} else { 
+    	vWeights[weightIndex].numNbs = 0.0;
+		}
+		weightIndex++;
 	}
   for( vector<LbmPoint>::iterator iter=mListEmpty.begin();
        iter != mListEmpty.end(); iter++ ) {
@@ -5636,8 +5616,11 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 			//errMsg("EE  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeights);
     	vWeights[weightIndex].val[0] = nbTotWeights;
     	FORDF1 { vWeights[weightIndex].val[l] = nbWeights[l]; }
-			weightIndex++;
-		} else { }
+    	vWeights[weightIndex].numNbs = (LbmFloat)nbCount;
+		} else { 
+    	vWeights[weightIndex].numNbs = 0.0;
+		}
+		weightIndex++;
 	} 
 	weightIndex = 0;
 	
@@ -5651,47 +5634,42 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
     FORDF1 { myrho += QCELL(workLev,i,j,k, workSet, l); } // QCELL.rho
 
     LbmFloat massChange = QCELL(workLev,i,j,k, workSet, dMass) - myrho;
-    int nbCount = 0;
+    /*int nbCount = 0;
 		LbmFloat nbWeights[LBM_DFNUM];
-		LbmFloat nbTotWeights = 0.0;
     FORDF1 {
 			int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
       if( RFLAG(workLev,ni,nj,nk, workSet) & CFInter) {
 				nbCount++;
 				nbWeights[l] = vWeights[weightIndex].val[l];
-				//nbWeights[l] = getMassdWeight(1,i,j,k,workSet,l);
-				//nbTotWeights += nbWeights[l];
       } else {
-				//nbWeights[l] = -100.0; // DEBUG;
 			}
-    }
+    }*/
 
 		//errMsg("FDIST", PRINT_IJK<<" mss"<<massChange <<" nb"<< nbCount ); // DEBUG SYMM
-		if(nbCount>0) {
-			nbTotWeights = vWeights[weightIndex].val[0];
-			//errMsg("FF  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeights);
-			//if(vWeights[weightIndex].val[0] !=  nbTotWeights) { errMsg("WD","WD"<<vWeights[weightIndex].val[0]<<" "<<nbTotWeights); }
+		if(vWeights[weightIndex].numNbs>0.0) {
+			const LbmFloat nbTotWeightsp = vWeights[weightIndex].val[0];
+			//errMsg("FF  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeightsp);
 			FORDF1 {
 				int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
       	if( RFLAG(workLev,ni,nj,nk, workSet) & CFInter) {
 					LbmFloat change = -1.0;
-					if(nbTotWeights>0.0) {
-						//if(nbWeights[l] !=  vWeights[weightIndex].val[l]) { errMsg("WD","WD"<<nbWeights[l]<<" "<<vWeights[weightIndex].val[l]); } // DEBUG
-						change = massChange * ( nbWeights[l]/nbTotWeights );
+					if(nbTotWeightsp>0.0) {
+						//change = massChange * ( nbWeights[l]/nbTotWeightsp );
+						change = massChange * ( vWeights[weightIndex].val[l]/nbTotWeightsp );
 					} else {
-						change = (LbmFloat)(massChange/(LbmFloat)nbCount);
+						change = (LbmFloat)(massChange/vWeights[weightIndex].numNbs);
 					}
 					QCELL(workLev,ni,nj,nk, workSet, dMass) += change;
 				}
 			}
 			massChange = 0.0;
-			weightIndex++;
 		} else {
 			// Problem! no interface neighbors
 			D::mFixMass += massChange;
 			//TTT mNumProblems++;
 			//errMsg(" FULL PROBLEM ", PRINT_IJK<<" "<<D::mFixMass);
 		}
+		weightIndex++;
 
     // already done? RFLAG(workLev,i,j,k, workSet) = CFFluid;
     QCELL(workLev,i,j,k, workSet, dMass) = myrho; // should be rho... but unused?
@@ -5708,47 +5686,43 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
     int i=iter->x, j=iter->y, k=iter->z;
 
     LbmFloat massChange = QCELL(workLev, i,j,k, workSet, dMass);
-    int nbCount = 0;
+    /*int nbCount = 0;
 		LbmFloat nbWeights[LBM_DFNUM];
-		LbmFloat nbTotWeights = 0.0;
     FORDF1 {
 			int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
       if( RFLAG(workLev,ni,nj,nk, workSet) & CFInter) {
 				nbCount++;
 				nbWeights[l] = vWeights[weightIndex].val[l];
-				//nbWeights[l] = getMassdWeight(0,i,j,k,workSet,l);
-				//nbTotWeights += nbWeights[l];
       } else {
 				nbWeights[l] = -100.0; // DEBUG;
 			}
-    }
+    }*/
 
 		//errMsg("EDIST", PRINT_IJK<<" mss"<<massChange <<" nb"<< nbCount ); // DEBUG SYMM
-		if(nbCount>0) {
-			nbTotWeights = vWeights[weightIndex].val[0];
-			//errMsg("EE  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeights);
-			//if(vWeights[weightIndex].val[0] !=  nbTotWeights) { errMsg("WD","WD"<<vWeights[weightIndex].val[0]<<" "<<nbTotWeights); }
+		//if(nbCount>0) {
+		if(vWeights[weightIndex].numNbs>0.0) {
+			const LbmFloat nbTotWeightsp = vWeights[weightIndex].val[0];
+			//errMsg("EE  I", PRINT_IJK<<" "<<weightIndex<<" "<<nbTotWeightsp);
 			FORDF1 {
 				int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
       	if( RFLAG(workLev,ni,nj,nk, workSet) & CFInter) {
 					LbmFloat change = -1.0;
-					if(nbTotWeights>0.0) {
-						//if(nbWeights[l] !=  vWeights[weightIndex].val[l]) { errMsg("WD","WD"<<nbWeights[l]<<" "<<vWeights[weightIndex].val[l]); } // DEBUG
-						change = massChange * ( nbWeights[l]/nbTotWeights );
+					if(nbTotWeightsp>0.0) {
+						change = massChange * ( vWeights[weightIndex].val[l]/nbTotWeightsp );
 					} else {
-						change = (LbmFloat)(massChange/(LbmFloat)nbCount);
+						change = (LbmFloat)(massChange/vWeights[weightIndex].numNbs);
 					}
 					QCELL(workLev, ni,nj,nk, workSet, dMass) += change;
 				}
 			}
 			massChange = 0.0;
-			weightIndex++;
 		} else {
 			// Problem! no interface neighbors
 			D::mFixMass += massChange;
 			//TTT mNumProblems++;
 			//errMsg(" EMPT PROBLEM ", PRINT_IJK<<" "<<D::mFixMass);
 		}
+		weightIndex++;
 		
 		// finally... make it empty 
     // already done? RFLAG(workLev,i,j,k, workSet) = CFEmpty;
@@ -5758,7 +5732,8 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
   for( vector<LbmPoint>::iterator iter=mListEmpty.begin();
        iter != mListEmpty.end(); iter++ ) {
     int i=iter->x, j=iter->y, k=iter->z;
-    RFLAG(workLev,i,j,k, otherSet) = CFEmpty;
+    //RFLAG(workLev,i,j,k, otherSet) = CFEmpty;
+    changeFlag(workLev,i,j,k, otherSet, CFEmpty);
     /*QCELL(workLev,i,j,k, otherSet, dMass) = 0.0;
     QCELL(workLev,i,j,k, otherSet, dFfrac) = 0.0; // COMPRT OFF */
 	} 
@@ -5851,7 +5826,7 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 #  define ZKD1 1
 #  define ZKOFF k
 	// reset all values...
-	for(int k= getForZMinBnd(lev); k< getForZMaxBnd(lev); ++k) 
+	for(int k= getForZMinBnd(); k< getForZMaxBnd(lev); ++k) 
    for(int j=0;j<mLevel[lev].lSizey-0;j++) 
     for(int i=0;i<mLevel[lev].lSizex-0;i++) {
 		*D::mpIso->lbmGetData(i,j,ZKOFF)=0.0;
@@ -5862,7 +5837,7 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 	
 	// add up...
 	float val = 0.0;
-	for(int k= getForZMin1(lev); k< getForZMax1(lev); ++k) 
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) 
    for(int j=1;j<mLevel[lev].lSizey-1;j++) 
     for(int i=1;i<mLevel[lev].lSizex-1;i++) {
 
@@ -5961,6 +5936,11 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 /*****************************************************************************
  * demo functions
  *****************************************************************************/
+
+template<class D>
+float LbmFsgrSolver<D>::getFillFrac(int i, int j, int k) {
+	return QCELL(mMaxRefine, i,j,k,mLevel[mMaxRefine].setOther, dFfrac);
+}
 
 template<class D>
 void LbmFsgrSolver<D>::getIsofieldWeighted(float *iso) {
@@ -6183,8 +6163,6 @@ int LbmFsgrSolver<D>::checkGfxEndTime() {
 	if((mGfxEndTime>0.0) && (mSimulationTime>mGfxEndTime)) { 
 		errMsg("LbmFsgrSolver","GfxEndTime "<<mSimulationTime<<" steps:"<<D::mStepCnt);
 		return true;
-		//printCellStats();
-		//exit(1); 
 	}
 	return false;
 }
@@ -6212,6 +6190,21 @@ int LbmFsgrSolver<D>::initParticles(ParticleTracer *partt) {
 	return 0;
 }
 
+
+/*! init particle positions */
+template<class D>
+void LbmFsgrSolver<D>::recalculateObjectSpeeds() {
+	int numobjs = (int)(D::mpGiObjects->size());
+	if(numobjs>255) {
+		errFatal("LbmFsgrSolver::recalculateObjectSpeeds","More than 256 objects currently not supported...",SIMWORLD_INITERROR);
+		return;
+	}
+	mObjectSpeeds.resize(numobjs+0);
+	for(int i=0; i<(int)(numobjs+0); i++) {
+		//errMsg("recalculateObjectSpeeds","id"<<i<<" "<<vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P( (*D::mpGiObjects)[i]->getInitialVelocity() )) ));
+		mObjectSpeeds[i] = vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P( (*D::mpGiObjects)[i]->getInitialVelocity() )));
+	}
+}
 
 /*****************************************************************************/
 /*! internal quick print function (for debugging) */
@@ -6376,7 +6369,7 @@ LbmFsgrSolver<D>::getCellAt( ntlVec3Gfx pos ) {
 		newcid->x = x;
 		newcid->y = y;
 		newcid->z = z;
-		//errMsg("cellAt",D::mName<<" "<<pos<<" l"<<level<<":"<<x<<","<<y<<","<<z<<" "<<convertFlags2String(RFLAG(level, x,y,z, mLevel[level].setCurr)) );
+		//errMsg("cellAt",D::mName<<" "<<pos<<" l"<<level<<":"<<x<<","<<y<<","<<z<<" "<<convertCellFlagType2String(RFLAG(level, x,y,z, mLevel[level].setCurr)) );
 
 		return newcid;
 	}
@@ -6512,6 +6505,105 @@ LbmFsgrSolver<D>::debugDisplay(fluidDispSettings *set){
 }
 #endif
 
+/*****************************************************************************/
+// strict debugging functions
+/*****************************************************************************/
+#if FSGR_STRICT_DEBUG==1
+#define STRICT_EXIT *((int *)0)=0;
+
+template<class D>
+int LbmFsgrSolver<D>::debLBMGI(int level, int ii,int ij,int ik, int is) {
+	if(level <  0){ errMsg("LbmStrict::debLBMGI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
+	if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMGI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
+
+	if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	return _LBMGI(level, ii,ij,ik, is);
+};
+
+template<class D>
+CellFlagType& LbmFsgrSolver<D>::debRFLAG(int level, int xx,int yy,int zz,int set){
+	return _RFLAG(level, xx,yy,zz,set);   
+};
+
+template<class D>
+CellFlagType& LbmFsgrSolver<D>::debRFLAG_NB(int level, int xx,int yy,int zz,int set, int dir) {
+	if(dir<0)         { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	// warning might access all spatial nbs
+	if(dir>D::cDirNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	return _RFLAG_NB(level, xx,yy,zz,set, dir);
+};
+
+template<class D>
+CellFlagType& LbmFsgrSolver<D>::debRFLAG_NBINV(int level, int xx,int yy,int zz,int set, int dir) {
+	if(dir<0)         { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	if(dir>D::cDirNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	return _RFLAG_NBINV(level, xx,yy,zz,set, dir);
+};
+
+template<class D>
+int LbmFsgrSolver<D>::debLBMQI(int level, int ii,int ij,int ik, int is, int l) {
+	if(level <  0){ errMsg("LbmStrict::debLBMQI"," invLev- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
+	if(level >  mMaxRefine){ errMsg("LbmStrict::debLBMQI"," invLev+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; } 
+
+	if(ii<0){ errMsg("LbmStrict"," invX- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ij<0){ errMsg("LbmStrict"," invY- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ik<0){ errMsg("LbmStrict"," invZ- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ii>mLevel[level].lSizex-1){ errMsg("LbmStrict"," invX+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ij>mLevel[level].lSizey-1){ errMsg("LbmStrict"," invY+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(ik>mLevel[level].lSizez-1){ errMsg("LbmStrict"," invZ+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(is<0){ errMsg("LbmStrict"," invS- l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(is>1){ errMsg("LbmStrict"," invS+ l"<<level<<"|"<<ii<<","<<ij<<","<<ik<<" s"<<is); STRICT_EXIT; }
+	if(l<0)        { errMsg("LbmStrict"," invD- "<<" l"<<l); STRICT_EXIT; }
+	if(l>D::cDfNum){  // dFfrac is an exception
+		if((l != dMass) && (l != dFfrac) && (l != dFlux)){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } }
+#if COMPRESSGRIDS==1
+	//if((!D::mInitDone) && (is!=mLevel[level].setCurr)){ STRICT_EXIT; } // COMPRT debug
+#endif // COMPRESSGRIDS==1
+	return _LBMQI(level, ii,ij,ik, is, l);
+};
+
+template<class D>
+LbmFloat& LbmFsgrSolver<D>::debQCELL(int level, int xx,int yy,int zz,int set,int l) {
+	//errMsg("LbmStrict","debQCELL debug: l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" l"<<l<<" index"<<LBMGI(level, xx,yy,zz,set)); 
+	return _QCELL(level, xx,yy,zz,set,l);
+};
+
+template<class D>
+LbmFloat& LbmFsgrSolver<D>::debQCELL_NB(int level, int xx,int yy,int zz,int set, int dir,int l) {
+	if(dir<0)        { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	if(dir>D::cDfNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	return _QCELL_NB(level, xx,yy,zz,set, dir,l);
+};
+
+template<class D>
+LbmFloat& LbmFsgrSolver<D>::debQCELL_NBINV(int level, int xx,int yy,int zz,int set, int dir,int l) {
+	if(dir<0)        { errMsg("LbmStrict"," invD- l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	if(dir>D::cDfNum){ errMsg("LbmStrict"," invD+ l"<<level<<"|"<<xx<<","<<yy<<","<<zz<<" s"<<set<<" d"<<dir); STRICT_EXIT; }
+	return _QCELL_NBINV(level, xx,yy,zz,set, dir,l);
+};
+
+template<class D>
+LbmFloat* LbmFsgrSolver<D>::debRACPNT(int level,  int ii,int ij,int ik, int is ) {
+	return _RACPNT(level, ii,ij,ik, is );
+};
+
+template<class D>
+LbmFloat& LbmFsgrSolver<D>::debRAC(LbmFloat* s,int l) {
+	if(l<0)        { errMsg("LbmStrict"," invD- "<<" l"<<l); STRICT_EXIT; }
+	if(l>dTotalNum){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } 
+	//if(l>D::cDfNum){ // dFfrac is an exception 
+	//if((l != dMass) && (l != dFfrac) && (l != dFlux)){ errMsg("LbmStrict"," invD+ "<<" l"<<l); STRICT_EXIT; } }
+	return _RAC(s,l);
+};
+
+#endif // FSGR_STRICT_DEBUG==1
 
 #define LBMFSGRSOLVER_H
 #endif

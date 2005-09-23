@@ -25,11 +25,9 @@ typedef ntlVec3d ParamVec;
 #define PARAM_SOUNDSPEED (1<< 3)
 #define PARAM_DOMAINSIZE (1<< 4)
 #define PARAM_GRAVITY		 (1<< 5)
-#define PARAM_TIMELENGTH (1<< 6)
 #define PARAM_STEPTIME	 (1<< 7)
 #define PARAM_SIZE    	 (1<< 8)
 #define PARAM_TIMEFACTOR (1<< 9)
-#define PARAM_ANIFRAMES	 (1<<10)
 #define PARAM_ANIFRAMETIME 		(1<<11)
 #define PARAM_ANISTART	 			(1<<12)
 #define PARAM_SURFACETENSION 	(1<<13)
@@ -41,9 +39,6 @@ typedef ntlVec3d ParamVec;
 #define PARAM_FLUIDVOLHEIGHT  (1<<19)
 #define PARAM_NORMALIZEDGSTAR (1<<20)
 #define PARAM_NUMIDS					21
-
-//! parameters to ignore for parametrizer activation
-#define PARAM_IGNORE     (~(PARAM_ANIFRAMES|PARAM_SIZE))
 
 //! output parameter debug message?
 //#define PARAM_DEBUG      1
@@ -68,7 +63,6 @@ class Parametrizer {
 		bool calculateAllMissingValues( bool silent = false );
 		bool oldCalculateAllMissingValues( void );
 		/*! is the parametrizer used at all? */
-		//bool isUsed() { if(!mActive){ return false; } return(mSeenValues!=(~PARAM_IGNORE)); }
 		bool isUsed() { return true; }
 
 		/*! add this flag to the seen values */
@@ -98,7 +92,6 @@ class Parametrizer {
 		/*! get omega for LBM */
 		ParamFloat calculateOmega( void );
 		/*! get no. of timesteps for LBM */
-		//int calculateNoOfSteps( void ) { return (int)(mTimeLength/mStepTime); }
 		int calculateNoOfSteps( ParamFloat timelen );
 		/*! get external force x component */
 		ParamVec calculateGravity( void );
@@ -149,11 +142,6 @@ class Parametrizer {
 		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { mGravity = ParamVec(setx,sety,setz); seenThis( PARAM_GRAVITY ); }
 		void setGravity(ParamVec set) { mGravity = set; seenThis( PARAM_GRAVITY ); }
 
-		/*! set the length of the simulation */
-		//void setTimeLength(ParamFloat set) { mTimeLength = set; seenThis( PARAM_TIMELENGTH ); }
-		/*! get the length of the simulation */
-		//ParamFloat getTimeLength( void )   { return mTimeLength; }
-
 		/*! set the length of a single time step */
 		void setStepTime(ParamFloat set) { mStepTime = set; seenThis( PARAM_STEPTIME ); }
 		/*! get the length of a single time step */
@@ -173,11 +161,6 @@ class Parametrizer {
 		/*! init domain resoultion */
 		void setSize(int ijk)            { mSizex = ijk; mSizey = ijk; mSizez = ijk; seenThis( PARAM_SIZE ); }
 		void setSize(int i,int j, int k) { mSizex = i; mSizey = j; mSizez = k; seenThis( PARAM_SIZE ); }
-
-		/*! set no of animation steps (renderer)  */
-		void setAniFrames(int set) { mAniFrames = set; seenThis( PARAM_ANIFRAMES ); }
-		/*! get no of animation steps (renderer)  */
-		int getAniFrames( void )   { return mAniFrames; }
 
 		/*! set time of an animation frame (renderer)  */
 		void setAniFrameTime(ParamFloat set) { mAniFrameTime = set; seenThis( PARAM_ANIFRAMETIME ); }
@@ -297,8 +280,6 @@ class Parametrizer {
 		/*! force converted to lattice units (returned by calc gravity) */
 		ParamVec mLatticeGravity;
 
-		/*! lenth of the simulation [s] */
-		//ParamFloat mTimeLength;
 
 		/*! length of one time step in the simulation */
 		ParamFloat mStepTime;
@@ -312,9 +293,6 @@ class Parametrizer {
 
 		/*! time scaling factor (auto calc from accel, or set), equals the delta t in LBM */
 		ParamFloat mTimeFactor;
-
-		/*! from renderer - no of animation frames for the animation (same as mpglob mAniFrames) */
-		int mAniFrames;
 
 		/*! for renderer - length of an animation step [s] */
 		ParamFloat mAniFrameTime;

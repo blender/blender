@@ -68,13 +68,13 @@ ntlRaytracer::ntlRaytracer(string filename, bool commandlineMode) :
 	// load config
   setPointers( getRenderGlobals() );
   parseFile( filename.c_str() );
-	
+	if(!SIMWORLD_OK()) return;
 
 	// init the scene for the first time
-  long startTime = getTime();
+  long sstartTime = getTime();
 	scene->buildScene();
-	long stopTime = getTime();
-	debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Scene build time: "<< getTimeString(stopTime-startTime) <<" ", 10);
+	long sstopTime = getTime();
+	debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
 
 	// TODO check simulations, run first steps
 	mFirstSim = -1;
@@ -231,6 +231,10 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 			}
 			if(allPanic) {
 				warnMsg("ntlRaytracer::advanceSims","All sims panicked... stopping thread" );
+				setStopRenderVisualization( true );
+			}
+			if(!SIMWORLD_OK()) {
+				warnMsg("ntlRaytracer::advanceSims","World state error... stopping" );
 				setStopRenderVisualization( true );
 			}
 			//? mSimulationTime = (*mpSims)[mFirstSim]->getCurrentTime();
@@ -717,7 +721,7 @@ int ntlRaytracer::renderScene( void )
 
 	if(mpGlob->getSingleFrameMode() ) {
 		debMsgStd("ntlRaytracer::renderScene",DM_NOTIFY, "Single frame mode done...", 1 );
-		exit(1);
+		return 1;
 	}
 	return 0;
 }

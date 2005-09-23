@@ -88,10 +88,10 @@ class LbmD3Q19 {
 		STCON char* dfString[ 19 ];
 
 		/*! index of normal dist func, not used so far?... */
-		STCON dfDir dfNorm[ 19 ];
+		STCON int dfNorm[ 19 ];
 
 		/*! index of inverse dist func, not fast, but useful... */
-		STCON dfDir dfInv[ 19 ];
+		STCON int dfInv[ 19 ];
 
 		/*! index of x reflected dist func for free slip, not valid for all DFs... */
 		STCON int dfRefX[ 19 ];
@@ -185,10 +185,10 @@ class LbmD2Q9 {
 		STCON char* dfString[ 9 ];
 
 		/* index of normal dist func, not used so far?... */
-		STCON dfDir dfNorm[ 9 ];
+		STCON int dfNorm[ 9 ];
 
 		/* index of inverse dist func, not fast, but useful... */
-		STCON dfDir dfInv[ 9 ];
+		STCON int dfInv[ 9 ];
 
 		/* index of x reflected dist func for free slip, not valid for all DFs... */
 		STCON int dfRefX[ 9 ];

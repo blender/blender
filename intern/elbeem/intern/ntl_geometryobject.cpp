@@ -42,46 +42,40 @@ ntlGeometryObject::~ntlGeometryObject()
 /*****************************************************************************/
 /* Init attributes etc. of this object */
 /*****************************************************************************/
+#define GEOINIT_STRINGS  9
+static char *initStringStrs[GEOINIT_STRINGS] = {
+	"fluid",
+	"bnd_no","bnd_noslip",
+	"bnd_free","bnd_freeslip",
+	"bnd_part","bnd_partslip",
+	"inflow", "outflow"
+};
+static int initStringTypes[GEOINIT_STRINGS] = {
+	FGI_FLUID,
+	FGI_BNDNO, FGI_BNDNO,
+	FGI_BNDFREE, FGI_BNDFREE,
+	FGI_BNDPART, FGI_BNDPART,
+	FGI_MBNDINFLOW, FGI_MBNDOUTFLOW
+};
 void ntlGeometryObject::initialize(ntlRenderGlobals *glob) 
 {
 	//debugOut("ntlGeometryObject::initialize: '"<<getName()<<"' ", 10);
 	
 	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"ntlGeometryObject", "mGeoInitId", false);
 	mGeoInitIntersect = mpAttrs->readInt("geoinit_intersect", mGeoInitIntersect,"ntlGeometryObject", "mGeoInitIntersect", false);
+	string ginitStr = mpAttrs->readString("geoinittype", "", "ntlGeometryObject", "mGeoInitType", false);
 	if(mGeoInitId>=0) {
-		string initStr = mpAttrs->readString("geoinittype", "", "ntlGeometryObject", "mGeoInitType", false);
-		if(initStr== "fluid") {
-			mGeoInitType = FGI_FLUID;
-		} else 
-		if((initStr== "bnd_no") || (initStr=="bnd_noslip")) {
-			mGeoInitType = FGI_BNDNO;
-		} else 
-		if((initStr== "bnd_free") || (initStr=="bnd_freeslip")) {
-			mGeoInitType = FGI_BNDFREE;
-		} else 
-		if((initStr== "acc") || (initStr=="accelerator")) {
-			mGeoInitType = FGI_ACC;
-			ntlVec3d force = mpAttrs->readVec3d("geoinitforce", ntlVec3d(0.0), "ntlGeometryObject", "mGeoInitForce", true);
-			errMsg("ntlGeometryObject::initialize","Deprectated acc object used!"); exit(1);
-		} else 
-		if((initStr== "set") || (initStr=="speedset")) {
-			mGeoInitType = FGI_SPEEDSET;
-			ntlVec3d force = mpAttrs->readVec3d("geoinitforce", ntlVec3d(0.0), "ntlGeometryObject", "mGeoInitForce", true);
-			errMsg("ntlGeometryObject::initialize","Deprectated speedset object used!"); exit(1);
-		} else 
-		// not so nice - define refinement types...
-		if(initStr== "p1") {
-			mGeoInitType = FGI_REFP1;
-		} else 
-		if(initStr== "p2") {
-			mGeoInitType = FGI_REFP2;
-		} else 
-		if(initStr== "p3") {
-			mGeoInitType = FGI_REFP3;
-		// nothing found
-		} else {
-			errorOut("ntlGeometryObject::initialize error: Unkown 'geoinittype' value: '"<< initStr <<"' ");
-			exit(1);
+		bool gotit = false;
+		for(int i=0; i<GEOINIT_STRINGS; i++) {
+			if(ginitStr== initStringStrs[i]) {
+				gotit = true;
+				mGeoInitType = initStringTypes[i];
+			}
+		}
+
+		if(!gotit) {
+			errFatal("ntlGeometryObject::initialize","Unkown 'geoinittype' value: '"<< ginitStr <<"' ", SIMWORLD_INITERROR);
+			return;
 		}
 	}
 
@@ -91,6 +85,8 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 		mGeoInitId = -1;
 	}
 	mInitialVelocity = vec2G( mpAttrs->readVec3d("initial_velocity", vec2D(mInitialVelocity),"ntlGeometryObject", "mInitialVelocity", false));
+	debMsgStd("ntlGeometryObject::initialize",DM_MSG,"GeoObj '"<<this->getName()<<"': gid="<<mGeoInitId<<" gtype="<<mGeoInitType<<","<<ginitStr<<
+			" gvel="<<mInitialVelocity<<" gisect="<<mGeoInitIntersect, 10); // debug
 
 	// override cfg types
 	mVisible = mpAttrs->readBool("visible", mVisible,"ntlGeometryObject", "mVisible", false);
@@ -120,8 +116,8 @@ void ntlGeometryObject::searchMaterial(vector<ntlMaterial *> *mat)
 		}
 		i++;
 	}
-	errMsg("ntlGeometryObject::searchMaterial","Unknown material '"<<mMaterialName<<"' ! ");
-	exit(1);
+	errFatal("ntlGeometryObject::searchMaterial","Unknown material '"<<mMaterialName<<"' ! ", SIMWORLD_INITERROR);
+	return;
 }
 
 

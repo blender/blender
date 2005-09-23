@@ -360,7 +360,7 @@ typedef union YYSTYPE {
   char  *charValue;
 } YYSTYPE;
 /* Line 191 of yacc.c.  */
-#line 364 "bld-std-gcc/src/cfgparser.cpp"
+#line 364 "bld-std-gcc40/src/cfgparser.cpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -372,7 +372,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 376 "bld-std-gcc/src/cfgparser.cpp"
+#line 376 "bld-std-gcc40/src/cfgparser.cpp"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -1549,7 +1549,7 @@ yyreduce:
 
   case 37:
 #line 204 "src/cfgparser.yy"
-    { reglob->setAniFrameTime( yyvsp[0].intValue ); }
+    { /*reglob->setAniFrameTime( $2 );*/ debMsgStd("cfgparser",DM_NOTIFY,"Deprecated setting aniframetime!",1); }
     break;
 
   case 38:
@@ -2047,7 +2047,7 @@ yyreduce:
     }
 
 /* Line 1010 of yacc.c.  */
-#line 2051 "bld-std-gcc/src/cfgparser.cpp"
+#line 2051 "bld-std-gcc40/src/cfgparser.cpp"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -2290,8 +2290,8 @@ void yy_warn(char *s)
 void yy_error(const char *s)
 {
 	//errorOut("Current token: "<<yytname[ (int)yytranslate[yychar] ]);
-	errorOut("Config Parse Error at Line "<<lineCount<<": "<<s );
-	exit(1);
+	errFatal("yy_error","Config Parse Error at Line "<<lineCount<<": "<<s,SIMWORLD_INITERROR);
+	return;
 }
 
 
@@ -2303,8 +2303,8 @@ void setPointers(ntlRenderGlobals *setglob)
 		 (!setglob) ||
 		 (!setglob) 
 		 ) {
-		errMsg("setPointers","Config Parse Error: Invalid Pointers!\n");
-		exit(1);
+		errFatal("setPointers","Config Parse Error: Invalid Pointers!\n",SIMWORLD_INITERROR);
+		return;
 	}      
 	
 	reglob = setglob;
@@ -2316,15 +2316,15 @@ void setPointers(ntlRenderGlobals *setglob)
 void parseFile(string filename)
 {
 	if(!pointersInited) {
-		errMsg("parseFile","Config Parse Error: Pointers not set!\n");
-		exit(1);
+		errFatal("parseFile","Config Parse Error: Pointers not set!\n", SIMWORLD_INITERROR);
+		return;
 	}
 	
 	/* open file */
 	yy_in = fopen( filename.c_str(), "r");
 	if(!yy_in) {
-		errMsg("parseFile","Config Parse Error: Unable to open '"<<filename.c_str() <<"'!\n" );
-		exit(1);
+		errFatal("parseFile","Config Parse Error: Unable to open '"<<filename.c_str() <<"'!\n", SIMWORLD_INITERROR );
+		return;
 	}
 
 	/* parse */

@@ -94,8 +94,6 @@ class ntlRenderGlobals
 		inline void setAniFrames(int set) { mAniFrames = set; }
 		//! Set the animation
 		inline void setAniCount(int set) { mAniCount = set; }
-		//! Set the lbmsolver animation step size
-		inline void setAniFrameTime(int set)      { mAniFrameTime=set; }
 		//! Set the ray counter
 		inline void setCounterRays(int set) { mCounterRays = set; }
 		//! Set the ray shades counter
@@ -170,8 +168,6 @@ class ntlRenderGlobals
 		inline int getCounterShades(void) { return mCounterShades; }
 		//! Return the scene intersection counter 
 		inline int getCounterSceneInter(void) { return mCounterSceneInter; }
-		/*! Get auto run time variable */
-		inline int getAniFrameTime( void ) { return mAniFrameTime; }
 		//! Check if existing frames should be skipped
 		inline int getFrameSkip( void ) { return mFrameSkip; }
 
@@ -268,8 +264,6 @@ private:
   int mAniFrames;
   //! animation status, current frame number
   int mAniCount;
-	/*! no. of steps for auto run (lbmsolver steps) */
-	int mAniFrameTime;
 	/*! Should existing picture frames be skipped? */
 	int mFrameSkip;
 
@@ -333,7 +327,7 @@ inline ntlRenderGlobals::ntlRenderGlobals() :
   mFovy(45), mcBackgr(0.0,0.0,0.0), mcAmbientLight(0.0,0.0,0.0), 
   mDebugOut( 0 ),
   mAniStart(0), mAniFrames( -1 ), mAniCount( 0 ),
-	mAniFrameTime(10), mFrameSkip( 0 ),
+	mFrameSkip( 0 ),
   mCounterRays( 0 ), mCounterShades( 0 ), mCounterSceneInter( 0 ),
 	mOutFilename( "pic" ),
 	mTreeMaxDepth( 30 ), mTreeMaxTriangles( 30 ),

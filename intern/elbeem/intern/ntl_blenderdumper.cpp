@@ -55,10 +55,8 @@ int ntlBlenderDumper::renderScene( void )
   ntlRenderGlobals *glob = mpGlob;
   ntlScene *scene = mpGlob->getScene();
 	bool debugOut = true;
-	bool otherOut = true;
 #if ELBEEM_BLENDER==1
 	debugOut = false;
-	otherOut = false;
 #endif // ELBEEM_BLENDER==1
 
 	// output path
@@ -173,8 +171,7 @@ int ntlBlenderDumper::renderScene( void )
 						gzwrite(gzf, &wri, sizeof(wri)); }
 				}
 				gzclose( gzf );
-				if(otherOut)
-					debMsgDirect(" Wrote: '"<<boutfilename.str()<<"'. ");
+				debMsgDirect(" Wrote: '"<<boutfilename.str()<<"'. ");
 				numGMs++;
 			}
 		}
@@ -185,20 +182,14 @@ int ntlBlenderDumper::renderScene( void )
 	if(numGMs>0) {
 		if(debugOut) debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Objects dumped: "<<numGMs, 10);
 	} else {
-		errMsg("ntlBlenderDumper::renderScene","No objects to dump! Aborting...");
-#if ELBEEM_BLENDER==1
-		// TODO ... D::mPanic=1; 
+		errFatal("ntlBlenderDumper::renderScene","No objects to dump! Aborting...",SIMWORLD_INITERROR);
 		return 1;
-#else // ELBEEM_BLENDER==1
-		exit(1);
-#endif // ELBEEM_BLENDER==1
 	}
 
 	/* next frame */
 	//glob->setAniCount( glob->getAniCount() +1 );
 	long stopTime = getTime();
-	if(debugOut)
-		debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Scene #"<<nrStr<<" dump time: "<< getTimeString(stopTime-startTime) <<" ", 10);
+	debMsgStd("ntlBlenderDumper::renderScene",DM_MSG,"Scene #"<<nrStr<<" dump time: "<< getTimeString(stopTime-startTime) <<" ", 10);
 
 	// still render for preview...
 	if(debugOut) {

@@ -186,6 +186,8 @@ public:
 	};
 
 	struct BBox {
+		public:	
+		BBox() {};
 		ntlVec3Gfx min, max;
 		ntlVec3Gfx center() const { return (min+max)*0.5f; }
 		ntlVec3Gfx size() const { return max - min; }

@@ -17,14 +17,6 @@ int convertString2Int(const char *string, int alt);
 //! helper function that converts a flag field to a readable integer
 std::string convertFlags2String(int flags);
 
-//! write png image
-#ifndef NOPNG
-//int writePng(const char *fileName, unsigned char **rows, int w, int h, int colortype, int bitdepth);
-int writePng(const char *fileName, unsigned char **rows, int w, int h);
-//! write opengl buffer to png
-void writeOpenglToPng(const char *fileName);
-#endif// NOPNG
-
 // output streams
 #ifdef ELBEEM_BLENDER
 extern "C" FILE* GEN_errorstream;
@@ -39,17 +31,32 @@ std::string getTimeString(myTime_t usecs);
 //! helper to check if a bounding box was specified in the right way
 bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, std::string checker);
 
-// optionally include OpenGL utility functions
-#ifdef USE_GLUTILITIES
 
-void drawCubeWire(ntlVec3Gfx s, ntlVec3Gfx e);
-void drawCubeSolid(ntlVec3Gfx s, ntlVec3Gfx e);
+/* debugging outputs , debug level 0 (off) to 10 (max) */
+#ifdef ELBEEM_BLENDER
+#define DEBUG 0
+#else // ELBEEM_BLENDER
+#define DEBUG 10
+#endif // ELBEEM_BLENDER
+extern "C" int gDebugLevel;
 
-#endif // USE_GLUTILITIES
-
-
-/* debugging outputs */
-//#define DEBUG 10
+// state of the simulation world
+// default
+#define SIMWORLD_INVALID   0
+// after init, before starting simulation
+#define SIMWORLD_INITED    1
+// error during init
+#define SIMWORLD_INITERROR    -1
+// error during simulation
+#define SIMWORLD_PANIC        -2
+// general error 
+#define SIMWORLD_GENERICERROR -3
+// global world state
+extern "C" int gWorldState;
+// last error as string
+extern "C" char gWorldStringState[256];
+// check world status macro
+#define SIMWORLD_OK() (gWorldState>=0)
 
 /* debug output function */
 #define DM_MSG        1
@@ -58,25 +65,30 @@ void drawCubeSolid(ntlVec3Gfx s, ntlVec3Gfx e);
 #define DM_WARNING    4
 #define DM_ERROR      5
 #define DM_DIRECT     6
+#define DM_FATAL      7
 void messageOutputFunc(std::string from, int id, std::string msg, myTime_t interval);
 
 /* debugging messages defines */
+#ifdef DEBUG 
 #if LBM_PRECISION==2
 #define MSGSTREAM std::ostringstream msg; msg.precision(15); msg.width(17);
 #else
 #define MSGSTREAM std::ostringstream msg; msg.precision(7); msg.width(9);
 #endif
-#ifdef DEBUG 
-#	define debMsgDirect(mStr)                        { std::ostringstream msg; msg << mStr; messageOutputFunc(string(""), DM_DIRECT, msg.str(), 0); }
-#	define debMsgStd(from,id,mStr,level)             if(DEBUG>=level){ MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, id, msg.str(), 0); }
-#	define debMsgNnl(from,id,mStr,level)             if(DEBUG>=level){ MSGSTREAM; msg << mStr       ; messageOutputFunc(from, id, msg.str(), 0); }
-#	define debMsgInter(from,id,mStr,level, interval) if(DEBUG>=level){ MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, id, msg.str(), interval); }
-#	define debugOut(mStr,level)    if(DEBUG>=level){ debMsgStd("D",DM_MSG,mStr,level); }
-#	define debugOutNnl(mStr,level) if(DEBUG>=level){ debMsgNnl("D",DM_MSG,mStr,level); }
-#	define debugOutInter(mStr,level, interval) debMsgInter("D",DM_MSG,mStr,level, interval); 
+
+#	define debMsgDirect(mStr)                         if(gDebugLevel>0)      { std::ostringstream msg; msg << mStr; messageOutputFunc(string(""), DM_DIRECT, msg.str(), 0); }
+#	define debMsgStd(from,id,mStr,level)              if(gDebugLevel>=level) { MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, id, msg.str(), 0); }
+#	define debMsgNnl(from,id,mStr,level)              if(gDebugLevel>=level) { MSGSTREAM; msg << mStr       ; messageOutputFunc(from, id, msg.str(), 0); }
+#	define debMsgInter(from,id,mStr,level, interval)  if(gDebugLevel>=level) { MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, id, msg.str(), interval); }
+#	define debugOut(mStr,level)                       if(gDebugLevel>=level) { debMsgStd("D",DM_MSG,mStr,level); }
+#	define debugOutNnl(mStr,level)                    if(gDebugLevel>=level) { debMsgNnl("D",DM_MSG,mStr,level); }
+#	define debugOutInter(mStr,level, interval)        debMsgInter("D",DM_MSG ,mStr,level, interval); 
+/* Error output function */
+#define errMsg(from,mStr)                           if(gDebugLevel>0){ MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, DM_ERROR,   msg.str(), 0); }
+#define warnMsg(from,mStr)                          if(gDebugLevel>0){ MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, DM_WARNING, msg.str(), 0); }
 
 #else
-
+// no messages at all...
 #	define debMsgDirect(mStr)
 #	define debMsgStd(from,id,mStr,level)
 #	define debMsgNnl(from,id,mStr,level)
@@ -84,13 +96,18 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 #	define debugOut(mStr,level)  
 #	define debugOutNnl(mStr,level)  
 #	define debugOutInter(mStr,level, interval) 
+#	define errMsg(from,mStr)
+#	define warnMsg(from,mStr)
 #endif
 
-/* Error output function */
-#define errMsg(from,mStr) { MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, DM_ERROR,   msg.str(), 0); }
-#define warnMsg(from,mStr){ MSGSTREAM; msg << mStr <<"\n"; messageOutputFunc(from, DM_WARNING, msg.str(), 0); }
 #define errorOut(mStr) { errMsg("D",mStr); }
-// old...  #define ...(mStr) { std::cout << mStr << "\n"; fflush(stdout); }
+
+// fatal errors - have to be handled 
+#define errFatal(from,mStr,errCode) { \
+	gWorldState = errCode; \
+	MSGSTREAM; msg << mStr; \
+	messageOutputFunc(from, DM_FATAL, msg.str(), 0); \
+}
 
 /*! print some vector from 3 values e.g. for ux,uy,uz */
 #define PRINT_VEC(x,y,z) " ["<<(x)<<","<<(y)<<","<<(z)<<"] "
@@ -119,6 +136,10 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 	PRINT_VEC( (mpV[(t).getPoints()[2]][0]),(mpV[(t).getPoints()[2]][1]),(mpV[(t).getPoints()[2]][2]) )<<" } "
 
 
+#ifndef NOPNG
+// write png image
+int writePng(const char *fileName, unsigned char **rowsp, int w, int h);
+#endif // NOPNG
 
 /* some useful templated functions 
  * may require some operators for the classes

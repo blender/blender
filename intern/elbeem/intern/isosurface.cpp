@@ -117,8 +117,8 @@ void IsoSurface::triangulate( void )
 	myTime_t tritimestart = getTime(); 
 
 	if(!mpData) {
-		errorOut("IsoSurface::triangulate fatal error: no LBM object, and no scalar field...!");
-		exit( -1 );
+		errFatal("IsoSurface::triangulate","no LBM object, and no scalar field...!",SIMWORLD_INITERROR);
+		return;
 	}
 
   // get grid spacing
@@ -332,9 +332,7 @@ void IsoSurface::triangulate( void )
 		smoothNormals(mSmoothNormals);
 	}
 	myTime_t tritimeend = getTime(); 
-#if ELBEEM_BLENDER!=1
 	debMsgStd("IsoSurface::triangulate",DM_MSG,"Took "<< ((tritimeend-tritimestart)/(double)1000.0)<<"s) " , 10 );
-#endif // ELBEEM_BLENDER!=1
 }
 
 
@@ -361,8 +359,9 @@ void IsoSurface::getTriangles( vector<ntlTriangle> *triangles,
 	int iniVertIndex = (*vertices).size();
 	int iniNormIndex = (*normals).size();
 	if(iniVertIndex != iniNormIndex) {
-		errorOut("getTriangles Error for '"<<mName<<"': Vertices and normal array sizes to not match!!!");
-		exit(1); }
+		errFatal("getTriangles Error","For '"<<mName<<"': Vertices and normal array sizes to not match!!!",SIMWORLD_GENERICERROR);
+		return; 
+	}
 	//errMsg("NM"," ivi"<<iniVertIndex<<" ini"<<iniNormIndex<<" vs"<<vertices->size()<<" ns"<<normals->size()<<" ts"<<triangles->size() );
 	//errMsg("NM"," ovs"<<mVertices.size()<<" ons"<<mVertNormals.size()<<" ots"<<mIndices.size() );
 
@@ -447,8 +446,6 @@ inline ntlVec3Gfx IsoSurface::getNormal(int i, int j,int k) {
 // Subdivide a mesh allways loop
 void IsoSurface::subdivide()
 {
-	int i;
-
 	mAdjacentFaces.clear(); 
 	mAcrossEdge.clear();
 
@@ -456,18 +453,17 @@ void IsoSurface::subdivide()
 	{
 		vector<int> numadjacentfaces(mPoints.size());
 		//errMsg("SUBDIV ADJFA1", " "<<mPoints.size()<<" - "<<numadjacentfaces.size() );
-		int i;
-		for (i = 0; i < (int)mIndices.size()/3; i++) {
+		for (int i = 0; i < (int)mIndices.size()/3; i++) {
 			numadjacentfaces[mIndices[i*3 + 0]]++;
 			numadjacentfaces[mIndices[i*3 + 1]]++;
 			numadjacentfaces[mIndices[i*3 + 2]]++;
 		}
 
 		mAdjacentFaces.resize(mPoints.size());
-		for (i = 0; i < (int)mPoints.size(); i++)
+		for (int i = 0; i < (int)mPoints.size(); i++)
 			mAdjacentFaces[i].reserve(numadjacentfaces[i]);
 
-		for (i = 0; i < (int)mIndices.size()/3; i++) {
+		for (int i = 0; i < (int)mIndices.size()/3; i++) {
 			for (int j = 0; j < 3; j++)
 				mAdjacentFaces[mIndices[i*3 + j]].push_back(i);
 		}
@@ -529,7 +525,7 @@ void IsoSurface::subdivide()
 	vector<int> newvert_count(old_nv + 3*nf); // wichtig...?
 	//errMsg("NC", newvert_count.size() );
 
-	for (i = 0; i < nf; i++) {
+	for (int i = 0; i < nf; i++) {
 		for (int j = 0; j < 3; j++) {
 			int ae = mAcrossEdge[i*3 + j];
 			if (newverts[i*3 + j] == -1 && ae != -1) {
@@ -580,7 +576,7 @@ void IsoSurface::subdivide()
 			newvert_count[newverts[i*3 + j]]++;
 		}
 	}
-	for (i = old_nv; i < (int)mPoints.size(); i++) {
+	for (int i = old_nv; i < (int)mPoints.size(); i++) {
 		if (!newvert_count[i])
 			continue;
 		float scale = 1.0f / newvert_count[i];
@@ -593,7 +589,7 @@ void IsoSurface::subdivide()
 	}
 
 	// Update old vertices
-	for (i = 0; i < old_nv; i++) {
+	for (int i = 0; i < old_nv; i++) {
 			ntlVec3Gfx bdyavg(0.0), nbdyavg(0.0);
 			ntlVec3Gfx norm_bdyavg(0.0), norm_nbdyavg(0.0); // N
 			int nbdy = 0, nnbdy = 0;
@@ -667,7 +663,7 @@ void IsoSurface::subdivide()
 
 	// Insert new faces
 	mIndices.reserve(4*nf);
-	for (i = 0; i < nf; i++) {
+	for (int i = 0; i < nf; i++) {
 		mIndices.push_back( mIndices[i*3 + 0]);
 		mIndices.push_back( newverts[i*3 + 2]);
 		mIndices.push_back( newverts[i*3 + 1]);
@@ -688,11 +684,11 @@ void IsoSurface::subdivide()
 	// recalc normals
 #if RECALCNORMALS==1
 	{
-		int nf = (int)mIndices.size()/3, nv = (int)mPoints.size(), i;
-		for (i = 0; i < nv; i++) {
+		int nf = (int)mIndices.size()/3, nv = (int)mPoints.size();
+		for (int i = 0; i < nv; i++) {
 			mPoints[i].n = ntlVec3Gfx(0.0);
 		}
-		for (i = 0; i < nf; i++) {
+		for (int i = 0; i < nf; i++) {
 			const ntlVec3Gfx &p0 = mPoints[mIndices[i*3+0]].v;
 			const ntlVec3Gfx &p1 = mPoints[mIndices[i*3+1]].v;
 			const ntlVec3Gfx &p2 = mPoints[mIndices[i*3+2]].v;
@@ -706,12 +702,12 @@ void IsoSurface::subdivide()
 			mPoints[mIndices[i*3+2]].n += facenormal * (1.0f / (l2c * l2b));
 		}
 
-		for (i = 0; i < nv; i++) {
+		for (int i = 0; i < nv; i++) {
 			normalize(mPoints[i].n);
 		}
 	}
 #else // RECALCNORMALS==1
-		for (i = 0; i < (int)mPoints.size(); i++) {
+		for (int i = 0; i < (int)mPoints.size(); i++) {
 			normalize(mPoints[i].n);
 		}
 #endif // RECALCNORMALS==1

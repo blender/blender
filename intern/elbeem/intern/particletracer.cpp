@@ -118,9 +118,9 @@ void ParticleTracer::savePreviousPositions()
 	//errMsg("spp"," PARTS SIZE "<<mParts.size() );
 		for(size_t l=mParts.size()-1; l>0; l--) {
 			if( mParts[l].size() != mParts[l-1].size() ) {
-				errorOut("ParticleTracer::savePreviousPositions error: Invalid array sizes ["<<l<<"]="<<mParts[l].size()<<
-						" ["<<(l+1)<<"]="<<mParts[l+1].size() <<" , total "<< mParts.size() );
-				exit(1);			
+				errFatal("ParticleTracer::savePreviousPositions","Invalid array sizes ["<<l<<"]="<<mParts[l].size()<<
+						" ["<<(l+1)<<"]="<<mParts[l+1].size() <<" , total "<< mParts.size() , SIMWORLD_GENERICERROR);
+				return;
 			}
 
 			for(size_t i=0; i<mParts[l].size(); i++) {

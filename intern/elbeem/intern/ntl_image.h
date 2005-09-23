@@ -35,7 +35,7 @@ public:
 	inline Value get(int x, int y) { return mpC[y*mSizex+x]; }
 	
 	/*! Set a pixel in the image */
-	inline void set(int x, int y, Value set) { mpC[y*mSizex+x] = set; }
+	inline void set(int x, int y, Value setv) { mpC[y*mSizex+x] = setv; }
 	
 protected:
 private:

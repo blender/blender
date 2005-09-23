@@ -52,14 +52,14 @@
 		"ET","EB","WT","WB"
 	};
 
-	const LbmD3Q19::dfDir LbmD3Q19::dfNorm[ cDfNum ] = { 
+	const int LbmD3Q19::dfNorm[ cDfNum ] = { 
 		cDirC, cDirN, cDirS, cDirE, cDirW, cDirT, cDirB, 
 		cDirNE, cDirNW, cDirSE, cDirSW, 
 		cDirNT, cDirNB, cDirST, cDirSB, 
 		cDirET, cDirEB, cDirWT, cDirWB
 	};
 
-	const LbmD3Q19::dfDir LbmD3Q19::dfInv[ cDfNum ] = { 
+	const int LbmD3Q19::dfInv[ cDfNum ] = { 
 		cDirC,  cDirS, cDirN, cDirW, cDirE, cDirB, cDirT,
 		cDirSW, cDirSE, cDirNW, cDirNE,
 		cDirSB, cDirST, cDirNB, cDirNT, 
@@ -203,13 +203,13 @@
 		"NE", "NW", "SE","SW" 
 	};
 
-	const LbmD2Q9::dfDir LbmD2Q9::dfNorm[ cDfNum ] = { 
+	const int LbmD2Q9::dfNorm[ cDfNum ] = { 
 		cDirC, 
 		cDirN,  cDirS,  cDirE,  cDirW,
 		cDirNE, cDirNW, cDirSE, cDirSW 
 	};
 
-	const LbmD2Q9::dfDir LbmD2Q9::dfInv[ cDfNum ] = { 
+	const int LbmD2Q9::dfInv[ cDfNum ] = { 
 		cDirC,  
 		cDirS,  cDirN,  cDirW,  cDirE,
 		cDirSW, cDirSE, cDirNW, cDirNE 
@@ -305,7 +305,6 @@ LbmSolverInterface::LbmSolverInterface() :
   mOmega( 1.0 ),
   mGravity(0.0),
 	mSurfaceTension( 0.0 ), 
-  mInitialMass (0.0), 
 	mBoundaryEast(  (CellFlagType)(CFBnd) ),mBoundaryWest( (CellFlagType)(CFBnd) ),mBoundaryNorth(  (CellFlagType)(CFBnd) ),
 	mBoundarySouth( (CellFlagType)(CFBnd) ),mBoundaryTop(  (CellFlagType)(CFBnd) ),mBoundaryBottom( (CellFlagType)(CFBnd) ),
   mInitDone( false ),
@@ -316,16 +315,17 @@ LbmSolverInterface::LbmSolverInterface() :
 	mRandom( 5123 ),
 	mvGeoStart(-1.0), mvGeoEnd(1.0),
 	mPerformGeoInit( false ),
+	mAccurateGeoinit(0),
 	mName("lbm_default") ,
 	mpIso( NULL ), mIsoValue(0.49999),
 	mSilent(false) , 
 	mGeoInitId( 0 ),
 	mpGiTree( NULL ),
-	mAccurateGeoinit(0),
-	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL )
+	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL ),
+	mMarkedCells(), mMarkedCellIndex(0)
 {
 #if ELBEEM_BLENDER==1
-	mSilent = true;
+	if(gDebugLevel<=1) mSilent = true;
 #endif
 }
 
@@ -348,9 +348,9 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 		/* might be used for some in/out flow cases */
 		return (CellFlagType)( CFFluid );
 	}
-	errorOut("LbmStdSolver::readBoundaryFlagInt error: Invalid value '"<<val<<"' " );
+	errMsg("LbmStdSolver::readBoundaryFlagInt","Invalid value '"<<val<<"' " );
 # if LBM_STRICT_DEBUG==1
-	exit(1);
+	errFatal("readBoundaryFlagInt","Strict abort..."<<val, SIMWORLD_INITERROR);
 # endif
 	return defaultValue;
 }
@@ -359,8 +359,8 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 /*! parse standard attributes */
 void LbmSolverInterface::parseStdAttrList() {
 	if(!mpAttrs) {
-		errorOut("LbmStdSolver::parseAttrList error: mpAttrs pointer not initialized!");
-		exit(1); }
+		errFatal("LbmStdSolver::parseAttrList","mpAttrs pointer not initialized!",SIMWORLD_INITERROR);
+		return; }
 
 	// st currently unused
 	//mSurfaceTension  = mpAttrs->readFloat("d_surfacetension",  mSurfaceTension, "LbmStdSolver", "mSurfaceTension", false);
@@ -395,7 +395,7 @@ void LbmSolverInterface::parseStdAttrList() {
 /*****************************************************************************/
 /*! init tree for certain geometry init */
 void LbmSolverInterface::initGeoTree(int id) {
-	if(mpGlob == NULL) { errorOut("LbmSolverInterface::initGeoTree error: Requires globals!"); exit(1); }
+	if(mpGlob == NULL) { errFatal("LbmSolverInterface::initGeoTree","Requires globals!",SIMWORLD_INITERROR); return; }
 	mGeoInitId = id;
 	ntlScene *scene = mpGlob->getScene();
 	mpGiObjects = scene->getObjects();
@@ -427,17 +427,19 @@ void LbmSolverInterface::freeGeoTree() {
 bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance) {
 	// shift ve ctors to avoid rounding errors
 	org += ntlVec3Gfx(0.0001);
-	ntlVec3Gfx dir = ntlVec3Gfx(0.999999,0.0,0.0);
+	ntlVec3Gfx dir = ntlVec3Gfx(1.0, 0.0, 0.0);
 	OId = -1;
 	ntlRay ray(org, dir, 0, 1.0, mpGlob);
 	//int insCnt = 0;
 	bool done = false;
 	bool inside = false;
-	//errMsg("III"," start org"<<org<<" dir"<<dir);
-	//int insID = ray.getID();
-	for(size_t i=0; i<mGiObjInside.size(); i++) { mGiObjInside[i] = 0; }
+	for(size_t i=0; i<mGiObjInside.size(); i++) { 
+		mGiObjInside[i] = 0; 
+		mGiObjDistance[i] = -1.0; 
+	}
 	// if not inside, return distance to first hit
 	gfxReal firstHit=-1.0;
+	int     firstOId = -1;
 	
 	if(mAccurateGeoinit) {
 		while(!done) {
@@ -445,7 +447,7 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 			ntlTriangle *triIns = NULL;
 			distance = -1.0;
 			ntlVec3Gfx normal(0.0);
-			mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
+			mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
 			if(triIns) {
 				ntlVec3Gfx norg = ray.getOrigin() + ray.getDirection()*distance;
 				LbmFloat orientation = dot(normal, dir);
@@ -454,44 +456,22 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 					// outside hit
 					normal *= -1.0;
 					mGiObjInside[OId]++;
-					mGiObjDistance[OId] = -1.0;
+					//mGiObjDistance[OId] = -1.0;
 					//errMsg("IIO"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
 				} else {
 					// inside hit
 					mGiObjInside[OId]++;
-					mGiObjDistance[OId] = distance;
+					if(mGiObjDistance[OId]<0.0) mGiObjDistance[OId] = distance;
 					//errMsg("III"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
 				}
 				norg += normal * getVecEpsilon();
 				ray = ntlRay(norg, dir, 0, 1.0, mpGlob);
-				if(firstHit<0.0) firstHit = distance;
-				//if((OId<0) && ())
-				//insCnt++;
-				/*
-				// check outside intersect
-				LbmFloat orientation = dot(normal, dir);
-				if(orientation<=0.0) {
-				// do more thorough checks... advance ray
-				ntlVec3Gfx norg = ray.getOrigin() + ray.getDirection()*distance;
-				norg += normal * (-1.0 * getVecEpsilon());
-				ray = ntlRay(norg, dir, 0, 1.0, mpGlob);
-				insCnt++;
-				errMsg("III"," oid:"<<OId<<" org"<<org<<" norg"<<norg<<" insCnt"<<insCnt);
-				} else {
-				if(insCnt>0) {
-				// we have entered this obj before?
-				ntlVec3Gfx norg = ray.getOrigin() + ray.getDirection()*distance;
-				norg += normal * (-1.0 * getVecEpsilon());
-				ray = ntlRay(norg, dir, 0, 1.0, mpGlob);
-				insCnt--;
-				errMsg("IIIS"," oid:"<<OId<<" org"<<org<<" norg"<<norg<<" insCnt"<<insCnt);
-				} else {
-				// first inside intersection -> ok
-				OId = triIns->getObjectId();
-				done = inside = true;
+				// remember first hit distance, in case we're not 
+				// inside anything
+				if(firstHit<0.0) {
+					firstHit = distance;
+					firstOId = OId;
 				}
-				}
-				*/
 			} else {
 				// no more intersections... return false
 				done = true;
@@ -503,24 +483,20 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 		for(size_t i=0; i<mGiObjInside.size(); i++) {
 			//errMsg("CHIII","i"<<i<<" ins="<<mGiObjInside[i]<<" t"<<mGiObjDistance[i]<<" d"<<distance);
 			if(((mGiObjInside[i]%2)==1)&&(mGiObjDistance[i]>0.0)) {
-				if(distance<0.0) {
-					// first intersection -> good
+				if(  (distance<0.0)                             || // first intersection -> good
+					  ((distance>0.0)&&(distance>mGiObjDistance[i])) // more than one intersection -> use closest one
+						) {						
 					distance = mGiObjDistance[i];
 					OId = i;
 					inside = true;
-				} else {
-					if(distance>mGiObjDistance[i]) {
-						// more than one intersection -> use closest one
-						distance = mGiObjDistance[i];
-						OId = i;
-						inside = true;
-					}
-				}
+				} 
 			}
 		}
 		if(!inside) {
 			distance = firstHit;
+			OId = firstOId;
 		}
+		//errMsg("CHIII","i"<<inside<<"  fh"<<firstHit<<" fo"<<firstOId<<" - h"<<distance<<" o"<<OId);
 
 		return inside;
 	} else {
@@ -529,7 +505,7 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 		ntlTriangle *triIns = NULL;
 		distance = -1.0;
 		ntlVec3Gfx normal(0.0);
-		mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
+		mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
 		if(triIns) {
 			// check outside intersect
 			LbmFloat orientation = dot(normal, dir);
@@ -605,44 +581,25 @@ LbmSolverInterface::addCellToMarkedList( CellIdentifierInterface *cid ) {
 	for(size_t i=0; i<mMarkedCells.size(); i++) {
 		// check if cids alreay in
 		if( mMarkedCells[i]->equal(cid) ) return;
-		mMarkedCells[i]->setEnd(false);
+		//mMarkedCells[i]->setEnd(false);
 	}
 	mMarkedCells.push_back( cid );
-	cid->setEnd(true);
+	//cid->setEnd(true);
 }
 
 /*****************************************************************************/
 //! marked cell iteration methods
 CellIdentifierInterface* 
 LbmSolverInterface::markedGetFirstCell( ) {
-	/*MarkedCellIdentifier *newcid = new MarkedCellIdentifier();
-	if(mMarkedCells.size() < 1){ 
-		newcid->setEnd( true );
-	}	else {
-		newcid->mpCell = mMarkedCells[0];
-	}
-	return newcid;*/
+	if(mMarkedCells.size() > 0){ return mMarkedCells[0]; }
 	return NULL;
 }
 
-void 
-LbmSolverInterface::markedAdvanceCell( CellIdentifierInterface* basecid ) {
-	if(!basecid) return;
-	basecid->setEnd( true );
-	/*MarkedCellIdentifier *cid = dynamic_cast<MarkedCellIdentifier*>( basecid );
-	CellIdentifierInterface *cid = basecid;
-	cid->mIndex++;
-	if(cid->mIndex >= (int)mMarkedCells.size()) {
-		cid->setEnd( true );
-	}
-	cid->mpCell = mMarkedCells[ cid->mIndex ];
-	*/
-}
-
-bool 
-LbmSolverInterface::markedNoEndCell( CellIdentifierInterface* cid ) {
-	if(!cid) return false;
-	return(! cid->getEnd() );
+CellIdentifierInterface* 
+LbmSolverInterface::markedAdvanceCell() {
+	mMarkedCellIndex++;
+	if(mMarkedCellIndex>=(int)mMarkedCells.size()) return NULL;
+	return mMarkedCells[mMarkedCellIndex];
 }
 
 void LbmSolverInterface::markedClearList() {
@@ -669,11 +626,12 @@ std::string convertSingleFlag2String(CellFlagType cflag) {
 	if(flag == CFNoNbEmpty      ) return string("cCFNoNbEmpty");  
 	if(flag == CFNoDelete       ) return string("cCFNoDelete");   
 	if(flag == CFNoBndFluid     ) return string("cCFNoBndFluid"); 
-	if(flag == CFBndMARK        ) return string("cCFBndMARK");     
 	if(flag == CFGrNorm         ) return string("cCFGrNorm");     
 	if(flag == CFGrFromFine     ) return string("cCFGrFromFine"); 
 	if(flag == CFGrFromCoarse   ) return string("cCFGrFromCoarse");
 	if(flag == CFGrCoarseInited ) return string("cCFGrCoarseInited");
+	if(flag == CFMbndInflow )     return string("cCFMbndInflow");
+	if(flag == CFMbndOutflow )    return string("cCFMbndOutflow");
 	if(flag == CFInvalid        ) return string("cfINVALID");
 
 	std::ostringstream mult;
@@ -701,7 +659,7 @@ std::string convertCellFlagType2String( CellFlagType cflag ) {
 	for(int j=0; j<jmax ; j++) {
 		if(flag& (1<<j)) {
 			if(somefound) mult << "|";
-			mult << convertSingleFlag2String( (CellFlagType)(1<<j) ); // this call should always be _non_-recursive
+			mult << j<<"<"<< convertSingleFlag2String( (CellFlagType)(1<<j) ); // this call should always be _non_-recursive
 			somefound = true;
 		}
 	};

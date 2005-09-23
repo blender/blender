@@ -99,8 +99,10 @@ class AttributeList
 		/*! get an attribute */
 		Attribute *find(string name) {
 			if(mAttrs.find(name) == mAttrs.end()) { 
-				errorOut("AttributeList::find error: Invalid attribute '"<<name<<"' , not found..." );
-				exit(1); 
+				errFatal("AttributeList::find","Invalid attribute '"<<name<<"' , not found...",SIMWORLD_INITERROR );
+				// just create a new empty one (warning: small memory leak!), and exit as soon as possible
+				vector<string> empty;
+				return new Attribute(name,empty, -1);
 			}
 			return mAttrs[name];
 		}
