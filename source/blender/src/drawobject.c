@@ -1914,7 +1914,7 @@ static void drawDispListwire(ListBase *dlbase)
 static void drawDispListsolid(ListBase *lb, Object *ob)
 {
 	DispList *dl;
-	int parts, ofs, p1, p2, p3, p4, a, b, *index;
+	int nr, parts, ofs, p1, p2, p3, p4, a, b, *index;
 	float *data, *v1, *v2, *v3, *v4;
 	float *ndata, *n1, *n2, *n3, *n4;
 	
@@ -1935,6 +1935,37 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 		ndata= dl->nors;
 
 		switch(dl->type) {
+		case DL_SEGM:
+			BIF_ThemeColor(TH_WIRE);
+			glDisable(GL_LIGHTING);
+
+			parts= dl->parts;
+			while(parts--) {
+				nr= dl->nr;
+				glBegin(GL_LINE_STRIP);
+				while(nr--) {
+					glVertex3fv(data);
+					data+=3;
+				}
+				glEnd();
+			}
+			glEnable(GL_LIGHTING);
+			break;
+		case DL_POLY:
+			BIF_ThemeColor(TH_WIRE);
+			glDisable(GL_LIGHTING);
+			parts= dl->parts;
+			while(parts--) {
+				nr= dl->nr;
+				glBegin(GL_LINE_LOOP);
+				while(nr--) {
+					glVertex3fv(data);
+					data+=3;
+				}
+				glEnd();
+			}
+			glEnable(GL_LIGHTING);
+			break;
 		case DL_SURF:
 
 			set_gl_material(dl->col+1);
