@@ -1496,13 +1496,12 @@ static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 
 static int Texture_setImage( BPy_Texture * self, PyObject * value )
 {
-	PyObject *pyimg;
 	Image *blimg = NULL;
 
-	if( !PyArg_ParseTuple( value, "O!", &Image_Type, &pyimg ) )
+	if( !BPy_Image_Check (value) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected an Image" );
-	blimg = Image_FromPyObject( pyimg );
+	blimg = Image_FromPyObject( value );
 
 	if( self->texture->ima ) {
 		self->texture->ima->id.us--;
