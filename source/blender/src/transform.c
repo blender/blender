@@ -194,6 +194,9 @@ void setTransformViewMatrices(TransInfo *t)
 		Mat4One(t->persinv);
 		t->persp = 0; // ortho
 	}
+	
+	calculateCenter2D(t);
+	
 }
 
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
@@ -333,6 +336,12 @@ static void view_editmove(unsigned short event)
 	/* Ctrl:      Scroll right */
 	/* Alt-Shift: Rotate up */
 	/* Alt-Ctrl:  Rotate right */
+	
+	/* only work in 3D window for now
+	 * In the end, will have to send to event to a 2D window handler instead
+	 */
+	if (Trans.flag & T_2D_EDIT)
+		return;
 	
 	switch(event) {
 		case WHEELUPMOUSE:
@@ -1792,6 +1801,8 @@ void initTrackball(TransInfo *t)
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
 	t->transform = Trackball;
+	
+	t->flag |= T_NO_CONSTRAINT; /* making sure the flag is always set */
 }
 
 static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float angles[2])
@@ -2365,7 +2376,7 @@ void Mirror(short mode)
 
 	Trans.context = CTX_NO_PET;
 
-	initTrans(&Trans);					// internal data, mouse, vectors
+	initTrans(&Trans);		// internal data, mouse, vectors
 
 	Mat3One(mati);
 	Mat3CpyMat4(matview, Trans.viewinv); // t->viewinv was set in initTrans
@@ -2373,7 +2384,7 @@ void Mirror(short mode)
 
 	initTransModeFlags(&Trans, TFM_MIRROR);	// modal settings in struct Trans
 
-	createTransData(&Trans);			// make TransData structs from selection
+	createTransData(&Trans);	// make TransData structs from selection
 
 	calculatePropRatio(&Trans);
 	calculateCenter(&Trans);

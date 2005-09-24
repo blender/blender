@@ -555,24 +555,13 @@ void restoreTransObjects(TransInfo *t)
 		restoreElement(td);
 	}	
 	recalcData(t);
-} 
+}
 
-void calculateCenterCursor(TransInfo *t)
+void calculateCenter2D(TransInfo *t)
 {
-	float *cursor;
-
-	cursor = give_cursor();
-	VECCOPY(t->center, cursor);
-
-	if(t->flag & (T_EDIT|T_POSE)) {
+	if (t->flag & (T_EDIT|T_POSE)) {
 		Object *ob= G.obedit?G.obedit:t->poseobj;
-		float mat[3][3], imat[3][3];
 		float vec[3];
-		
-		VecSubf(t->center, t->center, ob->obmat[3]);
-		Mat3CpyMat4(mat, ob->obmat);
-		Mat3Inv(imat, mat);
-		Mat3MulVecfl(imat, t->center);
 		
 		VECCOPY(vec, t->center);
 		Mat4MulVecfl(ob->obmat, vec);
@@ -581,6 +570,27 @@ void calculateCenterCursor(TransInfo *t)
 	else {
 		projectIntView(t, t->center, t->center2d);
 	}
+}
+
+void calculateCenterCursor(TransInfo *t)
+{
+	float *cursor;
+
+	cursor = give_cursor();
+	VECCOPY(t->center, cursor);
+
+	/* If edit or pose mode, move cursor in local space */
+	if(t->flag & (T_EDIT|T_POSE)) {
+		Object *ob= G.obedit?G.obedit:t->poseobj;
+		float mat[3][3], imat[3][3];
+		
+		VecSubf(t->center, t->center, ob->obmat[3]);
+		Mat3CpyMat4(mat, ob->obmat);
+		Mat3Inv(imat, mat);
+		Mat3MulVecfl(imat, t->center);
+	}
+	
+	calculateCenter2D(t);
 }
 
 void calculateCenterMedian(TransInfo *t)
@@ -602,17 +612,7 @@ void calculateCenterMedian(TransInfo *t)
 	VecMulf(partial, 1.0f / i);
 	VECCOPY(t->center, partial);
 
-	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
-		float vec[3];
-		
-		VECCOPY(vec, t->center);
-		Mat4MulVecfl(ob->obmat, vec);
-		projectIntView(t, vec, t->center2d);
-	}
-	else {
-		projectIntView(t, t->center, t->center2d);
-	}
+	calculateCenter2D(t);
 }
 
 void calculateCenterBound(TransInfo *t)
@@ -641,17 +641,7 @@ void calculateCenterBound(TransInfo *t)
 	VecAddf(t->center, min, max);
 	VecMulf(t->center, 0.5);
 
-	if (t->flag & (T_EDIT|T_POSE)) {
-		Object *ob= G.obedit?G.obedit:t->poseobj;
-		float vec[3];
-		
-		VECCOPY(vec, t->center);
-		Mat4MulVecfl(ob->obmat, vec);
-		projectIntView(t, vec, t->center2d);
-	}
-	else {
-		projectIntView(t, t->center, t->center2d);
-	}
+	calculateCenter2D(t);
 }
 
 void calculateCenter(TransInfo *t) 

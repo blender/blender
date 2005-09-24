@@ -145,24 +145,18 @@ void initgrabz(float x, float y, float z)
 {
 	if(G.vd==0) return;
 	zfac= G.vd->persmat[0][3]*x+ G.vd->persmat[1][3]*y+ G.vd->persmat[2][3]*z+ G.vd->persmat[3][3];
+	
+	/* if x,y,z is exactly the viewport offset, zfac is 0 and we don't want that */
+	if (zfac==0.0f) zfac = 1.0f;
 }
 
 void window_to_3d(float *vec, short mx, short my)
 {
 	/* always call initzgrab */
 	float dx, dy;
-	float fmx, fmy, winx, winy;
-	
-	/* stupid! */
-	winx= curarea->winx;
-	winy= curarea->winy;
-	fmx= mx;
-	fmy= my;
-	
-	dx= (2.0*fmx)/winx;
-	dx*= zfac;
-	dy= (2.0*fmy)/winy;
-	dy*= zfac;
+
+	dx= 2.0f*mx*zfac/curarea->winx;
+	dy= 2.0f*my*zfac/curarea->winy;
 
 	vec[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy);
 	vec[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy);

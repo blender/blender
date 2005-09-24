@@ -338,6 +338,7 @@ void restoreTransObjects(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter(TransInfo *t);
+void calculateCenter2D(TransInfo *t);
 void calculateCenterBound(TransInfo *t);
 void calculateCenterMedian(TransInfo *t);
 void calculateCenterCursor(TransInfo *t);
