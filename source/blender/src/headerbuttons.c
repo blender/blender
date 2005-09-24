@@ -489,7 +489,6 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 static void do_update_for_newframe(int mute, int events)
 {
 	extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
-	ScrArea *sa;
 	
 	if(events) {
 		allqueue(REDRAWALL, 0);

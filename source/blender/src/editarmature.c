@@ -1273,12 +1273,12 @@ void addvert_armature(void)
 	
 	if(to_root) {
 		VECCOPY(newbone->head, ebone->head);
-		
+		newbone->rad_head= ebone->rad_tail;
 		newbone->parent= ebone->parent;
 	}
 	else {
 		VECCOPY(newbone->head, ebone->tail);
-
+		newbone->rad_head= ebone->rad_tail;
 		newbone->parent= ebone;
 		newbone->flag |= BONE_CONNECTED;
 	}
@@ -1470,6 +1470,7 @@ void make_bone_parent(void)
 			if(val==1 && actbone->parent) {
 				actbone->flag |= BONE_CONNECTED;
 				VECCOPY(actbone->head, actbone->parent->tail);
+				actbone->rad_head= actbone->parent->rad_tail;
 				countall(); // checks selection
 				allqueue(REDRAWVIEW3D, 0);
 				BIF_undo_push("Connect to Parent");
@@ -1496,6 +1497,8 @@ void make_bone_parent(void)
 				VecSubf(offset, actbone->tail, selbone->head);
 				
 				VECCOPY(selbone->head, actbone->tail);
+				selbone->rad_head= actbone->rad_tail;
+
 				VecAddf(selbone->tail, selbone->tail, offset);
 				
 				// offset for all its children 
