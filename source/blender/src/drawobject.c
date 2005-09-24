@@ -1636,6 +1636,12 @@ static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 	}
 }
 
+static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
+{
+	*drawSmooth_r = 1;
+	return 1;
+}
+
 static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, int dt)
 {
 	Mesh *me = ob->data;
@@ -1693,7 +1699,13 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 	else if(dt==OB_SHADED) {
 		if( (G.f & G_WEIGHTPAINT)) {
-			dm->drawMappedFaces(dm, NULL, NULL, 1);
+			glEnable(GL_LIGHTING);
+			glEnable(GL_COLOR_MATERIAL);
+			set_gl_material(0);	// defmaterial settings
+
+			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
+			glDisable(GL_LIGHTING);
+			glDisable(GL_COLOR_MATERIAL);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
 			dm->drawMappedFaces(dm, NULL, NULL, 1);

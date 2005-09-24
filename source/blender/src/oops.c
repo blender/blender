@@ -863,7 +863,7 @@ void build_oops()
 
 	/* make oops, includes testing for existance */
 
-	/* awlays */	
+	/* always */	
 	if(G.soops->visiflag & OOPS_LI) {
 		Library *li= G.main->library.first;
 		while(li) {

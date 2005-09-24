@@ -544,7 +544,7 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	mdm->dm.release = meshDM_release;
 
 		/* Works in conjunction with hack during modifier calc */
-	if (G.f & G_WEIGHTPAINT) {
+	if ((G.f & G_WEIGHTPAINT) && ob==OBACT) {
 		mdm->wpaintMCol = MEM_dupallocN(me->mcol);
 	}
 
@@ -1814,7 +1814,7 @@ static void mesh_build_data(Object *ob)
 
 	clear_mesh_caches(ob);
 
-	if( (G.f & G_WEIGHTPAINT)) {
+	if( (G.f & G_WEIGHTPAINT) && ob==OBACT) {
 		MCol *mcol = me->mcol;
 		TFace *tface =  me->tface;
 
