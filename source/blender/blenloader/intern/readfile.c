@@ -4919,13 +4919,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								
 								/* enforce conversion from old IK_TOPARENT to rootbone index */
 								data->rootbone= -1;
+								
+								/* update_pose_etc handles rootbone==-1 */
+								ob->pose->flag |= POSE_RECALC;
 							}	
 						}
 					}
 				}
-				/* update_pose_etc handles rootbone==-1 */
-				if(!(ob->pose->flag & POSE_RECALC))
-					update_pose_constraint_flags(ob->pose);
 			}
 		}
 		
