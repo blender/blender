@@ -457,7 +457,8 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		do_ipo(si->ipo);
 
 		allqueue(REDRAWIPO, 0);
-		allqueue (REDRAWACTION, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWTIME, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		
