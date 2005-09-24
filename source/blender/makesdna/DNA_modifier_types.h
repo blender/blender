@@ -49,6 +49,7 @@ typedef enum {
 	eSubsurfModifierFlag_DebugIncr = (1<<1),
 	eSubsurfModifierFlag_ControlEdges = (1<<2)
 } SubsurfModifierFlag;
+
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
 
@@ -115,9 +116,10 @@ typedef struct HookModifierData {
 	float cent[3];			/* visualization of hook */
 	float falloff;			/* if not zero, falloff is distance where influence zero */
 	
-	int *indexar;
+	int *indexar;			/* if NULL, it's using vertexgroup */
 	int totindex;
 	float force;
+	char name[32];			/* optional vertexgroup name */
 } HookModifierData;
 
 typedef struct SoftbodyModifierData {

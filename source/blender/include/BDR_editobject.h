@@ -107,7 +107,7 @@ void mirrormenu(void);
 
 void add_hook(void);
 void hook_select(struct HookModifierData *hmd);
-int hook_getIndexArray(int **indexar, float *cent_r);
+int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r);
 
 #endif /*  BDR_EDITOBJECT_H */
 

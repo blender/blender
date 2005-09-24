@@ -1050,10 +1050,13 @@ static void modifiers_reassignHook(void *ob_v, void *md_v)
 	ModifierData *md = md_v;
 	HookModifierData *hmd = (HookModifierData*) md;
 	float cent[3];
-	int *indexar, tot = hook_getIndexArray(&indexar, cent);
+	int *indexar, tot, ok;
+	char name[32];
+		
+	ok= hook_getIndexArray(&tot, &indexar, name, cent);
 
-	if (!tot) {
-		error("Requires selected vertices");
+	if (!ok) {
+		error("Requires selected vertices or active Vertex Group");
 	} else {
 		if (hmd->indexar) {
 			MEM_freeN(hmd->indexar);
@@ -1187,8 +1190,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Armature) {
 			height = 46;
 		} else if (md->type==eModifierType_Hook) {
+			HookModifierData *hmd = (HookModifierData*) md;
 			height = 86;
 			if (editing)
+				height += 20;
+			if(hmd->indexar==NULL)
 				height += 20;
 		} else if (md->type==eModifierType_Softbody) {
 			height = 26;
@@ -1276,11 +1282,14 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
-			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ", 	lx, (cy-=19), buttonWidth,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
-			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", 	lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reset", 		lx, (cy-=19), 80,19, NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
+			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ",		lx, (cy-=19), buttonWidth,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
+			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
+			if(hmd->indexar==NULL)
+				uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &hmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
+			uiBlockBeginAlign(block);
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Reset", 		lx, (cy-=19), 80,19,			NULL, 0.0, 0.0, 0, 0, "Recalculate and clear offset (transform) of hook");
 			uiButSetFunc(but, modifiers_clearHookOffset, ob, md);
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Recenter", 		lx+80, cy, buttonWidth-80,19, NULL, 0.0, 0.0, 0, 0, "Sets hook center to cursor position");
+			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Recenter", 	lx+80, cy, buttonWidth-80,19,	NULL, 0.0, 0.0, 0, 0, "Sets hook center to cursor position");
 			uiButSetFunc(but, modifiers_cursorHookCenter, ob, md);
 
 			if (editing) {

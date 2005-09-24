@@ -277,7 +277,7 @@ void delete_obj(int ok)
 	BIF_undo_push("Delete object(s)");
 }
 
-static int return_editmesh_indexar(int **indexar, float *cent)
+static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
@@ -289,6 +289,7 @@ static int return_editmesh_indexar(int **indexar, float *cent)
 	if(totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	*tot= totvert;
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
@@ -305,6 +306,36 @@ static int return_editmesh_indexar(int **indexar, float *cent)
 	return totvert;
 }
 
+static int return_editmesh_vgroup(char *name, float *cent)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	int i, totvert=0;
+	
+	cent[0]= cent[1]= cent[2]= 0.0;
+	
+	if (G.obedit->actdef) {
+		
+		/* find the vertices */
+		for(eve= em->verts.first; eve; eve= eve->next) {
+			for (i=0; i<eve->totweight; i++){
+				if(eve->dw[i].def_nr == (G.obedit->actdef-1)) {
+					totvert++;
+					VecAddf(cent, cent, eve->co);
+				}
+			}
+		}
+		if(totvert) {
+			bDeformGroup *defGroup = BLI_findlink(&G.obedit->defbase, G.obedit->actdef-1);
+			strcpy(name, defGroup->name);
+			VecMulf(cent, 1.0f/(float)totvert);
+			return 1;
+		}
+	}
+	
+	return 0;
+}	
+
 static void select_editmesh_hook(HookModifierData *hmd)
 {
 	EditMesh *em = G.editMesh;
@@ -320,7 +351,7 @@ static void select_editmesh_hook(HookModifierData *hmd)
 	EM_select_flush();
 }
 
-static int return_editlattice_indexar(int **indexar, float *cent)
+static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
 {
 	BPoint *bp;
 	int *index, nr, totvert=0, a;
@@ -338,6 +369,7 @@ static int return_editlattice_indexar(int **indexar, float *cent)
 	if(totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	*tot= totvert;
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
@@ -377,7 +409,7 @@ static void select_editlattice_hook(HookModifierData *hmd)
 	}
 }
 
-static int return_editcurve_indexar(int **indexar, float *cent)
+static int return_editcurve_indexar(int *tot, int **indexar, float *cent)
 {
 	extern ListBase editNurb;
 	Nurb *nu;
@@ -408,6 +440,7 @@ static int return_editcurve_indexar(int **indexar, float *cent)
 	if(totvert==0) return 0;
 	
 	*indexar= index= MEM_mallocN(4*totvert, "hook indexar");
+	*tot= totvert;
 	nr= 0;
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
@@ -507,16 +540,23 @@ void hook_select(HookModifierData *hmd)
 	else if(G.obedit->type==OB_CURVE) select_editcurve_hook(hmd);
 	else if(G.obedit->type==OB_SURF) select_editcurve_hook(hmd);
 }
-int hook_getIndexArray(int **indexar, float *cent_r)
+
+int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r)
 {
+	*indexar= NULL;
+	*tot= 0;
+	name[0]= 0;
+
 	switch(G.obedit->type) {
-	case OB_MESH:	
-		return return_editmesh_indexar(indexar, cent_r);
+	case OB_MESH:
+		/* check selected vertices first */
+		if( return_editmesh_indexar(tot, indexar, cent_r)) return 1;
+		else return return_editmesh_vgroup(name, cent_r);
 	case OB_CURVE:
 	case OB_SURF:
-		return return_editcurve_indexar(indexar, cent_r);
+		return return_editcurve_indexar(tot, indexar, cent_r);
 	case OB_LATTICE:
-		return return_editlattice_indexar(indexar, cent_r);
+		return return_editlattice_indexar(tot, indexar, cent_r);
 	default:
 		return 0;
 	}
@@ -527,13 +567,12 @@ void add_hook(void)
 	ModifierData *md = NULL;
 	HookModifierData *hmd = NULL;
 	Object *ob=NULL;
-	float cent[3];
-	int tot=0, *indexar, mode;
+	int mode;
 
 	if(G.obedit==NULL) return;
 	
 	if(modifiers_findByType(G.obedit, eModifierType_Hook))
-		mode= pupmenu("Hooks %t|Add Hook, To New Empty %x1|Add Hook, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
+		mode= pupmenu("Hooks %t|Add, To New Empty %x1|Add, To Selected Object %x2|Remove... %x3|Reassign... %x4|Select... %x5|Clear Offset...%x6");
 	else
 		mode= pupmenu("Hooks %t|Add, New Empty %x1|Add, To Selected Object %x2");
 
@@ -604,10 +643,14 @@ void add_hook(void)
 
 	/* do it, new hooks or reassign */
 	if(mode==1 || mode==2 || mode==4) {
-		tot = hook_getIndexArray(&indexar, cent);
+		float cent[3];
+		int tot, ok, *indexar;
+		char name[32];
+		
+		ok = hook_getIndexArray(&tot, &indexar, name, cent);
 
-		if(tot==0) {
-			error("Requires selected vertices");
+		if(ok==0) {
+			error("Requires selected vertices or active Vertex Group");
 		}
 		else {
 			
@@ -646,6 +689,7 @@ void add_hook(void)
 			hmd->indexar= indexar;
 			VECCOPY(hmd->cent, cent);
 			hmd->totindex= tot;
+			BLI_strncpy(hmd->name, name, 32);
 			
 			if(mode==1 || mode==2) {
 				/* matrix calculus */

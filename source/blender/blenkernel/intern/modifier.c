@@ -1077,29 +1077,67 @@ static void hookModifier_deformVerts(ModifierData *md, Object *ob, void *derived
 	Mat4Invert(ob->imat, ob->obmat);
 	Mat4MulSerie(mat, ob->imat, hmd->object->obmat, hmd->parentinv, NULL, NULL, NULL, NULL, NULL);
 
-	for (i=0; i<hmd->totindex; i++) {
-		int index = hmd->indexar[i];
+	/* vertex indices? */
+	if(hmd->indexar) {
+		for (i=0; i<hmd->totindex; i++) {
+			int index = hmd->indexar[i];
 
-			/* This should always be true and I don't generally like 
-			 * "paranoid" style code like this, but old files can have
-			 * indices that are out of range because old blender did
-			 * not correct them on exit editmode. - zr
-			 */
-		if (index<numVerts) {
-			float *co = vertexCos[index];
-			float fac = hmd->force;
+				/* This should always be true and I don't generally like 
+				 * "paranoid" style code like this, but old files can have
+				 * indices that are out of range because old blender did
+				 * not correct them on exit editmode. - zr
+				 */
+			if (index<numVerts) {
+				float *co = vertexCos[index];
+				float fac = hmd->force;
 
-			if(hmd->falloff!=0.0) {
-				float len= VecLenf(co, hmd->cent);
-				if(len > hmd->falloff) fac = 0.0;
-				else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
-			}
+				if(hmd->falloff!=0.0) {
+					float len= VecLenf(co, hmd->cent);
+					if(len > hmd->falloff) fac = 0.0;
+					else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
+				}
 
-			if(fac!=0.0) {
-				VecMat4MulVecfl(vec, mat, co);
-				VecLerpf(co, co, vec, fac);
+				if(fac!=0.0) {
+					VecMat4MulVecfl(vec, mat, co);
+					VecLerpf(co, co, vec, fac);
+				}
 			}
 		}
+	}
+	else {	/* vertex group hook */
+		bDeformGroup *curdef;
+		Mesh *me= ob->data;
+		int index=0;
+		
+		/* find the group (weak loop-in-loop) */
+		for (curdef = ob->defbase.first; curdef; curdef=curdef->next, index++)
+			if (!strcmp(curdef->name, hmd->name))
+				break;
+		
+		if(curdef && me->dvert) {
+			MDeformVert *dvert= me->dvert;
+			int i, j;
+			
+			for (i=0; i < me->totvert; i++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == index) {
+						float fac = hmd->force*dvert->dw[j].weight;
+						float *co = vertexCos[i];
+						
+						if(hmd->falloff!=0.0) {
+							float len= VecLenf(co, hmd->cent);
+							if(len > hmd->falloff) fac = 0.0;
+							else if(len>0.0) fac *= sqrt(1.0 - len/hmd->falloff);
+						}
+						
+						VecMat4MulVecfl(vec, mat, co);
+						VecLerpf(co, co, vec, fac);
+
+					}
+				}
+			}
+		}
+
 	}
 }
 
