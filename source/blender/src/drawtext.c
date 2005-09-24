@@ -747,7 +747,7 @@ static void calc_text_rcts(SpaceText *st)
 	CLAMP(st->txtbar.ymax, 2, curarea->winy-2);
 
 	st->pix_per_line= (float) ltexth/curarea->winy;
-	if (st->pix_per_line<.1) st->pix_per_line=.1;
+	if (st->pix_per_line<.1) st->pix_per_line=.1f;
 
 	lbarstart= MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
 				txt_get_span(st->text->lines.first, st->text->sell));

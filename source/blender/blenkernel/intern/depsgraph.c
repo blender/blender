@@ -670,7 +670,7 @@ void graph_bfs(void)
 				if((itA->node->color == DAG_WHITE) ) {
 					itA->node->color = DAG_GRAY;
 					itA->node->BFS_dist = node->BFS_dist + 1;
-					itA->node->k = minheight;
+					itA->node->k = (float) minheight;
 					push_queue(nqueue,itA->node);
 				}
 				
@@ -683,11 +683,11 @@ void graph_bfs(void)
 			}
 			if (pos[node->BFS_dist] > node->k ) {
 				pos[node->BFS_dist] += 1;				
-				node->k = pos[node->BFS_dist];
+				node->k = (float) pos[node->BFS_dist];
 			} else {
-				pos[node->BFS_dist] = node->k +1;
+				pos[node->BFS_dist] = (int) node->k +1;
 			}
-			set_node_xy(node, DEPSX*2*node->BFS_dist, pos[node->BFS_dist]*DEPSY*2);
+			set_node_xy(node, node->BFS_dist*DEPSX*2, pos[node->BFS_dist]*DEPSY*2);
 			node->color = DAG_BLACK;
 			/*
 			 fprintf(stderr,"BFS node : %20s %i %5.0f %5.0f\n",((ID *) node->ob)->name,node->BFS_dist, node->x, node->y);	
@@ -820,7 +820,7 @@ DagNodeQueue * graph_dfs(void)
 
 					time++;
 					itA->node->DFS_dist = node->DFS_dist + 1;
-					itA->node->k = minheight;
+					itA->node->k = (float) minheight;
 					push_stack(nqueue,itA->node);
 					skip = 1;
 					break;
@@ -860,11 +860,11 @@ DagNodeQueue * graph_dfs(void)
 					maxpos = node->DFS_dist;
 				if (pos[node->DFS_dist] > node->k ) {
 					pos[node->DFS_dist] += 1;				
-					node->k = pos[node->DFS_dist];
+					node->k = (float) pos[node->DFS_dist];
 				} else {
-					pos[node->DFS_dist] = node->k +1;
+					pos[node->DFS_dist] = (int) node->k +1;
 				}
-				set_node_xy(node, DEPSX*2*node->DFS_dist, pos[node->DFS_dist]*DEPSY*2);
+				set_node_xy(node, node->DFS_dist*DEPSX*2, pos[node->DFS_dist]*DEPSY*2);
 				
 				/*
 				 fprintf(stderr,"DFS node : %20s %i %i %i %i\n",((ID *) node->ob)->name,node->BFS_dist, node->DFS_dist, node->DFS_dvtm, node->DFS_fntm ); 	

@@ -955,7 +955,7 @@ int face_pick(Mesh *me, short x, short y, unsigned int *index)
 	}
 	/* Convert the color back to a face index */
 	*index = framebuffer_to_index(col);
-	if (col==0 || (*index)<=0 || (*index)>me->totface)
+	if (col==0 || (*index)<=0 || (*index)>(unsigned) me->totface)
 		return 0;
 
 	(*index)--;

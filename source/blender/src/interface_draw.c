@@ -1713,8 +1713,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	float sx, sy, ex, ey;
 	float width, height;
 	float butw, buth;
-	int x, y;
-	unsigned long cs;
+	int x, y, cs;
 	wchar_t wstr[2];
 	unsigned char ustr[16];
 	PackedFile *pf;

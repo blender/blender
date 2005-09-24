@@ -35,8 +35,8 @@
 #include "BKE_constraint.h"
 
 
-#define DEPSX	5.0
-#define DEPSY	1.8
+#define DEPSX	5.0f
+#define DEPSY	1.8f
 
 #define DAGQUEUEALLOC 50
 

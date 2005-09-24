@@ -460,7 +460,6 @@ PyObject *newBezTriple( PyObject *args)
 		return  EXPP_ReturnPyObjError( PyExc_AttributeError,
 					       "wrong number of points");
 	{
-		int i;
 		if (length == 9)
 			status = PyArg_ParseTuple( args, "fffffffff", 
 						   &numbuf[0], 

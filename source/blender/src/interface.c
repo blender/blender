@@ -85,6 +85,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_glutil.h"
+#include "BIF_editfont.h"
 #include "BIF_interface.h"
 #include "BIF_butspace.h"
 
@@ -2698,9 +2699,7 @@ static int ui_do_but_CHARTAB(uiBut *but)
 	float sx, sy, ex, ey;
 	float width, height;
 	float butw, buth;
-	int x, y;
-	unsigned long cs;
-	unsigned long che;
+	int x, y, cs, che;
 
 	/* Check the position */
 	uiGetMouse(mywinget(), mval);

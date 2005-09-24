@@ -152,7 +152,7 @@ static void draw_deps(DagNode *node)
 	glRectf(x1,  y1,  x2,  y2);
 	
 	v1[0]= x1; 
-	v1[1]= (y1+y2)/2 -0.3;
+	v1[1]= (y1+y2)/2 -0.3f;
 	sprintf(str, "     %s", ((ID *) node->ob)->name+2);
 	
 	calc_oopstext(str, v1);

@@ -726,6 +726,14 @@ static void decimateModifier_initData(ModifierData *md)
 	dmd->percent = 1.0;
 }
 
+static void decimateModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	DecimateModifierData *dmd = (DecimateModifierData*) md;
+	DecimateModifierData *tdmd = (DecimateModifierData*) target;
+
+	tdmd->percent = dmd->percent;
+}
+
 static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *derivedData, float (*vertexCos)[3], int useRenderParams, int isFinalCalc)
 {
 	DecimateModifierData *dmd = (DecimateModifierData*) md;
@@ -1109,6 +1117,14 @@ static void softbodyModifier_deformVerts(ModifierData *md, Object *ob, void *der
 
 /* Boolean */
 
+static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	BooleanModifierData *bmd = (BooleanModifierData*) md;
+	BooleanModifierData *tbmd = (BooleanModifierData*) target;
+
+	tbmd->object = bmd->object;
+}
+
 static int booleanModifier_isDisabled(ModifierData *md)
 {
 	BooleanModifierData *bmd = (BooleanModifierData*) md;
@@ -1223,6 +1239,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = decimateModifier_initData;
+		mti->copyData = decimateModifier_copyData;
 		mti->applyModifier = decimateModifier_applyModifier;
 
 		mti = INIT_TYPE(Wave);
@@ -1264,6 +1281,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
 		mti->applyModifier = booleanModifier_applyModifier;
 		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
