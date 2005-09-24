@@ -315,6 +315,26 @@ static EditFace *addface_from_edges(void)
 	return NULL;
 }
 
+/* checks for existance, and for tria overlapping inside quad */
+static EditFace *exist_face_overlaps(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa, efatest;
+	
+	efatest.v1= v1;
+	efatest.v2= v2;
+	efatest.v3= v3;
+	efatest.v4= v4;
+	
+	efa= em->faces.first;
+	while(efa) {
+		if(compareface(&efatest, efa, 3)) return efa;
+		efa= efa->next;
+	}
+	return NULL;
+}
+
+
 void addedgeface_mesh(void)
 {
 	EditMesh *em = G.editMesh;
@@ -360,7 +380,8 @@ void addedgeface_mesh(void)
 	efa= NULL; // check later
 
 	if(amount==3) {
-		if(exist_face(neweve[0], neweve[1], neweve[2], 0)==0) {
+		
+		if(exist_face_overlaps(neweve[0], neweve[1], neweve[2], NULL)==0) {
 			
 			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
 			EM_select_face(efa, 1);

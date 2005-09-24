@@ -1394,7 +1394,7 @@ int compareface(EditFace *vl1, EditFace *vl2, int test)
 	return 1;
 }
 
-/* this also prevents triangles being made in quads */
+/* checks for existance, not tria overlapping inside quad */
 EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
 	EditMesh *em = G.editMesh;
@@ -1407,7 +1407,7 @@ EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	
 	efa= em->faces.first;
 	while(efa) {
-		if(compareface(&efatest, efa, 3)) return efa;
+		if(compareface(&efatest, efa, 4)) return efa;
 		efa= efa->next;
 	}
 	return NULL;
