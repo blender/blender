@@ -425,9 +425,9 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	case CONTEXT_OBJECT:
 		tab= sbuts->tab[CONTEXT_OBJECT];
 		
-		if(tab==sbuts->tab[TAB_OBJECT_OBJECT])
+		if(tab==TAB_OBJECT_OBJECT)
 		   object_panels();
-		else if(tab==sbuts->tab[TAB_OBJECT_PHYSICS])
+		else if(tab==TAB_OBJECT_PHYSICS)
 			physics_panels();
 		   
 		break;

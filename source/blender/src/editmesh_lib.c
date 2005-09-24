@@ -1373,8 +1373,8 @@ void recalc_editnormals(void)
 }
 
 
-/* this also prevents triangles being made in quads */
-int compareface(EditFace *vl1, EditFace *vl2)
+/* this also allows to prevent triangles being made in quads */
+int compareface(EditFace *vl1, EditFace *vl2, int test)
 {
 	EditVert *v1, *v2, *v3, *v4;
 	int equal= 0;
@@ -1389,9 +1389,9 @@ int compareface(EditFace *vl1, EditFace *vl2)
 	if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3 || vl1->v4==v3) equal++;
 	if(vl1->v1==v4 || vl1->v2==v4 || vl1->v3==v4 || vl1->v4==v4) equal++;
 	
-	if(equal>2) return 1;
+	if(equal<test) return 0;
 
-	return 0;
+	return 1;
 }
 
 /* this also prevents triangles being made in quads */
@@ -1407,7 +1407,7 @@ EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	
 	efa= em->faces.first;
 	while(efa) {
-		if(compareface(&efatest, efa)) return efa;
+		if(compareface(&efatest, efa, 3)) return efa;
 		efa= efa->next;
 	}
 	return NULL;
