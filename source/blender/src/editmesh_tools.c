@@ -4475,7 +4475,7 @@ int EdgeSlide(short immediate, float imperc)
 	GHash *vertgh;
 	SlideVert *tempsv;
 	float perc = 0, percp = 0,vertdist, projectMat[4][4], viewMat[4][4];
-	float shiftlabda= 0.0f;
+	float shiftlabda= 0.0f,len = 0.0f;
 	int i = 0,j, numsel, numadded=0, timesthrough = 0, vertsel=0, prop=1, cancel = 0,flip=0;
 	int wasshift = 0;
 	short event, draw=1;
@@ -4787,7 +4787,7 @@ int EdgeSlide(short immediate, float imperc)
 	while(draw){
 		 /* For the % calculation */   
 		short mval[2];   
-		float labda=0.0f, rc[2], len=0.0f;   
+		float labda=0.0f, rc[2];
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
 
