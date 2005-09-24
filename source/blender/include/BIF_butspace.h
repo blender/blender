@@ -74,16 +74,20 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 #define CONTEXT_LOGIC	6
 
 /* buts->tab new */
-#define TAB_SCENE_RENDER	0
-#define TAB_SCENE_WORLD		1
-#define TAB_SCENE_ANIM		2
-#define TAB_SCENE_SOUND		3
-
 #define TAB_SHADING_MAT 	0
 #define TAB_SHADING_TEX 	1
 #define TAB_SHADING_RAD 	2
 #define TAB_SHADING_WORLD	3
 #define TAB_SHADING_LAMP	4
+
+#define TAB_OBJECT_OBJECT	0
+#define TAB_OBJECT_PHYSICS 	1
+
+#define TAB_SCENE_RENDER	0
+#define TAB_SCENE_WORLD		1
+#define TAB_SCENE_ANIM		2
+#define TAB_SCENE_SOUND		3
+
 
 /* buts->scaflag */		
 #define BUTS_SENS_SEL		1

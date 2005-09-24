@@ -1550,13 +1550,12 @@ void do_effects_panels(unsigned short event)
 }
 
 /* Panel for particle interaction settings */
-static void object_panel_deflectors(Object *ob)
+static void object_panel_fields(Object *ob)
 {
 	uiBlock *block;
 
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_deflectors", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Particle Interaction", "Object", 640, 0, 318, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Fields and Defection", "Physics", 420, 0, 318, 204)==0) return;
 
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -1589,7 +1588,7 @@ static void object_panel_deflectors(Object *ob)
 
 //		if(modifiers_isSoftbodyEnabled(ob)) {
 		if(0) {
-			uiDefBut(block, LABEL, 0, "Object is Softbody,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Object is Soft Body,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefBut(block, LABEL, 0, "no Deflection possible",		160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 			pd->deflect= 0;
 		}
@@ -1610,7 +1609,7 @@ static void object_panel_deflectors(Object *ob)
 				uiDefBut(block, LABEL, 0, "Soft Body",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
 
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during softbody collision");
+				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 				uiBlockBeginAlign(block);
@@ -1655,15 +1654,14 @@ static void object_softbodies(Object *ob)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Softbody", "Object", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 740, 0, 318, 204)==0) return;
 
 	/* do not allow to combine with force fields */
 	/* if(ob->pd && ob->pd->deflect) { */
 	/* no reason for that any more BM */
 	if(0) {
 		uiDefBut(block, LABEL, 0, "Object has Deflection,",		10,160,300,20, NULL, 0.0, 0, 0, 0, "");
-		uiDefBut(block, LABEL, 0, "no Softbody possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "no Soft Body possible",		10,140,300,20, NULL, 0.0, 0, 0, 0, "");
 	} else {
 		static int val;
 		uiBut *but;
@@ -1686,7 +1684,7 @@ static void object_softbodies(Object *ob)
 		
 		uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
 		
-		if(sb->keys) uiSetButLock(1, "SoftBody is baked, free it first");
+		if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
 		
 		if(ob->softflag & OB_SB_BAKESET) {
 			uiBlockBeginAlign(block);
@@ -1757,22 +1755,21 @@ static void object_softbodies(Object *ob)
 
 }
 
-static void object_panel_effects(Object *ob)
+static void object_panel_particles(Object *ob)
 {
 	Effect *eff;
 	uiBlock *block;
 	int a;
 	short x, y;
 	
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_effects", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Effects", "Object", 640, 0, 418, 204)==0) return;
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Particles", "Physics", 0, 0, 418, 204)==0) return;
 
 	/* EFFECTS */
 	
 	if (ob->type == OB_MESH) {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_NEWEFFECT, "NEW Effect", 550,187,124,27, 0, 0, 0, 0, 0, "Create a new effect");
+		uiDefBut(block, BUT, B_NEWEFFECT, "NEW", 550,187,124,27, 0, 0, 0, 0, 0, "Create a new Particle effect");
 		uiDefBut(block, BUT, B_DELEFFECT, "Delete", 676,187,62,27, 0, 0, 0, 0, 0, "Delete the effect");
 		uiBlockEndAlign(block);
 	}
@@ -1880,8 +1877,7 @@ static void object_panel_fluidsim(Object *ob)
 	const int objHeight = 20;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Constraints", "Object");
-	if(uiNewPanel(curarea, block, "Fluidsim", "Object", 640, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
 	uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
 			&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
@@ -1996,14 +1992,23 @@ void object_panels()
 		object_panel_anim(ob);
 		object_panel_draw(ob);
 		object_panel_constraint("Object");
-		if(ob->type==OB_MESH) {
-			object_panel_effects(ob);
-		}
-		object_panel_deflectors(ob);
-		object_softbodies(ob);
-		object_panel_fluidsim(ob);
 
 		uiClearButLock();
+	}
+}
+
+void physics_panels()
+{
+	Object *ob;
+	
+	/* check context here */
+	ob= OBACT;
+	if(ob) {
+		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+		object_panel_particles(ob);
+		object_panel_fields(ob);
+		object_softbodies(ob);
+		object_panel_fluidsim(ob);
 	}
 }
 
