@@ -489,7 +489,7 @@ void circle_selectCB(select_CBfunc callback)
 	allqueue(REDRAWINFO, 0);
 }
 
-void count_object(Object *ob, int sel)
+static void count_object(Object *ob, int sel, int totob)
 {
 	Mesh *me;
 	Curve *cu;
@@ -497,13 +497,13 @@ void count_object(Object *ob, int sel)
 	
 	switch(ob->type) {
 	case OB_MESH:
-		G.totmesh++;
+		G.totmesh+=totob;
 		me= get_mesh(ob);
 		if(me) {
 			int totvert, totface;
 			
-			totvert= me->totvert;
-			totface= me->totface;
+			totvert= me->totvert*totob;
+			totface= me->totface*totob;
 			
 			G.totvert+= totvert;
 			G.totface+= totface;
@@ -515,16 +515,18 @@ void count_object(Object *ob, int sel)
 		break;
 
 	case OB_LAMP:
-		G.totlamp++;
+		G.totlamp+=totob;
 		break;
 	case OB_SURF:
 	case OB_CURVE:
 	case OB_FONT:
-		G.totcurve++;
+		G.totcurve+=totob;
 		tot=totf= 0;
 		cu= ob->data;
 		if(cu->disp.first)
 			count_displist( &cu->disp, &tot, &totf);
+		tot*= totob;
+		totf*= totob;
 		G.totvert+= tot;
 		G.totface+= totf;
 		if(sel) {
@@ -534,13 +536,14 @@ void count_object(Object *ob, int sel)
 		break;
 	case OB_MBALL:
 		count_displist( &ob->disp, &tot, &totf);
+		tot*= totob;
+		totf*= totob;
 		G.totvert+= tot;
 		G.totface+= totf;
 		if(sel) {
 			G.totvertsel+= tot;
 			G.totfacesel+= totf;
 		}
-		
 		break;
 	}
 	
@@ -695,23 +698,23 @@ void countall()
 	base= (G.scene->base.first);
 	while(base) {
 		if(G.scene->lay & base->lay) {
+			ob= base->object;	/* warning, ob not is obact anymore */
 			
-			G.totobj++;
 			if(base->flag & SELECT) G.totobjsel++;
 			
-			count_object(base->object, base->flag & SELECT);
-			
-			if(base->object->transflag & OB_DUPLI) {
-				extern ListBase duplilist;
-
-				make_duplilist(G.scene, base->object);
-				ob= duplilist.first;
-				while(ob) {
-					G.totobj++;
-					count_object(ob, base->flag & SELECT);
-					ob= ob->id.next;
-				}
-				free_duplilist();
+			if(ob->parent && (ob->parent->transflag & OB_DUPLIVERTS)) {
+				int tot= count_duplilist(ob->parent);
+				G.totobj+=tot;
+				count_object(ob, base->flag & SELECT, tot);
+			}
+			else if(ob->transflag & OB_DUPLIFRAMES) {
+				int tot= count_duplilist(ob);
+				G.totobj+=tot;
+				count_object(ob, base->flag & SELECT, tot);
+			}
+			else {
+				count_object(ob, base->flag & SELECT, 1);
+				G.totobj++;
 			}
 		}
 		base= base->next;

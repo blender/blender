@@ -2162,7 +2162,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
 			
-			/* dupli drawing temporal off here */
+			/* dupli drawing */
 			if(base->object->transflag & OB_DUPLI) {
 				extern ListBase duplilist;
 				Base tbase;

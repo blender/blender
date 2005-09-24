@@ -37,7 +37,6 @@ struct Object;
 struct rcti;
 
 int get_border(struct rcti *rect, short col);
-void count_object(struct Object *ob, int sel);
 void countall(void);
 void snapmenu(void); 
 void mergemenu(void);

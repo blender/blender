@@ -48,6 +48,7 @@ void vertex_duplilist(struct Scene *sce, struct Object *par);
 void particle_duplilist(struct Scene *sce, struct Object *par, struct PartEff *paf);
 void free_duplilist(void);
 void make_duplilist(struct Scene *sce, struct Object *ob);
-	
+int count_duplilist(struct Object *ob);
+
 #endif
 

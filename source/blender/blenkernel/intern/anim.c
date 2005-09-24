@@ -507,7 +507,7 @@ void free_duplilist()
 void make_duplilist(Scene *sce, Object *ob)
 {
 	PartEff *paf;
-	
+
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
@@ -524,3 +524,28 @@ void make_duplilist(Scene *sce, Object *ob)
 	}
 }
 
+int count_duplilist(Object *ob)
+{
+	if(ob->transflag & OB_DUPLI) {
+		if(ob->transflag & OB_DUPLIVERTS) {
+			if(ob->type==OB_MESH) {
+				if(ob->transflag & OB_DUPLIVERTS) {
+					PartEff *paf;
+					if( (paf=give_parteff(ob)) ) {
+						return paf->totpart;
+					}
+					else {
+						Mesh *me= ob->data;
+						return me->totvert;
+					}
+				}
+			}
+		}
+		else if(ob->transflag & OB_DUPLIFRAMES) {
+			int tot= ob->dupend - ob->dupsta; 
+			tot/= (ob->dupon+ob->dupoff);
+			return tot*ob->dupon;
+		}
+	}
+	return 1;
+}

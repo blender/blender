@@ -497,17 +497,7 @@ static void do_update_for_newframe(int mute, int events)
 	
 	/* this function applies the changes too */
 	scene_update_for_newframe(G.scene, G.vd?G.vd->lay:G.scene->lay); /* BKE_scene.h */
-		
-	/* manipulators like updates too */
-	for(sa=G.curscreen->areabase.first; sa; sa=sa->next) {
-		if(sa->spacetype==SPACE_VIEW3D) {
-			View3D *v3d= sa->spacedata.first;
-			if(v3d->twflag & V3D_USE_MANIPULATOR) break;
-			else break;	// for now
-		}
-	}
-	if(sa) countall();	// does manipulator centers
-	
+
 	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
 }
 
