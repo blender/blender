@@ -414,7 +414,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 					/* second test: is test permitted? */
 					efa= vsb1->efa;
 					if( (efa->f1 & 128)==0 ) {
-						if( compareface(efa, vsb->efa, 4)) efa->f1 |= 128;
+						if( compareface(efa, vsb->efa)) efa->f1 |= 128;
 						
 					}
 					vsb1++;

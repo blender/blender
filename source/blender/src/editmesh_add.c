@@ -315,6 +315,34 @@ static EditFace *addface_from_edges(void)
 	return NULL;
 }
 
+/* this also allows to prevent triangles being made in quads */
+static int compareface_overlaps(EditFace *vl1, EditFace *vl2)
+{
+	EditVert *v1, *v2, *v3, *v4;
+	int equal= 0;
+	
+	v1= vl2->v1;
+	v2= vl2->v2;
+	v3= vl2->v3;
+	v4= vl2->v4;
+	
+	if(v4==NULL && vl1->v4==NULL) {
+		if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1) equal++;
+		if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2) equal++;
+		if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3) equal++;
+	}
+	else {
+		if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1 || vl1->v4==v1) equal++;
+		if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2 || vl1->v4==v2) equal++;
+		if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3 || vl1->v4==v3) equal++;
+		if(vl1->v1==v4 || vl1->v2==v4 || vl1->v3==v4 || vl1->v4==v4) equal++;
+	}
+
+	if(equal>=3) return 1;
+	
+	return 0;
+}
+
 /* checks for existance, and for tria overlapping inside quad */
 static EditFace *exist_face_overlaps(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
@@ -328,7 +356,7 @@ static EditFace *exist_face_overlaps(EditVert *v1, EditVert *v2, EditVert *v3, E
 	
 	efa= em->faces.first;
 	while(efa) {
-		if(compareface(&efatest, efa, 3)) return efa;
+		if(compareface_overlaps(&efatest, efa)) return efa;
 		efa= efa->next;
 	}
 	return NULL;
@@ -389,6 +417,7 @@ void addedgeface_mesh(void)
 		else error("The selected vertices already form a face");
 	}
 	else if(amount==4) {
+		/* this test survives when theres 2 triangles */
 		if(exist_face(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
 			int tria= 0;
 			
@@ -399,7 +428,7 @@ void addedgeface_mesh(void)
 			if(exist_face(neweve[1], neweve[2], neweve[3], NULL)) tria++;
 		
 			if(tria==2) join_triangles();
-			else {
+			else if(exist_face_overlaps(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
 				
 				/* if 4 edges exist, we just create the face, convex or not */
 				efa= addface_from_edges();
@@ -417,7 +446,7 @@ void addedgeface_mesh(void)
 					else error("The selected vertices form a concave quad");
 				}
 			}
-
+			else error("The selected vertices already form a face");
 		}
 		else error("The selected vertices already form a face");
 	}

@@ -1372,26 +1372,41 @@ void recalc_editnormals(void)
 	}
 }
 
-
-/* this also allows to prevent triangles being made in quads */
-int compareface(EditFace *vl1, EditFace *vl2, int test)
+int compareface(EditFace *vl1, EditFace *vl2)
 {
 	EditVert *v1, *v2, *v3, *v4;
-	int equal= 0;
 	
-	v1= vl2->v1;
-	v2= vl2->v2;
-	v3= vl2->v3;
-	v4= vl2->v4;
+	if(vl1->v4 && vl2->v4) {
+		v1= vl2->v1;
+		v2= vl2->v2;
+		v3= vl2->v3;
+		v4= vl2->v4;
+		
+		if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1 || vl1->v4==v1) {
+			if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2 || vl1->v4==v2) {
+				if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3 || vl1->v4==v3) {
+					if(vl1->v1==v4 || vl1->v2==v4 || vl1->v3==v4 || vl1->v4==v4) {
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	else if(vl1->v4==0 && vl2->v4==0) {
+		v1= vl2->v1;
+		v2= vl2->v2;
+		v3= vl2->v3;
+		
+		if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1) {
+			if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2) {
+				if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3) {
+					return 1;
+				}
+			}
+		}
+	}
 	
-	if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1 || vl1->v4==v1) equal++;
-	if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2 || vl1->v4==v2) equal++;
-	if(vl1->v1==v3 || vl1->v2==v3 || vl1->v3==v3 || vl1->v4==v3) equal++;
-	if(vl1->v1==v4 || vl1->v2==v4 || vl1->v3==v4 || vl1->v4==v4) equal++;
-	
-	if(equal<test) return 0;
-
-	return 1;
+	return 0;
 }
 
 /* checks for existance, not tria overlapping inside quad */
@@ -1407,7 +1422,7 @@ EditFace *exist_face(EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 	
 	efa= em->faces.first;
 	while(efa) {
-		if(compareface(&efatest, efa, 4)) return efa;
+		if(compareface(&efatest, efa)) return efa;
 		efa= efa->next;
 	}
 	return NULL;
