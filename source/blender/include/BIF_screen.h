@@ -109,7 +109,6 @@ int mywinopen(int mode, short posx, short posy, short sizex, short sizey);
 void setscreen(struct bScreen *sc);
 void area_fullscreen(void);
 int select_area(int spacetype);
-void drawscreen(void);
 struct bScreen *default_twosplit(void);
 void initscreen(void);
 void unlink_screen(struct bScreen *sc);

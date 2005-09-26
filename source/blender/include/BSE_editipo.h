@@ -55,7 +55,6 @@ char *getname_mat_ei(int nr);
 char *getname_world_ei(int nr);
 char *getname_seq_ei(int nr);
 char *getname_cu_ei(int nr);
-char *getname_key_ei(int nr);
 char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
