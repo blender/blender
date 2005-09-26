@@ -1378,10 +1378,10 @@ static int Texture_setAnimMontage( BPy_Texture * self, PyObject * value )
 
 	for( i = 0; i < 4; ++i ) {
 		self->texture->fradur[i][0] = 
-			EXPP_ClampInt ( fradur[i][0], EXPP_TEX_ANIMMONSTART_MIN,
+			(short)EXPP_ClampInt ( fradur[i][0], EXPP_TEX_ANIMMONSTART_MIN,
 								EXPP_TEX_ANIMMONSTART_MAX );
 		self->texture->fradur[i][1] = 
-			EXPP_ClampInt ( fradur[i][1], EXPP_TEX_ANIMMONDUR_MIN,
+			(short)EXPP_ClampInt ( fradur[i][1], EXPP_TEX_ANIMMONDUR_MIN,
 								EXPP_TEX_ANIMMONDUR_MAX );
 	}
 
@@ -1482,7 +1482,7 @@ static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"invalid bit(s) set in mask" );
 
-	self->texture->flag = param;
+	self->texture->flag = (short)param;
 
 #if 0
 	/* if Colorband enabled, make sure we allocate memory for it */
@@ -1554,7 +1554,7 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 			return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 		}
 
-		param = PyInt_AS_LONG( value );
+		param = (short)PyInt_AS_LONG( value );
 		if( ( param & bitmask ) != param )
 			return EXPP_ReturnIntError( PyExc_ValueError,
 							"invalid bit(s) set in mask" );
@@ -1646,7 +1646,7 @@ static int Texture_setNoiseBasis( BPy_Texture * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 					      "invalid noise type" );
 
-	self->texture->noisebasis = param;
+	self->texture->noisebasis = (short)param;
 	return 0;
 }
 
@@ -1672,7 +1672,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 			return EXPP_ReturnIntError( PyExc_ValueError,
 							  "invalid noise type" );
 
-		self->texture->noisebasis2 = param;
+		self->texture->noisebasis2 = (short)param;
 
 	/*
 	 * for other type values, the attribute is "sine", "saw" or "tri", 
@@ -1688,7 +1688,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 			return EXPP_ReturnIntError( PyExc_ValueError,
 							  "expected int value of 1" );
 
-		self->texture->noisebasis2 = (int)type;
+		self->texture->noisebasis2 = (short)(int)type;
 	}
 	return 0;
 }
@@ -1701,9 +1701,9 @@ static int Texture_setRepeat( BPy_Texture * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected tuple of 2 ints" );
 
-	self->texture->xrepeat = EXPP_ClampInt( repeat[0], EXPP_TEX_REPEAT_MIN,
+	self->texture->xrepeat = (short)EXPP_ClampInt( repeat[0], EXPP_TEX_REPEAT_MIN,
 											EXPP_TEX_REPEAT_MAX );
-	self->texture->yrepeat = EXPP_ClampInt( repeat[1], EXPP_TEX_REPEAT_MIN,
+	self->texture->yrepeat = (short)EXPP_ClampInt( repeat[1], EXPP_TEX_REPEAT_MIN,
 											EXPP_TEX_REPEAT_MAX );
 
 	return 0;
@@ -1736,7 +1736,7 @@ static int Texture_setSType( BPy_Texture * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected int argument" );
 
-	param = PyInt_AS_LONG ( value );
+	param = (short)PyInt_AS_LONG ( value );
 
 	/* use the stype map to find out if this is a valid stype for this type *
 	 * note that this will allow CLD_COLOR when type is ENVMAP. there's not *
@@ -1959,7 +1959,7 @@ static PyObject *Texture_getAnimLength( BPy_Texture *self )
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		"couldn't get attribute" );return attr;
+		"couldn't get attribute" );
 
 	return attr;
 }
@@ -2124,7 +2124,7 @@ static PyObject *Texture_getFlags( BPy_Texture *self )
 
 static PyObject *Texture_getHFracDim( BPy_Texture *self )
 {
-	PyObject *attr = PyInt_FromLong( self->texture->mg_H );
+	PyObject *attr = PyInt_FromLong( (long)self->texture->mg_H );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2634,7 +2634,7 @@ static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
 		flag |= thisflag;
 	}
 
-	self->texture->imaflag = flag;
+	self->texture->imaflag = (short)flag;
 
 	Py_INCREF( Py_None );
 	return Py_None;

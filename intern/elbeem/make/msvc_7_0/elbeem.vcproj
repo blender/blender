@@ -312,7 +312,7 @@ ECHO Done
 				RelativePath="..\..\intern\attributes.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\cfgparser.hpp">
+				RelativePath="..\..\intern\cfgparser.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\factory_lbm.h">

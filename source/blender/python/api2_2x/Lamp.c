@@ -1079,7 +1079,7 @@ static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
-	param = PyInt_AS_LONG ( value );
+	param = (short)PyInt_AS_LONG ( value );
 
 	if ( ( param & bitmask ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -1222,7 +1222,7 @@ static int Lamp_setComponent( BPy_Lamp * self, PyObject * value,
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected float argument in [0.0,1.0]" );
 
-	color = PyFloat_AsDouble( value );
+	color = (float)PyFloat_AsDouble( value );
 	color = EXPP_ClampFloat( color, EXPP_LAMP_COL_MIN, EXPP_LAMP_COL_MAX );
 
 	switch ( (int)closure ) {
@@ -1636,7 +1636,7 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 
 	/* check each argument for type, find its value */
 
-	for ( i = PyTuple_Size( args ); i-- ; ) {
+	for ( i = (short)PyTuple_Size( args ); i-- ; ) {
 		name = PyString_AsString ( PySequence_Fast_GET_ITEM( args, i ) );
 		if( !name )
 			return EXPP_ReturnPyObjError ( PyExc_AttributeError,

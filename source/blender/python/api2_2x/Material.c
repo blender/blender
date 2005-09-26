@@ -1987,7 +1987,7 @@ static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected float argument in [0.0,1.0]" );
 
-	param = PyFloat_AsDouble( value );
+	param = (float)PyFloat_AsDouble( value );
 	param = EXPP_ClampFloat( param, EXPP_MAT_COL_MIN, EXPP_MAT_COL_MAX );
 
 	switch ( (int)closure ) {

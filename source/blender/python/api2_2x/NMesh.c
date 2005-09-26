@@ -1941,7 +1941,7 @@ static BPy_NMEdge *nmedge_from_index( BPy_NMesh * mesh, int v0idx, int v1idx)
 {
   BPy_NMVert *v1=(BPy_NMVert *)PyList_GetItem( mesh->verts, v0idx);
   BPy_NMVert *v2=(BPy_NMVert *)PyList_GetItem( mesh->verts, v1idx);
-  return new_NMEdge(v1, v2, 0.0, 0);
+  return new_NMEdge(v1, v2, (char)0.0, 0);
 }
 
 static BPy_NMEdge *nmedge_from_data( BPy_NMesh * mesh, MEdge *edge )

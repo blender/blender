@@ -614,7 +614,7 @@ int EXPP_setFloatClamped( PyObject *value, float *param,
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 
-	*param = EXPP_ClampFloat( PyFloat_AsDouble( value ), min, max );
+	*param = EXPP_ClampFloat( (float)PyFloat_AsDouble( value ), min, max );
 
 	return 0;
 }
@@ -634,13 +634,13 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 
 	switch ( type ) {
 	case 'b':
-		*(char *)param = EXPP_ClampInt( number, min, max );
+		*(char *)param = (char)EXPP_ClampInt( number, min, max );
 		return 0;
 	case 'h':
-		*(short *)param = EXPP_ClampInt( number, min, max );
+		*(short *)param = (short)EXPP_ClampInt( number, min, max );
 		return 0;
 	case 'H':
-		*(unsigned short *)param = EXPP_ClampInt( number, min, max );
+		*(unsigned short *)param = (unsigned short)EXPP_ClampInt( number, min, max );
 		return 0;
 	case 'i':
 		*(int *)param = EXPP_ClampInt( number, min, max );
@@ -679,7 +679,7 @@ int EXPP_setFloatRange( PyObject *value, float *param,
 	if( !PyNumber_Check ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
-	number = PyFloat_AsDouble( value );
+	number = (short)PyFloat_AsDouble( value );
 	if ( number < min || number > max )
 		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
 
@@ -704,13 +704,13 @@ int EXPP_setIValueRange( PyObject *value, void *param,
 
 	switch ( type ) {
 	case 'b':
-		*(char *)param = number;
+		*(char *)param = (char)number;
 		return 0;
 	case 'h':
-		*(short *)param = number;
+		*(short *)param = (short)number;
 		return 0;
 	case 'H':
-		*(unsigned short *)param = number;
+		*(unsigned short *)param = (unsigned short)number;
 		return 0;
 	case 'i':
 		*(int *)param = number;
@@ -749,13 +749,13 @@ int EXPP_setModuleConstant ( BPy_constant *constant, void *param, char type )
 
 	switch ( type ) {
 	case 'h':
-		*(short *)param = PyInt_AS_LONG( item );
+		*(short *)param = (short)PyInt_AS_LONG( item );
 		return 0;
 	case 'i':
 		*(int *)param = PyInt_AS_LONG( item );
 		return 0;
 	case 'f':
-		*(float *)param = PyFloat_AS_DOUBLE( item );
+		*(float *)param = (float)PyFloat_AS_DOUBLE( item );
 		return 0;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,

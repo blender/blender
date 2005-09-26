@@ -161,9 +161,9 @@ int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )
 				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 0 ) ) &&
 				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 1 ) ) &&
 				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 2 ) ) ) {
-			r = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 0 ) );
-			g = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 1 ) );
-			b = PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 2 ) );
+			r = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 0 ) );
+			g = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 1 ) );
+			b = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 2 ) );
 			ok = 1;
 		} else
 			ok = PyArg_ParseTuple( args, "fff", &r, &g, &b );

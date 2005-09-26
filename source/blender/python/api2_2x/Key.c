@@ -295,9 +295,9 @@ static PyObject *KeyBlock_getData( PyObject * self )
 			mv->co[0]=vert->co[0];
 			mv->co[1]=vert->co[1];
 			mv->co[2]=vert->co[2];
-			mv->no[0] = vert->no[0] / 32767.0;
-			mv->no[1] = vert->no[1] / 32767.0;
-			mv->no[2] = vert->no[2] / 32767.0;
+			mv->no[0] = (float)(vert->no[0] / 32767.0);
+			mv->no[1] = (float)(vert->no[1] / 32767.0);
+			mv->no[2] = (float)(vert->no[2] / 32767.0);
 
 			mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
 			mv->index = i;
