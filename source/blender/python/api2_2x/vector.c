@@ -32,6 +32,7 @@
 
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
+#include "BLI_arithb.h"
 #include "gen_utils.h"
 
 
@@ -43,6 +44,7 @@ char Vector_Resize2D_doc[] = "() - resize a vector to [x,y]";
 char Vector_Resize3D_doc[] = "() - resize a vector to [x,y,z]";
 char Vector_Resize4D_doc[] = "() - resize a vector to [x,y,z,w]";
 char Vector_toPoint_doc[] = "() - create a new Point Object from this vector";
+char Vector_ToTrackQuat_doc[] = "(track, up) - extract a quaternion from the vector and the track and up axis";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef Vector_methods[] = {
 	{"zero", (PyCFunction) Vector_Zero, METH_NOARGS, Vector_Zero_doc},
@@ -52,6 +54,7 @@ struct PyMethodDef Vector_methods[] = {
 	{"resize3D", (PyCFunction) Vector_Resize3D, METH_NOARGS, Vector_Resize2D_doc},
 	{"resize4D", (PyCFunction) Vector_Resize4D, METH_NOARGS, Vector_Resize2D_doc},
 	{"toPoint", (PyCFunction) Vector_toPoint, METH_NOARGS, Vector_toPoint_doc},
+	{"toTrackQuat", ( PyCFunction ) Vector_ToTrackQuat, METH_VARARGS, Vector_ToTrackQuat_doc},
 	{NULL, NULL, 0, NULL}
 };
 //-----------------------------METHODS----------------------------
@@ -163,6 +166,118 @@ PyObject *Vector_Resize4D(VectorObject * self)
 	}
 	self->size = 4;
 	return EXPP_incr_ret((PyObject*)self);
+}
+//----------------------------Vector.toTrackQuat(track, up) ----------------------
+//extract a quaternion from the vector and the track and up axis
+PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
+{
+	float vec[3];
+	char *strack, *sup;
+	short track = 2, up = 1;
+
+	if( !PyArg_ParseTuple ( args, "|ss", &strack, &sup ) ) {
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "expected optional two strings\n" ) );
+	}
+	if (self->size != 3) {
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError,
+			   "only for 3D vectors\n" ) );
+	}
+
+	if (strack) {
+		if (strlen(strack) == 2) {
+			if (strack[0] == '-') {
+				switch(strack[1]) {
+					case 'X':
+					case 'x':
+						track = 3;
+						break;
+					case 'Y':
+					case 'y':
+						track = 4;
+						break;
+					case 'z':
+					case 'Z':
+						track = 5;
+						break;
+					default:
+						return EXPP_ReturnPyObjError( PyExc_ValueError,
+										  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+				}
+			}
+			else {
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+								  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+			}
+		}
+		else if (strlen(strack) == 1) {
+			switch(strack[0]) {
+			case '-':
+			case 'X':
+			case 'x':
+				track = 0;
+				break;
+			case 'Y':
+			case 'y':
+				track = 1;
+				break;
+			case 'z':
+			case 'Z':
+				track = 2;
+				break;
+			default:
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+								  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+			}
+		}
+		else {
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+							  "only X, -X, Y, -Y, Z or -Z for track axis\n" );
+		}
+	}
+
+	if (sup) {
+		if (strlen(sup) == 1) {
+			switch(*sup) {
+			case 'X':
+			case 'x':
+				up = 0;
+				break;
+			case 'Y':
+			case 'y':
+				up = 1;
+				break;
+			case 'z':
+			case 'Z':
+				up = 2;
+				break;
+			default:
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+								  "only X, Y or Z for up axis\n" );
+			}
+		}
+		else {
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+							  "only X, Y or Z for up axis\n" );
+		}
+	}
+
+	if (track == up) {
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+						      "Can't have the same axis for track and up\n" );
+	}
+
+	/*
+		flip vector around, since vectoquat expect a vector from target to tracking object 
+		and the python function expects the inverse (a vector to the target).
+	*/
+	vec[0] = -self->vec[0];
+	vec[1] = -self->vec[1];
+	vec[2] = -self->vec[2];
+
+	return newQuaternionObject(vectoquat(vec, track, up), Py_NEW);
 }
 //----------------------------dealloc()(internal) ----------------
 //free the py_object

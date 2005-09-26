@@ -35,6 +35,7 @@
 #include "BLI_arithb.h"
 #include "PIL_time.h"
 #include "BLI_rand.h"
+#include "BKE_utildefines.h"
 #include "gen_utils.h"
 
 //-------------------------DOC STRINGS ---------------------------
@@ -65,6 +66,11 @@ static char M_Mathutils_DotQuats_doc[] = "() - return the dot product of two qua
 static char M_Mathutils_Slerp_doc[] = "() - returns the interpolation between two quaternions";
 static char M_Mathutils_DifferenceQuats_doc[] = "() - return the angular displacment difference between two quats";
 static char M_Mathutils_RotateEuler_doc[] = "() - rotate euler by an axis and angle";
+static char M_Mathutils_Intersect_doc[] = "(v1, v2, v3, ray, orig, clip=1) - returns the intersection between a ray and a triangle, if possible, returns None otherwise";
+static char M_Mathutils_TriangleArea_doc[] = "(v1, v2, v3) - returns the area size of the 2D or 3D triangle defined";
+static char M_Mathutils_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
+static char M_Mathutils_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
+static char M_Mathutils_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef M_Mathutils_methods[] = {
 	{"Rand", (PyCFunction) M_Mathutils_Rand, METH_VARARGS, M_Mathutils_Rand_doc},
@@ -93,6 +99,11 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"Euler", (PyCFunction) M_Mathutils_Euler, METH_VARARGS, M_Mathutils_Euler_doc},
 	{"CopyEuler", (PyCFunction) M_Mathutils_CopyEuler, METH_VARARGS, M_Mathutils_CopyEuler_doc},
 	{"RotateEuler", (PyCFunction) M_Mathutils_RotateEuler, METH_VARARGS, M_Mathutils_RotateEuler_doc},
+	{"Intersect", ( PyCFunction ) M_Mathutils_Intersect, METH_VARARGS, M_Mathutils_Intersect_doc},
+	{"TriangleArea", ( PyCFunction ) M_Mathutils_TriangleArea, METH_VARARGS, M_Mathutils_TriangleArea_doc},
+	{"TriangleNormal", ( PyCFunction ) M_Mathutils_TriangleNormal, METH_VARARGS, M_Mathutils_TriangleNormal_doc},
+	{"QuadNormal", ( PyCFunction ) M_Mathutils_QuadNormal, METH_VARARGS, M_Mathutils_QuadNormal_doc},
+	{"LineIntersect", ( PyCFunction ) M_Mathutils_LineIntersect, METH_VARARGS, M_Mathutils_LineIntersect_doc},
 	{NULL, NULL, 0, NULL}
 };
 //----------------------------MODULE INIT-------------------------
@@ -1278,6 +1289,314 @@ PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args)
 	}
 	Py_DECREF(listObject);
 	return (PyObject *) newEulerObject(eul, Py_NEW);
+}
+//---------------------------------INTERSECTION FUNCTIONS--------------------
+//----------------------------------Mathutils.Intersect() -------------------
+PyObject *M_Mathutils_Intersect( PyObject * self, PyObject * args )
+{
+	VectorObject *ray;
+	VectorObject *ray_off;
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	float dir[3], orig[3], v1[3], v2[3], v3[3], e1[3], e2[3], pvec[3], tvec[3], qvec[3];
+	float det, inv_det, u, v, t;
+	int clip = 1;
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!O!O!|i", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3, &vector_Type, &ray, &vector_Type, &ray_off , &clip) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 5 vector types\n" ) );
+	if( vec1->size != 3 || vec2->size != 3 || vec3->size != 3 || 
+		ray->size != 3 || ray_off->size != 3)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"only 3D vectors for all parameters\n" ) );
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+
+	VECCOPY(dir, ray->vec);
+	Normalise(dir);
+
+	VECCOPY(orig, ray_off->vec);
+
+	/* find vectors for two edges sharing v1 */
+	VecSubf(e1, v2, v1);
+	VecSubf(e2, v3, v1);
+
+	/* begin calculating determinant - also used to calculated U parameter */
+	Crossf(pvec, dir, e2);	
+
+	/* if determinant is near zero, ray lies in plane of triangle */
+	det = Inpf(e1, pvec);
+
+	if (det > -0.000001 && det < 0.000001) {
+		return EXPP_incr_ret( Py_None );
+	}
+
+	inv_det = 1.0f / det;
+
+	/* calculate distance from v1 to ray origin */
+	VecSubf(tvec, orig, v1);
+
+	/* calculate U parameter and test bounds */
+	u = Inpf(tvec, pvec) * inv_det;
+	if (clip && (u < 0.0f || u > 1.0f)) {
+		return EXPP_incr_ret( Py_None );
+	}
+
+	/* prepare to test the V parameter */
+	Crossf(qvec, tvec, e1);
+
+	/* calculate V parameter and test bounds */
+	v = Inpf(dir, qvec) * inv_det;
+
+	if (clip && (v < 0.0f || u + v > 1.0f)) {
+		return EXPP_incr_ret( Py_None );
+	}
+
+	/* calculate t, ray intersects triangle */
+	t = Inpf(e2, qvec) * inv_det;
+
+	VecMulf(dir, t);
+	VecAddf(pvec, orig, dir);
+
+	return newVectorObject(pvec, 3, Py_NEW);
+}
+//----------------------------------Mathutils.LineIntersect() -------------------
+/* Line-Line intersection using algorithm from mathworld.wolfram.com */
+PyObject *M_Mathutils_LineIntersect( PyObject * self, PyObject * args )
+{
+	PyObject * tuple;
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	VectorObject *vec4;
+	float v1[3], v2[3], v3[3], v4[3], i1[3], i2[3];
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3, &vector_Type, &vec4 ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec2->size)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"vectors must be of the same size\n" ) );
+
+	if( vec1->size == 3 || vec1->size == 2) {
+		float a[3], b[3], c[3], ab[3], cb[3], dir1[3], dir2[3];
+		float d;
+		if (vec1->size == 3) {
+			VECCOPY(v1, vec1->vec);
+			VECCOPY(v2, vec2->vec);
+			VECCOPY(v3, vec3->vec);
+			VECCOPY(v4, vec4->vec);
+		}
+		else {
+			v1[0] = vec1->vec[0];
+			v1[1] = vec1->vec[1];
+			v1[2] = 0.0f;
+
+			v2[0] = vec2->vec[0];
+			v2[1] = vec2->vec[1];
+			v2[2] = 0.0f;
+
+			v3[0] = vec3->vec[0];
+			v3[1] = vec3->vec[1];
+			v3[2] = 0.0f;
+
+			v4[0] = vec4->vec[0];
+			v4[1] = vec4->vec[1];
+			v4[2] = 0.0f;
+		}
+
+		VecSubf(c, v3, v1);
+		VecSubf(a, v2, v1);
+		VecSubf(b, v4, v3);
+
+		VECCOPY(dir1, a);
+		Normalise(dir1);
+		VECCOPY(dir2, b);
+		Normalise(dir2);
+		d = Inpf(dir1, dir2);
+		if (d == 1.0f || d == -1.0f) {
+			/* colinear */
+			return EXPP_incr_ret( Py_None );
+		}
+
+		Crossf(ab, a, b);
+		d = Inpf(c, ab);
+
+		/* test if the two lines are coplanar */
+		if (d > -0.000001f && d < 0.000001f) {
+			Crossf(cb, c, b);
+
+			VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+			VecAddf(i1, v1, a);
+			VECCOPY(i2, i1);
+		}
+		/* if not */
+		else {
+			float n[3], t[3];
+			VecSubf(t, v1, v3);
+
+			/* offset between both plane where the lines lies */
+			Crossf(n, a, b);
+			Projf(t, t, n);
+
+			/* for the first line, offset the second line until it is coplanar */
+			VecAddf(v3, v3, t);
+			VecAddf(v4, v4, t);
+			
+			VecSubf(c, v3, v1);
+			VecSubf(a, v2, v1);
+			VecSubf(b, v4, v3);
+
+			Crossf(ab, a, b);
+			Crossf(cb, c, b);
+
+			VecMulf(a, Inpf(cb, ab) / Inpf(ab, ab));
+			VecAddf(i1, v1, a);
+
+			/* for the second line, just substract the offset from the first intersection point */
+			VecSubf(i2, i1, t);
+		}
+
+		tuple = PyTuple_New( 2 );
+		PyTuple_SetItem( tuple, 0, newVectorObject(i1, vec1->size, Py_NEW) );
+		PyTuple_SetItem( tuple, 1, newVectorObject(i2, vec1->size, Py_NEW) );
+		return tuple;
+	}
+	else {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"2D/3D vectors only\n" ) );
+	}
+}
+//---------------------------------NORMALS FUNCTIONS--------------------
+//----------------------------------Mathutils.QuadNormal() -------------------
+PyObject *M_Mathutils_QuadNormal( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	VectorObject *vec4;
+	float v1[3], v2[3], v3[3], v4[3], e1[3], e2[3], n1[3], n2[3];
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3, &vector_Type, &vec4 ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
+	if( vec1->size != vec2->size || vec1->size != vec3->size || vec1->size != vec4->size)
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"vectors must be of the same size\n" ) );
+	if( vec1->size != 3 )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"only 3D vectors\n" ) );
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+	VECCOPY(v4, vec4->vec);
+
+	/* find vectors for two edges sharing v2 */
+	VecSubf(e1, v1, v2);
+	VecSubf(e2, v3, v2);
+
+	Crossf(n1, e2, e1);
+	Normalise(n1);
+
+	/* find vectors for two edges sharing v4 */
+	VecSubf(e1, v3, v4);
+	VecSubf(e2, v1, v4);
+
+	Crossf(n2, e2, e1);
+	Normalise(n2);
+
+	/* adding and averaging the normals of both triangles */
+	VecAddf(n1, n2, n1);
+	Normalise(n1);
+
+	return newVectorObject(n1, 3, Py_NEW);
+}
+
+//----------------------------Mathutils.TriangleNormal() -------------------
+PyObject *M_Mathutils_TriangleNormal( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	float v1[3], v2[3], v3[3], e1[3], e2[3], n[3];
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3 ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 3 vector types\n" ) );
+	if( vec1->size != vec2->size || vec1->size != vec3->size )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"vectors must be of the same size\n" ) );
+	if( vec1->size != 3 )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"only 3D vectors\n" ) );
+
+	VECCOPY(v1, vec1->vec);
+	VECCOPY(v2, vec2->vec);
+	VECCOPY(v3, vec3->vec);
+
+	/* find vectors for two edges sharing v2 */
+	VecSubf(e1, v1, v2);
+	VecSubf(e2, v3, v2);
+
+	Crossf(n, e2, e1);
+	Normalise(n);
+
+	return newVectorObject(n, 3, Py_NEW);
+}
+
+//--------------------------------- AREA FUNCTIONS--------------------
+//----------------------------------Mathutils.TriangleArea() -------------------
+PyObject *M_Mathutils_TriangleArea( PyObject * self, PyObject * args )
+{
+	VectorObject *vec1;
+	VectorObject *vec2;
+	VectorObject *vec3;
+	float v1[3], v2[3], v3[3];
+
+	if( !PyArg_ParseTuple
+	    ( args, "O!O!O!", &vector_Type, &vec1, &vector_Type, &vec2
+		, &vector_Type, &vec3 ) )
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 3 vector types\n" ) );
+	if( vec1->size != vec2->size || vec1->size != vec3->size )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"vectors must be of the same size\n" ) );
+
+	if (vec1->size == 3) {
+		VECCOPY(v1, vec1->vec);
+		VECCOPY(v2, vec2->vec);
+		VECCOPY(v3, vec3->vec);
+
+		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3) );
+	}
+	else if (vec1->size == 2) {
+		v1[0] = vec1->vec[0];
+		v1[1] = vec1->vec[1];
+
+		v2[0] = vec2->vec[0];
+		v2[1] = vec2->vec[1];
+
+		v3[0] = vec3->vec[0];
+		v3[1] = vec3->vec[1];
+
+		return PyFloat_FromDouble( AreaF2Dfl(v1, v2, v3) );
+	}
+	else {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"only 2D,3D vectors are supported\n" ) );
+	}
 }
 //#############################DEPRECATED################################
 //#######################################################################
