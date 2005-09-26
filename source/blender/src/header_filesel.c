@@ -116,6 +116,7 @@ void file_buttons(void)
 	xco+=XIC;
 	uiBlockBeginAlign(block);
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTALPHA,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 0.0, 0, 0, "Sorts files alphabetically");
+	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_DOT,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 3.0, 0, 0, "Sorts files by extension");	
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTTIME,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 1.0, 0, 0, "Sorts files by time");
 	uiDefIconButS(block, ROW, B_SORTFILELIST, ICON_SORTSIZE,	xco+=XIC,0,XIC,YIC, &sfile->sort, 1.0, 2.0, 0, 0, "Sorts files by size");	
 	uiBlockEndAlign(block);
