@@ -795,7 +795,9 @@ void make_key_editipo(SpaceIpo *si)
 		if(ei->icu) {
 			ei->flag= ei->icu->flag;
 		}
-		else if(a==0) ei->flag |= IPO_VISIBLE;
+		else if(a==0) 
+			if(key && key->type==KEY_NORMAL)
+				ei->flag |= IPO_VISIBLE;
 	}
 	
 	ei= si->editipo;

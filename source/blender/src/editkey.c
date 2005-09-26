@@ -198,6 +198,7 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 	allqueue (REDRAWACTION, 0);
 	allqueue (REDRAWNLA, 0);
 	allqueue (REDRAWIPO, 0);
+	allspace(REMAKEIPO, 0);
 
 }
 
@@ -349,9 +350,11 @@ static KeyBlock *add_keyblock(Key *key)
 	tot= BLI_countlist(&key->block);
 	if(tot==1) strcpy(kb->name, "Basis");
 	else sprintf(kb->name, "Key %d", tot-1);
+	kb->adrcode= tot-1;
 	
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
+	
 	
 	if(key->type == KEY_RELATIVE) 
 		kb->pos= curpos+0.1;
