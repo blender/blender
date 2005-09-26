@@ -172,28 +172,24 @@ static void do_ipo_editmenu_keymenu(void *arg, int event)
 {
 	Key *key;
 	KeyBlock *kb;
+	Object *ob= OBACT;
 
 	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
 		key= (Key *)G.sipo->from;
-		if(key==0) return;
-		kb= key->block.first;
+		if(key==NULL) return;
 
-		while(kb) {
-			if(kb->flag & SELECT) {
-				kb->type= 0;
-				switch(event){
-					case 0:
-						kb->type= KEY_LINEAR;
-						break;
-					case 1:
-						kb->type= KEY_CARDINAL;
-						break;
-					case 2:
-						kb->type= KEY_BSPLINE;
-						break;
-				}
-			}
-			kb= kb->next;
+		kb= BLI_findlink(&key->block, ob->shapenr-1);
+		kb->type= 0;
+		switch(event){
+			case 0:
+				kb->type= KEY_LINEAR;
+				break;
+			case 1:
+				kb->type= KEY_CARDINAL;
+				break;
+			case 2:
+				kb->type= KEY_BSPLINE;
+				break;
 		}
 	}
 }
@@ -623,7 +619,7 @@ static char *ipo_modeselect_pup(void)
 
 	if(OBACT){
 		if ELEM4(OBACT->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
-			sprintf(tmpstr,formatstring,"Vertex",ID_KE, ICON_EDIT);
+			sprintf(tmpstr,formatstring,"Shape",ID_KE, ICON_EDIT);
 			strcat(string,tmpstr);
 		}
 		if (OBACT->action){

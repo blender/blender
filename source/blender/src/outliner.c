@@ -2122,9 +2122,9 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 
 				// icons a bit higher
 			if(tselem->flag & TSE_CLOSED) 
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_CLOSED);
+				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_RIGHT);
 			else
-				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_OPEN);
+				BIF_draw_icon(icon_x, *starty+2, ICON_TRIA_DOWN);
 		}
 		offsx+= OL_X;
 		

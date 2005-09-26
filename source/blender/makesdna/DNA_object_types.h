@@ -190,10 +190,10 @@ typedef struct Object {
 	LBuf lbuf;
 	LBuf port;
 	
-	float pad3, smoothresh;		/* smoothresh is phong interpolation ray_shadow correction in render */
+	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
+	char shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
+	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
 
-	short fluidsimFlag;  /* NT toggle fluidsim participation on/off */
-	short dnapadFluidsimDummy1, dnapadFluidsimDummy2, dnapadFluidsimDummy3; /* 8byte align */
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   
 	struct DerivedMesh *derivedDeform, *derivedFinal;
@@ -374,6 +374,11 @@ extern Object workob;
 #define OB_ADDCONT		512
 #define OB_ADDACT		1024
 #define OB_SHOWCONT		2048
+
+/* ob->shapeflag */
+#define OB_SHAPE_LOCK		1
+#define OB_SHAPE_TEMPLOCK	2
+
 
 /* ob->softflag in DNA_object_force.h */
 

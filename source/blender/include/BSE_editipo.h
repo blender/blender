@@ -59,7 +59,7 @@ char *getname_key_ei(int nr);
 char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
-struct IpoCurve *find_ipocurve(struct Ipo *ipo, int adrcode);
+
 void boundbox_ipocurve(struct IpoCurve *icu);
 void boundbox_ipo(struct Ipo *ipo, struct rctf *bb);
 void editipo_changed(struct SpaceIpo *si, int doredraw);

@@ -1542,6 +1542,12 @@ static void set_trans_object_base_flags(TransInfo *t)
 	/* makes sure base flags and object flags are identical */
 	copy_baseflags();
 	
+	/* handle pending update events, otherwise they got copied below */
+	for (base= FIRSTBASE; base; base= base->next) {
+		if(base->object->recalc) 
+			object_handle_update(base->object);
+	}
+	
 	for (base= FIRSTBASE; base; base= base->next) {
 		base->flag &= ~BA_WAS_SEL;
 		

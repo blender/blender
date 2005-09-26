@@ -386,6 +386,17 @@ void make_local_ipo(Ipo *ipo)
 
 }
 
+IpoCurve *find_ipocurve(Ipo *ipo, int adrcode)
+{
+	if(ipo) {
+		IpoCurve *icu= ipo->curve.first;
+		while(icu) {
+			if(icu->adrcode==adrcode) return icu;
+			icu= icu->next;
+		}
+	}
+	return NULL;
+}
 
 void calchandles_ipocurve(IpoCurve *icu)
 {

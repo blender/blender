@@ -237,7 +237,7 @@ void load_editNurb()
 		cu= G.obedit->data;
 
 		/* are there keys? */
-		actkey = key_get_active(cu->key);
+		actkey = ob_get_keyblock(G.obedit);
 		if(actkey) {
 			/* active key: the vertices */
 			
@@ -299,7 +299,7 @@ void make_editNurb()
 			nu= nu->next;
 		}
 		
-		actkey = key_get_active(cu->key);
+		actkey = ob_get_keyblock(G.obedit);
 		if(actkey) {
 			strcpy(G.editModeTitleExtra, "(Key) ");
 			key_to_curve(actkey, cu, &editNurb);

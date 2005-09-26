@@ -65,6 +65,7 @@
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
 #include "BIF_editaction.h"
+#include "BIF_editkey.h"
 #include "BIF_interface.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -104,8 +105,6 @@ void do_actionbuts(unsigned short event);
 
 /* implementation ------------------------------------------------------ */
 
-extern void make_rvk_slider(uiBlock *block, Key *key, int i,
-							int x, int y, int w, int h); /* editkey.c */
 extern short showsliders; /* editaction .c */
 extern short ACTWIDTH;
 
@@ -177,7 +176,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1 ; i < key->totkey ; ++ i) {
 			make_rvk_slider(block, key, i, 
-							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1);
+							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1, "Slider to control Shape Keys");
 
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			

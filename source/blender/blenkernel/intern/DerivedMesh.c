@@ -1474,8 +1474,9 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	*final_r = NULL;
 
 	if (useDeform) {
-		do_mesh_key(me);
-
+		if(do_ob_key(ob))	/* shape key makes deform verts */
+			deformedVerts = mesh_getVertexCos(me, &numVerts);
+		
 			/* Apply all leading deforming modifiers */
 		for (; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1601,7 +1602,7 @@ static vec3f *editmesh_getVertexCos(EditMesh *em, int *numVerts_r)
 		VECCOPY(cos[i], eve->co);
 	}
 
-	return cos;
+	return (vec3f *)cos;
 }
 
 static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)

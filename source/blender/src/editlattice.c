@@ -44,24 +44,24 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "DNA_object_types.h"
-#include "DNA_scene_types.h"
-#include "DNA_lattice_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_key.h"
 #include "BKE_depsgraph.h"
-#include "BKE_lattice.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
+#include "BKE_lattice.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_space.h"
-#include "BIF_screen.h"
 #include "BIF_editlattice.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editkey.h"
+#include "BIF_space.h"
+#include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
 #include "BSE_edit.h"
@@ -114,7 +114,7 @@ void make_editLatt(void)
 	
 	lt= G.obedit->data;
 
-	actkey = key_get_active(lt->key);
+	actkey = ob_get_keyblock(G.obedit);
 	if(actkey) {
 		strcpy(G.editModeTitleExtra, "(Key) ");
 		key_to_latt(actkey, lt);
@@ -138,7 +138,7 @@ void load_editLatt(void)
 	
 	lt= G.obedit->data;
 	
-	actkey = key_get_active(lt->key);
+	actkey = ob_get_keyblock(G.obedit);
 	if(actkey) {
 		/* active key: vertices */
 		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;

@@ -73,9 +73,10 @@
 #include "DNA_world_types.h"
 #include "DNA_packedFile_types.h"
 
+#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
-#include "BKE_curve.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
@@ -95,6 +96,7 @@
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
+#include "BIF_editkey.h"
 #include "BIF_editmesh.h"
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
@@ -366,7 +368,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	Base *base;
-	Object *ob;
+	Object *ob= OBACT;
 	Nurb *nu;
 	Curve *cu;
 	BezTriple *bezt;
@@ -411,7 +413,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		}
 		break;
 	case B_MATNEW:
-		new_material_to_objectdata((G.scene->basact) ? (G.scene->basact->object) : 0);
+		new_material_to_objectdata(ob);
 		scrarea_queue_winredraw(curarea);
 		BIF_undo_push("New material");
 		allqueue(REDRAWBUTSSHADING, 0);
@@ -528,7 +530,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		}
 		break;
 	case B_AUTOTEX:
-		ob= OBACT;
 		if(ob && G.obedit==0) {
 			if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) tex_space_curve(ob->data);
 		}
@@ -596,10 +597,54 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		break;
 	case B_CHANGEDEP:
 		DAG_scene_sort(G.scene); // makes new dag
-		ob= OBACT;
 		if(ob) ob->recalc |= OB_RECALC;
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	
+	case B_ADDKEY:
+		insert_shapekey(ob);
+		break;
+	case B_SETKEY:
+		ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_LOCKKEY:
+		ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_NEXTKEY:
+	{
+		Key *key= ob_get_key(ob);
+		if(ob->shapenr == BLI_countlist(&key->block))
+		   ob->shapenr= 1;
+		else ob->shapenr++;
+		do_common_editbuts(B_SETKEY);
+		break;
+	}
+	case B_PREVKEY:
+	{
+		Key *key= ob_get_key(ob);
+		if(ob->shapenr <= 1)
+			ob->shapenr= BLI_countlist(&key->block);
+		else ob->shapenr--;
+		do_common_editbuts(B_SETKEY);
+		break;
+	}
+	case B_NAMEKEY:
+		allspace(REMAKEIPO, 0);
+        allqueue (REDRAWIPO, 0);
+		break;
+	case B_DELKEY:
+		delete_key(OBACT);
+		break;
+		
+		
 	default:
 		if(event>=B_OBLAY && event<=B_OBLAY+31) {
 			local= BASACT->lay & 0xFF000000;
@@ -611,11 +656,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			}
 			BASACT->lay += local;
 			/* optimal redraw */
-			if( (OBACT->lay & G.vd->lay) && (BASACT->lay & G.vd->lay) );
-			else if( (OBACT->lay & G.vd->lay)==0 && (BASACT->lay & G.vd->lay)==0 );
+			if( (ob->lay & G.vd->lay) && (BASACT->lay & G.vd->lay) );
+			else if( (ob->lay & G.vd->lay)==0 && (BASACT->lay & G.vd->lay)==0 );
 			else allqueue(REDRAWVIEW3D, 0);
 			
-			OBACT->lay= BASACT->lay;
+			ob->lay= BASACT->lay;
 		}
 	}
 
@@ -1358,6 +1403,71 @@ static void editing_panel_modifiers(Object *ob)
 	}
 	
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
+}
+
+static char *make_key_menu(Key *key)
+{
+	KeyBlock *kb;
+	int index= 1;
+	char *str, item[64];
+
+	for (kb = key->block.first; kb; kb=kb->next, index++);
+	str= MEM_mallocN(index*40, "key string");
+	str[0]= 0;
+	
+	index= 1;
+	for (kb = key->block.first; kb; kb=kb->next, index++) {
+		sprintf (item,  "|%s%%x%d", kb->name, index);
+		strcat(str, item);
+	}
+	
+	return str;
+}
+
+static void editing_panel_shapes(Object *ob)
+{
+	uiBlock *block;
+	Key *key= NULL;
+	KeyBlock *kb;
+	int icon;
+	char *strp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_shapes", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Modifiers", "Editing");
+	if( uiNewPanel(curarea, block, "Shapes", "Editing", 640, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, BUT, B_ADDKEY, "Add Shape Key" ,	10, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "Add new Shape Key");
+		
+	key= ob_get_key(ob);
+	if(key==NULL) 
+		return;
+	
+	uiDefButS(block, TOG, B_RELKEY, "Relative",		170, 180,140,20, &key->type, 0, 0, 0, 0, "Makes Shape Keys relative");
+
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+	if(kb==NULL) {
+		ob->shapenr= 1;
+		kb= key->block.first;
+	}
+
+	uiBlockBeginAlign(block);
+	if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
+	uiDefIconButBitC(block, TOG, OB_SHAPE_LOCK, B_LOCKKEY, icon, 10,150,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
+	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		35,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
+	strp= make_key_menu(key);
+	uiDefButC(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+	MEM_freeN(strp);
+	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	75,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
+	uiDefBut(block, TEX, B_NAMEKEY, "",						95, 150, 190, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
+	uiDefIconBut(block, BUT, B_DELKEY, ICON_X,				285,150,25,20, 0, 0, 0, 0, 0, "Deletes current Shape Key");
+	uiBlockEndAlign(block);
+
+	if(key->type && (ob->shapeflag & OB_SHAPE_LOCK)==0 && ob->shapenr!=1) {
+		uiBlockBeginAlign(block);
+		make_rvk_slider(block, key, ob->shapenr-1,			10, 120, 150, 20, "Key value, when used it inserts an animation curve point");
+		uiDefButF(block, NUM, B_REDR, "Min ",				160,120, 75, 20, &kb->slidermin, -10.0, 10.0, 100, 1, "Minumum for slider");
+		uiDefButF(block, NUM, B_REDR, "Max ",				235,120, 75, 20, &kb->slidermax, -10.0, 10.0, 100, 1, "Maximum for slider");
+	}
 }
 
 /* *************************** FONT ******************************** */
@@ -3616,13 +3726,14 @@ void editing_panels()
 	
 	switch(ob->type) {
 	case OB_MESH:
-		editing_panel_links(ob); // no editmode!
-		editing_panel_mesh_type(ob, ob->data);	// no editmode!
+		editing_panel_links(ob);
+		editing_panel_mesh_type(ob, ob->data);
 		editing_panel_modifiers(ob);
+		editing_panel_shapes(ob);
 		/* modes */
 		if(G.obedit) {
-			editing_panel_mesh_tools(ob, ob->data); // no editmode!
-			editing_panel_mesh_tools1(ob, ob->data); // no editmode!
+			editing_panel_mesh_tools(ob, ob->data);
+			editing_panel_mesh_tools1(ob, ob->data);
 		}
 		else {
 			if(G.f & G_FACESELECT) {
@@ -3638,9 +3749,10 @@ void editing_panels()
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		editing_panel_curve_type(ob, cu);
 		editing_panel_modifiers(ob);
+//		editing_panel_shapes(ob);
 		if(G.obedit) {
 			editing_panel_curve_tools(ob, cu);
 			editing_panel_curve_tools1(ob, cu);
@@ -3649,7 +3761,7 @@ void editing_panels()
 
 	case OB_MBALL:
 		mb= ob->data;
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		editing_panel_mball_type(ob, mb);
 		if(G.obedit) {
 			editing_panel_mball_tools(ob, mb);
@@ -3658,7 +3770,7 @@ void editing_panels()
 
 	case OB_FONT:
 		cu= ob->data;
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		editing_panel_curve_type(ob, cu);
 		editing_panel_font_type(ob, cu);
 
@@ -3673,17 +3785,18 @@ void editing_panels()
 
 	case OB_LATTICE:
 		lt= ob->data;
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		editing_panel_lattice_type(ob, lt);
 		editing_panel_modifiers(ob);
+//		editing_panel_shapes(ob);
 		break;
 
 	case OB_LAMP:
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		break;
 
 	case OB_EMPTY:
-		editing_panel_links(ob); // no editmode!
+		editing_panel_links(ob);
 		break;
 
 	case OB_CAMERA:

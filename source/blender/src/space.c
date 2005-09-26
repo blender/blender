@@ -2106,10 +2106,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case XKEY:
 		case DELKEY:
-			if((G.qual==LR_SHIFTKEY))
-				delete_key();
-			else if((G.qual==0))
-				del_ipo();
+			del_ipo();
 			break;
 		}
 	}

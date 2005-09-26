@@ -38,27 +38,28 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_key_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_lattice_types.h"
 
-#include "BLI_blenlib.h"
-#include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_library.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
-#include "BKE_object.h"
-#include "BKE_mesh.h"
-#include "BKE_key.h"
+#include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_main.h"
+#include "BKE_object.h"
+#include "BKE_utildefines.h"
+
+#include "BLI_blenlib.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -191,23 +192,20 @@ void sort_keys(Key *key)
 	while(doit) {
 		doit= 0;
 		
-		kb= key->block.first;
-		while(kb) {
+		for(kb= key->block.first; kb; kb= kb->next) {
 			if(kb->next) {
 				if(kb->pos > kb->next->pos) {
 					BLI_remlink(&key->block, kb);
 					
-					/* insertlink(lb, prevlink, newlink): newlink komt na prevlink */
 					BLI_insertlink(&key->block, kb->next, kb);
 					
 					doit= 1;
 					break;
 				}
 			}
-			kb= kb->next;
 		}	
 	}
-	
+
 }
 
 /**************** do the key ****************/
@@ -407,7 +405,7 @@ static void flerp(int aantal, float *in, float *f0, float *f1, float *f2, float 
 	}
 }
 
-void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int mode)
+static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int mode)
 {
 	float ktot = 0.0, kd = 0.0;
 	int elemsize, poinsize = 0, a, *ofsp, ofs[32], flagflo=0;
@@ -578,7 +576,6 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 {
 	KeyBlock *kb;
 	IpoCurve *icu;
-	float fac[KEY_TOTIPO], fval;
 	int *ofsp, ofs[3], elemsize, a, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
 	
@@ -611,30 +608,23 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 	elemsize= key->elemsize;
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
-	/* step one: fetch ipo values */
-	icu= key->ipo->curve.first;
-	for(a=0; a<KEY_TOTIPO; a++) fac[a]= 0.0;
-	while(icu) {
-		fac[icu->adrcode]= icu->curval;
-		icu= icu->next;
-	}
-	
-	/* step 2 init */
+	/* step 1 init */
 	cp_key(start, end, tot, basispoin, key, key->refkey, mode);
 	
-	/* step 3: do it */
+	/* step 2: do it */
 	
 	a= 1;
 	kb= key->block.first;
 	while(kb) {
 		
 		if(kb!=key->refkey) {
-			fval= fac[a];
+			icu= find_ipocurve(key->ipo, kb->adrcode);
+			
 			a++;
-			if(a==32) break;
+			if(a==64) break;
 
-			/* no difference allowed */
-			if(kb->totelem==tot) {
+			/* only with ipocurve, and no difference allowed */
+			if(icu && kb->totelem==tot) {
 				
 				poin= basispoin;
 				reffrom= key->refkey->data;
@@ -655,16 +645,16 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 						
 						switch(cp[1]) {
 						case IPO_FLOAT:
-							rel_flerp(cp[0], (float *)poin, (float *)reffrom, (float *)from, fval);
+							rel_flerp(cp[0], (float *)poin, (float *)reffrom, (float *)from, icu->curval);
 							
 							break;
 						case IPO_BPOINT:
-							rel_flerp(3, (float *)poin, (float *)reffrom, (float *)from, fval);
-							rel_flerp(1, (float *)(poin+16), (float *)(reffrom+16), (float *)(from+16), fval);
+							rel_flerp(3, (float *)poin, (float *)reffrom, (float *)from, icu->curval);
+							rel_flerp(1, (float *)(poin+16), (float *)(reffrom+16), (float *)(from+16), icu->curval);
 			
 							break;
 						case IPO_BEZTRIPLE:
-							rel_flerp(9, (float *)poin, (float *)reffrom, (float *)from, fval);
+							rel_flerp(9, (float *)poin, (float *)reffrom, (float *)from, icu->curval);
 			
 							break;
 						}
@@ -898,16 +888,15 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	}
 }
 
-void do_mesh_key(Mesh *me)
+static int do_mesh_key(Mesh *me)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta, loc[3], size[3];
 	int a, flag = 0, step;
 	
-	if(me->totvert==0) return;
-	if(me->key==NULL) return;
-	if(me->key->flag & KEY_LOCKED) return;
-	if(me->key->block.first==NULL) return;
+	if(me->totvert==0) return 0;
+	if(me->key==NULL) return 0;
+	if(me->key->block.first==NULL) return 0;
 	
 	if(me->key->slurph && me->key->type!=KEY_RELATIVE ) {
 		delta= me->key->slurph;
@@ -969,6 +958,7 @@ void do_mesh_key(Mesh *me)
 			else boundbox_mesh(me, loc, size);
 		}
 	}
+	return 1;
 }
 
 static void do_cu_key(Curve *cu, KeyBlock **k, float *t)
@@ -1042,7 +1032,7 @@ static void do_rel_cu_key(Curve *cu, float ctime)
 	}
 }
 
-void do_curve_key(Curve *cu)
+static int do_curve_key(Curve *cu)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta;
@@ -1050,10 +1040,9 @@ void do_curve_key(Curve *cu)
 	
 	tot= count_curveverts(&cu->nurb);
 	
-	if(tot==0) return;
-	if(cu->key==NULL) return;
-	if(cu->key->flag & KEY_LOCKED) return;
-	if(cu->key->block.first==NULL) return;
+	if(tot==0) return 0;
+	if(cu->key==NULL) return 0;
+	if(cu->key->block.first==NULL) return 0;
 	
 	if(cu->key->slurph) {
 		delta= cu->key->slurph;
@@ -1110,17 +1099,18 @@ void do_curve_key(Curve *cu)
 			if(flag && k[2]==cu->key->refkey) tex_space_curve(cu);
 		}
 	}
+	
+	return 1;
 }
 
-void do_latt_key(Lattice *lt)
+static int do_latt_key(Lattice *lt)
 {
 	KeyBlock *k[4];
 	float delta, cfra, ctime, t[4];
 	int a, tot, flag;
 	
-	if(lt->key==NULL) return;
-	if(lt->key->flag & KEY_LOCKED) return;
-	if(lt->key->block.first==0) return;
+	if(lt->key==NULL) return 0;
+	if(lt->key->block.first==NULL) return 0;
 
 	tot= lt->pntsu*lt->pntsv*lt->pntsw;
 
@@ -1171,51 +1161,79 @@ void do_latt_key(Lattice *lt)
 	}
 	
 	if(lt->flag & LT_OUTSIDE) outside_lattice(lt);
+	
+	return 1;
 }
 
-
-/* going to be removed */
-void unlock_all_keys()
+/* returns 1 when key applied */
+int do_ob_key(Object *ob)
 {
-	Key *key;
-	
-	key= G.main->key.first;
-	while(key) {
-		key->flag &= ~KEY_LOCKED;
-		key= key->id.next;
+	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
+		Key *key= ob_get_key(ob);
+		if(key) {
+			KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+			if(kb==NULL) {
+				kb= key->block.first;
+				ob->shapenr= 1;
+			}
+			
+			if(ob->type==OB_MESH) {
+				Mesh *me= ob->data;
+				
+				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, 0);
+			}
+			else if(ob->type==OB_LATTICE) {
+				Lattice *lt= ob->data;
+				int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+				
+				cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, 0);
+			}
+			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				Curve *cu= ob->data;
+				int tot= count_curveverts(&cu->nurb);
+				
+				cp_cu_key(cu, kb, 0, tot);
+			}
+			return 1;
+		}
 	}
+	else {
+		if(ob->type==OB_MESH) return do_mesh_key( ob->data);
+		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
+		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
+		else if(ob->type==OB_LATTICE) return do_latt_key( ob->data);
+	}
+	
+	return 0;
 }
 
-void do_ob_key(Object *ob)
+Key *ob_get_key(Object *ob)
 {
-	if(ob->type==OB_MESH) do_mesh_key( ob->data);
-	else if(ob->type==OB_CURVE) do_curve_key( ob->data);
-	else if(ob->type==OB_SURF) do_curve_key( ob->data);
-	else if(ob->type==OB_LATTICE) do_latt_key( ob->data);
+	
+	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
+		return me->key;
+	}
+	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+		Curve *cu= ob->data;
+		return cu->key;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		return lt->key;
+	}
+	return NULL;
 }
 
-void do_spec_key(Key *key)
+/* only the active keyblock */
+KeyBlock *ob_get_keyblock(Object *ob) 
 {
-	int idcode;
+	Key *key= ob_get_key(ob);
 	
-	if(key==0) return;
-	
-	idcode= GS(key->from->name);
-	
-	if(idcode==ID_ME) do_mesh_key( (Mesh *)key->from);
-	else if(idcode==ID_CU) do_curve_key( (Curve *)key->from);
-	else if(idcode==ID_LT) do_latt_key( (Lattice *)key->from);
-	
-}
-
-KeyBlock *key_get_active(Key *keyData) 
-{
-	if (keyData) {
-		KeyBlock *key;
-
-		for (key=keyData->block.first; key; key= key->next)
-			if (key->flag&SELECT)
-				return key;
+	if (key) {
+		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
+		return kb;
 	}
 
 	return NULL;

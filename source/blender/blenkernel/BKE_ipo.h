@@ -59,6 +59,8 @@ void make_local_obipo(struct Ipo *ipo);
 void make_local_matipo(struct Ipo *ipo);
 void make_local_keyipo(struct Ipo *ipo);
 void make_local_ipo(struct Ipo *ipo);
+struct IpoCurve *find_ipocurve(struct Ipo *ipo, int adrcode);
+
 void calchandles_ipocurve(struct IpoCurve *icu);
 void testhandles_ipocurve(struct IpoCurve *icu);
 void sort_time_ipocurve(struct IpoCurve *icu);

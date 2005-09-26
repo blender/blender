@@ -48,19 +48,17 @@ struct Key *add_key(struct ID *id);
 struct Key *copy_key(struct Key *key);
 void make_local_key(struct Key *key);
 void sort_keys(struct Key *key);
+
 void set_four_ipo(float d, float *data, int type);
 void set_afgeleide_four_ipo(float d, float *data, int type);
-void cp_key(int start, int end, int tot, char *poin, struct Key *key, struct KeyBlock *k, int mode);
+
+/* only exported to curve.c! */
 void cp_cu_key(struct Curve *cu, struct KeyBlock *kb, int start, int end);
-void do_mesh_key(struct Mesh *me);
-void do_curve_key(struct Curve *cu);
-void do_latt_key(struct Lattice *lt);
-void do_ob_key(struct Object *ob);
-void do_spec_key(struct Key *key);
 
-void unlock_all_keys(void);
+int do_ob_key(struct Object *ob);
 
-struct KeyBlock *key_get_active(struct Key *keyData);
+struct Key *ob_get_key(struct Object *ob);
+struct KeyBlock *ob_get_keyblock(struct Object *ob);
 
 #endif
 

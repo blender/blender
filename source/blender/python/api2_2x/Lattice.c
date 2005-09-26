@@ -757,8 +757,8 @@ static PyObject *Lattice_insertKey( BPy_Lattice * self, PyObject * args )
 //              return (EXPP_ReturnPyObjError (PyExc_RuntimeError,
 //                                              "frame value has to be greater than 0"));
 
-	//insert a keybock for the lattice
-	insert_lattkey( lt );
+	//insert a keybock for the lattice (1=relative)
+	insert_lattkey( lt , 1);
 
 	if( frame > 0 )
 		G.scene->r.cfra = (short)oldfra;

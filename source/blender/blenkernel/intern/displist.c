@@ -1446,6 +1446,11 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
 
+	if(ob!=G.obedit && do_ob_key(ob)) {
+		deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
+		originalVerts = MEM_dupallocN(deformedVerts);
+	}
+	
 	if (preTesselatePoint) {
 		for (; md; md=md->next) {
 			ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1522,7 +1527,6 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 		nubase= &editNurb;
 	}
 	else {
-		do_curve_key(cu);
 		nubase= &cu->nurb;
 	}
 
@@ -1606,7 +1610,6 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		
 		if(ob->type==OB_FONT) text_to_curve(ob, 0);
 		
-		if(!obedit && !forOrco) do_curve_key(cu);
 		if(!forOrco) curve_calc_modifiers_pre(ob, nubase, 0, &originalVerts, &deformedVerts, &numVerts);
 
 		makeBevelList(ob);

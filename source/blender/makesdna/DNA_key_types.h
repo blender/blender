@@ -43,8 +43,8 @@ typedef struct KeyBlock {
 	struct KeyBlock *next, *prev;
 	
 	float pos;
-	short flag, pad;
-	short type, rt;
+	int pad;
+	short type, adrcode;
 	int totelem;
 	
 	void *data;
@@ -77,8 +77,8 @@ typedef struct Key {
 /* key->type */
 #define KEY_NORMAL      0
 #define KEY_RELATIVE    1
+
 /* key->flag */
-#define KEY_LOCKED		1
 
 /* keyblock->type */
 #define KEY_LINEAR      0

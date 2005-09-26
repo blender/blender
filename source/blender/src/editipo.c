@@ -185,7 +185,8 @@ char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
 						  "SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 
-char *getname_ac_ei(int nr) {
+char *getname_ac_ei(int nr) 
+{
 	switch(nr) {
 	case AC_LOC_X:
 	case AC_LOC_Y:
@@ -292,18 +293,6 @@ char *getname_snd_ei(int nr)
 {
 	if(nr>=SND_VOLUME && nr<=SND_ATTEN) return snd_ic_names[nr-1];
 	return ic_name_empty[0];
-}
-
-IpoCurve *find_ipocurve(Ipo *ipo, int adrcode)
-{
-	if(ipo) {
-		IpoCurve *icu= ipo->curve.first;
-		while(icu) {
-			if(icu->adrcode==adrcode) return icu;
-			icu= icu->next;
-		}
-	}
-	return NULL;
 }
 
 void boundbox_ipocurve(IpoCurve *icu)
@@ -490,7 +479,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWNLA, 0);
 		}
 		else if(si->blocktype==ID_KE) {
-			do_spec_key((Key *)si->from);
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -613,7 +601,7 @@ Ipo *get_ipo_to_edit(ID **from)
 	}
 	else if(G.sipo->blocktype==ID_KE) {
 		if(ob) {
-			Key *key= give_current_key(ob);
+			Key *key= ob_get_key(ob);
 			*from= (ID *)key;
 			if(key) return key->ipo;
 		}
@@ -657,14 +645,16 @@ unsigned int ipo_rainbow(int cur, int tot)
 
 	dfac= (float)(1.0/( (float)tot+1.0));
 
-	/* this calculation makes 2 different cycles of rainbow colors */
-	if(cur< tot/2) fac= (float)(cur*2.0*dfac);
-	else fac= (float)((cur-tot/2)*2.0*dfac +dfac);
+	/* this calculation makes 2 or 4 different cycles of rainbow colors */
+	if(cur< tot/2) fac= (float)(cur*2.0f*dfac);
+	else fac= (float)((cur-tot/2)*2.0f*dfac +dfac);
+	if(tot > 32) fac= fac*1.95f;
+	if(fac>1.0f) fac-= 1.0f;
 	
-	if(fac>0.5 && fac<0.8) sat= (float)0.4;
-	else sat= 0.5;
+	if(fac>0.5f && fac<0.8f) sat= 0.4f;
+	else sat= 0.5f;
 	
-	return hsv_to_cpack(fac, sat, 1.0);
+	return hsv_to_cpack(fac, sat, 1.0f);
 }		
 
 void make_ob_editipo(Object *ob, SpaceIpo *si)
@@ -774,20 +764,30 @@ void make_key_editipo(SpaceIpo *si)
 	int a;
 	char *name;
 	
-	ei= si->editipo= MEM_callocN(KEY_TOTIPO*sizeof(EditIpo), "editipo");
-	
-	si->totipo= KEY_TOTIPO;
-	
 	key= (Key *)G.sipo->from;
-	if(key) kb= key->block.first;
+	if(key==NULL) return;
 	
-	for(a=0; a<KEY_TOTIPO; a++, ei++) {
-		if(kb && kb->name[0] != 0) strncpy(ei->name, kb->name, 32);	// length both same
+	si->totipo= BLI_countlist(&key->block);
+	ei= si->editipo= MEM_callocN(si->totipo*sizeof(EditIpo), "editipo");
+	
+	for(a=0; a<si->totipo; a++, ei++) {
+		/* we put refkey first, the rest in order of list */
+		if(a==0) kb= key->refkey;
 		else {
-			name = getname_key_ei(key_ar[a]);
+			if(a==1) 
+				kb= key->block.first;
+			else 
+				kb= kb->next;
+			if(kb==key->refkey)
+				kb= kb->next;
+		}
+
+		if(kb->name[0] != 0) strncpy(ei->name, kb->name, 31);	// length both same
+		else {
+			name = getname_key_ei(kb->adrcode);
 			strcpy(ei->name, name);
 		}
-		ei->adrcode= key_ar[a];
+		ei->adrcode= kb->adrcode;
 		
 		ei->col= ipo_rainbow(a, KEY_TOTIPO);
 		
@@ -796,8 +796,6 @@ void make_key_editipo(SpaceIpo *si)
 			ei->flag= ei->icu->flag;
 		}
 		else if(a==0) ei->flag |= IPO_VISIBLE;
-		 
-		if(kb) kb= kb->next;
 	}
 	
 	ei= si->editipo;
@@ -1088,7 +1086,7 @@ void make_editipo()
 
 	if(G.sipo->editipo)
 		MEM_freeN(G.sipo->editipo);
-	G.sipo->editipo= 0;
+	G.sipo->editipo= NULL;
 	G.sipo->totipo= 0;
 	ob= OBACT;
 
@@ -1412,8 +1410,6 @@ void swap_selectall_editipo()
 	BezTriple *bezt;
 	int a, b; /*  , sel=0; */
 	
-	deselectall_key();
-
 	get_status_editipo();
 
 	if(G.sipo->showkey) {
@@ -1514,8 +1510,6 @@ void deselectall_editipo()
 	BezTriple *bezt;
 	int a, b; /*  , sel=0; */
 	
-	deselectall_key();
-
 	get_status_editipo();
 	
 	if(G.sipo->showkey) {
@@ -2455,12 +2449,12 @@ void ipo_snap(short event)
 void mouse_select_ipo()
 {
 	Object *ob;
+	Key *key;
+	KeyBlock *kb, *actkb=NULL, *curkb;
 	EditIpo *ei, *actei= 0;
 	IpoCurve *icu;
 	IpoKey *ik, *actik;
 	BezTriple *bezt;
-	Key *key;
-	KeyBlock *kb, *actkb=0;
 	float x, y, dist, mindist;
 	int a, oldflag = 0, hand, ok;
 	short mval[2], xo, yo;
@@ -2539,9 +2533,12 @@ void mouse_select_ipo()
 	else {
 		
 		/* vertex keys ? */
-		
 		if(G.sipo->blocktype==ID_KE && G.sipo->from) {
+			int i, index= 1;
+			
 			key= (Key *)G.sipo->from;
+			ob= OBACT;
+			curkb= BLI_findlink(&key->block, ob->shapenr-1);
 			
 			ei= G.sipo->editipo;
 			if(key->type==KEY_NORMAL || (ei->flag & IPO_VISIBLE)) {
@@ -2551,36 +2548,38 @@ void mouse_select_ipo()
 				/* how much is 20 pixels? */
 				mindist= (float)(20.0*(G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)curarea->winy);
 				
-				kb= key->block.first;
-				while(kb) {
+				for(i=1, kb= key->block.first; kb; kb= kb->next, i++) {
 					dist= (float)(fabs(kb->pos-y));
-					if(kb->flag & SELECT) dist+= (float)0.01;
+					if(kb==curkb) dist+= (float)0.01;
 					if(dist < mindist) {
 						actkb= kb;
 						mindist= dist;
+						index= i;
 					}
-					kb= kb->next;
 				}
 				if(actkb) {
 					ok= TRUE;
-					if(G.obedit && (actkb->flag & 1)==0) {
+					if(G.obedit && actkb!=curkb) {
 						ok= okee("Copy key after leaving Edit Mode");
 					}
 					if(ok) {
 						/* also does all keypos */
 						deselectall_editipo();
 						
-						actkb->flag |= 1;
+						ob->shapenr= index;
+						ob->shapeflag |= OB_SHAPE_TEMPLOCK;
 						
 						/* calc keypos */
-						showkeypos((Key *)G.sipo->from, actkb);
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+						allqueue(REDRAWVIEW3D, 0);
+						allqueue(REDRAWBUTSEDIT, 0);
 					}
 				}
 			}
 		}
 			
 		/* select curve */
-		if(actkb==0) {
+		if(actkb==NULL) {
 			if(totipo_vis==1) {
 				ei= G.sipo->editipo;
 				for(a=0; a<G.sipo->totipo; a++, ei++) {
@@ -2628,7 +2627,7 @@ void mouse_select_ipo()
 		getmouseco_areawin(mval);
 		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
 			
-			if(actkb) move_keys();
+			if(actkb) move_keys(OBACT);
 			else transform_ipo('g');
 			
 			return;
@@ -3049,8 +3048,6 @@ void setipotype_ipo(Ipo *ipo, int code)
 void set_ipotype()
 {
 	EditIpo *ei;
-	Key *key;
-	KeyBlock *kb;
 	int a;
 	short event;
 
@@ -3059,22 +3056,20 @@ void set_ipotype()
 	get_status_editipo();
 	
 	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
-		key= (Key *)G.sipo->from;
-		if(key==0) return;
+		Key *key= (Key *)G.sipo->from;
+		Object *ob= OBACT;
+		KeyBlock *kb;
+		
+		if(key==NULL) return;
+		kb= BLI_findlink(&key->block, ob->shapenr-1);
 		
 		event= pupmenu("Key Type %t|Linear %x1|Cardinal %x2|B Spline %x3");
 		if(event < 1) return;
-		
-		kb= key->block.first;
-		while(kb) {
-			if(kb->flag & SELECT) {
-				kb->type= 0;
-				if(event==1) kb->type= KEY_LINEAR;
-				if(event==2) kb->type= KEY_CARDINAL;
-				if(event==3) kb->type= KEY_BSPLINE;
-			}
-			kb= kb->next;
-		}
+
+		kb->type= 0;
+		if(event==1) kb->type= KEY_LINEAR;
+		if(event==2) kb->type= KEY_CARDINAL;
+		if(event==3) kb->type= KEY_BSPLINE;
 	}
 	else {
 		event= pupmenu("Ipo Type %t|Constant %x1|Linear %x2|Bezier %x3");
@@ -3190,7 +3185,8 @@ void del_ipo()
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 	
 	if(totipo_edit==0 && totipo_sel==0 && totipo_vertsel==0) {
-		delete_key();
+		if(okee("Erase selected keys"))
+		   delete_key(OBACT);
 		return;
 	}
 	
@@ -3914,15 +3910,7 @@ void common_insertkey()
 		if(event== -1) return;
 		
 		if(event==7) { // ob != NULL
-			if(ob->type==OB_MESH) insert_meshkey(ob->data, 0);
-			else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data);
-			else if(ob->type==OB_LATTICE) insert_lattkey(ob->data);
-			
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWBUTSOBJECT, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
+			insert_shapekey(ob);
 			return;
 		}
 		
@@ -4761,7 +4749,7 @@ void transform_ipo(int mode)
 	}
 
 	if(tot==0) {
-		if(totipo_edit==0) move_keys();
+		if(totipo_edit==0) move_keys(OBACT);
 		return;
 	}
 

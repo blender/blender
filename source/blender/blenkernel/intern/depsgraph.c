@@ -60,6 +60,7 @@
 
 #include "BKE_action.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
@@ -1437,7 +1438,12 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 			switch(ob->type) {
 				case OB_MESH:
 					me= ob->data;
-					if(me->key) ob->recalc |= OB_RECALC_DATA;
+					if(me->key) {
+						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+							ob->recalc |= OB_RECALC_DATA;
+							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+						}
+					}
 					else if(ob->effect.first) {
 						Effect *eff= ob->effect.first;
 						if(eff->type==EFF_WAVE) ob->recalc |= OB_RECALC_DATA;
@@ -1452,11 +1458,21 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 				case OB_CURVE:
 				case OB_SURF:
 					cu= ob->data;
-					if(cu->key) ob->recalc |= OB_RECALC_DATA;
+					if(cu->key) {
+						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+							ob->recalc |= OB_RECALC_DATA;
+							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+						}
+					}
 					break;
 				case OB_LATTICE:
 					lt= ob->data;
-					if(lt->key) ob->recalc |= OB_RECALC_DATA;
+					if(lt->key) {
+						if(!(ob->shapeflag & OB_SHAPE_LOCK)) {
+							ob->recalc |= OB_RECALC_DATA;
+							ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+						}
+					}
 					break;
 				case OB_MBALL:
 					if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
@@ -1481,9 +1497,13 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	if(flag & OB_RECALC_DATA) {
 		ID *id= ob->data;
 		if(id && id->us>1) {
-			for (base= sce->base.first; base; base= base->next) {
-				if (ob->data==base->object->data) {
-					base->object->recalc |= OB_RECALC_DATA;
+			/* except when there's a key and shapes are locked */
+			if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
+			else {
+				for (base= sce->base.first; base; base= base->next) {
+					if (ob->data==base->object->data) {
+						base->object->recalc |= OB_RECALC_DATA;
+					}
 				}
 			}
 		}

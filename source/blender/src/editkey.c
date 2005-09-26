@@ -31,16 +31,14 @@
  */
 
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <string.h>
 
 #ifndef WIN32
 #include <unistd.h>
 #else
 #include <io.h>
 #endif   
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -87,10 +85,6 @@
 #include "mydevice.h"
 
 extern ListBase editNurb; /* in editcurve.c */
-
-
-/* local prototypes ------------------ */
-void make_rvk_slider(uiBlock *, Key *, int , int , int , int , int );  /* used in drawaction.c too */
 
 /* temporary storage for slider values */
 float meshslidervals[64] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
@@ -157,13 +151,14 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 	 */
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
-	Key       *key = (Key *) voidkey;
-	float     cfra, rvkval;
-	int       *keynum = (int *) voidkeynum;
+	Key *key = (Key *) voidkey;
+	Object *ob= OBACT;
+	float cfra, rvkval;
+	int keynum = (int) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
-	icu = get_key_icu(key, *keynum);
+	icu = get_key_icu(key, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
@@ -175,18 +170,17 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 		/* create an IpoCurve if one doesn't already
 		 * exist.
 		 */
-		icu = get_ipocurve(key->from, GS(key->from->name), 
-						   *keynum, key->ipo);
+		icu = get_ipocurve(key->from, GS(key->from->name), keynum, key->ipo);
 	}
 	
 	/* create the bezier triple if one doesn't exist,
 	 * otherwise modify it's value
 	 */
 	if (!bezt) {
-		insert_vert_ipo(icu, cfra, meshslidervals[*keynum]);
+		insert_vert_ipo(icu, cfra, meshslidervals[keynum]);
 	}
 	else {
-		bezt->vec[1][1] = meshslidervals[*keynum];
+		bezt->vec[1][1] = meshslidervals[keynum];
 	}
 
 	/* make sure the Ipo's are properly process and
@@ -195,11 +189,10 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 	sort_time_ipocurve(icu);
 	testhandles_ipocurve(icu);
 
-	key->flag &= ~KEY_LOCKED;
 	do_ipo(key->ipo);
-	do_spec_key(key);
 	
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
@@ -208,7 +201,8 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 
 }
 
-static float getrvkval(Key *key, int keynum) {
+static float getrvkval(Key *key, int keynum) 
+{
 	/* get the value of the rvk from the
 	 * ipo curve at the current time -- return 0
 	 * if no ipo curve exists
@@ -232,27 +226,15 @@ static float getrvkval(Key *key, int keynum) {
 }
 
 void make_rvk_slider(uiBlock *block, Key *key, int keynum,
-					 int x, int y, int w, int h)
+					 int x, int y, int w, int h, char *tip)
 {
 	/* create a slider for the rvk */
 	uiBut         *but;
 	KeyBlock   *kb;
 	float min, max;
 	int i;
-
-	/* dang, need to pass a pointer to int to uiButSetFunc
-	 * that is on the heap, not the stack ... hence this
-	 * kludgy static array
-	 */
-	static int keynums[] = {0,1,2,3,4,5,6,7,
-							8,9,10,11,12,13,14,15,
-							16,17,18,19,20,21,22,23,
-							24,25,26,27,28,29,30,31,
-							32,33,34,35,36,37,38,39,
-							40,41,42,43,44,45,46,47,
-							48,49,50,51,52,53,54,55,
-							56,57,58,59,60,61,62,63};
-
+	
+	/* global array */
 	meshslidervals[keynum] = getrvkval(key, keynum);
 
 	kb= key->block.first;
@@ -271,9 +253,9 @@ void make_rvk_slider(uiBlock *block, Key *key, int keynum,
 
 	but=uiDefButF(block, NUMSLI, REDRAWVIEW3D, "",
 				  x, y , w, h,
-				  meshslidervals+keynum, min, max, 10, 2,
-				  "Slider to control rvk");
-	uiButSetFunc(but, rvk_slider_func, key, keynums+keynum);
+				  meshslidervals+keynum, min, max, 10, 2, tip);
+	
+	uiButSetFunc(but, rvk_slider_func, key, (void *)keynum);
 	// no hilite, the winmatrix is not correct later on...
 	uiButSetFlag(but, UI_NO_HILITE);
 
@@ -352,60 +334,57 @@ void key_to_mesh(KeyBlock *kb, Mesh *me)
 	}
 }
 
-
-
-void insert_meshkey(Mesh *me, short offline)
+static KeyBlock *add_keyblock(Key *key)
 {
-	Key *key;
-	KeyBlock *kb, *kkb;
-	float curpos;
-	short rel;
-
-	if(me->key==0) {
-		me->key= add_key( (ID *)me);
-
-		if (!offline) /* interactive */
-			rel = pupmenu("Insert Vertex Keys %t|"
-										"Relative Keys %x1|Absolute Keys %x2");
-		else /* we were called from a script */
-			rel = offline;
-
-		switch (rel) {
-		case 1:
-			me->key->type = KEY_RELATIVE;
-			break;
-		default:
-			default_key_ipo(me->key);
-			break;
-		}
-	}
-	key= me->key;
+	KeyBlock *kb;
+	float curpos= -0.1;
+	int tot;
+	
+	kb= key->block.last;
+	if(kb) curpos= kb->pos;
 	
 	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
 	BLI_addtail(&key->block, kb);
 	kb->type= KEY_CARDINAL;
-	
-	curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
-	if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &curpos)==0) {
-		curpos /= 100.0;
-	}
-	kb->pos= curpos;
+	tot= BLI_countlist(&key->block);
+	if(tot==1) strcpy(kb->name, "Basis");
+	else sprintf(kb->name, "Key %d", tot-1);
 	
 	key->totkey++;
 	if(key->totkey==1) key->refkey= kb;
 	
-	mesh_to_key(me, kb);
-	
-	sort_keys(me->key);
-
-	/* curent active: */
-	kkb= key->block.first;
-	while(kkb) {
-		kkb->flag &= ~SELECT;
-		if(kkb==kb) kkb->flag |= SELECT;
+	if(key->type == KEY_RELATIVE) 
+		kb->pos= curpos+0.1;
+	else {
+		curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
+		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
+			curpos /= 100.0;
+		}
+		kb->pos= curpos;
 		
-		kkb= kkb->next;
+		sort_keys(key);
 	}
+	return kb;
+}
+
+void insert_meshkey(Mesh *me, short rel)
+{
+	Key *key;
+	KeyBlock *kb;
+
+	if(me->key==NULL) {
+		me->key= add_key( (ID *)me);
+
+		if(rel)
+			me->key->type = KEY_RELATIVE;
+		else
+			default_key_ipo(me->key);
+	}
+	key= me->key;
+	
+	kb= add_keyblock(key);
+	
+	mesh_to_key(me, kb);
 }
 
 /* ******************** */
@@ -449,43 +428,21 @@ void key_to_latt(KeyBlock *kb, Lattice *lt)
 	
 }
 
-void insert_lattkey(Lattice *lt)
+/* exported to python... hrms, should not, use object levels! (ton) */
+void insert_lattkey(Lattice *lt, short rel)
 {
 	Key *key;
-	KeyBlock *kb, *kkb;
-	float curpos;
+	KeyBlock *kb;
 	
-	if(lt->key==0) {
+	if(lt->key==NULL) {
 		lt->key= add_key( (ID *)lt);
 		default_key_ipo(lt->key);
 	}
 	key= lt->key;
 	
-	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
-	BLI_addtail(&key->block, kb);
-	kb->type= KEY_CARDINAL;
-	
-	curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
-	if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &curpos)==0) {
-		curpos /= 100.0;
-	}
-	kb->pos= curpos;
-	
-	key->totkey++;
-	if(key->totkey==1) key->refkey= kb;
+	kb= add_keyblock(key);
 	
 	latt_to_key(lt, kb);
-	
-	sort_keys(lt->key);
-
-	/* curent active: */
-	kkb= key->block.first;
-	while(kkb) {
-		kkb->flag &= ~SELECT;
-		if(kkb==kb) kkb->flag |= SELECT;
-		
-		kkb= kkb->next;
-	}
 }
 
 /* ******************************** */
@@ -592,193 +549,115 @@ void key_to_curve(KeyBlock *kb, Curve  *cu, ListBase *nurb)
 }
 
 
-
-void insert_curvekey(Curve *cu) /* must be fixed for non-UI use when bpy support is added.
-				   see insert_meshkey. and fix callers to this of course.  */
+void insert_curvekey(Curve *cu, short rel) 
 {
 	Key *key;
-	KeyBlock *kb, *kkb;
-	float curpos;
-	short rel;
+	KeyBlock *kb;
 	
-	if(cu->key==0) {
+	if(cu->key==NULL) {
 		cu->key= add_key( (ID *)cu);
-		rel = pupmenu("Insert Vertex Keys %t|"
-			      "Relative Keys %x1|Absolute Keys %x2");
 
-		switch (rel) {
-		case 1: cu->key->type = KEY_RELATIVE;
-			break;
-		default:
+		if (rel)
+			cu->key->type = KEY_RELATIVE;
+		else
 			default_key_ipo(cu->key);
-			break;
-		}
 	}
 	key= cu->key;
 	
-	kb= MEM_callocN(sizeof(KeyBlock), "Keyblock");
-	BLI_addtail(&key->block, kb);
-	kb->type= KEY_CARDINAL;
-	
-	curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
-	if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &curpos)==0) {
-		curpos /= 100.0;
-	}
-	kb->pos= curpos;
-	
-	key->totkey++;
-	if(key->totkey==1) key->refkey= kb;
+	kb= add_keyblock(key);
 	
 	if(editNurb.first) curve_to_key(cu, kb, &editNurb);
 	else curve_to_key(cu, kb, &cu->nurb);
-	
-	sort_keys(cu->key);
-
-	/* curent active: */
-	kkb= key->block.first;
-	while(kkb) {
-		kkb->flag &= ~SELECT;
-		if(kkb==kb) kkb->flag |= SELECT;
-		
-		kkb= kkb->next;
-	}
 }
 
 
 /* ******************** */
 
-Key *give_current_key(Object *ob)
+void insert_shapekey(Object *ob)
 {
-	Mesh *me;
-	Curve *cu;
-	Lattice *lt;
+	Key *key;
 	
-	if(ob->type==OB_MESH) {
-		me= ob->data;
-		return me->key;
-	}
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-		cu= ob->data;
-		return cu->key;
-	}
-	else if(ob->type==OB_LATTICE) {
-		lt= ob->data;
-		return lt->key;
-	}
-	return 0;
+	if(ob->type==OB_MESH) insert_meshkey(ob->data, 1);
+	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data, 1);
+	else if(ob->type==OB_LATTICE) insert_lattkey(ob->data, 1);
+	
+	key= ob_get_key(ob);
+	ob->shapenr= BLI_countlist(&key->block);
+	
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-void showkeypos(Key *key, KeyBlock *kb)
-{
-	Object *ob;
-	Mesh *me;
-	Lattice *lt;
-	Curve *cu;
-	int tot;
-	
-	/* from ipo */
-	ob= OBACT;
-	if(ob==NULL) return;
-	
-	if(key == give_current_key(ob)) {
-		 
-			// key lock is for when a key is selected in the ipo window,
-			// it should be displayed in the 3d window then even though it
-			// is not actually for the current frame. this is not the best
-			// UI... - zr
-		key->flag |= KEY_LOCKED;
-		
-		if(ob->type==OB_MESH) {
-			me= ob->data;
-
-			cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, kb, 0);
-		}
-		else if(ob->type==OB_LATTICE) {
-			lt= ob->data;
-			tot= lt->pntsu*lt->pntsv*lt->pntsw;
-			
-			cp_key(0, tot, tot, (char *)lt->def->vec, lt->key, kb, 0);
-		}
-		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-			cu= ob->data;
-			tot= count_curveverts(&cu->nurb);
-			cp_cu_key(cu, kb, 0, tot);
-		}
-		
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		
-		allqueue(REDRAWVIEW3D, 0);
-	}
-}
-
-void deselectall_key(void)
+void delete_key(Object *ob)
 {
 	KeyBlock *kb;
 	Key *key;
-	
-	if(G.sipo->blocktype!=ID_KE) return;
-	key= (Key *)G.sipo->from;
-	if(key==0) return;
-	
-	kb= key->block.first;
-	while(kb) {
-		kb->flag &= ~SELECT;
-		kb= kb->next;
-	}
-}
-
-
-void delete_key(void)
-{
-	KeyBlock *kb, *kbn;
-	Key *key;
+	IpoCurve *icu;
 	
 	if(G.sipo->blocktype!=ID_KE) return;
 
-	if(okee("Erase selected keys")==0) return;
-	
 	key= (Key *)G.sipo->from;
-	if(key==0) return;
+	if(key==NULL) return;
 	
-	kb= key->block.first;
-	while(kb) {
-		kbn= kb->next;
-		if(kb->flag & SELECT) {
-			BLI_remlink(&key->block, kb);
-			key->totkey--;
-			if(key->refkey== kb) key->refkey= key->block.first;
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+	if(kb) {
+		BLI_remlink(&key->block, kb);
+		key->totkey--;
+		if(key->refkey== kb) key->refkey= key->block.first;
 			
-			if(kb->data) MEM_freeN(kb->data);
-			MEM_freeN(kb);
-			
+		if(kb->data) MEM_freeN(kb->data);
+		MEM_freeN(kb);
+		
+		for(kb= key->block.first; kb; kb= kb->next) {
+			if(kb->adrcode>=ob->shapenr)
+				kb->adrcode--;
 		}
-		kb= kbn;
+		
+		if(key->ipo) {
+			for(icu= key->ipo->curve.first; icu; icu= icu->next) {
+				if(icu->adrcode==ob->shapenr-1) {
+					BLI_remlink(&key->ipo->curve, icu);
+					if(icu->bezt) MEM_freeN(icu->bezt);
+					MEM_freeN(icu);
+					break;
+				}
+			}
+			for(icu= key->ipo->curve.first; icu; icu= icu->next) 
+				if(icu->adrcode>=ob->shapenr)
+					icu->adrcode--;
+		}		
+		
+		if(ob->shapenr>1) ob->shapenr--;
 	}
 	
 	if(key->totkey==0) {
-		if(GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= 0;
-		else if(GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= 0;
-		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= 0;
+		if(GS(key->from->name)==ID_ME) ((Mesh *)key->from)->key= NULL;
+		else if(GS(key->from->name)==ID_CU) ((Curve *)key->from)->key= NULL;
+		else if(GS(key->from->name)==ID_LT) ((Lattice *)key->from)->key= NULL;
 
 		free_libblock_us(&(G.main->key), key);
 		scrarea_queue_headredraw(curarea);	/* ipo remove too */
 	}
-	else {
-		key->flag &= ~KEY_LOCKED;
-		do_spec_key(key);
-	}
+	
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	
 	allqueue(REDRAWVIEW3D, 0);
-	scrarea_queue_winredraw(curarea);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
 }
 
-void move_keys(void)
+void move_keys(Object *ob)
 {
 	Key *key;
 	KeyBlock *kb;
-	TransVert *transmain, *tv;
-	float div, dy, vec[3], dvec[3];
-	int a, tot=0, afbreek=0, firsttime= 1;
+	float div, dy, oldpos, vec[3], dvec[3];
+	int afbreek=0, firsttime= 1;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo;
 	char str[32];
@@ -786,36 +665,21 @@ void move_keys(void)
 	if(G.sipo->blocktype!=ID_KE) return;
 	
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	if(G.sipo->editipo==0) return;
+	if(G.sipo->editipo==NULL) return;
 
 	key= (Key *)G.sipo->from;
-	if(key==0) return;
+	if(key==NULL) return;
 	
-	/* which keys are involved */
-	kb= key->block.first;
-	while(kb) {
-		if(kb->flag & SELECT) tot++;
-		kb= kb->next;
-	}
+	/* which kb is involved */
+	kb= BLI_findlink(&key->block, ob->shapenr-1);
+	if(kb==NULL) return;	
 	
-	if(tot==0) return;	
-	
-	tv=transmain= MEM_callocN(tot*sizeof(TransVert), "transmain");
-	kb= key->block.first;
-	while(kb) {
-		if(kb->flag & SELECT) {
-			tv->loc= &kb->pos;
-			tv->oldloc[0]= kb->pos;
-			tv++;
-		}
-		kb= kb->next;
-	}
+	oldpos= kb->pos;
 	
 	getmouseco_areawin(mval);
 	xo= mval[0];
 	yo= mval[1];
 	dvec[0]=dvec[1]=dvec[2]= 0.0; 
-	
 
 	while(afbreek==0) {
 		getmouseco_areawin(mval);
@@ -832,10 +696,7 @@ void move_keys(void)
 			apply_keyb_grid(vec, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 			apply_keyb_grid(vec+1, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 
-			tv= transmain;
-			for(a=0; a<tot; a++, tv++) {
-				tv->loc[0]= tv->oldloc[0]+vec[1];
-			}
+			kb->pos= oldpos+vec[1];
 			
 			sprintf(str, "Y: %.3f  ", vec[1]);
 			headerprint(str);
@@ -864,20 +725,18 @@ void move_keys(void)
 	}
 	
 	if(event==ESCKEY) {
-		tv= transmain;
-		for(a=0; a<tot; a++, tv++) {
-			tv->loc[0]= tv->oldloc[0];
-		}
+		kb->pos= oldpos;
 	}
 	
 	sort_keys(key);
-	key->flag &= ~KEY_LOCKED;
-	do_spec_key(key);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	/* for boundbox */
 	editipo_changed(G.sipo, 0);
 
-	MEM_freeN(transmain);	
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
 	scrarea_queue_redraw(curarea);
 }

@@ -288,8 +288,9 @@ static void remake_meshaction_ipos(Ipo *ipo)
 static void meshkey_do_redraw(Key *key)
 {
 	remake_meshaction_ipos(key->ipo);
-	do_spec_key(key);
 
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -2356,7 +2357,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 }
 
-Key *get_action_mesh_key(void) {
+Key *get_action_mesh_key(void) 
+{
 	/* gets the key data from the currently selected
 	 * mesh/lattice. If a mesh is not selected, or does not have
 	 * key data, then we return NULL (currently only

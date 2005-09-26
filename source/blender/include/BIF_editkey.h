@@ -39,25 +39,27 @@ struct Mesh;
 struct Object;
 struct Lattice;
 struct Curve;
+struct uiBlock;
 
 void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
-void insert_meshkey(struct Mesh *me, short offline);
+void insert_meshkey(struct Mesh *me, short rel);
 
 void latt_to_key(struct Lattice *lt, struct KeyBlock *kb);
 void key_to_latt(struct KeyBlock *kb, struct Lattice *lt);
-void insert_lattkey(struct Lattice *lt);
+void insert_lattkey(struct Lattice *lt, short rel);
 
 void curve_to_key(struct Curve *cu, struct KeyBlock *kb, ListBase *nurb);
 void key_to_curve(struct KeyBlock *kb, struct Curve  *cu, ListBase *nurb);
-void insert_curvekey(struct Curve *cu);
+void insert_curvekey(struct Curve *cu, short rel);
 
-struct Key *give_current_key(struct Object *ob);
-void showkeypos(struct Key *key, struct KeyBlock *kb);
+void insert_shapekey(struct Object *ob);
 
-void deselectall_key(void);
-void delete_key(void);
-void move_keys(void);
+void delete_key(struct Object *ob);
+void move_keys(struct Object *ob);
+
+void make_rvk_slider(struct uiBlock *block, struct Key *key, int i,
+							int x, int y, int w, int h, char *tip);
 
 #endif
 

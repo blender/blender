@@ -4848,6 +4848,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		bArmature *arm;
 		Mesh *me;
+		Key *key;
 		Scene *sce= main->scene.first;
 
 		while(sce){
@@ -4939,6 +4940,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				make_edges(me, 1);	/* 1 = use mface->edcode */
 			} else {
 				mesh_strip_loose_faces(me);
+			}
+		}
+		
+		for(key= main->key.first; key; key= key->id.next) {
+			KeyBlock *kb;
+			int index= 1;
+			
+			/* trick to find out if we already introduced adrcode */
+			for(kb= key->block.first; kb; kb= kb->next)
+				if(kb->adrcode) break;
+			
+			if(kb==NULL) {
+				for(kb= key->block.first; kb; kb= kb->next) {
+					if(kb==key->refkey) {
+						if(kb->name[0]==0)
+							strcpy(kb->name, "Basis");
+					}
+					else {
+						if(kb->name[0]==0)
+							sprintf(kb->name, "Key %d", index);
+						kb->adrcode= index++;
+					}
+				}
 			}
 		}
 	}

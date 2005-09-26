@@ -1774,9 +1774,14 @@ static void draw_mesh_object(Base *base, int dt)
 {
 	Object *ob= base->object;
 	Mesh *me= ob->data;
-	int has_alpha= 0;
+	int has_alpha= 0, drawlinked= 0;
 	
-	if(G.obedit && ob->data==G.obedit->data) {
+	if(G.obedit && ob!=G.obedit && ob->data==G.obedit->data) {
+		if(ob_get_key(ob));
+		else drawlinked= 1;
+	}
+	
+	if(ob==G.obedit || drawlinked) {
 		int cageNeedsFree, finalNeedsFree;
 		DerivedMesh *finalDM, *cageDM;
 		

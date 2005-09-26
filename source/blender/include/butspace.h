@@ -325,8 +325,16 @@ enum {
 #define B_DOCENTRENEW	2016
 #define B_DOCENTRECURSOR	2017
 
-	/* 32 values! */
+	/* 20 values! */
 #define B_OBLAY			2019
+
+#define B_ADDKEY		2041
+#define B_SETKEY		2042
+#define B_DELKEY		2043
+#define B_NAMEKEY		2044
+#define B_PREVKEY		2045
+#define B_NEXTKEY		2046
+#define B_LOCKKEY		2047
 
 #define B_MESHBUTS		2100
 
@@ -366,7 +374,6 @@ enum {
 #define B_CHROMADEPTH	2084
 #define B_DRAWEDGES		2087
 #define B_DRAWCREASES	2088
-
 
 /* *********************** */
 #define B_CURVEBUTS		2200

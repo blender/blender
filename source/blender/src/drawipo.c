@@ -59,11 +59,12 @@
 #include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_curve.h"
-#include "BKE_ipo.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_resources.h"
@@ -858,6 +859,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 {
 	ScrArea *area= sipo->area;
 	View2D *v2d= &sipo->v2d;
+	Object *ob= OBACT;
 	uiBlock *block;
 	uiBut *but;
 	EditIpo *ei;
@@ -885,6 +887,15 @@ static void draw_ipobuts(SpaceIpo *sipo)
 
 	ei= sipo->editipo;
 	y= area->winy-30+sipo->butofs;
+	
+	if(sipo->blocktype==ID_KE) {
+		int icon;
+		if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
+		uiDefIconButBitC(block, TOG, OB_SHAPE_LOCK, B_SETKEY, icon, 
+						 v2d->mask.xmax+18,y,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
+		y-= IPOBUTY;
+	}
+	
 	for(a=0; a<sipo->totipo; a++, ei++, y-=IPOBUTY) {
 		// this button defines visiblity, bit zero of flag (IPO_VISIBLE)
 		but= uiDefButBitS(block, TOG, IPO_VISIBLE, a+1, ei->name,  v2d->mask.xmax+18, y, IPOBUTX-15, IPOBUTY-1, &(ei->flag), 0, 0, 0, 0, "");
@@ -903,7 +914,11 @@ static void draw_ipobuts(SpaceIpo *sipo)
 		
 		if(sipo->blocktype==ID_KE) {
 			Key *key= (Key *)sipo->from;
-			if(key==0 || key->type==KEY_NORMAL) break;
+			if(key==NULL || key->type==KEY_NORMAL) break;
+			if(a==ob->shapenr-1) {
+				cpack(0x0);
+				fdrawbox(v2d->mask.xmax+7,  y+1,  v2d->mask.xmax+16, y+IPOBUTY-1);
+			}
 		}
 	}
 	uiDrawBlock(block);
@@ -1370,16 +1385,17 @@ static void draw_key(SpaceIpo *sipo, int visible)
 	View2D *v2d= &sipo->v2d;
 	Key *key;
 	KeyBlock *kb, *act=NULL;
+	Object *ob= OBACT;
 	unsigned int col;
+	int index;
 	
 	key= (Key *)sipo->from;
-	if(key==0)
+	if(key==NULL)
 		return;
 	
 	if(key->type== KEY_RELATIVE) if(visible==0) return;
 	
-	kb= key->block.first;
-	while(kb) {
+	for(index=1, kb= key->block.first; kb; kb= kb->next, index++) {
 		if(kb->type==KEY_LINEAR) setlinestyle(2);
 		else if(kb->type==KEY_BSPLINE) setlinestyle(4);
 		else setlinestyle(0);
@@ -1387,7 +1403,7 @@ static void draw_key(SpaceIpo *sipo, int visible)
 		if(kb==key->refkey) col= 0x22FFFF;
 		else col= 0xFFFF00;
 		
-		if( (kb->flag & SELECT)==0)	col-= 0x225500;
+		if(ob->shapenr!=index) col-= 0x225500;
 		else act= kb;
 		
 		cpack(col);
@@ -1397,7 +1413,6 @@ static void draw_key(SpaceIpo *sipo, int visible)
 		glVertex2f(v2d->cur.xmax, kb->pos);
 		glEnd();
 		
-		kb= kb->next;
 	}
 	
 	if(act) {
@@ -1470,6 +1485,7 @@ static void boundbox_ipo_visible(SpaceIpo *si)
 /* is used for both read and write... */
 static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float max)
 {
+	Object *ob= OBACT;
 	EditIpo *ei;
 	BezTriple *bezt;
 	float median[3];
@@ -1519,14 +1535,9 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 			if(key==0) return;
 			iskey= 1;
 			
-			kb= key->block.first;
-			while(kb) {
-				if(kb->flag & SELECT) {
-					median[1]+= kb->pos;
-					tot++;
-				}
-				kb= kb->next;
-			}
+			kb= BLI_findlink(&key->block, ob->shapenr-1);
+			median[1]+= kb->pos;
+			tot++;
 		}
 	}
 	if(tot==0) return;
@@ -1563,16 +1574,12 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 			Key *key= (Key *)G.sipo->from;
 			KeyBlock *kb;
 			
-			if(key==0) return;
+			if(key==NULL) return;
 			
-			kb= key->block.first;
-			while(kb) {
-				if(kb->flag & SELECT) {
-					kb->pos+= median[1];
-					tot++;
-				}
-				kb= kb->next;
-			}			
+			kb= BLI_findlink(&key->block, ob->shapenr-1);
+			kb->pos+= median[1];
+			tot++;
+
 			sort_keys(key);
 		}
 	}
@@ -1616,7 +1623,8 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 
 void do_ipobuts(unsigned short event)
 {
-
+	Object *ob= OBACT;
+	
 	switch(event) {
 	case B_SETSPEED:
 		set_speed_editipo(hspeed);
@@ -1629,6 +1637,13 @@ void do_ipobuts(unsigned short event)
 		ipo_editvertex_buts(NULL, G.sipo, 0.0, 0.0);
 		editipo_changed(G.sipo, 1);
 		allqueue(REDRAWIPO, 0);
+		break;
+	case B_SETKEY:
+		ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	}
 }
@@ -1730,7 +1745,6 @@ void drawipospace(ScrArea *sa, void *spacedata)
 	test_editipo();	/* test if current editipo is correct, make_editipo sets v2d->cur */
 
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
-	
  
 	if(sipo->editipo) {
 		

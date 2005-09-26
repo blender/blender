@@ -707,7 +707,7 @@ void lattice_calc_modifiers(Object *ob)
 	freedisplist(&ob->disp);
 
 	if (!editmode) {
-		do_latt_key(ob->data);
+		do_ob_key(ob);
 	}
 
 	for (; md; md=md->next) {
