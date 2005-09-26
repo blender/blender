@@ -598,9 +598,7 @@ void delete_key(Object *ob)
 	Key *key;
 	IpoCurve *icu;
 	
-	if(G.sipo->blocktype!=ID_KE) return;
-
-	key= (Key *)G.sipo->from;
+	key= ob_get_key(ob);
 	if(key==NULL) return;
 	
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
