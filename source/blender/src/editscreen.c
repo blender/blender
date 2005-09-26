@@ -113,6 +113,7 @@
 static void testareas(void);
 static void area_autoplayscreen(void);
 static void wait_for_event(void);
+void drawscreen(void);
 
 
 /* ********* Globals *********** */
