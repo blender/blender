@@ -692,6 +692,113 @@ static int Vector_coerce(PyObject ** v1, PyObject ** v2)
 	EXPP_incr2(*v1, *v2);
 	return 0;
 }
+//------------------------tp_doc
+static char VectorObject_doc[] = "This is a wrapper for vector objects.";
+//------------------------vec_magnitude (internal)
+static double vec_magnitude(float *data, int size)
+{
+	double dot = 0.0f;
+	int i;
+
+	for(i=0; i<size; i++){
+		dot += data[i];
+	}
+	return (double)sqrt(dot);
+}
+//------------------------vec_equality(internal)
+static int vec_equality(float *dataA, float *dataB, int size, double epsilon)
+{
+	int i;
+
+	for(i=0; i<size; i++){
+		if(!(((dataA[i] + epsilon) > dataB[i]) && ((dataA[i] - epsilon) < dataB[i]))){
+			return 0;
+		}
+	}
+	return 1;
+}
+//------------------------tp_richcmpr
+//returns -1 execption, 0 false, 1 true
+PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	VectorObject *vecA = NULL, *vecB = NULL;
+	int result = 0;
+	float epsilon = .000001f;
+	double lenA,lenB;
+
+	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+	Py_INCREF(objectA);
+	Py_INCREF(objectB);
+	vecA = (VectorObject*)objectA;
+	vecB = (VectorObject*)objectB;
+
+	if (vecA->size != vecB->size){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+
+	switch (comparison_type){
+		case Py_LT:
+			lenA = vec_magnitude(vecA->vec, vecA->size);
+			lenB = vec_magnitude(vecB->vec, vecB->size);
+			if( lenA < lenB ){
+				result = 1;
+			}
+			break;
+		case Py_LE:
+			lenA = vec_magnitude(vecA->vec, vecA->size);
+			lenB = vec_magnitude(vecB->vec, vecB->size);
+			if( lenA < lenB ){
+				result = 1;
+			}else{
+				result = (((lenA + epsilon) > lenB) && ((lenA - epsilon) < lenB));
+			}
+			break;
+		case Py_EQ:
+			result = vec_equality(vecA->vec, vecB->vec, vecA->size, epsilon);
+			break;
+		case Py_NE:
+			result = vec_equality(vecA->vec, vecB->vec, vecA->size, epsilon);
+			if (result == 0){
+				result = 1;
+			}else{
+				result = 0;
+			}
+			break;
+		case Py_GT:
+			lenA = vec_magnitude(vecA->vec, vecA->size);
+			lenB = vec_magnitude(vecB->vec, vecB->size);
+			if( lenA > lenB ){
+				result = 1;
+			}
+			break;
+		case Py_GE:
+			lenA = vec_magnitude(vecA->vec, vecA->size);
+			lenB = vec_magnitude(vecB->vec, vecB->size);
+			if( lenA > lenB ){
+				result = 1;
+			}else{
+				result = (((lenA + epsilon) > lenB) && ((lenA - epsilon) < lenB));
+			}
+			break;
+		default:
+			break;
+	}
+	if (result == 1){
+		return EXPP_incr_ret(Py_True);
+	}else{
+		return EXPP_incr_ret(Py_False);
+	}
+}
 //-----------------PROTCOL DECLARATIONS--------------------------
 static PySequenceMethods Vector_SeqMethods = {
 	(inquiry) Vector_len,						/* sq_length */
@@ -730,19 +837,53 @@ static PyNumberMethods Vector_NumMethods = {
 };
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject vector_Type = {
-	PyObject_HEAD_INIT(NULL) 
-	0,											/*ob_size */
-	"vector",									/*tp_name */
-	sizeof(VectorObject),						/*tp_basicsize */
-	0,											/*tp_itemsize */
-	(destructor) Vector_dealloc,				/*tp_dealloc */
-	(printfunc) 0,								/*tp_print */
-	(getattrfunc) Vector_getattr,				/*tp_getattr */
-	(setattrfunc) Vector_setattr,				/*tp_setattr */
-	0,											/*tp_compare */
-	(reprfunc) Vector_repr,						/*tp_repr */
-	&Vector_NumMethods,							/*tp_as_number */
-	&Vector_SeqMethods,							/*tp_as_sequence */
+	PyObject_HEAD_INIT(NULL)		//tp_head
+	0,								//tp_internal
+	"vector",						//tp_name
+	sizeof(VectorObject),			//tp_basicsize
+	0,								//tp_itemsize
+	(destructor)Vector_dealloc,		//tp_dealloc
+	0,								//tp_print
+	(getattrfunc)Vector_getattr,	//tp_getattr
+	(setattrfunc) Vector_setattr,	//tp_setattr
+	0,								//tp_compare
+	(reprfunc) Vector_repr,			//tp_repr
+	&Vector_NumMethods,				//tp_as_number
+	&Vector_SeqMethods,				//tp_as_sequence
+	0,								//tp_as_mapping
+	0,								//tp_hash
+	0,								//tp_call
+	0,								//tp_str
+	0,								//tp_getattro
+	0,								//tp_setattro
+	0,								//tp_as_buffer
+	Py_TPFLAGS_DEFAULT,				//tp_flags
+	VectorObject_doc,				//tp_doc
+	0,								//tp_traverse
+	0,								//tp_clear
+	(richcmpfunc)Vector_richcmpr,	//tp_richcompare
+	0,								//tp_weaklistoffset
+	0,								//tp_iter
+	0,								//tp_iternext
+	0,								//tp_methods
+	0,								//tp_members
+	0,								//tp_getset
+	0,								//tp_base
+	0,								//tp_dict
+	0,								//tp_descr_get
+	0,								//tp_descr_set
+	0,								//tp_dictoffset
+	0,								//tp_init
+	0,								//tp_alloc
+	0,								//tp_new
+	0,								//tp_free
+	0,								//tp_is_gc
+	0,								//tp_bases
+	0,								//tp_mro
+	0,								//tp_cache
+	0,								//tp_subclasses
+	0,								//tp_weaklist
+	0								//tp_del
 };
 //------------------------newVectorObject (internal)-------------
 //creates a new vector object
