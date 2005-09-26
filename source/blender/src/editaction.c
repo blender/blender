@@ -2264,10 +2264,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D, 1);
-						force_draw_plus(SPACE_IPO, 1);
-						force_draw_plus(SPACE_BUTS, 1);
-					}
+						force_draw_all(0);					}
 					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
