@@ -382,6 +382,41 @@ static int compare_size(const void *a1, const void *a2)
 	else return BLI_strcasecmp(entry1->relname,entry2->relname);
 }
 
+static int compare_extension(const void *a1, const void *a2) {
+	const struct direntry *entry1=a1, *entry2=a2;
+	char *sufix1, *sufix2;
+	char *nil="";
+
+	if (!(sufix1= strstr (entry1->relname, ".blend.gz"))) 
+		sufix1= strrchr (entry1->relname, '.');
+	if (!(sufix2= strstr (entry2->relname, ".blend.gz")))
+		sufix2= strrchr (entry2->relname, '.');
+	if (!sufix1) sufix1= nil;
+	if (!sufix2) sufix2= nil;
+
+	/* type is is equal to stat.st_mode */
+
+	if (S_ISDIR(entry1->type)){
+		if (S_ISDIR(entry2->type)==0) return (-1);
+	} else{
+		if (S_ISDIR(entry2->type)) return (1);
+	}
+	if (S_ISREG(entry1->type)){
+		if (S_ISREG(entry2->type)==0) return (-1);
+	} else{
+		if (S_ISREG(entry2->type)) return (1);
+	}
+	if ((entry1->type & S_IFMT) < (entry2->type & S_IFMT)) return (-1);
+	if ((entry1->type & S_IFMT) > (entry2->type & S_IFMT)) return (1);
+	
+	/* make sure "." and ".." are always first */
+	if( strcmp(entry1->relname, ".")==0 ) return (-1);
+	if( strcmp(entry2->relname, ".")==0 ) return (1);
+	if( strcmp(entry1->relname, "..")==0 ) return (-1);
+	if( strcmp(entry2->relname, "..")==0 ) return (-1);
+	
+	return (BLI_strcasecmp(sufix1, sufix2));
+}
 
 /* **************************************** */
 
@@ -614,8 +649,7 @@ void sort_filelist(SpaceFile *sfile)
 		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_size);	
 		break;
 	case FILE_SORTEXTENS:
-		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_name);	
-		break;
+		qsort(sfile->filelist, sfile->totfile, sizeof(struct direntry), compare_extension);	
 	}
 	
 	sfile->act= -1;
