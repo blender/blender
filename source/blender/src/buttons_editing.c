@@ -1453,11 +1453,13 @@ static void editing_panel_shapes(Object *ob)
 	uiBlockBeginAlign(block);
 	if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
 	uiDefIconButBitC(block, TOG, OB_SHAPE_LOCK, B_LOCKKEY, icon, 10,150,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
+	uiSetButLock(G.obedit==ob, "Unable to perform in EditMode");
 	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		35,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
 	strp= make_key_menu(key);
 	uiDefButC(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
 	MEM_freeN(strp);
 	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	75,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
+	uiClearButLock();
 	uiDefBut(block, TEX, B_NAMEKEY, "",						95, 150, 190, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
 	uiDefIconBut(block, BUT, B_DELKEY, ICON_X,				285,150,25,20, 0, 0, 0, 0, 0, "Deletes current Shape Key");
 	uiBlockEndAlign(block);

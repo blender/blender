@@ -1101,6 +1101,31 @@ int do_screenhandlers(bScreen *sc)
 
 /* ****** end screen handlers ************ */
 
+static void drawscreen(void)
+{
+	ScrArea *sa;
+	
+	mywinset(G.curscreen->mainwin);
+	myortho2(-0.375, (float)G.curscreen->sizex-0.375, -0.375, (float)G.curscreen->sizey-0.375);
+	
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		drawscredge_area(sa);
+		sa= sa->next;
+	}
+	
+	/* this double draw patch seems to be needed for certain sgi's (octane, indigo2) */
+	glDrawBuffer(GL_FRONT);
+	
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		drawscredge_area(sa);
+		sa= sa->next;
+	}
+	
+	glDrawBuffer(GL_BACK);
+}
+
 static void screen_dispatch_events(void) {
 	int events_remaining= 1;
 	ScrArea *sa;
@@ -3519,31 +3544,6 @@ void drawscredge_area(ScrArea *sa)
 	if(sa->headertype==HEADERDOWN) sdrawline(x1+SCR_ROUND-3, y1, x2-SCR_ROUND+3, y1);
 	else sdrawline(x1, y1, x2, y1);
 	
-}
-
-void drawscreen(void)
-{
-	ScrArea *sa;
-
-	mywinset(G.curscreen->mainwin);
-	myortho2(-0.375, (float)G.curscreen->sizex-0.375, -0.375, (float)G.curscreen->sizey-0.375);
-
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		drawscredge_area(sa);
-		sa= sa->next;
-	}
-
-	/* this double draw patch seems to be needed for certain sgi's (octane, indigo2) */
-	glDrawBuffer(GL_FRONT);
-
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		drawscredge_area(sa);
-		sa= sa->next;
-	}
-
-	glDrawBuffer(GL_BACK);
 }
 
 /* ********************************* */

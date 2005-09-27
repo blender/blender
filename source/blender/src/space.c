@@ -1985,7 +1985,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
-						update_for_newframe();
+						update_for_newframe_nodraw(1);	/* 1 = nosound */
 						force_draw_all(0); /* To make constraint sliders redraw */
 					}
 					else PIL_sleep_ms(30);
@@ -4907,8 +4907,6 @@ void force_draw_all(int header)
 {
 	/* redraws all */
 	ScrArea *tempsa, *sa;
-
-	drawscreen();
 
 	tempsa= curarea;
 	sa= G.curscreen->areabase.first;

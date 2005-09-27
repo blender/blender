@@ -130,7 +130,6 @@ extern int ob_ar[];
 extern int ma_ar[];
 extern int seq_ar[];
 extern int cu_ar[];
-extern int key_ar[];
 extern int wo_ar[];
 extern int la_ar[];
 extern int cam_ar[];
@@ -263,12 +262,6 @@ char *getname_seq_ei(int nr)
 char *getname_cu_ei(int nr)
 {
 	if(nr==CU_SPEED) return cu_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_key_ei(int nr)
-{
-	if(nr>=KEY_SPEED && nr<KEY_TOTNAM) return key_ic_names[nr];
 	return ic_name_empty[0];
 }
 
@@ -762,7 +755,6 @@ void make_key_editipo(SpaceIpo *si)
 	KeyBlock *kb=NULL;
 	EditIpo *ei;
 	int a;
-	char *name;
 	
 	key= (Key *)G.sipo->from;
 	if(key==NULL) return;
@@ -783,10 +775,6 @@ void make_key_editipo(SpaceIpo *si)
 		}
 
 		if(kb->name[0] != 0) strncpy(ei->name, kb->name, 31);	// length both same
-		else {
-			name = getname_key_ei(kb->adrcode);
-			strcpy(ei->name, name);
-		}
 		ei->adrcode= kb->adrcode;
 		
 		ei->col= ipo_rainbow(a, KEY_TOTIPO);

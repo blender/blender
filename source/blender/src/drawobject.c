@@ -1954,36 +1954,39 @@ static void drawDispListsolid(ListBase *lb, Object *ob)
 
 		switch(dl->type) {
 		case DL_SEGM:
-			BIF_ThemeColor(TH_WIRE);
-			glDisable(GL_LIGHTING);
-
-			parts= dl->parts;
-			while(parts--) {
-				nr= dl->nr;
-				glBegin(GL_LINE_STRIP);
-				while(nr--) {
-					glVertex3fv(data);
-					data+=3;
+			if(ob->type==OB_SURF) {
+				BIF_ThemeColor(TH_WIRE);
+				glDisable(GL_LIGHTING);
+				parts= dl->parts;
+				while(parts--) {
+					nr= dl->nr;
+					glBegin(GL_LINE_STRIP);
+					while(nr--) {
+						glVertex3fv(data);
+						data+=3;
+					}
+					glEnd();
 				}
-				glEnd();
+				glEnable(GL_LIGHTING);
 			}
-			glEnable(GL_LIGHTING);
 			break;
 		case DL_POLY:
-			BIF_ThemeColor(TH_WIRE);
-			glDisable(GL_LIGHTING);
-			parts= dl->parts;
-			while(parts--) {
-				nr= dl->nr;
-				glBegin(GL_LINE_LOOP);
-				while(nr--) {
-					glVertex3fv(data);
-					data+=3;
+			if(ob->type==OB_SURF) {
+				BIF_ThemeColor(TH_WIRE);
+				glDisable(GL_LIGHTING);
+				parts= dl->parts;
+				while(parts--) {
+					nr= dl->nr;
+					glBegin(GL_LINE_LOOP);
+					while(nr--) {
+						glVertex3fv(data);
+						data+=3;
+					}
+					glEnd();
 				}
-				glEnd();
+				glEnable(GL_LIGHTING);
+				break;
 			}
-			glEnable(GL_LIGHTING);
-			break;
 		case DL_SURF:
 
 			set_gl_material(dl->col+1);
