@@ -40,6 +40,7 @@ struct rctf;
 
 #include "Object.h" /*This must come first */
 
+#include "DNA_object_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
 #include "DNA_userdef_types.h"
@@ -2065,6 +2066,9 @@ static PyObject *Object_setLocation( BPy_Object * self, PyObject * args )
 	self->object->loc[1] = loc2;
 	self->object->loc[2] = loc3;
 
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
 	Py_INCREF( Py_None );
 	return ( Py_None );
 }
@@ -2828,6 +2832,15 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 				       "Not allowed. Please use .setMatrix(matrix)" );
 
 	/* FIRST, do attributes that are diretly changed */
+
+	/* 
+	   All the methods below modify the object so we set the recalc
+	   flag here.
+	   When we move to tp_getset, the individual settors will need
+	   to set the flag.
+	*/
+	object->recalc |= OB_RECALC_OB;
+
 	if( StringEqual( name, "LocX" ) )
 		return ( !PyArg_Parse( value, "f", &( object->loc[0] ) ) );
 	if( StringEqual( name, "LocY" ) )
@@ -3002,29 +3015,7 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		}
 		return 0;
 	}
-	/*
-	IKA isn't even in Blender anymore, I think we can remove this... (theeth)
-	if( strncmp( name, "Eff", 3 ) == 0 ) {
-		if( ( object->type == OB_IKA ) && ( object->data != NULL ) ) {
-			ika = object->data;
-			switch ( name[3] ) {
-			case 'X':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[0] ) ) );
-			case 'Y':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[1] ) ) );
-			case 'Z':
-				return ( !PyArg_Parse
-					 ( value, "f", &( ika->effg[2] ) ) );
-			default:
-				// Do we need to display a sensible error message here?
-				return ( 0 );
-			}
-		}
-		return ( 0 );
-	}
-	*/
+
 
 	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
 
