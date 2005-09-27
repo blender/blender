@@ -465,6 +465,7 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	double norm_a = 0.0f, norm_b = 0.0f;
 	double vec_a[4], vec_b[4];
 	int x, size;
+	PyObject *test = NULL;
 
 	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2))
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
@@ -472,6 +473,15 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 	if(vec1->size != vec2->size)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 			"Mathutils.AngleBetweenVecs(): expects (2) vector objects of the same size\n");
+
+	//test to make sure that we don't have a zero vector
+	test = M_Mathutils_DotVecs(self, args);
+	if(!PyFloat_AS_DOUBLE(test)){
+		Py_DECREF(test);
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+			"Mathutils.AngleBetweenVecs(): zero-length vectors not acceptable\n");
+	}
+	Py_DECREF(test);
 
 	//since size is the same....
 	size = vec1->size;
