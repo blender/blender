@@ -724,7 +724,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiDefBut(block, BUT,B_DOCENTRECURSOR, "Centre Cursor",		275, 55, 130, 19, 0, 0, 0, 0, 0, "Shifts object's origin to cursor location");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Toggles selected faces as doublesided or single-sided");
+	uiDefButBitS(block, TOG, ME_TWOSIDED, REDRAWVIEW3D, "Double Sided",	275,30,130,19, &me->flag, 0, 0, 0, 0, "Render/display the mesh as double or single sided");
 	uiDefButBitS(block, TOG, ME_NOPUNOFLIP, REDRAWVIEW3D, "No V.Normal Flip",275,10,130,19, &me->flag, 0, 0, 0, 0, "Disables flipping of vertexnormals during render");
 	uiBlockEndAlign(block);
 
