@@ -2273,6 +2273,7 @@ void drawview3d_render(struct View3D *v3d)
 	Object *ob;
 
 	free_all_realtime_images();
+	reshadeall_displist();
 
 	v3d_windowmode= 1;
 	setwinmatrixview3d(0);
