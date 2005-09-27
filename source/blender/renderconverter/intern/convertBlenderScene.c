@@ -1063,8 +1063,8 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					dx= R.rectx*cross[0]*R.winmat[0][0]/w;
 					dy= R.recty*cross[1]*R.winmat[1][1]/w;
 					w= sqrt(dx*dx + dy*dy);
-
-					VecMulf(cross, 1.0/w);
+					if(w!=0.0f)
+						VecMulf(cross, 1.0/w);
 					
 					if(ctime == pa->time) {
 						v1= RE_findOrAddVert(R.totvert++);
