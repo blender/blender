@@ -905,16 +905,28 @@ static Object *vlr_set_ob(Object *ob)
 	return ob;
 }
 
+static float strand_orcos[256][3];
+static void particle_orcos(void)
+{
+	int a;
+	
+	for(a=0; a<256; a++) {
+		strand_orcos[a][0]= ((float)a)/255.0f;
+		strand_orcos[a][1]=strand_orcos[a][2]= 0.0f;
+	}
+}
+
 static void render_static_particle_system(Object *ob, PartEff *paf)
 {
 	Particle *pa=0;
 	HaloRen *har=0;
 	Material *ma=0;
-	VertRen *v1= NULL;
+	VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr;
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	int a, mat_nr=1, seed;
+	float *orco= NULL;
+	int a, mat_nr=1, seed, totvlako, totverto;
 
 	pa= paf->keys;
 	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
@@ -924,14 +936,22 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	}
 
 	ma= give_render_material(ob, 1);
-
+	if(ma->mode & MA_HALO)
+		R.flag |= R_HALO;
+	
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
-	R.flag |= R_HALO;
-
+	totvlako= R.totvlak;
+	totverto= R.totvert;
+	
+	/* orcos */
+	if(!(ma->mode & (MA_HALO|MA_WIRE))) {
+		particle_orcos();
+	}
+	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, ptime);
@@ -963,15 +983,14 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 				mat_nr= pa->mat_nr;
 				ma= give_render_material(ob, mat_nr);
 			}
-
+			
+			/* wires */
 			if(ma->mode & MA_WIRE) {
 				if(ctime == pa->time) {
 					v1= RE_findOrAddVert(R.totvert++);
 					VECCOPY(v1->co, vec);
 				}
 				else {
-//					float cvec[3]={-1.0, 0.0, 0.0};
-					
 					vlr= RE_findOrAddVlak(R.totvlak++);
 					vlr->ob= vlr_set_ob(ob);
 					vlr->v1= v1;
@@ -998,44 +1017,103 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					calc_ipo(ma->ipo, ptime);
 					execute_ipo((ID *)ma, ma->ipo);
 				}
+				
+				if(ma->mode & MA_HALO) {
+					hasize= ma->hasize;
 
-				hasize= ma->hasize;
+					if(ma->mode & MA_HALOPUNO) {
+						xn= pa->no[0];
+						yn= pa->no[1];
+						zn= pa->no[2];
 
-				if(ma->mode & MA_HALOPUNO) {
-					xn= pa->no[0];
-					yn= pa->no[1];
-					zn= pa->no[2];
+						/* transpose ! */
+						nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+						nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+						nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+						Normalise(nor);
 
-					/* transpose ! */
-					nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-					nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-					nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-					Normalise(nor);
+						VECCOPY(view, vec);
+						Normalise(view);
 
-					VECCOPY(view, vec);
-					Normalise(view);
-
-					zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-					if(zn>=0.0) hasize= 0.0;
-					else hasize*= zn*zn*zn*zn;
-				}
-
-				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
-				else {
-					har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
-					if(har && (ma->mode & MA_HALO_SHADE)) {
-						VecSubf(har->no, vec, vec1);
-						Normalise(har->no);
-						har->lay= ob->lay;
+						zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
+						if(zn>=0.0) hasize= 0.0;
+						else hasize*= zn*zn*zn*zn;
 					}
+
+					if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
+					else {
+						har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
+						if(har && (ma->mode & MA_HALO_SHADE)) {
+							VecSubf(har->no, vec, vec1);
+							Normalise(har->no);
+							har->lay= ob->lay;
+						}
+					}
+					if(har) har->lay= ob->lay;
 				}
-				if(har) har->lay= ob->lay;
+				else {	/* generate pixel sized hair strands */
+					float cross[3], w, dx, dy;
+					
+					VecSubf(nor, vec, vec1);
+					Crossf(cross, vec, nor);
+					
+					/* turn cross in pixelsize */
+					w= vec[2]*R.winmat[2][3] + R.winmat[3][3];
+					
+					dx= R.rectx*cross[0]*R.winmat[0][0]/w;
+					dy= R.recty*cross[1]*R.winmat[1][1]/w;
+					w= sqrt(dx*dx + dy*dy);
+
+					VecMulf(cross, 1.0/w);
+					
+					if(ctime == pa->time) {
+						v1= RE_findOrAddVert(R.totvert++);
+						v2= RE_findOrAddVert(R.totvert++);
+						
+						VECCOPY(v1->co, vec);
+						VecAddf(v1->co, v1->co, cross);
+						v1->orco= strand_orcos[ (int)( 255.0*(ctime-pa->time)/(mtime-pa->time) )];
+
+						VECCOPY(v2->co, vec);
+						VecSubf(v2->co, v2->co, cross);
+						v2->orco= v1->orco;
+					}
+					else {
+						
+						vlr= RE_findOrAddVlak(R.totvlak++);
+						vlr->flag= ME_SMOOTH;
+						vlr->ob= vlr_set_ob(ob);
+						vlr->v1= v1;
+						vlr->v2= v2;
+						vlr->v3= RE_findOrAddVert(R.totvert++);
+						vlr->v4= RE_findOrAddVert(R.totvert++);
+						
+						v1= vlr->v4; // cycle
+						v2= vlr->v3; // cycle
+
+						VECCOPY(vlr->v4->co, vec);
+						VecAddf(vlr->v4->co, vlr->v4->co, cross);
+						vlr->v4->orco= strand_orcos[ (int)( 255.0*(ctime-pa->time)/(mtime-pa->time) )];
+
+						VECCOPY(vlr->v3->co, vec);
+						VecSubf(vlr->v3->co, vlr->v3->co, cross);
+						vlr->v3->orco= vlr->v4->orco;
+						
+						CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+						
+						vlr->mat= ma;
+						vlr->ec= ME_V1V2|ME_V2V3;
+						vlr->lay= ob->lay;
+					}					
+				}
 			}
 			
 			VECCOPY(vec1, vec);
 		}
 		seed++;
 	}
+
+	calc_vertexnormals(totverto, totvlako);
 
 }
 
