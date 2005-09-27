@@ -57,15 +57,14 @@ struct PyMethodDef Euler_methods[] = {
 //return a quaternion representation of the euler
 PyObject *Euler_ToQuat(EulerObject * self)
 {
-	float eul[3];
-	float quat[4];
+	float eul[3], quat[4];
 	int x;
 
 	for(x = 0; x < 3; x++) {
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToQuat(eul, quat);
-	return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW);
 }
 //----------------------------Euler.toMatrix()---------------------
 //return a matrix representation of the euler
@@ -79,7 +78,7 @@ PyObject *Euler_ToMatrix(EulerObject * self)
 		eul[x] = self->eul[x] * ((float)Py_PI / 180);
 	}
 	EulToMat3(eul, (float (*)[3]) mat);
-	return (PyObject *) newMatrixObject(mat, 3, 3 , Py_NEW);
+	return newMatrixObject(mat, 3, 3 , Py_NEW);
 }
 //----------------------------Euler.unique()-----------------------
 //sets the x,y,z values to a unique euler rotation
@@ -247,7 +246,7 @@ static PyObject *Euler_repr(EulerObject * self)
 	}
 	strcat(str, "](euler)");
 
-	return EXPP_incr_ret(PyString_FromString(str));
+	return PyString_FromString(str);
 }
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
@@ -314,6 +313,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 {
 	int i, y, size = 0;
 	float eul[3];
+	PyObject *e, *f;
 
 	CLAMP(begin, 0, 3);
 	CLAMP(end, 0, 3);
@@ -326,19 +326,19 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 	}
 
 	for (i = 0; i < size; i++) {
-		PyObject *e, *f;
-
 		e = PySequence_GetItem(seq, i);
 		if (e == NULL) { // Failed to read sequence
 			return EXPP_ReturnIntError(PyExc_RuntimeError, 
 				"euler[begin:end] = []: unable to read sequence\n");
 		}
+
 		f = PyNumber_Float(e);
 		if(f == NULL) { // parsed item not a number
 			Py_DECREF(e);
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"euler[begin:end] = []: sequence argument not a number\n");
 		}
+
 		eul[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,e);
 	}

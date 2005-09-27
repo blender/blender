@@ -73,7 +73,7 @@ PyObject *Vector_toPoint(VectorObject * self)
 		coord[x] = self->vec[x];
 	}
 	
-	return (PyObject *) newPointObject(coord, self->size, Py_NEW);
+	return newPointObject(coord, self->size, Py_NEW);
 }
 //----------------------------Vector.zero() ----------------------
 //set the vector data to 0,0,0
@@ -176,14 +176,11 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 	short track = 2, up = 1;
 
 	if( !PyArg_ParseTuple ( args, "|ss", &strack, &sup ) ) {
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "expected optional two strings\n" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, 
+			"expected optional two strings\n" );
 	}
 	if (self->size != 3) {
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "only for 3D vectors\n" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError, "only for 3D vectors\n" );
 	}
 
 	if (strack) {
@@ -283,6 +280,7 @@ PyObject *Vector_ToTrackQuat( VectorObject * self, PyObject * args )
 //free the py_object
 static void Vector_dealloc(VectorObject * self)
 {
+	Py_XDECREF(self->coerced_object);
 	//only free py_data
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
@@ -388,7 +386,7 @@ static PyObject *Vector_repr(VectorObject * self)
 	}
 	strcat(str, "](vector)");
 
-	return EXPP_incr_ret(PyString_FromString(str));
+	return PyString_FromString(str);
 }
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
@@ -455,6 +453,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 {
 	int i, y, size = 0;
 	float vec[4];
+	PyObject *v, *f;
 
 	CLAMP(begin, 0, self->size);
 	CLAMP(end, 0, self->size);
@@ -467,19 +466,19 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 	}
 
 	for (i = 0; i < size; i++) {
-		PyObject *v, *f;
-
 		v = PySequence_GetItem(seq, i);
 		if (v == NULL) { // Failed to read sequence
 			return EXPP_ReturnIntError(PyExc_RuntimeError, 
 				"vector[begin:end] = []: unable to read sequence\n");
 		}
+
 		f = PyNumber_Float(v);
 		if(f == NULL) { // parsed item not a number
 			Py_DECREF(v);
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"vector[begin:end] = []: sequence argument not a number\n");
 		}
+
 		vec[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,v);
 	}
@@ -499,7 +498,6 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	PointObject *pt = NULL;
 
-	EXPP_incr2(v1, v2);
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 
@@ -507,23 +505,20 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 		if(vec2->coerced_object){
 			if(PointObject_Check(vec2->coerced_object)){  //VECTOR + POINT
 				//Point translation
-				pt = (PointObject*)EXPP_incr_ret(vec2->coerced_object);
+				pt = (PointObject*)vec2->coerced_object;
 				size = vec1->size;
 				if(pt->size == size){
 					for(x = 0; x < size; x++){
 						vec[x] = vec1->vec[x] + pt->coord[x];
 					}	
 				}else{
-					EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)pt);
 					return EXPP_ReturnPyObjError(PyExc_AttributeError,
 						"Vector addition: arguments are the wrong size....\n");
 				}
-				EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)pt);
-				return (PyObject *) newPointObject(vec, size, Py_NEW);
+				return newPointObject(vec, size, Py_NEW);
 			}
 		}else{ //VECTOR + VECTOR
 			if(vec1->size != vec2->size){
-				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 				return EXPP_ReturnPyObjError(PyExc_AttributeError,
 				"Vector addition: vectors must have the same dimensions for this operation\n");
 			}
@@ -531,8 +526,7 @@ static PyObject *Vector_add(PyObject * v1, PyObject * v2)
 			for(x = 0; x < size; x++) {
 				vec[x] = vec1->vec[x] +	vec2->vec[x];
 			}
-			EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-			return (PyObject *) newVectorObject(vec, size, Py_NEW);
+			return newVectorObject(vec, size, Py_NEW);
 		}
 	}
 
@@ -547,7 +541,6 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 	float vec[4];
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 
-	EXPP_incr2(v1, v2);
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 
@@ -556,7 +549,6 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 			"Vector subtraction: arguments not valid for this operation....\n");
 	}
 	if(vec1->size != vec2->size){
-		EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 		"Vector subtraction: vectors must have the same dimensions for this operation\n");
 	}
@@ -566,8 +558,7 @@ static PyObject *Vector_sub(PyObject * v1, PyObject * v2)
 		vec[x] = vec1->vec[x] -	vec2->vec[x];
 	}
 
-	EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-	return (PyObject *) newVectorObject(vec, size, Py_NEW);
+	return newVectorObject(vec, size, Py_NEW);
 }
 //------------------------obj * obj------------------------------
 //mulplication
@@ -581,7 +572,6 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 	MatrixObject *mat = NULL;
 	QuaternionObject *quat = NULL;
 
-	EXPP_incr2(v1, v2);
 	vec1 = (VectorObject*)v1;
 	vec2 = (VectorObject*)v2;
 
@@ -590,54 +580,48 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			PyInt_Check(vec1->coerced_object)){	// FLOAT/INT * VECTOR
 			f = PyNumber_Float(vec1->coerced_object);
 			if(f == NULL) { // parsed item not a number
-				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Vector multiplication: arguments not acceptable for this operation\n");
 			}
+
 			scalar = (float)PyFloat_AS_DOUBLE(f);
 			size = vec2->size;
 			for(x = 0; x < size; x++) {
 				vec[x] = vec2->vec[x] *	scalar;
 			}
-			EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-			return (PyObject *) newVectorObject(vec, size, Py_NEW);
+			Py_DECREF(f);
+			return newVectorObject(vec, size, Py_NEW);
 		}
 	}else{
 		if(vec2->coerced_object){
 			if(MatrixObject_Check(vec2->coerced_object)){ //VECTOR * MATRIX
-				mat = (MatrixObject*)EXPP_incr_ret(vec2->coerced_object);
-				retObj = row_vector_multiplication(vec1, mat);
-				EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)mat);
-				return retObj;
+				mat = (MatrixObject*)vec2->coerced_object;
+				return retObj = row_vector_multiplication(vec1, mat);
 			}else if (PyFloat_Check(vec2->coerced_object) || 
 				PyInt_Check(vec2->coerced_object)){	// VECTOR * FLOAT/INT
 				f = PyNumber_Float(vec2->coerced_object);
 				if(f == NULL) { // parsed item not a number
-					EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Vector multiplication: arguments not acceptable for this operation\n");
 				}
+
 				scalar = (float)PyFloat_AS_DOUBLE(f);
 				size = vec1->size;
 				for(x = 0; x < size; x++) {
 					vec[x] = vec1->vec[x] *	scalar;
 				}
-				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
-				return (PyObject *) newVectorObject(vec, size, Py_NEW);
+				Py_DECREF(f);
+				return newVectorObject(vec, size, Py_NEW);
 			}else if(QuaternionObject_Check(vec2->coerced_object)){  //VECTOR * QUATERNION
-				quat = (QuaternionObject*)EXPP_incr_ret(vec2->coerced_object);
+				quat = (QuaternionObject*)vec2->coerced_object;
 				if(vec1->size != 3){
-					EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Vector multiplication: only 3D vector rotations (with quats) currently supported\n");
 				}
-				retObj = quat_rotation((PyObject*)vec1, (PyObject*)quat);
-				EXPP_decr3((PyObject*)vec1, (PyObject*)vec2, (PyObject*)quat);
-				return retObj;
+				return quat_rotation((PyObject*)vec1, (PyObject*)quat);
 			}
 		}else{  //VECTOR * VECTOR
 			if(vec1->size != vec2->size){
-				EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 				return EXPP_ReturnPyObjError(PyExc_AttributeError,
 					"Vector multiplication: vectors must have the same dimensions for this operation\n");
 			}
@@ -646,12 +630,10 @@ static PyObject *Vector_mul(PyObject * v1, PyObject * v2)
 			for(x = 0; x < size; x++) {
 				dot += vec1->vec[x] * vec2->vec[x];
 			}
-			EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 			return PyFloat_FromDouble(dot);
 		}
 	}
 
-	EXPP_decr2((PyObject*)vec1, (PyObject*)vec2);
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Vector multiplication: arguments not acceptable for this operation\n");
 }
@@ -733,8 +715,6 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 			return EXPP_incr_ret(Py_False);
 		}
 	}
-	Py_INCREF(objectA);
-	Py_INCREF(objectB);
 	vecA = (VectorObject*)objectA;
 	vecB = (VectorObject*)objectB;
 

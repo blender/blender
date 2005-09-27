@@ -77,7 +77,7 @@ PyObject *Matrix_toQuat(MatrixObject * self)
 		Mat4ToQuat((float (*)[4])*self->matrix, quat);
 	}
 	
-	return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW);
 }
 //---------------------------Matrix.toEuler() --------------------
 PyObject *Matrix_toEuler(MatrixObject * self)
@@ -95,7 +95,7 @@ PyObject *Matrix_toEuler(MatrixObject * self)
 	for(x = 0; x < 3; x++) {
 		eul[x] *= (float) (180 / Py_PI);
 	}
-	return (PyObject *) newEulerObject(eul, Py_NEW);
+	return newEulerObject(eul, Py_NEW);
 }
 //---------------------------Matrix.resize4x4() ------------------
 PyObject *Matrix_Resize4x4(MatrixObject * self)
@@ -372,7 +372,7 @@ static PyObject *Matrix_repr(MatrixObject * self)
 		}
 	}
 
-	return EXPP_incr_ret(PyString_FromString(str));
+	return PyString_FromString(str);
 }
 
 //---------------------SEQUENCE PROTOCOLS------------------------
@@ -399,6 +399,7 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 {
 	int y, x, size = 0;
 	float vec[4];
+	PyObject *m, *f;
 
 	if(i > self->rowSize || i < 0){
 		return EXPP_ReturnIntError(PyExc_TypeError,
@@ -412,19 +413,19 @@ static int Matrix_ass_item(MatrixObject * self, int i, PyObject * ob)
 				"matrix[attribute] = x: bad sequence size\n");
 		}
 		for (x = 0; x < size; x++) {
-			PyObject *m, *f;
-
 			m = PySequence_GetItem(ob, x);
 			if (m == NULL) { // Failed to read sequence
 				return EXPP_ReturnIntError(PyExc_RuntimeError, 
 					"matrix[attribute] = x: unable to read sequence\n");
 			}
+
 			f = PyNumber_Float(m);
 			if(f == NULL) { // parsed item not a number
 				Py_DECREF(m);
 				return EXPP_ReturnIntError(PyExc_TypeError, 
 					"matrix[attribute] = x: sequence argument not a number\n");
 			}
+
 			vec[x] = (float)PyFloat_AS_DOUBLE(f);
 			EXPP_decr2(m, f);
 		}
@@ -456,7 +457,7 @@ static PyObject *Matrix_slice(MatrixObject * self, int begin, int end)
 				newVectorObject(self->matrix[count], self->colSize, Py_WRAP));
 	}
 
-	return EXPP_incr_ret(list);
+	return list;
 }
 //----------------------------object[z:y]------------------------
 //sequence slice (set)
@@ -465,6 +466,8 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 {
 	int i, x, y, size, sub_size = 0;
 	float mat[16];
+	PyObject *subseq;
+	PyObject *m, *f;
 
 	CLAMP(begin, 0, self->rowSize);
 	CLAMP(end, 0, self->rowSize);
@@ -479,32 +482,35 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 		//parse sub items
 		for (i = 0; i < size; i++) {
 			//parse each sub sequence
-			PyObject *subseq;
 			subseq = PySequence_GetItem(seq, i);
 			if (subseq == NULL) { // Failed to read sequence
 				return EXPP_ReturnIntError(PyExc_RuntimeError, 
 					"matrix[begin:end] = []: unable to read sequence\n");
 			}
+
 			if(PySequence_Check(subseq)){
 				//subsequence is also a sequence
 				sub_size = PySequence_Length(subseq);
 				if(sub_size != self->colSize){
+					Py_DECREF(subseq);
 					return EXPP_ReturnIntError(PyExc_TypeError,
 						"matrix[begin:end] = []: size mismatch in slice assignment\n");
 				}
 				for (y = 0; y < sub_size; y++) {
-					PyObject *m, *f;
 					m = PySequence_GetItem(subseq, y);
 					if (m == NULL) { // Failed to read sequence
+						Py_DECREF(subseq);
 						return EXPP_ReturnIntError(PyExc_RuntimeError, 
 							"matrix[begin:end] = []: unable to read sequence\n");
 					}
+
 					f = PyNumber_Float(m);
 					if(f == NULL) { // parsed item not a number
-						Py_DECREF(m);
+						EXPP_decr2(m, subseq);
 						return EXPP_ReturnIntError(PyExc_TypeError, 
 							"matrix[begin:end] = []: sequence argument not a number\n");
 					}
+
 					mat[(i * self->colSize) + y] = (float)PyFloat_AS_DOUBLE(f);
 					EXPP_decr2(f, m);
 				}
@@ -513,6 +519,7 @@ static int Matrix_ass_slice(MatrixObject * self, int begin, int end,
 				return EXPP_ReturnIntError(PyExc_TypeError,
 					"matrix[begin:end] = []: illegal argument type for built-in operation\n");
 			}
+			Py_DECREF(subseq);
 		}
 		//parsed well - now set in matrix
 		for(x = 0; x < (size * sub_size); x++){
@@ -533,7 +540,6 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
-	EXPP_incr2(m1, m2);
 	mat1 = (MatrixObject*)m1;
 	mat2 = (MatrixObject*)m2;
 
@@ -542,7 +548,6 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 			"Matrix addition: arguments not valid for this operation....\n");
 	}
 	if(mat1->rowSize != mat2->rowSize || mat1->colSize != mat2->colSize){
-		EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix addition: matrices must have the same dimensions for this operation\n");
 	}
@@ -553,7 +558,6 @@ static PyObject *Matrix_add(PyObject * m1, PyObject * m2)
 		}
 	}
 
-	EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 }
 //------------------------obj - obj------------------------------
@@ -565,7 +569,6 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
 
-	EXPP_incr2(m1, m2);
 	mat1 = (MatrixObject*)m1;
 	mat2 = (MatrixObject*)m2;
 
@@ -574,7 +577,6 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 			"Matrix addition: arguments not valid for this operation....\n");
 	}
 	if(mat1->rowSize != mat2->rowSize || mat1->colSize != mat2->colSize){
-		EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix addition: matrices must have the same dimensions for this operation\n");
 	}
@@ -585,7 +587,6 @@ static PyObject *Matrix_sub(PyObject * m1, PyObject * m2)
 		}
 	}
 
-	EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 	return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 }
 //------------------------obj * obj------------------------------
@@ -598,11 +599,10 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 	double dot = 0.0f;
 	MatrixObject *mat1 = NULL, *mat2 = NULL;
-	PyObject *f = NULL, *retObj = NULL;
+	PyObject *f = NULL;
 	VectorObject *vec = NULL;
 	PointObject *pt = NULL;
 
-	EXPP_incr2(m1, m2);
 	mat1 = (MatrixObject*)m1;
 	mat2 = (MatrixObject*)m2;
 
@@ -611,51 +611,44 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 			PyInt_Check(mat1->coerced_object)){	// FLOAT/INT * MATRIX
 			f = PyNumber_Float(mat1->coerced_object);
 			if(f == NULL) { // parsed item not a number
-				EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Matrix multiplication: arguments not acceptable for this operation\n");
 			}
+
 			scalar = (float)PyFloat_AS_DOUBLE(f);
 			for(x = 0; x < mat2->rowSize; x++) {
 				for(y = 0; y < mat2->colSize; y++) {
 					mat[((x * mat2->colSize) + y)] = scalar * mat2->matrix[x][y];
 				}
 			}
-			EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 			return newMatrixObject(mat, mat2->rowSize, mat2->colSize, Py_NEW);
 		}
 	}else{
 		if(mat2->coerced_object){
 			if(VectorObject_Check(mat2->coerced_object)){ //MATRIX * VECTOR
-				vec = (VectorObject*)EXPP_incr_ret(mat2->coerced_object);
-				retObj = column_vector_multiplication(mat1, vec);
-				EXPP_decr3((PyObject*)mat1, (PyObject*)mat2, (PyObject*)vec);
-				return retObj;
+				vec = (VectorObject*)mat2->coerced_object;
+				return column_vector_multiplication(mat1, vec);
 			}else if(PointObject_Check(mat2->coerced_object)){ //MATRIX * POINT
-				pt = (PointObject*)EXPP_incr_ret(mat2->coerced_object);
-				retObj = column_point_multiplication(mat1, pt);
-				EXPP_decr3((PyObject*)mat1, (PyObject*)mat2, (PyObject*)pt);
-				return retObj;
+				pt = (PointObject*)mat2->coerced_object;
+				return column_point_multiplication(mat1, pt);
 			}else if (PyFloat_Check(mat2->coerced_object) || 
 				PyInt_Check(mat2->coerced_object)){	// MATRIX * FLOAT/INT
 				f = PyNumber_Float(mat2->coerced_object);
 				if(f == NULL) { // parsed item not a number
-					EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Matrix multiplication: arguments not acceptable for this operation\n");
 				}
+
 				scalar = (float)PyFloat_AS_DOUBLE(f);
 				for(x = 0; x < mat1->rowSize; x++) {
 					for(y = 0; y < mat1->colSize; y++) {
 						mat[((x * mat1->colSize) + y)] = scalar * mat1->matrix[x][y];
 					}
 				}
-				EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 				return newMatrixObject(mat, mat1->rowSize, mat1->colSize, Py_NEW);
 			}
 		}else{  //MATRIX * MATRIX
 			if(mat1->colSize != mat2->rowSize){
-				EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 				return EXPP_ReturnPyObjError(PyExc_AttributeError,
 					"Matrix multiplication: matrix A rowsize must equal matrix B colsize\n");
 			}
@@ -672,7 +665,6 @@ static PyObject *Matrix_mul(PyObject * m1, PyObject * m2)
 		}
 	}
 
-	EXPP_decr2((PyObject*)mat1, (PyObject*)mat2);
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Matrix multiplication: arguments not acceptable for this operation\n");
 }
@@ -702,8 +694,7 @@ static int Matrix_coerce(PyObject ** m1, PyObject ** m2)
 				"matrix.coerce(): unknown operand - can't coerce for numeric protocols\n");
 		}
 	}
-	Py_INCREF(*m2);
-	Py_INCREF(*m1);
+	EXPP_incr2(*m1, *m2);
 	return 0;
 }
 //-----------------PROTCOL DECLARATIONS--------------------------

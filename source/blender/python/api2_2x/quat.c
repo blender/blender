@@ -141,6 +141,7 @@ PyObject *Quaternion_Conjugate(QuaternionObject * self)
 //free the py_object
 static void Quaternion_dealloc(QuaternionObject * self)
 {
+	Py_XDECREF(self->coerced_object);
 	//only free py_data
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
@@ -244,7 +245,7 @@ static PyObject *Quaternion_repr(QuaternionObject * self)
 	}
 	strcat(str, "](quaternion)");
 
-	return EXPP_incr_ret(PyString_FromString(str));
+	return PyString_FromString(str);
 }
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
@@ -311,6 +312,7 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end,
 {
 	int i, y, size = 0;
 	float quat[4];
+	PyObject *q, *f;
 
 	CLAMP(begin, 0, 4);
 	CLAMP(end, 0, 4);
@@ -323,19 +325,19 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end,
 	}
 
 	for (i = 0; i < size; i++) {
-		PyObject *q, *f;
-
 		q = PySequence_GetItem(seq, i);
 		if (q == NULL) { // Failed to read sequence
 			return EXPP_ReturnIntError(PyExc_RuntimeError, 
 				"quaternion[begin:end] = []: unable to read sequence\n");
 		}
+
 		f = PyNumber_Float(q);
 		if(f == NULL) { // parsed item not a number
 			Py_DECREF(q);
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"quaternion[begin:end] = []: sequence argument not a number\n");
 		}
+
 		quat[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,q);
 	}
@@ -354,7 +356,6 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 	float quat[4];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
-	EXPP_incr2(q1, q2);
 	quat1 = (QuaternionObject*)q1;
 	quat2 = (QuaternionObject*)q2;
 
@@ -366,8 +367,7 @@ static PyObject *Quaternion_add(PyObject * q1, PyObject * q2)
 		quat[x] = quat1->quat[x] + quat2->quat[x];
 	}
 
-	EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
-	return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW);
 }
 //------------------------obj - obj------------------------------
 //subtraction
@@ -377,7 +377,6 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 	float quat[4];
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
 
-	EXPP_incr2(q1, q2);
 	quat1 = (QuaternionObject*)q1;
 	quat2 = (QuaternionObject*)q2;
 
@@ -389,8 +388,7 @@ static PyObject *Quaternion_sub(PyObject * q1, PyObject * q2)
 		quat[x] = quat1->quat[x] - quat2->quat[x];
 	}
 
-	EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
-	return (PyObject *) newQuaternionObject(quat, Py_NEW);
+	return newQuaternionObject(quat, Py_NEW);
 }
 //------------------------obj * obj------------------------------
 //mulplication
@@ -400,11 +398,10 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 	float quat[4], scalar;
 	double dot = 0.0f;
 	QuaternionObject *quat1 = NULL, *quat2 = NULL;
-	PyObject *f = NULL, *retObj = NULL;
+	PyObject *f = NULL;
 	VectorObject *vec = NULL;
 	PointObject *pt = NULL;
 
-	EXPP_incr2(q1, q2);
 	quat1 = (QuaternionObject*)q1;
 	quat2 = (QuaternionObject*)q2;
 
@@ -413,16 +410,15 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 			PyInt_Check(quat1->coerced_object)){	// FLOAT/INT * QUAT
 			f = PyNumber_Float(quat1->coerced_object);
 			if(f == NULL) { // parsed item not a number
-				EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);	
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Quaternion multiplication: arguments not acceptable for this operation\n");
 			}
+
 			scalar = (float)PyFloat_AS_DOUBLE(f);
 			for(x = 0; x < 4; x++) {
 				quat[x] = quat2->quat[x] * scalar;
 			}
-			EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
-			return (PyObject *) newQuaternionObject(quat, Py_NEW);
+			return newQuaternionObject(quat, Py_NEW);
 		}
 	}else{
 		if(quat2->coerced_object){
@@ -430,47 +426,38 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
 				PyInt_Check(quat2->coerced_object)){	// QUAT * FLOAT/INT
 				f = PyNumber_Float(quat2->coerced_object);
 				if(f == NULL) { // parsed item not a number
-					EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Quaternion multiplication: arguments not acceptable for this operation\n");
 				}
+
 				scalar = (float)PyFloat_AS_DOUBLE(f);
 				for(x = 0; x < 4; x++) {
 					quat[x] = quat1->quat[x] * scalar;
 				}
-				EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
-				return (PyObject *) newQuaternionObject(quat, Py_NEW);
+				return newQuaternionObject(quat, Py_NEW);
 			}else if(VectorObject_Check(quat2->coerced_object)){  //QUAT * VEC
-				vec = (VectorObject*)EXPP_incr_ret(quat2->coerced_object);
+				vec = (VectorObject*)quat2->coerced_object;
 				if(vec->size != 3){
-					EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Quaternion multiplication: only 3D vector rotations currently supported\n");
 				}
-				retObj = quat_rotation((PyObject*)quat1, (PyObject*)vec);
-				EXPP_decr3((PyObject*)quat1, (PyObject*)quat2, (PyObject*)vec);
-				return retObj;
+				return quat_rotation((PyObject*)quat1, (PyObject*)vec);
 			}else if(PointObject_Check(quat2->coerced_object)){  //QUAT * POINT
-				pt = (PointObject*)EXPP_incr_ret(quat2->coerced_object);
+				pt = (PointObject*)quat2->coerced_object;
 				if(pt->size != 3){
-					EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Quaternion multiplication: only 3D point rotations currently supported\n");
 				}
-				retObj = quat_rotation((PyObject*)quat1, (PyObject*)pt);
-				EXPP_decr3((PyObject*)quat1, (PyObject*)quat2, (PyObject*)pt);
-				return retObj;
+				return quat_rotation((PyObject*)quat1, (PyObject*)pt);
 			}
 		}else{  //QUAT * QUAT (dot product)
 			for(x = 0; x < 4; x++) {
 				dot += quat1->quat[x] * quat1->quat[x];
 			}
-			EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
 			return PyFloat_FromDouble(dot);
 		}
 	}
 
-	EXPP_decr2((PyObject*)quat1, (PyObject*)quat2);
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Quaternion multiplication: arguments not acceptable for this operation\n");
 }

@@ -56,7 +56,7 @@ PyObject *Point_toVector(PointObject * self)
 		vec[x] = self->coord[x];
 	}
 	
-	return (PyObject *) newVectorObject(vec, self->size, Py_NEW);
+	return newVectorObject(vec, self->size, Py_NEW);
 }
 //----------------------------Point.zero() ----------------------
 //set the point data to 0,0,0
@@ -72,6 +72,7 @@ PyObject *Point_Zero(PointObject * self)
 //free the py_object
 static void Point_dealloc(PointObject * self)
 {
+	Py_XDECREF(self->coerced_object);
 	//only free py_data
 	if(self->data.py_data){
 		PyMem_Free(self->data.py_data);
@@ -154,7 +155,7 @@ static PyObject *Point_repr(PointObject * self)
 	}
 	strcat(str, "](point)");
 
-	return EXPP_incr_ret(PyString_FromString(str));
+	return PyString_FromString(str);
 }
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
@@ -221,6 +222,7 @@ static int Point_ass_slice(PointObject * self, int begin, int end,
 {
 	int i, y, size = 0;
 	float coord[3];
+	PyObject *v, *f;
 
 	CLAMP(begin, 0, self->size);
 	CLAMP(end, 0, self->size);
@@ -233,8 +235,6 @@ static int Point_ass_slice(PointObject * self, int begin, int end,
 	}
 
 	for (i = 0; i < size; i++) {
-		PyObject *v, *f;
-
 		v = PySequence_GetItem(seq, i);
 		if (v == NULL) { // Failed to read sequence
 			return EXPP_ReturnIntError(PyExc_RuntimeError, 
@@ -246,6 +246,7 @@ static int Point_ass_slice(PointObject * self, int begin, int end,
 			return EXPP_ReturnIntError(PyExc_TypeError, 
 				"point[begin:end] = []: sequence argument not a number\n");
 		}
+
 		coord[i] = (float)PyFloat_AS_DOUBLE(f);
 		EXPP_decr2(f,v);
 	}
@@ -265,7 +266,6 @@ static PyObject *Point_add(PyObject * v1, PyObject * v2)
 	PointObject *coord1 = NULL, *coord2 = NULL;
 	VectorObject *vec = NULL;
 
-	EXPP_incr2(v1, v2);
 	coord1 = (PointObject*)v1;
 	coord2 = (PointObject*)v2;
 
@@ -273,19 +273,17 @@ static PyObject *Point_add(PyObject * v1, PyObject * v2)
 		if(coord2->coerced_object){
 			if(VectorObject_Check(coord2->coerced_object)){  //POINT + VECTOR
 				//Point translation
-				vec = (VectorObject*)EXPP_incr_ret(coord2->coerced_object);
+				vec = (VectorObject*)coord2->coerced_object;
 				size = coord1->size;
 				if(vec->size == size){
 					for(x = 0; x < size; x++){
 						coord[x] = coord1->coord[x] + vec->vec[x];
 					}	
 				}else{
-					EXPP_decr3((PyObject*)coord1, (PyObject*)coord2, (PyObject*)vec);
 					return EXPP_ReturnPyObjError(PyExc_AttributeError,
 						"Point addition: arguments are the wrong size....\n");
 				}
-				EXPP_decr3((PyObject*)coord1, (PyObject*)coord2, (PyObject*)vec);
-				return (PyObject *) newPointObject(coord, size, Py_NEW);
+				return newPointObject(coord, size, Py_NEW);
 			}	
 		}else{  //POINT + POINT
 			size = coord1->size;
@@ -294,16 +292,13 @@ static PyObject *Point_add(PyObject * v1, PyObject * v2)
 					coord[x] = coord1->coord[x] + coord2->coord[x];
 				}
 			}else{
-				EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 				return EXPP_ReturnPyObjError(PyExc_AttributeError,
 					"Point addition: arguments are the wrong size....\n");
 			}
-			EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
-			return (PyObject *) newPointObject(coord, size, Py_NEW);
+			return newPointObject(coord, size, Py_NEW);
 		}
 	}
 
-	EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 	return EXPP_ReturnPyObjError(PyExc_AttributeError,
 		"Point addition: arguments not valid for this operation....\n");
 }
@@ -315,7 +310,6 @@ static PyObject *Point_sub(PyObject * v1, PyObject * v2)
 	float coord[3];
 	PointObject *coord1 = NULL, *coord2 = NULL;
 
-	EXPP_incr2(v1, v2);
 	coord1 = (PointObject*)v1;
 	coord2 = (PointObject*)v2;
 
@@ -324,7 +318,6 @@ static PyObject *Point_sub(PyObject * v1, PyObject * v2)
 			"Point subtraction: arguments not valid for this operation....\n");
 	}
 	if(coord1->size != coord2->size){
-		EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 		"Point subtraction: points must have the same dimensions for this operation\n");
 	}
@@ -335,8 +328,7 @@ static PyObject *Point_sub(PyObject * v1, PyObject * v2)
 	}
 
 	//Point - Point = Vector
-	EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
-	return (PyObject *) newVectorObject(coord, size, Py_NEW);
+	return newVectorObject(coord, size, Py_NEW);
 }
 //------------------------obj * obj------------------------------
 //mulplication
@@ -345,11 +337,10 @@ static PyObject *Point_mul(PyObject * p1, PyObject * p2)
 	int x, size;
 	float coord[3], scalar;
 	PointObject *coord1 = NULL, *coord2 = NULL;
-	PyObject *f = NULL, *retObj = NULL;
+	PyObject *f = NULL;
 	MatrixObject *mat = NULL;
 	QuaternionObject *quat = NULL;
 
-	EXPP_incr2(p1, p2);
 	coord1 = (PointObject*)p1;
 	coord2 = (PointObject*)p2;
 
@@ -358,17 +349,17 @@ static PyObject *Point_mul(PyObject * p1, PyObject * p2)
 			PyInt_Check(coord1->coerced_object)){	// FLOAT/INT * POINT
 			f = PyNumber_Float(coord1->coerced_object);
 			if(f == NULL) { // parsed item not a number
-				EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 				return EXPP_ReturnPyObjError(PyExc_TypeError, 
 					"Point multiplication: arguments not acceptable for this operation\n");
 			}
+
 			scalar = (float)PyFloat_AS_DOUBLE(f);
 			size = coord2->size;
 			for(x = 0; x < size; x++) {
 				coord[x] = coord2->coord[x] *	scalar;
 			}
-			EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
-			return (PyObject *) newPointObject(coord, size, Py_NEW);
+			Py_DECREF(f);
+			return newPointObject(coord, size, Py_NEW);
 		}
 	}else{
 		if(coord2->coerced_object){
@@ -376,37 +367,31 @@ static PyObject *Point_mul(PyObject * p1, PyObject * p2)
 				PyInt_Check(coord2->coerced_object)){	// POINT * FLOAT/INT
 				f = PyNumber_Float(coord2->coerced_object);
 				if(f == NULL) { // parsed item not a number
-					EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Point multiplication: arguments not acceptable for this operation\n");
 				}
+
 				scalar = (float)PyFloat_AS_DOUBLE(f);
 				size = coord1->size;
 				for(x = 0; x < size; x++) {
 					coord[x] = coord1->coord[x] *	scalar;
 				}
-				EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
-				return (PyObject *) newPointObject(coord, size, Py_NEW);
+				Py_DECREF(f);
+				return newPointObject(coord, size, Py_NEW);
 			}else if(MatrixObject_Check(coord2->coerced_object)){ //POINT * MATRIX
-				mat = (MatrixObject*)EXPP_incr_ret(coord2->coerced_object);
-				retObj = row_point_multiplication(coord1, mat);
-				EXPP_decr3((PyObject*)coord1, (PyObject*)coord2, (PyObject*)mat);
-				return retObj;
+				mat = (MatrixObject*)coord2->coerced_object;
+				return row_point_multiplication(coord1, mat);
 			}else if(QuaternionObject_Check(coord2->coerced_object)){  //POINT * QUATERNION
-				quat = (QuaternionObject*)EXPP_incr_ret(coord2->coerced_object);
+				quat = (QuaternionObject*)coord2->coerced_object;
 				if(coord1->size != 3){
-					EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 					return EXPP_ReturnPyObjError(PyExc_TypeError, 
 						"Point multiplication: only 3D point rotations (with quats) currently supported\n");
 				}
-				retObj = quat_rotation((PyObject*)coord1, (PyObject*)quat);
-				EXPP_decr3((PyObject*)coord1, (PyObject*)coord2, (PyObject*)quat);
-				return retObj;
+				return quat_rotation((PyObject*)coord1, (PyObject*)quat);
 			}
 		}
 	}
 
-	EXPP_decr2((PyObject*)coord1, (PyObject*)coord2);
 	return EXPP_ReturnPyObjError(PyExc_TypeError, 
 		"Point multiplication: arguments not acceptable for this operation\n");
 }
