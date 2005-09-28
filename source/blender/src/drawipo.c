@@ -1532,7 +1532,7 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 			Key *key= (Key *)G.sipo->from;
 			KeyBlock *kb;
 			
-			if(key==0) return;
+			if(key==NULL || ob->shapenr==0) return;
 			iskey= 1;
 			
 			kb= BLI_findlink(&key->block, ob->shapenr-1);
@@ -1574,7 +1574,7 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 			Key *key= (Key *)G.sipo->from;
 			KeyBlock *kb;
 			
-			if(key==NULL) return;
+			if(key==NULL || ob->shapenr==0) return;
 			
 			kb= BLI_findlink(&key->block, ob->shapenr-1);
 			kb->pos+= median[1];
