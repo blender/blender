@@ -56,6 +56,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
@@ -76,6 +77,7 @@
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -493,17 +495,25 @@ static void count_object(Object *ob, int sel, int totob)
 {
 	Mesh *me;
 	Curve *cu;
-	int tot=0, totf=0;
+	int tot=0, totf=0, subsurf;
 	
 	switch(ob->type) {
 	case OB_MESH:
 		G.totmesh+=totob;
 		me= get_mesh(ob);
 		if(me) {
+			ModifierData *md = modifiers_findByType(ob, eModifierType_Subsurf);
 			int totvert, totface;
 			
-			totvert= me->totvert*totob;
-			totface= me->totface*totob;
+			if (md) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) md;
+				
+				subsurf= 1<<(2*smd->levels);
+			}
+			else subsurf= 1;
+			
+			totvert= subsurf*me->totvert*totob;
+			totface= subsurf*me->totface*totob;
 			
 			G.totvert+= totvert;
 			G.totface+= totface;

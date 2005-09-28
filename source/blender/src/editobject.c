@@ -2414,6 +2414,7 @@ void flip_subdivison(Object *ob, int level)
 		}
 	}
 
+	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSEDIT, 0);

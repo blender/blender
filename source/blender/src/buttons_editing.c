@@ -748,6 +748,7 @@ void do_modifier_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWOOPS, 0);
+		countall();
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	}
