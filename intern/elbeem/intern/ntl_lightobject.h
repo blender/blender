@@ -12,7 +12,6 @@
 
 #include "ntl_vector3dim.h"
 #include "ntl_material.h"
-#include "ntl_image.h"
 class ntlRay;
 class ntlRenderGlobals;
 class ntlGeometryObject;
@@ -66,10 +65,6 @@ public:
   /*! Access the omni light position */
   void setPosition(ntlVec3Gfx set) { mvPosition = set; }
   ntlVec3Gfx getPosition() const { return mvPosition; }
-  /*! Init the shadow map */
-  void setShadowMap(int setx, int sety, int sampling) { mUseShadowMap = true; mSMSizeX = setx; mSMSizeY = sety; mSMSampling = sampling; }
-  /*! Init the caustics map */
-  void setCausticsMap(int setx, int sety ) { mUseCausticsMap = true; mCMSizeX = setx; mCMSizeY = sety; }
 	
 
 protected:
@@ -87,30 +82,6 @@ protected:
 
 	/*! light position */
 	ntlVec3Gfx  mvPosition;
-
-	/*! shadow map active? */
-	int mUseShadowMap;
-	
-	/*! shadow map size */
-	int mSMSizeX;
-	int mSMSizeY;
-
-	/*! Sampling value for shadow map filtering */
-	int mSMSampling;
-	
-	/*! Images for shadow map */
-	ntlImage<gfxReal> *mpShadowMap[6];
-
-
-	/*! caustics map active? */
-	int mUseCausticsMap;
-	
-	/*! caustics map size */
-	int mCMSizeX;
-	int mCMSizeY;
-
-	/*! Images for caustics map */
-	ntlImage<char> *mpCausticsMap[6];
 
 private:
 

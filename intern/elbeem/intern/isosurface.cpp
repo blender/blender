@@ -7,15 +7,12 @@
  *
  *****************************************************************************/
 
-// IMPL ----------------------------------------------------------------------------------------
 #include "isosurface.h"
 #include "mcubes_tables.h"
 #include "ntl_scene.h"
 
 #include <algorithm>
 #include <stdio.h>
-#define MCUBES_MAXPOLNUM  10000
-#define MCUBES_MAXVERTNUM 30000
 
 
 
@@ -33,7 +30,7 @@ IsoSurface::IsoSurface(double iso, double blend) :
 
   mStart(0.0), mEnd(0.0), mDomainExtent(0.0),
   mInitDone(false),
-	mLoopSubdivs(0), mSmoothSurface(0.0), mSmoothNormals(0.0),
+	mSmoothSurface(0.0), mSmoothNormals(0.0),
 	mAcrossEdge(), mAdjacentFaces()
 {
 }
@@ -325,14 +322,11 @@ void IsoSurface::triangulate( void )
 		// if(mSmoothNormals<=0.0) { smoothNormals(mSmoothSurface*0.5); }
 		smoothSurface(mSmoothSurface);
 	}
-	for(int i=0; i<mLoopSubdivs; i++) {
-		subdivide();
-	}
 	if(mSmoothNormals>0.0) {
 		smoothNormals(mSmoothNormals);
 	}
 	myTime_t tritimeend = getTime(); 
-	debMsgStd("IsoSurface::triangulate",DM_MSG,"Took "<< ((tritimeend-tritimestart)/(double)1000.0)<<"s) " , 10 );
+	debMsgStd("IsoSurface::triangulate",DM_MSG,"took "<< ((tritimeend-tritimestart)/(double)1000.0)<<"s, ss="<<mSmoothSurface<<" sm="<<mSmoothNormals , 10 );
 }
 
 
@@ -422,15 +416,7 @@ void IsoSurface::getTriangles( vector<ntlTriangle> *triangles,
 
 
 inline ntlVec3Gfx IsoSurface::getNormal(int i, int j,int k) {
-	// WARNING - this assumes a security boundary layer... 
-	/*
-	if(i<=0) i=1;
-	if(j<=0) j=1;
-	if(k<=0) k=1;
-	if(i>=(mSizex-1)) i=mSizex-2;
-	if(j>=(mSizex-1)) j=mSizex-2;
-	if(k>=(mSizex-1)) k=mSizex-2; // */
-
+	// WARNING - this requires a security boundary layer... 
 	ntlVec3Gfx ret(0.0);
 	ret[0] = *getData(i-1,j  ,k  ) - 
 	         *getData(i+1,j  ,k  );
@@ -440,282 +426,6 @@ inline ntlVec3Gfx IsoSurface::getNormal(int i, int j,int k) {
 	         *getData(i  ,j  ,k+1  );
 	return ret;
 }
-
-#define RECALCNORMALS 0
-
-// Subdivide a mesh allways loop
-void IsoSurface::subdivide()
-{
-	mAdjacentFaces.clear(); 
-	mAcrossEdge.clear();
-
-	//void TriMesh::need_adjacentfaces()
-	{
-		vector<int> numadjacentfaces(mPoints.size());
-		//errMsg("SUBDIV ADJFA1", " "<<mPoints.size()<<" - "<<numadjacentfaces.size() );
-		for (int i = 0; i < (int)mIndices.size()/3; i++) {
-			numadjacentfaces[mIndices[i*3 + 0]]++;
-			numadjacentfaces[mIndices[i*3 + 1]]++;
-			numadjacentfaces[mIndices[i*3 + 2]]++;
-		}
-
-		mAdjacentFaces.resize(mPoints.size());
-		for (int i = 0; i < (int)mPoints.size(); i++)
-			mAdjacentFaces[i].reserve(numadjacentfaces[i]);
-
-		for (int i = 0; i < (int)mIndices.size()/3; i++) {
-			for (int j = 0; j < 3; j++)
-				mAdjacentFaces[mIndices[i*3 + j]].push_back(i);
-		}
-
-	}
-
-	// Find the face across each edge from each other face (-1 on boundary)
-	// If topology is bad, not necessarily what one would expect...
-	//void TriMesh::need_across_edge()
-	{
-		mAcrossEdge.resize(mIndices.size(), -1);
-
-		for (int i = 0; i < (int)mIndices.size()/3; i++) {
-			for (int j = 0; j < 3; j++) {
-				if (mAcrossEdge[i*3 + j] != -1)
-					continue;
-				int v1 = mIndices[i*3 + ((j+1)%3)];
-				int v2 = mIndices[i*3 + ((j+2)%3)];
-				const vector<int> &a1 = mAdjacentFaces[v1];
-				const vector<int> &a2 = mAdjacentFaces[v2];
-				for (int k1 = 0; k1 < (int)a1.size(); k1++) {
-					int other = a1[k1];
-					if (other == i)
-						continue;
-					vector<int>::const_iterator it =
-						std::find(a2.begin(), a2.end(), other);
-					if (it == a2.end())
-						continue;
-
-					//int ind = (faces[other].indexof(v1)+1)%3;
-					int ind = -1;
-					if( mIndices[other*3+0] == (unsigned int)v1 ) ind = 0;
-					else if( mIndices[other*3+1] == (unsigned int)v1 ) ind = 1;
-					else if( mIndices[other*3+2] == (unsigned int)v1 ) ind = 2;
-					ind = (ind+1)%3;
-
-					if ( (int)mIndices[other*3 + ((ind+1)%3)] != v2)
-						continue;
-					mAcrossEdge[i*3 + j] = other;
-					mAcrossEdge[other*3 + ind] = i;
-					break;
-				}
-			}
-		}
-
-		//errMsg("SUBDIV ACREDG", "Done.\n");
-	}
-
-	//errMsg("SUBDIV","start");
-	// Introduce new vertices
-	int nf = (int)mIndices.size() / 3;
-
-	//vector<TriMesh::Face> newverts(nf, TriMesh::Face(-1,-1,-1));
-	vector<int> newverts(nf*3); //, TriMesh::Face(-1,-1,-1));
-	for(int j=0; j<(int)newverts.size(); j++) newverts[j] = -1;
-
-	int old_nv = (int)mPoints.size();
-	mPoints.reserve(4 * old_nv);
-	vector<int> newvert_count(old_nv + 3*nf); // wichtig...?
-	//errMsg("NC", newvert_count.size() );
-
-	for (int i = 0; i < nf; i++) {
-		for (int j = 0; j < 3; j++) {
-			int ae = mAcrossEdge[i*3 + j];
-			if (newverts[i*3 + j] == -1 && ae != -1) {
-				if (mAcrossEdge[ae*3 + 0] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 0];
-				else if (mAcrossEdge[ae*3 + 1] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 1];
-				else if (mAcrossEdge[ae*3 + 2] == i)
-					newverts[i*3 + j] = newverts[ae*3 + 2];
-			}
-			if (newverts[i*3 + j] == -1) {
-				IsoLevelVertex ilv;
-				ilv.v = ntlVec3Gfx(0.0);
-				ilv.n = ntlVec3Gfx(0.0);
-				mPoints.push_back(ilv);
-				newverts[i*3 + j] = (int)mPoints.size() - 1;
-				if (ae != -1) {
-					if (mAcrossEdge[ae*3 + 0] == i)
-						newverts[ae*3 + 0] = newverts[i*3 + j];
-					else if (mAcrossEdge[ae*3 + 1] == i)
-						newverts[ae*3 + 1] = newverts[i*3 + j];
-					else if (mAcrossEdge[ae*3 + 2] == i)
-						newverts[ae*3 + 2] = newverts[i*3 + j];
-				}
-			}
-			if(ae != -1) {
-				mPoints[newverts[i*3 + j]].v +=
-					mPoints[ mIndices[i*3 + ( j     )] ].v * 0.25f  + // j = 0,1,2?
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].v * 0.375f +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].v * 0.375f;
-#if RECALCNORMALS==0
-				mPoints[newverts[i*3 + j]].n +=
-					mPoints[ mIndices[i*3 + ( j     )] ].n * 0.25f  + // j = 0,1,2?
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].n * 0.375f +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].n * 0.375f;
-#endif // RECALCNORMALS==0
-			} else {
-				mPoints[newverts[i*3 + j]].v +=
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].v * 0.5f   +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].v * 0.5f  ;
-#if RECALCNORMALS==0
-				mPoints[newverts[i*3 + j]].n +=
-					mPoints[ mIndices[i*3 + ((j+1)%3)] ].n * 0.5f   +
-					mPoints[ mIndices[i*3 + ((j+2)%3)] ].n * 0.5f  ;
-#endif // RECALCNORMALS==0
-			}
-
-			newvert_count[newverts[i*3 + j]]++;
-		}
-	}
-	for (int i = old_nv; i < (int)mPoints.size(); i++) {
-		if (!newvert_count[i])
-			continue;
-		float scale = 1.0f / newvert_count[i];
-		mPoints[i].v *= scale;
-
-#if RECALCNORMALS==0
-		//mPoints[i].n *= scale;
-		//normalize( mPoints[i].n );
-#endif // RECALCNORMALS==0
-	}
-
-	// Update old vertices
-	for (int i = 0; i < old_nv; i++) {
-			ntlVec3Gfx bdyavg(0.0), nbdyavg(0.0);
-			ntlVec3Gfx norm_bdyavg(0.0), norm_nbdyavg(0.0); // N
-			int nbdy = 0, nnbdy = 0;
-			int naf = (int)mAdjacentFaces[i].size();
-			if (!naf)
-				continue;
-			for (int j = 0; j < naf; j++) {
-				int af = mAdjacentFaces[i][j];
-
-				int afi = -1;
-				if( mIndices[af*3+0] == (unsigned int)i ) afi = 0;
-				else if( mIndices[af*3+1] == (unsigned int)i ) afi = 1;
-				else if( mIndices[af*3+2] == (unsigned int)i ) afi = 2;
-
-				int n1 = (afi+1) % 3;
-				int n2 = (afi+2) % 3;
-				if (mAcrossEdge[af*3 + n1] == -1) {
-					bdyavg += mPoints[newverts[af*3 + n1]].v;
-#if RECALCNORMALS==0
-					//norm_bdyavg += mPoints[newverts[af*3 + n1]].n;
-#endif // RECALCNORMALS==0
-					nbdy++;
-				} else {
-					nbdyavg += mPoints[newverts[af*3 + n1]].v;
-#if RECALCNORMALS==0
-					//norm_nbdyavg += mPoints[newverts[af*3 + n1]].n;
-#endif // RECALCNORMALS==0
-					nnbdy++;
-				}
-				if (mAcrossEdge[af*3 + n2] == -1) {
-					bdyavg += mPoints[newverts[af*3 + n2]].v;
-#if RECALCNORMALS==0
-					//norm_bdyavg += mPoints[newverts[af*3 + n2]].n;
-#endif // RECALCNORMALS==0
-					nbdy++;
-				} else {
-					nbdyavg += mPoints[newverts[af*3 + n2]].v;
-#if RECALCNORMALS==0
-					//norm_nbdyavg += mPoints[newverts[af*3 + n2]].n;
-#endif // RECALCNORMALS==0
-					nnbdy++;
-				}
-			}
-
-			float alpha;
-			ntlVec3Gfx newpt;
-			if (nbdy) {
-				newpt = bdyavg / (float) nbdy;
-				alpha = 0.5f;
-			} else if (nnbdy) {
-				newpt = nbdyavg / (float) nnbdy;
-				if (nnbdy == 6)
-					alpha = 1.05;
-				else if (nnbdy == 8)
-					alpha = 0.86;
-				else if (nnbdy == 10)
-					alpha = 0.7;
-				else
-					alpha = 0.6;
-			} else {
-				continue;
-			}
-			mPoints[i].v *= 1.0f - alpha;
-			mPoints[i].v += newpt * alpha;
-
-#if RECALCNORMALS==0
-			//mPoints[i].n *= 1.0f - alpha;
-			//mPoints[i].n += newpt * alpha;
-#endif // RECALCNORMALS==0
-	}
-
-	// Insert new faces
-	mIndices.reserve(4*nf);
-	for (int i = 0; i < nf; i++) {
-		mIndices.push_back( mIndices[i*3 + 0]);
-		mIndices.push_back( newverts[i*3 + 2]);
-		mIndices.push_back( newverts[i*3 + 1]);
-
-		mIndices.push_back( mIndices[i*3 + 1]);
-		mIndices.push_back( newverts[i*3 + 0]);
-		mIndices.push_back( newverts[i*3 + 2]);
-
-		mIndices.push_back( mIndices[i*3 + 2]);
-		mIndices.push_back( newverts[i*3 + 1]);
-		mIndices.push_back( newverts[i*3 + 0]);
-
-		mIndices[i*3+0] = newverts[i*3+0];
-		mIndices[i*3+1] = newverts[i*3+1];
-		mIndices[i*3+2] = newverts[i*3+2];
-	}
-
-	// recalc normals
-#if RECALCNORMALS==1
-	{
-		int nf = (int)mIndices.size()/3, nv = (int)mPoints.size();
-		for (int i = 0; i < nv; i++) {
-			mPoints[i].n = ntlVec3Gfx(0.0);
-		}
-		for (int i = 0; i < nf; i++) {
-			const ntlVec3Gfx &p0 = mPoints[mIndices[i*3+0]].v;
-			const ntlVec3Gfx &p1 = mPoints[mIndices[i*3+1]].v;
-			const ntlVec3Gfx &p2 = mPoints[mIndices[i*3+2]].v;
-			ntlVec3Gfx a = p0-p1, b = p1-p2, c = p2-p0;
-			float l2a = normNoSqrt(a), l2b = normNoSqrt(b), l2c = normNoSqrt(c);
-
-			ntlVec3Gfx facenormal = cross(a, b);
-
-			mPoints[mIndices[i*3+0]].n += facenormal * (1.0f / (l2a * l2c));
-			mPoints[mIndices[i*3+1]].n += facenormal * (1.0f / (l2b * l2a));
-			mPoints[mIndices[i*3+2]].n += facenormal * (1.0f / (l2c * l2b));
-		}
-
-		for (int i = 0; i < nv; i++) {
-			normalize(mPoints[i].n);
-		}
-	}
-#else // RECALCNORMALS==1
-		for (int i = 0; i < (int)mPoints.size(); i++) {
-			normalize(mPoints[i].n);
-		}
-#endif // RECALCNORMALS==1
-
-	//errMsg("SUBDIV","done nv:"<<mPoints.size()<<" nf:"<<mIndices.size() );
-}
-
-
 
 
 
@@ -731,8 +441,6 @@ void IsoSurface::subdivide()
  * see COPYING_trimesh2
  * 
  *****************************************************************************/
-
-
 
 // Diffuse a vector field at 1 vertex, weighted by
 // a gaussian of width 1/sqrt(invsigma2)
@@ -776,8 +484,6 @@ void IsoSurface::diffuseVertexField(ntlVec3Gfx *field, const int pointerScale, i
 	}
 	flt /= sum_w;
 }
-
-
 
 void IsoSurface::smoothSurface(float sigma)
 {

@@ -224,7 +224,7 @@ class CellIdentifierInterface {
 		virtual ~CellIdentifierInterface() {};
 
 		//! return node as string (with some basic info)
-		virtual std::string getAsString() = 0;
+		virtual string getAsString() = 0;
 
 		//! compare cids
 		virtual bool equal(CellIdentifierInterface* other) = 0;
@@ -504,13 +504,13 @@ class LbmSolverInterface
 		ntlRenderGlobals *mpGlob;
 
 		// list for marked cells
-		std::vector<CellIdentifierInterface *> mMarkedCells;
+		vector<CellIdentifierInterface *> mMarkedCells;
 		int mMarkedCellIndex;
 };
 
 
 //! helper function to convert flag to string (for debuggin)
-std::string convertCellFlagType2String( CellFlagType flag );
-std::string convertSingleFlag2String(CellFlagType cflag);
+string convertCellFlagType2String( CellFlagType flag );
+string convertSingleFlag2String(CellFlagType cflag);
 
 #endif // LBMINTERFACE_H

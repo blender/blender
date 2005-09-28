@@ -19,12 +19,22 @@
 #include <vector>
 #include <string>
 #include <sstream>
-using std::map;
-using std::vector;
-using std::string;
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+
+// hack for crappy MSVC6.0 compiler
+#ifdef _MSC_VER
+#define for     if(false); else for
+#define map     std::map
+#define vector  std::vector
+#define string  std::string
+#else // MSVC6
+// for proper compilers...
+using std::map;
+using std::vector;
+using std::string;
+#endif // MSVC6
 
 #ifdef __APPLE_CC__
 // apple

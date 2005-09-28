@@ -63,6 +63,13 @@ struct DerivedMesh *getFluidsimDerivedMesh(struct Object *srcob, int useRenderPa
 // WARNING - implemented in intern/elbeem/blendercall.cpp
 int performElbeemSimulation(char *cfgfilename);
 
+// implemented in intern/elbeem/utilities.cpp
+/* set elbeem debug output level (0=off to 10=full on) */
+void elbeemSetDebugLevel(int level);
+/* elbeem debug output function */
+void elbeemDebugOut(char *msg);
+
+
 #endif
 
 

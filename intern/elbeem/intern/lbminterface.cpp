@@ -614,7 +614,7 @@ void LbmSolverInterface::markedClearList() {
 
 
 // 32k
-std::string convertSingleFlag2String(CellFlagType cflag) {
+string convertSingleFlag2String(CellFlagType cflag) {
 	CellFlagType flag = cflag;
 	if(flag == CFUnused         ) return string("cCFUnused");
 	if(flag == CFEmpty          ) return string("cCFEmpty");      
@@ -649,7 +649,7 @@ std::string convertSingleFlag2String(CellFlagType cflag) {
 }
 	
 //! helper function to convert flag to string (for debuggin)
-std::string convertCellFlagType2String( CellFlagType cflag ) {
+string convertCellFlagType2String( CellFlagType cflag ) {
 	int flag = cflag;
 
 	const int jmax = sizeof(CellFlagType)*8;

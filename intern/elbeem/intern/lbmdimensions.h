@@ -249,7 +249,7 @@ class LbmModelLBGK : public DQ , public LbmSolverInterface {
 		// virtual destructor 
 		virtual ~LbmModelLBGK() {};
 		//! id string of solver
-		std::string getIdString() { return DQ::getIdString() + std::string("lbgk]"); }
+		string getIdString() { return DQ::getIdString() + string("lbgk]"); }
 
 		/*! calculate length of velocity vector */
 		static inline LbmFloat getVelVecLen(int l, LbmFloat ux,LbmFloat uy,LbmFloat uz) {

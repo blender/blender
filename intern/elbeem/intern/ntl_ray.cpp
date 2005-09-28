@@ -116,6 +116,7 @@ ntlRay::~ntlRay()
 #define MIDDLE 2
 
 //! intersect ray with AABB
+#ifndef ELBEEM_BLENDER
 void ntlRay::intersectFrontAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, ntlVec3Gfx &retnormal,ntlVec3Gfx &retcoord) const
 {
   char   inside = true;   /* inside box? */
@@ -203,8 +204,6 @@ void ntlRay::intersectFrontAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, 
   retcoord = coord;
 }
 
-
-
 //! intersect ray with AABB
 void ntlRay::intersectBackAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, ntlVec3Gfx &retnormal,ntlVec3Gfx &retcoord) const
 {
@@ -289,10 +288,7 @@ void ntlRay::intersectBackAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &t, n
   retnormal = normal;
   retcoord = coord;
 }
-
-
-
-
+#endif // ELBEEM_BLENDER
 
 //! intersect ray with AABB
 void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &tmin, gfxReal &tmax) const
@@ -445,6 +441,7 @@ void ntlRay::intersectCompleteAABB(ntlVec3Gfx mStart, ntlVec3Gfx mEnd, gfxReal &
  *****************************************************************************/
 const ntlColor ntlRay::shade() //const
 {
+#ifndef ELBEEM_BLENDER
   ntlGeometryObject           *closest = NULL;
   gfxReal                      minT = GFX_REAL_MAX;
   vector<ntlLightObject*>     *lightlist = mpGlob->getLightList();
@@ -456,7 +453,6 @@ const ntlColor ntlRay::shade() //const
 	if(mContribution <= RAY_MINCONTRIB) {
 		//return ntlColor(0.0);
 	}
-
 	
   /* find closes object that intersects */
 	ntlTriangle *tri = NULL;
@@ -468,8 +464,6 @@ const ntlColor ntlRay::shade() //const
 
   /* object hit... */
   if (closest != NULL) {
-		//return( ntlColor(1.0) );
-		//normal = tri->getNormal(); // no normal smoothing
 
 		ntlVec3Gfx triangleNormal = tri->getNormal();
 		if( equal(triangleNormal, ntlVec3Gfx(0.0)) ) errorOut("ntlRaytracer warning: trinagle normal= 0 "); // DEBUG
@@ -485,11 +479,11 @@ const ntlColor ntlRay::shade() //const
     /* ... -> do reflection */
     ntlVec3Gfx intersectionPosition(mOrigin + (mDirection * (minT)) );
     ntlMaterial *clossurf = closest->getMaterial();
-		if(mpGlob->getDebugOut() > 5) {
+		/*if(mpGlob->getDebugOut() > 5) {
 			errorOut("Ray hit: at "<<intersectionPosition<<" n:"<<normal<<"    dn:"<<valDN<<" ins:"<<intersectionInside<<"  cl:"<<((unsigned int)closest) ); 
 			errorOut(" t1:"<<mpGlob->getScene()->getVertex(tri->getPoints()[0])<<" t2:"<<mpGlob->getScene()->getVertex(tri->getPoints()[1])<<" t3:"<<mpGlob->getScene()->getVertex(tri->getPoints()[2]) ); 
 			errorOut(" trin:"<<tri->getNormal() );
-		}
+		} // debug */
 
 		/* current transparence and reflectivity */
 		gfxReal currTrans = clossurf->getTransparence();
@@ -635,12 +629,10 @@ const ntlColor ntlRay::shade() //const
 
     }
 
-
 		/* add highlights (should not be affected by transparence as the diffuse reflections */
 		currentColor += highlightColor;
 
 		/* attentuate as a last step*/
-    //if(currTrans > RAY_THRESHOLD) {
 		/* check if we're on the inside or outside */
 		if(intersectionInside) {
 			gfxReal kr,kg,kb;    /* attentuation */
@@ -657,6 +649,7 @@ const ntlColor ntlRay::shade() //const
     return ntlColor(currentColor);
   }
 
+#endif // ELBEEM_BLENDER
   /* no object hit -> ray goes to infinity */
   return mpGlob->getBackgroundCol(); 
 }

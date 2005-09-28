@@ -11,10 +11,6 @@
 #include "ntl_scene.h"
 #include "ntl_geometryobject.h"
 #include "ntl_geometryshader.h"
-//#include <sys/times.h>
-
-
-
 
 
 /******************************************************************************

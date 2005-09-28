@@ -12,24 +12,18 @@
 typedef unsigned long myTime_t;
 
 //! helper function that converts a string to integer
-int convertString2Int(const char *string, int alt);
+int convertString2Int(const char *str, int alt);
 
 //! helper function that converts a flag field to a readable integer
-std::string convertFlags2String(int flags);
-
-// output streams
-#ifdef ELBEEM_BLENDER
-extern "C" FILE* GEN_errorstream;
-extern "C" FILE* GEN_userstream;
-#endif // ELBEEM_BLENDER
+string convertFlags2String(int flags);
 
 //! get the current system time
 myTime_t getTime();
 //! convert time to readable string
-std::string getTimeString(myTime_t usecs);
+string getTimeString(myTime_t usecs);
 
 //! helper to check if a bounding box was specified in the right way
-bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, std::string checker);
+bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
 
 
 /* debugging outputs , debug level 0 (off) to 10 (max) */
@@ -66,7 +60,7 @@ extern "C" char gWorldStringState[256];
 #define DM_ERROR      5
 #define DM_DIRECT     6
 #define DM_FATAL      7
-void messageOutputFunc(std::string from, int id, std::string msg, myTime_t interval);
+void messageOutputFunc(string from, int id, string msg, myTime_t interval);
 
 /* debugging messages defines */
 #ifdef DEBUG 

@@ -12,7 +12,6 @@
 
 #ifndef LBMFSGRSOLVER_H
 #include "utilities.h"
-#include "arrays.h"
 #include "lbmdimensions.h"
 #include "lbmfunctions.h"
 #include "ntl_scene.h"
@@ -56,10 +55,11 @@ ERROR - define model first!
 #define USE_LES 1
 
 //! order of interpolation (1/2)
-#define INTORDER 1
+#define INTORDER 2
 
 //! order of interpolation (0=always current/1=interpolate/2=always other)
-#define TIMEINTORDER 0
+//#define TIMEINTORDER 0
+// TODO remove interpol t param, also interTime
 
 //! refinement border method (1 = small border / 2 = larger)
 #define REFINEMENTBORDER 1
@@ -85,7 +85,6 @@ ERROR - define model first!
 #else 
 #define COMPRESSGRIDS 0
 #endif 
-
 
 //! threshold for level set fluid generation/isosurface
 #define LS_FLUIDTHRESHOLD 0.5
@@ -366,7 +365,6 @@ class LbmFsgrSolver :
 
 		//! Mcubes object for surface reconstruction 
 		IsoSurface *mpPreviewSurface;
-		int mLoopSubdivs;
 		float mSmoothSurface;
 		float mSmoothNormals;
 		
@@ -453,8 +451,6 @@ class LbmFsgrSolver :
 
 		/*! LES C_smago paramter for finest grid */
 		float mInitialCsmago;
-		/*! LES C_smago paramter for coarser grids */
-		float mInitialCsmagoCoarse;
 		/*! LES stats for non OPT3D */
 		LbmFloat mDebugOmegaRet;
 
@@ -1194,7 +1190,7 @@ class LbmFsgrSolver :
 				if(RFLAG_NB(lev, i,j,k,SRCS(lev),l)&CFBnd) { errMsg("???", "bnd-err-nobndfl"); D::mPanic=1;  \
 				} else { m[l] = QCELL_NBINV(lev, i, j, k, SRCS(lev), l, l); } \
 			}   \
-f__printf(stderr,"QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lcsmomega ); \
+errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lcsmomega ); \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
 			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
 			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago  , &mDebugOmegaRet ); \
@@ -1242,7 +1238,7 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	mNumProblems(0), 
 	mAvgMLSUPS(0.0), mAvgMLSUPSCnt(0.0),
 	mpPreviewSurface(NULL), 
-	mLoopSubdivs(0), mSmoothSurface(0.0), mSmoothNormals(0.0),
+	mSmoothSurface(0.0), mSmoothNormals(0.0),
 	mTimeAdap(false), 
 	mOutputSurfacePreview(0), mPreviewFactor(0.25),
 	mFVHeight(0.0), mFVArea(1.0), mUpdateFVHeight(false),
@@ -1258,7 +1254,7 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	mIsoWeightMethod(2),
 	mMaxRefine(1), 
 	mDfScaleUp(-1.0), mDfScaleDown(-1.0),
-	mInitialCsmago(0.04), mInitialCsmagoCoarse(1.0), mDebugOmegaRet(0.0),
+	mInitialCsmago(0.04), mDebugOmegaRet(0.0),
 	mNumInvIfTotal(0), mNumFsgrChanges(0),
 	mDisableStandingFluidInit(0),
 	mForceTadapRefine(-1)
@@ -1371,12 +1367,18 @@ LbmFsgrSolver<D>::parseAttrList()
 
 	mIsoWeightMethod= D::mpAttrs->readInt("isoweightmethod", mIsoWeightMethod, "SimulationLbm","mIsoWeightMethod", false );
 	mInitSurfaceSmoothing = D::mpAttrs->readInt("initsurfsmooth", mInitSurfaceSmoothing, "SimulationLbm","mInitSurfaceSmoothing", false );
-	mLoopSubdivs = D::mpAttrs->readInt("loopsubdivs", mLoopSubdivs, "SimulationLbm","mLoopSubdivs", false );
 	mSmoothSurface = D::mpAttrs->readFloat("smoothsurface", mSmoothSurface, "SimulationLbm","mSmoothSurface", false );
 	mSmoothNormals = D::mpAttrs->readFloat("smoothnormals", mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
 
 	mInitialCsmago = D::mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
+	// deprecated!
+	float mInitialCsmagoCoarse = 0.0;
 	mInitialCsmagoCoarse = D::mpAttrs->readFloat("csmago_coarse", mInitialCsmagoCoarse, "SimulationLbm","mInitialCsmagoCoarse", false );
+#if USE_LES==1
+#else // USE_LES==1
+	debMsgStd("LbmFsgrSolver", DM_WARNING, "LES model switched off!",2);
+	mInitialCsmago = 0.0;
+#endif // USE_LES==1
 
 	// refinement
 	mMaxRefine  = D::mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", true);
@@ -1440,7 +1442,7 @@ LbmFsgrSolver<D>::initLevelOmegas()
 		// if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * (LbmFloat)(mMaxRefine-i)*0.5+1.0; 
 		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * ((LbmFloat)(mMaxRefine-i)*1.0 + 1.0 ); 
 		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = 0.99;
-		mLevel[i].lcsmago = mInitialCsmagoCoarse;
+		mLevel[i].lcsmago = mInitialCsmago;
 		mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
 		mLevel[i].lcnu        = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
 	}
@@ -1529,7 +1531,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 		<<"LBM_EPSILON="<<LBM_EPSILON       <<" "
 		<<"FSGR_STRICT_DEBUG="<<FSGR_STRICT_DEBUG       <<" "
 		<<"INTORDER="<<INTORDER        <<" "
-		<<"TIMEINTORDER="<<TIMEINTORDER        <<" "
 		<<"REFINEMENTBORDER="<<REFINEMENTBORDER        <<" "
 		<<"OPT3D="<<OPT3D        <<" "
 		<<"COMPRESSGRIDS="<<COMPRESSGRIDS<<" "
@@ -1683,7 +1684,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 
 	// init isosurf
 	D::mpIso->setIsolevel( D::mIsoValue );
-	D::mpIso->setLoopSubdivs( mLoopSubdivs );
 	// approximate feature size with mesh resolution
 	float featureSize = mLevel[ mMaxRefine ].nodeSize*0.5;
 	D::mpIso->setSmoothSurface( mSmoothSurface * featureSize );
@@ -1856,11 +1856,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 		performRefinement(lev);
 		performCoarsening(lev);
 		coarseRestrictFromFine(lev);
-		
-		//while( performRefinement(lev) | performCoarsening(lev)){
-			//coarseRestrictFromFine(lev);
-			//debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Coarsening level "<<lev<<".",8);
-		//}
 	}
 	D::markedClearList();
 	myTime_t fsgrtend = getTime(); 
@@ -2659,29 +2654,16 @@ LbmFsgrSolver<D>::stepMain()
 			if(lev==mMaxRefine) {
 				// always advance fine level...
 				fineAdvance();
-				//performRefinement(lev-1); // TEST here?
 			} else {
-				performRefinement(lev); // TEST here?
-				performCoarsening(lev); // TEST here?
+				performRefinement(lev);
+				performCoarsening(lev);
 				coarseRestrictFromFine(lev);
 				coarseAdvance(lev);
-				//performRefinement(lev-1); // TEST here?
 			}
 #if FSGR_OMEGA_DEBUG==1
 			errMsg("LbmFsgrSolver::step","LES stats l="<<lev<<" omega="<<mLevel[lev].omega<<" avgOmega="<< (mLevel[lev].avgOmega/mLevel[lev].avgOmegaCnt) );
 			mLevel[lev].avgOmega = 0.0; mLevel[lev].avgOmegaCnt = 0.0;
 #endif // FSGR_OMEGA_DEBUG==1
-
-			LbmFloat interTime = -10.0;
-#if TIMEINTORDER==1
-			interTime = 0.5;
-			if( D::mStepCnt & (1<<(mMaxRefine-lev)) ) interTime = 0.0;
-			// TEST influence... interTime = 0.0;
-#elif TIMEINTORDER==2
-			interTime = 1.0;
-#else // TIMEINTORDER==0
-			interTime = 0.0;
-#endif // TIMEINTORDER==1
 			levsteps++;
 		}
 		mCurrentMass   += mLevel[lev].lmass;
@@ -2857,7 +2839,7 @@ LbmFsgrSolver<D>::stepMain()
 				uz  += (D::dfDvecZ[l]*m); 
 			} 
 			//errMsg("DEBUG"," "<<PRINT_IJK <<" rho="<<rho<<" vel="<<PRINT_VEC(ux,uy,uz) );
-			f__printf(stdout,"D %d,%d rho=%+'.5f vel=[%+'.5f,%+'.5f] \n", i,j, rho, ux,uy );
+			errMsg(stdout,"D %d,%d rho=%+'.5f vel=[%+'.5f,%+'.5f] \n", i,j, rho, ux,uy );
 		}
 	}       // DEBUG */
 
@@ -3525,7 +3507,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 #if COMPRESSGRIDS==1
 #if PARALLEL==1
-	//fprintf(stderr," (id=%d k=%d) ",id,k);
+	//frintf(stderr," (id=%d k=%d) ",id,k);
 # pragma omp barrier
 #endif // PARALLEL==1
 #else // COMPRESSGRIDS==1
@@ -3795,7 +3777,7 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 	const LbmFloat alpha = 1.0;
 	const LbmFloat gw = sqrt(2.0*D::cDimension);
 #ifndef ELBEEM_BLENDER
-errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
+	errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
 #endif
 	for(int n=0;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
 	//for(int n=0;(n<D::cDirNum); n++) { 
@@ -3809,13 +3791,6 @@ errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
 	for(int n=0;(n<D::cDirNum); n++) { 
 		mGaussw[n] = mGaussw[n]/totGaussw;
 	}
-	//totGaussw = 1.0/totGaussw;
-
-	//if(!D::mInitDone) {
-//errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test pre init");
-		//mGaussw[0] = 1.0;
-		//for(int n=1;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
-	//}
 
 	//restrict
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
@@ -3978,7 +3953,7 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
 	bool change = false;
 	//bool nbsok;
-	// TIMEINTORDER ?
+	// FIXME remove TIMEINTORDER ?
 	LbmFloat interTime = 0.0;
 	// update curr from other, as streaming afterwards works on curr
 	// thus read only from srcSet, modify other

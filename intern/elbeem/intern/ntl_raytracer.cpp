@@ -25,11 +25,8 @@
 
 
 /* external parser functions from cfgparser.cxx */
-//#include "cfgparse_functions.h"
-
 /* parse given file as config file */
 void parseFile(string filename);
-
 /* set pointers for parsing */
 void setPointers( ntlRenderGlobals *setglob);
 
@@ -237,23 +234,14 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 				warnMsg("ntlRaytracer::advanceSims","World state error... stopping" );
 				setStopRenderVisualization( true );
 			}
-			//? mSimulationTime = (*mpSims)[mFirstSim]->getCurrentTime();
-			//debMsgStd("ntlRaytracer::renderVisualization : single step mode ", 10);
-			//debMsgStd("", 10 );
 		}
 
-#ifndef NOGUI
 		// save frame
 		if(mpOpenGLRenderer) mpOpenGLRenderer->saveAnimationFrame( mSimulationTime );
-#endif // NOGUI
 		
 		// for non-threaded check events
 		if(!multiThreaded) {
-			//if(gpElbeemFrame->ElbeemWindow->visible()) {
-				//if (!Fl::check()) break;  // returns immediately
-			//} 
 			Fl::check();
-      //gpElbeemFrame->SceneDisplay->doIdleRedraw();
       gpElbeemFrame->SceneDisplay->doOnlyForcedRedraw();
 		}
 
@@ -277,12 +265,11 @@ int ntlRaytracer::singleStepVisualization( void )
 	if(mpOpenGLRenderer) mpOpenGLRenderer->saveAnimationFrame( mSimulationTime );
 	Fl::check();
   gpElbeemFrame->SceneDisplay->doOnlyForcedRedraw();
-#endif // NOGUI
-
 	mThreadRunning = false;
-#ifndef NOGUI
 	stopSimulationRestoreGui();
-#endif
+#else
+	mThreadRunning = false;
+#endif // NOGUI
 	return 0;
 }
 
@@ -294,8 +281,6 @@ int ntlRaytracer::singleStepVisualization( void )
  *****************************************************************************/
 int ntlRaytracer::advanceSims()
 {
-	//gfxReal currTime[ mpSims->size() ]; 
-	
 	bool done = false;
 	bool allPanic = true;
 	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime();
@@ -313,7 +298,6 @@ int ntlRaytracer::advanceSims()
 			if((*mpSims)[i]->getPanic()) allPanic = true; // do any panic now!?
 			//debMsgStd("ntlRaytracer::advanceSims",DM_MSG, " sim "<<i<<" c"<<(*mpSims)[i]->getCurrentTime()<<" p"<<(*mpSims)[i]->getPanic()<<" t"<<targetTime, 10); // debug // timedebug
 		}
-		//if((*mpSims)[mFirstSim]->getCurrentTime() < targetTime) done = false;
 		if( (targetTime - (*mpSims)[mFirstSim]->getCurrentTime()) > LBM_TIME_EPSILON) done=false;
 		if(allPanic) done = true;
 	}
@@ -371,6 +355,7 @@ void ntlRaytracer::singleStepSims(double targetTime) {
  *****************************************************************************/
 int ntlRaytracer::renderScene( void )
 {
+#ifndef ELBEEM_BLENDER
 	char nrStr[5];														/* nr conversion */
 	//std::ostringstream outfilename(""); 					  /* ppm file */
 	std::ostringstream outfn_conv("");  						/* converted ppm with other suffix */
@@ -723,6 +708,7 @@ int ntlRaytracer::renderScene( void )
 		debMsgStd("ntlRaytracer::renderScene",DM_NOTIFY, "Single frame mode done...", 1 );
 		return 1;
 	}
+#endif // ELBEEM_BLENDER
 	return 0;
 }
 

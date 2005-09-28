@@ -225,15 +225,17 @@ void fluidsimBake(struct Object *ob)
 	int origFrame = G.scene->r.cfra;
 	char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
 	char curWd[FILE_MAXDIR];
+	char debugStrBuffer[256];
 	int dirExist = 0;
 	const int maxRes = 200;
-	int debugBake = 0;
 
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
-		if((dlevel>0) && (dlevel<=10)) debugBake = 1;
-		if(debugBake) fprintf(stderr,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName);
+		elbeemSetDebugLevel(dlevel);
+		//if((dlevel>0) && (dlevel<=10)) debugBake = 1;
+		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName); 
+		elbeemDebugOut(debugStrBuffer);
 	}
 
 	/* check if there's another domain... */
@@ -241,7 +243,8 @@ void fluidsimBake(struct Object *ob)
 		if((obit->fluidsimFlag & OB_FLUIDSIM_ENABLE)&&(obit->type==OB_MESH)) {
 			if(obit->fluidsimSettings->type == OB_FLUIDSIM_DOMAIN) {
 				if(obit != ob) {
-					fprintf(stderr,"fluidsimBake::warning - More than one domain!\n");
+					snprintf(debugStrBuffer,256,"fluidsimBake::warning - More than one domain!\n"); 
+					elbeemDebugOut(debugStrBuffer);
 				}
 			}
 		}
@@ -252,10 +255,12 @@ void fluidsimBake(struct Object *ob)
 	/* rough check of settings... */
 	if(fssDomain->resolutionxyz>maxRes) {
 		fssDomain->resolutionxyz = maxRes;
-		fprintf(stderr,"fluidsimBake::warning - Resolution (%d) > %d^3, this requires more than 600MB of memory... restricting to %d^3 for now.\n",  fssDomain->resolutionxyz, maxRes, maxRes);
+		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Resolution (%d) > %d^3, this requires more than 600MB of memory... restricting to %d^3 for now.\n",  fssDomain->resolutionxyz, maxRes, maxRes); 
+		elbeemDebugOut(debugStrBuffer);
 	}
 	if(fssDomain->previewresxyz > fssDomain->resolutionxyz) {
-		fprintf(stderr,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", fssDomain->previewresxyz ,  fssDomain->resolutionxyz);
+		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", fssDomain->previewresxyz ,  fssDomain->resolutionxyz); 
+		elbeemDebugOut(debugStrBuffer);
 		fssDomain->previewresxyz = fssDomain->resolutionxyz;
 	}
 	// set adaptive coarsening according to resolutionxyz
@@ -270,7 +275,8 @@ void fluidsimBake(struct Object *ob)
 	} else {
 		fssDomain->maxRefine = 0;
 	}
-	if(debugBake) fprintf(stderr,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , fssDomain->maxRefine );
+	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , fssDomain->maxRefine ); 
+	elbeemDebugOut(debugStrBuffer);
 	
 	// prepare names...
 	strcpy(curWd, G.sce);
@@ -284,7 +290,8 @@ void fluidsimBake(struct Object *ob)
 		BLI_splitdirstring(blendDir, blendFile);
 		// todo... strip .blend 
 		snprintf(fsDomain->fluidsimSettings->surfdataPrefix,FILE_MAXFILE,"%s_%s", blendFile, fsDomain->id.name);
-		fprintf(stderr,"fluidsimBake::error - warning resetting output prefix to '%s'\n", fsDomain->fluidsimSettings->surfdataPrefix);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output prefix to '%s'\n", fsDomain->fluidsimSettings->surfdataPrefix); 
+		elbeemDebugOut(debugStrBuffer);
 	}
 
 	// check selected directory
@@ -306,7 +313,8 @@ void fluidsimBake(struct Object *ob)
 	if((strlen(fsDomain->fluidsimSettings->surfdataDir)<1) || (!dirExist)) {
 		// invalid dir, reset to current
 		strcpy(fsDomain->fluidsimSettings->surfdataDir, "//");
-		fprintf(stderr,"fluidsimBake::error - warning resetting output dir to '%s'\n", fsDomain->fluidsimSettings->surfdataDir);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", fsDomain->fluidsimSettings->surfdataDir);
+		elbeemDebugOut(debugStrBuffer);
 	}
 	
 	// dump data for frame 0
@@ -319,7 +327,8 @@ void fluidsimBake(struct Object *ob)
 	// start writing
 	fileCfg = fopen(fnameCfgPath, "w");
 	if(!fileCfg) {
-		fprintf(stderr,"fluidsimBake::error - Unable to open file for writing '%s'\n", fnameCfgPath);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", fnameCfgPath); 
+		elbeemDebugOut(debugStrBuffer);
 		return;
 	}
 
@@ -390,7 +399,10 @@ void fluidsimBake(struct Object *ob)
 
 		MTC_Mat4CpyMat4(domainMat, fsDomain->obmat);
 		if(!Mat4Invert(invDomMat, domainMat)) {
-			fprintf(stderr,"fluidsimBake::error - Invalid obj matrix?\n"); exit(1);
+			snprintf(debugStrBuffer,256,"fluidsimBake::error - Invalid obj matrix?\n"); 
+			elbeemDebugOut(debugStrBuffer);
+			// FIXME add fatal msg
+			return;
 		}
 
 		fprintf(fileCfg, blendattrString,
@@ -546,7 +558,7 @@ void fluidsimBake(struct Object *ob)
 		char bobjPath[FILE_MAXFILE+FILE_MAXDIR];
         
 		for(obit= G.main->object.first; obit; obit= obit->id.next) {
-			//fprintf(stderr,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); // DEBUG
+			//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
 			if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
 					(obit->type==OB_MESH) &&
 				  (obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN)
@@ -568,19 +580,21 @@ void fluidsimBake(struct Object *ob)
 	}
   
 	/* fluid material */
-	fprintf(fileCfg, "  material { \n");
-	fprintf(fileCfg, "    type= phong; \n");
-	fprintf(fileCfg, "    name=          \"fluidblue\"; \n");
-	fprintf(fileCfg, "    diffuse=       0.3 0.5 0.9; \n");
-	fprintf(fileCfg, "    ambient=       0.1 0.1 0.1; \n");
-	fprintf(fileCfg, "    specular=      0.2  10.0; \n");
-	fprintf(fileCfg, "  } \n");
+	fprintf(fileCfg, 
+		"  material { \n"
+		"    type= phong; \n"
+		"    name=          \"fluidblue\"; \n"
+		"    diffuse=       0.3 0.5 0.9; \n"
+		"    ambient=       0.1 0.1 0.1; \n"
+		"    specular=      0.2  10.0; \n"
+		"  } \n" );
 
 
 
 	fprintf(fileCfg, "} // end raytracing\n");
 	fclose(fileCfg);
-	if(debugBake) fprintf(stderr,"fluidsimBake::msg: Wrote %s\n", fnameCfg);
+	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", fnameCfg); 
+	elbeemDebugOut(debugStrBuffer);
 
 	// perform simulation
 	{
@@ -593,7 +607,8 @@ void fluidsimBake(struct Object *ob)
 		// DEBUG for win32 debugging, dont use threads...
 #endif // WIN32
 		if(!simthr) {
-			fprintf(stderr,"fluidsimBake::error: Unable to create thread... running without one.\n");
+			snprintf(debugStrBuffer,256,"fluidsimBake::error: Unable to create thread... running without one.\n"); 
+			elbeemDebugOut(debugStrBuffer);
 			set_timecursor(0);
 			performElbeemSimulation(fnameCfgPath);
 		} else {

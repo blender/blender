@@ -72,7 +72,7 @@ int convertString2Int(const char *str, int alt)
 
 //-----------------------------------------------------------------------------
 //! helper function that converts a flag field to a readable integer
-std::string convertFlags2String(int flags) {
+string convertFlags2String(int flags) {
 	std::ostringstream ret;
 	ret <<"(";
 	int max = sizeof(int)*8;
@@ -154,33 +154,18 @@ myTime_t getTime()
 	QueryPerformanceCounter(&liLastTime);
 	ret = (INT)( ((double)liLastTime.QuadPart / liTimerFrequency.QuadPart)*1000 ); // - mFirstTime;
 #else
-	//fprintf(stderr, " Tp s%lu us%lu \n", tv.tv_sec,  tv.tv_usec );
-	//clock_t ct = clock();
-	//ret = ct*1000/CLOCKS_PER_SEC;
-	//fprintf(stderr, " Tp s%lu cps%lu us%lu \n", ct,CLOCKS_PER_SEC,  ret );
-
-	/*struct tms tt;
-	times(&tt);
-	//ret = tt.tms_utime/(CLOCKS_PER_SEC/1000);
-	ret = tt.tms_utime*10;
-	//fprintf(stderr, " Tp s%lu cps%lu us%lu %d %d \n", tt.tms_cutime,CLOCKS_PER_SEC,  ret, sizeof(clock_t), tt.tms_cutime );
-	//fprintf(stderr, " Tp s%d cps%d us%d %d %d \n", tt.tms_utime,CLOCKS_PER_SEC,  ret, sizeof(clock_t), clock() );
-	// */
-	
 	struct timeval tv;
 	struct timezone tz;
 	tz.tz_minuteswest = 0;
 	tz.tz_dsttime = 0;
 	gettimeofday(&tv,&tz);
  	ret = (tv.tv_sec*1000)+(tv.tv_usec/1000); //-mFirstTime;
-	//fprintf(stderr, " Tp s%lu us%lu \n", tv.tv_sec,  tv.tv_usec );
 #endif
-	//cout << " Tret " << ret <<endl;
 	return (myTime_t)ret;
 }
 //-----------------------------------------------------------------------------
 // convert time to readable string
-std::string getTimeString(myTime_t usecs) {
+string getTimeString(myTime_t usecs) {
 	std::ostringstream ret;
 	//myTime_t us = usecs % 1000;
 	myTime_t ms = usecs / (60*1000);
@@ -198,7 +183,7 @@ std::string getTimeString(myTime_t usecs) {
 }
 
 //! helper to check if a bounding box was specified in the right way
-bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, std::string checker) {
+bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker) {
 	if( (s[0]>e[0]) ||
 			(s[1]>e[1]) ||
 			(s[2]>e[2]) ) {
@@ -213,22 +198,22 @@ bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, std::string checker) {
 //-----------------------------------------------------------------------------
 // debug message output
 
-static std::string col_black ( "\033[0;30m");
-static std::string col_dark_gray ( "\033[1;30m");
-static std::string col_bright_gray ( "\033[0;37m");
-static std::string col_red ( "\033[0;31m");
-static std::string col_bright_red ( "\033[1;31m");
-static std::string col_green ( "\033[0;32m");
-static std::string col_bright_green ( "\033[1;32m");
-static std::string col_bright_yellow ( "\033[1;33m");
-static std::string col_yellow ( "\033[0;33m");
-static std::string col_cyan ( "\033[0;36m");
-static std::string col_bright_cyan ( "\033[1;36m");
-static std::string col_purple ( "\033[0;35m");
-static std::string col_bright_purple ( "\033[1;35m");
-static std::string col_neutral ( "\033[0m");
-static std::string col_std = col_bright_gray;
-void messageOutputFunc(std::string from, int id, std::string msg, myTime_t interval) {
+static string col_black ( "\033[0;30m");
+static string col_dark_gray ( "\033[1;30m");
+static string col_bright_gray ( "\033[0;37m");
+static string col_red ( "\033[0;31m");
+static string col_bright_red ( "\033[1;31m");
+static string col_green ( "\033[0;32m");
+static string col_bright_green ( "\033[1;32m");
+static string col_bright_yellow ( "\033[1;33m");
+static string col_yellow ( "\033[0;33m");
+static string col_cyan ( "\033[0;36m");
+static string col_bright_cyan ( "\033[1;36m");
+static string col_purple ( "\033[0;35m");
+static string col_bright_purple ( "\033[1;35m");
+static string col_neutral ( "\033[0m");
+static string col_std = col_bright_gray;
+void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 	if(interval>0) {
 		myTime_t currTime = getTime();
 		if((currTime - globalIntervalTime)>interval) {
@@ -276,7 +261,6 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 			default:
 				// this shouldnt happen...
 				sout << col_red << " --- messageOutputFunc error: invalid id ("<<id<<") --- aborting... \n\n" << col_std;
-				//xit(1); // unecessary?
 				break;
 		}
 		sout <<" "<< msg << col_std;
@@ -289,30 +273,38 @@ void messageOutputFunc(std::string from, int id, std::string msg, myTime_t inter
 		sout << "\n"; // add newline for output
 	}
 
-#ifdef ELBEEM_BLENDER
-	fprintf(GEN_userstream, "%s",sout.str().c_str() );
-	if(id!=DM_DIRECT) fflush(GEN_userstream); 
-#else 
-	fprintf(stdout,"%s", sout.str().c_str());
-	if(id!=DM_DIRECT) fflush(stdout); 
-#endif
-}
-
-#ifdef DEBUG 
-bool debugOutInterTest(myTime_t interval) {
-	myTime_t currTime = getTime();
-	if((currTime - globalIntervalTime)>interval) {
-		globalIntervalTime = getTime();
-		return true;
+//#ifdef ELBEEM_BLENDER
+#ifdef WIN32
+	// debug level is >0 anyway, so write to file...
+	// TODO generate some reasonable path?
+	FILE *logf = fopen("elbeem_debug_log.txt","a+");
+	// dont complain anymore here...
+	if(logf) {
+		fprintf(logf, "%s",sout.str().c_str() );
+		fclose(logf);
 	}
-	return false;
+#else // WIN32
+	fprintf(stdout, "%s",sout.str().c_str() );
+	if(id!=DM_DIRECT) fflush(stdout); 
+#endif // WIN32
 }
 
-#endif
+// helper functions from external program using elbeem lib (e.g. Blender)
+/* elbeem debug output function */
+extern "C" 
+void elbeemDebugOut(char *msg) {
+	// external messages default to debug level 5...
+	if(gDebugLevel<5) return;
+	// delegate to messageOutputFunc
+	messageOutputFunc("[External]",DM_MSG,msg,0);
+}
 
-
-//-----------------------------------------------------------------------------
-// save exit function
-
+/* set elbeem debug output level (0=off to 10=full on) */
+extern "C" 
+void elbeemSetDebugLevel(int level) {
+	if(level<0)  level=0;
+	if(level>10) level=10;
+	gDebugLevel=level;
+}
 
 

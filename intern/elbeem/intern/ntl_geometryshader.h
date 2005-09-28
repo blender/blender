@@ -35,14 +35,14 @@ class ntlGeometryShader :
 		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { glob=NULL; /*unused*/ return 0; };
 
 		/*! Get start iterator for all objects */
-		virtual std::vector<ntlGeometryObject *>::iterator getObjectsBegin() { return mObjects.begin(); }
+		virtual vector<ntlGeometryObject *>::iterator getObjectsBegin() { return mObjects.begin(); }
 		/*! Get end iterator for all objects */
-		virtual std::vector<ntlGeometryObject *>::iterator getObjectsEnd() { return mObjects.end(); }
+		virtual vector<ntlGeometryObject *>::iterator getObjectsEnd() { return mObjects.end(); }
 
 	protected:
 
 		//! vector for the objects
-		std::vector<ntlGeometryObject *> mObjects;
+		vector<ntlGeometryObject *> mObjects;
 
 };
 

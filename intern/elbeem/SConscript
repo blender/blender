@@ -5,7 +5,7 @@ Import('user_options_dict');
 print "Including El'Beem Fluid Simulation..."
 elbeem_env = library_env.Copy();
 elbeem_env.Append(CPPDEFINES= 'NOGUI');
-elbeem_env.Append(CPPDEFINES= 'ELBEEM_BLENDER=1');
+elbeem_env.Append(CPPDEFINES= [('ELBEEM_BLENDER',1)] );
   
 elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
 elbeem_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
@@ -26,11 +26,8 @@ Sources = [
 	"intern/lbminterface.cpp",
 	"intern/ntl_blenderdumper.cpp",
 	"intern/ntl_bsptree.cpp",
-	"intern/ntl_geometrybox.cpp",
 	"intern/ntl_geometrymodel.cpp",
 	"intern/ntl_geometryobject.cpp",
-	"intern/ntl_geometrysphere.cpp",
-	"intern/ntl_image.cpp",
 	"intern/ntl_lightobject.cpp",
 	"intern/ntl_ray.cpp",
 	"intern/ntl_raytracer.cpp",

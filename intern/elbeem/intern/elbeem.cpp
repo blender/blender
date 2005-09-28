@@ -9,9 +9,6 @@
  *
  */
 
-//#include "globals.h"
-
-
 /*****************************************************************************/
 // region of interest global vars
 // currently used by e.g. fsgr solver
@@ -47,5 +44,4 @@ char* usageString =
   -h : Display this message \n\
  	-o : single frame output to given file\n\
   \n ";
-
 

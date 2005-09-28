@@ -1988,7 +1988,6 @@ static void fluidsimDM_release(DerivedMesh *dm)
 }
 
 DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) {
-	//fprintf(stderr,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
 	int i;
 	Mesh *mesh = NULL; // srcob->ata; 
 	FluidsimDerivedMesh *fsdm;
@@ -1998,6 +1997,8 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
 	char filename[FILE_MAXFILE],filepath[FILE_MAXFILE+FILE_MAXDIR];
 	char curWd[FILE_MAXDIR];
+	char debugStrBuffer[256];
+	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
 
 	if(!useRenderParams) {
 		displaymode = srcob->fluidsimSettings->guiDisplayMode;
@@ -2005,7 +2006,9 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 		displaymode = srcob->fluidsimSettings->renderDisplayMode;
 	}
 	
-	//fprintf(stderr,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
+	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
+	elbeemDebugOut(debugStrBuffer); // debug
+
 	if((displaymode==1) || (G.obedit==srcob)) {
 		mesh = srcob->data;			
 		return getMeshDerivedMesh(mesh , srcob, NULL);
@@ -2022,7 +2025,7 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 	BLI_getwdN(curWd);
 	BLI_make_file_string(G.sce, filepath, srcob->fluidsimSettings->surfdataDir, filename);
 	
-	//fprintf(stderr,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d) %s \n", srcob->id.name, useRenderParams, displaymode, filepath); // debug
+	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d) %s \n", srcob->id.name, useRenderParams, displaymode, filepath); // debug
 	mesh = readBobjgz(filepath, (Mesh*)(srcob->data) );
 	if(!mesh) {
 		// display org. object upon failure
@@ -2035,7 +2038,7 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 		// force all edge draw 	 
 		for(i=0;i<mesh->totedge;i++) { 
 			//mesh->medge[i].flag = ME_EDGEDRAW; 
-			//fprintf(stderr,"me %d = %d\n",i,mesh->medge[i].flag);
+			//snprintf(debugStrBuffer,256,"me %d = %d\n",i,mesh->medge[i].flag);
 		}
 	}
 
@@ -2087,7 +2090,8 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 
 void writeBobjgz(char *filename, struct Object *ob) 
 {
-	const int debugBobjWrite = 0;
+	// const int debugBobjWrite = 0; // now handled by global debug level
+	char debugStrBuffer[256];
 	int wri,i,j;
 	float wrf;
 	gzFile gzf;
@@ -2098,17 +2102,20 @@ void writeBobjgz(char *filename, struct Object *ob)
 	MFace *mface = NULL;
 
 	if(!ob->data || (ob->type!=OB_MESH)) {
-		fprintf(stderr,"Writing GZ_BOBJ Invalid object %s ...\n", ob->id.name); 
+		snprintf(debugStrBuffer,256,"Writing GZ_BOBJ Invalid object %s ...\n", ob->id.name); 
+		elbeemDebugOut(debugStrBuffer);
 		return;
 	}
 	if((ob->size[0]<0.0) || (ob->size[0]<0.0) || (ob->size[0]<0.0) ) {
-		fprintf(stderr,"\nfluidSim::writeBobjgz:: Warning object %s has negative scaling - check triangle ordering...?\n\n", ob->id.name); 
+		snprintf(debugStrBuffer,256,"\nfluidSim::writeBobjgz:: Warning object %s has negative scaling - check triangle ordering...?\n\n", ob->id.name); 
+		elbeemDebugOut(debugStrBuffer);
 	}
 
-	if(debugBobjWrite) fprintf(stderr,"Writing GZ_BOBJ '%s' ... ",filename);
+	snprintf(debugStrBuffer,256,"Writing GZ_BOBJ '%s' ... ",filename); elbeemDebugOut(debugStrBuffer); 
 	gzf = gzopen(filename, "wb9");
 	if (!gzf) {
-		fprintf(stderr,"writeBobjgz::error - Unable to open file for writing '%s'\n", filename);
+		snprintf(debugStrBuffer,256,"writeBobjgz::error - Unable to open file for writing '%s'\n", filename);
+		elbeemDebugOut(debugStrBuffer);
 		return;
 	}
 
@@ -2116,7 +2123,7 @@ void writeBobjgz(char *filename, struct Object *ob)
 	dlm = dm->convertToDispListMesh(dm, 1);
 	mface = dlm->mface;
 
-	if(sizeof(wri)!=4) { fprintf(stderr,"Writing GZ_BOBJ, Invalid int size %d...\n", wri); return; } // paranoia check
+	if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Writing GZ_BOBJ, Invalid int size %d...\n", wri); elbeemDebugOut(debugStrBuffer); return; } // paranoia check
 	wri = dlm->totvert;
 	gzwrite(gzf, &wri, sizeof(wri));
 	for(i=0; i<wri;i++) {
@@ -2158,7 +2165,7 @@ void writeBobjgz(char *filename, struct Object *ob)
 		face[1] = mface[i].v2;
 		face[2] = mface[i].v3;
 		face[3] = mface[i].v4;
-		//fprintf(stderr,"F %s %d = %d,%d,%d,%d \n",ob->id.name, i, face[0],face[1],face[2],face[3] ); 
+		//snprintf(debugStrBuffer,256,"F %s %d = %d,%d,%d,%d \n",ob->id.name, i, face[0],face[1],face[2],face[3] ); elbeemDebugOut(debugStrBuffer);
 
 		gzwrite(gzf, &(face[0]), sizeof( face[0] )); 
 		gzwrite(gzf, &(face[1]), sizeof( face[1] )); 
@@ -2174,13 +2181,15 @@ void writeBobjgz(char *filename, struct Object *ob)
 	if(dlm) displistmesh_free(dlm);
 	dm->release(dm);
 
-	if(debugBobjWrite) fprintf(stderr,"done. #Vertices: %d, #Triangles: %d\n", dlm->totvert, dlm->totface );
+	snprintf(debugStrBuffer,256,"done. #Vertices: %d, #Triangles: %d\n", dlm->totvert, dlm->totface ); 
+	elbeemDebugOut(debugStrBuffer);
 }
 
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
 Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 {
 	int wri,i,j;
+	char debugStrBuffer[256];
 	float wrf;
 	Mesh *newmesh; 
 	const int debugBobjRead = 0;
@@ -2217,29 +2226,29 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	newmesh->medge = NULL;
 
 
-	if(debugBobjRead) fprintf(stderr,"Reading '%s' GZ_BOBJ... ",filename);
+	snprintf(debugStrBuffer,256,"Reading '%s' GZ_BOBJ... ",filename); elbeemDebugOut(debugStrBuffer); 
 	gzf = gzopen(filename, "rb");
 	// gzf = fopen(filename, "rb");
 	// debug: fread(b,c,1,a) = gzread(a,b,c)
 	if (!gzf) {
-		//fprintf(stderr,"readBobjgz::error - Unable to open file for reading '%s'\n", filename); // DEBUG
+		//snprintf(debugStrBuffer,256,"readBobjgz::error - Unable to open file for reading '%s'\n", filename); // DEBUG
 		MEM_freeN(newmesh);
 		return NULL;
 	}
 
-	//if(sizeof(wri)!=4) { fprintf(stderr,"Reading GZ_BOBJ, Invalid int size %d...\n", wri); return NULL; } // paranoia check
+	//if(sizeof(wri)!=4) { snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, Invalid int size %d...\n", wri); return NULL; } // paranoia check
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 	newmesh->totvert = wri;
 	newmesh->mvert = MEM_callocN(sizeof(MVert)*newmesh->totvert, "fluidsimDerivedMesh_bobjvertices");
-	if(debugBobjRead) fprintf(stderr,"#vertices %d ", newmesh->totvert); //DEBUG
+	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#vertices %d ", newmesh->totvert); elbeemDebugOut(debugStrBuffer); } //DEBUG
 	for(i=0; i<newmesh->totvert;i++) {
-		//if(debugBobjRead) fprintf(stderr,"V %d = ",i);
+		//if(debugBobjRead) snprintf(debugStrBuffer,256,"V %d = ",i);
 		for(j=0; j<3; j++) {
 			gotBytes = gzread(gzf, &wrf, sizeof( wrf )); 
 			newmesh->mvert[i].co[j] = wrf;
-			//if(debugBobjRead) fprintf(stderr,"%25.20f ", wrf);
+			//if(debugBobjRead) snprintf(debugStrBuffer,256,"%25.20f ", wrf);
 		}
-		//if(debugBobjRead) fprintf(stderr,"\n");
+		//if(debugBobjRead) snprintf(debugStrBuffer,256,"\n");
 	}
 
 	// should be the same as Vertices.size
@@ -2248,7 +2257,7 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 		// complain #vertices has to be equal to #normals, reset&abort
 		MEM_freeN(newmesh->mvert);
 		MEM_freeN(newmesh);
-		fprintf(stderr,"Reading GZ_BOBJ, #normals=%d, #vertices=%d, aborting...\n", wri,newmesh->totvert );
+		snprintf(debugStrBuffer,256,"Reading GZ_BOBJ, #normals=%d, #vertices=%d, aborting...\n", wri,newmesh->totvert );
 		return NULL;
 	}
 	for(i=0; i<newmesh->totvert;i++) {
@@ -2263,7 +2272,7 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	gotBytes = gzread(gzf, &wri, sizeof(wri));
 	newmesh->totface = wri;
 	newmesh->mface = MEM_callocN(sizeof(MFace)*newmesh->totface, "fluidsimDerivedMesh_bobjfaces");
-	if(debugBobjRead) fprintf(stderr,"#faces %d ", newmesh->totface); // DEBUG
+	if(debugBobjRead){ snprintf(debugStrBuffer,256,"#faces %d ", newmesh->totface); elbeemDebugOut(debugStrBuffer); } //DEBUG
 	fsface = newmesh->mface;
 	for(i=0; i<newmesh->totface; i++) {
 		int face[4];
@@ -2280,8 +2289,8 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	}
 
 	/*if(debugBobjRead) {
-		for(i=0; i<newmesh->totvert; i++) { fprintf(stderr,"V %d = %f,%f,%f \n",i, newmesh->mvert[i].co[0],newmesh->mvert[i].co[1],newmesh->mvert[i].co[2] ); }
-		for(i=0; i<newmesh->totface; i++) { fprintf(stderr,"F %d = %d,%d,%d,%d \n",i, fsface[i].v1,fsface[i].v2,fsface[i].v3,fsface[i].v4); }
+		for(i=0; i<newmesh->totvert; i++) { snprintf(debugStrBuffer,256,"V %d = %f,%f,%f \n",i, newmesh->mvert[i].co[0],newmesh->mvert[i].co[1],newmesh->mvert[i].co[2] ); }
+		for(i=0; i<newmesh->totface; i++) { snprintf(debugStrBuffer,256,"F %d = %d,%d,%d,%d \n",i, fsface[i].v1,fsface[i].v2,fsface[i].v3,fsface[i].v4); }
 	} // debug */
 	// correct triangles with v3==0 for blender, cycle verts
 	for(i=0; i<newmesh->totface; i++) {
@@ -2298,10 +2307,10 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 		fsface[i].mat_nr = mat_nr;
 		fsface[i].flag = flag;
 		fsface[i].edcode = ME_V1V2 | ME_V2V3 | ME_V3V1;
-		//fprintf(stderr,"%d : %d,%d,%d\n", i,fsface[i].mat_nr, fsface[i].flag, fsface[i].edcode );
+		//snprintf(debugStrBuffer,256,"%d : %d,%d,%d\n", i,fsface[i].mat_nr, fsface[i].flag, fsface[i].edcode );
 	}
 
-	if(debugBobjRead) fprintf(stderr," done\n");
+	snprintf(debugStrBuffer,256," (%d,%d) done\n", newmesh->totvert,newmesh->totface); elbeemDebugOut(debugStrBuffer); //DEBUG
 	return newmesh;
 }
 
