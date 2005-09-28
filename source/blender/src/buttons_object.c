@@ -192,6 +192,8 @@ static void enable_constraint_ipo_func (void *ob_v, void *con_v)
 	bConstraintChannel *chan;
 	ListBase *conbase;
 
+	constraint_active_func(ob_v, con_v);
+		
 	conbase = get_active_constraint_channels(ob, 1);	// 1 == create
 
 	if (!conbase)
@@ -228,6 +230,7 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	ListBase *conbase;
 	IpoCurve *icu;
 	
+	constraint_active_func(ob_v, con_v);
 	conbase = get_active_constraint_channels(ob, 1);	// 1=make
 	
 	if (!conbase)
@@ -430,7 +433,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* rounded header */
-	rb_col= (con->flag & CONSTRAINT_ACTIVE)?10:-10;
+	rb_col= (con->flag & CONSTRAINT_ACTIVE)?40:20;
 	uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-1, width+40, 22, NULL, 5.0, 0.0, 
 			 (con->flag & CONSTRAINT_EXPAND)?3:15 , rb_col-20, ""); 
 	

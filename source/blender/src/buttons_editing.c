@@ -1143,7 +1143,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetCol(block, color);
 		/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 	uiDefBut(block, ROUNDBOX, 0, "", x-10, y-4, width, 25, NULL, 7.0, 0.0, 
-			 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, -20, ""); 
+			 (!isVirtual && (md->mode&eModifierMode_Expanded))?3:15, 20, ""); 
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* open/close icon */
@@ -1248,7 +1248,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		}
 
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
-		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 0, ""); 
+		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
 
 		y -= 18;
 

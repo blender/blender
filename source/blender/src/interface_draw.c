@@ -1830,11 +1830,15 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 
 static void ui_draw_roundbox(uiBut *but)
 {
-	BIF_ThemeColorShade(but->themecol, but->a2);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	
+	BIF_ThemeColorShadeAlpha(TH_PANEL, but->a2, but->a2);
 
 	uiSetRoundBox(but->a1);
 	gl_round_box(GL_POLYGON, but->x1, but->y1, but->x2, but->y2, but->min);
 
+	glDisable(GL_BLEND);
 }
 
 
