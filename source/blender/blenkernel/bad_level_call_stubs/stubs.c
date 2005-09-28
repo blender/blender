@@ -227,3 +227,8 @@ void bglVertex3f(float x, float y, float z) {}
 void bglEnd(void) {}
 
 struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_select, int int_op_type) { return 0; }
+
+// bobj read/write debug messages
+void elbeemDebugOut(char *msg) {}
+
+
