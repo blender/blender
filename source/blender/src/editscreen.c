@@ -113,7 +113,6 @@
 static void testareas(void);
 static void area_autoplayscreen(void);
 static void wait_for_event(void);
-static void drawscreen(void);
 
 
 /* ********* Globals *********** */
@@ -1115,6 +1114,7 @@ static void drawscreen(void)
 	}
 	
 	/* this double draw patch seems to be needed for certain sgi's (octane, indigo2) */
+#if defined(__sgi) || defined(__sun__) || defined( __sun ) || defined (__sparc) || defined (__sparc__)
 	glDrawBuffer(GL_FRONT);
 	
 	sa= G.curscreen->areabase.first;
@@ -1124,6 +1124,7 @@ static void drawscreen(void)
 	}
 	
 	glDrawBuffer(GL_BACK);
+#endif
 }
 
 static void screen_dispatch_events(void) {
