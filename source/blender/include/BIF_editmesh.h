@@ -184,9 +184,11 @@ extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
+extern void mesh_set_smooth_faces(short event);
 void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
 void EdgeLoopDelete(void);
+
  
 struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *ev);
 struct EditVert *editedge_getSharedVert(struct EditEdge *eed, struct EditEdge *eed2);

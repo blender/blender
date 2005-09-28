@@ -139,6 +139,7 @@ void do_view3d_object_mirrormenu(void *arg, int event);
 void do_view3d_edit_mesh_normalsmenu(void *arg, int event);
 void do_view3d_edit_mesh_verticesmenu(void *arg, int event);
 void do_view3d_edit_mesh_edgesmenu(void *arg, int event);
+void do_view3d_edit_mesh_facesmenu(void *arg, int event);
 void do_view3d_edit_curve_segmentsmenu(void *arg, int event);
 void do_view3d_edit_curve_showhidemenu(void *arg, int event); 
 

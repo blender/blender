@@ -80,6 +80,7 @@ void selectconnected_nurb(void);
 void selectrow_nurb(void);
 void adduplicate_nurb(void);
 void delNurb(void);
+void nurb_set_smooth(short event);
 void join_curve(int type);
 struct Nurb *addNurbprim(int type, int stype, int newname);
 void default_curve_ipo(struct Curve *cu);
