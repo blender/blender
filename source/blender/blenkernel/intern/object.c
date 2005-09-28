@@ -1574,9 +1574,11 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		aquat[0]+=(quat[0])*enf;
 		Mat4CpyMat4(lastmat, focusmat);
 		
+		/* removed for now, probably becomes option? (ton) */
+		
 		/* If the next constraint is not the same type (or there isn't one),
 		 *	then evaluate the accumulator & request a clear */
-		if ((!con->next)||(con->next && con->next->type!=con->type)) {
+		if (TRUE) { //(!con->next)||(con->next && con->next->type!=con->type)) {
 			clear= 1;
 			Mat4CpyMat4(oldmat, ob->obmat);
 
