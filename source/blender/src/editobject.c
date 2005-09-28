@@ -4502,6 +4502,7 @@ void image_aspect(void)
 								else ob->size[1]= ob->size[0]*y/x;
 								
 								done= 1;
+								DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);								
 							}
 						}
 						if(done) break;
