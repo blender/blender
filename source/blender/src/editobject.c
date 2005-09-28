@@ -2080,7 +2080,7 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15");
 		
 		switch(nr) {
 		case 1:
@@ -2145,7 +2145,13 @@ void special_editmenu(void)
 			waitcursor(1);
 			subdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH);
 			BIF_undo_push("Subdivide Smooth");
-			break;		
+			break;
+		case 14:
+			mesh_set_smooth_faces(1);
+			break;
+		case 15: 
+			mesh_set_smooth_faces(0);
+			break;
 		}
 		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);

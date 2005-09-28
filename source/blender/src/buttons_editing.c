@@ -547,27 +547,11 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_SETSOLID:
 		if(G.obedit) {
 			if(G.obedit->type == OB_MESH) {
-				efa= em->faces.first;
-				while(efa) {
-					if(efa->f & SELECT) {
-						if(event==B_SETSMOOTH) efa->flag |= ME_SMOOTH;
-						else efa->flag &= ~ME_SMOOTH;
-					}
-					efa= efa->next;
-				}
+				mesh_set_smooth_faces((event==B_SETSMOOTH));
 			}
 			else {
-				nu= editNurb.first;
-				while(nu) {
-					if(isNurbsel(nu)) {
-						if(event==B_SETSMOOTH) nu->flag |= CU_SMOOTH;
-						else nu->flag &= ~CU_SMOOTH;
-					}
-					nu= nu->next;
-				}
+				nurb_set_smooth((event==B_SETSMOOTH));
 			}
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(G.vd) {
 			base= FIRSTBASE;
@@ -590,10 +574,10 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				base= base->next;
 			}
 			allqueue(REDRAWVIEW3D, 0);
+			
+			if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
+			else BIF_undo_push("Set Solid");
 		}
-		if(event == B_SETSMOOTH) BIF_undo_push("Set Smooth");
-		else BIF_undo_push("Set Solid");
-
 		break;
 	case B_CHANGEDEP:
 		DAG_scene_sort(G.scene); // makes new dag

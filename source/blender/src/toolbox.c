@@ -1745,14 +1745,16 @@ static TBitem tb_mesh_edit_edge[]= {
 {  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
 
 static TBitem tb_mesh_edit_face[]= {
-{	0, "Make Edge/Face|F", 			'f', 		NULL},
-{	0, "Fill|Shift F", 				'F', 		NULL},
-{	0, "Beautify Fill|Alt F", 			TB_ALT|'f', 		NULL},
+{	0, "Make Edge/Face|F", 			5, 		NULL},
+{	0, "Fill|Shift F", 				0, 		NULL},
+{	0, "Beautify Fill|Alt F", 			1, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Convert to Triangles|Ctrl T", 	TB_CTRL|'t', 		NULL},
-{	0, "Convert to Quads|Alt J", 		TB_ALT|'j', 		NULL},
-{	0, "Flip Triangle Edges|Ctrl F", 	TB_CTRL|'f', 		NULL},
-{  -1, "", 			0, tb_do_hotkey}};
+{	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
+{	0, "Convert to Quads|Alt J", 		3, 		NULL},
+{	0, "Flip Triangle Edges|Ctrl F", 	4, 		NULL},
+{	0, "Set Smooth|W, Alt 4", 	6, 		NULL},
+{	0, "Set Solid|W, Alt 5", 	7, 		NULL},
+{  -1, "", 			0, do_view3d_edit_mesh_facesmenu}};
 
 
 static TBitem tb_mesh_edit_normal[]= {

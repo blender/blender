@@ -2203,7 +2203,7 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
+void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* Fill Faces */
@@ -2227,6 +2227,13 @@ static void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 	case 5: /* Make Edge/Face */
 		addedgeface_mesh();
 		break;
+	case 6: /* Set Smooth */
+		mesh_set_smooth_faces(1);
+		break;
+	case 7: /* Set Solid */
+		mesh_set_smooth_faces(0);
+		break;
+		
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2248,6 +2255,11 @@ static uiBlock *view3d_edit_mesh_facesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Quads to Triangles|Ctrl T",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Convert Triangles to Quads|Alt J", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip Triangle Edges|Ctrl F",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	
+	uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Smooth|W, Alt 4",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Solid|W, Alt 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);

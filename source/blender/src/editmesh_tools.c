@@ -5871,3 +5871,29 @@ void subdivideflag(int flag, float rad, int beauty)
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
+
+void mesh_set_smooth_faces(short event)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+
+	if(G.obedit==0) return;
+	
+	if(G.obedit->type != OB_MESH) return;
+	
+	efa= em->faces.first;
+	while(efa) {
+		if(efa->f & SELECT) {
+			if(event==1) efa->flag |= ME_SMOOTH;
+			else if(event==0) efa->flag &= ~ME_SMOOTH;
+		}
+		efa= efa->next;
+	}
+	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	
+	if(event==1) BIF_undo_push("Set Smooth");
+	else if(event==0) BIF_undo_push("Set Solid");
+}
+

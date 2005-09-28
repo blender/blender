@@ -3256,6 +3256,29 @@ void delNurb()
 	
 }
 
+void nurb_set_smooth(short event)
+{
+	Nurb *nu;
+	
+	if(G.obedit==0) return;
+	
+	if(G.obedit->type != OB_CURVE) return;
+	
+	nu= editNurb.first;
+	while(nu) {
+		if(isNurbsel(nu)) {
+			if(event==1) nu->flag |= CU_SMOOTH;
+			else if(event==0) nu->flag &= ~CU_SMOOTH;
+		}
+		nu= nu->next;
+	}
+	
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	
+	if(event==1) BIF_undo_push("Set Smooth");
+	else if(event==0) BIF_undo_push("Set Solid");
+}
 
 void join_curve(int type)
 {
