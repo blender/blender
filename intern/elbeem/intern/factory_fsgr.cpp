@@ -7,22 +7,11 @@
  *
  *****************************************************************************/
 
-#include "factory_lbm.h"
-
-// compiler sanity check
-#ifndef LBMDIM
-#if LBMDIM!=2
-#if LBMDIM!=3
-print("Error - LBMDIM has to be defined (2/3)!");
-#endif
-#endif
-#endif
-
 // disable sometimes to speed up compiling/2d tests
 #define DISABLE 0
 
-#include "lbmdimensions.h"
 #include "lbmfsgrsolver.h"
+#include "factory_lbm.h"
 
 //! lbm factory functions
 LbmSolverInterface* createSolverLbmFsgr() {

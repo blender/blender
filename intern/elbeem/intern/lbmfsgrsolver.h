@@ -11,6 +11,22 @@
 
 
 #ifndef LBMFSGRSOLVER_H
+
+// blender interface
+#if ELBEEM_BLENDER==1
+// warning - for MSVC this has to be included
+// _before_ ntl_vector3dim
+#include "SDL.h"
+#include "SDL_thread.h"
+#include "SDL_mutex.h"
+extern "C" {
+	void simulateThreadIncreaseFrame(void);
+	extern SDL_mutex *globalBakeLock;
+	extern int        globalBakeState;
+	extern int        globalBakeFrame;
+}
+#endif // ELBEEM_BLENDER==1
+
 #include "utilities.h"
 #include "lbmdimensions.h"
 #include "lbmfunctions.h"
@@ -24,18 +40,6 @@
 #define PARALLEL 0
 #endif // PARALLEL
 
-// blender interface
-#if ELBEEM_BLENDER==1
-#include "SDL.h"
-#include "SDL_thread.h"
-#include "SDL_mutex.h"
-extern "C" {
-	void simulateThreadIncreaseFrame(void);
-	extern SDL_mutex *globalBakeLock;
-	extern int        globalBakeState;
-	extern int        globalBakeFrame;
-}
-#endif // ELBEEM_BLENDER==1
 
 #ifndef LBMMODEL_DEFINED
 // force compiler error!

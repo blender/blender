@@ -2,7 +2,7 @@
 Import ('library_env')
 Import('user_options_dict');
 
-print "Including El'Beem Fluid Simulation..."
+# print "Including El'Beem Fluid Simulation..." # debug
 elbeem_env = library_env.Copy();
 elbeem_env.Append(CPPDEFINES= 'NOGUI');
 elbeem_env.Append(CPPDEFINES= [('ELBEEM_BLENDER',1)] );
