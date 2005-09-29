@@ -440,7 +440,8 @@ PyObject *Curve_Init( void )
 {
 	PyObject *submodule;
 
-	Curve_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &Curve_Type) < 0) /* set exception.  -1 is failure */
+		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.Curve", M_Curve_methods,
@@ -1280,10 +1281,9 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_update( BPy_Curve * self )
 {
-	freedisplist( &self->curve->disp ); 
+	Object_updateDag( (void*) self->curve );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*

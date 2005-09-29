@@ -57,6 +57,8 @@ Object *Object_FromPyObject( PyObject * py_obj );
 int Object_CheckPyObject( PyObject * py_obj );
 Object *GetObjectByName( char *name );
 
+void Object_updateDag( void *data );
+
 int EXPP_add_obdata( struct Object *object );
 
 #endif				/* EXPP_OBJECT_H */

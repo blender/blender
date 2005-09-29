@@ -116,10 +116,6 @@ static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args );
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
 
-extern int Text3d_CheckPyObject( PyObject * py_obj );
-extern struct Text3d *Text3d_FromPyObject( PyObject * py_obj );
-
-
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.	 */
 /* In Python these will be written to the console when doing a		 */
@@ -4076,4 +4072,24 @@ int setupPI(Object* ob){
 	else{ 
 	   return 0;
     }
+}
+
+/*
+ * scan list of Objects looking for matching obdata.
+ * if found, set OB_RECALC_DATA flag.
+ * call this from a bpy type update() method.
+ */
+
+void Object_updateDag( void *data )
+{
+	Object *ob;
+
+	if( !data)
+		return;
+
+	for( ob= G.main->object.first; ob; ob= ob->id.next){
+		if( ob->data == data){
+			ob->recalc |= OB_RECALC_DATA;
+		}
+	}
 }
