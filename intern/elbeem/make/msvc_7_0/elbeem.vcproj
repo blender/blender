@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER"
+				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -72,8 +72,8 @@ ECHO Done
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER"
+				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				StringPooling="TRUE"
 				MinimalRebuild="FALSE"
 				RuntimeLibrary="0"
@@ -126,8 +126,8 @@ ECHO Done
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER"
+				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				MinimalRebuild="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -179,8 +179,8 @@ ECHO Done
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\..\lib\windows\sdl\include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER"
+				AdditionalIncludeDirectories="..\..\intern;..\..\..\..\..\lib\windows\png\include;..\..\..\..\..\lib\windows\zlib\include;..\..\..\..\source\kernel\gen_messaging;..\..\..\..\..\lib\windows\sdl\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;NOGUI;ELBEEM_BLENDER=1"
 				StringPooling="TRUE"
 				MinimalRebuild="FALSE"
 				RuntimeLibrary="2"
@@ -262,19 +262,10 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_bsptree.cpp">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_geometrybox.cpp">
-			</File>
-			<File
 				RelativePath="..\..\intern\ntl_geometrymodel.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_geometryobject.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_geometrysphere.cpp">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_image.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_lightobject.cpp">
@@ -305,9 +296,6 @@ ECHO Done
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}">
-			<File
-				RelativePath="..\..\intern\arrays.h">
-			</File>
 			<File
 				RelativePath="..\..\intern\attributes.h">
 			</File>
@@ -345,9 +333,6 @@ ECHO Done
 				RelativePath="..\..\intern\ntl_bsptree.h">
 			</File>
 			<File
-				RelativePath="..\..\intern\ntl_geometrybox.h">
-			</File>
-			<File
 				RelativePath="..\..\intern\ntl_geometryclass.h">
 			</File>
 			<File
@@ -358,12 +343,6 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_geometryshader.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_geometrysphere.h">
-			</File>
-			<File
-				RelativePath="..\..\intern\ntl_image.h">
 			</File>
 			<File
 				RelativePath="..\..\intern\ntl_lightobject.h">
