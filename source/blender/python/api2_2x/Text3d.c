@@ -265,6 +265,11 @@ PyObject *M_Text3d_New( PyObject * self, PyObject * args )
 	bltext3d->str= MEM_mallocN(12, "str");
 	strcpy(bltext3d->str, "Text");
 	bltext3d->pos= 4;
+
+	bltext3d->strinfo= MEM_callocN(12*sizeof(CharInfo), "strinfo");
+	bltext3d->totbox= bltext3d->actbox= 1;
+	bltext3d->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "textbox");
+	bltext3d->tb[0].w = bltext3d->tb[0].h = 0.0;
 	
 	if( bltext3d == NULL )	/* bail out if add_curve() failed */
 		return ( EXPP_ReturnPyObjError

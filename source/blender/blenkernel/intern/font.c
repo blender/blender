@@ -658,6 +658,9 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	if (cu->strinfo==NULL) {	/* old file */
 		cu->strinfo = MEM_callocN((slen+1) * sizeof(CharInfo), "strinfo compat");
 	}
+	if (cu->tb==NULL) {
+		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBox compat");
+	}
 
 	vfd= vfont_get_data(vfont);
 	if(!vfd) goto errcse;
