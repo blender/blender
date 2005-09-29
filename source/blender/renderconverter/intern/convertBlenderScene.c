@@ -922,6 +922,75 @@ static Object *vlr_set_ob(Object *ob)
 
 /* ------------------------------------------------------------------------- */
 
+static void static_particle_strand(Object *ob, Material *ma, float *orco, float *vec, float *vec1, float ctime)
+{
+	static VertRen *v1= NULL, *v2= NULL;
+	VlakRen *vlr;
+	float nor[3], cross[3], w, dx, dy;
+	
+	VecSubf(nor, vec, vec1);
+	Normalise(nor);		// nor needed as tangent 
+	Crossf(cross, vec, nor);
+	
+	/* turn cross in pixelsize */
+	w= vec[2]*R.winmat[2][3] + R.winmat[3][3];
+	
+	dx= R.rectx*cross[0]*R.winmat[0][0]/w;
+	dy= R.recty*cross[1]*R.winmat[1][1]/w;
+	w= sqrt(dx*dx + dy*dy);
+	if(w!=0.0f)
+		VecMulf(cross, 1.0/w);
+	
+	if(ctime == 0.0f) {
+		v1= RE_findOrAddVert(R.totvert++);
+		v2= RE_findOrAddVert(R.totvert++);
+		
+		VECCOPY(v1->co, vec);
+		VecAddf(v1->co, v1->co, cross);
+		VECCOPY(v1->n, nor);
+		v2->orco= orco;
+		v1->accum= -1.0f;	// accum abuse for strand texco
+		
+		VECCOPY(v2->co, vec);
+		VecSubf(v2->co, v2->co, cross);
+		VECCOPY(v2->n, nor);
+		v2->orco= orco;
+		v2->accum= v1->accum;
+	}
+	else {
+		
+		vlr= RE_findOrAddVlak(R.totvlak++);
+		vlr->flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+		vlr->ob= vlr_set_ob(ob);
+		vlr->v1= v1;
+		vlr->v2= v2;
+		vlr->v3= RE_findOrAddVert(R.totvert++);
+		vlr->v4= RE_findOrAddVert(R.totvert++);
+		
+		v1= vlr->v4; // cycle
+		v2= vlr->v3; // cycle
+		
+		VECCOPY(vlr->v4->co, vec);
+		VecAddf(vlr->v4->co, vlr->v4->co, cross);
+		VECCOPY(vlr->v4->n, nor);
+		vlr->v4->orco= orco;
+		vlr->v4->accum= -1.0f + 2.0f*ctime;	// accum abuse for strand texco
+		
+		VECCOPY(vlr->v3->co, vec);
+		VecSubf(vlr->v3->co, vlr->v3->co, cross);
+		VECCOPY(vlr->v3->n, nor);
+		vlr->v3->orco= orco;
+		vlr->v3->accum= vlr->v4->accum;
+		
+		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+		
+		vlr->mat= ma;
+		vlr->ec= ME_V1V2|ME_V2V3;
+		vlr->lay= ob->lay;
+	}					
+	
+	
+}
 
 static void render_static_particle_system(Object *ob, PartEff *paf)
 {
@@ -1059,69 +1128,8 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					}
 					if(har) har->lay= ob->lay;
 				}
-				else {	/* generate pixel sized hair strands */
-					float cross[3], w, dx, dy;
-					
-					VecSubf(nor, vec, vec1);
-					Normalise(nor);		// nor needed as tangent 
-					Crossf(cross, vec, nor);
-					
-					/* turn cross in pixelsize */
-					w= vec[2]*R.winmat[2][3] + R.winmat[3][3];
-					
-					dx= R.rectx*cross[0]*R.winmat[0][0]/w;
-					dy= R.recty*cross[1]*R.winmat[1][1]/w;
-					w= sqrt(dx*dx + dy*dy);
-					if(w!=0.0f)
-						VecMulf(cross, 1.0/w);
-					
-					if(ctime == pa->time) {
-						v1= RE_findOrAddVert(R.totvert++);
-						v2= RE_findOrAddVert(R.totvert++);
-						
-						VECCOPY(v1->co, vec);
-						VecAddf(v1->co, v1->co, cross);
-						VECCOPY(v1->n, nor);
-						v2->orco= orco;
-						v1->accum= (ctime-pa->time)/(mtime-pa->time);	// accum abuse for strand texco
-						
-						VECCOPY(v2->co, vec);
-						VecSubf(v2->co, v2->co, cross);
-						VECCOPY(v2->n, nor);
-						v2->orco= orco;
-						v2->accum= v1->accum;
-					}
-					else {
-						
-						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
-						vlr->ob= vlr_set_ob(ob);
-						vlr->v1= v1;
-						vlr->v2= v2;
-						vlr->v3= RE_findOrAddVert(R.totvert++);
-						vlr->v4= RE_findOrAddVert(R.totvert++);
-						
-						v1= vlr->v4; // cycle
-						v2= vlr->v3; // cycle
-
-						VECCOPY(vlr->v4->co, vec);
-						VecAddf(vlr->v4->co, vlr->v4->co, cross);
-						VECCOPY(vlr->v4->n, nor);
-						vlr->v4->orco= orco;
-						vlr->v4->accum= (ctime-pa->time)/(mtime-pa->time);	// accum abuse for strand texco
-
-						VECCOPY(vlr->v3->co, vec);
-						VecSubf(vlr->v3->co, vlr->v3->co, cross);
-						VECCOPY(vlr->v3->n, nor);
-						vlr->v3->orco= orco;
-						vlr->v3->accum= vlr->v4->accum;
-						
-						CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-						
-						vlr->mat= ma;
-						vlr->ec= ME_V1V2|ME_V2V3;
-						vlr->lay= ob->lay;
-					}					
+				else {	/* generate pixel sized hair strand */
+					static_particle_strand(ob, ma, orco, vec, vec1, (ctime-pa->time)/(mtime-pa->time));
 				}
 			}
 			
