@@ -835,7 +835,6 @@ int view3d_test_clipping(View3D *v3d, float *vec)
 	float view[3];
 	
 	VECCOPY(view, vec);
-	Mat4MulVecfl(v3d->viewmat, view);
 	
 	if(0.0f < v3d->clip[0][3] + INPR(view, v3d->clip[0]))
 		if(0.0f < v3d->clip[1][3] + INPR(view, v3d->clip[1]))

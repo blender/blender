@@ -268,11 +268,12 @@ void view3d_get_object_project_mat(ScrArea *area, Object *ob, float pmat[4][4], 
 
 		Mat4MulMat4(vmat, ob->obmat, vd->viewmat);
 		Mat4MulMat4(pmat, vmat, vd->winmat1);
+		Mat4CpyMat4(vmat, ob->obmat);
 	}
 }
 
-/* projectmat brings it to window coords, viewmat to rotated view (eye space) */
-void view3d_project_short_clip(ScrArea *area, float *vec, short *adr, float projmat[4][4], float viewmat[4][4])
+/* projectmat brings it to window coords, wmat to rotated world space */
+void view3d_project_short_clip(ScrArea *area, float *vec, short *adr, float projmat[4][4], float wmat[4][4])
 {
 	View3D *v3d= area->spacedata.first;
 	float fx, fy, vec4[4];
@@ -282,7 +283,7 @@ void view3d_project_short_clip(ScrArea *area, float *vec, short *adr, float proj
 	/* clipplanes in eye space */
 	if(v3d->flag & V3D_CLIPPING) {
 		VECCOPY(vec4, vec);
-		Mat4MulVecfl(viewmat, vec4);
+		Mat4MulVecfl(wmat, vec4);
 		if(view3d_test_clipping(v3d, vec4))
 			return;
 	}
