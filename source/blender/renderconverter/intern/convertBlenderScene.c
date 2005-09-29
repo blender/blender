@@ -1464,7 +1464,7 @@ static void init_render_mesh(Object *ob)
 						v2= mface->v2;
 						v3= mface->v3;
 						v4= mface->v4;
-						flag= mface->flag;
+						flag= mface->flag & ME_SMOOTH;
 						
 						vlr= RE_findOrAddVlak(R.totvlak++);
 						vlr->ob= vlr_set_ob(ob);
