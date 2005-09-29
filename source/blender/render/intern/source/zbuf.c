@@ -770,6 +770,117 @@ static void zbufline(int zvlnr, float *vec1, float *vec2)
 	}
 }
 
+static void zbufline_onlyZ(int zvlnr, float *vec1, float *vec2)
+{
+	int *rectz;
+	int start, end, x, y, oldx, oldy, ofs;
+	int dz, vergz, maxtest= 0;
+	float dx, dy;
+	float v1[3], v2[3];
+	
+	dx= vec2[0]-vec1[0];
+	dy= vec2[1]-vec1[1];
+	
+	if(fabs(dx) > fabs(dy)) {
+		
+		/* all lines from left to right */
+		if(vec1[0]<vec2[0]) {
+			VECCOPY(v1, vec1);
+			VECCOPY(v2, vec2);
+		}
+		else {
+			VECCOPY(v2, vec1);
+			VECCOPY(v1, vec2);
+			dx= -dx; dy= -dy;
+		}
+		
+		start= floor(v1[0]);
+		end= start+floor(dx);
+		if(end>=R.rectx) end= R.rectx-1;
+		
+		oldy= floor(v1[1]);
+		dy/= dx;
+		
+		vergz= floor(v1[2]);
+		dz= floor((v2[2]-v1[2])/dx);
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		
+		rectz= R.rectz+ oldy*R.rectx+ start;
+		
+		if(dy<0) ofs= -R.rectx;
+		else ofs= R.rectx;
+		
+		for(x= start; x<=end; x++, rectz++) {
+			
+			y= floor(v1[1]);
+			if(y!=oldy) {
+				oldy= y;
+				rectz+= ofs;
+			}
+			
+			if(x>=0 && y>=0 && y<R.recty) {
+				if(vergz<*rectz) {
+					*rectz= vergz;
+				}
+			}
+			
+			v1[1]+= dy;
+			
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
+		}
+	}
+	else {
+		/* all lines from top to bottom */
+		if(vec1[1]<vec2[1]) {
+			VECCOPY(v1, vec1);
+			VECCOPY(v2, vec2);
+		}
+		else {
+			VECCOPY(v2, vec1);
+			VECCOPY(v1, vec2);
+			dx= -dx; dy= -dy;
+		}
+		
+		start= floor(v1[1]);
+		end= start+floor(dy);
+		
+		if(end>=R.recty) end= R.recty-1;
+		
+		oldx= floor(v1[0]);
+		dx/= dy;
+		
+		vergz= floor(v1[2]);
+		dz= floor((v2[2]-v1[2])/dy);
+		if(vergz>0x50000000 && dz>0) maxtest= 1;		// prevent overflow
+		
+		rectz= R.rectz+ start*R.rectx+ oldx;
+		
+		if(dx<0) ofs= -1;
+		else ofs= 1;
+		
+		for(y= start; y<=end; y++, rectz+=R.rectx) {
+			
+			x= floor(v1[0]);
+			if(x!=oldx) {
+				oldx= x;
+				rectz+= ofs;
+			}
+			
+			if(x>=0 && y>=0 && x<R.rectx) {
+				if(vergz<*rectz) {
+					*rectz= vergz;
+				}
+			}
+			
+			v1[0]+= dx;
+			if(maxtest && (vergz > 0x7FFFFFF0 - dz)) vergz= 0x7FFFFFF0;
+			else vergz+= dz;
+		}
+	}
+}
+
+
 static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 {
 	float dz,dw, u1=0.0, u2=1.0;
@@ -2073,8 +2184,9 @@ void zbuffershad(LampRen *lar)
 
 	fillrect(R.rectz,R.rectx,R.recty,0x7FFFFFFE);
 
+	zbuflinefunc= zbufline_onlyZ;
 	zbuffunc= zbufinvulGL_onlyZ;
-
+				
 	for(a=0;a<R.totvlak;a++) {
 
 		if((a & 255)==0) vlr= R.blovl[a>>8];
@@ -2087,8 +2199,12 @@ void zbuffershad(LampRen *lar)
 		}
 		
 		if(ok && (vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
-			zbufclip(0, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
-			if(vlr->v4) zbufclip(0, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+			if(ma->mode & MA_WIRE) zbufclipwire(a+1, vlr);
+			else if(vlr->flag & R_TANGENT) zbufclipwire(a+1, vlr);
+			else {
+				zbufclip(0, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+				if(vlr->v4) zbufclip(0, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+			}
 		}
 	}
 }

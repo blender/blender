@@ -985,7 +985,7 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 		
 		vlr->mat= ma;
-		vlr->ec= ME_V1V2|ME_V2V3;
+		vlr->ec= ME_V2V3;
 		vlr->lay= ob->lay;
 	}					
 	
