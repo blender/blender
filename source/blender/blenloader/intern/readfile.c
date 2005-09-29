@@ -2881,6 +2881,9 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					}
 					else if(v3d->scenelock) v3d->lay= sc->scene->lay;
 					
+					/* not very nice, but could help */
+					if((v3d->layact & v3d->lay)==0) v3d->layact= v3d->lay;
+					
 				}
 				else if(sl->spacetype==SPACE_IPO) {
 					SpaceIpo *sipo= (SpaceIpo *)sl;
