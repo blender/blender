@@ -491,6 +491,8 @@ static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
 						"expected string argument" ) );
 	if( self ) {
 		MEM_freeN( self->curve->str );
+		MEM_freeN(self->curve->strinfo);
+		self->curve->strinfo = MEM_callocN((strlen(text)+1)*sizeof(CharInfo), "strinfo");
 		self->curve->str = MEM_mallocN( strlen (text)+1, "str" );
 		strcpy( self->curve->str, text );
 		self->curve->pos = (short)strlen ( text );
