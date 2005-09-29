@@ -820,7 +820,10 @@ Object *copy_object(Object *ob)
 	copy_controllers(&obn->controllers, &ob->controllers);
 	copy_actuators(&obn->actuators, &ob->actuators);
 	
-	copy_pose(&obn->pose, ob->pose, 1);
+	if(ob->pose) {
+		copy_pose(&obn->pose, ob->pose, 1);
+		armature_rebuild_pose(obn, obn->data);
+	}
 	copy_defgroups(&obn->defbase, &ob->defbase);
 	copy_nlastrips(&obn->nlastrips, &ob->nlastrips);
 	copy_constraints (&obn->constraints, &ob->constraints);

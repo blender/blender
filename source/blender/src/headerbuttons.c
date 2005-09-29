@@ -1712,6 +1712,7 @@ void do_global_buttons2(short event)
 			if(arm->id.us>1) {
 				if(okee("Single user")) {
 					ob->data= copy_armature(arm);
+					armature_rebuild_pose(ob, ob->data);
 					arm->id.us--;
 				}
 			}

@@ -933,7 +933,7 @@ static int rebuild_pose_bone(bPose *pose, Bone *bone, bPoseChannel *parchan, int
 	return counter;
 }
 
-/* only after leave editmode, but also for validating older files */
+/* only after leave editmode, duplicating, but also for validating older files */
 /* NOTE: pose->flag is set for it */
 void armature_rebuild_pose(Object *ob, bArmature *arm)
 {

@@ -2266,6 +2266,7 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 		chan->parent= newdataadr(fd, chan->parent);
 		chan->child= newdataadr(fd, chan->child);
 		direct_link_constraints(fd, &chan->constraints);
+		chan->iktree.first= chan->iktree.last= NULL;
 	}
 
 }

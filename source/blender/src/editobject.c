@@ -3666,7 +3666,9 @@ void single_obdata_users(int flag)
 					ob->data= copy_lattice(ob->data);
 					break;
 				case OB_ARMATURE:
-					ob->data=copy_armature(ob->data);
+					ob->recalc |= OB_RECALC_DATA;
+					ob->data= copy_armature(ob->data);
+					armature_rebuild_pose(ob, ob->data);
 					break;
 				default:
 					printf("ERROR single_obdata_users: %s\n", id->name);
@@ -4253,6 +4255,7 @@ void adduplicate(int noTrans)
 						ID_NEW_US2(obn->data )
 						else {
 							obn->data= copy_armature(obn->data);
+							armature_rebuild_pose(obn, obn->data);
 							didit= 1;
 						}
 						id->us--;
