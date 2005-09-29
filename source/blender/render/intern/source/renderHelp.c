@@ -289,11 +289,12 @@ void set_normalflags(void)
 		
 		/* recalculate puno. Displace & flipped matrices can screw up */
 		vlr->puno= 0;
-		if( Inpf(vlr->n, vlr->v1->n) < 0.0 ) vlr->puno |= ME_FLIPV1;
-		if( Inpf(vlr->n, vlr->v2->n) < 0.0 ) vlr->puno |= ME_FLIPV2;
-		if( Inpf(vlr->n, vlr->v3->n) < 0.0 ) vlr->puno |= ME_FLIPV3;
-		if(vlr->v4 && Inpf(vlr->n, vlr->v4->n) < 0.0 ) vlr->puno |= ME_FLIPV4;
-				
+		if(!(vlr->flag & R_TANGENT)) {
+			if( Inpf(vlr->n, vlr->v1->n) < 0.0 ) vlr->puno |= ME_FLIPV1;
+			if( Inpf(vlr->n, vlr->v2->n) < 0.0 ) vlr->puno |= ME_FLIPV2;
+			if( Inpf(vlr->n, vlr->v3->n) < 0.0 ) vlr->puno |= ME_FLIPV3;
+			if(vlr->v4 && Inpf(vlr->n, vlr->v4->n) < 0.0 ) vlr->puno |= ME_FLIPV4;
+		}				
 		xn= fabs(vlr->n[0]);
 		yn= fabs(vlr->n[1]);
 		zn= fabs(vlr->n[2]);

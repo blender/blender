@@ -76,14 +76,16 @@ extern struct ListBase editNurb;
 #include "DNA_world_types.h"	/* for render_types */
 #include "render_types.h"
 extern struct RE_Render R;
-float Blinn_Spec(float *n, float *l, float *v, float a, float b);
-float Phong_Spec(float *, float *, float *, int);
-float CookTorr_Spec(float *n, float *l, float *v, int hard);
-float Toon_Spec(float *n, float *l, float *v, float a, float b);
-float WardIso_Spec(float *n, float *l, float *v, float a);
+float Blinn_Spec(float *n, float *l, float *v, float a, float b, int);
+float Phong_Spec(float *, float *, float *, int, int);
+float CookTorr_Spec(float *n, float *l, float *v, int hard, int);
+float Toon_Spec(float *n, float *l, float *v, float a, float b, int);
+float WardIso_Spec(float *n, float *l, float *v, float a, int);
+
 float Toon_Diff(float *n, float *l, float *v, float a, float b);
 float OrenNayar_Diff(float *n, float *l, float *v, float rough);
 float Minnaert_Diff(float nl, float *n, float *v, float a);
+
 void add_to_diffuse(float *, ShadeInput *, float, float, float, float);
 void ramp_diffuse_result(float *diff, ShadeInput *shi);
 void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);

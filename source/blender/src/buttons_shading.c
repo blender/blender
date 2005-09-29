@@ -44,28 +44,30 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
+#include "DNA_image_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
+#include "DNA_object_types.h"
+#include "DNA_packedFile_types.h"
+#include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_material_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_object_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_world_types.h"
-#include "DNA_view3d_types.h"
-#include "DNA_image_types.h"
-#include "DNA_packedFile_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_world_types.h"
 
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_library.h"
-#include "BKE_utildefines.h"
-#include "BKE_material.h"
-#include "BKE_texture.h"
 #include "BKE_displist.h"
-#include "DNA_radio_types.h"
+#include "BKE_effect.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
+#include "BKE_utildefines.h"
+#include "BKE_texture.h"
+
 #include "BKE_packedFile.h"
 #include "BKE_plugin_types.h"
 #include "BKE_image.h"
@@ -2704,7 +2706,7 @@ static void material_panel_map_to(Material *ma)
 }
 
 
-static void material_panel_map_input(Material *ma)
+static void material_panel_map_input(Object *ob, Material *ma)
 {
 	uiBlock *block;
 	MTex *mtex;
@@ -2728,7 +2730,10 @@ static void material_panel_map_input(Material *ma)
 	
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original coordinates of the mesh");
-	uiDefButS(block, ROW, B_MATPRV, "Stick",		725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
+	if( give_parteff(ob) )
+		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
+	else
+		uiDefButS(block, ROW, B_MATPRV, "Stick",		725,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Win",			775,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_WINDOW, 0, 0, "Uses screen coordinates as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Nor",			820,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_NORM, 0, 0, "Uses normal vector as texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Refl",			864,146,44,18, &(mtex->texco), 4.0, (float)TEXCO_REFL, 0, 0, "Uses reflection vector as texture coordinates");
@@ -3278,7 +3283,7 @@ void material_panels()
 			
 			mtex= ma->mtex[ ma->texact ];
 			if(mtex && mtex->tex) {
-				material_panel_map_input(ma);
+				material_panel_map_input(ob, ma);
 				material_panel_map_to(ma);
 			}
 		}

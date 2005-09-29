@@ -1471,6 +1471,15 @@ void do_material_tex(ShadeInput *shi)
 			else if(mtex->texco==TEXCO_WINDOW) {
 				co= shi->winco; dx= shi->dxwin; dy= shi->dywin;
 			}
+			else if(mtex->texco==TEXCO_STRAND) {
+				co= tempvec; dx= dxt; dy= dyt;
+				co[0]= shi->strand;
+				co[1]= co[2]= 0.0f;
+				dx[0]= shi->dxstrand;
+				dx[1]= dx[2]= 0.0f;
+				dy[0]= shi->dystrand;
+				dy[1]= dy[2]= 0.0f;
+			}
 			else continue;	// can happen when texco defines disappear and it renders old files
 			
 			/* de pointer defines if bumping happens */

@@ -107,14 +107,16 @@ ListBase editNurb;
 #include "render_types.h"
 struct RE_Render R;
 
-float Phong_Spec(float *n, float *l, float *v, int hard){return 0;}
-float Blinn_Spec(float *n, float *l, float *v, float a, float b){return 0;}
-float CookTorr_Spec(float *n, float *l, float *v, int hard){return 0;}
-float Toon_Spec(float *n, float *l, float *v, float a, float b){return 0;}
-float WardIso_Spec(float *n, float *l, float *v, float a){return 0;}
+float Phong_Spec(float *n, float *l, float *v, int hard, int tangent){return 0;}
+float Blinn_Spec(float *n, float *l, float *v, float a, float b, int tangent){return 0;}
+float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent){return 0;}
+float Toon_Spec(float *n, float *l, float *v, float a, float b, int tangent){return 0;}
+float WardIso_Spec(float *n, float *l, float *v, float a, int tangent){return 0;}
+
 float Toon_Diff(float *n, float *l, float *v, float a, float b){return 0;}
 float OrenNayar_Diff(float *n, float *l, float *v, float rough){return 0;}
 float Minnaert_Diff(float nl, float *n, float *v, float a){return 0;}
+
 void add_to_diffuse(float *diff, ShadeInput *shi, float is, float r, float g, float b){}
 void ramp_diffuse_result(float *diff, ShadeInput *shi){}
 void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec){}

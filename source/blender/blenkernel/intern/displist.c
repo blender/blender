@@ -561,15 +561,15 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			float specfac;
 			
 			if(ma->spec_shader==MA_SPEC_PHONG) 
-				specfac= Phong_Spec(nor, lv, shi.view, shi.har);
+				specfac= Phong_Spec(nor, lv, shi.view, shi.har, 0);
 			else if(ma->spec_shader==MA_SPEC_COOKTORR) 
-				specfac= CookTorr_Spec(nor, lv, shi.view, shi.har);
+				specfac= CookTorr_Spec(nor, lv, shi.view, shi.har, 0);
 			else if(ma->spec_shader==MA_SPEC_BLINN) 
-				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)shi.har);
+				specfac= Blinn_Spec(nor, lv, shi.view, ma->refrac, (float)shi.har, 0);
 			else if(ma->spec_shader==MA_SPEC_WARDISO)
-				specfac= WardIso_Spec(nor, lv, shi.view, ma->rms);
+				specfac= WardIso_Spec(nor, lv, shi.view, ma->rms, 0);
 			else 
-				specfac= Toon_Spec(nor, lv, shi.view, ma->param[2], ma->param[3]);
+				specfac= Toon_Spec(nor, lv, shi.view, ma->param[2], ma->param[3], 0);
 			
 			if(specfac>0) {
 				t= specfac*shi.spec*lampdist;

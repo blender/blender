@@ -795,6 +795,9 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		if(mat->texco & TEXCO_UV) {
 			VECCOPY(shi->uv, shi->lo);
 		}
+		if(mat->texco & TEXCO_STRAND) {
+			shi->strand= shi->lo[0];
+		}
 		if(mat->texco & TEXCO_OBJECT) {
 			VECCOPY(shi->co, shi->lo);
 		}
@@ -883,15 +886,15 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 					float specfac;
 					
 					if(mat->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har);
+						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har, 0);
 					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har);
+						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har, 0);
 					else if(mat->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har);
+						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har, 0);
 					else if(mat->spec_shader==MA_SPEC_WARDISO)
-						specfac= WardIso_Spec(shi->vn, lv, shi->view, mat->rms);
+						specfac= WardIso_Spec(shi->vn, lv, shi->view, mat->rms, 0);
 					else 
-						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3]);
+						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3], 0);
 				
 					inprspec= specfac*shi->spec;
 					

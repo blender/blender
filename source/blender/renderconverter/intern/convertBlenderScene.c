@@ -120,33 +120,8 @@ extern void error (char *fmt, ...);  /* defined in BIF_toolbox.h, but we dont ne
 /* Local functions                                                           */
 /* ------------------------------------------------------------------------- */
 static Material *give_render_material(Object *ob, int nr);
-
-
-
-/* blenderWorldManipulation.c */
-static int contrpuntnormr(float *n, float *puno);
-static void as_addvert(VertRen *v1, VlakRen *vlr);
-static void as_freevert(VertRen *ver);
-static void autosmooth(int startvert, int startvlak, int degr);
-static void render_particle_system(Object *ob, PartEff *paf);
-static void render_static_particle_system(Object *ob, PartEff *paf);
-static int verghalo(const void *a1, const void *a2);
-static void sort_halos(void);
-static void init_render_mball(Object *ob);
-static void init_render_mesh(Object *ob);
-static void init_render_surf(Object *ob);
-static void init_render_curve(Object *ob);
-static void init_render_object(Object *ob);
-static HaloRen *initstar(float *vec, float hasize);
-
-/* Displacement Texture */
-static void displace_render_face(VlakRen *vlr, float *scale);
-static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert);
 static short test_for_displace(Object *ob);
-static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale);
-
-/* more prototypes for autosmoothing below */
-
+static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert );
 
 /* ------------------------------------------------------------------------- */
 /* tool functions/defines for ad hoc simplification and possible future 
@@ -172,6 +147,25 @@ u	|     |  F1 |  F2 |
    this code may move down to the converter.  */
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
+
+/* more star stuff, here used to be a cliptest, removed for envmap render or panorama... */
+static HaloRen *initstar(float *vec, float hasize)
+{
+	HaloRen *har;
+	float hoco[4];
+	
+	RE_projectverto(vec, hoco);
+	
+	har= RE_findOrAddHalo(R.tothalo++);
+	
+	/* projectvert is done in function zbufvlaggen again, because of parts */
+	VECCOPY(har->co, vec);
+	har->hasize= hasize;
+	
+	har->zd= 0.0;
+	
+	return har;
+}
 
 extern unsigned char hash[512];
 
@@ -315,27 +309,6 @@ void RE_make_stars(void (*initfunc)(void),
 	}
 	if (termfunc) termfunc();
 }
-
-/* ------------------------------------------------------------------------ */
-/* more star stuff, here used to be a cliptest, removed for envmap render or panorama... */
-static HaloRen *initstar(float *vec, float hasize)
-{
-	HaloRen *har;
-	float hoco[4];
-
-	RE_projectverto(vec, hoco);
-
-	har= RE_findOrAddHalo(R.tothalo++);
-
-	/* projectvert is done in function zbufvlaggen again, because of parts */
-	VECCOPY(har->co, vec);
-	har->hasize= hasize;
-
-	har->zd= 0.0;
-
-	return har;
-}
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -740,6 +713,48 @@ static void autosmooth(int startvert, int startvlak, int degr)
 /* End of autosmoothing:                                                     */
 /* ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------- */
+/* Orco hash																 */
+/* ------------------------------------------------------------------------- */
+
+
+static GHash *g_orco_hash = NULL;
+
+static float *get_object_orco(Object *ob)
+{
+	float *orco;
+	
+	if (!g_orco_hash)
+		g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	orco = BLI_ghash_lookup(g_orco_hash, ob);
+	
+	if (!orco) {
+		if (ob->type==OB_MESH) {
+			orco = mesh_create_orco_render(ob);
+		} else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+			orco = make_orco_curve(ob);
+		} else if (ob->type==OB_SURF) {
+			orco = make_orco_surf(ob);
+		}
+		
+		if (orco)
+			BLI_ghash_insert(g_orco_hash, ob, orco);
+	}
+	
+	return orco;
+}
+static void free_mesh_orco_hash(void) 
+{
+	if (g_orco_hash) {
+		BLI_ghash_free(g_orco_hash, NULL, (GHashValFreeFP)MEM_freeN);
+		g_orco_hash = NULL;
+	}
+}
+
+/* ******************** END ORCO HASH ***************** */
+
+
 static void make_render_halos(Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
 {
 	HaloRen *har;
@@ -905,16 +920,8 @@ static Object *vlr_set_ob(Object *ob)
 	return ob;
 }
 
-static float strand_orcos[256][3];
-static void particle_orcos(void)
-{
-	int a;
-	
-	for(a=0; a<256; a++) {
-		strand_orcos[a][0]= ((float)a)/255.0f;
-		strand_orcos[a][1]=strand_orcos[a][2]= 0.0f;
-	}
-}
+/* ------------------------------------------------------------------------- */
+
 
 static void render_static_particle_system(Object *ob, PartEff *paf)
 {
@@ -926,7 +933,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	float *orco= NULL;
-	int a, mat_nr=1, seed, totvlako, totverto;
+	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
 	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
@@ -943,13 +950,13 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 
 	MTC_Mat3CpyMat4(imat, ob->imat);
-
-	totvlako= R.totvlak;
-	totverto= R.totvert;
 	
 	/* orcos */
 	if(!(ma->mode & (MA_HALO|MA_WIRE))) {
-		particle_orcos();
+		orco= MEM_mallocN(3*sizeof(float)*paf->totpart, "static particle orcos");
+		if (!g_orco_hash)
+			g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+		BLI_ghash_insert(g_orco_hash, ob, orco);
 	}
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
@@ -958,8 +965,9 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	seed= ma->seed1;
 
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
-
+		
 		where_is_particle(paf, pa, pa->time, vec1);
+		if(orco) VECCOPY(orco, vec1);
 		MTC_Mat4MulVecfl(mat, vec1);
 		
 		mtime= pa->time+pa->lifetime+paf->staticstep-1;
@@ -1055,6 +1063,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					float cross[3], w, dx, dy;
 					
 					VecSubf(nor, vec, vec1);
+					Normalise(nor);		// nor needed as tangent 
 					Crossf(cross, vec, nor);
 					
 					/* turn cross in pixelsize */
@@ -1072,16 +1081,20 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 						
 						VECCOPY(v1->co, vec);
 						VecAddf(v1->co, v1->co, cross);
-						v1->orco= strand_orcos[ (int)( 255.0*(ctime-pa->time)/(mtime-pa->time) )];
-
+						VECCOPY(v1->n, nor);
+						v2->orco= orco;
+						v1->accum= (ctime-pa->time)/(mtime-pa->time);	// accum abuse for strand texco
+						
 						VECCOPY(v2->co, vec);
 						VecSubf(v2->co, v2->co, cross);
-						v2->orco= v1->orco;
+						VECCOPY(v2->n, nor);
+						v2->orco= orco;
+						v2->accum= v1->accum;
 					}
 					else {
 						
 						vlr= RE_findOrAddVlak(R.totvlak++);
-						vlr->flag= ME_SMOOTH;
+						vlr->flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
 						vlr->ob= vlr_set_ob(ob);
 						vlr->v1= v1;
 						vlr->v2= v2;
@@ -1093,11 +1106,15 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 
 						VECCOPY(vlr->v4->co, vec);
 						VecAddf(vlr->v4->co, vlr->v4->co, cross);
-						vlr->v4->orco= strand_orcos[ (int)( 255.0*(ctime-pa->time)/(mtime-pa->time) )];
+						VECCOPY(vlr->v4->n, nor);
+						vlr->v4->orco= orco;
+						vlr->v4->accum= (ctime-pa->time)/(mtime-pa->time);	// accum abuse for strand texco
 
 						VECCOPY(vlr->v3->co, vec);
 						VecSubf(vlr->v3->co, vlr->v3->co, cross);
-						vlr->v3->orco= vlr->v4->orco;
+						VECCOPY(vlr->v3->n, nor);
+						vlr->v3->orco= orco;
+						vlr->v3->accum= vlr->v4->accum;
 						
 						CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
 						
@@ -1110,11 +1127,10 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 			
 			VECCOPY(vec1, vec);
 		}
+		
 		seed++;
+		if(orco) orco+=3;
 	}
-
-	calc_vertexnormals(totverto, totvlako);
-
 }
 
 
@@ -1299,39 +1315,6 @@ static void init_render_mball(Object *ob)
 /* ------------------------------------------------------------------------- */
 /* convert */
 
-static GHash *g_orco_hash = NULL;
-
-static float *get_object_orco(Object *ob)
-{
-	float *orco;
-
-	if (!g_orco_hash)
-		g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-
-	orco = BLI_ghash_lookup(g_orco_hash, ob);
-
-	if (!orco) {
-		if (ob->type==OB_MESH) {
-			orco = mesh_create_orco_render(ob);
-		} else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
-			orco = make_orco_curve(ob);
-		} else if (ob->type==OB_SURF) {
-			orco = make_orco_surf(ob);
-		}
-
-		if (orco)
-			BLI_ghash_insert(g_orco_hash, ob, orco);
-	}
-
-	return orco;
-}
-static void free_mesh_orco_hash(void) 
-{
-	if (g_orco_hash) {
-		BLI_ghash_free(g_orco_hash, NULL, (GHashValFreeFP)MEM_freeN);
-		g_orco_hash = NULL;
-	}
-}
 
 static void init_render_mesh(Object *ob)
 {
@@ -2832,107 +2815,6 @@ static short test_for_displace(Object *ob)
 	return 0;
 }
 
-
-static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert )
-{
-	VertRen *vr;
-	VlakRen *vlr;
-//	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
-	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
-	int i; //, texflag=0;
-	Object *obt;
-		
-	/* Object Size with parenting */
-	obt=ob;
-	while(obt){
-		VecAddf(temp, obt->size, obt->dsize);
-		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
-		obt=obt->parent;
-	}
-	
-	/* Clear all flags */
-	for(i=startvert; i<startvert+numvert; i++){ 
-		vr= RE_findOrAddVert(i);
-		vr->flag= 0;
-	}
-	
-	for(i=startface; i<startface+numface; i++){
-		vlr=RE_findOrAddVlak(i);
-		displace_render_face(vlr, scale);
-	}
-	
-	/* Recalc vertex normals */
-	calc_vertexnormals(startvert, startface);
-}
-
-static void displace_render_face(VlakRen *vlr, float *scale)
-{
-	ShadeInput shi;
-//	VertRen vr;
-//	float samp1,samp2, samp3, samp4, xn;
-	short hasuv=0;
-	/* set up shadeinput struct for multitex() */
-	
-	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
-	shi.vlr= vlr;		/* current render face */
-	shi.mat= vlr->mat;		/* current input material */
-
-	
-	/* UV coords must come from face */
-	hasuv = vlr->tface && (shi.mat->texco & TEXCO_UV);
-	if (hasuv) shi.uv[2]=0.0f; 
-	/* I don't think this is used, but seting it just in case */
-	
-	/* Displace the verts, flag is set when done */
-	if (! (vlr->v1->flag)){		
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
-			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
-		}
-		displace_render_vert(&shi, vlr->v1, scale);
-	}
-	
-	if (! (vlr->v2->flag)) {
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
-			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
-		}
-		displace_render_vert(&shi, vlr->v2, scale);
-	}
-	
- 	if (! (vlr->v3->flag)) {
-		if (hasuv)	{
-			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
-			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
-		}	
-		displace_render_vert(&shi, vlr->v3, scale);
-	}
-			
-	if (vlr->v4) {
-		if (! (vlr->v4->flag)) {
-		 	if (hasuv)	{
-				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
-				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
-			}	
-			displace_render_vert(&shi, vlr->v4, scale);
-		}
-		/* We want to split the quad along the opposite verts that are */
-		/*	closest in displace value.  This will help smooth edges.   */ 
-		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
-				vlr->flag |= R_DIVIDE_24;
-		else vlr->flag &= ~R_DIVIDE_24;	// E: typo?, was missing '='
-	}
-	
-	/* Recalculate the face normal  - if flipped before, flip now */
-	if(vlr->v4) {
-		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-	}	
-	else {
-		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-	}
-	
-}
-
 static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 {
 	short texco= shi->mat->texco;
@@ -2973,9 +2855,9 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	vr->co[2] +=  shi->displace[2] * scale[2] ; 
 	
 	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
-
+	
 	/* we just don't do this vertex again, bad luck for other face using same vertex with
-	   different material... */
+		different material... */
 	vr->flag |= 1;
 	
 	/* Pass sample back so displace_face can decide which way to split the quad */
@@ -2987,3 +2869,105 @@ static void displace_render_vert(ShadeInput *shi, VertRen *vr, float *scale)
 	/* Should be sqrt(sample), but I'm only looking for "bigger".  Save the cycles. */
 	return;
 }
+
+static void displace_render_face(VlakRen *vlr, float *scale)
+{
+	ShadeInput shi;
+	//	VertRen vr;
+	//	float samp1,samp2, samp3, samp4, xn;
+	short hasuv=0;
+	/* set up shadeinput struct for multitex() */
+	
+	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
+	shi.vlr= vlr;		/* current render face */
+	shi.mat= vlr->mat;		/* current input material */
+	
+	
+	/* UV coords must come from face */
+	hasuv = vlr->tface && (shi.mat->texco & TEXCO_UV);
+	if (hasuv) shi.uv[2]=0.0f; 
+	/* I don't think this is used, but seting it just in case */
+	
+	/* Displace the verts, flag is set when done */
+	if (! (vlr->v1->flag)){		
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[0][0]-1.0f; /* shi.uv and tface->uv are */
+			shi.uv[1]=  2*vlr->tface->uv[0][1]-1.0f; /* scalled differently 	 */
+		}
+		displace_render_vert(&shi, vlr->v1, scale);
+	}
+	
+	if (! (vlr->v2->flag)) {
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[1][0]-1.0f; 
+			shi.uv[1]=  2*vlr->tface->uv[1][1]-1.0f;
+		}
+		displace_render_vert(&shi, vlr->v2, scale);
+	}
+	
+ 	if (! (vlr->v3->flag)) {
+		if (hasuv)	{
+			shi.uv[0] = 2*vlr->tface->uv[2][0]-1.0f; 
+			shi.uv[1]=  2*vlr->tface->uv[2][1]-1.0f;
+		}	
+		displace_render_vert(&shi, vlr->v3, scale);
+	}
+	
+	if (vlr->v4) {
+		if (! (vlr->v4->flag)) {
+		 	if (hasuv)	{
+				shi.uv[0] = 2*vlr->tface->uv[3][0]-1.0f; 
+				shi.uv[1]=  2*vlr->tface->uv[3][1]-1.0f;
+			}	
+			displace_render_vert(&shi, vlr->v4, scale);
+		}
+		/* We want to split the quad along the opposite verts that are */
+		/*	closest in displace value.  This will help smooth edges.   */ 
+		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
+			vlr->flag |= R_DIVIDE_24;
+		else vlr->flag &= ~R_DIVIDE_24;	// E: typo?, was missing '='
+	}
+	
+	/* Recalculate the face normal  - if flipped before, flip now */
+	if(vlr->v4) {
+		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+	}	
+	else {
+		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+	}
+	
+}
+
+
+static void do_displacement(Object *ob, int startface, int numface, int startvert, int numvert )
+{
+	VertRen *vr;
+	VlakRen *vlr;
+//	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
+	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
+	int i; //, texflag=0;
+	Object *obt;
+		
+	/* Object Size with parenting */
+	obt=ob;
+	while(obt){
+		VecAddf(temp, obt->size, obt->dsize);
+		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
+		obt=obt->parent;
+	}
+	
+	/* Clear all flags */
+	for(i=startvert; i<startvert+numvert; i++){ 
+		vr= RE_findOrAddVert(i);
+		vr->flag= 0;
+	}
+	
+	for(i=startface; i<startface+numface; i++){
+		vlr=RE_findOrAddVlak(i);
+		displace_render_face(vlr, scale);
+	}
+	
+	/* Recalc vertex normals */
+	calc_vertexnormals(startvert, startface);
+}
+

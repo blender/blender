@@ -658,15 +658,10 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	rad[3]= saacos_d(rad[3]);
 
 	/* Stoke formula */
-	VECMUL(cross[0], rad[0]);
-	VECMUL(cross[1], rad[1]);
-	VECMUL(cross[2], rad[2]);
-	VECMUL(cross[3], rad[3]);
-
-	fac=  vn[0]*cross[0][0]+ vn[1]*cross[0][1]+ vn[2]*cross[0][2];
-	fac+= vn[0]*cross[1][0]+ vn[1]*cross[1][1]+ vn[2]*cross[1][2];
-	fac+= vn[0]*cross[2][0]+ vn[1]*cross[2][1]+ vn[2]*cross[2][2];
-	fac+= vn[0]*cross[3][0]+ vn[1]*cross[3][1]+ vn[2]*cross[3][2];
+	fac=  rad[0]*(vn[0]*cross[0][0]+ vn[1]*cross[0][1]+ vn[2]*cross[0][2]);
+	fac+= rad[1]*(vn[0]*cross[1][0]+ vn[1]*cross[1][1]+ vn[2]*cross[1][2]);
+	fac+= rad[2]*(vn[0]*cross[2][0]+ vn[1]*cross[2][1]+ vn[2]*cross[2][2]);
+	fac+= rad[3]*(vn[0]*cross[3][0]+ vn[1]*cross[3][1]+ vn[2]*cross[3][2]);
 
 	if(fac<=0.0) return 0.0;
 	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
@@ -713,27 +708,28 @@ float spec(float inp, int hard)
 	return inp;
 }
 
-float Phong_Spec( float *n, float *l, float *v, int hard )
+float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 {
 	float h[3];
 	float rslt;
-
+	
 	h[0] = l[0] + v[0];
 	h[1] = l[1] + v[1];
 	h[2] = l[2] + v[2];
 	Normalise(h);
-
+	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
-
+	if(tangent) rslt= sqrt(1.0 - rslt*rslt);
+		
 	if( rslt > 0.0 ) rslt= spec(rslt, hard);
 	else rslt = 0.0;
-
+	
 	return rslt;
 }
 
 
 /* reduced cook torrance spec (for off-specular peak) */
-float CookTorr_Spec(float *n, float *l, float *v, int hard)
+float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 {
 	float i, nh, nv, h[3];
 
@@ -743,9 +739,12 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard)
 	Normalise(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2];
-	if(nh<0.0) return 0.0;
+	if(tangent) nh= sqrt(1.0 - nh*nh);
+	else if(nh<0.0) return 0.0;
+	
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
-	if(nv<0.0) nv= 0.0;
+	if(tangent) nv= sqrt(1.0 - nv*nv);
+	else if(nv<0.0) nv= 0.0;
 
 	i= spec(nh, hard);
 
@@ -754,7 +753,7 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard)
 }
 
 /* Blinn spec */
-float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
+float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, int tangent)
 {
 	float i, nh, nv, nl, vh, h[3];
 	float a, b, c, g=0.0, p, f, ang;
@@ -773,17 +772,16 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 	Normalise(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
-
-	if(nh<0.0) return 0.0;
+	if(tangent) nh= sqrt(1.0f - nh*nh);
+	else if(nh<0.0) return 0.0;
 
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
-
-	if(nv<=0.0) nv= 0.01;
+	if(tangent) nv= sqrt(1.0f - nv*nv);
+	if(nv<=0.0) nv= 0.01;				/* hrms... */
 
 	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
-
+	if(tangent) nl= sqrt(1.0f - nl*nl);
 	if(nl<=0.0) {
-		nl= 0.0;
 		return 0.0;
 	}
 
@@ -809,7 +807,7 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power )
 }
 
 /* cartoon render spec */
-float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
+float Toon_Spec( float *n, float *l, float *v, float size, float smooth, int tangent)
 {
 	float h[3];
 	float ang;
@@ -821,6 +819,7 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
 	Normalise(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
+	if(tangent) rslt = sqrt(1.0f - rslt*rslt);
 	
 	ang = saacos( rslt ); 
 	
@@ -832,7 +831,7 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth )
 }
 
 /* Ward isotropic gaussian spec */
-float WardIso_Spec( float *n, float *l, float *v, float rms)
+float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 {
 	float i, nh, nv, nl, h[3], angle, alpha;
 
@@ -844,12 +843,15 @@ float WardIso_Spec( float *n, float *l, float *v, float rms)
 	Normalise(h);
 
 	nh = n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
-	if(nh<=0.0) nh = 0.001;
+	if(tangent) nh = sqrt(1.0f - nh*nh);
+	if(nh<=0.0) nh = 0.001f;
 	
 	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
-	if(nv<=0.0) nv = 0.001;
+	if(tangent) nv = sqrt(1.0f - nv*nv);
+	if(nv<=0.0) nv = 0.001f;
 
 	nl = n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
+	if(tangent) nl = sqrt(1.0f - nl*nl);
 	if(nl<=0.0) nl = 0.001;
 
 	angle = tan(saacos(nh));
@@ -950,11 +952,11 @@ float OrenNayar_Diff(float *n, float *l, float *v, float rough )
 float Minnaert_Diff(float nl, float *n, float *v, float darkness)
 {
 
-float i, nv;
+	float i, nv;
 
-        /* nl = dot product between surface normal and light vector */
-        if (nl <= 0.0)
-	        return 0;
+	/* nl = dot product between surface normal and light vector */
+	if (nl <= 0.0)
+		return 0;
 
 	/* nv = dot product between surface normal and view vector */
 	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
@@ -1292,7 +1294,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	LampRen *lar;
 	Material *ma= shi->mat;
 	VlakRen *vlr= shi->vlr;
-	float i, inp, inpr, is, t, lv[3], lacol[3], lampdist, ld = 0;
+	float i, inp, inpr, is, t, lv[3], vnor[3], lacol[3], lampdist, ld = 0;
 	float lvrot[3], *vn, *view, shadfac[4], soft, phongcorr;	// shadfac = rgba
 	int a;
 
@@ -1549,8 +1551,17 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		/* dot product and reflectivity */
 		/* inp = dotproduct, is = shader result, i = lamp energy (with shadow) */
 		
+		/* tangent case; calculate fake face normal, aligned with lampvector */
+		if(vlr->flag & R_TANGENT) {
+			float cross[3];
+			Crossf(cross, lv, vn);
+			Crossf(vnor, cross, shi->vn);
+			vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
+			vn= vnor;
+		}
+		
 		inp= vn[0]*lv[0] + vn[1]*lv[1] + vn[2]*lv[2];
-
+	
 		/* phong threshold to prevent backfacing faces having artefacts on ray shadow (terminator problem) */
 		if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
 			float thresh= vlr->ob->smoothresh;
@@ -1572,8 +1583,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		
 			if(lar->type==LA_AREA) {
 				/* single sided */
-				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0)
-					inp= area_lamp_energy(shi->co, shi->vn, lar);
+				if(lv[0]*lar->vec[0]+lv[1]*lar->vec[1]+lv[2]*lar->vec[2]>0.0) {
+					inp= area_lamp_energy(shi->co, vn, lar);
+				}
 				else inp= 0.0;
 			}
 			
@@ -1589,7 +1601,9 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(i>0.0) {
 			i*= lampdist*shi->refl;
 		}
-
+		
+		vn= shi->vn;	// bring back original vector, we use special specular shaders for tangent
+		
 		/* shadow and spec, (lampdist==0 outside spot) */
 		if(lampdist> 0.0) {
 			
@@ -1650,15 +1664,15 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					float specfac;
 
 					if(ma->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(vn, lv, view, shi->har);
+						specfac= Phong_Spec(vn, lv, view, shi->har, vlr->flag & R_TANGENT);
 					else if(ma->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(vn, lv, view, shi->har);
+						specfac= CookTorr_Spec(vn, lv, view, shi->har, vlr->flag & R_TANGENT);
 					else if(ma->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)shi->har);
+						specfac= Blinn_Spec(vn, lv, view, ma->refrac, (float)shi->har, vlr->flag & R_TANGENT);
 					else if(ma->spec_shader==MA_SPEC_WARDISO)
-						specfac= WardIso_Spec( vn, lv, view, ma->rms);
+						specfac= WardIso_Spec( vn, lv, view, ma->rms, vlr->flag & R_TANGENT);
 					else 
-						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3]);
+						specfac= Toon_Spec(vn, lv, view, ma->param[2], ma->param[3], vlr->flag & R_TANGENT);
 				
 					/* area lamp correction */
 					if(lar->type==LA_AREA) specfac*= inp;
@@ -1916,6 +1930,15 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 				MTC_Mat3MulVecfl(R.imat, shi->dyco);
 			}
 		}
+		if(texco & TEXCO_STRAND) {
+			shi->strand= (l*v3->accum - u*v1->accum - v*v2->accum);
+			if(shi->osatex) {
+				dl= shi->dxuv[0]+shi->dxuv[1];
+				shi->dxstrand= dl*v3->accum-shi->dxuv[0]*v1->accum-shi->dxuv[1]*v2->accum;
+				dl= shi->dyuv[0]+shi->dyuv[1];
+				shi->dystrand= dl*v3->accum-shi->dyuv[0]*v1->accum-shi->dyuv[1]*v2->accum;
+			}
+		}
 		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
 			int j1=i1, j2=i2, j3=i3;
 			
@@ -2013,7 +2036,6 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 			shi->orn[1]= -shi->vn[1];
 			shi->orn[2]= -shi->vn[2];
 		}
-				
 		if(mode & MA_RADIO) {
 			shi->rad[0]= (l*v3->rad[0] - u*v1->rad[0] - v*v2->rad[0]);
 			shi->rad[1]= (l*v3->rad[1] - u*v1->rad[1] - v*v2->rad[1]);
@@ -2022,7 +2044,6 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 		else {
 			shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0;
 		}
-			
 		if(texco & TEXCO_REFL) {
 			/* mirror reflection colour textures (and envmap) */
 			calc_R_ref(shi);
