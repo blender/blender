@@ -235,7 +235,7 @@ void audio_makestream(bSound *sound)
 	}
 	ratio = (float)G.scene->audio.mixrate / (float)sound->sample->rate;
 	sound->streamlen = (int) ( (float)sound->sample->len * ratio * 2.0/((float)sound->sample->channels) );
-	sound->stream = MEM_mallocN((int) ((float)sound->streamlen * 1.05), "stream");
+	sound->stream = malloc((int) ((float)sound->streamlen * 1.05));
 	if (sound->sample->rate == G.scene->audio.mixrate) {
 		if (sound->sample->channels == 2) {
 			memcpy(sound->stream, sound->sample->data, sound->streamlen);
@@ -286,7 +286,7 @@ void audio_fill(void *mixdown, Uint8 *sstream, int len)
    				    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
   				{
 					if(seq->ipo && seq->ipo->curve.first) facf = seq->facf0; else facf = 1.0;
-					cvtbuf = MEM_callocN(len, "cvtbuf");					
+					cvtbuf = malloc(len);					
 					memcpy(cvtbuf, ((Uint8*)sound->stream)+(seq->curpos & (~3)), len);
 					audio_levels(cvtbuf, len, seq->level, facf, seq->pan);
 					if (!mixdown) {
@@ -294,7 +294,7 @@ void audio_fill(void *mixdown, Uint8 *sstream, int len)
 					} else {
 						SDL_MixAudio((Uint8*)mixdown, cvtbuf, len, SDL_MIX_MAXVOLUME);					
 					}
-					MEM_freeN(cvtbuf);						
+					free(cvtbuf);						
   				}
     			seq->curpos += len;
 			}

@@ -36,7 +36,7 @@ void sound_free_sound(bSound *sound)
 			sound->newpackedfile = NULL;
 		}
 	}
-	if (sound->stream) MEM_freeN(sound->stream);
+	if (sound->stream) free(sound->stream);
 }
 
 void sound_free_sample(bSample *sample)

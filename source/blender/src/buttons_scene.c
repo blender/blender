@@ -227,7 +227,7 @@ void do_soundbuts(unsigned short event)
 		waitcursor(1);
 		sound = G.main->sound.first;
 		while (sound) {
-			MEM_freeN(sound->stream);
+			free(sound->stream);
 			sound->stream = 0;
 			audio_makestream(sound);
 			sound = (bSound *) sound->id.next;
