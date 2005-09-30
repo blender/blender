@@ -1936,6 +1936,7 @@ void transform_seq(int mode, int context)
 				switch(event) {
 				case ESCKEY:
 				case LEFTMOUSE:
+				case RIGHTMOUSE:
 				case SPACEKEY:
 					afbreek= 1;
 					break;
@@ -1955,7 +1956,7 @@ void transform_seq(int mode, int context)
 		}
 	}
 
-	if(event==ESCKEY) {
+	if((event==ESCKEY) || (event==RIGHTMOUSE)) {
 
 		ts= transmain;
 		WHILE_SEQ(ed->seqbasep) {
