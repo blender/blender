@@ -1366,10 +1366,17 @@ void screenmain(void)
 			}
 		}
 		else if (event==SPACEKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
-			else if(G.qual==0) {
-				if(val) toolbox_n();
+			if(val && (G.qual & LR_SHIFTKEY)) {
+				area_fullscreen();
+				g_activearea= NULL;
 				towin= 0;
+			}
+			else {
+				if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
+				else if(G.qual==0) {
+					if(val) toolbox_n();
+					towin= 0;
+				}
 			}
 		}
 		else if(ELEM(event, UPARROWKEY, DOWNARROWKEY)) {
