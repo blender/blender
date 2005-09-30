@@ -258,7 +258,8 @@ void CutEdgeloop(int numcuts)
 		{
 			val=0;
 			event= extern_qread(&val);
-			if(val && ((event==LEFTMOUSE || event==RETKEY) || (event == MIDDLEMOUSE || event==PADENTER)))
+			if(event ==  MOUSEX || event == MOUSEY){ break; } 
+			else if(val && ((event==LEFTMOUSE || event==RETKEY) || (event == MIDDLEMOUSE || event==PADENTER)))
 			{
 				if(event == MIDDLEMOUSE){
 					cuthalf = 1;
@@ -297,6 +298,7 @@ void CutEdgeloop(int numcuts)
 				mvalo[0] = -1;
 				break;
 			}
+			
 			else if(val){
 				holdnum = -1;
 				switch(event){
