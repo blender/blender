@@ -4481,6 +4481,7 @@ int EdgeSlide(short immediate, float imperc)
 	short event, draw=1;
 	short mval[2], mvalo[2];
 	char str[128]; 
+	float labda = 0.0f;
 	
 	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
 	
@@ -4787,9 +4788,11 @@ int EdgeSlide(short immediate, float imperc)
 	while(draw){
 		 /* For the % calculation */   
 		short mval[2];   
-		float labda=0.0f, rc[2];
+		float rc[2];
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
+		
+		len = 0.0f;
 
 		getmouseco_areawin(mval);  
 		
