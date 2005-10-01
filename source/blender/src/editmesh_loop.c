@@ -220,10 +220,7 @@ void CutEdgeloop(int numcuts)
 	
 	
 	BIF_undo_push("Loopcut Begin");
-	while(choosing){
-		if(cancel){
-			break;   
-		}
+	while(choosing && !cancel){
 		getmouseco_areawin(mval);
 		if (mval[0] != mvalo[0] || mval[1] != mvalo[1]) {
 			mvalo[0] = mval[0];
@@ -254,11 +251,13 @@ void CutEdgeloop(int numcuts)
 #endif
 		}
 		else PIL_sleep_ms(10);	// idle		
+		
+		
 		while(qtest()) 
 		{
 			val=0;
 			event= extern_qread(&val);
-			if(event ==  MOUSEX || event == MOUSEY){ break; } 
+			if(val && (event ==  MOUSEX || event == MOUSEY)){ ; } 
 			else if(val && ((event==LEFTMOUSE || event==RETKEY) || (event == MIDDLEMOUSE || event==PADENTER)))
 			{
 				if(event == MIDDLEMOUSE){
@@ -268,27 +267,23 @@ void CutEdgeloop(int numcuts)
 					cancel = 1;
 				choosing=0;
 				mvalo[0] = -1;
-				break;
 			}
 			else if(val && (event==ESCKEY || event==RIGHTMOUSE ))
 			{
 				choosing=0;
 				cancel = 1;
 				mvalo[0] = -1;
-				break;
 			}
 			else if(val && (event==PADPLUSKEY || event==WHEELUPMOUSE))
 			{
 				numcuts++;
 				mvalo[0] = -1;
-				break;
 			}
 			else if(val && (event==PADMINUS || event==WHEELDOWNMOUSE))
 			{
 				if(numcuts > 1){
 					numcuts--;
 					mvalo[0] = -1;
-					break;
 				} 
 			}
 			else if(val && event==SKEY)
@@ -296,7 +291,6 @@ void CutEdgeloop(int numcuts)
 				if(smooth){smooth=0;} 
 				else { smooth=1; }
 				mvalo[0] = -1;
-				break;
 			}
 			
 			else if(val){
@@ -357,9 +351,9 @@ void CutEdgeloop(int numcuts)
 				}
 				mvalo[0] = -1;
 				break;
-			}
-		}	
-	}
+			}  // End Numeric Entry						
+		}  //End while(qtest())
+	}   // End Choosing
 	scrarea_queue_winredraw(curarea);
 
 	if(cancel){
