@@ -1740,17 +1740,19 @@ static void info_text(int x, int y)
 	cpack( swatch_color );
 	glRecti(x-24,  y-6,  x-30+hsize,	y+14);
 
-	glColor3ub(0, 0, 0);
-
+	glColor3ub(0, 0, 0); /* makes text black colored rect */
+	
 	glRasterPos2i(x, y);
 	BIF_RasterPos(x, y);
 
 	BIF_DrawString(G.font, headerstr, (U.transopts & USER_TR_MENUS));
 	hsize= BIF_GetStringWidth(G.font, headerstr, (U.transopts & USER_TR_BUTTONS));
 	
+	BIF_ThemeColor(TH_MENU_TEXT); /* makes text readable on dark theme */
+	
 	glRasterPos2i(x+hsize+10,	y);
 	BIF_RasterPos(x+hsize+10,	y);
-
+	
 	BIF_DrawString(G.font, infostr, (U.transopts & USER_TR_MENUS));
 }
 

@@ -230,7 +230,8 @@ void headerprint(char *str)
 		areawinset(curarea->headwin);
 		
 		headerbox(curarea);
-		cpack(0x0);
+		
+		BIF_ThemeColor(TH_MENU_TEXT); /* better than cpack(0x0) color no? (desoto) */
 		glRasterPos2i(20+curarea->headbutofs,  6);
 		BMF_DrawString(G.font, str);
 		
