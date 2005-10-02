@@ -414,7 +414,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	ei = get_active_editipo();
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(ei->icu && ei->icu->driver)
+	if(ei && ei->icu && ei->icu->driver)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert 1:1 Curve...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
