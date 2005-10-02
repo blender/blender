@@ -1715,10 +1715,11 @@ void do_ipobuts(unsigned short event)
 			if(ei->icu->driver) {
 				IpoDriver *driver= ei->icu->driver;
 				
-				/* check if type is still OK */
-				if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
-				else driver->blocktype= ID_OB;
-				
+				if(driver->ob) {
+					/* check if type is still OK */
+					if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
+					else driver->blocktype= ID_OB;
+				}				
 				DAG_scene_sort(G.scene);
 				
 				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
