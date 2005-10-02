@@ -787,7 +787,7 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
-			else {	/* space ipo */
+			else if (curarea->spacetype==SPACE_IPO) {
 				EditIpo *ei= get_active_editipo();
 				
 				if(ei && ei->icu && ei->icu->driver) {
@@ -801,6 +801,9 @@ void drawscroll(int disptype)
 				}
 				else 
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+			}
+			else {
+				scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 			}
 			
 			fac+= dfac;
