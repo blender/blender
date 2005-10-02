@@ -201,8 +201,9 @@ void setTransformViewMatrices(TransInfo *t)
 
 void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 {
-	if (t->spacetype==SPACE_VIEW3D)
+	if (t->spacetype==SPACE_VIEW3D) {
 		window_to_3d(vec, dx, dy);
+	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float divx, divy, aspx, aspy;
 
@@ -1903,11 +1904,12 @@ void initTranslation(TransInfo *t)
 	
 	if(t->spacetype == SPACE_VIEW3D) {
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
-		if(G.obedit) {
+		if(t->flag & (T_EDIT|T_POSE)) {
+			Object *ob= G.obedit?G.obedit:t->poseobj;
 			float vec[3];
 			
 			VECCOPY(vec, t->center);
-			Mat4MulVecfl(G.obedit->obmat, vec);
+			Mat4MulVecfl(ob->obmat, vec);
 			initgrabz(vec[0], vec[1], vec[2]);
 		}
 		else initgrabz(t->center[0], t->center[1], t->center[2]); 

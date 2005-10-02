@@ -154,10 +154,10 @@ void window_to_3d(float *vec, short mx, short my)
 {
 	/* always call initzgrab */
 	float dx, dy;
-
+	
 	dx= 2.0f*mx*zfac/curarea->winx;
 	dy= 2.0f*my*zfac/curarea->winy;
-
+	
 	vec[0]= (G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy);
 	vec[1]= (G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy);
 	vec[2]= (G.vd->persinv[0][2]*dx + G.vd->persinv[1][2]*dy);
