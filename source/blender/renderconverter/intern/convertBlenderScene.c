@@ -2570,6 +2570,9 @@ void RE_rotateBlenderScene(void)
 		R.wrld.aosphere= MEM_mallocN(2*3*R.wrld.aosamp*R.wrld.aosamp*sizeof(float), "AO sphere");
 		/* we make twice the amount of samples, because only a hemisphere is used */
 		init_ao_sphere(R.wrld.aosphere, 2*R.wrld.aosamp*R.wrld.aosamp, 16);
+		
+		/* bah... init_render_world writes this over, and that is called/needed in envmap. */
+		G.scene->world->aosphere= R.wrld.aosphere;
 	}
 	init_render_textures();
 	init_render_materials();
