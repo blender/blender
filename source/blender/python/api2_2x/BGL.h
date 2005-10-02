@@ -63,6 +63,7 @@ typedef struct _Buffer {
 		short *asshort;
 		int *asint;
 		float *asfloat;
+		double *asdouble;
 
 		void *asvoid;
 	} buf;

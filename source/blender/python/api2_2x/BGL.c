@@ -52,7 +52,7 @@ static char Method_Buffer_doc[] =
 [template] - A sequence of matching dimensions to the buffer to be created\n\
   which will be used to initialize the Buffer.\n\n\
 If a template is not passed in all fields will be initialized to 0.\n\n\
-The type should be one of GL_BYTE, GL_SHORT, GL_INT, or GL_FLOAT.\n\
+The type should be one of GL_BYTE, GL_SHORT, GL_INT, GL_FLOAT, or GL_DOUBLE.\n\
 If the dimensions are specified as an int a linear buffer will be\n\
 created. If a sequence is passed for the dimensions the buffer\n\
 will have len(sequence) dimensions, where the size for each dimension\n\
@@ -140,6 +140,8 @@ static int type_size(int type)
 		  return sizeof(int);
 		case GL_FLOAT: 
 		  return sizeof(float);
+		case GL_DOUBLE:
+		  return sizeof(double);
 	}
 	return -1;
 }
@@ -173,7 +175,9 @@ static Buffer *make_buffer(int type, int ndimensions, int *dimensions)
 		else if (type==GL_INT) 
 			buffer->buf.asint[i]= 0;
 		else if (type==GL_FLOAT) 
-		    buffer->buf.asfloat[i]= 0.0;
+		    buffer->buf.asfloat[i]= 0.0f;
+		else if (type==GL_DOUBLE)
+			buffer->buf.asdouble[i]= 0.0;
 	}
 	return buffer;
 }
@@ -190,7 +194,7 @@ static PyObject *Method_Buffer (PyObject *self, PyObject *args)
 	        return EXPP_ReturnPyObjError(PyExc_AttributeError,
 	                        "expected an int and one or two PyObjects");
 
-	if (type!=GL_BYTE && type!=GL_SHORT && type!=GL_INT && type!=GL_FLOAT) {
+	if (type!=GL_BYTE && type!=GL_SHORT && type!=GL_INT && type!=GL_FLOAT && type!=GL_DOUBLE) {
 		PyErr_SetString(PyExc_AttributeError, "type");
 		return NULL;
 	}
@@ -245,6 +249,7 @@ static PyObject *Buffer_item(PyObject *self, int i)
 			case GL_SHORT: return Py_BuildValue("h", buf->buf.asshort[i]);
 			case GL_INT: return Py_BuildValue("i", buf->buf.asint[i]);
 			case GL_FLOAT: return Py_BuildValue("f", buf->buf.asfloat[i]);
+			case GL_DOUBLE: return Py_BuildValue("d", buf->buf.asdouble[i]);
 		}
 	} else {
 		Buffer *newbuf;
@@ -325,6 +330,9 @@ static int Buffer_ass_item(PyObject *self, int i, PyObject *v)
 			return -1;
 	} else if (buf->type==GL_FLOAT) {
 		if (!PyArg_Parse(v, "f;Coordinates must be floats", &buf->buf.asfloat[i]))
+			return -1;
+	} else if (buf->type==GL_DOUBLE) {
+		if (!PyArg_Parse(v, "d;Coordinates must be floats", &buf->buf.asdouble[i]))
 			return -1;
 	}
 	return 0;
@@ -1445,6 +1453,7 @@ PyObject *BGL_Init(void)
 	EXPP_ADDCONST(GL_INT);
 	EXPP_ADDCONST(GL_UNSIGNED_INT);
 	EXPP_ADDCONST(GL_FLOAT);
+	EXPP_ADDCONST(GL_DOUBLE);
 	EXPP_ADDCONST(GL_2_BYTES);
 	EXPP_ADDCONST(GL_3_BYTES);
 	EXPP_ADDCONST(GL_4_BYTES);
