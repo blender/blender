@@ -495,7 +495,10 @@ static void transformEvent(unsigned short event, short val) {
 						stopConstraint(&Trans);
 					}
 					else {
-						initSelectConstraint(&Trans, Trans.spacemtx);
+						if (G.qual & LR_CTRLKEY)
+							initSelectConstraint(&Trans, Trans.spacemtx);
+						else
+							initSelectConstraint(&Trans, mati);
 						postSelectConstraint(&Trans);
 					}
 				}
@@ -793,9 +796,8 @@ void Transform()
 		getmouseco_areawin(mval);
 		
 		if (mval[0] != pmval[0] || mval[1] != pmval[1]) {
-			if (Trans.flag & T_MMB_PRESSED) {
-				initSelectConstraint(&Trans, Trans.spacemtx);
-			}
+			if (Trans.flag & T_MMB_PRESSED)
+				Trans.con.mode |= CON_SELECT;
 			Trans.redraw = 1;
 		}
 		if (Trans.redraw) {
