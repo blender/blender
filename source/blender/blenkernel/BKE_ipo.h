@@ -52,7 +52,10 @@ struct ID;
 /*  struct IPO_Channel; */
 
 float frame_to_float(int cfra);
+
+void free_ipo_curve(struct IpoCurve *icu);
 void free_ipo(struct Ipo *ipo);
+
 struct Ipo *add_ipo(char *name, int idcode);
 struct Ipo *copy_ipo(struct Ipo *ipo);
 void make_local_obipo(struct Ipo *ipo);
@@ -79,11 +82,14 @@ void *give_mtex_poin(struct MTex *mtex, int adrcode );
 void *get_ipo_poin(struct ID *id, struct IpoCurve *icu, int *type);
 void set_icu_vars(struct IpoCurve *icu);
 void execute_ipo(struct ID *id, struct Ipo *ipo);
+
 void do_ipo_nocalc(struct Ipo *ipo);
 void do_ipo(struct Ipo *ipo);
 void do_mat_ipo(struct Material *ma);
 void do_ob_ipo(struct Object *ob);
 void do_seq_ipo(struct Sequence *seq);
+void do_ob_ipodrivers(struct Object *ob, struct Ipo *ipo);
+
 int has_ipo_code(struct Ipo *ipo, int code);
 void do_all_data_ipos(void);
 int calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);

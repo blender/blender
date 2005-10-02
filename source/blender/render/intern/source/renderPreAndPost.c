@@ -70,12 +70,12 @@ void prepareScene()
 		/* RADIO */
 		if(R.r.mode & R_RADIO) do_radio_render();
 
-		/* ENVIRONMENT MAPS */
-		make_envmaps();
-
 		/* octree */
 		if(R.r.mode & R_RAYTRACE) makeoctree();
 
+		/* ENVIRONMENT MAPS */
+		make_envmaps();
+		
 	}
 }
 

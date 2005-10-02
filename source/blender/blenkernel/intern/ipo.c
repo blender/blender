@@ -42,6 +42,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_lamp_types.h"
@@ -184,17 +185,24 @@ float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
 	return ctime;
 }
 
+/* includes ipo curve itself */
+void free_ipo_curve(IpoCurve *icu) 
+{
+	if(icu->bezt) MEM_freeN(icu->bezt);
+	if(icu->bp) MEM_freeN(icu->bp);
+	if(icu->driver) MEM_freeN(icu->driver);
+	MEM_freeN(icu);
+}
+
 /* do not free ipo itself */
 void free_ipo(Ipo *ipo)
 {
 	IpoCurve *icu;
 	
-	icu= ipo->curve.first;
-	while(icu) {
-		if(icu->bezt) MEM_freeN(icu->bezt);
-		icu= icu->next;
+	while( (icu= ipo->curve.first) ) {
+		BLI_remlink(&ipo->curve, icu);
+		free_ipo_curve(icu);
 	}
-	BLI_freelistN(&ipo->curve);
 }
 
 Ipo *add_ipo(char *name, int idcode)
@@ -212,7 +220,7 @@ Ipo *copy_ipo(Ipo *ipo)
 	Ipo *ipon;
 	IpoCurve *icu;
 	
-	if(ipo==0) return 0;
+	if(ipo==NULL) return 0;
 	
 	ipon= copy_libblock(ipo);
 	
@@ -221,6 +229,7 @@ Ipo *copy_ipo(Ipo *ipo)
 	icu= ipon->curve.first;
 	while(icu) {
 		icu->bezt= MEM_dupallocN(icu->bezt);
+		if(icu->driver) icu->driver= MEM_dupallocN(icu->driver);
 		icu= icu->next;
 	}
 	
@@ -247,7 +256,7 @@ void make_local_obipo(Ipo *ipo)
 		ob= ob->id.next;
 	}
 	
-	if(local && lib==0) {
+	if(local && lib==NULL) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
@@ -260,7 +269,7 @@ void make_local_obipo(Ipo *ipo)
 		while(ob) {
 			if(ob->ipo==ipo) {
 				
-				if(ob->id.lib==0) {
+				if(ob->id.lib==NULL) {
 					ob->ipo= ipon;
 					ipon->id.us++;
 					ipo->id.us--;
@@ -291,7 +300,7 @@ void make_local_matipo(Ipo *ipo)
 		ma= ma->id.next;
 	}
 	
-	if(local && lib==0) {
+	if(local && lib==NULL) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
@@ -304,7 +313,7 @@ void make_local_matipo(Ipo *ipo)
 		while(ma) {
 			if(ma->ipo==ipo) {
 				
-				if(ma->id.lib==0) {
+				if(ma->id.lib==NULL) {
 					ma->ipo= ipon;
 					ipon->id.us++;
 					ipo->id.us--;
@@ -335,7 +344,7 @@ void make_local_keyipo(Ipo *ipo)
 		key= key->id.next;
 	}
 	
-	if(local && lib==0) {
+	if(local && lib==NULL) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
@@ -348,7 +357,7 @@ void make_local_keyipo(Ipo *ipo)
 		while(key) {
 			if(key->ipo==ipo) {
 				
-				if(key->id.lib==0) {
+				if(key->id.lib==NULL) {
 					key->ipo= ipon;
 					ipon->id.us++;
 					ipo->id.us--;
@@ -363,7 +372,7 @@ void make_local_keyipo(Ipo *ipo)
 void make_local_ipo(Ipo *ipo)
 {
 	
-	if(ipo->id.lib==0) return;
+	if(ipo->id.lib==NULL) return;
 	if(ipo->id.us==1) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
@@ -443,7 +452,7 @@ void testhandles_ipocurve(IpoCurve *icu)
 	int flag, a;
 
 	bezt= icu->bezt;
-	if(bezt==0) return;
+	if(bezt==NULL) return;
 	
 	a= icu->totvert;
 	while(a--) {
@@ -675,6 +684,86 @@ void berekenx(float *f, float *o, int b)
 	}
 }
 
+static float eval_driver(IpoDriver *driver)
+{
+	Object *ob= driver->ob;
+	
+	if(ob==NULL) return 0.0f;
+	
+	if(driver->blocktype==ID_OB) {
+		switch(driver->adrcode) {
+		case OB_LOC_X:
+			return ob->loc[0];
+		case OB_LOC_Y:
+			return ob->loc[1];
+		case OB_LOC_Z:
+			return ob->loc[2];
+		case OB_ROT_X:
+			return ob->rot[0]/(M_PI_2/9.0);
+		case OB_ROT_Y:
+			return ob->rot[1]/(M_PI_2/9.0);
+		case OB_ROT_Z:
+			return ob->rot[2]/(M_PI_2/9.0);
+		case OB_SIZE_X:
+			return ob->size[0];
+		case OB_SIZE_Y:
+			return ob->size[1];
+		case OB_SIZE_Z:
+			return ob->size[2];
+		}
+	}
+	else {	/* ID_AR */
+		bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
+		if(pchan && pchan->bone) {
+			float pose_mat[3][3];
+			float diff_mat[3][3], par_mat[3][3], ipar_mat[3][3];
+			float eul[3], size[3];
+			
+			/* we need the local transform = current transform - (parent transform + bone transform) */
+			
+			Mat3CpyMat4(pose_mat, pchan->pose_mat);
+			
+			if (pchan->parent) {
+				Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
+				Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
+				
+				Mat3Inv(ipar_mat, diff_mat);
+			}
+			else {
+				Mat3Inv(ipar_mat, pchan->bone->bone_mat);
+			}
+			
+			Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
+			
+			Mat3ToEul(diff_mat, eul);
+			Mat3ToSize(diff_mat, size);
+
+			switch(driver->adrcode) {
+			case OB_LOC_X:
+				return pchan->loc[0];
+			case OB_LOC_Y:
+				return pchan->loc[1];
+			case OB_LOC_Z:
+				return pchan->loc[2];
+			case OB_ROT_X:
+				return eul[0]/(M_PI_2/9.0);
+			case OB_ROT_Y:
+				return eul[1]/(M_PI_2/9.0);
+			case OB_ROT_Z:
+				return eul[2]/(M_PI_2/9.0);
+			case OB_SIZE_X:
+				return size[0];
+			case OB_SIZE_Y:
+				return size[1];
+			case OB_SIZE_Z:
+				return size[2];
+			}
+		}
+	}
+	
+	return 0.0f;
+}
+
 float eval_icu(IpoCurve *icu, float ipotime) 
 {
 	BezTriple *bezt, *prevbezt;
@@ -684,6 +773,10 @@ float eval_icu(IpoCurve *icu, float ipotime)
 	
 	cycyofs= 0.0;
 	
+	if(icu->driver) {
+		/* ipotime now serves as input for the curve */
+		ipotime= cvalue= eval_driver(icu->driver);
+	}
 	if(icu->bezt) {
 		prevbezt= icu->bezt;
 		bezt= prevbezt+1;
@@ -814,10 +907,12 @@ void calc_ipo(Ipo *ipo, float ctime)
 {
 	IpoCurve *icu;
 	
+	if(ipo==NULL) return;
+	
 	icu= ipo->curve.first;
 	while(icu) {
 		
-		if( (icu->flag & IPO_LOCK)==0) calc_icu(icu, ctime);
+		if(icu->driver || (icu->flag & IPO_LOCK)==0) calc_icu(icu, ctime);
 		
 		icu= icu->next;
 	}
@@ -1186,7 +1281,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(ma->add); break;
 		}
 		
-		if(poin==0) {
+		if(poin==NULL) {
 			mtex= 0;
 			if(icu->adrcode & MA_MAP1) mtex= ma->mtex[0];
 			else if(icu->adrcode & MA_MAP2) mtex= ma->mtex[1];
@@ -1270,7 +1365,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(wo->starsize); break;
 		}
 
-		if(poin==0) {
+		if(poin==NULL) {
 			mtex= 0;
 			if(icu->adrcode & MA_MAP1) mtex= wo->mtex[0];
 			else if(icu->adrcode & MA_MAP2) mtex= wo->mtex[1];
@@ -1315,7 +1410,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(la->haint); break;
 		}
 		
-		if(poin==0) {
+		if(poin==NULL) {
 			mtex= 0;
 			if(icu->adrcode & MA_MAP1) mtex= la->mtex[0];
 			else if(icu->adrcode & MA_MAP2) mtex= la->mtex[1];
@@ -1650,7 +1745,7 @@ void execute_ipo(ID *id, Ipo *ipo)
 	void *poin;
 	int type;
 	
-	if(ipo==0) return;
+	if(ipo==NULL) return;
 	
 	icu= ipo->curve.first;
 	while(icu) {
@@ -1673,7 +1768,7 @@ void do_ipo_nocalc(Ipo *ipo)
 	Camera *ca;
 	bSound *snd;
 	
-	if(ipo==0) return;
+	if(ipo==NULL) return;
 	
 	switch(ipo->blocktype) {
 	case ID_OB:
@@ -1747,7 +1842,7 @@ void do_mat_ipo(Material *ma)
 {
 	float ctime;
 	
-	if(ma==0 || ma->ipo==0) return;
+	if(ma==NULL || ma->ipo==NULL) return;
 	
 	ctime= frame_to_float(G.scene->r.cfra);
 	/* if(ob->ipoflag & OB_OFFS_OB) ctime-= ob->sf; */
@@ -1762,7 +1857,7 @@ void do_ob_ipo(Object *ob)
 	float ctime;
 	unsigned int lay;
 	
-	if(ob->ipo==0) return;
+	if(ob->ipo==NULL) return;
 
 	/* do not set ob->ctime here: for example when parent in invisible layer */
 	
@@ -1785,6 +1880,21 @@ void do_ob_ipo(Object *ob)
 	}
 }
 
+void do_ob_ipodrivers(Object *ob, Ipo *ipo)
+{
+	IpoCurve *icu;
+	void *poin;
+	int type;
+	
+	for(icu= ipo->curve.first; icu; icu= icu->next) {
+		if(icu->driver) {
+			icu->curval= eval_icu(icu, 0.0f);
+			poin= get_ipo_poin((ID *)ob, icu, &type);
+			if(poin) write_ipo_poin(poin, type, icu->curval);
+		}
+	}
+}
+
 void do_seq_ipo(Sequence *seq)
 {
 	float ctime, div;
@@ -1794,7 +1904,7 @@ void do_seq_ipo(Sequence *seq)
 	if(seq->ipo) {
 		ctime= frame_to_float(G.scene->r.cfra - seq->startdisp);
 		div= (seq->enddisp - seq->startdisp)/100.0f;
-		if(div==0) return;
+		if(div==0.0) return;
 		
 		/* 2nd field */
 		calc_ipo(seq->ipo, (ctime+0.5f)/div);
@@ -1813,7 +1923,7 @@ int has_ipo_code(Ipo *ipo, int code)
 {
 	IpoCurve *icu;
 	
-	if(ipo==0) return 0;
+	if(ipo==NULL) return 0;
 	
 	icu= ipo->curve.first;
 	while(icu) {
@@ -1924,7 +2034,7 @@ int calc_ipo_spec(Ipo *ipo, int adrcode, float *ctime)
 {
 	IpoCurve *icu;
 
-	if(ipo==0) return 0;
+	if(ipo==NULL) return 0;
 
 	icu= ipo->curve.first;
 	while(icu) {
@@ -1948,11 +2058,11 @@ void clear_delta_obipo(Ipo *ipo)
 {
 	Object *ob;
 	
-	if(ipo==0) return;
+	if(ipo==NULL) return;
 	
 	ob= G.main->object.first;
 	while(ob) {
-		if(ob->id.lib==0) {
+		if(ob->id.lib==NULL) {
 			if(ob->ipo==ipo) {
 				memset(&ob->dloc, 0, 12);
 				memset(&ob->drot, 0, 12);

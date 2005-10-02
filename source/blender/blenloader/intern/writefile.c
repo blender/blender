@@ -770,6 +770,7 @@ static void write_ipos(WriteData *wd, ListBase *idbase)
 			while(icu) {
 				if(icu->bezt)  writestruct(wd, DATA, "BezTriple", icu->totvert, icu->bezt);
 				if(icu->bp)  writestruct(wd, DATA, "BPoint", icu->totvert, icu->bp);
+				if(icu->driver)  writestruct(wd, DATA, "IpoDriver", 1, icu->driver);
 				icu= icu->next;
 			}
 		}

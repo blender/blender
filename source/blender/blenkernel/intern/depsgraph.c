@@ -47,6 +47,7 @@
 #include "DNA_ID.h"
 #include "DNA_effect_types.h"
 #include "DNA_lattice_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -289,6 +290,23 @@ DagForest * dag_init()
 	return forest;
 }
 
+static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int isdata)
+{
+	IpoCurve *icu;
+	DagNode *node1;
+	
+	for(icu= ipo->curve.first; icu; icu= icu->next) {
+		if(icu->driver && icu->driver->ob) {
+			node1 = dag_get_node(dag, icu->driver->ob);
+			if(icu->driver->blocktype==ID_AR)
+				dag_add_relation(dag, node1, node, isdata?DAG_RL_DATA_DATA:DAG_RL_DATA_OB);
+			else
+				dag_add_relation(dag, node1, node, isdata?DAG_RL_OB_DATA:DAG_RL_OB_OB);
+		}
+	}
+}
+
+
 struct DagForest *build_dag(struct Scene *sce, short mask) 
 {
 	Base *base;
@@ -300,6 +318,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 	DagNode * scenenode;
 	DagForest *dag;
 	DagAdjList *itA;
+	Key *key;
 
 	dag = sce->theDag;
 	sce->dagisvalid=1;
@@ -324,9 +343,8 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			dag_add_relation(dag,node,node2,DAG_RL_DATA);
 			node2->first_ancestor = ob;
 			node2->ancestor_count += 1;
-			
-			
 		}
+		
 		if (ob->type == OB_ARMATURE) {
 			if (ob->pose){
 				bPoseChannel *pchan;
@@ -354,6 +372,23 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 				}
 			}
 		}
+		
+		/* driver dependencies */
+		if(ob->ipo) 
+			dag_add_driver_relation(ob->ipo, dag, node, 0);
+		
+		key= ob_get_key(ob);
+		if(key && key->ipo)
+			dag_add_driver_relation(key->ipo, dag, node, 1);
+		
+		if(ob->action) {
+			bActionChannel *chan;
+			for (chan = ob->action->chanbase.first; chan; chan=chan->next){
+				if(chan->ipo)
+					dag_add_driver_relation(chan->ipo, dag, node, 1);
+			}
+		}
+		
 		if (ob->modifiers.first) {
 			ModifierData *md;
 

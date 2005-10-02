@@ -1225,7 +1225,8 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	uibut_do_func(but);
 
-	return event;	
+	if(event == UI_NOTHING) return 0;
+	else return but->retval;
 }
 
 
@@ -3749,27 +3750,31 @@ static void ui_do_but_tip(uiBut *buttip)
 			 * as long as the mouse remains on top
 			 * of the button that owns it.
 			 */
+		Mat4CpyMat4(UIwinmat, buttip->block->winmat);	// get rid of uiwinmat once...
 		uiPanelPush(buttip->block); // panel matrix
 		od= ui_draw_but_tip(buttip);
 		
-		while (1) {
-			char ascii;
-			short val;
-			unsigned short evt= extern_qread_ext(&val, &ascii);
+		if(od) {
+			while (1) {
+				char ascii;
+				short val;
+				unsigned short evt= extern_qread_ext(&val, &ascii);
 
-			if (evt==MOUSEX || evt==MOUSEY) {
-				short mouse[2];
-				uiGetMouse(od->oldwin, mouse);
-				
-				if (!uibut_contains_pt(buttip, mouse))
+				if (evt==MOUSEX || evt==MOUSEY) {
+					short mouse[2];
+					uiGetMouse(od->oldwin, mouse);
+					
+					if (!uibut_contains_pt(buttip, mouse))
+						break;
+				} else {
+					mainqpushback(evt, val, ascii);
 					break;
-			} else {
-				mainqpushback(evt, val, ascii);
-				break;
+				}
 			}
+			
+			ui_end_overdraw(od);
 		}
 		
-		ui_end_overdraw(od);
 		uiPanelPop(buttip->block); // panel matrix
 		/* still the evil global.... */
 		UIbuttip= NULL;

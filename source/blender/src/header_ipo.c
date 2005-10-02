@@ -411,10 +411,13 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	else
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Edit Selected|TAB", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
-	ei = G.sipo->editipo;
+	ei = get_active_editipo();
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	if(ei->icu && ei->icu->driver)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert 1:1 Curve...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe...|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -473,11 +476,14 @@ static void do_ipo_viewmenu(void *arg, int event)
 		mainqenter(PADMINUS,1);
 		break;
 	case 6: /* Play Back Animation */
-			play_anim(0);
-			break;
+		play_anim(0);
+		break;
 	case 7: /* Play Back Animation in All */
-			play_anim(1);
-			break;	
+		play_anim(1);
+		break;	
+	case 8:
+		add_blockhandler(curarea, IPO_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+		break;	
 	}
 }
 
@@ -492,6 +498,8 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_ipo_viewmenu, NULL);
 
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Channel Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	if (G.sipo->showkey)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else
@@ -692,6 +700,8 @@ void do_ipo_buttons(short event)
 		v2d->cur.ymax= v2d->tot.ymax+ dy;
 
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		if(G.sipo->ipo) G.sipo->ipo->cur = G.v2d->cur;
+		
 		scrarea_queue_winredraw(curarea);
 		break;
 	case B_IPOBORDER:

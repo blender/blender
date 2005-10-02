@@ -45,6 +45,7 @@
 #endif   
 
 #include "BMF_Api.h"
+#include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -786,8 +787,20 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
-			else {
-				scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+			else {	/* space ipo */
+				EditIpo *ei= get_active_editipo();
+				
+				if(ei && ei->icu && ei->icu->driver) {
+					int adrcode= ei->icu->driver->adrcode;
+					
+					if(adrcode==OB_ROT_X || adrcode==OB_ROT_Y || adrcode==OB_ROT_Z) {
+						scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'v', IPO_DISPDEGR);
+					}
+					else 
+						scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
+				else 
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 			}
 			
 			fac+= dfac;
@@ -910,15 +923,16 @@ static void draw_ipobuts(SpaceIpo *sipo)
 			sel= ei->flag & (IPO_SELECT + IPO_EDIT);
 			
 			uiEmboss((float)(v2d->mask.xmax+8), (float)(y+2), (float)(v2d->mask.xmax+15), (float)(y+IPOBUTY-2), sel);
+			
+			if(ei->icu->driver) {
+				cpack(0x0);
+				fdrawbox((float)v2d->mask.xmax+11,  (float)y+8,  (float)v2d->mask.xmax+12.5, (float)y+9.5);
+			}
 		}
 		
-		if(sipo->blocktype==ID_KE) {
-			Key *key= (Key *)sipo->from;
-			if(key==NULL || key->type==KEY_NORMAL) break;
-			if(a==ob->shapenr-1) {
-				cpack(0x0);
-				fdrawbox(v2d->mask.xmax+7,  y+1,  v2d->mask.xmax+16, y+IPOBUTY-1);
-			}
+		if(ei->flag & IPO_ACTIVE) {
+			cpack(0x0);
+			fdrawbox(v2d->mask.xmax+7,  y+1,  v2d->mask.xmax+16, y+IPOBUTY-1);
 		}
 	}
 	uiDrawBlock(block);
@@ -1247,7 +1261,9 @@ static void draw_ipocurves(int sel)
 								glVertex2fv(v1);
 							}
 							else {
-								resol= 3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
+								/* resol not depending on horizontal resolution anymore, drivers for example... */
+								if(icu->driver) resol= 32;
+								else resol= 3.0*sqrt(bezt->vec[1][0] - prevbezt->vec[1][0]);
 								
 								if(resol<2) {
 									v1[0]= prevbezt->vec[1][0]+cycxofs;
@@ -1439,11 +1455,13 @@ static void draw_key(SpaceIpo *sipo, int visible)
 #define B_MUL_IPO		3402
 #define B_TRANS_IPO		3403
 #define B_IPO_NONE		3404
+#define B_IPO_DRIVER	3405
+#define B_IPO_REDR		3406
+#define B_IPO_DEPCHANGE	3407
 
 static float hspeed= 0;
 
-
-static void boundbox_ipo_visible(SpaceIpo *si)
+static void boundbox_ipo_curves(SpaceIpo *si)
 {
 	EditIpo *ei;
 	Key *key;
@@ -1550,20 +1568,21 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 	
 		VECCOPY(si->median, median);
 		
+		uiBlockBeginAlign(block);
 		if(tot==1) {
 			if(iskey) 
 				uiDefButF(block, NUM, B_TRANS_IPO, "Key Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 10, 0, "");
 			else {
-				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex X:",	10, 100, 300, 19, &(si->median[0]), min, max, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex X:",	10, 100, 150, 19, &(si->median[0]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Vertex Y:",	160, 100, 150, 19, &(si->median[1]), min, max, 100, 0, "");
 			}
 		}
 		else {
 			if(iskey) 
 				uiDefButF(block, NUM, B_TRANS_IPO, "Median Key Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 10, 0, "");
 			else {
-				uiDefButF(block, NUM, B_TRANS_IPO, "Median X:",	10, 100, 300, 19, &(si->median[0]), min, max, 100, 0, "");
-				uiDefButF(block, NUM, B_TRANS_IPO, "Median Y:",	10, 80, 300, 19, &(si->median[1]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Median X:",	10, 100, 150, 19, &(si->median[0]), min, max, 100, 0, "");
+				uiDefButF(block, NUM, B_TRANS_IPO, "Median Y:",	160, 100, 150, 19, &(si->median[1]), min, max, 100, 0, "");
 			}
 		}
 	}
@@ -1624,8 +1643,22 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 void do_ipobuts(unsigned short event)
 {
 	Object *ob= OBACT;
+	EditIpo *ei;
 	
 	switch(event) {
+	case B_IPO_REDR:
+		ei= get_active_editipo();
+		if(ei) {
+			if(ei->icu->driver) {
+				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				else
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+			}
+		}
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case B_SETSPEED:
 		set_speed_editipo(hspeed);
 		break;
@@ -1645,28 +1678,167 @@ void do_ipobuts(unsigned short event)
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
+	case B_IPO_DRIVER:
+		ei= get_active_editipo();
+		if(ei) {
+			if(ei->icu==NULL) {
+				ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, 0);
+				ei->flag |= IPO_SELECT;
+				ei->icu->flag= ei->flag;
+			}
+			if(ei->icu->driver) {
+				MEM_freeN(ei->icu->driver);
+				ei->icu->driver= NULL;
+				if(ei->icu->bezt==NULL) {
+					BLI_remlink( &(G.sipo->ipo->curve), ei->icu);
+					free_ipo_curve(ei->icu);
+					ei->icu= NULL;
+				}
+			}
+			else {
+				ei->icu->driver= MEM_callocN(sizeof(IpoDriver), "ipo driver");
+				ei->icu->driver->blocktype= ID_OB;
+				ei->icu->driver->adrcode= OB_LOC_X;
+			}
+
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			DAG_scene_sort(G.scene);
+			
+			BIF_undo_push("Add/Remove Ipo driver");
+		}
+		break;
+	case B_IPO_DEPCHANGE:
+		ei= get_active_editipo();
+		if(ei) {
+			if(ei->icu->driver) {
+				IpoDriver *driver= ei->icu->driver;
+				
+				/* check if type is still OK */
+				if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
+				else driver->blocktype= ID_OB;
+				
+				DAG_scene_sort(G.scene);
+				
+				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				else
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
 	}
 }
 
+static char *ipodriver_modeselect_pup(Object *ob)
+{
+	static char string[265];
+	char tmpstr[64];
+	char formatstring[64];
+	
+	strcpy(string, "Driver type: %t");
+	
+	strcpy(formatstring, "|%s %%x%d %%i%d");
+	
+	if(ob) {
+		sprintf(tmpstr,formatstring,"Object",ID_OB, ICON_OBJECT);
+		strcat(string,tmpstr);
+	}
+	if(ob && ob->type==OB_ARMATURE) {
+		sprintf(tmpstr,formatstring,"Pose",ID_AR, ICON_POSE_DEHLT);
+		strcat(string,tmpstr);
+	}
+	
+	return (string);
+}
+
+static char *ipodriver_channelselect_pup(void)
+{
+	static char string[1024];
+	char *tmp;
+	
+	strcpy(string, "Driver channel: %t");
+	tmp= string+strlen(string);
+	
+	tmp+= sprintf(tmp, "|Loc X %%x%d", OB_LOC_X);
+	tmp+= sprintf(tmp, "|Loc Y %%x%d", OB_LOC_Y);
+	tmp+= sprintf(tmp, "|Loc Z %%x%d", OB_LOC_Z);
+	tmp+= sprintf(tmp, "|Rot X %%x%d", OB_ROT_X);
+	tmp+= sprintf(tmp, "|Rot Y %%x%d", OB_ROT_Y);
+	tmp+= sprintf(tmp, "|Rot Z %%x%d", OB_ROT_Z);
+	tmp+= sprintf(tmp, "|Size X %%x%d", OB_SIZE_X);
+	tmp+= sprintf(tmp, "|Size Y %%x%d", OB_SIZE_Y);
+	tmp+= sprintf(tmp, "|Size Z %%x%d", OB_SIZE_Z);
+	
+	return (string);
+}
 
 static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 {
-	extern int totipo_vis;	// editipo.c
+	extern int totipo_curve;	// editipo.c
 	uiBlock *block;
+	EditIpo *ei;
+	char name[48];
 	
 	block= uiNewBlock(&curarea->uiblocks, "ipo_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IPO_HANDLER_PROPERTIES);  // for close and esc
 	if(uiNewPanel(curarea, block, "Transform Properties", "Ipo", 10, 230, 318, 204)==0) return;
 
+	/* this is new panel height, newpanel doesnt force new size on existing panels */
+	uiNewPanelHeight(block, 204);
+	
+	/* driver buttons first */
+	ei= get_active_editipo();
+	if(ei) {
+		
+		sprintf(name, "Driven Channel: %s", ei->name);
+		uiDefBut(block, LABEL, 0, name,		10, 265, 200, 19, NULL, 1.0, 0.0, 0, 0, "");
+		
+		if(ei->icu && ei->icu->driver) {
+			IpoDriver *driver= ei->icu->driver;
+			
+			uiDefBut(block, BUT, B_IPO_DRIVER, "Remove",				210,265,100,19, NULL, 0.0f, 0.0f, 0, 0, "Remove Driver for this Ipo Channel");
+			
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_obpoin_but, B_IPO_DEPCHANGE, "OB:",	10, 240, 150, 20, &(driver->ob), "Driver Object");
+			if(driver->ob) {
+				int icon=ICON_OBJECT;
+				
+				if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR) {
+					icon = ICON_POSE_DEHLT;
+					uiDefBut(block, TEX, B_IPO_REDR, "BO:",				10,220,150,20, driver->name, 0, 31, 0, 0, "Bone name");
+				}
+				else driver->blocktype= ID_OB;	/* safety when switching object button */
+				
+				uiBlockBeginAlign(block);
+				uiDefIconTextButS(block, MENU, B_IPO_DEPCHANGE, icon, 
+								  ipodriver_modeselect_pup(driver->ob), 165,240,145,20, &(driver->blocktype), 0, 0, 0, 0, "Driver type");
 
-	boundbox_ipo_visible(G.sipo);	// should not be needed... transform/draw calls should update
+				uiDefButS(block, MENU, B_IPO_REDR, 
+							ipodriver_channelselect_pup(),			165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
+			}
+			uiBlockEndAlign(block);
+		}
+		else {
+			uiDefBut(block, BUT, B_IPO_DRIVER, "Add Driver",	210,265,100,19, NULL, 0.0f, 0.0f, 0, 0, "Create a Driver for this Ipo Channel");
+		}
+	}
+	else 
+		uiDefBut(block, LABEL, 0, " ",		10, 265, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
+
+	boundbox_ipo_curves(G.sipo);	// should not be needed... transform/draw calls should update
 	
 	/* note ranges for buttons below are idiot... we need 2 ranges, one for sliding scale, one for real clip */
-	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_vis) {
+	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_curve) {
 		extern int totipo_vertsel;	// editipo.c
 		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
 		
+		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, MAXFRAMEF, 100, 0, "");
 		uiDefButF(block, NUM, B_MUL_IPO, "Xmax:",		160, 180, 150, 19, &G.sipo->tot.xmax, G.sipo->tot.ymin-1000.0, MAXFRAMEF, 100, 0, "");
 		
@@ -1675,7 +1847,8 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 
 		/* SPEED BUTTON */
 		if(totipo_vertsel) {
-			uiDefButF(block, NUM, B_IPO_NONE, "Speed:",			10,130,150,19, &hspeed, 0.0, 180.0, 1, 0, "");
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_IPO_NONE, "Speed:",		10,130,150,19, &hspeed, 0.0, 180.0, 1, 0, "");
 			uiDefBut(block, BUT, B_SETSPEED,"SET",			160,130,50,19, 0, 0, 0, 0, 0, "");
 		}
 	}

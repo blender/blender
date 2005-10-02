@@ -237,6 +237,7 @@ void unlink_object(Object *ob)
 	Scene *sce;
 	Curve *cu;
 	Tex *tex;
+	Ipo *ipo;
 	Group *group;
 	bConstraint *con;
 	int a;
@@ -308,7 +309,7 @@ void unlink_object(Object *ob)
 		for(a=0; a<MAX_MTEX; a++) {
 			if(mat->mtex[a] && ob==mat->mtex[a]->object) {
 				/* actually, test for lib here... to do */
-				mat->mtex[a]->object= 0;
+				mat->mtex[a]->object= NULL;
 			}
 		}
 
@@ -319,7 +320,7 @@ void unlink_object(Object *ob)
 	tex= G.main->tex.first;
 	while(tex) {
 		if(tex->env) {
-			if(tex->env->object == ob) tex->env->object= 0;
+			if(tex->env->object == ob) tex->env->object= NULL;
 		}
 		tex= tex->id.next;
 	}
@@ -333,10 +334,10 @@ void unlink_object(Object *ob)
 	/* worlds */
 	wrld= G.main->world.first;
 	while(wrld) {
-		if(wrld->id.lib==0) {
+		if(wrld->id.lib==NULL) {
 			for(a=0; a<MAX_MTEX; a++) {
 				if(wrld->mtex[a] && ob==wrld->mtex[a]->object)
-					wrld->mtex[a]->object =0;
+					wrld->mtex[a]->object= NULL;
 			}
 		}
 		
@@ -346,12 +347,23 @@ void unlink_object(Object *ob)
 	/* scenes */
 	sce= G.main->scene.first;
 	while(sce) {
-		if(sce->id.lib==0) {
-			if(sce->camera==ob) sce->camera= 0;
+		if(sce->id.lib==NULL) {
+			if(sce->camera==ob) sce->camera= NULL;
 		}
 		sce= sce->id.next;
 	}
-	/* keys */
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL) {
+			IpoCurve *icu;
+			for(icu= ipo->curve.first; icu; icu= icu->next) {
+				if(icu->driver && icu->driver->ob==ob)
+					icu->driver->ob= NULL;
+			}
+		}
+		ipo= ipo->id.next;
+	}
 	
 	/* screens */
 	sc= G.main->screen.first;
@@ -365,11 +377,11 @@ void unlink_object(Object *ob)
 					View3D *v3d= (View3D*) sl;
 
 					if(v3d->camera==ob) {
-						v3d->camera= 0;
+						v3d->camera= NULL;
 						if(v3d->persp>1) v3d->persp= 1;
 					}
 					if(v3d->localvd && v3d->localvd->camera==ob ) {
-						v3d->localvd->camera= 0;
+						v3d->localvd->camera= NULL;
 						if(v3d->localvd->persp>1) v3d->localvd->persp= 1;
 					}
 				}
@@ -1285,8 +1297,9 @@ void where_is_object_time(Object *ob, float ctime)
 	
 	if(ob==NULL) return;
 	
+	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
 	stime= bsystem_time(ob, 0, ctime, 0.0);
-	if( stime != ob->ctime) {
+	if(stime != ob->ctime) {
 		ob->ctime= stime;
 		
 		if(ob->ipo) {
@@ -1296,7 +1309,11 @@ void where_is_object_time(Object *ob, float ctime)
 		/* do constraint ipos ... */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, ctime);
 	}
-
+	else {
+		/* but, the drivers have to be done */
+		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo);
+	}
+	
 	if(ob->parent) {
 		par= ob->parent;
 

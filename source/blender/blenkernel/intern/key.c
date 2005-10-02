@@ -935,6 +935,8 @@ static int do_mesh_key(Mesh *me)
 	else {
 		
 		ctime= bsystem_time(0, 0, (float)G.scene->r.cfra, 0.0);
+		calc_ipo(me->key->ipo, ctime);	/* also all relative key positions */
+		
 		if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 			ctime /= 100.0;
 			CLAMP(ctime, 0.0, 1.0);

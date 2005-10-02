@@ -359,6 +359,7 @@ typedef short IPO_Channel;
 #define IPO_EDIT		4
 #define IPO_LOCK		8
 #define IPO_AUTO_HORIZ	16
+#define IPO_ACTIVE		32
 
 #endif
 

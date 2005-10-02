@@ -756,7 +756,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				if(data->subtarget[0]) {
 					pchan = get_pose_channel(data->tar->pose, data->subtarget);
 					if (pchan) {
-						float arm_mat[3][3], pose_mat[3][3];
+						float arm_mat[3][3], pose_mat[3][3];		/* arm mat should be bone mat! bug... */
 						
 						Mat3CpyMat4(arm_mat, pchan->bone->arm_mat);
 						Mat3CpyMat4(pose_mat, pchan->pose_mat);

@@ -2544,7 +2544,7 @@ void do_matbuts(unsigned short event)
 		/* same for 'xtreme alpha' which is 'only shadow' */
 		ma= G.buts->lockpoin;
 		if((ma->mode & MA_HALO)==0) {
-			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA);
+			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV);
 		}
 		BIF_preview_changed(G.buts);
 		allqueue(REDRAWBUTSSHADING, 0);

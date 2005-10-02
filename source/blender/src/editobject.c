@@ -4114,6 +4114,7 @@ void adduplicate(int noTrans)
 	Object *ob, *obn;
 	Material ***matarar, *ma, *mao;
 	ID *id;
+	Ipo *ipo;
 	bConstraintChannel *chan;
 	int a, didit, dupflag;
 	
@@ -4314,7 +4315,21 @@ void adduplicate(int noTrans)
 		}
 		base= base->next;
 	}
-
+	
+	/* ipos */
+	ipo= G.main->ipo.first;
+	while(ipo) {
+		if(ipo->id.lib==NULL) {
+			IpoCurve *icu;
+			for(icu= ipo->curve.first; icu; icu= icu->next) {
+				if(icu->driver) {
+					ID_NEW(icu->driver->ob);
+				}
+			}
+		}
+		ipo= ipo->id.next;
+	}
+	
 	/* materials */
 	if( dupflag & USER_DUP_MAT) {
 		mao= G.main->mat.first;

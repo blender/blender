@@ -1707,7 +1707,11 @@ static void lib_link_ipo(FileData *fd, Main *main)
 	ipo= main->ipo.first;
 	while(ipo) {
 		if(ipo->id.flag & LIB_NEEDLINK) {
-
+			IpoCurve *icu;
+			for(icu= ipo->curve.first; icu; icu= icu->next) {
+				if(icu->driver)
+					icu->driver->ob= newlibadr(fd, ipo->id.lib, icu->driver->ob);
+			}
 			ipo->id.flag -= LIB_NEEDLINK;
 		}
 		ipo= ipo->id.next;
@@ -1723,6 +1727,7 @@ static void direct_link_ipo(FileData *fd, Ipo *ipo)
 	while(icu) {
 		icu->bezt= newdataadr(fd, icu->bezt);
 		icu->bp= newdataadr(fd, icu->bp);
+		icu->driver= newdataadr(fd, icu->driver);
 		icu= icu->next;
 	}
 }

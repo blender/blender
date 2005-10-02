@@ -171,6 +171,12 @@ typedef struct Curve {
 	struct CharInfo curinfo;	
 } Curve;
 
+typedef struct IpoDriver {
+	struct Object *ob;
+	short blocktype, adrcode, type, flag;
+	char name[32];	/* bone or constraint(?) name, later we can add python expression here */
+} IpoDriver;
+
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;
 	
@@ -187,6 +193,8 @@ typedef struct IpoCurve {
 	unsigned int bitmask;
 	
 	float curval;
+	
+	IpoDriver *driver;
 	
 } IpoCurve;
 

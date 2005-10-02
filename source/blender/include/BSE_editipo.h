@@ -59,6 +59,8 @@ char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
 
+struct EditIpo *get_active_editipo(void);
+
 void boundbox_ipocurve(struct IpoCurve *icu);
 void boundbox_ipo(struct Ipo *ipo, struct rctf *bb);
 void editipo_changed(struct SpaceIpo *si, int doredraw);
