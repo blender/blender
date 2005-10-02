@@ -388,8 +388,8 @@ void CutEdgeloop(int numcuts)
 		EM_selectmode_set();
 	}	
 	
-	//force_draw(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	scrarea_queue_headredraw(curarea);
 	scrarea_queue_winredraw(curarea);	
 	return;
 }
