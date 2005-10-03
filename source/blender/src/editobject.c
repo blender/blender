@@ -1820,14 +1820,13 @@ void docentre(int centremode)
 
 					allqueue(REDRAWBUTSEDIT, 0);
 				}
-				base->object->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
 		base= base->next;
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	BIF_undo_push("Do Centre");	
 }
 
