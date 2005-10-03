@@ -1162,11 +1162,11 @@ void undo_push_armature(char *name)
 /* *************** Adding stuff in editmode *************** */
 
 /* default bone add, returns it selected, but without tail set */
-static EditBone *add_editbone(void)
+static EditBone *add_editbone(char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	strcpy (bone->name,"Bone");
+	strcpy (bone->name, name);
 	unique_editbone_name (bone->name);
 	
 	BLI_addtail(&G.edbo, bone);
@@ -1204,7 +1204,7 @@ static void add_primitive_bone(Object *ob)
 	deselectall_armature(0);
 	
 	/*	Create a bone	*/
-	bone= add_editbone();
+	bone= add_editbone("Bone");
 
 	VECCOPY(bone->head, curs);
 	VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
@@ -1248,9 +1248,10 @@ void add_primitiveArmature(int type)
 /* the ctrl-click method */
 void addvert_armature(void)
 {
-	EditBone *ebone, *newbone;
+	bArmature *arm= G.obedit->data;
+	EditBone *ebone, *newbone, *flipbone;
 	float *curs, mat[3][3],imat[3][3];
-	int to_root= 0;
+	int a, to_root= 0;
 	
 	TEST_EDITARMATURE;
 	
@@ -1268,32 +1269,53 @@ void addvert_armature(void)
 	}
 	
 	deselectall_armature(0);
-	newbone= add_editbone();
-	newbone->flag |= BONE_ACTIVE;
 	
-	if(to_root) {
-		VECCOPY(newbone->head, ebone->head);
-		newbone->rad_head= ebone->rad_tail;
-		newbone->parent= ebone->parent;
-	}
-	else {
-		VECCOPY(newbone->head, ebone->tail);
-		newbone->rad_head= ebone->rad_tail;
-		newbone->parent= ebone;
-		newbone->flag |= BONE_CONNECTED;
-	}
-	
-	curs= give_cursor();
-	VECCOPY(newbone->tail, curs);
-	VecSubf(newbone->tail, newbone->tail, G.obedit->obmat[3]);
-	
-	Mat3CpyMat4(mat, G.obedit->obmat);
-	Mat3Inv(imat, mat);
-	Mat3MulVecfl(imat, newbone->tail);
+	/* we re-use code for mirror editing... */
+	flipbone= NULL;
+	if(arm->flag & ARM_MIRROR_EDIT)
+		flipbone= armature_bone_get_mirrored(ebone);
 
-	newbone->length= VecLenf(newbone->head, newbone->tail);
-	newbone->rad_tail= newbone->length*0.05f;
-	newbone->dist= newbone->length*0.1f;
+	for(a=0; a<2; a++) {
+		if(a==1) {
+			if(flipbone==NULL)
+				break;
+			else {
+				SWAP(EditBone *, flipbone, ebone);
+			}
+		}
+		
+		newbone= add_editbone(ebone->name);
+		newbone->flag |= BONE_ACTIVE;
+		
+		if(to_root) {
+			VECCOPY(newbone->head, ebone->head);
+			newbone->rad_head= ebone->rad_tail;
+			newbone->parent= ebone->parent;
+		}
+		else {
+			VECCOPY(newbone->head, ebone->tail);
+			newbone->rad_head= ebone->rad_tail;
+			newbone->parent= ebone;
+			newbone->flag |= BONE_CONNECTED;
+		}
+		
+		curs= give_cursor();
+		VECCOPY(newbone->tail, curs);
+		VecSubf(newbone->tail, newbone->tail, G.obedit->obmat[3]);
+		
+		if(a==1) 
+			newbone->tail[0]= -newbone->tail[0];
+		
+		Mat3CpyMat4(mat, G.obedit->obmat);
+		Mat3Inv(imat, mat);
+		Mat3MulVecfl(imat, newbone->tail);
+		
+		newbone->length= VecLenf(newbone->head, newbone->tail);
+		newbone->rad_tail= newbone->length*0.05f;
+		newbone->dist= newbone->length*0.1f;
+		
+	}
+	
 	
 	countall();
 	
