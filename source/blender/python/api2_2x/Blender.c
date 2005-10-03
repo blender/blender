@@ -39,6 +39,7 @@ struct ID; /*keep me up here */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
 #include "BLO_writefile.h"
+#include "BKE_blender.h"
 #include "BKE_exotic.h"
 #include "BKE_global.h"
 #include "BKE_packedFile.h"
@@ -480,7 +481,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 
 	if( !PyArg_ParseTuple( args, "|si", &fname, &keep_oldfname ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected filename and optional int or nothing as arguments" );
+			"expected filename and optional int or nothing as arguments" );
 
 	if( fname ) {
 		if( strlen( fname ) > FILE_MAXDIR )	/* G.main->name's max length */
@@ -518,6 +519,7 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 		is_blend_file = 1;	/* no arg given means default: .B.blend */
 
 	if( is_blend_file ) {
+
 		int during_slink = during_scriptlink(  );
 
 		/* when loading a .blend file from a scriptlink, the scriptlink pointer
@@ -546,21 +548,32 @@ static PyObject *Blender_Load( PyObject * self, PyObject * args )
 	if( G.obedit )
 		exit_editmode( 1 );
 
-	/* for safety, any filename with .B.blend is considered the default one.
-	 * It doesn't seem necessary to compare file attributes (like st_ino and
-	 * st_dev, according to the glibc info pages) to find out if the given
-	 * filename, that may have been given with a twisted misgiving path, is the
-	 * default one for sure.  Taking any .B.blend file as the default is good
-	 * enough here.  Note: the default file requires extra clean-up done by
-	 * BIF_read_homefile: freeing the user theme data. */
-	if( !fname || ( strstr( fname, ".B.blend" ) && is_blend_file ) )
-		BIF_read_homefile(  );
-	else
-		BIF_read_file( fname );
+	if (G.background) { /* background mode */
+		if (is_blend_file)
+			BKE_read_file(fname, NULL);
+		else {
+			return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"only .blend files can be loaded from command line,\n\
+	other file types require interactive mode.");
+		}
+	}
+	else { /* interactive mode */
+		/* for safety, any filename with .B.blend is considered the default one.
+		 * It doesn't seem necessary to compare file attributes (like st_ino and
+		 * st_dev, according to the glibc info pages) to find out if the given
+		 * filename, that may have been given with a twisted misgiving path, is the
+		 * default one for sure.  Taking any .B.blend file as the default is good
+		 * enough here.  Note: the default file requires extra clean-up done by
+		 * BIF_read_homefile: freeing the user theme data. */
+		if( !fname || ( strstr( fname, ".B.blend" ) && is_blend_file ) )
+			BIF_read_homefile(  );
+		else
+			BIF_read_file( fname );
 
-	if( fname && keep_oldfname ) {
-		/*BLI_strncpy(G.main->name, name, FILE_MAXDIR); */
-		BLI_strncpy( G.sce, name, FILE_MAXDIR );
+		if( fname && keep_oldfname ) {
+			/*BLI_strncpy(G.main->name, name, FILE_MAXDIR); */
+			BLI_strncpy( G.sce, name, FILE_MAXDIR );
+		}
 	}
 
 	Py_INCREF( Py_None );

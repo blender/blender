@@ -2076,37 +2076,35 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 	int i;
 	Material **matlist;
 
-	if( !PyArg_ParseTuple( args, "O", &list ) ) {
+	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &list ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+      "expected a list of materials (None's also accepted) as argument" );
+
+	len = PyList_Size(list);
+
+	if( len > MAXMAT )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"list must have from 1 up to 16 materials" );
+
+	matlist = EXPP_newMaterialList_fromPyList( list );
+	if( !matlist ) {
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected a list of materials as argument" ) );
+			"material list must be a list of valid materials!" ) );
 	}
 
-	len = PySequence_Length( list );
-	if( len > 0 ) {
-		matlist = EXPP_newMaterialList_fromPyList( list );
-		if( !matlist ) {
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"material list must be a list of valid materials!" ) );
-		}
-		if( ( len < 0 ) || ( len > MAXMAT ) ) {
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"material list should have at least 1, at most 16 entries" ) );
-		}
+	if( self->object->mat )
+		EXPP_releaseMaterialList( self->object->mat, self->object->totcol );
 
-		if( self->object->mat ) {
-			EXPP_releaseMaterialList( self->object->mat,
-						  self->object->totcol );
-		}
-		/* Increase the user count on all materials */
-		for( i = 0; i < len; i++ ) {
-			if( matlist[i] )
-				id_us_plus( ( ID * ) matlist[i] );
-		}
-		self->object->mat = matlist;
-		self->object->totcol = (char)len;
-		self->object->actcol = (char)len;
+	/* Increase the user count on all materials */
+	for( i = 0; i < len; i++ ) {
+		if( matlist[i] )
+			id_us_plus( ( ID * ) matlist[i] );
+	}
+	self->object->mat = matlist;
+	self->object->totcol = (char)len;
+	self->object->actcol = (char)len;
 
-		switch ( self->object->type ) {
+	switch ( self->object->type ) {
 		case OB_CURVE:	/* fall through */
 		case OB_FONT:	/* fall through */
 		case OB_MESH:	/* fall through */
@@ -2116,7 +2114,6 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 			break;
 		default:
 			break;
-		}
 	}
 	return EXPP_incr_ret( Py_None );
 }

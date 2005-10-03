@@ -602,7 +602,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 
 	if( strcmp( name, "v" ) == 0 ) {
 
-		if( PySequence_Check( v ) ) {
+		if( PyList_Check( v ) ) {
 			Py_DECREF( mf->v );
 			mf->v = EXPP_incr_ret( v );
 
@@ -610,7 +610,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 		}
 	} else if( strcmp( name, "col" ) == 0 ) {
 
-		if( PySequence_Check( v ) ) {
+		if( PyList_Check( v ) ) {
 			Py_DECREF( mf->col );
 			mf->col = EXPP_incr_ret( v );
 
@@ -642,7 +642,7 @@ static int NMFace_setattr( PyObject * self, char *name, PyObject * v )
 
 	} else if( strcmp( name, "uv" ) == 0 ) {
 
-		if( PySequence_Check( v ) ) {
+		if( PyList_Check( v ) ) {
 			Py_DECREF( mf->uv );
 			mf->uv = EXPP_incr_ret( v );
 
@@ -1054,6 +1054,10 @@ static PyObject *NMesh_getMaterials( PyObject * self, PyObject * args )
 					      "expected nothing or an int (bool) as argument" );
 
 	if( all >= 0 ) {
+		if (!me)
+			return EXPP_ReturnPyObjError(PyExc_TypeError,
+					"meshes obtained with GetRawFromObject don't support this option");
+
 		list = EXPP_PyList_fromMaterialList( me->mat, me->totcol,
 						     all );
 		Py_DECREF( nm->materials );	/* update nmesh.materials attribute */
@@ -1751,7 +1755,7 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
 	else if( !strcmp( name, "verts" ) || !strcmp( name, "faces" ) ||
 		 !strcmp( name, "materials" ) ) {
 
-		if( PySequence_Check( v ) ) {
+		if( PyList_Check( v ) ) {
 
 			if( strcmp( name, "materials" ) == 0 ) {
 				Py_DECREF( me->materials );
@@ -1767,7 +1771,7 @@ static int NMesh_setattr( PyObject * self, char *name, PyObject * v )
 
 		else
 			return EXPP_ReturnIntError( PyExc_TypeError,
-						    "expected a sequence" );
+						    "expected a list" );
 	}
 
 	else if( !strcmp( name, "maxSmoothAngle" ) ) {

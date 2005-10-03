@@ -128,6 +128,8 @@ def Load (filename = None):
      when this function is used to open .blend files.
   @warn: if in edit mode, this function leaves it, since Blender itself
      requires that.
+  @note: for all types except .blend files, this function only works in
+     interactive mode, not in background, following what Blender itself does.
   """
 
 def Save (filename, overwrite = 0):
@@ -177,9 +179,7 @@ def ShowHelp (script):
   @note: this function uses L{Run} and the "Scripts Help Browser" script.  This
      means that it expects proper doc strings in the script to be able to show
      help for it (otherwise it offers to load the script source code as text).
-     The necessary information about doc strings is in the
-     L{Intro page<API_intro>} of this API Reference documentation you're
-     reading.
+     The necessary information about doc strings is L{given here<API_related>}.
   @note: 'script' doesn't need to be a full path name: "filename.py" is enough.
      Note, though, that this function only works for properly registered
      scripts (those that appear in menus).

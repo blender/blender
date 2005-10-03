@@ -566,7 +566,8 @@ int BPY_txt_do_python_Text( struct Text *text )
 
 /****************************************************************************
 * Description: Called from command line to run a Python script
-* automatically. 
+* automatically. The script can be a file or a Blender Text in the current 
+* .blend.
 ****************************************************************************/
 void BPY_run_python_script( char *fn )
 {
@@ -606,7 +607,19 @@ void BPY_run_python_script( char *fn )
 			"%s (at line %d).\n", fn, BPY_Err_getLinenumber());
 	}
 
-	if (!is_blender_text) free_libblock(&G.main->text, text);
+	if (!is_blender_text) {
+		/* We can't simply free the text, since the script might have called
+		 * Blender.Load() to load a new .blend, freeing previous data.
+		 * So we check if the pointer is still valid. */
+		Text *txtptr = G.main->text.first;
+		while (txtptr) {
+			if (txtptr == text) {
+				free_libblock(&G.main->text, text);
+				break;
+			}
+			txtptr = txtptr->id.next;
+		}
+	}
 }
 
 /****************************************************************************

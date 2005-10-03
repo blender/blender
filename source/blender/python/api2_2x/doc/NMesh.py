@@ -438,7 +438,7 @@ class NMesh:
         - -1: return the current nmesh's list;
         -  0: retrieve a fresh list from the Blender mesh -- eventual
               modifications made by the script not included, unless
-              L{NMesh.update}d is called before this method;
+              L{NMesh.update} is called before this method;
         -  1: like 0, but empty slots are not ignored, they are returned as
               None's.
     @note: what >= 0 also updates nmesh.materials attribute.

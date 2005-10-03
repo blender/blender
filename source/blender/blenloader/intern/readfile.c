@@ -2855,6 +2855,16 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 		while(sa) {
 			SpaceLink *sl;
 
+			if (sa->scriptlink.totscript) {
+				/* restore screen area script links */
+				ScriptLink *slink = &sa->scriptlink;
+				int script_idx;
+				for (script_idx = 0; script_idx < slink->totscript; script_idx++) {
+					slink->scripts[script_idx] = restore_pointer_by_name(newmain,
+						(ID *)slink->scripts[script_idx], 1);
+				}
+			}
+
 			for (sl= sa->spacedata.first; sl; sl= sl->next) {
 				if(sl->spacetype==SPACE_VIEW3D) {
 					View3D *v3d= (View3D*) sl;

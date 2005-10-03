@@ -423,9 +423,33 @@ static PyObject *Buffer_repr(PyObject *self)
 	return repr;
 }
 
-/* BGL_Wrap defined in BGL.h */
+/* Not a macro so that buffer dimensions are checked.
+ * XXX There are other places where buffers are used, so a new macro to handle
+ * all such cases may be a good idea. */
+static PyObject *Method_DrawPixels (PyObject *self, PyObject *args)
+{
+	int bgl_var1, bgl_var2, bgl_var3, bgl_var4;
+	Buffer *bgl_buffer5;
+	int i, bufsize;
 
-/* #ifndef __APPLE__ */
+	if (!PyArg_ParseTuple(args, "i" "i" "i" "i" "O!",
+		&bgl_var1, &bgl_var2, &bgl_var3, &bgl_var4, &buffer_Type, &bgl_buffer5))
+		return NULL;
+
+	bufsize = 1;
+	for (i = 0; i < bgl_buffer5->ndimensions; i++) 
+		bufsize *= bgl_buffer5->dimensions[i];
+ 
+	if (bgl_var1*bgl_var2 > bufsize)
+		return EXPP_ReturnPyObjError(PyExc_AttributeError,
+				"pixel buffer size can't be smaller than drawing rect area");
+
+	glDrawPixels (bgl_var1, bgl_var2, bgl_var3, bgl_var4,
+		(bgl_buffer5)->buf.asvoid);
+
+	return EXPP_incr_ret(Py_None);
+}
+
 
 BGL_Wrap(2, Accum,          void,     (GLenum, GLfloat))
 BGL_Wrap(2, AlphaFunc,      void,     (GLenum, GLclampf))
@@ -487,7 +511,7 @@ BGL_Wrap(1, DepthMask,        void,     (GLboolean))
 BGL_Wrap(2, DepthRange,       void,     (GLclampd, GLclampd))
 BGL_Wrap(1, Disable,          void,     (GLenum))
 BGL_Wrap(1, DrawBuffer,       void,     (GLenum))
-BGL_Wrap(5, DrawPixels,       void,     (GLsizei, GLsizei, GLenum, GLenum, GLvoidP))
+/*BGL_Wrap(5, DrawPixels,       void,     (GLsizei, GLsizei, GLenum, GLenum, GLvoidP))*/
 BGL_Wrap(1, EdgeFlag,         void,     (GLboolean))
 BGL_Wrap(1, EdgeFlagv,        void,     (GLbooleanP))
 BGL_Wrap(1, Enable,           void,     (GLenum))
@@ -758,8 +782,6 @@ BGLU_Wrap(4, Ortho2D,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble)
 BGLU_Wrap(5, PickMatrix,       	void,     	(GLdouble, GLdouble, GLdouble, GLdouble, GLintP))
 BGLU_Wrap(9, Project,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
 BGLU_Wrap(9, UnProject,			GLint,		(GLdouble, GLdouble, GLdouble, GLdoubleP, GLdoubleP, GLintP, GLdoubleP, GLdoubleP, GLdoubleP))
-
-/* #endif */
 
 #undef MethodDef
 #define MethodDef(func) {"gl"#func, Method_##func, METH_VARARGS, "no string"}

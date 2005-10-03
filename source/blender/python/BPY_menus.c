@@ -874,6 +874,7 @@ static int bpymenu_ParseDir(char *dirname, char *parentdir, int is_userdir )
 					closedir(dir);
 					return -1;
 				}
+				Dir_Depth--;
 			}
 
 		}
