@@ -28,6 +28,7 @@ The Blender Python API Reference
   - L{Library}
   - L{Material} (*)
   - L{Mathutils} (*)
+  - L{Mesh} (*)
   - L{Metaball}
   - L{NMesh} (*)
   - L{Noise}

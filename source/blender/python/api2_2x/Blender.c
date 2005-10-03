@@ -72,6 +72,7 @@ struct ID; /*keep me up here */
 #include "Lamp.h"
 #include "Lattice.h"
 #include "Mathutils.h"
+#include "Mesh.h"
 #include "Metaball.h"
 #include "NMesh.h"
 #include "Object.h"
@@ -818,6 +819,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Lattice", Lattice_Init());
 	PyDict_SetItemString(dict, "Library", Library_Init());
 	PyDict_SetItemString(dict, "Material", Material_Init());
+	PyDict_SetItemString(dict, "Mesh", Mesh_Init());
 	PyDict_SetItemString(dict, "Metaball", Metaball_Init());
 	PyDict_SetItemString(dict, "Mathutils", Mathutils_Init());
 	PyDict_SetItemString(dict, "NMesh", NMesh_Init());
