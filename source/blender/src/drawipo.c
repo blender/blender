@@ -1648,6 +1648,8 @@ void do_ipobuts(unsigned short event)
 	Object *ob= OBACT;
 	EditIpo *ei;
 	
+	if(G.sipo->from==NULL) return;
+	
 	switch(event) {
 	case B_IPO_REDR:
 		ei= get_active_editipo();

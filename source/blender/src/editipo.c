@@ -1888,6 +1888,8 @@ Ipo *get_ipo(ID *from, short type, int make)
 	Ipo *ipo= NULL;
 	bAction *act;
 
+	if(from==NULL) return NULL;
+	
 	if( type==ID_OB) {
 		ob= (Object *)from;
 		if(ob->id.lib) return NULL;

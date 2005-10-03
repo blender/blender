@@ -1529,15 +1529,18 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	ob->recalc |= flag;
 	
 	/* all users of this ob->data should be checked */
+	/* BUT! displists for curves are still only on cu */
 	if(flag & OB_RECALC_DATA) {
-		ID *id= ob->data;
-		if(id && id->us>1) {
-			/* except when there's a key and shapes are locked */
-			if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
-			else {
-				for (base= sce->base.first; base; base= base->next) {
-					if (ob->data==base->object->data) {
-						base->object->recalc |= OB_RECALC_DATA;
+		if(ob->type!=OB_CURVE && ob->type!=OB_SURF) {
+			ID *id= ob->data;
+			if(id && id->us>1) {
+				/* except when there's a key and shapes are locked */
+				if(ob_get_key(ob) && (ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)));
+				else {
+					for (base= sce->base.first; base; base= base->next) {
+						if (ob->data==base->object->data) {
+							base->object->recalc |= OB_RECALC_DATA;
+						}
 					}
 				}
 			}

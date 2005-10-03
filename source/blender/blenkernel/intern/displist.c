@@ -1581,6 +1581,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 
 	curve_calc_modifiers_post(ob, nubase, dispbase, forRender, originalVerts, deformedVerts);
 }
+
 void makeDispListCurveTypes(Object *ob, int forOrco)
 {
 	Curve *cu = ob->data;
@@ -1597,12 +1598,13 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		makeDispListSurf(ob, dispbase, 0);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
-		int obedit= (G.obedit && G.obedit->data==ob->data);
-		int numVerts;
+		ListBase dlbev;;
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
+		int obedit= (G.obedit && G.obedit->data==ob->data);
 		ListBase *nubase = obedit?&editNurb:&cu->nurb;
-		
+		int numVerts;
+
 		BLI_freelistN(&(cu->bev));
 		
 		if(cu->path) free_path(cu->path);
@@ -1614,98 +1616,83 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 
 		makeBevelList(ob);
 
-		if(obedit) {
-			if(ob->type==OB_CURVE) {
-				curve_to_displist(cu, &editNurb, dispbase);
-				curve_to_filledpoly(cu, &editNurb, dispbase);
-			}
-			else {
-				curve_to_displist(cu, &cu->nurb, dispbase);
-				if (!(cu->flag&CU_FAST)) {
-					curve_to_filledpoly(cu, &cu->nurb, dispbase);
-				}
-			}
-		}
-		else {
-			ListBase dlbev;;
+			/* If curve has no bevel will return nothing */
+		makebevelcurve(ob, &dlbev);
 
-				/* If curve has no bevel will return nothing */
-			makebevelcurve(ob, &dlbev);
+		if (!dlbev.first) {
+			curve_to_displist(cu, nubase, dispbase);
+		} else {
+			float widfac= cu->width-1.0;
+			BevList *bl= cu->bev.first;
+			Nurb *nu= nubase->first;
 
-			if (!dlbev.first) {
-				curve_to_displist(cu, &cu->nurb, dispbase);
-			} else {
-				float widfac= cu->width-1.0;
-				BevList *bl= cu->bev.first;
-				Nurb *nu= cu->nurb.first;
+			for (; bl && nu; bl=bl->next,nu=nu->next) {
+				DispList *dlb;
+				
+				for (dlb=dlbev.first; dlb; dlb=dlb->next) {
+					DispList *dl;
+					float *fp1, *data;
+					BevPoint *bevp;
+					int a,b;
 
-				for (; bl && nu; bl=bl->next,nu=nu->next) {
-					DispList *dlb;
+						/* for each part of the bevel use a separate displblock */
+					dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
+					dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
+					BLI_addtail(dispbase, dl);
+
+					dl->type= DL_SURF;
 					
-					for (dlb=dlbev.first; dlb; dlb=dlb->next) {
-						DispList *dl;
-						float *fp1, *data;
-						BevPoint *bevp;
-						int a,b;
+					dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
+					if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
+					if(bl->poly>=0) dl->flag |= DL_CYCL_V;
+					
+					dl->parts= bl->nr;
+					dl->nr= dlb->nr;
+					dl->col= nu->mat_nr;
+					dl->rt= nu->flag;
+					dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
+					bevp= (BevPoint *)(bl+1);
 
-							/* for each part of the bevel use a separate displblock */
-						dl= MEM_callocN(sizeof(DispList), "makeDispListbev1");
-						dl->verts= data= MEM_callocN(3*sizeof(float)*dlb->nr*bl->nr, "dlverts");
-						BLI_addtail(dispbase, dl);
-
-						dl->type= DL_SURF;
+						/* for each point of poly make a bevel piece */
+					bevp= (BevPoint *)(bl+1);
+					for(a=0; a<bl->nr; a++,bevp++) {
+						float fac = calc_taper(cu->taperobj, a, bl->nr);
 						
-						dl->flag= dlb->flag & (DL_FRONT_CURVE|DL_BACK_CURVE);
-						if(dlb->type==DL_POLY) dl->flag |= DL_CYCL_U;
-						if(bl->poly>=0) dl->flag |= DL_CYCL_V;
-						
-						dl->parts= bl->nr;
-						dl->nr= dlb->nr;
-						dl->col= nu->mat_nr;
-						dl->rt= nu->flag;
-						dl->bevelSplitFlag= MEM_callocN(sizeof(*dl->col2)*((bl->nr+0x1F)>>5), "col2");
-						bevp= (BevPoint *)(bl+1);
+						if (bevp->f1) {
+							dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
+						}
 
-							/* for each point of poly make a bevel piece */
-						bevp= (BevPoint *)(bl+1);
-						for(a=0; a<bl->nr; a++,bevp++) {
-							float fac = calc_taper(cu->taperobj, a, bl->nr);
-							
-							if (bevp->f1) {
-								dl->bevelSplitFlag[a>>5] |= 1<<(a&0x1F);
+							/* rotate bevel piece and write in data */
+						fp1= dlb->verts;
+						for (b=0; b<dlb->nr; b++,fp1+=3,data+=3) {
+							if(cu->flag & CU_3D) {
+								float vec[3];
+
+								vec[0]= fp1[1]+widfac;
+								vec[1]= fp1[2];
+								vec[2]= 0.0;
+								
+								Mat3MulVecfl(bevp->mat, vec);
+								
+								data[0]= bevp->x+ fac*vec[0];
+								data[1]= bevp->y+ fac*vec[1];
+								data[2]= bevp->z+ fac*vec[2];
 							}
-
-								/* rotate bevel piece and write in data */
-							fp1= dlb->verts;
-							for (b=0; b<dlb->nr; b++,fp1+=3,data+=3) {
-								if(cu->flag & CU_3D) {
-									float vec[3];
-
-									vec[0]= fp1[1]+widfac;
-									vec[1]= fp1[2];
-									vec[2]= 0.0;
-									
-									Mat3MulVecfl(bevp->mat, vec);
-									
-									data[0]= bevp->x+ fac*vec[0];
-									data[1]= bevp->y+ fac*vec[1];
-									data[2]= bevp->z+ fac*vec[2];
-								}
-								else {
-									data[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
-									data[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
-									data[2]= bevp->z+ fac*fp1[2];
-								}
+							else {
+								data[0]= bevp->x+ fac*(widfac+fp1[1])*bevp->sina;
+								data[1]= bevp->y+ fac*(widfac+fp1[1])*bevp->cosa;
+								data[2]= bevp->z+ fac*fp1[2];
 							}
 						}
 					}
 				}
-
-				freedisplist(&dlbev);
 			}
 
-			curve_to_filledpoly(cu, &cu->nurb, dispbase);
+			freedisplist(&dlbev);
 		}
+
+		curve_to_filledpoly(cu, nubase, dispbase);
+
 		if(cu->flag & CU_PATH) calc_curvepath(ob);
 
 		if(!forOrco) curve_calc_modifiers_post(ob, nubase, &cu->disp, 0, originalVerts, deformedVerts);

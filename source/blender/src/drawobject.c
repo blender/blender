@@ -2263,7 +2263,7 @@ static void drawDispList(Object *ob, int dt)
 					glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
 					drawDispListsolid(lb, ob);
 				}
-				if(ob==G.obedit) {
+				if(ob==G.obedit && cu->bevobj==NULL && cu->taperobj==NULL) {
 					cpack(0);
 					draw_index_wire= 0;
 					drawDispListwire(lb);
@@ -2647,21 +2647,29 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 	Nurb *nu;
 	BevList *bl;
 
+	/* DispList */
+	BIF_ThemeColor(TH_WIRE);
+	drawDispList(ob, dt);
+
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
 	/* first non-selected handles */
 	for(nu=nurb; nu; nu=nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
 			tekenhandlesN(nu, 0);
 		}
 	}
-	
-	/* then DispList */
-	
-	BIF_ThemeColor(TH_WIRE);
-	drawDispList(ob, dt);
-
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
+	/* selected handles */
+	for(nu=nurb; nu; nu=nu->next) {
+		if((nu->type & 7)==1) tekenhandlesN(nu, 1);
+		tekenvertsN(nu, 0);
+	}
+	
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	/* direction vectors for 3d curve paths */
 	if(cu->flag & CU_3D) {
 		BIF_ThemeColor(TH_WIRE);
 		glBegin(GL_LINES);
@@ -2687,11 +2695,6 @@ static void drawnurb(Object *ob, Nurb *nurb, int dt)
 
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
-	for(nu=nurb; nu; nu=nu->next) {
-		if((nu->type & 7)==1) tekenhandlesN(nu, 1);
-		tekenvertsN(nu, 0);
-	}
-
 	for(nu=nurb; nu; nu=nu->next) {
 		tekenvertsN(nu, 1);
 	}
@@ -3579,7 +3582,6 @@ void draw_object(Base *base)
 	case OB_CURVE:
 	case OB_SURF:
 		cu= ob->data;
-		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 		
 		if(ob==G.obedit) {
 			drawnurb(ob, editNurb.first, dt);
