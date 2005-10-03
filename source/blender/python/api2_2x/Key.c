@@ -100,12 +100,15 @@ static struct PyMethodDef Key_methods[] = {
 
 static PyObject *KeyBlock_getData( PyObject * self );
 static PyObject *KeyBlock_getPos( PyObject * self );
+static PyObject *KeyBlock_getName( PyObject * self );
 
 static struct PyMethodDef KeyBlock_methods[] = {
 	{ "getPos", (PyCFunction) KeyBlock_getPos, METH_NOARGS,
 		"Get keyblock position"},
 	{ "getData", (PyCFunction) KeyBlock_getData, METH_NOARGS,
 		"Get keyblock data" },
+	{ "getName", (PyCFunction) KeyBlock_getName, METH_NOARGS,
+		"Get keyblock name"},
 	{ 0, 0, 0, 0 }
 };
 
@@ -249,11 +252,18 @@ static PyObject *KeyBlock_getattr( PyObject * self, char *name )
 		return KeyBlock_getPos(self);
 	} else if ( strcmp( name, "data" ) == 0 ) {
 		return KeyBlock_getData(self);
-	} else if ( strcmp( name, "pos" ) == 0 ) {
-		return KeyBlock_getPos(self);
+	} else if ( strcmp( name, "name" ) == 0 ) {
+		return KeyBlock_getName(self);
 	}
 	return Py_FindMethod( KeyBlock_methods, ( PyObject * ) self, name );
 }
+
+static PyObject *KeyBlock_getName( PyObject * self ) {
+	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
+	PyObject *name = Py_BuildValue( "s", kb->keyblock->name);
+	return name;
+}
+
 
 static PyObject *KeyBlock_getPos( PyObject * self )
 {

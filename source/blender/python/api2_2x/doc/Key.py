@@ -67,6 +67,7 @@ class KeyBlock:
     attribute is read-only.
     @cvar pos: The position of the keyframe (see L{getPos}). This
     attribute is read-only.
+    @cvar name: The name of the KeyBlock. This attribute is read-only.
     """
     def getData():
         """
@@ -92,3 +93,6 @@ class KeyBlock:
         Ipo intersects the KeyBlock position is the actual time of the
         keyframe.
         """
+
+    def getName():
+        """Get the name of the keyframe represented by this KeyBlock."""
