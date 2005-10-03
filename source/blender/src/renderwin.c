@@ -287,6 +287,8 @@ static void renderwin_draw_render_info(RenderWin *rw)
 			glRasterPos2i(12, 5);
 			BMF_DrawString(G.fonts, rw->render_text);
 		}
+		
+		BIF_SetTheme(curarea);	// restore theme
 	}	
 	
 }

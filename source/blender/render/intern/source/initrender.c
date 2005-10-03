@@ -684,7 +684,7 @@ static void initparts(void)
 		
 		if(pa->x>0 && pa->y>0) {
 			/* Gauss needs 1 pixel extra to work */
-			if(xparts*yparts>1 && (R.r.mode & R_GAUSS)) {
+			if((R.r.mode & R_GAUSS)) {
 				pa->minx-= 1;
 				pa->miny-= 1;
 				pa->maxx+= 1;
@@ -692,6 +692,7 @@ static void initparts(void)
 				pa->x+= 2;
 				pa->y+= 2;
 			}
+			printf("part %d %d\n", pa->x, pa->y);
 			BLI_addtail(&R.parts, pa);
 		}
 		else MEM_freeN(pa);
@@ -719,7 +720,7 @@ static void addparttorect(Part *pa)
 	int y, heigth, len, copylen;
 
 	/* calc the right offset in rects, zbuffer cannot exist... */
-
+	printf("add part %d %d\n", pa->x, pa->y);
 	if(pa->rect==NULL) return;
 	
 	rtp= pa->rect;
@@ -964,6 +965,12 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
 			initparts(); /* always do, because of border */
+			if(R.parts.first==NULL) {
+				G.afbreek=1;
+				error("Image too small");
+				break;
+			}
+			
 			setpart(R.parts.first);
 
 			RE_local_init_render_display();
@@ -1020,7 +1027,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
 					/* HANDLE PART OR BORDER */
-					if(totparts>1 || (R.r.mode & R_BORDER)) {
+					if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.mode & R_GAUSS)) {
 
 						pa->rect= R.rectot;
 						R.rectot= NULL;
@@ -1044,7 +1051,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 
 				if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts;
 
-				if(totparts>1 || (R.r.mode & R_BORDER)) {
+				if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.mode & R_GAUSS)) {
 					int a;
 					
 					if(R.rectot) MEM_freeN(R.rectot);
