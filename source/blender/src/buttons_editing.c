@@ -3369,6 +3369,7 @@ void do_fpaintbuts(unsigned short event)
 			clear_vpaint_selectedfaces();
 		else
 			clear_vpaint();
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 	case B_REDR_3D_IMA:
 		allqueue(REDRAWVIEW3D, 0);
