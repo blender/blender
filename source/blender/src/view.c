@@ -1305,7 +1305,10 @@ void endlocalview(ScrArea *sa)
 			if( base->lay & locallay ) {
 				base->lay-= locallay;
 				if(base->lay==0) base->lay= v3d->layact;
-				if(base->object != G.obedit) base->flag |= SELECT;
+				if(base->object != G.obedit) {
+					base->flag |= SELECT;
+					base->object->flag |= SELECT;
+				}
 				base->object->lay= base->lay;
 			}
 			base= base->next;
@@ -1313,6 +1316,7 @@ void endlocalview(ScrArea *sa)
 
 		countall();
 		allqueue(REDRAWVIEW3D, 0);	/* because of select */
+		allqueue(REDRAWOOPS, 0);	/* because of select */
 		
 	}
 }
