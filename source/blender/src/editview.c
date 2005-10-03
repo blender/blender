@@ -61,6 +61,7 @@
 #include "BLI_editVert.h"
 
 #include "BKE_armature.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
@@ -1004,6 +1005,7 @@ static unsigned int samplerect(unsigned int *buf, int size, unsigned int dontdo)
 
 void set_active_base(Base *base)
 {
+	Base *tbase;
 	
 	BASACT= base;
 	
@@ -1014,11 +1016,17 @@ void set_active_base(Base *base)
 		set_active_group();
 		
 		/* signal to ipo */
-
 		if (base) {
 			allqueue(REDRAWIPO, base->object->ipowin);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
+		}
+		/* disable temporal locks */
+		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
+			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {
+				tbase->object->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+				DAG_object_flush_update(G.scene, tbase->object, OB_RECALC_DATA);
+			}
 		}
 	}
 }

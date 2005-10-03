@@ -1102,7 +1102,7 @@ void snap_sel_to_grid()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1180,7 +1180,7 @@ void snap_sel_to_curs()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -1483,7 +1483,7 @@ void snap_to_center()
 
 		base= base->next;
 	}
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
 }
 

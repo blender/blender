@@ -5017,7 +5017,7 @@ void transform_ipo(int mode)
 						}
 						base= base->next;
 					}
-					DAG_scene_flush_update(G.scene);
+					DAG_scene_flush_update(G.scene, screen_view3d_layers());
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else force_draw(0);

@@ -4839,18 +4839,9 @@ void force_draw(int header)
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if(sa!=tempsa && sa->spacetype==tempsa->spacetype) {
-			if(sa->spacetype==SPACE_VIEW3D) {
-				if( ((View3D *)sa->spacedata.first)->lay & ((View3D *)tempsa->spacedata.first)->lay) {
-					areawinset(sa->win);
-					scrarea_do_windraw(sa);
-					scrarea_do_headdraw(sa);
-				}
-			}
-			else {
-				areawinset(sa->win);
-				scrarea_do_windraw(sa);
-				scrarea_do_headdraw(sa);
-			}
+			areawinset(sa->win);
+			scrarea_do_windraw(sa);
+			scrarea_do_headdraw(sa);
 		}
 		sa= sa->next;
 	}

@@ -139,6 +139,9 @@ int has_screenhandler(struct bScreen *sc, short eventcode);
  */
 void screen_draw_info_text(struct bScreen *sc, char *text);
 
+/* return all layers of all 3d windows in a screen */
+unsigned int screen_view3d_layers(void);
+
 #ifdef __cplusplus
 }
 #endif

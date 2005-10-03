@@ -1405,7 +1405,7 @@ static unsigned int flush_layer_node(DagNode *node, int curtime)
 }
 
 /* flushes all recalc flags in objects down the dependency tree */
-void DAG_scene_flush_update(Scene *sce)
+void DAG_scene_flush_update(Scene *sce, unsigned int lay)
 {
 	DagNode *firstnode;
 	DagAdjList *itA;
@@ -1426,7 +1426,7 @@ void DAG_scene_flush_update(Scene *sce)
 	lasttime= sce->theDag->time;
 	for(itA = firstnode->child; itA; itA= itA->next) {
 		if(itA->node->lasttime!=lasttime && itA->node->type==ID_OB) 
-			flush_update_node(itA->node, sce->lay, lasttime);
+			flush_update_node(itA->node, lay, lasttime);
 	}
 }
 
@@ -1515,7 +1515,7 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 			}
 		}
 	}
-	DAG_scene_flush_update(sce);
+	DAG_scene_flush_update(sce, lay);
 }
 
 /* flag this object and all its relations to recalc */
@@ -1544,7 +1544,7 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 		}
 	}
 	
-	DAG_scene_flush_update(sce);
+	DAG_scene_flush_update(sce, sce->lay);
 }
 
 /* ******************* DAG FOR ARMATURE POSE ***************** */

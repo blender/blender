@@ -97,7 +97,7 @@ void	draw_all_deps(void);
 
 void	DAG_scene_sort(struct Scene *sce);
 void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
-void	DAG_scene_flush_update(struct Scene *sce);
+void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay);
 void	DAG_object_flush_update(struct Scene *sce, struct Object *ob, short flag);
 void	DAG_pose_sort(struct Object *ob);
 

@@ -884,7 +884,7 @@ void clear_parent(void)
 	}
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
 	
@@ -987,7 +987,7 @@ void clear_object(char mode)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	BIF_undo_push(str);
 }
 
@@ -1417,7 +1417,7 @@ void make_parent(void)
 	allqueue(REDRAWOOPS, 0);
 	
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	
 	BIF_undo_push("make Parent");
 }
@@ -1827,7 +1827,7 @@ void docentre(int centremode)
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	BIF_undo_push("Do Centre");	
 }
 
@@ -2853,7 +2853,7 @@ void copy_attr(short event)
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 
 	if(event==20) {
 		allqueue(REDRAWBUTSOBJECT, 0);
@@ -3077,7 +3077,7 @@ void make_links(short event)
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWBUTSHEAD, 0);
 
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 
 	BIF_undo_push("Create links");
 }
@@ -4362,7 +4362,7 @@ void adduplicate(int noTrans)
 	}
 
 	DAG_scene_sort(G.scene);
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	set_sca_new_poins();
 
 	clear_id_newpoins();

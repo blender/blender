@@ -3557,6 +3557,19 @@ void drawscredge_area(ScrArea *sa)
 
 /* ********************************* */
 
+/* for depgraph updating, all layers visible in a screen */
+unsigned int screen_view3d_layers(void)
+{
+	ScrArea *sa;
+	int layer= 0;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D)
+			layer |= ((View3D *)sa->spacedata.first)->lay;
+	}
+	return layer;
+}
+
 bScreen *default_twosplit() 
 {
 	bScreen *sc= addscreen("screen");

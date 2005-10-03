@@ -1570,7 +1570,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 		}
 	}
 	/* all recalc flags get flushed */
-	DAG_scene_flush_update(G.scene);
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	
 	/* and we store them temporal in base (only used for transform code) */
 	/* this because after doing updates, the object->recalc is cleared */
