@@ -98,6 +98,8 @@
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
 
+#include "PIL_time.h" 
+
 #include "blendef.h"
 #include "mydevice.h"
 
@@ -1494,6 +1496,8 @@ void outliner_mouse_event(ScrArea *sa, short event)
 		BIF_undo_push("Outliner click event");
 		allqueue(REDRAWOOPS, 0);
 	}
+	else 
+		outliner_select(sa);
 
 }
 
@@ -1619,7 +1623,7 @@ void outliner_select(struct ScrArea *sa )
 	areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
 	y1= fmval[1];
 
-	while (get_mbut() & R_MOUSE) {
+	while (get_mbut() & (L_MOUSE|R_MOUSE)) {
 		getmouseco_areawin(mval);
 		areamouseco_to_ipoco(&so->v2d, mval, fmval, fmval+1);
 		y2= fmval[1];
@@ -1631,7 +1635,9 @@ void outliner_select(struct ScrArea *sa )
 		
 			y1= y2;
 		}
+		else PIL_sleep_ms(30);
 	}
+	
 	BIF_undo_push("Outliner selection");
 
 }
@@ -1824,6 +1830,68 @@ static void outliner_do_object_operation(SpaceOops *soops, ListBase *lb,
 	}
 }
 
+static void pchan_cb(int event, TreeElement *te, TreeStoreElem *tselem)
+{
+	bPoseChannel *pchan= (bPoseChannel *)te->directdata;
+	
+	if(event==1)
+		pchan->bone->flag |= BONE_SELECTED;
+	else if(event==2)
+		pchan->bone->flag &= ~BONE_SELECTED;
+	else if(event==3)
+		pchan->bone->flag |= BONE_HIDDEN_P;
+	else if(event==4)
+		pchan->bone->flag &= ~BONE_HIDDEN_P;
+}
+
+static void bone_cb(int event, TreeElement *te, TreeStoreElem *tselem)
+{
+	Bone *bone= (Bone *)te->directdata;
+	
+	if(event==1)
+		bone->flag |= BONE_SELECTED;
+	else if(event==2)
+		bone->flag &= ~BONE_SELECTED;
+	else if(event==3)
+		bone->flag |= BONE_HIDDEN_P;
+	else if(event==4)
+		bone->flag &= ~BONE_HIDDEN_P;
+}
+
+static void ebone_cb(int event, TreeElement *te, TreeStoreElem *tselem)
+{
+	EditBone *ebone= (EditBone *)te->directdata;
+	
+	if(event==1)
+		ebone->flag |= BONE_SELECTED;
+	else if(event==2)
+		ebone->flag &= ~BONE_SELECTED;
+	else if(event==3)
+		ebone->flag |= BONE_HIDDEN_P;
+	else if(event==4)
+		ebone->flag &= ~BONE_HIDDEN_P;
+}
+
+static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 
+										 void (*operation_cb)(int, TreeElement *, TreeStoreElem *))
+{
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	
+	for(te=lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(tselem->flag & TSE_SELECTED) {
+			if(tselem->type==type) {
+				operation_cb(event, te, tselem);
+			}
+		}
+		if((tselem->flag & TSE_CLOSED)==0) {
+			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
+		}
+	}
+}
+
+
 void outliner_operation_menu(ScrArea *sa)
 {
 	SpaceOops *soops= sa->spacedata.first;
@@ -1887,18 +1955,41 @@ void outliner_operation_menu(ScrArea *sa)
 						error("Not yet...");
 				}
 				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWBUTSALL, 0);
+				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
 	}
 	else if(datalevel) {
 		if(datalevel==-1) error("Mixed selection");
 		else {
-			error("Not yet...");
-			//pupmenu("Data Operations%t|Delete");
+			if(datalevel==TSE_POSE_CHANNEL) {
+				short event= pupmenu("PoseChannel Operations%t|Select%x1|Deselect%x2|Hide%x3|Unhide%x4");
+				if(event>0) {
+					outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb);
+					BIF_undo_push("PoseChannel operation");
+				}
+			}
+			else if(datalevel==TSE_BONE) {
+				short event= pupmenu("Bone Operations%t|Select%x1|Deselect%x2|Hide%x3|Unhide%x4");
+				if(event>0) {
+					outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb);
+					BIF_undo_push("Bone operation");
+				}
+			}
+			else if(datalevel==TSE_EBONE) {
+				short event= pupmenu("EditBone Operations%t|Select%x1|Deselect%x2|Hide%x3|Unhide%x4");
+				if(event>0) {
+					outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb);
+					BIF_undo_push("EditBone operation");
+				}
+			}
+			
+			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWBUTSALL, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 	}
-	else error("Nothing selected");
-	
 }
 
 
@@ -2232,6 +2323,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 {
 	TreeElement *te;
 	int starty, startx;
+	char col[4];
 	
 #ifdef INTERNATIONAL
 	FTF_SetFontSize('l');
@@ -2241,7 +2333,8 @@ static void outliner_draw_tree(SpaceOops *soops)
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
 
 	// selection first
-	glColor3ub(125, 150, 175);
+	BIF_GetThemeColor3ubv(TH_BACK, col);
+	glColor3ub(col[0]+15, col[1]+20, col[2]+25);
 	starty= soops->v2d.tot.ymax-OL_H;
 	outliner_draw_selection(soops, &soops->tree, &starty);
 	

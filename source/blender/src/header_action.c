@@ -147,7 +147,9 @@ void do_action_buttons(unsigned short event)
 					G.v2d->cur.xmax= 100;
 				}
 			}
-
+			G.v2d->cur.ymin= 0.0f;
+			G.v2d->cur.ymax= 1000.0f;
+			
 			G.v2d->tot= G.v2d->cur;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
 
