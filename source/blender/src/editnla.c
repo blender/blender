@@ -465,6 +465,9 @@ static void add_nla_block(short event)
 	strip->actend = calc_action_end(act);
 	strip->start = G.scene->r.cfra; /* Should be mval[0] */
 	strip->end = strip->start + (strip->actend-strip->actstart);
+	if(strip->start<strip->end+2) 
+		strip->end= strip->start+100;
+	
 	strip->flag = ACTSTRIP_SELECT;
 	strip->repeat = 1.0;
 	
