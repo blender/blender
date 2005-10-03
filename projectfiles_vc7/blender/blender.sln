@@ -251,8 +251,6 @@ Global
 		Blender Release = Blender Release
 		BlenderPlayer Debug = BlenderPlayer Debug
 		BlenderPlayer Release = BlenderPlayer Release
-		Debug = Debug
-		Release = Release
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
@@ -263,10 +261,6 @@ Global
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.Blender Release.Build.0 = Blender Release|Win32
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.Debug.ActiveCfg = Blender Debug|Win32
-		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.Debug.Build.0 = Blender Debug|Win32
-		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.Release.ActiveCfg = Blender Release|Win32
-		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.Release.Build.0 = Blender Release|Win32
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -279,10 +273,6 @@ Global
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{CAE37E91-6570-43AC-A4B4-7A37A4B0FC94}.Release.Build.0 = BlenderPlayer Release|Win32
 		{31628053-825D-4C06-8A21-D13883489718}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{31628053-825D-4C06-8A21-D13883489718}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{31628053-825D-4C06-8A21-D13883489718}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -295,10 +285,6 @@ Global
 		{31628053-825D-4C06-8A21-D13883489718}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{31628053-825D-4C06-8A21-D13883489718}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{31628053-825D-4C06-8A21-D13883489718}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{31628053-825D-4C06-8A21-D13883489718}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{31628053-825D-4C06-8A21-D13883489718}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{31628053-825D-4C06-8A21-D13883489718}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{31628053-825D-4C06-8A21-D13883489718}.Release.Build.0 = BlenderPlayer Release|Win32
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -311,10 +297,6 @@ Global
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{E5F2F004-C704-4DCC-A08F-6EB1E38EAB9F}.Release.Build.0 = BlenderPlayer Release|Win32
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -327,10 +309,6 @@ Global
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{DB6BE55D-B6D9-494D-856A-8764FF7BA91D}.Release.Build.0 = BlenderPlayer Release|Win32
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -343,10 +321,6 @@ Global
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{9A307EE5-CD77-47BC-BD87-62508C7E19D8}.Release.Build.0 = BlenderPlayer Release|Win32
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -359,10 +333,6 @@ Global
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{415BFD6E-64CF-422B-AF88-C07F040A7292}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{415BFD6E-64CF-422B-AF88-C07F040A7292}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{415BFD6E-64CF-422B-AF88-C07F040A7292}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{415BFD6E-64CF-422B-AF88-C07F040A7292}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{415BFD6E-64CF-422B-AF88-C07F040A7292}.Release.Build.0 = BlenderPlayer Release|Win32
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -373,10 +343,6 @@ Global
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.Blender Release.Build.0 = Blender Release|Win32
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.Debug.Build.0 = 3D Plugin Debug|Win32
-		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.Release.ActiveCfg = 3D Plugin Release|Win32
-		{0BB7E1A8-689A-4F02-A073-A3E06F989B25}.Release.Build.0 = 3D Plugin Release|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -385,10 +351,6 @@ Global
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Blender Release.Build.0 = Blender Release|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Debug.ActiveCfg = Blender Debug|Win32
-		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Debug.Build.0 = Blender Debug|Win32
-		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Release.ActiveCfg = Blender Release|Win32
-		{FB88301F-F725-401B-ACD7-D2ABBF333B71}.Release.Build.0 = Blender Release|Win32
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -397,10 +359,6 @@ Global
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Blender Release.Build.0 = Blender Release|Win32
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Debug.ActiveCfg = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Debug.Build.0 = Blender Debug|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Release.ActiveCfg = Blender Release|Win32
-		{64019BFA-8C14-4FA6-B275-D7598D821FF6}.Release.Build.0 = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -409,10 +367,6 @@ Global
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Blender Release.Build.0 = Blender Release|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Debug.ActiveCfg = Blender Debug|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Debug.Build.0 = Blender Debug|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Release.ActiveCfg = Blender Release|Win32
-		{5A2EA6DC-1A53-4E87-9166-52870CE3B4EA}.Release.Build.0 = Blender Release|Win32
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -421,10 +375,6 @@ Global
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Blender Release.Build.0 = Blender Release|Win32
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Debug.ActiveCfg = Blender Debug|Win32
-		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Debug.Build.0 = Blender Debug|Win32
-		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Release.ActiveCfg = Blender Release|Win32
-		{2AE0D2D9-6A7A-44DE-9EFF-99C9E3257B49}.Release.Build.0 = Blender Release|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -433,10 +383,6 @@ Global
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.Blender Release.Build.0 = Blender Release|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{106AE171-0083-41D6-A949-20DB0E8DC251}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{106AE171-0083-41D6-A949-20DB0E8DC251}.Debug.ActiveCfg = Blender Debug|Win32
-		{106AE171-0083-41D6-A949-20DB0E8DC251}.Debug.Build.0 = Blender Debug|Win32
-		{106AE171-0083-41D6-A949-20DB0E8DC251}.Release.ActiveCfg = Blender Release|Win32
-		{106AE171-0083-41D6-A949-20DB0E8DC251}.Release.Build.0 = Blender Release|Win32
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -445,10 +391,6 @@ Global
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Blender Release.Build.0 = Blender Release|Win32
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Debug.ActiveCfg = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Debug.Build.0 = Blender Debug|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Release.ActiveCfg = Blender Release|Win32
-		{5B1C904C-BBBD-44A0-843A-447CBD6176AF}.Release.Build.0 = Blender Release|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -461,10 +403,6 @@ Global
 		{E013786A-9575-4F34-81B2-33290357EE87}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{E013786A-9575-4F34-81B2-33290357EE87}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{E013786A-9575-4F34-81B2-33290357EE87}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{E013786A-9575-4F34-81B2-33290357EE87}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{E013786A-9575-4F34-81B2-33290357EE87}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{E013786A-9575-4F34-81B2-33290357EE87}.Release.Build.0 = BlenderPlayer Release|Win32
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -477,10 +415,6 @@ Global
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{EADC3C5A-6C51-4F03-8038-1553E7D7F740}.Release.Build.0 = BlenderPlayer Release|Win32
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -489,10 +423,6 @@ Global
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Blender Release.Build.0 = Blender Release|Win32
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Debug.ActiveCfg = Blender Debug|Win32
-		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Debug.Build.0 = Blender Debug|Win32
-		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Release.ActiveCfg = Blender Release|Win32
-		{A1CCF5B0-08E1-4F00-B417-8BFAC34E5E90}.Release.Build.0 = Blender Release|Win32
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -501,10 +431,6 @@ Global
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.Blender Release.ActiveCfg = 3D Plugin Release|Win32
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.BlenderPlayer Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.BlenderPlayer Release.ActiveCfg = 3D Plugin Release|Win32
-		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.Debug.Build.0 = 3D Plugin Debug|Win32
-		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.Release.ActiveCfg = 3D Plugin Release|Win32
-		{DF25E6F2-780C-438B-8AAD-D10CF8B3820A}.Release.Build.0 = 3D Plugin Release|Win32
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -515,10 +441,6 @@ Global
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{D8ABD6A5-1B36-4D62-934E-B5C6801130B0}.Release.Build.0 = BlenderPlayer Release|Win32
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.3D Plugin Debug.ActiveCfg = BlenderPlayer Debug|Win32
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.3D Plugin Release.ActiveCfg = BlenderPlayer Release|Win32
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.Blender Debug.ActiveCfg = BlenderPlayer Debug|Win32
@@ -527,10 +449,6 @@ Global
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{3D310C60-6771-48E4-BCCA-D2718CDED898}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{3D310C60-6771-48E4-BCCA-D2718CDED898}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{3D310C60-6771-48E4-BCCA-D2718CDED898}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{3D310C60-6771-48E4-BCCA-D2718CDED898}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{3D310C60-6771-48E4-BCCA-D2718CDED898}.Release.Build.0 = BlenderPlayer Release|Win32
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -539,10 +457,6 @@ Global
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Blender Release.Build.0 = Blender Release|Win32
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{8154A59A-CAED-403D-AB94-BC4E7C032666}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Debug.ActiveCfg = Blender Debug|Win32
-		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Debug.Build.0 = Blender Debug|Win32
-		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Release.ActiveCfg = Blender Release|Win32
-		{8154A59A-CAED-403D-AB94-BC4E7C032666}.Release.Build.0 = Blender Release|Win32
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -555,10 +469,6 @@ Global
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{F90BD995-FFA4-4B18-81E8-FA4322C939E8}.Release.Build.0 = BlenderPlayer Release|Win32
 		{E645CC32-4823-463E-82F0-46ADDE664018}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E645CC32-4823-463E-82F0-46ADDE664018}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E645CC32-4823-463E-82F0-46ADDE664018}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -571,10 +481,6 @@ Global
 		{E645CC32-4823-463E-82F0-46ADDE664018}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{E645CC32-4823-463E-82F0-46ADDE664018}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{E645CC32-4823-463E-82F0-46ADDE664018}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{E645CC32-4823-463E-82F0-46ADDE664018}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{E645CC32-4823-463E-82F0-46ADDE664018}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{E645CC32-4823-463E-82F0-46ADDE664018}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{E645CC32-4823-463E-82F0-46ADDE664018}.Release.Build.0 = BlenderPlayer Release|Win32
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -587,10 +493,6 @@ Global
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{6E24BF09-9653-4166-A871-F65CC9E98A9B}.Release.Build.0 = BlenderPlayer Release|Win32
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -603,10 +505,6 @@ Global
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{6B801390-5F95-4F07-81A7-97FBA046AACC}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{6B801390-5F95-4F07-81A7-97FBA046AACC}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{6B801390-5F95-4F07-81A7-97FBA046AACC}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{6B801390-5F95-4F07-81A7-97FBA046AACC}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{6B801390-5F95-4F07-81A7-97FBA046AACC}.Release.Build.0 = BlenderPlayer Release|Win32
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -619,10 +517,6 @@ Global
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{0A73055E-4DED-40CD-9F72-9093ED3EEC7E}.Release.Build.0 = BlenderPlayer Release|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -635,10 +529,6 @@ Global
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{3648FB9A-C36F-43AB-AED0-1F1361E67FC7}.Release.Build.0 = BlenderPlayer Release|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -649,10 +539,6 @@ Global
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{EC405272-28E3-4840-AAC2-53D6DE4E163D}.Release.Build.0 = BlenderPlayer Release|Win32
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -665,10 +551,6 @@ Global
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{E109F1A5-FDD3-4F56-A1C4-96867EEA4C5B}.Release.Build.0 = BlenderPlayer Release|Win32
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -681,10 +563,6 @@ Global
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{AB590CED-F71F-4A17-A89B-18583ECD633D}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{AB590CED-F71F-4A17-A89B-18583ECD633D}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{AB590CED-F71F-4A17-A89B-18583ECD633D}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{AB590CED-F71F-4A17-A89B-18583ECD633D}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{AB590CED-F71F-4A17-A89B-18583ECD633D}.Release.Build.0 = BlenderPlayer Release|Win32
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -697,10 +575,6 @@ Global
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{51FB3D48-2467-4BFA-A321-D848252B437E}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{51FB3D48-2467-4BFA-A321-D848252B437E}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{51FB3D48-2467-4BFA-A321-D848252B437E}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{51FB3D48-2467-4BFA-A321-D848252B437E}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{51FB3D48-2467-4BFA-A321-D848252B437E}.Release.Build.0 = BlenderPlayer Release|Win32
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -713,10 +587,6 @@ Global
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{32CC75E2-EE85-45E6-8E3D-513F58464F43}.Release.Build.0 = BlenderPlayer Release|Win32
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -729,10 +599,6 @@ Global
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{09222F5E-1625-4FF3-A89A-384D16875EE5}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{09222F5E-1625-4FF3-A89A-384D16875EE5}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{09222F5E-1625-4FF3-A89A-384D16875EE5}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{09222F5E-1625-4FF3-A89A-384D16875EE5}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{09222F5E-1625-4FF3-A89A-384D16875EE5}.Release.Build.0 = BlenderPlayer Release|Win32
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -745,10 +611,6 @@ Global
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{BAAE3F2B-BCF8-4E84-B8BA-CFB2D64945FE}.Release.Build.0 = BlenderPlayer Release|Win32
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -761,10 +623,6 @@ Global
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.Debug.Build.0 = 3D Plugin Debug|Win32
-		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{BB6AA598-B336-4F8B-9DF9-8CAE7BE71C23}.Release.Build.0 = BlenderPlayer Release|Win32
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -777,10 +635,6 @@ Global
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.Debug.ActiveCfg = BlenderPlayer Debug|Win32
-		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.Debug.Build.0 = BlenderPlayer Debug|Win32
-		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{727F90AC-ABE6-40BF-8937-C2F2F1D13DEA}.Release.Build.0 = BlenderPlayer Release|Win32
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -793,10 +647,6 @@ Global
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.BlenderPlayer Debug.Build.0 = BlenderPlayer Debug|Win32
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{9625642D-6F20-4FB6-A089-BE7441B223E3}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{9625642D-6F20-4FB6-A089-BE7441B223E3}.Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{9625642D-6F20-4FB6-A089-BE7441B223E3}.Debug.Build.0 = 3D Plugin Debug|Win32
-		{9625642D-6F20-4FB6-A089-BE7441B223E3}.Release.ActiveCfg = BlenderPlayer Release|Win32
-		{9625642D-6F20-4FB6-A089-BE7441B223E3}.Release.Build.0 = BlenderPlayer Release|Win32
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.3D Plugin Release.ActiveCfg = Blender Release|Win32
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Blender Debug.ActiveCfg = Blender Debug|Win32
@@ -805,10 +655,6 @@ Global
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Blender Release.Build.0 = Blender Release|Win32
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.BlenderPlayer Debug.ActiveCfg = Blender Debug|Win32
 		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.BlenderPlayer Release.ActiveCfg = Blender Release|Win32
-		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Debug.ActiveCfg = Blender Debug|Win32
-		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Debug.Build.0 = Blender Debug|Win32
-		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Release.ActiveCfg = Blender Release|Win32
-		{9991A3C3-83FE-4AFE-9E18-9D01CB57E879}.Release.Build.0 = Blender Release|Win32
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.3D Plugin Debug.ActiveCfg = 3D Plugin Debug|Win32
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.3D Plugin Debug.Build.0 = 3D Plugin Debug|Win32
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.3D Plugin Release.ActiveCfg = 3D Plugin Release|Win32
@@ -821,10 +667,6 @@ Global
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.BlenderPlayer Debug.Build.0 = Blender Debug|Win32
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.BlenderPlayer Release.ActiveCfg = BlenderPlayer Release|Win32
 		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.BlenderPlayer Release.Build.0 = BlenderPlayer Release|Win32
-		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.Debug.ActiveCfg = 3D Plugin Debug|Win32
-		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.Debug.Build.0 = 3D Plugin Debug|Win32
-		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.Release.ActiveCfg = 3D Plugin Release|Win32
-		{E90C7BC2-CF30-4A60-A8F2-0050D592E358}.Release.Build.0 = 3D Plugin Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection

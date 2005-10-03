@@ -25,6 +25,7 @@
 				PreprocessorDefinitions="_DEBUG,WIN32,_LIB"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				DisableLanguageExtensions="FALSE"
 				DefaultCharIsUnsigned="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile="..\..\..\..\build\msvc_7\source\blender\python\debug\BPY_python.pch"
@@ -170,6 +171,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Mathutils.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Mesh.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Metaball.c">
@@ -337,6 +341,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Mathutils.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Mesh.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Metaball.h">

@@ -866,7 +866,7 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 					if( !PyNumber_Check ( flt ) )
 						ok = 0;
 					else
-						co[j] = PyFloat_AsDouble( flt );
+						co[j] = (float)PyFloat_AsDouble( flt );
 				}
 
 			if( !ok ) {
@@ -1082,7 +1082,7 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
-	param = PyInt_AS_LONG ( value );
+	param = (short)PyInt_AS_LONG ( value );
 
 	if ( ( param & bitmask ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -1968,7 +1968,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 
 	/* merge active setting with other new params */
 	param |= (self->mesh->tface[self->index].flag & TF_ACTIVE);
-	self->mesh->tface[self->index].flag = param;
+	self->mesh->tface[self->index].flag = (char)param;
 
 	return 0;
 }
@@ -2039,7 +2039,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"HALO and BILLBOARD cannot be enabled simultaneously" );
 
-	self->mesh->tface[self->index].mode = param;
+	self->mesh->tface[self->index].mode = (short)param;
 
 	return 0;
 }
@@ -2663,7 +2663,11 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		tmpface = mesh->mface;
 		for( i = 0; i < mesh->totface; ++i ) {
 			unsigned char order[4]={0,1,2,3};
-			int verts[4]={tmpface->v1,tmpface->v2,tmpface->v3,tmpface->v4};
+			int verts[4];
+			verts[0]=tmpface->v1;
+			verts[1]=tmpface->v2;
+			verts[2]=tmpface->v3;
+			verts[3]=tmpface->v4;
 	
 			len = ( tmpface->v4 ) ? 3 : 2;
 			tmppair->v[3] = 0;	/* for triangular faces */
@@ -2877,7 +2881,6 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 	if( G.obedit )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"can't shade vertices while in edit mode" );
-
 	while( base ) {
 		if( base->object->type == OB_MESH && 
 				base->object->data == self->mesh ) {
@@ -2955,7 +2958,7 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
 	matlist = EXPP_newMaterialList_fromPyList( value );
 	EXPP_incr_mats_us( matlist, len );
 	self->mesh->mat = matlist;
-    self->mesh->totcol = len;
+    self->mesh->totcol = (short)len;
 
 /**@ This is another ugly fix due to the weird material handling of blender.
     * it makes sure that object material lists get updated (by their length)
@@ -3023,8 +3026,8 @@ static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
 						 MESH_SUBDIV_MAX );
 	}
 
-	self->mesh->subdiv = subdiv[0];
-	self->mesh->subdivr = subdiv[1];
+	self->mesh->subdiv = (short)subdiv[0];
+	self->mesh->subdivr = (short)subdiv[1];
 	return 0;
 }
 
@@ -3115,7 +3118,7 @@ static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
-	param = PyInt_AS_LONG ( value );
+	param = (short)PyInt_AS_LONG ( value );
 
 	if( ( param & bitmask ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
