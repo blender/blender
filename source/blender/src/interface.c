@@ -1225,8 +1225,8 @@ static int ui_do_but_MENU(uiBut *but)
 	
 	uibut_do_func(but);
 
-	if(event == UI_NOTHING) return 0;
-	else return but->retval;
+	/* return no existing event, because the menu sends events instead */
+	return -1;
 }
 
 
