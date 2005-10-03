@@ -954,7 +954,10 @@ static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
 			if( icu->bezt )
 				MEM_freeN( icu->bezt );
 			MEM_freeN( icu );
-			del_ipoCurve( icu );
+
+			allspace( REMAKEIPO, 0 );
+			EXPP_allqueue( REDRAWIPO, 0 );
+
 			Py_INCREF( Py_None );
 			return Py_None;
 		}
