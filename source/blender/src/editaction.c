@@ -1056,7 +1056,6 @@ void transform_actionchannel_keys(char mode)
 	
 			if (G.saction->lock){
 				if(ob && ob->pose) {
-					ob->pose->ctime= -123456.0f;
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				}
 				force_draw_plus(SPACE_VIEW3D, 0);
@@ -1075,7 +1074,6 @@ void transform_actionchannel_keys(char mode)
 	/*		Depending on the lock status, draw necessary views */
 
 	if(ob && ob->pose) {
-		ob->pose->ctime= -123456.0f;
 		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	}
 	remake_action_ipos(act);

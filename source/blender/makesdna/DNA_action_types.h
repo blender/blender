@@ -75,8 +75,7 @@ typedef struct bPoseChannel {
 
 typedef struct bPose{
 	ListBase			chanbase;
-	int flag;
-	float ctime;		// last time actions were done, to allow keyframing
+	int flag, pad;
 } bPose;
 
 typedef struct bActionChannel {
@@ -122,6 +121,7 @@ typedef struct SpaceAction {
 /* Pose->flag */
 
 #define POSE_RECALC		1
+#define POSE_LOCKED		2
 
 /* PoseChannel (transform) flags */
 enum	{

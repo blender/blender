@@ -467,8 +467,6 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 	if (!pose)
 		return;
 	
-	pose->ctime= ctime;
-	
 	/* Copy the data from the action into the pose */
 	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
 		achan= get_named_actionchannel(act, pchan->name);
@@ -555,7 +553,7 @@ void do_all_actions(Object *ob)
 	
 	ctime= bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
 		
-	if(ob->pose->ctime==ctime) {  // no actions to execute while transform
+	if(ob->pose->flag & POSE_LOCKED) {  // no actions to execute while transform
 		;
 	}
 	else if(ob->action) {
@@ -658,8 +656,6 @@ void do_all_actions(Object *ob)
 				}					
 			}
 		}
-		
-		ob->pose->ctime= ctime;
 	}
 	
 	if (tpose){

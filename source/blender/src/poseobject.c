@@ -556,7 +556,6 @@ void paste_posebuf (int flip)
 	}
 
 	/* Update event for pose and deformation children */
-	ob->pose->ctime= -123456.0f;
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	if (G.flags & G_RECORDKEYS) {

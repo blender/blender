@@ -498,6 +498,7 @@ static void createTransPose(Object *ob, TransInfo *t)
 
 	t->flag |= T_POSE;
 	t->poseobj= ob;	// we also allow non-active objects to be transformed, in weightpaint
+	ob->pose->flag |= POSE_LOCKED;
 	
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
@@ -1616,6 +1617,8 @@ void special_aftertrans_update(TransInfo *t)
 
 		ob= t->poseobj;
 		arm= ob->data;
+		
+		ob->pose->flag &= ~POSE_LOCKED;
 		
 		if(cancelled)	/* if cancelled we do the update always */
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

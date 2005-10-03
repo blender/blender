@@ -547,7 +547,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 		else if(si->blocktype==ID_AC) {
 			Object *ob= OBACT;
 			if(ob && ob->pose) {
-				ob->pose->ctime= -123456.0f;
 				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			}
 			allqueue(REDRAWVIEW3D, 0);
@@ -5013,7 +5012,6 @@ void transform_ipo(int mode)
 				else if(G.sipo->blocktype==ID_AC) {
 					Object *ob= OBACT;
 					if(ob && ob->pose) {
-						ob->pose->ctime= -123456.0f;
 						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 					}
 					force_draw_plus(SPACE_VIEW3D, 0);
