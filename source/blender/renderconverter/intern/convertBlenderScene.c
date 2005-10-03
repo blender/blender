@@ -2381,6 +2381,7 @@ void RE_freeRotateBlenderScene(void)
 	if(R.wrld.aosphere) {
 		MEM_freeN(R.wrld.aosphere);
 		R.wrld.aosphere= NULL;
+		G.scene->world->aosphere= NULL;
 	}
 	
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
