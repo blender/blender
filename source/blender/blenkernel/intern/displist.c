@@ -1598,7 +1598,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		makeDispListSurf(ob, dispbase, 0);
 	}
 	else if ELEM(ob->type, OB_CURVE, OB_FONT) {
-		ListBase dlbev;;
+		ListBase dlbev;
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
 		int obedit= (G.obedit && G.obedit->data==ob->data);

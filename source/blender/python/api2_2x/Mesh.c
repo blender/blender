@@ -2873,11 +2873,11 @@ static PyObject *Mesh_calcNormals( BPy_Mesh * self )
 
 static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 {
+	Base *base = FIRSTBASE;
 	if( G.obedit )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"can't shade vertices while in edit mode" );
 
-	Base *base = FIRSTBASE;
 	while( base ) {
 		if( base->object->type == OB_MESH && 
 				base->object->data == self->mesh ) {
