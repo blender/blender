@@ -1637,7 +1637,7 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 	/* check each argument for type, find its value */
 
 	for ( i = (short)PyTuple_Size( args ); i-- ; ) {
-		name = PyString_AsString ( PySequence_Fast_GET_ITEM( args, i ) );
+ 		name = PyString_AsString ( PyTuple_GET_ITEM( args, i ) );
 		if( !name )
 			return EXPP_ReturnPyObjError ( PyExc_AttributeError,
 					"expected string argument" );

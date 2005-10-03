@@ -2945,7 +2945,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 	 */
 
 	if ( (PySequence_Size( args ) == 1)
-		    && PyInt_Check ( PySequence_Fast_GET_ITEM ( args , 0 ) )
+		    && PyInt_Check ( PyTuple_GET_ITEM ( args , 0 ) )
 		    && PyArg_ParseTuple( args, "i", &flag ) 
 		    && flag < (MA_RAYMIRROR >> 1) ) {
 			ok = 1;

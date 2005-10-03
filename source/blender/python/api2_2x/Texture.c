@@ -2440,7 +2440,7 @@ static PyObject *Texture_oldsetFlags( BPy_Texture * self, PyObject * args )
 
 	for ( i = PyTuple_Size( args ); i-- ; ) {
 		short thisflag;
-		char * name = PyString_AsString( PySequence_Fast_GET_ITEM( args, i ) );
+		char * name = PyString_AsString( PyTuple_GET_ITEM( args, i ) );
 		if( !name )
 			return EXPP_ReturnPyObjError ( PyExc_AttributeError,
 					"expected string argument" );
@@ -2622,7 +2622,7 @@ static PyObject *Texture_oldsetImageFlags( BPy_Texture * self, PyObject * args )
 
 	for( i = PyTuple_Size( args ); i-- ; ) {
 		short thisflag;
-		char * name = PyString_AsString( PySequence_Fast_GET_ITEM( args, i ) );
+		char * name = PyString_AsString( PyTuple_GET_ITEM( args, i ) );
 		if( !name )
 			return EXPP_ReturnPyObjError ( PyExc_AttributeError,
 					"expected string argument" );

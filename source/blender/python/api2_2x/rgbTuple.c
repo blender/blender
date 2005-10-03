@@ -77,6 +77,7 @@ static PySequenceMethods rgbTupleAsSequence = {
 	( intintargfunc ) rgbTupleSlice,	/* sq_slice */
 	( intobjargproc ) rgbTupleAssItem,	/* sq_ass_item */
 	( intintobjargproc ) rgbTupleAssSlice,	/* sq_ass_slice       */
+	0,0,0
 };
 
 /*****************************************************************************/
@@ -149,7 +150,8 @@ PyObject *rgbTuple_getCol( BPy_rgbTuple * self )
 int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )
 {
 	int ok = 0;
-	float r = 0, g = 0, b = 0;
+	int i;
+	float num[3]={0,0,0};
 
 	/*
 	 * since rgbTuple_getCol() returns a list, be sure we accept a list
@@ -157,26 +159,27 @@ int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )
 	 */
 
 	if( PyObject_Length( args ) == 3 ) {
-		if ( PyList_Check ( args ) &&
-				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 0 ) ) &&
-				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 1 ) ) &&
-				PyNumber_Check( PySequence_Fast_GET_ITEM( args, 2 ) ) ) {
-			r = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 0 ) );
-			g = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 1 ) );
-			b = (float)PyFloat_AsDouble( PySequence_Fast_GET_ITEM( args, 2 ) );
+		if ( PyList_Check ( args ) ) {
 			ok = 1;
+			for( i = 0; i < 3; ++i ) {
+				PyObject *tmp = PyList_GET_ITEM( args, i );
+				if( !PyNumber_Check ( tmp ) ) {
+					ok = 0;
+					break;
+				}
+				num[i] = (float)PyFloat_AsDouble( tmp );
+			}
 		} else
-			ok = PyArg_ParseTuple( args, "fff", &r, &g, &b );
+			ok = PyArg_ParseTuple( args, "fff", &num[0], &num[1], &num[2] );
 	} else
-		ok = PyArg_ParseTuple( args, "|(fff)", &r, &g, &b );
+		ok = PyArg_ParseTuple( args, "|(fff)", &num[0], &num[1], &num[2] );
 
 	if( !ok )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected [f,f,f], (f,f,f) or f,f,f as arguments (or nothing)" );
 
-	*( self->rgb[0] ) = EXPP_ClampFloat( r, 0.0, 1.0 );
-	*( self->rgb[1] ) = EXPP_ClampFloat( g, 0.0, 1.0 );
-	*( self->rgb[2] ) = EXPP_ClampFloat( b, 0.0, 1.0 );
+	for( i = 0; i < 3; ++i )
+		*( self->rgb[i] ) = EXPP_ClampFloat( num[i], 0.0, 1.0 );
 
 	return 0;
 }

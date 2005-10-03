@@ -672,14 +672,14 @@ int EXPP_setFloatRange( PyObject *value, float *param,
 								float min, float max )
 {
 	char errstr[128];
-	short number;
+	float number;
 
 	sprintf ( errstr, "expected int argument in [%f,%f]", min, max );
 
 	if( !PyNumber_Check ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
-	number = (short)PyFloat_AsDouble( value );
+	number = (float)PyFloat_AsDouble( value );
 	if ( number < min || number > max )
 		return EXPP_ReturnIntError( PyExc_ValueError, errstr );
 
@@ -843,7 +843,7 @@ PyObject *EXPP_setterWrapper ( PyObject * self, PyObject * args,
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "expected tuple of one item" );
 
-	error = func ( self, PySequence_Fast_GET_ITEM( args, 0 ), NULL );
+	error = func ( self, PyTuple_GET_ITEM( args, 0 ), NULL );
 	if ( !error ) {
 		Py_INCREF( Py_None );
 		return Py_None;
