@@ -1735,6 +1735,7 @@ static void do_view3d_edit_object_copyattrmenu(void *arg, int event)
 	case 22:
 	case 23:
 	case 24:
+	case 25:
 		copy_attr((short)event);
 		break;
 		}
@@ -1781,9 +1782,11 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 		if(ob->type == OB_FONT) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Font Settings|Ctrl C, 18",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 19",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C, 20",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 		}
 		if(ob->type == OB_CURVE) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Bevel Settings|Ctrl C, 19",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Curve Resolution|Ctrl C, 20",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 		}
 	
 		if(ob->type==OB_MESH) {

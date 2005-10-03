@@ -2618,6 +2618,10 @@ void copy_attr_menu()
 	
 	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
 	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19");
+	
+	if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
+			strcat(str, "|Curve Resolution%x25");
+	}
 
 	if(ob->type==OB_MESH){
 		strcat(str, "|Subdiv%x21");
@@ -2642,6 +2646,7 @@ void copy_attr(short event)
 	Object *ob, *obt;
 	Base *base;
 	Curve *cu, *cu1;
+	Nurb *nu;
 	void *poin1, *poin2=0;
 	
 	if(G.scene->id.lib) return;
@@ -2777,6 +2782,24 @@ void copy_attr(short event)
 						cu1->bevresol= cu->bevresol;
 						cu1->ext1= cu->ext1;
 						cu1->ext2= cu->ext2;
+						
+						base->object->recalc |= OB_RECALC_DATA;
+					}
+				}
+				else if(event==25) {	/* curve resolution */
+
+					if ELEM(base->object->type, OB_CURVE, OB_FONT) {
+						cu= ob->data;
+						cu1= base->object->data;
+						
+						cu1->resolu= cu->resolu;
+						
+						nu= cu1->nurb.first;
+						
+						while(nu) {
+							nu->resolu= cu1->resolu;
+							nu= nu->next;
+						}
 						
 						base->object->recalc |= OB_RECALC_DATA;
 					}
