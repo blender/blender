@@ -338,10 +338,13 @@ static void set_active_editipo(EditIpo *actei)
 
 EditIpo *get_active_editipo(void)
 {
-	EditIpo *ei= G.sipo->editipo;
+	EditIpo *ei;
 	int a;
 	
-	for(a=0; a<G.sipo->totipo; a++, ei++)
+	if(G.sipo==NULL)
+		return NULL;
+	
+	for(a=0, ei=G.sipo->editipo; a<G.sipo->totipo; a++, ei++)
 		if(ei->flag & IPO_ACTIVE)
 			return ei;
 	
@@ -635,16 +638,14 @@ Ipo *get_ipo_to_edit(ID **from)
 	}
 	else if(G.sipo->blocktype==ID_AC) {
 		bActionChannel *chan;
-		if (ob && ob->action){
+		if (ob && ob->action) {
 			*from= (ID *) ob->action;
 			chan= get_hilighted_action_channel(ob->action);
 			if (chan)
 				return chan->ipo;
-			else{
-				*from = NULL;
+			else
 				return NULL;
-			}
-		}
+		} 
 
 	}
 	else if(G.sipo->blocktype==ID_WO) {
@@ -1909,12 +1910,22 @@ Ipo *get_ipo(ID *from, short type, int make)
 	}
 	else if( type==ID_AC) {
 		act= (bAction *)from;
-		if (!act->achan) return NULL;
 		if (act->id.lib) return NULL;
+		
+		/* weak... the *from pointer has action, ipo doesnt give more context info yet */
+		verify_active_action_channel(OBACT);
+		
+		if (act->achan==NULL)
+			return NULL;
+		
 		ipo= act->achan->ipo;
 
-		/* This should never happen */
-		if(make && ipo==NULL) ipo= act->achan->ipo= add_ipo("AcIpo", ID_AC);
+		if(make && ipo==NULL) {
+			ipo= act->achan->ipo= add_ipo(act->achan->name, ID_AC);
+			allspace(REMAKEIPO, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+		}
 	}
 	else if( type==ID_MA) {
 		ma= (Material *)from;
@@ -1998,13 +2009,11 @@ IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo)
 	/* also test if ipo and ipocurve exist */
 
 	if (useipo==NULL) {
-
 		if (G.sipo==NULL || G.sipo->pin==0){
 			ipo= get_ipo(from, type, 1);	/* 1= make */
 		}
 		else
 			ipo = G.sipo->ipo;
-
 		
 		if(G.sipo) {
 			if (G.sipo->pin==0) G.sipo->ipo= ipo;

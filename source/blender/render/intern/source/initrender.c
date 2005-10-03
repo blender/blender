@@ -692,7 +692,6 @@ static void initparts(void)
 				pa->x+= 2;
 				pa->y+= 2;
 			}
-			printf("part %d %d\n", pa->x, pa->y);
 			BLI_addtail(&R.parts, pa);
 		}
 		else MEM_freeN(pa);
@@ -720,7 +719,6 @@ static void addparttorect(Part *pa)
 	int y, heigth, len, copylen;
 
 	/* calc the right offset in rects, zbuffer cannot exist... */
-	printf("add part %d %d\n", pa->x, pa->y);
 	if(pa->rect==NULL) return;
 	
 	rtp= pa->rect;

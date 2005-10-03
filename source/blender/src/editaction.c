@@ -766,6 +766,41 @@ bActionChannel* get_hilighted_action_channel(bAction* action)
 
 }
 
+/* sets action->achan to active channel, also adds if needed */
+void verify_active_action_channel(Object *ob)
+{
+	if(ob) {
+		bPoseChannel *pchan;
+		bActionChannel *achan;
+		
+		if(ob->action==NULL) return;
+		
+		pchan= get_active_posechannel(ob);
+		if(pchan) {
+			/* See if this action channel exists already */	
+			for (achan=ob->action->chanbase.first; achan; achan=achan->next){
+				if (!strcmp (pchan->name, achan->name))
+					break;
+			}
+			
+			if (!achan){
+				achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
+				strcpy (achan->name, pchan->name);
+				BLI_addtail (&ob->action->chanbase, achan);
+			}
+			
+			ob->action->achan= achan;
+			ob->action->pchan= pchan;
+			
+			for (achan=ob->action->chanbase.first; achan; achan=achan->next)
+				achan->flag &= ~(ACHAN_SELECTED|ACHAN_HILIGHTED);
+			
+			ob->action->achan->flag |= ACHAN_SELECTED|ACHAN_HILIGHTED;
+
+		}
+	}		
+}
+
 void set_exprap_action(int mode)
 {
 	if(G.saction->action && G.saction->action->id.lib) return;

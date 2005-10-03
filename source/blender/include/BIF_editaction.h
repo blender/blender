@@ -96,6 +96,8 @@ struct bAction *add_empty_action(void);
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
 
+void verify_active_action_channel(struct Object *ob);
+
 void remake_action_ipos(struct bAction *act);
 
 

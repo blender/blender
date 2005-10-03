@@ -1375,7 +1375,7 @@ static void editing_panel_modifiers(Object *ob)
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
 
 	sprintf(str, "To: %s", ob->id.name+2);
-	uiDefBut(block, LABEL, 1, str,	140, 190, 140, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
+	uiDefBut(block, LABEL, 1, str,	140, 190, 150, 20, NULL, 0.0, 0.0, 0, 0, "Object whose modifier stack is being edited");
 
 	xco = 0;
 	yco = 160;

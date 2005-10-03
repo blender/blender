@@ -1685,7 +1685,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, 0);
+				ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, NULL);
 				ei->flag |= IPO_SELECT;
 				ei->icu->flag= ei->flag;
 			}
