@@ -4782,8 +4782,9 @@ int EdgeSlide(short immediate, float imperc)
 		look = look->next;   
 	}	   
 	// we should have enough info now to slide
-	//persp(PERSP_WIN);
-	//glDrawBuffer(GL_FRONT); 
+
+	len = 0.0f; 
+	
 	percp = -1;
 	while(draw){
 		 /* For the % calculation */   
@@ -4792,7 +4793,7 @@ int EdgeSlide(short immediate, float imperc)
 		float v2[2], v3[2];
 		EditVert *centerVert, *upVert, *downVert;
 		
-		len = 0.0f;
+		
 
 		getmouseco_areawin(mval);  
 		
