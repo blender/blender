@@ -1326,7 +1326,7 @@ void set_wpaint(void)		/* toggle */
 	if(G.f & G_WEIGHTPAINT) G.f &= ~G_WEIGHTPAINT;
 	else G.f |= G_WEIGHTPAINT;
 	
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1);	/* including header */
 	allqueue(REDRAWBUTSEDIT, 0);
 	
 		/* Weightpaint works by overriding colors in mesh,
@@ -1381,7 +1381,7 @@ void set_vpaint(void)		/* toggle */
 			set_wpaint();
 	}
 	
-	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWVIEW3D, 1); 	/* including header */
 	allqueue(REDRAWBUTSEDIT, 0);
 	
 	if(G.f & G_VERTEXPAINT) {
