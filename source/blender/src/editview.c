@@ -1295,6 +1295,9 @@ void mouse_select(void)
 						basact= NULL;
 					}
 				}
+				/* prevent bone selecting to pass on to object selecting */
+				if(basact==BASACT)
+					basact= NULL;
 			}
 		}
 	}
