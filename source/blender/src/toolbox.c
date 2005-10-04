@@ -1068,9 +1068,12 @@ int okee(char *str, ...)
 {
 	va_list ap;
 	int ret;
+	char titlestr[256];
+	
+	sprintf(titlestr, "OK? %%i%d", ICON_HELP);
 	
 	va_start(ap, str);
-	ret= vconfirm("OK?", str, ap);
+	ret= vconfirm(titlestr, str, ap);
 	va_end(ap);
 	
 	return ret;
@@ -1089,15 +1092,18 @@ void error(char *fmt, ...)
 {
 	va_list ap;
 	char nfmt[256];
-
-	sprintf(nfmt, "ERROR: %s", fmt);
-
+	char titlestr[256];
+	
+	sprintf(titlestr, "Error %%i%d", ICON_ERROR);
+	
+	sprintf(nfmt, "%s", fmt);
+	
 	va_start(ap, fmt);
 	if (G.background || !G.curscreen || (R.flag & R_RENDERING)) {
 		vprintf(nfmt, ap);
 		printf("\n");
 	} else {
-		vconfirm(NULL, nfmt, ap);
+		vconfirm(titlestr, nfmt, ap);
 	}
 	va_end(ap);
 }

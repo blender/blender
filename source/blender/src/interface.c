@@ -955,6 +955,7 @@ typedef struct {
 typedef struct {
 	char *instr;
 	char *title;
+	int titleicon;
 	
 	MenuEntry *items;
 	int nitems, itemssize;
@@ -965,15 +966,18 @@ static MenuData *menudata_new(char *instr) {
 
 	md->instr= instr;
 	md->title= NULL;
+	md->titleicon= NULL;
 	md->items= NULL;
 	md->nitems= md->itemssize= 0;
 	
 	return md;
 }
 
-static void menudata_set_title(MenuData *md, char *title) {
+static void menudata_set_title(MenuData *md, char *title, int titleicon) {
 	if (!md->title)
 		md->title= title;
+	if (!md->titleicon)
+		md->titleicon= titleicon;
 }
 
 static void menudata_add_item(MenuData *md, char *str, int retval, int icon) {
@@ -1041,6 +1045,8 @@ static MenuData *decompose_menu_string(char *str)
 				s++;
 			} else if (s[1]=='i') {
 				nicon= atoi(s+2);
+				
+				*s= '\0';
 				s++;
 			}
 		} else if (c=='|' || c=='\0') {
@@ -1048,7 +1054,7 @@ static MenuData *decompose_menu_string(char *str)
 				*s= '\0';
 
 				if (nitem_is_title) {
-					menudata_set_title(md, nitem);
+					menudata_set_title(md, nitem, nicon);
 					nitem_is_title= 0;
 				} else {
 					menudata_add_item(md, nitem, nretval, nicon);
@@ -1169,9 +1175,14 @@ static int ui_do_but_MENU(uiBut *but)
 	if(md->title) {
 		uiBut *bt;
 		uiSetCurFont(block, block->font+1);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		if (md->titleicon) {
+			uiDefIconTextBut(block, LABEL, 0, md->titleicon, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+		} else {
+			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+rows*boxh), (short)width, (short)boxh, NULL, 0.0, 0.0, 0, 0, "");
+			bt->flag= UI_TEXT_LEFT;
+		}
 		uiSetCurFont(block, block->font);
-		bt->flag= UI_TEXT_LEFT;
+		
 	}
 
 	for(a=0; a<md->nitems; a++) {
@@ -5205,9 +5216,17 @@ short pupmenu(char *instr)
 	/* here we go! */	
 	if(md->title) {
 		uiBut *bt;
+		char titlestr[256];
 		uiSetCurFont(block, UI_HELVB);
-		bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+height), width, boxh, NULL, 0.0, 0.0, 0, 0, "");
-		bt->flag= UI_TEXT_LEFT;
+		
+		if (md->titleicon) {
+			width+= 20;
+			sprintf(titlestr, " %s", md->title);
+			uiDefIconTextBut(block, LABEL, 0, md->titleicon, titlestr, startx, (short)(starty+height), width, boxh, NULL, 0.0, 0.0, 0, 0, "");
+		} else {
+			bt= uiDefBut(block, LABEL, 0, md->title, startx, (short)(starty+height), width, boxh, NULL, 0.0, 0.0, 0, 0, "");
+			bt->flag= UI_TEXT_LEFT;
+		}
 		uiSetCurFont(block, UI_HELV);
 	}
 
