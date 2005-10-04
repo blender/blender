@@ -2226,7 +2226,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
 		
 		if(la->mode & LA_SHAD) {
-			uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,5120, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
+			uiDefButS(block, NUM,B_SBUFF,"ShadowBufferSize:", 100,110,200,19,	&la->bufsize,512,10240, 0, 0, "Sets the size of the shadow buffer to nearest multiple of 16");
 		
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM,REDRAWVIEW3D,"ClipSta:",	100,70,100,19,	&la->clipsta, 0.1*grid,1000.0*grid, 10, 0, "Sets the shadow map clip start: objects closer will not generate shadows");
