@@ -5749,10 +5749,16 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 	ListBase mainlist;
 	Main *mainl;
 	FileData *fd = (FileData *)bh;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
 
 	mainlist.first= mainlist.last= G.main;
 	G.main->next= NULL;
 
+	/* make copy of the 'last loaded filename', we need to restore it */
+	BLI_strncpy(filename, G.sce, sizeof(filename));
+	/* already opened file, to reconstruct relative paths */
+	BLI_strncpy(G.sce, fd->filename, sizeof(filename));	
+	
 	/* make mains */
 	blo_split_main(&mainlist);
 
@@ -5772,6 +5778,8 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, int idcod
 
 	lib_link_all(fd, G.main);
 	
+	/* restore the 'last loaded filename' */
+	BLI_strncpy(G.sce, filename, sizeof(filename));
 	DAG_scene_sort(G.scene);
 }
 
