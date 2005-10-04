@@ -2039,6 +2039,7 @@ void do_curvebuts(unsigned short event)
 		if(G.vd) {
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 		}
 		break;
@@ -3298,13 +3299,13 @@ static void editing_panel_links(Object *ob)
 		if (defCount) {
 			char *menustr= get_vertexgroup_menustr(ob);
 			
-			uiDefButS(block, MENU, REDRAWBUTSEDIT, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
+			uiDefButS(block, MENU, B_MAKEDISP, menustr, 143, 132,18,21, &ob->actdef, 1, defCount, 0, 0, "Browses available vertex groups");
 			MEM_freeN (menustr);
 		}
 		
 		if (ob->actdef){
 			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX,REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
+			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
 			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
 
 			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
