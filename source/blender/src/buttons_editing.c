@@ -73,6 +73,7 @@
 #include "DNA_world_types.h"
 #include "DNA_packedFile_types.h"
 
+#include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -1454,7 +1455,11 @@ static void editing_panel_shapes(Object *ob)
 		make_rvk_slider(block, key, ob->shapenr-1,			10, 120, 150, 20, "Key value, when used it inserts an animation curve point");
 		uiDefButF(block, NUM, B_REDR, "Min ",				160,120, 75, 20, &kb->slidermin, -10.0, 10.0, 100, 1, "Minumum for slider");
 		uiDefButF(block, NUM, B_REDR, "Max ",				235,120, 75, 20, &kb->slidermax, -10.0, 10.0, 100, 1, "Maximum for slider");
+		uiBlockEndAlign(block);
 	}
+	if(key->type && ob->shapenr!=1)
+		uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	10, 90, 150,19, &kb->vgroup, 0.0, 31.0, 0, 0, "Vertex Weight Group name, to blend with Basis Shape");
+	
 }
 
 /* *************************** FONT ******************************** */
@@ -2848,6 +2853,25 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 
 /* *************************** MESH ******************************** */
 
+/* from this object to all objects with same ob->data */
+static void copy_linked_vgroup_channels(Object *ob)
+{
+	Base *base;
+	
+	for(base=FIRSTBASE; base; base= base->next) {
+		if(base->object->type==ob->type) {
+			if(base->object!=ob) {
+				BLI_freelistN(&base->object->defbase);
+				duplicatelist(&base->object->defbase, &ob->defbase);
+				base->object->actdef= ob->actdef;
+				DAG_object_flush_update(G.scene, base->object, OB_RECALC_DATA);
+			}
+		}
+	}
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 void do_meshbuts(unsigned short event)
 {
 	Object *ob;
@@ -2893,6 +2917,9 @@ void do_meshbuts(unsigned short event)
 			sel_verts_defgroup(0);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
+			break;
+		case B_LINKEDVGROUP:
+			copy_linked_vgroup_channels(ob);
 			break;
 		case B_DELSTICKY:
 
@@ -3257,6 +3284,7 @@ static void editing_panel_links(Object *ob)
 
 	/* vertex group... partially editmode... */
 	if(ob->type==OB_MESH) {
+		Mesh *me= ob->data;
 		uiBut *but;
 		int	defCount;
 		bDeformGroup	*defGroup;
@@ -3294,6 +3322,10 @@ static void editing_panel_links(Object *ob)
 			uiDefBut(block, BUT,B_SELVGROUP,"Select",		143,48,70,21, 0, 0, 0, 0, 0, "Selects vertices belonging to the current vertex group");
 			uiDefBut(block, BUT,B_DESELVGROUP,"Desel.",		213,48,70,21, 0, 0, 0, 0, 0, "Deselects vertices belonging to the current vertex group");
 			uiBlockEndAlign(block);
+		}
+		else {
+			if(me->id.us>1)
+				uiDefBut(block, BUT,B_LINKEDVGROUP, "Copy To Linked",	143,69,140,20, 0, 0, 0, 0, 0, "Creates identical vertex group names in other Objects using this Mesh");
 		}
 	}
 

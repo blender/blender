@@ -48,7 +48,9 @@ typedef struct KeyBlock {
 	int totelem;
 	
 	void *data;
+	float *weights;
 	char  name[32];
+	char vgroup[32];
 
 	float slidermin;
 	float slidermax;

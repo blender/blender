@@ -405,14 +405,23 @@ static void flerp(int aantal, float *in, float *f0, float *f1, float *f2, float 
 	}
 }
 
-static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, int mode)
+static void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
+{
+	int a;
+	
+	for(a=0; a<aantal; a++) {
+		in[a]-= fac*(ref[a]-out[a]);
+	}
+}
+
+static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *k, float *weights, int mode)
 {
 	float ktot = 0.0, kd = 0.0;
 	int elemsize, poinsize = 0, a, *ofsp, ofs[32], flagflo=0;
-	char *k1;
+	char *k1, *kref;
 	char *cp, elemstr[8];
 
-	if(key->from==0) return;
+	if(key->from==NULL) return;
 
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -436,7 +445,8 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	if(end>tot) end= tot;
 	
 	k1= k->data;
-
+	kref= key->refkey->data;
+	
 	if(tot != k->totelem) {
 		ktot= 0.0;
 		flagflo= 1;
@@ -462,7 +472,6 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 		else k1+= start*key->elemsize;
 	}	
 	
-
 	if(mode==KEY_BEZTRIPLE) {
 		elemstr[0]= 1;
 		elemstr[1]= IPO_BEZTRIPLE;
@@ -484,7 +493,15 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			switch(cp[1]) {
 			case IPO_FLOAT:
 				
-				memcpy(poin, k1, 4*cp[0]);
+				if(weights) {
+					memcpy(poin, kref, 4*cp[0]);
+					if(*weights!=0.0f)
+						rel_flerp(cp[0], (float *)poin, (float *)kref, (float *)k1, *weights);
+					weights++;
+				}
+				else 
+					memcpy(poin, k1, 4*cp[0]);
+
 				poin+= ofsp[0];
 
 				break;
@@ -511,9 +528,13 @@ static void cp_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 			while(ktot>=1.0) {
 				ktot-= 1.0;
 				k1+= elemsize;
+				kref+= elemsize;
 			}
 		}
-		else k1+= elemsize;
+		else {
+			k1+= elemsize;
+			kref+= elemsize;
+		}
 		
 		if(mode==KEY_BEZTRIPLE) a+=2;
 	}
@@ -540,7 +561,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 			
-			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, KEY_BPOINT);
+			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, NULL, KEY_BPOINT);
 		}
 		else if(nu->bezt) {
 			
@@ -552,7 +573,7 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 			a1= MAX2(a, start);
 			a2= MIN2(a+step, end);
 
-			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, KEY_BEZTRIPLE);
+			if(a1<a2) cp_key(a1, a2, tot, poin, cu->key, kb, NULL, KEY_BEZTRIPLE);
 			
 		}
 		a+= step;
@@ -561,22 +582,11 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 }
 
 
-static void rel_flerp(int aantal, float *in, float *ref, float *out, float fac)
-{
-	int a;
-
-	for(a=0; a<aantal; a++) {
-		in[a]-= fac*(ref[a]-out[a]);
-	}
-}
-
-
-
 static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ctime, int mode)
 {
 	KeyBlock *kb;
 	IpoCurve *icu;
-	int *ofsp, ofs[3], elemsize, a, b;
+	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
 	
 	if(key->from==0) return;
@@ -609,22 +619,23 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 	if(mode==KEY_BEZTRIPLE) elemsize*= 3;
 
 	/* step 1 init */
-	cp_key(start, end, tot, basispoin, key, key->refkey, mode);
+	cp_key(start, end, tot, basispoin, key, key->refkey, NULL, mode);
 	
 	/* step 2: do it */
 	
-	a= 1;
 	kb= key->block.first;
 	while(kb) {
 		
 		if(kb!=key->refkey) {
-			icu= find_ipocurve(key->ipo, kb->adrcode);
+			float icuval= 0.0f;
 			
-			a++;
-			if(a==64) break;
-
-			/* only with ipocurve, and no difference allowed */
-			if(icu && kb->totelem==tot) {
+			icu= find_ipocurve(key->ipo, kb->adrcode);
+			if(icu)
+				icuval= icu->curval;
+			
+			/* only with value or weights, and no difference allowed */
+			if((icuval!=0.0f || (icu==NULL && kb->weights)) && kb->totelem==tot) {
+				float weight, *weights= kb->weights;
 				
 				poin= basispoin;
 				reffrom= key->refkey->data;
@@ -636,6 +647,11 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 				
 				for(b=start; b<end; b++) {
 				
+					if(weights) 
+						weight= *weights * (icu?icuval:1.0f);
+					else
+						weight= icuval;
+					
 					cp= key->elemstr;	
 					if(mode==KEY_BEZTRIPLE) cp= elemstr;
 					
@@ -645,16 +661,16 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 						
 						switch(cp[1]) {
 						case IPO_FLOAT:
-							rel_flerp(cp[0], (float *)poin, (float *)reffrom, (float *)from, icu->curval);
+							rel_flerp(cp[0], (float *)poin, (float *)reffrom, (float *)from, weight);
 							
 							break;
 						case IPO_BPOINT:
-							rel_flerp(3, (float *)poin, (float *)reffrom, (float *)from, icu->curval);
-							rel_flerp(1, (float *)(poin+16), (float *)(reffrom+16), (float *)(from+16), icu->curval);
+							rel_flerp(3, (float *)poin, (float *)reffrom, (float *)from, icuval);
+							rel_flerp(1, (float *)(poin+16), (float *)(reffrom+16), (float *)(from+16), icuval);
 			
 							break;
 						case IPO_BEZTRIPLE:
-							rel_flerp(9, (float *)poin, (float *)reffrom, (float *)from, icu->curval);
+							rel_flerp(9, (float *)poin, (float *)reffrom, (float *)from, icuval);
 			
 							break;
 						}
@@ -669,6 +685,7 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 					from+= elemsize;
 					
 					if(mode==KEY_BEZTRIPLE) b+= 2;
+					if(weights) weights++;
 				}
 			}
 		}
@@ -888,7 +905,40 @@ static void do_key(int start, int end, int tot, char *poin, Key *key, KeyBlock *
 	}
 }
 
-static int do_mesh_key(Mesh *me)
+static float *get_weights_array(Object *ob, Mesh *me, char *vgroup)
+{
+	bDeformGroup *curdef;
+	int index= 0;
+	
+	if(vgroup[0]==0) return NULL;
+	if(me->dvert==NULL) return NULL;
+	
+	/* find the group (weak loop-in-loop) */
+	for (curdef = ob->defbase.first; curdef; curdef=curdef->next, index++)
+		if (!strcmp(curdef->name, vgroup))
+			break;
+
+	if(curdef) {
+		MDeformVert *dvert= me->dvert;
+		float *weights;
+		int i, j;
+		
+		weights= MEM_callocN(me->totvert*sizeof(float), "weights");
+		
+		for (i=0; i < me->totvert; i++, dvert++) {
+			for(j=0; j<dvert->totweight; j++) {
+				if (dvert->dw[j].def_nr == index) {
+					weights[i]= dvert->dw[j].weight;
+					break;
+				}
+			}
+		}
+		return weights;
+	}
+	return NULL;
+}
+
+static int do_mesh_key(Object *ob, Mesh *me)
 {
 	KeyBlock *k[4];
 	float cfra, ctime, t[4], delta, loc[3], size[3];
@@ -925,7 +975,7 @@ static int do_mesh_key(Mesh *me)
 				do_key(a, a+step, me->totvert, (char *)me->mvert->co, me->key, k, t, 0);
 			}
 			else {
-				cp_key(a, a+step, me->totvert, (char *)me->mvert->co, me->key, k[2], 0);
+				cp_key(a, a+step, me->totvert, (char *)me->mvert->co, me->key, k[2], NULL, 0);
 			}
 		}
 		
@@ -943,17 +993,25 @@ static int do_mesh_key(Mesh *me)
 		}
 		
 		if(me->key->type==KEY_RELATIVE) {
+			KeyBlock *kb;
+			
+			for(kb= me->key->block.first; kb; kb= kb->next)
+				kb->weights= get_weights_array(ob, me, kb->vgroup);
+
 			do_rel_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, ctime, 0);
+			
+			for(kb= me->key->block.first; kb; kb= kb->next) {
+				if(kb->weights) MEM_freeN(kb->weights);
+				kb->weights= NULL;
+			}
 		}
 		else {
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
-				
 				do_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, k, t, 0);
 			}
 			else {
-				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, k[2], 0);
-	
+				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, k[2], NULL, 0);
 			}
 			
 			if(flag && k[2]==me->key->refkey) tex_space_mesh(me);
@@ -1136,7 +1194,7 @@ static int do_latt_key(Lattice *lt)
 				do_key(a, a+1, tot, (char *)lt->def->vec, lt->key, k, t, 0);
 			}
 			else {
-				cp_key(a, a+1, tot, (char *)lt->def->vec, lt->key, k[2], 0);
+				cp_key(a, a+1, tot, (char *)lt->def->vec, lt->key, k[2], NULL, 0);
 			}
 		}		
 	}
@@ -1157,7 +1215,7 @@ static int do_latt_key(Lattice *lt)
 				do_key(0, tot, tot, (char *)lt->def->vec, lt->key, k, t, 0);
 			}
 			else {
-				cp_key(0, tot, tot, (char *)lt->def->vec, lt->key, k[2], 0);
+				cp_key(0, tot, tot, (char *)lt->def->vec, lt->key, k[2], NULL, 0);
 			}
 		}
 	}
@@ -1182,14 +1240,17 @@ int do_ob_key(Object *ob)
 			
 			if(ob->type==OB_MESH) {
 				Mesh *me= ob->data;
+				float *weights= get_weights_array(ob, me, kb->vgroup);
+
+				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, weights, 0);
 				
-				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, 0);
+				if(weights) MEM_freeN(weights);
 			}
 			else if(ob->type==OB_LATTICE) {
 				Lattice *lt= ob->data;
 				int tot= lt->pntsu*lt->pntsv*lt->pntsw;
 				
-				cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, 0);
+				cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, NULL, 0);
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				Curve *cu= ob->data;
@@ -1201,7 +1262,7 @@ int do_ob_key(Object *ob)
 		}
 	}
 	else {
-		if(ob->type==OB_MESH) return do_mesh_key( ob->data);
+		if(ob->type==OB_MESH) return do_mesh_key(ob, ob->data);
 		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
 		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
 		else if(ob->type==OB_LATTICE) return do_latt_key( ob->data);
