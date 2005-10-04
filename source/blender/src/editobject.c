@@ -4341,7 +4341,7 @@ void adduplicate(int noTrans)
 	/* ipos */
 	ipo= G.main->ipo.first;
 	while(ipo) {
-		if(ipo->id.lib==NULL) {
+		if(ipo->id.lib==NULL && ipo->id.newid) {
 			IpoCurve *icu;
 			for(icu= ipo->curve.first; icu; icu= icu->next) {
 				if(icu->driver) {
