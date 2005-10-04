@@ -195,6 +195,18 @@ Package=<4>
 
 ###############################################################################
 
+Project: "elbeem"=..\..\ELBEEM\MAKE\MSVC_6_0\elbeem\elbeem\elbeem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
 Project: "ghost"=..\..\ghost\make\msvc\ghost.dsp - Package Owner=<4>
 
 Package=<5>
