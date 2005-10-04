@@ -3374,7 +3374,7 @@ int NMesh_CheckPyObject( PyObject * pyobj )
 	return ( pyobj->ob_type == &NMesh_Type );
 }
 
-Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob )
+Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )
 {
 	if( pyobj->ob_type == &NMesh_Type ) {
 		Mesh *mesh;

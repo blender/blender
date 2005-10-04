@@ -4,8 +4,9 @@
 The Blender.Object submodule
 
 B{New}:
-  - L{Object.getData} now accepts an optional bool keyword argument to
-      define if the user wants the data object or just its name.
+  - L{Object.getData} now accepts two optional bool keyword argument to
+      define (1) if the user wants the data object or just its name
+      and (2) if a mesh object should use NMesh or Mesh.
   - L{Object.clearScriptLinks} accepts a parameter now.
   - Object attributes: renamed Layer to L{Layers<Object.Object.Layers>} and
     added the easier L{layers<Object.Object.layers>}.  The old form "Layer"
@@ -206,11 +207,19 @@ class Object:
         other value, or no value at all will update the scene hierarchy.
     """
 
-  def getData(name_only = False):
+  def getData(name_only=False, mesh=False):
     """
-    Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this Object.  If the keyword parameter 'name_only' is True, only the Datablock name is returned as a string. 
+    Returns the Datablock object (Mesh, Lamp, Camera, etc.) linked to this 
+    Object.  If the keyword parameter 'name_only' is True, only the Datablock
+    name is returned as a string.  It the object is of type Mesh, then the
+    'mesh' keyword can also be used; the data return is a Mesh object if
+    True, otherwise it is an NMesh object (the default).
     @type name_only: bool
-    @param name_only: This is a keyword parameter.  if True (or nonzero), only the name of the data object is returned.  The default value is False.
+    @param name_only: This is a keyword parameter.  If True (or nonzero),
+    only the name of the data object is returned. 
+    @type mesh: bool
+    @param mesh: This is a keyword parameter.  If True (or nonzero), 
+    a Mesh data object is returned.
     @rtype: specific Object type or string
     @return: Depends on the type of Datablock linked to the Object.  If name_only is True, it returns a string.
     """

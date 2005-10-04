@@ -2878,9 +2878,11 @@ static PyObject *Mesh_calcNormals( BPy_Mesh * self )
 static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 {
 	Base *base = FIRSTBASE;
+
 	if( G.obedit )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 				"can't shade vertices while in edit mode" );
+
 	while( base ) {
 		if( base->object->type == OB_MESH && 
 				base->object->data == self->mesh ) {
@@ -3368,6 +3370,10 @@ PyTypeObject Mesh_Type = {
 	NULL
 };
 
+/*
+ * get one or all mesh data objects
+ */
+
 static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 {
 	char *name = NULL;
@@ -3410,6 +3416,45 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 		}
 		return meshlist;
 	}
+}
+
+/*
+ * create a new mesh data object
+ */
+
+static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
+{
+	char *name = "Mesh";
+	PyObject *ret = NULL;
+	Mesh *mesh;
+	BPy_Mesh *obj;
+	char buf[21];
+
+	if( !PyArg_ParseTuple( args, "|s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected nothing or a string as argument" );
+
+	obj = (BPy_Mesh *)PyObject_NEW( BPy_Mesh, &Mesh_Type );
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				       "PyObject_New() failed" );
+
+	mesh = add_mesh(); /* doesn't return NULL now, but might someday */
+
+	if( !mesh ) {
+		Py_DECREF ( obj );
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				       "FATAL: could not create mesh object" );
+	}
+	mesh->id.us = 0;
+	G.totmesh++;
+
+	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
+	rename_id( &mesh->id, buf );
+
+	obj->mesh = mesh;
+	return (PyObject *)obj;
 }
 
 #define SUBDIVIDE_EXPERIMENT
@@ -3466,6 +3511,8 @@ static PyObject *M_Mesh_Subdivide( PyObject * self, PyObject * args )
 #endif
 
 static struct PyMethodDef M_Mesh_methods[] = {
+	{"New", (PyCFunction)M_Mesh_New, METH_VARARGS,
+		"Create a new mesh"},
 	{"Get", (PyCFunction)M_Mesh_Get, METH_VARARGS,
 		"Get a mesh by name"},
 #ifdef SUBDIVIDE_EXPERIMENT
@@ -3524,3 +3571,11 @@ int Mesh_CheckPyObject( PyObject * pyobj )
 	return ( pyobj->ob_type == &Mesh_Type );
 }
 
+Mesh *Mesh_FromPyObject( PyObject * pyobj )
+{
+	BPy_Mesh *blen_obj;
+
+	blen_obj = ( BPy_Mesh * ) pyobj;
+	return blen_obj->mesh;
+
+}

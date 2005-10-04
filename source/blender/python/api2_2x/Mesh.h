@@ -119,5 +119,6 @@ typedef struct {
 PyObject *Mesh_Init( void );
 PyObject *Mesh_CreatePyObject( Mesh * me );
 int Mesh_CheckPyObject( PyObject * pyobj );
+Mesh *Mesh_FromPyObject( PyObject * pyobj );
 
 #endif				/* EXPP_MESH_H */

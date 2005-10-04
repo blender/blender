@@ -47,6 +47,15 @@ def Get(name=None):
     If no parameter is given, it returns all the meshs in the current scene.
   """
 
+def New(name='Mesh'):
+  """
+  Create a new mesh data object called I{name}.
+  @type name: string
+  @param name: The name of the mesh data object.
+  @rtype: Mesh
+  @return: a new Blender mesh.
+  """
+
 class MCol:
   """
   The MCol object

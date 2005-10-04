@@ -72,6 +72,7 @@ struct rctf;
 #include "blendef.h"
 #include "Scene.h"
 #include "Mathutils.h"
+#include "Mesh.h"
 #include "NMesh.h"
 #include "Curve.h"
 #include "Ipo.h"
@@ -280,7 +281,7 @@ hierarchy (faster)"},
 mode\n\t2: Keep object transform\nfast\n\t>0: Don't update scene \
 hierarchy (faster)"},
 	{"getData", ( PyCFunction ) Object_getData, METH_VARARGS | METH_KEYWORDS,
-	 "(name_only = 0) - Returns the datablock object containing the object's \
+	 "(name_only = 0, mesh = 0) - Returns the datablock object containing the object's \
 data, e.g. Mesh.\n\
 If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	{"getDeltaLocation", ( PyCFunction ) Object_getDeltaLocation,
@@ -989,9 +990,10 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *args, PyObject *kwd
 	PyObject *data_object;
 	Object *object = self->object;
 	int name_only = 0;
-	static char *kwlist[] = {"name_only", NULL};
+	int mesh = 0;		/* default mesh type = NMesh */
+	static char *kwlist[] = {"name_only", "mesh", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|i", kwlist, &name_only))
+	if (!PyArg_ParseTupleAndKeywords(args, kwd, "|ii", kwlist, &name_only, &mesh))
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"expected nothing or bool keyword 'name_only' as argument" );
 
@@ -1041,7 +1043,10 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *args, PyObject *kwd
 	case ID_MA:
 		break;
 	case OB_MESH:
-		data_object = NMesh_CreatePyObject( object->data, object );
+		if( !mesh )		/* get as NMesh (default) */
+			data_object = NMesh_CreatePyObject( object->data, object );
+		else			/* else get as Mesh */
+			data_object = Mesh_CreatePyObject( object->data );
 		break;
 	case ID_OB:
 		data_object = Object_CreatePyObject( object->data );
@@ -1472,21 +1477,24 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected an object as argument" ) );
 	}
+
 	if( Armature_CheckPyObject( py_data ) )
 		data = ( void * ) Armature_FromPyObject( py_data );
-	if( Camera_CheckPyObject( py_data ) )
+	else if( Camera_CheckPyObject( py_data ) )
 		data = ( void * ) Camera_FromPyObject( py_data );
-	if( Lamp_CheckPyObject( py_data ) )
+	else if( Lamp_CheckPyObject( py_data ) )
 		data = ( void * ) Lamp_FromPyObject( py_data );
-	if( Curve_CheckPyObject( py_data ) )
+	else if( Curve_CheckPyObject( py_data ) )
 		data = ( void * ) Curve_FromPyObject( py_data );
-	if( NMesh_CheckPyObject( py_data ) )
-		data = ( void * ) Mesh_FromPyObject( py_data, self->object );
-	if( Lattice_CheckPyObject( py_data ) )
+	else if( NMesh_CheckPyObject( py_data ) )
+		data = ( void * ) NMesh_FromPyObject( py_data, self->object );
+	else if( Mesh_CheckPyObject( py_data ) )
+		data = ( void * ) Mesh_FromPyObject( py_data );
+	else if( Lattice_CheckPyObject( py_data ) )
 		data = ( void * ) Lattice_FromPyObject( py_data );
-	if( Metaball_CheckPyObject( py_data ) )
+	else if( Metaball_CheckPyObject( py_data ) )
 		data = ( void * ) Metaball_FromPyObject( py_data );
-	if( Text3d_CheckPyObject( py_data ) )
+	else if( Text3d_CheckPyObject( py_data ) )
 		data = ( void * ) Text3d_FromPyObject( py_data );
 
 	/* have we set data to something good? */

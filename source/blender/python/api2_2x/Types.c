@@ -68,6 +68,12 @@ void types_InitAll( void )
 	NMFace_Type.ob_type = &PyType_Type;
 	NMVert_Type.ob_type = &PyType_Type;
 	NMesh_Type.ob_type = &PyType_Type;
+	Mesh_Type.ob_type = &PyType_Type;
+	MFace_Type.ob_type = &PyType_Type;
+   	MVert_Type.ob_type = &PyType_Type;
+   	MEdge_Type.ob_type = &PyType_Type;
+   	MCol_Type.ob_type = &PyType_Type;
+   	Mesh_Type.ob_type = &PyType_Type;
 	Object_Type.ob_type = &PyType_Type;
 	Particle_Type.ob_type = &PyType_Type;
 	RenderData_Type.ob_type = &PyType_Type;
@@ -116,6 +122,15 @@ PyObject *Types_Init( void )
 	PyDict_SetItemString( dict, "NMVertType",
 			      ( PyObject * ) &NMVert_Type );
 	PyDict_SetItemString( dict, "NMColType", ( PyObject * ) &NMCol_Type );
+
+	PyDict_SetItemString( dict, "MeshType", ( PyObject * ) &Mesh_Type );
+	PyDict_SetItemString( dict, "MFaceType",
+			      ( PyObject * ) &MFace_Type );
+	PyDict_SetItemString( dict, "MEdgeType",
+			      ( PyObject * ) &MEdge_Type );
+	PyDict_SetItemString( dict, "MVertType",
+			      ( PyObject * ) &MVert_Type );
+	PyDict_SetItemString( dict, "MColType", ( PyObject * ) &MCol_Type );
 
 	PyDict_SetItemString( dict, "ArmatureType",
 			      ( PyObject * ) &Armature_Type );

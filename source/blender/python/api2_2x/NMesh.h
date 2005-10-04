@@ -139,7 +139,7 @@ extern void test_object_materials( ID * id );	/* declared in BKE_material.h */
 
 PyObject *NMesh_Init( void );
 PyObject *NMesh_CreatePyObject( Mesh * me, Object * ob );
-Mesh *Mesh_FromPyObject( PyObject * pyobj, Object * ob );
+Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob );
 int NMesh_CheckPyObject( PyObject * pyobj );
 
 
