@@ -650,6 +650,8 @@ hsv_to_rgb(
 	float *g, float *b
 );
 
+void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
+
 	void 
 rgb_to_hsv(
 	float r, float g, float b, 

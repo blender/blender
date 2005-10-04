@@ -1746,6 +1746,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiBut *bt;
 	Object *ob= OBACT;
 	float lim;
+	static char hexcol[128];
 	
 	if(ob==NULL) return;
 
@@ -1783,7 +1784,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT)) {
 		extern VPaint Gvp;         /* from vpaint */
 		static float hsv[3], old[3];	// used as temp mem for picker
-		uiBlockPickerButtons(block, &Gvp.r, hsv, old, 'f', REDRAWBUTSEDIT);	/* 'f' is for floating panel */
+		uiBlockPickerButtons(block, &Gvp.r, hsv, old, hexcol, 'f', REDRAWBUTSEDIT);	/* 'f' is for floating panel */
 	}
 	else {
 		uiBlockBeginAlign(block);

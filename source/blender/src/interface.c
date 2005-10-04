@@ -2432,13 +2432,35 @@ static void ui_set_but_hsv(uiBut *but)
 	ui_set_but_vectorf(but, col);
 }
 
-static void update_picker_buts(uiBlock *block, float *hsv)
+static void update_picker_hex(uiBlock *block, float *rgb)
+{
+	uiBut *bt;
+	char col[16];
+	
+	sprintf(col, "%02X%02X%02X", (unsigned int)(rgb[0]*255.0), (unsigned int)(rgb[1]*255.0), (unsigned int)(rgb[2]*255.0));
+	
+	// this updates button strings, is hackish... but button pointers are on stack of caller function
+
+	for(bt= block->buttons.first; bt; bt= bt->next) {
+		if(strcmp(bt->str, "Hex: ")==0) {
+			strcpy(bt->poin, col);
+			ui_check_but(bt);
+			break;
+		}
+	}
+}
+
+static void update_picker_buts_hsv(uiBlock *block, float *hsv)
 {
 	uiBut *bt;
 	float r, g, b;
+	float rgb[3];
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r, &g, &b);
+	
+	rgb[0] = r; rgb[1] = g; rgb[2] = b;
+	update_picker_hex(block, rgb);
 
 	for(bt= block->buttons.first; bt; bt= bt->next) {
 		if(bt->type==HSVCUBE) {
@@ -2474,6 +2496,55 @@ static void update_picker_buts(uiBlock *block, float *hsv)
 	}
 }
 
+static void update_picker_buts_hex(uiBlock *block, char *hexcol)
+{
+	uiBut *bt;
+	float r=0, g=0, b=0;
+	float h, s, v;
+	
+	
+	// this updates button strings, is hackish... but button pointers are on stack of caller function
+	hex_to_rgb(hexcol, &r, &g, &b);
+	rgb_to_hsv(r, g, b, &h, &s, &v);
+
+	for(bt= block->buttons.first; bt; bt= bt->next) {
+		if(bt->type==HSVCUBE) {
+			bt->hsv[0] = h;
+			bt->hsv[1] = s;			
+			bt->hsv[2] = v;
+			ui_set_but_hsv(bt);
+		}
+		else if(bt->str[1]==' ') {
+			if(bt->str[0]=='R') {
+				ui_set_but_val(bt, r);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='G') {
+				ui_set_but_val(bt, g);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='B') {
+				ui_set_but_val(bt, b);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='H') {
+				ui_set_but_val(bt, h);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='S') {
+				ui_set_but_val(bt, s);
+				ui_check_but(bt);
+			}
+			else if(bt->str[0]=='V') {
+				ui_set_but_val(bt, v);
+				ui_check_but(bt);
+			}
+		}
+	}
+}
+
+
+
 /* bt1 is palette but, col1 is original color */
 /* callback to copy from/to palette */
 static void do_palette_cb(void *bt1, void *col1)
@@ -2493,7 +2564,8 @@ static void do_palette_cb(void *bt1, void *col1)
 	}
 	
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
-	update_picker_buts(but1->block, hsv);
+	update_picker_buts_hsv(but1->block, hsv);
+	update_picker_hex(but1->block, col);
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
@@ -2519,7 +2591,25 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 		rgb_to_hsv(fp[0], fp[1], fp[2], hsv, hsv+1, hsv+2);
 	}
 
-	update_picker_buts(but1->block, hsv);	
+	update_picker_buts_hsv(but1->block, hsv);	
+	if (fp) update_picker_hex(but1->block, fp);
+	
+	for (but= but1->block->buttons.first; but; but= but->next) {
+		ui_draw_but(but);
+	}
+	
+	but= but1->block->buttons.first;
+	ui_block_flush_back(but->block);
+
+}
+
+static void do_palette_hex_cb(void *bt1, void *hexcl)
+{
+	uiBut *but1= (uiBut *)bt1;
+	uiBut *but;
+	char *hexcol= (char *)hexcl;
+	
+	update_picker_buts_hex(but1->block, hexcol);	
 	
 	for (but= but1->block->buttons.first; but; but= but->next) {
 		ui_draw_but(but);
@@ -2531,8 +2621,8 @@ static void do_palette1_cb(void *bt1, void *hsv1)
 }
 
 /* color picker, Gimp version. mode: 'f' = floating panel, 'p' =  popup */
-/* col = read/write to, hsv/old = memory for temporal use */
-void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char mode, short retval)
+/* col = read/write to, hsv/old/hexcol = memory for temporal use */
+void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, char *hexcol, char mode, short retval)
 {
 	uiBut *bt;
 	float h, offs;
@@ -2569,24 +2659,27 @@ void uiBlockPickerButtons(uiBlock *block, float *col, float *hsv, float *old, ch
 
 	// buttons
 	rgb_to_hsv(col[0], col[1], col[2], hsv, hsv+1, hsv+2);
+	sprintf(hexcol, "%02X%02X%02X", (unsigned int)(col[0]*255.0), (unsigned int)(col[1]*255.0), (unsigned int)(col[2]*255.0));	
 
 	offs= FPICK+2*DPICK+BPICK;
 
+	bt= uiDefBut(block, TEX, retval, "Hex: ", offs, 140, 140, 20, hexcol, 0, 8, 0, 0, "Hex triplet for colour (#RRGGBB)");
+	uiButSetFunc(bt, do_palette_hex_cb, bt, hexcol);
 
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUM, retval, "R ",	offs, 110, 80,20, col, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "R ",	offs, 110, 140,20, col, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUM, retval, "G ",	offs, 90, 80,20, col+1, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "G ",	offs, 90, 140,20, col+1, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUM, retval, "B ",	offs, 70, 80,20, col+2, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "B ",	offs, 70, 140,20, col+2, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	
 	uiBlockBeginAlign(block);
-	bt= uiDefButF(block, NUM, retval, "H ",	offs, 40, 80,20, hsv, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "H ",	offs, 40, 140,20, hsv, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUM, retval, "S ",	offs, 20, 80,20, hsv+1, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "S ",	offs, 20, 140,20, hsv+1, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
-	bt= uiDefButF(block, NUM, retval, "V ",	offs, 0, 80,20, hsv+2, 0.0, 1.0, 10, 2, "");
+	bt= uiDefButF(block, NUMSLI, retval, "V ",	offs, 0, 140,20, hsv+2, 0.0, 1.0, 10, 2, "");
 	uiButSetFunc(bt, do_palette1_cb, bt, hsv);
 	uiBlockEndAlign(block);
 }
@@ -2598,6 +2691,7 @@ static int ui_do_but_COL(uiBut *but)
 	uiBut *bt;
 	ListBase listb={NULL, NULL};
 	float hsv[3], old[3], *poin= NULL, colstore[3];
+	static char hexcol[128];
 	short event;
 	
 	// signal to prevent calling up color picker
@@ -2620,7 +2714,7 @@ static int ui_do_but_COL(uiBut *but)
 	block->flag= UI_BLOCK_LOOP|UI_BLOCK_REDRAW;
 	block->themecol= TH_BUT_NUM;
 	
-	uiBlockPickerButtons(block, poin, hsv, old, 'p', 0);
+	uiBlockPickerButtons(block, poin, hsv, old, hexcol, 'p', 0);
 
 	/* and lets go */
 	block->direction= UI_TOP;
@@ -2687,7 +2781,8 @@ static int ui_do_but_HSVCUBE(uiBut *but)
 			ui_set_but_hsv(but);	// converts to rgb
 			
 			// update button values and strings
-			update_picker_buts(but->block, but->hsv);
+			update_picker_buts_hsv(but->block, but->hsv);
+//			update_picker_buts_hex(but->block, but->hsv);			
 
 			/* we redraw the entire block */
 			for (bt= but->block->buttons.first; bt; bt= bt->next) {

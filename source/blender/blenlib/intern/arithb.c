@@ -2520,6 +2520,19 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	}
 }
 
+void hex_to_rgb(char *hexcol, float *r, float *g, float *b)
+{
+	unsigned int ri, gi, bi;
+	
+	if (hexcol[0] == '#') hexcol++;
+	
+	if (sscanf(hexcol, "%02x%02x%02x", &ri, &gi, &bi)) {
+		*r = ri / 255.0;
+		*g = gi / 255.0;		
+		*b = bi / 255.0;
+	}
+}
+
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	float h, s, v;
