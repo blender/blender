@@ -242,8 +242,7 @@ static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 	default:
 		{
 			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in %s", (int)type,
-					__FUNCTION__ );
+			sprintf( errstr, "undefined type '%d' in MCol_getAttr", (int)type );
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError, errstr );
 		}
 	}
@@ -280,8 +279,7 @@ static int MCol_setAttr( BPy_MCol * self, PyObject * value, void * type )
 	default:
 		{
 			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in %s", (int)type,
-					__FUNCTION__ );
+			sprintf( errstr, "undefined type '%d' in MCol_setAttr", (int)type );
 			return EXPP_ReturnIntError( PyExc_RuntimeError, errstr );
 		}
 	}
