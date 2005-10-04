@@ -717,7 +717,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 		/* Apply the object's matrix */
 		Mat4MulVecfl(premat, co);
 		
-		if(dverts)
+		if(dverts && i<((Mesh*)target->data)->totvert)
 			dvert= dverts+i;
 		else
 			dvert= NULL;
