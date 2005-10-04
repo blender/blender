@@ -73,6 +73,7 @@
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 #include "BIF_glutil.h"
 
 #include "BSE_drawipo.h"
@@ -1721,9 +1722,15 @@ void do_ipobuts(unsigned short event)
 				IpoDriver *driver= ei->icu->driver;
 				
 				if(driver->ob) {
-					/* check if type is still OK */
-					if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
-					else driver->blocktype= ID_OB;
+					if(ob==driver->ob) {
+						error("Cannot assign a Driver to own Object");
+						driver->ob= NULL;
+					}
+					else {
+						/* check if type is still OK */
+						if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
+						else driver->blocktype= ID_OB;
+					}
 				}				
 				DAG_scene_sort(G.scene);
 				

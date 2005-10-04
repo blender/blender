@@ -1838,8 +1838,10 @@ static void pchan_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 		pchan->bone->flag |= BONE_SELECTED;
 	else if(event==2)
 		pchan->bone->flag &= ~BONE_SELECTED;
-	else if(event==3)
+	else if(event==3) {
 		pchan->bone->flag |= BONE_HIDDEN_P;
+		pchan->bone->flag &= ~BONE_SELECTED;
+	}
 	else if(event==4)
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
 }
@@ -1852,8 +1854,10 @@ static void bone_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 		bone->flag |= BONE_SELECTED;
 	else if(event==2)
 		bone->flag &= ~BONE_SELECTED;
-	else if(event==3)
+	else if(event==3) {
 		bone->flag |= BONE_HIDDEN_P;
+		bone->flag &= ~BONE_SELECTED;
+	}
 	else if(event==4)
 		bone->flag &= ~BONE_HIDDEN_P;
 }
@@ -1866,10 +1870,12 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *tselem)
 		ebone->flag |= BONE_SELECTED;
 	else if(event==2)
 		ebone->flag &= ~BONE_SELECTED;
-	else if(event==3)
-		ebone->flag |= BONE_HIDDEN_P;
+	else if(event==3) {
+		ebone->flag |= BONE_HIDDEN_A;
+		ebone->flag &= ~BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+	}
 	else if(event==4)
-		ebone->flag &= ~BONE_HIDDEN_P;
+		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
 static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 

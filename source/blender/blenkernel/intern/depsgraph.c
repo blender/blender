@@ -306,7 +306,6 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 	}
 }
 
-
 struct DagForest *build_dag(struct Scene *sce, short mask) 
 {
 	Base *base;
