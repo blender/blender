@@ -1633,15 +1633,16 @@ static TBitem tb_object_select_grouped[]= {
 {  -1, "", 			0, do_view3d_select_object_groupedmenu}};
 
 static TBitem tb_object_select[]= {
-{	0, "Border Select|B", 	'b', NULL},
+{	0, "Border Select|B", 	0, NULL},
 {	0, "SEPR",				0, NULL},
-{	0, "Select/Deselect All|A", 	'a', NULL},
+{	0, "Select/Deselect All|A", 	1, NULL},
+{	0, "Inverse",			2, NULL},
 {	0, "Select All by Layer", 	0, 		tb_object_select_layer},
 {	0, "Select All by Type", 	0, 		tb_object_select_type},
 {	0, "SEPR",				0, NULL},
 {	0, "Linked", 	0, 	tb_object_select_linked},
 {	0, "Grouped", 	0, 	tb_object_select_grouped},
-{  -1, "", 			0, tb_do_hotkey}};
+{  -1, "", 			0, do_view3d_select_objectmenu}};
 
 static TBitem tb_mesh_select[]= {
 {	0, "Border Select|B",               0, NULL},
@@ -1671,9 +1672,9 @@ static TBitem tb_curve_select[]= {
 {  -1, "", 				0, do_view3d_select_curvemenu}};
 
 static TBitem tb__select[]= {
-{	0, "Border Select|B", 	'b', NULL},
-{	0, "(De)select All|A", 	'a', NULL},
-{  -1, "", 			0, tb_do_hotkey}};
+{       0, "Border Select|B",   'b', NULL},
+{       0, "(De)select All|A",  'a', NULL},
+{  -1, "",                      0, tb_do_hotkey}};
 
 
 /* *************Edit ********** */

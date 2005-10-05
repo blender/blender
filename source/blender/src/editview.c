@@ -893,6 +893,31 @@ void deselectall(void)	/* is toggle */
 	BIF_undo_push("(De)select all");
 }
 
+/* inverts object selection */
+void selectswap(void)
+{
+	Base *base;
+	int a=0;
+
+	base= FIRSTBASE;
+	while(base) {
+		if(base->lay & G.vd->lay) {
+			if TESTBASE(base) base->flag &= ~SELECT;
+			else base->flag |= SELECT;
+			base->object->flag= base->flag;
+		}
+		base= base->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWDATASELECT, 0);
+	allqueue(REDRAWNLA, 0);
+	
+	countall();
+	BIF_undo_push("Select Inverse");
+}
+
+
 /* selects all objects of a particular type, on currently visible layers */
 void selectall_type(short obtype) 
 {

@@ -124,6 +124,7 @@ void do_info_add_lampmenu(void *arg, int event);
 void do_info_addmenu(void *arg, int event);
 
 /* header_view3d.c */
+void do_view3d_select_objectmenu(void *arg, int event);
 void do_view3d_select_object_groupedmenu(void *arg, int event);
 void do_view3d_select_object_linkedmenu(void *arg, int event);
 void do_view3d_select_object_layermenu(void *arg, int event);
