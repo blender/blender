@@ -461,11 +461,10 @@ PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args)
 PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
-	double dot = 0.0f, angleRads;
+	double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
 	double norm_a = 0.0f, norm_b = 0.0f;
 	double vec_a[4], vec_b[4];
 	int x, size;
-	PyObject *test = NULL;
 
 	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2))
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
@@ -474,31 +473,25 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 			"Mathutils.AngleBetweenVecs(): expects (2) vector objects of the same size\n");
 
-	//test to make sure that we don't have a zero vector
-	test = M_Mathutils_DotVecs(self, args);
-	if(!PyFloat_AS_DOUBLE(test)){
-		Py_DECREF(test);
-		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mathutils.AngleBetweenVecs(): zero-length vectors not acceptable\n");
-	}
-	Py_DECREF(test);
-
 	//since size is the same....
 	size = vec1->size;
 
+	for(x = 0; x < size; x++) {
+		test_v1 += vec1->vec[x] * vec1->vec[x];
+		test_v2 += vec2->vec[x] * vec2->vec[x];
+	}
+	if (!test_v1 || !test_v2){
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+			"Mathutils.AngleBetweenVecs(): zero-length vectors not acceptable\n");
+	}
 	//copy vector info
-	for (x = 0; x < vec1->size; x++){
+	for (x = 0; x < size; x++){
 		vec_a[x] = vec1->vec[x];
 		vec_b[x] = vec2->vec[x];
 	}
-
 	//normalize vectors
-	for(x = 0; x < size; x++) {
-		norm_a += vec_a[x] * vec_a[x];
-		norm_b += vec_b[x] * vec_b[x];
-	}
-	norm_a = (double)sqrt(norm_a);
-	norm_b = (double)sqrt(norm_b);
+	norm_a = (double)sqrt(test_v1);
+	norm_b = (double)sqrt(test_v2);
 	for(x = 0; x < size; x++) {
 		vec_a[x] /= norm_a;
 		vec_b[x] /= norm_b;
