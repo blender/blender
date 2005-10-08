@@ -375,7 +375,7 @@ elif sys.platform == 'win32':
 					 'ws2_32', 'dxguid', 'vfw32', 'winmm',
 					 'iconv', 'kernel32', 'user32', 'gdi32',
 					 'winspool', 'comdlg32', 'advapi32', 'shell32',
-					 'ole32', 'oleaut32', 'uuid', 'odbc32', 'odbccp32',
+					 'ole32', 'oleaut32', 'uuid', 
 					 'libcmt', 'libc']
 	platform_libpath = ['#../lib/windows/iconv/lib',
 						'#../lib/windows/QTDevWin/Libraries']
