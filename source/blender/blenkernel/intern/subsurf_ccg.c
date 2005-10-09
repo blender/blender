@@ -645,7 +645,7 @@ static void ss_sync_from_mesh(CCGSubSurf *ss, Mesh *me, DispListMesh *dlm, float
 			static int hasGivenError = 0;
 
 			if (!hasGivenError) {
-				if (me) {
+				if (!me) {
 					error("Unrecoverable error in SubSurf calculation, mesh is inconsistent.");
 				} else {
 					error("Unrecoverable error in SubSurf calculation, mesh(%s) is inconsistent.", me->id.name+2);
