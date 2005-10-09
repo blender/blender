@@ -1601,7 +1601,7 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 		VECCOPY(cos[i], eve->co);
 	}
 
-	return (vec3f *)cos;
+	return cos;
 }
 
 static void editmesh_calc_modifiers(DerivedMesh **cage_r, DerivedMesh **final_r)
