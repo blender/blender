@@ -1814,27 +1814,29 @@ static void mesh_build_data(Object *ob)
 
 	clear_mesh_caches(ob);
 
-	if( (G.f & G_WEIGHTPAINT) && ob==(G.scene->basact?G.scene->basact->object:NULL)) {
-		MCol *mcol = me->mcol;
-		TFace *tface =  me->tface;
+	if(ob!=G.obedit) {
+		if( (G.f & G_WEIGHTPAINT) && ob==(G.scene->basact?G.scene->basact->object:NULL)) {
+			MCol *mcol = me->mcol;
+			TFace *tface =  me->tface;
 
-		me->tface = NULL;
-		me->mcol = (MCol*) calc_weightpaint_colors(ob);
+			me->tface = NULL;
+			me->mcol = (MCol*) calc_weightpaint_colors(ob);
 
-		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
 
-		MEM_freeN(me->mcol);
-		me->mcol = mcol;
-		me->tface = tface;
-	} else {
-		mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+			MEM_freeN(me->mcol);
+			me->mcol = mcol;
+			me->tface = tface;
+		} else {
+			mesh_calc_modifiers(ob, NULL, &ob->derivedDeform, &ob->derivedFinal, 0, 1);
+		}
+
+		INIT_MINMAX(min, max);
+
+		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
+
+		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
 	}
-
-	INIT_MINMAX(min, max);
-
-	ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
-
-	boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
 }
 
 static void editmesh_build_data(void)
