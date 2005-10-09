@@ -1435,7 +1435,6 @@ DerivedMesh *derivedmesh_from_displistmesh(DispListMesh *dlm, float (*vertexCos)
 
 /***/
 
-
 DerivedMesh *mesh_create_derived_for_modifier(Object *ob, ModifierData *md)
 {
 	Mesh *me = ob->data;
@@ -1591,7 +1590,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	}
 }
 
-static vec3f *editmesh_getVertexCos(EditMesh *em, int *numVerts_r)
+static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 {
 	int i, numVerts = *numVerts_r = BLI_countlist(&em->verts);
 	float (*cos)[3];

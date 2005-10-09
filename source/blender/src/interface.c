@@ -966,7 +966,7 @@ static MenuData *menudata_new(char *instr) {
 
 	md->instr= instr;
 	md->title= NULL;
-	md->titleicon= NULL;
+	md->titleicon= 0;
 	md->items= NULL;
 	md->nitems= md->itemssize= 0;
 	

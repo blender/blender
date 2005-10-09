@@ -256,7 +256,7 @@ void make_local_obipo(Ipo *ipo)
 		ob= ob->id.next;
 	}
 	
-	if(local && lib==NULL) {
+	if(local && lib==0) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
@@ -300,7 +300,7 @@ void make_local_matipo(Ipo *ipo)
 		ma= ma->id.next;
 	}
 	
-	if(local && lib==NULL) {
+	if(local && lib==0) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
@@ -344,7 +344,7 @@ void make_local_keyipo(Ipo *ipo)
 		key= key->id.next;
 	}
 	
-	if(local && lib==NULL) {
+	if(local && lib==0) {
 		ipo->id.lib= 0;
 		ipo->id.flag= LIB_LOCAL;
 		new_id(0, (ID *)ipo, 0);
