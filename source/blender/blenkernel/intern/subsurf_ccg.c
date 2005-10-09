@@ -637,7 +637,26 @@ static void ss_sync_from_mesh(CCGSubSurf *ss, Mesh *me, DispListMesh *dlm, float
 		fVerts[2] = (CCGVertHDL) mf->v3;
 		fVerts[3] = (CCGVertHDL) mf->v4;
 
-		ccgSubSurf_syncFace(ss, (CCGFaceHDL) i, fVerts[3]?4:3, fVerts, &f);
+			// this is very bad, means mesh is internally consistent.
+			// it is not really possible to continue without modifying
+			// other parts of code significantly to handle missing faces.
+			// since this really shouldn't even be possible we just bail.
+		if (ccgSubSurf_syncFace(ss, (CCGFaceHDL) i, fVerts[3]?4:3, fVerts, &f)==eCCGError_InvalidValue) {
+			static int hasGivenError = 0;
+
+			if (!hasGivenError) {
+				if (me) {
+					error("Unrecoverable error in SubSurf calculation, mesh is inconsistent.");
+				} else {
+					error("Unrecoverable error in SubSurf calculation, mesh(%s) is inconsistent.", me->id.name+2);
+				}
+
+				hasGivenError = 1;
+			}
+
+			return;
+		}
+
 		((int*) ccgSubSurf_getFaceUserData(ss, f))[1] = index;
 	}
 
