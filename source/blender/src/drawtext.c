@@ -1244,7 +1244,7 @@ void txt_copy_selectbuffer (Text *text)
 
 
 #ifdef _WIN32
-char *unixNewLine(char *buffer)
+static char *unixNewLine(char *buffer)
 {
 	char *p, *p2, *output;
 	
@@ -1257,7 +1257,7 @@ char *unixNewLine(char *buffer)
 	return(output);
 }
 
-char *winNewLine(char *buffer)
+static char *winNewLine(char *buffer)
 {
 	char *p, *p2, *output;
 	int add= 0;
@@ -1290,6 +1290,7 @@ void txt_paste_clipboard(Text *text) {
 		txt_insert_buf(text, buffer);
 		GlobalUnlock( hData );
 		CloseClipboard();
+		MEM_freeN(buffer);
 	}
 #endif
 }
