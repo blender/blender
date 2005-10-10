@@ -462,16 +462,12 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 {
 	VectorObject *vec1 = NULL, *vec2 = NULL;
 	double dot = 0.0f, angleRads, test_v1 = 0.0f, test_v2 = 0.0f;
-	double norm_a = 0.0f, norm_b = 0.0f;
-	double vec_a[4], vec_b[4];
 	int x, size;
 
 	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2))
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"Mathutils.AngleBetweenVecs(): expects (2) vector objects of the same size\n");
+		goto AttributeError1; //not vectors
 	if(vec1->size != vec2->size)
-		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mathutils.AngleBetweenVecs(): expects (2) vector objects of the same size\n");
+		goto AttributeError1; //bad sizes
 
 	//since size is the same....
 	size = vec1->size;
@@ -481,29 +477,26 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 		test_v2 += vec2->vec[x] * vec2->vec[x];
 	}
 	if (!test_v1 || !test_v2){
-		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mathutils.AngleBetweenVecs(): zero-length vectors not acceptable\n");
+		goto AttributeError2; //zero-length vector
 	}
-	//copy vector info
-	for (x = 0; x < size; x++){
-		vec_a[x] = vec1->vec[x];
-		vec_b[x] = vec2->vec[x];
-	}
-	//normalize vectors
-	norm_a = (double)sqrt(test_v1);
-	norm_b = (double)sqrt(test_v2);
-	for(x = 0; x < size; x++) {
-		vec_a[x] /= norm_a;
-		vec_b[x] /= norm_b;
-	}
+
 	//dot product
 	for(x = 0; x < size; x++) {
-		dot += vec_a[x] * vec_b[x];
+		dot += vec1->vec[x] * vec2->vec[x];
 	}
-	//I believe saacos checks to see if the vectors are normalized
+	dot /= (sqrt(test_v1) * sqrt(test_v2));
+	CLAMP(dot,0.0f,1.0f);
 	angleRads = (double)acos(dot);
 
 	return PyFloat_FromDouble(angleRads * (180 / Py_PI));
+
+AttributeError1:
+	return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+		"Mathutils.AngleBetweenVecs(): expects (2) VECTOR objects of the same size\n");
+
+AttributeError2:
+	return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+		"Mathutils.AngleBetweenVecs(): zero length vectors are not acceptable arguments\n");
 }
 //----------------------------------Mathutils.MidpointVecs() -------------
 //calculates the midpoint between 2 vectors
