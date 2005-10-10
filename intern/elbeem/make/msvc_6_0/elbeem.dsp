@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "MSVC6" /D "ELBEEM_BLENDER" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "ELBEEM_BLENDER" /YX /FD /c
 # ADD BASE RSC /l 0x407 /d "NDEBUG"
 # ADD RSC /l 0x407 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -70,7 +70,7 @@ PostBuild_Cmds=ECHO copy to lib ...	xcopy /Y .\release\blender_elbeem.lib ..\..\
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "MSVC6" /D "ELBEEM_BLENDER" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GX /ZI /Od /I "../../../../../lib/windows/sdl/include" /I "../../../../../lib/windows/zlib/include" /I "../../../../../lib/windows/png/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /D "NOGUI" /D "ELBEEM_BLENDER" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x407 /d "_DEBUG"
 # ADD RSC /l 0x407 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -78,7 +78,11 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"Debug\blender_elbeem.lib"
+# Begin Special Build Tool
+SOURCE="$(InputPath)"
+PostBuild_Cmds=ECHO copy to lib ...	xcopy /Y .\debug\blender_elbeem.lib ..\..\..\..\..\lib\windows\elbeem\lib\debug\*.*
+# End Special Build Tool
 
 !ENDIF 
 
