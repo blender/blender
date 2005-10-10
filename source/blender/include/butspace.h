@@ -236,8 +236,9 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_SELEFFECT	1430	
 
 /* Fluidsim button defines */
-#define B_FLUIDSIM_BAKE	  1450
-#define B_FLUIDSIM_SELDIR	1451
+#define B_FLUIDSIM_BAKE	        1450
+#define B_FLUIDSIM_SELDIR	      1451
+#define B_FLUIDSIM_FORCEREDRAW	1452
 
 
 /* *********************** */

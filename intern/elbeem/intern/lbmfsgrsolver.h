@@ -2698,26 +2698,26 @@ LbmFsgrSolver<D>::stepMain()
   // do some formatting 
   if(!D::mSilent){ 
 		string sepStr(""); // DEBUG
+#ifndef USE_MSVC6FIXES
+		int avgcls = (int)(mAvgNumUsedCells/(long long int)D::mStepCnt);
+#else
+		int avgcls = (int)(mAvgNumUsedCells/(_int64)D::mStepCnt);
+#endif
 		debMsgDirect( 
 			"mlsups(curr:"<<D::mMLSUPS<<
 			" avg:"<<(mAvgMLSUPS/mAvgMLSUPSCnt)<<"), "<< sepStr<<
 			" totcls:"<<(D::mNumUsedCells)<< sepStr<<
-#ifndef USE_MSVC6FIXES
-			" avgcls:"<< (int)(mAvgNumUsedCells/(long long int)D::mStepCnt)<< sepStr<<
-#endif
+			" avgcls:"<< avgcls<< sepStr<<
 			" intd:"<<mNumInterdCells<< sepStr<<
 			" invif:"<<mNumInvIfCells<< sepStr<<
 			" invift:"<<mNumInvIfTotal<< sepStr<<
 			" fsgrcs:"<<mNumFsgrChanges<< sepStr<<
 			" filled:"<<D::mNumFilledCells<<", emptied:"<<D::mNumEmptiedCells<< sepStr<<
 			" mMxv:"<<mMxvx<<","<<mMxvy<<","<<mMxvz<<", tscnts:"<<mTimeSwitchCounts<< sepStr<<
-			/*" rhoMax:"<<mRhoMax<<", rhoMin:"<<mRhoMin<<", vlenMax:"<<mMaxVlen<<", "*/
 			" probs:"<<mNumProblems<< sepStr<<
 			" simt:"<<mSimulationTime<< sepStr<<
 			" for '"<<D::mName<<"' " );
 
-		//wrong?
-		//debMsgDirect(", dccd:"<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix:"<<D::mFixMass<<",ini:"<<mInitialMass<<") ");
 		debMsgDirect(std::endl);
 		debMsgDirect(D::mStepCnt<<": dccd="<< mCurrentMass<<"/"<<mCurrentVolume<<"(fix="<<D::mFixMass<<",ini="<<mInitialMass<<") ");
 		debMsgDirect(std::endl);

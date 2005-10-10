@@ -1330,8 +1330,14 @@ void do_object_panels(unsigned short event)
 			/* chosse dir for surface files */
 			areawinset(sa->win);
 			activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
-			allqueue(REDRAWBUTSOBJECT, 0);
+			// continue with redraw... so no brake here!
+		}
+	case B_FLUIDSIM_FORCEREDRAW: {
+			// force redraw
+			allqueue(REDRAWBUTSEDIT, 0);
 			allqueue(REDRAWVIEW3D, 0);
+			countall();
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
 		break;
 		
@@ -1927,16 +1933,16 @@ static void object_panel_fluidsim(Object *ob)
 					yline -= 2*separateHeight;
 
 					uiDefBut(block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "");
-					uiDefButS(block, MENU, REDRAWVIEW3D, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+					uiDefButS(block, MENU, B_FLUIDSIM_FORCEREDRAW, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
 							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
-					uiDefButS(block, MENU, REDRAWVIEW3D, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+					uiDefButS(block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
 							195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 
-					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,	   0, yline, 20, objHeight,      0, 0, 0, 0, 0,   "Select Directory (and/or filenames) to store baked fluid simulation files in");
-					uiDefBut(block, TEX,   0,"",	20, yline, 200, objHeight,fss->surfdataDir, 0.0,79.0, 0, 0, "Enter Directory (and/or filenames) to store baked fluid simulation files in");
-					uiDefBut(block, TEX,   0,"", 220, yline,  80, objHeight,fss->surfdataPrefix, 0.0,79.0, 0, 0, "Enter Filename-Prefix to store baked fluid simulation files with");
+					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,	   0, yline,  20, objHeight,                     0, 0, 0, 0, 0,  "Select Directory (and/or filenames) to store baked fluid simulation files in");
+					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	        20, yline, 200, objHeight,fss->surfdataDir,    0.0,79.0, 0, 0, "Enter Directory to store baked fluid simulation files in");
+					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",        220, yline,  80, objHeight,fss->surfdataPrefix, 0.0,79.0, 0, 0, "Enter Filename-Prefix to store baked fluid simulation files with");
 					// FIXME what is the 79.0 above?
 				} else {
 					// advanced options

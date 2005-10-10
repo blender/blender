@@ -75,6 +75,8 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_cursors.h"
+#include "BIF_interface.h"
+#include "BSE_headerbuttons.h"
 
 #include "mydevice.h"
 
@@ -135,7 +137,7 @@ typedef struct {
 /* allocates and initializes general main data */
 FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 {
-	char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
+	//char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
 	FluidsimSettings *fss;
 	fss= MEM_callocN( sizeof(FluidsimSettings), "fluidsimsettings memory");
 	
@@ -167,9 +169,10 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 
 	strcpy(fss->surfdataDir,"//"); // current dir
 	// fss->surfdataPrefix take from .blend filename
-	strcpy(blendDir, G.sce);
-	BLI_splitdirstring(blendDir, blendFile);
-	snprintf(fss->surfdataPrefix,FILE_MAXFILE,"%s_%s", blendFile, srcob->id.name);
+	//strcpy(blendDir, G.sce);
+	//BLI_splitdirstring(blendDir, blendFile);
+	//snprintf(fss->surfdataPrefix,FILE_MAXFILE,"%s_%s", blendFile, srcob->id.name);
+	strcpy(fss->surfdataPrefix,""); // init upon first bake
 	
 	fss->orgMesh = (Mesh *)srcob->data;
 	return fss;
@@ -230,11 +233,11 @@ void fluidsimBake(struct Object *ob)
 	const int maxRes = 200;
 	int gridlevels = 0;
 
-	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
+	char outDir[FILE_MAXDIR], outPrefix[FILE_MAXFILE]; // store & modify output settings
+	int  outStringsChanged = 0;                        // modified? copy back before baking
+	int  haveSomeFluid = 0;                            // check if any fluid objects are set
 
-	// test section
-	// int nr= pupmenu("Continue?%t|Yes%x1|No%x0");
-	// if(nr==0) return;
+	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
@@ -288,6 +291,21 @@ void fluidsimBake(struct Object *ob)
 	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
 	elbeemDebugOut(debugStrBuffer);
 	
+	// check if theres any fluid
+	// abort baking if not...
+	for(obit= G.main->object.first; obit; obit= obit->id.next) {
+		if( (obit->fluidsimFlag & OB_FLUIDSIM_ENABLE) && 
+				(obit->type==OB_MESH) && (
+			  (obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) ||
+			  (obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) )
+				) {
+			haveSomeFluid = 1;
+		}
+	}
+	if(!haveSomeFluid) {
+		pupmenu("Fluidsim Bake Error%t|No fluid objects in scene... Aborted%x0");
+		return;
+	}
 
 	// prepare names...
 	strcpy(curWd, G.sce);
@@ -295,55 +313,81 @@ void fluidsimBake(struct Object *ob)
 	if(strlen(curWd)<1) {
 		BLI_getwdN(curWd);
 	}
-	if(strlen(fsDomain->fluidsimSettings->surfdataPrefix)<1) {
+	// work on these vars here... copy back later
+	strncpy(outDir,    fsDomain->fluidsimSettings->surfdataDir,    FILE_MAXDIR);
+	strncpy(outPrefix, fsDomain->fluidsimSettings->surfdataPrefix, FILE_MAXFILE);
+	if(strlen(outPrefix)<1) {
 		// make new from current .blend filename , and domain object name
 		strcpy(blendDir, G.sce);
 		BLI_splitdirstring(blendDir, blendFile);
 		// todo... strip .blend 
-		snprintf(fsDomain->fluidsimSettings->surfdataPrefix,FILE_MAXFILE,"%s_%s", blendFile, fsDomain->id.name);
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output prefix to '%s'\n", fsDomain->fluidsimSettings->surfdataPrefix); 
+		snprintf(outPrefix,FILE_MAXFILE,"%s_%s", blendFile, fsDomain->id.name);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output prefix to '%s'\n", outPrefix); 
 		elbeemDebugOut(debugStrBuffer);
+		outStringsChanged=1;
 	}
 
 	// check selected directory
 #ifdef WIN32
 	// windows workaroung because stat seems to be broken...
 	// simply try to open cfg file for writing
-	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", fsDomain->fluidsimSettings->surfdataPrefix);
-	BLI_make_file_string(curWd, fnameCfgPath, fsDomain->fluidsimSettings->surfdataDir, fnameCfg);
+	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", outPrefix);
+	BLI_make_file_string(curWd, fnameCfgPath, outDir, fnameCfg);
 	fileCfg = fopen(fnameCfgPath, "w");
 	if(fileCfg) {
 		dirExist = 1;
 		fclose(fileCfg);
 	}
 #else // WIN32
-	BLI_make_file_string(curWd, fnameCfgPath, fsDomain->fluidsimSettings->surfdataDir, "");
+	BLI_make_file_string(curWd, fnameCfgPath, outDir, "");
 	if(S_ISDIR(BLI_exist(fnameCfgPath))) dirExist = 1;
 #endif // WIN32
 
-	if((strlen(fsDomain->fluidsimSettings->surfdataDir)<1) || (!dirExist)) {
+	if((strlen(outDir)<1) || (!dirExist)) {
 		// invalid dir, reset to current
-		strcpy(fsDomain->fluidsimSettings->surfdataDir, "//");
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", fsDomain->fluidsimSettings->surfdataDir);
+		strcpy(outDir, "//");
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", outDir);
 		elbeemDebugOut(debugStrBuffer);
+		outStringsChanged=1;
+	}
+
+	// check if modified output dir is ok
+	if(outStringsChanged) {
+		char dispmsg[FILE_MAXDIR+FILE_MAXFILE+256];
+		int  selection=0;
+		strcpy(dispmsg,"Output settings set to: '");
+		strcat(dispmsg, outDir);
+		if(dispmsg[ strlen(dispmsg)-1 ]!='/') strcat(dispmsg,"/");
+		strcat(dispmsg, outPrefix);
+		//snprintf(dispmsg, FILE_MAXDIR+FILE_MAXFILE+10, "%s '%s'", changeMsg, fnameCfgPath);
+		strcat(dispmsg, "'%t|Continue with changed settings%x1|Discard and abort%x0");
+
+		// ask user if thats what he/she wants...
+		selection = pupmenu(dispmsg);
+		if(selection==0) return;
 	}
 	
 	// dump data for frame 0
   G.scene->r.cfra = 0;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
-	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", fsDomain->fluidsimSettings->surfdataPrefix);
-	BLI_make_file_string(curWd, fnameCfgPath, fsDomain->fluidsimSettings->surfdataDir, fnameCfg);
+	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", outPrefix);
+	BLI_make_file_string(curWd, fnameCfgPath, outDir, fnameCfg);
 
 	// start writing
 	fileCfg = fopen(fnameCfgPath, "w");
 	if(!fileCfg) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", fnameCfgPath); 
 		elbeemDebugOut(debugStrBuffer);
+	
+		pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
 		return;
 	}
 
 	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, fnameCfg );
+	// valid settings -> store
+	strncpy(fsDomain->fluidsimSettings->surfdataDir,    outDir,    FILE_MAXDIR);
+	strncpy(fsDomain->fluidsimSettings->surfdataPrefix, outPrefix, FILE_MAXFILE);
 
 	// FIXME set aniframetime from no. frames and duration
 	/* output simulation  settings */
@@ -468,8 +512,8 @@ void fluidsimBake(struct Object *ob)
 		char   fnamePreview[FILE_MAXFILE];
 		char   fnamePreviewPath[FILE_MAXFILE+FILE_MAXDIR];
 
-		snprintf(fnamePreview,FILE_MAXFILE,"%s_surface", fsDomain->fluidsimSettings->surfdataPrefix );
-		BLI_make_file_string(curWd, fnamePreviewPath, fsDomain->fluidsimSettings->surfdataDir, fnamePreview);
+		snprintf(fnamePreview,FILE_MAXFILE,"%s_surface", outPrefix );
+		BLI_make_file_string(curWd, fnamePreviewPath, outDir, fnamePreview);
 		resx = G.scene->r.xsch;
 		resy = G.scene->r.ysch;
 		if((cam) && (cam->type == OB_CAMERA)) {
@@ -575,8 +619,8 @@ void fluidsimBake(struct Object *ob)
 					(obit->type==OB_MESH) &&
 				  (obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN)
 				) {
-					getGeometryObjFilename(obit, fnameObjdat, fsDomain->fluidsimSettings->surfdataPrefix);
-					BLI_make_file_string(curWd, bobjPath, fsDomain->fluidsimSettings->surfdataDir, fnameObjdat);
+					getGeometryObjFilename(obit, fnameObjdat, outPrefix);
+					BLI_make_file_string(curWd, bobjPath, outDir, fnameObjdat);
 					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
 						fprintf(fileCfg, fluidString, "fluid", bobjPath, // do use absolute paths?
