@@ -267,6 +267,14 @@ SOURCE=..\..\..\source\blender\src\editipo.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\src\editipo_lib.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\src\editipo_mods.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\src\editkey.c
 # End Source File
 # Begin Source File
