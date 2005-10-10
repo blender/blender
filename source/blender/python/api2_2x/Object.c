@@ -1991,50 +1991,55 @@ static PyObject *Object_setIpo( BPy_Object * self, PyObject * args )
 /*
  * Object_insertIpoKey()
  *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, or LOCROTSIZE
+ *  Note it also inserts actions! 
  */
 
 static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 {
+	Object *ob= self->object;
     int key = 0;
+	char *actname= NULL;
     
 	if( !PyArg_ParseTuple( args, "i", &( key ) ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 										"expected int argument" ) );
-
+	if(ob->ipoflag & OB_ACTION_OB)
+		actname= "Object";
+	
 	if (key == IPOKEY_LOC || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)self->object,OB_LOC_X);
-		insertkey((ID *)self->object,OB_LOC_Y);
-		insertkey((ID *)self->object,OB_LOC_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z);      
 	}
     if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)self->object,OB_ROT_X);
-		insertkey((ID *)self->object,OB_ROT_Y);
-		insertkey((ID *)self->object,OB_ROT_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z);      
 	}
     if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
-		insertkey((ID *)self->object,OB_SIZE_X);
-		insertkey((ID *)self->object,OB_SIZE_Y);
-		insertkey((ID *)self->object,OB_SIZE_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z);      
 	}
 
     if (key == IPOKEY_PI_STRENGTH ){
-        insertkey((ID *)self->object, OB_PD_FSTR);   
+        insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR);   
 	}
 
     if (key == IPOKEY_PI_FALLOFF ){
-        insertkey((ID *)self->object, OB_PD_FFALL);   
+        insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL);   
 	}
 	
     if (key == IPOKEY_PI_SURFACEDAMP ){
-        insertkey((ID *)self->object, OB_PD_SDAMP);   
+        insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP);   
 	}
 
     if (key == IPOKEY_PI_RANDOMDAMP ){
-        insertkey((ID *)self->object, OB_PD_RDAMP);   
+        insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP);   
 	}
 
     if (key == IPOKEY_PI_PERM ){
-        insertkey((ID *)self->object, OB_PD_PERM);   
+        insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM);   
 	}
 
 

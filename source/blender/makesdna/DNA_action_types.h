@@ -91,8 +91,6 @@ typedef struct bActionChannel {
 typedef struct bAction {
 	ID				id;
 	ListBase		chanbase;	/* Channels in this action */
-	bActionChannel	*achan;		/* Current action channel */
-	bPoseChannel	*pchan;		/* Current pose channel */
 } bAction;
 
 typedef struct SpaceAction {

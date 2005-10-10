@@ -35,14 +35,12 @@
 
 struct BWinEvent;
 
-void clever_numbuts_nla(void);
 extern void winqreadnlaspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 /* NLA channel operations */
 void delete_nlachannel_keys(void);
-void delete_nlachannels(void);
 void duplicate_nlachannel_keys(void);
-void transform_nlachannel_keys(char mode);
+void transform_nlachannel_keys(int mode, int dummy);
 
 /* Select */
 void borderselect_nla(void);

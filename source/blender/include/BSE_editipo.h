@@ -65,22 +65,9 @@ void boundbox_ipocurve(struct IpoCurve *icu);
 void boundbox_ipo(struct Ipo *ipo, struct rctf *bb);
 void editipo_changed(struct SpaceIpo *si, int doredraw);
 void scale_editipo(void);
-struct Ipo *get_ipo_to_edit(struct ID **from);
+
 unsigned int ipo_rainbow(int cur, int tot);
-void make_ob_editipo(struct Object *ob, struct SpaceIpo *si);
-void make_seq_editipo(struct SpaceIpo *si);
-void make_cu_editipo(struct SpaceIpo *si);
-void make_key_editipo(struct SpaceIpo *si);
-int texchannel_to_adrcode(int channel);
-void make_mat_editipo(struct SpaceIpo *si);
-void make_world_editipo(struct SpaceIpo *si);
-void make_texture_editipo(struct SpaceIpo *si);
-void make_lamp_editipo(struct SpaceIpo *si);
-void make_camera_editipo(struct SpaceIpo *si);
-int make_action_editipo(struct Ipo *ipo, struct EditIpo **si);
-int make_constraint_editipo(struct Ipo *ipo, struct EditIpo **si);
-void make_sound_editipo(struct SpaceIpo *si);
-void make_editipo(void);
+
 void test_editipo(void);
 void get_status_editipo(void);
 void update_editipo_flags(void);
@@ -89,13 +76,17 @@ void ipo_toggle_showkey(void);
 void swap_selectall_editipo(void);
 void swap_visible_editipo(void);
 void deselectall_editipo(void);
-short findnearest_ipovert(struct IpoCurve **icu, struct BezTriple **bezt);
+
 void move_to_frame(void);
 void do_ipowin_buts(short event);
 void do_ipo_selectbuttons(void);
-struct EditIpo *get_editipo(void);
-struct Ipo *get_ipo(struct ID *from, short type, int make);
-struct IpoCurve *get_ipocurve(struct ID *from, short type, int adrcode, struct Ipo* useipo);
+
+
+/* gets ipo curve, creates if needed */
+struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, int);
+struct Ipo *verify_ipo(struct ID *, short, char *, char *);
+int texchannel_to_adrcode(int channel);
+
 void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
 void add_vert_ipo(void);
 void add_duplicate_editipo(void);
@@ -114,11 +105,11 @@ void del_ipoCurve ( struct IpoCurve * icu );
 void free_ipocopybuf(void);
 void copy_editipo(void);
 void paste_editipo(void);
+
 void set_exprap_ipo(int mode);
-int find_other_handles(struct EditIpo *eicur, 
-					   float ctime, struct BezTriple **beztar);
+
 void set_speed_editipo(float speed);
-void insertkey(struct ID *id, int adrcode);
+void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
 void insertkey_editipo(void);
 void common_insertkey(void);
 void free_ipokey(struct ListBase *lb);
@@ -151,8 +142,10 @@ void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, 
 						  int (*select_function)(struct BezTriple *));
+
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
+/* callbacks */
 int select_bezier_add(struct BezTriple *bezt);
 int select_bezier_subtract(struct BezTriple *bezt);
 int select_bezier_invert(struct BezTriple *bezt);

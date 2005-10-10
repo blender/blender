@@ -1460,8 +1460,12 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 			if(ob->parent->type==OB_CURVE) ob->recalc |= OB_RECALC_OB;
 		}
 		
-		if(ob->action) ob->recalc |= OB_RECALC_DATA;
-		else if(ob->nlastrips.first) ob->recalc |= OB_RECALC_DATA;
+		if(ob->action || ob->nlastrips.first) {
+			/* since actions now are mixed, we set the recalcs on the safe side */
+			ob->recalc |= OB_RECALC_OB;
+			if(ob->type==OB_ARMATURE)
+				ob->recalc |= OB_RECALC_DATA;
+		}
 		else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
 		else {

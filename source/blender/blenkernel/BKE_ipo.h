@@ -49,13 +49,15 @@ struct Sequence;
 struct ListBase;
 struct BezTriple;
 struct ID;
-/*  struct IPO_Channel; */
+struct bPoseChannel;
+struct bActionChannel;
+struct rctf;
 
 float frame_to_float(int cfra);
 
 void free_ipo_curve(struct IpoCurve *icu);
 void free_ipo(struct Ipo *ipo);
-
+void ipo_default_v2d_cur(int blocktype, struct rctf *cur);
 struct Ipo *add_ipo(char *name, int idcode);
 struct Ipo *copy_ipo(struct Ipo *ipo);
 void make_local_obipo(struct Ipo *ipo);
@@ -79,9 +81,14 @@ void calc_ipo(struct Ipo *ipo, float ctime);
 void write_ipo_poin(void *poin, int type, float val);
 float read_ipo_poin(void *poin, int type);
 void *give_mtex_poin(struct MTex *mtex, int adrcode );
+
 void *get_ipo_poin(struct ID *id, struct IpoCurve *icu, int *type);
+void *get_pchan_ipo_poin(struct bPoseChannel *pchan, int adrcode);
+
 void set_icu_vars(struct IpoCurve *icu);
+
 void execute_ipo(struct ID *id, struct Ipo *ipo);
+void execute_action_ipo(struct bActionChannel *achan, struct bPoseChannel *pchan);
 
 void do_ipo_nocalc(struct Ipo *ipo);
 void do_ipo(struct Ipo *ipo);
@@ -96,9 +103,9 @@ int calc_ipo_spec(struct Ipo *ipo, int adrcode, float *ctime);
 void clear_delta_obipo(struct Ipo *ipo);
 void add_to_cfra_elem(struct ListBase *lb, struct BezTriple *bezt);
 void make_cfra_list(struct Ipo *ipo, struct ListBase *elems);
+
 /* the sort is an IPO_Channel... */
 int IPO_GetChannels(struct Ipo *ipo, short *channels);
-void test_ipo_get(void);                             
 
 float IPO_GetFloatValue(struct Ipo *ipo,
 /*  						struct IPO_Channel channel, */

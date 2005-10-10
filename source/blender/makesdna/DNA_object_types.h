@@ -113,10 +113,13 @@ typedef struct Object {
 	float imat[4][4];	/* for during render, old game engine, temporally: ipokeys of transform  */
 	
 	unsigned int lay;				/* copy of Base */
+	
 	short flag;			/* copy of Base */
 	short colbits;		/* when zero, from obdata */
-	char transflag, ipoflag;
-	char trackflag, upflag;
+	
+	short transflag, ipoflag;	/* transformation and ipo settings */
+	short trackflag, upflag;
+	short nlaflag, pad;
 	short ipowin, scaflag;	/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
@@ -255,7 +258,7 @@ extern Object workob;
 #define PARBONE			7
 #define PARSLOW			16
 
-/* char! transflag */
+/* (short) transflag */
 #define OB_OFFS_LOCAL	1
 #define OB_QUAT			2
 #define OB_NEG_SCALE	4
@@ -267,7 +270,7 @@ extern Object workob;
 
 #define OB_POWERTRACK	128
 
-/* char! ipoflag */
+/* (short) ipoflag */
 #define OB_DRAWKEY			1
 #define OB_DRAWKEYSEL		2
 #define OB_OFFS_OB			4
@@ -276,9 +279,11 @@ extern Object workob;
 #define OB_OFFS_PATH		32
 #define OB_OFFS_PARENT		64
 #define OB_OFFS_PARTICLE	128
+	/* get ipo from from action or not? */
+#define OB_ACTION_OB		256
+#define OB_ACTION_KEY		512
 
-
-/* trackflag / upflag */
+/* (short) trackflag / upflag */
 #define OB_POSX			0
 #define OB_POSY			1
 #define OB_POSZ			2
@@ -288,7 +293,7 @@ extern Object workob;
 
 /* gameflag in game.h */
 
-/* dt: nummers */
+/* dt: no flags */
 #define OB_BOUNDBOX		1
 #define OB_WIRE			2
 #define OB_SOLID		3
@@ -379,6 +384,8 @@ extern Object workob;
 #define OB_SHAPE_LOCK		1
 #define OB_SHAPE_TEMPLOCK	2
 
+/* ob->nlaflag */
+#define OB_NLA_OVERRIDE		1
 
 /* ob->softflag in DNA_object_force.h */
 

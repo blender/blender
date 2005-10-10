@@ -223,7 +223,7 @@
 #define B_MAN_ROT		162
 #define B_MAN_SCALE		163
 #define B_HEMESHBROWSE	164
-#define B_HEMESHLOCAL 165
+#define B_HEMESHLOCAL	165
 
 /* IPO: 200 */
 #define B_IPOHOME		201
@@ -234,11 +234,14 @@
 #define B_IPOEXTRAP		206
 #define B_IPOCYCLIC		207
 #define B_IPOMAIN		208
-#define B_IPOSHOWKEY		209
-#define B_IPOCYCLICX		210
+#define B_IPOSHOWKEY	209
+#define B_IPOCYCLICX	210
 	/* warn: also used for oops and seq */
-#define B_VIEW2DZOOM		211
+#define B_VIEW2DZOOM	211
 #define B_IPOPIN		212
+#define B_IPO_ACTION_OB		213
+#define B_IPO_ACTION_KEY	214
+
 
 /* OOPS: 250 */
 #define B_OOPSHOME		251

@@ -34,9 +34,19 @@
 #define BSE_DRAWNLA_H
 
 struct ScrArea;
+struct Base;
+struct gla2DDrawInfo;
+struct Object;
 
 void drawnlaspace(struct ScrArea *sa, void *spacedata);
 void do_nlabuts(unsigned short event);
+
+int count_nla_levels(void);	
+int nla_filter (struct Base* base);
+
+	/* changes the gla2d system to map the strip transform */
+void map_active_strip(struct gla2DDrawInfo *di, struct Object *ob, int restore);
+
 
 #endif /* BSE_DRAWNLA */
 

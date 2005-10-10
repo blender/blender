@@ -36,6 +36,8 @@
 struct uiBlock;
 struct ScrArea;
 struct ID;
+struct SpaceIpo;
+struct Ipo;
 
 /* these used to be in blender/src/headerbuttons.c: */
 #define SPACEICONMAX  15 /* See release/datafiles/blenderbuttons */
@@ -111,6 +113,9 @@ void do_script_buttons(unsigned short event);
 void do_view3d_buttons(short event); 
 
 void do_headerbuttons(short event);
+
+/* header_ipo.c */
+void spaceipo_assign_ipo(struct SpaceIpo *si, struct Ipo *ipo);
 
 /* header_text.c */
 void do_text_editmenu_to3dmenu(void *arg, int event);

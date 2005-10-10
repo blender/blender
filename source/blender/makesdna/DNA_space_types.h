@@ -86,8 +86,11 @@ typedef struct SpaceIpo {
 	
 	void *editipo;
 	ListBase ipokey;
+	
+	/* the ipo context we need to store */
 	struct Ipo *ipo;
 	struct ID *from;
+	char actname[32], constname[32];
 
 	short totipo, pin;
 	short butofs, channel;

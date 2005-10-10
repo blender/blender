@@ -1235,7 +1235,7 @@ void build_particle_system(Object *ob)
 					par->ctime= -1234567.0;
 					do_ob_key(par);
 					if(par->type==OB_ARMATURE) {
-						do_all_actions(par);	// only does this object actions
+						do_all_pose_actions(par);	// only does this object actions
 						where_is_pose(par);
 					}
 					par= par->parent;
@@ -1318,7 +1318,7 @@ void build_particle_system(Object *ob)
 		do_ob_key(par);
 		
 		if(par->type==OB_ARMATURE) {
-			do_all_actions(par);	// only does this object actions
+			do_all_pose_actions(par);	// only does this object actions
 			where_is_pose(par);
 		}
 		par= par->parent;

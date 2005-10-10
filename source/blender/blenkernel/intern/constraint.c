@@ -618,7 +618,7 @@ void *new_constraint_data (short type)
 	return result;
 }
 
-bConstraintChannel *find_constraint_channel (ListBase *list, const char *name)
+bConstraintChannel *get_constraint_channel (ListBase *list, const char *name)
 {
 	bConstraintChannel *chan;
 
@@ -630,6 +630,22 @@ bConstraintChannel *find_constraint_channel (ListBase *list, const char *name)
 	return NULL;
 }
 
+/* finds or creates new constraint channel */
+bConstraintChannel *verify_constraint_channel (ListBase *list, const char *name)
+{
+	bConstraintChannel *chan;
+	
+	chan= get_constraint_channel (list, name);
+	if(chan==NULL) {
+		chan= MEM_callocN(sizeof(bConstraintChannel), "new constraint chan");
+		BLI_addtail(list, chan);
+		strcpy(chan->name, name);
+	}
+	
+	return chan;
+}
+
+
 /* ***************** Evaluating ********************* */
 
 /* does ipos only */
@@ -640,7 +656,7 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 	IpoCurve *icu=NULL;
 	
 	for (con=conbase->first; con; con=con->next) {
-		chan = find_constraint_channel(chanbase, con->name);
+		chan = get_constraint_channel(chanbase, con->name);
 		if (chan && chan->ipo){
 			calc_ipo(chan->ipo, ctime);
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next){

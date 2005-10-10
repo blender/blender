@@ -416,7 +416,7 @@ static PyObject *IpoCurve_getName( C_IpoCurve * self )
 	case ID_WO:
 		return PyString_FromString( getname_world_ei
 					    ( self->ipocurve->adrcode ) );
-	case ID_AC:
+	case ID_PO:
 		return PyString_FromString( getname_ac_ei
 					    ( self->ipocurve->adrcode ) );
 	case ID_CU:
@@ -427,7 +427,7 @@ static PyObject *IpoCurve_getName( C_IpoCurve * self )
 	case ID_SEQ:
 		return PyString_FromString( getname_seq_ei
 					    ( self->ipocurve->adrcode ) );
-	case IPO_CO:
+	case ID_CO:
 		return PyString_FromString( getname_co_ei
 					    ( self->ipocurve->adrcode ) );
 	default:
@@ -605,7 +605,7 @@ char *getIpoCurveName( IpoCurve * icu )
 		return getname_tex_ei( icu->adrcode );
 	case ID_LA:
 		return getname_la_ei( icu->adrcode );
-	case ID_AC:
+	case ID_PO:
 		return getname_ac_ei( icu->adrcode );
 	case ID_CU:
 		return getname_cu_ei( icu->adrcode );
@@ -613,7 +613,7 @@ char *getIpoCurveName( IpoCurve * icu )
 		return "Key";	/* ipo curves have no names... that was only meant for drawing the buttons... (ton) */
 	case ID_SEQ:
 		return getname_seq_ei( icu->adrcode );
-	case IPO_CO:
+	case ID_CO:
 		return getname_co_ei( icu->adrcode );
 	}
 	return NULL;

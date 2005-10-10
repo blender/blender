@@ -48,6 +48,7 @@ struct ScrArea; /*keep me up here */
 #include "BKE_utildefines.h"
 
 #include "BIF_editaction.h"
+#include "BSE_editipo.h"
 
 #include "NLA.h"
 
@@ -1401,7 +1402,6 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 	Bone *root = NULL;
 	bPoseChannel *chan = NULL;
 	bPoseChannel *setChan = NULL;
-	bPoseChannel *test = NULL;
 	Object *object = NULL;
 	bArmature *arm = NULL;
 	Bone *bone = NULL;
@@ -1410,7 +1410,6 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 	BPy_Action *py_action = NULL;
 	int x;
 	int flagValue = 0;
-	int makeCurve = 1;
 
 	if( !self->bone ) {	//test to see if linked to armature
 		//use python vars
@@ -1502,43 +1501,26 @@ static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
 
 		//create an action if one not already assigned to object
 		if( !py_action && !object->action ) {
-			object->action = ( bAction * ) add_empty_action(  );
-			object->ipowin = ID_AC;
-		} else {
-			//test if posechannel is already in action
-			for( test = object->action->chanbase.first; test;
-			     test = test->next ) {
-				if( test == setChan )
-					makeCurve = 0;	//already there
-			}
+			object->action = ( bAction * ) add_empty_action(ID_PO);
+			object->ipowin = ID_PO;
 		}
 
-		//set action keys
+		//set action keys (note, new uniform API for Pose ipos (ton)
 		if( setChan->flag & POSE_ROT ) {
-			set_action_key( object->action, setChan, AC_QUAT_X,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_QUAT_Y,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_QUAT_Z,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_QUAT_W,
-					(short)makeCurve );
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_X);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_Y);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_Z);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_W);
 		}
 		if( setChan->flag & POSE_SIZE ) {
-			set_action_key( object->action, setChan, AC_SIZE_X,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_SIZE_Y,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_SIZE_Z,
-					(short)makeCurve );
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_X);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_Y);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_Z);
 		}
 		if( setChan->flag & POSE_LOC ) {
-			set_action_key( object->action, setChan, AC_LOC_X,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_LOC_Y,
-					(short)makeCurve );
-			set_action_key( object->action, setChan, AC_LOC_Z,
-					(short)makeCurve );
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_X);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_Y);
+			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_Z);
 		}
 		//rebuild ipos
 		remake_action_ipos( object->action );

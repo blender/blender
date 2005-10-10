@@ -67,7 +67,7 @@ void delete_meshchannel_keys(struct Key *key);
 void delete_actionchannel_keys(void);
 void duplicate_meshchannel_keys(struct Key *key);
 void duplicate_actionchannel_keys(void);
-void transform_actionchannel_keys(char mode);
+void transform_actionchannel_keys(int mode, int dummy);
 void transform_meshchannel_keys(char mode, struct Key *key);
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
@@ -91,12 +91,13 @@ void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 
 /* Action */
 struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
-void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode, short makecurve);
-struct bAction *add_empty_action(void);
+struct bAction *add_empty_action(int blocktype);
+
 void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
 
-void verify_active_action_channel(struct Object *ob);
+/* contextual get action */
+struct bAction *ob_get_action(struct Object *ob);
 
 void remake_action_ipos(struct bAction *act);
 

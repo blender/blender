@@ -75,8 +75,13 @@ void free_action(struct bAction * id);
 
 void make_local_action(struct bAction *act);
 
-/* if NULL it does all, otherwise only from Object */
-void do_all_actions(struct Object *);
+/* only for armatures, doing pose actions only too */
+void do_all_pose_actions(struct Object *);
+/* only for objects, doing only 1 channel */
+void do_all_object_actions(struct Object *);
+/* only for Mesh, Curve, Surface, Lattice, doing only Shape channel */
+void do_all_shape_actions(struct Object *);
+
 
 /**
  * Return a pointer to the pose channel of the given name
@@ -121,13 +126,20 @@ void extract_pose_from_action(struct bPose *pose, struct bAction *act,
  * and return the channel with the given name.
  * Returns NULL if no channel.
  */
-struct bActionChannel *get_named_actionchannel(struct bAction *act,
-											   const char *name);
+struct bActionChannel *get_action_channel(struct bAction *act,  const char *name);
+/**
+ * Iterate through the action channels of the action
+ * and return the channel with the given name.
+ * Returns and adds new channel if no channel.
+ */
+struct bActionChannel *verify_action_channel(struct bAction *act, const char *name);
 
-// exported for game engine
+/* exported for game engine */
 void blend_poses(struct bPose *dst, const struct bPose *src, float srcweight, short mode);
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
+/* map global time (frame nr) to strip converted time, doesn't clip */
+float get_action_frame(struct Object *ob, float cframe);
 
 #ifdef __cplusplus
 };

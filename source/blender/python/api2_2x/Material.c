@@ -1829,58 +1829,58 @@ static PyObject *Material_insertIpoKey( BPy_Material * self, PyObject * args )
 	map = texchannel_to_adrcode(self->material->texact);
 	
 	if(key==IPOKEY_RGB || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, MA_COL_R);
-		insertkey((ID *)self->material, MA_COL_G);
-		insertkey((ID *)self->material, MA_COL_B);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_R);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_G);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_COL_B);
 	}
 	if(key==IPOKEY_ALPHA || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, MA_ALPHA);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ALPHA);
 	}
 	if(key==IPOKEY_HALOSIZE || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, MA_HASIZE);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HASIZE);
 	}
 	if(key==IPOKEY_MODE || key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, MA_MODE);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE);
 	}
 	if(key==IPOKEY_ALLCOLOR) {
-		insertkey((ID *)self->material, MA_SPEC_R);
-		insertkey((ID *)self->material, MA_SPEC_G);
-		insertkey((ID *)self->material, MA_SPEC_B);
-		insertkey((ID *)self->material, MA_REF);
-		insertkey((ID *)self->material, MA_EMIT);
-		insertkey((ID *)self->material, MA_AMB);
-		insertkey((ID *)self->material, MA_SPEC);
-		insertkey((ID *)self->material, MA_HARD);
-		insertkey((ID *)self->material, MA_MODE);
-		insertkey((ID *)self->material, MA_TRANSLU);
-		insertkey((ID *)self->material, MA_ADD);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_R);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_G);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC_B);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_REF);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_EMIT);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_AMB);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_SPEC);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_HARD);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_MODE);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_TRANSLU);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_ADD);
 	}
 	if(key==IPOKEY_ALLMIRROR) {
-		insertkey((ID *)self->material, MA_RAYM);
-		insertkey((ID *)self->material, MA_FRESMIR);
-		insertkey((ID *)self->material, MA_FRESMIRI);
-		insertkey((ID *)self->material, MA_FRESTRA);
-		insertkey((ID *)self->material, MA_FRESTRAI);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_RAYM);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIR);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESMIRI);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRA);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, MA_FRESTRAI);
 	}
 	if(key==IPOKEY_OFS || key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, map+MAP_OFS_X);
-		insertkey((ID *)self->material, map+MAP_OFS_Y);
-		insertkey((ID *)self->material, map+MAP_OFS_Z);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_X);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Y);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_OFS_Z);
 	}
 	if(key==IPOKEY_SIZE || key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, map+MAP_SIZE_X);
-		insertkey((ID *)self->material, map+MAP_SIZE_Y);
-		insertkey((ID *)self->material, map+MAP_SIZE_Z);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_X);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Y);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_SIZE_Z);
 	}
 	if(key==IPOKEY_ALLMAPPING) {
-		insertkey((ID *)self->material, map+MAP_R);
-		insertkey((ID *)self->material, map+MAP_G);
-		insertkey((ID *)self->material, map+MAP_B);
-		insertkey((ID *)self->material, map+MAP_DVAR);
-		insertkey((ID *)self->material, map+MAP_COLF);
-		insertkey((ID *)self->material, map+MAP_NORF);
-		insertkey((ID *)self->material, map+MAP_VARF);
-		insertkey((ID *)self->material, map+MAP_DISP);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_R);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_G);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_B);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DVAR);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_COLF);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_NORF);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_VARF);
+		insertkey((ID *)self->material, ID_MA, NULL, NULL, map+MAP_DISP);
 	}
 
 	allspace(REMAKEIPO, 0);

@@ -212,9 +212,9 @@ static PyObject *M_Ipo_New( PyObject * self, PyObject * args )
 	if( !strcmp( code, "Lamp" ) )
 		idcode = ID_LA;
 	if( !strcmp( code, "Action" ) )
-		idcode = ID_AC;
+		idcode = ID_PO;
 	if( !strcmp( code, "Constraint" ) )
-		idcode = IPO_CO;
+		idcode = ID_CO;
 	if( !strcmp( code, "Sequence" ) )
 		idcode = ID_SEQ;
 	if( !strcmp( code, "Curve" ) )
@@ -890,10 +890,10 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	case ID_MA:
 		ok = Ipo_maIcuName( cur_name, &param );
 		break;
-	case ID_AC:
+	case ID_PO:
 		ok = Ipo_acIcuName( cur_name, &param );
 		break;
-	case IPO_CO:
+	case ID_CO:
 		ok = Ipo_coIcuName( cur_name, &param );
 		break;
 	case ID_CU:
@@ -913,14 +913,13 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 		return EXPP_ReturnPyObjError
 			( PyExc_NameError, "curve name was invalid" );
 
-	/* ask blender to create the new ipo curve */
-	icu = get_ipocurve( NULL, ipo->blocktype, param, self->ipo );
-
-	if( icu == 0 )		/* could not create curve */
-		return EXPP_ReturnPyObjError
-			( PyExc_RuntimeError,
-			  "blender could not create ipo curve" );
-
+	/* create the new ipo curve */
+	icu = MEM_callocN(sizeof(IpoCurve), "Pyhon added ipocurve");
+	icu->blocktype= ipo->blocktype;
+	icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
+	icu->blocktype= ipo->blocktype;
+	icu->adrcode= param;
+	
 	allspace( REMAKEIPO, 0 );
 	EXPP_allqueue( REDRAWIPO, 0 );
 

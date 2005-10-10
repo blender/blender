@@ -123,14 +123,20 @@ typedef struct Library {
 #define ID_SAMPLE	MAKE_ID2('S', 'A')
 #define ID_GR		MAKE_ID2('G', 'R')
 #define ID_ID		MAKE_ID2('I', 'D')
-#define ID_SEQ		MAKE_ID2('S', 'Q')
 #define ID_AR		MAKE_ID2('A', 'R')
 #define ID_AC		MAKE_ID2('A', 'C')
 #define ID_SCRIPT	MAKE_ID2('P', 'Y')
 
-#define IPO_CO		MAKE_ID2('C', 'O')	/* NOTE! This is not an ID, but is needed for g.sipo->blocktype */
-#define ID_NLA		MAKE_ID2('N', 'L')	/* fake ID for outliner */
-							 
+	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
+#define ID_SEQ		MAKE_ID2('S', 'Q')
+			/* constraint */
+#define ID_CO		MAKE_ID2('C', 'O')
+			/* pose (action channel, used to be ID_AC in code, so we keep code for backwards compat) */
+#define ID_PO		MAKE_ID2('A', 'C')
+			/* used in outliner... */
+#define ID_NLA		MAKE_ID2('N', 'L')
+
+
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0
 #define LIB_EXTERN		1

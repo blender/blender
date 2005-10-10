@@ -307,7 +307,7 @@ static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
 		return NULL;
 	}
 
-	chan = get_named_actionchannel( self->action, chanName );
+	chan = get_action_channel( self->action, chanName );
 	if( chan == NULL ) {
 		EXPP_ReturnPyObjError( PyExc_AttributeError,
 				       "no channel with that name..." );
@@ -328,7 +328,7 @@ static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args )
 		return NULL;
 	}
 
-	chan = get_named_actionchannel( self->action, chanName );
+	chan = get_action_channel( self->action, chanName );
 	if( chan == NULL ) {
 		EXPP_ReturnPyObjError( PyExc_AttributeError,
 				       "no channel with that name..." );

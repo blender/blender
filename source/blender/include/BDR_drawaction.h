@@ -40,7 +40,6 @@ struct bAction;
 struct Object;
 
 void draw_cfra_action(void);
-void draw_bevel_but(int x, int y, int w, int h, int sel);
 void draw_ipo_channel(struct gla2DDrawInfo *di, struct Ipo *ipo, int flags, float ypos);
 void draw_action_channel(struct gla2DDrawInfo *di, struct bAction *act, int flags, float ypos);
 void draw_object_channel(struct gla2DDrawInfo *di, struct Object *ob, int flags, float ypos);

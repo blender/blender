@@ -1306,6 +1306,9 @@ void where_is_object_time(Object *ob, float ctime)
 			calc_ipo(ob->ipo, stime);
 			execute_ipo((ID *)ob, ob->ipo);
 		}
+		else 
+			do_all_object_actions(ob);
+		
 		/* do constraint ipos ... */
 		do_constraint_channels(&ob->constraints, &ob->constraintChannels, ctime);
 	}
@@ -1796,7 +1799,7 @@ void object_handle_update(Object *ob)
 				/* this actually only happens for reading old files... */
 				if(ob->pose==NULL || (ob->pose->flag & POSE_RECALC))
 					armature_rebuild_pose(ob, ob->data);
-				do_all_actions(ob);
+				do_all_pose_actions(ob);
 				where_is_pose(ob);
 			}
 		}

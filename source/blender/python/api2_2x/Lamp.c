@@ -1395,25 +1395,25 @@ static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
 	map = texchannel_to_adrcode(self->lamp->texact);
 
 	if (key == IPOKEY_RGB ) {
-		insertkey((ID *)self->lamp,LA_COL_R);
-		insertkey((ID *)self->lamp,LA_COL_G);
-		insertkey((ID *)self->lamp,LA_COL_B);      
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, LA_COL_R);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL,LA_COL_G);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL,LA_COL_B);      
 	}
 	if (key == IPOKEY_ENERGY ) {
-		insertkey((ID *)self->lamp,LA_ENERGY);    
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL,LA_ENERGY);    
 	}	
 	if (key == IPOKEY_SPOTSIZE ) {
-		insertkey((ID *)self->lamp,LA_SPOTSI);    
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL,LA_SPOTSI);    
 	}
 	if (key == IPOKEY_OFFSET ) {
-		insertkey((ID *)self->lamp, map+MAP_OFS_X);
-		insertkey((ID *)self->lamp, map+MAP_OFS_Y);
-		insertkey((ID *)self->lamp, map+MAP_OFS_Z);  
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_OFS_X);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_OFS_Y);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_OFS_Z);  
 	}
 	if (key == IPOKEY_SIZE ) {
-		insertkey((ID *)self->lamp, map+MAP_SIZE_X);
-		insertkey((ID *)self->lamp, map+MAP_SIZE_Y);
-		insertkey((ID *)self->lamp, map+MAP_SIZE_Z);  
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_SIZE_X);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_SIZE_Y);
+		insertkey((ID *)self->lamp, ID_LA, NULL, NULL, map+MAP_SIZE_Z);  
 	}
 
 	allspace(REMAKEIPO, 0);

@@ -33,6 +33,7 @@
 #ifndef BIF_EDITCONSTRAINT_H
 #define BIF_EDITCONSTRAINT_H
 
+struct ID;
 struct ListBase;
 struct Object;
 struct bConstraint;
