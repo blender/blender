@@ -485,7 +485,7 @@ PyObject *M_Mathutils_AngleBetweenVecs(PyObject * self, PyObject * args)
 		dot += vec1->vec[x] * vec2->vec[x];
 	}
 	dot /= (sqrt(test_v1) * sqrt(test_v2));
-	CLAMP(dot,0.0f,1.0f);
+	CLAMP(dot,-1.0f,1.0f);
 	angleRads = (double)acos(dot);
 
 	return PyFloat_FromDouble(angleRads * (180 / Py_PI));
