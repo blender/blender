@@ -509,7 +509,7 @@ extern "C"
 {
 	Ipo *add_ipo( char *name, int idcode );
 	char *getIpoCurveName( IpoCurve * icu );
-	struct IpoCurve *get_ipocurve(struct ID *from, short type, int adrcode, struct Ipo *useipo);
+	struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, int);
 	void testhandles_ipocurve(struct IpoCurve *icu);
 	void Mat3ToEul(float tmat[][3], float *eul);
 
@@ -672,27 +672,27 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 
 					IpoCurve *icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocX");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_X, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_LOC_X);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocY");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_Y, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_LOC_Y);
 					
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"LocZ");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_LOC_Z, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_LOC_Z);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotX");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_X, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_ROT_X);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotY");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_Y, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_ROT_Y);
 
 					icu1 = findIpoCurve((IpoCurve *)ipo->curve.first,"RotZ");
 					if (!icu1)
-						icu1 = get_ipocurve( NULL, ipo->blocktype, OB_ROT_Z, ipo );
+						icu1 = verify_ipocurve(&blenderObject->id, ipo->blocktype, NULL, NULL, OB_ROT_Z);
 
 
 
@@ -862,7 +862,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 									( PyExc_NameError, "curve name was invalid" );
 
 							/* ask blender to create the new ipo curve */
-							icu = get_ipocurve( NULL, ipo->blocktype, param, self->ipo );
+							icu = verify_ipocurve( NULL, ipo->blocktype, NULL, NULL, param);
 
 							if( icu == 0 )		/* could not create curve */
 								return EXPP_ReturnPyObjError
