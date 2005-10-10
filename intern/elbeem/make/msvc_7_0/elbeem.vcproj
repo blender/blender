@@ -84,7 +84,7 @@ ECHO Done
 				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\elbeem\"
 				ObjectFile="..\..\..\..\..\build\msvc_7\intern\elbeem\"
 				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\elbeem\"
-				WarningLevel="2"
+				WarningLevel="4"
 				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="0"/>
 			<Tool
@@ -236,6 +236,9 @@ ECHO Done
 			</File>
 			<File
 				RelativePath="..\..\intern\blendercall.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\blenderdummy.cpp">
 			</File>
 			<File
 				RelativePath="..\..\intern\cfglexer.cpp">
