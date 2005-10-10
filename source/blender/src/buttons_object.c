@@ -41,6 +41,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -1317,7 +1318,8 @@ void do_object_panels(unsigned short event)
 		/* write config files (currently no simulation) */
 		fluidsimBake(ob);
 		break;
-	case B_FLUIDSIM_SELDIR:
+	case B_FLUIDSIM_SELDIR: 
+	{
 		char str[FILE_MAXDIR+FILE_MAXFILE];
 		ScrArea *sa = closest_bigger_area();
 		strcpy(str,"//");
@@ -1325,6 +1327,7 @@ void do_object_panels(unsigned short event)
 		/* choose dir for surface files */
 		areawinset(sa->win);
 		activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
+	}
 		/* continue with redraw... so no brake here! */
 	case B_FLUIDSIM_FORCEREDRAW:
 		/* force redraw */
