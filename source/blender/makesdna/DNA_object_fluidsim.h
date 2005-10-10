@@ -43,7 +43,8 @@ struct Mesh;
 typedef struct FluidsimSettings {
 	/* domain,fluid or obstacle */
 	short type;
-	short dummy1;
+	/* display advanced options in fluid sim tab (on=1,off=0)*/
+	short show_advancedoptions;
 
 	/* domain object settings */
 	/* resolutions */
@@ -54,7 +55,6 @@ typedef struct FluidsimSettings {
 	/* show original meshes, preview or final sim */
 	short guiDisplayMode;
 	short renderDisplayMode;
-	//short dummy2,dummy3;
 
 	/* fluid properties */
 	float viscosityValue;
@@ -78,7 +78,6 @@ typedef struct FluidsimSettings {
 
 	/* store pointer to original mesh (for replacing the current one) */
 	struct Mesh *orgMesh;
-	//void *dummyPtr;
 } FluidsimSettings;
 
 /* ob->fluidsimSettings defines */
@@ -86,6 +85,8 @@ typedef struct FluidsimSettings {
 #define OB_FLUIDSIM_DOMAIN			2
 #define OB_FLUIDSIM_FLUID				4
 #define OB_FLUIDSIM_OBSTACLE		8
+#define OB_FLUIDSIM_INFLOW      16
+#define OB_FLUIDSIM_OUTFLOW     32
 
 #ifdef __cplusplus
 }

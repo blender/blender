@@ -140,7 +140,7 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss= MEM_callocN( sizeof(FluidsimSettings), "fluidsimsettings memory");
 	
 	fss->type = 0;
-	fss->dummy1 = 0;
+	fss->show_advancedoptions = 0;
 
 	fss->resolutionxyz = 50;
 	fss->previewresxyz = 25;
@@ -156,8 +156,8 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->gravz = -9.81;
 	fss->animStart = 0.0; 
 	fss->animEnd = 0.30;
-	fss->gstar = 0.0; // unused FIXME remove? old=0.0005;
-	fss->maxRefine = 0;
+	fss->gstar = 0.005; // used as normgstar
+	fss->maxRefine = -1;
 	// maxRefine is set according to resolutionxyz during bake
 
 	// fluid settings
@@ -228,8 +228,14 @@ void fluidsimBake(struct Object *ob)
 	char debugStrBuffer[256];
 	int dirExist = 0;
 	const int maxRes = 200;
+	int gridlevels = 0;
 
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
+
+	// test section
+	// int nr= pupmenu("Continue?%t|Yes%x1|No%x0");
+	// if(nr==0) return;
+
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
@@ -267,24 +273,29 @@ void fluidsimBake(struct Object *ob)
 	// this should do as an approximation, with in/outflow
 	// doing this more accurate would be overkill
 	// perhaps add manual setting?
-	if(fssDomain->resolutionxyz>128) {
-		fssDomain->maxRefine = 2;
-	} else
-	if(fssDomain->resolutionxyz>64) {
-		fssDomain->maxRefine = 1;
+	if(fssDomain->maxRefine <0) {
+		if(fssDomain->resolutionxyz>128) {
+			gridlevels = 2;
+		} else
+		if(fssDomain->resolutionxyz>64) {
+			gridlevels = 1;
+		} else {
+			gridlevels = 0;
+		}
 	} else {
-		fssDomain->maxRefine = 0;
+		gridlevels = fssDomain->maxRefine;
 	}
-	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , fssDomain->maxRefine ); 
+	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Baking %s, refine: %d\n", fsDomain->id.name , gridlevels ); 
 	elbeemDebugOut(debugStrBuffer);
 	
+
 	// prepare names...
 	strcpy(curWd, G.sce);
 	BLI_splitdirstring(curWd, blendFile);
 	if(strlen(curWd)<1) {
 		BLI_getwdN(curWd);
 	}
-	if((strlen(fsDomain->fluidsimSettings->surfdataPrefix)<1) || (strlen(fsDomain->fluidsimSettings->surfdataDir)<1)){
+	if(strlen(fsDomain->fluidsimSettings->surfdataPrefix)<1) {
 		// make new from current .blend filename , and domain object name
 		strcpy(blendDir, G.sce);
 		BLI_splitdirstring(blendDir, blendFile);
@@ -359,7 +370,7 @@ void fluidsimBake(struct Object *ob)
 		
 		"  timeadap = 1;  \n" 
 		"  p_tadapmaxomega = 2.0; \n" 
-		"  p_normgstar = 0.005; \n"  // FIXME param?
+		"  p_normgstar = %f; \n"  /* 6b use gstar param? */
 		"  p_viscosity = " "%f" /* 7 pViscosity*/ "; #cfgset \n"  "\n" 
 		
 		"  maxrefine = " "%d" /* 8 maxRefine*/ "; #cfgset  \n" 
@@ -380,8 +391,9 @@ void fluidsimBake(struct Object *ob)
 				(double)fssDomain->realsize, 
 				(double)fssDomain->animStart, animFrameTime ,
 				(double)fssDomain->gravx, (double)fssDomain->gravy, (double)fssDomain->gravz,
+				(double)fssDomain->gstar,
 				calcViscosity,
-				(int)fssDomain->maxRefine, (int)fssDomain->resolutionxyz, (int)fssDomain->previewresxyz 
+				gridlevels, (int)fssDomain->resolutionxyz, (int)fssDomain->previewresxyz 
 				);
 	}
 
@@ -570,6 +582,14 @@ void fluidsimBake(struct Object *ob)
 						fprintf(fileCfg, fluidString, "fluid", bobjPath, // do use absolute paths?
 							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
 					}
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
+						fprintf(fileCfg, fluidString, "inflow", bobjPath, // do use absolute paths?
+							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
+					}
+					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
+						fprintf(fileCfg, fluidString, "outflow", bobjPath, // do use absolute paths?
+							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
+					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
 						fprintf(fileCfg, obstacleString, "bnd_no" , bobjPath); // abs path
 					}
@@ -615,7 +635,7 @@ void fluidsimBake(struct Object *ob)
 			int done = 0;
 			unsigned short event=0;
 			short val;
-			float noFramesf = G.scene->r.efra - G.scene->r.sfra;
+			float noFramesf = G.scene->r.efra - G.scene->r.sfra +1;
 			float percentdone = 0.0;
 			int lastRedraw = -1;
 			

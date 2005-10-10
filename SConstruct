@@ -807,6 +807,9 @@ else:
 # End of platform specific section
 #-----------------------------------------------------------------------------
 
+# NT test new: enable elbeem compilation be default
+use_fluidsim = 'true'
+
 #-----------------------------------------------------------------------------
 # User configurable options to be saved in a config file.
 #-----------------------------------------------------------------------------
@@ -849,6 +852,7 @@ else:
 	config.write ("USE_OPENAL = %r\n"%(use_openal))
 	config.write ("USE_FMOD = %r\n"%(use_fmod))
 	config.write ("USE_QUICKTIME = %r\n"%(use_quicktime))
+	config.write ("USE_FLUIDSIM = %r\n"%(use_fluidsim))
 	config.write ("\n# Compiler information.\n")
 	config.write ("HOST_CC = %r\n"%(env_dict['CC']))
 	config.write ("HOST_CXX = %r\n"%(env_dict['CXX']))
@@ -957,6 +961,9 @@ user_options.AddOptions (
 		(BoolOption ('USE_QUICKTIME',
 					'Set to 1 to add support for QuickTime.',
 					'false')),
+		(BoolOption ('USE_FLUIDSIM', # NT test new
+					'Set to 0 to disable compilation of fluid simulation library El\'Beem.',
+					'true')),
 		('HOST_CC', 'C compiler for the host platfor. This is the same as target platform when not cross compiling.'),
 		('HOST_CXX', 'C++ compiler for the host platform. This is the same as target platform when not cross compiling.'),
 		('TARGET_CC', 'C compiler for the target platform.'),
@@ -1058,6 +1065,9 @@ platform_linkflags += user_options_dict['LDFLAGS']
 
 user_options_dict['PLATFORM_LINKFLAGS'] = platform_linkflags
 
+if user_options_dict['USE_FLUIDSIM'] == 0: # NT test new
+	use_fluidsim='false';
+
 #-----------------------------------------------------------------------------
 # Generic library generation environment. This one is the basis for each
 # library.
@@ -1084,6 +1094,7 @@ if bs_globals.enable_clean==0: # only read SConscripts when not cleaning, this t
 	Export ('user_options_dict')
 	Export ('library_env')
 	Export ('sdl_env')
+	Export ('use_fluidsim') # NT test
 	
 	BuildDir (bs_globals.root_build_dir+'/extern', 'extern', duplicate=0)
 	SConscript (bs_globals.root_build_dir+'extern/SConscript')

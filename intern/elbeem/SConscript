@@ -1,44 +1,52 @@
 #!/usr/bin/python
 Import ('library_env')
 Import('user_options_dict');
+Import('use_fluidsim');
 
-# print "Including El'Beem Fluid Simulation..." # debug
 elbeem_env = library_env.Copy();
 elbeem_env.Append(CPPDEFINES= 'NOGUI');
 elbeem_env.Append(CPPDEFINES= [('ELBEEM_BLENDER',1)] );
-  
-elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
-elbeem_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
-elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
+		
+if use_fluidsim=='false':
+	# print "El'Beem Fluid Simulation Disabled..." # debug
+	elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+	# dummy interface build
+	Sources = [ 
+		"intern/utilities.cpp",
+		"intern/blenderdummy.cpp"
+			]; # sources
+else:
+	# print "Including El'Beem Fluid Simulation..." # debug
+	elbeem_env.Append (CPPPATH = user_options_dict['PNG_INCLUDE'])
+	elbeem_env.Append (CPPPATH = user_options_dict['Z_INCLUDE'])
+	elbeem_env.Append (CPPPATH = user_options_dict['SDL_INCLUDE'])
 
+	# main build----------------------------------------
+	Sources = [ 
 
-# main build----------------------------------------
+		"intern/cfgparser.cpp",
+		"intern/cfglexer.cpp",
 
-Sources = [ 
+		"intern/attributes.cpp",
+		"intern/elbeem.cpp",
+		"intern/factory_fsgr.cpp",
+		"intern/isosurface.cpp",
+		"intern/lbminterface.cpp",
+		"intern/ntl_blenderdumper.cpp",
+		"intern/ntl_bsptree.cpp",
+		"intern/ntl_geometrymodel.cpp",
+		"intern/ntl_geometryobject.cpp",
+		"intern/ntl_lightobject.cpp",
+		"intern/ntl_ray.cpp",
+		"intern/ntl_raytracer.cpp",
+		"intern/ntl_scene.cpp",
+		"intern/parametrizer.cpp",
+		"intern/particletracer.cpp",
+		"intern/simulation_object.cpp",
+		"intern/utilities.cpp",
+		"intern/blendercall.cpp"
 
-	"intern/cfgparser.cpp",
-	"intern/cfglexer.cpp",
-
-	"intern/attributes.cpp",
-	"intern/elbeem.cpp",
-	"intern/factory_fsgr.cpp",
-	"intern/isosurface.cpp",
-	"intern/lbminterface.cpp",
-	"intern/ntl_blenderdumper.cpp",
-	"intern/ntl_bsptree.cpp",
-	"intern/ntl_geometrymodel.cpp",
-	"intern/ntl_geometryobject.cpp",
-	"intern/ntl_lightobject.cpp",
-	"intern/ntl_ray.cpp",
-	"intern/ntl_raytracer.cpp",
-	"intern/ntl_scene.cpp",
-	"intern/parametrizer.cpp",
-	"intern/particletracer.cpp",
-	"intern/simulation_object.cpp",
-	"intern/utilities.cpp",
-	"intern/blendercall.cpp"
-
-		]; # sources
+			]; # sources
 
 elbeem_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_elbeem', source=Sources)
 

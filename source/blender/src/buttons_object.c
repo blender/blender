@@ -1231,12 +1231,9 @@ void fluidsimFilesel(char *selection)
 	}
 
 	// TODO check srcDir for file path from sce?
-	
-	
-		strcpy(ob->fluidsimSettings->surfdataDir, srcDir);
-		strcpy(ob->fluidsimSettings->surfdataPrefix, prefix);
-		//fprintf(stderr,"fluidsimFilesel: Using surfdata path '%s', prefix '%s' \n", ob->fluidsimSettings->surfdataDir,ob->fluidsimSettings->surfdataPrefix); // DEBUG
-	
+	strcpy(ob->fluidsimSettings->surfdataDir, srcDir);
+	strcpy(ob->fluidsimSettings->surfdataPrefix, prefix);
+	//fprintf(stderr,"fluidsimFilesel: Using surfdata path '%s', prefix '%s' \n", ob->fluidsimSettings->surfdataDir,ob->fluidsimSettings->surfdataPrefix); // DEBUG
 }
 
 void do_object_panels(unsigned short event)
@@ -1333,6 +1330,8 @@ void do_object_panels(unsigned short event)
 			/* chosse dir for surface files */
 			areawinset(sa->win);
 			activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
 		
@@ -1875,6 +1874,7 @@ static void object_panel_fluidsim(Object *ob)
 	uiBlock *block;
 	int yline = 160;
 	const int lineHeight = 20;
+	const int separateHeight = 3;
 	const int objHeight = 20;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
@@ -1887,76 +1887,118 @@ static void object_panel_fluidsim(Object *ob)
 		FluidsimSettings *fss= ob->fluidsimSettings;
 		
 		if(fss==NULL) {
-			fss = ob->fluidsimSettings = fluidsimSettingsNew(ob); // sbNew();
+			fss = ob->fluidsimSettings = fluidsimSettingsNew(ob);
 		}
 
 		if(ob->type==OB_MESH) {
 
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,   0.0, 0.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,    0.0, 0.0, "Object represents a volume of fluid in the simulation.");
-			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE, 0.0, 0.0, "Object is a fixed obstacle.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Domain",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_DOMAIN,  20.0, 1.0, "Bounding box of this object represents the computational domain of the fluid simulation.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Fluid",	   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_FLUID,   20.0, 2.0, "Object represents a volume of fluid in the simulation.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Obstacle",	 230, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OBSTACLE,20.0, 3.0, "Object is a fixed obstacle.");
 			yline -= lineHeight;
-			yline -= 5;
+
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Inflow",	    90, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_INFLOW,  20.0, 4.0, "Object adds fluid to the simulation.");
+			uiDefButS(block, ROW, REDRAWBUTSOBJECT ,"Outflow",   160, yline, 70,objHeight, &fss->type, 15.0, OB_FLUIDSIM_OUTFLOW, 20.0, 5.0, "Object removes fluid from the simulation.");
+			uiBlockEndAlign(block);
+			yline -= lineHeight;
+			yline -= 2*separateHeight;
 
 			/* display specific settings for each type */
 			if(fss->type == OB_FLUIDSIM_DOMAIN) {
 				const int maxRes = 200;
 
-				uiDefButS(block, NUM, B_DIFF, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
-				uiDefButS(block, NUM, B_DIFF, "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+			/* domain "advanced" settings */
+			if(fss->type == OB_FLUIDSIM_DOMAIN) { }
+				uiDefButBitS(block, TOG, 1, REDRAWBUTSOBJECT, "Advanced>>",	 0,yline, 75,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options.");
+				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
 				yline -= lineHeight;
-				uiDefButF(block, NUM, B_DIFF, "Real-size:",   0, yline,150,objHeight, &fss->realsize, 0.0, 1.0, 10, 0, "Size of the simulation domain in meters.");
-				yline -= lineHeight;
+				yline -= 2*separateHeight;
 
-				uiDefButF(block, NUM, B_DIFF, "GravX:",   0, yline, 100,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction");
-				uiDefButF(block, NUM, B_DIFF, "GravY:", 100, yline, 100,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
-				uiDefButF(block, NUM, B_DIFF, "GravZ:", 200, yline, 100,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
-				yline -= lineHeight;
-				uiDefButF(block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame.");
-				uiDefButF(block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame.");
-				yline -= lineHeight;
+				if(fss->show_advancedoptions == 0) {
+					uiDefButS(block, NUM, B_DIFF, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
+					uiDefButS(block, NUM, B_DIFF, "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+					yline -= lineHeight;
+					yline -= 1*separateHeight;
 
-				/* "advanced" settings */
-				yline -= 5;
+					uiDefButF(block, NUM, B_DIFF, "Start time:",   0, yline,150,objHeight, &fss->animStart, 0.0, 100.0, 10, 0, "Simulation time of the first blender frame.");
+					uiDefButF(block, NUM, B_DIFF, "End time:",   150, yline,150,objHeight, &fss->animEnd  , 0.0, 100.0, 10, 0, "Simulation time of the last blender frame.");
+					yline -= lineHeight;
+					yline -= 2*separateHeight;
 
-				/* could also be char? */
-				uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
-						0,yline,100,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
-				if(fss->viscosityMode==1) {
-					uiDefButF(block, NUM, B_DIFF, "Value:", 100, yline, 100,objHeight, &fss->viscosityValue,       0.0, 1.0, 10, 0, "Viscosity setting, value that is multiplied by 10 to the power of (exponent*-1).");
-					uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 200, yline, 100,objHeight, &fss->viscosityExponent, 0, 10, 10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
+					uiDefBut(block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButS(block, MENU, REDRAWVIEW3D, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
+					uiDefButS(block, MENU, REDRAWVIEW3D, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
+							195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
+					yline -= lineHeight;
+					yline -= 1*separateHeight;
+
+					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,	   0, yline, 20, objHeight,      0, 0, 0, 0, 0,   "Select Directory (and/or filenames) to store baked fluid simulation files in");
+					uiDefBut(block, TEX,   0,"",	20, yline, 200, objHeight,fss->surfdataDir, 0.0,79.0, 0, 0, "Enter Directory (and/or filenames) to store baked fluid simulation files in");
+					uiDefBut(block, TEX,   0,"", 220, yline,  80, objHeight,fss->surfdataPrefix, 0.0,79.0, 0, 0, "Enter Filename-Prefix to store baked fluid simulation files with");
+					// FIXME what is the 79.0 above?
 				} else {
-					// display preset values
-					uiDefBut(block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode], 100,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+					// advanced options
+					uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, 0, "Gravity:",		0, yline,  90,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButF(block, NUM, B_DIFF, "X:",    90, yline,  70,objHeight, &fss->gravx, -1000.1, 1000.1, 10, 0, "Gravity in X direction");
+					uiDefButF(block, NUM, B_DIFF, "Y:",   160, yline,  70,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
+					uiDefButF(block, NUM, B_DIFF, "Z:",   230, yline,  70,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
+					uiBlockEndAlign(block);
+					//yline -= lineHeight; yline -= separateHeight;
+					yline -= lineHeight;
+					yline -= 1*separateHeight;
+
+					/* viscosity */
+					uiBlockBeginAlign(block);
+					uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
+							0,yline, 90,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
+					if(fss->viscosityMode==1) {
+						uiDefButF(block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 1.0, 10, 0, "Viscosity setting, value that is multiplied by 10 to the power of (exponent*-1).");
+						uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 195, yline, 105,objHeight, &fss->viscosityExponent, 0,   10,  10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
+					} else {
+						// display preset values
+						uiDefBut(block, LABEL,   0, fluidsimViscosityPresetString[fss->viscosityMode],  90,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+					}
+					uiBlockEndAlign(block);
+					yline -= lineHeight;
+					yline -= 1*separateHeight;
+
+					uiDefBut(block, LABEL, 0, "Realworld-size:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->realsize, 0.001, 1.0, 10, 0, "Size of the simulation domain in meters.");
+					yline -= lineHeight;
+					yline -= 2*separateHeight;
+
+					uiDefBut(block, LABEL, 0, "Gridlevels:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButI(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->maxRefine, -1, 4, 10, 0, "Number of coarsened Grids to use (set to -1 for automatic selection).");
+					yline -= lineHeight;
+
+					uiDefBut(block, LABEL, 0, "Compressibility:",		0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefButF(block, NUM, B_DIFF, "", 150, yline,150,objHeight, &fss->gstar, 0.001, 0.10, 10,0, "Allowed compressibility due to gravitational force for standing fluid (directly affects simulation step size).");
+					yline -= lineHeight;
+
 				}
-				yline -= lineHeight;
-
-				uiDefBut(block, LABEL,   0, "Gui:",		 0,yline,50,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButS(block, MENU, REDRAWVIEW3D, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
-						 50,yline,100,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
-				uiDefBut(block, LABEL,   0, "Rend:", 150,yline,50,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButS(block, MENU, REDRAWVIEW3D, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
-						200,yline,100,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
-				yline -= lineHeight;
-
-				uiDefBut(block, BUT, B_FLUIDSIM_SELDIR, "Select Output Directory",	0, yline,100,objHeight, NULL, 0.0, 0.0, 10, 0, "Select Directory (and/or filenames) to store baked fluid simulation files in");
-				uiDefBut(block, LABEL, 0, fss->surfdataDir,    100,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefBut(block, LABEL, 0, fss->surfdataPrefix, 200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
-				yline -= lineHeight;
-
-				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",	0, yline,300,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
 			}
-			else if(fss->type == OB_FLUIDSIM_FLUID) {
+			else if(
+					(fss->type == OB_FLUIDSIM_FLUID) 
+					|| (fss->type == OB_FLUIDSIM_INFLOW) 
+					) {
 				yline -= lineHeight + 5;
-				uiDefBut(block, LABEL, 0, "Initial velocity:",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
+				if(fss->type == OB_FLUIDSIM_FLUID)  uiDefBut(block, LABEL, 0, "Initial velocity:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
+				if(fss->type == OB_FLUIDSIM_INFLOW) uiDefBut(block, LABEL, 0, "Inflow velocity:",		  0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
 				yline -= lineHeight;
-				uiDefButF(block, NUM, B_DIFF, "X:",   0, yline, 100,objHeight, &fss->iniVelx, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in X direction");
-				uiDefButF(block, NUM, B_DIFF, "Y:", 100, yline, 100,objHeight, &fss->iniVely, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in Y direction");
-				uiDefButF(block, NUM, B_DIFF, "Z:", 200, yline, 100,objHeight, &fss->iniVelz, -1000.1, 1000.1, 10, 0, "Initial fluid velocity in Z direction");
+				uiBlockBeginAlign(block);
+				uiDefButF(block, NUM, B_DIFF, "X:",   0, yline, 100,objHeight, &fss->iniVelx, -1000.1, 1000.1, 10, 0, "Fluid velocity in X direction");
+				uiDefButF(block, NUM, B_DIFF, "Y:", 100, yline, 100,objHeight, &fss->iniVely, -1000.1, 1000.1, 10, 0, "Fluid velocity in Y direction");
+				uiDefButF(block, NUM, B_DIFF, "Z:", 200, yline, 100,objHeight, &fss->iniVelz, -1000.1, 1000.1, 10, 0, "Fluid velocity in Z direction");
+				uiBlockEndAlign(block);
 				yline -= lineHeight;
 			}
-			else if(fss->type == OB_FLUIDSIM_OBSTACLE) {
+			else if(
+					(fss->type == OB_FLUIDSIM_OBSTACLE) 
+					|| (fss->type == OB_FLUIDSIM_OUTFLOW) 
+				)	{
 				yline -= lineHeight + 5;
 				uiDefBut(block, LABEL, 0, "No additional settings as of now...",		0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 				yline -= lineHeight;
@@ -1978,7 +2020,6 @@ static void object_panel_fluidsim(Object *ob)
 		uiDefBut(block, LABEL, 0, "Object not enabled for fluid simulation...", 0,yline,300,objHeight, NULL, 0.0, 0, 0, 0, "");
 		yline -= lineHeight;
 	}
-	uiBlockEndAlign(block);
 }
 
 void object_panels()
