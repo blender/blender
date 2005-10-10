@@ -256,6 +256,12 @@
 				RelativePath="..\..\..\source\blender\src\editipo.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\editipo_lib.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\editipo_mods.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\editkey.c">
 			</File>
 			<File
