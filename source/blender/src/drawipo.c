@@ -92,14 +92,15 @@
 #define ISPOIN4(a, b, c, d, e)        ( (a->b) && (a->c) && (a->d) && (a->e) )   
 
 #define IPOBUTX	65
-#define IPOSTEP 35			/* minimum pixels per gridstep */
+		/* minimum pixels per gridstep */
+#define IPOSTEP 35
 
 static float ipogrid_dx, ipogrid_dy, ipogrid_startx, ipogrid_starty;
 static int ipomachtx, ipomachty;
 
-static int vertymin, vertymax, horxmin, horxmax;	/* globals om LEFTMOUSE op scrollbar te testen */
+static int vertymin, vertymax, horxmin, horxmax;	/* globals to test LEFTMOUSE for scrollbar */
 
-extern short ACTWIDTH;
+extern short ACTWIDTH;		/* this is ugly! */
 
 static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 {
@@ -313,7 +314,7 @@ void draw_ipogrid(void)
 			glRectf(0.0,  0.0,  100.0,  1.0); 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-		else if(ELEM(G.sipo->blocktype, ID_CU, IPO_CO)) {
+		else if(ELEM(G.sipo->blocktype, ID_CU, ID_CO)) {
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
 			glRectf(0.0,  1.0,  G.v2d->cur.xmax,  1.0); 
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -594,12 +595,16 @@ void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 	v2d->mask.ymax= winy;
 	
 	if(sa->spacetype==SPACE_ACTION) {
-		v2d->mask.xmin+= ACTWIDTH;
-		v2d->hor.xmin+=ACTWIDTH;
+		if(sa->winx > ACTWIDTH+50) { 
+			v2d->mask.xmin+= ACTWIDTH;
+			v2d->hor.xmin+=ACTWIDTH;
+		}
 	}
 	else if(sa->spacetype==SPACE_NLA){
-		v2d->mask.xmin+= NLAWIDTH;
-		v2d->hor.xmin+=NLAWIDTH;
+		if(sa->winx > NLAWIDTH+50) { 
+			v2d->mask.xmin+= NLAWIDTH;
+			v2d->hor.xmin+=NLAWIDTH;
+		}
 	}
 	else if(sa->spacetype==SPACE_IPO) {
 		v2d->mask.xmax-= IPOBUTX;
@@ -1688,7 +1693,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, NULL);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
 				ei->flag |= IPO_SELECT;
 				ei->icu->flag= ei->flag;
 			}
@@ -2040,6 +2045,8 @@ int view2dzoom(unsigned short event)
 	areawinset(curarea->win);	/* from buttons */
 	curarea->head_swap= 0;
 	getmouseco_areawin(mvalo);
+	mval[0]= mvalo[0];
+	mval[1]= mvalo[1];
 	
 	while( (get_mbut()&(L_MOUSE|M_MOUSE)) || (event==WHEELUPMOUSE) || (event==WHEELDOWNMOUSE) ) {
 	
@@ -2130,11 +2137,23 @@ int view2dzoom(unsigned short event)
 				mvalo[1]= mval[1];
 			}
 			
-			G.v2d->cur.xmin+= dx;
-			G.v2d->cur.xmax-= dx;
-			
-			if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME);
+			if( ELEM(curarea->spacetype, SPACE_NLA, SPACE_ACTION) ) {
+				if(mvalo[0] < G.v2d->mask.xmin) {
+					G.v2d->cur.ymin+= dy;
+					G.v2d->cur.ymax-= dy;
+				}
+				else {
+					G.v2d->cur.xmin+= dx;
+					G.v2d->cur.xmax-= dx;
+				}
+			}
+			else if (ELEM3(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME)) {
+				G.v2d->cur.xmin+= dx;
+				G.v2d->cur.xmax-= dx;
+			}
 			else {
+				G.v2d->cur.xmin+= dx;
+				G.v2d->cur.xmax-= dx;
 				G.v2d->cur.ymin+= dy;
 				G.v2d->cur.ymax-= dy;
 			}
@@ -2214,8 +2233,18 @@ int view2dmove(unsigned short event)
 	
 	if ELEM7(curarea->spacetype, SPACE_IPO, SPACE_SEQ, SPACE_OOPS, SPACE_SOUND, SPACE_ACTION, SPACE_NLA, SPACE_TIME) 
 		{
+
 			if( BLI_in_rcti(&G.v2d->mask, (int)mvalo[0], (int)mvalo[1]) ) {
 				facx= (G.v2d->cur.xmax-G.v2d->cur.xmin)/(float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
+				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+			}
+			/* stoopid exception to allow scroll in lefthand side */
+			else if(curarea->spacetype==SPACE_ACTION && BLI_in_rcti(&G.v2d->mask, ACTWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
+				facx= 0.0f;
+				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+			}
+			else if(curarea->spacetype==SPACE_NLA && BLI_in_rcti(&G.v2d->mask, NLAWIDTH+(int)mvalo[0], (int)mvalo[1]) ) {
+				facx= 0.0f;
 				facy= (G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
 			}
 			else if(IN_2D_VERT_SCROLL((int)mvalo)) {

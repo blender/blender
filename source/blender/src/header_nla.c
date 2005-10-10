@@ -207,11 +207,11 @@ static void do_nla_strip_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* grab/move */
-		transform_nlachannel_keys ('g');
+		transform_nlachannel_keys ('g', 0);
 			update_for_newframe_muted();
 		break;
 	case 1: /* scale */
-		transform_nlachannel_keys ('s');
+		transform_nlachannel_keys ('s', 0);
 			update_for_newframe_muted();
 		break;
 	}

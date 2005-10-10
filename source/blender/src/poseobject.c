@@ -70,6 +70,7 @@
 #include "BDR_editobject.h"
 
 #include "BSE_edit.h"
+#include "BSE_editipo.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -493,7 +494,6 @@ void paste_posebuf (int flip)
 	Object *ob= OBACT;
 	bPoseChannel *chan, *pchan;
 	float eul[4];
-	int newchan = 0;
 	char name[32];
 	
 	if (!ob || !ob->pose)
@@ -533,22 +533,23 @@ void paste_posebuf (int flip)
 				}
 
 				if (G.flags & G_RECORDKEYS){
+					ID *id= &ob->id;
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
-						set_action_key(ob->action, pchan, AC_QUAT_X, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_Y, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_Z, newchan);
-						set_action_key(ob->action, pchan, AC_QUAT_W, newchan);
+						insertkey(id, ID_AC, chan->name, NULL, AC_QUAT_X);
+						insertkey(id, ID_AC, chan->name, NULL, AC_QUAT_Y);
+						insertkey(id, ID_AC, chan->name, NULL, AC_QUAT_Z);
+						insertkey(id, ID_AC, chan->name, NULL, AC_QUAT_W);
 					}
 					if (chan->flag & POSE_SIZE){
-						set_action_key(ob->action, pchan, AC_SIZE_X, newchan);
-						set_action_key(ob->action, pchan, AC_SIZE_Y, newchan);
-						set_action_key(ob->action, pchan, AC_SIZE_Z, newchan);
+						insertkey(id, ID_AC, chan->name, NULL, AC_SIZE_X);
+						insertkey(id, ID_AC, chan->name, NULL, AC_SIZE_Y);
+						insertkey(id, ID_AC, chan->name, NULL, AC_SIZE_Z);
 					}
 					if (chan->flag & POSE_LOC){
-						set_action_key(ob->action, pchan, AC_LOC_X, newchan);
-						set_action_key(ob->action, pchan, AC_LOC_Y, newchan);
-						set_action_key(ob->action, pchan, AC_LOC_Z, newchan);
+						insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_X);
+						insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Y);
+						insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Z);
 					}
 				}
 			}

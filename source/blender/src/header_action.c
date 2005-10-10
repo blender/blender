@@ -395,7 +395,7 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 				transform_meshchannel_keys('g', key);
 			} 
 			else if (act) {	
-				transform_actionchannel_keys ('g');
+				transform_actionchannel_keys ('g', 0);
 			}
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
@@ -403,7 +403,7 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 				transform_meshchannel_keys('s', key);
 			} 
 			else if (act) {
-				transform_actionchannel_keys ('s');
+				transform_actionchannel_keys ('s', 0);
 			}
 			break;
 	}
@@ -743,30 +743,24 @@ void action_buttons(void)
 
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
-	// object action is allowed to be zero!
-	/* (ton) commented out below line, since people can apparently link Action to any object (mesh) and
-		not unlink anymore when theres a mesh key. Needs to be rethought this stuff! */
-	//if (!get_action_mesh_key()) {
+	/* NAME ETC */
+	ob=OBACT;
+	from = (ID*) ob;
+
+	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
+						B_ACTIONBROWSE, (ID*)G.saction->action, 
+						from, &(G.saction->actnr), B_ACTALONE, 
+						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
+
+	/* Draw action baker */
+	xco+= 8;
 	
-		/* NAME ETC */
-		ob=OBACT;
-		from = (ID*) ob;
+	uiDefBut(block, BUT, B_ACTBAKE, 
+			 "Bake", xco, 0, 64, YIC, 0, 0, 0, 0, 0, 
+			 "Create an action with the constraint effects "
+			 "converted into Ipo keys");
+	xco+=64;
 
-		xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
-							B_ACTIONBROWSE, (ID*)G.saction->action, 
-							from, &(G.saction->actnr), B_ACTALONE, 
-							B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
-
-		/* Draw action baker */
-		xco+= 8;
-		
-		uiDefBut(block, BUT, B_ACTBAKE, 
-				 "Bake", xco, 0, 64, YIC, 0, 0, 0, 0, 0, 
-				 "Create an action with the constraint effects "
-				 "converted into Ipo keys");
-		xco+=64;
-
-	//}
 	uiClearButLock();
 
 	/* draw LOCK */

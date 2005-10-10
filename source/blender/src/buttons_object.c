@@ -59,7 +59,7 @@
 #include "BSE_headerbuttons.h"
 
 #include "BIF_butspace.h"
-#include "BDR_editcurve.h"
+#include "BIF_editaction.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_graphics.h"
@@ -74,6 +74,7 @@
 #include "BIF_toolbox.h"
 
 #include "BDR_drawobject.h"
+#include "BDR_editcurve.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -131,7 +132,10 @@
 #include "LBM_fluidsim.h"
 
 #include "BIF_editconstraint.h"
+
 #include "BSE_editipo.h"
+#include "BSE_edit.h"
+
 #include "BDR_editobject.h"
 
 #include "butspace.h" // own module
@@ -162,8 +166,8 @@ static void constraint_active_func(void *ob_v, void *con_v)
 	}
 
 	/* make sure ipowin and buttons shows it */
-	if(ob->ipowin==IPO_CO) {
-		allqueue(REDRAWIPO, IPO_CO);
+	if(ob->ipowin==ID_CO) {
+		allqueue(REDRAWIPO, ID_CO);
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWNLA, 0);
 	}
@@ -185,38 +189,44 @@ static void add_constraint_to_active(Object *ob, bConstraint *con)
 	}
 }
 
+/* returns base ID for Ipo, sets actname to channel if appropriate */
+/* should not make action... */
+static void get_constraint_ipo_context(Object *ob, char *actname)
+{
+	
+	/* todo; check object if it has ob-level action ipo */
+	
+	if (ob->flag & OB_POSEMODE) {
+		bPoseChannel *pchan;
+		
+		pchan = get_active_posechannel(ob);
+		if (pchan) {
+			BLI_strncpy(actname, pchan->name, 32);
+		}
+	}
+	else if(ob->ipoflag & OB_ACTION_OB)
+		strcpy(actname, "Object");
+}	
+
+/* initialize UI to show Ipo window and make sure channels etc exist */
 static void enable_constraint_ipo_func (void *ob_v, void *con_v)
 {
 	Object *ob= ob_v;
 	bConstraint *con = con_v;
-	bConstraintChannel *chan;
-	ListBase *conbase;
-
+	char actname[32]="";
+	
+	/* verifies if active constraint is set and shown in UI */
 	constraint_active_func(ob_v, con_v);
-		
-	conbase = get_active_constraint_channels(ob, 1);	// 1 == create
-
-	if (!conbase)
-		return;
-
-	/* See if this list already has an appropriate channel */
-	chan = find_constraint_channel(conbase, con->name);
-
-	if (!chan){
-		/* Add a new constraint channel */
-		chan = MEM_callocN(sizeof(bConstraintChannel), "constraintChannel");
-		strcpy(chan->name, con->name);
-		BLI_addtail(conbase, chan);
-	}
-
-	/* Ensure there is an ipo to display */
-	if (!chan->ipo){
-		chan->ipo = add_ipo(con->name, IPO_CO);
-	}
-
+	
+	/* the context */
+	get_constraint_ipo_context(ob, actname);
+	
+	/* adds ipo & channels & curve if needed */
+	verify_ipo((ID *)ob, ID_CO, actname, con->name);
+	
 	/* make sure ipowin shows it */
-	ob->ipowin= IPO_CO;
-	allqueue(REDRAWIPO, IPO_CO);
+	ob->ipowin= ID_CO;
+	allqueue(REDRAWIPO, ID_CO);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWNLA, 0);
 }
@@ -226,38 +236,23 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 {
 	Object *ob= ob_v;
 	bConstraint *con = con_v;
-	bConstraintChannel *chan;
-	ListBase *conbase;
 	IpoCurve *icu;
+	char actname[32]="";
 	
+	/* verifies if active constraint is set and shown in UI */
 	constraint_active_func(ob_v, con_v);
-	conbase = get_active_constraint_channels(ob, 1);	// 1=make
 	
-	if (!conbase)
-		return;
-	
-	/* See if this list already has an appropriate channel */
-	chan = find_constraint_channel(conbase, con->name);
-	
-	if (!chan){
-		/* Add a new constraint channel */
-		chan = MEM_callocN(sizeof(bConstraintChannel), "constraintChannel");
-		strcpy(chan->name, con->name);
-		BLI_addtail(conbase, chan);
-	}
-	
-	/* Ensure there is an ipo to display */
-	if (!chan->ipo){
-		chan->ipo = add_ipo(con->name, IPO_CO);
-	}
-	
-	/* now insert an ipo key */
-	icu= get_ipocurve(NULL, IPO_CO, CO_ENFORCE, chan->ipo);
+	/* the context */
+	get_constraint_ipo_context(ob, actname);
+
+	/* adds ipo & channels & curve if needed */
+	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
+
 	insert_vert_ipo(icu, CFRA, con->enforce);
 	
 	/* make sure ipowin shows it */
-	ob->ipowin= IPO_CO;
-	allqueue(REDRAWIPO, IPO_CO);
+	ob->ipowin= ID_CO;
+	allqueue(REDRAWIPO, ID_CO);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWNLA, 0);
 	
@@ -274,7 +269,7 @@ static void del_constraint_func (void *ob_v, void *con_v)
 	/* remove ipo channel */
 	lb= get_active_constraint_channels(ob_v, 0);
 	if(lb) {
-		chan = find_constraint_channel(lb, con->name);
+		chan = get_constraint_channel(lb, con->name);
 		if(chan) {
 			if(chan->ipo) chan->ipo->id.us--;
 			BLI_freelinkN(lb, chan);
@@ -1322,23 +1317,21 @@ void do_object_panels(unsigned short event)
 		/* write config files (currently no simulation) */
 		fluidsimBake(ob);
 		break;
-	case B_FLUIDSIM_SELDIR: {
-			char str[FILE_MAXDIR+FILE_MAXFILE];
-			ScrArea *sa = closest_bigger_area();
-			strcpy(str,"//");
-			ob= OBACT;
-			/* chosse dir for surface files */
-			areawinset(sa->win);
-			activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
-			// continue with redraw... so no brake here!
-		}
-	case B_FLUIDSIM_FORCEREDRAW: {
-			// force redraw
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWVIEW3D, 0);
-			countall();
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		}
+	case B_FLUIDSIM_SELDIR:
+		char str[FILE_MAXDIR+FILE_MAXFILE];
+		ScrArea *sa = closest_bigger_area();
+		strcpy(str,"//");
+		ob= OBACT;
+		/* choose dir for surface files */
+		areawinset(sa->win);
+		activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
+		/* continue with redraw... so no brake here! */
+	case B_FLUIDSIM_FORCEREDRAW:
+		/* force redraw */
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		countall();
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 		
 	default:
@@ -1371,35 +1364,35 @@ static void object_panel_anim(Object *ob)
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 0, 0, 318, 204)==0) return;
 	
 	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW,B_TRACKBUTS,"TrackX",	24,190,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,B_TRACKBUTS,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,B_TRACKBUTS,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,B_TRACKBUTS,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,B_TRACKBUTS,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
-	uiDefButC(block, ROW,B_TRACKBUTS,"-Z",		178,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,190,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"Y",		85,190,19,19, &ob->trackflag, 12.0, 1.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"Z",		104,190,19,19, &ob->trackflag, 12.0, 2.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-X",		124,190,24,19, &ob->trackflag, 12.0, 3.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-Y",		150,190,24,19, &ob->trackflag, 12.0, 4.0, 0, 0, "Specify the axis that points to another object");
+	uiDefButS(block, ROW,B_TRACKBUTS,"-Z",		178,190,24,19, &ob->trackflag, 12.0, 5.0, 0, 0, "Specify the axis that points to another object");
 	uiBlockBeginAlign(block);
-	uiDefButC(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
-	uiDefButC(block, ROW,REDRAWVIEW3D,"Z",		298,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"UpX",	226,190,45,19, &ob->upflag, 13.0, 0.0, 0, 0, "Specify the axis that points up");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"Y",		274,190,20,19, &ob->upflag, 13.0, 1.0, 0, 0, "Specify the axis that points up");
+	uiDefButS(block, ROW,REDRAWVIEW3D,"Z",		298,190,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,160,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
-	uiDefButBitC(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
-	uiDefButBitC(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
+	uiDefButBitS(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,160,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
+	uiDefButBitS(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,160,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
+	uiDefButBitS(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,160,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
 	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,160,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,128,89,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
-	uiDefButBitC(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
-	uiDefButBitC(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
-	uiDefButBitC(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
+	uiDefButBitS(block, TOG, OB_DUPLIFRAMES, REDRAWVIEW3D, "DupliFrames",	24,128,89,19, &ob->transflag, 0, 0, 0, 0, "Make copy of object for every frame");
+	uiDefButBitS(block, TOG, OB_DUPLIVERTS, REDRAWVIEW3D, "DupliVerts",		114,128,82,19, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
+	uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",		200,128,31,19, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to facenormal");
+	uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",	234,128,82,19, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupSta:",		24,105,141,19, &ob->dupsta, 1.0, (MAXFRAMEF - 1.0f), 0, 0, "Specify startframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOn:",		170,105,146,19, &ob->dupon, 1.0, 1500.0, 0, 0, "");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupEnd",		24,82,140,19, &ob->dupend, 1.0, MAXFRAMEF, 0, 0, "Specify endframe for Dupliframes");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "DupOff",		171,82,145,19, &ob->dupoff, 0.0, 1500.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitC(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
-	uiDefButBitC(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
-	uiDefButBitC(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
+	uiDefButBitS(block, TOG, OB_OFFS_OB, REDRAWALL, "Offs Ob",			24,51,56,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on its own objectipo");
+	uiDefButBitS(block, TOG, OB_OFFS_PARENT, REDRAWALL, "Offs Par",			82,51,56,20 , &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the parent");
+	uiDefButBitS(block, TOG, OB_OFFS_PARTICLE, REDRAWALL, "Offs Particle",		140,51,103,20, &ob->ipoflag, 0, 0, 0, 0, "Let the timeoffset work on the particle effect");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWALL, "TimeOffset:",			24,17,115,30, &ob->sf, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify an offset in frames");

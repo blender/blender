@@ -812,7 +812,11 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->bone_solid; break;
 			case TH_BONE_POSE:
 				cp= ts->bone_pose; break;
-
+			case TH_STRIP:
+				cp= ts->strip; break;
+			case TH_STRIP_SELECT:
+				cp= ts->strip_select; break;
+				
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
 			case TH_SYNTAX_V:
@@ -962,6 +966,8 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tnla.shade1,  172, 172, 172, 255);		// sliders
 	SETCOL(btheme->tnla.shade2,  84, 44, 31, 100);	// bar
 	SETCOL(btheme->tnla.hilite,  17, 27, 60, 100);	// bar
+	SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
+	SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
 	
 	/* space seq */
 	btheme->tseq= btheme->tv3d;
@@ -1088,6 +1094,8 @@ char *BIF_ThemeColorsPup(int spacetype)
 			sprintf(str, "View Sliders %%x%d|", TH_SHADE1); strcat(cp, str);
 			sprintf(str, "Bars %%x%d|", TH_SHADE2); strcat(cp, str);
 			sprintf(str, "Bars selected %%x%d|", TH_HILITE); strcat(cp, str);
+			sprintf(str, "Strips %%x%d|", TH_STRIP); strcat(cp, str);
+			sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT); strcat(cp, str);
 		}
 		else if(spacetype==SPACE_ACTION) {
 			//sprintf(str, "Panel %%x%d|", TH_PANEL); strcat(cp, str);

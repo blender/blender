@@ -43,33 +43,46 @@
 #include <config.h>
 #endif
 
-#include "DNA_ID.h"
+#include "DNA_action_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_material_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_ID.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_lamp_types.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_texture_types.h"
 #include "DNA_space_types.h"
+#include "DNA_sequence_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_world_types.h"
 
-#include "BIF_interface.h"
-#include "BIF_mainqueue.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-
+#include "BKE_action.h"
+#include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+
 #include "BLI_blenlib.h"
+
 #include "BSE_drawipo.h"
 #include "BSE_editipo_types.h"
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_headerbuttons.h"
+
+#include "BIF_editaction.h"
+#include "BIF_interface.h"
+#include "BIF_mainqueue.h"
+#include "BIF_resources.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
 
 #include "nla.h"
 
@@ -78,6 +91,154 @@
 
 static int viewmovetemp = 0;
 extern int totipo_edit, totipo_sel;
+
+/* headerbutton call, assuming full context is set */
+/* it aligns with editipo.c, verify_ipo */
+void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
+{
+	if(si->from==NULL || si->from->lib) return;
+	
+	if(ipo) ipo->id.us++;
+
+	/* first check action ipos */
+	if(si->actname && si->actname[0]) {
+		Object *ob= (Object *)si->from;
+		bActionChannel *achan;
+		
+		if(ob->action) {
+			achan= get_action_channel(ob->action, si->actname);
+		
+			if(achan) {
+				/* constraint exception */
+				if(si->blocktype==ID_CO) {
+					bConstraintChannel *conchan= get_constraint_channel(&achan->constraintChannels, si->constname);
+					if(conchan) {
+						if(conchan->ipo)
+							conchan->ipo->id.us--;
+						conchan->ipo= ipo;
+					}
+				}
+				else {
+					if(achan->ipo)
+						achan->ipo->id.us--;
+					achan->ipo= ipo;
+				}
+			}
+		}
+	}
+	else {
+		switch(GS(si->from->name)) {
+			case ID_OB:
+			{
+				Object *ob= (Object *)si->from;
+				/* constraint exception */
+				if(si->blocktype==ID_CO) {
+					bConstraintChannel *conchan= get_constraint_channel(&ob->constraintChannels, si->constname);
+					if(conchan) {
+						if(conchan->ipo)
+							conchan->ipo->id.us--;
+						conchan->ipo= ipo;
+					}
+				}
+				else if(si->blocktype==ID_OB) {
+					if(ob->ipo)
+						ob->ipo->id.us--;
+					ob->ipo= ipo;
+				}
+			}
+				break;
+			case ID_MA:
+			{
+				Material *ma= (Material *)si->from;
+				
+				if(ma->ipo)
+					ma->ipo->id.us--;
+				ma->ipo= ipo;
+			}
+				break;
+			case ID_TE:
+			{
+				Tex *tex= (Tex *)si->from;
+				
+				if(tex->ipo)
+					tex->ipo->id.us--;
+				tex->ipo= ipo;
+			}
+				break;
+			case ID_SEQ:
+			{
+				Sequence *seq= (Sequence *)si->from;	/* note, sequence is mimicing Id */
+				
+				if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
+					if(seq->ipo)
+						seq->ipo->id.us--;
+					seq->ipo= ipo;
+				}
+			}
+				break;
+			case ID_CU:
+			{
+				Curve *cu= (Curve *)si->from;
+				
+				if(cu->ipo)
+					cu->ipo->id.us--;
+				cu->ipo= ipo;
+			}
+				break;
+			case ID_KE:
+			{
+				Key *key= (Key *)si->from;
+				
+				if(key->ipo)
+					key->ipo->id.us--;
+				key->ipo= ipo;
+			}
+				break;
+			case ID_WO:
+			{
+				World *wo= (World *)si->from;
+				
+				if(wo->ipo)
+					wo->ipo->id.us--;
+				wo->ipo= ipo;
+			}
+				break;
+			case ID_LA:
+			{
+				Lamp *la= (Lamp *)si->from;
+				
+				if(la->ipo)
+					la->ipo->id.us--;
+				la->ipo= ipo;
+			}
+				break;
+			case ID_CA:
+			{
+				Camera *ca= (Camera *)si->from;
+				
+				if(ca->ipo)
+					ca->ipo->id.us--;
+				ca->ipo= ipo;
+			}
+				break;
+			case ID_SO:
+			{
+				bSound *snd= (bSound *)si->from;
+				
+				if(snd->ipo)
+					snd->ipo->id.us--;
+				snd->ipo= ipo;
+			}
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWBUTSALL, 0);
+	
+}
 
 
 static void do_ipo_editmenu_transformmenu(void *arg, int event)
@@ -203,7 +364,7 @@ static uiBlock *ipo_editmenu_keymenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_editmenu_keymenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_ipo_editmenu_keymenu, NULL);
 
-	ei = get_editipo();
+	ei = get_active_editipo();
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linear", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Cardinal", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
@@ -475,10 +636,10 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 5:
 		mainqenter(PADMINUS,1);
 		break;
-	case 6: /* Play Back Animation */
+	case 6: /* Play Animation */
 		play_anim(0);
 		break;
-	case 7: /* Play Back Animation in All */
+	case 7: /* Play Animation in All */
 		play_anim(1);
 		break;	
 	case 8:
@@ -493,7 +654,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	EditIpo *ei;
 	short yco= 0, menuwidth=120;
 
-	ei = get_editipo();
+	ei = get_active_editipo();
 
 	block= uiNewBlock(&curarea->uiblocks, "ipo_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_ipo_viewmenu, NULL);
@@ -512,9 +673,9 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20, 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation|Alt A", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Animation in 3D View|Alt Shift A", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -582,6 +743,7 @@ static uiBlock *ipo_selectmenu(void *arg_unused)
 
 static char *ipo_modeselect_pup(void)
 {
+	Object *ob= OBACT;
 	static char string[1024];
 	char tmpstr[1024];
 	char formatstring[1024];
@@ -590,12 +752,12 @@ static char *ipo_modeselect_pup(void)
 	
 	strcpy(formatstring, "|%s %%x%d %%i%d");
 
-	if(OBACT) {
+	if(ob) {
 		sprintf(tmpstr,formatstring,"Object",ID_OB, ICON_OBJECT);
 		strcat(string,tmpstr);
 	}
 
-	if(OBACT && give_current_material(OBACT, OBACT->actcol)) { // check for material
+	if(ob && give_current_material(ob, ob->actcol)) { // check for material
 		sprintf(tmpstr,formatstring,"Material",ID_MA, ICON_MATERIAL);
 		strcat(string,tmpstr);
 	}
@@ -605,37 +767,37 @@ static char *ipo_modeselect_pup(void)
 		strcat(string,tmpstr);
 	}
 
-	if(OBACT && OBACT->type==OB_CURVE) {
+	if(ob && ob->type==OB_CURVE) {
 		sprintf(tmpstr,formatstring,"Path",ID_CU, ICON_CURVE);
 		strcat(string,tmpstr);
 	}
 
-	if(OBACT && OBACT->type==OB_CAMERA) {
+	if(ob && ob->type==OB_CAMERA) {
 		sprintf(tmpstr,formatstring,"Camera",ID_CA, ICON_CAMERA);
 		strcat(string,tmpstr);
 	}
 	
-	if(OBACT && OBACT->type==OB_LAMP) {
+	if(ob && ob->type==OB_LAMP) {
 		sprintf(tmpstr,formatstring,"Lamp",ID_LA, ICON_LAMP);
 		strcat(string,tmpstr);
 	}
 
-	if(OBACT && give_current_texture(OBACT, OBACT->actcol)) {
+	if(ob && give_current_texture(ob, ob->actcol)) {
 		sprintf(tmpstr,formatstring,"Texture",ID_TE, ICON_TEXTURE);
 		strcat(string,tmpstr);
 	}
 
-	if(OBACT){
-		if ELEM4(OBACT->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
+	if(ob){
+		if ELEM4(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_LATTICE) {
 			sprintf(tmpstr,formatstring,"Shape",ID_KE, ICON_EDIT);
 			strcat(string,tmpstr);
 		}
-		if (OBACT->action){
-			sprintf(tmpstr,formatstring,"Action",ID_AC, ICON_ACTION);
+		if (ob->type==OB_ARMATURE){
+			sprintf(tmpstr,formatstring,"Pose",ID_PO, ICON_POSE_HLT);
 			strcat(string,tmpstr);
 		}
 #ifdef __CON_IPO
-		sprintf(tmpstr,formatstring,"Constraint",IPO_CO, ICON_CONSTRAINT);
+		sprintf(tmpstr,formatstring,"Constraint",ID_CO, ICON_CONSTRAINT);
 		strcat(string,tmpstr);
 #endif
 	}
@@ -652,6 +814,7 @@ void do_ipo_buttons(short event)
 	EditIpo *ei;
 	View2D *v2d;
 	rcti rect;
+	Object *ob= OBACT;
 	float xmin, ymin, dx, dy;
 	int a, val, first;
 	short mval[2];
@@ -744,10 +907,9 @@ void do_ipo_buttons(short event)
 		set_exprap_ipo(IPO_CYCLX);
 		break;
 	case B_IPOMAIN:
-		make_editipo();
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);
-
+		if(ob) ob->ipowin= G.sipo->blocktype;
 		break;
 	case B_IPOSHOWKEY:
 		/* reverse value because of winqread */
@@ -762,7 +924,53 @@ void do_ipo_buttons(short event)
 		view2dzoom(event);
 		scrarea_queue_headredraw(curarea);
 		break;
-			
+	case B_IPO_ACTION_OB:
+		if(ob && G.sipo->from && G.sipo->pin==0) {
+			if(ob->ipoflag & OB_ACTION_OB) {	/* check if channel exists, and flip ipo link */
+				bActionChannel *achan;
+				
+				if(ob->action==NULL) 
+					ob->action= add_empty_action(ID_OB);
+				achan= verify_action_channel(ob->action, "Object");
+				if(achan->ipo==NULL && ob->ipo) {
+					achan->ipo= ob->ipo;
+					ob->ipo= NULL;
+				}
+				
+				/* object constraints */
+				if(ob->constraintChannels.first) {
+					free_constraint_channels(&achan->constraintChannels);
+					achan->constraintChannels= ob->constraintChannels;
+					ob->constraintChannels.first= ob->constraintChannels.last= NULL;
+				}
+			}
+			else if(ob->action) {
+				bActionChannel *achan= get_action_channel(ob->action, "Object");
+				if(achan) {
+					
+					if(achan->ipo && ob->ipo==NULL) {
+						ob->ipo= achan->ipo;
+						achan->ipo= NULL;
+					}
+					
+					/* object constraints */
+					if(achan->constraintChannels.first) {
+						free_constraint_channels(&ob->constraintChannels);
+						ob->constraintChannels= achan->constraintChannels;
+						achan->constraintChannels.first= achan->constraintChannels.last= NULL;
+					}
+				}
+			}
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWOOPS, 0);
+			allqueue(REDRAWNLA, 0);
+		}
+		break;
+	case B_IPO_ACTION_KEY:
+		
+		break;
 	} 
 }
 
@@ -770,7 +978,6 @@ void ipo_buttons(void)
 {
 	Object *ob;
 	EditIpo *ei;
-	ID *id, *from;
 	uiBlock *block;
 	short xco,xmax;
 	char naam[20];
@@ -807,7 +1014,7 @@ void ipo_buttons(void)
 	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
 		uiBlockSetEmboss(block, UI_EMBOSSP);
 	
-		ei = get_editipo();
+		ei = get_active_editipo();
 	
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block,ipo_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
@@ -836,10 +1043,45 @@ void ipo_buttons(void)
 	/* end of pull down menus */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	/* mainmenu, only when data is there and no pin */
+	ob= OBACT;
+	
+	/* action switch option, only when active object is there and no pin */
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 	
-	ob= OBACT;
+	/* define whether ipos are on Object or on action */
+	if(ob) {
+		static short fake1= 1;
+		
+		uiBlockBeginAlign(block);
+		
+		if(G.sipo->blocktype==ID_OB) {
+			uiDefIconButBitS(block, TOG, OB_ACTION_OB, B_IPO_ACTION_OB, ICON_ACTION,	xco,0,XIC,YIC, &(ob->ipoflag), 0, 0, 0, 0, "Sets Ipo to be included in an Action or not");
+			xco+= XIC;
+		}
+		else if(G.sipo->blocktype==ID_KE) {
+			uiDefIconButBitS(block, TOG, OB_ACTION_KEY, B_IPO_ACTION_KEY, ICON_ACTION,	xco,0,XIC,YIC, &(ob->ipoflag), 0, 0, 0, 0, "Sets Ipo to be included in an Action or not");
+			xco+= XIC;
+		}
+		else if(G.sipo->blocktype==ID_CO) {
+			
+			if(G.sipo->from && G.sipo->actname[0]==0)
+				uiDefIconButBitS(block, TOG, OB_ACTION_OB, B_IPO_ACTION_OB, ICON_ACTION,	xco,0,XIC,YIC, &(ob->ipoflag), 0, 0, 0, 0, "Sets Ipo to be included in an Action or not");
+			else {
+				uiSetButLock(1, "Pose Constraint Ipo cannot be switched");
+				uiDefIconButS(block, TOG, 1, ICON_ACTION,	xco,0,XIC,YIC, &fake1, 0, 0, 0, 0, "Ipo is connected to Pose Action");
+			}
+			xco+= XIC;
+		}
+		else if(G.sipo->blocktype==ID_PO) {	/* only to indicate we have action ipos */
+			uiSetButLock(1, "Pose Action Ipo cannot be switched");
+			uiDefIconButS(block, TOG, 1, ICON_ACTION,	xco,0,XIC,YIC, &fake1, 0, 0, 0, 0, "Ipo is connected to Pose Action");
+			xco+= XIC;
+		}
+		uiClearButLock();
+	}
+	
+	/* mainmenu, only when data is there and no pin */
+	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 
 	if (G.sipo->blocktype == ID_OB)
 		icon = ICON_OBJECT;
@@ -855,9 +1097,9 @@ void ipo_buttons(void)
 		icon = ICON_LAMP;
 	else if (G.sipo->blocktype == ID_KE)
 		icon = ICON_EDIT;
-	else if (G.sipo->blocktype == ID_AC)
-		icon = ICON_ACTION;
-	else if (G.sipo->blocktype == IPO_CO)
+	else if (G.sipo->blocktype == ID_PO)
+		icon = ICON_POSE_HLT;
+	else if (G.sipo->blocktype == ID_CO)
 		icon = ICON_CONSTRAINT;
 	else if (G.sipo->blocktype == ID_SEQ)
 		icon = ICON_SEQUENCE;
@@ -882,25 +1124,22 @@ void ipo_buttons(void)
 		xco-= 4;
 	}
 	
+	uiBlockEndAlign(block);
+	
 	uiClearButLock();
 
-	/* NAME ETC */
-	id= (ID *)get_ipo_to_edit(&from);
-
-	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
-
-	uiSetButLock(id && id->lib, "Can't edit library data");
+	xco= std_libbuttons(block, (short)(xco+1.5*XIC), 0, B_IPOPIN, &G.sipo->pin, B_IPOBROWSE, (ID*)G.sipo->ipo, G.sipo->from, &(G.sipo->menunr), B_IPOALONE, B_IPOLOCAL, B_IPODELETE, 0, B_KEEPDATA);
 
 	/* COPY PASTE */
 	xco-= XIC/2;
 	if(curarea->headertype==HEADERTOP) {
 		uiDefIconBut(block, BUT, B_IPOCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected curves to the buffer");
-		uiSetButLock(id && id->lib, "Can't edit library data");
+		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
 		uiDefIconBut(block, BUT, B_IPOPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the curves from the buffer");
 	}
 	else {
 		uiDefIconBut(block, BUT, B_IPOCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected curves to the buffer");
-		uiSetButLock(id && id->lib, "Can't edit library data");
+		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
 		uiDefIconBut(block, BUT, B_IPOPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the curves from the buffer");
 	}
 	xco+=XIC/2;

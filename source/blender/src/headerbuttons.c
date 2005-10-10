@@ -634,13 +634,11 @@ void do_global_buttons(unsigned short event)
 	Ipo *ipo;
 	Lamp *la;
 	World *wrld;
-	Sequence *seq;
 	bAction *act;
-	ID *id, *idtest, *from;
+	ID *id, *idtest, *from=NULL;
 	ScrArea *sa;
 	int nr= 1;
 	char buf[FILE_MAXDIR+FILE_MAXFILE];
-
 
 	ob= OBACT;
 
@@ -966,7 +964,7 @@ void do_global_buttons(unsigned short event)
 				if (act)
 					idtest= (ID *)copy_action(act);
 				else 
-					idtest=(ID *)add_empty_action();
+					idtest=(ID *)add_empty_action(ob->type==OB_ARMATURE?ID_PO:ID_OB);
 				idtest->us--;
 			}
 			
@@ -992,9 +990,10 @@ void do_global_buttons(unsigned short event)
 		break;
 	case B_IPOBROWSE:
 
-		ipo= get_ipo_to_edit(&from);
+		ipo= G.sipo->ipo;
+		from= G.sipo->from;
 		id= (ID *)ipo;
-		if(from==0) return;
+		if(from==NULL) return;
 
 		if(G.sipo->menunr== -2) {
 			activate_databrowse((ID *)G.sipo->ipo, ID_IP, GS(from->name), B_IPOBROWSE, &G.sipo->menunr, do_global_buttons);
@@ -1026,13 +1025,10 @@ void do_global_buttons(unsigned short event)
 			if(idtest==0) {
 				if(ipo) idtest= (ID *)copy_ipo(ipo);
 				else {
-					nr= GS(from->name);
-					if(nr==ID_OB){
-						if (G.sipo->blocktype==IPO_CO)
-							idtest= (ID *)add_ipo("CoIpo", IPO_CO); /* constraint channel is no ID data... */
-						else
-							idtest= (ID *)add_ipo("ObIpo", nr);
-					}
+					nr= G.sipo->blocktype;
+					if(nr==ID_OB) idtest= (ID *)add_ipo("ObIpo", ID_OB);
+					else if(nr==ID_CO) idtest= (ID *)add_ipo("CoIpo", ID_CO);
+					else if(nr==ID_PO) idtest= (ID *)add_ipo("ActIpo", nr);
 					else if(nr==ID_MA) idtest= (ID *)add_ipo("MatIpo", nr);
 					else if(nr==ID_TE) idtest= (ID *)add_ipo("TexIpo", nr);
 					else if(nr==ID_SEQ) idtest= (ID *)add_ipo("MatSeq", nr);
@@ -1042,136 +1038,26 @@ void do_global_buttons(unsigned short event)
 					else if(nr==ID_LA) idtest= (ID *)add_ipo("LaIpo", nr);
 					else if(nr==ID_CA) idtest= (ID *)add_ipo("CaIpo", nr);
 					else if(nr==ID_SO) idtest= (ID *)add_ipo("SndIpo", nr);
-					else if(nr==ID_AC) idtest= (ID *)add_ipo("ActIpo", nr);
 					else error("Warn bugtracker!");
 				}
 				idtest->us--;
 			}
 			if(idtest!=id && from) {
-				ipo= (Ipo *)idtest;
-		
-				if (ipo->blocktype==IPO_CO){
-					bConstraintChannel *chan= get_active_constraint_channel((Object*)from);
-					if(chan) {
-						chan->ipo = ipo;
-						id_us_plus(idtest);
-						allqueue(REDRAWVIEW3D, 0);
-						allqueue(REDRAWACTION, 0);
-						allqueue(REDRAWNLA, 0);
-					}
-				}
-				else if(ipo->blocktype==ID_OB) {
-					( (Object *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWVIEW3D, 0);
-				}
-				else if(ipo->blocktype==ID_AC) {
-					bActionChannel *chan;
-					chan = get_hilighted_action_channel ((bAction*)from);
-					if (!chan){
-						error ("Create an action channel first");
-						return;
-					}
-					chan->ipo=ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWACTION, 0);
-				}
-				else if(ipo->blocktype==ID_MA) {
-					( (Material *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSSHADING, 0);
-				}
-				else if(ipo->blocktype==ID_TE) {
-					( (Tex *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSSHADING, 0);
-				}
-				else if(ipo->blocktype==ID_SEQ) {
-					seq= (Sequence *)from;
-					if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
-						id_us_plus(idtest);
-						seq->ipo= ipo;
-					}
-				}
-				else if(ipo->blocktype==ID_CU) {
-					( (Curve *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWVIEW3D, 0);
-				}
-				else if(ipo->blocktype==ID_KE) {
-					( (Key *)from)->ipo= ipo;
-					
-					id_us_plus(idtest);
-					allqueue(REDRAWVIEW3D, 0);
-					
-				}
-				else if(ipo->blocktype==ID_WO) {
-					( (World *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSSHADING, 0);
-				}
-				else if(ipo->blocktype==ID_LA) {
-					( (Lamp *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSSHADING, 0);
-				}
-				else if(ipo->blocktype==ID_CA) {
-					( (Camera *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSEDIT, 0);
-				}
-				else if(ipo->blocktype==ID_SO) {
-					( (bSound *)from)->ipo= ipo;
-					id_us_plus(idtest);
-					allqueue(REDRAWBUTSEDIT, 0);
-				}
-				else
-					printf("error in browse ipo \n");
-				
-				if(id) id->us--;
-				
+				spaceipo_assign_ipo(G.sipo, (Ipo *)idtest);
+									
 				BIF_undo_push("Browse Ipo");
-				scrarea_queue_winredraw(curarea);
-				scrarea_queue_headredraw(curarea);
-				allqueue(REDRAWIPO, 0);
 			}
 		}
 		break;
 	case B_IPODELETE:
-		ipo= get_ipo_to_edit(&from);
-		if(from==0) return;
+		ipo= G.sipo->ipo;
+		from= G.sipo->from;
 		
-		ipo->id.us--;
-		
-		if(ipo->blocktype==ID_OB) ( (Object *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_MA) ( (Material *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_TE) ( (Tex *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_SEQ) ( (Sequence *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_CU) ( (Curve *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_KE) ( (Key *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_LA) ( (Lamp *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_WO) ( (World *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_CA) ( (Camera *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_SO) ( (bSound *)from)->ipo= NULL;
-		else if(ipo->blocktype==ID_AC) {
-			bAction *act = (bAction*) from;
-			bActionChannel *chan = 
-				get_hilighted_action_channel((bAction*)from);
-			BLI_freelinkN (&act->chanbase, chan);
-		}
-		else if(ipo->blocktype==IPO_CO) {
-			bConstraintChannel *chan= get_active_constraint_channel((Object*)from);
-			if(chan) chan->ipo= NULL;
-		}
-		else error("Warn bugtracker!");
+		spaceipo_assign_ipo(G.sipo, NULL);
 		
 		editipo_changed(G.sipo, 1); /* doredraw */
+		
 		BIF_undo_push("Unlink Ipo");
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue (REDRAWACTION, 0);
 		
 		break;
 	case B_WORLDBROWSE:
@@ -1616,6 +1502,8 @@ void do_global_buttons(unsigned short event)
 		scrarea_queue_headredraw(curarea);
 		allqueue(REDRAWINFO, 1);
 		allqueue(REDRAWOOPS, 1);
+		allqueue(REDRAWACTION, 1);
+		allqueue(REDRAWNLA, 1);
 		/* name scene also in set PUPmenu */
 		allqueue(REDRAWBUTSALL, 0);
 		allqueue(REDRAWHEADERS, 0);
@@ -1973,9 +1861,10 @@ void do_global_buttons2(short event)
 		break;
 	
 	case B_IPOALONE:
-		ipo= get_ipo_to_edit(&idfrom);
+		ipo= G.sipo->ipo;
+		idfrom= G.sipo->from;
 		
-		if(idfrom && idfrom->lib==0) {
+		if(idfrom && idfrom->lib==NULL) {
 			if(ipo->id.us>1) {
 				if(okee("Single user")) {
 					if(ipo->blocktype==ID_OB) ((Object *)idfrom)->ipo= copy_ipo(ipo);
@@ -1990,7 +1879,7 @@ void do_global_buttons2(short event)
 					else if(ipo->blocktype==ID_SO) ((bSound *)idfrom)->ipo= copy_ipo(ipo);
 					else if(ipo->blocktype==ID_AC) 
 						get_hilighted_action_channel((bAction *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==IPO_CO) 
+					else if(ipo->blocktype==ID_CO) 
 						get_active_constraint_channel((Object*)idfrom)->ipo= copy_ipo(ipo);
 					else error("Warn bugtracker!");
 					
@@ -2001,7 +1890,8 @@ void do_global_buttons2(short event)
 		}
 		break;
 	case B_IPOLOCAL:
-		ipo= get_ipo_to_edit(&idfrom);
+		ipo= G.sipo->ipo;
+		idfrom= G.sipo->from;
 		
 		if(idfrom && idfrom->lib==0) {
 			if(ipo->id.lib) {

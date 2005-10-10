@@ -78,6 +78,7 @@
 #include "BDR_editcurve.h"
 
 #include "BSE_view.h"
+#include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
 
 /* 'old' stuff": defines and types, and own include -------------------- */
@@ -360,41 +361,6 @@ int count_action_levels(bAction *act)
 
 	return y;
 }
-	/** Draw a nicely beveled button (in screen space) */
-void draw_bevel_but(int x, int y, int w, int h, int sel)
-{
-	int xmin= x, ymin= y;
-	int xmax= x+w-1, ymax= y+h-1;
-	int i;
-
-	glColor3ub(0,0,0);
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(xmin, ymin);
-	glVertex2i(xmax, ymin);
-	glVertex2i(xmax, ymax);
-	glVertex2i(xmin, ymax);
-	glEnd();
-
-	glBegin(GL_LINE_LOOP);
-	if (sel) glColor3ub(0xD0, 0x7E, 0x06);
-	else glColor3ub(0x8C, 0x8C, 0x8C);
-	glVertex2i(xmax-1, ymin+1);
-	glVertex2i(xmax-1, ymax-1);
-	if (sel) glColor3ub(0xF4, 0xEE, 0x8E);
-	else glColor3ub(0xDF, 0xDF, 0xDF);
-	glVertex2i(xmin+1, ymax-1);
-	glVertex2i(xmin+1, ymin+1);
-	glEnd();
-
-	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
-	else glColor3ub(0xAC, 0xAC, 0xAC);
-	glBegin(GL_LINES);
-	for (i=xmin+2; i<=xmax-2; i++) {
-		glVertex2f(i, ymin+2);
-		glVertex2f(i, ymax-1);
-	}
-	glEnd();
-}
 
 static void draw_channel_strips(SpaceAction *saction)
 {
@@ -404,6 +370,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 	float	y;
+	int act_end, dummy;
 	char col1[3], col2[3];
 	
 	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
@@ -413,14 +380,21 @@ static void draw_channel_strips(SpaceAction *saction)
 	if (!act)
 		return;
 
-	scr_rct.xmin= saction->area->winrct.xmin + ACTWIDTH;
+	scr_rct.xmin= saction->area->winrct.xmin + saction->v2d.mask.xmin;
 	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin;
 	scr_rct.xmax= saction->area->winrct.xmin + saction->v2d.hor.xmax;
 	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
 
+	/* if in NLA there's a strip active, map the view */
+	if (G.saction->pin==0 && OBACT)
+		map_active_strip(di, OBACT, 0);
+	
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 
+	/* end of action itself */
+	gla2DDrawTranslatePt(di, calc_action_end(act), 0, &act_end, &dummy);
+	
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		int frame1_x, channel_y;
 
@@ -429,11 +403,11 @@ static void draw_channel_strips(SpaceAction *saction)
 		glEnable(GL_BLEND);
 		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-		glRectf(0,  channel_y-CHANNELHEIGHT/2,  frame1_x,  channel_y+CHANNELHEIGHT/2);
+		glRectf(0,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 
 		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
 		else glColor4ub(col2[0], col2[1], col2[2], 0x44);
-		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
+		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
 	
 		draw_ipo_channel(di, chan->ipo, 0, y);
@@ -445,14 +419,15 @@ static void draw_channel_strips(SpaceAction *saction)
 		/* Draw constraint channels */
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+			
 			glEnable(GL_BLEND);
 			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(0,  channel_y-CHANNELHEIGHT/2+4,  frame1_x,  channel_y+CHANNELHEIGHT/2-4);
+			glRectf(0,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
 			
 			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x44);
-			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
 			glDisable(GL_BLEND);
 			
 			draw_ipo_channel(di, conchan->ipo, 0, y);
@@ -651,9 +626,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		 * then draw the key frames in the action window
 		 */
 		draw_mesh_strips(G.saction, key);
-		/*meshactionbuts(G.saction, key);*/
 	}
-
 
 	/* Draw current frame */
 	glViewport(ofsx+G.v2d->mask.xmin,  
@@ -674,16 +647,20 @@ void drawactionspace(ScrArea *sa, void *spacedata)
       if(G.v2d->scroll) drawscroll(0);
 	}
 
-	/* Draw channel names */
-	draw_channel_names();
+	if(G.v2d->mask.xmin!=0) {
+		/* Draw channel names */
+		draw_channel_names();
 
-	if ( key ) {
-		/* if there is a mesh with rvk's selected,
-		 * then draw the key frames in the action window
-		 */
-		meshactionbuts(G.saction, key);
+		if(sa->winx > 50 + NAMEWIDTH + SLIDERWIDTH) {
+			if ( key ) {
+				/* if there is a mesh with rvk's selected,
+				 * then draw the key frames in the action window
+				 */
+				meshactionbuts(G.saction, key);
+			}
+		}
 	}
-
+	
 	mywinset(curarea->win);	// reset scissor too
 	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
 	draw_area_emboss(sa);
@@ -695,11 +672,41 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-/* unused and blank
-void draw_channel_name(const char* name, short type, float ypos, int selected)
+
+/** Draw a nicely beveled button (in screen space) */
+static void draw_bevel_but(int x, int y, int w, int h, int sel)
 {
+	int xmin= x, ymin= y;
+	int xmax= x+w-1, ymax= y+h-1;
+	
+	/* outline */
+	glColor3ub(0,0,0);
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(xmin, ymin);
+	glVertex2i(xmax, ymin);
+	glVertex2i(xmax, ymax);
+	glVertex2i(xmin, ymax);
+	glEnd();
+	
+	/* interior */
+	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
+	else glColor3ub(0xAC, 0xAC, 0xAC);
+	glRectf(xmin+1, ymin+1, xmax-1, ymax-1);
+	
+	/* bevel */
+	glBegin(GL_LINE_LOOP);
+	
+	if (sel) glColor3ub(0xD0, 0x7E, 0x06);
+	else glColor3ub(0x8C, 0x8C, 0x8C);
+	glVertex2i(xmax-1, ymin+1);
+	glVertex2i(xmax-1, ymax-1);
+	
+	if (sel) glColor3ub(0xF4, 0xEE, 0x8E);
+	else glColor3ub(0xDF, 0xDF, 0xDF);
+	glVertex2i(xmin+1, ymax-1);
+	glVertex2i(xmin+1, ymin+1);
+	glEnd();
 }
-*/
 
 static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, float ypos)
 {
@@ -712,7 +719,7 @@ static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, floa
 		if (v==0 || (blist[v]->vec[1][0] != blist[v-1]->vec[1][0])){
 			int sc_x, sc_y;
 			gla2DDrawTranslatePt(di, blist[v]->vec[1][0], ypos, &sc_x, &sc_y);
-			draw_bevel_but(sc_x-2, sc_y-5, 7, 13, (blist[v]->f2 & 1));
+			draw_bevel_but(sc_x-2, sc_y-7, 7, 13, (blist[v]->f2 & 1));
 		}
 	}			
 }
@@ -770,6 +777,7 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, int flags, float ypos)
 static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert)
 {
 	IpoCurve *icu;
+	bConstraintChannel *conchan;
 	int v, count=0;
 
 	BezTriple **list = NULL;
@@ -784,6 +792,12 @@ static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert)
 		}
 		
 		/* Count Constraint Keys */
+		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
+			if(conchan->ipo)
+				for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+					count+=icu->totvert;
+		}
+		
 		/* Count object data keys */
 
 		/* Build the list */
@@ -792,13 +806,21 @@ static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert)
 			count=0;
 			
 			/* Add object keyframes */
-			for (icu=ob->ipo->curve.first; icu; icu=icu->next){
-				for (v=0; v<icu->totvert; v++){
-					list[count++]=&icu->bezt[v];
+			if(ob->ipo) {
+				for (icu=ob->ipo->curve.first; icu; icu=icu->next){
+					for (v=0; v<icu->totvert; v++){
+						list[count++]=&icu->bezt[v];
+					}
 				}
+			}			
+			/* Add constraint keyframes */
+			for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
+				if(conchan->ipo)
+					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+						for (v=0; v<icu->totvert; v++)
+							list[count++]=&icu->bezt[v];
 			}
 			
-			/* Add constraint keyframes */
 			/* Add object data keyframes */
 
 			/* Sort */
@@ -880,13 +902,13 @@ static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
 			if(achan->ipo) {
 				for (icu=achan->ipo->curve.first; icu; icu=icu->next)
 					count+=icu->totvert;
-				
-				/* Count constraint keys */
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+			}
+			/* Count constraint keys */
+			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+				if(conchan->ipo) 
 					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
 						count+=icu->totvert;
 				
-			}
 		}
 		
 		/* Build the list */
@@ -895,17 +917,19 @@ static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
 			count=0;
 			
 			for (achan=act->chanbase.first; achan; achan=achan->next){
-				/* Add transformation keys */
-				for (icu=achan->ipo->curve.first; icu; icu=icu->next){
-					for (v=0; v<icu->totvert; v++)
-						list[count++]=&icu->bezt[v];
-				}
-					
-					/* Add constraint keys */
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
-					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+				if(achan->ipo) {
+					/* Add transformation keys */
+					for (icu=achan->ipo->curve.first; icu; icu=icu->next){
 						for (v=0; v<icu->totvert; v++)
 							list[count++]=&icu->bezt[v];
+					}
+				}					
+					/* Add constraint keys */
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
+					if(conchan->ipo)
+						for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+							for (v=0; v<icu->totvert; v++)
+								list[count++]=&icu->bezt[v];
 				}
 							
 			}		

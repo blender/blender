@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,11 +20,9 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * Contributor(s): Blender Foundation, 2005. Full recode
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 
@@ -42,10 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 #ifndef WIN32
 #include <unistd.h>
@@ -81,6 +72,7 @@
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
+#include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -118,14 +110,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-/* forwards */
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
-
-#define IPOTHRESH	0.9
-#define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )
-#define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
-#define ISPOIN4(a, b, c, d, e)        ( (a->b) && (a->c) && (a->d) && (a->e) )   
-
 extern int ob_ar[];
 extern int ma_ar[];
 extern int seq_ar[];
@@ -138,155 +122,12 @@ extern int ac_ar[];
 extern int co_ar[];
 extern int te_ar[];
 
-char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLocZ",
-						 "RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
-						 "SizeX", "SizeY", "SizeZ", "dSizeX", "dSizeY", "dSizeZ",
-						 "Layer", "Time", "ColR", "ColG", "ColB", "ColA",
-						 "FStreng", "FFall", "RDamp", "Damping", "Perm" };
+/* forwards */
+#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
-char *co_ic_names[CO_TOTNAM] = { "Inf" };
-char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
-						  "texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
-						  "Disp" };
-char *tex_ic_names[TE_TOTNAM] = { "NSize", "NDepth", "NType", "Turb", "Vnw1", "Vnw2",
-								   "Vnw3", "Vnw4", "MinkMExp", "DistM", "ColT", "iScale",
-								   "DistA", "MgType", "MgH", "Lacu", "Oct", "MgOff",
-								   "MgGain", "NBase1", "NBase2" };
-char *ma_ic_names[MA_TOTNAM] = { "R", "G", "B", "SpecR", "SpecG", "SpecB", "MirR",
-						 "MirG", "MirB", "Ref", "Alpha", "Emit", "Amb", "Spec",
-						 "Hard", "SpTra", "Ior", "Mode", "HaSize", "Translu",
-						 "RayMir", "FresMir", "FresMirI", "FresTra", "FresTraI",
-						 "TraGlow" };
-char *seq_ic_names[SEQ_TOTNAM] = { "Fac" };
-char *cu_ic_names[CU_TOTNAM] = { "Speed" };
-char *key_ic_names[KEY_TOTNAM] = { "Speed", "Key 1", "Key 2", "Key 3", "Key 4", "Key 5",
-									"Key 6", "Key 7", "Key 8", "Key 9", "Key 10",
-									"Key 11", "Key 12", "Key 13", "Key 14", "Key 15",
-									"Key 16", "Key 17", "Key 18", "Key 19", "Key 20",
-									"Key 21", "Key 22", "Key 23", "Key 24", "Key 25",
-									"Key 26", "Key 27", "Key 28", "Key 29", "Key 30",
-									"Key 31", "Key 32", "Key 33", "Key 34", "Key 35",
-									"Key 36", "Key 37", "Key 38", "Key 39", "Key 40",
-									"Key 41", "Key 42", "Key 43", "Key 44", "Key 45",
-									"Key 46", "Key 47", "Key 48", "Key 49", "Key 50",
-									"Key 51", "Key 52", "Key 53", "Key 54", "Key 55",
-									"Key 56", "Key 57", "Key 58", "Key 59", "Key 60",
-									"Key 61", "Key 62", "Key 63"};
-char *wo_ic_names[WO_TOTNAM] = { "HorR", "HorG", "HorB", "ZenR", "ZenG", "ZenB", "Expos",
-						 "Misi", "MisDi", "MisSta", "MisHi", "StarR", "StarB",
-						 "StarG", "StarDi", "StarSi" };
-char *la_ic_names[LA_TOTNAM] = { "Energ", "R", "G", "B", "Dist", "SpoSi", "SpoBl",
-								  "Quad1", "Quad2", "HaInt" };
-/* yafray: two curve names added, 'Apert' for aperture, and 'FDist' for focal distance */
-char *cam_ic_names[CAM_TOTNAM] = { "Lens", "ClSta", "ClEnd", "Apert", "FDist" };
-char *snd_ic_names[SND_TOTNAM] = { "Vol", "Pitch", "Pan", "Atten" };
-char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "SizeX", "SizeY",
-						  "SizeZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
-char *ic_name_empty[1] ={ "" };
-
-char *getname_ac_ei(int nr) 
-{
-	switch(nr) {
-	case AC_LOC_X:
-	case AC_LOC_Y:
-	case AC_LOC_Z:
-		return ac_ic_names[nr-1];
-	case AC_SIZE_X:
-	case AC_SIZE_Y:
-	case AC_SIZE_Z:
-		return ac_ic_names[nr-10];
-	case AC_QUAT_X:
-	case AC_QUAT_Y:
-	case AC_QUAT_Z:
-	case AC_QUAT_W:
-		return ac_ic_names[nr-19];
-	default:
-		return ic_name_empty[0]; /* empty */
-	}
-}
-
-char *getname_co_ei(int nr)
-{
-	switch(nr){
-	case CO_ENFORCE:
-		return co_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_ob_ei(int nr, int colipo)
-{
-	if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
-
-	return ic_name_empty[0];
-}
-
-char *getname_tex_ei(int nr)
-{
-	if(nr>=TE_NSIZE && nr<=TE_N_BAS2) return tex_ic_names[nr-1];
-
-	return ic_name_empty[0];
-}
-
-char *getname_mtex_ei(int nr)
-{
-	if(nr>=MAP_OFS_X && nr<=MAP_DISP) return mtex_ic_names[nr-1];
-	
-	return ic_name_empty[0];
-}
-
-char *getname_mat_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=MA_COL_R && nr<=MA_ADD) return ma_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_world_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=WO_HOR_R && nr<=WO_STARSIZE) return wo_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_seq_ei(int nr)
-{
-	if(nr == SEQ_FAC1) return seq_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_cu_ei(int nr)
-{
-	if(nr==CU_SPEED) return cu_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_la_ei(int nr)
-{
-	if(nr>=MA_MAP1) return getname_mtex_ei((nr & (MA_MAP1-1)));
-	else {
-		if(nr>=LA_ENERGY && nr<=LA_HALOINT) return la_ic_names[nr-1];
-	}
-	return ic_name_empty[0];
-}
-
-char *getname_cam_ei(int nr)
-{
-	/* yafray: curves extended to CAM_YF_FDIST */
-	//if(nr>=CAM_LENS && nr<=CAM_END) return cam_ic_names[nr-1];
-	if(nr>=CAM_LENS && nr<=CAM_YF_FDIST) return cam_ic_names[nr-1];
-	return ic_name_empty[0];
-}
-
-char *getname_snd_ei(int nr)
-{
-	if(nr>=SND_VOLUME && nr<=SND_ATTEN) return snd_ic_names[nr-1];
-	return ic_name_empty[0];
-}
+#define IPOTHRESH	0.9
+#define ISPOIN(a, b, c)                       ( (a->b) && (a->c) )
+#define ISPOIN3(a, b, c, d)           ( (a->b) && (a->c) && (a->d) )
 
 /* tests if only one editipo is active */
 static void check_active_editipo(void)
@@ -370,78 +211,6 @@ static void set_active_key(int index)
 		}				
 	}			
 }
-
-void boundbox_ipocurve(IpoCurve *icu)
-{
-	BezTriple *bezt;
-	float vec[3]={0.0,0.0,0.0};
-	float min[3], max[3];
-	int a;
-	
-	if(icu->totvert) {
-		INIT_MINMAX(min, max);
-		
-		if(icu->bezt ) {
-			a= icu->totvert;
-			bezt= icu->bezt;
-			while(a--) {
-				if(icu->vartype & IPO_BITS) {
-					vec[0]= bezt->vec[1][0];
-					vec[1]= 0.0;
-					DO_MINMAX(vec, min, max);
-					
-					vec[1]= 16.0;
-					DO_MINMAX(vec, min, max);
-				}
-				else {
-					if(icu->ipo==IPO_BEZ && a!=icu->totvert-1) {
-						DO_MINMAX(bezt->vec[0], min, max);
-					}
-					DO_MINMAX(bezt->vec[1], min, max);
-					if(icu->ipo==IPO_BEZ && a!=0) {
-						DO_MINMAX(bezt->vec[2], min, max);
-					}
-				}
-				
-				bezt++;
-			}
-		}
-		if(min[0]==max[0]) max[0]= (float)(min[0]+1.0);
-		if(min[1]==max[1]) max[1]= (float)(min[1]+0.1);
-		
-		icu->totrct.xmin= min[0];
-		icu->totrct.ymin= min[1];
-		icu->totrct.xmax= max[0];
-		icu->totrct.ymax= max[1];
-	}
-	else {
-		icu->totrct.xmin= icu->totrct.ymin= 0.0;
-		icu->totrct.xmax= EFRA;
-		icu->totrct.ymax= 1.0;
-	}
-}
-
-void boundbox_ipo(Ipo *ipo, rctf *bb)
-{
-	IpoCurve *icu;
-	int first= 1;
-	
-	icu= ipo->curve.first;
-	while(icu) {
-			
-		boundbox_ipocurve(icu);
-				
-		if(first) {
-			*bb= icu->totrct;
-			first= 0;
-		}
-		else BLI_union_rctf(bb, &(icu->totrct));
-		
-		icu= icu->next;
-	}
-}
-
-
 
 void editipo_changed(SpaceIpo *si, int doredraw)
 {
@@ -544,7 +313,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else if(si->blocktype==ID_SEQ) clear_last_seq();
-		else if(si->blocktype==ID_AC) {
+		else if(si->blocktype==ID_PO) {
 			Object *ob= OBACT;
 			if(ob && ob->pose) {
 				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
@@ -581,7 +350,7 @@ void scale_editipo(void)
 	ei= G.sipo->editipo;
 	if(ei==0) return;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			bezt= ei->icu->bezt;
 			b= ei->icu->totvert;
 			while(b--) {
@@ -607,130 +376,7 @@ void scale_editipo(void)
 	allqueue(REDRAWIPO, 0);
 }
 
-
-Ipo *get_ipo_to_edit(ID **from)
-{
-	Object *ob= OBACT;
-	
-	*from= 0;
-	
-	
-	if (G.sipo->pin) {
-		*from = G.sipo->from;
-		return G.sipo->ipo;
-	}
-
-	if(G.sipo->blocktype==ID_SEQ) {
-		extern Sequence *last_seq;
-		
-		*from= (ID *)last_seq;
-		if(last_seq) return last_seq->ipo;
-	}
-	else if(G.sipo->blocktype==IPO_CO){
-		if (ob) {
-			bConstraintChannel *chan= get_active_constraint_channel(ob);
-			if(chan) {
-				*from= (ID*) ob;
-				return chan->ipo;
-			}
-		}
-	}
-	else if(G.sipo->blocktype==ID_AC) {
-		bActionChannel *chan;
-		if (ob && ob->action) {
-			*from= (ID *) ob->action;
-			chan= get_hilighted_action_channel(ob->action);
-			if (chan)
-				return chan->ipo;
-			else
-				return NULL;
-		} 
-
-	}
-	else if(G.sipo->blocktype==ID_WO) {
-		World *wo= G.scene->world;
-		*from= (ID *)wo;
-		if(wo) return wo->ipo;
-	}
-	else if(G.sipo->blocktype==ID_OB) {
-		if(ob) {
-			*from= (ID *)ob;
-			return ob->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_TE) {
-		if(ob) {
-			Tex *tex= give_current_texture(ob, ob->actcol);
-			*from= (ID *)tex;
-			if(tex) return tex->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_MA) {
-		if(ob) {
-			Material *ma= give_current_material(ob, ob->actcol);
-			*from= (ID *)ma;
-			if(ma) return ma->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_KE) {
-		if(ob) {
-			Key *key= ob_get_key(ob);
-			*from= (ID *)key;
-			if(key) return key->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_CU) {
-		if(ob && ob->type==OB_CURVE) {
-			Curve *cu= ob->data;
-			*from= (ID *)cu;
-			return cu->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_LA) {
-		if(ob && ob->type==OB_LAMP) {
-			Lamp *la= ob->data;
-			*from= (ID *)la;
-			return la->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_CA) {
-		if(ob && ob->type==OB_CAMERA) {
-			Camera *ca= ob->data;
-			*from= (ID *)ca;
-			if(ca) return ca->ipo;
-		}
-	}
-	else if(G.sipo->blocktype==ID_SO) {
-
-//		if (G.buts && G.buts->mainb == BUTS_SOUND) {
-//			bSound *sound = G.buts->lockpoin;
-//			*from= (ID *)sound;
-//			if(sound) return sound->ipo;
-//		}
-	}
-
-	return NULL;
-}
-
-unsigned int ipo_rainbow(int cur, int tot)
-{
-	float dfac, fac, sat;
-
-	dfac= (float)(1.0/( (float)tot+1.0));
-
-	/* this calculation makes 2 or 4 different cycles of rainbow colors */
-	if(cur< tot/2) fac= (float)(cur*2.0f*dfac);
-	else fac= (float)((cur-tot/2)*2.0f*dfac +dfac);
-	if(tot > 32) fac= fac*1.95f;
-	if(fac>1.0f) fac-= 1.0f;
-	
-	if(fac>0.5f && fac<0.8f) sat= 0.4f;
-	else sat= 0.5f;
-	
-	return hsv_to_cpack(fac, sat, 1.0f);
-}		
-
-void make_ob_editipo(Object *ob, SpaceIpo *si)
+static void make_ob_editipo(Object *ob, SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len, colipo=0;
@@ -772,8 +418,7 @@ void make_ob_editipo(Object *ob, SpaceIpo *si)
 	}
 }
 
-
-void make_seq_editipo(SpaceIpo *si)
+static void make_seq_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -801,7 +446,7 @@ void make_seq_editipo(SpaceIpo *si)
 	}
 }
 
-void make_cu_editipo(SpaceIpo *si)
+static void make_cu_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -829,7 +474,7 @@ void make_cu_editipo(SpaceIpo *si)
 	}
 }
 
-void make_key_editipo(SpaceIpo *si)
+static void make_key_editipo(SpaceIpo *si)
 {
 	Key *key;
 	KeyBlock *kb=NULL;
@@ -884,24 +529,7 @@ void make_key_editipo(SpaceIpo *si)
 	}
 }
 
-int texchannel_to_adrcode(int channel)
-{
-	switch(channel) {
-		case 0: return MA_MAP1;
-		case 1: return MA_MAP2; 
-		case 2: return MA_MAP3; 
-		case 3: return MA_MAP4; 
-		case 4: return MA_MAP5; 
-		case 5: return MA_MAP6; 
-		case 6: return MA_MAP7; 
-		case 7: return MA_MAP8; 
-		case 8: return MA_MAP9; 
-		case 9: return MA_MAP10; 
-		default: return 0;
-	}
-}
-
-void make_mat_editipo(SpaceIpo *si)
+static void make_mat_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len;
@@ -944,7 +572,7 @@ void make_mat_editipo(SpaceIpo *si)
 	}
 }
 
-void make_texture_editipo(SpaceIpo *si)
+static void make_texture_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -972,7 +600,7 @@ void make_texture_editipo(SpaceIpo *si)
 	}
 }
 
-void make_world_editipo(SpaceIpo *si)
+static void make_world_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a, len;
@@ -1016,7 +644,7 @@ void make_world_editipo(SpaceIpo *si)
 	}
 }
 
-void make_lamp_editipo(SpaceIpo *si)
+static void make_lamp_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -1025,7 +653,6 @@ void make_lamp_editipo(SpaceIpo *si)
 	ei= si->editipo= MEM_callocN(LA_TOTIPO*sizeof(EditIpo), "editipo");
 	
 	si->totipo= LA_TOTIPO;
-	
 	
 	for(a=0; a<LA_TOTIPO; a++) {
 		name = getname_la_ei(la_ar[a]);
@@ -1048,7 +675,7 @@ void make_lamp_editipo(SpaceIpo *si)
 	}
 }
 
-void make_camera_editipo(SpaceIpo *si)
+static void make_camera_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -1075,7 +702,7 @@ void make_camera_editipo(SpaceIpo *si)
 	}
 }
 
-int make_constraint_editipo(Ipo *ipo, EditIpo **si)
+static int make_constraint_editipo(Ipo *ipo, EditIpo **si)
 {
 	EditIpo *ei;
 	int a;
@@ -1100,7 +727,8 @@ int make_constraint_editipo(Ipo *ipo, EditIpo **si)
 
 	return CO_TOTIPO;
 }
-int make_action_editipo(Ipo *ipo, EditIpo **si)
+
+static int make_bone_editipo(Ipo *ipo, EditIpo **si)
 {
 	EditIpo *ei;
 	int a;
@@ -1126,7 +754,7 @@ int make_action_editipo(Ipo *ipo, EditIpo **si)
 	return AC_TOTIPO;
 }
 
-void make_sound_editipo(SpaceIpo *si)
+static void make_sound_editipo(SpaceIpo *si)
 {
 	EditIpo *ei;
 	int a;
@@ -1153,22 +781,23 @@ void make_sound_editipo(SpaceIpo *si)
 	}
 }
 
-void make_editipo(void)
+/* only called in test_editipo() below */
+static void make_editipo(void)
 {
 	EditIpo *ei;
 	Object *ob;
-	ID *from;
 	rctf *rf;
 	int a;
 
 	if(G.sipo->editipo)
 		MEM_freeN(G.sipo->editipo);
+	
 	G.sipo->editipo= NULL;
 	G.sipo->totipo= 0;
+	
+	if(G.sipo->from==NULL) return;
+	
 	ob= OBACT;
-
-	G.sipo->ipo= get_ipo_to_edit(&from);
-	G.sipo->from= from;
 
 	if(G.sipo->ipo) G.sipo->showkey= G.sipo->ipo->showkey;
 
@@ -1226,17 +855,17 @@ void make_editipo(void)
 			make_sound_editipo(G.sipo);
 		}
 	}
-	else if(G.sipo->blocktype==IPO_CO){
+	else if(G.sipo->blocktype==ID_CO){
 		G.sipo->totipo = make_constraint_editipo(G.sipo->ipo, (EditIpo**)&G.sipo->editipo);
 		if (ob) {
-			ob->ipowin= IPO_CO;
+			ob->ipowin= ID_CO;
 		}
 	}
-	else if(G.sipo->blocktype==ID_AC) {
+	else if(G.sipo->blocktype==ID_PO) {
 
-		G.sipo->totipo = make_action_editipo(G.sipo->ipo, (EditIpo**)&G.sipo->editipo);
+		G.sipo->totipo = make_bone_editipo(G.sipo->ipo, (EditIpo**)&G.sipo->editipo);
 		if (ob) {
-			ob->ipowin= ID_AC;
+			ob->ipowin= ID_PO;
 		}
 	}
 
@@ -1259,73 +888,187 @@ void make_editipo(void)
 		
 	}
 	else {
-		if(G.sipo->blocktype==ID_OB) {
-			G.v2d->cur.xmin= 0.0;
-			G.v2d->cur.xmax= EFRA;
-			G.v2d->cur.ymin= -5.0;
-			G.v2d->cur.ymax= +5.0;
-		}
-		else if(G.sipo->blocktype==ID_CA) {
-			G.v2d->cur.xmin= 0.0;
-			G.v2d->cur.xmax= EFRA;
-			G.v2d->cur.ymin= 0.0;
-			G.v2d->cur.ymax= 100.0;
-		}
-		else if ELEM5(G.sipo->blocktype, ID_MA, ID_CU, ID_WO, ID_LA, IPO_CO) {
-			G.v2d->cur.xmin= (float)-0.1;
-			G.v2d->cur.xmax= EFRA;
-			G.v2d->cur.ymin= (float)-0.1;
-			G.v2d->cur.ymax= (float)+1.1;
-		}
-		else if(G.sipo->blocktype==ID_TE) {
-			G.v2d->cur.xmin= (float)-0.1;
-			G.v2d->cur.xmax= EFRA;
-			G.v2d->cur.ymin= (float)-0.1;
-			G.v2d->cur.ymax= (float)+1.1;
-		}
-		else if(G.sipo->blocktype==ID_SEQ) {
-			G.v2d->cur.xmin= -5.0;
-			G.v2d->cur.xmax= 105.0;
-			G.v2d->cur.ymin= (float)-0.1;
-			G.v2d->cur.ymax= (float)+1.1;
-		}
-		else if(G.sipo->blocktype==ID_KE) {
-			G.v2d->cur.xmin= (float)-0.1;
-			G.v2d->cur.xmax= EFRA;
-			G.v2d->cur.ymin= (float)-0.1;
-			G.v2d->cur.ymax= (float)+2.1;
-		}
-
+		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
 	}
 }
 
-
-void test_editipo(void)
+/* evaluates context in the current UI */
+/* blocktype is type of ipo */
+/* from is the base pointer to find data to change (ob in case of action or pose) */
+static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname, char *constname)
 {
-	Ipo *ipo;
-	ID *from;
+	Object *ob= OBACT;
 	
-	if(G.sipo->editipo==NULL){
-		make_editipo();
+	*from= NULL;
+	*ipo= NULL;
+	
+	if(blocktype==ID_CO) {
+		if (ob) {
+			bConstraintChannel *chan;
+			bConstraint *con= get_active_constraint(ob);
+			
+			if(con) {
+				BLI_strncpy(constname, con->name, 32);
+				
+				chan= get_active_constraint_channel(ob);
+				if(chan) {
+					*ipo= chan->ipo;
+					BLI_strncpy(constname, con->name, 32);
+				}
+				
+				*from= &ob->id;
+				
+				/* set actname if in posemode */
+				if(ob->action) {
+					if(ob->flag & OB_POSEMODE) {
+						bPoseChannel *pchan= get_active_posechannel(ob);
+						if(pchan)
+							BLI_strncpy(actname, pchan->name, 32);
+					}
+					else if(ob->ipoflag & OB_ACTION_OB)
+						strcpy(actname, "Object");
+				}
+			}
+		}
 	}
-	else {
-		ipo= get_ipo_to_edit(&from);
-
-		if(G.sipo->ipo != ipo || G.sipo->from!=from)
-			make_editipo();
+	else if(blocktype==ID_PO) {
+		if (ob && ob->action) {
+			bPoseChannel *pchan= get_active_posechannel(ob);
+			
+			*from= (ID *)ob;
+			if (pchan) {
+				bActionChannel *achan;
+				
+				BLI_strncpy(actname, pchan->name, 32);	/* also set when no channel yet */
+				
+				achan= get_action_channel(ob->action, pchan->name);
+				if(achan)
+					*ipo= achan->ipo;
+			}
+		} 
 		
 	}
-
-	if (G.sipo->pin)
-		return;
-
-
-	if(G.sipo->ipo)
-		G.sipo->ipo->cur = G.v2d->cur;
-
+	else if(blocktype==ID_OB) {
+		if(ob) {
+			*from= (ID *)ob;
+			if(ob->ipoflag & OB_ACTION_OB) {
+				if (ob->action) {
+					bActionChannel *achan= get_action_channel(ob->action, "Object");
+					if(achan) {
+						*ipo= achan->ipo;
+						BLI_strncpy(actname, achan->name, 32);
+					}
+				}
+			}
+			else {
+				*ipo= ob->ipo;
+			}
+		}
+	}
+	else if(blocktype==ID_SEQ) {
+		extern Sequence *last_seq;
+		
+		*from= (ID *)last_seq;
+		if(last_seq) *ipo= last_seq->ipo;
+	}
+	else if(blocktype==ID_WO) {
+		World *wo= G.scene->world;
+		*from= (ID *)wo;
+		if(wo) *ipo= wo->ipo;
+	}
+	else if(blocktype==ID_TE) {
+		if(ob) {
+			Tex *tex= give_current_texture(ob, ob->actcol);
+			*from= (ID *)tex;
+			if(tex) *ipo= tex->ipo;
+		}
+	}
+	else if(blocktype==ID_MA) {
+		if(ob) {
+			Material *ma= give_current_material(ob, ob->actcol);
+			*from= (ID *)ma;
+			if(ma) *ipo= ma->ipo;
+		}
+	}
+	else if(blocktype==ID_KE) {
+		if(ob) {
+			Key *key= ob_get_key(ob);
+			*from= (ID *)key;
+			if(key) *ipo= key->ipo;
+		}
+	}
+	else if(blocktype==ID_CU) {
+		if(ob && ob->type==OB_CURVE) {
+			Curve *cu= ob->data;
+			*from= (ID *)cu;
+			*ipo= cu->ipo;
+		}
+	}
+	else if(blocktype==ID_LA) {
+		if(ob && ob->type==OB_LAMP) {
+			Lamp *la= ob->data;
+			*from= (ID *)la;
+			*ipo= la->ipo;
+		}
+	}
+	else if(blocktype==ID_CA) {
+		if(ob && ob->type==OB_CAMERA) {
+			Camera *ca= ob->data;
+			*from= (ID *)ca;
+			if(ca) *ipo= ca->ipo;
+		}
+	}
+	else if(blocktype==ID_SO) {
+		
+		//		if (G.buts && G.buts->mainb == BUTS_SOUND) {
+		//			bSound *sound = G.buts->lockpoin;
+		//			*from= (ID *)sound;
+		//			if(sound) *ipo= sound->ipo;
+		//		}
+	}
 }
 
-/* ****************************************** */
+/* called on each redraw, check if editipo data has to be remade */
+void test_editipo(void)
+{
+	int doit= 0;
+	
+	if(G.sipo->pin==0) {
+		Ipo *ipo;
+		ID *from;
+		char actname[32]="", constname[32]="";
+		
+		get_ipo_context(G.sipo->blocktype, &from, &ipo, actname, constname);
+		
+		if(G.sipo->ipo != ipo) {
+			G.sipo->ipo= ipo;
+			if(ipo) G.v2d->cur= ipo->cur;
+			doit= 1;
+		}
+		if(G.sipo->from != from) {
+			G.sipo->from= from;
+			doit= 1;
+		}
+		if( strcmp(G.sipo->actname, actname)) {
+			BLI_strncpy(G.sipo->actname, actname, 32);
+			doit= 1;
+		}
+		if( strcmp(G.sipo->constname, constname)) {
+			BLI_strncpy(G.sipo->constname, constname, 32);
+			doit= 1;
+		}
+		
+		if(G.sipo->ipo)
+			G.sipo->ipo->cur = G.v2d->cur;
+		
+	}
+		
+	if(G.sipo->editipo==NULL || doit) {
+		make_editipo();
+	}
+}
+
+/* ****************** EditIpo ************************ */
 
 int totipo_edit, totipo_sel, totipo_curve, totipo_vis, totipo_vert, totipo_vertsel, totipo_key, totipo_keysel;
 
@@ -1426,6 +1169,7 @@ void update_editipo_flags(void)
 	}
 }
 
+/* sort of enter/leave editmode for curves */
 void set_editflag_editipo(void)
 {
 	EditIpo *ei;
@@ -1470,171 +1214,7 @@ void set_editflag_editipo(void)
 	scrarea_queue_winredraw(curarea);
 }
 
-void ipo_toggle_showkey(void) 
-{
-	if(G.sipo->showkey) {
-		G.sipo->showkey= 0;
-		swap_selectall_editipo();	/* sel all */
-	}
-	else G.sipo->showkey= 1;
-	free_ipokey(&G.sipo->ipokey);
-	if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
-
-	BIF_undo_push("Toggle show key Ipo");
-}
-
-void swap_selectall_editipo(void)
-{
-	Object *ob;
-	EditIpo *ei;
-	IpoKey *ik;
-	BezTriple *bezt;
-	int a, b; /*  , sel=0; */
-	
-	get_status_editipo();
-
-	if(G.sipo->showkey) {
-		ik= G.sipo->ipokey.first;
-		while(ik) {
-			if(totipo_vertsel) ik->flag &= ~1;
-			else ik->flag |= 1;
-			ik= ik->next;
-		}
-		update_editipo_flags();
-
-		if(G.sipo->showkey && G.sipo->blocktype==ID_OB ) {
-			ob= OBACT;
-			if(ob && (ob->ipoflag & OB_DRAWKEY)) draw_object_ext(BASACT);
-		}
-	}
-	else if(totipo_edit==0) {
-		ei= G.sipo->editipo;
-		if (ei){
-			for(a=0; a<G.sipo->totipo; a++) {
-				if( ei->flag & IPO_VISIBLE ) {
-					if(totipo_sel) ei->flag &= ~IPO_SELECT;
-					else ei->flag |= IPO_SELECT;
-				}
-				ei++;
-			}
-			update_editipo_flags();
-		}
-		get_status_editipo();
-	}
-	else {
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu ) {
-				bezt= ei->icu->bezt;
-				if(bezt) {
-					b= ei->icu->totvert;
-					while(b--) {
-						if(totipo_vertsel) {
-							bezt->f1= bezt->f2= bezt->f3= 0;
-						}
-						else {
-							bezt->f1= bezt->f2= bezt->f3= 1;
-						}
-						bezt++;
-					}
-				}
-			}
-			ei++;
-		}
-		
-	}
-	
-	BIF_undo_push("Swap select all Ipo");
-	scrarea_queue_winredraw(curarea);
-	
-}
-
-void swap_visible_editipo(void)
-{
-	EditIpo *ei;
-	Object *ob;
-	int a; /*  , sel=0; */
-	
-	get_status_editipo();
-	
-	
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++) {
-		if(totipo_vis==0) {
-			if(ei->icu) {
-				ei->flag |= IPO_VISIBLE;
-				ei->flag |= IPO_SELECT;
-			}
-		}
-		else ei->flag &= ~IPO_VISIBLE;
-		ei++;
-	}
-	
-	update_editipo_flags();
-	
-	if(G.sipo->showkey) {
-		
-		make_ipokey();
-		
-		ob= OBACT;
-		if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
-	}
-
-	scrarea_queue_winredraw(curarea);
-	BIF_undo_push("Swap Visible Ipo");	
-}
-
-void deselectall_editipo(void)
-{
-	EditIpo *ei;
-	IpoKey *ik;
-	BezTriple *bezt;
-	int a, b; /*  , sel=0; */
-	
-	get_status_editipo();
-	
-	if(G.sipo->showkey) {
-		ik= G.sipo->ipokey.first;
-		while(ik) {
-			ik->flag &= ~1;
-			ik= ik->next;
-		}
-		update_editipo_flags();
-
-	}
-	else if(totipo_edit==0) {
-		
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++) {
-			if( ei->flag & IPO_VISIBLE ) {
-				ei->flag &= ~IPO_SELECT;
-			}
-			ei++;
-		}
-		update_editipo_flags();
-	}
-	else {
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu ) {
-				if(ei->icu->bezt) {
-					bezt= ei->icu->bezt;
-					b= ei->icu->totvert;
-					while(b--) {
-						bezt->f1= bezt->f2= bezt->f3= 0;
-						bezt++;
-					}
-				}
-			}
-			ei++;
-		}
-	}
-	
-	BIF_undo_push("(De)select all Ipo");
-	scrarea_queue_winredraw(curarea);
-}
-
-short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
+static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 {
 	/* selected verts get a disadvantage */
 	/* in icu and (bezt or bp) the nearest is written */
@@ -1651,7 +1231,7 @@ short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu)) {
 			
 			if(ei->icu->bezt) {
 				bezt1= ei->icu->bezt;
@@ -1704,54 +1284,191 @@ short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 	return hpoint;
 }
 
-
-void move_to_frame(void)
+void mouse_select_ipo(void)
 {
-	EditIpo *ei;
+	Object *ob;
+	Key *key;
+	KeyBlock *kb, *actkb=NULL, *curkb;
+	EditIpo *ei, *actei= 0;
+	IpoCurve *icu;
+	IpoKey *ik, *actik;
 	BezTriple *bezt;
-	ID *id;
-	float cfra;
-	int a, b;
+	float x, y, dist, mindist;
+	int a, oldflag = 0, hand, ok;
+	short mval[2], xo, yo;
 	
 	if(G.sipo->editipo==0) return;
-
-	ei= G.sipo->editipo;
-
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-			if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
+	
+	get_status_editipo();
+	
+	if(G.sipo->showkey) {
+		getmouseco_areawin(mval);
+		
+		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+		actik= 0;
+		mindist= 1000.0;
+		ik= G.sipo->ipokey.first;
+		while(ik) {
+			dist= (float)(fabs(ik->val-x));
+			if(ik->flag & 1) dist+= 1.0;
+			if(dist < mindist) {
+				actik= ik;
+				mindist= dist;
+			}
+			ik= ik->next;
+		}
+		if(actik) {
+			oldflag= actik->flag;
 			
-				if(ei->icu->bezt) {
-					
-					b= ei->icu->totvert;
-					bezt= ei->icu->bezt;
-					while(b--) {
-						if(BEZSELECTED(bezt)) {
-						
-							cfra=  bezt->vec[1][0]/G.scene->r.framelen;
-
-							id= G.sipo->from;
-							if(id && GS(id->name)==ID_OB ) {
-								Object *ob= (Object *)id;
-								if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-									cfra+= ob->sf/G.scene->r.framelen;
-								}
-							}
-							CFRA= (short)floor(cfra+0.5);
-						
-							if(CFRA < 1) CFRA= 1;
-							update_for_newframe();
-							
-							break;
-						}
-						bezt++;
+			if(G.qual & LR_SHIFTKEY);
+			else deselectall_editipo();
+			
+			if(G.qual & LR_SHIFTKEY) {
+				if(oldflag & 1) actik->flag &= ~1;
+				else actik->flag |= 1;
+			}
+			else {
+				actik->flag |= 1;
+			}
+		}
+	}
+	else if(totipo_edit) {
+		
+		hand= findnearest_ipovert(&icu, &bezt);
+		
+		if(G.qual & LR_SHIFTKEY) {
+			if(bezt) {
+				if(hand==1) {
+					if(BEZSELECTED(bezt)) {
+						bezt->f1= bezt->f2= bezt->f3= 0;
+					}
+					else {
+						bezt->f1= bezt->f2= bezt->f3= 1;
+					}
+				}
+				else if(hand==0) {
+					if(bezt->f1 & 1) bezt->f1= 0;
+					else bezt->f1= 1;
+				}
+				else {
+					if(bezt->f3 & 1) bezt->f3= 0;
+					else bezt->f3= 1;
+				}
+			}				
+		}
+		else {
+			deselectall_editipo();
+			
+			if(bezt) {
+				if(hand==1) {
+					bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
+				}
+				else if(hand==0) bezt->f1|= 1;
+				else bezt->f3|= 1;
+			}
+		}
+	}
+	else {
+		
+		/* vertex keys ? */
+		if(G.sipo->blocktype==ID_KE && G.sipo->from) {
+			int i, index= 1;
+			
+			key= (Key *)G.sipo->from;
+			ob= OBACT;
+			curkb= BLI_findlink(&key->block, ob->shapenr-1);
+			
+			ei= G.sipo->editipo;
+			if(key->type==KEY_NORMAL || (ei->flag & IPO_VISIBLE)) {
+				getmouseco_areawin(mval);
+				
+				areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+				/* how much is 20 pixels? */
+				mindist= (float)(20.0*(G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)curarea->winy);
+				
+				for(i=1, kb= key->block.first; kb; kb= kb->next, i++) {
+					dist= (float)(fabs(kb->pos-y));
+					if(kb==curkb) dist+= (float)0.01;
+					if(dist < mindist) {
+						actkb= kb;
+						mindist= dist;
+						index= i;
+					}
+				}
+				if(actkb) {
+					ok= TRUE;
+					if(G.obedit && actkb!=curkb) {
+						ok= okee("Copy key after leaving Edit Mode");
+					}
+					if(ok) {
+						/* also does all keypos */
+						deselectall_editipo();
+						set_active_key(index);
+						set_active_editipo(ei+index-1);
 					}
 				}
 			}
 		}
+		
+		/* select curve */
+		if(actkb==NULL) {
+			if(totipo_vis==1) {
+				ei= G.sipo->editipo;
+				for(a=0; a<G.sipo->totipo; a++, ei++) {
+					if(ei->icu) {
+						if(ei->flag & IPO_VISIBLE) actei= ei;
+					}
+				}
+			}
+			else if(totipo_vis>1) {
+				actei= select_proj_ipo(0, 0);
+			}
+			
+			if(actei) oldflag= actei->flag;
+			
+			if(G.qual & LR_SHIFTKEY);
+			else deselectall_editipo();
+			
+			if(actei) {
+				if(G.qual & LR_SHIFTKEY) {
+					if(oldflag & IPO_SELECT) actei->flag &= ~IPO_SELECT;
+					else actei->flag |= IPO_SELECT;
+				}
+				else {
+					actei->flag |= IPO_SELECT;
+				}
+				set_active_editipo(actei);
+			}
+		}
 	}
-	BIF_undo_push("Set frame to selected Ipo vertex");
+	
+	update_editipo_flags();
+	
+	force_draw(0);
+	BIF_undo_push("Select Ipo");
+	
+	if(G.sipo->showkey && G.sipo->blocktype==ID_OB) {
+		ob= OBACT;
+		if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
+	}
+	
+	getmouseco_areawin(mval);
+	xo= mval[0]; 
+	yo= mval[1];
+	
+	while(get_mbut()&R_MOUSE) {		
+		getmouseco_areawin(mval);
+		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
+			
+			if(actkb) move_keys(OBACT);
+			else transform_ipo('g');
+			
+			return;
+		}
+		BIF_wait_for_statechange();
+	}
 }
+
 
 /* *********************************** */
 
@@ -1843,203 +1560,189 @@ void do_ipo_selectbuttons(void)
 	BIF_undo_push("Select Ipo curve");
 }
 
-/* ******************************************* */
+/* ********************************* Inserting keys ********************************************* */
 
-EditIpo *get_editipo(void)
+/* depending type, it returns ipo, if neded it creates one */
+/* returns either action ipo or "real" ipo */
+/* arguments define full context;
+   - *from has to be set always, to Object in case of Actions
+   - blocktype defines available channels of Ipo struct (blocktype ID_OB can be in action too)
+   - if actname, use this to locate action, and optional constname to find the channel 
+*/
+
+/* note; check header_ipo.c, spaceipo_assign_ipo() too */
+Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 {
-	EditIpo *ei;
-	int a; /*  , sel=0; */
+
+	if(from==NULL || from->lib) return NULL;
 	
-	get_status_editipo();
-	
-	if(totipo_edit>1) {
-		return 0;
-	}
-	if(G.sipo->editipo==0) return 0;
-	
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++) {
-		if(ei->flag & IPO_VISIBLE) {
-			if( ei->flag & IPO_EDIT ) return ei;
-			else if(totipo_vis==1) return ei;
-			
-			if(ei->flag & IPO_SELECT) {
-				if(totipo_sel==1) return ei;
+	/* first check action ipos */
+	if(actname && actname[0]) {
+		Object *ob= (Object *)from;
+		bActionChannel *achan;
+		
+		if(ob->action==NULL)
+			ob->action= add_empty_action(blocktype);
+		
+		achan= verify_action_channel(ob->action, actname);
+		
+		if(achan) {
+			/* constraint exception */
+			if(blocktype==ID_CO) {
+				bConstraintChannel *conchan= verify_constraint_channel(&achan->constraintChannels, constname);
+				if(conchan->ipo==NULL) {
+					conchan->ipo= add_ipo("CoIpo", ID_CO);	
+				}
+				return conchan->ipo;
+			}
+			else {
+				if(achan->ipo==NULL) {
+					achan->ipo= add_ipo("ActIpo", blocktype);
+				}
+				
+				return achan->ipo;
 			}
 		}
-		ei++;
 	}
-	return 0;
+	else {
+		
+		switch(GS(from->name)) {
+		case ID_OB:
+			{
+				Object *ob= (Object *)from;
+				/* constraint exception */
+				if(blocktype==ID_CO) {
+					bConstraintChannel *conchan= verify_constraint_channel(&ob->constraintChannels, constname);
+					if(conchan->ipo==NULL) {
+						conchan->ipo= add_ipo("CoIpo", ID_CO);	
+					}
+					return conchan->ipo;
+				}
+				else if(blocktype==ID_OB) {
+					if(ob->ipo==NULL) {
+						ob->ipo= add_ipo("ObIpo", ID_OB);
+					}
+					return ob->ipo;
+				}
+			}
+			break;
+		case ID_MA:
+			{
+				Material *ma= (Material *)from;
+
+				if(ma->ipo==NULL) {
+					ma->ipo= add_ipo("MatIpo", ID_MA);
+				}
+				return ma->ipo;
+			}
+			break;
+		case ID_TE:
+			{
+				Tex *tex= (Tex *)from;
+
+				if(tex->ipo==NULL) {
+					tex->ipo= add_ipo("TexIpo", ID_TE);
+				}
+				return tex->ipo;
+			}
+			break;
+		case ID_SEQ:
+			{
+				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
+
+				if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
+					if(seq->ipo==NULL) {
+						seq->ipo= add_ipo("SeqIpo", ID_SEQ);
+					}
+					return seq->ipo;
+				}
+			}
+			break;
+		case ID_CU:
+			{
+				Curve *cu= (Curve *)from;
+				
+				if(cu->ipo==NULL) {
+					cu->ipo= add_ipo("CuIpo", ID_CU);
+				}
+				return cu->ipo;
+			}
+			break;
+		case ID_KE:
+			{
+				Key *key= (Key *)from;
+
+				if(key->ipo==NULL) {
+					key->ipo= add_ipo("KeyIpo", ID_KE);
+				}
+				return key->ipo;
+			}
+			break;
+		case ID_WO:
+			{
+				World *wo= (World *)from;
+
+				if(wo->ipo==NULL) {
+					wo->ipo= add_ipo("WoIpo", ID_WO);
+				}
+				return wo->ipo;
+			}
+			break;
+		case ID_LA:
+			{
+				Lamp *la= (Lamp *)from;
+				
+				if(la->ipo==NULL) {
+					la->ipo= add_ipo("LaIpo", ID_LA);
+				}
+				return la->ipo;
+			}
+			break;
+		case ID_CA:
+			{
+				Camera *ca= (Camera *)from;
+
+				if(ca->ipo==NULL) {
+					ca->ipo= add_ipo("CaIpo", ID_CA);
+				}
+				return ca->ipo;
+			}
+			break;
+		case ID_SO:
+			{
+				bSound *snd= (bSound *)from;
+
+				if(snd->ipo==NULL) {
+					snd->ipo= add_ipo("SndIpo", ID_SO);
+				}
+				return snd->ipo;
+			}
+		}
+	}
+	
+	return NULL;	
 }
 
-
-Ipo *get_ipo(ID *from, short type, int make)
+/* returns and creates */
+IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, int adrcode)
 {
-	Object *ob;
-	Material *ma;
-	Tex *tex;
-	Curve *cu;
-	Sequence *seq;
-	Key *key;
-	World *wo;
-	Lamp *la;
-	Camera *ca;
-	Ipo *ipo= NULL;
-	bAction *act;
-
-	if(from==NULL) return NULL;
-	
-	if( type==ID_OB) {
-		ob= (Object *)from;
-		if(ob->id.lib) return NULL;
-		
-		ipo= ob->ipo;
-		if(make && ipo==NULL) ipo= ob->ipo= add_ipo("ObIpo", ID_OB);	
-	}
-	else if( type==IPO_CO){
-		bConstraintChannel *chan;
-		
-		ob= (Object *)from;
-		if(ob->id.lib) return NULL;
-		
-		chan= get_active_constraint_channel(ob);
-
-		if (chan){
-			ipo= chan->ipo;
-			if(make && ipo==NULL) ipo= chan->ipo= add_ipo("CoIpo", IPO_CO);	
-		}
-	}
-	else if( type==ID_AC) {
-		act= (bAction *)from;
-		if (act->id.lib) return NULL;
-		
-		/* weak... the *from pointer has action, ipo doesnt give more context info yet */
-		verify_active_action_channel(OBACT);
-		
-		if (act->achan==NULL)
-			return NULL;
-		
-		ipo= act->achan->ipo;
-
-		if(make && ipo==NULL) {
-			ipo= act->achan->ipo= add_ipo(act->achan->name, ID_AC);
-			allspace(REMAKEIPO, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-		}
-	}
-	else if( type==ID_MA) {
-		ma= (Material *)from;
-		if(ma->id.lib) return NULL;
-		ipo= ma->ipo;
-		
-		if(make && ipo==NULL) ipo= ma->ipo= add_ipo("MatIpo", ID_MA);
-	}
-	else if( type==ID_TE) {
-		tex= (Tex *)from;
-		if(tex->id.lib) return NULL;
-		ipo= tex->ipo;
-		
-		if(make && ipo==NULL) ipo= tex->ipo= add_ipo("TexIpo", ID_TE);
-	}
-	else if( type==ID_SEQ) {
-		seq= (Sequence *)from;
-
-		if((seq->type & SEQ_EFFECT)||(seq->type == SEQ_SOUND)) {
-			ipo= seq->ipo;
-			if(make && ipo==NULL) ipo= seq->ipo= add_ipo("SeqIpo", ID_SEQ);
-		}
-		else return NULL;
-	}		
-	else if( type==ID_CU) {
-		cu= (Curve *)from;
-		if(cu->id.lib) return NULL;
-		ipo= cu->ipo;
-		
-		if(make && ipo==NULL) ipo= cu->ipo= add_ipo("CuIpo", ID_CU);
-	}
-	else if( type==ID_KE) {
-		key= (Key *)from;
-		if(key->id.lib) return NULL;
-		ipo= key->ipo;
-		
-		if(make && ipo==NULL) ipo= key->ipo= add_ipo("KeyIpo", ID_KE);
-	}
-	else if( type==ID_WO) {
-		wo= (World *)from;
-		if(wo->id.lib) return NULL;
-		ipo= wo->ipo;
-		
-		if(make && ipo==NULL) ipo= wo->ipo= add_ipo("WoIpo", ID_WO);
-	}
-	else if( type==ID_LA) {
-		la= (Lamp *)from;
-		if(la->id.lib) return NULL;
-		ipo= la->ipo;
-		
-		if(make && ipo==NULL) ipo= la->ipo= add_ipo("LaIpo", ID_LA);
-	}
-	else if( type==ID_CA) {
-		ca= (Camera *)from;
-		if(ca->id.lib) return NULL;
-		ipo= ca->ipo;
-		
-		if(make && ipo==NULL) ipo= ca->ipo= add_ipo("CaIpo", ID_CA);
-	}
-	else if( type==ID_SO) {
-		bSound *snd= (bSound *)from;
-		if(snd->id.lib) return NULL;
-		ipo= snd->ipo;
-		
-		if(make && ipo==NULL) ipo= snd->ipo= add_ipo("SndIpo", ID_SO);
-	}
-	else return NULL;
-	
-	return ipo;	
-}
-
-
-// this function should not have the G.sipo in it...
-
-IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo)
-{
-	Ipo *ipo= NULL;
-	IpoCurve *icu=NULL;
+	Ipo *ipo;
+	IpoCurve *icu= NULL;
 	
 	/* return 0 if lib */
-	/* also test if ipo and ipocurve exist */
-
-	if (useipo==NULL) {
-		if (G.sipo==NULL || G.sipo->pin==0){
-			ipo= get_ipo(from, type, 1);	/* 1= make */
-		}
-		else
-			ipo = G.sipo->ipo;
-		
-		if(G.sipo) {
-			if (G.sipo->pin==0) G.sipo->ipo= ipo;
-		}
-	}
-	else
-		ipo= useipo;
-
-		
-	if(ipo && ipo->id.lib==0) {
+	/* creates ipo too */
+	ipo= verify_ipo(from, blocktype, actname, constname);
 	
-		icu= ipo->curve.first;
-		while(icu) {
+	if(ipo && ipo->id.lib==NULL) {
+		
+		for(icu= ipo->curve.first; icu; icu= icu->next) {
 			if(icu->adrcode==adrcode) break;
-			icu= icu->next;
 		}
-		if(icu==0) {
+		if(icu==NULL) {
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
-			
-			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 
-			if (!useipo && G.sipo && G.sipo->pin)
-				icu->blocktype = G.sipo->blocktype;
-			else
-				icu->blocktype= type;
+			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
+			icu->blocktype= blocktype;
 			icu->adrcode= adrcode;
 			
 			set_icu_vars(icu);
@@ -2047,6 +1750,7 @@ IpoCurve *get_ipocurve(ID *from, short type, int adrcode, Ipo *useipo)
 			BLI_addtail( &(ipo->curve), icu);
 		}
 	}
+
 	return icu;
 }
 
@@ -2138,17 +1842,19 @@ void add_vert_ipo(void)
 	
 	if(mval[0]>G.v2d->mask.xmax) return;
 	
-	ei= get_editipo();
+	ei= get_active_editipo();
 	if(ei==0) {
-		error("Too many (or no) EditIpos");
+		error("No active Ipo curve");
 		return;
 	}
 	
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	if(ei->icu==NULL) {
-		if(G.sipo->from)
-			ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, 0);
+		if(G.sipo->from) {
+			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+			ei->flag |= ei->icu->flag & IPO_AUTO_HORIZ;	/* new curve could have been added, weak... */
+		}
 	}
 	if(ei->icu==NULL) return;
 
@@ -2169,6 +1875,591 @@ void add_vert_ipo(void)
 	BIF_undo_push("Add Ipo vertex");
 }
 
+static void *get_context_ipo_poin(ID *id, int blocktype, char *actname, IpoCurve *icu, int *vartype)
+{
+	if(blocktype==ID_PO) {
+		if(GS(id->name)==ID_OB) {
+			Object *ob= (Object *)id;
+			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+			
+			*vartype= IPO_FLOAT;
+			return get_pchan_ipo_poin(pchan, icu->adrcode);
+		}
+		return NULL;
+	}
+	else
+		return get_ipo_poin(id, icu, vartype);
+
+}
+
+void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
+{
+	IpoCurve *icu;
+	Object *ob;
+	void *poin= NULL;
+	float curval, cfra;
+	int vartype;
+	
+	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+	
+	if(icu) {
+		
+		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+		
+		if(poin) {
+			curval= read_ipo_poin(poin, vartype);
+			
+			cfra= frame_to_float(CFRA);
+			
+			/* if action is mapped in NLA, it returns a correction */
+			if(actname && actname[0] && GS(id->name)==ID_OB)
+				cfra= get_action_frame((Object *)id, cfra);
+			
+			if( GS(id->name)==ID_OB ) {
+				ob= (Object *)id;
+				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+					/* actually frametofloat calc again! */
+					cfra-= ob->sf*G.scene->r.framelen;
+				}
+			}
+			
+			insert_vert_ipo(icu, cfra, curval);
+		}
+	}
+}
+
+void insertkey_editipo(void)
+{
+	EditIpo *ei;
+	IpoKey *ik;
+	ID *id;
+	float *fp, cfra, *insertvals;
+	int a, nr, ok, tot;
+	short event;
+	
+	ei= get_active_editipo();
+	if(ei && ei->icu && ei->icu->driver) 
+		event= pupmenu("Insert Curve %t|Default one-to-one mapping %x3");
+	else if(G.sipo->showkey)
+		event= pupmenu("Insert Key Vertices %t|Current Frame %x1|Selected Keys %x2");
+	else 
+		event= pupmenu("Insert Key Vertices %t|Current Frame %x1");
+	
+	if(event<1) return;
+	
+	if(event==3) {
+		IpoDriver *driver= ei->icu->driver;
+		
+		if(ei->icu->bezt) MEM_freeN(ei->icu->bezt);
+		ei->icu->totvert= 0;
+		ei->icu->bezt= NULL;
+		
+		insert_vert_ipo(ei->icu, 0.0f, 0.0f);
+		
+		if(ELEM3(driver->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
+			if(ei->disptype==IPO_DISPDEGR)
+				insert_vert_ipo(ei->icu, 18.0f, 18.0f);
+			else
+				insert_vert_ipo(ei->icu, 18.0f, 1.0f);
+		}
+		else
+			insert_vert_ipo(ei->icu, 1.0f, 1.0f);
+		
+		ei->flag |= IPO_SELECT|IPO_VISIBLE;
+		ei->icu->flag= ei->flag;
+		ei->icu->extrap= IPO_DIR;
+
+		do_ipo_buttons(B_IPOHOME);
+	}
+	else {
+		ei= G.sipo->editipo;
+		for(nr=0; nr<G.sipo->totipo; nr++, ei++) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+			
+				ok= 0;
+				if(G.sipo->showkey) ok= 1;
+				else if(ei->flag & IPO_SELECT) ok= 1;
+
+				if(ok) {
+					/* count amount */
+					if(event==1) tot= 1;
+					else {
+						ik= G.sipo->ipokey.first;
+						tot= 0;
+						while(ik) {
+							if(ik->flag & 1) tot++;
+							ik= ik->next;
+						}
+					}
+					if(tot) {
+					
+						/* correction for ob timeoffs */
+						cfra= frame_to_float(CFRA);
+						id= G.sipo->from;	
+						if(id && GS(id->name)==ID_OB ) {
+							Object *ob= (Object *)id;
+							if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+								cfra-= ob->sf*G.scene->r.framelen;
+							}
+						}
+						else if(id && GS(id->name)==ID_SEQ) {
+							extern Sequence *last_seq;	/* editsequence.c */
+							
+							if(last_seq) {
+								cfra= (float)(100.0*(cfra-last_seq->startdisp)/((float)(last_seq->enddisp-last_seq->startdisp)));
+							}
+						}
+				
+						insertvals= MEM_mallocN(sizeof(float)*2*tot, "insertkey_editipo");
+						/* make sure icu->curval is correct */
+						calc_ipo(G.sipo->ipo, cfra);
+						
+						if(event==1) {
+							insertvals[0]= cfra;
+							
+							insertvals[1]= ei->icu->curval;
+						}
+						else {
+							fp= insertvals;
+							ik= G.sipo->ipokey.first;
+							while(ik) {
+								if(ik->flag & 1) {
+									calc_ipo(G.sipo->ipo, ik->val);
+
+									fp[0]= ik->val;
+									fp[1]= ei->icu->curval;
+									fp+= 2;
+								}
+								ik= ik->next;
+							}
+						}
+						fp= insertvals;
+						for(a=0; a<tot; a++, fp+=2) {
+							insert_vert_ipo(ei->icu, fp[0], fp[1]);
+						}
+						
+						MEM_freeN(insertvals);
+						calc_ipo(G.sipo->ipo, (float)CFRA);
+					}
+				}
+			}
+		}
+	}
+	BIF_undo_push("Insert Key Ipo");
+	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWIPO, 0);
+	allspace(REMAKEIPO, 0);
+}
+
+
+void common_insertkey(void)
+{
+	Base *base;
+	Object *ob;
+	Material *ma;
+	ID *id;
+	IpoCurve *icu;
+	World *wo;
+	Lamp *la;
+	int tlay, map, event;
+	char menustr[256];
+	
+	if(curarea->spacetype==SPACE_IPO) {
+		insertkey_editipo();
+	}
+	else if(curarea->spacetype==SPACE_BUTS) {
+		if(G.buts->mainb==CONTEXT_SHADING) {
+			int tab= G.buts->tab[CONTEXT_SHADING];
+			
+			if(tab==TAB_SHADING_MAT) {
+				id= G.buts->lockpoin;
+				ma= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(ma->texact);
+					
+					if(event==0 || event==10) {
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_R);
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_G);
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_B);
+					}
+					if(event==1 || event==10) {
+						insertkey(id, ID_MA, NULL, NULL, MA_ALPHA);
+					}
+					if(event==2 || event==10) {
+						insertkey(id, ID_MA, NULL, NULL, MA_HASIZE);
+					}
+					if(event==3 || event==10) {
+						insertkey(id, ID_MA, NULL, NULL, MA_MODE);
+					}
+					if(event==10) {
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_R);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_G);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_B);
+						insertkey(id, ID_MA, NULL, NULL, MA_REF);
+						insertkey(id, ID_MA, NULL, NULL, MA_EMIT);
+						insertkey(id, ID_MA, NULL, NULL, MA_AMB);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC);
+						insertkey(id, ID_MA, NULL, NULL, MA_HARD);
+						insertkey(id, ID_MA, NULL, NULL, MA_MODE);
+						insertkey(id, ID_MA, NULL, NULL, MA_TRANSLU);
+						insertkey(id, ID_MA, NULL, NULL, MA_ADD);
+					}
+					if(event==14) {
+						insertkey(id, ID_MA, NULL, NULL, MA_RAYM);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIR);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIRI);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRA);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRAI);
+					}
+					if(event==12 || event==11) {
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_X);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Y);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Z);
+					}
+					if(event==13 || event==11) {
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_X);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Y);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Z);
+					}
+					if(event==11) {
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_R);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_G);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_B);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_DVAR);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_COLF);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_NORF);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_VARF);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_DISP);
+					}
+				}
+			}
+			else if(tab==TAB_SHADING_WORLD) {
+				id= G.buts->lockpoin;
+				wo= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|Zenith RGB%x0|Horizon RGB%x1|Mist%x2|Stars %x3|Offset%x12|Size%x13");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(wo->texact);
+					
+					if(event==0) {
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_R);
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_G);
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_B);
+					}
+					if(event==1) {
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_R);
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_G);
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_B);
+					}
+					if(event==2) {
+						insertkey(id, ID_WO, NULL, NULL, WO_MISI);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTDI);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTSTA);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTHI);
+					}
+					if(event==3) {
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_R);
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_G);
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_B);
+						insertkey(id, ID_WO, NULL, NULL, WO_STARDIST);
+						insertkey(id, ID_WO, NULL, NULL, WO_STARSIZE);
+					}
+					if(event==12) {
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_X);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Y);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Z);
+					}
+					if(event==13) {
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_X);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Y);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Z);
+					}
+				}
+			}
+			else if(tab==TAB_SHADING_LAMP) {
+				id= G.buts->lockpoin;
+				la= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spot Size%x2|Offset%x12|Size%x13");
+					if(event== -1) return;
+					
+					map= texchannel_to_adrcode(la->texact);
+					
+					if(event==0) {
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_R);
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_G);
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_B);
+					}
+					if(event==1) {
+						insertkey(id, ID_LA, NULL, NULL, LA_ENERGY);
+					}
+					if(event==2) {
+						insertkey(id, ID_LA, NULL, NULL, LA_SPOTSI);
+					}
+					if(event==12) {
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_X);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Y);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Z);
+					}
+					if(event==13) {
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_X);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Y);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Z);
+					}
+
+				}
+			}
+		}
+		else if(G.buts->mainb==CONTEXT_OBJECT) {
+			ob= OBACT;
+			if(ob && ob->type==OB_MESH) {
+				id= (ID *) (ob);
+				if(id) {
+					event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
+					if(event== -1) return;
+
+					if(event==0) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_SDAMP);
+					}
+					if(event==1) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_RDAMP);
+					}
+					if(event==2) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_PERM);
+					}
+					if(event==3) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_FSTR);
+					}
+					if(event==4) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_FFALL);
+					}
+
+				}
+			}
+		}
+		else if(G.buts->mainb==CONTEXT_EDITING) {
+			ob= OBACT;
+			if(ob && ob->type==OB_CAMERA) {
+				id= G.buts->lockpoin;
+				if(id) {
+					/* yafray: insert key extended with aperture and focal distance */
+					if (G.scene->r.renderer==R_INTERN)
+						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
+					else
+						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|Aperture%x2|FocalDistance%x3");
+					if(event== -1) return;
+
+					if(event==0) {
+						insertkey(id, ID_CA, NULL, NULL, CAM_LENS);
+					}
+					else if(event==1) {
+						insertkey(id, ID_CA, NULL, NULL, CAM_STA);
+						insertkey(id, ID_CA, NULL, NULL, CAM_END);
+					}
+					else if(event==2) {
+						insertkey(id, ID_CA, NULL, NULL, CAM_YF_APERT);
+					}
+					else if(event==3) {
+						insertkey(id, ID_CA, NULL, NULL, CAM_YF_FDIST);
+					}
+				}
+			}
+		}
+		else if(FALSE /* && G.buts->mainb==BUTS_SOUND */) {
+			if(G.ssound) {
+				id= G.buts->lockpoin;
+				if(id) {
+					event= pupmenu("Insert Key %t|Volume%x0|Pitch%x1|Panning%x2|Attennuation%x3");
+					if(event== -1) return;
+
+					if(event==0) {
+						insertkey(id, ID_SO, NULL, NULL, SND_VOLUME);
+					}
+					if(event==1) {
+						insertkey(id, ID_SO, NULL, NULL, SND_PITCH);
+					}
+					if(event==2) {
+						insertkey(id, ID_SO, NULL, NULL, SND_PANNING);
+					}
+					if(event==3) {
+						insertkey(id, ID_SO, NULL, NULL, SND_ATTEN);
+					}
+				}
+			}
+		}
+		
+		BIF_undo_push("Insert Key Buttons");
+
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWIPO, 0);
+		allspace(REMAKEIPO, 0);
+
+	}
+	else if(curarea->spacetype==SPACE_VIEW3D) {
+		ob= OBACT;
+
+		if (ob && (ob->flag & OB_POSEMODE)) {
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9");
+		}
+		else {
+			base= FIRSTBASE;
+			while(base) {
+				if TESTBASELIB(base) break;
+				base= base->next;
+			}
+			if(base==NULL) return;
+		
+			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9");
+		}
+		
+		if(ob) {
+			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");
+			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
+			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
+			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
+			if(ob->flag & OB_FROMGROUP)	strcat(menustr, "| %x6|Entire Group%x10");
+		}
+		
+		event= pupmenu(menustr);
+		if(event== -1) return;
+		
+		if(event==7) { // ob != NULL
+			insert_shapekey(ob);
+			return;
+		}
+		
+		if(event==10) {
+			Group *group= find_group(ob);
+			if(group) {
+				add_group_key(group);
+				allqueue(REDRAWBUTSOBJECT, 0);
+			}
+		}
+		
+		if (ob && (ob->flag & OB_POSEMODE)){
+			bPoseChannel *pchan;
+
+			if (ob->action && ob->action->id.lib) {
+				error ("Can't key libactions");
+				return;
+			}
+			
+			set_pose_keys(ob);  // sets pchan->flag to POSE_KEY if bone selected
+			id= &ob->id;
+			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+				if (pchan->flag & POSE_KEY){
+					if(event==0 || event==3 ||event==4) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					}
+					if(event==1 || event==3 ||event==4) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+					}
+					if(event==2 || event==4) {
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+					}
+					if (event==9 && ob->action) {
+						bActionChannel *achan;
+						
+						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
+							if (achan->ipo && !strcmp (achan->name, pchan->name)){
+								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+									insertkey(id, ID_PO, achan->name, NULL, icu->adrcode);
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+			remake_action_ipos(ob->action);
+
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+		}
+		else {
+			base= FIRSTBASE;
+			while(base) {
+				if TESTBASELIB(base) {
+					char *actname= NULL;
+					
+					id= (ID *)(base->object);
+					
+					if(ob->ipoflag & OB_ACTION_OB)
+						actname= "Object";
+					
+					/* all curves in ipo deselect */
+					if(base->object->ipo) {
+						icu= base->object->ipo->curve.first;
+						while(icu) {
+							icu->flag &= ~IPO_SELECT;
+							if(event==9) insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+							icu= icu->next;
+						}
+					}
+					
+					if(event==0 || event==3 ||event==4) {
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_X);
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_Y);
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_Z);
+					}
+					if(event==1 || event==3 ||event==4) {
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_X);
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_Y);
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_Z);
+					}
+					if(event==2 || event==4) {
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_X);
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y);
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z);
+					}
+					if(event==5) {
+						/* remove localview  */
+						tlay= base->object->lay;
+						base->object->lay &= 0xFFFFFF;
+						insertkey(id, ID_OB, actname, NULL, OB_LAY);
+						base->object->lay= tlay;
+					}
+				}
+				base= base->next;
+			}
+		}
+
+		if(event==0) BIF_undo_push("Insert Loc Key");
+		else if(event==1) BIF_undo_push("Insert Rot Key");
+		else if(event==2) BIF_undo_push("Insert Size Key");
+		else if(event==3) BIF_undo_push("Insert LocRot Key");
+		else if(event==4) BIF_undo_push("Insert LocRotSize Key");
+		else if(event==5) BIF_undo_push("Insert Layer Key");
+		else if(event==7) BIF_undo_push("Insert Vertex Key");
+		else if(event==9) BIF_undo_push("Insert Avail Key");
+
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+	}
+	
+}
+
+/* ****************************************************************************** */
+
 void add_duplicate_editipo(void)
 {
 	Object *ob;
@@ -2182,7 +2473,7 @@ void add_duplicate_editipo(void)
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
 			if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
 				icu= ei->icu;
 				
@@ -2240,7 +2531,7 @@ void remove_doubles_ipo(void)
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
 			
 			/* OR the curve is selected OR in editmode OR in keymode */
 			mode= 0;
@@ -2353,7 +2644,7 @@ void join_ipo(int mode)
 	/* first: multiple selected verts in 1 curve */
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
 			if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
 				icu= ei->icu;
 				
@@ -2479,7 +2770,7 @@ void ipo_snap(short event)
 
 	ei= G.sipo->editipo;
 	for(b=0; b<G.sipo->totipo; b++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt) {
+		if (ISPOIN3(ei, flag & IPO_VISIBLE, icu, icu->bezt)) {
 		
 			ok2= 0;
 			if(G.sipo->showkey) ok2= 1;
@@ -2546,717 +2837,8 @@ void ipo_snap(short event)
 	BIF_undo_push("Snap Ipo");
 }
 
-
-
-void mouse_select_ipo(void)
-{
-	Object *ob;
-	Key *key;
-	KeyBlock *kb, *actkb=NULL, *curkb;
-	EditIpo *ei, *actei= 0;
-	IpoCurve *icu;
-	IpoKey *ik, *actik;
-	BezTriple *bezt;
-	float x, y, dist, mindist;
-	int a, oldflag = 0, hand, ok;
-	short mval[2], xo, yo;
-	
-	if(G.sipo->editipo==0) return;
-	
-	get_status_editipo();
-	
-	if(G.sipo->showkey) {
-		getmouseco_areawin(mval);
-	
-		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-		actik= 0;
-		mindist= 1000.0;
-		ik= G.sipo->ipokey.first;
-		while(ik) {
-			dist= (float)(fabs(ik->val-x));
-			if(ik->flag & 1) dist+= 1.0;
-			if(dist < mindist) {
-				actik= ik;
-				mindist= dist;
-			}
-			ik= ik->next;
-		}
-		if(actik) {
-			oldflag= actik->flag;
-			
-			if(G.qual & LR_SHIFTKEY);
-			else deselectall_editipo();
-			
-			if(G.qual & LR_SHIFTKEY) {
-				if(oldflag & 1) actik->flag &= ~1;
-				else actik->flag |= 1;
-			}
-			else {
-				actik->flag |= 1;
-			}
-		}
-	}
-	else if(totipo_edit) {
-	
-		hand= findnearest_ipovert(&icu, &bezt);
-
-		if(G.qual & LR_SHIFTKEY) {
-			if(bezt) {
-				if(hand==1) {
-					if(BEZSELECTED(bezt)) {
-						bezt->f1= bezt->f2= bezt->f3= 0;
-					}
-					else {
-						bezt->f1= bezt->f2= bezt->f3= 1;
-					}
-				}
-				else if(hand==0) {
-					if(bezt->f1 & 1) bezt->f1= 0;
-					else bezt->f1= 1;
-				}
-				else {
-					if(bezt->f3 & 1) bezt->f3= 0;
-					else bezt->f3= 1;
-				}
-			}				
-		}
-		else {
-			deselectall_editipo();
-		
-			if(bezt) {
-				if(hand==1) {
-					bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
-				}
-				else if(hand==0) bezt->f1|= 1;
-				else bezt->f3|= 1;
-			}
-		}
-	}
-	else {
-		
-		/* vertex keys ? */
-		if(G.sipo->blocktype==ID_KE && G.sipo->from) {
-			int i, index= 1;
-			
-			key= (Key *)G.sipo->from;
-			ob= OBACT;
-			curkb= BLI_findlink(&key->block, ob->shapenr-1);
-			
-			ei= G.sipo->editipo;
-			if(key->type==KEY_NORMAL || (ei->flag & IPO_VISIBLE)) {
-				getmouseco_areawin(mval);
-				
-				areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-				/* how much is 20 pixels? */
-				mindist= (float)(20.0*(G.v2d->cur.ymax-G.v2d->cur.ymin)/(float)curarea->winy);
-				
-				for(i=1, kb= key->block.first; kb; kb= kb->next, i++) {
-					dist= (float)(fabs(kb->pos-y));
-					if(kb==curkb) dist+= (float)0.01;
-					if(dist < mindist) {
-						actkb= kb;
-						mindist= dist;
-						index= i;
-					}
-				}
-				if(actkb) {
-					ok= TRUE;
-					if(G.obedit && actkb!=curkb) {
-						ok= okee("Copy key after leaving Edit Mode");
-					}
-					if(ok) {
-						/* also does all keypos */
-						deselectall_editipo();
-						set_active_key(index);
-						set_active_editipo(ei+index-1);
-					}
-				}
-			}
-		}
-			
-		/* select curve */
-		if(actkb==NULL) {
-			if(totipo_vis==1) {
-				ei= G.sipo->editipo;
-				for(a=0; a<G.sipo->totipo; a++, ei++) {
-					if(ei->icu) {
-						if(ei->flag & IPO_VISIBLE) actei= ei;
-					}
-				}
-			}
-			else if(totipo_vis>1) {
-				actei= select_proj_ipo(0, 0);
-			}
-			
-			if(actei) oldflag= actei->flag;
-			
-			if(G.qual & LR_SHIFTKEY);
-			else deselectall_editipo();
-			
-			if(actei) {
-				if(G.qual & LR_SHIFTKEY) {
-					if(oldflag & IPO_SELECT) actei->flag &= ~IPO_SELECT;
-					else actei->flag |= IPO_SELECT;
-				}
-				else {
-					actei->flag |= IPO_SELECT;
-				}
-				set_active_editipo(actei);
-			}
-		}
-	}
-	
-	update_editipo_flags();
-	
-	force_draw(0);
-	BIF_undo_push("Select Ipo");
-	
-	if(G.sipo->showkey && G.sipo->blocktype==ID_OB) {
-		ob= OBACT;
-		if(ob && (ob->ipoflag & OB_DRAWKEY)) allqueue(REDRAWVIEW3D, 0);
-	}
-	
-	getmouseco_areawin(mval);
-	xo= mval[0]; 
-	yo= mval[1];
-
-	while(get_mbut()&R_MOUSE) {		
-		getmouseco_areawin(mval);
-		if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
-			
-			if(actkb) move_keys(OBACT);
-			else transform_ipo('g');
-			
-			return;
-		}
-		BIF_wait_for_statechange();
-	}
-}
-
-static int icu_keys_bezier_loop(IpoCurve *icu,
-                         int (*bezier_function)(BezTriple *),
-                         void (ipocurve_function)(struct IpoCurve *icu)) 
-{
-    /*  This loops through the beziers in the Ipocurve, and executes 
-     *  the generic user provided 'bezier_function' on each one. 
-     *  Optionally executes the generic function ipocurve_function on the 
-     *  IPO curve after looping (eg. calchandles_ipocurve)
-     */
-
-    int b;
-    BezTriple *bezt;
-
-    b    = icu->totvert;
-    bezt = icu->bezt;
-
-    /* if bezier_function has been specified
-     * then loop through each bezier executing
-     * it.
-     */
-
-    if (bezier_function != NULL) {
-        while(b--) {
-            /* exit with return code 1 if the bezier function 
-             * returns 1 (good for when you are only interested
-             * in finding the first bezier that
-             * satisfies a condition).
-             */
-            if (bezier_function(bezt)) return 1;
-            bezt++;
-        }
-    }
-
-    /* if ipocurve_function has been specified 
-     * then execute it
-     */
-    if (ipocurve_function != NULL)
-        ipocurve_function(icu);
-
-    return 0;
-
-}
-
-static int ipo_keys_bezier_loop(Ipo *ipo,
-                         int (*bezier_function)(BezTriple *),
-                         void (ipocurve_function)(struct IpoCurve *icu))
-{
-    /*  This loops through the beziers that are attached to
-     *  the selected keys on the Ipocurves of the Ipo, and executes 
-     *  the generic user provided 'bezier_function' on each one. 
-     *  Optionally executes the generic function ipocurve_function on a 
-     *  IPO curve after looping (eg. calchandles_ipocurve)
-     */
-
-    IpoCurve *icu;
-
-    /* Loop through each curve in the Ipo
-     */
-    for (icu=ipo->curve.first; icu; icu=icu->next){
-        if (icu_keys_bezier_loop(icu,bezier_function, ipocurve_function))
-            return 1;
-    }
-
-    return 0;
-}
-
-static int selected_bezier_loop(int (*looptest)(EditIpo *),
-                         int (*bezier_function)(BezTriple *),
-                         void (ipocurve_function)(struct IpoCurve *icu))
-{
-	/*  This loops through the beziers that are attached to
-	 *  selected keys in editmode in the IPO window, and executes 
-	 *  the generic user-provided 'bezier_function' on each one 
-	 *  that satisfies the 'looptest' function. Optionally executes
-	 *  the generic function ipocurve_function on a IPO curve
-	 *  after looping (eg. calchandles_ipocurve)
-	 */
-
-	EditIpo *ei;
-	BezTriple *bezt;
-	int a, b;
-
-	/* Get the first Edit Ipo from the selected Ipos
-	 */
-	ei= G.sipo->editipo;
-
-	/* Loop throught all of the selected Ipo's
-	 */
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		/* Do a user provided test on the Edit Ipo
-		 * to determine whether we want to process it
-		 */
-		if (looptest(ei)) {
-			/* Loop through the selected
-			 * beziers on the Edit Ipo
-			 */
-			bezt = ei->icu->bezt;
-			b    = ei->icu->totvert;
-			
-			/* if bezier_function has been specified
-			 * then loop through each bezier executing
-			 * it.
-			 */
-			if (bezier_function != NULL) {
-				while(b--) {
-					/* exit with return code 1 if the bezier function 
-					 * returns 1 (good for when you are only interested
-					 * in finding the first bezier that
-					 * satisfies a condition).
-					 */
-					if (bezier_function(bezt)) return 1;
-					bezt++;
-				}
-			}
-
-			/* if ipocurve_function has been specified 
-			 * then execute it
-			 */
-			if (ipocurve_function != NULL)
-				ipocurve_function(ei->icu);
-		}
-		/* nufte flourdje zim ploopydu <-- random dutch looking comment ;) */
-		/* looks more like russian to me! (ton) */
-	}
-
-	return 0;
-}
-
-int select_bezier_add(BezTriple *bezt) 
-{
-  /* Select the bezier triple */
-  bezt->f1 |= 1;
-  bezt->f2 |= 1;
-  bezt->f3 |= 1;
-  return 0;
-}
-
-int select_bezier_subtract(BezTriple *bezt) 
-{
-  /* Deselect the bezier triple */
-  bezt->f1 &= ~1;
-  bezt->f2 &= ~1;
-  bezt->f3 &= ~1;
-  return 0;
-}
-
-int select_bezier_invert(BezTriple *bezt) 
-{
-  /* Invert the selection for the bezier triple */
-  bezt->f2 ^= 1;
-  if ( bezt->f2 & 1 ) {
-    bezt->f1 |= 1;
-    bezt->f3 |= 1;
-  }
-  else {
-    bezt->f1 &= ~1;
-    bezt->f3 &= ~1;
-  }
-  return 0;
-}
-
-static int set_bezier_auto(BezTriple *bezt) 
-{
-	/* Sets the selected bezier handles to type 'auto' 
-	 */
-
-	/* is a handle selected? If so
-	 * set it to type auto
-	 */
-	if(bezt->f1 || bezt->f3) {
-		if(bezt->f1) bezt->h1= 1; /* the secret code for auto */
-		if(bezt->f3) bezt->h2= 1;
-
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if(bezt->h1!=bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
-	}
-	return 0;
-}
-
-static int set_bezier_vector(BezTriple *bezt) 
-{
-	/* Sets the selected bezier handles to type 'vector' 
-	 */
-
-	/* is a handle selected? If so
-	 * set it to type vector
-	 */
-	if(bezt->f1 || bezt->f3) {
-		if(bezt->f1) bezt->h1= 2; /* the code for vector */
-		if(bezt->f3) bezt->h2= 2;
-    
-		/* if the handles are not of the same type, set them
-		 * to type free
-		 */
-		if(bezt->h1!=bezt->h2) {
-			if ELEM(bezt->h1, HD_ALIGN, HD_AUTO) bezt->h1= HD_FREE;
-			if ELEM(bezt->h2, HD_ALIGN, HD_AUTO) bezt->h2= HD_FREE;
-		}
-	}
-	return 0;
-}
-
-static int bezier_isfree(BezTriple *bezt) 
-{
-	/* queries whether the handle should be set
-	 * to type 'free' (I think)
-	 */
-	if(bezt->f1 && bezt->h1) return 1;
-	if(bezt->f3 && bezt->h2) return 1;
-	return 0;
-}
-
-static int set_bezier_free(BezTriple *bezt) 
-{
-	/* Sets selected bezier handles to type 'free' 
-	 */
-	if(bezt->f1) bezt->h1= HD_FREE;
-	if(bezt->f3) bezt->h2= HD_FREE;
-	return 0;
-}
-
-static int set_bezier_align(BezTriple *bezt) 
-{
-	/* Sets selected bezier handles to type 'align' 
-	 */
-	if(bezt->f1) bezt->h1= HD_ALIGN;
-	if(bezt->f3) bezt->h2= HD_ALIGN;
-	return 0;
-}
-
-static int vis_edit_icu_bez(EditIpo *ei) 
-{
-	/* A 4 part test for an EditIpo :
-	 *   is it a) visible
-	 *         b) in edit mode
-	 *         c) does it contain an Ipo Curve
-	 *         d) does that ipo curve have a bezier
-	 *
-	 * (The reason why I don't just use the macro
-	 * is I need a pointer to a function.)
-	 */
-	return ISPOIN4(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu, icu->bezt);
-}
-
-void select_ipo_bezier_keys(Ipo *ipo, int selectmode)
-{
-  /* Select all of the beziers in all
-   * of the Ipo curves belonging to the
-   * Ipo, using the selection mode.
-   */
-  switch (selectmode) {
-  case SELECT_ADD:
-    ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
-    break;
-  case SELECT_SUBTRACT:
-    ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
-    break;
-  case SELECT_INVERT:
-    ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
-    break;
-  }
-}
-
-void sethandles_ipo_keys(Ipo *ipo, int code)
-{
-	/* this function lets you set bezier handles all to
-	 * one type for some Ipo's (e.g. with hotkeys through
-	 * the action window).
-	 */ 
-
-	/* code==1: set autohandle */
-	/* code==2: set vectorhandle */
-	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
-	
-	switch(code) {
-	case 1:
-		/*** Set to auto ***/
-		ipo_keys_bezier_loop(ipo, set_bezier_auto,
-							 calchandles_ipocurve);
-		break;
-	case 2:
-		/*** Set to vector ***/
-		ipo_keys_bezier_loop(ipo, set_bezier_vector,
-                         calchandles_ipocurve);
-		break;
-	default:
-		if ( ipo_keys_bezier_loop(ipo, bezier_isfree, NULL) ) {
-			/*** Set to free ***/
-			ipo_keys_bezier_loop(ipo, set_bezier_free,
-                           calchandles_ipocurve);
-		}
-		else {
-			/*** Set to align ***/
-			ipo_keys_bezier_loop(ipo, set_bezier_align,
-                           calchandles_ipocurve);
-		}
-		break;
-	}
-
-
-}
-
-static void ipo_curves_auto_horiz(void)
-{
-    EditIpo *ei;
-	int a, set= 1;
-	
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)
-			if(ei->flag & IPO_AUTO_HORIZ) set= 0;
-	}
-	
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
-			if(set) ei->flag |= IPO_AUTO_HORIZ;
-			else ei->flag &= ~IPO_AUTO_HORIZ;
-		}
-	}
-	update_editipo_flags();
-}
-
-void sethandles_ipo(int code)
-{
-	/* this function lets you set bezier handles all to
-	 * one type for some selected keys in edit mode in the
-	 * IPO window (e.g. with hotkeys)
-	 */ 
-
-	/* code==1: set autohandle */
-	/* code==2: set vectorhandle */
-	/* als code==3 (HD_ALIGN) toggelt het, vectorhandles worden HD_FREE */
-
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-
-	switch(code) {
-	case 1:
-		/*** Set to auto ***/
-		selected_bezier_loop(vis_edit_icu_bez, set_bezier_auto,
-                         calchandles_ipocurve);
-		break;
-	case 2:
-		/*** Set to vector ***/
-		selected_bezier_loop(vis_edit_icu_bez, set_bezier_vector,
-                         calchandles_ipocurve);
-		break;
-	case 4:
-		/* set to enforce autohandles to be horizontal on extremes */
-		ipo_curves_auto_horiz();
-		
-		break;
-	default:
-		if (selected_bezier_loop(vis_edit_icu_bez, bezier_isfree, NULL) ) {
-			/*** Set to free ***/
-			selected_bezier_loop(vis_edit_icu_bez, set_bezier_free,
-								 calchandles_ipocurve);
-		}
-		else {
-			/*** Set to align ***/
-			selected_bezier_loop(vis_edit_icu_bez, set_bezier_align,
-								 calchandles_ipocurve);
-		}
-		break;
-	}
-
-	editipo_changed(G.sipo, 1);
-	BIF_undo_push("Set handles Ipo");
-}
-
-
-static void set_ipocurve_constant(struct IpoCurve *icu) {
-	/* Sets the type of the IPO curve to constant
-	 */
-	icu->ipo= IPO_CONST;
-}
-
-static void set_ipocurve_linear(struct IpoCurve *icu) {
-	/* Sets the type of the IPO curve to linear
-	 */
-	icu->ipo= IPO_LIN;
-}
-
-static void set_ipocurve_bezier(struct IpoCurve *icu) {
-	/* Sets the type of the IPO curve to bezier
-	 */
-	icu->ipo= IPO_BEZ;
-}
-
-
-void setipotype_ipo(Ipo *ipo, int code)
-{
-	/* Sets the type of the each ipo curve in the
-	 * Ipo to a value based on the code
-	 */
-	switch (code) {
-	case 1:
-		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_constant);
-		break;
-	case 2:
-		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_linear);
-		break;
-	case 3:
-		ipo_keys_bezier_loop(ipo, NULL, set_ipocurve_bezier);
-		break;
-	}
-}
-
-void set_ipotype(void)
-{
-	EditIpo *ei;
-	int a;
-	short event;
-
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	if(G.sipo->showkey) return;
-	get_status_editipo();
-	
-	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
-		Key *key= (Key *)G.sipo->from;
-		Object *ob= OBACT;
-		KeyBlock *kb;
-		
-		if(key==NULL) return;
-		kb= BLI_findlink(&key->block, ob->shapenr-1);
-		
-		event= pupmenu("Key Type %t|Linear %x1|Cardinal %x2|B Spline %x3");
-		if(event < 1) return;
-
-		kb->type= 0;
-		if(event==1) kb->type= KEY_LINEAR;
-		if(event==2) kb->type= KEY_CARDINAL;
-		if(event==3) kb->type= KEY_BSPLINE;
-	}
-	else {
-		event= pupmenu("Ipo Type %t|Constant %x1|Linear %x2|Bezier %x3");
-		if(event < 1) return;
-		
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
-				if(event==1) ei->icu->ipo= IPO_CONST;
-				else if(event==2) ei->icu->ipo= IPO_LIN;
-				else ei->icu->ipo= IPO_BEZ;
-			}
-		}
-	}
-	BIF_undo_push("Set ipo type");
-	scrarea_queue_winredraw(curarea);
-}
-
-void borderselect_ipo(void)
-{
-	EditIpo *ei;
-	IpoKey *ik;
-	BezTriple *bezt;
-	rcti rect;
-	rctf rectf;
-	int a, b, val;
-	short mval[2];
-
-	get_status_editipo();
-	
-	val= get_border(&rect, 3);
-
-	if(val) {
-		mval[0]= rect.xmin;
-		mval[1]= rect.ymin;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
-		mval[0]= rect.xmax;
-		mval[1]= rect.ymax;
-		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-
-		if(G.sipo->showkey) {
-			ik= G.sipo->ipokey.first;
-			while(ik) {
-				if(rectf.xmin<ik->val && rectf.xmax>ik->val) {
-					if(val==LEFTMOUSE) ik->flag |= 1;
-					else ik->flag &= ~1;
-				}
-				ik= ik->next;
-			}
-			update_editipo_flags();
-		}
-		else if(totipo_edit==0) {
-			if(rect.xmin<rect.xmax && rect.ymin<rect.ymax)
-				select_proj_ipo(&rectf, val);
-		}
-		else {
-			
-			ei= G.sipo->editipo;
-			for(a=0; a<G.sipo->totipo; a++, ei++) {
-				if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_EDIT, icu) {
-					if(ei->icu->bezt) {
-						b= ei->icu->totvert;
-						bezt= ei->icu->bezt;
-						while(b--) {
-							int bit= (val==LEFTMOUSE);
-							
-							if(BLI_in_rctf(&rectf, bezt->vec[0][0], bezt->vec[0][1]))
-								bezt->f1 = (bezt->f1&~1) | bit;
-							if(BLI_in_rctf(&rectf, bezt->vec[1][0], bezt->vec[1][1]))
-								bezt->f2 = (bezt->f2&~1) | bit;
-							if(BLI_in_rctf(&rectf, bezt->vec[2][0], bezt->vec[2][1]))
-								bezt->f3 = (bezt->f3&~1) | bit;
-
-							bezt++;
-						}
-					}
-				}
-			}
-		}
-		BIF_undo_push("Border select Ipo");
-		scrarea_queue_winredraw(curarea);
-	}
-}
-
 /*
- * When deleting an IPO curve from Python, check if the IPO is being
+ * When deleting an IPO curve from Python, check if the Ipo is being
  * edited and if so clear the pointer to the old curve.
  */
 
@@ -3269,7 +2851,7 @@ void del_ipoCurve ( IpoCurve * icu )
 	for(i=0; i<G.sipo->totipo; i++, ei++) {
                 if ( ei->icu == icu ) {
 			ei->flag &= ~(IPO_SELECT | IPO_EDIT);
-			ei->icu= 0;
+			ei->icu= NULL;
 			return;
 		}
 	}
@@ -3300,12 +2882,12 @@ void del_ipo(void)
 		del= 0;
 		
 		if(G.sipo->showkey==0 && totipo_edit==0) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
 				del= 1;
 			}
 		}
 		else {
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
 					if(ei->icu->bezt) {
 						bezt= ei->icu->bezt;
@@ -3346,7 +2928,7 @@ void del_ipo(void)
 	// 2nd round, small parts: just curves 
 	ei= G.sipo->editipo;
 	for(b=0; b<G.sipo->totipo; b++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
 			
 				event= 0;
@@ -3389,6 +2971,7 @@ void del_ipo(void)
 	allspace(REMAKEIPO, 0);
 }
 
+/* ******************** copy paste buffer ******************** */
 ListBase ipocopybuf={0, 0};
 int totipocopybuf=0;
 
@@ -3418,7 +3001,7 @@ void copy_editipo(void)
 	
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			if( (ei->flag & IPO_EDIT) || (ei->flag & IPO_SELECT) ) {
 				icu= MEM_callocN(sizeof(IpoCurve), "ipocopybuf");
 				*icu= *(ei->icu);
@@ -3470,7 +3053,7 @@ void paste_editipo(void)
 	
 				if(ok) {
 			
-					ei->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei->adrcode, 0);
+					ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
 					if(ei->icu==NULL) return;
 					
 					if(ei->icu->bezt) MEM_freeN(ei->icu->bezt);
@@ -3498,28 +3081,10 @@ void paste_editipo(void)
 	}
 }
 
-void set_exprap_ipo(int mode)
-{
-	EditIpo *ei;
-	int a;
-		
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	/* in case of keys: always ok */
+/* *********************** */
 
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-			if( (ei->flag & IPO_EDIT) || (ei->flag & IPO_SELECT) || (G.sipo->showkey) ) {
-				ei->icu->extrap= mode;
-			}
-		}
-	}
 
-	editipo_changed(G.sipo, 1);
-	BIF_undo_push("Set extrapolation Ipo");
-}
-
-int find_other_handles(EditIpo *eicur, float ctime, BezTriple **beztar)
+static int find_other_handles(EditIpo *eicur, float ctime, BezTriple **beztar)
 {
 	EditIpo *ei;
 	BezTriple *bezt;
@@ -3559,7 +3124,7 @@ void set_speed_editipo(float speed)
 
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			bezt= ei->icu->bezt;
 			totvert= ei->icu->totvert;
 			
@@ -3616,587 +3181,6 @@ void set_speed_editipo(float speed)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 
-}
-
-
-void insertkey(ID *id, int adrcode)
-{
-	IpoCurve *icu;
-	Ipo *ipo;
-	Object *ob;
-	void *poin;
-	float curval, cfra;
-	int type;
-	
-	if(id) {
-
-		// this call here, otherwise get_ipocurve gives it from the pinned ipo
-		ipo= get_ipo(id, GS(id->name), 1);	// 1=make
-
-		icu= get_ipocurve(id, GS(id->name), adrcode, ipo);
-		
-		if(icu) {
-			poin= get_ipo_poin(id, icu, &type);
-			if(poin) {
-				curval= read_ipo_poin(poin, type);
-				
-				cfra= frame_to_float(CFRA);
-				
-				if( GS(id->name)==ID_OB ) {
-					ob= (Object *)id;
-					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-						/* actually frametofloat calc again! */
-						cfra-= ob->sf*G.scene->r.framelen;
-					}
-				}
-				
-				insert_vert_ipo(icu, cfra, curval);
-			}
-		}
-	}
-}
-
-void insertkey_editipo(void)
-{
-	EditIpo *ei;
-	IpoKey *ik;
-	ID *id;
-	float *fp, cfra, *insertvals;
-	int a, nr, ok, tot;
-	short event;
-	
-	ei= get_active_editipo();
-	if(ei && ei->icu && ei->icu->driver) 
-		event= pupmenu("Insert Curve %t|Default one-to-one mapping %x3");
-	else if(G.sipo->showkey)
-		event= pupmenu("Insert Key Vertices %t|Current Frame %x1|Selected Keys %x2");
-	else 
-		event= pupmenu("Insert Key Vertices %t|Current Frame %x1");
-	
-	if(event<1) return;
-	
-	if(event==3) {
-		IpoDriver *driver= ei->icu->driver;
-		
-		if(ei->icu->bezt) MEM_freeN(ei->icu->bezt);
-		ei->icu->totvert= 0;
-		ei->icu->bezt= NULL;
-		
-		insert_vert_ipo(ei->icu, 0.0f, 0.0f);
-		
-		if(ELEM3(driver->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
-			if(ei->disptype==IPO_DISPDEGR)
-				insert_vert_ipo(ei->icu, 18.0f, 18.0f);
-			else
-				insert_vert_ipo(ei->icu, 18.0f, 1.0f);
-		}
-		else
-			insert_vert_ipo(ei->icu, 1.0f, 1.0f);
-		
-		ei->flag |= IPO_SELECT|IPO_VISIBLE;
-		ei->icu->flag= ei->flag;
-		ei->icu->extrap= IPO_DIR;
-
-		do_ipo_buttons(B_IPOHOME);
-	}
-	else {
-		ei= G.sipo->editipo;
-		for(nr=0; nr<G.sipo->totipo; nr++, ei++) {
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-			
-				ok= 0;
-				if(G.sipo->showkey) ok= 1;
-				else if(ei->flag & IPO_SELECT) ok= 1;
-
-				if(ok) {
-					/* count amount */
-					if(event==1) tot= 1;
-					else {
-						ik= G.sipo->ipokey.first;
-						tot= 0;
-						while(ik) {
-							if(ik->flag & 1) tot++;
-							ik= ik->next;
-						}
-					}
-					if(tot) {
-					
-						/* correction for ob timeoffs */
-						cfra= frame_to_float(CFRA);
-						id= G.sipo->from;	
-						if(id && GS(id->name)==ID_OB ) {
-							Object *ob= (Object *)id;
-							if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-								cfra-= ob->sf*G.scene->r.framelen;
-							}
-						}
-						else if(id && GS(id->name)==ID_SEQ) {
-							extern Sequence *last_seq;	/* editsequence.c */
-							
-							if(last_seq) {
-								cfra= (float)(100.0*(cfra-last_seq->startdisp)/((float)(last_seq->enddisp-last_seq->startdisp)));
-							}
-						}
-				
-						insertvals= MEM_mallocN(sizeof(float)*2*tot, "insertkey_editipo");
-						/* make sure icu->curval is correct */
-						calc_ipo(G.sipo->ipo, cfra);
-						
-						if(event==1) {
-							insertvals[0]= cfra;
-							
-							insertvals[1]= ei->icu->curval;
-						}
-						else {
-							fp= insertvals;
-							ik= G.sipo->ipokey.first;
-							while(ik) {
-								if(ik->flag & 1) {
-									calc_ipo(G.sipo->ipo, ik->val);
-
-									fp[0]= ik->val;
-									fp[1]= ei->icu->curval;
-									fp+= 2;
-								}
-								ik= ik->next;
-							}
-						}
-						fp= insertvals;
-						for(a=0; a<tot; a++, fp+=2) {
-							insert_vert_ipo(ei->icu, fp[0], fp[1]);
-						}
-						
-						MEM_freeN(insertvals);
-						calc_ipo(G.sipo->ipo, (float)CFRA);
-					}
-				}
-			}
-		}
-	}
-	BIF_undo_push("Insert Key Ipo");
-	allqueue (REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWIPO, 0);
-	allspace(REMAKEIPO, 0);
-}
-
-
-void common_insertkey(void)
-{
-	Base *base;
-	Object *ob;
-	Material *ma;
-	ID *id;
-	IpoCurve *icu;
-	World *wo;
-	Lamp *la;
-	int tlay, map, event;
-	char menustr[256];
-	
-	if(curarea->spacetype==SPACE_IPO) {
-		insertkey_editipo();
-	}
-	else if(curarea->spacetype==SPACE_BUTS) {
-		if(G.buts->mainb==CONTEXT_SHADING) {
-			int tab= G.buts->tab[CONTEXT_SHADING];
-			
-			if(tab==TAB_SHADING_MAT) {
-				id= G.buts->lockpoin;
-				ma= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Alpha%x1|Halo Size%x2|Mode %x3|All Color%x10|All Mirror%x14|Ofs%x12|Size%x13|All Mapping%x11");
-					if(event== -1) return;
-					
-					map= texchannel_to_adrcode(ma->texact);
-					
-					if(event==0 || event==10) {
-						insertkey(id, MA_COL_R);
-						insertkey(id, MA_COL_G);
-						insertkey(id, MA_COL_B);
-					}
-					if(event==1 || event==10) {
-						insertkey(id, MA_ALPHA);
-					}
-					if(event==2 || event==10) {
-						insertkey(id, MA_HASIZE);
-					}
-					if(event==3 || event==10) {
-						insertkey(id, MA_MODE);
-					}
-					if(event==10) {
-						insertkey(id, MA_SPEC_R);
-						insertkey(id, MA_SPEC_G);
-						insertkey(id, MA_SPEC_B);
-						insertkey(id, MA_REF);
-						insertkey(id, MA_EMIT);
-						insertkey(id, MA_AMB);
-						insertkey(id, MA_SPEC);
-						insertkey(id, MA_HARD);
-						insertkey(id, MA_MODE);
-						insertkey(id, MA_TRANSLU);
-						insertkey(id, MA_ADD);
-					}
-					if(event==14) {
-						insertkey(id, MA_RAYM);
-						insertkey(id, MA_FRESMIR);
-						insertkey(id, MA_FRESMIRI);
-						insertkey(id, MA_FRESTRA);
-						insertkey(id, MA_FRESTRAI);
-					}
-					if(event==12 || event==11) {
-						insertkey(id, map+MAP_OFS_X);
-						insertkey(id, map+MAP_OFS_Y);
-						insertkey(id, map+MAP_OFS_Z);
-					}
-					if(event==13 || event==11) {
-						insertkey(id, map+MAP_SIZE_X);
-						insertkey(id, map+MAP_SIZE_Y);
-						insertkey(id, map+MAP_SIZE_Z);
-					}
-					if(event==11) {
-						insertkey(id, map+MAP_R);
-						insertkey(id, map+MAP_G);
-						insertkey(id, map+MAP_B);
-						insertkey(id, map+MAP_DVAR);
-						insertkey(id, map+MAP_COLF);
-						insertkey(id, map+MAP_NORF);
-						insertkey(id, map+MAP_VARF);
-						insertkey(id, map+MAP_DISP);
-					}
-				}
-			}
-			else if(tab==TAB_SHADING_WORLD) {
-				id= G.buts->lockpoin;
-				wo= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|Zenith RGB%x0|Horizon RGB%x1|Mist%x2|Stars %x3|Offset%x12|Size%x13");
-					if(event== -1) return;
-					
-					map= texchannel_to_adrcode(wo->texact);
-					
-					if(event==0) {
-						insertkey(id, WO_ZEN_R);
-						insertkey(id, WO_ZEN_G);
-						insertkey(id, WO_ZEN_B);
-					}
-					if(event==1) {
-						insertkey(id, WO_HOR_R);
-						insertkey(id, WO_HOR_G);
-						insertkey(id, WO_HOR_B);
-					}
-					if(event==2) {
-						insertkey(id, WO_MISI);
-						insertkey(id, WO_MISTDI);
-						insertkey(id, WO_MISTSTA);
-						insertkey(id, WO_MISTHI);
-					}
-					if(event==3) {
-						insertkey(id, WO_STAR_R);
-						insertkey(id, WO_STAR_G);
-						insertkey(id, WO_STAR_B);
-						insertkey(id, WO_STARDIST);
-						insertkey(id, WO_STARSIZE);
-					}
-					if(event==12) {
-						insertkey(id, map+MAP_OFS_X);
-						insertkey(id, map+MAP_OFS_Y);
-						insertkey(id, map+MAP_OFS_Z);
-					}
-					if(event==13) {
-						insertkey(id, map+MAP_SIZE_X);
-						insertkey(id, map+MAP_SIZE_Y);
-						insertkey(id, map+MAP_SIZE_Z);
-					}
-				}
-			}
-			else if(tab==TAB_SHADING_LAMP) {
-				id= G.buts->lockpoin;
-				la= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|RGB%x0|Energy%x1|Spot Size%x2|Offset%x12|Size%x13");
-					if(event== -1) return;
-					
-					map= texchannel_to_adrcode(la->texact);
-					
-					if(event==0) {
-						insertkey(id, LA_COL_R);
-						insertkey(id, LA_COL_G);
-						insertkey(id, LA_COL_B);
-					}
-					if(event==1) {
-						insertkey(id, LA_ENERGY);
-					}
-					if(event==2) {
-						insertkey(id, LA_SPOTSI);
-					}
-					if(event==12) {
-						insertkey(id, map+MAP_OFS_X);
-						insertkey(id, map+MAP_OFS_Y);
-						insertkey(id, map+MAP_OFS_Z);
-					}
-					if(event==13) {
-						insertkey(id, map+MAP_SIZE_X);
-						insertkey(id, map+MAP_SIZE_Y);
-						insertkey(id, map+MAP_SIZE_Z);
-					}
-
-				}
-			}
-		}
-		else if(G.buts->mainb==CONTEXT_OBJECT) {
-			ob= OBACT;
-			if(ob && ob->type==OB_MESH) {
-				id= (ID *) (ob);
-				if(id) {
-					event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, OB_PD_SDAMP);
-					}
-					if(event==1) {
-						insertkey(id, OB_PD_RDAMP);
-					}
-					if(event==2) {
-						insertkey(id, OB_PD_PERM);
-					}
-					if(event==3) {
-						insertkey(id, OB_PD_FSTR);
-					}
-					if(event==4) {
-						insertkey(id, OB_PD_FFALL);
-					}
-
-				}
-			}
-		}
-		else if(G.buts->mainb==CONTEXT_EDITING) {
-			ob= OBACT;
-			if(ob && ob->type==OB_CAMERA) {
-				id= G.buts->lockpoin;
-				if(id) {
-					/* yafray: insert key extended with aperture and focal distance */
-					if (G.scene->r.renderer==R_INTERN)
-						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1");
-					else
-						event= pupmenu("Insert Key %t|Lens%x0|Clipping%x1|Aperture%x2|FocalDistance%x3");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, CAM_LENS);
-					}
-					else if(event==1) {
-						insertkey(id, CAM_STA);
-						insertkey(id, CAM_END);
-					}
-					else if(event==2) {
-						insertkey(id, CAM_YF_APERT);
-					}
-					else if(event==3) {
-						insertkey(id, CAM_YF_FDIST);
-					}
-				}
-			}
-		}
-		else if(FALSE /* && G.buts->mainb==BUTS_SOUND */) {
-			if(G.ssound) {
-				id= G.buts->lockpoin;
-				if(id) {
-					event= pupmenu("Insert Key %t|Volume%x0|Pitch%x1|Panning%x2|Attennuation%x3");
-					if(event== -1) return;
-
-					if(event==0) {
-						insertkey(id, SND_VOLUME);
-					}
-					if(event==1) {
-						insertkey(id, SND_PITCH);
-					}
-					if(event==2) {
-						insertkey(id, SND_PANNING);
-					}
-					if(event==3) {
-						insertkey(id, SND_ATTEN);
-					}
-				}
-			}
-		}
-		
-		BIF_undo_push("Insert Key Buttons");
-
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWIPO, 0);
-		allspace(REMAKEIPO, 0);
-
-	}
-	else if(curarea->spacetype==SPACE_VIEW3D) {
-		ob= OBACT;
-
-		if (ob && (ob->flag & OB_POSEMODE)) {
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Avail%x9");
-		}
-		else {
-			base= FIRSTBASE;
-			while(base) {
-				if TESTBASELIB(base) break;
-				base= base->next;
-			}
-			if(base==NULL) return;
-		
-			strcpy(menustr, "Insert Key%t|Loc%x0|Rot%x1|Size%x2|LocRot%x3|LocRotSize%x4|Layer%x5|Avail%x9");
-		}
-		
-		if(ob) {
-			if(ob->type==OB_MESH) strcat(menustr, "| %x6|Mesh%x7");
-			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
-			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
-			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
-			if(ob->flag & OB_FROMGROUP)	strcat(menustr, "| %x6|Entire Group%x10");
-		}
-		
-		event= pupmenu(menustr);
-		if(event== -1) return;
-		
-		if(event==7) { // ob != NULL
-			insert_shapekey(ob);
-			return;
-		}
-		
-		if(event==10) {
-			Group *group= find_group(ob);
-			if(group) {
-				add_group_key(group);
-				allqueue(REDRAWBUTSOBJECT, 0);
-			}
-		}
-		
-		if (ob && (ob->flag & OB_POSEMODE)){
-			bAction	*act;
-			bPose	*pose;
-			bPoseChannel *chan;
-			bActionChannel *achan;
-
-			/* Get action & pose from object */
-			act=ob->action;
-			pose=ob->pose;
-
-			if (!act){
-				act= ob->action= add_empty_action();
-				/* this sets the non-pinned open ipowindow(s) to show the action curve */
-				ob->ipowin= ID_AC;
-				allqueue(REDRAWIPO, ob->ipowin);
-				
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-			}
-			if (!pose){
-				error ("No pose!"); /* Should never happen */
-			}
-
-			if (act->id.lib) {
-				error ("Can't key libactions");
-				return;
-			}
-
-			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
-			for (chan=pose->chanbase.first; chan; chan=chan->next) {
-				if (chan->flag & POSE_KEY){
-					//			set_action_key(act, chan);
-					if(event==0 || event==3 ||event==4) {
-						set_action_key(act, chan, AC_LOC_X, 1);
-						set_action_key(act, chan, AC_LOC_Y, 1);
-						set_action_key(act, chan, AC_LOC_Z, 1);
-					}
-					if(event==1 || event==3 ||event==4) {
-						set_action_key(act, chan, AC_QUAT_X, 1);
-						set_action_key(act, chan, AC_QUAT_Y, 1);
-						set_action_key(act, chan, AC_QUAT_Z, 1);
-						set_action_key(act, chan, AC_QUAT_W, 1);
-					}
-					if(event==2 || event==4) {
-						set_action_key(act, chan, AC_SIZE_X, 1);
-						set_action_key(act, chan, AC_SIZE_Y, 1);
-						set_action_key(act, chan, AC_SIZE_Z, 1);
-					}
-					if (event==9){
-						for (achan = act->chanbase.first; achan; achan=achan->next){
-							if (achan->ipo && !strcmp (achan->name, chan->name)){
-								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									set_action_key(act, chan, icu->adrcode, 0);
-								}
-								break;
-							}
-						}
-					}
-				}
-				remake_action_ipos(act);
-			}
-
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-		}
-		else {
-			base= FIRSTBASE;
-			while(base) {
-				if TESTBASELIB(base) {
-					id= (ID *)(base->object);
-					
-					/* all curves in ipo deselect */
-					if(base->object->ipo) {
-						icu= base->object->ipo->curve.first;
-						while(icu) {
-							icu->flag &= ~IPO_SELECT;
-							if(event==9) insertkey(id, icu->adrcode);
-							icu= icu->next;
-						}
-					}
-					
-					if(event==0 || event==3 ||event==4) {
-						insertkey(id, OB_LOC_X);
-						insertkey(id, OB_LOC_Y);
-						insertkey(id, OB_LOC_Z);
-					}
-					if(event==1 || event==3 ||event==4) {
-						insertkey(id, OB_ROT_X);
-						insertkey(id, OB_ROT_Y);
-						insertkey(id, OB_ROT_Z);
-					}
-					if(event==2 || event==4) {
-						insertkey(id, OB_SIZE_X);
-						insertkey(id, OB_SIZE_Y);
-						insertkey(id, OB_SIZE_Z);
-					}
-					if(event==5) {
-						/* remove localview  */
-						tlay= base->object->lay;
-						base->object->lay &= 0xFFFFFF;
-						insertkey(id, OB_LAY);
-						base->object->lay= tlay;
-					}
-				}
-				base= base->next;
-			}
-		}
-
-		if(event==0) BIF_undo_push("Insert Loc Key");
-		else if(event==1) BIF_undo_push("Insert Rot Key");
-		else if(event==2) BIF_undo_push("Insert Size Key");
-		else if(event==3) BIF_undo_push("Insert LocRot Key");
-		else if(event==4) BIF_undo_push("Insert LocRotSize Key");
-		else if(event==5) BIF_undo_push("Insert Layer Key");
-		else if(event==7) BIF_undo_push("Insert Vertex Key");
-		else if(event==9) BIF_undo_push("Insert Avail Key");
-
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-	}
-	
 }
 
 
@@ -4269,7 +3253,7 @@ void make_ipokey(void)
 	ei= G.sipo->editipo;
 	if(ei==0) return;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			bezt= ei->icu->bezt;
 			totvert= ei->icu->totvert;
 			
@@ -4324,7 +3308,7 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 	BezTriple *bezt;
 	int a, adrcode = 0, ok, dloc=0, drot=0, dsize=0;
 	
-	if(ob->ipo==0) return;
+	if(ob->ipo==NULL) return;
 	if(ob->ipo->showkey==0) return;
 	
 	/* test: are there delta curves? */
@@ -4503,44 +3487,6 @@ void set_ipo_pointers_transob(IpoKey *ik, TransOb *tob)
 
 
 
-void nextkey(ListBase *elems, int dir)
-{
-	IpoKey *ik, *previk;
-	int totsel;
-	
-	if(dir==1) ik= elems->last;
-	else ik= elems->first;
-	previk= 0;
-	totsel= 0;
-	
-	while(ik) {
-		
-		if(ik->flag) totsel++;
-		
-		if(previk) {
-			if(G.qual & LR_SHIFTKEY) {
-				if(ik->flag) previk->flag= 1;
-			}
-			else previk->flag= ik->flag;
-		}
-		
-		previk= ik;
-		if(dir==1) ik= ik->prev;
-		else ik= ik->next;
-		
-		if(G.qual & LR_SHIFTKEY);
-		else if(ik==0) previk->flag= 0;
-	}
-	
-	/* when no key select: */
-	if(totsel==0) {
-		if(dir==1) ik= elems->first;
-		else ik= elems->last;
-		
-		if(ik) ik->flag= 1;
-	}
-}
-
 static int float_to_frame (float frame) 
 {
 	int to= (int) floor(0.5 + frame/G.scene->r.framelen );
@@ -4641,77 +3587,6 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 	allspace(REMAKEIPO, 0);
 
 }
-
-void nextkey_ipo(int dir)			/* call from ipo queue */
-{
-	IpoKey *ik;
-	int a;
-	
-	if(G.sipo->showkey==0) return;
-	
-	nextkey(&G.sipo->ipokey, dir);
-	
-	/* copy to beziers */
-	ik= G.sipo->ipokey.first;
-	while(ik) {
-		for(a=0; a<G.sipo->totipo; a++) {
-			if(ik->data[a]) ik->data[a]->f1= ik->data[a]->f2= ik->data[a]->f3= ik->flag;
-		}
-		ik= ik->next;
-	}		
-
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	if(G.sipo->blocktype == ID_OB) allqueue(REDRAWVIEW3D, 0);
-}
-
-void nextkey_obipo(int dir)		/* only call external from view3d queue */
-{
-	Base *base;
-	Object *ob;
-	ListBase elems;
-	IpoKey *ik;
-	int a;
-	
-	/* problem: this doesnt work when you mix dLoc keys with Loc keys */
-	
-	base= FIRSTBASE;
-	while(base) {
-		if TESTBASE(base) {
-			ob= base->object;
-			if( (ob->ipoflag & OB_DRAWKEY) && ob->ipo && ob->ipo->showkey) {
-				elems.first= elems.last= 0;
-				make_ipokey_transform(ob, &elems, 0);
-
-				if(elems.first) {
-					
-					nextkey(&elems, dir);
-					
-					/* copy to beziers */
-					ik= elems.first;
-					while(ik) {
-						for(a=0; a<OB_TOTIPO; a++) {
-							if(ik->data[a]) ik->data[a]->f1= ik->data[a]->f2= ik->data[a]->f3= ik->flag;
-						}
-						ik= ik->next;
-					}
-					
-					free_ipokey(&elems);
-				}
-			}
-		}
-		
-		base= base->next;
-	}
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWVIEW3D, 0);
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
-}
-
-
 /* **************************************************** */
 
 
@@ -4725,7 +3600,7 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 	ei= G.sipo->editipo;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
 		
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				
 			if(ei->icu->bezt) {
 				sort_time_ipocurve(ei->icu);
@@ -4737,7 +3612,7 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 	tv= transmain;
 	for(a=0; a<G.sipo->totipo; a++, ei++) {
 		
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
 				if(ei->icu->bezt) {
 					bezt= ei->icu->bezt;
@@ -4803,7 +3678,7 @@ void transform_ipo(int mode)
 		ei= G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
 			
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
 
 				
@@ -4852,7 +3727,7 @@ void transform_ipo(int mode)
 		
 		ei= G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
 				if(ei->icu->bezt && ei->icu->ipo==IPO_BEZ) tot+= 3*ei->icu->totvert;
 				else tot+= ei->icu->totvert;
 			}
@@ -4863,7 +3738,7 @@ void transform_ipo(int mode)
 
 		ei= G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu) {
+			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
 				if(ei->icu->bezt) {
 					
 					bezt= ei->icu->bezt;
@@ -4984,7 +3859,7 @@ void transform_ipo(int mode)
 			dosort= 0;
 			ei= G.sipo->editipo;
 			for(a=0; a<G.sipo->totipo; a++, ei++) {
-				if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+				if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 					
 					/* watch it: if the time is wrong: do not correct handles */
 					if (test_time_ipocurve(ei->icu) ) dosort++;
@@ -5009,7 +3884,7 @@ void transform_ipo(int mode)
 					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 					force_draw_plus(SPACE_VIEW3D, 0);
 				}
-				else if(G.sipo->blocktype==ID_AC) {
+				else if(G.sipo->blocktype==ID_PO) {
 					Object *ob= OBACT;
 					if(ob && ob->pose) {
 						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -5096,7 +3971,7 @@ void transform_ipo(int mode)
 		dosort= 0;
 		ei= G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
 					if( test_time_ipocurve(ei->icu)) {
 						dosort= 1;
@@ -5110,7 +3985,7 @@ void transform_ipo(int mode)
 		
 		ei= G.sipo->editipo;
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
 					testhandles_ipocurve(ei->icu);
 				}
@@ -5194,14 +4069,14 @@ void ipo_record(void)
 	short anim, val, xn, yn, mvalo[2], mval[2];
 	char str[128];
 	
-	if(G.sipo->from==0) return;
+	if(G.sipo->from==NULL) return;
 	if(SFRA>=EFRA) return;
 	
 	anim= pupmenu("Record Mouse %t|Still %x1|Play Animation %x2");
 	if(anim < 1) return;
 	if(anim!=2) anim= 0;
 
-	ipo= get_ipo(G.sipo->from, G.sipo->blocktype, 1);	/* 1= make */
+	ipo= verify_ipo(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname);
 	if(G.sipo) G.sipo->ipo= ipo;
 	
 	ob= OBACT;
@@ -5227,16 +4102,20 @@ void ipo_record(void)
 	}
 	
 	/* make curves ready, start values */
-	if(ei1->icu==NULL) ei1->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei1->adrcode, 0);
+	if(ei1->icu==NULL) 
+		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei1->adrcode);
 	if(ei1->icu==NULL) return;
+	
 	poin= get_ipo_poin(G.sipo->from, ei1->icu, &type);
 	if(poin) ei1->icu->curval= read_ipo_poin(poin, type);
 	or1= ei1->icu->curval;
 	ei1->icu->flag |= IPO_LOCK;
 	
 	if(ei2) {
-		if(ei2->icu==NULL)  ei2->icu= get_ipocurve(G.sipo->from, G.sipo->blocktype, ei2->adrcode, 0);
+		if(ei2->icu==NULL)
+			ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei2->adrcode);
 		if(ei2->icu==NULL) return;
+		
 		poin= get_ipo_poin(G.sipo->from, ei2->icu, &type);
 		if(poin) ei2->icu->curval= read_ipo_poin(poin, type);
 		or2= ei2->icu->curval;
@@ -5396,8 +4275,7 @@ void ipo_record(void)
 	MEM_freeN(data2);
 }
 
-
-
+/* while transform, update for curves */
 void remake_object_ipos(Object *ob)
 {
 	IpoCurve		*icu;
@@ -5410,49 +4288,6 @@ void remake_object_ipos(Object *ob)
 	for (icu = ob->ipo->curve.first; icu; icu=icu->next){
 		sort_time_ipocurve(icu);
 		testhandles_ipocurve(icu);
-	}
-}
-
-
-int is_ipo_key_selected(Ipo *ipo)
-{
-	int i;
-	IpoCurve *icu;
-
-	if (!ipo)
-		return 0;
-
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		for (i=0; i<icu->totvert; i++)
-			if (BEZSELECTED(&icu->bezt[i]))
-				return 1;
-	}
-
-	return 0;
-}
-
-
-void set_ipo_key_selection(Ipo *ipo, int sel)
-{
-	int i;
-	IpoCurve *icu;
-
-	if (!ipo)
-		return;
-
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		for (i=0; i<icu->totvert; i++){
-			if (sel){
-				icu->bezt[i].f1|=1;
-				icu->bezt[i].f2|=1;
-				icu->bezt[i].f3|=1;
-			}
-			else{
-				icu->bezt[i].f1&=~1;
-				icu->bezt[i].f2&=~1;
-				icu->bezt[i].f3&=~1;
-			}
-		}
 	}
 }
 
@@ -5482,27 +4317,6 @@ void delete_ipo_keys(Ipo *ipo)
 	}
 }
 
-int fullselect_ipo_keys(Ipo *ipo)
-{
-	int i;
-	IpoCurve *icu;
-	int tvtot = 0;
-
-	if (!ipo)
-		return tvtot;
-	
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].f2 & 1){
-				tvtot+=3;
-				icu->bezt[i].f1 |= 1;
-				icu->bezt[i].f3 |= 1;
-			}
-		}
-	}
-
-	return tvtot;
-}
 
 int add_trans_ipo_keys(Ipo *ipo, TransVert *tv, int tvtot)
 {
@@ -5566,152 +4380,52 @@ void duplicate_ipo_keys(Ipo *ipo)
 	}
 }
 
-void borderselect_icu_key(IpoCurve *icu, float xmin, float xmax, 
-						  int (*select_function)(BezTriple *))
+void move_to_frame(void)
 {
-	/* Selects all bezier triples in the Ipocurve 
-	 * between times xmin and xmax, using the selection
-	 * function.
-	 */
-
-	int i;
-
-	/* loop through all of the bezier triples in
-	 * the Ipocurve -- if the triple occurs between
-	 * times xmin and xmax then select it using the selection
-	 * function
-	 */
-	for (i=0; i<icu->totvert; i++){
-		if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] < xmax ){
-			select_function(&(icu->bezt[i]));
-		}
-	}
-}
-
-void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, int selectmode)
-{
-	/* Selects all bezier triples in each Ipocurve of the
-	 * Ipo between times xmin and xmax, using the selection mode.
-	 */
-
-	IpoCurve *icu;
-	int (*select_function)(BezTriple *);
-
-	/* If the ipo is no good then return */
-	if (!ipo)
-		return;
-
-	/* Set the selection function based on the
-	 * selection mode.
-	 */
-	switch(selectmode) {
-	case SELECT_ADD:
-		select_function = select_bezier_add;
-		break;
-	case SELECT_SUBTRACT:
-		select_function = select_bezier_subtract;
-		break;
-	case SELECT_INVERT:
-		select_function = select_bezier_invert;
-		break;
-	default:
-		return;
-	}
-
-	/* loop through all of the bezier triples in all
-	 * of the Ipocurves -- if the triple occurs between
-	 * times xmin and xmax then select it using the selection
-	 * function
-	 */
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		borderselect_icu_key(icu, xmin, xmax, select_function);
-	}
-}
-
-void select_ipo_key(Ipo *ipo, float selx, int selectmode)
-{
-	/* Selects all bezier triples in each Ipocurve of the
-	 * Ipo at time selx, using the selection mode.
-	 */
-	int i;
-	IpoCurve *icu;
-	int (*select_function)(BezTriple *);
-
-	/* If the ipo is no good then return */
-	if (!ipo)
-		return;
-
-	/* Set the selection function based on the
-	 * selection mode.
-	 */
-	switch(selectmode) {
-	case SELECT_ADD:
-		select_function = select_bezier_add;
-		break;
-	case SELECT_SUBTRACT:
-		select_function = select_bezier_subtract;
-		break;
-	case SELECT_INVERT:
-		select_function = select_bezier_invert;
-		break;
-	default:
-		return;
-	}
-
-	/* loop through all of the bezier triples in all
-	 * of the Ipocurves -- if the triple occurs at
-	 * time selx then select it using the selection
-	 * function
-	 */
-	for (icu=ipo->curve.first; icu; icu=icu->next){
-		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].vec[1][0]==selx){
-				select_function(&(icu->bezt[i]));
+	EditIpo *ei;
+	BezTriple *bezt;
+	ID *id;
+	float cfra;
+	int a, b;
+	
+	if(G.sipo->editipo==0) return;
+	
+	ei= G.sipo->editipo;
+	
+	for(a=0; a<G.sipo->totipo; a++, ei++) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+			if(G.sipo->showkey || (ei->flag & IPO_EDIT)) {
+				
+				if(ei->icu->bezt) {
+					
+					b= ei->icu->totvert;
+					bezt= ei->icu->bezt;
+					while(b--) {
+						if(BEZSELECTED(bezt)) {
+							
+							cfra=  bezt->vec[1][0]/G.scene->r.framelen;
+							
+							id= G.sipo->from;
+							if(id && GS(id->name)==ID_OB ) {
+								Object *ob= (Object *)id;
+								if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+									cfra+= ob->sf/G.scene->r.framelen;
+								}
+							}
+							CFRA= (short)floor(cfra+0.5);
+							
+							if(CFRA < 1) CFRA= 1;
+							update_for_newframe();
+							
+							break;
+						}
+						bezt++;
+					}
+				}
 			}
 		}
 	}
+	BIF_undo_push("Set frame to selected Ipo vertex");
 }
 
-void select_icu_key(IpoCurve *icu, float selx, int selectmode)
-{
-    /* Selects all bezier triples in the Ipocurve
-     * at time selx, using the selection mode.
-     * This is kind of sloppy the obvious similarities
-     * with the above function, forgive me ...
-     */
-    int i;
-    int (*select_function)(BezTriple *);
 
-    /* If the icu is no good then return */
-    if (!icu)
-        return;
-
-    /* Set the selection function based on the
-     * selection mode.
-     */
-    switch(selectmode) {
-    case SELECT_ADD:
-        select_function = select_bezier_add;
-        break;
-    case SELECT_SUBTRACT:
-        select_function = select_bezier_subtract;
-        break;
-    case SELECT_INVERT:
-        select_function = select_bezier_invert;
-        break;
-    default:
-        return;
-    }
-
-    /* loop through all of the bezier triples in
-     * the Ipocurve -- if the triple occurs at
-     * time selx then select it using the selection
-     * function
-     */
-    for (i=0; i<icu->totvert; i++){
-        if (icu->bezt[i].vec[1][0]==selx){
-            select_function(&(icu->bezt[i]));
-        }
-    }
-
-}

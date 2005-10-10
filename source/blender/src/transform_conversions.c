@@ -1627,24 +1627,24 @@ void special_aftertrans_update(TransInfo *t)
 			pose= ob->pose;
 			
 			if (!act)
-				act= ob->action= add_empty_action();
+				act= ob->action= add_empty_action(ID_PO);
 			
 			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->flag & POSE_KEY){
 					
-					set_action_key(act, pchan, AC_QUAT_X, 1);
-					set_action_key(act, pchan, AC_QUAT_Y, 1);
-					set_action_key(act, pchan, AC_QUAT_Z, 1);
-					set_action_key(act, pchan, AC_QUAT_W, 1);
-				
-					set_action_key(act, pchan, AC_SIZE_X, 1);
-					set_action_key(act, pchan, AC_SIZE_Y, 1);
-					set_action_key(act, pchan, AC_SIZE_Z, 1);
-				
-					set_action_key(act, pchan, AC_LOC_X, 1);
-					set_action_key(act, pchan, AC_LOC_Y, 1);
-					set_action_key(act, pchan, AC_LOC_Z, 1);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_X);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_Y);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_Z);
+					
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_W);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_X);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_Y);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_Z);
+					
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_X);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_Y);
+					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_Z);
 				}
 			}
 			
@@ -1679,18 +1679,18 @@ void special_aftertrans_update(TransInfo *t)
 			
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
+				/* note, here we have to do context still */
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_X);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_Y);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_Z);
 			
-				insertkey(&base->object->id, OB_ROT_X);
-				insertkey(&base->object->id, OB_ROT_Y);
-				insertkey(&base->object->id, OB_ROT_Z);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_X);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_Y);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_Z);
 			
-				insertkey(&base->object->id, OB_LOC_X);
-				insertkey(&base->object->id, OB_LOC_Y);
-				insertkey(&base->object->id, OB_LOC_Z);
-			
-				insertkey(&base->object->id, OB_SIZE_X);
-				insertkey(&base->object->id, OB_SIZE_Y);
-				insertkey(&base->object->id, OB_SIZE_Z);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_X);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_Y);
+				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_Z);
 				
 				remake_object_ipos (ob);
 				allqueue(REDRAWIPO, 0);

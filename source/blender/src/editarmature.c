@@ -2433,7 +2433,7 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 				act = ob->action;
 				if (act && !act->id.lib){
 					/*	Find the appropriate channel */
-					chan= get_named_actionchannel(act, oldname);
+					chan= get_action_channel(act, oldname);
 					if(chan) BLI_strncpy(chan->name, newname, MAXBONENAME);
 				}
 		

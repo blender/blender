@@ -181,6 +181,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
 		if (G.obedit) exit_editmode(2); // freedata, and undo
 		ob= add_object(type);
+		set_active_base(BASACT);
 		base_init_from_view3d(BASACT, G.vd);
 		
 		/* only undo pushes on objects without editmode... */
@@ -3541,8 +3542,10 @@ void std_rmouse_transform(void (*xf_func)(int, int))
 			PIL_sleep_ms(10);
 			timer++;
 			if(timer>=10*U.tb_rightmouse) {
-				toolbox_n();
-				return;
+				if(curarea->spacetype==SPACE_VIEW3D) {
+					toolbox_n();
+					return;
+				}
 			}
 		}
 	}

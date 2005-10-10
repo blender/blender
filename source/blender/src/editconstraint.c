@@ -85,11 +85,11 @@ ListBase *get_active_constraint_channels (Object *ob, int forcevalid)
 				if (!forcevalid)
 					return NULL;
 				
-				ob->action=add_empty_action();
+				ob->action=add_empty_action(ID_PO);
 			}
 			
 			/* Make sure we have an actionchannel */
-			achan = get_named_actionchannel(ob->action, pchan->name);
+			achan = get_action_channel(ob->action, pchan->name);
 			if (!achan){
 				if (!forcevalid)
 					return NULL;
@@ -109,7 +109,17 @@ ListBase *get_active_constraint_channels (Object *ob, int forcevalid)
 		else return NULL;
 	}
 	/* else we return object constraints */
-	return &ob->constraintChannels;
+	else {
+		if(ob->ipoflag & OB_ACTION_OB) {
+			bActionChannel *achan = get_action_channel(ob->action, "Object");
+			if(achan)
+				return &achan->constraintChannels;
+			else 
+				return NULL;
+		}
+		
+		return &ob->constraintChannels;
+	}
 }
 
 
@@ -162,7 +172,7 @@ bConstraintChannel *get_active_constraint_channel(Object *ob)
 					if(con->flag & CONSTRAINT_ACTIVE)
 						break;
 				if(con) {
-					bActionChannel *achan = get_named_actionchannel(ob->action, pchan->name);
+					bActionChannel *achan = get_action_channel(ob->action, pchan->name);
 					if(achan) {
 						for(chan= achan->constraintChannels.first; chan; chan= chan->next)
 							if(!strcmp(chan->name, con->name))
@@ -178,16 +188,19 @@ bConstraintChannel *get_active_constraint_channel(Object *ob)
 			if(con->flag & CONSTRAINT_ACTIVE)
 				break;
 		if(con) {
-			for(chan= ob->constraintChannels.first; chan; chan= chan->next)
-				if(!strcmp(chan->name, con->name))
-					break;
-			return chan;
+			ListBase *lb= get_active_constraint_channels(ob, 0);
+
+			if(lb) {
+				for(chan= lb->first; chan; chan= chan->next)
+					if(!strcmp(chan->name, con->name))
+						break;
+				return chan;
+			}
 		}
 	}
 	
 	return NULL;
 }
-
 
 
 bConstraint *add_new_constraint(short type)

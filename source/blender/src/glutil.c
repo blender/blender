@@ -377,6 +377,28 @@ struct gla2DDrawInfo {
 	float wo_to_sc[2];
 };
 
+void gla2DGetMap(gla2DDrawInfo *di, rctf *rect) 
+{
+	*rect= di->world_rect;
+}
+
+void gla2DSetMap(gla2DDrawInfo *di, rctf *rect) 
+{
+	int sc_w, sc_h;
+	float wo_w, wo_h;
+
+	di->world_rect= *rect;
+	
+	sc_w= (di->screen_rect.xmax-di->screen_rect.xmin);
+	sc_h= (di->screen_rect.ymax-di->screen_rect.ymin);
+	wo_w= (di->world_rect.xmax-di->world_rect.xmin);
+	wo_h= (di->world_rect.ymax-di->world_rect.ymin);
+	
+	di->wo_to_sc[0]= sc_w/wo_w;
+	di->wo_to_sc[1]= sc_h/wo_h;
+}
+
+
 gla2DDrawInfo *glaBegin2DDraw(rcti *screen_rect, rctf *world_rect) 
 {
 	gla2DDrawInfo *di= MEM_mallocN(sizeof(*di), "gla2DDrawInfo");

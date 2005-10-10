@@ -1041,11 +1041,13 @@ void set_active_base(Base *base)
 		set_active_group();
 		
 		/* signal to ipo */
-		if (base) {
-			allqueue(REDRAWIPO, base->object->ipowin);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-		}
+		allqueue(REDRAWIPO, base->object->ipowin);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		
+		/* signal to action */
+		select_actionchannel_by_name(base->object->action, "Object", 1);
+		
 		/* disable temporal locks */
 		for(tbase=FIRSTBASE; tbase; tbase= tbase->next) {
 			if(base!=tbase && (tbase->object->shapeflag & OB_SHAPE_TEMPLOCK)) {

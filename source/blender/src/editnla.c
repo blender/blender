@@ -40,13 +40,6 @@
 
 #include "PIL_time.h"
 
-#include "BKE_action.h"
-#include "BKE_global.h"
-#include "BKE_ipo.h"
-#include "BKE_library.h"
-#include "BKE_main.h"
-#include "BKE_nla.h"
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -61,6 +54,14 @@
 #include "DNA_action_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_constraint_types.h"
+
+#include "BKE_action.h"
+#include "BKE_depsgraph.h"
+#include "BKE_global.h"
+#include "BKE_ipo.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
+#include "BKE_nla.h"
 
 #include "BIF_screen.h"
 #include "BIF_interface.h"
@@ -98,8 +99,6 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel);
 static void mouse_nlachannels(short mval[2]);
 static void add_nlablock(short mval[2]);
 static void convert_nla(short mval[2]);
-extern int count_nla_levels(void);	/* From drawnla.c */
-extern int nla_filter (Base* base, int flags);	/* From drawnla.c */
 
 /* ******************** SPACE: NLA ********************** */
 
@@ -109,31 +108,28 @@ void shift_nlastrips_up(void) {
 	bActionStrip *strip, *prevstrip;
 
 	for (base=G.scene->base.first; base; base=base->next) {
-		if (base->object->type == OB_ARMATURE) {
+		for (strip = base->object->nlastrips.first; 
+			 strip; strip=strip->next){
+			if (strip->flag & ACTSTRIP_SELECT) {
+				if ( (prevstrip = strip->prev) ) {
+					if (prevstrip->prev)
+						prevstrip->prev->next = strip;
+					if (strip->next)
+						strip->next->prev = prevstrip;
+					strip->prev = prevstrip->prev;
+					prevstrip->next = strip->next;
+					strip->next = prevstrip;
+					prevstrip->prev = strip;
 
-			for (strip = base->object->nlastrips.first; 
-				 strip; strip=strip->next){
-				if (strip->flag & ACTSTRIP_SELECT) {
-					if ( (prevstrip = strip->prev) ) {
-						if (prevstrip->prev)
-							prevstrip->prev->next = strip;
-						if (strip->next)
-							strip->next->prev = prevstrip;
-						strip->prev = prevstrip->prev;
-						prevstrip->next = strip->next;
-						strip->next = prevstrip;
-						prevstrip->prev = strip;
+					if (prevstrip == base->object->nlastrips.first)
+						base->object->nlastrips.first = strip;
+					if (strip == base->object->nlastrips.last)
+						base->object->nlastrips.last = prevstrip;
 
-						if (prevstrip == base->object->nlastrips.first)
-							base->object->nlastrips.first = strip;
-						if (strip == base->object->nlastrips.last)
-							base->object->nlastrips.last = prevstrip;
-
-						strip = prevstrip;
-					}
-					else {
-						break;
-					}
+					strip = prevstrip;
+				}
+				else {
+					break;
 				}
 			}
 		}
@@ -149,37 +145,35 @@ void shift_nlastrips_down(void) {
 	bActionStrip *strip, *nextstrip;
 
 	for (base=G.scene->base.first; base; base=base->next) {
-		if (base->object->type == OB_ARMATURE) {
-			for (strip = base->object->nlastrips.last; 
-				 strip; strip=strip->prev){
-				if (strip->flag & ACTSTRIP_SELECT) {
-					if ( (nextstrip = strip->next) ) {
-						if (nextstrip->next)
-							nextstrip->next->prev = strip;
-						if (strip->prev)
-							strip->prev->next = nextstrip;
-						strip->next = nextstrip->next;
-						nextstrip->prev = strip->prev;
-						strip->prev = nextstrip;
-						nextstrip->next = strip;
+		for (strip = base->object->nlastrips.last; 
+			 strip; strip=strip->prev){
+			if (strip->flag & ACTSTRIP_SELECT) {
+				if ( (nextstrip = strip->next) ) {
+					if (nextstrip->next)
+						nextstrip->next->prev = strip;
+					if (strip->prev)
+						strip->prev->next = nextstrip;
+					strip->next = nextstrip->next;
+					nextstrip->prev = strip->prev;
+					strip->prev = nextstrip;
+					nextstrip->next = strip;
 
-						if (nextstrip == base->object->nlastrips.last)
-							base->object->nlastrips.last = strip;
-						if (strip == base->object->nlastrips.first)
-							base->object->nlastrips.first = nextstrip;
+					if (nextstrip == base->object->nlastrips.last)
+						base->object->nlastrips.last = strip;
+					if (strip == base->object->nlastrips.first)
+						base->object->nlastrips.first = nextstrip;
 
-						strip = nextstrip;
-					}
-					else {
-						break;
-					}
+					strip = nextstrip;
+				}
+				else {
+					break;
 				}
 			}
 		}
 	}
+	
 	BIF_undo_push("Shift NLA strips");
 	allqueue (REDRAWNLA, 0);
-
 }
 
 void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
@@ -267,7 +261,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case GKEY:
 			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('g');
+				transform_nlachannel_keys ('g', 0);
 			update_for_newframe_muted();
 			break;
 
@@ -280,7 +274,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case SKEY:
 			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('s');
+				transform_nlachannel_keys ('s', 0);
 			update_for_newframe_muted();
 			break;
 
@@ -288,17 +282,17 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			if (mval[0]>=NLAWIDTH)
 				delete_nlachannel_keys ();
-			else
-				delete_nlachannels();
+
 			update_for_newframe_muted();
 			break;
-		
+			
 		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
 		 * based on user preference USER_LMOUSESELECT
 		 */
 		case LEFTMOUSE:
-			if(view2dmove(LEFTMOUSE)); // only checks for sliders
-			else if (mval[0]>NLAWIDTH){
+			if(view2dmove(LEFTMOUSE))
+				break; // only checks for sliders
+			else if (mval[0]>=snla->v2d.mask.xmin) {
 				do {
 					getmouseco_areawin(mval);
 					
@@ -310,16 +304,16 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( cfra!=CFRA ) {
 						CFRA= cfra;
 						update_for_newframe();
-						force_draw_plus(SPACE_VIEW3D, 1);
-						force_draw_plus(SPACE_IPO, 1);
+						force_draw_all(0);
 					}
 					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
+				break;
 			}
-			break;
+			/* else pass on! */
 		case RIGHTMOUSE:
-			if (mval[0]>=NLAWIDTH) {
+			if (mval[0]>=snla->v2d.mask.xmin) {
 				if(G.qual & LR_SHIFTKEY)
 					mouse_nla(SELECT_INVERT);
 				else
@@ -350,6 +344,31 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(doredraw) scrarea_queue_winredraw(curarea);
 }
 
+static void set_active_strip(Object *ob, bActionStrip *act)
+{
+	bActionStrip *strip;
+	
+	for (strip = ob->nlastrips.first; strip; strip=strip->next)
+		strip->flag &= ~ACTSTRIP_ACTIVE;
+	
+	if(act) {
+		act->flag |= ACTSTRIP_ACTIVE;
+	
+		if(ob->action!=act->act) {
+			if(ob->action) ob->action->id.us--;
+			ob->action= act->act;
+			ob->action->id.us++;
+			
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			ob->ctime= -1234567.0f;	// eveil! 
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+		}
+	}	
+}
+
 static void convert_nla(short mval[2])
 {
 	short event;
@@ -358,6 +377,7 @@ static void convert_nla(short mval[2])
 	float x,y;
 	int sel=0;
 	bActionStrip *strip, *nstrip;
+	
 	/* Find out what strip we're over */
 	ymax = count_nla_levels() * (NLACHANNELSKIP+NLACHANNELHEIGHT);
 	ymax+= NLACHANNELHEIGHT/2;
@@ -365,73 +385,72 @@ static void convert_nla(short mval[2])
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	for (base=G.scene->base.first; base; base=base->next){
-		if (nla_filter(base, 0)){
+		if (nla_filter(base)) {
 			/* Check object ipo */
-			ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
+			ymin= ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
 			if (y>=ymin && y<=ymax)
 				break;
 			ymax=ymin;
 			
-			if (base->object->type==OB_ARMATURE){
-				/* Check action ipo */
-				ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-				if (y>=ymin && y<=ymax)
-					break;
-				ymax=ymin;
+			/* Check action ipo */
+			ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
+			if (y>=ymin && y<=ymax)
+				break;
+			ymax=ymin;
 				
-				/* Check nlastrips */
-				for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-					ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-					if (y>=ymin && y<=ymax){
-						sel = 1;
-						break;
-					}
-					ymax=ymin;
-				}
-				if (sel)
+			/* Check nlastrips */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
+				if (y>=ymin && y<=ymax){
+					sel = 1;
 					break;
+				}
+				ymax=ymin;
 			}
+			if (sel)
+				break;
 		}
 	}
 	
 	if (!base)
 		return;
 	
-	if (base->object->type==OB_ARMATURE){
-		event = pupmenu("Convert%t|Action to NLA Strip%x1");
-		switch (event){
-		case 1:
-			if (base->object->action){
-				/* Make new actionstrip */
-				nstrip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
-				
-				deselect_nlachannel_keys(0);
-				
-				/* Link the action to the nstrip */
-				nstrip->act = base->object->action;
-				nstrip->actstart = calc_action_start(base->object->action);	/* MAKE THIS THE FIRST FRAME OF THE ACTION */
-				nstrip->actend = calc_action_end(base->object->action);
-				nstrip->start = nstrip->actstart;
-				nstrip->end = nstrip->actend;
-				nstrip->flag = ACTSTRIP_SELECT;
-				nstrip->repeat = 1.0;
-								
-				BLI_addtail(&base->object->nlastrips, nstrip);
-				
-				/* Unlink action */
-				base->object->action = NULL;
-				
-				BIF_undo_push("Convert NLA");
-				allqueue (REDRAWNLA, 0);
-			}
+	event = pupmenu("Convert%t|Action to NLA Strip%x1");
+	switch (event){
+	case 1:
+		if (base->object->action){
+			/* Make new actionstrip */
+			nstrip = MEM_callocN(sizeof(bActionStrip), "bActionStrip");
 			
+			deselect_nlachannel_keys(0);
 			
-			break;
-		default:
-			break;
+			/* Link the action to the nstrip */
+			nstrip->act = base->object->action;
+			nstrip->actstart = calc_action_start(base->object->action);	/* MAKE THIS THE FIRST FRAME OF THE ACTION */
+			nstrip->actend = calc_action_end(base->object->action);
+			nstrip->start = nstrip->actstart;
+			nstrip->end = nstrip->actend;
+			nstrip->flag = ACTSTRIP_SELECT;
+			set_active_strip(base->object, nstrip);
+
+			nstrip->repeat = 1.0;
+							
+			BLI_addtail(&base->object->nlastrips, nstrip);
+			
+			/* Unlink action */
+			base->object->action = NULL;
+			
+			BIF_undo_push("Convert NLA");
+			allqueue (REDRAWNLA, 0);
 		}
+		
+		
+		break;
+	default:
+		break;
 	}
 }
+
 
 static Base *nla_base=NULL;	/* global, bad, bad! put it in nla space later, or recode the 2 functions below (ton) */
 
@@ -461,14 +480,17 @@ static void add_nla_block(short event)
 	
 	/* Link the action to the strip */
 	strip->act = act;
-	strip->actstart = 1.0;
+	strip->actstart = calc_action_start(act);
 	strip->actend = calc_action_end(act);
-	strip->start = G.scene->r.cfra; /* Should be mval[0] */
+	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
 	strip->end = strip->start + (strip->actend-strip->actstart);
-	if(strip->start<strip->end+2) 
+		/* simple prevention of zero strips */
+	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
 	
 	strip->flag = ACTSTRIP_SELECT;
+	set_active_strip(nla_base->object, strip);
+	
 	strip->repeat = 1.0;
 	
 	act->id.us++;
@@ -492,15 +514,14 @@ static void add_nla_databrowse_callback(unsigned short val)
 
 static void add_nlablock(short mval[2])
 {
-	/* Make sure we are over an armature */
+	/* Make sure we are over an object with action */
 	Base *base;
+	rctf	rectf;
 	float ymin, ymax;
 	float x, y;
-	rctf	rectf;
 	short event;
-	char *str;
 	short nr;
-	bConstraintChannel *conchan=NULL;
+	char *str;
 
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
@@ -516,34 +537,22 @@ static void add_nlablock(short mval[2])
 
 	for (base=G.scene->base.first; base; base=base->next){
 		/* Handle object ipo selection */
-		if (nla_filter(base, 0)){
+		if (nla_filter(base)) {
 			
 			/* Area that encloses object name (or ipo) */
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 
-			/* Area that encloses constraint channels */
-			for (conchan=base->object->constraintChannels.first; 
-				 conchan; conchan=conchan->next){
+			/* Area that encloses action */
+			if (base->object->action)
 				ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-			}
 
-			if (base->object->type==OB_ARMATURE){
-				/* Area that encloses selected action, if
-				 * present
-				 */
-				if (base->object->action)
-					ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			/* Area that encloses nla strips */
+			ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*
+				(BLI_countlist(&base->object->nlastrips));
 
-				/* Area that encloses nla strips */
-				ymin-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*
-					(BLI_countlist(&base->object->nlastrips));
-			}
-
-			/* Test to see the mouse is in an armature area */
-			if (base->object->type==OB_ARMATURE){
-				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-					break;		
-			}
+			/* Test to see the mouse is in an action area */
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+				break;		
 			
 			ymax=ymin;
 		}
@@ -552,9 +561,9 @@ static void add_nlablock(short mval[2])
 	/* global... for the call above, because the NLA system seems not to have an 'active strip' stored */
 	nla_base= base;
 	
-	/* Make sure we have an armature */
+	/* Make sure we have an action */
 	if (!base){
-		error ("Not an armature");
+		error ("Object has not an Action");
 		return;
 	}
 	
@@ -581,127 +590,83 @@ static void add_nlablock(short mval[2])
 	*/
 }
 
+/* Left hand side of channels display, selects objects */
 static void mouse_nlachannels(short mval[2])
 {
-	/* Find which strip has been clicked */
-//	bActionChannel *chan;
-	bConstraintChannel *conchan=NULL;
-	bActionStrip *strip;
-	float	click, x,y;
-	int		wsize;
-	int		sel;
+	bActionStrip *strip= NULL;
 	Base	*base;
+	Object *ob=NULL;
+	float	x,y;
+	int		click, obclick=0;
+	int		wsize;
 	
 	wsize = (count_nla_levels ()*(NLACHANNELHEIGHT+NLACHANNELSKIP));
 	wsize+= NLACHANNELHEIGHT/2;
 
-    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-    click = ((wsize - y) / (NLACHANNELHEIGHT+NLACHANNELSKIP));
-
+	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+	click = (int)floor( ((float)wsize - y) / (NLACHANNELHEIGHT+NLACHANNELSKIP));
+	
 	if (click<0)
 		return;
 
 	for (base = G.scene->base.first; base; base=base->next){
-		if (nla_filter(base, 0)) {
-			/* See if this is a base selected */
-			if ((int)click==0)
-				break;
+		if (nla_filter(base)) {
+			ob= base->object;
 			
+			/* See if this is a base selected */
+			if (click==0) {
+				obclick= 1;
+				break;
+			}
 			click--;
 			
-			/* Check for click in a constraint */
-			for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-				if ((int)click==0){
-					base=G.scene->base.last;
-					break;
-				}
-				click--;
-			}
-
 			/* See if this is an action */
-			if (base->object->type==OB_ARMATURE && base->object->action){
-				if ((int)click==0){
-					break;
-				}
+			if (ob->action){
+				if (click==0) break;
 				click--;
 			}
 
 			/* See if this is an nla strip */
-			for (strip = base->object->nlastrips.first; strip; strip=strip->next){
-				if ((int)click==0){
-					base=G.scene->base.last;
-					break;
+			if(ob->nlastrips.first) {
+				for (strip = ob->nlastrips.first; strip; strip=strip->next){
+					if (click==0) break;
+					click--;				
 				}
-				click--;				
+				if (strip && click==0) break;
 			}
 		}
 	}
 
-	if (!base && !conchan)
+	if (!base)
 		return;
 
-	/* Handle constraint strip selection */
-	if (conchan){
-		if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
-			sel = 0;
-		else
-			sel =1;
-		
-		/* Channel names clicking */
-		if (G.qual & LR_SHIFTKEY){
-			//		select_poseelement_by_name(chan->name, !(chan->flag & ACHAN_SELECTED));
-			if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-				conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
-				//	hilight_channel(act, chan, 0);
-			}
-			else{
-				conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-				//	hilight_channel(act, chan, 1);
-			}
-		}
-		else{
-			deselect_nlachannels (0);	// Auto clear
-			conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-			//	hilight_channel(act, chan, 1);
-			//	act->achan = chan;
-			//	select_poseelement_by_name(chan->name, 1);
-		}
-		
+	/* Handle object strip selection */
+	if (G.qual & LR_SHIFTKEY) {
+		if (base->flag & SELECT) base->flag &= ~SELECT;
+		else base->flag |= SELECT;
+	}
+	else {
+		deselect_nlachannels (0);	// Auto clear
+		base->flag |= SELECT;
+	}
+	ob->flag= base->flag;
+	
+	if(base!=BASACT) set_active_base(base);
+	
+	/* set action */
+	if(strip)
+		set_active_strip(ob, strip);
+
+	/* override option for NLA */
+	if(obclick && mval[0]<25) {
+		ob->nlaflag ^= OB_NLA_OVERRIDE;
+		ob->ctime= -1234567.0f;	// eveil! 
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 	}
 	
-	/* Handle object strip selection */
-	else if (base) {
-		
-		/* Choose the mode */
-		if (base->flag & SELECT)
-			sel = 0;
-		else
-			sel =1;
-		
-		/* Channel names clicking */
-		if (G.qual & LR_SHIFTKEY) {
-	//		select_poseelement_by_name(chan->name, !(chan->flag & ACHAN_SELECTED));
-			if (base->flag & SELECT) {
-				base->flag &= ~SELECT;
-		//		hilight_channel(act, chan, 0);
-			}
-			else {
-				base->flag |= SELECT;
-		//		hilight_channel(act, chan, 1);
-			}
-		}
-		else {
-			deselect_nlachannels (0);	// Auto clear
-			base->flag |= SELECT;
-		//	hilight_channel(act, chan, 1);
-		//	act->achan = chan;
-		//	select_poseelement_by_name(chan->name, 1);
-		}
-		
-	}
-	allqueue (REDRAWIPO, 0);
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
 	
 }
@@ -736,7 +701,7 @@ void deselect_nlachannel_keys (int test)
 			
 			/* Test action ipos */
 			if (sel){
-				if (base->object->type==OB_ARMATURE && base->object->action){
+				if (base->object->action){
 					for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 						if (is_ipo_key_selected(chan->ipo)){
 							sel=0;
@@ -758,12 +723,10 @@ void deselect_nlachannel_keys (int test)
 			
 			/* Test NLA strips */
 			if (sel){
-				if (base->object->type==OB_ARMATURE){
-					for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-						if (strip->flag & ACTSTRIP_SELECT){
-							sel = 0;
-							break;
-						}
+				for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+					if (strip->flag & ACTSTRIP_SELECT){
+						sel = 0;
+						break;
 					}
 				}
 			}
@@ -775,9 +738,9 @@ void deselect_nlachannel_keys (int test)
 	
 	/* Set the flags */
 	for (base=G.scene->base.first; base; base=base->next){
+		
 		/* Set the object ipos */
 		set_ipo_key_selection(base->object->ipo, sel);
-
 		
 		/* Set the object constraint ipos */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
@@ -785,7 +748,7 @@ void deselect_nlachannel_keys (int test)
 		}
 
 		/* Set the action ipos */
-		if (base->object->type==OB_ARMATURE && base->object->action){
+		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 				set_ipo_key_selection(chan->ipo, sel);
 				/* Set the action constraint ipos */
@@ -795,13 +758,11 @@ void deselect_nlachannel_keys (int test)
 		}
 		
 		/* Set the nlastrips */
-		if (base->object->type==OB_ARMATURE){
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				if (sel)
-					strip->flag |= ACTSTRIP_SELECT;
-				else
-					strip->flag &= ~ACTSTRIP_SELECT;
-			}
+		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+			if (sel)
+				strip->flag |= ACTSTRIP_SELECT;
+			else
+				strip->flag &= ~ACTSTRIP_SELECT;
 		}
 	}
 }
@@ -821,7 +782,7 @@ static void recalc_all_ipos(void)
 	}
 }
 
-void transform_nlachannel_keys(char mode)
+void transform_nlachannel_keys(int mode, int dummy)
 {
 	Base *base;
 	TransVert *tv;
@@ -852,7 +813,7 @@ void transform_nlachannel_keys(char mode)
 			tvtot+=fullselect_ipo_keys(conchan->ipo);			
 		
 		/* Check action ipos */
-		if (base->object->type == OB_ARMATURE && base->object->action){
+		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 				tvtot+=fullselect_ipo_keys(chan->ipo);
 				
@@ -864,11 +825,9 @@ void transform_nlachannel_keys(char mode)
 		}
 
 		/* Check nlastrips */
-		if (base->object->type==OB_ARMATURE){
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				if (strip->flag & ACTSTRIP_SELECT)
-					tvtot+=2;
-			}
+		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+			if (strip->flag & ACTSTRIP_SELECT)
+				tvtot+=2;
 		}
 	}
 	
@@ -889,7 +848,7 @@ void transform_nlachannel_keys(char mode)
 			tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
 
 		/* Manipulate action ipos */
-		if (base->object->type==OB_ARMATURE && base->object->action){
+		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 				tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
 
@@ -1078,19 +1037,17 @@ void delete_nlachannel_keys(void)
 			delete_ipo_keys(conchan->ipo);
 
 		/* Delete NLA strips */
-		if (base->object->type==OB_ARMATURE){
-			for (strip = base->object->nlastrips.first; strip; strip=nextstrip){
-				nextstrip=strip->next;
-				if (strip->flag & ACTSTRIP_SELECT){
-					free_actionstrip(strip);
-					BLI_remlink(&base->object->nlastrips, strip);
-					MEM_freeN(strip);
-				}
+		for (strip = base->object->nlastrips.first; strip; strip=nextstrip){
+			nextstrip=strip->next;
+			if (strip->flag & ACTSTRIP_SELECT){
+				free_actionstrip(strip);
+				BLI_remlink(&base->object->nlastrips, strip);
+				MEM_freeN(strip);
 			}
 		}
 		
 		/* Delete action ipos */
-		if (base->object->type==OB_ARMATURE && base->object->action){
+		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 				delete_ipo_keys(chan->ipo);
 				/* Delete action constraint keys */
@@ -1125,27 +1082,26 @@ void duplicate_nlachannel_keys(void)
 			duplicate_ipo_keys(conchan->ipo);
 
 		/* Duplicate nla strips */
-		if (base->object->type == OB_ARMATURE){
-			laststrip = base->object->nlastrips.last;
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-				if (strip->flag & ACTSTRIP_SELECT){
-					bActionStrip *newstrip;
-					
-					copy_actionstrip(&newstrip, &strip);
-					
-					BLI_addtail(&base->object->nlastrips, newstrip);
-					
-					strip->flag &= ~ACTSTRIP_SELECT;
-					newstrip->flag |= ACTSTRIP_SELECT;
-					
-				}
-				if (strip==laststrip)
-					break;
+		laststrip = base->object->nlastrips.last;
+		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+			if (strip->flag & ACTSTRIP_SELECT){
+				bActionStrip *newstrip;
+				
+				copy_actionstrip(&newstrip, &strip);
+				
+				BLI_addtail(&base->object->nlastrips, newstrip);
+				
+				strip->flag &= ~ACTSTRIP_SELECT;
+				newstrip->flag |= ACTSTRIP_SELECT;
+				set_active_strip(base->object, newstrip);
+
 			}
+			if (strip==laststrip)
+				break;
 		}
 		
 		/* Duplicate actionchannel keys */
-		if (base->object->type == OB_ARMATURE && base->object->action){
+		if (base->object->action){
 			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 				duplicate_ipo_keys(chan->ipo);
 				/* Duplicate action constraint keys */
@@ -1156,7 +1112,7 @@ void duplicate_nlachannel_keys(void)
 	}
 	
 	BIF_undo_push("Duplicate NLA");
-	transform_nlachannel_keys ('g');
+	transform_nlachannel_keys ('g', 0);
 }
 
 void borderselect_nla(void)
@@ -1185,66 +1141,67 @@ void borderselect_nla(void)
 		
 		ymax = count_nla_levels();
 		ymax*= (NLACHANNELHEIGHT+NLACHANNELSKIP);
-		
+		ymax+= (NLACHANNELHEIGHT+NLACHANNELSKIP)/2;
+	
 		for (base=G.scene->base.first; base; base=base->next){
-			/* Check object ipos */
-			if (nla_filter(base, 0)){
+			if (nla_filter(base)) {
+				
 				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+				
+				/* Check object ipos */
 				if (base->object->ipo){
 					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 						borderselect_ipo_key(base->object->ipo, rectf.xmin, rectf.xmax,
                                  selectmode);
 				}
-				ymax=ymin;
-
 				/* Check object constraint ipos */
 				for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
                                  selectmode);
-					ymax=ymin;
 				}
+				
+				ymax=ymin;
 
 				/* Check action ipos */
-				if (ACTIVE_ARMATURE(base)){
+				if (base->object->action){
+					bActionChannel *chan;
+					float xmin, xmax;
+					
 					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-					if (base->object->action){
-						bActionChannel *chan;
-						
-						if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
-							for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-								borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
-                                     selectmode);
-								/* Check action constraint ipos */
-								for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-									borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
-                                       selectmode);
-							}
+					
+					/* if action is mapped in NLA, it returns a correction */
+					xmin= get_action_frame(base->object, rectf.xmin);
+					xmax= get_action_frame(base->object, rectf.xmax);
+					
+					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+						for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
+							borderselect_ipo_key(chan->ipo, xmin, xmax, selectmode);
+							/* Check action constraint ipos */
+							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+								borderselect_ipo_key(conchan->ipo, xmin, xmax, selectmode);
 						}
 					}
+
 					ymax=ymin;
-				}	/* End of if armature */
+				}	/* End of if action */
 				
 				/* Skip nlastrips */
-				if (base->object->type==OB_ARMATURE){
-					for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-						ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-						//
-						if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
-							if (!((rectf.xmax<strip->start) || (rectf.xmin>strip->end))){
-								if (val==1)
-									strip->flag |= ACTSTRIP_SELECT;
-								else
-									strip->flag &= ~ACTSTRIP_SELECT;
-							}
+				for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+					//
+					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+						if (!((rectf.xmax<strip->start) || (rectf.xmin>strip->end))){
+							if (val==1)
+								strip->flag |= ACTSTRIP_SELECT;
+							else
+								strip->flag &= ~ACTSTRIP_SELECT;
 						}
-						
-						ymax=ymin;
 					}
+					
+					ymax=ymin;
 				}
-				
-			}	/* End of object filter */
+			}
 		}	
 		BIF_undo_push("Border select NLA");
 		allqueue(REDRAWNLA, 0);
@@ -1253,22 +1210,25 @@ void borderselect_nla(void)
 	}
 }
 
+/* right hand side of window, does ipokeys, actionkeys or strips */
 static void mouse_nla(int selectmode)
 {
-	short sel;
-	float	selx;
-	short	mval[2];
 	Base *base;
 	bAction *act;
 	bActionChannel *chan;
 	bActionStrip *rstrip;
 	bConstraintChannel *conchan;
+	float	selx;
+	short	mval[2];
+	short sel, isdone=0;
 	
 	getmouseco_areawin (mval);
 	
-	/* Try object ipo selection */
+	/* Try object ipo or ob-constraint ipo selection */
 	base= get_nearest_nlachannel_ob_key(&selx, &sel);
 	if (base) {
+		isdone= 1;
+		
 		if (selectmode == SELECT_REPLACE){
 			deselect_nlachannel_keys(0);
 			selectmode = SELECT_ADD;
@@ -1279,71 +1239,66 @@ static void mouse_nla(int selectmode)
 		/* Try object constraint selection */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
 			select_ipo_key(conchan->ipo, selx, selectmode);
-		
-		
-		BIF_undo_push("Select NLA");
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWNLA, 0);
-		return;
 	}
-
-	/* Try action ipo selection */
-	act= get_nearest_nlachannel_ac_key(&selx, &sel);
-	if (act) {
-		if (selectmode == SELECT_REPLACE){
-			deselect_nlachannel_keys(0);
-			selectmode = SELECT_ADD;
+	else {
+		/* Try action ipo selection */
+		act= get_nearest_nlachannel_ac_key(&selx, &sel);
+		if (act) {
+			isdone= 1;
+			
+			if (selectmode == SELECT_REPLACE){
+				deselect_nlachannel_keys(0);
+				selectmode = SELECT_ADD;
+			}
+			
+			for (chan=act->chanbase.first; chan; chan=chan->next) {
+				select_ipo_key(chan->ipo, selx, selectmode);
+				/* Try action constraint selection */
+				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+					select_ipo_key(conchan->ipo, selx, selectmode);
+			}
 		}
-		
-		for (chan=act->chanbase.first; chan; chan=chan->next) {
-			select_ipo_key(chan->ipo, selx, selectmode);
-			/* Try action constraint selection */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-				select_ipo_key(conchan->ipo, selx, selectmode);
+		else {
+	
+			/* Try nla strip selection */
+			base= get_nearest_nlastrip(&rstrip, &sel);
+			if (base){
+				isdone= 1;
+				
+				if (!(G.qual & LR_SHIFTKEY)){
+					deselect_nlachannel_keys(0);
+					sel = 0;
+				}
+				
+				if (sel)
+					rstrip->flag &= ~ACTSTRIP_SELECT;
+				else
+					rstrip->flag |= ACTSTRIP_SELECT;
+				
+				set_active_strip(base->object, rstrip);
+			}
 		}
-		
-		BIF_undo_push("Select NLA");
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWNLA, 0);
-		return;
 	}
 	
-	/* Try nla strip selection */
-	base= get_nearest_nlastrip(&rstrip, &sel);
-	if (base){
-		if (!(G.qual & LR_SHIFTKEY)){
-			deselect_nlachannel_keys(0);
-			sel = 0;
-		}
+	if(isdone) {
+		std_rmouse_transform(transform_nlachannel_keys);
 		
-		if (sel)
-			rstrip->flag &= ~ACTSTRIP_SELECT;
-		else
-			rstrip->flag |= ACTSTRIP_SELECT;
-		
-		BIF_undo_push("Select NLA");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWNLA, 0);
-		return;
-		
 	}
-	
 }
 
-static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 /* This function is currently more complicated than it seems like it should be.
 * However, this will be needed once the nla strip timeline is more complex */
+static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 {
 	Base *base, *firstbase=NULL;
-	short mval[2];
-	short foundsel = 0;
+	bActionStrip *strip, *firststrip=NULL, *foundstrip=NULL;
 	rctf	rectf;
 	float ymin, ymax;
-	bActionStrip *strip, *firststrip=NULL, *foundstrip=NULL;
-	bConstraintChannel *conchan=NULL;
+	short mval[2];
+	short foundsel = 0;
 
 	getmouseco_areawin (mval);
 	
@@ -1358,48 +1313,42 @@ static Base *get_nearest_nlastrip (bActionStrip **rstrip, short *sel)
 	ymax+= NLACHANNELHEIGHT/2;
 	
 	for (base = G.scene->base.first; base; base=base->next){
-		if (nla_filter(base, 0)){
+		if (nla_filter(base)) {
+			
 			/* Skip object ipos */
-			//	if (base->object->ipo)
 			ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
 
-			/* Skip constraint channels */
-			for (conchan=base->object->constraintChannels.first; 
-				 conchan; conchan=conchan->next){
+			/* Skip action ipos */
+			if (base->object->action)
 				ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-			}
-
-			if (base->object->type==OB_ARMATURE){
-				/* Skip action ipos */
-				if (base->object->action)
-					ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
-				for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-					ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-					/* Do Ytest */
-					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
-						/* Do XTest */
-						if (!((rectf.xmax<strip->start) || (rectf.xmin>strip->end))){
-							if (!firstbase){
-								firstbase=base;
-								firststrip=strip;
-								*sel = strip->flag & ACTSTRIP_SELECT;
-							}
-							
-							if (strip->flag & ACTSTRIP_SELECT){ 
-								if (!foundsel){
-									foundsel=1;
-									foundstrip = strip;
-								}
-							}
-							else if (foundsel && strip != foundstrip){
-								*rstrip=strip;
-								*sel = 0;
-								return base;
+			
+			/* the strips */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+				/* Do Ytest */
+				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+					/* Do XTest */
+					if (!((rectf.xmax<strip->start) || (rectf.xmin>strip->end))){
+						if (!firstbase){
+							firstbase=base;
+							firststrip=strip;
+							*sel = strip->flag & ACTSTRIP_SELECT;
+						}
+						
+						if (strip->flag & ACTSTRIP_SELECT){ 
+							if (!foundsel){
+								foundsel=1;
+								foundstrip = strip;
 							}
 						}
+						else if (foundsel && strip != foundstrip){
+							*rstrip=strip;
+							*sel = 0;
+							return base;
+						}
 					}
-					ymax=ymin;
 				}
+				ymax=ymin;
 			}
 		}
 	}
@@ -1414,7 +1363,7 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 	Base *firstbase=NULL;
 	bConstraintChannel *conchan;
 	int	foundsel=0;
-	float firstvert=-1, foundx=-1;
+	float firstvertx=-1, foundx=-1;
 	int i;
 	short mval[2];
 	float ymin, ymax;
@@ -1438,9 +1387,11 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 	*sel=0;
 	
 	for (base=G.scene->base.first; base; base=base->next){
-		/* Handle object ipo selection */
-		if (nla_filter(base, 0)){
+		if (nla_filter(base)) {
+			
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
+			
+			/* Handle object ipo selection */
 			if (base->object->ipo){
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
 					for (icu=base->object->ipo->curve.first; icu; icu=icu->next){
@@ -1448,7 +1399,7 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 							if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
 								if (!firstbase){
 									firstbase=base;
-									firstvert=icu->bezt[i].vec[1][0];
+									firstvertx=icu->bezt[i].vec[1][0];
 									*sel = icu->bezt[i].f2 & 1;	
 								}
 								
@@ -1468,19 +1419,15 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 					}
 				}
 			}
-		
-			ymax=ymin;
-
 			/* Handle object constraint ipos */
 			for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+				if ( !((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo){
 					for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
 						for (i=0; i<icu->totvert; i++){
 							if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
 								if (!firstbase){
 									firstbase=base;
-									firstvert=icu->bezt[i].vec[1][0];
+									firstvertx=icu->bezt[i].vec[1][0];
 									*sel = icu->bezt[i].f2 & 1;	
 								}
 								
@@ -1499,21 +1446,20 @@ static Base *get_nearest_nlachannel_ob_key (float *index, short *sel)
 						}
 					}
 				}
-				ymax=ymin;
 			}
 
+			ymax=ymin;
+			
 			/* Skip action ipos */
-			if (ACTIVE_ARMATURE(base)){
+			if (base->object->action){
 				ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
 			}
 			/* Skip nlastrips */
-			if (base->object->type==OB_ARMATURE){
-				ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*BLI_countlist(&base->object->nlastrips);
-			}
+			ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*BLI_countlist(&base->object->nlastrips);
 		}
 	}	
 	
-	*index=firstvert;
+	*index=firstvertx;
 	return firstbase;
 }
 
@@ -1522,14 +1468,14 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	Base *base;
 	IpoCurve *icu;
 	bAction *firstact=NULL;
-	int	foundsel=0;
-	float firstvert=-1, foundx=-1;
-	int i;
-	short mval[2];
-	float ymin, ymax;
-	rctf	rectf;
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
+	rctf	rectf;
+	float firstvert=-1, foundx=-1;
+	float ymin, ymax, xmin, xmax;
+	int i;
+	int	foundsel=0;
+	short mval[2];
 	
 	*index=0;
 	
@@ -1550,47 +1496,55 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	
 	for (base=G.scene->base.first; base; base=base->next){
 		/* Handle object ipo selection */
-		if (nla_filter(base, 0)){
-			/* Skip object ipo */
+		if (nla_filter(base)) {
+			
+			/* Skip object ipo and ob-constraint ipo */
 			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 			ymax=ymin;
 			
 			/* Handle action ipos */
-			if (ACTIVE_ARMATURE(base)){
+			if (base->object->action){
+				bAction *act= base->object->action;
+				
+				/* if action is mapped in NLA, it returns a correction */
+				xmin= get_action_frame(base->object, rectf.xmin);
+				xmax= get_action_frame(base->object, rectf.xmax);
+				
 				ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
-					for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-						for (icu=chan->ipo->curve.first; icu; icu=icu->next){
-							for (i=0; i<icu->totvert; i++){
-								if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
-									if (!firstact){
-										firstact=base->object->action;
-										firstvert=icu->bezt[i].vec[1][0];
-										*sel = icu->bezt[i].f2 & 1;	
-									}
-									
-									if (icu->bezt[i].f2 & 1){ 
-										if (!foundsel){
-											foundsel=1;
-											foundx = icu->bezt[i].vec[1][0];
+					for (chan=act->chanbase.first; chan; chan=chan->next){
+						if(chan->ipo) {
+							for (icu=chan->ipo->curve.first; icu; icu=icu->next){
+								for (i=0; i<icu->totvert; i++){
+									if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
+										if (!firstact){
+											firstact= act;
+											firstvert=icu->bezt[i].vec[1][0];
+											*sel = icu->bezt[i].f2 & 1;	
 										}
-									}
-									else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
-										*index=icu->bezt[i].vec[1][0];
-										*sel = 0;
-										return base->object->action;
+										
+										if (icu->bezt[i].f2 & 1){ 
+											if (!foundsel){
+												foundsel=1;
+												foundx = icu->bezt[i].vec[1][0];
+											}
+										}
+										else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
+											*index=icu->bezt[i].vec[1][0];
+											*sel = 0;
+											return act;
+										}
 									}
 								}
 							}
 						}
 						
-						
 						for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 							ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
-							if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+							if ( !((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo){
 								for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
 									for (i=0; i<icu->totvert; i++){
-										if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
+										if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
 											if (!firstact){
 												firstact=base->object->action;
 												firstvert=icu->bezt[i].vec[1][0];
@@ -1622,9 +1576,7 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 			}
 			
 			/* Skip nlastrips */
-			if (base->object->type==OB_ARMATURE){
-				ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*BLI_countlist(&base->object->nlastrips);
-			}
+			ymax-=(NLACHANNELHEIGHT+NLACHANNELSKIP)*BLI_countlist(&base->object->nlastrips);
 		}
 	}	
 	
@@ -1632,73 +1584,10 @@ static bAction *get_nearest_nlachannel_ac_key (float *index, short *sel)
 	return firstact;
 }
 
-void clever_numbuts_nla(void){
-	bActionStrip *strip=NULL;
-	int but=0;
-		
-	/* Determine if an nla strip has been selected */
-	//strip = get_active_nlastrip();
-	if (!strip)
-		return;
-	
-	add_numbut(but++, LABEL, "Timeline Range:", 1.0, MAXFRAMEF, 0, 0);
-	add_numbut(but++, NUM|FLO, "Strip Start:", 1.0, MAXFRAMEF, &strip->start, "First frame in the timeline");
-	add_numbut(but++, NUM|FLO, "Strip End:", 1.0, MAXFRAMEF, &strip->end, "Last frame in the timeline");
-	add_numbut(but++, LABEL, "Action Range:", 1.0, MAXFRAMEF, 0, 0);
-	add_numbut(but++, NUM|FLO, "Action Start:", 1.0, MAXFRAMEF, &strip->actstart, "First frame of the action to map to the playrange");
-	add_numbut(but++, NUM|FLO, "Action End:", 1.0, MAXFRAMEF, &strip->actend, "Last frame of the action to map to the playrange");
-	add_numbut(but++, LABEL, "Blending:", 1.0, MAXFRAMEF, 0, 0);
-	add_numbut(but++, NUM|FLO, "Blend In:", 0.0, MAXFRAMEF, &strip->blendin, "Number of frames of ease-in");
-	add_numbut(but++, NUM|FLO, "Blend Out:", 0.0, MAXFRAMEF, &strip->blendout, "Number of frames of ease-out");
-	add_numbut(but++, LABEL, "Options:", 1.0, MAXFRAMEF, 0, 0);
-	add_numbut(but++, NUM|FLO, "Repeat:", 0.0001, MAXFRAMEF, &strip->repeat, "Number of times the action should repeat");
-	add_numbut(but++, NUM|FLO, "Stride:", 0.0001, MAXFRAMEF, &strip->stridelen, "Distance covered by one complete cycle of the action specified in the Action Range");
-	{
-		/* STUPID HACK BECAUSE NUMBUTS ARE BROKEN WITH MULTIPLE TOGGLES */
-		short hold= (strip->flag & ACTSTRIP_HOLDLASTFRAME) ? 1 : 0;
-		short frompath=(strip->flag & ACTSTRIP_USESTRIDE) ? 1 : 0;
-
-		add_numbut(but++, TOG|SHO, "Use Path", 0, 0, &frompath, "Plays action based on position on path & stride length.  Only valid for armatures that are parented to a path");
-		add_numbut(but++, TOG|SHO, "Hold", 0, 0, &hold, "Toggles whether or not to continue displaying the last frame past the end of the strip");
-		add_numbut(but++, TOG|SHO, "Add", 0, 0, &strip->mode, "Toggles additive blending mode");
-		
-		do_clever_numbuts("Action", but, REDRAW);
-		
-		/* STUPID HACK BECAUSE NUMBUTS ARE BROKEN WITH MULTIPLE TOGGLES */
-		if (hold) strip->flag |= ACTSTRIP_HOLDLASTFRAME;
-		else strip->flag &= ~ACTSTRIP_HOLDLASTFRAME;
-
-		if (frompath) strip->flag |= ACTSTRIP_USESTRIDE;
-		else strip->flag &= ~ACTSTRIP_USESTRIDE;
-		
-	}
-
-	if (strip->end<strip->start)
-		strip->end=strip->start;
-
-
-	if (strip->blendin>(strip->end-strip->start))
-		strip->blendin = strip->end-strip->start;
-
-	if (strip->blendout>(strip->end-strip->start))
-		strip->blendout = strip->end-strip->start;
-
-	if (strip->blendin > (strip->end-strip->start-strip->blendout))
-		strip->blendin = (strip->end-strip->start-strip->blendout);
-
-	if (strip->blendout > (strip->end-strip->start-strip->blendin))
-		strip->blendout = (strip->end-strip->start-strip->blendin);
-	
-	
-	update_for_newframe_muted();
-	allqueue (REDRAWNLA, 0);
-	allqueue (REDRAWVIEW3D, 0);
-}	
-
-void deselect_nlachannels(int test){
-	int sel = 1;
+void deselect_nlachannels(int test)
+{
 	Base *base;
-	bConstraintChannel *conchan;
+	int sel = 1;
 
 	if (test){
 		for (base=G.scene->base.first; base; base=base->next){
@@ -1706,15 +1595,6 @@ void deselect_nlachannels(int test){
 			if (base->flag & SELECT){
 				sel=0;
 				break;
-			}
-
-			/* Check constraint flags for previous selection */
-			for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-					sel=0;
-					base = G.scene->base.last;
-					break;
-				}
 			}
 		}
 	}
@@ -1724,56 +1604,12 @@ void deselect_nlachannels(int test){
 	/* Select objects */
 	for (base=G.scene->base.first; base; base=base->next){
 		if (sel){
-			if (nla_filter(base, 0))
+			if (nla_filter(base))
 				base->flag |= SELECT;
 		}
 		else
 			base->flag &= ~SELECT;
-
-		/* Select constraint channels */
-		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-			if (sel){
-				if (nla_filter(base, 0))
-					conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-			}
-			else
-				conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
-		}
+		
+		base->object->flag= base->flag;
 	}	
-}
-
-void delete_nlachannels(void){
-	Base *base;
-	bConstraintChannel *conchan, *nextchan;
-	int sel=0;
-
-	/* See if there is anything selected */
-	for (base = G.scene->base.first; base && (!sel); base=base->next){
-		/* Check constraints */
-		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next){
-			if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-				sel = 1;
-				break;
-			}
-		}
-	}
-
-	if (!sel)
-		return;
-
-	if (okee ("Delete selected channels")){
-		for (base=G.scene->base.first; base; base=base->next){
-			for (conchan=base->object->constraintChannels.first; conchan; conchan=nextchan){
-				nextchan = conchan->next;
-				
-				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-					if (conchan->ipo)
-						conchan->ipo->id.us--;
-					BLI_freelinkN(&base->object->constraintChannels, conchan);
-				}
-			}
-		}
-		BIF_undo_push("Delete NLA channels");
-
-	}
 }

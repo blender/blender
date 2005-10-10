@@ -255,14 +255,15 @@ static void draw_ob_keys()
 					/* go through each channel in the action */
 					for (achan=act->chanbase.first; achan; achan=achan->next){
 						/* convert the ipo to a list of 'current frame elements' */
-						
-						elems.first= elems.last= NULL;
-						make_cfra_list(achan->ipo, &elems);
+						if(achan->ipo) {
+							elems.first= elems.last= NULL;
+							make_cfra_list(achan->ipo, &elems);
 
-						col[0] = 0x00; col[1] = 0x82; col[2] = 0x8B;
-						draw_key_list(elems, col);
-						
-						BLI_freelistN(&elems);
+							col[0] = 0x00; col[1] = 0x82; col[2] = 0x8B;
+							draw_key_list(elems, col);
+							
+							BLI_freelistN(&elems);
+						}
 					}
 				}
 				

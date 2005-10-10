@@ -238,6 +238,17 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if (G.main->versionfile <= 238) {
+		bTheme *btheme;
+		/* bone colors */
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* check for alpha==0 is safe, then color was never set */
+			if(btheme->tnla.strip[3]==0) {
+				SETCOL(btheme->tnla.strip_select, 	0xff, 0xff, 0xaa, 255);
+				SETCOL(btheme->tnla.strip, 0xe4, 0x9c, 0xc6, 255);
+			}
+		}
+	}
 	
 	if (U.undosteps==0) U.undosteps=32;
 	

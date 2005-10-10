@@ -2521,7 +2521,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiDefButBitI(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y3,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
-			"Allow the view to tumble freely when orbiting with the Middle Mouse Button");
+			"Use fixed up axis for orbiting with Middle Mouse Button");
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiDefButBitI(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Perspective",
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
@@ -4639,7 +4639,7 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_headredraw(sa);
 					if(val) {
 						si= sa->spacedata.first;
-						if (si->pin==0)							
+						if (si->pin==0)				
 							si->blocktype= val;
 					}
 				}

@@ -55,6 +55,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_lattice_types.h"
 
 #include "BKE_action.h"
@@ -98,9 +99,7 @@ extern int count_action_levels (bAction *act);
 #define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
 
 /* Local Function prototypes, are forward needed */
-static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *chan, int adrcode, short makecurve, float time);
 static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
-static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time);
 
 static void up_sel_action(void);
 static void down_sel_action(void);
@@ -137,6 +136,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	bActionChannel *achan;
 	bAction			*temp;
 	bPoseChannel	*pchan;
+	ID				*id;
 	float			actlen;
 	int				oldframe;
 	int				curframe;
@@ -144,7 +144,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 
 	if (!act)
 		return NULL;
-
+	
 	arm = get_armature(armob);
 
 	if (G.obedit){
@@ -158,7 +158,8 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	}
 	
 	/* Get a new action */
-	result = add_empty_action();
+	result = add_empty_action(ID_PO);
+	id= (ID *)armob;
 
 	/* Assign the new action a unique name */
 	sprintf (newname, "%s.BAKED", act->id.name+2);
@@ -169,7 +170,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	oldframe = G.scene->r.cfra;
 
 	temp = armob->action;
-	armob->action = act;
+	armob->action = result;
 	
 	for (curframe=1; curframe<ceil(actlen+1); curframe++){
 
@@ -186,16 +187,16 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
 
 			/* Apply to keys */
-			set_action_key_time (result, pchan, AC_QUAT_X, 1, curframe);
-			set_action_key_time (result, pchan, AC_QUAT_Y, 1, curframe);
-			set_action_key_time (result, pchan, AC_QUAT_Z, 1, curframe);
-			set_action_key_time (result, pchan, AC_QUAT_W, 1, curframe);
-			set_action_key_time (result, pchan, AC_LOC_X, 1, curframe);
-			set_action_key_time (result, pchan, AC_LOC_Y, 1, curframe);
-			set_action_key_time (result, pchan, AC_LOC_Z, 1, curframe);
-			set_action_key_time (result, pchan, AC_SIZE_X, 1, curframe);
-			set_action_key_time (result, pchan, AC_SIZE_Y, 1, curframe);
-			set_action_key_time (result, pchan, AC_SIZE_Z, 1, curframe);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_X);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Y);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Z);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_X);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_Y);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_Z);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_W);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_X);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_Y);
+			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_Z);
 		}
 	}
 
@@ -203,8 +204,10 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	/* Make another pass to ensure all keyframes are set to linear interpolation mode */
 	for (achan = result->chanbase.first; achan; achan=achan->next){
 		IpoCurve* icu;
-		for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-			icu->ipo= IPO_LIN;
+		if(achan->ipo) {
+			for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+				icu->ipo= IPO_LIN;
+			}
 		}
 	}
 
@@ -231,7 +234,6 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 
 	for (chan = act->chanbase.first; chan; chan=chan->next){
 		if (!strcmp (chan->name, name)){
-			act->achan = chan;
 			if (select){
 				chan->flag |= ACHAN_SELECTED;
 				hilight_channel (act, chan, 1);
@@ -322,25 +324,27 @@ void duplicate_actionchannel_keys(void)
 			duplicate_ipo_keys(conchan->ipo);
 	}
 
-	transform_actionchannel_keys ('g');
+	transform_actionchannel_keys ('g', 0);
 }
 
-static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **rchan){
+static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **rchan)
+{
 	bAction *act;
 	bActionChannel *chan;
 	IpoCurve *icu;
 	bActionChannel *firstchan=NULL;
 	bConstraintChannel *conchan, *firstconchan=NULL;
-	int	foundsel=0;
-	float firstvert=-1, foundx=-1;
-		int i;
-	short mval[2];
-	float ymin, ymax;
 	rctf	rectf;
+	float firstvert=-1, foundx=-1;
+	float ymin, ymax, xmin, xmax;
+	int i;
+	int	foundsel=0;
+	short mval[2];
+	
 	*index=0;
 
 	*rchan=NULL;
-	act=G.saction->action; /* We presume that we are only called during a valid action */
+	act= G.saction->action; /* We presume that we are only called during a valid action */
 	
 	getmouseco_areawin (mval);
 
@@ -352,16 +356,26 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 	ymax = count_action_levels(act) * (CHANNELHEIGHT + CHANNELSKIP);
 	ymax += CHANNELHEIGHT/2;
 	
+	/* if action is mapped in NLA, it returns a correction */
+	if(G.saction->pin==0 && OBACT) {
+		xmin= get_action_frame(OBACT, rectf.xmin);
+		xmax= get_action_frame(OBACT, rectf.xmax);
+	}
+	else {
+		xmin= rectf.xmin;
+		xmax= rectf.xmax;
+	}
+	
 	*sel=0;
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 
 		/* Check action channel */
 		ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
-		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && chan->ipo){
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next){
 				for (i=0; i<icu->totvert; i++){
-					if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
+					if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
 						if (!firstchan){
 							firstchan=chan;
 							firstvert=icu->bezt[i].vec[1][0];
@@ -388,10 +402,10 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 		/* Check constraint channels */
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))){
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo) {
 				for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
 					for (i=0; i<icu->totvert; i++){
-						if (icu->bezt[i].vec[1][0] > rectf.xmin && icu->bezt[i].vec[1][0] <= rectf.xmax ){
+						if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
 							if (!firstchan){
 								firstchan=chan;
 								firstconchan=conchan;
@@ -550,13 +564,11 @@ static void mouse_action(int selectmode)
 
 	if (chan){
 		if (selectmode == SELECT_REPLACE) {
-			if (sel == 0)
-				selectmode = SELECT_ADD;
-			else
-				selectmode = SELECT_SUBTRACT;
+			selectmode = SELECT_ADD;
+			
 			deselect_actionchannel_keys(act, 0);
 			deselect_actionchannels(act, 0);
-			act->achan = chan;
+			
 			chan->flag |= ACHAN_SELECTED;
 			hilight_channel (act, chan, 1);
 			select_poseelement_by_name(chan->name, 1);
@@ -567,7 +579,9 @@ static void mouse_action(int selectmode)
 		else
 			select_ipo_key(chan->ipo, selx, selectmode);
 
-		BIF_undo_push("Select Action");
+		
+		std_rmouse_transform(transform_actionchannel_keys);
+		
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
@@ -731,22 +745,40 @@ void borderselect_mesh(Key *key)
 		/* Lets loop throug the IpoCurves and do borderselect
 		 * on the curves with adrcodes in our selected range.
 		 */
-		for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
-			/* lets not deal with the "speed" Ipo
-			 */
-			if (!icu->adrcode) continue;
-			if ( (icu->adrcode >= adrcodemin) && 
-				 (icu->adrcode <= adrcodemax) ) {
-				borderselect_icu_key(icu, xmin, xmax, select_function);
+		if(key->ipo) {
+			for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+				/* lets not deal with the "speed" Ipo
+				 */
+				if (!icu->adrcode) continue;
+				if ( (icu->adrcode >= adrcodemin) && 
+					 (icu->adrcode <= adrcodemax) ) {
+					borderselect_icu_key(icu, xmin, xmax, select_function);
+				}
 			}
 		}
-
 		/* redraw stuff */
 		BIF_undo_push("Border select Action Key");
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);
 	}
+}
+
+/* ******************** action API ***************** */
+
+/* generic get current action call, for action window context */
+bAction *ob_get_action(Object *ob)
+{
+	bActionStrip *strip;
+	
+	if(ob->action)
+		return ob->action;
+	
+	for (strip=ob->nlastrips.first; strip; strip=strip->next){
+		if (strip->flag & ACTSTRIP_SELECT)
+			return strip->act;
+	}
+	return NULL;
 }
 
 /* used by ipo, outliner, buttons to find the active channel */
@@ -766,41 +798,6 @@ bActionChannel* get_hilighted_action_channel(bAction* action)
 
 }
 
-/* sets action->achan to active channel, also adds if needed */
-void verify_active_action_channel(Object *ob)
-{
-	if(ob) {
-		bPoseChannel *pchan;
-		bActionChannel *achan;
-		
-		if(ob->action==NULL) return;
-		
-		pchan= get_active_posechannel(ob);
-		if(pchan) {
-			/* See if this action channel exists already */	
-			for (achan=ob->action->chanbase.first; achan; achan=achan->next){
-				if (!strcmp (pchan->name, achan->name))
-					break;
-			}
-			
-			if (!achan){
-				achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-				strcpy (achan->name, pchan->name);
-				BLI_addtail (&ob->action->chanbase, achan);
-			}
-			
-			ob->action->achan= achan;
-			ob->action->pchan= pchan;
-			
-			for (achan=ob->action->chanbase.first; achan; achan=achan->next)
-				achan->flag &= ~(ACHAN_SELECTED|ACHAN_HILIGHTED);
-			
-			ob->action->achan->flag |= ACHAN_SELECTED|ACHAN_HILIGHTED;
-
-		}
-	}		
-}
-
 void set_exprap_action(int mode)
 {
 	if(G.saction->action && G.saction->action->id.lib) return;
@@ -808,109 +805,23 @@ void set_exprap_action(int mode)
 	error ("Not yet implemented!");
 }
 
-void set_action_key (struct bAction *act, struct bPoseChannel *chan, int adrcode, short makecurve)
-{
-	set_action_key_time (act, chan, adrcode, makecurve, frame_to_float(CFRA));
-}
-
-static void set_action_key_time (bAction *act, bPoseChannel *chan, int adrcode, short makecurve, float time)
-{
-	bActionChannel	*achan;
-	char	ipstr[256];
-
-	if (!act)
-		return;
-
-	if (!chan)
-		return;
-	
-	/* See if this action channel exists already */	
-	for (achan=act->chanbase.first; achan; achan=achan->next){
-		if (!strcmp (chan->name, achan->name))
-			break;
-	}
-
-	if (!achan){
-		if (!makecurve)
-			return;
-		achan = MEM_callocN (sizeof(bActionChannel), "actionChannel");
-		strcpy (achan->name, chan->name);
-		BLI_addtail (&act->chanbase, achan);
-	}
-
-	/* Ensure the channel appears selected in the action window */
-	/* ton: added flag hilighted, for display in ipowin. dunno what the difference is between select/hilite */
-	achan->flag |= ACHAN_SELECTED|ACHAN_HILIGHTED;
-
-	/* Ensure this action channel has a valid Ipo */
-	if (!achan->ipo){
-		sprintf (ipstr, "%s.%s", act->id.name+2, chan->name);
-		ipstr[23]=0;
-		achan->ipo=	add_ipo(ipstr, ID_AC);	
-	}
-
-	insertactionkey(act, achan, chan, adrcode, makecurve, time);
-
-}
-
-static void insertactionkey(bAction *act, bActionChannel *achan, bPoseChannel *chan, int adrcode, short makecurve, float cfra)
-{
-	IpoCurve *icu;
-	void *poin;
-	float curval;
-	int type;
-	ID *id;
-	
-	if (!act){
-		return;
-	}
-	if (act->id.lib){
-		error ("Can't pose library actions");
-		return;
-	}
-	act->achan=achan;
-	act->pchan=chan;
-
-	id=(ID*) act;
-
-	/* First see if this curve exists */
-	if (!makecurve){
-		if (!achan->ipo)
-			return;
-
-		for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-			if (icu->adrcode == adrcode)
-				break;
-		}
-		if (!icu)
-			return;
-	}
-
-	
-	icu = get_ipocurve (id, GS(id->name), adrcode, achan->ipo);
-
-	if(icu) {
-		poin= get_ipo_poin(id, icu, &type);
-		if(poin) {
-			curval= read_ipo_poin(poin, type);
-	//		cfra= frame_to_float(CFRA);
-			insert_vert_ipo(icu, cfra, curval);
-		}
-	}
-	
-}
-
-bAction *add_empty_action(void)
+bAction *add_empty_action(int blocktype)
 {
 	bAction *act;
-
-	act= alloc_libblock(&G.main->action, ID_AC, "Action");
+	char *str= "Action";
+	
+	if(blocktype==ID_OB)
+		str= "ObAction";
+	else if(blocktype==ID_KE)
+		str= "ShapeAction";
+	
+	act= alloc_libblock(&G.main->action, ID_AC, str);
 	act->id.flag |= LIB_FAKEUSER;
 	act->id.us++;
 	return act;
 }
 
-void transform_actionchannel_keys(char mode)
+void transform_actionchannel_keys(int mode, int dummy)
 {
 	bAction	*act;
 	TransVert *tv;
@@ -1054,9 +965,13 @@ void transform_actionchannel_keys(char mode)
 				headerprint(str);
 			}
 	
-			if (G.saction->lock){
-				if(ob && ob->pose) {
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			if (G.saction->lock) {
+				if(ob) {
+					ob->ctime= -1234567.0f;
+					if(ob->pose || ob_get_key(ob))
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+					else
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 				}
 				force_draw_plus(SPACE_VIEW3D, 0);
 			}
@@ -1073,8 +988,13 @@ void transform_actionchannel_keys(char mode)
 	/*		Update the curve */
 	/*		Depending on the lock status, draw necessary views */
 
-	if(ob && ob->pose) {
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	if(ob) {
+		ob->ctime= -1234567.0f;
+
+		if(ob->pose || ob_get_key(ob))
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		else
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	}
 	remake_action_ipos(act);
 
@@ -1271,7 +1191,6 @@ void transform_meshchannel_keys(char mode, Key *key)
 	 * what it does, but the specifics seem a little weird and crufty.
 	 */
 }
-
 
 void deselect_actionchannel_keys (bAction *act, int test)
 {
@@ -1535,9 +1454,7 @@ static void mouse_actionchannels(bAction *act, short *mval,
 			 * active channel for the action
 			 */
 			sel = (chan->flag & ACHAN_SELECTED);
-			if ( select_channel(act, chan, selectmode) && !sel ) {
-				act->achan = chan;
-			}
+			select_channel(act, chan, selectmode);
 		}
 		--clickmin;
 		--clickmax;
@@ -2175,7 +2092,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					transform_meshchannel_keys('g', key);
 				}
 				else if (act) {
-					transform_actionchannel_keys ('g');
+					transform_actionchannel_keys ('g', 0);
 				}
 			}
 			break;
@@ -2215,7 +2132,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					transform_meshchannel_keys('s', key);
 				}
 				else if (act) {
-					transform_actionchannel_keys ('s');
+					transform_actionchannel_keys ('s', 0);
 				}
 			}
 			break;
@@ -2284,7 +2201,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * based on user preference USER_LMOUSESELECT
 		 */
 		case LEFTMOUSE:
-			if(view2dmove(LEFTMOUSE)); // only checks for sliders
+			if(view2dmove(LEFTMOUSE)) // only checks for sliders
+				break;
 			else if (mval[0]>ACTWIDTH){
 				do {
 					getmouseco_areawin(mval);
@@ -2301,8 +2219,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else PIL_sleep_ms(30);
 					
 				} while(get_mbut() & mousebut);
+				break;
 			}
-			break;
+			/* passed on as selection */
 		case RIGHTMOUSE:
 			/* Clicking in the channel area selects the
 			 * channel or constraint channel

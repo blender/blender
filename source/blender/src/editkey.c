@@ -96,17 +96,19 @@ float meshslidervals[64] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-static IpoCurve *get_key_icu(Key *key, int keynum) {
+static IpoCurve *get_key_icu(Key *key, int keynum) 
+{
 	/* return the Ipocurve that has the specified
 	 * keynum as ardcode -- return NULL if no such 
 	 * curve exists.
 	 */
     IpoCurve *icu;
+	
+	/* why this? (ton) */
 	if (!(key->ipo)) {
-		key->ipo = get_ipo((ID *)key, ID_KE, 1);
+		key->ipo= add_ipo("KeyIpo", ID_KE);
 		return NULL;
 	}
-
 
     for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
         if (!icu->adrcode) continue;
@@ -158,19 +160,13 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 
 	cfra = frame_to_float(CFRA);
 
-	icu = get_key_icu(key, keynum);
+	icu = verify_ipocurve(&key->id, ID_KE, NULL, NULL, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
 		 * for this frame
 		 */
 		bezt = get_bezt_icu_time(icu, &cfra, &rvkval);
-	}
-	else {
-		/* create an IpoCurve if one doesn't already
-		 * exist.
-		 */
-		icu = get_ipocurve(key->from, GS(key->from->name), keynum, key->ipo);
 	}
 	
 	/* create the bezier triple if one doesn't exist,
