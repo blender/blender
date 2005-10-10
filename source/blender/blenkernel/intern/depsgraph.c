@@ -50,6 +50,7 @@
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
@@ -387,7 +388,16 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 					dag_add_driver_relation(chan->ipo, dag, node, 1);
 			}
 		}
-		
+		if(ob->nlastrips.first) {
+			bActionStrip *strip;
+			bActionChannel *chan;
+			for(strip= ob->nlastrips.first; strip; strip= strip->next) {
+				if(strip->act && strip->act!=ob->action)
+					for (chan = strip->act->chanbase.first; chan; chan=chan->next)
+						if(chan->ipo)
+							dag_add_driver_relation(chan->ipo, dag, node, 1);
+			}
+		}
 		if (ob->modifiers.first) {
 			ModifierData *md;
 
@@ -1463,8 +1473,9 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		if(ob->action || ob->nlastrips.first) {
 			/* since actions now are mixed, we set the recalcs on the safe side */
 			ob->recalc |= OB_RECALC_OB;
-			if(ob->type==OB_ARMATURE)
+			if(ob->type==OB_ARMATURE) {
 				ob->recalc |= OB_RECALC_DATA;
+			}
 		}
 		else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;
