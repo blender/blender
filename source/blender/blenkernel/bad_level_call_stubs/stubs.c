@@ -56,16 +56,20 @@ void freeAllRad(void){}
 void free_editText(void){}
 void free_editArmature(void){}
 
-char* getIpoCurveName( struct IpoCurve * icu ) 
+char *getIpoCurveName( struct IpoCurve * icu ) 
 {
 	return 0;
-};
+}
 
 void insert_vert_ipo(struct IpoCurve *icu, float x, float y)
 {
-
 }
 
+
+struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e)
+{
+	return 0;
+}
 
 
 void setscreen(struct bScreen *sc){}
