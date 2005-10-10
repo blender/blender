@@ -294,11 +294,11 @@ class LbmSolverInterface
 		ntlVec3Gfx getGeoMaxInitialVelocity();
 
 		/* rt interface functions */
-		unsigned int getIsoVertexCount() { return mpIso->getIsoVertexCount(); }
-		unsigned int getIsoIndexCount() { return mpIso->getIsoIndexCount(); }
-		char* getIsoVertexArray() { return mpIso->getIsoVertexArray(); }
-		unsigned int *getIsoIndexArray() { return mpIso->getIsoIndexArray(); }
-		void triangulateSurface() { return mpIso->triangulate(); }
+		unsigned int getIsoVertexCount()  { return mpIso->getIsoVertexCount(); }
+		unsigned int getIsoIndexCount()   { return mpIso->getIsoIndexCount(); }
+		char* getIsoVertexArray()         { return mpIso->getIsoVertexArray(); }
+		unsigned int *getIsoIndexArray()  { return mpIso->getIsoIndexArray(); }
+		void triangulateSurface()         { mpIso->triangulate(); }
 
 		/* access functions */
 

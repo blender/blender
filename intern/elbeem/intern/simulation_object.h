@@ -162,7 +162,13 @@ class SimulationObject :
 		bool mShowParticles;
 
 		/*! debug display settings */
+#ifndef USE_MSVC6FIXES
 		static const int MAX_DEBDISPSET = 10;
+#else
+		// so this is a known and documented MSVC6 bug
+		// work around
+		enum {MAX_DEBDISPSET = 10};
+#endif
 		fluidDispSettings mDebDispSet[ MAX_DEBDISPSET ];
 
 		/*! pointer to identifier of selected node */

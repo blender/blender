@@ -96,6 +96,10 @@ void Parametrizer::parseAttrList()
 
 	mDomainSize = mpAttrs->readFloat("p_domainsize",mDomainSize, "Parametrizer","mDomainSize", false); 
 	if(getAttributeList()->exists("p_domainsize")) seenThis( PARAM_DOMAINSIZE );
+	if(mDomainSize<=0.0) {
+		errMsg("Parametrizer::parseAttrList","Invalid real world domain size:"<<mAniFrameTime<<", resetting to 0.1");
+		mDomainSize = 0.1;
+	}
 
 	mGravity = mpAttrs->readVec3d("p_gravity",mGravity, "Parametrizer","mGravity", false); 
 	if(getAttributeList()->exists("p_gravity")) seenThis( PARAM_GRAVITY );

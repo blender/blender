@@ -886,14 +886,14 @@ gfxReal ntlTree::distanceToPlane(BSPNode *curr, ntlVec3Gfx plane, ntlRay ray) co
 /******************************************************************************
  * return ordering of children nodes relatice to origin point
  *****************************************************************************/
-void ntlTree::getChildren(BSPNode *curr, ntlVec3Gfx origin, BSPNode *&near, BSPNode *&far) const 
+void ntlTree::getChildren(BSPNode *curr, ntlVec3Gfx origin, BSPNode *&node_near, BSPNode *&node_far) const 
 {
   if(curr->child[0]->max[ curr->axis ] >= origin[ curr->axis ]) {
-    near = curr->child[0];
-    far = curr->child[1];
+    node_near = curr->child[0];
+    node_far = curr->child[1];
   } else {
-    near = curr->child[1];
-    far = curr->child[0];
+    node_near = curr->child[1];
+    node_far = curr->child[0];
   }
 }
 

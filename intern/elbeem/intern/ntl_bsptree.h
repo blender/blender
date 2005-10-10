@@ -66,7 +66,7 @@ class ntlTree
 		gfxReal distanceToPlane(BSPNode *curr, ntlVec3Gfx plane, ntlRay ray) const;
 
 		//! return ordering of children nodes relatice to origin point
-		void getChildren(BSPNode *curr, ntlVec3Gfx origin, BSPNode *&near, BSPNode *&far) const;
+		void getChildren(BSPNode *curr, ntlVec3Gfx origin, BSPNode *&node_near, BSPNode *&node_far) const;
 
 		//! delete a node of the tree with all sub nodes, dont delete root members
 		void deleteNode(BSPNode *curr);

@@ -555,13 +555,13 @@ void fluidsimBake(struct Object *ob)
 			"    define { \n" ;
 		char *obstacleString = 
 			"      geoinittype= \"" "%s" /* type */  "\"; #cfgset \n" 
-			"      geoinit_intersect = 1; \n" 
 			"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" ;
 		char *fluidString = 
 			"      geoinittype= \"" "%s" /* type */  "\"; \n" 
 			"      filename= \""   "%s" /* data  filename */  "\"; #cfgset \n" 
 			"      initial_velocity= "   "%f %f %f" /* vel vector */  "; #cfgset \n" ;
 		char *objectStringEnd = 
+			"      geoinit_intersect = 1; \n"  /* always use accurate init here */
 			"      geoinitid= 1; \n" 
 			"    } \n" 
 			"  } \n" 

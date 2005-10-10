@@ -103,6 +103,8 @@ ERROR - define model first!
 #define FSGR_MAGICNR            0.025
 //0.04
 
+//! maxmimum no. of grid levels
+#define FSGR_MAXNOOFLEVELS 5
 
 // helper for comparing floats with epsilon
 #define GFX_FLOATNEQ(x,y) ( ABS((x)-(y)) > (VECTOR_EPSILON) )
@@ -421,7 +423,11 @@ class LbmFsgrSolver :
 		//bool mStartSymm;
 		//! kepp track of max/min no. of filled cells
 		int mMaxNoCells, mMinNoCells;
+#ifndef USE_MSVC6FIXES
 		long long int mAvgNumUsedCells;
+#else
+		_int64 mAvgNumUsedCells;
+#endif
 
 		//! for interactive - how to drop drops?
 		int mDropMode;
@@ -441,8 +447,7 @@ class LbmFsgrSolver :
 		// grid coarsening vars
 		
 		/*! vector for the data for each level */
-#		define MAX_LEV 5
-		FsgrLevelData mLevel[MAX_LEV];
+		FsgrLevelData mLevel[FSGR_MAXNOOFLEVELS];
 
 		/*! minimal and maximal refinement levels */
 		int mMaxRefine;
@@ -1386,6 +1391,8 @@ LbmFsgrSolver<D>::parseAttrList()
 
 	// refinement
 	mMaxRefine  = D::mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", true);
+	if(mMaxRefine<0) mMaxRefine=0;
+	if(mMaxRefine>FSGR_MAXNOOFLEVELS) mMaxRefine=FSGR_MAXNOOFLEVELS-1;
 	mDisableStandingFluidInit = D::mpAttrs->readInt("disable_stfluidinit", mDisableStandingFluidInit,"LbmFsgrSolver", "mDisableStandingFluidInit", false);
 	mForceTadapRefine = D::mpAttrs->readInt("forcetadaprefine", mForceTadapRefine,"LbmFsgrSolver", "mForceTadapRefine", false);
 
@@ -1569,10 +1576,7 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 
 
 	// init vectors
-	if(mMaxRefine >= MAX_LEV) {
-		errFatal("LbmFsgrSolver::initializeLbmGridref"," error: Too many levels!", SIMWORLD_INITERROR);
-		return false;
-	}
+	//if(mMaxRefine >= FSGR_MAXNOOFLEVELS) { errFatal("LbmFsgrSolver::initializeLbmGridref"," error: Too many levels!", SIMWORLD_INITERROR); return false; }
 	for(int i=0; i<=mMaxRefine; i++) {
 		mLevel[i].id = i;
 		mLevel[i].nodeSize = 0.0; 
@@ -2043,10 +2047,9 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 				}
 				if(ntype != CFInvalid) {
 					// initDefaultCell
-					if((ntype == CFMbndInflow) || (ntype == CFMbndOutflow) ) {
+					if((ntype & CFMbndInflow) || (ntype & CFMbndOutflow) ) {
 						ntype |= (OId<<24);
 					}
-
 					initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
 				}
 
@@ -2058,7 +2061,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 						dcnt += dvec[0]; i++;
 						savedNodes++;
 						if(ntype != CFInvalid) {
-							// rhomass are still inited from above
+							// rho,mass,OId are still inited from above
 							initVelocityCell(level, i,j,k, ntype, rhomass, rhomass, mObjectSpeeds[OId] );
 						}
 					}
@@ -2699,7 +2702,9 @@ LbmFsgrSolver<D>::stepMain()
 			"mlsups(curr:"<<D::mMLSUPS<<
 			" avg:"<<(mAvgMLSUPS/mAvgMLSUPSCnt)<<"), "<< sepStr<<
 			" totcls:"<<(D::mNumUsedCells)<< sepStr<<
+#ifndef USE_MSVC6FIXES
 			" avgcls:"<< (int)(mAvgNumUsedCells/(long long int)D::mStepCnt)<< sepStr<<
+#endif
 			" intd:"<<mNumInterdCells<< sepStr<<
 			" invif:"<<mNumInvIfCells<< sepStr<<
 			" invift:"<<mNumInvIfTotal<< sepStr<<
@@ -4461,8 +4466,8 @@ LbmFsgrSolver<D>::adaptTimestep()
 	bool rescale = false;  // do any rescale at all?
 	LbmFloat scaleFac = -1.0; // timestep scaling
 
-	LbmFloat levOldOmega[MAX_LEV];
-	LbmFloat levOldStepsize[MAX_LEV];
+	LbmFloat levOldOmega[FSGR_MAXNOOFLEVELS];
+	LbmFloat levOldStepsize[FSGR_MAXNOOFLEVELS];
 	for(int lev=mMaxRefine; lev>=0 ; lev--) {
 		levOldOmega[lev] = mLevel[lev].omega;
 		levOldStepsize[lev] = mLevel[lev].stepsize;
@@ -6180,8 +6185,8 @@ void LbmFsgrSolver<D>::recalculateObjectSpeeds() {
 	}
 	mObjectSpeeds.resize(numobjs+0);
 	for(int i=0; i<(int)(numobjs+0); i++) {
-		//errMsg("recalculateObjectSpeeds","id"<<i<<" "<<vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P( (*D::mpGiObjects)[i]->getInitialVelocity() )) ));
 		mObjectSpeeds[i] = vec2L(D::mpParam->calculateLattVelocityFromRw( vec2P( (*D::mpGiObjects)[i]->getInitialVelocity() )));
+		//errMsg("recalculateObjectSpeeds","id"<<i<<" set to "<< mObjectSpeeds[i]<<", unscaled:"<< (*D::mpGiObjects)[i]->getInitialVelocity() ));
 	}
 }
 

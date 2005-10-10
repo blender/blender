@@ -23,19 +23,21 @@
 #include <string.h>
 #include <stdio.h>
 
-// hack for dxxx MSVC6.0 compiler
+// hack for MSVC6.0 compiler
 #ifdef _MSC_VER
 #if _MSC_VER < 1300
 #define for     if(false); else for
 #define map     std::map
 #define vector  std::vector
 #define string  std::string
+// use this define for MSVC6 stuff hereafter
+#define USE_MSVC6FIXES
 #else // _MSC_VER < 1300 , 7.0 or higher
 using std::map;
 using std::vector;
 using std::string;
 #endif
-#else // MSVC6
+#else // not MSVC6
 // for proper compilers...
 using std::map;
 using std::vector;
