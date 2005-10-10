@@ -648,7 +648,7 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 				for(b=start; b<end; b++) {
 				
 					if(weights) 
-						weight= *weights * (icu?icuval:1.0f);
+						weight= *weights * icuval;
 					else
 						weight= icuval;
 					
