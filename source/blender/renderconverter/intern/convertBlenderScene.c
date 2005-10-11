@@ -1629,10 +1629,13 @@ void RE_add_render_lamp(Object *ob, int actual_render)
 	}
 	
 	la= ob->data;
-	/* prevent only shadow from rendering light */
-	if(la->mode & LA_ONLYSHADOW)
-		if((R.r.mode & R_SHADOW)==0)
-			return;
+
+	/* prevent only shadow from rendering light, but only return on render, not preview */
+	if(actual_render) {
+		if(la->mode & LA_ONLYSHADOW)
+			if((R.r.mode & R_SHADOW)==0)
+				return;
+	}
 
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
 	R.la[R.totlamp++]= lar;
