@@ -700,6 +700,9 @@ NewBooleanMesh(
 			CSG_FaceIteratorDescriptor fd_o;
 			DispListMesh dlm;
 
+			// need to make sure its zeroed
+			memset (&dlm, 0, sizeof (dlm));
+			
 			// Create a new blender mesh object - using 'base' as 
 			// a template for the new object.
 			ob_new=  AddNewBlenderMesh(base);
