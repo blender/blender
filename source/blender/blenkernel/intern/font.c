@@ -701,7 +701,9 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		ascii = mem[i];
 		info = &(cu->strinfo[i]);
 		vfont = which_vfont(cu, info);
-
+		
+		if(vfont==NULL) break;
+		
 		// Find the character
 		while(che)
 		{
