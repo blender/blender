@@ -14,7 +14,9 @@
 #include <algorithm>
 #include <stdio.h>
 
-
+#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#include <ieeefp.h>
+#endif
 
 /******************************************************************************
  * Constructor

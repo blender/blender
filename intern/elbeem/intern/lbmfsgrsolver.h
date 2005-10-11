@@ -33,6 +33,13 @@ extern "C" {
 #include "ntl_scene.h"
 #include <stdio.h>
 
+#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#include <ieeefp.h>
+   #ifndef expf
+   #define expf exp
+   #endif
+#endif
+
 #if PARALLEL==1
 #include <omp.h>
 #endif // PARALLEL=1

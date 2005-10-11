@@ -812,7 +812,6 @@ char charBuffer[ CHAR_BUFFER_SIZE ];
 
 int lineCount = 1;
 
-extern "C" int yy_wrap (void ) { return 1; }
 #define YY_NO_UNISTD_H
 	
 /*----------------------------------------------------------------------------*/
