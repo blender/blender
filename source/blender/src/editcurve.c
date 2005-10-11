@@ -3355,10 +3355,10 @@ void join_curve(int type)
 	cu= ob->data;
 	addlisttolist(&cu->nurb, &tempbase);
 	
+	DAG_scene_sort(G.scene);	// because we removed object(s), call before editmode!
+	
 	enter_editmode();
 	exit_editmode(1);
-	
-	DAG_scene_sort(G.scene);	// because we removed object(s)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);

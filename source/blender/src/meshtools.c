@@ -428,13 +428,13 @@ void join_mesh(void)
 	/* other mesh users */
 	test_object_materials((ID *)me);
 	
+	DAG_scene_sort(G.scene);	// removed objects, need to rebuild dag before editmode call
+	
 	enter_editmode();
 	exit_editmode(1);	// freedata, but no undo
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSSHADING, 0);
-	DAG_scene_sort(G.scene);	// removed objects, need to rebuild dag
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	BIF_undo_push("Join Mesh");
 }
