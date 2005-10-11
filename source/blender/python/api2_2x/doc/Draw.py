@@ -7,7 +7,7 @@ Draw
 ====
 
 B{New}:
- - access to ascii values in L{events<Register>} callbacks;
+ - access to ASCII values in L{events<Register>} callbacks;
  - 'large' fonts for L{Text} and L{GetStringWidth}.
 
 This module provides access to a B{windowing interface} in Blender.  Its widgets
@@ -243,7 +243,7 @@ def Register(draw = None, event = None, button = None):
       they will stay until Draw.Exit is called.  It's enough to redraw the
       screen, when a relevant event is caught.
   @note: only during the B{event} callback: the L{Blender}.ascii variable holds
-      the ascii integer value (if it exists and is valid) of the current event.
+      the ASCII integer value (if it exists and is valid) of the current event.
   """
 
 def Redraw(after = 0):
@@ -632,6 +632,10 @@ def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-
   either the width or the height of the clipping rectangle are negative then
   the corresponding dimension (width or height) is set to include as much of 
   the image as possible.
+  
+  For drawing images with alpha blending with the background you will need to enable blending as shown in the example.
+  
+  
 
   Example::
    import Blender
@@ -640,7 +644,12 @@ def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-
    myimage = Image.Load('myimage.png')
 
    def gui():
+        BGL.glEnable( BGL.GL_BLEND ) # Only needed for alpha blending images with background.
+        BGL.glBlendFunc(BGL.GL_SRC_ALPHA, BGL.GL_ONE_MINUS_SRC_ALPHA) 
+        
         Draw.Image(myimage, 50, 50)
+        
+        BGL.glDisable( BGL.GL_BLEND )
    def event(evt, val):
         if evt == Draw.ESCKEY:
               Draw.Exit()

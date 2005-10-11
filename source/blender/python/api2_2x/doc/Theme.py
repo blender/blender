@@ -17,7 +17,7 @@ Example::
   theme = Theme.Get()[0] # get current theme
 
   def write_theme(filename):
-    "Write the current theme as a bpython script"
+    "Write the current theme as a BPython script"
 
     f = file(filename, "w")
 
@@ -96,7 +96,7 @@ class Theme:
     Get a space or the ui (sub)theme from this Theme.
     @type t: string, int or None
     @param t: the wanted sub-theme as either:
-        - int: -1 for UI or the types in L{Window.Types} for the others;
+        - int: -1 for UI or the types in L{Window.Types<Window.Types>} for the others;
         - string: use get() to know them (they are case insensitive);
         - nothing: as written above, get() returns a list of names.
     @rtype: Blender ThemeSpace or ThemeUI or list of sub-theme types as strings.

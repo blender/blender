@@ -4,10 +4,10 @@
 The Blender.Scene submodule.
 
 B{New}:
-  - L{Scene.clearScriptLinks} accepts a parameter now.
-  - L{Scene.getLayers}, L{Scene.setLayers} and the L{layers<Scene.layers>} and
-    L{Layers<Scene.Layers>} Scene attributes. 
-  - L{Scene.getActiveObject} method.
+  - L{Scene.clearScriptLinks<Scene.Scene.clearScriptLinks>} accepts a parameter now.
+  - acess methods L{Scene.getLayers<Scene.Scene.getLayers>}, L{Scene.setLayers<Scene.Scene.setLayers>} via lists to complement the layers and
+    Layers Scene attributes which use bitmasks. 
+  - L{Scene.getActiveObject<Scene.Scene.getActiveObject>} method.
 
 Scene
 =====
@@ -30,11 +30,11 @@ Example::
 @warn: as done in the example (*), it's recommended to first link object data to
     objects and only after that link objects to scene.  This is because if
     there is no object data linked to an object ob, scene.link(ob) will
-    automatically create the missing data.  This is ok on its own, but I{if
+    automatically create the missing data.  This is OK on its own, but I{if
     after that} this object is linked to obdata, the automatically created one
     will be discarded -- as expected -- but will stay in Blender's memory
     space until the program is exited, since Blender doesn't really get rid of
-    most kinds of data.  So first linking obdata to object, then object to
+    most kinds of data.  So first linking ObData to object, then object to
     scene is a tiny tiny bit faster than the other way around and also saves
     some realtime memory (if many objects are created from scripts, the
     savings become important).
@@ -83,7 +83,7 @@ class Scene:
   @ivar name: The Scene name.
   @type Layers: integer (bitmask)
   @ivar Layers: The Scene layers (check also the easier to use
-        L{layers<Scene.Scene.layers>}).  This value is a bitmask with at least
+        L{layers}).  This value is a bitmask with at least
         one position set for the 20 possible layers starting from the low order
         bit.  The easiest way to deal with these values in in hexadecimal 
         notation.
@@ -94,7 +94,7 @@ class Scene:
         After setting the Layers value, the interface (at least the 3d View and
         the Buttons window) needs to be redrawn to show the changes.
   @type layers: list of integers
-  @ivar layers: The Scene layers (check also L{Layers<Scene.Scene.Layers>}).
+  @ivar layers: The Scene layers (check also L{Layers}).
         This attribute accepts and returns a list of integer values in the
         range [1, 20].
         Example::
@@ -207,8 +207,9 @@ class Scene:
   def getCurrentCamera():
     """
     Get the currently active Camera for this Scene.
-    @rtype: Blender Camera
-    @return: The currently active Camera.
+    @note: The active camera can be any object type, not just a camera object.
+    @rtype: Blender Object
+    @return: The currently active Camera object.
     """
 
   def setCurrentCamera(camera):
@@ -253,6 +254,24 @@ class Scene:
   def addScriptLink (text, event):
     """
     Add a new script link to this Scene.
+    
+    Using OpenGL functions within a scene ScriptLink will draw graphics over the 3D view.
+    There is an issue with the zoom of the floating panels also scaling graphics drawn by your scriptlink.
+    This makes matching OpenGL graphics to mouse location impossible.
+    Make sure that you use floating point for operations that you would usually use int functions for: glRasterPos2f rather then glRasterPos2i.
+    
+    The following example shows how you can use the OpenGL model view matrix to obtain the scale value.
+    
+    Example::
+      from Blender import BGL
+      view_matrix = BGL.Buffer(BGL.GL_FLOAT, 16)
+      BGL.glGetFloatv(BGL.GL_MODELVIEW_MATRIX, view_matrix)
+      gl_scale = 1/viewMatrix[0]
+      
+      # Now that we have the scale we can draw to the correct scale.
+      BGL.glRect2f(10*gl_scale, 10*gl_scale, 110*gl_scale, 110*gl_scale)
+      
+      
     @type text: string
     @param text: the name of an existing Blender L{Text}.
     @type event: string

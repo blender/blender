@@ -403,14 +403,14 @@ def GetMouseButtons ():
   """
   Get the current mouse button state (see / compare against L{MButs}).
   @rtype: int
-  @return: an or'ed flag with the currently pressed buttons.
+  @return: an OR'ed flag with the currently pressed buttons.
   """
 
 def GetKeyQualifiers ():
   """
   Get the current qualifier keys state (see / compare against L{Qual}).
   @rtype: int
-  @return: an or'ed combination of values in L{Window.Qual}.
+  @return: an OR'ed combination of values in L{Qual}.
   """
 
 def SetKeyQualifiers (qual):
@@ -418,7 +418,7 @@ def SetKeyQualifiers (qual):
   Fake qualifier keys state.  This is useful because some key events require
   one or more qualifiers to be active (see L{QAdd}).
   @type qual: int
-  @param qual: an or'ed combination of values in L{Window.Qual}.
+  @param qual: an OR'ed combination of values in L{Qual}.
   @rtype: int
   @return: the current state, that should be equal to 'qual'.
   @warn: remember to reset the qual keys to 0 once they are not necessary
@@ -465,7 +465,7 @@ def GetScreenInfo (type = -1, rect = 'win', screen = ''):
   """
   Get info about the current screen setup.
   @type type: int
-  @param type: the space type (see L{Window.Types}) to restrict the
+  @param type: the space type (see L{Types}) to restrict the
      results to.  If -1 (the default), info is reported about all available
      areas.
   @type rect: string

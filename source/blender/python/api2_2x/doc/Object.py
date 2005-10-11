@@ -105,6 +105,7 @@ class Object:
   The Object object
   =================
     This object gives access to generic data from all objects in Blender.
+    
     @ivar LocX: The X location coordinate of the object.
     @ivar LocY: The Y location coordinate of the object.
     @ivar LocZ: The Z location coordinate of the object.
@@ -140,7 +141,7 @@ class Object:
     @ivar dsize: The delta (X,Y,Z) size of the object.
     @type Layers: integer (bitmask)
     @ivar Layers: The object layers (also check the newer attribute
-        L{layers<Object.Object.layers>}).  This value is a bitmask with at 
+        L{layers<layers>}).  This value is a bitmask with at 
         least one position set for the 20 possible layers starting from the low
         order bit.  The easiest way to deal with these values in in hexadecimal
         notation.
@@ -150,7 +151,7 @@ class Object:
         the interface.
     @type layers: list of integers
     @ivar layers: The layers this object is visible in (also check the older
-        attribute L{Layers<Object.Object.Layers>}).  This returns a list of
+        attribute L{Layers<Layers>}).  This returns a list of
         integers in the range [1, 20], each number representing the respective
         layer.  Setting is done by passing a list of ints or an empty list for
         no layers.
@@ -180,7 +181,7 @@ class Object:
         of: 2 - axis, 4 - texspace, 8 - drawname, 16 - drawimage,
         32 - drawwire.
     @ivar name: The name of the object.
-    @ivar sel: The selection state of the object, 1/0.  
+    @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected.  
   """
 
   def buildParts():
@@ -257,9 +258,9 @@ class Object:
 
   def getEuler():
     """
-    Returns the object's rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
+    Returns the object's localspace rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
     @rtype: Py_Euler
-    @return: A python euler 
+    @return: A python Euler 
     """
 
   def getInverseMatrix():
@@ -277,7 +278,7 @@ class Object:
     """
   def isSelected():
     """
-    Returns the objects selection state as a boolean value True or False.
+    Returns the objects selection state in the current scene as a boolean value True or False.
     @rtype: Boolean
     @return: Selection state as True or False
     """
@@ -323,7 +324,7 @@ class Object:
     @type space: string
     @param space: The desired matrix:
       - worldspace (default): absolute, taking vertex parents, tracking and
-          ipo's into account;
+          Ipo's into account;
       - localspace: relative to the object's parent;
       - old_worldspace: old behavior, prior to Blender 2.34, where eventual
           changes made by the script itself were not taken into account until
@@ -396,9 +397,9 @@ class Object:
 
     The example below works on the default scene. It retrieves all objects in
     the scene and updates the location and rotation of the camera. When run,
-    the camera will rotate 180 degrees and moved to the oposite side of the X
+    the camera will rotate 180 degrees and moved to the opposite side of the X
     axis. Note that the number 'pi' in the example is an approximation of the
-    true number 'pi'::
+    true number 'pi'.  A better, less error-prone value of pi is math.pi from the python math module.::
         import Blender
 
         objects = Blender.Object.Get()
@@ -413,7 +414,7 @@ class Object:
 
   def getDupliVerts():
     """
-    Get state of DupliVerts anim propertie
+    Get state of DupliVerts animation property
     @return: a boolean value.
     """
 
@@ -435,12 +436,12 @@ class Object:
     @return: py_none
     """
 
-  def link(object):
+  def link(datablock):
     """
-    Links Object with data provided in the argument. The data must match the
+    Links Object with ObData datablock provided in the argument. The data must match the
     Object's type, so you cannot link a Lamp to a Mesh type object.
-    @type object: Blender Object
-    @param object: A Blender Object.
+    @type datablock: Blender ObData datablock
+    @param datablock: A Blender datablock matching the objects type.
     """
 
   def makeParent(objects, noninverse = 0, fast = 0):
@@ -448,7 +449,7 @@ class Object:
     Makes the object the parent of the objects provided in the argument which
     must be a list of valid Objects.
     @type objects: Sequence of Blender Object
-    @param objects: The Childs of the parent
+    @param objects: The children of the parent
     @type noninverse: Integer
     @param noninverse:
         0 - make parent with inverse
@@ -469,7 +470,7 @@ class Object:
     which must be a list of valid Objects.
     The parent object must be a Curve or Armature.
     @type objects: Sequence of Blender Object
-    @param objects: The Childs of the parent
+    @param objects: The children of the parent
     @type noninverse: Integer
     @param noninverse:
         0 - make parent with inverse
@@ -492,9 +493,9 @@ class Object:
     which must be a list of valid Objects.
     The parent object must be a Mesh, Curve or Surface.
     @type objects: Sequence of Blender Object
-    @param objects: The Childs of the parent
+    @param objects: The children of the parent
     @type indices: Tuple of Integers
-    @param indices: The indices of the vertice you want to parent to (1 or 3)
+    @param indices: The indices of the vertices you want to parent to (1 or 3 values)
     @type noninverse: Integer
     @param noninverse:
         0 - make parent with inverse
@@ -544,9 +545,9 @@ class Object:
 
   def setEuler(euler):
     """
-    Sets the object's rotation according to the specified Euler angles.
+    Sets the object's localspace rotation according to the specified Euler angles.
     @type euler: Py_Euler or a list of floats
-    @param euler: a python euler or x,y,z rotations as floats
+    @param euler: a python Euler or x,y,z rotations as floats
     """
 
   def setIpo(ipo):
@@ -558,7 +559,7 @@ class Object:
 
   def setLocation(x, y, z):
     """
-    Sets the object's location.
+    Sets the object's location relative to the parent object (if any).
     @type x: float
     @param x: The X coordinate of the new location.
     @type y: float
@@ -569,28 +570,28 @@ class Object:
 
   def setMaterials(materials):
     """
-    Sets the materials. The argument must be a list of valid material objects.
+    Sets the materials. The argument must be a list 16 items or less.  Each list element is either a Material or None.
     @type materials: Materials list
     @param materials: A list of Blender material objects.
     """
 
   def setMatrix(matrix):
     """
-    Sets the object's matrix and updates it's tranformation. 
+    Sets the object's matrix and updates it's transformation. 
     @type matrix: Py_Matrix 4x4
     @param matrix: a python matrix 4x4.
     """
 
   def setName(name):
     """
-    Sets the name of the object.
+    Sets the name of the object. A string longer then 20 characters will be shortened.
     @type name: String
     @param name: The new name for the object.
     """
 
   def setSize(x, y, z):
     """
-    Sets the object's size.
+    Sets the object's size, relative to the parent object (if any)
     @type x: float
     @param x: The X size multiplier.
     @type y: float
@@ -616,7 +617,7 @@ class Object:
   
   def select(boolean):
     """
-    Sets the object's selection state.
+    Sets the object's selection state in the current scene.
     @type boolean: Integer
     @param boolean:
         - 0  - unselected
@@ -625,7 +626,7 @@ class Object:
   
   def getBoundBox():
     """
-    Returns the bounding box of this object.  This works for meshes (out of
+    Returns the worldspace bounding box of this object.  This works for meshes (out of
     edit mode) and curves.
     @rtype: list of 8 (x,y,z) float coordinate vectors
     @return: The coordinates of the 8 corners of the bounding box.
@@ -777,12 +778,12 @@ class Object:
     """
     Copies all properties from one object to another.
     @type object: Object object
-    @param object: Object that will recieve the properties.
+    @param object: Object that will receive the properties.
     """
 
   def setDupliVerts(data):
     """
-    Set state of DupliVerts anim propertie
+    Set state of DupliVerts animation property
     @param data: boolean value True, False, 0 or not 0.
     """
 
@@ -934,17 +935,17 @@ class Property:
 
   def getPIPermf():
     """
-    Get the Object's Particle Interaction Permiability.
+    Get the Object's Particle Interaction Permeability.
     @rtype: float
     """
 
   def setPIPerm(perm):
     """
-    Set the the Object's Particle Interaction Permiability.
+    Set the the Object's Particle Interaction Permeability.
     Values between 0 to 10.0
     @rtype: PyNone
     @type perm: float
-    @param perm: the Object's Particle Interaction New Permiability.
+    @param perm: the Object's Particle Interaction New Permeability.
     """    
 
   def getPIRandomDamp():
@@ -1151,7 +1152,7 @@ class Property:
 
   def setSBEnable(switch):
     """
-    Enable / Disable Softbodies.
+    Enable / Disable SoftBodies.
     1: on
     0: off
     @rtype: PyNone
@@ -1161,13 +1162,13 @@ class Property:
 
   def getSBPostDef():
     """
-    get Softbodies PostDef option
+    get SoftBodies PostDef option
     @rtype: int
     """
 
   def setSBPostDef(switch):
     """
-    Enable / Disable Softbodies PostDef option
+    Enable / Disable SoftBodies PostDef option
     1: on
     0: off
     @rtype: PyNone
@@ -1177,13 +1178,13 @@ class Property:
 
   def getSBUseGoal():
     """
-    get Softbodies UseGoal option
+    get SoftBodies UseGoal option
     @rtype: int
     """
 
   def setSBUseGoal(switch):
     """
-    Enable / Disable Softbodies UseGoal option
+    Enable / Disable SoftBodies UseGoal option
     1: on
     0: off
     @rtype: PyNone
@@ -1192,13 +1193,13 @@ class Property:
     """ 
   def getSBUseEdges():
     """
-    get Softbodies UseEdges option
+    get SoftBodies UseEdges option
     @rtype: int
     """
 
   def setSBUseEdges(switch):
     """
-    Enable / Disable Softbodies UseEdges option
+    Enable / Disable SoftBodies UseEdges option
     1: on
     0: off
     @rtype: PyNone
@@ -1208,13 +1209,13 @@ class Property:
     
   def getSBStiffQuads():
     """
-    get Softbodies StiffQuads option
+    get SoftBodies StiffQuads option
     @rtype: int
     """
 
   def setSBStiffQuads(switch):
     """
-    Enable / Disable Softbodies StiffQuads option
+    Enable / Disable SoftBodies StiffQuads option
     1: on
     0: off
     @rtype: PyNone

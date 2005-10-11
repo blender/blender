@@ -4,11 +4,11 @@
 The Blender.NMesh submodule.
 
 B{New}:
- - edges class (L{NMEdge}) and nmesh methods (L{NMesh.addEdge},
-L{NMesh.addEdgesData}, etc.);
- - new optional arguments to L{NMesh.update};
- - L{NMesh.transform};
- - L{GetNames}.
+ - edges class (L{NMEdge}) and nmesh methods (L{NMesh.NMesh.addEdge},
+L{NMesh.NMesh.addEdgesData}, etc.);
+ - new optional arguments to L{NMesh.NMesh.update};
+ - L{NMesh.NMesh.transform};
+ - L{GetNames};
  - L{GetRawFromObject} supports Surface/Curve/Text/Meta objects
 
 Mesh Data
@@ -74,7 +74,7 @@ Example::
     - TILES - uses tiled image.
     - TWOSIDE - two-sided face.
 @var FaceTranspModes: The available face transparency modes. Note: these are
-  ENUMS, they can't be combined (and'ed, or'ed, etc) like a bit vector.
+  enumerated values (enums), they can't be combined (and'ed, or'ed, etc) like a bit vector.
     - SOLID - draw solid.
     - ADD - add to background (halo).
     - ALPHA - draw with transparency.
@@ -161,7 +161,7 @@ def GetRawFromObject(name):
       matters, the rendering one is only processed at the rendering pre-stage
       and is not available for scripts.  This is not a problem at all, since
       you can get and set the subdivision levels via scripting, too (see
-      L{NMesh.getSubDivLevels}, L{NMesh.setSubDivLevels}).
+      L{NMesh.NMesh.getSubDivLevels}, L{NMesh.NMesh.setSubDivLevels}).
   @note: Meshes extracted from curve based objects (Font/2D filled curves)
       contain both the filled surfaces and the outlines of the shapes.
   @warn: This function gets I{deformed} mesh data, already modified for
@@ -296,12 +296,12 @@ class NMFace:
   @type sel: bool
   @ivar sel: The selection state (1: selected, 0: unselected) of this NMesh's
       faces *in edit mode*.  This is not the same as the selection state of
-      the textured faces (see L{NMesh.NMFace.flag}).
+      the textured faces (see L{flag}).
   @type hide: bool
   @ivar hide: The visibility state (1: hidden, 0: visible) of this NMesh's
       faces *in edit mode*.  This is not the same as the visibility state of
-      the textured faces (see L{NMesh.NMFace.flag}).
-  @ivar col: The list of vertex colours.
+      the textured faces (see L{flag}).
+  @ivar col: The list of vertex colors.
   @ivar mat: Same as I{materialIndex} below.
   @ivar materialIndex: The index of this face's material in its NMesh materials
       list.
@@ -319,8 +319,8 @@ class NMFace:
   @note: there are normal faces and textured faces in Blender, both currently
     with their own selection and visibility states, due to a mix of old and new
     code.  To (un)select or (un)hide normal faces (visible in editmode), use
-    L{NMFace.sel} and L{NMFace.hide} vars.  For textured faces (Face Select
-    mode in Blender) use the old L{NMFace.flag} bitflag.  Also check the
+    L{sel} and L{hide} variables.  For textured faces (Face Select
+    mode in Blender) use the old L{flag} bitflag.  Also check the
     example above and note L{Window.EditMode}.
   @note: Assigning uv textures to mesh faces in Blender works like this:
     1. Select your mesh.
@@ -329,7 +329,7 @@ class NMFace:
     4. Play in both windows (better split the screen to see both at the same
        time) until the uv coordinates are where you want them.  Hint: in the
        3d window, the 'u' key opens a menu of default uv choices and the 'r'
-       key lets you rotate the uv coords.
+       key lets you rotate the uv coordinates.
     5. Leave face select mode (press f).
   """
 
@@ -349,7 +349,7 @@ class NMesh:
   @ivar name: The NMesh name.  It's common to use this field to store extra
      data about the mesh (to be exported to another program, for example).
   @ivar materials: The list of materials used by this NMesh.  See
-     L{NMesh.getMaterials} for important details.
+     L{getMaterials} for important details.
   @ivar verts: The list of NMesh vertices (NMVerts).
   @ivar users: The number of Objects using (linked to) this mesh.
   @ivar faces: The list of NMesh faces (NMFaces).
@@ -438,7 +438,7 @@ class NMesh:
         - -1: return the current nmesh's list;
         -  0: retrieve a fresh list from the Blender mesh -- eventual
               modifications made by the script not included, unless
-              L{NMesh.update} is called before this method;
+              L{update} is called before this method;
         -  1: like 0, but empty slots are not ignored, they are returned as
               None's.
     @note: what >= 0 also updates nmesh.materials attribute.
@@ -461,22 +461,22 @@ class NMesh:
 
   def hasVertexColours(flag = None):
     """
-    Get (and optionally set) if this NMesh has vertex colours.
+    Get (and optionally set) if this NMesh has vertex colors.
     @type flag: int
-    @param flag: If given and non-zero, the "vertex colour" flag for this NMesh
+    @param flag: If given and non-zero, the "vertex color" flag for this NMesh
         is turned I{on}.
     @rtype: bool
-    @return: The current value of the "vertex colour" flag.
-    @warn: If a mesh has both vertex colours and textured faces, this function
+    @return: The current value of the "vertex color" flag.
+    @warn: If a mesh has both vertex colors and textured faces, this function
        will return False.  This is due to the way Blender deals internally with
-       the vertex colours array (if there are textured faces, it is copied to
+       the vertex colors array (if there are textured faces, it is copied to
        the textured face structure and the original array is freed/deleted).
        If you want to know if a mesh has both textured faces and vertex
-       colours, set *in Blender* the "VCol Paint" flag for each material that
+       colors, set *in Blender* the "VCol Paint" flag for each material that
        covers an area that was also vertex painted and then check in your
        Python script if that material flag is set.  Of course also tell others
        who use your script to do the same.  The "VCol Paint" material mode flag
-       is the way to tell Blender itself to render with vertex colours, too, so
+       is the way to tell Blender itself to render with vertex colors, too, so
        it's a natural solution.
     """
 

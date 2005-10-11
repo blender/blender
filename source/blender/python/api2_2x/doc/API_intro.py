@@ -42,11 +42,12 @@ The Blender Python API Reference
   - L{Text3d}
      - L{Font}
   - L{Texture}
+  - L{TimeLine}
   - L{Types}
   - L{Window}
      - L{Theme}
   - L{World}
-  - L{sys<Sys>}
+  - L{sys}
 
  Additional information:
  -----------------------
@@ -87,7 +88,7 @@ These are the basic ways to execute scripts in Blender:
  'blender myfile.blend -P textname'.
  3. Via command line in I{background mode}: use the '-b' flag (the order is
  important): C{blender -b <blendfile> -P <scriptname>}.  <blendfile> can be any
- .blend file, including the default .B.blend that is in Blender's home dir
+ .blend file, including the default .B.blend that is in Blender's home directory
  L{Blender.Get}('homedir'). In this mode no window will be opened and the
  program will leave as soon as the script finishes execution.
  4. Properly registered scripts can be selected directly from the program's
@@ -108,7 +109,7 @@ Interaction with users:
  Scripts can:
   - simply run and exit;
   - pop messages, menus and small number and text input boxes;
-  - draw graphical user interfaces (guis) with OpenGL calls and native
+  - draw graphical user interfaces (GUIs) with OpenGL calls and native
     program buttons, which stay there accepting user input like any other
     Blender window until the user closes them;
   - attach themselves to a space's event or drawing code (aka space handlers,
@@ -121,7 +122,7 @@ Interaction with users:
   - use external Python libraries, if available.
 
  You can read the documentation for the L{Window}, L{Draw} and L{BGL} modules
- for more information and also check Python's site for external modules that
+ for more information and also check the Python site for external modules that
  might be useful to you.  Note though that any imported module will become a
  requirement of your script, since Blender itself does not bundle external
  modules.
@@ -129,7 +130,7 @@ Interaction with users:
 Command line mode:
 ------------------
 
- Python was embedded in Blender, so to access bpython modules you need to
+ Python was embedded in Blender, so to access BPython modules you need to
  run scripts from the program itself: you can't import the Blender module
  into an external Python interpreter.
 
@@ -175,9 +176,9 @@ Blender Data Structures:
 ------------------------
 
  Programs manipulate data structures.  Blender python scripts are no exception.
- Blender uses an Object Oriented architecture.  The bpython interface tries to
+ Blender uses an Object Oriented architecture.  The BPython interface tries to
  present Blender objects and their attributes in the same way you see them
- through the User Interface (the GUI).  One key to bpython programming is
+ through the User Interface (the GUI).  One key to BPython programming is
  understanding the information presented in Blender's OOPS window where Blender
  objects and their relationships are displayed.
 
@@ -207,7 +208,7 @@ A note to newbie script writers:
  many applications the difference is negligible or acceptable.  Also, with
  profiling (or even simple direct timing with L{Blender.sys.time<Sys.time>}) to
  identify slow areas and well thought optimizations, the speed can be
- I{considerably} improved in many cases.  Try some of the best bpython scripts
+ I{considerably} improved in many cases.  Try some of the best BPython scripts
  to get an idea of what can be done, you may be surprised.
 
 @author: The Blender Python Team
@@ -224,9 +225,9 @@ A note to newbie script writers:
    pdf.  For pdf it requires a working LaTeX environment.
 
 @note: the official version of this reference guide is only updated for each
-   new Blender release.  But it is simple to build yourself current cvs
-   versions of this text: install epydoc, grab all files in the
-   source/blender/python/api2_2x/doc/ folder of Blender's cvs and use the
+   new Blender release.  But you can build the current CVS
+   version yourself: install epydoc, grab all files in the
+   source/blender/python/api2_2x/doc/ folder of Blender's CVS and use the
    epy_docgen.sh script also found there to generate the html docs.
    Naturally you will also need a recent Blender binary to try the new
    features.  If you prefer not to compile it yourself, there is a testing
