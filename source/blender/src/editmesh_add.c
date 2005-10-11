@@ -326,6 +326,8 @@ static int compareface_overlaps(EditFace *vl1, EditFace *vl2)
 	v3= vl2->v3;
 	v4= vl2->v4;
 	
+	if(vl1==vl2) return 0;
+	
 	if(v4==NULL && vl1->v4==NULL) {
 		if(vl1->v1==v1 || vl1->v2==v1 || vl1->v3==v1) equal++;
 		if(vl1->v1==v2 || vl1->v2==v2 || vl1->v3==v2) equal++;
@@ -338,7 +340,11 @@ static int compareface_overlaps(EditFace *vl1, EditFace *vl2)
 		if(vl1->v1==v4 || vl1->v2==v4 || vl1->v3==v4 || vl1->v4==v4) equal++;
 	}
 
-	if(equal>=3) return 1;
+	if(v4 && vl1->v4) {
+		if(equal==4) return 1;
+	}
+	else 
+		if(equal>=3) return 1;
 	
 	return 0;
 }
