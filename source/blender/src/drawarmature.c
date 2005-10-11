@@ -1599,9 +1599,6 @@ static void draw_ebones(Object *ob, int dt)
 				else
 					draw_bone(OB_WIRE, arm->flag, flag, 0, index, eBone->length);
 
-				if(arm->flag & ARM_DRAWAXES)
-					drawaxes(0.25f);
-				
 				glPopMatrix();
 			}
 		
@@ -1626,8 +1623,8 @@ static void draw_ebones(Object *ob, int dt)
 	if(arm->drawtype==ARM_LINE);
 	else if (dt>OB_WIRE) bglPolygonOffset(0.0);
 	
-	/* finally names */
-	if(arm->flag & ARM_DRAWNAMES) {
+	/* finally names and axes */
+	if(arm->flag & (ARM_DRAWNAMES|ARM_DRAWAXES)) {
 		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
 		if((G.f & G_PICKSEL) == 0) {
 			float vec[3];
@@ -1640,10 +1637,22 @@ static void draw_ebones(Object *ob, int dt)
 					if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
 					else BIF_ThemeColor(TH_TEXT);
 					
-					VecMidf(vec, eBone->head, eBone->tail);
-					glRasterPos3fv(vec);
-					BMF_DrawString(G.font, " ");
-					BMF_DrawString(G.font, eBone->name);
+					/*	Draw name */
+					if(arm->flag & ARM_DRAWNAMES){
+						VecMidf(vec, eBone->head, eBone->tail);
+						glRasterPos3fv(vec);
+						BMF_DrawString(G.font, " ");
+						BMF_DrawString(G.font, eBone->name);
+					}					
+					/*	Draw additional axes */
+					if(arm->flag & ARM_DRAWAXES){
+						glPushMatrix();
+						set_matrix_editbone(eBone);
+						glTranslatef(0.0f, eBone->length, 0.0f);
+						drawaxes(0.25f);
+						glPopMatrix();
+					}
+					
 				}
 			}
 			
