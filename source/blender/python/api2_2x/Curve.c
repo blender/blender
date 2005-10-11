@@ -42,6 +42,7 @@
 #include "Object.h"
 #include "Key.h"
 #include "gen_utils.h"
+#include "mydevice.h"
 
 
 /*****************************************************************************/
@@ -603,6 +604,7 @@ PyObject *Curve_getResolu( BPy_Curve * self )
 PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
 {
 	short value;
+	Nurb *nu;
 
 	if( !PyArg_ParseTuple( args, "h", &value ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -612,6 +614,10 @@ PyObject *Curve_setResolu( BPy_Curve * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"acceptable values are between 128 and 1" ) );
 	self->curve->resolu = value;
+
+	/* propagate the change through all the curves */
+	for ( nu = self->curve->nurb.first; nu; nu = nu->next )
+		nu->resolu = value;
 
 	return EXPP_incr_ret( Py_None );
 }
