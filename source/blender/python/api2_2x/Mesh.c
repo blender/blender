@@ -48,6 +48,7 @@
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
 #include "BIF_editview.h"
+#include "BIF_space.h"	/* allqueue */
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -174,7 +175,35 @@ int mface_comp( const void *va, const void *vb )
 
 static void mesh_update( Mesh * mesh )
 {
-	Object_updateDag( (void*) mesh );
+	allqueue( REDRAWVIEW3D, 1);
+	Object_updateDag( (void *) mesh );
+}
+
+/*
+ * Since all faces must have 3 or 4 verts, we can't have v3 or v4 be zero.
+ * If that happens during the deletion, we have to shuffle the vertices
+ * around; otherwise it can cause an Eeekadoodle or worse.
+ */
+
+static void eeek_fix( MFace *tmpface , int len4 )
+{
+	if( len4 && !tmpface->v4 ) {
+		unsigned int tmp = tmpface->v1;
+		tmpface->v1 = tmpface->v4;
+		tmpface->v4 = tmpface->v3;
+		tmpface->v3 = tmpface->v2;
+		tmpface->v2 = tmp;
+	} else if( !tmpface->v3 ) {
+		unsigned int tmp = tmpface->v1;
+		tmpface->v1 = tmpface->v2;
+		tmpface->v2 = tmpface->v3;
+		if( !len4 ) {
+			tmpface->v3 = tmp;
+		} else {
+			tmpface->v3 = tmpface->v4;
+			tmpface->v4 = tmp;
+		}
+	}
 }
 
 #ifdef CHECK_DVERTS /* not clear if this code is needed */
@@ -209,7 +238,6 @@ static void check_dverts(Mesh *me, int old_totvert)
 	return;
 }
 #endif
-
 
 /************************************************************************
  *
@@ -433,7 +461,7 @@ static PyObject *MCol_CreatePyObject( MCol * color )
 
 /************************************************************************
  *
- * Vertex attributes
+ * BPy_MVert attributes
  *
  ************************************************************************/
 
@@ -443,7 +471,13 @@ static PyObject *MCol_CreatePyObject( MCol * color )
 
 static PyObject *MVert_getCoord( BPy_MVert * self )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
+	MVert *v;
+
+	if( BPy_MVert_Check( self ) )
+		v = &((Mesh *)self->data)->mvert[self->index];
+	else
+		v = (MVert *)self->data;
+
 	return newVectorObject( v->co, 3, Py_WRAP );
 }
 
@@ -453,8 +487,13 @@ static PyObject *MVert_getCoord( BPy_MVert * self )
 
 static int MVert_setCoord( BPy_MVert * self, VectorObject * value )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
 	int i;
+	MVert *v;
+
+	if( BPy_MVert_Check( self ) )
+		v = &((Mesh *)self->data)->mvert[self->index];
+	else
+		v = (MVert *)self->data;
 
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -472,8 +511,9 @@ static int MVert_setCoord( BPy_MVert * self, VectorObject * value )
 
 static PyObject *MVert_getIndex( BPy_MVert * self )
 {
-	PyObject *attr = PyInt_FromLong( self->index );
+	PyObject *attr;
 
+	attr = PyInt_FromLong( self->index );
 	if( attr )
 		return attr;
 
@@ -487,9 +527,14 @@ static PyObject *MVert_getIndex( BPy_MVert * self )
 
 static PyObject *MVert_getNormal( BPy_MVert * self )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
 	float no[3];
 	int i;
+	MVert *v;
+
+	if( BPy_MVert_Check( self ) )
+		v = &((Mesh *)self->data)->mvert[self->index];
+	else
+		v = (MVert *)self->data;
 
 	for( i=0; i<3; ++i )
 		no[i] = (float)(v->no[i] / 32767.0);
@@ -502,7 +547,13 @@ static PyObject *MVert_getNormal( BPy_MVert * self )
 
 static PyObject *MVert_getSel( BPy_MVert *self )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
+	MVert *v;
+
+	if( BPy_MVert_Check( self ) )
+		v = &((Mesh *)self->data)->mvert[self->index];
+	else
+		v = (MVert *)self->data;
+
 	return EXPP_getBitfield( &v->flag, SELECT, 'b' );
 }
 
@@ -512,7 +563,13 @@ static PyObject *MVert_getSel( BPy_MVert *self )
 
 static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
+	MVert *v;
+
+	if( BPy_MVert_Check( self ) )
+		v = &((Mesh *)self->data)->mvert[self->index];
+	else
+		v = (MVert *)self->data;
+
 	return EXPP_setBitfield( value, &v->flag, SELECT, 'b' );
 }
 
@@ -522,11 +579,13 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 
 static PyObject *MVert_getUVco( BPy_MVert *self )
 {
-	if( !self->mesh->msticky )
+	Mesh *me = (Mesh *)self->data;
+
+	if( !me->msticky )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"mesh has no 'sticky' coordinates" );
 
-	return newVectorObject( self->mesh->msticky[self->index].co, 2, Py_WRAP );
+	return newVectorObject( me->msticky[self->index].co, 2, Py_WRAP );
 }
 
 /*
@@ -536,6 +595,7 @@ static PyObject *MVert_getUVco( BPy_MVert *self )
 static int MVert_setUVco( BPy_MVert *self, PyObject *value )
 {
 	float uvco[3] = {0.0, 0.0};
+	Mesh *me = (Mesh *)self->data;
 	struct MSticky *v;
 	int i;
 
@@ -544,7 +604,7 @@ static int MVert_setUVco( BPy_MVert *self, PyObject *value )
 	 * don't already exist
 	 */
 
-	if( !self->mesh->msticky )
+	if( !me->msticky )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"mesh has no 'sticky' coordinates" );
 
@@ -560,7 +620,7 @@ static int MVert_setUVco( BPy_MVert *self, PyObject *value )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected 2D vector" );
 
-	v = &self->mesh->msticky[self->index];
+	v = &me->msticky[self->index];
 
 	for( i = 0; i < 2; ++i )
 		v->co[i] = uvco[i];
@@ -598,6 +658,22 @@ static PyGetSetDef BPy_MVert_getseters[] = {
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
+static PyGetSetDef BPy_PVert_getseters[] = {
+	{"co",
+	 (getter)MVert_getCoord, (setter)MVert_setCoord,
+	 "vertex's coordinate",
+	 NULL},
+	{"no",
+	 (getter)MVert_getNormal, (setter)NULL,
+	 "vertex's normal",
+	 NULL},
+	{"sel",
+	 (getter)MVert_getSel, (setter)MVert_setSel,
+	 "vertex's select status",
+	 NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 /************************************************************************
  *
  * Python MVert_Type standard operations
@@ -606,23 +682,36 @@ static PyGetSetDef BPy_MVert_getseters[] = {
 
 static void MVert_dealloc( BPy_MVert * self )
 {
+	if( BPy_PVert_Check( self ) ) /* free memory of thick objects */
+		MEM_freeN ( self->data );
+
 	PyObject_DEL( self );
 }
 
 static int MVert_compare( BPy_MVert * a, BPy_MVert * b )
 {
-	return( a->mesh == b->mesh && a->index == b->index ) ? 0 : -1;
+	return( a->data == b->data && a->index == b->index ) ? 0 : -1;
 }
 
 static PyObject *MVert_repr( BPy_MVert * self )
 {
-	struct MVert *v = &self->mesh->mvert[self->index];
 	char format[512];
+	char index[24];
+	MVert *v;
 
-	sprintf( format, "[MVert (%f %f %f) (%f %f %f) %d]",
+	if( BPy_MVert_Check( self ) ) {
+		v = &((Mesh *)self->data)->mvert[self->index];
+		sprintf ( index, "%d", self->index );
+	}
+	else {
+		v = (MVert *)self->data;
+		BLI_strncpy( index, "(None)", 24 );
+	}
+
+	sprintf( format, "[MVert (%f %f %f) (%f %f %f) %s]",
 			v->co[0], v->co[1], v->co[2], (float)(v->no[0] / 32767.0),
 			(float)(v->no[1] / 32767.0), (float)(v->no[2] / 32767.0),
-			self->index );
+			index );
 
 	return PyString_FromString( format );
 }
@@ -637,8 +726,8 @@ PyTypeObject MVert_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
 	0,                          /* ob_size */
 	/*  For printing, in format "<module>.<name>" */
-	"Blender MVert",           /* char *tp_name; */
-	sizeof( BPy_MVert ),       /* int tp_basicsize; */
+	"Blender MVert",            /* char *tp_name; */
+	sizeof( BPy_MVert ),        /* int tp_basicsize; */
 	0,                          /* tp_itemsize;  For allocation */
 
 	/* Methods to implement standard operations */
@@ -715,7 +804,120 @@ PyTypeObject MVert_Type = {
 	NULL
 };
 
-static PyObject *MVert_CreatePyObject( Mesh * mesh, int i )
+/************************************************************************
+ *
+ * Python PVert_Type standard operations
+ *
+ ************************************************************************/
+
+static int PVert_compare( BPy_MVert * a, BPy_MVert * b )
+{
+	return( a->data == b->data ) ? 0 : -1;
+}
+
+/************************************************************************
+ *
+ * Python PVert_Type structure definition
+ *
+ ************************************************************************/
+
+PyTypeObject PVert_Type = {
+	PyObject_HEAD_INIT( NULL )  /* required py macro */
+	0,                          /* ob_size */
+	/*  For printing, in format "<module>.<name>" */
+	"Blender PVert",            /* char *tp_name; */
+	sizeof( BPy_MVert ),        /* int tp_basicsize; */
+	0,                          /* tp_itemsize;  For allocation */
+
+	/* Methods to implement standard operations */
+
+	( destructor ) MVert_dealloc,/* destructor tp_dealloc; */
+	NULL,                       /* printfunc tp_print; */
+	NULL,                       /* getattrfunc tp_getattr; */
+	NULL,                       /* setattrfunc tp_setattr; */
+	( cmpfunc ) PVert_compare,  /* cmpfunc tp_compare; */
+	( reprfunc ) MVert_repr,    /* reprfunc tp_repr; */
+
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,	        			/* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	NULL,                       /* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_PVert_getseters,        /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
+};
+
+/*
+ * create 'thin' or 'thick' MVert objects
+ *
+ * there are two types of objects; thin (wrappers for mesh vertex) and thick
+ * (not contains in mesh).  Thin objects are MVert_Type and thick are
+ * PVert_Type.  For thin objects, data is a pointer to a Mesh and index
+ * is the vertex's index in mesh->mvert.  For thick objects, data is a
+ * pointer to an MVert; index is unused.
+ */
+
+/*
+ * create a thin MVert object
+ */
+
+static PyObject *MVert_CreatePyObject( Mesh *mesh, int i )
 {
 	BPy_MVert *obj = PyObject_NEW( BPy_MVert, &MVert_Type );
 
@@ -723,8 +925,30 @@ static PyObject *MVert_CreatePyObject( Mesh * mesh, int i )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"PyObject_New() failed" );
 
-	obj->mesh = mesh;
 	obj->index = i;
+	obj->data = mesh;
+	return (PyObject *)obj;
+}
+
+/*
+ * create a thick MVert object
+ */
+
+static PyObject *PVert_CreatePyObject( MVert *vert )
+{
+	BPy_MVert *obj = PyObject_NEW( BPy_MVert, &PVert_Type );
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyObject_New() failed" );
+
+	MVert *newvert = (MVert *)MEM_callocN( sizeof( MVert ), "MVert" );
+	if( !newvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MEM_callocN() failed" );
+
+	memcpy( newvert, vert, sizeof( MVert ) );
+	obj->data = newvert;
 	return (PyObject *)obj;
 }
 
@@ -739,6 +963,10 @@ static int MVertSeq_len( BPy_MVertSeq * self )
 	return self->mesh->totvert;
 }
 
+/*
+ * retrive a single MVert from somewhere in the vertex list
+ */
+
 static PyObject *MVertSeq_item( BPy_MVertSeq * self, int i )
 {
 	if( i < 0 || i >= self->mesh->totvert )
@@ -748,14 +976,137 @@ static PyObject *MVertSeq_item( BPy_MVertSeq * self, int i )
 	return MVert_CreatePyObject( self->mesh, i );
 };
 
+/*
+ * retrieve a slice of the vertex list (as a Python list)
+ *
+ * Python is nice enough to handle negative indices for us: if the user
+ * specifies -1, Python will pass us len()-1.  So we can just check for
+ * indices in the range 0:len()-1.  Of course, we should never actually
+ * return the high index, but up to one less.
+ */
+
+static PyObject *MVertSeq_slice( BPy_MVertSeq *self, int low, int high )
+{
+	PyObject *list;
+	int i;
+
+	/*
+	 * Python list slice operator returns empty list when asked for a slice
+	 * outside the list, or if indices are reversed (low > high).  Clamp
+	 * our input to do the same.
+	 */
+
+	if( low < 0 ) low = 0;
+	if( high > self->mesh->totvert ) high = self->mesh->totvert;
+	if( low > high ) low = high;
+
+	list = PyList_New( high-low );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "PyList_New() failed" );
+
+	/*
+	 * return Py_NEW copies of requested vertices
+	 */
+
+	for( i = low; i < high; ++i )
+		PyList_SET_ITEM( list, i-low,
+				PVert_CreatePyObject( (void *)&self->mesh->mvert[i] ) );
+	return list;
+}
+
+/*
+ * assign a single MVert to somewhere in the vertex list
+ */
+
+static int MVertSeq_assign_item( BPy_MVertSeq * self, int i,
+		BPy_MVert *v )
+{
+	MVert *dst = &self->mesh->mvert[i];
+	MVert *src;
+
+	if( !v )
+		return EXPP_ReturnIntError( PyExc_IndexError,
+					      "del() not supported" );
+
+	if( i < 0 || i >= self->mesh->totvert )
+		return EXPP_ReturnIntError( PyExc_IndexError,
+					      "array index out of range" );
+
+	if( BPy_MVert_Check( v ) )
+		src = &((Mesh *)v->data)->mvert[v->index];
+	else
+		src = (MVert *)v->data;
+
+	memcpy( dst, src, sizeof(MVert) );
+	// mesh_update( self->mesh );
+	return 0;
+};
+
+static int MVertSeq_assign_slice( BPy_MVertSeq *self, int low, int high,
+		   PyObject *args )
+{
+	int len, i;
+
+	if( !PyList_Check( args ) )
+		return EXPP_ReturnIntError( PyExc_IndexError,
+					      "can only assign lists of MVerts" );
+
+	len = PyList_Size( args );
+
+	/*
+	 * Python list slice assign operator allows for changing the size of the
+	 * destination list, by replacement and appending....
+	 *
+	 * >>> l=[1,2,3,4]
+	 * >>> m=[11,12,13,14]
+	 * >>> l[5:7]=m
+	 * >>> print l
+	 * [1, 2, 3, 4, 11, 12, 13, 14]
+	 * >>> l=[1,2,3,4]
+	 * >>> l[2:3]=m
+	 * >>> print l
+	 * [1, 2, 11, 12, 13, 14, 4]
+	 *
+	 * We don't want the size of the list to change (at least not at time
+	 * point in development) so we are a little more strict:
+	 * - low and high indices must be in range [0:len()]
+	 * - high-low == PyList_Size(v)
+	 */
+
+	if( low < 0 || high > self->mesh->totvert || low > high )
+		return EXPP_ReturnIntError( PyExc_IndexError,
+					      "invalid slice range" );
+
+	if( high-low != len )
+		return EXPP_ReturnIntError( PyExc_IndexError,
+					      "slice range and input list sizes must be equal" );
+
+	for( i = low; i < high; ++i )
+	{
+		BPy_MVert *v = (BPy_MVert *)PyList_GET_ITEM( args, i-low );
+		MVert *dst = &self->mesh->mvert[i];
+		MVert *src;
+
+		if( BPy_MVert_Check( v ) )
+			src = &((Mesh *)v->data)->mvert[v->index];
+		else
+			src = (MVert *)v->data;
+
+		memcpy( dst, src, sizeof(MVert) );
+	}
+	// mesh_update( self->mesh );
+	return 0;
+}
+
 static PySequenceMethods MVertSeq_as_sequence = {
 	( inquiry ) MVertSeq_len,	/* sq_length */
 	( binaryfunc ) 0,	/* sq_concat */
 	( intargfunc ) 0,	/* sq_repeat */
 	( intargfunc ) MVertSeq_item,	/* sq_item */
-	( intintargfunc ) 0,	/* sq_slice */
-	( intobjargproc ) 0,	/* sq_ass_item */
-	( intintobjargproc ) 0,	/* sq_ass_slice */
+	( intintargfunc ) MVertSeq_slice,	/* sq_slice */
+	( intobjargproc ) MVertSeq_assign_item,	/* sq_ass_item */
+	( intintobjargproc ) MVertSeq_assign_slice,	/* sq_ass_slice */
 	0,0,0,
 };
 
@@ -796,20 +1147,22 @@ static PyObject *MVertSeq_nextIter( BPy_MVertSeq * self )
 
 static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 {
-	int len;
+	int len, newlen;
 	int i,j;
 	PyObject *tmp;
 	MVert *newvert, *tmpvert;
 	Mesh *mesh = self->mesh;
-
 	/* make sure we get a sequence of tuples of something */
 
 	switch( PySequence_Size ( args ) ) {
 	case 1:		/* better be a list or a tuple */
-		args = PyTuple_GET_ITEM( args, 0 );
-		if( !PySequence_Check ( args ) )
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of tuple triplets" );
+		tmp = PyTuple_GET_ITEM( args, 0 );
+		if( !VectorObject_Check ( tmp ) ) {
+			if( !PySequence_Check ( tmp ) )
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a sequence of tuple triplets" );
+			args = tmp;
+		}
 		Py_INCREF( args );		/* so we can safely DECREF later */
 		break;
 	case 3:		/* take any three args and put into a tuple */
@@ -836,7 +1189,8 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 				"expected at least one tuple" );
 	}
 
-	newvert = MEM_callocN( sizeof( MVert ) * (mesh->totvert+len), "MVerts" );
+	newlen = mesh->totvert + len;
+	newvert = MEM_callocN( sizeof( MVert )*newlen, "MVerts" );
 
 	/* scan the input list and insert the new vertices */
 
@@ -876,31 +1230,58 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 		}
 
 	/* add the coordinate to the new list */
-#if 0
-		memcpy( tmpvert->co, co, sizeof(float)*3 );
-#else
-		{
-			int i=3;
-			while (i--) tmpvert->co[i] = co[i];
-		}
-#endif
-
-
+		memcpy( tmpvert->co, co, sizeof(co) );
 
 	/* TODO: anything else which needs to be done when we add a vert? */
 	/* probably not: NMesh's newvert() doesn't */
 		++tmpvert;
 	}
 
-	/* if we got here we've added all the new verts, so just copy the old
-	 * verts over and we're done */
+	/*
+	 * if we got here we've added all the new verts, so just copy the old
+	 * verts over and we're done
+	 */
 
 	if( mesh->mvert ) {
 		memcpy( newvert, mesh->mvert, mesh->totvert*sizeof(MVert) );
 		MEM_freeN( mesh->mvert );
 	}
 	mesh->mvert = newvert;
-	mesh->totvert += len;
+
+	/*
+	 * maybe not quite done; if there are keys, have to fix those lists up
+	 */
+
+	if( mesh->key ) {
+		KeyBlock *currkey = mesh->key->block.first;
+		float *fp, *newkey;
+
+		while( currkey ) {
+
+			/* create key list, copy existing data if any */
+			newkey = MEM_callocN(mesh->key->elemsize*newlen, "keydata");
+			if( currkey->data ) {
+				memcpy( newkey, currkey->data,
+						mesh->totvert*mesh->key->elemsize );
+				MEM_freeN( currkey->data );
+				currkey->data = newkey;
+			}
+
+			/* add data for new vertices */
+			fp = currkey->data + (mesh->key->elemsize*mesh->totvert);
+			tmpvert = mesh->mvert + mesh->totvert;
+			for( i = newlen - mesh->totvert; i > 0; --i ) {
+				VECCOPY(fp, tmpvert->co);
+				fp += 3;
+				tmpvert++;
+			}
+			currkey->totelem = newlen;
+			currkey = currkey->next;
+		}
+	}
+
+	/* set final vertex list size */
+	mesh->totvert = newlen;
 
 #ifdef CHECK_DVERTS
 	check_dverts( mesh, mesh->totvert - len );
@@ -913,7 +1294,7 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 
 static struct PyMethodDef BPy_MVertSeq_methods[] = {
 	{"extend", (PyCFunction)MVertSeq_extend, METH_VARARGS,
-		"add edges to mesh"},
+		"add vertices to mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1758,8 +2139,8 @@ static PyObject *MFace_getVerts( BPy_MFace * self )
 	PyTuple_SetItem( attr, 1, MVert_CreatePyObject( self->mesh, face->v2 ) );
 	PyTuple_SetItem( attr, 2, MVert_CreatePyObject( self->mesh, face->v3 ) );
 	if( face->v4 )
-		PyTuple_SetItem( attr, 3, 
-				MVert_CreatePyObject( self->mesh, face->v4 ) );
+		PyTuple_SetItem( attr, 3, MVert_CreatePyObject( self->mesh,
+					face->v4 ) );
 
 	return attr;
 }
@@ -2516,6 +2897,16 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	MFace *tmpface;
 	Mesh *mesh = self->mesh;
 
+	/*
+	 * before we try to add faces, add edges; if it fails; exit
+	 */
+
+	tmp = MEdgeSeq_extend( self, args );
+	if( !tmp )
+		return NULL;
+	
+	Py_DECREF( tmp );
+
 	/* make sure we get a sequence of tuples of something */
 
 	switch( PySequence_Size ( args ) ) {
@@ -2589,19 +2980,35 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		unsigned char order[4]={0,1,2,3};
 		tmp = PySequence_Fast_GET_ITEM( args, i );
 		nverts = PyTuple_Size( tmp );
+		BPy_MVert *e;
+		MFace tmpface;
 
 		if( nverts == 2 )	/* again, ignore 2-vert tuples */
 			break;
 
-		/* get copies of vertices */
-		for( j = 0; j < nverts; ++j ) {
-			BPy_MVert *e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, j );
-			vert[j] = e->index;
-		}
+		/*
+		 * go through some contortions to guarantee the third and fourth
+		 * vertices are not index 0
+		 */
 
-		/* convention says triangular faces always have v4 == 0 */
+		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 0 );
+		tmpface.v1 = e->index;
+		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 1 );
+		tmpface.v2 = e->index;
+		e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 2 );
+		tmpface.v3 = e->index;
+		if( nverts == 4 ) {
+			e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 3 );
+			tmpface.v4 = e->index;
+		}
+		eeek_fix( &tmpface, nverts==4 );
+		vert[0] = tmpface.v1;
+		vert[1] = tmpface.v2;
+		vert[2] = tmpface.v3;
 		if( nverts == 3 )
 			tmppair->v[3] = 0;
+		else
+			vert[3] = tmpface.v4;
 
 		/*
 		 * sort the verts before placing in pair list.  the order of
@@ -2758,7 +3165,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS,
-		"add edges to mesh"},
+		"add faces and edges to mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2896,9 +3303,29 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
 			"object not found in baselist!" );
 }
 
+/*
+ * force display list update
+ */
+
+static PyObject *Mesh_Update( BPy_Mesh * self )
+{
+	mesh_update( self->mesh );
+	return EXPP_incr_ret( Py_None );
+}
+
+static struct PyMethodDef BPy_Mesh_methods[] = {
+	{"calcNormals", (PyCFunction)Mesh_calcNormals, METH_NOARGS,
+		"all recalculate vertex normals"},
+	{"vertexShade", (PyCFunction)Mesh_vertexShade, METH_VARARGS,
+		"color vertices based on the current lighting setup"},
+	{"update", (PyCFunction)Mesh_Update, METH_NOARGS,
+		"Update display lists after changes to mesh"},
+	{NULL, NULL, 0, NULL}
+};
+
 /************************************************************************
  *
- * Mesh attributes
+ * Python BPy_Mesh attributes
  *
  ************************************************************************/
 
@@ -3007,11 +3434,6 @@ static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
 	int i;
 	PyObject *tmp;
 
-#if 0
-	if( !PyArg_ParseTuple( value, "ii", &subdiv, &subdivr ) )
-		return EXPP_ReturnIntError( PyExc_TypeError,
-						"expected (int, int) as argument" );
-#endif
 	if( !PyTuple_Check( value ) || PyTuple_Size( value ) != 2 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected (int, int) as argument" );
@@ -3193,6 +3615,12 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 	return 0;
 }
 
+/************************************************************************
+ *
+ * Python Mesh_Type standard operations
+ *
+ ************************************************************************/
+
 static void Mesh_dealloc( BPy_Mesh * self )
 {
 	PyObject_DEL( self );
@@ -3203,14 +3631,6 @@ static PyObject *Mesh_repr( BPy_Mesh * self )
 	return PyString_FromFormat( "[Mesh \"%s\"]",
 				    self->mesh->id.name + 2 );
 }
-
-static struct PyMethodDef BPy_Mesh_methods[] = {
-	{"calcNormals", (PyCFunction)Mesh_calcNormals, METH_NOARGS,
-		"all recalculate vertex normals"},
-	{"vertexShade", (PyCFunction)Mesh_vertexShade, METH_VARARGS,
-		"color vertices based on the current lighting setup"},
-	{NULL, NULL, 0, NULL}
-};
 
 /*****************************************************************************/
 /* Python NMesh_Type attributes get/set structure:                           */
@@ -3423,7 +3843,6 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
 {
 	char *name = "Mesh";
-	PyObject *ret = NULL;
 	Mesh *mesh;
 	BPy_Mesh *obj;
 	char buf[21];
@@ -3453,6 +3872,38 @@ static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
 
 	obj->mesh = mesh;
 	return (PyObject *)obj;
+}
+
+/*
+ * creates a new MVert for users to manipulate
+ */
+
+static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
+{
+	int i;
+	MVert vert;
+
+	/* initialize the new vert's data */
+	memset( &vert, 0, sizeof( MVert ) );
+
+	/*
+	 * accept either a 3D vector or tuple of three floats
+	 */
+
+	if( PyTuple_Size ( args ) == 1 ) {
+		PyObject *tmp = PySequence_Fast_GET_ITEM( args, 0 );
+		if( !VectorObject_Check( tmp ) || ((VectorObject *)tmp)->size != 3 )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected three floats or vector of size 3" );
+		for( i = 0; i < 3; ++i )
+			vert.co[i] = ((VectorObject *)tmp)->vec[i];
+	} else if( !PyArg_ParseTuple ( args, "fff",
+				&vert.co[0], &vert.co[1], &vert.co[2] ) )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"expected three floats or vector of size 3" );
+
+	/* make a new MVert from the data */
+	return PVert_CreatePyObject( &vert );
 }
 
 #define SUBDIVIDE_EXPERIMENT
@@ -3513,6 +3964,8 @@ static struct PyMethodDef M_Mesh_methods[] = {
 		"Create a new mesh"},
 	{"Get", (PyCFunction)M_Mesh_Get, METH_VARARGS,
 		"Get a mesh by name"},
+	{"MVert", (PyCFunction)M_Mesh_MVert, METH_VARARGS,
+		"Create a new MVert"},
 #ifdef SUBDIVIDE_EXPERIMENT
 	{"Subdivide", (PyCFunction)M_Mesh_Subdivide, METH_VARARGS,
 		"Subdivide selected edges in a mesh (experimental)"},
@@ -3529,6 +3982,8 @@ PyObject *Mesh_Init( void )
 	if( PyType_Ready( &MCol_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &MVert_Type ) < 0 )
+		return NULL;
+	if( PyType_Ready( &PVert_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &MVertSeq_Type ) < 0 )
 		return NULL;

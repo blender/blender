@@ -105,11 +105,49 @@ class MVert:
      each face can be independently mapped to any part of its texture.
   """
 
+  def __init__(coord):
+    """
+    Create a new MVert object.
+
+    Example::
+      v = Blender.Mesh.MVert(1,0,0)
+      v = Blender.Mesh.MVert(Blender.Mathutils.Vector([1,0,0]))
+    @type coord: three floats or a Vector object
+    @param coord: the coordinate values for the new vertex
+    @rtype: MVert
+    @return: a new MVert object
+    """
+
 class MVertSeq:
   """
   The MVertSeq object
   ===================
     This object provides sequence and iterator access to the mesh's vertices.
+    Access and assignment of single items and slices are also supported.
+    When a single item in the vertex list is accessed, the operator[] returns
+    a MVert object which "wraps" the actual vertex in the mesh; changing any
+    of the vertex's attributes will immediately change the data in the mesh.
+    When a slice of the vertex list is accessed, however, the operator[]
+    returns a list of MVert objects which are copies of the mesh's vertex
+    data.  Changes to these objects have no effect on the mesh; they must be
+    assigned back to the mesh's vertex list.
+
+    Slice assignments cannot change the vertex list size.  The size of the
+    list being assigned must be the same as the specified slice; otherwise an
+    exception is thrown.
+
+    Example::
+      import Blender
+      from Blender import Mesh
+
+      me = Mesh.Get("Plane")          # get the mesh data called "Plane"
+      vert = me.verts[0]              # vert accesses actual mesh data
+      vert.co[0] += 2                 # change the vertex's X location
+      pvert = me.verts[-2:]           # pvert is COPY of mesh's last two verts
+      pvert[0].co[0] += 2             # change the vertex's X location
+      pvert[1].co[0] += 2             # change the vertex's X location
+      me.verts[-1] = pvert[1]         # put change to second vertex into mesh
+
   """
 
   def extend(coords):
@@ -408,5 +446,13 @@ class Mesh:
     thrown if called while in EditMode.
     @type object: Object
     @param object: The Blender Object linked to the mesh.
+    """
+
+  def update():
+    """
+    Update display lists after changes to mesh.  B{Note}: with changes taking
+    place for using a directed acyclic graph (DAG) for scene and object
+    updating, this method may be only temporary and may be removed in future
+    releases.
     """
 
