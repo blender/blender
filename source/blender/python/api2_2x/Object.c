@@ -2087,7 +2087,11 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 	PyObject *list;
 	int len;
 	int i;
-	Material **matlist;
+	Material **matlist = NULL;
+
+	if (!self->object->data)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+      "object must be linked to object data (e.g. to a mesh) first" );
 
 	if( !PyArg_ParseTuple( args, "O!", &PyList_Type, &list ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -2095,14 +2099,20 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 
 	len = PyList_Size(list);
 
-	if( len > MAXMAT )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-			"list must have from 1 up to 16 materials" );
+	/* Object_getMaterials can return '[]' (zero-length list), so that must
+	 * also be accepted by this method for
+	 * ob2.setMaterials(ob1.getMaterials()) to always work.
+	 * In other words, list can be '[]' and so len can be zero. */
+	if (len > 0) {
+		if( len > MAXMAT )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"list must have from 1 up to 16 materials" );
 
-	matlist = EXPP_newMaterialList_fromPyList( list );
-	if( !matlist ) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"material list must be a list of valid materials!" ) );
+		matlist = EXPP_newMaterialList_fromPyList( list );
+		if( !matlist ) {
+			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"material list must be a list of valid materials!" ) );
+		}
 	}
 
 	if( self->object->mat )

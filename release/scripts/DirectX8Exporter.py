@@ -1,12 +1,12 @@
 #!BPY
 
 """ Registration info for Blender menus:
-Name: 'DirectX8 (.x)...'
-Blender: 234
+Name: 'DirectX8(.x)...'
+Blender: 239
 Group: 'Export'
-Submenu: 'Export to DX8 file format' export
-Submenu: 'How to use this exporter?' help
-Tip: 'Export to DirectX8 text file format'
+Submenu: 'Export all the scene' export
+Submenu: 'Export selected obj' exportsel
+Tip: 'Export to DirectX8 text file format format.'
 """
 
 __author__ = "Arben (Ben) Omari"
@@ -17,29 +17,10 @@ __bpydoc__ = """\
 This script exports a Blender mesh with armature to DirectX 8's text file
 format.
 
-Usage:
-
-1) There should be only one mesh and one armature in the scene;
-
-2) Before parenting set:<br>
-   a) Armature and mesh must have the same origin location
-(in the 3d View press N (menu Object->"Transform Properties") for both and set
-same LocX, LocY and LocZ);<br>
-   b) Armature and mesh must have the same rotation
-(select them and press Ctrl + A);
-
-3) Set the number of the animation frames to export;
-
-4) Read warnings (if any) in console.
-
 Notes:<br>
     Check author's site or the elYsiun forum for a new beta version of the
 DX exporter.
 """
-
-
-# $Id$
-#
 # DirectX8Exporter.py version 1.0
 # Copyright (C) 2003  Arben OMARI -- omariarben@everyday.com 
 #
@@ -66,48 +47,6 @@ global new_bon,mat_flip,index_list
 index_list = []
 new_bon = {}
 mat_flip = Matrix([1, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 1])
-
-def draw():
-	
-	# clearing screen
-	Blender.BGL.glClearColor(0.5, 0.5, 0.5, 1)
-	Blender.BGL.glColor3f(1.,1.,1.)
-	Blender.BGL.glClear(Blender.BGL.GL_COLOR_BUFFER_BIT)
-	
-	# Buttons
-	Blender.Draw.Button("Exit", 1, 10, 40, 100, 25)
-
-	#Text
-	Blender.BGL.glColor3f(1, 1, 1)
-	Blender.BGL.glRasterPos2d(10, 310)
-	Blender.Draw.Text("1.Only one mesh and one armature in the scene")
-	Blender.BGL.glRasterPos2d(10, 290)
-	Blender.Draw.Text("2.Before parenting set:")
- 
-	
-	
-	Blender.BGL.glRasterPos2d(10, 270)
-	Blender.Draw.Text("     a)Armature and mesh must have the same origin location")
-	Blender.BGL.glRasterPos2d(10, 255)
-	Blender.Draw.Text("       (press N for both and set the same LocX,LocY and LocZ)")
-	Blender.BGL.glRasterPos2d(10, 230)
-	Blender.Draw.Text("      b)Armature and mesh must have the same to rotation")
-	Blender.BGL.glRasterPos2d(10, 215)
-	Blender.Draw.Text("        (select them and press Ctrl + A)")
-	Blender.BGL.glRasterPos2d(10, 195)
-	Blender.Draw.Text("3.Set the number of the animation frames to export ")
-	Blender.BGL.glRasterPos2d(10, 175)
-	Blender.Draw.Text("5.Read warnings in console(if any)")
-	
-	
-
-def event(evt, val):
-	if evt == Blender.Draw.ESCKEY and not val: Blender.Draw.Exit()
-
-def bevent(evt):
-	
-	if evt == 1: Blender.Draw.Exit()
-	
 		
 
 #***********************************************
@@ -122,49 +61,114 @@ class xExport:
 
 #*********************************************************************************************************************************************
 	#***********************************************
-	#Export Animation
+	#Select Scene objects
 	#***********************************************
-	def exportMesh(self,arm,arm_ob,tex):
+	def SelectObjs(self):
+		print "exporting..."
+		self.writeHeader()
+		for obj in Object.Get():
+			mesh = obj.getData()
+			if type(mesh) == Types.NMeshType :
+				chld_obj = obj.getParent()
+				if chld_obj :
+					dt_chld_obj = chld_obj.getData()
+					if type(dt_chld_obj) == Types.ArmatureType :
+						self.writeRootBone(chld_obj, obj)
+					
+				else :
+					self.exportMesh(obj)
+		self.file.write("AnimationSet {\n")
+		for obj in Object.Get():
+			mesh = obj.getData()
+			if type(mesh) == Types.NMeshType :
+				ip_list = obj.getIpo()
+				if ip_list != None :
+					self.writeAnimationObj(obj)
+			elif type(mesh) == Types.ArmatureType :
+				act_list = obj.getAction()
+				if act_list != None :
+					self.writeAnimation(obj)
+				ip_list = obj.getIpo()
+				if ip_list != None :
+					self.writeAnimationObjArm(obj)
+		self.file.write("}\n")
+		self.writeEnd()
+	#***********************************************
+	#Export Mesh without Armature
+	#***********************************************
+	def exportMesh(self, obj):
+		tex = []
+		mesh = obj.getData()
+		self.writeTextures(obj, tex)		
+		self.writeMeshcoord(obj, mesh)
+		self.writeMeshMaterialList(obj, mesh, tex)
+		self.writeMeshNormals(obj, mesh)
+		self.writeMeshTextureCoords(obj, mesh)
+		self.file.write(" }\n")
+		self.file.write("}\n")
 		
-		for name in Object.Get():
-			obj = name.getData()
-			if type(obj) == Types.NMeshType :		
-				self.writeMeshcoord(name, obj,arm_ob)
-				self.writeMeshMaterialList(name, obj, tex)
-				self.writeMeshNormals(name, obj)
-				self.writeMeshTextureCoords(name, obj)
-				self.writeSkinWeights(arm,obj)
-				self.file.write(" }\n")
+					
+	#***********************************************
+	#Export the Selected Mesh
+	#***********************************************
+	def exportSelMesh(self):
+		print "exporting ..."
+		self.writeHeader()
+		tex = []
+		obj = Object.GetSelected()[0]
+		mesh = obj.getData()
+		if type(mesh) == Types.NMeshType :
+			self.writeTextures(obj, tex)		
+			self.writeMeshcoord(obj, mesh)
+			self.writeMeshMaterialList(obj, mesh, tex)
+			self.writeMeshNormals(obj, mesh)
+			self.writeMeshTextureCoords(obj, mesh)
+			self.file.write(" }\n")
+			self.file.write("}\n")
+			ip_list = obj.getIpo()
+			if ip_list != None :
+				self.file.write("AnimationSet {\n")
+				self.writeAnimationObj(obj)
 				self.file.write("}\n")
-				self.writeAnimation(name, obj,arm)
+			print "exporting ..."
+		else :
+			print "The selected object is not a mesh"
+		print "...finished"
+	#***********************************************
+	#Export Mesh with Armature
+	#***********************************************
+	def exportMeshArm(self,arm,arm_ob,ch_obj):
+		tex = []
+		mesh = ch_obj.getData()
+		self.writeTextures(ch_obj, tex)		
+		self.writeMeshcoordArm(ch_obj, mesh,arm_ob)
+		self.writeMeshMaterialList(ch_obj, mesh, tex)
+		self.writeMeshNormals(ch_obj, mesh)
+		self.writeMeshTextureCoords(ch_obj, mesh)
+		self.writeSkinWeights(arm,mesh)
+		self.file.write(" }\n")
+		self.file.write("}\n")
+		
+				
 	#***********************************************
 	#Export Root Bone
 	#***********************************************
-	def writeRootBone(self):
+	def writeRootBone(self,am_ob,child_obj):
 		global new_bon,mat_flip
 		space = 0
-		tex = []
-		print "exporting ..."
-		self.writeHeader()
-		for name in Object.Get():
-			obj = name.getData()
-			if type(obj) == Types.NMeshType :
-				self.writeTextures(name, tex)
-			arm = name.getData()
-			if type(arm) == Types.ArmatureType :
-				Blender.Set('curframe',1)
-				am_ob = Object.Get(name.name)
-				mat_ob = mat_flip * am_ob.getMatrix()
-				self.writeArmFrames(mat_ob, "RootFrame", 0)
-				root_bon = arm.getBones()
-				mat_r = self.writeCombineMatrix(root_bon[0])  
-				name_r = root_bon[0].getName()
-				new_bon[name_r] = len(root_bon[0].getChildren())
-				self.writeArmFrames(mat_r, name_r, 1)
-				self.writeListOfChildrens(root_bon[0],2,arm)
-				self.file.write("}\n")
-				self.exportMesh(arm,am_ob, tex)
-		self.writeEnd()
+		arm = am_ob.getData()
+		Blender.Set('curframe',1)
+		mat_ob = mat_flip * am_ob.matrixWorld
+		self.writeArmFrames(mat_ob, "RootFrame", 0)
+		root_bon = arm.getBones()
+		mat_r = self.writeCombineMatrix(root_bon[0])
+		name_r = root_bon[0].getName()
+		new_bon[name_r] = len(root_bon[0].getChildren())
+		self.writeArmFrames(mat_r, name_r, 1)
+		self.writeListOfChildrens(root_bon[0],2,arm)
+		self.file.write("}\n")
+		self.exportMeshArm(arm,am_ob,child_obj)
+		
 	#***********************************************
 	#Export Children Bones
 	#***********************************************
@@ -348,13 +352,16 @@ class xExport:
 		self.file.write("%s" % (tab * space))
 		self.file.write("  FrameTransformMatrix {\n")
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s," %
+		self.file.write("    %s,%s,%s,%s,\n" %
 							(round(matx[0][0],4),round(matx[0][1],4),round(matx[0][2],4),round(matx[0][3],4)))
-		self.file.write("%s,%s,%s,%s," %
-							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))	
-		self.file.write("%s,%s,%s,%s," %
+		self.file.write("%s" % (tab * space))
+		self.file.write("    %s,%s,%s,%s,\n" %
+							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))
+		self.file.write("%s" % (tab * space))	
+		self.file.write("    %s,%s,%s,%s,\n" %
 							(round(matx[2][0],4),round(matx[2][1],4),round(matx[2][2],4),round(matx[2][3],4)))
-		self.file.write("%s,%s,%s,%s;;\n" %
+		self.file.write("%s" % (tab * space))
+		self.file.write("    %s,%s,%s,%s;;\n" %
 							(round(matx[3][0],4),round(matx[3][1],4),round(matx[3][2],4),round(matx[3][3],6)))
 		self.file.write("%s" % (tab * space))
 		self.file.write("  }\n")
@@ -365,13 +372,16 @@ class xExport:
 	def writeOffsFrames(self, matx, name, space):
 		tab = "  "
 		self.file.write("%s" % (tab * space))
-		self.file.write("    %s,%s,%s,%s," %
+		self.file.write("    %s,%s,%s,%s,\n" %
 							(round(matx[0][0],4),round(matx[0][1],4),round(matx[0][2],4),round(matx[0][3],4)))
-		self.file.write("%s,%s,%s,%s," %
-							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))	
-		self.file.write("%s,%s,%s,%s," %
+		self.file.write("%s" % (tab * space))
+		self.file.write("    %s,%s,%s,%s,\n" %
+							(round(matx[1][0],4),round(matx[1][1],4),round(matx[1][2],4),round(matx[1][3],4)))
+		self.file.write("%s" % (tab * space))	
+		self.file.write("    %s,%s,%s,%s,\n" %
 							(round(matx[2][0],4),round(matx[2][1],4),round(matx[2][2],4),round(matx[2][3],4)))
-		self.file.write("%s,%s,%s,%s;;\n" %
+		self.file.write("%s" % (tab * space))
+		self.file.write("    %s,%s,%s,%s;;\n" %
 							(round(matx[3][0],4),round(matx[3][1],4),round(matx[3][2],4),round(matx[3][3],6)))
 		self.file.write("%s" % (tab * space))
 		self.file.write("  }\n")
@@ -425,18 +435,80 @@ template SkinWeights {\n\
 
 
 	#***********************************************
-	#EXPORT MESH DATA
+	#EXPORT MESH DATA with Armature
 	#***********************************************
-	def writeMeshcoord(self, name, mesh,armat):
+	def writeMeshcoordArm(self, name, meshEX,arm_ob):
 		global index_list
 		#ROTATION
-		mat_ob = name.getMatrix() 
-		mat_ar = armat.getInverseMatrix()
-		mat_f = mat_ob * mat_ar
-		self.writeArmFrames(mat_f, "body", 1)
+		mat_arm = arm_ob.matrixWorld
+		mat_ob = name.getMatrix('localspace')
+		mat_ob.invert()
+		mat = mat_arm * mat_ob
+		mat.invert()
+		self.writeArmFrames(mat, name.name, 1)
+		mesh = NMesh.GetRawFromObject(name.name)
+		self.file.write("Mesh {\n")    
+		numface=len(mesh.faces)
+		#VERTICES NUMBER
+		numvert = 0
+		for face in mesh.faces:
+			numvert = numvert + len(face.v)
+		self.file.write("%s;\n" % (numvert))
+		#VERTICES COORDINATES
+		counter = 0
+		for face in mesh.faces:
+			counter += 1
+			for n in range(len(face.v)):
+				index_list.append(face.v[n].index)
+				vec_vert = Vector([face.v[n].co[0], face.v[n].co[1], face.v[n].co[2], 1])
+				f_vec_vert = VecMultMat(vec_vert, mat)
+				self.file.write("%s; %s; %s;" % (f_vec_vert[0], f_vec_vert[1], f_vec_vert[2]))
+				if counter == numface :
+					if n == len(face.v)-1 :
+						self.file.write(";\n")
+					else :
+						self.file.write(",\n")
+				else :
+					self.file.write(",\n")
+
+		#FACES NUMBER 
+		self.file.write("%s;\n" % (numface))  
+		coun,counter = 0, 0
+		for face in mesh.faces :
+			coun += 1
+			if coun == numface:
+				if len(face.v) == 3:
+					self.file.write("3; %s, %s, %s;;\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				elif len(face.v) == 4:
+					self.file.write("4; %s, %s, %s, %s;;\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
+				elif len(face.v) < 3:
+					print "WARNING:the mesh has faces with less then 3 vertices"
+					print "        It my be not exported correctly."
+			else:
+				
+				if len(face.v) == 3:
+					self.file.write("3; %s, %s, %s;,\n" % (counter, counter + 2, counter + 1))
+					counter += 3
+				elif len(face.v) == 4:
+					self.file.write("4; %s, %s, %s, %s;,\n" % (counter, counter + 3, counter + 2, counter + 1))
+					counter += 4
+				elif len(face.v) < 3:
+					print "WARNING:the mesh has faces with less then 3 vertices"
+					print "        It my be not exported correctly."
+
+	#***********************************************
+	#EXPORT MESH DATA without Armature
+	#***********************************************
+	def writeMeshcoord(self, name, mesh):
+		global index_list
+		#ROTATION
+		mat_ob = mat_flip * name.matrixWorld
+		self.writeArmFrames(mat_ob, name.name, 0)
 
 		self.file.write("Mesh {\n")    
-		numfaces=len(mesh.faces)
+		numface=len(mesh.faces)
 		#VERTICES NUMBER
 		numvert = 0
 		for face in mesh.faces:
@@ -449,7 +521,7 @@ template SkinWeights {\n\
 			for n in range(len(face.v)):
 				index_list.append(face.v[n].index)
 				self.file.write("%s; %s; %s;" % (face.v[n].co[0], face.v[n].co[1], face.v[n].co[2]))
-				if counter == numfaces :
+				if counter == numface :
 					if n == len(face.v)-1 :
 						self.file.write(";\n")
 					else :
@@ -458,9 +530,7 @@ template SkinWeights {\n\
 					self.file.write(",\n")
 
 		#FACES NUMBER 
-		self.file.write("%s;\n" % (numfaces))  
-		#FACES INDEX
-		numface=len(mesh.faces)
+		self.file.write("%s;\n" % (numface))  
 		coun,counter = 0, 0
 		for face in mesh.faces :
 			coun += 1
@@ -468,69 +538,24 @@ template SkinWeights {\n\
 				if len(face.v) == 3:
 					self.file.write("3; %s, %s, %s;;\n" % (counter, counter + 2, counter + 1))
 					counter += 3
-				else :
+				elif len(face.v) == 4:
 					self.file.write("4; %s, %s, %s, %s;;\n" % (counter, counter + 3, counter + 2, counter + 1))
 					counter += 4
+				elif len(face.v) < 3:
+					print "WARNING:the mesh has faces with less then 3 vertices(edges and points)"
+					print "        It my be not exported correctly."
 			else:
 				
 				if len(face.v) == 3:
 					self.file.write("3; %s, %s, %s;,\n" % (counter, counter + 2, counter + 1))
 					counter += 3
-				else :
+				elif len(face.v) == 4:
 					self.file.write("4; %s, %s, %s, %s;,\n" % (counter, counter + 3, counter + 2, counter + 1))
 					counter += 4
-		
-
-		
-	#***********************************************
-	#VERTEX DUPLICATION INDEX
-	#***********************************************
-	def writeVertDupInd(self, mesh):
-		self.file.write("  VertexDuplicationIndices {\n")
-		numvert = 0
-		numfaces=len(mesh.faces)
-		for face in mesh.faces:
-			numvert = numvert + len(face.v)
-		self.file.write("   %s;\n" % (numvert+len(mesh.verts)))
-		self.file.write("   %s;\n" % (len(mesh.verts)))
-		#VERTICES INDEX
-		cou = 0
-		for vert in mesh.verts:
-			cou += 1
-			self.file.write("   %s" % ((vert.index)))
-			if cou == len(mesh.verts):
-				self.file.write(";\n")
-			else:
-				self.file.write(",\n")
-
-		counter = 0
-		for face in mesh.faces:
-			counter += 1
-			if counter == numfaces:
-				if len(face.v) == 4:
-					self.file.write("   %s,\n" % ((face.v[0].index)))
-					self.file.write("   %s,\n" % ((face.v[1].index)))		
-					self.file.write("   %s,\n" % ((face.v[2].index)))
-					self.file.write("   %s;\n" % ((face.v[3].index)))
-				elif len(face.v) == 3 :
-					self.file.write("   %s,\n" % ((face.v[0].index)))
-					self.file.write("   %s,\n" % ((face.v[1].index)))		
-					self.file.write("   %s;\n" % ((face.v[2].index)))
-
-			else :
-				if len(face.v) == 4:
-					self.file.write("   %s,\n" % ((face.v[0].index)))
-					self.file.write("   %s,\n" % ((face.v[1].index)))		
-					self.file.write("   %s,\n" % ((face.v[2].index)))
-					self.file.write("   %s,\n" % ((face.v[3].index)))
-				elif len(face.v) == 3 :
-					self.file.write("   %s,\n" % ((face.v[0].index)))
-					self.file.write("   %s,\n" % ((face.v[1].index)))		
-					self.file.write("   %s,\n" % ((face.v[2].index)))
-					
-		self.file.write("    }\n")
-		
-		
+				elif len(face.v) < 3:
+					print "WARNING:the mesh has faces with less then 3 vertices(edges and points)\n"
+					print "        It my be not exported correctly."
+	
 		
 	#***********************************************
 	#MESH MATERIAL LIST
@@ -585,7 +610,7 @@ template SkinWeights {\n\
 			self.file.write("    1.0; 1.0; 1.0;;\n")
 			self.file.write("    0.0; 0.0; 0.0;;\n")
 			self.file.write("  TextureFilename {\n")
-			self.file.write('    "%s" ;'% (face.image.name))
+			self.file.write('    "%s" ;'% (mat))
 			self.file.write("  }\n")
 			self.file.write("  }\n") 
 		self.file.write("    }\n")
@@ -690,40 +715,132 @@ template SkinWeights {\n\
 	#***********************************************
 	#WRITE ANIMATION KEYS
 	#***********************************************
-	def writeAnimation(self, name, obj, arm):
-		self.file.write("AnimationSet {\n")
-		startFr = Blender.Get('staframe')
-		endFr = Blender.Get('endframe')
+	def writeAnimation(self,arm_ob):
+		arm = arm_ob.getData()
+		act_list = arm_ob.getAction()
+		ip = act_list.getAllChannelIpos()
 		for bon in arm.getBones() :
+			point_list = []
+			try :
+				ip_bon_channel = ip[bon.name]
+				ip_bon_name = ip_bon_channel.getName()
 			
-			self.file.write(" Animation { \n")
-			self.file.write("  {%s}\n" %(bon.getName()))
-			self.file.write("  AnimationKey { \n")
-			self.file.write("   4;\n")
-			self.file.write("   %s; \n" % (endFr))
+				ip_bon = Blender.Ipo.Get(ip_bon_name)
+				poi = ip_bon.getCurves()
+				for po in poi[3].getPoints():
+					a = po.getPoints()
+					point_list.append(int(a[0]))
+				point_list.pop(0) 
+			
+			
+				self.file.write(" Animation { \n")
+				self.file.write("  {%s}\n" %(bon.getName()))
+				self.file.write("  AnimationKey { \n")
+				self.file.write("   4;\n")
+				self.file.write("   %s; \n" % (len(point_list)+1))
 
-			self.file.write("   %s;" % (1))
-			self.file.write("16;")
-			mat = self.writeCombineMatrix(bon)
-			self.writeFrames(mat)
-			self.file.write(",\n")
-
-			for fr in range(startFr+1,endFr + 1) :
-				self.file.write("   %s;" % (fr))
+				self.file.write("   %s;" % (1))
 				self.file.write("16;")
-				Blender.Set('curframe',fr)
+				mat = self.writeCombineMatrix(bon)
+				self.writeFrames(mat)
+				self.file.write(",\n")
+
+				for fr in point_list:
+					self.file.write("   %s;" % (fr))
+					self.file.write("16;")
+					Blender.Set('curframe',fr)
 				
-				mat_new = self.writeCombineAnimMatrix(bon)
-				self.writeFrames(mat_new)
+					mat_new = self.writeCombineAnimMatrix(bon)
+					self.writeFrames(mat_new)
 				
-				if fr == endFr:
-					self.file.write(";\n")
-				else:
-					self.file.write(",\n")
-			self.file.write("   }\n")
-			self.file.write(" }\n")
-			self.file.write("\n")
-		self.file.write("}\n")
+					if fr == point_list[len(point_list)-1]:
+						self.file.write(";\n")
+					else:
+						self.file.write(",\n")
+				self.file.write("   }\n")
+				self.file.write(" }\n")
+				self.file.write("\n")
+			except:
+				pass
+		
+		
+
+	#***********************************************
+	#WRITE ANIMATION KEYS
+	#***********************************************
+	def writeAnimationObj(self, obj):
+		point_list = []
+		ip = obj.getIpo()
+		poi = ip.getCurves()
+		for po in poi[0].getPoints():
+			a = po.getPoints()
+			point_list.append(int(a[0]))
+		point_list.pop(0)
+		
+		self.file.write(" Animation {\n")
+		self.file.write("  {")
+		self.file.write("%s }\n" % (obj.name))
+		self.file.write("   AnimationKey { \n")
+		self.file.write("   4;\n")
+		self.file.write("   %s; \n" % (len(point_list)+1))
+		self.file.write("   %s;" % (1))
+		self.file.write("16;")
+		Blender.Set('curframe',1)
+		mat = obj.matrixWorld * mat_flip
+		self.writeFrames(mat)
+		self.file.write(",\n")
+		for fr in point_list:
+			self.file.write("   %s;" % (fr))
+			self.file.write("16;")
+			Blender.Set('curframe',fr)
+				
+			mat_new = obj.matrixWorld * mat_flip
+			self.writeFrames(mat_new)
+
+			if fr == point_list[len(point_list)-1]:
+				self.file.write(";\n")
+			else:
+				self.file.write(",\n")
+		self.file.write("   }\n")
+		self.file.write("  }\n")
+
+	#***********************************************
+	#WRITE ANIMATION KEYS
+	#***********************************************
+	def writeAnimationObjArm(self, obj):
+		point_list = []
+		ip = obj.getIpo()
+		poi = ip.getCurves()
+		for po in poi[0].getPoints():
+			a = po.getPoints()
+			point_list.append(int(a[0]))
+		point_list.pop(0)
+		
+		self.file.write(" Animation {\n")
+		self.file.write("  {RootFrame}\n" )
+		self.file.write("   AnimationKey { \n")
+		self.file.write("   4;\n")
+		self.file.write("   %s; \n" % (len(point_list)+1))
+		self.file.write("   %s;" % (1))
+		self.file.write("16;")
+		Blender.Set('curframe',1)
+		mat = mat_flip * obj.getMatrix('worldspace')
+		self.writeFrames(mat)
+		self.file.write(",\n")
+		for fr in point_list:
+			self.file.write("   %s;" % (fr))
+			self.file.write("16;")
+			Blender.Set('curframe',fr)
+				
+			mat_new = mat_flip * obj.getMatrix('worldspace')
+			self.writeFrames(mat_new)
+
+			if fr == point_list[len(point_list)-1]:
+				self.file.write(";\n")
+			else:
+				self.file.write(",\n")
+		self.file.write("   }\n")
+		self.file.write("  }\n")
 		
 #***********************************************#***********************************************#***********************************************
 
@@ -736,12 +853,19 @@ template SkinWeights {\n\
 def my_callback(filename):
 	if filename.find('.x', -2) <= 0: filename += '.x' 
 	xexport = xExport(filename)
-	xexport.writeRootBone()
+	xexport.SelectObjs()
 
+def my_callback_sel(filename):
+	if filename.find('.x', -2) <= 0: filename += '.x' 
+	xexport = xExport(filename)
+	xexport.exportSelMesh()
 
 arg = __script__['arg']
-if arg == 'help':
-	Blender.Draw.Register(draw,event,bevent)
+
+if arg == 'exportsel':
+	fname = Blender.sys.makename(ext = ".x")
+	Blender.Window.FileSelector(my_callback_sel, "Export DirectX8", fname)	
 else:
 	fname = Blender.sys.makename(ext = ".x")
 	Blender.Window.FileSelector(my_callback, "Export DirectX8", fname)	
+	
