@@ -1597,9 +1597,9 @@ void do_material_tex(ShadeInput *shi)
 				}
 			}
 			else {
-				texres.ta*= stencilTin;
+//				texres.ta*= stencilTin;
 				Tnor*= stencilTin;
-				texres.tin*= stencilTin;
+//				texres.tin*= stencilTin;
 			}
 			
 			
@@ -1651,7 +1651,10 @@ void do_material_tex(ShadeInput *shi)
 
 			/* mapping */
 			if(mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
-				float tcol[3];
+				float tcol[3], colfac;
+				
+				/* stencil maps on the texture control slider, not texture intensity value */
+				colfac= mtex->colfac*stencilTin;
 				
 				tcol[0]=texres.tr; tcol[1]=texres.tg; tcol[2]=texres.tb;
 				
@@ -1666,10 +1669,10 @@ void do_material_tex(ShadeInput *shi)
 				else texres.tin= texres.ta;
 				
 				if(mtex->mapto & MAP_COL) {
-					texture_rgb_blend(&shi->r, tcol, &shi->r, texres.tin, mtex->colfac, mtex->blendtype);
+					texture_rgb_blend(&shi->r, tcol, &shi->r, texres.tin, colfac, mtex->blendtype);
 				}
 				if(mtex->mapto & MAP_COLSPEC) {
-					texture_rgb_blend(&shi->specr, tcol, &shi->specr, texres.tin, mtex->colfac, mtex->blendtype);
+					texture_rgb_blend(&shi->specr, tcol, &shi->specr, texres.tin, colfac, mtex->blendtype);
 				}
 				if(mtex->mapto & MAP_COLMIR) {
 					// exception for envmap only
@@ -1682,7 +1685,7 @@ void do_material_tex(ShadeInput *shi)
 						shi->refcol[3]= fact*tcol[2] + facm*shi->refcol[3];
 					}
 					else {
-						texture_rgb_blend(&shi->mirr, tcol, &shi->mirr, texres.tin, mtex->colfac, mtex->blendtype);
+						texture_rgb_blend(&shi->mirr, tcol, &shi->mirr, texres.tin, colfac, mtex->blendtype);
 					}
 				}
 			}
@@ -1763,6 +1766,9 @@ void do_material_tex(ShadeInput *shi)
 			}
 
 			if(mtex->mapto & MAP_VARS) {
+				/* stencil maps on the texture control slider, not texture intensity value */
+				float varfac= mtex->varfac*stencilTin;
+				
 				if(rgbnor & TEX_RGB) {
 					if(texres.talpha) texres.tin= texres.ta;
 					else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
@@ -1771,25 +1777,25 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_REF) {
 					int flip= mtex->maptoneg & MAP_REF;
 
-					shi->refl= texture_value_blend(mtex->def_var, shi->refl, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->refl= texture_value_blend(mtex->def_var, shi->refl, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->refl<0.0) shi->refl= 0.0;
 				}
 				if(mtex->mapto & MAP_SPEC) {
 					int flip= mtex->maptoneg & MAP_SPEC;
 					
-					shi->spec= texture_value_blend(mtex->def_var, shi->spec, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->spec= texture_value_blend(mtex->def_var, shi->spec, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->spec<0.0) shi->spec= 0.0;
 				}
 				if(mtex->mapto & MAP_EMIT) {
 					int flip= mtex->maptoneg & MAP_EMIT;
 
-					shi->emit= texture_value_blend(mtex->def_var, shi->emit, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->emit= texture_value_blend(mtex->def_var, shi->emit, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->emit<0.0) shi->emit= 0.0;
 				}
 				if(mtex->mapto & MAP_ALPHA) {
 					int flip= mtex->maptoneg & MAP_ALPHA;
 
-					shi->alpha= texture_value_blend(mtex->def_var, shi->alpha, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->alpha= texture_value_blend(mtex->def_var, shi->alpha, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->alpha<0.0) shi->alpha= 0.0;
 					else if(shi->alpha>1.0) shi->alpha= 1.0;
 				}
@@ -1798,7 +1804,7 @@ void do_material_tex(ShadeInput *shi)
 					float har;  // have to map to 0-1
 					
 					har= ((float)shi->har)/128.0;
-					har= 128.0*texture_value_blend(mtex->def_var, har, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					har= 128.0*texture_value_blend(mtex->def_var, har, texres.tin, varfac, mtex->blendtype, flip);
 					
 					if(har<1.0) shi->har= 1; 
 					else if(har>511.0) shi->har= 511;
@@ -1807,21 +1813,21 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->mapto & MAP_RAYMIRR) {
 					int flip= mtex->maptoneg & MAP_RAYMIRR;
 
-					shi->ray_mirror= texture_value_blend(mtex->def_var, shi->ray_mirror, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->ray_mirror= texture_value_blend(mtex->def_var, shi->ray_mirror, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->ray_mirror<0.0) shi->ray_mirror= 0.0;
 					else if(shi->ray_mirror>1.0) shi->ray_mirror= 1.0;
 				}
 				if(mtex->mapto & MAP_TRANSLU) {
 					int flip= mtex->maptoneg & MAP_TRANSLU;
 
-					shi->translucency= texture_value_blend(mtex->def_var, shi->translucency, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->translucency= texture_value_blend(mtex->def_var, shi->translucency, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->translucency<0.0) shi->translucency= 0.0;
 					else if(shi->translucency>1.0) shi->translucency= 1.0;
 				}
 				if(mtex->mapto & MAP_AMB) {
 					int flip= mtex->maptoneg & MAP_AMB;
 
-					shi->amb= texture_value_blend(mtex->def_var, shi->amb, texres.tin, mtex->varfac, mtex->blendtype, flip);
+					shi->amb= texture_value_blend(mtex->def_var, shi->amb, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->amb<0.0) shi->amb= 0.0;
 					else if(shi->amb>1.0) shi->amb= 1.0;
 				}
