@@ -919,7 +919,7 @@ PyTypeObject PVert_Type = {
 
 static PyObject *MVert_CreatePyObject( Mesh *mesh, int i )
 {
-	BPy_MVert *obj = PyObject_NEW( BPy_MVert, &MVert_Type );
+	BPy_MVert *obj = (BPy_MVert *)PyObject_NEW( BPy_MVert, &MVert_Type );
 
 	if( !obj )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -937,12 +937,13 @@ static PyObject *MVert_CreatePyObject( Mesh *mesh, int i )
 static PyObject *PVert_CreatePyObject( MVert *vert )
 {
 	BPy_MVert *obj = PyObject_NEW( BPy_MVert, &PVert_Type );
+	MVert *newvert;
 
 	if( !obj )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"PyObject_New() failed" );
 
-	MVert *newvert = (MVert *)MEM_callocN( sizeof( MVert ), "MVert" );
+	newvert = (MVert *)MEM_callocN( sizeof( MVert ), "MVert" );
 	if( !newvert )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"MEM_callocN() failed" );
@@ -1268,7 +1269,8 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 			}
 
 			/* add data for new vertices */
-			fp = currkey->data + (mesh->key->elemsize*mesh->totvert);
+			fp = (float *)((char *)currkey->data +
+					mesh->key->elemsize*mesh->totvert );
 			tmpvert = mesh->mvert + mesh->totvert;
 			for( i = newlen - mesh->totvert; i > 0; --i ) {
 				VECCOPY(fp, tmpvert->co);
@@ -2976,12 +2978,12 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	len = PySequence_Size( args );
 	tmppair = newpair;
 	for( i = 0; i < len; ++i ) {
+		BPy_MVert *e;
+		MFace tmpface;
 		unsigned int vert[4]={0,0,0,0};
 		unsigned char order[4]={0,1,2,3};
 		tmp = PySequence_Fast_GET_ITEM( args, i );
 		nverts = PyTuple_Size( tmp );
-		BPy_MVert *e;
-		MFace tmpface;
 
 		if( nverts == 2 )	/* again, ignore 2-vert tuples */
 			break;
