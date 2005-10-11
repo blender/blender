@@ -2297,10 +2297,10 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 }
 
 /*
- * get face's texture mode
+ * get face's texture flags
  */
 
-static PyObject *MFace_getMode( BPy_MFace *self )
+static PyObject *MFace_getFlag( BPy_MFace *self )
 {
 	PyObject *attr;
 
@@ -2308,7 +2308,7 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
-	attr = PyInt_FromLong( self->mesh->tface[self->index].mode );
+	attr = PyInt_FromLong( self->mesh->tface[self->index].flag );
 
 	if( attr )
 		return attr;
@@ -2318,10 +2318,10 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 }
 
 /*
- * set face's texture mode
+ * set face's texture flags
  */
 
-static int MFace_setMode( BPy_MFace *self, PyObject *value )
+static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 {
 	int param;
 	static short bitmask = TF_SELECT | TF_HIDE;
@@ -2355,10 +2355,10 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 }
 
 /*
- * get face's texture flags
+ * get face's texture mode
  */
 
-static PyObject *MFace_getFlag( BPy_MFace *self )
+static PyObject *MFace_getMode( BPy_MFace *self )
 {
 	PyObject *attr;
 
@@ -2376,10 +2376,10 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 }
 
 /*
- * set face's texture flag
+ * set face's texture mode
  */
 
-static int MFace_setFlag( BPy_MFace *self, PyObject *value )
+static int MFace_setMode( BPy_MFace *self, PyObject *value )
 {
 	int param;
 	static short bitmask = TF_DYNAMIC
