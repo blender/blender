@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'Texture Baker'
-Blender: 237
+Blender: 236
 Group: 'UV'
 Tooltip: 'Procedural to uvmapped texture baker'
 """
@@ -11,10 +11,11 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Official Page, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_mesh3d2uv2d_en.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.2.8 2005/7/20"
+__version__ = "0.3.0 2005/10/09"
 
 __bpydoc__ = """\
-Texture Baker "bakes" Blender procedural materials (including textures): it saves them as 2d uv-mapped images.
+This script "bakes" Blender procedural materials (including textures): it saves
+them as 2d uv-mapped images.
 
 This script saves an uv texture layout of the chosen mesh, that can be used as
 an uv map for it.  It is a way to export procedurals from Blender as normal
@@ -23,21 +24,22 @@ with the mesh in games and other 3d applications.
 
 Usage:
 
-a) Enter face mode and define uv coordinates for your mesh (do not forget to choose a development shape);<br>
-b) Define its materials and textures;<br>
+a) Enter face mode and define uv coordinates for your mesh;<br>
+b) Define its materials and textures ;
 c) Run this script and check the console.
 
-Global variables:
+Global variables 
 
-a) FRAME (integer): the last frame of the animation, autodocumented.<br>
-b) LIMIT (integer): 0 or 1, uvcoords may exceed limits 0.0 to 1.0, this variable obliges the script to do a complete framing of the uvcoord.
+a)  FRAME  integer, the last frame of the animation, autodocumented .
+b)  LIMIT  integer, 0 or 1, uvcoords may exceed limits 0.0 to 1.0 , this variable
+obliges the script to do a complete framing of the uvcoord . 
 
 Notes:<br>
-   This script was based on a suggestion by Martin (Theeth) Poirier.
+   This script was based on a suggestion by Martin (Theeth) Poirier;<br>
 """
 
 #---------------------------------------------
-# Last release : 0.2.8 ,  2005/07/20 , 17h10
+# Last release : 0.3.0 ,  2005/10/09 , 23h23
 #---------------------------------------------
 #---------------------------------------------
 # (c) jm soler  07/2004 : 'Procedural Texture Baker'
@@ -47,6 +49,14 @@ Notes:<br>
 #
 #     Released under Blender Artistic Licence
 #
+#
+#   0.3.0
+#      TAILLEIMAGE variable 
+# 
+#   0.2.9
+#      -- little probleme with the KEEPRENDERWINDOW variable .
+#      removed . script seems to works correctly now .
+# 
 #   0.2.8
 #       -- added the forgotten image property in face
 #       data. a little longer but better.
@@ -201,6 +211,8 @@ DEBUG=1
 RENDERLAYER=20
 SCENELAYERS=[]
 
+
+
 helpmsg = """
 Texture Baker:
 
@@ -250,6 +262,7 @@ def RenameImage(RDIR, MYDIR, FILENAME, name):
     """
     newfname = RDIR + MYDIR + name
     if newfname.find('.png', -4) < 0 : newfname += '.png'
+	
     if not Blender.sys.exists(newfname):
        os.rename(FILENAME, newfname)
     else:
@@ -290,13 +303,13 @@ def SAVE_image (rc, name, FRAME, result):
    rc.startFrame(NEWFRAME)
    rc.endFrame(NEWFRAME)
    rc.renderAnim()
-   if result!=2 and not KEEPRENDERWINDOW:
+   if result!=2 : 
       Blender.Scene.Render.CloseRenderWindow()
       FILENAME = "%04d" % NEWFRAME
       FILENAME = FILENAME.replace (' ', '0')
       FILENAME = RDIR + MYDIR + FILENAME + '.png'
       RenameImage(RDIR, MYDIR, FILENAME, name)
-	
+
    rc.endFrame(OLDEFRAME)
    rc.startFrame(OLDSFRAME)
    rc.setRenderPath(RENDERDIR)
@@ -346,14 +359,24 @@ def SHOOT (XYlimit, frame, obj, name, FRAME, result):
    OLDy = context.imageSizeY()
    OLDx = context.imageSizeX()
 
-   tres = Draw.PupMenu('TEXTURE OUT RESOLUTION : %t | 256 %x1 | 512 %x2 | 768 %x3 | 1024 %x4 | 2048 %x5 ')
+   TAILLEIMAGE='TEXTURE OUT RESOLUTION : %t |'
+   TAILLEIMAGE+='256 %x1 |'
+   TAILLEIMAGE+='512 %x2 |'
+   TAILLEIMAGE+='768 %x3 |'
+   TAILLEIMAGE+='1024 %x4 |'
+   TAILLEIMAGE+='2048 %x5 '
+   #TAILLEIMAGE+='| 4096 %x6 ' 
+   tres = Draw.PupMenu(TAILLEIMAGE)
 
    if (tres) == 1: res = 256
    elif (tres) == 2: res = 512
    elif (tres) == 3: res = 768
    elif (tres) == 4: res = 1024
    elif (tres) == 5: res = 2048
+   # elif (tres) == 6: res = 4096
    else: res = 512
+   #...
+ 
 
    SCENELAYERS=SC.layers
    SC.layers = [20]
@@ -419,7 +442,7 @@ def Mesh2UVCoord (LIMIT):
    """
    global PUTRAW, FRAME, SCENELAYERS
 
-   try:
+   try :
       MESH3D = Object.GetSelected()[0]
       if MESH3D.getType() == 'Mesh':
          MESH = MESH3D.getData()
@@ -444,7 +467,7 @@ def Mesh2UVCoord (LIMIT):
                v1.co[2] = 0.0
                MESH2.verts.append(v1)
                f1.v.append(MESH2.verts[len(MESH2.verts) - 1])
-
+               
             MESH2.faces.append(f1)
             f1.uv = f.uv[:]
             f1.col = f.col[:]
@@ -464,6 +487,7 @@ def Mesh2UVCoord (LIMIT):
          NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
          NewOBJECT.setEuler (0.0, 0.0, 0.0)
 
+
          MESH2.removeAllKeys()
          MESH2.update()
          MESH2.insertKey (1, 'absolute')
@@ -471,7 +495,7 @@ def Mesh2UVCoord (LIMIT):
 
          imagename = 'uvtext'
 
-         name = "CHANGE IMAGE NAME ? %t | Replace it | No replacing | Script help"
+         name = "CHANGE IMAGE NAME ? %t | Replace it | No replace | Script help"
          result = Draw.PupMenu(name)
 
          if result == 1:
@@ -501,18 +525,17 @@ def Mesh2UVCoord (LIMIT):
             Blender.Redraw()
 
          else:
-            Blender.ShowHelp('tex2uvbaker.py')
-            #Draw.PupMenu("Ready%t|Please check console for instructions")
-            if DEBUG: print helpmsg
+            Draw.PupMenu("Ready%t|Please check console for instructions")
+            print helpmsg
 
       else:
-         name = "ERROR: active object is not a mesh or has no UV coordinates"
+         name = "Error%t|Active object is not a mesh or has no UV coordinates"
          result = Draw.PupMenu(name)
          print 'problem : no object selected or not mesh'
 
    except:
-      name = "ERROR: active object is not a mesh or has no UV coordinates"
+      name = "Error%t|Active object is not a mesh or has no UV coordinates"
       result = Draw.PupMenu(name)
       print 'problem : no object selected or not mesh'
 
-Mesh2UVCoord(LIMIT)
+Mesh2UVCoord(LIMIT) 

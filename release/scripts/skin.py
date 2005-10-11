@@ -1,15 +1,15 @@
 #!BPY
 
 """
-Name: 'Bridge/Skin/Loft'
-Blender: 234
+Name: 'Bridge Faces/Edge-Loops'
+Blender: 237
 Group: 'Mesh'
-Tooltip: 'Select 2 or more vert loops, then run this script'
+Tooltip: 'Select 2 vert loops, then run this script.'
 """
 
 __author__ = "Campbell Barton AKA Ideasman"
 __url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
-__version__ = "1.1 2005/06/13"
+__version__ = "1.0 2004/04/25"
 
 __bpydoc__ = """\
 With this script vertex loops can be skinned: faces are created to connect the
@@ -19,11 +19,7 @@ Usage:
 
 In mesh Edit mode select the vertices of the loops (closed paths / curves of
 vertices: circles, for example) that should be skinned, then run this script.
-A pop-up will provide further options.
-
-Notes:
-
-If the results of a method chosen from the pop-up are not adequate, undo and try one of the others.
+A pop-up will provide further options, if the results of a method are not adequate try one of the others.
 """
 
 
@@ -51,536 +47,443 @@ If the results of a method chosen from the pop-up are not adequate, undo and try
 # ***** END GPL LICENCE BLOCK ***** 
 # -------------------------------------------------------------------------- 
 
-
-
-# Made by Ideasman/Campbell 2004/04/25 - ideasman@linuxmail.org
+# Made by Ideasman/Campbell 2005/06/15 - ideasman@linuxmail.org
 
 import Blender
 from Blender import *
-import math
-from math import *
 
+BIG_NUM = 1<<30
 
-choice = Draw.PupMenu(\
-'Loft-loop - shortest edge method|\
-Loft-loop - even method|\
-Loft-segment - shortest edge|\
-Loft-segment - even method')
+global CULL_METHOD
+CULL_METHOD = 0
 
-if choice == 1:
-	arg='A1'
-elif choice == 2:
-	arg='A2'
-elif choice == 3:
-	arg='B1'
-elif choice == 4:
-	arg='B2'
-
-
-
-#================#
-# Math functions #
-#================#
-
-# Measure 2 points
-def measure(v1, v2):
-  return Mathutils.Vector([v1[0]-v2[0], v1[1] - v2[1], v1[2] - v2[2]]).length
-  
-# Clamp
-def clamp(max, number):
-	while number >= max:
-		number = number - max
-	return number
-
-#=============================================================#
-# List func that takes the last item and adds it to the front #
-#=============================================================#
-def listRotate(ls):
-	ls.append(ls.pop(0))
-
-#=================================================================#
-# Recieve a list of locs: [x,y,z] and return the average location #
-#=================================================================#
-def averageLocation(locList):
-	avLoc = [0,0,0]
-	
-	# Loop through x/y/z
-	for coordIdx in [0,1,2]:
+class edge:
+	def __init__(self, v1,v2):
+		self.v1 = v1
+		self.v2 = v2
 		
-		# Add all the values from 1 of the 3 coords at the avLoc.
-		for loc in locList:
-			avLoc[coordIdx] += loc[coordIdx]
+		# uv1 uv2 vcol1 vcol2 # Add later
+		self.length = (v1.co - v2.co).length
 		
-		avLoc[coordIdx] = avLoc[coordIdx] / len(locList)	
-	return avLoc
+		self.removed = 0 # Have we been culled from the eloop
+		self.match = None # The other edge were making a face with
 
 
-
-#=============================#
-# Blender functions/shortcuts #
-#=============================#
-def error(str):
-	Draw.PupMenu('ERROR%t|'+str)
-
-# Returns a new face that has the same properties as the origional face
-# With no verts though
-def copyFace(face):
-  newFace = NMesh.Face()
-  # Copy some generic properties
-  newFace.mode = face.mode
-  if face.image != None:
-    newFace.image = face.image
-  newFace.flag = face.flag
-  newFace.mat = face.mat
-  newFace.smooth = face.smooth
-  return newFace
-
-#=============================================#
-# Find a selected vert that 2 faces share.    #
-#=============================================#
-def selVertBetween2Faces(face1, face2):
-	for v1 in face1.v:
-		if v1.sel:
-			for v2 in face2.v:
-				if v1 == v2:
-					return v1
-	
-	
-#=======================================================#
-# Measure the total distance between all the edges in   #
-# 2 vertex loops                                        #
-#=======================================================#
-def measureVloop(mesh, v1loop, v2loop, surplusFaces, bestSoFar):
-	totalDist = 0
-	
-	# Rotate the vertloops to cycle through each pair.
-	# of faces to compate the distance between the 2 poins
-	for ii in range(len(v1loop)):
-		if ii not in surplusFaces:
-			# Clamp
-			v2clampii = ii
-			while v2clampii >= len(v2loop):
-				v2clampii -= len(v2loop)
-			print v2clampii
-			
-			V1 = selVertBetween2Faces(mesh.faces[v1loop[ii-1]], mesh.faces[v1loop[ii]])
-			V2 = selVertBetween2Faces(mesh.faces[v2loop[v2clampii-1]], mesh.faces[v2loop[v2clampii]])
-			
-			totalDist += measure(V1, V2)
-			# Bail out early if not an improvement on previously measured.
-			if bestSoFar != None and totalDist > bestSoFar:
-				return totalDist
-	
-	#selVertBetween2Faces(mesh.faces[v2loop[0]], mesh.faces[v2loop[1]])
-	return totalDist
-
-# Remove the shortest edge from a vert loop
-def removeSmallestFace(mesh, vloop):
-	bestDistSoFar = None
-	bestFIdxSoFar = None
-	for fIdx in vloop:
-		vSelLs = []
-		for v in mesh.faces[fIdx].v:
-			if v.sel:
-				vSelLs.append(v)
+class edgeLoop:
+	def __init__(self, loop): # Vert loop
+		# Use next and prev, nextDist, prevDist
 		
-		dist = measure(vSelLs[0].co, vSelLs[1].co)
+		# Get Loops centre.
+		self.centre = Mathutils.Vector()
+		f = 1.0/len(loop)
+		for v in loop:
+			self.centre += v.co * f
 		
-		if bestDistSoFar == None:
-			bestDistSoFar = dist
-			bestFIdxSoFar = fIdx 
-		elif dist < bestDistSoFar:
-			bestDistSoFar = dist
-			bestFIdxSoFar = fIdx
+		
+		
+		
+		# Convert Vert loop to Edges.
+		self.edges = []
+		vIdx = 0
+		while vIdx < len(loop):
+			self.edges.append( edge(loop[vIdx-1], loop[vIdx]) )
+			vIdx += 1
+		
+		# Assign linked list
+		for eIdx in range(len(self.edges)-1):
+			self.edges[eIdx].next = self.edges[eIdx+1]
+			self.edges[eIdx].prev = self.edges[eIdx-1]
+		# Now last
+		self.edges[-1].next = self.edges[0]
+		self.edges[-1].prev = self.edges[-2]
+		
+		
+		
+		# GENERATE AN AVERAGE NORMAL FOR THE WHOLE LOOP.
+		self.normal = Mathutils.Vector()
+		for e in self.edges:
+			n = Mathutils.CrossVecs(self.centre-e.v1.co, self.centre-e.v2.co)
+			# Do we realy need tot normalize?
+			n.normalize()
+			self.normal += n
+		self.normal.normalize()
+		
+		
+		# Generate a normal for each edge.
+		for e in self.edges:
+			
+			n1 = e.v1.co
+			n2 = e.v2.co
+			n3 = e.prev.v1.co
+			
+			a = n1-n2
+			b = n1-n3
+			normal1 = Mathutils.CrossVecs(a,b)
+			normal1.normalize()
+			
+			n1 = e.v2.co
+			n3 = e.next.v2.co
+			n2 = e.v1.co
+			
+			a = n1-n2
+			b = n1-n3
+			
+			normal2 = Mathutils.CrossVecs(a,b)
+			normal2.normalize()
+			
+			# Reuse normal1 var
+			normal1 += normal1 + normal2
+			normal1.normalize()
+			
+			e.normal = normal1
+			#print e.normal
+		
+
+
+		
+	def backup(self):
+		# Keep a backup of the edges
+		self.backupEdges = self.edges[:]
+			
+	def restore(self):
+		self.edges = self.backupEdges[:]
+		for e in self.edges:
+			e.removed = 0
+		
+	def reverse(self):
+		self.edges.reverse()
+		for e in self.edges:
+			e.normal = -e.normal
+			e.v1, e.v2 = e.v2, e.v1
+		self.normal = -self.normal
 	
-	# Return the smallest face index of the vloop that was sent
-	return bestFIdxSoFar
+	# Removes N Smallest edges and backs up
+	def removeSmallest(self, cullNum, otherLoopLen):
+		global CULL_METHOD
+		if CULL_METHOD == 0: # Shortest edge
+			
+			eloopCopy = self.edges[:]
+			eloopCopy.sort(lambda e1, e2: cmp(e1.length, e2.length )) # Length sort, smallest first
+			eloopCopy = eloopCopy[:cullNum]
+			for e in eloopCopy:
+				e.removed = 1
+				self.edges.remove( e ) # Remove from own list, still in linked list.
+			
+		else: # CULL METHOD is even
+				
+			culled = 0
+			
+			step = int(otherLoopLen / float(cullNum))
+			
+			currentEdge = self.edges[0]
+			while culled < cullNum:
+				
+				# Get the shortest face in the next STEP
+				while currentEdge.removed == 1:
+					# Bug here!
+					currentEdge = currentEdge.next
+				smallestEdge = currentEdge
+				
+				for i in range(step):
+					currentEdge = currentEdge.next
+					while currentEdge.removed == 1:
+						currentEdge = currentEdge.next
+					if smallestEdge.length > currentEdge.length:
+						smallestEdge = currentEdge
+				
+				# In that stepping length we have the smallest edge.remove it
+				smallestEdge.removed = 1
+				self.edges.remove(smallestEdge)
+				
+				culled+=1
+	
+
+# Returns face edges.
+# face must have edge data.
+def faceEdges(me, f):
+	if len(f) == 3:
+		return [\
+		 me.findEdge(f[0], f[1]),\
+		 me.findEdge(f[1], f[2]),\
+		 me.findEdge(f[2], f[0])\
+		]
+	elif len(f) == 4:
+		return [\
+		 me.findEdge(f[0], f[1]),\
+		 me.findEdge(f[1], f[2]),\
+		 me.findEdge(f[2], f[3]),\
+		 me.findEdge(f[3], f[0])\
+		]
 
 
-#=============================================#
-# Take 2 vert loops and skin them             #
-#=============================================#
-def skinVertLoops(mesh, v1loop, v2loop):
+def getSelectedEdges(me, ob):	
+	SEL_FLAG = NMesh.EdgeFlags['SELECT']
+	FGON_FLAG = NMesh.EdgeFlags['FGON']	
+	
+	edges = [e for e in me.edges if e.flag & SEL_FLAG if (e.flag & FGON_FLAG) == 0 ]
+	
+	# Now remove edges that face 2 or more selected faces usoing them
+	edgeFromSelFaces = []
+	for f in me.faces:
+		if len(f) >2 and f.sel:
+			edgeFromSelFaces.extend(faceEdges(me, f))
+	
+	# Remove all edges with 2 or more selected faces as uses.
+	for e in edgeFromSelFaces:
+		if edgeFromSelFaces.count(e) > 1:
+			me.removeEdge(e.v1, e.v2)
+	
+	# Remove selected faces?
+	fIdx = len(me.faces)
+	while fIdx:
+		fIdx-=1
+		if len(me.faces[fIdx]) > 2:
+			if me.faces[fIdx].sel:
+				me.faces.pop(fIdx)
+	return [e for e in edges if edgeFromSelFaces.count(e) < 2]
 	
 	
-	#=============================================#
-	# Handle uneven vert loops, this is tricky    #
-	#=============================================#
-	# Reorder so v1loop is always the biggest
-	if len(v1loop) < len(v2loop):
-		v1loop, v2loop = v2loop, v1loop
-	
-	# Work out if the vert loops are equel or not, if not remove the extra faces from the larger
-	surplusFaces = []
-	tempv1loop = v1loop[:]	# strip faces off this one, use it to keep track of which we have taken faces from.
-	if len(v1loop) > len(v2loop):
+# Like vert loops 
+def getVertLoops(selEdges):
+	mainVertLoops = []
+	while selEdges:
+		e = selEdges.pop()
+		contextVertLoop= [e.v1, e.v2] # start the vert loop
 		
-		# Even face method.
-		if arg[1] == '2':
-			remIdx = 0
-			faceStepping = len(	v1loop) / len(v2loop)
-			while len(v1loop) - len(surplusFaces) > len(v2loop):
-				remIdx += faceStepping
-				surplusFaces.append(tempv1loop[ clamp(len(tempv1loop),remIdx) ]) 
-				tempv1loop.remove(surplusFaces[-1])
+		eIdx = 1 # Get us into the loop. dummy var.
 		
-		# Shortest face
-		elif arg[1] == '1':
-			while len(v1loop) - len(surplusFaces) > len(v2loop):
-				surplusFaces.append(removeSmallestFace(mesh, tempv1loop)) 
-				tempv1loop.remove(surplusFaces[-1])
-			
-	
-	tempv1loop = None
-	
-	v2loop = optimizeLoopOrdedShortEdge(mesh, v1loop, v2loop, surplusFaces)
-	
-	# make Faces from 
-	lenVloop = len(v1loop)
-	lenSupFaces = len(surplusFaces)
-	fIdx = 0
-	offset = 0
-	while fIdx < lenVloop:
-		
-		face = copyFace( mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]] )
-		
-		if v1loop[fIdx] in surplusFaces:
-			# Draw a try, this face does not catch with an edge.
-			# So we must draw a tri and wedge it in.
-			
-			# Copy old faces properties
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
-			
-			#face.v.append( selVertBetween2Faces(\
-			#mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset +1 ))]],\
-			#mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset + 2))]]) )
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
-			
-			mesh.faces.append(face)			
-			
-			# We need offset to work out how much smaller v2loop is at this current index.
-			offset+=1		
-			
-
-		else:	
-			# Draw a normal quad between the 2 edges/faces
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx)]],\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]]) )
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+1)]],\
-				mesh.faces[v1loop[clamp(lenVloop, fIdx+2)]]) )
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset +1 ))]],\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset + 2))]]) )
-			
-			face.v.append( selVertBetween2Faces(\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, (fIdx - offset))]],\
-				mesh.faces[v2loop[clamp(lenVloop - lenSupFaces, fIdx - offset + 1)]]) )
-			
-			mesh.faces.append(face)
-			
-		fIdx +=1
-		
-	return mesh
-
-
-
-#=======================================================#
-# Takes a face and returns the number of selected verts #
-#=======================================================#
-def faceVSel(face):
-	vSel = 0
-	for v in face.v:
-		if v.sel:
-			vSel +=1
-	return vSel
-
-
-
-
-#================================================================#
-# This function takes a face and returns its selected vert loop  #
-# it returns a list of face indicies
-#================================================================#
-def vertLoop(mesh, startFaceIdx, fIgLs): # fIgLs is a list of faces to ignore.
-	# Here we store the faces indicies that
-	# are a part of the first vertex loop
-	vertLoopLs = [startFaceIdx]
-
-	restart = 0
-	while restart == 0:
-		# this keeps the face loop going until its told to stop,
-		# If the face loop does not find an adjacent face then the vert loop has been compleated
-		restart = 1 
-		
-		# Get my selected verts for the active face/edge.
-		selVerts = []
-		for v in mesh.faces[vertLoopLs[-1]].v:
-			selVerts.append(v)
-		
-		fIdx = 0
-		while fIdx < len(mesh.faces) and restart:
-			# Not already added to the vert list
-			if fIdx not in fIgLs + vertLoopLs:
-				# Has 2 verts selected
-				if faceVSel(mesh.faces[fIdx]) > 1:
-					# Now we need to find if any of the selected verts
-					# are shared with our active face. (are we next to ActiveFace)
-					for v in mesh.faces[fIdx].v:
-						if v in selVerts:
-							vertLoopLs.append(fIdx)
-							restart = 0 # restart the face loop.
-							break
+		# if eIdx == 0 then it means we searched and found no matches... 
+		# time for a new vert loop,
+		while eIdx:
+			eIdx = len(selEdges)
+			while eIdx:
+				eIdx-=1
+				
+				# Check for edge attached at the head of the loop.
+				if contextVertLoop[0] == selEdges[eIdx].v1:
+					contextVertLoop.insert(0, selEdges.pop(eIdx).v2)
+				elif contextVertLoop[0] == selEdges[eIdx].v2:
+					contextVertLoop.insert(0, selEdges.pop(eIdx).v1)
 					
-			fIdx +=1
-			
-	return vertLoopLs
-
-
-
-
-#================================================================#
-# Now we work out the optimum order to 'skin' the 2 vert loops   #
-# by measuring the total distance of all edges created,          #
-# test this for every possible series of joins                   # 
-# and find the shortest, Once this is done the                   #
-# shortest dist can be skinned.                                  #
-# returns only the 2nd-reordered vert loop                       #
-#================================================================#
-def optimizeLoopOrded(mesh, v1loop, v2loop):
-	bestSoFar = None
-	
-	# Measure the dist, ii is just a counter
-	for ii in range(len(v1loop)):
-		
-		# Loop twice , Once for the forward test, and another for the revearsed
-		for iii in [None, None]:
-			dist = measureVloop(mesh, v1loop, v2loop, bestSoFar)
-			# Initialize the Best distance recorded
-			if bestSoFar == None or dist < bestSoFar:
-				bestSoFar = dist
-				bestv2Loop = v2loop[:]
-			
-			# We might have got the vert loop backwards, try the other way
-			v2loop.reverse()
-		listRotate(v2loop)
-	return bestv2Loop
-	
-	
-#================================================================#
-# Now we work out the optimum order to 'skin' the 2 vert loops   #
-# by measuring the total distance of all edges created,          #
-# test this for every possible series of joins                   # 
-# and find the shortest, Once this is done the                   #
-# shortest dist can be skinned.                                  #
-# returns only the 2nd-reordered vert loop                       #
-#================================================================#
-def optimizeLoopOrdedShortEdge(mesh, v1loop, v2loop, surplusFaces):
-	bestSoFar = None
-	
-	# Measure the dist, ii is just a counter
-	for ii in range(len(v2loop)):
-		
-		# Loop twice , Once for the forward test, and another for the revearsed
-		for iii in [None, None]:
-			dist = measureVloop(mesh, v1loop, v2loop, surplusFaces, bestSoFar)
-			print 'dist', dist 
-			# Initialize the Best distance recorded
-			if bestSoFar == None or dist < bestSoFar:
-				bestSoFar = dist
-				bestv2Loop = v2loop[:]
-				
-			
-			# We might have got the vert loop backwards, try the other way
-			v2loop.reverse()
-		#v2loop = listRotate(v2loop)
-		listRotate(v2loop)
-	print 'best so far ', bestSoFar
-	return bestv2Loop	
-	
-
-#==============================#
-#  Find our     vert loop list #
-#==============================#
-# Find a face with 2 verts selected,
-#this will be the first face in out vert loop
-def findVertLoop(mesh, fIgLs): # fIgLs is a list of faces to ignore.
-	
-	startFaceIdx = None
-	
-	fIdx = 0
-	while fIdx < len(mesh.faces):	
-		if fIdx not in fIgLs:
-			# Do we have an edge?
-			if faceVSel(mesh.faces[fIdx]) > 1:
-				# THIS IS THE STARTING FACE.
-				startFaceIdx = fIdx
-				break
-		fIdx+=1
-	
-	# Here we access the function that generates the real vert loop
-	if startFaceIdx != None:
-		return vertLoop(mesh, startFaceIdx, fIgLs)
-	else:
-		# We are out'a vert loops, return a None,
-		return None
-
-#===================================#
-# Get the average loc of a vertloop #
-# This is used when working out the #
-# order to loft an object           #
-#===================================#
-def vLoopAverageLoc(mesh, vertLoop):
-	locList = [] # List of vert locations
-		
-	fIdx = 0
-	while fIdx < len(mesh.faces):	
-		if fIdx in vertLoop:
-			for v in mesh.faces[fIdx].v:
-				if v.sel:
-					locList.append(v.co)
-		fIdx+=1
-	
-	return averageLocation(locList)
-
-
-
-#=================================================#
-# Vert loop group functions
-
-def getAllVertLoops(mesh):
-	# Make a chain of vert loops.
-	fIgLs = [] # List of faces to ignore 
-	allVLoops = [findVertLoop(mesh, fIgLs)]
-	while allVLoops[-1] != None:
-		
-		# In future ignore all faces in this vert loop
-		fIgLs += allVLoops[-1]		
-		
-		# Add the new vert loop to the list
-		allVLoops.append( findVertLoop(mesh, fIgLs) )
-	
-	return allVLoops[:-1] # Remove the last Value- None.
-	
-	
-def reorderCircularVLoops(mesh, allVLoops):
-	# Now get a location for each vert loop.
-	allVertLoopLocs = []
-	for vLoop in allVLoops:
-		allVertLoopLocs.append( vLoopAverageLoc(mesh, vLoop) )
-
-	# We need to find the longest distance between 2 vert loops so we can 
-	reorderedVLoopLocs = []
-
-	# Start with this one, then find the next closest.
-	# in doing this make a new list called reorderedVloop
-	currentVLoop = 0
-	reorderedVloopIdx = [currentVLoop]
-	newOrderVLoops = [allVLoops[0]] # This is a re-ordered allVLoops
-	while len(reorderedVloopIdx) != len(allVLoops):
-		bestSoFar = None
-		bestVIdxSoFar = None
-		for vLoopIdx in range(len(allVLoops)):
-			if vLoopIdx not in reorderedVloopIdx + [currentVLoop]:
-				if bestSoFar == None:
-					bestSoFar = measure( allVertLoopLocs[vLoopIdx], allVertLoopLocs[currentVLoop] )
-					bestVIdxSoFar = vLoopIdx
+				# Chech for edge vert at the tail.
+				elif contextVertLoop[-1] == selEdges[eIdx].v1:
+					contextVertLoop.append(selEdges.pop(eIdx).v2)
+				elif contextVertLoop[-1] == selEdges[eIdx].v2:
+					contextVertLoop.append(selEdges.pop(eIdx).v1)
 				else:
-					newDist = measure( allVertLoopLocs[vLoopIdx], allVertLoopLocs[currentVLoop] )
-					if newDist < bestSoFar:
-						bestSoFar = newDist
-						bestVIdxSoFar = vLoopIdx
-		
-		reorderedVloopIdx.append(bestVIdxSoFar)
-		reorderedVLoopLocs.append(allVertLoopLocs[bestVIdxSoFar])
-		newOrderVLoops.append( allVLoops[bestVIdxSoFar] ) 
-		
-		# Start looking for the next best fit
-		currentVLoop = bestVIdxSoFar
-	
-	# This is not the locicle place to put this but its convieneint.
-	# Here we find the 2 vert loops that are most far apart
-	# We use this to work out which 2 vert loops not to skin when making an open loft.
-	vLoopIdx = 0
-	# Longest measured so far - 0 dummy.
-	bestSoFar = 0
-	while vLoopIdx < len(reorderedVLoopLocs):
-		
-		# Skin back to the start if needs be, becuase this is a crcular loft
-		toSkin2 = vLoopIdx + 1
-		if toSkin2 == len(reorderedVLoopLocs):
-			toSkin2 = 0
-		
-		newDist  = measure( reorderedVLoopLocs[vLoopIdx], reorderedVLoopLocs[toSkin2] )
-		
-		if newDist >= bestSoFar:
-			bestSoFar = newDist
-			vLoopIdxNotToSkin = vLoopIdx + 1	
+					# None found? Keep looking
+					continue
 				
-		vLoopIdx +=1 
+				# Once found we.
+				break
+		
+		# Is this a loop? if so then its forst and last vert must be teh same.
+		if contextVertLoop[0].index == contextVertLoop[-1].index:
+			contextVertLoop.pop() # remove double vert
+			mainVertLoops.append(contextVertLoop)
+		
+		# Build context vert loops
+	return mainVertLoops
+
+
+def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
+	# Make sure e1 loops is bigger then e2
+	if len(eloop1.edges) != len(eloop2.edges):
+		if len(eloop1.edges) < len(eloop2.edges):
+			eloop1, eloop2 = eloop2, eloop1
+		
+		eloop1.backup() # were about to cull faces
+		CULL_FACES = len(eloop1.edges) - len(eloop2.edges)
+		eloop1.removeSmallest(CULL_FACES, len(eloop1.edges))
+	else:
+		CULL_FACES = 0
+	# First make sure poly vert loops are in sync with eachother.
 	
-	return newOrderVLoops, vLoopIdxNotToSkin
+	# The vector allong which we are skinning.
+	skinVector = eloop1.centre - eloop2.centre
+	
+	loopDist = skinVector.length
+	
+	
+	# IS THE LOOP FLIPPED, IF SO FLIP BACK.
+	angleBetweenLoopNormals = Mathutils.AngleBetweenVecs(eloop1.normal, eloop2.normal)
+	
+	if angleBetweenLoopNormals > 90:
+		eloop2.reverse()
+	
+	
+	bestEloopDist = BIG_NUM
+	bestOffset = 0
+	# Loop rotation offset to test.1
+	eLoopIdxs = range(len(eloop1.edges))
+	for offset in range(len(eloop1.edges)):
+		totEloopDist = 0 # Measure this total distance for thsi loop.
+		
+		offsetIndexLs = eLoopIdxs[offset:] + eLoopIdxs[:offset] # Make offset index list
+		
+		# e1Idx is always from 0 to N, e2Idx is offset.
+		for e1Idx, e2Idx in enumerate(offsetIndexLs):
+			# Measure the vloop distance ===============
+			totEloopDist += ((eloop1.edges[e1Idx].v1.co - eloop2.edges[e2Idx].v1.co).length / loopDist) #/ nangle1
+			totEloopDist += ((eloop1.edges[e1Idx].v2.co - eloop2.edges[e2Idx].v2.co).length / loopDist) #/ nangle1
+			
+			# Premeture break if where no better off
+			if totEloopDist > bestEloopDist:
+				break
+		
+		if totEloopDist < bestEloopDist:
+			bestOffset = offset
+			bestEloopDist = totEloopDist
+	
+	# Modify V2 LS for Best offset
+	eloop2.edges = eloop2.edges[bestOffset:] + eloop2.edges[:bestOffset]
+	
+	
+	
+	for loopIdx in range(len(eloop2.edges)):
+		e1 = eloop1.edges[loopIdx]
+		e2 = eloop2.edges[loopIdx]
+		
+		# Remember the pairs for fan filling culled edges.
+		e1.match = e2; e2.match = e1
+		
+		# need some smart face flipping code here.
+		f = NMesh.Face([e1.v1, e1.v2, e2.v2, e2.v1])
+		
+		f.sel = 1
+		me.faces.append(f)
+	
+	# FAN FILL MISSING FACES.
+	if CULL_FACES:
+		# Culled edges will be in eloop1.
+		FAN_FILLED_FACES = 0
+		
+		contextEdge = eloop1.edges[0] # The larger of teh 2
+		while FAN_FILLED_FACES < CULL_FACES:
+			while contextEdge.next.removed == 0:
+				contextEdge = contextEdge.next
+			
+			vertFanPivot = contextEdge.match.v2
+			
+			while contextEdge.next.removed == 1:
+				
+				f = NMesh.Face([contextEdge.next.v1, contextEdge.next.v2, vertFanPivot] )
+				
+				
+				f.sel = 1
+				me.faces.append(f)
+				
+				# Should we use another var?, this will work for now.
+				contextEdge.next.removed = 1
+				
+				contextEdge = contextEdge.next
+				FAN_FILLED_FACES += 1
+		
+		eloop1.restore() # Add culled back into the list.
+	#if angleBetweenLoopNormals > 90:
+	#	eloop2.reverse()
 
 
-is_editmode = Window.EditMode()
-if is_editmode: Window.EditMode(0)
+def main():
+	global CULL_METHOD
+	
+	is_editmode = Window.EditMode()
+	if is_editmode: Window.EditMode(0)
+	ob = Scene.GetCurrent().getActiveObject()
+	if ob == None or ob.getType() != 'Mesh':
+		return
+	
+	me = ob.getData()
+	if not me.edges:
+		Draw.PupMenu('Error, add edge data first')
+		if is_editmode: Window.EditMode(1)
+		return
+	
+	# BAD BLENDER PYTHON API, NEED TO ENTER EXIT EDIT MODE FOR ADDING EDGE DATA.
+	# ADD EDGE DATA HERE, Python API CANT DO IT YET, LOOSES SELECTION
+	
+	selEdges = getSelectedEdges(me, ob)
+	vertLoops = getVertLoops(selEdges) # list of lists of edges.
+	
+	if len(vertLoops) > 2:
+		choice = Draw.PupMenu('Loft '+str(len(vertLoops))+' edge loops%t|loop|segment')
+		if choice == -1:
+			if is_editmode: Window.EditMode(1)
+			return
+	elif len(vertLoops) < 2:
+		Draw.PupMenu('Error, No Vertloops found%t|if you have a valid selection, go in and out of face edit mode to update the selection state.')
+		if is_editmode: Window.EditMode(1)	
+		return
+	else:
+		choice = 2
+	
+	
+	# The line below checks if any of the vert loops are differenyt in length.
+	if False in [len(v) == len(vertLoops[0]) for v in vertLoops]:
+		CULL_METHOD = Draw.PupMenu('Small to large edge loop distrobution method%t|remove edges evenly|remove smallest edges edges')
+		if CULL_METHOD == -1:
+			if is_editmode: Window.EditMode(1)
+			return
+		
+		if CULL_METHOD ==1: # RESET CULL_METHOD
+			CULL_METHOD = 0 # shortest
+		else:
+			CULL_METHOD = 1 # even
+	
+	
+	time1 = sys.time()
+	# Convert to special edge data.
+	edgeLoops = []
+	for vloop in vertLoops:
+		edgeLoops.append(edgeLoop(vloop))
+		
+	
+	# VERT LOOP ORDERING CODE
+	# Build a worm list - grow from Both ends
+	edgeOrderedList = [edgeLoops.pop()]
+	
+	# Find the closest.
+	bestSoFar = BIG_NUM
+	bestIdxSoFar = None
+	for edLoopIdx, edLoop in enumerate(edgeLoops):
+		l =(edgeOrderedList[-1].centre - edLoop.centre).length 
+		if l < bestSoFar:
+			bestIdxSoFar = edLoopIdx
+			bestSoFar = l
+			
+	edgeOrderedList.append( edgeLoops.pop(bestIdxSoFar) )
+	
+	# Now we have the 2 closest, append to either end-
+	# Find the closest.
+	while edgeLoops:
+		bestSoFar = BIG_NUM
+		bestIdxSoFar = None
+		first_or_last = 0 # Zero is first
+		for edLoopIdx, edLoop in enumerate(edgeLoops):
+			l1 =(edgeOrderedList[-1].centre - edLoop.centre).length 
+			
+			if l1 < bestSoFar:
+				bestIdxSoFar = edLoopIdx
+				bestSoFar = l1
+				first_or_last = 1 # last
+			
+			l2 =(edgeOrderedList[0].centre - edLoop.centre).length 
+			if l2 < bestSoFar:
+				bestIdxSoFar = edLoopIdx
+				bestSoFar = l2
+				first_or_last = 0 # last
+		
+		if first_or_last: # add closest Last
+			edgeOrderedList.append( edgeLoops.pop(bestIdxSoFar) )	
+		else: # Add closest First
+			edgeOrderedList.insert(0, edgeLoops.pop(bestIdxSoFar) )	 # First
+	
+	for i in range(len(edgeOrderedList)-1):
+		skin2EdgeLoops(edgeOrderedList[i], edgeOrderedList[i+1], me, ob, 0)	
+	if choice == 1 and len(edgeOrderedList) > 2: # Loop
+		skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0)	
+	
+	me.update(1, 1, 0)
+	if is_editmode: Window.EditMode(1)
 
-# Get a mesh and raise errors if we cant
-mesh = None
-if choice == -1:
-	pass
-elif len(Object.GetSelected()) > 0:
-  if Object.GetSelected()[0].getType() == 'Mesh':
-    mesh = Object.GetSelected()[0].getData()
-  else:
-    error('please select a mesh')
-else:
-  error('no mesh object selected')
-
-time1 = sys.time()
-if mesh != None:
-  Window.WaitCursor(1)
-  allVLoops = getAllVertLoops(mesh)
-  
-  # Re order the vert loops
-  allVLoops, vLoopIdxNotToSkin = reorderCircularVLoops(mesh, allVLoops)	
-  
-  vloopIdx = 0
-  while vloopIdx < len(allVLoops):
-    #print range(len(allVLoops) )
-    #print vloopIdx
-    #print allVLoops[vloopIdx]
-    
-    # Skin back to the start if needs be, becuase this is a crcular loft
-    toSkin2 = vloopIdx + 1
-    if toSkin2 == len(allVLoops):
-      toSkin2 = 0
-
-    # Circular loft or not?
-    if arg[0] == 'B': # B for open
-      if vloopIdx != vLoopIdxNotToSkin:
-        mesh = skinVertLoops(mesh, allVLoops[vloopIdx], allVLoops[toSkin2])
-    elif arg[0] == 'A': # A for closed
-      mesh = skinVertLoops(mesh, allVLoops[vloopIdx], allVLoops[toSkin2])
-    
-    vloopIdx +=1	
-  
-  mesh.update(1,(mesh.edges != []),0)
-
-if is_editmode: Window.EditMode(1)
-Window.WaitCursor(0)
-print "skinning time: %.2f" % (sys.time() - time1)
+main()

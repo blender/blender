@@ -26,7 +26,7 @@ Usage:<br>
 Supported:<br>
 	UV Coordinates, Meshes, Materials, Material Indices, Specular
 Highlights, and Vertex Colors. For added functionality, each object is
-placed on its own layer.
+placed on its own layer. Someone added the CLIP chunk and imagename support.
 
 Missing:<br>
 	Not too much, I hope! :).
@@ -95,6 +95,7 @@ def write(filename):
 		bbox = generate_bbox(mesh)
 		pols = generate_pols(mesh)
 		ptag = generate_ptag(mesh, material_names)
+		clip = generate_clip(mesh, material_names)
 
 		if mesh.hasFaceUV():
 			vmad_uv = generate_vmad_uv(mesh)  # per face
@@ -111,10 +112,6 @@ def write(filename):
 		write_chunk(meshdata, "POLS", pols); chunks.append(pols)
 		write_chunk(meshdata, "PTAG", ptag); chunks.append(ptag)
 
-		if mesh.hasFaceUV():
-			write_chunk(meshdata, "VMAD", vmad_uv)
-			chunks.append(vmad_uv)
-
 		if meshtools.has_vertex_colors(mesh):
 			if meshtools.average_vcols:
 				write_chunk(meshdata, "VMAP", vmap_vc)
@@ -122,6 +119,13 @@ def write(filename):
 			else:
 				write_chunk(meshdata, "VMAD", vmad_vc)
 				chunks.append(vmad_vc)
+
+		if mesh.hasFaceUV():
+			write_chunk(meshdata, "VMAD", vmad_uv)
+			chunks.append(vmad_uv)
+			write_chunk(meshdata, "CLIP", clip)
+			chunks.append(clip)
+		
 		layer_index += 1
 
 	for surf in surfs:
@@ -135,6 +139,7 @@ def write(filename):
 	file.write(meshdata.getvalue()); meshdata.close()
 	for surf in surfs:
 		write_chunk(file, "SURF", surf)
+	write_chunk(file, "DATE", "August 19, 2005")
 
 	Blender.Window.DrawProgressBar(1.0, "")    # clear progressbar
 	file.close()
@@ -456,6 +461,46 @@ def generate_surf(material_name):
 	comment = generate_nstring(comment)
 	data.write(struct.pack(">H", len(comment)))
 	data.write(comment)
+
+	# Check if the material contains any image maps
+	mtextures = material.getTextures()									# Get a list of textures linked to the material
+	for mtex in mtextures:
+		if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
+			data.write("BLOK")                  # Surface BLOK header
+			data.write(struct.pack(">H", 104))  # Hardcoded and ugly! Will only handle 1 image per material
+
+			# IMAP subchunk (image map sub header)
+			data.write("IMAP")                  
+			data_tmp = cStringIO.StringIO()
+			data_tmp.write(struct.pack(">H", 0))  # Hardcoded - not sure what it represents
+			data_tmp.write("CHAN")
+			data_tmp.write(struct.pack(">H", 4))
+			data_tmp.write("COLR")
+			data_tmp.write("OPAC")                # Hardcoded texture layer opacity
+			data_tmp.write(struct.pack(">H", 8))
+			data_tmp.write(struct.pack(">H", 0))
+			data_tmp.write(struct.pack(">f", 1.0))
+			data_tmp.write(struct.pack(">H", 0))
+			data_tmp.write("ENAB")
+			data_tmp.write(struct.pack(">HH", 2, 1))  # 1 = texture layer enabled
+			data_tmp.write("NEGA")
+			data_tmp.write(struct.pack(">HH", 2, 0))  # Disable negative image (1 = invert RGB values)
+			data_tmp.write("AXIS")
+			data_tmp.write(struct.pack(">HH", 2, 1))
+			data.write(struct.pack(">H", len(data_tmp.getvalue())))
+			data.write(data_tmp.getvalue())
+
+			# IMAG subchunk
+			data.write("IMAG")
+			data.write(struct.pack(">HH", 2, 1))
+			data.write("PROJ")
+			data.write(struct.pack(">HH", 2, 5)) # UV projection
+
+			data.write("VMAP")
+			uvname = generate_nstring("Blender's UV Coordinates")
+			data.write(struct.pack(">H", len(uvname)))
+			data.write(uvname)
+
 	return data.getvalue()
 
 # =============================================
@@ -534,6 +579,27 @@ def generate_icon():
 	data.write(struct.pack(">HH", 0, 60))
 	data.write(icon_data)
 	#print len(icon_data)
+	return data.getvalue()
+
+# ===============================================
+# === Generate CLIP chunk with STIL subchunks ===
+# ===============================================
+def generate_clip(mesh, material_names):
+	data = cStringIO.StringIO()
+	clipid = 1
+	for i in range(len(mesh.materials)):									# Run through list of materials used by mesh
+		material = Blender.Material.Get(mesh.materials[i].name)
+		mtextures = material.getTextures()									# Get a list of textures linked to the material
+		for mtex in mtextures:
+			if (mtex) and (mtex.tex.type == Blender.Texture.Types.IMAGE):	# Check if the texture is of type "IMAGE"
+				pathname = mtex.tex.image.filename							# If full path is needed use filename in place of name
+				pathname = pathname[0:2] + pathname.replace("\\", "/")[3:]  # Convert to Modo standard path
+				imagename = generate_nstring(pathname)
+				data.write(struct.pack(">L", clipid))                       # CLIP sequence/id
+				data.write("STIL")                                          # STIL image
+				data.write(struct.pack(">H", len(imagename)))               # Size of image name
+				data.write(imagename)
+				clipid += 1
 	return data.getvalue()
 
 # ===================

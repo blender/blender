@@ -18,11 +18,16 @@ that points to its official homepage, with news, downloads and documentation.
 Usage:<br>
   Type your code and hit "Enter" to get it executed.<br>
   - Right mouse click: Console Menu (Save output, etc);<br>
+  - Mousewheel: Scroll text
   - Arrow keys: command history and cursor;<br>
-  - Shift + arrow keys: jump words;<br>
+  - Shift + Backspace: Backspace whole word;<br>
+  - Shift + Arrow keys: jump words;<br>
+  - Ctrl + (+/- or mousewheel): Zoom text size;<br>
   - Ctrl + Tab: auto compleate based on variable names and modules loaded -- multiple choices popup a menu;<br>
   - Ctrl + Enter: multiline functions -- delays executing code until only Enter is pressed.
 """
+__author__ = "Campbell Barton AKA Ideasman"
+__url__ = ["http://members.iinet.net.au/~cpbarton/ideasman/", "blender", "elysiun"]
 
 import Blender
 from Blender import *
@@ -31,14 +36,18 @@ import StringIO
 import types
 
 # Constants
-__DELIMETERS__ = '. ,=+-*/%<>&~][{}():'
-__LINE_HISTORY__ = 200
+__DELIMETERS__ = '. ,=+-*/%<>&~][{}():\t'
+__VARIABLE_DELIMETERS__ = ' ,=+-*/%<>&~{}():\t'
 
-global __LINE_HEIGHT__
-__LINE_HEIGHT__ = 14
+__LINE_HISTORY__ = 500
+
 global __FONT_SIZE__
-__FONT_SIZE__ = "normal"
 
+__FONT_SIZES__ = ( ('tiny', 10), ('small', 12), ('normal', 14), ('large', 16) )
+__FONT_SIZE__ = 2 # index for the list above, normal default.
+
+global __CONSOLE_LINE_OFFSET__
+__CONSOLE_LINE_OFFSET__ = 0
 
 '''
 # Generic Blender functions
@@ -52,10 +61,93 @@ def getActScriptWinRect():
 	return None
 '''
 
-class cmdLine:
-	# cmd: is the command string, or any other message
-	# type: 0:user input  1:program feedback  2:error message.  3:option feedback
-	# exe; 0- not yet executed   1:executed
+
+# menuText, # per group
+def PupMenuLess(menu, groupSize=35):
+	more = ['   more...']
+	less = ['   less...']
+	
+	menuList= menu.split('|')
+	
+	# No Less Needed, just call.
+	if len(menuList) < groupSize:
+		return Draw.PupMenu(menu)
+	
+	title = menuList[0].split('%t')[0]
+	
+	# Split the list into groups
+	menuGroups = [[]]
+	for li in menuList[1:]:
+		if len(menuGroups[-1]) < groupSize:
+			menuGroups[-1].append(li)
+		else:
+			menuGroups.append([li])
+	
+	# Stores teh current menu group we are looking at
+	groupIdx = 0
+	while 1:
+		# Give us a title with the menu number
+		numTitle = [ ' '.join([title, str(groupIdx + 1), 'of', str(len(menuGroups)), '%t'])]
+		if groupIdx == 0:
+			menuString = '|'.join(numTitle + menuGroups[groupIdx] + more)
+		elif groupIdx == len(menuGroups)-1:
+			menuString = '|'.join(numTitle + less + menuGroups[groupIdx])
+		else: # In the middle somewhere so Show a more and less
+			menuString = '|'.join(numTitle + less + menuGroups[groupIdx] + more)
+		result = Draw.PupMenu(menuString)
+		# User Exit
+		if result == -1:
+			return -1
+		
+		if groupIdx == 0: # First menu
+			if result-1 < groupSize:
+				return result
+			else: # must be more
+				groupIdx +=1
+		elif groupIdx == len(menuGroups): # Last Menu
+			if result == 1: # Must be less
+				groupIdx -= 1
+			else: # Must be a choice
+				return result + (groupIdx*groupSize)
+			
+		else:	
+			if result == 1: # Must be less
+				groupIdx -= 1
+			elif result-2 == groupSize:
+				groupIdx +=1
+			else:
+				return result - 1 + (groupIdx*groupSize)
+				
+
+
+def unzip(list):
+
+	"""
+		unzip: inverse of zip - converts a list of tuples into a tuple of lists
+		
+		e.g.
+		 a,b = unzip(zip(a,b))
+	
+		* note: all tuples in list have to have the same length, if not,
+				this function will fail
+	"""
+	
+	if len(list) == 0: return ()
+	l = []
+	for t in range(len(list[0])):
+		l.append(map( lambda x,t=t: x[t], list ))
+	return tuple(l)
+
+
+
+# Use newstyle classes, Im not bothering with inheretence
+# but slots are faster.
+class cmdLine(object):
+	__slots__ = [\
+	'cmd', # is the command string, or any other message
+	'type',# type: 0:user input  1:program feedback  2:error message.  3:option feedback
+	'exe' #  0- not yet executed   1:executed
+	]
 	def __init__(self, cmd, type, exe):
 		self.cmd = cmd
 		self.type = type
@@ -97,32 +189,68 @@ def insertCmdData(cmdBuffer):
 COLLECTED_VAR_NAMES = {} # a list of keys, each key has a list of absolute paths
 
 # Pain and simple recursice dir(), accepts a string
-def rdir(dirString):
+def rdir(dirString, depth=0):
+	
+	# MAX DEPTH SET HERE
+	if depth > 4:
+		print 'maxdepoth reached.'
+		return
+		
 	global COLLECTED_VAR_NAMES
 	dirStringSplit = dirString.split('.')
 	
 	exec('dirList = dir(%s)' % dirString) 
 	for dirItem in dirList:
-		if not dirItem.startswith('_'):
-			if dirItem not in COLLECTED_VAR_NAMES.keys():
-				COLLECTED_VAR_NAMES[dirItem] = []
+		if dirItem.startswith('_'):
+			continue
 			
-			# Add the string
-			splitD = dirString.split('"')[-2]
-			if splitD not in COLLECTED_VAR_NAMES[dirItem]:
-				COLLECTED_VAR_NAMES[dirItem].append(splitD)
-			
-			
-				
-			# Stops recursice stuff, overlooping
-			if type(dirItem) == types.ClassType or \
-				 type(dirItem) == types.ModuleType:
-				
-				print dirString, splitD, dirItem
-				
-				# Dont loop up dirs for strings ints etc.
-				if d not in dirStringSplit:
-					rdir( '%s.%s' % (dirString, d)) 
+		dirData = None
+		try:
+			# Rare cases this can mess up, material.shader was a problem.
+			exec('dirData = %s.%s' % (dirString, dirItem))
+			#print dirData
+		except:
+			# Dont bother with this data.
+			continue
+		
+		if type(dirItem) != type('str'):
+			print dirItem, type(dirItem)
+		
+		if dirItem not in COLLECTED_VAR_NAMES.keys():
+			COLLECTED_VAR_NAMES[dirItem] = []
+		
+		# Add the string
+		splitD = dirString.split('"')[-2]
+		if splitD not in COLLECTED_VAR_NAMES[dirItem]:
+			COLLECTED_VAR_NAMES[dirItem].append(splitD)
+		
+		
+		# Stops recursice stuff, overlooping
+		#print type(dirItem)
+		#if type(dirData) == types.ClassType or \
+		#	 type(dirData) == types.ModuleType:
+		
+		if type(dirData) != types.StringType and\
+		type(dirData) != types.DictType and\
+		type(dirData) != types.DictionaryType and\
+		type(dirData) != types.FloatType and\
+		type(dirData) != types.IntType and\
+		type(dirData) != types.NoneType and\
+		type(dirData) != types.StringTypes and\
+		type(dirData) != types.TypeType and\
+		type(dirData) != types.TupleType and\
+		type(dirData) != types.BuiltinFunctionType:
+			# print type(dirData), dirItem
+			# Dont loop up dirs for strings ints etc.
+			if dirItem not in dirStringSplit:
+				rdir( '%s.%s' % (dirString, dirItem), depth+1)
+		'''
+		elif depth == 0: # Add local variables
+			# print type(dirData), dirItem
+			# Dont loop up dirs for strings ints etc.
+			if dirItem not in dirStringSplit:
+				rdir( '%s.%s' % (dirString, dirItem), depth+1)
+		'''
 
 def recursive_dir():
 	global COLLECTED_VAR_NAMES
@@ -148,12 +276,16 @@ def runUserCode(__USER_CODE_STRING__):
 	# Try and run the user entered line(s)
 	try:
 		# Load all variabls from global dict to local space.
-		for __TMP_VAR_NAME__ in __CONSOLE_VAR_DICT__.keys():
-			exec('%s%s%s%s' % (__TMP_VAR_NAME__,'=__CONSOLE_VAR_DICT__["', __TMP_VAR_NAME__, '"]'))
+		for __TMP_VAR_NAME__, __TMP_VAR__ in __CONSOLE_VAR_DICT__.items():
+			exec('%s%s' % (__TMP_VAR_NAME__,'=__TMP_VAR__'))
 		del __TMP_VAR_NAME__
+		del __TMP_VAR__
 		
 		# Now all the vars are loaded, execute the code. # Newline thanks to phillip,
 		exec(compile(__USER_CODE_STRING__, 'blender_cmd.py', 'single')) #exec(compile(__USER_CODE_STRING__, 'blender_cmd.py', 'exec'))
+		
+		# Flush global dict, allow the user to remove items.
+		__CONSOLE_VAR_DICT__ = {}
 		
 		# Write local veriables to global __CONSOLE_VAR_DICT__
 		for __TMP_VAR_NAME__ in dir():
@@ -167,14 +299,16 @@ def runUserCode(__USER_CODE_STRING__):
 		del __TMP_VAR_NAME__
 	
 	except: # Prints the REAL exception.
-		error = str(python_sys.exc_value)
+		error = '%s:  %s' % (python_sys.exc_type, python_sys.exc_value)		
 		for errorLine in error.split('\n'):
 			cmdBuffer.append(cmdLine(errorLine, 2, None)) # new line to type into
 	
 	python_sys.stdout = __STD_OUTPUT__ # Go back to output to the normal blender console
 	
 	# Copy all new output to cmdBuffer
+	
 	__FILE_LIKE_STRING__.seek(0) # the readline function requires that we go back to the start of the file.
+	
 	for line in __FILE_LIKE_STRING__.readlines():
 		cmdBuffer.append(cmdLine(line, 1, None))
 		
@@ -203,34 +337,61 @@ def handle_event(evt, val):
 	#------------------------------------------------------------------------------#
 	def actionEnterKey():
 		global histIndex, cursor, cmdBuffer
-		# Check for the neter kay hit
-		if Window.GetKeyQualifiers() & Window.Qual.CTRL: # HOLDING DOWN SHIFT, GO TO NEXT LINE.
-			cmdBuffer.append(cmdLine(' ', 0, 0))
-		else:
+		
+		def getIndent(string):
+			# Gather white space to add in the previous line
+			# Ignore the last char since its padding.
+			whiteSpace = ''
+			#for i in range(len(cmdBuffer[-1].cmd)):
+			for i in range(len(string)-1):
+				if cmdBuffer[-1].cmd[i] == ' ' or cmdBuffer[-1].cmd[i] == '\t':
+					whiteSpace += string[i]
+				else:
+					break
+			return whiteSpace
+		
+		# Are we in the moddle of a multiline part or not?
+		# try be smart about it
+		if cmdBuffer[-1].cmd.split('#')[0].rstrip().endswith(':'):
+			# : indicates an indent is needed
+			cmdBuffer.append(cmdLine('\t%s ' % getIndent(cmdBuffer[-1].cmd), 0, 0))
+			print ': indicates an indent is needed'		
+		
+		elif cmdBuffer[-1].cmd[0] in [' ', '\t'] and len(cmdBuffer[-1].cmd) > 1 and cmdBuffer[-1].cmd.split():
+			# white space at the start means he havnt finished the multiline.
+			cmdBuffer.append(cmdLine('%s ' % getIndent(cmdBuffer[-1].cmd), 0, 0))
+			print 'white space at the start means he havnt finished the multiline.'
+		
+		elif Window.GetKeyQualifiers() & Window.Qual.CTRL:
+			# Crtl forces multiline
+			cmdBuffer.append(cmdLine('%s ' % getIndent(cmdBuffer[-1].cmd), 0, 0))
+			print 'Crtl forces multiline'			
+		
+		else: # Execute multiline code block
+			
 			# Multiline code will still run with 1 line,
-			multiLineCode = ['if 1:'] 
-			if cmdBuffer[-1].cmd != ' ':
-				multiLineCode = ['%s%s' % (' ', cmdBuffer[-1].cmd)] # added space for fake if.
-			else:
-				cmdBuffer[-1].type = 1
-				multiLineCode = []
-			cmdBuffer[-1].exe = 1
-			i = 2
+			multiLineCode = ['if 1:'] # End of the multiline first.
+			
+			# Seek the start of the file multiline
+			i = 1
 			while cmdBuffer[-i].exe == 0:
-				if cmdBuffer[-i].cmd == ' ':# Tag as an output type so its not used in the key history
-					cmdBuffer[-i].type = 1
-				else: # space added at the start for added if 1: statement
-					multiLineCode.append('%s%s' % (' ', cmdBuffer[-i].cmd) )
-				
-				# Mark as executed
-				cmdBuffer[-i].exe = 1
 				i+=1
 			
-			# add if to the end, reverse will make it the start.
-			multiLineCode.append('if 1:')
-			multiLineCode.reverse()
-			multiLineCode.append(' pass') # Now this is the end
+			while i > 1:
+				i-=1
+				
+				if cmdBuffer[-i].cmd == ' ':# Tag as an output type so its not used in the key history
+					cmdBuffer[-i].type = 1
+				else: # Tab added at the start for added if 1: statement
+					multiLineCode.append('\t%s' % cmdBuffer[-i].cmd )
+				
+				# Mark as executed
+				cmdBuffer[-i].exe = 1				
+				
+			multiLineCode.append('\tpass') # reverse will make this the start.			
 			
+			# Dubug, print the code that is executed.
+			#for m in multiLineCode: print m
 			
 			runUserCode('\n'.join(multiLineCode))
 			
@@ -262,9 +423,8 @@ def handle_event(evt, val):
 	
 	def actionRightMouse():
 		global __FONT_SIZE__
-		global __LINE_HEIGHT__
-		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Font Size|%l|Help|%l|Quit')
-		# print choice
+		choice = Draw.PupMenu('Console Menu%t|Write Input Data (white)|Write Output Data (blue)|Write Error Data (red)|Write All Text|%l|Insert Blender text|%l|Font Size|%l|Quit')
+		
 		if choice == 1:
 			writeCmdData(cmdBuffer, 0) # type 0 user
 		elif choice == 2:
@@ -274,55 +434,56 @@ def handle_event(evt, val):
 		elif choice == 4:
 			writeCmdData(cmdBuffer, 3) # All
 		elif choice == 6:
-			insertCmdData(cmdBuffer) # All
+			insertCmdData(cmdBuffer) # Insert text from Blender and run it.
 		elif choice == 8:
 			# Fontsize.
 			font_choice = Draw.PupMenu('Font Size%t|Large|Normal|Small|Tiny')
 			if font_choice != -1:
 				if font_choice == 1:
-					__FONT_SIZE__ = 'large'
-					__LINE_HEIGHT__ = 16
+					__FONT_SIZE__ = 3
 				elif font_choice == 2:
-					__FONT_SIZE__ = 'normal'
-					__LINE_HEIGHT__ = 14
+					__FONT_SIZE__ = 2
 				elif font_choice == 3:
-					__FONT_SIZE__ = 'small'
-					__LINE_HEIGHT__ = 12
+					__FONT_SIZE__ = 1
 				elif font_choice == 4:
-					__FONT_SIZE__ = 'tiny'
-					__LINE_HEIGHT__ = 10
+					__FONT_SIZE__ = 0
 				Draw.Redraw()
-		elif choice == 10:
-			Blender.ShowHelp('console.py')
-		elif choice == 12: # Exit
+				
+		elif choice == 10: # Exit
 			Draw.Exit()
 	
 	
 	# Auto compleating, quite complex- use recutsice dir for the moment.
 	def actionAutoCompleate(): # Ctrl + Tab
+		if not cmdBuffer[-1].cmd[:cursor].split():
+			return
+		
+		
 		RECURSIVE_DIR = recursive_dir()
 		
 		# get last name of user input
 		editVar = cmdBuffer[-1].cmd[:cursor]
-		
 		# Split off spaces operators etc from the staryt of the command so we can use the startswith function.
-		for splitChar in __DELIMETERS__:
-			editVar = editVar.split(splitChar)[-1]
+		for splitChar in __VARIABLE_DELIMETERS__:
+			editVar = editVar[:-1].split(splitChar)[-1] + editVar[-1]
+		
 		
 		# Now we should have the var by its self
 		if editVar:
-			
 			possibilities = []
 			
-			print editVar, 'editVar'
 			for __TMP_VAR_NAME__ in RECURSIVE_DIR.keys():
+				#print '\t', __TMP_VAR_NAME__
 				if __TMP_VAR_NAME__ == editVar:
 					# print 'ADITVAR IS A VAR'
-					continue
+					pass
+				'''
 				elif __TMP_VAR_NAME__.startswith( editVar ):
+					print __TMP_VAR_NAME__, 'aaa'
 					possibilities.append( __TMP_VAR_NAME__ )
-					
-					
+				'''
+				possibilities.append( __TMP_VAR_NAME__ )
+			
 			if len(possibilities) == 1:
 				cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], possibilities[0], cmdBuffer[-1].cmd[cursor:]))    
 			
@@ -332,36 +493,50 @@ def handle_event(evt, val):
 				# Text choice
 				#cmdBuffer.insert(-1, cmdLine('options: %s' % ' '.join(possibilities), 3, None))
 				
-				menuText = 'Choices (hold shift for whole name)%t|' 
-				menuList = []
-				menuListAbs = []
-				possibilities.sort() # make nice :)
+				menuList = [] # A lits of tuples- ABSOLUTE, RELATIVE
+				
 				for __TMP_VAR_NAME__ in possibilities:
 					for usage in RECURSIVE_DIR[__TMP_VAR_NAME__]:
 						# Account for non absolute (variables for eg.)
 						if usage: # not ''
-							menuListAbs.append('%s.%s' % (usage, __TMP_VAR_NAME__)) # Used for names and can be entered when pressing shift.
-						else:
-							menuListAbs.append(__TMP_VAR_NAME__) # Used for names and can be entered when pressing shift.
-							
-						menuList.append(__TMP_VAR_NAME__) # Used for non Shift
+							absName = '%s.%s' % (usage, __TMP_VAR_NAME__)
+							if absName.find('.'+editVar) != -1 or\
+							absName.startswith(editVar) or\
+							__TMP_VAR_NAME__.startswith(editVar):
+								#print editVar, 'found in', absName
+								menuList.append( # Used for names and can be entered when pressing shift.
+								  (absName, # Absolute name
+								  __TMP_VAR_NAME__) # Relative name, non shift
+								  )
+						#else:
+						#	if absName.find(editVar) != -1:
+						#		menuList.append((__TMP_VAR_NAME__, __TMP_VAR_NAME__)) # Used for names and can be entered when pressing shift.
 				
-				
-				#choice = Draw.PupMenu('Select Variabe name%t|' + '|'.join(possibilities)  )
-				choice = Draw.PupMenu(menuText + '|'.join(menuListAbs))
-				if choice != -1:
+				# No items to display? no menu
+				if not menuList:
+					return
 					
-					if not Window.GetKeyQualifiers() & Window.Qual.SHIFT: # Only paste in the Short name
-						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1], cmdBuffer[-1].cmd[cursor:]))    
-					else: # Put in the long name
-						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuListAbs[choice-1], cmdBuffer[-1].cmd[cursor:]))    
+				menuList.sort()
+				
+				choice = PupMenuLess( # Menu for the user to choose the autocompleate
+				'Choices (Shift for Whole name, Ctrl for Docs)%t|' + # Title Text
+				'|'.join(['%s,  %s' % m for m in menuList])) # Use Absolute names m[0]
+				
+				if choice != -1:
+					if Window.GetKeyQualifiers() & Window.Qual.CTRL:  # Help
+						cmdBuffer[-1].cmd = ('help(%s%s) ' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][0]))    
+					elif Window.GetKeyQualifiers() & Window.Qual.SHIFT:  # Put in the long name
+						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][0], cmdBuffer[-1].cmd[cursor:]))    
+					else: # Only paste in the Short name
+						cmdBuffer[-1].cmd = ('%s%s%s' % (cmdBuffer[-1].cmd[:cursor - len(editVar)], menuList[choice-1][1], cmdBuffer[-1].cmd[cursor:]))    
+						
 		else:
 			# print 'NO EDITVAR'
 			return
 		
-	# ------------------end------------------# 
+	# ------------------end------------------ #
 	
-	
+	# Quit from menu only
 	#if (evt == Draw.ESCKEY and not val):
 	#	Draw.Exit()
 	if evt == Draw.MOUSEX: # AVOID TOO MANY REDRAWS.
@@ -370,15 +545,20 @@ def handle_event(evt, val):
 		return
 	
 	
+	
 	global cursor
 	global histIndex	
+	global __FONT_SIZE__
+	global __CONSOLE_LINE_OFFSET__
 	
 	ascii = Blender.event
+	
+	resetScroll = True
 	
 	#------------------------------------------------------------------------------#
 	#                             key codes and key handling                       #
 	#------------------------------------------------------------------------------#
-
+	
 	# UP DOWN ARROW KEYS, TO TRAVERSE HISTORY
 	if (evt == Draw.UPARROWKEY and val): actionUpKey()
 	elif (evt == Draw.DOWNARROWKEY and val): actionDownKey()
@@ -436,23 +616,57 @@ def handle_event(evt, val):
 		else:
 			insCh('\t')	
 	
-	elif (evt == Draw.BACKSPACEKEY and val): cmdBuffer[-1].cmd = ('%s%s' % (cmdBuffer[-1].cmd[:cursor-1] , cmdBuffer[-1].cmd[cursor:]))
+	elif (evt == Draw.BACKSPACEKEY and val):
+		if Window.GetKeyQualifiers() & Window.Qual.SHIFT:
+			i = -1
+			for d in __DELIMETERS__:
+				i = max(i, cmdBuffer[-1].cmd[:cursor-1].rfind(d))
+			if i == -1:
+				i=0
+			cmdBuffer[-1].cmd = ('%s%s' % (cmdBuffer[-1].cmd[:i] , cmdBuffer[-1].cmd[cursor:]))
+			
+		else:
+			# Normal backspace.
+			cmdBuffer[-1].cmd = ('%s%s' % (cmdBuffer[-1].cmd[:cursor-1] , cmdBuffer[-1].cmd[cursor:]))
+			
 	elif (evt == Draw.DELKEY and val) and cursor < -1:
 		cmdBuffer[-1].cmd = cmdBuffer[-1].cmd[:cursor] + cmdBuffer[-1].cmd[cursor+1:]
 		cursor +=1
 		
 	elif ((evt == Draw.RETKEY or evt == Draw.PADENTER) and val): actionEnterKey()
-	elif (evt == Draw.RIGHTMOUSE and not val):actionRightMouse(); return
+	elif (evt == Draw.RIGHTMOUSE and not val): actionRightMouse(); return
 	
+	elif (evt == Draw.PADPLUSKEY or evt == Draw.EQUALKEY or evt == Draw.WHEELUPMOUSE) and val and Window.GetKeyQualifiers() & Window.Qual.CTRL:
+		__FONT_SIZE__ += 1
+		__FONT_SIZE__ = min(len(__FONT_SIZES__)-1, __FONT_SIZE__)
+	elif (evt == Draw.PADMINUS or evt == Draw.MINUSKEY or evt == Draw.WHEELDOWNMOUSE) and val and Window.GetKeyQualifiers() & Window.Qual.CTRL:
+		__FONT_SIZE__ -=1
+		__FONT_SIZE__ = max(0, __FONT_SIZE__)
+	
+	
+	elif evt == Draw.WHEELUPMOUSE and val:
+		__CONSOLE_LINE_OFFSET__ += 1
+		__CONSOLE_LINE_OFFSET__ = min(len(cmdBuffer)-2, __CONSOLE_LINE_OFFSET__)
+		resetScroll = False
+		
+	elif evt == Draw.WHEELDOWNMOUSE and val:
+		__CONSOLE_LINE_OFFSET__ -= 1
+		__CONSOLE_LINE_OFFSET__ = max(0, __CONSOLE_LINE_OFFSET__)
+		resetScroll = False
+	
+
 	elif ascii:
 		insCh(chr(ascii))
 	else:
 		return # dont redraw.
+	
+	# If the user types in anything then scroll to bottom.
+	if resetScroll:
+		__CONSOLE_LINE_OFFSET__ = 0
 	Draw.Redraw()
 
 
 def draw_gui():
-	
 	# Get the bounds from ObleGL directly
 	__CONSOLE_RECT__ = BGL.Buffer(BGL.GL_FLOAT, 4)
 	BGL.glGetFloatv(BGL.GL_SCISSOR_BOX, __CONSOLE_RECT__) 
@@ -462,20 +676,24 @@ def draw_gui():
 	BGL.glClearColor(0.0, 0.0, 0.0, 1.0)
 	BGL.glClear(BGL.GL_COLOR_BUFFER_BIT)         # use it to clear the color buffer
 	
+	
+	# Fixed margin. use a margin since 0 margin can be hard to seewhen close to a crt's edge.
+	margin = 4
+	
 	# Draw cursor location colour
-	cmd2curWidth = Draw.GetStringWidth(cmdBuffer[-1].cmd[:cursor], __FONT_SIZE__)
-	BGL.glColor3f(0.8, 0.2, 0.2)
-	if cmd2curWidth == 0:
-		BGL.glRecti(0,2,2, __LINE_HEIGHT__+2)
-	else:
-		BGL.glRecti(cmd2curWidth-2,2,cmd2curWidth, __LINE_HEIGHT__+2)
+	if __CONSOLE_LINE_OFFSET__ == 0:
+		cmd2curWidth = Draw.GetStringWidth(cmdBuffer[-1].cmd[:cursor], __FONT_SIZES__[__FONT_SIZE__][0])
+		BGL.glColor3f(0.8, 0.2, 0.2)
+		if cmd2curWidth == 0:
+			BGL.glRecti(margin,2,margin+2, __FONT_SIZES__[__FONT_SIZE__][1]+2)
+		else:
+			BGL.glRecti(margin + cmd2curWidth-2,2, margin+cmd2curWidth, __FONT_SIZES__[__FONT_SIZE__][1]+2)
 	
 	BGL.glColor3f(1,1,1)
 	# Draw the set of cammands to the buffer
-	
-	consoleLineIdx = 1
+	consoleLineIdx = __CONSOLE_LINE_OFFSET__ + 1
 	wrapLineIndex = 0
-	while consoleLineIdx < len(cmdBuffer) and  __CONSOLE_RECT__[3] > consoleLineIdx*__LINE_HEIGHT__ :
+	while consoleLineIdx < len(cmdBuffer) and  __CONSOLE_RECT__[3] > (consoleLineIdx - __CONSOLE_LINE_OFFSET__) * __FONT_SIZES__[__FONT_SIZE__][1]:
 		if cmdBuffer[-consoleLineIdx].type == 0:
 			BGL.glColor3f(1, 1, 1)
 		elif cmdBuffer[-consoleLineIdx].type == 1:
@@ -484,21 +702,22 @@ def draw_gui():
 			BGL.glColor3f(1.0, 0, 0)
 		elif cmdBuffer[-consoleLineIdx].type == 3:
 			BGL.glColor3f(0, 0.8, 0)
-		else:
+		else:  
 			BGL.glColor3f(1, 1, 0)
 		
 		if consoleLineIdx == 1: # NEVER WRAP THE USER INPUT
-			BGL.glRasterPos2i(0, (__LINE_HEIGHT__*consoleLineIdx) - 8)
-			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZE__)
+			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
+			# BUG, LARGE TEXT DOSENT DISPLAY
+			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
 			
 		
 		else: # WRAP?
 			# LINE WRAP
-			if Draw.GetStringWidth(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZE__) >  __CONSOLE_RECT__[2]:
+			if Draw.GetStringWidth(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0]) >  __CONSOLE_RECT__[2]:
 				wrapLineList = []
 				copyCmd = [cmdBuffer[-consoleLineIdx].cmd, '']
 				while copyCmd != ['','']:
-					while Draw.GetStringWidth(copyCmd[0], __FONT_SIZE__) > __CONSOLE_RECT__[2]:
+					while margin + Draw.GetStringWidth(copyCmd[0], __FONT_SIZES__[__FONT_SIZE__][0]) > __CONSOLE_RECT__[2]:
 						#print copyCmd
 						copyCmd[1] = '%s%s'% (copyCmd[0][-1], copyCmd[1]) # Add the char on the end
 						copyCmd[0] = copyCmd[0][:-1]# remove last chat
@@ -513,17 +732,16 @@ def draw_gui():
 				# Now we have a list of lines, draw them (OpenGLs reverse ordering requires this odd change)
 				wrapLineList.reverse()
 				for wline in wrapLineList:
-					BGL.glRasterPos2i(0, (__LINE_HEIGHT__*(consoleLineIdx + wrapLineIndex)) - 8)
-					Draw.Text(wline, __FONT_SIZE__)
+					BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1]*((consoleLineIdx-__CONSOLE_LINE_OFFSET__) + wrapLineIndex)) - 8)
+					Draw.Text(wline, __FONT_SIZES__[__FONT_SIZE__][0])
 					wrapLineIndex += 1
 				wrapLineIndex-=1 # otherwise we get a silly extra line.
 				
 			else: # no wrapping.
 				
-				BGL.glRasterPos2i(0, (__LINE_HEIGHT__*(consoleLineIdx+wrapLineIndex)) - 8)
-				Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZE__)
-			
-			
+				BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
+				Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
+		
 		consoleLineIdx += 1
 			
 
@@ -536,42 +754,45 @@ def handle_button_event(evt):
 __CONSOLE_VAR_DICT__ = {} # Initialize var dict
 
 
-# Print Startup lines
-cmdBuffer = [cmdLine("Welcome to Ideasman's Blender Console", 1, None),\
-	cmdLine(' * Right Click:  Console Menu (Save output, etc.)', 1, None),\
-	cmdLine(' * Arrow Keys:  Command history and cursor', 1, None),\
-	cmdLine(' * Shift With Arrow Keys:  Jump words', 1, None),\
-	cmdLine(' * Ctrl + Tab:  Auto compleate based on variable names and modules loaded, multiple choices popup a menu', 1, None),\
-	cmdLine(' * Ctrl + Enter:  Multiline functions, delays executing code until only Enter is pressed.', 1, None)]
+# Print Startup lines, add __bpydoc__ to the console startup.
+cmdBuffer = []
+for l in __bpydoc__.split('<br>'):
+	cmdBuffer.append( cmdLine(l, 1, None) )
 	
+
 histIndex = cursor = -1 # How far back from the first letter are we? - in current CMD line, history if for moving up and down lines.
 
 # Autoexec, startup code.
-console_autoexec  = '%s%s' % (Get('datadir'), '/console_autoexec.py')
+scriptDir = Get('scriptsdir')
+if not scriptDir.endswith(Blender.sys.sep):
+	scriptDir += Blender.sys.sep
+
+console_autoexec  = '%s%s' % (scriptDir, 'console_autoexec.py')
+
 if not sys.exists(console_autoexec):
 	# touch the file
+	cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts dir', 1, None))
 	open(console_autoexec, 'w').close()
-	cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts data dir', 1, None))
 else:
-	cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts data dir', 1, None))
+	cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts dir', 1, None))
 
 
 
 #-Autoexec---------------------------------------------------------------------#
 # Just use the function to jump into local naming mode.
 # This is so we can loop through all of the autoexec functions / vars and add them to the __CONSOLE_VAR_DICT__
-def autoexecToVarList():
+def include_console(includeFile):
 	global __CONSOLE_VAR_DICT__ # write autoexec vars to this.
 	
 	# Execute an external py file as if local
-	exec(include(console_autoexec))
+	exec(include(includeFile))
 	
 	# Write local to global __CONSOLE_VAR_DICT__ for reuse,
 	for __TMP_VAR_NAME__ in dir() + dir(Blender):
 		# Execute the local > global coversion.
 		exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
 		
-autoexecToVarList() # pass the blender module
+include_console(console_autoexec) # pass the blender module
 #-end autoexec-----------------------------------------------------------------#
 
 

@@ -9,7 +9,7 @@ Tooltip: 'Save a Wavefront OBJ File'
 
 __author__ = "Campbell Barton, Jiri Hnidek"
 __url__ = ["blender", "elysiun"]
-__version__ = "0.9"
+__version__ = "1.0"
 
 __bpydoc__ = """\
 This script is an exporter to OBJ file format.
@@ -49,134 +49,287 @@ def newFName(ext):
 	return Get('filename')[: -len(Get('filename').split('.', -1)[-1]) ] + ext
 
 
+def fixName(name):
+	if name == None:
+		return 'None'
+	else:
+		return name.replace(' ', '_')
+
+
+
+
 from Blender import *
 
-NULL_MAT = '(null)'
-NULL_IMG = '(null)' # from docs at http://astronomy.swin.edu.au/~pbourke/geomformats/obj/ also could be 'off'
+global MTL_DICT
+
+# A Dict of Materials
+# (material.name, image.name):matname_imagename # matname_imagename has gaps removed.
+MTL_DICT = {} 
 
 def save_mtl(filename):
+	global MTL_DICT
+	
+	world = World.GetCurrent()
+	if world:
+		worldAmb = world.getAmb()
+	else:
+		worldAmb = (0,0,0) # Default value
+	
 	file = open(filename, "w")
-	file.write('# Blender MTL File: %s\n' % (Get('filename')))
-	for mat in Material.Get():
-		file.write('newmtl %s\n' % (mat.getName())) # Define a new material
-		file.write('Ns %s\n' % ((mat.getHardness()-1) * 1.9607843137254901 ) ) # Hardness, convert blenders 1-511 to MTL's 
-		file.write('Kd %.6f %.6f %.6f\n' % tuple(mat.getRGBCol())) # Diffuse
-		file.write('Ka %.6f %.6f %.6f\n' % tuple(mat.getMirCol())) # Ambient, uses mirror colour,
-		file.write('Ks %.6f %.6f %.6f\n' % tuple(mat.getSpecCol())) # Specular
-		file.write('Ni %.6f\n' % mat.getIOR()) # Refraction index
-		file.write('d %.6f\n' % mat.getAlpha()) # Alpha (obj uses 'd' for dissolve)
+	file.write('# Blender MTL File: %s\n' % Get('filename').split('\\')[-1].split('/')[-1])
+	file.write('# Material Count: %i\n' % len(MTL_DICT))
+	# Write material/image combinations we have used.
+	for key, mtl_mat_name in MTL_DICT.iteritems():
 		
-		# illum, 0 to disable lightng, 2 is normal.
-		if mat.getMode() & Material.Modes['SHADELESS']:
-			file.write('illum 0\n\n') # ignore lighting
+		# Get the Blender data for the material and the image.
+		# Having an image named None will make a bug, dont do it :)
+		
+		file.write('newmtl %s\n' % mtl_mat_name) # Define a new material: matname_imgname
+		
+		if key[0] == None:
+			#write a dummy material here?
+			file.write('Ns 0\n')
+			file.write('Ka %s %s %s\n' %  tuple([round(c, 6) for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Kd 0.8 0.8 0.8\n')
+			file.write('Ks 0.8 0.8 0.8\n')
+			file.write('d 1\n') # No alpha
+			file.write('illum 2\n') # light normaly	
+			
 		else:
-			file.write('illum 2\n\n') # light normaly		
+			mat = Material.Get(key[0])
+			file.write('Ns %s\n' % round((mat.getHardness()-1) * 1.9607843137254901 ) ) # Hardness, convert blenders 1-511 to MTL's 
+			file.write('Ka %s %s %s\n' %  tuple([round(c*mat.getAmb(), 6) for c in worldAmb])  ) # Ambient, uses mirror colour,
+			file.write('Kd %s %s %s\n' % tuple([round(c*mat.getRef(), 6) for c in mat.getRGBCol()]) ) # Diffuse
+			file.write('Ks %s %s %s\n' % tuple([round(c*mat.getSpec(), 6) for c in mat.getSpecCol()]) ) # Specular
+			file.write('Ni %s\n' % round(mat.getIOR(), 6)) # Refraction index
+			file.write('d %s\n' % round(mat.getAlpha(), 6)) # Alpha (obj uses 'd' for dissolve)
+			
+			# 0 to disable lighting, 1 for ambient & diffuse only (specular color set to black), 2 for full lighting.
+			if mat.getMode() & Material.Modes['SHADELESS']:
+				file.write('illum 0\n') # ignore lighting
+			elif mat.getSpec() == 0:
+				file.write('illum 1\n') # no specular.
+			else:
+				file.write('illum 2\n') # light normaly	
+		
+		
+		# Write images!
+		if key[1] != None:  # We have an image on the face!
+			img = Image.Get(key[1])
+			file.write('map_Kd %s\n' % img.filename.split('\\')[-1].split('/')[-1]) # Diffuse mapping image			
+		
+		elif key[0] != None: # No face image. if we havea material search for MTex image.
+			for mtex in mat.getTextures():
+				if mtex and mtex.tex.type == Texture.Types.IMAGE:
+					try:
+						filename = mtex.tex.image.filename.split('\\')[-1].split('/')[-1]
+						file.write('map_Kd %s\n' % filename) # Diffuse mapping image
+						break
+					except:
+						# Texture has no image though its an image type, best ignore.
+						pass
+		
+		file.write('\n\n')
+	
 	file.close()
 
+
+
 def save_obj(filename):
+	global MTL_DICT
+	
 	time1 = sys.time()
 	scn = Scene.GetCurrent()
-	# First output all material
-	mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
-	save_mtl(mtlfilename)
 
 	file = open(filename, "w")
 	
 	# Write Header
-	file.write('# Blender OBJ File: %s\n' % (Get('filename')))
+	file.write('# Blender OBJ File: %s\n' % (Get('filename').split('/')[-1].split('\\')[-1] ))
 	file.write('# www.blender.org\n')
 
 	# Tell the obj file what material file to use.
+	mtlfilename = '%s.mtl' % '.'.join(filename.split('.')[:-1])
 	file.write('mtllib %s\n' % ( mtlfilename.split('\\')[-1].split('/')[-1] ))
 
 	# Initialize totals, these are updated each object
-	totverts = totuvco = 0
+	totverts = totuvco = totno = 1
 	
 	globalUVCoords = {}
+	globalNormals = {}
 	
 	# Get all meshs
 	for ob in scn.getChildren():
-		if ob.getType() != 'Mesh':
+		#for ob in Object.GetSelected():
+		try:
+			# Will work for non meshes now! :)
+			m = NMesh.GetRawFromObject(ob.name)
+		except:
 			continue
-		m = NMesh.GetRawFromObject(ob.name)
-		m.transform(ob.matrix)
-		
-		if not m.faces: # Make sure there is somthing to write
-			continue #dont bother with this mesh.
 		
 		faces = [ f for f in m.faces if len(f) > 2 ]
-		materials = m.materials
 		
-		# Sort by Material so we dont over context switch in the obj file.
-		if len(materials) > 1:
-			faces.sort(lambda a,b: cmp(a.mat, b.mat))
+		if not faces: # Make sure there is somthing to write
+			continue # dont bother with this mesh.
 		
-		# Set the default mat
-		currentMatName = NULL_MAT
-		currentImgName = NULL_IMG
+		m.transform(ob.matrix)
 		
-		file.write('o %s_%s\n' % (ob.getName(), m.name)) # Write Object name
+		# # Crash Blender
+		#materials = m.getMaterials(1) # 1 == will return None in the list.
+		materials = m.getMaterials()
+		
+		
+		if materials:
+			materialNames = map(lambda mat: mat.name, materials) # Bug Blender, dosent account for null materials, still broken.	
+		else:
+			materialNames = []
+		
+		# Possible there null materials, will mess up indicies
+		# but at least it will export, wait until Blender gets fixed.
+		materialNames.extend((16-len(materialNames)) * [None])
+		
+		
+		# Sort by Material, then images
+		# so we dont over context switch in the obj file.
+		faces.sort(lambda a,b: cmp((a.mat, a.image, a.smooth), (b.mat, b.image, b.smooth)))
+		
+		
+		# Set the default mat to no material and no image.
+		contextMat = (0, 0) # Can never be this, so we will label a new material teh first chance we get.
+		contextSmooth = None # Will either be true or false,  set bad to force initialization switch.
+		
+		file.write('o %s_%s\n' % (fixName(ob.name), fixName(m.name))) # Write Object name
 		
 		# Vert
 		for v in m.verts:
 			file.write('v %.6f %.6f %.6f\n' % tuple(v.co))
-	
+		
 		# UV
 		if m.hasFaceUV():
 			for f in faces:
-				for uv in f.uv:
-					uvKey = '%.6f %.6f' % uv
-					try:
-						dummy = globalUVCoords[uvKey]
-					except KeyError:
-						totuvco +=1 # 1 based index.
+				for uvKey in f.uv:
+					if not globalUVCoords.has_key(uvKey):
 						globalUVCoords[uvKey] = totuvco
-						file.write('vt %s 0.0\n' % uvKey)
-						
-		# NORMAL
-		for v in m.verts:
-			file.write('vn %.6f %.6f %.6f\n' % tuple(v.no))
+						totuvco +=1
+						file.write('vt %.6f %.6f 0.0\n' % uvKey)
+		
+		# NORMAL, Smooth/Non smoothed.
+		
+		for f in faces:
+			if f.smooth:
+				for v in f.v:
+					noKey = tuple(v.no)
+					if not globalNormals.has_key( noKey ):
+						globalNormals[noKey] = totno
+						totno +=1
+						file.write('vn %.6f %.6f %.6f\n' % noKey)
+			else:
+				# Hard, 1 normal from the face.
+				noKey = tuple(f.no)
+				if not globalNormals.has_key( noKey ):
+					globalNormals[noKey] = totno
+					totno +=1
+					file.write('vn %.6f %.6f %.6f\n' % noKey)
+		
 		
 		uvIdx = 0
 		for f in faces:
-			# Check material and change if needed.
-			if len(materials) > 0:
-				if currentMatName != materials[f.mat].getName():
-					currentMatName = materials[f.mat].getName()
-					file.write('usemtl %s\n' % (currentMatName))
 			
-			elif currentMatName != NULL_MAT:
-				currentMatName = NULL_MAT
-				file.write('usemtl %s\n' % (currentMatName))
-		
-			# UV IMAGE
-			# If the face uses a different image from the one last set then add a usemap line.
-			if f.image:
-				if f.image.filename != currentImgName:
-					currentImgName = f.image.filename
-					# Set a new image for all following faces
-					file.write( 'usemap %s\n' % currentImgName.split('\\')[-1].split('/')[-1] )
+			# MAKE KEY
+			if f.image: # Object is always true.
+				key = materialNames[f.mat],  f.image.name
+			else:
+				key = materialNames[f.mat],  None # No image, use None instead.
+			
+			# CHECK FOR CONTEXT SWITCH
+			if key == contextMat:
+				pass # Context alredy switched, dont do anythoing
+			elif key[0] == None and key[1] == None:
+				# Write a null material, since we know the context has changed.
+				file.write('usemtl (null)\n') # mat, image
 				
-			elif currentImgName != NULL_IMG: # Not using an image so set to NULL_IMG
-				currentImgName = NULL_IMG
-				# Set a ne w image for all following faces
-				file.write( 'usemap %s\n' % currentImgName) # No splitting needed.
+			else:
+				try: # Faster to try then 2x dict lookups.
+					
+					# We have the material, just need to write the context switch,
+					file.write('usemtl %s\n' % MTL_DICT[key]) # mat, image
+					
+				except KeyError:
+					# First add to global dict so we can export to mtl
+					# Then write mtl
+					
+					# Make a new names from the mat and image name,
+					# converting any spaces to underscores with fixName.
+					
+					# If none image dont bother adding it to the name
+					if key[1] == None:
+						tmp_matname = MTL_DICT[key] ='%s' % fixName(key[0])
+						file.write('usemtl %s\n' % tmp_matname) # mat, image
+						
+					else:
+						tmp_matname = MTL_DICT[key] = '%s_%s' % (fixName(key[0]), fixName(key[1]))
+						file.write('usemtl %s\n' % tmp_matname) # mat, image
+				
+			contextMat = key
+			
+			if f.smooth != contextSmooth:
+				if f.smooth:
+					file.write('s 1\n')
+				else:
+					file.write('s off\n')
+				contextSmooth = f.smooth
 			
 			file.write('f')
 			if m.hasFaceUV():
-				for vi, v in enumerate(f.v):
-					uvIdx = globalUVCoords[ '%.6f %.6f' % f.uv[vi] ]
-					i = v.index + totverts + 1
-					file.write( ' %d/%d/%d' % (i, uvIdx, i)) # vert, uv, normal
-					
+				if f.smooth: # Smoothed, use vertex normals
+					for vi, v in enumerate(f.v):
+						file.write( ' %d/%d/%d' % (\
+						  v.index+totverts,\
+						  globalUVCoords[ f.uv[vi] ],\
+						  globalNormals[ tuple(v.no) ])) # vert, uv, normal
+				else: # No smoothing, face normals
+					no = globalNormals[ tuple(f.no) ]
+					for vi, v in enumerate(f.v):
+						file.write( ' %d/%d/%d' % (\
+						  v.index+totverts,\
+						  globalUVCoords[ f.uv[vi] ],\
+						  no)) # vert, uv, normal
+			
 			else: # No UV's
-				for v in f.v:
-					file.write( ' %d' % (v.index + totverts+1))
+				if f.smooth: # Smoothed, use vertex normals
+					for v in f.v:
+						file.write( ' %d//%d' % (\
+						  v.index+totverts,\
+						  globalNormals[ tuple(v.no) ]))
+				else: # No smoothing, face normals
+					no = globalNormals[ tuple(f.no) ]
+					for v in f.v:
+						file.write( ' %d//%d' % (\
+						  v.index+totverts,\
+						  no))
+					
 			file.write('\n')
 		
 		# Make the indicies global rather then per mesh
 		totverts += len(m.verts)
 	file.close()
+	
+	
+	# Now we have all our materials, save them
+	save_mtl(mtlfilename)
+	
 	print "obj export time: %.2f" % (sys.time() - time1)
 
 Window.FileSelector(save_obj, 'Export Wavefront OBJ', newFName('obj'))
+
+'''
+TIME = sys.time()
+import os
+OBJDIR = '/obj_out/'
+for scn in Scene.Get():
+	scn.makeCurrent()
+	obj = OBJDIR + scn.name
+	print obj
+	save_obj(obj)
+
+print "TOTAL EXPORT TIME: ", sys.time() - TIME
+'''

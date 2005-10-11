@@ -2,7 +2,7 @@
 
 """ Registration info for Blender menus:
 Name: 'HotKey and MouseAction Reference'
-Blender: 232
+Blender: 237
 Group: 'Help'
 Tip: 'All the hotkeys/short keys'
 """ 
@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_hotkeyscript.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "10/2004"
+__version__ = "10/04/2005"
 
 __bpydoc__ = """\
 This script is a reference about all hotkeys and mouse actions in Blender.
@@ -22,6 +22,8 @@ Open the script from the Help menu and select group of keys to browse.
 
 Notes:<br>
     Additional entries in the database (c) 2004 by Bart.
+    Additional entries in the database for blender 2.37 (c) 2005 by jms.
+    
 """
 
 # $Id$
@@ -67,11 +69,12 @@ from Blender.Draw import *
 from Blender.BGL import *
 
 hotkeys={
+'Search ':[['', '']],
 'Specials 1 ':[
 [',', 'Set Bounding Box rotation scaling pivot'],
 ['Ctrl-,', 'Set Median Point rotation scaling pivot'],
 ['.', 'Set 3D cursor as rotation scaling pivot'],
-['Ctrl-.', 'Set Individual Object Centers as rotation scaling pivot'] ,
+['Ctrl-.', 'Set Individual Object Centers as rotation scaling pivot'],
 ['~', 'Display all layers (German keys: ö)'],
 ['Shift-~', 'Display all/previous layers (German keys: Shift-ö)'],
 ['Space', 'Popup menu'],
@@ -82,9 +85,10 @@ hotkeys={
 ['TAB', 'IPO: Edit selected'],
 ['Ctrl-TAB', 'Enter/exit Pose Mode'],
 ['Shift-TAB', 'Enter Object Mode'],
-['Ctrl-Open menu/', ''],
+['Ctrl-Open menu /', ''],
 ['Ctrl-Load Image', 'Opens a thumbnail browser instead of file browser for images']
 ],
+
 'Mouse ':[
 ['Actions:', ''],
 ['LMB', '3D View: Set 3D Cursor'],
@@ -111,6 +115,7 @@ hotkeys={
 ['MMB', 'Toggle optional transform feature'],
 ['RMB', 'Abort transformation']
 ],
+
 'F-Keys ':[
 ['F1', 'Open File'],
 ['F2', 'Save File'],
@@ -133,13 +138,18 @@ hotkeys={
 ['Shift-F7', 'Buttons Window'],
 ['Shift-F8', 'Video Sequencer Window'],
 ['Shift-F9', 'OOP Window'],
+['Alt-Shift-F9', 'OutLiner Window'],
 ['Shift-F10', 'UV Image Editor'],
 ['Shift-F11', 'Text Editor'],
-['Shift-F12', 'Action Editor']
+['Shift-F12', 'Action Editor'],
+['Ctrl-F2', 'Save/export in vrml 1.0 format' ],
+['Ctrl-F3', 'Save image : dump 3d view'],
+['Ctrl-Shift-F3', 'Save image : dump screen']
 ],
 
 'Numbers ':[
 ['1..2..0-=', 'Show layer 1..2..12'],
+['1..2..0-=', 'Edit Mode with Size, Grab, rotate tools : enter value'],
 ['Alt-1..2..0', 'Show layer 11..12..20'],
 ['Shift-1..2..0-=', 'Toggle layer 1..2..12'],
 ['Shift-ALT-...', 'Toggle layer 11..12..20']
@@ -150,10 +160,12 @@ hotkeys={
 ['Numpad /', 'Local view on object (hide others)'],
 ['Numpad *', 'Rotate view to objects local axes'],
 ['Numpad +', 'Zoom in (works everywhere)'],
-['Numpad +', 'Proportional vertex Edit Mode: Increase range of influence'],
+['Numpad +', 'In OutLiner window, Collapse one level of the  hierarchy'],
+['Alt-Numpad +', 'Proportional vertex Edit Mode: Increase range of influence'],
 ['Ctrl-Numpad +', 'Edit Mode: Select More vertices'],
 ['Numpad -', 'Zoom out (works everywhere)'],
-['Numpad -', 'Proportional vertex Edit Mode: Decrease range of influence'],
+['Numpad +', 'In OutLiner window, Expand one level of the  hierarchy'],
+['Alt-Numpad -', 'Proportional vertex Edit Mode: Decrease range of influence'],
 ['Ctrl-Numpad +', 'Edit Mode: Select Less vertices'],
 ['Numpad INS', 'Set Camera view'],
 ['Ctrl-Numpad INS', 'Set active object as camera'],
@@ -174,10 +186,19 @@ hotkeys={
 
 'Arrows ':[
 ['Home/Pos1', 'View all'],
+['Home', 'In OutLiner Windows, Show hierarchy'],
+['PgUp', 'Edit Mode and Proportionnal Editing Tools, increase influence'],
+['PgUp', 'Strip Editor, Move Down'],
+['PgUn', 'TimeLine: Jump to next marker'],
 ['PgUp', 'IPO: Select next keyframe'],
 ['Ctrl-PgUp', 'IPO: Select and jump to next keyframe'],
+['Ctrl-PgUn', 'TimeLine: Jump to next key'],	
+['PgDn', 'Edit Mode and Proportionnal Editing Tools, decrease influence'],
+['PgDn', 'Strip Editor, Move Up'],
+['PgDn', 'TimeLine: Jump to prev marker'],
 ['PgDn', 'IPO: Select previous keyframe'],
 ['Ctrl-PgDn', 'IPO: Select and jump to previous keyframe'],
+['Ctrl-PgDn', 'TimeLine: Jump to prev key'],		
 ['Left', 'One frame backwards'],
 ['Right', 'One frame forwards'],
 ['Down', '10 frames backwards'],
@@ -191,7 +212,9 @@ hotkeys={
 ['Shift-Arrow', 'Toggle first frame/ last frame']
 ],
 
-'Letters ':[ {"A":[ 
+'Letters ':[ 
+{
+"A":[ 
 ['A', 'Select all/Deselect all'],
 ['Alt-A', 'Play animation in current window'],
 ['Ctrl-A', 'Apply objects size/rotation to object data'],
@@ -199,7 +222,8 @@ hotkeys={
 ['Shift-A', 'Sequencer: Add menu'],
 ['Shift-A', '3D-View: Add menu'],
 ['Shift-ALT-A', 'Play animation in all windows'],
-['Shift-CTRL-A', 'Apply lattice / Make dupliverts real']
+['Shift-CTRL-A', 'Apply lattice / Make dupliverts real'],
+['Shift-CTRL-A', 'Apply Deform ']
 ],
 
 "B":[ 
@@ -214,6 +238,7 @@ hotkeys={
 ['C', 'UV Image Editor: Active Face Select toggle'],
 ['C', 'Sequencer: Change images'],
 ['C', 'IPO: Snap current frame to selected key'],
+['C', 'TimeLine: Center View'],	
 ['Alt-C', 'Object Mode: Convert menu'],
 ['Alt-C', 'Text Editor: Copy selection to clipboard'],
 ['Ctrl-C', 'Copy menu (Copy properties of active to selected objects)'],
@@ -232,6 +257,7 @@ hotkeys={
 "E":[ 
 ['E', 'Edit Mode: Extrude'],
 ['E', 'UV Image Editor: LSCM Unwrap'],
+['E', 'TimeLine: Set End'],	
 ['ER', 'Edit Mode: Extrude Rotate'],
 ['ES', 'Edit Mode: Extrude Scale'],
 ['ESX', 'Edit Mode: Extrude Scale X axis'],
@@ -267,10 +293,13 @@ hotkeys={
 "H":[ 
 ['H', 'Hide selected vertices/faces'],
 ['H', 'Curves: Set handle type'],
+['H', 'Action editor: Handle type aligned'],
+['H', 'Action editor: Handle type free'],		
 ['Alt-H', 'Show Hidden vertices/faces'],
-['Ctrl-H', 'Curves: Automatic handle calculation'],
-['Shift-H', 'Hide deselected  vertices/faces'],
-['Shift-H', 'Curves: Set handle type']
+['Shift-H', 'Curves: Automatic handle calculation'],
+['Shift-H', 'Action editor: Handle type auto'],	
+['Shift-H', 'Edit Mode, Hide deselected  vertices/faces'],
+['Ctrl-H', 'Edit Mode, Add a hook on selected points or show the hook menu .']
 ],
 
 "I":[ 
@@ -279,12 +308,11 @@ hotkeys={
 
 "J":[ 
 ['J', 'IPO: Join menu'],
-['J', 'Mesh: Join all adjacent triangles to quads'],
+['J', 'Mesh: Join all adjacent triangles to quads'],	
 ['J', 'Render Window: Swap render buffer'],
 ['Ctrl-J', 'Join selected objects'],
 ['Ctrl-J', 'Nurbs: Add segment'],
 ['Ctrl-J', 'IPO: Join keyframes menu'],
-['Alt-J', 'Edit Mode: convert quads to triangles']
 ],
 
 "K":[  
@@ -304,7 +332,7 @@ hotkeys={
 ['L', 'Edit mode: Select linked vertices (near mouse pointer)'],
 ['L', 'OOPS window: Select linked objects'],
 ['L', 'UV Face Select: Select linked faces'],
-['Ctrl-L', 'Make links menu'],
+['Ctrl-L', 'Make links menu (for instance : to scene...)'],
 ['Shift-L', 'Select links menu']
 ],
 
@@ -312,8 +340,12 @@ hotkeys={
 ['M', 'Move object to different layer'],
 ['M', 'Sequencer: Make meta strip (group) from selected strips'],
 ['M', 'Edit Mode: Mirros Axis menu'],
+['M', 'Video Sequence Editor : Make Meta strip...'],		
+['M', 'TimeLine: Add marker'],
 ['Alt-M', 'Edit Mode: Merge vertices menu'],
-['Ctrl-M', 'Object Mode: Mirros Axis menu']
+['Alt-M', 'Video Sequence Editor : Separate Meta strip...'],	
+['Ctrl-M', 'Object Mode: Mirros Axis menu'],
+['Ctrl-M', 'TimeLine: Name marker']	
 ],
 
 "N":[ 
@@ -360,6 +392,7 @@ hotkeys={
 
 "S":[ 
 ['S', 'Scale'] ,
+['S', 'TimeLine: Set Start'],
 ['SX', 'Flip around X axis'] ,
 ['SY', 'Flip around Y axis'] ,
 ['SZ', 'Flip around Z axis'] ,
@@ -376,14 +409,15 @@ hotkeys={
 ['T', 'Adjust texture space'] ,
 ['T', 'Edit mode: Flip 3d curve'] ,
 ['T', 'IPO: Change IPO type'] ,
+['T', 'TimeLine: Show second'],	
 ['Alt-T', 'Clear tracking of object'] ,
 ['Ctrl-T', 'Make selected object track active object'] ,
 ['Ctrl-T', 'Edit Mode: Convert to triangles'] ,
 ['Ctrl-ALT-T', 'Benchmark'] ],
 
 "U":[ 
-['U', 'Make single user menu'] ,
-['U', '3D View: Global undo'] ,
+['U', 'Make single user menu (for import completly linked object to another scene  for instance) '] ,
+['U', '3D View: Make Single user Menu'] ,
 ['U', 'Edit Mode: Reload object data from before entering Edit Mode'] ,
 ['U', 'UV Face Select: Automatic UV calculation menu'] ,
 ['U', 'Vertex-/Weightpaint mode: Undo'] ,
@@ -395,9 +429,11 @@ hotkeys={
 ['V', 'Curves/Nurbs: Vector handle'],
 ['V', 'Vertexpaint mode'],
 ['V', 'UV Image Editor: Stitch UVs'],
+['V', 'Action editor: Vector'],	
 ['Alt-V', "Scale object to match image texture's aspect ratio"],
 ['Shift-V', 'Edit mode: Align view to selected vertices'],
 ['Shift-V', 'UV Image Editor: Limited Stitch UVs popup'],
+	
 ],
 
 "W":[ 
@@ -408,11 +444,16 @@ hotkeys={
 ['WY', 'UV Image Editor: Weld/Align Y axis'],
 ['Ctrl-W', 'Save current file'] ,
 ['Ctrl-W', 'Nurbs: Switch direction'] ,
-['Shift-W', 'Warp/bend selected vertices around cursor'] ],
+['Shift-W', 'Warp/bend selected vertices around cursor'],
+['alt-W', 'Export in videoscape format']
+ ],
 
 "X":[ 
 ['X', 'Delete menu'] ,
-['Ctrl-X', 'Restore default state (Erase all)'] ],
+['X', 'TimeLine: Remove marker'],
+['Ctrl-X', 'Restore default state (Erase all)']
+	
+ ],
 
 "Y":[ 
 ['Y', 'Mesh: Split selected vertices/faces from the rest'] ],
@@ -429,6 +470,12 @@ hotkeys={
 up=128
 down=129
 UP=0
+SEARCH=131
+OLDSEARCHLINE=''
+SEARCHLINE=Create('')
+LINE=130
+FINDED=[]
+LEN=0
 
 for k in hotkeys.keys():
    hotkeys[k].append(Create(0))
@@ -442,6 +489,24 @@ hotL.sort()
 hot=hotkeys.keys()
 hot.sort()
 
+def searchfor(SEARCHLINE):
+	global hotkeys, hot
+	FINDLIST=[]
+	for k in hot:
+		if k not in ['Letters ', 'Search '] :
+			for l in hotkeys[k][:-1]:
+				#print 'k, l : ', k,  l, l[1] 
+				if  l[1].upper().find(SEARCHLINE.upper())!=-1:
+					FINDLIST.append(l)
+		elif k == 'Letters ':
+			for l in hotL :
+				for l0 in hotkeys['Letters '][0][l][:-1]:
+					#print 'k, l : ',l,  k,  l0
+					if l0[1].upper().find(SEARCHLINE.upper())!=-1:
+						FINDLIST.append(l0)
+	return FINDLIST			
+			
+	
 glCr=glRasterPos2d
 glCl3=glColor3f
 glCl4=glColor4f
@@ -462,8 +527,8 @@ def trace_rectangle3(r,c,c1):
     glCl3(c1[0],c1[1],c1[2])
 
 def draw():
-    global r,c,c1,hotkeys, hot, hotL, up, down, UP
-
+    global r,c,c1,hotkeys, hot, hotL, up, down, UP, SEARCH, SEARCHLINE,LINE
+    global OLDSEARCHLINE, FINDED, SCROLL, LEN
     size=Buffer(GL_FLOAT, 4)
     glGetFloatv(GL_SCISSOR_BOX, size)
     size= size.list
@@ -490,7 +555,7 @@ def draw():
     glRasterPos2f(42, size[3]-25)
 
     Text("HotKey and MouseAction Reference")
-
+   
     l=0
     listed=0
     Llisted=0
@@ -499,14 +564,12 @@ def draw():
     for k in hot:             
        #hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 4+(20*26)/6*hot.index(k), size[3]-(42), len(k)*8, 20, hotkeys[k][-1].val )
        hotkeys[k][-1]=Toggle(k, hot.index(k)+10, 78*hot.index(k), size[3]-(47), 78, 24, hotkeys[k][-1].val )
-       
        l+=len(k)
-
        if hotkeys[k][-1].val==1.0:
            listed=hot.index(k)
     l=0
     size[3]=size[3]-4
-    if hot[listed]!='Letters ':
+    if hot[listed]!='Letters ' and hot[listed]!='Search ' :
        size[3]=size[3]-8
        SCROLL=size[3]/21
        END=-1
@@ -520,9 +583,7 @@ def draw():
              UP=len(hotkeys[hot[listed]][:-1])-SCROLL         
        else :
          UP=0
-
        for n in  hotkeys[hot[listed]][:-1][UP:END]:
-          
           if l%2==0:
              r=[0,size[3]-(21*l+66),
                      size[2], size[3]-(21*l+43)]
@@ -533,20 +594,50 @@ def draw():
           glRasterPos2f(4+8*15, size[3]-(58+21*l))
           Text('  : '+n[1]) 
           l+=1
+    elif hot[listed]=='Search ' :
+       r=[0,size[3]-70,
+          size[2], size[3]-44]
+       trace_rectangle4(r,c2)
+       SEARCHLINE=String(' ', LINE, 42, size[3]-68,200,18,SEARCHLINE.val, 256,'')
+       if len(FINDED)>0:
+         LEN=len(FINDED)	   
+         size[3]=size[3]-8
+         SCROLL=size[3]/21
+         END=-1
+         if SCROLL < len(FINDED):
+            Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
+            Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+            if (SCROLL+UP)<len(FINDED):
+               END=(UP+SCROLL-1)
+            else:
+               END=-1
+               #UP=len(FINDED)-SCROLL
+         else:
+	       UP=0         
+         for n in FINDED[UP:END]:
+             if l%2==0:
+                 r=[0,size[3]-(21*l+66+24),
+                     size[2], size[3]-(21*l+43+24)]
+                 trace_rectangle4(r,c2)
+             glColor3f(0,0,0)
+             glRasterPos2f(4+8, size[3]-(58+24+21*l))
+             Text(n[0])
+             glRasterPos2f(4+8*15, size[3]-(58+24+21*l))
+             Text('  : '+n[1]) 
+             l+=1
     else:
        for k in hotL:
             pos=hotL.index(k)
             hotkeys['Letters '][0][k][-1]=Toggle(k,pos+20,hotL.index(k)*21, size[3]-(52+18), 21, 18, hotkeys['Letters '][0][k][-1].val )
             if hotkeys['Letters '][0][k][-1].val==1.0:
                Llisted=pos
-
        size[3]=size[3]-8
-
        SCROLL=(size[3]-88)/21
        END=-1
        if SCROLL < len(hotkeys['Letters '][0][hotL[Llisted]]):
-          Button('/\\',up,4,size[3]+8,20,14,'Scroll up') 
-          Button('\\/',down,4,size[3]-8,20,14,'Scroll down')            
+          LEN=len(hotkeys['Letters '][0][hotL[Llisted]])
+          Button('/\\',up,4,size[3]+8,20,14,'Scroll up, you can use arrow or page keys too ') 
+          Button('\\/',down,4,size[3]-8,20,14,'Scroll down,  you can use arrow or page keys too ')            
           if (UP+SCROLL)<len(hotkeys['Letters '][0][hotL[Llisted]]):
              END=(UP+SCROLL)
           else:
@@ -569,13 +660,27 @@ def draw():
           l+=1
 
 def event(evt, val):
-    global hotkeys, UP     
-    if ((evt== QKEY or evt== ESCKEY) and not val): 
+    global hotkeys, UP,  SCROLL  , LEN   
+    if (evt== QKEY or evt== ESCKEY): 
         Exit()
-
+    elif val:
+      if (evt== PAGEUPKEY):
+         if (UP+SCROLL)<LEN-5: 
+             UP+=5 
+      elif (evt== PAGEDOWNKEY):
+          if UP>4: 
+             UP-=5 
+      elif (evt== UPARROWKEY):
+          if (UP+SCROLL)<LEN-1: 
+             UP+=1
+      elif (evt== DOWNARROWKEY):
+          if UP>0: 
+              UP-=1
+      Redraw()
 
 def bevent(evt):
-    global hotkeysmhot, hotL, up,down,UP
+    global hotkeysmhot, hotL, up,down,UP, FINDED
+    global SEARCH, SEARCHLINE,LINE, OLDSEARCHLINE
 
     if   (evt== 1):
         Exit()
@@ -601,5 +706,12 @@ def bevent(evt):
     elif (evt==down):
        if UP>0: UP-=1
        Blender.Window.Redraw()
+
+    elif (evt==LINE):
+       if SEARCHLINE.val!='' and SEARCHLINE.val!=OLDSEARCHLINE:
+          OLDSEARCHLINE=SEARCHLINE.val	
+          FINDED=searchfor(OLDSEARCHLINE)
+          Blender.Window.Redraw()
+
 
 Register(draw, event, bevent)

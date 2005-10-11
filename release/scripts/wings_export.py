@@ -322,28 +322,6 @@ def write(filename):
 		Blender.Draw.PupMenu("Wings Export error|Unable to generate Edge Table for mesh")
 		return 
 
-
-#		if 0:
-#			import Tkinter, tkMessageBox
-#			sys.argv=['wings.pyo','wings.pyc'] # ?
-#
-#			#Tkinter.NoDefaultRoot()
-#			win1 = Tkinter.Tk()
-#			ans = tkMessageBox.showerror("Error", message)
-#			win1.pack()
-#			print ans
-#			if ans:
-#				win1.quit()
-#			win1.mainloop()
-#
-#		else:
-#			from Tkinter import Label
-#			sys.argv = 'wings.py'
-#			widget = Label(None, text=message)
-#			#widget.title("Error")
-#			widget.pack()
-#			widget.mainloop()
-
 	data = generate_data(objname, edge_table, mesh)
 	dsize = len(data)
 	Blender.Window.DrawProgressBar(0.98, "Compressing Data")
