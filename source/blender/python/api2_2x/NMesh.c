@@ -2618,6 +2618,7 @@ static void mface_from_data( MFace * mf, TFace * tf, MCol * col,
 			mf->v4 = nmv->index;
 		else
 			mf->v4 = 0;
+		i = 4;	/* no more than 4 verts */
 	}
 
 	if( tf ) {
@@ -2628,7 +2629,7 @@ static void mface_from_data( MFace * mf, TFace * tf, MCol * col,
 		}
 	}
 
-	test_index_face(mf, NULL, tf, mf->v4?4:3);
+	test_index_face(mf, NULL, tf, i );
 
 	mf->mat_nr = from->mat_nr;
 	mf->flag = from->mf_flag;
