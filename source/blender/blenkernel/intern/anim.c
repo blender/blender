@@ -325,24 +325,56 @@ void frames_duplilist(Object *ob)
 	do_ob_ipo(ob);
 }
 
+struct vertexDupliData {
+	float pmat[4][4];
+	Object *ob, *par;
+};
+
+static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	struct vertexDupliData *vdd= userData;
+	Object *newob;
+	float vec[3], *q2, mat[3][3], tmat[4][4];
+	
+	VECCOPY(vec, co);
+	Mat4MulVecfl(vdd->pmat, vec);
+	VecSubf(vec, vec, vdd->pmat[3]);
+	VecAddf(vec, vec, vdd->ob->obmat[3]);
+	
+	newob= new_dupli_object(&duplilist, vdd->ob, vdd->par);
+	VECCOPY(newob->obmat[3], vec);
+	
+	if(vdd->par->transflag & OB_DUPLIROT) {
+		
+		vec[0]= -no_f[0]; vec[1]= -no_f[1]; vec[2]= -no_f[2];
+		
+		q2= vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag);
+		
+		QuatToMat3(q2, mat);
+		Mat4CpyMat4(tmat, newob->obmat);
+		Mat4MulMat43(newob->obmat, tmat, mat);
+	}
+	
+}
 
 void vertex_duplilist(Scene *sce, Object *par)
 {
-	Object *ob, *newob;
+	Object *ob;
 	Base *base;
-	float vec[3], pmat[4][4], mat[3][3], tmat[4][4];
-	float *q2;
+	float vec[3], no[3], pmat[4][4];
 	int lay, totvert, a;
 	int dmNeedsFree;
 	DerivedMesh *dm;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
-	Mat4One(tmat);
-	
 	lay= G.scene->lay;
 	
-	dm = mesh_get_derived_deform(par, &dmNeedsFree);
+	if(par==G.obedit)
+		dm= editmesh_get_derived_cage(&dmNeedsFree);
+	else
+		dm = mesh_get_derived_deform(par, &dmNeedsFree);
+	
 	totvert = dm->getNumVerts(dm);
 
 	base= sce->base.first;
@@ -352,31 +384,28 @@ void vertex_duplilist(Scene *sce, Object *par)
 			ob= base->object->parent;
 			while(ob) {
 				if(ob==par) {
+					struct vertexDupliData vdd;
+					
 					ob= base->object;
+					vdd.ob= ob;
+					vdd.par= par;
+					Mat4CpyMat4(vdd.pmat, pmat);
+					
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
-					for(a=0; a<totvert; a++) {
-						dm->getVertCo(dm, a, vec);
-
-						Mat4MulVecfl(pmat, vec);
-						VecSubf(vec, vec, pmat[3]);
-						VecAddf(vec, vec, ob->obmat[3]);
-						
-						newob= new_dupli_object(&duplilist, ob, par);
-						VECCOPY(newob->obmat[3], vec);
-						
-						if(par->transflag & OB_DUPLIROT) {
-							dm->getVertNo(dm, a, vec);
-							vec[0]= -vec[0]; vec[1]= -vec[1]; vec[2]= -vec[2];
+					if(par==G.obedit) {
+						dm->foreachMappedVert(dm, vertex_dupli__mapFunc, (void*) &vdd);
+					}
+					else {
+						for(a=0; a<totvert; a++) {
+							dm->getVertCo(dm, a, vec);
+							dm->getVertNo(dm, a, no);
 							
-							q2= vectoquat(vec, ob->trackflag, ob->upflag);
-				
-							QuatToMat3(q2, mat);
-							Mat4CpyMat4(tmat, newob->obmat);
-							Mat4MulMat43(newob->obmat, tmat, mat);
+							vertex_dupli__mapFunc(&vdd, a, vec, no, NULL);
 						}
 					}
+					
 					break;
 				}
 				ob= ob->parent;
