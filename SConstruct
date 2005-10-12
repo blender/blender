@@ -71,6 +71,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'true'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'true'
@@ -157,6 +158,7 @@ elif sys.platform == 'darwin':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'true'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'true'
@@ -273,6 +275,7 @@ elif sys.platform == 'cygwin':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'false'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'false'
@@ -358,6 +361,7 @@ elif sys.platform == 'win32':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'true'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'true'
@@ -464,6 +468,7 @@ elif string.find (sys.platform, 'sunos') != -1:
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'false'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'false'
@@ -547,6 +552,7 @@ elif string.find (sys.platform, 'irix') != -1:
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'false'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'false'
@@ -642,6 +648,7 @@ elif sys.platform=='openbsd3':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'true'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'false'
@@ -726,6 +733,7 @@ elif sys.platform=='freebsd4' or sys.platform=='freebsd5':
 	use_ode = 'false'
 	use_bullet = 'false'
 	use_buildinfo = 'true'
+	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
 	build_blender_static = 'false'
 	build_blender_player = 'false'
@@ -806,9 +814,6 @@ else:
 #-----------------------------------------------------------------------------
 # End of platform specific section
 #-----------------------------------------------------------------------------
-
-# NT test new: enable elbeem compilation be default
-use_fluidsim = 'true'
 
 #-----------------------------------------------------------------------------
 # User configurable options to be saved in a config file.
