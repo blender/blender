@@ -885,7 +885,7 @@ static void make_editipo(void)
 			rf= &(G.sipo->ipo->cur);
 		
 		if(rf->xmin<rf->xmax && rf->ymin<rf->ymax) G.v2d->cur= *rf;
-		
+		else ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
 	}
 	else {
 		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
@@ -932,7 +932,7 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 		}
 	}
 	else if(blocktype==ID_PO) {
-		if (ob && ob->action) {
+		if (ob && ob->action && ob->type==OB_ARMATURE) {
 			bPoseChannel *pchan= get_active_posechannel(ob);
 			
 			*from= (ID *)ob;
