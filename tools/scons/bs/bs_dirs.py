@@ -77,7 +77,15 @@ def preparedist():
 	shutil.copytree(".blender/", "../dist/.blender")
 	os.chdir(startdir)
 	if os.path.isdir("dist/.blender/scripts"):
-		shutil.rmtree("dist/.blender/scripts")	if os.path.isdir("dist/plugins"):		shutil.rmtree("dist/plugins")		os.makedirs("dist/plugins/include")	shutil.copy("source/blender/blenpluginapi/documentation.h", "dist/plugins/include/documentation.h")	shutil.copy("source/blender/blenpluginapi/floatpatch.h", "dist/plugins/include/floatpatch.h")	shutil.copy("source/blender/blenpluginapi/iff.h", "dist/plugins/include/iff.h")	shutil.copy("source/blender/blenpluginapi/plugin.h", "dist/plugins/include/plugin.h")	shutil.copy("source/blender/blenpluginapi/util.h", "dist/plugins/include/util.h")
+		shutil.rmtree("dist/.blender/scripts")
+	if os.path.isdir("dist/plugins"):
+            shutil.rmtree("dist/plugins")
+            os.makedirs("dist/plugins/include")
+            shutil.copy("source/blender/blenpluginapi/documentation.h", "dist/plugins/include/documentation.h")
+            shutil.copy("source/blender/blenpluginapi/floatpatch.h", "dist/plugins/include/floatpatch.h")
+            shutil.copy("source/blender/blenpluginapi/iff.h", "dist/plugins/include/iff.h")
+            shutil.copy("source/blender/blenpluginapi/plugin.h", "dist/plugins/include/plugin.h")
+            shutil.copy("source/blender/blenpluginapi/util.h", "dist/plugins/include/util.h")
 
 	os.chdir("release")
 	shutil.copytree("scripts/", "../dist/.blender/scripts")
