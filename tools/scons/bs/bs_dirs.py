@@ -59,7 +59,7 @@ def preparedist():
 		shutil.copy("blender.exe", "dist/blender.exe")
 		if bs_globals.user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
 			shutil.copy("blenderplayer.exe", "dist/blenderplayer.exe")
-		shutil.copy("../lib/windows/python/lib/python23.dll", "dist/python23.dll")
+		shutil.copy("../lib/windows/python/lib/python24.dll", "dist/python24.dll")
 		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "dist/SDL.dll")
 		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "dist/gnu_gettext.dll")
 	elif sys.platform in ['linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
@@ -77,25 +77,14 @@ def preparedist():
 	shutil.copytree(".blender/", "../dist/.blender")
 	os.chdir(startdir)
 	if os.path.isdir("dist/.blender/scripts"):
-		shutil.rmtree("dist/.blender/scripts")
-
-	if os.path.isdir("dist/plugins"):
-		shutil.rmtree("dist/plugins")
-	
-	os.makedirs("dist/plugins/include")
-	shutil.copy("source/blender/blenpluginapi/documentation.h", "dist/plugins/include/documentation.h")
-	shutil.copy("source/blender/blenpluginapi/floatpatch.h", "dist/plugins/include/floatpatch.h")
-	shutil.copy("source/blender/blenpluginapi/iff.h", "dist/plugins/include/iff.h")
-	shutil.copy("source/blender/blenpluginapi/plugin.h", "dist/plugins/include/plugin.h")
-	shutil.copy("source/blender/blenpluginapi/util.h", "dist/plugins/include/util.h")
+		shutil.rmtree("dist/.blender/scripts")	if os.path.isdir("dist/plugins"):		shutil.rmtree("dist/plugins")		os.makedirs("dist/plugins/include")	shutil.copy("source/blender/blenpluginapi/documentation.h", "dist/plugins/include/documentation.h")	shutil.copy("source/blender/blenpluginapi/floatpatch.h", "dist/plugins/include/floatpatch.h")	shutil.copy("source/blender/blenpluginapi/iff.h", "dist/plugins/include/iff.h")	shutil.copy("source/blender/blenpluginapi/plugin.h", "dist/plugins/include/plugin.h")	shutil.copy("source/blender/blenpluginapi/util.h", "dist/plugins/include/util.h")
 
 	os.chdir("release")
 	shutil.copytree("scripts/", "../dist/.blender/scripts")
-
 	# finally copy auxiliaries (readme, license, etc.)
 	if sys.platform == 'win32':
 		shutil.copy("windows/extra/Help.url", "../dist/Help.url")
-		shutil.copy("windows/extra/Python23.zip", "../dist/Python23.zip")
+		shutil.copy("windows/extra/Python24.zip", "../dist/Python24.zip")
 		shutil.copy("windows/extra/zlib.pyd", "../dist/zlib.pyd")
 	shutil.copy("text/copyright.txt", "../dist/copyright.txt")
 	shutil.copy("text/blender.html", "../dist/blender.html")
