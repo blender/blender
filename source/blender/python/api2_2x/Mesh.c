@@ -2504,7 +2504,8 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
-	if( EXPP_check_sequence_consistency( value, &vector_Type ) != 1 )
+	if( !PySequence_Check( value ) ||
+			EXPP_check_sequence_consistency( value, &vector_Type ) != 1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					    "expected sequence of vectors" );
 
@@ -3315,6 +3316,74 @@ static PyObject *Mesh_Update( BPy_Mesh * self )
 	return EXPP_incr_ret( Py_None );
 }
 
+// #define MESH_TOOLS
+
+#ifdef MESH_TOOLS
+
+static PyObject *Mesh_Tools( BPy_Mesh * self, int type )
+{
+	Object *object = NULL; 
+	Base *basact = BASACT;
+	Base *base = FIRSTBASE;
+
+	/* if already in edit mode, exit */
+
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"can't use mesh tools while in edit mode" );
+
+	for( base = FIRSTBASE; base; base = base->next ) {
+		if( base->object->type == OB_MESH && 
+				base->object->data == self->mesh ) {
+			object = base->object;
+			break;
+		}
+	}
+	if( !object )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+				"can't find an object for the mesh" );
+
+	if( object->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+						"Object specified is not a mesh." );
+
+	/* enter mesh edit mode, apply subdivide, then exit edit mode */
+
+	G.obedit = object;
+	enter_editmode( );
+	switch( type ) {
+	case B_SUBDIV:
+		esubdivideflag(1, 0.0, 
+				G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
+		break;
+	case B_VERTEXSMOOTH:
+		vertexsmooth();
+		break;
+	}
+	exit_editmode( 1 );
+	return EXPP_incr_ret( Py_None );
+}
+
+/*
+ * "Subdivide" function
+ */
+
+static PyObject *Mesh_Subdivide( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, B_SUBDIV );
+}
+
+/*
+ * "Smooth" function
+ */
+
+static PyObject *Mesh_Smooth( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, B_VERTEXSMOOTH );
+}
+
+#endif
+
 static struct PyMethodDef BPy_Mesh_methods[] = {
 	{"calcNormals", (PyCFunction)Mesh_calcNormals, METH_NOARGS,
 		"all recalculate vertex normals"},
@@ -3322,6 +3391,12 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"color vertices based on the current lighting setup"},
 	{"update", (PyCFunction)Mesh_Update, METH_NOARGS,
 		"Update display lists after changes to mesh"},
+#ifdef MESH_TOOLS
+	{"subdivide", (PyCFunction)Mesh_Subdivide, METH_NOARGS,
+		"Subdivide selected edges in a mesh (experimental)"},
+	{"smooth", (PyCFunction)Mesh_Smooth, METH_NOARGS,
+		"Flattens angle of selected faces (experimental)"},
+#endif
 	{NULL, NULL, 0, NULL}
 };
 
@@ -3363,7 +3438,8 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
     Material **matlist;
 	int len;
 
-    if( !EXPP_check_sequence_consistency( value, &Material_Type ) )
+    if( !PySequence_Check( value ) ||
+			!EXPP_check_sequence_consistency( value, &Material_Type ) )
         return EXPP_ReturnIntError( PyExc_TypeError,
                   "list should only contain materials or None)" );
 
@@ -3908,59 +3984,6 @@ static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
 	return PVert_CreatePyObject( &vert );
 }
 
-#define SUBDIVIDE_EXPERIMENT
-#undef SUBDIVIDE_EXPERIMENT
-
-#ifdef SUBDIVIDE_EXPERIMENT
-#include <BIF_editmesh.h>
-
-/*
- * test case 
- */
-
-static PyObject *M_Mesh_Subdivide( PyObject * self, PyObject * args )
-{
-	struct Object *object; 
-	struct Base *basact;
-	char *name = NULL;
-
-	PyArg_ParseTuple( args, "|s", &name );
-
-	object = GetObjectByName( name );
-
-	if( !object )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"Unknown object specified." );
-
-	if( object->type != OB_MESH )
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-						"Object specified is not a mesh." );
-
-	basact = BASACT;
-
-	/* if already in edit mode, get out */
-
-	if( basact )
-		exit_editmode( 1 );
-
-	/* enter mesh edit mode, apply subdivide, then exit edit mode */
-
-	G.obedit = object;
-	enter_editmode( );
-	esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
-	exit_editmode( 1 );
-
-	/* return to previous edit set-up (hopefully?) */
-
-	if( basact ) {
-		BASACT = basact;
-		enter_editmode( );
-	}
-
-	return EXPP_incr_ret( Py_None );
-}
-#endif
-
 static struct PyMethodDef M_Mesh_methods[] = {
 	{"New", (PyCFunction)M_Mesh_New, METH_VARARGS,
 		"Create a new mesh"},
@@ -3968,10 +3991,6 @@ static struct PyMethodDef M_Mesh_methods[] = {
 		"Get a mesh by name"},
 	{"MVert", (PyCFunction)M_Mesh_MVert, METH_VARARGS,
 		"Create a new MVert"},
-#ifdef SUBDIVIDE_EXPERIMENT
-	{"Subdivide", (PyCFunction)M_Mesh_Subdivide, METH_VARARGS,
-		"Subdivide selected edges in a mesh (experimental)"},
-#endif
 	{NULL, NULL, 0, NULL},
 };
 
