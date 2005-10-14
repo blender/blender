@@ -26,7 +26,7 @@
  * This is a new part of Blender.
  *
  * Contributor(s): Michel Selten, Willian P. Germano, Stephen Swaney,
- * Chris Keith, Chris Want
+ * Chris Keith, Chris Want, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -105,6 +105,7 @@ void ReleaseGlobalDictionary( PyObject * dict );
 void DoAllScriptsFromList( ListBase * list, short event );
 PyObject *importText( char *name );
 void init_ourImport( void );
+void init_ourReload( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
 
 int BPY_txt_do_python_Text( struct Text *text );
@@ -153,6 +154,7 @@ void BPY_start_python( int argc, char **argv )
 
 	//Overrides __import__
 	init_ourImport(  );
+	init_ourReload(  );
 
 	//init a global dictionary
 	g_blenderdict = NULL;
@@ -1664,4 +1666,105 @@ void init_ourImport( void )
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
 	PyDict_SetItemString( d, "__import__", import );
+}
+
+/*
+ * find in-memory module and recompile
+ */
+
+static PyObject *reimportText( PyObject *module )
+{
+	Text *text;
+	char *txtname;
+	char *name;
+	char *buf = NULL;
+
+	/* get name, filename from the module itself */
+
+	txtname = PyModule_GetFilename( module );
+	name = PyModule_GetName( module );
+	if( !txtname || !name)
+		return NULL;
+
+	/* look up the text object */
+	text = ( Text * ) & ( G.main->text.first );
+	while( text ) {
+		if( !strcmp( txtname, GetName( text ) ) )
+			break;
+		text = text->id.next;
+	}
+
+	/* uh-oh.... didn't find it */
+	if( !text )
+		return NULL;
+
+	/* if previously compiled, free the object */
+	/* (can't see how could be NULL, but check just in case) */ 
+	if( text->compiled )
+		Py_DECREF( (PyObject *)text->compiled );
+
+	/* compile the buffer */
+	buf = txt_to_buf( text );
+	text->compiled = Py_CompileString( buf, GetName( text ),
+			Py_file_input );
+	MEM_freeN( buf );
+
+	/* if compile failed.... return this error */
+	if( PyErr_Occurred(  ) ) {
+		PyErr_Print(  );
+		BPY_free_compiled_text( text );
+		return NULL;
+	}
+
+	/* make into a module */
+	return PyImport_ExecCodeModule( name, text->compiled );
+}
+
+/*
+ * our reload() module, to handle reloading in-memory scripts
+ */
+
+static PyObject *blender_reload( PyObject * self, PyObject * args )
+{
+	PyObject *exception, *err, *tb;
+	char *name;
+	PyObject *module = NULL;
+	PyObject *newmodule = NULL;
+
+	/* check for a module arg */
+	if( !PyArg_ParseTuple( args, "O:breload", &module ) )
+		return NULL;
+
+	/* try reimporting from file */
+	newmodule = PyImport_ReloadModule( module );
+	if( newmodule )
+		return newmodule;
+
+	/* no file, try importing from memory */
+	PyErr_Fetch( &exception, &err, &tb );	/*restore for probable later use */
+
+	newmodule = reimportText( module );
+	if( newmodule ) {		/* found module, ignore above exception */
+		PyErr_Clear(  );
+		Py_XDECREF( exception );
+		Py_XDECREF( err );
+		Py_XDECREF( tb );
+	} else
+		PyErr_Restore( exception, err, tb );
+
+	return newmodule;
+}
+
+static PyMethodDef breload[] = {
+	{"blreload", blender_reload, METH_VARARGS, "our own reload"}
+};
+
+void init_ourReload( void )
+{
+	PyObject *m, *d;
+	PyObject *reload = PyCFunction_New( breload, NULL );
+
+	m = PyImport_AddModule( "__builtin__" );
+	d = PyModule_GetDict( m );
+	PyDict_SetItemString( d, "reload", reload );
 }
