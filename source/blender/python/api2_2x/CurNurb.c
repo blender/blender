@@ -561,15 +561,15 @@ PyObject *CurNurb_appendPointToNurb( Nurb * nurb, PyObject * args )
 
 			makeknots( nurb, 1, nurb->flagu >> 1 );
 
-		} else if( size == 3 ) {	/* 3 xyz coords */
-			printf( "\nNot Yet Implemented!\n" );
-
+		} else {
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of 4 or 5 floats" );
 		}
 
 	} else {
 		/* bail with error */
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected a sequence of 4 (or optionaly 5) floats\n" );
+					"expected a sequence of 4 or 5 floats" );
 
 	}
 
