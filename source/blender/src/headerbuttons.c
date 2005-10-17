@@ -495,7 +495,7 @@ static void do_update_for_newframe(int mute, int events)
 	}
 	
 	/* this function applies the changes too */
-	scene_update_for_newframe(G.scene, G.vd?G.vd->lay:G.scene->lay); /* BKE_scene.h */
+	scene_update_for_newframe(G.scene, screen_view3d_layers()); /* BKE_scene.h */
 
 	if ( (CFRA>1) && (!mute) && (G.scene->audio.flag & AUDIO_SCRUB)) audiostream_scrub( CFRA );
 }
