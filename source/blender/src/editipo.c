@@ -4059,7 +4059,7 @@ void ipo_record(void)
 	extern double tottime;
 	EditIpo *ei, *ei1=0, *ei2=0;
 	ScrArea *sa, *oldarea;
-	Ipo *ipo;
+//	Ipo *ipo;
 	Object *ob;
 	void *poin;
 	double swaptime;
@@ -4076,9 +4076,9 @@ void ipo_record(void)
 	if(anim < 1) return;
 	if(anim!=2) anim= 0;
 
-	ipo= verify_ipo(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname);
-	if(G.sipo) G.sipo->ipo= ipo;
-	
+//	ipo= verify_ipo(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname);
+//	test_editipo();
+
 	ob= OBACT;
 	/* find the curves... */
 	
@@ -4100,7 +4100,7 @@ void ipo_record(void)
 		error("Select 1 or 2 channels");
 		return;
 	}
-	
+
 	/* make curves ready, start values */
 	if(ei1->icu==NULL) 
 		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei1->adrcode);
@@ -4113,7 +4113,7 @@ void ipo_record(void)
 	
 	if(ei2) {
 		if(ei2->icu==NULL)
-			ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei2->adrcode);
+			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei2->adrcode);
 		if(ei2->icu==NULL) return;
 		
 		poin= get_ipo_poin(G.sipo->from, ei2->icu, &type);
@@ -4121,7 +4121,6 @@ void ipo_record(void)
 		or2= ei2->icu->curval;
 		ei2->icu->flag |= IPO_LOCK;
 	}
-
 	fac= G.v2d->cur.ymax - G.v2d->cur.ymin;
 	fac/= (float)curarea->winy;
 

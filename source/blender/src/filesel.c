@@ -2385,6 +2385,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 		}
 		countall();
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWOOPS, 0);
 	}
 	else if( strcmp(sfile->dir, "Scene/")==0 ) {
 		
@@ -2419,6 +2420,7 @@ static void active_file_object(SpaceFile *sfile)
 					BASACT->flag |= SELECT;
 					sfile->filelist[sfile->act].flags |= ACTIVE;
 					allqueue(REDRAWVIEW3D, 0);
+					allqueue(REDRAWOOPS, 0);
 					scrarea_queue_winredraw(curarea);
 				}
 			}
