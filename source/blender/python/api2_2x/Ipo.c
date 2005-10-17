@@ -914,11 +914,12 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 			( PyExc_NameError, "curve name was invalid" );
 
 	/* create the new ipo curve */
-	icu = MEM_callocN(sizeof(IpoCurve), "Pyhon added ipocurve");
+	icu = MEM_callocN(sizeof(IpoCurve), "Python added ipocurve");
 	icu->blocktype= ipo->blocktype;
 	icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 	icu->blocktype= ipo->blocktype;
 	icu->adrcode= param;
+	BLI_addtail( &(ipo->curve), icu);
 	
 	allspace( REMAKEIPO, 0 );
 	EXPP_allqueue( REDRAWIPO, 0 );
