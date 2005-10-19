@@ -71,6 +71,7 @@ void types_InitAll( void )
 	Mesh_Type.ob_type = &PyType_Type;
 	MFace_Type.ob_type = &PyType_Type;
    	MVert_Type.ob_type = &PyType_Type;
+   	PVert_Type.ob_type = &PyType_Type;
    	MEdge_Type.ob_type = &PyType_Type;
    	MCol_Type.ob_type = &PyType_Type;
    	Mesh_Type.ob_type = &PyType_Type;
@@ -130,6 +131,8 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &MEdge_Type );
 	PyDict_SetItemString( dict, "MVertType",
 			      ( PyObject * ) &MVert_Type );
+	PyDict_SetItemString( dict, "PVertType",
+			      ( PyObject * ) &PVert_Type );
 	PyDict_SetItemString( dict, "MColType", ( PyObject * ) &MCol_Type );
 
 	PyDict_SetItemString( dict, "ArmatureType",

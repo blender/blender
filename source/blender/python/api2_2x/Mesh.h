@@ -52,19 +52,19 @@ extern PyTypeObject Mesh_Type;
 extern PyTypeObject MVert_Type;
 extern PyTypeObject PVert_Type;
 extern PyTypeObject MVertSeq_Type;
+extern PyTypeObject MEdge_Type;
 extern PyTypeObject MFace_Type;
 extern PyTypeObject MCol_Type;
-extern PyTypeObject MEdge_Type;
 
 struct BPy_Object;
 
 /* Type checking for EXPP PyTypes */
 #define BPy_Mesh_Check(v)       ((v)->ob_type == &Mesh_Type)
 #define BPy_MFace_Check(v)      ((v)->ob_type == &MFace_Type)
+#define BPy_MEdge_Check(v)      ((v)->ob_type == &MEdge_Type)
 #define BPy_MVert_Check(v)      ((v)->ob_type == &MVert_Type)
 #define BPy_PVert_Check(v)      ((v)->ob_type == &PVert_Type)
 #define BPy_MCol_Check(v)       ((v)->ob_type == &MCol_Type)
-#define BPy_MEdge_Check(v)      ((v)->ob_type == &MEdge_Type)
 
 /* Typedefs for the new types */
 
@@ -87,7 +87,7 @@ typedef struct {
 
 typedef struct {
 	PyObject_VAR_HEAD	/* required python macro   */
-	Mesh * mesh;
+	Mesh *mesh;			/* points to a Mesh */
 	int index;
 	int iter;
 } BPy_MEdge;			/* a Mesh edge */

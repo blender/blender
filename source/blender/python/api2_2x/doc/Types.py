@@ -36,7 +36,10 @@ Example::
 @var MFaceType: Blender MFace. A mesh face, with 
      three (a triangular face) or four (a quad face) vertices.
 @var MEdgeType: Blender MEdge. A mesh edge, with two vertices
-@var MVertType: Blender MVert. A mesh vertex.
+@var MVertType: Blender MVert. A mesh vertex which wraps a Blender mesh vertex
+     (typically an object returned from the mesh.verts sequence).
+@var PVertType: Blender MVert. A mesh vertex which does not wrap a Blender
+     mesh vertex (returned from L{Blender.Mesh.MVert()<Mesh.MVert.__init__>}).
 @var MColType: Blender MCol. A mesh rgba color.
 @var ArmatureType: Blender Armature. The "skeleton", for animating and deforming
 objects.

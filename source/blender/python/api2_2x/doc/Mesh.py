@@ -3,6 +3,24 @@
 """
 The Blender.Mesh submodule.
 
+B{New}:
+ - L{transform()<Mesh.transform>}: apply transform matrix to mesh vertices
+ - L{getFromObject()<Mesh.getFromObject>}: get mesh data from other
+   geometry objects
+ - L{findEdges()<Mesh.findEdges>}: determine if and where edges exist in the
+   mesh's edge list
+ - delete methods for L{verts<MVertSeq.delete>}, L{edges<MEdgeSeq.delete>}
+   and L{faces<MFaceSeq.delete>}
+ - new experimental mesh tools:
+   L{fill()<Mesh.Mesh.fill>},
+   L{flipNormals()<Mesh.Mesh.flipNormals>},
+   L{recalcNormals()<Mesh.Mesh.recalcNormals>},
+   L{remDoubles()<Mesh.Mesh.remDoubles>},
+   L{smooth()<Mesh.Mesh.smooth>},
+   L{subdivide()<Mesh.Mesh.subdivide>} and
+   L{toSphere()<Mesh.Mesh.toSphere>}
+ - and if you're never used Mesh before, everything!
+
 Mesh Data
 =========
 
@@ -82,14 +100,15 @@ class MVert:
     if vertex coordinates are changed, it may be necessary to use
     L{Mesh.calcNormals()} to update the vertex normals.
   @type no: vector
-  @ivar uvco: The vertex texture "sticky" coordinates (x, y), if present. 
+  @ivar uvco: (MVerts only). The vertex texture "sticky" coordinates (x, y),
+    if present. 
     Use L{Mesh.vertexUV} to test for presence before trying to access;
     otherwise an exception will may be thrown.
     (Sticky coordinates can be set when the object is in the Edit mode;
     from the Editing Panel (F9), look under the "Mesh" properties for the 
     "Sticky" button).  
   @type uvco: vector
-  @ivar index: The vertex's index within the mesh.  Read-only.
+  @ivar index: (MVerts only). The vertex's index within the mesh.  Read-only.
   @type index: int
   @ivar sel: The vertex's selection state (selected=1).
    B{Note}: a Mesh will return the selection state of the mesh when EditMode 
@@ -107,15 +126,29 @@ class MVert:
 
   def __init__(coord):
     """
-    Create a new MVert object.
+    Create a new PVert object.  
+
+    @note: PVert-type objects are designed to be used for creating and
+    modifying a mesh's vertex list, but since they do not "wrap" any Blender
+    data there are some differences.  The B{index} and B{uvco} attributes 
+    are not defined for PVerts, and the B{no} attribute contains valid
+    data only if the PVert was created from an MVert (using a slice
+    operation on the mesh's vertex list.)  PVerts also cannot be used as an
+    argument to any method which expects data wrapping a Blender mesh, such
+    as L{MVertSeq.delete()}.
 
     Example::
       v = Blender.Mesh.MVert(1,0,0)
       v = Blender.Mesh.MVert(Blender.Mathutils.Vector([1,0,0]))
+
+      m = Blender.Mesh.Get('Mesh')
+      vlist = m.verts[:]   # slice operation also returns PVerts
+
     @type coord: three floats or a Vector object
     @param coord: the coordinate values for the new vertex
-    @rtype: MVert
-    @return: a new MVert object
+    @rtype: PVert
+    @return: a new PVert object
+
     """
 
 class MVertSeq:
@@ -128,7 +161,7 @@ class MVertSeq:
     a MVert object which "wraps" the actual vertex in the mesh; changing any
     of the vertex's attributes will immediately change the data in the mesh.
     When a slice of the vertex list is accessed, however, the operator[]
-    returns a list of MVert objects which are copies of the mesh's vertex
+    returns a list of PVert objects which are copies of the mesh's vertex
     data.  Changes to these objects have no effect on the mesh; they must be
     assigned back to the mesh's vertex list.
 
@@ -171,6 +204,20 @@ class MVertSeq:
        - a tuple of three floats,
        - a 3D vector, or
        - a sequence (list or tuple) of either of the above.
+    """
+
+  def delete(verts):
+    """
+    Deletes one or more vertices from the mesh.  Any edge or face which
+    uses the specified vertices are also deleted.
+
+    @type verts: multiple ints or MVerts
+    @param verts: can be
+       - a single MVert belonging to the mesh (B{note:} will not work with
+         PVerts)
+       - a single integer, specifying an index into the mesh's vertex list
+       - a sequence (list or tuple) containing two or more of either of
+         the above.
     """
 
 class MEdge:
@@ -226,6 +273,20 @@ class MEdgeSeq:
     @type vertseq: tuple(s) of MVerts
     @param vertseq: either two to four MVerts, or sequence (list or tuple) 
     of tuples each containing two to four MVerts.
+    """
+
+  def delete(edges):
+    """
+    Deletes one or more edges from the mesh.  In addition, also delete:
+      - any faces which uses the specified edge(s)
+      - any "orphan" vertices (belonging only to specified edge(s))
+
+    @type edges: multiple ints or MEdges
+    @param edges: can be
+       - a single MEdge belonging to the mesh
+       - a single integer, specifying an index into the mesh's edge list
+       - a sequence (list or tuple) containing two or more of either of
+         the above.
     """
 
 class MFace:
@@ -383,6 +444,20 @@ class MFaceSeq:
     of tuples each containing two to four MVerts.
     """
 
+  def delete(deledges, faces):
+    """
+    Deletes one or more faces (and optionally the edges associated with
+    the face(s)) from the mesh.  
+
+    @type deledges: int
+    @param deledges: controls whether just the faces (deledges=0)
+    or the faces and edges (deledges=1) are deleted.  These correspond to the
+    "Only Faces" and "Edges & Faces" options in the Edit Mode pop-up menu
+    @type faces: multiple ints or MFaces
+    @param faces: a sequence (list or tuple) containing one or more of:
+       - an MEdge belonging to the mesh
+       - a integer, specifying an index into the mesh's face list
+    """
 
 class Mesh:
   """
@@ -433,9 +508,61 @@ class Mesh:
   @type activeFace: int
   """
 
+  def getFromObject(name):
+    """
+    Replace the mesh's existing data with the raw mesh data from a Blender
+    Object.  This method support all the geometry based objects (mesh, text,
+    curve, surface, and meta).
+    @note: The mesh coordinates are in i{local space}, not the world space of
+    its object.  For world space vertex coordinates, each vertex location must
+    be multiplied by the object's 4x4 transform matrix (see L{transform}).
+    @type name: string
+    @param name: name of the Blender object which contains the geometry data.
+    """
+
   def calcNormals():
     """
     Recalculates the vertex normals using face data.
+    """
+
+  def transform(matrix, recalc_normals = False):
+    """
+    Transforms the mesh by the specified 4x4 matrix (such as returned by
+    L{Object.Object.getMatrix}).  The matrix should be invertible.
+    Ideal usage for this is exporting to an external file where
+    global vertex locations are required for each object.
+    Sometimes external renderers or file formats do not use vertex normals.
+    In this case, you can skip transforming the vertex normals by leaving
+    the optional parameter recalc_normals as False or 0 (the default value).
+
+    Example::
+     # This script outputs deformed meshes worldspace vertex locations
+     # for a selected object without changing the object
+     import Blender
+     from Blender import Mesh, Object
+     
+     ob = Object.GetSelected()[0] # Get the first selected object
+     me = Mesh.New()              # Create a new mesh
+     me.getFromObject(ob.name)    # Get the object's mesh data
+     verts = me.verts[:]          # Save a copy of the vertices
+     me.transform(ob.matrix)      # Convert verts to world space
+     for v in me.verts:
+       print 'worldspace vert', v.co
+     me.verts = verts             # Restore the original verts
+    
+    @type matrix: Py_Matrix
+    @param matrix: 4x4 Matrix which can contain location, scale and rotation. 
+    @type recalc_normals: int
+    @param recalc_normals: if True or 1, also transform vertex normals.
+    @warn: unlike L{NMesh.transform()<NMesh.NMesh.transform>}, this method
+    I{will immediately modify the mesh data} when it is used.  If you
+    transform the mesh using the object's matrix to get the vertices'
+    world positions, the result will be a "double transform".  To avoid
+    this you either need to set the object's matrix to the identity
+    matrix, perform the inverse transform after outputting the transformed
+    vertices, or make a copy of the vertices prior to using this method
+    and restore them after outputting the transformed vertices (as shown
+    in the example).
     """
 
   def vertexShade(object):
@@ -456,3 +583,69 @@ class Mesh:
     releases.
     """
 
+  def findEdges(edges):
+    """
+    Quickly search for the location of an edge.  
+    @type edges: tuple(s) of ints or MVerts
+    @param edges: can be tuples of MVerts or integer indexes (B{note:} will
+       not work with PVerts) or a sequence (list or tuple) containing two or
+       tuples.
+    @rtype: int, None or list
+    @return: if an edge is found, its index is returned; otherwise None is
+    returned.  If a sequence of edges is passed, a list is returned.
+    """
+
+  def smooth():
+    """
+    Flattens angle of selected faces. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def flipNormals():
+    """
+    Toggles the direction of selected face's normals. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def toSphere():
+    """
+    Moves selected vertices outward in a spherical shape. Experimental mesh
+    tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def subdivide(beauty=0):
+    """
+    Subdivide selected edges in a mesh. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    @type beauty: int
+    @param beauty: specifies whether a "beauty" subdivide should be
+    enabled (disabled is default).  Value must be in the range [0,1].
+    """
+
+  def remDoubles(limit):
+    """
+    Removes duplicates from selected vertices. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    @type limit: float
+    @param limit: specifies the maximum distance considered for vertices
+    to be "doubles".  Value is clamped to the range [0.0,1.0].
+    @rtype: int
+    @return: the number of vertices deleted
+    """
+
+  def fill():
+    """
+    Scan fill a closed selected edge loop. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def recalcNormals(direction=0):
+    """
+    Recalculates inside or outside normals for selected faces. Experimental
+    mesh tool.
+    An exception is thrown if called while in EditMode.
+    @type direction: int
+    @param direction: specifies outward (0) or inward (1) normals.  Outward
+    is the default.  Value must be in the range [0,1].
+    """

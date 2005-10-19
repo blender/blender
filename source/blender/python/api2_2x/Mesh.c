@@ -40,6 +40,7 @@
 #include "DNA_oops_types.h"
 #include "DNA_space_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_meta_types.h"
 
 #include "BDR_editface.h"	/* make_tfaces */
 #include "BDR_vpaint.h"
@@ -48,7 +49,7 @@
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"	/* insert_meshkey */
 #include "BIF_editview.h"
-#include "BIF_space.h"	/* allqueue */
+#include "BIF_editmesh.h"
 
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
@@ -63,12 +64,14 @@
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
 #include "BSE_edit.h"		/* for void countall(); */
+#include "BKE_curve.h"	/* copy_curve(); */
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
 #include "blendef.h"
 #include "mydevice.h"
+#include "butspace.h"		/* for mesh tools */
 #include "Object.h"
 #include "Key.h"
 #include "Image.h"
@@ -76,6 +79,8 @@
 #include "Mathutils.h"
 #include "constant.h"
 #include "gen_utils.h"
+
+#define MESH_TOOLS			/* add access to mesh tools */
 
 /* EXPP Mesh defines */
 
@@ -90,6 +95,14 @@
 #define MESH_HASMCOL                   1
 #define MESH_HASVERTUV                 2
 
+#define MESH_TOOL_TOSPHERE             0
+#define MESH_TOOL_VERTEXSMOOTH         1
+#define MESH_TOOL_FLIPNORM             2
+#define MESH_TOOL_SUBDIV               3
+#define MESH_TOOL_REMDOUB              4
+#define MESH_TOOL_FILL                 5
+#define MESH_TOOL_RECALCNORM           6
+
 /************************************************************************
  *
  * internal utilities
@@ -103,16 +116,20 @@
 typedef struct SrchEdges {
 	unsigned int v[2];		/* indices for verts */
 	unsigned char swap;		/* non-zero if verts swapped */
-#if 0
 	unsigned int index;		/* index in original param list of this edge */
 							/* (will be used by findEdges) */
-#endif
 } SrchEdges;
 
 typedef struct SrchFaces {
 	unsigned int v[4];		/* indices for verts */
 	unsigned char order;	/* order of original verts, bitpacked */
 } SrchFaces;
+
+typedef struct FaceEdges {
+	unsigned int v[2];		/* search key (vert indices) */
+	unsigned int index;		/* location in edge list */
+	unsigned char sel;		/* selection state */
+} FaceEdges;
 
 /*
  * compare edges by vertex indices
@@ -170,40 +187,32 @@ int mface_comp( const void *va, const void *vb )
 }
 
 /*
+ * compare edges by vertex indices
+ */
+
+int faceedge_comp( const void *va, const void *vb )
+{
+	const unsigned int *a = ((FaceEdges *)va)->v;
+	const unsigned int *b = ((FaceEdges *)vb)->v;
+
+	/* compare first index for differences */
+
+	if (a[0] < b[0]) return -1;	
+	else if (a[0] > b[0]) return 1;
+
+	/* if first indices equal, compare second index for differences */
+
+	else if (a[1] < b[1]) return -1;
+	else return (a[1] > b[1]);
+}
+
+/*
  * update the DAG for all objects linked to this mesh
  */
 
 static void mesh_update( Mesh * mesh )
 {
-	allqueue( REDRAWVIEW3D, 1);
 	Object_updateDag( (void *) mesh );
-}
-
-/*
- * Since all faces must have 3 or 4 verts, we can't have v3 or v4 be zero.
- * If that happens during the deletion, we have to shuffle the vertices
- * around; otherwise it can cause an Eeekadoodle or worse.
- */
-
-static void eeek_fix( MFace *tmpface , int len4 )
-{
-	if( len4 && !tmpface->v4 ) {
-		unsigned int tmp = tmpface->v1;
-		tmpface->v1 = tmpface->v4;
-		tmpface->v4 = tmpface->v3;
-		tmpface->v3 = tmpface->v2;
-		tmpface->v2 = tmp;
-	} else if( !tmpface->v3 ) {
-		unsigned int tmp = tmpface->v1;
-		tmpface->v1 = tmpface->v2;
-		tmpface->v2 = tmpface->v3;
-		if( !len4 ) {
-			tmpface->v3 = tmp;
-		} else {
-			tmpface->v3 = tmpface->v4;
-			tmpface->v4 = tmp;
-		}
-	}
 }
 
 #ifdef CHECK_DVERTS /* not clear if this code is needed */
@@ -238,6 +247,347 @@ static void check_dverts(Mesh *me, int old_totvert)
 	return;
 }
 #endif
+
+/*
+ * delete vertices from mesh, then delete edges/keys/faces which used those
+ * vertices
+ *
+ * Deletion is done by "smart compaction"; groups of verts/edges/faces which
+ * remain in the list are copied to new list instead of one at a time.  Since
+ * Blender has no realloc we would have to copy things anyway, so there's no
+ * point trying to fill empty entries with data from the end of the lists.
+ *
+ * vert_table is a lookup table for mapping old verts to new verts (after the
+ * vextex list has deleted vertices removed).  Each entry contains the
+ * vertex's new index.
+ */
+
+static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
+{
+	/*
+	 * (1) allocate vertex table (initialize contents to 0)
+	 * (2) mark each vertex being deleted in vertex table (= UINT_MAX)
+	 * (3) update remaining table entries with "new" vertex index (after
+	 *     compaction)
+	 * (4) allocate new vertex list
+	 * (5) do "smart copy" of vertices from old to new
+	 *     * each moved vertex is entered into vertex table: if vertex i is
+	 *       moving to index j in new list
+	 *       vert_table[i] = j;
+	 * (6) if keys, do "smart copy" of keys
+	 * (7) process edge list
+	 *      update vert index
+	 *      delete edges which delete verts
+	 * (7) allocate new edge list
+	 * (8) do "smart copy" of edges
+	 * (9) allocate new face list
+	 * (10) do "smart copy" of face
+	 */
+	unsigned int *tmpvert;
+	int i;
+	char state;
+	MVert *newvert, *srcvert, *dstvert;
+	int count;
+
+	newvert = (MVert *)MEM_mallocN(
+			sizeof( MVert )*( mesh->totvert-to_delete ), "MVerts" );
+
+	/*
+	 * do "smart compaction" of the table; find and copy groups of vertices
+	 * which are not being deleted
+	 */
+
+	dstvert = newvert;
+	srcvert = mesh->mvert;
+	tmpvert = vert_table;
+	count = 0;
+	state = 1;
+	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
+		switch( state ) {
+		case 0:		/* skipping verts */
+			if( *tmpvert == UINT_MAX ) {
+				++count;
+			} else {
+				srcvert = mesh->mvert + i;
+				count = 1;
+				state = 1;
+			}
+			break;
+		case 1:		/* gathering verts */
+			if( *tmpvert != UINT_MAX ) {
+				++count;
+			} else {
+				if( count ) {
+					memcpy( dstvert, srcvert, sizeof( MVert ) * count );
+					dstvert += count;
+				}
+				count = 1;
+				state = 0;
+			}
+		}
+	}
+
+	/* if we were gathering verts at the end of the loop, copy those */
+	if( state && count )
+		memcpy( dstvert, srcvert, sizeof( MVert ) * count );
+
+	/* delete old vertex list, install the new one, update vertex count */
+
+	MEM_freeN( mesh->mvert );
+	mesh->mvert = newvert;
+	mesh->totvert -= to_delete;
+}
+
+static void delete_edges( Mesh *mesh, unsigned int *vert_table, int to_delete )
+{
+	int i;
+	MEdge *tmpedge;
+
+	/* if not given, then mark and count edges to be deleted */
+	if( !to_delete ) {
+		tmpedge = mesh->medge;
+		for( i = mesh->totedge; i-- ; ++tmpedge )
+			if( vert_table[tmpedge->v1] == UINT_MAX ||
+					vert_table[tmpedge->v2] == UINT_MAX ) {
+				tmpedge->v1 = UINT_MAX;
+				++to_delete;
+			}
+	}
+
+	/* if there are edges to delete, handle it */
+	if( to_delete ) {
+		MEdge *newedge, *srcedge, *dstedge;
+		int count, state;
+
+	/* allocate new edge list and populate */
+		newedge = (MEdge *)MEM_mallocN(
+				sizeof( MEdge )*( mesh->totedge-to_delete ), "MEdges" );
+
+	/*
+	 * do "smart compaction" of the edges; find and copy groups of edges
+	 * which are not being deleted
+	 */
+
+		dstedge = newedge;
+		srcedge = mesh->medge;
+		tmpedge = srcedge;
+		count = 0;
+		state = 1;
+		for( i = 0; i < mesh->totedge; ++i, ++tmpedge ) {
+			switch( state ) {
+			case 0:		/* skipping edges */
+				if( tmpedge->v1 == UINT_MAX ) {
+					++count;
+				} else {
+					srcedge = tmpedge;
+					count = 1;
+					state = 1;
+				}
+				break;
+			case 1:		/* gathering edges */
+				if( tmpedge->v1 != UINT_MAX ) {
+					++count;
+				} else {
+					if( count ) {
+						memcpy( dstedge, srcedge, sizeof( MEdge ) * count );
+						dstedge += count;
+					}
+					count = 1;
+					state = 0;
+				}
+			}
+		/* if edge is good, update vertex indices */
+		}
+
+	/* copy any pending good edges */
+		if( state && count )
+			memcpy( dstedge, srcedge, sizeof( MEdge ) * count );
+
+	/* delete old vertex list, install the new one, update vertex count */
+		MEM_freeN( mesh->medge );
+		mesh->medge = newedge;
+		mesh->totedge -= to_delete;
+	}
+
+	/* if vertices were deleted, update edge's vertices */
+	if( vert_table ) {
+		tmpedge = mesh->medge;
+		for( i = mesh->totedge; i--; ++tmpedge ) {
+			tmpedge->v1 = vert_table[tmpedge->v1];
+			tmpedge->v2 = vert_table[tmpedge->v2];
+		}
+	}
+}
+
+/*
+ * Since all faces must have 3 or 4 verts, we can't have v3 or v4 be zero.
+ * If that happens during the deletion, we have to shuffle the vertices
+ * around; otherwise it can cause an Eeekadoodle or worse.  If there are
+ * texture faces as well, they have to be shuffled as well.
+ *
+ * (code borrowed from test_index_face() in mesh.c, but since we know the
+ * faces already have correct number of vertices, this is a little faster)
+ */
+
+static void eeek_fix( MFace *mface, TFace *tface, int len4 )
+{
+	/* if 4 verts, then neither v3 nor v4 can be zero */
+	if( len4 ) {
+		if( !mface->v3 || !mface->v4 ) {
+			SWAP( int, mface->v1, mface->v3 );
+			SWAP( int, mface->v2, mface->v4 );
+			if( tface ) {
+				SWAP( float, tface->uv[0][0], tface->uv[2][0] );
+				SWAP( float, tface->uv[0][1], tface->uv[2][1] );
+				SWAP( float, tface->uv[1][0], tface->uv[3][0] );
+				SWAP( float, tface->uv[1][1], tface->uv[3][1] );
+				SWAP( unsigned int, tface->col[0], tface->col[2] );
+				SWAP( unsigned int, tface->col[1], tface->col[3] );
+			}
+		}
+	} else if( !mface->v3 ) {
+	/* if 2 verts, then just v3 cannot be zero (v4 MUST be zero) */
+		SWAP( int, mface->v1, mface->v2 );
+		SWAP( int, mface->v2, mface->v3 );
+		if( tface ) {
+			SWAP( float, tface->uv[0][0], tface->uv[1][0] );
+			SWAP( float, tface->uv[0][1], tface->uv[1][1] );
+			SWAP( float, tface->uv[2][0], tface->uv[1][0] );
+			SWAP( float, tface->uv[2][1], tface->uv[1][1] );
+			SWAP( unsigned int, tface->col[0], tface->col[1] );
+			SWAP( unsigned int, tface->col[1], tface->col[2] );
+		}
+	}
+}
+
+static void delete_faces( Mesh *mesh, unsigned int *vert_table, int to_delete )
+{
+	int i;
+	MFace *tmpface;
+	TFace *tmptface;
+
+		/* if there are faces to delete, handle it */
+	if( to_delete ) {
+		MFace *newface, *srcface, *dstface;
+		TFace *newtface = NULL, *srctface, *dsttface;
+		char state;
+		int count;
+
+		newface = (MFace *)MEM_mallocN( ( mesh->totface-to_delete )
+				* sizeof( MFace ), "MFace" );
+		if( mesh->tface )
+			newtface = (TFace *)MEM_mallocN( ( mesh->totface-to_delete )
+					* sizeof( TFace ), "TFace" );
+
+		/*
+		 * do "smart compaction" of the faces; find and copy groups of faces
+		 * which are not being deleted
+		 */
+
+		dstface = newface;
+		srcface = mesh->mface;
+		tmpface = srcface;
+		dsttface = newtface;
+		srctface = mesh->tface;
+		tmptface = srctface;
+
+		count = 0;
+		state = 1;
+		for( i = 0; i < mesh->totface; ++i ) {
+			switch( state ) {
+			case 0:		/* skipping faces */
+				if( tmpface->v1 == UINT_MAX ) {
+					++count;
+				} else {
+					srcface = tmpface;
+					srctface = tmptface;
+					count = 1;
+					state = 1;
+				}
+				break;
+			case 1:		/* gathering faces */
+				if( tmpface->v1 != UINT_MAX ) {
+					++count;
+				} else {
+					if( count ) {
+						memcpy( dstface, srcface, sizeof( MFace ) * count );
+						dstface += count;
+						if( newtface ) {
+							memcpy( dsttface, srctface, sizeof( TFace )
+									* count );
+							dsttface += count;
+						}
+					}
+					count = 1;
+					state = 0;
+				}
+			}
+			++tmpface; 
+			++tmptface; 
+		}
+
+	/* if we were gathering faces at the end of the loop, copy those */
+		if ( state && count ) {
+			memcpy( dstface, srcface, sizeof( MFace ) * count );
+			if( newtface )
+				memcpy( dsttface, srctface, sizeof( TFace ) * count );
+		}
+
+	/* delete old face list, install the new one, update face count */
+
+		MEM_freeN( mesh->mface );
+		mesh->mface = newface;
+		mesh->totface -= to_delete;
+		if( newtface ) {
+			MEM_freeN( mesh->tface );
+			mesh->tface = newtface;
+		}
+	}
+
+	/* if vertices were deleted, update face's vertices */
+	if( vert_table ) {
+		tmpface = mesh->mface;
+		tmptface = mesh->tface;
+		for( i = mesh->totface; i--; ) {
+			int len4 = tmpface->v4;
+			tmpface->v1 = vert_table[tmpface->v1];
+			tmpface->v2 = vert_table[tmpface->v2];
+			tmpface->v3 = vert_table[tmpface->v3];
+			tmpface->v4 = vert_table[tmpface->v4];
+
+			eeek_fix( tmpface, tmptface, len4 );
+
+			++tmpface;
+			if( mesh->tface )
+				++tmptface;
+		}
+	}
+}
+
+/*
+ * fill up vertex lookup table with old-to-new mappings
+ *
+ * returns the number of vertices marked for deletion
+ */
+
+static unsigned int make_vertex_table( unsigned int *vert_table, int count )
+{
+	int i;
+	unsigned int *tmpvert = vert_table;
+	unsigned int to_delete = 0;
+	unsigned int new_index = 0;
+
+	/* fill the lookup table with old->new index mappings */
+	for( i = count; i; --i, ++tmpvert ) {
+		if( *tmpvert == UINT_MAX ) {
+			++to_delete;
+		} else {
+			*tmpvert = new_index;
+			++new_index;
+		}
+	}
+	return to_delete;
+}
 
 /************************************************************************
  *
@@ -936,8 +1286,8 @@ static PyObject *MVert_CreatePyObject( Mesh *mesh, int i )
 
 static PyObject *PVert_CreatePyObject( MVert *vert )
 {
-	BPy_MVert *obj = PyObject_NEW( BPy_MVert, &PVert_Type );
 	MVert *newvert;
+	BPy_MVert *obj = (BPy_MVert *)PyObject_NEW( BPy_MVert, &PVert_Type );
 
 	if( !obj )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1198,10 +1548,11 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	tmpvert = &newvert[mesh->totvert];
 	for( i = 0; i < len; ++i ) {
 		float co[3];
-		tmp = PySequence_Fast_GET_ITEM( args, i );
+		tmp = PySequence_GetItem( args, i );
 		if( VectorObject_Check( tmp ) ) {
 			if( ((VectorObject *)tmp)->size != 3 ) {
 				MEM_freeN( newvert );
+				Py_DECREF ( tmp );
 				Py_DECREF ( args );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected vector of size 3" );
@@ -1225,10 +1576,12 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 			if( !ok ) {
 				MEM_freeN( newvert );
 				Py_DECREF ( args );
+				Py_DECREF ( tmp );
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected tuple triplet of floats" );
 			}
 		}
+		Py_DECREF ( tmp );
 
 	/* add the coordinate to the new list */
 		memcpy( tmpvert->co, co, sizeof(co) );
@@ -1270,7 +1623,7 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 
 			/* add data for new vertices */
 			fp = (float *)((char *)currkey->data +
-					mesh->key->elemsize*mesh->totvert );
+					(mesh->key->elemsize*mesh->totvert));
 			tmpvert = mesh->mvert + mesh->totvert;
 			for( i = newlen - mesh->totvert; i > 0; --i ) {
 				VECCOPY(fp, tmpvert->co);
@@ -1294,9 +1647,100 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *MVertSeq_delete( BPy_MVertSeq * self, PyObject *args )
+{
+	unsigned int *vert_table;
+	int vert_delete, face_count;
+	int i;
+	Mesh *mesh = self->mesh;
+	MFace *tmpface;
+
+	Py_INCREF( args );		/* so we can safely DECREF later */
+
+	/* accept a sequence (lists or tuples) also */
+	if( PySequence_Size( args ) == 1 ) {
+		PyObject *tmp = PyTuple_GET_ITEM( args, 0 );
+		if( PySequence_Check ( tmp ) ) {
+			Py_DECREF( args );		/* release previous reference */
+			args = tmp;				/* PyTuple_GET_ITEM returns new ref */
+		}
+	}
+
+	/* allocate vertex lookup table */
+	vert_table = (unsigned int *)MEM_callocN( 
+			mesh->totvert*sizeof( unsigned int ), "vert_table" );
+
+	/* get the indices of vertices to be removed */
+	for( i = PySequence_Size( args ); i--; ) {
+		PyObject *tmp = PySequence_GetItem( args, i );
+		int index;
+		if( BPy_MVert_Check( tmp ) ) {
+			if( (void *)self->mesh != ((BPy_MVert*)tmp)->data ) {
+				MEM_freeN( vert_table );
+				Py_DECREF( args );
+				Py_DECREF( tmp );
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+						"MVert belongs to a different mesh" );
+			}
+			index = ((BPy_MVert*)tmp)->index;
+		}
+		else if( PyInt_CheckExact( tmp ) )
+			index = PyInt_AsLong ( tmp );
+		else {
+			MEM_freeN( vert_table );
+			Py_DECREF( args );
+			Py_DECREF( tmp );
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of ints or MVerts" );
+		}
+		Py_DECREF( tmp );
+		if( index < 0 || index >= mesh->totvert ) {
+			MEM_freeN( vert_table );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"array index out of range" );
+		}
+		vert_table[index] = UINT_MAX;
+	}
+
+	/* delete things, then clean up and return */
+
+	vert_delete = make_vertex_table( vert_table, mesh->totvert );
+	if( vert_delete )
+		delete_verts( mesh, vert_table, vert_delete );
+
+	/* calculate edges to delete, fix vertex indices */
+	delete_edges( mesh, vert_table, 0 );
+
+	/*
+	 * find number of faces which contain any of the deleted vertices,
+	 * and mark them, then delete them
+	 */
+	tmpface = mesh->mface;
+	face_count=0;
+	for( i = mesh->totface; i--; ++tmpface ) {
+		if( vert_table[tmpface->v1] == UINT_MAX ||
+				vert_table[tmpface->v2] == UINT_MAX ||
+				vert_table[tmpface->v3] == UINT_MAX ||
+				vert_table[tmpface->v4] == UINT_MAX ) {
+			tmpface->v1 = UINT_MAX;
+			++face_count;
+		}
+	}
+	delete_faces( mesh, vert_table, face_count );
+
+	/* clean up and exit */
+	MEM_freeN( vert_table );
+	mesh_update ( mesh );
+	Py_DECREF( args );
+	return EXPP_incr_ret( Py_None );
+}
+
 static struct PyMethodDef BPy_MVertSeq_methods[] = {
 	{"extend", (PyCFunction)MVertSeq_extend, METH_VARARGS,
 		"add vertices to mesh"},
+	{"delete", (PyCFunction)MVertSeq_delete, METH_VARARGS,
+		"delete vertices to mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1740,6 +2184,7 @@ static PyObject *MEdgeSeq_item( BPy_MEdgeSeq * self, int i )
 	return MEdge_CreatePyObject( self->mesh, i );
 }
 
+
 static PySequenceMethods MEdgeSeq_as_sequence = {
 	( inquiry ) MEdgeSeq_len,	/* sq_length */
 	( binaryfunc ) 0,	/* sq_concat */
@@ -1841,11 +2286,12 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* verify the param list and get a total count of number of edges */
 	new_edge_count = 0;
 	for( i = 0; i < len; ++i ) {
-		tmp = PySequence_Fast_GET_ITEM( args, i );
+		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
 		if( !PyTuple_Check( tmp ) ||
 				EXPP_check_sequence_consistency( tmp, &MVert_Type ) != 1 ) {
+			Py_DECREF( tmp );
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected sequence of MVert tuples" );
@@ -1854,10 +2300,13 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		/* not the right number of MVerts... error */
 		nverts = PyTuple_Size( tmp );
 		if( nverts < 2 || nverts > 4 ) {
+			Py_DECREF( tmp );
 			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected 2 to 4 MVerts per tuple" );
 		}
+		Py_DECREF( tmp );
+
 		if( nverts == 2 )
 			++new_edge_count;	/* if only two vert, then add only edge */
 		else
@@ -1872,12 +2321,13 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	len = PySequence_Size( args );
 	tmppair = newpair;
 	for( i = 0; i < len; ++i ) {
-		tmp = PySequence_Fast_GET_ITEM( args, i );
+		tmp = PySequence_GetItem( args, i );
 		nverts = PyTuple_Size( tmp );
 
 		/* get copies of vertices */
 		for(j = 0; j < nverts; ++j )
 			e[j] = (BPy_MVert *)PyTuple_GET_ITEM( tmp, j );
+		Py_DECREF( tmp );
 
 		if( nverts == 2 )
 			nverts = 1;	/* again, two verts give just one edge */
@@ -2016,9 +2466,154 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *MEdgeSeq_delete( BPy_MEdgeSeq * self, PyObject *args )
+{
+	Mesh *mesh = self->mesh;
+	MEdge *srcedge;
+	MFace *srcface;
+	unsigned int *vert_table, *del_table, *edge_table;
+	int i, len;
+	int face_count, edge_count, vert_count;
+
+	Py_INCREF( args );		/* so we can safely DECREF later */
+
+	/* accept a sequence (lists or tuples) also */
+	if( PySequence_Size( args ) == 1 ) {
+		PyObject *tmp = PyTuple_GET_ITEM( args, 0 );
+		if( PySequence_Check ( tmp ) ) {
+			Py_DECREF( args );		/* release previous reference */
+			args = tmp;				/* PyTuple_GET_ITEM returns new ref */
+		}
+	}
+
+	/* see how many args we need to parse */
+	len = PySequence_Size( args );
+	edge_table = (unsigned int *)MEM_callocN( len*sizeof( unsigned int ),
+			"edge_table" );
+
+	/* get the indices of edges to be removed */
+	for( i = len; i--; ) {
+		PyObject *tmp = PySequence_GetItem( args, i );
+		if( BPy_MEdge_Check( tmp ) )
+			edge_table[i] = ((BPy_MEdge *)tmp)->index;
+		else if( PyInt_CheckExact( tmp ) )
+			edge_table[i] = PyInt_AsLong ( tmp );
+		else {
+			MEM_freeN( edge_table );
+			Py_DECREF( tmp );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of ints or MEdges" );
+		}
+		Py_DECREF( tmp );
+
+		/* if index out-of-range, throw exception */
+		if( edge_table[i] >= (unsigned int)mesh->totedge ) {
+			MEM_freeN( edge_table );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"array index out of range" );
+		}
+	}
+
+	/*
+	 * build two tables: first table marks vertices which belong to an edge
+	 * which is being deleted
+	 */
+	del_table = (unsigned int *)MEM_callocN( 
+			mesh->totvert*sizeof( unsigned int ), "vert_table" );
+
+	/*
+	 * Borrow a trick from editmesh code: for each edge to be deleted, mark
+	 * its vertices as well.  Then go through face list and look for two
+	 * consecutive marked vertices.
+	 */
+
+	/* mark each edge that's to be deleted */
+	srcedge = mesh->medge;
+	for( i = len; i--; ) {
+		unsigned int idx = edge_table[i];
+		del_table[srcedge[idx].v1] = UINT_MAX;
+		del_table[srcedge[idx].v2] = UINT_MAX;
+		srcedge[idx].v1 = UINT_MAX;
+	}
+
+	/*
+	 * second table is used for vertices which become orphaned (belong to no
+	 * edges) and need to be deleted; it's also the normal lookup table for
+	 * old->new vertex indices
+	 */
+
+	vert_table = (unsigned int *)MEM_mallocN( 
+			mesh->totvert*sizeof( unsigned int ), "vert_table" );
+
+	/* assume all edges will be deleted (fills with UINT_MAX) */
+	memset( vert_table, UCHAR_MAX, mesh->totvert*sizeof( unsigned int ) );
+
+	/* unmark vertices of each "good" edge; count each "bad" edge */
+	edge_count = 0;
+	for( i = mesh->totedge; i--; ++srcedge )
+		if( srcedge->v1 != UINT_MAX )
+			vert_table[srcedge->v1] = vert_table[srcedge->v2] = 0;
+		else
+			++edge_count;
+
+	/*
+	 * find faces which no longer have all edges
+	 */
+
+	face_count = 0;
+	srcface = mesh->mface;
+	for( i = 0; i < mesh->totface; ++i, ++srcface ) {
+		int len = srcface->v4 ? 4 : 3;
+		unsigned int id[4];
+		int del;
+
+		id[0] = del_table[srcface->v1];
+		id[1] = del_table[srcface->v2];
+		id[2] = del_table[srcface->v3];
+		id[3] = del_table[srcface->v4];
+
+		del = ( id[0] == UINT_MAX && id[1] == UINT_MAX ) ||
+			( id[1] == UINT_MAX && id[2] == UINT_MAX );
+		if( !del ) {
+			if( len == 3 )
+				del = ( id[2] == UINT_MAX && id[0] == UINT_MAX );
+			else
+				del = ( id[2] == UINT_MAX && id[3] == UINT_MAX ) ||
+					( id[3] == UINT_MAX && id[0] == UINT_MAX );
+		}
+		if( del ) {
+			srcface->v1 = UINT_MAX;
+			++face_count;
+		} 
+	}
+
+	/* fix the vertex lookup table, if any verts to delete, do so now */
+	vert_count = make_vertex_table( vert_table, mesh->totvert );
+	if( vert_count )
+		delete_verts( mesh, vert_table, vert_count );
+
+	/* delete faces which have a deleted edge */
+	delete_faces( mesh, vert_table, face_count );
+
+	/* now delete the edges themselves */
+	delete_edges( mesh, vert_table, edge_count );
+
+	/* clean up and return */
+	MEM_freeN( del_table );
+	MEM_freeN( vert_table );
+	MEM_freeN( edge_table );
+	Py_DECREF( args );
+	mesh_update ( mesh );
+	return EXPP_incr_ret( Py_None );
+}
+
 static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 	{"extend", (PyCFunction)MEdgeSeq_extend, METH_VARARGS,
 		"add edges to mesh"},
+	{"delete", (PyCFunction)MEdgeSeq_delete, METH_VARARGS,
+		"delete edges from mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2297,7 +2892,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 }
 
 /*
- * get face's texture flags
+ * get face's texture flag
  */
 
 static PyObject *MFace_getFlag( BPy_MFace *self )
@@ -2318,7 +2913,7 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 }
 
 /*
- * set face's texture flags
+ * set face's texture flag
  */
 
 static int MFace_setFlag( BPy_MFace *self, PyObject *value )
@@ -2949,7 +3544,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	/* verify the param list and get a total count of number of edges */
 	new_face_count = 0;
 	for( i = 0; i < len; ++i ) {
-		tmp = PySequence_Fast_GET_ITEM( args, i );
+		tmp = PySequence_GetItem( args, i );
 
 		/* not a tuple of MVerts... error */
 		if( !PyTuple_Check( tmp ) ||
@@ -2983,11 +3578,19 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		MFace tmpface;
 		unsigned int vert[4]={0,0,0,0};
 		unsigned char order[4]={0,1,2,3};
-		tmp = PySequence_Fast_GET_ITEM( args, i );
+		tmp = PySequence_GetItem( args, i );
 		nverts = PyTuple_Size( tmp );
 
 		if( nverts == 2 )	/* again, ignore 2-vert tuples */
 			break;
+
+		/* get copies of vertices */
+#if 0
+		for( j = 0; j < nverts; ++j ) {
+			BPy_MVert *e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, j );
+			vert[j] = e->index;
+		}
+#endif
 
 		/*
 		 * go through some contortions to guarantee the third and fourth
@@ -3004,7 +3607,9 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 3 );
 			tmpface.v4 = e->index;
 		}
-		eeek_fix( &tmpface, nverts==4 );
+		Py_DECREF( tmp );
+
+		eeek_fix( &tmpface, NULL, nverts==4 );
 		vert[0] = tmpface.v1;
 		vert[1] = tmpface.v2;
 		vert[2] = tmpface.v3;
@@ -3150,6 +3755,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 				tmpface->v2 = tmppair->v[index[1]];
 				tmpface->v3 = tmppair->v[index[2]];
 				tmpface->v4 = tmppair->v[index[3]];
+
 				tmpface->flag = 0;
 				mesh->totface++;
 				++tmpface;
@@ -3166,9 +3772,218 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+struct fourEdges
+{
+	FaceEdges *v[4];
+};
+
+static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
+{
+	unsigned int *face_table;
+	int i, len;
+	Mesh *mesh = self->mesh;
+	MFace *tmpface;
+	int face_count;
+	int edge_also = 0;
+
+	/* check for valid inputs */
+
+	if( PySequence_Size( args ) != 2 ||
+			!PyArg_ParseTuple( args, "iO", &edge_also, &args ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected and int and a sequence of ints or MFaces" );
+   
+	/* see how many args we need to parse */
+	len = PySequence_Size( args );
+	if( len < 1 ) {
+		Py_DECREF( args );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"sequence must contain at least one int or MFace" );
+	}
+
+	face_table = (unsigned int *)MEM_callocN( len*sizeof( unsigned int ),
+			"face_table" );
+
+	/* get the indices of faces to be removed */
+	for( i = len; i--; ) {
+		PyObject *tmp = PySequence_GetItem( args, i );
+		if( BPy_MEdge_Check( tmp ) )
+			face_table[i] = ((BPy_MEdge *)tmp)->index;
+		else if( PyInt_CheckExact( tmp ) )
+			face_table[i] = PyInt_AsLong ( tmp );
+		else {
+			MEM_freeN( face_table );
+			Py_DECREF( tmp );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of ints or MFaces" );
+		}
+		Py_DECREF( tmp );
+
+		/* if index out-of-range, throw exception */
+		if( face_table[i] >= (unsigned int)mesh->totface ) {
+			MEM_freeN( face_table );
+			Py_DECREF( args );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"array index out of range" );
+		}
+	}
+
+	if( edge_also ) {
+	/*
+	 * long version
+	 *
+	 * (1) build sorted table of all edges
+	 * (2) construct face->edge lookup table for all faces
+	 * 	   face->e1 = mesh->medge[i]
+	 * (3) (delete sorted table)
+	 * (4) mark all edges as live
+	 * (5) mark all edges for deleted faces as dead
+	 * (6) mark all edges for remaining faces as live
+	 * (7) delete all dead edges
+	 * (8) (delete face lookup table)
+	 *
+	 */
+
+		FaceEdges *edge_table, *tmp_et;
+		MEdge *tmpedge;
+		FaceEdges **face_edges;
+		FaceEdges **tmp_fe;
+		struct fourEdges *fface;
+		int edge_count;
+
+		edge_table = MEM_mallocN( mesh->totedge*sizeof( FaceEdges ),
+			"edge_table" );
+
+		tmpedge = mesh->medge;
+		tmp_et = edge_table;
+
+		for( i = 0; i < mesh->totedge; ++i ) {
+			if( tmpedge->v1 < tmpedge->v2 ) { 
+				tmp_et->v[0] = tmpedge->v1;
+				tmp_et->v[1] = tmpedge->v2;
+			} else {
+				tmp_et->v[0] = tmpedge->v2;
+				tmp_et->v[1] = tmpedge->v1;
+			}
+			tmp_et->index = i;
+			tmp_et->sel = 1;		/* select each edge */
+			++tmpedge; 
+			++tmp_et;
+		}
+
+		/* sort the edge pairs */
+		qsort( edge_table, mesh->totedge, sizeof(FaceEdges), faceedge_comp );
+
+		/* build face translation table, lookup edges */
+		face_edges = MEM_callocN( 4*sizeof(FaceEdges*)*mesh->totface,
+			"face_edges" );	
+
+		tmp_fe = face_edges;
+		tmpface = mesh->mface;
+		for( i = mesh->totface; i--; ++tmpface ) {
+			FaceEdges *ptrs[4];
+			unsigned int verts[4];
+			int j,k;
+			FaceEdges target;
+			int len=tmpface->v4 ? 4 : 3;
+
+			ptrs[3] = NULL;
+			verts[0] = tmpface->v1;
+			verts[1] = tmpface->v2;
+			verts[2] = tmpface->v3;
+			if(len == 4)
+				verts[3] = tmpface->v4;
+			for( j = 0; j < len; ++j ) {
+				k = (j+1) % len;
+				if( verts[j] < verts[k] ) { 
+					target.v[0] = verts[j];
+					target.v[1] = verts[k];
+				} else {
+					target.v[0] = verts[k];
+					target.v[1] = verts[j];
+				}
+				ptrs[j] = bsearch( &target, edge_table, mesh->totedge,
+							sizeof(FaceEdges), faceedge_comp );
+			}
+			for( j = 0; j < 4; ++j, ++tmp_fe )
+				*tmp_fe = ptrs[j];
+		}
+
+		/* for each face, deselect each edge */
+		tmpface = mesh->mface;
+		face_count = 0;
+		for( i = len; i--; ) {
+			if( tmpface[face_table[i]].v1 != UINT_MAX ) {
+				fface = (void *)face_edges;
+				fface += face_table[i];
+				fface->v[0]->sel = 0;
+				fface->v[1]->sel = 0;
+				fface->v[2]->sel = 0;
+				if( fface->v[3] )
+					fface->v[3]->sel = 0;
+				tmpface[face_table[i]].v1 = UINT_MAX;
+				++face_count;
+			}
+		}
+
+		/* for each face, deselect each edge */
+		tmpface = mesh->mface;
+		fface = (struct fourEdges *)face_edges;
+		for( i = mesh->totface; i--; ++tmpface, ++fface ) {
+			if( tmpface->v1 != UINT_MAX ) {
+				FaceEdges (*face)[4];
+				face = (void *)face_edges;
+				face += face_table[i];
+				fface->v[0]->sel = 1;
+				fface->v[1]->sel = 1;
+				fface->v[2]->sel = 1;
+				if( fface->v[3] )
+					fface->v[3]->sel = 1;
+			}
+		}
+
+		/* now mark the selected edges for deletion */
+
+		edge_count = 0;
+		for( i = 0; i < mesh->totedge; ++i ) {
+			if( !edge_table[i].sel ) {
+				mesh->medge[edge_table[i].index].v1 = UINT_MAX;
+				++edge_count;
+			}
+		}
+
+		if( edge_count )
+			delete_edges( mesh, NULL, edge_count );
+
+		MEM_freeN( face_edges );
+		MEM_freeN( edge_table );
+	} else {
+	/* mark faces to delete */
+		tmpface = mesh->mface;
+		face_count = 0;
+		for( i = len; i--; )
+			if( tmpface[face_table[i]].v1 != UINT_MAX ) {
+				tmpface[face_table[i]].v1 = UINT_MAX;
+				++face_count;
+			}
+	}
+
+	/* delete faces which have a deleted edge */
+	delete_faces( mesh, NULL, face_count );
+
+	/* clean up and return */
+	MEM_freeN( face_table );
+	Py_DECREF( args );
+	mesh_update ( mesh );
+	return EXPP_incr_ret( Py_None );
+}
+
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS,
-		"add faces and edges to mesh"},
+		"add faces to mesh"},
+	{"delete", (PyCFunction)MFaceSeq_delete, METH_VARARGS,
+		"delete faces to mesh"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -3316,15 +4131,350 @@ static PyObject *Mesh_Update( BPy_Mesh * self )
 	return EXPP_incr_ret( Py_None );
 }
 
-// #define MESH_TOOLS
+/*
+ * search for a single edge in mesh's edge list
+ */
+
+static PyObject *Mesh_findEdge( BPy_Mesh * self, PyObject *args )
+{
+	int i;
+	unsigned int v1, v2;
+	PyObject *tmp;
+	MEdge *edge = self->mesh->medge;
+
+	if( EXPP_check_sequence_consistency( args, &MVert_Type ) == 1 &&
+			PySequence_Size( args ) == 2 ) {
+		tmp = PyTuple_GET_ITEM( args, 0 );
+		v1 = ((BPy_MVert *)tmp)->index;
+		tmp = PyTuple_GET_ITEM( args, 1 );
+		v2 = ((BPy_MVert *)tmp)->index;
+	} else if( PyArg_ParseTuple( args, "ii", &v1, &v2 ) ) {
+		if( (int)v1 >= self->mesh->totvert || (int)v2 >= self->mesh->totvert )
+			return EXPP_ReturnPyObjError( PyExc_IndexError,
+					"index out of range" );
+	} else
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"expected tuple of two ints or MVerts" );
+
+	for( i = 0; i < self->mesh->totedge; ++i ) {
+		if( ( edge->v1 == v1 && edge->v2 == v2 )
+				|| ( edge->v1 == v2 && edge->v2 == v1 ) ) {
+			tmp = PyInt_FromLong( i );
+			if( tmp )
+				return tmp;
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"PyInt_FromLong() failed" );
+		}
+		++edge;
+	}
+	return EXPP_incr_ret( Py_None );
+}
+
+/*
+ * search for a group of edges in mesh's edge list
+ */
+
+static PyObject *Mesh_findEdges( PyObject * self, PyObject *args )
+{
+	int len;
+	int i;
+	SrchEdges *oldpair, *tmppair, target, *result;
+	PyObject *list, *tmp;
+	BPy_MVert *v1, *v2;
+	unsigned int index1, index2;
+	MEdge *tmpedge;
+	Mesh *mesh = ((BPy_Mesh *)self)->mesh;
+
+	/* if no edges, nothing to do */
+
+	if( !mesh->totedge )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"mesh has no edges" );
+
+	/* make sure we get a sequence of tuples of something */
+
+	tmp = PyTuple_GET_ITEM( args, 0 );
+	switch( PySequence_Size ( args ) ) {
+	case 1:		/* better be a list or a tuple */
+		if( !PySequence_Check ( tmp ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected a sequence of tuple int or MVert pairs" );
+		args = tmp;
+		Py_INCREF( args );		/* so we can safely DECREF later */
+		break;
+	case 2:		/* take any two args and put into a tuple */
+		if( PyTuple_Check( tmp ) )
+			Py_INCREF( args );	/* if first arg is a tuple, assume both are */
+		else {
+			args = Py_BuildValue( "((OO))", tmp, PyTuple_GET_ITEM( args, 1 ) );
+			if( !args )
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"Py_BuildValue() failed" );
+		}
+		break;
+	default:	/* anything else is definitely wrong */
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected a sequence of tuple pairs" );
+	}
+
+	len = PySequence_Size( args );
+	if( len == 0 ) {
+		Py_DECREF( args );
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected at least one tuple" );
+	}
+
+	/* if a single edge, handle the simpler way */
+	if( len == 1 ) {
+		PyObject *result;
+		tmp = PySequence_GetItem( args, 0 );
+		result = Mesh_findEdge( (BPy_Mesh *)self, tmp );
+		Py_DECREF( tmp );
+		Py_DECREF( args );
+		return result;
+	}
+
+	/* build a list of all edges so we can search */
+	oldpair = (SrchEdges *)MEM_callocN( sizeof(SrchEdges)*mesh->totedge,
+			"MEdgePairs" );
+
+	tmppair = oldpair;
+	tmpedge = mesh->medge;
+	for( i = 0; i < mesh->totedge; ++i ) {
+		if( tmpedge->v1 < tmpedge->v2 ) {
+			tmppair->v[0] = tmpedge->v1;
+			tmppair->v[1] = tmpedge->v2;
+		} else {
+			tmppair->v[0] = tmpedge->v2;
+			tmppair->v[1] = tmpedge->v1;
+		}
+		tmppair->index = i;
+		++tmpedge;
+		++tmppair;
+	}
+
+	/* sort the old edge pairs */
+	qsort( oldpair, mesh->totedge, sizeof(SrchEdges), medge_comp );
+
+	list = PyList_New( len );
+	if( !len )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+
+	/* scan the input list, find vert pairs, then search the edge list */
+
+	for( i = 0; i < len; ++i ) {
+		tmp = PySequence_GetItem( args, i );
+		if( !PyTuple_Check( tmp ) || PyTuple_Size( tmp ) != 2 ) {
+			MEM_freeN( oldpair );
+			Py_DECREF( tmp );
+			Py_DECREF( args );
+			Py_DECREF( list );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected tuple pair" );
+		}
+
+		/* get objects, check that they are both MVerts of this mesh */
+		v1 = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 0 );
+		v2 = (BPy_MVert *)PyTuple_GET_ITEM( tmp, 1 );
+		Py_DECREF ( tmp );
+		if( BPy_MVert_Check( v1 ) && BPy_MVert_Check( v2 ) ) {
+			if( v1->data != (void *)mesh || v2->data != (void *)mesh ) {
+				MEM_freeN( oldpair );
+				Py_DECREF( args );
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"one or both MVerts do not belong to this mesh" );
+			}
+			index1 = v1->index;
+			index2 = v2->index;
+		} else if( PyInt_CheckExact( v1 ) && PyInt_CheckExact( v2 ) ) {
+			index1 = PyInt_AsLong( (PyObject *)v1 );
+			index2 = PyInt_AsLong( (PyObject *)v2 );
+			if( (int)index1 >= mesh->totvert
+					|| (int)index2 >= mesh->totvert ) {
+				MEM_freeN( oldpair );
+				Py_DECREF( args );
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_IndexError,
+						"index out of range" );
+			}
+		} else {
+			MEM_freeN( oldpair );
+			Py_DECREF( args );
+			Py_DECREF( list );
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected tuple to contain MVerts" );
+		}
+
+		/* sort verts into order */
+		if( index1 < index2 ) {
+			target.v[0] = index1;
+			target.v[1] = index2;
+		} else {
+			target.v[0] = index2;
+			target.v[1] = index1;
+		}
+
+		/* search edge list for a match; result is index or None */
+		result = bsearch( &target, oldpair, mesh->totedge,
+				sizeof(SrchEdges), medge_comp );
+		if( result )
+			tmp = PyInt_FromLong( result->index );
+		else
+			tmp = EXPP_incr_ret( Py_None );
+		if( !tmp ) {
+			MEM_freeN( oldpair );
+			Py_DECREF( args );
+			Py_DECREF( list );
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyInt_FromLong() failed" );
+		}
+		PyList_SET_ITEM( list, i, tmp );
+	}
+
+	MEM_freeN( oldpair );
+	Py_DECREF ( args );
+	return list;
+}
+
+/*
+ * replace mesh data with mesh data from another object
+ */
+
+static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
+{
+	Object *ob;
+	char *name;
+	ID tmpid;
+	Mesh *tmpmesh;
+	Object *tmpobj = NULL;
+
+	if( !PyArg_ParseTuple( args, "s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected string argument" );
+
+	/* find the specified object */
+	ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
+	if( !ob )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
+
+	/* perform the mesh extraction based on type */
+ 	switch (ob->type) {
+ 	case OB_FONT:
+ 	case OB_CURVE:
+ 	case OB_SURF:
+		tmpobj = alloc_libblock( &( G.main->object ), ID_OB, "i_tmp" );
+		tmpobj->id.us = 1;
+		tmpobj->flag = 0;
+		tmpobj->type = ob->type;
+		tmpobj->data = copy_curve( (Curve *) ob->data );
+		makeDispListCurveTypes( tmpobj, 0 );
+		nurbs_to_mesh( tmpobj );
+		tmpmesh = tmpobj->data;
+		free_libblock_us( &G.main->object, tmpobj );
+ 		break;
+ 	case OB_MBALL:
+		ob = find_basis_mball( ob );
+		tmpmesh = add_mesh();
+		mball_to_mesh( &ob->disp, tmpmesh );
+ 		break;
+ 	case OB_MESH:
+		tmpmesh = copy_mesh( (Mesh *) ob->data );
+		tmpmesh->id.us = 0;
+		break;
+ 	default:
+ 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"Object does not have geometry data" );
+  	}
+
+	/* free mesh data in the original */
+	free_mesh( self->mesh );
+	/* save a copy of our ID, dup the temporary mesh, restore the ID */
+	tmpid = self->mesh->id;
+	memcpy( self->mesh, tmpmesh, sizeof( Mesh ) );
+	self->mesh->id= tmpid;
+	/* remove the temporary mesh */
+	BLI_remlink( &G.main->mesh, tmpmesh );
+	MEM_freeN( tmpmesh );
+
+	mesh_update( self->mesh );
+	return EXPP_incr_ret( Py_None );
+}
+
+/*
+ * apply a transform to the mesh's vertices
+ *
+ * WARNING: unlike NMesh, this method ALWAYS changes the original mesh
+ */
+
+static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
+{
+	Mesh *mesh = self->mesh;
+	MVert *mv;
+	PyObject *ob1 = NULL;
+	MatrixObject *mat;
+	int i, recalc_normals = 0;
+
+	if( !PyArg_ParseTuple( args, "O!|i", &matrix_Type, &ob1, &recalc_normals ) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected matrix and optionally an int as arguments" ) );
+
+	mat = ( MatrixObject * ) ob1;
+
+	if( mat->colSize != 4 || mat->rowSize != 4 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"matrix must be a 4x4 transformation matrix\n"
+				"for example as returned by object.getMatrix()" );
+	
+	/* loop through all the verts and transform by the supplied matrix */
+	mv = mesh->mvert;
+	for( i = 0; i < mesh->totvert; i++, mv++ )
+		Mat4MulVecfl( (float(*)[4])*mat->matrix, mv->co );
+
+	if( recalc_normals ) {
+		/* loop through all the verts and transform normals by the inverse
+		 * of the transpose of the supplied matrix */
+		float invmat[4][4];
+
+		/*
+		 * we only need to invert a 3x3 submatrix, because the 4th component of
+		 * affine vectors is 0, but Mat4Invert reports non invertible matrices
+		 */
+
+		if (!Mat4Invert((float(*)[4])*invmat, (float(*)[4])*mat->matrix))
+			return EXPP_ReturnPyObjError (PyExc_AttributeError,
+				"given matrix is not invertible");
+
+		/*
+		 * since normal is stored as shorts, convert to float 
+		 */
+
+		mv = mesh->mvert;
+		for( i = 0; i < mesh->totvert; i++, mv++ ) {
+			float vec[3];
+			vec[0] = (float)mv->no[0] / 32767.0;
+			vec[1] = (float)mv->no[1] / 32767.0;
+			vec[2] = (float)mv->no[2] / 32767.0;
+			Mat4MulVecfl( (float(*)[4])*invmat, vec );
+			Normalise( vec );
+			mv->no[0] = (short)(vec[0] * 32767.0);
+			mv->no[1] = (short)(vec[1] * 32767.0);
+			mv->no[2] = (short)(vec[2] * 32767.0);
+		}
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
 
 #ifdef MESH_TOOLS
 
-static PyObject *Mesh_Tools( BPy_Mesh * self, int type )
+static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
+	Base *base;
+	int result;
 	Object *object = NULL; 
-	Base *basact = BASACT;
-	Base *base = FIRSTBASE;
+	PyObject *attr = NULL;
 
 	/* if already in edit mode, exit */
 
@@ -3352,15 +4502,38 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type )
 	G.obedit = object;
 	enter_editmode( );
 	switch( type ) {
-	case B_SUBDIV:
-		esubdivideflag(1, 0.0, 
-				G.scene->toolsettings->editbutflag & B_BEAUTY,1,0);
+	case MESH_TOOL_TOSPHERE:
+		vertices_to_sphere();
 		break;
-	case B_VERTEXSMOOTH:
+	case MESH_TOOL_VERTEXSMOOTH:
 		vertexsmooth();
+		break;
+	case MESH_TOOL_FLIPNORM:
+		/* would be simple to rewrite this to not use edit mesh */
+		/* see flipface() */
+		flip_editnormals();
+		break;
+	case MESH_TOOL_SUBDIV:
+		esubdivideflag( 1, 0.0, *((int *)args[0]), 1, 0 );
+		break;
+	case MESH_TOOL_REMDOUB:
+		result = removedoublesflag( 1, *((float *)args[0]) );
+
+    	attr = PyInt_FromLong( result );
+		if( !attr )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"PyInt_FromLong() failed" );
+	case MESH_TOOL_FILL:
+		fill_mesh();
+		break;
+	case MESH_TOOL_RECALCNORM:
+		righthandfaces( *((int *)args[0]) );
 		break;
 	}
 	exit_editmode( 1 );
+	if( attr )
+		return attr;
+
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -3368,18 +4541,93 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type )
  * "Subdivide" function
  */
 
-static PyObject *Mesh_Subdivide( BPy_Mesh * self )
+static PyObject *Mesh_subdivide( BPy_Mesh * self, PyObject * args )
 {
-	return Mesh_Tools( self, B_SUBDIV );
+	int beauty = 0;
+	void *params = &beauty;
+
+	if( !PyArg_ParseTuple( args, "|i", &beauty ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected nothing or an int argument" );
+
+	return Mesh_Tools( self, MESH_TOOL_SUBDIV, &params );
 }
 
 /*
  * "Smooth" function
  */
 
-static PyObject *Mesh_Smooth( BPy_Mesh * self )
+static PyObject *Mesh_smooth( BPy_Mesh * self )
 {
-	return Mesh_Tools( self, B_VERTEXSMOOTH );
+	return Mesh_Tools( self, MESH_TOOL_VERTEXSMOOTH, NULL );
+}
+
+/*
+ * "Remove doubles" function
+ */
+
+static PyObject *Mesh_removeDoubles( BPy_Mesh * self, PyObject *args )
+{
+	float limit;
+	void *params = &limit;
+
+	if( !PyArg_ParseTuple( args, "f", &limit ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected float argument" );
+
+	limit = EXPP_ClampFloat( limit, 0.0f, 1.0f );
+
+	return Mesh_Tools( self, MESH_TOOL_REMDOUB, &params );
+}
+
+/*
+ * "recalc normals" function
+ */
+
+static PyObject *Mesh_recalcNormals( BPy_Mesh * self, PyObject *args )
+{
+	int direction = 0;
+	void *params = &direction;
+
+	if( !PyArg_ParseTuple( args, "|i", &direction ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected nothing or an int in range [0,1]" );
+
+	if( direction < 0 || direction > 1 )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected int in range [0,1]" );
+
+	/* righthandfaces(1) = outward, righthandfaces(2) = inward */
+	++direction;
+
+	return Mesh_Tools( self, MESH_TOOL_RECALCNORM, &params );
+}
+
+/*
+ * "Flip normals" function
+ */
+
+static PyObject *Mesh_flipNormals( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_FLIPNORM, NULL );
+}
+
+/*
+ * "To sphere" function
+ */
+
+static PyObject *Mesh_toSphere( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_TOSPHERE, NULL );
+}
+
+/*
+ * "Fill" (scan fill) function
+ */
+
+static PyObject *Mesh_fill( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_FILL, NULL );
 }
 
 #endif
@@ -3389,13 +4637,29 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"all recalculate vertex normals"},
 	{"vertexShade", (PyCFunction)Mesh_vertexShade, METH_VARARGS,
 		"color vertices based on the current lighting setup"},
+	{"findEdges", (PyCFunction)Mesh_findEdges, METH_VARARGS,
+		"find indices of an multiple edges in the mesh"},
+	{"getFromObject", (PyCFunction)Mesh_getFromObject, METH_VARARGS,
+		"Get a mesh by name"},
 	{"update", (PyCFunction)Mesh_Update, METH_NOARGS,
 		"Update display lists after changes to mesh"},
+	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS,
+		"Applies a transformation matrix to mesh's vertices"},
 #ifdef MESH_TOOLS
-	{"subdivide", (PyCFunction)Mesh_Subdivide, METH_NOARGS,
-		"Subdivide selected edges in a mesh (experimental)"},
-	{"smooth", (PyCFunction)Mesh_Smooth, METH_NOARGS,
+	{"smooth", (PyCFunction)Mesh_smooth, METH_NOARGS,
 		"Flattens angle of selected faces (experimental)"},
+	{"flipNormals", (PyCFunction)Mesh_flipNormals, METH_NOARGS,
+		"Toggles the direction of selected face's normals (experimental)"},
+	{"toSphere", (PyCFunction)Mesh_toSphere, METH_NOARGS,
+		"Moves selected vertices outward in a spherical shape (experimental)"},
+	{"fill", (PyCFunction)Mesh_fill, METH_NOARGS,
+		"Scan fill a closed edge loop (experimental)"},
+	{"subdivide", (PyCFunction)Mesh_subdivide, METH_VARARGS,
+		"Subdivide selected edges in a mesh (experimental)"},
+	{"remDoubles", (PyCFunction)Mesh_removeDoubles, METH_VARARGS,
+		"Removes duplicates from selected vertices (experimental)"},
+	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
+		"Recalculates inside or outside normals (experimental)"},
 #endif
 	{NULL, NULL, 0, NULL}
 };
@@ -3411,6 +4675,56 @@ static PyObject *Mesh_getVerts( BPy_Mesh * self )
 	BPy_MVertSeq *seq = PyObject_NEW( BPy_MVertSeq, &MVertSeq_Type);
 	seq->mesh = self->mesh;
 	return (PyObject *)seq;
+}
+
+static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
+{
+	static int disabled = 0;
+	MVert *dst;
+	MVert *src;
+	char err[256];
+	int i;
+	
+	if( disabled ) {
+		sprintf( err, "attribute 'verts' of '%s' objects is not writable",
+				self->ob_type->tp_name );
+		return EXPP_ReturnIntError( PyExc_TypeError, err );
+	}
+
+	if( PyList_Check( args ) ) {
+		if( EXPP_check_sequence_consistency( args, &MVert_Type ) != 1 &&
+			  EXPP_check_sequence_consistency( args, &PVert_Type ) != 1 )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected a list of MVerts" );
+
+		if( PyList_Size( args ) != self->mesh->totvert )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"list must have the same number of vertices as the mesh" );
+
+		dst = self->mesh->mvert;
+		for( i = 0; i < PyList_Size( args ); ++i ) {
+			BPy_MVert *v = (BPy_MVert *)PyList_GET_ITEM( args, i );
+
+			if( BPy_MVert_Check( v ) )
+				src = &((Mesh *)v->data)->mvert[v->index];
+			else
+				src = (MVert *)v->data;
+
+			memcpy( dst, src, sizeof(MVert) );
+			++dst;
+		}
+	} else if( args->ob_type == &MVertSeq_Type ) {
+		Mesh *mesh = ( (BPy_MVertSeq *) args)->mesh;
+
+		if( mesh->totvert != self->mesh->totvert )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"vertex sequences must have the same number of vertices" );
+
+		memcpy( self->mesh->mvert, mesh->mvert, mesh->totvert*sizeof(MVert) );
+	} else
+		return EXPP_ReturnIntError( PyExc_TypeError, 
+				"expected a list or sequence of MVerts" );
+	return 0;
 }
 
 static PyObject *Mesh_getEdges( BPy_Mesh * self )
@@ -3715,7 +5029,7 @@ static PyObject *Mesh_repr( BPy_Mesh * self )
 /*****************************************************************************/
 static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"verts",
-	 (getter)Mesh_getVerts, (setter)NULL,
+	 (getter)Mesh_getVerts, (setter)Mesh_setVerts,
 	 "The mesh's vertices (MVert)",
 	 NULL},
 	{"edges",
@@ -3921,6 +5235,7 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
 {
 	char *name = "Mesh";
+	PyObject *ret = NULL;
 	Mesh *mesh;
 	BPy_Mesh *obj;
 	char buf[21];
@@ -3969,7 +5284,7 @@ static PyObject *M_Mesh_MVert( PyObject * self, PyObject * args )
 	 */
 
 	if( PyTuple_Size ( args ) == 1 ) {
-		PyObject *tmp = PySequence_Fast_GET_ITEM( args, 0 );
+		PyObject *tmp = PyTuple_GET_ITEM( args, 0 );
 		if( !VectorObject_Check( tmp ) || ((VectorObject *)tmp)->size != 3 )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected three floats or vector of size 3" );
