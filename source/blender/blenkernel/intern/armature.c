@@ -667,6 +667,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	MDeformVert *dverts= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope= arm->deformflag & ARM_DEF_ENVELOPE;
+	int numGroups= 0;   /* safety for vertexgroup index overflow too */
 	int i;
 
 	Mat4Invert(obinv, target->obmat);
@@ -687,9 +688,10 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	/* get a vertex-deform-index to posechannel array */
 	if(arm->deformflag & ARM_DEF_VGROUP) {
 		if (target->type==OB_MESH){
-			int numGroups = BLI_countlist(&target->defbase);
 			bDeformGroup *dg;
 		
+			numGroups = BLI_countlist(&target->defbase);
+			
 			dverts = ((Mesh*)target->data)->dvert;
 			if(dverts) {
 				defnrToPC = MEM_callocN(sizeof(*defnrToPC)*numGroups, "defnrToBone");
@@ -726,7 +728,8 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 			int deformed= 0;
 			
 			for (j=0; j<dvert->totweight; j++){
-				pchan = defnrToPC[dvert->dw[j].def_nr];
+				int index= dvert->dw[j].def_nr;
+				pchan = index<numGroups?defnrToPC[index]:NULL;
 				if (pchan) {
 					float weight= dvert->dw[j].weight;
 					Bone *bone= pchan->bone;
