@@ -2321,6 +2321,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 	len = PySequence_Size( args );
 	tmppair = newpair;
 	for( i = 0; i < len; ++i ) {
+		int edge_count;
 		tmp = PySequence_GetItem( args, i );
 		nverts = PyTuple_Size( tmp );
 
@@ -2330,10 +2331,12 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		Py_DECREF( tmp );
 
 		if( nverts == 2 )
-			nverts = 1;	/* again, two verts give just one edge */
+			edge_count = 1;	 /* again, two verts give just one edge */
+		else
+			edge_count = nverts;	
 
 		/* now add the edges to the search list */
-		for(j = 0; j < nverts; ++j ) {
+		for(j = 0; j < edge_count; ++j ) {
 			int k = j+1;
 			if( k == nverts )	/* final edge */ 
 				k = 0;
