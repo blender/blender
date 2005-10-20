@@ -54,7 +54,7 @@ int object_deform_mball(struct Object *ob);
 void outside_lattice(struct Lattice *lt);
 void curve_deform_verts(struct Object *cuOb, struct Object *target, float (*vertexCos)[3], int numVerts);
 void lattice_deform_verts(struct Object *laOb, struct Object *target, float (*vertexCos)[3], int numVerts);
-void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts);
+void armature_deform_verts(struct Object *armOb, struct Object *target, float (*vertexCos)[3], int numVerts, int deformflag);
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
 void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);
 void lattice_calc_modifiers(struct Object *ob);

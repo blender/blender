@@ -105,6 +105,8 @@ typedef struct WaveModifierData {
 typedef struct ArmatureModifierData {
 	ModifierData modifier;
 
+	short deformflag, pad1;		/* deformflag replaces armature->deformflag */
+	int pad2;
 	struct Object *object;
 } ArmatureModifierData;
 

@@ -660,13 +660,12 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, flo
 	(*contrib)+=weight;
 }
 
-void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts) 
+void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag) 
 {
-	bArmature *arm= armOb->data;
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts= NULL;
 	float obinv[4][4], premat[4][4], postmat[4][4];
-	int use_envelope= arm->deformflag & ARM_DEF_ENVELOPE;
+	int use_envelope= deformflag & ARM_DEF_ENVELOPE;
 	int numGroups= 0;   /* safety for vertexgroup index overflow too */
 	int i;
 
@@ -686,7 +685,7 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	}
 
 	/* get a vertex-deform-index to posechannel array */
-	if(arm->deformflag & ARM_DEF_VGROUP) {
+	if(deformflag & ARM_DEF_VGROUP) {
 		if (target->type==OB_MESH){
 			bDeformGroup *dg;
 		

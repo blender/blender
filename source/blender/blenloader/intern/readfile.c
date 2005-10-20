@@ -4985,6 +4985,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	if(main->versionfile <= 239) {
+		Object *ob;
+		
+		/* deformflag is local in modifier now */
+		for(ob=main->object.first; ob; ob= ob->id.next) {
+			ModifierData *md;
+			
+			for (md=ob->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Armature) {
+					ArmatureModifierData *amd = (ArmatureModifierData*) md;
+					if(amd->object && amd->deformflag==0) {
+						Object *oba= newlibadr(fd, lib, amd->object);
+						bArmature *arm= newlibadr(fd, lib, oba->data);
+						amd->deformflag= arm->deformflag;
+					}
+				}
+			}
+		}			
+	}
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

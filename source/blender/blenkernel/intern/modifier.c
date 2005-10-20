@@ -8,13 +8,15 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
+#include "DNA_effect_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_effect_types.h"
 #include "DNA_scene_types.h"
+
 #include "BLI_editVert.h"
 
 #include "BKE_bad_level_calls.h"
@@ -972,6 +974,7 @@ static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 	ArmatureModifierData *tamd = (ArmatureModifierData*) target;
 
 	tamd->object = amd->object;
+	tamd->deformflag = amd->deformflag;
 }
 
 static int armatureModifier_isDisabled(ModifierData *md)
@@ -1003,14 +1006,14 @@ static void armatureModifier_deformVerts(ModifierData *md, Object *ob, void *der
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
-	armature_deform_verts(amd->object, ob, vertexCos, numVerts);
+	armature_deform_verts(amd->object, ob, vertexCos, numVerts, amd->deformflag);
 }
 
 static void armatureModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
-	armature_deform_verts(amd->object, ob, vertexCos, numVerts);
+	armature_deform_verts(amd->object, ob, vertexCos, numVerts, amd->deformflag);
 }
 
 /* Hook */
@@ -1535,6 +1538,7 @@ ModifierData *modifiers_getVirtualModifierList(Object *ob)
 		if(ob->parent->type==OB_ARMATURE && ob->partype==PARSKEL) {
 			amd.object = ob->parent;
 			amd.modifier.next = ob->modifiers.first;
+			amd.deformflag= ((bArmature *)(ob->parent->data))->deformflag;
 			return &amd.modifier;
 		} else if(ob->parent->type==OB_CURVE && ob->partype==PARSKEL) {
 			cmd.object = ob->parent;
