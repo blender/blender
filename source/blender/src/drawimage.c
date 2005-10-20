@@ -924,10 +924,61 @@ static void image_blockhandlers(ScrArea *sa)
 	uiDrawBlocksPanels(sa, 0);
 }
 
-
+static void imagespace_grid(SpaceImage *sima)
+{
+	float gridsize, gridstep= 1.0f/32.0f;
+	float fac, blendfac;
+	
+	gridsize= sima->zoom;
+	
+	if(gridsize<=0.0f) return;
+	
+	if(gridsize<1.0f) {
+		while(gridsize<1.0f) {
+			gridsize*= 4.0;
+			gridstep*= 4.0;
+		}
+	}
+	else {
+		while(gridsize>=4.0f) {
+			gridsize/= 4.0;
+			gridstep/= 4.0;
+		}
+	}
+	
+	/* the fine resolution level */
+	blendfac= 0.25*gridsize - floor(0.25*gridsize);
+	CLAMP(blendfac, 0.0, 1.0);
+	BIF_ThemeColorShade(TH_BACK, (int)(20.0*(1.0-blendfac)));
+	
+	fac= 0.0f;
+	glBegin(GL_LINES);
+	while(fac<1.0) {
+		glVertex2f(0.0f, fac);
+		glVertex2f(1.0f, fac);
+		glVertex2f(fac, 0.0f);
+		glVertex2f(fac, 1.0f);
+		fac+= gridstep;
+	}
+	
+	/* the large resolution level */
+	BIF_ThemeColor(TH_BACK);
+	
+	fac= 0.0f;
+	while(fac<1.0) {
+		glVertex2f(0.0f, fac);
+		glVertex2f(1.0f, fac);
+		glVertex2f(fac, 0.0f);
+		glVertex2f(fac, 1.0f);
+		fac+= 4.0*gridstep;
+	}
+	glEnd();
+	
+}
 
 void drawimagespace(ScrArea *sa, void *spacedata)
 {
+	SpaceImage *sima= spacedata;
 	ImBuf *ibuf= NULL;
 	float col[3];
 	unsigned int *rect;
@@ -939,7 +990,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		 * are normally done in drawview and could get here before
 		 * drawing a View3D.
 		 */
-	if (!G.obedit && OBACT && (G.sima->flag&SI_DRAWSHADOW)) {
+	if (!G.obedit && OBACT && (sima->flag & SI_DRAWSHADOW)) {
 		object_handle_update(OBACT);
 	}
 
@@ -950,48 +1001,50 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	bwin_clear_viewmat(sa->win);	/* clear buttons view */
 	glLoadIdentity();
 	
-	what_image(G.sima);
+	what_image(sima);
 	
-	if(G.sima->image) {
-		if(G.sima->image->ibuf==0) {
-			load_image(G.sima->image, IB_rect, G.sce, G.scene->r.cfra);
+	if(sima->image) {
+		if(sima->image->ibuf==0) {
+			load_image(sima->image, IB_rect, G.sce, G.scene->r.cfra);
 		}	
-		tag_image_time(G.sima->image);
-		ibuf= G.sima->image->ibuf;
+		tag_image_time(sima->image);
+		ibuf= sima->image->ibuf;
 	}
-	if(ibuf==0 || ibuf->rect==0) {
-		calc_image_view(G.sima, 'f');
+	
+	if(ibuf==NULL || ibuf->rect==NULL) {
+		calc_image_view(sima, 'f');
 		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-		cpack(0x404040);
+		BIF_ThemeColorShade(TH_BACK, 20);
 		glRectf(0.0, 0.0, 1.0, 1.0);
+		imagespace_grid(sima);
 		draw_tfaces();
 	}
 	else {
 		/* calc location */
-		x1= (curarea->winx-G.sima->zoom*ibuf->x)/2;
-		y1= (curarea->winy-G.sima->zoom*ibuf->y)/2;
+		x1= (curarea->winx-sima->zoom*ibuf->x)/2;
+		y1= (curarea->winy-sima->zoom*ibuf->y)/2;
 	
-		x1-= G.sima->zoom*G.sima->xof;
-		y1-= G.sima->zoom*G.sima->yof;
+		x1-= sima->zoom*sima->xof;
+		y1-= sima->zoom*sima->yof;
 		
 		/* needed for gla draw */
 		glaDefine2DArea(&curarea->winrct);
-		glPixelZoom((float)G.sima->zoom, (float)G.sima->zoom);
+		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
-		if(G.sima->flag & SI_EDITTILE) {
+		if(sima->flag & SI_EDITTILE) {
 			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
 			
 			glPixelZoom(1.0, 1.0);
 			
-			dx= ibuf->x/G.sima->image->xrep;
-			dy= ibuf->y/G.sima->image->yrep;
-			sy= (G.sima->curtile / G.sima->image->xrep);
-			sx= G.sima->curtile - sy*G.sima->image->xrep;
+			dx= ibuf->x/sima->image->xrep;
+			dy= ibuf->y/sima->image->yrep;
+			sy= (sima->curtile / sima->image->xrep);
+			sx= sima->curtile - sy*sima->image->xrep;
 	
 			sx*= dx;
 			sy*= dy;
 			
-			calc_image_view(G.sima, 'p');	/* pixel */
+			calc_image_view(sima, 'p');	/* pixel */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			
 			cpack(0x0);
@@ -999,22 +1052,22 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			cpack(0xFFFFFF);
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); glRects(sx+1,  sy+1,  sx+dx,  sy+dy); glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		}
-		else if(G.sima->mode==SI_TEXTURE) {
+		else if(sima->mode==SI_TEXTURE) {
 			
-			if(G.sima->image->tpageflag & IMA_TILES) {
+			if(sima->image->tpageflag & IMA_TILES) {
 				
 				/* just leave this a while */
-				if(G.sima->image->xrep<1) return;
-				if(G.sima->image->yrep<1) return;
+				if(sima->image->xrep<1) return;
+				if(sima->image->yrep<1) return;
 				
-				if(G.sima->curtile >= G.sima->image->xrep*G.sima->image->yrep) 
-					G.sima->curtile = G.sima->image->xrep*G.sima->image->yrep - 1; 
+				if(sima->curtile >= sima->image->xrep*sima->image->yrep) 
+					sima->curtile = sima->image->xrep*sima->image->yrep - 1; 
 				
-				dx= ibuf->x/G.sima->image->xrep;
-				dy= ibuf->y/G.sima->image->yrep;
+				dx= ibuf->x/sima->image->xrep;
+				dy= ibuf->y/sima->image->yrep;
 				
-				sy= (G.sima->curtile / G.sima->image->xrep);
-				sx= G.sima->curtile - sy*G.sima->image->xrep;
+				sy= (sima->curtile / sima->image->xrep);
+				sx= sima->curtile - sy*sima->image->xrep;
 		
 				sx*= dx;
 				sy*= dy;
@@ -1024,7 +1077,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				/* rect= ibuf->rect; */
 				for(sy= 0; sy+dy<=ibuf->y; sy+= dy) {
 					for(sx= 0; sx+dx<=ibuf->x; sx+= dx) {
-						glaDrawPixelsSafe(x1+sx*G.sima->zoom, y1+sy*G.sima->zoom, dx, dy, rect);
+						glaDrawPixelsSafe(x1+sx*sima->zoom, y1+sy*sima->zoom, dx, dy, rect);
 					}
 				}
 				
@@ -1043,8 +1096,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 
 				if(clonerect) {
 					int offx, offy;
-					offx = G.sima->zoom*ibuf->x * + Gip.clone.offset[0];
-					offy = G.sima->zoom*ibuf->y * + Gip.clone.offset[1];
+					offx = sima->zoom*ibuf->x * + Gip.clone.offset[0];
+					offy = sima->zoom*ibuf->y * + Gip.clone.offset[1];
 
 					glEnable(GL_BLEND);
 					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1060,7 +1113,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			draw_tfaces();
 		}
 	
-		calc_image_view(G.sima, 'f');	/* float */
+		calc_image_view(sima, 'f');	/* float */
 	}
 
 	draw_image_transform(ibuf);
@@ -1072,7 +1125,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	draw_area_emboss(sa);
 
 	/* it is important to end a view in a transform compatible with buttons */
-	bwin_scalematrix(sa->win, G.sima->blockscale, G.sima->blockscale, G.sima->blockscale);
+	bwin_scalematrix(sa->win, sima->blockscale, sima->blockscale, sima->blockscale);
 	image_blockhandlers(sa);
 
 	curarea->win_swap= WIN_BACK_OK;
