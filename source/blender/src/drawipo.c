@@ -50,6 +50,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -383,7 +384,62 @@ int in_ipo_buttons(void)
 	else return 1;
 }
 
+static View2D *spacelink_get_view2d(SpaceLink *sl)
+{
+	if(sl->spacetype==SPACE_IPO) 
+		return &((SpaceIpo *)sl)->v2d;
+	else if(sl->spacetype==SPACE_SOUND) 
+		return &((SpaceSound *)sl)->v2d;
+	if(sl->spacetype==SPACE_ACTION) 
+		return &((SpaceAction *)sl)->v2d;
+	if(sl->spacetype==SPACE_NLA) 
+		return &((SpaceNla *)sl)->v2d;
+	if(sl->spacetype==SPACE_TIME) 
+		return &((SpaceTime *)sl)->v2d;
+	
+	return NULL;
+}
 
+/* copies changes in this view from or to all 2d views with lock option open */
+void view2d_do_locks(ScrArea *cursa, int flag)
+{
+	ScrArea *sa;
+	View2D *v2d, *curv2d;
+	SpaceLink *sl;
+	
+	curv2d= spacelink_get_view2d(cursa->spacedata.first);
+	if(curv2d==NULL) return;
+	if((curv2d->flag & V2D_VIEWLOCK)==0) return;
+
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa!=cursa) {
+			for(sl= sa->spacedata.first; sl; sl= sl->next) {
+				
+				v2d= spacelink_get_view2d(sl);
+				if(v2d) {
+					if(v2d->flag & V2D_VIEWLOCK) {
+						if(flag & V2D_LOCK_COPY) {
+							v2d->cur.xmin= curv2d->cur.xmin;
+							v2d->cur.xmax= curv2d->cur.xmax;
+						}
+						else {
+							curv2d->cur.xmin= v2d->cur.xmin;
+							curv2d->cur.xmax= v2d->cur.xmax;
+							scrarea_queue_winredraw(sa);
+						}
+						
+						if(flag & V2D_LOCK_REDRAW)
+							scrarea_do_windraw(sa);
+						else
+							scrarea_queue_winredraw(sa);
+					}
+				}
+			}
+		}
+	}
+}
+
+/* event based, note: curarea is in here... */
 void view2d_zoom(View2D *v2d, float factor, int winx, int winy) 
 {
 	float dx= factor*(v2d->cur.xmax-v2d->cur.xmin);
@@ -397,6 +453,7 @@ void view2d_zoom(View2D *v2d, float factor, int winx, int winy)
 		v2d->cur.ymax-= dy;
 	}
 	test_view2d(v2d, winx, winy);
+	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
 
@@ -2159,6 +2216,8 @@ int view2dzoom(unsigned short event)
 			}
 		
 			test_view2d(G.v2d, curarea->winx, curarea->winy);	/* cur min max rects */
+			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
+			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 		}
@@ -2177,17 +2236,14 @@ void center_currframe(void)
 	 */
 	float width;
   
-	areawinset(curarea->win);
-	curarea->head_swap= 0;
-
 	width = G.v2d->cur.xmax - G.v2d->cur.xmin;
 	G.v2d->cur.xmin = CFRA - 0.5*(width);
 	G.v2d->cur.xmax = CFRA + 0.5*(width);
 
 	test_view2d(G.v2d, curarea->winx, curarea->winy);
-	scrarea_do_windraw(curarea);
-	screen_swapbuffers();
-	curarea->head_swap= 0;
+	view2d_do_locks(curarea, V2D_LOCK_COPY);
+
+	scrarea_queue_winredraw(curarea);
 }
 
 /* total mess function, especially with mousewheel, needs cleanup badly (ton) */
@@ -2334,6 +2390,7 @@ int view2dmove(unsigned short event)
 			G.v2d->cur.ymax+= right*dy;
 				
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
 				
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();

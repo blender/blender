@@ -82,6 +82,7 @@
 #define ACTMENU_VIEW_PLAYALL    3
 #define ACTMENU_VIEW_ALL        4
 #define ACTMENU_VIEW_MAXIMIZE   5
+#define ACTMENU_VIEW_LOCK		6
 
 #define ACTMENU_SEL_BORDER      0
 #define ACTMENU_SEL_ALL_KEYS    1
@@ -152,7 +153,7 @@ void do_action_buttons(unsigned short event)
 			
 			G.v2d->tot= G.v2d->cur;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
-
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 
 			addqueue (curarea->win, REDRAW, 1);
 
@@ -210,6 +211,11 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_ALL: /* View All */
 			do_action_buttons(B_ACTHOME);
 			break;
+		case ACTMENU_VIEW_LOCK:
+			G.v2d->flag ^= V2D_VIEWLOCK;
+			if(G.v2d->flag & V2D_VIEWLOCK)
+				view2d_do_locks(curarea, 0);
+			break;
 		case ACTMENU_VIEW_MAXIMIZE: /* Maximize Window */
 			/* using event B_FULL */
 			break;
@@ -231,24 +237,21 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_CENTERVIEW, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_LOCK, "");
+	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	if(BTST(G.saction->lock, 0)) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, 
-						 "Update Automatically|", 0, yco-=20, 
-						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-						 ACTMENU_VIEW_AUTOUPDATE, "");
-	} 
-	else {
-		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, 
-						 "Update Automatically|", 0, yco-=20, 
-						 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-						 ACTMENU_VIEW_AUTOUPDATE, "");
-	}
+	uiDefIconTextBut(block, BUTM, 1, BTST(G.saction->lock, 0)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Update Automatically|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_AUTOUPDATE, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Play Back Animation|Alt A", 0, yco-=20, 

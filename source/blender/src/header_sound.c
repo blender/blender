@@ -163,6 +163,7 @@ void do_sound_buttons(unsigned short event)
 		}
 		G.v2d->cur= G.v2d->tot;
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		view2d_do_locks(curarea, V2D_LOCK_COPY);
 		scrarea_queue_winredraw(curarea);
 		break;
 	}

@@ -645,6 +645,11 @@ static void do_ipo_viewmenu(void *arg, int event)
 	case 8:
 		add_blockhandler(curarea, IPO_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;	
+	case 9:
+		G.v2d->flag ^= V2D_VIEWLOCK;
+		if(G.v2d->flag & V2D_VIEWLOCK)
+			view2d_do_locks(curarea, 0);
+		break;			
 	}
 }
 
@@ -659,8 +664,8 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "ipo_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_ipo_viewmenu, NULL);
 
-
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Channel Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	
 	if (G.sipo->showkey)
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Show Keys|K", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	else
@@ -681,6 +686,8 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 
 	if (ei != NULL && (ei->flag & IPO_EDIT)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
@@ -863,6 +870,7 @@ void do_ipo_buttons(short event)
 		v2d->cur.ymax= v2d->tot.ymax+ dy;
 
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		view2d_do_locks(curarea, V2D_LOCK_COPY);
 		if(G.sipo->ipo) G.sipo->ipo->cur = G.v2d->cur;
 		
 		scrarea_queue_winredraw(curarea);
@@ -880,6 +888,7 @@ void do_ipo_buttons(short event)
 			G.v2d->cur.ymin= ymin;
 			
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 			scrarea_queue_winredraw(curarea);
 		}
 		break;

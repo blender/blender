@@ -44,12 +44,20 @@ typedef struct View2D {
 	short scroll, keeptot;
 	short keepaspect, keepzoom;
 	short oldwinx, oldwiny;
-	int pad;
+	int flag;
 } View2D;
 
+/* v2d->keepzoom */
 #define V2D_KEEPZOOM	0x0001	
 #define V2D_LOCKZOOM_X	0x0100
 #define V2D_LOCKZOOM_Y	0x0200
+
+/* event codes for locking function */
+#define V2D_LOCK_COPY	1
+#define V2D_LOCK_REDRAW	2
+
+/* v2d->flag */
+#define V2D_VIEWLOCK	1
 
 #endif
 

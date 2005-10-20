@@ -175,7 +175,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			G.v2d->cur.xmin+= dx;
 			G.v2d->cur.xmax-= dx;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
-
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 			doredraw= 1;
 			break;
 		case PADMINUS:
@@ -183,7 +183,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			G.v2d->cur.xmin-= dx;
 			G.v2d->cur.xmax+= dx;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
-
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 			doredraw= 1;
 			break;
 		case HOMEKEY:

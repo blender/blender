@@ -890,6 +890,8 @@ static void make_editipo(void)
 	else {
 		ipo_default_v2d_cur(G.sipo->blocktype, &G.v2d->cur);
 	}
+	
+	view2d_do_locks(curarea, V2D_LOCK_COPY);
 }
 
 /* evaluates context in the current UI */

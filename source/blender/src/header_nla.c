@@ -83,6 +83,7 @@ void do_nla_buttons(unsigned short event)
 		v2d->cur.ymax= 5; // at least stuff is visiable then?
 		
 		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		view2d_do_locks(curarea, V2D_LOCK_COPY);
 		addqueue (curarea->win, REDRAW, 1);
 		break;
 	}
@@ -110,6 +111,11 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 4: /* Maximize Window */
 		/* using event B_FULL */
 		break;
+	case 5:
+		G.v2d->flag ^= V2D_VIEWLOCK;
+		if(G.v2d->flag & V2D_VIEWLOCK)
+			view2d_do_locks(curarea, 0);
+		break;			
 	}
 }
 
@@ -136,7 +142,9 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-		
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	

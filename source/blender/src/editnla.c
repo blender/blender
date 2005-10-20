@@ -326,11 +326,13 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PADPLUSKEY:
 			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
 			test_view2d(G.v2d, sa->winx, sa->winy);
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 			doredraw= 1;
 			break;
 		case PADMINUS:
 			view2d_zoom(G.v2d, -0.15, sa->winx, sa->winy);
 			test_view2d(G.v2d, sa->winx, sa->winy);
+			view2d_do_locks(curarea, V2D_LOCK_COPY);
 			doredraw= 1;
 			break;
 		case MIDDLEMOUSE:
