@@ -1573,13 +1573,16 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-	
-		countall();
-		allqueue(REDRAWVIEW3D, 1);
-		allqueue(REDRAWBUTSEDIT, 0);
-		allqueue(REDRAWBUTSLOGIC, 0);
-		allqueue(REDRAWOOPS, 0);
 	}
+	
+	countall();
+	allqueue(REDRAWVIEW3D, 1);
+	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWOOPS, 0);
+
 	scrarea_queue_headredraw(curarea);
 	
 	if(G.obedit==NULL && freedata==2) 

@@ -958,13 +958,13 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	for(bone= arm->bonebase.first; bone; bone= bone->next) {
 		counter= rebuild_pose_bone(pose, bone, NULL, counter);
 	}
-	/* sort channels on dependency order, so we can walk the channel list */
 
 	/* and a check for garbage */
 	for(pchan= pose->chanbase.first; pchan; pchan= next) {
 		next= pchan->next;
 		if(pchan->bone==NULL) {
-			BLI_freelinkN(&pose->chanbase, pchan);  // constraints?
+			free_constraints(&pchan->constraints);
+			BLI_freelinkN(&pose->chanbase, pchan);
 		}
 	}
 //	printf("rebuild pose %s, %d bones\n", ob->id.name, counter);
