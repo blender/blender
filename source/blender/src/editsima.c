@@ -744,7 +744,7 @@ void mouse_select_sima(void)
 	rightmouse_transform();
 }
 
-void borderselect_sima(void)
+void borderselect_sima(short whichuvs)
 {
 	Mesh *me;
 	TFace *tface;
@@ -772,21 +772,47 @@ void borderselect_sima(void)
 		
 			if(tface->flag & TF_SELECT) {
 				
-				if(BLI_in_rctf(&rectf, (float)tface->uv[0][0], (float)tface->uv[0][1])) {
-					if(val==LEFTMOUSE) tface->flag |= TF_SEL1;
-					else tface->flag &= ~TF_SEL1;
-				}
-				if(BLI_in_rctf(&rectf, (float)tface->uv[1][0], (float)tface->uv[1][1])) {
-					if(val==LEFTMOUSE) tface->flag |= TF_SEL2;
-					else tface->flag &= ~TF_SEL2;
-				}
-				if(BLI_in_rctf(&rectf, (float)tface->uv[2][0], (float)tface->uv[2][1])) {
-					if(val==LEFTMOUSE) tface->flag |= TF_SEL3;
-					else tface->flag &= ~TF_SEL3;
-				}
-				if(mface->v4 && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
-					if(val==LEFTMOUSE) tface->flag |= TF_SEL4;
-					else tface->flag &= ~TF_SEL4;
+				if (whichuvs == UV_SELECT_ALL) {
+				
+					if(BLI_in_rctf(&rectf, (float)tface->uv[0][0], (float)tface->uv[0][1])) {
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL1;
+						else tface->flag &= ~TF_SEL1;
+					}
+					if(BLI_in_rctf(&rectf, (float)tface->uv[1][0], (float)tface->uv[1][1])) {
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL2;
+						else tface->flag &= ~TF_SEL2;
+					}
+					if(BLI_in_rctf(&rectf, (float)tface->uv[2][0], (float)tface->uv[2][1])) {
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL3;
+						else tface->flag &= ~TF_SEL3;
+					}
+					if(mface->v4 && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL4;
+						else tface->flag &= ~TF_SEL4;
+					}
+				} else if (whichuvs == UV_SELECT_PINNED) {
+					if ((tface->unwrap & TF_PIN1) && 
+						BLI_in_rctf(&rectf, (float)tface->uv[0][0], (float)tface->uv[0][1])) {
+						
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL1;
+						else tface->flag &= ~TF_SEL1;
+					}
+					if ((tface->unwrap & TF_PIN2) && 
+						BLI_in_rctf(&rectf, (float)tface->uv[1][0], (float)tface->uv[1][1])) {
+						
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL2;
+						else tface->flag &= ~TF_SEL2;
+					}
+					if ((tface->unwrap & TF_PIN3) && 
+						BLI_in_rctf(&rectf, (float)tface->uv[2][0], (float)tface->uv[2][1])) {
+						
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL3;
+						else tface->flag &= ~TF_SEL3;
+					}
+					if ((mface->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
+						if(val==LEFTMOUSE) tface->flag |= TF_SEL4;
+						else tface->flag &= ~TF_SEL4;
+					}
 				}
 			}
 							
@@ -1349,6 +1375,35 @@ void pin_tface_uv(int mode)
 	}
 	
 	BIF_undo_push("Pin UV");
+	scrarea_queue_winredraw(curarea);
+}
+
+void select_pinned_tface_uv(void)
+{
+	Mesh *me;
+	TFace *tface;
+	MFace *mface;
+	int a;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+	
+	mface= me->mface;
+	tface= me->tface;
+	for(a=me->totface; a>0; a--, tface++, mface++) {
+		if(tface->flag & TF_SELECT) {
+		
+			if (tface->unwrap & TF_PIN1) tface->flag |= TF_SEL1;
+			if (tface->unwrap & TF_PIN2) tface->flag |= TF_SEL2;
+			if (tface->unwrap & TF_PIN3) tface->flag |= TF_SEL3;
+			if(mface->v4) {
+				if (tface->unwrap & TF_PIN4) tface->flag |= TF_SEL4;
+			}
+			
+		}
+	}
+	
+	BIF_undo_push("Select Pinned UVs");
 	scrarea_queue_winredraw(curarea);
 }
 

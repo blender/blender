@@ -503,7 +503,10 @@ static void do_image_selectmenu(void *arg, int event)
 	switch(event)
 	{
 	case 0: /* Border Select */
-		borderselect_sima();
+		borderselect_sima(UV_SELECT_ALL);
+		break;
+	case 8: /* Border Select Pinned */
+		borderselect_sima(UV_SELECT_PINNED);
 		break;
 	case 1: /* Select/Deselect All */
 		select_swap_tface_uv();
@@ -511,7 +514,7 @@ static void do_image_selectmenu(void *arg, int event)
 	case 2: /* Unlink Selection */
 		unlink_selection();
 		break;
-	case 3: /* Select Linked UVs */
+	case 3: /* Linked UVs */
 		select_linked_tface_uv(2);
 		break;
 	case 4: /* Toggle Local UVs Stick to Vertex in Mesh */
@@ -539,6 +542,9 @@ static void do_image_selectmenu(void *arg, int event)
 			G.sima->flag |= SI_SELACTFACE;
 		allqueue(REDRAWIMAGE, 0);
 		break;
+	case 7: /* Pinned UVs */
+		select_pinned_tface_uv();
+		break;
 	}
 }
 
@@ -561,15 +567,21 @@ static uiBlock *image_selectmenu(void *arg_unused)
 	if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select Pinned|Shift B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlink Selection|Alt L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select Linked UVs|Ctrl L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pinned UVs|Shift P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked UVs|Ctrl L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

@@ -3796,8 +3796,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					select_swap_tface_uv();
 				break;
 			case BKEY:
-				if((G.qual==0))
-					borderselect_sima();
+				if(G.qual==LR_SHIFTKEY)
+					borderselect_sima(UV_SELECT_PINNED);
+				else if((G.qual==0))
+					borderselect_sima(UV_SELECT_ALL);
 				break;
 			case CKEY:
 				if(G.qual==LR_CTRLKEY)
@@ -3855,7 +3857,9 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case PKEY:
-				if(G.qual==LR_ALTKEY)
+				if(G.qual==LR_SHIFTKEY)
+					select_pinned_tface_uv();
+				else if(G.qual==LR_ALTKEY)
 					pin_tface_uv(0);
 				else
 					pin_tface_uv(1);
