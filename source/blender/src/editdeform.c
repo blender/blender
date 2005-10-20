@@ -144,14 +144,9 @@ bDeformGroup *add_defgroup_name (Object *ob, char *name)
 	if (!ob)
 		return NULL;
 	
-	defgroup = MEM_callocN (sizeof(bDeformGroup), "deformGroup");
+	defgroup = MEM_callocN (sizeof(bDeformGroup), "add deformGroup");
 
-	/* I think there should be some length
-	 * checking here -- don't know why NaN
-	 * never checks name lengths (see
-	 * unique_vertexgroup_name, for example).
-	 */
-	strcpy (defgroup->name, name);
+	BLI_strncpy (defgroup->name, name, 32);
 
 	BLI_addtail(&ob->defbase, defgroup);
 	unique_vertexgroup_name(defgroup, ob);
@@ -606,7 +601,7 @@ void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
 			}
 		}
 		if (!exists){
-			strcpy (dg->name, tempname);
+			BLI_strncpy (dg->name, tempname, 32);
 			return;
 		}
 	}	

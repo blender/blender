@@ -88,7 +88,7 @@ bDeformGroup* copy_defgroup (bDeformGroup *ingroup)
 	if (!ingroup)
 		return NULL;
 
-	outgroup=MEM_callocN(sizeof(bDeformGroup), "deformGroup");
+	outgroup=MEM_callocN(sizeof(bDeformGroup), "copy deformGroup");
 	
 	/* For now, just copy everything over. */
 	memcpy (outgroup, ingroup, sizeof(bDeformGroup));

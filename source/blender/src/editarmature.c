@@ -126,7 +126,7 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 		
 		/*	Copy relevant data from bone to eBone */
 		eBone->parent=parent;
-		strcpy (eBone->name, curBone->name);
+		BLI_strncpy (eBone->name, curBone->name, 32);
 		eBone->flag = curBone->flag;
 		
 		/* fix selection flags */
@@ -245,7 +245,7 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 		newBone= MEM_callocN (sizeof(Bone), "bone");
 		eBone->temp= newBone;	/* Associate the real Bones with the EditBones */
 		
-		strcpy (newBone->name, eBone->name);
+		BLI_strncpy (newBone->name, eBone->name, 32);
 		memcpy (newBone->head, eBone->head, sizeof(float)*3);
 		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
@@ -1166,7 +1166,7 @@ static EditBone *add_editbone(char *name)
 {
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	strcpy (bone->name, name);
+	BLI_strncpy (bone->name, name, 32);
 	unique_editbone_name (bone->name);
 	
 	BLI_addtail(&G.edbo, bone);
@@ -1607,7 +1607,7 @@ void unique_editbone_name (char *name)
 		for (number = 1; number <=999; number++){
 			sprintf (tempname, "%s.%03d", name, number);
 			if (!editbone_name_exists(tempname)){
-				strcpy (name, tempname);
+				BLI_strncpy (name, tempname, 32);
 				return;
 			}
 		}
@@ -1703,7 +1703,7 @@ void extrude_armature(int forked)
 				
 				if(newbone->parent) newbone->flag |= BONE_CONNECTED;
 				
-				strcpy (newbone->name, ebone->name);
+				BLI_strncpy (newbone->name, ebone->name, 32);
 				
 				if(flipbone && forked) {	// only set if mirror edit
 					if(strlen(newbone->name)<30) {
@@ -2361,7 +2361,7 @@ void unique_bone_name (bArmature *arm, char *name)
 		for (number = 1; number <=999; number++){
 			sprintf (tempname, "%s.%03d", name, number);
 			if (!get_named_bone(arm, tempname)){
-				strcpy (name, tempname);
+				BLI_strncpy (name, tempname, 32);
 				return;
 			}
 		}

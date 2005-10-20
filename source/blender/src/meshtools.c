@@ -205,7 +205,7 @@ void join_mesh(void)
 						}
 					}
 					if (!odg){
-						odg = MEM_callocN (sizeof(bDeformGroup), "deformGroup");
+						odg = MEM_callocN (sizeof(bDeformGroup), "join deformGroup");
 						memcpy (odg, dg, sizeof(bDeformGroup));
 						BLI_addtail(&ob->defbase, odg);
 					}
