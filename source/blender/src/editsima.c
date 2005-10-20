@@ -325,7 +325,10 @@ void transform_width_height_tface_uv(int *width, int *height)
 
 void mirror_tface_uv(char mirroraxis)
 {
-	Mirror((short)mirroraxis);
+	if (mirroraxis == 'x')
+		Mirror(1); /* global x */
+	else if (mirroraxis == 'y')
+		Mirror(2); /* global y */
 }
 
 void mirrormenu_tface_uv(void)
