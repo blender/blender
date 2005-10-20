@@ -1161,14 +1161,16 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		/* gather transformations for this IK segment */
 
-		if(a>0 && pchan->parent) {
+		if (pchan->parent)
 			Mat3CpyMat4(R_parmat, pchan->parent->pose_mat);
-			VECCOPY(start, bone->head); /* bone offset */
-		}
-		else {
+		else
 			Mat3One(R_parmat);
+
+		/* bone offset */
+		if (pchan->parent && (a > 0))
+			VecCopyf(start, bone->head);
+		else
 			start[0]= start[1]= start[2]= 0.0f;
-		}
 		
 		/* change length based on bone size */
 		length= bone->length*VecLength(R_bonemat[1]);
@@ -1212,7 +1214,13 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 	/* first set the goal inverse transform, assuming the root of tree was done ok! */
 	pchan= tree->pchan[0];
-	Mat4One(rootmat);
+	if (pchan->parent)
+		/* transform goal by parent mat, so this rotation is not part of the
+		   segment's basis. otherwise rotation limits do not work on the
+		   local transform of the segment itself. */
+		Mat4CpyMat4(rootmat, pchan->parent->pose_mat);
+	else
+		Mat4One(rootmat);
 	VECCOPY(rootmat[3], pchan->pose_head);
 	
 	Mat4MulMat4 (imat, rootmat, ob->obmat);
