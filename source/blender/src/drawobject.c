@@ -1699,13 +1699,21 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 	else if(dt==OB_SHADED) {
 		if( (G.f & G_WEIGHTPAINT)) {
+			set_gl_material(0);		/* enforce defmaterial settings */
+			
+			/* but set default spec */
+			glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+			glEnable(GL_COLOR_MATERIAL);	/* according manpages needed */
+			glColor3ub(120, 120, 120);
+			glDisable(GL_COLOR_MATERIAL);
+			/* diffuse */
+			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 			glEnable(GL_LIGHTING);
 			glEnable(GL_COLOR_MATERIAL);
-			set_gl_material(0);	// defmaterial settings
 
 			dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mface, 1);
-			glDisable(GL_LIGHTING);
 			glDisable(GL_COLOR_MATERIAL);
+			glDisable(GL_LIGHTING);
 		}
 		else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
 			dm->drawMappedFaces(dm, NULL, NULL, 1);
