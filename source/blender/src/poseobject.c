@@ -39,6 +39,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -52,6 +53,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -609,7 +611,7 @@ void pose_adds_vgroups(Object *meshobj)
 {
 	struct vgroup_map map;
 	DerivedMesh *dm;
-	Object *poseobj= meshobj->parent;
+	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
 	bPoseChannel *pchan;
 	Bone *bone;
 	bDeformGroup *dg;

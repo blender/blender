@@ -1999,7 +1999,8 @@ void special_editmenu(void)
 			}
 		}
 		else if(G.f & G_WEIGHTPAINT) {
-			if(ob->parent && (ob->parent->flag & OB_POSEMODE)) {
+			Object *par= modifiers_isDeformedByArmature(ob);
+			if(par && (par->flag & OB_POSEMODE)) {
 				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
 				if(nr==1) {
 					Mesh *me= ob->data;
