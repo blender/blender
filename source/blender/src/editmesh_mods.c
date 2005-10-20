@@ -831,7 +831,7 @@ static int unified_findnearest(EditVert **eve, EditEdge **eed, EditFace **efa)
 
 /* selects quads in loop direction of indicated edge */
 /* only flush over edges with valence <= 2 */
-static void faceloop_select(EditEdge *startedge, int select)
+void faceloop_select(EditEdge *startedge, int select)
 {
 	EditMesh *em = G.editMesh;
 	EditEdge *eed;
@@ -893,8 +893,10 @@ static void faceloop_select(EditEdge *startedge, int select)
 	}
 	
 	/* (de)select the faces */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		if(efa->f1) EM_select_face(efa, select);
+	if(select!=2) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f1) EM_select_face(efa, select);
+		}
 	}
 }
 

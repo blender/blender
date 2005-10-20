@@ -5901,3 +5901,210 @@ void mesh_set_smooth_faces(short event)
 	else if(event==0) BIF_undo_push("Set Solid");
 }
 
+/* helper to find edge for edge_rip */
+static float mesh_rip_edgedist(float mat[][4], float *co1, float *co2, short *mval)
+{
+	float vec1[3], vec2[3], mvalf[2];
+	
+	view3d_project_float(curarea, co1, vec1, mat);
+	view3d_project_float(curarea, co2, vec2, mat);
+	mvalf[0]= (float)mval[0];
+	mvalf[1]= (float)mval[1];
+	
+	return PdistVL2Dfl(mvalf, vec1, vec2);
+}
+
+/* helper for below */
+static void mesh_rip_setface(EditFace *sefa)
+{
+	/* put new vertices & edges in best face */
+	if(sefa->v1->vn) sefa->v1= sefa->v1->vn;
+	if(sefa->v2->vn) sefa->v2= sefa->v2->vn;
+	if(sefa->v3->vn) sefa->v3= sefa->v3->vn;
+	if(sefa->v4 && sefa->v4->vn) sefa->v4= sefa->v4->vn;
+	
+	sefa->e1= addedgelist(sefa->v1, sefa->v2, sefa->e1);
+	sefa->e2= addedgelist(sefa->v2, sefa->v3, sefa->e2);
+	if(sefa->v4) {
+		sefa->e3= addedgelist(sefa->v3, sefa->v4, sefa->e3);
+		sefa->e4= addedgelist(sefa->v4, sefa->v1, sefa->e4);
+	}
+	else 
+		sefa->e3= addedgelist(sefa->v3, sefa->v1, sefa->e3);
+	
+}
+
+/* based on mouse cursor position, it defines how is being ripped */
+void mesh_rip(void)
+{
+	extern void faceloop_select(EditEdge *startedge, int select);
+	EditMesh *em = G.editMesh;
+	EditVert *eve;
+	EditEdge *eed, *seed= NULL;
+	EditFace *efa, *sefa= NULL;
+	float projectMat[4][4], viewMat[4][4], vec[3], dist, mindist;
+	short doit= 1, mval[2];
+
+	/* select flush... vertices are important */
+	EM_selectmode_set();
+	
+	getmouseco_areawin(mval);
+	view3d_get_object_project_mat(curarea, G.obedit, projectMat, viewMat);
+
+	/* find best face, exclude triangles and break on face select or faces with 2 edges select */
+	mindist= 1000000.0f;
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		if( efa->f & 1) 
+			break;
+		if(efa->v4 && faceselectedOR(efa, SELECT) ) {
+			int totsel;
+			
+			if(efa->e1->f & SELECT) totsel++;
+			if(efa->e2->f & SELECT) totsel++;
+			if(efa->e3->f & SELECT) totsel++;
+			if(efa->e4->f & SELECT) totsel++;
+			
+			if(totsel>1)
+				break;
+			view3d_project_float(curarea, efa->cent, vec, projectMat);
+			dist= sqrt( (vec[0]-mval[0])*(vec[0]-mval[0]) + (vec[1]-mval[1])*(vec[1]-mval[1]) );
+			if(dist<mindist) {
+				mindist= dist;
+				sefa= efa;
+			}
+		}
+	}
+	
+	if(efa) {
+		error("Can't perform ripping with faces selected this way");
+		return;
+	}
+	if(sefa==NULL) {
+		error("No proper selection or triangles included");
+		return;
+	}
+	
+
+	/* duplicate vertices, new vertices get selected */
+	for(eve = em->verts.last; eve; eve= eve->prev) {
+		eve->vn= NULL;
+		if(eve->f & SELECT) {
+			eve->vn= addvertlist(eve->co);
+			eve->f &= ~SELECT;
+			eve->vn->f |= SELECT;
+		}
+	}
+	
+	/* find the best candidate edge */
+	/* or one of sefa edges is selected... */
+	if(sefa->e1->f & SELECT) seed= sefa->e2;
+	if(sefa->e2->f & SELECT) seed= sefa->e1;
+	if(sefa->e3->f & SELECT) seed= sefa->e2;
+	if(sefa->e4 && sefa->e4->f & SELECT) seed= sefa->e3;
+	
+	/* or we do the distance trick */
+	if(seed==NULL) {
+		mindist= 1000000.0f;
+		if(sefa->e1->v1->vn || sefa->e1->v2->vn) {
+			dist= mesh_rip_edgedist(projectMat, sefa->e1->v1->co, sefa->e1->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e1;
+				mindist= dist;
+			}
+		}
+		if(sefa->e2->v1->vn || sefa->e2->v2->vn) {
+			dist= mesh_rip_edgedist(projectMat, sefa->e2->v1->co, sefa->e2->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e2;
+				mindist= dist;
+			}
+		}
+		if(sefa->e3->v1->vn || sefa->e3->v2->vn) {
+			dist= mesh_rip_edgedist(projectMat, sefa->e3->v1->co, sefa->e3->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e3;
+				mindist= dist;
+			}
+		}
+		if(sefa->e4 && (sefa->e4->v1->vn || sefa->e4->v2->vn)) {
+			dist= mesh_rip_edgedist(projectMat, sefa->e4->v1->co, sefa->e4->v2->co, mval);
+			if(dist<mindist) {
+				seed= sefa->e4;
+				mindist= dist;
+			}
+		}
+	}
+	
+	if(seed==NULL) {	// never happens?
+		error("No proper edge found to start");
+		return;
+	}
+	
+	faceloop_select(seed, 2);	// tmp abuse for finding all edges that need duplicated, returns OK faces with f1
+
+	/* duplicate edges in the loop, with at least 1 vertex selected, needed for selection flip */
+	for(eed = em->edges.last; eed; eed= eed->prev) {
+		eed->vn= NULL;
+		if((eed->v1->vn) || (eed->v2->vn)) {
+			EditEdge *newed;
+			
+			newed= addedgelist(eed->v1->vn?eed->v1->vn:eed->v1, eed->v2->vn?eed->v2->vn:eed->v2, eed);
+			if(eed->f & SELECT) {
+				eed->f &= ~SELECT;
+				newed->f |= SELECT;
+			}
+			eed->vn= (EditVert *)newed;
+		}
+	}
+
+	/* first clear edges to help finding neighbours */
+	for(eed = em->edges.last; eed; eed= eed->prev) eed->f1= 0;
+
+	/* put new vertices & edges && flag in best face */
+	mesh_rip_setface(sefa);
+	
+	/* starting with neighbours of best face, we loop over the seam */
+	sefa->f1= 2;
+	doit= 1;
+	while(doit) {
+		doit= 0;
+		
+		for(efa= em->faces.first; efa; efa=efa->next) {
+			/* new vert in face */
+			if(efa->v1->vn || efa->v2->vn || efa->v3->vn || (efa->v4 && efa->v4->vn)) {
+				/* face is tagged with loop */
+				if(efa->f1==1) {
+					mesh_rip_setface(efa);
+					efa->f1= 2;
+					doit= 1;
+				}
+			}
+		}		
+	}
+	
+	/* remove loose edges */
+	for(eed = em->edges.last; eed; eed= eed->prev) eed->f1= 0;
+	for(efa= em->faces.first; efa; efa=efa->next) {
+		efa->e1->f1= 1;
+		efa->e2->f1= 1;
+		efa->e3->f1= 1;
+		if(efa->e4) efa->e4->f1= 1;
+	}
+	
+	for(eed = em->edges.last; eed; eed= seed) {
+		seed= eed->prev;
+		if(eed->f1==0) {
+			if(eed->v1->f | eed->v2->f | SELECT) {
+				remedge(eed);
+				free_editedge(eed);
+			}
+		}
+	}
+	
+	countall();	// apparently always needed when adding stuff, derived mesh
+	
+	BIF_TransformSetUndo("Rip");
+	initTransform(TFM_TRANSLATION, 0);
+	Transform();
+}
+

@@ -1717,7 +1717,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					image_aspect();
 				else if (G.qual==0){
 					if(G.obedit) {
-						if(G.obedit->type==OB_CURVE) {
+						if(G.obedit->type==OB_MESH) {
+							mesh_rip();
+						}
+						else if(G.obedit->type==OB_CURVE) {
 							sethandlesNurb(2);
 							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 							allqueue(REDRAWVIEW3D, 0);
