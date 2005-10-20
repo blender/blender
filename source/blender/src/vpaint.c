@@ -898,11 +898,6 @@ void weight_paint(void)
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
 	
-	if(G.qual & LR_CTRLKEY) {
-		sample_wpaint();
-		return;
-	}
-	
 	if(indexar==NULL) init_vertexpaint();
 	
 	ob= OBACT;
@@ -914,6 +909,11 @@ void weight_paint(void)
 	/* if nothing was added yet, we make dverts and a vertex deform group */
 	if (!me->dvert)
 		create_dverts(me);
+	
+	if(G.qual & LR_CTRLKEY) {
+		sample_wpaint();
+		return;
+	}
 	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
