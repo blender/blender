@@ -5957,7 +5957,7 @@ void mesh_rip(void)
 		if( efa->f & 1) 
 			break;
 		if(efa->v4 && faceselectedOR(efa, SELECT) ) {
-			int totsel;
+			int totsel=0;
 			
 			if(efa->e1->f & SELECT) totsel++;
 			if(efa->e2->f & SELECT) totsel++;
