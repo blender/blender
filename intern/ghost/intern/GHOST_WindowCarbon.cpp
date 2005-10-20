@@ -182,7 +182,7 @@ GHOST_WindowCarbon::GHOST_WindowCarbon(
             (SInt32)this);					// Store a pointer to the class in the refCon
     */
         //GHOST_PRINT("GHOST_WindowCarbon::GHOST_WindowCarbon(): creating full-screen OpenGL context\n");
-        setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);
+        setDrawingContextType(GHOST_kDrawingContextTypeOpenGL);;installDrawingContext(GHOST_kDrawingContextTypeOpenGL);
         updateDrawingContext();
         activateDrawingContext();        
     }
@@ -477,7 +477,7 @@ GHOST_TSuccess GHOST_WindowCarbon::installDrawingContext(GHOST_TDrawingContextTy
             }
             else {
                 //GHOST_PRINT("GHOST_WindowCarbon::installDrawingContext(): init full-screen OpenGL\n");
-                pixelFormat = ::aglChoosePixelFormat(0, 0, sPreferredFormatFullScreen);
+GDHandle device=::GetMainDevice();pixelFormat=::aglChoosePixelFormat(&device,1,sPreferredFormatFullScreen);
                 m_aglCtx = ::aglCreateContext(pixelFormat, 0);
                 if (!m_aglCtx) break;
 				if (!s_firstaglCtx) s_firstaglCtx = m_aglCtx;
