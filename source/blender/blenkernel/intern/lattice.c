@@ -161,7 +161,7 @@ void resizelattice(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 
 		Mat4CpyMat4(mat, ltOb->obmat);
 		Mat4One(ltOb->obmat);
-		lattice_deform_verts(ltOb, NULL, vertexCos, uNew*vNew*wNew);
+		lattice_deform_verts(ltOb, NULL, vertexCos, uNew*vNew*wNew, NULL);
 		Mat4CpyMat4(ltOb->obmat, mat);
 
 		lt->typeu = typeu;
@@ -330,7 +330,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	}
 }
 
-void calc_latt_deform(float *co)
+void calc_latt_deform(float *co, float weight)
 {
 	Lattice *lt;
 	float u, v, w, tu[4], tv[4], tw[4];
@@ -402,7 +402,7 @@ void calc_latt_deform(float *co)
 					else fpv= fpw;
 					
 					for(uu= ui-1; uu<=ui+2; uu++) {
-						u= v*tu[uu-ui+1];
+						u= weight*v*tu[uu-ui+1];
 						
 						if(u!=0.0) {
 							if(uu>0) {
@@ -556,7 +556,7 @@ static void calc_curve_deform(Object *par, float *co, short axis, CurveDeform *c
 
 }
 
-void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int numVerts)
+void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	Curve *cu = cuOb->data;
 	int a, flag = cu->flag;
@@ -572,25 +572,77 @@ void curve_deform_verts(Object *cuOb, Object *target, float (*vertexCos)[3], int
 		Mat4MulVecfl(cd.curvespace, vertexCos[a]);
 		DO_MINMAX(vertexCos[a], cd.dmin, cd.dmax);
 	}
-
-	for(a=0; a<numVerts; a++) {
-		calc_curve_deform(cuOb, vertexCos[a], target->trackflag, &cd);
-		Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+	
+	if(vgroup && vgroup[0] && target->type==OB_MESH) {
+		bDeformGroup *curdef;
+		Mesh *me= target->data;
+		int index= 0;
+		
+		/* find the group (weak loop-in-loop) */
+		for (curdef = target->defbase.first; curdef; curdef=curdef->next, index++)
+			if (!strcmp(curdef->name, vgroup))
+				break;
+		/* check for numVerts because old files can have modifier over subsurf still */
+		if(curdef && me->dvert && numVerts==me->totvert) {
+			MDeformVert *dvert= me->dvert;
+			float vec[3];
+			int j;
+			
+			for(a=0; a<numVerts; a++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == index) {
+						VECCOPY(vec, vertexCos[a]);
+						calc_curve_deform(cuOb, vec, target->trackflag, &cd);
+						VecLerpf(vertexCos[a], vertexCos[a], vec, dvert->dw[j].weight);
+						Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+					}
+				}
+			}
+		}
 	}
-
+	else {
+		for(a=0; a<numVerts; a++) {
+			calc_curve_deform(cuOb, vertexCos[a], target->trackflag, &cd);
+			Mat4MulVecfl(cd.objectspace, vertexCos[a]);
+		}
+	}
 	cu->flag = flag;
 }
 
-void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], int numVerts)
+void lattice_deform_verts(Object *laOb, Object *target, float (*vertexCos)[3], int numVerts, char *vgroup)
 {
 	int a;
 
 	init_latt_deform(laOb, target);
-
-	for(a=0; a<numVerts; a++) {
-		calc_latt_deform(vertexCos[a]);
+	
+	if(vgroup && vgroup[0] && target->type==OB_MESH) {
+		bDeformGroup *curdef;
+		Mesh *me= target->data;
+		int index= 0;
+		
+		/* find the group (weak loop-in-loop) */
+		for (curdef = target->defbase.first; curdef; curdef=curdef->next, index++)
+			if (!strcmp(curdef->name, vgroup))
+				break;
+		/* check for numVerts because old files can have modifier over subsurf still */
+		if(curdef && me->dvert && numVerts==me->totvert) {
+			MDeformVert *dvert= me->dvert;
+			int j;
+			
+			for(a=0; a<numVerts; a++, dvert++) {
+				for(j=0; j<dvert->totweight; j++) {
+					if (dvert->dw[j].def_nr == index) {
+						calc_latt_deform(vertexCos[a], dvert->dw[j].weight);
+					}
+				}
+			}
+		}
 	}
-
+	else {
+		for(a=0; a<numVerts; a++) {
+			calc_latt_deform(vertexCos[a], 1.0f);
+		}
+	}
 	end_latt_deform();
 }
 
@@ -600,7 +652,7 @@ int object_deform_mball(Object *ob)
 		DispList *dl;
 
 		for (dl=ob->disp.first; dl; dl=dl->next) {
-			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, dl->nr);
+			lattice_deform_verts(ob->parent, ob, (float(*)[3]) dl->verts, dl->nr, NULL);
 		}
 
 		return 1;

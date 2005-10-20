@@ -1270,9 +1270,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");
+			uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &lmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 		} else if (md->type==eModifierType_Curve) {
 			CurveModifierData *cmd = (CurveModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
+			uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &cmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Start:", lx, (cy-=19), buttonWidth,19, &bmd->start, 1.0, MAXFRAMEF, 100, 0, "Specify the start frame of the effect");

@@ -62,12 +62,14 @@ typedef struct LatticeModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char name[32];			/* optional vertexgroup name */
 } LatticeModifierData;
 
 typedef struct CurveModifierData {
 	ModifierData modifier;
 
 	struct Object *object;
+	char name[32];			/* optional vertexgroup name */
 } CurveModifierData;
 
 typedef struct BuildModifierData {

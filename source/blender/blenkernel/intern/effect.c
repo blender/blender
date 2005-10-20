@@ -909,7 +909,7 @@ static void make_particle_keys(RNG *rng, int depth, int nr, PartEff *paf, Partic
 		pa= part;
 		b= paf->totkey;
 		while(b--) {
-			calc_latt_deform(pa->co);
+			calc_latt_deform(pa->co, 1.0f);
 			pa++;
 		}
 	}

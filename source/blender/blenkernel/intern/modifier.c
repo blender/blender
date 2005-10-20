@@ -84,7 +84,7 @@ static void curveModifier_deformVerts(ModifierData *md, Object *ob, void *derive
 {
 	CurveModifierData *cmd = (CurveModifierData*) md;
 
-	curve_deform_verts(cmd->object, ob, vertexCos, numVerts);
+	curve_deform_verts(cmd->object, ob, vertexCos, numVerts, cmd->name);
 }
 
 static void curveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
@@ -131,7 +131,7 @@ static void latticeModifier_deformVerts(ModifierData *md, Object *ob, void *deri
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
-	lattice_deform_verts(lmd->object, ob, vertexCos, numVerts);
+	lattice_deform_verts(lmd->object, ob, vertexCos, numVerts, lmd->name);
 }
 
 static void latticeModifier_deformVertsEM(ModifierData *md, Object *ob, void *editData, void *derivedData, float (*vertexCos)[3], int numVerts)
@@ -1233,7 +1233,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Curve);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_RequiresOriginalData;
 		mti->copyData = curveModifier_copyData;
 		mti->isDisabled = curveModifier_isDisabled;
 		mti->foreachObjectLink = curveModifier_foreachObjectLink;
@@ -1243,7 +1243,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Lattice);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode;
+		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_RequiresOriginalData;
 		mti->copyData = latticeModifier_copyData;
 		mti->isDisabled = latticeModifier_isDisabled;
 		mti->foreachObjectLink = latticeModifier_foreachObjectLink;
