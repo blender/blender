@@ -985,7 +985,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 				}
 				
 				dtime= distfac*0.35f*twidth;	/* why not 0.5? */
-				dtime= distfac*0.0f*twidth;	/* why not 0.5? */
+				dtime= distfac*0.5f*twidth;	/* why not 0.5? */
 				
 				ctime= timeofs + distfac*( ct->xof - minx);
 				CLAMP(ctime, 0.0, 1.0);
