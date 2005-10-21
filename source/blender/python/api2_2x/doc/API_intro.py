@@ -23,6 +23,7 @@ The Blender Python API Reference
   - L{Effect}
   - L{Image}
   - L{Ipo}
+  - L{Key} (*)
   - L{Lamp}
   - L{Lattice}
   - L{Library}

@@ -175,6 +175,9 @@ class Object:
     @ivar colbits: The Material usage mask. A set bit #n means: the Material
         #n in the Object's material list is used. Otherwise, the Material #n
         of the Objects Data material list is displayed.
+        Example::
+            object.colbits = 0x21 # use mesh materials 0 (0x01) and 5 (0x20)
+                                  # use object materials for all others
     @ivar drawType: The object's drawing type used. 1 - Bounding box,
         2 - wire, 3 - Solid, 4- Shaded, 5 - Textured.
     @ivar drawMode: The object's drawing mode used. The value can be a sum
@@ -570,7 +573,8 @@ class Object:
 
   def setMaterials(materials):
     """
-    Sets the materials. The argument must be a list 16 items or less.  Each list element is either a Material or None.
+    Sets the materials. The argument must be a list 16 items or less.  Each
+    list element is either a Material or None.  Also see L{colbits}.
     @type materials: Materials list
     @param materials: A list of Blender material objects.
     """

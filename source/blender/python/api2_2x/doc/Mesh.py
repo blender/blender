@@ -477,6 +477,9 @@ class Mesh:
 
   @ivar materials: The mesh's materials.  Each mesh can reference up to
     16 materials.  Empty slots in the mesh's list are represented by B{None}.
+    B{Note}: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
+    for each object in order for these materials to be used instead of
+    the object's materials.
   @type materials: list of Materials
   @ivar degr: The max angle for auto smoothing in [1,80].  
   @type degr: int
@@ -589,7 +592,7 @@ class Mesh:
     @type edges: tuple(s) of ints or MVerts
     @param edges: can be tuples of MVerts or integer indexes (B{note:} will
        not work with PVerts) or a sequence (list or tuple) containing two or
-       tuples.
+       more tuples.
     @rtype: int, None or list
     @return: if an edge is found, its index is returned; otherwise None is
     returned.  If a sequence of edges is passed, a list is returned.

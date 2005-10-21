@@ -447,6 +447,9 @@ class NMesh:
     @note: if a user goes to the material buttons window and removes some
         mesh's link to a material, that material slot becomes empty.
         Previously such materials were ignored.
+    @note: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
+        for each object in order for these materials to be used instead of
+        the object's materials.
     """
 
   def setMaterials(matlist):
@@ -457,6 +460,9 @@ class NMesh:
     @type matlist: list of materials
     @param matlist: a list with materials, None's also accepted (they become
         empty material slots in Blender.
+    @note: L{Object.colbits<Object.Object.colbits>} needs to be set correctly
+        for each object in order for these materials to be used instead of
+        the object's materials.
     """
 
   def hasVertexColours(flag = None):
