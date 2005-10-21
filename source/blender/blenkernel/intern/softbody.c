@@ -256,7 +256,7 @@ static void build_bps_springlist(Object *ob)
 
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
-static void renew_softbody(Object *ob, int totpoint, int totspring)  
+static void renew_softbody(Object *ob, int totpoint, int totspring,int *rcs)  
 {
 	SoftBody *sb;
 	int i;
@@ -264,6 +264,7 @@ static void renew_softbody(Object *ob, int totpoint, int totspring)
 	if(ob->soft==NULL) ob->soft= sbNew();
 	else free_softbody_intern(ob->soft);
 	sb= ob->soft;
+	*rcs=1; /* we don't do spring calulations here */
 	   
 	if(totpoint) {
 		sb->totpoint= totpoint;
@@ -1031,8 +1032,42 @@ static void get_scalar_from_vertexgroup(Object *ob, int vertID, short groupindex
 	}
 } 
 
+/*Resetting a Mesh SB object's springs */  
+/* Spring lenght are caculted from'raw' mesh vertices that are NOT altered by modifier stack. 
+YAH, mr zuster*/
+static void springs_from_mesh(Object *ob)
+{
+	SoftBody *sb;
+	Mesh *me= ob->data;
+	BodyPoint *bp;
+	int a;
+	
+	sb= ob->soft;	
+	if (me && sb)
+	{ 
+	/* using bp->origS as a container for spring calcualtions here
+	** will be overwritten sbObjectStep() to receive 
+	** actual modifier stack positions
+	*/
+		if(me->totvert) {    
+			bp= ob->soft->bpoint;
+			for(a=0; a<me->totvert; a++, bp++) {
+				VECCOPY(bp->origS, me->mvert[a].co);                            
+				Mat4MulVecfl(ob->obmat, bp->origS);
+			}
+			
+		}
+		/* recalculate spring length for meshes here */
+		for(a=0; a<sb->totspring; a++) {
+			BodySpring *bs = &sb->bspring[a];
+			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+		}
+	}
+}
+
+
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Object *ob)
+static void mesh_to_softbody(Object *ob,int *rcs)
 {
 	SoftBody *sb;
 	Mesh *me= ob->data;
@@ -1041,12 +1076,11 @@ static void mesh_to_softbody(Object *ob)
 	BodySpring *bs;
 	float goalfac;
 	int a, totedge;
-	
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, me->totvert, totedge);
+	renew_softbody(ob, me->totvert, totedge,rcs);
 		
 	/* we always make body points */
 	sb= ob->soft;	
@@ -1092,7 +1126,9 @@ static void mesh_to_softbody(Object *ob)
 				add_mesh_quad_diag_springs(ob);
 			}
 
-			build_bps_springlist(ob); /* big mesh optimization */
+			build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
+			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
+            *rcs=0; /* we did spring calulations */
 		}
 	}
 	
@@ -1184,11 +1220,11 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 
 
 /* makes totally fresh start situation */
-static void lattice_to_softbody(Object *ob)
+static void lattice_to_softbody(Object *ob,int *rcs)
 {
 	Lattice *lt= ob->data;
 	int totvert, totspring = 0;
-	
+
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 
 	if (ob->softflag & OB_SB_EDGES){
@@ -1202,7 +1238,7 @@ static void lattice_to_softbody(Object *ob)
 	
 
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring);
+	renew_softbody(ob, totvert, totspring,rcs);
 	
 	/* create some helper edges to enable SB lattice to be usefull at all */
 	if (ob->softflag & OB_SB_EDGES){
@@ -1399,10 +1435,8 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	SoftBody *sb;
 	Base *base;
 	BodyPoint *bp;
-	float dtime;
-	int a,timescale,t;
-	float ctime, forcetime;
-	float err;
+	int a,timescale,t,rcs;
+	float dtime,ctime,forcetime,err;
 	
 	/* baking works with global time */
 	if(!(ob->softflag & OB_SB_BAKEDO) )
@@ -1418,13 +1452,13 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	{
 		switch(ob->type) {
 		case OB_MESH:
-			mesh_to_softbody(ob);
+			mesh_to_softbody(ob,&rcs);
 			break;
 		case OB_LATTICE:
-			lattice_to_softbody(ob);
+			lattice_to_softbody(ob,&rcs);
 			break;
 		default:
-			renew_softbody(ob, numVerts, 0);
+			renew_softbody(ob, numVerts, 0,&rcs);
 			break;
 		}
 		
@@ -1481,13 +1515,12 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			VECCOPY(bp->prevdx, bp->vec);
 			VECCOPY(bp->prevdv, bp->vec);
 		}
-
-		for(a=0; a<sb->totspring; a++) {
-			BodySpring *bs = &sb->bspring[a];
-
-			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+		if ((ob->softflag&OB_SB_RESET) && (rcs)){
+			for(a=0; a<sb->totspring; a++) {
+				BodySpring *bs = &sb->bspring[a];
+				bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+			}
 		}
-
 		ob->softflag &= ~OB_SB_RESET;
 	}
 	else if(dtime>0.0) {
