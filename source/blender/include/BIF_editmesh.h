@@ -187,7 +187,7 @@ extern void bevel_menu();
 extern void mesh_set_smooth_faces(short event);
 void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
-void EdgeLoopDelete(void);
+int EdgeLoopDelete(void);
 void mesh_rip(void);
  
 struct EditVert *editedge_getOtherVert(struct EditEdge *eed, struct EditVert *ev);

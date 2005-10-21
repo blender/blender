@@ -1827,7 +1827,7 @@ void editmesh_mark_seam(int clear)
 void Edge_Menu() {
 	short ret;
 
-	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5|EdgeLoop Delete%x7");
+	ret= pupmenu("Edge Specials%t|Mark Seam %x1|Clear Seam %x2|Rotate Edge CW%x3|Rotate Edge CCW%x4|Loopcut%x6|Edge Slide%x5");
 
 	switch(ret)
 	{
@@ -1845,15 +1845,11 @@ void Edge_Menu() {
 		break;
 	case 5:
 		EdgeSlide(0,0.0);
-    	BIF_undo_push("EdgeSlide");
+    		BIF_undo_push("EdgeSlide");
 		break;
 	case 6:
-        CutEdgeloop(1);
+        	CutEdgeloop(1);
 		BIF_undo_push("Loopcut New");
-		break;
-	case 7:
-        EdgeLoopDelete();
-		BIF_undo_push("Edgeloop Remove");
 		break;
 	}
 }

@@ -907,7 +907,7 @@ void delete_mesh(void)
 
 	TEST_EDITMESH
 	
-	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5");
+	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
 	if(event<1) return;
 
 	if(event==10 ) {
@@ -916,6 +916,11 @@ void delete_mesh(void)
 		erase_faces(&em->faces);
 		erase_vertices(&em->verts);
 	} 
+	else if(event==6) {
+		if(!EdgeLoopDelete()){
+			BIF_undo();
+		}
+	}
 	else if(event==4) {
 		str= "Erase Edges & Faces";
 		efa= em->faces.first;
@@ -1773,6 +1778,7 @@ static void fill_quad_double_adj_inner(EditFace *efa, struct GHash *gh, int numc
 			co[1] = (verts[0][numcuts-i]->co[1] + verts[1][i+1]->co[1] ) / 2 ;
 			co[2] = (verts[0][numcuts-i]->co[2] + verts[1][i+1]->co[2] ) / 2 ;
 			inner[i] = addvertlist(co);
+			inner[i]->f2 |= EDGEINNER;
 	}
 	
 	// Add Corner Quad
@@ -2505,6 +2511,8 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 			if(eed->f2 & EDGEINNER){
 				eed->f |= flag;
 				EM_select_edge(eed,1);   
+				if(eed->v1->f & EDGEINNER) eed->v1->f |= SELECT;
+				if(eed->v2->f & EDGEINNER) eed->v2->f |= SELECT;
 			}else{
 				eed->f &= !flag;
 				EM_select_edge(eed,0); 
@@ -4457,12 +4465,15 @@ typedef struct SlideVert {
 	EditVert origvert;
 } SlideVert;
 
-void EdgeLoopDelete(void) {
-	EdgeSlide(1, 1);
+int EdgeLoopDelete(void) {
+	if(!EdgeSlide(1, 1)){
+		return 0;
+	}
 	select_more();
 	removedoublesflag(1,0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	return 1;
 }
 
 int EdgeSlide(short immediate, float imperc)
