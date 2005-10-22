@@ -853,6 +853,9 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 {
+	/* B_SIMABRUSHCHANGE only redraws and eats the mouse messages  */
+	/* so that LEFTMOUSE does not 'punch' through the floating panel */
+	/* B_SIMANOTHING */
 	ImagePaintTool *tool= &Gip.tool[Gip.current];
 	uiBlock *block;
 	ID *id;
@@ -865,19 +868,17 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, COL, B_VPCOLSLI, "",		979,160,230,19, tool->rgba, 0, 0, 0, 0, "");
-	uiDefButF(block, NUMSLI, 0, "Opacity ",		979,140,230,19, tool->rgba+3, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
-	uiDefButI(block, NUMSLI, 0, "Size ",		979,120,230,19, &tool->size, 2, 64, 0, 0, "The size of the brush");
-	uiDefButF(block, NUMSLI, 0, "Fall ",		979,100,230,19, &tool->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
+	uiDefButF(block, NUMSLI, B_SIMANOTHING , "Opacity ",		979,140,230,19, tool->rgba+3, 0.0, 1.0, 0, 0, "The amount of pressure on the brush");
+	uiDefButI(block, NUMSLI, B_SIMANOTHING , "Size ",		979,120,230,19, &tool->size, 2, 64, 0, 0, "The size of the brush");
+	uiDefButF(block, NUMSLI, B_SIMANOTHING , "Fall ",		979,100,230,19, &tool->innerradius, 0.0, 1.0, 0, 0, "The fall off radius of the brush");
 
 	if(Gip.current == IMAGEPAINT_BRUSH || Gip.current == IMAGEPAINT_SMEAR)
-		uiDefButF(block, NUMSLI, 0, "Stepsize ",979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Repeating Paint On %of Brush diameter");
+		uiDefButF(block, NUMSLI, B_SIMANOTHING , "Stepsize ",979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Repeating Paint On %of Brush diameter");
 	else
-		uiDefButF(block, NUMSLI, 0, "Flow ",	979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
+		uiDefButF(block, NUMSLI, B_SIMANOTHING , "Flow ",	979,80,230,19, &tool->timing, 1.0, 100.0, 0, 0, "Paint Flow for Air Brush");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	/* TODO: FLOATPANELMESSAGEEATER catching LMB on the panel buttons */
-	/* so LMB does not "GO" through the floating panel */
 	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Brush",		890,160,80,19, &Gip.current, 7.0, IMAGEPAINT_BRUSH, 0, 0, "Brush");
 	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "AirBrush",		890,140,80,19, &Gip.current, 7.0, IMAGEPAINT_AIRBRUSH, 0, 0, "AirBrush");
 	uiDefButS(block, ROW, B_SIMABRUSHCHANGE, "Soften",		890,120,80,19, &Gip.current, 7.0, IMAGEPAINT_SOFTEN, 0, 0, "Soften");
@@ -890,7 +891,7 @@ static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	uiBlockBeginAlign(block);	
 	id= (ID*)Gip.clone.image;
 	std_libbuttons(block, 979, 40, 0, NULL, B_SIMACLONEBROWSE, id, 0, &G.sima->menunr, 0, 0, B_SIMACLONEDELETE, 0, 0);
-	uiDefButF(block, NUMSLI, 0, "B ",979,20,230,19, &Gip.clone.alpha , 0.0, 1.0, 0, 0, "Blend clone image");
+	uiDefButF(block, NUMSLI, B_SIMABRUSHCHANGE, "B ",979,20,230,19, &Gip.clone.alpha , 0.0, 1.0, 0, 0, "Blend clone image");
 	uiBlockEndAlign(block);
 
 #if 0
