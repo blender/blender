@@ -1633,18 +1633,18 @@ void special_aftertrans_update(TransInfo *t)
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 				if (pchan->flag & POSE_KEY){
 					
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_X);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_Y);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_SIZE_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_W);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_X);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_Y);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_QUAT_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
 					
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_X);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_Y);
-					insertkey(&act->id, ID_AC, pchan->name, NULL, AC_LOC_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
 				}
 			}
 			

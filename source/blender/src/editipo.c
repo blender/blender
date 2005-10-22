@@ -1583,6 +1583,11 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 		Object *ob= (Object *)from;
 		bActionChannel *achan;
 		
+		if(GS(from->name)!=ID_OB) {
+			printf("called ipo system for action with wrong base pointer\n");
+			return NULL;
+		}
+		
 		if(ob->action==NULL)
 			ob->action= add_empty_action(blocktype);
 		
