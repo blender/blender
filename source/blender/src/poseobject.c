@@ -65,6 +65,7 @@
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_poseobject.h"
+#include "BIF_meshtools.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
@@ -73,6 +74,7 @@
 
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
+#include "BSE_trans_types.h"
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -582,7 +584,7 @@ void paste_posebuf (int flip)
 struct vgroup_map {
 	float head[3], tail[3];
 	Bone *bone;
-	bDeformGroup *dg;
+	bDeformGroup *dg, *dgflip;
 	Object *meshobj;
 };
 
@@ -591,7 +593,6 @@ static void pose_adds_vgroups__mapFunc(void *userData, int index, float *co, flo
 	struct vgroup_map *map= userData;
 	float vec[3], fac;
 	
-
 	VECCOPY(vec, co);
 	Mat4MulVecfl(map->meshobj->obmat, vec);
 		
@@ -604,17 +605,27 @@ static void pose_adds_vgroups__mapFunc(void *userData, int index, float *co, flo
 	else
 		remove_vert_defgroup (map->meshobj, map->dg, index);
 	
+	if(map->dgflip) {
+		int j= mesh_get_x_mirror_vert(map->meshobj, index);
+		if(j>=0) {
+			if(fac!=0.0f) 
+				add_vert_to_defgroup (map->meshobj, map->dgflip, j, fac, WEIGHT_REPLACE);
+			else
+				remove_vert_defgroup (map->meshobj, map->dgflip, j);
+		}
+	}
 }
 
-
+/* context weightpaint and deformer in posemode */
 void pose_adds_vgroups(Object *meshobj)
 {
+	extern VPaint Gwp;         /* from vpaint */
 	struct vgroup_map map;
 	DerivedMesh *dm;
 	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
 	bPoseChannel *pchan;
 	Bone *bone;
-	bDeformGroup *dg;
+	bDeformGroup *dg, *curdef;
 	int DMneedsFree;
 	
 	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
@@ -631,6 +642,20 @@ void pose_adds_vgroups(Object *meshobj)
 			dg= get_named_vertexgroup(meshobj, bone->name);
 			if(dg==NULL)
 				dg= add_defgroup_name(meshobj, bone->name);
+			
+			/* flipped bone */
+			if(Gwp.flag & VP_MIRROR_X) {
+				char name[32];
+				
+				BLI_strncpy(name, dg->name, 32);
+				bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+				
+				for (curdef = meshobj->defbase.first; curdef; curdef=curdef->next)
+					if (!strcmp(curdef->name, name))
+						break;
+				map.dgflip= curdef;
+			}
+			else map.dgflip= NULL;
 			
 			/* get the root of the bone in global coords */
 			VECCOPY(map.head, bone->arm_head);
@@ -693,3 +718,52 @@ void pose_flip_names(void)
 	BIF_undo_push("Flip names");
 	
 }
+
+/* context active object, or weightpainted object with armature in posemode */
+void pose_activate_flipped_bone(void)
+{
+	Object *ob= OBACT;
+	
+	if(ob==NULL) return;
+
+	if(G.f & G_WEIGHTPAINT) {
+		ob= modifiers_isDeformedByArmature(ob);
+	}
+	if(ob && (ob->flag & OB_POSEMODE)) {
+		bPoseChannel *pchan, *pchanf;
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(pchan->bone->flag & BONE_ACTIVE) {
+				break;
+			}
+		}
+		if(pchan) {
+			char name[32];
+			
+			BLI_strncpy(name, pchan->name, 32);
+			bone_flip_name(name, 1);	// 0 = do not strip off number extensions
+			
+			pchanf= get_pose_channel(ob->pose, name);
+			if(pchanf && pchanf!=pchan) {
+				pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+				pchanf->bone->flag |= (BONE_SELECTED|BONE_ACTIVE);
+			
+				/* in weightpaint we select the associated vertex group too */
+				if(G.f & G_WEIGHTPAINT) {
+					vertexgroup_select_by_name(OBACT, name);
+					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+				}
+				
+				select_actionchannel_by_name(ob->action, name, 1);
+				
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWIPO, 0);		/* To force action/constraint ipo update */
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWOOPS, 0);
+			}			
+		}
+	}
+}
+

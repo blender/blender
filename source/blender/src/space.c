@@ -1243,11 +1243,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.qual==LR_CTRLKEY)
 					sort_faces();
-				else if((G.qual==LR_SHIFTKEY))
-					fly();
+				else if((G.qual==LR_SHIFTKEY)) {
+					if(ob && (ob->flag & OB_POSEMODE))
+					   pose_activate_flipped_bone();
+					else if(G.f & G_WEIGHTPAINT)
+						pose_activate_flipped_bone();
+					else
+						fly();
+				}
 				else {
-						set_faceselect();
-					}
+					set_faceselect();
+				}
 				
 				break;
 			case GKEY:

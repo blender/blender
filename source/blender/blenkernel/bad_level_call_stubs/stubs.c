@@ -55,6 +55,7 @@ void unlink_screen(struct bScreen *sc){}
 void freeAllRad(void){}
 void free_editText(void){}
 void free_editArmature(void){}
+void free_vertexpaint(void){}
 
 char *getIpoCurveName( struct IpoCurve * icu ) 
 {

@@ -393,11 +393,12 @@
 #define R_DISPLAYWIN	1
 #define R_DISPLAYAUTO	2
 
-	/* Gvp.flag */
+	/* Gvp.flag and Gwp.flag */
 #define VP_COLINDEX	1
 #define VP_AREA		2
 #define VP_SOFT		4
 #define VP_NORMALS	8
 #define VP_SPRAY	16
+#define VP_MIRROR_X	32
 
 #endif

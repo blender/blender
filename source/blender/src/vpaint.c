@@ -63,6 +63,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_armature.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_deform.h"
@@ -73,15 +74,16 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_graphics.h"
-#include "BIF_interface.h"
-#include "BIF_mywindow.h"
 #include "BIF_editview.h"
+#include "BIF_graphics.h"
+#include "BIF_glutil.h"
+#include "BIF_gl.h"
+#include "BIF_interface.h"
+#include "BIF_meshtools.h"
+#include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
-#include "BIF_glutil.h"
-#include "BIF_gl.h"
 
 #include "BDR_vpaint.h"
 
@@ -459,6 +461,8 @@ void free_vertexpaint()
 	if(wpaintundobuf) 
 		free_dverts(wpaintundobuf, totwpaintundo);
 	wpaintundobuf= NULL;
+	
+	mesh_octree_table(NULL, NULL, 'e');
 }
 
 
@@ -882,17 +886,38 @@ void sample_wpaint()
 	
 }
 
+static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paintweight, int vgroup_mirror)
+{
+	Mesh *me= ob->data;
+	MDeformWeight	*dw, *uw;
+	int vgroup= ob->actdef-1;
+	
+	dw= verify_defweight(me->dvert+index, vgroup);
+	uw= verify_defweight(wpaintundobuf+index, vgroup);
+	wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+	
+	if(Gwp.flag & VP_MIRROR_X) {	/* x mirror painting */
+		if(vgroup_mirror != -1) {
+			int j= mesh_get_x_mirror_vert(ob, index);
+			if(j>=0) {
+				/* copy, not paint again */
+				uw= verify_defweight(me->dvert+j, vgroup_mirror);
+				uw->weight= dw->weight;
+			}
+		}
+	}
+}
 
 void weight_paint(void)
 {
 	extern float editbutvweight;
-	MDeformWeight	*dw, *uw;
 	Object *ob; 
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
 	float mat[4][4], imat[4][4], paintweight;
 	int index, totindex, alpha, totw;
+	int vgroup_mirror= -1;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
@@ -964,6 +989,26 @@ void weight_paint(void)
 	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
 	else mousebut = L_MOUSE;
 	
+	/* if mirror painting, find the other group */			
+	if(Gwp.flag & VP_MIRROR_X) {
+		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
+		if(defgroup) {
+			bDeformGroup *curdef;
+			int actdef= 0;
+			char name[32];
+			
+			BLI_strncpy(name, defgroup->name, 32);
+			bone_flip_name(name, 0);		// 0 = don't strip off number extensions
+			
+			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
+				if (!strcmp(curdef->name, name))
+					break;
+
+			if(curdef && curdef!=defgroup)
+				vgroup_mirror= actdef;
+		}
+	}
+	
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mval);
 		
@@ -1029,6 +1074,7 @@ void weight_paint(void)
 					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
 					if(Gwp.mode==VP_FILT) {
+						MDeformWeight *dw;
 						dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
 						if(dw) {paintweight+= dw->weight; totw++;}
 						dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
@@ -1056,9 +1102,7 @@ void weight_paint(void)
 					if((me->dvert+mface->v1)->flag) {
 						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v1, mval);
 						if(alpha) {
-							dw= verify_defweight(me->dvert+mface->v1, ob->actdef-1);
-							uw= verify_defweight(wpaintundobuf+mface->v1, ob->actdef-1);
-							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+							do_weight_paint_vertex(ob, mface->v1, alpha, paintweight, vgroup_mirror);
 						}
 						(me->dvert+mface->v1)->flag= 0;
 					}
@@ -1066,9 +1110,7 @@ void weight_paint(void)
 					if((me->dvert+mface->v2)->flag) {
 						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v2, mval);
 						if(alpha) {
-							dw= verify_defweight(me->dvert+mface->v2, ob->actdef-1);
-							uw= verify_defweight(wpaintundobuf+mface->v2, ob->actdef-1);
-							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+							do_weight_paint_vertex(ob, mface->v2, alpha, paintweight, vgroup_mirror);
 						}
 						(me->dvert+mface->v2)->flag= 0;
 					}
@@ -1076,9 +1118,7 @@ void weight_paint(void)
 					if((me->dvert+mface->v3)->flag) {
 						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v3, mval);
 						if(alpha) {
-							dw= verify_defweight(me->dvert+mface->v3, ob->actdef-1);
-							uw= verify_defweight(wpaintundobuf+mface->v3, ob->actdef-1);
-							wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+							do_weight_paint_vertex(ob, mface->v3, alpha, paintweight, vgroup_mirror);
 						}
 						(me->dvert+mface->v3)->flag= 0;
 					}
@@ -1087,9 +1127,7 @@ void weight_paint(void)
 						if(mface->v4) {
 							alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v4, mval);
 							if(alpha) {
-								dw= verify_defweight(me->dvert+mface->v4, ob->actdef-1);
-								uw= verify_defweight(wpaintundobuf+mface->v4, ob->actdef-1);
-								wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
+								do_weight_paint_vertex(ob, mface->v4, alpha, paintweight, vgroup_mirror);
 							}
 							(me->dvert+mface->v4)->flag= 0;
 						}
@@ -1339,12 +1377,29 @@ void set_wpaint(void)		/* toggle */
 	}
 
 	if(G.f & G_WEIGHTPAINT) {
+		Object *par;
+		
 		setcursor_space(SPACE_VIEW3D, CURSOR_VPAINT);
+		
+		mesh_octree_table(ob, NULL, 's');
+
+		/* verify if active weight group is also active bone */
+		par= modifiers_isDeformedByArmature(ob);
+		if(par && (par->flag & OB_POSEMODE)) {
+			bPoseChannel *pchan;
+			for(pchan= par->pose->chanbase.first; pchan; pchan= pchan->next)
+				if(pchan->bone->flag & BONE_ACTIVE)
+					break;
+			if(pchan)
+				vertexgroup_select_by_name(ob, pchan->name);
+		}
 	}
 	else {
 		freefastshade();	/* to be sure */
 		if(!(G.f & G_FACESELECT))
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
+		
+		mesh_octree_table(ob, NULL, 'e');
 	}
 }
 

@@ -61,6 +61,7 @@ void paste_posebuf (int flip);
 void pose_adds_vgroups(struct Object *meshobj);
 
 void pose_flip_names(void);
+void pose_activate_flipped_bone(void);
 
 #endif
 

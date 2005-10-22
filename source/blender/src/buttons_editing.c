@@ -3311,7 +3311,7 @@ static void editing_panel_links(Object *ob)
 		
 		if (ob->actdef){
 			defGroup = BLI_findlink(&ob->defbase, ob->actdef-1);
-			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 32, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
+			but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,132,140-18,21, defGroup->name, 0, 31, 0, 0, "Displays current vertex group name. Click to change. (Match bone name for deformation.)");
 			uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
 
 			uiDefButF(block, NUM, REDRAWVIEW3D, "Weight:",		143, 111, 140, 21, &editbutvweight, 0, 1, 10, 0, "Sets the current vertex group's bone deformation strength");
@@ -3543,8 +3543,9 @@ static void editing_panel_mesh_paint(void)
 		
 		if(ob){
 			uiBlockBeginAlign(block);
-			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	10,10,150,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
-			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					160,10,150,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
+			uiDefButBitS(block, TOG, VP_MIRROR_X, REDRAWVIEW3D, "X-Mirror",	10,10,100,19, &Gwp.flag, 0, 0, 0, 0, "Mirrored Paint, applying on mirrored Weight Group name");
+			uiDefButBitC(block, TOG, OB_DRAWWIRE, REDRAWVIEW3D, "Wire",	110,10,100,19, &ob->dtx, 0, 0, 0, 0, "Displays the active object's wireframe in shaded drawing modes");
+			uiDefBut(block, BUT, B_CLR_WPAINT, "Clear",					210,10,100,19, NULL, 0, 0, 0, 0, "Removes reference to this deform group from all vertices");
 			uiBlockEndAlign(block);
 		}
 	}

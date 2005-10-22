@@ -37,6 +37,11 @@
 #ifndef BKE_BAD_LEVEL_CALLS_H
 #define BKE_BAD_LEVEL_CALLS_H
 
+/* blender.c */
+void freeAllRad(void);
+void free_editText(void);
+void free_vertexpaint(void);
+
 /* readfile.c */
 struct PluginSeq;
 void open_plugin_seq(struct PluginSeq *pis, char *seqname);
@@ -47,8 +52,6 @@ void check_imasel_copy(struct SpaceImaSel *simasel);
 struct ScrArea;
 struct bScreen;
 void unlink_screen(struct bScreen *sc);
-void freeAllRad(void);
-void free_editText(void);
 void setscreen(struct bScreen *sc);
 void force_draw_all(int);
   /* otherwise the WHILE_SEQ doesn't work */

@@ -33,6 +33,8 @@
 #ifndef BIF_MESHTOOLS_H
 #define BIF_MESHTOOLS_H
 
+struct Object;
+
 extern void join_mesh(void);
 
 extern void fasterdraw(void);
@@ -40,6 +42,8 @@ extern void slowerdraw(void);
 
 extern void sort_faces(void);
 
+extern int mesh_octree_table(struct Object *ob, float *co, char mode);
+extern int mesh_get_x_mirror_vert(struct Object *ob, int index);
 
 #endif
 

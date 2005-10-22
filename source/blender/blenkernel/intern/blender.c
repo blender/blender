@@ -260,6 +260,8 @@ static void clear_global(void)
 	G.sima= NULL;
 	G.sipo= NULL;
 	
+	free_vertexpaint();
+	
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT);
 }
 
