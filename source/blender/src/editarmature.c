@@ -542,38 +542,6 @@ static void *get_nearest_bone (short findunsel)
 /* **************** END PoseMode & EditMode *************************** */
 /* **************** Posemode stuff ********************** */
 
-static int select_bonechildren_by_name (Bone *bone, char *name, int select)
-{
-	Bone *curBone;
-
-	if (!strcmp (bone->name, name)){
-		if (select)
-			bone->flag |= BONE_SELECTED;
-		else
-			bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
-		return 1;
-	}
-
-	for (curBone=bone->childbase.first; curBone; curBone=curBone->next){
-		if (select_bonechildren_by_name (curBone, name, select))
-			return 1;
-	}
-
-	return 0;
-}
-
-/* called in editaction.c */
-void select_bone_by_name (bArmature *arm, char *name, int select)
-{
-	Bone *bone;
-	
-	if (!arm)
-		return;
-	
-	for (bone=arm->bonebase.first; bone; bone=bone->next)
-		if (select_bonechildren_by_name (bone, name, select))
-			break;
-}
 
 static void selectconnected_posebonechildren (Object *ob, Bone *bone)
 {
@@ -2521,5 +2489,37 @@ EditBone *armature_bone_get_mirrored(EditBone *ebo)
 			if (!strcmp (name, eboflip->name)) break;
 	
 	return eboflip;
+}
+
+/* if editbone (partial) selected, copy data */
+/* context; editmode armature, with mirror editing enabled */
+void transform_armature_mirror_update(void)
+{
+	EditBone *ebo, *eboflip;
+	
+	for (ebo=G.edbo.first; ebo; ebo=ebo->next) {
+		if(ebo->flag & (BONE_TIPSEL|BONE_ROOTSEL)) {
+			
+			eboflip= armature_bone_get_mirrored(ebo);
+			
+			if(eboflip) {
+				/* we assume X-axis flipping for now */
+				if(ebo->flag & BONE_TIPSEL) {
+					eboflip->tail[0]= -ebo->tail[0];
+					eboflip->tail[1]= ebo->tail[1];
+					eboflip->tail[2]= ebo->tail[2];
+					eboflip->rad_tail= ebo->rad_tail;
+				}
+				if(ebo->flag & BONE_ROOTSEL) {
+					eboflip->head[0]= -ebo->head[0];
+					eboflip->head[1]= ebo->head[1];
+					eboflip->head[2]= ebo->head[2];
+					eboflip->rad_head= ebo->rad_head;
+				}
+				if(ebo->flag & BONE_SELECTED)
+					eboflip->dist= ebo->dist;
+			}
+		}
+	}
 }
 

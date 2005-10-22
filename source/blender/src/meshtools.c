@@ -84,6 +84,8 @@ void sort_faces(void);
 #include "BDR_editobject.h" 
 #include "BDR_editface.h" 
 
+#include "BLI_editVert.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 
@@ -644,28 +646,6 @@ static void mesh_octree_free_node(MocNode **bt)
 	MEM_freeN(*bt);
 }
 
-static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
-{
-	MVert *testvert;
-	int a;
-	
-	if(*bt==NULL)
-		return -1;
-	
-	for(a=0; a<MOC_NODE_RES; a++) {
-		if((*bt)->index[a]) {
-			testvert= mvert+(*bt)->index[a]-1;
-			
-			if(FloatCompare(testvert->co, co, MOC_THRESH))
-				return (*bt)->index[a]-1;
-		}
-		else return -1;
-	}
-	if( (*bt)->next)
-		return mesh_octree_find_index(&(*bt)->next, mvert, co);
-	
-	return -1;
-}
 
 /* temporal define, just to make nicer code below */
 #define MOC_ADDNODE(vx, vy, vz)	mesh_octree_add_node(basetable + ((vx)*MOC_RES*MOC_RES) + (vy)*MOC_RES + (vz), index)
@@ -711,6 +691,34 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	
 }
 
+static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
+{
+	float *vec;
+	int a;
+	
+	if(*bt==NULL)
+		return -1;
+	
+	for(a=0; a<MOC_NODE_RES; a++) {
+		if((*bt)->index[a]) {
+			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
+			if(mvert)
+				vec= (mvert+(*bt)->index[a]-1)->co;
+			else
+				vec= ((EditVert *)INT_TO_POINTER((*bt)->index[a]))->co;
+			
+			if(FloatCompare(vec, co, MOC_THRESH))
+				return (*bt)->index[a]-1;
+		}
+		else return -1;
+	}
+	if( (*bt)->next)
+		return mesh_octree_find_index(&(*bt)->next, mvert, co);
+	
+	return -1;
+}
+
+
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 int mesh_octree_table(Object *ob, float *co, char mode)
@@ -718,20 +726,21 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 	MocNode **bt;
 	static MocNode **basetable= NULL;
 	static float offs[3], div[3];
-	int a;
 	
 	if(mode=='u') {		/* use table */
 		if(basetable) {
 			Mesh *me= ob->data;
 			bt= basetable + mesh_octree_get_base_offs(co, offs, div);
-			return mesh_octree_find_index(bt, me->mvert, co);
+			if(ob==G.obedit)
+				return mesh_octree_find_index(bt, NULL, co);
+			else
+				return mesh_octree_find_index(bt, me->mvert, co);
 		}
 		return -1;
 	}
 	else if(mode=='s') {	/* start table */
 		Mesh *me= ob->data;
 		BoundBox *bb = mesh_get_bb(me);
-		MVert *mvert;
 		
 		/* for quick unit coordinate calculus */
 		VECCOPY(offs, bb->vec[0]);
@@ -746,12 +755,26 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 		
 		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
-		for(a=1, mvert= me->mvert; a<=me->totvert; a++, mvert++) {
-			mesh_octree_add_nodes(basetable, mvert->co, offs, div, a);
+		if(ob==G.obedit) {
+			EditVert *eve;
+			
+			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
+				mesh_octree_add_nodes(basetable, eve->co, offs, div, POINTER_TO_INT(eve));
+			}
+		}
+		else {		
+			MVert *mvert;
+			int a;
+			
+			for(a=1, mvert= me->mvert; a<=me->totvert; a++, mvert++) {
+				mesh_octree_add_nodes(basetable, mvert->co, offs, div, a);
+			}
 		}
 	}
 	else if(mode=='e') { /* end table */
 		if(basetable) {
+			int a;
+			
 			for(a=0, bt=basetable; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
 				if(*bt) mesh_octree_free_node(bt);
 			}

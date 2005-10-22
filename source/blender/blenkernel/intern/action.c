@@ -862,7 +862,8 @@ void do_all_pose_actions(Object *ob)
 	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
 
 	if(ob->pose->flag & POSE_LOCKED) {  // no actions to execute while transform
-		;
+		if(ob->pose->flag & POSE_DO_UNLOCK)
+			ob->pose->flag &= ~(POSE_LOCKED|POSE_DO_UNLOCK);
 	}
 	else if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
 		float cframe= (float) G.scene->r.cfra;

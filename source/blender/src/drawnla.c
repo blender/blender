@@ -190,6 +190,7 @@ void map_active_strip(gla2DDrawInfo *di, Object *ob, int restore)
 		map= stored;
 		map.xmin= get_action_frame(ob, map.xmin);
 		map.xmax= get_action_frame(ob, map.xmax);
+		if(map.xmin==map.xmax) map.xmax+= 1.0;
 		gla2DSetMap(di, &map);
 	}
 }

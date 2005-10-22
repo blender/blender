@@ -760,6 +760,7 @@ static void special_transvert_update(void)
 			}
 		}
 		else if(G.obedit->type==OB_ARMATURE){
+			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
 			
 			/* Ensure all bones are correctly adjusted */
@@ -776,6 +777,8 @@ static void special_transvert_update(void)
 					}
 				}
 			}
+			if(arm->flag & ARM_MIRROR_EDIT) 
+				transform_armature_mirror_update();
 		}
 		else if(G.obedit->type==OB_LATTICE) {
 			if(editLatt->flag & LT_OUTSIDE) outside_lattice(editLatt);

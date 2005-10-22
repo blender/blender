@@ -111,21 +111,29 @@ static void bottom_sel_action(void);
 short showsliders = 0;
 short ACTWIDTH = NAMEWIDTH;
 
+/* messy call... */
 static void select_poseelement_by_name (char *name, int select)
 {
-	/* Synchs selection of channels with selection of object elements in posemode */
-
+	/* Syncs selection of channels with selection of object elements in posemode */
 	Object *ob= OBACT;
-
-	if (!ob)
+	bPoseChannel *pchan;
+	
+	if (!ob || ob->type!=OB_ARMATURE)
 		return;
-
-	switch (ob->type){
-	case OB_ARMATURE:
-		select_bone_by_name ((bArmature*)ob->data, name, select);
-		break;
-	default:
-		break;
+	
+	if(select==2) {
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+			pchan->bone->flag &= ~(BONE_ACTIVE);
+	}
+	
+	pchan= get_pose_channel(ob->pose, name);
+	if(pchan) {
+		if(select)
+			pchan->bone->flag |= (BONE_SELECTED);
+		else 
+			pchan->bone->flag &= ~(BONE_SELECTED);
+		if(select==2)
+			pchan->bone->flag |= (BONE_ACTIVE);
 	}
 }
 
@@ -187,16 +195,16 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 		for (pchan=armob->pose->chanbase.first; pchan; pchan=pchan->next){
 
 			/* Apply to keys */
-			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_X);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Y);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_LOC_Z);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_X);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_Y);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_Z);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_QUAT_W);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_X);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_Y);
-			insertkey(id, ID_AC, pchan->name, NULL, AC_SIZE_Z);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+			insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 		}
 	}
 
@@ -225,6 +233,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 }
 
 /* apparently within active object context */
+/* called extern, like on bone selection */
 void select_actionchannel_by_name (bAction *act, char *name, int select)
 {
 	bActionChannel *chan;
@@ -237,12 +246,10 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 			if (select){
 				chan->flag |= ACHAN_SELECTED;
 				hilight_channel (act, chan, 1);
-				select_poseelement_by_name(chan->name, 1);
 			}
 			else{
 				chan->flag &= ~ACHAN_SELECTED;
 				hilight_channel (act, chan, 0);
-				select_poseelement_by_name(chan->name, 0);
 			}
 			return;
 		}
@@ -571,7 +578,7 @@ static void mouse_action(int selectmode)
 			
 			chan->flag |= ACHAN_SELECTED;
 			hilight_channel (act, chan, 1);
-			select_poseelement_by_name(chan->name, 1);
+			select_poseelement_by_name(chan->name, 2);	/* 2 is activate */
 		}
 		
 		if (conchan)
@@ -586,7 +593,8 @@ static void mouse_action(int selectmode)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
-
+		allqueue(REDRAWOOPS, 0);
+		allqueue(REDRAWBUTSALL, 0);
 	}
 }
 
@@ -686,7 +694,7 @@ void borderselect_action(void)
 			/* Check action */
 			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
 			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-          borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
+				borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
                                selectmode);
 
 			ymax=ymin;
@@ -1378,7 +1386,7 @@ static int select_constraint_channel(bAction *act,
 	return flag;
 }
 
-
+/* lefthand side */
 static void mouse_actionchannels(bAction *act, short *mval,
                                  short *mvalo, int selectmode) {
 	/* Select action channels, based on mouse values.
@@ -1455,6 +1463,9 @@ static void mouse_actionchannels(bAction *act, short *mval,
 			 */
 			sel = (chan->flag & ACHAN_SELECTED);
 			select_channel(act, chan, selectmode);
+			/* messy... */
+			select_poseelement_by_name(chan->name, 2);
+			
 		}
 		--clickmin;
 		--clickmax;
@@ -1475,6 +1486,8 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
 	allqueue (REDRAWNLA, 0);
+	allqueue (REDRAWOOPS, 0);
+	allqueue (REDRAWBUTSALL, 0);
 }
 
 void delete_meshchannel_keys(Key *key)

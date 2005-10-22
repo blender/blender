@@ -1618,11 +1618,10 @@ void special_aftertrans_update(TransInfo *t)
 		ob= t->poseobj;
 		arm= ob->data;
 		
-		ob->pose->flag &= ~POSE_LOCKED;
+		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
+		ob->pose->flag |= POSE_DO_UNLOCK;
 		
-		if(cancelled)	/* if cancelled we do the update always */
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		else if(G.flags & G_RECORDKEYS) {
+		if(G.flags & G_RECORDKEYS) {
 			act= ob->action;
 			pose= ob->pose;
 			
@@ -1661,7 +1660,8 @@ void special_aftertrans_update(TransInfo *t)
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			ob->recalc= 0;	// is set on OK position already by recalcData()
 		}
-		/* do not call DAG_object_flush_update always, we dont want actions to update, for inserting keys */
+		else 
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);

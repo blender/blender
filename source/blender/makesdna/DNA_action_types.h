@@ -120,6 +120,7 @@ typedef struct SpaceAction {
 
 #define POSE_RECALC		1
 #define POSE_LOCKED		2
+#define POSE_DO_UNLOCK	4
 
 /* PoseChannel (transform) flags */
 enum	{

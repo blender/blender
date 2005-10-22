@@ -103,7 +103,6 @@ void	mouse_armature(void);
 void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
-void	select_bone_by_name (struct bArmature *arm, char *name, int select);
 void    unique_editbone_name (char* name);
 
 void auto_align_armature(void);
@@ -120,6 +119,7 @@ void undo_push_armature(char *name);
 void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
 void armature_flip_names(void);
 EditBone *armature_bone_get_mirrored(EditBone *ebo);
+void transform_armature_mirror_update(void);
 
 void hide_selected_armature_bones(void);
 void hide_unselected_armature_bones(void);

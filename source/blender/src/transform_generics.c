@@ -122,39 +122,6 @@ void getViewVector(float coord[3], float vec[3])
 
 /* ************************** GENERICS **************************** */
 
-/* if editbone (partial) selected, copy data */
-/* context; editmode armature, with mirror editing enabled */
-static void transform_armature_mirror_update(void)
-{
-	EditBone *ebo, *eboflip;
-	
-	for (ebo=G.edbo.first; ebo; ebo=ebo->next) {
-		if(ebo->flag & (BONE_TIPSEL|BONE_ROOTSEL)) {
-			
-			eboflip= armature_bone_get_mirrored(ebo);
-			
-			if(eboflip) {
-				/* we assume X-axis flipping for now */
-				if(ebo->flag & BONE_TIPSEL) {
-					eboflip->tail[0]= -ebo->tail[0];
-					eboflip->tail[1]= ebo->tail[1];
-					eboflip->tail[2]= ebo->tail[2];
-					eboflip->rad_tail= ebo->rad_tail;
-				}
-				if(ebo->flag & BONE_ROOTSEL) {
-					eboflip->head[0]= -ebo->head[0];
-					eboflip->head[1]= ebo->head[1];
-					eboflip->head[2]= ebo->head[2];
-					eboflip->rad_head= ebo->rad_head;
-				}
-				if(ebo->flag & BONE_SELECTED)
-					eboflip->dist= ebo->dist;
-			}
-		}
-	}
-}
-
-
 /* called for objects updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
