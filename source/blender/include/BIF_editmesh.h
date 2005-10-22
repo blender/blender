@@ -66,7 +66,7 @@ extern void separate_mesh_loose(void);
 /* ******************* editmesh_add.c */
 extern void add_primitiveMesh(int type);
 extern void adduplicate_mesh(void);
-extern void addvert_mesh(void);
+extern void add_click_mesh(void);
 extern void addedgeface_mesh(void);
 
 /* ******************* editmesh_lib.c */

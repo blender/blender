@@ -853,7 +853,7 @@ void mouse_cursor(void)
 	allqueue(REDRAWVIEW3D, 1);
 	
 	if(lr_click) {
-		if(G.obedit->type==OB_MESH) addvert_mesh();
+		if(G.obedit->type==OB_MESH) add_click_mesh();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
 		else if (G.obedit->type==OB_ARMATURE) addvert_armature();
 		VECCOPY(fp, oldcurs);

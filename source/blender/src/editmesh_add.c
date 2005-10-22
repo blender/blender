@@ -116,46 +116,84 @@ static short icoface[20][3] = {
 	{10,9,11}
 };
 
-void addvert_mesh(void)
+static void get_view_aligned_coordinate(float *fp)
+{
+	float dvec[3];
+	short mx, my, mval[0];
+	
+	getmouseco_areawin(mval);
+	mx= mval[0];
+	my= mval[1];
+	
+	project_short_noclip(fp, mval);
+	
+	initgrabz(fp[0], fp[1], fp[2]);
+	
+	if(mval[0]!=IS_CLIPPED) {
+		window_to_3d(dvec, mval[0]-mx, mval[1]-my);
+		VecSubf(fp, fp, dvec);
+	}
+}
+
+void add_click_mesh(void)
 {
 	EditMesh *em = G.editMesh;
-	EditVert *eve,*v1=0;
-	float *curs, mat[3][3],imat[3][3];
-
-	// hurms, yah...
-	if(G.scene->selectmode==SCE_SELECT_FACE) return;
-
+	EditVert *eve, *v1;
+	float min[3], max[3];
+	int done= 0;
+	
 	TEST_EDITMESH
-
-	Mat3CpyMat4(mat, G.obedit->obmat);
-	Mat3Inv(imat, mat);
-
-	v1= em->verts.first;
-	while(v1) {
-		if(v1->f & SELECT) break;
-		v1= v1->next;
-	}
-	eve= v1;
-
-	/* prevent there are more selected */
-	EM_clear_flag_all(SELECT);
 	
-	eve= addvertlist(0);
+	INIT_MINMAX(min, max);
 	
-	curs= give_cursor();
-	VECCOPY(eve->co, curs);
-	VecSubf(eve->co, eve->co, G.obedit->obmat[3]);
-
-	Mat3MulVecfl(imat, eve->co);
-	eve->f= SELECT;
-
-	if(v1) {
-		addedgelist(v1, eve, NULL);
-		v1->f= 0;
+	for(v1= em->verts.first;v1; v1=v1->next) {
+		if(v1->f & SELECT) {
+			DO_MINMAX(v1->co, min, max);
+			done= 1;
+		}
 	}
+
+	/* call extrude? */
+	if(done) {
+		float vec[3];
+		float nor[3]= {0.0, 0.0, 0.0};
+		
+		/* centre */
+		VecAddf(min, min, max);
+		VecMulf(min, 0.5f);
+		VECCOPY(vec, min);
+		
+		Mat4MulVecfl(G.obedit->obmat, min);	// view space
+		get_view_aligned_coordinate(min);
+		Mat4Invert(G.obedit->imat, G.obedit->obmat); 
+		Mat4MulVecfl(G.obedit->imat, min); // back in object space
+		
+		VecSubf(min, min, vec);
+		
+		extrudeflag(SELECT, nor);
+		translateflag(SELECT, min);
+		recalc_editnormals();
+	}
+	else {
+		float mat[3][3],imat[3][3];
+		float *curs= give_cursor();
+		
+		eve= addvertlist(0);
+
+		Mat3CpyMat4(mat, G.obedit->obmat);
+		Mat3Inv(imat, mat);
+		
+		VECCOPY(eve->co, curs);
+		VecSubf(eve->co, eve->co, G.obedit->obmat[3]);
+
+		Mat3MulVecfl(imat, eve->co);
+		
+		eve->f= SELECT;
+	}
+	
 	countall();
 
-	BIF_undo_push("Add vertex");
+	BIF_undo_push("Add vertex/edge/face");
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	
