@@ -2076,7 +2076,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case HKEY:
 			if(G.qual==LR_ALTKEY)
-				sethandles_ipo(4);		// tsk tsk ton!
+				sethandles_ipo(HD_AUTO_ANIM);
 			if(G.qual==LR_SHIFTKEY)
 				sethandles_ipo(HD_AUTO);
 			else if(G.qual==0)

@@ -588,17 +588,17 @@ void sethandles_ipo(int code)
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 
 	switch(code) {
-	case 1:
+	case HD_AUTO:
 		/*** Set to auto ***/
 		selected_bezier_loop(vis_edit_icu_bez, set_bezier_auto,
                          calchandles_ipocurve);
 		break;
-	case 2:
+	case HD_VECT:
 		/*** Set to vector ***/
 		selected_bezier_loop(vis_edit_icu_bez, set_bezier_vector,
                          calchandles_ipocurve);
 		break;
-	case 4:
+	case HD_AUTO_ANIM:
 		/* set to enforce autohandles to be horizontal on extremes */
 		ipo_curves_auto_horiz();
 		

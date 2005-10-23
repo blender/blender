@@ -1980,7 +1980,8 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 		vz= dz1/len2 + dz/len1;
 		len= 2.5614f*(float)sqrt(vx*vx + vy*vy + vz*vz);
 		if(len!=0.0f) {
-		
+			int leftviolate=0, rightviolate=0;	/* for mode==2 */
+			
 			if(len1>5.0f*len2) len1= 5.0f*len2;	
 			if(len2>5.0f*len1) len2= 5.0f*len1;
 			
@@ -1996,6 +1997,20 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 					if( (ydiff1<=0.0 && ydiff2<=0.0) || (ydiff1>=0.0 && ydiff2>=0.0) ) {
 						bezt->vec[0][1]= bezt->vec[1][1];
 					}
+					else {						// handles should not be beyond y coord of two others
+						if(ydiff1<=0.0) { 
+							if(prev->vec[1][1] > bezt->vec[0][1]) {
+								bezt->vec[0][1]= prev->vec[1][1]; 
+								leftviolate= 1;
+							}
+						}
+						else {
+							if(prev->vec[1][1] < bezt->vec[0][1]) {
+								bezt->vec[0][1]= prev->vec[1][1]; 
+								leftviolate= 1;
+							}
+						}
+					}
 				}
 			}
 			if(bezt->h2==HD_AUTO) {
@@ -2010,6 +2025,41 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 					if( (ydiff1<=0.0 && ydiff2<=0.0) || (ydiff1>=0.0 && ydiff2>=0.0) ) {
 						bezt->vec[2][1]= bezt->vec[1][1];
 					}
+					else {						// handles should not be beyond y coord of two others
+						if(ydiff1<=0.0) { 
+							if(next->vec[1][1] < bezt->vec[2][1]) {
+								bezt->vec[2][1]= next->vec[1][1]; 
+								rightviolate= 1;
+							}
+						}
+						else {
+							if(next->vec[1][1] > bezt->vec[2][1]) {
+								bezt->vec[2][1]= next->vec[1][1]; 
+								rightviolate= 1;
+							}
+						}
+					}
+				}
+			}
+			if(leftviolate || rightviolate) {	/* align left handle */
+				float h1[3], h2[3];
+				
+				VecSubf(h1, p2-3, p2);
+				VecSubf(h2, p2, p2+3);
+				len1= Normalise(h1);
+				len2= Normalise(h2);
+				
+				vz= INPR(h1, h2);
+				
+				if(leftviolate) {
+					*(p2+3)= *(p2)   - vz*len2*h1[0];
+					*(p2+4)= *(p2+1) - vz*len2*h1[1];
+					*(p2+5)= *(p2+2) - vz*len2*h1[2];
+				}
+				else {
+					*(p2-3)= *(p2)   + vz*len1*h2[0];
+					*(p2-2)= *(p2+1) + vz*len1*h2[1];
+					*(p2-1)= *(p2+2) + vz*len1*h2[2];
 				}
 			}
 			

@@ -390,6 +390,9 @@ static void do_ipo_editmenu_handlemenu(void *arg, int event)
 	case 3:
 		sethandles_ipo(HD_VECT);
 		break;
+	case 4:
+		sethandles_ipo(HD_AUTO_ANIM);
+		break;
 	}
 }
 
@@ -402,6 +405,7 @@ static uiBlock *ipo_editmenu_handlemenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_editmenu_handlemenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto|Shift H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Clamped|Alt H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Aligned|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Free|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Vector|V", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
@@ -531,6 +535,10 @@ static void do_ipo_editmenu(void *arg, int event)
 	case 6:
 		/*IPO Editmode*/
 		set_editflag_editipo();
+		break;
+	case 7:
+		sethandles_ipo(HD_AUTO_ANIM);
+		break;
 	}
 }
 
@@ -587,9 +595,10 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, ipo_editmenu_joinmenu, NULL, ICON_RIGHTARROW_THIN, "Join", 0, yco-=20, 120, 19, "");	
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Auto Clamped Handles|ALT H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	
 	if (!G.sipo->showkey){
-		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
 		uiDefIconTextBlockBut(block, ipo_editmenu_extendmenu, NULL, ICON_RIGHTARROW_THIN, "Extend Mode", 0, yco-=20, 120, 19, "");	
 		uiDefIconTextBlockBut(block, ipo_editmenu_intpolmenu, NULL, ICON_RIGHTARROW_THIN, "Interpolation Mode", 0, yco-=20, 120, 20, "");
 		if(ei != NULL && (ei->flag & IPO_EDIT))

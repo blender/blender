@@ -237,10 +237,11 @@ typedef struct IpoCurve {
 #define CU_CYCLIC		1
 
 /* h1 h2 (beztriple) */
-#define HD_FREE		0
-#define HD_AUTO		1
-#define HD_VECT		2
-#define HD_ALIGN	3
+#define HD_FREE			0
+#define HD_AUTO			1
+#define HD_VECT			2
+#define HD_ALIGN		3
+#define HD_AUTO_ANIM	4
 
 /* *************** CHARINFO **************** */
 
