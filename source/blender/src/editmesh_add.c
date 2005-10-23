@@ -155,23 +155,63 @@ void add_click_mesh(void)
 
 	/* call extrude? */
 	if(done) {
-		float vec[3];
+		EditEdge *eed;
+		float vec[3], cent[3], mat[3][3];
 		float nor[3]= {0.0, 0.0, 0.0};
 		
+		/* check for edges that are half selected, use for rotation */
+		done= 0;
+		for(eed= em->edges.first; eed; eed= eed->next) {
+			if( (eed->v1->f & SELECT)+(eed->v2->f & SELECT) == SELECT ) {
+				if(eed->v1->f & SELECT) VecSubf(vec, eed->v1->co, eed->v2->co);
+				else VecSubf(vec, eed->v2->co, eed->v1->co);
+				VecAddf(nor, nor, vec);
+				done= 1;
+			}
+		}
+		if(done) Normalise(nor);
+		
 		/* centre */
-		VecAddf(min, min, max);
-		VecMulf(min, 0.5f);
-		VECCOPY(vec, min);
+		VecAddf(cent, min, max);
+		VecMulf(cent, 0.5f);
+		VECCOPY(min, cent);
 		
 		Mat4MulVecfl(G.obedit->obmat, min);	// view space
 		get_view_aligned_coordinate(min);
 		Mat4Invert(G.obedit->imat, G.obedit->obmat); 
 		Mat4MulVecfl(G.obedit->imat, min); // back in object space
 		
-		VecSubf(min, min, vec);
+		VecSubf(min, min, cent);
+		
+		/* calculate rotation */
+		Mat3One(mat);
+		if(done) {
+			float dot;
+			
+			VECCOPY(vec, min);
+			Normalise(vec);
+			dot= INPR(vec, nor);
+
+			if( fabs(dot)<0.999) {
+				float cross[3], si, q1[4];
+				
+				Crossf(cross, nor, vec);
+				Normalise(cross);
+				dot= 0.5f*saacos(dot);
+				si= (float)sin(dot);
+				q1[0]= (float)cos(dot);
+				q1[1]= cross[0]*si;
+				q1[2]= cross[1]*si;
+				q1[3]= cross[2]*si;
+				
+				QuatToMat3(q1, mat);
+			}
+		}
 		
 		extrudeflag(SELECT, nor);
+		rotateflag(SELECT, cent, mat);
 		translateflag(SELECT, min);
+		
 		recalc_editnormals();
 	}
 	else {
