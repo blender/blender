@@ -13,7 +13,8 @@ SConscript(['BlenderRoutines/SConscript',
             'Physics/Dummy/SConscript',
             'Rasterizer/SConscript',
             'Rasterizer/RAS_OpenGLRasterizer/SConscript',
-            'SceneGraph/SConscript'])
+            'SceneGraph/SConscript',
+            'Physics/Bullet/SConscript'])
 
 if user_options_dict['BUILD_BLENDER_PLAYER']:
 	SConscript(['GamePlayer/SConscript'])
@@ -22,5 +23,3 @@ if user_options_dict['USE_PHYSICS'] == 'solid':
     SConscript(['Physics/Sumo/SConscript'])
 elif user_options_dict['USE_PHYSICS'] == 'ode':
     SConscript(['Physics/BlOde/SConscript'])
-elif user_options_dict['USE_PHYSICS'] == 'bullet':
-    SConscript(['Physics/Bullet/SConscript'])

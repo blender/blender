@@ -40,7 +40,7 @@ ifeq ($(WITH_FREETYPE2), true)
     DIRS += bFTGL/src
 endif
 
-ifeq ($(NAN_USE_BULLET), true)
+ifneq ($(NAN_NO_KETSJI), true)
     DIRS += bullet
 endif
 

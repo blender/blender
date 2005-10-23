@@ -69,7 +69,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	use_quicktime = 'false'
 	use_sumo = 'true'
 	use_ode = 'false'
-	use_bullet = 'false'
+	use_bullet = 'true'
 	use_buildinfo = 'true'
 	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
@@ -156,7 +156,7 @@ elif sys.platform == 'darwin':
 	use_precomp = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
-	use_bullet = 'false'
+	use_bullet = 'true'
 	use_buildinfo = 'true'
 	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
@@ -359,7 +359,7 @@ elif sys.platform == 'win32':
 	use_quicktime = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
-	use_bullet = 'false'
+	use_bullet = 'true'
 	use_buildinfo = 'true'
 	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
@@ -1046,10 +1046,9 @@ bs_globals.config_guess = config_guess
 
 if user_options_dict['BUILD_GAMEENGINE'] == 1:
 	defines += ['GAMEBLENDER=1']
+	defines += ['USE_BULLET']
 	if user_options_dict['USE_PHYSICS'] == 'ode':
 		defines += ['USE_ODE']
-	elif user_options_dict['USE_PHYSICS'] == 'bullet':
-		defines += ['USE_BULLET']
 	else:
 		defines += ['USE_SUMO_SOLID']
 else:

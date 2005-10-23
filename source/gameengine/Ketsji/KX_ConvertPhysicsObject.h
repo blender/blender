@@ -33,7 +33,11 @@
 #define KX_CONVERTPHYSICSOBJECTS
 
 /* These are defined by the build system... */
+//but the build system is broken, because it doesn't allow for 2 or more defines at once.
+//Please leave Sumo _AND_ Bullet enabled
 #define USE_SUMO_SOLID
+#define USE_BULLET
+
 //#define USE_ODE
 
 //on visual studio 7/8, always enable BULLET for now 
