@@ -119,7 +119,7 @@ static short icoface[20][3] = {
 static void get_view_aligned_coordinate(float *fp)
 {
 	float dvec[3];
-	short mx, my, mval[0];
+	short mx, my, mval[2];
 	
 	getmouseco_areawin(mval);
 	mx= mval[0];
