@@ -320,110 +320,15 @@ void pose_special_editmenu(void)
 	}
 }
 
-/* context: active object, active channel, optional selected channel */
 void pose_add_IK(void)
 {
 	Object *ob= OBACT;
-	bPoseChannel *pchanact, *pchansel;
-	bConstraint *con;
-	short nr;
 	
 	/* paranoia checks */
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	/* find active */
-	for(pchanact= ob->pose->chanbase.first; pchanact; pchanact= pchanact->next)
-		if(pchanact->bone->flag & BONE_ACTIVE) break;
-	if(pchanact==NULL) return;
-	
-	/* find selected */
-	for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
-		if(pchansel!=pchanact)
-			if(pchansel->bone->flag & BONE_SELECTED) break;
-	}
-	
-	for(con= pchanact->constraints.first; con; con= con->next) {
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
-	}
-	if(con) {
-		error("Pose Channel already has IK");
-		return;
-	}
-	
-	if(pchansel)
-		nr= pupmenu("Add IK Constraint%t|To new Empty Object%x1|To selected Bone%x2");
-	else
-		nr= pupmenu("Add IK Constraint%t|To new Empty Object%x1");
-
-	if(nr<1) return;
-	
-	/* prevent weird chains... */
-	if(nr==2) {
-		bPoseChannel *pchan= pchanact;
-		while(pchan) {
-			if(pchan==pchansel) break;
-			pchan= pchan->parent;
-		}
-		if(pchan) {
-			error("IK root cannot be linked to IK tip");
-			return;
-		}
-		pchan= pchansel;
-		while(pchan) {
-			if(pchan==pchanact) break;
-			pchan= pchan->parent;
-		}
-		if(pchan) {
-			error("IK tip cannot be linked to IK root");
-			return;
-		}		
-	}
-
-	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
-	BLI_addtail(&pchanact->constraints, con);
-	pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
-	
-	/* add new empty as target */
-	if(nr==1) {
-		Base *base= BASACT, *newbase;
-		Object *obt;
-		
-		obt= add_object(OB_EMPTY);
-		/* set layers OK */
-		newbase= BASACT;
-		newbase->lay= base->lay;
-		obt->lay= newbase->lay;
-		
-		/* transform cent to global coords for loc */
-		VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
-		
-		set_constraint_target(con, obt, NULL);
-		
-		/* restore, add_object sets active */
-		BASACT= base;
-		base->flag |= SELECT;
-	}
-	else if(nr==2) {
-		set_constraint_target(con, ob, pchansel->name);
-	}
-	
-	/* active flag */
-	con->flag |= CONSTRAINT_ACTIVE;
-	for(con= con->prev; con; con= con->prev)
-		con->flag &= ~CONSTRAINT_ACTIVE;
-	
-	
-	ob->pose->flag |= POSE_RECALC;	// sort pose channels
-	DAG_scene_sort(G.scene);		// sort order of objects
-	
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
-	
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWOOPS, 0);
-	
-	BIF_undo_push("Add IK constraint");
+	add_constraint(1);	/* 1 means only IK */
 }
 
 /* context: all selected channels */

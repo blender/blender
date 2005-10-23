@@ -87,6 +87,7 @@
 #include "BIF_drawtext.h"
 #include "BIF_drawscript.h"
 #include "BIF_editarmature.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editfont.h"
 #include "BIF_editkey.h"
 #include "BIF_editlattice.h"
@@ -1157,6 +1158,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						convertmenu();	/* editobject.c */
 				}
+				else if(G.qual==(LR_ALTKEY|LR_CTRLKEY)) 
+					add_constraint(0);	/* editconstraint.c, generic for objects and posemode */
 				else if((G.qual==LR_SHIFTKEY)) {
 					view3d_home(1);
 					curs= give_cursor();

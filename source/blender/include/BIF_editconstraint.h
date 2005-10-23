@@ -50,6 +50,8 @@ struct bConstraintChannel *get_active_constraint_channel(struct Object *ob);
 
 void object_test_constraints(struct Object *owner);
 
+void add_constraint(int only_IK);
+
 char *get_con_subtarget_name(struct bConstraint *con, struct Object *target);
 
 #endif
