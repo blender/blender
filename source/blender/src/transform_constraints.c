@@ -169,7 +169,7 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 	
 	if(in[0]==0.0f && in[1]==0.0f && in[2]==0.0f)
 		return;
-
+	
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	   So we take vertical motion in 3D space and apply it to the
 	   constraint axis. Nice for camera grab + MMB */
@@ -188,17 +188,16 @@ static void axisProjection(TransInfo *t, float axis[3], float in[3], float out[3
 		float cb[3], ab[3];
 		
 		VECCOPY(out, axis);
-
+		
 		/* Get view vector on axis to define a plane */
-		getViewVector(t->con.center, norm);
+		VecAddf(vec, t->con.center, in);
+		getViewVector(vec, norm);
+		
 		Crossf(vec, norm, axis);
 		
 		/* Project input vector on the plane passing on axis */
 		Projf(vec, in, vec);
 		VecSubf(vec, in, vec);
-		
-		/* Get the view vector there */
-		getViewVector(vec, norm);
 		
 		/* intersect the two lines: axis and norm */
 		Crossf(cb, vec, norm);
