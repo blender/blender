@@ -2393,8 +2393,6 @@ void common_insertkey(void)
 			}
 			remake_action_ipos(ob->action);
 
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
