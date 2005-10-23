@@ -1200,6 +1200,8 @@ static int tree_element_active_defgroup(TreeElement *te, TreeStoreElem *tselem, 
 	ob= (Object *)tselem->id;
 	if(set) {
 		ob->actdef= te->index+1;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, ob->ipowin);
 	}
 	else {
 		if(ob==OBACT)
