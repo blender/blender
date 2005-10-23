@@ -448,6 +448,13 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
 			break;
+		case CONSTRAINT_TYPE_MINMAX:
+		{
+			bMinMaxConstraint *data = (bMinMaxConstraint*)con->data;
+			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;
 	}
 }
 
