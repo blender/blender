@@ -2259,19 +2259,20 @@ static void lib_link_object(FileData *fd, Main *main)
 
 static void direct_link_pose(FileData *fd, bPose *pose) {
 
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 
 	if (!pose)
 		return;
 
 	link_list(fd, &pose->chanbase);
 
-	for (chan = pose->chanbase.first; chan; chan=chan->next) {
-		chan->bone= NULL;
-		chan->parent= newdataadr(fd, chan->parent);
-		chan->child= newdataadr(fd, chan->child);
-		direct_link_constraints(fd, &chan->constraints);
-		chan->iktree.first= chan->iktree.last= NULL;
+	for (pchan = pose->chanbase.first; pchan; pchan=pchan->next) {
+		pchan->bone= NULL;
+		pchan->parent= newdataadr(fd, pchan->parent);
+		pchan->child= newdataadr(fd, pchan->child);
+		direct_link_constraints(fd, &pchan->constraints);
+		pchan->iktree.first= pchan->iktree.last= NULL;
+		pchan->path= NULL;
 	}
 
 }

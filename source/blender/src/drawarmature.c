@@ -1661,6 +1661,46 @@ static void draw_ebones(Object *ob, int dt)
 	}
 }
 
+/* in view space */
+static void draw_pose_paths(Object *ob)
+{
+	bPoseChannel *pchan;
+	float *fp;
+	int a;
+	
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
+	glPushMatrix();
+	glLoadMatrixf(G.vd->viewmat);
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->path) {
+			
+			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+			glBegin(GL_LINE_STRIP);
+			for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+				glVertex3fv(fp);
+			glEnd();
+			
+			glPointSize(1.0);
+			BIF_ThemeColor(TH_WIRE);
+			glBegin(GL_POINTS);
+			for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+				glVertex3fv(fp);
+			glEnd();
+			
+			BIF_ThemeColor(TH_TEXT_HI);
+			glBegin(GL_POINTS);
+			for(a=0, fp= pchan->path; a<pchan->pathlen; a+=10, fp+=30)
+				glVertex3fv(fp);
+			glEnd();
+		}
+	}
+	
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	glPopMatrix();
+}
+
 /* called from drawobject.c */
 void draw_armature(Base *base, int dt)
 {
@@ -1697,9 +1737,12 @@ void draw_armature(Base *base, int dt)
 					arm->flag |= ARM_POSEMODE;
 				else if(G.f & G_WEIGHTPAINT)
 					arm->flag |= ARM_POSEMODE;
+				
+				draw_pose_paths(ob);
 			}			
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
+			
 		}
 	}
 	/* restore */

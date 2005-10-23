@@ -48,7 +48,7 @@ typedef struct bPoseChannel {
 	short				flag;		/* dynamic, for detecting transform changes */
 	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
-	short				pad;
+	short				pathlen;	/* for drawing paths, the amount of frames */
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */
@@ -69,6 +69,8 @@ typedef struct bPoseChannel {
 	float		limitmin[3], limitmax[3];	/* DOF constraint */
 	float		stiffness[3];				/* DOF stiffness */
 	float		ikstretch;
+	
+	float		*path;				/* totpath x 3 x float */
 	
 } bPoseChannel;
 

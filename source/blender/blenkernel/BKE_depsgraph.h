@@ -94,11 +94,20 @@ void	boundbox_deps(void);
 void	draw_all_deps(void);
 
 /* ********** API *************** */
+/* Note that the DAG never executes changes in Objects, only sets flags in Objects */
 
 void	DAG_scene_sort(struct Scene *sce);
+
+		/* flag all objects that need recalc because they're animated */
 void	DAG_scene_update_flags(struct Scene *sce, unsigned int lay);
+		/* flag all objects that need recalc because they're animated, influencing this object only */
+void	DAG_object_update_flags(struct Scene *sce, struct Object *ob, unsigned int lay);
+
+		/* flushes all recalc flags in objects down the dependency tree */
 void	DAG_scene_flush_update(struct Scene *sce, unsigned int lay);
+		/* flushes all recalc flags for this object down the dependency tree */
 void	DAG_object_flush_update(struct Scene *sce, struct Object *ob, short flag);
+
 void	DAG_pose_sort(struct Object *ob);
 
 #endif

@@ -237,6 +237,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
 			copy_constraints(&listb, &pchan->constraints);  // copy_constraints NULLs listb
 			pchan->constraints= listb;
+			pchan->path= NULL;
 		}
 	}
 	
@@ -245,11 +246,13 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 
 void free_pose_channels(bPose *pose) 
 {
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first){
-		for (chan = pose->chanbase.first; chan; chan=chan->next){
-			free_constraints(&chan->constraints);
+		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next){
+			if(pchan->path)
+				MEM_freeN(pchan->path);
+			free_constraints(&pchan->constraints);
 		}
 		BLI_freelistN (&pose->chanbase);
 	}

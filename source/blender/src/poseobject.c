@@ -184,6 +184,82 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 	return 0;
 }
 
+/* ********************************************** */
+
+/* for the object with pose/action: create path curves for selected bones */
+void pose_calculate_path(Object *ob)
+{
+	bPoseChannel *pchan;
+	Base *base;
+	float *fp;
+	int cfra;
+	
+	if(ob==NULL || ob->pose==NULL)
+		return;
+	
+	if(EFRA<=SFRA) return;
+	
+	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
+	/* malloc the path blocks */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+			pchan->pathlen= EFRA-SFRA;
+			if(pchan->path)
+				MEM_freeN(pchan->path);
+			pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
+		}
+	}
+	
+	cfra= CFRA;
+	for(CFRA=SFRA; CFRA<EFRA; CFRA++) {
+		
+		/* do all updates */
+		for(base= FIRSTBASE; base; base= base->next) {
+			if(base->object->recalc) {
+				int temp= base->object->recalc;
+				object_handle_update(base->object);
+				base->object->recalc= temp;
+			}
+		}
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+				if(pchan->path) {
+					fp= pchan->path+3*(CFRA-SFRA);
+					VECCOPY(fp, pchan->pose_tail);
+					Mat4MulVecfl(ob->obmat, fp);
+				}
+			}
+		}
+	}
+	
+	CFRA= cfra;
+	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
+}
+
+
+/* for the object with pose/action: clear all path curves */
+void pose_clear_paths(Object *ob)
+{
+	bPoseChannel *pchan;
+	
+	if(ob==NULL || ob->pose==NULL)
+		return;
+	
+	/* free the path blocks */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->path) {
+			MEM_freeN(pchan->path);
+			pchan->path= NULL;
+		}
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+
+
 void pose_select_constraint_target(void)
 {
 	Object *ob= OBACT;
@@ -229,12 +305,18 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
 	else if(nr==2) {
 		pose_flip_names();
+	}
+	else if(nr==3) {
+		pose_calculate_path(ob);
+	}
+	else if(nr==4) {
+		pose_clear_paths(ob);
 	}
 }
 

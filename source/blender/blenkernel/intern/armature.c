@@ -963,6 +963,8 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 	for(pchan= pose->chanbase.first; pchan; pchan= next) {
 		next= pchan->next;
 		if(pchan->bone==NULL) {
+			if(pchan->path)
+				MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}

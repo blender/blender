@@ -1564,6 +1564,69 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 	DAG_scene_flush_update(sce, sce->lay);
 }
 
+/* recursively descends tree, each node only checked once */
+/* node is checked to be of type object */
+static int parent_check_node(DagNode *node, int curtime)
+{
+	DagAdjList *itA;
+	
+	node->lasttime= curtime;
+	
+	if(node->color==DAG_GRAY)
+		return DAG_GRAY;
+	
+	for(itA = node->child; itA; itA= itA->next) {
+		if(itA->node->type==ID_OB) {
+			
+			if(itA->node->color==DAG_GRAY)
+				return DAG_GRAY;
+
+			/* descend if not done */
+			if(itA->node->lasttime!=curtime) {
+				itA->node->color= parent_check_node(itA->node, curtime);
+			
+				if(itA->node->color==DAG_GRAY)
+					return DAG_GRAY;
+			}
+		}
+	}
+	
+	return DAG_WHITE;
+}
+
+/* all nodes that influence this object get tagged, for calculating the exact
+   position of this object at a given timeframe */
+void DAG_object_update_flags(Scene *sce, Object *ob, unsigned int lay)
+{
+	DagNode *node;
+	DagAdjList *itA;
+	
+	/* tag nodes unchecked */
+	for(node = sce->theDag->DagNode.first; node; node= node->next) 
+		node->color = DAG_WHITE;
+	
+	node = dag_get_node(sce->theDag, ob);
+	node->color = DAG_GRAY;
+	
+	sce->theDag->time++;
+	node= sce->theDag->DagNode.first;
+	for(itA = node->child; itA; itA= itA->next) {
+		if(itA->node->type==ID_OB && itA->node->lasttime!=sce->theDag->time)
+			itA->node->color= parent_check_node(itA->node, sce->theDag->time);
+	}
+	
+	/* set recalcs and flushes */
+	DAG_scene_update_flags(sce, lay);
+	
+	/* now we clear recalcs, unless color is set */
+	for(node = sce->theDag->DagNode.first; node; node= node->next) {
+		if(node->type==ID_OB && node->color==DAG_WHITE) {
+			Object *ob= node->ob;
+			ob->recalc= 0;
+		}
+	}
+}
+
 /* ******************* DAG FOR ARMATURE POSE ***************** */
 
 /* we assume its an armature with pose */

@@ -3230,6 +3230,12 @@ static void do_view3d_pose_armaturemenu(void *arg, int event)
 	case 9:
 		pose_flip_names();
 		break;
+	case 10:
+		pose_calculate_path(OBACT);
+		break;
+	case 11:
+		pose_clear_paths(OBACT);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3291,14 +3297,17 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Flipped Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6,  menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_pose_armature_showhidemenu, 
 						  NULL, ICON_RIGHTARROW_THIN,   "Show/Hide Bones", 0, yco-=20, 120, 19, "");
 
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
-			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Calculate Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear All Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
