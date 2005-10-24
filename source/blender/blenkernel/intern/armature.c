@@ -1170,8 +1170,9 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		/* bone offset */
 		if (pchan->parent && (a > 0))
-			VecCopyf(start, bone->head);
+			VecSubf(start, pchan->pose_head, pchan->parent->pose_tail);
 		else
+			/* only root bone (a = 0) has no parent */
 			start[0]= start[1]= start[2]= 0.0f;
 		
 		/* change length based on bone size */

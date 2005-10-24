@@ -1158,11 +1158,11 @@ void unwrap_lscm(void)
 
 	BIF_undo_push("UV lscm unwrap");
 
+	object_uvs_changed(OBACT);
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
-
-
 
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
 

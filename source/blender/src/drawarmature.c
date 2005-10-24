@@ -1105,10 +1105,10 @@ static void bgl_sphere_project(float ax, float az)
 	float dir[3], sine, q3;
 
 	sine= 1.0f-ax*ax-az*az;
-	q3= 2.0*sqrt((sine < 0.0f)? 0.0f: sine);
+	q3= (sine < 0.0f)? 0.0f: 2.0f*sqrt(sine);
 
 	dir[0]= -az*q3;
-	dir[1]= 1.0-2.0*sine;
+	dir[1]= 1.0f-2.0f*sine;
 	dir[2]= ax*q3;
 
 	glVertex3fv(dir);
@@ -1134,11 +1134,11 @@ static void draw_dof_ellipse(float ax, float az)
 	glColor4ub(70, 70, 70, 50);
 
 	glBegin(GL_QUADS);
-	pz= 0.0;
+	pz= 0.0f;
 	for(i=1; i<n; i++) {
 		z= staticSine[i];
 
-		px= 0.0;
+		px= 0.0f;
 		for(j=1; j<n-i+1; j++) {
 			x = staticSine[j];
 
@@ -1186,17 +1186,22 @@ static void draw_pose_dofs(Object *ob)
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
 				if(bone->flag & BONE_SELECTED) {
 					if(pose_channel_in_IK_chain(ob, pchan)) {
-						float corner[4][3], mat[4][4];
+						float corner[4][3], posetrans[3], mat[4][4];
 						float phi=0.0f, theta=0.0f, scale;
 						int a, i;
-						
+
 						/* in parent-bone pose, but own restspace */
 						glPushMatrix();
+
+						VECCOPY(posetrans, pchan->pose_mat[3]);
+						glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
+
 						if(pchan->parent) {
-							glMultMatrixf(pchan->parent->pose_mat);
-							glTranslatef(0.0f, bone->parent->length, 0.0f);
+							Mat4CpyMat4(mat, pchan->parent->pose_mat);
+							mat[3][0]= mat[3][1]= mat[3][2]= 0.0f;
+							glMultMatrixf(mat);
 						}
-						glTranslatef(bone->head[0], bone->head[1], bone->head[2]);
+
 						Mat4CpyMat3(mat, pchan->bone->bone_mat);
 						glMultMatrixf(mat);
 

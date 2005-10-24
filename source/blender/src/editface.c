@@ -487,6 +487,8 @@ void calculate_uv_map(unsigned short mapmode)
 
 	BIF_undo_push("UV calculation");
 
+	object_uvs_changed(OBACT);
+
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
