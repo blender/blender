@@ -643,6 +643,8 @@ static unsigned short convert_for_nonumpad(unsigned short event)
 void BIF_undo_push(char *str)
 {
 	if(G.obedit) {
+		if (U.undosteps == 0) return;
+
 		if(G.obedit->type==OB_MESH)
 			undo_push_mesh(str);
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
@@ -2647,7 +2649,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
-			&(U.undosteps), 2, 64, 0, 0, "Number of undo steps available in Edit Mode (smaller values conserve memory)");
+			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available in Edit Mode (smaller values conserve memory)");
 
 		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
