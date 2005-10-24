@@ -618,7 +618,7 @@ void add_constraint(int only_IK)
 		}
 		
 		if(pchansel)
-			nr= pupmenu("Add IK Constraint%t|To New Empty Object%x10");
+			nr= pupmenu("Add IK Constraint%t|To Selected Bone");
 		else if(obsel)
 			nr= pupmenu("Add IK Constraint%t|To Selected Object%x10");
 		else 

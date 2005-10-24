@@ -59,6 +59,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
 #include "BKE_global.h"
@@ -1532,6 +1533,23 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 	DAG_scene_flush_update(sce, lay);
 }
 
+/* for depgraph updating, all layers visible in a screen */
+/* this is a copy from editscreen.c... I need to think over a more proper solution for this */
+/* probably the DAG_object_flush_update() should give layer too? */
+/* or some kind of dag context... (DAG_set_layer) */
+static unsigned int dag_screen_view3d_layers(void)
+{
+	ScrArea *sa;
+	int layer= 0;
+	
+	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+		if(sa->spacetype==SPACE_VIEW3D)
+			layer |= ((View3D *)sa->spacedata.first)->lay;
+	}
+	return layer;
+}
+
+
 /* flag this object and all its relations to recalc */
 /* if you need to do more objects, tag object yourself and
    use DAG_scene_flush_update() in end */
@@ -1561,7 +1579,10 @@ void DAG_object_flush_update(Scene *sce, Object *ob, short flag)
 		}
 	}
 	
-	DAG_scene_flush_update(sce, sce->lay);
+	if(G.curscreen)
+		DAG_scene_flush_update(sce, dag_screen_view3d_layers());
+	else
+		DAG_scene_flush_update(sce, sce->lay);
 }
 
 /* recursively descends tree, each node only checked once */
