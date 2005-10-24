@@ -939,9 +939,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_ARMATURE)
 						mouse_armature();
 				}
-				else if((G.obedit) && (G.qual == (LR_CTRLKEY|LR_ALTKEY)))
+				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY)))
 					mouse_mesh();	// loop select for 1 mousebutton dudes
-				else if((G.obedit) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
+				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
 					mouse_mesh();	// loop select for 1 mousebutton dudes
 				else if(G.qual==LR_CTRLKEY)
 					mouse_select();	// also allow in editmode, for vertex parenting
