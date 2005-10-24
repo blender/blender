@@ -3008,6 +3008,7 @@ void do_meshbuts(unsigned short event)
 		break;
 	case B_REMDOUB:
 		notice("Removed: %d", removedoublesflag(1, G.scene->toolsettings->doublimit));
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rem Doubles");
 		break;
