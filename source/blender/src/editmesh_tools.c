@@ -1126,6 +1126,7 @@ void fill_mesh(void)
 #define EDGENEW	2
 #define FACENEW	2
 #define EDGEINNER  4
+#define EDGEOLD  8
 
 static void alter_co(float* co,EditEdge *edge,float rad,int beauty,float perc)
 {
@@ -2326,7 +2327,12 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 		//	eed->f |= eed->v1->f;   
 		// }
 		eed->f2 = 0;   
+		if(eed->f & flag){
+			eed->f2	|= EDGEOLD;
+		}
 	}   
+	  	
+
 	// We store an array of verts for each edge that is subdivided,
 	// we put this array as a value in a ghash which is keyed by the EditEdge*
 
@@ -2497,7 +2503,7 @@ void esubdivideflag(int flag, float rad, int beauty, int numcuts, int seltype)
 	
 	if(seltype == SUBDIV_SELECT_ORIG  && G.qual  != LR_CTRLKEY){
 		for(eed = em->edges.first;eed;eed = eed->next){
-			if(eed->f2 & EDGENEW){
+			if(eed->f2 & EDGENEW || eed->f2 & EDGEOLD){
 				eed->f |= flag;
 				EM_select_edge(eed,1); 
 				
