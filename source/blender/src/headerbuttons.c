@@ -1867,23 +1867,9 @@ void do_global_buttons2(short event)
 		if(idfrom && idfrom->lib==NULL) {
 			if(ipo->id.us>1) {
 				if(okee("Single user")) {
-					if(ipo->blocktype==ID_OB) ((Object *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_MA) ((Material *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_TE) ((Tex *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_SEQ) ((Sequence *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_CU) ((Curve *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_KE) ((Key *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_LA) ((Lamp *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_WO) ((World *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_CA) ((Camera *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_SO) ((bSound *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_AC) 
-						get_hilighted_action_channel((bAction *)idfrom)->ipo= copy_ipo(ipo);
-					else if(ipo->blocktype==ID_CO) 
-						get_active_constraint_channel((Object*)idfrom)->ipo= copy_ipo(ipo);
-					else error("Warn bugtracker!");
-					
-					ipo->id.us--;
+					ipo= copy_ipo(ipo);
+					ipo->id.us= 0;	/* assign_ipo adds users, copy_ipo sets to 1 */
+					spaceipo_assign_ipo(G.sipo, ipo);
 					allqueue(REDRAWIPO, 0);
 				}
 			}
