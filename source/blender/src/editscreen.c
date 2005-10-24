@@ -1367,7 +1367,7 @@ void screenmain(void)
 			}
 		}
 		else if (event==SPACEKEY) {
-			if(val && (G.qual & LR_SHIFTKEY)) {
+			if((g_activearea->spacetype!=SPACE_TEXT) && val && (G.qual & LR_SHIFTKEY)) {
 				area_fullscreen();
 				g_activearea= NULL;
 				towin= 0;
