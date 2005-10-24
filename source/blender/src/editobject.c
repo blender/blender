@@ -2226,7 +2226,8 @@ void convertmenu(void)
 		if(nr>0) ok= 1;
 	}
 	else if(ob->type==OB_MESH) {
-		nr= pupmenu("Convert Modifiers to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
+		if(ob->modifiers.first) 
+			nr= pupmenu("Convert Modifiers to%t|Mesh (Keep Original)%x1|Mesh (Delete Original)%x2");
 		if(nr>0) ok= 1;
 	}
 	if(ok==0) return;
