@@ -125,7 +125,7 @@ void BLI_splitdirstring(char *di,char *fi);
 	 */
 int BLI_convertstringcode(char *path, char *basepath, int framenum);
 
-void BLI_makestringcode(char *fromfile, char *str);
+void BLI_makestringcode(const char *relfile, char *file);
 
 	/**
 	 * Change every @a from in @a string into @a to. The

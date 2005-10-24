@@ -431,31 +431,68 @@ int BLI_strcaseeq(char *a, char *b) {
 	return (BLI_strcasecmp(a, b)==0);
 }
 
-void BLI_makestringcode(char *fromfile, char *str)
+void BLI_makestringcode(const char *relfile, char *file)
 {
-	char *slash, len, temp[512];
+	char * p;
+	char * q;
+	char * lslash;
+	int len=0;
 
-	strcpy(temp, fromfile);
-	
-	BLI_char_switch(temp, '\\', '/');
-	BLI_char_switch(str, '\\', '/');
+	char temp[FILE_MAXDIR+FILE_MAXFILE];
+	char res[FILE_MAXDIR+FILE_MAXFILE];
+	strcpy(temp, relfile);
 
-	/* Find the last slash */
-	slash = strrchr(temp, '/');
-	if(slash) {
-		*(slash+1)= 0;
-		len= strlen(temp);
-		if(len) {
-			if(strncmp(str, temp, len)==0) {
-				temp[0]= '/';
-				temp[1]= '/';
-				strcpy(temp+2, str+len);
-#ifdef			WIN32
-				BLI_char_switch(temp+2, '/', '\\');
+#ifdef WIN32
+	if (strlen(file) > 2) {
+		if ( temp[1] == ':' && file[1] == ':' && temp[0] != file[0] )
+			return;
+	}
 #endif
-				strcpy(str, temp);
-			}
+
+	BLI_char_switch(temp, '\\', '/');
+	BLI_char_switch(file, '\\', '/');
+
+	/* the last slash in the file indicates where the path part ends */
+	lslash = BLI_last_slash(temp);
+
+	if (lslash) 
+	{	
+		/* find the prefix of the filename that is equal for both filenames.
+		   This is replaced by the two slashes at the beginning */
+		p = temp;
+		q = file;
+		while (*p == *q) {
+			++p; ++q;
 		}
+		/* we might have passed the slash when the beginning of a dir matches 
+		   so we rewind. Only check on the actual filename
+		*/
+		if (*q != '/') {
+			while ( (q >= file) && (*q != '/') ) { --q; --p; }
+		} 
+		else if (*p != '/') {
+			while ( (p >= temp) && (*p != '/') ) { --p; --q; }
+		}
+		
+		strcpy(res,	"//");
+
+		/* p now points to the slash that is at the beginning of the part
+		   where the path is different from the relative path. 
+		   We count the number of directories we need to go up in the
+		   hierarchy to arrive at the common 'prefix' of the path
+		*/			
+		while (p && p < lslash)	{
+			if (*p == '/') 
+				strcat(res,	"../");
+			++p;
+		}
+
+		strcat(res, q+1); /* don't copy the slash at the beginning */
+
+#ifdef	WIN32
+		BLI_char_switch(res+2, '/', '\\');
+#endif
+		strcpy(file, res);
 	}
 }
 

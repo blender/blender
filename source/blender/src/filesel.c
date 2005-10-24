@@ -1344,7 +1344,8 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 	}
 	else {	/* FILE_BLENDER */
 		split_sfile(sfile, name);	/* test filelist too */
-		
+		checkdir(sfile->dir);
+
 		/* free: filelist and libfiledata became incorrect */
 		if(sfile->libfiledata) BLO_blendhandle_close(sfile->libfiledata);
 		sfile->libfiledata= 0;
@@ -1377,6 +1378,7 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	else simasel->mode &= ~IMS_STRINGCODE;
 	
 	BLI_split_dirfile(name, dir, simasel->file);
+	checkdir(simasel->dir);
 	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
 	strcpy(simasel->dir, dir);
 	

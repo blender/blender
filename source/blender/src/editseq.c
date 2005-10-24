@@ -95,7 +95,13 @@
 #include "mydevice.h"
 
 Sequence *last_seq=0;
+
+#ifdef WIN32
+char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "c:\\";
+#else
 char last_imagename[FILE_MAXDIR+FILE_MAXFILE]= "/";
+#endif
+
 char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 
 #define SEQ_DESEL	~(SELECT+SEQ_LEFTSEL+SEQ_RIGHTSEL)
