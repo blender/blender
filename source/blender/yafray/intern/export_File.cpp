@@ -1207,7 +1207,9 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	// Export orco coords test.
 	// Previously was done by checking orco pointer, however this can be non-null but still not initialized.
 	// Test the rendermaterial texco flag instead.
-	bool EXPORT_ORCO = ((face0mat->texco & TEXCO_ORCO)!=0);
+	// update2: bug #3193 it seems it has changed again with the introduction of static 'hair' particles,
+	// now it uses the vert pointer again as an extra test to make sure there are orco coords available
+	bool EXPORT_ORCO = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL));
 
 	string has_orco = "off";
 	if (EXPORT_ORCO) has_orco = "on";

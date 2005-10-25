@@ -583,7 +583,7 @@ void RE_setwindowclip(int mode, int jmode)
 	else 
 		i_window(minx, maxx, miny, maxy, R.near, R.far, R.winmat);
 
-//	printmatrix4("win", R.winmat);
+	//printmatrix4("win", R.winmat);
 }
 
 
@@ -835,6 +835,12 @@ static void add_to_blurbuf(int blur)
 static void yafrayRender(void)
 {
 	R.flag |= R_RENDERING;	/* !!! */
+
+	/* bug #3193: these params were not initialized, needed later for winmat calc. */
+	R.xstart = -R.afmx;
+	R.ystart = -R.afmy;
+	R.xend = R.xstart + R.rectx - 1;
+	R.yend = R.ystart + R.recty - 1;
 
 	/* all allocs moved here, out of export code */
 	/* display rgba buf */

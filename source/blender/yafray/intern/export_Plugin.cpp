@@ -1279,8 +1279,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco) 
-			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v2)==vert_idx.end()) 
 	{
@@ -1289,8 +1288,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco)
-			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if (vert_idx.find(vlr->v3)==vert_idx.end()) 
 	{
@@ -1299,8 +1297,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco)
-			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 	if ((vlr->v4) && (vert_idx.find(vlr->v4)==vert_idx.end())) 
 	{
@@ -1309,8 +1306,7 @@ void yafrayPluginRender_t::genVertices(vector<yafray::point3d_t> &verts, int &vi
 		MTC_cp3Float(ver->co, tvec);
 		MTC_Mat4MulVecfl(imat, tvec);
 		verts.push_back(yafray::point3d_t(tvec[0], tvec[1], tvec[2]));
-		if (has_orco)
-			verts.push_back(yafray::point3d_t(ver->orco[0],ver->orco[1],ver->orco[2]));
+		if (has_orco) verts.push_back(yafray::point3d_t(ver->orco[0], ver->orco[1], ver->orco[2]));
 	}
 }
 
@@ -1341,7 +1337,9 @@ void yafrayPluginRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_
 	// Export orco coords test.
 	// Previously was done by checking orco pointer, however this can be non-null but still not initialized.
 	// Test the rendermaterial texco flag instead.
-	bool has_orco = ((face0mat->texco & TEXCO_ORCO)!=0);
+	// update2: bug #3193 it seems it has changed again with the introduction of static 'hair' particles,
+	// now it uses the vert pointer again as an extra test to make sure there are orco coords available
+	bool has_orco = (((face0mat->texco & TEXCO_ORCO)!=0) && (face0->v1->orco!=NULL));
 
 	bool no_auto = true;	//in case non-mesh, or mesh has no autosmooth
 	float sm_angle = 0.1f;
