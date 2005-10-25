@@ -102,12 +102,13 @@ void sel_verts_defgroup (int select)
 	else EM_deselect_flush();
 }
 
-MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
 /* Ensures that mv has a deform weight entry for
-the specified defweight group */
+   the specified defweight group */
+/* Note this function is mirrored in editmesh_tools.c, for use for editvertices */
+MDeformWeight *verify_defweight (MDeformVert *dv, int defgroup)
 {
-	int	i;
 	MDeformWeight *newdw;
+	int	i;
 
 	if (!dv || defgroup<0)
 		return NULL;
@@ -133,7 +134,8 @@ the specified defweight group */
 	return dv->dw+(dv->totweight-1);
 }
 
-void add_defgroup (Object *ob) {
+void add_defgroup (Object *ob) 
+{
 	add_defgroup_name (ob, "Group");
 }
 

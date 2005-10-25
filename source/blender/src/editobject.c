@@ -1928,10 +1928,11 @@ void split_font()
 
 void special_editmenu(void)
 {
+	static short numcuts= 2;
 	Object *ob= OBACT;
 	float fac;
 	int nr,ret;
-	short randfac,numcuts;
+	short randfac;
 	
 	if(ob==NULL) return;
 	
@@ -2084,34 +2085,42 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Multi Smooth - WIP%x12|Subdivide Smooth Old%x13|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15");
+		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15");
 		
 		switch(nr) {
 		case 1:
-			numcuts = 1;
 			waitcursor(1);
-			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, 1, 0);
 			
 			BIF_undo_push("ESubdivide Single");            
 			break;
 		case 2:
-		numcuts = 2;
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
-			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,numcuts,0);
+			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
-			numcuts = 2;
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
 			randfac= 10;
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,numcuts,0);
+			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("Subdivide Fractal");
 			break;
-
+			
+		case 12:	/* smooth */
+			//if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			fac= 1.0f;
+			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
+				fac= 0.292f*fac;
+			
+			waitcursor(1);
+			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+			BIF_undo_push("Subdivide Smooth");
+			break;		
+			
 		case 4:
 			mergemenu();
 			break;
@@ -2137,18 +2146,6 @@ void special_editmenu(void)
 			break;
 		case 11:
 			bevel_menu();
-			break;
-		case 12:
-			numcuts = 2;
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,numcuts,0);
-			BIF_undo_push("Subdivide Smooth");
-			break;		
-		case 13:
-			waitcursor(1);
-			subdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH);
-			BIF_undo_push("Subdivide Smooth");
 			break;
 		case 14:
 			mesh_set_smooth_faces(1);

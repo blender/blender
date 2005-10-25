@@ -171,8 +171,9 @@ extern void convert_to_triface(int direction);
 extern int removedoublesflag(short flag, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);
-extern void subdivideflag(int flag, float rad, int beauty);
+
 extern void esubdivideflag(int flag, float rad, int beauty, int numcuts, int selecttype);
+
 extern void extrude_mesh(void);
 extern void split_mesh(void);
 extern void extrude_repeat_mesh(int steps, float offs);

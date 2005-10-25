@@ -1181,8 +1181,7 @@ short sbutton(char *var, float min, float max, char *str)
 	return 0;
 }
 
-short fbutton(float *var, float min, float max, float a1, float a2, 
-char *str)
+short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 {
 	uiBlock *block;
 	ListBase listb={0, 0};
