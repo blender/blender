@@ -115,15 +115,7 @@ SOURCE=..\..\intern\elbeem.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\factory_fsgr.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\intern\isosurface.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\intern\lbminterface.cpp
 # End Source File
 # Begin Source File
 
@@ -151,11 +143,11 @@ SOURCE=..\..\intern\ntl_ray.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\ntl_raytracer.cpp
+SOURCE=..\..\intern\ntl_scene.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\ntl_scene.cpp
+SOURCE=..\..\intern\ntl_world.cpp
 # End Source File
 # Begin Source File
 
@@ -168,6 +160,18 @@ SOURCE=..\..\intern\particletracer.cpp
 # Begin Source File
 
 SOURCE=..\..\intern\simulation_object.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_init.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_interface.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_main.cpp
 # End Source File
 # Begin Source File
 
@@ -188,6 +192,22 @@ SOURCE=..\..\intern\cfgparser.h
 # Begin Source File
 
 SOURCE=..\..\intern\lbmfsgrsolver.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_class.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_dimenions.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_interface.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\solver_relax.h
 # End Source File
 # End Group
 # End Target
