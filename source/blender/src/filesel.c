@@ -2264,37 +2264,44 @@ static void do_sync_pose(Library *lib)
 		if(ob->type==OB_ARMATURE && ob->id.lib==lib)
 			break;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if(ob==NULL || ob->pose==NULL) {
 		error("No pose appended");
+		return;
+	}
 	
 	arm= ob->data;
 
 	/* for all visible objects in this scene */
 	for(base= G.scene->base.first; base; base= base->next) {
-		if((base->flag & SELECT) || (base->object->flag & OB_POSEMODE)) {
+		if((base->flag & SELECT)) {
 			obt= base->object;
 			if(obt->type==OB_ARMATURE && obt->pose && ob!=obt) {
-				bPoseChannel *chan;
-				bArmature *oldarm= obt->data;
+				char str[128];
 				
-				/* link armature */
-				oldarm->id.us--;
-				obt->data= arm;
-				arm->id.us++;
-				
-				/* link pose */
-				free_pose_channels(obt->pose);
-				MEM_freeN(obt->pose);
-				copy_pose(&obt->pose, ob->pose, 1);
-				
-				/* relink */
-				ob->id.newid= &obt->id;
-				for (chan = obt->pose->chanbase.first; chan; chan=chan->next){
-					relink_constraints(&chan->constraints);
+				sprintf(str, "Replace Object %s", obt->id.name);
+				if(okee(str)) {
+					bPoseChannel *chan;
+					bArmature *oldarm= obt->data;
+					
+					/* link armature */
+					oldarm->id.us--;
+					obt->data= arm;
+					arm->id.us++;
+					
+					/* link pose */
+					free_pose_channels(obt->pose);
+					MEM_freeN(obt->pose);
+					copy_pose(&obt->pose, ob->pose, 1);
+					
+					/* relink */
+					ob->id.newid= &obt->id;
+					for (chan = obt->pose->chanbase.first; chan; chan=chan->next){
+						relink_constraints(&chan->constraints);
+					}
+					
+					obt->pose->flag |= POSE_RECALC;
+					obt->recalc |= OB_RECALC_DATA;
 				}
-				
-				obt->pose->flag |= POSE_RECALC;
-				obt->recalc |= OB_RECALC_DATA;
 			}
 		}
 	}
@@ -2308,6 +2315,8 @@ static void do_sync_pose(Library *lib)
 	if(base) {
 		free_and_unlink_base(base);
 	}
+
+	DAG_scene_sort(G.scene);	// for accidentally appended other objects
 }
 
 static void do_library_append(SpaceFile *sfile)
@@ -2327,7 +2336,7 @@ static void do_library_append(SpaceFile *sfile)
 		Object *ob;
 		int idcode = groupname_to_code(group);
 		
-		BLO_library_append(sfile, dir, idcode);
+		BLO_library_append(sfile, dir, idcode);	/* warning; if relative, it changes the *dir to relative path */
 
 		/* DISPLISTS? */
 		ob= G.main->object.first;
@@ -2338,9 +2347,6 @@ static void do_library_append(SpaceFile *sfile)
 			ob= ob->id.next;
 		}
 	
-		/* in sfile->dir is the whole lib name */
-		strcpy(G.lib, sfile->dir);
-		
 		/* and now find the latest append lib file */
 		lib= G.main->library.first;
 		while(lib) {
@@ -2348,12 +2354,16 @@ static void do_library_append(SpaceFile *sfile)
 			lib= lib->id.next;
 		}
 		
-		if(sfile->flag & FILE_SYNCPOSE)
-			do_sync_pose(lib);
-		if((sfile->flag & FILE_LINK)==0) 
-			all_local(lib);
+		if(lib) {
+			if(sfile->flag & FILE_SYNCPOSE)
+				do_sync_pose(lib);
+			if((sfile->flag & FILE_LINK)==0) 
+				all_local(lib);
+		}
 		
-		DAG_scene_sort(G.scene);
+		/* in sfile->dir is the whole lib name */
+		strcpy(G.lib, sfile->dir);
+		
 	}
 }
 

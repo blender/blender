@@ -5846,7 +5846,6 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	BLI_strncpy(filename, G.sce, sizeof(filename));
 	BLI_strncpy(G.sce, fd->filename, sizeof(filename));		// already opened file, to reconstruct relative paths
 	
-	
 	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
 	fd->mainlist.first= fd->mainlist.last= G.main;
@@ -5893,7 +5892,12 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 		sfile->libfiledata= 0;
 	}
 	
-	if(sfile->flag & FILE_STRINGCODE) BLI_makestringcode(filename, mainl->curlib->name);	// uses old .blend file as reference
+	if(sfile->flag & FILE_STRINGCODE) {
+		/* uses old .blend file (*filename) as reference */
+		BLI_makestringcode(filename, mainl->curlib->name);
+		/* the caller checks for appended library, so we make sure names match */
+		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
+	}
 	
 	if(sfile->flag & FILE_ATCURSOR) {
 		centerbase= (G.scene->base.first);
