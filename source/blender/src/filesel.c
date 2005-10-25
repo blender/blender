@@ -61,10 +61,11 @@
 
 #include "IMB_imbuf.h"
 
+#include "DNA_armature_types.h"
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
-#include "DNA_vfont_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
@@ -72,16 +73,20 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vfont_types.h"
+#include "DNA_view3d_types.h"
 
-#include "BKE_utildefines.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_library.h"
+#include "BKE_action.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_depsgraph.h"
 #include "BKE_font.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_interface.h"
@@ -95,6 +100,8 @@
 #include "BLO_readfile.h"
 
 #include "BDR_editcurve.h"
+#include "BDR_editobject.h"
+
 #include "BPI_script.h"
 #include "BSE_filesel.h"
 #include "BSE_view.h"
@@ -2245,6 +2252,64 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 	return 1;
 }
 
+/* orange hack... :) */
+static void do_sync_pose(Library *lib)
+{
+	Object *ob, *obt;
+	Base *base;
+	bArmature *arm;
+	
+	/* find the armature and the pose from library */
+	for(ob= G.main->object.first; ob; ob= ob->id.next)
+		if(ob->type==OB_ARMATURE && ob->id.lib==lib)
+			break;
+	
+	if(ob==NULL || ob->pose==NULL)
+		error("No pose appended");
+	
+	arm= ob->data;
+
+	/* for all visible objects in this scene */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if((base->flag & SELECT) || (base->object->flag & OB_POSEMODE)) {
+			obt= base->object;
+			if(obt->type==OB_ARMATURE && obt->pose && ob!=obt) {
+				bPoseChannel *chan;
+				bArmature *oldarm= obt->data;
+				
+				/* link armature */
+				oldarm->id.us--;
+				obt->data= arm;
+				arm->id.us++;
+				
+				/* link pose */
+				free_pose_channels(obt->pose);
+				MEM_freeN(obt->pose);
+				copy_pose(&obt->pose, ob->pose, 1);
+				
+				/* relink */
+				ob->id.newid= &obt->id;
+				for (chan = obt->pose->chanbase.first; chan; chan=chan->next){
+					relink_constraints(&chan->constraints);
+				}
+				
+				obt->pose->flag |= POSE_RECALC;
+				obt->recalc |= OB_RECALC_DATA;
+			}
+		}
+	}
+
+	/* prevent saving in file, unlink from scene */
+	for(base= G.scene->base.first; base; base= base->next) {
+		if(base->object==ob)
+			break;
+	}
+	
+	if(base) {
+		free_and_unlink_base(base);
+	}
+}
+
 static void do_library_append(SpaceFile *sfile)
 {
 	Library *lib;
@@ -2283,7 +2348,12 @@ static void do_library_append(SpaceFile *sfile)
 			lib= lib->id.next;
 		}
 		
-		if((sfile->flag & FILE_LINK)==0) all_local(lib);
+		if(sfile->flag & FILE_SYNCPOSE)
+			do_sync_pose(lib);
+		if((sfile->flag & FILE_LINK)==0) 
+			all_local(lib);
+		
+		DAG_scene_sort(G.scene);
 	}
 }
 

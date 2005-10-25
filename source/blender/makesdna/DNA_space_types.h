@@ -406,6 +406,7 @@ typedef struct SpaceImaSel {
 #define FILE_AUTOSELECT		16
 #define FILE_ACTIVELAY		32
 #define FILE_ATCURSOR		64
+#define FILE_SYNCPOSE		128
 
 /* sfile->sort */
 #define FILE_SORTALPHA		0
