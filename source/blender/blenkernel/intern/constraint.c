@@ -559,7 +559,7 @@ void *new_constraint_data (short type)
 		{
 			bRotateLikeConstraint *data;
 			data = MEM_callocN(sizeof(bRotateLikeConstraint), "rotlikeConstraint");
-
+			data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
 			result = data;
 		}
 		break;
@@ -567,8 +567,7 @@ void *new_constraint_data (short type)
 		{
 			bLocateLikeConstraint *data;
 			data = MEM_callocN(sizeof(bLocateLikeConstraint), "loclikeConstraint");
-
-			data->flag |= LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
+			data->flag = LOCLIKE_X|LOCLIKE_Y|LOCLIKE_Z;
 			result = data;
 		}
 		break;
@@ -1041,25 +1040,41 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		break;
 	case CONSTRAINT_TYPE_ROTLIKE:
 		{
-		float	tmat[4][4];
-		float	size[3];
+			bRotateLikeConstraint *data;
+			float	tmat[3][3];
+			float	size[3];
+			
+			data = constraint->data;
+			
+			/* old files stuff only... version patch is too much code! */
+			if(data->flag==0) data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
 
-		Mat4ToSize(ob->obmat, size);
-		
-		Mat4CpyMat4 (tmat, targetmat);
-		Mat4Ortho(tmat);
+			Mat4ToSize(ob->obmat, size);
+			
+			Mat3CpyMat4 (tmat, targetmat);
+			Mat3Ortho(tmat);
+			
+			if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
+				float eul[3];
+				
+				Mat3ToEul(tmat, eul);
+				if(!(data->flag & ROTLIKE_X)) eul[0]= 0.0f;
+				if(!(data->flag & ROTLIKE_Y)) eul[1]= 0.0f;
+				if(!(data->flag & ROTLIKE_Z)) eul[2]= 0.0f;
+				EulToMat3(eul, tmat);
+			}
 
-		ob->obmat[0][0] = tmat[0][0]*size[0];
-		ob->obmat[0][1] = tmat[0][1]*size[1];
-		ob->obmat[0][2] = tmat[0][2]*size[2];
+			ob->obmat[0][0] = tmat[0][0]*size[0];
+			ob->obmat[0][1] = tmat[0][1]*size[1];
+			ob->obmat[0][2] = tmat[0][2]*size[2];
 
-		ob->obmat[1][0] = tmat[1][0]*size[0];
-		ob->obmat[1][1] = tmat[1][1]*size[1];
-		ob->obmat[1][2] = tmat[1][2]*size[2];
+			ob->obmat[1][0] = tmat[1][0]*size[0];
+			ob->obmat[1][1] = tmat[1][1]*size[1];
+			ob->obmat[1][2] = tmat[1][2]*size[2];
 
-		ob->obmat[2][0] = tmat[2][0]*size[0];
-		ob->obmat[2][1] = tmat[2][1]*size[1];
-		ob->obmat[2][2] = tmat[2][2]*size[2];
+			ob->obmat[2][0] = tmat[2][0]*size[0];
+			ob->obmat[2][1] = tmat[2][1]*size[1];
+			ob->obmat[2][2] = tmat[2][2]*size[2];
 		}
 		break;
 	case CONSTRAINT_TYPE_NULL:
