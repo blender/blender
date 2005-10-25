@@ -3589,6 +3589,8 @@ void draw_object(Base *base)
 		break;
 	case OB_CURVE:
 	case OB_SURF:
+		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
+		if (cu->disp.first==NULL) makeDispListCurveTypes(ob, 0);
 		cu= ob->data;
 		
 		if(ob==G.obedit) {
