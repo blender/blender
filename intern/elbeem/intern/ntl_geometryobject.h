@@ -72,6 +72,10 @@ class ntlGeometryObject : public ntlGeometryClass
 		inline bool getGeoInitIntersect() const { return mGeoInitIntersect; }
 		inline void setGeoInitIntersect(bool set) { mGeoInitIntersect=set; }
 
+		/*! Set/get the part slip value*/
+		inline bool getGeoPartSlipValue() const { return mGeoPartSlipValue; }
+		inline void setGeoPartSlipValue(float set) { mGeoPartSlipValue=set; }
+
 	protected:
 
 		/*! Point to a property object describing the surface of this object */
@@ -94,6 +98,8 @@ class ntlGeometryObject : public ntlGeometryClass
 		ntlVec3Gfx mInitialVelocity;
 		/*! perform more accurate intersecting geo init for this object? */
 		bool mGeoInitIntersect;
+		/*! part slip bc value */
+		float mGeoPartSlipValue;
 
 	public:
 

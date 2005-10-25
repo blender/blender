@@ -15,8 +15,8 @@
 //! user interface variables
 
 // global raytracer pointer (=world)
-class ntlRaytracer;
-extern ntlRaytracer *gpWorld;
+class ntlWorld;
+extern ntlWorld *gpWorld;
 
 // debug output switch
 extern bool myDebugOut;

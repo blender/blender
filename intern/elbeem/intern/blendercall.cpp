@@ -10,7 +10,6 @@
  *****************************************************************************/
  
 #include "globals.h"
-#include "ntl_raytracer.h"
 #include "ntl_blenderdumper.h"
 #include <stdlib.h>
 

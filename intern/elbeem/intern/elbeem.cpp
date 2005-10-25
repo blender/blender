@@ -21,8 +21,8 @@ double guiRoiEZ = 1.0;
 int guiRoiMaxLev=6, guiRoiMinLev=0;
 
 //! global raytracer pointer (=world)
-class ntlRaytracer;
-ntlRaytracer *gpWorld = (ntlRaytracer*)0;
+class ntlWorld;
+ntlWorld *gpWorld = (ntlWorld*)0;
 
 //! debug output switch
 bool myDebugOut = false;

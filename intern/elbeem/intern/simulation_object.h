@@ -7,13 +7,13 @@
  *
  *****************************************************************************/
 
-#ifndef ELBEEM_SIMINTERFACE
-#define ELBEEM_SIMINTERFACE
+#ifndef SIMULATION_OBJECT_H
+#define SIMULATION_OBJECT_H
 
 
 #define USE_GLUTILITIES
 #include "ntl_geometryshader.h"
-#include "lbmdimensions.h"
+#include "solver_interface.h"
 #include "parametrizer.h"
 #include "particletracer.h"
 

@@ -1233,7 +1233,6 @@ yysymprint (yyoutput, yytype, yyvaluep)
 # endif
   switch (yytype)
     {
-			case 0:
       default:
         break;
     }

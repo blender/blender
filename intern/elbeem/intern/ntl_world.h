@@ -18,13 +18,13 @@
 #include "simulation_object.h"
 class ntlOpenGLRenderer;
 
-class ntlRaytracer
+class ntlWorld
 {
 	public:
 		/*! Constructor */
-		ntlRaytracer(string filename, bool commandlineMode);
+		ntlWorld(string filename, bool commandlineMode);
 		/*! Destructor */
-		virtual ~ntlRaytracer( void );
+		virtual ~ntlWorld( void );
 
 		/*! render a whole animation (command line mode) */
 		int renderAnimation( void );

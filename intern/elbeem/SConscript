@@ -29,24 +29,27 @@ else:
 
 		"intern/attributes.cpp",
 		"intern/elbeem.cpp",
-		"intern/factory_fsgr.cpp",
 		"intern/isosurface.cpp",
-		"intern/lbminterface.cpp",
 		"intern/ntl_blenderdumper.cpp",
 		"intern/ntl_bsptree.cpp",
 		"intern/ntl_geometrymodel.cpp",
 		"intern/ntl_geometryobject.cpp",
 		"intern/ntl_lightobject.cpp",
 		"intern/ntl_ray.cpp",
-		"intern/ntl_raytracer.cpp",
 		"intern/ntl_scene.cpp",
+		"intern/ntl_world.cpp",
 		"intern/parametrizer.cpp",
 		"intern/particletracer.cpp",
 		"intern/simulation_object.cpp",
 		"intern/utilities.cpp",
-		"intern/blendercall.cpp"
+		"intern/blendercall.cpp",
 
-			]; # sources
+		"intern/solver_init.cpp",
+		"intern/solver_interface.cpp",
+		"intern/solver_main.cpp",
+		"intern/solver_util.cpp"
+
+		]; # sources
 
 elbeem_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_elbeem', source=Sources)
 

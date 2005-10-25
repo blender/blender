@@ -810,9 +810,9 @@ char *yy_text;
 #define CHAR_BUFFER_SIZE 8000
 char charBuffer[ CHAR_BUFFER_SIZE ];
 
-extern "C" int yy_wrap (void ) { return 1; }
 int lineCount = 1;
 
+extern "C" int yy_wrap (void ) { return 1; }
 #define YY_NO_UNISTD_H
 	
 /*----------------------------------------------------------------------------*/

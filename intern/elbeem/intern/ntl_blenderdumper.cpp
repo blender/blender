@@ -24,7 +24,7 @@
  * Constructor
  *****************************************************************************/
 ntlBlenderDumper::ntlBlenderDumper(string filename, bool commandlineMode) :
-	ntlRaytracer(filename,commandlineMode),
+	ntlWorld(filename,commandlineMode),
 	mpTrafo(NULL)
 {
   ntlRenderGlobals *glob = mpGlob;
@@ -194,7 +194,7 @@ int ntlBlenderDumper::renderScene( void )
 	// still render for preview...
 	if(debugOut) {
 		debMsgStd("ntlBlenderDumper::renderScene",DM_NOTIFY,"Performing preliminary render", 1);
-		ntlRaytracer::renderScene(); }
+		ntlWorld::renderScene(); }
 	else {
 		// next frame 
 		glob->setAniCount( glob->getAniCount() +1 );

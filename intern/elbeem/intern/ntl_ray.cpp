@@ -466,7 +466,7 @@ const ntlColor ntlRay::shade() //const
   if (closest != NULL) {
 
 		ntlVec3Gfx triangleNormal = tri->getNormal();
-		if( equal(triangleNormal, ntlVec3Gfx(0.0)) ) errorOut("ntlRaytracer warning: trinagle normal= 0 "); // DEBUG
+		if( equal(triangleNormal, ntlVec3Gfx(0.0)) ) errorOut("ntlRay warning: trinagle normal= 0 "); // DEBUG
 		/* intersection on inside faces? if yes invert normal afterwards */
 		gfxReal valDN; // = mDirection | normal;
 		valDN = dot(mDirection, triangleNormal);

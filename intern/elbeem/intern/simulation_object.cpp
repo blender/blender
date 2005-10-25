@@ -10,8 +10,6 @@
 #include "simulation_object.h"
 #include "ntl_bsptree.h"
 #include "ntl_scene.h"
-#include "factory_lbm.h"
-#include "lbmfunctions.h"
 
 #ifdef _WIN32
 #else
@@ -19,6 +17,8 @@
 #endif
 
 
+//! lbm factory functions
+LbmSolverInterface* createSolver();
 
 
 /******************************************************************************
@@ -109,13 +109,8 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	//mDimension is deprecated
 	mSolverType = mpAttrs->readString("solver", mSolverType, "SimulationObject","mSolverType", false ); 
 	if(mSolverType == stnFsgr) {
-		mpLbm = createSolverLbmFsgr(); 
+		mpLbm = createSolver(); 
 	} else if(mSolverType == stnOld) {
-#ifdef LBM_INCLUDE_TESTSOLVERS
-		// old solver for gfx demo
-		mpLbm = createSolverOld();
-#endif // LBM_TESTSOLVER
-	} else {
 		errFatal("SimulationObject::initializeLbmSimulation","Invalid solver type - note that mDimension is deprecated, use the 'solver' keyword instead", SIMWORLD_INITERROR);
 		return 1;
 	}
@@ -311,7 +306,8 @@ void SimulationObject::drawDebugDisplay() {
 	//errorOut( mDebugType <<"//"<< mDebDispSet[mDebugType].type );
 	mpLbm->debugDisplay( &mDebDispSet[ mDebugType ] );
 
-	::lbmMarkedCellDisplay<>( mpLbm );
+	//::lbmMarkedCellDisplay<>( mpLbm );
+	mpLbm->lbmMarkedCellDisplay();
 #endif
 }
 
@@ -322,7 +318,7 @@ void SimulationObject::drawInteractiveDisplay()
 	if(!getVisible()) return;
 	if(mSelectedCid) {
 		// in debugDisplayNode if dispset is on is ignored...
-		::debugDisplayNode<>( &mDebDispSet[ FLUIDDISPGrid ], mpLbm, mSelectedCid );
+		mpLbm->debugDisplayNode( &mDebDispSet[ FLUIDDISPGrid ], mSelectedCid );
 	}
 #endif
 }
@@ -351,7 +347,8 @@ void SimulationObject::setMousePos(int x,int y, ntlVec3Gfx org, ntlVec3Gfx dir)
 void SimulationObject::setMouseClick()
 {
 	if(mSelectedCid) {
-		::debugPrintNodeInfo<>( mpLbm, mSelectedCid, mpLbm->getNodeInfoString() );
+		//::debugPrintNodeInfo<>( mpLbm, mSelectedCid, mpLbm->getNodeInfoString() );
+		mpLbm->debugPrintNodeInfo( mSelectedCid );
 	}
 }
 

@@ -7,12 +7,12 @@
  *
  *****************************************************************************/
 #ifndef NTL_BLENDERDUMPER_H
-#include "ntl_raytracer.h"
+#include "ntl_world.h"
 
 template<class Scalar> class ntlMatrix4x4;
 
 class ntlBlenderDumper :
-	public ntlRaytracer
+	public ntlWorld
 {
 public:
   /*! Constructor */

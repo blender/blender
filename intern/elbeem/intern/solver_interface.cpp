@@ -11,12 +11,9 @@
  *****************************************************************************/
 
 /* LBM Files */ 
-#include "lbmdimensions.h" 
-#include "lbminterface.h" 
-#include "lbmfunctions.h" 
+#include "solver_interface.h" 
 #include "ntl_scene.h"
 #include "ntl_ray.h"
-#include "typeslbm.h"
 
 
 /*****************************************************************************/
@@ -401,6 +398,7 @@ void LbmSolverInterface::initGeoTree(int id) {
 	mpGiObjects = scene->getObjects();
 	mGiObjInside.resize( mpGiObjects->size() );
 	mGiObjDistance.resize( mpGiObjects->size() );
+	mGiObjSecondDist.resize( mpGiObjects->size() );
 	for(size_t i=0; i<mpGiObjects->size(); i++) { 
 		if((*mpGiObjects)[i]->getGeoInitIntersect()) mAccurateGeoinit=true;
 	}
@@ -436,6 +434,7 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 	for(size_t i=0; i<mGiObjInside.size(); i++) { 
 		mGiObjInside[i] = 0; 
 		mGiObjDistance[i] = -1.0; 
+		mGiObjSecondDist[i] = -1.0; 
 	}
 	// if not inside, return distance to first hit
 	gfxReal firstHit=-1.0;
@@ -506,6 +505,142 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 		distance = -1.0;
 		ntlVec3Gfx normal(0.0);
 		mpGiTree->intersectX(ray,distance,normal, triIns, flags, true);
+		if(triIns) {
+			// check outside intersect
+			LbmFloat orientation = dot(normal, dir);
+			if(orientation<=0.0) return false;
+
+			OId = triIns->getObjectId();
+			return true;
+		}
+		return false;
+	}
+}
+bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, ntlVec3Gfx dir, int flags, int &OId, gfxReal &distance, const gfxReal halfCellsize, bool &thinHit, bool recurse) {
+	// shift ve ctors to avoid rounding errors
+	org += ntlVec3Gfx(0.0001); //?
+	OId = -1;
+	ntlRay ray(org, dir, 0, 1.0, mpGlob);
+	//int insCnt = 0;
+	bool done = false;
+	bool inside = false;
+	for(size_t i=0; i<mGiObjInside.size(); i++) { 
+		mGiObjInside[i] = 0; 
+		mGiObjDistance[i] = -1.0; 
+		mGiObjSecondDist[i] = -1.0; 
+	}
+	// if not inside, return distance to first hit
+	gfxReal firstHit=-1.0;
+	int     firstOId = -1;
+	thinHit = false;
+	
+	if(mAccurateGeoinit) {
+		while(!done) {
+			// find first inside intersection
+			ntlTriangle *triIns = NULL;
+			distance = -1.0;
+			ntlVec3Gfx normal(0.0);
+			mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
+			if(triIns) {
+				ntlVec3Gfx norg = ray.getOrigin() + ray.getDirection()*distance;
+				LbmFloat orientation = dot(normal, dir);
+				OId = triIns->getObjectId();
+				if(orientation<=0.0) {
+					// outside hit
+					normal *= -1.0;
+					//mGiObjDistance[OId] = -1.0;
+					//errMsg("IIO"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
+				} else {
+					// inside hit
+					//if(mGiObjDistance[OId]<0.0) mGiObjDistance[OId] = distance;
+					//errMsg("III"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
+					if(mGiObjInside[OId]==1) {
+						// second inside hit
+						if(mGiObjSecondDist[OId]<0.0) mGiObjSecondDist[OId] = distance;
+					}
+				}
+				mGiObjInside[OId]++;
+				// always store first hit for thin obj init
+				if(mGiObjDistance[OId]<0.0) mGiObjDistance[OId] = distance;
+
+				norg += normal * getVecEpsilon();
+				ray = ntlRay(norg, dir, 0, 1.0, mpGlob);
+				// remember first hit distance, in case we're not 
+				// inside anything
+				if(firstHit<0.0) {
+					firstHit = distance;
+					firstOId = OId;
+				}
+			} else {
+				// no more intersections... return false
+				done = true;
+				//if(insCnt%2) inside=true;
+			}
+		}
+
+		distance = -1.0;
+		// standard inside check
+		for(size_t i=0; i<mGiObjInside.size(); i++) {
+			if(((mGiObjInside[i]%2)==1)&&(mGiObjDistance[i]>0.0)) {
+				if(  (distance<0.0)                             || // first intersection -> good
+					  ((distance>0.0)&&(distance>mGiObjDistance[i])) // more than one intersection -> use closest one
+						) {						
+					distance = mGiObjDistance[i];
+					OId = i;
+					inside = true;
+				} 
+			}
+		}
+		// now check for thin hits
+		if(!inside) {
+			distance = -1.0;
+			for(size_t i=0; i<mGiObjInside.size(); i++) {
+				if((mGiObjInside[i]>=2)&&(mGiObjDistance[i]>0.0)&&(mGiObjSecondDist[i]>0.0)&&
+					 (mGiObjDistance[i]<1.0*halfCellsize)&&(mGiObjSecondDist[i]<2.0*halfCellsize) ) {
+					if(  (distance<0.0)                             || // first intersection -> good
+							((distance>0.0)&&(distance>mGiObjDistance[i])) // more than one intersection -> use closest one
+							) {						
+						distance = mGiObjDistance[i];
+						OId = i;
+						inside = true;
+						thinHit = true;
+					} 
+				}
+			}
+		}
+		if(!inside) {
+			// check for hit in this cell, opposite to current dir (only recurse once)
+			if(recurse) {
+				gfxReal r_distance;
+				int r_OId;
+				bool ret = geoInitCheckPointInside(org, dir*-1.0, flags, r_OId, r_distance, halfCellsize, thinHit, false);
+				if((ret)&&(thinHit)) {
+					OId = r_OId;
+					distance = 0.0; 
+					return true;
+				}
+			}
+		}
+		// really no hit...
+		if(!inside) {
+			distance = firstHit;
+			OId = firstOId;
+			/*if((mGiObjDistance[OId]>0.0)&&(mGiObjSecondDist[OId]>0.0)) {
+				const gfxReal thisdist = mGiObjSecondDist[OId]-mGiObjDistance[OId];
+				// dont walk over this cell...
+				if(thisdist<halfCellsize) distance-=2.0*halfCellsize;
+			} // ? */
+		}
+		//errMsg("CHIII","i"<<inside<<"  fh"<<firstHit<<" fo"<<firstOId<<" - h"<<distance<<" o"<<OId);
+
+		return inside;
+	} else {
+
+		// find first inside intersection
+		ntlTriangle *triIns = NULL;
+		distance = -1.0;
+		ntlVec3Gfx normal(0.0);
+		mpGiTree->intersect(ray,distance,normal, triIns, flags, true);
 		if(triIns) {
 			// check outside intersect
 			LbmFloat orientation = dot(normal, dir);

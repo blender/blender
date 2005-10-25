@@ -579,18 +579,6 @@ void ntlTree::intersect(const ntlRay &ray, gfxReal &distance,
 						mint = t;	  
 						hit = (*iter);
 						mintu = u; mintv = v;
-						
-						if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
-							errorOut("Tree tri hit at "<<t<<","<<mint<<" triangle: "<<PRINT_TRIANGLE( (*hit), (*mpVertices) ) );
-							gfxReal u1=0.0,v1=0.0, t1=-1.0;
-							ray.intersectTriangle( mpVertices, hit, t1,u1,v1);
-							errorOut("Tree second test1 :"<<t1<<" u1:"<<u1<<" v1:"<<v1 );
-							if(t==GFX_REAL_MAX) errorOut( "Tree MAX t " );
-							//errorOut( mpVertices[ (*iter).getPoints()[0] ][0] );
-						}
-
-						//retnormal = -(e2-e0).crossProd(e1-e0); // DEBUG
-
 					}
 				}
 

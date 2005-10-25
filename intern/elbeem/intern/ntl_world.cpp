@@ -11,7 +11,7 @@
 #include <sys/stat.h>
 #include <sstream>
 #include "utilities.h"
-#include "ntl_raytracer.h"
+#include "ntl_world.h"
 #include "ntl_scene.h"
 #include "parametrizer.h"
 #include "globals.h"
@@ -34,7 +34,7 @@ void setPointers( ntlRenderGlobals *setglob);
 /******************************************************************************
  * Constructor
  *****************************************************************************/
-ntlRaytracer::ntlRaytracer(string filename, bool commandlineMode) :
+ntlWorld::ntlWorld(string filename, bool commandlineMode) :
 	mpGlob(NULL), 
   mpLightList(NULL), mpPropList(NULL), mpSims(NULL),
 	mpOpenGLRenderer(NULL),
@@ -71,7 +71,7 @@ ntlRaytracer::ntlRaytracer(string filename, bool commandlineMode) :
   long sstartTime = getTime();
 	scene->buildScene();
 	long sstopTime = getTime();
-	debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
+	debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
 
 	// TODO check simulations, run first steps
 	mFirstSim = -1;
@@ -89,31 +89,31 @@ ntlRaytracer::ntlRaytracer(string filename, bool commandlineMode) :
 			if(mFirstSim>=0) {
 				if( (*mpSims)[i]->getStepTime() > (*mpSims)[mFirstSim]->getStepTime() ) {
 					mFirstSim = i;
-					debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"First Sim changed: "<<i ,10);
+					debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim changed: "<<i ,10);
 				}
 			}
 			// check any valid sim
 			if(mFirstSim<0) {
 				mFirstSim = i;
-				debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"First Sim: "<<i ,10);
+				debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim: "<<i ,10);
 			}
 		}
 
 		if(mFirstSim>=0) {
-			debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime() ,10);
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime() ,10);
 			while(mSimulationTime < (*mpSims)[mFirstSim]->getStartTime() ) {
-			debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime()<<" simtime:"<<mSimulationTime ,10);
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime()<<" simtime:"<<mSimulationTime ,10);
 				advanceSims();
 			}
 			long stopTime = getTime();
 
 			mSimulationTime += (*mpSims)[mFirstSim]->getStartTime();
-			debMsgStd("ntlRaytracer::ntlRaytracer",DM_MSG,"Time for start simulations times "<<": "<< getTimeString(stopTime-startTime) <<"s ", 1);
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start simulations times "<<": "<< getTimeString(stopTime-startTime) <<"s ", 1);
 #ifndef NOGUI
 			guiResetSimulationTimeRange( mSimulationTime );
 #endif
 		} else {
-			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlRaytracer::ntlRaytracer",DM_WARNING,"No active simulations!", 1);
+			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlWorld::ntlWorld",DM_WARNING,"No active simulations!", 1);
 		}
 	}
 
@@ -132,7 +132,7 @@ ntlRaytracer::ntlRaytracer(string filename, bool commandlineMode) :
 /******************************************************************************
  * Destructor
  *****************************************************************************/
-ntlRaytracer::~ntlRaytracer()
+ntlWorld::~ntlWorld()
 {
 	delete mpGlob->getScene();
   delete mpGlob;
@@ -146,7 +146,7 @@ ntlRaytracer::~ntlRaytracer()
 
 /******************************************************************************/
 /*! set single frame rendering to filename */
-void ntlRaytracer::setSingleFrameOut(string singleframeFilename) {
+void ntlWorld::setSingleFrameOut(string singleframeFilename) {
 	mpGlob->setSingleFrameMode(true);
 	mpGlob->setSingleFrameFilename(singleframeFilename);
 }
@@ -159,17 +159,17 @@ extern "C" {
 	void simulateThreadIncreaseFrame(void);
 }
 #endif // ELBEEM_BLENDER==1
-int ntlRaytracer::renderAnimation( void )
+int ntlWorld::renderAnimation( void )
 {
 	// only single pic currently
-	//debMsgStd("ntlRaytracer::renderAnimation : Warning only simulating...",1);
+	//debMsgStd("ntlWorld::renderAnimation : Warning only simulating...",1);
  	if(mpGlob->getAniFrames() < 0) {
-		debMsgStd("ntlRaytracer::renderAnimation",DM_NOTIFY,"No frames to render... ",1);
+		debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No frames to render... ",1);
 		return 1;
 	}
 
 	if(mFirstSim<0) {
-		debMsgStd("ntlRaytracer::renderAnimation",DM_NOTIFY,"No reference animation found...",1);
+		debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No reference animation found...",1);
 		return 1;
 	} 
 
@@ -184,7 +184,7 @@ int ntlRaytracer::renderAnimation( void )
 #endif // ELBEEM_BLENDER==1
 
 		if(mpSims->size() <= 0) {
-			debMsgStd("ntlRaytracer::renderAnimation",DM_NOTIFY,"No simulations found, stopping...",1);
+			debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No simulations found, stopping...",1);
 			return 1;
 		}
 	}
@@ -198,7 +198,7 @@ int ntlRaytracer::renderAnimation( void )
  * this function is run in another thread, and communicates 
  * with the parent thread via a mutex 
  *****************************************************************************/
-int ntlRaytracer::renderVisualization( bool multiThreaded ) 
+int ntlWorld::renderVisualization( bool multiThreaded ) 
 {
 #ifndef NOGUI
 	//gfxReal deltat = 0.0015;
@@ -206,7 +206,7 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 	while(!getStopRenderVisualization()) {
 
 		if(mpSims->size() <= 0) {
-			debMsgStd("ntlRaytracer::renderVisualization",DM_NOTIFY,"No simulations found, stopping...",1);
+			debMsgStd("ntlWorld::renderVisualization",DM_NOTIFY,"No simulations found, stopping...",1);
 			stopSimulationThread();
 			break;
 		}
@@ -216,7 +216,7 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 			long startTime = getTime();
 			advanceSims();
 			long stopTime = getTime();
-			debMsgStd("ntlRaytracer::renderVisualization",DM_MSG,"Time for "<<mSimulationTime<<": "<< getTimeString(stopTime-startTime) <<"s ", 10);
+			debMsgStd("ntlWorld::renderVisualization",DM_MSG,"Time for "<<mSimulationTime<<": "<< getTimeString(stopTime-startTime) <<"s ", 10);
 		} else {
 			double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
 			singleStepSims(targetTime);
@@ -227,11 +227,11 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 				if(!(*mpSims)[i]->getPanic()) allPanic = false;
 			}
 			if(allPanic) {
-				warnMsg("ntlRaytracer::advanceSims","All sims panicked... stopping thread" );
+				warnMsg("ntlWorld::advanceSims","All sims panicked... stopping thread" );
 				setStopRenderVisualization( true );
 			}
 			if(!SIMWORLD_OK()) {
-				warnMsg("ntlRaytracer::advanceSims","World state error... stopping" );
+				warnMsg("ntlWorld::advanceSims","World state error... stopping" );
 				setStopRenderVisualization( true );
 			}
 		}
@@ -254,7 +254,7 @@ int ntlRaytracer::renderVisualization( bool multiThreaded )
 	return 0;
 }
 /*! render a single step for viz mode */
-int ntlRaytracer::singleStepVisualization( void ) 
+int ntlWorld::singleStepVisualization( void ) 
 {
 	mThreadRunning = true;
 	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
@@ -279,12 +279,12 @@ int ntlRaytracer::singleStepVisualization( void )
 /******************************************************************************
  * advance simulations by time t 
  *****************************************************************************/
-int ntlRaytracer::advanceSims()
+int ntlWorld::advanceSims()
 {
 	bool done = false;
 	bool allPanic = true;
 	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime();
-	//debMsgStd("ntlRaytracer::advanceSims",DM_MSG,"Advancing sims to "<<targetTime, 10 ); // timedebug
+	//debMsgStd("ntlWorld::advanceSims",DM_MSG,"Advancing sims to "<<targetTime, 10 ); // timedebug
 
 	while(!done) {
 		double nextTargetTime = (*mpSims)[mFirstSim]->getCurrentTime() + (*mpSims)[mFirstSim]->getStepTime();
@@ -296,14 +296,14 @@ int ntlRaytracer::advanceSims()
 		for(size_t i=0;i<mpSims->size();i++) {
 			if(!(*mpSims)[i]->getVisible()) continue;
 			if((*mpSims)[i]->getPanic()) allPanic = true; // do any panic now!?
-			//debMsgStd("ntlRaytracer::advanceSims",DM_MSG, " sim "<<i<<" c"<<(*mpSims)[i]->getCurrentTime()<<" p"<<(*mpSims)[i]->getPanic()<<" t"<<targetTime, 10); // debug // timedebug
+			//debMsgStd("ntlWorld::advanceSims",DM_MSG, " sim "<<i<<" c"<<(*mpSims)[i]->getCurrentTime()<<" p"<<(*mpSims)[i]->getPanic()<<" t"<<targetTime, 10); // debug // timedebug
 		}
 		if( (targetTime - (*mpSims)[mFirstSim]->getCurrentTime()) > LBM_TIME_EPSILON) done=false;
 		if(allPanic) done = true;
 	}
 
 	if(allPanic) {
-		warnMsg("ntlRaytracer::advanceSims","All sims panicked... stopping thread" );
+		warnMsg("ntlWorld::advanceSims","All sims panicked... stopping thread" );
 		setStopRenderVisualization( true );
 	}
 	for(size_t i=0;i<mpSims->size();i++) {
@@ -318,10 +318,10 @@ int ntlRaytracer::advanceSims()
 
 /* advance simulations by a single step */
 /* dont check target time, if *targetTime==NULL */
-void ntlRaytracer::singleStepSims(double targetTime) {
+void ntlWorld::singleStepSims(double targetTime) {
 	const bool debugTime = false;
 	//double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getStepTime();
-	if(debugTime) errMsg("ntlRaytracer::singleStepSims","Target time: "<<targetTime);
+	if(debugTime) errMsg("ntlWorld::singleStepSims","Target time: "<<targetTime);
 
 	for(size_t i=0;i<mpSims->size();i++) {
 		SimulationObject *sim = (*mpSims)[i];
@@ -330,9 +330,9 @@ void ntlRaytracer::singleStepSims(double targetTime) {
 		bool done = false;
 		while(!done) {
 			// try to prevent round off errs
-			if(debugTime) errMsg("ntlRaytracer::singleStepSims","Test sim "<<i<<" curt:"<< sim->getCurrentTime()<<" target:"<<targetTime<<" delta:"<<(targetTime - sim->getCurrentTime())<<" stept:"<<sim->getStepTime()<<" leps:"<<LBM_TIME_EPSILON ); // timedebug
+			if(debugTime) errMsg("ntlWorld::singleStepSims","Test sim "<<i<<" curt:"<< sim->getCurrentTime()<<" target:"<<targetTime<<" delta:"<<(targetTime - sim->getCurrentTime())<<" stept:"<<sim->getStepTime()<<" leps:"<<LBM_TIME_EPSILON ); // timedebug
 			if( (targetTime - sim->getCurrentTime()) > LBM_TIME_EPSILON) {
-				if(debugTime) errMsg("ntlRaytracer::singleStepSims","Stepping sim "<<i<<" t:"<< sim->getCurrentTime()); // timedebug
+				if(debugTime) errMsg("ntlWorld::singleStepSims","Stepping sim "<<i<<" t:"<< sim->getCurrentTime()); // timedebug
 				sim->step();
 			} else {
 				done = true;
@@ -353,7 +353,7 @@ void ntlRaytracer::singleStepSims(double targetTime) {
  * Render the current scene
  * uses the global variables from the parser
  *****************************************************************************/
-int ntlRaytracer::renderScene( void )
+int ntlWorld::renderScene( void )
 {
 #ifndef ELBEEM_BLENDER
 	char nrStr[5];														/* nr conversion */
@@ -374,7 +374,7 @@ int ntlRaytracer::renderScene( void )
 		if(mpGlob->getFrameSkip()) {
 			struct stat statBuf;
 			if(stat(outfn_conv.str().c_str(),&statBuf) == 0) {
-				errorOut("ntlRaytracer::renderscene Warning: file "<<outfn_conv.str()<<" already exists - skipping frame..."); 
+				errorOut("ntlWorld::renderscene Warning: file "<<outfn_conv.str()<<" already exists - skipping frame..."); 
 				glob->setAniCount( glob->getAniCount() +1 );
 				return(2);
 			}
@@ -472,7 +472,7 @@ int ntlRaytracer::renderScene( void )
 	glob->setCounterSceneInter(0);
 	for (int scanline=Yres ; scanline > 0 ; --scanline) {
     
-		debugOutInter( "ntlRaytracer::renderScene: Line "<<scanline<<
+		debugOutInter( "ntlWorld::renderScene: Line "<<scanline<<
 								 " ("<< ((Yres-scanline)*100/Yres) <<"%) ", 2, 2000 );
 		screenPos = glob->getLookat() + upVec*((2.0*scanline-Yres)/Yres)
 			- rightVec;
@@ -679,7 +679,7 @@ int ntlRaytracer::renderScene( void )
 #ifndef NOPNG
 		writePng(outfn_conv.str().c_str(), rows, w, h);
 #else // NOPNG
-		debMsgStd("ntlRaytracer::renderScene",DM_NOTIFY, "No PNG linked, no picture...", 1);
+		debMsgStd("ntlWorld::renderScene",DM_NOTIFY, "No PNG linked, no picture...", 1);
 #endif // NOPNG
 	}
 
@@ -696,7 +696,7 @@ int ntlRaytracer::renderScene( void )
 				 getTimeString(totalStart-timeStart).c_str(), getTimeString(rendEnd-rendStart).c_str(), getTimeString(timeEnd-timeStart).c_str(),
 				 glob->getCounterShades(),
 				 glob->getCounterSceneInter() );
-	debMsgStd("ntlRaytracer::renderScene",DM_MSG, resout, 1 );
+	debMsgStd("ntlWorld::renderScene",DM_MSG, resout, 1 );
 
 	/* clean stuff up */
 	delete [] aaCol;
@@ -705,7 +705,7 @@ int ntlRaytracer::renderScene( void )
 	glob->getScene()->cleanupScene();
 
 	if(mpGlob->getSingleFrameMode() ) {
-		debMsgStd("ntlRaytracer::renderScene",DM_NOTIFY, "Single frame mode done...", 1 );
+		debMsgStd("ntlWorld::renderScene",DM_NOTIFY, "Single frame mode done...", 1 );
 		return 1;
 	}
 #endif // ELBEEM_BLENDER

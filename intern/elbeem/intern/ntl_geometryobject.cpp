@@ -85,6 +85,7 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 		mGeoInitId = -1;
 	}
 	mInitialVelocity = vec2G( mpAttrs->readVec3d("initial_velocity", vec2D(mInitialVelocity),"ntlGeometryObject", "mInitialVelocity", false));
+	mGeoPartSlipValue = mpAttrs->readFloat("geoinit_partslip", mGeoPartSlipValue,"ntlGeometryObject", "mGeoPartSlipValue", false);
 	debMsgStd("ntlGeometryObject::initialize",DM_MSG,"GeoObj '"<<this->getName()<<"': gid="<<mGeoInitId<<" gtype="<<mGeoInitType<<","<<ginitStr<<
 			" gvel="<<mInitialVelocity<<" gisect="<<mGeoInitIntersect, 10); // debug
 
