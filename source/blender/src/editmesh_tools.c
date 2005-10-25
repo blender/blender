@@ -1717,10 +1717,14 @@ static void fill_quad_double_adj_path(EditFace *efa, struct GHash *gh, int numcu
 
 	// Make outside tris
 	hold = addfacelist(verts[0][vertsize-2],verts[0][vertsize-1],verts[1][1],NULL,NULL,NULL);  
-	hold->e3->f2 |= EDGEINNER;
+	/* when ctrl is depressed, only want verts on the cutline selected */
+	if (G.qual  != LR_CTRLKEY)
+		hold->e3->f2 |= EDGEINNER;
 	facecopy(efa,hold);	   
 	hold = addfacelist(verts[0][0],verts[1][vertsize-1],v[(start2+2)%4],NULL,NULL,NULL);
-	hold->e1->f2 |= EDGEINNER;  
+	/* when ctrl is depressed, only want verts on the cutline selected */
+	if (G.qual  != LR_CTRLKEY)
+		hold->e1->f2 |= EDGEINNER;  
 	facecopy(efa,hold);			   
 	//if(G.scene->toolsettings->editbutflag & B_AUTOFGON) {
 	//	hold->e1->h |= EM_FGON;

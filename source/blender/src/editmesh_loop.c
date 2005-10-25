@@ -477,7 +477,8 @@ static CutCurve *get_mouse_trail(int *len, char mode)
 	mywinset(curarea->win);
 	glDrawBuffer(GL_FRONT);
 	
-	headerprint("LMB to draw, Enter to finish, ESC to abort.");
+	headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
+				"cut line selected), ESC to abort.");
 
 	persp(PERSP_WIN);
 	
