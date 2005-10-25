@@ -5875,6 +5875,13 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	/* do this when expand found other libs */
 	read_libraries(fd, &fd->mainlist);
 
+	if(sfile->flag & FILE_STRINGCODE) {
+		/* uses old .blend file (*filename) as reference */
+		BLI_makestringcode(filename, mainl->curlib->name);
+		/* the caller checks for appended library, so we make sure names match */
+		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
+	}
+
 	blo_join_main(&fd->mainlist);
 	G.main= fd->mainlist.first;
 
@@ -5890,14 +5897,7 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata((FileData*) sfile->libfiledata);
 		sfile->libfiledata= 0;
-	}
-	
-	if(sfile->flag & FILE_STRINGCODE) {
-		/* uses old .blend file (*filename) as reference */
-		BLI_makestringcode(filename, mainl->curlib->name);
-		/* the caller checks for appended library, so we make sure names match */
-		BLI_strncpy(dir, mainl->curlib->name, sizeof(mainl->curlib->name));
-	}
+	}	
 	
 	if(sfile->flag & FILE_ATCURSOR) {
 		centerbase= (G.scene->base.first);
