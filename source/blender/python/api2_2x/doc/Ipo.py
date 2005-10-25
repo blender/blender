@@ -107,7 +107,8 @@ class Ipo:
 
   def addCurve(curvename):
     """
-    Add a new curve to the IPO object. The possible values for 'curvename' are:
+    Add a new curve to the IPO object.   Throws an exception if the curve
+    already exists in the IPO.  The possible values for 'curvename' are:
       1. Camera Ipo:  Lens, ClSta, ClEnd, Apert, FDist.
       2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
       Alpha, Emit, Amb, Spec, Hard, SpTra, Ior, Mode, HaSize, Translu,

@@ -834,8 +834,7 @@ static int Ipo_obIcuName( char *s, int *param )
 static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 {
 	int param = 0;		/* numeric curve name constant */
-	int ok = 0;
-	int ipofound = 0;
+	int ok;
 	char *cur_name = 0;	/* input arg: curve name */
 	Ipo *ipo = 0;
 	IpoCurve *icu = 0;
@@ -851,20 +850,14 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 
 	while( link ) {
 		ipo = ( Ipo * ) link;
-		if( ipo == self->ipo ) {
-			ipofound = 1;
+		if( ipo == self->ipo )
 			break;
-		}
 		link = link->next;
 	}
 
-	if( ipo && ipofound ) {
-		/* ok.  continue */
-	} else {		/* runtime error here:  our ipo not found */
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_RuntimeError, "Ipo not found" ) );
-	}
-
+	if( !link )
+		return EXPP_ReturnPyObjError
+				( PyExc_RuntimeError, "Ipo not found" );
 
 	/*
 	   depending on the block type, 
@@ -912,6 +905,12 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	if( !ok )		/* curve type was invalid */
 		return EXPP_ReturnPyObjError
 			( PyExc_NameError, "curve name was invalid" );
+
+	/* see if the curve already exists */
+	for( icu = ipo->curve.first; icu; icu = icu->next )
+		if( icu->adrcode == param )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"Ipo curve already exists" );
 
 	/* create the new ipo curve */
 	icu = MEM_callocN(sizeof(IpoCurve), "Python added ipocurve");
