@@ -505,14 +505,12 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 		if(achan) {
 			ipo = achan->ipo;
 			if (ipo) {
-				
 				/* Evaluates and sets the internal ipo value */
 				calc_ipo(ipo, ctime);
 				/* This call also sets the pchan flags */
 				execute_action_ipo(achan, pchan);
-				
-				do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
 			}
+			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
 		}
 	}
 }

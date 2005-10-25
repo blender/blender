@@ -669,8 +669,8 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 				switch (icu->adrcode){
 				case CO_ENFORCE:
 					con->enforce = icu->curval;
-					if (con->enforce<0) con->enforce=0;
-					else if (con->enforce>1) con->enforce=1;
+					if (con->enforce<0.0f) con->enforce= 0.0f;
+					else if (con->enforce>1.0f) con->enforce= 1.0f;
 					break;
 				}
 			}
