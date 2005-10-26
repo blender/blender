@@ -373,12 +373,13 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 
 static void convert_nla(short mval[2])
 {
-	short event;
-	float	ymax, ymin;
+	bActionStrip *strip, *nstrip;
 	Base *base;
 	float x,y;
+	float	ymax, ymin;
 	int sel=0;
-	bActionStrip *strip, *nstrip;
+	short event;
+	char str[128];
 	
 	/* Find out what strip we're over */
 	ymax = count_nla_levels() * (NLACHANNELSKIP+NLACHANNELHEIGHT);
@@ -388,17 +389,18 @@ static void convert_nla(short mval[2])
 	
 	for (base=G.scene->base.first; base; base=base->next){
 		if (nla_filter(base)) {
-			/* Check object ipo */
-			ymin= ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-			if (y>=ymin && y<=ymax)
-				break;
+			
+			/* Area that encloses object name (or ipo) */
+			ymin=ymax-(NLACHANNELHEIGHT+NLACHANNELSKIP);
 			ymax=ymin;
 			
 			/* Check action ipo */
-			ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
-			if (y>=ymin && y<=ymax)
-				break;
-			ymax=ymin;
+			if (base->object->action) {
+				ymin=ymax-(NLACHANNELSKIP+NLACHANNELHEIGHT);
+				if (y>=ymin && y<=ymax)
+					break;
+				ymax=ymin;
+			}			
 				
 			/* Check nlastrips */
 			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
@@ -414,10 +416,12 @@ static void convert_nla(short mval[2])
 		}
 	}
 	
-	if (!base)
+	if (base==0 || base->object->action==NULL)
 		return;
 	
-	event = pupmenu("Convert%t|Action to NLA Strip%x1");
+	sprintf(str, "Convert Action%%t|%s to NLA Strip%%x1", base->object->action->id.name+2);
+	event = pupmenu(str);
+	
 	switch (event){
 	case 1:
 		if (base->object->action){
@@ -438,9 +442,6 @@ static void convert_nla(short mval[2])
 			nstrip->repeat = 1.0;
 							
 			BLI_addtail(&base->object->nlastrips, nstrip);
-			
-			/* Unlink action */
-			base->object->action = NULL;
 			
 			BIF_undo_push("Convert NLA");
 			allqueue (REDRAWNLA, 0);
@@ -1278,6 +1279,8 @@ static void mouse_nla(int selectmode)
 					rstrip->flag |= ACTSTRIP_SELECT;
 				
 				set_active_strip(base->object, rstrip);
+				
+				if(base!=BASACT) set_active_base(base);
 			}
 		}
 	}

@@ -126,10 +126,12 @@ static void draw_nla_channels(void)
 			
 			/* icon to indicate nla or action */
 			if(ob->nlastrips.first && ob->action) {
+				glEnable(GL_BLEND);
 				if(ob->nlaflag & OB_NLA_OVERRIDE)
-					BIF_draw_icon(x+5, y-8, ICON_NLA);
+					BIF_draw_icon_blended(x+5, y-8, ICON_NLA, TH_HEADER, 0);
 				else
-					BIF_draw_icon(x+5, y-8, ICON_ACTION);
+					BIF_draw_icon_blended(x+5, y-8, ICON_ACTION, TH_HEADER, 0);
+				glDisable(GL_BLEND);
 			}			
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 			
