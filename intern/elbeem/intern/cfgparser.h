@@ -249,7 +249,7 @@ typedef union YYSTYPE {
   char  *charValue;
 } YYSTYPE;
 /* Line 1318 of yacc.c.  */
-#line 253 "bld-std-gcc40/src/cfgparser.hpp"
+#line 253 "bld-std-gcc/src/cfgparser.hpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1

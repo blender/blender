@@ -20,6 +20,14 @@
 #include <ieeefp.h>
 #endif
 
+/*
+template class vector<IsoLevelVertex>;
+template class vector<int>;
+template class vector<unsigned int>;
+template class vector<float>;
+template class vector<ntlVec3Gfx>;
+template class vector< vector<int> >;
+*/
 
 /******************************************************************************
  * Constructor
@@ -161,13 +169,13 @@ void IsoSurface::triangulate( void )
 
   // let the cubes march 
 	pz = mStart[2]-gsz;
-	for(int k=0;k<(mSizez-2);k++) {
+	for(int k=1;k<(mSizez-2);k++) {
 		pz += gsz;
 		py = mStart[1]-gsy;
-		for(int j=0;j<(mSizey-2);j++) {
+		for(int j=1;j<(mSizey-2);j++) {
       py += gsy;
 			px = mStart[0]-gsx;
-			for(int i=0;i<(mSizex-2);i++) {
+			for(int i=1;i<(mSizex-2);i++) {
    			px += gsx;
 				int baseIn = ISOLEVEL_INDEX( i+0, j+0, k+0);
 

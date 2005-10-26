@@ -143,6 +143,14 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 													 vector<ntlVec3Gfx> *vertices, 
 													 vector<ntlVec3Gfx> *normals, int objectId )
 {
+#ifdef ELBEEM_BLENDER
+	// suppress warnings...
+	vertices = NULL; triangles = NULL;
+	normals = NULL; objectId = 0;
+#else // ELBEEM_BLENDER
+	// currently not used in blender
+
+	const bool debugParts = false;
 	int tris = 0;
 	gfxReal partNormSize = 0.01 * mPartScale;
 	ntlVec3Gfx pScale = ntlVec3Gfx(
@@ -150,7 +158,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 			(mEnd[1]-mStart[1])/(mSimEnd[1]-mSimStart[1]),
 			(mEnd[2]-mStart[2])/(mSimEnd[2]-mSimStart[2])
 			);
-	//errMsg(" PS ", " S "<<pScale );
+	if(debugParts) errMsg("DebugParts"," geo:"<< mSimStart<<","<<mEnd<<"; sim:"<<mSimStart<<","<<mSimEnd<<"; S "<<pScale );
 	ntlVec3Gfx org = mStart;
 	int segments = mPartSegments;
 
@@ -158,9 +166,6 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 	int loldst = mTrailLength-2;
 	// trails gehen nicht so richtig mit der
 	// richtung der partikel...
-	//for(int l=0; l<mTrailLength-2; l++) {
-	//int lnewst = l+1;
-	//int loldst = l;
 
 	for(size_t i=0; i<mParts[lnewst].size(); i++) {
 
@@ -176,7 +181,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 		if( plen < 1e-05) pdir = ntlVec3Gfx(-1.0 ,0.0 ,0.0);
 		ntlVec3Gfx p = org + pnew*pScale;
 		gfxReal partsize = 0.0;
-		//errMsg("pp"," "<<l<<" i"<<i<<" new"<<pnew<<" old"<<pold );
+		if(debugParts) errMsg("DebugParts"," i"<<i<<" new"<<pnew<<" old"<<pold );
 		
 		// value length scaling?
 		if(mValueScale==1) {
@@ -263,6 +268,7 @@ void ParticleTracer::getTriangles( vector<ntlTriangle> *triangles,
 	debugOut("ParticleTracer::getTriangles "<<mName<<" : Triangulated "<< (mParts[0].size()) <<" particles (triangles: "<<tris<<") ", 10);
 	//debugOut(" s"<<mStart<<" e"<<mEnd<<" ss"<<mSimStart<<" se"<<mSimEnd , 10);
 
+#endif // ELBEEM_BLENDER
 }
 
 

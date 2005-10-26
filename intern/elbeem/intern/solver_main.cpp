@@ -11,20 +11,17 @@
 #include "solver_relax.h"
 
 /*****************************************************************************/
-/*! debug object display */
-/*****************************************************************************/
-template<class D>
-vector<ntlGeometryObject*> LbmFsgrSolver<D>::getDebugObjects() { 
-	vector<ntlGeometryObject*> debo; 
-	if(mOutputSurfacePreview) {
-		debo.push_back( mpPreviewSurface );
-	}
-	return debo; 
-}
-
-/*****************************************************************************/
 /*! perform a single LBM step */
 /*****************************************************************************/
+
+template<class D>
+string LbmFsgrSolver<D>::getIdString() { 
+	return string("FsgrSolver[") + D::getIdString(); 
+}
+template<class D>
+void LbmFsgrSolver<D>::step() { 
+	stepMain(); 
+}
 
 template<class D>
 void 
@@ -237,6 +234,9 @@ LbmFsgrSolver<D>::stepMain()
 		fclose(file);
 	} // */
 
+#if ELBEEM_BLENDER!=1
+	handleTestdata();
+#endif // ELBEEM_BLENDER!=1
 }
 
 template<class D>
@@ -919,6 +919,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 	// check other vars...?
 }
+#undef NBFLAG
 
 template<class D>
 void 
@@ -2664,6 +2665,19 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 } // reinitFlags
 
 
+/******************************************************************************
+ * instantiation
+ *****************************************************************************/
+
+// ugly workaround for multiple definitions
+// of template instatiations for macs... compile
+// everything in one file again
+#if defined(__APPLE_CC__)
+#define LBM_FORCEINCLUDE
+#include "solver_init.cpp"
+#include "solver_util.cpp"
+#undef LBM_FORCEINCLUDE
+#endif  // defined(__APPLE_CC__)
 
 //! lbm factory functions
 LbmSolverInterface* createSolver() {
@@ -2676,9 +2690,19 @@ LbmSolverInterface* createSolver() {
 	return NULL;
 }
 
+
 #if LBMDIM==2
-template class LbmFsgrSolver< LbmBGK2D >;
+#define LBM_INSTANTIATE LbmBGK2D
 #endif // LBMDIM==2
 #if LBMDIM==3
-template class LbmFsgrSolver< LbmBGK3D >;
+#define LBM_INSTANTIATE LbmBGK3D
 #endif // LBMDIM==3
+
+template class LbmFsgrSolver< LBM_INSTANTIATE >;
+// the intel compiler is too smart - so the virtual functions called from other cpp
+// files have to be instantiated explcitly (otherwise this will cause undefined
+// references to "non virtual thunks") ... still not working, though
+//template<class LBM_INSTANTIATE> string LbmFsgrSolver<LBM_INSTANTIATE>::getIdString();
+//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::step();
+
+

@@ -363,7 +363,7 @@ typedef union YYSTYPE {
   char  *charValue;
 } YYSTYPE;
 /* Line 190 of yacc.c.  */
-#line 367 "bld-std-gcc40/src/cfgparser.cpp"
+#line 367 "bld-std-gcc/src/cfgparser.cpp"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -375,7 +375,7 @@ typedef union YYSTYPE {
 
 
 /* Line 213 of yacc.c.  */
-#line 379 "bld-std-gcc40/src/cfgparser.cpp"
+#line 379 "bld-std-gcc/src/cfgparser.cpp"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -2101,7 +2101,7 @@ yyreduce:
     }
 
 /* Line 1037 of yacc.c.  */
-#line 2105 "bld-std-gcc40/src/cfgparser.cpp"
+#line 2105 "bld-std-gcc/src/cfgparser.cpp"
 
   yyvsp -= yylen;
   yyssp -= yylen;

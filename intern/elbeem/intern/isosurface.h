@@ -12,6 +12,8 @@
 #include "ntl_geometryobject.h"
 #include "ntl_bsptree.h"
 
+#define ISO_STRICT_DEBUG 0
+#define ISOSTRICT_EXIT *((int *)0)=0;
 
 /* access some 3d array */
 #define ISOLEVEL_INDEX(ii,ij,ik) ((mSizex*mSizey*(ik))+(mSizex*(ij))+((ii)))
@@ -105,8 +107,10 @@ class IsoSurface :
 
 		//! set geometry start (for renderer) 
 		void setStart(ntlVec3Gfx set) { mStart = set; };
+		ntlVec3Gfx getStart() { return mStart; };
 		//! set geometry end (for renderer) 
 		void setEnd(ntlVec3Gfx set) { mEnd = set; };
+		ntlVec3Gfx getEnd() { return mEnd; };
 		//! set iso level value for surface reconstruction 
 		inline void setIsolevel(double set) { mIsoValue = set; };
 		//! set loop subdiv num
@@ -124,8 +128,33 @@ class IsoSurface :
 
 		//! access data array
 		inline float* getData(){ return mpData; }
-		inline float* getData(int i, int j, int k){ return mpData + ISOLEVEL_INDEX(i,j,k); }
-		inline float* lbmGetData(int i, int j, int k){ return mpData + ISOLEVEL_INDEX(i+1,j+1,k+1); }
+		inline float* getData(int ii, int jj, int kk){ 
+#if ISO_STRICT_DEBUG==1
+			if(ii<0){ errMsg("IsoStrict"," invX- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(jj<0){ errMsg("IsoStrict"," invY- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(kk<0){ errMsg("IsoStrict"," invZ- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(ii>mSizex-1){ errMsg("IsoStrict"," invX+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(jj>mSizey-1){ errMsg("IsoStrict"," invY+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(kk>mSizez-1){ errMsg("IsoStrict"," invZ+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			return mpData + ISOLEVEL_INDEX(ii, jj, kk); 
+#else //ISO_STRICT_DEBUG==1
+			return mpData + ISOLEVEL_INDEX(ii, jj, kk); 
+#endif
+		}
+		inline float* lbmGetData(int ii, int jj, int kk){ 
+#if ISO_STRICT_DEBUG==1
+			ii++; jj++; kk++;
+			if(ii<0){ errMsg("IsoStrict"," invX- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(jj<0){ errMsg("IsoStrict"," invY- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(kk<0){ errMsg("IsoStrict"," invZ- |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(ii>mSizex-1){ errMsg("IsoStrict"," invX+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(jj>mSizey-1){ errMsg("IsoStrict"," invY+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			if(kk>mSizez-1){ errMsg("IsoStrict"," invZ+ |"<<ii<<","<<jj<<","<<kk); ISOSTRICT_EXIT; }
+			return mpData + ISOLEVEL_INDEX(ii, jj, kk); 
+#else //ISO_STRICT_DEBUG==1
+			return mpData + ISOLEVEL_INDEX(ii+1,jj+1,kk+1); 
+#endif
+		}
 
 		//! OpenGL viz "interface"
 		unsigned int getIsoVertexCount() {
@@ -151,7 +180,6 @@ class IsoSurface :
 		void smoothNormals(float val);
 		void diffuseVertexField(ntlVec3Gfx *field, const int pointerScale, int v, float invsigma2, ntlVec3Gfx &flt);
 };
-
 
 
 #define ISOSURFACE_H

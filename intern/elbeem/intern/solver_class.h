@@ -10,7 +10,8 @@
  *****************************************************************************/
 
 
-#ifndef LBMFSGRSOLVER_H
+#ifndef LBM_SOLVERCLASS_H
+#define LBM_SOLVERCLASS_H
 
 // blender interface
 #if ELBEEM_BLENDER==1
@@ -124,6 +125,7 @@ ERROR - define model first!
 // border for marching cubes
 #define ISOCORR 3
 
+#define LBM_INLINED  inline
 
 // sirdude fix for solaris
 #if !defined(linux) && (defined (__sparc) || defined (__sparc__))
@@ -133,6 +135,9 @@ ERROR - define model first!
 #endif
 #endif
 
+#if ELBEEM_BLENDER!=1
+#include "solver_test.h"
+#endif // ELBEEM_BLENDER==1
 
 /*****************************************************************************/
 /*! cell access classes */
@@ -231,7 +236,7 @@ class LbmFsgrSolver :
 		//! Destructor 
 		virtual ~LbmFsgrSolver();
 		//! id string of solver
-		virtual string getIdString() { return string("FsgrSolver[") + D::getIdString(); }
+		virtual string getIdString();
 
 		//! initilize variables fom attribute list 
 		virtual void parseAttrList();
@@ -276,12 +281,11 @@ class LbmFsgrSolver :
 		void initStandingFluidGradient();
 
  		/*! init a given cell with flag, density, mass and equilibrium dist. funcs */
-		inline void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
-		inline void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
-		inline void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
+		LBM_INLINED void initEmptyCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass);
+		LBM_INLINED void initVelocityCell(int level, int i,int j,int k, CellFlagType flag, LbmFloat rho, LbmFloat mass, LbmVec vel);
+		LBM_INLINED void changeFlag(int level, int xx,int yy,int zz,int set,CellFlagType newflag);
 
 		/*! perform a single LBM step */
-		virtual void step() { stepMain(); }
 		void stepMain();
 		void fineAdvance();
 		void coarseAdvance(int lev);
@@ -293,6 +297,8 @@ class LbmFsgrSolver :
 		void interpolateFineFromCoarse(int lev,LbmFloat t);
 		void coarseRestrictFromFine(int lev);
 
+		/* simulation object interface, just calls stepMain */
+		virtual void step();
 		/*! init particle positions */
 		virtual int initParticles(ParticleTracer *partt);
 		/*! move all particles */
@@ -332,26 +338,15 @@ class LbmFsgrSolver :
 		//! mass dist weights
 		LbmFloat getMassdWeight(bool dirForw, int i,int j,int k,int workSet, int l);
 		//! add point to mListNewInter list
-		inline void addToNewInterList( int ni, int nj, int nk );	
+		LBM_INLINED void addToNewInterList( int ni, int nj, int nk );	
 		//! cell is interpolated from coarse level (inited into set, source sets are determined by t)
-		// inline, test?
 		void interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet,bool markNbs);
 
 		//! minimal and maximal z-coords (for 2D/3D loops)
-		int getForZMinBnd() { return 0; }
-		int getForZMin1()   { 
-			if(D::cDimension==2) return 0;
-			return 1; 
-		}
-
-		int getForZMaxBnd(int lev) { 
-			if(D::cDimension==2) return 1;
-			return mLevel[lev].lSizez -0;
-		}
-		int getForZMax1(int lev)   { 
-			if(D::cDimension==2) return 1;
-			return mLevel[lev].lSizez -1;
-		}
+		LBM_INLINED int getForZMinBnd();
+		LBM_INLINED int getForZMin1();
+		LBM_INLINED int getForZMaxBnd(int lev);
+		LBM_INLINED int getForZMax1(int lev);
 
 
 		// member vars
@@ -473,6 +468,13 @@ class LbmFsgrSolver :
 		//! debug function to force tadap syncing
 		int mForceTadapRefine;
 
+#if ELBEEM_BLENDER!=1
+		// test functions
+		LbmTestdata *mpTest;
+		void initTestdata();
+		void destroyTestdata();
+		void handleTestdata();
+#endif // ELBEEM_BLENDER==1
 
 		// strict debug interface
 #		if FSGR_STRICT_DEBUG==1
@@ -636,6 +638,7 @@ class LbmFsgrSolver :
 // relaxation_macros end
 
 
+
 /*****************************************************************************/
 /* init a given cell with flag, density, mass and equilibrium dist. funcs */
 
@@ -684,7 +687,29 @@ LbmFsgrSolver<D>::initVelocityCell(int level, int i,int j,int k, CellFlagType fl
 	return;
 }
 
-#define LBMFSGRSOLVER_H
+template<class D>
+int LbmFsgrSolver<D>::getForZMinBnd() { 
+	return 0; 
+}
+template<class D>
+int LbmFsgrSolver<D>::getForZMin1()   { 
+	if(D::cDimension==2) return 0;
+	return 1; 
+}
+
+template<class D>
+int LbmFsgrSolver<D>::getForZMaxBnd(int lev) { 
+	if(D::cDimension==2) return 1;
+	return mLevel[lev].lSizez -0;
+}
+template<class D>
+int LbmFsgrSolver<D>::getForZMax1(int lev)   { 
+	if(D::cDimension==2) return 1;
+	return mLevel[lev].lSizez -1;
+}
+
+
+
 #endif
 
 

@@ -348,7 +348,7 @@
 					} else {\
 						m[l] = newval; /* normal free slip*/\
 					}\
-					/*if(RFLAG(lev, i,j,k, SRCS(lev))&CFInter) errMsg("FS","at "<<PRINT_IJK<<",l"<<l<<" nb1"<<nb1<<" nb2"<<nb2<<" dx"<<PRINT_VEC(dx,dy,dz)<<",srcl"<<debug_srcl<<" -> "<<newval );/**/ \
+					/*if(RFLAG(lev, i,j,k, SRCS(lev))&CFInter) errMsg("FS","at "<<PRINT_IJK<<",l"<<l<<" nb1"<<nb1<<" nb2"<<nb2<<" dx"<<PRINT_VEC(dx,dy,dz)<<",srcl"<<debug_srcl<<" -> "<<newval );*/ \
 				} /* l>2*dim free slip */ \
 				\
 				} /* type reflect */\

@@ -7,9 +7,12 @@
  *
  *****************************************************************************/
 
+#ifndef __APPLE_CC__
 #include "solver_class.h"
 #include "solver_relax.h"
+#endif // __APPLE_CC__
 
+#if !defined(__APPLE_CC__) || defined(LBM_FORCEINCLUDE)
 
 /******************************************************************************
  * Lbm Constructor
@@ -123,6 +126,10 @@ LbmFsgrSolver<D>::~LbmFsgrSolver()
 	}
 	delete D::mpIso;
 	if(mpPreviewSurface) delete mpPreviewSurface;
+
+#if ELBEEM_BLENDER!=1
+	destroyTestdata();
+#endif // ELBEEM_BLENDER!=1
 
 	// always output performance estimate
 	debMsgStd("LbmFsgrSolver::~LbmFsgrSolver",DM_MSG," Avg. MLSUPS:"<<(mAvgMLSUPS/mAvgMLSUPSCnt), 5);
@@ -564,6 +571,14 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 			initEmptyCell(mMaxRefine, i,mLevel[mMaxRefine].lSizey-1,k, domainBoundType, 0.0, BND_FILL); 
     }
 
+  for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
+    for(int j=0;j<mLevel[mMaxRefine].lSizey;j++) {
+			initEmptyCell(mMaxRefine, 0,j,k, domainBoundType, 0.0, BND_FILL); 
+			initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-1,j,k, domainBoundType, 0.0, BND_FILL); 
+			// DEBUG BORDER!
+			//initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-2,j,k, domainBoundType, 0.0, BND_FILL); 
+    }
+
 	if(D::cDimension == 3) {
 		// only for 3D
 		for(int j=0;j<mLevel[mMaxRefine].lSizey;j++)
@@ -572,14 +587,6 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 				initEmptyCell(mMaxRefine, i,j,mLevel[mMaxRefine].lSizez-1, domainBoundType, 0.0, BND_FILL); 
 			}
 	}
-
-  for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
-    for(int j=0;j<mLevel[mMaxRefine].lSizey;j++) {
-			initEmptyCell(mMaxRefine, 0,j,k, domainBoundType, 0.0, BND_FILL); 
-			initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-1,j,k, domainBoundType, 0.0, BND_FILL); 
-			// DEBUG BORDER!
-			//initEmptyCell(mMaxRefine, mLevel[mMaxRefine].lSizex-2,j,k, domainBoundType, 0.0, BND_FILL); 
-    }
 
 	// TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
   /*for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
@@ -978,6 +985,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		} 
 	} // zmax, k
 	// */
+	thinHit = false;
 
 
 	// now init fluid layer
@@ -1018,6 +1026,9 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		} 
 	} // zmax
 
+#if ELBEEM_BLENDER!=1
+	initTestdata();
+#endif // ELBEEM_BLENDER!=1
 	D::freeGeoTree();
 	myTime_t geotimeend = getTime(); 
 	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Geometry init done ("<< ((geotimeend-geotimestart)/(double)1000.0)<<"s,"<<savedNodes<<") " , 10 ); 
@@ -1353,7 +1364,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 			mLevel[lev].setOther = mLevel[lev].setCurr;
 			mLevel[lev].setCurr ^= 1;
 		}
-		//D::mInitDone = 0; // GRAVTEST
+		//D::mInitDone = 0;  // GRAVTEST
 		// */
 
 		myTime_t timeend = getTime();
@@ -1440,10 +1451,31 @@ LbmFsgrSolver<D>::checkSymmetry(string idstring)
 	return symm;
 }// */
 
+#endif // !defined(__APPLE_CC__) || defined(LBM_FORCEINCLUDE)
+
+
+/******************************************************************************
+ * instantiation
+ *****************************************************************************/
+
+#ifndef __APPLE_CC__
 
 #if LBMDIM==2
-template class LbmFsgrSolver< LbmBGK2D >;
+#define LBM_INSTANTIATE LbmBGK2D
 #endif // LBMDIM==2
 #if LBMDIM==3
-template class LbmFsgrSolver< LbmBGK3D >;
+#define LBM_INSTANTIATE LbmBGK3D
 #endif // LBMDIM==3
+
+template class LbmFsgrSolver< LBM_INSTANTIATE >;
+
+#endif // __APPLE_CC__
+
+// the intel compiler is too smart - so the virtual functions called from other cpp
+// files have to be instantiated explcitly (otherwise this will cause undefined
+// references to "non virtual thunks") ... still not working, though
+//template<class LBM_INSTANTIATE> LbmFsgrSolver<LBM_INSTANTIATE>::~LbmFsgrSolver();
+//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::parseAttrList();
+//template<class LBM_INSTANTIATE> bool LbmFsgrSolver<LBM_INSTANTIATE>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
+
+
