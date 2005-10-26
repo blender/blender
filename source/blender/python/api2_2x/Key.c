@@ -25,20 +25,27 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Pontus Lidman
+ * Contributor(s): Pontus Lidman, Johnny Matthews
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+
+#include "DNA_scene_types.h"
 
 #include <BLI_blenlib.h>
 #include <BKE_global.h>
 #include <BKE_main.h>
 
+#include "Ipocurve.h"
 #include "Key.h"
 #include "NMesh.h" /* we create NMesh.NMVert objects */
 #include "Ipo.h"
 #include "BezTriple.h"
 
+#include "BSE_editipo.h"
+#include "mydevice.h"
+#include "BKE_depsgraph.h"
+#include "blendef.h"
 #include "constant.h"
 #include "gen_utils.h"
 
@@ -50,26 +57,147 @@
 #define GS(a)	(*((short *)(a)))
 
 static void Key_dealloc( PyObject * self );
-static PyObject *Key_getattr( PyObject * self, char *name );
 static void KeyBlock_dealloc( PyObject * self );
-static PyObject *KeyBlock_getattr( PyObject * self, char *name );
 static PyObject *Key_repr( BPy_Key * self );
+
+static PyObject *Key_getBlocks( PyObject * self );
+static PyObject *Key_getChannelIpo(PyObject *self, PyObject *args);
+static PyObject *Key_getType( PyObject * self );
+static PyObject *Key_getIpo( PyObject * self );
+static PyObject *Key_getValue( PyObject * self );
+
+static struct PyMethodDef Key_methods[] = {
+	{ "getBlocks", (PyCFunction) Key_getBlocks, METH_NOARGS, "Get key blocks" },
+	{ "getChannelIpo", (PyCFunction) Key_getChannelIpo, METH_VARARGS, "Get a Particular shape channel's IpoCurve key blocks" },
+	{ "getIpo", (PyCFunction) Key_getIpo, METH_NOARGS, "Get key Ipo" },
+	{ 0, 0, 0, 0 }
+};
+
+static PyGetSetDef BPy_Key_getsetters[] = {
+		{"type",(getter)Key_getType, (setter)NULL,
+		 "Key Type",NULL},
+		{"value",(getter)Key_getValue, (setter)NULL,
+		 "Key value",NULL},
+		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	};
+
+
+
+static PyObject *KeyBlock_getData( PyObject * self );
+
+static PyObject *KeyBlock_getName( BPy_KeyBlock * self );
+static PyObject *KeyBlock_getPos( BPy_KeyBlock * self );
+static PyObject *KeyBlock_getSlidermin( BPy_KeyBlock * self );
+static PyObject *KeyBlock_getSlidermax( BPy_KeyBlock * self );
+static PyObject *KeyBlock_getVgroup( BPy_KeyBlock * self );
+
+static int KeyBlock_setName( BPy_KeyBlock *, PyObject * args  );
+static int KeyBlock_setVgroup( BPy_KeyBlock *, PyObject * args  );
+static int KeyBlock_setSlidermin( BPy_KeyBlock *, PyObject * args  );
+static int KeyBlock_setSlidermax( BPy_KeyBlock *, PyObject * args  );
+
+
+
+static struct PyMethodDef KeyBlock_methods[] = {
+	{ "getData", (PyCFunction) KeyBlock_getData, METH_NOARGS,
+		"Get keyblock data" },
+
+	{ 0, 0, 0, 0 }
+};
+
+static PyGetSetDef BPy_KeyBlock_getsetters[] = {
+		{"name",(getter)KeyBlock_getName, (setter)KeyBlock_setName,
+		 "Keyblock Name",NULL},
+		{"pos",(getter)KeyBlock_getPos, (setter)NULL,
+		 "Keyblock Pos",NULL},
+		{"slidermin",(getter)KeyBlock_getSlidermin, (setter)KeyBlock_setSlidermin,
+		 "Keyblock Slider Minimum",NULL},
+		{"slidermax",(getter)KeyBlock_getSlidermax, (setter)KeyBlock_setSlidermax,
+		 "Keyblock Slider Maximum",NULL},
+		{"vgroup",(getter)KeyBlock_getVgroup, (setter)KeyBlock_setVgroup,
+		 "Keyblock VGroup",NULL},
+		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+	};
 
 PyTypeObject Key_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/*ob_size */
-	"Blender Key",	/*tp_name */
-	sizeof( BPy_Key ),	/*tp_basicsize */
-	0,			/*tp_itemsize */
+	"Blender Key",					/*tp_name */
+	sizeof( BPy_Key ),				/*tp_basicsize */
+	0,								/*tp_itemsize */
 	/* methods */
-	( destructor ) Key_dealloc,	/*tp_dealloc */
-	( printfunc ) 0,	/*tp_print */
-	( getattrfunc ) Key_getattr,	/*tp_getattr */
-	( setattrfunc ) 0,	/*tp_setattr */
-	0, /*tp_compare*/
-	( reprfunc ) Key_repr, /* tp_repr */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	( destructor ) Key_dealloc,		/*tp_dealloc */
+	( printfunc ) 0,				/*tp_print */
+	( getattrfunc ) 0,	/*tp_getattr */
+	( setattrfunc ) 0,			 	/*tp_setattr */
+	0, 								/*tp_compare*/
+	( reprfunc ) Key_repr, 			/* tp_repr */
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	Key_methods,           		/* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_Key_getsetters,     	/* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                      	/* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
+
+
+
 
 PyTypeObject KeyBlock_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/*ob_size */
@@ -78,39 +206,77 @@ PyTypeObject KeyBlock_Type = {
 	0,			/*tp_itemsize */
 	/* methods */
 	( destructor ) KeyBlock_dealloc,	/*tp_dealloc */
-	( printfunc ) 0,	/*tp_print */
-	( getattrfunc ) KeyBlock_getattr,	/*tp_getattr */
-	( setattrfunc ) 0,	/*tp_setattr */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+	NULL,				/*tp_print */
+	NULL, 				/*tp_getattr */
+	NULL,				/*tp_setattr */
+	NULL, 				/*tp_compare*/
+	NULL, 				/* tp_repr */
+	/* Method suites for standard classes */
+
+	NULL,                       /* PyNumberMethods *tp_as_number; */
+	NULL,                       /* PySequenceMethods *tp_as_sequence; */
+	NULL,                       /* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       /* hashfunc tp_hash; */
+	NULL,                       /* ternaryfunc tp_call; */
+	NULL,                       /* reprfunc tp_str; */
+	NULL,                       /* getattrofunc tp_getattro; */
+	NULL,                       /* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       /* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         /* long tp_flags; */
+
+	NULL,                       /*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       /* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       /* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       /* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          /* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                       /* getiterfunc tp_iter; */
+	NULL,                       /* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	KeyBlock_methods, 			/* struct PyMethodDef *tp_methods; */
+	NULL,                       /* struct PyMemberDef *tp_members; */
+	BPy_KeyBlock_getsetters,    /* struct PyGetSetDef *tp_getset; */
+	NULL,                       /* struct _typeobject *tp_base; */
+	NULL,                       /* PyObject *tp_dict; */
+	NULL,                       /* descrgetfunc tp_descr_get; */
+	NULL,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	NULL,                       /* initproc tp_init; */
+	NULL,                       /* allocfunc tp_alloc; */
+	NULL,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       /* inquiry tp_is_gc;  */
+	NULL,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       /* PyObject *tp_mro;  */
+	NULL,                       /* PyObject *tp_cache; */
+	NULL,                       /* PyObject *tp_subclasses; */
+	NULL,                       /* PyObject *tp_weaklist; */
+	NULL
 };
 
-static PyObject *Key_getBlocks( PyObject * self );
-static PyObject *Key_getType( PyObject * self );
-static PyObject *Key_getIpo( PyObject * self );
-static PyObject *Key_getValue( PyObject * self );
 
-static struct PyMethodDef Key_methods[] = {
-	{ "getType", (PyCFunction) Key_getType, METH_NOARGS, "Get key type" },
-	{ "getValue", (PyCFunction) Key_getValue, METH_NOARGS, "Get key value" },
-	{ "getBlocks", (PyCFunction) Key_getBlocks, METH_NOARGS, "Get key blocks" },
-	{ "getIpo", (PyCFunction) Key_getIpo, METH_NOARGS, "Get key Ipo" },
-	{ 0, 0, 0, 0 }
-};
-
-static PyObject *KeyBlock_getData( PyObject * self );
-static PyObject *KeyBlock_getPos( PyObject * self );
-static PyObject *KeyBlock_getName( PyObject * self );
-
-static struct PyMethodDef KeyBlock_methods[] = {
-	{ "getPos", (PyCFunction) KeyBlock_getPos, METH_NOARGS,
-		"Get keyblock position"},
-	{ "getData", (PyCFunction) KeyBlock_getData, METH_NOARGS,
-		"Get keyblock data" },
-	{ "getName", (PyCFunction) KeyBlock_getName, METH_NOARGS,
-		"Get keyblock name"},
-	{ 0, 0, 0, 0 }
-};
 
 static void Key_dealloc( PyObject * self )
 {
@@ -136,34 +302,9 @@ PyObject *Key_CreatePyObject( Key * k )
 	return ( PyObject * ) key;
 }
 
-static PyObject *Key_getattr( PyObject * self, char *name )
-{
-	BPy_Key *k = ( BPy_Key * ) self;
-	if ( strcmp( name, "id" ) == 0 ) {
-		return PyString_FromString( k->key->id.name );
-	} else if ( strcmp( name, "type" ) == 0 ) {
-		return Key_getType(self);
-	} else if ( strcmp( name, "value" ) == 0 ) {
-		return Key_getValue(self);
-	} else if ( strcmp( name, "blocks" ) == 0 ) {
-		return Key_getBlocks(self);
-	} else if ( strcmp( name, "ipo" ) == 0 ) {
-		return Key_getIpo(self);
-	}
-	return Py_FindMethod( Key_methods, ( PyObject * ) self, name );
-
-}
-
 static PyObject *Key_repr( BPy_Key * self )
 {
 	return PyString_FromFormat( "[Key \"%s\"]", self->key->id.name + 2 );
-}
-
-static PyObject *Key_getValue( PyObject * self )
-{
-	BPy_Key *k = ( BPy_Key * ) self;
-
-	return PyFloat_FromDouble( k->key->curval );
 }
 
 static PyObject *Key_getIpo( PyObject * self )
@@ -220,6 +361,19 @@ static PyObject *Key_getBlocks( PyObject * self )
 	return l;
 }
 
+
+static PyObject *Key_getValue( PyObject * self )
+{
+	BPy_Key *k = ( BPy_Key * ) self;
+
+	return PyFloat_FromDouble( k->key->curval );
+}
+
+
+
+
+// ------------ Key Block Functions --------------//
+
 static void KeyBlock_dealloc( PyObject * self )
 {
 	PyObject_DEL( self );
@@ -246,30 +400,74 @@ PyObject *KeyBlock_CreatePyObject( KeyBlock * kb, Key *parentKey )
 	return ( PyObject * ) keyBlock;
 }
 
-static PyObject *KeyBlock_getattr( PyObject * self, char *name )
-{
-	if ( strcmp( name, "pos" ) == 0 ) {
-		return KeyBlock_getPos(self);
-	} else if ( strcmp( name, "data" ) == 0 ) {
-		return KeyBlock_getData(self);
-	} else if ( strcmp( name, "name" ) == 0 ) {
-		return KeyBlock_getName(self);
-	}
-	return Py_FindMethod( KeyBlock_methods, ( PyObject * ) self, name );
-}
 
-static PyObject *KeyBlock_getName( PyObject * self ) {
+static PyObject *KeyBlock_getName( BPy_KeyBlock * self ) {
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	PyObject *name = Py_BuildValue( "s", kb->keyblock->name);
 	return name;
 }
-
-
-static PyObject *KeyBlock_getPos( PyObject * self )
-{
+static PyObject *KeyBlock_getPos( BPy_KeyBlock * self ){
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	return PyFloat_FromDouble( kb->keyblock->pos );
+	return PyFloat_FromDouble( kb->keyblock->pos );			
 }
+static PyObject *KeyBlock_getSlidermin( BPy_KeyBlock * self ){
+	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
+	return PyFloat_FromDouble( kb->keyblock->slidermin );	
+}
+static PyObject *KeyBlock_getSlidermax( BPy_KeyBlock * self ){
+	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
+	return PyFloat_FromDouble( kb->keyblock->slidermax );
+}
+static PyObject *KeyBlock_getVgroup( BPy_KeyBlock * self ){
+	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
+	PyObject *name = Py_BuildValue( "s", kb->keyblock->vgroup);
+	return name;	
+}
+
+
+
+
+static int KeyBlock_setName( BPy_KeyBlock * self, PyObject * args ){
+	char* text = NULL;
+    BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;	
+    
+	text = PyString_AsString ( args );
+	if( !text )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );							
+	strncpy( kb->keyblock->name, text , 32);
+
+	return 0;	
+}
+
+static int KeyBlock_setVgroup( BPy_KeyBlock * self, PyObject * args  ){
+	char* text = NULL;
+    BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;	
+    
+	text = PyString_AsString ( args );
+	if( !text )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string argument" );							
+	strncpy( kb->keyblock->vgroup, text , 32);
+
+	return 0;	
+}
+static int KeyBlock_setSlidermin( BPy_KeyBlock * self, PyObject * args  ){
+	return EXPP_setFloatClamped ( args, &self->keyblock->slidermin,
+								-10.0f,
+								10.0f );	
+}
+static int KeyBlock_setSlidermax( BPy_KeyBlock * self, PyObject * args  ){
+	return EXPP_setFloatClamped ( args, &self->keyblock->slidermax,
+								-10.0f,
+								10.0f );
+}
+
+
+
+
+
+
 
 static PyObject *KeyBlock_getData( PyObject * self )
 {
@@ -405,8 +603,13 @@ PyObject *Key_Init( void )
 {
 	PyObject *submodule, *KeyTypes;
 
+	if( PyType_Ready( &Key_Type ) < 0)
+		return NULL;
+
 	Key_Type.ob_type = &PyType_Type;
-	KeyBlock_Type.ob_type = &PyType_Type;
+	//KeyBlock_Type.ob_type = &PyType_Type;
+	PyType_Ready( &KeyBlock_Type );
+
 	
 	submodule =
 		Py_InitModule3( "Blender.Key", M_Key_methods, "Key module" );
@@ -425,4 +628,21 @@ PyObject *Key_Init( void )
 	PyModule_AddIntConstant( submodule, "TYPE_LATTICE", KEY_TYPE_LATTICE );
 	*/
 	return submodule;
+}
+
+static PyObject *Key_getChannelIpo(PyObject *self, PyObject *args){
+	short index;
+	IpoCurve *curve;
+	Key *key = (( BPy_KeyBlock * ) self)->key;
+	C_IpoCurve *output;
+	
+	if( !PyArg_ParseTuple( args, "i", &index ) ) {
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected one integer as an arguments" ) );
+	}
+	
+	curve = verify_ipocurve(&key->id,ID_KE,NULL,NULL,index);
+	output = ( C_IpoCurve * ) PyObject_NEW( C_IpoCurve, &IpoCurve_Type );
+	output->ipocurve = curve;
+	return ( ( PyObject * ) output );	
 }

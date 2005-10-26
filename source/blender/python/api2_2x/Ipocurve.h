@@ -44,7 +44,7 @@ typedef struct {
 	IpoCurve * ipocurve;
 } C_IpoCurve;
 
-
+extern PyTypeObject IpoCurve_Type;
 
 PyObject *IpoCurve_Init( void );
 PyObject *IpoCurve_CreatePyObject( IpoCurve * ipo );

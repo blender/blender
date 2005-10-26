@@ -35,17 +35,17 @@ class Key:
     An object with keyframes (L{Lattice.Lattice}, L{NMesh.NMesh} or
     L{Curve.Curve}) will contain a Key object representing the
     keyframe data.
+    
+    @ivar value: The Value of the Key - Read Only
+    @type value: float
+    @ivar type: An integer from the L{Types} dictionary
+    representing the Key type.
+    @type type: int
+
     @cvar blocks: A list of KeyBlocks.
     @cvar ipo: The L{Ipo.Ipo} object associated with this key.
-    @cvar type: An integer from the L{Types} dictionary
-    representing the Key type.
     """
 
-    def getType():
-        """
-        Get the type of this Key object. It will be one of the
-        integers defined in the L{Types} dictionary.
-        """
     def getIpo():
         """
         Get the L{Ipo.Ipo} object associated with this key.
@@ -55,44 +55,51 @@ class Key:
         Get a list of L{KeyBlock}s, containing the keyframes defined for
         this Key.
         """
-
+	def setDriverChannel(index):
+		""" 
+		Get the IpoCurve object associated with the shape key referenced
+		by the index of that key in getBlocks
+  		@type index: int
+  		@param index: the keyblock index to retrieve an IPO for.
+  		@rtype: Blender IpoCurve
+  		@return: Ipo Data Object:
+		"""
+		
 class KeyBlock:
+  """	
+  The KeyBlock object
+  ===================
+  Each Key object has a list of KeyBlocks attached, each KeyBlock
+  representing a keyframe.
+
+  @ivar name: The Name of the Keyblock
+  Truncated to 32 Characters
+  @type name: string
+  @ivar pos: The position of the keyframe
+  @type pos: float
+  @ivar slidermin: The minimum value for the action slider 
+  @type slidermin: float
+  @ivar slidermax: The maximum value for the action slider
+  @type slidermax: float
+  @ivar vgroup: The assigned VGroup for the Key Block
+  @type vgroup: string
+  
+  @cvar data: The data of the KeyBlock (see L{getData}). This
+  attribute is read-only.
+  """
+  def getData():
     """
-    The KeyBlock object
-    ===================
-    Each Key object has a list of KeyBlocks attached, each KeyBlock
-    representing a keyframe.
+    Get the data of a KeyBlock, as a list of data items. Each item
+    will have a different data type depending on the type of this
+    Key.
+    Mesh keys have a list of L{NMesh.NMVert} objects in the data
+    block.
 
-    @cvar data: The data of the KeyBlock (see L{getData}). This
-    attribute is read-only.
-    @cvar pos: The position of the keyframe (see L{getPos}). This
-    attribute is read-only.
-    @cvar name: The name of the KeyBlock. This attribute is read-only.
+    Lattice keys have a list of BPoints in the data block. These
+    don't have corresponding Python objects yet, so each BPoint is
+    represented using a list of four floating-point numbers.
+
+    Curve keys have a list of L{Ipo.BezTriple} objects in the data
+    block.
     """
-    def getData():
-        """
-        Get the data of a KeyBlock, as a list of data items. Each item
-        will have a different data type depending on the type of this
-        Key.
 
-        Mesh keys have a list of L{NMesh.NMVert} objects in the data
-        block.
-
-        Lattice keys have a list of BPoints in the data block. These
-        don't have corresponding Python objects yet, so each BPoint is
-        represented using a list of four floating-point numbers.
-
-        Curve keys have a list of L{Ipo.BezTriple} objects in the data
-        block.
-        """
-
-    def getPos():
-        """
-        Get the position of the keyframe represented by this KeyBlock,
-        normally between 0.0 and 1.0. The time point when the Speed
-        Ipo intersects the KeyBlock position is the actual time of the
-        keyframe.
-        """
-
-    def getName():
-        """Get the name of the keyframe represented by this KeyBlock."""

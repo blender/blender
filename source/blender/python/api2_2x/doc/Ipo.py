@@ -261,6 +261,25 @@ class IpoCurve:
   Important Notes for Rotation Curves:\n
   For the rotation IpoCurves, the y values for points are in units of 10 degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
   
+  @ivar driver:  Status of Driver
+  1: on
+  0: off
+  @type driver:  int  
+  @ivar driverObject:  Object Used to Drive the IpoCurve
+  @type driverObject:  Object    
+  @ivar driverChannel:  Object Channel Used to Drive the IpoCurve
+  Use module constants 
+  IpoCurve.LOC_X
+  IpoCurve.LOC_Y
+  IpoCurve.LOC_Z
+  IpoCurve.ROT_X  
+  IpoCurve.ROT_Y
+  IpoCurve.ROT_Z
+  IpoCurve.SIZE_X
+  IpoCurve.SIZE_Y
+  IpoCurve.SIZE_Z
+  @type driverChannel:  int 
+  
   @ivar name: The Curve Data name.
   @ivar bezierPoints : The list of the Bezier points.
   """

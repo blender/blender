@@ -25,14 +25,16 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot, Nathan Letwory, Ken Hughes
+ * Contributor(s): Jacques Guignot, Nathan Letwory, Ken Hughes, Johnny Matthews
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
 #include "Ipocurve.h" /*This must come first*/
 
+#include "Object.h"
 #include "BKE_global.h"
+#include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
 #include "BSE_editipo.h"
 #include "MEM_guardedalloc.h"
@@ -81,9 +83,17 @@ static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self,
 					    PyObject * args );
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self );
 static PyObject *IpoCurve_getPoints( C_IpoCurve * self );
-static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value );
+static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value ); 
 static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args );
 
+static PyObject *IpoCurve_getDriver( C_IpoCurve * self );
+static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args );
+
+static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self);
+static int       IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * args );
+
+static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self);
+static int       IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args );
 /*****************************************************************************/
 /* Python C_IpoCurve methods table:                                          */
 /*****************************************************************************/
@@ -116,40 +126,117 @@ static PyMethodDef C_IpoCurve_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+
+static PyGetSetDef C_IpoCurve_getseters[] = {
+   {"name",
+    (getter)IpoCurve_getName, (setter)NULL,
+    "the IpoCurve name",
+    NULL},
+   {"bezierPoints",
+    (getter)IpoCurve_getPoints, (setter)NULL,
+    "list of all bezTriples of the curve",
+    NULL},
+
+	{"driver",
+	 (getter)IpoCurve_getDriver, (setter)IpoCurve_setDriver,
+	 "(int) The Status of the driver 1-on, 0-off",
+	 NULL},
+	{"driverObject",
+	 (getter)IpoCurve_getDriverObject, (setter)IpoCurve_setDriverObject,
+	 "(object) The Object Used to Drive the IpoCurve",
+	 NULL},
+	{"driverChannel",
+	 (getter)IpoCurve_getDriverChannel, (setter)IpoCurve_setDriverChannel,
+	 "(int) The Channel on the Driver Object Used to Drive the IpoCurve",
+	 NULL},
+	 {NULL,NULL,NULL,NULL,NULL}
+};
 /*****************************************************************************/
 /* Python IpoCurve_Type callback function prototypes:                        */
 /*****************************************************************************/
 static void IpoCurveDeAlloc( C_IpoCurve * self );
 //static int IpoCurvePrint (C_IpoCurve *self, FILE *fp, int flags);
-static int IpoCurveSetAttr( C_IpoCurve * self, char *name, PyObject * v );
-static PyObject *IpoCurveGetAttr( C_IpoCurve * self, char *name );
 static PyObject *IpoCurveRepr( C_IpoCurve * self );
 
 /*****************************************************************************/
 /* Python IpoCurve_Type structure definition:                                */
 /*****************************************************************************/
 PyTypeObject IpoCurve_Type = {
-	PyObject_HEAD_INIT( NULL )                  /* required macro */ 
-	0,	/* ob_size */
-	"IpoCurve",		/* tp_name */
-	sizeof( C_IpoCurve ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
+	PyObject_HEAD_INIT( NULL )          /* required macro */ 
+	0,									/* ob_size */
+	"IpoCurve",							/* tp_name */
+	sizeof( C_IpoCurve ),				/* tp_basicsize */
+	0,									/* tp_itemsize */
 	/* methods */
-	( destructor ) IpoCurveDeAlloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) IpoCurveGetAttr,	/* tp_getattr */
-	( setattrfunc ) IpoCurveSetAttr,	/* tp_setattr */
-	0,			/* tp_compare */
-	( reprfunc ) IpoCurveRepr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	C_IpoCurve_methods,	/* tp_methods */
-	0,			/* tp_members */
+	( destructor ) IpoCurveDeAlloc,		/* tp_dealloc */
+	0,									/* tp_print */
+	( getattrfunc ) NULL,	/* tp_getattr */
+	( setattrfunc ) NULL,	/* tp_setattr */
+	0,									/* tp_compare */
+	( reprfunc ) IpoCurveRepr,			/* tp_repr */
+	/* Method suites for standard classes */
+
+	NULL,                       		/* PyNumberMethods *tp_as_number; */
+	NULL,                       		/* PySequenceMethods *tp_as_sequence; */
+	NULL,                       		/* PyMappingMethods *tp_as_mapping; */
+
+	/* More standard operations (here for binary compatibility) */
+
+	NULL,                       		/* hashfunc tp_hash; */
+	NULL,                       		/* ternaryfunc tp_call; */
+	NULL,                       		/* reprfunc tp_str; */
+	NULL,                       		/* getattrofunc tp_getattro; */
+	NULL,                      			/* setattrofunc tp_setattro; */
+
+	/* Functions to access object as input/output buffer */
+	NULL,                       		/* PyBufferProcs *tp_as_buffer; */
+
+  /*** Flags to define presence of optional/expanded features ***/
+	Py_TPFLAGS_DEFAULT,         		/* long tp_flags; */
+
+	NULL,                       		/*  char *tp_doc;  Documentation string */
+  /*** Assigned meaning in release 2.0 ***/
+	/* call function for all accessible objects */
+	NULL,                       		/* traverseproc tp_traverse; */
+
+	/* delete references to contained objects */
+	NULL,                       		/* inquiry tp_clear; */
+
+  /***  Assigned meaning in release 2.1 ***/
+  /*** rich comparisons ***/
+	NULL,                       		/* richcmpfunc tp_richcompare; */
+
+  /***  weak reference enabler ***/
+	0,                          		/* long tp_weaklistoffset; */
+
+  /*** Added in release 2.2 ***/
+	/*   Iterators */
+	NULL,                      			/* getiterfunc tp_iter; */
+	NULL,                       		/* iternextfunc tp_iternext; */
+
+  /*** Attribute descriptor and subclassing stuff ***/
+	C_IpoCurve_methods,           		/* struct PyMethodDef *tp_methods; */
+	NULL,                       		/* struct PyMemberDef *tp_members; */
+	C_IpoCurve_getseters,         		/* struct PyGetSetDef *tp_getset; */
+	NULL,                       		/* struct _typeobject *tp_base; */
+	NULL,                       		/* PyObject *tp_dict; */
+	NULL,                       		/* descrgetfunc tp_descr_get; */
+	NULL,                       		/* descrsetfunc tp_descr_set; */
+	0,                          		/* long tp_dictoffset; */
+	NULL,                       		/* initproc tp_init; */
+	NULL,                       		/* allocfunc tp_alloc; */
+	NULL,                       		/* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	NULL,                       		/* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	NULL,                       		/* inquiry tp_is_gc;  */
+	NULL,                       		/* PyObject *tp_bases; */
+	/* method resolution order */
+	NULL,                       		/* PyObject *tp_mro;  */
+	NULL,                       		/* PyObject *tp_cache; */
+	NULL,                       		/* PyObject *tp_subclasses; */
+	NULL,                       		/* PyObject *tp_weaklist; */
+	NULL
 };
 
 /*****************************************************************************/
@@ -168,11 +255,22 @@ PyObject *IpoCurve_Init( void )
 {
 	PyObject *submodule;
 
-	IpoCurve_Type.ob_type = &PyType_Type;
+	if( PyType_Ready( &IpoCurve_Type ) < 0)
+		return NULL;
 
 	submodule =
 		Py_InitModule3( "Blender.IpoCurve", M_IpoCurve_methods,
 				M_IpoCurve_doc );
+
+	PyModule_AddIntConstant( submodule, "LOC_X", OB_LOC_X );
+	PyModule_AddIntConstant( submodule, "LOC_Y", OB_LOC_Y );
+	PyModule_AddIntConstant( submodule, "LOC_Z", OB_LOC_Z );	
+	PyModule_AddIntConstant( submodule, "ROT_X", OB_ROT_X );
+	PyModule_AddIntConstant( submodule, "ROT_Y", OB_ROT_Y );
+	PyModule_AddIntConstant( submodule, "ROT_Z", OB_ROT_Z );	
+	PyModule_AddIntConstant( submodule, "SIZE_X", OB_SIZE_X );
+	PyModule_AddIntConstant( submodule, "SIZE_Y", OB_SIZE_Y );
+	PyModule_AddIntConstant( submodule, "SIZE_Z", OB_SIZE_Z );	
 
 	return ( submodule );
 }
@@ -467,7 +565,7 @@ static PyObject *IpoCurve_getPoints( C_IpoCurve * self )
 }
 
 
-int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value )
+static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value )
 {
 	struct BezTriple *bezt;
 	PyObject *l = PyList_New( 0 );
@@ -479,33 +577,6 @@ int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value )
 	return 0;
 }
 
-
-/*****************************************************************************/
-/* Function:    IpoCurveGetAttr                                         */
-/* Description: This is a callback function for the C_IpoCurve type. It is   */
-/*              the function that accesses C_IpoCurve "member variables" and */
-/*              methods.                                                     */
-/*****************************************************************************/
-static PyObject *IpoCurveGetAttr( C_IpoCurve * self, char *name )
-{
-	if( strcmp( name, "bezierPoints" ) == 0 )
-		return IpoCurve_getPoints( self );
-	if( strcmp( name, "name" ) == 0 )
-		return IpoCurve_getName( self );
-	return Py_FindMethod( C_IpoCurve_methods, ( PyObject * ) self, name );
-}
-
-/*****************************************************************************/
-/* Function:    IpoCurveSetAttr                                    */
-/* Description: This is a callback function for the C_IpoCurve type. It  */
-/*               sets IpoCurve Data attributes (member variables).*/
-/*****************************************************************************/
-static int IpoCurveSetAttr( C_IpoCurve * self, char *name, PyObject * value )
-{
-	if( strcmp( name, "bezierPoints" ) == 0 )
-		return IpoCurve_setPoints( self, value );
-	return 0;		/* normal exit */
-}
 
 /*****************************************************************************/
 /* Function:    IpoCurveRepr                                             */
@@ -617,4 +688,85 @@ char *getIpoCurveName( IpoCurve * icu )
 		return getname_co_ei( icu->adrcode );
 	}
 	return NULL;
+}
+
+
+static PyObject *IpoCurve_getDriver( C_IpoCurve * self ){
+	IpoCurve *ipo = self->ipocurve;
+	if(ipo->driver == NULL){
+		return PyInt_FromLong( 0 );	
+	} else {
+		return PyInt_FromLong( 1 );	
+	}
+}
+
+static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args ){
+	IpoCurve *ipo = self->ipocurve;
+	short mode;
+
+    mode = (short)PyInt_AS_LONG ( args );
+
+	if(mode == 1){
+		if(ipo->driver == NULL){
+			ipo->driver				= MEM_callocN(sizeof(IpoDriver), "ipo driver");
+			ipo->driver->blocktype	= ID_OB;
+			ipo->driver->adrcode	= OB_LOC_X;
+		}	 
+		return 0;
+	} else if(mode == 0){
+		if(ipo->driver != NULL){
+			MEM_freeN(ipo->driver);
+			ipo->driver= NULL;			
+		}
+		return 0;
+	}
+	return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"expected int argument: 1 or 0 " );
+}
+
+
+static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self ){
+	BPy_Object *blen_object;
+	IpoCurve *ipo = self->ipocurve;
+	
+	if(ipo->driver == NULL)
+			return Py_None;
+	
+	blen_object = ( BPy_Object * ) PyObject_NEW( BPy_Object,&Object_Type );
+	blen_object->object = ipo->driver->ob;
+	return ( ( PyObject * ) blen_object );
+}
+
+static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * arg ){
+	IpoCurve *ipo = self->ipocurve;
+
+	if(ipo->driver == NULL)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "This IpoCurve does not have an active driver" );
+
+	if(!BPy_Object_Check(arg) )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "expected an object argument" );
+	ipo->driver->ob = ((BPy_Object *)arg)->object;
+
+	DAG_scene_sort(G.scene);	
+	
+	return 0;
+}
+static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self ){
+	return PyInt_FromLong( self->ipocurve->driver->adrcode );	
+}
+static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args ){
+	int code;
+	IpoCurve *ipo = self->ipocurve;
+
+	if(ipo->driver == NULL)
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      "This IpoCurve does not have an active driver" );
+
+    code = (short)PyInt_AS_LONG ( args );
+	ipo->driver->adrcode = code;
+
+	return 0;
+	
 }
