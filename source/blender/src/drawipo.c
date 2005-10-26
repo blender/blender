@@ -2096,6 +2096,7 @@ void scroll_ipobuts()
 /* total mess function, especially with mousewheel, needs cleanup badly (ton) */
 int view2dzoom(unsigned short event)
 {
+	ScrArea *sa;
 	float fac, dx, dy, wtemp;
 	short mval[2], mvalo[2];
 	
@@ -2216,7 +2217,10 @@ int view2dzoom(unsigned short event)
 			}
 		
 			test_view2d(G.v2d, curarea->winx, curarea->winy);	/* cur min max rects */
+			
+			sa= curarea;	/* now when are you going to kill this one! */
 			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
+			mywinset(sa->win);
 			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
@@ -2383,15 +2387,18 @@ int view2dmove(unsigned short event)
 		}
 
 		if(mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-
+			ScrArea *sa;
+			
 			G.v2d->cur.xmin+= left*dx;
 			G.v2d->cur.xmax+= right*dx;
 			G.v2d->cur.ymin+= left*dy;
 			G.v2d->cur.ymax+= right*dy;
-				
+			
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
+			sa= curarea;	/* bad global */
 			view2d_do_locks(curarea, V2D_LOCK_COPY|V2D_LOCK_REDRAW);
-				
+			areawinset(sa->win);
+			
 			scrarea_do_windraw(curarea);
 			screen_swapbuffers();
 				
