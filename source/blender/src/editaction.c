@@ -686,6 +686,12 @@ void borderselect_action(void)
 		mval[1]= rect.ymax-2;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 		
+		/* if action is mapped in NLA, it returns a correction */
+		if(G.saction->pin==0 && OBACT) {
+			rectf.xmin= get_action_frame(OBACT, rectf.xmin);
+			rectf.xmax= get_action_frame(OBACT, rectf.xmax);
+		}
+		
 		ymax= count_action_levels(act) * (CHANNELHEIGHT+CHANNELSKIP);
 		ymax += CHANNELHEIGHT/2;
 		
