@@ -237,11 +237,6 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_CENTERVIEW, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
-					 "Lock Time to Other Windows|", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
-					 ACTMENU_VIEW_LOCK, "");
-	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -270,6 +265,11 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_ALL, "");
 		
+	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Lock Time to Other Windows|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_LOCK, "");
+	
 	if (!curarea->full) 
 		uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, 
 						 "Maximize Window|Ctrl UpArrow", 0, yco-=20, 

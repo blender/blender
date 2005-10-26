@@ -465,8 +465,8 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefButF(block, NUM, B_REDR, "Strip End:", 	160,160,150,19, &strip->end, -1000.0, MAXFRAMEF, 100, 0, "Last frame in the timeline");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Action Start:", 10,120,150,19, &strip->actstart, 1.0, MAXFRAMEF, 100, 0, "First frame of the action to map to the playrange");
-	uiDefButF(block, NUM, B_REDR, "Action End:", 160,120,150,19, &strip->actend, 1.0, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
+	uiDefButF(block, NUM, B_REDR, "Action Start:", 10,120,150,19, &strip->actstart, -1000.0, MAXFRAMEF, 100, 0, "First frame of the action to map to the playrange");
+	uiDefButF(block, NUM, B_REDR, "Action End:", 160,120,150,19, &strip->actend, -1000.0, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");

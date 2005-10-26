@@ -176,6 +176,23 @@ void shift_nlastrips_down(void) {
 	allqueue (REDRAWNLA, 0);
 }
 
+static void reset_action_strips(void)
+{
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next) {
+		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
+			if (strip->flag & ACTSTRIP_SELECT) {
+				strip->actstart = calc_action_start(strip->act);
+				strip->actend = calc_action_end(strip->act);
+			}
+		}
+	}
+	BIF_undo_push("Reset NLA strips");
+	allqueue (REDRAWNLA, 0);
+}
+
 void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -273,9 +290,15 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case SKEY:
-			if (mval[0]>=NLAWIDTH)
-				transform_nlachannel_keys ('s', 0);
-			update_for_newframe_muted();
+			if(G.qual==LR_ALTKEY) {
+				if(okee("Reset Action Strips start/end"))
+					reset_action_strips();
+			}
+			else {
+				if (mval[0]>=NLAWIDTH)
+					transform_nlachannel_keys ('s', 0);
+				update_for_newframe_muted();
+			}
 			break;
 
 		case DELKEY:
@@ -789,21 +812,19 @@ void transform_nlachannel_keys(int mode, int dummy)
 {
 	Base *base;
 	TransVert *tv;
-	int /*sel=0,*/  i;
-	short	mvals[2], mvalc[2];
-	//	short	 cent[2];
-	float	sval[2], cval[2], lastcval[2];
-	short	cancel=0;
-	float	fac=0.0F;
-	int		loop=1;
-	int		tvtot=0;
-	float	deltax, startx;
-	//	float	cenf[2];
-	int		invert=0, firsttime=1;
-	char	str[256];
 	bActionChannel *chan;
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
+	float	sval[2], cval[2], lastcval[2];
+	float	fac=0.0F;
+	float	deltax, startx;
+	int i;
+	int		loop=1;
+	int		tvtot=0;
+	int		invert=0, firsttime=1;
+	short	mvals[2], mvalc[2];
+	short	cancel=0;
+	char	str[256];
 
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next){
@@ -817,14 +838,22 @@ void transform_nlachannel_keys(int mode, int dummy)
 		
 		/* Check action ipos */
 		if (base->object->action){
-			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-				tvtot+=fullselect_ipo_keys(chan->ipo);
-				
-				/* Check action constraint ipos */
-				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-					tvtot+=fullselect_ipo_keys(conchan->ipo);
+			/* exclude if strip is selected too */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT)
+					if(strip->act==base->object->action)
+						break;
 			}
-		
+			if(strip==NULL) {
+				
+				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
+					tvtot+=fullselect_ipo_keys(chan->ipo);
+					
+					/* Check action constraint ipos */
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+						tvtot+=fullselect_ipo_keys(conchan->ipo);
+				}
+			}		
 		}
 
 		/* Check nlastrips */
@@ -852,12 +881,21 @@ void transform_nlachannel_keys(int mode, int dummy)
 
 		/* Manipulate action ipos */
 		if (base->object->action){
-			for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-				tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
+			/* exclude if strip is selected too */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+				if (strip->flag & ACTSTRIP_SELECT)
+					if(strip->act==base->object->action)
+						break;
+			}
+			if(strip==NULL) {
+				
+				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
+					tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
 
-				/* Manipulate action constraint ipos */
-				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-					tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+					/* Manipulate action constraint ipos */
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+						tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+				}
 			}
 		}
 

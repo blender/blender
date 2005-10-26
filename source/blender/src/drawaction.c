@@ -370,7 +370,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
 	float	y;
-	int act_end, dummy;
+	int act_start, act_end, dummy;
 	char col1[3], col2[3];
 	
 	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
@@ -390,46 +390,60 @@ static void draw_channel_strips(SpaceAction *saction)
 	if (G.saction->pin==0 && OBACT)
 		map_active_strip(di, OBACT, 0);
 	
-	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-
-	/* end of action itself */
+	/* start and end of action itself */
+	gla2DDrawTranslatePt(di, calc_action_start(act), 0, &act_start, &dummy);
 	gla2DDrawTranslatePt(di, calc_action_end(act), 0, &act_end, &dummy);
 	
+	if (G.saction->pin==0 && OBACT)
+		map_active_strip(di, OBACT, 1);
+	
+	/* first backdrop strips */
+	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	glEnable(GL_BLEND);
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		int frame1_x, channel_y;
-
-		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-
-		glEnable(GL_BLEND);
+		
+		gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
+		
 		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-		glRectf(0,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
-
-		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
-		else glColor4ub(col2[0], col2[1], col2[2], 0x44);
-		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
-		glDisable(GL_BLEND);
-	
-		draw_ipo_channel(di, chan->ipo, 0, y);
-
+		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
+		
+		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+		glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
+		
 		/*	Increment the step */
 		y-=CHANNELHEIGHT+CHANNELSKIP;
-
-
+		
 		/* Draw constraint channels */
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
 			
-			glEnable(GL_BLEND);
 			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(0,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
 			
-			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x44);
-			else glColor4ub(col2[0], col2[1], col2[2], 0x44);
-			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
-			glDisable(GL_BLEND);
+			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+			glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
 			
+			y-=CHANNELHEIGHT+CHANNELSKIP;
+		}
+	}		
+	glDisable(GL_BLEND);
+	
+	if (G.saction->pin==0 && OBACT)
+		map_active_strip(di, OBACT, 0);
+	
+	/* dot thingies */
+	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	for (chan=act->chanbase.first; chan; chan=chan->next){
+		draw_ipo_channel(di, chan->ipo, 0, y);
+		y-=CHANNELHEIGHT+CHANNELSKIP;
+
+		/* Draw constraint channels */
+		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			draw_ipo_channel(di, conchan->ipo, 0, y);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 		}
