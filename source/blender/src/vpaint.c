@@ -666,17 +666,14 @@ static unsigned int sample_backbuf(int x, int y)
 	return framebuffer_to_index(col);
 }
 
-static int calc_vp_alpha_dl(VPaint *vp, DerivedMesh *dm, int vert, short *mval)
+static int calc_vp_alpha_dl(VPaint *vp, float *vert_nor, short *mval)
 {
-	float co[3], no[3];
 	float fac, dx, dy;
 	int alpha;
 	short vertco[2];
 	
 	if(vp->flag & VP_SOFT) {
-		dm->getVertCo(dm, vert, co);
-
-	 	project_short_noclip(co, vertco);
+	 	project_short_noclip(vert_nor, vertco);
 		dx= mval[0]-vertco[0];
 		dy= mval[1]-vertco[1];
 		
@@ -690,8 +687,8 @@ static int calc_vp_alpha_dl(VPaint *vp, DerivedMesh *dm, int vert, short *mval)
 	}
 
 	if(vp->flag & VP_NORMALS) {
-		dm->getVertNo(dm, vert, no);
-
+		float *no= vert_nor+3;
+		
 			/* transpose ! */
 		fac= vpimat[2][0]*no[0]+vpimat[2][1]*no[1]+vpimat[2][2]*no[2];
 		if(fac>0.0) {
@@ -813,6 +810,50 @@ static MDeformWeight *get_defweight(MDeformVert *dv, int defgroup)
 	return NULL;
 }
 
+/* ----------- get the derived vertices -------------- */
+
+static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	float *vec = userData;
+	
+	vec+= 6*index;
+	VECCOPY(vec, co);
+	vec+= 3;
+	if(no_f) {
+		VECCOPY(vec, no_f);
+	}
+	else {
+		VECCOPY(vec, no_s);
+	}
+}
+
+static float *get_mapped_verts_nors(Object *ob, int totvert)
+{
+	int needsFree;
+	DerivedMesh *dm= mesh_get_derived_final(ob, &needsFree);
+	float *vertexcosnos;
+	
+	vertexcosnos= MEM_mallocN(6*sizeof(float)*totvert, "vertexcosnos map");
+	
+	if(dm->foreachMappedVert)
+		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
+	else {
+		Mesh *me= ob->data;
+		float *fp= vertexcosnos;
+		int a;
+		
+		for(a=0; a< me->totvert; a++, fp+=6) {
+			dm->getVertCo(dm, a, fp);
+			dm->getVertNo(dm, a, fp+3);
+		}
+	}
+	
+	if (needsFree) dm->release(dm);
+	return vertexcosnos;
+}
+
+/* ----------------------------------------------------- */
+
 /* used for 3d view, on active object, assumes me->dvert exists */
 /* if mode==1: */
 /*     samples cursor location, and gives menu with vertex groups to activate */
@@ -905,7 +946,7 @@ static void sample_wpaint(int mode)
 			float w1, w2, w3, w4, co[3], fac;
 			int needsFree;
 			
-			dm = mesh_get_derived_deform(ob, &needsFree);
+			dm = mesh_get_derived_final(ob, &needsFree);
 			
 			/* calc 3 or 4 corner weights */
 			dm->getVertCo(dm, mface->v1, co);
@@ -984,7 +1025,7 @@ void weight_paint(void)
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
-	float mat[4][4], imat[4][4], paintweight;
+	float mat[4][4], imat[4][4], paintweight, *vertexcosnos;
 	int index, totindex, alpha, totw;
 	int vgroup_mirror= -1;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
@@ -1012,6 +1053,9 @@ void weight_paint(void)
 		sample_wpaint(1);
 		return;
 	}
+	
+	/* painting on subsurfs should give correct points too */
+	vertexcosnos= get_mapped_verts_nors(ob, me->totvert);
 	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
@@ -1086,9 +1130,6 @@ void weight_paint(void)
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			DerivedMesh *dm;
-			int needsFree;
-
 			firsttime= 0;
 			
 			/* which faces are involved */
@@ -1165,15 +1206,13 @@ void weight_paint(void)
 			if(Gwp.mode==VP_FILT) 
 				paintweight/= (float)totw;
 			
-			dm = mesh_get_derived_deform(ob, &needsFree);
-
 			for(index=0; index<totindex; index++) {
 				
 				if(indexar[index] && indexar[index]<=me->totface) {
 					mface= me->mface + (indexar[index]-1);
 					
 					if((me->dvert+mface->v1)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v1, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v1, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v1, alpha, paintweight, vgroup_mirror);
 						}
@@ -1181,7 +1220,7 @@ void weight_paint(void)
 					}
 					
 					if((me->dvert+mface->v2)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v2, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v2, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v2, alpha, paintweight, vgroup_mirror);
 						}
@@ -1189,7 +1228,7 @@ void weight_paint(void)
 					}
 					
 					if((me->dvert+mface->v3)->flag) {
-						alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v3, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v3, mval);
 						if(alpha) {
 							do_weight_paint_vertex(ob, mface->v3, alpha, paintweight, vgroup_mirror);
 						}
@@ -1198,7 +1237,7 @@ void weight_paint(void)
 					
 					if((me->dvert+mface->v4)->flag) {
 						if(mface->v4) {
-							alpha= calc_vp_alpha_dl(&Gwp, dm, mface->v4, mval);
+							alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v4, mval);
 							if(alpha) {
 								do_weight_paint_vertex(ob, mface->v4, alpha, paintweight, vgroup_mirror);
 							}
@@ -1207,8 +1246,6 @@ void weight_paint(void)
 					}
 				}
 			}
-			if (needsFree)
-				dm->release(dm);
 			
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
@@ -1239,6 +1276,8 @@ void weight_paint(void)
 		MEM_freeN(me->mcol);
 		me->mcol= 0;
 	}
+	if(vertexcosnos)
+		MEM_freeN(vertexcosnos);
 	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	// this flag is event for softbody to refresh weightpaint values
@@ -1253,7 +1292,7 @@ void vertex_paint()
 	Mesh *me;
 	MFace *mface;
 	TFace *tface;
-	float mat[4][4], imat[4][4];
+	float mat[4][4], imat[4][4], *vertexcosnos;
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
 	int index, alpha, totindex;
 	short mval[2], mvalo[2], firsttime=1, mousebut;
@@ -1273,6 +1312,9 @@ void vertex_paint()
 	if(me->tface==NULL && me->mcol==NULL) make_vertexcol();
 
 	if(me->tface==NULL && me->mcol==NULL) return;
+	
+	/* painting on subsurfs should give correct points too */
+	vertexcosnos= get_mapped_verts_nors(ob, me->totvert);
 	
 	persp(PERSP_VIEW);
 	/* imat for normals */
@@ -1303,8 +1345,6 @@ void vertex_paint()
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
-			DerivedMesh *dm;
-			int needsFree;
 
 			firsttime= 0;
 
@@ -1345,7 +1385,6 @@ void vertex_paint()
 				}
 			}
 
-			dm= mesh_get_derived_deform(ob, &needsFree);
 			for(index=0; index<totindex; index++) {
 
 				if(indexar[index] && indexar[index]<=me->totface) {
@@ -1366,23 +1405,21 @@ void vertex_paint()
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v1, mval);
+					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v1, mval);
 					if(alpha) vpaint_blend( mcol, mcolorig, paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v2, mval);
+					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v2, mval);
 					if(alpha) vpaint_blend( mcol+1, mcolorig+1, paintcol, alpha);
 	
-					alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v3, mval);
+					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v3, mval);
 					if(alpha) vpaint_blend( mcol+2, mcolorig+2, paintcol, alpha);
 
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(&Gvp, dm, mface->v4, mval);
+						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v4, mval);
 						if(alpha) vpaint_blend( mcol+3, mcolorig+3, paintcol, alpha);
 					}
 				}
 			}
-			if (needsFree)
-				dm->release(dm);
 				
 			MTC_Mat4SwapMat4(G.vd->persmat, mat);
 			
@@ -1413,7 +1450,9 @@ void vertex_paint()
 		MEM_freeN(me->mcol);
 		me->mcol= 0;
 	}
-	
+	if(vertexcosnos)
+		MEM_freeN(vertexcosnos);
+
 	allqueue(REDRAWVIEW3D, 0);
 }
 
