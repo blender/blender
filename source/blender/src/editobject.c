@@ -2248,7 +2248,6 @@ void convertmenu(void)
 			
 			if(ob->flag & OB_DONE);
 			else if(ob->type==OB_MESH) {
-				Mesh *oldme= ob->data;
 				DispListMesh *dlm;
 				DerivedMesh *dm;
 
@@ -2265,22 +2264,17 @@ void convertmenu(void)
 				BLI_addhead(&G.scene->base, basen);	/* addhead: otherwise eternal loop */
 				basen->object= ob1;
 				basen->flag &= ~SELECT;
-					
+
+				/* decrement original mesh's usage count  */
 				me= ob1->data;
 				me->id.us--;
-					
-				ob1->data= add_mesh();
+
+				/* make a new copy of the mesh */
+				ob1->data= copy_mesh(me);
 				G.totmesh++;
-				ob1->type= OB_MESH;
 
-				me= ob1->data;
-				me->totcol= oldme->totcol;
-				if(ob1->totcol) {
-					me->mat= MEM_dupallocN(oldme->mat);
-					for(a=0; a<ob1->totcol; a++) id_us_plus((ID *)me->mat[a]);
-				}
-
-				dm= mesh_create_derived_no_deform(ob, NULL);
+				/* make new mesh data from the original copy */
+				dm= mesh_create_derived_no_deform(ob1, NULL);
 				dlm= dm->convertToDispListMesh(dm, 0);
 				displistmesh_to_mesh(dlm, ob1->data);
 				dm->release(dm);
@@ -4458,7 +4452,7 @@ void selectlinks(int nr)
 		mat= give_current_material(ob, ob->actcol);
 		if(mat==0) return;
 		if(nr==4) {
-			if(mat->mtex[ mat->texact ]) tex= mat->mtex[ mat->texact ]->tex;
+			if(mat->mtex[ (int)mat->texact ]) tex= mat->mtex[ (int)mat->texact ]->tex;
 			if(tex==0) return;
 		}
 	}
