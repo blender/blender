@@ -230,13 +230,15 @@ void default_gl_light(void)
 /* also called when render 'ogl' */
 void init_gl_stuff(void)	
 {
+	float mat_ambient[] = { 0.0, 0.0, 0.0, 0.0 };
 	float mat_specular[] = { 0.5, 0.5, 0.5, 1.0 };
 	float mat_shininess[] = { 35.0 };
-/*  	float one= 1.0; */
 	int a, x, y;
 	GLubyte pat[32*32];
 	const GLubyte *patc= pat;
-		
+	
+	
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
