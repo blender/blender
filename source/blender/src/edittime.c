@@ -130,6 +130,7 @@ void rename_timeline_marker(void)
 	}
 }
 
+
 static int find_nearest_marker(float dx)
 {
 	TimeMarker *marker, *nearest= NULL;
@@ -530,8 +531,6 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 
 			cfra= find_nearest_marker(dx);
-
-			if(cfra < MINFRAME) cfra= MINFRAME;
 
 			if (G.qual && LR_SHIFTKEY)
 				select_timeline_marker_frame(cfra, 1);
