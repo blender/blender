@@ -78,6 +78,7 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -1104,13 +1105,95 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->val = NULL;
 }
 
+static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	float *vec = userData;
+	
+	vec+= 3*index;
+	VECCOPY(vec, co);
+}
+
+static float *get_mapped_editverts(void)
+{
+	int needsFree;
+	DerivedMesh *dm= editmesh_get_derived_cage(&needsFree);
+	float *vertexcos;
+	
+	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
+	
+	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
+	
+	if (needsFree) dm->release(dm);
+	return vertexcos;
+}
+
+/* helper for below, interpolates or assigns and increments */
+static float *crazy_quat_blend(EditVert *eve, float *quat)
+{
+	if(eve->vn==NULL) {
+		eve->vn= (EditVert *)quat;
+		QUATCOPY(quat+4, quat);
+		return quat+4;
+	}
+	else {
+		float *q1= (float *)eve->vn;
+		QuatInterpol(q1, q1, quat, 0.5f);
+		return quat;
+	}
+}
+
+static void set_crazyspace_quats(float *mappedcos, float *quats)
+{
+	EditMesh *em = G.editMesh;
+	EditVert *eve, *prev;
+	EditFace *efa;
+	float q1[4], q2[4];
+	float *v1, *v2, *v3, *quatp;
+	int index= 0;
+	
+	/* 2 abused locations in vertices */
+	for(eve= em->verts.first; eve; eve= eve->next, index++) {
+		eve->vn= NULL;
+		eve->prev= (EditVert *)index;
+	}
+	
+	quatp= quats;
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		/* vertex f1 flags were set for transform */
+		
+		if( (efa->v1->f1 && efa->v1->vn==NULL) || (efa->v2->f1 && efa->v2->vn==NULL)
+			|| (efa->v3->f1 && efa->v3->vn==NULL) || (efa->v4 && efa->v4->f1 && efa->v4->vn==NULL) ) {
+		
+			triatoquat(efa->v1->co, efa->v2->co, efa->v3->co, q1);
+			
+			/* retrieve mapped coordinates */
+			v1= mappedcos + 3*( (int)(efa->v1->prev) );
+			v2= mappedcos + 3*( (int)(efa->v2->prev) );
+			v3= mappedcos + 3*( (int)(efa->v3->prev) );
+			triatoquat(v1, v2, v3, q2);
+			
+			QuatSub(quatp, q2, q1);
+			
+			if(efa->v1->f1) quatp= crazy_quat_blend(efa->v1, quatp);
+			if(efa->v2->f1) quatp= crazy_quat_blend(efa->v2, quatp);
+			if(efa->v3->f1) quatp= crazy_quat_blend(efa->v3, quatp);
+			if(efa->v4 && efa->v4->f1) quatp= crazy_quat_blend(efa->v4, quatp);
+		}
+	}
+
+	/* restore abused prev pointer */
+	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
+		eve->prev= prev;
+
+}
+
 static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
 	EditMesh *em = G.editMesh;
 	EditVert *eve;
 	EditVert **nears = NULL;
-	float *vectors = NULL;
+	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -1169,6 +1252,16 @@ static void createTransEditVerts(TransInfo *t)
 
 	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
 	
+	/* detect CrazySpace [tm] */
+	if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
+		if(modifiers_isDeformed(G.obedit)) {
+			mappedcos= get_mapped_editverts();
+			/* add one more quaternion, because of crazy_quat_blend */
+			quats= MEM_mallocN( (t->total+1)*sizeof(float)*4, "crazy quats");
+			set_crazyspace_quats(mappedcos, quats);
+		}
+	}
+	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
@@ -1188,9 +1281,21 @@ static void createTransEditVerts(TransInfo *t)
 					}
 				}
 				
-				Mat3CpyMat3(tob->smtx, smtx);
-				Mat3CpyMat3(tob->mtx, mtx);
-
+				/* CrazySpace */
+				if(quats && eve->vn) {
+					float mat[3][3], imat[3][3], qmat[3][3];
+					
+					QuatToMat3((float *)eve->vn, qmat);
+					Mat3MulMat3(mat, mtx, qmat);
+					Mat3Inv(imat, mat);
+					
+					Mat3CpyMat3(tob->smtx, imat);
+					Mat3CpyMat3(tob->mtx, mat);
+				}
+				else {
+					Mat3CpyMat3(tob->smtx, smtx);
+					Mat3CpyMat3(tob->mtx, mtx);
+				}
 				tob++;
 			}
 		}	
@@ -1199,7 +1304,11 @@ static void createTransEditVerts(TransInfo *t)
 		MEM_freeN(vectors);
 		MEM_freeN(nears);
 	}
-
+	/* crazy space free */
+	if(mappedcos)
+		MEM_freeN(mappedcos);
+	if(quats)
+		MEM_freeN(quats);
 }
 
 /* ********************* UV ****************** */

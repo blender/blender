@@ -1461,6 +1461,8 @@ void modifier_setError(ModifierData *md, char *format, ...)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+/* used for buttons, to find out if the 'draw deformed in editmode' option is there */
+/* also used in transform_conversion.c, to detect CrazySpace [tm] (2nd arg then is NULL) */
 int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 {
 	ModifierData *md = ob->modifiers.first;
@@ -1564,10 +1566,21 @@ Object *modifiers_isDeformedByArmature(Object *ob)
 			return amd->object;
 		}
 	}
-	
-	if(ob->parent && ob->parent->type==OB_ARMATURE)
-		if(ob->partype==PARSKEL)
-			return ob->parent;
 
 	return NULL;
+}
+
+int modifiers_isDeformed(Object *ob)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Armature)
+			return 1;
+		if (md->type==eModifierType_Curve)
+			return 1;
+		if (md->type==eModifierType_Lattice)
+			return 1;
+	}
+	return 0;
 }
