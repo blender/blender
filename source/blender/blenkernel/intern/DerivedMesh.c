@@ -558,7 +558,9 @@ static DerivedMesh *getMeshDerivedMesh(Mesh *me, Object *ob, float (*vertCos)[3]
 	if (vertCos) {
 		int i;
 
-		mdm->verts = MEM_mallocN(sizeof(*mdm->verts)*me->totvert, "deformedVerts");
+		/* copy the original verts to preserve flag settings; if this is too
+		 * costly, must at least use MEM_callocN to clear flags */
+		mdm->verts = MEM_dupallocN( me->mvert );
 		for (i=0; i<me->totvert; i++) {
 			VECCOPY(mdm->verts[i].co, vertCos[i]);
 		}
