@@ -1253,12 +1253,14 @@ static void createTransEditVerts(TransInfo *t)
 	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
 	
 	/* detect CrazySpace [tm] */
-	if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
-		if(modifiers_isDeformed(G.obedit)) {
-			mappedcos= get_mapped_editverts();
-			/* add one more quaternion, because of crazy_quat_blend */
-			quats= MEM_mallocN( (t->total+1)*sizeof(float)*4, "crazy quats");
-			set_crazyspace_quats(mappedcos, quats);
+	if(propmode==0) {
+		if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
+			if(modifiers_isDeformed(G.obedit)) {
+				mappedcos= get_mapped_editverts();
+				/* add one more quaternion, because of crazy_quat_blend */
+				quats= MEM_mallocN( (t->total+1)*sizeof(float)*4, "crazy quats");
+				set_crazyspace_quats(mappedcos, quats);
+			}
 		}
 	}
 	
