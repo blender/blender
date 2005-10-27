@@ -892,15 +892,18 @@ PyObject *RenderData_Render( BPy_RenderData * self )
 PyObject *RenderData_SaveRenderedImage ( BPy_RenderData * self, PyObject *args )
 {
 	char dir[FILE_MAXDIR * 2], str[FILE_MAXFILE * 2], strn[256];
-	char *name_str, *filepath;
-	PyObject *renderPath;
+	char *name_str, filepath[FILE_MAXDIR+FILE_MAXFILE];
 
-	if( !PyArg_ParseTuple( args, "s", &name_str ) ){
-		return (EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected a filename (string)" ));
-	}
-	renderPath = RenderData_GetRenderPath(self);
-	filepath = PyString_AsString(renderPath);
+	if( !PyArg_ParseTuple( args, "s", &name_str ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected a filename (string)" );
+
+	if( strlen(self->renderContext->pic) + strlen(name_str) >
+			sizeof(filepath)-1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+						"full filename too long" );
+
+	BLI_strncpy( filepath, self->renderContext->pic, sizeof(filepath) );
 	strcat(filepath, name_str);
 	
 	if(!R.rectot) {
