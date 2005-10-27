@@ -2990,12 +2990,22 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	ScrVert *sv;
 	ScrEdge *se;
 	Oops *oops;
-
+	int a;
+	
 	link_list(fd, &(sc->vertbase));
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
 	sc->winakt= 0;
 
+	/* hacky patch... but people have been saving files with the verse-blender,
+	   causing the handler to keep running for ever, with no means to disable it */
+	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
+		if( sc->handler[a]==SCREEN_HANDLER_VERSE) {
+			sc->handler[a]= 0;
+			break;
+		}
+	}
+	
 	/* edges */
 	se= sc->edgebase.first;
 	while(se) {
