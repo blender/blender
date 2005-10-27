@@ -5021,12 +5021,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(sce) {
 			while(cam) {
 				/* convert the passepartout scene flag to a camera flag */
-				if(sce->r.scemode & R_PASSEPARTOUT)
+				if(sce->r.scemode & R_PASSEPARTOUT) {
 					cam->flag |= CAM_SHOWPASSEPARTOUT;
+					/* now disable it from the scene*/
+					sce->r.scemode &= ~R_PASSEPARTOUT;
+				}
 				
 				/* make sure old cameras have title safe on */
-				if (!(cam->flag & CAM_SHOWTITLESAFE))
+				
+				/* *** to be uncommented before 2.40 release! *** */
+				/* 
+					if (!(cam->flag & CAM_SHOWTITLESAFE))
 					cam->flag |= CAM_SHOWTITLESAFE;
+				*/
 				cam= cam->id.next;
 			}
 			sce= sce->id.next;
