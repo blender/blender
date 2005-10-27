@@ -219,6 +219,7 @@ void reset_action_strips(int val)
 					
 					strip->end= strip->start + mapping*(strip->end - strip->start);
 				}
+				base->object->ctime= -1234567.0f;	// eveil! 
 				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
@@ -869,7 +870,9 @@ void transform_nlachannel_keys(int mode, int dummy)
 	for (base=G.scene->base.first; base; base=base->next){
 
 		/* Check object ipos */
-		tvtot+=fullselect_ipo_keys(base->object->ipo);
+		i= fullselect_ipo_keys(base->object->ipo);
+		if(i) base->flag |= BA_HAS_RECALC_OB;
+		tvtot+=i;
 		
 		/* Check object constraint ipos */
 		for(conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
@@ -886,7 +889,9 @@ void transform_nlachannel_keys(int mode, int dummy)
 			if(strip==NULL) {
 				
 				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
-					tvtot+=fullselect_ipo_keys(chan->ipo);
+					i= fullselect_ipo_keys(chan->ipo);
+					if(i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
+					tvtot+=i;
 					
 					/* Check action constraint ipos */
 					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
@@ -897,8 +902,10 @@ void transform_nlachannel_keys(int mode, int dummy)
 
 		/* Check nlastrips */
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT)
+			if (strip->flag & ACTSTRIP_SELECT) {
+				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
 				tvtot+=2;
+			}
 		}
 	}
 	
@@ -1072,8 +1079,19 @@ void transform_nlachannel_keys(int mode, int dummy)
 				headerprint(str);
 			}
 			
-			if (G.snla->lock){
-				allqueue (REDRAWVIEW3D, 0);
+			if (G.snla->lock) {
+				for (base=G.scene->base.first; base; base=base->next){
+					if(base->flag & BA_HAS_RECALC_OB)
+						base->object->recalc |= OB_RECALC_OB;
+					if(base->flag & BA_HAS_RECALC_DATA)
+						base->object->recalc |= OB_RECALC_DATA;
+					
+					if(base->object->recalc) base->object->ctime= -1234567.0f;	// eveil! 
+				}
+				
+				DAG_scene_flush_update(G.scene, screen_view3d_layers());
+				
+                allqueue (REDRAWVIEW3D, 0);
 				allqueue (REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
 				force_draw_all(0);
@@ -1090,6 +1108,10 @@ void transform_nlachannel_keys(int mode, int dummy)
 	}
 	
 	synchronize_action_strips();
+	
+	/* cleanup */
+	for (base=G.scene->base.first; base; base=base->next)
+		base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
 	
 	if(cancel==0) BIF_undo_push("Select all NLA");
 	recalc_all_ipos();	// bad
