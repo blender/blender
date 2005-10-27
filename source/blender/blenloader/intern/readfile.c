@@ -1896,12 +1896,13 @@ static void direct_link_curve(FileData *fd, Curve *cu)
 	cu->mat= newdataadr(fd, cu->mat);
 	test_pointer_array(fd, (void **)&cu->mat);
 	cu->str= newdataadr(fd, cu->str);
+	cu->strinfo= newdataadr(fd, cu->strinfo);	
+	cu->tb= newdataadr(fd, cu->tb);
 
 	if(cu->vfont==0) link_list(fd, &(cu->nurb));
 	else {
 		cu->nurb.first=cu->nurb.last= 0;
-		cu->strinfo= newdataadr(fd, cu->strinfo);		
-		cu->tb= newdataadr(fd, cu->tb);
+
 		tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBoxread");
 		if (cu->tb) {
 			memcpy(tb, cu->tb, cu->totbox*sizeof(TextBox));
