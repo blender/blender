@@ -72,8 +72,9 @@
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
-#include "BIF_editview.h"
 #include "BIF_editarmature.h"
+#include "BIF_editnla.h"
+#include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
@@ -256,6 +257,7 @@ void select_actionchannel_by_name (bAction *act, char *name, int select)
 	}
 }
 
+/* called on changing action ipos or keys */
 void remake_action_ipos(bAction *act)
 {
 	bActionChannel *chan;
@@ -278,6 +280,8 @@ void remake_action_ipos(bAction *act)
 			}
 		}
 	}
+	
+	synchronize_action_strips();
 }
 
 static void remake_meshaction_ipos(Ipo *ipo)

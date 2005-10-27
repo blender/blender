@@ -86,6 +86,7 @@
 #include "BIF_editaction.h"
 #include "BIF_editconstraint.h"
 #include "BIF_editkey.h"
+#include "BIF_editnla.h"
 #include "BIF_editseq.h"
 #include "BIF_editview.h"
 #include "BIF_interface.h"
@@ -224,7 +225,6 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 	if(ei==0)
 		return;
 	
-
 	for(a=0; a<si->totipo; a++, ei++) {
 		
 		if(ei->icu) {
@@ -333,6 +333,9 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 	}
 
 	if(si->showkey) make_ipokey();
+	
+	if(si->actname[0])
+		synchronize_action_strips();
 }
 
 void scale_editipo(void)

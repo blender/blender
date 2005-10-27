@@ -686,41 +686,53 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-
-/** Draw a nicely beveled button (in screen space) */
-static void draw_bevel_but(int x, int y, int w, int h, int sel)
+#if 0
+/** Draw a nicely beveled diamond shape (in screen space) */
+static void draw_key_but(int x, int y, int w, int h, int sel)
 {
 	int xmin= x, ymin= y;
 	int xmax= x+w-1, ymax= y+h-1;
-	
-	/* outline */
-	glColor3ub(0,0,0);
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(xmin, ymin);
-	glVertex2i(xmax, ymin);
-	glVertex2i(xmax, ymax);
-	glVertex2i(xmin, ymax);
-	glEnd();
+	int xc= (xmin+xmax)/2, yc= (ymin+ymax)/2;
 	
 	/* interior */
 	if (sel) glColor3ub(0xF1, 0xCA, 0x13);
 	else glColor3ub(0xAC, 0xAC, 0xAC);
-	glRectf(xmin+1, ymin+1, xmax-1, ymax-1);
+	
+	glBegin(GL_QUADS);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
+	glEnd();
+
 	
 	/* bevel */
 	glBegin(GL_LINE_LOOP);
 	
 	if (sel) glColor3ub(0xD0, 0x7E, 0x06);
 	else glColor3ub(0x8C, 0x8C, 0x8C);
-	glVertex2i(xmax-1, ymin+1);
-	glVertex2i(xmax-1, ymax-1);
+	/* under */
+	glVertex2i(xc, ymin+1);
+	glVertex2i(xmax-1, yc);
 	
 	if (sel) glColor3ub(0xF4, 0xEE, 0x8E);
 	else glColor3ub(0xDF, 0xDF, 0xDF);
-	glVertex2i(xmin+1, ymax-1);
-	glVertex2i(xmin+1, ymin+1);
+	/* top */
+	glVertex2i(xc, ymax-1);
+	glVertex2i(xmin+1, yc);
+	glEnd();
+	
+	/* outline */
+	glColor3ub(0,0,0);
+	glBegin(GL_LINE_LOOP);
+	glVertex2i(xc, ymin);
+	glVertex2i(xmax, yc);
+	glVertex2i(xc, ymax);
+	glVertex2i(xmin, yc);
 	glEnd();
 }
+
+#endif
 
 static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, float ypos)
 {
@@ -729,13 +741,20 @@ static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, floa
 	if (!blist)
 		return;
 
+	glEnable(GL_BLEND);
+	
 	for (v = 0; v<totvert; v++){
 		if (v==0 || (blist[v]->vec[1][0] != blist[v-1]->vec[1][0])){
 			int sc_x, sc_y;
 			gla2DDrawTranslatePt(di, blist[v]->vec[1][0], ypos, &sc_x, &sc_y);
-			draw_bevel_but(sc_x-2, sc_y-7, 7, 13, (blist[v]->f2 & 1));
+			// draw_key_but(sc_x-5, sc_y-6, 13, 13, (blist[v]->f2 & 1));
+			
+			if(blist[v]->f2 & 1) BIF_draw_icon_blended(sc_x-7, sc_y-6, ICON_SPACE2, TH_HEADER, 0);
+			else BIF_draw_icon_blended(sc_x-7, sc_y-6, ICON_SPACE3, TH_HEADER, 0);
+
 		}
 	}			
+	glDisable(GL_BLEND);
 }
 
 void draw_object_channel(gla2DDrawInfo *di, Object *ob, int flags, float ypos)

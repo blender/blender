@@ -47,8 +47,12 @@ void borderselect_nla(void);
 void deselect_nlachannel_keys (int test);
 void deselect_nlachannels(int test);
 
-/* NLA Strip operationa */
+/* NLA Strip operations */
 void shift_nlastrips_up(void);
 void shift_nlastrips_down(void);
+void reset_action_strips(int val);
+void synchronize_action_strips(void);
+
+
 #endif
 

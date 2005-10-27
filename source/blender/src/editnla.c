@@ -176,7 +176,33 @@ void shift_nlastrips_down(void) {
 	allqueue (REDRAWNLA, 0);
 }
 
-static void reset_action_strips(void)
+void synchronize_action_strips(void)
+{
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next) {
+		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
+			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
+				float actstart = calc_action_start(strip->act);
+				float actend = calc_action_end(strip->act);
+				
+				if(strip->actstart!=actstart || strip->actend!=actend) {
+					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
+					
+					strip->start+= mapping*(actstart - strip->actstart);
+					strip->end+= mapping*(actend - strip->actend);
+					
+					strip->actstart= actstart;
+					strip->actend= actend;
+				}
+			}
+		}
+	}
+	
+}
+
+void reset_action_strips(int val)
 {
 	Base *base;
 	bActionStrip *strip;
@@ -184,12 +210,22 @@ static void reset_action_strips(void)
 	for (base=G.scene->base.first; base; base=base->next) {
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
-				strip->actstart = calc_action_start(strip->act);
-				strip->actend = calc_action_end(strip->act);
+				if(val==2) {
+					strip->actstart = calc_action_start(strip->act);
+					strip->actend = calc_action_end(strip->act);
+				}
+				else if(val==1) {
+					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
+					
+					strip->end= strip->start + mapping*(strip->end - strip->start);
+				}
+				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
 	}
 	BIF_undo_push("Reset NLA strips");
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWACTION, 0);
 	allqueue (REDRAWNLA, 0);
 }
 
@@ -291,8 +327,11 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 		case SKEY:
 			if(G.qual==LR_ALTKEY) {
-				if(okee("Reset Action Strips start/end"))
-					reset_action_strips();
+				val= pupmenu("Action Strip Scale%t|Clear Strip Size%x1|Remap Start/End%x2");
+				if(val==1)
+					reset_action_strips(1);
+				else if(val==2)
+					reset_action_strips(2);
 			}
 			else {
 				if (mval[0]>=NLAWIDTH)
@@ -459,7 +498,7 @@ static void convert_nla(short mval[2])
 			nstrip->actend = calc_action_end(base->object->action);
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
-			nstrip->flag = ACTSTRIP_SELECT;
+			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
 			set_active_strip(base->object, nstrip);
 
 			nstrip->repeat = 1.0;
@@ -514,7 +553,7 @@ static void add_nla_block(short event)
 	if(strip->start>strip->end-2) 
 		strip->end= strip->start+100;
 	
-	strip->flag = ACTSTRIP_SELECT;
+	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
 	set_active_strip(nla_base->object, strip);
 	
 	strip->repeat = 1.0;
@@ -1050,6 +1089,8 @@ void transform_nlachannel_keys(int mode, int dummy)
 		firsttime= 0;
 	}
 	
+	synchronize_action_strips();
+	
 	if(cancel==0) BIF_undo_push("Select all NLA");
 	recalc_all_ipos();	// bad
 	allqueue (REDRAWVIEW3D, 0);
@@ -1097,6 +1138,8 @@ void delete_nlachannel_keys(void)
 			}
 		}
 	}
+	
+	synchronize_action_strips();
 	
 	BIF_undo_push("Delete NLA keys");
 	recalc_all_ipos();	// bad

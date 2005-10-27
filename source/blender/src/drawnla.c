@@ -65,13 +65,14 @@
 #include "BSE_editnla_types.h"
 #include "BSE_headerbuttons.h"
 
+#include "BIF_editnla.h"
 #include "BIF_gl.h"
+#include "BIF_glutil.h"
+#include "BIF_interface.h"
+#include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
-#include "BIF_mywindow.h"
 #include "BIF_space.h"
-#include "BIF_interface.h"
-#include "BIF_glutil.h"
 
 #include "BDR_drawaction.h"
 #include "BDR_editcurve.h"
@@ -327,21 +328,21 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 			}
 			
 			/* Draw border */
+			glEnable (GL_BLEND);
+			
 			glBegin(GL_LINE_STRIP);
-			glColor4f(1, 1, 1, 0.5); 
+			glColor4f(1, 1, 1, 0.7); 
 			gla2DDrawTranslatePt(di, strip->start, y, &stripstart, &channel_y);
 			gla2DDrawTranslatePt(di, strip->end, y, &stripend, &channel_y);
 			
 			glVertex2f(stripstart, channel_y-NLACHANNELHEIGHT/2+3);
 			glVertex2f(stripstart, channel_y+NLACHANNELHEIGHT/2-3);
 			glVertex2f(stripend, channel_y+NLACHANNELHEIGHT/2-3);
-			glColor4f(0, 0, 0, 0.5); 
+			glColor4f(0, 0, 0, 0.7); 
 			glVertex2f(stripend, channel_y-NLACHANNELHEIGHT/2+3);
 			glVertex2f(stripstart, channel_y-NLACHANNELHEIGHT/2+3);
 			glEnd();
 			
-			glEnable (GL_BLEND);
-
 			/* Show strip extension */
 			if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
 				if (strip->flag & ACTSTRIP_SELECT)
@@ -384,6 +385,7 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 /* ******* panel *********** */
 
 #define B_NLA_PANEL		121
+#define B_NLA_LOCK		122
 
 /* For now just returns the first selected strip */
 bActionStrip *get_active_nlastrip(void)
@@ -435,7 +437,12 @@ void do_nlabuts(unsigned short event)
 		update_for_newframe_muted();
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
-		
+		break;
+	case B_NLA_LOCK:
+		synchronize_action_strips();
+		allqueue (REDRAWNLA, 0);
+		allqueue (REDRAWACTION, 0);
+		allqueue (REDRAWVIEW3D, 0);
 		break;
 	}
 }
@@ -461,13 +468,22 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefBut(block, LABEL, 0, "Options:",			10,60,300,19, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Strip Start:", 10,160,150,19, &strip->start, -1000.0, MAXFRAMEF, 100, 0, "First frame in the timeline");
-	uiDefButF(block, NUM, B_REDR, "Strip End:", 	160,160,150,19, &strip->end, -1000.0, MAXFRAMEF, 100, 0, "Last frame in the timeline");
+	uiDefButF(block, NUM, B_REDR, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
+	uiDefButF(block, NUM, B_REDR, "Strip End:", 	160,160,150,19, &strip->end, strip->start+1, MAXFRAMEF, 100, 0, "Last frame in the timeline");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Action Start:", 10,120,150,19, &strip->actstart, -1000.0, MAXFRAMEF, 100, 0, "First frame of the action to map to the playrange");
-	uiDefButF(block, NUM, B_REDR, "Action End:", 160,120,150,19, &strip->actend, -1000.0, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
-
+	uiDefIconButBitS(block, ICONTOG, ACTSTRIP_LOCK_ACTION, B_NLA_LOCK, ICON_UNLOCKED,	10,120,20,19, &(strip->flag), 0, 0, 0, 0, "Toggles Action end/start to be automatic mapped to strip duration");
+	if(strip->flag & ACTSTRIP_LOCK_ACTION) {
+		char str[40];
+		sprintf(str, "Action Start: %.2f", strip->actstart);
+		uiDefBut(block, LABEL, B_NOP, str,			30,120,140,19, NULL, 0.0, 0.0, 0, 0, "First frame of the action to map to the playrange");
+		sprintf(str, "Action End: %.2f", strip->actend);
+		uiDefBut(block, LABEL, B_NOP, str,			170,120,140,19, NULL, 0.0, 0.0, 0, 0, "Last frame of the action to map to the playrange");
+	}
+	else {
+		uiDefButF(block, NUM, B_REDR, "Action Start:",	30,120,140,19, &strip->actstart, -1000.0, strip->actend-1, 100, 0, "First frame of the action to map to the playrange");
+		uiDefButF(block, NUM, B_REDR, "Action End:",	170,120,140,19, &strip->actend, strip->actstart+1, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
+	}
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
 	uiDefButF(block, NUM, B_REDR, "Blendout:", 	160,80,150,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
