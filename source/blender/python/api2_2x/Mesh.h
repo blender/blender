@@ -113,14 +113,15 @@ typedef struct {
 
 typedef struct {
 	PyObject_HEAD		/* required python macro   */
-	Mesh * mesh;
+	Mesh *mesh;
+	Object *object;
 } BPy_Mesh;
 
 /* PROTOS */
 
 PyObject *Mesh_Init( void );
-PyObject *Mesh_CreatePyObject( Mesh * me );
+PyObject *Mesh_CreatePyObject( Mesh * me, Object *obj );
 int Mesh_CheckPyObject( PyObject * pyobj );
-Mesh *Mesh_FromPyObject( PyObject * pyobj );
+Mesh *Mesh_FromPyObject( PyObject * pyobj, Object *obj );
 
 #endif				/* EXPP_MESH_H */

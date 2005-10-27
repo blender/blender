@@ -41,6 +41,7 @@
 #include "DNA_space_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BDR_editface.h"	/* make_tfaces */
 #include "BDR_vpaint.h"
@@ -63,8 +64,9 @@
 #include "BKE_mball.h"
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
-#include "BSE_edit.h"		/* for void countall(); */
-#include "BKE_curve.h"	/* copy_curve(); */
+#include "BSE_edit.h"		/* for countall(); */
+#include "BKE_curve.h"		/* for copy_curve(); */
+#include "BKE_modifier.h"	/* for modifier_new(), modifier_copyData(); */
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -102,6 +104,8 @@
 #define MESH_TOOL_REMDOUB              4
 #define MESH_TOOL_FILL                 5
 #define MESH_TOOL_RECALCNORM           6
+#define MESH_TOOL_TRIANGLE             7
+#define MESH_TOOL_QUAD                 8
 
 /************************************************************************
  *
@@ -1736,11 +1740,50 @@ static PyObject *MVertSeq_delete( BPy_MVertSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *MVertSeq_selected( BPy_MVertSeq * self )
+{
+	int i, count;
+	Mesh *mesh = self->mesh;
+	MVert *tmpvert;
+	PyObject *list;
+
+	/* first count selected edges (quicker than appending to PyList?) */
+	count = 0;
+	tmpvert = mesh->mvert;
+	for( i = 0; i < mesh->totvert; ++i, ++tmpvert )
+		if( tmpvert->flag & SELECT )
+			++count;
+
+	list = PyList_New( count );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+
+	/* next, insert selected edges into list */
+	count = 0;
+	tmpvert = mesh->mvert;
+	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
+		if( tmpvert->flag & SELECT ) {
+			PyObject *tmp = PyInt_FromLong( i );
+			if( !tmp ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"PyInt_FromLong() failed" );
+			}
+			PyList_SET_ITEM( list, count, tmp );
+			++count;
+		}
+	}
+	return list;
+}
+
 static struct PyMethodDef BPy_MVertSeq_methods[] = {
 	{"extend", (PyCFunction)MVertSeq_extend, METH_VARARGS,
 		"add vertices to mesh"},
 	{"delete", (PyCFunction)MVertSeq_delete, METH_VARARGS,
-		"delete vertices to mesh"},
+		"delete vertices from mesh"},
+	{"selected", (PyCFunction)MVertSeq_selected, METH_NOARGS,
+		"returns a list containing indices of selected vertices"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1756,7 +1799,7 @@ static void MVertSeq_dealloc( BPy_MVertSeq * self )
 }
 
 /*****************************************************************************/
-/* Python NMVertSeq_Type structure definition:                               */
+/* Python MVertSeq_Type structure definition:                               */
 /*****************************************************************************/
 PyTypeObject MVertSeq_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -2430,7 +2473,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		int totedge = mesh->totedge+good_edges;	/* new edge count */
 
 	/* allocate new edge list */
-		tmpedge = MEM_callocN(totedge*sizeof(MEdge), "NMesh_addEdges");
+		tmpedge = MEM_callocN(totedge*sizeof(MEdge), "Mesh_addEdges");
 
 	/* if we're appending, copy the old edge list and delete it */
 		if( mesh->medge ) {
@@ -2612,11 +2655,52 @@ static PyObject *MEdgeSeq_delete( BPy_MEdgeSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *MEdgeSeq_selected( BPy_MEdgeSeq * self )
+{
+	int i, count;
+	Mesh *mesh = self->mesh;
+	MEdge *tmpedge;
+	PyObject *list;
+
+	/* first count selected edges (quicker than appending to PyList?) */
+	count = 0;
+	tmpedge = mesh->medge;
+	for( i = 0; i < mesh->totedge; ++i, ++tmpedge )
+		if( (mesh->mvert[tmpedge->v1].flag & SELECT) &&
+				(mesh->mvert[tmpedge->v2].flag & SELECT) )
+			++count;
+
+	list = PyList_New( count );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+
+	/* next, insert selected edges into list */
+	count = 0;
+	tmpedge = mesh->medge;
+	for( i = 0; i < mesh->totedge; ++i, ++tmpedge ) {
+		if( (mesh->mvert[tmpedge->v1].flag & SELECT) &&
+				(mesh->mvert[tmpedge->v2].flag & SELECT) ) {
+			PyObject *tmp = PyInt_FromLong( i );
+			if( !tmp ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"PyInt_FromLong() failed" );
+			}
+			PyList_SET_ITEM( list, count, tmp );
+			++count;
+		}
+	}
+	return list;
+}
+
 static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 	{"extend", (PyCFunction)MEdgeSeq_extend, METH_VARARGS,
 		"add edges to mesh"},
 	{"delete", (PyCFunction)MEdgeSeq_delete, METH_VARARGS,
 		"delete edges from mesh"},
+	{"selected", (PyCFunction)MEdgeSeq_selected, METH_NOARGS,
+		"returns a list containing indices of selected edges"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2632,7 +2716,7 @@ static void MEdgeSeq_dealloc( BPy_MEdgeSeq * self )
 }
 
 /*****************************************************************************/
-/* Python NMEdgeSeq_Type structure definition:                               */
+/* Python MEdgeSeq_Type structure definition:                               */
 /*****************************************************************************/
 PyTypeObject MEdgeSeq_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -3058,7 +3142,7 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 }
 
 /*
- * get a face's texture UV values
+ * get a face's texture UV coord values
  */
 
 static PyObject *MFace_getUV( BPy_MFace * self )
@@ -3090,7 +3174,7 @@ static PyObject *MFace_getUV( BPy_MFace * self )
 }
 
 /*
- * set a face's texture UV values
+ * set a face's texture UV coord values
  */
 
 static int MFace_setUV( BPy_MFace * self, PyObject * value )
@@ -3117,6 +3201,82 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 		VectorObject *vector = (VectorObject *)PyTuple_GET_ITEM( value, i );
 		face->uv[i][0] = vector->vec[0];
 		face->uv[i][1] = vector->vec[1];
+	}
+	return 0;
+}
+
+/*
+ * get a face's texture UV coord select state
+ */
+
+static PyObject *MFace_getUVSel( BPy_MFace * self )
+{
+	TFace *face;
+	PyObject *attr;
+	int length, i, mask;
+
+	if( !self->mesh->tface )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"face has no texture values" );
+
+	face = &self->mesh->tface[self->index];
+	length = self->mesh->mface[self->index].v4 ? 4 : 3;
+	attr = PyTuple_New( length );
+
+	if( !attr )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyTuple_New() failed" );
+
+	/* get coord select state, one bit at a time */
+	mask = TF_SEL1;
+	for( i=0; i<length; ++i, mask <<= 1 ) {
+		PyObject *value = PyInt_FromLong( face->flag & mask ? 1 : 0 );
+		if( !value ) {
+			Py_DECREF( attr );
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyInt_FromLong() failed" );
+		}
+		PyTuple_SetItem( attr, i, value );
+	}
+
+	return attr;
+}
+
+/*
+ * set a face's texture UV coord select state
+ */
+
+static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
+{
+	TFace *face;
+	int length, i, mask;
+
+	if( !self->mesh->tface )
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"face has no texture values" );
+
+	if( !PySequence_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a tuple of integers" );
+
+	length = self->mesh->mface[self->index].v4 ? 4 : 3;
+	if( length != PyTuple_Size( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					    "size of vertex and UV lists differ" );
+
+	/* set coord select state, one bit at a time */
+	face = &self->mesh->tface[self->index];
+	mask = TF_SEL1;
+	for( i=0; i<length; ++i, mask <<= 1 ) {
+		PyObject *tmp = PyTuple_GET_ITEM( value, i );
+		if( !PyInt_CheckExact( tmp ) ) {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected a tuple of integers" );
+		}
+		if( PyInt_AsLong( tmp ) )
+			face->flag |= mask;
+		else
+			face->flag &= ~mask;
 	}
 	return 0;
 }
@@ -3226,6 +3386,10 @@ static PyGetSetDef BPy_MFace_getseters[] = {
     {"uv",
      (getter)MFace_getUV, (setter)MFace_setUV,
      "face's UV coordinates",
+     NULL},
+    {"uvSel",
+     (getter)MFace_getUVSel, (setter)MFace_setUVSel,
+     "face's UV coordinates select status",
      NULL},
 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
@@ -3587,14 +3751,6 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		if( nverts == 2 )	/* again, ignore 2-vert tuples */
 			break;
 
-		/* get copies of vertices */
-#if 0
-		for( j = 0; j < nverts; ++j ) {
-			BPy_MVert *e = (BPy_MVert *)PyTuple_GET_ITEM( tmp, j );
-			vert[j] = e->index;
-		}
-#endif
-
 		/*
 		 * go through some contortions to guarantee the third and fourth
 		 * vertices are not index 0
@@ -3727,7 +3883,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 		int totface = mesh->totface+good_faces;	/* new face count */
 
 	/* allocate new face list */
-		tmpface = MEM_callocN(totface*sizeof(MFace), "NMesh_addFaces");
+		tmpface = MEM_callocN(totface*sizeof(MFace), "Mesh_addFaces");
 
 	/* if we're appending, copy the old face list and delete it */
 		if( mesh->mface ) {
@@ -3982,11 +4138,50 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
+{
+	int i, count;
+	Mesh *mesh = self->mesh;
+	MFace *tmpface;
+	PyObject *list;
+
+	/* first count selected faces (quicker than appending to PyList?) */
+	count = 0;
+	tmpface = mesh->mface;
+	for( i = 0; i < mesh->totface; ++i, ++tmpface )
+		if( tmpface->flag & ME_FACE_SEL )
+			++count;
+
+	list = PyList_New( count );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+
+	/* next, insert selected faces into list */
+	count = 0;
+	tmpface = mesh->mface;
+	for( i = 0; i < mesh->totface; ++i, ++tmpface ) {
+		if( tmpface->flag & ME_FACE_SEL ) {
+			PyObject *tmp = PyInt_FromLong( i );
+			if( !tmp ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						"PyInt_FromLong() failed" );
+			}
+			PyList_SET_ITEM( list, count, tmp );
+			++count;
+		}
+	}
+	return list;
+}
+
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS,
 		"add faces to mesh"},
 	{"delete", (PyCFunction)MFaceSeq_delete, METH_VARARGS,
-		"delete faces to mesh"},
+		"delete faces from mesh"},
+	{"selected", (PyCFunction)MFaceSeq_selected, METH_NOARGS,
+		"returns a list containing indices of selected faces"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -4002,7 +4197,7 @@ static void MFaceSeq_dealloc( BPy_MFaceSeq * self )
 }
 
 /*****************************************************************************/
-/* Python NMFaceSeq_Type structure definition:                               */
+/* Python MFaceSeq_Type structure definition:                               */
 /*****************************************************************************/
 PyTypeObject MFaceSeq_Type = {
 	PyObject_HEAD_INIT( NULL )  /* required py macro */
@@ -4345,12 +4540,16 @@ static PyObject *Mesh_findEdges( PyObject * self, PyObject *args )
  * replace mesh data with mesh data from another object
  */
 
+
 static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 {
 	Object *ob;
 	char *name;
 	ID tmpid;
 	Mesh *tmpmesh;
+	Curve *tmpcu;
+	DispListMesh *dlm;
+	DerivedMesh *dm;
 	Object *tmpobj = NULL;
 
 	if( !PyArg_ParseTuple( args, "s", &name ) )
@@ -4367,24 +4566,54 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
  	case OB_FONT:
  	case OB_CURVE:
  	case OB_SURF:
-		tmpobj = alloc_libblock( &( G.main->object ), ID_OB, "i_tmp" );
-		tmpobj->id.us = 1;
-		tmpobj->flag = 0;
-		tmpobj->type = ob->type;
+		/* copies object and modifiers (but not the data) */
+		tmpobj= copy_object( ob );
+		tmpcu = (Curve *)tmpobj->data;
+		tmpcu->id.us--;
+
+		/* copies the data */
 		tmpobj->data = copy_curve( (Curve *) ob->data );
+
+#if 0
+		/* copy_curve() sets disp.first null, so currently not need */
+		{
+			Curve *cu;
+			cu = (Curve *)tmpobj->data;
+			if( cu->disp.first )
+				MEM_freeN( cu->disp.first );
+			cu->disp.first = NULL;
+		}
+#endif
+
+		/* get updated display list, and convert to a mesh */
 		makeDispListCurveTypes( tmpobj, 0 );
 		nurbs_to_mesh( tmpobj );
 		tmpmesh = tmpobj->data;
 		free_libblock_us( &G.main->object, tmpobj );
  		break;
  	case OB_MBALL:
+		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( ob );
 		tmpmesh = add_mesh();
 		mball_to_mesh( &ob->disp, tmpmesh );
  		break;
  	case OB_MESH:
-		tmpmesh = copy_mesh( (Mesh *) ob->data );
-		tmpmesh->id.us = 0;
+		/* copies object and modifiers (but not the data) */
+		tmpobj= copy_object( ob );
+		tmpmesh = tmpobj->data;
+		tmpmesh->id.us--;
+
+		/* copies the data */
+		tmpobj->data = copy_mesh( tmpmesh );
+		G.totmesh++;
+		tmpmesh = tmpobj->data;
+
+		/* get the final derived mesh */
+		dm = mesh_create_derived_render( tmpobj );
+		dlm = dm->convertToDispListMesh( dm, 0 );
+		displistmesh_to_mesh( dlm, tmpmesh );
+		dm->release( dm );
+		free_libblock_us( &G.main->object, tmpobj );
 		break;
  	default:
  		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -4470,11 +4699,388 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
+{
+	char *groupStr;
+	struct Object *object;
+	PyObject *tempStr;
+
+	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+
+	if( ( ( BPy_Mesh * ) self )->object == NULL )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh not linked to an object" );
+
+	object = ( ( BPy_Mesh * ) self )->object;
+
+	//get clamped name
+	tempStr = PyString_FromStringAndSize( groupStr, 32 );
+	groupStr = PyString_AsString( tempStr );
+
+	add_defgroup_name( object, groupStr );
+
+	EXPP_allqueue( REDRAWBUTSALL, 1 );
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
+{
+	char *groupStr;
+	struct Object *object;
+	int nIndex;
+	bDeformGroup *pGroup;
+
+	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+
+	if( ( ( BPy_Mesh * ) self )->object == NULL )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first..." );
+
+	object = ( ( BPy_Mesh * ) self )->object;
+
+	pGroup = get_named_vertexgroup( object, groupStr );
+	if( pGroup == NULL )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "group does not exist!" );
+
+	nIndex = get_defgroup_num( object, pGroup );
+	if( nIndex == -1 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "no deform groups assigned to mesh" );
+	nIndex++;
+	object->actdef = (unsigned short)nIndex;
+
+	del_defgroup( object );
+
+	EXPP_allqueue( REDRAWBUTSALL, 1 );
+
+	return EXPP_incr_ret( Py_None );
+}
+
+extern void add_vert_defnr( Object * ob, int def_nr, int vertnum, float weight,
+		             int assignmode );
+extern void remove_vert_def_nr (Object *ob, int def_nr, int vertnum);
+
+static PyObject *Mesh_assignVertsToGroup( BPy_Mesh * self, PyObject * args )
+{
+	char *groupStr;
+	int nIndex;
+	bDeformGroup *pGroup;
+	PyObject *listObject;
+	int tempInt;
+	int x;
+	int assignmode = WEIGHT_REPLACE;
+	float weight = 1.0;
+	Object *object = self->object;
+	Mesh *mesh = self->mesh;
+
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first" );
+
+	if( ((Mesh *)object->data) != mesh )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "object no longer linked to this mesh" );
+
+	if( !PyArg_ParseTuple ( args, "sO!fi", &groupStr, &PyList_Type,
+			&listObject, &weight, &assignmode) ) {
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string, list,	float, string arguments" );
+	}
+
+	pGroup = get_named_vertexgroup( object, groupStr );
+	if( pGroup == NULL )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "group does not exist!" );
+
+	nIndex = get_defgroup_num( object, pGroup );
+	if( nIndex == -1 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "no deform groups assigned to mesh" );
+
+
+	if( assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD &&
+			assignmode != WEIGHT_SUBTRACT )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+					      "bad assignment mode" );
+
+	/* makes a set of dVerts corresponding to the mVerts */
+	if( !mesh->dvert ) 
+		create_dverts( mesh );
+
+	/* loop list adding verts to group */
+	for( x = 0; x < PyList_Size( listObject ); x++ ) {
+		if( !PyArg_Parse ( PyList_GetItem( listObject, x ), "i", &tempInt ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+						      "python list integer not parseable" );
+
+		if( tempInt < 0 || tempInt >= mesh->totvert )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+						      "bad vertex index in list" );
+
+		add_vert_defnr( object, nIndex, tempInt, weight, assignmode );
+	}
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Mesh_removeVertsFromGroup( BPy_Mesh * self, PyObject * args )
+{
+	/* not passing a list will remove all verts from group */
+
+	char *groupStr;
+	int nIndex;
+	Object *object;
+	Mesh *mesh;
+	bDeformGroup *pGroup;
+	PyObject *listObject = NULL;
+	int tempInt;
+	int i;
+
+	object = self->object;
+	mesh = self->mesh;
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first" );
+
+	if( ((Mesh *)object->data) != mesh )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "object no longer linked to this mesh" );
+
+	if( !PyArg_ParseTuple
+	    ( args, "s|O!", &groupStr, &PyList_Type, &listObject ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string and optional list argument" );
+
+	if( !mesh->dvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "this mesh contains no deform vertices" );
+
+	pGroup = get_named_vertexgroup( object, groupStr );
+	if( pGroup == NULL )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "group does not exist!" );
+
+	nIndex = get_defgroup_num( object, pGroup );
+	if( nIndex == -1 )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "no deform groups assigned to mesh" );
+
+	/* get out of edit mode */
+	G.obedit = 0;
+	exit_editmode( 1 );
+
+	if( !listObject ) /* no list given */
+		for( i = 0; i < mesh->totvert; i++ )
+			remove_vert_def_nr( object, nIndex, i );
+	else		 /* loop list removing verts to group */
+		for( i = 0; i < PyList_Size( listObject ); i++ ) {
+			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &tempInt ) )
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+							      "python list integer not parseable" );
+
+			if( tempInt < 0 || tempInt >= mesh->totvert )
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+							      "bad vertex index in list" );
+
+			remove_vert_def_nr( object, nIndex, tempInt );
+		}
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
+{
+	/*
+	 * not passing a list will return all verts from group
+	 * passing indecies not part of the group will not return data in pyList
+	 * can be used as a index/group check for a vertex
+	 */
+
+	char *groupStr;
+	int nIndex;
+	bDeformGroup *pGroup;
+	MDeformVert *dvert;
+	int i, k, count;
+	PyObject *vertexList;
+	Object *object;
+	Mesh *mesh;
+	PyObject *tempVertexList;
+
+	int num = 0;
+	int weightRet = 0;
+	PyObject *listObject = NULL;
+
+	object = self->object;
+	mesh = self->mesh;
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first" );
+
+	if( ((Mesh *)object->data) != mesh )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "object no longer linked to this mesh" );
+
+	if( !PyArg_ParseTuple( args, "s|iO!", &groupStr, &weightRet,
+			       &PyList_Type, &listObject ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string and optional int and list arguments" );
+
+	if( weightRet < 0 || weightRet > 1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+					      "return weights flag must be 0 or 1" );
+
+	if( !mesh->dvert )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "this mesh contains no deform vertices" );
+
+	pGroup = get_named_vertexgroup( object, groupStr );
+	if( !pGroup )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "group does not exist!" );
+
+	nIndex = get_defgroup_num( object, pGroup );
+	if( nIndex == -1 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "no deform groups assigned to mesh" );
+
+	/* temporary list */
+	tempVertexList = PyList_New( mesh->totvert );
+	if( !tempVertexList )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "getVertsFromGroup: can't create pylist!" );
+
+	count = 0;
+
+	if( !listObject ) {	/* do entire group */
+		dvert = mesh->dvert;
+		for( num = 0; num < mesh->totvert; num++, ++dvert ) {
+			for( i = 0; i < dvert->totweight; i++ ) {
+				if( dvert->dw[i].def_nr == nIndex ) {
+					PyObject *attr;
+					if( weightRet )
+						attr = Py_BuildValue( "(i,f)", num,
+								dvert->dw[i].weight );
+					else
+						attr = PyInt_FromLong ( num );
+					PyList_SetItem( tempVertexList, count, attr );
+					count++;
+				}
+			}
+		}
+	} else {			/* do individual vertices */
+		for( i = 0; i < PyList_Size( listObject ); i++ ) {
+			PyObject *attr = NULL;
+
+			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &num ) )
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+							      "python list integer not parseable" );
+
+			if( num < 0 || num >= mesh->totvert )
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+							      "bad vertex index in list" );
+
+			dvert = mesh->dvert + num;
+			for( k = 0; k < dvert->totweight; k++ ) {
+				if( dvert->dw[k].def_nr == nIndex ) {
+					if( weightRet )
+						attr = Py_BuildValue( "(i,f)", num,
+								dvert->dw[k].weight );
+					else
+						attr = PyInt_FromLong ( num );
+					PyList_SetItem( tempVertexList, count, attr );
+					count++;
+				}
+			}
+			if( !attr )
+				return EXPP_ReturnPyObjError( PyExc_ValueError,
+							      "specified index not in vertex group" );
+		}
+	}
+	/* only return what we need */
+	vertexList = PyList_GetSlice( tempVertexList, 0, count );
+
+	Py_DECREF( tempVertexList );
+
+	return vertexList;
+}
+
+static PyObject *Mesh_renameVertGroup( BPy_Mesh * self, PyObject * args )
+{
+	char *oldGr = NULL;
+	char *newGr = NULL;
+	bDeformGroup *defGroup;
+	Object *object;
+	Mesh *mesh;
+
+	object = self->object;
+	mesh = self->mesh;
+	if( !object )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first" );
+
+	if( ((Mesh *)object->data) != mesh )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "object no longer linked to this mesh" );
+
+	if( !PyArg_ParseTuple( args, "ss", &oldGr, &newGr ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected two string arguments" );
+
+	defGroup = get_named_vertexgroup( object, oldGr );
+	if( !defGroup )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "couldn't find the vertex group" );
+
+	PyOS_snprintf( defGroup->name, 32, newGr );
+	unique_vertexgroup_name( defGroup, object );
+
+	return EXPP_incr_ret( Py_None );
+}
+
+static PyObject *Mesh_getVertGroupNames( BPy_Mesh * self )
+{
+	bDeformGroup *defGroup;
+	PyObject *list;
+	Object *obj = self->object;
+	Mesh *mesh = self->mesh;
+	int count;
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "mesh must be linked to an object first" );
+
+	if( ((Mesh *)obj->data) != mesh )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "object no longer linked to this mesh" );
+
+	if( !obj )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This mesh must be linked to an object" );
+
+	count = 0;
+	for( defGroup = obj->defbase.first; defGroup; defGroup = defGroup->next )
+		++count;
+
+	list = PyList_New( count );
+	count = 0;
+	for( defGroup = obj->defbase.first; defGroup; defGroup = defGroup->next )
+		PyList_SET_ITEM( list, count++,
+				PyString_FromString( defGroup->name ) );
+
+	return list;
+}
+
 #ifdef MESH_TOOLS
 
 static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 {
-	Base *base;
+	Base *base, *basact;
 	int result;
 	Object *object = NULL; 
 	PyObject *attr = NULL;
@@ -4500,9 +5106,11 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 						"Object specified is not a mesh." );
 
-	/* enter mesh edit mode, apply subdivide, then exit edit mode */
+	/* save active object for later, make mesh's object active */
+	basact = BASACT;
+	BASACT = base;
 
-	G.obedit = object;
+	/* enter mesh edit mode, apply subdivide, then exit edit mode */
 	enter_editmode( );
 	switch( type ) {
 	case MESH_TOOL_TOSPHERE:
@@ -4532,8 +5140,15 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 	case MESH_TOOL_RECALCNORM:
 		righthandfaces( *((int *)args[0]) );
 		break;
+	case MESH_TOOL_TRIANGLE:
+		convert_to_triface(0);
+		break;
+	case MESH_TOOL_QUAD:
+		join_triangles();
+		break;
 	}
 	exit_editmode( 1 );
+	BASACT = basact;
 	if( attr )
 		return attr;
 
@@ -4633,6 +5248,24 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 	return Mesh_Tools( self, MESH_TOOL_FILL, NULL );
 }
 
+/*
+ * "Triangles to Quads"  function
+ */
+
+static PyObject *Mesh_tri2quad( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_TRIANGLE, NULL );
+}
+
+/*
+ * "Quads to Triangles"  function
+ */
+
+static PyObject *Mesh_quad2tri( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_QUAD, NULL );
+}
+
 #endif
 
 static struct PyMethodDef BPy_Mesh_methods[] = {
@@ -4648,6 +5281,23 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Update display lists after changes to mesh"},
 	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS,
 		"Applies a transformation matrix to mesh's vertices"},
+	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_VARARGS,
+		"Assign vertex group name to the object linked to the mesh"},
+	{"removeVertGroup", (PyCFunction)Mesh_removeVertGroup, METH_VARARGS,
+		"Delete vertex group name from the object linked to the mesh"},
+	{"assignVertsToGroup", (PyCFunction)Mesh_assignVertsToGroup, METH_VARARGS,
+		"Assigns vertices to a vertex group"},
+	{"removeVertsFromGroup", (PyCFunction)Mesh_removeVertsFromGroup, METH_VARARGS,
+		"Removes vertices from a vertex group"},
+	{"getVertsFromGroup", (PyCFunction)Mesh_getVertsFromGroup, METH_VARARGS,
+		"Get index and optional weight for vertices in vertex group"},
+	{"renameVertGroup", (PyCFunction)Mesh_renameVertGroup, METH_VARARGS,
+		"Rename an existing vertex group"},
+	{"getVertGroupNames", (PyCFunction)Mesh_getVertGroupNames, METH_NOARGS,
+		"Get names of vertex groups"},
+
+
+
 #ifdef MESH_TOOLS
 	{"smooth", (PyCFunction)Mesh_smooth, METH_NOARGS,
 		"Flattens angle of selected faces (experimental)"},
@@ -4657,6 +5307,10 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Moves selected vertices outward in a spherical shape (experimental)"},
 	{"fill", (PyCFunction)Mesh_fill, METH_NOARGS,
 		"Scan fill a closed edge loop (experimental)"},
+	{"quadToTriangle", (PyCFunction)Mesh_tri2quad, METH_NOARGS,
+		"Convert selected quads to triangles (experimental)"},
+	{"triangleToQuad", (PyCFunction)Mesh_quad2tri, METH_NOARGS,
+		"Convert selected triangles to quads (experimental)"},
 	{"subdivide", (PyCFunction)Mesh_subdivide, METH_VARARGS,
 		"Subdivide selected edges in a mesh (experimental)"},
 	{"remDoubles", (PyCFunction)Mesh_removeDoubles, METH_VARARGS,
@@ -4890,6 +5544,7 @@ static PyObject *Mesh_getUsers( BPy_Mesh * self )
 static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 {
 	PyObject *attr;
+
 	switch( (int)type ) {
 	case MESH_HASFACEUV:
 		attr = self->mesh->tface ? EXPP_incr_ret_True() :
@@ -4912,6 +5567,69 @@ static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get attribute" );
+}
+
+static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
+{
+	int param, i;
+	Mesh *mesh = self->mesh;
+
+	if( !PyInt_CheckExact( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+
+	param = PyInt_AsLong( value );
+	if( param != 0 && param != 1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument in range [0,1]" );
+
+	/* sticky is independent of faceUV and vertUV */
+	/* faceUV (tface) has priority over vertUV (mcol) */
+
+	switch( (int)type ) {
+	case MESH_HASFACEUV:
+		if( !param ) {
+			if( mesh->tface ) {
+				MEM_freeN( mesh->tface );
+				mesh->tface = NULL;
+			}
+		} else if( !mesh->tface )
+			make_tfaces( mesh );
+		return 0;
+	case MESH_HASMCOL:
+		if( !param ) {
+			if( mesh->mcol ) {
+				MEM_freeN( mesh->mcol );
+				mesh->mcol = NULL;
+			}
+		} else if( !mesh->mcol ) {
+				/* TODO: mesh_create_shadedColors */
+			mesh->mcol = MEM_callocN( sizeof(unsigned int)*mesh->totface*4,
+						"mcol" );
+			for( i = 0; i < mesh->totface*4; i++ )
+				mesh->mcol[i].a = 255;
+			if( mesh->tface )
+				mcol_to_tface( mesh, 1 );
+		}
+		return 0;
+	case MESH_HASVERTUV:
+		if( !param ) {
+			if( mesh->msticky ) {
+				MEM_freeN( mesh->msticky );
+				mesh->msticky = NULL;
+			}
+		} else {
+			if( !mesh->msticky ) {
+				mesh->msticky= MEM_callocN( mesh->totvert*sizeof( MSticky ),
+						"sticky" );
+				/* TODO: rework RE_make_sticky() so we can calculate */
+			}
+		}
+		return 0;
+	default:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"couldn't get attribute" );
+	}
 }
 
 static PyObject *Mesh_getMode( BPy_Mesh * self )
@@ -5028,7 +5746,7 @@ static PyObject *Mesh_repr( BPy_Mesh * self )
 }
 
 /*****************************************************************************/
-/* Python NMesh_Type attributes get/set structure:                           */
+/* Python Mesh_Type attributes get/set structure:                           */
 /*****************************************************************************/
 static PyGetSetDef BPy_Mesh_getseters[] = {
 	{"verts",
@@ -5070,15 +5788,15 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 
 
 	{"faceUV",
-	 (getter)Mesh_getFlag, (setter)NULL,
+	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
 	 "UV-mapped textured faces enabled",
  	 (void *)MESH_HASFACEUV},
 	{"vertexColors",
-	 (getter)Mesh_getFlag, (setter)NULL,
+	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
 	 "Vertex colors for the mesh enabled",
 	 (void *)MESH_HASMCOL},
 	{"vertexUV",
-	 (getter)Mesh_getFlag, (setter)NULL,
+	 (getter)Mesh_getFlag, (setter)Mesh_setFlag,
 	 "'Sticky' flag for per vertex UV coordinates enabled",
 	 (void *)MESH_HASVERTUV},
 	{"activeFace",
@@ -5203,9 +5921,7 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 		if( !mesh )
 			return EXPP_incr_ret( Py_None );
 
-		obj = PyObject_NEW( BPy_Mesh, &Mesh_Type );
-		obj->mesh = mesh;
-		return (PyObject *)obj;
+		return Mesh_CreatePyObject( mesh, NULL );
 	} else {			/* () - return a list with all meshes in the scene */
 		PyObject *meshlist;
 		Link *link;
@@ -5220,9 +5936,7 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 		link = G.main->mesh.first;
 		index = 0;
 		while( link ) {
-			obj = ( BPy_Mesh * ) PyObject_NEW( BPy_Object,
-					&Mesh_Type );
-			obj->mesh = ( Mesh * )link;
+			obj = ( BPy_Mesh * ) Mesh_CreatePyObject( ( Mesh * )link, NULL );
 			PyList_SetItem( meshlist, index, ( PyObject * ) obj );
 			index++;
 			link = link->next;
@@ -5238,7 +5952,6 @@ static PyObject *M_Mesh_Get( PyObject * self, PyObject * args )
 static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
 {
 	char *name = "Mesh";
-	PyObject *ret = NULL;
 	Mesh *mesh;
 	BPy_Mesh *obj;
 	char buf[21];
@@ -5267,6 +5980,7 @@ static PyObject *M_Mesh_New( PyObject * self, PyObject * args )
 	rename_id( &mesh->id, buf );
 
 	obj->mesh = mesh;
+	obj->object = NULL;
 	return (PyObject *)obj;
 }
 
@@ -5312,11 +6026,127 @@ static struct PyMethodDef M_Mesh_methods[] = {
 	{NULL, NULL, 0, NULL},
 };
 
+static PyObject *M_Mesh_Modes( void )
+{
+	PyObject *Modes = PyConstant_New(  );
+
+	if( Modes ) {
+		BPy_constant *d = ( BPy_constant * ) Modes;
+
+		PyConstant_Insert( d, "NOVNORMALSFLIP",
+				PyInt_FromLong( ME_NOPUNOFLIP ) );
+		PyConstant_Insert( d, "TWOSIDED", PyInt_FromLong( ME_TWOSIDED ) );
+		PyConstant_Insert( d, "AUTOSMOOTH", 
+				PyInt_FromLong( ME_AUTOSMOOTH ) );
+	}
+
+	return Modes;
+}
+
+#undef EXPP_ADDCONST
+#define EXPP_ADDCONST(dict, name) \
+			 PyConstant_Insert(dict, #name, PyInt_FromLong(TF_##name))
+/* Set constants for face drawing mode -- see drawmesh.c */
+
+static PyObject *M_Mesh_FaceModesDict( void )
+{
+	PyObject *FM = PyConstant_New(  );
+
+	if( FM ) {
+		BPy_constant *d = ( BPy_constant * ) FM;
+
+		PyConstant_Insert( d, "BILLBOARD",
+				 PyInt_FromLong( TF_BILLBOARD2 ) );
+		PyConstant_Insert( d, "ALL", PyInt_FromLong( 0xffff ) );
+		PyConstant_Insert( d, "HALO", PyInt_FromLong( TF_BILLBOARD ) );
+		PyConstant_Insert( d, "DYNAMIC", PyInt_FromLong( TF_DYNAMIC ) );
+		PyConstant_Insert( d, "INVISIBLE", PyInt_FromLong( TF_INVISIBLE ) );
+		PyConstant_Insert( d, "LIGHT", PyInt_FromLong( TF_LIGHT ) );
+		PyConstant_Insert( d, "OBCOL", PyInt_FromLong( TF_OBCOL ) );
+		PyConstant_Insert( d, "SHADOW", PyInt_FromLong( TF_SHADOW ) );
+		PyConstant_Insert( d, "SHAREDVERT", PyInt_FromLong( TF_SHAREDVERT ) );
+		PyConstant_Insert( d, "SHAREDCOL", PyInt_FromLong( TF_SHAREDCOL ) );
+		PyConstant_Insert( d, "TEX", PyInt_FromLong( TF_TEX ) );
+		PyConstant_Insert( d, "TILES", PyInt_FromLong( TF_TILES ) );
+		PyConstant_Insert( d, "TWOSIDE", PyInt_FromLong( TF_TWOSIDE ) );
+	}
+
+	return FM;
+}
+
+static PyObject *M_Mesh_FaceFlagsDict( void )
+{
+	PyObject *FF = PyConstant_New(  );
+
+	if( FF ) {
+		BPy_constant *d = ( BPy_constant * ) FF;
+
+		EXPP_ADDCONST( d, SELECT );
+		EXPP_ADDCONST( d, HIDE );
+		EXPP_ADDCONST( d, ACTIVE );
+	}
+
+	return FF;
+}
+
+static PyObject *M_Mesh_FaceTranspModesDict( void )
+{
+	PyObject *FTM = PyConstant_New(  );
+
+	if( FTM ) {
+		BPy_constant *d = ( BPy_constant * ) FTM;
+
+		PyConstant_Insert( d, "TF_SOLID", PyInt_FromLong( TF_SOLID ) );
+		PyConstant_Insert( d, "TF_ADD", PyInt_FromLong( TF_ADD ) );
+		PyConstant_Insert( d, "TF_ALPHA", PyInt_FromLong( TF_ALPHA ) );
+		PyConstant_Insert( d, "TF_SUB", PyInt_FromLong( TF_SUB ) );
+	}
+
+	return FTM;
+}
+
+static PyObject *M_Mesh_EdgeFlagsDict( void )
+{
+	PyObject *EF = PyConstant_New(  );
+
+	if( EF ) {
+		BPy_constant *d = ( BPy_constant * ) EF;
+
+		PyConstant_Insert(d, "SELECT", PyInt_FromLong( SELECT ) );
+		PyConstant_Insert(d, "EDGEDRAW", PyInt_FromLong( ME_EDGEDRAW ) );
+		PyConstant_Insert(d, "EDGERENDER", PyInt_FromLong( ME_EDGERENDER ) );
+		PyConstant_Insert(d, "SEAM", PyInt_FromLong( ME_SEAM ) );
+		PyConstant_Insert(d, "FGON", PyInt_FromLong( ME_FGON ) );
+	}
+
+	return EF;
+}
+
+static PyObject *M_Mesh_VertAssignDict( void )
+{
+	PyObject *Vert = PyConstant_New(  );
+	if( Vert ) {
+		BPy_constant *d = ( BPy_constant * ) Vert;
+		PyConstant_Insert(d, "ADD", PyInt_FromLong(WEIGHT_ADD));
+		PyConstant_Insert(d, "REPLACE", PyInt_FromLong(WEIGHT_REPLACE));
+		PyConstant_Insert(d, "SUBTRACT", PyInt_FromLong(WEIGHT_SUBTRACT));
+	}
+	return Vert;
+}
+
 static char M_Mesh_doc[] = "The Blender.Mesh submodule";
 
 PyObject *Mesh_Init( void )
 {
 	PyObject *submodule;
+	PyObject *dict;
+
+	PyObject *Modes = M_Mesh_Modes(  );
+	PyObject *FaceFlags = M_Mesh_FaceFlagsDict(  );
+	PyObject *FaceModes = M_Mesh_FaceModesDict(  );
+	PyObject *FaceTranspModes = M_Mesh_FaceTranspModesDict(  );
+	PyObject *EdgeFlags = M_Mesh_EdgeFlagsDict(  );
+	PyObject *AssignModes = M_Mesh_VertAssignDict(  );
 
 	if( PyType_Ready( &MCol_Type ) < 0 )
 		return NULL;
@@ -5340,12 +6170,26 @@ PyObject *Mesh_Init( void )
 	submodule =
 		Py_InitModule3( "Blender.Mesh", M_Mesh_methods, M_Mesh_doc );
 
+	if( Modes )
+		PyModule_AddObject( submodule, "Modes", Modes );
+	if( FaceFlags )
+		PyModule_AddObject( submodule, "FaceFlags", FaceFlags );
+	if( FaceModes )
+		PyModule_AddObject( submodule, "FaceModes", FaceModes );
+	if( FaceTranspModes )
+		PyModule_AddObject( submodule, "FaceTranspModes",
+				    FaceTranspModes );
+	if( EdgeFlags )
+		PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
+	if( AssignModes )
+		PyModule_AddObject( submodule, "AssignModes", dict );
+
 	return submodule;
 }
 
 /* These are needed by Object.c */
 
-PyObject *Mesh_CreatePyObject( Mesh * me )
+PyObject *Mesh_CreatePyObject( Mesh * me, Object *obj )
 {
 	BPy_Mesh *nmesh = PyObject_NEW( BPy_Mesh, &Mesh_Type );
 
@@ -5354,6 +6198,7 @@ PyObject *Mesh_CreatePyObject( Mesh * me )
 				"couldn't create BPy_Mesh object" );
 
 	nmesh->mesh = me;
+	nmesh->object = obj;
 
 	return ( PyObject * ) nmesh;
 }
@@ -5363,11 +6208,12 @@ int Mesh_CheckPyObject( PyObject * pyobj )
 	return ( pyobj->ob_type == &Mesh_Type );
 }
 
-Mesh *Mesh_FromPyObject( PyObject * pyobj )
+Mesh *Mesh_FromPyObject( PyObject * pyobj, Object *obj )
 {
 	BPy_Mesh *blen_obj;
 
 	blen_obj = ( BPy_Mesh * ) pyobj;
+	blen_obj->object = obj;
 	return blen_obj->mesh;
 
 }

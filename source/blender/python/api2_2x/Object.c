@@ -1046,7 +1046,7 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *args, PyObject *kwd
 		if( !mesh )		/* get as NMesh (default) */
 			data_object = NMesh_CreatePyObject( object->data, object );
 		else			/* else get as Mesh */
-			data_object = Mesh_CreatePyObject( object->data );
+			data_object = Mesh_CreatePyObject( object->data, object );
 		break;
 	case ID_OB:
 		data_object = Object_CreatePyObject( object->data );
@@ -1489,7 +1489,7 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	else if( NMesh_CheckPyObject( py_data ) )
 		data = ( void * ) NMesh_FromPyObject( py_data, self->object );
 	else if( Mesh_CheckPyObject( py_data ) )
-		data = ( void * ) Mesh_FromPyObject( py_data );
+		data = ( void * ) Mesh_FromPyObject( py_data, self->object );
 	else if( Lattice_CheckPyObject( py_data ) )
 		data = ( void * ) Lattice_FromPyObject( py_data );
 	else if( Metaball_CheckPyObject( py_data ) )

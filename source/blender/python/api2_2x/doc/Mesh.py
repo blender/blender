@@ -12,13 +12,16 @@ B{New}:
  - delete methods for L{verts<MVertSeq.delete>}, L{edges<MEdgeSeq.delete>}
    and L{faces<MFaceSeq.delete>}
  - new experimental mesh tools:
-   L{fill()<Mesh.Mesh.fill>},
-   L{flipNormals()<Mesh.Mesh.flipNormals>},
-   L{recalcNormals()<Mesh.Mesh.recalcNormals>},
-   L{remDoubles()<Mesh.Mesh.remDoubles>},
-   L{smooth()<Mesh.Mesh.smooth>},
-   L{subdivide()<Mesh.Mesh.subdivide>} and
-   L{toSphere()<Mesh.Mesh.toSphere>}
+   L{mesh.fill()<Mesh.Mesh.fill>},
+   L{mesh.flipNormals()<Mesh.Mesh.flipNormals>},
+   L{mesh.recalcNormals()<Mesh.Mesh.recalcNormals>},
+   L{mesh.remDoubles()<Mesh.Mesh.remDoubles>},
+   L{mesh.smooth()<Mesh.Mesh.smooth>},
+   L{mesh.subdivide()<Mesh.Mesh.subdivide>},
+   L{mesh.toSphere()<Mesh.Mesh.toSphere>},
+   L{mesh.quadToTriangle()<Mesh.Mesh.quadToTriangle>},
+   L{mesh.triangleToQuad()<Mesh.Mesh.triangleToQuad>}
+ - methods for accessing and modifying vertex groups
  - and if you're never used Mesh before, everything!
 
 Mesh Data
@@ -53,7 +56,58 @@ Example::
     v.co[2] *= 2.5
 
   if editmode: Window.EditMode(1)  # optional, just being nice
+
+@type Modes: readonly dictionary
+@type FaceFlags: readonly dictionary
+@type FaceModes: readonly dictionary
+@type FaceTranspModes: readonly dictionary
+@var Modes: The available mesh modes.
+    - NOVNORMALSFLIP - no flipping of vertex normals during render.
+    - TWOSIDED - double sided mesh.
+    - AUTOSMOOTH - turn auto smoothing of faces "on".
+    - SUBSURF - turn Catmull-Clark subdivision of surfaces "on".
+    - OPTIMAL - optimal drawing of edges when "SubSurf" is "on".
+@var FaceFlags: The available *texture face* (uv face select mode) selection
+  flags.  Note: these refer to TexFace faces, available if nmesh.hasFaceUV()
+  returns true.
+    - SELECT - selected.
+    - HIDE - hidden.
+    - ACTIVE - the active face.
+@var FaceModes: The available *texture face* modes. Note: these are only
+  meaningful if nmesh.hasFaceUV() returns true, since in Blender this info is
+  stored at the TexFace (TexFace button in Edit Mesh buttons) structure.
+    - ALL - set all modes at once.
+    - BILLBOARD - always orient after camera.
+    - HALO - halo face, always point to camera.
+    - DYNAMIC - respond to collisions.
+    - INVISIBLE - invisible face.
+    - LIGHT - dynamic lighting.
+    - OBCOL - use object color instead of vertex colors.
+    - SHADOW - shadow type.
+    - SHAREDVERT - apparently unused in Blender.
+    - SHAREDCOL - shared vertex colors (per vertex).
+    - TEX - has texture image.
+    - TILES - uses tiled image.
+    - TWOSIDE - two-sided face.
+@var FaceTranspModes: The available face transparency modes. Note: these are
+  enumerated values (enums), they can't be combined (and'ed, or'ed, etc) like a bit vector.
+    - SOLID - draw solid.
+    - ADD - add to background (halo).
+    - ALPHA - draw with transparency.
+    - SUB - subtract from background.
+@var EdgeFlags: The available edge flags.
+    - SELECT - selected.
+    - EDGEDRAW - edge is drawn out of edition mode.
+    - SEAM - edge is a seam for LSCM UV unwrapping
+    - FGON - edge is part of a F-Gon.
+@type AssignModes: readonly dictionary.
+@var AssignModes: blah blah fix me.
+    - REPLACE - selected.
+    - ADD - edge is drawn out of edition mode.
+    - SUBTRACT - edge is a seam for LSCM UV unwrapping
 """
+
+AssignModes = {'REPLACE':1}
 
 def Get(name=None):
   """
@@ -220,6 +274,13 @@ class MVertSeq:
          the above.
     """
 
+  def selected():
+    """
+    Get selected vertices.
+    @return: a list of the indices for all vertices selected in edit mode.
+    @rtype: list of ints
+    """
+
 class MEdge:
   """
   The MEdge object
@@ -231,7 +292,7 @@ class MEdge:
   @type v2: MVert
   @ivar crease: The crease value of the edge. It is in the range [0,255].
   @type crease: int
-  @ivar flag: The bitfield describing edge properties. See L{NMesh.EdgeFlags}.
+  @ivar flag: The bitfield describing edge properties. See L{EdgeFlags}.
   @type flag: int
   @ivar index: The edge's index within the mesh.  Read-only.
   @type index: int
@@ -289,6 +350,14 @@ class MEdgeSeq:
          the above.
     """
 
+  def selected():
+    """
+    Get selected edges.
+    Selected edges are those for which both vertices are selected.
+    @return: a list of the indices for all edges selected in edit mode.
+    @rtype: list of ints
+    """
+
 class MFace:
   """
   The MFace object
@@ -316,7 +385,7 @@ class MFace:
 
    ## Example for UV textured faces selection:
    selected_faces = []
-   SEL = NMesh.FaceFlags['SELECT']
+   SEL = Mesh.FaceFlags['SELECT']
    # get selected faces:
    for f in faces:
      if f.flag & SEL:
@@ -361,7 +430,7 @@ class MFace:
       Will throw an exception if the mesh does not have UV faces; use
       L{Mesh.faceUV} to test.
   @type image: Image
-  @ivar mode: The texture mode bitfield (see L{NMesh.FaceModes}).
+  @ivar mode: The texture mode bitfield (see L{FaceModes}).
       Will throw an exception if the mesh does not have UV faces; use
       L{Mesh.faceUV} to test.
   @type mode: int
@@ -370,7 +439,7 @@ class MFace:
 
   @ivar flag: The face's B{texture mode} flags; indicates the selection, 
       active , and visibility states of a textured face (see
-      L{NMesh.FaceFlags} for values).
+      L{FaceFlags} for values).
       This is not the same as the selection or visibility states of
       the faces in edit mode (see L{sel} and L{hide}).
       To set the active face, use
@@ -379,7 +448,7 @@ class MFace:
       L{Mesh.faceUV} to test.
 
   @ivar transp: Transparency mode.  It is one of the values in 
-      L{NMesh.FaceTranspModes}).
+      L{FaceTranspModes}).
       Will throw an exception if the mesh does not have UV faces; use
       L{Mesh.faceUV} to test.
   @type transp: int
@@ -388,6 +457,12 @@ class MFace:
       Will throw an exception if the mesh does not have UV faces; use
       L{Mesh.faceUV} to test.
   @type uv: list of vectors
+  @ivar uvSel: The face's UV coordinates seletion state; a 1 indicates the
+      vertex is selected.  Each vertex has its own UV coordinate select state
+      (this is not the same as the vertex's edit mode selection state).
+      Will throw an exception if the mesh does not have UV faces; use
+      L{Mesh.faceUV} to test.
+  @type uvSel: list of ints
   @ivar no: The face's normal vector (x, y, z).  Read-only.
   @type no: vector
   @note: there are regular faces and textured faces in Blender, both currently
@@ -459,6 +534,14 @@ class MFaceSeq:
        - a integer, specifying an index into the mesh's face list
     """
 
+  def selected():
+    """
+    Get selected faces.
+    mode.
+    @return: a list of the indices for all faces selected in edit mode.
+    @rtype: list of ints
+    """
+
 class Mesh:
   """
   The Mesh Data object
@@ -486,7 +569,7 @@ class Mesh:
   @ivar maxSmoothAngle: Same as L{degr}.  This attribute is only for
     compatibility with NMesh scripts and will probably be deprecated in 
     the future.
-  @ivar mode: The mesh's mode bitfield.  See L{NMesh.Modes}.
+  @ivar mode: The mesh's mode bitfield.  See L{Modes}.
   @type mode: int
 
   @ivar name: The Mesh name.  It's common to use this field to store extra
@@ -497,11 +580,17 @@ class Mesh:
   @ivar users: The number of Objects using (linked to) this mesh.
   @type users: int
 
-  @ivar faceUV: The mesh contains UV-mapped textured faces.  Read-only.
+  @ivar faceUV: The mesh contains UV-mapped textured faces.  Enabling faceUV
+    does not initialize the face colors like the Blender UI does; this must
+    be done in the script.  B{Note}: if faceUV is set, L{vertexColors} cannot
+    be set.  Furthermore, if vertexColors is already set when faceUV is set,
+    vertexColors is cleared.  This is because the vertex color information
+    is stored with UV faces, so enabling faceUV implies enabling vertexColors.
   @type faceUV: bool
-  @ivar vertexColors: The mesh contains vertex colors.  Read-only.
+  @ivar vertexColors: The mesh contains vertex colors.  See L{faceUV} for the
+    use of vertex colors when UV-mapped texture faces are enabled.
   @type vertexColors: bool
-  @ivar vertexUV: The mesh contains "sticky" per-vertex UV coordinates.  Read-only.
+  @ivar vertexUV: The mesh contains "sticky" per-vertex UV coordinates.
   @type vertexUV: bool
   @ivar activeFace: Index of the mesh's active face in UV Face Select and
     Paint modes.  Only one face can be active at a time.  Note that this is
@@ -514,8 +603,9 @@ class Mesh:
   def getFromObject(name):
     """
     Replace the mesh's existing data with the raw mesh data from a Blender
-    Object.  This method support all the geometry based objects (mesh, text,
-    curve, surface, and meta).
+    Object.  This method supports all the geometry based objects (mesh, text,
+    curve, surface, and meta).  If the object has modifiers, they will be
+    applied before to the object before extracting the vertex data.
     @note: The mesh coordinates are in i{local space}, not the world space of
     its object.  For world space vertex coordinates, each vertex location must
     be multiplied by the object's 4x4 transform matrix (see L{transform}).
@@ -598,6 +688,124 @@ class Mesh:
     returned.  If a sequence of edges is passed, a list is returned.
     """
 
+  def addVertGroup(group):
+    """
+    Add a named and empty vertex (deform) group to the object this nmesh is
+    linked to.  The mesh must first be linked to an object (with object.link()
+    or object.getData() ) so the method knows which object to update.  
+    This is because vertex groups in Blender are stored in I{the object} --
+    not in the mesh, which may be linked to more than one object. 
+    @type group: string
+    @param group: the name for the new group.
+    """
+
+  def removeVertGroup(group):
+    """
+    Remove a named vertex (deform) group from the object linked to this mesh.
+    All vertices assigned to the group will be removed (just from the group,
+    not deleted from the mesh), if any. If this mesh was newly created, it
+    must first be linked to an object (read the comment in L{addVertGroup} for
+    more info).
+    @type group: string
+    @param group: the name of a vertex group.
+    """
+
+
+  def assignVertsToGroup(group, vertList, weight, assignmode = AssignModes['REPLACE']):
+    """
+    Adds an array (a Python list) of vertex points to a named vertex group
+    associated with a mesh. The vertex list is a list of vertex indices from
+    the mesh. You should assign vertex points to groups only when the mesh has
+    all its vertex points added to it and is already linked to an object.
+
+    I{B{Example:}}
+    The example here adds a new set of vertex indices to a sphere primitive::
+     import Blender
+     sphere = Blender.Object.Get('Sphere')
+     replace = Blender.Mesh.AssignModes.REPLACE
+     mesh = sphere.getData(mesh=True)
+     mesh.addVertGroup('firstGroup')
+     vertList = []
+     for x in range(300):
+         if x % 3 == 0:
+             vertList.append(x)
+     mesh.assignVertsToGroup('firstGroup', vertList, 0.5, replace)
+
+    @type group: string
+    @param group: the name of the group.
+    @type vertList: list of ints
+    @param vertList: a list of vertex indices.
+    @type weight: float
+    @param weight: the deform weight for (which means: the amount of influence
+        the group has over) the given vertices. It should be in the range
+        [0.0, 1.0]. If weight <= 0, the given vertices are removed from the
+        group.  If weight > 1, it is clamped.
+    @type assignmode: module constant
+    @param assignmode: Three choices:
+        - ADD: if the vertex in the list is not assigned to the group
+        already, this creates a new association between this vertex and the
+        group with the weight specified, otherwise the weight given is added to
+        the current weight of an existing association between the vertex and
+        group.
+        - SUBTRACT: will attempt to subtract the weight passed from a vertex
+        already associated with a group, else it does nothing.\n
+        - REPLACE: attempts to replace a weight with the new weight value
+        for an already associated vertex/group, else it does nothing. 
+       """
+
+  def removeVertsFromGroup(group, vertList = None):
+    """
+    Remove a list of vertices from the given group.  If this nmesh was newly
+    created, it must first be linked to an object (check L{addVertGroup}).
+    @type group: string
+    @param group: the name of a vertex group
+    @type vertList: list of ints
+    @param vertList: a list of vertex indices to be removed from I{group}.
+        If None, all vertices are removed -- the group is emptied.
+    """
+
+  def getVertsFromGroup(group, weightsFlag = 0, vertList = None):
+    """
+    Return a list of vertex indices associated with the passed group. This
+    method can be used to test whether a vertex index is part of a group and
+    if so, what its weight is. 
+
+    I{B{Example:}}
+    Append this to the example from L{assignVertsToGroup}::
+     # ...
+     print "Vertex indices from group %s :" % groupName
+     print mesh.getVertsFromGroup('firstGroup')
+     print "Again, with weights:"
+     print mesh.getVertsFromGroup('firstGroup',1)
+     print "Again, with weights and restricted to the given indices:"
+     print mesh.getVertsFromGroup('firstGroup',1,[1,2,3,4,5,6])     
+
+    @type group: string
+    @param group: the group name.
+    @type weightsFlag: bool
+    @param weightsFlag: if 1, the weight is returned along with the index. 
+    @type vertList: list of ints
+    @param vertList: if given, only those vertex points that are both in the
+        list and group passed in are returned.
+    """
+
+  def renameVertGroup(groupName, newName):
+    """
+    Renames a vertex group.
+    @type groupName: string
+    @param groupName: the vertex group name to be renamed.
+    @type newName: string
+    @param newName: the name to replace the old name.
+    """
+
+  def getVertGroupNames():
+    """
+    Return a list of all vertex group names.
+    @rtype: list of strings
+    @return: returns a list of strings representing all vertex group
+    associated with the mesh's object
+    """
+
   def smooth():
     """
     Flattens angle of selected faces. Experimental mesh tool.
@@ -614,6 +822,24 @@ class Mesh:
     """
     Moves selected vertices outward in a spherical shape. Experimental mesh
     tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def fill():
+    """
+    Scan fill a closed selected edge loop. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def triangleToQuad():
+    """
+    Convert selected triangles to quads. Experimental mesh tool.
+    An exception is thrown if called while in EditMode.
+    """
+
+  def quadToTriangle():
+    """
+    Convert selected quads to triangles. Experimental mesh tool.
     An exception is thrown if called while in EditMode.
     """
 
@@ -635,12 +861,6 @@ class Mesh:
     to be "doubles".  Value is clamped to the range [0.0,1.0].
     @rtype: int
     @return: the number of vertices deleted
-    """
-
-  def fill():
-    """
-    Scan fill a closed selected edge loop. Experimental mesh tool.
-    An exception is thrown if called while in EditMode.
     """
 
   def recalcNormals(direction=0):
