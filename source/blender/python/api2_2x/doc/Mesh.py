@@ -101,10 +101,17 @@ Example::
     - SEAM - edge is a seam for LSCM UV unwrapping
     - FGON - edge is part of a F-Gon.
 @type AssignModes: readonly dictionary.
-@var AssignModes: blah blah fix me.
-    - REPLACE - selected.
-    - ADD - edge is drawn out of edition mode.
-    - SUBTRACT - edge is a seam for LSCM UV unwrapping
+@var AssignModes: The available vertex group assignment modes, used by 
+  L{mesh.assignVertsToGroup()<Mesh.Mesh.assignVertsToGroup>}.
+	- ADD: if the vertex in the list is not assigned to the group
+	already, this creates a new association between this vertex and the
+	group with the weight specified, otherwise the weight given is added to
+	the current weight of an existing association between the vertex and
+	group.
+	- SUBTRACT: will attempt to subtract the weight passed from a vertex
+	already associated with a group, else it does nothing.\n
+	- REPLACE: attempts to replace a weight with the new weight value
+	for an already associated vertex/group, else it does nothing. 
 """
 
 AssignModes = {'REPLACE':1}
@@ -710,7 +717,6 @@ class Mesh:
     @param group: the name of a vertex group.
     """
 
-
   def assignVertsToGroup(group, vertList, weight, assignmode = AssignModes['REPLACE']):
     """
     Adds an array (a Python list) of vertex points to a named vertex group
@@ -741,16 +747,8 @@ class Mesh:
         [0.0, 1.0]. If weight <= 0, the given vertices are removed from the
         group.  If weight > 1, it is clamped.
     @type assignmode: module constant
-    @param assignmode: Three choices:
-        - ADD: if the vertex in the list is not assigned to the group
-        already, this creates a new association between this vertex and the
-        group with the weight specified, otherwise the weight given is added to
-        the current weight of an existing association between the vertex and
-        group.
-        - SUBTRACT: will attempt to subtract the weight passed from a vertex
-        already associated with a group, else it does nothing.\n
-        - REPLACE: attempts to replace a weight with the new weight value
-        for an already associated vertex/group, else it does nothing. 
+    @param assignmode: Three choices: REPLACE, ADD or SUBTRACT. 
+        See L{AssignModes} for a complete description.
        """
 
   def removeVertsFromGroup(group, vertList = None):
