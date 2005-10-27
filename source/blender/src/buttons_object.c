@@ -854,7 +854,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 	if (con->type!=CONSTRAINT_TYPE_NULL) {
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "Influence ", *xco, *yco, 197, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
+		uiDefButF(block, NUMSLI, B_CONSTRAINT_INF, "Influence ", *xco, *yco, 197, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
 		but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Show", *xco+200, *yco, 45, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show constraint's ipo in the Ipo window, adds a channel if not there");
 		/* If this is on an object or bone, add ipo channel the constraint */
 		uiButSetFunc (but, enable_constraint_ipo_func, ob, con);
@@ -918,7 +918,11 @@ void do_constraintbuts(unsigned short event)
 	switch(event) {
 	case B_CONSTRAINT_TEST:
 		break;  // no handling
-		
+	case B_CONSTRAINT_INF:
+		/* influence; do not execute actions for 1 dag_flush */
+		if(ob->pose)
+			ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+
 	case B_CONSTRAINT_CHANGETARGET:
 		if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);
