@@ -147,8 +147,12 @@ typedef struct ScrArea {
 #define B_SCROLL 8
 #define HOR_SCROLL 12
 
-/* screen->flag */
+/* screen handlers */
+#define SCREEN_MAXHANDLER		8
 
+#define SCREEN_HANDLER_ANIM		1
+#define SCREEN_HANDLER_PYTHON   2
+#define SCREEN_HANDLER_VERSE	3
 
 /* dunno who thought this below is nice code, but be warned, the values are written in
    a file, and cannot be switched or altered. enum here is out of focus (ton) */
