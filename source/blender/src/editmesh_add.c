@@ -446,6 +446,99 @@ static EditFace *exist_face_overlaps(EditVert *v1, EditVert *v2, EditVert *v3, E
 	return NULL;
 }
 
+/* will be new face smooth or solid? depends on smoothness of face neighbours
+ * of new face, if function return 1, then new face will be smooth, when functio
+ * will return zero, then new face will be solid */
+static void fix_new_face(EditFace *eface)
+{
+	struct EditMesh *em = G.editMesh;
+	struct EditFace *efa;
+	struct EditEdge *eed=NULL;
+	struct EditVert *v1 = eface->v1, *v2 = eface->v2, *v3 = eface->v3, *v4 = eface->v4;
+	struct EditVert *ev1=NULL, *ev2=NULL;
+	short smooth=0; /* "total smoothnes" of faces in neighbourhood */
+	short coef;	/* "weight" of smoothness */
+	short count=0;	/* number of edges with same direction as edit_face */
+	short vi[2][2]; /* vertex indexes */
+
+	efa = em->faces.first;
+
+	while(efa) {
+		coef = 0;
+		if(efa->v1==v1 || efa->v2==v1 || efa->v3==v1 || efa->v4==v1) {
+			ev1 = v1;
+			coef++;
+		}
+		if(efa->v1==v2 || efa->v2==v2 || efa->v3==v2 || efa->v4==v2) {
+			if(ev1) ev2 = v2;
+			else ev1 = v2;
+			coef++;
+		}
+		if(efa->v1==v3 || efa->v2==v3 || efa->v3==v3 || efa->v4==v3) {
+			if(coef<2) {
+				if(ev1) ev2 = v3;
+				else ev1 = v3;
+			}
+			coef++;
+		}
+		if((v4) && (efa->v1==v4 || efa->v2==v4 || efa->v3==v4 || efa->v4==v4)) {
+			if(ev1 && coef<2) ev2 = v4;
+			coef++;
+		}
+
+		/* "democracy" of smoothness */
+		if(efa->flag & ME_SMOOTH)
+			smooth += coef;
+		else
+			smooth -= coef;
+
+		if((ev1) && (ev2) && (ev1!=ev2)) eed = findedgelist(ev1, ev2);
+
+		/* has bordering edge of efa same direction as edge of edit_face ? */
+		if(eed) {
+			if(eed->v1==v1) vi[0][0] = 1;
+			else if(eed->v1==v2) vi[0][0] = 2;
+			else if(eed->v1==v3) vi[0][0] = 3;
+			else if(eed->v1==v4) vi[0][0] = 0;
+
+			if(eed->v2==v1) vi[0][1] = 1;
+			else if(eed->v2==v2) vi[0][1] = 2;
+			else if(eed->v2==v3) vi[0][1] = 3;
+			else if(eed->v2==v4) vi[0][1] = 4;
+
+			if(eed->v1==efa->v1) vi[1][0] = 1;
+			else if(eed->v1==efa->v2) vi[1][0] = 2;
+			else if(eed->v1==efa->v3) vi[1][0] = 3;
+			else if(eed->v1==efa->v4) vi[1][0] = 0;
+
+			if(eed->v2==efa->v1) vi[1][1] = 1;
+			else if(eed->v2==efa->v2) vi[1][1] = 2;
+			else if(eed->v2==efa->v3) vi[1][1] = 3;
+			else if(eed->v2==efa->v4) vi[1][1] = 4;
+
+			if((vi[0][0]>vi[0][1]) && (vi[1][0]>vi[1][1])) count++;
+			else if((vi[0][0]<vi[0][1]) && (vi[1][0]<vi[1][1])) count++;
+		}
+
+		efa = efa->next;
+	}
+
+	/* set up smoothness according voting of face in neighbourhood */
+	if(smooth >= 0)
+		eface->flag |= ME_SMOOTH;
+	else
+		eface->flag &= ~ME_SMOOTH;
+
+	/* set up order of vertexes and edges according "face normals" in neighbourhood */
+	if(v4 && count>=2) {
+		printf("\tflip QUAT\n");
+		flipface(eface);
+	}
+	else if(count>1) {
+		printf("\tflip TRIANGLE\n");
+		flipface(eface);
+	}
+}
 
 void addedgeface_mesh(void)
 {
@@ -471,6 +564,7 @@ void addedgeface_mesh(void)
 			neweve[amount-1]= eve;
 		}
 	}
+
 	if(amount==2) {
 		eed= addedgelist(neweve[0], neweve[1], NULL);
 		EM_select_edge(eed, 1);
@@ -494,7 +588,6 @@ void addedgeface_mesh(void)
 	if(amount==3) {
 		
 		if(exist_face_overlaps(neweve[0], neweve[1], neweve[2], NULL)==0) {
-			
 			efa= addfacelist(neweve[0], neweve[1], neweve[2], 0, NULL, NULL);
 			EM_select_face(efa, 1);
 		}
@@ -513,7 +606,6 @@ void addedgeface_mesh(void)
 		
 			if(tria==2) join_triangles();
 			else if(exist_face_overlaps(neweve[0], neweve[1], neweve[2], neweve[3])==0) {
-				
 				/* if 4 edges exist, we just create the face, convex or not */
 				efa= addface_from_edges();
 				if(efa==NULL) {
@@ -545,6 +637,9 @@ void addedgeface_mesh(void)
 		inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
 
 		if(inp < 0.0) flipface(efa);
+
+		fix_new_face(efa);
+
 		BIF_undo_push("Add face");
 	}
 	
