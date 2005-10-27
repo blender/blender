@@ -311,7 +311,8 @@ Scene *copy_scene(Scene *sce, int level)
 	scen->theDag= NULL;
 	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 
-
+	duplicatelist(&(scen->markers), &(sce->markers));
+	
 	obase= sce->base.first;
 	base= scen->base.first;
 	while(base) {
