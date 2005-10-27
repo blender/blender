@@ -1042,7 +1042,6 @@ static void render_panel_output(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, R_PASSEPARTOUT, REDRAWVIEW3D, "Passepartout", 72, 30, 122, 20, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Draws darkened passepartout in camera view");
 	uiDefButS(block, ROW, B_REDR, "DispWin",	72, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output to display in a seperate window");
 	uiDefButS(block, ROW, B_REDR, "DispView",	134, 10, 60, 20, &G.displaymode, 0.0, (float)R_DISPLAYVIEW, 0, 0, "Sets render output to display in 3D view");
 	uiBlockEndAlign(block);

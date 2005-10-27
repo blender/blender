@@ -715,12 +715,16 @@ void drawcamera(Object *ob)
 	vec[3][0]= -facx; vec[3][1]= -facy; vec[3][2]= depth;
 	vec[4][0]= -facx; vec[4][1]= facy; vec[4][2]= depth;
 
+	/* draw inactive cameras with dashed lines */
+	if (ob != G.vd->camera) setlinestyle(3);
+	
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(vec[1]); 
 		glVertex3fv(vec[2]); 
 		glVertex3fv(vec[3]); 
 		glVertex3fv(vec[4]);
 	glEnd();
+	
 
 	if(G.vd->persp>=2 && ob==G.vd->camera) return;
 	
@@ -732,6 +736,9 @@ void drawcamera(Object *ob)
 		glVertex3fv(vec[0]);
 		glVertex3fv(vec[3]); 
 	glEnd();
+	
+	/* make sure it's solid line again */
+	setlinestyle(0);
 
 	
 	/* arrow on top */

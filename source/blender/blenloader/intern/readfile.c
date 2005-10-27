@@ -4989,6 +4989,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 239) {
 		Object *ob;
+		Scene *sce= main->scene.first;
+		Camera *cam= main->camera.first;
 		
 		/* deformflag is local in modifier now */
 		for(ob=main->object.first; ob; ob= ob->id.next) {
@@ -5004,7 +5006,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-		}			
+		}
+		
+		while(sce) {
+			while(cam) {
+				/* convert the passepartout scene flag to a camera flag */
+				if(sce->r.scemode & R_PASSEPARTOUT)
+					cam->flag |= CAM_SHOWPASSEPARTOUT;
+				
+				/* make sure old cameras have title safe on */
+				if (!(cam->flag & CAM_SHOWTITLESAFE))
+					cam->flag |= CAM_SHOWTITLESAFE;
+				cam= cam->id.next;
+			}
+			sce= sce->id.next;
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

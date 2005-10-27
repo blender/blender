@@ -56,6 +56,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -903,10 +904,15 @@ void view3d_set_1_to_1_viewborder(View3D *v3d)
 
 static void drawviewborder(void)
 {
+	extern void gl_round_box(int mode, float minx, float miny, float maxx, float maxy, float rad);          // interface_panel.c
 	float fac, a;
 	float x1, x2, y1, y2;
 	float x3, y3, x4, y4;
 	rcti viewborder;
+	Camera *ca;
+
+	ca = G.scene->camera->data;
+	if (ca==NULL) return;
 	
 	calc_viewborder(G.vd, &viewborder);
 	x1= viewborder.xmin;
@@ -915,7 +921,7 @@ static void drawviewborder(void)
 	y2= viewborder.ymax;
 
 	/* passepartout, in color of backdrop minus 50 */
-	if(G.scene->r.scemode & R_PASSEPARTOUT) {
+	if (ca->flag & CAM_SHOWPASSEPARTOUT) {
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glEnable(GL_BLEND);
 		glColor4ub(0, 0, 0, 50);
@@ -930,14 +936,26 @@ static void drawviewborder(void)
 		}
 		glDisable(GL_BLEND);
 	}
-	/* edge */
-	setlinestyle(3);
-	cpack(0);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
-	glRectf(x1+1,  y1-1,  x2+1,  y2-1); 
 	
-	cpack(0xFFFFFF);
-	glRectf(x1,  y1,  x2,  y2); 
+	/* edge */
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); 
+	
+	setlinestyle(0);
+	BIF_ThemeColor(TH_BACK);
+	glRectf(x1, y1, x2, y2);
+	
+	setlinestyle(3);
+	BIF_ThemeColor(TH_WIRE);
+	glRectf(x1, y1, x2, y2);
+	
+
+	/* camera name */
+	if (ca->flag & CAM_SHOWNAME) {
+		glRasterPos2f(x1, y1-15);
+		
+		BMF_DrawString(G.font, G.scene->camera->id.name+2);
+	}
+
 
 	/* border */
 	if(G.scene->r.mode & R_BORDER) {
@@ -948,29 +966,28 @@ static void drawviewborder(void)
 		x4= x1+ G.scene->r.border.xmax*(x2-x1);
 		y4= y1+ G.scene->r.border.ymax*(y2-y1);
 		
-		glRectf(x3+1,  y3-1,  x4+1,  y4-1); 
-		
 		cpack(0x4040FF);
 		glRectf(x3,  y3,  x4,  y4); 
 	}
 
 	/* safety border */
-
-	fac= 0.1;
+	if (ca->flag & CAM_SHOWTITLESAFE) {
+		fac= 0.1;
+		
+		a= fac*(x2-x1);
+		x1+= a; 
+		x2-= a;
 	
-	a= fac*(x2-x1);
-	x1+= a; 
-	x2-= a;
-
-	a= fac*(y2-y1);
-	y1+= a;
-	y2-= a;
-
-	cpack(0);
-	glRectf(x1+1,  y1-1,  x2+1,  y2-1);
-	cpack(0xFFFFFF);
-	glRectf(x1,  y1,  x2,  y2);
-
+		a= fac*(y2-y1);
+		y1+= a;
+		y2-= a;
+	
+		BIF_ThemeColorBlendShade(TH_WIRE, TH_BACK, 0.25, 0);
+		
+		uiSetRoundBox(15);
+		gl_round_box(GL_LINE_LOOP, x1, y1, x2, y2, 12.0);
+	}
+	
 	setlinestyle(0);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 

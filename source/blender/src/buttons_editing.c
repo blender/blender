@@ -2261,23 +2261,43 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
 
-	if(cam->type==CAM_ORTHO)
-		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:", 470,178,160,20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
-	else
-		uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:", 470,178,160,20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+if(cam->type==CAM_ORTHO) {
+		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:",
+				  0, 145, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
+	} else {
+		uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
+				  0, 145, 150, 20, &cam->lens, 1.0, 250.0, 100, 0, "Specify the lens of the camera");
+	}
+	
+	uiDefButS(block, TOG, REDRAWVIEW3D, "Orthographic",
+			  0, 120, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+	
+	uiDefBut(block, LABEL, 0, "Clipping:", 0, 90, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Start:",
+			  0, 70, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
+	uiDefButF(block, NUM,REDRAWVIEW3D, "End:",
+			  0, 50, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Show:", 160, 155, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipSta:", 470,147,160,20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
-	uiDefButF(block, NUM,REDRAWVIEW3D, "ClipEnd:", 470,125,160,20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
+	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "Limits",
+			  160, 135, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
+	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Mist",
+			  160, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+	uiDefButS(block, TOG|BIT|2,REDRAWVIEW3D, "Passepartout",
+			  160, 95, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
+	uiDefButS(block, TOG|BIT|3,REDRAWVIEW3D, "Title Safe",
+			  160, 75, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
+	uiDefButS(block, TOG|BIT|4,REDRAWVIEW3D, "Name",
+			  160, 55, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
 	uiBlockEndAlign(block);
-
-	uiDefButF(block, NUM,REDRAWVIEW3D, "DrawSize:", 470,90,160,20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
-
-	uiDefButS(block, TOG, REDRAWVIEW3D, "Ortho",		470,29,61,60, &cam->type, 0, 0, 0, 0, "Render orthogonally");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, CAM_SHOWLIMITS, REDRAWVIEW3D, "ShowLimits", 533,59,97,30, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
-	uiDefButBitS(block, TOG, CAM_SHOWMIST, REDRAWVIEW3D, "Show Mist",  533,29,97,30, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
-	uiBlockEndAlign(block);
+	
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
+			  160, 30, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
 }
 
 /* yafray: extra camera panel to set Depth-of-Field parameters */

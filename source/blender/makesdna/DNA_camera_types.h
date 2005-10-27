@@ -69,8 +69,12 @@ typedef struct Camera {
 /* flag */
 #define CAM_SHOWLIMITS	1
 #define CAM_SHOWMIST	2
+#define CAM_SHOWPASSEPARTOUT	4
+#define CAM_SHOWTITLESAFE	8
+#define CAM_SHOWNAME		16
+
 /* yafray: dof sampling switch */
-#define CAM_YF_NO_QMC	4
+#define CAM_YF_NO_QMC	512
 
 
 #ifdef __cplusplus
