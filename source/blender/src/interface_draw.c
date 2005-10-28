@@ -66,6 +66,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "datatoc.h"            /* std font */
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -1717,6 +1718,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	wchar_t wstr[2];
 	unsigned char ustr[16];
 	PackedFile *pf;
+	int result = 0;
 
 	/* Calculate the size of the button */
 	width = abs(but->x2 - but->x1);
@@ -1824,6 +1826,21 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 		ex = but->x1 + butw;
 	}	
 	glShadeModel(GL_FLAT);
+
+	/* Return Font Settings to original */
+	if(U.fontsize && U.fontname[0])
+	{
+		result = FTF_SetFont(U.fontname, 0, U.fontsize);
+	}
+	else if (U.fontsize)
+	{
+		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, U.fontsize);
+	}
+
+	if (result == 0)
+	{
+		result = FTF_SetFont(datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
+	}
 }
 
 #endif // INTERNATIONAL

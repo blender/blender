@@ -663,7 +663,14 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	}
 
 	vfd= vfont_get_data(vfont);
-	if(!vfd) goto errcse;
+
+	/* The VFont Data can not be found */
+	if(!vfd)
+	{
+		if(mem)
+			MEM_freeN(mem);	
+		return 0;
+	}
 
 	/* calc offset and rotation of each char */
 	ct = chartransdata =
@@ -730,29 +737,44 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		}
 #endif
 
+		/* No VFont found */
+		if (vfont==0) 
+		{
+			if(mem)
+				MEM_freeN(mem);
+			MEM_freeN(chartransdata);
+			return 0;
+		}
 
-	if (vfont==0) goto errcse;
-	if (vfont != oldvfont) {
-		vfd= vfont_get_data(vfont);
-		oldvfont = vfont;
-	}
-	if (!vfd) goto errcse;    	
+		if (vfont != oldvfont) {
+			vfd= vfont_get_data(vfont);
+			oldvfont = vfont;
+		}
 
-	// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
-	if(!che)
-	{
-		twidth = 0;
-	}
-	else
-	{
-		twidth = che->width;
-	}
+		/* VFont Data for VFont couldn't be found */
+		if (!vfd)
+		{
+			if(mem)
+				MEM_freeN(mem);
+			MEM_freeN(chartransdata);
+			return 0;
+		}
 
-	// Calculate positions
-	if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
-//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
-		for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
-			if (mem[j]==' ' || mem[j]=='-') {
+		// The character wasn't found, propably ascii = 0, then the width shall be 0 as well
+		if(!che)
+		{
+			twidth = 0;
+		}
+		else
+		{
+			twidth = che->width;
+		}
+
+		// Calculate positions
+		if((tb->w != 0.0) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w) {
+	//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
+			for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
+				if (mem[j]==' ' || mem[j]=='-') {
 					ct -= (i-(j-1));
 					cnr -= (i-(j-1));
 					if (mem[j] == ' ') wsnr--;
@@ -762,19 +784,19 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 					ct[1].dobreak = 1;
 					cu->strinfo[i+1].flag |= CU_WRAP;
 					goto makebreak;
-			}
-			if (chartransdata[j].dobreak) {
-//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
-				ct->dobreak= 1;
-				cu->strinfo[i+1].flag |= CU_WRAP;
-				ct -= 1;
-				cnr -= 1;
-				i--;
-				xof = ct->xof;
-				goto makebreak;
+				}
+				if (chartransdata[j].dobreak) {
+	//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
+					ct->dobreak= 1;
+					cu->strinfo[i+1].flag |= CU_WRAP;
+					ct -= 1;
+					cnr -= 1;
+					i--;
+					xof = ct->xof;
+					goto makebreak;
+				}
 			}
 		}
-	}
 		if(ascii== '\n' || ascii== '\r' || ascii==0 || ct->dobreak) {
 			ct->xof= xof;
 			ct->yof= yof;
@@ -825,11 +847,11 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			ct->charnr= cnr++;
 
 			if (selboxes && (i>=selstart) && (i<=selend)) {
-			sb = &(selboxes[i-selstart]);
-			sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
-			sb->h = linedist*cu->fsize;
-			sb->w = xof*cu->fsize;
-		}
+				sb = &(selboxes[i-selstart]);
+				sb->y = yof*cu->fsize-linedist*cu->fsize*0.1;
+				sb->h = linedist*cu->fsize;
+				sb->w = xof*cu->fsize;
+			}
 	
 			if (ascii==32) {
 				wsfac = cu->wordspace; 
@@ -1159,7 +1181,6 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 		return chartransdata;
 	}
 
-errcse:
 	if(mem)
 		MEM_freeN(mem);
 
