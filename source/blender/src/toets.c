@@ -683,6 +683,23 @@ int blenderqread(unsigned short event, short val)
 		return 0;
 		break;
 	
+	case WHEELUPMOUSE:
+		if(G.qual==LR_ALTKEY || G.qual==LR_COMMANDKEY) {
+			if(CFRA>1) {
+				CFRA--;
+				update_for_newframe();
+			}
+			return 0;
+		}
+		break;
+	case WHEELDOWNMOUSE:
+		if(G.qual==LR_ALTKEY || G.qual==LR_COMMANDKEY) {
+			CFRA++;
+			update_for_newframe();
+			return 0;
+		}
+		break;
+		
 	case LEFTARROWKEY:
 	case DOWNARROWKEY:
 		if(textediting==0 && textspace==0) {
