@@ -42,6 +42,7 @@
 #include "BSP_CSGException.h"
 
 // for vector reverse
+#include <iostream>
 #include <algorithm>
 using namespace std;
 
@@ -50,7 +51,11 @@ BSP_CSGMesh(
 ) :
 	MEM_RefCountable()
 {
-    // nothing to do
+	m_verts     = NULL;
+	m_faces     = NULL;
+	m_edges     = NULL;
+	m_fv_data   = NULL;
+	m_face_data = NULL;
 }
 
 	BSP_CSGMesh *
@@ -65,34 +70,34 @@ BSP_CSGMesh::
 NewCopy(
 ) const {
 
-	MEM_SmartPtr<BSP_CSGMesh> mesh = New();
+	BSP_CSGMesh *mesh = New();
 	if (mesh == NULL) return NULL;
 
 	mesh->m_bbox_max = m_bbox_max;
 	mesh->m_bbox_min = m_bbox_min;
 
 	if (m_edges != NULL) {
-		mesh->m_edges = new vector<BSP_MEdge>(m_edges.Ref());
+                mesh->m_edges = new vector<BSP_MEdge>(*m_edges);
 		if (mesh->m_edges == NULL) return NULL;
 	}
 	if (m_verts != NULL) {
-		mesh->m_verts = new vector<BSP_MVertex>(m_verts.Ref());
+                mesh->m_verts = new vector<BSP_MVertex>(*m_verts);
 		if (mesh->m_verts == NULL) return NULL;
 	}
 	if (m_faces != NULL) {
-		mesh->m_faces = new vector<BSP_MFace>(m_faces.Ref());
+                mesh->m_faces = new vector<BSP_MFace>(*m_faces);
 		if (mesh->m_faces == NULL) return NULL;
 	}
 	if (m_fv_data != NULL) {
-		mesh->m_fv_data = new BSP_CSGUserData(m_fv_data.Ref());
+                mesh->m_fv_data = new BSP_CSGUserData(*m_fv_data);
 		if (mesh->m_fv_data == NULL) return NULL;
 	}
 	if (m_face_data != NULL) {
-		mesh->m_face_data = new BSP_CSGUserData(m_face_data.Ref());
+                mesh->m_face_data = new BSP_CSGUserData(*m_face_data);
 		if (mesh->m_face_data == NULL) return NULL;
 	}
 
-	return mesh.Release();
+	return mesh;
 }
 	
 	void
@@ -113,7 +118,7 @@ Invert(
 	bool
 BSP_CSGMesh::
 SetVertices(
-	MEM_SmartPtr<vector<BSP_MVertex> > verts
+	vector<BSP_MVertex> *verts
 ){
 	if (verts == NULL) return false;
 
@@ -131,7 +136,7 @@ SetVertices(
 	void
 BSP_CSGMesh::
 SetFaceVertexData(
-	MEM_SmartPtr<BSP_CSGUserData> fv_data
+	BSP_CSGUserData *fv_data
 ){
 	m_fv_data = fv_data;
 }
@@ -139,7 +144,7 @@ SetFaceVertexData(
 	void
 BSP_CSGMesh::
 SetFaceData(
-	MEM_SmartPtr<BSP_CSGUserData> f_data
+	BSP_CSGUserData *f_data
 ) {
 	m_face_data = f_data;
 }
@@ -276,7 +281,10 @@ BuildEdges(
 BSP_CSGMesh::
 DestroyEdges(
 ){
-	m_edges.Delete();
+	if ( m_edges != NULL ) {
+		delete m_edges;
+		m_edges = NULL;
+	}	
 	
 	// Run through the vertices
 	// and clear their edge arrays.
@@ -383,42 +391,46 @@ InsertEdge(
 BSP_CSGMesh::
 VertexSet(
 ) const {
-	return m_verts.Ref();
+        return *m_verts;
 }		
 
 	vector<BSP_MFace> &
 BSP_CSGMesh::
 FaceSet(
 ) const {
-	return m_faces.Ref();
+        return *m_faces;
 }
 
 	vector<BSP_MEdge> &
 BSP_CSGMesh::
 EdgeSet(
 ) const {
-	return m_edges.Ref();
+        return *m_edges;
 }
 
 	BSP_CSGUserData &
 BSP_CSGMesh::
 FaceVertexData(
 ) const {
-	return m_fv_data.Ref();
+        return *m_fv_data;
 }
 
 	BSP_CSGUserData &
 BSP_CSGMesh::
 FaceData(
 ) const {
-	return m_face_data.Ref();
+        return *m_face_data;
 }
 
 
 BSP_CSGMesh::
 ~BSP_CSGMesh(
 ){
-	// member deletion handled by smart ptr;
+	if ( m_verts != NULL ) delete m_verts;
+	if ( m_faces != NULL ) delete m_faces;
+	if ( m_edges != NULL ) delete m_edges;
+	if ( m_fv_data != NULL ) delete m_fv_data;
+	if ( m_face_data != NULL ) delete m_face_data;
 }
 
 // local geometry queries.
@@ -595,7 +607,7 @@ InsertVertexIntoFace(
 	
 	MT_assert(result != face.m_verts.end());
 	
-	BSP_CSGUserData & fv_data = m_fv_data.Ref();
+        BSP_CSGUserData & fv_data = *m_fv_data;
 
 	// now we have to check on either side of the result for the 
 	// other vertex

@@ -1,5 +1,4 @@
 /**
- * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -45,8 +44,13 @@
 #include "BSP_CSGUserData.h"
 #include "MEM_RefCountPtr.h"
 
+#include "../../boolop/extern/BOP_Interface.h"
+#include <iostream>
+using namespace std;
+#include "BSP_MeshPrimitives.h";
+
 struct BSP_MeshInfo {
-	MEM_RefCountPtr<BSP_CSGMesh> output_mesh;
+	BSP_CSGMesh *output_mesh;
 	CSG_MeshPropertyDescriptor obA_descriptor;
 	CSG_MeshPropertyDescriptor obB_descriptor;
 	CSG_MeshPropertyDescriptor output_descriptor;
@@ -96,90 +100,55 @@ CSG_DescibeOperands(
 	return mesh_info->output_descriptor;
 }
 
+/**
+ * Compute the boolean operation, UNION, INTERSECION or DIFFERENCE
+ */
 	int
 CSG_PerformBooleanOperation(
-	CSG_BooleanOperation * operation,
-	CSG_OperationType op_type,
-	CSG_FaceIteratorDescriptor obAFaces,
-	CSG_VertexIteratorDescriptor obAVertices,
-	CSG_FaceIteratorDescriptor obBFaces,
-	CSG_VertexIteratorDescriptor obBVertices,
+	CSG_BooleanOperation                 *operation,
+	CSG_OperationType                     op_type,
+	CSG_FaceIteratorDescriptor            obAFaces,
+	CSG_VertexIteratorDescriptor          obAVertices,
+	CSG_FaceIteratorDescriptor            obBFaces,
+	CSG_VertexIteratorDescriptor          obBVertices,
 	CSG_InterpolateUserFaceVertexDataFunc interp_func
 ){
-	
 	if (operation == NULL) return 0;
 	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
 	if (mesh_info == NULL) return 0;
 
-	bool success = 0;
+	bool success = 1;
 
 	obAFaces.Reset(obAFaces.it);
 	obBFaces.Reset(obBFaces.it);
 	obAVertices.Reset(obAVertices.it);
 	obBVertices.Reset(obBVertices.it);
 
+	BoolOpType boolType;
+	
+	switch( op_type ) {
+	case e_csg_union:
+	  boolType = BOP_UNION;
+	  break;
+	case e_csg_difference:
+	  boolType = BOP_DIFFERENCE;
+	  break;
+	default:
+	  boolType = BOP_INTERSECTION;
+	  break;
+	}
 
 	try {
-		// Build the individual meshes
-		
-		MEM_SmartPtr<BSP_CSGMesh> obA = 
-			BSP_CSGMeshBuilder::NewMesh(mesh_info->obA_descriptor,obAFaces,obAVertices);
-
-		MEM_SmartPtr<BSP_CSGMesh> obB = 
-			BSP_CSGMeshBuilder::NewMesh(mesh_info->obB_descriptor,obBFaces,obBVertices);
-
-		// create an empty vertex array for the output mesh 
-		MEM_SmartPtr<vector<BSP_MVertex> > output_verts(new vector<BSP_MVertex>);
-		// and some user data arrays matching the output descriptor
-
-		MEM_SmartPtr<BSP_CSGUserData> output_f_data = new BSP_CSGUserData(
-			mesh_info->output_descriptor.user_data_size
-		);
-		MEM_SmartPtr<BSP_CSGUserData> output_fv_data = new BSP_CSGUserData(
-			mesh_info->output_descriptor.user_face_vertex_data_size
-		);
-
-		// create the output mesh!
-		mesh_info->output_mesh = BSP_CSGMesh::New();
-
-		if (
-			obA == NULL ||
-			obB == NULL ||
-			output_verts == NULL ||
-			mesh_info->output_mesh == NULL ||
-			output_f_data == NULL ||
-			output_fv_data == NULL
-		) {
-			return 0;
-		}
-
-		mesh_info->output_mesh->SetVertices(output_verts);
-		mesh_info->output_mesh->SetFaceData(output_f_data);
-		mesh_info->output_mesh->SetFaceVertexData(output_fv_data);
-
-		BSP_CSGHelper helper;
-		// translate enums!
-
-		switch(op_type) {
-			case e_csg_union : 
-			case e_csg_classify :
-				success = helper.ComputeOp(obA,obB,e_intern_csg_union,
-					mesh_info->output_mesh.Ref(),interp_func
-				);
-				break;
-			case e_csg_intersection :
-				success = helper.ComputeOp(obA,obB,e_intern_csg_intersection,
-					mesh_info->output_mesh.Ref(),interp_func
-				);
-				break;
-			case e_csg_difference :
-				success = helper.ComputeOp(obA,obB,e_intern_csg_difference,
-					mesh_info->output_mesh.Ref(),interp_func
-				);
-				break;
-			default :
-				success = 0;
-		}
+	BOP_performBooleanOperation( boolType,
+				     mesh_info->output_descriptor,
+				     (BSP_CSGMesh**) &(mesh_info->output_mesh),
+					 mesh_info->obB_descriptor,
+					 obBFaces,
+					 obBVertices,
+					 mesh_info->obA_descriptor,
+				     obAFaces,
+				     obAVertices,
+				     interp_func );
 	}
 	catch(...) {
 		return 0;
@@ -241,19 +210,9 @@ CSG_FreeBooleanOperation(
 ){
 	if (operation != NULL) {
 		BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
+
+		delete (mesh_info->output_mesh);
 		delete(mesh_info);
 		delete(operation);
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-

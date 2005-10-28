@@ -57,17 +57,17 @@ public :
 
 		bool
 	SetVertices(
-		MEM_SmartPtr<std::vector<BSP_MVertex> > verts
+		std::vector<BSP_MVertex> *verts
 	);
 
 		void
 	SetFaceVertexData(
-		MEM_SmartPtr<BSP_CSGUserData> fv_data
+		BSP_CSGUserData *fv_data
 	);
 
 		void
 	SetFaceData(
-		MEM_SmartPtr<BSP_CSGUserData> f_data
+		BSP_CSGUserData *f_data
 	);
 
 		void
@@ -318,21 +318,20 @@ private :
 	BSP_CSGMesh(
 	);
 
-
-	MEM_SmartPtr< std::vector<BSP_MVertex> > m_verts;
-	MEM_SmartPtr< std::vector<BSP_MFace> > m_faces;
-	MEM_SmartPtr< std::vector<BSP_MEdge> > m_edges;
+	std::vector<BSP_MVertex> *m_verts;
+	std::vector<BSP_MFace>   *m_faces;
+	std::vector<BSP_MEdge>   *m_edges;
 
 	// The face_vertex user data associated with this mesh
 
-	MEM_SmartPtr<BSP_CSGUserData> m_fv_data;
+	BSP_CSGUserData *m_fv_data;
 
 	// The face user data associated with this mesh - 
 	// This is a buffer that maps directly to the face buffer.
 	// An index into the faces is alos an index into m_face_data 
 	// for that face
 
-	MEM_SmartPtr<BSP_CSGUserData> m_face_data;
+	BSP_CSGUserData *m_face_data;
 
 	
 	MT_Vector3 m_bbox_min;

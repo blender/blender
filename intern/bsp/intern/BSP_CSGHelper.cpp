@@ -44,6 +44,10 @@
 
 #include "MEM_SmartPtr.h"
 
+
+#include "stdio.h"
+
+
 using namespace std;
 
 BSP_CSGHelper::
@@ -62,6 +66,11 @@ ComputeOp(
 	BSP_CSGMesh & output,
 	CSG_InterpolateUserFaceVertexDataFunc fv_func
 ){
+
+
+	  printf( "*** ComputeOp ***\n" );
+
+
 	// First work out which parts of polygons we want to keep as we pass stuff 
 	// down the tree.
 

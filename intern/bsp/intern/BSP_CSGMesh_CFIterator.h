@@ -1,5 +1,4 @@
 /**
- * $Id$
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -42,7 +41,7 @@
  */
 
 struct BSP_CSGMesh_VertexIt {
-	MEM_RefCountPtr<BSP_CSGMesh> mesh;
+	BSP_CSGMesh *mesh;
 	BSP_MVertex * pos;
 };
 
@@ -133,7 +132,7 @@ BSP_CSGMeshVertexIt_Construct(
  */
 
 struct BSP_CSGMesh_FaceIt {
-	MEM_RefCountPtr<BSP_CSGMesh> mesh;
+	BSP_CSGMesh *mesh;
 	BSP_MFace *pos;
 	int face_triangle;
 };
@@ -181,37 +180,70 @@ BSP_CSGMesh_FaceIt_Fill(
 	// essentially iterating through a triangle fan here.
 	const int tri_index = face_it->face_triangle;
 
-	face->vertex_index[0] = int(face_it->pos->m_verts[0]);
-	face->vertex_index[1] = int(face_it->pos->m_verts[tri_index + 1]);
-	face->vertex_index[2] = int(face_it->pos->m_verts[tri_index + 2]);
+	if (face_it->pos->m_verts.size()>3) {
+		// QUAD
+		face->vertex_index[0] = int(face_it->pos->m_verts[0]);
+		face->vertex_index[1] = int(face_it->pos->m_verts[1]);
+		face->vertex_index[2] = int(face_it->pos->m_verts[2]);
+		face->vertex_index[3] = int(face_it->pos->m_verts[3]);
 
-	// Copy the user face data across - this does nothing
-	// if there was no mesh user data.
+		// Copy the user face data across - this does nothing
+		// if there was no mesh user data.
 
-	// time to change the iterator type to an integer...
-	face_it->mesh->FaceData().Copy(
-		face->user_face_data,
-		int(face_it->pos - &face_it->mesh->FaceSet()[0])
-	);
+		// time to change the iterator type to an integer...
+		face_it->mesh->FaceData().Copy(
+				face->user_face_data,
+				int(face_it->pos - &face_it->mesh->FaceSet()[0]));
 	
-	// Copy face vertex data across...
+		// Copy face vertex data across...
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[0],
+				face_it->pos->m_fv_data[0]);
 
-	face_it->mesh->FaceVertexData().Copy(
-		face->user_face_vertex_data[0],
-		face_it->pos->m_fv_data[0]
-	);
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[1],
+				face_it->pos->m_fv_data[1]);
 
-	face_it->mesh->FaceVertexData().Copy(
-		face->user_face_vertex_data[1],
-		face_it->pos->m_fv_data[tri_index + 1]
-	);
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[2],
+				face_it->pos->m_fv_data[2]);
 
-	face_it->mesh->FaceVertexData().Copy(
-		face->user_face_vertex_data[2],
-		face_it->pos->m_fv_data[tri_index + 2]
-	);
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[3],
+				face_it->pos->m_fv_data[3]);
+		
+		face->vertex_number = 4;
+	}
+	else {
+		// TRIANGLE
+		face->vertex_index[0] = int(face_it->pos->m_verts[0]);
+		face->vertex_index[1] = int(face_it->pos->m_verts[1]);
+		face->vertex_index[2] = int(face_it->pos->m_verts[2]);
 
-	face->vertex_number = 3;
+		// Copy the user face data across - this does nothing
+		// if there was no mesh user data.
+
+		// time to change the iterator type to an integer...
+		face_it->mesh->FaceData().Copy(
+				face->user_face_data,
+				int(face_it->pos - &face_it->mesh->FaceSet()[0]));
+	
+		// Copy face vertex data across...
+
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[0],
+				face_it->pos->m_fv_data[0]);
+
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[1],
+				face_it->pos->m_fv_data[1]);
+
+		face_it->mesh->FaceVertexData().Copy(
+				face->user_face_vertex_data[2],
+				face_it->pos->m_fv_data[2]);
+
+		face->vertex_number = 3;
+	}
 };
 
 static
@@ -225,12 +257,12 @@ BSP_CSGMesh_FaceIt_Step(
 	// safety guard
 	if (face_it->pos < &(*face_it->mesh->FaceSet().end())) {
 
-		if (face_it->face_triangle + 3 < face_it->pos->m_verts.size()) {
-			(face_it->face_triangle)++;
-		} else {
+		//if (face_it->face_triangle + 3 < face_it->pos->m_verts.size()) {
+		//	(face_it->face_triangle)++;
+		//} else {
 			face_it->face_triangle = 0;
 			(face_it->pos) ++;
-		}
+		//}
 	}
 };
 
@@ -257,7 +289,7 @@ BSP_CSGMesh_FaceIt_Construct(
 	output->Step = BSP_CSGMesh_FaceIt_Step;
 	output->Reset = BSP_CSGMesh_FaceIt_Reset;
 
-	output->num_elements = mesh->CountTriangles();
+	output->num_elements = mesh->FaceSet().size();
 	
 	BSP_CSGMesh_FaceIt * f_it = new BSP_CSGMesh_FaceIt;
 	f_it->mesh = mesh;
