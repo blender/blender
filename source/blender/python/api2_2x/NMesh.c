@@ -1456,21 +1456,29 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 	return influence_list;
 }
 
+/* this call is VERY BAD! needs fixing (return NULL is not being handled) */
 Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 {
 	Mesh *mesh = NULL;
+	
 	mesh = add_mesh(  );
 
-	if( !mesh )
+	if( !mesh ) {
 		EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				       "FATAL: could not create mesh object" );
+		return NULL;
+	}
 
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	
+	/* NOTE! the EXPP_ function returns a pyObject *, and still it returned it as a mesh? (ton) */
+	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) ) {
+		EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"faces must have at 3 or 4 vertices" );
-
+		return NULL;
+	}
+	
 	return mesh;
 }
 

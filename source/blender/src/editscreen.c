@@ -2599,7 +2599,7 @@ static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
 	struct ScrEdge *se;
 	unsigned short event;
 	short ok=0, val=0, mval[2];
-	char dir;
+	char dir=0;
 
 	sa1 = test_edge_area(sa1, onedge);
 	if(sa1==0) return;

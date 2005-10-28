@@ -365,9 +365,9 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 
 			/* only with deflecting set */
 			if(ob->pd && ob->pd->deflect) {
-				DerivedMesh *dm=NULL;				
-				DispListMesh  *disp_mesh = 0;
-				MFace *mface;
+				DerivedMesh *dm= NULL;				
+				DispListMesh *disp_mesh= NULL;
+				MFace *mface= NULL;
 				Object *copyob;
 				int dmNeedsFree;				
 				

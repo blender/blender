@@ -613,7 +613,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 	VFont *vfont, *oldvfont;
 	VFontData *vfd= NULL;
 	Curve *cu, *cucu;
-	struct chartrans *chartransdata, *ct;
+	struct chartrans *chartransdata=NULL, *ct;
 	float distfac, tabfac, ctime, dtime, tvec[4], vec[4], rotvec[3], minx, maxx, miny, maxy;
 	float cmat[3][3], timeofs, si, co, sizefac;
 	float *f, maxlen=0, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
