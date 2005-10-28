@@ -6139,7 +6139,6 @@ static char M_Mesh_doc[] = "The Blender.Mesh submodule";
 PyObject *Mesh_Init( void )
 {
 	PyObject *submodule;
-	PyObject *dict;
 
 	PyObject *Modes = M_Mesh_Modes(  );
 	PyObject *FaceFlags = M_Mesh_FaceFlagsDict(  );
@@ -6169,7 +6168,6 @@ PyObject *Mesh_Init( void )
 
 	submodule =
 		Py_InitModule3( "Blender.Mesh", M_Mesh_methods, M_Mesh_doc );
-
 	if( Modes )
 		PyModule_AddObject( submodule, "Modes", Modes );
 	if( FaceFlags )
@@ -6182,7 +6180,8 @@ PyObject *Mesh_Init( void )
 	if( EdgeFlags )
 		PyModule_AddObject( submodule, "EdgeFlags", EdgeFlags );
 	if( AssignModes )
-		PyModule_AddObject( submodule, "AssignModes", dict );
+		PyModule_AddObject( submodule, "AssignModes", AssignModes );
+
 
 	return submodule;
 }
