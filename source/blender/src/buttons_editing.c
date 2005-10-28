@@ -2291,16 +2291,19 @@ if(cam->type==CAM_ORTHO) {
 			  160, 135, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
 	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Mist",
 			  160, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+	uiBlockEndAlign(block);
+	
+	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|2,REDRAWVIEW3D, "Passepartout",
-			  160, 95, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
+			  160, 90, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
 	uiDefButS(block, TOG|BIT|3,REDRAWVIEW3D, "Title Safe",
-			  160, 75, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
+			  160, 70, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
 	uiDefButS(block, TOG|BIT|4,REDRAWVIEW3D, "Name",
-			  160, 55, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
+			  160, 50, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
 	uiBlockEndAlign(block);
 	
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
-			  160, 30, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
+			  160, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
 }
 
 /* yafray: extra camera panel to set Depth-of-Field parameters */

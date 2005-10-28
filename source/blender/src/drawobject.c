@@ -715,9 +715,6 @@ void drawcamera(Object *ob)
 	vec[3][0]= -facx; vec[3][1]= -facy; vec[3][2]= depth;
 	vec[4][0]= -facx; vec[4][1]= facy; vec[4][2]= depth;
 
-	/* draw inactive cameras with dashed lines */
-	if (ob != G.vd->camera) setlinestyle(3);
-	
 	glBegin(GL_LINE_LOOP);
 		glVertex3fv(vec[1]); 
 		glVertex3fv(vec[2]); 
@@ -736,42 +733,25 @@ void drawcamera(Object *ob)
 		glVertex3fv(vec[0]);
 		glVertex3fv(vec[3]); 
 	glEnd();
-	
-	/* make sure it's solid line again */
-	setlinestyle(0);
 
-	
+
 	/* arrow on top */
 	vec[0][2]= depth;
 
-	glBegin(GL_QUADS);
-
-		vec[0][0]= -0.2*cam->drawsize; 
-		vec[0][1]= cam->drawsize;
-		glVertex3fv(vec[0]);
-		
-		vec[0][0]= 0.2*cam->drawsize;
-		glVertex3fv(vec[0]);
-		
-		vec[0][1]= 1.6*cam->drawsize;
-		glVertex3fv(vec[0]);
-		
-		vec[0][0]= -0.2*cam->drawsize; 
-		glVertex3fv(vec[0]);
-	glEnd();
-
-	glBegin(GL_TRIANGLES);
+	/* draw inactive cameras with outline arrow */
+	if (ob != G.vd->camera) glBegin(GL_LINE_LOOP);
+	else glBegin(GL_TRIANGLES);
 	
-		vec[0][0]= -0.4*cam->drawsize;
-		vec[0][1]= 1.6*cam->drawsize;
+		vec[0][0]= -0.7*cam->drawsize;
+		vec[0][1]= 1.1*cam->drawsize;
 		glVertex3fv(vec[0]);
 		
 		vec[0][0]= 0.0; 
-		vec[0][1]= 2.0*cam->drawsize;
+		vec[0][1]= 1.8*cam->drawsize;
 		glVertex3fv(vec[0]);
 		
-		vec[0][0]= 0.4*cam->drawsize; 
-		vec[0][1]= 1.6*cam->drawsize;
+		vec[0][0]= 0.7*cam->drawsize; 
+		vec[0][1]= 1.1*cam->drawsize;
 		glVertex3fv(vec[0]);
 	
 	glEnd();
