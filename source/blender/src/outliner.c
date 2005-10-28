@@ -2365,6 +2365,7 @@ static void outliner_draw_tree(SpaceOops *soops)
 	
 	// grey hierarchy lines
 	glColor3ub(110,110,110);
+	BIF_ThemeColorBlend(TH_BACK, TH_TEXT, 0.5);
 	starty= soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
