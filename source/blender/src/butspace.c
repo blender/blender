@@ -230,8 +230,6 @@ void test_scenepoin_but(char *name, ID **idpp)
 /* --------------------------------- */
 
 
-
-
 void do_butspace(unsigned short event)
 {
 	SpaceButs *buts;

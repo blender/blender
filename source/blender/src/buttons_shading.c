@@ -1163,7 +1163,7 @@ static void texture_panel_envmap(Tex *tex)
 			uiBlockEndAlign(block);
 		}
 
-		uiDefIDPoinBut(block, test_obpoin_but, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Displays object to use as viewpoint for environment map: click to change");
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_ENV_OB, "Ob:",	10,90,150,20, &(env->object), "Displays object to use as viewpoint for environment map: click to change");
 		if(env->stype!=ENV_LOAD) 
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 2048.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 
@@ -1837,7 +1837,7 @@ static void world_panel_texture(World *wrld)
 	uiDefButS(block, ROW, B_MATPRV, "Sphere",		200,110,55,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
 	uiDefButS(block, ROW, B_MATPRV, "Tube",			255,110,45,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 170,90,130,20, &(mtex->object), "");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 170,90,130,20, &(mtex->object), "");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
@@ -2174,7 +2174,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			100,110,60,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "View",			160,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		230,110,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 100,90,200,20, &(mtex->object), "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,18, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
@@ -2726,7 +2726,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,166,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		670,166,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, B_MATPRV, "",745,166,163,18, &(mtex->object), "");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "",745,166,163,18, &(mtex->object), "");
 	
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,146,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			675,146,50,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original coordinates of the mesh");

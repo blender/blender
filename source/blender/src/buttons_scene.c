@@ -1024,7 +1024,7 @@ static void render_panel_output(void)
 
 	if(G.scene->set) {
 		uiSetButLock(1, NULL);
-		uiDefIDPoinBut(block, test_scenepoin_but, 0, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
+		uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 0, "",	31, 120, 100, 20, &(G.scene->set), "Name of the Set");
 		uiClearButLock();
 		uiDefIconBut(block, BUT, B_CLEARSET, ICON_X, 		132, 120, 20, 20, 0, 0, 0, 0, 0, "Remove Set link");
 	}

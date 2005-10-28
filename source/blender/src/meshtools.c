@@ -594,6 +594,8 @@ void sort_faces(void)
 
 /* ********************* MESH VERTEX OCTREE LOOKUP ************* */
 
+/* important note; this is unfinished, needs better API for editmode, and custom threshold */
+
 #define MOC_RES			8
 #define MOC_NODE_RES	8
 #define MOC_THRESH		0.0001f
@@ -702,13 +704,18 @@ static int mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 	for(a=0; a<MOC_NODE_RES; a++) {
 		if((*bt)->index[a]) {
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
-			if(mvert)
+			if(mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
-			else
-				vec= ((EditVert *)INT_TO_POINTER((*bt)->index[a]))->co;
-			
-			if(FloatCompare(vec, co, MOC_THRESH))
-				return (*bt)->index[a]-1;
+				
+				if(FloatCompare(vec, co, MOC_THRESH))
+					return (*bt)->index[a]-1;
+			}
+			else {
+				EditVert *eve= (EditVert *)INT_TO_POINTER((*bt)->index[a]);
+				
+				if(FloatCompare(eve->co, co, MOC_THRESH))
+					return (int)eve;
+			}
 		}
 		else return -1;
 	}

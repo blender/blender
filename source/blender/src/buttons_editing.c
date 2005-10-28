@@ -691,8 +691,8 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	uiBlockEndAlign(block);
 
-	uiDefIDPoinBut(block, test_meshpoin_but, 0, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
-
+	uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, B_REDR, "TexMesh: ",	175,124,230,19, &me->texcomesh, "Enter the name of a Meshblock");
+	
 	if(me->key) {
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_DIFF, "Slurph:",				175,95,95,19, &(me->key->slurph), -500.0, 500.0, 0, 0, "");
@@ -1269,11 +1269,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, eSubsurfModifierFlag_ControlEdges, B_MODIFIER_RECALC, "Optimal Draw", lx, (cy-=19), buttonWidth,19,&smd->flags, 0, 0, 0, 0, "Skip drawing/rendering of interior subdivided edges");
 		} else if (md->type==eModifierType_Lattice) {
 			LatticeModifierData *lmd = (LatticeModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testLatticeObj, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");
+			uiDefIDPoinBut(block, modifier_testLatticeObj, ID_OB, B_CHANGEDEP, "Ob: ",	lx, (cy-=19), buttonWidth,19, &lmd->object, "Lattice object to deform with");
 			uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &lmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 		} else if (md->type==eModifierType_Curve) {
 			CurveModifierData *cmd = (CurveModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testCurveObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
+			uiDefIDPoinBut(block, modifier_testCurveObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &cmd->object, "Curve object to deform with");
 			uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &cmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 		} else if (md->type==eModifierType_Build) {
 			BuildModifierData *bmd = (BuildModifierData*) md;
@@ -1311,7 +1311,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Narrow:",	lx,(cy-=19),220,19, &wmd->narrow, 0.0, 10.0, 0, 0, "Specify how narrow the wave follows");
 		} else if (md->type==eModifierType_Armature) {
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
-			uiDefIDPoinBut(block, modifier_testArmatureObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
+			uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 			
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
@@ -1320,7 +1320,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			HookModifierData *hmd = (HookModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Force: ",		lx, (cy-=19), buttonWidth,19, &hmd->force, 0.0, 1.0, 100, 0, "Set relative force of hook");
-			uiDefIDPoinBut(block, test_obpoin_but, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &hmd->object, "Parent Object for hook, also recalculates and clears offset"); 
 			if(hmd->indexar==NULL)
 				uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",		lx, (cy-=19), buttonWidth,19, &hmd->name, 0.0, 31.0, 0, 0, "Vertex Group name");
 			uiBlockBeginAlign(block);
@@ -1340,7 +1340,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Boolean) {
 			BooleanModifierData *bmd = (BooleanModifierData*) md;
 			uiDefButI(block, MENU, B_MODIFIER_RECALC, "Operation%t|Intersect%x0|Union%x1|Difference%x2",	lx,(cy-=19),buttonWidth,19, &bmd->operation, 0.0, 1.0, 0, 0, "Boolean operation to perform");
-			uiDefIDPoinBut(block, modifier_testMeshObj, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &bmd->object, "Mesh object to use for boolean operation");
+			uiDefIDPoinBut(block, modifier_testMeshObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &bmd->object, "Mesh object to use for boolean operation");
 		}
 		uiBlockEndAlign(block);
 
@@ -1916,7 +1916,7 @@ static void editing_panel_font_type(Object *ob, Curve *cu)
 	uiBlockEndAlign(block);
 	uiDefButBitS(block, TOG, CU_FAST, B_FASTFONT, "Fast Edit",		715,105,78,20, &cu->flag, 0, 0, 0, 0, "Don't fill polygons while editing");	
 
-	uiDefIDPoinBut(block, test_obpoin_but, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_TEXTONCURVE, "TextOnCurve:",	480,105,220,19, &cu->textoncurve, "Apply a deforming curve to the text");
 	uiDefBut(block, TEX,REDRAWVIEW3D, "Ob Family:",	480,84,220,19, cu->family, 0.0, 20.0, 0, 0, "Blender uses font from selfmade objects");
 
 	uiBlockBeginAlign(block);
@@ -2238,8 +2238,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 		uiDefButF(block, NUM, B_MAKEDISP, "Extrude:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "Curve extrusion size when not using a bevel object");
 		uiDefButF(block, NUM, B_MAKEDISP, "Bevel Depth:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "Bevel depth when not using a bevel object");
 		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 10.0, 0, 0, "Bevel resolution when depth is non-zero and not using a bevel object");
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
-		uiDefIDPoinBut(block, test_obcurpoin_but, B_CHANGEDEP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
+		uiDefIDPoinBut(block, test_obcurpoin_but, ID_OB, B_CHANGEDEP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
+		uiDefIDPoinBut(block, test_obcurpoin_but, ID_OB, B_CHANGEDEP, "TaperOb:",		760,-10,150,19, &cu->taperobj, "Curve object name that defines the taper (width)");
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -2720,6 +2720,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			/*	Bone naming button */
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_editbonebutton_cb, curBone, NULL);
+			uiButSetCompleteFunc(but, autocomplete_bone, (void *)OBACT);
 
 			uiDefBut(block, LABEL, 0, "child of", bx+107,by,73,18, NULL, 0.0, 0.0, 0.0, 0.0, "");
 
@@ -2792,6 +2793,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
 			uiButSetFunc(but, validate_posebonebutton_cb, curBone, NULL);
+			uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
 			
 			/* Dist and weight buttons */
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:", bx+107, by, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");

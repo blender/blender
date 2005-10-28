@@ -1880,7 +1880,7 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 			uiDefBut(block, BUT, B_IPO_DRIVER, "Remove",				210,265,100,19, NULL, 0.0f, 0.0f, 0, 0, "Remove Driver for this Ipo Channel");
 			
 			uiBlockBeginAlign(block);
-			uiDefIDPoinBut(block, test_obpoin_but, B_IPO_DEPCHANGE, "OB:",	10, 240, 150, 20, &(driver->ob), "Driver Object");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_IPO_DEPCHANGE, "OB:",	10, 240, 150, 20, &(driver->ob), "Driver Object");
 			if(driver->ob) {
 				int icon=ICON_OBJECT;
 				

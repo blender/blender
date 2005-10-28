@@ -1787,7 +1787,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		bt= uiDefBut(block, TEX, B_IDNAME, "OB: ",	10,180,140,20, ob->id.name+2, 0.0, 19.0, 0, 0, "");
 		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 
-		uiDefIDPoinBut(block, test_obpoin_but, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 	}
 
 	lim= 10000.0f*MAX2(1.0, G.vd->grid);

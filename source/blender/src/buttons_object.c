@@ -409,6 +409,45 @@ static void constraint_moveDown(void *ob_v, void *con_v)
 	BIF_undo_push("Move constraint");
 }
 
+/* autocomplete callback for ID buttons */
+void autocomplete_bone(char *str, void *arg_v)
+{
+	Object *ob= (Object *)arg_v;
+	char truncate[40]= {0};
+	
+	if(ob==NULL || ob->pose==NULL) return;
+	
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		bPoseChannel *pchan;
+		
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			int a;
+			
+			for(a=0; a<31; a++) {
+				if(str[a]==0 || str[a]!=pchan->name[a])
+					break;
+			}
+			/* found a match */
+			if(str[a]==0) {
+				/* first match */
+				if(truncate[0]==0)
+					BLI_strncpy(truncate, pchan->name, 32);
+				else {
+					/* remove from truncate what is not in bone->name */
+					for(a=0; a<31; a++) {
+						if(truncate[a]!=pchan->name[a])
+							truncate[a]= 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 32);
+	}
+}
+
+
 
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco)
 {
@@ -508,11 +547,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -521,7 +561,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw action button */
 				uiBlockBeginAlign(block);
 				uiDefButS(block, TOG, B_CONSTRAINT_TEST, "Local",						*xco+((width/2)-117), *yco-46, 78, 18, &data->local, 0, 0, 0, 0, "Use true local rotation difference");
-				uiDefIDPoinBut(block, test_actionpoin_but, B_CONSTRAINT_TEST, "AC:",	*xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
+				uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, B_CONSTRAINT_TEST, "AC:",	*xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
 				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Key on%t|X Rot%x0|Y Rot%x1|Z Rot%x2", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
 
 				uiBlockBeginAlign(block);
@@ -546,11 +586,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -579,11 +620,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -611,11 +653,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
 				
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
-				if (arm)
+				if (arm) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
 				else
 					strcpy (data->subtarget, "");
 	
@@ -643,11 +687,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -687,11 +732,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -722,11 +768,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");
@@ -762,7 +809,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
 				/* Draw Curve Follow toggle */
 				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
@@ -803,11 +850,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
 				arm = get_armature(data->tar);
 				if (arm){
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
 				else
 					strcpy (data->subtarget, "");

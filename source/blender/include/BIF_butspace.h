@@ -44,6 +44,7 @@ extern void redraw_test_buttons(struct Object *new);
 
 /* buttons_editing.c */
 extern void validate_editbonebutton_cb(void *bonev, void *namev);
+extern void autocomplete_bone(char *str, void *arg_v);
 
 
 /* buts->mainb old */

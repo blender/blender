@@ -110,6 +110,8 @@ extern void do_ipobuts(unsigned short event);	// drawipo.c (bad! ton)
 /* uvautocalculation */
 void do_uvautocalculationbuts(unsigned short event);
 void get_uvautocalculationsettings(float *radius,float *cubesize, int *mapdir, int *mapalign);
+
+
 /* butspace.c */
 void test_meshpoin_but(char *name, struct ID **idpp);
 void test_obpoin_but(char *name, struct ID **idpp);
@@ -119,7 +121,6 @@ void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
 void test_obcurpoin_but(char *name, ID **idpp);
 void test_idbutton_cb(void *namev, void *arg2_unused);
-
 
 /* -------------- internal event defines ------------ */
 

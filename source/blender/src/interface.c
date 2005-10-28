@@ -72,8 +72,9 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_utildefines.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
@@ -1571,6 +1572,14 @@ static int ui_do_but_TEX(uiBut *but)
 						dodraw= 1;
 					}
 				} 
+				break;
+			case TABKEY:
+				if(but->autocomplete_func) {
+					but->autocomplete_func(str, but->autofunc_arg);
+					but->pos= strlen(str);
+					len= but->pos;
+					dodraw= 1;
+				}
 				break;
 			}
 		}
@@ -4849,6 +4858,46 @@ static int findBitIndex(unsigned int x) {
 		return idx;
 	}
 }
+
+/* autocomplete callback for ID buttons */
+static void autocomplete_id(char *str, void *arg_v)
+{
+	int blocktype= (int)arg_v;
+	ListBase *listb= wich_libbase(G.main, blocktype);
+	char truncate[32]= {0};
+	
+	if(listb==NULL) return;
+	
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		ID *id;
+		
+		for(id= listb->first; id; id= id->next) {
+			int a;
+			
+			for(a=0; a<21; a++) {
+				if(str[a]==0 || str[a]!=id->name[a+2])
+					break;
+			}
+			/* found a match */
+			if(str[a]==0) {
+				/* first match */
+				if(truncate[0]==0)
+					strcpy(truncate, id->name+2);
+				else {
+					/* remove from truncate what is not in id->name */
+					for(a=0; a<21; a++) {
+						if(truncate[a]!=id->name[a+2])
+							truncate[a]= 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 21);
+	}
+}
+
 static uiBut *uiDefButBit(uiBlock *block, int type, int bit, int retval, char *str, short x1, short y1, short x2, short y2, void *poin, float min, float max, float a1, float a2,  char *tip)
 {
 	int bitIdx= findBitIndex(bit);
@@ -5145,12 +5194,24 @@ void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, 
 	but->func_arg2= arg2;
 }
 
-void uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, int retval, char *str, short x1, short y1, short x2, short y2, void *idpp, char *tip)
+void uiButSetCompleteFunc(uiBut *but, void (*func)(char *str, void *arg), void *arg)
+{
+	but->autocomplete_func= func;
+	but->autofunc_arg= arg;
+}
+
+
+uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int retval, char *str, short x1, short y1, short x2, short y2, void *idpp, char *tip)
 {
 	uiBut *but= ui_def_but(block, IDPOIN, retval, str, x1, y1, x2, y2, NULL, 0.0, 0.0, 0.0, 0.0, tip);
 	but->idpoin_func= func;
 	but->idpoin_idpp= (ID**) idpp;
 	ui_check_but(but);
+	
+	if(blocktype)
+		uiButSetCompleteFunc(but, autocomplete_id, (void *)(int)blocktype);
+
+	return but;
 }
 
 uiBut *uiDefBlockBut(uiBlock *block, uiBlockFuncFP func, void *arg, char *str, short x1, short y1, short x2, short y2, char *tip)

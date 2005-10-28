@@ -124,6 +124,9 @@ struct uiBut {
 	void (*embossfunc)(int , int , float, float, float, float, float, int);
 	void (*sliderfunc)(int , float, float, float, float, float, float, int);
 
+	void (*autocomplete_func)(char *, void *);
+	void *autofunc_arg;
+	
 	uiLink *link;
 	
 	char *tip, *lockstr;

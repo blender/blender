@@ -1026,7 +1026,7 @@ static short draw_sensorbuttons(bSensor *sens, uiBlock *block, short xco, short 
 			ts= sens->data; 
 			
 			/* uiDefBut(block, TEX, 1, "Property:",	xco,yco-22,width, 19, &ts->name, 0, 31, 0, 0, "Only look for Objects with this property"); */
-			uiDefIDPoinBut(block, test_matpoin_but, 1, "MA:",(short)(xco + 10),(short)(yco-44), (short)(width - 20), 19, &ts->ma,  "Only look for floors with this Material"); 
+			uiDefIDPoinBut(block, test_matpoin_but, ID_MA, 1, "MA:",(short)(xco + 10),(short)(yco-44), (short)(width - 20), 19, &ts->ma,  "Only look for floors with this Material"); 
 			///* uiDefButF(block, NUM, 1, "Margin:",	xco+width/2,yco-44,width/2, 19, &ts->dist, 0.0, 10.0, 100, 0, "Extra margin (distance) for larger sensitivity"); 
 			yco-= ysize; 
 			break; 
@@ -1413,7 +1413,7 @@ static short draw_controllerbuttons(bController *cont, uiBlock *block, short xco
 		glRects(xco, yco-ysize, xco+width, yco);
 		uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 
-		uiDefIDPoinBut(block, test_scriptpoin_but, 1, "Script: ", xco+45,yco-24,width-90, 19, &pc->text, "");
+		uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+45,yco-24,width-90, 19, &pc->text, "");
 		
 		yco-= ysize;
 		break;
@@ -1565,7 +1565,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			str= "Action types   %t|Play %x0|Flipper %x2|Loop Stop %x3|Loop End %x4|Property %x6";
 #endif
 			uiDefButS(block, MENU, B_REDR, str, xco+30, yco-24, width-60, 19, &aa->type, 0.0, 0.0, 0.0, 0.0, "Action playback type");
-			uiDefIDPoinBut(block, test_actionpoin_but, 1, "AC: ", xco+30, yco-44, width-60, 19, &aa->act, "Action name");
+			uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, 1, "AC: ", xco+30, yco-44, width-60, 19, &aa->act, "Action name");
 			
 			if(aa->type == ACT_ACTION_FROM_PROP)
 			{
@@ -1657,7 +1657,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			uiDefBut(block, TEX, 1, "Prop: ",		xco+30,yco-44,width-60, 19, pa->name, 0, 31, 0, 0, "Property name");
 			
 			if(pa->type==ACT_PROP_COPY) {
-				uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",	xco+10, yco-64, (width-20)/2, 19, &(pa->ob), "Copy from this Object");
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",	xco+10, yco-64, (width-20)/2, 19, &(pa->ob), "Copy from this Object");
 				uiDefBut(block, TEX, 1, "Prop: ",		xco+10+(width-20)/2, yco-64, (width-20)/2, 19, pa->value, 0, 31, 0, 0, "Copy this property");
 			}
 			else {
@@ -1745,7 +1745,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		
  		ca= act->data;
         
- 		uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",		xco+10, yco-24, (width-20)/2, 19, &(ca->ob), "Look at this Object");
+ 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-24, (width-20)/2, 19, &(ca->ob), "Look at this Object");
  		uiDefButF(block, NUM, 0, "Height:",	xco+10+(width-20)/2, yco-24, (width-20)/2, 19, &ca->height, 0.0, 20.0, 0, 0, "");
 		
  		uiDefButF(block, NUM, 0, "Min:",	xco+10, yco-44, (width-60)/2, 19, &ca->min, 0.0, 20.0, 0, 0, "");
@@ -1770,7 +1770,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Add this Object");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Add this Object");
 			uiDefButI(block, NUM, 0, "Time:",	xco+10+(width-20)/2, yco-44, (width-20)/2, 19, &eoa->time, 0.0, 2000.0, 0, 0, "Duration the new Object lives");
 
 			wval= (width-60)/3;
@@ -1801,14 +1801,14 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_meshpoin_but, 1, "ME:",		xco+40, yco-44, (width-80), 19, &(eoa->me), "Add this Object");
+			uiDefIDPoinBut(block, test_meshpoin_but, ID_ME, 1, "ME:",		xco+40, yco-44, (width-80), 19, &(eoa->me), "Add this Object");
 		}
 		else if(eoa->type==ACT_EDOB_TRACK_TO) {
 			ysize= 48;
 			glRects(xco, yco-ysize, xco+width, yco);
 			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1);
 	 
-			uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Track to this Object");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+10, yco-44, (width-20)/2, 19, &(eoa->ob), "Track to this Object");
 			uiDefButI(block, NUM, 0, "Time:",	xco+10+(width-20)/2, yco-44, (width-20)/2-40, 19, &eoa->time, 0.0, 2000.0, 0, 0, "Duration the tracking takes");
 			uiDefButS(block, TOG, 0, "3D",	xco+width-50, yco-44, 40, 19, &eoa->flag, 0.0, 0.0, 0, 0, "Enable 3D tracking");
 		}
@@ -1865,7 +1865,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	 
-  			uiDefIDPoinBut(block, test_obpoin_but, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera"); 
+  			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, 1, "OB:",		xco+40, yco-44, (width-80), 19, &(sca->camera), "Set this Camera"); 
   		} 
   		else if(sca->type==ACT_SCENE_SET) { 
 			
@@ -1873,7 +1873,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Set this Scene"); 
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Set this Scene"); 
   		} 
 		else if(sca->type==ACT_SCENE_ADD_FRONT) { 
 			
@@ -1881,7 +1881,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add an Overlay Scene"); 
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add an Overlay Scene"); 
   		} 
 		else if(sca->type==ACT_SCENE_ADD_BACK) { 
 			
@@ -1889,7 +1889,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add a Background Scene"); 
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Add a Background Scene"); 
   		} 
 		else if(sca->type==ACT_SCENE_REMOVE) { 
 			
@@ -1897,7 +1897,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Remove a Scene");
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Remove a Scene");
   		} 
 		else if(sca->type==ACT_SCENE_SUSPEND) { 
 			
@@ -1905,7 +1905,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Pause a Scene");
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Pause a Scene");
   		} 
 		else if(sca->type==ACT_SCENE_RESUME) { 
 			
@@ -1913,7 +1913,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
   			glRects(xco, yco-ysize, xco+width, yco); 
   			uiEmboss((float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1); 
 	
-  			uiDefIDPoinBut(block, test_scenepoin_but, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Unpause a Scene");
+  			uiDefIDPoinBut(block, test_scenepoin_but, ID_SCE, 1, "SCE:",		xco+40, yco-44, (width-80), 19, &(sca->scene), "Unpause a Scene");
   		} 
 
 		str= "Scene %t|Restart %x0|Set Scene %x1|Set Camera %x2|Add OverlayScene %x3|Add BackgroundScene %x4|Remove Scene %x5|Suspend Scene %x6|Resume Scene %x7";
