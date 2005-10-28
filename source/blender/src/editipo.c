@@ -1650,7 +1650,7 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 					return ob->ipo;
 				}
 				else if(blocktype==ID_KE) {
-					Key *key= ob_get_key((Object *)G.sipo->from);
+					Key *key= ob_get_key((Object *)from);
 					
 					if(key) {
 						if(key->ipo==NULL) {
