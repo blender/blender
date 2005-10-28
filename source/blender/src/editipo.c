@@ -196,20 +196,23 @@ EditIpo *get_active_editipo(void)
 static void set_active_key(int index)
 {
 	if(G.sipo->blocktype==ID_KE && G.sipo->from) {
-		Key *key= (Key *)G.sipo->from;
-		KeyBlock *curkb;
-		Object *ob= OBACT;
+		Object *ob= (Object *)G.sipo->from;
+		Key *key= ob_get_key(ob);
 		
-		curkb= BLI_findlink(&key->block, index-1);
-		if(curkb) {
-			ob->shapenr= index;
-			ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+		if(key) {
+			KeyBlock *curkb;
 			
-			/* calc keypos */
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-		}				
+			curkb= BLI_findlink(&key->block, index-1);
+			if(curkb) {
+				ob->shapenr= index;
+				ob->shapeflag |= OB_SHAPE_TEMPLOCK;
+				
+				/* calc keypos */
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+		}
 	}			
 }
 
@@ -251,7 +254,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 
 	/* keylines? */
 	if(si->blocktype==ID_KE) {
-		key= (Key *)si->from;
+		key= ob_get_key((Object *)G.sipo->from);
 		if(key && key->block.first) {
 			kb= key->block.first;
 			if(kb->pos < v2d->tot.ymin) v2d->tot.ymin= kb->pos;
@@ -484,7 +487,7 @@ static void make_key_editipo(SpaceIpo *si)
 	EditIpo *ei;
 	int a;
 	
-	key= (Key *)G.sipo->from;
+	key= ob_get_key((Object *)G.sipo->from);
 	if(key==NULL) return;
 	
 	si->totipo= BLI_countlist(&key->block);
@@ -998,8 +1001,19 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_KE) {
 		if(ob) {
 			Key *key= ob_get_key(ob);
-			*from= (ID *)key;
-			if(key) *ipo= key->ipo;
+			
+			if(ob->ipoflag & OB_ACTION_KEY) {
+				if (ob->action) {
+					bActionChannel *achan= get_action_channel(ob->action, "Shape");
+					if(achan) {
+						*ipo= achan->ipo;
+						BLI_strncpy(actname, achan->name, 32);
+					}
+				}
+			}
+			else if(key) *ipo= key->ipo;
+			
+			*from= (ID *)ob;
 		}
 	}
 	else if(blocktype==ID_CU) {
@@ -1034,9 +1048,9 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 }
 
 /* called on each redraw, check if editipo data has to be remade */
-void test_editipo(void)
+/* if doit already set, it always makes (in case no ipo exists, we need to see the channels */
+void test_editipo(int doit)
 {
-	int doit= 0;
 	
 	if(G.sipo->pin==0) {
 		Ipo *ipo;
@@ -1292,8 +1306,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 void mouse_select_ipo(void)
 {
 	Object *ob;
-	Key *key;
-	KeyBlock *kb, *actkb=NULL, *curkb;
+	KeyBlock *actkb=NULL;
 	EditIpo *ei, *actei= 0;
 	IpoCurve *icu;
 	IpoKey *ik, *actik;
@@ -1377,10 +1390,12 @@ void mouse_select_ipo(void)
 		
 		/* vertex keys ? */
 		if(G.sipo->blocktype==ID_KE && G.sipo->from) {
+			Key *key;
+			KeyBlock *kb, *curkb;
 			int i, index= 1;
 			
-			key= (Key *)G.sipo->from;
-			ob= OBACT;
+			ob= (Object *)G.sipo->from;
+			key= ob_get_key(ob);
 			curkb= BLI_findlink(&key->block, ob->shapenr-1);
 			
 			ei= G.sipo->editipo;
@@ -1634,6 +1649,17 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 					}
 					return ob->ipo;
 				}
+				else if(blocktype==ID_KE) {
+					Key *key= ob_get_key((Object *)G.sipo->from);
+					
+					if(key) {
+						if(key->ipo==NULL) {
+							key->ipo= add_ipo("KeyIpo", ID_KE);
+						}
+						return key->ipo;
+					}
+					return NULL;
+				}
 			}
 			break;
 		case ID_MA:
@@ -1676,16 +1702,6 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 					cu->ipo= add_ipo("CuIpo", ID_CU);
 				}
 				return cu->ipo;
-			}
-			break;
-		case ID_KE:
-			{
-				Key *key= (Key *)from;
-
-				if(key->ipo==NULL) {
-					key->ipo= add_ipo("KeyIpo", ID_KE);
-				}
-				return key->ipo;
 			}
 			break;
 		case ID_WO:
@@ -1853,10 +1869,11 @@ void add_vert_ipo(void)
 	if(mval[0]>G.v2d->mask.xmax) return;
 	
 	ei= get_active_editipo();
-	if(ei==0) {
+	if(ei==NULL) {
 		error("No active Ipo curve");
 		return;
 	}
+	ei->flag |= IPO_VISIBLE;	/* can happen it is active but not visible */
 	
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
@@ -4083,9 +4100,6 @@ void ipo_record(void)
 	anim= pupmenu("Record Mouse %t|Still %x1|Play Animation %x2");
 	if(anim < 1) return;
 	if(anim!=2) anim= 0;
-
-//	ipo= verify_ipo(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname);
-//	test_editipo();
 
 	ob= OBACT;
 	/* find the curves... */

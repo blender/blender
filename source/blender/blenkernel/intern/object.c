@@ -1783,6 +1783,7 @@ void object_handle_update(Object *ob)
 		if(ob->recalc & OB_RECALC_DATA) {
 			
 //			printf("recalcdata %s\n", ob->id.name+2);
+			
 			/* includes all keys and modifiers */
 			if(ob->type==OB_MESH) {
 				makeDispListMesh(ob);

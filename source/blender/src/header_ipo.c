@@ -64,6 +64,7 @@
 #include "BKE_action.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
@@ -336,7 +337,7 @@ static void do_ipo_editmenu_keymenu(void *arg, int event)
 	Object *ob= OBACT;
 
 	if(G.sipo->blocktype==ID_KE && totipo_edit==0 && totipo_sel==0) {
-		key= (Key *)G.sipo->from;
+		key= ob_get_key((Object *)G.sipo->from);
 		if(key==NULL) return;
 
 		kb= BLI_findlink(&key->block, ob->shapenr-1);
@@ -925,6 +926,8 @@ void do_ipo_buttons(short event)
 		set_exprap_ipo(IPO_CYCLX);
 		break;
 	case B_IPOMAIN:
+		/* pass 1 to enforce a refresh when there's no Ipo */
+		test_editipo(1);
 		scrarea_queue_winredraw(curarea);
 		scrarea_queue_headredraw(curarea);
 		if(ob) ob->ipowin= G.sipo->blocktype;
@@ -986,8 +989,38 @@ void do_ipo_buttons(short event)
 			allqueue(REDRAWNLA, 0);
 		}
 		break;
-	case B_IPO_ACTION_KEY:
 		
+	case B_IPO_ACTION_KEY:
+		if(ob && G.sipo->from && G.sipo->pin==0) {
+			Key *key= ob_get_key(ob);
+			if(key) {
+				if(ob->ipoflag & OB_ACTION_KEY) {	/* check if channel exists, and flip ipo link */
+					bActionChannel *achan;
+					
+					if(ob->action==NULL) 
+						ob->action= add_empty_action(ID_KE);
+					achan= verify_action_channel(ob->action, "Shape");
+					if(achan->ipo==NULL && key->ipo) {
+						achan->ipo= key->ipo;
+						key->ipo= NULL;
+					}
+				}
+				else if(ob->action) {
+					bActionChannel *achan= get_action_channel(ob->action, "Shape");
+					if(achan) {
+						if(achan->ipo && key->ipo==NULL) {
+							key->ipo= achan->ipo;
+							achan->ipo= NULL;
+						}
+					}
+				}
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWNLA, 0);
+			}
+		}
 		break;
 	} 
 }
@@ -1013,7 +1046,7 @@ void ipo_buttons(void)
 	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
 	xco+= XIC+14;
 	
-	test_editipo();	/* test if current editipo is OK, make_editipo sets v2d->cur */
+	test_editipo(0);	/* test if current editipo is OK, make_editipo sets v2d->cur */
 
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	if(curarea->flag & HEADER_NO_PULLDOWN) {

@@ -1180,7 +1180,7 @@ void transform_meshchannel_keys(char mode, Key *key)
 				 * future
 				 */
 				 
-				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
                 allqueue (REDRAWVIEW3D, 0);
                 allqueue (REDRAWACTION, 0);
                 allqueue (REDRAWIPO, 0);

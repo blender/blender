@@ -88,28 +88,18 @@
 
 
 /* local functions ----------------------------------------------------- */
-void drawactionspace(ScrArea *sa, void *spacedata);
-static void draw_channel_names(void);
-static void draw_channel_strips(SpaceAction *saction);
 int count_action_levels(bAction *act);
 static BezTriple **ipo_to_keylist(Ipo *ipo, int flags, int *totvert);
 static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert);
 static BezTriple **ob_to_keylist(Object *ob, int flags, int *totvert);
 static BezTriple **icu_to_keylist(IpoCurve *icu, int flags, int *totvert);
-static void draw_keylist(gla2DDrawInfo *di, int totvert, BezTriple **blist, float ypos);
 void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, int flags, float ypos);
-static void draw_action_mesh_names(Key *key);
-
-/* missing local prototypes -------------------------------------------- */
-void meshactionbuts(SpaceAction *saction, Key *key);
-void do_actionbuts(unsigned short event);
 
 /* implementation ------------------------------------------------------ */
-
 extern short showsliders; /* editaction .c */
 extern short ACTWIDTH;
 
-void meshactionbuts(SpaceAction *saction, Key *key)
+static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 {
 	int           i;
 	char          str[64];
@@ -176,7 +166,7 @@ void meshactionbuts(SpaceAction *saction, Key *key)
 		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		for (i=1 ; i < key->totkey ; ++ i) {
-			make_rvk_slider(block, key, i, 
+			make_rvk_slider(block, ob, i, 
 							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1, "Slider to control Shape Keys");
 
 			y-=CHANNELHEIGHT+CHANNELSKIP;
@@ -670,7 +660,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 				/* if there is a mesh with rvk's selected,
 				 * then draw the key frames in the action window
 				 */
-				meshactionbuts(G.saction, key);
+				meshactionbuts(G.saction, OBACT, key);
 			}
 		}
 	}

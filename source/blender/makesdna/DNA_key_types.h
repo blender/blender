@@ -43,7 +43,7 @@ typedef struct KeyBlock {
 	struct KeyBlock *next, *prev;
 	
 	float pos;
-	int pad;
+	float curval;
 	short type, adrcode;
 	int totelem;
 	

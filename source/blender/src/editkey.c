@@ -44,19 +44,21 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "DNA_action_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view2d_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_scene_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
@@ -96,7 +98,7 @@ float meshslidervals[64] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-static IpoCurve *get_key_icu(Key *key, int keynum) 
+static IpoCurve *get_key_icu(Ipo *ipo, int keynum) 
 {
 	/* return the Ipocurve that has the specified
 	 * keynum as ardcode -- return NULL if no such 
@@ -104,13 +106,10 @@ static IpoCurve *get_key_icu(Key *key, int keynum)
 	 */
     IpoCurve *icu;
 	
-	/* why this? (ton) */
-	if (!(key->ipo)) {
-		key->ipo= add_ipo("KeyIpo", ID_KE);
+	if (!ipo) 
 		return NULL;
-	}
 
-    for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
+    for (icu = ipo->curve.first; icu ; icu = icu->next) {
         if (!icu->adrcode) continue;
         if (icu->adrcode == keynum) return icu;
     }
@@ -144,23 +143,26 @@ static BezTriple *get_bezt_icu_time(IpoCurve *icu, float *frame, float *val) {
 	return bezt;
 }
 
-static void rvk_slider_func(void *voidkey, void *voidkeynum) 
+static void rvk_slider_func(void *voidob, void *voidkeynum) 
 {
 	/* the callback for the rvk sliders ... copies the
 	 * value from the temporary array into a bezier at the
 	 * right frame on the right ipo curve (creating both the
 	 * ipo curve and the bezier if needed).
 	 */
+	Object *ob= voidob;
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
-	Key *key = (Key *) voidkey;
-	Object *ob= OBACT;
 	float cfra, rvkval;
 	int keynum = (int) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
-	icu = verify_ipocurve(&key->id, ID_KE, NULL, NULL, keynum);
+	/* ipo on action or ob? */
+	if(ob->ipoflag & OB_ACTION_KEY)
+		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, keynum);
+	else 
+		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier
@@ -184,8 +186,6 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 	 */
 	sort_time_ipocurve(icu);
 	testhandles_ipocurve(icu);
-
-	do_ipo(key->ipo);
 	
 	ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -195,10 +195,9 @@ static void rvk_slider_func(void *voidkey, void *voidkeynum)
 	allqueue (REDRAWNLA, 0);
 	allqueue (REDRAWIPO, 0);
 	allspace(REMAKEIPO, 0);
-
 }
 
-static float getrvkval(Key *key, int keynum) 
+static float getrvkval(Ipo *ipo, int keynum) 
 {
 	/* get the value of the rvk from the
 	 * ipo curve at the current time -- return 0
@@ -210,7 +209,7 @@ static float getrvkval(Key *key, int keynum)
 	float     cfra;
 
 	cfra = frame_to_float(CFRA);
-	icu    = get_key_icu(key, keynum);
+	icu    = get_key_icu(ipo, keynum);
 	if (icu) {
 		bezt = get_bezt_icu_time(icu, &cfra, &rvkval);
 		if (!bezt) {
@@ -222,17 +221,32 @@ static float getrvkval(Key *key, int keynum)
 
 }
 
-void make_rvk_slider(uiBlock *block, Key *key, int keynum,
+void make_rvk_slider(uiBlock *block, Object *ob, int keynum,
 					 int x, int y, int w, int h, char *tip)
 {
 	/* create a slider for the rvk */
-	uiBut         *but;
+	uiBut *but;
+	Ipo *ipo= NULL;
+	Key *key= ob_get_key(ob);
 	KeyBlock   *kb;
 	float min, max;
 	int i;
 	
+	if(key==NULL) return;
+	
+	/* ipo on action or ob? */
+	if(ob->ipoflag & OB_ACTION_KEY) {
+		if(ob->action) {
+			bActionChannel *achan;
+			
+			achan= get_action_channel(ob->action, "Shape");
+			if(achan) ipo= achan->ipo;
+		}
+	}
+	else ipo= key->ipo;
+	
 	/* global array */
-	meshslidervals[keynum] = getrvkval(key, keynum);
+	meshslidervals[keynum] = getrvkval(ipo, keynum);
 
 	kb= key->block.first;
 	for (i=0; i<keynum; ++i) kb = kb->next; 
@@ -252,7 +266,7 @@ void make_rvk_slider(uiBlock *block, Key *key, int keynum,
 				  x, y , w, h,
 				  meshslidervals+keynum, min, max, 10, 2, tip);
 	
-	uiButSetFunc(but, rvk_slider_func, key, (void *)keynum);
+	uiButSetFunc(but, rvk_slider_func, ob, (void *)keynum);
 	// no hilite, the winmatrix is not correct later on...
 	uiButSetFlag(but, UI_NO_HILITE);
 

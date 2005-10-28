@@ -897,16 +897,13 @@ void deselectall(void)	/* is toggle */
 void selectswap(void)
 {
 	Base *base;
-	int a=0;
 
-	base= FIRSTBASE;
-	while(base) {
+	for(base= FIRSTBASE; base; base= base->next) {
 		if(base->lay & G.vd->lay) {
 			if TESTBASE(base) base->flag &= ~SELECT;
 			else base->flag |= SELECT;
 			base->object->flag= base->flag;
 		}
-		base= base->next;
 	}
 
 	allqueue(REDRAWVIEW3D, 0);

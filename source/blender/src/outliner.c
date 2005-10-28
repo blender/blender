@@ -1156,7 +1156,16 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 	tselems= TREESTORE(tes);
 	
 	if(set) {
-		ob->ipowin= tes->idcode;
+		if(tes->idcode==ID_AC) {
+			if(ob->ipoflag & OB_ACTION_OB)
+				ob->ipowin= ID_OB;
+			else if(ob->ipoflag & OB_ACTION_KEY)
+				ob->ipowin= ID_KE;
+			else 
+				ob->ipowin= ID_PO;
+		}
+		else ob->ipowin= tes->idcode;
+		
 		if(ob->ipowin==ID_MA) tree_element_active_material(soops, tes, 1);
 		else if(ob->ipowin==ID_AC) {
 			bActionChannel *chan;
@@ -1173,21 +1182,29 @@ static int tree_element_active_ipo(SpaceOops *soops, TreeElement *te, int set)
 		
 		allqueue(REDRAWIPO, ob->ipowin);
 	}
-	else if(ob->ipowin==tes->idcode) {
-		if(ob->ipowin==ID_MA) {
-			Material *ma= give_current_material(ob, ob->actcol);
-			if(ma==(Material *)tselems->id) return 1;
-		}
-		else if(ob->ipowin==ID_AC) {
-			bActionChannel *chan;
-			short a=0;
-			for(chan=ob->action->chanbase.first; chan; chan= chan->next) {
-				if(a==te->index) break;
-				if(chan->ipo) a++;
+	else {
+		if(tes->idcode==ID_AC) {
+			if(ob->ipoflag & OB_ACTION_OB)
+				return ob->ipowin==ID_OB;
+			else if(ob->ipoflag & OB_ACTION_KEY)
+				return ob->ipowin==ID_KE;
+			else if(ob->ipowin==ID_AC) {
+				bActionChannel *chan;
+				short a=0;
+				for(chan=ob->action->chanbase.first; chan; chan= chan->next) {
+					if(a==te->index) break;
+					if(chan->ipo) a++;
+				}
+				if(chan==get_hilighted_action_channel(ob->action)) return 1;
 			}
-			if(chan==get_hilighted_action_channel(ob->action)) return 1;
 		}
-		else return 1;
+		else if(ob->ipowin==tes->idcode) {
+			if(ob->ipowin==ID_MA) {
+				Material *ma= give_current_material(ob, ob->actcol);
+				if(ma==(Material *)tselems->id) return 1;
+			}
+			else return 1;
+		}
 	}
 	return 0;
 }	

@@ -43,6 +43,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -55,6 +56,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -636,12 +638,14 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	}
 }
 
-static void execute_ipochannels(Object *ob, ListBase *lb)
+static void execute_ipochannels(ListBase *lb)
 {
 	NlaIpoChannel *nic;
 	
 	for(nic= lb->first; nic; nic= nic->next) {
-		if(nic->poin) write_ipo_poin(nic->poin, nic->type, nic->val);
+		if(nic->poin) {
+			write_ipo_poin(nic->poin, nic->type, nic->val);
+		}
 	}
 }
 
@@ -721,6 +725,7 @@ static float nla_time(float cfra, float unit)
 static void do_nla(Object *ob, int blocktype)
 {
 	bPose *tpose= NULL;
+	Key *key= NULL;
 	ListBase tchanbase={NULL, NULL}, chanbase={NULL, NULL};
 	bActionStrip *strip;
 	float striptime, frametime, length, actlength;
@@ -730,6 +735,9 @@ static void do_nla(Object *ob, int blocktype)
 	if(blocktype==ID_AR) {
 		copy_pose(&tpose, ob->pose, 1);
 		rest_pose(ob->pose);		// potentially destroying current not-keyed pose
+	}
+	else {
+		key= ob_get_key(ob);
 	}
 	
 	for (strip=ob->nlastrips.first; strip; strip=strip->next){
@@ -776,12 +784,15 @@ static void do_nla(Object *ob, int blocktype)
 								striptime = (float)fmod (striptime, 1.0);
 								
 								frametime = (striptime * actlength) + strip->actstart;
+								frametime= bsystem_time(ob, 0, frametime, 0.0);
 								
 								if(blocktype==ID_AR)
-									extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
-								else if(blocktype==ID_OB)
-									extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", bsystem_time(ob, 0, frametime, 0.0));
-								
+									extract_pose_from_action (tpose, strip->act, frametime);
+								else if(blocktype==ID_OB) {
+									extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+									if(key)
+										extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+								}
 								doit=1;
 							}
 						}
@@ -794,25 +805,32 @@ static void do_nla(Object *ob, int blocktype)
 					striptime = (float)fmod (striptime, 1.0);
 					
 					frametime = (striptime * actlength) + strip->actstart;
-					
-					if(blocktype==ID_AR)
-						extract_pose_from_action (tpose, strip->act, nla_time(frametime, (float)strip->repeat));
-					else if(blocktype==ID_OB)
-						extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", nla_time(frametime, (float)strip->repeat));
+					frametime= nla_time(frametime, (float)strip->repeat);
 						
+					if(blocktype==ID_AR)
+						extract_pose_from_action (tpose, strip->act, frametime);
+					else if(blocktype==ID_OB) {
+						extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+						if(key)
+							extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+					}						
 					doit=1;
 				}
 				/* Handle extend */
 				else{
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME){
 						striptime = 1.0;
+						
 						frametime = (striptime * actlength) + strip->actstart;
+						frametime= bsystem_time(ob, 0, frametime, 0.0);
 						
 						if(blocktype==ID_AR)
-							extract_pose_from_action (tpose, strip->act, bsystem_time(ob, 0, frametime, 0.0));
-						else if(blocktype==ID_OB)
-							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", bsystem_time(ob, 0, frametime, 0.0));
-						
+							extract_pose_from_action (tpose, strip->act, frametime);
+						else if(blocktype==ID_OB) {
+							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
+							if(key)
+								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
+						}
 						doit=1;
 					}
 				}
@@ -842,7 +860,7 @@ static void do_nla(Object *ob, int blocktype)
 	}
 	
 	if(blocktype==ID_OB) {
-		execute_ipochannels(ob, &chanbase);
+		execute_ipochannels(&chanbase);
 	}
 
 	if (tpose){
@@ -886,13 +904,17 @@ void do_all_object_actions(Object *ob)
 	/* Do local action */
 	if(ob->action && ((ob->nlaflag & OB_NLA_OVERRIDE)==0 || ob->nlastrips.first==NULL) ) {
 		ListBase tchanbase= {NULL, NULL};
+		Key *key= ob_get_key(ob);
 		float cframe= (float) G.scene->r.cfra;
 		
 		cframe= get_action_frame(ob, cframe);
 		
 		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(ob, 0, cframe, 0.0));
+		if(key)
+			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(ob, 0, cframe, 0.0));
+		
 		if(tchanbase.first) {
-			execute_ipochannels(ob, &tchanbase);
+			execute_ipochannels(&tchanbase);
 			BLI_freelistN(&tchanbase);
 		}
 	}

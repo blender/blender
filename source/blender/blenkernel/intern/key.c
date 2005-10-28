@@ -585,12 +585,10 @@ void cp_cu_key(Curve *cu, KeyBlock *kb, int start, int end)
 static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, float ctime, int mode)
 {
 	KeyBlock *kb;
-	IpoCurve *icu;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
 	
-	if(key->from==0) return;
-	if(key->ipo==0) return;
+	if(key->from==NULL) return;
 	
 	if( GS(key->from->name)==ID_ME ) {
 		ofs[0]= sizeof(MVert);
@@ -627,14 +625,10 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, f
 	while(kb) {
 		
 		if(kb!=key->refkey) {
-			float icuval= 0.0f;
+			float icuval= kb->curval;
 			
-			icu= find_ipocurve(key->ipo, kb->adrcode);
-			if(icu)
-				icuval= icu->curval;
-			
-			/* only with value or weights, and no difference allowed */
-			if((icuval!=0.0f || (icu==NULL && kb->weights)) && kb->totelem==tot) {
+			/* only with value, and no difference allowed */
+			if(icuval!=0.0f && kb->totelem==tot) {
 				float weight, *weights= kb->weights;
 				
 				poin= basispoin;
@@ -984,14 +978,6 @@ static int do_mesh_key(Object *ob, Mesh *me)
 	}
 	else {
 		
-		ctime= bsystem_time(0, 0, (float)G.scene->r.cfra, 0.0);
-		calc_ipo(me->key->ipo, ctime);	/* also all relative key positions */
-		
-		if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
-			ctime /= 100.0;
-			CLAMP(ctime, 0.0, 1.0);
-		}
-		
 		if(me->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
 			
@@ -1006,6 +992,11 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			}
 		}
 		else {
+			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
+				ctime /= 100.0;
+				CLAMP(ctime, 0.0, 1.0);
+			}
+			
 			flag= setkeys(ctime, &me->key->block, k, t, 0);
 			if(flag==0) {
 				do_key(0, me->totvert, me->totvert, (char *)me->mvert->co, me->key, k, t, 0);
@@ -1142,15 +1133,16 @@ static int do_curve_key(Curve *cu)
 	else {
 		
 		ctime= bsystem_time(0, 0, (float)G.scene->r.cfra, 0.0);
-		if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
-			ctime /= 100.0;
-			CLAMP(ctime, 0.0, 1.0);
-		}
 		
 		if(cu->key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, ctime);
 		}
 		else {
+			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
+				ctime /= 100.0;
+				CLAMP(ctime, 0.0, 1.0);
+			}
+			
 			flag= setkeys(ctime, &cu->key->block, k, t, 0);
 			
 			if(flag==0) do_cu_key(cu, k, t);
@@ -1200,16 +1192,16 @@ static int do_latt_key(Lattice *lt)
 	}
 	else {
 		ctime= bsystem_time(0, 0, (float)G.scene->r.cfra, 0.0);
-		if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
-			ctime /= 100.0;
-			CLAMP(ctime, 0.0, 1.0);
-		}
 	
 		if(lt->key->type==KEY_RELATIVE) {
 			do_rel_key(0, tot, tot, (char *)lt->def->vec, lt->key, ctime, 0);
 		}
 		else {
-
+			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
+				ctime /= 100.0;
+				CLAMP(ctime, 0.0, 1.0);
+			}
+			
 			flag= setkeys(ctime, &lt->key->block, k, t, 0);
 			if(flag==0) {
 				do_key(0, tot, tot, (char *)lt->def->vec, lt->key, k, t, 0);
@@ -1273,6 +1265,7 @@ int do_ob_key(Object *ob)
 
 Key *ob_get_key(Object *ob)
 {
+	if(ob==NULL) return NULL;
 	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;

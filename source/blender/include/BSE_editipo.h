@@ -68,7 +68,7 @@ void scale_editipo(void);
 
 unsigned int ipo_rainbow(int cur, int tot);
 
-void test_editipo(void);
+void test_editipo(int doit);
 void get_status_editipo(void);
 void update_editipo_flags(void);
 void set_editflag_editipo(void);

@@ -1451,6 +1451,20 @@ static int object_modifiers_use_time(Object *ob)
 	return 0;
 }
 
+static int exists_channel(Object *ob, char *name)
+{
+	bActionStrip *strip;
+	
+	if(ob->action)
+		if(get_action_channel(ob->action, name))
+			return 1;
+	
+	for (strip=ob->nlastrips.first; strip; strip=strip->next)
+		if(get_action_channel(strip->act, name))
+			return 1;
+	return 0;
+}
+
 /* flag all objects that need recalc, for changes in time for example */
 void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 {
@@ -1474,9 +1488,11 @@ void DAG_scene_update_flags(Scene *sce, unsigned int lay)
 		if(ob->action || ob->nlastrips.first) {
 			/* since actions now are mixed, we set the recalcs on the safe side */
 			ob->recalc |= OB_RECALC_OB;
-			if(ob->type==OB_ARMATURE) {
+			if(ob->type==OB_ARMATURE)
 				ob->recalc |= OB_RECALC_DATA;
-			}
+			else if(exists_channel(ob, "Shape"))
+				ob->recalc |= OB_RECALC_DATA;
+				
 		}
 		else if(modifiers_isSoftbodyEnabled(ob)) ob->recalc |= OB_RECALC_DATA;
 		else if(object_modifiers_use_time(ob)) ob->recalc |= OB_RECALC_DATA;

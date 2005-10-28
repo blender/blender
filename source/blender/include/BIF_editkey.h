@@ -58,7 +58,7 @@ void insert_shapekey(struct Object *ob);
 void delete_key(struct Object *ob);
 void move_keys(struct Object *ob);
 
-void make_rvk_slider(struct uiBlock *block, struct Key *key, int i,
+void make_rvk_slider(struct uiBlock *block, struct Object *ob, int keynum,
 							int x, int y, int w, int h, char *tip);
 
 #endif

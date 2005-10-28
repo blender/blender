@@ -1302,8 +1302,13 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 		
 	}
 	else if( GS(id->name)==ID_KE) {
+		KeyBlock *kb= ((Key *)id)->block.first;
 		
-		poin= &(icu->curval);
+		for(; kb; kb= kb->next)
+			if(kb->adrcode==icu->adrcode)
+				break;
+		if(kb)
+			poin= &(kb->curval);
 		
 	}
 	else if(GS(id->name)==ID_WO) {
@@ -1981,6 +1986,7 @@ void do_all_data_ipos()
 	World *wo;
 	Ipo *ipo;
 	Lamp *la;
+	Key *key;
 	Camera *ca;
 	bSound *snd;
 	Sequence *seq;
@@ -2018,24 +2024,22 @@ void do_all_data_ipos()
 		ipo= ipo->id.next;
 	}
 
-	tex= G.main->tex.first;
-	while(tex) {
+	for(tex= G.main->tex.first; tex; tex= tex->id.next) {
 		if(tex->ipo) execute_ipo((ID *)tex, tex->ipo);
-		tex= tex->id.next;
 	}
 
-	ma= G.main->mat.first;
-	while(ma) {
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if(ma->ipo) execute_ipo((ID *)ma, ma->ipo);
-		ma= ma->id.next;
 	}
 
-	wo= G.main->world.first;
-	while(wo) {
+	for(wo= G.main->world.first; wo; wo= wo->id.next) {
 		if(wo->ipo) execute_ipo((ID *)wo, wo->ipo);
-		wo= wo->id.next;
 	}
-
+	
+	for(key= G.main->key.first; key; key= key->id.next) {
+		if(key->ipo) execute_ipo((ID *)key, key->ipo);
+	}
+	
 	la= G.main->lamp.first;
 	while(la) {
 		if(la->ipo) execute_ipo((ID *)la, la->ipo);

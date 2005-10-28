@@ -1990,7 +1990,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		} 
 	}
 
-	test_editipo();	/* test if current editipo is correct, make_editipo sets v2d->cur */
+	test_editipo(0);	/* test if current editipo is correct, make_editipo sets v2d->cur */
 
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
  

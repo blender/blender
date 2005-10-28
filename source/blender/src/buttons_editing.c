@@ -1429,10 +1429,13 @@ static void editing_panel_shapes(Object *ob)
 	if( uiNewPanel(curarea, block, "Shapes", "Editing", 640, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, BUT, B_ADDKEY, "Add Shape Key" ,	10, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "Add new Shape Key");
-		
+	
 	key= ob_get_key(ob);
-	if(key==NULL) 
+	if(key==NULL) {
+		/* label aligns add button */
+		uiDefBut(block, LABEL, 0, "",		170, 180,140,20, NULL, 0, 0, 0, 0, "");
 		return;
+	}
 	
 	uiDefButS(block, TOG, B_RELKEY, "Relative",		170, 180,140,20, &key->type, 0, 0, 0, 0, "Makes Shape Keys relative");
 
@@ -1458,7 +1461,7 @@ static void editing_panel_shapes(Object *ob)
 
 	if(key->type && (ob->shapeflag & OB_SHAPE_LOCK)==0 && ob->shapenr!=1) {
 		uiBlockBeginAlign(block);
-		make_rvk_slider(block, key, ob->shapenr-1,			10, 120, 150, 20, "Key value, when used it inserts an animation curve point");
+		make_rvk_slider(block, ob, ob->shapenr-1,			10, 120, 150, 20, "Key value, when used it inserts an animation curve point");
 		uiDefButF(block, NUM, B_REDR, "Min ",				160,120, 75, 20, &kb->slidermin, -10.0, 10.0, 100, 1, "Minumum for slider");
 		uiDefButF(block, NUM, B_REDR, "Max ",				235,120, 75, 20, &kb->slidermax, -10.0, 10.0, 100, 1, "Maximum for slider");
 		uiBlockEndAlign(block);
