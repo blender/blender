@@ -2363,8 +2363,8 @@ static void outliner_draw_tree(SpaceOops *soops)
 	starty= soops->v2d.tot.ymax-OL_H;
 	outliner_draw_selection(soops, &soops->tree, &starty);
 	
-	// black hierarchy lines
-	glColor3ub(0,0,0);
+	// grey hierarchy lines
+	glColor3ub(110,110,110);
 	starty= soops->v2d.tot.ymax-OL_H/2;
 	startx= 6;
 	outliner_draw_hierarchy(soops, &soops->tree, startx, &starty);
