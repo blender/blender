@@ -909,10 +909,21 @@ ConvertCSGDescriptorsToDLM(
 
 		// cheat CSG never dumps out quads.
 
-		mface->v1 = face.vertex_index[0];
-		mface->v2 = face.vertex_index[1];
-		mface->v3 = face.vertex_index[2];
-		mface->v4 = 0;
+		if (face.vertex_number>3) {
+			// QUAD
+			mface->v1 = face.vertex_index[0];
+			mface->v2 = face.vertex_index[1];
+			mface->v3 = face.vertex_index[2];
+			mface->v4 = face.vertex_index[3];
+		}
+		else {
+			// TRIANGLE
+			mface->v1 = face.vertex_index[0];
+			mface->v2 = face.vertex_index[1];
+			mface->v3 = face.vertex_index[2];
+			mface->v4 = 0;
+		}
+
 		mface->mat_nr = 0;
 		mface->flag = fdata->faceflag;
 		
@@ -953,9 +964,9 @@ ConvertCSGDescriptorsToDLM(
 					((((unsigned int)floor(color[3] + 0.5f)) & 0xff) << 0);
 			}
 
-			test_index_face(mface, NULL, tface, 3);
+			test_index_face(mface, NULL, tface, face.vertex_number);
 		} else {
-			test_index_face(mface, NULL, NULL, 3);
+			test_index_face(mface, NULL, NULL, face.vertex_number);
 		}
 
 		fi_insert_pos++;
