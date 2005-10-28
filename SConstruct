@@ -357,9 +357,9 @@ elif sys.platform == 'win32':
 	use_openal = 'true'
 	use_fmod = 'false'
 	use_quicktime = 'true'
+	use_bullet = 'true'
 	use_sumo = 'true'
 	use_ode = 'false'
-	use_bullet = 'true'
 	use_buildinfo = 'true'
 	use_fluidsim = 'true'
 	build_blender_dynamic = 'true'
@@ -371,7 +371,8 @@ elif sys.platform == 'win32':
 	extra_flags = ['/EHsc', '/J', '/W3', '/Gd', '/MT']
 	cxxflags = []
 	defines = ['WIN32', '_CONSOLE']
-	defines += ['WITH_QUICKTIME']
+	if use_quicktime == 'true':
+		defines += ['WITH_QUICKTIME']
 	defines += ['_LIB', 'USE_OPENAL']
 	defines += ['FTGL_LIBRARY_STATIC']
 	warn_flags = []
@@ -439,9 +440,9 @@ elif sys.platform == 'win32':
 	ode_libpath = ['#../lib/windows/ode/lib']
 	ode_include = ['#../lib/windows/ode/include']
 	# Python lib name
-	python_include = ['#../lib/windows/python/include/python2.3']
+	python_include = ['#../lib/windows/python/include/python2.4']
 	python_libpath = ['#../lib/windows/python/lib']
-	python_lib = ['python23']
+	python_lib = ['python24']
 	python_linkflags = []
 	# International stuff
 	ftgl_lib = []
@@ -850,7 +851,7 @@ else:
 	config.write ("BUILD_GAMEENGINE = %r\n"%(use_gameengine))
 	if use_ode == 'true':
 		config.write ("USE_PHYSICS = 'ode'\n")
-	elif use_bullet == 'true':
+	elif (use_bullet == 'true') and (use_sumo == 'false'):
 		config.write("USE_PHYSICS = 'bullet'\n")
 	else:
 		config.write ("USE_PHYSICS = 'solid'\n")

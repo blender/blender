@@ -90,7 +90,7 @@ def ketsji_libs(env):
 				'NG_loopbacknetwork'])
 		if bs_globals.user_options_dict['USE_PHYSICS'] == 'solid':
 			env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
-		else:
+		elif bs_globals.user_options_dict['USE_PHYSICS'] == 'ode':
 			env.Append (LIBS=['PHY_Ode',
 					'PHY_Physics'])
 			env.Append (LIBS=bs_globals.user_options_dict['ODE_LIBRARY'])
