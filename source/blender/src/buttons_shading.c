@@ -468,37 +468,61 @@ static void do_colorband_cb(void *namev, void *arg2_unused)
 		int mindist= 12, xco;
 		uiGetMouse(mywinget(), mvalo);
 		
-		/* first, activate new key when mouse is close */
-		for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
-			xco= 12 + (cbd->pos*300.0);
-			xco= ABS(xco-mvalo[0]);
-			if(a==coba->cur) xco+= 5; // selected one disadvantage
-			if(xco<mindist) {
-				coba->cur= a;
-				mindist= xco;
+		if(G.qual & LR_CTRLKEY) {
+			/* insert new key on mouse location */
+			if(coba->tot < MAXCOLORBAND-1) {
+				float pos= ((float)(mvalo[0] - 12))/300.0f;
+				float col[4];
+				
+				do_colorband(coba, pos, col);
+				
+				coba->tot++;
+				coba->cur= coba->tot-1;
+				
+				coba->data[coba->cur].r= col[0];
+				coba->data[coba->cur].g= col[1];
+				coba->data[coba->cur].b= col[2];
+				coba->data[coba->cur].a= col[3];
+				coba->data[coba->cur].pos= pos;
+				
+				do_colorbandbuts(coba, B_CALCCBAND);
+				BIF_undo_push("Add colorband");
 			}
 		}
-		
-		cbd= coba->data + coba->cur;
-		
-		while(get_mbut() & L_MOUSE) {
-			uiGetMouse(mywinget(), mval);
-			if(mval[0]!=mvalo[0]) {
-				dx= mval[0]-mvalo[0];
-				dx/= 300.0;
-				cbd->pos+= dx;
-				CLAMP(cbd->pos, 0.0, 1.0);
-				
-				glDrawBuffer(GL_FRONT);
-				drawcolorband_cb();
-				glDrawBuffer(GL_BACK);
-				
-				do_colorbandbuts(coba, B_CALCCBAND2);
-				cbd= coba->data + coba->cur;	/* because qsort */
-				
-				mvalo[0]= mval[0];
+		else {
+			
+			/* first, activate new key when mouse is close */
+			for(a=0, cbd= coba->data; a<coba->tot; a++, cbd++) {
+				xco= 12 + (cbd->pos*300.0);
+				xco= ABS(xco-mvalo[0]);
+				if(a==coba->cur) xco+= 5; // selected one disadvantage
+				if(xco<mindist) {
+					coba->cur= a;
+					mindist= xco;
+				}
 			}
-			BIF_wait_for_statechange();
+			
+			cbd= coba->data + coba->cur;
+			
+			while(get_mbut() & L_MOUSE) {
+				uiGetMouse(mywinget(), mval);
+				if(mval[0]!=mvalo[0]) {
+					dx= mval[0]-mvalo[0];
+					dx/= 300.0;
+					cbd->pos+= dx;
+					CLAMP(cbd->pos, 0.0, 1.0);
+					
+					glDrawBuffer(GL_FRONT);
+					drawcolorband_cb();
+					glDrawBuffer(GL_BACK);
+					
+					do_colorbandbuts(coba, B_CALCCBAND2);
+					cbd= coba->data + coba->cur;	/* because qsort */
+					
+					mvalo[0]= mval[0];
+				}
+				BIF_wait_for_statechange();
+			}
 		}
 		allqueue(REDRAWBUTSSHADING, 0);
 		BIF_all_preview_changed();
