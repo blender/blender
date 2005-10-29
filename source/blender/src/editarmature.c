@@ -1813,7 +1813,8 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 	nearBone= get_bone_from_selectbuffer(base, buffer, hits, 1);
 
 	if (nearBone) {
-		if (!(G.qual & LR_SHIFTKEY)){
+		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
+		if (!(G.qual & LR_SHIFTKEY) || base!=BASACT){
 			deselectall_posearmature(ob, 0);
 			nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			select_actionchannel_by_name(ob->action, nearBone->name, 1);

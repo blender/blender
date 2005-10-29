@@ -146,7 +146,7 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	bAction			*temp;
 	bPoseChannel	*pchan;
 	ID				*id;
-	float			actlen;
+	float			actstart, actend;
 	int				oldframe;
 	int				curframe;
 	char			newname[64];
@@ -174,14 +174,14 @@ bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
 	sprintf (newname, "%s.BAKED", act->id.name+2);
 	rename_id(&result->id, newname);
 
-	actlen = calc_action_end(act);
+	calc_action_range(act, &actstart, &actend);
 
 	oldframe = G.scene->r.cfra;
 
 	temp = armob->action;
 	armob->action = result;
 	
-	for (curframe=1; curframe<ceil(actlen+1); curframe++){
+	for (curframe=1; curframe<ceil(actend+1.0f); curframe++){
 
 		/* Apply the old action */
 		
@@ -1606,6 +1606,7 @@ static void delete_actionchannels (void)
 
 void sethandles_meshchannel_keys(int code, Key *key)
 {
+	
     sethandles_ipo_keys(key->ipo, code);
 
 	BIF_undo_push("Set handles Action keys");
@@ -2121,20 +2122,20 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case HKEY:
-			if (key) {
-				if(G.qual & LR_SHIFTKEY) {
-					sethandles_meshchannel_keys(HD_AUTO, key);
-				}
-				else { 
-					sethandles_meshchannel_keys(HD_ALIGN, key);
+			if(G.qual & LR_SHIFTKEY) {
+				if(okee("Set Keys to Auto Handle")) {
+					if (key)
+						sethandles_meshchannel_keys(HD_AUTO, key);
+					else
+						sethandles_actionchannel_keys(HD_AUTO);
 				}
 			}
 			else {
-				if(G.qual & LR_SHIFTKEY) {
-					sethandles_actionchannel_keys(HD_AUTO);
-				}
-				else { 
-					sethandles_actionchannel_keys(HD_ALIGN);
+				if(okee("Toggle Keys Aligned Handle")) {
+					if (key)
+						sethandles_meshchannel_keys(HD_ALIGN, key);
+					else
+						sethandles_actionchannel_keys(HD_ALIGN);
 				}
 			}
 			break;
@@ -2171,12 +2172,11 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case VKEY:
-			if (key) {
-				sethandles_meshchannel_keys(HD_VECT, key);
-				/* to do */
-			}
-			else {
-				sethandles_actionchannel_keys(HD_VECT);
+			if(okee("Set Keys to Vector Handle")) {
+				if (key)
+					sethandles_meshchannel_keys(HD_VECT, key);
+				else
+					sethandles_actionchannel_keys(HD_VECT);
 			}
 			break;
 

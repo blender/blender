@@ -86,13 +86,13 @@ void	extrude_armature(int forked);
 void	subdivide_armature(void);
 
 void	free_editArmature(void);
-struct Bone *get_indexed_bone (struct Object *ob, int index);
 
 void	join_armature(void);
 void	load_editArmature(void);
 
 void	make_bone_parent(void);
 void    clear_bone_parent(void);
+struct Bone	*get_indexed_bone (struct Object *ob, int index);
 
 void	make_editArmature(void);
 void	make_trans_bones (char mode);
@@ -105,25 +105,25 @@ void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void    unique_editbone_name (char* name);
 
-void auto_align_armature(void);
-void create_vgroups_from_armature(Object *ob, Object *par);
+void	auto_align_armature(void);
+void	create_vgroups_from_armature(Object *ob, Object *par);
 
-void hide_selected_pose_bones(void);
-void hide_unselected_pose_bones(void);
-void show_all_pose_bones(void);
+void	hide_selected_pose_bones(void);
+void	hide_unselected_pose_bones(void);
+void	show_all_pose_bones(void);
 
-int bone_looper(Object *ob, struct Bone *bone, void *data,
+int		bone_looper(Object *ob, struct Bone *bone, void *data,
 				int (*bone_func)(Object *, struct Bone *, void *));
 
-void undo_push_armature(char *name);
-void armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
-void armature_flip_names(void);
+void	undo_push_armature(char *name);
+void	armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
+void	armature_flip_names(void);
 EditBone *armature_bone_get_mirrored(EditBone *ebo);
-void transform_armature_mirror_update(void);
+void	transform_armature_mirror_update(void);
 
-void hide_selected_armature_bones(void);
-void hide_unselected_armature_bones(void);
-void show_all_armature_bones(void);
+void	hide_selected_armature_bones(void);
+void	hide_unselected_armature_bones(void);
+void	show_all_armature_bones(void);
 
 #define	BONESEL_ROOT	0x10000000
 #define	BONESEL_TIP		0x20000000

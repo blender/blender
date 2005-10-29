@@ -184,8 +184,9 @@ void synchronize_action_strips(void)
 	for (base=G.scene->base.first; base; base=base->next) {
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
-				float actstart = calc_action_start(strip->act);
-				float actend = calc_action_end(strip->act);
+				float actstart, actend;
+				
+				calc_action_range(strip->act, &actstart, &actend);
 				
 				if(strip->actstart!=actstart || strip->actend!=actend) {
 					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
@@ -211,8 +212,7 @@ void reset_action_strips(int val)
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if(val==2) {
-					strip->actstart = calc_action_start(strip->act);
-					strip->actend = calc_action_end(strip->act);
+					calc_action_range(strip->act, &strip->actstart, &strip->actend);
 				}
 				else if(val==1) {
 					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
@@ -495,8 +495,8 @@ static void convert_nla(short mval[2])
 			
 			/* Link the action to the nstrip */
 			nstrip->act = base->object->action;
-			nstrip->actstart = calc_action_start(base->object->action);	/* MAKE THIS THE FIRST FRAME OF THE ACTION */
-			nstrip->actend = calc_action_end(base->object->action);
+			nstrip->act->id.us++;
+			calc_action_range(nstrip->act, &nstrip->actstart, &nstrip->actend);
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
 			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
@@ -546,8 +546,7 @@ static void add_nla_block(short event)
 	
 	/* Link the action to the strip */
 	strip->act = act;
-	strip->actstart = calc_action_start(act);
-	strip->actend = calc_action_end(act);
+	calc_action_range(strip->act, &strip->actstart, &strip->actend);
 	strip->start = G.scene->r.cfra;		/* could be mval[0] another time... */
 	strip->end = strip->start + (strip->actend-strip->actstart);
 		/* simple prevention of zero strips */

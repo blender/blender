@@ -111,9 +111,7 @@ struct bAction *copy_action(struct bAction *src);
 /**
  * Some kind of bounding box operation on the action.
  */
-float calc_action_start(const struct bAction *act);
-
-float calc_action_end(const struct bAction *act);
+void calc_action_range(const struct bAction *act, float *start, float *end);
 
 /**
  * Set the pose channels from the given action.

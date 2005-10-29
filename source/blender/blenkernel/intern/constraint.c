@@ -1055,12 +1055,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			Mat3Ortho(tmat);
 			
 			if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-				float eul[3];
+				float obeul[3], eul[3], obmat[3][3];
 				
 				Mat3ToEul(tmat, eul);
-				if(!(data->flag & ROTLIKE_X)) eul[0]= 0.0f;
-				if(!(data->flag & ROTLIKE_Y)) eul[1]= 0.0f;
-				if(!(data->flag & ROTLIKE_Z)) eul[2]= 0.0f;
+				Mat3CpyMat4(obmat, ob->obmat);
+				Mat3ToEul(obmat, obeul);
+				if(!(data->flag & ROTLIKE_X)) eul[0]= obeul[0];
+				if(!(data->flag & ROTLIKE_Y)) eul[1]= obeul[1];
+				if(!(data->flag & ROTLIKE_Z)) eul[2]= obeul[2];
 				EulToMat3(eul, tmat);
 			}
 

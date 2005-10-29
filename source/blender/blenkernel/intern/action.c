@@ -406,73 +406,48 @@ void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 }
 
 
-float calc_action_start(const bAction *act)
+void calc_action_range(const bAction *act, float *start, float *end)
 {
 	const bActionChannel *chan;
+	const bConstraintChannel *conchan;
 	const IpoCurve	*icu;
-	float size=999999999.0f;
+	float min=999999999.0f, max=-999999999.0;
 	int	i;
 	int	foundvert=0;
-	const bConstraintChannel *conchan;
 
-
-	if (!act)
-		return 0;
-
-	for (chan=act->chanbase.first; chan; chan=chan->next) {
-		if(chan->ipo) {
-			for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-				for (i=0; i<icu->totvert; i++){
-					size = MIN2 (size, icu->bezt[i].vec[1][0]);
-					foundvert=1;
-				}
-			}
-		}
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
-			if(conchan->ipo) {
-				for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
-					for (i=0; i<icu->totvert; i++){
-						size = MIN2 (size, icu->bezt[i].vec[1][0]);
+	if(act) {
+		for (chan=act->chanbase.first; chan; chan=chan->next) {
+			if(chan->ipo) {
+				for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
+					for (i=0; i<icu->totvert; i++) {
+						min = MIN2 (min, icu->bezt[i].vec[1][0]);
+						max = MAX2 (max, icu->bezt[i].vec[1][0]);
 						foundvert=1;
 					}
 				}
 			}
-		}
-	}
-	
-	if (!foundvert)
-		return 0;
-	else
-		return size;
-}
-
-float calc_action_end(const bAction *act)
-{
-	const bActionChannel	*chan;
-	const bConstraintChannel *conchan;
-	const IpoCurve		*icu;
-	float size=0;
-	int	i;
-
-	if (!act)
-		return 0;
-
-	for (chan=act->chanbase.first; chan; chan=chan->next) {
-		if(chan->ipo) {
-			for (icu=chan->ipo->curve.first; icu; icu=icu->next)
-				for (i=0; i<icu->totvert; i++)
-					size = MAX2 (size, icu->bezt[i].vec[1][0]);
-		}
-		
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-			if(conchan->ipo) {
-				for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
-					for (i=0; i<icu->totvert; i++)
-						size = MAX2 (size, icu->bezt[i].vec[1][0]);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if(conchan->ipo) {
+					for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
+						for (i=0; i<icu->totvert; i++){
+							min = MIN2 (min, icu->bezt[i].vec[1][0]);
+							max = MAX2 (max, icu->bezt[i].vec[1][0]);
+							foundvert=1;
+						}
+					}
+				}
 			}
 		}
+	}	
+	if (foundvert) {
+		if(min==max) max+= 1.0f;
+		*start= min;
+		*end= max;
 	}
-	return size;
+	else {
+		*start= 0.0f;
+		*end= 1.0f;
+	}
 }
 
 /* Copy the data from the action-pose (src) into the pose */
@@ -798,11 +773,12 @@ static void do_nla(Object *ob, int blocktype)
 						}
 					}
 				}
-				/* Handle repeat */
-				else if (striptime < 1.0) {	
+				/* Handle repeat, we add 1 frame extra to make sure the last frame is included */
+				else if (striptime < 1.0f + 1.0f/length) {
+					
 					/* Mod to repeat */
-					striptime*=strip->repeat;
-					striptime = (float)fmod (striptime, 1.0);
+					striptime*= strip->repeat;
+					striptime = (float)fmod (striptime, 1.0f + 1.0f/length);
 					
 					frametime = (striptime * actlength) + strip->actstart;
 					frametime= nla_time(frametime, (float)strip->repeat);

@@ -359,7 +359,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	bAction	*act;
 	bActionChannel *chan;
 	bConstraintChannel *conchan;
-	float	y;
+	float y, sta, end;
 	int act_start, act_end, dummy;
 	char col1[3], col2[3];
 	
@@ -381,8 +381,9 @@ static void draw_channel_strips(SpaceAction *saction)
 		map_active_strip(di, OBACT, 0);
 	
 	/* start and end of action itself */
-	gla2DDrawTranslatePt(di, calc_action_start(act), 0, &act_start, &dummy);
-	gla2DDrawTranslatePt(di, calc_action_end(act), 0, &act_end, &dummy);
+	calc_action_range(act, &sta, &end);
+	gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
+	gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
 	
 	if (G.saction->pin==0 && OBACT)
 		map_active_strip(di, OBACT, 1);

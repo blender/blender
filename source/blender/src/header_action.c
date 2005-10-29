@@ -137,8 +137,8 @@ void do_action_buttons(unsigned short event)
 			}
 			else {
 				float extra;
-				G.v2d->cur.xmin= calc_action_start(G.saction->action);
-				G.v2d->cur.xmax= calc_action_end(G.saction->action);
+				
+				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax);
 				extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
 				G.v2d->cur.xmin-= extra;
 				G.v2d->cur.xmax+= extra;

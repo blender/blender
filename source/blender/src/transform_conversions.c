@@ -1732,7 +1732,7 @@ void special_aftertrans_update(TransInfo *t)
 		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 		ob->pose->flag |= POSE_DO_UNLOCK;
 		
-		if(G.flags & G_RECORDKEYS) {
+		if((G.flags & G_RECORDKEYS) && (!cancelled)) {
 			act= ob->action;
 			pose= ob->pose;
 			

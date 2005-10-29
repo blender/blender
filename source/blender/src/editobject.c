@@ -1156,34 +1156,11 @@ int test_parent_loop(Object *par, Object *ob)
 
 }
 
-static char *make_bone_menu (Object *ob)
-{
-	char *menustr=NULL;
-	bPoseChannel *pchan;
-	int		size;
-	int		index=0;
-	
-	//	Count the bones
-	for(size=0, pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, size++);
-	
-	size = size*48 + 256;
-	menustr = MEM_callocN(size, "bonemenu");
-	
-	sprintf (menustr, "Select Bone%%t");
-	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next, index++) {
-		sprintf (menustr, "%s|%s%%x%d", menustr, pchan->bone->name, index);
-	}
-	
-	return menustr;
-}
-
-
 void make_parent(void)
 {
 	Base *base;
 	Object *par;
-	Bone	*bone=NULL;
+	bPoseChannel *pchan= NULL;
 	short qual, mode=0;
 
 	if(G.scene->id.lib) return;
@@ -1267,19 +1244,23 @@ void make_parent(void)
 		}
 	}
 	else if(par->type == OB_ARMATURE){
-		int	bonenr;
-		char *bonestr=NULL;
 		
 		base= FIRSTBASE;
 		while(base) {
 			if TESTBASELIB(base) {
 				if(base!=BASACT) {
 					if(base->object->type==OB_MESH) {
-						mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
+						if(par->flag & OB_POSEMODE)
+							mode= pupmenu("Make Parent To%t|Bone %x1|Armature %x2|Object %x3");
+						else
+							mode= pupmenu("Make Parent To%t|Armature %x2|Object %x3");
 						break;
 					}
 					else {
-						mode= pupmenu("Make Parent To %t|Bone %x1|Object %x3");
+						if(par->flag & OB_POSEMODE)
+							mode= pupmenu("Make Parent To %t|Bone %x1|Object %x3");
+						else
+							mode= pupmenu("Make Parent To %t|Object %x3");
 						break;
 					}
 				}
@@ -1290,21 +1271,10 @@ void make_parent(void)
 		switch (mode){
 		case 1:
 			mode=PARBONE;
-			/* Make bone popup menu */
+			pchan= get_active_posechannel(par);
 
-			bonestr = make_bone_menu(par);
-
-			bonenr= pupmenu_col(bonestr, 20);
-			if (bonestr)
-				MEM_freeN (bonestr);
-			
-			if (bonenr==-1){
-				allqueue(REDRAWVIEW3D, 0);
-				return;
-			}
-
-			bone= get_indexed_bone(par, bonenr<<16);		// function uses selection codes
-			if (!bone){
+			if(pchan==NULL) {
+				error("No active Bone");
 				allqueue(REDRAWVIEW3D, 0);
 				return;
 			}
@@ -1362,8 +1332,8 @@ void make_parent(void)
 					
 					if (par->type==OB_ARMATURE) {
 						base->object->partype= mode;
-						if (bone)
-							strcpy (base->object->parsubstr, bone->name);
+						if (pchan)
+							strcpy (base->object->parsubstr, pchan->name);
 						else
 							base->object->parsubstr[0]=0;
 					}
