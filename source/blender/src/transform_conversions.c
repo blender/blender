@@ -411,6 +411,7 @@ static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tra
 				
 				td->ob = ob;
 				td->flag= TD_SELECTED|TD_USEQUAT;
+				td->protectflag= pchan->protectflag;
 				td->loc = pchan->loc;
 				VECCOPY(td->iloc, pchan->loc);
 				
@@ -547,7 +548,7 @@ static void createTransArmatureVerts(TransInfo *t)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-    td = t->data = MEM_mallocN(t->total*sizeof(TransData), "TransEditBone");
+    td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
 		
@@ -677,8 +678,8 @@ static void createTransMBallVerts(TransInfo *t)
 	if(propmode) t->total = count; 
 	else t->total = countsel;
 	
-	td = t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(MBall EditMode)");
-	tx = t->ext = MEM_mallocN(t->total*sizeof(TransDataExtension), "MetaElement_TransExtension");
+	td = t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(MBall EditMode)");
+	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "MetaElement_TransExtension");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -809,7 +810,7 @@ static void createTransCurveVerts(TransInfo *t)
 	
 	if(propmode) t->total = count; 
 	else t->total = countsel;
-	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Curve EditMode)");
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Curve EditMode)");
 
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -942,7 +943,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	
 	if(propmode) t->total = count; 
 	else t->total = countsel;
-	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Lattice EditMode)");
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Lattice EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -1245,7 +1246,7 @@ static void createTransEditVerts(TransInfo *t)
 		nears = (EditVert**)MEM_mallocN(t->total * sizeof(EditVert*), "scratch nears");
 	}
 	else t->total = countsel;
-	tob= t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
+	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
@@ -1382,7 +1383,7 @@ static void createTransUVs(TransInfo *t)
 	if (countsel==0) return;
 	
 	t->total= (propmode)? count: countsel;
-	t->data= MEM_mallocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
 	/* for each 2d uv coord a 3d vector is allocated, so that they can be
 	   treated just as if they were 3d verts */
 	t->data2d= MEM_mallocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
@@ -1877,6 +1878,7 @@ static void createTransObject(TransInfo *t)
 			ob= base->object;
 			
 			td->flag= TD_SELECTED;
+			td->protectflag= ob->protectflag;
 			td->ext = tx;
 
 			/* store ipo keys? */

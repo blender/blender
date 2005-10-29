@@ -49,6 +49,8 @@ typedef struct bPoseChannel {
 	short				constflag;  /* for quick detecting which constraints affect this channel */
 	short				ikflag;		/* settings for IK bones */
 	short				pathlen;	/* for drawing paths, the amount of frames */
+	short				protectflag;/* protect channels from being transformed */
+	short				pad, pad1, pad2;
 	
 	struct Bone			*bone;		/* set on read file or rebuild pose */
 	struct bPoseChannel *parent;	/* set on read file or rebuild pose */

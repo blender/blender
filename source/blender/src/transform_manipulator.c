@@ -132,15 +132,40 @@ static void calc_tw_center(float *co)
 	VecAddf(twcent, twcent, co);
 }
 
+static void protectflag_to_drawflags(short protectflag, short *drawflags)
+{
+	if(protectflag & OB_LOCK_LOCX)
+		*drawflags &= ~MAN_TRANS_X;
+	if(protectflag & OB_LOCK_LOCY)
+		*drawflags &= ~MAN_TRANS_Y;
+	if(protectflag & OB_LOCK_LOCZ)
+		*drawflags &= ~MAN_TRANS_Z;
+	
+	if(protectflag & OB_LOCK_ROTX)
+		*drawflags &= ~MAN_ROT_X;
+	if(protectflag & OB_LOCK_ROTY)
+		*drawflags &= ~MAN_ROT_Y;
+	if(protectflag & OB_LOCK_ROTZ)
+		*drawflags &= ~MAN_ROT_Z;
+
+	if(protectflag & OB_LOCK_SIZEX)
+		*drawflags &= ~MAN_SCALE_X;
+	if(protectflag & OB_LOCK_SIZEY)
+		*drawflags &= ~MAN_SCALE_Y;
+	if(protectflag & OB_LOCK_SIZEZ)
+		*drawflags &= ~MAN_SCALE_Z;
+}
+
 /* for pose mode */
-static void stats_pose(bPoseChannel *pchan, float *normal, float *plane)
+static void stats_pose(View3D *v3d, bPoseChannel *pchan, float *normal, float *plane)
 {
 	Bone *bone= pchan->bone;
 	
 	if(bone) {
 		if (bone->flag & BONE_TRANSFORM) {
 			calc_tw_center(pchan->pose_head);
-				
+			protectflag_to_drawflags(pchan->protectflag, &v3d->twdrawflag);
+
 			VecAddf(normal, normal, pchan->pose_mat[2]);
 			VecAddf(plane, plane, pchan->pose_mat[1]);
 		}
@@ -164,6 +189,8 @@ int calc_manipulator_stats(ScrArea *sa)
 	
 	/* transform widget matrix */
 	Mat4One(v3d->twmat);
+	
+	v3d->twdrawflag= 0xFFFF;
 	
 	/* transform widget centroid/center */
 	G.scene->twcent[0]= G.scene->twcent[1]= G.scene->twcent[2]= 0.0f;
@@ -342,7 +369,7 @@ int calc_manipulator_stats(ScrArea *sa)
 		if(totsel) {
 			/* use channels to get stats */
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				stats_pose(pchan, normal, plane);
+				stats_pose(v3d, pchan, normal, plane);
 			}
 			//VecMulf(normal, -1.0);
 			VecMulf(plane, -1.0);
@@ -362,14 +389,14 @@ int calc_manipulator_stats(ScrArea *sa)
 		ob= OBACT;
 		if(ob && !(ob->flag & SELECT)) ob= NULL;
 		
-		base= (G.scene->base.first);
-		while(base) {
+		for(base= G.scene->base.first; base; base= base->next) {
 			if TESTBASELIB(base) {
-				if(ob==NULL) ob= base->object;
+				if(ob==NULL) 
+					ob= base->object;
 				calc_tw_center(base->object->obmat[3]);
+				protectflag_to_drawflags(base->object->protectflag, &v3d->twdrawflag);
 				totsel++;
 			}
-			base= base->next;
 		}
 		
 		/* selection center */
@@ -1344,7 +1371,8 @@ void BIF_draw_manipulator(ScrArea *sa)
 		
 		totsel= calc_manipulator_stats(sa);
 		if(totsel==0) return;
-		
+		drawflags= v3d->twdrawflag;	/* set in calc_manipulator_stats */
+
 		v3d->twflag |= V3D_DRAW_MANIPULATOR;
 
 		/* now we can define centre */
@@ -1375,6 +1403,7 @@ void BIF_draw_manipulator(ScrArea *sa)
 	if(v3d->twflag & V3D_DRAW_MANIPULATOR) {
 		
 		if(v3d->twtype & V3D_MANIP_ROTATE) {
+			
 			/* rotate has special ghosting draw, for pie chart */
 			if(G.moving) draw_manipulator_rotate_ghost(v3d->twmat, drawflags);
 			
@@ -1438,13 +1467,13 @@ static int manipulator_selectbuf(ScrArea *sa, float hotspot)
 	
 	/* do the drawing */
 	if(v3d->twtype & V3D_MANIP_ROTATE) {
-		if(G.rt==3) draw_manipulator_rotate_cyl(v3d->twmat, 0, MAN_ROT_C, v3d->twtype, MAN_RGB);
-		else draw_manipulator_rotate(v3d->twmat, 0, MAN_ROT_C, v3d->twtype);
+		if(G.rt==3) draw_manipulator_rotate_cyl(v3d->twmat, 0, MAN_ROT_C & v3d->twdrawflag, v3d->twtype, MAN_RGB);
+		else draw_manipulator_rotate(v3d->twmat, 0, MAN_ROT_C & v3d->twdrawflag, v3d->twtype);
 	}
 	if(v3d->twtype & V3D_MANIP_SCALE)
-		draw_manipulator_scale(v3d->twmat, 0, MAN_SCALE_C, v3d->twtype, MAN_RGB);
+		draw_manipulator_scale(v3d->twmat, 0, MAN_SCALE_C & v3d->twdrawflag, v3d->twtype, MAN_RGB);
 	if(v3d->twtype & V3D_MANIP_TRANSLATE)
-		draw_manipulator_translate(v3d->twmat, 0, MAN_TRANS_C, v3d->twtype, MAN_RGB);
+		draw_manipulator_translate(v3d->twmat, 0, MAN_TRANS_C & v3d->twdrawflag, v3d->twtype, MAN_RGB);
 	
 	glPopName();
 	hits= glRenderMode(GL_RENDER);

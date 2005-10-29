@@ -125,7 +125,8 @@ typedef struct TransData {
 	struct Object *ob;
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
-    int    flag;         /* Various flags */
+    short  flag;         /* Various flags */
+	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 } TransData;
 
 typedef struct TransInfo {

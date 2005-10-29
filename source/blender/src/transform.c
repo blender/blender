@@ -1003,7 +1003,59 @@ void ManipulatorTransform()
 
 /* ************************** TRANSFORMATIONS **************************** */
 
-/* ************************** WRAP *************************** */
+static void protectedTransBits(short protectflag, float *vec)
+{
+	if(protectflag & OB_LOCK_LOCX)
+		vec[0]= 0.0f;
+	if(protectflag & OB_LOCK_LOCY)
+		vec[1]= 0.0f;
+	if(protectflag & OB_LOCK_LOCZ)
+		vec[2]= 0.0f;
+}
+
+static void protectedSizeBits(short protectflag, float *size)
+{
+	if(protectflag & OB_LOCK_SIZEX)
+		size[0]= 1.0f;
+	if(protectflag & OB_LOCK_SIZEY)
+		size[1]= 1.0f;
+	if(protectflag & OB_LOCK_SIZEZ)
+		size[2]= 1.0f;
+}
+
+static void protectedRotateBits(short protectflag, float *eul, float *oldeul)
+{
+	if(protectflag & OB_LOCK_ROTX)
+		eul[0]= oldeul[0];
+	if(protectflag & OB_LOCK_ROTY)
+		eul[1]= oldeul[1];
+	if(protectflag & OB_LOCK_ROTZ)
+		eul[2]= oldeul[2];
+}
+
+static void protectedQuaternionBits(short protectflag, float *quat, float *oldquat)
+{
+	/* quaternions get limited with euler... */
+	/* this function only does the delta rotation */
+	
+	if(protectflag) {
+		float eul[3], oldeul[3];
+		
+		QuatToEul(quat, eul);
+		QuatToEul(oldquat, oldeul);
+		
+		if(protectflag & OB_LOCK_ROTX)
+			eul[0]= oldeul[0];
+		if(protectflag & OB_LOCK_ROTY)
+			eul[1]= oldeul[1];
+		if(protectflag & OB_LOCK_ROTZ)
+			eul[2]= oldeul[2];
+		
+		EulToQuat(eul, quat);
+	}
+}
+
+/* ************************** WARP *************************** */
 
 /* warp is done fully in view space */
 void initWarp(TransInfo *t) 
@@ -1340,6 +1392,8 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 			Mat3ToSize(tmat, fsize);
 		}
 		
+		protectedSizeBits(td->protectflag, fsize);
+		
 		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
 			/* handle ipokeys? */
 			if(td->tdi) {
@@ -1393,6 +1447,8 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	if (t->flag & T_OBJECT) {
 		Mat3MulVecfl(td->smtx, vec);
 	}
+
+	protectedTransBits(td->protectflag, vec);
 
 	if(td->tdi) {
 		TransDataIpokey *tdi= td->tdi;
@@ -1597,6 +1653,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		VecSubf(vec, vec, td->center);
 		Mat3MulVecfl(td->smtx, vec);
 
+		protectedTransBits(td->protectflag, vec);
+
 		if(td->tdi) {
 			TransDataIpokey *tdi= td->tdi;
 			add_tdi_poin(tdi->locx, tdi->oldloc, vec[0]);
@@ -1605,10 +1663,15 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		}
 		else VecAddf(td->loc, td->iloc, vec);
 
+		/* rotation */
+		
 		if(td->flag & TD_USEQUAT) {
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 			Mat3ToQuat(fmat, quat);	// Actual transform
+			
 			QuatMul(td->ext->quat, quat, td->ext->iquat);
+			/* this function works on end result */
+			protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
 		}
 		else if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
 			float obmat[3][3];
@@ -1637,6 +1700,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				VecMulf(rot, (float)(9.0/M_PI_2));
 				VecSubf(rot, rot, tdi->oldrot);
 				
+				protectedRotateBits(td->protectflag, rot, tdi->oldrot);
+				
 				add_tdi_poin(tdi->rotx, tdi->oldrot, rot[0]);
 				add_tdi_poin(tdi->roty, tdi->oldrot+1, rot[1]);
 				add_tdi_poin(tdi->rotz, tdi->oldrot+2, rot[2]);
@@ -1655,7 +1720,9 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 				
 				/* correct back for delta rot */
 				VecSubf(eul, eul, td->ext->drot);
+				
 				/* and apply */
+				protectedRotateBits(td->protectflag, eul, td->ext->irot);
 				VECCOPY(td->ext->rot, eul);
 			}
 		}
@@ -1985,6 +2052,8 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 
 		Mat3MulVecfl(td->smtx, tvec);
 		VecMulf(tvec, td->factor);
+		
+		protectedTransBits(td->protectflag, tvec);
 		
 		/* transdata ipokey */
 		if(td->tdi) {

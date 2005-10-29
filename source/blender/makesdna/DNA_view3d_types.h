@@ -121,7 +121,7 @@ typedef struct View3D {
 	short modeselect, menunr, texnr;
 	
 	/* transform widget info */
-	short twtype, twmode, twflag, twpad;
+	short twtype, twmode, twflag, twdrawflag;
 	float twmat[4][4];
 	
 	/* user defined clipping planes */

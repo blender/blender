@@ -1514,19 +1514,28 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 	ob_eul[2]*= 180.0/M_PI;
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	10, 140, 140, 19, pchan->loc, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	10, 120, 140, 19, pchan->loc+1, -lim, lim, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	10, 100, 140, 19, pchan->loc+2, -lim, lim, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, REDRAWVIEW3D, ICON_UNLOCKED,	10,140,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocX:",	30, 140, 120, 19, pchan->loc, -lim, lim, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, REDRAWVIEW3D, ICON_UNLOCKED,	10,120,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "LocY:",	30, 120, 120, 19, pchan->loc+1, -lim, lim, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, REDRAWVIEW3D, ICON_UNLOCKED,	10,100,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "locZ:",	30, 100, 120, 19, pchan->loc+2, -lim, lim, 100, 3, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotX:",	10, 70, 140, 19, ob_eul, -1000.0, 1000.0, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotY:",	10, 50, 140, 19, ob_eul+1, -1000.0, 1000.0, 100, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotZ:",	10, 30, 140, 19, ob_eul+2, -1000.0, 1000.0, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	10,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotX:",	30, 70, 120, 19, ob_eul, -1000.0, 1000.0, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, REDRAWVIEW3D, ICON_UNLOCKED,	10,50,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotY:",	30, 50, 120, 19, ob_eul+1, -1000.0, 1000.0, 100, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, REDRAWVIEW3D, ICON_UNLOCKED,	10,30,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL3, "RotZ:",	30, 30, 120, 19, ob_eul+2, -1000.0, 1000.0, 100, 3, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	160, 70, 140, 19, pchan->size, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	160, 50, 140, 19, pchan->size+1, -lim, lim, 10, 3, "");
-	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	160, 30, 140, 19, pchan->size+2, -lim, lim, 10, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEX, REDRAWVIEW3D, ICON_UNLOCKED,	160,70,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeX:",	180, 70, 120, 19, pchan->size, -lim, lim, 10, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEY, REDRAWVIEW3D, ICON_UNLOCKED,	160,50,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeY:",	180, 50, 120, 19, pchan->size+1, -lim, lim, 10, 3, "");
+	uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,30,20,19, &(pchan->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+	uiDefButF(block, NUM, B_ARMATUREPANEL2, "SizeZ:",	180, 30, 120, 19, pchan->size+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
 }
 
@@ -1807,22 +1816,32 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	}
 	else {
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocX:",		10, 140, 140, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocY:",		10, 120, 140, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "LocZ:",		10, 100, 140, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCX, REDRAWVIEW3D, ICON_UNLOCKED,	10,140,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocX:",		30, 140, 120, 19, &(ob->loc[0]), -lim, lim, 100, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCY, REDRAWVIEW3D, ICON_UNLOCKED,	10,120,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocY:",		30, 120, 120, 19, &(ob->loc[1]), -lim, lim, 100, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_LOCZ, REDRAWVIEW3D, ICON_UNLOCKED,	10,100,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "LocZ:",		30, 100, 120, 19, &(ob->loc[2]), -lim, lim, 100, 3, "");
 		
 		ob_eul[0]= 180.0*ob->rot[0]/M_PI;
 		ob_eul[1]= 180.0*ob->rot[1]/M_PI;
 		ob_eul[2]= 180.0*ob->rot[2]/M_PI;
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	10, 70, 140, 19, &(ob_eul[0]), -lim, lim, 1000, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	10, 50, 140, 19, &(ob_eul[1]), -lim, lim, 1000, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	10, 30, 140, 19, &(ob_eul[2]), -lim, lim, 1000, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTX, REDRAWVIEW3D, ICON_UNLOCKED,	10,70,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotX:",	30, 70, 120, 19, &(ob_eul[0]), -lim, lim, 1000, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTY, REDRAWVIEW3D, ICON_UNLOCKED,	10,50,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotY:",	30, 50, 120, 19, &(ob_eul[1]), -lim, lim, 1000, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_ROTZ, REDRAWVIEW3D, ICON_UNLOCKED,	10,30,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANELROT, "RotZ:",	30, 30, 120, 19, &(ob_eul[2]), -lim, lim, 1000, 3, "");
+		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeX:",		160, 70, 140, 19, &(ob->size[0]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeY:",		160, 50, 140, 19, &(ob->size[1]), -lim, lim, 10, 3, "");
-		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeZ:",		160, 30, 140, 19, &(ob->size[2]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEX, REDRAWVIEW3D, ICON_UNLOCKED,	160,70,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeX:",		180, 70, 120, 19, &(ob->size[0]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEY, REDRAWVIEW3D, ICON_UNLOCKED,	160,50,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeY:",		180, 50, 120, 19, &(ob->size[1]), -lim, lim, 10, 3, "");
+		uiDefIconButBitS(block, ICONTOG, OB_LOCK_SIZEZ, REDRAWVIEW3D, ICON_UNLOCKED,	160,30,20,19, &(ob->protectflag), 0, 0, 0, 0, "Protects this value from being Transformed");
+		uiDefButF(block, NUM, B_OBJECTPANEL, "SizeZ:",		180, 30, 120, 19, &(ob->size[2]), -lim, lim, 10, 3, "");
 		uiBlockEndAlign(block);
 	}
 	uiClearButLock();

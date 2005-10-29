@@ -119,8 +119,8 @@ typedef struct Object {
 	
 	short transflag, ipoflag;	/* transformation and ipo settings */
 	short trackflag, upflag;
-	short nlaflag, pad;
-	short ipowin, scaflag;	/* ipowin: blocktype last ipowindow */
+	short nlaflag, protectflag;	/* nlaflag defines NLA override, protectflag is bits to lock transform */
+	short ipowin, scaflag;		/* ipowin: blocktype last ipowindow */
 	short scavisflag, boundtype;
 	
 	short dupon, dupoff, dupsta, dupend;
@@ -386,6 +386,17 @@ extern Object workob;
 
 /* ob->nlaflag */
 #define OB_NLA_OVERRIDE		1
+
+/* ob->protectflag */
+#define OB_LOCK_LOCX	1
+#define OB_LOCK_LOCY	2
+#define OB_LOCK_LOCZ	4
+#define OB_LOCK_ROTX	8
+#define OB_LOCK_ROTY	16
+#define OB_LOCK_ROTZ	32
+#define OB_LOCK_SIZEX	64
+#define OB_LOCK_SIZEY	128
+#define OB_LOCK_SIZEZ	256
 
 /* ob->softflag in DNA_object_force.h */
 
