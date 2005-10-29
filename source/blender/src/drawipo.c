@@ -1471,7 +1471,7 @@ static void draw_key(SpaceIpo *sipo, int visible)
 	unsigned int col;
 	int index;
 	
-	key= (Key *)sipo->from;
+	key= ob_get_key((Object *)sipo->from);
 	if(key==NULL)
 		return;
 	
@@ -1554,7 +1554,7 @@ static void boundbox_ipo_curves(SpaceIpo *si)
 	}
 	/* keylines? */
 	if(si->blocktype==ID_KE) {
-		key= (Key *)si->from;
+		key= ob_get_key((Object *)si->from);
 		if(key && key->block.first) {
 			kb= key->block.first;
 			if(kb->pos < si->v2d.tot.ymin) si->v2d.tot.ymin= kb->pos;
@@ -1613,7 +1613,7 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 	/* check for keys */
 	if(tot==0) {
 		if(G.sipo->blocktype==ID_KE) {
-			Key *key= (Key *)G.sipo->from;
+			Key *key= ob_get_key((Object *)G.sipo->from);
 			KeyBlock *kb;
 			
 			if(key==NULL || ob->shapenr==0) return;
@@ -1656,7 +1656,7 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 		VecSubf(median, si->median, median);
 
 		if(G.sipo->blocktype==ID_KE) {
-			Key *key= (Key *)G.sipo->from;
+			Key *key= ob_get_key((Object *)G.sipo->from);
 			KeyBlock *kb;
 			
 			if(key==NULL || ob->shapenr==0) return;
