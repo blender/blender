@@ -140,13 +140,13 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 				if (td->flag & TD_NOACTION)
 					break;
 				if(mmd->axis==0) {
-					if(td->loc[0]<0.0f) td->loc[0]= 0.0f;
+					if(td->loc[0]*td->loc[0]<0.0f) td->loc[0]= 0.0f;
 				}
 				else if(mmd->axis==1) {
-					if(td->loc[1]<0.0f) td->loc[1]= 0.0f;
+					if(td->loc[1]*td->loc[1]<0.0f) td->loc[1]= 0.0f;
 				}
 				else {
-					if(td->loc[2]<0.0f) td->loc[2]= 0.0f;
+					if(td->loc[2]*td->loc[2]<0.0f) td->loc[2]= 0.0f;
 				}
 			}
 		}
