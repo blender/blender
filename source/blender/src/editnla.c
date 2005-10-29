@@ -230,6 +230,24 @@ void reset_action_strips(int val)
 	allqueue (REDRAWNLA, 0);
 }
 
+void snap_action_strips(void)
+{
+	Base *base;
+	bActionStrip *strip;
+	
+	for (base=G.scene->base.first; base; base=base->next) {
+		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
+			if (strip->flag & ACTSTRIP_SELECT) {
+				strip->start= floor(strip->start+0.5);
+			}
+		}
+	}
+	BIF_undo_push("Snap NLA strips");
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue (REDRAWNLA, 0);
+}
+
 void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	unsigned short event= evt->event;
@@ -333,6 +351,10 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					reset_action_strips(1);
 				else if(val==2)
 					reset_action_strips(2);
+			}
+			else if(G.qual & LR_SHIFTKEY) {
+				if(okee("Snap Strips to Frame"))
+					snap_action_strips();
 			}
 			else {
 				if (mval[0]>=NLAWIDTH)

@@ -1542,6 +1542,7 @@ void delete_actionchannel_keys(void)
 	allqueue(REDRAWNLA, 0);
 
 }
+
 static void delete_actionchannels (void)
 {
 	bConstraintChannel *conchan=NULL, *nextconchan;
@@ -1641,7 +1642,8 @@ void sethandles_actionchannel_keys(int code)
 	allqueue(REDRAWNLA, 0);
 }
 
-void set_ipotype_actionchannels(int ipotype) {
+void set_ipotype_actionchannels(int ipotype) 
+{
 
 	bAction *act; 
 	bActionChannel *chan;
@@ -1686,6 +1688,35 @@ void set_ipotype_actionchannels(int ipotype) {
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
 }
+
+void set_snap_actionchannels(void) 
+{
+	
+	bAction *act; 
+	bActionChannel *chan;
+	
+	/* Get the selected action, exit if none are selected 
+		*/
+	act = G.saction->action;
+	if (!act)
+		return;
+	
+	/* Loop through the channels */
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if (chan->ipo) {
+			snap_ipo_keys(chan->ipo);
+		}
+	}
+	
+	/* Clean up and redraw stuff */
+	remake_action_ipos (act);
+	BIF_undo_push("Snap Ipo Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
 
 static void select_all_keys_frames(bAction *act, short *mval, 
 							short *mvalo, int selectmode) {
@@ -2152,11 +2183,15 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
-				if (key) {
-					transform_meshchannel_keys('s', key);
+				if(G.qual & LR_SHIFTKEY) {
+					if(okee("Snap to frame"))
+						set_snap_actionchannels();
 				}
-				else if (act) {
-					transform_actionchannel_keys ('s', 0);
+				else {
+					if (key)
+						transform_meshchannel_keys('s', key);
+					else if (act)
+						transform_actionchannel_keys ('s', 0);
 				}
 			}
 			break;

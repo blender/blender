@@ -549,8 +549,18 @@ void sethandles_ipo_keys(Ipo *ipo, int code)
 		}
 		break;
 	}
+}
 
+static int snap_bezier(BezTriple *bezt)
+{
+	if(bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]+0.5));
+	return 0;
+}
 
+void snap_ipo_keys(Ipo *ipo)
+{
+	ipo_keys_bezier_loop(ipo, snap_bezier, calchandles_ipocurve);
 }
 
 static void ipo_curves_auto_horiz(void)

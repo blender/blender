@@ -91,6 +91,7 @@
 #define ACTMENU_KEY_DUPLICATE     0
 #define ACTMENU_KEY_DELETE        1
 #define ACTMENU_KEY_BAKE          2
+#define ACTMENU_KEY_SNAP          3
 
 #define ACTMENU_KEY_TRANSFORM_MOVE	0
 #define ACTMENU_KEY_TRANSFORM_SCALE	1
@@ -607,6 +608,9 @@ static void do_action_keymenu(void *arg, int event)
 		case ACTMENU_KEY_BAKE:
 			bake_action_with_client (G.saction->action, OBACT, 0.01);
 			break;
+		case ACTMENU_KEY_SNAP:
+			set_snap_actionchannels();
+			break;
 	}
 }
 
@@ -620,9 +624,12 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu, NULL);
 	
 	uiDefIconTextBlockBut(block, action_keymenu_transformmenu, 
-					NULL, ICON_RIGHTARROW_THIN, 
-					"Transform", 0, yco-=20, 120, 20, "");
-						  
+						  NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Snap to Frame|Shift S", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, ACTMENU_KEY_SNAP, "");
+	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 					menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -630,6 +637,7 @@ static uiBlock *action_keymenu(void *arg_unused)
 					"Duplicate|Shift D", 0, yco-=20, 
 					menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					ACTMENU_KEY_DUPLICATE, "");
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					"Delete|X", 0, yco-=20, 
 					menuwidth, 19, NULL, 0.0, 0.0, 0, 

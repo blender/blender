@@ -52,6 +52,7 @@ void shift_nlastrips_up(void);
 void shift_nlastrips_down(void);
 void reset_action_strips(int val);
 void synchronize_action_strips(void);
+void snap_action_strips(void);
 
 
 #endif

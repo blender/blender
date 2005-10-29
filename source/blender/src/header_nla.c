@@ -273,6 +273,9 @@ static void do_nla_stripmenu(void *arg, int event)
 	case 9:	/* reset start/end of action */
 		reset_action_strips(2);
 		break;
+	case 10: /* snap to frame */
+		snap_action_strips();
+		break;
 	}
 }
 
@@ -288,6 +291,7 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Size|ALT S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Action Start/End|ALT S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Frame|Shift S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
