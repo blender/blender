@@ -31,4 +31,4 @@ bop_env.Append (CPPPATH = [	'.',
 							'#intern/container',
 							'#intern/memutil'])
 
-bop_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BOP', source=source_files)
+bop_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_bop', source=source_files)
