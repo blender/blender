@@ -1284,9 +1284,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), buttonWidth,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
-			uiDefButI(block, ROW, B_MODIFIER_RECALC, "X",	lx, (cy-=19), 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
-			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
-			uiDefButI(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "X",	lx, (cy-=19), 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
+			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");
+			uiDefButBitS(block, TOG, MOD_MIR_CLIPPING, B_MODIFIER_RECALC, "Do Clipping",	lx+60, cy, buttonWidth-60,19, &mmd->flag, 1, 2, 0, 0, "Prevents during Transform vertices to go through Mirror");
 		} else if (md->type==eModifierType_Decimate) {
 			DecimateModifierData *dmd = (DecimateModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Percent:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 0, 0, "Defines the percentage of triangles to reduce to");

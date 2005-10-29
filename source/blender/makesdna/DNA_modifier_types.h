@@ -82,9 +82,12 @@ typedef struct BuildModifierData {
 typedef struct MirrorModifierData {
 	ModifierData modifier;
 
-	int axis;
+	short axis, flag;
 	float tolerance;
 } MirrorModifierData;
+
+/* MirrorModifierData->flag */
+#define MOD_MIR_CLIPPING	1
 
 typedef struct DecimateModifierData {
 	ModifierData modifier;

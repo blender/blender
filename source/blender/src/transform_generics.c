@@ -122,13 +122,49 @@ void getViewVector(float coord[3], float vec[3])
 
 /* ************************** GENERICS **************************** */
 
-/* called for objects updating while transform acts, once per redraw */
+static void clipMirrorModifier(TransInfo *t, Object *ob)
+{
+	ModifierData *md= ob->modifiers.first;
+
+	for (; md; md=md->next)
+		if (md->type==eModifierType_Mirror)
+			break;
+	if(md) {
+		MirrorModifierData *mmd = (MirrorModifierData*) md;	
+	
+		if(mmd->flag & MOD_MIR_CLIPPING) {
+			TransData *td = t->data;
+			int i;
+			
+			for(i = 0 ; i < t->total; i++, td++) {
+				if (td->flag & TD_NOACTION)
+					break;
+				if(mmd->axis==0) {
+					if(td->loc[0]<0.0f) td->loc[0]= 0.0f;
+				}
+				else if(mmd->axis==1) {
+					if(td->loc[1]<0.0f) td->loc[1]= 0.0f;
+				}
+				else {
+					if(td->loc[2]<0.0f) td->loc[2]= 0.0f;
+				}
+			}
+		}
+	}
+}
+
+/* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
 	Base *base;
 		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
+
+			/* mirror modifier clipping? */
+			if(t->state != TRANS_CANCEL)
+				clipMirrorModifier(t, G.obedit);
+			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
 			recalc_editnormals();
