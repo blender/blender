@@ -55,7 +55,7 @@ public:
 	void setFaceVertexMaterial(char* faceVertexMaterial);
 	void setFaceVertexMaterial(char* faceVertexMaterial, int i);
 	void duplicate(const BOP_Material& other);
-	BOP_Material& operator = (BOP_Material& other);
+	BOP_Material& operator = (const BOP_Material& other);
 	char* getFaceMaterial() const;
 	char* getFaceVertexMaterial(int i) const;
 	int getFaceWidth() const { return m_faceWidth; };

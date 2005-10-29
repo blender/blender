@@ -14,6 +14,7 @@ def common_libs(env):
 	env.Append (LIBS=[
 		'blender_readblenfile',
 		'blender_img',
+		'blender_bop',
 		'blender_blenkernel',
 		'blender_blenloader',
 		'blender_blenpluginapi',

@@ -1,0 +1,34 @@
+#!/usr/bin/python
+Import ('user_options_dict')
+Import ('library_env')
+
+bop_env = library_env.Copy ()
+
+source_files = [
+		'intern/BOP_BBox.cpp',
+		'intern/BOP_BSPNode.cpp',
+		'intern/BOP_BSPTree.cpp',
+		'intern/BOP_Edge.cpp',
+		'intern/BOP_Face.cpp',
+		'intern/BOP_Face2Face.cpp',
+		'intern/BOP_Interface.cpp',
+		'intern/BOP_Material.cpp',
+		'intern/BOP_MaterialContainer.cpp',
+		'intern/BOP_MathUtils.cpp',
+		'intern/BOP_Merge.cpp',
+		'intern/BOP_Mesh.cpp',
+		'intern/BOP_Segment.cpp',
+		'intern/BOP_Splitter.cpp',
+		'intern/BOP_Tag.cpp',
+		'intern/BOP_Triangulator.cpp',
+		'intern/BOP_Vertex.cpp'
+		]
+
+bop_env.Append (CPPPATH = [	'.',
+							'intern',
+							'extern',
+							'#intern/moto/include',
+							'#intern/container',
+							'#intern/memutil'])
+
+bop_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/blender_BOP', source=source_files)

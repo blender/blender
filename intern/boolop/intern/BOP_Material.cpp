@@ -117,7 +117,7 @@ void BOP_Material::duplicate(const BOP_Material& other)
 /**
  * Implements operator =
  */
-BOP_Material& BOP_Material::operator = (BOP_Material& other)
+BOP_Material& BOP_Material::operator = (const BOP_Material& other)
 {
 	if (other.getFaceWidth() == m_faceWidth && other.getFaceVertexWidth() == m_faceVertexWidth)
 		duplicate(other);
