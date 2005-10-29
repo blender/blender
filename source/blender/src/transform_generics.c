@@ -125,29 +125,50 @@ void getViewVector(float coord[3], float vec[3])
 static void clipMirrorModifier(TransInfo *t, Object *ob)
 {
 	ModifierData *md= ob->modifiers.first;
+	float tolerance[3];
+	int axis = 0;
 
-	for (; md; md=md->next)
-		if (md->type==eModifierType_Mirror)
-			break;
-	if(md) {
-		MirrorModifierData *mmd = (MirrorModifierData*) md;	
-	
-		if(mmd->flag & MOD_MIR_CLIPPING) {
-			TransData *td = t->data;
-			int i;
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				switch(mmd->axis){
+					case 0:
+						axis |= 1;
+						tolerance[0] = mmd->tolerance;
+						break;
+					case 1:
+						axis |= 2;
+						tolerance[1] = mmd->tolerance;
+						break;
+					case 2:
+						axis |= 4;
+						tolerance[2] = mmd->tolerance;
+				}
+			}
+		}
+	}
+	if (axis) {
+		TransData *td = t->data;
+		int i;
+		
+		for(i = 0 ; i < t->total; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 			
-			for(i = 0 ; i < t->total; i++, td++) {
-				if (td->flag & TD_NOACTION)
-					break;
-				if(mmd->axis==0) {
-					if(td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
-				}
-				else if(mmd->axis==1) {
-					if(td->loc[1]*td->iloc[1]<0.0f) td->loc[1]= 0.0f;
-				}
-				else {
-					if(td->loc[2]*td->iloc[2]<0.0f) td->loc[2]= 0.0f;
-				}
+			printf("iloc (%f, %f, %f)\n", td->iloc[0], td->iloc[1], td->iloc[2]);
+			printvecf("loc", td->loc);
+			printf("(%i, %i)\n", td->iloc[0] == 0.0f?1:0, td->iloc[0] == -0.0f?1:0);
+			if(axis & 1) {
+				if(td->loc[0]*td->iloc[0]<tolerance[0]) td->loc[0]= 0.0f;
+			}
+			
+			if(axis & 2) {
+				if(td->loc[1]*td->iloc[1]<tolerance[1]) td->loc[1]= 0.0f;
+			}
+			if(axis & 4) {
+				if(td->loc[2]*td->iloc[2]<=tolerance[2]) td->loc[2]= 0.0f;
 			}
 		}
 	}
