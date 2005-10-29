@@ -76,7 +76,6 @@ def ketsji_libs(env):
 				'PHY_Dummy',
 				'PHY_Bullet',
 				'PHY_Physics',
-				'extern_bullet',
 				'KX_ketsji',
 				'SCA_GameLogic',
 				'RAS_rasterizer',
@@ -88,6 +87,7 @@ def ketsji_libs(env):
 				'KX_network',
 				'blender_kernel',
 				'NG_network',
+				'extern_bullet',
 				'NG_loopbacknetwork'])
 		if bs_globals.user_options_dict['USE_PHYSICS'] == 'solid':
 			env.Append (LIBS=['PHY_Sumo', 'PHY_Physics', 'blender_MT', 'extern_solid', 'extern_qhull'])
