@@ -31,7 +31,6 @@
 basic_modules = [
 'Blender',
 'chunk','colorsys','copy','copy_reg','gzip','os','random','repr','stat',
-'string','StringIO','types','UserDict','webbrowser','whrandom',
-'zlib', 'math',
+'string','StringIO','types','UserDict','webbrowser', 'zlib', 'math',
 'BPyBlender', 'BPyRegistry'
 ]
