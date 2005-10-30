@@ -52,33 +52,25 @@ extern "C" {
 
 #define NL_VERSION_0_0 1
 
-/*
- *
- * Datatypes
- *
- */
+/* Datatypes */
 
 typedef unsigned int	NLenum;
 typedef unsigned char	NLboolean;
 typedef unsigned int	NLbitfield;
-typedef void		NLvoid;
-typedef signed char	NLbyte;		/* 1-byte signed */
-typedef short		NLshort;	/* 2-byte signed */
-typedef int		NLint;		/* 4-byte signed */
+typedef void			NLvoid;
+typedef signed char		NLbyte;		/* 1-byte signed */
+typedef short			NLshort;	/* 2-byte signed */
+typedef int				NLint;		/* 4-byte signed */
 typedef unsigned char	NLubyte;	/* 1-byte unsigned */
 typedef unsigned short	NLushort;	/* 2-byte unsigned */
 typedef unsigned int	NLuint;		/* 4-byte unsigned */
-typedef int		NLsizei;	/* 4-byte signed */
-typedef float		NLfloat;	/* single precision float */
-typedef double		NLdouble;	/* double precision float */
+typedef int				NLsizei;	/* 4-byte signed */
+typedef float			NLfloat;	/* single precision float */
+typedef double			NLdouble;	/* double precision float */
 
-typedef void* NLContext ;
+typedef void* NLContext;
 
-/*
- *
- * Constants
- *
- */
+/* Constants */
 
 #define NL_FALSE   0x0
 #define NL_TRUE    0x1
@@ -106,54 +98,51 @@ typedef void* NLContext ;
 #define NL_RIGHT_HAND_SIDE 0x500
 #define NL_ROW_SCALING     0x501
 
-/*
- * Contexts
- */
-    NLContext nlNewContext(void) ;
-    void nlDeleteContext(NLContext context) ;
-    void nlMakeCurrent(NLContext context) ;
-    NLContext nlGetCurrent(void) ;
+/* Contexts */
 
-/*
- * State set/get
- */
+NLContext nlNewContext(void);
+void nlDeleteContext(NLContext context);
+void nlMakeCurrent(NLContext context);
+NLContext nlGetCurrent(void);
 
-    void nlSolverParameterf(NLenum pname, NLfloat param) ;
-    void nlSolverParameteri(NLenum pname, NLint param) ;
+/* State get/set */
 
-    void nlRowParameterf(NLenum pname, NLfloat param) ;
-    void nlRowParameteri(NLenum pname, NLint param) ;
+void nlSolverParameterf(NLenum pname, NLfloat param);
+void nlSolverParameteri(NLenum pname, NLint param);
 
-    void nlGetBooleanv(NLenum pname, NLboolean* params) ;
-    void nlGetFloatv(NLenum pname, NLfloat* params) ;
-    void nlGetIntergerv(NLenum pname, NLint* params) ;
+void nlRowParameterf(NLenum pname, NLfloat param);
+void nlRowParameteri(NLenum pname, NLint param);
 
-    void nlEnable(NLenum pname) ;
-    void nlDisable(NLenum pname) ;
-    NLboolean nlIsEnabled(NLenum pname) ;
+void nlGetBooleanv(NLenum pname, NLboolean* params);
+void nlGetFloatv(NLenum pname, NLfloat* params);
+void nlGetIntergerv(NLenum pname, NLint* params);
 
-/*
- * Variables
- */
-    void nlSetVariable(NLuint index, NLfloat value) ;
-    NLfloat nlGetVariable(NLuint index) ;
-    void nlLockVariable(NLuint index) ;
-    void nlUnlockVariable(NLuint index) ;
-    NLboolean nlVariableIsLocked(NLuint index) ;
+void nlEnable(NLenum pname);
+void nlDisable(NLenum pname);
+NLboolean nlIsEnabled(NLenum pname);
 
-/*
- * Begin/End
- */
+/* Variables */
 
-    void nlBegin(NLenum primitive) ;
-    void nlEnd(NLenum primitive) ;
-    void nlCoefficient(NLuint index, NLfloat value) ;
+void nlSetVariable(NLuint index, NLfloat value);
+NLfloat nlGetVariable(NLuint index);
+void nlLockVariable(NLuint index);
+void nlUnlockVariable(NLuint index);
+NLboolean nlVariableIsLocked(NLuint index);
 
-/*
- * Solve
- */
+/* Begin/End */
 
-    NLboolean nlSolve(void) ;
+void nlBegin(NLenum primitive);
+void nlEnd(NLenum primitive);
+void nlCoefficient(NLuint index, NLfloat value);
+
+/* Setting random elements matrix/vector - not for least squares! */
+
+void nlMatrixAdd(NLuint row, NLuint col, NLfloat value);
+void nlRightHandSideAdd(NLuint index, NLfloat value);
+
+/* Solve */
+
+NLboolean nlSolve(void);
 
 #ifdef __cplusplus
 }

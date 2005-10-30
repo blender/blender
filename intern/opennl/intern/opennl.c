@@ -62,8 +62,8 @@ static void __nl_assertion_failed(char* cond, char* file, int line) {
         stderr, 
         "OpenNL assertion failed: %s, file:%s, line:%d\n",
         cond,file,line
-    ) ;
-    abort() ;
+    );
+    abort();
 }
 
 static void __nl_range_assertion_failed(
@@ -73,8 +73,8 @@ static void __nl_range_assertion_failed(
         stderr, 
         "OpenNL range assertion failed: %f in [ %f ... %f ], file:%s, line:%d\n",
         x, min_val, max_val, file,line
-    ) ;
-    abort() ;
+    );
+    abort();
 }
 
 static void __nl_should_not_have_reached(char* file, int line) {
@@ -82,14 +82,14 @@ static void __nl_should_not_have_reached(char* file, int line) {
         stderr, 
         "OpenNL should not have reached this point: file:%s, line:%d\n",
         file,line
-    ) ;
-    abort() ;
+    );
+    abort();
 }
 
 
 #define __nl_assert(x) {                                        \
     if(!(x)) {                                                  \
-        __nl_assertion_failed(#x,__FILE__, __LINE__) ;          \
+        __nl_assertion_failed(#x,__FILE__, __LINE__);          \
     }                                                           \
 } 
 
@@ -97,12 +97,12 @@ static void __nl_should_not_have_reached(char* file, int line) {
     if(((x) < (min_val)) || ((x) > (max_val))) {                \
         __nl_range_assertion_failed(x, min_val, max_val,        \
             __FILE__, __LINE__                                  \
-        ) ;                                                     \
+        );                                                     \
     }                                                           \
 }
 
 #define __nl_assert_not_reached {                               \
-    __nl_should_not_have_reached(__FILE__, __LINE__) ;          \
+    __nl_should_not_have_reached(__FILE__, __LINE__);          \
 }
 
 #ifdef NL_DEBUG
@@ -148,73 +148,73 @@ static void __nl_should_not_have_reached(char* file, int line) {
 /* Dynamic arrays for sparse row/columns */
 
 typedef struct {
-    NLuint   index ;
-    NLfloat value ;
-} __NLCoeff ;
+    NLuint   index;
+    NLfloat value;
+} __NLCoeff;
 
 typedef struct {
-    NLuint size ;
-    NLuint capacity ;
-    __NLCoeff* coeff ;
-} __NLRowColumn ;
+    NLuint size;
+    NLuint capacity;
+    __NLCoeff* coeff;
+} __NLRowColumn;
 
 static void __nlRowColumnConstruct(__NLRowColumn* c) {
-    c->size     = 0 ;
-    c->capacity = 0 ;
-    c->coeff    = NULL ;
+    c->size     = 0;
+    c->capacity = 0;
+    c->coeff    = NULL;
 }
 
 static void __nlRowColumnDestroy(__NLRowColumn* c) {
-    __NL_DELETE_ARRAY(c->coeff) ;
+    __NL_DELETE_ARRAY(c->coeff);
 #ifdef NL_PARANOID
-    __NL_CLEAR(__NLRowColumn, c) ; 
+    __NL_CLEAR(__NLRowColumn, c); 
 #endif
 }
 
 static void __nlRowColumnGrow(__NLRowColumn* c) {
     if(c->capacity != 0) {
-        c->capacity = 2 * c->capacity ;
-        c->coeff = __NL_RENEW_ARRAY(__NLCoeff, c->coeff, c->capacity) ;
+        c->capacity = 2 * c->capacity;
+        c->coeff = __NL_RENEW_ARRAY(__NLCoeff, c->coeff, c->capacity);
     } else {
-        c->capacity = 4 ;
-        c->coeff = __NL_NEW_ARRAY(__NLCoeff, c->capacity) ;
+        c->capacity = 4;
+        c->coeff = __NL_NEW_ARRAY(__NLCoeff, c->capacity);
     }
 }
 
 static void __nlRowColumnAdd(__NLRowColumn* c, NLint index, NLfloat value) {
-    NLuint i ;
+    NLuint i;
     for(i=0; i<c->size; i++) {
         if(c->coeff[i].index == (NLuint)index) {
-            c->coeff[i].value += value ;
-            return ;
+            c->coeff[i].value += value;
+            return;
         }
     }
     if(c->size == c->capacity) {
-        __nlRowColumnGrow(c) ;
+        __nlRowColumnGrow(c);
     }
-    c->coeff[c->size].index = index ;
-    c->coeff[c->size].value = value ;
-    c->size++ ;
+    c->coeff[c->size].index = index;
+    c->coeff[c->size].value = value;
+    c->size++;
 }
 
 /* Does not check whether the index already exists */
 static void __nlRowColumnAppend(__NLRowColumn* c, NLint index, NLfloat value) {
     if(c->size == c->capacity) {
-        __nlRowColumnGrow(c) ;
+        __nlRowColumnGrow(c);
     }
-    c->coeff[c->size].index = index ;
-    c->coeff[c->size].value = value ;
-    c->size++ ;
+    c->coeff[c->size].index = index;
+    c->coeff[c->size].value = value;
+    c->size++;
 }
 
 static void __nlRowColumnZero(__NLRowColumn* c) {
-    c->size = 0 ;
+    c->size = 0;
 }
 
 static void __nlRowColumnClear(__NLRowColumn* c) {
-    c->size     = 0 ;
-    c->capacity = 0 ;
-    __NL_DELETE_ARRAY(c->coeff) ;
+    c->size     = 0;
+    c->capacity = 0;
+    __NL_DELETE_ARRAY(c->coeff);
 }
 
 /************************************************************************************/
@@ -225,115 +225,115 @@ static void __nlRowColumnClear(__NLRowColumn* c) {
 #define __NL_SYMMETRIC 4
 
 typedef struct {
-    NLuint m ;
-    NLuint n ;
-    NLuint diag_size ;
-    NLenum storage ;
-    __NLRowColumn* row ;
-    __NLRowColumn* column ;
-    NLfloat*      diag ;
-} __NLSparseMatrix ;
+    NLuint m;
+    NLuint n;
+    NLuint diag_size;
+    NLenum storage;
+    __NLRowColumn* row;
+    __NLRowColumn* column;
+    NLfloat*      diag;
+} __NLSparseMatrix;
 
 
 static void __nlSparseMatrixConstruct(
     __NLSparseMatrix* M, NLuint m, NLuint n, NLenum storage
 ) {
-    NLuint i ;
-    M->m = m ;
-    M->n = n ;
-    M->storage = storage ;
+    NLuint i;
+    M->m = m;
+    M->n = n;
+    M->storage = storage;
     if(storage & __NL_ROWS) {
-        M->row = __NL_NEW_ARRAY(__NLRowColumn, m) ;
+        M->row = __NL_NEW_ARRAY(__NLRowColumn, m);
         for(i=0; i<n; i++) {
-            __nlRowColumnConstruct(&(M->row[i])) ;
+            __nlRowColumnConstruct(&(M->row[i]));
         }
     } else {
-        M->row = NULL ;
+        M->row = NULL;
     }
 
     if(storage & __NL_COLUMNS) {
-        M->column = __NL_NEW_ARRAY(__NLRowColumn, n) ;
+        M->column = __NL_NEW_ARRAY(__NLRowColumn, n);
         for(i=0; i<n; i++) {
-            __nlRowColumnConstruct(&(M->column[i])) ;
+            __nlRowColumnConstruct(&(M->column[i]));
         }
     } else {
-        M->column = NULL ;
+        M->column = NULL;
     }
 
-    M->diag_size = MIN(m,n) ;
-    M->diag = __NL_NEW_ARRAY(NLfloat, M->diag_size) ;
+    M->diag_size = MIN(m,n);
+    M->diag = __NL_NEW_ARRAY(NLfloat, M->diag_size);
 }
 
 static void __nlSparseMatrixDestroy(__NLSparseMatrix* M) {
-    NLuint i ;
-    __NL_DELETE_ARRAY(M->diag) ;
+    NLuint i;
+    __NL_DELETE_ARRAY(M->diag);
     if(M->storage & __NL_ROWS) {
         for(i=0; i<M->m; i++) {
-            __nlRowColumnDestroy(&(M->row[i])) ;
+            __nlRowColumnDestroy(&(M->row[i]));
         }
-        __NL_DELETE_ARRAY(M->row) ;
+        __NL_DELETE_ARRAY(M->row);
     }
     if(M->storage & __NL_COLUMNS) {
         for(i=0; i<M->n; i++) {
-            __nlRowColumnDestroy(&(M->column[i])) ;
+            __nlRowColumnDestroy(&(M->column[i]));
         }
-        __NL_DELETE_ARRAY(M->column) ;
+        __NL_DELETE_ARRAY(M->column);
     }
 #ifdef NL_PARANOID
-    __NL_CLEAR(__NLSparseMatrix,M) ;
+    __NL_CLEAR(__NLSparseMatrix,M);
 #endif
 }
 
 static void __nlSparseMatrixAdd(
     __NLSparseMatrix* M, NLuint i, NLuint j, NLfloat value
 ) {
-    __nl_parano_range_assert(i, 0, M->m - 1) ;
-    __nl_parano_range_assert(j, 0, M->n - 1) ;
+    __nl_parano_range_assert(i, 0, M->m - 1);
+    __nl_parano_range_assert(j, 0, M->n - 1);
     if((M->storage & __NL_SYMMETRIC) && (j > i)) {
-        return ;
+        return;
     }
     if(i == j) {
-        M->diag[i] += value ;
+        M->diag[i] += value;
     }
     if(M->storage & __NL_ROWS) {
-        __nlRowColumnAdd(&(M->row[i]), j, value) ;
+        __nlRowColumnAdd(&(M->row[i]), j, value);
     }
     if(M->storage & __NL_COLUMNS) {
-        __nlRowColumnAdd(&(M->column[j]), i, value) ;
+        __nlRowColumnAdd(&(M->column[j]), i, value);
     }
 }
 
 static void __nlSparseMatrixClear( __NLSparseMatrix* M) {
-    NLuint i ;
+    NLuint i;
     if(M->storage & __NL_ROWS) {
         for(i=0; i<M->m; i++) {
-            __nlRowColumnClear(&(M->row[i])) ;
+            __nlRowColumnClear(&(M->row[i]));
         }
     }
     if(M->storage & __NL_COLUMNS) {
         for(i=0; i<M->n; i++) {
-            __nlRowColumnClear(&(M->column[i])) ;
+            __nlRowColumnClear(&(M->column[i]));
         }
     }
-    __NL_CLEAR_ARRAY(NLfloat, M->diag, M->diag_size) ;    
+    __NL_CLEAR_ARRAY(NLfloat, M->diag, M->diag_size);    
 }
 
 /* Returns the number of non-zero coefficients */
 static NLuint __nlSparseMatrixNNZ( __NLSparseMatrix* M) {
-    NLuint nnz = 0 ;
-    NLuint i ;
+    NLuint nnz = 0;
+    NLuint i;
     if(M->storage & __NL_ROWS) {
         for(i = 0; i<M->m; i++) {
-            nnz += M->row[i].size ;
+            nnz += M->row[i].size;
         }
     } else if (M->storage & __NL_COLUMNS) {
         for(i = 0; i<M->n; i++) {
-            nnz += M->column[i].size ;
+            nnz += M->column[i].size;
         }
     } else {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
-    return nnz ;
+    return nnz;
 }
 
 /************************************************************************************/
@@ -342,18 +342,18 @@ static NLuint __nlSparseMatrixNNZ( __NLSparseMatrix* M) {
 static void __nlSparseMatrix_mult_rows_symmetric(
     __NLSparseMatrix* A, NLfloat* x, NLfloat* y
 ) {
-    NLuint m = A->m ;
-    NLuint i,ij ;
-    __NLRowColumn* Ri = NULL ;
-    __NLCoeff* c = NULL ;
+    NLuint m = A->m;
+    NLuint i,ij;
+    __NLRowColumn* Ri = NULL;
+    __NLCoeff* c = NULL;
     for(i=0; i<m; i++) {
-        y[i] = 0 ;
-        Ri = &(A->row[i]) ;
+        y[i] = 0;
+        Ri = &(A->row[i]);
         for(ij=0; ij<Ri->size; ij++) {
-            c = &(Ri->coeff[ij]) ;
-            y[i] += c->value * x[c->index] ;
+            c = &(Ri->coeff[ij]);
+            y[i] += c->value * x[c->index];
             if(i != c->index) {
-                y[c->index] += c->value * x[i] ;
+                y[c->index] += c->value * x[i];
             }
         }
     }
@@ -362,16 +362,16 @@ static void __nlSparseMatrix_mult_rows_symmetric(
 static void __nlSparseMatrix_mult_rows(
     __NLSparseMatrix* A, NLfloat* x, NLfloat* y
 ) {
-    NLuint m = A->m ;
-    NLuint i,ij ;
-    __NLRowColumn* Ri = NULL ;
-    __NLCoeff* c = NULL ;
+    NLuint m = A->m;
+    NLuint i,ij;
+    __NLRowColumn* Ri = NULL;
+    __NLCoeff* c = NULL;
     for(i=0; i<m; i++) {
-        y[i] = 0 ;
-        Ri = &(A->row[i]) ;
+        y[i] = 0;
+        Ri = &(A->row[i]);
         for(ij=0; ij<Ri->size; ij++) {
-            c = &(Ri->coeff[ij]) ;
-            y[i] += c->value * x[c->index] ;
+            c = &(Ri->coeff[ij]);
+            y[i] += c->value * x[c->index];
         }
     }
 }
@@ -379,18 +379,18 @@ static void __nlSparseMatrix_mult_rows(
 static void __nlSparseMatrix_mult_cols_symmetric(
     __NLSparseMatrix* A, NLfloat* x, NLfloat* y
 ) {
-    NLuint n = A->n ;
-    NLuint j,ii ;
-    __NLRowColumn* Cj = NULL ;
-    __NLCoeff* c = NULL ;
+    NLuint n = A->n;
+    NLuint j,ii;
+    __NLRowColumn* Cj = NULL;
+    __NLCoeff* c = NULL;
     for(j=0; j<n; j++) {
-        y[j] = 0 ;
-        Cj = &(A->column[j]) ;
+        y[j] = 0;
+        Cj = &(A->column[j]);
         for(ii=0; ii<Cj->size; ii++) {
-            c = &(Cj->coeff[ii]) ;
-            y[c->index] += c->value * x[j] ;
+            c = &(Cj->coeff[ii]);
+            y[c->index] += c->value * x[j];
             if(j != c->index) {
-                y[j] += c->value * x[c->index] ;
+                y[j] += c->value * x[c->index];
             }
         }
     }
@@ -399,16 +399,16 @@ static void __nlSparseMatrix_mult_cols_symmetric(
 static void __nlSparseMatrix_mult_cols(
     __NLSparseMatrix* A, NLfloat* x, NLfloat* y
 ) {
-    NLuint n = A->n ;
-    NLuint j,ii ; 
-    __NLRowColumn* Cj = NULL ;
-    __NLCoeff* c = NULL ;
-    __NL_CLEAR_ARRAY(NLfloat, y, A->m) ;
+    NLuint n = A->n;
+    NLuint j,ii; 
+    __NLRowColumn* Cj = NULL;
+    __NLCoeff* c = NULL;
+    __NL_CLEAR_ARRAY(NLfloat, y, A->m);
     for(j=0; j<n; j++) {
-        Cj = &(A->column[j]) ;
+        Cj = &(A->column[j]);
         for(ii=0; ii<Cj->size; ii++) {
-            c = &(Cj->coeff[ii]) ;
-            y[c->index] += c->value * x[j] ;
+            c = &(Cj->coeff[ii]);
+            y[c->index] += c->value * x[j];
         }
     }
 }
@@ -419,15 +419,15 @@ static void __nlSparseMatrix_mult_cols(
 static void __nlSparseMatrixMult(__NLSparseMatrix* A, NLfloat* x, NLfloat* y) {
     if(A->storage & __NL_ROWS) {
         if(A->storage & __NL_SYMMETRIC) {
-            __nlSparseMatrix_mult_rows_symmetric(A, x, y) ;
+            __nlSparseMatrix_mult_rows_symmetric(A, x, y);
         } else {
-            __nlSparseMatrix_mult_rows(A, x, y) ;
+            __nlSparseMatrix_mult_rows(A, x, y);
         }
     } else {
         if(A->storage & __NL_SYMMETRIC) {
-            __nlSparseMatrix_mult_cols_symmetric(A, x, y) ;
+            __nlSparseMatrix_mult_cols_symmetric(A, x, y);
         } else {
-            __nlSparseMatrix_mult_cols(A, x, y) ;
+            __nlSparseMatrix_mult_cols(A, x, y);
         }
     }
 }
@@ -435,13 +435,13 @@ static void __nlSparseMatrixMult(__NLSparseMatrix* A, NLfloat* x, NLfloat* y) {
 /************************************************************************************/
 /* NLContext data structure */
 
-typedef void(*__NLMatrixFunc)(float* x, float* y) ;
+typedef void(*__NLMatrixFunc)(float* x, float* y);
 
 typedef struct {
-    NLfloat  value ;
-    NLboolean locked ;
-    NLuint    index ;
-} __NLVariable ;
+    NLfloat  value;
+    NLboolean locked;
+    NLuint    index;
+} __NLVariable;
 
 #define __NL_STATE_INITIAL            0
 #define __NL_STATE_SYSTEM             1
@@ -452,213 +452,213 @@ typedef struct {
 #define __NL_STATE_SOLVED             6
 
 typedef struct {
-    NLenum           state ;
-    __NLVariable*    variable ;
-    NLuint           n ;
-    __NLSparseMatrix M ;
-    __NLRowColumn    af ;
-    __NLRowColumn    al ;
-    __NLRowColumn    xl ;
-    NLfloat*        x ;
-    NLfloat*        b ;
-    NLfloat         right_hand_side ;
-    NLfloat         row_scaling ;
-    NLuint           nb_variables ;
-    NLuint           current_row ;
-    NLboolean        least_squares ;
-    NLboolean        symmetric ;
-    NLboolean        normalize_rows ;
-    NLboolean        alloc_M ;
-    NLboolean        alloc_af ;
-    NLboolean        alloc_al ;
-    NLboolean        alloc_xl ;
-    NLboolean        alloc_variable ;
-    NLboolean        alloc_x ;
-    NLboolean        alloc_b ;
-    NLfloat         error ;
-    __NLMatrixFunc   matrix_vector_prod ;
-} __NLContext ;
+    NLenum           state;
+    __NLVariable*    variable;
+    NLuint           n;
+    __NLSparseMatrix M;
+    __NLRowColumn    af;
+    __NLRowColumn    al;
+    __NLRowColumn    xl;
+    NLfloat*        x;
+    NLfloat*        b;
+    NLfloat         right_hand_side;
+    NLfloat         row_scaling;
+    NLuint           nb_variables;
+    NLuint           current_row;
+    NLboolean        least_squares;
+    NLboolean        symmetric;
+    NLboolean        normalize_rows;
+    NLboolean        alloc_M;
+    NLboolean        alloc_af;
+    NLboolean        alloc_al;
+    NLboolean        alloc_xl;
+    NLboolean        alloc_variable;
+    NLboolean        alloc_x;
+    NLboolean        alloc_b;
+    NLfloat         error;
+    __NLMatrixFunc   matrix_vector_prod;
+} __NLContext;
 
-static __NLContext* __nlCurrentContext = NULL ;
+static __NLContext* __nlCurrentContext = NULL;
 
 static void __nlMatrixVectorProd_default(NLfloat* x, NLfloat* y) {
-    __nlSparseMatrixMult(&(__nlCurrentContext->M), x, y) ;
+    __nlSparseMatrixMult(&(__nlCurrentContext->M), x, y);
 }
 
 
 NLContext nlNewContext(void) {
-    __NLContext* result      = __NL_NEW(__NLContext) ;
-    result->state            = __NL_STATE_INITIAL ;
-    result->row_scaling      = 1.0 ;
-    result->right_hand_side  = 0.0 ;
-    result->matrix_vector_prod = __nlMatrixVectorProd_default ;
-    nlMakeCurrent(result) ;
-    return result ;
+    __NLContext* result      = __NL_NEW(__NLContext);
+    result->state            = __NL_STATE_INITIAL;
+    result->row_scaling      = 1.0;
+    result->right_hand_side  = 0.0;
+    result->matrix_vector_prod = __nlMatrixVectorProd_default;
+    nlMakeCurrent(result);
+    return result;
 }
 
 void nlDeleteContext(NLContext context_in) {
-    __NLContext* context = (__NLContext*)(context_in) ;
+    __NLContext* context = (__NLContext*)(context_in);
     if(__nlCurrentContext == context) {
-        __nlCurrentContext = NULL ;
+        __nlCurrentContext = NULL;
     }
     if(context->alloc_M) {
-        __nlSparseMatrixDestroy(&context->M) ;
+        __nlSparseMatrixDestroy(&context->M);
     }
     if(context->alloc_af) {
-        __nlRowColumnDestroy(&context->af) ;
+        __nlRowColumnDestroy(&context->af);
     }
     if(context->alloc_al) {
-        __nlRowColumnDestroy(&context->al) ;
+        __nlRowColumnDestroy(&context->al);
     }
     if(context->alloc_xl) {
-        __nlRowColumnDestroy(&context->xl) ;
+        __nlRowColumnDestroy(&context->xl);
     }
     if(context->alloc_variable) {
-        __NL_DELETE_ARRAY(context->variable) ;
+        __NL_DELETE_ARRAY(context->variable);
     }
     if(context->alloc_x) {
-        __NL_DELETE_ARRAY(context->x) ;
+        __NL_DELETE_ARRAY(context->x);
     }
     if(context->alloc_b) {
-        __NL_DELETE_ARRAY(context->b) ;
+        __NL_DELETE_ARRAY(context->b);
     }
 
 #ifdef NL_PARANOID
-    __NL_CLEAR(__NLContext, context) ;
+    __NL_CLEAR(__NLContext, context);
 #endif
-    __NL_DELETE(context) ;
+    __NL_DELETE(context);
 }
 
 void nlMakeCurrent(NLContext context) {
-    __nlCurrentContext = (__NLContext*)(context) ;
+    __nlCurrentContext = (__NLContext*)(context);
 }
 
 NLContext nlGetCurrent(void) {
-    return __nlCurrentContext ;
+    return __nlCurrentContext;
 }
 
 static void __nlCheckState(NLenum state) {
-    __nl_assert(__nlCurrentContext->state == state) ;
+    __nl_assert(__nlCurrentContext->state == state);
 }
 
 static void __nlTransition(NLenum from_state, NLenum to_state) {
-    __nlCheckState(from_state) ;
-    __nlCurrentContext->state = to_state ;
+    __nlCheckState(from_state);
+    __nlCurrentContext->state = to_state;
 }
 
 /************************************************************************************/
 /* Get/Set parameters */
 
 void nlSolverParameterf(NLenum pname, NLfloat param) {
-    __nlCheckState(__NL_STATE_INITIAL) ;
+    __nlCheckState(__NL_STATE_INITIAL);
     switch(pname) {
     case NL_NB_VARIABLES: {
-        __nl_assert(param > 0) ;
-        __nlCurrentContext->nb_variables = (NLuint)param ;
-    } break ;
+        __nl_assert(param > 0);
+        __nlCurrentContext->nb_variables = (NLuint)param;
+    } break;
     case NL_LEAST_SQUARES: {
-        __nlCurrentContext->least_squares = (NLboolean)param ;
-    } break ;
+        __nlCurrentContext->least_squares = (NLboolean)param;
+    } break;
     case NL_SYMMETRIC: {
-        __nlCurrentContext->symmetric = (NLboolean)param ;        
+        __nlCurrentContext->symmetric = (NLboolean)param;        
     }
     default: {
-        __nl_assert_not_reached ;
-    } break ;
+        __nl_assert_not_reached;
+    } break;
     }
 }
 
 void nlSolverParameteri(NLenum pname, NLint param) {
-    __nlCheckState(__NL_STATE_INITIAL) ;
+    __nlCheckState(__NL_STATE_INITIAL);
     switch(pname) {
     case NL_NB_VARIABLES: {
-        __nl_assert(param > 0) ;
-        __nlCurrentContext->nb_variables = (NLuint)param ;
-    } break ;
+        __nl_assert(param > 0);
+        __nlCurrentContext->nb_variables = (NLuint)param;
+    } break;
     case NL_LEAST_SQUARES: {
-        __nlCurrentContext->least_squares = (NLboolean)param ;
-    } break ;
+        __nlCurrentContext->least_squares = (NLboolean)param;
+    } break;
     case NL_SYMMETRIC: {
-        __nlCurrentContext->symmetric = (NLboolean)param ;        
+        __nlCurrentContext->symmetric = (NLboolean)param;        
     }
     default: {
-        __nl_assert_not_reached ;
-    } break ;
+        __nl_assert_not_reached;
+    } break;
     }
 }
 
 void nlRowParameterf(NLenum pname, NLfloat param) {
-    __nlCheckState(__NL_STATE_MATRIX) ;
+    __nlCheckState(__NL_STATE_MATRIX);
     switch(pname) {
     case NL_RIGHT_HAND_SIDE: {
-        __nlCurrentContext->right_hand_side = param ;
-    } break ;
+        __nlCurrentContext->right_hand_side = param;
+    } break;
     case NL_ROW_SCALING: {
-        __nlCurrentContext->row_scaling = param ;
-    } break ;
+        __nlCurrentContext->row_scaling = param;
+    } break;
     }
 }
 
 void nlRowParameteri(NLenum pname, NLint param) {
-    __nlCheckState(__NL_STATE_MATRIX) ;
+    __nlCheckState(__NL_STATE_MATRIX);
     switch(pname) {
     case NL_RIGHT_HAND_SIDE: {
-        __nlCurrentContext->right_hand_side = (NLfloat)param ;
-    } break ;
+        __nlCurrentContext->right_hand_side = (NLfloat)param;
+    } break;
     case NL_ROW_SCALING: {
-        __nlCurrentContext->row_scaling = (NLfloat)param ;
-    } break ;
+        __nlCurrentContext->row_scaling = (NLfloat)param;
+    } break;
     }
 }
 
 void nlGetBooleanv(NLenum pname, NLboolean* params) {
     switch(pname) {
     case NL_LEAST_SQUARES: {
-        *params = __nlCurrentContext->least_squares ;
-    } break ;
+        *params = __nlCurrentContext->least_squares;
+    } break;
     case NL_SYMMETRIC: {
-        *params = __nlCurrentContext->symmetric ;
-    } break ;
+        *params = __nlCurrentContext->symmetric;
+    } break;
     default: {
-        __nl_assert_not_reached ;
-    } break ;
+        __nl_assert_not_reached;
+    } break;
     }
 }
 
 void nlGetFloatv(NLenum pname, NLfloat* params) {
     switch(pname) {
     case NL_NB_VARIABLES: {
-        *params = (NLfloat)(__nlCurrentContext->nb_variables) ;
-    } break ;
+        *params = (NLfloat)(__nlCurrentContext->nb_variables);
+    } break;
     case NL_LEAST_SQUARES: {
-        *params = (NLfloat)(__nlCurrentContext->least_squares) ;
-    } break ;
+        *params = (NLfloat)(__nlCurrentContext->least_squares);
+    } break;
     case NL_SYMMETRIC: {
-        *params = (NLfloat)(__nlCurrentContext->symmetric) ;
-    } break ;
+        *params = (NLfloat)(__nlCurrentContext->symmetric);
+    } break;
     case NL_ERROR: {
-        *params = (NLfloat)(__nlCurrentContext->error) ;
-    } break ;
+        *params = (NLfloat)(__nlCurrentContext->error);
+    } break;
     default: {
-        __nl_assert_not_reached ;
-    } break ;
+        __nl_assert_not_reached;
+    } break;
     }
 }
 
 void nlGetIntergerv(NLenum pname, NLint* params) {
     switch(pname) {
     case NL_NB_VARIABLES: {
-        *params = (NLint)(__nlCurrentContext->nb_variables) ;
-    } break ;
+        *params = (NLint)(__nlCurrentContext->nb_variables);
+    } break;
     case NL_LEAST_SQUARES: {
-        *params = (NLint)(__nlCurrentContext->least_squares) ;
-    } break ;
+        *params = (NLint)(__nlCurrentContext->least_squares);
+    } break;
     case NL_SYMMETRIC: {
-        *params = (NLint)(__nlCurrentContext->symmetric) ;
-    } break ;
+        *params = (NLint)(__nlCurrentContext->symmetric);
+    } break;
     default: {
-        __nl_assert_not_reached ;
-    } break ;
+        __nl_assert_not_reached;
+    } break;
     }
 }
 
@@ -668,11 +668,11 @@ void nlGetIntergerv(NLenum pname, NLint* params) {
 void nlEnable(NLenum pname) {
     switch(pname) {
     case NL_NORMALIZE_ROWS: {
-        __nl_assert(__nlCurrentContext->state != __NL_STATE_ROW) ;
-        __nlCurrentContext->normalize_rows = NL_TRUE ;
-    } break ;
+        __nl_assert(__nlCurrentContext->state != __NL_STATE_ROW);
+        __nlCurrentContext->normalize_rows = NL_TRUE;
+    } break;
     default: {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
     }
 }
@@ -680,11 +680,11 @@ void nlEnable(NLenum pname) {
 void nlDisable(NLenum pname) {
     switch(pname) {
     case NL_NORMALIZE_ROWS: {
-        __nl_assert(__nlCurrentContext->state != __NL_STATE_ROW) ;
-        __nlCurrentContext->normalize_rows = NL_FALSE ;
-    } break ;
+        __nl_assert(__nlCurrentContext->state != __NL_STATE_ROW);
+        __nlCurrentContext->normalize_rows = NL_FALSE;
+    } break;
     default: {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
     }
 }
@@ -692,217 +692,219 @@ void nlDisable(NLenum pname) {
 NLboolean nlIsEnabled(NLenum pname) {
     switch(pname) {
     case NL_NORMALIZE_ROWS: {
-        return __nlCurrentContext->normalize_rows ;
-    } break ;
+        return __nlCurrentContext->normalize_rows;
+    } break;
     default: {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
     }
-    return NL_FALSE ;
+    return NL_FALSE;
 }
 
 /************************************************************************************/
 /* Get/Set Lock/Unlock variables */
 
 void nlSetVariable(NLuint index, NLfloat value) {
-    __nlCheckState(__NL_STATE_SYSTEM) ;
-    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1) ;
-    __nlCurrentContext->variable[index].value = value ;    
+    __nlCheckState(__NL_STATE_SYSTEM);
+    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
+    __nlCurrentContext->variable[index].value = value;    
 }
 
 NLfloat nlGetVariable(NLuint index) {
-    __nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL) ;
-    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1) ;
-    return __nlCurrentContext->variable[index].value ;
+    __nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL);
+    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
+    return __nlCurrentContext->variable[index].value;
 }
 
 void nlLockVariable(NLuint index) {
-    __nlCheckState(__NL_STATE_SYSTEM) ;
-    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1) ;
-    __nlCurrentContext->variable[index].locked = NL_TRUE ;
+    __nlCheckState(__NL_STATE_SYSTEM);
+    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
+    __nlCurrentContext->variable[index].locked = NL_TRUE;
 }
 
 void nlUnlockVariable(NLuint index) {
-    __nlCheckState(__NL_STATE_SYSTEM) ;
-    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1) ;
-    __nlCurrentContext->variable[index].locked = NL_FALSE ;
+    __nlCheckState(__NL_STATE_SYSTEM);
+    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
+    __nlCurrentContext->variable[index].locked = NL_FALSE;
 }
 
 NLboolean nlVariableIsLocked(NLuint index) {
-    __nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL) ;
-    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1) ;
-    return __nlCurrentContext->variable[index].locked  ;
+    __nl_assert(__nlCurrentContext->state != __NL_STATE_INITIAL);
+    __nl_parano_range_assert(index, 0, __nlCurrentContext->nb_variables - 1);
+    return __nlCurrentContext->variable[index].locked;
 }
 
 /************************************************************************************/
 /* System construction */
 
 static void __nlVariablesToVector() {
-    NLuint i ;
-    __nl_assert(__nlCurrentContext->alloc_x) ;
-    __nl_assert(__nlCurrentContext->alloc_variable) ;
+    NLuint i;
+    __nl_assert(__nlCurrentContext->alloc_x);
+    __nl_assert(__nlCurrentContext->alloc_variable);
     for(i=0; i<__nlCurrentContext->nb_variables; i++) {
-        __NLVariable* v = &(__nlCurrentContext->variable[i]) ;
+        __NLVariable* v = &(__nlCurrentContext->variable[i]);
         if(!v->locked) {
-            __nl_assert(v->index < __nlCurrentContext->n) ;
-            __nlCurrentContext->x[v->index] = v->value ;
+            __nl_assert(v->index < __nlCurrentContext->n);
+            __nlCurrentContext->x[v->index] = v->value;
         }
     }
 }
 
 static void __nlVectorToVariables() {
-    NLuint i ;
-    __nl_assert(__nlCurrentContext->alloc_x) ;
-    __nl_assert(__nlCurrentContext->alloc_variable) ;
+    NLuint i;
+    __nl_assert(__nlCurrentContext->alloc_x);
+    __nl_assert(__nlCurrentContext->alloc_variable);
     for(i=0; i<__nlCurrentContext->nb_variables; i++) {
-        __NLVariable* v = &(__nlCurrentContext->variable[i]) ;
+        __NLVariable* v = &(__nlCurrentContext->variable[i]);
         if(!v->locked) {
-            __nl_assert(v->index < __nlCurrentContext->n) ;
-            v->value = __nlCurrentContext->x[v->index] ;
+            __nl_assert(v->index < __nlCurrentContext->n);
+            v->value = __nlCurrentContext->x[v->index];
         }
     }
 }
 
 
 static void __nlBeginSystem() {
-    __nlTransition(__NL_STATE_INITIAL, __NL_STATE_SYSTEM) ;
-    __nl_assert(__nlCurrentContext->nb_variables > 0) ;
+    __nlTransition(__NL_STATE_INITIAL, __NL_STATE_SYSTEM);
+    __nl_assert(__nlCurrentContext->nb_variables > 0);
     __nlCurrentContext->variable = __NL_NEW_ARRAY(
         __NLVariable, __nlCurrentContext->nb_variables
-    ) ;
-    __nlCurrentContext->alloc_variable = NL_TRUE ;
+    );
+    __nlCurrentContext->alloc_variable = NL_TRUE;
 }
 
 static void __nlEndSystem() {
-    __nlTransition(__NL_STATE_MATRIX_CONSTRUCTED, __NL_STATE_SYSTEM_CONSTRUCTED) ;    
+    __nlTransition(__NL_STATE_MATRIX_CONSTRUCTED, __NL_STATE_SYSTEM_CONSTRUCTED);    
 }
 
 static void __nlBeginMatrix() {
-    NLuint i ;
-    NLuint n = 0 ;
-    NLenum storage = __NL_ROWS ;
+    NLuint i;
+    NLuint n = 0;
+    NLenum storage = __NL_ROWS;
 
-    __nlTransition(__NL_STATE_SYSTEM, __NL_STATE_MATRIX) ;
+    __nlTransition(__NL_STATE_SYSTEM, __NL_STATE_MATRIX);
 
     for(i=0; i<__nlCurrentContext->nb_variables; i++) {
         if(!__nlCurrentContext->variable[i].locked) {
-            __nlCurrentContext->variable[i].index = n ;
-            n++ ;
+            __nlCurrentContext->variable[i].index = n;
+            n++;
         } else {
-            __nlCurrentContext->variable[i].index = ~0 ;
+            __nlCurrentContext->variable[i].index = ~0;
         }
     }
 
-    __nlCurrentContext->n = n ;
+    __nlCurrentContext->n = n;
 
     /* a least squares problem results in a symmetric matrix */
     if(__nlCurrentContext->least_squares) {
-        __nlCurrentContext->symmetric = NL_TRUE ;
+        __nlCurrentContext->symmetric = NL_TRUE;
     }
 
     if(__nlCurrentContext->symmetric) {
-        storage = (storage | __NL_SYMMETRIC) ;
+        storage = (storage | __NL_SYMMETRIC);
     }
 
     /* SuperLU storage does not support symmetric storage */
-    storage = (storage & ~__NL_SYMMETRIC) ;
+    storage = (storage & ~__NL_SYMMETRIC);
 
-    __nlSparseMatrixConstruct(&__nlCurrentContext->M, n, n, storage) ;
-    __nlCurrentContext->alloc_M = NL_TRUE ;
+    __nlSparseMatrixConstruct(&__nlCurrentContext->M, n, n, storage);
+    __nlCurrentContext->alloc_M = NL_TRUE;
 
-    __nlCurrentContext->x = __NL_NEW_ARRAY(NLfloat, n) ;
-    __nlCurrentContext->alloc_x = NL_TRUE ;
+    __nlCurrentContext->x = __NL_NEW_ARRAY(NLfloat, n);
+    __nlCurrentContext->alloc_x = NL_TRUE;
     
-    __nlCurrentContext->b = __NL_NEW_ARRAY(NLfloat, n) ;
-    __nlCurrentContext->alloc_b = NL_TRUE ;
+    __nlCurrentContext->b = __NL_NEW_ARRAY(NLfloat, n);
+    __nlCurrentContext->alloc_b = NL_TRUE;
 
-    __nlVariablesToVector() ;
+    __nlVariablesToVector();
 
-    __nlRowColumnConstruct(&__nlCurrentContext->af) ;
-    __nlCurrentContext->alloc_af = NL_TRUE ;
-    __nlRowColumnConstruct(&__nlCurrentContext->al) ;
-    __nlCurrentContext->alloc_al = NL_TRUE ;
-    __nlRowColumnConstruct(&__nlCurrentContext->xl) ;
-    __nlCurrentContext->alloc_xl = NL_TRUE ;
+    __nlRowColumnConstruct(&__nlCurrentContext->af);
+    __nlCurrentContext->alloc_af = NL_TRUE;
+    __nlRowColumnConstruct(&__nlCurrentContext->al);
+    __nlCurrentContext->alloc_al = NL_TRUE;
+    __nlRowColumnConstruct(&__nlCurrentContext->xl);
+    __nlCurrentContext->alloc_xl = NL_TRUE;
 
-    __nlCurrentContext->current_row = 0 ;
+    __nlCurrentContext->current_row = 0;
 }
 
 static void __nlEndMatrix() {
-    __nlTransition(__NL_STATE_MATRIX, __NL_STATE_MATRIX_CONSTRUCTED) ;    
+    __nlTransition(__NL_STATE_MATRIX, __NL_STATE_MATRIX_CONSTRUCTED);    
     
-    __nlRowColumnDestroy(&__nlCurrentContext->af) ;
-    __nlCurrentContext->alloc_af = NL_FALSE ;
-    __nlRowColumnDestroy(&__nlCurrentContext->al) ;
-    __nlCurrentContext->alloc_al = NL_FALSE ;
-    __nlRowColumnDestroy(&__nlCurrentContext->xl) ;
-    __nlCurrentContext->alloc_al = NL_FALSE ;
+    __nlRowColumnDestroy(&__nlCurrentContext->af);
+    __nlCurrentContext->alloc_af = NL_FALSE;
+    __nlRowColumnDestroy(&__nlCurrentContext->al);
+    __nlCurrentContext->alloc_al = NL_FALSE;
+    __nlRowColumnDestroy(&__nlCurrentContext->xl);
+    __nlCurrentContext->alloc_al = NL_FALSE;
     
+#if 0
     if(!__nlCurrentContext->least_squares) {
         __nl_assert(
             __nlCurrentContext->current_row == 
             __nlCurrentContext->n
-        ) ;
+        );
     }
+#endif
 }
 
 static void __nlBeginRow() {
-    __nlTransition(__NL_STATE_MATRIX, __NL_STATE_ROW) ;
-    __nlRowColumnZero(&__nlCurrentContext->af) ;
-    __nlRowColumnZero(&__nlCurrentContext->al) ;
-    __nlRowColumnZero(&__nlCurrentContext->xl) ;
+    __nlTransition(__NL_STATE_MATRIX, __NL_STATE_ROW);
+    __nlRowColumnZero(&__nlCurrentContext->af);
+    __nlRowColumnZero(&__nlCurrentContext->al);
+    __nlRowColumnZero(&__nlCurrentContext->xl);
 }
 
 static void __nlScaleRow(NLfloat s) {
-    __NLRowColumn*    af = &__nlCurrentContext->af ;
-    __NLRowColumn*    al = &__nlCurrentContext->al ;
-    NLuint nf            = af->size ;
-    NLuint nl            = al->size ;
-    NLuint i ;
+    __NLRowColumn*    af = &__nlCurrentContext->af;
+    __NLRowColumn*    al = &__nlCurrentContext->al;
+    NLuint nf            = af->size;
+    NLuint nl            = al->size;
+    NLuint i;
     for(i=0; i<nf; i++) {
-        af->coeff[i].value *= s ;
+        af->coeff[i].value *= s;
     }
     for(i=0; i<nl; i++) {
-        al->coeff[i].value *= s ;
+        al->coeff[i].value *= s;
     }
-    __nlCurrentContext->right_hand_side *= s ;
+    __nlCurrentContext->right_hand_side *= s;
 }
 
 static void __nlNormalizeRow(NLfloat weight) {
-    __NLRowColumn*    af = &__nlCurrentContext->af ;
-    __NLRowColumn*    al = &__nlCurrentContext->al ;
-    NLuint nf            = af->size ;
-    NLuint nl            = al->size ;
-    NLuint i ;
-    NLfloat norm = 0.0 ;
+    __NLRowColumn*    af = &__nlCurrentContext->af;
+    __NLRowColumn*    al = &__nlCurrentContext->al;
+    NLuint nf            = af->size;
+    NLuint nl            = al->size;
+    NLuint i;
+    NLfloat norm = 0.0;
     for(i=0; i<nf; i++) {
-        norm += af->coeff[i].value * af->coeff[i].value ;
+        norm += af->coeff[i].value * af->coeff[i].value;
     }
     for(i=0; i<nl; i++) {
-        norm += al->coeff[i].value * al->coeff[i].value ;
+        norm += al->coeff[i].value * al->coeff[i].value;
     }
-    norm = sqrt(norm) ;
-    __nlScaleRow(weight / norm) ;
+    norm = sqrt(norm);
+    __nlScaleRow(weight / norm);
 }
 
 static void __nlEndRow() {
-    __NLRowColumn*    af = &__nlCurrentContext->af ;
-    __NLRowColumn*    al = &__nlCurrentContext->al ;
-    __NLRowColumn*    xl = &__nlCurrentContext->xl ;
-    __NLSparseMatrix* M  = &__nlCurrentContext->M  ;
-    NLfloat* b        = __nlCurrentContext->b ;
-    NLuint nf          = af->size ;
-    NLuint nl          = al->size ;
-    NLuint current_row = __nlCurrentContext->current_row ;
-    NLuint i ;
-    NLuint j ;
-    NLfloat S ;
-    __nlTransition(__NL_STATE_ROW, __NL_STATE_MATRIX) ;
+    __NLRowColumn*    af = &__nlCurrentContext->af;
+    __NLRowColumn*    al = &__nlCurrentContext->al;
+    __NLRowColumn*    xl = &__nlCurrentContext->xl;
+    __NLSparseMatrix* M  = &__nlCurrentContext->M;
+    NLfloat* b        = __nlCurrentContext->b;
+    NLuint nf          = af->size;
+    NLuint nl          = al->size;
+    NLuint current_row = __nlCurrentContext->current_row;
+    NLuint i;
+    NLuint j;
+    NLfloat S;
+    __nlTransition(__NL_STATE_ROW, __NL_STATE_MATRIX);
 
     if(__nlCurrentContext->normalize_rows) {
-        __nlNormalizeRow(__nlCurrentContext->row_scaling) ;
+        __nlNormalizeRow(__nlCurrentContext->row_scaling);
     } else {
-        __nlScaleRow(__nlCurrentContext->row_scaling) ;
+        __nlScaleRow(__nlCurrentContext->row_scaling);
     }
 
     if(__nlCurrentContext->least_squares) {
@@ -911,59 +913,81 @@ static void __nlEndRow() {
                 __nlSparseMatrixAdd(
                     M, af->coeff[i].index, af->coeff[j].index,
                     af->coeff[i].value * af->coeff[j].value
-                ) ;
+                );
             }
         }
-        S = -__nlCurrentContext->right_hand_side ;
+        S = -__nlCurrentContext->right_hand_side;
         for(j=0; j<nl; j++) {
-            S += al->coeff[j].value * xl->coeff[j].value ;
+            S += al->coeff[j].value * xl->coeff[j].value;
         }
         for(i=0; i<nf; i++) {
-            b[ af->coeff[i].index ] -= af->coeff[i].value * S ;
+            b[ af->coeff[i].index ] -= af->coeff[i].value * S;
         }
     } else {
         for(i=0; i<nf; i++) {
             __nlSparseMatrixAdd(
                 M, current_row, af->coeff[i].index, af->coeff[i].value
-            ) ;
+            );
         }
-        b[current_row] = -__nlCurrentContext->right_hand_side ;
+        b[current_row] = -__nlCurrentContext->right_hand_side;
         for(i=0; i<nl; i++) {
-            b[current_row] -= al->coeff[i].value * xl->coeff[i].value ;
+            b[current_row] -= al->coeff[i].value * xl->coeff[i].value;
         }
     }
-    __nlCurrentContext->current_row++ ;
-    __nlCurrentContext->right_hand_side = 0.0 ;    
-    __nlCurrentContext->row_scaling     = 1.0 ;
+    __nlCurrentContext->current_row++;
+    __nlCurrentContext->right_hand_side = 0.0;    
+    __nlCurrentContext->row_scaling     = 1.0;
+}
+
+void nlMatrixAdd(NLuint row, NLuint col, NLfloat value)
+{
+    __NLSparseMatrix* M  = &__nlCurrentContext->M;
+    __nlCheckState(__NL_STATE_MATRIX);
+    __nl_range_assert(row, 0, __nlCurrentContext->n - 1);
+    __nl_range_assert(col, 0, __nlCurrentContext->nb_variables - 1);
+	__nl_assert(!__nlCurrentContext->least_squares);
+
+	__nlSparseMatrixAdd(M, row, col, value);
+}
+
+void nlRightHandSideAdd(NLuint index, NLfloat value)
+{
+    NLfloat* b = __nlCurrentContext->b;
+
+    __nlCheckState(__NL_STATE_MATRIX);
+    __nl_range_assert(index, 0, __nlCurrentContext->n - 1);
+	__nl_assert(!__nlCurrentContext->least_squares);
+
+	b[index] += value;
 }
 
 void nlCoefficient(NLuint index, NLfloat value) {
     __NLVariable* v;
 	unsigned int zero= 0;
-    __nlCheckState(__NL_STATE_ROW) ;
-    __nl_range_assert(index, zero, __nlCurrentContext->nb_variables - 1) ;
-    v = &(__nlCurrentContext->variable[index]) ;
+    __nlCheckState(__NL_STATE_ROW);
+    __nl_range_assert(index, zero, __nlCurrentContext->nb_variables - 1);
+    v = &(__nlCurrentContext->variable[index]);
     if(v->locked) {
-        __nlRowColumnAppend(&(__nlCurrentContext->al), 0, value) ;
-        __nlRowColumnAppend(&(__nlCurrentContext->xl), 0, v->value) ;
+        __nlRowColumnAppend(&(__nlCurrentContext->al), 0, value);
+        __nlRowColumnAppend(&(__nlCurrentContext->xl), 0, v->value);
     } else {
-        __nlRowColumnAppend(&(__nlCurrentContext->af), v->index, value) ;
+        __nlRowColumnAppend(&(__nlCurrentContext->af), v->index, value);
     }
 }
 
 void nlBegin(NLenum prim) {
     switch(prim) {
     case NL_SYSTEM: {
-        __nlBeginSystem() ;
-    } break ;
+        __nlBeginSystem();
+    } break;
     case NL_MATRIX: {
-        __nlBeginMatrix() ;
-    } break ;
+        __nlBeginMatrix();
+    } break;
     case NL_ROW: {
-        __nlBeginRow() ;
-    } break ;
+        __nlBeginRow();
+    } break;
     default: {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
     }
 }
@@ -971,16 +995,16 @@ void nlBegin(NLenum prim) {
 void nlEnd(NLenum prim) {
     switch(prim) {
     case NL_SYSTEM: {
-        __nlEndSystem() ;
-    } break ;
+        __nlEndSystem();
+    } break;
     case NL_MATRIX: {
-        __nlEndMatrix() ;
-    } break ;
+        __nlEndMatrix();
+    } break;
     case NL_ROW: {
-        __nlEndRow() ;
-    } break ;
+        __nlEndRow();
+    } break;
     default: {
-        __nl_assert_not_reached ;
+        __nl_assert_not_reached;
     }
     }
 }
@@ -993,41 +1017,41 @@ void nlEnd(NLenum prim) {
 static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
 
     /* OpenNL Context */
-    __NLSparseMatrix* M  = &(__nlCurrentContext->M) ;
-    NLfloat* b          = __nlCurrentContext->b ;
-    NLfloat* x          = __nlCurrentContext->x ;
+    __NLSparseMatrix* M  = &(__nlCurrentContext->M);
+    NLfloat* b          = __nlCurrentContext->b;
+    NLfloat* x          = __nlCurrentContext->x;
 
     /* Compressed Row Storage matrix representation */
-    NLuint    n      = __nlCurrentContext->n ;
-    NLuint    nnz    = __nlSparseMatrixNNZ(M) ; /* Number of Non-Zero coeffs */
-    NLint*    xa     = __NL_NEW_ARRAY(NLint, n+1) ;
-    NLfloat* rhs    = __NL_NEW_ARRAY(NLfloat, n) ;
-    NLfloat* a      = __NL_NEW_ARRAY(NLfloat, nnz) ;
-    NLint*    asub   = __NL_NEW_ARRAY(NLint, nnz) ;
+    NLuint    n      = __nlCurrentContext->n;
+    NLuint    nnz    = __nlSparseMatrixNNZ(M); /* Number of Non-Zero coeffs */
+    NLint*    xa     = __NL_NEW_ARRAY(NLint, n+1);
+    NLfloat* rhs    = __NL_NEW_ARRAY(NLfloat, n);
+    NLfloat* a      = __NL_NEW_ARRAY(NLfloat, nnz);
+    NLint*    asub   = __NL_NEW_ARRAY(NLint, nnz);
 
     /* Permutation vector */
-    NLint*    perm_r  = __NL_NEW_ARRAY(NLint, n) ;
-    NLint*    perm    = __NL_NEW_ARRAY(NLint, n) ;
+    NLint*    perm_r  = __NL_NEW_ARRAY(NLint, n);
+    NLint*    perm    = __NL_NEW_ARRAY(NLint, n);
 
     /* SuperLU variables */
-    SuperMatrix A, B ; /* System       */
-    SuperMatrix L, U ; /* Inverse of A */
-    NLint info ;       /* status code  */
-    DNformat *vals = NULL ; /* access to result */
-    float *rvals  = NULL ; /* access to result */
+    SuperMatrix A, B; /* System       */
+    SuperMatrix L, U; /* Inverse of A */
+    NLint info;       /* status code  */
+    DNformat *vals = NULL; /* access to result */
+    float *rvals  = NULL; /* access to result */
 
     /* SuperLU options and stats */
-    superlu_options_t options ;
-    SuperLUStat_t     stat ;
+    superlu_options_t options;
+    SuperLUStat_t     stat;
 
 
     /* Temporary variables */
-    __NLRowColumn* Ri = NULL ;
-    NLuint         i,jj,count ;
+    __NLRowColumn* Ri = NULL;
+    NLuint         i,jj,count;
     
-    __nl_assert(!(M->storage & __NL_SYMMETRIC)) ;
-    __nl_assert(M->storage & __NL_ROWS) ;
-    __nl_assert(M->m == M->n) ;
+    __nl_assert(!(M->storage & __NL_SYMMETRIC));
+    __nl_assert(M->storage & __NL_ROWS);
+    __nl_assert(M->m == M->n);
     
     
     /*
@@ -1036,20 +1060,20 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
      * -------------------------------------------------------
      */
 
-    count = 0 ;
+    count = 0;
     for(i=0; i<n; i++) {
-        Ri = &(M->row[i]) ;
-        xa[i] = count ;
+        Ri = &(M->row[i]);
+        xa[i] = count;
         for(jj=0; jj<Ri->size; jj++) {
-            a[count]    = Ri->coeff[jj].value ;
-            asub[count] = Ri->coeff[jj].index ;
-            count++ ;
+            a[count]    = Ri->coeff[jj].value;
+            asub[count] = Ri->coeff[jj].index;
+            count++;
         }
     }
-    xa[n] = nnz ;
+    xa[n] = nnz;
 
     /* Save memory for SuperLU */
-    __nlSparseMatrixClear(M) ;
+    __nlSparseMatrixClear(M);
 
 
     /*
@@ -1079,15 +1103,15 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
      *           2 -> re-ordering for A^t+A
      *           3 -> approximate minimum degree ordering
      */
-    get_perm_c(do_perm ? 3 : 0, &A, perm) ;
+    get_perm_c(do_perm ? 3 : 0, &A, perm);
 
     /* Step 4: call SuperLU main routine
      * ---------------------------------
      */
 
-    set_default_options(&options) ;
-    options.ColPerm = MY_PERMC ;
-    StatInit(&stat) ;
+    set_default_options(&options);
+    options.ColPerm = MY_PERMC;
+    StatInit(&stat);
 
     sgssv(&options, &A, perm, perm_r, &L, &U, &B, &stat, &info);
 
@@ -1112,8 +1136,8 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
      * needs to be deallocated (the arrays have been allocated
      * by us).
      */
-    Destroy_SuperMatrix_Store(&A) ;
-    Destroy_SuperMatrix_Store(&B) ;
+    Destroy_SuperMatrix_Store(&A);
+    Destroy_SuperMatrix_Store(&B);
 
     
     /*
@@ -1123,14 +1147,16 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
     Destroy_SuperNode_Matrix(&L);
     Destroy_CompCol_Matrix(&U);
 
-    __NL_DELETE_ARRAY(xa) ;
-    __NL_DELETE_ARRAY(rhs) ;
-    __NL_DELETE_ARRAY(a) ;
-    __NL_DELETE_ARRAY(asub) ;
-    __NL_DELETE_ARRAY(perm_r) ;
-    __NL_DELETE_ARRAY(perm) ;
+    StatFree(&stat);
 
-    return (info == 0) ;
+    __NL_DELETE_ARRAY(xa);
+    __NL_DELETE_ARRAY(rhs);
+    __NL_DELETE_ARRAY(a);
+    __NL_DELETE_ARRAY(asub);
+    __NL_DELETE_ARRAY(perm_r);
+    __NL_DELETE_ARRAY(perm);
+
+    return (info == 0);
 }
 
 
@@ -1138,14 +1164,14 @@ static NLboolean __nlSolve_SUPERLU( NLboolean do_perm) {
 /* nlSolve() driver routine */
 
 NLboolean nlSolve(void) {
-    NLboolean result = NL_TRUE ;
+    NLboolean result = NL_TRUE;
 
-    __nlCheckState(__NL_STATE_SYSTEM_CONSTRUCTED) ;
-    result = __nlSolve_SUPERLU(NL_TRUE) ;
+    __nlCheckState(__NL_STATE_SYSTEM_CONSTRUCTED);
+    result = __nlSolve_SUPERLU(NL_TRUE);
 
-    __nlVectorToVariables() ;
-    __nlTransition(__NL_STATE_SYSTEM_CONSTRUCTED, __NL_STATE_SOLVED) ;
+    __nlVectorToVariables();
+    __nlTransition(__NL_STATE_SYSTEM_CONSTRUCTED, __NL_STATE_SOLVED);
 
-    return result ;
+    return result;
 }
 
