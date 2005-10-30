@@ -84,16 +84,17 @@ typedef struct bArmature {
 /* dont use bit 7, was saved in files to disable stuff */
 
 /* armature->flag */
-#define		ARM_RESTPOS		0x0001
+#define		ARM_RESTPOS		0x001
 			/* XRAY is here only for backwards converting */
-#define		ARM_DRAWXRAY	0x0002
-#define		ARM_DRAWAXES	0x0004
-#define		ARM_DRAWNAMES	0x0008
-#define		ARM_POSEMODE	0x0010
-#define		ARM_EDITMODE	0x0020
-#define		ARM_DELAYDEFORM 0x0040
-#define		ARM_DONT_USE    0x0080
-#define		ARM_MIRROR_EDIT	0x0100
+#define		ARM_DRAWXRAY	0x002
+#define		ARM_DRAWAXES	0x004
+#define		ARM_DRAWNAMES	0x008
+#define		ARM_POSEMODE	0x010
+#define		ARM_EDITMODE	0x020
+#define		ARM_DELAYDEFORM 0x040
+#define		ARM_DONT_USE    0x080
+#define		ARM_MIRROR_EDIT	0x100
+#define		ARM_AUTO_IK		0x200
 
 /* armature->drawtype */
 #define		ARM_OCTA		0

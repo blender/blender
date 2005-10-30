@@ -748,7 +748,7 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 
 /* called during solve_constraints */
 /* also for make_parent, to find correct inverse of "follow path" */
-/* warning, ownerdata is void... is not Bone anymore, but posechannel */
+/* warning, ownerdata is void... is not Bone anymore, but PoseChannel or Object */
 short get_constraint_target_matrix (bConstraint *con, short ownertype, void* ownerdata, float mat[][4], float size[3], float ctime)
 {
 	short valid=0;
@@ -907,6 +907,20 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			if (data->tar){
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size, ctime);
 				valid=1;
+			}
+			else if (data->flag & CONSTRAINT_IK_AUTO) {
+				Object *ob= ownerdata;
+				
+				if(ob==NULL)
+					Mat4One(mat);
+				else {
+					float vec[3];
+					/* move grabtarget into world space */
+					VECCOPY(vec, data->grabtarget);
+					Mat4MulVecfl(ob->obmat, vec);
+					Mat4CpyMat4(mat, ob->obmat);
+					VECCOPY(mat[3], vec);
+				}
 			}
 			else
 				Mat4One (mat);

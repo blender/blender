@@ -292,6 +292,10 @@ void update_pose_constraint_flags(bPose *pose)
 				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
 				
 				pchan->constflag |= PCHAN_HAS_IK;
+				
+				if(data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+					pchan->constflag |= PCHAN_HAS_TARGET;
+				
 				/* negative rootbone = recalc rootbone index. used in do_versions */
 				if(data->rootbone<0) {
 					data->rootbone= 0;

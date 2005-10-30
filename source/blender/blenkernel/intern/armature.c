@@ -986,7 +986,7 @@ void armature_rebuild_pose(Object *ob, bArmature *arm)
 
 
 /* allocates PoseTree, and links that to root bone/channel */
-/* note; if we got this working, it can become static too? */
+/* Note: detecting the IK chain is duplicate code... in drawarmature.c and in transform_conversions.c */
 static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 {
 	bPoseChannel *curchan, *pchan_root=NULL, *chanlist[256], **oldchan;
@@ -1001,11 +1001,16 @@ static void initialize_posetree(struct Object *ob, bPoseChannel *pchan_tip)
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC) break;
 	}
 	if(con==NULL) return;
-	if(con->flag & CONSTRAINT_DISABLE) return;  // not sure...
 	
 	data=(bKinematicConstraint*)con->data;
-	if(data->tar==NULL) return;
-	if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
+	
+	/* two types of targets */
+	if(data->flag & CONSTRAINT_IK_AUTO);
+	else {
+		if(con->flag & CONSTRAINT_DISABLE) return;	/* checked in editconstraint.c */
+		if(data->tar==NULL) return;
+		if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) return;
+	}
 	
 	/* exclude tip from chain? */
 	if(!(data->flag & CONSTRAINT_IK_TIP))
@@ -1232,8 +1237,8 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	for(target=tree->targets.first; target; target=target->next) {
 		data= (bKinematicConstraint*)target->con->data;
 
-		/* 1.0=ctime */
-		get_constraint_target_matrix(target->con, TARGET_BONE, NULL, rootmat, size, 1.0);
+		/* 1.0=ctime, we pass on object for auto-ik§ */
+		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, size, 1.0);
 
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);

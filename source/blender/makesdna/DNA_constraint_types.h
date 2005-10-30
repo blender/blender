@@ -70,6 +70,8 @@ typedef struct bKinematicConstraint{
 
 	float		weight;			/* Weight of goal in IK tree */
 	float		orientweight;	/* Amount of rotation a target applies on chain */
+	float		grabtarget[3];	/* for target-less IK */
+	float		pad2;
 } bKinematicConstraint;
 
 typedef struct bTrackToConstraint{
@@ -232,6 +234,8 @@ typedef struct bStretchToConstraint{
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1
 #define CONSTRAINT_IK_ROT		2
+#define CONSTRAINT_IK_AUTO		4
+#define CONSTRAINT_IK_TEMP		8
 
 #endif
 

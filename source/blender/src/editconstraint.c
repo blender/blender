@@ -622,7 +622,7 @@ void add_constraint(int only_IK)
 		else if(obsel)
 			nr= pupmenu("Add IK Constraint%t|To Selected Object%x10");
 		else 
-			nr= pupmenu("Add IK Constraint%t|To New Empty Object%x10");
+			nr= pupmenu("Add IK Constraint%t|To New Empty Object%x10|Without Target%x11");
 	}
 	else {
 		if(pchanact) {
@@ -648,7 +648,7 @@ void add_constraint(int only_IK)
 	if(nr<1) return;
 	
 	/* handle IK separate */
-	if(nr==10) {
+	if(nr==10 || nr==11) {
 		
 		/* prevent weird chains... */
 		if(pchansel) {
@@ -675,6 +675,7 @@ void add_constraint(int only_IK)
 		con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 		BLI_addtail(&pchanact->constraints, con);
 		pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
+		if(nr==11) pchanact->constflag |= PCHAN_HAS_TARGET;
 	}
 	else {
 		
@@ -704,7 +705,7 @@ void add_constraint(int only_IK)
 	else if(obsel) {
 		set_constraint_target(con, obsel, NULL);
 	}
-	else {	/* add new empty as target */
+	else if(nr!=11) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
 		Object *obt;
 		

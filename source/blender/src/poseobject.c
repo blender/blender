@@ -356,7 +356,7 @@ void pose_clear_IK(void)
 					MEM_freeN(con);
 				}
 			}
-			pchan->constflag &= ~PCHAN_HAS_IK;
+			pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
 		}
 	}
 	

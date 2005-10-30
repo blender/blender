@@ -829,7 +829,8 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		if(armflag & ARM_POSEMODE) {
 			/* inner part in background color or constraint */
 			if(constflag) {
-				if(constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
+				if(constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
+				else if(constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
 				else if(constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
 				else BIF_ThemeColor(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 			}
@@ -969,7 +970,8 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
+				if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+				else if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 				
@@ -1036,7 +1038,8 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
+				if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+				else if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 					
@@ -1397,8 +1400,11 @@ static void draw_pose_channels(Base *base, int dt)
 					if(arm->flag & ARM_POSEMODE) {
 						if(pchan->constflag & PCHAN_HAS_IK) {
 							if(bone->flag & BONE_SELECTED) {
+								
+								if(pchan->constflag & PCHAN_HAS_TARGET) glColor3ub(200, 120, 0);
+								else glColor3ub(200, 200, 50);	// add theme!
+
 								glLoadName (index & 0xFFFF);
-								glColor3ub(200, 200, 50);	// add theme!
 								pchan_draw_IK_root_lines(pchan);
 							}
 						}

@@ -2671,25 +2671,26 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 160,150,20, &arm->flag, 0, 0, 0, 0, "Enable X-axis mirrored editing");
 	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",				160,160,150,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	uiDefButBitI(block, TOG, ARM_AUTO_IK, B_DIFF, "Automatic IK",			10, 140,300,20, &arm->flag, 0, 0, 0, 0, "Adds temporal IK chains while grabbing Bones");
 	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Display Options", 10,140,150,20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Display Options", 10,120,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 120,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 120,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 120,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
-	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 120,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 100,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 100,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 100,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
+	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 100,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 100,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 160,100,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 160,80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
 	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Deform Options", 10,80,150,20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Deform Options", 10,60,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 60,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
-	uiDefButBitI(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,60,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
-	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,40,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
-	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,40,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+	uiDefButBitI(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
+	uiDefButBitI(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
+	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,20,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
+	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,20,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	
 }
 

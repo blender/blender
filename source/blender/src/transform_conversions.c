@@ -114,6 +114,7 @@
 #include "BDR_editobject.h"		// reset_slowparents()
 
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
 #include "blendef.h"
@@ -395,79 +396,356 @@ void count_bone_select(TransInfo *t, ListBase *lb, int do_it)
 	}
 }
 
-static int add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
+static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
+{
+	bConstraint *con= pchan->constraints.first;
+	
+	for(;con; con= con->next) {
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			
+			if(data->tar==NULL) 
+				return data;
+			if(data->tar->type==OB_ARMATURE && data->subtarget[0]==0) 
+				return data;
+		}
+	}
+	return NULL;
+}
+
+static void apply_targetless_ik(Object *ob)
+{
+	bPoseChannel *pchan, *parchan, *chanlist[256];
+	bKinematicConstraint *data;
+	int segcount;
+	
+	/* now we got a difficult situation... we have to find the
+	   target-less IK pchans, and apply transformation to the all 
+	   pchans that were in the chain */
+	
+	for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+		data= has_targetless_ik(pchan);
+		if(data && (data->flag & CONSTRAINT_IK_AUTO)) {
+			
+			/* fill the array with the bones of the chain (armature.c does same, keep it synced) */
+			segcount= 0;
+			
+			/* exclude tip from chain? */
+			if(!(data->flag & CONSTRAINT_IK_TIP))
+				parchan= pchan->parent;
+			else
+				parchan= pchan;
+			
+			/* Find the chain's root & count the segments needed */
+			for (; parchan; parchan=parchan->parent){
+				chanlist[segcount]= parchan;
+				segcount++;
+				
+				if(segcount==data->rootbone || segcount>255) break; // 255 is weak
+			}
+			for(;segcount;segcount--) {
+				Bone *bone;
+				float rmat[4][4], tmat[4][4], imat[4][4];
+				
+				/* pose_mat(b) = pose_mat(b-1) * offs_bone * channel * constraint * IK  */
+				/* we put in channel the entire result of rmat= (channel * constraint * IK) */
+				/* pose_mat(b) = pose_mat(b-1) * offs_bone * rmat  */
+				/* rmat = pose_mat(b) * inv( pose_mat(b-1) * offs_bone ) */
+				
+				parchan= chanlist[segcount-1];
+				bone= parchan->bone;
+				
+				if(parchan->parent) {
+					float offs_bone[4][4];
+					
+					/* offs_bone =  yoffs(b-1) + root(b) + bonemat(b) */
+					Mat4CpyMat3(offs_bone, bone->bone_mat);
+					
+					/* The bone's root offset (is in the parent's coordinate system) */
+					VECCOPY(offs_bone[3], bone->head);
+					
+					/* Get the length translation of parent (length along y axis) */
+					offs_bone[3][1]+= parchan->parent->bone->length;
+					
+					/* pose_mat(b-1) * offs_bone */
+					Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
+					Mat4Invert(imat, tmat);
+				}
+				else {
+					Mat4CpyMat3(tmat, bone->bone_mat);
+
+					VECCOPY(tmat[3], bone->head);
+					Mat4Invert(imat, tmat);
+				}
+				/* result matrix */
+				Mat4MulMat4(rmat, parchan->pose_mat, imat);
+				
+				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
+				{
+					float rmat3[3][3], qmat[3][3], imat[3][3], smat[3][3];
+					
+					Mat3CpyMat4(rmat3, rmat);
+					
+					/* quaternion */
+					Mat3ToQuat(rmat3, parchan->quat);
+					
+					/* for size, remove rotation */
+					QuatToMat3(parchan->quat, qmat);
+					Mat3Inv(imat, qmat);
+					Mat3MulMat3(smat, rmat3, imat);
+					Mat3ToSize(smat, parchan->size);
+					
+					VECCOPY(parchan->loc, rmat[3]);
+				}
+				
+			}
+			
+			data->flag &= ~CONSTRAINT_IK_AUTO;
+		}
+	}		
+	
+}
+
+static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, TransData *td)
 {
 	Bone *bone= pchan->bone;
 	float pmat[3][3], omat[3][3];
 	float vec[3];
 
-	if(bone) {
-		if (bone->flag & BONE_TRANSFORM) {
-			/* We don't let connected children get "grabbed" */
-			if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
-				
-				VECCOPY(vec, pchan->pose_mat[3]);
-				VECCOPY(td->center, vec);
-				
-				td->ob = ob;
-				td->flag= TD_SELECTED|TD_USEQUAT;
-				td->protectflag= pchan->protectflag;
-				td->loc = pchan->loc;
-				VECCOPY(td->iloc, pchan->loc);
-				
-				td->ext->rot= NULL;
-				td->ext->quat= pchan->quat;
-				td->ext->size= pchan->size;
+	VECCOPY(vec, pchan->pose_mat[3]);
+	VECCOPY(td->center, vec);
+	
+	td->ob = ob;
+	td->flag= TD_SELECTED|TD_USEQUAT;
+	td->protectflag= pchan->protectflag;
+	
+	td->loc = pchan->loc;
+	VECCOPY(td->iloc, pchan->loc);
+	
+	td->ext->rot= NULL;
+	td->ext->quat= pchan->quat;
+	td->ext->size= pchan->size;
 
-				QUATCOPY(td->ext->iquat, pchan->quat);
-				VECCOPY(td->ext->isize, pchan->size);
+	QUATCOPY(td->ext->iquat, pchan->quat);
+	VECCOPY(td->ext->isize, pchan->size);
 
-				/* proper way to get the parent transform + own transform */
-				Mat3CpyMat4(omat, ob->obmat);
-				if(pchan->parent) {
-					if(pchan->bone->flag & BONE_HINGE)
-						Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat);
-					else
-						Mat3CpyMat4(pmat, pchan->parent->pose_mat);
-						
-					Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);	// dang mulserie swaps args
+	/* proper way to get the parent transform + own transform */
+	Mat3CpyMat4(omat, ob->obmat);
+	if(pchan->parent) {
+		if(pchan->bone->flag & BONE_HINGE)
+			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat);
+		else
+			Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+			
+		Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);	// dang mulserie swaps args
+	}
+	else {
+		Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);	// huh, transposed?
+	}
+	
+	Mat3Inv (td->smtx, td->mtx);
+	
+	/* for axismat we use bone's own transform */
+	Mat3CpyMat4(pmat, pchan->pose_mat);
+	Mat3MulMat3(td->axismtx, omat, pmat);
+	Mat3Ortho(td->axismtx);
+	
+	if(t->mode==TFM_BONESIZE) {
+		bArmature *arm= t->poseobj->data;
+		
+		if(arm->drawtype==ARM_ENVELOPE) {
+			td->loc= NULL;
+			td->val= &bone->dist;
+			td->ival= bone->dist;
+		}
+		else {
+			// abusive storage of scale in the loc pointer :)
+			td->loc= &bone->xwidth;
+			VECCOPY (td->iloc, td->loc);
+			td->val= NULL;
+		}
+	}
+	
+	/* in this case we can do target-less IK grabbing */
+	if(t->mode==TFM_TRANSLATION) {
+		bKinematicConstraint *data= has_targetless_ik(pchan);
+		if(data) {
+			if(data->flag & CONSTRAINT_IK_TIP) {
+				VECCOPY(data->grabtarget, pchan->pose_tail);
+			}
+			else {
+				VECCOPY(data->grabtarget, pchan->pose_head);
+			}
+			td->loc = data->grabtarget;
+			VECCOPY(td->iloc, td->loc);
+			data->flag |= CONSTRAINT_IK_AUTO;
+			
+			/* only object matrix correction */
+			Mat3CpyMat3 (td->mtx, omat);
+			Mat3Inv (td->smtx, td->mtx);
+		}
+	}
+}
+
+static void bone_children_clear_transflag(ListBase *lb)
+{
+	Bone *bone= lb->first;
+	
+	for(;bone;bone= bone->next) {
+		bone->flag &= ~BONE_TRANSFORM;
+		bone_children_clear_transflag(&bone->childbase);
+	}
+}
+
+/* sets transform flags in the bones, returns total */
+static void set_pose_transflags(TransInfo *t, Object *ob)
+{
+	bPoseChannel *pchan;
+	Bone *bone;
+	
+	t->total= 0;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone= pchan->bone;
+		if(bone->flag & BONE_SELECTED)
+			bone->flag |= BONE_TRANSFORM;
+		else
+			bone->flag &= ~BONE_TRANSFORM;
+	}
+	
+	/* make sure no bone can be transformed when a parent is transformed */
+	/* since pchans are depsgraph sorted, the parents are in beginning of list */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone= pchan->bone;
+		if(bone->flag & BONE_TRANSFORM)
+			bone_children_clear_transflag(&bone->childbase);
+	}
+	
+	/* now count, and check if we have autoIK or have to switch from translate to rotate */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		bone= pchan->bone;
+		if(bone->flag & BONE_TRANSFORM) {
+			t->total++;
+			
+			if(t->mode==TFM_TRANSLATION && pchan->parent) {
+				if( has_targetless_ik(pchan)==NULL ) {
+					t->mode= TFM_ROTATION;
 				}
-				else {
-					Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);	// huh, transposed?
-				}
-				
-				Mat3Inv (td->smtx, td->mtx);
-				
-				/* for axismat we use bone's own transform */
-				Mat3CpyMat4(pmat, pchan->pose_mat);
-				Mat3MulMat3(td->axismtx, omat, pmat);
-				Mat3Ortho(td->axismtx);
-				
-				if(t->mode==TFM_BONESIZE) {
-					bArmature *arm= t->poseobj->data;
-					
-					if(arm->drawtype==ARM_ENVELOPE) {
-						td->loc= NULL;
-						td->val= &bone->dist;
-						td->ival= bone->dist;
-					}
-					else {
-						// abusive storage of scale in the loc pointer :)
-						td->loc= &bone->xwidth;
-						VECCOPY (td->iloc, td->loc);
-						td->val= NULL;
-					}
-				}
-				
-				return 1;
 			}
 		}
 	}
-	return 0;
 }
 
+/* frees temporal IKs */
+static void pose_grab_with_ik_clear(Object *ob)
+{
+	bKinematicConstraint *data;
+	bPoseChannel *pchan;
+	bConstraint *con;
+	
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		for(con= pchan->constraints.first; con; con= con->next) {
+			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+				data= con->data;
+				if(data->flag & CONSTRAINT_IK_TEMP) {
+					BLI_remlink(&pchan->constraints, con);
+					MEM_freeN(con->data);
+					MEM_freeN(con);
+					pchan->constflag &= ~(PCHAN_HAS_IK|PCHAN_HAS_TARGET);
+					break;
+				}
+			}
+		}
+	}
+}
+
+/* adds the IK to pchan */
+static void pose_grab_with_ik_add(bPoseChannel *pchan)
+{
+	bKinematicConstraint *data;
+	bConstraint *con;
+	
+	/* rule: not if there's already an IK on this channel */
+	for(con= pchan->constraints.first; con; con= con->next)
+		if(con->type==CONSTRAINT_TYPE_KINEMATIC)
+			break;
+	
+	if(con) {
+		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
+		data= has_targetless_ik(pchan);
+		if(data)
+			data->flag |= CONSTRAINT_IK_AUTO;
+		return;
+	}
+	
+	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
+	BLI_addtail(&pchan->constraints, con);
+	pchan->constflag |= (PCHAN_HAS_IK|PCHAN_HAS_TARGET);	/* for draw, but also for detecting while pose solving */
+	data= con->data;
+	data->flag= CONSTRAINT_IK_TIP|CONSTRAINT_IK_TEMP|CONSTRAINT_IK_AUTO;
+	VECCOPY(data->grabtarget, pchan->pose_tail);
+	data->rootbone= 1;
+	
+	/* we include only a connected chain */
+	while(pchan && (pchan->bone->flag & BONE_CONNECTED)) {
+		data->rootbone++;
+		pchan= pchan->parent;
+	}
+}
+
+/* bone is a canditate to get IK, but we don't do it if it has children connected */
+static void pose_grab_with_ik_children(bPose *pose, Bone *bone)
+{
+	Bone *bonec;
+	int wentdeeper= 0;
+
+	/* go deeper if children & children are connected */
+	for(bonec= bone->childbase.first; bonec; bonec= bonec->next) {
+		if(bonec->flag & BONE_CONNECTED) {
+			wentdeeper= 1;
+			pose_grab_with_ik_children(pose, bonec);
+		}
+	}
+	if(wentdeeper==0) {
+		bPoseChannel *pchan= get_pose_channel(pose, bone->name);
+		if(pchan)
+			pose_grab_with_ik_add(pchan);
+	}
+}
+
+/* main call which adds temporal IK chains */
+static void pose_grab_with_ik(Object *ob)
+{
+	bPoseChannel *pchan, *pchansel= NULL;
+	
+	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
+		return;
+	
+	/* rule: only one Bone */
+	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if(pchan->bone->flag & BONE_SELECTED) {
+			if(pchansel)
+				break;
+			pchansel= pchan;
+		}
+	}
+	if(pchan || pchansel==NULL) return;
+	
+	/* rule: if selected Bone is not a root bone, it gets a temporal IK */
+	if(pchansel->parent) {
+		/* only adds if there's no IK yet */
+		pose_grab_with_ik_add(pchansel);
+	}
+	else {
+		/* rule: go over the children and add IK to the tips */
+		pose_grab_with_ik_children(ob->pose, pchansel->bone);
+	}
+}	
+
+
+
 /* only called with pose mode active object now */
-static void createTransPose(Object *ob, TransInfo *t)
+static void createTransPose(TransInfo *t, Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan;
@@ -489,13 +767,13 @@ static void createTransPose(Object *ob, TransInfo *t)
 	}
 	if (!(ob->lay & G.vd->lay)) return;
 
-	/* count total */
-	count_bone_select(t, &arm->bonebase, 1);
-
-	if(t->total==0 && t->mode==TFM_TRANSLATION) {
-		t->mode= TFM_ROTATION;
-		count_bone_select(t, &arm->bonebase, 1);
-	}		
+	/* do we need to add temporal IK chains? */
+	if((arm->flag & ARM_AUTO_IK) && t->mode==TFM_TRANSLATION)
+		pose_grab_with_ik(ob);
+	
+	/* set flags and count total (warning, can change transform to rotate) */
+	set_pose_transflags(t, ob);
+	
 	if(t->total==0) return;
 
 	t->flag |= T_POSE;
@@ -514,8 +792,12 @@ static void createTransPose(Object *ob, TransInfo *t)
 	/* use pose channels to fill trans data */
 	td= t->data;
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if( add_pose_transdata(t, pchan, ob, td) ) td++;
+		if(pchan->bone->flag & BONE_TRANSFORM) {
+			add_pose_transdata(t, pchan, ob, td);
+			td++;
+		}
 	}
+	
 	if(td != (t->data+t->total)) printf("Bone selection count error\n");
 	
 }
@@ -1729,13 +2011,21 @@ void special_aftertrans_update(TransInfo *t)
 
 		ob= t->poseobj;
 		arm= ob->data;
+		pose= ob->pose;
 		
 		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
-		ob->pose->flag |= POSE_DO_UNLOCK;
+		pose->flag |= POSE_DO_UNLOCK;
 		
+		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
+		if(!cancelled && t->mode==TFM_TRANSLATION)
+			apply_targetless_ik(ob);
+		
+		if(t->mode==TFM_TRANSLATION)
+			pose_grab_with_ik_clear(ob);
+		
+		/* automatic inserting of keys */
 		if((G.flags & G_RECORDKEYS) && (!cancelled)) {
 			act= ob->action;
-			pose= ob->pose;
 			
 			if (!act)
 				act= ob->action= add_empty_action(ID_PO);
@@ -2018,7 +2308,7 @@ void createTransData(TransInfo *t)
 		}
 	}
 	else if (ob && (ob->flag & OB_POSEMODE)) {
-		createTransPose(OBACT, t);
+		createTransPose(t, OBACT);
 	}
 	else if (G.f & G_WEIGHTPAINT) {
 		/* exception, we look for the one selected armature */
@@ -2031,7 +2321,7 @@ void createTransData(TransInfo *t)
 			}
 		}
 		if(base) {
-			createTransPose(base->object, t);
+			createTransPose(t, base->object);
 		}
 	}
 	else {

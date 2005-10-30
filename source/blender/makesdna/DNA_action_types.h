@@ -147,6 +147,7 @@ enum	{
 #define PCHAN_HAS_CONST		2
 	/* only used for drawing Posemode, not stored in channel */
 #define PCHAN_HAS_ACTION	4
+#define PCHAN_HAS_TARGET	8
 
 /* PoseChannel->ikflag */
 #define		BONE_IK_NO_XDOF 1
