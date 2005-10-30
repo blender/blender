@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2005 Gino van den Bergen / Erwin Coumans <www.erwincoumans.com>
+Copyright (c) 2005 Gino van den Bergen / Erwin Coumans http://continuousphysics.com
 
 Permission is hereby granted, free of charge, to any person or organization
 obtaining a copy of the software and accompanying documentation covered by
@@ -130,12 +130,12 @@ class SimdMatrix3x3 {
 		void setEulerYPR(const SimdScalar& yaw, const SimdScalar& pitch, const SimdScalar& roll) 
 		{
 
-			SimdScalar cy(cosf(yaw)); 
-			SimdScalar  sy(sinf(yaw)); 
-			SimdScalar  cp(cosf(pitch)); 
-			SimdScalar  sp(sinf(pitch)); 
-			SimdScalar  cr(cosf(roll));
-			SimdScalar  sr(sinf(roll));
+			SimdScalar cy(SimdCos(yaw)); 
+			SimdScalar  sy(SimdSin(yaw)); 
+			SimdScalar  cp(SimdCos(pitch)); 
+			SimdScalar  sp(SimdSin(pitch)); 
+			SimdScalar  cr(SimdCos(roll));
+			SimdScalar  sr(SimdSin(roll));
 			SimdScalar  cc = cy * cr; 
 			SimdScalar  cs = cy * sr; 
 			SimdScalar  sc = sy * cr; 
@@ -155,12 +155,12 @@ class SimdMatrix3x3 {
 	 **/
 	
 	void setEulerZYX(SimdScalar eulerX,SimdScalar eulerY,SimdScalar eulerZ) {
-		SimdScalar ci ( cosf(eulerX)); 
-		SimdScalar cj ( cosf(eulerY)); 
-		SimdScalar ch ( cosf(eulerZ)); 
-		SimdScalar si ( sinf(eulerX)); 
-		SimdScalar sj ( sinf(eulerY)); 
-		SimdScalar sh ( sinf(eulerZ)); 
+		SimdScalar ci ( SimdCos(eulerX)); 
+		SimdScalar cj ( SimdCos(eulerY)); 
+		SimdScalar ch ( SimdCos(eulerZ)); 
+		SimdScalar si ( SimdSin(eulerX)); 
+		SimdScalar sj ( SimdSin(eulerY)); 
+		SimdScalar sh ( SimdSin(eulerZ)); 
 		SimdScalar cc = ci * ch; 
 		SimdScalar cs = ci * sh; 
 		SimdScalar sc = si * ch; 
@@ -200,7 +200,7 @@ class SimdMatrix3x3 {
 			
 			if (trace > SimdScalar(0.0)) 
 			{
-				SimdScalar s = sqrtf(trace + SimdScalar(1.0));
+				SimdScalar s = SimdSqrt(trace + SimdScalar(1.0));
 				q[3] = s * SimdScalar(0.5);
 				s = SimdScalar(0.5) / s;
 				
@@ -216,7 +216,7 @@ class SimdMatrix3x3 {
 				int j = (i + 1) % 3;  
 				int k = (i + 2) % 3;
 				
-				SimdScalar s = sqrtf(m_el[i][i] - m_el[j][j] - m_el[k][k] + SimdScalar(1.0));
+				SimdScalar s = SimdSqrt(m_el[i][i] - m_el[j][j] - m_el[k][k] + SimdScalar(1.0));
 				q[i] = s * SimdScalar(0.5);
 				s = SimdScalar(0.5) / s;
 				
@@ -230,23 +230,23 @@ class SimdMatrix3x3 {
 		
 		void getEuler(SimdScalar& yaw, SimdScalar& pitch, SimdScalar& roll) const
 		{
-			pitch = SimdScalar(asinf(-m_el[2][0]));
+			pitch = SimdScalar(SimdAsin(-m_el[2][0]));
 			if (pitch < SIMD_2_PI)
 			{
 				if (pitch > SIMD_2_PI)
 				{
-					yaw = SimdScalar(atan2f(m_el[1][0], m_el[0][0]));
-					roll = SimdScalar(atan2f(m_el[2][1], m_el[2][2]));
+					yaw = SimdScalar(SimdAtan2(m_el[1][0], m_el[0][0]));
+					roll = SimdScalar(SimdAtan2(m_el[2][1], m_el[2][2]));
 				}
 				else 
 				{
-					yaw = SimdScalar(-atan2f(-m_el[0][1], m_el[0][2]));
+					yaw = SimdScalar(-SimdAtan2(-m_el[0][1], m_el[0][2]));
 					roll = SimdScalar(0.0);
 				}
 			}
 			else
 			{
-				yaw = SimdScalar(atan2f(-m_el[0][1], m_el[0][2]));
+				yaw = SimdScalar(SimdAtan2(-m_el[0][1], m_el[0][2]));
 				roll = SimdScalar(0.0);
 			}
 		}
@@ -309,9 +309,9 @@ class SimdMatrix3x3 {
 	SimdMatrix3x3::absolute() const
 	{
 		return SimdMatrix3x3(
-			fabsf(m_el[0][0]), fabsf(m_el[0][1]), fabsf(m_el[0][2]),
-			fabsf(m_el[1][0]), fabsf(m_el[1][1]), fabsf(m_el[1][2]),
-			fabsf(m_el[2][0]), fabsf(m_el[2][1]), fabsf(m_el[2][2]));
+			SimdFabs(m_el[0][0]), SimdFabs(m_el[0][1]), SimdFabs(m_el[0][2]),
+			SimdFabs(m_el[1][0]), SimdFabs(m_el[1][1]), SimdFabs(m_el[1][2]),
+			SimdFabs(m_el[2][0]), SimdFabs(m_el[2][1]), SimdFabs(m_el[2][2]));
 	}
 
 	SIMD_FORCE_INLINE SimdMatrix3x3 

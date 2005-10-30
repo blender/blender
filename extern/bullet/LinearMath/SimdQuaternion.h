@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2005 Gino van den Bergen / Erwin Coumans <www.erwincoumans.com>
+Copyright (c) 2005 Gino van den Bergen / Erwin Coumans http://continuousphysics.com
 
 Permission is hereby granted, free of charge, to any person or organization
 obtaining a copy of the software and accompanying documentation covered by
@@ -56,9 +56,9 @@ public:
 	{
 		SimdScalar d = axis.length();
 		assert(d != SimdScalar(0.0));
-		SimdScalar s = sinf(angle * SimdScalar(0.5)) / d;
+		SimdScalar s = SimdSin(angle * SimdScalar(0.5)) / d;
 		setValue(axis.x() * s, axis.y() * s, axis.z() * s, 
-			cosf(angle * SimdScalar(0.5)));
+			SimdCos(angle * SimdScalar(0.5)));
 	}
 
 	void setEuler(const SimdScalar& yaw, const SimdScalar& pitch, const SimdScalar& roll)
@@ -66,12 +66,12 @@ public:
 		SimdScalar halfYaw = SimdScalar(yaw) * SimdScalar(0.5);  
 		SimdScalar halfPitch = SimdScalar(pitch) * SimdScalar(0.5);  
 		SimdScalar halfRoll = SimdScalar(roll) * SimdScalar(0.5);  
-		SimdScalar cosYaw = cosf(halfYaw);
-		SimdScalar sinYaw = sinf(halfYaw);
-		SimdScalar cosPitch = cosf(halfPitch);
-		SimdScalar sinPitch = sinf(halfPitch);
-		SimdScalar cosRoll = cosf(halfRoll);
-		SimdScalar sinRoll = sinf(halfRoll);
+		SimdScalar cosYaw = SimdCos(halfYaw);
+		SimdScalar sinYaw = SimdSin(halfYaw);
+		SimdScalar cosPitch = SimdCos(halfPitch);
+		SimdScalar sinPitch = SimdSin(halfPitch);
+		SimdScalar cosRoll = SimdCos(halfRoll);
+		SimdScalar sinRoll = SimdSin(halfRoll);
 		setValue(cosRoll * sinPitch * cosYaw + sinRoll * cosPitch * sinYaw,
 			cosRoll * cosPitch * sinYaw - sinRoll * sinPitch * cosYaw,
 			sinRoll * cosPitch * cosYaw - cosRoll * sinPitch * sinYaw,
@@ -118,7 +118,7 @@ public:
 
 	SimdScalar length() const
 	{
-		return sqrtf(length2());
+		return SimdSqrt(length2());
 	}
 
 	SimdQuaternion& normalize() 
@@ -155,14 +155,14 @@ public:
 
 	SimdScalar angle(const SimdQuaternion& q) const 
 	{
-		SimdScalar s = sqrtf(length2() * q.length2());
+		SimdScalar s = SimdSqrt(length2() * q.length2());
 		assert(s != SimdScalar(0.0));
-		return acosf(dot(q) / s);
+		return SimdAcos(dot(q) / s);
 	}
 
 	SimdScalar getAngle() const 
 	{
-		SimdScalar s = 2.f * acosf(m_unusedW);
+		SimdScalar s = 2.f * SimdAcos(m_unusedW);
 		return s;
 	}
 
@@ -208,9 +208,9 @@ public:
 		SimdScalar theta = angle(q);
 		if (theta != SimdScalar(0.0))
 		{
-			SimdScalar d = SimdScalar(1.0) / sinf(theta);
-			SimdScalar s0 = sinf((SimdScalar(1.0) - t) * theta);
-			SimdScalar s1 = sinf(t * theta);   
+			SimdScalar d = SimdScalar(1.0) / SimdSin(theta);
+			SimdScalar s0 = SimdSin((SimdScalar(1.0) - t) * theta);
+			SimdScalar s1 = SimdSin(t * theta);   
 			return SimdQuaternion((m_x * s0 + q.x() * s1) * d,
 				(m_y * s0 + q.y() * s1) * d,
 				(m_z * s0 + q.z() * s1) * d,

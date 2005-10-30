@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2005 Gino van den Bergen / Erwin Coumans <www.erwincoumans.com>
+Copyright (c) 2005 Gino van den Bergen / Erwin Coumans http://continuousphysics.com
 
 Permission is hereby granted, free of charge, to any person or organization
 obtaining a copy of the software and accompanying documentation covered by

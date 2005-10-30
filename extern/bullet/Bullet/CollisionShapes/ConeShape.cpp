@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -41,7 +41,7 @@ SimdVector3 ConeShape::ConeLocalSupport(const SimdVector3& v) const
 	return tmp;
  }
   else {
-    SimdScalar s = sqrtf(v[coneindices[0]] * v[coneindices[0]] + v[coneindices[2]] * v[coneindices[2]]);
+    SimdScalar s = SimdSqrt(v[coneindices[0]] * v[coneindices[0]] + v[coneindices[2]] * v[coneindices[2]]);
     if (s > SIMD_EPSILON) {
       SimdScalar d = m_radius / s;
 	  SimdVector3 tmp;

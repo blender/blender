@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -50,7 +50,7 @@ const int ZZ = 2;
     SimdVector3 tmp;
 	SimdScalar d ;
 
-    SimdScalar s = sqrtf(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
+    SimdScalar s = SimdSqrt(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
     if (s != SimdScalar(0.0))
 	{
         d = radius / s;  
@@ -91,7 +91,7 @@ const int ZZ = 2;
     SimdVector3 tmp;
 	SimdScalar d ;
 
-    SimdScalar s = sqrtf(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
+    SimdScalar s = SimdSqrt(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
     if (s != SimdScalar(0.0))
 	{
         d = radius / s;  
@@ -128,7 +128,7 @@ const int ZZ = 1;
     SimdVector3 tmp;
 	SimdScalar d ;
 
-    SimdScalar s = sqrtf(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
+    SimdScalar s = SimdSqrt(v[XX] * v[XX] + v[ZZ] * v[ZZ]);
     if (s != SimdScalar(0.0))
 	{
         d = radius / s;  

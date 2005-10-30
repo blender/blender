@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -25,11 +25,11 @@ SimdVector3	SphereShape::LocalGetSupportingVertexWithoutMargin(const SimdVector3
 	float radius = m_radius - GetMargin();
 
 	SimdScalar len = vec.length2();
-	if (fabsf(len) < 0.0001f)
+	if (SimdFabs(len) < 0.0001f)
 	{
 		return SimdVector3(m_localScaling[0] * radius,m_localScaling[1]*radius,m_localScaling[2]*radius);
 	} 
-	return vec *  (m_localScaling*(radius / sqrtf(len)));
+	return vec *  (m_localScaling*(radius / SimdSqrt(len)));
 }
 
 SimdVector3	SphereShape::LocalGetSupportingVertex(const SimdVector3& vec)const

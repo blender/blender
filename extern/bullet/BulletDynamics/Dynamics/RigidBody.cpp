@@ -22,7 +22,6 @@ RigidBody::RigidBody( const MassProps& massProps,SimdScalar linearDamping,SimdSc
 	m_angularVelocity(0.f,0.f,0.f),
 	m_restitution(restitution),
 	m_friction(friction)
-
 {
 	m_debugBodyId = uniqueId++;
 	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -47,9 +47,9 @@ public:
 		else
 		{
 			// sync(fAngle) = sin(c*fAngle)/t
-			axis   = angvel*( sinf(0.5f*fAngle*timeStep)/fAngle );
+			axis   = angvel*( SimdSin(0.5f*fAngle*timeStep)/fAngle );
 		}
-		SimdQuaternion dorn (axis.x(),axis.y(),axis.z(),cosf( fAngle*timeStep*0.5f ));
+		SimdQuaternion dorn (axis.x(),axis.y(),axis.z(),SimdCos( fAngle*timeStep*0.5f ));
 		SimdQuaternion orn0 = curTrans.getRotation();
 
 		SimdQuaternion predictedOrn = dorn * orn0;
@@ -81,7 +81,7 @@ public:
 		if (len < 0.001f)
 			axis = SimdVector3(1.f,0.f,0.f);
 		else
-			axis /= sqrtf(len);
+			axis /= SimdSqrt(len);
 
 		
 		angVel = axis * angle / timeStep;

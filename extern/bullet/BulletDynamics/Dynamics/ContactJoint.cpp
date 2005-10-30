@@ -34,13 +34,13 @@ void ContactJoint::GetInfo1(Info1 *info)
 
 #define M_SQRT12 SimdScalar(0.7071067811865475244008443621048490)
 
-#define dRecipSqrt(x) ((float)(1.0f/sqrtf(float(x))))		/* reciprocal square root */
+#define dRecipSqrt(x) ((float)(1.0f/SimdSqrt(float(x))))		/* reciprocal square root */
 
 
 
 void dPlaneSpace1 (const dVector3 n, dVector3 p, dVector3 q)
 {
-  if (fabsf(n[2]) > M_SQRT12) {
+  if (SimdFabs(n[2]) > M_SQRT12) {
     // choose p in y-z plane
     SimdScalar a = n[1]*n[1] + n[2]*n[2];
     SimdScalar k = dRecipSqrt (a);

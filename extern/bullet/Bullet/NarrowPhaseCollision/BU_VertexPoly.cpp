@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -25,7 +25,7 @@
 	#define BU_Polynomial BU_IntervalArithmeticPolynomialSolver
 #endif
 
-inline bool      TestFuzzyZero(SimdScalar x) { return fabsf(x) < 0.0001f; }
+inline bool      TestFuzzyZero(SimdScalar x) { return SimdFabs(x) < 0.0001f; }
 
 
 BU_VertexPoly::BU_VertexPoly()
@@ -119,7 +119,7 @@ bool BU_VertexPoly::GetTimeOfImpact(
 				//ax^3+bx^2+cx+d=0
 
 				//degenerate coefficients mess things up :(
-				SimdScalar ietsje = (r*s)/tanf(w/2.f);
+				SimdScalar ietsje = (r*s)/SimdTan(w/2.f);
 				if (ietsje*ietsje < 0.01f)
 					ietsje = 0.f;
 
@@ -137,7 +137,7 @@ bool BU_VertexPoly::GetTimeOfImpact(
 	{
 		SimdScalar tau = polynomialSolver.GetRoot(i);
 
-		SimdScalar t = 2.f*atanf(tau)/w;
+		SimdScalar t = 2.f*SimdAtan(tau)/w;
 		//tau = tan (wt/2) so 2*atan (tau)/w
 		if (swapAB)
 		{

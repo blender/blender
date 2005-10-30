@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Stephane Redon / Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Stephane Redon / Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -31,14 +31,14 @@ BU_Screwing::BU_Screwing(const SimdVector3& relLinVel,const SimdVector3& relAngV
 	// u : vector along the screwing axis (||u||=1)
 	// o : point on the screwing axis
 	
-	m_w=sqrtf(wx*wx+wy*wy+wz*wz);
+	m_w=SimdSqrt(wx*wx+wy*wy+wz*wz);
 	//if (!w) {
 	if (fabs(m_w)<SCREWEPSILON ) {
 
 		assert(m_w == 0.f);
 
 		m_w=0.;
-		m_s=sqrtf(dx*dx+dy*dy+dz*dz);
+		m_s=SimdSqrt(dx*dx+dy*dy+dz*dz);
 		if (fabs(m_s)<SCREWEPSILON ) {
 			assert(m_s == 0.);
 
@@ -78,8 +78,8 @@ BU_Screwing::BU_Screwing(const SimdVector3& relLinVel,const SimdVector3& relAngV
 			n1.normalize();
 			SimdVector3 n1orth=m_u.cross(n1);
 
-			float n2x=cosf(0.5f*m_w);
-			float n2y=sinf(0.5f*m_w);
+			float n2x=SimdCos(0.5f*m_w);
+			float n2y=SimdSin(0.5f*m_w);
 			
 			m_o=0.5f*t.dot(n1)*(n1+n2x/n2y*n1orth);
 		}
@@ -104,7 +104,7 @@ void BU_Screwing::LocalMatrix(SimdTransform &t) const {
 		if ((m_u[0]>SCREWEPSILON)||(m_u[0]<-SCREWEPSILON)||(m_u[1]>SCREWEPSILON)||(m_u[1]<-SCREWEPSILON)) 
 		{ 
 			// to avoid numerical problems
-			float n=sqrtf(m_u[0]*m_u[0]+m_u[1]*m_u[1]);
+			float n=SimdSqrt(m_u[0]*m_u[0]+m_u[1]*m_u[1]);
 			float invn=1.0f/n;
 			SimdMatrix3x3 mat;
 
@@ -160,8 +160,8 @@ SimdTransform	BU_Screwing::InBetweenTransform(const SimdTransform& tr,SimdScalar
 	SimdPoint3 org = tr.getOrigin();
 
 	SimdPoint3 neworg (
-	org.x()*cosf(m_w*t)-org.y()*sinf(m_w*t),
-	org.x()*sinf(m_w*t)+org.y()*cosf(m_w*t),
+	org.x()*SimdCos(m_w*t)-org.y()*SimdSin(m_w*t),
+	org.x()*SimdSin(m_w*t)+org.y()*SimdCos(m_w*t),
 	org.z()+m_s*CalculateF(t));
 		
 	SimdTransform newtr;
@@ -190,7 +190,7 @@ SimdScalar BU_Screwing::CalculateF(SimdScalar t) const
 		result = t;
 	} else
 	{
-		result = ( tanf((m_w*t)/2.f) / tanf(m_w/2.f));
+		result = ( SimdTan((m_w*t)/2.f) / SimdTan(m_w/2.f));
 	}
 	return result;
 }

@@ -519,7 +519,7 @@ static void SOR_LCP (int m, int nb, dRealMutablePtr J, int *jb, RigidBody * cons
 			// the constraints are ordered so that all lambda[] values needed have
 			// already been computed.
 			if (findex[index] >= 0) {
-				hi[index] = fabsf (hicopy[index] * lambda[findex[index]]);
+				hi[index] = SimdFabs (hicopy[index] * lambda[findex[index]]);
 				lo[index] = -hi[index];
 			}
 

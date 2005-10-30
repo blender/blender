@@ -1,6 +1,6 @@
 /*
 
-Copyright (c) 2005 Gino van den Bergen / Erwin Coumans <www.erwincoumans.com>
+Copyright (c) 2005 Gino van den Bergen / Erwin Coumans http://continuousphysics.com
 
 Permission is hereby granted, free of charge, to any person or organization
 obtaining a copy of the software and accompanying documentation covered by
@@ -92,7 +92,7 @@ public:
 
 	SIMD_FORCE_INLINE SimdScalar length() const
 	{
-		return sqrtf(length2());
+		return SimdSqrt(length2());
 	}
 
 	SIMD_FORCE_INLINE SimdScalar distance2(const SimdVector3& v) const;
@@ -108,17 +108,17 @@ public:
 
 	SIMD_FORCE_INLINE SimdScalar angle(const SimdVector3& v) const 
 	{
-		SimdScalar s = sqrtf(length2() * v.length2());
+		SimdScalar s = SimdSqrt(length2() * v.length2());
 		assert(s != SimdScalar(0.0));
-		return acosf(dot(v) / s);
+		return SimdAcos(dot(v) / s);
 	}
 
 	SIMD_FORCE_INLINE SimdVector3 absolute() const 
 	{
 		return SimdVector3(
-			fabsf(m_x), 
-			fabsf(m_y), 
-			fabsf(m_z));
+			SimdFabs(m_x), 
+			SimdFabs(m_y), 
+			SimdFabs(m_z));
 	}
 
 	SIMD_FORCE_INLINE SimdVector3 cross(const SimdVector3& v) const
@@ -310,10 +310,10 @@ public:
 	SIMD_FORCE_INLINE SimdVector4 absolute4() const 
 	{
 		return SimdVector4(
-			fabsf(m_x), 
-			fabsf(m_y), 
-			fabsf(m_z),
-			fabsf(m_unusedW));
+			SimdFabs(m_x), 
+			SimdFabs(m_y), 
+			SimdFabs(m_z),
+			SimdFabs(m_unusedW));
 	}
 
 

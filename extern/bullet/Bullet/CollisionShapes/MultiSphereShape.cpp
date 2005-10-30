@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -47,7 +47,7 @@ MultiSphereShape::MultiSphereShape (const SimdVector3& inertiaHalfExtents,const 
 		vec.setValue(1,0,0);
 	} else
 	{
-		float rlen = 1.f / sqrtf(lenSqr );
+		float rlen = 1.f / SimdSqrt(lenSqr );
 		vec *= rlen;
 	}
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+* Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
 *
 * Permission to use, copy, modify, distribute and sell this software
 * and its documentation for any purpose is hereby granted without fee,
@@ -125,9 +125,9 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 			//valid normal
 			if (lenSqr > SIMD_EPSILON)
 			{
-				float rlen = 1.f / sqrtf(lenSqr );
+				float rlen = 1.f / SimdSqrt(lenSqr );
 				normalInB *= rlen; //normalize
-				SimdScalar s = sqrtf(squaredDistance);
+				SimdScalar s = SimdSqrt(squaredDistance);
 				ASSERT(s > SimdScalar(0.0));
 				pointOnA -= m_cachedSeparatingAxis * (marginA / s);
 				pointOnB += m_cachedSeparatingAxis * (marginB / s);
@@ -158,7 +158,7 @@ void GjkPairDetector::GetClosestPoints(const ClosestPointInput& input,Result& ou
 					float lenSqr = normalInB.length2();
 					if (lenSqr > SIMD_EPSILON)
 					{
-						normalInB /= sqrtf(lenSqr);
+						normalInB /= SimdSqrt(lenSqr);
 						distance = -(pointOnA-pointOnB).length();
 					} else
 					{

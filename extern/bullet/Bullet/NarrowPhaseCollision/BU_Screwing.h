@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -37,16 +37,16 @@ public:
 	inline SimdPoint3	InBetweenPosition(const SimdPoint3& pt,SimdScalar t) const
 	{
 		return SimdPoint3(
-		pt.x()*cosf(m_w*t)-pt.y()*sinf(m_w*t),
-		pt.x()*sinf(m_w*t)+pt.y()*cosf(m_w*t),
+		pt.x()*SimdCos(m_w*t)-pt.y()*SimdSin(m_w*t),
+		pt.x()*SimdSin(m_w*t)+pt.y()*SimdCos(m_w*t),
 		pt.z()+m_s*CalculateF(t));
 	}
 
 	inline SimdVector3	InBetweenVector(const SimdVector3& vec,SimdScalar t) const
 	{
 		return SimdVector3(
-		vec.x()*cosf(m_w*t)-vec.y()*sinf(m_w*t),
-		vec.x()*sinf(m_w*t)+vec.y()*cosf(m_w*t),
+		vec.x()*SimdCos(m_w*t)-vec.y()*SimdSin(m_w*t),
+		vec.x()*SimdSin(m_w*t)+vec.y()*SimdCos(m_w*t),
 		vec.z());
 	}
 

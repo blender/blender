@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -22,7 +22,7 @@ int BU_AlgebraicPolynomialSolver::Solve2Quadratic(SimdScalar p, SimdScalar q)
 	basic_h_local       = p * 0.5f; 
    basic_h_local_delta = basic_h_local * basic_h_local - q; 
    if (basic_h_local_delta > 0.0f)  { 
-      basic_h_local_delta = sqrtf(basic_h_local_delta); 
+      basic_h_local_delta = SimdSqrt(basic_h_local_delta); 
       m_roots[0]  = - basic_h_local + basic_h_local_delta; 
       m_roots[1]  = - basic_h_local - basic_h_local_delta; 
       return 2; 
@@ -42,7 +42,7 @@ int BU_AlgebraicPolynomialSolver::Solve2QuadraticFull(SimdScalar a,SimdScalar b,
     SimdScalar radical = b * b - 4.0f * a * c;
     if(radical >= 0.f)
     {
-        SimdScalar sqrtRadical = sqrtf(radical); 
+        SimdScalar sqrtRadical = SimdSqrt(radical); 
         SimdScalar idenom = 1.0f/(2.0f * a);
         m_roots[0]=(-b + sqrtRadical) * idenom;
         m_roots[1]=(-b - sqrtRadical) * idenom;
@@ -53,8 +53,8 @@ int BU_AlgebraicPolynomialSolver::Solve2QuadraticFull(SimdScalar a,SimdScalar b,
 
 
 #define cubic_rt(x) \
- ((x) > 0.0f ? powf((SimdScalar)(x), 0.333333333333333333333333f) : \
-  ((x) < 0.0f ? -powf((SimdScalar)-(x), 0.333333333333333333333333f) : 0.0f))
+ ((x) > 0.0f ? SimdPow((SimdScalar)(x), 0.333333333333333333333333f) : \
+  ((x) < 0.0f ? -SimdPow((SimdScalar)-(x), 0.333333333333333333333333f) : 0.0f))
 
 
 
@@ -146,7 +146,7 @@ int BU_AlgebraicPolynomialSolver::Solve3Cubic(SimdScalar lead, SimdScalar a, Sim
       /*                                                                     */
       /* one real and two complex roots. note that  v = -p / u.              */
       /*                                                                     */
-      u = -q + sqrtf(delta);
+      u = -q + SimdSqrt(delta);
       u = cubic_rt(u);
       m_roots[0] = u - p / u - a;
       return 1;
@@ -155,14 +155,14 @@ int BU_AlgebraicPolynomialSolver::Solve3Cubic(SimdScalar lead, SimdScalar a, Sim
       /*                                                                     */
       /* Casus irreducibilis: we have three real roots                       */
       /*                                                                     */
-      r        = sqrtf(-p);
+      r        = SimdSqrt(-p);
       p       *= -r;
       r       *= 2.0;
-      phi      = acosf(-q / p) / 3.0f;
+      phi      = SimdAcos(-q / p) / 3.0f;
       dummy    = SIMD_2_PI / 3.0f; 
-      m_roots[0] = r * cosf(phi) - a;
-      m_roots[1] = r * cosf(phi + dummy) - a;
-      m_roots[2] = r * cosf(phi - dummy) - a;
+      m_roots[0] = r * SimdCos(phi) - a;
+      m_roots[1] = r * SimdCos(phi + dummy) - a;
+      m_roots[2] = r * SimdCos(phi - dummy) - a;
       return 3;
    }
    else {
@@ -258,23 +258,23 @@ int BU_AlgebraicPolynomialSolver::Solve4Quartic(SimdScalar lead, SimdScalar a, S
          if (m_roots[0] > 0.0f) {
             if (num_roots > 1)  {
                if ((m_roots[1] > 0.0f)  &&  (m_roots[1] != m_roots[0])) {
-                  u        = sqrtf(m_roots[1]);
+                  u        = SimdSqrt(m_roots[1]);
                   m_roots[2] =  u - a;
                   m_roots[3] = -u - a;
-                  u        = sqrtf(m_roots[0]);
+                  u        = SimdSqrt(m_roots[0]);
                   m_roots[0] =  u - a;
                   m_roots[1] = -u - a;
                   return 4;
                }
                else {
-                  u        = sqrtf(m_roots[0]);
+                  u        = SimdSqrt(m_roots[0]);
                   m_roots[0] =  u - a;
                   m_roots[1] = -u - a;
                   return 2;
                }
             }
             else {
-               u        = sqrtf(m_roots[0]);
+               u        = SimdSqrt(m_roots[0]);
                m_roots[0] =  u - a;
                m_roots[1] = -u - a;
                return 2;
@@ -319,14 +319,14 @@ int BU_AlgebraicPolynomialSolver::Solve4Quartic(SimdScalar lead, SimdScalar a, S
       if (SimdEqual(u, SIMD_EPSILON))
          u = 0.0;
       else if (u > 0.0f)
-         u = sqrtf(u);
+         u = SimdSqrt(u);
       else
          return 0;
       
       if (SimdEqual(v, SIMD_EPSILON))
          v = 0.0;
       else if (v > 0.0f)
-         v = sqrtf(v);
+         v = SimdSqrt(v);
       else
          return 0;
 

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2005 Erwin Coumans http://www.erwincoumans.com
+ * Copyright (c) 2005 Erwin Coumans http://continuousphysics.com/Bullet/
  *
  * Permission to use, copy, modify, distribute and sell this software
  * and its documentation for any purpose is hereby granted without fee,
@@ -148,9 +148,9 @@ bool BU_CollisionPair::calcTimeOfImpact(
 		linvel.setValue(0.,0.,0.);
 	}
 	SimdVector3 angvel;
-	angvel[0] = 2.f * asinf (qrel[0]);
-	angvel[1] = 2.f * asinf (qrel[1]);
-	angvel[2] = 2.f * asinf (qrel[2]);
+	angvel[0] = 2.f * SimdAsin (qrel[0]);
+	angvel[1] = 2.f * SimdAsin (qrel[1]);
+	angvel[2] = 2.f * SimdAsin (qrel[2]);
 	
 	if (angvel.length() < SCREWEPSILON)
 	{
