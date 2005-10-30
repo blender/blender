@@ -648,7 +648,7 @@ static bActionStrip *get_active_strip(Object *ob)
 }
 
 /* non clipped mapping of strip */
-static float get_actionstrip_frame(bActionStrip *strip, float cframe)
+static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
 {
 	float length, actlength, repeat;
 	
@@ -661,8 +661,13 @@ static float get_actionstrip_frame(bActionStrip *strip, float cframe)
 	if(length==0.0f)
 		length= 1.0f;
 	actlength = strip->actend-strip->actstart;
+
 	
-	return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
+	
+	if(invert)
+		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
+	else
+		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;
 }
 
 /* if the conditions match, it converts current time to strip time */
@@ -671,9 +676,21 @@ float get_action_frame(Object *ob, float cframe)
 	bActionStrip *strip= get_active_strip(ob);
 	
 	if(strip)
-		return get_actionstrip_frame(strip, cframe);
+		return get_actionstrip_frame(strip, cframe, 0);
 	return cframe;
 }
+
+/* inverted, strip time to current time */
+float get_action_frame_inv(Object *ob, float cframe)
+{
+	bActionStrip *strip= get_active_strip(ob);
+	
+	if(strip)
+		return get_actionstrip_frame(strip, cframe, 1);
+	return cframe;
+}
+
+
 
 /* this now only used for repeating cycles, to enable fields and blur. */
 /* the whole time control in blender needs serious thinking... */

@@ -140,10 +140,13 @@ void do_action_buttons(unsigned short event)
 				float extra;
 				
 				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax);
+				G.v2d->cur.xmin= get_action_frame_inv(ob, G.v2d->cur.xmin);
+				G.v2d->cur.xmax= get_action_frame_inv(ob, G.v2d->cur.xmax);
+				
 				extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
 				G.v2d->cur.xmin-= extra;
 				G.v2d->cur.xmax+= extra;
-				
+
 				if(G.v2d->cur.xmin==G.v2d->cur.xmax) {
 					G.v2d->cur.xmax= -5;
 					G.v2d->cur.xmax= 100;
