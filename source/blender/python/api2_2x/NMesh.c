@@ -1335,8 +1335,11 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 					"faces must have at 3 or 4 vertices" );
 		if (mesh->dvert) check_dverts(mesh, old_totvert);
 	} else {
-		nmesh->mesh = Mesh_fromNMesh( nmesh, store_edges );
-		mesh = nmesh->mesh;
+		mesh = Mesh_fromNMesh( nmesh, store_edges );
+		/* if mesh is NULL, there was an error */
+		if( !mesh )
+			return NULL;
+		nmesh->mesh = mesh;
 	}
 
 	if( recalc_normals )
@@ -1456,28 +1459,22 @@ static PyObject *NMesh_getVertexInfluences( PyObject * self, PyObject * args )
 	return influence_list;
 }
 
-/* this call is VERY BAD! needs fixing (return NULL is not being handled) */
 Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 {
 	Mesh *mesh = NULL;
 	
 	mesh = add_mesh(  );
 
-	if( !mesh ) {
-		EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	if( !mesh )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				       "FATAL: could not create mesh object" );
-		return NULL;
-	}
 
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
 	
-	/* NOTE! the EXPP_ function returns a pyObject *, and still it returned it as a mesh? (ton) */
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) ) {
-		EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"faces must have at 3 or 4 vertices" );
-		return NULL;
-	}
 	
 	return mesh;
 }
@@ -3400,23 +3397,24 @@ Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )
 		if( nmesh->mesh ) {
 			mesh = nmesh->mesh;
 		} else {
-			nmesh->mesh = Mesh_fromNMesh( nmesh, 1 );
-			mesh = nmesh->mesh;
+			mesh = Mesh_fromNMesh( nmesh, 1 );
+			if( !mesh )	/* NULL means an PyError */
+				return NULL;
 
-		  nmesh->object = ob;	/* linking for vgrouping methods */
+			nmesh->mesh = mesh;
 
-		  if( nmesh->name && nmesh->name != Py_None )
-			  new_id( &( G.main->mesh ), &mesh->id,
-				  PyString_AsString( nmesh->name ) );
-
-		  mesh_update( mesh, nmesh->object );
-
-		  nmesh_updateMaterials( nmesh );
-    }
+			nmesh->object = ob;	/* linking for vgrouping methods */
+			if( nmesh->name && nmesh->name != Py_None )
+			    new_id( &( G.main->mesh ), &mesh->id,
+				    PyString_AsString( nmesh->name ) );
+			mesh_update( mesh, nmesh->object );
+			nmesh_updateMaterials( nmesh );
+		}
 		return mesh;
 	}
 
-	return NULL;
+	return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"link argument type is not supported " );
 }
 
 #define POINTER_CROSS_EQ(a1, a2, b1, b2) (((a1)==(b1) && (a2)==(b2)) || ((a1)==(b2) && (a2)==(b1)))

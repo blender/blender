@@ -1486,9 +1486,11 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		data = ( void * ) Lamp_FromPyObject( py_data );
 	else if( Curve_CheckPyObject( py_data ) )
 		data = ( void * ) Curve_FromPyObject( py_data );
-	else if( NMesh_CheckPyObject( py_data ) )
+	else if( NMesh_CheckPyObject( py_data ) ) {
 		data = ( void * ) NMesh_FromPyObject( py_data, self->object );
-	else if( Mesh_CheckPyObject( py_data ) )
+		if( !data )		/* NULL means there is already an error */
+			return NULL;
+	} else if( Mesh_CheckPyObject( py_data ) )
 		data = ( void * ) Mesh_FromPyObject( py_data, self->object );
 	else if( Lattice_CheckPyObject( py_data ) )
 		data = ( void * ) Lattice_FromPyObject( py_data );
