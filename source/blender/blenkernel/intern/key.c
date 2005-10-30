@@ -46,6 +46,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_action.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -1220,40 +1221,49 @@ static int do_latt_key(Lattice *lt)
 /* returns 1 when key applied */
 int do_ob_key(Object *ob)
 {
+	Key *key= ob_get_key(ob);
+	
+	if(key==NULL)
+		return 0;
+	
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
-		Key *key= ob_get_key(ob);
-		if(key) {
-			KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
+		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
 
-			if(kb==NULL) {
-				kb= key->block.first;
-				ob->shapenr= 1;
-			}
-			
-			if(ob->type==OB_MESH) {
-				Mesh *me= ob->data;
-				float *weights= get_weights_array(ob, me, kb->vgroup);
-
-				cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, weights, 0);
-				
-				if(weights) MEM_freeN(weights);
-			}
-			else if(ob->type==OB_LATTICE) {
-				Lattice *lt= ob->data;
-				int tot= lt->pntsu*lt->pntsv*lt->pntsw;
-				
-				cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, NULL, 0);
-			}
-			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
-				Curve *cu= ob->data;
-				int tot= count_curveverts(&cu->nurb);
-				
-				cp_cu_key(cu, kb, 0, tot);
-			}
-			return 1;
+		if(kb==NULL) {
+			kb= key->block.first;
+			ob->shapenr= 1;
 		}
+		
+		if(ob->type==OB_MESH) {
+			Mesh *me= ob->data;
+			float *weights= get_weights_array(ob, me, kb->vgroup);
+
+			cp_key(0, me->totvert, me->totvert, (char *)me->mvert->co, key, kb, weights, 0);
+			
+			if(weights) MEM_freeN(weights);
+		}
+		else if(ob->type==OB_LATTICE) {
+			Lattice *lt= ob->data;
+			int tot= lt->pntsu*lt->pntsv*lt->pntsw;
+			
+			cp_key(0, tot, tot, (char *)lt->def->vec, key, kb, NULL, 0);
+		}
+		else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+			Curve *cu= ob->data;
+			int tot= count_curveverts(&cu->nurb);
+			
+			cp_cu_key(cu, kb, 0, tot);
+		}
+		return 1;
 	}
 	else {
+		if(ob->ipoflag & OB_ACTION_KEY)
+			do_all_object_actions(ob);
+		else {
+			calc_ipo(key->ipo, bsystem_time(ob, 0, G.scene->r.cfra, 0.0));
+			execute_ipo((ID *)key, key->ipo);
+		}
+		
 		if(ob->type==OB_MESH) return do_mesh_key(ob, ob->data);
 		else if(ob->type==OB_CURVE) return do_curve_key( ob->data);
 		else if(ob->type==OB_SURF) return do_curve_key( ob->data);
