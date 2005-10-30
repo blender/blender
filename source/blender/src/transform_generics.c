@@ -158,14 +158,14 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 				break;
 			
 			if(axis & 1) {
-				if(abs(td->iloc[0])<=tolerance[0] || td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
+				if(fabs(td->iloc[0])<=tolerance[0] || td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
 			}
 			
 			if(axis & 2) {
-				if(abs(td->iloc[1])<=tolerance[1] || td->loc[1]*td->iloc[1]<0.0f) td->loc[1]= 0.0f;
+				if(fabs(td->iloc[1])<=tolerance[1] || td->loc[1]*td->iloc[1]<0.0f) td->loc[1]= 0.0f;
 			}
 			if(axis & 4) {
-				if(abs(td->iloc[2])<=tolerance[2] || td->loc[2]*td->iloc[2]<0.0f) td->loc[2]= 0.0f;
+				if(fabs(td->iloc[2])<=tolerance[2] || td->loc[2]*td->iloc[2]<0.0f) td->loc[2]= 0.0f;
 			}
 		}
 	}
