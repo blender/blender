@@ -1465,16 +1465,20 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 	
 	mesh = add_mesh(  );
 
-	if( !mesh )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				       "FATAL: could not create mesh object" );
+	if( !mesh ) {
+		PyErr_SetString( PyExc_RuntimeError,
+				"FATAL: could not create mesh object" );
+		return NULL;
+	}
 
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
 	
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) ) {
+		PyErr_SetString( PyExc_RuntimeError,
 				"faces must have at 3 or 4 vertices" );
+		return NULL;
+	}
 	
 	return mesh;
 }
@@ -3413,8 +3417,9 @@ Mesh *NMesh_FromPyObject( PyObject * pyobj, Object * ob )
 		return mesh;
 	}
 
-	return EXPP_ReturnPyObjError( PyExc_AttributeError,
+	PyErr_SetString( PyExc_AttributeError,
 			"link argument type is not supported " );
+	return NULL;
 }
 
 #define POINTER_CROSS_EQ(a1, a2, b1, b2) (((a1)==(b1) && (a2)==(b2)) || ((a1)==(b2) && (a2)==(b1)))
