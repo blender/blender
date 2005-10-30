@@ -458,13 +458,21 @@ static void fix_new_face(EditFace *eface)
 	struct EditVert *ev1=NULL, *ev2=NULL;
 	short smooth=0; /* "total smoothnes" of faces in neighbourhood */
 	short coef;	/* "weight" of smoothness */
-	short count=0;	/* number of edges with same direction as edit_face */
-	short vi[2][2]; /* vertex indexes */
+	short count=0;	/* number of edges with same direction as eface */
+	short vi00, vi01, vi10, vi11; /* vertex indexes */
 
 	efa = em->faces.first;
 
 	while(efa) {
+
+		if(efa==eface) {
+			efa = efa->next;
+			continue;
+		}
+
 		coef = 0;
+		ev1 = ev2 = eed = NULL;
+
 		if(efa->v1==v1 || efa->v2==v1 || efa->v3==v1 || efa->v4==v1) {
 			ev1 = v1;
 			coef++;
@@ -492,32 +500,54 @@ static void fix_new_face(EditFace *eface)
 		else
 			smooth -= coef;
 
+		/* try to find edge using vertexes ev1 and ev2 */
 		if((ev1) && (ev2) && (ev1!=ev2)) eed = findedgelist(ev1, ev2);
 
-		/* has bordering edge of efa same direction as edge of edit_face ? */
+		/* has bordering edge of efa same direction as edge of eface ? */
 		if(eed) {
-			if(eed->v1==v1) vi[0][0] = 1;
-			else if(eed->v1==v2) vi[0][0] = 2;
-			else if(eed->v1==v3) vi[0][0] = 3;
-			else if(eed->v1==v4) vi[0][0] = 0;
+			if(eed->v1==v1) vi00 = 1;
+			else if(eed->v1==v2) vi00 = 2;
+			else if(eed->v1==v3) vi00 = 3;
+			else if(v4 && eed->v1==v4) vi00 = 4;
 
-			if(eed->v2==v1) vi[0][1] = 1;
-			else if(eed->v2==v2) vi[0][1] = 2;
-			else if(eed->v2==v3) vi[0][1] = 3;
-			else if(eed->v2==v4) vi[0][1] = 4;
+			if(eed->v2==v1) vi01 = 1;
+			else if(eed->v2==v2) vi01 = 2;
+			else if(eed->v2==v3) vi01 = 3;
+			else if(v4 && eed->v2==v4) vi01 = 4;
 
-			if(eed->v1==efa->v1) vi[1][0] = 1;
-			else if(eed->v1==efa->v2) vi[1][0] = 2;
-			else if(eed->v1==efa->v3) vi[1][0] = 3;
-			else if(eed->v1==efa->v4) vi[1][0] = 0;
+			if(v4) {
+				if(vi01==1 && vi00==4) vi00 = 0;
+				if(vi01==4 && vi00==1) vi01 = 0;
+			}
+			else {
+				if(vi01==1 && vi00==3) vi00 = 0;
+				if(vi01==3 && vi00==1) vi01 = 0;
+			}
 
-			if(eed->v2==efa->v1) vi[1][1] = 1;
-			else if(eed->v2==efa->v2) vi[1][1] = 2;
-			else if(eed->v2==efa->v3) vi[1][1] = 3;
-			else if(eed->v2==efa->v4) vi[1][1] = 4;
+			if(eed->v1==efa->v1) vi10 = 1;
+			else if(eed->v1==efa->v2) vi10 = 2;
+			else if(eed->v1==efa->v3) vi10 = 3;
+			else if(efa->v4 && eed->v1==efa->v4) vi10 = 4;
 
-			if((vi[0][0]>vi[0][1]) && (vi[1][0]>vi[1][1])) count++;
-			else if((vi[0][0]<vi[0][1]) && (vi[1][0]<vi[1][1])) count++;
+			if(eed->v2==efa->v1) vi11 = 1;
+			else if(eed->v2==efa->v2) vi11 = 2;
+			else if(eed->v2==efa->v3) vi11 = 3;
+			else if(efa->v4 && eed->v2==efa->v4) vi11 = 4;
+
+			if(efa->v4) {
+				if(vi11==1 && vi10==4) vi10 = 0;
+				if(vi11==4 && vi10==1) vi11 = 0;
+			}
+			else {
+				if(vi11==1 && vi10==3) vi10 = 0;
+				if(vi11==3 && vi10==1) vi11 = 0;
+			}
+
+			if(((vi00>vi01) && (vi10>vi11)) ||
+				((vi00<vi01) && (vi10<vi11)))
+				count++;
+			else
+				count--;
 		}
 
 		efa = efa->next;
@@ -529,15 +559,8 @@ static void fix_new_face(EditFace *eface)
 	else
 		eface->flag &= ~ME_SMOOTH;
 
-	/* set up order of vertexes and edges according "face normals" in neighbourhood */
-	if(v4 && count>=2) {
-		printf("\tflip QUAT\n");
-		flipface(eface);
-	}
-	else if(count>1) {
-		printf("\tflip TRIANGLE\n");
-		flipface(eface);
-	}
+	/* flip face, when too much "face normals" in neighbourhood is different */
+	if(count > 0) flipface(eface);
 }
 
 void addedgeface_mesh(void)
@@ -627,16 +650,8 @@ void addedgeface_mesh(void)
 		else error("The selected vertices already form a face");
 	}
 	
-	if(efa) {	// now we're calculating direction of normal
-		float inp;	
-		/* dot product view mat with normal, should give info! */
-	
+	if(efa) {
 		EM_select_face(efa, 1);
-		CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, efa->n);
-
-		inp= efa->n[0]*G.vd->viewmat[0][2] + efa->n[1]*G.vd->viewmat[1][2] + efa->n[2]*G.vd->viewmat[2][2];
-
-		if(inp < 0.0) flipface(efa);
 
 		fix_new_face(efa);
 
