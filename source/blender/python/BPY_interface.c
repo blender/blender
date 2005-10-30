@@ -212,8 +212,7 @@ void init_syspath( int first_time )
 {
 	PyObject *path;
 	PyObject *mod, *d;
-	PyObject *p;
-	char *c, *progname;
+	char *progname;
 	char execdir[FILE_MAXDIR];	/*defines from DNA_space_types.h */
 
 	int n;
@@ -231,8 +230,13 @@ void init_syspath( int first_time )
 
 	progname = BLI_last_slash( bprogname );	/* looks for the last dir separator */
 
-	c = Py_GetPath(  );	/* get python system path */
-	PySys_SetPath( c );	/* initialize */
+#ifdef SETSYSPATH
+	{
+		char *c; 
+		c = Py_GetPath(  );	/* get python system path */
+		PySys_SetPath( c );	/* initialize */
+	}
+#endif
 
 	n = progname - bprogname;
 	if( n > 0 ) {
@@ -247,6 +251,7 @@ void init_syspath( int first_time )
 	} else
 		printf( "Warning: could not determine argv[0] path\n" );
 
+#ifdef SETSYSPATH
 	/* 
 	 * bring in the site module so we can add 
 	 * site-package dirs to sys.path 
@@ -258,6 +263,7 @@ void init_syspath( int first_time )
 		PyObject *item;
 		int size = 0;
 		int index;
+		PyObject *p;
 
 		/* get the value of 'sitedirs' from the module */
 
@@ -285,6 +291,7 @@ void init_syspath( int first_time )
 			printf( "Continuing happily.\n" );
 		}
 	}
+#endif
 
 	/* 
 	 * initialize the sys module
