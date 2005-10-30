@@ -174,7 +174,7 @@ typedef struct Curve {
 typedef struct IpoDriver {
 	struct Object *ob;
 	short blocktype, adrcode, type, flag;
-	char name[32];	/* bone or constraint(?) name, later we can add python expression here */
+	char name[128];	/* bone or constraint(?), or python expression here */
 } IpoDriver;
 
 typedef struct IpoCurve {
@@ -252,6 +252,10 @@ typedef struct IpoCurve {
 #define CU_UNDERLINE	4
 #define CU_WRAP			8	/* wordwrap occured here */
 
+/* *************** driver ****************** */
+
+/* driver->flag */
+#define	IPO_DRIVER_PYTHON	1
 
 
 #endif

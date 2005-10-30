@@ -709,6 +709,7 @@ void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 		o[a]= c0+t*c1+t*t*c2+t*t*t*c3;
 	}
 }
+
 void berekenx(float *f, float *o, int b)
 {
 	float t, c0, c1, c2, c3;
@@ -724,83 +725,89 @@ void berekenx(float *f, float *o, int b)
 	}
 }
 
+/* has to return a float value */
 static float eval_driver(IpoDriver *driver)
 {
-	Object *ob= driver->ob;
 	
-	if(ob==NULL) return 0.0f;
-	
-	if(driver->blocktype==ID_OB) {
-		switch(driver->adrcode) {
-		case OB_LOC_X:
-			return ob->loc[0];
-		case OB_LOC_Y:
-			return ob->loc[1];
-		case OB_LOC_Z:
-			return ob->loc[2];
-		case OB_ROT_X:
-			return ob->rot[0]/(M_PI_2/9.0);
-		case OB_ROT_Y:
-			return ob->rot[1]/(M_PI_2/9.0);
-		case OB_ROT_Z:
-			return ob->rot[2]/(M_PI_2/9.0);
-		case OB_SIZE_X:
-			return ob->size[0];
-		case OB_SIZE_Y:
-			return ob->size[1];
-		case OB_SIZE_Z:
-			return ob->size[2];
-		}
+	if(driver->flag & IPO_DRIVER_PYTHON) {
+		printf("Execute %s\n", driver->name);
 	}
-	else {	/* ID_AR */
-		bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
-		if(pchan && pchan->bone) {
-			float pose_mat[3][3];
-			float diff_mat[3][3], par_mat[3][3], ipar_mat[3][3];
-			float eul[3], size[3];
-			
-			/* we need the local transform = current transform - (parent transform + bone transform) */
-			
-			Mat3CpyMat4(pose_mat, pchan->pose_mat);
-			
-			if (pchan->parent) {
-				Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
-				Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
-				
-				Mat3Inv(ipar_mat, diff_mat);
-			}
-			else {
-				Mat3Inv(ipar_mat, pchan->bone->bone_mat);
-			}
-			
-			Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
-			
-			Mat3ToEul(diff_mat, eul);
-			Mat3ToSize(diff_mat, size);
-
+	else {
+		Object *ob= driver->ob;
+		
+		if(ob==NULL) return 0.0f;
+		
+		if(driver->blocktype==ID_OB) {
 			switch(driver->adrcode) {
 			case OB_LOC_X:
-				return pchan->loc[0];
+				return ob->loc[0];
 			case OB_LOC_Y:
-				return pchan->loc[1];
+				return ob->loc[1];
 			case OB_LOC_Z:
-				return pchan->loc[2];
+				return ob->loc[2];
 			case OB_ROT_X:
-				return eul[0]/(M_PI_2/9.0);
+				return ob->rot[0]/(M_PI_2/9.0);
 			case OB_ROT_Y:
-				return eul[1]/(M_PI_2/9.0);
+				return ob->rot[1]/(M_PI_2/9.0);
 			case OB_ROT_Z:
-				return eul[2]/(M_PI_2/9.0);
+				return ob->rot[2]/(M_PI_2/9.0);
 			case OB_SIZE_X:
-				return size[0];
+				return ob->size[0];
 			case OB_SIZE_Y:
-				return size[1];
+				return ob->size[1];
 			case OB_SIZE_Z:
-				return size[2];
+				return ob->size[2];
 			}
 		}
-	}
-	
+		else {	/* ID_AR */
+			bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
+			if(pchan && pchan->bone) {
+				float pose_mat[3][3];
+				float diff_mat[3][3], par_mat[3][3], ipar_mat[3][3];
+				float eul[3], size[3];
+				
+				/* we need the local transform = current transform - (parent transform + bone transform) */
+				
+				Mat3CpyMat4(pose_mat, pchan->pose_mat);
+				
+				if (pchan->parent) {
+					Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
+					Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
+					
+					Mat3Inv(ipar_mat, diff_mat);
+				}
+				else {
+					Mat3Inv(ipar_mat, pchan->bone->bone_mat);
+				}
+				
+				Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
+				
+				Mat3ToEul(diff_mat, eul);
+				Mat3ToSize(diff_mat, size);
+
+				switch(driver->adrcode) {
+				case OB_LOC_X:
+					return pchan->loc[0];
+				case OB_LOC_Y:
+					return pchan->loc[1];
+				case OB_LOC_Z:
+					return pchan->loc[2];
+				case OB_ROT_X:
+					return eul[0]/(M_PI_2/9.0);
+				case OB_ROT_Y:
+					return eul[1]/(M_PI_2/9.0);
+				case OB_ROT_Z:
+					return eul[2]/(M_PI_2/9.0);
+				case OB_SIZE_X:
+					return size[0];
+				case OB_SIZE_Y:
+					return size[1];
+				case OB_SIZE_Z:
+					return size[2];
+				}
+			}
+		}
+	}	
 	return 0.0f;
 }
 

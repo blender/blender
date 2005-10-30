@@ -2170,9 +2170,24 @@ void Mat3ToEul(float tmat[][3], float *eul)
 	cy = (float)sqrt(mat[0][0]*mat[0][0] + mat[0][1]*mat[0][1]);
 
 	if (cy > 16.0*FLT_EPSILON) {
-		eul[0] = (float)atan2(mat[1][2], mat[2][2]);
-		eul[1] = (float)atan2(-mat[0][2], cy);
-		eul[2] = (float)atan2(mat[0][1], mat[0][0]);
+		float eul1[3], eul2[3];
+		
+		eul1[0] = (float)atan2(mat[1][2], mat[2][2]);
+		eul1[1] = (float)atan2(-mat[0][2], cy);
+		eul1[2] = (float)atan2(mat[0][1], mat[0][0]);
+		
+		eul2[0] = (float)atan2(-mat[1][2], -mat[2][2]);
+		eul2[1] = (float)atan2(-mat[0][2], -cy);
+		eul2[2] = (float)atan2(-mat[0][1], -mat[0][0]);
+		
+		/* return best, which is just the one with lowest values it in */
+		if( fabs(eul1[0])+fabs(eul1[1])+fabs(eul1[2]) > fabs(eul2[0])+fabs(eul2[1])+fabs(eul2[2])) {
+			VecCopyf(eul, eul2);
+		}
+		else {
+			VecCopyf(eul, eul1);
+		}
+		
 	} else {
 		eul[0] = (float)atan2(-mat[2][1], mat[1][1]);
 		eul[1] = (float)atan2(-mat[0][2], cy);

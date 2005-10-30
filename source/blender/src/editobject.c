@@ -3332,12 +3332,9 @@ void compatible_eul(float *eul, float *oldrot)
 		if(dz > 0.0) eul[2] -= 2.0*M_PI; else eul[2]+= 2.0*M_PI;
 	}
 
-	/* this return was there from ancient days... i remove it now,
-		because axis-only rotations then work much nicer (try Y axis rotate
-		and check Y euler values).
-		Needed for new locking of transform values. (ton)
+	/* this return was there from ancient days... but why! probably because the code sucks :)
 	*/
-	/*return;*/
+	return;
 	
 	/* calc again */
 	dx= eul[0] - oldrot[0];

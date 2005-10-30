@@ -1783,17 +1783,22 @@ void do_ipobuts(unsigned short event)
 			if(ei->icu->driver) {
 				IpoDriver *driver= ei->icu->driver;
 				
-				if(driver->ob) {
-					if(ob==driver->ob) {
-						error("Cannot assign a Driver to own Object");
-						driver->ob= NULL;
+				if(driver->flag & IPO_DRIVER_PYTHON) {
+					driver->ob= NULL;
+				}
+				else {
+					if(driver->ob) {
+						if(ob==driver->ob) {
+							error("Cannot assign a Driver to own Object");
+							driver->ob= NULL;
+						}
+						else {
+							/* check if type is still OK */
+							if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
+							else driver->blocktype= ID_OB;
+						}
 					}
-					else {
-						/* check if type is still OK */
-						if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR);
-						else driver->blocktype= ID_OB;
-					}
-				}				
+				}
 				DAG_scene_sort(G.scene);
 				
 				if(G.sipo->blocktype==ID_KE || G.sipo->blocktype==ID_AC) 
@@ -1877,27 +1882,35 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 		if(ei->icu && ei->icu->driver) {
 			IpoDriver *driver= ei->icu->driver;
 			
-			uiDefBut(block, BUT, B_IPO_DRIVER, "Remove",				210,265,100,19, NULL, 0.0f, 0.0f, 0, 0, "Remove Driver for this Ipo Channel");
+			uiDefBut(block, BUT, B_IPO_DRIVER, "Remove",				210,265,100,20, NULL, 0.0f, 0.0f, 0, 0, "Remove Driver for this Ipo Channel");
 			
 			uiBlockBeginAlign(block);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_IPO_DEPCHANGE, "OB:",	10, 240, 150, 20, &(driver->ob), "Driver Object");
-			if(driver->ob) {
-				int icon=ICON_OBJECT;
-				
-				if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR) {
-					icon = ICON_POSE_DEHLT;
-					uiDefBut(block, TEX, B_IPO_REDR, "BO:",				10,220,150,20, driver->name, 0, 31, 0, 0, "Bone name");
-				}
-				else driver->blocktype= ID_OB;	/* safety when switching object button */
-				
-				uiBlockBeginAlign(block);
-				uiDefIconTextButS(block, MENU, B_IPO_DEPCHANGE, icon, 
-								  ipodriver_modeselect_pup(driver->ob), 165,240,145,20, &(driver->blocktype), 0, 0, 0, 0, "Driver type");
-
-				uiDefButS(block, MENU, B_IPO_REDR, 
-							ipodriver_channelselect_pup(),			165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
+			uiDefIconButBitS(block, TOG, IPO_DRIVER_PYTHON, B_IPO_DEPCHANGE, ICON_PYTHON, 10,240,25,20, &driver->flag, 0, 0, 0, 0, "Use a one-line Python Expression as Driver");
+			
+			if(driver->flag & IPO_DRIVER_PYTHON) {
+				uiDefBut(block, TEX, B_IPO_REDR, "",				35,240,275,20, driver->name, 0, 127, 0, 0, "Python Expression");
+				uiBlockEndAlign(block);
 			}
-			uiBlockEndAlign(block);
+			else {
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_IPO_DEPCHANGE, "OB:",	35, 240, 125, 20, &(driver->ob), "Driver Object");
+				if(driver->ob) {
+					int icon=ICON_OBJECT;
+					
+					if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR) {
+						icon = ICON_POSE_DEHLT;
+						uiDefBut(block, TEX, B_IPO_REDR, "BO:",				10,220,150,20, driver->name, 0, 31, 0, 0, "Bone name");
+					}
+					else driver->blocktype= ID_OB;	/* safety when switching object button */
+					
+					uiBlockBeginAlign(block);
+					uiDefIconTextButS(block, MENU, B_IPO_DEPCHANGE, icon, 
+									  ipodriver_modeselect_pup(driver->ob), 165,240,145,20, &(driver->blocktype), 0, 0, 0, 0, "Driver type");
+
+					uiDefButS(block, MENU, B_IPO_REDR, 
+								ipodriver_channelselect_pup(),			165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
+				}
+				uiBlockEndAlign(block);
+			}
 		}
 		else {
 			uiDefBut(block, BUT, B_IPO_DRIVER, "Add Driver",	210,265,100,19, NULL, 0.0f, 0.0f, 0, 0, "Create a Driver for this Ipo Channel");
