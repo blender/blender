@@ -1204,6 +1204,11 @@ void KX_KetsjiEngine::SetUseFixedTime(bool bUseFixedTime)
 void	KX_KetsjiEngine::SetGame2IpoMode(bool game2ipo,int startFrame)
 {
 	m_game2ipo = game2ipo;
+	if (game2ipo)
+	{
+		//when recording physics keyframes, always run at a fixed framerate
+		m_bFixedTime = true;
+	}
 	m_currentFrame = startFrame;
 }
 
