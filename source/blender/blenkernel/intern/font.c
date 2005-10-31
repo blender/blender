@@ -409,11 +409,11 @@ static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
 	switch(info->flag & CU_STYLE) {
 		case CU_BOLD:
-			return(cu->vfontb);
+			if (cu->vfontb) return(cu->vfontb); else return(cu->vfont);
 		case CU_ITALIC:
-			return(cu->vfonti);
+			if (cu->vfonti) return(cu->vfonti); else return(cu->vfont);
 		case (CU_BOLD|CU_ITALIC):
-			return(cu->vfontbi);
+			if (cu->vfontbi) return(cu->vfontbi); else return(cu->vfont);
 		default:
 			return(cu->vfont);
 	}			
