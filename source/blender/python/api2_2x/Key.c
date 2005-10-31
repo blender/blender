@@ -61,14 +61,12 @@ static void KeyBlock_dealloc( PyObject * self );
 static PyObject *Key_repr( BPy_Key * self );
 
 static PyObject *Key_getBlocks( PyObject * self );
-static PyObject *Key_getChannelIpo(PyObject *self, PyObject *args);
 static PyObject *Key_getType( PyObject * self );
 static PyObject *Key_getIpo( PyObject * self );
 static PyObject *Key_getValue( PyObject * self );
 
 static struct PyMethodDef Key_methods[] = {
 	{ "getBlocks", (PyCFunction) Key_getBlocks, METH_NOARGS, "Get key blocks" },
-	{ "getChannelIpo", (PyCFunction) Key_getChannelIpo, METH_VARARGS, "Get a Particular shape channel's IpoCurve key blocks" },
 	{ "getIpo", (PyCFunction) Key_getIpo, METH_NOARGS, "Get key Ipo" },
 	{ 0, 0, 0, 0 }
 };
@@ -630,19 +628,3 @@ PyObject *Key_Init( void )
 	return submodule;
 }
 
-static PyObject *Key_getChannelIpo(PyObject *self, PyObject *args){
-	short index;
-	IpoCurve *curve;
-	Key *key = (( BPy_KeyBlock * ) self)->key;
-	C_IpoCurve *output;
-	
-	if( !PyArg_ParseTuple( args, "i", &index ) ) {
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected one integer as an arguments" ) );
-	}
-	
-	curve = verify_ipocurve(&key->id,ID_KE,NULL,NULL,index);
-	output = ( C_IpoCurve * ) PyObject_NEW( C_IpoCurve, &IpoCurve_Type );
-	output->ipocurve = curve;
-	return ( ( PyObject * ) output );	
-}
