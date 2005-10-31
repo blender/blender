@@ -718,7 +718,7 @@ NewBooleanMesh(
 
 			ConvertCSGDescriptorsToDLM(
 				&dlm,
-				ob,
+				ob_new,
 				&output_mpd,
 				&fd_o,
 				&vd_o,
