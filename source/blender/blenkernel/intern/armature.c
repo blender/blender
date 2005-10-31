@@ -1196,6 +1196,10 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		/* basis must be pure rotation */
 		Mat3Ortho(basis);
 
+		/* transform offset into local bone space */
+		Mat3Ortho(iR_parmat);
+		Mat3MulVecfl(iR_parmat, start);
+
 		IK_SetTransform(seg, start, rest_basis, basis, length);
 
 		if (pchan->ikflag & BONE_IK_XLIMIT)
