@@ -2035,6 +2035,15 @@ static void tb_do_transform(void *arg, int event)
 			if(G.scene->proportional) G.scene->proportional= 0;
 			else G.scene->proportional= 1;
 			break;
+		case 10:
+			docentre(0);
+			break;
+		case 11:
+			docentre_new();
+			break;
+		case 12:
+			docentre_cursor();
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2053,9 +2062,14 @@ static TBitem tb_transform[]= {
 {	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	0, "Mirror", 	0, tb_transform_object_mirror},
+{	0, "ObData to Center",		10, NULL},
+{	0, "Center New",			11, NULL},
+{	0, "Center Cursor",			12, NULL},
 {	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|N", 3, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "Mirror", 	0, tb_transform_object_mirror},
+{	0, "SEPR", 					0, NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Clear/Apply", 	0, tb_transform_clearapply},
@@ -2083,12 +2097,16 @@ static TBitem tb_transform_editmode1[]= {
 {	0, "Scale|S", 		2, NULL},
 {	0, "Scale on Axis", 	0, tb_transform_scaleaxis},
 {	0, "SEPR", 					0, NULL},
-{	0, "Mirror", 	0, tb_transform_edit_mirror},
 {	0, "Shrink/Fatten|Alt S", 5, NULL},
 {	0, "Shear|Ctrl S", 6, NULL},
 {	0, "Warp|Shift W", 	7, NULL},
 {	0, "SEPR", 					0, NULL},
+{	0, "ObData to Center",		10, NULL},
+{	0, "SEPR", 					0, NULL},
 {	ICON_MENU_PANEL, "Properties|N", 3, NULL},
+{	0, "SEPR", 					0, NULL},
+{	0, "Mirror", 	0, tb_transform_edit_mirror},
+{	0, "SEPR", 					0, NULL},
 {	0, "Snap", 		0, tb_transform_snap},
 {	0, "SEPR", 					0, NULL},
 {	0, "Proportional Edit|O", 	8, 		NULL},

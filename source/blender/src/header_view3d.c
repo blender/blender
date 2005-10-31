@@ -1487,6 +1487,15 @@ static void do_view3d_transformmenu(void *arg, int event)
 				Transform();
 		} else error("Only meshes can be shrinked/fattened");
 		break;
+	case 10:
+		docentre(0);
+		break;
+	case 11:
+		docentre_new();
+		break;
+	case 12:
+		docentre_cursor();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1523,6 +1532,14 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 		uiDefBut(block, SEPR, 0, "",			0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale to Image Aspect Ratio|Alt V",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "ObData to Center",               0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
+	if (!G.obedit) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center New",             0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center Cursor",          0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
