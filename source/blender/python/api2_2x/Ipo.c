@@ -970,22 +970,34 @@ static PyObject *Ipo_delCurve( BPy_Ipo * self, PyObject * args )
 
 static PyObject *Ipo_getCurve( BPy_Ipo * self, PyObject * args )
 {
-	char *str, *str1;
-	IpoCurve *icu = 0;
-
-	if( !PyArg_ParseTuple( args, "s", &str ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected string argument" ) );
-
-	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
-		str1 = getIpoCurveName( icu );
-		if( !strcmp( str1, str ) )
-			return IpoCurve_CreatePyObject( icu );
-	}
-
-	Py_INCREF( Py_None );
-	return Py_None;
-}
+    char *str, *str1;
+    IpoCurve *icu = NULL;
+    int adrcode;
+    PyObject *thing;
+ 
+    if( !PyArg_ParseTuple( args, "O", &thing ) )
+        return EXPP_ReturnPyObjError(PyExc_TypeError, 
+			   				"expected string or int argument" );
+ 
+    if(PyString_Check(thing)){
+        str = PyString_AsString(thing);
+        for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+            str1 = getIpoCurveName( icu );
+            if( !strcmp( str1, str ) )
+                return IpoCurve_CreatePyObject( icu );
+        }
+    } else if (PyInt_Check(thing)){
+        adrcode = (short)PyInt_AsLong(thing);
+        for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+            if(icu->adrcode == adrcode)
+                 return IpoCurve_CreatePyObject( icu );
+        }
+    } else
+        return EXPP_ReturnPyObjError(PyExc_TypeError, 
+			   				"expected string or int argument" );
+    Py_INCREF( Py_None );
+    return Py_None;
+} 
 
 static PyObject *Ipo_getCurves( BPy_Ipo * self )
 {
