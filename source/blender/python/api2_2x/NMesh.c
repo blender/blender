@@ -1331,8 +1331,7 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 		old_totvert = mesh->totvert;
 		unlink_existingMeshData( mesh );
 		if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"faces must have at 3 or 4 vertices" );
+			return NULL;
 		if (mesh->dvert) check_dverts(mesh, old_totvert);
 	} else {
 		mesh = Mesh_fromNMesh( nmesh, store_edges );
@@ -1474,11 +1473,8 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh , int store_edges )
 	mesh->id.us = 0;	/* no user yet */
 	G.totmesh++;
 	
-	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) ) {
-		PyErr_SetString( PyExc_RuntimeError,
-				"faces must have at 3 or 4 vertices" );
+	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
 		return NULL;
-	}
 	
 	return mesh;
 }
@@ -2574,14 +2570,19 @@ static int assignFaceUV( TFace * tf, BPy_NMFace * nmface )
 	int i;
 
 	fuv = nmface->uv;
-	if( PySequence_Length( fuv ) == 0 )
+	if( PySequence_Length( fuv ) == 0 ) {
+		PyErr_SetString ( PyExc_RuntimeError, "uv list is empty" );
 		return 0;
+	}
 	/* fuv = [(u_1, v_1), ... (u_n, v_n)] */
 	for( i = 0; i < PySequence_Length( fuv ); i++ ) {
 		tmp = PyList_GetItem( fuv, i );	/* stolen reference ! */
 		if( !PyArg_ParseTuple
-		    ( tmp, "ff", &( tf->uv[i][0] ), &( tf->uv[i][1] ) ) )
-			return 0;
+		    ( tmp, "ff", &( tf->uv[i][0] ), &( tf->uv[i][1] ) ) ) {
+				PyErr_SetString ( PyExc_TypeError,
+						      "expected tuple of two floats for uv" );
+				return 0;
+		}
 	}
 	if( nmface->image ) {	/* image assigned ? */
 		tf->tpage = ( void * ) nmface->image;
@@ -2603,8 +2604,11 @@ static int mface_from_data( MFace * mf, TFace * tf, MCol * col,
 	BPy_NMVert *nmv;
 
 	int i = PyList_Size( from->v );
-	if( i != 3 && i != 4 )	/* face can only have three or four verts */
+	if( i != 3 && i != 4 ) {	/* face can only have three or four verts */
+		PyErr_SetString ( PyExc_RuntimeError,
+				"faces must have at 3 or 4 vertices" );
 		return 0;
+	}
 
 	nmv = ( BPy_NMVert * ) PyList_GetItem( from->v, 0 );
 	if( BPy_NMVert_Check( nmv ) && nmv->index != -1 )
@@ -2632,13 +2636,9 @@ static int mface_from_data( MFace * mf, TFace * tf, MCol * col,
 			mf->v4 = 0;
 	}
 
-	if( tf ) {
-		assignFaceUV( tf, from );
-		if( PyErr_Occurred(  ) ) {
-			PyErr_Print(  );
+	if( tf )
+		if( !assignFaceUV( tf, from ) )
 			return 0;
-		}
-	}
 
 	test_index_face(mf, NULL, tf, i );
 
@@ -3114,7 +3114,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 	Object *ob = NULL;
 	BPy_NMesh *nmesh;
 	int recalc_normals = 1;
-  int store_edges = 0;
+	int store_edges = 0;
 	int old_totvert = 0;
 
 	if( !PyArg_ParseTuple( args, "O!|sii",
@@ -3170,8 +3170,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 
 	unlink_existingMeshData( mesh );
 	if( !convert_NMeshToMesh( mesh, nmesh, store_edges ) )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"faces must have at 3 or 4 vertices" );
+		return NULL;
 	nmesh->mesh = mesh;
 
 	if (mesh->dvert) check_dverts(mesh, old_totvert);
