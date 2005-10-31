@@ -459,7 +459,7 @@ static void fix_new_face(EditFace *eface)
 	short smooth=0; /* "total smoothnes" of faces in neighbourhood */
 	short coef;	/* "weight" of smoothness */
 	short count=0;	/* number of edges with same direction as eface */
-	short vi00, vi01, vi10, vi11; /* vertex indexes */
+	short vi00=0, vi01=0, vi10=0, vi11=0; /* vertex indexes */
 
 	efa = em->faces.first;
 

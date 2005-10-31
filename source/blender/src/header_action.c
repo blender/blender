@@ -95,6 +95,7 @@
 
 #define ACTMENU_KEY_TRANSFORM_MOVE	0
 #define ACTMENU_KEY_TRANSFORM_SCALE	1
+#define ACTMENU_KEY_TRANSFORM_SLIDE	2
 
 #define ACTMENU_KEY_HANDLE_AUTO   0
 #define ACTMENU_KEY_HANDLE_ALIGN  1
@@ -140,9 +141,10 @@ void do_action_buttons(unsigned short event)
 				float extra;
 				
 				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax);
-				G.v2d->cur.xmin= get_action_frame_inv(ob, G.v2d->cur.xmin);
-				G.v2d->cur.xmax= get_action_frame_inv(ob, G.v2d->cur.xmax);
-				
+				if(G.saction->pin==0 && ob) {
+					G.v2d->cur.xmin= get_action_frame_inv(ob, G.v2d->cur.xmin);
+					G.v2d->cur.xmax= get_action_frame_inv(ob, G.v2d->cur.xmax);
+				}				
 				extra= 0.05*(G.v2d->cur.xmax - G.v2d->cur.xmin);
 				G.v2d->cur.xmin-= extra;
 				G.v2d->cur.xmax+= extra;
@@ -413,6 +415,14 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 				transform_actionchannel_keys ('s', 0);
 			}
 			break;
+		case ACTMENU_KEY_TRANSFORM_SLIDE:
+			if (key) {
+				//transform_meshchannel_keys('t', key);
+			} 
+			else if (act) {
+				transform_actionchannel_keys ('t', 0);
+			}
+			break;
 	}
 
 	scrarea_queue_winredraw(curarea);
@@ -428,14 +438,16 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu_transformmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Grab/Move|G", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_KEY_TRANSFORM_MOVE, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Scale|S", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_TRANSFORM_SCALE, "");
-
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Time Slide|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_TRANSFORM_SLIDE, "");
+	
+	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 

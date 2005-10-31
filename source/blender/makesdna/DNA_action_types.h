@@ -108,10 +108,8 @@ typedef struct SpaceAction {
 	View2D v2d;	
 	bAction		*action;
 	int	flag;
-	short pin, reserved1;
-	short	actnr;
-	short	lock;
-	int pad2;
+	short pin, actnr, lock, pad;
+	float timeslide;
 } SpaceAction;
 
 /* Action Channel flags */
@@ -119,9 +117,10 @@ typedef struct SpaceAction {
 #define ACHAN_HILIGHTED	0x00000002
 #define ACHAN_MOVED     0x80000000
 
+/* SpaceAction flag */
+#define SACTION_MOVING	1
 
 /* Pose->flag */
-
 #define POSE_RECALC		1
 #define POSE_LOCKED		2
 #define POSE_DO_UNLOCK	4

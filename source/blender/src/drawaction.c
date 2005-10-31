@@ -440,6 +440,16 @@ static void draw_channel_strips(SpaceAction *saction)
 		}
 	}
 
+	if(saction->flag & SACTION_MOVING) {
+		int frame1_x, channel_y;
+		gla2DDrawTranslatePt(di, saction->timeslide, 0, &frame1_x, &channel_y);
+		cpack(0x0);
+		glBegin(GL_LINES);
+		glVertex2f(frame1_x, G.v2d->mask.ymin - 100);
+		glVertex2f(frame1_x, G.v2d->mask.ymax);
+		glEnd();
+	}
+	
 	glaEnd2DDraw(di);
 }
 

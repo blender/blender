@@ -847,9 +847,9 @@ void transform_actionchannel_keys(int mode, int dummy)
 	bConstraintChannel *conchan;
 	bActionChannel	*chan;
 	float	deltax, startx;
-	float	cenf[2];
+	float	minx, maxx, cenf[2];
 	float	sval[2], cval[2], lastcval[2];
-	float	fac=0.0F;
+	float	fac=0.0f;
 	int		loop=1;
 	int		tvtot=0;
 	int		invert=0, firsttime=1;
@@ -875,6 +875,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 	
 	/* Build the transvert structure */
 	tv = MEM_callocN (sizeof(TransVert) * tvtot, "transVert");
+	
 	tvtot=0;
 	for (chan=act->chanbase.first; chan; chan=chan->next){
 		/* Add the actionchannel */
@@ -882,7 +883,14 @@ void transform_actionchannel_keys(int mode, int dummy)
 		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
 			tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
 	}
-
+	
+	/* min max, only every other three */
+	minx= maxx= tv[1].loc[0];
+	for (i=1; i<tvtot; i+=3){
+		if(minx>tv[i].loc[0]) minx= tv[i].loc[0];
+		if(maxx<tv[i].loc[0]) maxx= tv[i].loc[0];
+	}
+	
 	/* Do the event loop */
 	cent[0] = curarea->winx + (G.saction->v2d.hor.xmax)/2;
 	cent[1] = curarea->winy + (G.saction->v2d.hor.ymax)/2;
@@ -891,8 +899,21 @@ void transform_actionchannel_keys(int mode, int dummy)
 	getmouseco_areawin (mvals);
 	areamouseco_to_ipoco(G.v2d, mvals, &sval[0], &sval[1]);
 
+	if(G.saction->pin==0 && OBACT)
+		sval[0]= get_action_frame(OBACT, sval[0]);
+	
+	/* used for drawing */
+	if(mode=='t') {
+		G.saction->flag |= SACTION_MOVING;
+		G.saction->timeslide= sval[0];
+	}
+	
 	startx=sval[0];
 	while (loop) {
+		
+		if(mode=='t' && minx==maxx)
+			break;
+		
 		/*		Get the input */
 		/*		If we're cancelling, reset transformations */
 		/*			Else calc new transformation */
@@ -930,14 +951,36 @@ void transform_actionchannel_keys(int mode, int dummy)
 		} else {
 			getmouseco_areawin (mvalc);
 			areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
+			
+			if(G.saction->pin==0 && OBACT)
+				cval[0]= get_action_frame(OBACT, cval[0]);
 
+			if(mode=='t')
+				G.saction->timeslide= cval[0];
+			
 			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
 				PIL_sleep_ms(1);
 			} else {
+				
 				for (i=0; i<tvtot; i++){
 					tv[i].loc[0]=tv[i].oldloc[0];
 
 					switch (mode){
+					case 't':
+						if( sval[0] > minx && sval[0] < maxx) {
+							float timefac, cvalc= CLAMPIS(cval[0], minx, maxx);
+							
+							/* left half */
+							if(tv[i].oldloc[0] < sval[0]) {
+								timefac= ( sval[0] - tv[i].oldloc[0])/(sval[0] - minx);
+								tv[i].loc[0]= cvalc - timefac*( cvalc - minx);
+							}
+							else {
+								timefac= (tv[i].oldloc[0] - sval[0])/(maxx - sval[0]);
+								tv[i].loc[0]= cvalc + timefac*(maxx- cvalc);
+							}
+						}
+						break;
 					case 'g':
 						deltax = cval[0]-sval[0];
 						fac= deltax;
@@ -982,6 +1025,12 @@ void transform_actionchannel_keys(int mode, int dummy)
 				sprintf(str, "deltaX: %.3f", fac);
 				headerprint(str);
 			}
+			else if (mode=='t') {
+				float fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
+				CLAMP(fac, -1.0f, 1.0f);
+				sprintf(str, "TimeSlide: %.3f", fac);
+				headerprint(str);
+			}
 	
 			if (G.saction->lock) {
 				if(ob) {
@@ -1014,8 +1063,11 @@ void transform_actionchannel_keys(int mode, int dummy)
 		else
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	}
+	
 	remake_action_ipos(act);
 
+	G.saction->flag &= ~SACTION_MOVING;
+	
 	if(cancel==0) BIF_undo_push("Transform Action");
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue (REDRAWACTION, 0);
@@ -2202,7 +2254,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* to do */
 			}
 			else {
-				set_ipotype_actionchannels(SET_IPO_POPUP);
+				if(G.qual & LR_SHIFTKEY)
+					set_ipotype_actionchannels(SET_IPO_POPUP);
+				else
+					transform_actionchannel_keys ('t', 0);
 			}
 			break;
 
