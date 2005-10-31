@@ -55,15 +55,7 @@ class Key:
         Get a list of L{KeyBlock}s, containing the keyframes defined for
         this Key.
         """
-	def setDriverChannel(index):
-		""" 
-		Get the IpoCurve object associated with the shape key referenced
-		by the index of that key in getBlocks
-  		@type index: int
-  		@param index: the keyblock index to retrieve an IPO for.
-  		@rtype: Blender IpoCurve
-  		@return: Ipo Data Object:
-		"""
+
 		
 class KeyBlock:
   """	
