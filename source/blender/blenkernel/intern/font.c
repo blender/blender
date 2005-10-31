@@ -1119,7 +1119,7 @@ struct chartrans *text_to_curve(Object *ob, int mode)
 			cha = (unsigned long) mem[i];
 			info = &(cu->strinfo[i]);
 			if (info->mat_nr > (ob->totcol)) {
-				printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr);
+				/* printf("Error: Illegal material index (%d) in text object, setting to 0\n", info->mat_nr); */
 				info->mat_nr = 0;
 			}
 				// We do not want to see any character for \n or \r
