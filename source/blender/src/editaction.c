@@ -1007,7 +1007,9 @@ void transform_actionchannel_keys(int mode, int dummy)
 							fac*=-1;
 						}
 						startx= (G.scene->r.cfra);
-					
+						if(G.saction->pin==0 && OBACT)
+							startx= get_action_frame(OBACT, startx);
+							
 						tv[i].loc[0]-= startx;
 						tv[i].loc[0]*=fac;
 						tv[i].loc[0]+= startx;
