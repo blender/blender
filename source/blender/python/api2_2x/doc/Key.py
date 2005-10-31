@@ -36,6 +36,9 @@ class Key:
     L{Curve.Curve}) will contain a Key object representing the
     keyframe data.
     
+    @ivar ipo:  Key Ipo.
+    Contains the Ipo if one is assigned to the object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
+    @type ipo:  Blender Ipo
     @ivar value: The Value of the Key - Read Only
     @type value: float
     @ivar type: An integer from the L{Types} dictionary

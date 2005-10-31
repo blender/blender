@@ -63,6 +63,7 @@ static PyObject *Key_repr( BPy_Key * self );
 static PyObject *Key_getBlocks( PyObject * self );
 static PyObject *Key_getType( PyObject * self );
 static PyObject *Key_getIpo( PyObject * self );
+static int Key_setIpo( PyObject * self, PyObject * args );
 static PyObject *Key_getValue( PyObject * self );
 
 static struct PyMethodDef Key_methods[] = {
@@ -76,6 +77,8 @@ static PyGetSetDef BPy_Key_getsetters[] = {
 		 "Key Type",NULL},
 		{"value",(getter)Key_getValue, (setter)NULL,
 		 "Key value",NULL},
+		{"ipo",(getter)Key_getIpo, (setter)Key_setIpo,
+		 "ipo linked to key",NULL},
 		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 	};
 
@@ -318,6 +321,50 @@ static PyObject *Key_getIpo( PyObject * self )
 		return EXPP_incr_ret( Py_None );
 	}
 }
+
+static int Key_setIpo( PyObject * self, PyObject * value )
+{
+	Ipo *ipo = NULL;
+	Ipo *oldipo = (( BPy_Key * )self)->key->ipo;
+	ID *id;
+
+	/* if parameter is not None, check for valid Ipo */
+
+	if ( value != Py_None ) {
+		if ( !Ipo_CheckPyObject( value ) )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"expected an Ipo object" );
+
+		ipo = Ipo_FromPyObject( value );
+
+		if( !ipo )
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					      	"null ipo!" );
+
+		if( ipo->blocktype != ID_KE )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					      	"Ipo is not a key data Ipo" );
+	}
+
+	/* if already linked to Ipo, delete link */
+
+	if ( oldipo ) {
+		id = &oldipo->id;
+		if( id->us > 0 )
+			id->us--;
+	}
+
+	/* assign new Ipo and increment user count, or set to NULL if deleting */
+
+	(( BPy_Key * )self)->key->ipo = ipo;
+	if ( ipo ) {
+		id = &ipo->id;
+		id->us++;
+	}
+
+	return 0;
+}
+
 
 static PyObject *Key_getType( PyObject * self )
 {
