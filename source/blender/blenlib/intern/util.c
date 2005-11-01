@@ -727,6 +727,10 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	
 	/* Push all slashes to the system preferred direction */
 	BLI_clean(string);
+	/* also for all the other dirs where we changed the slashes */
+	BLI_clean(relabase);
+	BLI_clean(dir);
+	BLI_clean(file);
 }
 
 int BLI_testextensie(char *str, char *ext)
