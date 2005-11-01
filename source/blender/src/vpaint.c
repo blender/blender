@@ -947,48 +947,52 @@ static void sample_wpaint(int mode)
 			int needsFree;
 			
 			dm = mesh_get_derived_final(ob, &needsFree);
-			
-			/* calc 3 or 4 corner weights */
-			dm->getVertCo(dm, mface->v1, co);
-			project_short_noclip(co, sco);
-			w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-			
-			dm->getVertCo(dm, mface->v2, co);
-			project_short_noclip(co, sco);
-			w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-			
-			dm->getVertCo(dm, mface->v3, co);
-			project_short_noclip(co, sco);
-			w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-			
-			if(mface->v4) {
-				dm->getVertCo(dm, mface->v4, co);
+			if(dm->getVertCo==NULL) {
+				notice("Not supported yet");
+			}
+			else {
+				/* calc 3 or 4 corner weights */
+				dm->getVertCo(dm, mface->v1, co);
 				project_short_noclip(co, sco);
-				w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
-			}
-			else w4= 1.0e10;
-			
-			fac= MIN4(w1, w2, w3, w4);
-			if(w1==fac) {
-				dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
-				if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
-			}
-			else if(w2==fac) {
-				dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
-				if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
-			}
-			else if(w3==fac) {
-				dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
-				if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
-			}
-			else if(w4==fac) {
+				w1= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+				
+				dm->getVertCo(dm, mface->v2, co);
+				project_short_noclip(co, sco);
+				w2= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+				
+				dm->getVertCo(dm, mface->v3, co);
+				project_short_noclip(co, sco);
+				w3= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+				
 				if(mface->v4) {
-					dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
+					dm->getVertCo(dm, mface->v4, co);
+					project_short_noclip(co, sco);
+					w4= ((mval[0]-sco[0])*(mval[0]-sco[0]) + (mval[1]-sco[1])*(mval[1]-sco[1]));
+				}
+				else w4= 1.0e10;
+				
+				fac= MIN4(w1, w2, w3, w4);
+				if(w1==fac) {
+					dw= get_defweight(me->dvert+mface->v1, ob->actdef-1);
 					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
 				}
+				else if(w2==fac) {
+					dw= get_defweight(me->dvert+mface->v2, ob->actdef-1);
+					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+				}
+				else if(w3==fac) {
+					dw= get_defweight(me->dvert+mface->v3, ob->actdef-1);
+					if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+				}
+				else if(w4==fac) {
+					if(mface->v4) {
+						dw= get_defweight(me->dvert+mface->v4, ob->actdef-1);
+						if(dw) editbutvweight= dw->weight; else editbutvweight= 0.0f;
+					}
+				}
+				if (needsFree)
+					dm->release(dm);
 			}
-			if (needsFree)
-				dm->release(dm);
 		}		
 		
 	}
