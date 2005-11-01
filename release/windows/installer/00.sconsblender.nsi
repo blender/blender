@@ -63,6 +63,8 @@ ComponentText "This will install Blender VERSION on your computer."
 
 DirText "Use the field below to specify the folder where you want Blender to be copied to. To specify a different folder, type a new name or use the Browse button to select an existing folder."
 
+SilentUnInstall normal
+
 ; GetWindowsVersion
 ;
 ; Based on Yazno's function, http://yazno.tripod.com/powerpimpit/
@@ -250,7 +252,6 @@ Section "Blender-VERSION (required)" SecCopyUI
   [SCRIPTDATACONTS]
   SetOutPath $BLENDERHOME\.blender\scripts\bpydata\config
   [SCRIPTDATACFGCONTS]
-  
   SetOutPath $BLENDERHOME\plugins\include
   [PLUGINCONTS]
   
@@ -311,11 +312,13 @@ Section "Uninstall"
   Delete "$SMPROGRAMS\Blender Foundation\Blender\*.*"
   Delete "$DESKTOP\Blender.lnk"
   ; remove directories used.
-  RMDir /r $INSTDIR\.blender\locale 
+  RMDir /r $INSTDIR\.blender\locale
+  MessageBox MB_YESNO "Erase .blender\scripts folder? (ALL contents will be erased!)" IDNO Next
   RMDir /r $INSTDIR\.blender\scripts
   RMDir /r $INSTDIR\.blender\scripts\bpymodules
   RMDir /r $INSTDIR\.blender\scripts\bpydata
   RMDir /r $INSTDIR\.blender\scripts\bpydata\config
+Next:
   RMDir /r $INSTDIR\plugins\include
   RMDir /r $INSTDIR\plugins
   RMDir $INSTDIR\.blender
