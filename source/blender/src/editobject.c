@@ -1690,6 +1690,7 @@ void docentre(int centremode)
 								if(tme==me) {
 									
 									ob->flag |= OB_DONE;
+									ob->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 
 									Mat3CpyMat4(omat, ob->obmat);
 									VECCOPY(centn, cent);
@@ -1794,12 +1795,13 @@ void docentre(int centremode)
 
 					allqueue(REDRAWBUTSEDIT, 0);
 				}
-				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
+				base->object->recalc= OB_RECALC_OB|OB_RECALC_DATA;
 			}
 		}
 		base= base->next;
 	}
 
+	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	allqueue(REDRAWVIEW3D, 0);
 	BIF_undo_push("Do Centre");	
 }
