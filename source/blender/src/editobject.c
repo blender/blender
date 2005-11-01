@@ -3092,18 +3092,20 @@ void make_duplilist_real()
 					/* font duplis can have a totcol without material, we get them from parent
 					 * should be implemented better...
 					 */
-					if(ob->mat==0) ob->totcol= 0;
+					if(ob->mat==NULL) ob->totcol= 0;
 					
 					basen= MEM_dupallocN(base);
 					basen->flag &= ~OB_FROMDUPLI;
 					BLI_addhead(&G.scene->base, basen);	/* addhead: othwise eternal loop */
-					ob->ipo= 0;		/* make sure apply works */
-					ob->parent= ob->track= 0;
-					ob->disp.first= ob->disp.last= 0;
+					ob->ipo= NULL;		/* make sure apply works */
+					ob->parent= ob->track= NULL;
+					ob->disp.first= ob->disp.last= NULL;
 					ob->transflag &= ~OB_DUPLI;
 					basen->object= copy_object(ob);
+					basen->object->flag &= ~OB_FROMDUPLI;
 					
 					apply_obmat(basen->object);
+					
 					ob= ob->id.next;
 				}
 				
@@ -3114,6 +3116,8 @@ void make_duplilist_real()
 		}
 		base= base->next;
 	}
+	
+	DAG_scene_sort(G.scene);
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);

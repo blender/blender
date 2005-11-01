@@ -265,6 +265,8 @@ static VFontData *vfont_get_data(VFont *vfont)
 	struct TmpFont *tmpfnt = NULL;
 	PackedFile *tpf;
 	
+	if(vfont==NULL) return NULL;
+	
 	// Try finding the font from font list
 	tmpfnt = G.ttfdata.first;
 	

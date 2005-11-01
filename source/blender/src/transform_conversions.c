@@ -472,6 +472,7 @@ static void apply_targetless_ik(Object *ob)
 						Mat4MulMat4(tmat, offs_bone, parchan->parent->bone->arm_mat);
 					else
 						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
+					
 					Mat4Invert(imat, tmat);
 				}
 				else {

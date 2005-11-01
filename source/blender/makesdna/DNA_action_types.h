@@ -138,7 +138,8 @@ enum	{
 	POSE_HAS_IK		=	0x0100,
 	POSE_CHAIN		=	0x0200,
 	POSE_DONE		=   0x0400,
-	POSE_KEY		=	0x1000
+	POSE_KEY		=	0x1000,
+	POSE_STRIDE		=	0x2000
 };
 
 /* PoseChannel constflag (constraint detection) */
@@ -147,6 +148,8 @@ enum	{
 	/* only used for drawing Posemode, not stored in channel */
 #define PCHAN_HAS_ACTION	4
 #define PCHAN_HAS_TARGET	8
+	/* only for drawing Posemode too */
+#define PCHAN_HAS_STRIDE	16
 
 /* PoseChannel->ikflag */
 #define		BONE_IK_NO_XDOF 1

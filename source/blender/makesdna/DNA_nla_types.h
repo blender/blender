@@ -38,9 +38,8 @@ struct Ipo;
 
 typedef struct bActionStrip {
 	struct bActionStrip *next, *prev;
-	short	flag;
-	short	mode;
-	int		reserved1;
+	short	flag, mode;
+	short	stride_axis, pad;	/* axis 0=x, 1=y, 2=z */
 
 	struct	Ipo *ipo;			/* Blending ipo */
 	struct	bAction *act;		/* The action referenced by this strip */
@@ -51,6 +50,8 @@ typedef struct bActionStrip {
 	float	repeat;				/* The number of times to repeat the action range */
 
 	float	blendin, blendout;
+	
+	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
 } bActionStrip;
 
 #define ACTSTRIPMODE_BLEND		0
@@ -63,6 +64,7 @@ typedef struct bActionStrip {
 #define ACTSTRIP_HOLDLASTFRAME	0x08
 #define ACTSTRIP_ACTIVE			0x10
 #define ACTSTRIP_LOCK_ACTION	0x20
+
 
 #endif
 

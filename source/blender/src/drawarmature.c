@@ -43,6 +43,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_ID.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -829,7 +830,8 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 		if(armflag & ARM_POSEMODE) {
 			/* inner part in background color or constraint */
 			if(constflag) {
-				if(constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
+				if(constflag & PCHAN_HAS_STRIDE) glColor3ub(0, 0, 200);
+				else if(constflag & PCHAN_HAS_TARGET) glColor3ub(255, 150, 0);
 				else if(constflag & PCHAN_HAS_IK) glColor3ub(255, 255, 0);
 				else if(constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
 				else BIF_ThemeColor(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
@@ -967,10 +969,10 @@ static void draw_b_bone(int dt, int armflag, int boneflag, int constflag, unsign
 	else {	// wire
 		if (armflag & ARM_POSEMODE){
 			if(constflag) {
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+				if(constflag & PCHAN_HAS_STRIDE) glColor4ub(0, 0, 200, 80);
+				else if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
 				else if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
@@ -1035,10 +1037,10 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 		}
 		else if (armflag & ARM_POSEMODE){
 			if(constflag) {
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				
-				if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
+				if(constflag & PCHAN_HAS_STRIDE) glColor4ub(0, 0, 200, 80);
+				else if(constflag & PCHAN_HAS_TARGET) glColor4ub(255, 150, 0, 80);
 				else if(constflag & PCHAN_HAS_IK) glColor4ub(255, 255, 0, 80);
 				else if(constflag & PCHAN_HAS_CONST) glColor4ub(0, 255, 120, 80);
 				else BIF_ThemeColor4(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
@@ -1130,7 +1132,6 @@ static void draw_dof_ellipse(float ax, float az)
 	int i, j, n=16;
 	float x, z, px, pz;
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glDepthMask(0);
 
@@ -1310,7 +1311,6 @@ static void draw_pose_channels(Base *base, int dt)
 		
 		/* and draw blended distances */
 		if(arm->flag & ARM_POSEMODE) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 			//glShadeModel(GL_SMOOTH);
 			
@@ -1425,6 +1425,8 @@ static void draw_pose_channels(Base *base, int dt)
 				constflag= pchan->constflag;
 				if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
 					constflag |= PCHAN_HAS_ACTION;
+				if(pchan->flag & POSE_STRIDE)
+					constflag |= PCHAN_HAS_STRIDE;
 
 				if(arm->drawtype==ARM_ENVELOPE) {
 					if(dt<OB_SOLID)
@@ -1492,6 +1494,7 @@ static void draw_pose_channels(Base *base, int dt)
 			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 		}
 	}
+
 }
 
 /* in editmode, we don't store the bone matrix... */
@@ -1532,7 +1535,6 @@ static void draw_ebones(Object *ob, int dt)
 		Mat4Invert(imat, smat);
 		
 		/* and draw blended distances */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		//glShadeModel(GL_SMOOTH);
 		
@@ -1712,6 +1714,93 @@ static void draw_pose_paths(Object *ob)
 	glPopMatrix();
 }
 
+/* object is supposed to be armature in posemode */
+static void draw_ghost_poses(Base *base)
+{
+	Object *ob= base->object;
+	bArmature *arm= ob->data;
+	bPose *posen, *poseo;
+	bActionStrip *strip;
+	float cur, start, end, stepsize, range, colfac, actframe;
+	int cfrao, maptime;
+	
+	/* pre conditions, get an action with sufficient frames */
+	if(ob->action==NULL)
+		return;
+
+	calc_action_range(ob->action, &start, &end);
+	if(start==end)
+		return;
+
+	stepsize= 1.0f;
+	range= (float)(arm->ghostep);
+	
+	/* we only map time for armature when an active strip exists */
+	for (strip=ob->nlastrips.first; strip; strip=strip->next)
+		if(strip->flag & ACTSTRIP_ACTIVE)
+			break;
+	
+	maptime= (strip!=NULL);
+	
+	/* store values */
+	ob->flag &= ~OB_POSEMODE;
+	cfrao= CFRA;
+	if(maptime) actframe= get_action_frame(ob, (float)CFRA);
+	else actframe= CFRA;
+	
+	/* copy the pose */
+	poseo= ob->pose;
+	copy_pose(&posen, ob->pose, 1);
+	ob->pose= posen;
+	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+
+	glEnable(GL_BLEND);
+	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
+	/* draw from lowest blend to darkest */
+	for(cur= 0.5f; cur<range; cur+=stepsize) {
+		
+		colfac= cur/range;
+		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		
+		/* only within action range */
+		if(actframe+cur >= start && actframe+cur <= end) {
+			
+			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe+cur);
+			else CFRA= (int)(actframe+cur);
+			
+			if(CFRA!=cfrao) {
+				do_all_pose_actions(ob);
+				where_is_pose(ob);
+				draw_pose_channels(base, OB_WIRE);
+			}
+		}
+		/* only within action range */
+		if(actframe-cur >= start && actframe-cur <= end) {
+			
+			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe-cur);
+			else CFRA= (int)(actframe-cur);
+			
+			if(CFRA!=cfrao) {
+				do_all_pose_actions(ob);
+				where_is_pose(ob);
+				draw_pose_channels(base, OB_WIRE);
+			}
+		}
+	}
+	glDisable(GL_BLEND);
+	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+
+	free_pose_channels(posen);
+	MEM_freeN(posen);
+	
+	CFRA= cfrao;
+	ob->pose= poseo;
+	armature_rebuild_pose(ob, ob->data);
+	
+	ob->flag |= OB_POSEMODE;
+}
+
 /* called from drawobject.c */
 void draw_armature(Base *base, int dt)
 {
@@ -1744,16 +1833,25 @@ void draw_armature(Base *base, int dt)
 				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
 			}
 			else if(ob->flag & OB_POSEMODE) {
+				/* only set once */
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+				if(arm->ghostep) {
+					draw_ghost_poses(base);
+				}
+				
 				if(ob==OBACT) 
 					arm->flag |= ARM_POSEMODE;
 				else if(G.f & G_WEIGHTPAINT)
 					arm->flag |= ARM_POSEMODE;
 				
 				draw_pose_paths(ob);
-			}			
+			}	
+			
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
+			BIF_ThemeColor(TH_WIRE);	/* restore, for extra draw stuff */
 		}
 	}
 	/* restore */

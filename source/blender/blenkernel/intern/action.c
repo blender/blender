@@ -416,16 +416,15 @@ void calc_action_range(const bAction *act, float *start, float *end)
 	const bConstraintChannel *conchan;
 	const IpoCurve	*icu;
 	float min=999999999.0f, max=-999999999.0;
-	int	i;
 	int	foundvert=0;
 
 	if(act) {
 		for (chan=act->chanbase.first; chan; chan=chan->next) {
 			if(chan->ipo) {
 				for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-					for (i=0; i<icu->totvert; i++) {
-						min = MIN2 (min, icu->bezt[i].vec[1][0]);
-						max = MAX2 (max, icu->bezt[i].vec[1][0]);
+					if(icu->totvert) {
+						min= MIN2 (min, icu->bezt[0].vec[1][0]);
+						max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
 						foundvert=1;
 					}
 				}
@@ -433,9 +432,9 @@ void calc_action_range(const bAction *act, float *start, float *end)
 			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
 				if(conchan->ipo) {
 					for (icu=conchan->ipo->curve.first; icu; icu=icu->next) {
-						for (i=0; i<icu->totvert; i++){
-							min = MIN2 (min, icu->bezt[i].vec[1][0]);
-							max = MAX2 (max, icu->bezt[i].vec[1][0]);
+						if(icu->totvert) {
+							min= MIN2 (min, icu->bezt[0].vec[1][0]);
+							max= MAX2 (max, icu->bezt[icu->totvert-1].vec[1][0]);
 							foundvert=1;
 						}
 					}
@@ -482,7 +481,7 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 	/* Copy the data from the action into the pose */
 	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
 		achan= get_action_channel(act, pchan->name);
-		pchan->flag= 0;
+		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
 		if(achan) {
 			ipo = achan->ipo;
 			if (ipo) {
@@ -499,21 +498,21 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 /* for do_all_pose_actions, clears the pose */
 static void rest_pose(bPose *pose)
 {
-	bPoseChannel *chan;
+	bPoseChannel *pchan;
 	int i;
 	
 	if (!pose)
 		return;
 	
-	for (chan=pose->chanbase.first; chan; chan=chan->next){
+	for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 		for (i=0; i<3; i++){
-			chan->loc[i]=0.0;
-			chan->quat[i+1]=0.0;
-			chan->size[i]=1.0;
+			pchan->loc[i]=0.0;
+			pchan->quat[i+1]=0.0;
+			pchan->size[i]=1.0;
 		}
-		chan->quat[0]=1.0;
+		pchan->quat[0]=1.0;
 		
-		chan->flag =0;
+		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
 	}
 }
 
@@ -716,6 +715,65 @@ static float nla_time(float cfra, float unit)
 	return cfra;
 }
 
+static float stridechannel_frame(bAction *act, int stride_axis, char *name, float pdist)
+{
+	bActionChannel *achan= get_action_channel(act, name);
+
+	if(achan && achan->ipo) {
+		IpoCurve *icu= NULL;
+		float minx=0.0f, maxx=0.0f, miny=0.0f, maxy=0.0f;
+		int foundvert= 0;
+		
+		if(stride_axis==0) stride_axis= AC_LOC_X;
+		else if(stride_axis==1) stride_axis= AC_LOC_Y;
+		else stride_axis= AC_LOC_Z;
+		
+		/* calculate the min/max */
+		for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+			if(icu->adrcode==stride_axis) {
+				if(icu->totvert>1) {
+					foundvert= 1;
+					minx= icu->bezt[0].vec[1][0];
+					maxx= icu->bezt[icu->totvert-1].vec[1][0];
+					
+					miny= icu->bezt[0].vec[1][1];
+					maxy= icu->bezt[icu->totvert-1].vec[1][1];
+				}
+				break;
+			}
+		}
+		
+		if(foundvert && miny!=maxy) {
+			float stridelen= fabs(maxy-miny), striptime;
+			float actiondist, step= 0.5, error, threshold=0.00001f*stridelen;
+			int max= 20;
+			
+			/* amount path moves object */
+			pdist = (float)fmod (pdist, stridelen);
+			
+			/* wanted; the (0-1) factor that cancels out this distance, do simple newton-raphson */
+			striptime= step;
+			do {
+				actiondist= eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
+				
+				error= pdist - fabs(actiondist);
+				
+				step*=0.5f;
+				if(error > 0.0)
+					striptime += step;
+				else
+					striptime -= step;
+				
+				max--;
+			}
+			while( fabs(error) > threshold && max>0);
+			
+			return striptime;
+		}
+	}
+	return 0.0f;
+}
+
 /* ************** do the action ************ */
 
 static void do_nla(Object *ob, int blocktype)
@@ -772,12 +830,16 @@ static void do_nla(Object *ob, int blocktype)
 								}
 								pdist = ctime*cu->path->totdist;
 								
-								if (strip->stridelen)
-									striptime = pdist / strip->stridelen;
-								else
-									striptime = 0;
-								
-								striptime = (float)fmod (striptime, 1.0);
+								if(strip->stridechannel[0])
+									striptime= stridechannel_frame(strip->act, strip->stride_axis, strip->stridechannel, pdist);
+								else {
+									if (strip->stridelen) {
+										striptime = pdist / strip->stridelen;
+										striptime = (float)fmod (striptime, 1.0);
+									}
+									else
+										striptime = 0;
+								}
 								
 								frametime = (striptime * actlength) + strip->actstart;
 								frametime= bsystem_time(ob, 0, frametime, 0.0);

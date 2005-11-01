@@ -1278,7 +1278,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		if(data->weight != 0.0)
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
-		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
+		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0) && (data->flag & CONSTRAINT_IK_AUTO)==0)
 			IK_SolverAddGoalOrientation(solver, iktarget, goalrot, data->orientweight);
 	}
 

@@ -58,6 +58,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_action.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 
 #include "BSE_drawnla.h"
@@ -147,6 +148,15 @@ static void draw_nla_channels(void)
 					BIF_ThemeColor(TH_TEXT);
 				glRasterPos2f(x+32,  y-4);
 				BMF_DrawString(G.font, ob->action->id.name+2);
+				
+				/* icon for active action (no strip mapping) */
+				for (strip = ob->nlastrips.first; strip; strip=strip->next)
+					if(strip->flag & ACTSTRIP_ACTIVE) break;
+				if(strip==NULL) {
+					glEnable(GL_BLEND);
+					BIF_draw_icon_blended(x, y-8, ICON_DOT, TH_BACK, 0);
+					glDisable(GL_BLEND);
+				}
 				
 				y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 			}
@@ -417,24 +427,8 @@ void do_nlabuts(unsigned short event)
 		allqueue(REDRAWNLA, 0);
 		break;
 	case B_NLA_PANEL:
-		if (strip->end<strip->start)
-			strip->end=strip->start;
-	
-	
-		if (strip->blendin>(strip->end-strip->start))
-			strip->blendin = strip->end-strip->start;
-	
-		if (strip->blendout>(strip->end-strip->start))
-			strip->blendout = strip->end-strip->start;
-	
-		if (strip->blendin > (strip->end-strip->start-strip->blendout))
-			strip->blendin = (strip->end-strip->start-strip->blendout);
-	
-		if (strip->blendout > (strip->end-strip->start-strip->blendin))
-			strip->blendout = (strip->end-strip->start-strip->blendin);
 		
-		
-		update_for_newframe_muted();
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
@@ -463,39 +457,46 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	
 	/* first labels, for simpler align code :) */
 	uiDefBut(block, LABEL, 0, "Timeline Range:",	10,180,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Action Range:",		10,140,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Blending:",			10,100,300,19, 0, 0, 0, 0, 0, "");
-	uiDefBut(block, LABEL, 0, "Options:",			10,60,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Blending:",			10,120,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Options:",			10,80,300,19, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Stride Support:",	10,40,300,19, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
-	uiDefButF(block, NUM, B_REDR, "Strip End:", 	160,160,150,19, &strip->end, strip->start+1, MAXFRAMEF, 100, 0, "Last frame in the timeline");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Strip Start:",	10,160,150,19, &strip->start, -1000.0, strip->end-1, 100, 0, "First frame in the timeline");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Strip End:", 	160,160,150,19, &strip->end, strip->start+1, MAXFRAMEF, 100, 0, "Last frame in the timeline");
 
-	uiBlockBeginAlign(block);
-	uiDefIconButBitS(block, ICONTOG, ACTSTRIP_LOCK_ACTION, B_NLA_LOCK, ICON_UNLOCKED,	10,120,20,19, &(strip->flag), 0, 0, 0, 0, "Toggles Action end/start to be automatic mapped to strip duration");
+	uiDefIconButBitS(block, ICONTOG, ACTSTRIP_LOCK_ACTION, B_NLA_LOCK, ICON_UNLOCKED,	10,140,20,19, &(strip->flag), 0, 0, 0, 0, "Toggles Action end/start to be automatic mapped to strip duration");
 	if(strip->flag & ACTSTRIP_LOCK_ACTION) {
 		char str[40];
 		sprintf(str, "Action Start: %.2f", strip->actstart);
-		uiDefBut(block, LABEL, B_NOP, str,			30,120,140,19, NULL, 0.0, 0.0, 0, 0, "First frame of the action to map to the playrange");
+		uiDefBut(block, LABEL, B_NOP, str,			30,140,140,19, NULL, 0.0, 0.0, 0, 0, "First frame of the action to map to the playrange");
 		sprintf(str, "Action End: %.2f", strip->actend);
-		uiDefBut(block, LABEL, B_NOP, str,			170,120,140,19, NULL, 0.0, 0.0, 0, 0, "Last frame of the action to map to the playrange");
+		uiDefBut(block, LABEL, B_NOP, str,			170,140,140,19, NULL, 0.0, 0.0, 0, 0, "Last frame of the action to map to the playrange");
 	}
 	else {
-		uiDefButF(block, NUM, B_REDR, "Action Start:",	30,120,140,19, &strip->actstart, -1000.0, strip->actend-1, 100, 0, "First frame of the action to map to the playrange");
-		uiDefButF(block, NUM, B_REDR, "Action End:",	170,120,140,19, &strip->actend, strip->actstart+1, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
+		uiDefButF(block, NUM, B_NLA_PANEL, "Action Start:",	30,140,140,19, &strip->actstart, -1000.0, strip->actend-1, 100, 0, "First frame of the action to map to the playrange");
+		uiDefButF(block, NUM, B_NLA_PANEL, "Action End:",	170,140,140,19, &strip->actend, strip->actstart+1, MAXFRAMEF, 100, 0, "Last frame of the action to map to the playrange");
 	}
+	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Blendin:", 	10,80,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_REDR, "Blendout:", 	160,80,150,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:", 	10,100,150,19, &strip->blendin, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-in");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:", 160,100,150,19, &strip->blendout, 0.0, strip->actend-strip->actstart, 100, 0, "Number of frames of ease-out");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_REDR, "Repeat:", 	10,40,150,19, &strip->repeat, 0.0001, 1000.0f, 100, 0, "Number of times the action should repeat");
-	uiDefButF(block, NUM, B_REDR, "Stride:", 	160,40,150,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
-
+	uiDefButF(block, NUM, B_NLA_PANEL, "Repeat:", 	10,60,150,19, &strip->repeat, 0.001, 1000.0f, 100, 0, "Number of times the action should repeat");
+	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_NLA_PANEL, "Hold",	160,60,75,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
+	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								230,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_REDR, "Use Path",	10,0,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButBitS(block, TOG, ACTSTRIP_HOLDLASTFRAME, B_REDR, "Hold",	110,0,100,19, &strip->flag, 0, 0, 0, 0, "Toggles whether to continue displaying the last frame past the end of the strip");
-	uiDefButS(block, TOG, B_REDR, "Add",	210,0,100,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Use Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Stride:",		110,20,200,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+	
+	uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, 0, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
+	uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, 0, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");
+	uiDefButS(block, ROW, B_NLA_PANEL, "Z",				76, 0, 34, 19, &strip->stride_axis, 1, 2, 0, 0, "Dominant axis for Stride Bone");
+	
+	uiDefBut(block, TEX, B_NLA_PANEL, "Stride Bone:",	110, 0, 200, 19, strip->stridechannel, 1, 31, 0, 0, "Name of Bone used for stride");
+
 }
 
 static void nla_blockhandlers(ScrArea *sa)

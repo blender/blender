@@ -855,11 +855,11 @@ Object *copy_object(Object *ob)
 	obn->soft= copy_softbody(ob->soft);
 
 	/* NT copy fluid sim setting memory */
-	if(ob->fluidsimSettings) ob->fluidsimSettings = MEM_dupallocN(ob->fluidsimSettings);
-	else ob->fluidsimSettings = NULL;
+	if(obn->fluidsimSettings) obn->fluidsimSettings = MEM_dupallocN(ob->fluidsimSettings);
+	else obn->fluidsimSettings = NULL;
 	
-	ob->derivedDeform = NULL;
-	ob->derivedFinal = NULL;
+	obn->derivedDeform = NULL;
+	obn->derivedFinal = NULL;
 
 	return obn;
 }

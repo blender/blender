@@ -62,6 +62,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_radio_types.h"
@@ -2523,13 +2524,51 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 
 void do_armbuts(unsigned short event)
 {
+	Object *ob= OBACT;
+	
 	switch(event) {
 	case B_ARM_RECALCDATA:
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_ARM_STRIDE:
+		if(ob && ob->pose) {
+			bPoseChannel *pchan;
+			bActionStrip *strip;
+			
+			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next)
+				if(pchan->flag & POSE_STRIDE)
+					break;
+			
+			/* we put the stride bone name in the strips, for lookup of action channel */
+			for (strip=ob->nlastrips.first; strip; strip=strip->next){
+				if(strip->flag & ACTSTRIP_USESTRIDE) {
+					if(pchan) BLI_strncpy(strip->stridechannel, pchan->name, 32);
+					else strip->stridechannel[0]= 0;
+				}
+			}
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 1);
+			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		break;
 	}
 }
+
+static void validate_stridebutton_cb(void *pchanv, void *poin)
+{
+	Object *ob= OBACT;
+	bPoseChannel *pchan;
+	
+	if(ob && ob->pose) {
+		for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next){
+			if(pchan!=pchanv)
+				pchan->flag &= ~POSE_STRIDE;
+		}
+	}
+}	
 
 static int editbone_to_parnr (EditBone *bone)
 {
@@ -2681,8 +2720,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButI(block, ROW, REDRAWVIEW3D, "B-Bone",	155, 100,70,20, &arm->drawtype, 0, ARM_B_BONE, 0, 0, "Draw bones as boxes, showing subdivision and b-splines");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Envelope",	225, 100,85,20, &arm->drawtype, 0, ARM_ENVELOPE, 0, 0, "Draw bones as extruded spheres, showing deformation influence volume");
 
-	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
-	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 160,80,150,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButBitI(block, TOG, ARM_DRAWAXES, REDRAWVIEW3D, "Draw Axes", 10, 80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone axes");
+	uiDefButBitI(block, TOG, ARM_DRAWNAMES, REDRAWVIEW3D, "Draw Names", 110,80,100,20, &arm->flag, 0, 0, 0, 0, "Draw bone names");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 210,80,100,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
 	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "Deform Options", 10,60,150,20, 0, 0, 0, 0, 0, "");
@@ -2801,7 +2841,6 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Dist:", bx+107, by, 105, 18, &curBone->dist, 0.0, 1000.0, 10.0, 0.0, "Bone deformation distance");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", bx+220, by,  110, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 			
-			
 			/* Segment, ease in/out buttons */
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_ARM_RECALCDATA, "Segm: ",  bx-10,by-19,117,19, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
@@ -2864,15 +2903,15 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 				
 				by -= (zerodof)? 82: (zerolimit)? 122: 162;
 
-				uiBlockBeginAlign(block);
 				uiDefButF(block, NUM, B_ARM_RECALCDATA, "Stretch:", bx-10, by, 113, 19, &pchan->ikstretch, 0.0, 1.0, 1.0, 0.0, "Allow scaling of the bone for IK");
-				uiBlockEndAlign(block);
 
 				by -= 20;
 			}
 			else {
-				uiDefBut(block, LABEL, 0, "(DoF options only for IK chains)", bx-10,by-60, 300, 20, 0, 0, 0, 0, 0, "");
-
+				but= uiDefButBitS(block, TOG, POSE_STRIDE, B_ARM_STRIDE, "Stride Root", bx-10, by-60, 113, 19, &pchan->flag, 0.0, 0.0, 0, 0, "Set this PoseChannel to define the Stride distance");
+				uiButSetFunc(but, validate_stridebutton_cb, pchan, NULL);
+				
+				uiDefBut(block, LABEL, 0, "(DoF only for IK chains)", bx+110,by-60, 190, 19, 0, 0, 0, 0, 0, "");
 				by -= 82;
 			}
 			

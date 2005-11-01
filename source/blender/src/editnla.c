@@ -456,6 +456,20 @@ static void set_active_strip(Object *ob, bActionStrip *act)
 	}	
 }
 
+static void find_stridechannel(Object *ob, bActionStrip *strip)
+{
+	if(ob && ob->pose) {
+		bPoseChannel *pchan;
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+			if(pchan->flag & POSE_STRIDE)
+				break;
+		if(pchan)
+			BLI_strncpy(strip->stridechannel, pchan->name, 32);
+		else
+			strip->stridechannel[0]= 0;
+	}
+}
+
 static void convert_nla(short mval[2])
 {
 	bActionStrip *strip, *nstrip;
@@ -522,8 +536,10 @@ static void convert_nla(short mval[2])
 			nstrip->start = nstrip->actstart;
 			nstrip->end = nstrip->actend;
 			nstrip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
+			
+			find_stridechannel(base->object, nstrip);
 			set_active_strip(base->object, nstrip);
-
+			
 			nstrip->repeat = 1.0;
 							
 			BLI_addtail(&base->object->nlastrips, nstrip);
@@ -576,6 +592,8 @@ static void add_nla_block(short event)
 		strip->end= strip->start+100;
 	
 	strip->flag = ACTSTRIP_SELECT|ACTSTRIP_LOCK_ACTION;
+	
+	find_stridechannel(nla_base->object, strip);
 	set_active_strip(nla_base->object, strip);
 	
 	strip->repeat = 1.0;
@@ -684,7 +702,7 @@ static void mouse_nlachannels(short mval[2])
 	Base	*base;
 	Object *ob=NULL;
 	float	x,y;
-	int		click, obclick=0;
+	int		click, obclick=0, actclick=0;
 	int		wsize;
 	
 	wsize = (count_nla_levels ()*(NLACHANNELHEIGHT+NLACHANNELSKIP));
@@ -709,7 +727,10 @@ static void mouse_nlachannels(short mval[2])
 			
 			/* See if this is an action */
 			if (ob->action){
-				if (click==0) break;
+				if (click==0) {
+					actclick= 1;
+					break;
+				}
 				click--;
 			}
 
@@ -740,17 +761,18 @@ static void mouse_nlachannels(short mval[2])
 	
 	if(base!=BASACT) set_active_base(base);
 	
-	/* set action */
-	if(strip)
+	if(actclick) /* de-activate all strips */
+		set_active_strip(ob, NULL);
+	else if(strip) /* set action */
 		set_active_strip(ob, strip);
 
 	/* override option for NLA */
-	if(obclick && mval[0]<25) {
+	if(obclick && mval[0]<25)
 		ob->nlaflag ^= OB_NLA_OVERRIDE;
-		ob->ctime= -1234567.0f;	// eveil! 
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
-	}
 	
+	ob->ctime= -1234567.0f;	// eveil! 
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
+
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWACTION, 0);

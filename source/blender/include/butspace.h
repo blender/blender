@@ -433,6 +433,7 @@ enum {
 #define B_ARMBUTS		2400
 
 #define B_ARM_RECALCDATA	2301
+#define B_ARM_STRIDE		2302
 
 /* *********************** */
 #define B_CAMBUTS		2500

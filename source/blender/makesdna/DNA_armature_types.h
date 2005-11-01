@@ -77,7 +77,7 @@ typedef struct bArmature {
 	int			flag;
 	int			drawtype;			
 	int			deformflag;
-	int			res3;			
+	short		ghostep, pad;
 }bArmature;
 
 /* armature->flag */
