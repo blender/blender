@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Official Page, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_mesh3d2uv2d_en.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "0.3.0 2005/10/09"
+__version__ = "0.3.1 2005/10/21"
 
 __bpydoc__ = """\
 This script "bakes" Blender procedural materials (including textures): it saves
@@ -39,7 +39,7 @@ Notes:<br>
 """
 
 #---------------------------------------------
-# Last release : 0.3.0 ,  2005/10/09 , 23h23
+# Last release : 0.3.1 ,  2005/10/21 , 20h23
 #---------------------------------------------
 #---------------------------------------------
 # (c) jm soler  07/2004 : 'Procedural Texture Baker'
@@ -49,7 +49,9 @@ Notes:<br>
 #
 #     Released under Blender Artistic Licence
 #
-#
+#   0.3.1 
+#     stupid bug correction    
+#     
 #   0.3.0
 #      TAILLEIMAGE variable 
 # 
@@ -458,16 +460,12 @@ def Mesh2UVCoord (LIMIT):
          MESH2.faces=[]
          for f in MESH.faces:
             f1 = Blender.NMesh.Face()
+
             for v in f.v:
-               v1 = Blender.NMesh.Vert (0.0, 0.0, 0.0)
-               for n in [0,1]:
-                  v1.co[n] = f.uv[f.v.index(v)][n]
-                  exec "if v1.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v1.co[%s]" % (n, n+2, n+2, n)
-                  exec "if v1.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v1.co[%s]" % (n, n, n, n)
-               v1.co[2] = 0.0
+               v1 = Blender.NMesh.Vert (v.co[0], v.co[1], v.co[2])
                MESH2.verts.append(v1)
                f1.v.append(MESH2.verts[len(MESH2.verts) - 1])
-               
+
             MESH2.faces.append(f1)
             f1.uv = f.uv[:]
             f1.col = f.col[:]
@@ -484,13 +482,28 @@ def Mesh2UVCoord (LIMIT):
               pass
 
          MESH2.materials = MESH.materials[:]
+
          NewOBJECT.setLocation (OBJPOS, OBJPOS, 0.0)
          NewOBJECT.setEuler (0.0, 0.0, 0.0)
 
-
          MESH2.removeAllKeys()
+
          MESH2.update()
          MESH2.insertKey (1, 'absolute')
+         MESH2.update()
+
+         for f in MESH2.faces:
+            for v in f.v:
+               for n in [0,1]:
+                  v.co[n] = f.uv[f.v.index(v)][n]
+                  exec "if v.co[%s] > XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n+2, n+2, n)
+                  exec "if v.co[%s] < XYLIMIT[%s]: XYLIMIT[%s] = v.co[%s]" % (n, n, n, n)
+               v.co[2] = 0.0
+
+         print XYLIMIT
+
+         MESH2.update()
+         MESH2.insertKey (FRAME, 'absolute')
          MESH2.update()
 
          imagename = 'uvtext'
