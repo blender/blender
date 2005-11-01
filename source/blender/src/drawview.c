@@ -911,7 +911,7 @@ static void drawviewborder(void)
 	rcti viewborder;
 	Camera *ca;
 
-	ca = G.scene->camera->data;
+	ca = G.vd->camera->data;
 	if (ca==NULL) return;
 	
 	calc_viewborder(G.vd, &viewborder);
@@ -953,7 +953,7 @@ static void drawviewborder(void)
 	if (ca->flag & CAM_SHOWNAME) {
 		glRasterPos2f(x1, y1-15);
 		
-		BMF_DrawString(G.font, G.scene->camera->id.name+2);
+		BMF_DrawString(G.font, G.vd->camera->id.name+2);
 	}
 
 
