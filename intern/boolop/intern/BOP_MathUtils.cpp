@@ -226,6 +226,8 @@ bool BOP_getCircleCenter(const MT_Point3& p1, const MT_Point3& p2, const MT_Poin
 	
 	// Compute first line vector, perpendicular to plane vector and edge (p1,p2)
 	MT_Vector3 vL1 = p1p2.cross(plane);
+	if( MT_fuzzyZero(vL1.length() ) )
+			return false;
 	vL1.normalize();
 	
 	// Compute first line point, middle point of edge (p1,p2)
@@ -233,6 +235,8 @@ bool BOP_getCircleCenter(const MT_Point3& p1, const MT_Point3& p2, const MT_Poin
 
 	// Compute second line vector, perpendicular to plane vector and edge (p1,p3)
 	MT_Vector3 vL2 = p1p3.cross(plane);
+	if( MT_fuzzyZero(vL2.length() ) )
+			return false;
 	vL2.normalize();
 	
 	// Compute second line point, middle point of edge (p1,p3)
