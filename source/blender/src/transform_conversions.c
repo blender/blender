@@ -2090,18 +2090,22 @@ void special_aftertrans_update(TransInfo *t)
 			
 			/* Set autokey if necessary */
 			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
-				/* note, here we have to do context still */
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_X);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_Y);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_ROT_Z);
+				char *actname="";
+				
+				if(ob->ipoflag & OB_ACTION_OB)
+					actname= "Object";
+				
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
 			
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_X);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_Y);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_LOC_Z);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
 			
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_X);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_Y);
-				insertkey(&base->object->id, ID_OB, NULL, NULL, OB_SIZE_Z);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
+				insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
 				
 				remake_object_ipos (ob);
 				allqueue(REDRAWIPO, 0);
