@@ -5019,6 +5019,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 		
 		while(sce) {
+			/* make 'innervert' the default subdivide type, for backwards compat */
+			sce->toolsettings->cornertype=1;
+		
 			while(cam) {
 				/* convert the passepartout scene flag to a camera flag */
 				if(sce->r.scemode & R_PASSEPARTOUT) {

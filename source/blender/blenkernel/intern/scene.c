@@ -199,7 +199,7 @@ Scene *add_scene(char *name)
 	sce->r.stereomode = 1;  // no stereo
 
 	sce->toolsettings = MEM_mallocN(sizeof(struct ToolSettings),"Tool Settings Struct");
-	sce->toolsettings->cornertype=0;
+	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
 	sce->toolsettings->turn = 1; 				
