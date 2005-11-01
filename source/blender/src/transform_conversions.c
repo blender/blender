@@ -631,9 +631,11 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 		if(bone->flag & BONE_TRANSFORM) {
 			t->total++;
 			
-			if(t->mode==TFM_TRANSLATION && pchan->parent) {
-				if( has_targetless_ik(pchan)==NULL ) {
-					t->mode= TFM_ROTATION;
+			if(t->mode==TFM_TRANSLATION) {
+				if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
+					if( has_targetless_ik(pchan)==NULL ) {
+						t->mode= TFM_ROTATION;
+					}
 				}
 			}
 		}
