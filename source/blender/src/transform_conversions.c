@@ -783,9 +783,12 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if(t->total==0) return;
 
 	t->flag |= T_POSE;
-	t->poseobj= ob;	// we also allow non-active objects to be transformed, in weightpaint
-	ob->pose->flag |= POSE_LOCKED;
+	t->poseobj= ob;	/* we also allow non-active objects to be transformed, in weightpaint */
 	
+	/* make sure the lock is set OK, unlock can be accidentally saved? */
+	ob->pose->flag |= POSE_LOCKED;
+	ob->pose->flag &= ~POSE_DO_UNLOCK;
+
 	/* init trans data */
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransPoseBone");
     tdx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransPoseBoneExt");
@@ -2021,7 +2024,7 @@ void special_aftertrans_update(TransInfo *t)
 		
 		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 		pose->flag |= POSE_DO_UNLOCK;
-		
+
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if(!cancelled && t->mode==TFM_TRANSLATION)
 			apply_targetless_ik(ob);
