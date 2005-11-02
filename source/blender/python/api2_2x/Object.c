@@ -1149,7 +1149,7 @@ static PyObject *Object_getEuler( BPy_Object * self )
 	eul[1] = self->object->rot[1];
 	eul[2] = self->object->rot[2];
 
-	return ( PyObject * ) newEulerObject( eul, Py_WRAP );
+	return ( PyObject * ) newEulerObject( eul, Py_NEW );
 
 }
 
