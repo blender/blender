@@ -54,4 +54,4 @@ endif
 
 $(LINGUAS):
 	mkdir -p $(DIR)
-	msgfmt $@.po -o $(DIR)/blender.mo
+	msgfmt -o $(DIR)/blender.mo $@.po
