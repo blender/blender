@@ -716,7 +716,7 @@ static void addparttorect(Part *pa)
 {
 	float *rf, *rfp;
 	unsigned int *rt, *rtp, *rz, *rzp;
-	int y, heigth, len, copylen;
+	int y, height, len, copylen;
 
 	/* calc the right offset in rects, zbuffer cannot exist... */
 	if(pa->rect==NULL) return;
@@ -726,7 +726,7 @@ static void addparttorect(Part *pa)
 	rfp= pa->rectf;
 	
 	copylen=len= pa->x;
-	heigth= pa->y;
+	height= pa->y;
 	
 	if(R.r.mode & R_GAUSS) {
 		
@@ -735,7 +735,7 @@ static void addparttorect(Part *pa)
 		if(rfp) rfp+= 4*(1+len);
 		
 		copylen= len-2;
-		heigth -= 2;
+		height -= 2;
 		rt= R.rectot+ (pa->miny + 1)*R.rectx+ (pa->minx+1);
 		rz= R.rectz+ (pa->miny + 1)*R.rectx+ (pa->minx+1);
 		rf= R.rectftot+ 4*( (pa->miny + 1)*R.rectx + (pa->minx+1) );
@@ -746,7 +746,7 @@ static void addparttorect(Part *pa)
 		rf= R.rectftot+ 4*(pa->miny*R.rectx+ pa->minx);
 	}
 
-	for(y=0; y<heigth; y++) {
+	for(y=0; y<height; y++) {
 		memcpy(rt, rtp, 4*copylen);
 		rt+= R.rectx;
 		rtp+= len;
@@ -968,7 +968,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 
 			if(R.r.mode & R_MBLUR) set_mblur_offs(R.osa-blur);
 
-			initparts(); /* always do, because of border */
+			initparts(); /* always do, because of border and gauss */
 			if(R.parts.first==NULL) {
 				G.afbreek=1;
 				error("Image too small");
@@ -1063,7 +1063,10 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 					if(R.rectz) MEM_freeN(R.rectz);
 					
 					R.rectot= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectot");
-					R.rectz= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectz");
+					
+					if(R.r.mode & R_UNIFIED) R.rectz= NULL;
+					else R.rectz= MEM_callocN(sizeof(int)*R.rectx*R.recty, "rectz");
+
 					if(R.r.mode & R_FBUF) R.rectftot= MEM_callocN(4*sizeof(float)*R.rectx*R.recty, "rectftot");
 					else R.rectftot= NULL;
 					
@@ -1307,6 +1310,10 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 		
 	}
 	else R.osa= 0;
+	
+	/* just prevents cpu cycles for larger render and copying */
+	if((R.r.mode & R_OSA)==0)
+		R.r.mode &= ~R_GAUSS;
 	
 	renderloop_setblending();	// alpha, sky, gamma
 	
