@@ -2487,8 +2487,13 @@ static void draw_horizontal_join_shape(ScrArea *sa, char dir)
 	}
 
 	glBegin(GL_POLYGON);
-	for(i=0;i<8;i++)
+	for(i=0;i<5;i++)
 		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+	glBegin(GL_POLYGON);
+	for(i=4;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glVertex2f(points[0].x, points[0].y);
 	glEnd();
 
 	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
@@ -2554,8 +2559,13 @@ static void draw_vertical_join_shape(ScrArea *sa, char dir)
 	}
 
 	glBegin(GL_POLYGON);
-	for(i=0;i<8;i++)
+	for(i=0;i<5;i++)
 		glVertex2f(points[i].x, points[i].y);
+	glEnd();
+	glBegin(GL_POLYGON);
+	for(i=4;i<8;i++)
+		glVertex2f(points[i].x, points[i].y);
+	glVertex2f(points[0].x, points[0].y);
 	glEnd();
 
 	glRectf(points[2].x, points[2].y, points[8].x, points[8].y);
@@ -2664,12 +2674,12 @@ static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
 	/* to prevent flickering after clicking at "Join Areas " */
 	getmouseco_sc(mval);
 	if(dir=='h') {
-		if(scr==left && mval[0]<=onedge->v1->vec.x) scr = right;
-		else if(scr==right && mval[0]>onedge->v1->vec.x) scr = left;
+		if(scr==left && mval[0]>=onedge->v1->vec.x) scr = right;
+		else if(scr==right && mval[0]<onedge->v1->vec.x) scr = left;
 	}
 	else if(dir=='v') {
-		if(scr==down && mval[1]<=onedge->v1->vec.y) scr = up;
-		else if(scr==up && mval[1]>onedge->v1->vec.y) scr = down;
+		if(scr==down && mval[1]>=onedge->v1->vec.y) scr = up;
+		else if(scr==up && mval[1]<onedge->v1->vec.y) scr = down;
 	}
 
 	/* draw scr screen area with dark shape */
@@ -2690,24 +2700,24 @@ static void joinarea_interactive(ScrArea *area, ScrEdge *onedge)
 		/* test if position of mouse is on the "different side" of
 		 * "joining edge" */
 		if(dir=='h') {
-			if(scr==left && mval[0]<=onedge->v1->vec.x) {
+			if(scr==left && mval[0]>=onedge->v1->vec.x) {
 				scrarea_draw_shape_light(scr,'r');
 				scr = right;
 				scrarea_draw_shape_dark(scr,'l');
 			}
-			else if(scr==right && mval[0]>onedge->v1->vec.x) {
+			else if(scr==right && mval[0]<onedge->v1->vec.x) {
 				scrarea_draw_shape_light(scr,'l');
 				scr = left;
 				scrarea_draw_shape_dark(scr,'r');
 			}
 		}
 		else if(dir=='v') {
-			if(scr==down && mval[1]<=onedge->v1->vec.y) {
+			if(scr==down && mval[1]>=onedge->v1->vec.y) {
 				scrarea_draw_shape_light(scr,'u');
 				scr = up;
 				scrarea_draw_shape_dark(scr,'d');
 			}
-			else if(scr==up && mval[1]>onedge->v1->vec.y){
+			else if(scr==up && mval[1]<onedge->v1->vec.y){
 				scrarea_draw_shape_light(scr,'d');
 				scr = down;
 				scrarea_draw_shape_dark(scr,'u');
@@ -3319,7 +3329,6 @@ static void moveareas(ScrEdge *edge)
 
 			delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
 			delta= CLAMPIS(delta, -smaller, bigger);
-			
 			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
 			glFlush();
 		} 
