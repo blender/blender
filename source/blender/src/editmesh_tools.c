@@ -5163,7 +5163,7 @@ void mesh_rip(void)
 {
 	extern void faceloop_select(EditEdge *startedge, int select);
 	EditMesh *em = G.editMesh;
-	EditVert *eve;
+	EditVert *eve, *nextve;
 	EditEdge *eed, *seed= NULL;
 	EditFace *efa, *sefa= NULL;
 	float projectMat[4][4], viewMat[4][4], vec[3], dist, mindist;
@@ -5204,7 +5204,7 @@ void mesh_rip(void)
 		return;
 	}
 	if(sefa==NULL) {
-		error("No proper selection or triangles included");
+		error("No proper selection or faces included");
 		return;
 	}
 	
@@ -5306,7 +5306,8 @@ void mesh_rip(void)
 		}		
 	}
 	
-	/* remove loose edges */
+	/* remove loose edges, that were part of a ripped face */
+	for(eve = em->verts.first; eve; eve= eve->next) eve->f1= 0;
 	for(eed = em->edges.last; eed; eed= eed->prev) eed->f1= 0;
 	for(efa= em->faces.first; efa; efa=efa->next) {
 		efa->e1->f1= 1;
@@ -5318,10 +5319,24 @@ void mesh_rip(void)
 	for(eed = em->edges.last; eed; eed= seed) {
 		seed= eed->prev;
 		if(eed->f1==0) {
-			if(eed->v1->f | eed->v2->f | SELECT) {
+			if(eed->v1->vn || eed->v2->vn || (eed->v1->f & SELECT) || (eed->v2->f & SELECT)) {
 				remedge(eed);
 				free_editedge(eed);
+				eed= NULL;
 			}
+		}
+		if(eed) {
+			eed->v1->f1= 1;
+			eed->v2->f1= 1;
+		}
+	}
+	
+	/* and remove loose selected vertices, that got duplicated accidentally */
+	for(eve = em->verts.first; eve; eve= nextve) {
+		nextve= eve->next;
+		if(eve->f1==0 && (eve->vn || (eve->f & SELECT))) {
+			BLI_remlink(&em->verts,eve);
+			free_editvert(eve);
 		}
 	}
 	
