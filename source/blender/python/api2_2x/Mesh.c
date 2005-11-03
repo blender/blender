@@ -5130,10 +5130,11 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 	case MESH_TOOL_REMDOUB:
 		result = removedoublesflag( 1, *((float *)args[0]) );
 
-    	attr = PyInt_FromLong( result );
+		attr = PyInt_FromLong( result );
 		if( !attr )
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"PyInt_FromLong() failed" );
+		break;
 	case MESH_TOOL_FILL:
 		fill_mesh();
 		break;
