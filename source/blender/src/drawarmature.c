@@ -1851,7 +1851,8 @@ void draw_armature(Base *base, int dt)
 			draw_pose_channels(base, dt);
 			arm->flag &= ~ARM_POSEMODE; 
 			
-			BIF_ThemeColor(TH_WIRE);	/* restore, for extra draw stuff */
+			if(ob->flag & OB_POSEMODE)
+				BIF_ThemeColor(TH_WIRE);	/* restore, for extra draw stuff */
 		}
 	}
 	/* restore */
