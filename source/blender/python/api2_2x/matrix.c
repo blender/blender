@@ -88,7 +88,7 @@ PyObject *Matrix_toEuler(MatrixObject * self)
 	//must be 3-4 cols, 3-4 rows, square matrix
 	if(self->colSize !=3 || self->rowSize != 3) {
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
-			"Matrix.toQuat(): inappropriate matrix size - expects 3x3 matrix\n");
+			"Matrix.toEuler(): inappropriate matrix size - expects 3x3 matrix\n");
 	} 
     Mat3ToEul((float (*)[3])*self->matrix, eul);
 	//have to convert to degrees
