@@ -2186,7 +2186,7 @@ static TBitem addmenu_YF_lamp[]= {
 
 
 static TBitem addmenu_armature[]= {
-{	0, "Bones", 	8, NULL},
+{	0, "Bone", 	8, NULL},
 {  -1, "", 			0, do_info_addmenu}};
 
 static TBitem tb_add[]= {

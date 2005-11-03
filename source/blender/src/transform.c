@@ -821,16 +821,9 @@ void Transform()
 	}
 	
 	
-	/* handle restoring objects and Undo */
-	if(Trans.state == TRANS_CANCEL) {
+	/* handle restoring objects */
+	if(Trans.state == TRANS_CANCEL)
 		restoreTransObjects(&Trans);	// calls recalcData()
-		if(Trans.undostr) BIF_undo_push(Trans.undostr);
-	}
-	else {
-		if(Trans.undostr) BIF_undo_push(Trans.undostr);
-		else BIF_undo_push(transform_to_undostr(&Trans));
-	}
-	Trans.undostr= NULL;
 	
 	/* free data */
 	postTrans(&Trans);
@@ -840,6 +833,17 @@ void Transform()
 
 	/* send events out for redraws */
 	viewRedrawPost(&Trans);
+
+	/*  Undo as last, certainly after special_trans_update! */
+	if(Trans.state == TRANS_CANCEL) {
+		if(Trans.undostr) BIF_undo_push(Trans.undostr);
+	}
+	else {
+		if(Trans.undostr) BIF_undo_push(Trans.undostr);
+		else BIF_undo_push(transform_to_undostr(&Trans));
+	}
+	Trans.undostr= NULL;
+	
 }
 
 /* ************************** Manipulator init and main **************************** */

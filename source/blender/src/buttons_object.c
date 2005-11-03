@@ -1130,7 +1130,13 @@ void object_panel_constraint(char *context)
 		yco = 160;
 		
 		for (curcon = conlist->first; curcon; curcon=curcon->next) {
-			/* Draw default constraint header */			
+			/* hrms, the temporal constraint should not draw! */
+			if(curcon->type==CONSTRAINT_TYPE_KINEMATIC) {
+				bKinematicConstraint *data= curcon->data;
+					if(data->flag & CONSTRAINT_IK_TEMP)
+						continue;
+			}
+			/* Draw default constraint header */
 			draw_constraint(block, conlist, curcon, &xco, &yco);	
 		}
 		
