@@ -275,7 +275,7 @@ static void meshDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 			
 		new_glmode = mface->v4?GL_QUADS:GL_TRIANGLES;
 		new_matnr = mface->mat_nr+1;
-		new_shademodel = (!(me->flag&ME_AUTOSMOOTH) && (mface->flag & ME_SMOOTH))?GL_SMOOTH:GL_FLAT;
+		new_shademodel = (mface->flag & ME_SMOOTH)?GL_SMOOTH:GL_FLAT;
 		
 		if (new_glmode!=glmode || new_matnr!=matnr || new_shademodel!=shademodel) {
 			glEnd();
