@@ -95,6 +95,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "elbeem", "..\..\elbeem\make
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boolop", "..\..\boolop\make\msvc_7_0\boolop.vcproj", "{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfiguration) = preSolution
 		3DPlugin Debug = 3DPlugin Debug
@@ -239,6 +246,14 @@ Global
 		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Debug.Build.0 = Blender Debug|Win32
 		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Release.ActiveCfg = Blender Release|Win32
 		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Release.Build.0 = Blender Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Debug.Build.0 = Blender Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Release.ActiveCfg = Blender Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Release.Build.0 = Blender Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
