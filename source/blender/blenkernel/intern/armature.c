@@ -1241,7 +1241,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	for(target=tree->targets.first; target; target=target->next) {
 		data= (bKinematicConstraint*)target->con->data;
 
-		/* 1.0=ctime, we pass on object for auto-ik§ */
+		/* 1.0=ctime, we pass on object for auto-ik */
 		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, size, 1.0);
 
 		/* and set and transform goal */
@@ -1401,11 +1401,11 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 
 /* The main armature solver, does all constraints excluding IK */
 /* pchan is validated, as having bone and parent pointer */
-static void where_is_pose_bone(Object *ob, bPoseChannel *pchan)
+static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
-	float vec[3], ctime= 1.0;   // ctime todo
+	float vec[3];
 
 	/* set up variables for quicker access below */
 	bone= pchan->bone;
@@ -1506,7 +1506,8 @@ void where_is_pose (Object *ob)
 	Bone *bone;
 	bPoseChannel *pchan;
 	float imat[4][4];
-
+	float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
+	
 	arm = get_armature(ob);
 	
 	if(arm==NULL) return;
@@ -1547,7 +1548,7 @@ void where_is_pose (Object *ob)
 					/* 4. walk over the tree for regular solving */
 					for(a=0; a<tree->totchannel; a++) {
 						if(!(tree->pchan[a]->flag & POSE_DONE))	// successive trees can set the flag
-							where_is_pose_bone(ob, tree->pchan[a]);
+							where_is_pose_bone(ob, tree->pchan[a], ctime);
 					}
 					/* 5. execute the IK solver */
 					execute_posetree(ob, tree);
@@ -1567,7 +1568,7 @@ void where_is_pose (Object *ob)
 				}
 			}
 			else if(!(pchan->flag & POSE_DONE)) {
-				where_is_pose_bone(ob, pchan);
+				where_is_pose_bone(ob, pchan, ctime);
 			}
 		}
 	}
