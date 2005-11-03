@@ -2154,9 +2154,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* draw set first */
 	if(G.scene->set) {
 	
-		/* patch: color remains constant */ 
-		G.f |= G_PICKSEL;
-
 		base= G.scene->set->base.first;
 		while(base) {
 			
@@ -2164,6 +2161,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 				object_handle_update(base->object);
 				
+				/* patch: color remains constant, only set it for wire, so transparant works */ 
+				if(v3d->zbuf && base->object->dt<=OB_WIRE)
+					G.f |= G_PICKSEL;
+				else
+					G.f &= ~G_PICKSEL;
+					
 				cpack(0x404040);
 				draw_object(base);
 
@@ -2189,6 +2192,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 		
 		G.f &= ~G_PICKSEL;
+
+		/* Transp and X-ray afterdraw stuff */
+		view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+		view3d_draw_transp(v3d);
 	}
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, no layer check here, gets correct flushed */
@@ -2354,9 +2361,6 @@ void drawview3d_render(struct View3D *v3d)
 	/* first draw set */
 	if(G.scene->set) {
 	
-		/* patch: color remains constant */ 
-		G.f |= G_PICKSEL;
-		
 		base= G.scene->set->base.first;
 		while(base) {
 			if(v3d->lay & base->lay) {
@@ -2364,6 +2368,12 @@ void drawview3d_render(struct View3D *v3d)
 				else {
 					where_is_object(base->object);
 	
+					/* patch: color remains constant, only set it for wire, so transparant works */ 
+					if(v3d->zbuf && base->object->dt<=OB_WIRE)
+						G.f |= G_PICKSEL;
+					else
+						G.f &= ~G_PICKSEL;
+					
 					cpack(0x404040);
 					draw_object(base);
 	
@@ -2385,6 +2395,10 @@ void drawview3d_render(struct View3D *v3d)
 			}
 			base= base->next;
 		}
+		
+		/* Transp and X-ray afterdraw stuff */
+		view3d_draw_xray(v3d);	// clears zbuffer if it is used!
+		view3d_draw_transp(v3d);
 		
 		G.f &= ~G_PICKSEL;
 	}
