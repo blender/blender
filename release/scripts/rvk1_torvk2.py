@@ -11,7 +11,7 @@ __author__ = "Jean-Michel Soler (jms)"
 __url__ = ("blender", "elysiun",
 "Script's homepage, http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_rvk1versrvk2.htm",
 "Communicate problems and errors, http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender")
-__version__ = "2004/05"
+__version__ = "2005/11"
 
 __bpydoc__ = """\
 "RVK1 to RVK2" copies deform data (except surface subdivision) of the active
@@ -70,20 +70,20 @@ def rvk2rvk():
     FRAME=Blender.Get('curframe')
   
     DATA2=RVK2.getData()
-    
-    if DATA2.getMode() & NMesh.Modes['SUBSURF'] :
-      SUBSURF2=DATA2.getSubDivLevels()
-      if SUBSURF2[0]!=0:
-         name = "The active object has a subsurf level different from 0 ... %t| Let script do the the modification for you ? %x1| you prefer do it yourself ? %x2 " 
-         result = Draw.PupMenu(name)
-         if result==1:      
-             DATA2.mode=DATA2.mode-NMesh.Modes['SUBSURF']
-             SUBMODIF=1 
-             DATA2.update()
-             RVK2.makeDisplayList() 
-             Blender.Redraw()
-         else:
-             return
+    if Blender.Get('version')<239:
+      if DATA2.getMode() & NMesh.Modes['SUBSURF'] :
+         SUBSURF2=DATA2.getSubDivLevels()
+         if SUBSURF2[0]!=0:
+             name = "The active object has a subsurf level different from 0 ... %t| Let script do the the modification for you ? %x1| you prefer do it yourself ? %x2 " 
+             result = Draw.PupMenu(name)
+             if result==1:      
+                DATA2.mode=DATA2.mode-NMesh.Modes['SUBSURF']
+                SUBMODIF=1 
+                DATA2.update()
+                RVK2.makeDisplayList() 
+                Blender.Redraw()
+             else:
+               return
               
     RVK2NAME=Object.GetSelected()[0].getName()
     mesh=RVK1.getData()

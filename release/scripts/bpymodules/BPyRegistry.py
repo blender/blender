@@ -242,7 +242,7 @@ def SaveConfigData (key = None):
 	for mainkey in keys:
 		cfgdict = Registry.GetKey(mainkey).copy()
 		for k in cfgdict.keys():
-			if k[0] == '_': cfgdict.pop(k)
+			if not k or k[0] == '_': cfgdict.pop(k)
 
 		if not cfgdict: continue
 
