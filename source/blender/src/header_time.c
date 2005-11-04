@@ -296,6 +296,9 @@ static void do_time_framemenu(void *arg, int event)
 		case 6: /* Grab Marker */
 			timeline_grab('g', 0);
 			break;
+		case 7: /* duplicate marker */
+			duplicate_timeline_marker();
+			break;
 	}
 	allqueue(REDRAWTIME, 0);
 }
@@ -311,11 +314,16 @@ static uiBlock *time_framemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|M", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Marker|X", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker|X", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Name Marker|Ctrl M", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/move Marker|G", 0, yco-=20,
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 					 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

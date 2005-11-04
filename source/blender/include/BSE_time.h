@@ -6,7 +6,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
+ * of the License, or (at your opt ion) any later version. The Blender
  * Foundation also sells licenses for use in proprietary software under
  * the Blender License.  See http://www.blender.org/BL/ for information
  * about this.
@@ -36,6 +36,7 @@
 
 /* ******** Markers ********* */
 void add_timeline_marker(int frame);
+void duplicate_timeline_marker(void);
 void remove_timeline_marker(void);
 void rename_timeline_marker(void);
 void select_timeline_markers(void);

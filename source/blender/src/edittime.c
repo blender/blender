@@ -100,6 +100,8 @@ void add_timeline_marker(int frame)
 	marker->flag= SELECT;
 	marker->frame= frame;
 	BLI_addtail(&(G.scene->markers), marker);
+	
+	BIF_undo_push("Add Timeline Marker");
 }
 
 /* remove TimeMarker */
@@ -112,6 +114,8 @@ void remove_timeline_marker(void)
 			BLI_freelinkN(&G.scene->markers, marker);
 		}
 	}
+	
+	BIF_undo_push("Remove Timeline Marker");
 }
 
 /* rename first selected TimeMarker */
@@ -128,7 +132,55 @@ void rename_timeline_marker(void)
 			break;
 		}
 	}
+	
+	BIF_undo_push("Rename Timeline Marker");
 }
+
+/* duplicate selected TimeMarkers */
+void duplicate_timeline_marker(void)
+{
+	TimeMarker *marker, *selmarker, *newmarker;
+	ListBase selmarkers;
+	char name[64];
+	
+	selmarkers.first= selmarkers.last= NULL;
+	
+	/* make a temporary list of the selected markers to go through, so we don't do
+	 * anything stupid to the ones in the scene */
+	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT){
+			marker->flag &= ~SELECT;
+			
+			selmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+			selmarker->flag= SELECT;
+			selmarker->frame= marker->frame;
+			BLI_strncpy(selmarker->name, marker->name, sizeof(marker->name));
+			
+			BLI_addtail(&selmarkers, selmarker);
+		}
+	}
+	
+	/* go through our temporary list of markers, duplicate them,
+	 * and add them back to the scene, selected, ready for grabbing */
+	for(marker= selmarkers.first; marker; marker= marker->next) {
+		if(marker->flag & SELECT){
+			/* make a new marker at the same spot */
+			newmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+			newmarker->frame= marker->frame;
+			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
+			/* select it */
+			newmarker->flag= SELECT;
+			
+			BLI_addtail(&(G.scene->markers), newmarker);
+
+		}
+	}
+	
+	BLI_freelistN(&selmarkers);
+	
+	timeline_grab('g', 0);
+}
+
 
 
 static int find_nearest_marker(float dx)
@@ -587,6 +639,10 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* deselect all TimeMarkers */
 			select_timeline_markers();
 			doredraw= 1;
+			break;
+		case DKEY:
+			if(G.qual==LR_SHIFTKEY)
+				duplicate_timeline_marker();
 			break;
 		case CKEY:
 			timeline_frame_to_center();
