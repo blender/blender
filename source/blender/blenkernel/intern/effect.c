@@ -381,14 +381,14 @@ void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsig
 				if (distance < 0.001) distance = 0.001f;
 				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
 				if(flags &&PE_WIND_AS_SPEED){
-				speed[0] -= (force_vec[0] * f_force );
-				speed[1] -= (force_vec[1] * f_force );
-				speed[2] -= (force_vec[2] * f_force );
+					speed[0] -= (force_vec[0] * f_force );
+					speed[1] -= (force_vec[1] * f_force );
+					speed[2] -= (force_vec[2] * f_force );
 				}
 				else{
-				force[0] += force_vec[0]*f_force;
-				force[1] += force_vec[1]*f_force;
-				force[2] += force_vec[2]*f_force;
+					force[0] += force_vec[0]*f_force;
+					force[1] += force_vec[1]*f_force;
+					force[2] += force_vec[2]*f_force;
 				}
 			}
 			else if(pd->forcefield == PFIELD_FORCE) {
@@ -779,7 +779,18 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	return deflected;
 }
 
-static void make_particle_keys(RNG *rng, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
+/*
+	rng= random number generator
+	ob = object that spawns the particles
+	depth = for fireworks
+	nr = index nr of current particle
+	paf = the particle system
+	part = current particle
+	force = force vector
+	deform = flag to indicate lattice deform
+	cfraont = current frame
+ */
+static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer, int cfraont)
 {
 	Particle *pa, *opa = NULL;
 	float damp, deltalife, life;
@@ -826,9 +837,39 @@ static void make_particle_keys(RNG *rng, int depth, int nr, PartEff *paf, Partic
 		new_speed[1] = 0.0;
 		new_speed[2] = 0.0;
 
-		/* Check force field */
-		cur_time = pa->time;
-		pdDoEffector(opco, new_force, new_speed, cur_time, par_layer,0);
+		/* handle differences between static (local coords, fixed frae) and dynamic */
+		if(paf->flag & PAF_STATIC) {
+			float opco1[3], new_force1[3], new_speed1[3];
+			
+			/* move to global coords */
+			VECCOPY(opco1, opco);
+			Mat4MulVecfl(ob->obmat, opco1);
+			
+			VECCOPY(new_force1, new_force);
+			Mat4Mul3Vecfl(ob->obmat, new_force1);
+			VECCOPY(new_speed1, new_speed);
+			Mat4Mul3Vecfl(ob->obmat, new_speed1);
+			
+			cur_time = cfraont;
+			
+			/* force fields */
+			pdDoEffector(opco1, new_force1, new_speed1, cur_time, par_layer, 0);
+			
+			/* move back to local */
+			VECCOPY(opco, opco1);
+			Mat4MulVecfl(ob->imat, opco);
+			
+			VECCOPY(new_force, new_force1);
+			Mat4Mul3Vecfl(ob->imat, new_force);
+			VECCOPY(new_speed, new_speed1);
+			Mat4Mul3Vecfl(ob->imat, new_speed);
+		}
+		else {
+			cur_time = pa->time;
+			
+			 /* force fields */
+			pdDoEffector(opco, new_force, new_speed, cur_time, par_layer,0);
+		}
 
 		/* new location */
 		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5f*new_force[0]);
@@ -933,7 +974,7 @@ static void make_particle_keys(RNG *rng, int depth, int nr, PartEff *paf, Partic
 				}
 				pa->mat_nr= paf->mat[depth];
 
-				make_particle_keys(rng, depth+1, b, paf, pa, force, deform, mtex, par_layer);
+				make_particle_keys(rng, ob, depth+1, b, paf, pa, force, deform, mtex, par_layer, cfraont);
 			}
 		}
 	}
@@ -1127,8 +1168,13 @@ void build_particle_system(Object *ob)
 		else break;
 	}
 
-	ftime= paf->sta;
-	dtime= (paf->end - paf->sta)/totpart;
+	if (paf->flag & PAF_STATIC) {
+		ftime = cfraont;
+		dtime = 0;
+	} else {
+		ftime= paf->sta;
+		dtime= (paf->end - paf->sta)/totpart;
+	}
 
 		/* this call returns NULL during editmode, just ignore it and
 		 * particles should be recalc'd on exit.
@@ -1162,12 +1208,14 @@ void build_particle_system(Object *ob)
 		par= par->parent;
 	}
 	
+	/* matrix stuff for static too */
+	Mat4Invert(ob->imat, ob->obmat);
+	
 	if((paf->flag & PAF_STATIC)==0) {
 		if(ma) do_mat_ipo(ma);	// nor for static
 		
 		where_is_object(ob);
 		Mat4CpyMat4(prevobmat, ob->obmat);
-		Mat4Invert(ob->imat, ob->obmat);
 		Mat3CpyMat4(imat, ob->imat);
 	}
 	else {
@@ -1296,7 +1344,7 @@ void build_particle_system(Object *ob)
 		}
 		pa->mat_nr= 1;
 		
-		make_particle_keys(rng, 0, a, paf, pa, force, deform, mtexmove, ob->lay);
+		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, ob->lay, cfraont);
 	}
 	
 	if(G.f & G_DEBUG) {

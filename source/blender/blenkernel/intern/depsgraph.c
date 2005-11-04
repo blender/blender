@@ -62,6 +62,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
+#include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_mball.h"
@@ -438,6 +439,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 			addtoroot = 0;
 		}
+		
 		if (ob->type==OB_MBALL) {
 			Object *mom= find_basis_mball(ob);
 			if(mom!=ob) {
@@ -461,6 +463,25 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			if(cu->textoncurve) {
 				node2 = dag_get_node(dag, cu->textoncurve);
 				dag_add_relation(dag,node2,node,DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+			}
+		}
+		else if(ob->type==OB_MESH) {
+			PartEff *paf= give_parteff(ob);
+			if(paf && (paf->flag & PAF_STATIC)) {
+				Base *base1;
+				
+				/* force fields, warning for loop inside loop... */
+				for(base1 = G.scene->base.first; base1; base1= base1->next) {
+					if( (base1->lay & base->lay) && base1->object->pd) {
+						Object *ob1= base1->object;
+						PartDeflect *pd= ob1->pd;
+						
+						if(pd->forcefield) {
+							node2 = dag_get_node(dag, ob1);
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+						}
+					}
+				}
 			}
 		}
 		

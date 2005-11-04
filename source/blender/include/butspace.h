@@ -623,6 +623,9 @@ enum {
 #define B_DELEFFECT		3410
 #define B_RECALCAL		3411
 #define B_RECALC_DEFL	3412
+#define B_EFFECT_DEP	3413
+#define B_FIELD_DEP		3414
+#define B_FIELD_CHANGE	3415
 
 #define B_MODIFIER_BUTS		3600
 
