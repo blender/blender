@@ -139,44 +139,23 @@ void rename_timeline_marker(void)
 /* duplicate selected TimeMarkers */
 void duplicate_timeline_marker(void)
 {
-	TimeMarker *marker, *selmarker, *newmarker;
-	ListBase selmarkers;
-	char name[64];
-	
-	selmarkers.first= selmarkers.last= NULL;
-	
-	/* make a temporary list of the selected markers to go through, so we don't do
-	 * anything stupid to the ones in the scene */
+	TimeMarker *marker, *newmarker;
+
+	/* go through the list of markers, duplicate selected markers and add duplicated copies
+	 * to the begining of the list (unselect original markers) */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
 		if(marker->flag & SELECT){
+			/* unselect selected marker */
 			marker->flag &= ~SELECT;
-			
-			selmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
-			selmarker->flag= SELECT;
-			selmarker->frame= marker->frame;
-			BLI_strncpy(selmarker->name, marker->name, sizeof(marker->name));
-			
-			BLI_addtail(&selmarkers, selmarker);
-		}
-	}
-	
-	/* go through our temporary list of markers, duplicate them,
-	 * and add them back to the scene, selected, ready for grabbing */
-	for(marker= selmarkers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT){
-			/* make a new marker at the same spot */
+			/* create and set up new marker */
 			newmarker = MEM_callocN(sizeof(TimeMarker), "TimeMarker");
+			newmarker->flag= SELECT;
 			newmarker->frame= marker->frame;
 			BLI_strncpy(newmarker->name, marker->name, sizeof(marker->name));
-			/* select it */
-			newmarker->flag= SELECT;
-			
-			BLI_addtail(&(G.scene->markers), newmarker);
-
+			/* new marker is added to the begining of list */
+			BLI_addhead(&(G.scene->markers), newmarker);
 		}
 	}
-	
-	BLI_freelistN(&selmarkers);
 	
 	timeline_grab('g', 0);
 }
