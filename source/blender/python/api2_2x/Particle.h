@@ -36,7 +36,6 @@
 #include <Python.h>
 #include "DNA_effect_types.h"
 
-
 extern PyTypeObject Particle_Type;
 
 #define BPy_Particle_Check(v) ((v)->ob_type==&Particle_Type)
@@ -47,76 +46,21 @@ typedef struct {
 	Effect * particle;
 } BPy_Particle;
 
-
-
-/*****************************************************************************/
-/* Python API function prototypes for the Particle module.                   */
-/*****************************************************************************/
-PyObject *M_Particle_New( PyObject * self, PyObject * args );
-PyObject *M_Particle_Get( PyObject * self, PyObject * args );
-
-
-
-#include"Effect.h"
-/*****************************************************************************/
-/* Python BPy_Particle methods declarations:                                 */
-/*****************************************************************************/
-PyObject *Effect_getType( BPy_Effect * self );
-PyObject *Effect_setType( BPy_Effect * self, PyObject * args );
-PyObject *Effect_getFlag( BPy_Effect * self );
-PyObject *Effect_setFlag( BPy_Effect * self, PyObject * args );
-PyObject *Particle_getSta( BPy_Particle * self );
-PyObject *Particle_setSta( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getEnd( BPy_Particle * self );
-PyObject *Particle_setEnd( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getLifetime( BPy_Particle * self );
-PyObject *Particle_setLifetime( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getNormfac( BPy_Particle * self );
-PyObject *Particle_setNormfac( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getObfac( BPy_Particle * self );
-PyObject *Particle_setObfac( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getRandfac( BPy_Particle * self );
-PyObject *Particle_setRandfac( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getTexfac( BPy_Particle * self );
-PyObject *Particle_setTexfac( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getRandlife( BPy_Particle * self );
-PyObject *Particle_setRandlife( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getNabla( BPy_Particle * self );
-PyObject *Particle_setNabla( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getVectsize( BPy_Particle * self );
-PyObject *Particle_setVectsize( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getTotpart( BPy_Particle * self );
-PyObject *Particle_setTotpart( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getTotkey( BPy_Particle * self );
-PyObject *Particle_setTotkey( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getSeed( BPy_Particle * self );
-PyObject *Particle_setSeed( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getForce( BPy_Particle * self );
-PyObject *Particle_setForce( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getMult( BPy_Particle * self );
-PyObject *Particle_setMult( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getLife( BPy_Particle * self );
-PyObject *Particle_setLife( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getMat( BPy_Particle * self );
-PyObject *Particle_setMat( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getChild( BPy_Particle * self );
-PyObject *Particle_setChild( BPy_Particle * self, PyObject * a );
-PyObject *Particle_getDefvec( BPy_Particle * self );
-PyObject *Particle_setDefvec( BPy_Particle * self, PyObject * a );
-
-
+#include "Effect.h"
 
 /*****************************************************************************/
 /* Python Particle_Type callback function prototypes:                        */
 /*****************************************************************************/
+#if 0
 void ParticleDeAlloc( BPy_Particle * msh );
 //int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
 int ParticleSetAttr( BPy_Particle * msh, char *name, PyObject * v );
 PyObject *ParticleGetAttr( BPy_Particle * msh, char *name );
-PyObject *ParticleRepr( BPy_Particle * msh );
+PyObject *ParticleRepr( void );
 PyObject *ParticleCreatePyObject( struct Effect *particle );
 int ParticleCheckPyObject( PyObject * py_obj );
 struct Particle *ParticleFromPyObject( PyObject * py_obj );
+#endif
 
 
 

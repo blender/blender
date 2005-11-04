@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Jean-Michel Soler
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -34,11 +34,18 @@
 #include "DNA_object_types.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_effect.h"
+#include "BKE_object.h"
 #include "Particle.h"
 #include "gen_utils.h"
 
+PyObject *M_Particle_New( PyObject * self, PyObject * args );
+int ParticleSetAttr( BPy_Particle * msh, char *name, PyObject * v );
+PyObject *ParticleGetAttr( BPy_Particle * msh, char *name );
+PyObject *M_Effect_GetParticlesLoc( PyObject * self, PyObject * args );
+
 /*****************************************************************************/
-/* Python BPy_Effect methods table:                                            */
+/* Python BPy_Effect methods table:                                          */
 /*****************************************************************************/
 static PyMethodDef BPy_Effect_methods[] = {
 	{NULL, NULL, 0, NULL}
@@ -71,17 +78,18 @@ PyTypeObject Effect_Type = {
 	0,			/* tp_members */
 };
 
+static char M_Effect_GetParticlesLoc_doc[] = "GetParticlesLoc(name,effect num, curframe) : current particles locations";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Effect module:             */
 /*****************************************************************************/
-
-
 
 
 struct PyMethodDef M_Effect_methods[] = {
 	{"New", ( PyCFunction ) M_Effect_New, METH_VARARGS, NULL},
 	{"Get", M_Effect_Get, METH_VARARGS, NULL},
 	{"get", M_Effect_Get, METH_VARARGS, NULL},
+	{"GetParticlesLoc", M_Effect_GetParticlesLoc, METH_VARARGS, M_Effect_GetParticlesLoc_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -91,37 +99,7 @@ struct PyMethodDef M_Effect_methods[] = {
 /*****************************************************************************/
 PyObject *M_Effect_New( PyObject * self, PyObject * args )
 {
-/*	BPy_Effect *pyeffect;
-	Effect *bleffect = 0;
-	int type = -1;
-	char *btype = NULL;*/
-	Py_INCREF( Py_None );
-	return Py_None;
-/*	if( !PyArg_ParseTuple( args, "s", &btype ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected type argument(particle)" ) );
-	if( !strcmp( btype, "particle" ) )
-		type = EFF_PARTICLE;
-	if( type == -1 )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"unknown type " ) );
-
-
-	bleffect = add_effect( type );
-	if( bleffect == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create Effect Data in Blender" ) );
-
-	pyeffect = ( BPy_Effect * ) PyObject_NEW( BPy_Effect, &Effect_Type );
-
-
-	if( pyeffect == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create Effect Data object" ) );
-
-	pyeffect->effect = bleffect;
-
-	return ( PyObject * ) pyeffect;*/
+	return M_Particle_New( self, args );
 }
 
 /*****************************************************************************/
@@ -225,6 +203,85 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 }
 
 /*****************************************************************************/
+/* Function:            GetParticlesLoc                                      */
+/* Python equivalent:   Blender.Effect.GetParticlesLoc                       */
+/* Description:         Get the current location of each  particle           */
+/*                      and return a list of 3D coords                       */
+/* Data:                String object name, int particle effect number,      */
+/*                      float currentframe                                   */
+/* Return:              One python list of python lists of 3D coords         */
+/*****************************************************************************/
+PyObject *M_Effect_GetParticlesLoc( PyObject * self, PyObject * args  )
+{
+	char *name;
+	Object *ob;
+	Effect *eff;
+	PartEff *paf;
+	Particle *pa=0;
+	int num, i, a;
+	PyObject  *list;
+	float p_time, c_time, vec[3],cfra;
+
+	if( !PyArg_ParseTuple( args, "sif", &name, &num , &cfra) )
+		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
+						"expected string, int, float arguments" ) );
+
+	for( ob = G.main->object.first; ob; ob = ob->id.next )
+		if( !strcmp( name, ob->id.name + 2 ) )
+			break;
+
+	if( !ob )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
+				"object does not exist" );
+
+	if( ob->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
+				"object is not a mesh" );
+
+	eff = ob->effect.first;
+	for( i = 0; i < num && eff; i++ )
+		eff = eff->next;
+
+	if( num < 0 || !eff )
+		return EXPP_ReturnPyObjError( PyExc_IndexError, 
+				"effect index out of range" );
+
+	if( eff->type != EFF_PARTICLE )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
+				"unknown effect type" );
+	
+	paf = (PartEff *)eff;
+	pa = paf->keys;
+	if( !pa )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"Particles location: no keys" );
+	
+	if( ob->ipoflag & OB_OFFS_PARTICLE )
+		p_time= ob->sf;
+	else
+		p_time= 0.0;
+	
+	c_time= bsystem_time( ob, 0, cfra, p_time );
+	list = PyList_New( 0 );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
+	
+	for( a=0; a<paf->totpart; a++, pa += paf->totkey ) {
+		if( c_time > pa->time && c_time < pa->time+pa->lifetime ) {
+			where_is_particle(paf, pa, c_time, vec);
+			if( PyList_Append( list, Py_BuildValue("[fff]", 
+							vec[0], vec[1], vec[2]) ) < 0 ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						  "Couldn't add item to list" );
+			}
+		}
+	}
+
+	return list;	
+}
+
+/*****************************************************************************/
 /* Function:              Effect_Init                                        */
 /*****************************************************************************/
 
@@ -257,13 +314,10 @@ PyObject *Effect_getType( BPy_Effect * self )
 }
 
 
-PyObject *Effect_setType( BPy_Effect * self, PyObject * args )
+/* does nothing since there is only one type of effect */
+
+PyObject *Effect_setType( BPy_Effect * self )
 {
-	int value;
-	if( !PyArg_ParseTuple( args, "i", &value ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected an int as argument" ) );
-	self->effect->type = (short)value;
 	Py_INCREF( Py_None );
 	return Py_None;
 }

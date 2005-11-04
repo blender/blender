@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Jacques Guignot
+ * Contributor(s): Jacques Guignot, Jean-Michel Soler 
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -36,8 +36,75 @@
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_object.h"
+#include "BLI_blenlib.h"
 #include "gen_utils.h"
 
+/*****************************************************************************/
+/* Python API function prototypes for the Particle module.                   */
+/*****************************************************************************/
+PyObject *M_Particle_New( PyObject * self, PyObject * args );
+PyObject *M_Particle_Get( PyObject * self, PyObject * args );
+
+/*****************************************************************************/
+/* Python BPy_Particle methods declarations:                                 */
+/*****************************************************************************/
+PyObject *Effect_getType( BPy_Effect * self );
+PyObject *Effect_setType( BPy_Effect * self, PyObject * args );
+PyObject *Effect_getFlag( BPy_Effect * self );
+PyObject *Effect_setFlag( BPy_Effect * self, PyObject * args );
+PyObject *Particle_getSta( BPy_Particle * self );
+PyObject *Particle_setSta( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getEnd( BPy_Particle * self );
+PyObject *Particle_setEnd( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getLifetime( BPy_Particle * self );
+PyObject *Particle_setLifetime( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getNormfac( BPy_Particle * self );
+PyObject *Particle_setNormfac( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getObfac( BPy_Particle * self );
+PyObject *Particle_setObfac( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getRandfac( BPy_Particle * self );
+PyObject *Particle_setRandfac( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getTexfac( BPy_Particle * self );
+PyObject *Particle_setTexfac( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getRandlife( BPy_Particle * self );
+PyObject *Particle_setRandlife( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getNabla( BPy_Particle * self );
+PyObject *Particle_setNabla( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getVectsize( BPy_Particle * self );
+PyObject *Particle_setVectsize( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getTotpart( BPy_Particle * self );
+PyObject *Particle_setTotpart( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getTotkey( BPy_Particle * self );
+PyObject *Particle_setTotkey( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getSeed( BPy_Particle * self );
+PyObject *Particle_setSeed( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getForce( BPy_Particle * self );
+PyObject *Particle_setForce( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getMult( BPy_Particle * self );
+PyObject *Particle_setMult( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getLife( BPy_Particle * self );
+PyObject *Particle_setLife( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getMat( BPy_Particle * self );
+PyObject *Particle_setMat( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getChild( BPy_Particle * self );
+PyObject *Particle_setChild( BPy_Particle * self, PyObject * a );
+PyObject *Particle_getDefvec( BPy_Particle * self );
+PyObject *Particle_setDefvec( BPy_Particle * self, PyObject * a );
+
+/*****************************************************************************/
+/* Python Particle_Type callback function prototypes:                        */
+/*****************************************************************************/
+void ParticleDeAlloc( BPy_Particle * msh );
+//int ParticlePrint (BPy_Particle *msh, FILE *fp, int flags);
+int ParticleSetAttr( BPy_Particle * msh, char *name, PyObject * v );
+PyObject *ParticleGetAttr( BPy_Particle * msh, char *name );
+PyObject *ParticleRepr( void );
+PyObject *ParticleCreatePyObject( struct Effect *particle );
+int ParticleCheckPyObject( PyObject * py_obj );
+struct Particle *ParticleFromPyObject( PyObject * py_obj );
+
+ 
 /*****************************************************************************/
 /* Python BPy_Particle methods table:                                        */
 /*****************************************************************************/
@@ -126,6 +193,8 @@ static PyMethodDef BPy_Particle_methods[] = {
 	 METH_NOARGS, "()-Return particle life time"},
 	{"setDefvec", ( PyCFunction ) Particle_setDefvec, METH_VARARGS,
 	 "()- Sets particle life time "},
+	
+	
 	{NULL, NULL, 0, NULL}
 };
 
@@ -168,46 +237,69 @@ PyTypeObject Particle_Type = {
 char M_Particle_doc[] = "The Blender Particle module\n\n\
 This module provides access to **Object Data** in Blender.\n\
 Functions :\n\
-	New(opt name) : creates a new part object with the given name (optional)\n\
+	New(object mesh's name) : creates a new part object and adds it to the given mesh object \n\
 	Get(name) : retreives a particle  with the given name (mandatory)\n\
-	get(name) : same as Get. Kept for compatibility reasons";
-char M_Particle_New_doc[] = "";
+	get(name) : same as Get.  Kept for compatibility reasons.\n";
+char M_Particle_New_doc[] = "New(name) : creates a new part object and adds it to the given mesh object\n";
 char M_Particle_Get_doc[] = "xxx";
+
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Particle module:           */
 /*****************************************************************************/
 struct PyMethodDef M_Particle_methods[] = {
-	{"New", ( PyCFunction ) M_Particle_New, METH_VARARGS,
-	 M_Particle_New_doc},
+	{"New", ( PyCFunction ) M_Particle_New, METH_VARARGS, M_Particle_New_doc},
 	{"Get", M_Particle_Get, METH_VARARGS, M_Particle_Get_doc},
 	{"get", M_Particle_Get, METH_VARARGS, M_Particle_Get_doc},
 	{NULL, NULL, 0, NULL}
 };
 
+
 /*****************************************************************************/
 /* Function:              M_Particle_New                                     */
 /* Python equivalent:     Blender.Effect.Particle.New                        */
+/* Description :          Create a particle effect and add a link            */
+/*                        to the given mesh-type Object                      */
+/* Data  :                String  mesh object name                           */
+/* Return :               pyobject particle                                  */
 /*****************************************************************************/
 PyObject *M_Particle_New( PyObject * self, PyObject * args )
 {
-	int type = EFF_PARTICLE;
 	BPy_Effect *pyeffect;
 	Effect *bleffect = 0;
+	Object *ob;
+	char *name = NULL;
 
+	if( !PyArg_ParseTuple( args, "s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected string argument" );
 
-	bleffect = add_effect( type );
-	if( bleffect == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"couldn't create Effect Data in Blender" ) );
+	for( ob = G.main->object.first; ob; ob = ob->id.next )
+		if( !strcmp( name, ob->id.name + 2 ) )
+			break;
+
+	if( !ob )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
+				"object does not exist" );
+
+	if( ob->type != OB_MESH )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
+				"object is not a mesh" );
 
 	pyeffect = ( BPy_Effect * ) PyObject_NEW( BPy_Effect, &Effect_Type );
+	if( !pyeffect )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"couldn't create Effect Data object" );
 
-
-	if( pyeffect == NULL )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create Effect Data object" ) );
+	bleffect = add_effect( EFF_PARTICLE );
+	if( !bleffect ) {
+		Py_DECREF( pyeffect );
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"couldn't create Effect Data in Blender" );
+	}
 
 	pyeffect->effect = bleffect;
+	BLI_addtail( &ob->effect, bleffect );
 
 	return ( PyObject * ) pyeffect;
 }
@@ -225,21 +317,21 @@ PyObject *M_Particle_Get( PyObject * self, PyObject * args )
 	Effect *eff;
 	BPy_Particle *wanted_eff;
 	int num, i;
+
 	if( !PyArg_ParseTuple( args, "si", &name, &num ) )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string int argument" ) );
 
 	object_iter = G.main->object.first;
 	if( !object_iter )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"Scene contains no object" ) );
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+						"Scene contains no object" );
 
 	while( object_iter ) {
 		if( strcmp( name, object_iter->id.name + 2 ) ) {
 			object_iter = object_iter->id.next;
 			continue;
 		}
-
 
 		if( object_iter->effect.first != NULL ) {
 			eff = object_iter->effect.first;
@@ -250,7 +342,7 @@ PyObject *M_Particle_Get( PyObject * self, PyObject * args )
 				if( !eff )
 					return ( EXPP_ReturnPyObjError
 						 ( PyExc_AttributeError,
-						   "bject" ) );
+						   "Object" ) );
 			}
 			wanted_eff =
 				( BPy_Particle * ) PyObject_NEW( BPy_Particle,
@@ -272,8 +364,7 @@ PyObject *Particle_Init( void )
 	PyObject *submodule;
 	Particle_Type.ob_type = &PyType_Type;
 	submodule =
-		Py_InitModule3( "Blender.Particle", M_Particle_methods,
-				M_Particle_doc );
+		Py_InitModule3( "Blender.Particle", M_Particle_methods,	M_Particle_doc );
 	return ( submodule );
 }
 
@@ -747,7 +838,6 @@ PyObject *Particle_setDefvec( BPy_Particle * self, PyObject * args )
 }
 
 
-
 /*****************************************************************************/
 /* Function:    ParticleDeAlloc                                              */
 /* Description: This is a callback function for the BPy_Particle type. It is   */
@@ -909,7 +999,7 @@ int ParticlePrint(BPy_Particle *self, FILE *fp, int flags)
 /* Description: This is a callback function for the BPy_Particle type. It    */
 /*              particles a meaninful string to represent particle objects.  */
 /*****************************************************************************/
-PyObject *ParticleRepr( BPy_Particle * self )
+PyObject *ParticleRepr( void )
 {
 	return PyString_FromString( "Particle" );
 }
