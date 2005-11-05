@@ -101,13 +101,14 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 	void *temp = malloc(elemSize);
 
 	while (--i) {
-		int j = rng_getInt(rng)%i;
-		void *iElem = (unsigned char*)data + i*elemSize;
-		void *jElem = (unsigned char*)data + j*elemSize;
-
-		memcpy(temp, iElem, elemSize);
-		memcpy(iElem, jElem, elemSize);
-		memcpy(jElem, temp, elemSize);
+		int j = rng_getInt(rng)%numElems;
+		if(i!=j) {
+			void *iElem = (unsigned char*)data + i*elemSize;
+			void *jElem = (unsigned char*)data + j*elemSize;
+			memcpy(temp, iElem, elemSize);
+			memcpy(iElem, jElem, elemSize);
+			memcpy(jElem, temp, elemSize);
+		}
 	}
 
 	free(temp);
