@@ -540,6 +540,21 @@ static EditVert *findnearestvert(short *dist, short sel)
 	}
 }
 
+/* returns labda for closest distance v1 to line-piece v2-v3 */
+static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3) 
+{
+	float rc[2], len;
+	
+	rc[0]= v3[0]-v2[0];
+	rc[1]= v3[1]-v2[1];
+	len= rc[0]*rc[0]+ rc[1]*rc[1];
+	if(len==0.0f)
+		return 0.0f;
+	
+	return ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;
+}
+
+/* note; uses G.vd, so needs active 3d window */
 static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
 {
 	struct { float mval[2]; short dist; EditEdge *closest; } *data = userData;
@@ -555,8 +570,24 @@ static void findnearestedge__doClosest(void *userData, EditEdge *eed, int x0, in
 		
 	if(eed->f & SELECT) distance+=5;
 	if(distance < data->dist) {
-		data->dist = distance;
-		data->closest = eed;
+		if(G.vd->flag & V3D_CLIPPING) {
+			float labda= labda_PdistVL2Dfl(data->mval, v1, v2);
+			float vec[3];
+
+			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
+			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
+			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
+			Mat4MulVecfl(G.obedit->obmat, vec);
+
+			if(view3d_test_clipping(G.vd, vec)==0) {
+				data->dist = distance;
+				data->closest = eed;
+			}
+		}
+		else {
+			data->dist = distance;
+			data->closest = eed;
+		}
 	}
 }
 EditEdge *findnearestedge(short *dist)
