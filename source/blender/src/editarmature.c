@@ -2517,8 +2517,11 @@ void transform_armature_mirror_update(void)
 					eboflip->head[2]= ebo->head[2];
 					eboflip->rad_head= ebo->rad_head;
 				}
-				if(ebo->flag & BONE_SELECTED)
+				if(ebo->flag & BONE_SELECTED) {
 					eboflip->dist= ebo->dist;
+					eboflip->xwidth= ebo->xwidth;
+					eboflip->zwidth= ebo->zwidth;
+				}
 			}
 		}
 	}

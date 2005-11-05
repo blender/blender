@@ -1807,6 +1807,9 @@ void draw_armature(Base *base, int dt)
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
 	
+	/* only set once */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		/* we use color for solid lighting */
 		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
@@ -1833,8 +1836,6 @@ void draw_armature(Base *base, int dt)
 				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
 			}
 			else if(ob->flag & OB_POSEMODE) {
-				/* only set once */
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 				if(arm->ghostep) {
 					draw_ghost_poses(base);
