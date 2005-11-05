@@ -2246,7 +2246,7 @@ void convertmenu(void)
 				G.totmesh++;
 
 				/* make new mesh data from the original copy */
-				dm= mesh_create_derived_no_deform(ob1, NULL);
+				dm= mesh_create_derived_no_deform(ob, NULL);
 				dlm= dm->convertToDispListMesh(dm, 0);
 				displistmesh_to_mesh(dlm, ob1->data);
 				dm->release(dm);
