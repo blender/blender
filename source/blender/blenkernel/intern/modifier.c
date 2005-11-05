@@ -968,6 +968,13 @@ static void waveModifier_deformVertsEM(ModifierData *md, Object *ob, void *editD
 
 /* Armature */
 
+static void armatureModifier_initData(ModifierData *md)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+	
+	amd->deformflag = ARM_DEF_ENVELOPE|ARM_DEF_VGROUP;
+}
+
 static void armatureModifier_copyData(ModifierData *md, ModifierData *target)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
@@ -1295,6 +1302,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Armature);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsCVs | eModifierTypeFlag_SupportsEditmode | eModifierTypeFlag_RequiresOriginalData;
+		mti->initData = armatureModifier_initData;
 		mti->copyData = armatureModifier_copyData;
 		mti->isDisabled = armatureModifier_isDisabled;
 		mti->foreachObjectLink = armatureModifier_foreachObjectLink;
