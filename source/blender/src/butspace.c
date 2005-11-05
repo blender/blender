@@ -147,31 +147,6 @@ void test_obpoin_but(char *name, ID **idpp)
 	*idpp= 0;
 }
 
-void test_obcurpoin_but(char *name, ID **idpp)
-{
-	ID *id;
-	
-	if(idpp == (ID **)&(emptytex.object)) {
-		error("You must add a texture first");
-		*idpp= 0;
-		return;
-	}
-	
-	id= G.main->object.first;
-	while(id) {
-		if( strcmp(name, id->name+2)==0 ) {
-			if (((Object *)id)->type != OB_CURVE) {
-				error ("Bevel object must be a curve");
-				break;
-			} 
-			*idpp= id;
-			return;
-		}
-		id= id->next;
-	}
-	*idpp= 0;
-}
-
 void test_meshpoin_but(char *name, ID **idpp)
 {
 	ID *id;

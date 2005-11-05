@@ -2187,6 +2187,31 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
 }
 
+/* only for bevel or taper */
+static void test_obcurpoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	for(id= G.main->object.first; id; id= id->next) {
+		if( strcmp(name, id->name+2)==0 ) {
+			if (((Object *)id)->type != OB_CURVE) {
+				error ("Bevel/Taper Object must be a Curve");
+				break;
+			}
+			if(id == (ID *)OBACT) {
+				error ("Cannot Bevel/Taper own Object");
+				break;
+			}
+			
+			*idpp= id;
+			return;
+		}
+	}
+	*idpp= NULL;
+}
+
+
+
 /* for curve, surf and font! */
 static void editing_panel_curve_type(Object *ob, Curve *cu)
 {

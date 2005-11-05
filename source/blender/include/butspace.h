@@ -119,7 +119,6 @@ void test_scenepoin_but(char *name, struct ID **idpp);
 void test_matpoin_but(char *name, struct ID **idpp);
 void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
-void test_obcurpoin_but(char *name, ID **idpp);
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
 /* -------------- internal event defines ------------ */

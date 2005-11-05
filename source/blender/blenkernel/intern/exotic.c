@@ -3363,8 +3363,8 @@ void write_dxf(char *str)
 }
 
 
-static int dxf_line;
-static FILE *dxf_fp;
+static int dxf_line= 0;
+static FILE *dxf_fp= NULL;
 
 /* exotic.c(2863) : note C6311: c:/Program Files/Microsoft Visual
  * Studio/VC98/include\ctype.h(268) : see previous definition of
@@ -4503,6 +4503,7 @@ static Mesh *f3dmhold=NULL;
 static char oldflay[32];
 static short lwasf3d=0; /* last was face 3d? */
 
+/* how can this function do anything useful (ton)? */
 static void dxf_close_3dface(void)
 {
 	f3dmhold= NULL;
@@ -4704,10 +4705,16 @@ static void dxf_read(char *filename)
 {
 	Mesh *lastMe = G.main->mesh.last;
 
+	/* clear ugly global variables, that can hang because on error the code
+	   below returns... tsk (ton) */
 	dxf_line=0;
+	dxf_close_3dface();
+	dxf_close_2dpoly();
+	dxf_close_line();
 	
 	dxf_fp= fopen(filename, "r");
 	if (dxf_fp==NULL) return;
+	
 	while (1) {	
 		read_group(id, val);
 		if (group_is(0, "EOF")) break;
