@@ -86,6 +86,7 @@
 
 #include "BIF_editlattice.h"
 #include "BIF_editarmature.h"
+#include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editmesh.h"
@@ -222,6 +223,9 @@ static void do_view3d_view_cameracontrolsmenu(void *arg, int event)
 	case 10: /* Reset Zoom */
 		persptoetsen(PADENTER);
 		break;
+	case 11: /* Camera Fly mode */
+		fly();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -234,6 +238,10 @@ static uiBlock *view3d_view_cameracontrolsmenu(void *arg_unused)
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_view_cameracontrolsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_view_cameracontrolsmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Camera Fly Mode|Shift F",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 140, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Left|NumPad 4",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Orbit Right|NumPad 6", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
@@ -425,6 +433,7 @@ static uiBlock *view3d_view_spacehandlers(void *arg_unused)
 
 static void do_view3d_viewmenu(void *arg, int event)
 {
+	View3D *v3d= curarea->spacedata.first;
 	extern int play_anim(int mode);
 	
 	switch(event) {
@@ -473,15 +482,18 @@ static void do_view3d_viewmenu(void *arg, int event)
 	case 16: /* View  Panel */
 		add_blockhandler(curarea, VIEW3D_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
 		break;
+	case 17: /* Set Clipping Border */
+		view3d_edit_clipping(v3d);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 1);
 }
 
 static uiBlock *view3d_viewmenu(void *arg_unused)
 {
-/*		static short tog=0; */
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+	View3D *v3d= curarea->spacedata.first;
 	
 	block= uiNewBlock(&curarea->uiblocks, "view3d_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_viewmenu, NULL);
@@ -523,6 +535,10 @@ static uiBlock *view3d_viewmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	if(v3d->flag & V3D_CLIPPING)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
+	else
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Clipping Border|Alt B",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 99, "");
@@ -2092,6 +2108,9 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 	case 6: /* add hook */
 		add_hook();
 		break;
+	case 7: /* rip */
+		mesh_rip();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2105,6 +2124,7 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_edit_mesh_verticesmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Merge...|Alt M",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rip|V",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Split|Y",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Separate|P",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
@@ -2218,8 +2238,8 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate Edge CCW|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");	
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edgeslide |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Edge Loop Delete |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Slide Edge |Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Edge Loop|X",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");	
 
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -3213,50 +3233,6 @@ static uiBlock *view3d_pose_armature_transformmenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_pose_armaturemenu(void *arg, int event)
-{
-	switch(event) {
-	
-	case 0: /* transform properties */
-		mainqenter(NKEY, 1);
-		break;
-	case 1: /* copy current pose */
-		copy_posebuf();
-		break;
-	case 2: /* paste pose */
-		paste_posebuf(0);
-		break;
-	case 3: /* paste flipped pose */
-		paste_posebuf(1);
-		break;
-	case 4: /* insert keyframe */
-		common_insertkey();
-		break;
-	case 5:
-		pose_copy_menu();
-		break;
-	case 6:
-		pose_add_IK();
-		break;
-	case 7:
-		pose_clear_IK();
-		break;
-	case 8:
-		pose_clear_constraints();
-		break;
-	case 9:
-		pose_flip_names();
-		break;
-	case 10:
-		pose_calculate_path(OBACT);
-		break;
-	case 11:
-		pose_clear_paths(OBACT);
-		break;
-	}
-	allqueue(REDRAWVIEW3D, 0);
-}
-
 static void do_view3d_pose_armature_showhidemenu(void *arg, int event)
 {
 	
@@ -3292,6 +3268,141 @@ static uiBlock *view3d_pose_armature_showhidemenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_pose_armature_ikmenu(void *arg, int event)
+{
+	
+	switch(event) {
+		 
+	case 1:
+		pose_add_IK();
+		break;
+	case 2:
+		pose_clear_IK();
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_pose_armature_ikmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_ikmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_pose_armature_ikmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_view3d_pose_armature_constraintsmenu(void *arg, int event)
+{
+	
+	switch(event) {
+		 
+	case 1:
+		add_constraint(0);
+		break;
+	case 2:
+		pose_clear_constraints();
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_pose_armature_constraintsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_constraintsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_pose_armature_constraintsmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Constraint to Bone...|Ctrl Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Constraints...|Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_view3d_pose_armature_motionpathsmenu(void *arg, int event)
+{
+	
+	switch(event) {
+		 
+	case 1:
+		pose_calculate_path(OBACT);
+		break;
+	case 2:
+		pose_clear_paths(OBACT);
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_pose_armature_motionpathsmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_motionpathsmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_pose_armature_motionpathsmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Calculate Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear All Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_view3d_pose_armaturemenu(void *arg, int event)
+{
+	Object *ob;
+	ob=OBACT;
+	
+	switch(event) {
+	
+	case 0: /* transform properties */
+		mainqenter(NKEY, 1);
+		break;
+	case 1: /* copy current pose */
+		copy_posebuf();
+		break;
+	case 2: /* paste pose */
+		paste_posebuf(0);
+		break;
+	case 3: /* paste flipped pose */
+		paste_posebuf(1);
+		break;
+	case 4: /* insert keyframe */
+		common_insertkey();
+		break;
+	case 5:
+		pose_copy_menu();
+		break;
+	case 9:
+		pose_flip_names();
+		break;
+	case 13:
+		if(ob && (ob->flag & OB_POSEMODE)) {
+			bArmature *arm= ob->data;
+			if( (arm->drawtype == ARM_B_BONE) || (arm->drawtype == ARM_ENVELOPE)) {
+				initTransform(TFM_BONESIZE, CTX_NONE);
+				Transform();
+				break;
+			}
+		}
+		break;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
 static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -3303,6 +3414,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Clear Transform", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Falloff|Alt S",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3314,24 +3426,22 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Paste Flipped Pose",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");	
 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBlockBut(block, view3d_pose_armature_motionpathsmenu, NULL, ICON_RIGHTARROW_THIN, "Motion Paths", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_pose_armature_ikmenu, NULL, ICON_RIGHTARROW_THIN, "Inverse Kinematics", 0, yco-=20, 120, 19, "");
+	uiDefIconTextBlockBut(block, view3d_pose_armature_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
+	
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+
+	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6,  menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBlockBut(block, view3d_pose_armature_showhidemenu, 
 						  NULL, ICON_RIGHTARROW_THIN,   "Show/Hide Bones", 0, yco-=20, 120, 19, "");
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Calculate Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear All Paths|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
-	
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Copy Attributes...|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip L/R Names|W",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add IK to Bone...|Ctrl I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear IK...|Alt I",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Constraints...|Alt C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

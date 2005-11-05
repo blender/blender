@@ -1717,6 +1717,7 @@ static TBitem tb_curve_edit[]= {
 
 static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Merge...|Alt M", 		5, NULL},
+{	0, "Rip|V",					7, NULL},
 {	0, "Split|Y", 				4, 		NULL},
 {	0, "Separate|P", 			3, 		NULL},
 {	0, "SEPR",					0, NULL},
@@ -1746,8 +1747,8 @@ static TBitem tb_mesh_edit_edge[]= {
 {	0, "Rotate Edge CW|Ctrl E",	10, 		NULL},
 {	0, "Rotate Edge CCW|Ctrl E",	11, 		NULL},
 {	0, "SEPR", 								0, NULL},
-{	0, "Edgeslide|Ctrl E",	12, 		NULL},
-{	0, "Edge Loop Delete|Ctrl E",	13, 		NULL},
+{	0, "Slide Edge|Ctrl E",	12, 		NULL},
+{	0, "Delete Edge Loop|X",	13, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_edgesmenu}};
 
 static TBitem tb_mesh_edit_face[]= {
