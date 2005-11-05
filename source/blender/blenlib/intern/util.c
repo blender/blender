@@ -687,7 +687,7 @@ void BLI_make_exist(char *dir) {
 #endif
 }
 
-void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
+void BLI_make_file_string(const char *relabase, char *string,  const char *dir, const char *file)
 {
 
 	if (!string || !dir || !file) return; /* We don't want any NULLs */
@@ -696,9 +696,12 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 
 	/* we first push all slashes into unix mode, just to make sure we don't get
 	   any mess with slashes later on. -jesterKing */
+	/* constant strings can be passed for those parameters - don't change them - elubie */
+	/*
 	BLI_char_switch(relabase, '\\', '/');
 	BLI_char_switch(dir, '\\', '/');
 	BLI_char_switch(file, '\\', '/');
+	*/
 
 	/* Resolve relative references */	
 	if (relabase && dir[0] == '/' && dir[1] == '/') {
@@ -727,13 +730,6 @@ void BLI_make_file_string(char *relabase, char *string,  char *dir,  char *file)
 	
 	/* Push all slashes to the system preferred direction */
 	BLI_clean(string);
-	/* also for all the other dirs where we changed the slashes */
-	/* disabled because static strings passed in caused crash */
-	/*
-	BLI_clean(relabase);
-	BLI_clean(dir);
-	BLI_clean(file);
-	*/
 }
 
 int BLI_testextensie(char *str, char *ext)
