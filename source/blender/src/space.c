@@ -167,6 +167,9 @@ void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
 
+int oldkeypress; /* temporary var for checking to cycle between context tabs in extern_set_butspace() */
+
+
 /* don't know yet how the handlers will evolve, for simplicity
    i choose for an array with eventcodes, this saves in a file!
    */
@@ -2288,7 +2291,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else {
 		uiBlockBeginAlign(block);
-		if ELEM6(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM) {
+		if ELEM7(th_curcol, TH_PANEL, TH_LAMP, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
@@ -3305,8 +3308,9 @@ void extern_set_butspace(int fkey)
 		sbuts->mainb= CONTEXT_LOGIC;
 	}
 	else if(fkey==F5KEY) {
-		sbuts->mainb= CONTEXT_SHADING;
-		if(OBACT) {
+	
+		/* if we're coming in from outside the shading context, just go to the 'default' */
+		if(OBACT && sbuts->mainb!= CONTEXT_SHADING) {
 			if(OBACT->type==OB_CAMERA) 
 				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
 			else if(OBACT->type==OB_LAMP) 
@@ -3314,19 +3318,64 @@ void extern_set_butspace(int fkey)
 			else  
 				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 		}
-		else sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+
+		/* if it's already in shading context, cycle between tabs with the same key */
+		if (oldkeypress == F5KEY) {
+
+			if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP)
+				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
+			else if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_MAT)
+				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_TEX;
+			else if (sbuts->tab[CONTEXT_SHADING]==1) {
+				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_RAD;
+			}
+			else if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_RAD)
+				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_WORLD;
+			else if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD)
+				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_LAMP;
+		}
+		else if (oldkeypress == F6KEY) {
+			sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
+		}
+		else sbuts->mainb= CONTEXT_SHADING;
+		
 	}
 	else if(fkey==F6KEY) {
 		sbuts->mainb= CONTEXT_SHADING;
 		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
 	}
-	else if(fkey==F7KEY) sbuts->mainb= CONTEXT_OBJECT;
+	else if(fkey==F7KEY) {
+		/* if it's already in object context, cycle between tabs with the same key */
+		if (oldkeypress == F7KEY) {
+
+			if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_OBJECT)
+				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_PHYSICS;
+			else if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_PHYSICS)
+				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_OBJECT;
+		}
+		else sbuts->mainb= CONTEXT_OBJECT;
+		
+	}
 	else if(fkey==F8KEY) {
 		sbuts->mainb= CONTEXT_SHADING;
 		sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
 	}
 	else if(fkey==F9KEY) sbuts->mainb= CONTEXT_EDITING;
-	else if(fkey==F10KEY) sbuts->mainb= CONTEXT_SCENE;
+	else if(fkey==F10KEY) {
+		/* if it's already in scene context, cycle between tabs with the same key */
+		if (oldkeypress == F10KEY) {
+
+			if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_RENDER)
+				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_ANIM;
+			else if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_ANIM)
+				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_SOUND;
+			else if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_SOUND)
+				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_RENDER;
+		}
+		else sbuts->mainb= CONTEXT_SCENE;
+	}
+
+	oldkeypress = fkey;
 
 	scrarea_queue_headredraw(sa);
 	scrarea_queue_winredraw(sa);
