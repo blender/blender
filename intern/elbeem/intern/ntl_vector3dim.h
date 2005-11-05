@@ -68,7 +68,7 @@ using std::string;
 #if defined (__FreeBSD__) || defined (__OpenBSD__)
 #include <limits.h>
 #include <float.h>
-else
+#else
 // linux etc...
 #include <values.h>
 #endif
