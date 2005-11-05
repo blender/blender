@@ -65,8 +65,13 @@ using std::string;
 
 #else // WIN32
 
+#if defined (__FreeBSD__) || defined (__OpenBSD__)
+#include <limits.h>
+#include <float.h>
+else
 // linux etc...
 #include <values.h>
+#endif
 
 #endif // WIN32
 #endif // __APPLE_CC__
