@@ -456,6 +456,7 @@ static void apply_targetless_ik(Object *ob)
 				bone= parchan->bone;
 				
 				if(parchan->parent) {
+					Bone *parbone= parchan->parent->bone;
 					float offs_bone[4][4];
 					
 					/* offs_bone =  yoffs(b-1) + root(b) + bonemat(b) */
@@ -465,11 +466,20 @@ static void apply_targetless_ik(Object *ob)
 					VECCOPY(offs_bone[3], bone->head);
 					
 					/* Get the length translation of parent (length along y axis) */
-					offs_bone[3][1]+= parchan->parent->bone->length;
+					offs_bone[3][1]+= parbone->length;
 					
 					/* pose_mat(b-1) * offs_bone */
-					if(parchan->bone->flag & BONE_HINGE)
-						Mat4MulMat4(tmat, offs_bone, parchan->parent->bone->arm_mat);
+					if(parchan->bone->flag & BONE_HINGE) {
+						/* the rotation of the parent restposition */
+						Mat4CpyMat4(rmat, parbone->arm_mat);	/* rmat used as temp */
+						
+						/* the location of actual parent transform */
+						VECCOPY(rmat[3], offs_bone[3]);
+						offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
+						Mat4MulVecfl(parchan->parent->pose_mat, rmat[3]);
+						
+						Mat4MulMat4(tmat, offs_bone, rmat);
+					}
 					else
 						Mat4MulMat4(tmat, offs_bone, parchan->parent->pose_mat);
 					
