@@ -631,6 +631,8 @@ void object_apply_deform(Object *ob)
 {
 	char *err= NULL;
 	
+	if(ob==NULL) return;
+	
 	if(ob->type==OB_MESH) {
 		Mesh *me= ob->data;
 		if(me->id.us>1) {
