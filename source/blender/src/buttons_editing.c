@@ -1284,7 +1284,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButI(block, NUM, B_MODIFIER_RECALC, "Seed:", lx, (cy-=19), buttonWidth,19, &bmd->seed, 1.0, MAXFRAMEF, 100, 0, "Specify the seed for random if used.");
 		} else if (md->type==eModifierType_Mirror) {
 			MirrorModifierData *mmd = (MirrorModifierData*) md;
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), buttonWidth,19, &mmd->tolerance, 0.0, 1, 0, 0, "Distance from axis within which mirrored vertices are merged");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Merge Limit:", lx, (cy-=19), buttonWidth,19, &mmd->tolerance, 0.0, 1.0, 10, 10, "Distance from axis within which mirrored vertices are merged");
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "X",	lx, (cy-=19), 20,19, &mmd->axis, 1, 0, 0, 0, "Specify the axis to mirror about");
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Y",	lx+20, cy, 20,19, &mmd->axis, 1, 1, 0, 0, "Specify the axis to mirror about");
 			uiDefButS(block, ROW, B_MODIFIER_RECALC, "Z",	lx+40, cy, 20,19, &mmd->axis, 1, 2, 0, 0, "Specify the axis to mirror about");

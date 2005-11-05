@@ -249,6 +249,7 @@ static void editbones_to_armature (ListBase *list, Object *ob)
 		memcpy (newBone->head, eBone->head, sizeof(float)*3);
 		memcpy (newBone->tail, eBone->tail, sizeof(float)*3);
 		newBone->flag= eBone->flag;
+		if(eBone->flag & BONE_ACTIVE) newBone->flag |= BONE_SELECTED;	/* important, editbones can be active with only 1 point selected */
 		newBone->roll = 0.0f;
 		
 		newBone->weight = eBone->weight;

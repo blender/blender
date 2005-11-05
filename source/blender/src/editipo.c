@@ -2411,7 +2411,8 @@ void common_insertkey(void)
 					}
 				}
 			}
-			remake_action_ipos(ob->action);
+			if(ob->action)
+				remake_action_ipos(ob->action);
 
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
