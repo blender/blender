@@ -217,12 +217,15 @@ int reopen_text(Text *text)
 	TextLine *tmp;
 	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	if (!text || !text->name) return 0;
 	
-	BLI_split_dirfile(text->name, sdir, sfile);
+	BLI_strncpy(str, text->name, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_split_dirfile(str, sdir, sfile);
 	
-	fp= fopen(text->name, "r");
+	fp= fopen(str, "r");
 	if(fp==NULL) return 0;
 
 	/* free memory: */
@@ -314,10 +317,13 @@ Text *add_text(char *file)
 	Text *ta;
 	char sdir[FILE_MAXDIR];
 	char sfile[FILE_MAXFILE];
+	char str[FILE_MAXDIR+FILE_MAXFILE];
 
-	BLI_split_dirfile(file, sdir, sfile);
+	BLI_strncpy(str, file, FILE_MAXDIR+FILE_MAXFILE);
+	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
+	BLI_split_dirfile(str, sdir, sfile);
 	
-	fp= fopen(file, "r");
+	fp= fopen(str, "r");
 	if(fp==NULL) return NULL;
 	
 	ta= alloc_libblock(&G.main->text, ID_TXT, sfile);
