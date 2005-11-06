@@ -30,7 +30,7 @@
  *
  * Contributor(s): Michel Selten, Willian Germano, Jacques Guignot,
  * Joseph Gilbert, Stephen Swaney, Bala Gi, Campbell Barton, Johnny Matthews,
- * Ken Hughes, Alex Mole
+ * Ken Hughes, Alex Mole, Jean-Michel Soler
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -86,6 +86,7 @@ struct rctf;
 #include "Draw.h"
 #include "NLA.h"
 #include "logic.h"
+#include "Effect.h"
 #include "gen_utils.h"
 
 /* Defines for insertIpoKey */
@@ -188,7 +189,7 @@ static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
 static PyObject *Object_materialUsage( BPy_Object * self, PyObject * args );
 static PyObject *Object_getDupliVerts ( BPy_Object * self );
-
+static PyObject *Object_getEffects( BPy_Object * self );
 static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args );
 static PyObject *Object_setDrawMode( BPy_Object * self, PyObject * args );
 static PyObject *Object_setDrawType( BPy_Object * self, PyObject * args );
@@ -545,6 +546,7 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"setDupliVerts", ( PyCFunction ) Object_setDupliVerts,
 	 METH_VARARGS, "() - set or reset duplicate child objects on all vertices"},
+	
 	{NULL, NULL, 0, NULL}
 };
 
@@ -2554,6 +2556,25 @@ static PyObject *Object_setDupliVerts ( BPy_Object * self, PyObject * args ) {
 	return Py_None;
 }
 
+static PyObject *Object_getEffects( BPy_Object * self )
+{
+	PyObject *effect_list;
+	Effect *eff;
+
+	effect_list = PyList_New( 0 );
+	if( !effect_list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+
+	eff = self->object->effect.first;
+
+	while( eff ) {
+		PyList_Append( effect_list, EffectCreatePyObject( eff ) );
+		eff = eff->next;
+	}
+	return effect_list;
+}
+
 /*****************************************************************************/
 /* Function:	Object_CreatePyObject					 */
 /* Description: This function will create a new BlenObject from an existing  */
@@ -2641,7 +2662,7 @@ static void Object_dealloc( BPy_Object * obj )
 /*****************************************************************************/
 static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 {
-	struct Object *object;
+	Object *object;
 
 	object = obj->object;
 	if( StringEqual( name, "LocX" ) )
@@ -2802,18 +2823,20 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	}
 	if (StringEqual (name, "oopsLoc")) {
 		if (G.soops) {
-      Oops *oops= G.soops->oops.first;
-      while(oops) {
-        if(oops->type==ID_OB) {
-          if ((Object *)oops->id == object) {
-            return (Py_BuildValue ("ff", oops->x, oops->y));
-          }
-        }
-        oops= oops->next;
-      }
-    }
+			Oops *oops= G.soops->oops.first;
+			while(oops) {
+				if( oops->type==ID_OB ) {
+					if((Object *)oops->id == object) {
+						return (Py_BuildValue ("ff", oops->x, oops->y));
+					}
+				}
+				oops= oops->next;
+			}
+		}
 		return EXPP_incr_ret( Py_None );
 	}
+	if( StringEqual( name, "effects" ) )
+		return Object_getEffects( obj );
 
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -3062,6 +3085,9 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		result = Object_setName( obj, valtuple );
 	else if( StringEqual( name, "sel" ) )
 		result = Object_Select( obj, valtuple );
+	else if( StringEqual( name, "effects" ) )
+		return EXPP_ReturnIntError( PyExc_AttributeError, 
+				"effects is not writable" );
 	else { /* if it turns out here, it's not an attribute*/
 		Py_DECREF(valtuple);
 		return EXPP_ReturnIntError( PyExc_KeyError, "attribute not found" );
