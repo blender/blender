@@ -129,6 +129,8 @@ public:
 
 	///this generates ipo curves for position, rotation, allowing to use game physics in animation
 	virtual void	WritePhysicsObjectToAnimationIpo(int frameNumber);
+	virtual void	TestHandlesPhysicsObjectToAnimationIpo();
+
 
 
 };

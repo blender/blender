@@ -845,6 +845,13 @@ void KX_KetsjiEngine::StopEngine()
 {
 	if (m_bInitialized)
 	{
+
+		if (m_game2ipo)
+		{
+//			printf("TestHandlesPhysicsObjectToAnimationIpo\n");
+			m_sceneconverter->TestHandlesPhysicsObjectToAnimationIpo();
+		}
+
 		KX_SceneList::iterator sceneit;
 		for (sceneit = m_scenes.begin();sceneit != m_scenes.end() ; sceneit++)
 		{
