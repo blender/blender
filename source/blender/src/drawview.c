@@ -1925,8 +1925,8 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",		0, 28, 140, 19, &vd->bgpic->size, 0.1, 250.0, 100, 0, "Set the size (width) of the background image");
 
-		uiDefButF(block, NUM, REDRAWVIEW3D, "X Offset:",	0, 6, 140, 19, &vd->bgpic->xof, -20.0,20.0, 10, 2, "Set the horizontal offset of the background image");
-		uiDefButF(block, NUM, REDRAWVIEW3D, "Y Offset:",	150, 6, 140, 19, &vd->bgpic->yof, -20.0,20.0, 10, 2, "Set the vertical offset of the background image");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "X Offset:",	0, 6, 140, 19, &vd->bgpic->xof, -250.0,250.0, 10, 2, "Set the horizontal offset of the background image");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "Y Offset:",	150, 6, 140, 19, &vd->bgpic->yof, -250.0,250.0, 10, 2, "Set the vertical offset of the background image");
 
 	
 		

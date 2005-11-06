@@ -967,7 +967,7 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	ei= sipo->editipo;
 	y= area->winy-30+sipo->butofs;
 	
-	if(sipo->blocktype==ID_KE) {
+	if(ob && sipo->blocktype==ID_KE) {
 		int icon;
 		if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
 		uiDefIconButBitC(block, TOG, OB_SHAPE_LOCK, B_SETKEY, icon, 
