@@ -1734,7 +1734,6 @@ static PyObject *reimportText( PyObject *module )
 static PyObject *blender_reload( PyObject * self, PyObject * args )
 {
 	PyObject *exception, *err, *tb;
-	char *name;
 	PyObject *module = NULL;
 	PyObject *newmodule = NULL;
 

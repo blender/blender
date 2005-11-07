@@ -765,7 +765,7 @@ static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args ){
 					      "This IpoCurve does not have an active driver" );
 
     code = (short)PyInt_AS_LONG ( args );
-	ipo->driver->adrcode = code;
+	ipo->driver->adrcode = (short)code;
 
 	return 0;
 	

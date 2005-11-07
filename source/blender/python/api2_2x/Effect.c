@@ -983,7 +983,7 @@ static PyObject *Effect_getTotpart( BPy_Effect * self )
 static int Effect_setTotpart( BPy_Effect * self, PyObject * args )
 {
 	return EXPP_setIValueClamped( args, &self->effect->totpart,
-			EXPP_EFFECT_TOTPART_MIN, EXPP_EFFECT_TOTPART_MAX, 'i' );
+			(int)EXPP_EFFECT_TOTPART_MIN, (int)EXPP_EFFECT_TOTPART_MAX, 'i' );
 }
 
 static PyObject *Effect_getTotkey( BPy_Effect * self )
@@ -1074,7 +1074,7 @@ static int Effect_setMult( BPy_Effect * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"expected a tuple of four float arguments" );
 	for( i = 0; i < 4; ++i )
-		self->effect->mult[i] = EXPP_ClampInt( val[i],
+		self->effect->mult[i] = EXPP_ClampFloat( val[i],
 				EXPP_EFFECT_MULT_MIN, EXPP_EFFECT_MULT_MAX );
 	return 0;
 }
@@ -1135,7 +1135,7 @@ static int Effect_setChild( BPy_Effect * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"expected a tuple of four int argument" );
 	for( i = 0; i < 4; ++i )
-		self->effect->child[i] = EXPP_ClampInt( val[i],
+		self->effect->child[i] = (short)EXPP_ClampInt( val[i],
 				EXPP_EFFECT_CHILD_MIN, EXPP_EFFECT_CHILD_MAX );
 	return 0;
 }
@@ -1165,7 +1165,7 @@ static int Effect_setMat( BPy_Effect * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"expected a tuple of four int argument" );
 	for( i = 0; i < 4; ++i )
-		self->effect->mat[i] = EXPP_ClampInt( val[i],
+		self->effect->mat[i] = (short)EXPP_ClampInt( val[i],
 				EXPP_EFFECT_MAT_MIN, EXPP_EFFECT_MAT_MAX );
 	return 0;
 }

@@ -4685,9 +4685,9 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args )
 		mv = mesh->mvert;
 		for( i = 0; i < mesh->totvert; i++, mv++ ) {
 			float vec[3];
-			vec[0] = (float)mv->no[0] / 32767.0;
-			vec[1] = (float)mv->no[1] / 32767.0;
-			vec[2] = (float)mv->no[2] / 32767.0;
+			vec[0] = (float)(mv->no[0] / 32767.0);
+			vec[1] = (float)(mv->no[1] / 32767.0);
+			vec[2] = (float)(mv->no[2] / 32767.0);
 			Mat4MulVecfl( (float(*)[4])*invmat, vec );
 			Normalise( vec );
 			mv->no[0] = (short)(vec[0] * 32767.0);

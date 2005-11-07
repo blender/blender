@@ -917,7 +917,7 @@ static PyObject *Ipo_addCurve( BPy_Ipo * self, PyObject * args )
 	icu->blocktype= ipo->blocktype;
 	icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 	icu->blocktype= ipo->blocktype;
-	icu->adrcode= param;
+	icu->adrcode= (short)param;
 	BLI_addtail( &(ipo->curve), icu);
 	
 	allspace( REMAKEIPO, 0 );
