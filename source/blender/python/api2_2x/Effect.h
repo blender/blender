@@ -43,36 +43,14 @@ extern PyTypeObject Effect_Type;
 /* Python BPy_Effect structure definition */
 typedef struct {
 	PyObject_HEAD		/* required py macro */
-	Effect * effect;
+	PartEff * effect;
 } BPy_Effect;
 
-
 /*****************************************************************************/
-/* Python API function prototypes for the Effect module.                     */
+/* Python Effect_Type helpder function prototypes:                           */
 /*****************************************************************************/
-PyObject *M_Effect_New( PyObject * self, PyObject * args );
-PyObject *M_Effect_Get( PyObject * self, PyObject * args );
-
-
-
-/*****************************************************************************/
-/* Python BPy_Effect methods declarations:                                   */
-/*****************************************************************************/
-/*PyObject *Effect_getType(BPy_Effect *self);*/
-
-
-/*****************************************************************************/
-/* Python Effect_Type callback function prototypes:                          */
-/*****************************************************************************/
-
 PyObject *Effect_Init( void );
-void EffectDeAlloc( BPy_Effect * msh );
-//int EffectPrint (BPy_Effect *msh, FILE *fp, int flags);
-int EffectSetAttr( BPy_Effect * msh, char *name, PyObject * v );
-PyObject *EffectGetAttr( BPy_Effect * msh, char *name );
-PyObject *EffectRepr( BPy_Effect * msh );
-PyObject *EffectCreatePyObject( struct Effect *effect );
 int EffectCheckPyObject( PyObject * py_obj );
-struct Effect *EffectFromPyObject( PyObject * py_obj );
+PyObject *EffectCreatePyObject( Effect * eff );
 
 #endif				/* EXPP_EFFECT_H */

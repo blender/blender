@@ -5,22 +5,21 @@ The Blender.Effect submodule
 
 B{new}: now L{Get}('objname') (without specifying second paramenter: 'position') returns a list of all effects linked to object "objname".
 
+Effect
+======
+
 INTRODUCTION
 
-The module effect allows you to access all the data of an effect.
-An effect can modify an object (typically a mesh) in three different ways.
+The Effect module allows you to access all the data of particle effects.
+An effect can modify a mesh object using particles, where vertex of
+the mesh emits particles, which can themselves emit new particles.
 
-a) the build effect : makes the mesh appear progressively.
+In the Blender internals, the effect object is just a placeholder for
+the particle effect.  Prior to v2.39 build and wave effects were also
+supported by Blender, and the Python API supported all three types of
+effects.  They were removed in v2.39 when the build and wave modifiers
+were implemented.
 
-b) the wave effect : waves appear on the mesh (which should be fine-grained)
-
-c) the particle effect : every vertex of the mesh emits particles, which can themselves emit new particles. This effect is the most parameterizable.
-
-In the blender internals, the effect object is just a placeholder for the "real"
-effect, which can be a wave, particle or build effect. The python API follows
-this structure : the Effect module grants access to (the few) data which
-are shared between all effects. It has three submodules : Wave, Build, Particle
-, which grant r/w access to the real parameters of these effects.
 
 Example::
   import Blender
@@ -30,29 +29,52 @@ Example::
 	#we suppose the first effect is a build effect
 	print eff.getLen()
 	eff.setLen(500)	
+
+@type Flags: read-only dictionary
+@var Flags: The particle effect flags.  Values can be ORed.
+  - SELECTED: The particle effect is selected in the UI. (Read-only)
+  - FACE: Also emit particles from faces
+  - STATIC: Make static particles
+  - ANIMATED: Recalculate static particles for each rendered frame
+  - BSPLINE: Use a B-spline formula for particle interpolation
 """
 
-def New (type):
+def New (name):
   """
-  Creates a new Effect.
-  @type type: string
-  @param type: Effect type. Can be "wave", "particle" or "build"
+  Creates a new particle effect and attaches to an object.
+  @type name: string
+  @param name: The name of object to associate with the effect.  Only mesh
+   objects are supported.
   @rtype: Blender Effect
-  @return: The created Effect.
+  @return: the new effect
   """
 
-def Get (objname, position = None):
+def Get (name = None, position = None):
   """
   Get an Effect from Blender.
-  @type objname: string
-  @param objname: The name of object to which is linked the effect.
+  @type name: string
+  @param name: The name of object linked to the effect.
   @type position: int
   @param position: The position of the effect in the list of effects linked to the object.
   @rtype: Blender Effect or a list of Blender Effects
   @return: It depends on the 'objname, position' parameters:
-      - (objname): A list with all Effects linked to the given object (new);
-      - (objname, position): The Effect linked to the given object at the given position;
-      - ():     A list with all Effects in the current scene.
+      - ():     A list with all Effects in the current scene;
+      - (name): A list with all Effects linked to the given object;
+      - (name, position): The Effect linked to the given object at the given position
+  """
+
+def GetParticlesLoc (name, position, time ):
+  """
+  Get the location of each particle at a given time.
+  @type name: string
+  @param name: The name of object linked to the effect.
+  @type position: int
+  @param position: The position of the effect in the list of effects
+  linked to the object.
+  @type time: int
+  @param time: The desired time during the particle effect.
+  @rtype: List of x,y,z coordinates
+  @return: The coordinates of each particle at the requested time.
   """
 
 
@@ -60,50 +82,83 @@ class Effect:
   """
   The Effect object
   =================
-  This object gives access to generic data from all effects in Blender.
-  Its attributes depend upon its type.
-	
-  @ivar seed: (Particle effects) seed of the RNG.
-  @ivar nabla: (Particle effects) The nabla value .
-  @ivar sta: (Particle effects) start time of the effect.
-  @ivar end: (Particle effects) end time of the effect
-  @ivar lifetime: (Particle and Wave effects)lifetime of the effect
-  @ivar normfac: (Particle effects) normal strength of the particles (relatively to mesh).
-  @ivar obfac: (Particle effects)initial strength of the particles relatively to objects.
-  @ivar randfac: (Particle effects) initial random speed of the particles.
-  @ivar texfac: (Particle effects) initial speed of the particles caused by the texture.
-  @ivar randlife: (Particle effects) variability of the life of the particles.
-  @ivar vectsize: (Particle effects) size of vectors associated to the particles (if any).
-  @ivar totpart: (Particle effects) total number of particles.
-  @ivar force: (Particle effects) constant force applied to the parts.
-  @ivar mult: (Particle effects) probabilities of a particle having a child.
-  @ivar child: (Particle effects) number of children a particle may have.
-  @ivar mat: (Particle effects) materials used by the 4 generation particles.
-  @ivar defvec: (Particle effects)x, y and z axis of the force defined by the texture.
-  @ivar sfra: (Build effects)  starting frame of the build effect.
-  @ivar len: (Build effects)  length     of the build effect. 
-  @ivar timeoffs: (Wave effects)  time offset of the wave effect.  
-  @ivar damp: (Wave effects)    damp factor  of the wave effect.   
-  @ivar minfac: (Wave effects)   
-  @ivar speed: (Wave effects)  speed of the wave effect.    
-  @ivar narrow: (Wave effects)narrowness   of the wave effect.   
-  @ivar width: (Wave effects) width of the wave effect.  
-  @ivar height: (Wave effects)  height of the wave effect.    
-  @ivar startx: (Wave effects) x-position of the origin  of the wave effect.   
-  @ivar starty: (Wave effects) y-position of the origin  of the wave effect. 
+  This object gives access to particle effect data in Blender.
+
+  @ivar child: The number of children a particle may have.
+    Values are clamped to the range [1,600].
+  @type child: tuple of 4 ints
+  @ivar defvec: The x, y and z axis of the force defined by the texture.
+    Values are clamped to the range [-1.0,1.0].
+  @type defvec: tuple of 3 floats
+  @ivar end: The end time of the effect
+    Value is clamped to the range [1.0,30000.0].
+  @type end: float
+  @ivar flag: The flag bitfield.  See L{Flags} for values.
+  @type flag: int
+  @ivar force: The constant force applied to the parts.
+    Values are clamped to the range [-1.0,1.0].
+  @type force: tuple of 3 floats
+  @ivar life: The lifetime of of the next generation of particles.
+    Values are clamped to the range [1.0,30000.0].
+  @type life: tuple of 4 floats
+  @ivar lifetime: The lifetime of the effect.
+    Value is clamped to the range [1.0,30000.0].
+  @type lifetime: float
+  @ivar mat: The materials used by the 4 generation particles.
+    Values are clamped to the range [1,8].
+  @type mat: tuple of 4 ints
+  @ivar mult: The probabilities of a particle having a child.
+    Values are clamped to the range [0.0,1.0].
+  @type mult: tuple of 4 floats
+  @ivar nabla: The nabla value.
+    Value is clamped to the range [0.0001,1.0].
+  @type nabla: float
+  @ivar normfac: The normal strength of the particles relative to mesh.
+    Value is clamped to the range [-2.0,2.0].
+  @type normfac: float
+  @ivar obfac: The strength of the particles relative to objects.
+    Value is clamped to the range [-1.0,1.0].
+  @type obfac: float
+  @ivar randfac: The initial random speed of the particles.
+    Value is clamped to the range [0.0,2.0].
+  @type randfac: float
+  @ivar randlife: The variability of the life of the particles.
+    Value is clamped to the range [0.0,2.0].
+  @type randlife: float
+  @ivar seed: The seed of the random number generator.
+    Value is clamped to the range [0,255].
+  @type seed: int
+  @ivar sta: The start time of the effect.
+    Value is clamped to the range [-250.0,30000.0].
+  @type sta: float
+  @ivar texfac: The initial speed of the particles caused by the texture.
+    Value is clamped to the range [0.0,2.0].
+  @type texfac: float
+  @ivar totpart: The total number of particles.
+    Value is clamped to the range [1,100000].
+  @type totpart: int
+  @ivar totkey: The total number of key positions.
+    Value is clamped to the range [1,100].
+  @type totkey: int
+  @ivar type: The type of the effect.  Deprecated.
+  @type type: int
+  @ivar vectsize: The size of vectors associated to the particles (if any).
+    Value is clamped to the range [0.0,1.0].
+  @type vectsize: float
   """
 
   def getType():
     """
-    Retrieves the type of an effect object
+    Retrieves the type of an effect object.
+    Deprecated, since only particle effects are supported.
     @rtype: int 
-    @return:  the type of an effect object : 0 = build effect;  1 = wave effect;2 = particle effect;
+    @return:  the type of an effect object : should always return 1
+    (particle effect)
     """
 
-	
   def setType(name):
     """
-    Sets the type of an effect object
+    Deprecated, since only particle effects are supported.
     @type name: int
     @param name : the new type. 
     @rtype: PyNone
@@ -114,264 +169,39 @@ class Effect:
     """
     Retrieves the flag of an effect object.  The flag is a bit-mask.
     @rtype: int 
-    @return:  The flag of the effect is a combination of parameters, whose semantics depend upon the effect type.
-      - All types :
-          Bit 0 : set to 1 if the effect is selected in the effects window.
-      - Wave effect :
-          Bits 1,2,3  :  set to 1 if the button "X", "Y" or "Cycl" is clicked.
-      - Particle effect :
-          Bits 1,2,3 :  set to 1 if the button "Bspline", "Static" or "Face" is clicked.
+    @return:  The flag of the effect is a combination of parameters.  See
+      L{Flags} for values.
 
     """
 
-	
   def setFlag(newflag):
     """
-    Sets the flag of an effect object. See L{getFlag()} for bit values.
+    Sets the flag of an effect object. See L{Flags} for values.
     @type newflag: int
     @param newflag: the new flag. 
     @rtype: PyNone
     @return:  PyNone
     """
 
-	
-
-  def getLen():
+  def getStartTime():
     """
-    (Build Effect) Retrieves the length of an build effect object
-    @rtype: int 
-    @return:  the length of the effect.
-    """
-
-	
-  def setLen(newlength):
-    """
-    (Build Effect) Sets the length of an build effect object
-    @type newlength: int
-    @param newlength: the new length. 
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-
-  def getSfra():
-    """
-    (Build Effect) Retrieves the starting frame of an build effect object
-    @rtype: int 
-    @return:  the starting frame of the effect.
-    """
-
-	
-  def setSfra(sfra):
-    """
-    (Build Effect) Sets the starting frame of an build effect object
-    @type sfra: int
-    @param sfra: the new starting frame. 
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-  def getStartx():
-    """
-    (Wave Effect) Retrieves the x-coordinate of the starting point of the wave.
-    @rtype: float
-    @return:  the x-coordinate of the starting point of the wave.
-    """
-
-	
-  def setStartx(startx):
-    """
-    (Wave Effect) Sets the x-coordinate of the starting point of the wave.
-    @type startx: float
-    @param startx: the new x-coordinate of the starting point of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-
-  def getStarty():
-    """
-    (Wave Effect) Retrieves the y-coordinate of the starting point of the wave.
-    @rtype: float
-    @return:  the y-coordinate of the starting point of the wave.
-    """
-
-	
-  def setStarty(starty):
-    """
-    (Wave Effect) Sets the y-coordinate of the starting point of the wave.
-    @type starty: float
-    @param starty: the new y-coordinate of the starting point of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-
-  def getHeight():
-    """
-    (Wave Effect) Retrieves the height of the wave.
-    @rtype: float
-    @return:  the height of the wave.
-    """
-
-	
-  def setHeight(height):
-    """
-    (Wave Effect) Sets the height of the wave.
-    @type height: float
-    @param height:  the height of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-
-  def getWidth():
-    """
-    (Wave Effect) Retrieves the width of the wave.
-    @rtype: float
-    @return:  the width of the wave.
-    """
-
-	
-  def setWidth(width):
-    """
-    (Wave Effect) Sets the width of the wave.
-    @type width: float
-    @param width:  the width of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-  def getNarrow():
-    """
-    (Wave Effect) Retrieves the narrowness of the wave.
-    @rtype: float
-    @return:  the narrowness of the wave.
-    """
-
-	
-  def setNarrow(narrow):
-    """
-    (Wave Effect) Sets the narrowness of the wave.
-    @type narrow: float
-    @param narrow:  the narrowness of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-  def getSpeed():
-    """
-    (Wave Effect) Retrieves the speed of the wave.
-    @rtype: float
-    @return:  the speed of the wave.
-    """
-
-	
-  def setSpeed(speed):
-    """
-    (Wave Effect) Sets the speed of the wave.
-    @type speed: float
-    @param speed:  the speed of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-  def getMinfac():
-    """
-    (Wave Effect) Retrieves the minfac of the wave.
-    @rtype: float
-    @return:  the minfac of the wave.
-    """
-
-	
-  def setMinfac(minfac):
-    """
-    (Wave Effect) Sets the minfac of the wave.
-    @type minfac: float
-    @param minfac:  the minfac of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-  def getDamp():
-    """
-    (Wave Effect) Retrieves the damp of the wave.
-    @rtype: float
-    @return:  the damp of the wave.
-    """
-
-	
-  def setDamp(damp):
-    """
-    (Wave Effect) Sets the damp of the wave.
-    @type damp: float
-    @param damp:  the damp of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-	
-  def getTimeoffs():
-    """
-    (Wave Effect) Retrieves the time offset of the wave.
-    @rtype: float
-    @return:  the time offset of the wave.
-    """
-
-	
-  def setTimeoffs(timeoffs):
-    """
-    (Wave Effect) Sets the time offset of the wave.
-    @type timeoffs: float
-    @param timeoffs:  the time offset of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-		
-  def getLifetime():
-    """
-    (Wave Effect) Retrieves the life time of the wave.
-    @rtype: float
-    @return:  the life time of the wave.
-    """
-
-	
-  def setLifetime(lifetime):
-    """
-    (Wave Effect) Sets the life time of the wave.
-    @type lifetime: float
-    @param lifetime:  the life time of the wave.
-    @rtype: PyNone
-    @return:  PyNone
-    """
-
-
-  def getSta():
-    """
-    (Particle Effect) Retrieves the starting time of a particle effect object
+    Retrieves the starting time of a particle effect object
     @rtype: float
     @return:  the starting time of the effect.
     """
 
-	
   def setSta(newstart):
     """
-    (Particle Effect) Sets the starting time of an particle effect object
+    Sets the starting time of an particle effect object
     @type newstart: float
     @param newstart: the new starting time. 
     @rtype: PyNone
     @return:  PyNone
     """
 
-  def getEnd():
+  def getEndTime():
     """
-    (Particle Effect) Retrieves the end time of a particle effect object
+    Retrieves the end time of a particle effect object
     @rtype: float 
     @return:  the end time of the effect.
     """
@@ -379,7 +209,7 @@ class Effect:
 	
   def setEnd(newendrt):
     """
-    (Particle Effect) Sets the end time of an particle effect object
+    Sets the end time of an particle effect object
     @type newendrt: float
     @param newendrt: the new end time. 
     @rtype: PyNone
@@ -388,7 +218,7 @@ class Effect:
 		
   def getLifetime():
     """
-    (Particle Effect) Retrieves the lifetime of a particle effect object
+    Retrieves the lifetime of a particle effect object
     @rtype: float 
     @return:  the lifetime of the effect.
     """
@@ -396,7 +226,7 @@ class Effect:
 	
   def setLifetime(newlifetime):
     """
-    (Particle Effect) Sets the lifetime of a particle effect object
+    Sets the lifetime of a particle effect object
     @type newlifetime: float
     @param newlifetime: the new lifetime. 
     @rtype: PyNone
@@ -405,7 +235,7 @@ class Effect:
 
   def getNormfac():
     """
-    (Particle Effect) Retrieves the  normal strength of the particles (relatively to mesh).
+    Retrieves the  normal strength of the particles (relatively to mesh).
     @rtype: float 
     @return:  normal strength of the particles (relatively to mesh).
     """
@@ -413,7 +243,7 @@ class Effect:
 	
   def setNormfac(newnormfac):
     """
-    (Particle Effect) Sets the normal strength of the particles (relatively to mesh).
+    Sets the normal strength of the particles (relatively to mesh).
     @type newnormfac: float
     @param newnormfac: the normal strength of the particles (relatively to mesh). 
     @rtype: PyNone
@@ -422,7 +252,7 @@ class Effect:
 		
   def getObfac():
     """
-    (Particle Effect) Retrieves the initial strength of the particles relatively to objects.
+    Retrieves the initial strength of the particles relatively to objects.
     @rtype: float 
     @return: initial strength of the particles (relatively to mesh).
     """
@@ -430,7 +260,7 @@ class Effect:
 	
   def setObfac(newobfac):
     """
-    (Particle Effect) Sets the initial strength of the particles relatively to objects.
+    Sets the initial strength of the particles relatively to objects.
     @type newobfac: float
     @param newobfac: the initial strength of the particles relatively to objects.
     @rtype: PyNone
@@ -439,7 +269,7 @@ class Effect:
 
   def getRandfac():
     """
-    (Particle Effect) Retrieves the random  strength applied to the particles.
+    Retrieves the random  strength applied to the particles.
     @rtype: float 
     @return: random  strength applied to the particles.
     """
@@ -447,7 +277,7 @@ class Effect:
 	
   def setRandfac(newrandfac):
     """
-    (Particle Effect) Sets the random  strength applied to the particles. 
+    Sets the random  strength applied to the particles. 
     @type newrandfac: float
     @param newrandfac: the random  strength applied to the particles.
     @rtype: PyNone
@@ -456,7 +286,7 @@ class Effect:
 
   def getTexfac():
     """
-    (Particle Effect) Retrieves the strength applied to the particles from the texture of the object.
+    Retrieves the strength applied to the particles from the texture of the object.
     @rtype: float 
     @return: strength applied to the particles from the texture of the object.
     """
@@ -464,7 +294,7 @@ class Effect:
 	
   def setTexfac(newtexfac):
     """
-    (Particle Effect) Sets the strength applied to the particles from the texture of the object. 
+    Sets the strength applied to the particles from the texture of the object. 
     @type newtexfac: float
     @param newtexfac: the strength applied to the particles from the texture of the object.
     @rtype: PyNone
@@ -473,7 +303,7 @@ class Effect:
 
   def getRandlife():
     """
-    (Particle Effect) Retrieves the  variability of the life of the particles.
+    Retrieves the  variability of the life of the particles.
     @rtype: float 
     @return: variability of the life of the particles.
     """
@@ -481,7 +311,7 @@ class Effect:
 	
   def setRandlife(newrandlife):
     """
-    (Particle Effect) Sets the variability of the life of the particles.
+    Sets the variability of the life of the particles.
     @type newrandlife: float
     @param newrandlife: the variability of the life of the particles.
     @rtype: PyNone
@@ -490,7 +320,7 @@ class Effect:
 
   def getNabla():
     """
-    (Particle Effect) Retrieves the sensibility of the particles to the variations of the texture.
+    Retrieves the sensibility of the particles to the variations of the texture.
     @rtype: float 
     @return: sensibility of the particles to the variations of the texture.
     """
@@ -498,7 +328,7 @@ class Effect:
 	
   def setNabla(newnabla):
     """
-    (Particle Effect) Sets the sensibility of the particles to the variations of the texture.
+    Sets the sensibility of the particles to the variations of the texture.
     @type newnabla: float
     @param newnabla: the sensibility of the particles to the variations of the texture.
     @rtype: PyNone
@@ -507,7 +337,7 @@ class Effect:
 
   def getVectsize():
     """
-    (Particle Effect) Retrieves the size of the vector which is associated to the particles.
+    Retrieves the size of the vector which is associated to the particles.
     @rtype: float 
     @return: size of the vector which is associated to the particles.
     """
@@ -515,7 +345,7 @@ class Effect:
 	
   def setVectsize(newvectsize):
     """
-    (Particle Effect) Sets the size of the vector which is associated to the particles.
+    Sets the size of the vector which is associated to the particles.
     @type newvectsize: float
     @param newvectsize: the size of the vector which is associated to the particles.
     @rtype: PyNone
@@ -524,7 +354,7 @@ class Effect:
 
   def getTotpart():
     """
-    (Particle Effect) Retrieves the total number of particles.
+    Retrieves the total number of particles.
     @rtype: int 
     @return: the total number of particles.
     """
@@ -532,7 +362,7 @@ class Effect:
 	
   def setTotpart(newtotpart):
     """
-    (Particle Effect) Sets the the total number of particles.
+    Sets the the total number of particles.
     @type newtotpart: int
     @param newtotpart: the the total number of particles.
     @rtype: PyNone
@@ -541,7 +371,7 @@ class Effect:
 
   def getTotkey():
     """
-    (Particle Effect) Retrieves the number of keys associated to the particles (kind of degree of freedom)
+    Retrieves the number of keys associated to the particles (kind of degree of freedom)
     @rtype: int 
     @return: number of keys associated to the particles.
     """
@@ -549,7 +379,7 @@ class Effect:
 	
   def setTotkey(newtotkey):
     """
-    (Particle Effect) Sets the number of keys associated to the particles.
+    Sets the number of keys associated to the particles.
     @type newtotkey: int
     @param newtotkey: number of keys associated to the particles.
     @rtype: PyNone
@@ -558,33 +388,32 @@ class Effect:
 
   def getSeed():
     """
-    (Particle Effect) Retrieves the RNG seed.
+    Retrieves the random number generator seed.
     @rtype: int 
-    @return:  RNG seed.
+    @return:  current seed value.
     """
 
-	
   def setSeed(newseed):
     """
-    (Particle Effect) Sets the  RNG seed.
+    Sets the  random number generator seed.
     @type newseed: int
-    @param newseed:  RNG seed.
+    @param newseed:  new seed value.
     @rtype: PyNone
     @return:  PyNone
     """
 
   def getForce():
     """
-    (Particle Effect) Retrieves the force applied to the particles.
-    @rtype: list of three floats 
+    Retrieves the force applied to the particles.
+    @rtype: tuple of three floats 
     @return:   force applied to the particles.
     """
 
 	
   def setForce(newforce):
     """
-    (Particle Effect) Sets the force applied to the particles.
-    @type newforce: list of 3 floats
+    Sets the force applied to the particles.
+    @type newforce: tuple of 3 floats
     @param newforce:  force applied to the particles.
     @rtype: PyNone
     @return:  PyNone
@@ -592,16 +421,16 @@ class Effect:
 
   def getMult():
     """
-    (Particle Effect) Retrieves the probabilities of a particle having a child.
-    @rtype: list of 4 floats 
+    Retrieves the probabilities of a particle having a child.
+    @rtype: tuple of 4 floats 
     @return:  probabilities of a particle having a child.
     """
 
 	
   def setMult(newmult):
     """
-    (Particle Effect) Sets the probabilities of a particle having a child.
-    @type newmult: list of 4 floats
+    Sets the probabilities of a particle having a child.
+    @type newmult: tuple of 4 floats
     @param newmult:  probabilities of a particle having a child.
     @rtype: PyNone
     @return:  PyNone
@@ -609,16 +438,16 @@ class Effect:
 		
   def getLife():
     """
-    (Particle Effect) Retrieves the average life of the particles (4 generations)
-    @rtype: list of 4 floats 
+    Retrieves the average life of the particles (4 generations)
+    @rtype: tuple of 4 floats 
     @return: average life of the particles (4 generations)
     """
 
 	
   def setLife(newlife):
     """
-    (Particle Effect) Sets the average life of the particles (4 generations).
-    @type newlife: list of 4 floats
+    Sets the average life of the particles (4 generations).
+    @type newlife: tuple of 4 floats
     @param newlife:  average life of the particles (4 generations).
     @rtype: PyNone
     @return:  PyNone
@@ -626,16 +455,15 @@ class Effect:
 		
   def getChild():
     """
-    (Particle Effect) Retrieves the average number of children of the particles (4 generations).
-    @rtype: list of 4 floats 
+    Retrieves the average number of children of the particles (4 generations).
+    @rtype: tuple of 4 ints 
     @return: average number of children of the particles (4 generations).
     """
-
 	
   def setChild(newchild):
     """
-    (Particle Effect) Sets the average number of children of the particles (4 generations).
-    @type newchild: list of 4 floats
+    Sets the average number of children of the particles (4 generations).
+    @type newchild: tuple of 4 ints
     @param newchild:  average number of children of the particles (4 generations).
     @rtype: PyNone
     @return:  PyNone
@@ -643,16 +471,16 @@ class Effect:
 
   def getMat():
     """
-    (Particle Effect) Retrieves the indexes of the materials associated to the particles (4 generations).
-    @rtype: list of 4 floats 
+    Retrieves the indexes of the materials associated to the particles (4 generations).
+    @rtype: tuple of 4 ints 
     @return: indexes of the materials associated to the particles (4 generations).
     """
 
 	
   def setMat(newmat):
     """
-    (Particle Effect) Sets the indexes of the materials associated to the particles (4 generations).
-    @type newmat: list of 4 floats
+    Sets the indexes of the materials associated to the particles (4 generations).
+    @type newmat: tuple of 4 ints
     @param newmat:   the indexes of the materials associated to the particles (4 generations).
     @rtype: PyNone
     @return:  PyNone
@@ -661,17 +489,18 @@ class Effect:
 
   def getDefvec():
     """
-    (Particle Effect) Retrieves the x, y and z components of the force defined by the texture.
-    @rtype: list of 3 floats 
+    Retrieves the x, y and z components of the force defined by the texture.
+    @rtype: tuple of 3 floats 
     @return: x, y and z components of the force defined by the texture.
     """
 
 	
   def setDefvec(newdefvec):
     """
-    (Particle Effect) Sets the x, y and z components of the force defined by the texture.
-    @type newdefvec: list of 3 floats
+    Sets the x, y and z components of the force defined by the texture.
+    @type newdefvec: tuple of 3 floats
     @param newdefvec:   the x, y and z components of the force defined by the texture.
     @rtype: PyNone
     @return:  PyNone
     """
+

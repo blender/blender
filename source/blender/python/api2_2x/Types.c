@@ -76,7 +76,6 @@ void types_InitAll( void )
    	MCol_Type.ob_type = &PyType_Type;
    	Mesh_Type.ob_type = &PyType_Type;
 	Object_Type.ob_type = &PyType_Type;
-	Particle_Type.ob_type = &PyType_Type;
 	RenderData_Type.ob_type = &PyType_Type;
 	Scene_Type.ob_type = &PyType_Type;
 	Text_Type.ob_type = &PyType_Type;
