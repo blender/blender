@@ -119,7 +119,8 @@ typedef struct Sequence {
 	struct bSound *sound;	/* the linked "bSound" object */
 	float level, pan;		/* level in dB (0=full), pan -1..1 */
 	int curpos;				/* last sample position in audio_fill() */
-	int pad;
+	short pad;
+	short strobe;
 
 	void *effectdata;			/* Struct pointer for effect settings */
 

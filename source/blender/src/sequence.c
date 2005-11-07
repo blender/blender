@@ -1716,11 +1716,12 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 		else if(cfra >= seq->start+seq->len-1) nr= 0;
 		else nr= (seq->start + seq->len) - cfra;
 	} else {
-	if(cfra <= seq->start) nr= 0;
-	else if(cfra >= seq->start+seq->len-1) nr= seq->len-1;
-	else nr= cfra-seq->start;
+		if(cfra <= seq->start) nr= 0;
+		else if(cfra >= seq->start+seq->len-1) nr= seq->len-1;
+		else nr= cfra-seq->start;
 	}
-
+	if (seq->strobe == 0) seq->strobe = 1;
+	nr -= nr % seq->strobe;
 
 	se+= nr; /* don't get confused by the increment, this is the same as strip->stripdata[nr], which works on some compilers...*/
 	se->nr= nr;
