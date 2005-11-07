@@ -23,9 +23,7 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
- *
- * Contributor(s): Jordi Rovira i Bonet, Joseph gilbert
+ * Contributor(s): Joseph gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -36,18 +34,31 @@
 #include <Python.h>
 #include "DNA_armature_types.h"
 
-//---------------------Python BPy_Armature structure definition-------
+//-------------------TYPE CHECKS---------------------------------
+#define ArmatureObject_Check(v) ((v)->ob_type == &Armature_Type)
+#define BonesDictObject_Check(v) ((v)->ob_type == &BonesDict_Type)
+//-------------------MODULE INIT---------------------------------
+PyObject *Armature_Init( void );
+//-------------------TYPEOBJECT----------------------------------
+PyTypeObject Armature_Type;
+PyTypeObject BonesDict_Type;
+//-------------------STRUCT DEFINITION---------------------------
+
 typedef struct {
 	PyObject_HEAD 
-	bArmature * armature;
+	PyObject *dict;
+	PyObject *editBoneDict;
+	short editmode_flag; //1 = in , 0 = not in
+} BPy_BonesDict;
+
+typedef struct {
+	PyObject_HEAD 
+	struct bArmature * armature;
+	PyObject *Bones;
 } BPy_Armature;
 
-//--------------------visible prototypes------------------------------
+//-------------------VISIBLE PROTOTYPES-------------------------
+PyObject *PyArmature_FromArmature(struct bArmature *armature);
+struct bArmature *PyArmature_AsArmature(BPy_Armature *py_armature);
 
-PyObject *Armature_Init( void );
-PyObject *Armature_CreatePyObject( bArmature * armature );
-bArmature *Armature_FromPyObject( PyObject * py_obj );
-int Armature_CheckPyObject( PyObject * py_obj );
-
-
-#endif				/* EXPP_ARMATURE_H */
+#endif				

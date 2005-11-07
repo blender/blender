@@ -23,1630 +23,817 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
- *
- * Contributor(s): Jordi Rovira i Bonet, Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
-struct ScrArea; /*keep me up here */
 
-#include "Bone.h" /*This must come first */
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_object_types.h"
-#include "DNA_ipo_types.h"
+#include "Bone.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-
-#include "BKE_armature.h"
-#include "BKE_action.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_utildefines.h"
-
-#include "BIF_editaction.h"
-#include "BSE_editipo.h"
-
-#include "NLA.h"
-
 #include "gen_utils.h"
+#include "BKE_armature.h"
+#include "Mathutils.h"
 
-//--------------------Python API function prototypes for the Bone module----
-static PyObject *M_Bone_New( PyObject * self, PyObject * args );
+//------------------------ERROR CODES---------------------------------
+//This is here just to make me happy and to have more consistant error strings :)
+static const char sEditBoneError[] = "EditBone (internal) - Error: ";
+static const char sEditBoneBadArgs[] = "EditBone (internal) - Bad Arguments: ";
+static const char sBoneError[] = "Bone - Error: ";
+static const char sBoneBadArgs[] = "Bone - Bad Arguments: ";
 
-//------------------------Python API Doc strings for the Bone module--------
-char M_Bone_doc[] = "The Blender Bone module\n\n\
-This module provides control over **Bone Data** objects in Blender.\n\n\
-Example::\n\n\
-	from Blender import Armature.Bone\n\
-	l = Armature.Bone.New()\n";
-char M_Bone_New_doc[] = "(name) - return a new Bone of name 'name'.";
-
-//----- Python method structure definition for Blender.Armature.Bone module---
-struct PyMethodDef M_Bone_methods[] = {
-	{"New", ( PyCFunction ) M_Bone_New, METH_VARARGS, M_Bone_New_doc},
-	{NULL, NULL, 0, NULL}
-};
-//--------------- Python BPy_Bone methods declarations:-------------------
-static PyObject *Bone_getName( BPy_Bone * self );
-static PyObject *Bone_getRoll( BPy_Bone * self );
-static PyObject *Bone_getHead( BPy_Bone * self );
-static PyObject *Bone_getTail( BPy_Bone * self );
-static PyObject *Bone_getLoc( BPy_Bone * self );
-static PyObject *Bone_getSize( BPy_Bone * self );
-static PyObject *Bone_getQuat( BPy_Bone * self );
-static PyObject *Bone_getParent( BPy_Bone * self );
-static PyObject *Bone_hasParent( BPy_Bone * self );
-static PyObject *Bone_getWeight( BPy_Bone * self );
-static PyObject *Bone_getBoneclass( BPy_Bone * self );
-static PyObject *Bone_hasIK( BPy_Bone * self );
-static PyObject *Bone_getChildren( BPy_Bone * self );
-static PyObject *Bone_clearParent( BPy_Bone * self );
-static PyObject *Bone_clearChildren( BPy_Bone * self );
-static PyObject *Bone_hide( BPy_Bone * self );
-static PyObject *Bone_unhide( BPy_Bone * self );
-static PyObject *Bone_setName( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setRoll( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setHead( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setTail( BPy_Bone * self, PyObject * args );
-		// note; this can only be done as POSE operation
-static PyObject *Bone_setLoc( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setSize( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setQuat( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args );
-
-static PyObject *Bone_setParent( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setWeight( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_setBoneclass( BPy_Bone * self, PyObject * args );
-static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args );
-
-//--------------- Python BPy_Bone methods table:--------------------------
-static PyMethodDef BPy_Bone_methods[] = {
-	{"getName", ( PyCFunction ) Bone_getName, METH_NOARGS,
-	 "() - return Bone name"},
-	{"getRoll", ( PyCFunction ) Bone_getRoll, METH_NOARGS,
-	 "() - return Bone roll"},
-	{"getHead", ( PyCFunction ) Bone_getHead, METH_NOARGS,
-	 "() - return Bone head"},
-	{"getTail", ( PyCFunction ) Bone_getTail, METH_NOARGS,
-	 "() - return Bone tail"},
-	{"getLoc", ( PyCFunction ) Bone_getLoc, METH_NOARGS,
-	 "() - return Bone loc"},
-	{"getSize", ( PyCFunction ) Bone_getSize, METH_NOARGS,
-	 "() - return Bone size"},
-	{"getQuat", ( PyCFunction ) Bone_getQuat, METH_NOARGS,
-	 "() - return Bone quat"},
-	{"hide", ( PyCFunction ) Bone_hide, METH_NOARGS,
-	 "() - hides the bone"},
-	{"unhide", ( PyCFunction ) Bone_unhide, METH_NOARGS,
-	 "() - unhides the bone"},
-	{"getWeight", ( PyCFunction ) Bone_getWeight, METH_NOARGS,
-	 "() - return Bone weight"},
-	{"getBoneclass", ( PyCFunction ) Bone_getBoneclass, METH_NOARGS,
-	 "() - return Bone boneclass"},
-	{"hasIK", ( PyCFunction ) Bone_hasIK, METH_VARARGS,
-	 "() - get the Bone IKToParent flag."},
-	{"getParent", ( PyCFunction ) Bone_getParent, METH_NOARGS,
-	 "() - return the parent bone of this one if it exists."
-	 " None if not found. You can check this condition with the "
-	 "hasParent() method."},
-	{"hasParent", ( PyCFunction ) Bone_hasParent, METH_NOARGS,
-	 "() - return true if bone has a parent"},
-	{"getChildren", ( PyCFunction ) Bone_getChildren, METH_NOARGS,
-	 "() - return Bone children list"},
-	{"clearParent", ( PyCFunction ) Bone_clearParent, METH_NOARGS,
-	 "() - clears the bone's parent in the armature and makes it root"},
-	{"clearChildren", ( PyCFunction ) Bone_clearChildren, METH_NOARGS,
-	 "() - remove the children associated with this bone"},
-	{"setName", ( PyCFunction ) Bone_setName, METH_VARARGS,
-	 "(str) - rename Bone"},
-	{"setRoll", ( PyCFunction ) Bone_setRoll, METH_VARARGS,
-	 "(float) - set Bone roll"},
-	{"setHead", ( PyCFunction ) Bone_setHead, METH_VARARGS,
-	 "(float,float,float) - set Bone head pos"},
-	{"setTail", ( PyCFunction ) Bone_setTail, METH_VARARGS,
-	 "(float,float,float) - set Bone tail pos"},
-	{"setLoc", ( PyCFunction ) Bone_setLoc, METH_VARARGS,
-	 "(float,float,float) - set Bone loc"},
-	{"setSize", ( PyCFunction ) Bone_setSize, METH_VARARGS,
-	 "(float,float,float) - set Bone size"},
-	{"setQuat", ( PyCFunction ) Bone_setQuat, METH_VARARGS,
-	 "(float,float,float,float) - set Bone quat"},
-	{"setParent", ( PyCFunction ) Bone_setParent, METH_VARARGS,
-	 "() - set the Bone parent of this one."},
-	{"setWeight", ( PyCFunction ) Bone_setWeight, METH_VARARGS,
-	 "() - set the Bone weight."},
-	{"setPose", ( PyCFunction ) Bone_setPose, METH_VARARGS,
-	 "() - set a pose for this bone at a frame."},
-	{"setBoneclass", ( PyCFunction ) Bone_setBoneclass, METH_VARARGS,
-	 "() - set the Bone boneclass."},
-	{"getRestMatrix", ( PyCFunction ) Bone_getRestMatrix, METH_VARARGS,
-	 "() - return the rest matrix for this bone"},
-	{NULL, NULL, 0, NULL}
-};
-
-//--------------- Python TypeBone callback function prototypes----------
-static void Bone_dealloc( BPy_Bone * bone );
-static PyObject *Bone_getAttr( BPy_Bone * bone, char *name );
-static int Bone_setAttr( BPy_Bone * bone, char *name, PyObject * v );
-static int Bone_compare( BPy_Bone * a1, BPy_Bone * a2 );
-static PyObject *Bone_repr( BPy_Bone * bone );
-
-//--------------- Python TypeBone structure definition-------------
-PyTypeObject Bone_Type = {
-	PyObject_HEAD_INIT( NULL ) 
-	0,	/* ob_size */
-	"Blender Bone",		/* tp_name */
-	sizeof( BPy_Bone ),	/* tp_basicsize */
-	0,			/* tp_itemsize */
-	/* methods */
-	( destructor ) Bone_dealloc,	/* tp_dealloc */
-	0,			/* tp_print */
-	( getattrfunc ) Bone_getAttr,	/* tp_getattr */
-	( setattrfunc ) Bone_setAttr,	/* tp_setattr */
-	( cmpfunc ) Bone_compare,	/* tp_compare */
-	( reprfunc ) Bone_repr,	/* tp_repr */
-	0,			/* tp_as_number */
-	0,			/* tp_as_sequence */
-	0,			/* tp_as_mapping */
-	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
-	0,			/* tp_doc */
-	0, 0, 0, 0, 0, 0,
-	BPy_Bone_methods,	/* tp_methods */
-	0,			/* tp_members */
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
-
-//--------------- Bone Module Init-----------------------------
-PyObject *Bone_Init( void )
+//----------------------(internal)
+//gets the bone->roll (which is a localspace roll) and puts it in parentspace
+//(which is the 'roll' value the user sees)
+double boneRoll_ToArmatureSpace(struct Bone *bone)
 {
-	PyObject *submodule;
+	float head[3], tail[3], delta[3];
+	float premat[3][3], postmat[3][3];
+	float imat[3][3], difmat[3][3];
+	double roll = 0.0f;
 
-	Bone_Type.ob_type = &PyType_Type;
+	VECCOPY(head, bone->arm_head);
+	VECCOPY(tail, bone->arm_tail);		
+	VECSUB (delta, tail, head);			
+	vec_roll_to_mat3(delta, 0.0f, postmat);	
+	Mat3CpyMat4(premat, bone->arm_mat);		
+	Mat3Inv(imat, postmat);					
+	Mat3MulMat3(difmat, imat, premat);	
 
-	submodule = Py_InitModule3( "Blender.Armature.Bone",
-				    M_Bone_methods, M_Bone_doc );
-
-	PyModule_AddIntConstant( submodule, "ROT", POSE_ROT );
-	PyModule_AddIntConstant( submodule, "LOC", POSE_LOC );
-	PyModule_AddIntConstant( submodule, "SIZE", POSE_SIZE );
-	PyModule_AddIntConstant( submodule, "SKINNABLE", 0 );
-	PyModule_AddIntConstant( submodule, "UNSKINNABLE", 1 );
-	PyModule_AddIntConstant( submodule, "HEAD", 2 );
-	PyModule_AddIntConstant( submodule, "NECK", 3 );
-	PyModule_AddIntConstant( submodule, "BACK", 4 );
-	PyModule_AddIntConstant( submodule, "SHOULDER", 5 );
-	PyModule_AddIntConstant( submodule, "ARM", 6 );
-	PyModule_AddIntConstant( submodule, "HAND", 7 );
-	PyModule_AddIntConstant( submodule, "FINGER", 8 );
-	PyModule_AddIntConstant( submodule, "THUMB", 9 );
-	PyModule_AddIntConstant( submodule, "PELVIS", 10 );
-	PyModule_AddIntConstant( submodule, "LEG", 11 );
-	PyModule_AddIntConstant( submodule, "FOOT", 12 );
-	PyModule_AddIntConstant( submodule, "TOE", 13 );
-	PyModule_AddIntConstant( submodule, "TENTACLE", 14 );
-
-	return ( submodule );
-}
-
-//--------------- Bone module internal callbacks-----------------
-
-//--------------- updatePyBone------------------------------------
-static int updatePyBone( BPy_Bone * self )
-{
-	char *parent_str = "";
-
-	if( !self->bone ) {
-		//nothing to update - not linked
-		return 0;
-	} else {
-		BLI_strncpy( self->name, self->bone->name,
-			     strlen( self->bone->name ) + 1 );
-		self->roll = self->bone->roll;
-		self->flag = self->bone->flag;
-		self->boneclass = self->bone->boneclass;
-		self->dist = self->bone->dist;
-		self->weight = self->bone->weight;
-
-		if( self->bone->parent ) {
-			self->parent =
-				BLI_strncpy( self->parent,
-					     self->bone->parent->name,
-					     strlen( self->bone->parent->
-						     name ) + 1 );
-		} else {
-			self->parent =
-				BLI_strncpy( self->parent, parent_str,
-					     strlen( parent_str ) + 1 );
-		}
-#if 0
-		for( x = 0; x < 3; x++ ) {
-			self->head->vec[x] = self->bone->head[x];
-			self->tail->vec[x] = self->bone->tail[x];
-			self->loc->vec[x] = self->bone->loc[x];
-			self->dloc->vec[x] = self->bone->dloc[x];
-			self->size->vec[x] = self->bone->size[x];
-			self->dsize->vec[x] = self->bone->dsize[x];
-		}
-		for( x = 0; x < 4; x++ ) {
-			self->quat->quat[x] = self->bone->quat[x];
-			self->dquat->quat[x] = self->bone->dquat[x];
-		}
-		for( x = 0; x < 4; x++ ) {
-			for( y = 0; y < 4; y++ ) {
-				self->obmat->matrix[x][y] =
-					self->bone->obmat[x][y];
-				self->parmat->matrix[x][y] =
-					self->bone->parmat[x][y];
-				self->defmat->matrix[x][y] =
-					self->bone->defmat[x][y];
-				self->irestmat->matrix[x][y] =
-					self->bone->irestmat[x][y];
-				self->posemat->matrix[x][y] =
-					self->bone->posemat[x][y];
-			}
-		}
-#endif
-		return 1;
+	roll = atan(difmat[2][0] / difmat[2][2]); 
+	if (difmat[0][0] < 0.0){
+		roll += M_PI;
 	}
+	return roll; //result is in radians
 }
+//################## EditBone_Type (internal) ########################
+/*This type is a wrapper for a tempory bone. This is an 'unparented' bone
+*object. The armature->bonebase will be calculated from these temporary
+*python tracked objects.*/
+//#####################################################################
 
-//--------------- updateBoneData------------------------------------
-int updateBoneData( BPy_Bone * self, Bone * parent )
+//------------------METHOD IMPLEMENTATIONS-----------------------------
+//------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------------EditBone.name (get)
+static PyObject *EditBone_getName(BPy_EditBone *self, void *closure)
 {
-	//called from Armature.addBone()
-	int x, y;
-
-	//called in Armature.addBone() to update the Bone * data
-	if( !self->bone ) {
-		//nothing to update - not linked
-		return 0;
-	} else {
-		BLI_strncpy( self->bone->name, self->name,
-			     strlen( self->name ) + 1 );
-		self->bone->roll = self->roll;
-		self->bone->flag = self->flag;
-		self->bone->boneclass = (short)self->boneclass;
-		self->bone->dist = self->dist;
-		self->bone->weight = self->weight;
-		self->bone->parent = parent;	//parent will be checked from self->parent string in addBone()
-
-		for( x = 0; x < 3; x++ ) {
-			self->bone->head[x] = self->head->vec[x];
-			self->bone->tail[x] = self->tail->vec[x];
-//			self->bone->loc[x] = self->loc->vec[x];
-//			self->bone->dloc[x] = self->dloc->vec[x];
-//			self->bone->size[x] = self->size->vec[x];
-//			self->bone->dsize[x] = self->dsize->vec[x];
-		}
-		for( x = 0; x < 4; x++ ) {
-//			self->bone->quat[x] = self->quat->quat[x];
-//			self->bone->dquat[x] = self->dquat->quat[x];
-		}
-		for( x = 0; x < 4; x++ ) {
-			for( y = 0; y < 4; y++ ) {
-//				self->bone->obmat[x][y] =
-//					self->obmat->matrix[x][y];
-//				self->bone->parmat[x][y] =
-//					self->parmat->matrix[x][y];
-//				self->bone->defmat[x][y] =
-//					self->defmat->matrix[x][y];
-//				self->bone->irestmat[x][y] =
-//					self->irestmat->matrix[x][y];
-//				self->bone->posemat[x][y] =
-//					self->posemat->matrix[x][y];
-			}
-		}
-		return 1;
-	}
+	return PyString_FromString(self->name);
 }
+//------------------------EditBone.name (set)
+//check for char[] overflow here...
+static int EditBone_setName(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	char *name = "";
 
-//--------------- testChildbase----------------------------------
-static int testChildbase( Bone * bone, Bone * test )
-{
-	Bone *child;
+	if (!PyArg_Parse(value, "s", &name))
+		goto AttributeError;
 
-	for( child = bone->childbase.first; child; child = child->next ) {
-		if( child == test ) {
-			return 1;
-		}
-		if( child->childbase.first != NULL )
-			testChildbase( child, test );
-	}
-
+	BLI_strncpy(self->name, name, 32);
 	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".name: ", "expects a string");
 }
-
-//--------------- returnBoneclassEnum----------------------------
-static PyObject *returnBoneclassEnum( int value )
+//------------------------EditBone.roll (get)
+static PyObject *EditBone_getRoll(BPy_EditBone *self, void *closure)
 {
-	char *str;
-	str = PyMem_Malloc( 32 + 1 );
-
-	switch ( value ) {
-	case 0:
-		BLI_strncpy( str, "SKINNABLE", 32 );
-		break;
-	case 1:
-		BLI_strncpy( str, "UNSKINNABLE", 32 );
-		break;
-	case 2:
-		BLI_strncpy( str, "HEAD", 32 );
-		break;
-	case 3:
-		BLI_strncpy( str, "NECK", 32 );
-		break;
-	case 4:
-		BLI_strncpy( str, "BACK", 32 );
-		break;
-	case 5:
-		BLI_strncpy( str, "SHOULDER", 32 );
-		break;
-	case 6:
-		BLI_strncpy( str, "ARM", 32 );
-		break;
-	case 7:
-		BLI_strncpy( str, "HAND", 32 );
-		break;
-	case 8:
-		BLI_strncpy( str, "FINGER", 32 );
-		break;
-	case 9:
-		BLI_strncpy( str, "THUMB", 32 );
-		break;
-	case 10:
-		BLI_strncpy( str, "PELVIS", 32 );
-		break;
-	case 11:
-		BLI_strncpy( str, "LEG", 32 );
-		break;
-	case 12:
-		BLI_strncpy( str, "FOOT", 32 );
-		break;
-	case 13:
-		BLI_strncpy( str, "TOE", 32 );
-		break;
-	case 14:
-		BLI_strncpy( str, "TENTACLE", 32 );
-		break;
-	default:
-		BLI_strncpy( str, "SKINNABLE", 32 );
-		break;
-	}
-	return ( PyObject * ) PyString_FromString( str );
+	return Py_BuildValue("{s:O}", 
+		"ARMATURESPACE", PyFloat_FromDouble((self->roll * (180/Py_PI))));
 }
-
-//---------------BPy_Bone internal callbacks/methods---------------
-
-//--------------- dealloc------------------------------------------
-static void Bone_dealloc( BPy_Bone * self )
-{
-	PyMem_Free( self->name );
-	PyMem_Free( self->parent );
-	PyObject_DEL( self );
+//------------------------EditBone.roll (set)
+static int EditBone_setRoll(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
 }
-
-//---------------getattr-------------------------------------------
-static PyObject *Bone_getAttr( BPy_Bone * self, char *name )
+//------------------------EditBone.head (get)
+static PyObject *EditBone_getHead(BPy_EditBone *self, void *closure)
 {
-	PyObject *attr = Py_None;
-
-	if( strcmp( name, "name" ) == 0 )
-		attr = Bone_getName( self );
-	else if( strcmp( name, "roll" ) == 0 )
-		attr = Bone_getRoll( self );
-	else if( strcmp( name, "head" ) == 0 )
-		attr = Bone_getHead( self );
-	else if( strcmp( name, "tail" ) == 0 )
-		attr = Bone_getTail( self );
-	else if( strcmp( name, "size" ) == 0 )
-		attr = Bone_getSize( self );
-	else if( strcmp( name, "loc" ) == 0 )
-		attr = Bone_getLoc( self );
-	else if( strcmp( name, "quat" ) == 0 )
-		attr = Bone_getQuat( self );
-	else if( strcmp( name, "parent" ) == 0 )
-		/*  Skip the checks for Py_None as its a valid result to this call. */
-		return Bone_getParent( self );
-	else if( strcmp( name, "children" ) == 0 )
-		attr = Bone_getChildren( self );
-	else if( strcmp( name, "weight" ) == 0 )
-		attr = Bone_getWeight( self );
-	else if( strcmp( name, "boneclass" ) == 0 )
-		attr = Bone_getBoneclass( self );
-	else if( strcmp( name, "ik" ) == 0 )
-		attr = Bone_hasIK( self );
-	else if( strcmp( name, "__members__" ) == 0 ) {
-		/* 9 entries */
-		attr = Py_BuildValue( "[s,s,s,s,s,s,s,s,s,s,s]",
-				      "name", "roll", "head", "tail", "loc",
-				      "size", "quat", "parent", "children",
-				      "weight", "boneclass", "ik" );
-	}
-
-	if( !attr )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;	/* member attribute found, return it */
-
-	/* not an attribute, search the methods table */
-	return Py_FindMethod( BPy_Bone_methods, ( PyObject * ) self, name );
+	return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", newVectorObject(self->head, 3, Py_WRAP));;
 }
-
-//--------------- setattr-------------------------------------------
-static int Bone_setAttr( BPy_Bone * self, char *name, PyObject * value )
-{
-	PyObject *valtuple;
-	PyObject *error = NULL;
-
-	valtuple = Py_BuildValue( "(O)", value );	/* the set* functions expect a tuple */
-
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "BoneSetAttr: couldn't create tuple" );
-
-	if( strcmp( name, "name" ) == 0 )
-		error = Bone_setName( self, valtuple );
-	else {			/* Error */
-		Py_DECREF( valtuple );
-
-		/* ... member with the given name was found */
-		return ( EXPP_ReturnIntError
-			 ( PyExc_KeyError, "attribute not found" ) );
-	}
-
-	Py_DECREF( valtuple );
-
-	if( error != Py_None )
-		return -1;
-
-	Py_DECREF( Py_None );	/* was incref'ed by the called Bone_set* function */
-	return 0;		/* normal exit */
+//------------------------EditBone.head (set)
+static int EditBone_setHead(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
 }
-
-//--------------- repr---------------------------------------------
-static PyObject *Bone_repr( BPy_Bone * self )
+//------------------------EditBone.tail (get)
+static PyObject *EditBone_getTail(BPy_EditBone *self, void *closure)
 {
-	if( self->bone )
-		return PyString_FromFormat( "[Bone \"%s\"]",
-					    self->bone->name );
-	else
-		return PyString_FromString( "NULL" );
+    return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", newVectorObject(self->tail, 3, Py_WRAP));
 }
-
-//--------------- compare------------------------------------------
-static int Bone_compare( BPy_Bone * a, BPy_Bone * b )
-{
-	Bone *pa = a->bone, *pb = b->bone;
-	return ( pa == pb ) ? 0 : -1;
+//------------------------EditBone.tail (set)
+static int EditBone_setTail(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
 }
-
-//--------------- Bone_CreatePyObject---------------------------------
-PyObject *Bone_CreatePyObject( struct Bone * bone )
+//------------------------EditBone.weight (get)
+static PyObject *EditBone_getWeight(BPy_EditBone *self, void *closure)
 {
-	BPy_Bone *blen_bone;
-
-	blen_bone = ( BPy_Bone * ) PyObject_NEW( BPy_Bone, &Bone_Type );
-
-	//set the all important Bone flag
-	blen_bone->bone = bone;
-
-	//allocate space for python vars
-	blen_bone->name = PyMem_Malloc( 32 + 1 );
-	blen_bone->parent = PyMem_Malloc( 32 + 1 );
-	blen_bone->head = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->tail = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->loc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->dloc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->size = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->dsize = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	blen_bone->quat = blen_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
-	blen_bone->dquat = blen_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
-	blen_bone->obmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	blen_bone->parmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	blen_bone->defmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	blen_bone->irestmat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	blen_bone->posemat = blen_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-
-	if( !updatePyBone( blen_bone ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "bone struct empty" );
-
-	return ( ( PyObject * ) blen_bone );
+	return PyFloat_FromDouble(self->weight);
 }
-
-//--------------- Bone_CheckPyObject--------------------------------
-int Bone_CheckPyObject( PyObject * py_obj )
-{
-	return ( py_obj->ob_type == &Bone_Type );
-}
-
-//--------------- Bone_FromPyObject---------------------------------
-struct Bone *Bone_FromPyObject( PyObject * py_obj )
-{
-	BPy_Bone *blen_obj;
-
-	blen_obj = ( BPy_Bone * ) py_obj;
-	if( !( ( BPy_Bone * ) py_obj )->bone ) {	//test to see if linked to armature
-		//use python vars
-		return NULL;
-	} else {
-		//use bone datastruct
-		return ( blen_obj->bone );
-	}
-}
-
-//--------------- Python Bone Module methods------------------------
-
-//--------------- Blender.Armature.Bone.New()-----------------------
-static PyObject *M_Bone_New( PyObject * self, PyObject * args )
-{
-	char *name_str = "BoneName";
-	char *parent_str = "";
-	BPy_Bone *py_bone = NULL;	/* for Bone Data object wrapper in Python */
-
-	if( !PyArg_ParseTuple( args, "|s", &name_str ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string or empty argument" ) );
-
-	//create python bone
-	py_bone = ( BPy_Bone * ) PyObject_NEW( BPy_Bone, &Bone_Type );
-
-	//allocate space for python vars
-	py_bone->name = PyMem_Malloc( 32 + 1 );
-	py_bone->parent = PyMem_Malloc( 32 + 1 );
-	py_bone->head = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->tail = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->loc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->dloc = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->size = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->dsize = ( VectorObject *)newVectorObject( NULL, 3, Py_NEW );
-	py_bone->quat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
-	py_bone->dquat = ( QuaternionObject *)newQuaternionObject( NULL, Py_NEW );
-	py_bone->obmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	py_bone->parmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	py_bone->defmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	py_bone->irestmat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-	py_bone->posemat = ( MatrixObject *)newMatrixObject( NULL, 4, 4 , Py_NEW);
-
-	//default py values
-	BLI_strncpy( py_bone->name, name_str, strlen( name_str ) + 1 );
-	BLI_strncpy( py_bone->parent, parent_str, strlen( parent_str ) + 1 );
-	py_bone->roll = 0.0f;
-	py_bone->flag = 32;
-	py_bone->dist = 1.0f;
-	py_bone->weight = 1.0f;
-	Vector_Zero( py_bone->head );
-	Vector_Zero( py_bone->loc );
-	Vector_Zero( py_bone->dloc );
-	Vector_Zero( py_bone->size );
-	Vector_Zero( py_bone->dsize );
-	Quaternion_Identity( py_bone->quat );
-	Quaternion_Identity( py_bone->dquat );
-	Matrix_Identity( py_bone->obmat );
-	Matrix_Identity( py_bone->parmat );
-	Matrix_Identity( py_bone->defmat );
-	Matrix_Identity( py_bone->irestmat );
-	Matrix_Identity( py_bone->posemat );
-
-	//default tail of 2,0,0
-	py_bone->tail->vec[0] = 2.0f;
-	py_bone->tail->vec[1] = 0.0f;
-	py_bone->tail->vec[2] = 0.0f;
-
-	//set the datapointer to null (unlinked)
-	py_bone->bone = NULL;
-
-	return ( PyObject * ) py_bone;
-}
-
-//--------------- Python BPy_Bone methods---------------------------
-
-//--------------- BPy_Bone.getName()--------------------------------
-static PyObject *Bone_getName( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		attr = PyString_FromString( self->name );
-	} else {
-		//use bone datastruct
-		attr = PyString_FromString( self->bone->name );
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.name attribute" ) );
-}
-
-//--------------- BPy_Bone.getRoll()---------------------------------
-static PyObject *Bone_getRoll( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		attr = Py_BuildValue( "f", self->roll );
-	} else {
-		//use bone datastruct
-		attr = Py_BuildValue( "f", self->bone->roll );
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.roll attribute" ) );
-}
-
-//--------------- BPy_Bone.getWeight()---------------------------------
-static PyObject *Bone_getWeight( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		attr = Py_BuildValue( "f", self->weight );
-	} else {
-		//use bone datastruct
-		attr = Py_BuildValue( "f", self->bone->weight );
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.weight attribute" ) );
-}
-
-//--------------- BPy_Bone.getHead()----------------------------------
-static PyObject *Bone_getHead( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-	float vec[3];
-	int x;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		for( x = 0; x < 3; x++ )
-			vec[x] = self->head->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
-	} else {
-		//use bone datastruct
-		attr = newVectorObject( NULL, 3, Py_NEW );
-		( ( VectorObject * ) attr )->vec[0] = self->bone->head[0];
-		( ( VectorObject * ) attr )->vec[1] = self->bone->head[1];
-		( ( VectorObject * ) attr )->vec[2] = self->bone->head[2];
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.head attribute" ) );
-}
-
-//--------------- BPy_Bone.getTail()---------------------------------
-static PyObject *Bone_getTail( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-	float vec[3];
-	int x;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		for( x = 0; x < 3; x++ )
-			vec[x] = self->tail->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
-	} else {
-		//use bone datastruct
-		attr = newVectorObject( NULL, 3, Py_NEW );
-		( ( VectorObject * ) attr )->vec[0] = self->bone->tail[0];
-		( ( VectorObject * ) attr )->vec[1] = self->bone->tail[1];
-		( ( VectorObject * ) attr )->vec[2] = self->bone->tail[2];
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.tail attribute" ) );
-}
-
-//--------------- BPy_Bone.getLoc()---------------------------------
-static PyObject *Bone_getLoc( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-	float vec[3];
-	int x;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		for( x = 0; x < 3; x++ )
-			vec[x] = self->loc->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
-	} else {
-		//use bone datastruct
-		attr = newVectorObject( NULL, 3, Py_NEW );
-		
-//		( ( VectorObject * ) attr )->vec[0] = self->bone->loc[0];
-//		( ( VectorObject * ) attr )->vec[1] = self->bone->loc[1];
-//		( ( VectorObject * ) attr )->vec[2] = self->bone->loc[2];
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.loc attribute" ) );
-}
-
-//--------------- BPy_Bone.getSize()-----------------------------
-static PyObject *Bone_getSize( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-	float vec[3];
-	int x;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		for( x = 0; x < 3; x++ )
-			vec[x] = self->size->vec[x];
-		attr = ( PyObject * ) newVectorObject( vec, 3, Py_NEW );
-	} else {
-		//use bone datastruct
-		attr = newVectorObject( NULL, 3, Py_NEW );
-//		( ( VectorObject * ) attr )->vec[0] = self->bone->size[0];
-//		( ( VectorObject * ) attr )->vec[1] = self->bone->size[1];
-//		( ( VectorObject * ) attr )->vec[2] = self->bone->size[2];
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.size attribute" ) );
-}
-
-//--------------- BPy_Bone.getQuat()--------------------------------
-static PyObject *Bone_getQuat( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-	float quat[4];
-	int x;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars - p.s. - you must return a copy or else
-		//python will trash the internal var
-		for( x = 0; x < 4; x++ )
-			quat[x] = self->quat->quat[x];
-		attr = ( PyObject * ) newQuaternionObject( quat, Py_NEW );
-	} else {
-		//use bone datastruct
-		attr = newQuaternionObject( NULL, Py_NEW );
-//		( ( QuaternionObject * ) attr )->quat[0] = self->bone->quat[0];
-//		( ( QuaternionObject * ) attr )->quat[1] = self->bone->quat[1];
-//		( ( QuaternionObject * ) attr )->quat[2] = self->bone->quat[2];
-//		( ( QuaternionObject * ) attr )->quat[3] = self->bone->quat[3];
-	}
-
-	return attr;
-}
-
-//--------------- BPy_Bone.hasParent()---------------------------
-static PyObject *Bone_hasParent( BPy_Bone * self )
-{
-	char *parent_str = "";
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		if( BLI_streq( self->parent, parent_str ) ) {
-			return EXPP_incr_ret_False();
-		} else {
-			return EXPP_incr_ret_True();
-		}
-	} else {
-		//use bone datastruct
-		if( self->bone->parent ) {
-			return EXPP_incr_ret_True();
-		} else {
-			return EXPP_incr_ret_False();
-		}
-	}
-}
-
-//--------------- BPy_Bone.getParent()------------------------------
-static PyObject *Bone_getParent( BPy_Bone * self )
-{
-	char *parent_str = "";
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		if( BLI_streq( self->parent, parent_str ) ) {
-			return EXPP_incr_ret( Py_None );
-		} else {
-			return PyString_FromString( self->parent );
-		}
-	} else {
-		//use bone datastruct
-		if( self->bone->parent ) {
-			return Bone_CreatePyObject( self->bone->parent );
-		} else {
-			return EXPP_incr_ret( Py_None );
-		}
-	}
-}
-
-//--------------- BPy_Bone.getChildren()-----------------------------
-static PyObject *Bone_getChildren( BPy_Bone * self )
-{
-	int totbones = 0;
-	Bone *current = NULL;
-	PyObject *listbones = NULL;
-	int i;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		return EXPP_incr_ret( Py_None );
-	} else {
-		//use bone datastruct
-		current = self->bone->childbase.first;
-		for( ; current; current = current->next )
-			totbones++;
-
-		/* Create a list with a bone wrapper for each bone */
-		current = self->bone->childbase.first;
-		listbones = PyList_New( totbones );
-		for( i = 0; i < totbones; i++ ) {
-			assert( current );
-			PyList_SetItem( listbones, i,
-					Bone_CreatePyObject( current ) );
-			current = current->next;
-		}
-		return listbones;
-	}
-}
-
-//--------------- BPy_Bone.setName()---------------------------------
-static PyObject *Bone_setName( BPy_Bone * self, PyObject * args )
-{
-	char *name;
-	char buf[25];
-
-	if( !PyArg_ParseTuple( args, "s", &name ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected string argument" ) );
-	/* 
-	   note:
-	   a nicer way to do this is to have #defines for the size of names.
-	   stivs  25-jan-200
-	*/
-
-	/* guarantee a null terminated string of reasonable size */
-	PyOS_snprintf( buf, sizeof( buf ), "%s", name );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		BLI_strncpy( self->name, buf, sizeof( buf ) );
-	} else {
-		//use bone datastruct
-		BLI_strncpy( self->bone->name, buf, sizeof( buf )  );
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setRoll()--------------------------------
-PyObject *Bone_setRoll( BPy_Bone * self, PyObject * args )
-{
-	float roll;
-
-	if( !PyArg_ParseTuple( args, "f", &roll ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected float argument" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->roll = roll;
-	} else {
-		//use bone datastruct
-		self->bone->roll = roll;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setHead()---------------------------------
-static PyObject *Bone_setHead( BPy_Bone * self, PyObject * args )
-{
-	float f1, f2, f3;
-	int status;
-
-	if( PyObject_Length( args ) == 3 )
-		status = PyArg_ParseTuple( args, "fff", &f1, &f2, &f3 );
-	else
-		status = PyArg_ParseTuple( args, "(fff)", &f1, &f2, &f3 );
-
-	if( !status )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected 3 (or a list of 3) float arguments" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->head->vec[0] = f1;
-		self->head->vec[1] = f2;
-		self->head->vec[2] = f3;
-	} else {
-		//use bone datastruct
-		self->bone->head[0] = f1;
-		self->bone->head[1] = f2;
-		self->bone->head[2] = f3;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setTail()---------------------------------
-static PyObject *Bone_setTail( BPy_Bone * self, PyObject * args )
-{
-	float f1, f2, f3;
-	int status;
-
-	if( PyObject_Length( args ) == 3 )
-		status = PyArg_ParseTuple( args, "fff", &f1, &f2, &f3 );
-	else
-		status = PyArg_ParseTuple( args, "(fff)", &f1, &f2, &f3 );
-
-	if( !status )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected 3 (or a list of 3) float arguments" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->tail->vec[0] = f1;
-		self->tail->vec[1] = f2;
-		self->tail->vec[2] = f3;
-	} else {
-		//use bone datastruct
-		self->bone->tail[0] = f1;
-		self->bone->tail[1] = f2;
-		self->bone->tail[2] = f3;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setLoc()----------------------------------
-static PyObject *Bone_setLoc( BPy_Bone * self, PyObject * args )
-{
-	float f1, f2, f3;
-	int status;
-
-	if( PyObject_Length( args ) == 3 )
-		status = PyArg_ParseTuple( args, "fff", &f1, &f2, &f3 );
-	else
-		status = PyArg_ParseTuple( args, "(fff)", &f1, &f2, &f3 );
-
-	if( !status )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected 3 (or a list of 3) float arguments" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->loc->vec[0] = f1;
-		self->loc->vec[1] = f2;
-		self->loc->vec[2] = f3;
-	} else {
-		//use bone datastruct
-//		self->bone->loc[0] = f1;
-//		self->bone->loc[1] = f2;
-//		self->bone->loc[2] = f3;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setSize()---------------------------------
-static PyObject *Bone_setSize( BPy_Bone * self, PyObject * args )
-{
-	float f1, f2, f3;
-	int status;
-
-	if( PyObject_Length( args ) == 3 )
-		status = PyArg_ParseTuple( args, "fff", &f1, &f2, &f3 );
-	else
-		status = PyArg_ParseTuple( args, "(fff)", &f1, &f2, &f3 );
-
-	if( !status )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected 3 (or a list of 3) float arguments" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->size->vec[0] = f1;
-		self->size->vec[1] = f2;
-		self->size->vec[2] = f3;
-	} else {
-		//use bone datastruct
-//		self->bone->size[0] = f1;
-//		self->bone->size[1] = f2;
-//		self->bone->size[2] = f3;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setQuat()-------------------------------
-static PyObject *Bone_setQuat( BPy_Bone * self, PyObject * args )
-{
-	float f1, f2, f3, f4;
-	PyObject *argument;
-	QuaternionObject *quatOb;
-	int status;
-
-	if( !PyArg_ParseTuple( args, "O", &argument ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "expected quaternion or float list" ) );
-
-	if( QuaternionObject_Check( argument ) ) {
-		status = PyArg_ParseTuple( args, "O!", &quaternion_Type,
-					   &quatOb );
-		f1 = quatOb->quat[0];
-		f2 = quatOb->quat[1];
-		f3 = quatOb->quat[2];
-		f4 = quatOb->quat[3];
-	} else {
-		status = PyArg_ParseTuple( args, "(ffff)", &f1, &f2, &f3,
-					   &f4 );
-	}
-
-	if( !status )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"unable to parse argument" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->quat->quat[0] = f1;
-		self->quat->quat[1] = f2;
-		self->quat->quat[2] = f3;
-		self->quat->quat[3] = f4;
-	} else {
-		//use bone datastruct
-//		self->bone->quat[0] = f1;
-//		self->bone->quat[1] = f2;
-//		self->bone->quat[2] = f3;
-//		self->bone->quat[3] = f4;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setParent()------------------------------
-static PyObject *Bone_setParent( BPy_Bone * self, PyObject * args )
-{
-	BPy_Bone *py_bone;
-	float M_boneObjectspace[4][4];
-	float iM_parentRest[4][4];
-
-	if( !PyArg_ParseTuple( args, "O", &py_bone ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError,
-			   "expected bone object argument" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		BLI_strncpy( self->parent, py_bone->name,
-			     strlen( py_bone->name ) + 1 );
-	} else {
-		//use bone datastruct
-		if( !py_bone->bone )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_TypeError,
-				   "Parent bone must be linked to armature first!" ) );
-
-		if( py_bone->bone == self->bone )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "Cannot parent to self" ) );
-
-		//test to see if were creating an illegal loop by parenting to child
-		if( testChildbase( self->bone, py_bone->bone ) )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "Cannot parent to child" ) );
-
-		//set the parent of self - in this case 
-                //we are changing the parenting after this bone
-		//has been linked in it's armature
-		if( self->bone->parent ) {	//we are parenting something previously parented
-
-			//remove the childbase link from the parent bone
-			BLI_remlink( &self->bone->parent->childbase,
-				     self->bone );
-
-			//now get rid of the parent transformation
-			get_objectspace_bone_matrix( self->bone->parent,
-						     M_boneObjectspace, 0, 0 );
-			Mat4MulVecfl( M_boneObjectspace, self->bone->head );
-			Mat4MulVecfl( M_boneObjectspace, self->bone->tail );
-
-			//add to the childbase of new parent
-			BLI_addtail( &py_bone->bone->childbase, self->bone );
-
-			//transform bone according to new parent
-			get_objectspace_bone_matrix( py_bone->bone,
-						     M_boneObjectspace, 0, 0 );
-			Mat4Invert( iM_parentRest, M_boneObjectspace );
-			Mat4MulVecfl( iM_parentRest, self->bone->head );
-			Mat4MulVecfl( iM_parentRest, self->bone->tail );
-
-			//set parent
-			self->bone->parent = py_bone->bone;
-
-		} else {	//not previously parented
-
-			//add to the childbase of new parent
-			BLI_addtail( &py_bone->bone->childbase, self->bone );
-
-			//transform bone according to new parent
-			get_objectspace_bone_matrix( py_bone->bone,
-						     M_boneObjectspace, 0, 0 );
-			Mat4Invert( iM_parentRest, M_boneObjectspace );
-			Mat4MulVecfl( iM_parentRest, self->bone->head );
-			Mat4MulVecfl( iM_parentRest, self->bone->tail );
-
-			self->bone->parent = py_bone->bone;
-		}
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setWeight()----------------------------
-static PyObject *Bone_setWeight( BPy_Bone * self, PyObject * args )
-{
+//------------------------EditBone.weight (set)
+static int EditBone_setWeight(BPy_EditBone *self, PyObject *value, void *closure)
+{  
 	float weight;
 
-	if( !PyArg_ParseTuple( args, "f", &weight ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected float argument" ) );
+	if (!PyArg_Parse(value, "f", &weight))
+		goto AttributeError;
+	CLAMP(weight, 0.0f, 1000.0f);
 
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->weight = weight;
-	} else {
-		//use bone datastruct
-		self->bone->weight = weight;
-	}
-	return EXPP_incr_ret( Py_None );
+	self->weight = weight;
+	return 0;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".weight: ", "expects a float");
 }
-
-//--------------- BPy_Bone.clearParent()--------------------------
-static PyObject *Bone_clearParent( BPy_Bone * self )
+//------------------------EditBone.deform_dist (get)
+static PyObject *EditBone_getDeform_dist(BPy_EditBone *self, void *closure)
 {
-	bArmature *arm = NULL;
-	Bone *bone = NULL;
-	Bone *parent = NULL;
-	Bone *child = NULL;
-	Bone *childPrev = NULL;
-	int firstChild;
-	float M_boneObjectspace[4][4];
-	char *parent_str = "";
+    return PyFloat_FromDouble(self->dist);
+}
+//------------------------EditBone.deform_dist (set)
+static int EditBone_setDeform_dist(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	float deform;
 
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		BLI_strncpy( self->parent, parent_str,
-			     strlen( parent_str ) + 1 );
-	} else {
-		//use bone datastruct
-		if( self->bone->parent == NULL )
-			return EXPP_incr_ret( Py_None );
+	if (!PyArg_Parse(value, "f", &deform))
+		goto AttributeError;
+	CLAMP(deform, 0.0f, 1000.0f);
 
-		//get parent and remove link
-		parent = self->bone->parent;
-		self->bone->parent = NULL;
+	self->dist = deform;
+	return 0;
 
-		//remove the childbase link from the parent bone
-		firstChild = 1;
-		for( child = parent->childbase.first; child;
-		     child = child->next ) {
-			if( child == self->bone && firstChild ) {
-				parent->childbase.first = child->next;
-				child->next = NULL;
-				break;
-			}
-			if( child == self->bone && !firstChild ) {
-				childPrev->next = child->next;
-				child->next = NULL;
-				break;
-			}
-			firstChild = 0;
-			childPrev = child;
-		}
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".deform_dist: ", "expects a float");
+}
+//------------------------EditBone.subdivisions (get)
+static PyObject *EditBone_getSubdivisions(BPy_EditBone *self, void *closure)
+{
+    return PyInt_FromLong(self->segments);
+}
+//------------------------EditBone.subdivisions (set)
+static int EditBone_setSubdivisions(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	int segs;
 
-		//now get rid of the parent transformation
-		get_objectspace_bone_matrix( parent, M_boneObjectspace, 0, 0 );
+	if (!PyArg_Parse(value, "i", &segs))
+		goto AttributeError;
+	CLAMP(segs, 1, 32);
 
-		//transformation of local bone
-		Mat4MulVecfl( M_boneObjectspace, self->bone->head );
-		Mat4MulVecfl( M_boneObjectspace, self->bone->tail );
+	self->segments = (short)segs;
+	return 0;
 
-		//get the root bone
-		while( parent->parent != NULL ) {
-			parent = parent->parent;
-		}
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".subdivisions: ", "expects a integer");
+}
+//------------------------EditBone.options (get)
+static PyObject *EditBone_getOptions(BPy_EditBone *self, void *closure)
+{
+	PyObject *list = NULL;
 
-		//add unlinked bone to the bonebase of the armature
-		for( arm = G.main->armature.first; arm; arm = arm->id.next ) {
-			for( bone = arm->bonebase.first; bone;
-			     bone = bone->next ) {
-				if( parent == bone ) {
-					//we found the correct armature - now add it as root bone
-					BLI_addtail( &arm->bonebase,
-						     self->bone );
-					break;
+	list = PyList_New(0);
+	if (list == NULL)
+		goto RuntimeError;
+
+	if(self->flag & BONE_CONNECTED)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "CONNECTED")) == -1)
+			goto RuntimeError;
+	if(self->flag & BONE_HINGE)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "HINGE")) == -1)
+			goto RuntimeError;
+	if(self->flag & BONE_NO_DEFORM)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "NO_DEFORM")) == -1)
+			goto RuntimeError;
+	if(self->flag & BONE_MULT_VG_ENV)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "MULTIPLY")) == -1)
+			goto RuntimeError;
+	if(self->flag & BONE_HIDDEN_A)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "HIDDEN_EDIT")) == -1)
+			goto RuntimeError;
+
+	return EXPP_incr_ret(list);
+
+RuntimeError:
+	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
+		sEditBoneError, ".options: ", "Internal failure!");
+}
+//----------------------(internal) EditBone_CheckValidConstant
+static int EditBone_CheckValidConstant(PyObject *constant)
+{
+	PyObject *name = NULL;
+
+	if (constant){
+		if (BPy_Constant_Check(constant)){
+			name = PyDict_GetItemString(((BPy_constant*)constant)->dict, "name");
+			if (!name) return 0;
+			if (!(STREQ3(PyString_AsString(name), "CONNECTED", "HINGE", "NO_DEFORM")
+				|| STREQ2(PyString_AsString(name), "MULTIPLY", "HIDDEN_EDIT"))){
+					return 0;
+				}else{
+					return 1;
 				}
-			}
+		}else{
+			return 0;
 		}
+	}else{
+		return 0;
 	}
-	return EXPP_incr_ret( Py_None );
 }
 
-//--------------- BPy_Bone.clearChildren()------------------------
-static PyObject *Bone_clearChildren( BPy_Bone * self )
+//------------------------EditBone.options (set)
+static int EditBone_setOptions(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	int length, numeric_value, new_flag = 0, x;
+	PyObject *val = NULL, *index = NULL;
+
+	if (PyList_Check(value)){
+		length = PyList_Size(value);
+		for (x = 0; x < length; x++){
+			index = PyList_GetItem(value, x);
+			if (!EditBone_CheckValidConstant(index))
+				goto AttributeError2;
+			val = PyDict_GetItemString(((BPy_constant*)index)->dict, "value");
+			if (PyInt_Check(val)){
+				numeric_value = (int)PyInt_AS_LONG(val);
+				new_flag |= numeric_value;
+			}else{
+				goto AttributeError2;
+			}
+		}
+		self->flag = new_flag;
+		return 0;
+	}else if (BPy_Constant_Check(value)){
+		if (!EditBone_CheckValidConstant(value))
+			goto AttributeError2;
+		val = PyDict_GetItemString(((BPy_constant*)value)->dict, "value");
+		if (PyInt_Check(val)){
+			numeric_value = (int)PyInt_AS_LONG(val);
+			self->flag = numeric_value;
+			return 0;
+		}else{
+			goto AttributeError2;
+		}
+	}else{
+		goto AttributeError1;
+	}
+
+AttributeError1:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".options(): ", "Expects a constant or list of constants");
+
+AttributeError2:
+	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
+		sEditBoneError, ".options(): ", "Please use a constant defined in the Armature module");
+}
+//------------------------EditBone.parent (get)
+static PyObject *EditBone_getParent(BPy_EditBone *self, void *closure)
 {
-	Bone *root = NULL;
-	Bone *child = NULL;
-	bArmature *arm = NULL;
+	//if (!STREQ(self->parent, ""))
+	//	return PyString_FromString(PyBone_FromBone(self->parent));
+	//else
+	printf("Sorry this isn't implemented yet.... :/");
+	return EXPP_incr_ret(Py_None);
+}
+//------------------------EditBone.parent (set)
+static int EditBone_setParent(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
+}
+
+//------------------------EditBone.children (get)
+static PyObject *EditBone_getChildren(BPy_EditBone *self, void *closure)
+{
+	printf("Sorry this isn't implemented yet.... :/");
+	return EXPP_incr_ret(Py_None);
+}
+//------------------------EditBone.children (set)
+static int EditBone_setChildren(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
+}
+//------------------------EditBone.matrix (get)
+static PyObject *EditBone_getMatrix(BPy_EditBone *self, void *closure)
+{
+	printf("Sorry this isn't implemented yet.... :/");
+    return EXPP_incr_ret(Py_None);
+}
+//------------------------EditBone.matrix (set)
+static int EditBone_setMatrix(BPy_EditBone *self, PyObject *value, void *closure)
+{  
+	printf("Sorry this isn't implemented yet.... :/");
+	return 1;
+}
+//------------------TYPE_OBECT IMPLEMENTATION--------------------------
+//TODO: We need to think about the below methods
+//------------------------tp_methods
+//This contains a list of all methods the object contains
+//static PyMethodDef BPy_Bone_methods[] = {
+//	{"clearParent", (PyCFunction) Bone_clearParent, METH_NOARGS, 
+//		"() - disconnects this bone from it's parent"},
+//	{"clearChildren", (PyCFunction) Bone_clearChildren, METH_NOARGS, 
+//		"() - disconnects all the children from this bone"},
+//	{NULL}
+//};
+//------------------------tp_getset
+//This contains methods for attributes that require checking
+static PyGetSetDef BPy_EditBone_getset[] = {
+	{"name", (getter)EditBone_getName, (setter)EditBone_setName, 
+		"The name of the bone", NULL},
+	{"roll", (getter)EditBone_getRoll, (setter)EditBone_setRoll, 
+		"The roll (or rotation around the axis) of the bone", NULL},
+	{"head", (getter)EditBone_getHead, (setter)EditBone_setHead, 
+		"The start point of the bone", NULL},
+	{"tail", (getter)EditBone_getTail, (setter)EditBone_setTail, 
+		"The end point of the bone", NULL},
+	{"matrix", (getter)EditBone_getMatrix, (setter)EditBone_setMatrix, 
+		"The matrix of the bone", NULL},
+	{"weight", (getter)EditBone_getWeight, (setter)EditBone_setWeight, 
+		"The weight of the bone in relation to a parented mesh", NULL},
+	{"deform_dist", (getter)EditBone_getDeform_dist, (setter)EditBone_setDeform_dist, 
+		"The distance at which deformation has effect", NULL},
+	{"subdivisions", (getter)EditBone_getSubdivisions, (setter)EditBone_setSubdivisions, 
+		"The number of subdivisions (for B-Bones)", NULL},
+	{"options", (getter)EditBone_getOptions, (setter)EditBone_setOptions, 
+		"The options effective on this bone", NULL},
+	{"parent", (getter)EditBone_getParent, (setter)EditBone_setParent, 
+		"The parent bone of this bone", NULL},
+	{"children", (getter)EditBone_getChildren, (setter)EditBone_setChildren, 
+		"The child bones of this bone", NULL},
+	{NULL}
+};
+
+//------------------------tp_repr
+//This is the string representation of the object
+static PyObject *EditBone_repr(BPy_EditBone *self)
+{
+	return PyString_FromFormat( "[EditBone \"%s\"]", self->name ); 
+}
+
+//------------------------tp_doc
+//The __doc__ string for this object
+static char BPy_EditBone_doc[] = "This is an internal subobject of armature\
+designed to act as a wrapper for an 'edit bone'.";
+
+//------------------------tp_new
+//This methods creates a new object (note it does not initialize it - only the building)
+static PyObject *EditBone_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	BPy_EditBone *py_editBone = NULL;
+	PyObject *py_bone;
+	struct Bone *bone;
+	int i;
+
+	if(!PyArg_ParseTuple(args, "O!", &Bone_Type, &py_bone))
+		goto AttributeError;
+
+	py_editBone = (BPy_EditBone*)type->tp_alloc(type, 0); //new
+	if (py_editBone == NULL)
+		goto RuntimeError;
+
+	bone = ((BPy_Bone*)py_bone)->bone;
+
+	BLI_strncpy(py_editBone->name, bone->name, 32);
+	py_editBone->flag = bone->flag;
+	py_editBone->length = bone->length;
+	py_editBone->weight = bone->weight;
+	py_editBone->dist = bone->dist;
+	py_editBone->xwidth = bone->xwidth;
+	py_editBone->zwidth = bone->zwidth;
+	py_editBone->ease1 = bone->ease1;
+	py_editBone->ease2 = bone->ease2;
+	py_editBone->rad_head = bone->rad_head;
+	py_editBone->rad_tail = bone->rad_tail;
+	py_editBone->segments = bone->segments;
+	py_editBone->temp = NULL;
+
+	if (bone->parent){
+		BLI_strncpy(py_editBone->parent, bone->parent->name, 32);
+	}else{
+		BLI_strncpy(py_editBone->parent, "", 32);
+	}
+
+	py_editBone->roll = (float)boneRoll_ToArmatureSpace(bone);
+
+	for (i = 0; i < 3; i++){
+		py_editBone->head[i] = bone->arm_head[i];
+		py_editBone->tail[i] = bone->arm_tail[i];
+	}
+	return (PyObject*)py_editBone;
+
+RuntimeError:
+	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
+		sEditBoneError, " __new__: ", "Internal Error");
+AttributeError:
+	return EXPP_objError(PyExc_AttributeError, "%s%s%s", 
+		sEditBoneBadArgs, " __new__: ", "Expects PyBone and optional float");
+}
+//------------------------tp_dealloc
+//This tells how to 'tear-down' our object when ref count hits 0
+static void EditBone_dealloc(BPy_EditBone * self)
+{
+	((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+	return;
+}
+//------------------TYPE_OBECT DEFINITION--------------------------
+PyTypeObject EditBone_Type = {
+	PyObject_HEAD_INIT(NULL)       //tp_head
+	0,                             //tp_internal
+	"EditBone",                    //tp_name
+	sizeof(BPy_EditBone),          //tp_basicsize
+	0,                             //tp_itemsize
+	(destructor)EditBone_dealloc,  //tp_dealloc
+	0,                             //tp_print
+	0,                             //tp_getattr
+	0,                             //tp_setattr
+	0,                             //tp_compare
+	(reprfunc)EditBone_repr,       //tp_repr
+	0,                             //tp_as_number
+	0,                             //tp_as_sequence
+	0,                             //tp_as_mapping
+	0,                             //tp_hash
+	0,                             //tp_call
+	0,                             //tp_str
+	0,                             //tp_getattro
+	0,                             //tp_setattro
+	0,                             //tp_as_buffer
+	Py_TPFLAGS_DEFAULT,            //tp_flags
+	BPy_EditBone_doc,              //tp_doc
+	0,                             //tp_traverse
+	0,                             //tp_clear
+	0,                             //tp_richcompare
+	0,                             //tp_weaklistoffset
+	0,                             //tp_iter
+	0,                             //tp_iternext
+	0,                             //tp_methods
+	0,                             //tp_members
+	BPy_EditBone_getset,           //tp_getset
+	0,                             //tp_base
+	0,                             //tp_dict
+	0,                             //tp_descr_get
+	0,                             //tp_descr_set
+	0,                             //tp_dictoffset
+	0,                             //tp_init
+	0,                             //tp_alloc
+	(newfunc)EditBone_new,         //tp_new
+	0,                             //tp_free
+	0,                             //tp_is_gc
+	0,                             //tp_bases
+	0,                             //tp_mro
+	0,                             //tp_cache
+	0,                             //tp_subclasses
+	0,                             //tp_weaklist
+	0                              //tp_del
+};
+
+//------------------METHOD IMPLEMENTATIONS--------------------------------
+//------------------ATTRIBUTE IMPLEMENTATIONS-----------------------------
+//------------------------Bone.name (get)
+static PyObject *Bone_getName(BPy_Bone *self, void *closure)
+{
+	return PyString_FromString(self->bone->name);
+}
+//------------------------Bone.name (set)
+//check for char[] overflow here...
+static int Bone_setName(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.roll (get)
+static PyObject *Bone_getRoll(BPy_Bone *self, void *closure)
+{
+	return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", PyFloat_FromDouble((self->bone->roll * (180/Py_PI))),
+		"ARMATURESPACE", PyFloat_FromDouble((boneRoll_ToArmatureSpace(self->bone) * (180/Py_PI))));
+}
+//------------------------Bone.roll (set)
+static int Bone_setRoll(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.head (get)
+static PyObject *Bone_getHead(BPy_Bone *self, void *closure)
+{
+	return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", newVectorObject(self->bone->head, 3, Py_WRAP),
+		"ARMATURESPACE", newVectorObject(self->bone->arm_head, 3, Py_WRAP));
+}
+//------------------------Bone.head (set)
+static int Bone_setHead(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.tail (get)
+static PyObject *Bone_getTail(BPy_Bone *self, void *closure)
+{
+    return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", newVectorObject(self->bone->tail, 3, Py_WRAP),
+		"ARMATURESPACE", newVectorObject(self->bone->arm_tail, 3, Py_WRAP));
+}
+//------------------------Bone.tail (set)
+static int Bone_setTail(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.weight (get)
+static PyObject *Bone_getWeight(BPy_Bone *self, void *closure)
+{
+	return PyFloat_FromDouble(self->bone->weight);
+}
+//------------------------Bone.weight (set)
+static int Bone_setWeight(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.deform_dist (get)
+static PyObject *Bone_getDeform_dist(BPy_Bone *self, void *closure)
+{
+    return PyFloat_FromDouble(self->bone->dist);
+}
+//------------------------Bone.deform_dist (set)
+static int Bone_setDeform_dist(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.subdivisions (get)
+static PyObject *Bone_getSubdivisions(BPy_Bone *self, void *closure)
+{
+    return PyInt_FromLong(self->bone->segments);
+}
+//------------------------Bone.subdivisions (set)
+static int Bone_setSubdivisions(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.connected (get)
+static PyObject *Bone_getOptions(BPy_Bone *self, void *closure)
+{
+	PyObject *list = NULL;
+
+	list = PyList_New(0);
+	if (list == NULL)
+		goto RuntimeError;
+
+	if(self->bone->flag & BONE_CONNECTED)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "CONNECTED")) == -1)
+			goto RuntimeError;
+	if(self->bone->flag & BONE_HINGE)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "HINGE")) == -1)
+			goto RuntimeError;
+	if(self->bone->flag & BONE_NO_DEFORM)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "NO_DEFORM")) == -1)
+			goto RuntimeError;
+	if(self->bone->flag & BONE_MULT_VG_ENV)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "MULTIPLY")) == -1)
+			goto RuntimeError;
+	if(self->bone->flag & BONE_HIDDEN_A)
+		if (PyList_Append(list, 
+			EXPP_GetModuleConstant("Blender.Armature", "HIDDEN_EDIT")) == -1)
+			goto RuntimeError;
+
+	return EXPP_incr_ret(list);
+
+RuntimeError:
+	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
+		sBoneError, "getOptions(): ", "Internal failure!");
+}
+//------------------------Bone.connected (set)
+static int Bone_setOptions(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.parent (get)
+static PyObject *Bone_getParent(BPy_Bone *self, void *closure)
+{
+	if (self->bone->parent)
+		return PyBone_FromBone(self->bone->parent);
+	else
+		return EXPP_incr_ret(Py_None);
+}
+//------------------------Bone.parent (set)
+static int Bone_setParent(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------(internal) PyBone_ChildrenAsList
+static int PyBone_ChildrenAsList(PyObject *list, ListBase *bones){
 	Bone *bone = NULL;
-	Bone *prev = NULL;
-	Bone *next = NULL;
-	float M_boneObjectspace[4][4];
-	int first;
+	PyObject *py_bone = NULL;
 
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		return EXPP_incr_ret( Py_None );
-	} else {
-		//use bone datastruct
-		if( self->bone->childbase.first == NULL )
-			return EXPP_incr_ret( Py_None );
+	for (bone = bones->first; bone; bone = bone->next){
+		py_bone = PyBone_FromBone(bone);
+		if (py_bone == NULL)
+			return 0;
 
-		//is this bone a part of an armature....
-		//get root bone for testing
-		root = self->bone->parent;
-		if( root != NULL ) {
-			while( root->parent != NULL ) {
-				root = root->parent;
-			}
-		} else {
-			root = self->bone;
+		if(PyList_Append(list, py_bone) == -1){
+			goto RuntimeError;
 		}
-		//test armatures for root bone
-		for( arm = G.main->armature.first; arm; arm = arm->id.next ) {
-			for( bone = arm->bonebase.first; bone;
-			     bone = bone->next ) {
-				if( bone == root )
-					break;
-			}
-			if( bone == root )
-				break;
-		}
-
-		if( arm == NULL )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_RuntimeError,
-				   "couldn't find armature that contains this bone" ) );
-
-		//now get rid of the parent transformation
-		get_objectspace_bone_matrix( self->bone, M_boneObjectspace, 0,
-					     0 );
-
-		//set children as root
-		first = 1;
-		for( child = self->bone->childbase.first; child; child = next ) {
-			//undo transformation of local bone
-			Mat4MulVecfl( M_boneObjectspace, child->head );
-			Mat4MulVecfl( M_boneObjectspace, child->tail );
-
-			//set next pointers to NULL
-			if( first ) {
-				prev = child;
-				first = 0;
-			} else {
-				prev->next = NULL;
-				prev = child;
-			}
-			next = child->next;
-
-			//remove parenting and linking
-			child->parent = NULL;
-			BLI_remlink( &self->bone->childbase, child );
-
-			//add as root
-			BLI_addtail( &arm->bonebase, child );
-		}
+		if (bone->childbase.first) 
+			PyBone_ChildrenAsList(list, &bone->childbase);
 	}
-	Py_INCREF( Py_None );
-	return Py_None;
+	return 1;
+
+RuntimeError:
+	return EXPP_intError(PyExc_RuntimeError, "%s%s", 
+		sBoneError, "Internal error trying to wrap blender bones!");
 }
 
-//--------------- BPy_Bone.hide()-----------------------------------
-static PyObject *Bone_hide( BPy_Bone * self )
+//------------------------Bone.children (get)
+static PyObject *Bone_getChildren(BPy_Bone *self, void *closure)
 {
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "link bone to armature before attempting to hide/unhide" );
-	} else {
-		//use bone datastruct
-		if( !( self->bone->flag & BONE_HIDDEN_P ) )
-			self->bone->flag |= BONE_HIDDEN_P;
-	}
-	return EXPP_incr_ret( Py_None );
-}
+	PyObject *list = NULL;
 
-//--------------- BPy_Bone.unhide()-------------------------------
-static PyObject *Bone_unhide( BPy_Bone * self )
-{
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "link bone to armature before attempting to hide/unhide" );
-	} else {
-		//use bone datastruct
-		if( self->bone->flag & BONE_HIDDEN_P )
-			self->bone->flag &= ~BONE_HIDDEN_P;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.setPose()-------------------------------
-static PyObject *Bone_setPose( BPy_Bone * self, PyObject * args )
-{
-	Bone *root = NULL;
-	bPoseChannel *chan = NULL;
-	bPoseChannel *setChan = NULL;
-	Object *object = NULL;
-	bArmature *arm = NULL;
-	Bone *bone = NULL;
-	PyObject *flaglist = NULL;
-	PyObject *item = NULL;
-	BPy_Action *py_action = NULL;
-	int x;
-	int flagValue = 0;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "cannot set pose unless bone is linked to armature" );
-	} else {
-		//use bone datastruct
-		if( !PyArg_ParseTuple
-		    ( args, "O!|O!", &PyList_Type, &flaglist, &Action_Type,
-		      &py_action ) )
-			return ( EXPP_ReturnPyObjError
-				 ( PyExc_AttributeError,
-				   "expected list of flags and optional action" ) );
-
-		for( x = 0; x < PyList_Size( flaglist ); x++ ) {
-			item = PyList_GetItem( flaglist, x );
-			if( PyInt_Check( item ) ) {
-				flagValue |= PyInt_AsLong( item );
-			} else {
-				return ( EXPP_ReturnPyObjError
-					 ( PyExc_AttributeError,
-					   "expected list of flags (ints)" ) );
-			}
-		}
-
-		//is this bone a part of an armature....
-		//get root bone for testing
-		root = self->bone->parent;
-		if( root != NULL ) {
-			while( root->parent != NULL ) {
-				root = root->parent;
-			}
-		} else {
-			root = self->bone;
-		}
-		//test armatures for root bone
-		for( arm = G.main->armature.first; arm; arm = arm->id.next ) {
-			for( bone = arm->bonebase.first; bone;
-			     bone = bone->next ) {
-				if( bone == root )
-					break;
-			}
-			if( bone == root )
-				break;
-		}
-		if( arm == NULL )
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"bone must belong to an armature to set it's pose!" ) );
-
-		//find if armature is object linked....
-		for( object = G.main->object.first; object;
-		     object = object->id.next ) {
-			if( object->data == arm ) {
-				break;
-			}
-		}
-
-		if( object == NULL )
-			return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-							"armature must be linked to an object to set a pose!" ) );
-
-		//set the active action as this one
-		if( py_action != NULL ) {
-			if( py_action->action != NULL ) {
-				object->action = py_action->action;
-			}
-		}
-		//if object doesn't have a pose create one
-		if( !object->pose )
-			object->pose = MEM_callocN( sizeof( bPose ), "Pose" );
-
-		//if bone does have a channel create one
-		// do not use anymore! (ton)
-		chan= verify_pose_channel( object->pose, self->bone->name );
-		
-		//create temp Pose Channel
-		 // chan = MEM_callocN( sizeof( bPoseChannel ), "PoseChannel" );
-		//set the variables for this pose
-//		memcpy( chan->loc, self->bone->loc, sizeof( chan->loc ) );
-//		memcpy( chan->quat, self->bone->quat, sizeof( chan->quat ) );
-//		memcpy( chan->size, self->bone->size, sizeof( chan->size ) );
-		strcpy( chan->name, self->bone->name );
-		chan->flag |= flagValue;
-		//set it to the channel
-		// setChan = set_pose_channel( object->pose, chan );
-		//frees unlinked pose/bone channels from object
-/* note; changing an Armature requires building poses again, consult me! (ton) */
-		// collect_pose_garbage( object );
-
-		//create an action if one not already assigned to object
-		if( !py_action && !object->action ) {
-			object->action = ( bAction * ) add_empty_action(ID_PO);
-			object->ipowin = ID_PO;
-		}
-
-		//set action keys (note, new uniform API for Pose ipos (ton)
-		if( setChan->flag & POSE_ROT ) {
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_X);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_Y);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_Z);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_QUAT_W);
-		}
-		if( setChan->flag & POSE_SIZE ) {
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_X);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_Y);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_SIZE_Z);
-		}
-		if( setChan->flag & POSE_LOC ) {
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_X);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_Y);
-			insertkey(&object->id, ID_PO, setChan->name, NULL, AC_LOC_Z);
-		}
-		//rebuild ipos
-		remake_action_ipos( object->action );
-
-		//signal to rebuild displists (new! added by ton)
-		object->recalc |= OB_RECALC_DATA;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.getBoneclass()--------------------------
-static PyObject *Bone_getBoneclass( BPy_Bone * self )
-{
-	PyObject *attr = NULL;
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		attr = returnBoneclassEnum( self->boneclass );
-	} else {
-		//use bone datastruct
-		attr = returnBoneclassEnum( self->bone->boneclass );
-	}
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Bone.Boneclass attribute" ) );
-}
-
-//--------------- BPy_Bone.setBoneclass()---------------------------
-static PyObject *Bone_setBoneclass( BPy_Bone * self, PyObject * args )
-{
-	int boneclass;
-
-	if( !PyArg_ParseTuple( args, "i", &boneclass ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected enum argument" ) );
-
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		self->boneclass = boneclass;
-	} else {
-		//use bone datastruct
-		self->bone->boneclass = (short)boneclass;
-	}
-	return EXPP_incr_ret( Py_None );
-}
-
-//--------------- BPy_Bone.hasIK()-------------------------------
-static PyObject *Bone_hasIK( BPy_Bone * self )
-{
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		if( self->flag & BONE_CONNECTED ) {
-			return EXPP_incr_ret_True();
-		} else {
-			return EXPP_incr_ret_False();
-		}
-	} else {
-		//use bone datastruct
-		if( self->bone->flag & BONE_CONNECTED ) {
-			return EXPP_incr_ret_True();
-		} else {
-			return EXPP_incr_ret_False();
-		}
+	if (self->bone->childbase.first){
+		list = PyList_New(0);
+		if (!PyBone_ChildrenAsList(list, &self->bone->childbase))
+			return NULL;
+		return EXPP_incr_ret(list);
+	}else{
+		return EXPP_incr_ret(Py_None);
 	}
 }
-
-//--------------- BPy_Bone.getRestMatrix()-------------------------
-
-/* we now got BoneSpace, ArmatureSpace, PoseSpace, WorldSpace.
-   check DNA_armature.h, only read from data itself, dont use evil calls
-   that evaluate animation system anymore (ton) */
-
-static PyObject *Bone_getRestMatrix( BPy_Bone * self, PyObject * args )
+//------------------------Bone.children (set)
+static int Bone_setChildren(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------------Bone.matrix (get)
+static PyObject *Bone_getMatrix(BPy_Bone *self, void *closure)
 {
-	char *local = "worldspace";
-	char *bonespace = "bonespace";
-	char *worldspace = "worldspace";
-	PyObject *matrix;
-	float delta[3];
-	float root[3];
-	float p_root[3];
+    return Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", newMatrixObject((float*)self->bone->bone_mat, 3,3, Py_WRAP),
+		"ARMATURESPACE", newMatrixObject((float*)self->bone->arm_mat, 4,4, Py_WRAP));
+}
+//------------------------Bone.matrix (set)
+static int Bone_setMatrix(BPy_Bone *self, PyObject *value, void *closure)
+{  
+  return EXPP_intError(PyExc_ValueError, "%s%s", 
+		sBoneError, "You must first call Armature.makeEditable() to edit the armature");
+}
+//------------------TYPE_OBECT IMPLEMENTATION--------------------------
+//------------------------tp_getset
+//This contains methods for attributes that require checking
+static PyGetSetDef BPy_Bone_getset[] = {
+	{"name", (getter)Bone_getName, (setter)Bone_setName, 
+		"The name of the bone", NULL},
+	{"roll", (getter)Bone_getRoll, (setter)Bone_setRoll, 
+		"The roll (or rotation around the axis) of the bone", NULL},
+	{"head", (getter)Bone_getHead, (setter)Bone_setHead, 
+		"The start point of the bone", NULL},
+	{"tail", (getter)Bone_getTail, (setter)Bone_setTail, 
+		"The end point of the bone", NULL},
+	{"matrix", (getter)Bone_getMatrix, (setter)Bone_setMatrix, 
+		"The matrix of the bone", NULL},
+	{"weight", (getter)Bone_getWeight, (setter)Bone_setWeight, 
+		"The weight of the bone in relation to a parented mesh", NULL},
+	{"deform_dist", (getter)Bone_getDeform_dist, (setter)Bone_setDeform_dist, 
+		"The distance at which deformation has effect", NULL},
+	{"subdivisions", (getter)Bone_getSubdivisions, (setter)Bone_setSubdivisions, 
+		"The number of subdivisions (for B-Bones)", NULL},
+	{"options", (getter)Bone_getOptions, (setter)Bone_setOptions, 
+		"The options effective on this bone", NULL},
+	{"parent", (getter)Bone_getParent, (setter)Bone_setParent, 
+		"The parent bone of this bone", NULL},
+	{"children", (getter)Bone_getChildren, (setter)Bone_setChildren, 
+		"The child bones of this bone", NULL},
+	{NULL}
+};
 
-	if( !PyArg_ParseTuple( args, "|s", &local ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected string" ) );
+//------------------------tp_new
+static PyObject *Bone_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
+{
+	return EXPP_incr_ret(Py_None);
+}
 
-	if( !BLI_streq( local, bonespace ) && !BLI_streq( local, worldspace ) )
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected 'bonespace' or 'worldspace'" ) );
+//------------------------tp_richcompare
+//This method allows the object to use comparison operators
+static PyObject *Bone_richcmpr(BPy_Bone *self, PyObject *v, int op)
+{
+	return EXPP_incr_ret(Py_None);
+}
 
-	matrix = newMatrixObject( NULL, 4, 4 , Py_NEW);
+//------------------------tp_repr
+//This is the string representation of the object
+static PyObject *Bone_repr(BPy_Bone *self)
+{
+	return PyString_FromFormat( "[Bone \"%s\"]", self->bone->name ); 
+}
 
-	if( !self->bone ) {	//test to see if linked to armature
-		//use python vars
-		if( BLI_streq( local, worldspace ) ) {
-			VecSubf( delta, self->tail->vec, self->head->vec );
-//			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
-//					   matrix, delta, self->roll );
-		} else if( BLI_streq( local, bonespace ) ) {
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"bone not yet linked to an armature....'" ) );
-		}
-	} else {
-		//use bone datastruct
-		if( BLI_streq( local, worldspace ) ) {
-			get_objectspace_bone_matrix( self->bone,
-						    ( float ( * )[4] ) *( ( MatrixObject * )
-							matrix )->matrix, 1,
-						     1 );
-		} else if( BLI_streq( local, bonespace ) ) {
-			VecSubf( delta, self->bone->tail, self->bone->head );
-//			make_boneMatrixvr( (float ( * )[4]) *( ( MatrixObject * ) matrix )->
-//					   matrix, delta, self->bone->roll );
-			if( self->bone->parent ) {
-				
-//				get_bone_root_pos( self->bone, root, 1 );
-//				get_bone_root_pos( self->bone->parent, p_root,
-//						   1 );
-				VecSubf( delta, root, p_root );
-				VECCOPY( ( ( MatrixObject * ) matrix )->
-					 matrix[3], delta );
-			}
-		}
-	}
+//------------------------tp_dealloc
+//This tells how to 'tear-down' our object when ref count hits 0
+static void Bone_dealloc(BPy_Bone * self)
+{
+	((PyObject*)self)->ob_type->tp_free((PyObject*)self);
+	return;
+}
 
-	return matrix;
+//------------------------tp_doc
+//The __doc__ string for this object
+static char BPy_Bone_doc[] = "This object wraps a Blender Boneobject.\n\
+					  This object is a subobject of the Armature object.";
+
+//------------------TYPE_OBECT DEFINITION--------------------------
+PyTypeObject Bone_Type = {
+	PyObject_HEAD_INIT(NULL)       //tp_head
+	0,                             //tp_internal
+	"Bone",                        //tp_name
+	sizeof(BPy_Bone),              //tp_basicsize
+	0,                             //tp_itemsize
+	(destructor)Bone_dealloc,      //tp_dealloc
+	0,                             //tp_print
+	0,                             //tp_getattr
+	0,                             //tp_setattr
+	0,                             //tp_compare
+	(reprfunc) Bone_repr,          //tp_repr
+	0,                             //tp_as_number
+	0,                             //tp_as_sequence
+	0,                             //tp_as_mapping
+	0,                             //tp_hash
+	0,                             //tp_call
+	0,                             //tp_str
+	0,                             //tp_getattro
+	0,                             //tp_setattro
+	0,                             //tp_as_buffer
+	Py_TPFLAGS_DEFAULT,            //tp_flags
+	BPy_Bone_doc,                  //tp_doc
+	0,                             //tp_traverse
+	0,                             //tp_clear
+	(richcmpfunc)Bone_richcmpr,    //tp_richcompare
+	0,                             //tp_weaklistoffset
+	0,                             //tp_iter
+	0,                             //tp_iternext
+	0,                             //tp_methods
+	0,                             //tp_members
+	BPy_Bone_getset,               //tp_getset
+	0,                             //tp_base
+	0,                             //tp_dict
+	0,                             //tp_descr_get
+	0,                             //tp_descr_set
+	0,                             //tp_dictoffset
+	0,                             //tp_init
+	0,                             //tp_alloc
+	(newfunc)Bone_new,             //tp_new
+	0,                             //tp_free
+	0,                             //tp_is_gc
+	0,                             //tp_bases
+	0,                             //tp_mro
+	0,                             //tp_cache
+	0,                             //tp_subclasses
+	0,                             //tp_weaklist
+	0                              //tp_del
+};
+//------------------VISIBLE PROTOTYPE IMPLEMENTATION-----------------------
+//-----------------(internal)
+//Converts a struct Bone to a BPy_Bone
+PyObject *PyBone_FromBone(struct Bone *bone)
+{
+	BPy_Bone *py_Bone = NULL;
+
+	py_Bone = (BPy_Bone*)Bone_Type.tp_alloc(&Bone_Type, 0); //*new*
+	if (py_Bone == NULL)
+		goto RuntimeError;
+
+	py_Bone->bone = bone;
+
+	return (PyObject *) py_Bone;
+
+RuntimeError:
+	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
+		sBoneError, "PyBone_FromBone: ", "Internal Error Ocurred");
+}
+//-----------------(internal)
+//Converts a PyBone to a bBone
+struct Bone *PyBone_AsBone(BPy_Bone *py_Bone)
+{
+	return (py_Bone->bone);
 }

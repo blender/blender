@@ -23,13 +23,80 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * This is a new part of Blender.
- *
- * Contributor(s): Jordi Rovira i Bonet, Joseph Gilbert
+ * Contributor(s): Joseph Gilbert
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
+#ifndef EXPP_BONE_H
+#define EXPP_BONE_H
+
+#include <Python.h>
+#include "DNA_armature_types.h"
+
+//-------------------TYPE CHECKS---------------------------------
+#define BoneObject_Check(v) ((v)->ob_type == &Bone_Type)
+#define EditBoneObject_Check(v) ((v)->ob_type == &EditBone_Type)
+//-------------------TYPEOBJECT----------------------------------
+PyTypeObject EditBone_Type;
+PyTypeObject Bone_Type;
+//-------------------STRUCT DEFINITION----------------------------
+typedef struct {
+	PyObject_HEAD
+	Bone * bone;
+} BPy_Bone;
+
+typedef struct {
+	PyObject_HEAD
+	struct Bone *temp; //temp tracking
+	char parent[32];
+	char name[32];
+	float roll;
+	float head[3];
+	float tail[3];
+	int flag;
+	float length;
+	float dist;
+	float weight;
+	float xwidth;
+	float zwidth;
+	float ease1;
+	float ease2;
+	float rad_head;
+	float rad_tail;
+	short segments;
+} BPy_EditBone;
+//-------------------VISIBLE PROTOTYPES-------------------------
+PyObject *PyBone_FromBone(struct Bone *bone);
+struct Bone *PyBone_AsBone(BPy_Bone *py_Bone);
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 #ifndef EXPP_BONE_H
 #define EXPP_BONE_H
 
@@ -73,3 +140,5 @@ PyObject *Bone_Init( void );
 int updateBoneData( BPy_Bone * self, Bone * parent );
 
 #endif
+
+*/

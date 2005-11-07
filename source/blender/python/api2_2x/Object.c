@@ -638,7 +638,6 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 	}
 	object = alloc_libblock( &( G.main->object ), ID_OB, name );
 
-	object->id.us = 0;
 	object->flag = 0;
 	object->type = (short)type;
 
@@ -724,6 +723,7 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 			( BPy_Object * ) PyObject_NEW( BPy_Object,
 						       &Object_Type );
 		blen_object->object = object;
+		object->id.us++;
 
 		return ( ( PyObject * ) blen_object );
 	} else {
@@ -747,6 +747,7 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 				( BPy_Object * ) PyObject_NEW( BPy_Object,
 							       &Object_Type );
 			blen_object->object = object;
+			object->id.us++;
 
 			PyList_SetItem( obj_list, index,
 					( PyObject * ) blen_object );
@@ -1022,7 +1023,7 @@ static PyObject *Object_getData( BPy_Object *self, PyObject *args, PyObject *kwd
 
 	switch ( object->type ) {
 	case OB_ARMATURE:
-		data_object = Armature_CreatePyObject( object->data );
+		data_object = PyArmature_FromArmature( object->data );
 		break;
 	case OB_CAMERA:
 		data_object = Camera_CreatePyObject( object->data );
@@ -1479,10 +1480,9 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected an object as argument" ) );
 	}
-
-	if( Armature_CheckPyObject( py_data ) )
-		data = ( void * ) Armature_FromPyObject( py_data );
-	else if( Camera_CheckPyObject( py_data ) )
+	if( ArmatureObject_Check( py_data ) )
+		data = ( void * ) PyArmature_AsArmature((BPy_Armature*)py_data);
+	if( Camera_CheckPyObject( py_data ) )
 		data = ( void * ) Camera_FromPyObject( py_data );
 	else if( Lamp_CheckPyObject( py_data ) )
 		data = ( void * ) Lamp_FromPyObject( py_data );
@@ -2594,6 +2594,7 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 		return ( NULL );
 	}
 	blen_object->object = obj;
+	obj->id.us++;
 	return ( ( PyObject * ) blen_object );
 }
 
@@ -2651,6 +2652,7 @@ Object *GetObjectByName( char *name )
 /*****************************************************************************/
 static void Object_dealloc( BPy_Object * obj )
 {
+	obj->object->id.us--;
 	PyObject_DEL( obj );
 }
 
