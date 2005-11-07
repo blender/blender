@@ -3462,6 +3462,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PADPLUSKEY:
 			if(sseq->mainb) {
 				sseq->zoom++;
+				if(sseq->zoom==-1) sseq->zoom= 1;
 				if(sseq->zoom>8) sseq->zoom= 8;
 			}
 			else {
@@ -3487,7 +3488,8 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case PADMINUS:
 			if(sseq->mainb) {
 				sseq->zoom--;
-				if(sseq->zoom<1) sseq->zoom= 1;
+				if(sseq->zoom==0) sseq->zoom= -2;
+				if(sseq->zoom<-8) sseq->zoom= -8;
 			}
 			else {
 				if((G.qual==LR_SHIFTKEY))

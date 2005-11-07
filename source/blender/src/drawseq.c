@@ -471,6 +471,7 @@ static void draw_image_seq(ScrArea *sa)
 	StripElem *se;
 	struct ImBuf *ibuf;
 	int x1, y1;
+	float zoom;
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -492,13 +493,15 @@ static void draw_image_seq(ScrArea *sa)
 	sseq= sa->spacedata.first;
 	if(sseq==0) return;
 
+	if (sseq->zoom > 0) zoom = sseq->zoom;
+	else zoom = -1.0/sseq->zoom;
 	/* calc location */
-	x1= (sa->winx-sseq->zoom*ibuf->x)/2;
-	y1= (sa->winy-sseq->zoom*ibuf->y)/2;
+	x1= (sa->winx-zoom*ibuf->x)/2;
+	y1= (sa->winy-zoom*ibuf->y)/2;
 
 	/* needed for gla draw */
 	glaDefine2DArea(&curarea->winrct);
-	glPixelZoom((float)sseq->zoom, (float)sseq->zoom);
+	glPixelZoom(zoom, zoom);
 	
 	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
 	
