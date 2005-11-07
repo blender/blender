@@ -33,6 +33,7 @@
 #include "constant.h" /*This must come first */
 
 #include "gen_utils.h"
+#include "BLI_blenlib.h"
 
 PyTypeObject constant_Type;
 
@@ -134,8 +135,31 @@ static PyObject *constant_getAttr(BPy_constant * self, char *name)
 //------------------------tp_repr
 static PyObject *constant_repr(BPy_constant * self)
 {
-	PyObject *repr = PyObject_Repr(self->dict);
-	return repr;
+	char buffer[128], str[4096];
+	PyObject *key, *value;
+	int pos = 0;
+
+	BLI_strncpy(str,"",4096);
+	sprintf(buffer, "[Constant: ");
+	strcat(str,buffer);
+	if (PyDict_Contains(self->dict, PyString_FromString("name"))){
+		value = PyDict_GetItemString(self->dict, "name");
+		sprintf(buffer, "%s", PyString_AsString(value));
+		strcat(str,buffer);
+	}else{
+		sprintf(buffer, "{");
+		strcat(str,buffer);
+		memset(buffer,0,128);
+		while (PyDict_Next(self->dict, &pos, &key, &value)) {
+			strcat(str,buffer);
+			sprintf(buffer, "%s, ", PyString_AsString(key));
+		}
+		sprintf(buffer, "%s}", PyString_AsString(key));
+		strcat(str,buffer);
+	}
+	sprintf(buffer, "]");
+	strcat(str,buffer);
+	return PyString_FromString(str);
 }
 //------------------------tp_dealloc
 static void constant_dealloc(BPy_constant * self)
