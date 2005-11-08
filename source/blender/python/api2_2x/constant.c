@@ -135,31 +135,24 @@ static PyObject *constant_getAttr(BPy_constant * self, char *name)
 //------------------------tp_repr
 static PyObject *constant_repr(BPy_constant * self)
 {
-	char buffer[128], str[4096];
-	PyObject *key, *value, *keys;
+	char str[4096];
+	PyObject *key, *value;
 	int pos = 0;
 
-	BLI_strncpy(str,"",4096);
-	sprintf(buffer, "[Constant: ");
-	strcat(str,buffer);
-	keys = PyDict_Keys(self->dict);
-	if (PySequence_Contains(keys, PyString_FromString("name"))){
-		value = PyDict_GetItemString(self->dict, "name");
-		sprintf(buffer, "%s", PyString_AsString(value));
-		strcat(str,buffer);
-	}else{
-		sprintf(buffer, "{");
-		strcat(str,buffer);
-		memset(buffer,0,128);
+	BLI_strncpy(str,"[Constant: ",4096);
+	value = PyDict_GetItem( self->dict, PyString_FromString("name") );
+	if(value) {
+		strcat(str, PyString_AsString(value));
+	} else {
+		strcat(str,"{");
 		while (PyDict_Next(self->dict, &pos, &key, &value)) {
-			strcat(str,buffer);
-			sprintf(buffer, "%s, ", PyString_AsString(key));
+			strcat (str, PyString_AsString(key));
+			strcat (str, ", ");
 		}
-		sprintf(buffer, "%s}", PyString_AsString(key));
-		strcat(str,buffer);
+		strcat(str, PyString_AsString(key));
+		strcat(str,"}");
 	}
-	sprintf(buffer, "]");
-	strcat(str,buffer);
+	strcat(str, "]");
 	return PyString_FromString(str);
 }
 //------------------------tp_dealloc
