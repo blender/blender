@@ -210,6 +210,7 @@ void CutEdgeloop(int numcuts)
 	short mvalo[2] = {0,0}, mval[2];
 	short event,val,choosing=1,cancel=0,dist,cuthalf = 0,smooth=0;
 	char msg[128];
+	short hasHidden = 0;
 	
 	selectmode = G.scene->selectmode;
 		
@@ -366,6 +367,15 @@ void CutEdgeloop(int numcuts)
 	/* select edge ring */
 	edgering_sel(nearest, 1, 0);
 	
+	/* Deselect Hidden Edges */
+	for(eed=em->edges.first; eed; eed = eed->next){
+		if(eed->h == 1 || (eed->v1->h == 1 || eed->v2->h == 1)){
+			EM_select_edge(eed,0);	
+			hasHidden = 1;
+		}
+	}	
+	
+	
 	/* now cut the loops */
 	if(smooth){
 		esubdivideflag(SELECT,0,B_SMOOTH,numcuts,SUBDIV_SELECT_INNER_SEL);
@@ -373,7 +383,7 @@ void CutEdgeloop(int numcuts)
 		esubdivideflag(SELECT,0,0,numcuts,SUBDIV_SELECT_INNER_SEL);
 	}
 	/* if this was a single cut, enter edgeslide mode */
-	if(numcuts == 1){
+	if(numcuts == 1 && hasHidden == 0){
 		if(cuthalf)
 			EdgeSlide(1,0.0);
 		else {
