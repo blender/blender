@@ -167,11 +167,16 @@ static void edgering_sel(EditEdge *startedge, int select, int previewlines)
 			for(efa= em->faces.first; efa; efa= efa->next) {
 				if(efa->v4 == NULL) {  continue; }
 				if(efa->e1->f2 == 1){
+					if(efa->e1->h == 1 || efa->e3->h == 1 )
+						continue;
+					
 					v[0][0] = efa->v1;
 					v[0][1] = efa->v2;
 					v[1][0] = efa->v4;
 					v[1][1] = efa->v3;
 				} else if(efa->e2->f2 == 1){
+					if(efa->e2->h == 1 || efa->e4->h == 1)
+						continue;
 					v[0][0] = efa->v2;
 					v[0][1] = efa->v3;
 					v[1][0] = efa->v1;
