@@ -104,8 +104,8 @@
 #define MESH_TOOL_REMDOUB              4
 #define MESH_TOOL_FILL                 5
 #define MESH_TOOL_RECALCNORM           6
-#define MESH_TOOL_TRIANGLE             7
-#define MESH_TOOL_QUAD                 8
+#define MESH_TOOL_TRI2QUAD             7
+#define MESH_TOOL_QUAD2TRI             8
 
 /************************************************************************
  *
@@ -219,38 +219,63 @@ static void mesh_update( Mesh * mesh )
 	Object_updateDag( (void *) mesh );
 }
 
-#ifdef CHECK_DVERTS /* not clear if this code is needed */
-
-/*
- * if verts have been added or deleted, fix dverts also
- */
-
-static void check_dverts(Mesh *me, int old_totvert)
+static void delete_dverts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 {
-	int totvert = me->totvert;
+	unsigned int *tmpvert;
+	int i;
+	char state;
+	MDeformVert *newvert, *srcvert, *dstvert;
+	int count;
 
-	/* if all verts have been deleted, free old dverts */
-	if (totvert == 0) free_dverts(me->dvert, old_totvert);
-	/* if verts have been added, expand me->dvert */
-	else if (totvert > old_totvert) {
-		MDeformVert *mdv = me->dvert;
-		me->dvert = NULL;
-		create_dverts(me);
-		copy_dverts(me->dvert, mdv, old_totvert);
-		free_dverts(mdv, old_totvert);
-	}
-	/* if verts have been deleted, shrink me->dvert */
-	else {
-		MDeformVert *mdv = me->dvert;
-		me->dvert = NULL;
-		create_dverts(me);
-		copy_dverts(me->dvert, mdv, totvert);
-		free_dverts(mdv, old_totvert);
+	newvert = (MDeformVert *)MEM_mallocN(
+			sizeof( MDeformVert )*( mesh->totvert-to_delete ), "MDeformVerts" );
+
+	/*
+	 * do "smart compaction" of the table; find and copy groups of vertices
+	 * which are not being deleted
+	 */
+
+	dstvert = newvert;
+	srcvert = mesh->dvert;
+	tmpvert = vert_table;
+	count = 0;
+	state = 1;
+	for( i = 0; i < mesh->totvert; ++i, ++tmpvert ) {
+		switch( state ) {
+		case 0:		/* skipping verts */
+			if( *tmpvert == UINT_MAX )
+				++count;
+			else {
+				srcvert = mesh->dvert + i;
+				count = 1;
+				state = 1;
+			}
+			break;
+		case 1:		/* gathering verts */
+			if( *tmpvert != UINT_MAX ) {
+				++count;
+			} else {
+				if( count ) {
+					memcpy( dstvert, srcvert, sizeof( MDeformVert ) * count );
+					dstvert += count;
+				}
+				count = 1;
+				state = 0;
+			}
+		}
+		if( !state && mesh->dvert[i].dw )
+			MEM_freeN( mesh->dvert[i].dw );
 	}
 
-	return;
+	/* if we were gathering verts at the end of the loop, copy those */
+	if( state && count )
+		memcpy( dstvert, srcvert, sizeof( MDeformVert ) * count );
+
+	/* delete old vertex list, install the new one */
+
+	MEM_freeN( mesh->dvert );
+	mesh->dvert = newvert;
 }
-#endif
 
 /*
  * delete vertices from mesh, then delete edges/keys/faces which used those
@@ -287,11 +312,17 @@ static void delete_verts( Mesh *mesh, unsigned int *vert_table, int to_delete )
 	 * (9) allocate new face list
 	 * (10) do "smart copy" of face
 	 */
+
 	unsigned int *tmpvert;
 	int i;
 	char state;
 	MVert *newvert, *srcvert, *dstvert;
 	int count;
+
+
+	/* is there are deformed verts also, delete them first */
+	if( mesh->dvert )
+		delete_dverts( mesh, vert_table, to_delete );
 
 	newvert = (MVert *)MEM_mallocN(
 			sizeof( MVert )*( mesh->totvert-to_delete ), "MVerts" );
@@ -1642,9 +1673,6 @@ static PyObject *MVertSeq_extend( BPy_MVertSeq * self, PyObject *args )
 	/* set final vertex list size */
 	mesh->totvert = newlen;
 
-#ifdef CHECK_DVERTS
-	check_dverts( mesh, mesh->totvert - len );
-#endif
 	mesh_update( mesh );
 
 	Py_DECREF ( args );
@@ -3186,10 +3214,10 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
-	if( !PySequence_Check( value ) ||
+	if( !PyTuple_Check( value ) ||
 			EXPP_check_sequence_consistency( value, &vector_Type ) != 1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-					    "expected sequence of vectors" );
+					    "expected tuple of vectors" );
 
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
 	if( length != PyTuple_Size( value ) )
@@ -4613,6 +4641,9 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		dlm = dm->convertToDispListMesh( dm, 0 );
 		displistmesh_to_mesh( dlm, tmpmesh );
 		dm->release( dm );
+
+		/* take control of mesh before object is freed */
+		tmpobj->data = NULL;
 		free_libblock_us( &G.main->object, tmpobj );
 		break;
  	default:
@@ -4629,6 +4660,9 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	/* remove the temporary mesh */
 	BLI_remlink( &G.main->mesh, tmpmesh );
 	MEM_freeN( tmpmesh );
+
+	/* make sure materials get updated in objects */
+    	test_object_materials( ( ID * ) self->mesh );
 
 	mesh_update( self->mesh );
 	return EXPP_incr_ret( Py_None );
@@ -5141,11 +5175,11 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 	case MESH_TOOL_RECALCNORM:
 		righthandfaces( *((int *)args[0]) );
 		break;
-	case MESH_TOOL_TRIANGLE:
-		convert_to_triface(0);
-		break;
-	case MESH_TOOL_QUAD:
+	case MESH_TOOL_TRI2QUAD:
 		join_triangles();
+		break;
+	case MESH_TOOL_QUAD2TRI:
+		convert_to_triface( *((int *)args[0]) );
 		break;
 	}
 	exit_editmode( 1 );
@@ -5223,6 +5257,35 @@ static PyObject *Mesh_recalcNormals( BPy_Mesh * self, PyObject *args )
 }
 
 /*
+ * "Quads to Triangles"  function
+ */
+
+static PyObject *Mesh_quad2tri( BPy_Mesh * self, PyObject *args )
+{
+	int kind = 0;
+	void *params = &kind;
+
+	if( !PyArg_ParseTuple( args, "|i", &kind ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected nothing or an int in range [0,1]" );
+
+	if( kind < 0 || kind > 1 )
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected int in range [0,1]" );
+
+	return Mesh_Tools( self, MESH_TOOL_QUAD2TRI, &params );
+}
+
+/*
+ * "Triangles to Quads"  function
+ */
+
+static PyObject *Mesh_tri2quad( BPy_Mesh * self )
+{
+	return Mesh_Tools( self, MESH_TOOL_TRI2QUAD, NULL );
+}
+
+/*
  * "Flip normals" function
  */
 
@@ -5247,24 +5310,6 @@ static PyObject *Mesh_toSphere( BPy_Mesh * self )
 static PyObject *Mesh_fill( BPy_Mesh * self )
 {
 	return Mesh_Tools( self, MESH_TOOL_FILL, NULL );
-}
-
-/*
- * "Triangles to Quads"  function
- */
-
-static PyObject *Mesh_tri2quad( BPy_Mesh * self )
-{
-	return Mesh_Tools( self, MESH_TOOL_TRIANGLE, NULL );
-}
-
-/*
- * "Quads to Triangles"  function
- */
-
-static PyObject *Mesh_quad2tri( BPy_Mesh * self )
-{
-	return Mesh_Tools( self, MESH_TOOL_QUAD, NULL );
 }
 
 #endif
@@ -5308,11 +5353,11 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Moves selected vertices outward in a spherical shape (experimental)"},
 	{"fill", (PyCFunction)Mesh_fill, METH_NOARGS,
 		"Scan fill a closed edge loop (experimental)"},
-	{"quadToTriangle", (PyCFunction)Mesh_tri2quad, METH_NOARGS,
-		"Convert selected quads to triangles (experimental)"},
-	{"triangleToQuad", (PyCFunction)Mesh_quad2tri, METH_NOARGS,
+	{"triangleToQuad", (PyCFunction)Mesh_tri2quad, METH_VARARGS,
 		"Convert selected triangles to quads (experimental)"},
-	{"subdivide", (PyCFunction)Mesh_subdivide, METH_VARARGS,
+	{"quadToTriangle", (PyCFunction)Mesh_quad2tri, METH_VARARGS,
+		"Convert selected quads to triangles (experimental)"},
+	{"subdivide", (PyCFunction)Mesh_subdivide, METH_NOARGS,
 		"Subdivide selected edges in a mesh (experimental)"},
 	{"remDoubles", (PyCFunction)Mesh_removeDoubles, METH_VARARGS,
 		"Removes duplicates from selected vertices (experimental)"},
@@ -5337,16 +5382,20 @@ static PyObject *Mesh_getVerts( BPy_Mesh * self )
 
 static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 {
-	static int disabled = 0;
 	MVert *dst;
 	MVert *src;
 	char err[256];
 	int i;
 	
-	if( disabled ) {
-		sprintf( err, "attribute 'verts' of '%s' objects is not writable",
-				self->ob_type->tp_name );
-		return EXPP_ReturnIntError( PyExc_TypeError, err );
+	/* special case if None: delete the mesh */
+	if( args == Py_None ) {
+		Mesh *me = self->mesh;
+		free_mesh( me );
+        me->mvert = me->medge = me->mface = me->tface = me->dvert = NULL;
+        me->mcol = me->msticky = me->mat = me->bb = NULL;
+		me->totvert = me->totedge = me->totface = me->totcol = 0;
+		mesh_update( me );
+		return 0;
 	}
 
 	if( PyList_Check( args ) ) {
@@ -5435,7 +5484,7 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
 	matlist = EXPP_newMaterialList_fromPyList( value );
 	EXPP_incr_mats_us( matlist, len );
 	self->mesh->mat = matlist;
-    self->mesh->totcol = (short)len;
+    	self->mesh->totcol = (short)len;
 
 /**@ This is another ugly fix due to the weird material handling of blender.
     * it makes sure that object material lists get updated (by their length)
@@ -5443,7 +5492,7 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
     * It just stupidly runs through all objects...BAD BAD BAD.
     */
 
-    test_object_materials( ( ID * ) self->mesh );
+    	test_object_materials( ( ID * ) self->mesh );
 
 	return 0;
 }

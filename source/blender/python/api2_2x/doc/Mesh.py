@@ -242,6 +242,19 @@ class MVertSeq:
       pvert[1].co[0] += 2             # change the vertex's X location
       me.verts[-1] = pvert[1]         # put change to second vertex into mesh
 
+    @note: The mesh can be "cleared" by assigning B{None} to the mesh's vertex
+    list.  This does not delete the Blender mesh object, it only deletes all
+    the memory allocated to the mesh.  The result is equivalent to calling 
+    Mesh.New().  The intent is to allow users writing exporters to free memory
+    after it is used in a quick and simple way.
+
+    Example::
+      import Blender
+      from Blender import Mesh
+
+      me = Mesh.Get("Plane")          # get the mesh data called "Plane"
+      me.verts = None                 # delete all the mesh's attributes
+
   """
 
   def extend(coords):
@@ -835,10 +848,13 @@ class Mesh:
     An exception is thrown if called while in EditMode.
     """
 
-  def quadToTriangle():
+  def quadToTriangle(mode=0):
     """
     Convert selected quads to triangles. Experimental mesh tool.
     An exception is thrown if called while in EditMode.
+    @type mode: int
+    @param mode: specifies whether a to add the new edge between the
+    closest (=0) or farthest(=1) vertices.
     """
 
   def subdivide(beauty=0):
