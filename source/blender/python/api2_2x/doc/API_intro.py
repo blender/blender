@@ -48,7 +48,7 @@ The Blender Python API Reference
   - L{Window}
      - L{Theme}
   - L{World}
-  - L{sys}
+  - L{sys<Sys>}
 
  Additional information:
  -----------------------
