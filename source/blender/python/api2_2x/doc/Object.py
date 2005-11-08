@@ -168,8 +168,8 @@ class Object:
     @ivar track: The object tracking this object. (Read-only)
     @ivar data: The data of the object. (Read-only)
     @ivar ipo: The ipo data associated with the object. (Read-only)
-    @ivar mat: The matrix of the object relative to its parent. (Read-only)
-    @ivar matrix: The matrix of the object in world space. (Read-only)
+    @ivar mat: alias for L{matrix<Object.Object.matrix>}: the matrix of the object in world space. (Read-only)
+    @ivar matrix: The matrix of the object in world space, same as L{matrixWorld<Object.Object.matrixWorld>}. (Read-only)
     @ivar matrixLocal: The matrix of the object relative to its parent. (Read-only)
     @ivar matrixWorld: The matrix of the object in world space. (Read-only)
     @ivar colbits: The Material usage mask. A set bit #n means: the Material
