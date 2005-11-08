@@ -1722,7 +1722,7 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 	}
 	if (seq->strobe < 1.0) seq->strobe = 1.0;
 	if (seq->strobe > 1.0) {
-		nr -= (int)fmodf(nr, seq->strobe);
+		nr -= (int)fmod((double)nr, (double)seq->strobe);
 	}
 
 	se+= nr; /* don't get confused by the increment, this is the same as strip->stripdata[nr], which works on some compilers...*/
