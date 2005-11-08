@@ -2613,8 +2613,8 @@ void addvert_Nurb(int mode)
 			memcpy(newbezt+1, bezt, nu->pntsu*sizeof(BezTriple));
 			*newbezt= *bezt;
 			newbezt->f1= newbezt->f2= newbezt->f3= 1;
-			if(bezt->h1 & 1) newbezt->h1= newbezt->h2= HD_AUTO;
-			else newbezt->h1= newbezt->h2= HD_VECT;
+			if(newbezt >= 0) newbezt->h2= newbezt->h1;
+			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			VECCOPY(temp, bezt->vec[1]);
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
@@ -2631,8 +2631,8 @@ void addvert_Nurb(int mode)
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
 			newbezt->f1= newbezt->f2= newbezt->f3= 1;
-			if(newbezt->h2 & 1) newbezt->h1= newbezt->h2= HD_AUTO;
-			else newbezt->h1= newbezt->h2= HD_VECT;
+			if(newbezt >= 0) newbezt->h2= newbezt->h1;
+			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			bezt= nu->bezt+nu->pntsu-1;
 		}
 		else bezt= 0;
