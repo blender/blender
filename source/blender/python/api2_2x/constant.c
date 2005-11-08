@@ -136,13 +136,14 @@ static PyObject *constant_getAttr(BPy_constant * self, char *name)
 static PyObject *constant_repr(BPy_constant * self)
 {
 	char buffer[128], str[4096];
-	PyObject *key, *value;
+	PyObject *key, *value, *keys;
 	int pos = 0;
 
 	BLI_strncpy(str,"",4096);
 	sprintf(buffer, "[Constant: ");
 	strcat(str,buffer);
-	if (PyDict_Contains(self->dict, PyString_FromString("name"))){
+	keys = PyDict_Keys(self->dict);
+	if (PySequence_Contains(keys, PyString_FromString("name"))){
 		value = PyDict_GetItemString(self->dict, "name");
 		sprintf(buffer, "%s", PyString_AsString(value));
 		strcat(str,buffer);
