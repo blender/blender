@@ -1720,8 +1720,10 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 		else if(cfra >= seq->start+seq->len-1) nr= seq->len-1;
 		else nr= cfra-seq->start;
 	}
-	if (seq->strobe == 0) seq->strobe = 1;
-	nr -= nr % seq->strobe;
+	if (seq->strobe < 1.0) seq->strobe = 1.0;
+	if (seq->strobe > 1.0) {
+		nr -= ((int)(nr*1000.0) % (int)(seq->strobe*1000.0))/1000.0;
+	}
 
 	se+= nr; /* don't get confused by the increment, this is the same as strip->stripdata[nr], which works on some compilers...*/
 	se->nr= nr;
