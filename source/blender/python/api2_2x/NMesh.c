@@ -2568,14 +2568,25 @@ static int assignFaceUV( TFace * tf, BPy_NMFace * nmface )
 {
 	PyObject *fuv, *tmp;
 	int i;
+	int len;
 
 	fuv = nmface->uv;
+	/* if no UV info, allows things to proceed as normal */
 	if( PySequence_Length( fuv ) == 0 ) {
-		PyErr_SetString ( PyExc_RuntimeError, "uv list is empty" );
-		return 0;
+		tf->uv[0][0] = 0.0f; tf->uv[0][1] = 1.0f;
+		tf->uv[1][0] = 0.0f; tf->uv[1][1] = 0.0f;
+		tf->uv[2][0] = 1.0f; tf->uv[2][1] = 0.0f;
+		tf->uv[3][1] = 1.0f; tf->uv[3][1] = 1.0f;
+		return 1;
 	}
+
+	/* if there are too many uv coordinates, only take the first 4 */
+	len = PySequence_Length( fuv );
+	if( len > 4 )
+		len = 4;
+
 	/* fuv = [(u_1, v_1), ... (u_n, v_n)] */
-	for( i = 0; i < PySequence_Length( fuv ); i++ ) {
+	for( i = 0; i < len; i++ ) {
 		tmp = PyList_GetItem( fuv, i );	/* stolen reference ! */
 		if( !PyArg_ParseTuple
 		    ( tmp, "ff", &( tf->uv[i][0] ), &( tf->uv[i][1] ) ) ) {
