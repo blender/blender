@@ -1960,8 +1960,13 @@ DerivedMesh *editmesh_get_derived_base(void)
 
 /* ************************* fluidsim bobj file handling **************************** */
 
-/* write .bobj.gz file for a mesh object */
+#ifdef WIN32
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
 
+/* write .bobj.gz file for a mesh object */
 void writeBobjgz(char *filename, struct Object *ob) 
 {
 	// const int debugBobjWrite = 0; // now handled by global debug level
@@ -2196,13 +2201,6 @@ typedef struct {
 	/* release whole mesh? */
 	char freeMesh;
 } FluidsimDerivedMesh;
-
-#ifdef WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
-
 
 static void fluidsimDM_release(DerivedMesh *dm)
 {
