@@ -2689,11 +2689,8 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 // everything in one file again
 #if defined(__APPLE_CC__)
 #define LBM_FORCEINCLUDE
-#include "olver_init.cpp"
-#include "olver_util.cpp"
-#ifdef ELBEEM_BLENDER
-REMOVE_FIX
-#endif
+#include "solver_init.cpp"
+#include "solver_util.cpp"
 #undef LBM_FORCEINCLUDE
 #endif  // defined(__APPLE_CC__)
 
