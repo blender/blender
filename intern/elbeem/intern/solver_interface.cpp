@@ -406,8 +406,9 @@ void LbmSolverInterface::initGeoTree(int id) {
 
 	if(mpGiTree != NULL) delete mpGiTree;
 	char treeFlag = (1<<(mGeoInitId+4));
-	mpGiTree = new ntlTree( 20, 4, // warning - fixed values for depth & maxtriangles here...
-												scene, treeFlag );
+	mpGiTree = new ntlTree( 
+			15, 8,  // warning - fixed values for depth & maxtriangles here...
+			scene, treeFlag );
 }
 
 /*****************************************************************************/

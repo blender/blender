@@ -1256,18 +1256,19 @@ static void softbody_bake(Object *ob)
 void fluidsimFilesel(char *selection)
 {
 	Object *ob = OBACT;
-	char srcDir[FILE_MAXDIR], srcFile[FILE_MAXFILE];
+	char srcDir[FILE_MAXDIR+FILE_MAXFILE], srcFile[FILE_MAXFILE];
 	char prefix[FILE_MAXFILE];
 	char *srch, *srchSub, *srchExt, *lastFound;
 	int isElbeemSurf = 0;
 
+	// check cfg?
+	// make prefix
 	strcpy(srcDir, selection);
 	BLI_splitdirstring(srcDir, srcFile);
-
-	// make prefix
 	strcpy(prefix, srcFile);
 	// check if this is a previously generated surface mesh file
-	srch = strstr(prefix, "_surface_");
+	srch = strstr(prefix, "fluidsurface_");
+	// TODO search from back...
 	if(srch) {
 		srchSub = strstr(prefix,"_preview_");
 		if(!srchSub) srchSub = strstr(prefix,"_final_");
@@ -1294,10 +1295,17 @@ void fluidsimFilesel(char *selection)
 		} 
 	}
 
-	// TODO check srcDir for file path from sce?
-	strcpy(ob->fluidsimSettings->surfdataDir, srcDir);
-	strcpy(ob->fluidsimSettings->surfdataPrefix, prefix);
-	//fprintf(stderr,"fluidsimFilesel: Using surfdata path '%s', prefix '%s' \n", ob->fluidsimSettings->surfdataDir,ob->fluidsimSettings->surfdataPrefix); // DEBUG
+	if(ob->fluidsimSettings) {
+		//strcpy(ob->fluidsimSettings->surfdataPath, selection);
+		strcpy(ob->fluidsimSettings->surfdataPath, srcDir);
+		//not necessary? strcat(ob->fluidsimSettings->surfdataPath, "/");
+		strcat(ob->fluidsimSettings->surfdataPath, prefix);
+
+		// redraw view & buttons...
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
 }
 
 void do_object_panels(unsigned short event)
@@ -1386,22 +1394,18 @@ void do_object_panels(unsigned short event)
 		/* write config files (currently no simulation) */
 		fluidsimBake(ob);
 		break;
-	case B_FLUIDSIM_SELDIR: 
-	{
-		char str[FILE_MAXDIR+FILE_MAXFILE];
-		ScrArea *sa = closest_bigger_area();
-		strcpy(str,"//");
-		ob= OBACT;
-		/* choose dir for surface files */
-		areawinset(sa->win);
-		activate_fileselect(FILE_SPECIAL, "Select Directory", str, fluidsimFilesel);
-	}
-		/* continue with redraw... so no brake here! */
+	case B_FLUIDSIM_SELDIR: {
+			ScrArea *sa = closest_bigger_area();
+			ob= OBACT;
+			/* choose dir for surface files */
+			areawinset(sa->win);
+			activate_fileselect(FILE_SPECIAL, "Select Directory", ob->fluidsimSettings->surfdataPath, fluidsimFilesel);
+		}
+		break;
 	case B_FLUIDSIM_FORCEREDRAW:
 		/* force redraw */
-		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 		allqueue(REDRAWVIEW3D, 0);
-		countall();
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		break;
 		
@@ -2015,9 +2019,8 @@ static void object_panel_fluidsim(Object *ob)
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 
-					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,	   0, yline,  20, objHeight,                     0, 0, 0, 0, 0,  "Select Directory (and/or filenames) to store baked fluid simulation files in");
-					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	        20, yline, 200, objHeight,fss->surfdataDir,    0.0,79.0, 0, 0, "Enter Directory to store baked fluid simulation files in");
-					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",        220, yline,  80, objHeight,fss->surfdataPrefix, 0.0,79.0, 0, 0, "Enter Filename-Prefix to store baked fluid simulation files with");
+					uiDefIconBut(block, BUT, B_FLUIDSIM_SELDIR, ICON_FILESEL,  0, yline,  20, objHeight,                   0, 0, 0, 0, 0,  "Select Directory (and/or filename prefix) to store baked fluid simulation files in");
+					uiDefBut(block, TEX,     B_FLUIDSIM_FORCEREDRAW,"",	      20, yline, 280, objHeight, fss->surfdataPath, 0.0,79.0, 0, 0,  "Enter Directory (and/or filename prefix) to store baked fluid simulation files in");
 					// FIXME what is the 79.0 above?
 				} else {
 					// advanced options
@@ -2027,7 +2030,6 @@ static void object_panel_fluidsim(Object *ob)
 					uiDefButF(block, NUM, B_DIFF, "Y:",   160, yline,  70,objHeight, &fss->gravy, -1000.1, 1000.1, 10, 0, "Gravity in Y direction");
 					uiDefButF(block, NUM, B_DIFF, "Z:",   230, yline,  70,objHeight, &fss->gravz, -1000.1, 1000.1, 10, 0, "Gravity in Z direction");
 					uiBlockEndAlign(block);
-					//yline -= lineHeight; yline -= separateHeight;
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 

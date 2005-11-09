@@ -62,7 +62,12 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 		if( (RFLAG(lev, i,j,k,workSet)&CFInter) && (!(RFLAG(lev, i,j,k,workSet)&CFNoNbEmpty)) ){
 			// no empty nb interface cells are treated as full
 			val =  (QCELL(lev, i,j,k,workSet, dFfrac)); 
-			//if( (!(RFLAG(lev, i,j,k,workSet)&CFNoBndFluid)) &&(RFLAG(lev, i,j,k,workSet)&CFNoNbFluid)){ val += D::mIsoValue; }
+			/* // flicker-test-fix: no real difference
+			if( (!(RFLAG(lev, i,j,k,workSet)&CFNoBndFluid)) && 
+						(RFLAG(lev, i,j,k,workSet)&CFNoNbFluid)   &&
+						(val<D::mIsoValue) ){ 
+					val = D::mIsoValue*1.1; }
+			// */
 		} else {
 			// fluid?
 			val = 1.0; ///27.0;
@@ -107,6 +112,7 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 		*D::mpIso->lbmGetData( i+1 , j+1 ,ZKOFF+ZKD1) += ( val * mIsoWeight[26] ); 
 	}
 
+	
 	/*
   for(int k=0;k<mLevel[mMaxRefine].lSizez-1;k++)
     for(int j=0;j<mLevel[mMaxRefine].lSizey-1;j++) {
@@ -213,7 +219,7 @@ vector<ntlGeometryObject*> LbmFsgrSolver<D>::getDebugObjects() {
 		debo.push_back( mpPreviewSurface );
 	}
 #ifndef ELBEEM_BLENDER
-	debo.push_back( mpTest );
+	if(mUseTestdata) debo.push_back( mpTest );
 #endif // ELBEEM_BLENDER
 	return debo; 
 }

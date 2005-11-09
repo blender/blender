@@ -68,9 +68,6 @@ typedef struct FluidsimSettings {
 	float gstar;
 	/* activate refinement? */
 	int maxRefine;
-	/* store output path, and file prefix for baked fluid surface */
-	/* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
-	char surfdataDir[160], surfdataPrefix[80];
 	
 	/* fluid object type settings */
 	/* gravity strength */
@@ -78,6 +75,10 @@ typedef struct FluidsimSettings {
 
 	/* store pointer to original mesh (for replacing the current one) */
 	struct Mesh *orgMesh;
+
+	/* store output path, and file prefix for baked fluid surface */
+	/* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
+	char surfdataPath[160+80];
 } FluidsimSettings;
 
 /* ob->fluidsimSettings defines */

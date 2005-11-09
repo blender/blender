@@ -13,18 +13,15 @@
 #include "ntl_blenderdumper.h"
 #include <stdlib.h>
 
+extern "C" void elbeemCheckDebugEnv(void);
+
 extern "C" 
 int performElbeemSimulation(char *cfgfilename) {
-	const char *strEnvName = "BLENDER_ELBEEMDEBUG";
 	gWorldState = SIMWORLD_INVALID;
 	strcpy(gWorldStringState,"[none]");
-	if(getenv(strEnvName)) {
-		gDebugLevel = atoi(getenv(strEnvName));
-		if(gDebugLevel< 0) gDebugLevel =  0;
-		if(gDebugLevel>10) gDebugLevel =  0; // only use valid values
-		if(gDebugLevel>0) debMsgStd("performElbeemSimulation",DM_NOTIFY,"Using envvar '"<<strEnvName<<"'='"<<getenv(strEnvName)<<"', debugLevel set to: "<<gDebugLevel<<"\n", 1);
-	}
+
 	//if(gDebugLevel>0) {
+	elbeemCheckDebugEnv();
 	debMsgStd("performElbeemSimulation",DM_NOTIFY,"Running El'Beem from Blender with file '"<< cfgfilename <<"', debugLevel:"<<gDebugLevel<<" ...\n", 2);
 	//}
 	// load given file in command line mode

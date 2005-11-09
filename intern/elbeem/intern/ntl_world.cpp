@@ -176,8 +176,10 @@ int ntlWorld::renderAnimation( void )
 	mThreadRunning = true; // not threaded, but still use the same flags
 	renderScene();
 	for(int i=0; ((i<mpGlob->getAniFrames()) && (!getStopRenderVisualization() )); i++) {
-		advanceSims();
-		renderScene();
+		if(!advanceSims()) {
+			renderScene();
+		} // else means sim panicked, so dont render...
+
 #if ELBEEM_BLENDER==1
 		// update gui display
 		simulateThreadIncreaseFrame();
@@ -305,6 +307,7 @@ int ntlWorld::advanceSims()
 	if(allPanic) {
 		warnMsg("ntlWorld::advanceSims","All sims panicked... stopping thread" );
 		setStopRenderVisualization( true );
+		return 1;
 	}
 	for(size_t i=0;i<mpSims->size();i++) {
 		SimulationObject *sim = (*mpSims)[i];

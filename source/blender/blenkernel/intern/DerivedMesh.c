@@ -1958,136 +1958,7 @@ DerivedMesh *editmesh_get_derived_base(void)
 }
 
 
-/* ***************************** fluidsim derived mesh ***************************** */
-
-typedef struct {
-	MeshDerivedMesh mdm;
-
-	/* release whole mesh? */
-	char freeMesh;
-} FluidsimDerivedMesh;
-
-#ifdef WIN32
-#ifndef snprintf
-#define snprintf _snprintf
-#endif
-#endif
-
-
-static void fluidsimDM_release(DerivedMesh *dm)
-{
-	FluidsimDerivedMesh *fsdm = (FluidsimDerivedMesh*) dm;
-	if(fsdm->freeMesh) {
-		// similar to free_mesh(fsdm->mdm.me) , but no things like unlink...
-		if(fsdm->mdm.me->mvert) MEM_freeN(fsdm->mdm.me->mvert);
-		if(fsdm->mdm.me->medge) MEM_freeN(fsdm->mdm.me->medge);
-		if(fsdm->mdm.me->mface) MEM_freeN(fsdm->mdm.me->mface);
-		MEM_freeN(fsdm->mdm.me);
-	}
-
-	if (fsdm->mdm.freeNors) MEM_freeN(fsdm->mdm.nors);
-	if (fsdm->mdm.freeVerts) MEM_freeN(fsdm->mdm.verts);
-	MEM_freeN(fsdm);
-}
-
-DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) {
-	int i;
-	Mesh *mesh = NULL; // srcob->ata; 
-	FluidsimDerivedMesh *fsdm;
-	MeshDerivedMesh *mdm = NULL;
-	float (*vertCos)[3];
-	int displaymode = 0;
-	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
-	char filename[FILE_MAXFILE],filepath[FILE_MAXFILE+FILE_MAXDIR];
-	char curWd[FILE_MAXDIR];
-	char debugStrBuffer[256];
-	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
-
-	if(!useRenderParams) {
-		displaymode = srcob->fluidsimSettings->guiDisplayMode;
-	} else {
-		displaymode = srcob->fluidsimSettings->renderDisplayMode;
-	}
-	
-	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
-	elbeemDebugOut(debugStrBuffer); // debug
-
-	if((displaymode==1) || (G.obedit==srcob)) {
-		mesh = srcob->data;			
-		return getMeshDerivedMesh(mesh , srcob, NULL);
-	} 
-
-	// init preview frame
-	if(displaymode==2) {
-		// use preview
-		snprintf(filename,FILE_MAXFILE,"%s_surface_preview_%04d.bobj.gz", srcob->fluidsimSettings->surfdataPrefix, curFrame);
-	} else {
-		// load final mesh
-		snprintf(filename,FILE_MAXFILE,"%s_surface_final_%04d.bobj.gz", srcob->fluidsimSettings->surfdataPrefix, curFrame);
-	}
-	BLI_getwdN(curWd);
-	BLI_make_file_string(G.sce, filepath, srcob->fluidsimSettings->surfdataDir, filename);
-	
-	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d) %s \n", srcob->id.name, useRenderParams, displaymode, filepath); // debug
-	mesh = readBobjgz(filepath, (Mesh*)(srcob->data) );
-	if(!mesh) {
-		// display org. object upon failure
-		mesh = srcob->data;			
-		return getMeshDerivedMesh(mesh , srcob, NULL);
-	}
-
-	if((mesh)&&(mesh->totvert>0)) {
-		make_edges(mesh, 0);	// 0 = make all edges draw
-		// force all edge draw 	 
-		for(i=0;i<mesh->totedge;i++) { 
-			//mesh->medge[i].flag = ME_EDGEDRAW; 
-			//snprintf(debugStrBuffer,256,"me %d = %d\n",i,mesh->medge[i].flag);
-		}
-	}
-
-	// WARNING copied from getMeshDerivedMesh
-	fsdm = MEM_callocN(sizeof(*fsdm), "getFluidsimDerivedMesh_fsdm");
-	fsdm->freeMesh = 1;
-	mdm = &fsdm->mdm;
-	vertCos = NULL;
-
-	mdm->dm.getMinMax = meshDM_getMinMax;
-	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
-	mdm->dm.getNumVerts = meshDM_getNumVerts;
-	mdm->dm.getNumFaces = meshDM_getNumFaces;
-	mdm->dm.getVertCos = meshDM_getVertCos;
-	mdm->dm.getVertCo = meshDM_getVertCo;
-	mdm->dm.getVertNo = meshDM_getVertNo;
-	mdm->dm.drawVerts = meshDM_drawVerts;
-	mdm->dm.drawUVEdges = meshDM_drawUVEdges;
-	mdm->dm.drawEdges = meshDM_drawEdges;
-	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
-	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
-	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
-	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
-	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
-	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
-	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
-
-	// use own release function
-	mdm->dm.release = fluidsimDM_release;
-	
-	mdm->ob = srcob;
-	mdm->me = mesh;
-	mdm->verts = mesh->mvert;
-	mdm->nors = NULL;
-	mdm->freeNors = 0;
-	mdm->freeVerts = 0;
-	
-	/* if (vertCos) { not needed for fluid meshes... */
-	// XXX this is kinda ... see getMeshDerivedMesh
-	mesh_calc_normals(mdm->verts, mdm->me->totvert, mdm->me->mface, mdm->me->totface, &mdm->nors);
-	mdm->freeNors = 1;
-	return (DerivedMesh*) mdm;
-}
-
-
-/* ***************************** bobj file handling ***************************** */
+/* ************************* fluidsim bobj file handling **************************** */
 
 /* write .bobj.gz file for a mesh object */
 
@@ -2179,13 +2050,13 @@ void writeBobjgz(char *filename, struct Object *ob)
 			gzwrite(gzf, &(face[3]), sizeof( face[3] )); 
 		}
 	}
+
+	snprintf(debugStrBuffer,256,"Done. #Vertices: %d, #Triangles: %d\n", dlm->totvert, dlm->totface ); 
+	elbeemDebugOut(debugStrBuffer);
 	
 	gzclose( gzf );
 	if(dlm) displistmesh_free(dlm);
 	dm->release(dm);
-
-	snprintf(debugStrBuffer,256,"done. #Vertices: %d, #Triangles: %d\n", dlm->totvert, dlm->totface ); 
-	elbeemDebugOut(debugStrBuffer);
 }
 
 /* read .bobj.gz file into a fluidsimDerivedMesh struct */
@@ -2195,16 +2066,19 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	char debugStrBuffer[256];
 	float wrf;
 	Mesh *newmesh; 
-	const int debugBobjRead = 0;
+	const int debugBobjRead = 1;
 	// init data from old mesh (materials,flags)
 	MFace *origMFace = &((MFace*) orgmesh->mface)[0];
-	int mat_nr = origMFace->mat_nr;
-	int flag = origMFace->flag;
+	int mat_nr = -1;
+	int flag = -1;
 	MFace *fsface = NULL;
 	int gotBytes;
 	gzFile gzf;
 
 	if(!orgmesh) return NULL;
+	if(!origMFace) return NULL;
+	mat_nr = origMFace->mat_nr;
+	flag = origMFace->flag;
 
 	// similar to copy_mesh
 	newmesh = MEM_dupallocN(orgmesh);
@@ -2291,10 +2165,6 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 		fsface[i].v4 = face[3];
 	}
 
-	/*if(debugBobjRead) {
-		for(i=0; i<newmesh->totvert; i++) { snprintf(debugStrBuffer,256,"V %d = %f,%f,%f \n",i, newmesh->mvert[i].co[0],newmesh->mvert[i].co[1],newmesh->mvert[i].co[2] ); }
-		for(i=0; i<newmesh->totface; i++) { snprintf(debugStrBuffer,256,"F %d = %d,%d,%d,%d \n",i, fsface[i].v1,fsface[i].v2,fsface[i].v3,fsface[i].v4); }
-	} // debug */
 	// correct triangles with v3==0 for blender, cycle verts
 	for(i=0; i<newmesh->totface; i++) {
 		if(!fsface[i].v3) {
@@ -2316,4 +2186,131 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 	snprintf(debugStrBuffer,256," (%d,%d) done\n", newmesh->totvert,newmesh->totface); elbeemDebugOut(debugStrBuffer); //DEBUG
 	return newmesh;
 }
+
+
+/* ***************************** fluidsim derived mesh ***************************** */
+
+typedef struct {
+	MeshDerivedMesh mdm;
+
+	/* release whole mesh? */
+	char freeMesh;
+} FluidsimDerivedMesh;
+
+#ifdef WIN32
+#ifndef snprintf
+#define snprintf _snprintf
+#endif
+#endif
+
+
+static void fluidsimDM_release(DerivedMesh *dm)
+{
+	FluidsimDerivedMesh *fsdm = (FluidsimDerivedMesh*) dm;
+	if(fsdm->freeMesh) {
+		// similar to free_mesh(fsdm->mdm.me) , but no things like unlink...
+		if(fsdm->mdm.me->mvert) MEM_freeN(fsdm->mdm.me->mvert);
+		if(fsdm->mdm.me->medge) MEM_freeN(fsdm->mdm.me->medge);
+		if(fsdm->mdm.me->mface) MEM_freeN(fsdm->mdm.me->mface);
+		MEM_freeN(fsdm->mdm.me);
+	}
+
+	if (fsdm->mdm.freeNors) MEM_freeN(fsdm->mdm.nors);
+	if (fsdm->mdm.freeVerts) MEM_freeN(fsdm->mdm.verts);
+	MEM_freeN(fsdm);
+}
+
+DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) {
+	int i;
+	Mesh *mesh = NULL;
+	FluidsimDerivedMesh *fsdm;
+	MeshDerivedMesh *mdm = NULL;
+	float (*vertCos)[3];
+	int displaymode = 0;
+	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
+	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
+	char curWd[FILE_MAXDIR];
+	char debugStrBuffer[256];
+	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
+
+	if((!srcob)||(!srcob->fluidsimSettings)) {
+		fprintf(stderr,"??? DEBUG, strange getFluidsimDerivedMesh call!\n\n"); return NULL;
+	}
+	
+	if(!useRenderParams) {
+		displaymode = srcob->fluidsimSettings->guiDisplayMode;
+	} else {
+		displaymode = srcob->fluidsimSettings->renderDisplayMode;
+	}
+	
+	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
+	elbeemDebugOut(debugStrBuffer); // debug
+
+ 	strncpy(targetDir, srcob->fluidsimSettings->surfdataPath, FILE_MAXDIR);
+	// use preview or final mesh?
+	if(displaymode==2) {
+		strcat(targetDir,"fluidsurface_preview_#");
+	} else {
+		strcat(targetDir,"fluidsurface_final_#");
+	}
+	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
+	strcpy(targetFile,targetDir);
+	strcat(targetFile, ".bobj.gz");
+	//fprintf(stderr,"getFluidsimDerivedMesh call (obid '', rp %d, dm %d) '%s' \n", useRenderParams, displaymode, targetFile);  // debug
+
+	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d) '%s' \n", srcob->id.name, useRenderParams, displaymode, targetFile);  // debug
+	elbeemDebugOut(debugStrBuffer); // debug
+
+	mesh = readBobjgz(targetFile, (Mesh*)(srcob->data) );
+	if(!mesh) {
+		// display org. object upon failure
+		mesh = srcob->data;			
+		return getMeshDerivedMesh(mesh , srcob, NULL);
+	}
+
+	if((mesh)&&(mesh->totvert>0)) {
+		make_edges(mesh, 0);	// 0 = make all edges draw
+	}
+
+	// WARNING copied from getMeshDerivedMesh
+	fsdm = MEM_callocN(sizeof(*fsdm), "getFluidsimDerivedMesh_fsdm");
+	fsdm->freeMesh = 1;
+	mdm = &fsdm->mdm;
+	vertCos = NULL;
+
+	mdm->dm.getMinMax = meshDM_getMinMax;
+	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
+	mdm->dm.getNumVerts = meshDM_getNumVerts;
+	mdm->dm.getNumFaces = meshDM_getNumFaces;
+	mdm->dm.getVertCos = meshDM_getVertCos;
+	mdm->dm.getVertCo = meshDM_getVertCo;
+	mdm->dm.getVertNo = meshDM_getVertNo;
+	mdm->dm.drawVerts = meshDM_drawVerts;
+	mdm->dm.drawUVEdges = meshDM_drawUVEdges;
+	mdm->dm.drawEdges = meshDM_drawEdges;
+	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
+	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
+	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
+	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
+	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
+	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
+	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
+
+	// use own release function
+	mdm->dm.release = fluidsimDM_release;
+	
+	mdm->ob = srcob;
+	mdm->me = mesh;
+	mdm->verts = mesh->mvert;
+	mdm->nors = NULL;
+	mdm->freeNors = 0;
+	mdm->freeVerts = 0;
+	
+	// if (vertCos) { not needed for fluid meshes... 
+	// this is kinda ... see getMeshDerivedMesh
+	mesh_calc_normals(mdm->verts, mdm->me->totvert, mdm->me->mface, mdm->me->totface, &mdm->nors);
+	mdm->freeNors = 1;
+ 	return (DerivedMesh*) mdm;
+}
+
 

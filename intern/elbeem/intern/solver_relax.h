@@ -250,7 +250,7 @@
 #define DEFAULT_STREAM \
 		m[dC] = RAC(ccel,dC); \
 		FORDF1 { \
-			CellFlagType nbf = NBFLAG( D::dfInv[l] );\
+			CellFlagType nbf = nbflag[ D::dfInv[l] ];\
 			if(nbf & CFBnd) { \
 				if(nbf & CFBndNoslip) { \
 					/* no slip, default */ \
@@ -277,7 +277,7 @@
 #define _________________DEFAULT_STREAM \
 		m[dC] = RAC(ccel,dC); \
 		FORDF1 { \
-			CellFlagType nbf = NBFLAG( D::dfInv[l] );\
+			CellFlagType nbf = nbflag[ D::dfInv[l] ];\
 			if(nbf & CFBnd) { \
 				if(nbf & CFBndNoslip) { \
 					/* no slip, default */ \
@@ -400,26 +400,26 @@
 			m[dET] = CSRC_ET; m[dEB] = CSRC_EB; m[dWT] = CSRC_WT; m[dWB] = CSRC_WB; \
 		} else { \
 			/* explicit streaming, normal velocity always zero for obstacles */ \
-			if(NBFLAG(dS )&CFBnd) { m[dN ] = RAC(ccel,dS ); } else { m[dN ] = CSRC_N ; } \
-			if(NBFLAG(dN )&CFBnd) { m[dS ] = RAC(ccel,dN ); } else { m[dS ] = CSRC_S ; } \
-			if(NBFLAG(dW )&CFBnd) { m[dE ] = RAC(ccel,dW ); } else { m[dE ] = CSRC_E ; } \
-			if(NBFLAG(dE )&CFBnd) { m[dW ] = RAC(ccel,dE ); } else { m[dW ] = CSRC_W ; } \
-			if(NBFLAG(dB )&CFBnd) { m[dT ] = RAC(ccel,dB ); } else { m[dT ] = CSRC_T ; } \
-			if(NBFLAG(dT )&CFBnd) { m[dB ] = RAC(ccel,dT ); } else { m[dB ] = CSRC_B ; } \
+			if(nbflag[dS ]&CFBnd) { m[dN ] = RAC(ccel,dS ); } else { m[dN ] = CSRC_N ; } \
+			if(nbflag[dN ]&CFBnd) { m[dS ] = RAC(ccel,dN ); } else { m[dS ] = CSRC_S ; } \
+			if(nbflag[dW ]&CFBnd) { m[dE ] = RAC(ccel,dW ); } else { m[dE ] = CSRC_E ; } \
+			if(nbflag[dE ]&CFBnd) { m[dW ] = RAC(ccel,dE ); } else { m[dW ] = CSRC_W ; } \
+			if(nbflag[dB ]&CFBnd) { m[dT ] = RAC(ccel,dB ); } else { m[dT ] = CSRC_T ; } \
+			if(nbflag[dT ]&CFBnd) { m[dB ] = RAC(ccel,dT ); } else { m[dB ] = CSRC_B ; } \
  			\
 			/* also treat free slip here */ \
-			if(NBFLAG(dSW)&CFBnd) { if(NBFLAG(dSW)&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,NBFLAG(dSW));} } else { m[dNE] = CSRC_NE; } \
-			if(NBFLAG(dSE)&CFBnd) { if(NBFLAG(dSE)&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,NBFLAG(dSE));} } else { m[dNW] = CSRC_NW; } \
-			if(NBFLAG(dNW)&CFBnd) { if(NBFLAG(dNW)&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,NBFLAG(dNW));} } else { m[dSE] = CSRC_SE; } \
-			if(NBFLAG(dNE)&CFBnd) { if(NBFLAG(dNE)&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,NBFLAG(dNE));} } else { m[dSW] = CSRC_SW; } \
-			if(NBFLAG(dSB)&CFBnd) { if(NBFLAG(dSB)&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,NBFLAG(dSB));} } else { m[dNT] = CSRC_NT; } \
-			if(NBFLAG(dST)&CFBnd) { if(NBFLAG(dST)&CFBndNoslip){ m[dNB] = RAC(ccel,dST); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,NBFLAG(dST));} } else { m[dNB] = CSRC_NB; } \
-			if(NBFLAG(dNB)&CFBnd) { if(NBFLAG(dNB)&CFBndNoslip){ m[dST] = RAC(ccel,dNB); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,NBFLAG(dNB));} } else { m[dST] = CSRC_ST; } \
-			if(NBFLAG(dNT)&CFBnd) { if(NBFLAG(dNT)&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,NBFLAG(dNT));} } else { m[dSB] = CSRC_SB; } \
-			if(NBFLAG(dWB)&CFBnd) { if(NBFLAG(dWB)&CFBndNoslip){ m[dET] = RAC(ccel,dWB); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,NBFLAG(dWB));} } else { m[dET] = CSRC_ET; } \
-			if(NBFLAG(dWT)&CFBnd) { if(NBFLAG(dWT)&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,NBFLAG(dWT));} } else { m[dEB] = CSRC_EB; } \
-			if(NBFLAG(dEB)&CFBnd) { if(NBFLAG(dEB)&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,NBFLAG(dEB));} } else { m[dWT] = CSRC_WT; } \
-			if(NBFLAG(dET)&CFBnd) { if(NBFLAG(dET)&CFBndNoslip){ m[dWB] = RAC(ccel,dET); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,NBFLAG(dET));} } else { m[dWB] = CSRC_WB; } \
+			if(nbflag[dSW]&CFBnd) { if(nbflag[dSW]&CFBndNoslip){ m[dNE] = RAC(ccel,dSW); }else{ DEFAULT_STREAM_FREESLIP(dNE,dSW,nbflag[dSW]);} } else { m[dNE] = CSRC_NE; } \
+			if(nbflag[dSE]&CFBnd) { if(nbflag[dSE]&CFBndNoslip){ m[dNW] = RAC(ccel,dSE); }else{ DEFAULT_STREAM_FREESLIP(dNW,dSE,nbflag[dSE]);} } else { m[dNW] = CSRC_NW; } \
+			if(nbflag[dNW]&CFBnd) { if(nbflag[dNW]&CFBndNoslip){ m[dSE] = RAC(ccel,dNW); }else{ DEFAULT_STREAM_FREESLIP(dSE,dNW,nbflag[dNW]);} } else { m[dSE] = CSRC_SE; } \
+			if(nbflag[dNE]&CFBnd) { if(nbflag[dNE]&CFBndNoslip){ m[dSW] = RAC(ccel,dNE); }else{ DEFAULT_STREAM_FREESLIP(dSW,dNE,nbflag[dNE]);} } else { m[dSW] = CSRC_SW; } \
+			if(nbflag[dSB]&CFBnd) { if(nbflag[dSB]&CFBndNoslip){ m[dNT] = RAC(ccel,dSB); }else{ DEFAULT_STREAM_FREESLIP(dNT,dSB,nbflag[dSB]);} } else { m[dNT] = CSRC_NT; } \
+			if(nbflag[dST]&CFBnd) { if(nbflag[dST]&CFBndNoslip){ m[dNB] = RAC(ccel,dST); }else{ DEFAULT_STREAM_FREESLIP(dNB,dST,nbflag[dST]);} } else { m[dNB] = CSRC_NB; } \
+			if(nbflag[dNB]&CFBnd) { if(nbflag[dNB]&CFBndNoslip){ m[dST] = RAC(ccel,dNB); }else{ DEFAULT_STREAM_FREESLIP(dST,dNB,nbflag[dNB]);} } else { m[dST] = CSRC_ST; } \
+			if(nbflag[dNT]&CFBnd) { if(nbflag[dNT]&CFBndNoslip){ m[dSB] = RAC(ccel,dNT); }else{ DEFAULT_STREAM_FREESLIP(dSB,dNT,nbflag[dNT]);} } else { m[dSB] = CSRC_SB; } \
+			if(nbflag[dWB]&CFBnd) { if(nbflag[dWB]&CFBndNoslip){ m[dET] = RAC(ccel,dWB); }else{ DEFAULT_STREAM_FREESLIP(dET,dWB,nbflag[dWB]);} } else { m[dET] = CSRC_ET; } \
+			if(nbflag[dWT]&CFBnd) { if(nbflag[dWT]&CFBndNoslip){ m[dEB] = RAC(ccel,dWT); }else{ DEFAULT_STREAM_FREESLIP(dEB,dWT,nbflag[dWT]);} } else { m[dEB] = CSRC_EB; } \
+			if(nbflag[dEB]&CFBnd) { if(nbflag[dEB]&CFBndNoslip){ m[dWT] = RAC(ccel,dEB); }else{ DEFAULT_STREAM_FREESLIP(dWT,dEB,nbflag[dEB]);} } else { m[dWT] = CSRC_WT; } \
+			if(nbflag[dET]&CFBnd) { if(nbflag[dET]&CFBndNoslip){ m[dWB] = RAC(ccel,dET); }else{ DEFAULT_STREAM_FREESLIP(dWB,dET,nbflag[dET]);} } else { m[dWB] = CSRC_WB; } \
 		} 
 
 

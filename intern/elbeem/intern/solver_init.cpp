@@ -46,6 +46,9 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 {
   // not much to do here... 
 	D::mpIso = new IsoSurface( D::mIsoValue, false );
+#if ELBEEM_BLENDER!=1
+	mpTest = new LbmTestdata();
+#endif // ELBEEM_BLENDER!=1
 
   // init equilibrium dist. func 
   LbmFloat rho=1.0;
@@ -112,7 +115,6 @@ template<class D>
 LbmFsgrSolver<D>::~LbmFsgrSolver()
 {
   if(!D::mInitDone){ debugOut("LbmFsgrSolver::LbmFsgrSolver : not inited...",0); return; }
-
 #if COMPRESSGRIDS==1
 	delete mLevel[mMaxRefine].mprsCells[1];
 	mLevel[mMaxRefine].mprsCells[0] = mLevel[mMaxRefine].mprsCells[1] = NULL;
@@ -128,7 +130,8 @@ LbmFsgrSolver<D>::~LbmFsgrSolver()
 	if(mpPreviewSurface) delete mpPreviewSurface;
 
 #if ELBEEM_BLENDER!=1
-	destroyTestdata();
+	if(mUseTestdata) destroyTestdata();
+	delete mpTest;
 #endif // ELBEEM_BLENDER!=1
 
 	// always output performance estimate
@@ -179,10 +182,14 @@ LbmFsgrSolver<D>::parseAttrList()
 	mForceTadapRefine = D::mpAttrs->readInt("forcetadaprefine", mForceTadapRefine,"LbmFsgrSolver", "mForceTadapRefine", false);
 
 	// demo mode settings
-	mFVHeight = D::mpAttrs->readFloat("fvolheight", mFVHeight, "SimulationLbm","mFVHeight", false );
+	mFVHeight = D::mpAttrs->readFloat("fvolheight", mFVHeight, "LbmFsgrSolver","mFVHeight", false );
 	// FIXME check needed?
-	mFVArea   = D::mpAttrs->readFloat("fvolarea", mFVArea, "SimulationLbm","mFArea", false );
+	mFVArea   = D::mpAttrs->readFloat("fvolarea", mFVArea, "LbmFsgrSolver","mFArea", false );
 
+#if ELBEEM_BLENDER!=1
+	mUseTestdata = D::mpAttrs->readBool("use_testdata", mUseTestdata,"LbmFsgrSolver", "mUseTestdata", false);
+	mpTest->parseTestdataAttrList(D::mpAttrs);
+#endif // ELBEEM_BLENDER!=1
 }
 
 
@@ -296,12 +303,21 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	int maskBits = mMaxRefine;
 	if(PARALLEL==1) maskBits+=2;
 	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
+
+	// at least size 4 on coarsest level
+	int minSize = (int)powf(2.0, maskBits+2.0);
+	if(D::mSizex<minSize) D::mSizex = minSize;
+	if(D::mSizey<minSize) D::mSizey = minSize;
+	if(D::mSizez<minSize) D::mSizez = minSize;
+errMsg("MMS","minSize"<<minSize);
+	
 	sizeMask = ~sizeMask;
   if(debugGridsizeInit) debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<" m"<<convertCellFlagType2String(sizeMask) ,10);
 	D::mSizex &= sizeMask;
 	D::mSizey &= sizeMask;
 	D::mSizez &= sizeMask;
-	// force geom size to match rounded grid sizes
+
+	// force geom size to match rounded/modified grid sizes
 	D::mvGeoEnd[0] = D::mvGeoStart[0] + cellSize*(LbmFloat)D::mSizex;
 	D::mvGeoEnd[1] = D::mvGeoStart[1] + cellSize*(LbmFloat)D::mSizey;
 	D::mvGeoEnd[2] = D::mvGeoStart[2] + cellSize*(LbmFloat)D::mSizez;
@@ -1027,7 +1043,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 	} // zmax
 
 #if ELBEEM_BLENDER!=1
-	initTestdata();
+	if(mUseTestdata) initTestdata();
 #endif // ELBEEM_BLENDER!=1
 	D::freeGeoTree();
 	myTime_t geotimeend = getTime(); 

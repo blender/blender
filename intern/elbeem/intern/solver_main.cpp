@@ -235,7 +235,7 @@ LbmFsgrSolver<D>::stepMain()
 	} // */
 
 #if ELBEEM_BLENDER!=1
-	handleTestdata();
+	if(mUseTestdata) handleTestdata();
 #endif // ELBEEM_BLENDER!=1
 }
 
@@ -299,9 +299,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 	// local to loop
 	CellFlagType nbflag[LBM_DFNUM]; 
-#define NBFLAG(l) nbflag[(l)]
-	// */
-	
 	LbmFloat *ccel = NULL;
 	LbmFloat *tcel = NULL;
 	int oldFlag;
@@ -318,9 +315,14 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	
 	// ifempty cell conversion flags
 	bool iffilled, ifemptied;
+	LbmFloat nbfracs[LBM_DFNUM]; // ffracs of neighbors
 	int recons[LBM_DFNUM];   // reconstruct this DF?
 	int numRecons;           // how many are reconstructed?
 
+	// slow surf regions smooth (if below)
+	const LbmFloat smoothStrength = 0.0; //0.01;
+	const LbmFloat sssUsqrLimit = 1.5 * 0.03*0.03;
+	const LbmFloat sssUsqrLimitInv = 1.0/sssUsqrLimit;
 	
 	CellFlagType *pFlagSrc;
 	CellFlagType *pFlagDst;
@@ -468,8 +470,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 		if(oldFlag & (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)) { 
 			*pFlagDst = oldFlag;
-			//RAC(tcel,dFfrac) = 0.0;
-			//RAC(tcel,dFlux) = FLUX_INIT; // necessary?
 			continue;
 		}
 		/*if( oldFlag & CFNoBndFluid ) {  // TEST ME FASTER?
@@ -552,8 +552,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 			// "normal" fluid cells
 			RAC(tcel,dFfrac) = 1.0; 
 			*pFlagDst = (CellFlagType)oldFlag; // newFlag;
-			//? LbmFloat ofrho=RAC(ccel,0); for(int l=1; l<D::cDfNum; l++) { ofrho += RAC(ccel,l); }
-//FST errMsg("TTTfl","at "<<PRINT_IJK<<", rho"<<rho );
 			calcCurrentMass += rho; 
 			calcCurrentVolume += 1.0;
 			continue;
@@ -594,23 +592,31 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 		FORDF1 { // dfl loop
 			recons[l] = 0;
+			nbfracs[l] = 0.0;
 			// finally, "normal" interface cells ----
-			if( NBFLAG(l)&(CFFluid|CFBnd) ) { // NEWTEST! FIXME check!!!!!!!!!!!!!!!!!!
+			if( nbflag[l]&(CFFluid|CFBnd) ) { // NEWTEST! FIXME check!!!!!!!!!!!!!!!!!!
 				change = nbdf(l) - MYDF(l);
 			}
 			// interface cells - distuingish cells that shouldn't fill/empty 
-			else if( NBFLAG(l) & CFInter ) {
+			else if( nbflag[l] & CFInter ) {
 				
-				LbmFloat mynbfac = //numNbs[l] / numNbs[0];
-					QCELL_NB(lev, i,j,k,SRCS(lev),l, dFlux) / QCELL(lev, i,j,k,SRCS(lev), dFlux);
-				LbmFloat nbnbfac = 1.0/mynbfac;
-				//mynbfac = nbnbfac = 1.0; // switch calc flux off
-				// OLD
-				if ((oldFlag|NBFLAG(l))&(CFNoNbFluid|CFNoNbEmpty)) {
+				LbmFloat mynbfac,nbnbfac;
+				// NEW TEST t1
+				// t2 -> off
+				if((oldFlag&CFNoBndFluid)&&(nbflag[l]&CFNoBndFluid)) {
+					mynbfac = QCELL_NB(lev, i,j,k,SRCS(lev),l, dFlux) / QCELL(lev, i,j,k,SRCS(lev), dFlux);
+					nbnbfac = 1.0/mynbfac;
+				} else {
+					mynbfac = nbnbfac = 1.0; // switch calc flux off
+				}
+				//mynbfac = nbnbfac = 1.0; // switch calc flux off t3
+
+				// perform interface case handling
+				if ((oldFlag|nbflag[l])&(CFNoNbFluid|CFNoNbEmpty)) {
 				switch (oldFlag&(CFNoNbFluid|CFNoNbEmpty)) {
 					case 0: 
 						// we are a normal cell so... 
-						switch (NBFLAG(l)&(CFNoNbFluid|CFNoNbEmpty)) {
+						switch (nbflag[l]&(CFNoNbFluid|CFNoNbEmpty)) {
 							case CFNoNbFluid: 
 								// just fill current cell = empty neighbor 
 								change = nbnbfac*nbdf(l) ; goto changeDone; 
@@ -622,7 +628,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 					case CFNoNbFluid: 
 						// we dont have fluid nb's so...
-						switch (NBFLAG(l)&(CFNoNbFluid|CFNoNbEmpty)) {
+						switch (nbflag[l]&(CFNoNbFluid|CFNoNbEmpty)) {
 							case 0: 
 							case CFNoNbEmpty: 
 								// we have no fluid nb's -> just empty
@@ -632,7 +638,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 					case CFNoNbEmpty: 
 						// we dont have empty nb's so...
-						switch (NBFLAG(l)&(CFNoNbFluid|CFNoNbEmpty)) {
+						switch (nbflag[l]&(CFNoNbFluid|CFNoNbEmpty)) {
 							case 0: 
 							case CFNoNbFluid: 
 								// we have no empty nb's -> just fill
@@ -644,19 +650,18 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 				// just do normal mass exchange...
 				change = ( nbnbfac*nbdf(l) - mynbfac*MYDF(l) ) ;
 			changeDone: ;
-				change *=  ( myfrac + QCELL_NB(lev, i,j,k, SRCS(lev),l, dFfrac) ) * 0.5;
+				nbfracs[l] = QCELL_NB(lev, i,j,k, SRCS(lev),l, dFfrac);
+				change *=  (myfrac + nbfracs[l]) * 0.5;
 			} // the other cell is interface
 
 			// last alternative - reconstruction in this direction
 			else {
-				//if(NBFLAG(l) & CFEmpty) { recons[l] = true; }
+				// empty + bnd case
 				recons[l] = 1; 
 				numRecons++;
 				change = 0.0; 
-				// which case is this...? empty + bnd
 			}
 
-			//FST errMsg("TTTIF","at "<<PRINT_IJK<<",l"<<l<<" m"<<mass<<",c"<<change<<"        nbflag"<<convertCellFlagType2String(NBFLAG(l))<<" nbdf"<<nbdf(l)<<" mydf"<<MYDF(l)<<"         isflix"<<((NBFLAG(l)&(CFFluid|CFBnd) )!=0) );
 			// modify mass at SRCS
 			mass += change;
 		} // l
@@ -665,15 +670,15 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		LbmFloat nv1,nv2;
 		LbmFloat nx,ny,nz;
 
-		if(NBFLAG(dE) &(CFFluid|CFInter)){ nv1 = RAC((ccel+QCELLSTEP ),dFfrac); } else nv1 = 0.0;
-		if(NBFLAG(dW) &(CFFluid|CFInter)){ nv2 = RAC((ccel-QCELLSTEP ),dFfrac); } else nv2 = 0.0;
+		if(nbflag[dE] &(CFFluid|CFInter)){ nv1 = RAC((ccel+QCELLSTEP ),dFfrac); } else nv1 = 0.0;
+		if(nbflag[dW] &(CFFluid|CFInter)){ nv2 = RAC((ccel-QCELLSTEP ),dFfrac); } else nv2 = 0.0;
 		nx = 0.5* (nv2-nv1);
-		if(NBFLAG(dN) &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
-		if(NBFLAG(dS) &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
+		if(nbflag[dN] &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
+		if(nbflag[dS] &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsx*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
 		ny = 0.5* (nv2-nv1);
 #if LBMDIM==3
-		if(NBFLAG(dT) &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
-		if(NBFLAG(dB) &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
+		if(nbflag[dT] &(CFFluid|CFInter)){ nv1 = RAC((ccel+(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv1 = 0.0;
+		if(nbflag[dB] &(CFFluid|CFInter)){ nv2 = RAC((ccel-(mLevel[lev].lOffsy*QCELLSTEP)),dFfrac); } else nv2 = 0.0;
 		nz = 0.5* (nv2-nv1);
 #else // LBMDIM==3
 		nz = 0.0;
@@ -769,15 +774,13 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		if(recons[dWB]) { m[dET] = EQWB + EQET - MYDF(dWB); }
 #endif		
 
-		// mass streaming done... 
-		// now collide new fluid or "old" if cells
+		// mass streaming done... do normal collide
 		ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2];
 		DEFAULT_COLLIDE;
-		rho = m[dC];
-		FORDF1 { rho+=m[l]; };
-		// only with interface neighbors...?
 		PERFORM_USQRMAXCHECK;
+		// rho init from default collide necessary for fill/empty check below
 
+		// inflow bc handling
 		if(oldFlag & (CFMbndInflow)) {
 			// fill if cells in inflow region
 			if(myfrac<0.5) { 
@@ -802,24 +805,26 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 		// looks much nicer... LISTTRICK
 #if FSGR_LISTTRICK==1
-		if(!iffilled) {
-			// remove cells independent from amount of change...
-			if( (oldFlag & CFNoNbEmpty)&&(newFlag & CFNoNbEmpty)&&
-					( (mass>(rho*FSGR_LISTTTHRESHFULL))  || ((nbored&CFInter)==0)  )
-				) { 
-				//if((nbored&CFInter)==0){ errMsg("NBORED!CFINTER","filled "<<PRINT_IJK); };
-				iffilled = 1; 
-			} 
-		}
-		if(!ifemptied) {
-			if( (oldFlag & CFNoNbFluid)&&(newFlag & CFNoNbFluid)&&
-					( (mass<(rho*FSGR_LISTTTHRESHEMPTY)) || ((nbored&CFInter)==0)  )
-					) 
-			{ 
-				//if((nbored&CFInter)==0){ errMsg("NBORED!CFINTER","emptied "<<PRINT_IJK); };
-				ifemptied = 1; 
-			} 
-		} // */
+		if(newFlag&CFNoBndFluid) { // test NEW TEST
+			if(!iffilled) {
+				// remove cells independent from amount of change...
+				if( (oldFlag & CFNoNbEmpty)&&(newFlag & CFNoNbEmpty)&&
+						( (mass>(rho*FSGR_LISTTTHRESHFULL))  || ((nbored&CFInter)==0)  )
+					) { 
+					//if((nbored&CFInter)==0){ errMsg("NBORED!CFINTER","filled "<<PRINT_IJK); };
+					iffilled = 1; 
+				} 
+			}
+			if(!ifemptied) {
+				if( (oldFlag & CFNoNbFluid)&&(newFlag & CFNoNbFluid)&&
+						( (mass<(rho*FSGR_LISTTTHRESHEMPTY)) || ((nbored&CFInter)==0)  )
+						) 
+				{ 
+					//if((nbored&CFInter)==0){ errMsg("NBORED!CFINTER","emptied "<<PRINT_IJK); };
+					ifemptied = 1; 
+				} 
+			}
+		} // nobndfluid only */
 #endif
 
 		//iffilled = ifemptied = 0; // DEBUG!!!!!!!!!!!!!!!
@@ -855,21 +860,31 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		RAC(tcel,dFfrac)   = (mass/rho);
 
 		// init new flux value
-		float flux = 0.5*(float)(D::cDfNum); // dxqn on
-		//flux = 50.0; // extreme on
-		for(int nn=1; nn<D::cDfNum; nn++) { 
-			if(RFLAG_NB(lev, i,j,k,SRCS(lev),nn) & (CFFluid|CFInter|CFBnd)) {
-				flux += D::dfLength[nn];
+		float flux = FLUX_INIT; // dxqn on
+		if(newFlag&CFNoBndFluid) {
+			//flux = 50.0; // extreme on
+			for(int nn=1; nn<D::cDfNum; nn++) { 
+				if(nbflag[nn] & (CFFluid|CFInter|CFBnd)) { flux += D::dfLength[nn]; }
 			}
-		} 
-		//flux = FLUX_INIT; // calc flux off
+			// optical hack - smooth slow moving
+			// surface regions
+			if(usqr< sssUsqrLimit) {
+			for(int nn=1; nn<D::cDfNum; nn++) { 
+				if(nbfracs[nn]!=0.0) {
+					LbmFloat curSmooth = (sssUsqrLimit-usqr)*sssUsqrLimitInv;
+					if(curSmooth>1.0) curSmooth=1.0;
+					flux *= (1.0+ smoothStrength*curSmooth * (nbfracs[nn]-myfrac)) ;
+				}
+			} }
+			// NEW TEST */
+		}
+		// flux = FLUX_INIT; // calc flux off
 		QCELL(lev, i,j,k,TSET(lev), dFlux) = flux; // */
 
 		// perform mass exchange with streamed values
 		QCELL(lev, i,j,k,TSET(lev), dMass) = mass; // MASST
 		// set new flag 
 		*pFlagDst = (CellFlagType)newFlag;
-//FST errMsg("M","i "<<mass);
 		calcCurrentMass += mass; 
 		calcCurrentVolume += RAC(tcel,dFfrac);
 
@@ -919,7 +934,6 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 	// check other vars...?
 }
-#undef NBFLAG
 
 template<class D>
 void 
@@ -2632,6 +2646,7 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 
 		int nbored = 0;
 		FORDF1 { nbored |= RFLAG_NB(workLev, i,j,k, workSet,l); }
+		if((nbored & CFBnd)==0) { RFLAG(workLev,i,j,k, workSet) |= CFNoBndFluid; }
 		if((nbored & CFFluid)==0) { RFLAG(workLev,i,j,k, workSet) |= CFNoNbFluid; }
 		if((nbored & CFEmpty)==0) { RFLAG(workLev,i,j,k, workSet) |= CFNoNbEmpty; }
 
@@ -2674,8 +2689,11 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 // everything in one file again
 #if defined(__APPLE_CC__)
 #define LBM_FORCEINCLUDE
-#include "solver_init.cpp"
-#include "solver_util.cpp"
+#include "olver_init.cpp"
+#include "olver_util.cpp"
+#ifdef ELBEEM_BLENDER
+REMOVE_FIX
+#endif
 #undef LBM_FORCEINCLUDE
 #endif  // defined(__APPLE_CC__)
 

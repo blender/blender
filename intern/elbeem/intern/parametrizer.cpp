@@ -204,10 +204,15 @@ int Parametrizer::calculateAniStart( void )   {
 /*! get no of steps for a single animation frame */
 int Parametrizer::calculateAniStepsPerFrame( void )   { 
 	if(!checkSeenValues(PARAM_ANIFRAMETIME)) {
-		errFatal("Parametrizer::calculateAniStepsPerFrame", " Missing ani frame time argument!", SIMWORLD_INITERROR);
+		errFatal("Parametrizer::calculateAniStepsPerFrame", "Missing ani frame time argument!", SIMWORLD_INITERROR);
 		return 1;
 	}
-	return (int)(mAniFrameTime/mStepTime); 
+	int value = (int)(mAniFrameTime/mStepTime); 
+	if((value<0) || (value>1000000)) {
+		errFatal("Parametrizer::calculateAniStepsPerFrame", "Invalid step-time (="<<mAniFrameTime<<") <> ani-frame-time ("<<mStepTime<<") settings, aborting...", SIMWORLD_INITERROR);
+		return 1;
+	}
+	return value;
 }
 
 /*! get extent of the domain = (1,1,1) if parametrizer not used, (x,y,z) [m] otherwise */

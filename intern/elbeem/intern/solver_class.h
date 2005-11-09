@@ -470,6 +470,7 @@ class LbmFsgrSolver :
 
 #if ELBEEM_BLENDER!=1
 		// test functions
+		bool mUseTestdata;
 		LbmTestdata *mpTest;
 		void initTestdata();
 		void destroyTestdata();

@@ -2400,7 +2400,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 	if(ob->fluidsimSettings) {
-		// not much to do for now... fprintf(stderr, "FLUIDSIMT newdataadr\n");
+		// not much to do for now... 
 		ob->fluidsimSettings->orgMesh = NULL;
 	}
 	

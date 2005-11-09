@@ -49,6 +49,7 @@ int globalColorSetting = 0;
 #else // WIN32
 int globalColorSetting = 1;
 #endif // WIN32
+int globalFirstEnvCheck = 0;
 
 
 //-----------------------------------------------------------------------------
@@ -290,9 +291,25 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 }
 
 // helper functions from external program using elbeem lib (e.g. Blender)
+/* set gDebugLevel according to env. var */
+extern "C" 
+void elbeemCheckDebugEnv(void) {
+	const char *strEnvName = "BLENDER_ELBEEMDEBUG";
+	if(globalFirstEnvCheck) return;
+
+	if(getenv(strEnvName)) {
+		gDebugLevel = atoi(getenv(strEnvName));
+		if(gDebugLevel< 0) gDebugLevel =  0;
+		if(gDebugLevel>10) gDebugLevel =  0; // only use valid values
+		if(gDebugLevel>0) debMsgStd("performElbeemSimulation",DM_NOTIFY,"Using envvar '"<<strEnvName<<"'='"<<getenv(strEnvName)<<"', debugLevel set to: "<<gDebugLevel<<"\n", 1);
+	}
+	globalFirstEnvCheck = 1;
+}
+
 /* elbeem debug output function */
 extern "C" 
 void elbeemDebugOut(char *msg) {
+	elbeemCheckDebugEnv();
 	// external messages default to debug level 5...
 	if(gDebugLevel<5) return;
 	// delegate to messageOutputFunc

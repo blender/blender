@@ -162,18 +162,12 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 	fss->maxRefine = -1;
 	// maxRefine is set according to resolutionxyz during bake
 
-	// fluid settings
+	// fluid/inflow settings
 	fss->iniVelx = 
 	fss->iniVely = 
 	fss->iniVelz = 0.0;
 
-	strcpy(fss->surfdataDir,"//"); // current dir
-	// fss->surfdataPrefix take from .blend filename
-	//strcpy(blendDir, G.sce);
-	//BLI_splitdirstring(blendDir, blendFile);
-	//snprintf(fss->surfdataPrefix,FILE_MAXFILE,"%s_%s", blendFile, srcob->id.name);
-	strcpy(fss->surfdataPrefix,""); // init upon first bake
-	
+	strcpy(fss->surfdataPath,""); // leave blank, init upon first bake
 	fss->orgMesh = (Mesh *)srcob->data;
 	return fss;
 }
@@ -186,8 +180,9 @@ void fluidsimSettingsFree(FluidsimSettings *fss)
 
 
 /* helper function */
-void getGeometryObjFilename(struct Object *ob, char *dst, char *srcname) {
-	snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
+void getGeometryObjFilename(struct Object *ob, char *dst) { //, char *srcname) {
+	//snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
+	snprintf(dst,FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
 }
 
 
@@ -220,7 +215,6 @@ void simulateThreadIncreaseFrame(void) {
 /* ********************** write fluidsim config to file ************************* */
 void fluidsimBake(struct Object *ob)
 {
-	char fnameCfg[FILE_MAXFILE], fnameCfgPath[FILE_MAXFILE+FILE_MAXDIR];
 	FILE *fileCfg;
 	struct Object *fsDomain = NULL;
 	FluidsimSettings *fssDomain;
@@ -233,16 +227,18 @@ void fluidsimBake(struct Object *ob)
 	const int maxRes = 200;
 	int gridlevels = 0;
 
-	char outDir[FILE_MAXDIR], outPrefix[FILE_MAXFILE]; // store & modify output settings
-	int  outStringsChanged = 0;                        // modified? copy back before baking
-	int  haveSomeFluid = 0;                            // check if any fluid objects are set
+	char *suffixConfig = "fluidsim.cfg";
+	char *suffixSurface = "fluidsurface";
+	char targetDir[FILE_MAXDIR+FILE_MAXFILE];  // store & modify output settings
+	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access
+	int  outStringsChanged = 0;             // modified? copy back before baking
+	int  haveSomeFluid = 0;                 // check if any fluid objects are set
 
 	const char *strEnvName = "BLENDER_ELBEEMDEBUG"; // from blendercall.cpp
 
 	if(getenv(strEnvName)) {
 		int dlevel = atoi(getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
-		//if((dlevel>0) && (dlevel<=10)) debugBake = 1;
 		snprintf(debugStrBuffer,256,"fluidsimBake::msg: Debug messages activated due to  envvar '%s'\n",strEnvName); 
 		elbeemDebugOut(debugStrBuffer);
 	}
@@ -308,45 +304,32 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	// prepare names...
-	strcpy(curWd, G.sce);
-	BLI_splitdirstring(curWd, blendFile);
-	if(strlen(curWd)<1) {
-		BLI_getwdN(curWd);
-	}
-	// work on these vars here... copy back later
-	strncpy(outDir,    fsDomain->fluidsimSettings->surfdataDir,    FILE_MAXDIR);
-	strncpy(outPrefix, fsDomain->fluidsimSettings->surfdataPrefix, FILE_MAXFILE);
-	if(strlen(outPrefix)<1) {
-		// make new from current .blend filename , and domain object name
+	strncpy(targetDir, fsDomain->fluidsimSettings->surfdataPath, FILE_MAXDIR);
+	BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
+
+	strcpy(targetFile, targetDir);
+	strcat(targetFile, suffixConfig);
+	// check selected directory
+	// simply try to open cfg file for writing to test validity of settings
+	fileCfg = fopen(targetFile, "w");
+	if(fileCfg) { dirExist = 1; fclose(fileCfg); }
+
+	if((strlen(targetDir)<1) || (!dirExist)) {
+		char blendDir[FILE_MAXDIR+FILE_MAXFILE], blendFile[FILE_MAXDIR+FILE_MAXFILE];
+		// invalid dir, reset to current/previous
 		strcpy(blendDir, G.sce);
 		BLI_splitdirstring(blendDir, blendFile);
-		// todo... strip .blend 
-		snprintf(outPrefix,FILE_MAXFILE,"%s_%s", blendFile, fsDomain->id.name);
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output prefix to '%s'\n", outPrefix); 
-		elbeemDebugOut(debugStrBuffer);
-		outStringsChanged=1;
-	}
+		if(strlen(blendFile)>6){
+			int len = strlen(blendFile);
+			if( (blendFile[len-6]=='.')&& (blendFile[len-5]=='b')&& (blendFile[len-4]=='l')&&
+					(blendFile[len-3]=='e')&& (blendFile[len-2]=='n')&& (blendFile[len-1]=='d') ){
+				blendFile[len-6] = '\0';
+			}
+		}
+		// todo... strip .blend ?
+		snprintf(targetDir,FILE_MAXFILE+FILE_MAXDIR,"//%s_%s_", blendFile, fsDomain->id.name);
 
-	// check selected directory
-#ifdef WIN32
-	// windows workaroung because stat seems to be broken...
-	// simply try to open cfg file for writing
-	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", outPrefix);
-	BLI_make_file_string(curWd, fnameCfgPath, outDir, fnameCfg);
-	fileCfg = fopen(fnameCfgPath, "w");
-	if(fileCfg) {
-		dirExist = 1;
-		fclose(fileCfg);
-	}
-#else // WIN32
-	BLI_make_file_string(curWd, fnameCfgPath, outDir, "");
-	if(S_ISDIR(BLI_exist(fnameCfgPath))) dirExist = 1;
-#endif // WIN32
-
-	if((strlen(outDir)<1) || (!dirExist)) {
-		// invalid dir, reset to current
-		strcpy(outDir, "//");
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", outDir);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", targetDir);
 		elbeemDebugOut(debugStrBuffer);
 		outStringsChanged=1;
 	}
@@ -356,38 +339,35 @@ void fluidsimBake(struct Object *ob)
 		char dispmsg[FILE_MAXDIR+FILE_MAXFILE+256];
 		int  selection=0;
 		strcpy(dispmsg,"Output settings set to: '");
-		strcat(dispmsg, outDir);
-		if(dispmsg[ strlen(dispmsg)-1 ]!='/') strcat(dispmsg,"/");
-		strcat(dispmsg, outPrefix);
-		//snprintf(dispmsg, FILE_MAXDIR+FILE_MAXFILE+10, "%s '%s'", changeMsg, fnameCfgPath);
+		strcat(dispmsg, targetDir);
 		strcat(dispmsg, "'%t|Continue with changed settings%x1|Discard and abort%x0");
 
 		// ask user if thats what he/she wants...
 		selection = pupmenu(dispmsg);
-		if(selection==0) return;
+		if(selection<1) return; // 0 from menu, or -1 aborted
+		BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
 	}
 	
 	// dump data for frame 0
   G.scene->r.cfra = 0;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
-	snprintf(fnameCfg,FILE_MAXFILE,"%s.cfg", outPrefix);
-	BLI_make_file_string(curWd, fnameCfgPath, outDir, fnameCfg);
-
 	// start writing
-	fileCfg = fopen(fnameCfgPath, "w");
+	strcpy(targetFile, targetDir);
+	strcat(targetFile, suffixConfig);
+	fileCfg = fopen(targetFile, "w");
 	if(!fileCfg) {
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", fnameCfgPath); 
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", targetFile); 
 		elbeemDebugOut(debugStrBuffer);
 	
 		pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
 		return;
 	}
 
-	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, fnameCfg );
-	// valid settings -> store
-	strncpy(fsDomain->fluidsimSettings->surfdataDir,    outDir,    FILE_MAXDIR);
-	strncpy(fsDomain->fluidsimSettings->surfdataPrefix, outPrefix, FILE_MAXFILE);
+	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
+	// file open -> valid settings -> store
+	strncpy(fsDomain->fluidsimSettings->surfdataPath, targetDir, FILE_MAXDIR);
+	//strncpy(fsDomain->fluidsimSettings->urfdataPrefix, outPrefix, FILE_MAXFILE);
 
 	// FIXME set aniframetime from no. frames and duration
 	/* output simulation  settings */
@@ -484,7 +464,7 @@ void fluidsimBake(struct Object *ob)
 			"  antialias       1; \n" 
 			"  ambientlight    (1, 1, 1); \n" 
 			"  maxRayDepth       6; \n" 
-			"  treeMaxDepth     25; \n" 
+			"  treeMaxDepth     25; \n"
 			"  treeMaxTriangles  8; \n" 
 			"  background  (0.08,  0.08, 0.20); \n" 
 			"  eyepoint= (" "%f %f %f"/*4,5,6 eyep*/ "); #cfgset  \n" 
@@ -509,11 +489,9 @@ void fluidsimBake(struct Object *ob)
 		int    resx = 200, resy=200;
 		float  lookatx=0.0, lookaty=0.0, lookatz=0.0;
 		float  fov = 45.0;
-		char   fnamePreview[FILE_MAXFILE];
-		char   fnamePreviewPath[FILE_MAXFILE+FILE_MAXDIR];
 
-		snprintf(fnamePreview,FILE_MAXFILE,"%s_surface", outPrefix );
-		BLI_make_file_string(curWd, fnamePreviewPath, outDir, fnamePreview);
+		strcpy(targetFile, targetDir);
+		strcat(targetFile, suffixSurface);
 		resx = G.scene->r.xsch;
 		resy = G.scene->r.ysch;
 		if((cam) && (cam->type == OB_CAMERA)) {
@@ -530,7 +508,7 @@ void fluidsimBake(struct Object *ob)
 		}
 
 		fprintf(fileCfg, rayString,
-				noFrames, fnamePreviewPath, resx,resy,
+				noFrames, targetFile, resx,resy,
 				eyex, eyey, eyez ,
 				lookatx, lookaty, lookatz,
 				fov
@@ -611,7 +589,6 @@ void fluidsimBake(struct Object *ob)
 			"  } \n" 
 			"\n" ;
 		char fnameObjdat[FILE_MAXFILE];
-		char bobjPath[FILE_MAXFILE+FILE_MAXDIR];
         
 		for(obit= G.main->object.first; obit; obit= obit->id.next) {
 			//{ snprintf(debugStrBuffer,256,"DEBUG object name=%s, type=%d ...\n", obit->id.name, obit->type); elbeemDebugOut(debugStrBuffer); } // DEBUG
@@ -619,26 +596,27 @@ void fluidsimBake(struct Object *ob)
 					(obit->type==OB_MESH) &&
 				  (obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN)
 				) {
-					getGeometryObjFilename(obit, fnameObjdat, outPrefix);
-					BLI_make_file_string(curWd, bobjPath, outDir, fnameObjdat);
+					getGeometryObjFilename(obit, fnameObjdat); //, outPrefix);
+					strcpy(targetFile, targetDir);
+					strcat(targetFile, fnameObjdat);
 					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_FLUID) {
-						fprintf(fileCfg, fluidString, "fluid", bobjPath, // do use absolute paths?
+						fprintf(fileCfg, fluidString, "fluid", targetFile, // do use absolute paths?
 							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_INFLOW) {
-						fprintf(fileCfg, fluidString, "inflow", bobjPath, // do use absolute paths?
+						fprintf(fileCfg, fluidString, "inflow", targetFile, // do use absolute paths?
 							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OUTFLOW) {
-						fprintf(fileCfg, fluidString, "outflow", bobjPath, // do use absolute paths?
+						fprintf(fileCfg, fluidString, "outflow", targetFile, // do use absolute paths?
 							(double)obit->fluidsimSettings->iniVelx, (double)obit->fluidsimSettings->iniVely, (double)obit->fluidsimSettings->iniVelz );
 					}
 					if(obit->fluidsimSettings->type == OB_FLUIDSIM_OBSTACLE) {
-						fprintf(fileCfg, obstacleString, "bnd_no" , bobjPath); // abs path
+						fprintf(fileCfg, obstacleString, "bnd_no" , targetFile); // abs path
 					}
 					fprintf(fileCfg, objectStringEnd ); // abs path
-					writeBobjgz(bobjPath, obit);
+					writeBobjgz(targetFile, obit);
 			}
 		}
 	}
@@ -657,7 +635,7 @@ void fluidsimBake(struct Object *ob)
 
 	fprintf(fileCfg, "} // end raytracing\n");
 	fclose(fileCfg);
-	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", fnameCfg); 
+	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", targetFile); 
 	elbeemDebugOut(debugStrBuffer);
 
 	// perform simulation
@@ -666,7 +644,9 @@ void fluidsimBake(struct Object *ob)
 		globalBakeLock = SDL_CreateMutex();
 		globalBakeState = 0;
 		globalBakeFrame = 1;
-		simthr = SDL_CreateThread(simulateThread, fnameCfgPath);
+		strcpy(targetFile, targetDir);
+		strcat(targetFile, suffixConfig);
+		simthr = SDL_CreateThread(simulateThread, targetFile);
 #ifndef WIN32
 		// DEBUG for win32 debugging, dont use threads...
 #endif // WIN32
@@ -674,7 +654,7 @@ void fluidsimBake(struct Object *ob)
 			snprintf(debugStrBuffer,256,"fluidsimBake::error: Unable to create thread... running without one.\n"); 
 			elbeemDebugOut(debugStrBuffer);
 			set_timecursor(0);
-			performElbeemSimulation(fnameCfgPath);
+			performElbeemSimulation(targetFile);
 		} else {
 			int done = 0;
 			unsigned short event=0;
@@ -733,6 +713,7 @@ void fluidsimBake(struct Object *ob)
 		globalBakeLock = NULL;
 	} // thread creation
 
+	// TODO cleanup sim files?
 	// go back to "current" blender time
 	waitcursor(0);
   G.scene->r.cfra = origFrame;
