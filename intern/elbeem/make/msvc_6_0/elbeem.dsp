@@ -103,6 +103,10 @@ SOURCE=..\..\intern\blendercall.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\intern\blenderdummy.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\intern\cfglexer.cpp
 # End Source File
 # Begin Source File
@@ -175,6 +179,10 @@ SOURCE=..\..\intern\solver_main.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\intern\solver_util.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\intern\utilities.cpp
 # End Source File
 # End Group
@@ -191,7 +199,91 @@ SOURCE=..\..\intern\cfgparser.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\intern\lbmfsgrsolver.h
+SOURCE=..\..\intern\globals.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\isosurface.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\mcubes_tables.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_blenderdumper.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_bsptree.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_geometryclass.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_geometrymodel.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_geometryobject.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_geometryshader.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_lightobject.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_material.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_matrices.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_ray.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_renderglobals.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_rndstream.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_scene.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_triangle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_vector3dim.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\ntl_world.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\parametrizer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\particletracer.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\simulation_object.h
 # End Source File
 # Begin Source File
 
@@ -208,6 +300,10 @@ SOURCE=..\..\intern\solver_interface.h
 # Begin Source File
 
 SOURCE=..\..\intern\solver_relax.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\intern\utilities.h
 # End Source File
 # End Group
 # End Target
