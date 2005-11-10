@@ -122,9 +122,9 @@ typedef struct PartEff {
 	short child[4], mat[4];
 	short texmap, curmult;
 	short staticstep, omat, timetex, speedtex, flag2, flag2neg;
-	short disp, pad;
+	short disp, vertgroup_v;
 	
-	char vgroupname[32];
+	char vgroupname[32], vgroupname_v[32];
 	Particle *keys;
 	
 } PartEff;

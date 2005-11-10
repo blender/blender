@@ -628,6 +628,7 @@ enum {
 #define B_FIELD_DEP		3414
 #define B_FIELD_CHANGE	3415
 #define B_PAF_SET_VG	3416
+#define B_PAF_SET_VG1	3417
 
 #define B_MODIFIER_BUTS		3600
 

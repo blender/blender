@@ -1447,6 +1447,35 @@ static void make_weight_tables(PartEff *paf, Mesh *me, int totpart, MVert *vertl
 	}
 }
 
+/* helper function for build_particle_system() */
+static void make_length_tables(PartEff *paf, Mesh *me, int totvert, MFace *facelist, int totface, float **vlengths, float **flengths)
+{
+	MFace *mface;
+	float *folengths=NULL, *volengths=NULL;
+	int a;
+	
+	if((paf->flag & PAF_FACE)==0) totface= 0;
+	
+	/* collect emitting vertices & faces if vert groups used */
+	if(paf->vertgroup_v && me->dvert) {
+		
+		/* allocate lengths array for all vertices, also for lookup of faces later on. note it's a malloc */
+		*vlengths= volengths= MEM_mallocN( totvert*sizeof(float), "pafvolengths" );
+		for(a=0; a<totvert; a++) {
+			volengths[a]= vert_weight(me->dvert+a, paf->vertgroup_v-1);
+		}
+		
+		if(totface) {
+			/* allocate lengths array for faces, note it's a malloc */
+			*flengths= folengths= MEM_mallocN(totface*sizeof(float), "paffolengths" );
+			for(a=0, mface=facelist; a<totface; a++, mface++) {
+				folengths[a] = face_weight(mface, volengths);
+			}
+		}
+	}
+}
+
+
 /* for paf start to end, store all matrices for objects */
 typedef struct pMatrixCache {
 	float obmat[4][4];
@@ -1533,6 +1562,7 @@ void build_particle_system(Object *ob)
 	float ftime, dtime, force[3], vec[3];
 	float fac, co[3];
 	float *voweights= NULL, *foweights= NULL, maxw=1.0f;
+	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
 	int dmNeedsFree, waitcursor_set= 0, totvert, totface, curface, curvert;
 	short no[3];
@@ -1631,6 +1661,9 @@ void build_particle_system(Object *ob)
 	}
 	/* if vertexweights or even distribution, it makes weight tables, also checks where it emits from */
 	make_weight_tables(paf, me, totpart, vertlist, totvert, facelist, totface, &voweights, &foweights);
+	
+	/* vertexweights can define lengths too */
+	make_length_tables(paf, me, totvert, facelist, totface, &volengths, &folengths);
 	
 	/* now define where to emit from, if there are face weights we skip vertices */
 	if(paf->flag & PAF_OFACE) totvert= 0;
@@ -1819,6 +1852,9 @@ void build_particle_system(Object *ob)
 		}
 		pa->mat_nr= paf->omat;
 		
+		if(folengths)
+			pa->lifetime*= folengths[curface];
+		
 		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, ob->lay);
 	}
 	
@@ -1826,6 +1862,8 @@ void build_particle_system(Object *ob)
 	give_mesh_particle_coord(NULL, NULL, NULL, 0, 0, NULL, NULL);
 	if(voweights) MEM_freeN(voweights);
 	if(foweights) MEM_freeN(foweights);
+	if(volengths) MEM_freeN(volengths);
+	if(folengths) MEM_freeN(folengths);
 	if(mcache) MEM_freeN(mcache);
 
 	if(deform) end_latt_deform();

@@ -1624,6 +1624,20 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
+	case B_PAF_SET_VG1:
+		
+		paf= give_parteff(ob);
+		if(paf) {
+			bDeformGroup *dg= get_named_vertexgroup(ob, paf->vgroupname_v);
+			if(dg)
+				paf->vertgroup_v= get_defgroup_num(ob, dg)+1;
+			else
+				paf->vertgroup_v= 0;
+			
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
 	case B_FIELD_DEP:
 		DAG_scene_sort(G.scene);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
@@ -1895,6 +1909,7 @@ static void object_softbodies(Object *ob)
 static void object_panel_particles_motion(Object *ob)
 {
 	uiBlock *block;
+	uiBut *but;
 	PartEff *paf= give_parteff(ob);
 
 	if (paf==NULL) return;
@@ -1912,16 +1927,18 @@ static void object_panel_particles_motion(Object *ob)
 	uiBlockEndAlign(block);
 	
 	/* left collumn */
-	uiDefBut(block, LABEL, 0, "Velocity:",			0,150,150,20, NULL, 0.0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Velocity:",			0,160,150,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	uiDefButF(block, NUM, B_CALCEFFECT, "Normal:",		0,130,150,20, &paf->normfac, -2.0, 2.0, 1, 3, "Let the mesh give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Object:",		0,110,150,20, &paf->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,90,150,20, &paf->randfac, 0.0, 2.0, 1, 3, "Give the startingspeed a random variation");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Texture:",		0,70,150,20, &paf->texfac, 0.0, 2.0, 1, 3, "Let the texture give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Damping:",		0,50,150,20, &paf->damp, 0.0, 1.0, 1, 3, "Specify the damping factor");
-	uiBlockEndAlign(block);
+	uiDefButF(block, NUM, B_CALCEFFECT, "Normal:",		0,140,150,18, &paf->normfac, -2.0, 2.0, 1, 3, "Let the mesh give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Object:",		0,122,150,18, &paf->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,104,150,18, &paf->randfac, 0.0, 2.0, 1, 3, "Give the startingspeed a random variation");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Texture:",		0,86,150,18, &paf->texfac, 0.0, 2.0, 1, 3, "Let the texture give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Damping:",		0,68,150,18, &paf->damp, 0.0, 1.0, 1, 3, "Specify the damping factor");
 	uiBlockSetCol(block, TH_AUTO);
+	but=uiDefBut(block, TEX, B_PAF_SET_VG1, "VGroup:",	0,50,150,18, paf->vgroupname_v, 0, 31, 0, 0, "Name of vertex group to use for speed control");
+	uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)OBACT);
+	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "Texture Emission",			0,30,150,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
@@ -1977,7 +1994,7 @@ static void object_panel_particles(Object *ob)
 	
 	uiDefBut(block, LABEL, 0, "Emit:",					0,150,75,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_CALCEFFECT, "Amount:",			0,130,150,20, &paf->totpart, 1.0, 100000.0, 0, 0, "The total number of particles");
+	uiDefButI(block, NUM, B_CALCEFFECT, "Amount:",		0,130,150,20, &paf->totpart, 1.0, 100000.0, 0, 0, "The total number of particles");
 	if(paf->flag & PAF_STATIC) {
 		uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	0,110,150,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
 	}
