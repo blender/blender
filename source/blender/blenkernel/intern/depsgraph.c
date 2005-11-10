@@ -467,8 +467,12 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 		}
 		else if(ob->type==OB_MESH) {
 			PartEff *paf= give_parteff(ob);
-			if(paf && (paf->flag & PAF_STATIC)) {
+			if(paf) {
 				Base *base1;
+				
+				/* ob location depends on itself */
+				if((paf->flag & PAF_STATIC)==0)
+					dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
 				
 				/* force fields, warning for loop inside loop... */
 				for(base1 = G.scene->base.first; base1; base1= base1->next) {

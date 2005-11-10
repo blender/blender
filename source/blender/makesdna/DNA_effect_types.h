@@ -38,11 +38,27 @@
 
 #define PAF_MAXMULT		4
 
-	/* paf->flag (keep bit 0 free for compatibility) */
+/* paf->flag (keep bit 0 free for compatibility) */
 #define PAF_BSPLINE		2
 #define PAF_STATIC		4
 #define PAF_FACE		8
 #define PAF_ANIMATED	16
+		/* show particles before they're emitted*/
+#define PAF_UNBORN		32
+		/* emit only from faces*/
+#define PAF_OFACE		64
+		/* show emitter (don't hide actual mesh)*/
+#define PAF_SHOWE		128	
+		/* true random emit from faces (not just ordered jitter)*/
+#define PAF_TRAND		256
+		/* even distribution in face emission based on face areas*/
+#define PAF_EDISTR		512
+		/*show particles after they've died*/
+#define PAF_DIED		2048
+
+
+/*paf->flag2 for pos/neg paf->flag2neg*/
+#define PAF_TEXTIME		1	/*texture timing*/
 
 	/* eff->type */
 #define EFF_BUILD		0
@@ -91,7 +107,7 @@ typedef struct Particle {
 
 typedef struct PartEff {
 	struct PartEff *next, *prev;
-	short type, flag, buttype, stype;
+	short type, flag, buttype, stype, vertgroup, userjit;
 	
 	float sta, end, lifetime;
 	int totpart, totkey, seed;
@@ -105,8 +121,10 @@ typedef struct PartEff {
 	float mult[4], life[4];
 	short child[4], mat[4];
 	short texmap, curmult;
-	short staticstep, pad;
+	short staticstep, omat, timetex, speedtex, flag2, flag2neg;
+	short disp, pad;
 	
+	char vgroupname[32];
 	Particle *keys;
 	
 } PartEff;

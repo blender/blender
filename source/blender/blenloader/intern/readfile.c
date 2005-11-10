@@ -4909,6 +4909,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for(ob=main->object.first; ob; ob= ob->id.next) {
 			ModifierData *md;
+			PartEff *paf;
 
 			for (md=ob->modifiers.first; md; md=md->next) {
 				if (md->type==eModifierType_Subsurf) {
@@ -4958,6 +4959,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 				}
+			}
+
+			paf = give_parteff(ob);
+			if (paf) {
+				if(paf->disp == 0)
+					paf->disp = 100;
+				if(paf->speedtex == 0)
+					paf->speedtex = 8;
+				if(paf->omat == 0)
+					paf->omat = 1;
 			}
 		}
 		

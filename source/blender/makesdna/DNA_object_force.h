@@ -104,6 +104,7 @@ typedef struct SoftBody {
 #define PFIELD_VORTEX	2
 #define PFIELD_MAGNET	3
 #define PFIELD_WIND		4
+#define PFIELD_GUIDE	5
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX	1

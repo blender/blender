@@ -55,6 +55,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_action.h"
+#include "BKE_anim.h"		/* needed for where_on_path */
 #include "BKE_armature.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
@@ -74,8 +75,8 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "render.h"  // externtex, bad level call (ton)
-
+#include "render.h"		// externtex, bad level call (ton)
+#include "PIL_time.h"
 
 Effect *add_effect(int type)
 {
@@ -102,7 +103,9 @@ Effect *add_effect(int type)
 		paf->staticstep= 5;
 		paf->defvec[2]= 1.0f;
 		paf->nabla= 0.05f;
-		
+		paf->disp = 100;
+		paf->speedtex = 8;
+		paf->omat = 1;		
 		break;
 	}
 	
@@ -205,7 +208,7 @@ static Particle *new_particle(PartEff *paf)
 	static int cur;
 
 	/* we agree: when paf->keys==0: alloc */	
-	if(paf->keys==0) {
+	if(paf->keys==NULL) {
 		pa= paf->keys= MEM_callocN( paf->totkey*paf->totpart*sizeof(Particle), "particlekeys" );
 		cur= 0;
 	}
@@ -234,7 +237,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 	float dt, t[4];
 	int a;
 	
-	if(paf->totkey==1) {
+	if(paf->totkey==1 || ctime < pa->time) {
 		VECCOPY(vec, pa->co);
 		return;
 	}
@@ -252,7 +255,7 @@ void where_is_particle(PartEff *paf, Particle *pa, float ctime, float *vec)
 	if(a+1<paf->totkey) p[2]= pa+1; else p[2]= pa;
 	if(a+2<paf->totkey) p[3]= pa+2; else p[3]= p[2];
 	
-	if(p[1]==p[2]) dt= 0.0;
+	if(p[1]==p[2] || p[2]->time == p[1]->time) dt= 0.0;
 	else dt= (ctime-p[1]->time)/(p[2]->time - p[1]->time);
 
 	if(paf->flag & PAF_BSPLINE) set_four_ipo(dt, t, KEY_BSPLINE);
@@ -301,16 +304,111 @@ static void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 		
 	}
 }
-/*  -------- pdDoEffector() --------
+
+/* -------------------------- Effectors ------------------ */
+
+typedef struct pEffectorCache {
+	struct pEffectorCache *next, *prev;
+	struct Object *ob;
+	
+	/* precalculated variables */
+	float oldloc[3], oldspeed[3];
+	float scale, time_scale;
+	float guide_dist;
+} pEffectorCache;
+
+
+/* returns ListBase handle with objects taking part in the effecting */
+ListBase *pdInitEffectors(unsigned int layer)
+{
+	static ListBase listb={NULL, NULL};
+	Base *base;
+	
+	for(base = G.scene->base.first; base; base= base->next) {
+		if( (base->lay & layer) && base->object->pd) {
+			Object *ob= base->object;
+			PartDeflect *pd= ob->pd;
+			
+			if(pd->forcefield == PFIELD_GUIDE) {
+				if(ob->type==OB_CURVE) {
+					Curve *cu= ob->data;
+					if((cu->flag & CU_PATH) && cu->path && cu->path->data) {
+						pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+						ec->ob= ob;
+						BLI_addtail(&listb, ec);
+					}
+				}
+			}
+			else if(pd->forcefield) {
+				pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+				ec->ob= ob;
+				BLI_addtail(&listb, ec);
+			}
+		}
+	}
+	if(listb.first)
+		return &listb;
+	
+	return NULL;
+}
+
+void pdEndEffectors(ListBase *lb)
+{
+	if(lb)
+		BLI_freelistN(lb);
+}
+
+/* local for this c file, only for guides now */
+static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *lb)
+{
+	pEffectorCache *ec;
+	
+	for(ec= lb->first; ec; ec= ec->next) {
+		if(ec->ob->type==OB_CURVE) {
+			float vec[4], dir[3];
+				
+			/* scale corrects speed vector to curve size */
+			if(paf->totkey>1) ec->scale= (paf->totkey-1)/pa->lifetime;
+			else ec->scale= 1.0f;
+			
+			/* time_scale is for random life */
+			if(pa->lifetime>paf->lifetime)
+				ec->time_scale= paf->lifetime/pa->lifetime;
+			else
+				ec->time_scale= pa->lifetime/paf->lifetime;
+
+			/* distance of first path point to particle origin */
+			where_on_path(ec->ob, 0.0f, vec, dir);
+			VECCOPY(ec->oldloc, vec);	/* store local coord for differences */
+			Mat4MulVecfl(ec->ob->obmat, vec);
+			
+			/* for static we need to move to global space */
+			if(paf->flag & PAF_STATIC) {
+				VECCOPY(dir, pa->co);
+				Mat4MulVecfl(ob->obmat, dir);
+				ec->guide_dist= VecLenf(vec, dir);
+			}
+			else 
+				ec->guide_dist= VecLenf(vec, pa->co);
+		}
+	}
+}
+
+
+/*  -------- pdDoEffectors() --------
     generic force/speed system, now used for particles and softbodies
+	lb			= listbase with objects that take part in effecting
 	opco		= global coord, as input
     force		= force accumulator
-    speed		= speed accumulator
-    cur_time	= in frames
+    speed		= actual current speed which can be altered
+	cur_time	= "external" time in frames, is constant for static particles
+	loc_time	= "local" time in frames, range <0-1> for the lifetime of particle
     par_layer	= layer the caller is in
+	flags		= only used for softbody wind now
+	guide		= old speed of particle
 
 */
-void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsigned int par_layer,unsigned int flags)
+void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags)
 {
 /*
 	Modifies the force on a particle according to its
@@ -321,116 +419,186 @@ void pdDoEffector(float *opco, float *force, float *speed, float cur_time, unsig
 		Vortex fields: swirling effectors
 		(particles rotate around Z-axis of the object. otherwise, same relation as)
 		(Forcefields, but this is not done through a force/acceleration)
-	
+		Guide: particles on a path
+		(particles are guided along a curve bezier or old nurbs)
+		(is independent of other effectors)
 */
 	Object *ob;
-	Base *base;
+	pEffectorCache *ec;
 	PartDeflect *pd;
 	float vect_to_vert[3];
-	float force_vec[3];
-	float f_force, distance;
+	float f_force, force_vec[3];
 	float *obloc;
-	float force_val, ffall_val;
+	float distance, force_val, ffall_val;
+	float guidecollect[3], guidedist= 0.0f;
 	short cur_frame;
+	
+	guidecollect[0]= guidecollect[1]= guidecollect[2]=0.0f;
 
-	/* Cycle through objects, get total of (1/(gravity_strength * dist^gravity_power)) */
+	/* Cycle through collected objects, get total of (1/(gravity_strength * dist^gravity_power)) */
 	/* Check for min distance here? (yes would be cool to add that, ton) */
 	
-	for(base = G.scene->base.first; base; base= base->next) {
-		if( (base->lay & par_layer) && base->object->pd) {
-			ob= base->object;
-			pd= ob->pd;
+	for(ec = lb->first; ec; ec= ec->next) {
+		/* object effectors were fully checked to be OK to evaluate! */
+		ob= ec->ob;
+		pd= ob->pd;
 			
-			/* checking if to continue or not */
-			if(pd->forcefield==0) continue;
+		/* Get IPO force strength and fall off values here */
+		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
+		else 
+			force_val = pd->f_strength;
+		
+		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
+			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
+		else 
+			ffall_val = pd->f_power;
 			
-			/* Get IPO force strength and fall off values here */
-			if (has_ipo_code(ob->ipo, OB_PD_FSTR))
-				force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, cur_time);
-			else 
-				force_val = pd->f_strength;
+		/* Need to set r.cfra for paths (investigate, ton) (uses ob->ctime now, ton) */
+		if(ob->ctime!=cur_time) {
+			cur_frame = G.scene->r.cfra;
+			G.scene->r.cfra = (short)cur_time;
+			where_is_object_time(ob, cur_time);
+			G.scene->r.cfra = cur_frame;
+		}
 			
-			if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
-				ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, cur_time);
-			else 
-				ffall_val = pd->f_power;
+		/* use center of object for distance calculus */
+		obloc= ob->obmat[3];
+		VECSUB(vect_to_vert, obloc, opco);
+		distance = VecLength(vect_to_vert);
 			
+		if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist && pd->forcefield != PFIELD_GUIDE)
+			;	/* don't do anything */
+		else if(pd->forcefield == PFIELD_WIND) {
+			VECCOPY(force_vec, ob->obmat[2]);
 			
-			/* Need to set r.cfra for paths (investigate, ton) (uses ob->ctime now, ton) */
-			if(ob->ctime!=cur_time) {
-				cur_frame = G.scene->r.cfra;
-				G.scene->r.cfra = (short)cur_time;
-				where_is_object_time(ob, cur_time);
-				G.scene->r.cfra = cur_frame;
-			}
+			/* wind works harder perpendicular to normal, would be nice for softbody later (ton) */
 			
-			/* use center of object for distance calculus */
-			obloc= ob->obmat[3];
-			VECSUB(vect_to_vert, obloc, opco);
-			distance = VecLength(vect_to_vert);
-			
-			if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist)
-				;	/* don't do anything */
-			else if(pd->forcefield == PFIELD_WIND) {
-				VECCOPY(force_vec, ob->obmat[2]);
-				
-				/* wind works harder perpendicular to normal, would be nice for softbody later (ton) */
-				
-				/* Limit minimum distance to vertex so that */
-				/* the force is not too big */
-				if (distance < 0.001) distance = 0.001f;
-				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
-				if(flags &&PE_WIND_AS_SPEED){
-					speed[0] -= (force_vec[0] * f_force );
-					speed[1] -= (force_vec[1] * f_force );
-					speed[2] -= (force_vec[2] * f_force );
-				}
-				else{
-					force[0] += force_vec[0]*f_force;
-					force[1] += force_vec[1]*f_force;
-					force[2] += force_vec[2]*f_force;
-				}
-			}
-			else if(pd->forcefield == PFIELD_FORCE) {
-				
-				/* only use center of object */
-				obloc= ob->obmat[3];
-
-				/* Now calculate the gravitational force */
-				VECSUB(vect_to_vert, obloc, opco);
-				distance = VecLength(vect_to_vert);
-
-				/* Limit minimum distance to vertex so that */
-				/* the force is not too big */
-				if (distance < 0.001) distance = 0.001f;
-				f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
-				force[0] += (vect_to_vert[0] * f_force );
-				force[1] += (vect_to_vert[1] * f_force );
-				force[2] += (vect_to_vert[2] * f_force );
-
-			}
-			else if(pd->forcefield == PFIELD_VORTEX) {
-
-				/* only use center of object */
-				obloc= ob->obmat[3];
-
-				/* Now calculate the vortex force */
-				VECSUB(vect_to_vert, obloc, opco);
-				distance = VecLength(vect_to_vert);
-
-				Crossf(force_vec, ob->obmat[2], vect_to_vert);
-				Normalise(force_vec);
-
-				/* Limit minimum distance to vertex so that */
-				/* the force is not too big */
-				if (distance < 0.001) distance = 0.001f;
-				f_force = (force_val)*(1/(100 * (float)pow((double)distance, (double)ffall_val)));
+			/* Limit minimum distance to vertex so that */
+			/* the force is not too big */
+			if (distance < 0.001) distance = 0.001f;
+			f_force = (force_val)*(1/(1000 * (float)pow((double)distance, (double)ffall_val)));
+			/* this option for softbody only */
+			if(flags && PE_WIND_AS_SPEED){
 				speed[0] -= (force_vec[0] * f_force );
 				speed[1] -= (force_vec[1] * f_force );
 				speed[2] -= (force_vec[2] * f_force );
-
+			}
+			else{
+				force[0] += force_vec[0]*f_force;
+				force[1] += force_vec[1]*f_force;
+				force[2] += force_vec[2]*f_force;
 			}
 		}
+		else if(pd->forcefield == PFIELD_FORCE) {
+			
+			/* only use center of object */
+			obloc= ob->obmat[3];
+
+			/* Now calculate the gravitational force */
+			VECSUB(vect_to_vert, obloc, opco);
+			distance = VecLength(vect_to_vert);
+
+			/* Limit minimum distance to vertex so that */
+			/* the force is not too big */
+			if (distance < 0.001) distance = 0.001f;
+			f_force = (force_val)*(1.0/(1000.0 * (float)pow((double)distance, (double)ffall_val)));
+			force[0] += (vect_to_vert[0] * f_force );
+			force[1] += (vect_to_vert[1] * f_force );
+			force[2] += (vect_to_vert[2] * f_force );
+		}
+		else if(pd->forcefield == PFIELD_VORTEX) {
+			float vortexvec[3];
+			
+			/* only use center of object */
+			obloc= ob->obmat[3];
+
+			/* Now calculate the vortex force */
+			VECSUB(vect_to_vert, obloc, opco);
+			distance = VecLength(vect_to_vert);
+
+			Crossf(force_vec, ob->obmat[2], vect_to_vert);
+			Normalise(force_vec);
+
+			/* Limit minimum distance to vertex so that */
+			/* the force is not too big */
+			if (distance < 0.001) distance = 0.001f;
+			f_force = (force_val)*(1.0/(100.0 * (float)pow((double)distance, (double)ffall_val)));
+			vortexvec[0]= -(force_vec[0] * f_force );
+			vortexvec[1]= -(force_vec[1] * f_force );
+			vortexvec[2]= -(force_vec[2] * f_force );
+			
+			/* this option for softbody only */
+			if(flags &&PE_WIND_AS_SPEED) {
+				speed[0]+= vortexvec[0];
+				speed[1]+= vortexvec[1];
+				speed[2]+= vortexvec[2];
+			}
+			else {
+				/* since vortex alters the speed, we have to correct for the previous vortex result */
+				speed[0]+= vortexvec[0] - ec->oldspeed[0];
+				speed[1]+= vortexvec[1] - ec->oldspeed[1];
+				speed[2]+= vortexvec[2] - ec->oldspeed[2];
+				
+				VECCOPY(ec->oldspeed, vortexvec);
+			}
+		}
+		else if(pd->forcefield == PFIELD_GUIDE) {
+			float guidevec[4], guidedir[3];
+			float mindist= force_val; /* force_val is actually mindist in the UI */
+			
+			distance= ec->guide_dist;
+			
+			/* WARNING: bails out with continue here */
+			if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist) continue;
+			
+			/* derive path point from loc_time */
+			where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
+			VECSUB(guidedir, guidevec, ec->oldloc);
+			VECCOPY(ec->oldloc, guidevec);
+			
+			Mat4Mul3Vecfl(ob->obmat, guidedir);
+			VecMulf(guidedir, ec->scale);	/* correction for lifetime and speed */
+			
+			/* we subtract the speed we gave it previous step */
+			VECCOPY(guidevec, guidedir);
+			VECSUB(guidedir, guidedir, ec->oldspeed);
+			VECCOPY(ec->oldspeed, guidevec);
+			
+			/* calculate contribution factor for this guide */
+			if(distance<=mindist) f_force= 1.0f;
+			else if(pd->flag & PFIELD_USEMAX) {
+				if(distance>pd->maxdist || mindist>=pd->maxdist) f_force= 0.0f;
+				else {
+					f_force= 1.0f - (distance-mindist)/(pd->maxdist - mindist);
+					if(ffall_val!=0.0f)
+						f_force = (float)pow(f_force, ffall_val+1.0);
+				}
+			}
+			else {
+				f_force= 1.0f/(1.0f + distance-mindist);
+				if(ffall_val!=0.0f)
+					f_force = (float)pow(f_force, ffall_val+1.0);
+			}
+			
+			/* if it fully contributes, we stop */
+			if(f_force==1.0) {
+				VECCOPY(guidecollect, guidedir);
+				guidedist= 1.0f;
+				break;
+			}
+			else if(guidedist<1.0f) {
+				VecMulf(guidedir, f_force);
+				VECADD(guidecollect, guidecollect, guidedir);
+				guidedist += f_force;
+			}					
+		}
+	}
+
+	/* all guides are accumulated here */
+	if(guidedist!=0.0f) {
+		if(guidedist!=1.0f) VecMulf(guidecollect, 1.0f/guidedist);
+		VECADD(speed, speed, guidecollect);
 	}
 }
 
@@ -788,11 +956,11 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	part = current particle
 	force = force vector
 	deform = flag to indicate lattice deform
-	cfraont = current frame
  */
-static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer, int cfraont)
+static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
 {
 	Particle *pa, *opa = NULL;
+	ListBase *effectorbase;
 	float damp, deltalife, life;
 	float cur_time;
 	float opco[3], opno[3], npco[3], npno[3], new_force[3], new_speed[3];
@@ -814,120 +982,122 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 		particle_tex(mtex, paf, pa->co, pa->no);
 	}
 
+	/* effectors here? */
+	effectorbase= pdInitEffectors(par_layer);
+	if(effectorbase)
+		precalc_effectors(ob, paf, pa, effectorbase);
+	
 	if(paf->totkey>1) deltalife= pa->lifetime/(paf->totkey-1);
 	else deltalife= pa->lifetime;
 
+	/* longer lifetime results in longer distance covered */
+	VecMulf(pa->no, deltalife);
+	
 	opa= pa;
 	pa++;
 
-	b= paf->totkey-1;
-	while(b--) {
+	for(b=1; b<paf->totkey; b++) {
+
 		/* new time */
 		pa->time= opa->time+deltalife;
+		cur_time = pa->time;
 
 		/* set initial variables                                */
-		opco[0] = opa->co[0];
-		opco[1] = opa->co[1];
-		opco[2] = opa->co[2];
+		VECCOPY(opco, opa->co);
+		VECCOPY(new_force, force);
+		VECCOPY(new_speed, opa->no);
+		VecMulf(new_speed, 1.0f/deltalife);
+		//new_speed[0] = new_speed[1] = new_speed[2] = 0.0f;
 
-		new_force[0] = force[0];
-		new_force[1] = force[1];
-		new_force[2] = force[2];
-		new_speed[0] = 0.0;
-		new_speed[1] = 0.0;
-		new_speed[2] = 0.0;
-
-		/* handle differences between static (local coords, fixed frae) and dynamic */
-		if(paf->flag & PAF_STATIC) {
-			float opco1[3], new_force1[3], new_speed1[3];
+		/* handle differences between static (local coords, fixed frame) and dynamic */
+		if(effectorbase) {
+			float loc_time= ((float)b)/(float)(paf->totkey-1);
 			
-			/* move to global coords */
-			VECCOPY(opco1, opco);
-			Mat4MulVecfl(ob->obmat, opco1);
-			
-			VECCOPY(new_force1, new_force);
-			Mat4Mul3Vecfl(ob->obmat, new_force1);
-			VECCOPY(new_speed1, new_speed);
-			Mat4Mul3Vecfl(ob->obmat, new_speed1);
-			
-			cur_time = cfraont;
-			
-			/* force fields */
-			pdDoEffector(opco1, new_force1, new_speed1, cur_time, par_layer, 0);
-			
-			/* move back to local */
-			VECCOPY(opco, opco1);
-			Mat4MulVecfl(ob->imat, opco);
-			
-			VECCOPY(new_force, new_force1);
-			Mat4Mul3Vecfl(ob->imat, new_force);
-			VECCOPY(new_speed, new_speed1);
-			Mat4Mul3Vecfl(ob->imat, new_speed);
-		}
-		else {
-			cur_time = pa->time;
-			
-			 /* force fields */
-			pdDoEffector(opco, new_force, new_speed, cur_time, par_layer,0);
-		}
-
-		/* new location */
-		pa->co[0]= opa->co[0] + deltalife * (opa->no[0] + new_speed[0] + 0.5f*new_force[0]);
-		pa->co[1]= opa->co[1] + deltalife * (opa->no[1] + new_speed[1] + 0.5f*new_force[1]);
-		pa->co[2]= opa->co[2] + deltalife * (opa->no[2] + new_speed[2] + 0.5f*new_force[2]);
-
-		/* new speed */
-		pa->no[0]= opa->no[0] + deltalife*new_force[0];
-		pa->no[1]= opa->no[1] + deltalife*new_force[1];
-		pa->no[2]= opa->no[2] + deltalife*new_force[2];
-
-		/* Particle deflection code                             */
-		deflection = 0;
-		finish_defs = 1;
-		def_count = 0;
-
-		VECCOPY(opno, opa->no);
-		VECCOPY(npco, pa->co);
-		VECCOPY(npno, pa->no);
-
-		life = deltalife;
-		cur_time -= deltalife;
-
-		last_ob = -1;
-		last_fc = -1;
-		same_fc = 0;
-
-		/* First call the particle deflection check for the particle moving   */
-		/* between the old co-ordinates and the new co-ordinates              */
-		/* If a deflection occurs, call the code again, this time between the */
-		/* intersection point and the updated new co-ordinates                */
-		/* Bail out if we've done the calculation 10 times - this seems ok     */
-        /* for most scenes I've tested */
-		while (finish_defs) {
-			deflected =  pdDoDeflection(rng, opco, npco, opno, npno, life, new_force,
-							def_count, cur_time, par_layer,
-							&last_ob, &last_fc, &same_fc);
-			if (deflected) {
-				def_count = def_count + 1;
-				deflection = 1;
-				if (def_count==10) finish_defs = 0;
+			if(paf->flag & PAF_STATIC) {
+				float opco1[3], new_force1[3];
+				
+				/* move co and force to global coords */
+				VECCOPY(opco1, opco);
+				Mat4MulVecfl(ob->obmat, opco1);
+				VECCOPY(new_force1, new_force);
+				Mat4Mul3Vecfl(ob->obmat, new_force1);
+				
+				cur_time = G.scene->r.cfra;
+				
+				/* force fields */
+				pdDoEffectors(effectorbase, opco1, new_force1, new_speed, cur_time, loc_time, 0);
+				
+				/* move co, force and newspeed back to local */
+				VECCOPY(opco, opco1);
+				Mat4MulVecfl(ob->imat, opco);
+				VECCOPY(new_force, new_force1);
+				Mat4Mul3Vecfl(ob->imat, new_force);
+				Mat4Mul3Vecfl(ob->imat, new_speed);
 			}
 			else {
-				finish_defs = 0;
+				 /* force fields */
+				pdDoEffectors(effectorbase, opco, new_force, new_speed, cur_time, loc_time, 0);
 			}
 		}
+		
+		/* new speed */
+		pa->no[0]= deltalife * (new_speed[0] + new_force[0]);
+		pa->no[1]= deltalife * (new_speed[1] + new_force[1]);
+		pa->no[2]= deltalife * (new_speed[2] + new_force[2]);
+		
+		/* new location */
+		pa->co[0]= opa->co[0] + pa->no[0];
+		pa->co[1]= opa->co[1] + pa->no[1];
+		pa->co[2]= opa->co[2] + pa->no[2];
 
-		/* Only update the particle positions and speed if we had a deflection */
-		if (deflection) {
-			pa->co[0] = npco[0];
-			pa->co[1] = npco[1];
-			pa->co[2] = npco[2];
-			pa->no[0] = npno[0];
-			pa->no[1] = npno[1];
-			pa->no[2] = npno[2];
+		/* Particle deflection code */
+		if((paf->flag & PAF_STATIC)==0) {
+			deflection = 0;
+			finish_defs = 1;
+			def_count = 0;
+
+			VECCOPY(opno, opa->no);
+			VECCOPY(npco, pa->co);
+			VECCOPY(npno, pa->no);
+
+			life = deltalife;
+			cur_time -= deltalife;
+
+			last_ob = -1;
+			last_fc = -1;
+			same_fc = 0;
+
+			/* First call the particle deflection check for the particle moving   */
+			/* between the old co-ordinates and the new co-ordinates              */
+			/* If a deflection occurs, call the code again, this time between the */
+			/* intersection point and the updated new co-ordinates                */
+			/* Bail out if we've done the calculation 10 times - this seems ok     */
+			/* for most scenes I've tested */
+			while (finish_defs) {
+				deflected =  pdDoDeflection(rng, opco, npco, opno, npno, life, new_force,
+								def_count, cur_time, par_layer,
+								&last_ob, &last_fc, &same_fc);
+				if (deflected) {
+					def_count = def_count + 1;
+					deflection = 1;
+					if (def_count==10) finish_defs = 0;
+				}
+				else {
+					finish_defs = 0;
+				}
+			}
+
+			/* Only update the particle positions and speed if we had a deflection */
+			if (deflection) {
+				pa->co[0] = npco[0];
+				pa->co[1] = npco[1];
+				pa->co[2] = npco[2];
+				pa->no[0] = npno[0];
+				pa->no[1] = npno[1];
+				pa->no[2] = npno[2];
+			}
 		}
-
-
+		
 		/* speed: texture */
 		if(mtex && paf->texfac!=0.0) {
 			particle_tex(mtex, paf, pa->co, pa->no);
@@ -937,9 +1107,7 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 			pa->no[1]*= damp;
 			pa->no[2]*= damp;
 		}
-	
-
-
+		
 		opa= pa;
 		pa++;
 		/* opa is used later on too! */
@@ -974,13 +1142,18 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 				}
 				pa->mat_nr= paf->mat[depth];
 
-				make_particle_keys(rng, ob, depth+1, b, paf, pa, force, deform, mtex, par_layer, cfraont);
+				make_particle_keys(rng, ob, depth+1, b, paf, pa, force, deform, mtex, par_layer);
 			}
 		}
 	}
+	
+	/* cleanup */
+	if(effectorbase)
+		pdEndEffectors(effectorbase);
+
 }
 
-static void init_mv_jit(float *jit, int num,int seed2)
+static void init_mv_jit(float *jit, int num, int seed2)
 {
 	RNG *rng;
 	float *jit2, x, rad1, rad2, rad3;
@@ -1018,211 +1191,414 @@ static void init_mv_jit(float *jit, int num,int seed2)
 	rng_free(rng);
 }
 
+#define JIT_RAND	32
 
-static void give_mesh_mvert(Mesh *me, DispListMesh *dlm, int nr, float *co, short *no, int seed2)
+/* for a position within a face, tot is total amount of faces */
+static void give_mesh_particle_coord(PartEff *paf, MVert *mvert, MFace *mface, int partnr, int subnr, float *co, short *no)
 {
-	static float *jit=0;
-	static int jitlevel=1;
-	MVert *mvert, *mvertbase=NULL;
-	MFace *mface, *mfacebase=NULL;
-	float u, v, *v1, *v2, *v3, *v4;
-	int totface=0, totvert=0, curface, curjit;
+	static float *jit= NULL;
+	static float *trands= NULL;
+	static int jitlevel= 1;
+	float *v1, *v2, *v3, *v4;
+	float u, v;
 	short *n1, *n2, *n3, *n4;
 	
-	/* signal */
-	if(me==0) {
+	/* free signal */
+	if(paf==NULL) {
 		if(jit) MEM_freeN(jit);
-		jit= 0;
+		jit= NULL;
+		if(trands) MEM_freeN(trands);
+		trands= NULL;
 		return;
 	}
 	
-	if(dlm) {
-		mvertbase= dlm->mvert;
-		mfacebase= dlm->mface;
-		totface= dlm->totface;
-		totvert= dlm->totvert;
+	/* first time initialize jitter or trand, partnr then is total amount of particles, subnr total amount of faces */
+	if(trands==NULL && jit==NULL) {
+		RNG *rng = rng_new(31415926 + paf->seed);
+		int i, tot;
+
+		if(paf->flag & PAF_TRAND)
+			tot= partnr;
+		else 
+			tot= JIT_RAND;	/* arbitrary... allows JIT_RAND times more particles in a face for jittered distro */
+			
+		trands= MEM_callocN(2+2*tot*sizeof(float), "trands");
+		for(i=0; i<tot; i++) {
+			trands[2*i]= rng_getFloat(rng);
+			trands[2*i+1]= rng_getFloat(rng);
+		}
+		rng_free(rng);
+
+		if((paf->flag & PAF_TRAND)==0) {
+			jitlevel= paf->userjit;
+			
+			if(jitlevel == 0) {
+				jitlevel= partnr/subnr;
+				if(paf->flag & PAF_EDISTR) jitlevel*= 2;	/* looks better in general, not very scietific */
+				if(jitlevel<3) jitlevel= 3;
+				if(jitlevel>100) jitlevel= 100;
+			}
+			
+			jit= MEM_callocN(2+ jitlevel*2*sizeof(float), "jit");
+			init_mv_jit(jit, jitlevel, paf->seed);
+			BLI_array_randomize(jit, 2*sizeof(float), jitlevel, paf->seed); /* for custom jit or even distribution */
+		}
+		return;
 	}
 	
-	if(totvert==0) {
-		mvertbase= me->mvert;
-		mfacebase= me->mface;
-		totface= me->totface;
-		totvert= me->totvert;
-	}
-	
-	if(totface==0 || nr<totvert) {
-		mvert= mvertbase + (nr % totvert);
-		VECCOPY(co, mvert->co);
-		VECCOPY(no, mvert->no);
+	if(paf->flag & PAF_TRAND) {
+		u= trands[2*partnr];
+		v= trands[2*partnr+1];
 	}
 	else {
-
-		nr-= totvert;
+		/* jittered distribution gets fixed random offset */
+		if(subnr>=jitlevel) {
+			int jitrand= (subnr/jitlevel) % JIT_RAND;
 		
-		if(jit==0) {
-			jitlevel= nr/totface;
-			if(jitlevel==0) jitlevel= 1;
-			if(jitlevel>100) jitlevel= 100;
-
-			jit= MEM_callocN(2+ jitlevel*2*sizeof(float), "jit");
-			init_mv_jit(jit, jitlevel,seed2);
-			
-		}
-
-		curjit= nr/totface;
-		curjit= curjit % jitlevel;
-
-		curface= nr % totface;
-		
-		mface= mfacebase;
-		mface+= curface;
-
-		v1= (mvertbase+(mface->v1))->co;
-		v2= (mvertbase+(mface->v2))->co;
-		n1= (mvertbase+(mface->v1))->no;
-		n2= (mvertbase+(mface->v2))->no;
-		v3= (mvertbase+(mface->v3))->co;
-		n3= (mvertbase+(mface->v3))->no;
-		if(mface->v4==0) {
-			v4= (mvertbase+(mface->v1))->co;
-			n4= (mvertbase+(mface->v1))->no;
+			subnr %= jitlevel;
+			u= jit[2*subnr] + trands[2*jitrand];
+			v= jit[2*subnr+1] + trands[2*jitrand+1];
+			if(u > 1.0f) u-= 1.0f;
+			if(v > 1.0f) v-= 1.0f;
 		}
 		else {
-			v4= (mvertbase+(mface->v4))->co;
-			n4= (mvertbase+(mface->v4))->no;
+			u= jit[2*subnr];
+			v= jit[2*subnr+1];
 		}
-
-		u= jit[2*curjit];
-		v= jit[2*curjit+1];
-
-		co[0]= (float)((1.0-u)*(1.0-v)*v1[0] + (1.0-u)*(v)*v2[0] + (u)*(v)*v3[0] + (u)*(1.0-v)*v4[0]);
-		co[1]= (float)((1.0-u)*(1.0-v)*v1[1] + (1.0-u)*(v)*v2[1] + (u)*(v)*v3[1] + (u)*(1.0-v)*v4[1]);
-		co[2]= (float)((1.0-u)*(1.0-v)*v1[2] + (1.0-u)*(v)*v2[2] + (u)*(v)*v3[2] + (u)*(1.0-v)*v4[2]);
+	}
+	
+	v1= (mvert+(mface->v1))->co;
+	v2= (mvert+(mface->v2))->co;
+	v3= (mvert+(mface->v3))->co;
+	n1= (mvert+(mface->v1))->no;
+	n2= (mvert+(mface->v2))->no;
+	n3= (mvert+(mface->v3))->no;
+	
+	if(mface->v4) {
+		float uv= u*v;
+		float muv= (1.0f-u)*(v);
+		float umv= (u)*(1.0f-v);
+		float mumv= (1.0f-u)*(1.0f-v);
 		
-		no[0]= (short)((1.0-u)*(1.0-v)*n1[0] + (1.0-u)*(v)*n2[0] + (u)*(v)*n3[0] + (u)*(1.0-v)*n4[0]);
-		no[1]= (short)((1.0-u)*(1.0-v)*n1[1] + (1.0-u)*(v)*n2[1] + (u)*(v)*n3[1] + (u)*(1.0-v)*n4[1]);
-		no[2]= (short)((1.0-u)*(1.0-v)*n1[2] + (1.0-u)*(v)*n2[2] + (u)*(v)*n3[2] + (u)*(1.0-v)*n4[2]);
+		v4= (mvert+(mface->v4))->co;
+		n4= (mvert+(mface->v4))->no;
 		
+		co[0]= mumv*v1[0] + muv*v2[0] + uv*v3[0] + umv*v4[0];
+		co[1]= mumv*v1[1] + muv*v2[1] + uv*v3[1] + umv*v4[1];
+		co[2]= mumv*v1[2] + muv*v2[2] + uv*v3[2] + umv*v4[2];
+
+		no[0]= (short)(mumv*n1[0] + muv*n2[0] + uv*n3[0] + umv*n4[0]);
+		no[1]= (short)(mumv*n1[1] + muv*n2[1] + uv*n3[1] + umv*n4[1]);
+		no[2]= (short)(mumv*n1[2] + muv*n2[2] + uv*n3[2] + umv*n4[2]);
+	}
+	else {
+		/* mirror triangle uv coordinates when on other side */
+		if(u + v > 1.0f) {
+			u= 1.0f-u;
+			v= 1.0f-v;
+		}
+		co[0]= v1[0] + u*(v3[0]-v1[0]) + v*(v2[0]-v1[0]);
+		co[1]= v1[1] + u*(v3[1]-v1[1]) + v*(v2[1]-v1[1]);
+		co[2]= v1[2] + u*(v3[2]-v1[2]) + v*(v2[2]-v1[2]);
+		
+		no[0]= (short)(n1[0] + u*(n3[0]-n1[0]) + v*(n2[0]-n1[0]));
+		no[1]= (short)(n1[1] + u*(n3[1]-n1[1]) + v*(n2[1]-n1[1]));
+		no[2]= (short)(n1[2] + u*(n3[2]-n1[2]) + v*(n2[2]-n1[2]));
 	}
 }
 
 
+/* Gets a MDeformVert's weight in group (0 if not in group) */
+/* note; this call could be in mesh.c or deform.c, but OK... it's in armature.c too! (ton) */
+static float vert_weight(MDeformVert *dvert, int group)
+{
+	MDeformWeight *dw;
+	int i;
+	
+	if(dvert) {
+		dw= dvert->dw;
+		for(i= dvert->totweight; i>0; i--, dw++) {
+			if(dw->def_nr == group) return dw->weight;
+			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
+		}
+	}
+	return 0.0;
+}
+
+/* Gets a faces average weight in a group, helper for below, face and weights are always set */
+static float face_weight(MFace *face, float *weights)
+{
+	float tweight;
+	
+	tweight = weights[face->v1] + weights[face->v2] + weights[face->v3];
+	
+	if(face->v4) {
+		tweight += weights[face->v4];
+		tweight /= 4.0;
+	}
+	else {
+		tweight /= 3.0;
+	}
+
+	return tweight;
+}
+
+/* helper function for build_particle_system() */
+static void make_weight_tables(PartEff *paf, Mesh *me, int totpart, MVert *vertlist, int totvert, MFace *facelist, int totface, float **vweights, float **fweights)
+{
+	MFace *mface;
+	float *foweights=NULL, *voweights=NULL;
+	float totvweight=0.0f, totfweight=0.0f;
+	int a;
+	
+	if((paf->flag & PAF_FACE)==0) totface= 0;
+	
+	/* collect emitting vertices & faces if vert groups used */
+	if(paf->vertgroup && me->dvert) {
+		
+		/* allocate weights array for all vertices, also for lookup of faces later on. note it's a malloc */
+		*vweights= voweights= MEM_mallocN( totvert*sizeof(float), "pafvoweights" );
+		totvweight= 0.0f;
+		for(a=0; a<totvert; a++) {
+			voweights[a]= vert_weight(me->dvert+a, paf->vertgroup-1);
+			totvweight+= voweights[a];
+		}
+		
+		if(totface) {
+			/* allocate weights array for faces, note it's a malloc */
+			*fweights= foweights= MEM_mallocN(totface*sizeof(float), "paffoweights" );
+			for(a=0, mface=facelist; a<totface; a++, mface++) {
+				foweights[a] = face_weight(mface, voweights);
+			}
+		}
+	}
+	
+	/* make weights for faces or for even area distribution */
+	if(totface && (paf->flag & PAF_EDISTR)) {
+		float maxfarea= 0.0f, curfarea;
+		
+		/* two cases for area distro, second case we already have group weights */
+		if(foweights==NULL) {
+			/* allocate weights array for faces, note it's a malloc */
+			*fweights= foweights= MEM_mallocN(totface*sizeof(float), "paffoweights" );
+			
+			for(a=0, mface=facelist; a<totface; a++, mface++) {
+				if (mface->v4)
+					curfarea= AreaQ3Dfl(vertlist[mface->v1].co, vertlist[mface->v2].co, vertlist[mface->v3].co, vertlist[mface->v4].co);
+				else
+					curfarea= AreaT3Dfl(vertlist[mface->v1].co,  vertlist[mface->v2].co, vertlist[mface->v3].co);
+				if(curfarea>maxfarea)
+					maxfarea = curfarea;
+				foweights[a]= curfarea;
+			}
+		}
+		else {
+			for(a=0, mface=facelist; a<totface; a++, mface++) {
+				if(foweights[a]!=0.0f) {
+					if (mface->v4)
+						curfarea= AreaQ3Dfl(vertlist[mface->v1].co, vertlist[mface->v2].co, vertlist[mface->v3].co, vertlist[mface->v4].co);
+					else
+						curfarea= AreaT3Dfl(vertlist[mface->v1].co,  vertlist[mface->v2].co, vertlist[mface->v3].co);
+					if(curfarea>maxfarea)
+						maxfarea = curfarea;
+					foweights[a]*= curfarea;
+				}
+			}
+		}
+		
+		/* normalize weights for max face area, calculate tot */
+		if(maxfarea!=0.0f) {
+			maxfarea= 1.0f/maxfarea;
+			for(a=0; a< totface; a++) {
+				if(foweights[a]!=0.0) {
+					foweights[a] *= maxfarea;
+					totfweight+= foweights[a];
+				}
+			}
+		}
+	}
+	else if(foweights) {
+		/* only add totfweight value */
+		for(a=0; a< totface; a++) {
+			if(foweights[a]!=0.0) {
+				totfweight+= foweights[a];
+			}
+		}
+	}
+	
+	/* if weight arrays, we turn these arrays into the amount of particles */
+	if(totvert && voweights) {
+		float mult= (float)totpart/totvweight;
+		
+		for(a=0; a< totvert; a++) {
+			if(voweights[a]!=0.0)
+				voweights[a] *= mult;
+		}
+	}
+	
+	if(totface && foweights) {
+		float mult= (float)totpart/totfweight;
+		
+		for(a=0; a< totface; a++) {
+			if(foweights[a]!=0.0)
+				foweights[a] *= mult;
+		}
+	}
+}
+
+/* for paf start to end, store all matrices for objects */
+typedef struct pMatrixCache {
+	float obmat[4][4];
+	float imat[3][3];
+} pMatrixCache;
+
+static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
+{
+	pMatrixCache *mcache, *mc;
+	Object *par;
+	float framelenold, sfrao;
+	int cfrao;
+	
+	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
+	
+	framelenold= G.scene->r.framelen;
+	G.scene->r.framelen= 1.0f;
+	cfrao= G.scene->r.cfra;
+	sfrao= ob->sf;
+	ob->sf= 0.0f;
+	
+	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
+		
+		par= ob;
+		while(par) {
+			par->ctime= -1234567.0;		/* hrms? */
+			do_ob_key(par);
+			if(par->type==OB_ARMATURE) {
+				do_all_pose_actions(par);	// only does this object actions
+				where_is_pose(par);
+			}
+			par= par->parent;
+		}
+
+		where_is_object(ob);
+		Mat4CpyMat4(mc->obmat, ob->obmat);
+		Mat4Invert(ob->imat, ob->obmat);
+		Mat3CpyMat4(mc->imat, ob->imat);
+		Mat3Transp(mc->imat);
+	}
+	
+	
+	/* restore */
+	G.scene->r.cfra= cfrao;
+	G.scene->r.framelen= framelenold;
+	ob->sf= sfrao;
+	
+	/* restore hierarchy */
+	par= ob;
+	while(par) {
+		/* do not do ob->ipo: keep insertkey */
+		par->ctime= -1234567.0;		/* hrms? */
+		do_ob_key(par);
+		
+		if(par->type==OB_ARMATURE) {
+			do_all_pose_actions(par);	// only does this object actions
+			where_is_pose(par);
+		}
+		par= par->parent;
+	}
+	
+	where_is_object(ob);
+	
+	return mcache;
+}
+
+/* main particle building function 
+   one day particles should become dynamic (realtime) with the current method as a 'bake' (ton) */
 void build_particle_system(Object *ob)
 {
 	RNG *rng;
-	Base *base;
-	Object *par;
 	PartEff *paf;
 	Particle *pa;
 	Mesh *me;
-	MTex *mtexmove=0;
+	Base *base;
+	MTex *mtexmove=0, *mtextime=0;
 	Material *ma;
 	DispListMesh *dlm;
-	int dmNeedsFree;
+	MFace *facelist= NULL;
+	MVert *vertlist= NULL;
 	DerivedMesh *dm;
-	float framelenont, ftime, dtime, force[3], imat[3][3], vec[3];
-	float fac, prevobmat[4][4], sfraont, co[3];
-	int deform=0, a, cur, cfraont, cfralast, totpart, totvert;
+	pMatrixCache *mcache=NULL, *mcnow, *mcprev;
+	double startseconds= PIL_check_seconds_timer();
+	float ftime, dtime, force[3], vec[3];
+	float fac, co[3];
+	float *voweights= NULL, *foweights= NULL, maxw=1.0f;
+	int deform=0, a, totpart, paf_sta, paf_end;
+	int dmNeedsFree, waitcursor_set= 0, totvert, totface, curface, curvert;
 	short no[3];
-
+	
+	/* return conditions */
 	if(ob->type!=OB_MESH) return;
 	me= ob->data;
-	if(me->totvert==0) return;
-
-	ma= give_current_material(ob, 1);
-	if(ma) {
-		mtexmove= ma->mtex[7];
-	}
 
 	paf= give_parteff(ob);
 	if(paf==NULL) return;
-
-	waitcursor(1);
-
-	disable_speed_curve(1);
-
-	/* generate all particles */
-	if(paf->keys) MEM_freeN(paf->keys);
+	if(paf->keys) MEM_freeN(paf->keys);	/* free as early as possible, for returns */
 	paf->keys= NULL;
+	
+	if(paf->end < paf->sta) return;
+	
+	if( (paf->flag & PAF_OFACE) && (paf->flag & PAF_FACE)==0) return;
+	
+	if(me->totvert==0) return;
+	
+	/* this call returns NULL during editmode, just ignore it and
+		* particles should be recalc'd on exit. */
+	dm = mesh_get_derived_deform(ob, &dmNeedsFree);
+	if (dm==NULL)
+		return;
+	
+	/* No returns after this line! */
+	
+	/* material */
+	ma= give_current_material(ob, paf->omat);
+	if(ma) {
+		if(paf->speedtex)
+			mtexmove= ma->mtex[paf->speedtex-1];
+		mtextime= ma->mtex[paf->timetex-1];
+	}
+
+	disable_speed_curve(1);	/* check this... */
+
+	/* initialize particles */
 	new_particle(paf);
 
 	/* reset deflector cache, sumohandle is free, but its still sorta abuse... (ton) */
-	for(base= G.scene->base.first; base; base= base->next) {
+	for(base= G.scene->base.first; base; base= base->next)
 		base->object->sumohandle= NULL;
-	}
 
-	cfraont= G.scene->r.cfra;
-	cfralast= -1000;
-	framelenont= G.scene->r.framelen;
-	G.scene->r.framelen= 1.0;
-	sfraont= ob->sf;
-	ob->sf= 0.0;
-
+	/* all object positions from start to end */
+	paf_sta= (int)floor(paf->sta);
+	paf_end= (int)ceil(paf->end);
+	if((paf->flag & PAF_STATIC)==0)
+		mcache= cache_object_matrices(ob, paf_sta, paf_end);
+	
 	/* mult generations? */
-	totpart= paf->totpart;
+	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
 	for(a=0; a<PAF_MAXMULT; a++) {
 		if(paf->mult[a]!=0.0) {
-			/* interessant formula! this way after 'x' generations the total is paf->totpart */
+			/* interesting formula! this way after 'x' generations the total is paf->totpart */
 			totpart= (int)(totpart / (1.0+paf->mult[a]*paf->child[a]));
 		}
 		else break;
 	}
 
-	if (paf->flag & PAF_STATIC) {
-		ftime = cfraont;
-		dtime = 0;
-	} else {
-		ftime= paf->sta;
-		dtime= (paf->end - paf->sta)/totpart;
-	}
-
-		/* this call returns NULL during editmode, just ignore it and
-		 * particles should be recalc'd on exit.
-		 */
-	dm = mesh_get_derived_final(ob, &dmNeedsFree);
-	if (!dm) {
-		waitcursor(0);
-		return;
-	}
-
-		/* WARNING!!!! pushdata and popdata actually copy object memory!!!!
-		 * Changes between these calls will be lost!!!
-		 */
-
-	/* remember full hierarchy */
-	par= ob;
-	while(par) {
-		pushdata(par, sizeof(Object));
-		par= par->parent;
-	}
-	
-	/* for static particles, calculate system on current frame */
+	/* for static particles, calculate system on current frame (? ton) */
 	if(ma) do_mat_ipo(ma);
-
-	/* set it all at first frame */
-	G.scene->r.cfra= cfralast= (int)floor(ftime);
-	par= ob;
-	while(par) {
-		/* do_ob_ipo(par); */
-		do_ob_key(par);
-		par= par->parent;
-	}
 	
-	/* matrix stuff for static too */
+	/* matrix invert for static too */
 	Mat4Invert(ob->imat, ob->obmat);
 	
-	if((paf->flag & PAF_STATIC)==0) {
-		if(ma) do_mat_ipo(ma);	// nor for static
-		
-		where_is_object(ob);
-		Mat4CpyMat4(prevobmat, ob->obmat);
-		Mat3CpyMat4(imat, ob->imat);
-	}
-	else {
-		Mat4One(prevobmat);
-		Mat3One(imat);
-	}
-	
+	/* new random generator */
 	rng = rng_new(paf->seed);
 	
 	/* otherwise it goes way too fast */
@@ -1236,142 +1612,223 @@ void build_particle_system(Object *ob)
 		if(deform) init_latt_deform(ob->parent, 0);
 	}
 	
-	/* init */
-	
+	/* init geometry */
 	dlm = dm->convertToDispListMesh(dm, 1);
-	totvert = dlm->totvert;
-
-	give_mesh_mvert(me, dlm, totpart, co, no, paf->seed);
 	
-	if(G.f & G_DEBUG) {
-		printf("\n");
-		printf("Calculating particles......... \n");
+	/* subsurfs don't have vertexgroups, so we need to use me->mvert in that case */
+	if(paf->vertgroup && me->dvert && (dlm->totvert != me->totvert)) {
+		vertlist= me->mvert;
+		facelist= me->mface;
+		totvert= me->totvert;
+		totface= me->totface;
 	}
+	else {	
+		vertlist= dlm->mvert;
+		facelist= dlm->mface;
+		totvert= dlm->totvert;
+		totface= dlm->totface;
+	}
+	/* if vertexweights or even distribution, it makes weight tables, also checks where it emits from */
+	make_weight_tables(paf, me, totpart, vertlist, totvert, facelist, totface, &voweights, &foweights);
+	
+	/* now define where to emit from, if there are face weights we skip vertices */
+	if(paf->flag & PAF_OFACE) totvert= 0;
+	if((paf->flag & PAF_FACE)==0) totface= 0;
+	if(foweights) totvert= 0;
+	
+	/* initialize give_mesh_particle_coord */
+	if(totface)
+		give_mesh_particle_coord(paf, vertlist, facelist, totpart, totface, NULL, NULL);
+	
+	/* correction for face timing when using weighted average */
+	if(totface && foweights) {
+		maxw= (paf->end-paf->sta)/foweights[0];
+	}
+	else if(totvert && voweights) {
+		maxw= (paf->end-paf->sta)/voweights[0];
+	}
+	
+	/* for loop below */
+	if (paf->flag & PAF_STATIC) {
+		ftime = G.scene->r.cfra;
+		dtime= 0.0f;
+	} else {
+		ftime= paf->sta;
+		dtime= (paf->end - paf->sta)/(float)totpart;
+	}
+	
+	curface= curvert= 0;
 	for(a=0; a<totpart; a++, ftime+=dtime) {
+		
+		/* we set waitcursor only when a half second expired, particles now are realtime updated */
+		if(waitcursor_set==0 && (a % 256)==255) {
+			double seconds= PIL_check_seconds_timer();
+			if(seconds - startseconds > 0.5) {
+				waitcursor(1);
+				waitcursor_set= 1;
+			}
+		}
 		
 		pa= new_particle(paf);
 		pa->time= ftime;
-		
-		if(G.f & G_DEBUG) {
-			int b, c;
+
+		/* get coordinates from faces, only when vertices set to zero */
+		if(totvert==0 && totface) {
+			int curjit;
 			
-			c = totpart/100;
-			if (c==0){
-				c = 1;
-			}
-
-			b=(a%c);
-			if (b==0) {
-				printf("\r Particle: %d / %d ", a, totpart);
-				fflush(stdout);
-			}
-		}
-		/* set ob at correct time */
-		
-		if((paf->flag & PAF_STATIC)==0) {
-
-			cur= (int)floor(ftime) + 1 ;		/* + 1 has a reason: (obmat/prevobmat) otherwise comet-tails start too late */
-			if(cfralast != cur) {
-				G.scene->r.cfra= cfralast= cur;
-	
-				/* added later: blur? */
-				bsystem_time(ob, ob->parent, (float)G.scene->r.cfra, 0.0);
-
-				par= ob;
-				while(par) {
-					/* do_ob_ipo(par); */
-					par->ctime= -1234567.0;
-					do_ob_key(par);
-					if(par->type==OB_ARMATURE) {
-						do_all_pose_actions(par);	// only does this object actions
-						where_is_pose(par);
+			/* use weight table, we have to do faces in order to be able to use jitter table... */
+			if(foweights) {
+				
+				if(foweights[curface] < 1.0f) {
+					float remainder= 0.0f;
+					
+					while(remainder + foweights[curface] < 1.0f && curface<totface-1) {
+						remainder += foweights[curface];
+						curface++;
 					}
-					par= par->parent;
+					foweights[curface] += remainder;
+					maxw= (paf->end-paf->sta)/foweights[curface];
 				}
-				if(ma) do_mat_ipo(ma);
-				Mat4CpyMat4(prevobmat, ob->obmat);
-				where_is_object(ob);
-				Mat4Invert(ob->imat, ob->obmat);
-				Mat3CpyMat4(imat, ob->imat);
+				
+				if(foweights[curface]==0.0f)
+					break;	/* WARN skips here out of particle generating */
+				else {
+					if(foweights[curface] > 1.0f)
+						foweights[curface] -= 1.0f;
+					
+					curjit= (int) foweights[curface];
+					give_mesh_particle_coord(paf, vertlist, facelist+curface, a, curjit, co, no);
+					
+					/* time correction to make particles appear evenly, maxw does interframe (0-1) */
+					pa->time= paf->sta + maxw*foweights[curface];
+				}
+			}
+			else {
+				curface= a % totface;
+				curjit= a/totface;
+				give_mesh_particle_coord(paf, vertlist, facelist+curface, a, curjit, co, no);
 			}
 		}
-		/* get coordinates */
-		if(paf->flag & PAF_FACE) give_mesh_mvert(me, dlm, a, co, no, paf->seed);
-		else {
-			if (totvert) {
-				VECCOPY(co, dlm->mvert[a%totvert].co);
-				VECCOPY(no, dlm->mvert[a%totvert].no);
-			} else {
-				co[0] = co[1] = co[2] = 0.0f;
-				no[0] = no[1] = no[2] = 0;
+		/* get coordinates from vertices */
+		if(totvert) {
+			/* use weight table */
+			if(voweights) {
+				
+				if(voweights[curvert] < 1.0f) {
+					float remainder= 0.0f;
+					
+					while(remainder + voweights[curvert] < 1.0f && curvert<totvert-1) {
+						remainder += voweights[curvert];
+						curvert++;
+					}
+					voweights[curvert] += remainder;
+					maxw= (paf->end-paf->sta)/voweights[curvert];
+				}
+				
+				if(voweights[curvert]==0.0f)
+					break;	/* WARN skips here out of particle generating */
+				else {
+					if(voweights[curvert] > 1.0f)
+						voweights[curvert] -= 1.0f;
+					
+					/* time correction to make particles appear evenly */
+					pa->time= paf->sta + maxw*voweights[curvert];
+				}
 			}
+			else {
+				curvert= a % totvert;
+				if(a >= totvert && totface)
+					totvert= 0;
+			}
+			
+			VECCOPY(co, vertlist[curvert].co);
+			VECCOPY(no, vertlist[curvert].no);
 		}
 		
 		VECCOPY(pa->co, co);
 		
-		if(paf->flag & PAF_STATIC);
-		else {
-			Mat4MulVecfl(ob->obmat, pa->co);
+		/* dynamic options */
+		if((paf->flag & PAF_STATIC)==0) {
+			int cur;
+			
+			/* particle retiming with texture */
+			if(mtextime && (paf->flag2 & PAF_TEXTIME)) {
+				float tin, tr, tg, tb, ta, orco[3];
+				
+				/* calculate normalized orco */
+				orco[0] = (co[0]-me->loc[0])/me->size[0];
+				orco[1] = (co[1]-me->loc[1])/me->size[1];
+				orco[2] = (co[2]-me->loc[2])/me->size[2];
+				externtex(mtextime, orco, &tin, &tr, &tg, &tb, &ta);
+				
+				if(paf->flag2neg & PAF_TEXTIME)
+					pa->time = paf->sta + (paf->end - paf->sta)*tin;
+				else
+					pa->time = paf->sta + (paf->end - paf->sta)*(1.0f-tin);
+			}
+
+			/* set ob at correct time, we use cached matrices */
+			cur= (int)floor(pa->time) + 1 ;		/* + 1 has a reason: (obmat/prevobmat) otherwise comet-tails start too late */
+			
+			if(cur <= paf_end) mcnow= mcache + cur - paf_sta;
+			else mcnow= mcache + paf_end - paf_sta + 1;
+			
+			if(cur > paf_sta) mcprev= mcnow-1;
+			else mcprev= mcache;
+			
+			/* move to global space */
+			Mat4MulVecfl(mcnow->obmat, pa->co);
 		
 			VECCOPY(vec, co);
-			Mat4MulVecfl(prevobmat, vec);
+			Mat4MulVecfl(mcprev->obmat, vec);
 			
 			/* first start speed: object */
 			VECSUB(pa->no, pa->co, vec);
+
 			VecMulf(pa->no, paf->obfac);
 			
 			/* calculate the correct inter-frame */	
-			fac= (ftime- (float)floor(ftime));
+			fac= (pa->time- (float)floor(pa->time));
 			pa->co[0]= fac*pa->co[0] + (1.0f-fac)*vec[0];
 			pa->co[1]= fac*pa->co[1] + (1.0f-fac)*vec[1];
 			pa->co[2]= fac*pa->co[2] + (1.0f-fac)*vec[2];
-		}
 
-		/* start speed: normal */
-		if(paf->normfac!=0.0) {
-				/* transpose ! */
-			vec[0]= imat[0][0]*no[0] + imat[0][1]*no[1] + imat[0][2]*no[2];
-			vec[1]= imat[1][0]*no[0] + imat[1][1]*no[1] + imat[1][2]*no[2];
-			vec[2]= imat[2][0]*no[0] + imat[2][1]*no[1] + imat[2][2]*no[2];		
-		
-			Normalise(vec);
-			VecMulf(vec, paf->normfac);
-			VECADD(pa->no, pa->no, vec);
+			/* start speed: normal */
+			if(paf->normfac!=0.0) {
+				/* imat is transpose ! */
+				VECCOPY(vec, no);
+				Mat3MulVecfl(mcnow->imat, vec);
+			
+				Normalise(vec);
+				VecMulf(vec, paf->normfac);
+				VECADD(pa->no, pa->no, vec);
+			}
 		}
+		else {
+			if(paf->normfac!=0.0) {
+				VECCOPY(pa->no, no);
+				Normalise(pa->no);
+				VecMulf(pa->no, paf->normfac);
+			}
+		}
+		
 		pa->lifetime= paf->lifetime;
 		if(paf->randlife!=0.0) {
 			pa->lifetime*= 1.0f + paf->randlife*(rng_getFloat(rng) - 0.5f);
 		}
-		pa->mat_nr= 1;
+		pa->mat_nr= paf->omat;
 		
-		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, ob->lay, cfraont);
+		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, ob->lay);
 	}
 	
-	if(G.f & G_DEBUG) {
-		printf("\r Particle: %d / %d \n", totpart, totpart);
-		fflush(stdout);
-	}	
+	/* free stuff */
+	give_mesh_particle_coord(NULL, NULL, NULL, 0, 0, NULL, NULL);
+	if(voweights) MEM_freeN(voweights);
+	if(foweights) MEM_freeN(foweights);
+	if(mcache) MEM_freeN(mcache);
+
 	if(deform) end_latt_deform();
-		
-	/* restore */
-	G.scene->r.cfra= cfraont;
-	G.scene->r.framelen= framelenont;
-	give_mesh_mvert(0, 0, 0, 0, 0,paf->seed);
-
-	/* put hierarchy back */
-	par= ob;
-	while(par) {
-		popfirst(par);
-		/* do not do ob->ipo: keep insertkey */
-		do_ob_key(par);
-		
-		if(par->type==OB_ARMATURE) {
-			do_all_pose_actions(par);	// only does this object actions
-			where_is_pose(par);
-		}
-		par= par->parent;
-	}
-
+	
 	/* reset deflector cache */
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(base->object->sumohandle) {
@@ -1380,10 +1837,6 @@ void build_particle_system(Object *ob)
 		}
 	}
 
-	/* restore: AFTER popfirst */
-	ob->sf= sfraont;
-
-	if(ma) do_mat_ipo(ma);	// set back on current time
 	disable_speed_curve(0);
 	
 	waitcursor(0);

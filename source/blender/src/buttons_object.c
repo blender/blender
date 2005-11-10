@@ -114,6 +114,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -130,9 +131,11 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
+
 #include "LBM_fluidsim.h"
 
 #include "BIF_editconstraint.h"
+#include "BIF_editdeform.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -447,7 +450,43 @@ void autocomplete_bone(char *str, void *arg_v)
 	}
 }
 
-
+/* autocomplete callback for ID buttons */
+void autocomplete_vgroup(char *str, void *arg_v)
+{
+	Object *ob= (Object *)arg_v;
+	char truncate[40]= {0};
+	
+	if(ob==NULL) return;
+	
+	/* search if str matches the beginning of an ID struct */
+	if(str[0]) {
+		bDeformGroup *dg;
+		
+		for(dg= ob->defbase.first; dg; dg= dg->next) {
+			int a;
+			
+			for(a=0; a<31; a++) {
+				if(str[a]==0 || str[a]!=dg->name[a])
+					break;
+			}
+			/* found a match */
+			if(str[a]==0) {
+				/* first match */
+				if(truncate[0]==0)
+					BLI_strncpy(truncate, dg->name, 32);
+				else {
+					/* remove from truncate what is not in bone->name */
+					for(a=0; a<31; a++) {
+						if(truncate[a]!=dg->name[a])
+							truncate[a]= 0;
+					}
+				}
+			}
+		}
+		if(truncate[0])
+			BLI_strncpy(str, truncate, 32);
+	}
+}
 
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco)
 {
@@ -1485,7 +1524,7 @@ void do_effects_panels(unsigned short event)
 	Object *ob;
 	Base *base;
 	Effect *eff, *effn;
-	int type;
+	PartEff *paf;
 	
 	ob= OBACT;
 
@@ -1506,11 +1545,12 @@ void do_effects_panels(unsigned short event)
 			else
 				copy_act_effect(ob);
 		}
+		DAG_scene_sort(G.scene);
 		BIF_undo_push("New effect");
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_DELEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
+		if(ob==NULL || ob->type!=OB_MESH) break;
 		eff= ob->effect.first;
 		while(eff) {
 			effn= eff->next;
@@ -1555,25 +1595,6 @@ void do_effects_panels(unsigned short event)
 		}
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
-	case B_CHANGEEFFECT:
-		if(ob==0 || ob->type!=OB_MESH) break;
-		eff= ob->effect.first;
-		while(eff) {
-			if(eff->flag & SELECT) {
-				if(eff->type!=eff->buttype) {
-					BLI_remlink(&ob->effect, eff);
-					type= eff->buttype;
-					free_effect(eff);
-					eff= add_effect(type);
-					BLI_addtail(&ob->effect, eff);
-				}
-				break;
-			}
-			eff= eff->next;
-		}
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWBUTSOBJECT, 0);
-		break;
 	case B_EFFECT_DEP:
 		DAG_scene_sort(G.scene);
 		/* no break, pass on */
@@ -1589,9 +1610,30 @@ void do_effects_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
+	case B_PAF_SET_VG:
+		
+		paf= give_parteff(ob);
+		if(paf) {
+			bDeformGroup *dg= get_named_vertexgroup(ob, paf->vgroupname);
+			if(dg)
+				paf->vertgroup= get_defgroup_num(ob, dg)+1;
+			else
+				paf->vertgroup= 0;
+			
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
 	case B_FIELD_DEP:
 		DAG_scene_sort(G.scene);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+		if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
+			Curve *cu= ob->data;
+			cu->flag |= (CU_PATH|CU_3D);
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		}
 		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_FIELD_CHANGE:
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
@@ -1614,7 +1656,6 @@ void do_effects_panels(unsigned short event)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			ob= OBACT;
@@ -1642,49 +1683,59 @@ static void object_panel_fields(Object *ob)
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Fields and Defection", "Physics", 420, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Fields and Defection", "Physics", 0, 0, 318, 204)==0) return;
 
 	/* should become button, option? */
 	if(ob->pd==NULL) {
 		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
 		/* and if needed, init here */
-		ob->pd->pdef_sbdamp = 0.1;
-		ob->pd->pdef_sbift  = 0.2;
-		ob->pd->pdef_sboft  = 0.02;
+		ob->pd->pdef_sbdamp = 0.1f;
+		ob->pd->pdef_sbift  = 0.2f;
+		ob->pd->pdef_sboft  = 0.02f;
 	}
 	
 	if(ob->pd) {
 		PartDeflect *pd= ob->pd;
+		char *menustr= MEM_mallocN(256, "temp string");
+		char *tipstr="Choose field type";
 		
 		uiDefBut(block, LABEL, 0, "Fields",		10,180,140,20, NULL, 0.0, 0, 0, 0, "");
 		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_FIELD_DEP, "None",			10,160,50,20, &pd->forcefield, 1.0, 0, 0, 0, "No force");
-		uiDefButS(block, ROW, B_FIELD_DEP, "Force field",	60,160,90,20, &pd->forcefield, 1.0, PFIELD_FORCE, 0, 0, "Object center attracts or repels particles");
-		uiDefButS(block, ROW, B_FIELD_DEP, "Wind",			10,140,50,20, &pd->forcefield, 1.0, PFIELD_WIND, 0, 0, "Constant force applied in direction of Object Z axis");
-		uiDefButS(block, ROW, B_FIELD_DEP, "Vortex field",	60,140,90,20, &pd->forcefield, 1.0, PFIELD_VORTEX, 0, 0, "Particles swirl around Z-axis of the object");
-
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,110,140,20, &pd->f_strength, -1000, 1000, 10, 0, "Strength of force field");
-		uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,90,140,20, &pd->f_power, 0, 10, 100, 0, "Falloff power (real gravitational fallof = 2)");
+		/* setup menu button */
+		sprintf(menustr, "Field Type%%t|None %%x0|Spherical %%x%d|Wind %%x%d|Vortex %%x%d|Curve Guide %%x%d", 
+				PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE);
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use MaxDist",	10,60,140,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
-		uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 100, 0, "Maximum distance for the field to work");
-		uiBlockEndAlign(block);
-
-//		if(modifiers_isSoftbodyEnabled(ob)) {
-		if(0) {
-			uiDefBut(block, LABEL, 0, "Object is Soft Body,",		160,160,150,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "No Deflection possible",		160,140,150,20, NULL, 0.0, 0, 0, 0, "");
-			pd->deflect= 0;
-		}
-		else {
-			uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
+		if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles";
+		else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis";
+		else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the Object";
+		else if(pd->forcefield==PFIELD_GUIDE) tipstr= "Use a Curve Path to guide particles";
+		
+		uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,160,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+		MEM_freeN(menustr);
+		
+		if(pd->forcefield) {
+			uiBlockBeginAlign(block);
+			if(pd->forcefield == PFIELD_GUIDE) {
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	10,120,140,20, &pd->f_strength, 0.0, 1000.0, 10, 0, "The distance from which particles are affected fully.");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,100,140,20, &pd->f_power, 0.0, 10.0, 10, 0, "Falloff factor, between mindist and maxdist");
+			}
+			else {	
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,110,140,20, &pd->f_strength, -1000, 1000, 10, 0, "Strength of force field");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,90,140,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational fallof = 2)");
+			}
 			
-			/* only meshes collide now */
-			if(ob->type==OB_MESH) {
-				uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+			uiBlockBeginAlign(block);
+			uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use MaxDist",	10,60,140,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
+			uiBlockEndAlign(block);
+		}
+		
+		uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
+			
+		/* only meshes collide now */
+		if(ob->type==OB_MESH) {
+			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+			if(pd->deflect) {
 				uiDefBut(block, LABEL, 0, "Particles",			160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 				
 				uiBlockBeginAlign(block);
@@ -1699,12 +1750,8 @@ static void object_panel_fields(Object *ob)
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
-				uiBlockBeginAlign(block);
-/* seems to be working fine .. so we do use modifier stack by default .. code here rests for debugging
- 			    uiDefButBitS(block, TOG, PDEFLE_DEFORM , 0,"UMS or CRASH",	0,0,150,20, &pd->flag, 0, 0, 0, 0, "Let collision object move with armatures/lattices WARNING logical circles will CRASH");
-*/
-			}		
-		}	
+			}
+		}		
 	}
 }
 
@@ -1741,7 +1788,7 @@ static void object_softbodies(Object *ob)
 	uiBlock *block;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 740, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 
 	/* do not allow to combine with force fields */
 	/* if(ob->pd && ob->pd->deflect) { */
@@ -1842,115 +1889,145 @@ static void object_softbodies(Object *ob)
 
 }
 
+static void object_panel_particles_motion(Object *ob)
+{
+	uiBlock *block;
+	PartEff *paf= give_parteff(ob);
+
+	if (paf==NULL) return;
+		
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles_motion", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Particles ", "Physics");
+	if(uiNewPanel(curarea, block, "Particle Motion", "Physics", 320, 0, 318, 204)==0) return;
+	
+	/* top row */
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",	0,180,75,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
+	uiDefButBitS(block, TOG, PAF_BSPLINE, B_CALCEFFECT, "Bspline",	75,180,75,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
+	uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",	150,180,75,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
+	uiDefButF(block, NUM, B_CALCEFFECT, "RLife:",	225,180,85,20, &paf->randlife, 0.0, 2.0, 10, 1, "Give the particlelife a random variation");
+	uiBlockEndAlign(block);
+	
+	/* left collumn */
+	uiDefBut(block, LABEL, 0, "Velocity:",			0,150,150,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	uiDefButF(block, NUM, B_CALCEFFECT, "Normal:",		0,130,150,20, &paf->normfac, -2.0, 2.0, 1, 3, "Let the mesh give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Object:",		0,110,150,20, &paf->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,90,150,20, &paf->randfac, 0.0, 2.0, 1, 3, "Give the startingspeed a random variation");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Texture:",		0,70,150,20, &paf->texfac, 0.0, 2.0, 1, 3, "Let the texture give the particle a starting speed");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Damping:",		0,50,150,20, &paf->damp, 0.0, 1.0, 1, 3, "Specify the damping factor");
+	uiBlockEndAlign(block);
+	uiBlockSetCol(block, TH_AUTO);
+	
+	uiDefBut(block, LABEL, 0, "Texture Emission",			0,30,150,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG3, PAF_TEXTIME, B_CALCEFFECT, "TexEmit",		0,10,75,20, &(paf->flag2), 0, 0, 0, 0, "Use a texture to define emission of particles");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 8.0, 0, 0, "Specify texture used for the texture emission");
+	
+	/* right collumn */
+	uiBlockBeginAlign(block);
+	uiDefBut(block, LABEL, 0, "Force:",				160,130,75,20, NULL, 0.0, 0, 0, 0, "");
+	uiDefButF(block, NUM, B_CALCEFFECT, "X:",		235,130,75,20, paf->force, -1.0, 1.0, 1, 2, "Specify the X axis of a continues force");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		160,110,75,20, paf->force+1,-1.0, 1.0, 1, 2, "Specify the Y axis of a continues force");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		235,110,75,20, paf->force+2, -1.0, 1.0, 1, 2, "Specify the Z axis of a continues force");
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		160,80,75,20, &paf->speedtex, 1.0, 10.0, 0, 2, "Specify the texture used for force");
+	uiDefButF(block, NUM, B_CALCEFFECT, "X:",		235,80,75,20, paf->defvec, -1.0, 1.0, 1, 2, "Specify the X axis of a force, determined by the texture");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		160,60,75,20, paf->defvec+1,-1.0, 1.0, 1, 2, "Specify the Y axis of a force, determined by the texture");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		235,60,75,20, paf->defvec+2, -1.0, 1.0, 1, 2, "Specify the Z axis of a force, determined by the texture");
+	
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_CALCEFFECT, "Int",		160,30,50,20, &paf->texmap, 14.0, 0.0, 0, 0, "Use texture intensity as a factor for texture force");
+	uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		210,30,50,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed vector");
+	uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		260,30,50,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed vector");
+	
+	uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",	160,10,150,20, &paf->nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
+	
+}
+
+
 static void object_panel_particles(Object *ob)
 {
-	Effect *eff;
 	uiBlock *block;
-	int a;
-	short x, y;
+	uiBut *but;
+	PartEff *paf= give_parteff(ob);
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Particles", "Physics", 0, 0, 418, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
 
-	/* EFFECTS */
-	
 	if (ob->type == OB_MESH) {
 		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_NEWEFFECT, "NEW", 550,187,124,27, 0, 0, 0, 0, 0, "Create a new Particle effect");
-		uiDefBut(block, BUT, B_DELEFFECT, "Delete", 676,187,62,27, 0, 0, 0, 0, 0, "Delete the effect");
-		uiBlockEndAlign(block);
+		if(paf==NULL)
+			uiDefBut(block, BUT, B_NEWEFFECT, "NEW",	0,180,75,20, 0, 0, 0, 0, 0, "Create a new Particle effect");
+		else
+			uiDefBut(block, BUT, B_DELEFFECT, "Delete", 0,180,75,20, 0, 0, 0, 0, 0, "Delete the effect");
 	}
-
-	/* select effs */
-	eff= ob->effect.first;
-	a= 0;
-	while(eff) {
-		
-		x= 15 * a + 550;
-		y= 172; // - 12*( abs(a/10) ) ;
-		uiDefButBitS(block, TOG, SELECT, B_SELEFFECT+a, "", x, y, 15, 12, &eff->flag, 0, 0, 0, 0, "");
-		
-		a++;
-		if(a==MAX_EFFECT) break;
-		eff= eff->next;
-	}
+	else uiDefBut(block, LABEL, 0, "Only Mesh Objects can generate particles",				10,180,300,20, NULL, 0.0, 0, 0, 0, "");
 	
-	eff= ob->effect.first;
-	while(eff) {
-		if(eff->flag & SELECT) break;
-		eff= eff->next;
-	}
 	
-	if(eff) {
-		if(eff->type==EFF_PARTICLE) {
-			PartEff *paf;
-			
-			paf= (PartEff *)eff;
-			
-			uiDefBut(block, BUT, B_RECALCAL, "RecalcAll", 741,187,67,27, 0, 0, 0, 0, 0, "Update the particle system");
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, PAF_STATIC, B_EFFECT_DEP, "Static",	825,187,67,27, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
-			if(paf->flag & PAF_STATIC) {
-				uiDefButBitS(block, TOG, PAF_ANIMATED, B_DIFF, "Animated",895,187,107,27, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
-			}			
-			uiBlockBeginAlign(block);
-			uiDefButI(block, NUM, B_CALCEFFECT, "Tot:",			550,146,91,20, &paf->totpart, 1.0, 100000.0, 0, 0, "Set the total number of particles");
-			if(paf->flag & PAF_STATIC) {
-				uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	644,146,84+97,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
-			}
-			else {
-				uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		644,146,84,20, &paf->sta, -250.0, MAXFRAMEF, 100, 0, "Specify the startframe");
-				uiDefButF(block, NUM, B_CALCEFFECT, "End:",		731,146,97,20, &paf->end, 1.0, MAXFRAMEF, 100, 0, "Specify the endframe");
-			}
-			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,146,88,20, &paf->lifetime, 1.0, MAXFRAMEF, 100, 0, "Specify the life span of the particles");
-			uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",		922,146,80,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
-			
-			uiDefButS(block, NUM, B_REDR,		"CurMul:",		550,124,91,20, &paf->curmult, 0.0, 3.0, 0, 0, "Multiply the particles");
-			uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",			644,124,84,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Mult:",		730,124,98,20, paf->mult+paf->curmult, 0.0, 1.0, 10, 0, "Probability \"dying\" particle spawns a new one.");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		831,124,89,20, paf->life+paf->curmult, 1.0, 600.0, 100, 0, "Specify the lifespan of the next generation particles");
-			uiDefButS(block, NUM, B_CALCEFFECT, "Child:",		922,124,80,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of children of a particle that multiply itself");
-			
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CALCEFFECT, "Randlife:",	550,96,96,20, &paf->randlife, 0.0, 2.0, 10, 0, "Give the particlelife a random variation");
-			uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",		652,96,80,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
-
-			uiDefButBitS(block, TOG, PAF_FACE, B_CALCEFFECT, "Face",		735,96,46,20, &paf->flag, 0, 0, 0, 0, "Emit particles also from faces");
-			uiDefButBitS(block, TOG, PAF_BSPLINE, B_CALCEFFECT, "Bspline",	782,96,54,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
-			uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",				837,96,45,20, &paf->stype, 0, 0, 0, 0, "Give the particles a rotation direction");
-			uiDefButF(block, NUM, B_DIFF,			"VectSize",		885,96,116,20, &paf->vectsize, 0.0, 1.0, 10, 0, "Set the speed for Vect");	
-
-			uiBlockBeginAlign(block);
-			uiBlockSetCol(block, TH_BUT_SETTING2);
-			uiDefButF(block, NUM, B_CALCEFFECT, "Norm:",		550,67,96,20, &paf->normfac, -2.0, 2.0, 10, 0, "Let the mesh give the particle a starting speed");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Ob:",		649,67,86,20, &paf->obfac, -1.0, 1.0, 10, 0, "Let the object give the particle a starting speed");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Rand:",		738,67,86,20, &paf->randfac, 0.0, 2.0, 10, 0, "Give the startingspeed a random variation");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Tex:",		826,67,85,20, &paf->texfac, 0.0, 2.0, 10, 0, "Let the texture give the particle a starting speed");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Damp:",		913,67,89,20, &paf->damp, 0.0, 1.0, 10, 0, "Specify the damping factor");
-			uiBlockSetCol(block, TH_AUTO);
-			
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		550,31,72,20, paf->force, -1.0, 1.0, 1, 0, "Specify the X axis of a continues force");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		624,31,78,20, paf->force+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a continues force");
-			uiDefBut(block, LABEL, 0, "Force:",				550,9,72,20, NULL, 1.0, 0, 0, 0, "");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		623,9,79,20, paf->force+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a continues force");
-
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CALCEFFECT, "X:",		722,31,74,20, paf->defvec, -1.0, 1.0, 1, 0, "Specify the X axis of a force, determined by the texture");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		798,31,74,20, paf->defvec+1,-1.0, 1.0, 1, 0, "Specify the Y axis of a force, determined by the texture");
-			uiDefBut(block, LABEL, 0, "Texture:",			722,9,74,20, NULL, 1.0, 0, 0, 0, "");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		797,9,75,20, paf->defvec+2, -1.0, 1.0, 1, 0, "Specify the Z axis of a force, determined by the texture");
-			uiBlockEndAlign(block);
-
-			uiDefButS(block, ROW, B_CALCEFFECT, "Int",		875,9,32,43, &paf->texmap, 14.0, 0.0, 0, 0, "Use texture intensity as a factor for texture force");
-
-			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		911,31,45,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed vector");
-			uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		958,31,44,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed vector");
-			uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",		911,9,91,20, &paf->nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
-
-		}
+	if(paf==NULL) return;
+	
+	uiDefBut(block, BUT, B_RECALCAL, "RecalcAll",		75,180,75,20, 0, 0, 0, 0, 0, "Update all particle systems");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "Emit:",					0,150,75,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButI(block, NUM, B_CALCEFFECT, "Num:",			0,130,150,20, &paf->totpart, 1.0, 100000.0, 0, 0, "The total number of particles");
+	if(paf->flag & PAF_STATIC) {
+		uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	0,110,150,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
 	}
+	else {
+		uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		0,110,75,20, &paf->sta, -250.0, MAXFRAMEF, 100, 1, "Frame # to start emitting particles");
+		uiDefButF(block, NUM, B_CALCEFFECT, "End:",		75,110,75,20, &paf->end, 1.0, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
+	}
+	uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		0,90,75,20, &paf->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Disp:",		75,90,75,20, &paf->disp, 1.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
+	uiBlockEndAlign(block);
+	
+	uiDefBut(block, LABEL, 0, "From:",					0,70,75,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOGN, PAF_OFACE, B_CALCEFFECT, "Verts",	0,50,75,20, &paf->flag, 0, 0, 0, 0, "Emit particles from vertices");
+	uiDefButBitS(block, TOG, PAF_FACE, B_CALCEFFECT, "Faces",	75,50,75,20, &paf->flag, 0, 0, 0, 0, "Emit particles from faces");
+	if(paf->flag & PAF_FACE) {
+		uiDefButBitS(block, TOG, PAF_TRAND, B_CALCEFFECT, "Rand",	0,30,50,20, &paf->flag, 0, 0, 0, 0, "Use true random distribution from faces");
+		uiDefButBitS(block, TOG, PAF_EDISTR, B_CALCEFFECT, "Even",	50,30,50,20, &paf->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas");
+		uiDefButS(block, NUM, B_CALCEFFECT, "P/F:",					100,30,50,20, &paf->userjit, 0.0, 200.0, 1, 0, "Jitter table distribution: maximum particles per face (0=uses default)");
+	}
+	else uiBlockEndAlign(block);	/* vgroup button no align */
+	
+	but=uiDefBut(block, TEX, B_PAF_SET_VG, "VGroup:",					0,10,150,20, paf->vgroupname, 0, 31, 0, 0, "Name of vertex group to use");
+	uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)OBACT);
+	uiBlockEndAlign(block);
+	
+	/* right collumn */
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, PAF_STATIC, B_EFFECT_DEP, "Static",	160,180,75,20, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
+	if(paf->flag & PAF_STATIC) {
+		uiDefButBitS(block, TOG, PAF_ANIMATED, B_DIFF, "Animated",	235,180,75,20, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
+	}
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Display:",				160,150,75,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_CALCEFFECT, "Material:",	160,130,150,20, &paf->omat, 1.0, 16.0, 0, 0, "Specify material used for the particles");
+	uiDefButS(block, TOG|BIT|7, B_REDR, "Mesh",			160,110,50,20, &paf->flag, 0, 0, 0, 0, "Render emitter Mesh also");
+	uiDefButBitS(block, TOG, PAF_UNBORN, B_DIFF, "Unborn",210,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear before they are emitted");
+	uiDefButBitS(block, TOG, PAF_DIED, B_DIFF, "Died",	260,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear after they have died");
+	uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",			160,90,75,20, &paf->stype, 0, 0, 0, 0, "Give the particles a direction and rotation");
+	uiDefButF(block, NUM, B_DIFF,		"Size:",		235,90,75,20, &paf->vectsize, 0.0, 1.0, 10, 1, "The amount the Vect option influences halo size");	
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Children:",				160,70,75,20, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_REDR,		"Generation:",	160,50,150,20, &paf->curmult, 0.0, 3.0, 0, 0, "Current generation of particles");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Num:",			160,30,75,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of generations of particles that can multiply itself");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Prob:",		235,30,75,20, paf->mult+paf->curmult, 0.0, 1.0, 10, 1, "Probability \"dying\" particle spawns a new one.");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		160,10,75,20, paf->life+paf->curmult, 1.0, 600.0, 100, 1, "Specify the lifespan of the next generation particles");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",			235,10,75,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
+	uiBlockEndAlign(block);
+	
 }
 
 /* NT - Panel for fluidsim settings */
@@ -1963,6 +2040,7 @@ static void object_panel_fluidsim(Object *ob)
 	const int objHeight = 20;
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
 	uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
@@ -2130,8 +2208,9 @@ void physics_panels()
 	ob= OBACT;
 	if(ob) {
 		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-		object_panel_particles(ob);
 		object_panel_fields(ob);
+		object_panel_particles(ob);
+		object_panel_particles_motion(ob);
 		object_softbodies(ob);
 		object_panel_fluidsim(ob);
 	}

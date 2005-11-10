@@ -346,11 +346,11 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 {
 	Base *base;
 	Object *ob;
-	int a, deflected=0;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3], dv2[3],
 		facedist,n_mag,t,force_mag_norm,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
 		ee = 5.0f, ff = 0.1f, fa;
+	int a, deflected=0;
 		
 	base= G.scene->base.first;
 	while (base) {
@@ -495,29 +495,27 @@ static int sb_deflect_face(Object *ob,float *actpos, float *futurepos,float *col
 {
 	int deflected;
 	float s_actpos[3], s_futurepos[3];
+	
 	VECCOPY(s_actpos,actpos);
 	if(futurepos)
-	VECCOPY(s_futurepos,futurepos);
+		VECCOPY(s_futurepos,futurepos);
+	
 	deflected= sb_detect_collision(s_actpos, facenormal, cf, force , ob->lay, ob);
 	return(deflected);
-				
 }
 
 
-#define USES_FIELD		1
-#define USES_DEFLECT	2
 static int is_there_deflection(unsigned int layer)
 {
 	Base *base;
-	int retval= 0;
 	
 	for(base = G.scene->base.first; base; base= base->next) {
 		if( (base->lay & layer) && base->object->pd) {
-			if(base->object->pd->forcefield) retval |= USES_FIELD;
-			if(base->object->pd->deflect) retval |= USES_DEFLECT;
+			if(base->object->pd->deflect) 
+				return 1;
 		}
 	}
-	return retval;
+	return 0;
 }
 
 static void softbody_calc_forces(Object *ob, float forcetime)
@@ -529,10 +527,10 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	BodyPoint  *bp;
 	BodyPoint *bproot;
 	BodySpring *bs;	
-	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3],
-	fieldfactor = 1000.0f, 
-	windfactor  = 250.0f;   
-	int a, b, do_effector;
+	ListBase *do_effector;
+	float iks, ks, kd, gravity, actspringlen, forcefactor, sd[3];
+	float fieldfactor = 1000.0f, windfactor  = 250.0f;   
+	int a, b, do_deflector;
 	
 	/* clear forces */
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
@@ -540,8 +538,11 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	}
 	
 	gravity = sb->grav * sb_grav_force_scale(ob);	
+	
 	/* check! */
-	do_effector= is_there_deflection(ob->lay);
+	do_deflector= is_there_deflection(ob->lay);
+	do_effector= pdInitEffectors(ob->lay);
+	
 	iks  = 1.0f/(1.0f-sb->inspring)-1.0f ;/* inner spring constants function */
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
@@ -581,14 +582,15 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			bp->force[2]-= gravity*sb->nodemass; /* individual mass of node here */
 			
 			/* particle field & vortex */
-			if(do_effector & USES_FIELD) {
+			if(do_effector) {
 				float force[3]= {0.0f, 0.0f, 0.0f};
 				float speed[3]= {0.0f, 0.0f, 0.0f};
 				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); // just for calling functio once
 				
-				pdDoEffector(bp->pos, force, speed, (float)G.scene->r.cfra, ob->lay,PE_WIND_AS_SPEED);
-				// note: now we have wind as motion of media, so we can do anisotropic stuff here, 
-				// if we had vertex normals here(BM)
+				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
+				
+				/* note: now we have wind as motion of media, so we can do anisotropic stuff here, */
+				/* if we had vertex normals here(BM) */
 				/* apply forcefield*/
 				VecMulf(force,fieldfactor* eval_sb_fric_force_scale); 
 				VECADD(bp->force, bp->force, force);
@@ -616,7 +618,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			yes, constraints and collision stuff should go here too (read baraff papers on that!)
 			*/
 			/* moving collision targets */
-			if(do_effector & USES_DEFLECT) {
+			if(do_deflector) {
 				float defforce[3] = {0.0f,0.0f,0.0f}, collisionpos[3],facenormal[3], cf = 1.0f;
 				kd = 1.0f;
 				
@@ -689,6 +691,11 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			}/*any edges*/
 		}/*omit on snap	*/
 	}/*loop all bp's*/
+
+	/* cleanup */
+	if(do_effector)
+		pdEndEffectors(do_effector);
+
 }
 
 static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *err)
@@ -701,11 +708,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	float dx[3],dv[3];
 	float timeovermass;
 	float maxerr = 0.0;
-	int a, do_effector;
+	int a;
 
     forcetime *= sb_time_scale(ob);
-	/* check! */
-	do_effector= is_there_deflection(ob->lay);
     
 	// claim a minimum mass for vertex 
 	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
@@ -771,6 +776,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			else { VECADD(bp->pos, bp->pos, dx);}
 		}//snap
 	} //for
+	
 	if (err){ /* so step size will be controlled by biggest difference in slope */
 		*err = maxerr;
 	}

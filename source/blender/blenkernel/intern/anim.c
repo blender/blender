@@ -200,6 +200,7 @@ int interval_test(int min, int max, int p1, int cycl)
 }
 
 /* warning, *vec needs FOUR items! */
+/* ctime is normalized range <0-1> */
 int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK */
 {
 	Curve *cu;
@@ -488,29 +489,29 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 						}
 						else { // non static particles
 							   
-							if(ctime > pa->time) {
-								if(ctime < pa->time+pa->lifetime) {
-									newob= new_dupli_object(&duplilist, ob, par);
+							if((paf->flag & PAF_UNBORN)==0 && ctime < pa->time) continue;
+							if((paf->flag & PAF_DIED)==0 && ctime > pa->time+pa->lifetime) continue;
 
-									/* to give ipos in object correct offset */
-									where_is_object_time(newob, ctime-pa->time);
-									
-									where_is_particle(paf, pa, ctime, vec);
-									if(paf->stype==PAF_VECT) {
-										where_is_particle(paf, pa, ctime+1.0f, vec1);
-										
-										VecSubf(vec1, vec1, vec);
-										q2= vectoquat(vec1, ob->trackflag, ob->upflag);
+							//if(ctime < pa->time+pa->lifetime) {
+							newob= new_dupli_object(&duplilist, ob, par);
+
+							/* to give ipos in object correct offset */
+							where_is_object_time(newob, ctime-pa->time);
 							
-										QuatToMat3(q2, mat);
-										Mat4CpyMat4(tmat, newob->obmat);
-										Mat4MulMat43(newob->obmat, tmat, mat);
-									}
-
-									VECCOPY(newob->obmat[3], vec);
-								}
+							where_is_particle(paf, pa, ctime, vec);
+							if(paf->stype==PAF_VECT) {
+								where_is_particle(paf, pa, ctime+1.0f, vec1);
+								
+								VecSubf(vec1, vec1, vec);
+								q2= vectoquat(vec1, ob->trackflag, ob->upflag);
+					
+								QuatToMat3(q2, mat);
+								Mat4CpyMat4(tmat, newob->obmat);
+								Mat4MulMat43(newob->obmat, tmat, mat);
 							}
-						}						
+
+							VECCOPY(newob->obmat[3], vec);
+						}					
 					}
 					break;
 				}

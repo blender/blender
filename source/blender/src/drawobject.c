@@ -87,6 +87,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
+#include "BKE_anim.h"			//for the where_on_path function
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -2390,10 +2391,10 @@ static void draw_static_particle_system(Object *ob, PartEff *paf)
 	int a;
 	
 	pa= paf->keys;
-	if(pa==0) {
+	if(pa==NULL) {
 		build_particle_system(ob);
 		pa= paf->keys;
-		if(pa==0) return;
+		if(pa==NULL) return;
 	}
 	
 	glPointSize(1.0);
@@ -2978,6 +2979,13 @@ static void draw_forcefield(Object *ob)
 	PartDeflect *pd= ob->pd;
 	float imat[4][4], tmat[4][4];
 	float vec[3]= {0.0, 0.0, 0.0};
+	int curcol;
+	
+	if(ob!=G.obedit && (ob->flag & SELECT)) {
+		if(ob==OBACT) curcol= TH_ACTIVE;
+		else curcol= TH_SELECT;
+	}
+	else curcol= TH_WIRE;
 	
 	/* calculus here, is reused in PFIELD_FORCE */
 	mygetmatrix(tmat);
@@ -2985,17 +2993,11 @@ static void draw_forcefield(Object *ob)
 //	Normalise(imat[0]);		// we don't do this because field doesnt scale either... apart from wind!
 //	Normalise(imat[1]);
 	
-	if(pd->flag & PFIELD_USEMAX) {
-		setlinestyle(3);
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
-		drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
-		setlinestyle(0);
-	}
 	if (pd->forcefield == PFIELD_WIND) {
 		float force_val;
 		
 		Mat4One(tmat);
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
 		
 		if (has_ipo_code(ob->ipo, OB_PD_FSTR))
 			force_val = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, G.scene->r.cfra);
@@ -3019,11 +3021,11 @@ static void draw_forcefield(Object *ob)
 		else 
 			ffall_val = pd->f_power;
 
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
 		drawcircball(GL_LINE_LOOP, vec, 1.0, imat);
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.9 - 0.4 / pow(1.5, (double)ffall_val));
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.9 - 0.4 / pow(1.5, (double)ffall_val));
 		drawcircball(GL_LINE_LOOP, vec, 1.5, imat);
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.9 - 0.4 / pow(2.0, (double)ffall_val));
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.9 - 0.4 / pow(2.0, (double)ffall_val));
 		drawcircball(GL_LINE_LOOP, vec, 2.0, imat);
 	}
 	else if (pd->forcefield == PFIELD_VORTEX) {
@@ -3040,7 +3042,7 @@ static void draw_forcefield(Object *ob)
 		else 
 			force_val = pd->f_strength;
 
-		BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.7);
 		if (force_val < 0) {
 			drawspiral(vec, 1.0, imat, 1);
 			drawspiral(vec, 1.0, imat, 16);
@@ -3050,7 +3052,39 @@ static void draw_forcefield(Object *ob)
 			drawspiral(vec, 1.0, imat, -16);
 		}
 	}
+	else if (pd->forcefield == PFIELD_GUIDE && ob->type==OB_CURVE) {
+		Curve *cu= ob->data;
+		if((cu->flag & CU_PATH) && cu->path && cu->path->data) {
+			float mindist, guidevec1[4], guidevec2[3];
+
+			if (has_ipo_code(ob->ipo, OB_PD_FSTR))
+				mindist = IPO_GetFloatValue(ob->ipo, OB_PD_FSTR, G.scene->r.cfra);
+			else 
+				mindist = pd->f_strength;
+
+			/*path end*/
+			setlinestyle(3);
+			where_on_path(ob, 1.0f, guidevec1, guidevec2);
+			BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
+			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
+
+			/*path beginning*/
+			setlinestyle(0);
+			where_on_path(ob, 0.0f, guidevec1, guidevec2);
+			BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
+			drawcircball(GL_LINE_LOOP, guidevec1, mindist, imat);
+			
+			VECCOPY(vec, guidevec1);	/* max center */
+		}
+	}
 	
+	/* as last, guide curve alters it */
+	if(pd->flag & PFIELD_USEMAX) {
+		setlinestyle(3);
+		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
+		drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
+		setlinestyle(0);
+	}
 }
 
 static void draw_box(float vec[8][3])
@@ -3480,7 +3514,7 @@ void draw_object(Base *base)
 				PartEff *paf = give_parteff(ob);
 
 				if(paf) {
-					if(col) cpack(0xFFFFFF);	/* for visibility */
+					if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
 					else if((G.f & G_PICKSEL) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
 					if(col) cpack(col);

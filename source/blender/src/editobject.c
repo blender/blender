@@ -1539,7 +1539,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 
 		sbObjectToSoftbody(ob);
 	}
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	/* also flush ob recalc, doesn't take much overhead, but used for particles */
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 
 	if(freedata) {
 		setcursor_space(SPACE_VIEW3D, CURSOR_STD);

@@ -816,7 +816,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
-	if(pa==NULL) {
+	if(pa==NULL || paf->disp!=100) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==NULL) return;
@@ -839,65 +839,74 @@ static void render_particle_system(Object *ob, PartEff *paf)
 
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 
-		if(ctime > pa->time) {
-			if(ctime < pa->time+pa->lifetime) {
-
-				/* watch it: also calculate the normal of a particle */
-				if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
-					where_is_particle(paf, pa, ctime, vec);
-					MTC_Mat4MulVecfl(R.viewmat, vec);
-					where_is_particle(paf, pa, ctime+1.0, vec1);
-					MTC_Mat4MulVecfl(R.viewmat, vec1);
-				}
-				else {
-					where_is_particle(paf, pa, ctime, vec);
-					MTC_Mat4MulVecfl(R.viewmat, vec);
-				}
-
-				if(pa->mat_nr != mat_nr) {
-					mat_nr= pa->mat_nr;
-					ma= give_render_material(ob, mat_nr);
-				}
-
-				if(ma->ipo) {
-					/* correction for lifetime */
-					ptime= 100.0*(ctime-pa->time)/pa->lifetime;
-					calc_ipo(ma->ipo, ptime);
-					execute_ipo((ID *)ma, ma->ipo);
-				}
-
-				hasize= ma->hasize;
-
-				if(ma->mode & MA_HALOPUNO) {
-					xn= pa->no[0];
-					yn= pa->no[1];
-					zn= pa->no[2];
-
-					/* transpose ! */
-					nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-					nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-					nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-					Normalise(nor);
-
-					VECCOPY(view, vec);
-					Normalise(view);
-
-					zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-					if(zn>=0.0) hasize= 0.0;
-					else hasize*= zn*zn*zn*zn;
-				}
-
-				if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
-				else {
-					har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
-					if(har && ma->mode & MA_HALO_SHADE) {
-						VecSubf(har->no, vec, vec1);
-						Normalise(har->no);
-					}
-				}
-				if(har) har->lay= ob->lay;
+		if((paf->flag & PAF_UNBORN)==0) {
+			if(ctime < pa->time)
+			{
+				seed++;
+				continue;
 			}
 		}
+		if((paf->flag & PAF_DIED)==0) {
+			if(ctime > pa->time+pa->lifetime)
+			{
+				seed++;
+				continue;
+			}
+		}
+		/* watch it: also calculate the normal of a particle */
+		if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
+			where_is_particle(paf, pa, ctime, vec);
+			MTC_Mat4MulVecfl(R.viewmat, vec);
+			where_is_particle(paf, pa, ctime+1.0, vec1);
+			MTC_Mat4MulVecfl(R.viewmat, vec1);
+		}
+		else {
+			where_is_particle(paf, pa, ctime, vec);
+			MTC_Mat4MulVecfl(R.viewmat, vec);
+		}
+
+		if(pa->mat_nr != mat_nr) {
+			mat_nr= pa->mat_nr;
+			ma= give_render_material(ob, mat_nr);
+		}
+
+		if(ma->ipo) {
+			/* correction for lifetime */
+			ptime= 100.0*(ctime-pa->time)/pa->lifetime;
+			calc_ipo(ma->ipo, ptime);
+			execute_ipo((ID *)ma, ma->ipo);
+		}
+
+		hasize= ma->hasize;
+
+		if(ma->mode & MA_HALOPUNO) {
+			xn= pa->no[0];
+			yn= pa->no[1];
+			zn= pa->no[2];
+
+			/* transpose ! */
+			nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+			nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+			nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+			Normalise(nor);
+
+			VECCOPY(view, vec);
+			Normalise(view);
+
+			zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
+			if(zn>=0.0) hasize= 0.0;
+			else hasize*= zn*zn*zn*zn;
+		}
+
+		if(paf->stype==PAF_VECT) har= RE_inithalo(ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
+		else {
+			har= RE_inithalo(ma, vec, NULL, pa->co, hasize, 0.0, seed);
+			if(har && ma->mode & MA_HALO_SHADE) {
+				VecSubf(har->no, vec, vec1);
+				Normalise(har->no);
+			}
+		}
+		if(har) har->lay= ob->lay;
 		seed++;
 	}
 
@@ -907,6 +916,10 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		if(ma) do_mat_ipo(ma);
 	}
 	
+	if(paf->disp!=100) {
+		MEM_freeN(paf->keys);
+		paf->keys= NULL;
+	}
 }
 
 
@@ -1005,7 +1018,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
-	if(pa==NULL || (paf->flag & PAF_ANIMATED)) {
+	if(pa==NULL || (paf->flag & PAF_ANIMATED) || paf->disp!=100) {
 		build_particle_system(ob);
 		pa= paf->keys;
 		if(pa==NULL) return;
@@ -1138,6 +1151,11 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		
 		seed++;
 		if(orco) orco+=3;
+	}
+
+	if(paf->disp!=100) {
+		MEM_freeN(paf->keys);
+		paf->keys= NULL;
 	}
 }
 
@@ -1349,7 +1367,7 @@ static void init_render_mesh(Object *ob)
 		/* warning; build_particle_system does modifier calls itself */
 		if(paf->flag & PAF_STATIC) render_static_particle_system(ob, paf);
 		else render_particle_system(ob, paf);
-		return;
+		if((paf->flag & PAF_SHOWE)==0) return;
 	}
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);

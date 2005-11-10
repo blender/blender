@@ -65,6 +65,8 @@ extern void physics_panels(void);
 extern void do_object_panels(unsigned short event);
 extern void do_constraintbuts(unsigned short event);
 extern void object_panel_constraint(char *context);
+extern void autocomplete_bone(char *str, void *arg_v);
+extern void autocomplete_vgroup(char *str, void *arg_v);
 
 /* effects */
 extern void effects_panels(void);
@@ -625,6 +627,7 @@ enum {
 #define B_EFFECT_DEP	3413
 #define B_FIELD_DEP		3414
 #define B_FIELD_CHANGE	3415
+#define B_PAF_SET_VG	3416
 
 #define B_MODIFIER_BUTS		3600
 
