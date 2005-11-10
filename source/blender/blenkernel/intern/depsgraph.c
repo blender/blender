@@ -482,7 +482,10 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 						
 						if(pd->forcefield) {
 							node2 = dag_get_node(dag, ob1);
-							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+							if(pd->forcefield==PFIELD_GUIDE)
+								dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+							else
+								dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
 						}
 					}
 				}
