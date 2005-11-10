@@ -1021,6 +1021,7 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 				Mat4MulVecfl(ob->obmat, opco1);
 				VECCOPY(new_force1, new_force);
 				Mat4Mul3Vecfl(ob->obmat, new_force1);
+				Mat4Mul3Vecfl(ob->obmat, new_speed);
 				
 				cur_time = G.scene->r.cfra;
 				
