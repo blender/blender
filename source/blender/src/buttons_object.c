@@ -1629,7 +1629,10 @@ void do_effects_panels(unsigned short event)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
 			Curve *cu= ob->data;
+			
 			cu->flag |= (CU_PATH|CU_3D);
+			do_curvebuts(B_CU3D);	/* all curves too */
+			
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
 		allqueue(REDRAWVIEW3D, 0);

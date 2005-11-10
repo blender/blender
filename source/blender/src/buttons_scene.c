@@ -1457,8 +1457,13 @@ void sound_panels()
 {
 	bSound *sound;
 
+	/* paranoia check */
 	sound = G.buts->lockpoin;
-
+	if( GS(sound->id.name)!=ID_SO) {
+		sound= NULL;
+		G.buts->lockpoin= NULL;
+	}
+	
 	sound_panel_sound(sound);
 	sound_panel_listener();
 	sound_panel_sequencer();

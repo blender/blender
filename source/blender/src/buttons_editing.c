@@ -644,8 +644,10 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			/* optimal redraw */
 			if( (ob->lay & G.vd->lay) && (BASACT->lay & G.vd->lay) );
 			else if( (ob->lay & G.vd->lay)==0 && (BASACT->lay & G.vd->lay)==0 );
-			else allqueue(REDRAWVIEW3D, 0);
-			
+			else {
+				allqueue(REDRAWVIEW3D, 0);
+				DAG_scene_sort(G.scene);
+			}
 			ob->lay= BASACT->lay;
 		}
 	}

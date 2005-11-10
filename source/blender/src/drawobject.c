@@ -2384,11 +2384,11 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
 }
 
-static void draw_static_particle_system(Object *ob, PartEff *paf)
+static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 {
 	Particle *pa;
-	float ctime, mtime, vec[3], vec1[3];
-	int a;
+	float ctime, mtime, vec[3], veco[3];
+	int a, use_norm=0;
 	
 	pa= paf->keys;
 	if(pa==NULL) {
@@ -2397,40 +2397,57 @@ static void draw_static_particle_system(Object *ob, PartEff *paf)
 		if(pa==NULL) return;
 	}
 	
-	glPointSize(1.0);
-	if(paf->stype!=PAF_VECT) glBegin(GL_POINTS);
-
+	if(paf->stype==PAF_VECT) {
+		if(dt>OB_WIRE) {
+			glEnable(GL_LIGHTING);
+			set_gl_material(paf->omat);
+			use_norm= 1;
+		}
+	}
+	else {
+		glPointSize(1.0);
+		glBegin(GL_POINTS);
+	}
+	
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 		
-		where_is_particle(paf, pa, pa->time, vec1);
-		
-		mtime= pa->time+pa->lifetime+paf->staticstep-1;
-		
-		for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
+		if(paf->stype==PAF_VECT) {
 			
-			/* make sure hair grows until the end.. */ 
-			if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
-			
-			if(paf->stype==PAF_VECT) {
-				where_is_particle(paf, pa, ctime+1, vec);
+			glBegin(GL_LINE_STRIP);
+			where_is_particle(paf, pa, pa->time, veco);
 
-				glBegin(GL_LINE_STRIP);
-					glVertex3fv(vec);
-					glVertex3fv(vec1);
-				glEnd();
+			mtime= pa->time+pa->lifetime+paf->staticstep;
+			for(ctime= pa->time+paf->staticstep; ctime<mtime; ctime+=paf->staticstep) {
 				
-				VECCOPY(vec1, vec);
-			}
-			else {
 				where_is_particle(paf, pa, ctime, vec);
 				
+				if(use_norm) {
+					float no[3];
+					VECSUB(no, vec, veco);
+					glNormal3fv(no);
+				}
+				glVertex3fv(veco);
+				VECCOPY(veco, vec);
+			}
+			
+			glVertex3fv(veco);
+			glEnd();
+		}
+		else {
+			mtime= pa->time+pa->lifetime+paf->staticstep-1;
+			for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
+				where_is_particle(paf, pa, ctime, vec);
 				glVertex3fv(vec);
-					
 			}
 		}
 	}
-	if(paf->stype!=PAF_VECT) glEnd();
-
+	if(paf->stype==PAF_VECT) {
+		glDisable(GL_LIGHTING);
+	}
+	else {
+		glEnd();
+	}
+	
 }
 
 unsigned int nurbcol[8]= {
@@ -3515,7 +3532,7 @@ void draw_object(Base *base)
 
 				if(paf) {
 					if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
-					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf);
+					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
 					else if((G.f & G_PICKSEL) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
 					if(col) cpack(col);
 				}

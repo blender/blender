@@ -1865,6 +1865,8 @@ void movetolayer(void)
 	if(islamp && G.vd->drawtype == OB_SHADED) reshadeall_displist();
 
 	countall();
+	DAG_scene_sort(G.scene);
+	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
