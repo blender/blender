@@ -1743,6 +1743,67 @@ void set_ipotype_actionchannels(int ipotype)
 	allqueue(REDRAWNLA, 0);
 }
 
+void set_extendtype_actionchannels(int extendtype)
+{
+	bAction *act; 
+	bActionChannel *chan;
+	short event;
+
+	/* Get the selected action, exit if none are selected 
+	 */
+	act = G.saction->action;
+	if (!act)
+		return;
+
+	if (extendtype == SET_EXTEND_POPUP) {
+		/* Present a popup menu asking the user what type
+		 * of IPO curve he/she/GreenBTH wants. ;)
+		 */
+		event
+			=  pupmenu("Channel Extending Type %t|"
+					   "Constant %x1|"
+					   "Extrapolation %x2|"
+					   "Cyclic %x3|"
+					   "Cyclic extrapolation %x4");
+		if(event < 1) return;
+		extendtype = event;
+	}
+	
+	/* Loop through the channels and for the selected ones set
+	 * the type for each Ipo curve in the channel Ipo (based on
+	 * the value from the popup).
+	 */
+	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if (chan->flag & ACHAN_SELECTED) {
+			if (chan->ipo) {
+				switch (extendtype) {
+				case SET_EXTEND_CONSTANT:
+					setexprap_ipoloop(chan->ipo, IPO_HORIZ);
+					break;
+				case SET_EXTEND_EXTRAPOLATION:
+					setexprap_ipoloop(chan->ipo, IPO_DIR);
+					break;
+				case SET_EXTEND_CYCLIC:
+					setexprap_ipoloop(chan->ipo, IPO_CYCL);
+					break;
+				case SET_EXTEND_CYCLICEXTRAPOLATION:
+					setexprap_ipoloop(chan->ipo, IPO_CYCLX);
+					break;
+				}
+			}
+		}
+	}
+
+	/* Clean up and redraw stuff
+	 */
+	remake_action_ipos (act);
+	BIF_undo_push("Set Ipo type Action channel");
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
 void set_snap_actionchannels(void) 
 {
 	

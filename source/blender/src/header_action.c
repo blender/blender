@@ -106,6 +106,11 @@
 #define ACTMENU_KEY_INTERP_LINEAR 1
 #define ACTMENU_KEY_INTERP_BEZIER 2
 
+#define ACTMENU_KEY_EXTEND_CONST 0
+#define ACTMENU_KEY_EXTEND_EXTRAPOLATION 1
+#define ACTMENU_KEY_EXTEND_CYCLIC 2
+#define ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION 3
+
 void do_action_buttons(unsigned short event)
 {
 	Object *ob= OBACT;
@@ -587,6 +592,84 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 	return block;
 }
 
+static void do_action_keymenu_extendmenu(void *arg, int event)
+{
+	Key *key;
+
+	key = get_action_mesh_key();
+
+	switch(event)
+	{
+		case ACTMENU_KEY_EXTEND_CONST:
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_extendtype_actionchannels(SET_EXTEND_CONSTANT);
+			}
+			break;
+		case ACTMENU_KEY_EXTEND_EXTRAPOLATION:
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_extendtype_actionchannels(SET_EXTEND_EXTRAPOLATION);
+			}
+			break;
+		case ACTMENU_KEY_EXTEND_CYCLIC:
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_extendtype_actionchannels(SET_EXTEND_CYCLIC);
+			}
+			break;
+		case ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION:
+			if (key) {
+				/* to do */
+			}
+			else {
+				set_extendtype_actionchannels(SET_EXTEND_CYCLICEXTRAPOLATION);
+			}
+			break;
+	}
+
+	scrarea_queue_winredraw(curarea);
+}
+
+static uiBlock *action_keymenu_extendmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "action_keymenu_extendmenu", 
+					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_action_keymenu_extendmenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Constant", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_EXTEND_CONST, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Extrapolation", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_EXTEND_EXTRAPOLATION, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Cyclic", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_EXTEND_CYCLIC, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Cyclic Extrapolation", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+
+	return block;
+}
+
+
 static void do_action_keymenu(void *arg, int event)
 {	
 	SpaceAction *saction;
@@ -669,6 +752,9 @@ static uiBlock *action_keymenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefIconTextBlockBut(block, action_keymenu_extendmenu, 
+						  NULL, ICON_RIGHTARROW_THIN, 
+						  "Extend Mode", 0, yco-=20, 120, 20, "");
 	uiDefIconTextBlockBut(block, action_keymenu_intpolmenu, 
 						  NULL, ICON_RIGHTARROW_THIN, 
 						  "Interpolation Mode", 0, yco-=20, 120, 20, "");

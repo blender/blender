@@ -669,6 +669,16 @@ void setipotype_ipo(Ipo *ipo, int code)
 	}
 }
 
+void setexprap_ipoloop(Ipo *ipo, int code)
+{
+	IpoCurve *icu;
+
+    	/* Loop through each curve in the Ipo
+     	*/
+    	for (icu=ipo->curve.first; icu; icu=icu->next)
+        	icu->extrap= code;
+}
+
 void set_ipotype(void)
 {
 	EditIpo *ei;
@@ -1121,5 +1131,3 @@ void set_exprap_ipo(int mode)
 	editipo_changed(G.sipo, 1);
 	BIF_undo_push("Set extrapolation Ipo");
 }
-
-
