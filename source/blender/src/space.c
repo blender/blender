@@ -167,9 +167,6 @@ void free_soundspace(SpaceSound *ssound);
 
 /* *************************************** */
 
-int oldkeypress; /* temporary var for checking to cycle between context tabs in extern_set_butspace() */
-
-
 /* don't know yet how the handlers will evolve, for simplicity
    i choose for an array with eventcodes, this saves in a file!
    */
@@ -3320,7 +3317,7 @@ void extern_set_butspace(int fkey)
 		}
 
 		/* if it's already in shading context, cycle between tabs with the same key */
-		if (oldkeypress == F5KEY) {
+		if (sbuts->oldkeypress == F5KEY) {
 
 			if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_LAMP)
 				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
@@ -3334,10 +3331,13 @@ void extern_set_butspace(int fkey)
 			else if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD)
 				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_LAMP;
 		}
-		else if (oldkeypress == F6KEY) {
+		else if (sbuts->oldkeypress == F6KEY) {
 			sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
 		}
-		else sbuts->mainb= CONTEXT_SHADING;
+		else {
+			sbuts->mainb= CONTEXT_SHADING;
+			sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+		}
 		
 	}
 	else if(fkey==F6KEY) {
@@ -3346,7 +3346,7 @@ void extern_set_butspace(int fkey)
 	}
 	else if(fkey==F7KEY) {
 		/* if it's already in object context, cycle between tabs with the same key */
-		if (oldkeypress == F7KEY) {
+		if (sbuts->oldkeypress == F7KEY) {
 
 			if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_OBJECT)
 				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_PHYSICS;
@@ -3363,7 +3363,7 @@ void extern_set_butspace(int fkey)
 	else if(fkey==F9KEY) sbuts->mainb= CONTEXT_EDITING;
 	else if(fkey==F10KEY) {
 		/* if it's already in scene context, cycle between tabs with the same key */
-		if (oldkeypress == F10KEY) {
+		if (sbuts->oldkeypress == F10KEY) {
 
 			if (sbuts->tab[CONTEXT_SCENE]==TAB_SCENE_RENDER)
 				sbuts->tab[CONTEXT_SCENE]=TAB_SCENE_ANIM;
@@ -3375,7 +3375,7 @@ void extern_set_butspace(int fkey)
 		else sbuts->mainb= CONTEXT_SCENE;
 	}
 
-	oldkeypress = fkey;
+	sbuts->oldkeypress = fkey;
 
 	scrarea_queue_headredraw(sa);
 	scrarea_queue_winredraw(sa);

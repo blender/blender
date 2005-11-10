@@ -119,7 +119,7 @@ typedef struct SpaceButs {
 	
 	short texnr;
 	char texfrom, showgroup;
-
+	
 	short rectx, recty;		/* preview render */
 	unsigned int *rect;
 	short cury, modeltype;
@@ -127,7 +127,8 @@ typedef struct SpaceButs {
 	short scriptblock;
 	short scaflag;
 	short re_align, pad1;
-	int pad2;
+	
+	int oldkeypress;		/* for keeping track of the sub tab key cycling */
 	
 	char texact, tab[7];	/* storing tabs for each context */
 		

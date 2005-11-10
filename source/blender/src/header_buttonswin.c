@@ -132,6 +132,12 @@ void do_buts_buttons(short event)
 		break;
 	case B_BUTSPREVIEW:
 		BIF_preview_changed(G.buts);
+		G.buts->oldkeypress = 0;
+		scrarea_queue_headredraw(curarea);
+		scrarea_queue_winredraw(curarea);
+		break;
+	case B_CONTEXT_SWITCH:
+		G.buts->oldkeypress = 0;
 		scrarea_queue_headredraw(curarea);
 		scrarea_queue_winredraw(curarea);
 		break;
@@ -599,12 +605,12 @@ void buts_buttons(void)
 //	xco+=XIC;
 	
 	uiBlockBeginAlign(block);
-	uiDefIconButS(block, ROW, B_REDR,	ICON_GAME,			xco, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
-	uiDefIconButS(block, ROW, B_REDR,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_GAME,			xco, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_LOGIC, 0, 0, "Logic (F4) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCRIPT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCRIPT, 0, 0, "Script ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_MATERIAL_DEHLT,xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SHADING, 0, 0, "Shading (F5) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_OBJECT,		xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_OBJECT, 0, 0, "Object (F7) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_EDIT,			xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_EDITING, 0, 0, "Editing (F9) ");
+	uiDefIconButS(block, ROW, B_CONTEXT_SWITCH,	ICON_SCENE_DEHLT,	xco+=XIC, 0, XIC, YIC, &(G.buts->mainb), 0.0, (float)CONTEXT_SCENE, 0, 0, "Scene (F10) ");
 	
 	xco+= XIC;
 	
@@ -613,15 +619,15 @@ void buts_buttons(void)
 	switch(G.buts->mainb) {
 	case CONTEXT_SCENE:
 		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_REDR,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
-		uiDefIconButC(block, ROW, B_REDR,		ICON_ANIM,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
-		uiDefIconButC(block, ROW, B_REDR,		ICON_SOUND,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SCENE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_RENDER, 0, 0, "Render buttons ");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_ANIM,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_ANIM, 0, 0, "Anim/playback buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_SOUND,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SCENE]), 1.0, (float)TAB_SCENE_SOUND, 0, 0, "Sound block buttons");
 		
 		break;
 	case CONTEXT_OBJECT:
 		uiBlockBeginAlign(block);
-		uiDefIconButC(block, ROW, B_REDR,		ICON_OBJECT,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
-		uiDefIconButC(block, ROW, B_REDR,		ICON_EFFECTS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_OBJECT,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_OBJECT, 0, 0, "Object buttons ");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,		ICON_EFFECTS,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_OBJECT]), 1.0, (float)TAB_OBJECT_PHYSICS, 0, 0, "Physics buttons");
 
 		break;
 	case CONTEXT_SHADING:
@@ -629,7 +635,7 @@ void buts_buttons(void)
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_LAMP,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_LAMP, 0, 0, "Lamp buttons");
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_MATERIAL,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_MAT, 0, 0, "Material buttons");
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_TEXTURE,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_TEX, 0, 0, "Texture buttons(F6)");
-		uiDefIconButC(block, ROW, B_REDR,			ICON_RADIO,xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_RAD, 0, 0, "Radiosity buttons");
+		uiDefIconButC(block, ROW, B_CONTEXT_SWITCH,			ICON_RADIO,xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_RAD, 0, 0, "Radiosity buttons");
 		uiDefIconButC(block, ROW, B_BUTSPREVIEW,	ICON_WORLD,	xco+=XIC, t_base, XIC, YIC, &(G.buts->tab[CONTEXT_SHADING]), 1.0, (float)TAB_SHADING_WORLD, 0, 0, "World buttons");
 		
 		break;
