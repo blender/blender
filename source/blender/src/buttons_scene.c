@@ -1459,7 +1459,7 @@ void sound_panels()
 
 	/* paranoia check */
 	sound = G.buts->lockpoin;
-	if( GS(sound->id.name)!=ID_SO) {
+	if(sound && GS(sound->id.name)!=ID_SO) {
 		sound= NULL;
 		G.buts->lockpoin= NULL;
 	}
