@@ -850,6 +850,18 @@ static PyObject *MCol_CreatePyObject( MCol * color )
  *
  ************************************************************************/
 
+static MVert * MVert_get_pointer( BPy_MVert * self )
+{
+	if( BPy_MVert_Check( self ) ) {
+		if( self->index >= ((Mesh *)self->data)->totvert )
+			return (MVert *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"MVert is no longer valid" );
+		return &((Mesh *)self->data)->mvert[self->index];
+	}
+	else
+		return (MVert *)self->data;
+}
+
 /*
  * get a vertex's coordinate
  */
@@ -858,10 +870,9 @@ static PyObject *MVert_getCoord( BPy_MVert * self )
 {
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) )
-		v = &((Mesh *)self->data)->mvert[self->index];
-	else
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return NULL;
 
 	return newVectorObject( v->co, 3, Py_WRAP );
 }
@@ -875,10 +886,9 @@ static int MVert_setCoord( BPy_MVert * self, VectorObject * value )
 	int i;
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) )
-		v = &((Mesh *)self->data)->mvert[self->index];
-	else
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return -1;
 
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -898,6 +908,10 @@ static PyObject *MVert_getIndex( BPy_MVert * self )
 {
 	PyObject *attr;
 
+	if( self->index >= ((Mesh *)self->data)->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MVert is no longer valid" );
+
 	attr = PyInt_FromLong( self->index );
 	if( attr )
 		return attr;
@@ -916,12 +930,11 @@ static PyObject *MVert_getNormal( BPy_MVert * self )
 	int i;
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) )
-		v = &((Mesh *)self->data)->mvert[self->index];
-	else
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return NULL;
 
-	for( i=0; i<3; ++i )
+	for( i = 0; i < 3; ++i )
 		no[i] = (float)(v->no[i] / 32767.0);
 	return newVectorObject( no, 3, Py_NEW );
 }
@@ -934,10 +947,9 @@ static PyObject *MVert_getSel( BPy_MVert *self )
 {
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) )
-		v = &((Mesh *)self->data)->mvert[self->index];
-	else
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return NULL;
 
 	return EXPP_getBitfield( &v->flag, SELECT, 'b' );
 }
@@ -950,10 +962,9 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) )
-		v = &((Mesh *)self->data)->mvert[self->index];
-	else
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return -1;
 
 	return EXPP_setBitfield( value, &v->flag, SELECT, 'b' );
 }
@@ -969,6 +980,10 @@ static PyObject *MVert_getUVco( BPy_MVert *self )
 	if( !me->msticky )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"mesh has no 'sticky' coordinates" );
+
+	if( self->index >= ((Mesh *)self->data)->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MVert is no longer valid" );
 
 	return newVectorObject( me->msticky[self->index].co, 2, Py_WRAP );
 }
@@ -992,6 +1007,10 @@ static int MVert_setUVco( BPy_MVert *self, PyObject *value )
 	if( !me->msticky )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				"mesh has no 'sticky' coordinates" );
+
+	if( self->index >= ((Mesh *)self->data)->totvert )
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"MVert is no longer valid" );
 
 	if( VectorObject_Check( value ) ) {
 		VectorObject *vect = (VectorObject *)value;
@@ -1084,14 +1103,14 @@ static PyObject *MVert_repr( BPy_MVert * self )
 	char index[24];
 	MVert *v;
 
-	if( BPy_MVert_Check( self ) ) {
-		v = &((Mesh *)self->data)->mvert[self->index];
-		sprintf ( index, "%d", self->index );
-	}
-	else {
-		v = (MVert *)self->data;
+	v = MVert_get_pointer( self );
+	if( !v )
+		return NULL;
+
+	if( BPy_MVert_Check( self ) )
+		sprintf( index, "%d", self->index );
+	else
 		BLI_strncpy( index, "(None)", 24 );
-	}
 
 	sprintf( format, "[MVert (%f %f %f) (%f %f %f) %s]",
 			v->co[0], v->co[1], v->co[2], (float)(v->no[0] / 32767.0),
@@ -1917,15 +1936,27 @@ PyTypeObject MVertSeq_Type = {
  *
  ************************************************************************/
 
+static MEdge * MEdge_get_pointer( BPy_MEdge * self )
+{
+	if( self->index >= self->mesh->totedge )
+		return (MEdge *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MEdge is no longer valid" );
+	return &self->mesh->medge[self->index];
+}
+
 /*
  * get an edge's crease value
  */
 
 static PyObject *MEdge_getCrease( BPy_MEdge * self )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
-	PyObject *attr = PyInt_FromLong( edge->crease );
+	PyObject *attr;
+	MEdge *edge = MEdge_get_pointer( self );
 
+	if( !edge )
+		return NULL;
+
+	attr = PyInt_FromLong( edge->crease );
 	if( attr )
 		return attr;
 
@@ -1939,7 +1970,11 @@ static PyObject *MEdge_getCrease( BPy_MEdge * self )
 
 static int MEdge_setCrease( BPy_MEdge * self, PyObject * value )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return -1;
+
 	return EXPP_setIValueClamped( value, &edge->crease, 0, 255, 'b' );
 }
 
@@ -1949,8 +1984,13 @@ static int MEdge_setCrease( BPy_MEdge * self, PyObject * value )
 
 static PyObject *MEdge_getFlag( BPy_MEdge * self )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
-	PyObject *attr = PyInt_FromLong( edge->flag );
+	PyObject *attr;
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return NULL;
+
+	attr = PyInt_FromLong( edge->flag );
 
 	if( attr )
 		return attr;
@@ -1965,13 +2005,16 @@ static PyObject *MEdge_getFlag( BPy_MEdge * self )
 
 static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
 	short param;
 	static short bitmask = 1 		/* 1=select */
 				| ME_EDGEDRAW
 				| ME_EDGERENDER
 				| ME_SEAM
 				| ME_FGON;
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return -1;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
@@ -1995,7 +2038,11 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 
 static PyObject *MEdge_getV1( BPy_MEdge * self )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return NULL;
+
 	return MVert_CreatePyObject( self->mesh, edge->v1 );
 }
 
@@ -2005,7 +2052,13 @@ static PyObject *MEdge_getV1( BPy_MEdge * self )
 
 static int MEdge_setV1( BPy_MEdge * self, BPy_MVert * value )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return -1;
+	if( !BPy_MVert_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected an MVert" );
+
 	edge->v1 = value->index;
 	return 0;
 }
@@ -2016,7 +2069,11 @@ static int MEdge_setV1( BPy_MEdge * self, BPy_MVert * value )
 
 static PyObject *MEdge_getV2( BPy_MEdge * self )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return NULL;
+
 	return MVert_CreatePyObject( self->mesh, edge->v2 );
 }
 
@@ -2026,7 +2083,13 @@ static PyObject *MEdge_getV2( BPy_MEdge * self )
 
 static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return -1;
+	if( !BPy_MVert_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError, "expected an MVert" );
+
 	edge->v2 = value->index;
 	return 0;
 }
@@ -2037,7 +2100,12 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 
 static PyObject *MEdge_getIndex( BPy_MEdge * self )
 {
-	PyObject *attr = PyInt_FromLong( self->index );
+	PyObject *attr;
+
+	if( !MEdge_get_pointer( self ) )
+		return NULL;
+
+	attr = PyInt_FromLong( self->index );
 
 	if( attr )
 		return attr;
@@ -2127,7 +2195,10 @@ static int MEdge_compare( BPy_MEdge * a, BPy_MEdge * b )
 
 static PyObject *MEdge_repr( BPy_MEdge * self )
 {
-	struct MEdge *edge = &self->mesh->medge[self->index];
+	struct MEdge *edge = MEdge_get_pointer( self );
+
+	if( !edge )
+		return NULL;
 
 	return PyString_FromFormat( "[MEdge (%d %d) %d %d]",
 			(int)edge->v1, (int)edge->v2, (int)edge->crease,
@@ -2834,14 +2905,27 @@ PyTypeObject MEdgeSeq_Type = {
  *
  ************************************************************************/
 
+static MFace * MFace_get_pointer( BPy_MFace * self )
+{
+	if( self->index >= self->mesh->totface )
+		return (MFace *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"MFace is no longer valid" );
+	return &self->mesh->mface[self->index];
+}
+
 /*
  * get a face's vertices
  */
 
 static PyObject *MFace_getVerts( BPy_MFace * self )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
-	PyObject *attr = PyTuple_New( face->v4 ? 4 : 3 );
+	PyObject *attr;
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
+
+	attr = PyTuple_New( face->v4 ? 4 : 3 );
 
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -2863,8 +2947,11 @@ static PyObject *MFace_getVerts( BPy_MFace * self )
 
 static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
 	BPy_MVert *v1, *v2, *v3, *v4 = NULL;
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return -1;
 
 	if( !PyArg_ParseTuple ( args, "O!O!O!|O!", &MVert_Type, &v1,
 				&MVert_Type, &v2, &MVert_Type, &v3, &MVert_Type, &v4 ) )
@@ -2885,8 +2972,13 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 
 static PyObject *MFace_getMat( BPy_MFace * self )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
-	PyObject *attr = PyInt_FromLong( face->mat_nr );
+	PyObject *attr;
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
+
+	attr = PyInt_FromLong( face->mat_nr );
 
 	if( attr )
 		return attr;
@@ -2901,7 +2993,11 @@ static PyObject *MFace_getMat( BPy_MFace * self )
 
 static int MFace_setMat( BPy_MFace * self, PyObject * value )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return -1;
+
 	return EXPP_setIValueRange( value, &face->mat_nr, 0, 15, 'b' );
 }
 
@@ -2911,7 +3007,13 @@ static int MFace_setMat( BPy_MFace * self, PyObject * value )
 
 static PyObject *MFace_getIndex( BPy_MFace * self )
 {
-	PyObject *attr = PyInt_FromLong( self->index );
+	PyObject *attr;
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
+
+	attr = PyInt_FromLong( self->index );
 
 	if( attr )
 		return attr;
@@ -2926,9 +3028,19 @@ static PyObject *MFace_getIndex( BPy_MFace * self )
 
 static PyObject *MFace_getNormal( BPy_MFace * self )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
 	float *vert[4];
 	float no[3];
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
+
+	if( (int)face->v1 >= self->mesh->totvert ||
+			(int)face->v2 >= self->mesh->totvert ||
+			(int)face->v3 >= self->mesh->totvert ||
+			(int)face->v4 >= self->mesh->totvert )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"one or more MFace vertices are no longer valid" );
 
 	vert[0] = self->mesh->mvert[face->v1].co;
 	vert[1] = self->mesh->mvert[face->v2].co;
@@ -2948,7 +3060,11 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 
 static PyObject *MFace_getMFlagBits( BPy_MFace * self, void * type )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
+
 	return EXPP_getBitfield( &face->flag, (int)type, 'b' );
 }
 
@@ -2959,7 +3075,11 @@ static PyObject *MFace_getMFlagBits( BPy_MFace * self, void * type )
 static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 		void * type )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return -1;
+
 	return EXPP_setBitfield( value, &face->flag, (int)type, 'b' );
 }
 
@@ -2973,6 +3093,9 @@ static PyObject *MFace_getImage( BPy_MFace *self )
 	if( !self->mesh->tface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return NULL;
 
 	face = &self->mesh->tface[self->index];
 
@@ -2992,6 +3115,9 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
 
 	face = &self->mesh->tface[self->index];
     if( value == Py_None )
@@ -3018,6 +3144,9 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
+	if( !MFace_get_pointer( self ) )
+		return NULL;
+
 	attr = PyInt_FromLong( self->mesh->tface[self->index].flag );
 
 	if( attr )
@@ -3039,6 +3168,9 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
@@ -3076,6 +3208,9 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
+	if( !MFace_get_pointer( self ) )
+		return NULL;
+
 	attr = PyInt_FromLong( self->mesh->tface[self->index].mode );
 
 	if( attr )
@@ -3109,6 +3244,9 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
 
 	if( !PyInt_CheckExact ( value ) ) {
 		char errstr[128];
@@ -3146,6 +3284,9 @@ static PyObject *MFace_getTransp( BPy_MFace *self )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
+	if( !MFace_get_pointer( self ) )
+		return NULL;
+
 	attr = PyInt_FromLong( self->mesh->tface[self->index].transp );
 
 	if( attr )
@@ -3165,6 +3306,9 @@ static int MFace_setTransp( BPy_MFace *self, PyObject *value )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
 
+	if( !MFace_get_pointer( self ) )
+		return -1;
+
 	return EXPP_setIValueRange( value,
 			&self->mesh->tface[self->index].transp, TF_SOLID, TF_SUB, 'b' );
 }
@@ -3182,6 +3326,9 @@ static PyObject *MFace_getUV( BPy_MFace * self )
 	if( !self->mesh->tface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return NULL;
 
 	face = &self->mesh->tface[self->index];
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
@@ -3213,6 +3360,9 @@ static int MFace_setUV( BPy_MFace * self, PyObject * value )
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
 
 	if( !PyTuple_Check( value ) ||
 			EXPP_check_sequence_consistency( value, &vector_Type ) != 1 )
@@ -3246,6 +3396,9 @@ static PyObject *MFace_getUVSel( BPy_MFace * self )
 	if( !self->mesh->tface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return NULL;
 
 	face = &self->mesh->tface[self->index];
 	length = self->mesh->mface[self->index].v4 ? 4 : 3;
@@ -3282,6 +3435,9 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	if( !self->mesh->tface )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"face has no texture values" );
+
+	if( !MFace_get_pointer( self ) )
+		return -1;
 
 	if( !PySequence_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -3325,6 +3481,9 @@ static PyObject *MFace_getCol( BPy_MFace * self )
 	if( !self->mesh->mcol && !self->mesh->tface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no vertex colors" );
+
+	if( !MFace_get_pointer( self ) )
+		return NULL;
 
 	if( self->mesh->tface )
 		mcol = (MCol *) self->mesh->tface[self->index].col;
@@ -3489,7 +3648,10 @@ static int MFace_compare( BPy_MFace * a, BPy_MFace * b )
 
 static PyObject *MFace_repr( BPy_MFace* self )
 {
-	struct MFace *face = &self->mesh->mface[self->index];
+	MFace *face = MFace_get_pointer( self );
+
+	if( !face )
+		return NULL;
 
 	if( face->v4 )
 		return PyString_FromFormat( "[MFace (%d %d %d %d) %d]",
@@ -3982,11 +4144,9 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
    
 	/* see how many args we need to parse */
 	len = PySequence_Size( args );
-	if( len < 1 ) {
-		Py_DECREF( args );
+	if( len < 1 )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"sequence must contain at least one int or MFace" );
-	}
 
 	face_table = (unsigned int *)MEM_callocN( len*sizeof( unsigned int ),
 			"face_table" );
@@ -3994,14 +4154,13 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	/* get the indices of faces to be removed */
 	for( i = len; i--; ) {
 		PyObject *tmp = PySequence_GetItem( args, i );
-		if( BPy_MEdge_Check( tmp ) )
-			face_table[i] = ((BPy_MEdge *)tmp)->index;
+		if( BPy_MFace_Check( tmp ) )
+			face_table[i] = ((BPy_MFace *)tmp)->index;
 		else if( PyInt_CheckExact( tmp ) )
 			face_table[i] = PyInt_AsLong ( tmp );
 		else {
 			MEM_freeN( face_table );
 			Py_DECREF( tmp );
-			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected a sequence of ints or MFaces" );
 		}
@@ -4010,7 +4169,6 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 		/* if index out-of-range, throw exception */
 		if( face_table[i] >= (unsigned int)mesh->totface ) {
 			MEM_freeN( face_table );
-			Py_DECREF( args );
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"array index out of range" );
 		}
@@ -4161,7 +4319,6 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 
 	/* clean up and return */
 	MEM_freeN( face_table );
-	Py_DECREF( args );
 	mesh_update ( mesh );
 	return EXPP_incr_ret( Py_None );
 }
@@ -5384,15 +5541,15 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 {
 	MVert *dst;
 	MVert *src;
-	char err[256];
 	int i;
 	
 	/* special case if None: delete the mesh */
 	if( args == Py_None ) {
 		Mesh *me = self->mesh;
 		free_mesh( me );
-        me->mvert = me->medge = me->mface = me->tface = me->dvert = NULL;
-        me->mcol = me->msticky = me->mat = me->bb = NULL;
+        me->mvert = NULL; me->medge = NULL; me->mface = NULL;
+		me->tface = NULL; me->dvert = NULL; me->mcol = NULL;
+		me->msticky = NULL; me->mat = NULL; me->bb = NULL;
 		me->totvert = me->totedge = me->totface = me->totcol = 0;
 		mesh_update( me );
 		return 0;
