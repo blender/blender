@@ -246,7 +246,7 @@ void unlink_object(Object *ob)
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
 	
-	/* check all objects: parents en bevels */
+	/* check all objects: parents en bevels and fields */
 	obt= G.main->object.first;
 	while(obt) {
 		if(obt->id.lib==NULL) {
@@ -297,6 +297,13 @@ void unlink_object(Object *ob)
 					set_constraint_target(con, NULL, NULL);
 					obt->recalc |= OB_RECALC_OB;
 				}
+			}
+			/* object is deflector or field */
+			if(ob->pd) {
+				if(give_parteff(obt))
+					obt->recalc |= OB_RECALC_DATA;
+				else if(obt->soft)
+					obt->recalc |= OB_RECALC_DATA;
 			}
 		}
 		obt= obt->id.next;

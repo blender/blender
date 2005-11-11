@@ -468,8 +468,6 @@ void free_libblock(ListBase *lb, void *idv)
 	BLI_remlink(lb, id);
 	MEM_freeN(id);
 
-	/* should not be here!! this is an interface-thing */
-	allspace(OOPS_TEST, 0);
 }
 
 void free_libblock_us(ListBase *lb, void *idv)		/* test users */

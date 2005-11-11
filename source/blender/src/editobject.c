@@ -269,6 +269,7 @@ void delete_obj(int ok)
 	allqueue (REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWDATASELECT, 0);
+	allspace(OOPS_TEST, 0);
 	allqueue(REDRAWOOPS, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWNLA, 0);
@@ -2356,6 +2357,7 @@ void convertmenu(void)
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWOOPS, 0);
+	allspace(OOPS_TEST, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Convert Object");
 
