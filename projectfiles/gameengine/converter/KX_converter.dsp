@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Target_Dir ""
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.4" /I "..\..\..\source\gameengine\physics\common" /I "..\..\..\source\gameengine\physics\BlOde" /I "..\..\..\source\gameengine\physics\Dummy" /I "..\..\..\extern\solid" /I "..\..\..\..\lib\windows\string\include" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\expressions" /I "..\..\..\source\gameengine\BlenderRoutines" /I "..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\source\sumo\Fuzzics\include" /I "..\..\..\source\gameengine\Ketsji" /I "..\..\..\source\gameengine\SceneGraph" /I "..\..\..\source\gameengine\rasterizer" /I "..\..\..\source\gameengine\rasterizer\ras_openglrasterizer" /I "..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\lib\windows\soundsystem\include" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\gameengine\soundsystem\snd_blenderwavecache" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\source\gameengine\ketsji\kxnetwork" /I "..\..\..\source\gameengine\physics" /I "..\..\..\source\gameengine\physics\ode" /I "..\..\..\source\gameengine\physics\dummy" /I "..\..\..\source\gameengine\physics\sumo" /I "..\..\..\source\gameengine\physics\sumo\fuzzics\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "USE_SUMO_SOLID" /YX /J /FD /c
+# ADD CPP /nologo /MT /W3 /GR /GX /O2 /I "..\..\..\..\lib\windows\python\include\python2.4" /I "..\..\..\source\gameengine\physics\common" /I "..\..\..\source\gameengine\physics\BlOde" /I "..\..\..\source\gameengine\physics\Dummy" /I "..\..\..\extern\solid" /I "..\..\..\..\lib\windows\string\include" /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\kernel\gen_system" /I "..\..\..\source\gameengine\expressions" /I "..\..\..\source\gameengine\BlenderRoutines" /I "..\..\..\source\sumo\include" /I "..\..\..\..\lib\windows\moto\include" /I "..\..\..\source\\gameengine\physics\sumo\Fuzzics\include" /I "..\..\..\source\gameengine\Ketsji" /I "..\..\..\source\gameengine\SceneGraph" /I "..\..\..\source\gameengine\rasterizer" /I "..\..\..\source\gameengine\rasterizer\ras_openglrasterizer" /I "..\..\..\source\gameengine\gamelogic" /I "..\..\..\..\lib\windows\soundsystem\include" /I "..\..\..\source\gameengine\soundsystem\snd_openal" /I "..\..\..\source\gameengine\soundsystem\snd_blenderwavecache" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\include" /I "..\..\..\source\blender" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\gameengine\network" /I "..\..\..\source\gameengine\ketsji\kxnetwork" /I "..\..\..\source\gameengine\physics" /I "..\..\..\source\gameengine\physics\ode" /I "..\..\..\source\gameengine\physics\dummy" /I "..\..\..\source\gameengine\physics\sumo" /I "..\..\..\source\gameengine\physics\bullet" /I "..\..\..\extern\bullet\linearmath" /I "..\..\..\extern\bullet\Bulletdynamics" /I "..\..\..\extern\bullet\Bullet" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "USE_SUMO_SOLID" /YX /J /FD /c
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -168,6 +168,14 @@ SOURCE=..\..\..\source\gameengine\Converter\BL_SkinMeshObject.cpp
 # Begin Source File
 
 SOURCE=..\..\..\source\gameengine\Converter\BlenderWorldInfo.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\Physics\Bullet\CcdPhysicsController.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\gameengine\Physics\Bullet\CcdPhysicsEnvironment.cpp
 # End Source File
 # Begin Source File
 

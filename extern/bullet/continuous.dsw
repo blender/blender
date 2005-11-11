@@ -11,6 +11,15 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name BulletDynamics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name CcdPhysics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name PhysicsInterface
+    End Project Dependency
 }}}
 
 ###############################################################################
