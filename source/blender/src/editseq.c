@@ -2305,6 +2305,7 @@ void borderselect_seq(void)
 				else {
 					seq->flag &= ~SELECT;
 				}
+				recurs_sel_seq(seq);
 			}
 
 			seq= seq->next;
