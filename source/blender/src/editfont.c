@@ -1226,15 +1226,17 @@ static void undoFont_to_editFont(void *strv)
 {
 	Curve *cu= G.obedit->data;
 	char *str= strv;
-	
-	utf8towchar_(textbuf, str);
-	
-	cu->pos= *((short *)str);
-	cu->len= wcslen(textbuf);
 
-	memcpy(textbufinfo, str+2+cu->len+1, cu->len*sizeof(CharInfo));
+	cu->pos= *((short *)str);
+	cu->len= *((short *)(str+2));
+
+	memcpy(textbuf, str+4, cu->len+1);
+	memcpy(textbufinfo, str+4+cu->len+1, cu->len*sizeof(CharInfo));
+	
 	cu->selstart = cu->selend = 0;
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	
+	update_string(cu);
 	
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -1244,12 +1246,13 @@ static void *editFont_to_undoFont(void)
 	Curve *cu= G.obedit->data;
 	char *str;
 	
-	str= MEM_callocN(MAXTEXT+4+(MAXTEXT+4)*sizeof(CharInfo), "string undo");
+	str= MEM_callocN(MAXTEXT+6+(MAXTEXT+4)*sizeof(CharInfo), "string undo");
 	
-	wcs2utf8s(str, textbuf);
-	
+	memcpy(str+4, textbuf, cu->len+1);
+	memcpy(str+4+cu->len+1, textbufinfo, cu->len*sizeof(CharInfo));
+
 	*((short *)str)= cu->pos;
-	memcpy(str+2+cu->len+1, textbufinfo, cu->len*sizeof(CharInfo));
+	*((short *)(str+2))= cu->len;	
 	
 	return str;
 }

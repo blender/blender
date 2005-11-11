@@ -2723,6 +2723,9 @@ void copy_attr(short event)
 						cu1->xof= cu->xof;
 						cu1->yof= cu->yof;
 						cu1->textoncurve= cu->textoncurve;
+						cu1->wordspace= cu->wordspace;
+						cu1->ulpos= cu->ulpos;
+						cu1->ulheight= cu->ulheight;
 						if(cu1->vfont) cu1->vfont->id.us--;
 						cu1->vfont= cu->vfont;
 						id_us_plus((ID *)cu1->vfont);
