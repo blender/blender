@@ -1736,14 +1736,14 @@ void do_material_tex(ShadeInput *shi)
 				
 				if(rgbnor & TEX_RGB) {
 					if(texres.talpha) texres.tin= texres.ta;
-					else texres.tin= (0.35*texres.tr+0.45*texres.tg+0.2*texres.tb);
+					else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
 				}
 
 				if(mtex->maptoneg & MAP_DISPLACE) {
-					factt= (0.5-texres.tin)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (texres.tin-0.5f)*mtex->dispfac; facmm= 1.0f-factt;
 				}
 				else {
-					factt= (texres.tin-0.5)*mtex->dispfac; facmm= 1.0-factt;
+					factt= (0.5f-texres.tin)*mtex->dispfac; facmm= 1.0f-factt;
 				}
 
 				if(mtex->blendtype==MTEX_BLEND) {
