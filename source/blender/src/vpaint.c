@@ -1409,17 +1409,17 @@ void vertex_paint()
 						
 					}
 					
-					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v1, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v1, mval);
 					if(alpha) vpaint_blend( mcol, mcolorig, paintcol, alpha);
 					
-					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v2, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v2, mval);
 					if(alpha) vpaint_blend( mcol+1, mcolorig+1, paintcol, alpha);
 	
-					alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v3, mval);
+					alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v3, mval);
 					if(alpha) vpaint_blend( mcol+2, mcolorig+2, paintcol, alpha);
 
 					if(mface->v4) {
-						alpha= calc_vp_alpha_dl(&Gwp, vertexcosnos+6*mface->v4, mval);
+						alpha= calc_vp_alpha_dl(&Gvp, vertexcosnos+6*mface->v4, mval);
 						if(alpha) vpaint_blend( mcol+3, mcolorig+3, paintcol, alpha);
 					}
 				}
