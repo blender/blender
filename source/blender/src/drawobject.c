@@ -690,6 +690,7 @@ void drawcamera(Object *ob)
 	Camera *cam;
 	World *wrld;
 	float vec[8][4], tmat[4][4], fac, facx, facy, depth;
+	int i;
 
 	cam= ob->data;
 	
@@ -739,10 +740,15 @@ void drawcamera(Object *ob)
 	/* arrow on top */
 	vec[0][2]= depth;
 
-	/* draw inactive cameras with outline arrow */
-	if (ob != G.vd->camera) glBegin(GL_LINE_LOOP);
-	else glBegin(GL_TRIANGLES);
 	
+	/* draw an outline arrow for inactive cameras and filled
+	 * for active cameras. We actually draw both outline+filled
+	 * for active cameras so the wire can be seen side-on */	
+	for (i=0;i<2;i++) {
+		if (i==0) glBegin(GL_LINE_LOOP);
+		else if (i==1 && (ob == G.vd->camera)) glBegin(GL_TRIANGLES);
+		else break;
+		
 		vec[0][0]= -0.7*cam->drawsize;
 		vec[0][1]= 1.1*cam->drawsize;
 		glVertex3fv(vec[0]);
@@ -755,8 +761,9 @@ void drawcamera(Object *ob)
 		vec[0][1]= 1.1*cam->drawsize;
 		glVertex3fv(vec[0]);
 	
-	glEnd();
-	
+		glEnd();
+	}
+
 	if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
 		myloadmatrix(G.vd->viewmat);
 		Mat4CpyMat4(vec, ob->obmat);
