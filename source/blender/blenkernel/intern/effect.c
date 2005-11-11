@@ -333,9 +333,10 @@ ListBase *pdInitEffectors(unsigned int layer)
 				if(ob->type==OB_CURVE) {
 					Curve *cu= ob->data;
 					if(cu->flag & CU_PATH) {
+						pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+						
 						if(cu->path==NULL || cu->path->data==NULL)
 							makeDispListCurveTypes(ob, 0);
-						pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 						ec->ob= ob;
 						BLI_addtail(&listb, ec);
 					}
