@@ -4266,16 +4266,19 @@ void adduplicate(int noTrans)
 					
 					break;
 					
-				/* always dupli's */
 				case OB_LATTICE:
-					ID_NEW_US2(obn->data )
-					else obn->data= copy_lattice(obn->data);
-					id->us--;
+					if(dupflag!=0) {
+						ID_NEW_US2(obn->data )
+						else obn->data= copy_lattice(obn->data);
+						id->us--;
+					}
 					break;
 				case OB_CAMERA:
-					ID_NEW_US2(obn->data )
-					else obn->data= copy_camera(obn->data);
-					id->us--;
+					if(dupflag!=0) {
+						ID_NEW_US2(obn->data )
+						else obn->data= copy_camera(obn->data);
+						id->us--;
+					}
 					break;
 				}
 				
