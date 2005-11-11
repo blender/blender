@@ -323,7 +323,7 @@ ListBase *pdInitEffectors(unsigned int layer)
 {
 	static ListBase listb={NULL, NULL};
 	Base *base;
-	
+
 	for(base = G.scene->base.first; base; base= base->next) {
 		if( (base->lay & layer) && base->object->pd) {
 			Object *ob= base->object;
@@ -332,7 +332,9 @@ ListBase *pdInitEffectors(unsigned int layer)
 			if(pd->forcefield == PFIELD_GUIDE) {
 				if(ob->type==OB_CURVE) {
 					Curve *cu= ob->data;
-					if((cu->flag & CU_PATH) && cu->path && cu->path->data) {
+					if(cu->flag & CU_PATH) {
+						if(cu->path==NULL || cu->path->data==NULL)
+							makeDispListCurveTypes(ob, 0);
 						pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 						ec->ob= ob;
 						BLI_addtail(&listb, ec);
@@ -957,10 +959,9 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 	force = force vector
 	deform = flag to indicate lattice deform
  */
-static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, unsigned int par_layer)
+static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff *paf, Particle *part, float *force, int deform, MTex *mtex, ListBase *effectorbase)
 {
 	Particle *pa, *opa = NULL;
-	ListBase *effectorbase;
 	float damp, deltalife, life;
 	float cur_time;
 	float opco[3], opno[3], npco[3], npno[3], new_force[3], new_speed[3];
@@ -983,7 +984,6 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 	}
 
 	/* effectors here? */
-	effectorbase= pdInitEffectors(par_layer);
 	if(effectorbase)
 		precalc_effectors(ob, paf, pa, effectorbase);
 	
@@ -1076,7 +1076,7 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 			/* for most scenes I've tested */
 			while (finish_defs) {
 				deflected =  pdDoDeflection(rng, opco, npco, opno, npno, life, new_force,
-								def_count, cur_time, par_layer,
+								def_count, cur_time, ob->lay,
 								&last_ob, &last_fc, &same_fc);
 				if (deflected) {
 					def_count = def_count + 1;
@@ -1143,15 +1143,10 @@ static void make_particle_keys(RNG *rng, Object *ob, int depth, int nr, PartEff 
 				}
 				pa->mat_nr= paf->mat[depth];
 
-				make_particle_keys(rng, ob, depth+1, b, paf, pa, force, deform, mtex, par_layer);
+				make_particle_keys(rng, ob, depth+1, b, paf, pa, force, deform, mtex, effectorbase);
 			}
 		}
 	}
-	
-	/* cleanup */
-	if(effectorbase)
-		pdEndEffectors(effectorbase);
-
 }
 
 static void init_mv_jit(float *jit, int num, int seed2)
@@ -1558,6 +1553,7 @@ void build_particle_system(Object *ob)
 	MVert *vertlist= NULL;
 	DerivedMesh *dm;
 	pMatrixCache *mcache=NULL, *mcnow, *mcprev;
+	ListBase *effectorbase;
 	double startseconds= PIL_check_seconds_timer();
 	float ftime, dtime, force[3], vec[3];
 	float fac, co[3];
@@ -1588,6 +1584,9 @@ void build_particle_system(Object *ob)
 	if (dm==NULL)
 		return;
 	
+	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
+	if(totpart==0) return;
+	
 	/* No returns after this line! */
 	
 	/* material */
@@ -1614,7 +1613,6 @@ void build_particle_system(Object *ob)
 		mcache= cache_object_matrices(ob, paf_sta, paf_end);
 	
 	/* mult generations? */
-	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
 	for(a=0; a<PAF_MAXMULT; a++) {
 		if(paf->mult[a]!=0.0) {
 			/* interesting formula! this way after 'x' generations the total is paf->totpart */
@@ -1642,6 +1640,9 @@ void build_particle_system(Object *ob)
 		deform= (ob->parent && ob->parent->type==OB_LATTICE && ob->partype==PARSKEL);
 		if(deform) init_latt_deform(ob->parent, 0);
 	}
+	
+	/* get the effectors */
+	effectorbase= pdInitEffectors(ob->lay);
 	
 	/* init geometry */
 	dlm = dm->convertToDispListMesh(dm, 1);
@@ -1855,7 +1856,7 @@ void build_particle_system(Object *ob)
 		if(folengths)
 			pa->lifetime*= folengths[curface];
 		
-		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, ob->lay);
+		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, effectorbase);
 	}
 	
 	/* free stuff */
@@ -1867,6 +1868,9 @@ void build_particle_system(Object *ob)
 	if(mcache) MEM_freeN(mcache);
 
 	if(deform) end_latt_deform();
+	
+	if(effectorbase)
+		pdEndEffectors(effectorbase);	
 	
 	/* reset deflector cache */
 	for(base= G.scene->base.first; base; base= base->next) {

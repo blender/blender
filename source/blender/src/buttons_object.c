@@ -2003,7 +2003,7 @@ static void object_panel_particles(Object *ob)
 		uiDefButF(block, NUM, B_CALCEFFECT, "End:",		75,110,75,20, &paf->end, 1.0, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
 	}
 	uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		0,90,75,20, &paf->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Disp:",		75,90,75,20, &paf->disp, 1.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Disp:",		75,90,75,20, &paf->disp, 0.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
 	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "From:",					0,70,75,20, NULL, 0.0, 0, 0, 0, "");
