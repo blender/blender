@@ -757,8 +757,8 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 		if(div[1]==0.0f) div[1]= 1.0f;
 		if(div[2]==0.0f) div[2]= 1.0f;
 	
-		if(basetable) /* error should not happen, added to prevent coding errors */
-			error("Mesh octree table coding error");
+		if(basetable) /* happens when entering wpaint without closing it */
+			mesh_octree_table(ob, co, 'e');
 		
 		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		

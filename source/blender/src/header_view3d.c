@@ -3931,7 +3931,7 @@ void do_view3d_buttons(short event)
 			G.vd->flag &= ~V3D_MODE;
 			G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 			G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
-			G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
+			if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 			G.f &= ~G_FACESELECT;		/* Switch off face select */
 			if(ob) exit_posemode();		/* exit posemode for active object */
 			if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
@@ -3941,7 +3941,7 @@ void do_view3d_buttons(short event)
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
-				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
+				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 					
 				enter_editmode();
 				BIF_undo_push("Original");	// here, because all over code enter_editmode is abused
@@ -3958,7 +3958,7 @@ void do_view3d_buttons(short event)
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
-				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
+				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 				if (G.obedit) exit_editmode(2); /* exit editmode and undo */
 				
 				set_faceselect();
@@ -3968,7 +3968,7 @@ void do_view3d_buttons(short event)
 			if (!(G.f & G_VERTEXPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_TEXTUREPAINT;		/* Switch off texture paint */
-				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
+				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				set_vpaint();
@@ -3978,7 +3978,7 @@ void do_view3d_buttons(short event)
 			if (!(G.f & G_TEXTUREPAINT)) {
 				G.vd->flag &= ~V3D_MODE;
 				G.f &= ~G_VERTEXPAINT;		/* Switch off vertex paint */
-				G.f &= ~G_WEIGHTPAINT;		/* Switch off weight paint */
+				if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
 				if(G.obedit) exit_editmode(2);	/* exit editmode and undo */
 					
 				G.f |= G_TEXTUREPAINT;		/* Switch on texture paint flag */
