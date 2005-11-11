@@ -40,20 +40,20 @@
 BOP_Mesh::~BOP_Mesh()
 {
 	const BOP_IT_Vertexs vertexsEnd = m_vertexs.end();
-	for(BOP_IT_Vertexs it=m_vertexs.begin();it!=vertexsEnd;it++){
-		delete *it;
+	for(BOP_IT_Vertexs itv=m_vertexs.begin();itv!=vertexsEnd;itv++){
+		delete *itv;
 	}
 	m_vertexs.clear();
   
 	const BOP_IT_Edges edgesEnd = m_edges.end();
-	for(BOP_IT_Edges it=m_edges.begin();it!=edgesEnd;it++){
-		delete *it;
+	for(BOP_IT_Edges ite=m_edges.begin();ite!=edgesEnd;ite++){
+		delete *ite;
 	}
 	m_edges.clear();
   
 	const BOP_IT_Faces facesEnd = m_faces.end();
-	for(BOP_IT_Faces it=m_faces.begin();it!=facesEnd;it++){
-		delete *it;
+	for(BOP_IT_Faces itf=m_faces.begin();itf!=facesEnd;itf++){
+		delete *itf;
 	}
 	m_faces.clear();
 }
@@ -482,6 +482,7 @@ unsigned int BOP_Mesh::getNumFaces(BOP_TAG tag)
  */
 BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex) 
 {
+	BOP_IT_Indexs oldEdgeIndex;
 	if (oldIndex==newIndex) return newIndex;
   
 	// Update faces, edges and vertices  
@@ -494,7 +495,7 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 
 	// Update faces to the newIndex
 	BOP_IT_Indexs oldEdgesEnd = oldEdges.end();
-	for(BOP_IT_Indexs oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
+	for(oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
 		   oldEdgeIndex++) {
 		BOP_Edge *edge = m_edges[*oldEdgeIndex];
 		if ((edge->getVertex1()==oldIndex && edge->getVertex2()==newIndex) ||
@@ -524,7 +525,7 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
 	}
 
 	oldEdgesEnd = oldEdges.end();
-	for(BOP_IT_Indexs oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
+	for(oldEdgeIndex=oldEdges.begin();oldEdgeIndex!=oldEdgesEnd;
 		   oldEdgeIndex++) {
 		BOP_Edge * edge = m_edges[*oldEdgeIndex];
 		BOP_Edge * edge2;
@@ -564,13 +565,14 @@ BOP_Index BOP_Mesh::replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex)
  */
 void BOP_Mesh::print() 
 {
+	unsigned int i;
 	cout << "--Faces--" << endl;
-	for(unsigned int i=0;i<m_faces.size();i++){
+	for(i=0;i<m_faces.size();i++){
 		cout << "Face " << i << ": " << m_faces[i] << endl;
 	}
 
 	cout << "--Vertices--" << endl;
-	for(unsigned int i=0;i<m_vertexs.size();i++){
+	for(i=0;i<m_vertexs.size();i++){
 		cout << "Point " << i << ": " << m_vertexs[i]->getPoint() << endl;
 	}
 }
@@ -677,8 +679,8 @@ void BOP_Mesh::testMesh()
 {
 
 	BOP_Face* cares[10];
-	unsigned int nedges=0;
-	for(unsigned int i=0;i<m_edges.size();i++) {
+	unsigned int nedges=0,i;
+	for(i=0;i<m_edges.size();i++) {
 		BOP_Edge *edge = m_edges[i];
 		BOP_Indexs faces = edge->getFaces();
 		unsigned int count = 0;
@@ -700,7 +702,7 @@ void BOP_Mesh::testMesh()
 
 	unsigned int duplFaces = 0;
 	unsigned int wrongFaces = 0;
-	for(unsigned int i=0;i<m_faces.size();i++){
+	for(i=0;i<m_faces.size();i++){
 	  BOP_Face *faceI = m_faces[i];
 	  if (faceI->getTAG()==BROKEN)
 	    continue;

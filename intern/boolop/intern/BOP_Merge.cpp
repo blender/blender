@@ -30,6 +30,13 @@
  
 #include "BOP_Merge.h"
 
+
+#ifdef _MSC_VER
+#if _MSC_VER < 1300
+#include <list>
+#endif
+#endif
+
 /**
  * SINGLETON (use method BOP_Merge.getInstance).
  */

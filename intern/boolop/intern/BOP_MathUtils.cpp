@@ -338,7 +338,7 @@ MT_Point3 BOP_intersectPlane(const MT_Plane3& plane, const MT_Point3& p1, const 
 	//
 	//       coefA*((p2.x - p1.y)*lambda + p1.x) + ... + coefD = 0
 	
-    MT_Point3 intersection;
+    MT_Point3 intersection = MT_Point3(0,0,0); //never ever return anything undefined! 
     MT_Scalar den = plane.x()*(p2.x()-p1.x()) + 
 					plane.y()*(p2.y()-p1.y()) + 
 					plane.z()*(p2.z()-p1.z());

@@ -81,10 +81,10 @@ unsigned int BOP_BSPNode::addFace(const MT_Point3& p1,
 	
 	if ((tag & OUT_OUT_OUT) != 0){
 		if (m_outChild != NULL)
-			newDeep = max(newDeep, m_outChild->addFace(p1, p2, p3, plane) + 1);
+			newDeep = MT_max(newDeep, m_outChild->addFace(p1, p2, p3, plane) + 1);
 		else {
 			m_outChild = new BOP_BSPNode(plane);
-			newDeep = max(newDeep,(unsigned int)2);
+			newDeep = MT_max(newDeep,(unsigned int)2);
 		}      
 	}
 	

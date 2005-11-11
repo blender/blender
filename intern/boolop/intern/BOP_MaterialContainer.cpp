@@ -114,6 +114,8 @@ char* BOP_MaterialContainer::getFaceVertexMaterial(BOP_Mesh *mesh,
 												   MT_Point3 point, 
 												   char* faceVertexMaterial)
 {
+	unsigned int i;
+
 	if (originalFaceIndex>=m_materialList.size()) return NULL;
 
 	BOP_Material& material = m_materialList[originalFaceIndex];
@@ -126,12 +128,12 @@ char* BOP_MaterialContainer::getFaceVertexMaterial(BOP_Mesh *mesh,
 		if (!face1 || !face2) return NULL;
 		
 		// Search original point
-		for (unsigned int i=0;i<face1->size();i++) {
+		for (i=0;i<face1->size();i++) {
 			if (point == mesh->getVertex(face1->getVertex(i))->getPoint()) {
 				return material.getOriginalFaceVertexMaterial(face1->getVertex(i));
 			}
 		}
-		for (unsigned int i=0;i<face2->size();i++) {
+		for (i=0;i<face2->size();i++) {
 			if (point == mesh->getVertex(face2->getVertex(i))->getPoint()) {
 				return material.getOriginalFaceVertexMaterial(face2->getVertex(i));
 			}
@@ -158,7 +160,7 @@ char* BOP_MaterialContainer::getFaceVertexMaterial(BOP_Mesh *mesh,
 		if (!face1) return NULL;
 		
 		// Search original point
-		for (unsigned int i=0;i<face1->size();i++) {
+		for (i=0;i<face1->size();i++) {
 			if (point == mesh->getVertex(face1->getVertex(i))->getPoint())
 				return material.getOriginalFaceVertexMaterial(face1->getVertex(i));
 		}

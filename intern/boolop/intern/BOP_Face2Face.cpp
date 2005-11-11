@@ -502,8 +502,8 @@ void BOP_getPoints(BOP_Mesh*    mesh,
  */
 void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bool &invertA, bool &invertB) {
   MT_Point3 sortedPoints[4];
-  unsigned int sortedFaces[4];
-  unsigned int position[4];
+  unsigned int sortedFaces[4], position[4];
+  unsigned int i;
   if (size == 2) {
 
     // Trivial case, only test the merge ...
@@ -516,7 +516,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
     // size is 3 or 4
     // Get segment extreme points
     MT_Scalar maxDistance = -1;
-    for(unsigned int i=0;i<size-1;i++){
+    for(i=0;i<size-1;i++){
       for(unsigned int j=i+1;j<size;j++){
         MT_Scalar distance = points[i].distance(points[j]);
         if (distance > maxDistance){
@@ -529,7 +529,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 
     // Get segment inner points
     position[1] = position[2] = size;
-    for(unsigned int i=0;i<size;i++){
+    for(i=0;i<size;i++){
       if ((i != position[0]) && (i != position[size-1])){
         if (position[1] == size) position[1] = i;
         else position[2] = i;
@@ -548,7 +548,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
     }
 
     // Sort data
-    for(unsigned int i=0;i<size;i++) {
+    for(i=0;i<size;i++) {
       sortedPoints[i] = points[position[i]];
       sortedFaces[i] = face[position[i]];
     }
@@ -558,7 +558,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
     invertB = false;
     if (face[1] == 1) {
       // invertA¿?
-      for(unsigned int i=0;i<size;i++) {
+      for(i=0;i<size;i++) {
         if (position[i] == 1) {
           invertA = true;
           break;
@@ -661,7 +661,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
     }
     
     // Merge initial points ...
-    for(unsigned int i=0;i<size;i++) {
+    for(i=0;i<size;i++) {
       points[i] = sortedPoints[i];
       face[i] = sortedFaces[i];
     }
@@ -680,16 +680,16 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
  * @param invert indicates if faceA has priority over faceB
  * @param segmemts array of the output x-segments
  */
-void BOP_createXS(BOP_Mesh*    mesh, 
-				  BOP_Face*    faceA, 
-				  BOP_Face*    faceB, 
-				  BOP_Segment  sA, 
-				  BOP_Segment  sB, 
-				  bool         invert, 
-				  BOP_Segment* segments) {    
-	return BOP_createXS(mesh, faceA, faceB, faceA->getPlane(), faceB->getPlane(),
-						sA, sB, invert, segments);
-}
+ void BOP_createXS(BOP_Mesh*    mesh, 
+	 BOP_Face*    faceA, 
+	 BOP_Face*    faceB, 
+	 BOP_Segment  sA, 
+	 BOP_Segment  sB, 
+	 bool         invert, 
+	 BOP_Segment* segments) {    
+	 BOP_createXS(mesh, faceA, faceB, faceA->getPlane(), faceB->getPlane(),
+		 sA, sB, invert, segments);
+ }
 
 /**
  * Computes the x-segment of two segments (the shared interval). The segments needs to have sA.m_cfg1 > 0 && sB.m_cfg1 > 0 .
