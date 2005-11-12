@@ -1983,7 +1983,7 @@ static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, flo
 float *mesh_get_mapped_verts_nors(Object *ob)
 {
 	Mesh *me= ob->data;
-	DerivedMesh *dm;;
+	DerivedMesh *dm;
 	float *vertexcosnos;
 	int needsFree;
 	
