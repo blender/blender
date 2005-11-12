@@ -810,48 +810,6 @@ static MDeformWeight *get_defweight(MDeformVert *dv, int defgroup)
 	return NULL;
 }
 
-/* ----------- get the derived vertices -------------- */
-
-static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
-{
-	float *vec = userData;
-	
-	vec+= 6*index;
-	VECCOPY(vec, co);
-	vec+= 3;
-	if(no_f) {
-		VECCOPY(vec, no_f);
-	}
-	else {
-		VECCOPY(vec, no_s);
-	}
-}
-
-static float *get_mapped_verts_nors(Object *ob, int totvert)
-{
-	int needsFree;
-	DerivedMesh *dm= mesh_get_derived_final(ob, &needsFree);
-	float *vertexcosnos;
-	
-	vertexcosnos= MEM_mallocN(6*sizeof(float)*totvert, "vertexcosnos map");
-	
-	if(dm->foreachMappedVert)
-		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
-	else {
-		Mesh *me= ob->data;
-		float *fp= vertexcosnos;
-		int a;
-		
-		for(a=0; a< me->totvert; a++, fp+=6) {
-			dm->getVertCo(dm, a, fp);
-			dm->getVertNo(dm, a, fp+3);
-		}
-	}
-	
-	if (needsFree) dm->release(dm);
-	return vertexcosnos;
-}
-
 /* ----------------------------------------------------- */
 
 /* used for 3d view, on active object, assumes me->dvert exists */
@@ -1058,8 +1016,8 @@ void weight_paint(void)
 		return;
 	}
 	
-	/* painting on subsurfs should give correct points too */
-	vertexcosnos= get_mapped_verts_nors(ob, me->totvert);
+	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	vertexcosnos= mesh_get_mapped_verts_nors(ob);
 	
 	/* this happens on a Bone select, when no vgroup existed yet */
 	if(ob->actdef==0) {
@@ -1317,8 +1275,8 @@ void vertex_paint()
 
 	if(me->tface==NULL && me->mcol==NULL) return;
 	
-	/* painting on subsurfs should give correct points too */
-	vertexcosnos= get_mapped_verts_nors(ob, me->totvert);
+	/* painting on subsurfs should give correct points too, this returns me->totvert amount */
+	vertexcosnos= mesh_get_mapped_verts_nors(ob);
 	
 	persp(PERSP_VIEW);
 	/* imat for normals */

@@ -78,6 +78,11 @@
 #include "render.h"		// externtex, bad level call (ton)
 #include "PIL_time.h"
 
+/* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
+typedef struct VeNoCo {
+	float co[3], no[3];
+} VeNoCo;
+
 Effect *add_effect(int type)
 {
 	Effect *eff=0;
@@ -370,6 +375,8 @@ static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *
 		if(ec->ob->type==OB_CURVE) {
 			float vec[4], dir[3];
 				
+			ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2];
+			
 			/* scale corrects speed vector to curve size */
 			if(paf->totkey>1) ec->scale= (paf->totkey-1)/pa->lifetime;
 			else ec->scale= 1.0f;
@@ -1191,14 +1198,14 @@ static void init_mv_jit(float *jit, int num, int seed2)
 #define JIT_RAND	32
 
 /* for a position within a face, tot is total amount of faces */
-static void give_mesh_particle_coord(PartEff *paf, MVert *mvert, MFace *mface, int partnr, int subnr, float *co, short *no)
+static void give_mesh_particle_coord(PartEff *paf, VeNoCo *noco, MFace *mface, int partnr, int subnr, float *co, float *no)
 {
 	static float *jit= NULL;
 	static float *trands= NULL;
 	static int jitlevel= 1;
 	float *v1, *v2, *v3, *v4;
 	float u, v;
-	short *n1, *n2, *n3, *n4;
+	float *n1, *n2, *n3, *n4;
 	
 	/* free signal */
 	if(paf==NULL) {
@@ -1264,12 +1271,12 @@ static void give_mesh_particle_coord(PartEff *paf, MVert *mvert, MFace *mface, i
 		}
 	}
 	
-	v1= (mvert+(mface->v1))->co;
-	v2= (mvert+(mface->v2))->co;
-	v3= (mvert+(mface->v3))->co;
-	n1= (mvert+(mface->v1))->no;
-	n2= (mvert+(mface->v2))->no;
-	n3= (mvert+(mface->v3))->no;
+	v1= (noco+(mface->v1))->co;
+	v2= (noco+(mface->v2))->co;
+	v3= (noco+(mface->v3))->co;
+	n1= (noco+(mface->v1))->no;
+	n2= (noco+(mface->v2))->no;
+	n3= (noco+(mface->v3))->no;
 	
 	if(mface->v4) {
 		float uv= u*v;
@@ -1277,16 +1284,16 @@ static void give_mesh_particle_coord(PartEff *paf, MVert *mvert, MFace *mface, i
 		float umv= (u)*(1.0f-v);
 		float mumv= (1.0f-u)*(1.0f-v);
 		
-		v4= (mvert+(mface->v4))->co;
-		n4= (mvert+(mface->v4))->no;
+		v4= (noco+(mface->v4))->co;
+		n4= (noco+(mface->v4))->no;
 		
 		co[0]= mumv*v1[0] + muv*v2[0] + uv*v3[0] + umv*v4[0];
 		co[1]= mumv*v1[1] + muv*v2[1] + uv*v3[1] + umv*v4[1];
 		co[2]= mumv*v1[2] + muv*v2[2] + uv*v3[2] + umv*v4[2];
 
-		no[0]= (short)(mumv*n1[0] + muv*n2[0] + uv*n3[0] + umv*n4[0]);
-		no[1]= (short)(mumv*n1[1] + muv*n2[1] + uv*n3[1] + umv*n4[1]);
-		no[2]= (short)(mumv*n1[2] + muv*n2[2] + uv*n3[2] + umv*n4[2]);
+		no[0]= mumv*n1[0] + muv*n2[0] + uv*n3[0] + umv*n4[0];
+		no[1]= mumv*n1[1] + muv*n2[1] + uv*n3[1] + umv*n4[1];
+		no[2]= mumv*n1[2] + muv*n2[2] + uv*n3[2] + umv*n4[2];
 	}
 	else {
 		/* mirror triangle uv coordinates when on other side */
@@ -1298,9 +1305,9 @@ static void give_mesh_particle_coord(PartEff *paf, MVert *mvert, MFace *mface, i
 		co[1]= v1[1] + u*(v3[1]-v1[1]) + v*(v2[1]-v1[1]);
 		co[2]= v1[2] + u*(v3[2]-v1[2]) + v*(v2[2]-v1[2]);
 		
-		no[0]= (short)(n1[0] + u*(n3[0]-n1[0]) + v*(n2[0]-n1[0]));
-		no[1]= (short)(n1[1] + u*(n3[1]-n1[1]) + v*(n2[1]-n1[1]));
-		no[2]= (short)(n1[2] + u*(n3[2]-n1[2]) + v*(n2[2]-n1[2]));
+		no[0]= n1[0] + u*(n3[0]-n1[0]) + v*(n2[0]-n1[0]);
+		no[1]= n1[1] + u*(n3[1]-n1[1]) + v*(n2[1]-n1[1]);
+		no[2]= n1[2] + u*(n3[2]-n1[2]) + v*(n2[2]-n1[2]);
 	}
 }
 
@@ -1341,7 +1348,7 @@ static float face_weight(MFace *face, float *weights)
 }
 
 /* helper function for build_particle_system() */
-static void make_weight_tables(PartEff *paf, Mesh *me, int totpart, MVert *vertlist, int totvert, MFace *facelist, int totface, float **vweights, float **fweights)
+static void make_weight_tables(PartEff *paf, Mesh *me, int totpart, VeNoCo *vertlist, int totvert, MFace *facelist, int totface, float **vweights, float **fweights)
 {
 	MFace *mface;
 	float *foweights=NULL, *voweights=NULL;
@@ -1549,20 +1556,16 @@ void build_particle_system(Object *ob)
 	Base *base;
 	MTex *mtexmove=0, *mtextime=0;
 	Material *ma;
-	DispListMesh *dlm;
 	MFace *facelist= NULL;
-	MVert *vertlist= NULL;
-	DerivedMesh *dm;
 	pMatrixCache *mcache=NULL, *mcnow, *mcprev;
 	ListBase *effectorbase;
+	VeNoCo *vertexcosnos;
 	double startseconds= PIL_check_seconds_timer();
-	float ftime, dtime, force[3], vec[3];
-	float fac, co[3];
+	float ftime, dtime, force[3], vec[3], fac, co[3], no[3];
 	float *voweights= NULL, *foweights= NULL, maxw=1.0f;
 	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
-	int dmNeedsFree, waitcursor_set= 0, totvert, totface, curface, curvert;
-	short no[3];
+	int waitcursor_set= 0, totvert, totface, curface, curvert;
 	
 	/* return conditions */
 	if(ob->type!=OB_MESH) return;
@@ -1579,11 +1582,7 @@ void build_particle_system(Object *ob)
 	
 	if(me->totvert==0) return;
 	
-	/* this call returns NULL during editmode, just ignore it and
-		* particles should be recalc'd on exit. */
-	dm = mesh_get_derived_deform(ob, &dmNeedsFree);
-	if (dm==NULL)
-		return;
+	if(ob==G.obedit) return;
 	
 	totpart= (R.flag & R_RENDERING)?paf->totpart:(paf->disp*paf->totpart)/100;
 	if(totpart==0) return;
@@ -1645,24 +1644,14 @@ void build_particle_system(Object *ob)
 	/* get the effectors */
 	effectorbase= pdInitEffectors(ob->lay);
 	
-	/* init geometry */
-	dlm = dm->convertToDispListMesh(dm, 1);
+	/* init geometry, return is 6 x float * me->totvert in size */
+	vertexcosnos= (VeNoCo *)mesh_get_mapped_verts_nors(ob);
+	facelist= me->mface;
+	totvert= me->totvert;
+	totface= me->totface;
 	
-	/* subsurfs don't have vertexgroups, so we need to use me->mvert in that case */
-	if(paf->vertgroup && me->dvert && (dlm->totvert != me->totvert)) {
-		vertlist= me->mvert;
-		facelist= me->mface;
-		totvert= me->totvert;
-		totface= me->totface;
-	}
-	else {	
-		vertlist= dlm->mvert;
-		facelist= dlm->mface;
-		totvert= dlm->totvert;
-		totface= dlm->totface;
-	}
 	/* if vertexweights or even distribution, it makes weight tables, also checks where it emits from */
-	make_weight_tables(paf, me, totpart, vertlist, totvert, facelist, totface, &voweights, &foweights);
+	make_weight_tables(paf, me, totpart, vertexcosnos, totvert, facelist, totface, &voweights, &foweights);
 	
 	/* vertexweights can define lengths too */
 	make_length_tables(paf, me, totvert, facelist, totface, &volengths, &folengths);
@@ -1674,7 +1663,7 @@ void build_particle_system(Object *ob)
 	
 	/* initialize give_mesh_particle_coord */
 	if(totface)
-		give_mesh_particle_coord(paf, vertlist, facelist, totpart, totface, NULL, NULL);
+		give_mesh_particle_coord(paf, vertexcosnos, facelist, totpart, totface, NULL, NULL);
 	
 	/* correction for face timing when using weighted average */
 	if(totface && foweights) {
@@ -1733,7 +1722,7 @@ void build_particle_system(Object *ob)
 						foweights[curface] -= 1.0f;
 					
 					curjit= (int) foweights[curface];
-					give_mesh_particle_coord(paf, vertlist, facelist+curface, a, curjit, co, no);
+					give_mesh_particle_coord(paf, vertexcosnos, facelist+curface, a, curjit, co, no);
 					
 					/* time correction to make particles appear evenly, maxw does interframe (0-1) */
 					pa->time= paf->sta + maxw*foweights[curface];
@@ -1742,7 +1731,7 @@ void build_particle_system(Object *ob)
 			else {
 				curface= a % totface;
 				curjit= a/totface;
-				give_mesh_particle_coord(paf, vertlist, facelist+curface, a, curjit, co, no);
+				give_mesh_particle_coord(paf, vertexcosnos, facelist+curface, a, curjit, co, no);
 			}
 		}
 		/* get coordinates from vertices */
@@ -1777,8 +1766,8 @@ void build_particle_system(Object *ob)
 					totvert= 0;
 			}
 			
-			VECCOPY(co, vertlist[curvert].co);
-			VECCOPY(no, vertlist[curvert].no);
+			VECCOPY(co, vertexcosnos[curvert].co);
+			VECCOPY(no, vertexcosnos[curvert].no);
 		}
 		
 		VECCOPY(pa->co, co);
@@ -1862,11 +1851,13 @@ void build_particle_system(Object *ob)
 	
 	/* free stuff */
 	give_mesh_particle_coord(NULL, NULL, NULL, 0, 0, NULL, NULL);
+	MEM_freeN(vertexcosnos);
 	if(voweights) MEM_freeN(voweights);
 	if(foweights) MEM_freeN(foweights);
 	if(volengths) MEM_freeN(volengths);
 	if(folengths) MEM_freeN(folengths);
 	if(mcache) MEM_freeN(mcache);
+	rng_free(rng);
 
 	if(deform) end_latt_deform();
 	
@@ -1884,10 +1875,5 @@ void build_particle_system(Object *ob)
 	disable_speed_curve(0);
 	
 	waitcursor(0);
-
-	displistmesh_free(dlm);
-	if (dmNeedsFree) dm->release(dm);
-
-	rng_free(rng);
 }
 

@@ -1958,6 +1958,59 @@ DerivedMesh *editmesh_get_derived_base(void)
 }
 
 
+/* ********* For those who don't grasp derived stuff! (ton) :) *************** */
+
+static void make_vertexcosnos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
+{
+	float *vec = userData;
+	
+	vec+= 6*index;
+	VECCOPY(vec, co);
+	vec+= 3;
+	if(no_f) {
+		VECCOPY(vec, no_f);
+	}
+	else {
+		VECCOPY(vec, no_s);
+	}
+}
+
+/* always returns original amount me->totvert of vertices and normals, but fully deformed and subsurfered */
+/* this is needed for all code using vertexgroups (no subsurf support) */
+/* it stores the normals as floats, but they can still be scaled as shorts (32767 = unit) */
+/* in use now by vertex/weight paint and particle generating */
+
+float *mesh_get_mapped_verts_nors(Object *ob)
+{
+	Mesh *me= ob->data;
+	DerivedMesh *dm;;
+	float *vertexcosnos;
+	int needsFree;
+	
+	/* lets prevent crashing... */
+	if(ob->type!=OB_MESH || me->totvert==0)
+		return NULL;
+	
+	dm= mesh_get_derived_final(ob, &needsFree);
+	vertexcosnos= MEM_mallocN(6*sizeof(float)*me->totvert, "vertexcosnos map");
+	
+	if(dm->foreachMappedVert)
+		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
+	else {
+		float *fp= vertexcosnos;
+		int a;
+		
+		for(a=0; a< me->totvert; a++, fp+=6) {
+			dm->getVertCo(dm, a, fp);
+			dm->getVertNo(dm, a, fp+3);
+		}
+	}
+	
+	if (needsFree) dm->release(dm);
+	return vertexcosnos;
+}
+
+
 /* ************************* fluidsim bobj file handling **************************** */
 
 #ifdef WIN32
@@ -2218,8 +2271,8 @@ static void fluidsimDM_release(DerivedMesh *dm)
 	MEM_freeN(fsdm);
 }
 
-DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) {
-	int i;
+DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) 
+{
 	Mesh *mesh = NULL;
 	FluidsimDerivedMesh *fsdm;
 	MeshDerivedMesh *mdm = NULL;
@@ -2227,7 +2280,6 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 	int displaymode = 0;
 	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
-	char curWd[FILE_MAXDIR];
 	char debugStrBuffer[256];
 	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
 

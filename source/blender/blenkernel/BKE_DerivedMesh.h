@@ -175,6 +175,11 @@ struct DerivedMesh {
 	void (*release)(DerivedMesh *dm);
 };
 
+    /* Simple function to get me->totvert amount of vertices/normals,
+       correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
+       In use now by vertex/weigt paint and particles */
+float *mesh_get_mapped_verts_nors(struct Object *ob);
+
 	/* Internal function, just temporarily exposed */
 DerivedMesh *derivedmesh_from_displistmesh(struct DispListMesh *dlm, float (*vertexCos)[3]);
 
