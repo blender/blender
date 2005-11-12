@@ -229,10 +229,17 @@ static CharInfo *oldstrinfo=NULL;
 void update_string(Curve *cu)
 {
 	int len;
-	
+
+	// Free the old curve string	
 	MEM_freeN(cu->str);
+
+	// Calculate the actual string length in UTF-8 variable characters
 	len = wcsleninu8(textbuf);
+
+	// Alloc memory for UTF-8 variable char length string
 	cu->str = MEM_callocN(len + sizeof(wchar_t), "str");
+
+	// Copy the wchar to UTF-8
 	wcs2utf8s(cu->str, textbuf);
 }
 
@@ -550,18 +557,27 @@ static void copyselection(void)
 static void pasteselection(void)
 {
 	Curve *cu= G.obedit->data;
+
 	int len= wcslen(copybuf);
-	
-	if (len) {
-		int size = (cu->len * sizeof(wchar_t)) - (cu->pos*sizeof(wchar_t)) + sizeof(wchar_t);
-		memmove(textbuf+cu->pos+len, textbuf+cu->pos, size);
-		memcpy(textbuf+cu->pos, copybuf, len * sizeof(wchar_t));
+
+	// Verify that the copy buffer => [copy buffer len] + cu->len < MAXTEXT
+	if(cu->len + len <= MAXTEXT)
+	{
+		if (len) {	
+			int size = (cu->len * sizeof(wchar_t)) - (cu->pos*sizeof(wchar_t)) + sizeof(wchar_t);
+			memmove(textbuf+cu->pos+len, textbuf+cu->pos, size);
+			memcpy(textbuf+cu->pos, copybuf, len * sizeof(wchar_t));
 		
-		memmove(textbufinfo+cu->pos+len, textbufinfo+cu->pos, (cu->len-cu->pos+1)*sizeof(CharInfo));
-		memcpy(textbufinfo+cu->pos, copybufinfo, len*sizeof(CharInfo));	
+			memmove(textbufinfo+cu->pos+len, textbufinfo+cu->pos, (cu->len-cu->pos+1)*sizeof(CharInfo));
+			memcpy(textbufinfo+cu->pos, copybufinfo, len*sizeof(CharInfo));	
 		
-		cu->len += len;
-		cu->pos += len;
+			cu->len += len;
+			cu->pos += len;
+		}
+	}
+	else
+	{
+		error("Text too long");
 	}
 }
 
@@ -960,7 +976,6 @@ void paste_unicodeText(char *filename)
 //			mem =utf8s2wc(strp);
 			wcscat(textbuf, mem);
 			MEM_freeN(mem);
-//			cu->len = wcslen(textbuf);
 			cu->len += tmplen;
 			cu->pos= cu->len;
 		}
@@ -1230,8 +1245,8 @@ static void undoFont_to_editFont(void *strv)
 	cu->pos= *((short *)str);
 	cu->len= *((short *)(str+2));
 
-	memcpy(textbuf, str+4, cu->len+1);
-	memcpy(textbufinfo, str+4+cu->len+1, cu->len*sizeof(CharInfo));
+	memcpy(textbuf, str+4, (cu->len+1)*sizeof(wchar_t));
+	memcpy(textbufinfo, str+4 + (cu->len+1)*sizeof(wchar_t), cu->len*sizeof(CharInfo));
 	
 	cu->selstart = cu->selend = 0;
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -1245,11 +1260,14 @@ static void *editFont_to_undoFont(void)
 {
 	Curve *cu= G.obedit->data;
 	char *str;
+	short oldlen = 0;
 	
-	str= MEM_callocN(MAXTEXT+6+(MAXTEXT+4)*sizeof(CharInfo), "string undo");
-	
-	memcpy(str+4, textbuf, cu->len+1);
-	memcpy(str+4+cu->len+1, textbufinfo, cu->len*sizeof(CharInfo));
+	// The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo
+	str= MEM_callocN((MAXTEXT+6)*sizeof(wchar_t) + (MAXTEXT+4)*sizeof(CharInfo), "string undo");
+
+	// Copy the string and string information
+	memcpy(str+4, textbuf, (cu->len+1)*sizeof(wchar_t));
+	memcpy(str+4 + (cu->len+1)*sizeof(wchar_t), textbufinfo, cu->len*sizeof(CharInfo));
 
 	*((short *)str)= cu->pos;
 	*((short *)(str+2))= cu->len;	
