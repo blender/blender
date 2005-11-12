@@ -342,8 +342,10 @@ ListBase *pdInitEffectors(unsigned int layer)
 						
 						if(cu->path==NULL || cu->path->data==NULL)
 							makeDispListCurveTypes(ob, 0);
-						ec->ob= ob;
-						BLI_addtail(&listb, ec);
+						if(cu->path && cu->path->data) {
+							ec->ob= ob;
+							BLI_addtail(&listb, ec);
+						}
 					}
 				}
 			}
@@ -562,19 +564,6 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 			/* WARNING: bails out with continue here */
 			if((pd->flag & PFIELD_USEMAX) && distance>pd->maxdist) continue;
 			
-			/* derive path point from loc_time */
-			where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
-			VECSUB(guidedir, guidevec, ec->oldloc);
-			VECCOPY(ec->oldloc, guidevec);
-			
-			Mat4Mul3Vecfl(ob->obmat, guidedir);
-			VecMulf(guidedir, ec->scale);	/* correction for lifetime and speed */
-			
-			/* we subtract the speed we gave it previous step */
-			VECCOPY(guidevec, guidedir);
-			VECSUB(guidedir, guidedir, ec->oldspeed);
-			VECCOPY(ec->oldspeed, guidevec);
-			
 			/* calculate contribution factor for this guide */
 			if(distance<=mindist) f_force= 1.0f;
 			else if(pd->flag & PFIELD_USEMAX) {
@@ -590,6 +579,22 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 				if(ffall_val!=0.0f)
 					f_force = (float)pow(f_force, ffall_val+1.0);
 			}
+			
+			/* now derive path point from loc_time */
+			if(pd->flag & PFIELD_GUIDE_PATH_ADD)
+				where_on_path(ob, f_force*loc_time*ec->time_scale, guidevec, guidedir);
+			else
+				where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
+			VECSUB(guidedir, guidevec, ec->oldloc);
+			VECCOPY(ec->oldloc, guidevec);
+			
+			Mat4Mul3Vecfl(ob->obmat, guidedir);
+			VecMulf(guidedir, ec->scale);	/* correction for lifetime and speed */
+			
+			/* we subtract the speed we gave it previous step */
+			VECCOPY(guidevec, guidedir);
+			VECSUB(guidedir, guidedir, ec->oldspeed);
+			VECCOPY(ec->oldspeed, guidevec);
 			
 			/* if it fully contributes, we stop */
 			if(f_force==1.0) {

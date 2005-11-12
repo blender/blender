@@ -107,8 +107,9 @@ typedef struct SoftBody {
 #define PFIELD_GUIDE	5
 
 /* pd->flag: various settings */
-#define PFIELD_USEMAX	1
-#define PDEFLE_DEFORM   2
+#define PFIELD_USEMAX			1
+#define PDEFLE_DEFORM			2
+#define PFIELD_GUIDE_PATH_ADD	4
 
 /* ob->softflag */
 #define OB_SB_ENABLE	1

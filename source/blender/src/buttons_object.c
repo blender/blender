@@ -1745,6 +1745,10 @@ static void object_panel_fields(Object *ob)
 			uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use MaxDist",	10,60,140,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
 			uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
 			uiBlockEndAlign(block);
+			
+			if(pd->forcefield == PFIELD_GUIDE)
+				uiDefButBitS(block, TOG, PFIELD_GUIDE_PATH_ADD, B_FIELD_CHANGE, "Additive",	10,10,140,20, &pd->flag, 0.0, 0, 0, 0, "Based on distance/falloff it adds a portion of the entire path");
+			
 		}
 		
 		uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
