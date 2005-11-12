@@ -3123,6 +3123,29 @@ static void material_panel_ramps(Material *ma)
 	}
 }
 
+/* NOTE: this is a block-menu, needs 0 events, otherwise the menu closes */
+static uiBlock *strand_menu(void *mat_v)
+{
+	Material *ma= mat_v;
+	uiBlock *block;
+	
+	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
+	
+	/* use this for a fake extra empy space around the buttons */
+	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 100, NULL,  0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,70,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButF(block, NUMSLI, 0, "Start ",	10, 50, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+	uiDefButF(block, NUMSLI, 0, "End ",		10, 30, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+
+	uiBlockSetDirection(block, UI_TOP);
+	
+	return block;
+}
+
+
 static void material_panel_material(Object *ob, Material *ma)
 {
 	uiBlock *block;
@@ -3194,12 +3217,13 @@ static void material_panel_material(Object *ob, Material *ma)
 		if(!(ma->mode & MA_HALO)) {
 			uiBlockBeginAlign(block);
 			uiBlockSetCol(block, TH_BUT_SETTING1);
-			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_REDR,	"VCol Light",	8,146,73,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
-			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,146,73,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
-			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,146,73,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_REDR,	"VCol Light",	8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colours as extra light");
+			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_REDR, "VCol Paint",	82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colours with vertex colours");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
 			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,146,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
-			uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",			8,127,147,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
-			uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				156,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
+			uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		8,127,74,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
+			uiDefBlockBut(block, strand_menu, ma, "Strands",			82,127,74, 20, "Display strand settings for static particles");
+			uiDefButBitI(block, TOG, MA_WIRE, 0,	"Wire",				156,127,74,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
 			uiDefButBitI(block, TOG, MA_ZINV, 0,	"ZInvert",			230,127,73,19, &(ma->mode), 0, 0, 0, 0, "Renders material's faces with inverted Z Buffer");
 
 		}

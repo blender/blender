@@ -940,6 +940,7 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	static VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr;
 	float nor[3], cross[3], w, dx, dy;
+	int flag;
 	
 	VecSubf(nor, vec, vec1);
 	Normalise(nor);		// nor needed as tangent 
@@ -951,9 +952,25 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	dx= R.rectx*cross[0]*R.winmat[0][0]/w;
 	dy= R.recty*cross[1]*R.winmat[1][1]/w;
 	w= sqrt(dx*dx + dy*dy);
-	if(w!=0.0f)
-		VecMulf(cross, 1.0/w);
+	if(w!=0.0f) {
+		float fac;
+		if(ma->strand_ease!=0.0f) {
+			if(ma->strand_ease<0.0f)
+				fac= pow(ctime, 1.0+ma->strand_ease);
+			else
+				fac= pow(ctime, 1.0/(1.0f-ma->strand_ease));
+		}
+		else fac= ctime;
+		
+		VecMulf(cross, ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end)/w);
+	}
 	
+	if(ma->mode & MA_TANGENT_STR)
+		flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+	else
+		flag= ME_SMOOTH;
+	
+	/* a bit weak... ctime should be 0.0 for first vertex always */
 	if(ctime == 0.0f) {
 		v1= RE_findOrAddVert(R.totvert++);
 		v2= RE_findOrAddVert(R.totvert++);
@@ -973,7 +990,7 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	else {
 		
 		vlr= RE_findOrAddVlak(R.totvlak++);
-		vlr->flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+		vlr->flag= flag;
 		vlr->ob= vlr_set_ob(ob);
 		vlr->v1= v1;
 		vlr->v2= v2;
@@ -1015,7 +1032,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	float *orco= NULL;
-	int a, mat_nr=1, seed;
+	int a, mat_nr=1, seed, totvlako, totverto;
 
 	pa= paf->keys;
 	if(pa==NULL || (paf->flag & PAF_ANIMATED) || paf->disp!=100) {
@@ -1024,7 +1041,10 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		if(pa==NULL) return;
 	}
 
-	ma= give_render_material(ob, 1);
+	totvlako= R.totvlak;
+	totverto= R.totvert;
+	
+	ma= give_render_material(ob, paf->omat);
 	if(ma->mode & MA_HALO)
 		R.flag |= R_HALO;
 	
@@ -1157,6 +1177,9 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		MEM_freeN(paf->keys);
 		paf->keys= NULL;
 	}
+
+	if((ma->mode & MA_TANGENT_STR)==0)
+		calc_vertexnormals(totverto, totvlako);
 }
 
 

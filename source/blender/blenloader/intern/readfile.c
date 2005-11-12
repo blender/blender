@@ -5012,6 +5012,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
+		Material *ma= main->mat.first;
 		
 		/* deformflag is local in modifier now */
 		for(ob=main->object.first; ob; ob= ob->id.next) {
@@ -5051,6 +5052,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				cam= cam->id.next;
 			}
 			sce= sce->id.next;
+		}
+		for(; ma; ma= ma->id.next) {
+			if(ma->strand_sta==0.0f) {
+				ma->strand_sta= ma->strand_end= 1.0f;
+				ma->mode |= MA_TANGENT_STR;
+			}
 		}
 	}
 	

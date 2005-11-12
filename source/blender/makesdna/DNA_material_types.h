@@ -64,7 +64,7 @@ typedef struct Material {
 	float translucency;
 	float fresnel_mir, fresnel_mir_i;
 	float fresnel_tra, fresnel_tra_i;
-	float filter, pad0;		/* filter added, for raytrace transparency */
+	float filter;		/* filter added, for raytrace transparency */
 	short ray_depth, ray_depth_tra;
 	short har;
 	char seed1, seed2;
@@ -73,6 +73,7 @@ typedef struct Material {
 	int mode2; /* even more material settings :) */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
+	float strand_sta, strand_end, strand_ease;
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, pad;
@@ -153,6 +154,7 @@ typedef struct Material {
 #define MA_RAMP_SPEC	0x200000
 #define MA_RAYBIAS		0x400000
 #define MA_FULL_OSA		0x800000
+#define MA_TANGENT_STR	0x1000000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

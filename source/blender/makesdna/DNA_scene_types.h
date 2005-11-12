@@ -414,7 +414,7 @@ typedef struct Scene {
 #define R_FACE_SPLIT	32
 	/* Tells render to divide face other way. */
 #define R_DIVIDE_24		64	
-	/* vertex normals are tangent vector, for hair shader */
+	/* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		128		
 
 /* vertren->texofs (texcoordinate offset relative to vertren->orco */

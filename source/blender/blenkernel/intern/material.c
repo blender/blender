@@ -100,8 +100,10 @@ void init_material(Material *ma)
 	ma->param[1]= 0.1;
 	ma->param[2]= 0.5;
 	ma->param[3]= 0.1;
-	ma->rms=0.1;
-	ma->darkness=1.0;	
+	ma->rms= 0.1;
+	ma->darkness= 1.0;	
+	
+	ma->strand_sta= ma->strand_end= 1.0f;
 	
 	ma->ang= 1.0;
 	ma->ray_depth= 2;
@@ -115,7 +117,7 @@ void init_material(Material *ma)
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3; // two lamps, is bits
 	
-	ma->mode= MA_TRACEBLE+MA_SHADOW+MA_RADIO;	
+	ma->mode= MA_TRACEBLE|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
 }
 
 Material *add_material(char *name)

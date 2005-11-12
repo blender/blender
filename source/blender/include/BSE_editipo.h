@@ -146,6 +146,8 @@ void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax,
 
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
+void setexprap_ipoloop(struct Ipo *ipo, int code);
+
 /* callbacks */
 int select_bezier_add(struct BezTriple *bezt);
 int select_bezier_subtract(struct BezTriple *bezt);

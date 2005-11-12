@@ -376,7 +376,7 @@ static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *
 		if(ec->ob->type==OB_CURVE) {
 			float vec[4], dir[3];
 				
-			ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2];
+			ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2]= 0.0f;
 			
 			/* scale corrects speed vector to curve size */
 			if(paf->totkey>1) ec->scale= (paf->totkey-1)/pa->lifetime;
@@ -584,6 +584,19 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 				where_on_path(ob, f_force*loc_time*ec->time_scale, guidevec, guidedir);
 			else
 				where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
+			
+			/* rotate */
+			if(0) {
+				float q[4], x1;
+				
+				Normalise(guidedir);
+				q[0]= (float)cos(0.5*guidevec[3]);
+				x1= (float)sin(0.5*guidevec[3]);
+				q[1]= -x1*guidedir[0];
+				q[2]= -x1*guidedir[1];
+				q[3]= -x1*guidedir[2];
+			}
+			
 			VECSUB(guidedir, guidevec, ec->oldloc);
 			VECCOPY(ec->oldloc, guidevec);
 			
@@ -1878,6 +1891,6 @@ void build_particle_system(Object *ob)
 
 	disable_speed_curve(0);
 	
-	waitcursor(0);
+	if(waitcursor_set) waitcursor(0);
 }
 
