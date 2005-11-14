@@ -2583,6 +2583,7 @@ static void set_faces_raycountflag(void)
 			else
 				vlr->raycount= 1;
 		}
+		else vlr->raycount= 1;
 	}
 }
 
