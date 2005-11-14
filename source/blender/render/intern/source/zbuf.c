@@ -2546,6 +2546,7 @@ static void copyto_abufz(int sample)
 /**
 * Do accumulation z buffering.
  */
+
 static void zbuffer_abuf()
 {
 	ZSpan zspan;
@@ -2569,6 +2570,8 @@ static void zbuffer_abuf()
 	zbuffunc4= zbufinvulAc4;
 	zbuflinefunc= zbuflineAc;
 
+	//set_faces_raycountflag();
+	
 	for(Zsample=0; Zsample<R.osa || R.osa==0; Zsample++) {
 		
 		copyto_abufz(Zsample);	/* init zbuffer */
@@ -2588,25 +2591,25 @@ static void zbuffer_abuf()
 
 			if(ma->mode & (MA_ZTRA)) {
 
-						/* a little advantage for transp rendering (a z offset) */
-				if( ma->zoffs != 0.0) {
-					mul= 0x7FFFFFFF;
-					zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
-
-					VECCOPY(vec, vlr->v1->co);
-					/* z is negative, otherwise its being clipped */ 
-					vec[2]-= ma->zoffs;
-					RE_projectverto(vec, hoco);
-					fval= mul*(1.0+hoco[2]/hoco[3]);
-
-					Azvoordeel= (int) fabs(zval - fval );
-				}
-				else Azvoordeel= 0;
-				
-				zvlnr= v+1;
-		
 				if(vlr->flag & R_VISIBLE) {
 					
+							/* a little advantage for transp rendering (a z offset) */
+					if( ma->zoffs != 0.0) {
+						mul= 0x7FFFFFFF;
+						zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
+
+						VECCOPY(vec, vlr->v1->co);
+						/* z is negative, otherwise its being clipped */ 
+						vec[2]-= ma->zoffs;
+						RE_projectverto(vec, hoco);
+						fval= mul*(1.0+hoco[2]/hoco[3]);
+
+						Azvoordeel= (int) fabs(zval - fval );
+					}
+					else Azvoordeel= 0;
+					
+					zvlnr= v+1;
+		
 					if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 					else {
 						if(vlr->v4 && (vlr->flag & R_STRAND)) {
@@ -2621,8 +2624,10 @@ static void zbuffer_abuf()
 						}
 					}
 				}
+				if( (v & 255)==255) 
+					if(RE_local_test_break()) 
+						break; 
 			}
-			if(RE_local_test_break()) break; 
 		}
 		
 		if((R.r.mode & R_OSA)==0) break;
@@ -2709,7 +2714,7 @@ void abufsetrow(float *acolrow, int y)
 	APixstr *ap, *apn;
 	float *col, fcol[4], tempcol[4], sampcol[16*4], *scol, accumcol[4];
 	float ys, fac, alpha[32];
-	int x, part, a, zrow[100][3], totface, nr;
+	int x, part, a, zrow[200][3], totface, nr;
 	int sval;
 	
 	if(y<0) return;
@@ -2765,7 +2770,7 @@ void abufsetrow(float *acolrow, int y)
 						zrow[totface][1]= apn->p[a];
 						zrow[totface][2]= apn->mask[a];
 						totface++;
-						if(totface>99) totface= 99;
+						if(totface>199) totface= 199;
 					}
 					else break;
 				}
