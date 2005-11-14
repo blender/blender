@@ -168,8 +168,8 @@ int vergzvlak(const void *x1, const void *x2);
 
 /* span fill in method */
 typedef struct ZSpan {
-	int yres, miny, maxy;
-	int my0, my2;							/* actual filled in range */
+	int yres, miny, maxy;					/* range for clipping */
+	int miny1, maxy1, miny2, maxy2;			/* actual filled in range */
 	float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
 	float *span1, *span2;
 } ZSpan;

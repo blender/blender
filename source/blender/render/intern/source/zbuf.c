@@ -114,10 +114,10 @@ static void zbuf_free_span(ZSpan *zspan)
 
 static void zbuf_init_span(ZSpan *zspan, int miny, int maxy)
 {
-	zspan->miny= miny;
+	zspan->miny= miny;	/* range for clipping */
 	zspan->maxy= maxy;
-	zspan->my0= maxy+1;
-	zspan->my2= miny-1;
+	zspan->miny1= zspan->miny2= maxy+1;
+	zspan->maxy1= zspan->maxy2= miny-1;
 	zspan->minp1= zspan->maxp1= zspan->minp2= zspan->maxp2= NULL;
 }
 
@@ -144,6 +144,7 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 	/* clip bottom */
 	if(my0<zspan->miny) my0= zspan->miny;
 	
+	if(my0>my2) return;
 	/* if(my0>my2) should still fill in, that way we get spans that skip nicely */
 	
 	xx1= maxv[1]-minv[1];
@@ -159,8 +160,6 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 	/* empty span */
 	if(zspan->maxp1 == NULL) {
 		span= zspan->span1;
-		zspan->my0= my0;
-		zspan->my2= my2;
 	}
 	else {	/* does it complete left span? */
 		if( maxv == zspan->minp1 || minv==zspan->maxp1) {
@@ -169,25 +168,29 @@ static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
 		else {
 			span= zspan->span2;
 		}
-		if(my0<zspan->my0) zspan->my0= my0;
-		if(my2>zspan->my2) zspan->my2= my2;
 	}
 
 	if(span==zspan->span1) {
+//		printf("left span my0 %d my2 %d\n", my0, my2);
 		if(zspan->minp1==NULL || zspan->minp1[1] > minv[1] ) {
 			zspan->minp1= minv;
 		}
 		if(zspan->maxp1==NULL || zspan->maxp1[1] < maxv[1] ) {
 			zspan->maxp1= maxv;
 		}
+		if(my0<zspan->miny1) zspan->miny1= my0;
+		if(my2>zspan->maxy1) zspan->maxy1= my2;
 	}
 	else {
+//		printf("right span my0 %d my2 %d\n", my0, my2);
 		if(zspan->minp2==NULL || zspan->minp2[1] > minv[1] ) {
 			zspan->minp2= minv;
 		}
 		if(zspan->maxp2==NULL || zspan->maxp2[1] < maxv[1] ) {
 			zspan->maxp2= maxv;
 		}
+		if(my0<zspan->miny2) zspan->miny2= my0;
+		if(my2>zspan->maxy2) zspan->maxy2= my2;
 	}
 
 	for(y=my2; y>=my0; y--, xs0+= dx0) {
@@ -608,8 +611,10 @@ static void zbufinvulAc4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
 	/* clipped */
 	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
 
-	my0= zspan->my0;
-	my2= zspan->my2;
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	if(my2<my0) return;
 	
 	/* ZBUF DX DY, in floats still */
 	x1= v1[0]- v2[0];
@@ -1522,8 +1527,12 @@ static void zbufinvulGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
 	/* clipped */
 	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
 	
-	my0= zspan->my0;
-	my2= zspan->my2;
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+//	printf("my %d %d\n", my0, my2);
+	if(my2<my0) return;
+	
 	
 	/* ZBUF DX DY, in floats still */
 	x1= v1[0]- v2[0];
@@ -1614,8 +1623,10 @@ static void zbufinvulGL(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3
 	/* clipped */
 	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
 	
-	my0= zspan->my0;
-	my2= zspan->my2;
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	if(my2<my0) return;
 	
 	/* ZBUF DX DY */
 	x1= v1[0]- v2[0];
