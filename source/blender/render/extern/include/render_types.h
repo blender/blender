@@ -195,7 +195,7 @@ typedef struct VertRen
 	void *svert;			/* smooth vert, only used during initrender */
 	short clip, texofs;		/* texofs= flag */
 	float accum;			/* accum for radio weighting, and for strand texco static particles */
-	short flag;
+	short flag;				/* in use for clipping ztra parts */
 } VertRen;
 
 /* ------------------------------------------------------------------------- */

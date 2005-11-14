@@ -2544,8 +2544,48 @@ static void copyto_abufz(int sample)
 /* ------------------------------------------------------------------------ */
 
 /**
-* Do accumulation z buffering.
+ * Do accumulation z buffering.
  */
+
+
+static void set_faces_raycountflag(void)
+{
+	VertRen *ver=NULL;
+	VlakRen *vlr=NULL;
+	float wco, miny, maxy;
+	int v, clipval;
+	
+	miny= (float)(2*Aminy-R.recty-1)/(float)R.recty;
+	maxy= (float)(2*Amaxy-R.recty+2)/(float)R.recty;
+	
+	for(v=0; v<R.totvert; v++) {
+		if((v & 255)==0) {
+			ver= R.blove[v>>8];
+		}
+		else ver++;
+		
+		wco= ver->ho[3];
+		ver->flag= 0;
+		if( ver->ho[1] > maxy*wco) ver->flag |= 64;
+		else if( ver->ho[1]< miny*wco) ver->flag |= 128;
+	}
+	
+	for(v=0; v<R.totvlak; v++) {
+		if((v & 255)==0) {
+			vlr= R.blovl[v>>8];
+		}
+		else vlr++;
+		
+		if(vlr->v4) {
+			clipval= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag & vlr->v4->flag;
+			if(clipval==64 || clipval==128)
+				vlr->raycount= 0;
+			else
+				vlr->raycount= 1;
+		}
+	}
+}
+
 
 static void zbuffer_abuf()
 {
@@ -2570,7 +2610,7 @@ static void zbuffer_abuf()
 	zbuffunc4= zbufinvulAc4;
 	zbuflinefunc= zbuflineAc;
 
-	//set_faces_raycountflag();
+	set_faces_raycountflag();
 	
 	for(Zsample=0; Zsample<R.osa || R.osa==0; Zsample++) {
 		
@@ -2587,46 +2627,48 @@ static void zbuffer_abuf()
 			}
 			else vlr++;
 			
-			ma= vlr->mat;
+			if(vlr->raycount) {
+				ma= vlr->mat;
 
-			if(ma->mode & (MA_ZTRA)) {
+				if(ma->mode & (MA_ZTRA)) {
 
-				if(vlr->flag & R_VISIBLE) {
-					
-							/* a little advantage for transp rendering (a z offset) */
-					if( ma->zoffs != 0.0) {
-						mul= 0x7FFFFFFF;
-						zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
+					if(vlr->flag & R_VISIBLE) {
+						
+								/* a little advantage for transp rendering (a z offset) */
+						if( ma->zoffs != 0.0) {
+							mul= 0x7FFFFFFF;
+							zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);
 
-						VECCOPY(vec, vlr->v1->co);
-						/* z is negative, otherwise its being clipped */ 
-						vec[2]-= ma->zoffs;
-						RE_projectverto(vec, hoco);
-						fval= mul*(1.0+hoco[2]/hoco[3]);
+							VECCOPY(vec, vlr->v1->co);
+							/* z is negative, otherwise its being clipped */ 
+							vec[2]-= ma->zoffs;
+							RE_projectverto(vec, hoco);
+							fval= mul*(1.0+hoco[2]/hoco[3]);
 
-						Azvoordeel= (int) fabs(zval - fval );
-					}
-					else Azvoordeel= 0;
-					
-					zvlnr= v+1;
-		
-					if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
-					else {
-						if(vlr->v4 && (vlr->flag & R_STRAND)) {
-							zbufclip4(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip, vlr->v4->clip);
+							Azvoordeel= (int) fabs(zval - fval );
 						}
+						else Azvoordeel= 0;
+						
+						zvlnr= v+1;
+			
+						if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 						else {
-							zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
-							if(vlr->v4) {
-								zvlnr+= 0x800000;
-								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+							if(vlr->v4 && (vlr->flag & R_STRAND)) {
+								zbufclip4(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip, vlr->v4->clip);
+							}
+							else {
+								zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v2->ho, vlr->v3->ho, vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
+								if(vlr->v4) {
+									zvlnr+= 0x800000;
+									zbufclip(&zspan, zvlnr, vlr->v1->ho, vlr->v3->ho, vlr->v4->ho, vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
+								}
 							}
 						}
 					}
+					if( (v & 255)==255) 
+						if(RE_local_test_break()) 
+							break; 
 				}
-				if( (v & 255)==255) 
-					if(RE_local_test_break()) 
-						break; 
 			}
 		}
 		
