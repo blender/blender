@@ -1155,7 +1155,23 @@ void snap_sel_to_curs()
 		if( ( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))) {
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
-				; // todo
+				bPoseChannel *pchan;
+				float cursp[3];
+				
+				Mat4Invert(ob->imat, ob->obmat);
+				VECCOPY(cursp, curs);
+				Mat4MulVecfl(ob->imat, cursp);
+				
+				for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					if(pchan->bone->flag & BONE_SELECTED) {
+						if(pchan->parent==NULL) {
+							VECCOPY(pchan->loc, cursp);
+						}
+						/* else todo... */
+					}
+				}
+				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+				ob->recalc |= OB_RECALC_DATA;
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;

@@ -2576,14 +2576,15 @@ static void set_faces_raycountflag(void)
 		}
 		else vlr++;
 		
-		if(vlr->v4) {
+		if(vlr->v4)
 			clipval= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag & vlr->v4->flag;
-			if(clipval==64 || clipval==128)
-				vlr->raycount= 0;
-			else
-				vlr->raycount= 1;
-		}
-		else vlr->raycount= 1;
+		else
+			clipval= vlr->v1->flag & vlr->v2->flag & vlr->v3->flag;
+			
+		if(clipval==64 || clipval==128)
+			vlr->raycount= 0;
+		else
+			vlr->raycount= 1;
 	}
 }
 
@@ -2635,7 +2636,7 @@ static void zbuffer_abuf()
 
 					if(vlr->flag & R_VISIBLE) {
 						
-								/* a little advantage for transp rendering (a z offset) */
+						/* a little advantage for transp rendering (a z offset) */
 						if( ma->zoffs != 0.0) {
 							mul= 0x7FFFFFFF;
 							zval= mul*(1.0+vlr->v1->ho[2]/vlr->v1->ho[3]);

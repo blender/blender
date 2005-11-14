@@ -1722,7 +1722,7 @@ static void draw_ghost_poses(Base *base)
 	bPose *posen, *poseo;
 	bActionStrip *strip;
 	float cur, start, end, stepsize, range, colfac, actframe;
-	int cfrao, maptime;
+	int cfrao, maptime, flago;
 	
 	/* pre conditions, get an action with sufficient frames */
 	if(ob->action==NULL)
@@ -1747,13 +1747,15 @@ static void draw_ghost_poses(Base *base)
 	cfrao= CFRA;
 	if(maptime) actframe= get_action_frame(ob, (float)CFRA);
 	else actframe= CFRA;
+	flago= arm->flag;
+	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
 	
 	/* copy the pose */
 	poseo= ob->pose;
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
-
+	
 	glEnable(GL_BLEND);
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -1794,8 +1796,10 @@ static void draw_ghost_poses(Base *base)
 	free_pose_channels(posen);
 	MEM_freeN(posen);
 	
+	/* restore */
 	CFRA= cfrao;
 	ob->pose= poseo;
+	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
 	
 	ob->flag |= OB_POSEMODE;

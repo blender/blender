@@ -4124,7 +4124,7 @@ static void ui_set_but_val(uiBut *but, double value)
 
 	if(but->pointype==0) return;
 	poin= but->poin;
-
+	
 	/* value is a hsv value: convert to rgb */
 	if( but->type==HSVSLI ) {
 		float h, s, v, *fp= (float *)but->poin;
@@ -4153,8 +4153,11 @@ static void ui_set_but_val(uiBut *but, double value)
 	}
 	else if( but->pointype==INT )
 		*((int *)poin)= (int)floor(value+0.5);
-	else if( but->pointype==FLO )
-		*((float *)poin)= value;
+	else if( but->pointype==FLO ) {
+		float fval= (float)value;
+		if(fval>= -0.00001f && fval<= 0.00001f) fval= 0.0f;	/* prevent negative zero */
+		*((float *)poin)= fval;
+	}
 	
 	/* update select flag */
 	ui_is_but_sel(but);
