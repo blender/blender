@@ -77,8 +77,6 @@ char edgeRender_c[] = "$Id$";
 /* ------------------------------------------------------------------------- */
 
  /* These function pointers are used for z buffer filling.    */
-extern void (*zbuffunc)(unsigned int, float *, float *, float *);
-extern void (*zbuflinefunc)(unsigned int, float *, float *); 
 extern float Zmulx, Zmuly;   /* Some kind of scale?                          */
 extern float Zjitx,Zjity;    /* The x,y values for jitter offset             */
 
@@ -138,12 +136,12 @@ void renderEdges(char * colourRect);
 /**
  * Buffer an edge between these two vertices in the e.r. distance buffer.
  */
-static void fillEdgeRenderEdge(unsigned int, float *vec1, float *vec2);
+static void fillEdgeRenderEdge(int, float *vec1, float *vec2);
 
 /**
  * Buffer a face between these two vertices in the e.r. distance buffer.
  */
-static void fillEdgeRenderFace(unsigned int, float *v1, float *v2, float *v3);
+static void fillEdgeRenderFace(struct ZSpan *zspan, int, float *v1, float *v2, float *v3);
 
 /**
  * Compose the edge render colour buffer.
@@ -622,11 +620,11 @@ int zBufferEdgeRenderObjects(void)
 			    /* here we can add all kinds of extra selection criteria */
 			    if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 			    else {
-				    zbufclip(zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
+				    zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
 					     vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 				    if(vlr->v4) {
 					    zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
-					    zbufclip(zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
+					    zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
 						     vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 				    }
 			    }
@@ -640,7 +638,7 @@ int zBufferEdgeRenderObjects(void)
 
 /* ------------------------------------------------------------------------- */
 
-static void fillEdgeRenderFace(unsigned int zvlnr, float *v1, float *v2, float *v3)  
+static void fillEdgeRenderFace(struct ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3)  
 {
 	/* Coordinates of the vertices are specified in ZCS */
 	double z0; /* used as temp var*/
@@ -848,7 +846,7 @@ static void fillEdgeRenderFace(unsigned int zvlnr, float *v1, float *v2, float *
 
 /* ------------------------------------------------------------------------- */
 
-static void fillEdgeRenderEdge(unsigned int zvlnr, float *vec1, float *vec2)
+static void fillEdgeRenderEdge(int zvlnr, float *vec1, float *vec2)
 {
 	int start, end, x, y, oldx, oldy, ofs;
 	int dz, vergz/*  , mask */;

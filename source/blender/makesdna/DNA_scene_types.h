@@ -409,6 +409,8 @@ typedef struct Scene {
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
 #define R_VISIBLE		2
+	/* strand flag, means special handling */
+#define R_STRAND		4
 #define R_NOPUNOFLIP	8
 #define R_FULL_OSA		16
 #define R_FACE_SPLIT	32

@@ -822,7 +822,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 		if(pa==NULL) return;
 	}
 
-	ma= give_render_material(ob, 1);
+	ma= give_render_material(ob, paf->omat);
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
@@ -935,7 +935,7 @@ static Object *vlr_set_ob(Object *ob)
 
 /* ------------------------------------------------------------------------- */
 
-static void static_particle_strand(Object *ob, Material *ma, float *orco, float *vec, float *vec1, float ctime)
+static void static_particle_strand(Object *ob, Material *ma, float *orco, float *vec, float *vec1, float ctime, int first)
 {
 	static VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr;
@@ -966,12 +966,12 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 	}
 	
 	if(ma->mode & MA_TANGENT_STR)
-		flag= ME_SMOOTH|R_NOPUNOFLIP|R_TANGENT;
+		flag= R_SMOOTH|R_NOPUNOFLIP|R_STRAND|R_TANGENT;
 	else
-		flag= ME_SMOOTH;
+		flag= R_SMOOTH|R_STRAND;
 	
-	/* a bit weak... ctime should be 0.0 for first vertex always */
-	if(ctime == 0.0f) {
+	/* first two vertices */
+	if(first) {
 		v1= RE_findOrAddVert(R.totvert++);
 		v2= RE_findOrAddVert(R.totvert++);
 		
@@ -1017,9 +1017,7 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
 		vlr->lay= ob->lay;
-	}					
-	
-	
+	}
 }
 
 static void render_static_particle_system(Object *ob, PartEff *paf)
@@ -1032,7 +1030,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	float *orco= NULL;
-	int a, mat_nr=1, seed, totvlako, totverto;
+	int a, mat_nr=1, seed, totvlako, totverto, first;
 
 	pa= paf->keys;
 	if(pa==NULL || (paf->flag & PAF_ANIMATED) || paf->disp!=100) {
@@ -1047,7 +1045,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	ma= give_render_material(ob, paf->omat);
 	if(ma->mode & MA_HALO)
 		R.flag |= R_HALO;
-	
+
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
 
@@ -1058,7 +1056,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		orco= MEM_mallocN(3*sizeof(float)*paf->totpart, "static particle orcos");
 		if (!g_orco_hash)
 			g_orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-		BLI_ghash_insert(g_orco_hash, ob, orco);
+		BLI_ghash_insert(g_orco_hash, paf, orco);	/* pointer is particles, otherwise object uses it */
 	}
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
@@ -1074,6 +1072,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		
 		mtime= pa->time+pa->lifetime+paf->staticstep-1;
 		
+		first= 1;
 		for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
 			
 			/* make sure hair grows until the end.. */
@@ -1162,11 +1161,12 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 					if(har) har->lay= ob->lay;
 				}
 				else {	/* generate pixel sized hair strand */
-					static_particle_strand(ob, ma, orco, vec, vec1, (ctime-pa->time)/(mtime-pa->time));
+					static_particle_strand(ob, ma, orco, vec, vec1, (ctime-pa->time)/(mtime-pa->time), first);
 				}
 			}
 			
 			VECCOPY(vec1, vec);
+			first= 0;
 		}
 		
 		seed++;
@@ -1258,7 +1258,7 @@ static Material *give_render_material(Object *ob, int nr)
 
 	ma= give_current_material(ob, nr);
 	if(ma==NULL) ma= &defmaterial;
-	
+
 	return ma;
 }
 
@@ -2470,7 +2470,7 @@ static void check_non_flat_quads(void)
 		vlr= RE_findOrAddVlak(a);
 		
 		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->mat->mode & MA_WIRE)==0) {
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
 			
 			/* check if quad is actually triangle */
 			v1= vlr->v1;

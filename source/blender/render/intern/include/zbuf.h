@@ -165,7 +165,20 @@ int vergzvlak(const void *x1, const void *x2);
  * @param c2 
  * @param c3
  */
-void  zbufclip(int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+
+/* span fill in method */
+typedef struct ZSpan {
+	int yres, miny, maxy;
+	int my0, my2;							/* actual filled in range */
+	float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
+	float *span1, *span2;
+} ZSpan;
+
+void  zbufclip(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+
+/* These function pointers are used for z buffer filling.    */
+extern void (*zbuffunc)(struct ZSpan *zspan, int, float *, float *, float *);
+extern void (*zbuflinefunc)(int, float *, float *);
 
 /**
  * same, for edges

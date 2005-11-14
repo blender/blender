@@ -585,18 +585,6 @@ void pdDoEffectors(ListBase *lb, float *opco, float *force, float *speed, float 
 			else
 				where_on_path(ob, loc_time*ec->time_scale, guidevec, guidedir);
 			
-			/* rotate */
-			if(0) {
-				float q[4], x1;
-				
-				Normalise(guidedir);
-				q[0]= (float)cos(0.5*guidevec[3]);
-				x1= (float)sin(0.5*guidevec[3]);
-				q[1]= -x1*guidedir[0];
-				q[2]= -x1*guidedir[1];
-				q[3]= -x1*guidedir[2];
-			}
-			
 			VECSUB(guidedir, guidevec, ec->oldloc);
 			VECCOPY(ec->oldloc, guidevec);
 			

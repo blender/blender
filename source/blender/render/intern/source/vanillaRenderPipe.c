@@ -194,7 +194,7 @@ static void freeRenderBuffers(void) {
 /**
  * New fill function for z buffer, for edge-only rendering.
  */
-static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)  
+static void zBufferFillFace(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3)  
 {
 	/* Coordinates of the vertices are specified in ZCS */
 	VlakRen *vlr;
@@ -409,7 +409,7 @@ static void zBufferFillFace(unsigned int zvlnr, float *v1, float *v2, float *v3)
 } 
 /* ------------------------------------------------------------------------- */
 
-static void zBufferFillEdge(unsigned int zvlnr, float *vec1, float *vec2)
+static void zBufferFillEdge(int zvlnr, float *vec1, float *vec2)
 {
 	int apteller;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -1174,11 +1174,11 @@ static int zBufferAllFaces(void)
 			
 			if(ma->mode & (MA_WIRE)) zbufclipwire(zvlnr, vlr);
 			else {
-				zbufclip(zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
+				zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v2->ho,   vlr->v3->ho, 
 						 vlr->v1->clip, vlr->v2->clip, vlr->v3->clip);
 				if(vlr->v4) {
 					zvlnr+= 0x800000; /* in a sense, the 'adjoint' face */
-					zbufclip(zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
+					zbufclip(NULL, zvlnr, vlr->v1->ho,   vlr->v3->ho,   vlr->v4->ho, 
 							 vlr->v1->clip, vlr->v3->clip, vlr->v4->clip);
 				}
 			}
@@ -1457,9 +1457,6 @@ static void eraseColBuf(RE_COLBUFTYPE *buf)
  */
 static void calcZBufLine(int y)
 {
-	/* These function pointers are used for z buffer filling.    */
-	extern void (*zbuffunc)(unsigned int, float *, float *, float *);
-	extern void (*zbuflinefunc)(unsigned int, float *, float *);
 	int part;
     int keepLooping = 1;
 	
