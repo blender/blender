@@ -669,6 +669,8 @@ void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3],
 	int numGroups= 0;   /* safety for vertexgroup index overflow too */
 	int i;
 
+	if(armOb==G.obedit) return;
+	
 	Mat4Invert(obinv, target->obmat);
 	Mat4CpyMat4(premat, target->obmat);
 	Mat4MulMat4(postmat, armOb->obmat, obinv);

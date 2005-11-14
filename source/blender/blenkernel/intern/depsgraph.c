@@ -495,11 +495,17 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 		for (con = ob->constraints.first; con; con=con->next){
 			if (constraint_has_target(con)) {
 				char *str;
-				node2 = dag_get_node(dag, get_constraint_target(con, &str));
+				Object *obt= get_constraint_target(con, &str);
+				
+				node2 = dag_get_node(dag, obt);
 				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
-				else
-					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+				else {
+					if(obt->type==OB_ARMATURE && str[0])
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
+					else
+						dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+				}
 				addtoroot = 0;
 			}
 		}
