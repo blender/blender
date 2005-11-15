@@ -229,6 +229,12 @@ class Object:
     @return: Depends on the type of Datablock linked to the Object.  If name_only is True, it returns a string.
     """
 
+  def getParentBoneName():
+    """
+    Returns None, or the 'sub-name' of the parent (eg. Bone name)
+    @return: string
+    """
+
   def getDeltaLocation():
     """
     Returns the object's delta location in a list (x, y, z)
@@ -263,8 +269,8 @@ class Object:
   def getEuler():
     """
     Returns the object's localspace rotation as Euler rotation vector (rotX, rotY, rotZ).  Angles are in radians.
-    @rtype: Py_Euler
-    @return: A python Euler 
+    @rtype: Py_Euler (WRAPPED DATA)
+    @return: A python Euler. Data is wrapped when euler is present.
     """
 
   def getInverseMatrix():
@@ -334,8 +340,8 @@ class Object:
           changes made by the script itself were not taken into account until
           a redraw happened, either called by the script or upon its exit.
     Returns the object matrix.
-    @rtype: Py_Matrix
-    @return: a python 4x4 matrix object
+    @rtype: Py_Matrix (WRAPPED DATA)
+    @return: a python 4x4 matrix object. Data is wrapped for 'worldspace'
     """
 
   def getName():
@@ -633,8 +639,9 @@ class Object:
     """
     Returns the worldspace bounding box of this object.  This works for meshes (out of
     edit mode) and curves.
-    @rtype: list of 8 (x,y,z) float coordinate vectors
-    @return: The coordinates of the 8 corners of the bounding box.
+    @rtype: list of 8 (x,y,z) float coordinate vectors (WRAPPED DATA)
+    @return: The coordinates of the 8 corners of the bounding box. Data is wrapped when
+    bounding box is present.
     """
 
   def makeDisplayList():

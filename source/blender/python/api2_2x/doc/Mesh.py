@@ -156,7 +156,7 @@ class MVert:
   ================
     This object holds mesh vertex data.
   @ivar co: The vertex coordinates (x, y, z).
-  @type co: vector
+  @type co: vector (WRAPPED DATA)
   @ivar no: The vertex's unit normal vector (x, y, z).  Read-only.  B{Note}:
     if vertex coordinates are changed, it may be necessary to use
     L{Mesh.calcNormals()} to update the vertex normals.
@@ -168,7 +168,7 @@ class MVert:
     (Sticky coordinates can be set when the object is in the Edit mode;
     from the Editing Panel (F9), look under the "Mesh" properties for the 
     "Sticky" button).  
-  @type uvco: vector
+  @type uvco: vector (WRAPPED DATA)
   @ivar index: (MVerts only). The vertex's index within the mesh.  Read-only.
   @type index: int
   @ivar sel: The vertex's selection state (selected=1).
@@ -476,7 +476,7 @@ class MFace:
   @ivar uv: The face's UV coordinates.  Each vertex has its own UV coordinate.
       Will throw an exception if the mesh does not have UV faces; use
       L{Mesh.faceUV} to test.
-  @type uv: list of vectors
+  @type uv: list of vectors (WRAPPED DATA)
   @ivar uvSel: The face's UV coordinates seletion state; a 1 indicates the
       vertex is selected.  Each vertex has its own UV coordinate select state
       (this is not the same as the vertex's edit mode selection state).

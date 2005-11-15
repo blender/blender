@@ -155,6 +155,7 @@ def AngleBetweenVecs(vec1, vec2):
   @param vec2: A 2d or 3d vector.
   @rtype: float
   @return: The angle between the vectors in degrees.
+  @raise AttributeError: When there is a zero-length vector as an argument.
   """
 
 def MidpointVecs(vec1, vec2):
@@ -178,6 +179,9 @@ def VecMultMat(vec, mat):
   @param mat: A 2d,3d or 4d matrix.
   @rtype: Vector object
   @return: The row vector that results from the muliplication.
+  @attention: B{DEPRECATED} You should now multiply vector * matrix direcly
+  Example::
+      result = myVector * myMatrix
   """
 
 def ProjectVecs(vec1, vec2):
@@ -280,6 +284,10 @@ def CopyMat(matrix):
   @param matrix: A 2d,3d or 4d matrix to be copied.
   @rtype: Matrix object.
   @return: A new matrix object which is a copy of the one passed in.
+  @attention: B{DEPRECATED} You should use the matrix constructor to create
+  a copy of a matrix
+  Example::
+      newMat = Matrix(myMat)
   """
 
 def MatMultVec(mat, vec):
@@ -292,6 +300,9 @@ def MatMultVec(mat, vec):
   @param mat: A 2d,3d or 4d matrix.
   @rtype: Vector object
   @return: The column vector that results from the muliplication.
+  @attention: B{DEPRECATED} You should use direct muliplication on the arguments
+  Example::
+      result = myMatrix * myVector
   """
 
 def CopyQuat(quaternion):
@@ -301,6 +312,10 @@ def CopyQuat(quaternion):
   @param quaternion: Quaternion to be copied.
   @rtype: Quaternion object.
   @return: A new quaternion object which is a copy of the one passed in.
+  @attention: B{DEPRECATED} You should use the Quaterion() constructor directly
+  to create copies of quaternions
+  Example::
+      newQuat = Quaternion(myQuat)
   """
 
 def CrossQuats(quat1, quat2):
@@ -358,6 +373,10 @@ def CopyEuler(euler):
   @param euler: The euler to copy
   @rtype: Euler object
   @return: A copy of the euler object passed in.
+  @attention: B{DEPRECATED} You should use the Euler constructor directly
+  to make copies of Euler objects
+  Example::
+      newEuler = Euler(myEuler)
   """
 
 def RotateEuler(euler, angle, axis):
@@ -384,16 +403,48 @@ class Vector:
   @ivar z: The z value (if any).
   @ivar w: The w value (if any).
   @ivar length: The magnitude of the vector.
+  @ivar magnitude: This is a synonym for length.
+  @ivar wrapped: Whether or not this item is wrapped data
+  @note: Comparison operators can be done on Vector classes:
+      - >, >=, <, <= test the vector magnitude
+      - ==, != test vector values e.g. 1,2,3 != 1,2,4 even if they are the same length
+  @note: Math can be performed on Vector classes
+      - vec + vec
+      - vec - vec
+      - vec * float/int
+      - vec * matrix
+      - vec * vec
+      - vec * quat
+      - -vec (this is shorthand for negate())
+  @note: You can access a vector object like a sequence
+      - x = vector[0]
+  @attention: Vector data can be wrapped or non-wrapped. When a object is wrapped it
+  means that the object will give you direct access to the data inside of blender. Modification
+  of this object will directly change the data inside of blender. To copy a wrapped object
+  you need to use the object's constructor. If you copy and object by assignment you will not get
+  a second copy but a second reference to the same data. Only certain functions will return 
+  wrapped data. This will be indicated in the method description.
+  Example::
+      wrappedObject = Object.getAttribute() #this is wrapped data
+      print wrappedObject.wrapped #prints 'True'
+      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      secondPointer = wrappedObject #creates a second pointer to the same data
+      print wrappedObject.attribute #prints '5'
+      secondPointer.attribute = 10
+      print wrappedObject.attribute #prints '10'
+      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list = None):
     """
-    Create a new Vector object from a list.
+    Create a new 2d, 3d, or 4d Vector object from a list of numbers.
 
     Example::
-      v = Blender.Mathutils.Vector([1,0,0])
+      v = Vector(1,0,0)
+      v = Vector(myVec)
+      v = Vector(list)
     @type list: PyList of float or int
-    @param list: The list of values for the Vector object.
+    @param list: The list of values for the Vector object. Can be a sequence or raw numbers.
     Must be 2, 3, or 4 values. The list is mapped to the parameters as [x,y,z,w].
     @rtype: Vector object.
     @return: It depends wheter a parameter was passed:
@@ -404,31 +455,40 @@ class Vector:
   def zero():
     """
     Set all values to zero.
+    @return: a copy of itself
     """
 
   def normalize():
     """
     Normalize the vector.
+    @return: a copy of itself
     """
 
   def negate():
     """
     Set all values to their negative.
+    @return: a copy of itself
+    @attention: B{DEPRECATED} You can use -vector instead
+    Example::
+        negVector = -myVec
     """
 
   def resize2D():
     """
     Resize the vector to 2d.
+    @return: a copy of itself
     """
 
   def resize3D():
     """
     Resize the vector to 3d.
+    @return: a copy of itself
     """
 
   def resize4D():
     """
     Resize the vector to 4d.
+    @return: a copy of itself
     """
 
   def toTrackQuat(track, up):
@@ -459,6 +519,24 @@ class Euler:
   @ivar x: The heading value in degrees.
   @ivar y: The pitch value in degrees.
   @ivar z: The roll value in degrees.
+  @ivar wrapped: Whether or not this object is wrapping data directly
+  @note: You can access a euler object like a sequence
+      - x = euler[0]
+  @attention: Euler data can be wrapped or non-wrapped. When a object is wrapped it
+  means that the object will give you direct access to the data inside of blender. Modification
+  of this object will directly change the data inside of blender. To copy a wrapped object
+  you need to use the object's constructor. If you copy and object by assignment you will not get
+  a second copy but a second reference to the same data. Only certain functions will return 
+  wrapped data. This will be indicated in the method description.
+  Example::
+      wrappedObject = Object.getAttribute() #this is wrapped data
+      print wrappedObject.wrapped #prints 'True'
+      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      secondPointer = wrappedObject #creates a second pointer to the same data
+      print wrappedObject.attribute #prints '5'
+      secondPointer.attribute = 10
+      print wrappedObject.attribute #prints '10'
+      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list = None):
@@ -466,7 +544,9 @@ class Euler:
     Create a new euler object.
 
     Example::
-      euler = Euler([45,0,0])
+      euler = Euler(45,0,0)
+      euler = Euler(myEuler)
+      euler = Euler(sequence)
     @type list: PyList of float/int
     @param list: 3d list to initialize euler
     @rtype: Euler object
@@ -477,11 +557,13 @@ class Euler:
   def zero():
     """
     Set all values to zero.
+    @return: a copy of itself
     """
 
   def unique():
     """
-    Calculate a unique rotation for this euler.
+    Calculate a unique rotation for this euler. Avoids gimble lock.
+    @return: a copy of itself
     """
 
   def toMatrix():
@@ -489,7 +571,6 @@ class Euler:
     Return a matrix representation of the euler.
     @rtype: Matrix object
     @return: A roation matrix representation of the euler.
-
     """
 
   def toQuat():
@@ -497,7 +578,6 @@ class Euler:
     Return a quaternion representation of the euler.
     @rtype: Quaternion object
     @return: Quaternion representation of the euler.
-
     """
 
 class Quaternion:
@@ -509,10 +589,34 @@ class Quaternion:
   @ivar x: The x value.
   @ivar y: The y value.
   @ivar z: The z value.
+  @ivar wrapped: Wether or not this object wraps data directly
   @ivar magnitude: The magnitude of the quaternion.
   @ivar axis: Vector representing the axis of rotation.
   @ivar angle: A scalar representing the amount of rotation
   in degrees.
+  @note: Math can be performed on Quaternion classes
+      - quat + quat
+      - quat - quat 
+      - quat * float/int
+      - quat * vec
+      - quat * quat
+  @note: You can access a quaternion object like a sequence
+      - x = quat[0]
+  @attention: Quaternion data can be wrapped or non-wrapped. When a object is wrapped it
+  means that the object will give you direct access to the data inside of blender. Modification
+  of this object will directly change the data inside of blender. To copy a wrapped object
+  you need to use the object's constructor. If you copy and object by assignment you will not get
+  a second copy but a second reference to the same data. Only certain functions will return 
+  wrapped data. This will be indicated in the method description.
+  Example::
+      wrappedObject = Object.getAttribute() #this is wrapped data
+      print wrappedObject.wrapped #prints 'True'
+      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      secondPointer = wrappedObject #creates a second pointer to the same data
+      print wrappedObject.attribute #prints '5'
+      secondPointer.attribute = 10
+      print wrappedObject.attribute #prints '10'
+      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list, angle = None):
@@ -520,7 +624,10 @@ class Quaternion:
     Create a new quaternion object from initialized values.
 
     Example::
-      quat = Mathutils.Quaternion([1.0,0.0,0.0])
+      quat = Quaternion(1,2,3,4)
+      quat = Quaternion(axis, angle)
+	quat = Quaternion()
+	quat = Quaternion(180, list)
 
     @type list: PyList of int/float
     @param list: A 3d or 4d list to initialize quaternion.
@@ -537,26 +644,31 @@ class Quaternion:
   def identity():
     """
     Set the quaternion to the identity quaternion.
+    @return: a copy of itself
     """
 
   def negate():
     """
     Set the quaternion to it's negative.
+    @return: a copy of itself
     """
 
   def conjugate():
     """
     Set the quaternion to it's conjugate.
+    @return: a copy of itself
     """
 
   def inverse():
     """
     Set the quaternion to it's inverse
+    @return: a copy of itself
     """
 
   def normalize():
     """
     Normalize the quaternion.
+    @return: a copy of itself
     """
 
   def toEuler():
@@ -564,7 +676,6 @@ class Quaternion:
     Return Euler representation of the quaternion.
     @rtype: Euler object
     @return: Euler representation of the quaternion.
-
     """
   
   def toMatrix():
@@ -572,7 +683,6 @@ class Quaternion:
     Return a matrix representation of the quaternion.
     @rtype: Matrix object
     @return: A rotation matrix representation of the quaternion.
-
     """
 
 class Matrix:
@@ -582,6 +692,31 @@ class Matrix:
     This object gives access to Matrices in Blender.
   @ivar rowsize: The row size of the matrix.
   @ivar colsize: The column size of the matrix.
+  @ivar wrapped: Whether or not this object wrapps internal data
+  @note: Math can be performed on Matrix classes
+      - mat + mat 
+      - mat - mat 
+      - mat * float/int
+      - mat * vec
+      - mat * mat 
+  @note: You can access a quaternion object like a 2d sequence
+      - x = matrix[0][1]
+      - vector = matrix[2]
+  @attention: Quaternion data can be wrapped or non-wrapped. When a object is wrapped it
+  means that the object will give you direct access to the data inside of blender. Modification
+  of this object will directly change the data inside of blender. To copy a wrapped object
+  you need to use the object's constructor. If you copy and object by assignment you will not get
+  a second copy but a second reference to the same data. Only certain functions will return 
+  wrapped data. This will be indicated in the method description.
+  Example::
+      wrappedObject = Object.getAttribute() #this is wrapped data
+      print wrappedObject.wrapped #prints 'True'
+      copyOfObject = Object(wrappedObject) #creates a copy of the object
+      secondPointer = wrappedObject #creates a second pointer to the same data
+      print wrappedObject.attribute #prints '5'
+      secondPointer.attribute = 10
+      print wrappedObject.attribute #prints '10'
+      print copyOfObject.attribute #prints '5'
   """
 
   def __init__(list1 = None, list2 = None, list3 = None, list4 = None):
@@ -589,7 +724,9 @@ class Matrix:
     Create a new matrix object from initialized values.
 
     Example::
-      matrix = Mathutils.Matrix([1,1,1],[0,1,0],[1,0,0])
+      matrix = Matrix([1,1,1],[0,1,0],[1,0,0])
+      matrix = Matrix(mat)
+      matrix = Matrix(seq1, seq2, vector)
 
     @type list1: PyList of int/float
     @param list1: A 2d,3d or 4d list.
@@ -608,29 +745,32 @@ class Matrix:
   def zero():
     """
     Set all matrix values to 0.
+    @return: a copy of itself
     """
 
   def identity():
     """
     Set the matrix to the identity matrix.
+    @return: a copy of itself
     """
 
   def transpose():
     """
     Set the matrix to it's transpose.
+    @return: a copy of itself
     """
 
   def determinant():
     """
     Return the determinant of a matrix.
-    @rtype: int
+    @rtype: float
     @return: Return a the determinant of a matrix.
-
     """
 
   def invert():
     """
     Set the matrix to it's inverse.
+    @return: a copy of itself
     """
 
   def rotationPart():
@@ -641,7 +781,6 @@ class Matrix:
     scaling, too.
     @rtype: Matrix object.
     @return: Return the 3d matrix for rotation and scale.
-
     """
 
   def translationPart():
@@ -649,12 +788,12 @@ class Matrix:
     Return a the translation part of a 4 row matrix.
     @rtype: Vector object.
     @return: Return a the translation of a matrix.
-
     """
 
   def resize4x4():
     """
     Resize the matrix to by 4x4
+    @return: a copy of itself
     """
   
   def toEuler():
@@ -662,7 +801,6 @@ class Matrix:
     Return an Euler representation of the rotation matrix.
     @rtype: Euler object
     @return: Euler representation of the rotation matrix.
-
     """
 
   def toQuat():
@@ -670,6 +808,5 @@ class Matrix:
     Return a quaternion representation of the rotation matrix
     @rtype: Quaternion object
     @return: Quaternion representation of the rotation matrix
-
     """
 

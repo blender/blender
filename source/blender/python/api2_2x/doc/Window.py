@@ -221,14 +221,14 @@ def GetViewVector ():
 def GetViewMatrix ():
   """
   Get the current 3d view matrix.
-  @rtype: 4x4 float matrix
+  @rtype: 4x4 float matrix (WRAPPED DATA)
   @return: the current matrix.
   """
 
 def GetPerspMatrix ():
   """
   Get the current 3d perspective matrix.
-  @rtype: 4x4 float matrix
+  @rtype: 4x4 float matrix (WRAPPED DATA)
   @return: the current matrix.
   """
 

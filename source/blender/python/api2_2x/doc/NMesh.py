@@ -214,11 +214,11 @@ class NMVert:
   The NMVert object
   =================
     This object holds mesh vertex data.
-  @type co: 3D Vector object.
+  @type co: 3D Vector object. (WRAPPED DATA)
   @ivar co: The vertex coordinates (x, y, z).
-  @type no: 3D Vector object. (unit length)
+  @type no: 3D Vector object. (unit length) (WRAPPED DATA)
   @ivar no: The vertex normal vector (x, y, z).
-  @type uvco: 3D Vector object.
+  @type uvco: 3D Vector object. (WRAPPED DATA)
   @ivar uvco: The vertex texture "sticky" coordinates. The Z value of the Vector is ignored.
   @type index: int
   @ivar index: The vertex index, if owned by a mesh.
