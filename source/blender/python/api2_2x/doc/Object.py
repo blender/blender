@@ -186,6 +186,7 @@ class Object:
     @ivar name: The name of the object.
     @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected.  
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
+    @ivar parentbonename: The string name of the parent bone.
   """
 
   def buildParts():
@@ -799,57 +800,6 @@ class Object:
     @param data: boolean value True, False, 0 or not 0.
     """
 
-class Property:
-  """
-  The Property object
-  ===================
-    This property gives access to object property data in Blender.
-    @ivar name: The property name.
-    @ivar data: Data for this property. Depends on property type.
-    @ivar type: The property type.
-    @warn:  Comparisons between properties will only be true when
-    both the name and data pairs are the same.
-  """
-
-  def getName ():
-    """
-    Get the name of this property.
-    @rtype: string
-    @return: The property name.
-    """
-
-  def setName (name):
-    """
-    Set the name of this property.
-    @type name: string
-    @param name: The new name of the property
-    """
-
-  def getData ():
-    """
-    Get the data for this property.
-    @rtype: string, int, or float
-    """
-
-  def setData (data):
-    """
-    Set the data for this property.
-    @type data: string, int, or float
-    @param data: The data to set for this property.
-    @warn:  See object.setProperty().  Changing data
-    which is of a different type then the property is 
-    set to (i.e. setting an int value to a float type'
-    property) will change the type of the property 
-    automatically.
-    """
-
-  def getType ():
-    """
-    Get the type for this property.
-    @rtype: string
-    """
-
-
   def getPIStregth():
     """
     Get the Object's Particle Interaction Strength.
@@ -989,7 +939,6 @@ class Property:
     @type damp: float
     @param damp: the Object's Particle Interaction New SurfaceDamp.
     """    
-
 
   def getSBMass():
     """
@@ -1234,3 +1183,54 @@ class Property:
     @type switch: int
     @param switch: the Object's SB New StiffQuads Value.
     """     
+
+
+class Property:
+  """
+  The Property object
+  ===================
+    This property gives access to object property data in Blender.
+    @ivar name: The property name.
+    @ivar data: Data for this property. Depends on property type.
+    @ivar type: The property type.
+    @warn:  Comparisons between properties will only be true when
+    both the name and data pairs are the same.
+  """
+
+  def getName ():
+    """
+    Get the name of this property.
+    @rtype: string
+    @return: The property name.
+    """
+
+  def setName (name):
+    """
+    Set the name of this property.
+    @type name: string
+    @param name: The new name of the property
+    """
+
+  def getData ():
+    """
+    Get the data for this property.
+    @rtype: string, int, or float
+    """
+
+  def setData (data):
+    """
+    Set the data for this property.
+    @type data: string, int, or float
+    @param data: The data to set for this property.
+    @warn:  See object.setProperty().  Changing data
+    which is of a different type then the property is 
+    set to (i.e. setting an int value to a float type'
+    property) will change the type of the property 
+    automatically.
+    """
+
+  def getType ():
+    """
+    Get the type for this property.
+    @rtype: string
+    """
