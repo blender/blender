@@ -357,7 +357,7 @@ bActionChannel *verify_action_channel(bAction *act, const char *name)
 
 
 /* Only allowed for Poses with identical channels */
-void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
+void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 {
 	bPoseChannel *dchan;
 	const bPoseChannel *schan;
@@ -407,6 +407,8 @@ void blend_poses(bPose *dst, const bPose *src, float srcweight, short mode)
 			dcon->enforce= dcon->enforce*(1.0f-srcweight) + scon->enforce*srcweight;
 		}
 	}
+	
+	VecLerpf(dst->stride_offset, dst->stride_offset, src->stride_offset, srcweight);
 }
 
 
@@ -503,6 +505,10 @@ static void rest_pose(bPose *pose)
 	
 	if (!pose)
 		return;
+	
+	pose->stride_offset[0]= 0.0f;
+	pose->stride_offset[1]= 0.0f;
+	pose->stride_offset[2]= 0.0f;
 	
 	for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
 		for (i=0; i<3; i++){
@@ -715,9 +721,12 @@ static float nla_time(float cfra, float unit)
 	return cfra;
 }
 
-static float stridechannel_frame(bAction *act, int stride_axis, char *name, float pdist)
+static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
+	bAction *act= strip->act;
+	char *name= strip->stridechannel;
 	bActionChannel *achan= get_action_channel(act, name);
+	int stride_axis= strip->stride_axis;
 
 	if(achan && achan->ipo) {
 		IpoCurve *icu= NULL;
@@ -745,29 +754,23 @@ static float stridechannel_frame(bAction *act, int stride_axis, char *name, floa
 		
 		if(foundvert && miny!=maxy) {
 			float stridelen= fabs(maxy-miny), striptime;
-			float actiondist, step= 0.5, error, threshold=0.00001f*stridelen;
-			int max= 20;
+			float actiondist, pdist;
+			float vec1[4], vec2[4], dir[3];
 			
 			/* amount path moves object */
-			pdist = (float)fmod (pdist, stridelen);
+			pdist = (float)fmod (pathdist, stridelen);
+			striptime= pdist/stridelen;
 			
-			/* wanted; the (0-1) factor that cancels out this distance, do simple newton-raphson */
-			striptime= step;
-			do {
-				actiondist= eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
-				
-				error= pdist - fabs(actiondist);
-				
-				step*=0.5f;
-				if(error > 0.0)
-					striptime += step;
-				else
-					striptime -= step;
-				
-				max--;
-			}
-			while( fabs(error) > threshold && max>0);
+			/* amount stride bone moves */
+			actiondist= eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
 			
+			pdist = pdist - fabs(actiondist);
+			
+			/* now we need to go pdist further (or less) on cu path */
+			where_on_path(ob, (pathdist)/path->totdist, vec1, dir);	/* vec needs size 4 */
+			where_on_path(ob, (pathdist+pdist)/path->totdist, vec2, dir);	/* vec needs size 4 */
+			VecSubf(stride_offset, vec1, vec2);
+			Mat4Mul3Vecfl(ob->obmat, stride_offset);
 			return striptime;
 		}
 	}
@@ -811,7 +814,7 @@ static void do_nla(Object *ob, int blocktype)
 					rest_pose(tpose);
 				
 				/* Handle path */
-				if (strip->flag & ACTSTRIP_USESTRIDE){
+				if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0){
 					if (ob->parent && ob->parent->type==OB_CURVE){
 						Curve *cu = ob->parent->data;
 						float ctime, pdist;
@@ -830,8 +833,9 @@ static void do_nla(Object *ob, int blocktype)
 								}
 								pdist = ctime*cu->path->totdist;
 								
-								if(strip->stridechannel[0])
-									striptime= stridechannel_frame(strip->act, strip->stride_axis, strip->stridechannel, pdist);
+								if(tpose && strip->stridechannel[0]) {
+									striptime= stridechannel_frame(ob->parent, strip, cu->path, pdist, tpose->stride_offset);
+								}									
 								else {
 									if (strip->stridelen) {
 										striptime = pdist / strip->stridelen;
@@ -844,8 +848,9 @@ static void do_nla(Object *ob, int blocktype)
 								frametime = (striptime * actlength) + strip->actstart;
 								frametime= bsystem_time(ob, 0, frametime, 0.0);
 								
-								if(blocktype==ID_AR)
+								if(blocktype==ID_AR) {
 									extract_pose_from_action (tpose, strip->act, frametime);
+								}
 								else if(blocktype==ID_OB) {
 									extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
 									if(key)
@@ -921,14 +926,18 @@ static void do_nla(Object *ob, int blocktype)
 	if(blocktype==ID_OB) {
 		execute_ipochannels(&chanbase);
 	}
-
+	else if(blocktype==ID_AR) {
+		/* apply stride offset to object */
+		VecAddf(ob->obmat[3], ob->obmat[3], ob->pose->stride_offset);
+	}
+	
+	/* free */
 	if (tpose){
 		free_pose_channels(tpose);
 		MEM_freeN(tpose);
 	}
 	if(chanbase.first)
 		BLI_freelistN(&chanbase);
-	
 	
 }
 

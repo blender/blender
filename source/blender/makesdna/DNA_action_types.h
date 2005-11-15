@@ -79,7 +79,8 @@ typedef struct bPoseChannel {
 
 typedef struct bPose{
 	ListBase			chanbase;
-	int flag, pad;
+	int flag;
+	float stride_offset[3];
 } bPose;
 
 typedef struct bActionChannel {

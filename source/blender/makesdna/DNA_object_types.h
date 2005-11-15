@@ -282,6 +282,8 @@ extern Object workob;
 	/* get ipo from from action or not? */
 #define OB_ACTION_OB		256
 #define OB_ACTION_KEY		512
+	/* for stride edit */
+#define OB_DISABLE_PATH		1024
 
 /* (short) trackflag / upflag */
 #define OB_POSX			0

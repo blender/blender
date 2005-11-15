@@ -1075,8 +1075,12 @@ void ob_parcurve(Object *ob, Object *par, float mat[][4])
 		SWAP(float, timeoffs, ob->sf);
 	}
 	
+	/* catch exceptions: feature for nla stride editing */
+	if(ob->ipoflag & OB_DISABLE_PATH) {
+		ctime= 0.0f;
+	}
 	/* catch exceptions: curve paths used as a duplicator */
-	if(enable_cu_speed) {
+	else if(enable_cu_speed) {
 		ctime= bsystem_time(ob, par, (float)G.scene->r.cfra, 0.0);
 		
 		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {

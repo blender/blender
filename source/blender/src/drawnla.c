@@ -398,15 +398,17 @@ static void draw_nla_strips_keys(SpaceNla *snla)
 #define B_NLA_LOCK		122
 
 /* For now just returns the first selected strip */
-bActionStrip *get_active_nlastrip(void)
+bActionStrip *get_active_nlastrip(Object **obpp)
 {
 	Base *base;
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next){
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next){
-			if (strip->flag & ACTSTRIP_SELECT)
+			if (strip->flag & ACTSTRIP_SELECT) {
+				*obpp= base->object;
 				return strip;
+			}
 		}
 	}
 	
@@ -415,10 +417,11 @@ bActionStrip *get_active_nlastrip(void)
 
 void do_nlabuts(unsigned short event)
 {
+	Object *ob;
 	bActionStrip *strip;
 		
 	/* Determine if an nla strip has been selected */
-	strip = get_active_nlastrip();
+	strip = get_active_nlastrip(&ob);
 	if (!strip) return;
 	
 	switch(event) {
@@ -427,8 +430,7 @@ void do_nlabuts(unsigned short event)
 		allqueue(REDRAWNLA, 0);
 		break;
 	case B_NLA_PANEL:
-		
-		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB|OB_RECALC_DATA);
 		allqueue (REDRAWNLA, 0);
 		allqueue (REDRAWVIEW3D, 0);
 		break;
@@ -443,6 +445,7 @@ void do_nlabuts(unsigned short event)
 
 static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 {
+	Object *ob;
 	bActionStrip *strip;
 	uiBlock *block;
 
@@ -452,7 +455,7 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	if(uiNewPanel(curarea, block, "Transform Properties", "NLA", 10, 230, 318, 204)==0) return;
 
 	/* Determine if an nla strip has been selected */
-	strip = get_active_nlastrip();
+	strip = get_active_nlastrip(&ob);
 	if (!strip) return;
 	
 	/* first labels, for simpler align code :) */
@@ -488,8 +491,9 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	uiDefButS(block, TOG, B_NLA_PANEL, "Add",								230,60,75,19, &strip->mode, 0, 0, 0, 0, "Toggles additive blending mode");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Use Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Stride:",		110,20,200,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
+	uiDefButBitS(block, TOG, ACTSTRIP_USESTRIDE, B_NLA_PANEL, "Stride Path",	10,20,100,19, &strip->flag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	uiDefButBitS(block, TOG, OB_DISABLE_PATH, B_NLA_PANEL, "Disable Path",		110,20,100,19, &ob->ipoflag, 0, 0, 0, 0, "Plays action based on path position & stride");
+	uiDefButF(block, NUM, B_NLA_PANEL, "Stride:",		210,20,100,19, &strip->stridelen, 0.0001, 1000.0, 100, 0, "Distance covered by one complete cycle of the action specified in the Action Range");
 	
 	uiDefButS(block, ROW, B_NLA_PANEL, "X",				10, 0, 33, 19, &strip->stride_axis, 1, 0, 0, 0, "Dominant axis for Stride Bone");
 	uiDefButS(block, ROW, B_NLA_PANEL, "Y",				43, 0, 33, 19, &strip->stride_axis, 1, 1, 0, 0, "Dominant axis for Stride Bone");

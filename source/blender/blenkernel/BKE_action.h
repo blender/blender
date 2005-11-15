@@ -133,7 +133,7 @@ struct bActionChannel *get_action_channel(struct bAction *act,  const char *name
 struct bActionChannel *verify_action_channel(struct bAction *act, const char *name);
 
 /* exported for game engine */
-void blend_poses(struct bPose *dst, const struct bPose *src, float srcweight, short mode);
+void blend_poses(struct bPose *dst, struct bPose *src, float srcweight, short mode);
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);
 
 /* map global time (frame nr) to strip converted time, doesn't clip */
