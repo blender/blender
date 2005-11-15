@@ -1851,6 +1851,9 @@ static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args )
 	self->object->dloc[1] = dloc2;
 	self->object->dloc[2] = dloc3;
 
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
 	Py_INCREF( Py_None );
 	return ( Py_None );
 }
@@ -1865,6 +1868,9 @@ static PyObject *Object_setDrawMode( BPy_Object * self, PyObject * args )
 	}
 	self->object->dtx = dtx;
 
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
 	Py_INCREF( Py_None );
 	return ( Py_None );
 }
@@ -1878,6 +1884,9 @@ static PyObject *Object_setDrawType( BPy_Object * self, PyObject * args )
 						"expected an integer as argument" ) );
 	}
 	self->object->dt = dt;
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
@@ -1930,6 +1939,9 @@ static PyObject *Object_setEuler( BPy_Object * self, PyObject * args )
 	self->object->rot[1] = rot2;
 	self->object->rot[2] = rot3;
 
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
 	Py_INCREF( Py_None );
 	return ( Py_None );
 }
@@ -1951,6 +1963,9 @@ static PyObject *Object_setMatrix( BPy_Object * self, PyObject * args )
 		}
 	}
 	apply_obmat( self->object );
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
@@ -1987,6 +2002,9 @@ static PyObject *Object_setIpo( BPy_Object * self, PyObject * args )
 	( ( ID * ) & ipo->id )->us++;
 
 	self->object->ipo = ipo;
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_INCREF( Py_None );
 	return Py_None;
@@ -2142,6 +2160,10 @@ static PyObject *Object_setMaterials( BPy_Object * self, PyObject * args )
 		default:
 			break;
 	}
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
+
 	return EXPP_incr_ret( Py_None );
 }
 
@@ -2184,6 +2206,9 @@ static PyObject *Object_setSize( BPy_Object * self, PyObject * args )
 	self->object->size[0] = sizex;
 	self->object->size[1] = sizey;
 	self->object->size[2] = sizez;
+
+	/* since we have messed with object, we need to flag for DAG recalc */
+	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_INCREF( Py_None );
 	return ( Py_None );
@@ -2874,12 +2899,12 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 				       "Not allowed. Please use .setMatrix(matrix)" );
 
-	/* FIRST, do attributes that are diretly changed */
+	/* FIRST, do attributes that are directly changed */
 
 	/* 
 	   All the methods below modify the object so we set the recalc
 	   flag here.
-	   When we move to tp_getset, the individual settors will need
+	   When we move to tp_getset, the individual setters will need
 	   to set the flag.
 	*/
 	object->recalc |= OB_RECALC_OB;
