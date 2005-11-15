@@ -2038,6 +2038,13 @@ void special_aftertrans_update(TransInfo *t)
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
 		if(!cancelled && t->mode==TFM_TRANSLATION)
 			apply_targetless_ik(ob);
+		else {
+			/* not forget to clear the auto flag */
+			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+				bKinematicConstraint *data= has_targetless_ik(pchan);
+				if(data) data->flag &= ~CONSTRAINT_IK_AUTO;
+			}
+		}
 		
 		if(t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
