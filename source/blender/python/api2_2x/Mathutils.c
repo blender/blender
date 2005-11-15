@@ -71,6 +71,7 @@ static char M_Mathutils_TriangleArea_doc[] = "(v1, v2, v3) - returns the area si
 static char M_Mathutils_TriangleNormal_doc[] = "(v1, v2, v3) - returns the normal of the 3D triangle defined";
 static char M_Mathutils_QuadNormal_doc[] = "(v1, v2, v3, v4) - returns the normal of the 3D quad defined";
 static char M_Mathutils_LineIntersect_doc[] = "(v1, v2, v3, v4) - returns a tuple with the points on each line respectively closest to the other";
+static char M_Mathutils_Point_doc[] = "Creates a 2d or 3d point object";
 //-----------------------METHOD DEFINITIONS ----------------------
 struct PyMethodDef M_Mathutils_methods[] = {
 	{"Rand", (PyCFunction) M_Mathutils_Rand, METH_VARARGS, M_Mathutils_Rand_doc},
@@ -104,6 +105,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"TriangleNormal", ( PyCFunction ) M_Mathutils_TriangleNormal, METH_VARARGS, M_Mathutils_TriangleNormal_doc},
 	{"QuadNormal", ( PyCFunction ) M_Mathutils_QuadNormal, METH_VARARGS, M_Mathutils_QuadNormal_doc},
 	{"LineIntersect", ( PyCFunction ) M_Mathutils_LineIntersect, METH_VARARGS, M_Mathutils_LineIntersect_doc},
+	{"Point", (PyCFunction) M_Mathutils_Point, METH_VARARGS, M_Mathutils_Point_doc},
 	{NULL, NULL, 0, NULL}
 };
 //----------------------------MODULE INIT-------------------------
@@ -1292,6 +1294,60 @@ PyObject *M_Mathutils_Euler(PyObject * self, PyObject * args)
 	}
 	Py_DECREF(listObject);
 	return newEulerObject(eul, Py_NEW);
+}
+//----------------------------------POINT FUNCTIONS---------------------
+//----------------------------------Mathutils.Point() ------------------
+PyObject *M_Mathutils_Point(PyObject * self, PyObject * args)
+{
+	PyObject *listObject = NULL;
+	int size, i;
+	float point[3];
+	PyObject *v, *f;
+
+	size = PySequence_Length(args);
+	if (size == 1) {
+		listObject = PySequence_GetItem(args, 0);
+		if (PySequence_Check(listObject)) {
+			size = PySequence_Length(listObject);
+		} else { // Single argument was not a sequence
+			Py_XDECREF(listObject);
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
+		}
+	} else if (size == 0) {
+		//returns a new empty 3d point
+		return newPointObject(NULL, 3, Py_NEW); 
+	} else {
+		listObject = EXPP_incr_ret(args);
+	}
+
+	if (size<2 || size>3) { // Invalid vector size
+		Py_XDECREF(listObject);
+		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
+			"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
+	}
+
+	for (i=0; i<size; i++) {
+		v=PySequence_GetItem(listObject, i);
+		if (v==NULL) { // Failed to read sequence
+			Py_XDECREF(listObject);
+			return EXPP_ReturnPyObjError(PyExc_RuntimeError, 
+				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
+		}
+
+		f=PyNumber_Float(v);
+		if(f==NULL) { // parsed item not a number
+			Py_DECREF(v);
+			Py_XDECREF(listObject);
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+				"Mathutils.Point(): 2-3 floats or ints expected (optionally in a sequence)\n");
+		}
+
+		point[i]=(float)PyFloat_AS_DOUBLE(f);
+		EXPP_decr2(f,v);
+	}
+	Py_DECREF(listObject);
+	return newPointObject(point, size, Py_NEW);
 }
 //---------------------------------INTERSECTION FUNCTIONS--------------------
 //----------------------------------Mathutils.Intersect() -------------------
