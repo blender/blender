@@ -1574,7 +1574,9 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 		if (con->type==CONSTRAINT_TYPE_KINEMATIC) continue;
 		// and this we can skip completely
 		if (con->flag & CONSTRAINT_DISABLE) continue;
-			
+		// local constraints are handled in armature.c only 
+		if (con->flag & CONSTRAINT_LOCAL) continue;
+
 		/* Clear accumulators if necessary*/
 		if (clear) {
 			clear= 0;

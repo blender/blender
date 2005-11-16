@@ -191,6 +191,9 @@ typedef struct bStretchToConstraint{
 		/* flags 0x2 and 0x8 were used in past, skip this */
 		/* to indicate which Ipo should be shown, maybe for 3d access later too */
 #define CONSTRAINT_ACTIVE		0x10
+		/* only for Pose, evaluates constraints in posechannel local space */
+#define CONSTRAINT_LOCAL		0x20
+
 
 /* bConstraintChannel.flag */
 #define CONSTRAINT_CHANNEL_SELECT	0x01

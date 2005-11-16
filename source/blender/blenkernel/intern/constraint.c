@@ -1016,6 +1016,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 
 /* only called during solve_constraints */
 /* bone constraints create a fake object to work on, then ob is a workob */
+/* if ownerdata is set, it's the posechannel */
 void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, void *ownerdata, float targetmat[][4])
 {
 	float	M_oldmat[4][4];

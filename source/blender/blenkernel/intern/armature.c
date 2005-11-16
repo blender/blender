@@ -1401,6 +1401,52 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 	pchan->flag |= POSE_DONE;
 }
 
+static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
+{
+	switch(con->type) {
+		case CONSTRAINT_TYPE_LOCLIKE:
+		{
+			bLocateLikeConstraint *data= con->data;
+			
+			if(data->tar && data->subtarget[0]) {
+				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
+				if(pchant) {
+					if (data->flag & LOCLIKE_X)
+						pchan->loc[0]= pchant->loc[0];
+					if (data->flag & LOCLIKE_Y)
+						pchan->loc[1]= pchant->loc[1];
+					if (data->flag & LOCLIKE_Z)
+						pchan->loc[2]= pchant->loc[2];
+				}
+			}
+		}
+			break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data= con->data;
+			if(data->tar && data->subtarget[0]) {
+				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
+				if(pchant) {
+					if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
+						float eul[3], eult[3], fac= con->enforce;
+						
+						QuatToEul(pchan->quat, eul);
+						QuatToEul(pchant->quat, eult);
+						if(data->flag & ROTLIKE_X) eul[0]= fac*eult[0] + (1.0f-fac)*eul[0];
+						if(data->flag & ROTLIKE_Y) eul[1]= fac*eult[1] + (1.0f-fac)*eul[1];
+						if(data->flag & ROTLIKE_Z) eul[2]= fac*eult[2] + (1.0f-fac)*eul[2];
+						EulToQuat(eul, pchan->quat);
+					}
+					else {
+						QuatInterpol(pchan->quat, pchan->quat, pchant->quat, con->enforce);
+					}
+				}
+			}
+		}
+	}
+}
+
+
 /* The main armature solver, does all constraints excluding IK */
 /* pchan is validated, as having bone and parent pointer */
 static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
@@ -1413,6 +1459,15 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	bone= pchan->bone;
 	parbone= bone->parent;
 	parchan= pchan->parent;
+		
+	/* Do local constraints, these only work on the channel data (loc rot size) */
+	if(pchan->constraints.first) {
+		bConstraint *con;
+		for(con=pchan->constraints.first; con; con= con->next) {
+			if(con->flag & CONSTRAINT_LOCAL)
+				do_local_constraint(pchan, con);
+		}
+	}
 		
 	/* this gives a chan_mat with actions (ipos) results */
 	chan_calc_mat(pchan);
