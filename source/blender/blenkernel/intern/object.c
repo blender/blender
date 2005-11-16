@@ -1186,15 +1186,15 @@ void give_parvert(Object *par, int nr, float *vec)
 			}
 		}
 		else {
-			int needsFree;
-			DerivedMesh *dm = mesh_get_derived_deform(par, &needsFree);
+			/* maybe this is against the derivedmesh philosphy, but where_is_object is called
+			   by code that is called by build_mesh... (when ob->sf!=0.0) so it can cycle eternally */
+			DerivedMesh *dm = par->derivedDeform; //mesh_get_derived_deform(par, &needsFree);
+			
+			if(dm) {
+				if(nr >= dm->getNumVerts(dm)) nr= 0;
 
-			if(nr >= dm->getNumVerts(dm)) nr= 0;
-
-			dm->getVertCo(dm, nr, vec);
-
-			if (needsFree)
-				dm->release(dm);
+				dm->getVertCo(dm, nr, vec);
+			}
 		}
 	}
 	else if ELEM(par->type, OB_CURVE, OB_SURF) {
