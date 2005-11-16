@@ -5009,6 +5009,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 239) {
+		bArmature *arm;
 		Object *ob;
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
@@ -5028,6 +5029,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+		}
+		
+		/* updating stepsize for ghost drawing */
+		for(arm= main->armature.first; arm; arm= arm->id.next) {
+			if (arm->ghostsize==0) arm->ghostsize=1;
 		}
 		
 		while(sce) {

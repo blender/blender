@@ -1721,8 +1721,8 @@ static void draw_ghost_poses(Base *base)
 	bArmature *arm= ob->data;
 	bPose *posen, *poseo;
 	bActionStrip *strip;
-	float cur, start, end, stepsize, range, colfac, actframe;
-	int cfrao, maptime, flago;
+	float cur, start, end, stepsize, range, colfac, actframe, ctime;
+	int cfrao, maptime, flago, ipoflago;
 	
 	/* pre conditions, get an action with sufficient frames */
 	if(ob->action==NULL)
@@ -1732,8 +1732,8 @@ static void draw_ghost_poses(Base *base)
 	if(start==end)
 		return;
 
-	stepsize= 1.0f;
-	range= (float)(arm->ghostep);
+	stepsize= (float)(arm->ghostsize);
+	range= (float)(arm->ghostep)*stepsize + 0.5f;	/* plus half to make the for loop end correct */
 	
 	/* we only map time for armature when an active strip exists */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
@@ -1749,6 +1749,8 @@ static void draw_ghost_poses(Base *base)
 	else actframe= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
+	ipoflago= ob->ipoflag; 
+	ob->ipoflag |= OB_DISABLE_PATH;
 	
 	/* copy the pose */
 	poseo= ob->pose;
@@ -1759,17 +1761,18 @@ static void draw_ghost_poses(Base *base)
 	glEnable(GL_BLEND);
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
-	/* draw from lowest blend to darkest */
-	for(cur= 0.5f; cur<range; cur+=stepsize) {
+	/* draw from darkest blend to lowest */
+	for(cur= stepsize; cur<range; cur+=stepsize) {
 		
-		colfac= cur/range;
+		ctime= cur - fmod((float)cfrao, stepsize);	/* ensures consistant stepping */
+		colfac= ctime/range;
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
 		/* only within action range */
-		if(actframe+cur >= start && actframe+cur <= end) {
+		if(actframe+ctime >= start && actframe+ctime <= end) {
 			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe+cur);
-			else CFRA= (int)(actframe+cur);
+			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
+			else CFRA= (int)floor(actframe+ctime);
 			
 			if(CFRA!=cfrao) {
 				do_all_pose_actions(ob);
@@ -1777,12 +1780,17 @@ static void draw_ghost_poses(Base *base)
 				draw_pose_channels(base, OB_WIRE);
 			}
 		}
+		
+		ctime= cur + fmod((float)cfrao, stepsize) - stepsize+1.0f;	/* ensures consistant stepping */
+		colfac= ctime/range;
+		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		
 		/* only within action range */
-		if(actframe-cur >= start && actframe-cur <= end) {
+		if(actframe-ctime >= start && actframe-ctime <= end) {
 			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe-cur);
-			else CFRA= (int)(actframe-cur);
-			
+			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
+			else CFRA= (int)floor(actframe-ctime);
+
 			if(CFRA!=cfrao) {
 				do_all_pose_actions(ob);
 				where_is_pose(ob);
@@ -1801,8 +1809,9 @@ static void draw_ghost_poses(Base *base)
 	ob->pose= poseo;
 	arm->flag= flago;
 	armature_rebuild_pose(ob, ob->data);
-	
 	ob->flag |= OB_POSEMODE;
+	ob->ipoflag= ipoflago; 
+
 }
 
 /* called from drawobject.c */
