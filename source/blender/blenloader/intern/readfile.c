@@ -5049,6 +5049,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (!(cam->flag & CAM_SHOWTITLESAFE))
 					cam->flag |= CAM_SHOWTITLESAFE;
 				*/
+				
+				/* set an appropriate camera passepartout alpha */
+				if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
+				
 				cam= cam->id.next;
 			}
 			sce= sce->id.next;

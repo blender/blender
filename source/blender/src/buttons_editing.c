@@ -2316,27 +2316,34 @@ if(cam->type==CAM_ORTHO) {
 	uiDefButF(block, NUM,REDRAWVIEW3D, "End:",
 			  0, 50, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
 	uiBlockEndAlign(block);
+			
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
+			  0, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different to the object's scale)");
 	
 	uiDefBut(block, LABEL, 0, "Show:", 160, 155, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|0,REDRAWVIEW3D, "Limits",
+	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Limits",
 			  160, 135, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
-	uiDefButS(block, TOG|BIT|1,REDRAWVIEW3D, "Mist",
+	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "Mist",
 			  160, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|2,REDRAWVIEW3D, "Passepartout",
-			  160, 90, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
-	uiDefButS(block, TOG|BIT|3,REDRAWVIEW3D, "Title Safe",
+	uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Name",
+			  160, 90, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
+		uiDefButS(block, TOG|BIT|3, REDRAWVIEW3D, "Title Safe",
 			  160, 70, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
-	uiDefButS(block, TOG|BIT|4,REDRAWVIEW3D, "Name",
-			  160, 50, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
-			  160, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "Specify the drawsize of the camera");
+	uiBlockBeginAlign(block);	
+	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout",
+			  160, 45, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
+	uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Alpha: ",
+			160, 25, 150, 20, &cam->passepartalpha, 0.0, 1.0, 0, 0, "The opacity (darkness) of the passepartout");
+	uiBlockEndAlign(block);
+
+
 }
 
 /* yafray: extra camera panel to set Depth-of-Field parameters */

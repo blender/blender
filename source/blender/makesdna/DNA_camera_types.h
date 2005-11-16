@@ -47,6 +47,7 @@ typedef struct Camera {
 	ID id;
 	
 	short type, flag;
+	float passepartalpha, pad1;
 	float clipsta, clipend;
 	float lens, ortho_scale, drawsize;
 	

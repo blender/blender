@@ -920,11 +920,11 @@ static void drawviewborder(void)
 	x2= viewborder.xmax;
 	y2= viewborder.ymax;
 
-	/* passepartout, in color of backdrop minus 50 */
+	/* passepartout, specified in camera edit buttons */
 	if (ca->flag & CAM_SHOWPASSEPARTOUT) {
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glEnable(GL_BLEND);
-		glColor4ub(0, 0, 0, 50);
+		glColor4f(0, 0, 0, ca->passepartalpha);
 		
 		if (x1 > 0.0) {
 			glRectf(0.0, (float)curarea->winy, x1, 0.0);
