@@ -2158,6 +2158,19 @@ void special_editmenu(void)
 		else if(nr==2)
 			armature_flip_names();
 	}
+	else if(G.obedit->type==OB_LATTICE) {
+		static float weight= 1.0f;
+		if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
+			int a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			BPoint *bp= editLatt->def;
+			
+			while(a--) {
+				if(bp->f1 & SELECT)
+					bp->vec[3]= weight;
+				bp++;
+			}	
+		}
+	}
 
 	countall();
 	allqueue(REDRAWVIEW3D, 0);

@@ -1462,7 +1462,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 }
 static void do_lattice_box_select(rcti *rect, int select)
 {
-	struct { rcti *rect; short select, pass, done; } data;
+	struct { rcti *rect; int select, pass, done; } data;
 
 	data.rect = rect;
 	data.select = select;

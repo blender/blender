@@ -1043,6 +1043,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 static void lattice_to_softbody(Object *ob,int *rcs)
 {
 	Lattice *lt= ob->data;
+	SoftBody *sb= ob->soft;
 	int totvert, totspring = 0;
 
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
@@ -1059,6 +1060,22 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(ob, totvert, totspring,rcs);
+	
+	/* weights from bpoints, same code used as for mesh vertices */
+	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+		BodyPoint *bp= sb->bpoint;
+		BPoint *bpnt= lt->def;
+		float goalfac= ABS(sb->maxgoal - sb->mingoal);
+		int a;
+
+		for(a=0; a<totvert; a++, bp++, bpnt++) {
+			
+			bp->goal= sb->mingoal + bpnt->vec[3]*goalfac;
+
+			/* a little ad hoc changing the goal control to be less *sharp* */
+			bp->goal = (float)pow(bp->goal, 4.0f);
+		}
+	}	
 	
 	/* create some helper edges to enable SB lattice to be usefull at all */
 	if (ob->softflag & OB_SB_EDGES){

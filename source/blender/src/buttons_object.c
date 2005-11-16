@@ -1877,23 +1877,28 @@ static void object_softbodies(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,100,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
 			
-			menustr= get_vertexgroup_menustr(ob);
-			defCount=BLI_countlist(&ob->defbase);
-			if(defCount==0) sb->vertgroup= 0;
-			uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,		140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
-			
-			if(sb->vertgroup) {
-				bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
-				if(defGroup)
-					uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+			if(ob->type==OB_MESH) {
+				menustr= get_vertexgroup_menustr(ob);
+				defCount=BLI_countlist(&ob->defbase);
+				if(defCount==0) sb->vertgroup= 0;
+				uiDefButS(block, MENU, B_SOFTBODY_CHANGE, menustr,	140,100,20,20, &sb->vertgroup, 0, defCount, 0, 0, "Browses available vertex groups");
+				MEM_freeN (menustr);
+
+				if(sb->vertgroup) {
+					bDeformGroup *defGroup = BLI_findlink(&ob->defbase, sb->vertgroup-1);
+					if(defGroup)
+						uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+					else
+						uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+					uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+				}
 				else
-					uiDefBut(block, BUT, B_DIFF, "(no group)",	160,100,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
-				uiDefIconBut(block, BUT, B_SOFTBODY_DEL_VG, ICON_X, 290,100,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 			}
 			else {
+				uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,100,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use Lattice weight values");
 				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 			}
-			MEM_freeN (menustr);
 
 			uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,80,150,20, &sb->goalspring, 0.0, 0.999, 10, 0, "Goal (vertex target position) spring stiffness");
 			uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,80,150,20, &sb->goalfrict  , 0.0, 10.0, 10, 0, "Goal (vertex target position) friction");

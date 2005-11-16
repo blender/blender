@@ -1298,7 +1298,9 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				VecAddf(median, median, bp->vec);
+				median[3]+= bp->vec[3];
 				tot++;
+				totw++;
 			}
 			bp++;
 		}
@@ -1329,9 +1331,12 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==1)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
-			
+			if(totw==1) {
+				if(ob->type==OB_LATTICE)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+				else
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			}
 			if(defstr[0]) {
 				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		10, 40, 290, 20, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -1344,8 +1349,12 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==tot)
-				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			if(totw==tot) {
+				if(ob->type==OB_LATTICE)
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
+				else
+					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			}
 		}
 		uiBlockEndAlign(block);
 		
@@ -1457,8 +1466,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			bp= editLatt->def;
 			while(a--) {
 				if(bp->f1 & SELECT) {
-					VecAddf(median, median, bp->vec);
 					VecAddf(bp->vec, bp->vec, median);
+					bp->vec[3]+= median[3];
 				}
 				bp++;
 			}
