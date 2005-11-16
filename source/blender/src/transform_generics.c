@@ -156,6 +156,8 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 		for(i = 0 ; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
 				break;
+			if (td->loc==NULL)
+				break;
 			
 			if(axis & 1) {
 				if(fabs(td->iloc[0])<=tolerance[0] || td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
