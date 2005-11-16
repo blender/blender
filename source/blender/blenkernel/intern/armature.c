@@ -1453,7 +1453,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
-	float vec[3];
+	float vec[3], quat[4];
 
 	/* set up variables for quicker access below */
 	bone= pchan->bone;
@@ -1461,6 +1461,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	parchan= pchan->parent;
 		
 	/* Do local constraints, these only work on the channel data (loc rot size) */
+	QUATCOPY(quat, pchan->quat);
 	if(pchan->constraints.first) {
 		bConstraint *con;
 		for(con=pchan->constraints.first; con; con= con->next) {
@@ -1468,9 +1469,10 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 				do_local_constraint(pchan, con);
 		}
 	}
-		
+	
 	/* this gives a chan_mat with actions (ipos) results */
 	chan_calc_mat(pchan);
+	QUATCOPY(pchan->quat, quat);	/* local constraint hack. bad! */
 	
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
