@@ -146,10 +146,10 @@ static PyObject *constant_repr(BPy_constant * self)
 	} else {
 		strcat(str,"{");
 		while (PyDict_Next(self->dict, &pos, &key, &value)) {
+			if( pos != 1 )
+				strcat (str, ", ");
 			strcat (str, PyString_AsString(key));
-			strcat (str, ", ");
 		}
-		strcat(str, PyString_AsString(key));
 		strcat(str,"}");
 	}
 	strcat(str, "]");
