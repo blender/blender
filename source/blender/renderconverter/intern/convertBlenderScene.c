@@ -812,7 +812,7 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	Particle *pa=0;
 	HaloRen *har=0;
 	Material *ma=0;
-	float xn, yn, zn, imat[3][3], mat[4][4], hasize, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
+	float xn, yn, zn, imat[3][3], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
 	int a, mat_nr=1, seed;
 
 	pa= paf->keys;
@@ -837,27 +837,29 @@ static void render_particle_system(Object *ob, PartEff *paf)
 	ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, ptime);
 	seed= ma->seed1;
 
-	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
+	for(a=0; a<paf->totpart; a++, pa+=paf->totkey, seed++) {
 
-		if((paf->flag & PAF_UNBORN)==0) {
-			if(ctime < pa->time)
-			{
-				seed++;
+		/* offset time for calculating normal */
+		stime= ctime;
+		ptime= ctime+1.0f;
+		if(ctime < pa->time) {
+			if(paf->flag & PAF_UNBORN)
+				ptime= pa->time+1.0f;
+			else
 				continue;
-			}
 		}
-		if((paf->flag & PAF_DIED)==0) {
-			if(ctime > pa->time+pa->lifetime)
-			{
-				seed++;
+		if(ctime > pa->time+pa->lifetime) {
+			if(paf->flag & PAF_DIED)
+				stime= pa->time+pa->lifetime-1.0f;
+			else
 				continue;
-			}
 		}
+		
 		/* watch it: also calculate the normal of a particle */
 		if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
-			where_is_particle(paf, pa, ctime, vec);
+			where_is_particle(paf, pa, stime, vec);
 			MTC_Mat4MulVecfl(R.viewmat, vec);
-			where_is_particle(paf, pa, ctime+1.0, vec1);
+			where_is_particle(paf, pa, ptime, vec1);
 			MTC_Mat4MulVecfl(R.viewmat, vec1);
 		}
 		else {
@@ -907,7 +909,6 @@ static void render_particle_system(Object *ob, PartEff *paf)
 			}
 		}
 		if(har) har->lay= ob->lay;
-		seed++;
 	}
 
 	/* restore material */
