@@ -141,9 +141,9 @@ class Ipo:
     @return: the corresponding IpoCurve, or None.
     """
 
-  def removeCurve(curvename):
+  def delCurve(curvename):
     """
-    Remove a existing curve from the IPO object. See addCurve() for possible values for curvename.
+    Delete an existing curve from the IPO object. See addCurve() for possible values for curvename.
     @type curvename : string
     @rtype: None
     @return: None.
