@@ -1439,7 +1439,7 @@ float init_meta(Object *ob)	/* return totsize */
 	MetaElem *ml;
 	float size, totsize, (*mat)[4] = NULL, (*imat)[4] = NULL, obinv[4][4], vec[3];
 	float temp1[4][4], temp2[4][4], temp3[4][4]; //max=0.0;
-	int a, obnr;
+	int a, obnr, zero_size=0;
 	char obname[32];
 	
 	Mat4Invert(obinv, ob->obmat);
@@ -1453,7 +1453,9 @@ float init_meta(Object *ob)	/* return totsize */
 	while(next_object(1, &base, &bob)) {
 
 		if(bob->type==OB_MBALL) {
-			ml= 0;
+			zero_size= 0;
+			ml= NULL;
+
 			if(bob==ob) {
 				mat= imat= 0;
 				mb= ob->data;
@@ -1475,6 +1477,32 @@ float init_meta(Object *ob)	/* return totsize */
 					else ml= mb->elems.first;
 				}
 			}
+
+			/* when metaball object hase zero scale, then MetaElem ot this MetaBall
+			 * will not be put to mainb array */
+			if(bob->size[0]==0.0 || bob->size[1]==0.0 || bob->size[2]==0.0) {
+				zero_size= 1;
+			}
+			else if(bob->parent) {
+				struct Object *pob=bob->parent;
+				while(pob) {
+					if(pob->size[0]==0.0 || pob->size[1]==0.0 || pob->size[2]==0.0) {
+						zero_size= 1;
+						break;
+					}
+					pob= pob->parent;
+				}
+			}
+
+			if (zero_size) {
+				unsigned int ml_count=0;
+				while(ml) {
+					ml_count++;
+					ml= ml->next;
+				}
+				totelem -= ml_count;
+			}
+			else {
 			while(ml) {
 				if(!(ml->flag & MB_HIDE)) {
 					int i;
@@ -1582,6 +1610,7 @@ float init_meta(Object *ob)	/* return totsize */
 					a++;
 				}
 				ml= ml->next;
+			}
 			}
 		}
 	}
