@@ -1123,6 +1123,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	float rootmat[4][4], imat[4][4];
 	float goal[4][4], goalinv[4][4];
 	float size[3], irest_basis[3][3], full_basis[3][3];
+	float end_pose[4][4], world_pose[4][4];
 	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
 	int a, flag, hasstretch=0;
 	bPoseChannel *pchan;
@@ -1254,24 +1255,25 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		/* do we need blending? */
 		if(target->con->enforce!=1.0) {
-			float vec[3], q1[4], q2[4], q[4];
+			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
 			
 			pchan= tree->pchan[target->tip];
 
+			/* end effector in world space */
+			Mat4CpyMat4(end_pose, pchan->pose_mat);
+			VECCOPY(end_pose[3], pchan->pose_tail);
+			Mat4MulSerie(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
+
 			/* blend position */
-			VECCOPY(vec, pchan->pose_tail);
-			Mat4MulVecfl(ob->obmat, vec); // world space
-			Mat4MulVecfl(goalinv, vec);
-			goalpos[0]= fac*goalpos[0] + mfac*vec[0];
-			goalpos[1]= fac*goalpos[1] + mfac*vec[1];
-			goalpos[2]= fac*goalpos[2] + mfac*vec[2];
+			goalpos[0]= fac*goalpos[0] + mfac*world_pose[3][0];
+			goalpos[1]= fac*goalpos[1] + mfac*world_pose[3][1];
+			goalpos[2]= fac*goalpos[2] + mfac*world_pose[3][2];
 
 			/* blend rotation */
 			Mat3ToQuat(goalrot, q1);
-			Mat3CpyMat4(R_bonemat, pchan->pose_mat);
-			Mat3ToQuat(R_bonemat, q2);
+			Mat4ToQuat(world_pose, q2);
 			QuatInterpol(q, q1, q2, mfac);
 			QuatToMat3(q, goalrot);
 		}
