@@ -678,7 +678,7 @@ void move_keys(Object *ob)
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 	if(G.sipo->editipo==NULL) return;
 
-	key= (Key *)G.sipo->from;
+	key= ob_get_key(ob);
 	if(key==NULL) return;
 	
 	/* which kb is involved */
