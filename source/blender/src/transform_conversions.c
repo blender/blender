@@ -454,6 +454,7 @@ static void apply_targetless_ik(Object *ob)
 				
 				parchan= chanlist[segcount-1];
 				bone= parchan->bone;
+				bone->flag |= BONE_TRANSFORM;	/* ensures it gets an auto key inserted */
 				
 				if(parchan->parent) {
 					Bone *parbone= parchan->parent->bone;
@@ -2057,9 +2058,8 @@ void special_aftertrans_update(TransInfo *t)
 			if (!act)
 				act= ob->action= add_empty_action(ID_PO);
 			
-			set_pose_keys(ob);  // sets chan->flag to POSE_KEY if bone selected
 			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
-				if (pchan->flag & POSE_KEY){
+				if (pchan->bone->flag & BONE_TRANSFORM){
 					
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
