@@ -36,6 +36,7 @@
 #include "BKE_main.h"
 #include "BKE_effect.h"
 #include "BKE_object.h"
+#include "BKE_deform.h"
 #include "BLI_blenlib.h"
 #include "gen_utils.h"
 #include "blendef.h"
@@ -66,6 +67,8 @@
 #define EXPP_EFFECT_LIFE_MIN             1.0f
 #define EXPP_EFFECT_DEFVEC_MIN          -1.0f
 #define EXPP_EFFECT_DEFVEC_MAX           1.0f
+#define EXPP_EFFECT_DAMP_MIN             0.0f
+#define EXPP_EFFECT_DAMP_MAX             1.0f
 
 #define EXPP_EFFECT_TOTKEY_MIN           1
 #define EXPP_EFFECT_TOTKEY_MAX         100
@@ -73,8 +76,22 @@
 #define EXPP_EFFECT_SEED_MAX           255
 #define EXPP_EFFECT_CHILD_MIN            1
 #define EXPP_EFFECT_CHILD_MAX          600
-#define EXPP_EFFECT_MAT_MIN              1
-#define EXPP_EFFECT_MAT_MAX              8
+#define EXPP_EFFECT_CHILDMAT_MIN         1
+#define EXPP_EFFECT_CHILDMAT_MAX        16
+#define EXPP_EFFECT_JITTER_MIN           0
+#define EXPP_EFFECT_JITTER_MAX         200
+#define EXPP_EFFECT_DISPMAT_MIN          1
+#define EXPP_EFFECT_DISPMAT_MAX         16
+#define EXPP_EFFECT_TIMETEX_MIN          1
+#define EXPP_EFFECT_TIMETEX_MAX         10
+#define EXPP_EFFECT_SPEEDTEX_MIN         1
+#define EXPP_EFFECT_SPEEDTEX_MAX        10
+#define EXPP_EFFECT_TEXMAP_MIN           1
+#define EXPP_EFFECT_TEXMAP_MAX           3
+
+#define EXPP_EFFECT_SPEEDTYPE_INTENSITY  0
+#define EXPP_EFFECT_SPEEDTYPE_RGB        1
+#define EXPP_EFFECT_SPEEDTYPE_GRADIENT   2
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		             */
@@ -122,12 +139,29 @@ static PyObject *Effect_getMult( BPy_Effect * self );
 static int Effect_setMult( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_getLife( BPy_Effect * self );
 static int Effect_setLife( BPy_Effect * self, PyObject * a );
-static PyObject *Effect_getMat( BPy_Effect * self );
-static int Effect_setMat( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getChildMat( BPy_Effect * self );
+static int Effect_setChildMat( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_getChild( BPy_Effect * self );
 static int Effect_setChild( BPy_Effect * self, PyObject * a );
 static PyObject *Effect_getDefvec( BPy_Effect * self );
 static int Effect_setDefvec( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getJitter( BPy_Effect * self );
+static int Effect_setJitter( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getDispMat( BPy_Effect * self );
+static int Effect_setDispMat( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getEmissionTex( BPy_Effect * self );
+static int Effect_setEmissionTex( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getForceTex( BPy_Effect * self );
+static int Effect_setForceTex( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getDamping( BPy_Effect * self );
+static int Effect_setDamping( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getSpeedType( BPy_Effect * self );
+static int Effect_setSpeedType( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getVertGroup( BPy_Effect * self );
+static int Effect_setVertGroup( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getSpeedVertGroup( BPy_Effect * self );
+static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * a );
+static PyObject *Effect_getParticlesLoc( BPy_Effect * self, PyObject * a  );
 
 static PyObject *Effect_oldsetType( void );
 static PyObject *Effect_oldsetFlag( BPy_Effect * self, PyObject * args );
@@ -257,7 +291,7 @@ static PyMethodDef BPy_Effect_methods[] = {
 	 METH_NOARGS, "()-Return particle life time"},
 	{"setLife", ( PyCFunction ) Effect_oldsetLife, METH_VARARGS,
 	 "()- Sets particle life time "},
-	{"getMat", ( PyCFunction ) Effect_getMat,
+	{"getMat", ( PyCFunction ) Effect_getChildMat,
 	 METH_NOARGS, "()-Return particle life time"},
 	{"setMat", ( PyCFunction ) Effect_oldsetMat, METH_VARARGS,
 	 "()- Sets particle life time "},
@@ -268,6 +302,8 @@ static PyMethodDef BPy_Effect_methods[] = {
 	{"getDefvec", ( PyCFunction ) Effect_getDefvec,
 	 METH_NOARGS, "()-Return particle life time"},
 	{"setDefvec", ( PyCFunction ) Effect_oldsetDefvec, METH_VARARGS,
+	 "()- Sets particle life time "},
+	{"getParticlesLoc", ( PyCFunction ) Effect_getParticlesLoc, METH_VARARGS,
 	 "()- Sets particle life time "},
 	{NULL, NULL, 0, NULL}
 };
@@ -288,9 +324,25 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	 (getter)Effect_getChild, (setter)Effect_setChild,
 	 "The number of children of a particle that multiply itself",
 	 NULL},
+	{"childMat",
+	 (getter)Effect_getChildMat, (setter)Effect_setChildMat,
+	 "Specify the material used for the particles",
+	 NULL},
+	{"damping",
+	 (getter)Effect_getDamping, (setter)Effect_setDamping,
+	 "The damping factor",
+	 NULL},
 	{"defvec",
 	 (getter)Effect_getDefvec, (setter)Effect_setDefvec,
 	 "The axes of a force, determined by the texture",
+	 NULL},
+	{"dispMat",
+	 (getter)Effect_getDispMat, (setter)Effect_setDispMat,
+	 "The material used for the particles",
+	 NULL},
+	{"emissionTex",
+	 (getter)Effect_getEmissionTex, (setter)Effect_setEmissionTex,
+	 "The texture used for texture emission",
 	 NULL},
 	{"end",
 	 (getter)Effect_getEnd, (setter)Effect_setEnd,
@@ -300,6 +352,14 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	 (getter)Effect_getForce, (setter)Effect_setForce,
 	 "The axes of a continues force",
 	 NULL},
+	{"forceTex",
+	 (getter)Effect_getForceTex, (setter)Effect_setForceTex,
+	 "The texture used for force",
+	 NULL},
+	{"jitter",
+	 (getter)Effect_getJitter, (setter)Effect_setJitter,
+	 "Jitter table distribution: maximum particles per face",
+	 NULL},
 	{"life",
 	 (getter)Effect_getLife, (setter)Effect_setLife,
 	 "The life span of the next generation of particles",
@@ -307,10 +367,6 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	{"lifetime",
 	 (getter)Effect_getLifetime, (setter)Effect_setLifetime,
 	 "The life span of the particles",
-	 NULL},
-	{"mat",
-	 (getter)Effect_getMat, (setter)Effect_setMat,
-	 "Specify the material used for the particles",
 	 NULL},
 	{"mult",
 	 (getter)Effect_getMult, (setter)Effect_setMult,
@@ -340,6 +396,14 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	 (getter)Effect_getSeed, (setter)Effect_setSeed,
 	 "The seed for random variations",
 	 NULL},
+	{"speedType",
+	 (getter)Effect_getSpeedType, (setter)Effect_setSpeedType,
+	 "Controls which texture property affects particle speeds",
+	 NULL},
+	{"speedVGroup",
+	 (getter)Effect_getSpeedVertGroup, (setter)Effect_setSpeedVertGroup,
+	 "Vertex group for speed control",
+	 NULL},
 	{"sta",
 	 (getter)Effect_getSta, (setter)Effect_setSta,
 	 "The startframe for the effect",
@@ -359,6 +423,11 @@ static PyGetSetDef BPy_Effect_getseters[] = {
 	{"vectsize",
 	 (getter)Effect_getVectsize, (setter)Effect_setVectsize,
 	 "The speed for particle's rotation direction",
+	 NULL},
+
+	{"vGroup",
+	 (getter)Effect_getVertGroup, (setter)Effect_setVertGroup,
+	 "Vertex group for emitted particles",
 	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
@@ -491,11 +560,6 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
 				"object is not a mesh" );
 
-	pyeffect = ( BPy_Effect * ) PyObject_NEW( BPy_Effect, &Effect_Type );
-	if( !pyeffect )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"couldn't create Effect Data object" );
-
 	bleffect = add_effect( EFF_PARTICLE );
 	if( !bleffect ) {
 		Py_DECREF( pyeffect );
@@ -506,7 +570,7 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 	pyeffect->effect = (PartEff *)bleffect;
 	BLI_addtail( &ob->effect, bleffect );
 
-	return ( PyObject * ) pyeffect;
+	return EffectCreatePyObject( bleffect, ob );
 }
 
 /*****************************************************************************/
@@ -549,9 +613,7 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 					}
 
 					if (eff) {
-						wanted_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect, &Effect_Type);
-						wanted_eff->effect = (PartEff *)eff;
-						return ( PyObject * ) wanted_eff;
+						return EffectCreatePyObject( eff, object_iter );
 					} else { /* didn't find any effect in the given position */
 						Py_INCREF(Py_None);
 						return Py_None;
@@ -563,11 +625,10 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 					PyObject *effectlist = PyList_New( 0 );
 
 					while (eff) {
-						BPy_Effect *found_eff = (BPy_Effect *)PyObject_NEW(BPy_Effect,
-							&Effect_Type);
-						found_eff->effect = (PartEff *)eff;
-						PyList_Append( effectlist, ( PyObject * ) found_eff );
-						Py_DECREF((PyObject *)found_eff); /* PyList_Append incref'ed it */
+						PyObject *found_eff = EffectCreatePyObject( eff,
+								object_iter );
+						PyList_Append( effectlist, found_eff );
+						Py_DECREF( found_eff ); /* PyList_Append incref'ed it */
 						eff = eff->next;
 					}
 					return effectlist;
@@ -589,15 +650,10 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 			if( object_iter->effect.first != NULL ) {
 				eff = object_iter->effect.first;
 				while( eff ) {
-					BPy_Effect *found_eff =
-						( BPy_Effect * )
-						PyObject_NEW( BPy_Effect,
-							      &Effect_Type );
-					found_eff->effect = (PartEff *)eff;
-					PyList_Append( effectlist,
-						       ( PyObject * )
-						       found_eff );
-					Py_DECREF((PyObject *)found_eff);
+					PyObject *found_eff = EffectCreatePyObject( eff,
+							object_iter );
+					PyList_Append( effectlist, found_eff );
+					Py_DECREF( found_eff );
 					eff = eff->next;
 				}
 			}
@@ -699,16 +755,45 @@ static PyObject *Effect_FlagsDict( void )
 
 		PyConstant_Insert( c, "SELECTED",
 				 PyInt_FromLong( EFF_SELECT ) );
-		PyConstant_Insert( c, "FACE",
-				 PyInt_FromLong( PAF_FACE ) );
-		PyConstant_Insert( c, "STATIC",
-				 PyInt_FromLong( PAF_STATIC ) );
-		PyConstant_Insert( c, "ANIMATED",
-				 PyInt_FromLong( PAF_ANIMATED ) );
 		PyConstant_Insert( c, "BSPLINE",
 				 PyInt_FromLong( PAF_BSPLINE ) );
+		PyConstant_Insert( c, "STATIC",
+				 PyInt_FromLong( PAF_STATIC ) );
+		PyConstant_Insert( c, "FACES",
+				 PyInt_FromLong( PAF_FACE ) );
+		PyConstant_Insert( c, "ANIMATED",
+				 PyInt_FromLong( PAF_ANIMATED ) );
+		PyConstant_Insert( c, "UNBORN",
+				 PyInt_FromLong( PAF_UNBORN ) );
+		PyConstant_Insert( c, "VERTS",
+				 PyInt_FromLong( PAF_OFACE ) );
+		PyConstant_Insert( c, "EMESH",
+				 PyInt_FromLong( PAF_SHOWE ) );
+		PyConstant_Insert( c, "TRUERAND",
+				 PyInt_FromLong( PAF_TRAND ) );
+		PyConstant_Insert( c, "EVENDIST",
+				 PyInt_FromLong( PAF_EDISTR ) );
+		PyConstant_Insert( c, "DIED",
+				 PyInt_FromLong( PAF_DIED ) );
 	}
 	return Flags;
+}
+
+static PyObject *Effect_SpeedTypeDict( void )
+{
+	PyObject *Type = PyConstant_New(  );
+
+	if( Type ) {
+		BPy_constant *c = ( BPy_constant * ) Type;
+
+		PyConstant_Insert( c, "INTENSITY",
+				 PyInt_FromLong( EXPP_EFFECT_SPEEDTYPE_INTENSITY ) );
+		PyConstant_Insert( c, "RGB",
+				 PyInt_FromLong( EXPP_EFFECT_SPEEDTYPE_RGB ) );
+		PyConstant_Insert( c, "GRADIENT",
+				 PyInt_FromLong( EXPP_EFFECT_SPEEDTYPE_GRADIENT ) );
+	}
+	return Type;
 }
 
 /*****************************************************************************/
@@ -720,15 +805,19 @@ PyObject *Effect_Init( void )
 	PyObject *submodule, *dict;
 	PyObject *particle;
 	PyObject *Flags;
+	PyObject *Types;
 
 	if( PyType_Ready( &Effect_Type ) < 0)
 		return NULL;
 
 	Flags = Effect_FlagsDict(  );
+	Types = Effect_SpeedTypeDict( );
 
 	submodule = Py_InitModule3( "Blender.Effect", M_Effect_methods, 0 );
 	if( Flags )
 		PyModule_AddObject( submodule, "Flags", Flags );
+	if( Types )
+		PyModule_AddObject( submodule, "SpeedTypes", Types );
 
 	particle = Py_InitModule3( "Blender.Particle", M_Particle_methods,
 			M_Particle_doc );
@@ -761,7 +850,11 @@ static int Effect_setType( void )
 
 static PyObject *Effect_getFlag( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->effect->flag );
+	PyObject *attr;
+	/* toggle "Verts" setting because clear is "on" */
+	long flag = (long)( self->effect->flag ^ PAF_OFACE );
+
+	attr = PyInt_FromLong( flag );
 
 	if( attr )
 		return attr;
@@ -773,7 +866,8 @@ static PyObject *Effect_getFlag( BPy_Effect * self )
 static int Effect_setFlag( BPy_Effect * self, PyObject * args )
 {
 	short param;
-	static short bitmask = PAF_FACE | PAF_STATIC | PAF_ANIMATED | PAF_BSPLINE;
+	static short bitmask = PAF_BSPLINE | PAF_STATIC | PAF_FACE | PAF_ANIMATED |
+		PAF_UNBORN | PAF_OFACE | PAF_SHOWE | PAF_TRAND | PAF_EDISTR | PAF_DIED;
 
 	if( !PyArg_Parse( args, "h", &param ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -785,6 +879,11 @@ static int Effect_setFlag( BPy_Effect * self, PyObject * args )
 	if ( ( param & bitmask ) != param )
 			return EXPP_ReturnIntError( PyExc_ValueError,
 					"invalid bit(s) set in mask" );
+
+	/* the sense of "Verts" is inverted (clear is enabled) */
+	param ^= PAF_OFACE;
+
+	/* leave select bit alone, and add in the others */
 	self->effect->flag &= EFF_SELECT;
 	self->effect->flag |= param;
 	return 0;
@@ -1140,7 +1239,7 @@ static int Effect_setChild( BPy_Effect * self, PyObject * args )
 	return 0;
 }
 
-static PyObject *Effect_getMat( BPy_Effect * self )
+static PyObject *Effect_getChildMat( BPy_Effect * self )
 {
 	PyObject *attr = Py_BuildValue( "(h,h,h,h)", self->effect->mat[0],
 			self->effect->mat[1], self->effect->mat[2],
@@ -1150,10 +1249,10 @@ static PyObject *Effect_getMat( BPy_Effect * self )
 		return attr;
 
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.mat attribute" );
+			"couldn't get Effect.childMat attribute" );
 }
 
-static int Effect_setMat( BPy_Effect * self, PyObject * args )
+static int Effect_setChildMat( BPy_Effect * self, PyObject * args )
 {
 	short val[4];
 	int i;
@@ -1166,7 +1265,7 @@ static int Effect_setMat( BPy_Effect * self, PyObject * args )
 				"expected a tuple of four int argument" );
 	for( i = 0; i < 4; ++i )
 		self->effect->mat[i] = (short)EXPP_ClampInt( val[i],
-				EXPP_EFFECT_MAT_MIN, EXPP_EFFECT_MAT_MAX );
+				EXPP_EFFECT_CHILDMAT_MIN, EXPP_EFFECT_CHILDMAT_MAX );
 	return 0;
 }
 
@@ -1200,6 +1299,222 @@ static int Effect_setDefvec( BPy_Effect * self, PyObject * args )
 	return 0;
 }
 
+static PyObject *Effect_getJitter( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->userjit );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.jitter attribute" );
+}
+
+static int Effect_setJitter( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueClamped( args, &self->effect->userjit,
+			EXPP_EFFECT_JITTER_MIN, EXPP_EFFECT_JITTER_MAX, 'h' );
+}
+
+static PyObject *Effect_getDispMat( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->omat );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.dispMat attribute" );
+}
+
+static int Effect_setDispMat( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueClamped( args, &self->effect->omat,
+			EXPP_EFFECT_DISPMAT_MIN, EXPP_EFFECT_DISPMAT_MAX, 'h' );
+}
+
+static PyObject *Effect_getEmissionTex( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->timetex );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.emissionTex attribute" );
+}
+
+static int Effect_setEmissionTex( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueClamped( args, &self->effect->timetex,
+			EXPP_EFFECT_TIMETEX_MIN, EXPP_EFFECT_TIMETEX_MAX, 'h' );
+}
+
+static PyObject *Effect_getForceTex( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->speedtex );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.forceTex attribute" );
+}
+
+static int Effect_setForceTex( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueClamped( args, &self->effect->speedtex,
+			EXPP_EFFECT_SPEEDTEX_MIN, EXPP_EFFECT_SPEEDTEX_MAX, 'h' );
+}
+
+static PyObject *Effect_getSpeedType( BPy_Effect * self )
+{
+	PyObject *attr = PyInt_FromLong( ( long )self->effect->texmap );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.speedType attribute" );
+}
+
+static int Effect_setSpeedType( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setIValueRange( args, &self->effect->texmap,
+			EXPP_EFFECT_SPEEDTYPE_INTENSITY, EXPP_EFFECT_SPEEDTYPE_GRADIENT,
+			'h' );
+}
+
+static PyObject *Effect_getDamping( BPy_Effect * self )
+{
+	PyObject *attr = PyFloat_FromDouble( ( double )self->effect->damp );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+			"couldn't get Effect.damping attribute" );
+}
+
+static int Effect_setDamping( BPy_Effect * self, PyObject * args )
+{
+	return EXPP_setFloatClamped( args, &self->effect->damp,
+			EXPP_EFFECT_DAMP_MIN, EXPP_EFFECT_DAMP_MAX );
+}
+
+static PyObject *Effect_getVertGroup( BPy_Effect * self )
+{
+	PyObject *attr = PyString_FromString( self->effect->vgroupname );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Effect.vGroup attribute" );
+}
+
+
+static int Effect_setVertGroup( BPy_Effect * self, PyObject * value )
+{
+	char *name;
+	bDeformGroup *dg;
+
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						  "expected string argument" );
+
+	PyOS_snprintf( self->effect->vgroupname,
+		sizeof( self->effect->vgroupname )-1, "%s", name );
+
+	dg = get_named_vertexgroup( self->object, self->effect->vgroupname );
+	if( dg )
+		self->effect->vertgroup = get_defgroup_num( self->object, dg )+1;
+	else
+		self->effect->vertgroup = 0;
+
+	return 0;
+}
+
+static PyObject *Effect_getSpeedVertGroup( BPy_Effect * self )
+{
+	PyObject *attr = PyString_FromString( self->effect->vgroupname_v );
+
+	if( attr )
+		return attr;
+
+	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					"couldn't get Effect.speedVGroup attribute" );
+}
+
+static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
+{
+	char *name;
+	bDeformGroup *dg;
+
+	name = PyString_AsString ( value );
+	if( !name )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+						  "expected string argument" );
+
+	PyOS_snprintf( self->effect->vgroupname_v,
+		sizeof( self->effect->vgroupname_v )-1, "%s", name );
+
+	dg = get_named_vertexgroup( self->object, self->effect->vgroupname_v );
+	if( dg )
+		self->effect->vertgroup_v = get_defgroup_num( self->object, dg )+1;
+	else
+		self->effect->vertgroup_v = 0;
+
+	return 0;
+}
+
+static PyObject *Effect_getParticlesLoc( BPy_Effect * self, PyObject * args  )
+{
+	Object *ob;
+	PartEff *paf;
+	Particle *pa;
+	int a;
+	PyObject *list;
+	float p_time, c_time, vec[3], cfra;
+
+	if( !PyArg_ParseTuple( args, "f", &cfra) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected float argument" );
+
+	ob = self->object;
+	paf = (PartEff *)self->effect;
+
+	pa = paf->keys;
+	if( !pa )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"Particles location: no keys" );
+	
+	if( ob->ipoflag & OB_OFFS_PARTICLE )
+		p_time= ob->sf;
+	else
+		p_time= 0.0;
+	
+	c_time= bsystem_time( ob, 0, cfra, p_time );
+	list = PyList_New( 0 );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
+	
+	for( a=0; a<paf->totpart; a++, pa += paf->totkey ) {
+		if( c_time > pa->time && c_time < pa->time+pa->lifetime ) {
+			where_is_particle(paf, pa, c_time, vec);
+			if( PyList_Append( list, Py_BuildValue("[fff]", 
+							vec[0], vec[1], vec[2]) ) < 0 ) {
+				Py_DECREF( list );
+				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+						  "Couldn't append item to PyList" );
+			}
+		}
+	}
+
+	return list;	
+}
+
 /*****************************************************************************/
 /* Function:    Effect_dealloc                                               */
 /* Description: This is a callback function for the BPy_Effect type. It is   */
@@ -1224,7 +1539,7 @@ static PyObject *Effect_repr( void )
 /*****************************************************************************/
 /* These are needed by Object.c                                              */
 /*****************************************************************************/
-PyObject *EffectCreatePyObject( Effect * effect )
+PyObject *EffectCreatePyObject( Effect * effect, Object *ob )
 {
 	BPy_Effect *blen_object;
 
@@ -1233,6 +1548,7 @@ PyObject *EffectCreatePyObject( Effect * effect )
 
 	if( blen_object )
 		blen_object->effect = (PartEff *)effect;
+	blen_object->object = ob;
 
 	return ( PyObject * ) blen_object;
 }
@@ -1265,7 +1581,7 @@ static PyObject *Effect_oldsetForce( BPy_Effect * self, PyObject * args )
 static PyObject *Effect_oldsetMat( BPy_Effect * self, PyObject * args )
 {
 	return EXPP_setterWrapperTuple( (void *)self, args,
-			(setter)Effect_setMat );
+			(setter)Effect_setChildMat );
 }
 
 static PyObject *Effect_oldsetEnd( BPy_Effect * self, PyObject * args )

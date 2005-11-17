@@ -35,6 +35,7 @@
 
 #include <Python.h>
 #include "DNA_effect_types.h"
+#include "DNA_object_types.h"
 
 extern PyTypeObject Effect_Type;
 
@@ -44,6 +45,7 @@ extern PyTypeObject Effect_Type;
 typedef struct {
 	PyObject_HEAD		/* required py macro */
 	PartEff * effect;
+	Object * object;
 } BPy_Effect;
 
 /*****************************************************************************/
@@ -51,6 +53,6 @@ typedef struct {
 /*****************************************************************************/
 PyObject *Effect_Init( void );
 int EffectCheckPyObject( PyObject * py_obj );
-PyObject *EffectCreatePyObject( Effect * eff );
+PyObject *EffectCreatePyObject( Effect * eff, Object * ob );
 
 #endif				/* EXPP_EFFECT_H */

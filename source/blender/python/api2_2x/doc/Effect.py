@@ -33,10 +33,23 @@ Example::
 @type Flags: read-only dictionary
 @var Flags: The particle effect flags.  Values can be ORed.
   - SELECTED: The particle effect is selected in the UI. (Read-only)
-  - FACE: Also emit particles from faces
+  - BSPLINE: Use a B-spline formula for particle interpolation
   - STATIC: Make static particles
   - ANIMATED: Recalculate static particles for each rendered frame
-  - BSPLINE: Use a B-spline formula for particle interpolation
+  - VERTS: Emit particles from vertices
+  - FACES: Emit particles from faces
+  - EVENDIST: Use even distribution based on face area (requires FACES)
+  - TRUERAND: Use true random distribution based on face area (requires FACES)
+  - UNBORN: Make particles appear before they are emitted
+  - DIED: Make particles appear after they have died
+  - EMESH: Render emitter mesh
+
+@type SpeedTypes: read-only dictionary
+@var SpeedTypes: The available settings for selecting particle speed vectors.
+Only one setting is active at a time.
+  - INTENSITY: Use texture intensity
+  - RGB: Use RGB values
+  - GRADIENT: Use texture gradient
 """
 
 def New (name):
@@ -87,9 +100,22 @@ class Effect:
   @ivar child: The number of children a particle may have.
     Values are clamped to the range [1,600].
   @type child: tuple of 4 ints
+  @ivar childMat: The materials used by the 4 generation particles.
+    Values are clamped to the range [1,16].
+  @type childMat: tuple of 4 ints
+  @ivar damping: The particle damping factor.  This controls the rate at
+    which particles decelerate.
+    Values are clamped to the range [0.0,1.0].
+  @type damping: float
   @ivar defvec: The x, y and z axis of the force defined by the texture.
     Values are clamped to the range [-1.0,1.0].
   @type defvec: tuple of 3 floats
+  @ivar dispMat: The material used for the particles.
+    Value is clamped to the range [1,16].
+  @type dispMat: int
+  @ivar emissionTex: The texture used for texture emission.
+    Value is clamped to the range [1,10].
+  @type emissionTex: int
   @ivar end: The end time of the effect
     Value is clamped to the range [1.0,30000.0].
   @type end: float
@@ -98,15 +124,18 @@ class Effect:
   @ivar force: The constant force applied to the parts.
     Values are clamped to the range [-1.0,1.0].
   @type force: tuple of 3 floats
+  @ivar forceTex: The texture used for force.
+    Value is clamped to the range [1,10].
+  @type forceTex: int
+  @ivar jitter: Jitter table distribution: maximum particles per face.
+    Values are clamped to the range [0,200].
+  @type jitter: int
   @ivar life: The lifetime of of the next generation of particles.
     Values are clamped to the range [1.0,30000.0].
   @type life: tuple of 4 floats
   @ivar lifetime: The lifetime of the effect.
     Value is clamped to the range [1.0,30000.0].
   @type lifetime: float
-  @ivar mat: The materials used by the 4 generation particles.
-    Values are clamped to the range [1,8].
-  @type mat: tuple of 4 ints
   @ivar mult: The probabilities of a particle having a child.
     Values are clamped to the range [0.0,1.0].
   @type mult: tuple of 4 floats
@@ -128,6 +157,11 @@ class Effect:
   @ivar seed: The seed of the random number generator.
     Value is clamped to the range [0,255].
   @type seed: int
+  @ivar speedType: Controls which texture property affects particle speeds.
+    See L{SpeedTypes} for values and their meanings.
+  @type speedType: int
+  @ivar speedVGroup: The name of the vertex group used for speed control.
+  @type speedVGroup: str
   @ivar sta: The start time of the effect.
     Value is clamped to the range [-250.0,30000.0].
   @type sta: float
@@ -145,6 +179,8 @@ class Effect:
   @ivar vectsize: The size of vectors associated to the particles (if any).
     Value is clamped to the range [0.0,1.0].
   @type vectsize: float
+  @ivar vGroup: The name of the vertex group used for emitted particles.
+  @type vGroup: str
   """
 
   def getType():
@@ -376,7 +412,6 @@ class Effect:
     @return: number of keys associated to the particles.
     """
 
-	
   def setTotkey(newtotkey):
     """
     Sets the number of keys associated to the particles.
@@ -409,7 +444,6 @@ class Effect:
     @return:   force applied to the particles.
     """
 
-	
   def setForce(newforce):
     """
     Sets the force applied to the particles.
@@ -426,7 +460,6 @@ class Effect:
     @return:  probabilities of a particle having a child.
     """
 
-	
   def setMult(newmult):
     """
     Sets the probabilities of a particle having a child.
@@ -442,7 +475,6 @@ class Effect:
     @rtype: tuple of 4 floats 
     @return: average life of the particles (4 generations)
     """
-
 	
   def setLife(newlife):
     """
@@ -475,7 +507,6 @@ class Effect:
     @rtype: tuple of 4 ints 
     @return: indexes of the materials associated to the particles (4 generations).
     """
-
 	
   def setMat(newmat):
     """
@@ -486,20 +517,19 @@ class Effect:
     @return:  PyNone
     """
 
-
   def getDefvec():
     """
     Retrieves the x, y and z components of the force defined by the texture.
     @rtype: tuple of 3 floats 
     @return: x, y and z components of the force defined by the texture.
     """
-
 	
   def setDefvec(newdefvec):
     """
     Sets the x, y and z components of the force defined by the texture.
     @type newdefvec: tuple of 3 floats
-    @param newdefvec:   the x, y and z components of the force defined by the texture.
+    @param newdefvec:   the x, y and z components of the force defined by the
+    texture.
     @rtype: PyNone
     @return:  PyNone
     """
