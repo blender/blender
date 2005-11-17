@@ -1467,27 +1467,28 @@ static void draw_pose_channels(Base *base, int dt)
 			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			
-				if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
-					bone= pchan->bone;
-					if(bone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
-					else BIF_ThemeColor(TH_TEXT);
-				}
-				else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
-				
-				if (arm->flag & ARM_DRAWNAMES){
-					VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-					glRasterPos3fv(vec);
-					BMF_DrawString(G.font, " ");
-					BMF_DrawString(G.font, pchan->name);
-				}				
-				/*	Draw additional axes */
-				if( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ){
-					glPushMatrix();
-					glMultMatrixf(pchan->pose_mat);
-					glTranslatef(0.0f, pchan->bone->length, 0.0f);
-					drawaxes(0.25f*pchan->bone->length);
-					glPopMatrix();
+				if((pchan->bone->flag & BONE_HIDDEN_P)==0) {
+					if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
+						bone= pchan->bone;
+						if(bone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+						else BIF_ThemeColor(TH_TEXT);
+					}
+					else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
+					
+					if (arm->flag & ARM_DRAWNAMES){
+						VecMidf(vec, pchan->pose_head, pchan->pose_tail);
+						glRasterPos3fv(vec);
+						BMF_DrawString(G.font, " ");
+						BMF_DrawString(G.font, pchan->name);
+					}				
+					/*	Draw additional axes */
+					if( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ){
+						glPushMatrix();
+						glMultMatrixf(pchan->pose_mat);
+						glTranslatef(0.0f, pchan->bone->length, 0.0f);
+						drawaxes(0.25f*pchan->bone->length);
+						glPopMatrix();
+					}
 				}
 			}
 			

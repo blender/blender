@@ -57,7 +57,7 @@ void build_particle_system(struct Object *ob);
 /* particle deflector */
 #define PE_WIND_AS_SPEED 0x00000001
 
-struct ListBase *pdInitEffectors(unsigned int layer);
+struct ListBase *pdInitEffectors(struct Object *ob);
 void			pdEndEffectors(struct ListBase *lb);
 void			pdDoEffectors(struct ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags);
 

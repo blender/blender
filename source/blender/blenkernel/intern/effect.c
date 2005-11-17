@@ -324,18 +324,19 @@ typedef struct pEffectorCache {
 
 
 /* returns ListBase handle with objects taking part in the effecting */
-ListBase *pdInitEffectors(unsigned int layer)
+ListBase *pdInitEffectors(Object *obsrc)
 {
 	static ListBase listb={NULL, NULL};
+	unsigned int layer= obsrc->lay;
 	Base *base;
 
 	for(base = G.scene->base.first; base; base= base->next) {
-		if( (base->lay & layer) && base->object->pd) {
+		if( (base->lay & layer) && base->object->pd && base->object!=obsrc) {
 			Object *ob= base->object;
 			PartDeflect *pd= ob->pd;
 			
 			if(pd->forcefield == PFIELD_GUIDE) {
-				if(ob->type==OB_CURVE) {
+				if(ob->type==OB_CURVE && obsrc->type==OB_MESH) {	/* guides only do mesh particles */
 					Curve *cu= ob->data;
 					if(cu->flag & CU_PATH) {
 						if(cu->path==NULL || cu->path->data==NULL)
@@ -1647,7 +1648,7 @@ void build_particle_system(Object *ob)
 	}
 	
 	/* get the effectors */
-	effectorbase= pdInitEffectors(ob->lay);
+	effectorbase= pdInitEffectors(ob);
 	
 	/* init geometry, return is 6 x float * me->totvert in size */
 	vertexcosnos= (VeNoCo *)mesh_get_mapped_verts_nors(ob);

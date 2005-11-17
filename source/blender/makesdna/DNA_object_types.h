@@ -393,6 +393,7 @@ extern Object workob;
 #define OB_LOCK_LOCX	1
 #define OB_LOCK_LOCY	2
 #define OB_LOCK_LOCZ	4
+#define OB_LOCK_LOC		7
 #define OB_LOCK_ROTX	8
 #define OB_LOCK_ROTY	16
 #define OB_LOCK_ROTZ	32
