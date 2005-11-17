@@ -66,8 +66,8 @@ typedef struct MemHead {
 	struct MemHead *next,*prev;
 	char * name;
 	char * nextname;
-	/*  int level; */ /* historical, can be removed, but check alignment issues - zr */
 	int tag2;
+	int pad; /* keep this in, due to alignment issues (e.g., irix/gcc) - Hos */
 } MemHead;
 
 typedef struct MemTail {
