@@ -411,7 +411,9 @@ class BezTriple:
 
   def setPoints(newval):
     """
-    Sets the point xy coordinates of the Bezier knot point.
+    Sets the point xy coordinates of the Bezier knot point.  After changing
+    coordinates, it is advisable to call L{IpoCurve.recalc()} to update the IPO
+    curves.
     @type newval: tuple of 2 floats
     @param newval: the x and y coordinates of the new Bezier point.
     @rtype: None

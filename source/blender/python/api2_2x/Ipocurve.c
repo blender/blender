@@ -489,6 +489,7 @@ static PyObject *IpoCurve_Recalc( C_IpoCurve * self )
 	/* I'm not sure this is a complete solution but since we do not */
 	/* deal with curve handles right now, it seems ok */
 	calchandles_ipocurve( icu );
+	sort_time_ipocurve( icu );
 
 	Py_INCREF( Py_None );
 	return Py_None;
