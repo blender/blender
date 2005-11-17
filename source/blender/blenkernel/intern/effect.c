@@ -110,7 +110,9 @@ Effect *add_effect(int type)
 		paf->nabla= 0.05f;
 		paf->disp = 100;
 		paf->speedtex = 8;
-		paf->omat = 1;		
+		paf->omat = 1;
+		paf->flag= PAF_FACE;
+
 		break;
 	}
 	
@@ -320,6 +322,8 @@ typedef struct pEffectorCache {
 	float oldloc[3], oldspeed[3];
 	float scale, time_scale;
 	float guide_dist;
+	
+	Object obcopy;	/* for restoring transformation data */
 } pEffectorCache;
 
 
@@ -327,6 +331,7 @@ typedef struct pEffectorCache {
 ListBase *pdInitEffectors(Object *obsrc)
 {
 	static ListBase listb={NULL, NULL};
+	pEffectorCache *ec;
 	unsigned int layer= obsrc->lay;
 	Base *base;
 
@@ -342,7 +347,7 @@ ListBase *pdInitEffectors(Object *obsrc)
 						if(cu->path==NULL || cu->path->data==NULL)
 							makeDispListCurveTypes(ob, 0);
 						if(cu->path && cu->path->data) {
-							pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+							ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 							ec->ob= ob;
 							BLI_addtail(&listb, ec);
 						}
@@ -350,12 +355,18 @@ ListBase *pdInitEffectors(Object *obsrc)
 				}
 			}
 			else if(pd->forcefield) {
-				pEffectorCache *ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
+				ec= MEM_callocN(sizeof(pEffectorCache), "effector cache");
 				ec->ob= ob;
 				BLI_addtail(&listb, ec);
 			}
 		}
 	}
+
+	/* make a full copy */
+	for(ec= listb.first; ec; ec= ec->next) {
+		ec->obcopy= *(ec->ob);
+	}
+
 	if(listb.first)
 		return &listb;
 	
@@ -364,8 +375,14 @@ ListBase *pdInitEffectors(Object *obsrc)
 
 void pdEndEffectors(ListBase *lb)
 {
-	if(lb)
+	if(lb) {
+		pEffectorCache *ec;
+		/* restore full copy */
+		for(ec= lb->first; ec; ec= ec->next)
+			*(ec->ob)= ec->obcopy;
+
 		BLI_freelistN(lb);
+	}
 }
 
 /* local for this c file, only for guides now */
