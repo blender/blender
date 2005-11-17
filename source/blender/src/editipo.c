@@ -1241,7 +1241,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 	EditIpo *ei;
 	BezTriple *bezt1;
 	int dist= 100, temp, a, b;
-	short mval[2], hpoint=0;
+	short mval[2], hpoint=0, sco[3][2];
 
 	*icu= 0;
 	*bezt= 0;
@@ -1257,14 +1257,14 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 				b= ei->icu->totvert;
 				while(b--) {
 
-					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[0], bezt1->s[0]);
-					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[1], bezt1->s[1]);
-					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[2], bezt1->s[2]);
+					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[0], sco[0]);
+					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[1], sco[1]);
+					ipoco_to_areaco_noclip(G.v2d, bezt1->vec[2], sco[2]);
 										
 					if(ei->disptype==IPO_DISPBITS) {
-						temp= abs(mval[0]- bezt1->s[1][0]);
+						temp= abs(mval[0]- sco[1][0]);
 					}
-					else temp= abs(mval[0]- bezt1->s[1][0])+ abs(mval[1]- bezt1->s[1][1]);
+					else temp= abs(mval[0]- sco[1][0])+ abs(mval[1]- sco[1][1]);
 
 					if( bezt1->f2 & 1) temp+=5;
 					if(temp<dist) { 
@@ -1276,7 +1276,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 					
 					if(ei->disptype!=IPO_DISPBITS && ei->icu->ipo==IPO_BEZ) {
 						/* middle points get an advantage */
-						temp= -3+abs(mval[0]- bezt1->s[0][0])+ abs(mval[1]- bezt1->s[0][1]);
+						temp= -3+abs(mval[0]- sco[0][0])+ abs(mval[1]- sco[0][1]);
 						if( bezt1->f1 & 1) temp+=5;
 						if(temp<dist) { 
 							hpoint= 0; 
@@ -1285,7 +1285,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 							*icu= ei->icu; 
 						}
 		
-						temp= abs(mval[0]- bezt1->s[2][0])+ abs(mval[1]- bezt1->s[2][1]);
+						temp= abs(mval[0]- sco[2][0])+ abs(mval[1]- sco[2][1]);
 						if( bezt1->f3 & 1) temp+=5;
 						if(temp<dist) { 
 							hpoint= 2; 

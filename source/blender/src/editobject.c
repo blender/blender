@@ -2138,7 +2138,7 @@ void special_editmenu(void)
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2");
+		nr= pupmenu("Specials%t|Subdivide%x1|Switch Direction%x2|Set Goal Weight %x3");
 		
 		switch(nr) {
 		case 1:
@@ -2146,6 +2146,33 @@ void special_editmenu(void)
 			break;
 		case 2:
 			switchdirectionNurb2();
+			break;
+		case 3:
+			{
+				static float weight= 1.0f;
+				extern ListBase editNurb;
+				Nurb *nu;
+				BezTriple *bezt;
+				BPoint *bp;
+				int a;
+				
+				if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
+					for(nu= editNurb.first; nu; nu= nu->next) {
+						if(nu->bezt) {
+							for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
+								if(bezt->f2 & SELECT)
+									bezt->weight= weight;
+							}
+						}
+						else if(nu->bp) {
+							for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+								if(bp->f1 & SELECT)
+									bp->weight= weight;
+							}
+						}
+					}	
+				}
+			}
 			break;
 		}
 		
@@ -2166,7 +2193,7 @@ void special_editmenu(void)
 			
 			while(a--) {
 				if(bp->f1 & SELECT)
-					bp->vec[3]= weight;
+					bp->weight= weight;
 				bp++;
 			}	
 		}

@@ -1184,7 +1184,7 @@ static void load_bgpic_image(char *name)
 /* this one assumes there is only one global active object in blender...  (for object panel) */
 static float ob_eul[4];	// used for quat too....
 /* this one assumes there is only one editmode in blender...  (for object panel) */
-static float ve_median[4];
+static float ve_median[5];
 
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
@@ -1194,12 +1194,12 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *evedef=NULL;
 	EditEdge *eed;
-	float median[4];
-	int tot, totw, totedge;
+	float median[5];
+	int tot, totw, totweight, totedge;
 	char defstr[320];
 	
-	median[0]= median[1]= median[2]= median[3]= 0.0;
-	tot= totw= totedge= 0;
+	median[0]= median[1]= median[2]= median[3]= median[4]= 0.0;
+	tot= totw= totweight= totedge= 0;
 	defstr[0]= 0;
 
 	if(ob->type==OB_MESH) {		
@@ -1259,6 +1259,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					if(bezt->f2 & 1) {
 						VecAddf(median, median, bezt->vec[1]);
 						tot++;
+						median[4]+= bezt->weight;
+						totweight++;
 					}
 					else {
 						if(bezt->f1 & 1) {
@@ -1282,6 +1284,8 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 						median[3]+= bp->vec[3];
 						totw++;
 						tot++;
+						median[4]+= bp->weight;
+						totweight++;
 					}
 					bp++;
 				}
@@ -1298,9 +1302,9 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		while(a--) {
 			if(bp->f1 & SELECT) {
 				VecAddf(median, median, bp->vec);
-				median[3]+= bp->vec[3];
 				tot++;
-				totw++;
+				median[4]+= bp->weight;
+				totweight++;
 			}
 			bp++;
 		}
@@ -1312,51 +1316,51 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	median[1] /= (float)tot;
 	median[2] /= (float)tot;
 	if(totedge) median[3] /= (float)totedge;
-	else median[3] /= (float)tot;
+	else if(totw) median[3] /= (float)totw;
+	if(totweight) median[4] /= (float)totweight;
 	
 	if(G.vd->flag & V3D_GLOBAL_STATS)
 		Mat4MulVecfl(ob->obmat, median);
 	
 	if(block) {	// buttons
 	
-		
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
 		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
 		
-		QUATCOPY(ve_median, median);
+		memcpy(ve_median, median, sizeof(ve_median));
 		
 		uiBlockBeginAlign(block);
 		if(tot==1) {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==1) {
-				if(ob->type==OB_LATTICE)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
-				else
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
-			}
+			if(totw==1)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Vertex W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			uiBlockEndAlign(block);
+	
 			if(defstr[0]) {
 				uiDefBut(block, LABEL, 1, "Vertex Deform Groups",		10, 40, 290, 20, NULL, 0.0, 0.0, 0, 0, "");
 
 				uiBlockBeginAlign(block);
 				uiDefButF(block, NUM, B_NOP, "Weight:",			10, 20, 150, 19, defweightp, 0.0f, 1.0f, 10, 3, "Weight value");
 				uiDefButI(block, MENU, REDRAWVIEW3D, defstr,	160, 20, 140, 19, &curdef, 0.0, 0.0, 0, 0, "Current Vertex Group");
+				uiBlockEndAlign(block);
 			}
+			else if(totweight)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(ve_median[4]), 0.0, 1.0, 10, 3, "");
+
 		}
 		else {
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median X:",	10, 110, 290, 19, &(ve_median[0]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Y:",	10, 90, 290, 19, &(ve_median[1]), -lim, lim, 10, 3, "");
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median Z:",	10, 70, 290, 19, &(ve_median[2]), -lim, lim, 10, 3, "");
-			if(totw==tot) {
-				if(ob->type==OB_LATTICE)
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
-				else
-					uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
-			}
+			if(totw==tot)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Median W:",	10, 50, 290, 19, &(ve_median[3]), 0.01, 100.0, 10, 3, "");
+			uiBlockEndAlign(block);
+			if(totweight)
+				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
 		}
-		uiBlockEndAlign(block);
 		
 		if(totedge==1)
 			uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Crease W:",	10, 30, 290, 19, &(ve_median[3]), 0.0, 1.0, 10, 3, "");
@@ -1373,6 +1377,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		}
 		VecSubf(median, ve_median, median);
 		median[3]= ve_median[3]-median[3];
+		median[4]= ve_median[4]-median[4];
 		
 		if(ob->type==OB_MESH) {
 			float diffac= 1.0;
@@ -1429,6 +1434,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 							VecAddf(bezt->vec[0], bezt->vec[0], median);
 							VecAddf(bezt->vec[1], bezt->vec[1], median);
 							VecAddf(bezt->vec[2], bezt->vec[2], median);
+							bezt->weight+= median[4];
 						}
 						else {
 							if(bezt->f1 & 1) {
@@ -1448,6 +1454,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 						if(bp->f1 & 1) {
 							VecAddf(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
+							bp->weight+= median[4];
 						}
 						bp++;
 					}
@@ -1467,7 +1474,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			while(a--) {
 				if(bp->f1 & SELECT) {
 					VecAddf(bp->vec, bp->vec, median);
-					bp->vec[3]+= median[3];
+					bp->weight+= median[4];
 				}
 				bp++;
 			}

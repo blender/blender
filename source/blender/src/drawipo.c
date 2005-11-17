@@ -1004,40 +1004,6 @@ static void draw_ipobuts(SpaceIpo *sipo)
 	uiDrawBlock(block);
 }
 
-static void calc_ipoverts(SpaceIpo *sipo)
-{
-	View2D *v2d= &sipo->v2d;
-	EditIpo *ei;
-	BezTriple *bezt;
-	BPoint *bp;
-	int a, b;
-	
-	ei= G.sipo->editipo;
-	for(a=0; a<sipo->totipo; a++, ei++) {
-		if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
-			if(ei->icu->bezt) {
-				bezt= ei->icu->bezt;
-				b= ei->icu->totvert;
-				while(b--) {
-					ipoco_to_areaco(v2d, bezt->vec[0], bezt->s[0]);
-					ipoco_to_areaco(v2d, bezt->vec[1], bezt->s[1]);
-					ipoco_to_areaco(v2d, bezt->vec[2], bezt->s[2]);
-					bezt++;
-				}
-			}
-			else if(ei->icu->bp) {
-				bp= ei->icu->bp;
-				b= ei->icu->totvert;
-				while(b--) {
-					ipoco_to_areaco(v2d, bp->vec, bp->s);
-					bp++;
-				}
-			}
-		}
-	}
-}
-
-
 static void draw_ipovertices(int sel)
 {
 	EditIpo *ei;
@@ -2021,8 +1987,6 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		
 		calc_ipogrid();	
 		draw_ipogrid();
-		
-		calc_ipoverts(sipo);
 		
 		draw_cfra(sipo);
 		

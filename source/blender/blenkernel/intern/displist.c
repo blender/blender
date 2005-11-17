@@ -1429,7 +1429,7 @@ static ModifierData *curve_get_tesselate_point(Object *ob, int forRender, int ed
 		if (editmode && !(md->mode&eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 
-		if (md->type==eModifierType_Hook) {
+		if (md->type==eModifierType_Hook || md->type==eModifierType_Softbody) {
 			preTesselatePoint  = md;
 		}
 	}
@@ -1464,6 +1464,7 @@ void curve_calc_modifiers_pre(Object *ob, ListBase *nurb, int forRender, float (
 				deformedVerts = curve_getVertexCos(ob->data, nurb, &numVerts);
 				originalVerts = MEM_dupallocN(deformedVerts);
 			}
+			
 			mti->deformVerts(md, ob, NULL, deformedVerts, numVerts);
 
 			if (md==preTesselatePoint)

@@ -70,6 +70,7 @@ variables on the UI for now
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
+#include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -1043,7 +1044,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 static void lattice_to_softbody(Object *ob,int *rcs)
 {
 	Lattice *lt= ob->data;
-	SoftBody *sb= ob->soft;
+	SoftBody *sb;
 	int totvert, totspring = 0;
 
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
@@ -1059,7 +1060,8 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 	
 
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring,rcs);
+	renew_softbody(ob, totvert, totspring, rcs);
+	sb= ob->soft;	/* can be created in renew_softbody() */
 	
 	/* weights from bpoints, same code used as for mesh vertices */
 	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
@@ -1069,9 +1071,7 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 		int a;
 
 		for(a=0; a<totvert; a++, bp++, bpnt++) {
-			
-			bp->goal= sb->mingoal + bpnt->vec[3]*goalfac;
-
+			bp->goal= sb->mingoal + bpnt->weight*goalfac;
 			/* a little ad hoc changing the goal control to be less *sharp* */
 			bp->goal = (float)pow(bp->goal, 4.0f);
 		}
@@ -1082,6 +1082,87 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 		makelatticesprings(lt,ob->soft->bspring,ob->softflag & OB_SB_QUADS);
 		build_bps_springlist(ob); /* link bps to springs */
 	}
+}
+
+/* makes totally fresh start situation */
+static void curve_surf_to_softbody(Object *ob, int *rcs)
+{
+	Curve *cu= ob->data;
+	SoftBody *sb;
+	int totvert, totspring = 0;
+	
+	totvert= count_curveverts(&cu->nurb);
+	
+	if (ob->softflag & OB_SB_EDGES){
+		if(ob->type==OB_CURVE) {
+			totspring= totvert - BLI_countlist(&cu->nurb);
+		}
+	}
+	
+	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
+	renew_softbody(ob, totvert, totspring, rcs);
+	sb= ob->soft;	/* can be created in renew_softbody() */
+	
+	/* weights from bpoints, same code used as for mesh vertices */
+	if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+		BodyPoint *bp= sb->bpoint;
+		BodySpring *bs= sb->bspring;
+		Nurb *nu;
+		BezTriple *bezt;
+		BPoint *bpnt;
+		float goalfac= ABS(sb->maxgoal - sb->mingoal);
+		int a, curindex=0;
+		
+		for(nu= cu->nurb.first; nu; nu= nu->next) {
+			if(nu->bezt) {
+				for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++, bp++, curindex+=3) {
+					bp->goal= sb->mingoal + bezt->weight*goalfac;
+					/* a little ad hoc changing the goal control to be less *sharp* */
+					bp->goal = (float)pow(bp->goal, 4.0f);
+					/* all three triples */
+					bp++;
+					bp->goal= (bp-1)->goal;
+					bp++;
+					bp->goal= (bp-1)->goal;
+					
+					if(totspring) {
+						if(a>0) {
+							bs->v1= curindex-1;
+							bs->v2= curindex;
+							bs->strength= 1.0;
+							bs++;
+						}
+						bs->v1= curindex;
+						bs->v2= curindex+1;
+						bs->strength= 1.0;
+						bs++;
+						
+						bs->v1= curindex+1;
+						bs->v2= curindex+2;
+						bs->strength= 1.0;
+						bs++;
+					}
+				}
+			}
+			else {
+				for(bpnt=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bpnt++, bp++, curindex++) {
+					bp->goal= sb->mingoal + bpnt->weight*goalfac;
+					/* a little ad hoc changing the goal control to be less *sharp* */
+					bp->goal = (float)pow(bp->goal, 4.0f);
+					
+					if(totspring && a>0) {
+						bs->v1= curindex-1;
+						bs->v2= curindex;
+						bs->strength= 1.0;
+						bs++;
+					}
+				}
+			}
+		}
+	}
+	
+	if(totspring)
+		build_bps_springlist(ob); /* link bps to springs */
 }
 
 
@@ -1288,13 +1369,17 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	{
 		switch(ob->type) {
 		case OB_MESH:
-			mesh_to_softbody(ob,&rcs);
+			mesh_to_softbody(ob, &rcs);
 			break;
 		case OB_LATTICE:
-			lattice_to_softbody(ob,&rcs);
+			lattice_to_softbody(ob, &rcs);
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			curve_surf_to_softbody(ob, &rcs);
 			break;
 		default:
-			renew_softbody(ob, numVerts, 0,&rcs);
+			renew_softbody(ob, numVerts, 0, &rcs);
 			break;
 		}
 		
