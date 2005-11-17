@@ -2946,8 +2946,9 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 				if((mval[0] > scr->v1->vec.x) && (mval[0] < scr->v4->vec.x) &&
 				(mval[1] < scr->v2->vec.y) && (mval[1] > scr->v1->vec.y)){
 					/* test: is ScreenArea enough big for splitting */
-					split= testsplitpoint(scr, dir, fac);
-					if(split){
+					short tsplit= testsplitpoint(scr, dir, fac);
+					if(tsplit){
+						split = tsplit;
 						/* delete old line from previous ScreenArea */
 						if(!first) scrarea_draw_splitpoint(sa, dir, fac);
 						sa= scr;
