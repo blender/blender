@@ -1355,12 +1355,13 @@ static void draw_colorband_buts(uiBlock *block, ColorBand *coba, int offs, int r
 
 	if(coba==NULL) return;
 	
-	uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		90,180+offs,40,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
-	uiDefButS(block, NUM, B_REDR,		"Cur:",		130,180+offs,90,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
-	uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		220,180+offs,40,20, 0, 0, 0, 0, 0, "Deletes the active position");
-	uiDefButS(block, ROW, redraw, "E",		260,180+offs,17,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		277,180+offs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
-	uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		293,180+offs,17,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
+	uiDefBut(block, BUT, B_ADDCOLORBAND, "Add",		90,180+offs,37,20, 0, 0, 0, 0, 0, "Adds a new colour position to the colorband");
+	uiDefButS(block, NUM, B_REDR,		"Cur:",		127,180+offs,81,20, &coba->cur, 0.0, (float)(coba->tot-1), 0, 0, "Displays the active colour from the colorband");
+	uiDefBut(block, BUT, B_DELCOLORBAND, "Del",		209,180+offs,37,20, 0, 0, 0, 0, 0, "Deletes the active position");
+	uiDefButS(block, ROW, redraw,		 "E",		246,180+offs,16,20, &coba->ipotype, 5.0, 1.0, 0, 0, "Sets interpolation type 'Ease' (quadratic) ");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "C",		262,180+offs,16,20, &coba->ipotype, 5.0, 3.0, 0, 0, "Sets interpolation type Cardinal");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "L",		278,180+offs,16,20, &coba->ipotype, 5.0, 0.0, 0, 0, "Sets interpolation type Linear");
+	uiDefButS(block, ROW, B_TEXREDR_PRV, "S",		294,180+offs,16,20, &coba->ipotype, 5.0, 2.0, 0, 0, "Sets interpolation type B-Spline");
 
 	bt=uiDefBut(block, LABEL, B_DOCOLORBAND, "", 		10,150+offs,300,30, 0, 0, 0, 0, 0, "Colorband"); /* only for event! */
 	uiButSetFunc(bt, do_colorband_cb, coba, NULL);
