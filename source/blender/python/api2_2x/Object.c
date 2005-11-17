@@ -113,7 +113,7 @@ struct rctf;
 /*****************************************************************************/
 static PyObject *M_Object_New( PyObject * self, PyObject * args );
 PyObject *M_Object_Get( PyObject * self, PyObject * args );
-static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args );
+static PyObject *M_Object_GetSelected( PyObject * self );
 
 /* HELPER FUNCTION FOR PARENTING */
 static PyObject *internal_makeParent(Object *parent, PyObject *py_child, int partype, int noninverse, int fast, int v1, int v2, int v3);
@@ -147,7 +147,7 @@ struct PyMethodDef M_Object_methods[] = {
 	 M_Object_New_doc},
 	{"Get", ( PyCFunction ) M_Object_Get, METH_VARARGS,
 	 M_Object_Get_doc},
-	{"GetSelected", ( PyCFunction ) M_Object_GetSelected, METH_VARARGS,
+	{"GetSelected", ( PyCFunction ) M_Object_GetSelected, METH_NOARGS,
 	 M_Object_GetSelected_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -169,13 +169,13 @@ static PyObject *Object_getDrawType( BPy_Object * self );
 static PyObject *Object_getEuler( BPy_Object * self );
 static PyObject *Object_getInverseMatrix( BPy_Object * self );
 static PyObject *Object_getIpo( BPy_Object * self );
-static PyObject *Object_getLocation( BPy_Object * self, PyObject * args );
+static PyObject *Object_getLocation( BPy_Object * self );
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args );
 static PyObject *Object_getMatrix( BPy_Object * self, PyObject * args );
 static PyObject *Object_getName( BPy_Object * self );
 static PyObject *Object_getParent( BPy_Object * self );
 static PyObject *Object_getParentBoneName( BPy_Object * self );
-static PyObject *Object_getSize( BPy_Object * self, PyObject * args );
+static PyObject *Object_getSize( BPy_Object * self );
 static PyObject *Object_getTimeOffset( BPy_Object * self );
 static PyObject *Object_getTracked( BPy_Object * self );
 static PyObject *Object_getType( BPy_Object * self );
@@ -187,7 +187,7 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParent( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentDeform( BPy_Object * self, PyObject * args );
 static PyObject *Object_makeParentVertex( BPy_Object * self, PyObject * args );
-static PyObject *Object_materialUsage( BPy_Object * self, PyObject * args );
+static PyObject *Object_materialUsage( void );
 static PyObject *Object_getDupliVerts ( BPy_Object * self );
 static PyObject *Object_getEffects( BPy_Object * self );
 static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args );
@@ -302,7 +302,7 @@ If 'name_only' is nonzero or True, only the name of the datablock is returned"},
 	{"getInverseMatrix", ( PyCFunction ) Object_getInverseMatrix,
 	 METH_NOARGS,
 	 "Returns the object's inverse matrix"},
-	{"getLocation", ( PyCFunction ) Object_getLocation, METH_VARARGS,
+	{"getLocation", ( PyCFunction ) Object_getLocation, METH_NOARGS,
 	 "Returns the object's location (x, y, z)"},
 	{"getMaterials", ( PyCFunction ) Object_getMaterials, METH_VARARGS,
 	 "(i = 0) - Returns list of materials assigned to the object.\n\
@@ -467,7 +467,7 @@ mode:\n\t0: make parent with inverse\n\t1: without inverse\n\
 fast:\n\t0: update scene hierarchy automatically\n\t\
 don't update scene hierarchy (faster). In this case, you must\n\t\
 explicitely update the Scene hierarchy."},
-	{"materialUsage", ( PyCFunction ) Object_materialUsage, METH_VARARGS,
+	{"materialUsage", ( PyCFunction ) Object_materialUsage, METH_NOARGS,
 	 "Determines the way the material is used and returns status.\n\
 Possible arguments (provide as strings):\n\
 \tData:   Materials assigned to the object's data are shown. (default)\n\
@@ -594,16 +594,13 @@ PyTypeObject Object_Type = {
 PyObject *M_Object_New( PyObject * self, PyObject * args )
 {
 	struct Object *object;
-	BPy_Object *blen_object;
 	int type;
 	char *str_type;
 	char *name = NULL;
 
-	if( !PyArg_ParseTuple( args, "s|s", &str_type, &name ) ) {
-		EXPP_ReturnPyObjError( PyExc_TypeError,
-				       "string expected as argument" );
-		return ( NULL );
-	}
+	if( !PyArg_ParseTuple( args, "s|s", &str_type, &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"string expected as argument" );
 
 	if( strcmp( str_type, "Armature" ) == 0 )
 		type = OB_ARMATURE;
@@ -691,12 +688,11 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 
 	object->data = NULL;
 
-	/* Create a Python object from it. */
-	blen_object =
-		( BPy_Object * ) PyObject_NEW( BPy_Object, &Object_Type );
-	blen_object->object = object;
+	/* user count be incremented in Object_CreatePyObject */
+	object->id.us = 0;
 
-	return ( ( PyObject * ) blen_object );
+	/* Create a Python object from it. */
+	return Object_CreatePyObject( object );
 }
 
 /*****************************************************************************/
@@ -706,7 +702,7 @@ PyObject *M_Object_New( PyObject * self, PyObject * args )
 PyObject *M_Object_Get( PyObject * self, PyObject * args )
 {
 	struct Object *object;
-	BPy_Object *blen_object;
+	PyObject *blen_object;
 	char *name = NULL;
 
 	PyArg_ParseTuple( args, "|s", &name );
@@ -714,18 +710,12 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 	if( name != NULL ) {
 		object = GetObjectByName( name );
 
-		if( object == NULL ) {
 			/* No object exists with the name specified in the argument name. */
-			return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-							"Unknown object specified." ) );
-		}
-		blen_object =
-			( BPy_Object * ) PyObject_NEW( BPy_Object,
-						       &Object_Type );
-		blen_object->object = object;
-		object->id.us++;
+		if( !object )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+							"Unknown object specified." );
 
-		return ( ( PyObject * ) blen_object );
+		return Object_CreatePyObject( object );
 	} else {
 		/* No argument has been given. Return a list of all objects. */
 		PyObject *obj_list;
@@ -734,27 +724,24 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 
 		obj_list = PyList_New( BLI_countlist( &( G.main->object ) ) );
 
-		if( obj_list == NULL ) {
-			return ( EXPP_ReturnPyObjError( PyExc_SystemError,
-							"List creation failed." ) );
-		}
+		if( !obj_list )
+			return EXPP_ReturnPyObjError( PyExc_SystemError,
+							"List creation failed." );
 
 		link = G.main->object.first;
 		index = 0;
 		while( link ) {
 			object = ( Object * ) link;
-			blen_object =
-				( BPy_Object * ) PyObject_NEW( BPy_Object,
-							       &Object_Type );
-			blen_object->object = object;
-			object->id.us++;
-
-			PyList_SetItem( obj_list, index,
-					( PyObject * ) blen_object );
+			blen_object = Object_CreatePyObject( object );
+			if( !blen_object ) {
+				Py_DECREF( obj_list );
+				Py_RETURN_NONE;
+			}
+			PyList_SetItem( obj_list, index, blen_object );
 			index++;
 			link = link->next;
 		}
-		return ( obj_list );
+		return obj_list;
 	}
 }
 
@@ -762,9 +749,9 @@ PyObject *M_Object_Get( PyObject * self, PyObject * args )
 /* Function:	  M_Object_GetSelected				*/
 /* Python equivalent:	  Blender.Object.GetSelected		*/
 /*****************************************************************************/
-static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args )
+static PyObject *M_Object_GetSelected( PyObject * self )
 {
-	BPy_Object *blen_object;
+	PyObject *blen_object;
 	PyObject *list;
 	Base *base_iter;
 
@@ -777,40 +764,34 @@ static PyObject *M_Object_GetSelected( PyObject * self, PyObject * args )
 	if( ( G.scene->basact ) &&
 	    ( ( G.scene->basact->flag & SELECT ) &&
 	      ( G.scene->basact->lay & G.vd->lay ) ) ) {
+
 		/* Active object is first in the list. */
-		blen_object =
-			( BPy_Object * ) PyObject_NEW( BPy_Object,
-						       &Object_Type );
-		if( blen_object == NULL ) {
+		blen_object = Object_CreatePyObject( G.scene->basact->object );
+		if( !blen_object ) {
 			Py_DECREF( list );
-			Py_INCREF( Py_None );
-			return ( Py_None );
+			Py_RETURN_NONE;
 		}
-		blen_object->object = G.scene->basact->object;
-		PyList_Append( list, ( PyObject * ) blen_object );
+		PyList_Append( list, blen_object );
 		Py_DECREF( blen_object );
 	}
 
 	base_iter = G.scene->base.first;
 	while( base_iter ) {
 		if( ( ( base_iter->flag & SELECT ) &&
-		      ( base_iter->lay & G.vd->lay ) ) &&
-		    ( base_iter != G.scene->basact ) ) {
-			blen_object =
-				( BPy_Object * ) PyObject_NEW( BPy_Object,
-							       &Object_Type );
-			if( blen_object == NULL ) {
+					( base_iter->lay & G.vd->lay ) ) &&
+				( base_iter != G.scene->basact ) ) {
+
+			blen_object = Object_CreatePyObject( base_iter->object );
+			if( !blen_object ) {
 				Py_DECREF( list );
-				Py_INCREF( Py_None );
-				return ( Py_None );
+				Py_RETURN_NONE;
 			}
-			blen_object->object = base_iter->object;
-			PyList_Append( list, ( PyObject * ) blen_object );
+			PyList_Append( list, blen_object );
 			Py_DECREF( blen_object );
 		}
 		base_iter = base_iter->next;
 	}
-	return ( list );
+	return list;
 }
 
 /*****************************************************************************/
@@ -1177,7 +1158,7 @@ static PyObject *Object_getIpo( BPy_Object * self )
 	return Ipo_CreatePyObject( ipo );
 }
 
-static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
+static PyObject *Object_getLocation( BPy_Object * self )
 {
 	PyObject *attr = Py_BuildValue( "fff",
 					self->object->loc[0],
@@ -1277,7 +1258,7 @@ static PyObject *Object_getParentBoneName( BPy_Object * self )
 					"Failed to get parent bone name" ) );
 }
 
-static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
+static PyObject *Object_getSize( BPy_Object * self )
 {
 	PyObject *attr = Py_BuildValue( "fff",
 					self->object->size[0],
@@ -1349,7 +1330,6 @@ static PyObject *Object_getType( BPy_Object * self )
 		return ( Py_BuildValue( "s", "unknown" ) );
 	}
 }
-
 
 static PyObject *Object_getBoundBox( BPy_Object * self )
 {
@@ -1482,7 +1462,7 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 	}
 	if( ArmatureObject_Check( py_data ) )
 		data = ( void * ) PyArmature_AsArmature((BPy_Armature*)py_data);
-	if( Camera_CheckPyObject( py_data ) )
+	else if( Camera_CheckPyObject( py_data ) )
 		data = ( void * ) Camera_FromPyObject( py_data );
 	else if( Lamp_CheckPyObject( py_data ) )
 		data = ( void * ) Lamp_FromPyObject( py_data );
@@ -1823,10 +1803,10 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 	return EXPP_incr_ret( Py_None );
 }
 
-static PyObject *Object_materialUsage( BPy_Object * self, PyObject * args )
+static PyObject *Object_materialUsage( void )
 {
-	return ( EXPP_ReturnPyObjError( PyExc_NotImplementedError,
-					"materialUsage: not yet implemented" ) );
+	return EXPP_ReturnPyObjError( PyExc_NotImplementedError,
+			"materialUsage: not yet implemented" );
 }
 
 static PyObject *Object_setDeltaLocation( BPy_Object * self, PyObject * args )
@@ -2594,7 +2574,7 @@ static PyObject *Object_getEffects( BPy_Object * self )
 	eff = self->object->effect.first;
 
 	while( eff ) {
-		PyList_Append( effect_list, EffectCreatePyObject( eff ) );
+		PyList_Append( effect_list, EffectCreatePyObject( eff, self->object ) );
 		eff = eff->next;
 	}
 	return effect_list;
@@ -2610,16 +2590,15 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 	BPy_Object *blen_object;
 
 	if( !obj )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	blen_object =
 		( BPy_Object * ) PyObject_NEW( BPy_Object, &Object_Type );
 
-	if( blen_object == NULL ) {
-		return ( NULL );
+	if( blen_object ) {
+		blen_object->object = obj;
+		obj->id.us++;
 	}
-	blen_object->object = obj;
-	obj->id.us++;
 	return ( ( PyObject * ) blen_object );
 }
 
@@ -2778,11 +2757,9 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	}
 	if( StringEqual( name, "parent" ) ) {
 		if( object->parent )
-			return ( Object_CreatePyObject( object->parent ) );
-		else {
-			Py_INCREF( Py_None );
-			return ( Py_None );
-		}
+			return Object_CreatePyObject( object->parent );
+		else
+			Py_RETURN_NONE;
 	}
 	if( StringEqual( name, "parentbonename" ) ) {
 		if( object->parent && object->parsubstr[0] )
@@ -2794,7 +2771,7 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	}
 
 	if( StringEqual( name, "track" ) )
-		return ( Object_CreatePyObject( object->track ) );
+		return Object_CreatePyObject( object->track );
 	if( StringEqual( name, "data" ) ) {
 		PyObject *getdata, *tuple = PyTuple_New(0);
 
@@ -2864,6 +2841,8 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	}
 	if( StringEqual( name, "effects" ) )
 		return Object_getEffects( obj );
+	if( StringEqual( name, "users" ) )
+		return PyInt_FromLong( obj->object->id.us );
 
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );

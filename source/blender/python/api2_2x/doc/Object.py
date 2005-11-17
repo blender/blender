@@ -4,6 +4,9 @@
 The Blender.Object submodule
 
 B{New}:
+  - Objects now increment the Blender user count when they are created and
+    decremented it when they are destroyed.  This means Python scripts can
+    keep the object "alive" if it is deleted in the Blender GUI.
   - L{Object.getData} now accepts two optional bool keyword argument to
       define (1) if the user wants the data object or just its name
       and (2) if a mesh object should use NMesh or Mesh.
@@ -187,6 +190,8 @@ class Object:
     @ivar sel: The selection state of the object in the current scene, 1 is selected, 0 is unselected.  
     @ivar effects: The list of particle effects associated with the object.  (Read-only)
     @ivar parentbonename: The string name of the parent bone.
+    @ivar users: The number of users of the object.  Read-only.
+    @type users: int
   """
 
   def buildParts():
