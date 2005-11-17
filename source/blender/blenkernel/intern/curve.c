@@ -1956,7 +1956,8 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 		dy= p2[1]- p1[1];
 		dz= p2[2]- p1[2];
 	}
-	len1= (float)sqrt(dx*dx+dy*dy+dz*dz);
+	if(mode) len1= dx;
+	else len1= (float)sqrt(dx*dx+dy*dy+dz*dz);
 	
 	if(mode && bezt->h2==HD_AUTO && next) {
 		dx1= (p3[0]+p3[-3])/2.0f - p2[0];
@@ -1968,7 +1969,8 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 		dy1= p3[1]- p2[1];
 		dz1= p3[2]- p2[2];
 	}
-	len2= (float)sqrt(dx1*dx1+dy1*dy1+dz1*dz1);
+	if(mode) len2= dx1;
+	else len2= (float)sqrt(dx1*dx1+dy1*dy1+dz1*dz1);
 
 	if(len1==0.0f) len1=1.0f;
 	if(len2==0.0f) len2=1.0f;
