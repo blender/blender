@@ -239,6 +239,7 @@ void snap_action_strips(void)
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				strip->start= floor(strip->start+0.5);
+				strip->end= floor(strip->end+0.5);
 			}
 		}
 	}
