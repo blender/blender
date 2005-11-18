@@ -192,6 +192,18 @@ class Object:
     @ivar parentbonename: The string name of the parent bone.
     @ivar users: The number of users of the object.  Read-only.
     @type users: int
+    @ivar protectFlags: The "transform locking" bitfield flags for the object.  
+    Setting bits lock the following attributes:
+	   - bit 0: X location
+	   - bit 1: Y location
+	   - bit 2: Z location
+	   - bit 3: X rotation
+	   - bit 4: Y rotation
+	   - bit 5: Z rotation
+	   - bit 6: X size
+	   - bit 7: Y size
+	   - bit 8: Z size
+    @type protectFlags: int
   """
 
   def buildParts():

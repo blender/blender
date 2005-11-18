@@ -2844,6 +2844,8 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 		return Object_getEffects( obj );
 	if( StringEqual( name, "users" ) )
 		return PyInt_FromLong( obj->object->id.us );
+	if( StringEqual( name, "protectFlags" ) )
+		return PyInt_FromLong( obj->object->protectflag );
 
 	/* not an attribute, search the methods table */
 	return Py_FindMethod( BPy_Object_methods, ( PyObject * ) obj, name );
@@ -3063,6 +3065,19 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 		}
 		return 0;
 	}
+	if( StringEqual( name, "protectFlags" ) ) {
+		int flag=0;
+		if( !PyArg_Parse( value, "i", &flag ) )
+			return EXPP_ReturnIntError ( PyExc_AttributeError,
+					  "expected an integer" );
+
+		flag &= OB_LOCK_LOCX | OB_LOCK_LOCY | OB_LOCK_LOCZ |
+			OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ |
+			OB_LOCK_SIZEX | OB_LOCK_SIZEY | OB_LOCK_SIZEZ;
+
+		object->protectflag = flag;
+		return 0;
+	}
 
 
 	/* SECOND, handle all the attributes that passes the value as a tuple to another function */
@@ -3073,7 +3088,7 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 	valtuple = Py_BuildValue( "(O)", value );
 	if( !valtuple ) {
 		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "Object_setAttr: couldn't create PyTuple" );
+				"Object_setAttr: couldn't create PyTuple" );
 	}
 	/* Call the setFunctions to handle it */
 	if( StringEqual( name, "loc" ) )
