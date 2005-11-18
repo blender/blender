@@ -2590,15 +2590,16 @@ PyObject *Object_CreatePyObject( struct Object * obj )
 	BPy_Object *blen_object;
 
 	if( !obj )
-		Py_RETURN_NONE;
+		return EXPP_incr_ret( Py_None );
 
 	blen_object =
 		( BPy_Object * ) PyObject_NEW( BPy_Object, &Object_Type );
 
-	if( blen_object ) {
-		blen_object->object = obj;
-		obj->id.us++;
+	if( blen_object == NULL ) {
+		return ( NULL );
 	}
+	blen_object->object = obj;
+	obj->id.us++;
 	return ( ( PyObject * ) blen_object );
 }
 
