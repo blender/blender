@@ -976,8 +976,10 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_SEQ) {
 		extern Sequence *last_seq;
 		
-		*from= (ID *)last_seq;
-		if(last_seq) *ipo= last_seq->ipo;
+		if(last_seq && (last_seq->type & SEQ_EFFECT)) {
+			*from= (ID *)last_seq;
+			*ipo= last_seq->ipo;
+		}
 	}
 	else if(blocktype==ID_WO) {
 		World *wo= G.scene->world;
