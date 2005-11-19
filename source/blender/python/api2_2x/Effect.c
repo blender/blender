@@ -539,7 +539,6 @@ struct PyMethodDef M_Effect_methods[] = {
 /*****************************************************************************/
 PyObject *M_Effect_New( PyObject * self, PyObject * args )
 {
-	BPy_Effect *pyeffect;
 	Effect *bleffect = 0;
 	Object *ob;
 	char *name = NULL;
@@ -561,13 +560,10 @@ PyObject *M_Effect_New( PyObject * self, PyObject * args )
 				"object is not a mesh" );
 
 	bleffect = add_effect( EFF_PARTICLE );
-	if( !bleffect ) {
-		Py_DECREF( pyeffect );
+	if( !bleffect )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"couldn't create Effect Data in Blender" );
-	}
 
-	pyeffect->effect = (PartEff *)bleffect;
 	BLI_addtail( &ob->effect, bleffect );
 
 	return EffectCreatePyObject( bleffect, ob );
@@ -584,7 +580,6 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 	char *name = NULL;
 	Object *object_iter;
 	Effect *eff;
-	BPy_Effect *wanted_eff;
 	int num = -1, i;
 
 	if( !PyArg_ParseTuple( args, "|si", &name, &num ) )
