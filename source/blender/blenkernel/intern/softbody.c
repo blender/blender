@@ -965,7 +965,23 @@ static void mesh_to_softbody(Object *ob)
 	
 }
 
-static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
+
+
+/*
+helper function to get proper spring length 
+when object is rescaled
+*/
+float globallen(float *v1,float *v2,Object *ob)
+{
+	float p1[3],p2[3];
+	VECCOPY(p1,v1);
+	Mat4MulVecfl(ob->obmat, p1);	
+	VECCOPY(p2,v2);
+	Mat4MulVecfl(ob->obmat, p2);
+	return VecLenf(p1,p2);
+}
+
+static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff,Object *ob)
 {
 	BPoint *bp=lt->def, *bpu;
 	int u, v, w, dv, dw, bpc=0, bpuc;
@@ -983,21 +999,21 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 					bs->v1 = bpc;
 					bs->v2 = bpc-dw;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bp-dw)->vec, bp->vec);
+					bs->len= globallen((bp-dw)->vec, bp->vec,ob);
 					bs++;
 				}
 				if(v) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dv;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bp-dv)->vec, bp->vec);
+					bs->len= globallen((bp-dv)->vec, bp->vec,ob);
 					bs++;
 				}
 				if(u) {
 					bs->v1 = bpuc;
 					bs->v2 = bpc;
 				    bs->strength= 1.0;
-					bs->len= VecLenf((bpu)->vec, bp->vec);
+					bs->len= globallen((bpu)->vec, bp->vec,ob);
 					bs++;
 				}
 				
@@ -1008,14 +1024,14 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw-dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp-dw-dv-1)->vec, bp->vec);
+							bs->len= globallen((bp-dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw+dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp-dw+dv-1)->vec, bp->vec);
+							bs->len= globallen((bp-dw+dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 					}
@@ -1025,14 +1041,14 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw-dv-1;
 							bs->strength= 1.0;
-							bs->len= VecLenf((bp+dw-dv-1)->vec, bp->vec);
+							bs->len= globallen((bp+dw-dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw+dv-1;
 							bs->strength= 1.0;
-							 bs->len= VecLenf((bp+dw+dv-1)->vec, bp->vec);
+							 bs->len= globallen((bp+dw+dv-1)->vec, bp->vec,ob);
 							bs++;
 						}						
 					}
@@ -1084,7 +1100,7 @@ static void lattice_to_softbody(Object *ob)
 	
 	/* create some helper edges to enable SB lattice to be usefull at all */
 	if (ob->softflag & OB_SB_EDGES){
-		makelatticesprings(lt,ob->soft->bspring,ob->softflag & OB_SB_QUADS);
+		makelatticesprings(lt,ob->soft->bspring,ob->softflag & OB_SB_QUADS,ob);
 		build_bps_springlist(ob); /* link bps to springs */
 	}
 }
@@ -1142,19 +1158,19 @@ static void curve_surf_to_softbody(Object *ob)
 						bs->v1= curindex-1;
 						bs->v2= curindex;
 						bs->strength= 1.0;
-						bs->len= VecLenf( (bezt-1)->vec[2], bezt->vec[0] );
+						bs->len= globallen( (bezt-1)->vec[2], bezt->vec[0], ob );
 						bs++;
 					}
 					bs->v1= curindex;
 					bs->v2= curindex+1;
 					bs->strength= 1.0;
-					bs->len= VecLenf( bezt->vec[0], bezt->vec[1] );
+					bs->len= globallen( bezt->vec[0], bezt->vec[1], ob );
 					bs++;
 					
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
 					bs->strength= 1.0;
-					bs->len= VecLenf( bezt->vec[1], bezt->vec[2] );
+					bs->len= globallen( bezt->vec[1], bezt->vec[2], ob );
 					bs++;
 				}
 			}
@@ -1170,7 +1186,7 @@ static void curve_surf_to_softbody(Object *ob)
 					bs->v1= curindex-1;
 					bs->v2= curindex;
 					bs->strength= 1.0;
-					bs->len= VecLenf( (bpnt-1)->vec, bpnt->vec );
+					bs->len= globallen( (bpnt-1)->vec, bpnt->vec , ob );
 					bs++;
 				}
 			}
