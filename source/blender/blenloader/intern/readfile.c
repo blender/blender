@@ -1241,6 +1241,8 @@ static void lib_link_scriptlink(FileData *fd, ID *id, ScriptLink *slink)
 static void direct_link_scriptlink(FileData *fd, ScriptLink *slink)
 {
 	slink->scripts= newdataadr(fd, slink->scripts);
+	test_pointer_array(fd, (void **)&slink->scripts);
+	
 	slink->flag= newdataadr(fd, slink->flag);
 
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
