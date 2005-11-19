@@ -566,9 +566,13 @@ static void drawlamp(Object *ob)
 	
 	setlinestyle(3);
 
-	/* draw dashed outer circle if shadow is on */
-	if ((la->mode & LA_SHAD) || (la->mode & LA_SHAD_RAY)) {
-		drawcircball(GL_LINE_LOOP, vec, circrad + 3.0f*pixsize, imat);
+	/* draw dashed outer circle if shadow is on. remember some lamps can't have certain shadows! */
+	if (la->type!=LA_HEMI) {
+		if ((la->mode & LA_SHAD_RAY) ||
+			((la->mode & LA_SHAD) && (la->type==LA_SPOT)) )
+		{
+			drawcircball(GL_LINE_LOOP, vec, circrad + 3.0f*pixsize, imat);
+		}
 	}
 	
 	/* draw the pretty sun rays */
@@ -687,7 +691,7 @@ static void drawlamp(Object *ob)
 			short axis, steps, dir;
 			float outdist, zdist, mul;
 			vec[0]=vec[1]=vec[2]= 0.0;
-			outdist = 0.18; mul = 1.4; dir = 1;
+			outdist = 0.14; mul = 1.4; dir = 1;
 			
 			setlinestyle(4);
 			/* loop over the 4 compass points, and draw each arc as a LINE_STRIP */
