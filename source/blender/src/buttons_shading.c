@@ -152,7 +152,7 @@ static char *mapto_blendtype_pup(void)
 	return (string);
 }
 
-static void shade_buttons_change_3d(void)
+void shade_buttons_change_3d(void)
 {
 	Object *ob= OBACT;
 	ScrArea *sa;

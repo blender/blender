@@ -300,5 +300,7 @@ extern int uiAlignPanelStep(struct ScrArea *sa, float fac);
 extern void uiPanelControl(int);
 extern void uiSetPanelHandler(int);
 
+void shade_buttons_change_3d(void);
+
 #endif /*  BIF_INTERFACE_H */
 
