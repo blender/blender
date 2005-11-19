@@ -1260,7 +1260,6 @@ static void *editFont_to_undoFont(void)
 {
 	Curve *cu= G.obedit->data;
 	char *str;
-	short oldlen = 0;
 	
 	// The undo buffer includes [MAXTEXT+6]=actual string and [MAXTEXT+4]*sizeof(CharInfo)=charinfo
 	str= MEM_callocN((MAXTEXT+6)*sizeof(wchar_t) + (MAXTEXT+4)*sizeof(CharInfo), "string undo");

@@ -317,13 +317,13 @@ static void clear_transp_rect(unsigned char *transp, unsigned char *rect, int w,
 
 	/* Utilities */
 
-static void viconutil_set_point(int pt[2], int x, int y)
+static void viconutil_set_point(GLint pt[2], int x, int y)
 {
 	pt[0] = x;
 	pt[1] = y;
 }
 
-static void viconutil_draw_tri(int (*pts)[2])
+static void viconutil_draw_tri(GLint (*pts)[2])
 {
 	glBegin(GL_TRIANGLES);
 	glVertex2iv(pts[0]);
@@ -332,7 +332,8 @@ static void viconutil_draw_tri(int (*pts)[2])
 	glEnd();
 }
 
-static void viconutil_draw_quad(int (*pts)[2])
+#if 0
+static void viconutil_draw_quad(GLint (*pts)[2])
 {
 	glBegin(GL_QUADS);
 	glVertex2iv(pts[0]);
@@ -341,8 +342,9 @@ static void viconutil_draw_quad(int (*pts)[2])
 	glVertex2iv(pts[3]);
 	glEnd();
 }
+#endif
 
-static void viconutil_draw_lineloop(int (*pts)[2], int numPoints)
+static void viconutil_draw_lineloop(GLint (*pts)[2], int numPoints)
 {
 	int i;
 
@@ -353,14 +355,14 @@ static void viconutil_draw_lineloop(int (*pts)[2], int numPoints)
 	glEnd();
 }
 
-static void viconutil_draw_lineloop_smooth(int (*pts)[2], int numPoints)
+static void viconutil_draw_lineloop_smooth(GLint (*pts)[2], int numPoints)
 {
 	glEnable(GL_LINE_SMOOTH);
 	viconutil_draw_lineloop(pts, numPoints);
 	glDisable(GL_LINE_SMOOTH);
 }
 
-static void viconutil_draw_points(int (*pts)[2], int numPoints, int pointSize)
+static void viconutil_draw_points(GLint (*pts)[2], int numPoints, int pointSize)
 {
 	int i;
 
@@ -432,7 +434,7 @@ static void vicon_view3d_draw(int x, int y, int w, int h, float alpha)
 
 static void vicon_edit_draw(int x, int y, int w, int h, float alpha)
 {
-	int pts[4][2];
+	GLint pts[4][2];
 
 	viconutil_set_point(pts[0], x+3  , y+3  );
 	viconutil_set_point(pts[1], x+w-3, y+3  );
@@ -448,7 +450,7 @@ static void vicon_edit_draw(int x, int y, int w, int h, float alpha)
 
 static void vicon_editmode_hlt_draw(int x, int y, int w, int h, float alpha)
 {
-	int pts[3][2];
+	GLint pts[3][2];
 
 	viconutil_set_point(pts[0], x+w/2, y+h-2);
 	viconutil_set_point(pts[1], x+3, y+4);
@@ -466,7 +468,7 @@ static void vicon_editmode_hlt_draw(int x, int y, int w, int h, float alpha)
 
 static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float alpha)
 {
-	int pts[3][2];
+	GLint pts[3][2];
 
 	viconutil_set_point(pts[0], x+w/2, y+h-2);
 	viconutil_set_point(pts[1], x+3, y+4);
@@ -481,7 +483,7 @@ static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float alpha)
 
 static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float alpha)
 {
-	int pts[3][2];
+	GLint pts[3][2];
 	int cx = x+w/2;
 	int cy = y+w/2;
 	int d = w/3, d2 = w/5;
@@ -506,7 +508,7 @@ static void vicon_disclosure_tri_right_draw(int x, int y, int w, int h, float al
 
 static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alpha)
 {
-	int pts[3][2];
+	GLint pts[3][2];
 	int cx = x+w/2;
 	int cy = y+w/2;
 	int d = w/3, d2 = w/5;
@@ -531,7 +533,7 @@ static void vicon_disclosure_tri_down_draw(int x, int y, int w, int h, float alp
 
 static void vicon_move_up_draw(int x, int y, int w, int h, float alpha)
 {
-	int d=-2, pad=3;
+	int d=-2;
 
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);
@@ -549,7 +551,7 @@ static void vicon_move_up_draw(int x, int y, int w, int h, float alpha)
 
 static void vicon_move_down_draw(int x, int y, int w, int h, float alpha)
 {
-	int d=2, pad=3;
+	int d=2;
 
 	glEnable(GL_LINE_SMOOTH);
 	glLineWidth(1);

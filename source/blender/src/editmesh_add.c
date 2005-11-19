@@ -471,7 +471,8 @@ static void fix_new_face(EditFace *eface)
 		}
 
 		coef = 0;
-		ev1 = ev2 = eed = NULL;
+		ev1 = ev2 = NULL;
+		eed = NULL;
 
 		if(efa->v1==v1 || efa->v2==v1 || efa->v3==v1 || efa->v4==v1) {
 			ev1 = v1;
