@@ -259,7 +259,7 @@ static void build_bps_springlist(Object *ob)
 
 
 /* creates new softbody if didn't exist yet, makes new points and springs arrays */
-static void renew_softbody(Object *ob, int totpoint, int totspring,int *rcs)  
+static void renew_softbody(Object *ob, int totpoint, int totspring)  
 {
 	SoftBody *sb;
 	int i;
@@ -267,7 +267,6 @@ static void renew_softbody(Object *ob, int totpoint, int totspring,int *rcs)
 	if(ob->soft==NULL) ob->soft= sbNew();
 	else free_softbody_intern(ob->soft);
 	sb= ob->soft;
-	*rcs=1; /* we don't do spring calulations here */
 	   
 	if(totpoint) {
 		sb->totpoint= totpoint;
@@ -900,7 +899,7 @@ static void springs_from_mesh(Object *ob)
 
 
 /* makes totally fresh start situation */
-static void mesh_to_softbody(Object *ob,int *rcs)
+static void mesh_to_softbody(Object *ob)
 {
 	SoftBody *sb;
 	Mesh *me= ob->data;
@@ -913,7 +912,7 @@ static void mesh_to_softbody(Object *ob,int *rcs)
 	else totedge= 0;
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, me->totvert, totedge,rcs);
+	renew_softbody(ob, me->totvert, totedge);
 		
 	/* we always make body points */
 	sb= ob->soft;	
@@ -961,15 +960,14 @@ static void mesh_to_softbody(Object *ob,int *rcs)
 
 			build_bps_springlist(ob); /* scan for springs attached to bodypoints ONCE */
 			springs_from_mesh(ob); /* write the 'rest'-lenght of the springs */
-            *rcs=0; /* we did spring calulations */
 		}
 	}
 	
 }
 
-
 static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 {
+	BPoint *bp=lt->def, *bpu;
 	int u, v, w, dv, dw, bpc=0, bpuc;
 	
 	dv= lt->pntsu;
@@ -979,24 +977,27 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 		
 		for(v=0; v<lt->pntsv; v++) {
 			
-			for(u=0, bpuc=0; u<lt->pntsu; u++, bpc++) {
+			for(u=0, bpuc=0, bpu=NULL; u<lt->pntsu; u++, bp++, bpc++) {
 				
 				if(w) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dw;
 				    bs->strength= 1.0;
+					bs->len= VecLenf((bp-dw)->vec, bp->vec);
 					bs++;
 				}
 				if(v) {
 					bs->v1 = bpc;
 					bs->v2 = bpc-dv;
 				    bs->strength= 1.0;
+					bs->len= VecLenf((bp-dv)->vec, bp->vec);
 					bs++;
 				}
 				if(u) {
 					bs->v1 = bpuc;
 					bs->v2 = bpc;
 				    bs->strength= 1.0;
+					bs->len= VecLenf((bpu)->vec, bp->vec);
 					bs++;
 				}
 				
@@ -1007,12 +1008,14 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw-dv-1;
 							bs->strength= 1.0;
+							bs->len= VecLenf((bp-dw-dv-1)->vec, bp->vec);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc-dw+dv-1;
 							bs->strength= 1.0;
+							bs->len= VecLenf((bp-dw+dv-1)->vec, bp->vec);
 							bs++;
 						}						
 					}
@@ -1022,17 +1025,19 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw-dv-1;
 							bs->strength= 1.0;
+							bs->len= VecLenf((bp+dw-dv-1)->vec, bp->vec);
 							bs++;
 						}						
 						if( (v < lt->pntsv-1) && (u) ) {
 							bs->v1 = bpc;
 							bs->v2 = bpc+dw+dv-1;
 							bs->strength= 1.0;
+							 bs->len= VecLenf((bp+dw+dv-1)->vec, bp->vec);
 							bs++;
 						}						
 					}
 				}
-
+				bpu = bp;
 				bpuc = bpc;
 			}
 		}
@@ -1041,7 +1046,7 @@ static void makelatticesprings(Lattice *lt,	BodySpring *bs, int dostiff)
 
 
 /* makes totally fresh start situation */
-static void lattice_to_softbody(Object *ob,int *rcs)
+static void lattice_to_softbody(Object *ob)
 {
 	Lattice *lt= ob->data;
 	SoftBody *sb;
@@ -1060,7 +1065,7 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 	
 
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring, rcs);
+	renew_softbody(ob, totvert, totspring);
 	sb= ob->soft;	/* can be created in renew_softbody() */
 	
 	/* weights from bpoints, same code used as for mesh vertices */
@@ -1085,7 +1090,7 @@ static void lattice_to_softbody(Object *ob,int *rcs)
 }
 
 /* makes totally fresh start situation */
-static void curve_surf_to_softbody(Object *ob, int *rcs)
+static void curve_surf_to_softbody(Object *ob)
 {
 	Curve *cu= ob->data;
 	SoftBody *sb;
@@ -1107,7 +1112,7 @@ static void curve_surf_to_softbody(Object *ob, int *rcs)
 	}
 	
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
-	renew_softbody(ob, totvert, totspring, rcs);
+	renew_softbody(ob, totvert, totspring);
 	sb= ob->soft;	/* can be created in renew_softbody() */
 		
 	/* set vars now */
@@ -1137,16 +1142,19 @@ static void curve_surf_to_softbody(Object *ob, int *rcs)
 						bs->v1= curindex-1;
 						bs->v2= curindex;
 						bs->strength= 1.0;
+						bs->len= VecLenf( (bezt-1)->vec[2], bezt->vec[0] );
 						bs++;
 					}
 					bs->v1= curindex;
 					bs->v2= curindex+1;
 					bs->strength= 1.0;
+					bs->len= VecLenf( bezt->vec[0], bezt->vec[1] );
 					bs++;
 					
 					bs->v1= curindex+1;
 					bs->v2= curindex+2;
 					bs->strength= 1.0;
+					bs->len= VecLenf( bezt->vec[1], bezt->vec[2] );
 					bs++;
 				}
 			}
@@ -1162,6 +1170,7 @@ static void curve_surf_to_softbody(Object *ob, int *rcs)
 					bs->v1= curindex-1;
 					bs->v2= curindex;
 					bs->strength= 1.0;
+					bs->len= VecLenf( (bpnt-1)->vec, bpnt->vec );
 					bs++;
 				}
 			}
@@ -1359,7 +1368,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 {
 	SoftBody *sb;
 	BodyPoint *bp;
-	int a,rcs;
+	int a;
 	float dtime,ctime,forcetime,err;
 	
 	/* baking works with global time */
@@ -1367,6 +1376,8 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		if(softbody_baked_step(ob, framenr, vertexCos, numVerts) ) return;
 
 	
+	/* This part only sets goals and springs, based on original mesh/curve/lattice data.
+	   Copying coordinates happens in next chunk by setting softbody flag OB_SB_RESET */
 	/* remake softbody if: */
 	if(		(ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
 			(ob->soft==NULL) ||					// just to be nice we allow full init
@@ -1376,17 +1387,17 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	{
 		switch(ob->type) {
 		case OB_MESH:
-			mesh_to_softbody(ob, &rcs);
+			mesh_to_softbody(ob);
 			break;
 		case OB_LATTICE:
-			lattice_to_softbody(ob, &rcs);
+			lattice_to_softbody(ob);
 			break;
 		case OB_CURVE:
 		case OB_SURF:
-			curve_surf_to_softbody(ob, &rcs);
+			curve_surf_to_softbody(ob);
 			break;
 		default:
-			renew_softbody(ob, numVerts, 0, &rcs);
+			renew_softbody(ob, numVerts, 0);
 			break;
 		}
 		
@@ -1441,12 +1452,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 			VECCOPY(bp->prevdx, bp->vec);
 			VECCOPY(bp->prevdv, bp->vec);
 		}
-		if ((ob->softflag&OB_SB_RESET) && (rcs)){
-			for(a=0; a<sb->totspring; a++) {
-				BodySpring *bs = &sb->bspring[a];
-				bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
-			}
-		}
+		
 		ob->softflag &= ~OB_SB_RESET;
 	}
 	else if(dtime>0.0) {
