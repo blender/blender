@@ -100,12 +100,13 @@ typedef struct BodySpring {
 
 
 #define SOFTGOALSNAP  0.999f 
-// if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
-// removes *unnecessary* stiffnes from ODE system
-#define HEUNWARNLIMIT 1 // 50 would be fine i think for detecting severe *stiff* stuff
+/* if bp-> goal is above make it a *forced follow original* and skip all ODE stuff for this bp
+   removes *unnecessary* stiffnes from ODE system
+*/
+#define HEUNWARNLIMIT 1 /* 50 would be fine i think for detecting severe *stiff* stuff */
 
 
-float SoftHeunTol = 1.0f; // humm .. this should be calculated from sb parameters and sizes
+float SoftHeunTol = 1.0f; /* humm .. this should be calculated from sb parameters and sizes */
 
 /* local prototypes */
 static void free_softbody_intern(SoftBody *sb);
@@ -115,31 +116,35 @@ static void Vec3PlusStVec(float *v, float s, float *v1);
 
 /*+++ frame based timing +++*/
 
-//physical unit of force is [kg * m / sec^2]
+/*physical unit of force is [kg * m / sec^2]*/
 
 static float sb_grav_force_scale(Object *ob)
-// since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
-// put it to a function here, so we can add user options later without touching simulation code
+/* since unit of g is [m/sec^2] and F = mass * g we rescale unit mass of node to 1 gramm
+  put it to a function here, so we can add user options later without touching simulation code
+*/
 {
 	return (0.001f);
 }
 
 static float sb_fric_force_scale(Object *ob)
-// rescaling unit of drag [1 / sec] to somehow reasonable
-// put it to a function here, so we can add user options later without touching simulation code
+/* rescaling unit of drag [1 / sec] to somehow reasonable
+  put it to a function here, so we can add user options later without touching simulation code
+*/
 {
 	return (0.01f);
 }
 
 static float sb_time_scale(Object *ob)
-// defining the frames to *real* time relation
+/* defining the frames to *real* time relation */
 {
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	if (sb){
-		return(sb->physics_speed); //hrms .. this could be IPO as well :) 
-		// estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
-		// 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
-        // theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM) 
+		return(sb->physics_speed); 
+		/*hrms .. this could be IPO as well :) 
+		 estimated range [0.001 sluggish slug - 100.0 very fast (i hope ODE solver can handle that)]
+		 1 approx = a unit 1 pendulum at g = 9.8 [earth conditions]  has period 65 frames
+         theory would give a 50 frames period .. so there must be something inaccurate .. looking for that (BM) 
+		 */
 	}
 	return (1.0f);
 	/* 
@@ -236,12 +241,12 @@ it is O(N^2) so scanning for springs every iteration is too expensive
 */
 static void build_bps_springlist(Object *ob)
 {
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;	
 	BodySpring *bs;	
 	int a,b;
 	
-	if (sb==NULL) return; // paranoya check
+	if (sb==NULL) return; /* paranoya check */
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
 		/* scan for attached inner springs */	
@@ -252,9 +257,9 @@ static void build_bps_springlist(Object *ob)
 			if (( (sb->totpoint-a) == bs->v2) ){ 
 				add_bp_springlist(bp,sb->totspring -b);
 			}
-		}//for springs
-		// if (bp->nofsprings) printf(" node %d has %d spring links\n",a,bp->nofsprings);
-	}//for bp		
+		}/*for springs*/
+		/* if (bp->nofsprings) printf(" node %d has %d spring links\n",a,bp->nofsprings);*/
+	}/*for bp*/		
 }
 
 
@@ -380,7 +385,7 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 				fa = 1.0f/fa;
 				copyob = ob;
 				
-				if(1) { // so maybe someone wants overkill to collide with subsurfed 
+				if(1) { /* so maybe someone wants overkill to collide with subsurfed */
 					dm = mesh_get_derived_deform(copyob, &dmNeedsFree);
 				} else {
 					dm = mesh_get_derived_final(copyob, &dmNeedsFree);
@@ -417,10 +422,10 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 					
 					
 					
-					// switch origin to be nv2
+					/* switch origin to be nv2*/
 					VECSUB(edge1, nv1, nv2);
 					VECSUB(edge2, nv3, nv2);
-					VECSUB(dv1,opco,nv2); // abuse dv1 to have vertex in question at *origin* of triangle
+					VECSUB(dv1,opco,nv2); /* abuse dv1 to have vertex in question at *origin* of triangle */
 					
 					Crossf(d_nvect, edge2, edge1);
 					n_mag = Normalise(d_nvect);
@@ -439,11 +444,11 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 							deflected = 2;
 						}
 					}		
-					if (mface->v4){ // quad
-						// switch origin to be nv4
+					if (mface->v4){ /* quad */
+						/* switch origin to be nv4 */
 						VECSUB(edge1, nv3, nv4);
 						VECSUB(edge2, nv1, nv4);
-						VECSUB(dv1,opco,nv4); // abuse dv1 to have vertex in question at *origin* of triangle
+						VECSUB(dv1,opco,nv4); /* abuse dv1 to have vertex in question at *origin* of triangle */
 						
 						Crossf(d_nvect, edge2, edge1);
 						n_mag = Normalise(d_nvect);
@@ -466,7 +471,7 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 					}
 					mface++;
 					
-                }//while a		
+                }/* while a */		
 				/* give it away */
 				if (disp_mesh) {
 					displistmesh_free(disp_mesh);
@@ -474,10 +479,10 @@ int sb_detect_collision(float opco[3], float facenormal[3], float *damp,
 				if (dm) {
 					if (dmNeedsFree) dm->release(dm);
 				} 
-		} // if(ob->pd && ob->pd->deflect) 
-       }//if (base->object->type==OB_MESH && (base->lay & par_layer)) {
+		} /* if(ob->pd && ob->pd->deflect) */
+       }/* if (base->object->type==OB_MESH && (base->lay & par_layer)) { */
 	   base = base->next;
-	} // while (base)
+	} /* while (base) */
 	
 	return deflected;
 	
@@ -523,7 +528,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 /* rule we never alter free variables :bp->vec bp->pos in here ! 
  * this will ruin adaptive stepsize AKA heun! (BM) 
  */
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint  *bp;
 	BodyPoint *bproot;
 	BodySpring *bs;	
@@ -547,8 +552,8 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 	bproot= sb->bpoint; /* need this for proper spring addressing */
 	
 	for(a=sb->totpoint, bp= sb->bpoint; a>0; a--, bp++) {
-		if(bp->goal < SOFTGOALSNAP){ // ommit this bp when i snaps
-			float auxvect[3]; // aux unit vector  
+		if(bp->goal < SOFTGOALSNAP){ /* ommit this bp when i snaps */
+			float auxvect[3];  
 			float velgoal[3];
 			float absvel =0, projvel= 0;
 			
@@ -564,7 +569,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 				VecSubf(velgoal,bp->origS, bp->origE);
 				kd =  sb->goalfrict * sb_fric_force_scale(ob) ;
 				
-				if (forcetime > 0.0 ) { // make sure friction does not become rocket motor on time reversal
+				if (forcetime > 0.0 ) { /* make sure friction does not become rocket motor on time reversal */
 					bp->force[0]-= kd * (velgoal[0] + bp->vec[0]);
 					bp->force[1]-= kd * (velgoal[1] + bp->vec[1]);
 					bp->force[2]-= kd * (velgoal[2] + bp->vec[2]);
@@ -585,7 +590,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			if(do_effector) {
 				float force[3]= {0.0f, 0.0f, 0.0f};
 				float speed[3]= {0.0f, 0.0f, 0.0f};
-				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); // just for calling functio once
+				float eval_sb_fric_force_scale = sb_fric_force_scale(ob); /* just for calling function once */
 				
 				pdDoEffectors(do_effector, bp->pos, force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);
 				
@@ -642,7 +647,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 			*/
 			
 			if(ob->softflag & OB_SB_EDGES) {
-				if (sb->bspring){ // spring list exists at all ? 
+				if (sb->bspring){ /* spring list exists at all ? */
 					for(b=bp->nofsprings;b>0;b--){
 						bs = sb->bspring + bp->springs[b-1];
 						if (( (sb->totpoint-a) == bs->v1) ){ 
@@ -650,7 +655,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
 							Normalise(sd);
 							
-							// friction stuff V1
+							/* friction stuff V1 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
 							kd = sb->infrict * sb_fric_force_scale(ob);
 							absvel  = Normalise(velgoal);
@@ -672,7 +677,7 @@ static void softbody_calc_forces(Object *ob, float forcetime)
 							VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
 							Normalise(sd);
 							
-							// friction stuff V2
+							/* friction stuff V2 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
 							kd = sb->infrict * sb_fric_force_scale(ob);
 							absvel  = Normalise(velgoal);
@@ -703,7 +708,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 	/* time evolution */
 	/* actually does an explicit euler step mode == 0 */
 	/* or heun ~ 2nd order runge-kutta steps, mode 1,2 */
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	float dx[3],dv[3];
 	float timeovermass;
@@ -712,7 +717,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 
     forcetime *= sb_time_scale(ob);
     
-	// claim a minimum mass for vertex 
+	/* claim a minimum mass for vertex */
 	if (sb->nodemass > 0.09999f) timeovermass = forcetime/sb->nodemass;
 	else timeovermass = forcetime/0.09999f;
 	
@@ -774,8 +779,8 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				}
 			}
 			else { VECADD(bp->pos, bp->pos, dx);}
-		}//snap
-	} //for
+		}/*snap*/
+	} /*for*/
 	
 	if (err){ /* so step size will be controlled by biggest difference in slope */
 		*err = maxerr;
@@ -785,7 +790,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 /* used by heun when it overshoots */
 static void softbody_restore_prev_step(Object *ob)
 {
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there*/
 	BodyPoint *bp;
 	int a;
 	
@@ -798,7 +803,7 @@ static void softbody_restore_prev_step(Object *ob)
 
 static void softbody_apply_goalsnap(Object *ob)
 {
-	SoftBody *sb= ob->soft;	// is supposed to be there
+	SoftBody *sb= ob->soft;	/* is supposed to be there */
 	BodyPoint *bp;
 	int a;
 	
@@ -928,7 +933,7 @@ static void mesh_to_softbody(Object *ob)
 		
 		if((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
 			get_scalar_from_vertexgroup(ob, a,(short) (sb->vertgroup-1), &bp->goal);
-			// do this always, regardless successfull read from vertex group
+			/* do this always, regardless successfull read from vertex group */
 			bp->goal= sb->mingoal + bp->goal*goalfac;
 		}
 		/* a little ad hoc changing the goal control to be less *sharp* */
@@ -1209,7 +1214,7 @@ static void softbody_to_object(Object *ob, float (*vertexCos)[3], int numVerts)
 	
 	for(a=0; a<numVerts; a++, bp++) {
 		VECCOPY(vertexCos[a], bp->pos);
-		Mat4MulVecfl(ob->imat, vertexCos[a]);	// softbody is in global coords
+		Mat4MulVecfl(ob->imat, vertexCos[a]);	/* softbody is in global coords */
 	}
 }
 
@@ -1219,7 +1224,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 	SoftBody *sb= ob->soft;
 	SBVertex *key0, *key1, *key2, *key3;
 	BodyPoint *bp;
-	float data[4], sfra, efra, cfra, dfra, fac;	// start, end, current, delta 
+	float data[4], sfra, efra, cfra, dfra, fac;	/* start, end, current, delta */
 	int ofs1, a;
 
 	/* precondition check */
@@ -1253,7 +1258,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
 		else key3= key2;
 	}
 	
-	sb->ctime= cfra;	// needed?
+	sb->ctime= cfra;	/* needed? */
 	
 	/* timing */
 	fac= ((cfra-sfra)/dfra) - (float)ofs1;
@@ -1278,7 +1283,7 @@ static void softbody_baked_add(Object *ob, float framenr)
 	SoftBody *sb= ob->soft;
 	SBVertex *key;
 	BodyPoint *bp;
-	float sfra, efra, cfra, dfra, fac1;	// start, end, current, delta 
+	float sfra, efra, cfra, dfra, fac1;	/* start, end, current, delta */
 	int ofs1, a;
 	
 	/* convert cfra time to system time */
@@ -1288,8 +1293,8 @@ static void softbody_baked_add(Object *ob, float framenr)
 	dfra= (float)sb->interval;
 	
 	if(sb->totkey==0) {
-		if(sb->sfra >= sb->efra) return;		// safety, UI or py setting allows
-		if(sb->interval<1) sb->interval= 1;		// just be sure
+		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows *
+		if(sb->interval<1) sb->interval= 1;		/* just be sure */
 		
 		sb->totkey= 1 + (int)(ceil( (efra-sfra)/dfra ) );
 		sb->keys= MEM_callocN( sizeof(void *)*sb->totkey, "sb keys");
@@ -1395,11 +1400,11 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 	/* This part only sets goals and springs, based on original mesh/curve/lattice data.
 	   Copying coordinates happens in next chunk by setting softbody flag OB_SB_RESET */
 	/* remake softbody if: */
-	if(		(ob->softflag & OB_SB_REDO) ||		// signal after weightpainting
-			(ob->soft==NULL) ||					// just to be nice we allow full init
-			(ob->soft->bpoint==NULL) || 		// after reading new file, or acceptable as signal to refresh
-			(numVerts!=ob->soft->totpoint) ||	// should never happen, just to be safe
-			((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) // happens when in UI edges was set
+	if(		(ob->softflag & OB_SB_REDO) ||		/* signal after weightpainting */
+			(ob->soft==NULL) ||					/* just to be nice we allow full init */
+			(ob->soft->bpoint==NULL) || 		/* after reading new file, or acceptable as signal to refresh */
+			(numVerts!=ob->soft->totpoint) ||	/* should never happen, just to be safe */
+			((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) /* happens when in UI edges was set */
 	{
 		switch(ob->type) {
 		case OB_MESH:
@@ -1445,24 +1450,42 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		/* update the vertex locations */
 	if (dtime!=0.0) {
 		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
+			/* store where goals are now */ 
  			VECCOPY(bp->origS, bp->origE);
+			/* copy the position of the goals at desired end time */
 			VECCOPY(bp->origE, vertexCos[a]);
-			Mat4MulVecfl(ob->obmat, bp->origE);
-			VECCOPY(bp->origT, bp->origE);
+			/* vertexCos came from local world, go global */
+			Mat4MulVecfl(ob->obmat, bp->origE); 
+			 /* just to be save give bp->origT a defined value
+			will be calulated in interpolate_exciter()*/
+			VECCOPY(bp->origT, bp->origE); 
 		}
 	}
-
-		// G.scene->r.framelen corrects for frame-mapping, so this is actually 10 frames for UI
-	if((ob->softflag&OB_SB_RESET) || dtime<0.0 || dtime>=9.9*G.scene->r.framelen) {
+    /* see if we need to interrupt integration stream */ 
+	if((ob->softflag&OB_SB_RESET) ||	/* got a reset signal */
+		dtime<0.0 ||					/* back in time */
+		dtime>=9.9*G.scene->r.framelen) /* too far forward in time --> goals won't be accurate enough */
+	{
 		for(a=0,bp=sb->bpoint; a<numVerts; a++, bp++) {
 			VECCOPY(bp->pos, vertexCos[a]);
-			Mat4MulVecfl(ob->obmat, bp->pos);  // yep, sofbody is global coords
+			Mat4MulVecfl(ob->obmat, bp->pos);  /* yep, sofbody is global coords*/
 			VECCOPY(bp->origS, bp->pos);
 			VECCOPY(bp->origE, bp->pos);
 			VECCOPY(bp->origT, bp->pos);
 			bp->vec[0]= bp->vec[1]= bp->vec[2]= 0.0f;
 
-			// no idea about the Heun stuff! (ton)
+			/* the bp->prev*'s are for rolling back from a canceled try to propagate in time
+			adaptive step size algo in a nutshell:
+            1.  set sheduled time step to new dtime
+			2.  try to advance the sheduled time step, beeing optimistic execute it
+            3.  check for success
+			3.a we 're fine continue, may be we can increase sheduled time again ?? if so, do so! 
+			3.b we did exceed error limit --> roll back, shorten the sheduled time and try again at 2.
+			4.  check if we did reach dtime 
+			4.a nope we need to do some more at 2.
+			4.b yup we're done
+			*/
+
 			VECCOPY(bp->prevpos, bp->pos);
 			VECCOPY(bp->prevvec, bp->vec);
 			VECCOPY(bp->prevdx, bp->vec);
@@ -1472,40 +1495,36 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 		ob->softflag &= ~OB_SB_RESET;
 	}
 	else if(dtime>0.0) {
-		if (TRUE) {	// RSOL1 always true now (ton)
+		if (TRUE) {	/*  */
 			/* special case of 2nd order Runge-Kutta type AKA Heun */
-			float timedone =0.0; // how far did we get without violating error condition
+			float timedone =0.0; /* how far did we get without violating error condition */
 			/* loops = counter for emergency brake
 			 * we don't want to lock up the system if physics fail
 			 */
 			int loops =0 ; 
-			SoftHeunTol = sb->rklimit; // humm .. this should be calculated from sb parameters and sizes
+			SoftHeunTol = sb->rklimit; /* humm .. this should be calculated from sb parameters and sizes */
 
 			forcetime = dtime; /* hope for integrating in one step */
 			while ( (ABS(timedone) < ABS(dtime)) && (loops < 2000) )
 			{
-				if (ABS(dtime) > 9.0 ){
-					if(G.f & G_DEBUG) printf("SB_STEPSIZE \n");
-					break; // sorry but i must assume goal movement can't be interpolated any more
-				}
-				//set goals in time
+				/* set goals in time */ 
 				interpolate_exciter(ob,200,(int)(200.0*(timedone/dtime)));
-				// do predictive euler step
+				/* do predictive euler step */
 				softbody_calc_forces(ob, forcetime);
 				softbody_apply_forces(ob, forcetime, 1, NULL);
-				// crop new slope values to do averaged slope step
+				/* crop new slope values to do averaged slope step */
 				softbody_calc_forces(ob, forcetime);
 				softbody_apply_forces(ob, forcetime, 2, &err);
 				softbody_apply_goalsnap(ob);
 
-				if (err > SoftHeunTol){ // error needs to be scaled to some quantity
+				if (err > SoftHeunTol){ /* error needs to be scaled to some quantity */
 					softbody_restore_prev_step(ob);
 					forcetime /= 2.0;
 				}
 				else {
-					float newtime = forcetime * 1.1f; // hope for 1.1 times better conditions in next step
+					float newtime = forcetime * 1.1f; /* hope for 1.1 times better conditions in next step */
 					
-					if (err > SoftHeunTol/2.0){ // stay with this stepsize unless err really small
+					if (err > SoftHeunTol/2.0){ /* stay with this stepsize unless err really small */
 						newtime = forcetime;
 					}
 					timedone += forcetime;
@@ -1516,7 +1535,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 				}
 				loops++;
 			}
-			// move snapped to final position
+			/* move snapped to final position */
 			interpolate_exciter(ob, 2, 2);
 			softbody_apply_goalsnap(ob);
 			
