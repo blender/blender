@@ -144,10 +144,13 @@ static PyObject *constant_repr(BPy_constant * self)
 	if(value) {
 		strcat(str, PyString_AsString(value));
 	} else {
+		short sep = 0;
 		strcat(str,"{");
 		while (PyDict_Next(self->dict, &pos, &key, &value)) {
-			if( pos != 1 )
+			if( sep )
 				strcat (str, ", ");
+			else
+				sep = 1;
 			strcat (str, PyString_AsString(key));
 		}
 		strcat(str,"}");

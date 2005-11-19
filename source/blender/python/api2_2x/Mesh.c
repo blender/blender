@@ -6250,9 +6250,6 @@ static PyObject *M_Mesh_Modes( void )
 	return Modes;
 }
 
-#undef EXPP_ADDCONST
-#define EXPP_ADDCONST(dict, name) \
-			 PyConstant_Insert(dict, #name, PyInt_FromLong(TF_##name))
 /* Set constants for face drawing mode -- see drawmesh.c */
 
 static PyObject *M_Mesh_FaceModesDict( void )
@@ -6288,9 +6285,9 @@ static PyObject *M_Mesh_FaceFlagsDict( void )
 	if( FF ) {
 		BPy_constant *d = ( BPy_constant * ) FF;
 
-		EXPP_ADDCONST( d, SELECT );
-		EXPP_ADDCONST( d, HIDE );
-		EXPP_ADDCONST( d, ACTIVE );
+		PyConstant_Insert( d, "SELECT", PyInt_FromLong( TF_SELECT ) );
+		PyConstant_Insert( d, "HIDE", PyInt_FromLong( TF_HIDE ) );
+		PyConstant_Insert( d, "ACTIVE", PyInt_FromLong( TF_ACTIVE ) );
 	}
 
 	return FF;
@@ -6303,10 +6300,10 @@ static PyObject *M_Mesh_FaceTranspModesDict( void )
 	if( FTM ) {
 		BPy_constant *d = ( BPy_constant * ) FTM;
 
-		PyConstant_Insert( d, "TF_SOLID", PyInt_FromLong( TF_SOLID ) );
-		PyConstant_Insert( d, "TF_ADD", PyInt_FromLong( TF_ADD ) );
-		PyConstant_Insert( d, "TF_ALPHA", PyInt_FromLong( TF_ALPHA ) );
-		PyConstant_Insert( d, "TF_SUB", PyInt_FromLong( TF_SUB ) );
+		PyConstant_Insert( d, "SOLID", PyInt_FromLong( TF_SOLID ) );
+		PyConstant_Insert( d, "ADD", PyInt_FromLong( TF_ADD ) );
+		PyConstant_Insert( d, "ALPHA", PyInt_FromLong( TF_ALPHA ) );
+		PyConstant_Insert( d, "SUB", PyInt_FromLong( TF_SUB ) );
 	}
 
 	return FTM;
