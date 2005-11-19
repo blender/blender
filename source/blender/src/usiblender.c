@@ -256,6 +256,8 @@ static void init_userdef_file(void)
 			/* Lamp theme, check for alpha==0 is safe, then color was never set */
 			if(btheme->tv3d.lamp[3]==0) {
 				SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
+/* TEMPORAL, remove me! (ton) */				
+				U.uiflag |= USER_PLAINMENUS;
 			}
 		}
 		if(U.obcenter_dia==0) U.obcenter_dia= 6;

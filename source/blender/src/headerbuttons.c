@@ -1333,6 +1333,10 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 
+	case B_PLAINMENUS:     /* is button from space.c  *info* */
+		reset_toolbox();
+		break;
+
 	case B_FLIPINFOMENU:	/* is button from space.c  *info* */
 		scrarea_queue_headredraw(curarea);
 		break;

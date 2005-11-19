@@ -109,6 +109,7 @@ void toolbox (void);
 
 void toolbox_n(void);
 void toolbox_n_add(void);
+void reset_toolbox(void);
 
 void notice (char *str, ...);
 void error (char *fmt, ...);

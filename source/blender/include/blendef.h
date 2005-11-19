@@ -162,7 +162,7 @@
 #define B_REDRCURW3D		63
 #define B_FLIPINFOMENU		64
 #define B_FLIPFULLSCREEN	65
-#define B_EASYTOOLBOX		66
+#define B_PLAINMENUS		66
 
 
 #define B_SHOWSPLASH		70

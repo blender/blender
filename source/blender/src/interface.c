@@ -934,8 +934,6 @@ void uiDrawBlock(uiBlock *block)
 		
 		if(testmouse && uibut_contains_pt(but, mouse))
 			but->flag |= UI_ACTIVE;
-		else 
-			but->flag &= ~UI_ACTIVE;
 		
 		ui_draw_but(but);
 	}
@@ -1241,7 +1239,49 @@ static int ui_do_but_MENU(uiBut *but)
 	return -1;
 }
 
+/* ********************** NEXT/PREV for arrowkeys etc ************** */
 
+static uiBut *ui_but_prev(uiBut *but)
+{
+	while(but->prev) {
+		but= but->prev;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_next(uiBut *but)
+{
+	while(but->next) {
+		but= but->next;
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_first(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.first;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->next;
+	}
+	return NULL;
+}
+
+static uiBut *ui_but_last(uiBlock *block)
+{
+	uiBut *but;
+	
+	but= block->buttons.last;
+	while(but) {
+		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
+		but= but->prev;
+	}
+	return NULL;
+}
 
 /* ************* EVENTS ************* */
 
@@ -2168,7 +2208,8 @@ static int ui_do_but_NUMSLI(uiBut *but)
 	return but->retval;
 }
 
-static int ui_do_but_BLOCK(uiBut *but)
+/* event denotes if we make first item active or not */
+static int ui_do_but_BLOCK(uiBut *but, int event)
 {
 	uiBlock *block;
 	uiBut *bt;
@@ -2177,6 +2218,7 @@ static int ui_do_but_BLOCK(uiBut *but)
 	ui_draw_but(but);	
 
 	block= but->block_func(but->poin);
+	block->parent= but->block;	/* allows checking for nested pulldowns */
 
 	block->xofs = -2;	/* for proper alignment */
 	
@@ -2199,6 +2241,11 @@ static int ui_do_but_BLOCK(uiBut *but)
 	
 	/* postpone draw, this will cause a new window matrix, first finish all other buttons */
 	block->flag |= UI_BLOCK_REDRAW;
+	
+	if(event!=MOUSEX && event!=MOUSEY && event!=LEFTMOUSE && but->type==BLOCK) {
+		bt= ui_but_first(block);
+		if(bt) bt->flag |= UI_ACTIVE;
+	}
 	
 	but->flag &= ~UI_SELECT;
 	uibut_do_func(but);
@@ -2869,50 +2916,6 @@ void uiClearButLock()
 	UIlockstr= NULL;
 }
 
-/* ********************** NEXT/PREV for arrowkeys etc ************** */
-
-static uiBut *ui_but_prev(uiBut *but)
-{
-	while(but->prev) {
-		but= but->prev;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_next(uiBut *but)
-{
-	while(but->next) {
-		but= but->next;
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_first(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.first;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->next;
-	}
-	return NULL;
-}
-
-static uiBut *ui_but_last(uiBlock *block)
-{
-	uiBut *but;
-	
-	but= block->buttons.last;
-	while(but) {
-		if(but->type!=LABEL && but->type!=SEPR && but->type!=ROUNDBOX) return but;
-		but= but->prev;
-	}
-	return NULL;
-}
-
 /* *************************************************************** */
 
 static void setup_file(uiBlock *block)
@@ -3071,7 +3074,7 @@ static int ui_do_button(uiBlock *block, uiBut *but, uiEvent *uevent)
 	case BLOCK:
 	case PULLDOWN:
 		if(uevent->val) {
-			retval= ui_do_but_BLOCK(but);
+			retval= ui_do_but_BLOCK(but, uevent->event);
 			if(block->auto_open==0) block->auto_open= 1;
 		}
 		break;
@@ -3412,8 +3415,32 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	}
 	
 	switch(uevent->event) {
-	case LEFTARROWKEY:	// later on implement opening/closing sublevels of pupmenus
-	case RIGHTARROWKEY:
+	case LEFTARROWKEY:	/* closing sublevels of pulldowns */
+		if(uevent->val && (block->flag & UI_BLOCK_LOOP) && block->parent) {
+			return UI_RETURN_OUT;
+		}
+		break;
+		
+	case RIGHTARROWKEY:	/* opening sublevels of pulldowns */
+		if(uevent->val && (block->flag & UI_BLOCK_LOOP)) {
+			for(but= block->buttons.first; but; but= but->next) {
+				if(but->flag & UI_ACTIVE) {
+					if(but->type==BLOCK) {
+						but->flag &= ~UI_MOUSE_OVER;
+						uevent->event= BUT_ACTIVATE;
+					}
+					break;
+				}
+			}
+			if(but==NULL) {	/* no item active, we make first active */
+				if(block->direction & UI_TOP) but= ui_but_last(block);
+				else but= ui_but_first(block);
+				if(but) {
+					but->flag |= UI_ACTIVE;
+					ui_draw_but(but);
+				}
+			}
+		}
 		break;
 	
 	case PAD8: case PAD2:
@@ -3730,10 +3757,11 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	uiPanelPop(block); // pop matrix; no return without pop!
 
 
-/* the linkines... why not make buttons from it? Speed? Memory? */
+	/* the linkines... why not make buttons from it? Speed? Memory? */
 	if(uevent->val && (uevent->event==XKEY || uevent->event==DELKEY)) 
 		ui_delete_active_linkline(block);
 
+	/* here we check return conditions for menus */
 	if(block->flag & UI_BLOCK_LOOP) {
 
 		if(inside==0 && uevent->val==1) {
@@ -3749,8 +3777,20 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		
 		/* check outside */
 		if(inside==0) {
+			uiBlock *tblock= NULL;
+			
+			/* check for all parent rects, enables arrowkeys to be used */
+			if(uevent->event!=MOUSEX && uevent->event!=MOUSEY) {
+				for(tblock=block->parent; tblock; tblock= tblock->parent) {
+					if( BLI_in_rctf(&tblock->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]))
+						break;
+					else if( BLI_in_rctf(&tblock->safety, (float)uevent->mval[0], (float)uevent->mval[1]))
+						break;
+				}
+			}			
 			/* strict check, and include the parent rect */
-			if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
+			if(tblock);
+			else if( BLI_in_rctf(&block->parentrct, (float)uevent->mval[0], (float)uevent->mval[1]));
 			else if( ui_mouse_motion_towards_block(block, uevent));
 			else if( BLI_in_rctf(&block->safety, (float)uevent->mval[0], (float)uevent->mval[1]));
 			else return UI_RETURN_OUT;
@@ -5118,6 +5158,9 @@ void uiBlockFlipOrder(uiBlock *block)
 	uiBut *but, *next;
 	float centy, miny=10000, maxy= -10000;
 
+//      if(U.uiflag & USER_PLAINMENUS)
+//		return;
+	
 	for(but= block->buttons.first; but; but= but->next) {
 		if(but->flag & UI_BUT_ALIGN) return;
 		if(but->y1 < miny) miny= but->y1;

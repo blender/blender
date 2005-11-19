@@ -1135,13 +1135,9 @@ void transform_nlachannel_keys(int mode, int dummy)
 				
 				DAG_scene_flush_update(G.scene, screen_view3d_layers());
 				
-                allqueue (REDRAWVIEW3D, 0);
-				allqueue (REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
 				force_draw_all(0);
 			}
 			else {
-				addqueue (curarea->win, REDRAWALL, 0);
 				force_draw(0);
 			}
 		}

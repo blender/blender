@@ -84,15 +84,17 @@
 #include "BIF_editlattice.h"
 #include "BIF_editsima.h"
 #include "BIF_editoops.h"
+#include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_imasel.h"
-#include "BIF_mainqueue.h"
 #include "BIF_interface.h"
-#include "BIF_toolbox.h"
+#include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"
+#include "BIF_renderwin.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 #include "BIF_tbcallback.h"
 #include "BIF_transform.h"
 
@@ -2225,6 +2227,36 @@ static TBitem tb_empty[]= {
 {  -1, "", 		0, NULL}};
 
 
+/* *************RENDER ********** */
+
+static void tb_do_render(void *arg, int event){
+	switch(event)
+	{
+		case 1: /* set render border */
+			set_render_border();
+			break;
+		case 2: /* render */
+			BIF_do_render(0);
+			break;
+		case 3: /* render anim */
+			BIF_do_render(1);
+			break;
+		case 4: /* render anim */
+			if(G.scene->r.scemode & R_PASSEPARTOUT) G.scene->r.scemode &= ~R_PASSEPARTOUT;
+			else G.scene->r.scemode |= R_PASSEPARTOUT;
+			allqueue(REDRAWVIEW3D, 0);
+			break;
+	}
+}
+
+static TBitem tb_render[]= {
+	{       0, "Passepartout",                      4, NULL},
+	{       0, "Set Border",                        1, NULL},
+	{       0, "SEPR",              0, NULL},
+	{       0, "Render|F12",                        2, NULL},
+	{       0, "Anim",                                      3, NULL},
+	{  -1, "",                      0, tb_do_render}};
+
 
 static uiBlock *tb_makemenu(void *arg)
 {
@@ -2265,12 +2297,15 @@ static uiBlock *tb_makemenu(void *arg)
 	uiTextBoundsBlock(block, 60);
 	
 	/* direction is also set in the function that calls this */
-	uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
+	if(U.uiflag & USER_PLAINMENUS)
+		uiBlockSetDirection(block, UI_RIGHT);
+	else
+		uiBlockSetDirection(block, UI_RIGHT|UI_CENTRE);
 
 	return block;
 }
 
-static int tb_mainx= 0, tb_mainy= -5;
+static int tb_mainx= 1234, tb_mainy= 0;
 static void store_main(void *arg1, void *arg2)
 {
 	tb_mainx= (int)arg1;
@@ -2283,9 +2318,21 @@ void toolbox_n(void)
 	uiBut *but;
 	TBitem *menu1=NULL, *menu2=NULL, *menu3=NULL; 
 	TBitem *menu4=NULL, *menu5=NULL, *menu6=NULL;
-	int dx;
+	TBitem *menu7=NULL;
+	int dx=0;
 	short event, mval[2], tot=0;
-	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL;
+	char *str1=NULL, *str2=NULL, *str3=NULL, *str4=NULL, *str5=NULL, *str6=NULL, *str7=NULL;
+	
+	/* temporal too... when this flag is (was) saved, it should initialize OK */
+	if(tb_mainx==1234) {
+		if(U.uiflag & USER_PLAINMENUS) {
+			tb_mainx= -32;
+			tb_mainy= -5;
+		} else {
+			tb_mainx= 0;
+			tb_mainy= -5;
+		}
+	}
 	
 	mywinset(G.curscreen->mainwin); // we go to screenspace
 	
@@ -2293,70 +2340,135 @@ void toolbox_n(void)
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1);
 	uiBlockSetCol(block, TH_MENU_ITEM);
 	
-	dx= 64;
-	
 	/* select context for main items */
 	if(curarea->spacetype==SPACE_VIEW3D) {
-		/* standard menu */
-		menu1= tb_object; str1= "Object";
-		if (G.scene->r.renderer==R_YAFRAY) {
-			menu2= tb_add_YF; str2= "Add";
+
+		if(U.uiflag & USER_PLAINMENUS) {
+			/* column layout menu */
+			if (G.scene->r.renderer==R_YAFRAY) {
+				menu1= tb_add_YF; str1= "Add";
+			} else {
+				 menu1= tb_add; str1= "Add";
+			}
+			menu2= tb_object_edit; str2= "Edit";
+			menu3= tb_object_select; str3= "Select";
+			menu4= tb_transform; str4= "Transform";
+			menu5= tb_object; str5= "Object";
+			menu6= tb_view; str6= "View";
+			menu7= tb_render; str7= "Render";
+
+			dx= 96;
+			tot= 7;
 		} else {
-			menu2= tb_add; str2= "Add";
+			/* 3x2 layout menu */
+			menu1= tb_object; str1= "Object";
+			if (G.scene->r.renderer==R_YAFRAY) {
+				menu2= tb_add_YF; str2= "Add";
+			} else {
+				menu2= tb_add; str2= "Add";
+			}
+			menu3= tb_object_select; str3= "Select";
+			menu4= tb_object_edit; str4= "Edit";
+			menu5= tb_transform; str5= "Transform";
+			menu6= tb_view; str6= "View";
+
+			dx= 64;
+			tot= 6;
 		}
-		menu3= tb_object_select; str3= "Select";
-		menu4= tb_object_edit; str4= "Edit";
-		menu5= tb_transform; str5= "Transform";
-		menu6= tb_view; str6= "View";
 		
 		if(G.obedit) {
-			if(G.obedit->type==OB_MESH) {
-				menu1= tb_mesh; str1= "Mesh";
-				menu2= addmenu_mesh; 
-				menu3= tb_mesh_select;
-				menu4= tb_mesh_edit; 
-				menu5= tb_transform_editmode1;
+			if(U.uiflag & USER_PLAINMENUS) {
+				switch(G.obedit->type){
+				case OB_MESH:
+					menu1= addmenu_mesh;
+					menu2= tb_mesh_edit;
+					menu3= tb_mesh_select;
+					menu4= tb_transform_editmode1;
+					menu5= tb_mesh; str5= "Mesh";
+				break;
+				case OB_CURVE:
+					menu1= addmenu_curve;
+					menu2= tb_curve_edit;
+					menu3= tb_curve_select;
+					menu4= tb_transform_editmode1;
+					menu5= tb_curve; str5= "Curve";
+				break;
+				case OB_SURF:
+					menu1= addmenu_surf;
+					menu2= tb_curve_edit;
+					menu3= tb_curve_select;
+					menu4= tb_transform_editmode1;
+					menu5= tb_curve; str5= "Surface";
+				break;
+				case OB_MBALL:
+					menu1= addmenu_meta;
+					menu2= tb_edit;
+					menu3= tb__select;
+					menu4= tb_transform_editmode2;
+					menu5= tb_obdata; str5= "Meta";
+				break;
+				case OB_ARMATURE:
+					menu1= addmenu_armature;
+					menu2= tb_edit;
+					menu3= tb__select;
+					menu4= tb_transform_editmode2;
+					menu5= tb_obdata;str5= "Armature";
+				break;
+				case OB_LATTICE:
+					menu1= tb_empty;
+					menu2= tb_edit;
+					menu3= tb__select;
+					menu4= tb_transform_editmode1;
+					menu5= tb_empty;str5= "Lattice";
+				break;
+				}
+			} else {
+				if(G.obedit->type==OB_MESH) {
+					menu1= tb_mesh; str1= "Mesh";
+					menu2= addmenu_mesh; 
+					menu3= tb_mesh_select;
+					menu4= tb_mesh_edit; 
+					menu5= tb_transform_editmode1;
+				}
+				else if(G.obedit->type==OB_CURVE) {
+					menu1= tb_curve; str1= "Curve";
+					menu2= addmenu_curve;
+					menu3= tb_curve_select;
+					menu4= tb_curve_edit;
+					menu5= tb_transform_editmode1;
+				}
+				else if(G.obedit->type==OB_SURF) {
+					menu1= tb_curve; str1= "Surface";
+					menu2= addmenu_surf; 
+					menu3= tb_curve_select;
+					menu4= tb_curve_edit;
+					menu5= tb_transform_editmode1;
+				}
+				else if(G.obedit->type==OB_MBALL) {
+					menu1= tb_obdata; str1= "Meta";
+					menu2= addmenu_meta;
+					menu3= tb__select;
+					menu4= tb_edit;
+					menu5= tb_transform_editmode2;
+				}
+				else if(G.obedit->type==OB_ARMATURE) {
+					menu1= tb_obdata;str1= "Armature";
+					menu2= addmenu_armature;
+					menu3= tb__select;
+					menu4= tb_edit;
+					menu5= tb_transform_editmode2;
+				}
+				else if(G.obedit->type==OB_LATTICE) {
+					menu1= tb_empty;str1= "Lattice";
+					menu2= tb_empty;
+					menu3= tb__select;
+					menu4= tb_edit;
+					menu5= tb_transform_editmode1;
+				}
 			}
-			else if(G.obedit->type==OB_CURVE) {
-				menu1= tb_curve; str1= "Curve";
-				menu2= addmenu_curve;
-				menu3= tb_curve_select;
-				menu4= tb_curve_edit;
-				menu5= tb_transform_editmode1;
-			}
-			else if(G.obedit->type==OB_SURF) {
-				menu1= tb_curve; str1= "Surface";
-				menu2= addmenu_surf; 
-				menu3= tb_curve_select;
-				menu4= tb_curve_edit;
-				menu5= tb_transform_editmode1;
-			}
-			else if(G.obedit->type==OB_MBALL) {
-				menu1= tb_obdata; str1= "Meta";
-				menu2= addmenu_meta;
-				menu3= tb__select;
-				menu4= tb_edit;
-				menu5= tb_transform_editmode2;
-			}
-			else if(G.obedit->type==OB_ARMATURE) {
-				menu1= tb_obdata;str1= "Armature";
-				menu2= addmenu_armature;
-				menu3= tb__select;
-				menu4= tb_edit;
-				menu5= tb_transform_editmode2;
-			}
-			else if(G.obedit->type==OB_LATTICE) {
-				menu1= tb_empty;str1= "Lattice";
-				menu2= tb_empty;
-				menu3= tb__select;
-				menu4= tb_edit;
-				menu5= tb_transform_editmode1;
-			}
-			
 		}
 		else {
 		}
-		tot= 6;
 	}
 	
 	getmouseco_sc(mval);
@@ -2396,6 +2508,43 @@ void toolbox_n(void)
 		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
 		uiButSetFunc(but, store_main, (void *)-dx, (void *)5);
+	} else if (tot==7) {
+                /* check if it fits, dubious */
+		if(mval[0]-0.25*dx+tb_mainx < 6) mval[0]= 6 + 0.25*dx -tb_mainx;
+		else if(mval[0]+0.25*dx+tb_mainx > G.curscreen->sizex-6)
+		mval[0]= G.curscreen->sizex-6-0.25*dx-tb_mainx;
+
+		if(mval[1]-20+tb_mainy < 6) mval[1]= 6+20 -tb_mainy;
+		else if(mval[1]+20+tb_mainy > G.curscreen->sizey-6)
+			mval[1]= G.curscreen->sizey-6-20-tb_mainy;
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu1, ICON_RIGHTARROW_THIN, str1, mval[0]+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)-5);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu2, ICON_RIGHTARROW_THIN, str2, mval[0]+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)15);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu3, ICON_RIGHTARROW_THIN, str3, mval[0]+tb_mainx,mval[1]+tb_mainy-40, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)35);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu4, ICON_RIGHTARROW_THIN, str4, mval[0]+tb_mainx,mval[1]+tb_mainy-60, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)55);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu5, ICON_RIGHTARROW_THIN, str5, mval[0]+tb_mainx,mval[1]+tb_mainy-80, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)75);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu6, ICON_RIGHTARROW_THIN, str6, mval[0]+tb_mainx,mval[1]+tb_mainy-100, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)95);
+
+		but=uiDefIconTextBlockBut(block, tb_makemenu, menu7, ICON_RIGHTARROW_THIN, str7, mval[0]+tb_mainx,mval[1]+tb_mainy-120, dx, 19, "");
+		uiButSetFlag(but, UI_MAKE_RIGHT);
+		uiButSetFunc(but, store_main, (void *)-32, (void *)105);
 	}
 	
 	uiBoundsBlock(block, 2);
@@ -2406,7 +2555,17 @@ void toolbox_n(void)
 
 void toolbox_n_add(void)
 {
-	tb_mainx= 0;
-	tb_mainy= -5;
+	reset_toolbox();
 	toolbox_n();
+}
+
+void reset_toolbox(void)
+{
+	if(U.uiflag & USER_PLAINMENUS) {
+		tb_mainx= -32;
+		tb_mainy= -5;
+	} else {
+		tb_mainx= 0;
+		tb_mainy= -5;
+	}
 }

@@ -186,13 +186,14 @@ struct uiBlock {
 	short autofill, win, winq, direction, dt;
 	short needflush, auto_open, in_use, pad;  //flush see below
 	void *overdraw;
+	struct uiBlock *parent;	// nested pulldowns
 	
-	float xofs, yofs;  	// offset to parent button
-	rctf parentrct;		// for pulldowns, rect the mouse is allowed outside of menu (parent button)
-	rctf safety;		// pulldowns, to detect outside, can differ per case how it is created
+	float xofs, yofs;		// offset to parent button
+	rctf parentrct;			// for pulldowns, rect the mouse is allowed outside of menu (parent button)
+	rctf safety;			// pulldowns, to detect outside, can differ per case how it is created
 
-	rctf flush;			// rect to be flushed to frontbuffer
-	int handler;		// for panels in other windows than buttonswin... just event code
+	rctf flush;				// rect to be flushed to frontbuffer
+	int handler;			// for panels in other windows than buttonswin... just event code
 };
 
 /* interface.c */

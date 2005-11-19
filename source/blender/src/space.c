@@ -2441,6 +2441,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 #else 
 		U.curssize=0; /*Small Cursor always for OS X for now */
 #endif
+		uiDefButBitI(block, TOG, USER_PLAINMENUS, B_PLAINMENUS, "Plain menus",
+			(xpos+edgsp),y1,spref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Use column layout for toolbox and do not flip contents in any menu");
 		uiBlockEndAlign(block);
 
 		uiDefBut(block, LABEL,0,"Menus:",
