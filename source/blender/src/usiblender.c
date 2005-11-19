@@ -249,6 +249,18 @@ static void init_userdef_file(void)
 			}
 		}
 	}
+	if (G.main->versionfile <= 239) {
+		bTheme *btheme;
+		
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* Lamp theme, check for alpha==0 is safe, then color was never set */
+			if(btheme->tv3d.lamp[3]==0) {
+				SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
+			}
+		}
+		if(U.obcenter_dia==0) U.obcenter_dia= 6;
+	}
+	
 	
 	if (U.undosteps==0) U.undosteps=32;
 	
@@ -641,7 +653,6 @@ void BIF_init(void)
 	InitCursorData();
 	sound_init_listener();
 	
-	init_draw_rects();	/* drawobject.c */
 	BIF_read_homefile();
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();

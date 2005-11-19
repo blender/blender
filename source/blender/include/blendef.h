@@ -89,6 +89,7 @@
 
 #define SELECT			1
 #define ACTIVE			2
+#define DESELECT		0
 #define NOT_YET			0
 
 

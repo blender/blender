@@ -2089,6 +2089,7 @@ void do_lampbuts(unsigned short event)
 		   Must be cleared here too when switching from ray shadow */
 		la->mode &= ~LA_YF_SOFT;
 		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0); 	
 		break;
 	}
 	

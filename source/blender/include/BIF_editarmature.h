@@ -81,7 +81,7 @@ void	clear_armature(struct Object *ob, char mode);
 void	delete_armature(void);
 void	deselectall_armature(int toggle);
 void	deselectall_posearmature (struct Object *ob, int test);
-void	draw_armature(struct Base *base, int dt);
+int		draw_armature(struct Base *base, int dt);
 void	extrude_armature(int forked);
 void	subdivide_armature(void);
 

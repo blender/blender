@@ -2003,7 +2003,8 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Z:",			160, 46, 150, 22, curs+2, -1000.0*vd->grid, 1000.0*vd->grid, 10, 0, "Z co-ordinate of the 3D cursor");
 	uiBlockEndAlign(block);
 
-	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected Objects", 10, 10, 300, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
+	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
+	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 160, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
 
 }
 
@@ -2110,6 +2111,22 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
+	/* calculate pixelsize factor once, is used for lamps and obcenters */
+	{
+		float len1, len2, vec[3];
+
+		VECCOPY(vec, v3d->persinv[0]);
+		len1= Normalise(vec);
+		VECCOPY(vec, v3d->persinv[1]);
+		len2= Normalise(vec);
+		
+		v3d->pixsize= 2.0f*(len1>len2?len1:len2);
+		
+		/* correct for window size */
+		if(curarea->winx > sa->winy) v3d->pixsize/= (float)sa->winx;
+		else v3d->pixsize/= (float)sa->winy;
+	}
+	
 	if(v3d->drawtype > OB_WIRE) {
 		if(G.f & G_SIMULATION)
 			glClearColor(0.0, 0.0, 0.0, 0.0); 

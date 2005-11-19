@@ -156,6 +156,7 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		ELSEIF_TSP_RGBA( hilite )
 		ELSEIF_TSP_RGBA( grid )
 		ELSEIF_TSP_RGBA( wire )
+		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( select )
 		ELSEIF_TSP_RGBA( active )
 		ELSEIF_TSP_RGBA( transform )
@@ -182,7 +183,7 @@ static PyObject *ThemeSpace_getAttr( BPy_ThemeSpace * self, char *name )
 		attrib = Py_BuildValue( "[sssssssssssssssssssssssssssssss]", "theme",
 					"back", "text", "text_hi", "header",
 					"panel", "shade1", "shade2", "hilite",
-					"grid", "wire", "select", "active",
+					"grid", "wire", "lamp", "select", "active",
 					"transform", "vertex", "vertex_select",
 					"edge", "edge_select", "edge_seam",
 					"edge_facesel", "face", "face_select",
@@ -215,6 +216,7 @@ static int ThemeSpace_setAttr( BPy_ThemeSpace * self, char *name,
 		ELSEIF_TSP_RGBA( hilite )
 		ELSEIF_TSP_RGBA( grid )
 		ELSEIF_TSP_RGBA( wire )
+		ELSEIF_TSP_RGBA( lamp )
 		ELSEIF_TSP_RGBA( select )
 		ELSEIF_TSP_RGBA( active )
 		ELSEIF_TSP_RGBA( transform )

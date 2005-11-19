@@ -778,6 +778,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->grid; break;
 			case TH_WIRE:
 				cp= ts->wire; break;
+			case TH_LAMP:
+				cp= ts->lamp; break;
 			case TH_SELECT:
 				cp= ts->select; break;
 			case TH_ACTIVE:
@@ -892,6 +894,7 @@ void BIF_InitTheme(void)
 
 	SETCOL(btheme->tv3d.grid, 	92, 92, 92, 255);
 	SETCOL(btheme->tv3d.wire, 	0x0, 0x0, 0x0, 255);
+	SETCOL(btheme->tv3d.lamp, 	0, 0, 0, 40);
 	SETCOL(btheme->tv3d.select, 0xff, 0x88, 0xff, 255);
 	SETCOL(btheme->tv3d.active, 0xff, 0xbb, 0xff, 255);
 	SETCOL(btheme->tv3d.transform, 0xff, 0xff, 0xff, 255);
@@ -1057,6 +1060,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			strcat(cp,"%l|");
 			sprintf(str, "Grid %%x%d|", TH_GRID); strcat(cp, str);
 			sprintf(str, "Wire %%x%d|", TH_WIRE); strcat(cp, str);
+			sprintf(str, "Lamp %%x%d|", TH_LAMP); strcat(cp, str);
 			sprintf(str, "Object Selected %%x%d|", TH_SELECT); strcat(cp, str);
 			sprintf(str, "Object Active %%x%d|", TH_ACTIVE); strcat(cp, str);
 			sprintf(str, "Transform %%x%d|", TH_TRANSFORM); strcat(cp, str);

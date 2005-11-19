@@ -64,6 +64,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -146,7 +147,6 @@ static int set_gl_material(int nr)
 		
 		/* matbuf alpha: 0.0 = skip draw, 1.0 = no blending, else blend */
 		if(matbuf[nr][0][3]!= 0.0 && matbuf[nr][0][3]!= 1.0) {
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glEnable(GL_BLEND);
 		}
 		else
@@ -218,30 +218,13 @@ static int init_gl_materials(Object *ob)
 
 
 	/***/
-	
-unsigned int rect_desel[16]= {0x707070,0x0,0x0,0x707070,0x407070,0x70cccc,0x407070,0x0,0xaaffff,0xffffff,0x70cccc,0x0,0x70cccc,0xaaffff,0x407070,0x707070};
-unsigned int rect_sel[16]= {0x707070,0x0,0x0,0x707070,0x702070,0xcc50cc,0x702070,0x0,0xff80ff,0xffffff,0xcc50cc,0x0,0xcc50cc,0xff80ff,0x702070,0x707070};
-
-unsigned int rectu_desel[16]= {0xff4e4e4e,0xff5c2309,0xff000000,0xff4e4f4d,0xff000000,0xffff9d72,0xffff601c,0xff000000,0xff5d2409,0xffffffff,0xffff9d72,0xff5b2209,0xff4e4e4e,0xff5c2309,0xff010100,0xff4f4f4f};
-unsigned int rectu_sel[16]= {0xff4e4e4e,0xff403c00,0xff000000,0xff4e4e4d,0xff000000,0xfffff64c,0xffaaa100,0xff000000,0xff403c00,0xffffffff,0xfffff64c,0xff403c00,0xff4f4f4f,0xff403c00,0xff010100,0xff4e4e4e};
-
-unsigned int rectl_desel[81]= {0x777777,0x777777,0xa9fefe,0xaaffff,0xaaffff,0xaaffff,0xaaffff,0x777777,0x777777,0x777777,0xa9fefe,0xaafefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0x777777,0xaaffff,0xa9fefe,0x4e4e4e,0x0,0x124040,0x0,0x4e4e4e,0xaafefe,0xaaffff,0xaaffff,0x777777,0x0,0x227777,0x55cccc,0x227777,0x0,0x777777,0xaaffff,0xaaffff,0x777777,0x124040,0x88ffff,0xffffff,0x55cccc,0x124040,0x777777,0xaaffff,0xaaffff,0x777777,0x0,0x55cccc,0x88ffff,0x227777,0x0,0x777777,0xaaffff,0xaafefe,0xaafefe,0x4f4f4f,0x0,0x124040,0x0,0x4e4e4e,0xa9fefe,0xaaffff,0x777777,0xa9fefe,0xa9fefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0xaaffff,0xaaffff,0xaaffff,0x777777,0x777777};
-unsigned int rectl_sel[81]= {0x777777,0x777777,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0xffaaff,0xffaaff,0x4e4e4e,0x10101,0x402440,0x0,0x4e4e4e,0xffaaff,0xffaaff,0xffaaff,0x777777,0x0,0x774477,0xcc77cc,0x774477,0x0,0x777777,0xffaaff,0xffaaff,0x777777,0x402440,0xffaaff,0xffffff,0xcc77cc,0x412541,0x777777,0xffaaff,0xffaaff,0x777777,0x10101,0xcc77cc,0xffaaff,0x774477,0x0,0x777777,0xffaaff,0xffaaff,0xffaaff,0x4e4e4e,0x10101,0x402440,0x0,0x4e4e4e,0xffaaff,0xffaaff,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0x777777,0x777777};
-unsigned int rectlus_desel[81]= {0x777777,0x777777,0xa9fefe,0xaaffff,0xaaffff,0xaaffff,0xaaffff,0x777777,0x777777,0x777777,0xa9fefe,0xaafefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0x777777,0xaaffff,0xa9fefe,0x4e4e4e,0x0,0x5c2309,0x0,0x4e4f4d,0xaafefe,0xaaffff,0xaaffff,0x777777,0x0,0xff601c,0xff9d72,0xff601c,0x0,0x777777,0xaaffff,0xaaffff,0x777777,0x5d2409,0xffceb8,0xff9d72,0xff9d72,0x5b2209,0x777777,0xaaffff,0xaaffff,0x777777,0x10100,0xffceb8,0xffceb8,0xff601c,0x0,0x777777,0xaaffff,0xaafefe,0xaafefe,0x4e4e4e,0x0,0x5c2309,0x10100,0x4f4f4f,0xa9fefe,0xaaffff,0x777777,0xa9fefe,0xa9fefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0x777777,0x777777,0x777777,0xa9fefe,0xa9fefe,0xaaffff,0xaaffff,0xaaffff,0x777777,0x777777};
-unsigned int rectlus_sel[81]= {0x777777,0x777777,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0xffaaff,0xffaaff,0x4e4e4e,0x10100,0x403c00,0x0,0x4e4e4d,0xffaaff,0xffaaff,0xffaaff,0x777777,0x0,0xaaa100,0xfff64c,0xaaa100,0x0,0x777777,0xffaaff,0xffaaff,0x777777,0x403c00,0xfffde2,0xffffff,0xfff64c,0x403c00,0x777777,0xffaaff,0xffaaff,0x777777,0x10100,0xfff64c,0xfffde2,0xaaa100,0x0,0x777777,0xffaaff,0xffaaff,0xffaaff,0x4f4f4f,0x0,0x403c00,0x10100,0x4e4e4e,0xffaaff,0xffaaff,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0x777777,0x777777,0x777777,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0xffaaff,0x777777,0x777777};
-unsigned int rectllib_desel[81]= {0xff777777,0xff777777,0xb9b237,0xb9b237,0xb9b237,0xb9b237,0xb9b237,0xff777777,0xff777777,0xff777777,0xb9b237,0xb9b237,0xff777777,0xff777777,0xff777777,0xb9b237,0xb9b237,0xff777777,0xb9b237,0xb9b237,0x4e4e4e,0x0,0x5c2309,0x0,0x4e4f4d,0xb9b237,0xb9b237,0xb9b237,0xff777777,0x0,0xff601c,0xff9d72,0xff601c,0x0,0xff777777,0xb9b237,0xb9b237,0xff777777,0x5d2409,0xffceb8,0xff9d72,0xff9d72,0x5b2209,0xff777777,0xb9b237,0xb9b237,0xff777777,0x10100,0xffceb8,0xffceb8,0xff601c,0x0,0xff777777,0xb9b237,0xb9b237,0xb9b237,0x4e4e4e,0x0,0x5c2309,0x10100,0x4f4f4f,0xb9b237,0xb9b237,0xff777777,0xb9b237,0xb9b237,0xff777777,0xff777777,0xff777777,0xb9b237,0xb9b237,0xff777777,0xff777777,0xff777777,0xb9b237,0xb9b237,0xb9b237,0xb9b237,0xb9b237,0xff777777,0xff777777};
-unsigned int rectllib_sel[81]= {0xff777777,0xff777777,0xfff64c,0xfff64c,0xfff64c,0xfff64c,0xfff64c,0xff777777,0xff777777,0xff777777,0xfff64c,0xfff64c,0xff777777,0xff777777,0xff777777,0xfff64c,0xfff64c,0xff777777,0xfff64c,0xfff64c,0x4e4e4e,0x10100,0x403c00,0x0,0x4e4e4d,0xfff64c,0xfff64c,0xfff64c,0xff777777,0x0,0xaaa100,0xfff64c,0xaaa100,0x0,0xff777777,0xfff64c,0xfff64c,0xff777777,0x403c00,0xfffde2,0xffffff,0xfff64c,0x403c00,0xff777777,0xfff64c,0xfff64c,0xff777777,0x10100,0xfff64c,0xfffde2,0xaaa100,0x0,0xff777777,0xfff64c,0xfff64c,0xfff64c,0x4f4f4f,0x0,0x403c00,0x10100,0x4e4e4e,0xfff64c,0xfff64c,0xff777777,0xfff64c,0xfff64c,0xff777777,0xff777777,0xff777777,0xfff64c,0xfff64c,0xff777777,0xff777777,0xff777777,0xfff64c,0xfff64c,0xfff64c,0xfff64c,0xfff64c,0xff777777,0xff777777};
-
-unsigned int rectl_set[81]= {0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xaaaaaa,0xaaaaaa,0x4e4e4e,0x10100,0x202020,0x0,0x4e4e4d,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0x0,0xaaa100,0xaaaaaa,0xaaa100,0x0,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0x202020,0xfffde2,0xffffff,0xaaaaaa,0x202020,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0x10100,0xaaaaaa,0xfffde2,0xaaa100,0x0,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0x4f4f4f,0x0,0x202020,0x10100,0x4e4e4e,0xaaaaaa,0xaaaaaa,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777,0xff777777,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xaaaaaa,0xff777777,0xff777777};
-
-
 static unsigned int colortab[24]=
 	{0x0,		0xFF88FF, 0xFFBBFF, 
 	 0x403000,	0xFFFF88, 0xFFFFBB, 
 	 0x104040,	0x66CCCC, 0x77CCCC, 
 	 0x101040,	0x5588FF, 0x88BBFF, 
 	 0xFFFFFF
-	};
+};
 
 
 static float cube[8][3] = {
@@ -254,48 +237,6 @@ static float cube[8][3] = {
 	{ 1.0,  1.0,  1.0},
 	{ 1.0,  1.0, -1.0},
 };
-
-void init_draw_rects(void)
-{
-	if(G.order==B_ENDIAN) {
-		IMB_convert_rgba_to_abgr(16, rect_desel);
-		IMB_convert_rgba_to_abgr(16, rect_sel);
-		
-		IMB_convert_rgba_to_abgr(16, rectu_desel);
-		IMB_convert_rgba_to_abgr(16, rectu_sel);
-		
-		IMB_convert_rgba_to_abgr(81, rectl_desel);
-		IMB_convert_rgba_to_abgr(81, rectl_sel);
-	
-		IMB_convert_rgba_to_abgr(81, rectlus_desel);
-		IMB_convert_rgba_to_abgr(81, rectlus_sel);
-	
-		IMB_convert_rgba_to_abgr(81, rectllib_desel);
-		IMB_convert_rgba_to_abgr(81, rectllib_sel);
-				
-		IMB_convert_rgba_to_abgr(81, rectl_set);
-	}
-}
-
-static void draw_icon_centered(float *pos, unsigned int *rect, int rectsize) 
-{
-	float hsize= (float) rectsize/2.0f;
-//	float vals[4];
-	GLubyte dummy= 0;
-	
-	glRasterPos3fv(pos);
-//	glGetFloatv(GL_CURRENT_RASTER_POSITION_VALID, vals);
-//	printf("rasterpos %f\n", vals[0]);
-//	glGetFloatv(GL_CURRENT_RASTER_POSITION, vals);
-//	printf("pos %f %f %f %f\n", vals[0], vals[1], vals[2], vals[3]);
-	
-		/* use bitmap to shift rasterpos in pixels */
-	glBitmap(0, 0, 0.0, 0.0, -hsize, -hsize, &dummy);
-#if defined (__sun__) || defined ( __sun ) || defined (__sparc) || defined (__sparc__)
-	glFlush(); 
-#endif	
-	glDrawPixels(rectsize, rectsize, GL_RGBA, GL_UNSIGNED_BYTE, rect);
-}
 
 void drawaxes(float size)
 {
@@ -336,6 +277,37 @@ void drawaxes(float size)
 				BMF_DrawString(G.font, "z");
 		}
 	}
+}
+
+/* circle for object centers, special_color is for library or ob users */
+static void drawcentercircle(float *vec, int selstate, int special_color)
+{
+	View3D *v3d= G.vd;
+	float size;
+	
+	size= v3d->persmat[0][3]*vec[0]+ v3d->persmat[1][3]*vec[1]+ v3d->persmat[2][3]*vec[2]+ v3d->persmat[3][3];
+	size*= v3d->pixsize*((float)U.obcenter_dia*0.5f);
+
+	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	
+	if(special_color) {
+		if (selstate==ACTIVE || selstate==SELECT) glColor4ub(0x88, 0xFF, 0xFF, 155);
+		else glColor4ub(0x55, 0xCC, 0xCC, 155);
+	}
+	else {
+		if (selstate == ACTIVE) BIF_ThemeColorShadeAlpha(TH_ACTIVE, 0, -100);
+		else if (selstate == SELECT) BIF_ThemeColorShadeAlpha(TH_SELECT, 0, -100);
+		else if (selstate == DESELECT) BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -100);
+	}
+	drawcircball(GL_POLYGON, vec, size, v3d->viewinv);
+	
+	if (selstate == ACTIVE) glColor4ub(255, 255, 255, 80);
+	else if ((selstate == SELECT) || (selstate == DESELECT)) glColor4ub(0, 0, 0, 80);
+	drawcircball(GL_LINE_LOOP, vec, size, v3d->viewinv);
+	
+	glDisable(GL_BLEND);
+	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -443,7 +415,7 @@ static void drawcube_size(float *size)
 }
 #endif
 
-static void tekenshadbuflimits(Lamp *la, float mat[][4])
+static void drawshadbuflimits(Lamp *la, float mat[][4])
 {
 	float sta[3], end[3], lavec[3];
 
@@ -542,21 +514,106 @@ static void spotvolume(float *lvec, float *vvec, float inp)
 	return;
 }
 
-
-
 static void drawlamp(Object *ob)
 {
 	Lamp *la;
-	float vec[3], lvec[3], vvec[3],x,y,z;
+	View3D *v3d= G.vd;
+	float vec[3], lvec[3], vvec[3], circrad, x,y,z;
+	float pixsize, lampsize;
+	float imat[4][4], curcol[4];
+	char col[4];
 	
 	la= ob->data;
-	vec[0]=vec[1]=vec[2]= 0.0;
 	
-	setlinestyle(4);
+	/* we first draw only the screen aligned & fixed scale stuff */
+	glPushMatrix();
+	myloadmatrix(G.vd->viewmat);
+
+	/* lets calculate the scale: */
+	pixsize= v3d->persmat[0][3]*ob->obmat[3][0]+ v3d->persmat[1][3]*ob->obmat[3][1]+ v3d->persmat[2][3]*ob->obmat[3][2]+ v3d->persmat[3][3];
+	pixsize*= v3d->pixsize;
+	lampsize= pixsize*((float)U.obcenter_dia*0.5f);
+
+	/* and view aligned matrix: */
+	Mat4CpyMat4(imat, G.vd->viewinv);
+	Normalise(imat[0]);
+	Normalise(imat[1]);
 	
-	/* yafray: for photonlight also draw lightcone as for spot */
-	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {
+	/* for AA effects */
+	glGetFloatv(GL_CURRENT_COLOR, curcol);
+	curcol[3]= 0.6;
+	glColor4fv(curcol);
+	
+	if(ob->id.us>1) {
+		if (ob==OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
+		else glColor4ub(0x77, 0xCC, 0xCC, 155);
+	}
+	
+	/* Inner Circle */
+	VECCOPY(vec, ob->obmat[3]);
+	glEnable(GL_BLEND);
+	drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
+	glDisable(GL_BLEND);
+	drawcircball(GL_POLYGON, vec, lampsize, imat);
+	
+	/* restore */
+	if(ob->id.us>1)
+		glColor4fv(curcol);
 		
+	/* Outer circle */
+	circrad = 3.0f*lampsize;
+	drawcircball(GL_LINE_LOOP, vec, circrad, imat);
+	
+	setlinestyle(3);
+
+	/* draw dashed outer circle if shadow is on */
+	if ((la->mode & LA_SHAD) || (la->mode & LA_SHAD_RAY)) {
+		drawcircball(GL_LINE_LOOP, vec, circrad + 3.0f*pixsize, imat);
+	}
+	
+	/* draw the pretty sun rays */
+	if(la->type==LA_SUN) {
+		float v1[3], v2[3], mat[3][3];
+		short axis;
+		
+		/* setup a 45 degree rotation matrix */
+		VecRotToMat3(imat[2], M_PI/4.0f, mat);
+		
+		/* vectors */
+		VECCOPY(v1, imat[0]);
+		VecMulf(v1, circrad*1.2f);
+		VECCOPY(v2, imat[0]);
+		VecMulf(v2, circrad*2.5f);
+		
+		/* center */
+		glTranslatef(vec[0], vec[1], vec[2]);
+		
+		setlinestyle(3);
+		
+		glBegin(GL_LINES);
+		for (axis=0; axis<8; axis++) {
+			glVertex3fv(v1);
+			glVertex3fv(v2);
+			Mat3MulVecfl(mat, v1);
+			Mat3MulVecfl(mat, v2);
+		}
+		glEnd();
+		
+		glTranslatef(-vec[0], -vec[1], -vec[2]);
+
+	}		
+	
+	if (la->type==LA_LOCAL) {
+		if(la->mode & LA_SPHERE) {
+			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
+		}
+		/* yafray: for photonlight also draw lightcone as for spot */
+	}
+	
+	glPopMatrix();	/* back in object space */
+	vec[0]= vec[1]= vec[2]= 0.0f;
+	
+	if ((la->type==LA_SPOT) || (la->type==LA_YF_PHOTON)) {	
 		lvec[0]=lvec[1]= 0.0; 
 		lvec[2] = 1.0;
 		x = G.vd->persmat[0][2];
@@ -576,6 +633,7 @@ static void drawlamp(Object *ob)
 		vvec[1] *= x ; 
 		vvec[2] *= x;
 
+		/* draw the angled sides of the cone */
 		glBegin(GL_LINE_STRIP);
 			glVertex3fv(vvec);
 			glVertex3fv(vec);
@@ -585,7 +643,8 @@ static void drawlamp(Object *ob)
 		z = x*sqrt(1.0 - y*y);
 		x *= y;
 
-		glTranslatef(0.0 ,  0.0 ,  x);
+		/* draw the circle/square at the end of the cone */
+		glTranslatef(0.0, 0.0 ,  x);
 		if(la->mode & LA_SQUARE) {
 			vvec[0]= fabs(z);
 			vvec[1]= fabs(z);
@@ -602,58 +661,111 @@ static void drawlamp(Object *ob)
 		}
 		else circ(0.0, 0.0, fabs(z));
 		
+		/* draw the circle/square representing spotbl */
+		if(la->type==LA_SPOT) {
+			float spotblcirc = fabs(z)*(1 - pow(la->spotblend, 2));
+			/* make sure the line is always visible - prevent it from reaching the outer border (or 0) 
+			 * values are kinda arbitrary - just what seemed to work well */
+			if (spotblcirc == 0) spotblcirc = 0.15;
+			else if (spotblcirc == fabs(z)) spotblcirc = fabs(z) - 0.07;
+			circ(0.0, 0.0, spotblcirc);
+		}
+		
 	}
 	else if ELEM(la->type, LA_HEMI, LA_SUN) {
+		
+		/* draw the line from the circle along the dist */
 		glBegin(GL_LINE_STRIP);
+			vec[2] = -circrad;
 			glVertex3fv(vec); 
 			vec[2]= -la->dist; 
 			glVertex3fv(vec);
 		glEnd();
-	}
-	else {
-		if(la->type==LA_AREA) {
-			setlinestyle(0);
-			if(la->area_shape==LA_AREA_SQUARE) 
-				fdrawbox(-la->area_size*0.5, -la->area_size*0.5, la->area_size*0.5, la->area_size*0.5);
-			else if(la->area_shape==LA_AREA_RECT) 
-				fdrawbox(-la->area_size*0.5, -la->area_sizey*0.5, la->area_size*0.5, la->area_sizey*0.5);
-			setlinestyle(3);
-			glBegin(GL_LINE_STRIP); 
-			glVertex3f(0.0,0.0,0.0);
-			glVertex3f(0.0,0.0,-la->dist);
-			glEnd();
-			setlinestyle(0);
-		}
-		else if(la->mode & LA_SPHERE) {
-
-			float tmat[4][4], imat[4][4];
+		
+		if(la->type==LA_HEMI) {
+			/* draw the hemisphere curves */
+			short axis, steps, dir;
+			float outdist, zdist, mul;
+			vec[0]=vec[1]=vec[2]= 0.0;
+			outdist = 0.18; mul = 1.4; dir = 1;
 			
-			vec[0]= vec[1]= vec[2]= 0.0;
-			mygetmatrix(tmat);
-			Mat4Invert(imat, tmat);
-			
-			drawcircball(GL_LINE_LOOP, vec, la->dist, imat);
-
+			setlinestyle(4);
+			/* loop over the 4 compass points, and draw each arc as a LINE_STRIP */
+			for (axis=0; axis<4; axis++) {
+				float v[3]= {0.0, 0.0, 0.0};
+				zdist = 0.02;
+				
+				glBegin(GL_LINE_STRIP);
+				
+				for (steps=0; steps<6; steps++) {
+					if (axis == 0 || axis == 1) { 		/* x axis up, x axis down */	
+						/* make the arcs start at the edge of the energy circle */
+						if (steps == 0) v[0] = dir*circrad;
+						else v[0] = v[0] + dir*(steps*outdist);
+					} else if (axis == 2 || axis == 3) { 		/* y axis up, y axis down */
+						/* make the arcs start at the edge of the energy circle */
+						if (steps == 0) v[1] = dir*circrad;
+						else v[1] = v[1] + dir*(steps*outdist); 
+					}
+		
+					v[2] = v[2] - steps*zdist;
+					
+					glVertex3fv(v);
+					
+					zdist = zdist * mul;
+				}
+				
+				glEnd();
+				/* flip the direction */
+				dir = -dir;
+			}
 		}
-	}
+	} else if(la->type==LA_AREA) {
+		setlinestyle(3);
+		if(la->area_shape==LA_AREA_SQUARE) 
+			fdrawbox(-la->area_size*0.5, -la->area_size*0.5, la->area_size*0.5, la->area_size*0.5);
+		else if(la->area_shape==LA_AREA_RECT) 
+			fdrawbox(-la->area_size*0.5, -la->area_sizey*0.5, la->area_size*0.5, la->area_sizey*0.5);
 
-	glPushMatrix();
-	glLoadMatrixf(G.vd->viewmat);
+		glBegin(GL_LINE_STRIP); 
+		glVertex3f(0.0,0.0,-circrad);
+		glVertex3f(0.0,0.0,-la->dist);
+		glEnd();
+	}
 	
+	/* and back to viewspace */
+	myloadmatrix(G.vd->viewmat);
 	VECCOPY(vec, ob->obmat[3]);
+
+	setlinestyle(0);
 	
-	setlinestyle(3);
+	if(la->type==LA_SPOT && (la->mode & LA_SHAD) ) {
+		drawshadbuflimits(la, ob->obmat);
+	}
+	
+	BIF_GetThemeColor4ubv(TH_LAMP, col);
+	glColor4ub(col[0], col[1], col[2], col[3]);
+	 
+	glEnable(GL_BLEND);
+	
+	if (vec[2]>0) vec[2] -= circrad;
+	else vec[2] += circrad;
+	
 	glBegin(GL_LINE_STRIP);
 		glVertex3fv(vec); 
 		vec[2]= 0; 
 		glVertex3fv(vec);
 	glEnd();
-	setlinestyle(0);
 	
-	if(la->type==LA_SPOT && (la->mode & LA_SHAD) ) {
-		tekenshadbuflimits(la, ob->obmat);
-	}
-	glPopMatrix();
+	glPointSize(2.0);
+	glBegin(GL_POINTS);
+		glVertex3fv(vec);
+	glEnd();
+	glPointSize(1.0);
+	
+	glDisable(GL_BLEND);
+	
+
 }
 
 static void draw_limit_line(float sta, float end, unsigned int col)
@@ -1270,7 +1382,6 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 				if(G.vd->zbuf && !(G.vd->flag&V3D_ZBUF_SELECT)) {
 					glDisable(GL_DEPTH_TEST);
 						
-					glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 					glEnable(GL_BLEND);
 				} else {
 					continue;
@@ -1319,7 +1430,6 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 			/* show wires in transparant when no zbuf clipping for select */
 		if (pass==0) {
 			if (G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
 
@@ -1554,7 +1664,6 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		BIF_GetThemeColor4ubv(TH_FACE, col1);
 		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 		
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
@@ -1773,11 +1882,12 @@ static void draw_mesh_fancy(Object *ob, DerivedMesh *baseDM, DerivedMesh *dm, in
 	}
 }
 
-static void draw_mesh_object(Base *base, int dt)
+/* returns 1 if nothing was drawn, for detecting to draw an object center */
+static int draw_mesh_object(Base *base, int dt)
 {
 	Object *ob= base->object;
 	Mesh *me= ob->data;
-	int has_alpha= 0, drawlinked= 0;
+	int has_alpha= 0, drawlinked= 0, retval= 0;
 	
 	if(G.obedit && ob!=G.obedit && ob->data==G.obedit->data) {
 		if(ob_get_key(ob));
@@ -1812,7 +1922,9 @@ static void draw_mesh_object(Base *base, int dt)
 
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob);
 			if(baseDM && realDM) draw_mesh_fancy(ob, baseDM, realDM, dt);
-
+			
+			if(me->totvert==0) retval= 1;
+			
 			if (baseDMneedsFree) baseDM->release(baseDM);
 			if (realDMneedsFree) realDM->release(realDM);
 		}
@@ -1820,6 +1932,8 @@ static void draw_mesh_object(Base *base, int dt)
 	
 	/* init_gl_materials did the proper checking if this is needed */
 	if(has_alpha) add_view3d_after(G.vd, base, V3D_TRANSP);
+	
+	return retval;
 }
 
 /* ************** DRAW DISPLIST ****************** */
@@ -1827,13 +1941,14 @@ static void draw_mesh_object(Base *base, int dt)
 static int draw_index_wire= 1;
 static int index3_nors_incr= 1;
 
-static void drawDispListwire(ListBase *dlbase)
+/* returns 1 when nothing was drawn */
+static int drawDispListwire(ListBase *dlbase)
 {
 	DispList *dl;
 	int parts, nr, ofs, *index;
 	float *data;
 
-	if(dlbase==0) return;
+	if(dlbase==NULL) return 1;
 
 	dl= dlbase->first;
 	while(dl) {
@@ -1930,6 +2045,7 @@ static void drawDispListwire(ListBase *dlbase)
 		}
 		dl= dl->next;
 	}
+	return 0;
 }
 
 static void drawDispListsolid(ListBase *lb, Object *ob)
@@ -2227,13 +2343,13 @@ static void drawDispListshaded(ListBase *lb, Object *ob)
 	glShadeModel(GL_FLAT);
 }
 
-static void drawDispList(Object *ob, int dt)
+/* returns 1 when nothing was drawn */
+static int drawDispList(Object *ob, int dt)
 {
 	ListBase *lb=0;
 	DispList *dl;
 	Curve *cu;
-	int solid;
-
+	int solid, retval= 0;
 	
 	solid= (dt > OB_WIRE);
 
@@ -2246,7 +2362,7 @@ static void drawDispList(Object *ob, int dt)
 		
 		if(solid) {
 			dl= lb->first;
-			if(dl==0) return;
+			if(dl==NULL) return 1;
 			
 			if(dl->nors==0) addnormalsDispList(ob, lb);
 			index3_nors_incr= 0;
@@ -2277,7 +2393,7 @@ static void drawDispList(Object *ob, int dt)
 		}
 		else {
 			draw_index_wire= 0;
-			drawDispListwire(lb);
+			retval= drawDispListwire(lb);
 			draw_index_wire= 1;
 		}
 		break;
@@ -2287,12 +2403,12 @@ static void drawDispList(Object *ob, int dt)
 		
 		if(solid) {
 			dl= lb->first;
-			if(dl==0) return;
+			if(dl==NULL) return 1;
 			
-			if(dl->nors==0) addnormalsDispList(ob, lb);
+			if(dl->nors==NULL) addnormalsDispList(ob, lb);
 			
 			if(dt==OB_SHADED) {
-				if(ob->disp.first==0) shadeDispList(ob);
+				if(ob->disp.first==NULL) shadeDispList(ob);
 				drawDispListshaded(lb, ob);
 			}
 			else {
@@ -2303,15 +2419,16 @@ static void drawDispList(Object *ob, int dt)
 			}
 		}
 		else {
-			drawDispListwire(lb);
+			retval= drawDispListwire(lb);
 		}
 		break;
 	case OB_MBALL:
 		
 		if( is_basis_mball(ob)) {
 			lb= &ob->disp;
-			if(lb->first==0) makeDispListMBall(ob);
-	
+			if(lb->first==NULL) makeDispListMBall(ob);
+			if(lb->first==NULL) return 1;
+			
 			if(solid) {
 				
 				if(dt==OB_SHADED) {
@@ -2328,12 +2445,13 @@ static void drawDispList(Object *ob, int dt)
 			}
 			else{
 				/* MetaBalls use DL_INDEX4 type of DispList */
-				drawDispListwire(lb);
+				retval= drawDispListwire(lb);
 			}
 		}
 		break;
 	}
 	
+	return retval;
 }
 
 /* ******************************** */
@@ -2937,7 +3055,8 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 	glEnd();
 }
 
-static void drawmball(Object *ob, int dt)
+/* return 1 if nothing was drawn */
+static int drawmball(Object *ob, int dt)
 {
 	MetaBall *mb;
 	MetaElem *ml;
@@ -2956,6 +3075,8 @@ static void drawmball(Object *ob, int dt)
 		ml= mb->elems.first;
 	}
 
+	if(ml==NULL) return 1;
+	
 	/* in case solid draw, reset wire colors */
 	if(ob!=G.obedit && (ob->flag & SELECT)) {
 		if(ob==OBACT) BIF_ThemeColor(TH_ACTIVE);
@@ -2996,6 +3117,7 @@ static void drawmball(Object *ob, int dt)
 		
 		ml= ml->next;
 	}
+	return 0;
 }
 
 static void draw_forcefield(Object *ob)
@@ -3346,19 +3468,18 @@ static void draw_hooks(Object *ob)
 
 void draw_object(Base *base)
 {
+	static int warning_recursive= 0;
 	Object *ob;
 	Curve *cu;
-	ListBase elems;
-	CfraElem *ce;
-	float cfraont, axsize=1.0;
-	unsigned int *rect, col=0;
-	static int warning_recursive= 0;
-	int sel, drawtype, colindex= 0, ipoflag;
-	short dt, dtx, zbufoff= 0;
+	float cfraont;
 	float vec1[3], vec2[3];
-	int i, selstart, selend;
-	SelBox *sb;
-	float selboxw;
+	unsigned int col=0;
+	int sel, drawtype, colindex= 0, ipoflag;
+	int i, selstart, selend, empty_object=0;
+	short dt, dtx, zbufoff= 0;
+
+	/* only once set now, will be removed too, should become a global standard */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	ob= base->object;
 
@@ -3374,6 +3495,8 @@ void draw_object(Base *base)
 	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
 		if(warning_recursive==0 && ob!=G.obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+				ListBase elems;
+				CfraElem *ce;
 				float temp[7][3];
 
 				warning_recursive= 1;
@@ -3453,7 +3576,9 @@ void draw_object(Base *base)
 		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) BIF_ThemeColor(TH_TRANSFORM);
 		else {
 		
-			BIF_ThemeColor(TH_WIRE);
+			if(ob->type==OB_LAMP) BIF_ThemeColor(TH_LAMP);
+			else BIF_ThemeColor(TH_WIRE);
+
 			if((G.scene->basact)==base) {
 				if(base->flag & (SELECT+BA_WAS_SEL)) BIF_ThemeColor(TH_ACTIVE);
 			}
@@ -3531,7 +3656,7 @@ void draw_object(Base *base)
 	switch( ob->type) {
 	case OB_MESH:
 		if (!(base->flag&OB_RADIO)) {
-			draw_mesh_object(base, dt);
+			empty_object= draw_mesh_object(base, dt);
 			dtx &= ~OB_DRAWWIRE; // mesh draws wire itself
 
 			if(G.obedit!=ob && warning_recursive==0) {
@@ -3605,10 +3730,13 @@ void draw_object(Base *base)
 	    	
 
 	    	if (getselection(&selstart, &selend) && selboxes) {
+				float selboxw;
+				
 		    	cpack(0xffffff);
 		    	set_inverted_drawing(1);	    	
 	    		for (i=0; i<(selend-selstart+1); i++) {
-	    			sb = &(selboxes[i]);
+	    			SelBox *sb = &(selboxes[i]);
+					
 	    			if (i<(selend-selstart)) {
 	    				if (selboxes[i+1].y == sb->y)
 	    					selboxw= selboxes[i+1].x - sb->x;
@@ -3628,8 +3756,10 @@ void draw_object(Base *base)
 		    	set_inverted_drawing(0);	    		
 	    	}
 		}
-		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
+		else if(dt==OB_BOUNDBOX) 
+			draw_bounding_volume(ob);
+		else if(boundbox_clip(ob->obmat, cu->bb)) 
+			empty_object= drawDispList(ob, dt);
 			
 		break;
 	case OB_CURVE:
@@ -3641,20 +3771,26 @@ void draw_object(Base *base)
 		if(ob==G.obedit) {
 			drawnurb(ob, editNurb.first, dt);
 		}
-		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-		else if(boundbox_clip(ob->obmat, cu->bb)) drawDispList(ob, dt);
+		else if(dt==OB_BOUNDBOX) 
+			draw_bounding_volume(ob);
+		else if(boundbox_clip(ob->obmat, cu->bb)) 
+			empty_object= drawDispList(ob, dt);
 		
 		break;
 	case OB_MBALL:
-		if(ob==G.obedit) drawmball(ob, dt);
-		else if(dt==OB_BOUNDBOX) draw_bounding_volume(ob);
-		else drawmball(ob, dt);
+		if(ob==G.obedit) 
+			drawmball(ob, dt);
+		else if(dt==OB_BOUNDBOX) 
+			draw_bounding_volume(ob);
+		else 
+			empty_object= drawmball(ob, dt);
 		break;
 	case OB_EMPTY:
 		drawaxes(1.0);
 		break;
 	case OB_LAMP:
 		drawlamp(ob);
+		if(dtx || (base->flag & SELECT)) mymultmatrix(ob->obmat);
 		break;
 	case OB_CAMERA:
 		drawcamera(ob);
@@ -3664,7 +3800,7 @@ void draw_object(Base *base)
 		break;
 	case OB_ARMATURE:
 		if(dt>OB_WIRE) set_gl_material(0);	// we use defmaterial
-		draw_armature(base, dt);
+		empty_object= draw_armature(base, dt);
 		break;
 	default:
 		drawaxes(1.0);
@@ -3676,7 +3812,7 @@ void draw_object(Base *base)
 	if(dtx) {
 		if(G.f & G_SIMULATION);
 		else if(dtx & OB_AXIS) {
-			drawaxes(axsize);
+			drawaxes(1.0f);
 		}
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
@@ -3714,6 +3850,18 @@ void draw_object(Base *base)
 	if(warning_recursive) return;
 	if(base->flag & (OB_FROMDUPLI|OB_RADIO)) return;
 	if(G.f & G_SIMULATION) return;
+	
+	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
+	if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+		if(ob->type!=OB_LAMP) {
+			if((G.scene->basact)==base) 
+				drawcentercircle(ob->obmat[3], ACTIVE, ob->id.lib || ob->id.us>1);
+			else if(base->flag & SELECT) 
+				drawcentercircle(ob->obmat[3], SELECT, ob->id.lib || ob->id.us>1);
+			else if(empty_object || (G.vd->flag & V3D_DRAW_CENTERS)) 
+				drawcentercircle(ob->obmat[3], DESELECT, ob->id.lib || ob->id.us>1);
+		}
+	}
 
 	if((G.f & (G_PICKSEL))==0) {
 		ListBase *list;
@@ -3757,48 +3905,6 @@ void draw_object(Base *base)
 				}
 			}
 		}
-
-		/* object centers */
-		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
-		if(ob->type == OB_LAMP) {
-			if(ob->id.lib) {
-				if(base->flag & SELECT) rect= rectllib_sel;
-				else rect= rectllib_desel;
-			}
-			else if(ob->id.us>1) {
-				if(base->flag & SELECT) rect= rectlus_sel;
-				else rect= rectlus_desel;
-			}
-			else {
-				if(base->flag & SELECT) rect= rectl_sel;
-				else rect= rectl_desel;
-			}
-			draw_icon_centered(ob->obmat[3], rect, 9);
-		}
-		else {
-			if(ob->id.lib || ob->id.us>1) {
-				if(base->flag & SELECT) rect= rectu_sel;
-				else rect= rectu_desel;
-			}
-			else {
-				if(base->flag & SELECT) rect= rect_sel;
-				/* The center of the active object (which need not 
-				 * be selected) gets drawn as if it were selected
-				 */
-				else if(base==(G.scene->basact)) rect= rect_sel;
-				else rect= rect_desel;
-			}
-			draw_icon_centered(ob->obmat[3], rect, 4);
-		}
-		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
-		
-	}
-	else if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
-	
-		glBegin(GL_POINTS);
-			glVertex3fv(ob->obmat[3]);
-		glEnd();
-		
 	}
 
 	free_old_images();

@@ -49,7 +49,6 @@ struct BezTriple;
 struct EditVert;
 struct EditFace;
 
-void init_draw_rects(void);
 void drawaxes(float size);
 void drawcamera(struct Object *ob);
 

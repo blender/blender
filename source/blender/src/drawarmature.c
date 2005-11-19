@@ -1815,14 +1815,12 @@ static void draw_ghost_poses(Base *base)
 
 }
 
-/* called from drawobject.c */
-void draw_armature(Base *base, int dt)
+/* called from drawobject.c, return 1 if nothing was drawn */
+int draw_armature(Base *base, int dt)
 {
 	Object *ob= base->object;
 	bArmature *arm= ob->data;
-	
-	/* only set once */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	int retval= 0;
 	
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		/* we use color for solid lighting */
@@ -1844,7 +1842,7 @@ void draw_armature(Base *base, int dt)
 	}
 	else{
 		/*	Draw Pose */
-		if(ob->pose) {
+		if(ob->pose && ob->pose->chanbase.first) {
 			/* drawing posemode selection indices or colors only in these cases */
 			if(G.f & G_PICKSEL) {
 				if(ob->flag & OB_POSEMODE) arm->flag |= ARM_POSEMODE;
@@ -1869,10 +1867,12 @@ void draw_armature(Base *base, int dt)
 			if(ob->flag & OB_POSEMODE)
 				BIF_ThemeColor(TH_WIRE);	/* restore, for extra draw stuff */
 		}
+		else retval= 1;
 	}
 	/* restore */
 	glFrontFace(GL_CCW);
 
+	return retval;
 }
 
 /* *************** END Armature drawing ******************* */

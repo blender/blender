@@ -450,7 +450,9 @@ enum {
 	TH_BONE_POSE,
 	
 	TH_STRIP,
-	TH_STRIP_SELECT
+	TH_STRIP_SELECT,
+	
+	TH_LAMP
 	
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */

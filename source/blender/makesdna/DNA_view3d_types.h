@@ -113,7 +113,7 @@ typedef struct View3D {
 	int lay, layact;
 	short scenelock, around, camzoom, flag;
 	
-	float lens, grid, gridview, pad, near, far;
+	float lens, grid, gridview, pixsize, near, far;
 	float ofs[3], cursor[3];
 
 	short gridlines, viewbut;
@@ -151,6 +151,7 @@ typedef struct View3D {
 #define V3D_ZBUF_SELECT		4096
 #define V3D_GLOBAL_STATS	8192
 #define V3D_CLIPPING		16384
+#define V3D_DRAW_CENTERS	32768
 
 /* View3D->around */
 #define V3D_CENTRE		 0

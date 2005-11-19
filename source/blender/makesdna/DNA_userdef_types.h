@@ -79,6 +79,7 @@ typedef struct ThemeSpace {
 	char grid[4]; 
 	
 	char wire[4], select[4];
+	char lamp[4];
 	char active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
@@ -159,6 +160,7 @@ typedef struct UserDef {
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	int textimeout, texcollectrate;
+	short obcenter_dia, pad1, pad2, pad3;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

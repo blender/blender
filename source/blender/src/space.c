@@ -2288,7 +2288,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else {
 		uiBlockBeginAlign(block);
-		if ELEM6(th_curcol, TH_PANEL, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM) {
+		if ELEM7(th_curcol, TH_PANEL, TH_LAMP, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
@@ -2617,15 +2617,25 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUM, B_REDRCURW3D, "Size:",
 					 (xpos+edgsp+(5*mpref)+(6*midsp)),y5,(mpref/2),buth,
-					 &(U.tw_size), 2, 40, 0, 0, "Size of widget as percentage of window size");
+					 &(U.tw_size), 2, 40, 0, 0, "Diameter of widget, in 10 pixel units");
 		uiDefButS(block, NUM, B_REDRCURW3D, "Handle:",
 					 (xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y5,(mpref/2),buth,
 					 &(U.tw_handlesize), 2, 40, 0, 0, "Size of widget handles as percentage of widget radius");
 		uiDefButS(block, NUM, B_REDRCURW3D, "Hotspot:",
 				  (xpos+edgsp+(5*mpref)+(6*midsp)),y4,(mpref),buth,
 				  &(U.tw_hotspot), 4, 40, 0, 0, "Hotspot in pixels for clicking widget handles");
-		
 		uiBlockEndAlign(block);
+		
+		
+		uiDefBut(block, LABEL,0,"Object center diameter",
+				 (xpos+(2*edgsp)+(5*mpref)+(5*midsp)),y3label,mpref,buth,
+				 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_REDRCURW3D, "Size",
+				  (xpos+(2*edgsp)+(5*mpref)+(5*midsp)),y2,mpref,buth,
+				  &(U.obcenter_dia), 4, 10, 0, 0,
+				  "Diameter in Pixels for Object/Lamp center drawing");
+		
 		
 	} else if (U.userpref == 1) { /* edit methods */
 
@@ -3305,17 +3315,6 @@ void extern_set_butspace(int fkey)
 		sbuts->mainb= CONTEXT_LOGIC;
 	}
 	else if(fkey==F5KEY) {
-	
-		/* if we're coming in from outside the shading context, just go to the 'default' */
-		if(OBACT && sbuts->mainb!= CONTEXT_SHADING) {
-			if(OBACT->type==OB_CAMERA) 
-				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
-			else if(OBACT->type==OB_LAMP) 
-				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-			else  
-				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-		}
-
 		/* if it's already in shading context, cycle between tabs with the same key */
 		if (sbuts->oldkeypress == F5KEY) {
 
@@ -3333,6 +3332,18 @@ void extern_set_butspace(int fkey)
 		}
 		else if (sbuts->oldkeypress == F6KEY) {
 			sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
+		}
+		
+		/* if we're coming in from outside the shading context, just go to the 'default' */
+		else if(OBACT && sbuts->mainb!= CONTEXT_SHADING) {
+			sbuts->mainb= CONTEXT_SHADING;
+			
+			if(OBACT->type==OB_CAMERA) 
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
+			else if(OBACT->type==OB_LAMP) 
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+			else  
+				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
 		}
 		else {
 			sbuts->mainb= CONTEXT_SHADING;
