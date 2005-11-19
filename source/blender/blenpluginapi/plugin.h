@@ -79,6 +79,10 @@ void plugin_getinfo(PluginInfo *);
 #define NUMSLI	(14<<9)
 #define COL	(15<<9)
 
+/* return values (bitfield like) for textures (DNA_texture_types.h) */
+#define TEX_INT         0
+#define TEX_RGB         1
+#define TEX_NOR         2
 
 /* *************** API functions ******************** */
 

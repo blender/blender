@@ -314,7 +314,7 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 
 	BRICONT;
 
-	return 0;
+	return TEX_INT;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -324,7 +324,7 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 
 static int clouds(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 	
 	texres->tin = BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2], tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 
@@ -335,7 +335,7 @@ static int clouds(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = BLI_gTurbulence(tex->noisesize, texvec[0], texvec[1], texvec[2] + tex->nabla, tex->noisedepth,  (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	if (tex->stype==1) {
@@ -346,7 +346,7 @@ static int clouds(Tex *tex, float *texvec, TexResult *texres)
 		texres->tb = BLI_gTurbulence(tex->noisesize, texvec[1], texvec[2], texvec[0], tex->noisedepth, (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 		BRICONTRGB;
 		texres->ta = 1.0;
-		return (rv+1);
+		return (rv | TEX_RGB);
 	}
 
 	BRICONT;
@@ -419,7 +419,7 @@ static float wood_int(Tex *tex, float x, float y, float z)
 
 static int wood(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=TEX_INT;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv=TEX_INT;
 
 	texres->tin = wood_int(tex, texvec[0], texvec[1], texvec[2]);
 	if (texres->nor!=NULL) {
@@ -429,7 +429,7 @@ static int wood(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = wood_int(tex, texvec[0], texvec[1], texvec[2] + tex->nabla);
 		
 		tex_normal_derivate(tex, texres);
-		rv = TEX_NOR;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -470,7 +470,7 @@ static float marble_int(Tex *tex, float x, float y, float z)
 
 static int marble(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=TEX_INT;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv=TEX_INT;
 
 	texres->tin = marble_int(tex, texvec[0], texvec[1], texvec[2]);
 
@@ -482,7 +482,7 @@ static int marble(Tex *tex, float *texvec, TexResult *texres)
 		
 		tex_normal_derivate(tex, texres);
 		
-		rv = TEX_NOR;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -562,7 +562,7 @@ static int magic(Tex *tex, float *texvec, TexResult *texres)
 	BRICONTRGB;
 	texres->ta= 1.0;
 	
-	return 1;
+	return TEX_RGB;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -572,11 +572,14 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 {
 	float b2, ofs;
 
+	/* Special case: same value than TEX_INT but no same meaning because
+       when using colour band it uses tex_normal_derivate(). So it's
+       on purpose that texres->tin is only computed if textes->nor[] is too */
 	if(texres->nor == NULL) return 0;
 
+	texres->tin=b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	ofs= tex->turbul/200.0;
 
-	texres->tin=b2= BLI_gNoise(tex->noisesize, texvec[0], texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	if(tex->stype) ofs*=(b2*b2);
 	texres->nor[0] = BLI_gNoise(tex->noisesize, texvec[0]+ofs, texvec[1], texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);
 	texres->nor[1] = BLI_gNoise(tex->noisesize, texvec[0], texvec[1]+ofs, texvec[2], (tex->noisetype!=TEX_NOISESOFT), tex->noisebasis);	
@@ -590,7 +593,7 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2]= -texres->nor[2];
 	}
 
-	return 2;
+	return TEX_NOR;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -598,7 +601,7 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 
 static float mg_mFractalOrfBmTex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 	float (*mgravefunc)(float, float, float, float, float, float, int);
 
 	if (tex->stype==TEX_MFRACTAL)
@@ -617,7 +620,7 @@ static float mg_mFractalOrfBmTex(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->noisebasis);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -628,7 +631,7 @@ static float mg_mFractalOrfBmTex(Tex *tex, float *texvec, TexResult *texres)
 
 static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 	float (*mgravefunc)(float, float, float, float, float, float, float, float, int);
 
 	if (tex->stype==TEX_RIDGEDMF)
@@ -647,7 +650,7 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = tex->ns_outscale*mgravefunc(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->mg_gain, tex->noisebasis);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -659,7 +662,7 @@ static float mg_ridgedOrHybridMFTex(Tex *tex, float *texvec, TexResult *texres)
 
 static float mg_HTerrainTex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 
 	texres->tin = tex->ns_outscale*mg_HeteroTerrain(texvec[0], texvec[1], texvec[2], tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
 
@@ -672,7 +675,7 @@ static float mg_HTerrainTex(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = tex->ns_outscale*mg_HeteroTerrain(texvec[0], texvec[1], texvec[2] + offs, tex->mg_H, tex->mg_lacunarity, tex->mg_octaves, tex->mg_offset, tex->noisebasis);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -684,7 +687,7 @@ static float mg_HTerrainTex(Tex *tex, float *texvec, TexResult *texres)
 
 static float mg_distNoiseTex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 
 	texres->tin = mg_VLNoise(texvec[0], texvec[1], texvec[2], tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
@@ -697,7 +700,7 @@ static float mg_distNoiseTex(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = mg_VLNoise(texvec[0], texvec[1], texvec[2] + offs, tex->dist_amount, tex->noisebasis, tex->noisebasis2);
 
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	BRICONT;
@@ -713,7 +716,7 @@ static float mg_distNoiseTex(Tex *tex, float *texvec, TexResult *texres)
 
 static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 {
-	int rv=0;	/* return value, int:0, col:1, nor:2, everything:3 */
+	int rv = TEX_INT;
 	float da[4], pa[12];	/* distance and point coordinate arrays of 4 nearest neighbours */
 	float aw1 = fabs(tex->vn_w1);
 	float aw2 = fabs(tex->vn_w2);
@@ -770,13 +773,13 @@ static float voronoiTex(Tex *tex, float *texvec, TexResult *texres)
 		texres->nor[2] = sc * fabs(tex->vn_w1*da[0] + tex->vn_w2*da[1] + tex->vn_w3*da[2] + tex->vn_w4*da[3]);
 		
 		tex_normal_derivate(tex, texres);
-		rv += 2;
+		rv |= TEX_NOR;
 	}
 
 	if (tex->vn_coltype) {
 		BRICONTRGB;
 		texres->ta = 1.0;
-		return (rv+1);
+		return (rv | TEX_RGB);
 	}
 	
 	BRICONT;
@@ -806,7 +809,7 @@ static int texnoise(Tex *tex, TexResult *texres)
 	texres->tin= ((float)val)/div;;
 
 	BRICONT;
-	return 0;
+	return TEX_INT;
 }
 
 /* ------------------------------------------------------------------------- */
