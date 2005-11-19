@@ -455,6 +455,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			}
 			allqueue(REDRAWVIEW3D_Z, 0);
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			shade_buttons_change_3d();
 			BIF_undo_push("Assign material index");
 		}
 		break;
