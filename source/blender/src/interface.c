@@ -1594,14 +1594,11 @@ static int ui_do_but_TEX(uiBut *but)
 
 	uiGetMouse(mywinget(), mval);
 
-	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
-	
 	/* set cursor pos to the end of the text */
-	but->pos = strlen(but->str);
-	
+	but->pos = strlen(str);
 	but->selsta = 0;
 	but->selend = strlen(but->drawstr) - strlen(but->str);
-	
+
 	/* backup */
 	BLI_strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 
@@ -1610,6 +1607,7 @@ static int ui_do_but_TEX(uiBut *but)
 	
 	while (get_mbut() & L_MOUSE) BIF_wait_for_statechange();
 	len= strlen(str);
+
 	but->min= 0.0;
 	
 	capturing = TRUE;
@@ -1661,7 +1659,7 @@ static int ui_do_but_TEX(uiBut *but)
 
 		if(ascii) {
 			if(len <= but->max) {
-			
+
 				/* type over the current selection */
 				if (SELWIDTH > 0) {	
 					len -= ui_delete_selection_edittext(but);
@@ -2268,6 +2266,7 @@ static int ui_do_but_IDPOIN(uiBut *but)
 	but->poin= str;
 	but->min= 0.0;
 	but->max= 22.0;
+	ui_check_but(but);
 	ui_do_but_TEX(but);
 	but->poin= NULL;
 	but->type= IDPOIN;
@@ -3848,7 +3847,6 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		break;
 	case BUT_PREV:
 		ui_but_prev_edittext(block);
-		uevent->event= BUT_NEXT;	/* simpler handling in code further */
 		break;
 	case BUT_ACTIVATE:
 		for(but= block->buttons.first; but; but= but->next) {
@@ -4016,11 +4014,11 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			/* UI_BLOCK_RET_1: not return when val==0 */
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
-				if ELEM5(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT) {
+				if ELEM6(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT, BUT_PREV) {
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
 						
-						if(uevent->event==BUT_NEXT) 
+						if ELEM(uevent->event, BUT_NEXT, BUT_PREV) 
 							butevent= ui_act_as_text_but(but);
 						else
 							butevent= ui_do_button(block, but, uevent);
