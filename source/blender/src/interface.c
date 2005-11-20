@@ -1855,6 +1855,8 @@ static int ui_do_but_TEX(uiBut *but)
 					len= but->pos;
 					dodraw= 1;
 				}
+				else capturing= FALSE;
+				
 				break;
 			}
 		}
@@ -1881,12 +1883,14 @@ static int ui_do_but_TEX(uiBut *but)
 	ui_check_but(but);
 	ui_draw_but(but);
 	
+	if(dev==TABKEY) addqueue(but->win, G.qual?BUT_PREV:BUT_NEXT, 1);
+	
 	if(dev!=ESCKEY) return but->retval;
 	else return B_NOP;	// prevent event to be passed on
 }
 
 
-static int uiActAsTextBut(uiBut *but)
+static int ui_act_as_text_but(uiBut *but)
 {
 	void *but_func;
 	double value;
@@ -1894,6 +1898,9 @@ static int uiActAsTextBut(uiBut *but)
 	int temp, retval, textleft;
 	char str[UI_MAX_DRAW_STR], *point;
 	
+	/* this function is abused for tab-cycling */
+	if(but->type==TEX)
+		return ui_do_but_TEX(but);
 	
 	value= ui_get_but_val(but);
 	if( but->pointype==FLO ) {
@@ -1968,7 +1975,7 @@ static int ui_do_but_NUM(uiBut *but)
 	tempf= value;
 	
 	if(get_qual() & LR_SHIFTKEY) {	/* make it textbut */
-		if( uiActAsTextBut(but) ) retval= but->retval;
+		if( ui_act_as_text_but(but) ) retval= but->retval;
 	}
 	else {
 		retval= but->retval;
@@ -2070,7 +2077,7 @@ static int ui_do_but_NUM(uiBut *but)
 					if( temp>=but->min && temp<=but->max) ui_set_but_val(but, (double)temp);
 				}
 				else {
-					if( uiActAsTextBut(but) ); else retval= 0;
+					if( ui_act_as_text_but(but) ); else retval= 0;
 				}
 			}
 			else {
@@ -2086,7 +2093,7 @@ static int ui_do_but_NUM(uiBut *but)
 					ui_set_but_val(but, tempf);
 				}
 				else {
-					if( uiActAsTextBut(but) ); else retval= 0;
+					if( ui_act_as_text_but(but) ); else retval= 0;
 				}
 			}
 		}
@@ -2415,8 +2422,8 @@ static int ui_do_but_NUMSLI(uiBut *but)
 		but->flag &= ~UI_SELECT;
 	}
 	else {
-		uiActAsTextBut(but);
-		uibut_do_func(but);	// this is done in ui_do_but_SLI() not in uiActAsTextBut()
+		ui_act_as_text_but(but);
+		uibut_do_func(but);	// this is done in ui_do_but_SLI() not in ui_act_as_text_but()
 	}
 
 	while(get_mbut() & L_MOUSE) BIF_wait_for_statechange();
@@ -3562,6 +3569,56 @@ static void ui_set_ftf_font(uiBlock *block)
 #endif
 }
 
+static void ui_but_next_edittext(uiBlock *block)
+{
+	uiBut *but, *actbut;
+
+	for(actbut= block->buttons.first; actbut; actbut= actbut->next) {
+		if(actbut->flag & UI_ACTIVE) break;
+	}
+	if(actbut) {
+		actbut->flag &= ~(UI_ACTIVE|UI_SELECT);
+		for(but= actbut->next; but; but= but->next) {
+			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+				but->flag |= UI_ACTIVE;
+				return;
+			}
+		}
+		for(but= block->buttons.first; but!=actbut; but= but->next) {
+			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+				but->flag |= UI_ACTIVE;
+				return;
+			}
+		}
+	}
+}
+
+static void ui_but_prev_edittext(uiBlock *block)
+{
+	uiBut *but, *actbut;
+	
+	for(actbut= block->buttons.first; actbut; actbut= actbut->next) {
+		if(actbut->flag & UI_ACTIVE) break;
+	}
+	if(actbut) {
+		actbut->flag &= ~(UI_ACTIVE|UI_SELECT);
+		for(but= actbut->prev; but; but= but->prev) {
+			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+				but->flag |= UI_ACTIVE;
+				return;
+			}
+		}
+		for(but= block->buttons.last; but!=actbut; but= but->prev) {
+			if(ELEM4(but->type, TEX, NUM, NUMSLI, HSVSLI)) {
+				but->flag |= UI_ACTIVE;
+				return;
+			}
+		}
+	}
+}
+
+
+
 
 /* return: 
  * UI_NOTHING	pass event to other ui's
@@ -3579,6 +3636,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 	/* filter some unwanted events */
 	/* btw: we allow event==0 for first time in menus, draws the hilited item */
 	if(uevent==0 || uevent->event==LEFTSHIFTKEY || uevent->event==RIGHTSHIFTKEY) return UI_NOTHING;
+	if(uevent->event==UI_BUT_EVENT) return UI_NOTHING;
 	
 	if(block->flag & UI_BLOCK_ENTER_OK) {
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val) {
@@ -3785,6 +3843,13 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			}
 		}
 		break;
+	case BUT_NEXT:
+		ui_but_next_edittext(block);
+		break;
+	case BUT_PREV:
+		ui_but_prev_edittext(block);
+		uevent->event= BUT_NEXT;	/* simpler handling in code further */
+		break;
 	case BUT_ACTIVATE:
 		for(but= block->buttons.first; but; but= but->next) {
 			if(but->retval==uevent->val) but->flag |= UI_ACTIVE;
@@ -3951,10 +4016,14 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 			/* UI_BLOCK_RET_1: not return when val==0 */
 			
 			if(uevent->val || (block->flag & UI_BLOCK_RET_1)==0) {
-				if ELEM4(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE) {
+				if ELEM5(uevent->event, LEFTMOUSE, PADENTER, RETKEY, BUT_ACTIVATE, BUT_NEXT) {
 					/* when mouse outside, don't do button */
 					if(inside || uevent->event!=LEFTMOUSE) {
-						butevent= ui_do_button(block, but, uevent);
+						
+						if(uevent->event==BUT_NEXT) 
+							butevent= ui_act_as_text_but(but);
+						else
+							butevent= ui_do_button(block, but, uevent);
 
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
