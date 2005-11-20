@@ -2250,7 +2250,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
-		uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
 		uiBlockEndAlign(block);
 	
 		uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
@@ -2362,7 +2362,7 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
-		uiDefButF(block, NUMSLI,B_MATPRV,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
+		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
 		uiBlockEndAlign(block);
 	
 		if (la->mode & LA_HALO) uiDefButF(block, NUMSLI,0,"HaloInt ",			100,135,200,19,&la->haint, 0.0, 5.0, 0, 0, "Sets the intensity of the spotlight halo");
