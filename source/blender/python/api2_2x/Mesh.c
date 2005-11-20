@@ -639,7 +639,7 @@ static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 	unsigned char param;
 	PyObject *attr;
 
-	switch( (int)type ) {
+	switch( (long)type ) {
     case 'R':	/* these are backwards, but that how it works */
 		param = self->color->b;
 		break;
@@ -655,7 +655,8 @@ static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 	default:
 		{
 			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in MCol_getAttr", (int)type );
+			sprintf( errstr, "undefined type '%d' in MCol_getAttr",
+					(int)((long)type & 0xff));
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError, errstr );
 		}
 	}
@@ -676,23 +677,24 @@ static int MCol_setAttr( BPy_MCol * self, PyObject * value, void * type )
 {
 	unsigned char *param;
 
-	switch( (int)type ) {
+	switch( (long)type ) {
     case 'R':	/* these are backwards, but that how it works */
-		param = &self->color->b;
+		param = (unsigned char *)&self->color->b;
 		break;
     case 'G':
-		param = &self->color->g;
+		param = (unsigned char *)&self->color->g;
 		break;
     case 'B':	/* these are backwards, but that how it works */
-		param = &self->color->r;
+		param = (unsigned char *)&self->color->r;
 		break;
     case 'A':
-		param = &self->color->a;
+		param = (unsigned char *)&self->color->a;
 		break;
 	default:
 		{
 			char errstr[1024];
-			sprintf( errstr, "undefined type '%d' in MCol_setAttr", (int)type );
+			sprintf( errstr, "undefined type '%d' in MCol_setAttr",
+					(int)((long)type & 0xff));
 			return EXPP_ReturnIntError( PyExc_RuntimeError, errstr );
 		}
 	}
@@ -3065,7 +3067,7 @@ static PyObject *MFace_getMFlagBits( BPy_MFace * self, void * type )
 	if( !face )
 		return NULL;
 
-	return EXPP_getBitfield( &face->flag, (int)type, 'b' );
+	return EXPP_getBitfield( &face->flag, (int)((long)type & 0xff), 'b' );
 }
 
 /*
@@ -3080,7 +3082,7 @@ static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 	if( !face )
 		return -1;
 
-	return EXPP_setBitfield( value, &face->flag, (int)type, 'b' );
+	return EXPP_setBitfield( value, &face->flag, (int)((long)type & 0xff), 'b' );
 }
 
 /*
@@ -4736,10 +4738,15 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 	DispListMesh *dlm;
 	DerivedMesh *dm;
 	Object *tmpobj = NULL;
+	int cage = 0;
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !PyArg_ParseTuple( args, "s|i", &name, &cage ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected string argument" );
+				"expected string and optional integer arguments" );
+
+	if( cage != 0 && cage != 1 )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"cage value must be 0 or 1" );
 
 	/* find the specified object */
 	ob = ( Object * ) GetIdFromList( &( G.main->object ), name );
@@ -4756,6 +4763,10 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		tmpcu = (Curve *)tmpobj->data;
 		tmpcu->id.us--;
 
+		/* if getting the original caged mesh, delete object modifiers */
+		if( cage )
+			object_free_modifiers(tmpobj);
+
 		/* copies the data */
 		tmpobj->data = copy_curve( (Curve *) ob->data );
 
@@ -4768,6 +4779,7 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 				MEM_freeN( cu->disp.first );
 			cu->disp.first = NULL;
 		}
+	
 #endif
 
 		/* get updated display list, and convert to a mesh */
@@ -4793,11 +4805,13 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		G.totmesh++;
 		tmpmesh = tmpobj->data;
 
-		/* get the final derived mesh */
-		dm = mesh_create_derived_render( tmpobj );
-		dlm = dm->convertToDispListMesh( dm, 0 );
-		displistmesh_to_mesh( dlm, tmpmesh );
-		dm->release( dm );
+		/* if not getting the original caged mesh, get final derived mesh */
+		if( !cage ) {
+			dm = mesh_create_derived_render( tmpobj );
+			dlm = dm->convertToDispListMesh( dm, 0 );
+			displistmesh_to_mesh( dlm, tmpmesh );
+			dm->release( dm );
+		}
 
 		/* take control of mesh before object is freed */
 		tmpobj->data = NULL;
@@ -5752,7 +5766,7 @@ static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 {
 	PyObject *attr;
 
-	switch( (int)type ) {
+	switch( (long)type ) {
 	case MESH_HASFACEUV:
 		attr = self->mesh->tface ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
@@ -5793,7 +5807,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 	/* sticky is independent of faceUV and vertUV */
 	/* faceUV (tface) has priority over vertUV (mcol) */
 
-	switch( (int)type ) {
+	switch( (long)type ) {
 	case MESH_HASFACEUV:
 		if( !param ) {
 			if( mesh->tface ) {

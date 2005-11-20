@@ -620,17 +620,21 @@ class Mesh:
   @type activeFace: int
   """
 
-  def getFromObject(name):
+  def getFromObject(name,cage=0):
     """
     Replace the mesh's existing data with the raw mesh data from a Blender
     Object.  This method supports all the geometry based objects (mesh, text,
     curve, surface, and meta).  If the object has modifiers, they will be
-    applied before to the object before extracting the vertex data.
-    @note: The mesh coordinates are in i{local space}, not the world space of
+    applied before to the object before extracting the vertex data unless
+    the B{cage} parameter is 1.
+    @note: The mesh coordinates are in I{local space}, not the world space of
     its object.  For world space vertex coordinates, each vertex location must
     be multiplied by the object's 4x4 transform matrix (see L{transform}).
     @type name: string
     @param name: name of the Blender object which contains the geometry data.
+    @type cage: int
+    @param cage: determines whether the original vertices or derived vertices
+    (for objects with modifiers) are used.  The default is derived vertices.
     """
 
   def calcNormals():
