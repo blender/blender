@@ -69,6 +69,7 @@
 #include "BSE_drawoops.h"
 
 float oopscalex;
+struct BMF_Font *font; /* for using different sized fonts */
 
 void boundbox_oops()
 {
@@ -125,8 +126,8 @@ void give_oopslink_line(Oops *oops, OopsLink *ol, float *v1, float *v2)
 void draw_oopslink(Oops *oops)
 {
 	OopsLink *ol;
-	float vec[4][3], dist;
-	int a;
+	float vec[4][3], dist, spline_step;
+	short curve_res;
 	
 	if(oops->type==ID_SCE) {
 		if(oops->flag & SELECT) {
@@ -144,7 +145,7 @@ void draw_oopslink(Oops *oops)
 	}
 	
 	glEnable(GL_MAP1_VERTEX_3);
-	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0;
+	vec[0][2]= vec[1][2]= vec[2][2]= vec[3][2]= 0.0; /* only 2d spline, set the Z to 0*/
 	
 	ol= oops->link.first;
 	while(ol) {
@@ -171,14 +172,26 @@ void draw_oopslink(Oops *oops)
 			/* v3 is always pointing down */
 			vec[2][0]= vec[3][0];
 			vec[2][1]= vec[3][1] - dist;
-
-			glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
 			
-			glBegin(GL_LINE_STRIP);
-			for(a=0; a<=30; a++) {
-				glEvalCoord1f((float)a/30.0);
-			}
-			glEnd();
+			if( MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > G.v2d->cur.xmax); /* clipped */	
+				else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < G.v2d->cur.xmin); /* clipped */
+					else {
+						/* calculate a curve resolution to use based on the length of the curve.*/
+						curve_res = MIN2(40, MAX2(2, (short)((dist*2) * (oopscalex))));
+						
+						/* we can reuse the dist variable here to increment the GL curve eval amount*/
+						dist = (float)1/curve_res;
+						spline_step = 0.0;
+						
+						glMap1f(GL_MAP1_VERTEX_3, 0.0, 1.0, 3, 4, vec[0]);
+						glBegin(GL_LINE_STRIP);
+						while (spline_step < 1.000001) {
+							glEvalCoord1f(spline_step);
+							spline_step += dist;
+						}
+						glEnd();
+					}
+			
 		}
 		ol= ol->next;
 	}
@@ -267,7 +280,7 @@ unsigned int give_oops_color(short type, short sel, unsigned int *border)
 
 void calc_oopstext(char *str, float *v1)
 {
-	float f1, f2, size;
+	float f1, f2, size; /* f1 is the lhs of the oops block, f2 is the rhs */
 	short mval[2], len, flen;
 	
 	ipoco_to_areaco_noclip(G.v2d, v1, mval);
@@ -275,7 +288,12 @@ void calc_oopstext(char *str, float *v1)
 	v1[0]+= OOPSX;
 	ipoco_to_areaco_noclip(G.v2d, v1, mval);
 	f2= mval[0];
-	size= f2-f1;
+	
+	if (oopscalex>1.1) { /* Make text area wider if we have no icon.*/
+		size= f2-f1;
+	} else {
+		size= (f2-f1)*1.7; 
+	}
 
 	len= strlen(str);
 	
@@ -285,7 +303,16 @@ void calc_oopstext(char *str, float *v1)
 		str[len]= 0;
 	}
 	
-	mval[0]= (f1+f2-flen+1)/2;
+	flen= BMF_GetStringWidth(font, str);
+	
+	/* calc centred location for icon and text,
+	else if were zoomed too far out, just push text to the left of the oops block. */
+	if (oopscalex>1.1) { 
+		mval[0]= (f1+f2-flen+1)/2;
+	} else {
+		mval[0]=  f1; 
+	}
+	
 	mval[1]= 1;
 	areamouseco_to_ipoco(G.v2d, mval, &f1, &f2);
 	
@@ -336,13 +363,15 @@ void draw_oops(Oops *oops)
 	calc_oopstext(str, v1);
 
 	/* ICON */
-	if(str[1] && oopscalex>1.1) {
+	if(str[1] && oopscalex>1.1) { /* HAS ICON */
 		draw_icon_oops(v1, oops->type);
-	}
+	} else { /* NO ICON, UNINDENT*/
+		v1[0] -= 1.3 / oopscalex;
+ 	}
 	if(oops->flag & SELECT) cpack(0xFFFFFF); 
 	else cpack(0x0);
 	glRasterPos3f(v1[0],  v1[1], 0.0);
-	BMF_DrawString(G.fonts, str);
+	BMF_DrawString(font, str);
 
 	if(line) setlinestyle(2);
 	cpack(border);
@@ -409,13 +438,30 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 		oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
 		calc_ipogrid();	/* for scrollvariables */
 
+		/* Set the font size for the oops based on the zoom level */
+		if (oopscalex > 6.0) font = BMF_GetFont(BMF_kScreen15);
+		else if (oopscalex > 3.5) font = G.font;
+		else if (oopscalex > 2.5) font = G.fonts;
+		else font = G.fontss;		
+		
+		/* Draw unselected oops links */
 		oops= soops->oops.first;
 		while(oops) {
-			if(oops->hide==0) {
+			if(oops->hide==0 && (oops->flag & SELECT)); else {
 				draw_oopslink(oops);
 			}
 			oops= oops->next;
 		}
+		
+		/* Draw selected oops links */
+		oops= soops->oops.first;
+		while(oops) {
+			if(oops->hide==0 && (oops->flag & SELECT)) {
+				draw_oopslink(oops);
+			}
+			oops= oops->next;
+		}			
+		
 		oops= soops->oops.first;
 		while(oops) {
 			if(oops->hide==0) {
@@ -423,6 +469,7 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 			}
 			oops= oops->next;
 		}
+		
 		oops= soops->oops.first;
 		while(oops) {
 			if(oops->hide==0) {
