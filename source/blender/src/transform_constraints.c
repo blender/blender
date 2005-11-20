@@ -513,10 +513,12 @@ void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
 
 	switch(twmode) {
 	case V3D_MANIP_GLOBAL:
+	/*
 		sprintf(text, ftext, "global");
 		Mat3One(mtx);
 		setConstraint(t, mtx, mode, text);
 		break;
+	*/
 	case V3D_MANIP_LOCAL:
 		sprintf(text, ftext, "local");
 		setLocalConstraint(t, mode, text);
