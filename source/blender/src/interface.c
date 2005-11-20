@@ -1537,6 +1537,50 @@ static int ui_do_but_ROW(uiBlock *block, uiBut *but)
 	return but->retval;
 }
 
+/* return 1 if char ch is special character otherwise
+ * it returns 0 */
+static short test_special_char(char ch)
+{
+	switch(ch) {
+		case '\\':
+		case '/':
+		case '~':
+		case '!':
+		case '@':
+		case '#':
+		case '$':
+		case '%':
+		case '^':
+		case '&':
+		case '*':
+		case '(':
+		case ')':
+		case '+':
+		case '=':
+		case '{':
+		case '}':
+		case '[':
+		case ']':
+		case ':':
+		case ';':
+		case '\'':
+		case '\"':
+		case '<':
+		case '>':
+		case ',':
+		case '.':
+		case '?':
+		case '_':
+		case '-':
+		case ' ':
+			return 1;
+			break;
+		default:
+			break;
+	}
+	return 0;
+}
+
 static int ui_do_but_TEX(uiBut *but)
 {
 	unsigned short dev;
@@ -1673,13 +1717,12 @@ static int ui_do_but_TEX(uiBut *but)
 						
 						but->selend = but->pos;
 					} else if(G.qual & LR_CTRLKEY) {
-						while(but->pos < len){
+						/* jump betweenn special characters (/,\,_,-, etc.),
+						 * look at function test_special_char() for complete
+						 * list of special character, ctr -> */
+						while(but->pos < len) {
 							but->pos++;
-#ifdef WIN32
-							if(str[but->pos]=='\\') break;
-#else
-							if(str[but->pos]=='/') break;
-#endif
+							if(test_special_char(str[but->pos])) break;
 						}
 					} else {
 						but->pos++;
@@ -1723,13 +1766,12 @@ static int ui_do_but_TEX(uiBut *but)
 						
 						but->selsta = but->pos;
 					} else if(G.qual & LR_CTRLKEY) {
+						/* jump betweenn special characters (/,\,_,-, etc.),
+						 * look at function test_special_char() for complete
+						 * list of special character, ctr -> */
 						while(but->pos > 0){
 							but->pos--;
-#ifdef WIN32
-							if(str[but->pos]=='\\') break;
-#else
-							if(str[but->pos]=='/') break;
-#endif
+							if(test_special_char(str[but->pos])) break;
 						}
 					} else {
 						if(but->pos>0) but->pos--;
