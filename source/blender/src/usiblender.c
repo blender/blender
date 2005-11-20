@@ -259,7 +259,17 @@ static void init_userdef_file(void)
 /* TEMPORAL, remove me! (ton) */				
 				U.uiflag |= USER_PLAINMENUS;
 			}
+			
+			/* check for text field selection highlight, set it to text editor highlight by default */
+			if(btheme->tui.textfield_hi[3]==0) {
+				SETCOL(btheme->tui.textfield_hi, 	
+					btheme->text.shade2[0], 
+					btheme->text.shade2[1], 
+					btheme->text.shade2[2],
+					255);
+			}
 		}
+		
 		if(U.obcenter_dia==0) U.obcenter_dia= 6;
 	}
 	

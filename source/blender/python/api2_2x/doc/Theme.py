@@ -130,6 +130,7 @@ class Theme:
     @ivar setting2: theme rgba var.
     @ivar num: theme rgba var.
     @ivar textfield: theme rgba var.
+	@ivar textfield_hi: theme rgba var.
     @ivar popup: theme rgba var.
     @ivar text: theme rgba var.
     @ivar text_hi: theme rgba var.

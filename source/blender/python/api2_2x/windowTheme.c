@@ -361,6 +361,7 @@ static PyObject *ThemeUI_getAttr( BPy_ThemeUI * self, char *name )
 		ELSEIF_TUI_RGBA( setting2 )
 		ELSEIF_TUI_RGBA( num )
 		ELSEIF_TUI_RGBA( textfield )
+		ELSEIF_TUI_RGBA( textfield_hi )
 		ELSEIF_TUI_RGBA( popup )
 		ELSEIF_TUI_RGBA( text )
 		ELSEIF_TUI_RGBA( text_hi )
@@ -375,7 +376,7 @@ static PyObject *ThemeUI_getAttr( BPy_ThemeUI * self, char *name )
 		attrib = Py_BuildValue( "[ssssssssssssssssss]", "theme",
 					"outline", "neutral", "action",
 					"setting", "setting1", "setting2",
-					"num", "textfield", "popup", "text",
+					"num", "textfield", "textfield_hi", "popup", "text",
 					"text_hi", "menu_back", "menu_item",
 					"menu_hilite", "menu_text",
 					"menu_text_hi", "drawType" );
@@ -401,6 +402,7 @@ static int ThemeUI_setAttr( BPy_ThemeUI * self, char *name, PyObject * value )
 		ELSEIF_TUI_RGBA( setting2 )
 		ELSEIF_TUI_RGBA( num )
 		ELSEIF_TUI_RGBA( textfield )
+		ELSEIF_TUI_RGBA( textfield_hi )
 		ELSEIF_TUI_RGBA( popup )
 		ELSEIF_TUI_RGBA( text )
 		ELSEIF_TUI_RGBA( text_hi )

@@ -63,7 +63,11 @@
 #define PNL_TABBED	8
 #define PNL_OVERLAP	16
 
-
+/* Button text selection:
+ * extension direction, selextend, inside ui_do_but_TEX */
+#define EXTEND_LEFT		1
+#define EXTEND_RIGHT	2
+#define SELWIDTH		(but->selend - but->selsta)
 
 typedef struct {
 	short xim, yim;
@@ -103,7 +107,7 @@ typedef struct {
 
 struct uiBut {
 	uiBut *next, *prev;
-	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos;
+	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend;
 	int flag;
 	
 	char *str;

@@ -409,6 +409,8 @@ enum {
 	TH_REDALERT,
 	TH_CUSTOM,
 	
+	TH_BUT_TEXTFIELD_HI,
+	
 	TH_THEMEUI,
 // common colors among spaces
 	

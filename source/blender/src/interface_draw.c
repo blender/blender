@@ -1452,6 +1452,8 @@ static void ui_draw_text_icon(uiBut *but)
 	float x;
 	int len;
 	char *cpoin;
+	short t, pos, ch;
+	short selsta_tmp, selend_tmp, selsta_draw, selwidth_draw;
 	
 	/* check for button text label */
 	if (but->type == ICONTEXTROW) {
@@ -1459,25 +1461,53 @@ static void ui_draw_text_icon(uiBut *but)
 	}
 	else {
 
-		// text button cursor
+		/* text button selection and cursor */
 		if(but->pos != -1) {
-			short t, pos, ch;
-			
-			pos= but->pos+strlen(but->str);
-			if(pos >= but->ofs) {
+		
+			if (SELWIDTH > 0) {
+				/* text button selection */
+				selsta_tmp = but->selsta + strlen(but->str);
+				selend_tmp = but->selend + strlen(but->str);
+				if (but->ofs >= strlen(but->str))
+					selsta_tmp += (but->ofs - strlen(but->str));
+					
 				if(but->drawstr[0]!=0) {
-					ch= but->drawstr[pos];
-					but->drawstr[pos]= 0;
-		
-					t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
-		
-					but->drawstr[pos]= ch;
+					ch= but->drawstr[selsta_tmp];
+					but->drawstr[selsta_tmp]= 0;
+					
+					selsta_draw = but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
+					
+					but->drawstr[selsta_tmp]= ch;
+					
+					
+					ch= but->drawstr[selend_tmp];
+					but->drawstr[selend_tmp]= 0;
+					
+					selwidth_draw = but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
+					
+					but->drawstr[selend_tmp]= ch;
+					
+					BIF_ThemeColor(TH_BUT_TEXTFIELD_HI);
+					glRects(but->x1+selsta_draw+1, but->y1+2, but->x1+selwidth_draw+1, but->y2-2);
 				}
-				else t= 3;
-				
-				glColor3ub(255,0,0);
-				glRects(but->x1+t, but->y1+2, but->x1+t+3, but->y2-2);
-			}	
+			} else {
+				/* text cursor */
+				pos= but->pos+strlen(but->str);
+				if(pos >= but->ofs) {
+					if(but->drawstr[0]!=0) {
+						ch= but->drawstr[pos];
+						but->drawstr[pos]= 0;
+			
+						t= but->aspect*BIF_GetStringWidth(but->font, but->drawstr+but->ofs, (U.transopts & USER_TR_BUTTONS)) + 3;
+						
+						but->drawstr[pos]= ch;
+					}
+					else t= 3;
+					
+					glColor3ub(255,0,0);
+					glRects(but->x1+t, but->y1+2, but->x1+t+2, but->y2-2);
+				}
+			}
 		}
 		if(but->drawstr[0]!=0) {
 			int transopts;

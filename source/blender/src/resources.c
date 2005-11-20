@@ -674,6 +674,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= btheme->tui.num; break;
 			case TH_BUT_TEXTFIELD:
 				cp= btheme->tui.textfield; break;
+			case TH_BUT_TEXTFIELD_HI:
+				cp= btheme->tui.textfield_hi; break;
 			case TH_BUT_POPUP:
 				cp= btheme->tui.popup; break;
 			case TH_BUT_TEXT:
@@ -872,6 +874,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tui.setting2, 	0xA1,0x99,0xA7, 255);
 	SETCOL(btheme->tui.num,		 	0x90,0x90,0x90, 255);
 	SETCOL(btheme->tui.textfield,	0x90,0x90,0x90, 255);
+	SETCOL(btheme->tui.textfield_hi,0xc6,0x77,0x77, 255);
 	SETCOL(btheme->tui.popup,		0xA0,0xA0,0xA0, 255);
 	
 	SETCOL(btheme->tui.text,		0,0,0, 255);
@@ -1038,6 +1041,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 		sprintf(str, "Special Setting 2 %%x%d|", TH_BUT_SETTING2); strcat(cp, str);
 		sprintf(str, "Number Input %%x%d|", TH_BUT_NUM); strcat(cp, str);
 		sprintf(str, "Text Input %%x%d|", TH_BUT_TEXTFIELD); strcat(cp, str);
+		sprintf(str, "Text Input Highlight %%x%d|", TH_BUT_TEXTFIELD_HI); strcat(cp, str);
 		sprintf(str, "Popup %%x%d|", TH_BUT_POPUP); strcat(cp, str);
 		sprintf(str, "Text %%x%d|", TH_BUT_TEXT); strcat(cp, str);
 		sprintf(str, "Text Highlight %%x%d|", TH_BUT_TEXT_HI); strcat(cp, str);

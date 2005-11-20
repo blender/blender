@@ -1283,6 +1283,51 @@ static uiBut *ui_but_last(uiBlock *block)
 	return NULL;
 }
 
+
+/* ************* IN-BUTTON TEXT SELECTION/EDITING ************* */
+
+static short ui_delete_selection_edittext(uiBut *but)
+{
+	int x;
+	short deletedwidth=0;
+	char *str;
+	
+	str= (char *)but->poin;
+	
+	deletedwidth = SELWIDTH;
+	
+	for(x=0; x< strlen(str); x++) {
+		if (but->selend + x <= strlen(str) ) {
+			str[but->selsta + x]= str[but->selend + x];
+		} else {
+			str[but->selsta + x]= '\0';
+			break;
+		}
+	}
+	but->pos = but->selend = but->selsta;
+	
+	return deletedwidth;
+}
+
+static void ui_set_cursor_pos_edittext(uiBut *but, short sx)
+{
+	char backstr[UI_MAX_DRAW_STR];
+	
+	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
+	but->pos= strlen(backstr)-but->ofs;
+	
+	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, 0) + but->x1) > sx) {
+		if (but->pos <= 0) break;
+		but->pos--;
+		backstr[but->pos+but->ofs] = 0;
+	}
+	
+	but->pos -= strlen(but->str);
+	but->pos += but->ofs;
+	if(but->pos<0) but->pos= 0;
+}
+
+
 /* ************* EVENTS ************* */
 
 void uiGetMouse(int win, short *adr)
@@ -1495,9 +1540,9 @@ static int ui_do_but_ROW(uiBlock *block, uiBut *but)
 static int ui_do_but_TEX(uiBut *but)
 {
 	unsigned short dev;
-	short x, mval[2], len=0, dodraw;
+	short x, mval[2], len=0, dodraw, selextend=0;
 	char *str, backstr[UI_MAX_DRAW_STR];
-	short capturing;
+	short capturing, sx, sy, prevx;
 	
 	str= (char *)but->poin;
 	
@@ -1505,20 +1550,14 @@ static int ui_do_but_TEX(uiBut *but)
 
 	uiGetMouse(mywinget(), mval);
 
-	/* calculate cursor pos with current mousecoords */
 	BLI_strncpy(backstr, but->drawstr, UI_MAX_DRAW_STR);
-	but->pos= strlen(backstr)-but->ofs;
-
-	while((but->aspect*BIF_GetStringWidth(but->font, backstr+but->ofs, 0) + but->x1) > mval[0]) {
-		if (but->pos <= 0) break;
-		but->pos--;
-		backstr[but->pos+but->ofs] = 0;
-	}
 	
-	but->pos -= strlen(but->str);
-	but->pos += but->ofs;
-	if(but->pos<0) but->pos= 0;
-
+	/* set cursor pos to the end of the text */
+	but->pos = strlen(but->str);
+	
+	but->selsta = 0;
+	but->selend = strlen(but->drawstr) - strlen(but->str);
+	
 	/* backup */
 	BLI_strncpy(backstr, but->poin, UI_MAX_DRAW_STR);
 
@@ -1538,21 +1577,62 @@ static int ui_do_but_TEX(uiBut *but)
 		dev = extern_qread_ext(&val, &ascii);
 
 		if(dev==INPUTCHANGE) break;
-		else if(get_mbut() & L_MOUSE) break;
 		else if(get_mbut() & R_MOUSE) break;
+		else if(get_mbut() & L_MOUSE) {
+			uiGetMouse(mywinget(), mval);
+			sx = mval[0]; sy = mval[1];
+			
+			if ((but->y1 <= sy) && (sy <= but->y2) && (but->x1 <= sx) && (sx <= but->x2)) {
+				ui_set_cursor_pos_edittext(but, mval[0]);
+				
+				but->selsta = but->selend = but->pos;
+				
+				/* drag text select */
+				prevx= mval[0];
+				while (get_mbut() & L_MOUSE) {
+					uiGetMouse(mywinget(), mval);
+					
+					if(prevx!=mval[0]) {
+						
+						if (mval[0] > sx) selextend = EXTEND_RIGHT;
+						else if (mval[0] < sx) selextend = EXTEND_LEFT;
+						
+						ui_set_cursor_pos_edittext(but, mval[0]);
+						
+						if (selextend == EXTEND_RIGHT) but->selend = but->pos;
+						if (selextend == EXTEND_LEFT) but->selsta = but->pos;
+						
+						ui_check_but(but);
+						ui_draw_but(but);
+						ui_block_flush_back(but->block);
+					}					
+					PIL_sleep_ms(10);
+				}
+				dodraw= 1;
+			} else break;
+		}
 		else if(dev==ESCKEY) break;
 		else if(dev==MOUSEX) val= 0;
 		else if(dev==MOUSEY) val= 0;
 
 		if(ascii) {
-			if(len < but->max) {
-				for(x= but->max; x>but->pos; x--)
-					str[x]= str[x-1];
-				str[but->pos]= ascii;
-				but->pos++; 
-				len++;
-				str[len]= '\0';
-				dodraw= 1;
+			if(len <= but->max) {
+			
+				/* type over the current selection */
+				if (SELWIDTH > 0) {	
+					len -= ui_delete_selection_edittext(but);
+				}
+			
+				/* add ascii characters */
+				if(len < but->max) {
+					for(x= but->max; x>but->pos; x--)
+						str[x]= str[x-1];
+					str[but->pos]= ascii;
+					but->pos++; 
+					len++;
+					str[len]= '\0';
+					dodraw= 1;
+				}
 			}
 		}
 		else if(val) {
@@ -1560,25 +1640,125 @@ static int ui_do_but_TEX(uiBut *but)
 			switch (dev) {
 				
 			case RIGHTARROWKEY:
-				if(G.qual & LR_SHIFTKEY) but->pos= strlen(str);
-				else but->pos++;
-				if(but->pos>strlen(str)) but->pos= strlen(str);
+				/* if there's a selection */
+				if (SELWIDTH > 0) {
+					/* extend the selection based on the first direction taken */
+					if(G.qual & LR_SHIFTKEY) {
+						if (!selextend) {
+							selextend = EXTEND_RIGHT;
+						}
+						if (selextend == EXTEND_RIGHT) {
+							but->selend++;
+							if (but->selend > len) but->selend = len;
+						} else if (selextend == EXTEND_LEFT) {
+							but->selsta++;
+							/* if the selection start has gone past the end,
+							* flip them so they're in sync again */
+							if (but->selsta == but->selend) {
+								but->pos = but->selsta;
+								selextend = EXTEND_RIGHT;
+							}
+						}
+					} else {
+						but->selsta = but->pos = but->selend;
+						selextend = 0;
+					}
+				} else {
+					if(G.qual & LR_SHIFTKEY) {
+						/* make a selection, starting from the cursor position */
+						but->selsta = but->pos;
+						
+						but->pos++;
+						if(but->pos>strlen(str)) but->pos= strlen(str);
+						
+						but->selend = but->pos;
+					} else if(G.qual & LR_CTRLKEY) {
+						while(but->pos < len){
+							but->pos++;
+#ifdef WIN32
+							if(str[but->pos]=='\\') break;
+#else
+							if(str[but->pos]=='/') break;
+#endif
+						}
+					} else {
+						but->pos++;
+						if(but->pos>strlen(str)) but->pos= strlen(str);
+					}
+				}
 				dodraw= 1;
 				break;
 				
 			case LEFTARROWKEY:
-				if(G.qual & LR_SHIFTKEY) but->pos= 0;
-				else if(but->pos>0) but->pos--;
+				/* if there's a selection */
+				if (SELWIDTH > 0) {
+					/* extend the selection based on the first direction taken */
+					if(G.qual & LR_SHIFTKEY) {
+						if (!selextend) {
+							selextend = EXTEND_LEFT;
+						}
+						if (selextend == EXTEND_LEFT) {
+							but->selsta--;
+							if (but->selsta < 0) but->selsta = 0;
+						} else if (selextend == EXTEND_RIGHT) {
+							but->selend--;
+							/* if the selection start has gone past the end,
+							* flip them so they're in sync again */
+							if (but->selsta == but->selend) {
+								but->pos = but->selsta;
+								selextend = EXTEND_LEFT;
+							}
+						}
+					} else {
+						but->pos = but->selend = but->selsta;
+						selextend = 0;
+					}
+				} else {
+					if(G.qual & LR_SHIFTKEY) {
+						/* make a selection, starting from the cursor position */
+						but->selend = but->pos;
+						
+						but->pos--;
+						if(but->pos<0) but->pos= 0;
+						
+						but->selsta = but->pos;
+					} else if(G.qual & LR_CTRLKEY) {
+						while(but->pos > 0){
+							but->pos--;
+#ifdef WIN32
+							if(str[but->pos]=='\\') break;
+#else
+							if(str[but->pos]=='/') break;
+#endif
+						}
+					} else {
+						if(but->pos>0) but->pos--;
+					}
+				}
 				dodraw= 1;
 				break;
 
+			case DOWNARROWKEY:
 			case ENDKEY:
-				but->pos= strlen(str);
+				if(G.qual & LR_SHIFTKEY) {
+					but->selsta = but->pos;
+					but->selend = strlen(str);
+					selextend = EXTEND_RIGHT;
+				} else {
+					but->selsta = but->selend = but->pos= strlen(str);
+				}
 				dodraw= 1;
 				break;
-
+				
+			case UPARROWKEY:
 			case HOMEKEY:
-				but->pos= 0;
+				if(G.qual & LR_SHIFTKEY) {
+					but->selend = but->pos;
+					but->selsta = 0;
+					selextend = EXTEND_LEFT;
+				} else {
+					but->selsta = but->selend = but->pos= 0;
+				}
 				dodraw= 1;
 				break;
 				
@@ -1588,7 +1768,13 @@ static int ui_do_but_TEX(uiBut *but)
 				break;
 				
 			case DELKEY:
-				if(but->pos>=0 && but->pos<strlen(str)) {
+				if (SELWIDTH > 0) {
+					len -= ui_delete_selection_edittext(but);
+					
+					if (len < 0) len = 0;
+					dodraw=1;
+				}
+				else if(but->pos>=0 && but->pos<strlen(str)) {
 					for(x=but->pos; x<=strlen(str); x++)
 						str[x]= str[x+1];
 					str[--len]='\0';
@@ -1598,7 +1784,13 @@ static int ui_do_but_TEX(uiBut *but)
 
 			case BACKSPACEKEY:
 				if(len!=0) {
-					if(get_qual() & LR_SHIFTKEY) {
+					if (SELWIDTH > 0) {
+						len -= ui_delete_selection_edittext(but);
+						
+						if (len < 0) len = 0;
+						dodraw=1;
+					}
+					else if(get_qual() & LR_SHIFTKEY) {
 						str[0]= 0;
 						but->pos= 0;
 						len= 0;
@@ -1613,6 +1805,7 @@ static int ui_do_but_TEX(uiBut *but)
 					}
 				} 
 				break;
+				
 			case TABKEY:
 				if(but->autocomplete_func) {
 					but->autocomplete_func(str, but->autofunc_arg);
@@ -5448,7 +5641,7 @@ short pupmenu(char *instr)
 		}
 	}
 	
-	uiBoundsBlock(block, 2);
+	uiBoundsBlock(block, 1);
 
 	event= uiDoBlocks(&listb, 0);
 
@@ -5596,7 +5789,7 @@ short pupmenu_col(char *instr, int maxrow)
 		//uiDefButI(block, BUTM, B_NOP, md->items[a].str, x1, y1, (short)(width-(rows>1)), (short)(boxh-1), &val, (float)md->items[a].retval, 0.0, 0, 0, "");
 	}
 	
-	uiBoundsBlock(block, 3);
+	uiBoundsBlock(block, 1);
 
 	event= uiDoBlocks(&listb, 0);
 	
