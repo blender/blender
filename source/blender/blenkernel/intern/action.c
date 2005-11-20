@@ -754,7 +754,7 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 		
 		if(foundvert && miny!=maxy) {
 			float stridelen= fabs(maxy-miny), striptime;
-			float actiondist, pdist;
+			float actiondist, pdist, pdistNewNormalized;
 			float vec1[4], vec2[4], dir[3];
 			
 			/* amount path moves object */
@@ -764,12 +764,21 @@ static float stridechannel_frame(Object *ob, bActionStrip *strip, Path *path, fl
 			/* amount stride bone moves */
 			actiondist= eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
 			
-			pdist = pdist - fabs(actiondist);
+			pdist = fabs(actiondist) - pdist;
+			pdistNewNormalized = (pathdist+pdist)/path->totdist;
 			
 			/* now we need to go pdist further (or less) on cu path */
 			where_on_path(ob, (pathdist)/path->totdist, vec1, dir);	/* vec needs size 4 */
-			where_on_path(ob, (pathdist+pdist)/path->totdist, vec2, dir);	/* vec needs size 4 */
-			VecSubf(stride_offset, vec1, vec2);
+			if (pdistNewNormalized <= 1) {
+				// search for correction in positive path-direction
+				where_on_path(ob, pdistNewNormalized, vec2, dir);	/* vec needs size 4 */
+				VecSubf(stride_offset, vec2, vec1);
+			}
+			else {
+				// we reached the end of the path, search backwards instead
+				where_on_path(ob, (pathdist-pdist)/path->totdist, vec2, dir);	/* vec needs size 4 */
+				VecSubf(stride_offset, vec1, vec2);
+			}
 			Mat4Mul3Vecfl(ob->obmat, stride_offset);
 			return striptime;
 		}
