@@ -62,7 +62,7 @@ typedef struct Image {
 	struct PackedFile * packedfile;
 
 	float lastupdate;
-	long  lastused;
+	int lastused;
 	short animspeed;
 	short reserved1;
 	int   reserved2;
