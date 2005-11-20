@@ -513,4 +513,9 @@ void quicktime_exit(void);
 
 #endif //WITH_QUICKTIME
 
+/* radhdr: Temporary routine to save directly from render floatbuffer.
+   Defined in radiance_hdr.c
+   Called by schrijfplaatje() in toets.c */
+short imb_savehdr_fromfloat(float *fbuf, char *name, int width, int height);
+
 #endif

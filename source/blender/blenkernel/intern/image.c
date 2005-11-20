@@ -274,28 +274,8 @@ void makepicstring(char *string, int frame)
 	string[len]=0;
 	strcat(string,num);
 
-	if(G.scene->r.imtype== R_IRIS) {
-		extension= ".rgb";
-	}
-	else if(G.scene->r.imtype==R_IRIZ) {
-		extension= ".rgb";
-	}
-	else if(G.scene->r.imtype==R_PNG) {
-		extension= ".png";
-	}
-	else if(G.scene->r.imtype==R_TARGA) {
-		extension= ".tga";
-	}
-	else if(G.scene->r.imtype==R_RAWTGA) {
-		extension= ".tga";
-	}
-	else if(G.scene->r.imtype==R_JPEG90) {
-		extension= ".jpg";
-	}
-	else if(G.scene->r.imtype==R_BMP) {
-		extension= ".bmp";
-	}
-	if(G.scene->r.scemode & R_EXTENSION) strcat(string, extension);
+	if(G.scene->r.scemode & R_EXTENSION) 
+		addImageExtension(string);
 		
 }
 
@@ -304,26 +284,38 @@ void addImageExtension(char *string)
 	char *extension="";
 
 	if(G.scene->r.imtype== R_IRIS) {
-		extension= ".rgb";
+		if(!BLI_testextensie(string, ".rgb"))
+			extension= ".rgb";
 	}
 	else if(G.scene->r.imtype==R_IRIZ) {
-		extension= ".rgb";
+		if(!BLI_testextensie(string, ".rgb"))
+			extension= ".rgb";
+	}
+	else if(G.scene->r.imtype==R_RADHDR) {
+		if(!BLI_testextensie(string, ".hdr"))
+			extension= ".hdr";
 	}
 	else if(G.scene->r.imtype==R_PNG) {
-		extension= ".png";
+		if(!BLI_testextensie(string, ".png"))
+			extension= ".png";
 	}
 	else if(G.scene->r.imtype==R_TARGA) {
-		extension= ".tga";
+		if(!BLI_testextensie(string, ".tga"))
+			extension= ".tga";
 	}
 	else if(G.scene->r.imtype==R_RAWTGA) {
-		extension= ".tga";
+		if(!BLI_testextensie(string, ".tga"))
+			extension= ".tga";
 	}
 	else if(G.scene->r.imtype==R_JPEG90) {
-		extension= ".jpg";
+		if(!BLI_testextensie(string, ".jpg"))
+			extension= ".jpg";
 	}
 	else if(G.scene->r.imtype==R_BMP) {
-		extension= ".bmp";
+		if(!BLI_testextensie(string, ".bmp"))
+			extension= ".bmp";
 	}
+	
 	strcat(string, extension);
 }
 

@@ -592,6 +592,7 @@ void test_flags_file(SpaceFile *sfile)
 			} else if (G.have_quicktime){
 				if(		BLI_testextensie(file->relname, ".jpg")
 					||	BLI_testextensie(file->relname, ".jpeg")
+					||	BLI_testextensie(file->relname, ".hdr")
 					||	BLI_testextensie(file->relname, ".tga")
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
@@ -618,6 +619,7 @@ void test_flags_file(SpaceFile *sfile)
 				}
 			} else { // no quicktime
 				if(BLI_testextensie(file->relname, ".jpg")
+					||	BLI_testextensie(file->relname, ".hdr")
 					||	BLI_testextensie(file->relname, ".tga")
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")

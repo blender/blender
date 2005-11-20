@@ -54,6 +54,7 @@
 #include "IMB_amiga.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
+#include "IMB_radiance_hdr.h"
 
 #include "IMB_iff.h"
 #include "IMB_bitplanes.h"
@@ -70,6 +71,9 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	/* Put formats that take a filename here */
 	if (IS_jpg(ibuf)) {
 		return imb_savejpeg(ibuf, naam, flags);
+	}
+	if (IS_radhdr(ibuf)) {
+		return imb_savehdr(ibuf, naam, flags);
 	}
 	if (IS_png(ibuf)) {
 		return imb_savepng(ibuf,naam,flags);

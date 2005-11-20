@@ -45,6 +45,7 @@
 #include "IMB_targa.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
+#include "IMB_radiance_hdr.h"
 
 #include "IMB_anim.h"
 
@@ -95,6 +96,10 @@ static int IMB_ispic_name(char *name)
 				}
 				if (imb_is_a_png(buf)) return(PNG);
 				if (imb_is_a_targa(buf)) return(TGA);
+
+				/* radhdr: check if hdr format */
+				if (imb_is_a_hdr(buf)) return(RADHDR);
+
 /*
 				if (imb_is_a_bmp(buf)) return(BMP);
 */
@@ -123,6 +128,7 @@ int IMB_ispic(char *filename)
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
+				||	BLI_testextensie(filename, ".hdr")
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
@@ -145,6 +151,7 @@ int IMB_ispic(char *filename)
 		} else { // no quicktime
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
+				||	BLI_testextensie(filename, ".hdr")
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")

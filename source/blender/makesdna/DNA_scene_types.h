@@ -394,6 +394,7 @@ typedef struct Scene {
 #define R_AVICODEC	18
 #define R_QUICKTIME 	19
 #define R_BMP		20
+#define R_RADHDR	21
 
 /* **************** RENDER ********************* */
 /* mode flag is same as for renderdata */

@@ -63,6 +63,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_scene.h"
@@ -73,9 +74,9 @@
 #include "BIF_editsound.h"
 #include "BIF_editmesh.h"
 #include "BIF_interface.h"
+#include "BKE_object.h"
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
-#include "BKE_object.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toets.h"
@@ -115,6 +116,11 @@ static void write_imag(char *name)
 	/* from file select */
 	char str[256];
 
+	/* addImageExtension() checks for if extension was already set */
+	if(G.scene->r.scemode & R_EXTENSION) 
+		if(strlen(name)<FILE_MAXDIR+FILE_MAXFILE-5)
+			addImageExtension(name);
+	
 	strcpy(str, name);
 	BLI_convertstringcode(str, G.sce, G.scene->r.cfra);
 
@@ -140,6 +146,13 @@ void schrijfplaatje(char *name)
 	struct ImBuf *ibuf=0;
 	unsigned int *temprect=0;
 	char str[FILE_MAXDIR+FILE_MAXFILE];
+
+	/* radhdr: temporary call for direct float buffer save for HDR format */
+	if ((R.r.imtype==R_RADHDR) && (R.rectftot))
+	{
+		imb_savehdr_fromfloat(R.rectftot, name, R.rectx, R.recty);
+		return;
+	}
 
 	/* has RGBA been set? If so: use alpha channel for color zero */
 	IMB_alpha_to_col0(FALSE);
@@ -190,6 +203,11 @@ void schrijfplaatje(char *name)
 				}
 				else printf("no zbuf\n");
 			}
+		}
+		else if(R.r.imtype==R_RADHDR) {
+			/* radhdr: save hdr from rgba buffer, not really recommended, probably mistake, so warn user */
+			error("Will save, but you might want to enable the floatbuffer to save a real HDRI...");
+			ibuf->ftype= RADHDR;
 		}
 		else if(R.r.imtype==R_PNG) {
 			ibuf->ftype= PNG;
@@ -467,6 +485,8 @@ int untitled(char * name)
 int save_image_filesel_str(char *str)
 {
 	switch(G.scene->r.imtype) {
+	case R_RADHDR:
+		strcpy(str, "Save Radiance HDR"); return 1;
 	case R_PNG:
 		strcpy(str, "Save PNG"); return 1;
 	case R_BMP:

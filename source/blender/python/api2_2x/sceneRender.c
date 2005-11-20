@@ -545,6 +545,7 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "QUICKTIME", R_QUICKTIME );
 	PyModule_AddIntConstant( submodule, "TARGA", R_TARGA );
 	PyModule_AddIntConstant( submodule, "RAWTGA", R_RAWTGA );
+	PyModule_AddIntConstant( submodule, "HDR", R_RADHDR );
 	PyModule_AddIntConstant( submodule, "PNG", R_PNG );
 	PyModule_AddIntConstant( submodule, "BMP", R_BMP );
 	PyModule_AddIntConstant( submodule, "JPEG", R_JPEG90 );
@@ -1528,6 +1529,8 @@ PyObject *RenderData_SetImageType( BPy_RenderData * self, PyObject * args )
 		self->renderContext->imtype = R_TARGA;
 	else if( type == R_RAWTGA )
 		self->renderContext->imtype = R_RAWTGA;
+	else if( type == R_RADHDR )
+		self->renderContext->imtype = R_RADHDR;
 	else if( type == R_PNG )
 		self->renderContext->imtype = R_PNG;
 	else if( type == R_BMP )

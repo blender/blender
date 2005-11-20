@@ -51,6 +51,9 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 	/* to be used for e.g. envmap, not rendered images */
 	
 	if(G.scene->r.imtype== R_IRIS) ibuf->ftype= IMAGIC;
+	else if ((G.scene->r.imtype==R_RADHDR)) {
+		ibuf->ftype= RADHDR;
+	}
 	else if ((G.scene->r.imtype==R_PNG)) {
 		ibuf->ftype= PNG;
 	}

@@ -50,6 +50,7 @@
 #include "IMB_hamx.h"
 #include "IMB_jpeg.h"
 #include "IMB_bmp.h"
+#include "IMB_radiance_hdr.h"
 #include "BKE_global.h"
 
 #ifdef WITH_QUICKTIME
@@ -127,6 +128,9 @@ ImBuf *IMB_ibImageFromMemory(int *mem, int size, int flags) {
 
 		ibuf = imb_loadtarga((uchar *)mem, flags);
 		if (ibuf) return(ibuf);
+
+		ibuf = imb_loadhdr((uchar*)mem, size, flags);
+		if (ibuf) return (ibuf);
 
 #ifdef WITH_QUICKTIME
 #if defined(_WIN32) || defined (__APPLE__)
