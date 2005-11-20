@@ -725,6 +725,12 @@ static short extrudeflag_edge(short flag, float *nor)
 			efa->e2->f2++;
 			efa->e3->f2++;
 			if(efa->e4) efa->e4->f2++;
+			
+			// sample for next loop
+			efa->e1->vn= (EditVert *)efa;
+			efa->e2->vn= (EditVert *)efa;
+			efa->e3->vn= (EditVert *)efa;
+			if(efa->e4) efa->e4->vn= (EditVert *)efa;
 		}
 		else {
 			efa->e1->f1++;
@@ -732,11 +738,6 @@ static short extrudeflag_edge(short flag, float *nor)
 			efa->e3->f1++;
 			if(efa->e4) efa->e4->f1++;
 		}
-		// sample for next loop
-		efa->e1->vn= (EditVert *)efa;
-		efa->e2->vn= (EditVert *)efa;
-		efa->e3->vn= (EditVert *)efa;
-		if(efa->e4) efa->e4->vn= (EditVert *)efa;
 	}
 	
 	set_edge_directions_f2(2);
