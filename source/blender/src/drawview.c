@@ -2195,12 +2195,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				object_handle_update(base->object);
 				
 				/* patch: color remains constant, only set it for wire, so transparant works */ 
-				if(v3d->zbuf && base->object->dt<=OB_WIRE)
+				if(v3d->zbuf==0 || base->object->dt<=OB_WIRE)
 					G.f |= G_PICKSEL;
 				else
 					G.f &= ~G_PICKSEL;
 					
-				cpack(0x404040);
+				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 				draw_object(base);
 
 				if(base->object->transflag & OB_DUPLI) {
@@ -2402,12 +2402,12 @@ void drawview3d_render(struct View3D *v3d)
 					where_is_object(base->object);
 	
 					/* patch: color remains constant, only set it for wire, so transparant works */ 
-					if(v3d->zbuf && base->object->dt<=OB_WIRE)
+					if(v3d->zbuf==0 || base->object->dt<=OB_WIRE)
 						G.f |= G_PICKSEL;
 					else
 						G.f &= ~G_PICKSEL;
 					
-					cpack(0x404040);
+					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
 					draw_object(base);
 	
 					if(base->object->transflag & OB_DUPLI) {
@@ -2453,7 +2453,7 @@ void drawview3d_render(struct View3D *v3d)
 					
 					/* patch: color remains constant */ 
 					G.f |= G_PICKSEL;
-					cpack(0x404040);
+					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5f);
 					
 					tbase.flag= OB_FROMDUPLI;
 					make_duplilist(G.scene, base->object);
