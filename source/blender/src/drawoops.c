@@ -138,7 +138,7 @@ void draw_oopslink(Oops *oops)
 	}
 	else {
 		if(oops->flag & SELECT) {
-			if(oops->id->lib) cpack(0x11AAFF);
+			if(oops->id && oops->id->lib) cpack(0x11AAFF);
 			else cpack(0xFFFFFF);
 		}
 		else cpack(0x0);
