@@ -98,7 +98,6 @@
 /*****************************************************************************/
 static PyObject *M_Effect_New( PyObject * self, PyObject * args );
 static PyObject *M_Effect_Get( PyObject * self, PyObject * args );
-static PyObject *M_Effect_GetParticlesLoc( PyObject * self, PyObject * args );
 
 /*****************************************************************************/
 /* Python BPy_Effect methods declarations:                                 */
@@ -517,9 +516,6 @@ PyTypeObject Effect_Type = {
 	NULL
 };
 
-static char M_Effect_GetParticlesLoc_doc[] = 
-	"GetParticlesLoc(name,effect num, curframe) : current particles locations";
-
 /*****************************************************************************/
 /* Python method structure definition for Blender.Effect module:             */
 /*****************************************************************************/
@@ -528,8 +524,6 @@ struct PyMethodDef M_Effect_methods[] = {
 	{"New", ( PyCFunction ) M_Effect_New, METH_VARARGS, NULL},
 	{"Get", M_Effect_Get, METH_VARARGS, NULL},
 	{"get", M_Effect_Get, METH_VARARGS, NULL},
-	{"GetParticlesLoc", M_Effect_GetParticlesLoc, METH_VARARGS,
-		M_Effect_GetParticlesLoc_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -658,85 +652,6 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 	}
 	Py_INCREF( Py_None );
 	return Py_None;
-}
-
-/*****************************************************************************/
-/* Function:            GetParticlesLoc                                      */
-/* Python equivalent:   Blender.Effect.GetParticlesLoc                       */
-/* Description:         Get the current location of each  particle           */
-/*                      and return a list of 3D coords                       */
-/* Data:                String object name, int particle effect number,      */
-/*                      float currentframe                                   */
-/* Return:              One python list of python lists of 3D coords         */
-/*****************************************************************************/
-PyObject *M_Effect_GetParticlesLoc( PyObject * self, PyObject * args  )
-{
-	char *name;
-	Object *ob;
-	Effect *eff;
-	PartEff *paf;
-	Particle *pa=0;
-	int num, i, a;
-	PyObject  *list;
-	float p_time, c_time, vec[3],cfra;
-
-	if( !PyArg_ParseTuple( args, "sif", &name, &num , &cfra) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected string, int, float arguments" ) );
-
-	for( ob = G.main->object.first; ob; ob = ob->id.next )
-		if( !strcmp( name, ob->id.name + 2 ) )
-			break;
-
-	if( !ob )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object does not exist" );
-
-	if( ob->type != OB_MESH )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError, 
-				"object is not a mesh" );
-
-	eff = ob->effect.first;
-	for( i = 0; i < num && eff; i++ )
-		eff = eff->next;
-
-	if( num < 0 || !eff )
-		return EXPP_ReturnPyObjError( PyExc_IndexError, 
-				"effect index out of range" );
-
-	if( eff->type != EFF_PARTICLE )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
-				"unknown effect type" );
-	
-	paf = (PartEff *)eff;
-	pa = paf->keys;
-	if( !pa )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-				"Particles location: no keys" );
-	
-	if( ob->ipoflag & OB_OFFS_PARTICLE )
-		p_time= ob->sf;
-	else
-		p_time= 0.0;
-	
-	c_time= bsystem_time( ob, 0, cfra, p_time );
-	list = PyList_New( 0 );
-	if( !list )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
-	
-	for( a=0; a<paf->totpart; a++, pa += paf->totkey ) {
-		if( c_time > pa->time && c_time < pa->time+pa->lifetime ) {
-			where_is_particle(paf, pa, c_time, vec);
-			if( PyList_Append( list, Py_BuildValue("[fff]", 
-							vec[0], vec[1], vec[2]) ) < 0 ) {
-				Py_DECREF( list );
-				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						  "Couldn't append item to PyList" );
-			}
-		}
-	}
-
-	return list;	
 }
 
 /* create the Blender.Effect.Flags constant dict */
@@ -1464,6 +1379,14 @@ static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
 	return 0;
 }
 
+/*****************************************************************************/
+/* Method:              getParticlesLoc                                      */
+/* Python equivalent:   effect.getParticlesLoc                               */
+/* Description:         Get the current location of each  particle           */
+/*                      and return a list of 3D coords                       */
+/* Data:                float currentframe                                   */
+/* Return:              One python list of python lists of 3D coords         */
+/*****************************************************************************/
 static PyObject *Effect_getParticlesLoc( BPy_Effect * self, PyObject * args  )
 {
 	Object *ob;

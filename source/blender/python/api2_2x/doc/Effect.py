@@ -76,21 +76,6 @@ def Get (name = None, position = None):
       - (name, position): The Effect linked to the given object at the given position
   """
 
-def GetParticlesLoc (name, position, time ):
-  """
-  Get the location of each particle at a given time.
-  @type name: string
-  @param name: The name of object linked to the effect.
-  @type position: int
-  @param position: The position of the effect in the list of effects
-  linked to the object.
-  @type time: int
-  @param time: The desired time during the particle effect.
-  @rtype: List of x,y,z coordinates
-  @return: The coordinates of each particle at the requested time.
-  """
-
-
 class Effect:
   """
   The Effect object
@@ -116,7 +101,7 @@ class Effect:
   @ivar emissionTex: The texture used for texture emission.
     Value is clamped to the range [1,10].
   @type emissionTex: int
-  @ivar end: The end time of the effect
+  @ivar end: The end time of the effect.
     Value is clamped to the range [1.0,30000.0].
   @type end: float
   @ivar flag: The flag bitfield.  See L{Flags} for values.
@@ -534,3 +519,11 @@ class Effect:
     @return:  PyNone
     """
 
+  def getParticlesLoc ( time ):
+    """
+    Get the location of each particle at a given time.
+    @type time: int
+    @param time: The desired time during the particle effect.
+    @rtype: List of x,y,z coordinates
+    @return: The coordinates of each particle at the requested time.
+    """
