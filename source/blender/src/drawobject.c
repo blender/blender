@@ -2465,7 +2465,7 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 {
 	Particle *pa;
 	float ptime, ctime, vec[3], vec1[3];
-	int a;
+	int a, totpart;
 	
 	pa= paf->keys;
 	if(pa==0) {
@@ -2483,7 +2483,8 @@ static void draw_particle_system(Object *ob, PartEff *paf)
 	glPointSize(1.0);
 	if(paf->stype!=PAF_VECT) glBegin(GL_POINTS);
 
-	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
+	totpart= (paf->disp*paf->totpart)/100;
+	for(a=0; a<totpart; a++, pa+=paf->totkey) {
 		
 		if(ctime > pa->time) {
 			if(ctime < pa->time+pa->lifetime) {
@@ -2517,7 +2518,7 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 {
 	Particle *pa;
 	float ctime, mtime, vec[3], veco[3];
-	int a, use_norm=0;
+	int a, use_norm=0, totpart;
 	
 	pa= paf->keys;
 	if(pa==NULL) {
@@ -2538,7 +2539,8 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 		glBegin(GL_POINTS);
 	}
 	
-	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
+	totpart= (paf->disp*paf->totpart)/100;
+	for(a=0; a<totpart; a++, pa+=paf->totkey) {
 		
 		if(paf->stype==PAF_VECT) {
 			
