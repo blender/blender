@@ -822,10 +822,11 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 
 			ndlm= MEM_callocN(sizeof(DispListMesh), "dispmesh");
 			ndlm->mvert= MEM_callocN(lod.vertex_num*sizeof(MVert), "mvert");
-			ndlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
 			ndlm->totvert= lod.vertex_num;
-			ndlm->totface= dmd->faceCount = lod.face_num;
-
+			if(lod.vertex_num>2) {
+				ndlm->mface= MEM_callocN(lod.face_num*sizeof(MFace), "mface");
+				ndlm->totface= dmd->faceCount = lod.face_num;
+			}
 			for(a=0; a<lod.vertex_num; a++) {
 				MVert *mv = &ndlm->mvert[a];
 				float *vbCo = &lod.vertex_buffer[a*3];
@@ -833,16 +834,17 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 				VECCOPY(mv->co, vbCo);
 			}
 
-			for(a=0; a<lod.face_num; a++) {
-				MFace *mf = &ndlm->mface[a];
-				int *tri = &lod.triangle_index_buffer[a*3];
-				mf->v1 = tri[0];
-				mf->v2 = tri[1];
-				mf->v3 = tri[2];
-				test_index_face(mface, NULL, NULL, 3);
+			if(lod.vertex_num>2) {
+				for(a=0; a<lod.face_num; a++) {
+					MFace *mf = &ndlm->mface[a];
+					int *tri = &lod.triangle_index_buffer[a*3];
+					mf->v1 = tri[0];
+					mf->v2 = tri[1];
+					mf->v3 = tri[2];
+					test_index_face(mface, NULL, NULL, 3);
+				}
+				displistmesh_add_edges(ndlm);
 			}
-
-			displistmesh_add_edges(ndlm);
 		}
 		else {
 			modifier_setError(md, "Out of memory.");
