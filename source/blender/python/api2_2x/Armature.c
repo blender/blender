@@ -519,6 +519,120 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 	return EXPP_incr_ret(Py_None);
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------------Armature.ghostStep (getter)
+static PyObject *Armature_getStep(BPy_Armature *self, void *closure)
+{
+	return PyInt_FromLong((long)self->armature->ghostsize);
+}
+//------------------------Armature.ghostStep (setter)
+static int Armature_setStep(BPy_Armature *self, PyObject *value, void *closure)
+{
+	long numerical_value;
+
+	if(value){
+		if(PyInt_Check(value)){
+			numerical_value = PyInt_AS_LONG(value);
+			if (numerical_value > 20.0f || numerical_value < 1.0f)
+				goto ValueError;
+			self->armature->ghostsize = (short)numerical_value;
+			return 0;
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects Integer");
+
+ValueError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Argument must fall within 1-20");
+}
+//------------------------Armature.ghost (getter)
+static PyObject *Armature_getGhost(BPy_Armature *self, void *closure)
+{
+	return PyInt_FromLong((long)self->armature->ghostep);
+}
+//------------------------Armature.ghost (setter)
+static int Armature_setGhost(BPy_Armature *self, PyObject *value, void *closure)
+{
+	long numerical_value;
+
+	if(value){
+		if(PyInt_Check(value)){
+			numerical_value = PyInt_AS_LONG(value);
+			if (numerical_value > 30.0f || numerical_value < 0.0f)
+				goto ValueError;
+			self->armature->ghostep = (short)numerical_value;
+			return 0;
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects Integer");
+
+ValueError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Argument must fall within 0-30");
+}
+//------------------------Armature.drawNames (getter)
+static PyObject *Armature_getDrawNames(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_DRAWNAMES)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.drawNames (setter)
+static int Armature_setDrawNames(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_DRAWNAMES;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_DRAWNAMES;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.drawAxes (getter)
+static PyObject *Armature_getDrawAxes(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_DRAWAXES)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.drawAxes (setter)
+static int Armature_setDrawAxes(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_DRAWAXES;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_DRAWAXES;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
 //------------------------Armature.delayDeform (getter)
 static PyObject *Armature_getDelayDeform(BPy_Armature *self, void *closure)
 {
@@ -706,6 +820,14 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Show armature rest position - disables posing", NULL},
 	{"delayDeform", (getter)Armature_getDelayDeform, (setter)Armature_setDelayDeform, 
 		"Don't deform children when manipulating bones in pose mode", NULL},
+	{"drawAxes", (getter)Armature_getDrawAxes, (setter)Armature_setDrawAxes, 
+		"Enable/Disable  drawing  the bone axes", NULL},
+	{"drawNames", (getter)Armature_getDrawNames, (setter)Armature_setDrawNames, 
+		"Enable/Disable  drawing the bone names", NULL},
+	{"ghost", (getter)Armature_getGhost, (setter)Armature_setGhost, 
+		"Draw a number of ghosts around the current frame for current Action", NULL},
+	{"ghostStep", (getter)Armature_getStep, (setter)Armature_setStep, 
+		"The number of frames between ghost instances", NULL},
 	{NULL}
 };
 //------------------------tp_new

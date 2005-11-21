@@ -45,6 +45,10 @@ class ArmatureType:
   @ivar envelopes: (bool) Whether bone envelopes define deformation
   @ivar restPosition: (bool) Show rest position (no posing possible)
   @ivar delayDeform: (bool) Dont deform children when manipulating bones
+  @ivar drawAxes: (bool) Draw bone axes
+  @ivar drawNames: (bool) Draw bone names
+  @ivar ghost: Draw ghosts around frame for current Action
+  @ivar ghostStep: Number of frames between ghosts
   """
 
   def __init__(name = 'myArmature'):
