@@ -1100,11 +1100,14 @@ void load_editMesh(void)
 						}
 						
 						for (i=j=0; i<hmd->totindex; i++) {
-							eve = vertMap[hmd->indexar[i]];
-							
-							if (eve) {
-								hmd->indexar[j++] = (long) eve->vn;
+							if(hmd->indexar[i] < ototvert) {
+								eve = vertMap[hmd->indexar[i]];
+								
+								if (eve) {
+									hmd->indexar[j++] = (long) eve->vn;
+								}
 							}
+							else j++;
 						}
 
 						hmd->totindex = j;
