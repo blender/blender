@@ -49,6 +49,12 @@ class ArmatureType:
   @ivar drawNames: (bool) Draw bone names
   @ivar ghost: Draw ghosts around frame for current Action
   @ivar ghostStep: Number of frames between ghosts
+  @ivar drawType: The drawing type that is used to display the armature
+  Acceptable values are:
+      - Armature.OCTAHEDRON: bones drawn as octahedrons
+      - Armature.STICK: bones drawn as sticks
+      - Armature.BBONE: bones drawn as b-bones
+      - Armature.ENVELOPE: bones drawn as sticks with envelopes
   """
 
   def __init__(name = 'myArmature'):

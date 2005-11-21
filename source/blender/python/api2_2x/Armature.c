@@ -519,6 +519,55 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 	return EXPP_incr_ret(Py_None);
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------------Armature.drawType (getter)
+static PyObject *Armature_getDrawType(BPy_Armature *self, void *closure)
+{
+	if (self->armature->drawtype == ARM_OCTA){
+		return EXPP_GetModuleConstant("Blender.Armature", "OCTAHEDRON") ;
+	}else if (self->armature->drawtype == ARM_LINE){
+		return EXPP_GetModuleConstant("Blender.Armature", "STICK") ;
+	}else if (self->armature->drawtype == ARM_B_BONE){
+		return EXPP_GetModuleConstant("Blender.Armature", "BBONE") ;
+	}else if (self->armature->drawtype == ARM_ENVELOPE){
+		return EXPP_GetModuleConstant("Blender.Armature", "ENVELOPE") ;
+	}else{
+		goto RuntimeError;
+	}
+
+RuntimeError:
+	return EXPP_objError(PyExc_RuntimeError, "%s%s%s", 
+		sArmatureError, "drawType: ", "Internal failure!");
+}
+//------------------------Armature.drawType (setter)
+static int Armature_setDrawType(BPy_Armature *self, PyObject *value, void *closure)
+{
+	PyObject *val = NULL, *name = NULL;
+	long numeric_value;
+
+	if(value){
+		if(BPy_Constant_Check(value)){
+			name = PyDict_GetItemString(((BPy_constant*)value)->dict, "name");
+			if (!STREQ2(PyString_AsString(name), "OCTAHEDRON", "STICK") &&
+				!STREQ2(PyString_AsString(name), "BBONE", "ENVELOPE"))
+				goto ValueError;
+			val = PyDict_GetItemString(((BPy_constant*)value)->dict, "value");
+			if (PyInt_Check(val)){
+				numeric_value = PyInt_AS_LONG(val);
+				self->armature->drawtype = (int)numeric_value;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects module constant");
+
+ValueError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Argument must be the constant OCTAHEDRON, STICK, BBONE, or ENVELOPE");
+}
 //------------------------Armature.ghostStep (getter)
 static PyObject *Armature_getStep(BPy_Armature *self, void *closure)
 {
@@ -828,6 +877,8 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Draw a number of ghosts around the current frame for current Action", NULL},
 	{"ghostStep", (getter)Armature_getStep, (setter)Armature_setStep, 
 		"The number of frames between ghost instances", NULL},
+	{"drawType", (getter)Armature_getDrawType, (setter)Armature_setDrawType, 
+		"The type of drawing currently applied to the armature", NULL},
 	{NULL}
 };
 //------------------------tp_new
@@ -1162,6 +1213,15 @@ PyObject *Armature_Init(void)
 		EXPP_incr_ret(PyConstant_NewString("ARMATURESPACE", "armature_space")));
 	PyModule_AddObject(module, "WORLDSPACE", 
 		EXPP_incr_ret(PyConstant_NewString("WORLDSPACE", "world_space")));
+
+	PyModule_AddObject(module, "OCTAHEDRON", 
+		EXPP_incr_ret(PyConstant_NewInt("OCTAHEDRON", ARM_OCTA)));
+	PyModule_AddObject(module, "STICK", 
+		EXPP_incr_ret(PyConstant_NewInt("STICK", ARM_LINE)));
+	PyModule_AddObject(module, "BBONE", 
+		EXPP_incr_ret(PyConstant_NewInt("BBONE", ARM_B_BONE)));
+	PyModule_AddObject(module, "ENVELOPE", 
+		EXPP_incr_ret(PyConstant_NewInt("ENVELOPE", ARM_ENVELOPE)));
 
 	//Add SUBMODULES to the module
 	dict = PyModule_GetDict( module ); //borrowed
