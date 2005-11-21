@@ -296,13 +296,14 @@ static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
 void frames_duplilist(Object *ob)
 {
 	extern int enable_cu_speed;	/* object.c */
-	Object *newob;
+	Object *newob, copyob;
 	int cfrao, ok;
 	
 	cfrao= G.scene->r.cfra;
 	if(ob->parent==NULL && ob->track==NULL && ob->ipo==NULL && ob->constraints.first==NULL) return;
 
 	if(ob->transflag & OB_DUPLINOSPEED) enable_cu_speed= 0;
+	copyob= *ob;	/* store transform info */
 
 	for(G.scene->r.cfra= ob->dupsta; G.scene->r.cfra<=ob->dupend; G.scene->r.cfra++) {
 
@@ -321,9 +322,9 @@ void frames_duplilist(Object *ob)
 		}
 	}
 
+	*ob= copyob;	/* restore transform info */
 	G.scene->r.cfra= cfrao;
 	enable_cu_speed= 1;
-	do_ob_ipo(ob);
 }
 
 struct vertexDupliData {

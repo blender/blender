@@ -2262,7 +2262,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				
 				G.f &= ~G_PICKSEL;				
 			}
-			else if((base->flag & SELECT)==0) {
+			if((base->flag & SELECT)==0) {
 				if(base->object!=G.obedit) draw_object(base);
 			}
 		}
