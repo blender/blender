@@ -186,6 +186,10 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 			vec[x] = (float)(self->quat[x + 1] / mag);
 		}
 		Normalise(vec);
+		//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
+		if (vec[0] < 1e-44 && vec[1] < 1e-44 && vec[2] < 1e-44){
+			vec[0] = 1.0f;
+		}
 		return (PyObject *) newVectorObject(vec, 3, Py_NEW);
 	}
 	if(STREQ(name, "wrapped")){
