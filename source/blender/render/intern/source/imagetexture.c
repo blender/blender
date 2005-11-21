@@ -643,10 +643,16 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 		maxy= MAX3(dxt[1],dyt[1],dxt[1]+dyt[1] );
 
 		/* tex_sharper has been removed */
-
 		minx= tex->filtersize*(maxx-minx)/2.0f;
 		miny= tex->filtersize*(maxy-miny)/2.0f;
 		
+		if(tex->filtersize!=1.0f) {
+			dxt[0]*= tex->filtersize;
+			dxt[1]*= tex->filtersize;
+			dyt[0]*= tex->filtersize;
+			dyt[1]*= tex->filtersize;
+		}
+
 		if(tex->imaflag & TEX_IMAROT) SWAP(float, minx, miny);
 		
 		if(minx>0.25) minx= 0.25;
@@ -781,14 +787,14 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 			
 			if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
 				/* a bit extra filter */
-				minx*= 1.35f;
-				miny*= 1.35f;
+				//minx*= 1.35f;
+				//miny*= 1.35f;
 				
-				boxsample(ibuf, fx-2.0f*minx, fy-2.0f*miny, fx+minx, fy+miny, texres);
+				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres);
 				val1= texres->tr+texres->tg+texres->tb;
-				boxsample(ibuf, fx-minx, fy-2.0f*miny, fx+2.0f*minx, fy+miny, &texr);
+				boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr);
 				val2= texr.tr + texr.tg + texr.tb;
-				boxsample(ibuf, fx-2.0f*minx, fy-miny, fx+minx, fy+2.0f*miny, &texr);
+				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 				val3= texr.tr + texr.tg + texr.tb;
 	
 				if(previbuf!=ibuf) {  /* interpolate */
@@ -810,9 +816,9 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 					}
 					
 					val1= dy*val1+ dx*(texr.tr + texr.tg + texr.tb);
-					boxsample(previbuf, fx-minx, fy-2.0f*miny, fx+2.0f*minx, fy+miny, &texr);
+					boxsample(previbuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr);
 					val2= dy*val2+ dx*(texr.tr + texr.tg + texr.tb);
-					boxsample(previbuf, fx-2.0f*minx, fy-miny, fx+minx, fy+2.0f*miny, &texr);
+					boxsample(previbuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 					val3= dy*val3+ dx*(texr.tr + texr.tg + texr.tb);
 				}
 
@@ -856,16 +862,14 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 			if(texres->nor && (tex->imaflag & TEX_NORMALMAP)==0) {
 				
 				/* a bit extra filter */
-				minx*= 1.35f;
-				miny*= 1.35f;
+				//minx*= 1.35f;
+				//miny*= 1.35f;
 				
-				boxsample(ibuf, fx-2.0f*minx, fy-2.0f*miny, fx+minx, fy+miny, texres);
+				boxsample(ibuf, fx-minx, fy-miny, fx+minx, fy+miny, texres);
 				val1= texres->tr+texres->tg+texres->tb;
-
-				boxsample(ibuf, fx-minx, fy-2.0f*miny, fx+2.0f*minx, fy+miny, &texr);
+				boxsample(ibuf, fx-minx+dxt[0], fy-miny+dxt[1], fx+minx+dxt[0], fy+miny+dxt[1], &texr);
 				val2= texr.tr + texr.tg + texr.tb;
-				
-				boxsample(ibuf, fx-2.0f*minx, fy-miny, fx+miny, fy+2.0f*miny, &texr);
+				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 				val3= texr.tr + texr.tg + texr.tb;
 
 				/* don't switch x or y! */

@@ -1600,11 +1600,8 @@ void do_material_tex(ShadeInput *shi)
 				}
 			}
 			else {
-//				texres.ta*= stencilTin;
 				Tnor*= stencilTin;
-//				texres.tin*= stencilTin;
 			}
-			
 			
 			if(texres.nor) {
 				if((rgbnor & TEX_NOR)==0) {
@@ -1636,7 +1633,7 @@ void do_material_tex(ShadeInput *shi)
 					warpvec[2]= mtex->warpfac*texres.nor[2];
 					warpdone= 1;
 				}
-				
+#if 0				
 				if(mtex->texflag & MTEX_VIEWSPACE) {
 					// rotate to global coords
 					if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
@@ -1650,6 +1647,7 @@ void do_material_tex(ShadeInput *shi)
 						}
 					}
 				}
+#endif				
 			}
 
 			/* mapping */
