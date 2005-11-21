@@ -37,19 +37,19 @@ def Get (name = None):
 class ArmatureType:
   """
   The ArmatureType object
-  ===================
+  =======================
     This object gives access to Armature-specific data in Blender.
   @ivar name: The Armature name.
   @ivar bones: A Dictionary of Bones that make up this armature.
   """
 
-  def __init__(name = myArmature):
+  def __init__(name = 'myArmature'):
     """
     Initializer for the ArmatureType TypeObject.
-    @param name: The name for the new armature
-    @type name: string
     Example::
         myNewArmature = Blender.Armature.ArmatureType('AR_1')
+    @param name: The name for the new armature
+    @type name: string
     """
 
   def getName():
@@ -82,13 +82,13 @@ class ArmatureType:
   def saveChanges():
     """
     Save all changes and update the armature.
-    @preconditions: Must have called makeEditable() first.
+    @note: Must have called makeEditable() first.
     """
 
 class BonesDict:
   """
   The BonesDict object
-  ===============
+  ====================
     This object gives gives dictionary like access to the bones in an armature.
   """
 
@@ -116,7 +116,7 @@ class BonesDict:
 class BoneType:
   """
   The BoneType object
-  ===============
+  ===================
     This object gives access to Bone-specific data in Blender.
   @ivar name: The name of this Bone.
   @ivar roll: This Bone's roll value.
