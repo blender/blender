@@ -1373,9 +1373,10 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 	/* interpolate */
 	l= 1.0+u+v;
 		/* outside triangle? */
-	// printf("l: %f\n",l);
-	if(efa->v4 && l >= 0.5) {
-	//	printf("outside\n");
+		/* printf("l: %f u %f v %f\n",l,u,v); */
+	
+	if(efa->v4 && (v>0.001f)) {	/* only check for positive v is OK, that's the diagonal */
+		/* printf("outside\n"); */
 		/* do it all over, but now with vertex 2 replaced with 4 */
 		
 		/* calculate u and v */
@@ -1404,10 +1405,9 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 		cp1= (char*)&(efa->tf.col[3]);
 		cp2= (char*)&(efa->tf.col[2]);
 		
-		
 		for(i=0; i<4; i++) {
-				fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-				col[i]= CLAMPIS(fac, 0, 255);
+			fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
+			col[i]= CLAMPIS(fac, 0, 255);
 		}			  
 	} else {	 
 	//	printf("inside\n");	 
@@ -1420,8 +1420,8 @@ static void set_uv_vcol(EditFace *efa, float *co, float *uv, char *col)
 		cp2= (char*)&(efa->tf.col[2]);
 		
 		for(i=0; i<4; i++) {
-				fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
-				col[i]= CLAMPIS(fac, 0, 255);
+			fac= (int)(l*cp2[i] - u*cp0[i] - v*cp1[i]);
+			col[i]= CLAMPIS(fac, 0, 255);
 		}					   
 	}
 } 
