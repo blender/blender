@@ -41,6 +41,10 @@ class ArmatureType:
     This object gives access to Armature-specific data in Blender.
   @ivar name: The Armature name.
   @ivar bones: A Dictionary of Bones that make up this armature.
+  @ivar vertexGroups: (bool) Whether vertex groups define deformation
+  @ivar envelopes: (bool) Whether bone envelopes define deformation
+  @ivar restPosition: (bool) Show rest position (no posing possible)
+  @ivar delayDeform: (bool) Dont deform children when manipulating bones
   """
 
   def __init__(name = 'myArmature'):
@@ -51,27 +55,7 @@ class ArmatureType:
     @param name: The name for the new armature
     @type name: string
     """
-
-  def getName():
-    """
-    Get the name of this Armature object.
-    @rtype: string
-    """
-
-  def setName(name):
-    """
-    Set the name of this Armature object.
-    @type name: string
-    @param name: The new name.
-    """
-
-  def getBones():
-    """
-    Get all the Armature bones.
-    @rtype: PyBonesDict
-    @return: a list of PyBone objects that make up the armature.
-    """
-   
+  
   def makeEditable():
     """
     Put the armature into EditMode for editing purposes.

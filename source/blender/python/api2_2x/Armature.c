@@ -519,6 +519,118 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 	return EXPP_incr_ret(Py_None);
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------------Armature.delayDeform (getter)
+static PyObject *Armature_getDelayDeform(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_DELAYDEFORM)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.delayDeform (setter)
+static int Armature_setDelayDeform(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_DELAYDEFORM;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_DELAYDEFORM;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.restPosition (getter)
+static PyObject *Armature_getRestPosition(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_RESTPOS)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.restPosition (setter)
+static int Armature_setRestPosition(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_RESTPOS;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_RESTPOS;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.envelopes (getter)
+static PyObject *Armature_getEnvelopes(BPy_Armature *self, void *closure)
+{
+	if (self->armature->deformflag & ARM_DEF_ENVELOPE)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.envelopes (setter)
+static int Armature_setEnvelopes(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->deformflag |= ARM_DEF_ENVELOPE;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->deformflag &= ~ARM_DEF_ENVELOPE;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.vertexGroups (getter)
+static PyObject *Armature_getVertexGroups(BPy_Armature *self, void *closure)
+{
+	if (self->armature->deformflag & ARM_DEF_VGROUP)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.vertexGroups (setter)
+static int Armature_setVertexGroups(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->deformflag |= ARM_DEF_VGROUP;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->deformflag &= ~ARM_DEF_VGROUP;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
 //------------------------Armature.name (getter)
 //Gets the name of the armature
 static PyObject *Armature_getName(BPy_Armature *self, void *closure)
@@ -586,6 +698,14 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"The armature's name", NULL},
 	{"bones", (getter)Armature_getBoneDict, (setter)Armature_setBoneDict, 
 		"The armature's Bone dictionary", NULL},
+	{"vertexGroups", (getter)Armature_getVertexGroups, (setter)Armature_setVertexGroups, 
+		"Enable/Disable vertex group defined deformation", NULL},
+	{"envelopes", (getter)Armature_getEnvelopes, (setter)Armature_setEnvelopes, 
+		"Enable/Disable bone envelope defined deformation", NULL},
+	{"restPosition", (getter)Armature_getRestPosition, (setter)Armature_setRestPosition, 
+		"Show armature rest position - disables posing", NULL},
+	{"delayDeform", (getter)Armature_getDelayDeform, (setter)Armature_setDelayDeform, 
+		"Don't deform children when manipulating bones in pose mode", NULL},
 	{NULL}
 };
 //------------------------tp_new
