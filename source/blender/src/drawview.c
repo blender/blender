@@ -2350,8 +2350,7 @@ void drawview3d_render(struct View3D *v3d)
 	Base *base;
 	Object *ob;
 
-	free_all_realtime_images();
-	reshadeall_displist();
+	update_for_newframe_muted();	/* first, since camera can be animated */
 
 	v3d_windowmode= 1;
 	setwinmatrixview3d(0);
@@ -2366,6 +2365,9 @@ void drawview3d_render(struct View3D *v3d)
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
+	free_all_realtime_images();
+	reshadeall_displist();
+	
 	if(v3d->drawtype > OB_WIRE) {
 		v3d->zbuf= TRUE;
 		glEnable(GL_DEPTH_TEST);
@@ -2388,8 +2390,6 @@ void drawview3d_render(struct View3D *v3d)
 	
 	/* abuse! to make sure it doesnt draw the helpstuff */
 	G.f |= G_SIMULATION;
-
-	update_for_newframe_muted();
 
 	/* first draw set */
 	if(G.scene->set) {
