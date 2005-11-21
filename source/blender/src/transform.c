@@ -1043,8 +1043,9 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 	/* this function only does the delta rotation */
 	
 	if(protectflag) {
-		float eul[3], oldeul[3];
+		float eul[3], oldeul[3], quat1[4];
 		
+		QUATCOPY(quat1, quat);
 		QuatToEul(quat, eul);
 		QuatToEul(oldquat, oldeul);
 		
@@ -1056,6 +1057,10 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 			eul[2]= oldeul[2];
 		
 		EulToQuat(eul, quat);
+		/* quaternions flip w sign to accumulate rotations correctly */
+		if( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
+			QuatMulf(quat, -1.0f);
+		}
 	}
 }
 
