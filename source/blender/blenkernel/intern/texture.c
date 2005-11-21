@@ -291,6 +291,8 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 					if(a<2) cbd3= cbd2;
 					else cbd3= cbd2-1;
 					
+					CLAMP(fac, 0.0f, 1.0f);
+					
 					if(coba->ipotype==3)
 						set_four_ipo(fac, t, KEY_CARDINAL);
 					else
