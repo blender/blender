@@ -1236,8 +1236,10 @@ static void createTransLatticeVerts(TransInfo *t)
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
-		if(bp->f1 & 1) countsel++;
-		if(propmode) count++;
+		if(bp->hide==0) {
+			if(bp->f1 & 1) countsel++;
+			if(propmode) count++;
+		}
 		bp++;
 	}
 	
