@@ -496,7 +496,7 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			if (constraint_has_target(con)) {
 				char *str;
 				Object *obt= get_constraint_target(con, &str);
-				
+
 				node2 = dag_get_node(dag, obt);
 				if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
@@ -662,10 +662,9 @@ void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel
 	
 	while (itA) { /* search if relation exist already */
 		if (itA->node == fob2) {
-			if (itA->type == rel) { 
-				itA->count += 1;
-				return;
-			}
+			itA->type |= rel;
+			itA->count += 1;
+			return;
 		}
 		itA = itA->next;
 	}
@@ -1395,22 +1394,21 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			ob->recalc &= ~OB_RECALC;
 		
 	}
-	else{
-		/* Object has not RECALC flag */
-		/* check case where child changes and parent forcing obdata to change */
-		/* could merge this in with loop above...? (ton) */
-		for(itA = node->child; itA; itA= itA->next) {
-			/* the relationship is visible */
-			if(itA->lay & layer) {
-				if(itA->node->type==ID_OB) {
-					obc= itA->node->ob;
-					/* child moves */
-					if((obc->recalc & OB_RECALC)==OB_RECALC_OB) {
-						/* parent has deforming info */
-						if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
-							// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
-							obc->recalc |= OB_RECALC_DATA;
-						}
+	
+	/* check case where child changes and parent forcing obdata to change */
+	/* should be done regardless if this ob has recalc set */
+	/* could merge this in with loop above...? (ton) */
+	for(itA = node->child; itA; itA= itA->next) {
+		/* the relationship is visible */
+		if(itA->lay & layer) {
+			if(itA->node->type==ID_OB) {
+				obc= itA->node->ob;
+				/* child moves */
+				if((obc->recalc & OB_RECALC)==OB_RECALC_OB) {
+					/* parent has deforming info */
+					if(itA->type & (DAG_RL_OB_DATA|DAG_RL_DATA_DATA)) {
+						// printf("parent %s changes ob %s\n", ob->id.name, obc->id.name);
+						obc->recalc |= OB_RECALC_DATA;
 					}
 				}
 			}
