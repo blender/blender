@@ -519,6 +519,62 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 	return EXPP_incr_ret(Py_None);
 }
 //------------------ATTRIBUTE IMPLEMENTATION---------------------------
+//------------------------Armature.autoIK (getter)
+static PyObject *Armature_getAutoIK(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_AUTO_IK)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.autoIK (setter)
+static int Armature_setAutoIK(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_AUTO_IK;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_AUTO_IK;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
+//------------------------Armature.mirrorEdit (getter)
+static PyObject *Armature_getMirrorEdit(BPy_Armature *self, void *closure)
+{
+	if (self->armature->flag & ARM_MIRROR_EDIT)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+//------------------------Armature.mirrorEdit (setter)
+static int Armature_setMirrorEdit(BPy_Armature *self, PyObject *value, void *closure)
+{
+	if(value){
+		if(PyBool_Check(value)){
+			if (value == Py_True){
+				self->armature->flag |= ARM_MIRROR_EDIT;
+				return 0;
+			}else if (value == Py_False){
+				self->armature->flag &= ~ARM_MIRROR_EDIT;
+				return 0;
+			}
+		}
+	}
+	goto AttributeError;
+
+AttributeError:
+	return EXPP_intError(PyExc_AttributeError, "%s%s", 
+		sArmatureBadArgs, "Expects True or False");
+}
 //------------------------Armature.drawType (getter)
 static PyObject *Armature_getDrawType(BPy_Armature *self, void *closure)
 {
@@ -879,6 +935,10 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"The number of frames between ghost instances", NULL},
 	{"drawType", (getter)Armature_getDrawType, (setter)Armature_setDrawType, 
 		"The type of drawing currently applied to the armature", NULL},
+	{"mirrorEdit", (getter)Armature_getMirrorEdit, (setter)Armature_setMirrorEdit, 
+		"Enable/Disable X-axis mirrored editing", NULL},
+	{"autoIK", (getter)Armature_getAutoIK, (setter)Armature_setAutoIK, 
+		"Adds temporal IK chains while grabbing bones", NULL},
 	{NULL}
 };
 //------------------------tp_new

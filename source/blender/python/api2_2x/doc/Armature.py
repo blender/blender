@@ -55,6 +55,8 @@ class ArmatureType:
       - Armature.STICK: bones drawn as sticks
       - Armature.BBONE: bones drawn as b-bones
       - Armature.ENVELOPE: bones drawn as sticks with envelopes
+  @ivar mirrorEdit: (bool) X-axis mirrored editing
+  @ivar autoIK: (bool)  Adds temporary IK chains while grabbing bones
   """
 
   def __init__(name = 'myArmature'):
