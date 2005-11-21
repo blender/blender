@@ -42,6 +42,7 @@ RSC=rc.exe
 # PROP Output_Dir "..\..\..\obj\windows\blender\imbuf"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD CPP /nologo /MT /W3 /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\render\extern\include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /J /FD /c
@@ -66,6 +67,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\imbuf\intern" /I "..\..\..\source\blender\quicktime" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\blenloader" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /I "..\..\..\source\blender\render\extern\include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "WITH_QUICKTIME" /YX /FD /I /GZ "..\..\..\source\blender\imbuf" /c
@@ -90,6 +92,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\mtdll_debug"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\mtdll_debug"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /Gm /GX /ZI /Od /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD CPP /nologo /MDd /Gm /GX /ZI /Od /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
@@ -114,6 +117,7 @@ LIB32=link.exe -lib
 # PROP Output_Dir "..\..\..\obj\windows\blender\imbuf\mtdll"
 # PROP Intermediate_Dir "..\..\..\obj\windows\blender\imbuf\mtdll"
 # PROP Target_Dir ""
+MTL=midl.exe
 LINK32=link.exe -lib
 # ADD BASE CPP /nologo /GX /O2 /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
 # ADD CPP /nologo /MD /GX /O2 /I "..\..\..\..\lib\windows\guardedalloc\include" /I "..\..\..\source\blender\avi" /I "..\..\..\source\blender\imbuf" /I "..\..\..\source\blender\blenkernel" /I "..\..\..\source\blender\blenlib" /I "..\..\..\source\blender\include" /I "..\..\..\..\lib\windows\jpeg\include" /I "..\..\..\..\lib\windows\zlib\include" /I "..\..\..\..\lib\windows\png\include" /I "..\..\..\source\blender\makesdna" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /YX /J /FD /c
@@ -227,6 +231,10 @@ SOURCE=..\..\..\source\blender\quicktime\apple\quicktime_import.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\..\source\blender\imbuf\intern\radiance_hdr.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\..\source\blender\imbuf\intern\readimage.c
 # End Source File
 # Begin Source File
@@ -324,6 +332,10 @@ SOURCE=..\..\..\source\blender\imbuf\intern\IMB_jpeg.h
 # Begin Source File
 
 SOURCE=..\..\..\source\blender\imbuf\intern\IMB_png.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\..\source\blender\imbuf\intern\IMB_radiance_hdr.h
 # End Source File
 # Begin Source File
 
