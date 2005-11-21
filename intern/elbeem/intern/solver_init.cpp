@@ -305,7 +305,7 @@ LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*o
 	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
 
 	// at least size 4 on coarsest level
-	int minSize = (int)powf(2.0, maskBits+2.0);
+	int minSize = (int)pow(2.0, maskBits+2.0);
 	if(D::mSizex<minSize) D::mSizex = minSize;
 	if(D::mSizey<minSize) D::mSizey = minSize;
 	if(D::mSizez<minSize) D::mSizez = minSize;
