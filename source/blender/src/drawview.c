@@ -909,10 +909,12 @@ static void drawviewborder(void)
 	float x1, x2, y1, y2;
 	float x3, y3, x4, y4;
 	rcti viewborder;
-	Camera *ca;
+	Camera *ca= NULL;
 
-	ca = G.vd->camera->data;
-	if (ca==NULL) return;
+	if(G.vd->camera==NULL)
+		return;
+	if(G.vd->camera->type==OB_CAMERA)
+		ca = G.vd->camera->data;
 	
 	calc_viewborder(G.vd, &viewborder);
 	x1= viewborder.xmin;
@@ -921,7 +923,7 @@ static void drawviewborder(void)
 	y2= viewborder.ymax;
 
 	/* passepartout, specified in camera edit buttons */
-	if (ca->flag & CAM_SHOWPASSEPARTOUT) {
+	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT)) {
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glEnable(GL_BLEND);
 		glColor4f(0, 0, 0, ca->passepartalpha);
@@ -950,7 +952,7 @@ static void drawviewborder(void)
 	
 
 	/* camera name */
-	if (ca->flag & CAM_SHOWNAME) {
+	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		glRasterPos2f(x1, y1-15);
 		
 		BMF_DrawString(G.font, G.vd->camera->id.name+2);
@@ -971,7 +973,7 @@ static void drawviewborder(void)
 	}
 
 	/* safety border */
-	if (ca->flag & CAM_SHOWTITLESAFE) {
+	if (ca && (ca->flag & CAM_SHOWTITLESAFE)) {
 		fac= 0.1;
 		
 		a= fac*(x2-x1);
