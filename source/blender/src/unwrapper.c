@@ -1164,6 +1164,38 @@ void unwrap_lscm(void)
 	allqueue(REDRAWIMAGE, 0);
 }
 
+/* note; to make it quick work, brecht/jens: you can make it nice later! (ton) */
+void unwrap_lscm_live(void)
+{
+    int dopack = 1;
+	int res;
+	Mesh *me;
+	int totgroup, *groups=NULL, a;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+	
+	totgroup= make_seam_groups(me, &groups);
+	
+	if(totgroup==0) return;
+	
+	for(a=totgroup; a>0; a--) {
+		res= unwrap_lscm_face_group(me, groups, a);
+		if((res < 3) && (res > -1)) {
+			seam_group_normalize(me, groups, a);
+		}
+		else {
+			dopack = 0;
+		}
+		
+	}
+	
+	if(dopack) pack_seam_groups(me, groups, totgroup);
+	
+	MEM_freeN(groups);
+
+}
+
 /* Set tface seams based on edge data, uses hash table to find seam edges. */
 
 void set_seamtface()

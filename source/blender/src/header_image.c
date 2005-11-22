@@ -1007,6 +1007,10 @@ static void do_image_uvsmenu(void *arg, int event)
     case 10:
 		unwrap_lscm();
 		break;
+	case 11:
+		if(G.sima->flag & SI_LSCM_LIVE) G.sima->flag &= ~SI_LSCM_LIVE;
+		else G.sima->flag |= SI_LSCM_LIVE;
+		break;
 	}
 }
 
@@ -1033,9 +1037,11 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
+	if(G.sima->flag & SI_LSCM_LIVE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "LSCM Live Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "LSCM Live Transform", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "LSCM Unwrap|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpin|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pin|P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "LSCM Unwrap|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 

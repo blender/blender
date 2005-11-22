@@ -272,6 +272,7 @@ void recalcData(TransInfo *t)
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		flushTransUVs(t);
+		if (G.sima->flag & SI_LSCM_LIVE) unwrap_lscm_live();
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {
