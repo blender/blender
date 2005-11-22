@@ -90,10 +90,15 @@ C_EXTRA = \
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "BLI_blenlib.h"
+
+#include "imbuf.h"
+#include "imbuf_patch.h"
 #include "IMB_imbuf.h"
+
 #include "BKE_global.h"
 #include "PIL_dynlib.h"
-
 
 /*********************
  * LOCAL DEFINITIONS *
@@ -110,8 +115,9 @@ int   libtiff_load_symbols();
 
 void libtiff_loadlibtiff()
 {
-	char filename[1024];
+	char *filename;
 	libtiff = NULL;
+	int size;
 
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
@@ -128,8 +134,13 @@ void libtiff_loadlibtiff()
 	/* For solaris */
 	libtiff = PIL_dynlib_open("/usr/openwin/lib/libtiff.so");
 	if (libtiff != NULL)  return;
-        snprintf(filename, 1023, "%s", getenv("BF_TIFF_LIB"));
+
+	size = sizeof(getenv("BF_TIFF_LIB"));
+	
+	filename = MEM_mallocN(size * sizeof(unsigned char),"ENVVAR");
+	memcpy(filename,getenv("BF_TIFF_LIB"),size);
 	libtiff = PIL_dynlib_open(filename);
+	MEM_freeN(filename);
 	if (libtiff != NULL) return;
 }
 
