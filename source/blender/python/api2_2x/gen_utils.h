@@ -55,11 +55,11 @@
 
 /* more 2.4 macros..? */
 #ifndef Py_RETURN_TRUE  
-#define Py_RETURN_TRUE Py_INCREF( Py_True ); return Py_True 
+#define Py_RETURN_TRUE return Py_INCREF(Py_True), Py_True
 #endif
 
 #ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE Py_INCREF( Py_False); return Py_False
+#define Py_RETURN_FALSE return Py_INCREF(Py_False), Py_False
 #endif
 
 PyObject *EXPP_GetModuleConstant(char *module, char *constant);
