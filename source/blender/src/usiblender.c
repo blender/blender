@@ -37,10 +37,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #include <process.h> /* getpid */
@@ -728,6 +724,8 @@ void exit_usiblender(void)
 
 	sound_exit_audio();
 	if(G.listener) MEM_freeN(G.listener);
+
+	libtiff_exit();
 
 #ifdef WITH_QUICKTIME
 	quicktime_exit();

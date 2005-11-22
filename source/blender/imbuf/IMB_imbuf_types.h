@@ -150,7 +150,8 @@ typedef enum {
 #ifdef WITH_QUICKTIME
 #define QUICKTIME	(1 << 25)
 #endif
-#define RADHDR	(1<<24)
+#define RADHDR		(1<<24)
+#define TIF		(1<<23)
 
 #define RAWTGA	        (TGA | 1)
 
@@ -188,6 +189,7 @@ typedef enum {
 #define IS_tga(x)		(x->ftype & TGA)
 #define IS_png(x)		(x->ftype & PNG)
 #define IS_bmp(x)		(x->ftype & BMP)
+#define IS_tiff(x)		(x->ftype & TIF)
 #define IS_radhdr(x)	(x->ftype & RADHDR)
 
 #define IMAGIC 	0732

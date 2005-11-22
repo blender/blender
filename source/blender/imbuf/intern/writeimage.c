@@ -36,6 +36,7 @@
 #include <io.h>
 #endif
 
+#include "BKE_global.h"
 #include "BLI_blenlib.h"
 
 #include "imbuf.h"
@@ -54,6 +55,7 @@
 #include "IMB_amiga.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
+#include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
 
 #include "IMB_iff.h"
@@ -86,6 +88,9 @@ short IMB_saveiff(struct ImBuf *ibuf,char *naam,int flags)
 	}
 	if (IS_iris(ibuf)) {
 		return imb_saveiris(ibuf,naam,flags);
+	}
+	if (G.have_libtiff && IS_tiff(ibuf)) {
+		return imb_savetiff(ibuf,naam,flags);
 	}
 
 	file = open(naam, O_BINARY | O_RDWR | O_CREAT | O_TRUNC, 0666);

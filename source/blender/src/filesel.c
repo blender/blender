@@ -34,10 +34,6 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef WIN32
 #include <io.h>
 #include <direct.h>
@@ -589,6 +585,10 @@ void test_flags_file(SpaceFile *sfile)
 					|| BLI_testextensie(file->relname, ".otf")
 					|| BLI_testextensie(file->relname, ".otc")) {
 				file->flags |= FTFONTFILE;			
+			} else if (G.have_libtiff &&
+					(BLI_testextensie(file->relname, ".tif")
+					||	BLI_testextensie(file->relname, ".tiff"))) {
+					file->flags |= IMAGEFILE;			
 			} else if (G.have_quicktime){
 				if(		BLI_testextensie(file->relname, ".jpg")
 					||	BLI_testextensie(file->relname, ".jpeg")

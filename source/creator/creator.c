@@ -465,6 +465,14 @@ int main(int argc, char **argv)
 
 #endif /* WITH_QUICKTIME */
 
+	/* dynamically load libtiff, if available */
+	libtiff_init();
+	if (!G.have_libtiff) {
+		printf("Unable to load: libtiff.\n");
+		printf("Try setting the BF_TIFF_LIB environment variable if you want this support.\n");
+		printf("Example: setenv BF_TIFF_LIB /usr/lib/libtiff.so\n");
+	}
+
 	/* OK we are ready for it */
 
 	for(a=1; a<argc; a++) {

@@ -315,6 +315,9 @@ void addImageExtension(char *string)
 		if(!BLI_testextensie(string, ".bmp"))
 			extension= ".bmp";
 	}
+	else if(G.have_libtiff && (G.scene->r.imtype==R_TIFF)) {
+		extension= ".tif";
+	}
 	
 	strcat(string, extension);
 }

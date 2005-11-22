@@ -45,6 +45,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(NAN_JPEG)/include
 CPPFLAGS += -I$(NAN_PNG)/include
 CPPFLAGS += -I$(NAN_ZLIB)/include
+CPPFLAGS += -I$(NAN_TIFF)/include
 CPPFLAGS += -I../../include
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib

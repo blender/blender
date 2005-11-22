@@ -215,6 +215,9 @@ void schrijfplaatje(char *name)
 		else if(R.r.imtype==R_BMP) {
 			ibuf->ftype= BMP;
 		}
+		else if((G.have_libtiff) && (R.r.imtype==R_TIFF)) {
+			ibuf->ftype= TIF;
+		}
 		else if((R.r.imtype==R_TARGA) || (R.r.imtype==R_PNG)) {
 			ibuf->ftype= TGA;
 		}
@@ -491,6 +494,10 @@ int save_image_filesel_str(char *str)
 		strcpy(str, "Save PNG"); return 1;
 	case R_BMP:
 		strcpy(str, "Save BMP"); return 1;
+	case R_TIFF:
+		if (G.have_libtiff) {
+			strcpy(str, "Save TIFF"); return 1;
+		}
 	case R_TARGA:
 		strcpy(str, "Save Targa"); return 1;
 	case R_RAWTGA:

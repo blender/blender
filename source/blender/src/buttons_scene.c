@@ -919,6 +919,7 @@ static char *imagetype_pup(void)
 {
 	static char string[1024];
 	char formatstring[1024];
+	char appendstring[1024];
 
 	strcpy(formatstring, "Save image as: %%t|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d|%s %%x%d");
 
@@ -984,6 +985,12 @@ static char *imagetype_pup(void)
 #endif
 			"Ftype",          R_FTYPE
 		);
+	}
+
+	if (G.have_libtiff) {
+		strcpy(formatstring, "|%s %%x%d");
+		sprintf(appendstring, formatstring, "TIFF", R_TIFF);
+		strcat(string, appendstring);
 	}
 
 	return (string);

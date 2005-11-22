@@ -33,10 +33,6 @@
 
 #include <string.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -89,6 +85,8 @@ void write_screendump(char *name)
 			else if(G.scene->r.imtype==R_TARGA) ibuf->ftype= TGA;
 			else if(G.scene->r.imtype==R_RAWTGA) ibuf->ftype= RAWTGA;
 			else if(G.scene->r.imtype==R_PNG) ibuf->ftype= PNG;
+			else if((G.have_libtiff) && 
+				(G.scene->r.imtype==R_TIFF)) ibuf->ftype= TIF;
 			else if(G.scene->r.imtype==R_HAMX) ibuf->ftype= AN_hamx;
 			else if(ELEM5(G.scene->r.imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
 				ibuf->ftype= JPG|G.scene->r.quality;

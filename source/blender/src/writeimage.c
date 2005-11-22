@@ -60,6 +60,9 @@ int BIF_write_ibuf(ImBuf *ibuf, char *name)
 	else if ((G.scene->r.imtype==R_BMP)) {
 		ibuf->ftype= BMP;
 	}
+	else if ((G.have_libtiff) && (G.scene->r.imtype==R_TIFF)) {
+		ibuf->ftype= TIF;
+	}
 	else if ((G.scene->r.imtype==R_TARGA) || (G.scene->r.imtype==R_PNG)) {
 		// fall back to Targa if PNG writing is not supported
 		ibuf->ftype= TGA;

@@ -45,6 +45,7 @@
 #include "IMB_targa.h"
 #include "IMB_png.h"
 #include "IMB_bmp.h"
+#include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
 
 #include "IMB_anim.h"
@@ -97,6 +98,8 @@ static int IMB_ispic_name(char *name)
 				if (imb_is_a_png(buf)) return(PNG);
 				if (imb_is_a_targa(buf)) return(TGA);
 
+				if (imb_is_a_tiff(buf)) return(TIF);
+
 				/* radhdr: check if hdr format */
 				if (imb_is_a_hdr(buf)) return(RADHDR);
 
@@ -125,9 +128,15 @@ static int IMB_ispic_name(char *name)
 int IMB_ispic(char *filename)
 {
 	if(U.uiflag & USER_FILTERFILEEXTS) {
+		if (G.have_libtiff && (BLI_testextensie(filename, ".tif")
+				||	BLI_testextensie(filename, ".tiff"))) {
+				return IMB_ispic_name(filename);
+		}
 		if (G.have_quicktime){
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
+				||	BLI_testextensie(filename, ".tif")
+				||	BLI_testextensie(filename, ".tiff")
 				||	BLI_testextensie(filename, ".hdr")
 				||	BLI_testextensie(filename, ".tga")
 				||	BLI_testextensie(filename, ".rgb")
@@ -137,8 +146,6 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".gif")
 				||	BLI_testextensie(filename, ".psd")
-				||	BLI_testextensie(filename, ".tif")
-				||	BLI_testextensie(filename, ".tiff")
 				||	BLI_testextensie(filename, ".pct")
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
@@ -148,7 +155,7 @@ int IMB_ispic(char *filename)
 			} else {
 				return(FALSE);			
 			}
-		} else { // no quicktime
+		} else { /* no quicktime or libtiff */
 			if(		BLI_testextensie(filename, ".jpg")
 				||	BLI_testextensie(filename, ".jpeg")
 				||	BLI_testextensie(filename, ".hdr")
@@ -165,7 +172,7 @@ int IMB_ispic(char *filename)
 				return(FALSE);
 			}
 		}
-	} else { // no FILTERFILEEXTS
+	} else { /* no FILTERFILEEXTS */
 		return IMB_ispic_name(filename);
 	}
 }

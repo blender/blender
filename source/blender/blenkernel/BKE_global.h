@@ -66,50 +66,51 @@ struct EditMesh;
 
 typedef struct Global {
 
-    /* active pointers */
-    struct View3D *vd;
-    struct View2D *v2d;
-    struct SpaceIpo *sipo;
-    struct SpaceButs *buts;
-    struct SpaceImage *sima;
-    struct SpaceOops *soops;
-    struct SpaceSound *ssound;
-	struct SpaceAction *saction;	/* __NLA */
+	/* active pointers */
+	struct View3D *vd;
+	struct View2D *v2d;
+	struct SpaceIpo *sipo;
+	struct SpaceButs *buts;
+	struct SpaceImage *sima;
+	struct SpaceOops *soops;
+	struct SpaceSound *ssound;
+	struct SpaceAction *saction;		/* __NLA */
 	struct SpaceNla *snla;
-    struct Main *main;
-    struct Scene *scene;				/* denk aan file.c */
-    struct bScreen *curscreen;
-    struct Object *obedit;
+	struct Main *main;
+	struct Scene *scene;			/* denk aan file.c */
+	struct bScreen *curscreen;
+	struct Object *obedit;
 	char editModeTitleExtra[64];
 	
-    /* fonts, allocated global data */
-    struct BMF_Font *font, *fonts, *fontss;
+	/* fonts, allocated global data */
+	struct BMF_Font *font, *fonts, *fontss;
     
-    /* strings: lastsaved */
-    char ima[160], sce[160], lib[160];
+	/* strings: lastsaved */
+	char ima[160], sce[160], lib[160];
     
-    /* totals */
-    short totobj, totlamp, totobjsel, totcurve, totmesh, totbone, totbonesel;
-    int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
+	/* totals */
+	short totobj, totlamp, totobjsel, totcurve, totmesh;
+	short totbone, totbonesel;
+	int totvert, totedge, totface, totvertsel, totedgesel, totfacesel;
     
-    short afbreek, moving;
-    short qual, background;
+	short afbreek, moving;
+	short qual, background;
 	short winpos, displaymode;	/* used to be in Render */
 	
 	/**
 	 * The current version of Blender.
 	 */
-    short version;
+	short version;
 	short simulf, order, rt;
 	int f;
 
-    /* Editmode lists */
+	/* Editmode lists */
 	struct EditMesh *editMesh;
     
-    float textcurs[4][2];
+	float textcurs[4][2];
     
-    /* Frank's variables */
-     int	save_over;
+	/* Frank's variables */
+	int	save_over;
 
 	/* Reevan's __NLA variables */
 	struct	ListBase edbo;			/* Armature Editmode bones */
@@ -123,8 +124,11 @@ typedef struct Global {
 	struct VFont *selfont;
 	struct ListBase ttfdata;
 
-    /* this variable is written to / read from FileGlobal->fileflags */
-    int fileflags;
+	/* libtiff flag */
+	int have_libtiff;
+
+	/* this variable is written to / read from FileGlobal->fileflags */
+	int fileflags;
     
 	/* save the allowed windowstate of blender when using -W or -w */
 	int windowstate;
@@ -132,12 +136,12 @@ typedef struct Global {
 	/* Janco's playing ground */
 	struct bSoundListener* listener;
 
-    /* Test thingy for Nzc */
+	/* Test thingy for Nzc */
 	int compat;      /* toggle compatibility mode for edge rendering */
 	int notonlysolid;/* T-> also edge-render transparent faces       */
 	
 	/* confusing... G.f and G.flags */
-    int flags;
+	int flags;
 
 } Global;
 
@@ -185,7 +189,7 @@ typedef struct Global {
 #define G_FILE_SHOW_PROFILE      (1 << 6)
 #define G_FILE_LOCK              (1 << 7)
 #define G_FILE_SIGN              (1 << 8)
-#define G_FILE_PUBLISH			 (1 << 9)
+#define G_FIle_PUBLISH			 (1 << 9)
 #define G_FILE_NO_UI			 (1 << 10)
 #define G_FILE_GAME_TO_IPO		 (1 << 11)
 
