@@ -53,6 +53,15 @@
 #define Py_RETURN_NONE  Py_INCREF( Py_None ); return Py_None 
 #endif
 
+/* more 2.4 macros..? */
+#ifndef Py_RETURN_TRUE  
+#define Py_RETURN_TRUE Py_INCREF( Py_True ); return Py_True 
+#endif
+
+#ifndef Py_RETURN_FALSE
+#define Py_RETURN_FALSE Py_INCREF( Py_False); return Py_False
+#endif
+
 PyObject *EXPP_GetModuleConstant(char *module, char *constant);
 
 int StringEqual( const char *string1, const char *string2 );
