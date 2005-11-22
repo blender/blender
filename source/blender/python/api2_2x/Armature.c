@@ -133,6 +133,7 @@ static PyObject *BonesDict_new(PyTypeObject *type, PyObject *args, PyObject *kwd
 	if (py_BonesDict->editBoneDict == NULL)
 		goto RuntimeError;
 
+	py_BonesDict->editDict = NULL;
 	py_BonesDict->editmode_flag = 0;
 
 	return (PyObject*)py_BonesDict;
@@ -523,9 +524,9 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 static PyObject *Armature_getAutoIK(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_AUTO_IK)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.autoIK (setter)
 static int Armature_setAutoIK(BPy_Armature *self, PyObject *value, void *closure)

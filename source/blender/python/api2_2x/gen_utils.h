@@ -44,24 +44,6 @@
 #define Py_WRAP 1024
 #define Py_NEW  2048
 
-/* 
-   Py_RETURN_NONE
-   Python 2.4 macro.  
-   defined here until we switch to 2.4
-*/
-#ifndef Py_RETURN_NONE
-#define Py_RETURN_NONE  Py_INCREF( Py_None ); return Py_None 
-#endif
-
-/* more 2.4 macros..? */
-#ifndef Py_RETURN_TRUE  
-#define Py_RETURN_TRUE return Py_INCREF(Py_True), Py_True
-#endif
-
-#ifndef Py_RETURN_FALSE
-#define Py_RETURN_FALSE return Py_INCREF(Py_False), Py_False
-#endif
-
 int EXPP_FloatsAreEqual(float A, float B, int floatSteps);
 int EXPP_VectorsAreEqual(float *vecA, float *vecB, int size, int floatSteps);
 
