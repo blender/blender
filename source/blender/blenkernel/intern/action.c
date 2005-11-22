@@ -816,7 +816,7 @@ static void do_nla(Object *ob, int blocktype)
 			actlength = strip->actend-strip->actstart;
 			striptime = (G.scene->r.cfra-(strip->start)) / length;
 			stripframe = (G.scene->r.cfra-(strip->start)) ;
-			
+
 			if (striptime>=0.0){
 				
 				if(blocktype==ID_AR) 
@@ -870,13 +870,15 @@ static void do_nla(Object *ob, int blocktype)
 						}
 					}
 				}
-				/* Handle repeat, we add 1 frame extra to make sure the last frame is included */
-				else if (striptime < 1.0f + 1.0f/length) {
+				/* Handle repeat, we add 0.1 frame extra to make sure the last frame is included */
+				else if (striptime < 1.0f + 0.1f/length) {
 					
 					/* Mod to repeat */
-					striptime*= strip->repeat;
-					striptime = (float)fmod (striptime, 1.0f + 1.0f/length);
-					
+					if(strip->repeat!=1.0f) {
+						striptime*= strip->repeat;
+						striptime = (float)fmod (striptime, 1.0f + 0.1f/length);
+					}
+
 					frametime = (striptime * actlength) + strip->actstart;
 					frametime= nla_time(frametime, (float)strip->repeat);
 						
