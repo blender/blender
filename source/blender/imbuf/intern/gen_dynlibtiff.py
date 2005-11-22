@@ -117,7 +117,6 @@ void libtiff_loadlibtiff()
 {
 	char *filename;
 	libtiff = NULL;
-	int size;
 
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
@@ -135,13 +134,8 @@ void libtiff_loadlibtiff()
 	libtiff = PIL_dynlib_open("/usr/openwin/lib/libtiff.so");
 	if (libtiff != NULL)  return;
 
-	size = sizeof(getenv("BF_TIFF_LIB"));
-	
-	filename = MEM_mallocN(size * sizeof(unsigned char),"ENVVAR");
-	memcpy(filename,getenv("BF_TIFF_LIB"),size);
-	libtiff = PIL_dynlib_open(filename);
-	MEM_freeN(filename);
-	if (libtiff != NULL) return;
+	filename = getenv("BF_TIFF_LIB");
+	if (filename) libtiff = PIL_dynlib_open(filename);
 }
 
 void *libtiff_findsymbol(char *name)
