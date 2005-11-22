@@ -551,9 +551,9 @@ AttributeError:
 static PyObject *Armature_getMirrorEdit(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_MIRROR_EDIT)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.mirrorEdit (setter)
 static int Armature_setMirrorEdit(BPy_Armature *self, PyObject *value, void *closure)
@@ -686,9 +686,9 @@ ValueError:
 static PyObject *Armature_getDrawNames(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_DRAWNAMES)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.drawNames (setter)
 static int Armature_setDrawNames(BPy_Armature *self, PyObject *value, void *closure)
@@ -714,9 +714,9 @@ AttributeError:
 static PyObject *Armature_getDrawAxes(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_DRAWAXES)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.drawAxes (setter)
 static int Armature_setDrawAxes(BPy_Armature *self, PyObject *value, void *closure)
@@ -742,9 +742,9 @@ AttributeError:
 static PyObject *Armature_getDelayDeform(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_DELAYDEFORM)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.delayDeform (setter)
 static int Armature_setDelayDeform(BPy_Armature *self, PyObject *value, void *closure)
@@ -770,9 +770,9 @@ AttributeError:
 static PyObject *Armature_getRestPosition(BPy_Armature *self, void *closure)
 {
 	if (self->armature->flag & ARM_RESTPOS)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.restPosition (setter)
 static int Armature_setRestPosition(BPy_Armature *self, PyObject *value, void *closure)
@@ -798,9 +798,9 @@ AttributeError:
 static PyObject *Armature_getEnvelopes(BPy_Armature *self, void *closure)
 {
 	if (self->armature->deformflag & ARM_DEF_ENVELOPE)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.envelopes (setter)
 static int Armature_setEnvelopes(BPy_Armature *self, PyObject *value, void *closure)
@@ -826,9 +826,9 @@ AttributeError:
 static PyObject *Armature_getVertexGroups(BPy_Armature *self, void *closure)
 {
 	if (self->armature->deformflag & ARM_DEF_VGROUP)
-		Py_RETURN_TRUE;
+		return EXPP_incr_ret(Py_True);
 	else
-		Py_RETURN_FALSE;
+		return EXPP_incr_ret(Py_False);
 }
 //------------------------Armature.vertexGroups (setter)
 static int Armature_setVertexGroups(BPy_Armature *self, PyObject *value, void *closure)
