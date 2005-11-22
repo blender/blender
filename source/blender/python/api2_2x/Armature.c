@@ -133,7 +133,6 @@ static PyObject *BonesDict_new(PyTypeObject *type, PyObject *args, PyObject *kwd
 	if (py_BonesDict->editBoneDict == NULL)
 		goto RuntimeError;
 
-	py_BonesDict->editDict = NULL;
 	py_BonesDict->editmode_flag = 0;
 
 	return (PyObject*)py_BonesDict;
