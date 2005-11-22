@@ -187,7 +187,9 @@ static PyObject *Quaternion_getattr(QuaternionObject * self, char *name)
 		}
 		Normalise(vec);
 		//If the axis of rotation is 0,0,0 set it to 1,0,0 - for zero-degree rotations
-		if (vec[0] < 1e-44 && vec[1] < 1e-44 && vec[2] < 1e-44){
+		if( EXPP_FloatsAreEqual(vec[0], 0.0f, 10) &&
+			EXPP_FloatsAreEqual(vec[1], 0.0f, 10) &&
+			EXPP_FloatsAreEqual(vec[2], 0.0f, 10) ){
 			vec[0] = 1.0f;
 		}
 		return (PyObject *) newVectorObject(vec, 3, Py_NEW);
@@ -251,6 +253,47 @@ static PyObject *Quaternion_repr(QuaternionObject * self)
 
 	return PyString_FromString(str);
 }
+//------------------------tp_richcmpr
+//returns -1 execption, 0 false, 1 true
+static PyObject* Quaternion_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	QuaternionObject *quatA = NULL, *quatB = NULL;
+	int result = 0;
+
+	if (!QuaternionObject_Check(objectA) || !QuaternionObject_Check(objectB)){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+	quatA = (QuaternionObject*)objectA;
+	quatB = (QuaternionObject*)objectB;
+
+	switch (comparison_type){
+		case Py_EQ:
+			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, 4, 1);
+			break;
+		case Py_NE:
+			result = EXPP_VectorsAreEqual(quatA->quat, quatB->quat, 4, 1);
+			if (result == 0){
+				result = 1;
+			}else{
+				result = 0;
+			}
+			break;
+		default:
+			printf("The result of the comparison could not be evaluated");
+			break;
+	}
+	if (result == 1){
+		return EXPP_incr_ret(Py_True);
+	}else{
+		return EXPP_incr_ret(Py_False);
+	}
+}
+//------------------------tp_doc
+static char QuaternionObject_doc[] = "This is a wrapper for quaternion objects.";
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
@@ -529,19 +572,53 @@ static PyNumberMethods Quaternion_NumMethods = {
 };
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject quaternion_Type = {
-	PyObject_HEAD_INIT(NULL) 
-	0,											/*ob_size */
-	"quaternion",								/*tp_name */
-	sizeof(QuaternionObject),					/*tp_basicsize */
-	0,											/*tp_itemsize */
-	(destructor) Quaternion_dealloc,			/*tp_dealloc */
-	(printfunc) 0,								/*tp_print */
-	(getattrfunc) Quaternion_getattr,			/*tp_getattr */
-	(setattrfunc) Quaternion_setattr,			/*tp_setattr */
-	0,											/*tp_compare */
-	(reprfunc) Quaternion_repr,					/*tp_repr */
-	&Quaternion_NumMethods,						/*tp_as_number */
-	&Quaternion_SeqMethods,						/*tp_as_sequence */
+PyObject_HEAD_INIT(NULL)		//tp_head
+	0,								//tp_internal
+	"quaternion",						//tp_name
+	sizeof(QuaternionObject),			//tp_basicsize
+	0,								//tp_itemsize
+	(destructor)Quaternion_dealloc,		//tp_dealloc
+	0,								//tp_print
+	(getattrfunc)Quaternion_getattr,	//tp_getattr
+	(setattrfunc) Quaternion_setattr,	//tp_setattr
+	0,								//tp_compare
+	(reprfunc) Quaternion_repr,			//tp_repr
+	&Quaternion_NumMethods,				//tp_as_number
+	&Quaternion_SeqMethods,				//tp_as_sequence
+	0,								//tp_as_mapping
+	0,								//tp_hash
+	0,								//tp_call
+	0,								//tp_str
+	0,								//tp_getattro
+	0,								//tp_setattro
+	0,								//tp_as_buffer
+	Py_TPFLAGS_DEFAULT,				//tp_flags
+	QuaternionObject_doc,				//tp_doc
+	0,								//tp_traverse
+	0,								//tp_clear
+	(richcmpfunc)Quaternion_richcmpr,	//tp_richcompare
+	0,								//tp_weaklistoffset
+	0,								//tp_iter
+	0,								//tp_iternext
+	0,								//tp_methods
+	0,								//tp_members
+	0,								//tp_getset
+	0,								//tp_base
+	0,								//tp_dict
+	0,								//tp_descr_get
+	0,								//tp_descr_set
+	0,								//tp_dictoffset
+	0,								//tp_init
+	0,								//tp_alloc
+	0,								//tp_new
+	0,								//tp_free
+	0,								//tp_is_gc
+	0,								//tp_bases
+	0,								//tp_mro
+	0,								//tp_cache
+	0,								//tp_subclasses
+	0,								//tp_weaklist
+	0								//tp_del
 };
 //------------------------newQuaternionObject (internal)-------------
 //creates a new quaternion object

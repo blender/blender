@@ -248,6 +248,47 @@ static PyObject *Euler_repr(EulerObject * self)
 
 	return PyString_FromString(str);
 }
+//------------------------tp_richcmpr
+//returns -1 execption, 0 false, 1 true
+static PyObject* Euler_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	EulerObject *eulA = NULL, *eulB = NULL;
+	int result = 0;
+
+	if (!EulerObject_Check(objectA) || !EulerObject_Check(objectB)){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+	eulA = (EulerObject*)objectA;
+	eulB = (EulerObject*)objectB;
+
+	switch (comparison_type){
+		case Py_EQ:
+			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, 3, 1);
+			break;
+		case Py_NE:
+			result = EXPP_VectorsAreEqual(eulA->eul, eulB->eul, 3, 1);
+			if (result == 0){
+				result = 1;
+			}else{
+				result = 0;
+			}
+			break;
+		default:
+			printf("The result of the comparison could not be evaluated");
+			break;
+	}
+	if (result == 1){
+		return EXPP_incr_ret(Py_True);
+	}else{
+		return EXPP_incr_ret(Py_False);
+	}
+}
+//------------------------tp_doc
+static char EulerObject_doc[] = "This is a wrapper for euler objects.";
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
@@ -360,19 +401,53 @@ static PySequenceMethods Euler_SeqMethods = {
 };
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject euler_Type = {
-	PyObject_HEAD_INIT(NULL) 
-	0,											/*ob_size */
-	"euler",									/*tp_name */
-	sizeof(EulerObject),						/*tp_basicsize */
-	0,											/*tp_itemsize */
-	(destructor) Euler_dealloc,					/*tp_dealloc */
-	(printfunc) 0,								/*tp_print */
-	(getattrfunc) Euler_getattr,				/*tp_getattr */
-	(setattrfunc) Euler_setattr,				/*tp_setattr */
-	0,											/*tp_compare */
-	(reprfunc) Euler_repr,						/*tp_repr */
-	0,											/*tp_as_number */
-	&Euler_SeqMethods,							/*tp_as_sequence */
+	PyObject_HEAD_INIT(NULL)		//tp_head
+	0,								//tp_internal
+	"euler",						//tp_name
+	sizeof(EulerObject),			//tp_basicsize
+	0,								//tp_itemsize
+	(destructor)Euler_dealloc,		//tp_dealloc
+	0,								//tp_print
+	(getattrfunc)Euler_getattr,	//tp_getattr
+	(setattrfunc) Euler_setattr,	//tp_setattr
+	0,								//tp_compare
+	(reprfunc) Euler_repr,			//tp_repr
+	0,				//tp_as_number
+	&Euler_SeqMethods,				//tp_as_sequence
+	0,								//tp_as_mapping
+	0,								//tp_hash
+	0,								//tp_call
+	0,								//tp_str
+	0,								//tp_getattro
+	0,								//tp_setattro
+	0,								//tp_as_buffer
+	Py_TPFLAGS_DEFAULT,				//tp_flags
+	EulerObject_doc,				//tp_doc
+	0,								//tp_traverse
+	0,								//tp_clear
+	(richcmpfunc)Euler_richcmpr,	//tp_richcompare
+	0,								//tp_weaklistoffset
+	0,								//tp_iter
+	0,								//tp_iternext
+	0,								//tp_methods
+	0,								//tp_members
+	0,								//tp_getset
+	0,								//tp_base
+	0,								//tp_dict
+	0,								//tp_descr_get
+	0,								//tp_descr_set
+	0,								//tp_dictoffset
+	0,								//tp_init
+	0,								//tp_alloc
+	0,								//tp_new
+	0,								//tp_free
+	0,								//tp_is_gc
+	0,								//tp_bases
+	0,								//tp_mro
+	0,								//tp_cache
+	0,								//tp_subclasses
+	0,								//tp_weaklist
+	0								//tp_del
 };
 //------------------------newEulerObject (internal)-------------
 //creates a new euler object

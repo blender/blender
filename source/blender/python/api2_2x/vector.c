@@ -687,18 +687,6 @@ static double vec_magnitude(float *data, int size)
 	}
 	return (double)sqrt(dot);
 }
-//------------------------vec_equality(internal)
-static int vec_equality(float *dataA, float *dataB, int size, double epsilon)
-{
-	int i;
-
-	for(i=0; i<size; i++){
-		if(!(((dataA[i] + epsilon) > dataB[i]) && ((dataA[i] - epsilon) < dataB[i]))){
-			return 0;
-		}
-	}
-	return 1;
-}
 //------------------------tp_richcmpr
 //returns -1 execption, 0 false, 1 true
 PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
@@ -744,10 +732,10 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 			}
 			break;
 		case Py_EQ:
-			result = vec_equality(vecA->vec, vecB->vec, vecA->size, epsilon);
+			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			break;
 		case Py_NE:
-			result = vec_equality(vecA->vec, vecB->vec, vecA->size, epsilon);
+			result = EXPP_VectorsAreEqual(vecA->vec, vecB->vec, vecA->size, 1);
 			if (result == 0){
 				result = 1;
 			}else{
@@ -771,6 +759,7 @@ PyObject* Vector_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_t
 			}
 			break;
 		default:
+			printf("The result of the comparison could not be evaluated");
 			break;
 	}
 	if (result == 1){

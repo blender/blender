@@ -374,7 +374,58 @@ static PyObject *Matrix_repr(MatrixObject * self)
 
 	return PyString_FromString(str);
 }
+//------------------------tp_richcmpr
+//returns -1 execption, 0 false, 1 true
+static PyObject* Matrix_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
+{
+	MatrixObject *matA = NULL, *matB = NULL;
+	int result = 0;
 
+	if (!MatrixObject_Check(objectA) || !MatrixObject_Check(objectB)){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+	matA = (MatrixObject*)objectA;
+	matB = (MatrixObject*)objectB;
+
+	if (matA->colSize != matB->colSize && matA->rowSize != matB->rowSize){
+		if (comparison_type == Py_NE){
+			return EXPP_incr_ret(Py_True); 
+		}else{
+			return EXPP_incr_ret(Py_False);
+		}
+	}
+
+	switch (comparison_type){
+		case Py_EQ:
+			//contigPtr is basically a really long vector
+			result = EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr,
+				(matA->rowSize * matA->colSize), 1);
+			break;
+		case Py_NE:
+			result = EXPP_VectorsAreEqual(matA->contigPtr, matB->contigPtr,
+				(matA->rowSize * matA->colSize), 1);
+			if (result == 0){
+				result = 1;
+			}else{
+				result = 0;
+			}
+			break;
+		default:
+			printf("The result of the comparison could not be evaluated");
+			break;
+	}
+	if (result == 1){
+		return EXPP_incr_ret(Py_True);
+	}else{
+		return EXPP_incr_ret(Py_False);
+	}
+}
+//------------------------tp_doc
+static char MatrixObject_doc[] = "This is a wrapper for matrix objects.";
 //---------------------SEQUENCE PROTOCOLS------------------------
 //----------------------------len(object)------------------------
 //sequence length
@@ -734,19 +785,53 @@ static PyNumberMethods Matrix_NumMethods = {
 };
 //------------------PY_OBECT DEFINITION--------------------------
 PyTypeObject matrix_Type = {
-	PyObject_HEAD_INIT(NULL)				/* required python macro */
-	0,										/*ob_size */
-	"Matrix",								/*tp_name */
-	sizeof(MatrixObject),					/*tp_basicsize */
-	0,										/*tp_itemsize */
-	(destructor) Matrix_dealloc,			/*tp_dealloc */
-	(printfunc) 0,							/*tp_print */
-	(getattrfunc) Matrix_getattr,			/*tp_getattr */
-	(setattrfunc) Matrix_setattr,			/*tp_setattr */
-	0,										/*tp_compare */
-	(reprfunc) Matrix_repr,					/*tp_repr */
-	&Matrix_NumMethods,						/*tp_as_number */
-	&Matrix_SeqMethods,						/*tp_as_sequence */
+	PyObject_HEAD_INIT(NULL)		//tp_head
+	0,								//tp_internal
+	"matrix",						//tp_name
+	sizeof(MatrixObject),			//tp_basicsize
+	0,								//tp_itemsize
+	(destructor)Matrix_dealloc,		//tp_dealloc
+	0,								//tp_print
+	(getattrfunc)Matrix_getattr,	//tp_getattr
+	(setattrfunc) Matrix_setattr,	//tp_setattr
+	0,								//tp_compare
+	(reprfunc) Matrix_repr,			//tp_repr
+	&Matrix_NumMethods,				//tp_as_number
+	&Matrix_SeqMethods,				//tp_as_sequence
+	0,								//tp_as_mapping
+	0,								//tp_hash
+	0,								//tp_call
+	0,								//tp_str
+	0,								//tp_getattro
+	0,								//tp_setattro
+	0,								//tp_as_buffer
+	Py_TPFLAGS_DEFAULT,				//tp_flags
+	MatrixObject_doc,				//tp_doc
+	0,								//tp_traverse
+	0,								//tp_clear
+	(richcmpfunc)Matrix_richcmpr,	//tp_richcompare
+	0,								//tp_weaklistoffset
+	0,								//tp_iter
+	0,								//tp_iternext
+	0,								//tp_methods
+	0,								//tp_members
+	0,								//tp_getset
+	0,								//tp_base
+	0,								//tp_dict
+	0,								//tp_descr_get
+	0,								//tp_descr_set
+	0,								//tp_dictoffset
+	0,								//tp_init
+	0,								//tp_alloc
+	0,								//tp_new
+	0,								//tp_free
+	0,								//tp_is_gc
+	0,								//tp_bases
+	0,								//tp_mro
+	0,								//tp_cache
+	0,								//tp_subclasses
+	0,								//tp_weaklist
+	0								//tp_del
 };
 //------------------------newMatrixObject (internal)-------------
 //creates a new matrix object

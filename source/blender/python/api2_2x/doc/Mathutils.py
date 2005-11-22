@@ -522,6 +522,8 @@ class Euler:
   @ivar wrapped: Whether or not this object is wrapping data directly
   @note: You can access a euler object like a sequence
       - x = euler[0]
+  @note: Comparison operators can be done:
+      - ==, != test numeric values within epsilon
   @attention: Euler data can be wrapped or non-wrapped. When a object is wrapped it
   means that the object will give you direct access to the data inside of blender. Modification
   of this object will directly change the data inside of blender. To copy a wrapped object
@@ -594,6 +596,8 @@ class Quaternion:
   @ivar axis: Vector representing the axis of rotation.
   @ivar angle: A scalar representing the amount of rotation
   in degrees.
+  @note: Comparison operators can be done:
+      - ==, != test numeric values within epsilon
   @note: Math can be performed on Quaternion classes
       - quat + quat
       - quat - quat 
@@ -699,6 +703,8 @@ class Matrix:
       - mat * float/int
       - mat * vec
       - mat * mat 
+  @note: Comparison operators can be done:
+      - ==, != test numeric values within epsilon
   @note: You can access a quaternion object like a 2d sequence
       - x = matrix[0][1]
       - vector = matrix[2]
