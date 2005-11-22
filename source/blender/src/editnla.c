@@ -1058,7 +1058,7 @@ void transform_nlachannel_keys(int mode, int dummy)
 			areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
 			
 			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
-				PIL_sleep_ms(1);
+				PIL_sleep_ms(10);
 			}
 			else {
 				for (i=0; i<tvtot; i++){
@@ -1112,33 +1112,33 @@ void transform_nlachannel_keys(int mode, int dummy)
 						break;
 					}
 				}
-			}
 			
-			if (mode=='s'){
-				sprintf(str, "sizeX: %.3f", fac);
-				headerprint(str);
-			}
-			else if (mode=='g'){
-				sprintf(str, "deltaX: %.3f", fac);
-				headerprint(str);
-			}
-			
-			if (G.snla->lock) {
-				for (base=G.scene->base.first; base; base=base->next){
-					if(base->flag & BA_HAS_RECALC_OB)
-						base->object->recalc |= OB_RECALC_OB;
-					if(base->flag & BA_HAS_RECALC_DATA)
-						base->object->recalc |= OB_RECALC_DATA;
-					
-					if(base->object->recalc) base->object->ctime= -1234567.0f;	// eveil! 
+				if (mode=='s'){
+					sprintf(str, "sizeX: %.3f", fac);
+					headerprint(str);
+				}
+				else if (mode=='g'){
+					sprintf(str, "deltaX: %.3f", fac);
+					headerprint(str);
 				}
 				
-				DAG_scene_flush_update(G.scene, screen_view3d_layers());
-				
-				force_draw_all(0);
-			}
-			else {
-				force_draw(0);
+				if (G.snla->lock) {
+					for (base=G.scene->base.first; base; base=base->next){
+						if(base->flag & BA_HAS_RECALC_OB)
+							base->object->recalc |= OB_RECALC_OB;
+						if(base->flag & BA_HAS_RECALC_DATA)
+							base->object->recalc |= OB_RECALC_DATA;
+						
+						if(base->object->recalc) base->object->ctime= -1234567.0f;	// eveil! 
+					}
+					
+					DAG_scene_flush_update(G.scene, screen_view3d_layers());
+					
+					force_draw_all(0);
+				}
+				else {
+					force_draw(0);
+				}
 			}
 		}
 		

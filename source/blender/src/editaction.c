@@ -1017,35 +1017,35 @@ void transform_actionchannel_keys(int mode, int dummy)
 						break;
 					}
 				}
-			}
 	
-			if (mode=='s'){
-				sprintf(str, "sizeX: %.3f", fac);
-				headerprint(str);
-			}
-			else if (mode=='g'){
-				sprintf(str, "deltaX: %.3f", fac);
-				headerprint(str);
-			}
-			else if (mode=='t') {
-				float fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
-				CLAMP(fac, -1.0f, 1.0f);
-				sprintf(str, "TimeSlide: %.3f", fac);
-				headerprint(str);
-			}
-	
-			if (G.saction->lock) {
-				if(ob) {
-					ob->ctime= -1234567.0f;
-					if(ob->pose || ob_get_key(ob))
-						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-					else
-						DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				if (mode=='s'){
+					sprintf(str, "sizeX: %.3f", fac);
+					headerprint(str);
 				}
-				force_draw_plus(SPACE_VIEW3D, 0);
-			}
-			else {
-				force_draw(0);
+				else if (mode=='g'){
+					sprintf(str, "deltaX: %.3f", fac);
+					headerprint(str);
+				}
+				else if (mode=='t') {
+					float fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
+					CLAMP(fac, -1.0f, 1.0f);
+					sprintf(str, "TimeSlide: %.3f", fac);
+					headerprint(str);
+				}
+		
+				if (G.saction->lock) {
+					if(ob) {
+						ob->ctime= -1234567.0f;
+						if(ob->pose || ob_get_key(ob))
+							DAG_object_flush_update(G.scene, ob, OB_RECALC);
+						else
+							DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+					}
+					force_draw_plus(SPACE_VIEW3D, 0);
+				}
+				else {
+					force_draw(0);
+				}
 			}
 		}
 		
@@ -1061,7 +1061,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 		ob->ctime= -1234567.0f;
 
 		if(ob->pose || ob_get_key(ob))
-			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			DAG_object_flush_update(G.scene, ob, OB_RECALC);
 		else
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 	}
