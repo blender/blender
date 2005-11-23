@@ -772,8 +772,13 @@ void fluidsimBake(struct Object *ob)
 		// check if some error occurred
 		if(globalBakeState==-2) {
 			strcat(fsmessage,"Failed to initialize [Msg: ");
+#ifndef WIN32
+			// msvc seems to have problem accessing the gElbeemErrorString var
+			strcat(fsmessage,"[Msg: ");
 			strcat(fsmessage,gElbeemErrorString);
-			strcat(fsmessage,"]|OK%x0");
+			strcat(fsmessage,"]");
+#endif // WIN32
+			strcat(fsmessage,"|OK%x0");
 			pupmenu(fsmessage);
 		} // init error
 	}
