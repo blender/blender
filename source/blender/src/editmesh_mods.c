@@ -51,6 +51,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "DNA_mesh_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
@@ -2282,6 +2283,7 @@ void vertexsmooth(void)
 	float *adror, *adr, fac;
 	float fvec[3];
 	int teller=0;
+	ModifierData *md= G.obedit->modifiers.first;
 
 	if(G.obedit==0) return;
 
@@ -2299,9 +2301,41 @@ void vertexsmooth(void)
 		if(eve->f & SELECT) {
 			eve->vn= (EditVert *)adr;
 			eve->f1= 0;
+			eve->f2= 0;
 			adr+= 3;
 		}
 		eve= eve->next;
+	}
+
+	/* if there is a mirror modifier with clipping, flag the verts that
+	 * are within tolerance of the plane(s) of reflection 
+	 */
+	for (; md; md=md->next) {
+		if (md->type==eModifierType_Mirror) {
+			MirrorModifierData *mmd = (MirrorModifierData*) md;	
+		
+			if(mmd->flag & MOD_MIR_CLIPPING) {
+				for (eve= em->verts.first; eve; eve= eve->next) {
+					if(eve->f & SELECT) {
+
+						switch(mmd->axis){
+							case 0:
+								if (fabs(eve->co[0]) < mmd->tolerance)
+									eve->f2 |= 1;
+								break;
+							case 1:
+								if (fabs(eve->co[1]) < mmd->tolerance)
+									eve->f2 |= 2;
+								break;
+							case 2:
+								if (fabs(eve->co[2]) < mmd->tolerance)
+									eve->f2 |= 4;
+								break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	eed= em->edges.first;
@@ -2333,6 +2367,19 @@ void vertexsmooth(void)
 				eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
 				eve->co[1]= 0.5*eve->co[1]+fac*adr[1];
 				eve->co[2]= 0.5*eve->co[2]+fac*adr[2];
+
+				/* clip if needed by mirror modifier */
+				if (eve->f2) {
+					if (eve->f2 & 1) {
+						eve->co[0]= 0.0f;
+					}
+					if (eve->f2 & 2) {
+						eve->co[1]= 0.0f;
+					}
+					if (eve->f2 & 4) {
+						eve->co[2]= 0.0f;
+					}
+				}
 			}
 			eve->vn= 0;
 		}
