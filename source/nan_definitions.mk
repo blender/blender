@@ -159,7 +159,7 @@ endif
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
     export NAN_PNG ?= $(LCGDIR)/png
-    export NAN_TIFF ?= /sw
+    export NAN_TIFF ?= $(LCGDIR)/tiff
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?= $(LCGDIR)/terraplay
     export NAN_MESA ?= /usr/src/Mesa-3.1
