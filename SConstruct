@@ -100,7 +100,7 @@ if sys.platform == 'linux2' or sys.platform == 'linux-i386':
 	jpeg_libpath = ['/usr/lib']
 	jpeg_include = ['/usr/include']
 	#tiff library information
-	tiff_lib = ['jpeg']
+	tiff_lib = ['tiff']
 	tiff_libpath = ['/usr/lib']
 	tiff_include = ['/usr/include']
 	# OpenGL library information
