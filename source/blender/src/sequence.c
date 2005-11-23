@@ -1957,7 +1957,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						int redisplay= (!G.background && !(R.flag & R_RENDERING));
 						
 						oldsce= G.scene;
-						set_scene_bg(seq->scene);
+						if(seq->scene!=G.scene) set_scene_bg(seq->scene);	/* set_scene does full dep updates */
 
 						/* prevent eternal loop */
 						doseq= G.scene->r.scemode & R_DOSEQ;
@@ -2003,7 +2003,7 @@ void do_build_seqar_cfra(ListBase *seqbase, Sequence ***seqar, int cfra)
 						R.rectot= rectot;
 						R.rectx=oldx; R.recty=oldy;
 						G.scene->r.scemode |= doseq;
-						set_scene_bg(oldsce);
+						if(seq->scene!=oldsce) set_scene_bg(oldsce);	/* set_scene does full dep updates */
 
 						/* restore!! */
 						R.rectx= seqrectx;

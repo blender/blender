@@ -30,6 +30,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+/* system includes */
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
 
 /* External modules: */
 #include "MEM_guardedalloc.h"
@@ -64,12 +68,6 @@
 
 #include "jitter.h"
 #include "texture.h"
-
-/* system includes */
-#include <math.h>
-#include <string.h>
-#include <stdlib.h>
-
 
 /* own include */
 #include "rendercore.h"

@@ -1948,7 +1948,7 @@ static float *sphere_sampler(int type, int resol, int xs, int ys)
 	} 
 	else {
 		float *sphere;
-		float cosf, sinf, cost, sint;
+		float cosfi, sinfi, cost, sint;
 		float ang, *vec1;
 		int a;
 		
@@ -1958,15 +1958,15 @@ static float *sphere_sampler(int type, int resol, int xs, int ys)
 			
 			// random rotation
 			ang= BLI_thread_frand(ys & 1);
-			sinf= sin(ang); cosf= cos(ang);
+			sinfi= sin(ang); cosfi= cos(ang);
 			ang= BLI_thread_frand(ys & 1);
 			sint= sin(ang); cost= cos(ang);
 			
 			vec= R.wrld.aosphere;
 			vec1= sphere;
 			for (a=0; a<tot; a++, vec+=3, vec1+=3) {
-				vec1[0]= cost*cosf*vec[0] - sinf*vec[1] + sint*cosf*vec[2];
-				vec1[1]= cost*sinf*vec[0] + cosf*vec[1] + sint*sinf*vec[2];
+				vec1[0]= cost*cosfi*vec[0] - sinfi*vec[1] + sint*cosfi*vec[2];
+				vec1[1]= cost*sinfi*vec[0] + cosfi*vec[1] + sint*sinfi*vec[2];
 				vec1[2]= -sint*vec[0] + cost*vec[2];			
 			}
 		}
