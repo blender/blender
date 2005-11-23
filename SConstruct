@@ -198,6 +198,10 @@ elif sys.platform == 'darwin':
 	jpeg_lib = ['libjpeg']
 	jpeg_libpath = [darwin_precomp + 'jpeg/lib']
 	jpeg_include = [darwin_precomp + 'jpeg/include']
+	# TIFF library information
+	tiff_lib = ['libtiff']
+	tiff_libpath = [darwin_precomp + 'tiff/lib']
+	tiff_include = [darwin_precomp + 'tiff/include']
 	# OpenGL library information
 	opengl_lib = ['GL', 'GLU']
 	opengl_static = []
@@ -887,6 +891,9 @@ else:
 	config.write ("JPEG_INCLUDE = %r\n"%(jpeg_include))
 	config.write ("JPEG_LIBPATH = %r\n"%(jpeg_libpath))
 	config.write ("JPEG_LIBRARY = %r\n"%(jpeg_lib))
+	config.write ("TIFF_INCLUDE = %r\n"%(tiff_include))
+	config.write ("TIFF_LIBPATH = %r\n"%(tiff_libpath))
+	config.write ("TIFF_LIBRARY = %r\n"%(tiff_lib))
 	config.write ("OPENGL_INCLUDE = %r\n"%(opengl_include))
 	config.write ("OPENGL_LIBPATH = %r\n"%(opengl_libpath))
 	config.write ("OPENGL_LIBRARY = %r\n"%(opengl_lib))
@@ -996,6 +1003,9 @@ user_options.AddOptions (
 		('JPEG_INCLUDE', 'Include directory for jpeg header files.'),
 		('JPEG_LIBPATH', 'Library path where the jpeg library is located.'),
 		('JPEG_LIBRARY', 'jpeg library name.'),
+		('TIFF_INCLUDE', 'Include directory for TIFF header files.'),
+		('TIFF_LIBPATH', 'Library path where the TIFF library is located.'),
+		('TIFF_LIBRARY', 'TIFF library name.'),
 		('OPENGL_INCLUDE', 'Include directory for OpenGL header files.'),
 		('OPENGL_LIBPATH', 'Library path where the OpenGL libraries are located.'),
 		('OPENGL_LIBRARY', 'OpenGL library names.'),
