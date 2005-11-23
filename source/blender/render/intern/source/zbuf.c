@@ -654,8 +654,8 @@ static void zbufinvulAc4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
 	
 	for(y=my2; y>=my0; y--, span1--, span2--) {
 		
-		sn1= (int)*span1;
-		sn2= (int)*span2;
+		sn1= floor(*span1);
+		sn2= floor(*span2);
 		sn1++; 
 		
 		if(sn2>=rectx) sn2= rectx-1;
@@ -1571,8 +1571,8 @@ static void zbufinvulGL4(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
 	
 	for(y=my2; y>=my0; y--, span1--, span2--) {
 		
-		sn1= (int)*span1;
-		sn2= (int)*span2;
+		sn1= floor(*span1);
+		sn2= floor(*span2);
 		sn1++; 
 		
 		if(sn2>=rectx) sn2= rectx-1;
@@ -1667,8 +1667,8 @@ static void zbufinvulGL(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3
 	
 	for(y=my2; y>=my0; y--, span1--, span2--) {
 		
-		sn1= (int)*span1;
-		sn2= (int)*span2;
+		sn1= floor(*span1);
+		sn2= floor(*span2);
 		
 		sn1++; 
 		
