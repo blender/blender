@@ -75,10 +75,18 @@ typedef struct FluidsimSettings {
 
 	/* store pointer to original mesh (for replacing the current one) */
 	struct Mesh *orgMesh;
+	/* pointer to the currently loaded fluidsim mesh */
+	struct Mesh *meshSurface;
+	/* a mesh to display the bounding box used for simulation */
+	struct Mesh *meshBB;
 
 	/* store output path, and file prefix for baked fluid surface */
 	/* strlens; 80= FILE_MAXFILE, 160= FILE_MAXDIR */
-	char surfdataPath[160+80];
+	char surfdataPath[240];
+
+	/* store start coords of axis aligned bounding box together with size */
+	/* values are inited during derived mesh display */
+	float bbStart[3], bbSize[3];
 } FluidsimSettings;
 
 /* ob->fluidsimSettings defines */

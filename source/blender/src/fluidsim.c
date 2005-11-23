@@ -67,6 +67,7 @@
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_ipo.h"
 #include "LBM_fluidsim.h"
 
 #include "BLI_editVert.h"
@@ -102,6 +103,9 @@
 extern int start_progress_bar(void);
 extern void end_progress_bar(void);
 extern int progress_bar(float done, char *busy_info);
+// global solver state
+extern int gElbeemState;
+extern char gElbeemErrorString[];
 
 double fluidsimViscosityPreset[6] = {
 	-1.0,	/* unused */
@@ -169,18 +173,37 @@ FluidsimSettings *fluidsimSettingsNew(struct Object *srcob)
 
 	strcpy(fss->surfdataPath,""); // leave blank, init upon first bake
 	fss->orgMesh = (Mesh *)srcob->data;
+	fss->meshSurface = NULL;
+	fss->meshBB = NULL;
+
+	// first init of bounding box
+	fss->bbStart[0] = 0.0;
+	fss->bbStart[1] = 0.0;
+	fss->bbStart[2] = 0.0;
+	fss->bbSize[0] = 1.0;
+	fss->bbSize[1] = 1.0;
+	fss->bbSize[2] = 1.0;
+	fluidsimGetAxisAlignedBB(srcob->data, srcob->obmat, fss->bbStart, fss->bbSize);
 	return fss;
 }
 
 /* free struct */
 void fluidsimSettingsFree(FluidsimSettings *fss)
 {
+	Mesh *freeFsMesh = fss->meshSurface;
+	if(freeFsMesh) {
+		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
+		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
+		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		MEM_freeN(freeFsMesh);
+	}
+
 	MEM_freeN(fss);
 }
 
 
 /* helper function */
-void getGeometryObjFilename(struct Object *ob, char *dst) { //, char *srcname) {
+void fluidsimGetGeometryObjFilename(struct Object *ob, char *dst) { //, char *srcname) {
 	//snprintf(dst,FILE_MAXFILE, "%s_cfgdata_%s.bobj.gz", srcname, ob->id.name);
 	snprintf(dst,FILE_MAXFILE, "fluidcfgdata_%s.bobj.gz", ob->id.name);
 }
@@ -192,13 +215,16 @@ int			globalBakeState = 0; // 0 everything ok, -1 abort simulation, 1 sim done
 int			globalBakeFrame = 0;
 
 // run simulation in seperate thread
-int simulateThread(void *ptr) {
+int fluidsimSimulateThread(void *ptr) {
 	char* fnameCfgPath = (char*)(ptr);
 	int ret;
 	
  	ret = performElbeemSimulation(fnameCfgPath);
 	SDL_mutexP(globalBakeLock);
-	globalBakeState = 1;
+	if(globalBakeState==0) {
+		// if no error, set to normal exit
+		globalBakeState = 1;
+	}
 	SDL_mutexV(globalBakeLock);
 	return ret;
 }
@@ -206,29 +232,41 @@ int simulateThread(void *ptr) {
 // called by simulation to set frame no.
 void simulateThreadIncreaseFrame(void) {
 	if(!globalBakeLock) return;
-	if(globalBakeState<0) return; // this means abort...
+	if(globalBakeState!=0) return; // this means abort...
 	SDL_mutexP(globalBakeLock);
 	globalBakeFrame++;
 	SDL_mutexV(globalBakeLock);
 }
 
+/* remember files created during bake for deletion */
+	//createdFiles[numCreatedFiles] = (char *)malloc(strlen(str)+1); 
+	//strcpy(createdFiles[numCreatedFiles] ,str); 
+#define ADD_CREATEDFILE(str) \
+	if(numCreatedFiles<255) {\
+		createdFiles[numCreatedFiles] = strdup(str); \
+		numCreatedFiles++; }
+
 /* ********************** write fluidsim config to file ************************* */
 void fluidsimBake(struct Object *ob)
 {
 	FILE *fileCfg;
+	int i;
 	struct Object *fsDomain = NULL;
 	FluidsimSettings *fssDomain;
 	struct Object *obit = NULL; /* object iterator */
 	int origFrame = G.scene->r.cfra;
-	char blendDir[FILE_MAXDIR], blendFile[FILE_MAXFILE];
-	char curWd[FILE_MAXDIR];
 	char debugStrBuffer[256];
 	int dirExist = 0;
-	const int maxRes = 200;
 	int gridlevels = 0;
+	char *createdFiles[256];
+	int  numCreatedFiles = 0;
+	int  doDeleteCreatedFiles = 1;
+	int simAborted = 0; // was the simulation aborted by user?
+	char *delEnvStr = "BLENDER_DELETEELBEEMFILES";
 
 	char *suffixConfig = "fluidsim.cfg";
 	char *suffixSurface = "fluidsurface";
+	char newSurfdataPath[FILE_MAXDIR+FILE_MAXFILE]; // modified output settings
 	char targetDir[FILE_MAXDIR+FILE_MAXFILE];  // store & modify output settings
 	char targetFile[FILE_MAXDIR+FILE_MAXFILE]; // temp. store filename from targetDir for access
 	int  outStringsChanged = 0;             // modified? copy back before baking
@@ -258,11 +296,6 @@ void fluidsimBake(struct Object *ob)
 	fsDomain = ob;
 	fssDomain = ob->fluidsimSettings;
 	/* rough check of settings... */
-	if(fssDomain->resolutionxyz>maxRes) {
-		fssDomain->resolutionxyz = maxRes;
-		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Resolution (%d) > %d^3, this requires more than 600MB of memory... restricting to %d^3 for now.\n",  fssDomain->resolutionxyz, maxRes, maxRes); 
-		elbeemDebugOut(debugStrBuffer);
-	}
 	if(fssDomain->previewresxyz > fssDomain->resolutionxyz) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::warning - Preview (%d) >= Resolution (%d)... setting equal.\n", fssDomain->previewresxyz ,  fssDomain->resolutionxyz); 
 		elbeemDebugOut(debugStrBuffer);
@@ -304,13 +337,15 @@ void fluidsimBake(struct Object *ob)
 	}
 
 	// prepare names...
-	strncpy(targetDir, fsDomain->fluidsimSettings->surfdataPath, FILE_MAXDIR);
+	strncpy(targetDir, fssDomain->surfdataPath, FILE_MAXDIR);
+	strncpy(newSurfdataPath, fssDomain->surfdataPath, FILE_MAXDIR);
 	BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
+	ADD_CREATEDFILE(targetFile);
 	fileCfg = fopen(targetFile, "w");
 	if(fileCfg) { dirExist = 1; fclose(fileCfg); }
 
@@ -327,9 +362,9 @@ void fluidsimBake(struct Object *ob)
 			}
 		}
 		// todo... strip .blend ?
-		snprintf(targetDir,FILE_MAXFILE+FILE_MAXDIR,"//%s_%s_", blendFile, fsDomain->id.name);
+		snprintf(newSurfdataPath,FILE_MAXFILE+FILE_MAXDIR,"//%s_%s_", blendFile, fsDomain->id.name);
 
-		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", targetDir);
+		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
 		elbeemDebugOut(debugStrBuffer);
 		outStringsChanged=1;
 	}
@@ -339,17 +374,18 @@ void fluidsimBake(struct Object *ob)
 		char dispmsg[FILE_MAXDIR+FILE_MAXFILE+256];
 		int  selection=0;
 		strcpy(dispmsg,"Output settings set to: '");
-		strcat(dispmsg, targetDir);
+		strcat(dispmsg, newSurfdataPath);
 		strcat(dispmsg, "'%t|Continue with changed settings%x1|Discard and abort%x0");
 
 		// ask user if thats what he/she wants...
 		selection = pupmenu(dispmsg);
 		if(selection<1) return; // 0 from menu, or -1 aborted
+		strcpy(targetDir, newSurfdataPath);
 		BLI_convertstringcode(targetDir, G.sce, 0); // fixed #frame-no 
 	}
 	
 	// dump data for frame 0
-  G.scene->r.cfra = 0;
+  G.scene->r.cfra = 1;
   scene_update_for_newframe(G.scene, G.scene->lay);
 
 	// start writing
@@ -366,44 +402,32 @@ void fluidsimBake(struct Object *ob)
 
 	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
 	// file open -> valid settings -> store
-	strncpy(fsDomain->fluidsimSettings->surfdataPath, targetDir, FILE_MAXDIR);
-	//strncpy(fsDomain->fluidsimSettings->urfdataPrefix, outPrefix, FILE_MAXFILE);
+	strncpy(fssDomain->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 
-	// FIXME set aniframetime from no. frames and duration
 	/* output simulation  settings */
 	{
 		int noFrames = G.scene->r.efra - G.scene->r.sfra;
 		double calcViscosity = 0.0;
-		double animFrameTime = (fssDomain->animEnd - fssDomain->animStart)/(double)noFrames;
+		double aniFrameTime = (fssDomain->animEnd - fssDomain->animStart)/(double)noFrames;
 		char *simString = "\n"
 		"attribute \"simulation1\" { \n" 
-		
-		"  p_domainsize  = " "%f" /* 0 realsize */ "; \n" 
-		"  p_anistart    = " "%f" /* 1 aniStart*/ "; #cfgset \n" 
-		"  p_aniframetime = " "%f" /* 2 aniFrameTime*/ "; #cfgset \n" 
 		"  solver = \"fsgr\"; \n"  "\n" 
-		"  initsurfsmooth = 0; \n"  "\n" 
-		"  debugvelscale = 0.005; \n"  "\n" 
-		"  isovalue =  0.4900; \n" 
-		"  isoweightmethod = 1; \n"  "\n" 
-		"  disable_stfluidinit = 0; \n"  "\n" 
+		"  p_domainsize  = " "%f"   /* realsize */ "; \n" 
+		"  p_anistart    = " "%f"   /* aniStart*/ "; \n" 
+		"  p_gravity = " "%f %f %f" /* pGravity*/ "; \n"  "\n" 
+		"  p_normgstar = %f; \n"    /* use gstar param? */
+		"  p_viscosity = " "%f"     /* pViscosity*/ "; \n"  "\n" 
 		
-		"  geoinit   = 1; \n" 
-		"  geoinitid = 1;  \n"  "\n" 
-		"  p_gravity = " "%f %f %f" /* 3,4,5 pGravity*/ "; #cfgset \n"  "\n" 
-		
-		"  timeadap = 1;  \n" 
-		"  p_tadapmaxomega = 2.0; \n" 
-		"  p_normgstar = %f; \n"  /* 6b use gstar param? */
-		"  p_viscosity = " "%f" /* 7 pViscosity*/ "; #cfgset \n"  "\n" 
-		
-		"  maxrefine = " "%d" /* 8 maxRefine*/ "; #cfgset  \n" 
-		"  size = " "%d" /* 9 gridSize*/ "; #cfgset  \n" 
-		"  surfacepreview = " "%d" /* 10 previewSize*/ "; #cfgset \n" 
+		"  maxrefine = " "%d" /* maxRefine*/ ";  \n" 
+		"  size = " "%d"      /* gridSize*/ ";  \n" 
+		"  surfacepreview = " "%d" /* previewSize*/ "; \n" 
 		"  smoothsurface = 1.0;  \n"
-		"\n" 
-		//"  //forcetadaprefine = 0; maxrefine = 0; \n" 
-		"} \n" ;
+
+		  "  geoinitid = 1;  \n"  "\n" 
+			"  isovalue =  0.4900; \n" 
+			"  isoweightmethod = 1; \n"  "\n"    
+
+		"\n" ;
     
 		if(fssDomain->viscosityMode==1) {
 			/* manual mode */
@@ -413,12 +437,41 @@ void fluidsimBake(struct Object *ob)
 		}
 		fprintf(fileCfg, simString,
 				(double)fssDomain->realsize, 
-				(double)fssDomain->animStart, animFrameTime ,
+				(double)fssDomain->animStart, 
 				(double)fssDomain->gravx, (double)fssDomain->gravy, (double)fssDomain->gravz,
 				(double)fssDomain->gstar,
 				calcViscosity,
 				gridlevels, (int)fssDomain->resolutionxyz, (int)fssDomain->previewresxyz 
 				);
+
+		// export animatable params
+		if(fsDomain->ipo) {
+			int i;
+			float tsum=0.0, shouldbe=0.0;
+			fprintf(fileCfg, "  CHANNEL p_aniframetime = ");
+			for(i=G.scene->r.sfra; i<G.scene->r.efra; i++) {
+				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
+					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
+				if(anit<0.0) anit = 0.0;
+				tsum += anit;
+			}
+			// make sure inaccurate integration doesnt modify end time
+			shouldbe = ((float)(G.scene->r.efra - G.scene->r.sfra)) *aniFrameTime;
+			for(i=G.scene->r.sfra; i<G.scene->r.efra; i++) {
+				float anit = (calc_ipo_time(fsDomain->ipo, i+1) -
+					calc_ipo_time(fsDomain->ipo, i)) * aniFrameTime;
+				if(anit<0.0) anit = 0.0;
+				anit *= (shouldbe/tsum);
+				fprintf(fileCfg," %f %d  \n",anit, (i-1)); // start with 0
+			}
+			fprintf(fileCfg, "; #cfgset, base=%f \n", aniFrameTime );
+			//fprintf(stderr, "DEBUG base=%f tsum=%f, sb=%f, ts2=%f \n", aniFrameTime, tsum,shouldbe,tsum2 );
+		} else {
+			fprintf(fileCfg, "  p_aniframetime = " "%f" /* 2 aniFrameTime*/ "; #cfgset \n" ,
+				aniFrameTime ); 
+		}
+			
+		fprintf(fileCfg,  "} \n" );
 	}
 
 	// output blender object transformation
@@ -520,8 +573,6 @@ void fluidsimBake(struct Object *ob)
 
 	/* output fluid domain */
 	{
-		float bbsx=0.0, bbsy=0.0, bbsz=0.0;
-		float bbex=1.0, bbey=1.0, bbez=1.0;
 		char * domainString = "\n" 
 			"  geometry { \n" 
 			"    type= fluidlbm; \n" 
@@ -533,35 +584,14 @@ void fluidsimBake(struct Object *ob)
 			"    end  = " "%f %f %f" /*bbend  */ "; #cfgset \n" 
 			"  } \n" 
 			"\n";
-		Mesh *mesh = fsDomain->data; 
-		//BoundBox *bb = fsDomain->bb;
-		//if(!bb) { bb = mesh->bb; }
-		//bb = NULL; // TODO test existing bounding box...
+		float *bbStart = fsDomain->fluidsimSettings->bbStart; 
+		float *bbSize = fsDomain->fluidsimSettings->bbSize;
+		fluidsimGetAxisAlignedBB(fsDomain->data, fsDomain->obmat, bbStart, bbSize);
 
-		//if(!bb && (mesh->totvert>0) ) 
-		{ 
-			int i;
-			float vec[3];
-			VECCOPY(vec, mesh->mvert[0].co); 
-			Mat4MulVecfl(fsDomain->obmat, vec);
-			bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];
-			bbex = vec[0]; bbey = vec[1]; bbez = vec[2];
-			for(i=1; i<mesh->totvert;i++) {
-				VECCOPY(vec, mesh->mvert[i].co); /* get transformed point */
-				Mat4MulVecfl(fsDomain->obmat, vec);
-
-				if(vec[0] < bbsx){ bbsx= vec[0]; }
-				if(vec[1] < bbsy){ bbsy= vec[1]; }
-				if(vec[2] < bbsz){ bbsz= vec[2]; }
-				if(vec[0] > bbex){ bbex= vec[0]; }
-				if(vec[1] > bbey){ bbey= vec[1]; }
-				if(vec[2] > bbez){ bbez= vec[2]; }
-			}
-		}
 		fprintf(fileCfg, domainString,
 			fsDomain->id.name, 
-			bbsx, bbsy, bbsz,
-			bbex, bbey, bbez
+			bbStart[0],           bbStart[1],           bbStart[2],
+			bbStart[0]+bbSize[0], bbStart[1]+bbSize[1], bbStart[2]+bbSize[2]
 		);
 	}
 
@@ -596,7 +626,7 @@ void fluidsimBake(struct Object *ob)
 					(obit->type==OB_MESH) &&
 				  (obit->fluidsimSettings->type != OB_FLUIDSIM_DOMAIN)
 				) {
-					getGeometryObjFilename(obit, fnameObjdat); //, outPrefix);
+					fluidsimGetGeometryObjFilename(obit, fnameObjdat); //, outPrefix);
 					strcpy(targetFile, targetDir);
 					strcat(targetFile, fnameObjdat);
 					fprintf(fileCfg, objectStringStart, obit->id.name ); // abs path
@@ -616,6 +646,7 @@ void fluidsimBake(struct Object *ob)
 						fprintf(fileCfg, obstacleString, "bnd_no" , targetFile); // abs path
 					}
 					fprintf(fileCfg, objectStringEnd ); // abs path
+					ADD_CREATEDFILE(targetFile);
 					writeBobjgz(targetFile, obit);
 			}
 		}
@@ -635,6 +666,9 @@ void fluidsimBake(struct Object *ob)
 
 	fprintf(fileCfg, "} // end raytracing\n");
 	fclose(fileCfg);
+
+	strcpy(targetFile, targetDir);
+	strcat(targetFile, suffixConfig);
 	snprintf(debugStrBuffer,256,"fluidsimBake::msg: Wrote %s\n", targetFile); 
 	elbeemDebugOut(debugStrBuffer);
 
@@ -642,11 +676,10 @@ void fluidsimBake(struct Object *ob)
 	{
 		SDL_Thread *simthr = NULL;
 		globalBakeLock = SDL_CreateMutex();
+		// set to neutral, -1 means user abort, -2 means init error
 		globalBakeState = 0;
 		globalBakeFrame = 1;
-		strcpy(targetFile, targetDir);
-		strcat(targetFile, suffixConfig);
-		simthr = SDL_CreateThread(simulateThread, targetFile);
+		simthr = SDL_CreateThread(fluidsimSimulateThread, targetFile);
 #ifndef WIN32
 		// DEBUG for win32 debugging, dont use threads...
 #endif // WIN32
@@ -677,7 +710,7 @@ void fluidsimBake(struct Object *ob)
 				
 				SDL_Delay(2000); // longer delay to prevent frequent redrawing
 				SDL_mutexP(globalBakeLock);
-				if(globalBakeState == 1) done = 1;
+				if(globalBakeState != 0) done = 1; // 1=ok, <0=error/abort
 				SDL_mutexV(globalBakeLock);
 
 				while(qtest()) {
@@ -688,6 +721,7 @@ void fluidsimBake(struct Object *ob)
 						done = -1;
 						globalBakeFrame = 0;
 						globalBakeState = -1;
+						simAborted = 1;
 						SDL_mutexV(globalBakeLock);
 						break;
 					}
@@ -713,13 +747,36 @@ void fluidsimBake(struct Object *ob)
 		globalBakeLock = NULL;
 	} // thread creation
 
-	// TODO cleanup sim files?
+	// cleanup sim files
+	if(getenv(delEnvStr)) {
+		doDeleteCreatedFiles = atoi(getenv(delEnvStr));
+	}
+	for(i=0; i<numCreatedFiles; i++) {
+		if(doDeleteCreatedFiles>0) {
+			fprintf(stderr," CREATED '%s' deleting... \n", createdFiles[i]);
+			BLI_delete(createdFiles[i], 0,0);
+		}
+		free(createdFiles[i]);
+	}
+
 	// go back to "current" blender time
 	waitcursor(0);
   G.scene->r.cfra = origFrame;
   scene_update_for_newframe(G.scene, G.scene->lay);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+
+	if(!simAborted) {
+		char fsmessage[512];
+		strcpy(fsmessage,"Fluidsim Bake Error: ");
+		// check if some error occurred
+		if(globalBakeState==-2) {
+			strcat(fsmessage,"Failed to initialize [Msg: ");
+			strcat(fsmessage,gElbeemErrorString);
+			strcat(fsmessage,"]|OK%x0");
+			pupmenu(fsmessage);
+		} // init error
+	}
 }
 
 

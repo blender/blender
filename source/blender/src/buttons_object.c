@@ -2104,18 +2104,26 @@ static void object_panel_fluidsim(Object *ob)
 
 			/* display specific settings for each type */
 			if(fss->type == OB_FLUIDSIM_DOMAIN) {
-				const int maxRes = 200;
+				const int maxRes = 512;
+				char memString[32];
 
-			/* domain "advanced" settings */
-			if(fss->type == OB_FLUIDSIM_DOMAIN) { }
+				// use mesh bounding box and object scaling
+				// TODO fix redraw issue
+				elbeemEstimateMemreq(fss->resolutionxyz, 
+						ob->fluidsimSettings->bbSize[0],ob->fluidsimSettings->bbSize[1],ob->fluidsimSettings->bbSize[2], fss->maxRefine, memString);
+				
 				uiDefButBitS(block, TOG, 1, REDRAWBUTSOBJECT, "Advanced>>",	 0,yline, 75,objHeight, &fss->show_advancedoptions, 0, 0, 0, 0, "Show advanced domain options.");
 				uiDefBut(block, BUT, B_FLUIDSIM_BAKE, "BAKE",90, yline,210,objHeight, NULL, 0.0, 0.0, 10, 0, "Perform simulation and output and surface&preview meshes for each frame.");
 				yline -= lineHeight;
 				yline -= 2*separateHeight;
 
 				if(fss->show_advancedoptions == 0) {
-					uiDefButS(block, NUM, B_DIFF, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
-					uiDefButS(block, NUM, B_DIFF, "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+					uiDefBut(block, LABEL,   0, "Req. BAKE Memory:",  0,yline,150,objHeight, NULL, 0.0, 0, 0, 0, "");
+					uiDefBut(block, LABEL,   0, memString,  200,yline,100,objHeight, NULL, 0.0, 0, 0, 0, "");
+					yline -= lineHeight;
+
+					uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
+					uiDefButS(block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
 

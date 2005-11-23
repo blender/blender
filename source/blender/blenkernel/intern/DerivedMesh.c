@@ -1468,11 +1468,23 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
 	int numVerts = me->totvert;
+	int fluidsimMeshUsed = 0;
 
 	modifiers_clearErrors(ob);
 
 	if (deform_r) *deform_r = NULL;
 	*final_r = NULL;
+
+	/* replace original mesh by fluidsim surface mesh for fluidsim domain objects */
+	if((G.obedit!=ob) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
+		if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
+			loadFluidsimMesh(ob,useRenderParams);
+			fluidsimMeshUsed = 1;
+			/* might have changed... */
+			me = ob->data;
+			numVerts = me->totvert;
+		}
+	}
 
 	if (useDeform) {
 		if(do_ob_key(ob))	/* shape key makes deform verts */
@@ -1502,16 +1514,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 		deformedVerts = inputVertexCos;
 	}
 
-	/* N_T 
-	 * i dont know why, but somehow the if(useDeform) part
-	 * is necessary to get anything displayed
-	 */ 
-	if((G.obedit!=ob) && (ob->fluidsimFlag & OB_FLUIDSIM_ENABLE)) {
-		if(ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN) {
-			*final_r = getFluidsimDerivedMesh(ob,useRenderParams, NULL,NULL);					
-			if(*final_r) return;
-		}
-	}
 
 		/* Now apply all remaining modifiers. If useDeform is off then skip
 		 * OnlyDeform ones. 
@@ -1590,6 +1592,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 	if (deformedVerts && deformedVerts!=inputVertexCos) {
 		MEM_freeN(deformedVerts);
 	}
+	// restore mesh in any case
+	if(fluidsimMeshUsed) ob->data = ob->fluidsimSettings->orgMesh;
 }
 
 static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
@@ -2248,44 +2252,54 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 
 /* ***************************** fluidsim derived mesh ***************************** */
 
-typedef struct {
-	MeshDerivedMesh mdm;
-
-	/* release whole mesh? */
-	char freeMesh;
-} FluidsimDerivedMesh;
-
-static void fluidsimDM_release(DerivedMesh *dm)
-{
-	FluidsimDerivedMesh *fsdm = (FluidsimDerivedMesh*) dm;
-	if(fsdm->freeMesh) {
-		// similar to free_mesh(fsdm->mdm.me) , but no things like unlink...
-		if(fsdm->mdm.me->mvert) MEM_freeN(fsdm->mdm.me->mvert);
-		if(fsdm->mdm.me->medge) MEM_freeN(fsdm->mdm.me->medge);
-		if(fsdm->mdm.me->mface) MEM_freeN(fsdm->mdm.me->mface);
-		MEM_freeN(fsdm->mdm.me);
-	}
-
-	if (fsdm->mdm.freeNors) MEM_freeN(fsdm->mdm.nors);
-	if (fsdm->mdm.freeVerts) MEM_freeN(fsdm->mdm.verts);
-	MEM_freeN(fsdm);
-}
-
-DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *extverts, float *nors) 
+/* check which file to load, and replace old mesh of the object with it */
+/* this replacement is undone at the end of mesh_calc_modifiers */
+void loadFluidsimMesh(Object *srcob, int useRenderParams)
 {
 	Mesh *mesh = NULL;
-	FluidsimDerivedMesh *fsdm;
 	MeshDerivedMesh *mdm = NULL;
 	float (*vertCos)[3];
 	int displaymode = 0;
 	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	char debugStrBuffer[256];
-	//snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
+	float *bbStart = NULL, *bbSize = NULL;
+	float lastBB[3];
+	//snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
 
 	if((!srcob)||(!srcob->fluidsimSettings)) {
-		fprintf(stderr,"??? DEBUG, strange getFluidsimDerivedMesh call!\n\n"); return NULL;
+		snprintf(debugStrBuffer,256,"DEBUG - Invalid loadFluidsimMesh call, rp %d, dm %d)\n", useRenderParams, displaymode); // debug
+		elbeemDebugOut(debugStrBuffer); // debug
+		return;
 	}
+	// make sure the original mesh data pointer is stored
+	if(!srcob->fluidsimSettings->orgMesh) {
+		srcob->fluidsimSettings->orgMesh = srcob->data;
+	}
+
+	// free old mesh, if there is one (todo, check if it's still valid?)
+	if(srcob->fluidsimSettings->meshSurface) {
+		Mesh *freeFsMesh = srcob->fluidsimSettings->meshSurface;
+
+		// similar to free_mesh(...) , but no things like unlink...
+		if(freeFsMesh->mvert) MEM_freeN(freeFsMesh->mvert);
+		if(freeFsMesh->medge) MEM_freeN(freeFsMesh->medge);
+		if(freeFsMesh->mface) MEM_freeN(freeFsMesh->mface);
+		MEM_freeN(freeFsMesh);
+		
+		if(srcob->data == srcob->fluidsimSettings->meshSurface)
+		 srcob->data = srcob->fluidsimSettings->orgMesh;
+		srcob->fluidsimSettings->meshSurface = NULL;
+	} 
+
+	// init bounding box
+	bbStart = srcob->fluidsimSettings->bbStart; 
+	bbSize = srcob->fluidsimSettings->bbSize;
+	lastBB[0] = bbSize[0];  // TEST
+	lastBB[1] = bbSize[1]; 
+	lastBB[2] = bbSize[2];
+	fluidsimGetAxisAlignedBB(srcob->fluidsimSettings->orgMesh, srcob->obmat, bbStart, bbSize);
+	// check free fsmesh... TODO
 	
 	if(!useRenderParams) {
 		displaymode = srcob->fluidsimSettings->guiDisplayMode;
@@ -2293,74 +2307,80 @@ DerivedMesh *getFluidsimDerivedMesh(Object *srcob, int useRenderParams, float *e
 		displaymode = srcob->fluidsimSettings->renderDisplayMode;
 	}
 	
-	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
+	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d)\n", srcob->id.name, useRenderParams, displaymode); // debug
 	elbeemDebugOut(debugStrBuffer); // debug
 
  	strncpy(targetDir, srcob->fluidsimSettings->surfdataPath, FILE_MAXDIR);
 	// use preview or final mesh?
-	if(displaymode==2) {
+	if(displaymode==1) {
+		// just display original object
+		srcob->data = srcob->fluidsimSettings->orgMesh;
+		return;
+	} else if(displaymode==2) {
 		strcat(targetDir,"fluidsurface_preview_#");
-	} else {
+	} else { // 3
 		strcat(targetDir,"fluidsurface_final_#");
 	}
 	BLI_convertstringcode(targetDir, G.sce, curFrame); // fixed #frame-no 
 	strcpy(targetFile,targetDir);
 	strcat(targetFile, ".bobj.gz");
-	//fprintf(stderr,"getFluidsimDerivedMesh call (obid '', rp %d, dm %d) '%s' \n", useRenderParams, displaymode, targetFile);  // debug
 
-	snprintf(debugStrBuffer,256,"getFluidsimDerivedMesh call (obid '%s', rp %d, dm %d) '%s' \n", srcob->id.name, useRenderParams, displaymode, targetFile);  // debug
+	snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d, dm %d) '%s' \n", srcob->id.name, useRenderParams, displaymode, targetFile);  // debug
 	elbeemDebugOut(debugStrBuffer); // debug
 
-	mesh = readBobjgz(targetFile, (Mesh*)(srcob->data) );
+	mesh = readBobjgz(targetFile, srcob->fluidsimSettings->orgMesh );
 	if(!mesh) {
 		// display org. object upon failure
-		mesh = srcob->data;			
-		return getMeshDerivedMesh(mesh , srcob, NULL);
+		srcob->data = srcob->fluidsimSettings->orgMesh;
+		return;
 	}
 
 	if((mesh)&&(mesh->totvert>0)) {
 		make_edges(mesh, 0);	// 0 = make all edges draw
 	}
+	srcob->fluidsimSettings->meshSurface = mesh;
+	srcob->data = mesh;
+	return;
+}
 
-	// WARNING copied from getMeshDerivedMesh
-	fsdm = MEM_callocN(sizeof(*fsdm), "getFluidsimDerivedMesh_fsdm");
-	fsdm->freeMesh = 1;
-	mdm = &fsdm->mdm;
-	vertCos = NULL;
+/* helper function */
+/* init axis aligned BB for mesh object */
+void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
+		 /*RET*/ float start[3], /*RET*/ float size[3] )
+{
+	float bbsx=0.0, bbsy=0.0, bbsz=0.0;
+	float bbex=1.0, bbey=1.0, bbez=1.0;
+	int i;
+	float vec[3];
 
-	mdm->dm.getMinMax = meshDM_getMinMax;
-	mdm->dm.convertToDispListMesh = meshDM_convertToDispListMesh;
-	mdm->dm.getNumVerts = meshDM_getNumVerts;
-	mdm->dm.getNumFaces = meshDM_getNumFaces;
-	mdm->dm.getVertCos = meshDM_getVertCos;
-	mdm->dm.getVertCo = meshDM_getVertCo;
-	mdm->dm.getVertNo = meshDM_getVertNo;
-	mdm->dm.drawVerts = meshDM_drawVerts;
-	mdm->dm.drawUVEdges = meshDM_drawUVEdges;
-	mdm->dm.drawEdges = meshDM_drawEdges;
-	mdm->dm.drawLooseEdges = meshDM_drawLooseEdges;
-	mdm->dm.drawFacesSolid = meshDM_drawFacesSolid;
-	mdm->dm.drawFacesColored = meshDM_drawFacesColored;
-	mdm->dm.drawFacesTex = meshDM_drawFacesTex;
-	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
-	mdm->dm.drawMappedEdges = meshDM_drawMappedEdges;
-	mdm->dm.drawMappedFaces = meshDM_drawMappedFaces;
+	VECCOPY(vec, mesh->mvert[0].co); 
+	Mat4MulVecfl(obmat, vec);
+	bbsx = vec[0]; bbsy = vec[1]; bbsz = vec[2];
+	bbex = vec[0]; bbey = vec[1]; bbez = vec[2];
 
-	// use own release function
-	mdm->dm.release = fluidsimDM_release;
-	
-	mdm->ob = srcob;
-	mdm->me = mesh;
-	mdm->verts = mesh->mvert;
-	mdm->nors = NULL;
-	mdm->freeNors = 0;
-	mdm->freeVerts = 0;
-	
-	// if (vertCos) { not needed for fluid meshes... 
-	// this is kinda ... see getMeshDerivedMesh
-	mesh_calc_normals(mdm->verts, mdm->me->totvert, mdm->me->mface, mdm->me->totface, &mdm->nors);
-	mdm->freeNors = 1;
- 	return (DerivedMesh*) mdm;
+	for(i=1; i<mesh->totvert;i++) {
+		VECCOPY(vec, mesh->mvert[i].co);
+		Mat4MulVecfl(obmat, vec);
+
+		if(vec[0] < bbsx){ bbsx= vec[0]; }
+		if(vec[1] < bbsy){ bbsy= vec[1]; }
+		if(vec[2] < bbsz){ bbsz= vec[2]; }
+		if(vec[0] > bbex){ bbex= vec[0]; }
+		if(vec[1] > bbey){ bbey= vec[1]; }
+		if(vec[2] > bbez){ bbez= vec[2]; }
+	}
+
+	// return values...
+	if(start) {
+		start[0] = bbsx;
+		start[1] = bbsy;
+		start[2] = bbsz;
+	} 
+	if(size) {
+		size[0] = bbex-bbsx;
+		size[1] = bbey-bbsy;
+		size[2] = bbez-bbsz;
+	}
 }
 
 

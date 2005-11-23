@@ -2402,8 +2402,10 @@ static void direct_link_object(FileData *fd, Object *ob)
 	}
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 	if(ob->fluidsimSettings) {
-		// not much to do for now... 
-		ob->fluidsimSettings->orgMesh = NULL;
+		// reinit mesh pointers
+		ob->fluidsimSettings->orgMesh = NULL; //ob->data;
+		ob->fluidsimSettings->meshSurface = NULL;
+		ob->fluidsimSettings->meshBB = NULL;
 	}
 	
 	link_list(fd, &ob->prop);

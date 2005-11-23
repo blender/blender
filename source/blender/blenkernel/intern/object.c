@@ -57,6 +57,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_oops_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -216,7 +217,7 @@ void free_object(Object *ob)
 	
 	if(ob->pd) MEM_freeN(ob->pd);
 	if(ob->soft) sbFree(ob->soft);
-	if(ob->fluidsimSettings) MEM_freeN(ob->fluidsimSettings); /* NT */
+	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
 }
 
 static void unlink_object__unlinkModifierLinks(void *userData, Object *ob, Object **obpoin)
