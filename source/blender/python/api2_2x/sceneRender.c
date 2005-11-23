@@ -1361,6 +1361,10 @@ PyObject *RenderData_EnableGaussFilter( BPy_RenderData * self,
 {
 	return M_Render_BitToggleInt( args, R_GAUSS,
 				      &self->renderContext->mode );
+	
+	/* note, this now is obsolete (ton) */
+	/* we now need a call like RenderData_SetFilter() or so */
+	/* choices are listed in DNA_scene_types.h (search filtertype) */
 }
 
 //------------------------------------RenderData.EnableBorderRender() ---

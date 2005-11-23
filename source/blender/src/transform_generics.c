@@ -74,6 +74,7 @@
 #include "BKE_utildefines.h"
 
 #include "BSE_view.h"
+#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"

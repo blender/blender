@@ -518,4 +518,7 @@ void quicktime_exit(void);
    Called by schrijfplaatje() in toets.c */
 short imb_savehdr_fromfloat(float *fbuf, char *name, int width, int height);
 
+/* intern/dynlibtiff.c */
+void libtiff_exit(void);
+
 #endif

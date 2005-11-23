@@ -114,7 +114,7 @@
 #include "blendef.h"
 
 #include "radio.h"
-#include "render.h"		// RE_ free stuff
+#include "render.h"		/* RE_ free stuff */
 #include "datatoc.h"
 
 #include "SYS_System.h"

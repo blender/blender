@@ -507,7 +507,6 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[]) {
 	the orientation where %s is (logically).
 */
 void setUserConstraint(TransInfo *t, int mode, const char ftext[]) {
-	float mtx[3][3];
 	char text[40];
 	short twmode= (t->spacetype==SPACE_VIEW3D)? G.vd->twmode: V3D_MANIP_GLOBAL;
 

@@ -1576,7 +1576,7 @@ void zBufShadeAdvanced()
 				
 				SDL_WaitThread(thread, NULL);
 				
-				if(R.r.mode & R_GAUSS) {
+				if(R.r.filtertype) {
 					float *rb1= AColourBuffer1, *rb2= AColourBuffer2, *rb1a= AColourBuffer1a, *rb2a= AColourBuffer2a;
 					int a= 4*(R.rectx + 4);
 					while(a--) {

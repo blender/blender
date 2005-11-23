@@ -2751,7 +2751,7 @@ void zbufshadeDA(void)	/* Delta Accum Pixel Struct */
 					do_renderlineDA(&rl2);
 					SDL_WaitThread(thread, NULL);
 					
-					if(R.r.mode & R_GAUSS) {
+					if(R.r.filtertype) {
 						float *rb1= rowbuf1, *rb2= rowbuf2, *rb1a= rowbuf1a, *rb2a= rowbuf2a;
 						a= 4*(R.rectx + 4);
 						while(a--) {

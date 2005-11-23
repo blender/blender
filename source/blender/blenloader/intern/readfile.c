@@ -5018,6 +5018,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce= main->scene.first;
 		Camera *cam= main->camera.first;
 		Material *ma= main->mat.first;
+		int set_passepartout= 0;
 		
 		/* deformflag is local in modifier now */
 		for(ob=main->object.first; ob; ob= ob->id.next) {
@@ -5040,33 +5041,37 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if (arm->ghostsize==0) arm->ghostsize=1;
 		}
 		
-		while(sce) {
+		for(;sce;sce= sce->id.next) {
 			/* make 'innervert' the default subdivide type, for backwards compat */
 			sce->toolsettings->cornertype=1;
 		
-			while(cam) {
-				/* convert the passepartout scene flag to a camera flag */
-				if(sce->r.scemode & R_PASSEPARTOUT) {
-					cam->flag |= CAM_SHOWPASSEPARTOUT;
-					/* now disable it from the scene*/
-					sce->r.scemode &= ~R_PASSEPARTOUT;
-				}
-				
-				/* make sure old cameras have title safe on */
-				
-				/* *** to be uncommented before 2.40 release! *** */
-				/* 
-					if (!(cam->flag & CAM_SHOWTITLESAFE))
-					cam->flag |= CAM_SHOWTITLESAFE;
-				*/
-				
-				/* set an appropriate camera passepartout alpha */
-				if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
-				
-				cam= cam->id.next;
+			if(sce->r.scemode & R_PASSEPARTOUT) {
+				set_passepartout= 1;
+				sce->r.scemode &= ~R_PASSEPARTOUT;
 			}
-			sce= sce->id.next;
+			/* gauss is filter variable now */
+			if(sce->r.mode & R_GAUSS) {
+				sce->r.filtertype= R_FILTER_GAUSS;
+				sce->r.mode &= ~R_GAUSS;
+			}
 		}
+		
+		for(;cam; cam= cam->id.next) {
+			if(set_passepartout)
+				cam->flag |= CAM_SHOWPASSEPARTOUT;
+			
+			/* make sure old cameras have title safe on */
+			
+			/* *** to be uncommented before 2.40 release! *** */
+			/* 
+			if (!(cam->flag & CAM_SHOWTITLESAFE))
+			 cam->flag |= CAM_SHOWTITLESAFE;
+			 */
+			
+			/* set an appropriate camera passepartout alpha */
+			if (!(cam->passepartalpha)) cam->passepartalpha = 0.2f;
+		}
+		
 		for(; ma; ma= ma->id.next) {
 			if(ma->strand_sta==0.0f) {
 				ma->strand_sta= ma->strand_end= 1.0f;

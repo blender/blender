@@ -300,13 +300,9 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_SET_EDGE		1643
 #define B_SET_ZBLUR		1644
 
-#ifdef __NLA
 /* *********************** */
-enum {
-	B_ARMATUREBUTS	=	1800,
-	B_POSE			=	1701
-};
-#endif
+#define B_ARMATUREBUTS	1800
+#define	B_POSE			1701
 
 /* *********************** */
 #define B_COMMONEDITBUTS	2049

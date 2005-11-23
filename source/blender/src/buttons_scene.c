@@ -1090,7 +1090,7 @@ static void render_panel_output(void)
 static void render_panel_render(void)
 {
 	uiBlock *block;
-
+	char str[256];
 
 	block= uiNewBlock(&curarea->uiblocks, "render_panel_render", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
@@ -1148,8 +1148,9 @@ static void render_panel_render(void)
 	uiDefButBitI(block, TOG, R_ODDFIELD, 0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
 	uiDefButBitI(block, TOG, R_FIELDSTILL, 0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	
-	uiDefButBitI(block, TOG, R_GAUSS, 0,"Gauss",	565,34,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable Gaussian sampling filter for antialiasing");
-	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 100, 2, "Sets the Gaussian filter size");
+	sprintf(str, "Filter%%t|Box %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
+	uiDefButS(block, MENU, B_DIFF,str,		565,34,60,20, &G.scene->r.filtertype, 0, 0, 0, 0, "Set sampling filter for antialiasing");
+	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 10, 2, "Sets the filter size");
 	
 	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
 	uiDefButBitI(block, TOG, R_GAMMA, B_REDR, "Gamma",	627,13,60,20, &G.scene->r.mode, 0, 0, 0, 0, "Enable gamma correction");

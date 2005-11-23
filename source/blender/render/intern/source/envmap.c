@@ -206,7 +206,8 @@ static void envmap_renderdata(EnvMap *env)
 		R.xstart= R.ystart= -R.afmx;
 		R.xend= R.yend= R.xstart+R.rectx-1;
 
-		R.r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR | R_GAUSS);
+		R.r.mode &= ~(R_BORDER | R_PANORAMA | R_ORTHO | R_MBLUR);
+		R.r.filtertype= 0;
 		R.r.xparts= R.r.yparts= 1;
 		R.r.bufflag= 0;
 		R.r.size= 100;

@@ -119,13 +119,60 @@ void init_filt_mask(void);
 
 /* ****************** GAMMA, MASKS and LUTS **************** */
 
+static float filt_quadratic(float x)
+{
+    if (x <  0.0f) x = -x;
+    if (x < 0.5f) return 0.75f-(x*x);
+    if (x < 1.5f) return 0.50f*(x-1.5f)*(x-1.5f);
+    return 0.0f;
+}
+
+
+static float filt_cubic(float x)
+{
+	float x2= x*x;
+	
+    if (x <  0.0f) x = -x;
+	
+    if (x < 1.0f) return 0.5*x*x2 - x2 + 2.0f/3.0f;
+    if (x < 2.0f) return (2.0-x)*(2.0-x)*(2.0-x)/6.0f;
+    return 0.0f;
+}
+
+
+static float filt_catrom(float x)
+{
+	float x2= x*x;
+	
+    if (x <  0.0f) x = -x;
+    if (x < 1.0f) return  1.5f*x2*x - 2.5f*x2  + 1.0f;
+    if (x < 2.0f) return -0.5f*x2*x + 2.5*x2 - 4.0f*x + 2.0f;
+    return 0.0f;
+}
+
+static float filt_mitchell(float x)	/* Mitchell & Netravali's two-param cubic */
+{
+	float b = 1.0f/3.0f, c = 1.0f/3.0f;
+	float p0 = (  6.0 -  2.0*b         ) / 6.0;
+	float p2 = (-18.0 + 12.0*b +  6.0*c) / 6.0;
+	float p3 = ( 12.0 -  9.0*b -  6.0*c) / 6.0;
+	float q0 = (	   8.0*b + 24.0*c) / 6.0;
+	float q1 = (      - 12.0*b - 48.0*c) / 6.0;
+	float q2 = (         6.0*b + 30.0*c) / 6.0;
+	float q3 = (       -     b -  6.0*c) / 6.0;
+
+	if (x<-2.0) return 0.0;
+	if (x<-1.0) return (q0-x*(q1-x*(q2-x*q3)));
+	if (x< 0.0) return (p0+x*x*(p2-x*p3));
+	if (x< 1.0) return (p0+x*x*(p2+x*p3));
+	if (x< 2.0) return (q0+x*(q1+x*(q2+x*q3)));
+	return 0.0;
+}
+
 static float calc_weight(float *weight, int i, int j)
 {
-	float x, y, dist, totw= 0.0, fac;
+	float x, y, dist, totw= 0.0;
 	int a;
-
-	fac= R.r.gauss*R.r.gauss;
-	fac*= fac;
 
 	for(a=0; a<R.osa; a++) {
 		x= jit[a][0] + i;
@@ -134,17 +181,40 @@ static float calc_weight(float *weight, int i, int j)
 
 		weight[a]= 0.0;
 
-		/* gaussian weighting */
-		if(R.r.mode & R_GAUSS) {
-			if(dist<R.r.gauss) {
-				x = dist*R.r.gauss;
-				weight[a]= (1.0/exp(x*x) - 1.0/exp(fac));
-			}
-		}
-		else {
+		/* Weighting choices */
+		switch(R.r.filtertype) {
+		case R_FILTER_BOX:
 			if(i==0 && j==0) weight[a]= 1.0;
+			break;
+			
+		case R_FILTER_TENT:
+			if(dist < R.r.gauss)
+				weight[a]= R.r.gauss - dist;
+			break;
+			
+		case R_FILTER_GAUSS:
+			x = dist*R.r.gauss;
+			weight[a]= (1.0/exp(x*x) - 1.0/exp(R.r.gauss*R.r.gauss*2.25));
+			break;
+		
+		case R_FILTER_MITCH:
+			weight[a]= filt_mitchell(dist*R.r.gauss);
+			break;
+		
+		case R_FILTER_QUAD:
+			weight[a]= filt_quadratic(dist*R.r.gauss);
+			break;
+			
+		case R_FILTER_CUBIC:
+			weight[a]= filt_cubic(dist*R.r.gauss);
+			break;
+			
+		case R_FILTER_CATROM:
+			weight[a]= filt_catrom(dist*R.r.gauss);
+			break;
+			
 		}
-
+		
 		totw+= weight[a];
 
 	}
@@ -157,8 +227,8 @@ void init_filt_mask(void)
 {
 	static int firsttime=1;
 	static int lastosa=0;
-	static int lastgauss=0;
-	static float lastgamma= 0.0;
+	static int lastfilter= -1;
+	static float lastgamma= 0.0f, lastgaussdist=0.0f;
 	float gamma, igamma, flweight[32], fmask[256];
 	float weight[32], totw, val, *fpx1, *fpx2, *fpy1, *fpy2, *m3, *m4;
 	int i, j, a;
@@ -233,10 +303,11 @@ void init_filt_mask(void)
 		}
 	}
 
-	if(R.osa && (lastosa!=R.osa || lastgauss != (R.r.mode & R_GAUSS)) ) {
+	if(R.osa && (lastosa!=R.osa || lastfilter != (R.r.filtertype) || lastgaussdist!=R.r.gauss)) {
 		lastosa= R.osa;
-		lastgauss= R.r.mode & R_GAUSS;
-			
+		lastfilter= R.r.filtertype;
+		lastgaussdist= R.r.gauss;
+		
 		val= 1.0/((float)R.osa);
 		for(a=0; a<256; a++) {
 			fmask[a]= ((float)cmask[a])*val;
@@ -683,8 +754,8 @@ static void initparts(void)
 		}
 		
 		if(pa->x>0 && pa->y>0) {
-			/* Gauss needs 1 pixel extra to work */
-			if((R.r.mode & R_GAUSS)) {
+			/* Non-box filters might need 1 pixel extra to work */
+			if((R.r.filtertype)) {
 				pa->minx-= 1;
 				pa->miny-= 1;
 				pa->maxx+= 1;
@@ -728,7 +799,7 @@ static void addparttorect(Part *pa)
 	copylen=len= pa->x;
 	height= pa->y;
 	
-	if(R.r.mode & R_GAUSS) {
+	if(R.r.filtertype) {	/* filters added 1 pixel extra */
 		
 		rtp+= 1+len;
 		if(rzp) rzp+= 1+len;
@@ -1031,7 +1102,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 				if( (R.r.mode & R_BORDER) && (R.r.mode & R_MOVIECROP));
 				else {
 					/* HANDLE PART OR BORDER */
-					if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.mode & R_GAUSS)) {
+					if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.filtertype)) {
 
 						pa->rect= R.rectot;
 						R.rectot= NULL;
@@ -1055,7 +1126,7 @@ static void mainRenderLoop(void)  /* here the PART and FIELD loops */
 
 				if(R.r.mode & R_PANORAMA) R.rectx*= R.r.xparts;
 
-				if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.mode & R_GAUSS)) {
+				if(totparts>1 || (R.r.mode & R_BORDER) || (R.r.filtertype)) {
 					int a;
 					
 					if(R.rectot) MEM_freeN(R.rectot);
@@ -1313,7 +1384,7 @@ void RE_initrender(struct View3D *ogl_render_view3d)
 	
 	/* just prevents cpu cycles for larger render and copying */
 	if((R.r.mode & R_OSA)==0)
-		R.r.mode &= ~R_GAUSS;
+		R.r.filtertype= 0;
 	
 	renderloop_setblending();	// alpha, sky, gamma
 	

@@ -950,7 +950,45 @@ static void drawviewborder(void)
 	BIF_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 	
+	{
+		extern float jit[64][2];
+		int a, i, j;
 
+		BIF_ThemeColor(TH_BACK);
+		glBegin(GL_LINES);
+		glVertex2f(x1 + (x2-x1)/3, y1);
+		glVertex2f(x1 + (x2-x1)/3, y2);
+		
+		glVertex2f(x1 + 2*(x2-x1)/3, y1);
+		glVertex2f(x1 + 2*(x2-x1)/3, y2);
+		
+		glVertex2f(x1, y1 + (y2-y1)/3);
+		glVertex2f(x2, y1 + (y2-y1)/3);
+		
+		glVertex2f(x1, y1 + 2*(y2-y1)/3);
+		glVertex2f(x2, y1 + 2*(y2-y1)/3);
+		glEnd();
+		
+		glPointSize(4);
+		glBegin(GL_POINTS);
+		for(i= -1; i<2; i++) {
+			for(j= -1; j<2; j++) {
+			
+				if(i==0 && j==0)
+					glColor3ub(255, 255, 255);
+				else
+					glColor3ub(150, 150, 150);
+				
+				for(a=0; a<R.osa; a++) {
+					glVertex2f(i*(x2-x1)/3 + (x1+x2)/2 + jit[a][0]*(x2-x1)/3.0, j*(y2-y1)/3 + (y1+y2)/2 + jit[a][1]*(y2-y1)/3.0);
+				}
+			}
+		}
+		
+		glEnd();
+		glPointSize(1.0);
+	}
+	
 	/* camera name */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		glRasterPos2f(x1, y1-15);

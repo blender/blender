@@ -117,7 +117,7 @@ typedef struct RenderData {
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
  	
- 	short pad[2];
+ 	short filtertype, pad;		/* filter is box, tent, gauss, mitch, etc */
 
 
 	short size, maximsize;	/* size in %, max in Kb */
@@ -351,11 +351,20 @@ typedef struct Scene {
 #define R_MBLUR			0x4000
 #define R_UNIFIED       0x8000
 #define R_RAYTRACE      0x10000
+		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
 #define R_GAUSS      	0x20000
 #define R_FBUF			0x40000
 #define R_THREADS		0x80000
 #define R_ZBLUR			0x100000
 
+/* filtertype */
+#define R_FILTER_BOX	0
+#define R_FILTER_TENT	1
+#define R_FILTER_QUAD	2
+#define R_FILTER_CUBIC	3
+#define R_FILTER_CATROM	4
+#define R_FILTER_GAUSS	5
+#define R_FILTER_MITCH	6
 
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
@@ -364,7 +373,8 @@ typedef struct Scene {
 /* scemode */
 #define R_DOSEQ			0x0001
 #define R_BG_RENDER		0x0002
-#define R_PASSEPARTOUT	0x0004	/* keep this for backward compatibility */
+		/* passepartout is camera option now, keep this for backward compatibility */
+#define R_PASSEPARTOUT	0x0004
 
 #define R_EXTENSION		0x0010
 #define R_OGL			0x0020

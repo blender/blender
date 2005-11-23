@@ -62,16 +62,16 @@
  * LOCAL DEFINITIONS *
  *********************/
 PILdynlib *libtiff = NULL;
-void  libtiff_loadlibtiff();
+void  libtiff_loadlibtiff(void);
 void* libtiff_findsymbol(char*);
-int   libtiff_load_symbols();
+int   libtiff_load_symbols(void);
 
 
 /**************************
  * LIBRARY INITIALIZATION *
  **************************/
 
-void libtiff_loadlibtiff()
+void libtiff_loadlibtiff(void)
 {
 	char *filename;
 	libtiff = NULL;
@@ -111,7 +111,7 @@ void *libtiff_findsymbol(char *name)
 	return symbol;
 }
 
-void libtiff_init()
+void libtiff_init(void)
 {
 	if (libtiff != NULL) {
 		printf("libtiff_init: Attempted to load libtiff twice!\n");
@@ -121,7 +121,7 @@ void libtiff_init()
 	G.have_libtiff = ((libtiff != NULL) && (libtiff_load_symbols()));
 }
 
-void libtiff_exit()
+void libtiff_exit(void)
 {
 	if (libtiff != NULL) {
 		PIL_dynlib_close(libtiff);
@@ -130,7 +130,7 @@ void libtiff_exit()
 }
 
 
-int libtiff_load_symbols()
+int libtiff_load_symbols(void)
 {
 	/* Attempt to load TIFFClientOpen */
 	libtiff_TIFFClientOpen = libtiff_findsymbol("TIFFClientOpen");
