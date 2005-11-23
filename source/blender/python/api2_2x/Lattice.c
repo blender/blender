@@ -482,7 +482,7 @@ static PyObject *Lattice_getKeyTypes( BPy_Lattice * self )
 	else if( ( bl_Lattice->typev ) == KEY_CARDINAL )
 		s_y = cardinal;
 	else if( ( bl_Lattice->typev ) == KEY_BSPLINE )
-		s_z = bspline;
+		s_y = bspline;
 	else
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "bad key type..." );
