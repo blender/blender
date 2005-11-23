@@ -421,6 +421,10 @@ elif sys.platform == 'win32':
 	jpeg_lib = ['libjpeg']
 	jpeg_libpath = ['#../lib/windows/jpeg/lib']
 	jpeg_include = ['#../lib/windows/jpeg/include']
+	# Tiff Library information
+	tiff_lib = ['libtiff']
+	tiff_libpath = ['#../lib/windows/tiff/lib']
+	tiff_include = ['#../lib/windows/tiff/include']
 	# OpenGL library information
 	opengl_lib = ['opengl32', 'glu32']
 	opengl_static = []
