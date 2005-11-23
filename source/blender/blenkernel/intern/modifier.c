@@ -1173,6 +1173,7 @@ static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
 	BooleanModifierData *tbmd = (BooleanModifierData*) target;
 
 	tbmd->object = bmd->object;
+	tbmd->operation = bmd->operation;
 }
 
 static int booleanModifier_isDisabled(ModifierData *md)

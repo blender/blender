@@ -949,9 +949,9 @@ static void ssDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData,
 	for (i=0; i<dlm->totvert; i++) {
 		MVert *mv = &dlm->mvert[i];
 
-		if (mv->flag&ME_VERT_STEPINDEX) index++;
+		if (mv->flag&ME_VERT_STEPINDEX) {
+			index++;
 
-		if (index!=-1) {
 			func(userData, index, mv->co, NULL, mv->no);
 		}
 	}
@@ -1998,8 +1998,9 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 	dm= mesh_get_derived_final(ob, &needsFree);
 	vertexcosnos= MEM_mallocN(6*sizeof(float)*me->totvert, "vertexcosnos map");
 	
-	if(dm->foreachMappedVert)
+	if(dm->foreachMappedVert) {
 		dm->foreachMappedVert(dm, make_vertexcosnos__mapFunc, vertexcosnos);
+	}
 	else {
 		float *fp= vertexcosnos;
 		int a;
@@ -2257,14 +2258,12 @@ Mesh* readBobjgz(char *filename, Mesh *orgmesh) //, fluidsimDerivedMesh *fsdm)
 void loadFluidsimMesh(Object *srcob, int useRenderParams)
 {
 	Mesh *mesh = NULL;
-	MeshDerivedMesh *mdm = NULL;
-	float (*vertCos)[3];
+	float *bbStart = NULL, *bbSize = NULL;
+	float lastBB[3];
 	int displaymode = 0;
 	int curFrame = G.scene->r.cfra - 1; /* start with 0 */
 	char targetDir[FILE_MAXFILE+FILE_MAXDIR], targetFile[FILE_MAXFILE+FILE_MAXDIR];
 	char debugStrBuffer[256];
-	float *bbStart = NULL, *bbSize = NULL;
-	float lastBB[3];
 	//snprintf(debugStrBuffer,256,"loadFluidsimMesh call (obid '%s', rp %d)\n", srcob->id.name, useRenderParams); // debug
 
 	if((!srcob)||(!srcob->fluidsimSettings)) {
