@@ -36,6 +36,8 @@ class ntlGeometryObjModel : public ntlGeometryObject
 
 		/*! load model from .bobj file, returns !=0 upon error */
 		int loadBobjModel(string filename);
+		/*! init model from given vertex and triangle arrays */
+		int initModel(int numVertices, float *vertices, int numTriangles, int *triangles);
 
 	private:
 

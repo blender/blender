@@ -16,6 +16,7 @@
 #include "ntl_renderglobals.h"
 #include "ntl_material.h"
 #include "simulation_object.h"
+#include "elbeem.h"
 class ntlOpenGLRenderer;
 
 class ntlWorld
@@ -23,8 +24,14 @@ class ntlWorld
 	public:
 		/*! Constructor */
 		ntlWorld(string filename, bool commandlineMode);
+		/*! Constructor for API init */
+		ntlWorld(elbeemSimulationSettings *simSettings);
 		/*! Destructor */
 		virtual ~ntlWorld( void );
+		/*! default init for all contructors */
+		void initDefaults();
+		/*! common world contruction stuff once the scene is set up */
+		void finishWorldInit();
 
 		/*! render a whole animation (command line mode) */
 		int renderAnimation( void );
@@ -33,7 +40,7 @@ class ntlWorld
 		/*! render a single step for viz mode */
 		int singleStepVisualization( void );
 		/*! advance simulations by time frame time */
-		int advanceSims();
+		int advanceSims(int framenum);
 		/*! advance simulations by a single step */
 		void singleStepSims(double targetTime);
 
@@ -45,8 +52,6 @@ class ntlWorld
 		/*! render scene (a single pictures) */
 		virtual int renderScene( void );
 
-		/*! display world with opengl */
-		//int draw( void );
 		/*! set single frame rendering to filename */
 		void setSingleFrameOut( string singleframeFilename );
 
@@ -100,6 +105,9 @@ class ntlWorld
 
 		/*! single step mode for debugging */
 		bool mSingleStepDebug;
+
+		/*! count no. of frame for viz render */
+		int mFrameCnt;
 };
 
 #endif

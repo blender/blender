@@ -386,15 +386,8 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 		/* distribute triangles */
 		bool haveCloneVec[2] = {false, false};
 		for( int i=0; i<2; i++) {
-			/*if(thisTriDoubles[i] == (int)node->members->size()) {
-				node->child[i]->members = node->members;
-				node->child[i]->cloneVec = (node->cloneVec+1);
-				haveCloneVec[i] = true;
-			} else */
-			{
-				node->child[i]->members = new vector<ntlTriangle *>( thisTrisFor[i] );
-				node->child[i]->cloneVec = 0;
-			}
+			node->child[i]->members = new vector<ntlTriangle *>( thisTrisFor[i] );
+			node->child[i]->cloneVec = 0;
 		}
 
 		int tind0 = 0;
@@ -415,12 +408,9 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 						tind1++;
 					}
 				}
-
-				//if(depth>38) errorOut(" N d"<<depth<<" t"<<t<<" td"<<(int)mpTriDist[t]<<"  S"<<(int)allTriDistSet);
 				t++;
 			} /* end of loop over all triangles */
 		}
-		//D errorOut( "    MMM"<<i<<": "<<(unsigned int)(node->child[i]->members->size())<<" "<<thisTrisFor[i]<<" tind"<<tind[i] ); // DEBG!
 
 		// subdivide children
 		for( int i=0; i<2; i++) {
@@ -430,12 +420,9 @@ void ntlTree::subdivide(BSPNode *node, int depth, int axis)
 
 		/* if we are here, this are childs, so we dont need the members any more... */
 		/* delete unecessary members */
-		if( (!haveCloneVec[0]) && (!haveCloneVec[1]) && (node->cloneVec == 0) ){ // ??? FIXME?
-		//if( (!haveCloneVec[0]) && (!haveCloneVec[1]) ){
+		if( (!haveCloneVec[0]) && (!haveCloneVec[1]) && (node->cloneVec == 0) ){ 
 			delete node->members; 
 		}
-	 	else {
-			errMsg("LLLLLLLL","ASD"); }
 		node->members = NULL;
 
 	} /* subdivision necessary */
@@ -624,10 +611,6 @@ void ntlTree::intersect(const ntlRay &ray, gfxReal &distance,
 	if(mint == GFX_REAL_MAX) {
 		distance = -1.0;
 	} else {
-		if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
-			errorOut("Intersection outside BV ");
-		}
-
 		// intersection outside the BSP bounding volumes might occur due to roundoff...
 		//retnormal = (*mpVertNormals)[ hit->getPoints()[0] ] * (1.0-mintu-mintv)+ (*mpVertNormals)[ hit->getPoints()[1] ]*mintu + (*mpVertNormals)[ hit->getPoints()[2] ]*mintv;
 		if(forceNonsmooth) {
@@ -775,18 +758,6 @@ void ntlTree::intersectX(const ntlRay &ray, gfxReal &distance,
 						mint = t;	  
 						hit = (*iter);
 						mintu = u; mintv = v;
-						
-						if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
-							errorOut("Tree tri hit at "<<t<<","<<mint<<" triangle: "<<PRINT_TRIANGLE( (*hit), (*mpVertices) ) );
-							gfxReal u1=0.0,v1=0.0, t1=-1.0;
-							ray.intersectTriangleX( mpVertices, hit, t1,u1,v1);
-							errorOut("Tree second test1 :"<<t1<<" u1:"<<u1<<" v1:"<<v1 );
-							if(t==GFX_REAL_MAX) errorOut( "Tree MAX t " );
-							//errorOut( mpVertices[ (*iter).getPoints()[0] ][0] );
-						}
-
-						//retnormal = -(e2-e0).crossProd(e1-e0); // DEBUG
-
 					}
 				}
 
@@ -832,12 +803,8 @@ void ntlTree::intersectX(const ntlRay &ray, gfxReal &distance,
 	if(mint == GFX_REAL_MAX) {
 		distance = -1.0;
 	} else {
-		if((ray.getRenderglobals())&&(ray.getRenderglobals()->getDebugOut() > 5)) {  // DEBUG!!!
-			errorOut("Intersection outside BV ");
-		}
 
 		// intersection outside the BSP bounding volumes might occur due to roundoff...
-		//retnormal = (*mpVertNormals)[ hit->getPoints()[0] ] * (1.0-mintu-mintv)+ (*mpVertNormals)[ hit->getPoints()[1] ]*mintu + (*mpVertNormals)[ hit->getPoints()[2] ]*mintv;
 		if(forceNonsmooth) {
 			// calculate triangle normal
 			ntlVec3Gfx e0,e1,e2;

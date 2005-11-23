@@ -17,30 +17,49 @@ class ParticleObject
 	public:
   	//! Standard constructor
   	inline ParticleObject(ntlVec3Gfx mp) :
-			mPos(mp), mActive( true ) { };
+			mPos(mp),mVel(0.0), mStatus(0), mActive( true ) { };
   	//! Copy constructor
   	inline ParticleObject(const ParticleObject &a) :
-			mPos(a.mPos), mActive(a.mActive) { };
+			mPos(a.mPos), mVel(a.mVel), 
+			mStatus(a.mStatus), mActive(a.mActive) { };
   	//! Destructor
   	inline ~ParticleObject() { /* empty */ };
 
 		//! add vector to position
 		inline void advance(double vx, double vy, double vz) {
 			mPos[0] += vx; mPos[1] += vy; mPos[2] += vz; }
+		//! advance with own velocity
+		inline void advanceVel() { mPos += mVel; }
+		//! add acceleration to velocity
+		inline void addToVel(ntlVec3Gfx acc) { mVel += acc; }
 
-		//! add vector to position
+		//! get vector to position
 		inline ntlVec3Gfx getPos() { return mPos; }
+		//! set velocity
+		inline void setVel(ntlVec3Gfx set) { mVel = set; }
+		//! set velocity
+		inline void setVel(gfxReal x, gfxReal y, gfxReal z) { mVel = ntlVec3Gfx(x,y,z); }
+		//! get velocity
+		inline ntlVec3Gfx getVel() { return mVel; }
 
 		//! get active flag
 		inline bool getActive() { return mActive; }
 		//! set active flag
 		inline void setActive(bool set) { mActive = set; }
+		//! get status int
+		inline int getStatus() { return mStatus; }
+		//! setstatus int
+		inline void setStatus(int set) { mStatus = set; }
 		
 	protected:
 
 		/*! the particle position */
 		ntlVec3Gfx mPos;
+		/*! the particle velocity */
+		ntlVec3Gfx mVel;
 
+		/*! particle status */
+		int mStatus;
 		/*! particle active? */
 		bool mActive;
 };
@@ -93,6 +112,8 @@ class ParticleTracer :
 		inline vector<ParticleObject>::iterator getParticlesBegin() { return mParts[0].begin(); }
 		//! end iterator for newest particles
 		inline vector<ParticleObject>::iterator getParticlesEnd() { return mParts[0].end(); }
+		//! end iterator for newest particles
+		inline ParticleObject* getLast() { return &(mParts[0][ mParts[0].size()-1 ]); }
 		
 		/*! set geometry start (for renderer) */
 		inline void setStart(ntlVec3Gfx set) { mStart = set; }

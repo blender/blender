@@ -18,8 +18,13 @@ template<class D>
 string LbmFsgrSolver<D>::getIdString() { 
 	return string("FsgrSolver[") + D::getIdString(); 
 }
+
+template<class D>
+int LbmFsgrSolver<D>::getDimension() { return D::cDimension; }
+
 template<class D>
 void LbmFsgrSolver<D>::step() { 
+	initLevelOmegas();
 	stepMain(); 
 }
 
@@ -27,16 +32,16 @@ template<class D>
 void 
 LbmFsgrSolver<D>::stepMain()
 {
-#if ELBEEM_BLENDER==1
-		// update gui display
-		SDL_mutexP(globalBakeLock);
-		if(globalBakeState<0) {
-			// this means abort... cause panic
-			D::mPanic = 1;
-			errMsg("LbmFsgrSolver::step","Got abort signal from GUI, causing panic, aborting...");
-		}
-		SDL_mutexV(globalBakeLock);
-#endif // ELBEEM_BLENDER==1
+#if ELBEEM_PLUGIN==1
+	// update gui display
+	//SDL_mutexP(lobalBakeLock);
+	if(getGlobalBakeState()<0) {
+		// this means abort... cause panic
+		D::mPanic = 1;
+		errMsg("LbmFsgrSolver::step","Got abort signal from GUI, causing panic, aborting...");
+	}
+	//SDL_mutexV(lobalBakeLock);
+#endif // ELBEEM_PLUGIN==1
 	D::markedClearList(); // DMC clearMarkedCellsList
 
 	// safety check, counter reset
@@ -71,8 +76,7 @@ LbmFsgrSolver<D>::stepMain()
 				// always advance fine level...
 				fineAdvance();
 			} else {
-				performRefinement(lev);
-				performCoarsening(lev);
+				adaptGrid(lev);
 				coarseRestrictFromFine(lev);
 				coarseAdvance(lev);
 			}
@@ -107,11 +111,7 @@ LbmFsgrSolver<D>::stepMain()
   // do some formatting 
   if(!D::mSilent){ 
 		string sepStr(""); // DEBUG
-#ifndef USE_MSVC6FIXES
-		int avgcls = (int)(mAvgNumUsedCells/(long long int)D::mStepCnt);
-#else
-		int avgcls = (int)(mAvgNumUsedCells/(_int64)D::mStepCnt);
-#endif
+		int avgcls = (int)(mAvgNumUsedCells/(LONGINT)D::mStepCnt);
 		debMsgDirect( 
 			"mlsups(curr:"<<D::mMLSUPS<<
 			" avg:"<<(mAvgMLSUPS/mAvgMLSUPSCnt)<<"), "<< sepStr<<
@@ -234,9 +234,11 @@ LbmFsgrSolver<D>::stepMain()
 		fclose(file);
 	} // */
 
-#if ELBEEM_BLENDER!=1
-	if(mUseTestdata) handleTestdata();
-#endif // ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
+	if(mUseTestdata) {
+		if(mpTest->mDebugvalue3>0.0) handleTestdata();
+	}
+#endif // ELBEEM_PLUGIN!=1
 }
 
 template<class D>
@@ -292,10 +294,10 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 #include "paraloop.h"
 #else // PARALLEL==1
   { // main loop region
-	int kstart=D::getForZMin1(), kend=D::getForZMax1();
+	int kstart=getForZMin1(), kend=getForZMax1(mMaxRefine);
+//{ errMsg("LbmFsgrSolver::mainLoop","Err MAINADVANCE0 ks:"<< kstart<<" ke:"<<kend<<" dim:"<<D::cDimension<<" mlsz:"<< mLevel[mMaxRefine].lSizez<<" zmax1:"<<getForZMax1(mMaxRefine) ); } // DEBUG
 #define PERFORM_USQRMAXCHECK USQRMAXCHECK(usqr,ux,uy,uz, mMaxVlen, mMxvx,mMxvy,mMxvz);
 #endif // PARALLEL==1
-
 
 	// local to loop
 	CellFlagType nbflag[LBM_DFNUM]; 
@@ -306,10 +308,10 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	int nbored;
 	LbmFloat m[LBM_DFNUM];
 	LbmFloat rho, ux, uy, uz, tmp, usqr;
-	LbmFloat mass, change;
+	LbmFloat mass, change, lcsmqo;
 	usqr = tmp = 0.0; 
 #if OPT3D==1 
-	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM], lcsmomega;
+	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
 #endif // OPT3D==true 
 
 	
@@ -345,6 +347,8 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	// ---
 	// now stream etc.
 
+//{ errMsg("LbmFsgrSolver::mainLoop","Err MAINADVANCE0 ks:"<< kstart<<" ke:"<<kend<<" dim:"<<D::cDimension<<" mlsz:"<<mLevel[mMaxRefine].lSizez ); } // DEBUG
+
 	// use template functions for 2D/3D
 #if COMPRESSGRIDS==0
   for(int k=kstart;k<kend;++k) {
@@ -373,6 +377,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	if(jend>mLevel[mMaxRefine].lSizey-1) jend = mLevel[mMaxRefine].lSizey-1;
 
 #if PARALLEL==1
+	PARA_INITIALIZE();
 	errMsg("LbmFsgrSolver::mainLoop","id="<<id<<" js="<<jstart<<" je="<<jend<<" jdir="<<(1) ); // debug
 #endif // PARALLEL==1
   for(int k=kstart;k!=kend;k+=kdir) {
@@ -411,6 +416,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 		}	
 #endif
 		oldFlag = *pFlagSrc;
+		//DEBUG if(LBMDIM==2) { errMsg("LbmFsgrSolver::mainLoop","Err flagp "<<PRINT_IJK<<"="<< RFLAG(lev, i,j,k,mLevel[lev].setCurr)<<" "); }
 		// stream from current set to other, then collide and store
 		
 		// old INTCFCOARSETEST==1
@@ -776,6 +782,7 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 
 		// mass streaming done... do normal collide
 		ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2];
+		ux *= mass; uy *= mass; uz *= mass; // acc. according to mass in cell
 		DEFAULT_COLLIDE;
 		PERFORM_USQRMAXCHECK;
 		// rho init from default collide necessary for fill/empty check below
@@ -788,6 +795,11 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 				mInitialMass += 0.25;
 			}
 		} 
+
+#		if ELBEEM_PLUGIN!=1
+		// testing...
+#		include "test_if.h"
+#		endif // ELBEEM_PLUGIN
 
 		// interface cell filled or emptied?
 		iffilled = ifemptied = 0;
@@ -911,25 +923,11 @@ LbmFsgrSolver<D>::mainLoop(int lev)
 	//errMsg("DFINI"," maxr l"<<mMaxRefine<<" cm="<<calcCurrentMass<<" cv="<<calcCurrentVolume );
 	mLevel[lev].lmass    = calcCurrentMass;
 	mLevel[lev].lvolume  = calcCurrentVolume;
-	//mCurrentMass   += calcCurrentMass;
-	//mCurrentVolume += calcCurrentVolume;
 	D::mNumFilledCells  = calcCellsFilled;
 	D::mNumEmptiedCells = calcCellsEmptied;
 	D::mNumUsedCells = calcNumUsedCells;
 #if PARALLEL==1
-	//errMsg("PARALLELusqrcheck"," curr: "<<mMaxVlen<<"|"<<mMxvx<<","<<mMxvy<<","<<mMxvz);
-	for(int i=0; i<MAX_THREADS; i++) {
-		for(int j=0; j<calcListFull[i].size() ; j++) mListFull.push_back( calcListFull[i][j] );
-		for(int j=0; j<calcListEmpty[i].size(); j++) mListEmpty.push_back( calcListEmpty[i][j] );
-		if(calcMaxVlen[i]>mMaxVlen) { 
-			mMxvx = calcMxvx[i]; 
-			mMxvy = calcMxvy[i]; 
-			mMxvz = calcMxvz[i]; 
-			mMaxVlen = calcMaxVlen[i]; 
-		} 
-		errMsg("PARALLELusqrcheck"," curr: "<<mMaxVlen<<"|"<<mMxvx<<","<<mMxvy<<","<<mMxvz<<
-				"      calc["<<i<<": "<<calcMaxVlen[i]<<"|"<<calcMxvx[i]<<","<<calcMxvy[i]<<","<<calcMxvz[i]<<"]  " );
-	}
+	PARA_FINISH();
 #endif // PARALLEL==1
 
 	// check other vars...?
@@ -939,18 +937,10 @@ template<class D>
 void 
 LbmFsgrSolver<D>::coarseCalculateFluxareas(int lev)
 {
-	//LbmFloat calcCurrentMass = 0.0;
-	//LbmFloat calcCurrentVolume = 0.0;
-	//LbmFloat *ccel = NULL;
-	//LbmFloat *tcel = NULL;
-	//LbmFloat m[LBM_DFNUM];
-	//LbmFloat rho, ux, uy, uz, tmp, usqr;
-#if OPT3D==1 
-	//LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM], lcsmomega;
-#endif // OPT3D==true 
-	//m[0] = tmp = usqr = 0.0;
-
-	//for(int lev=0; lev<mMaxRefine; lev++) { TEST DEBUG
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	lev =0; // get rid of warnings...
+#else
 	FSGR_FORIJK_BOUNDS(lev) {
 		if( RFLAG(lev, i,j,k,mLevel[lev].setCurr) & CFFluid) {
 			if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFGrFromCoarse) {
@@ -976,21 +966,26 @@ LbmFsgrSolver<D>::coarseCalculateFluxareas(int lev)
 		}
 	} // } TEST DEBUG
 	if(!D::mSilent){ debMsgStd("coarseCalculateFluxareas",DM_MSG,"level "<<lev<<" calculated", 7); }
+#endif //! LBM_NOADCOARSENING==1
 }
 	
 template<class D>
 void 
 LbmFsgrSolver<D>::coarseAdvance(int lev)
 {
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	lev =0; // get rid of warnings...
+#else
 	LbmFloat calcCurrentMass = 0.0;
 	LbmFloat calcCurrentVolume = 0.0;
 
 	LbmFloat *ccel = NULL;
 	LbmFloat *tcel = NULL;
 	LbmFloat m[LBM_DFNUM];
-	LbmFloat rho, ux, uy, uz, tmp, usqr;
+	LbmFloat rho, ux, uy, uz, tmp, usqr, lcsmqo;
 #if OPT3D==1 
-	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM], lcsmomega;
+	LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
 #endif // OPT3D==true 
 	m[0] = tmp = usqr = 0.0;
 
@@ -1020,19 +1015,17 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
 		// from coarse cells without unused nbs are not necessary...! -> remove
 		if( ((*pFlagSrc) & (CFGrFromCoarse)) ) { 
 			bool invNb = false;
-			FORDF1 { 
-				if(RFLAG_NB(lev, i, j, k, SRCS(lev), l) & CFUnused) { invNb = true; }
-			}   
+			FORDF1 { if(RFLAG_NB(lev, i, j, k, SRCS(lev), l) & CFUnused) { invNb = true; } }   
 			if(!invNb) {
+				// WARNING - this modifies source flag array...
 				*pFlagSrc = CFFluid|CFGrNorm;
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
 				errMsg("coarseAdvance","FC2NRM_CHECK Converted CFGrFromCoarse to Norm at "<<lev<<" "<<PRINT_IJK);
-#endif // ELBEEM_BLENDER!=1
-				// FIXME add debug check for these types of cells?, move to perform coarsening?
+#endif // ELBEEM_PLUGIN!=1
+				// move to perform coarsening?
 			}
 		} // */
 
-		//*(pFlagSrc+pFlagTarOff) = *pFlagSrc; // always set other set...
 #if FSGR_STRICT_DEBUG==1
 		*pFlagDst = *pFlagSrc; // always set other set...
 #else
@@ -1101,10 +1094,11 @@ LbmFsgrSolver<D>::coarseAdvance(int lev)
   mLevel[lev].lsteps++;
   mLevel[lev].lmass   = calcCurrentMass   * mLevel[lev].lcellfactor;
   mLevel[lev].lvolume = calcCurrentVolume * mLevel[lev].lcellfactor;
-#ifndef ELBEEM_BLENDER
+#if ELBEEM_PLUGIN!=1
   errMsg("DFINI", " m l"<<lev<<" m="<<mLevel[lev].lmass<<" c="<<calcCurrentMass<<"  lcf="<< mLevel[lev].lcellfactor );
   errMsg("DFINI", " v l"<<lev<<" v="<<mLevel[lev].lvolume<<" c="<<calcCurrentVolume<<"  lcf="<< mLevel[lev].lcellfactor );
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
+#endif //! LBM_NOADCOARSENING==1
 }
 
 /*****************************************************************************/
@@ -1117,6 +1111,10 @@ template<class D>
 void 
 LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 {
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	lev =0; // get rid of warnings...
+#else
 	if((lev<0) || ((lev+1)>mMaxRefine)) return;
 #if FSGR_STRICT_DEBUG==1
 	// reset all unused cell values to invalid
@@ -1144,43 +1142,6 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 	const int srcSet = mLevel[lev+1].setCurr;
 	const int dstSet = mLevel[lev].setCurr;
 
-	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;			
-	LbmFloat *ccel = NULL;
-	LbmFloat *tcel = NULL;
-#if OPT3D==1 
-	LbmFloat m[LBM_DFNUM];
-	// for macro add
-	LbmFloat usqr;
-	//LbmFloat *addfcel, *dstcell;
-	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM];
-	LbmFloat lcsmDstOmega, lcsmSrcOmega, lcsmdfscale;
-#else // OPT3D==true 
-	LbmFloat df[LBM_DFNUM];
-	LbmFloat omegaDst, omegaSrc;
-	LbmFloat feq[LBM_DFNUM];
-	LbmFloat dfScale = mDfScaleUp;
-#endif // OPT3D==true 
-
-	LbmFloat mGaussw[27];
-	LbmFloat totGaussw = 0.0;
-	const LbmFloat alpha = 1.0;
-	const LbmFloat gw = sqrt(2.0*D::cDimension);
-#ifndef ELBEEM_BLENDER
-	errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
-#endif
-	for(int n=0;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
-	//for(int n=0;(n<D::cDirNum); n++) { 
-	for(int n=0;(n<D::cDfNum); n++) { 
-		const LbmFloat d = norm(LbmVec(D::dfVecX[n], D::dfVecY[n], D::dfVecZ[n]));
-		LbmFloat w = expf( -alpha*d*d ) - expf( -alpha*gw*gw );
-		//errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 cell  n"<<n<<" d"<<d<<" w"<<w);
-		mGaussw[n] = w;
-		totGaussw += w;
-	}
-	for(int n=0;(n<D::cDirNum); n++) { 
-		mGaussw[n] = mGaussw[n]/totGaussw;
-	}
-
 	//restrict
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
 	for(int j=1;j<mLevel[lev].lSizey-1;++j) {
@@ -1188,140 +1149,10 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 		CellFlagType *pFlagSrc = &RFLAG(lev, i,j,k,dstSet);
 		if((*pFlagSrc) & (CFFluid)) { 
 			if( ((*pFlagSrc) & (CFFluid|CFGrFromFine)) == (CFFluid|CFGrFromFine) ) { 
-				// TODO? optimize?
 				// do resctriction
 				mNumInterdCells++;
-				ccel = RACPNT(lev+1, 2*i,2*j,2*k,srcSet);
-				tcel = RACPNT(lev  , i,j,k      ,dstSet);
+				coarseRestrictCell(lev, i,j,k,srcSet,dstSet);
 
-#				if OPT3D==0
-				// add up weighted dfs
-				FORDF0{ df[l] = 0.0;}
-				for(int n=0;(n<D::cDirNum); n++) { 
-					int ni=2*i+1*D::dfVecX[n], nj=2*j+1*D::dfVecY[n], nk=2*k+1*D::dfVecZ[n];
-					ccel = RACPNT(lev+1, ni,nj,nk,srcSet);// CFINTTEST
-					const LbmFloat weight = mGaussw[n];
-					FORDF0{
-						LbmFloat cdf = weight * RAC(ccel,l);
-#						if FSGR_STRICT_DEBUG==1
-						if( cdf<-1.0 ){ errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]); }
-#						endif
-						//errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]<<" = "<<cdf<<" , w"<<weight); 
-						df[l] += cdf;
-					}
-				}
-
-				// calc rho etc. from weighted dfs
-				rho = ux  = uy  = uz  = 0.0;
-				FORDF0{
-					LbmFloat cdf = df[l];
-					rho += cdf; 
-					ux  += (D::dfDvecX[l]*cdf); 
-					uy  += (D::dfDvecY[l]*cdf);  
-					uz  += (D::dfDvecZ[l]*cdf);  
-				}
-
-				FORDF0{ feq[l] = D::getCollideEq(l, rho,ux,uy,uz); }
-				if(mLevel[lev  ].lcsmago>0.0) {
-					const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feq);
-					omegaDst  = D::getLesOmega(mLevel[lev  ].omega,mLevel[lev  ].lcsmago,Qo);
-					omegaSrc = D::getLesOmega(mLevel[lev+1].omega,mLevel[lev+1].lcsmago,Qo);
-				} else {
-					omegaDst = mLevel[lev+0].omega; /* NEWSMAGOT*/ 
-					omegaSrc = mLevel[lev+1].omega;
-				}
-				dfScale   = (mLevel[lev  ].stepsize/mLevel[lev+1].stepsize)* (1.0/omegaDst-1.0)/ (1.0/omegaSrc-1.0); // yu
-				FORDF0{
-					RAC(tcel, l) = feq[l]+ (df[l]-feq[l])*dfScale;
-				} 
-#				else // OPT3D
-				// similar to OPTIMIZED_STREAMCOLLIDE_UNUSED
-                      
-				//rho = ux = uy = uz = 0.0;
-				MSRC_C  = CCELG_C(0) ;
-				MSRC_N  = CCELG_N(0) ;
-				MSRC_S  = CCELG_S(0) ;
-				MSRC_E  = CCELG_E(0) ;
-				MSRC_W  = CCELG_W(0) ;
-				MSRC_T  = CCELG_T(0) ;
-				MSRC_B  = CCELG_B(0) ;
-				MSRC_NE = CCELG_NE(0);
-				MSRC_NW = CCELG_NW(0);
-				MSRC_SE = CCELG_SE(0);
-				MSRC_SW = CCELG_SW(0);
-				MSRC_NT = CCELG_NT(0);
-				MSRC_NB = CCELG_NB(0);
-				MSRC_ST = CCELG_ST(0);
-				MSRC_SB = CCELG_SB(0);
-				MSRC_ET = CCELG_ET(0);
-				MSRC_EB = CCELG_EB(0);
-				MSRC_WT = CCELG_WT(0);
-				MSRC_WB = CCELG_WB(0);
-				for(int n=1;(n<D::cDirNum); n++) { 
-					ccel = RACPNT(lev+1,  2*i+1*D::dfVecX[n], 2*j+1*D::dfVecY[n], 2*k+1*D::dfVecZ[n]  ,srcSet);
-					MSRC_C  += CCELG_C(n) ;
-					MSRC_N  += CCELG_N(n) ;
-					MSRC_S  += CCELG_S(n) ;
-					MSRC_E  += CCELG_E(n) ;
-					MSRC_W  += CCELG_W(n) ;
-					MSRC_T  += CCELG_T(n) ;
-					MSRC_B  += CCELG_B(n) ;
-					MSRC_NE += CCELG_NE(n);
-					MSRC_NW += CCELG_NW(n);
-					MSRC_SE += CCELG_SE(n);
-					MSRC_SW += CCELG_SW(n);
-					MSRC_NT += CCELG_NT(n);
-					MSRC_NB += CCELG_NB(n);
-					MSRC_ST += CCELG_ST(n);
-					MSRC_SB += CCELG_SB(n);
-					MSRC_ET += CCELG_ET(n);
-					MSRC_EB += CCELG_EB(n);
-					MSRC_WT += CCELG_WT(n);
-					MSRC_WB += CCELG_WB(n);
-				}
-				rho = MSRC_C  + MSRC_N + MSRC_S  + MSRC_E + MSRC_W  + MSRC_T  
-					+ MSRC_B  + MSRC_NE + MSRC_NW + MSRC_SE + MSRC_SW + MSRC_NT 
-					+ MSRC_NB + MSRC_ST + MSRC_SB + MSRC_ET + MSRC_EB + MSRC_WT + MSRC_WB; 
-				ux = MSRC_E - MSRC_W + MSRC_NE - MSRC_NW + MSRC_SE - MSRC_SW 
-					+ MSRC_ET + MSRC_EB - MSRC_WT - MSRC_WB;  
-				uy = MSRC_N - MSRC_S + MSRC_NE + MSRC_NW - MSRC_SE - MSRC_SW 
-					+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB;  
-				uz = MSRC_T - MSRC_B + MSRC_NT - MSRC_NB + MSRC_ST - MSRC_SB 
-					+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB;  
-				usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
-				\
-				lcsmeq[dC] = EQC ; \
-				COLL_CALCULATE_DFEQ(lcsmeq); \
-				COLL_CALCULATE_NONEQTENSOR(lev+0, MSRC_ )\
-				COLL_CALCULATE_CSMOMEGAVAL(lev+0, lcsmDstOmega); \
-				COLL_CALCULATE_CSMOMEGAVAL(lev+1, lcsmSrcOmega); \
-				\
-				lcsmdfscale   = (mLevel[lev+0].stepsize/mLevel[lev+1].stepsize)* (1.0/lcsmDstOmega-1.0)/ (1.0/lcsmSrcOmega-1.0);  \
-				RAC(tcel, dC ) = (lcsmeq[dC ] + (MSRC_C -lcsmeq[dC ] )*lcsmdfscale);
-				RAC(tcel, dN ) = (lcsmeq[dN ] + (MSRC_N -lcsmeq[dN ] )*lcsmdfscale);
-				RAC(tcel, dS ) = (lcsmeq[dS ] + (MSRC_S -lcsmeq[dS ] )*lcsmdfscale);
-				RAC(tcel, dE ) = (lcsmeq[dE ] + (MSRC_E -lcsmeq[dE ] )*lcsmdfscale);
-				RAC(tcel, dW ) = (lcsmeq[dW ] + (MSRC_W -lcsmeq[dW ] )*lcsmdfscale);
-				RAC(tcel, dT ) = (lcsmeq[dT ] + (MSRC_T -lcsmeq[dT ] )*lcsmdfscale);
-				RAC(tcel, dB ) = (lcsmeq[dB ] + (MSRC_B -lcsmeq[dB ] )*lcsmdfscale);
-				RAC(tcel, dNE) = (lcsmeq[dNE] + (MSRC_NE-lcsmeq[dNE] )*lcsmdfscale);
-				RAC(tcel, dNW) = (lcsmeq[dNW] + (MSRC_NW-lcsmeq[dNW] )*lcsmdfscale);
-				RAC(tcel, dSE) = (lcsmeq[dSE] + (MSRC_SE-lcsmeq[dSE] )*lcsmdfscale);
-				RAC(tcel, dSW) = (lcsmeq[dSW] + (MSRC_SW-lcsmeq[dSW] )*lcsmdfscale);
-				RAC(tcel, dNT) = (lcsmeq[dNT] + (MSRC_NT-lcsmeq[dNT] )*lcsmdfscale);
-				RAC(tcel, dNB) = (lcsmeq[dNB] + (MSRC_NB-lcsmeq[dNB] )*lcsmdfscale);
-				RAC(tcel, dST) = (lcsmeq[dST] + (MSRC_ST-lcsmeq[dST] )*lcsmdfscale);
-				RAC(tcel, dSB) = (lcsmeq[dSB] + (MSRC_SB-lcsmeq[dSB] )*lcsmdfscale);
-				RAC(tcel, dET) = (lcsmeq[dET] + (MSRC_ET-lcsmeq[dET] )*lcsmdfscale);
-				RAC(tcel, dEB) = (lcsmeq[dEB] + (MSRC_EB-lcsmeq[dEB] )*lcsmdfscale);
-				RAC(tcel, dWT) = (lcsmeq[dWT] + (MSRC_WT-lcsmeq[dWT] )*lcsmdfscale);
-				RAC(tcel, dWB) = (lcsmeq[dWB] + (MSRC_WB-lcsmeq[dWB] )*lcsmdfscale);
-#				endif // OPT3D==0
-
-				//? if((lev<mMaxRefine)&&(D::cDimension==2)) { debugMarkCell(lev,i,j,k); }
-#			if FSGR_STRICT_DEBUG==1
-				//errMsg("coarseRestrictFromFine", "CRFF_DFDEBUG cell  "<<PRINT_IJK<<" rho:"<<rho<<" u:"<<PRINT_VEC(ux,uy,uz)<<" " ); 
-#			endif // FSGR_STRICT_DEBUG==1
 				D::mNumUsedCells++;
 			} // from fine & fluid
 			else {
@@ -1334,13 +1165,21 @@ LbmFsgrSolver<D>::coarseRestrictFromFine(int lev)
 		} // & fluid
 	}}}
 	if(!D::mSilent){ errMsg("coarseRestrictFromFine"," from l"<<(lev+1)<<",s"<<mLevel[lev+1].setCurr<<" to l"<<lev<<",s"<<mLevel[lev].setCurr); }
+#endif //! LBM_NOADCOARSENING==1
 }
 
 template<class D>
 bool 
-LbmFsgrSolver<D>::performRefinement(int lev) {
+LbmFsgrSolver<D>::adaptGrid(int lev) {
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	lev =0; // get rid of warnings...
+	return false;
+#else
 	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
 	bool change = false;
+	{ // refinement, PASS 1-3
+
 	//bool nbsok;
 	// FIXME remove TIMEINTORDER ?
 	LbmFloat interTime = 0.0;
@@ -1352,6 +1191,15 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 	const bool debugRefinement = false;
 
 	// use template functions for 2D/3D
+			/*if(strstr(D::getName().c_str(),"Debug"))
+			if(lev+1==mMaxRefine) { // mixborder
+				for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) {  // FARBORD
+					int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+					if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&CFBnd) { // NEWREFT
+						removeFromFine=true;
+					}
+				}
+			} // FARBORD */
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
   for(int i=1;i<mLevel[lev].lSizex-1;++i) {
@@ -1362,53 +1210,11 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 			CellFlagType reqType = CFGrNorm;
 			if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
 			
-#if REFINEMENTBORDER==1
 			if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), srcFineSet) & reqType) &&
 			    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), srcFineSet) & (notAllowed)) )  ){ // ok
 			} else {
 				removeFromFine=true;
 			}
-			/*if(strstr(D::getName().c_str(),"Debug"))
-			if(lev+1==mMaxRefine) { // mixborder
-				for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) {  // FARBORD
-					int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&CFBnd) { // NEWREFT
-						removeFromFine=true;
-					}
-				}
-			} // FARBORD */
-#elif REFINEMENTBORDER==2 // REFINEMENTBORDER==1
-			FIX
-			for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) { 
-				int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-				if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
-					removeFromFine=true;
-				}
-			}
-			/*for(int l=0;((l<D::cDirNum) && (!removeFromFine)); l++) {  // FARBORD
-				int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-				if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
-					removeFromFine=true;
-				}
-			} // FARBORD */
-#elif REFINEMENTBORDER==3 // REFINEMENTBORDER==1
-			FIX
-			if(lev+1==mMaxRefine) { // mixborder
-				if(RFLAG(lev+1, 2*i,2*j,2*k, srcFineSet)&notSrcAllowed) { 
-					removeFromFine=true;
-				}
-			} else { // mixborder
-				for(int l=0; l<D::cDirNum; l++) { 
-					int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, srcFineSet)&notSrcAllowed) { // NEWREFT
-						removeFromFine=true;
-					}
-				}
-			} // mixborder
-			// also remove from fine cells that are above from fine
-#else // REFINEMENTBORDER==1
-			ERROR
-#endif // REFINEMENTBORDER==1
 
 			if(removeFromFine) {
 				// dont turn CFGrFromFine above interface cells into CFGrNorm
@@ -1441,14 +1247,9 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 			// recheck from fine flag
 		}
 	}}} // TEST
+	// PASS 1 */
 
 
-	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) { // TEST
-  for(int j=1;j<mLevel[lev].lSizey-1;++j) { // TEST
-  for(int i=1;i<mLevel[lev].lSizex-1;++i) { // TEST
-
-		// test from coarseAdvance
-		// from coarse cells without unused nbs are not necessary...! -> remove
 		/*if( ((*pFlagSrc) & (CFGrFromCoarse)) ) { 
 			bool invNb = false;
 			FORDF1 { 
@@ -1459,6 +1260,12 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 				errMsg("coarseAdvance","FC2NRM_CHECK Converted CFGrFromCoarse to Norm at "<<lev<<" "<<PRINT_IJK);
 			}
 		} // */
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) { // TEST
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) { // TEST
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) { // TEST
+
+		// test from coarseAdvance
+		// from coarse cells without unused nbs are not necessary...! -> remove
 
 		if(RFLAG(lev, i,j,k, srcSet) & CFGrFromCoarse) {
 
@@ -1475,7 +1282,7 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev, i, j, k); 
 				change=true;
 				mNumFsgrChanges++;
-			} // from advance */
+			} // from advance 
 			if(!fluidNb) {
 				// no fluid cells near -> no transfer necessary
 				RFLAG(lev, i,j,k, dstSet) = CFUnused;
@@ -1483,7 +1290,7 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 				if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev, i, j, k); 
 				change=true;
 				mNumFsgrChanges++;
-			} // from advance */
+			} // from advance 
 
 
 			// dont allow double transfer
@@ -1511,7 +1318,7 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 					}
 					else if(RFLAG(lev, ni,nj,nk, srcSet)&(CFUnused)) { //ok
 						// this should work because we have a valid neighborhood here for now
-						interpolateCellFromCoarse(lev,  ni, nj, nk, dstSet /*mLevel[lev].setCurr*/, interTime, CFFluid|CFGrFromCoarse, false);
+						interpolateCellFromCoarse(lev,  ni, nj, nk, dstSet, interTime, CFFluid|CFGrFromCoarse, false);
 						if((D::cDimension==2)&&(debugRefinement)) debugMarkCell(lev,ni,nj,nk); 
 						mNumFsgrChanges++;
 					}
@@ -1521,6 +1328,7 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 		} // from coarse
 
 	} } }
+	// PASS 2 */
 
 
 	// fix dstSet from fine cells here
@@ -1574,28 +1382,59 @@ LbmFsgrSolver<D>::performRefinement(int lev) {
 			
 		} // convert regions of from fine
 	}}} // TEST
+	// PASS 3 */
 
 	if(!D::mSilent){ errMsg("performRefinement"," for l"<<lev<<" done ("<<change<<") " ); }
-	return change;
-}
+	} // PASS 1-3
+	// refinement done
 
-
-// done after refinement
-template<class D>
-bool 
-LbmFsgrSolver<D>::performCoarsening(int lev) {
-	//if(D::mInitDone){ errMsg("performCoarsening","skip"); return 0;} // DEBUG
-					
-	if((lev<0) || ((lev+1)>mMaxRefine)) return false;
-	bool change = false;
+	//LbmFsgrSolver<D>::performCoarsening(int lev) {
+	{ // PASS 4,5
 	bool nbsok;
-	// hence work on modified curr set
+	// WARNING
+	// now work on modified curr set
 	const int srcSet = mLevel[lev].setCurr;
 	const int dstlev = lev+1;
 	const int dstFineSet = mLevel[dstlev].setCurr;
 	const bool debugCoarsening = false;
 
+	// PASS 5 test DEBUG
+	/*if(D::mInitDone) {
+	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
+  for(int j=1;j<mLevel[lev].lSizey-1;++j) {
+  for(int i=1;i<mLevel[lev].lSizex-1;++i) {
+			if(RFLAG(lev, i,j,k, srcSet) & CFEmpty) {
+				// check empty -> from fine conversion
+				bool changeToFromFine = false;
+				const CellFlagType notAllowed = (CFInter|CFGrFromFine|CFGrToFine);
+				CellFlagType reqType = CFGrNorm;
+				if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
+				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & reqType) &&
+				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+					changeToFromFine=true; }
+				if(changeToFromFine) {
+					change = true;
+					mNumFsgrChanges++;
+					RFLAG(lev, i,j,k, srcSet) = CFFluid|CFGrFromFine;
+					if((D::cDimension==2)&&(debugCoarsening)) debugMarkCell(lev,i,j,k); 
+					// same as restr from fine func! not necessary ?!
+					// coarseRestrictFromFine part 
+					coarseRestrictCell(lev, i,j,k,srcSet, dstFineSet);
+				}
+			} // only check empty cells
+	}}} // TEST!
+	} // PASS 5 */
+
 	// use template functions for 2D/3D
+					/*if(strstr(D::getName().c_str(),"Debug"))
+					if((nbsok)&&(lev+1==mMaxRefine)) { // mixborder
+						for(int l=0;((l<D::cDirNum) && (nbsok)); l++) {  // FARBORD
+							int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+							if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
+								nbsok=false;
+							}
+						}
+					} // FARBORD */
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
   for(int i=1;i<mLevel[lev].lSizex-1;++i) {
@@ -1620,15 +1459,7 @@ LbmFsgrSolver<D>::performCoarsening(int lev) {
 					} else {
 						nbsok=false;
 					}
-					/*if(strstr(D::getName().c_str(),"Debug"))
-					if((nbsok)&&(lev+1==mMaxRefine)) { // mixborder
-						for(int l=0;((l<D::cDirNum) && (nbsok)); l++) {  // FARBORD
-							int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-							if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
-								nbsok=false;
-							}
-						}
-					} // FARBORD */
+					// FARBORD
 				}
 				// dont turn CFGrFromFine above interface cells into CFGrNorm
 				// now check nbs on same level
@@ -1654,10 +1485,6 @@ LbmFsgrSolver<D>::performCoarsening(int lev) {
 					for(int dy=-1;dy<=1;dy+=2) {
 					for(int dz=-1*(LBMDIM&1);dz<=1*(LBMDIM&1);dz+=2) { // 2d/3d
 						// check for norm and from coarse, as the coarse level might just have been refined...
-						/*if(D::mInitDone) errMsg("performCoarsening","CFGrFromFine subc check "<< "x"<<convertCellFlagType2String( RFLAG(lev, i+dx, j   , k   ,  srcSet))<<" "
-									"y"<<convertCellFlagType2String( RFLAG(lev, i   , j+dy, k   ,  srcSet))<<" " "z"<<convertCellFlagType2String( RFLAG(lev, i   , j   , k+dz,  srcSet))<<" "
-									"xy"<<convertCellFlagType2String( RFLAG(lev, i+dx, j+dy, k   ,  srcSet))<<" " "xz"<<convertCellFlagType2String( RFLAG(lev, i+dx, j   , k+dz,  srcSet))<<" "
-									"yz"<<convertCellFlagType2String( RFLAG(lev, i   , j+dy, k+dz,  srcSet))<<" " "xyz"<<convertCellFlagType2String( RFLAG(lev, i+dx, j+dy, k+dz,  srcSet))<<" " ); // */
 						if( 
 								// we now the flag of the current cell! ( RFLAG(lev, i   , j   , k   ,  srcSet)&(CFGrNorm)) &&
 								( RFLAG(lev, i+dx, j   , k   ,  srcSet)&(CFGrNorm|CFGrFromCoarse)) &&
@@ -1727,31 +1554,43 @@ LbmFsgrSolver<D>::performCoarsening(int lev) {
 				}   // ?
 			} // convert regions of from fine
 	}}} // TEST!
+	// PASS 4 */
 
-					// reinit cell area value
-					/*if( RFLAG(lev, i,j,k,srcSet) & CFFluid) {
-						if( RFLAG(lev+1, i*2,j*2,k*2,dstFineSet) & CFGrFromCoarse) {
-							LbmFloat totArea = mFsgrCellArea[0]; // for l=0
-							for(int l=1; l<D::cDirNum; l++) { 
-								int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-								if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&
-										(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-										//(CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-										) { 
-									//LbmFloat area = 0.25; if(D::dfVecX[l]!=0) area *= 0.5; if(D::dfVecY[l]!=0) area *= 0.5; if(D::dfVecZ[l]!=0) area *= 0.5;
-									totArea += mFsgrCellArea[l];
-								}
-							} // l
-							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
-							QCELL(lev, i,j,k,srcSet, dFlux) = totArea;
-						} else {
-							QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
-							QCELL(lev, i,j,k,srcSet, dFlux) = 1.0;
-						}
-						//errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,srcSet, dFlux) );
+		// reinit cell area value
+		/*if( RFLAG(lev, i,j,k,srcSet) & CFFluid) {
+			if( RFLAG(lev+1, i*2,j*2,k*2,dstFineSet) & CFGrFromCoarse) {
+				LbmFloat totArea = mFsgrCellArea[0]; // for l=0
+				for(int l=1; l<D::cDirNum; l++) { 
+					int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
+					if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&
+							(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
+							//(CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
+							) { 
+						//LbmFloat area = 0.25; if(D::dfVecX[l]!=0) area *= 0.5; if(D::dfVecY[l]!=0) area *= 0.5; if(D::dfVecZ[l]!=0) area *= 0.5;
+						totArea += mFsgrCellArea[l];
 					}
-				// */
+				} // l
+				QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
+				QCELL(lev, i,j,k,srcSet, dFlux) = totArea;
+			} else {
+				QCELL(lev, i,j,k,mLevel[lev].setOther, dFlux) = 
+				QCELL(lev, i,j,k,srcSet, dFlux) = 1.0;
+			}
+			//errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,srcSet, dFlux) );
+		}
+	// */
 
+
+	// PASS 5 org
+	/*if(strstr(D::getName().c_str(),"Debug"))
+	if((changeToFromFine)&&(lev+1==mMaxRefine)) { // mixborder
+		for(int l=0;((l<D::cDirNum) && (changeToFromFine)); l++) {  // FARBORD
+			int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
+			if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
+				changeToFromFine=false; }
+		} 
+	}// FARBORD */
+	//if(!D::mInitDone) {
 	for(int k= getForZMin1(); k< getForZMax1(lev); ++k) {
   for(int j=1;j<mLevel[lev].lSizey-1;++j) {
   for(int i=1;i<mLevel[lev].lSizex-1;++i) {
@@ -1764,73 +1603,283 @@ LbmFsgrSolver<D>::performCoarsening(int lev) {
 				CellFlagType reqType = CFGrNorm;
 				if(lev+1==mMaxRefine) reqType = CFNoBndFluid;
 
-#if REFINEMENTBORDER==1
 				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & reqType) &&
 				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
+					// DEBUG 
 					changeToFromFine=true;
 				}
-			/*if(strstr(D::getName().c_str(),"Debug"))
-			if((changeToFromFine)&&(lev+1==mMaxRefine)) { // mixborder
-				for(int l=0;((l<D::cDirNum) && (changeToFromFine)); l++) {  // FARBORD
-					int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&CFBnd) { // NEWREFT
-						changeToFromFine=false;
-					}
-				} 
-			}// FARBORD */
-#elif REFINEMENTBORDER==2 // REFINEMENTBORDER==1
-				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & reqType) &&
-				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
-					changeToFromFine=true;
-					for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) { 
-						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					}
-					/*for(int l=0; ((l<D::cDirNum)&&(changeToFromFine)); l++) {  // FARBORD
-						int ni=2*i+2*D::dfVecX[l], nj=2*j+2*D::dfVecY[l], nk=2*k+2*D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					} // FARBORD*/
-				}
-#elif REFINEMENTBORDER==3 // REFINEMENTBORDER==3
-				FIX!!!
-				if(lev+1==mMaxRefine) { // mixborder
-					if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (CFFluid|CFInter)) &&
-							(!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
-						changeToFromFine=true;
-					}
-				} else {
-				if(   (RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (CFFluid)) &&
-				    (!(RFLAG(lev+1, (2*i),(2*j),(2*k), dstFineSet) & (notAllowed)) )  ){
-					changeToFromFine=true;
-					for(int l=0; l<D::cDirNum; l++) { 
-						int ni=2*i+D::dfVecX[l], nj=2*j+D::dfVecY[l], nk=2*k+D::dfVecZ[l];
-						if(RFLAG(lev+1, ni,nj,nk, dstFineSet)&(notNbAllowed)) { // NEWREFT
-							changeToFromFine=false;
-						}
-					}
-				} } // mixborder
-#else // REFINEMENTBORDER==3
-				ERROR
-#endif // REFINEMENTBORDER==1
+
+				// FARBORD
+
 				if(changeToFromFine) {
 					change = true;
 					mNumFsgrChanges++;
 					RFLAG(lev, i,j,k, srcSet) = CFFluid|CFGrFromFine;
 					if((D::cDimension==2)&&(debugCoarsening)) debugMarkCell(lev,i,j,k); 
 					// same as restr from fine func! not necessary ?!
-					// coarseRestrictFromFine part */
+					// coarseRestrictFromFine part 
 				}
 			} // only check empty cells
 
 	}}} // TEST!
+	//} // init done
+	// PASS 5 */
+	} // coarsening, PASS 4,5
 
-	if(!D::mSilent){ errMsg("performCoarsening"," for l"<<lev<<" done " ); }
+	if(!D::mSilent){ errMsg("adaptGrid"," for l"<<lev<<" done " ); }
 	return change;
+#endif //! LBM_NOADCOARSENING==1
 }
+
+/*****************************************************************************/
+//! cell restriction and prolongation
+/*****************************************************************************/
+
+template<class D>
+void 
+LbmFsgrSolver<D>::coarseRestrictCell(int lev, int i,int j,int k, int srcSet, int dstSet)
+{
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	i=j=k=srcSet=dstSet=lev =0; // get rid of warnings...
+#else
+	LbmFloat *ccel = RACPNT(lev+1, 2*i,2*j,2*k,srcSet);
+	LbmFloat *tcel = RACPNT(lev  , i,j,k      ,dstSet);
+
+	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;			
+	//LbmFloat *ccel = NULL;
+	//LbmFloat *tcel = NULL;
+#if OPT3D==1 
+	LbmFloat m[LBM_DFNUM];
+	// for macro add
+	LbmFloat usqr;
+	//LbmFloat *addfcel, *dstcell;
+	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM];
+	LbmFloat lcsmDstOmega, lcsmSrcOmega, lcsmdfscale;
+#else // OPT3D==true 
+	LbmFloat df[LBM_DFNUM];
+	LbmFloat omegaDst, omegaSrc;
+	LbmFloat feq[LBM_DFNUM];
+	LbmFloat dfScale = mDfScaleUp;
+#endif // OPT3D==true 
+
+#				if OPT3D==0
+	// add up weighted dfs
+	FORDF0{ df[l] = 0.0;}
+	for(int n=0;(n<D::cDirNum); n++) { 
+		int ni=2*i+1*D::dfVecX[n], nj=2*j+1*D::dfVecY[n], nk=2*k+1*D::dfVecZ[n];
+		ccel = RACPNT(lev+1, ni,nj,nk,srcSet);// CFINTTEST
+		const LbmFloat weight = mGaussw[n];
+		FORDF0{
+			LbmFloat cdf = weight * RAC(ccel,l);
+#						if FSGR_STRICT_DEBUG==1
+			if( cdf<-1.0 ){ errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]); }
+#						endif
+			//errMsg("INVDFCREST_DFCHECK", PRINT_IJK<<" s"<<dstSet<<" from "<<PRINT_VEC(2*i,2*j,2*k)<<" s"<<srcSet<<" df"<<l<<":"<< df[l]<<" = "<<cdf<<" , w"<<weight); 
+			df[l] += cdf;
+		}
+	}
+
+	// calc rho etc. from weighted dfs
+	rho = ux  = uy  = uz  = 0.0;
+	FORDF0{
+		LbmFloat cdf = df[l];
+		rho += cdf; 
+		ux  += (D::dfDvecX[l]*cdf); 
+		uy  += (D::dfDvecY[l]*cdf);  
+		uz  += (D::dfDvecZ[l]*cdf);  
+	}
+
+	FORDF0{ feq[l] = D::getCollideEq(l, rho,ux,uy,uz); }
+	if(mLevel[lev  ].lcsmago>0.0) {
+		const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feq);
+		omegaDst  = D::getLesOmega(mLevel[lev  ].omega,mLevel[lev  ].lcsmago,Qo);
+		omegaSrc = D::getLesOmega(mLevel[lev+1].omega,mLevel[lev+1].lcsmago,Qo);
+	} else {
+		omegaDst = mLevel[lev+0].omega; /* NEWSMAGOT*/ 
+		omegaSrc = mLevel[lev+1].omega;
+	}
+	dfScale   = (mLevel[lev  ].stepsize/mLevel[lev+1].stepsize)* (1.0/omegaDst-1.0)/ (1.0/omegaSrc-1.0); // yu
+	FORDF0{
+		RAC(tcel, l) = feq[l]+ (df[l]-feq[l])*dfScale;
+	} 
+#				else // OPT3D
+	// similar to OPTIMIZED_STREAMCOLLIDE_UNUSED
+								
+	//rho = ux = uy = uz = 0.0;
+	MSRC_C  = CCELG_C(0) ;
+	MSRC_N  = CCELG_N(0) ;
+	MSRC_S  = CCELG_S(0) ;
+	MSRC_E  = CCELG_E(0) ;
+	MSRC_W  = CCELG_W(0) ;
+	MSRC_T  = CCELG_T(0) ;
+	MSRC_B  = CCELG_B(0) ;
+	MSRC_NE = CCELG_NE(0);
+	MSRC_NW = CCELG_NW(0);
+	MSRC_SE = CCELG_SE(0);
+	MSRC_SW = CCELG_SW(0);
+	MSRC_NT = CCELG_NT(0);
+	MSRC_NB = CCELG_NB(0);
+	MSRC_ST = CCELG_ST(0);
+	MSRC_SB = CCELG_SB(0);
+	MSRC_ET = CCELG_ET(0);
+	MSRC_EB = CCELG_EB(0);
+	MSRC_WT = CCELG_WT(0);
+	MSRC_WB = CCELG_WB(0);
+	for(int n=1;(n<D::cDirNum); n++) { 
+		ccel = RACPNT(lev+1,  2*i+1*D::dfVecX[n], 2*j+1*D::dfVecY[n], 2*k+1*D::dfVecZ[n]  ,srcSet);
+		MSRC_C  += CCELG_C(n) ;
+		MSRC_N  += CCELG_N(n) ;
+		MSRC_S  += CCELG_S(n) ;
+		MSRC_E  += CCELG_E(n) ;
+		MSRC_W  += CCELG_W(n) ;
+		MSRC_T  += CCELG_T(n) ;
+		MSRC_B  += CCELG_B(n) ;
+		MSRC_NE += CCELG_NE(n);
+		MSRC_NW += CCELG_NW(n);
+		MSRC_SE += CCELG_SE(n);
+		MSRC_SW += CCELG_SW(n);
+		MSRC_NT += CCELG_NT(n);
+		MSRC_NB += CCELG_NB(n);
+		MSRC_ST += CCELG_ST(n);
+		MSRC_SB += CCELG_SB(n);
+		MSRC_ET += CCELG_ET(n);
+		MSRC_EB += CCELG_EB(n);
+		MSRC_WT += CCELG_WT(n);
+		MSRC_WB += CCELG_WB(n);
+	}
+	rho = MSRC_C  + MSRC_N + MSRC_S  + MSRC_E + MSRC_W  + MSRC_T  
+		+ MSRC_B  + MSRC_NE + MSRC_NW + MSRC_SE + MSRC_SW + MSRC_NT 
+		+ MSRC_NB + MSRC_ST + MSRC_SB + MSRC_ET + MSRC_EB + MSRC_WT + MSRC_WB; 
+	ux = MSRC_E - MSRC_W + MSRC_NE - MSRC_NW + MSRC_SE - MSRC_SW 
+		+ MSRC_ET + MSRC_EB - MSRC_WT - MSRC_WB;  
+	uy = MSRC_N - MSRC_S + MSRC_NE + MSRC_NW - MSRC_SE - MSRC_SW 
+		+ MSRC_NT + MSRC_NB - MSRC_ST - MSRC_SB;  
+	uz = MSRC_T - MSRC_B + MSRC_NT - MSRC_NB + MSRC_ST - MSRC_SB 
+		+ MSRC_ET - MSRC_EB + MSRC_WT - MSRC_WB;  
+	usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
+	\
+	lcsmeq[dC] = EQC ; \
+	COLL_CALCULATE_DFEQ(lcsmeq); \
+	COLL_CALCULATE_NONEQTENSOR(lev+0, MSRC_ )\
+	COLL_CALCULATE_CSMOMEGAVAL(lev+0, lcsmDstOmega); \
+	COLL_CALCULATE_CSMOMEGAVAL(lev+1, lcsmSrcOmega); \
+	\
+	lcsmdfscale   = (mLevel[lev+0].stepsize/mLevel[lev+1].stepsize)* (1.0/lcsmDstOmega-1.0)/ (1.0/lcsmSrcOmega-1.0);  \
+	RAC(tcel, dC ) = (lcsmeq[dC ] + (MSRC_C -lcsmeq[dC ] )*lcsmdfscale);
+	RAC(tcel, dN ) = (lcsmeq[dN ] + (MSRC_N -lcsmeq[dN ] )*lcsmdfscale);
+	RAC(tcel, dS ) = (lcsmeq[dS ] + (MSRC_S -lcsmeq[dS ] )*lcsmdfscale);
+	RAC(tcel, dE ) = (lcsmeq[dE ] + (MSRC_E -lcsmeq[dE ] )*lcsmdfscale);
+	RAC(tcel, dW ) = (lcsmeq[dW ] + (MSRC_W -lcsmeq[dW ] )*lcsmdfscale);
+	RAC(tcel, dT ) = (lcsmeq[dT ] + (MSRC_T -lcsmeq[dT ] )*lcsmdfscale);
+	RAC(tcel, dB ) = (lcsmeq[dB ] + (MSRC_B -lcsmeq[dB ] )*lcsmdfscale);
+	RAC(tcel, dNE) = (lcsmeq[dNE] + (MSRC_NE-lcsmeq[dNE] )*lcsmdfscale);
+	RAC(tcel, dNW) = (lcsmeq[dNW] + (MSRC_NW-lcsmeq[dNW] )*lcsmdfscale);
+	RAC(tcel, dSE) = (lcsmeq[dSE] + (MSRC_SE-lcsmeq[dSE] )*lcsmdfscale);
+	RAC(tcel, dSW) = (lcsmeq[dSW] + (MSRC_SW-lcsmeq[dSW] )*lcsmdfscale);
+	RAC(tcel, dNT) = (lcsmeq[dNT] + (MSRC_NT-lcsmeq[dNT] )*lcsmdfscale);
+	RAC(tcel, dNB) = (lcsmeq[dNB] + (MSRC_NB-lcsmeq[dNB] )*lcsmdfscale);
+	RAC(tcel, dST) = (lcsmeq[dST] + (MSRC_ST-lcsmeq[dST] )*lcsmdfscale);
+	RAC(tcel, dSB) = (lcsmeq[dSB] + (MSRC_SB-lcsmeq[dSB] )*lcsmdfscale);
+	RAC(tcel, dET) = (lcsmeq[dET] + (MSRC_ET-lcsmeq[dET] )*lcsmdfscale);
+	RAC(tcel, dEB) = (lcsmeq[dEB] + (MSRC_EB-lcsmeq[dEB] )*lcsmdfscale);
+	RAC(tcel, dWT) = (lcsmeq[dWT] + (MSRC_WT-lcsmeq[dWT] )*lcsmdfscale);
+	RAC(tcel, dWB) = (lcsmeq[dWB] + (MSRC_WB-lcsmeq[dWB] )*lcsmdfscale);
+#				endif // OPT3D==0
+#endif //! LBM_NOADCOARSENING==1
+}
+
+template<class D>
+void LbmFsgrSolver<D>::interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet, bool markNbs) {
+#if LBM_NOADCOARSENING==1
+	if(mMaxRefine>0) errMsg("LbmFsgrSolver","Adaptive Coarsening not compiled, but refinement switched on ("<<mMaxRefine<<")!");
+	i=j=k=dstSet=lev =0; // get rid of warnings...
+	t=0.0; flagSet=0; markNbs=false;
+#else
+	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;
+	LbmFloat intDf[19] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
+
+#if OPT3D==1 
+	// for macro add
+	LbmFloat addDfFacT, addVal, usqr;
+	LbmFloat *addfcel, *dstcell;
+	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM];
+	LbmFloat lcsmDstOmega, lcsmSrcOmega, lcsmdfscale;
+#endif // OPT3D==true 
+
+	// SET required nbs to from coarse (this might overwrite flag several times)
+	// this is not necessary for interpolateFineFromCoarse
+	if(markNbs) {
+	FORDF1{ 
+		int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
+		if(RFLAG(lev,ni,nj,nk,dstSet)&CFUnused) {
+			// parents have to be inited!
+			interpolateCellFromCoarse(lev, ni, nj, nk, dstSet, t, CFFluid|CFGrFromCoarse, false);
+		}
+	} }
+
+	// change flag of cell to be interpolated
+	RFLAG(lev,i,j,k, dstSet) = flagSet;
+	mNumInterdCells++;
+
+	// interpolation lines...
+	int betx = i&1;
+	int bety = j&1;
+	int betz = k&1;
+	
+	if((!betx) && (!bety) && (!betz)) {
+		ADD_INT_DFS(lev-1, i/2  ,j/2  ,k/2  , 0.0, 1.0);
+	}
+	else if(( betx) && (!bety) && (!betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D1);
+	}
+	else if((!betx) && ( bety) && (!betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D1);
+	}
+	else if((!betx) && (!bety) && ( betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D1);
+	}
+	else if(( betx) && ( bety) && (!betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)  , t, WO1D2);
+	}
+	else if((!betx) && ( bety) && ( betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)+1, t, WO1D2);
+	}
+	else if(( betx) && (!bety) && ( betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D2);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)+1, t, WO1D2);
+	}
+	else if(( betx) && ( bety) && ( betz)) {
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)+1, t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)  , t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)+1, t, WO1D3);
+		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)+1, t, WO1D3);
+	}
+	else {
+		D::mPanic=1;
+		errFatal("interpolateCellFromCoarse","Invalid!?", SIMWORLD_GENERICERROR);	
+	}
+
+	IDF_WRITEBACK;
+	return;
+#endif //! LBM_NOADCOARSENING==1
+}
+
 
 
 /*****************************************************************************/
@@ -1939,6 +1988,7 @@ LbmFsgrSolver<D>::adaptTimestep()
 		D::mpParam->calculateAllMissingValues( D::mSilent );
 		recalculateObjectSpeeds();
 		// calc omega, force for all levels
+		mLastOmega=1e10; mLastGravity=1e10;
 		initLevelOmegas();
 		if(D::mpParam->getStepTime()<mMinStepTime) mMinStepTime = D::mpParam->getStepTime();
 		if(D::mpParam->getStepTime()>mMaxStepTime) mMaxStepTime = D::mpParam->getStepTime();
@@ -2196,91 +2246,6 @@ void LbmFsgrSolver<D>::addToNewInterList( int ni, int nj, int nk ) {
 }
 
 template<class D>
-void LbmFsgrSolver<D>::interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet, bool markNbs) {
-	LbmFloat rho=0.0, ux=0.0, uy=0.0, uz=0.0;
-	LbmFloat intDf[19] = { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
-
-#if OPT3D==1 
-	// for macro add
-	LbmFloat addDfFacT, addVal, usqr;
-	LbmFloat *addfcel, *dstcell;
-	LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM];
-	LbmFloat lcsmDstOmega, lcsmSrcOmega, lcsmdfscale;
-#endif // OPT3D==true 
-
-	// SET required nbs to from coarse (this might overwrite flag several times)
-	// this is not necessary for interpolateFineFromCoarse
-	if(markNbs) {
-	FORDF1{ 
-		int ni=i+D::dfVecX[l], nj=j+D::dfVecY[l], nk=k+D::dfVecZ[l];
-		if(RFLAG(lev,ni,nj,nk,dstSet)&CFUnused) {
-			// parents have to be inited!
-			interpolateCellFromCoarse(lev, ni, nj, nk, dstSet, t, CFFluid|CFGrFromCoarse, false);
-		}
-	} }
-
-	// change flag of cell to be interpolated
-	RFLAG(lev,i,j,k, dstSet) = flagSet;
-	mNumInterdCells++;
-
-	// interpolation lines...
-	int betx = i&1;
-	int bety = j&1;
-	int betz = k&1;
-	
-	if((!betx) && (!bety) && (!betz)) {
-		ADD_INT_DFS(lev-1, i/2  ,j/2  ,k/2  , 0.0, 1.0);
-	}
-	else if(( betx) && (!bety) && (!betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D1);
-	}
-	else if((!betx) && ( bety) && (!betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D1);
-	}
-	else if((!betx) && (!bety) && ( betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D1);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D1);
-	}
-	else if(( betx) && ( bety) && (!betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)  , t, WO1D2);
-	}
-	else if((!betx) && ( bety) && ( betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)+1, t, WO1D2);
-	}
-	else if(( betx) && (!bety) && ( betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D2);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)+1, t, WO1D2);
-	}
-	else if(( betx) && ( bety) && ( betz)) {
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)  , t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)  , t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)  ,(k/2)+1, t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)  ,(k/2)+1, t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)  , t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)  , t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)  ,(j/2)+1,(k/2)+1, t, WO1D3);
-		ADD_INT_DFS(lev-1, (i/2)+1,(j/2)+1,(k/2)+1, t, WO1D3);
-	}
-	else {
-		D::mPanic=1;
-		errFatal("interpolateCellFromCoarse","Invalid!?", SIMWORLD_GENERICERROR);	
-	}
-
-	IDF_WRITEBACK;
-	return;
-}
-
-template<class D>
 void LbmFsgrSolver<D>::reinitFlags( int workSet )
 {
 	// OLD mods:
@@ -2289,11 +2254,11 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 	// new if cell inits (last loop)
 	// vweights handling
 
-#if ELBEEM_BLENDER==1
+#if ELBEEM_PLUGIN==1
 	const int debugFlagreinit = 0;
-#else // ELBEEM_BLENDER==1
+#else // ELBEEM_PLUGIN==1
 	const int debugFlagreinit = 0;
-#endif // ELBEEM_BLENDER==1
+#endif // ELBEEM_PLUGIN==1
 	
 	// some things need to be read/modified on the other set
 	int otherSet = (workSet^1);
@@ -2351,9 +2316,9 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 						avgrho = 1.0;
 						avgux = avguy = avguz = 0.0;
 						//TTT mNumProblems++;
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
 						D::mPanic=1; errFatal("NYI2","cellcnt<=0.0",SIMWORLD_GENERICERROR);
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 					} else {
 						// init speed
 						avgux /= cellcnt; avguy /= cellcnt; avguz /= cellcnt;
@@ -2687,7 +2652,7 @@ void LbmFsgrSolver<D>::reinitFlags( int workSet )
 // ugly workaround for multiple definitions
 // of template instatiations for macs... compile
 // everything in one file again
-#if defined(__APPLE_CC__)
+#if defined(__APPLE_CC__) || (defined __INTEL_COMPILER)
 #define LBM_FORCEINCLUDE
 #include "solver_init.cpp"
 #include "solver_util.cpp"
@@ -2706,12 +2671,14 @@ LbmSolverInterface* createSolver() {
 }
 
 
+#ifndef LBM_INSTANTIATE
 #if LBMDIM==2
 #define LBM_INSTANTIATE LbmBGK2D
 #endif // LBMDIM==2
 #if LBMDIM==3
 #define LBM_INSTANTIATE LbmBGK3D
 #endif // LBMDIM==3
+#endif // LBM_INSTANTIATE
 
 template class LbmFsgrSolver< LBM_INSTANTIATE >;
 // the intel compiler is too smart - so the virtual functions called from other cpp

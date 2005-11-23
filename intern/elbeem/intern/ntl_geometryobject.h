@@ -60,6 +60,10 @@ class ntlGeometryObject : public ntlGeometryClass
 		inline int getCastShadows() const { return mCastShadows; }
 
 		/*! Returns the geo init id */
+		inline void setGeoInitId(int set) { mGeoInitId=set; }
+		/*! Returns the geo init typ */
+		inline void setGeoInitType(int set) { mGeoInitType=set; }
+		/*! Returns the geo init id */
 		inline int getGeoInitId() const { return mGeoInitId; }
 		/*! Returns the geo init typ */
 		inline int getGeoInitType() const { return mGeoInitType; }

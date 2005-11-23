@@ -14,6 +14,7 @@
 #include "solver_interface.h" 
 #include "ntl_scene.h"
 #include "ntl_ray.h"
+#include "elbeem.h"
 
 
 /*****************************************************************************/
@@ -297,7 +298,7 @@
 LbmSolverInterface::LbmSolverInterface() :
 	mPanic( false ),
   mSizex(10), mSizey(10), mSizez(10), 
-  mStepCnt( 0 ),
+  mAllfluid(false), mStepCnt( 0 ),
 	mFixMass( 0.0 ),
   mOmega( 1.0 ),
   mGravity(0.0),
@@ -308,22 +309,128 @@ LbmSolverInterface::LbmSolverInterface() :
   mInitDensityGradient( false ),
 	mpAttrs( NULL ), mpParam( NULL ),
 	mNumParticlesLost(0), mNumInvalidDfs(0), mNumFilledCells(0), mNumEmptiedCells(0), mNumUsedCells(0), mMLSUPS(0),
-	mDebugVelScale( 1.0 ), mNodeInfoString("+"),
+	mDebugVelScale( 0.01 ), mNodeInfoString("+"),
 	mRandom( 5123 ),
 	mvGeoStart(-1.0), mvGeoEnd(1.0),
-	mPerformGeoInit( false ),
 	mAccurateGeoinit(0),
 	mName("lbm_default") ,
-	mpIso( NULL ), mIsoValue(0.49999),
+	mpIso( NULL ), mIsoValue(0.499),
 	mSilent(false) , 
-	mGeoInitId( 0 ),
+	mGeoInitId( 1 ),
 	mpGiTree( NULL ),
 	mpGiObjects( NULL ), mGiObjInside(), mpGlob( NULL ),
+	mRefinementDesired(0),
+	mOutputSurfacePreview(0), mPreviewFactor(0.25),
+	mSmoothSurface(0.0), mSmoothNormals(0.0),
 	mMarkedCells(), mMarkedCellIndex(0)
 {
 #if ELBEEM_BLENDER==1
 	if(gDebugLevel<=1) mSilent = true;
 #endif
+}
+
+
+
+/******************************************************************************
+ * initialize correct grid sizes given a geometric bounding box
+ * and desired grid resolutions, all params except maxrefine
+ * will be modified
+ *****************************************************************************/
+void initGridSizes(int &sizex, int &sizey, int &sizez,
+		ntlVec3Gfx &geoStart, ntlVec3Gfx &geoEnd, 
+		int mMaxRefine, bool parallel) 
+{
+	// fix size inits to force cubic cells and mult4 level dimensions
+	const int debugGridsizeInit = 1;
+  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Called - size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" " ,10);
+
+	int maxGridSize = sizex; // get max size
+	if(sizey>maxGridSize) maxGridSize = sizey;
+	if(sizez>maxGridSize) maxGridSize = sizez;
+	LbmFloat maxGeoSize = (geoEnd[0]-geoStart[0]); // get max size
+	if((geoEnd[1]-geoStart[1])>maxGeoSize) maxGeoSize = (geoEnd[1]-geoStart[1]);
+	if((geoEnd[2]-geoStart[2])>maxGeoSize) maxGeoSize = (geoEnd[2]-geoStart[2]);
+	// FIXME better divide max geo size by corresponding resolution rather than max? no prob for rx==ry==rz though
+	LbmFloat cellSize = (maxGeoSize / (LbmFloat)maxGridSize);
+  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Start:"<<geoStart<<" End:"<<geoEnd<<" maxS:"<<maxGeoSize<<" maxG:"<<maxGridSize<<" cs:"<<cellSize, 10);
+	// force grid sizes according to geom. size, rounded
+	sizex = (int) ((geoEnd[0]-geoStart[0]) / cellSize +0.5);
+	sizey = (int) ((geoEnd[1]-geoStart[1]) / cellSize +0.5);
+	sizez = (int) ((geoEnd[2]-geoStart[2]) / cellSize +0.5);
+	// match refinement sizes, round downwards to multiple of 4
+	int sizeMask = 0;
+	int maskBits = mMaxRefine;
+	if(parallel==1) maskBits+=2;
+	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
+
+	// at least size 4 on coarsest level
+	int minSize = 2<<(maskBits+2);
+	if(sizex<minSize) sizex = minSize;
+	if(sizey<minSize) sizey = minSize;
+	if(sizez<minSize) sizez = minSize;
+	
+	sizeMask = ~sizeMask;
+  if(debugGridsizeInit) debMsgStd("initGridSizes",DM_MSG,"Size X:"<<sizex<<" Y:"<<sizey<<" Z:"<<sizez<<" m"<<convertFlags2String(sizeMask) ,10);
+	sizex &= sizeMask;
+	sizey &= sizeMask;
+	sizez &= sizeMask;
+
+	// force geom size to match rounded/modified grid sizes
+	geoEnd[0] = geoStart[0] + cellSize*(LbmFloat)sizex;
+	geoEnd[1] = geoStart[1] + cellSize*(LbmFloat)sizey;
+	geoEnd[2] = geoStart[2] + cellSize*(LbmFloat)sizez;
+}
+
+void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
+		double *reqret, string *reqstr) {
+	// make sure we can handle bid numbers here... all double
+	double memCnt = 0.0;
+	double ddTotalNum = (double)dTotalNum;
+
+	double currResx = (double)resx;
+	double currResy = (double)resy;
+	double currResz = (double)resz;
+	double rcellSize = ((currResx*currResy*currResz) *ddTotalNum);
+	memCnt += (double)(sizeof(CellFlagType) * (rcellSize/ddTotalNum +4.0) *2.0);
+#if COMPRESSGRIDS==0
+	memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
+#else // COMPRESSGRIDS==0
+	double compressOffset = (double)(currResx*currResy*ddTotalNum*2.0);
+	memCnt += (double)(sizeof(LbmFloat) * (rcellSize+compressOffset +4.0));
+#endif // COMPRESSGRIDS==0
+	for(int i=refine-1; i>=0; i--) {
+		currResx /= 2.0;
+		currResy /= 2.0;
+		currResz /= 2.0;
+		rcellSize = ((currResz*currResy*currResx) *ddTotalNum);
+		memCnt += (double)(sizeof(CellFlagType) * (rcellSize/ddTotalNum +4.0) *2.0);
+		memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
+	}
+
+	// isosurface memory
+	memCnt += (double)( (3*sizeof(int)+sizeof(float)) * ((resx+2)*(resy+2)*(resz+2)) );
+
+	double memd = memCnt;
+	char *sizeStr = "";
+	const double sfac = 1000.0;
+	if(memd>sfac){ memd /= sfac; sizeStr="KB"; }
+	if(memd>sfac){ memd /= sfac; sizeStr="MB"; }
+	if(memd>sfac){ memd /= sfac; sizeStr="GB"; }
+	if(memd>sfac){ memd /= sfac; sizeStr="TB"; }
+
+	// return values
+	std::ostringstream ret;
+	if(memCnt< 1024.0*1024.0) {
+		// show full MBs
+		ret << (ceil(memd));
+	} else {
+		// two digits for anything larger than MB
+		ret << (ceil(memd*100.0)/100.0);
+	}
+	ret	<< " "<< sizeStr;
+	*reqret = memCnt;
+	*reqstr = ret.str();
+	//debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Required Grid memory: "<< memd <<" "<< sizeStr<<" ",4);
 }
 
 
@@ -345,7 +452,7 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 		/* might be used for some in/out flow cases */
 		return (CellFlagType)( CFFluid );
 	}
-	errMsg("LbmStdSolver::readBoundaryFlagInt","Invalid value '"<<val<<"' " );
+	errMsg("LbmSolverInterface::readBoundaryFlagInt","Invalid value '"<<val<<"' " );
 # if LBM_STRICT_DEBUG==1
 	errFatal("readBoundaryFlagInt","Strict abort..."<<val, SIMWORLD_INITERROR);
 # endif
@@ -356,31 +463,30 @@ CellFlagType LbmSolverInterface::readBoundaryFlagInt(string name, int defaultVal
 /*! parse standard attributes */
 void LbmSolverInterface::parseStdAttrList() {
 	if(!mpAttrs) {
-		errFatal("LbmStdSolver::parseAttrList","mpAttrs pointer not initialized!",SIMWORLD_INITERROR);
+		errFatal("LbmSolverInterface::parseAttrList","mpAttrs pointer not initialized!",SIMWORLD_INITERROR);
 		return; }
 
 	// st currently unused
-	//mSurfaceTension  = mpAttrs->readFloat("d_surfacetension",  mSurfaceTension, "LbmStdSolver", "mSurfaceTension", false);
-	mBoundaryEast  = readBoundaryFlagInt("boundary_east",  mBoundaryEast, "LbmStdSolver", "mBoundaryEast", false);
-	mBoundaryWest  = readBoundaryFlagInt("boundary_west",  mBoundaryWest, "LbmStdSolver", "mBoundaryWest", false);
-	mBoundaryNorth = readBoundaryFlagInt("boundary_north", mBoundaryNorth,"LbmStdSolver", "mBoundaryNorth", false);
-	mBoundarySouth = readBoundaryFlagInt("boundary_south", mBoundarySouth,"LbmStdSolver", "mBoundarySouth", false);
-	mBoundaryTop   = readBoundaryFlagInt("boundary_top",   mBoundaryTop,"LbmStdSolver", "mBoundaryTop", false);
-	mBoundaryBottom= readBoundaryFlagInt("boundary_bottom", mBoundaryBottom,"LbmStdSolver", "mBoundaryBottom", false);
+	//mSurfaceTension  = mpAttrs->readFloat("d_surfacetension",  mSurfaceTension, "LbmSolverInterface", "mSurfaceTension", false);
+	mBoundaryEast  = readBoundaryFlagInt("boundary_east",  mBoundaryEast, "LbmSolverInterface", "mBoundaryEast", false);
+	mBoundaryWest  = readBoundaryFlagInt("boundary_west",  mBoundaryWest, "LbmSolverInterface", "mBoundaryWest", false);
+	mBoundaryNorth = readBoundaryFlagInt("boundary_north", mBoundaryNorth,"LbmSolverInterface", "mBoundaryNorth", false);
+	mBoundarySouth = readBoundaryFlagInt("boundary_south", mBoundarySouth,"LbmSolverInterface", "mBoundarySouth", false);
+	mBoundaryTop   = readBoundaryFlagInt("boundary_top",   mBoundaryTop,"LbmSolverInterface", "mBoundaryTop", false);
+	mBoundaryBottom= readBoundaryFlagInt("boundary_bottom", mBoundaryBottom,"LbmSolverInterface", "mBoundaryBottom", false);
 
 	LbmVec sizeVec(mSizex,mSizey,mSizez);
-	sizeVec = vec2L( mpAttrs->readVec3d("size",  vec2P(sizeVec), "LbmStdSolver", "sizeVec", false) );
+	sizeVec = vec2L( mpAttrs->readVec3d("size",  vec2P(sizeVec), "LbmSolverInterface", "sizeVec", false) );
 	mSizex = (int)sizeVec[0]; 
 	mSizey = (int)sizeVec[1]; 
 	mSizez = (int)sizeVec[2];
 	mpParam->setSize(mSizex, mSizey, mSizez ); // param needs size in any case
 
-	mInitDensityGradient = mpAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmStdSolver", "mInitDensityGradient", false);
-	mPerformGeoInit = mpAttrs->readBool("geoinit", mPerformGeoInit,"LbmStdSolver", "mPerformGeoInit", false);
-	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"LbmStdSolver", "mGeoInitId", false);
+	mInitDensityGradient = mpAttrs->readBool("initdensitygradient", mInitDensityGradient,"LbmSolverInterface", "mInitDensityGradient", false);
+	mGeoInitId = mpAttrs->readInt("geoinitid", mGeoInitId,"LbmSolverInterface", "mGeoInitId", false);
 	mIsoValue = mpAttrs->readFloat("isovalue", mIsoValue, "LbmOptSolver","mIsoValue", false );
 
-	mDebugVelScale = mpAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmStdSolver", "mDebugVelScale", false);
+	mDebugVelScale = mpAttrs->readFloat("debugvelscale", mDebugVelScale,"LbmSolverInterface", "mDebugVelScale", false);
 	mNodeInfoString = mpAttrs->readString("nodeinfo", mNodeInfoString, "SimulationLbm","mNodeInfoString", false );
 }
 
@@ -421,6 +527,7 @@ void LbmSolverInterface::freeGeoTree() {
 }
 
 
+int globGeoInitDebug = 0;
 /*****************************************************************************/
 /*! check for a certain flag type at position org */
 bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int &OId, gfxReal &distance) {
@@ -432,14 +539,18 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 	//int insCnt = 0;
 	bool done = false;
 	bool inside = false;
+	vector<int> giObjFirstHistSide;
+	giObjFirstHistSide.resize( mpGiObjects->size() );
 	for(size_t i=0; i<mGiObjInside.size(); i++) { 
 		mGiObjInside[i] = 0; 
 		mGiObjDistance[i] = -1.0; 
 		mGiObjSecondDist[i] = -1.0; 
+		giObjFirstHistSide[i] = 0; 
 	}
 	// if not inside, return distance to first hit
 	gfxReal firstHit=-1.0;
 	int     firstOId = -1;
+	if(globGeoInitDebug) errMsg("IIIstart"," isect "<<org<<" f"<<flags<<" acc"<<mAccurateGeoinit);
 	
 	if(mAccurateGeoinit) {
 		while(!done) {
@@ -456,13 +567,14 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 					// outside hit
 					normal *= -1.0;
 					mGiObjInside[OId]++;
-					//mGiObjDistance[OId] = -1.0;
-					//errMsg("IIO"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
+					if(giObjFirstHistSide[OId]==0) giObjFirstHistSide[OId] = 1;
+					if(globGeoInitDebug) errMsg("IIO"," oid:"<<OId<<" org"<<org<<" norg"<<norg<<" orient:"<<orientation);
 				} else {
 					// inside hit
 					mGiObjInside[OId]++;
 					if(mGiObjDistance[OId]<0.0) mGiObjDistance[OId] = distance;
-					//errMsg("III"," oid:"<<OId<<" org"<<org<<" norg"<<norg);
+					if(globGeoInitDebug) errMsg("III"," oid:"<<OId<<" org"<<org<<" norg"<<norg<<" orient:"<<orientation);
+					if(giObjFirstHistSide[OId]==0) giObjFirstHistSide[OId] = -1;
 				}
 				norg += normal * getVecEpsilon();
 				ray = ntlRay(norg, dir, 0, 1.0, mpGlob);
@@ -475,13 +587,26 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 			} else {
 				// no more intersections... return false
 				done = true;
-				//if(insCnt%2) inside=true;
 			}
 		}
 
 		distance = -1.0;
 		for(size_t i=0; i<mGiObjInside.size(); i++) {
-			//errMsg("CHIII","i"<<i<<" ins="<<mGiObjInside[i]<<" t"<<mGiObjDistance[i]<<" d"<<distance);
+			if(mGiObjInside[i]>0) {
+				bool mess = false;
+				if((mGiObjInside[i]%2)==1) {
+					if(giObjFirstHistSide[i] != -1) mess=true;
+				} else {
+					if(giObjFirstHistSide[i] !=  1) mess=true;
+				}
+				if(mess) {
+					errMsg("IIIproblem","At "<<org<<" obj "<<i<<" inside:"<<mGiObjInside[i]<<" firstside:"<<giObjFirstHistSide[i] );
+					mGiObjInside[i]++; // believe first hit side...
+				}
+			}
+		}
+		for(size_t i=0; i<mGiObjInside.size(); i++) {
+			if(globGeoInitDebug) errMsg("CHIII","i"<<i<<" ins="<<mGiObjInside[i]<<" t"<<mGiObjDistance[i]<<" d"<<distance);
 			if(((mGiObjInside[i]%2)==1)&&(mGiObjDistance[i]>0.0)) {
 				if(  (distance<0.0)                             || // first intersection -> good
 					  ((distance>0.0)&&(distance>mGiObjDistance[i])) // more than one intersection -> use closest one
@@ -496,7 +621,7 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, int flags, int 
 			distance = firstHit;
 			OId = firstOId;
 		}
-		//errMsg("CHIII","i"<<inside<<"  fh"<<firstHit<<" fo"<<firstOId<<" - h"<<distance<<" o"<<OId);
+		if(globGeoInitDebug) errMsg("CHIII","i"<<inside<<"  fh"<<firstHit<<" fo"<<firstOId<<" - h"<<distance<<" o"<<OId);
 
 		return inside;
 	} else {
@@ -655,14 +780,16 @@ bool LbmSolverInterface::geoInitCheckPointInside(ntlVec3Gfx org, ntlVec3Gfx dir,
 }
 
 /*****************************************************************************/
-/*! get max. velocity of all objects to initialize as fluid regions */
+/*! get max. velocity of all objects to initialize as fluid regions or inflow */
 ntlVec3Gfx LbmSolverInterface::getGeoMaxInitialVelocity() {
+	ntlVec3Gfx max(0.0);
+	if(mpGlob == NULL) return max;
+
 	ntlScene *scene = mpGlob->getScene();
 	mpGiObjects = scene->getObjects();
-	ntlVec3Gfx max(0.0);
 	
 	for(int i=0; i< (int)mpGiObjects->size(); i++) {
-		if( (*mpGiObjects)[i]->getGeoInitType() & FGI_FLUID ){
+		if( (*mpGiObjects)[i]->getGeoInitType() & (FGI_FLUID|FGI_MBNDINFLOW) ){
 			ntlVec3Gfx ovel = (*mpGiObjects)[i]->getInitialVelocity();
 			if( normNoSqrt(ovel) > normNoSqrt(max) ) { max = ovel; } 
 			//errMsg("IVT","i"<<i<<" "<< (*mpGiObjects)[i]->getInitialVelocity() ); // DEBUG
@@ -675,32 +802,6 @@ ntlVec3Gfx LbmSolverInterface::getGeoMaxInitialVelocity() {
 }
 
 
-/*******************************************************************************/
-/*! "traditional" initialization */
-/*******************************************************************************/
-
-
-/*****************************************************************************/
-// handle generic test cases (currently only reset geo init)
-bool LbmSolverInterface::initGenericTestCases() {
-	bool initTypeFound = false;
-	LbmSolverInterface::CellIdentifier cid = getFirstCell();
-	// deprecated! - only check for invalid cells...
-
-	// this is the default init - check if the geometry flag init didnt
-	initTypeFound = true;
-
-	while(noEndCell(cid)) {
-		// check node
-		if( (getCellFlag(cid,0)==CFInvalid) || (getCellFlag(cid,1)==CFInvalid) ) {
-			warnMsg("LbmSolverInterface::initGenericTestCases","GeoInit produced invalid Flag at "<<cid->getAsString()<<"!" );
-		}
-		advanceCell( cid );
-	}
-
-	deleteCellIterator( &cid );
-	return initTypeFound;
-}
 
 
 /*******************************************************************************/
@@ -755,6 +856,9 @@ string convertSingleFlag2String(CellFlagType cflag) {
 	if(flag == CFUnused         ) return string("cCFUnused");
 	if(flag == CFEmpty          ) return string("cCFEmpty");      
 	if(flag == CFBnd            ) return string("cCFBnd");        
+	if(flag == CFBndNoslip      ) return string("cCFBndNoSlip");        
+	if(flag == CFBndFreeslip    ) return string("cCFBndFreeSlip");        
+	if(flag == CFBndPartslip    ) return string("cCFBndPartSlip");        
 	if(flag == CFNoInterpolSrc  ) return string("cCFNoInterpolSrc");
 	if(flag == CFFluid          ) return string("cCFFluid");      
 	if(flag == CFInter          ) return string("cCFInter");      
@@ -780,7 +884,11 @@ string convertSingleFlag2String(CellFlagType cflag) {
 	} else {
 		val = -1;
 	}
-	mult << "cfUNKNOWN_" << val <<"_TYPE";
+	if(val>=24) {
+		mult << "cfOID_" << (flag>>24) <<"_TYPE";
+	} else {
+		mult << "cfUNKNOWN_" << val <<"_TYPE";
+	}
 	return mult.str();
 }
 	

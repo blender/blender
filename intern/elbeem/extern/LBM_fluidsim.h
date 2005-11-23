@@ -57,11 +57,16 @@ struct Mesh* readBobjgz(char *filename, struct Mesh *orgmesh);
 
 /* create derived mesh for fluid sim objects */
 // WARNING - currently implemented in DerivedMesh.c!
-struct DerivedMesh *getFluidsimDerivedMesh(struct Object *srcob, int useRenderParams, float *extverts, float *nors);
+void loadFluidsimMesh(struct Object *srcob, int useRenderParams);
 
 /* run simulation with given config file */
 // WARNING - implemented in intern/elbeem/blendercall.cpp
 int performElbeemSimulation(char *cfgfilename);
+
+/* init axis aligned BB for mesh object */
+// implemented in source/blender/blenkernel/intern/DerivedMesh.c
+void fluidsimGetAxisAlignedBB(struct Mesh *mesh, float obmat[][4],
+		 /*RET*/ float start[3], /*RET*/ float size[3] );
 
 // implemented in intern/elbeem/utilities.cpp
 /* set elbeem debug output level (0=off to 10=full on) */
@@ -69,6 +74,10 @@ void elbeemSetDebugLevel(int level);
 /* elbeem debug output function */
 void elbeemDebugOut(char *msg);
 
+/* estimate how much memory a given setup will require */
+double elbeemEstimateMemreq(int res, 
+		float sx, float sy, float sz,
+		int refine, char *retstr);
 
 #endif
 

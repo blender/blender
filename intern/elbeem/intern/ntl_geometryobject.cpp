@@ -13,7 +13,7 @@
 #include "ntl_renderglobals.h"
 
 // for FGI
-#include "ntl_scene.h"
+#include "elbeem.h"
 
 
 

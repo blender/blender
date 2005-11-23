@@ -186,11 +186,37 @@ int ntlGeometryObjModel::loadBobjModel(string filename)
 	gzclose( gzf );
 	return 0;
 gzreaderror:
+	mTriangles.clear();
+	mVertices.clear();
+	mNormals.clear();
 	gzclose( gzf );
 	errFatal("ntlGeometryObjModel::loadBobjModel","Reading GZ_BOBJ, Unable to load '"<< filename <<"', exiting...\n", SIMWORLD_INITERROR );
 	return 1;
 }
 
 
+/******************************************************************************
+ * init model from given vertex and triangle arrays 
+ *****************************************************************************/
+
+int ntlGeometryObjModel::initModel(int numVertices, float *vertices, int numTriangles, int *triangles)
+{
+	mVertices.clear();
+	mVertices.resize( numVertices );
+	for(int i=0; i<numVertices; i++) {
+		//mVertices[i] = ntlVec3Gfx(vertices[i][0],vertices[i][1],vertices[i][2]);
+		mVertices[i] = ntlVec3Gfx(vertices[i*3+0],vertices[i*3+1],vertices[i*3+2]);
+	}
+
+	mTriangles.clear();
+	mTriangles.resize( 3*numTriangles );
+	for(int i=0; i<numTriangles; i++) {
+		mTriangles[3*i+0] = triangles[i*3+0];
+		mTriangles[3*i+1] = triangles[i*3+1];
+		mTriangles[3*i+2] = triangles[i*3+2];
+	}
+
+	return 0;
+}
 
 

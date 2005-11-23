@@ -19,9 +19,69 @@
  * attribute conversion functions
  *****************************************************************************/
 
+bool Attribute::initChannel(int elemSize) {
+	if(!mIsChannel) return true;
+	if(mChannelInited==elemSize) {
+		// already inited... ok
+		return true;
+	} else {
+		// sanity check
+		if(mChannelInited>0) {
+			errMsg("Attribute::initChannel","Duplicate channel init!? ("<<mChannelInited<<" vs "<<elemSize<<")...");
+			return false;
+		}
+	}
+	
+	if((mValue.size() % (elemSize+1)) !=  0) {
+		errMsg("Attribute::initChannel","Invalid # elements in Attribute...");
+		return false;
+	}
+	
+	int numElems = mValue.size()/(elemSize+1);
+	vector<string> newvalue;
+	for(int i=0; i<numElems; i++) {
+	//errMsg("ATTR"," i"<<i<<" "<<mName); // debug
+
+		vector<string> elem(elemSize);
+		for(int j=0; j<elemSize; j++) {
+		//errMsg("ATTR"," j"<<j<<" "<<mValue[i*(elemSize+1)+j]  ); // debug
+			elem[j] = mValue[i*(elemSize+1)+j];
+		}
+		mChannel.push_back(elem);
+		// use first value as default
+		if(i==0) newvalue = elem;
+		
+		double t = 0.0; // similar to getAsFloat
+		const char *str = mValue[i*(elemSize+1)+elemSize].c_str();
+		char *endptr;
+		t = strtod(str, &endptr);
+		if((str!=endptr) && (*endptr != '\0')) return false;
+		mTimes.push_back(t);
+		//errMsg("ATTR"," t"<<t<<" "); // debug
+	}
+	for(int i=0; i<numElems-1; i++) {
+		if(mTimes[i]>mTimes[i+1]) {
+			errMsg("Attribute::initChannel","Invalid time at entry "<<i<<" setting to "<<mTimes[i]);
+			mTimes[i+1] = mTimes[i];
+		}
+	}
+
+	// dont change until done with parsing, and everythings ok
+	mValue = newvalue;
+
+	mChannelInited = elemSize;
+	print();
+	return true;
+}
+
 // get value as string 
 string Attribute::getAsString()
 {
+	if(mIsChannel) {
+		errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as string is a channel! Not allowed...");
+		print();
+		return string("");
+	}
 	if(mValue.size()!=1) {
 		//errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as string has invalid value '"<< getCompleteString() <<"' ");
 		// for directories etc. , this might be valid! cutoff "..." first
@@ -37,19 +97,26 @@ int Attribute::getAsInt()
 {
 	bool success = true;
 	int ret = 0;
-	if(mValue.size()!=1) success = false;
-	else {
-		const char *str = mValue[0].c_str();
-		char *endptr;
-		ret = strtol(str, &endptr, 10);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
+
+	if(!initChannel(1)) success=false; 
+	if(success) {
+		if(mValue.size()!=1) success = false;
+		else {
+			const char *str = mValue[0].c_str();
+			char *endptr;
+			ret = strtol(str, &endptr, 10);
+			if( (str==endptr) ||
+					((str!=endptr) && (*endptr != '\0')) )success = false;
+		}
 	}
 
 	if(!success) {
-		errMsg("Attribute::getAsString", "Attribute \"" << mName << "\" used as int has invalid value '"<< getCompleteString() <<"' ");
-		errMsg("Attribute::getAsString", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-		errMsg("Attribute::getAsString", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+		errMsg("Attribute::getAsInt", "Attribute \"" << mName << "\" used as int has invalid value '"<< getCompleteString() <<"' ");
+		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+		errMsg("Attribute::getAsInt", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+#if ELBEEM_PLUGIN!=1
+		gElbeemState = -4; // parse error
+#endif
 		return 0;
 	}
 	return ret;
@@ -70,18 +137,26 @@ double Attribute::getAsFloat()
 {
 	bool success = true;
 	double ret = 0.0;
-	if(mValue.size()!=1) success = false;
-	else {
-		const char *str = mValue[0].c_str();
-		char *endptr;
-		ret = strtod(str, &endptr);
-		if((str!=endptr) && (*endptr != '\0')) success = false;
+
+	if(!initChannel(1)) success=false; 
+	if(success) {
+		if(mValue.size()!=1) success = false;
+		else {
+			const char *str = mValue[0].c_str();
+			char *endptr;
+			ret = strtod(str, &endptr);
+			if((str!=endptr) && (*endptr != '\0')) success = false;
+		}
 	}
 
 	if(!success) {
+		print();
 		errMsg("Attribute::getAsFloat", "Attribute \"" << mName << "\" used as double has invalid value '"<< getCompleteString() <<"' ");
 		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsFloat", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+#if ELBEEM_PLUGIN!=1
+		gElbeemState = -4; // parse error
+#endif
 		return 0.0;
 	}
 	return ret;
@@ -92,41 +167,48 @@ ntlVec3d Attribute::getAsVec3d()
 {
 	bool success = true;
 	ntlVec3d ret(0.0);
-	if(mValue.size()==1) {
-		const char *str = mValue[0].c_str();
-		char *endptr;
-		double rval = strtod(str, &endptr);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
-		if(success) ret = ntlVec3d( rval );
-	} else if(mValue.size()==3) {
-		char *endptr;
-		const char *str = NULL;
 
-		str = mValue[0].c_str();
-		double rval1 = strtod(str, &endptr);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
+	if(!initChannel(3)) success=false; 
+	if(success) {
+		if(mValue.size()==1) {
+			const char *str = mValue[0].c_str();
+			char *endptr;
+			double rval = strtod(str, &endptr);
+			if( (str==endptr) ||
+					((str!=endptr) && (*endptr != '\0')) )success = false;
+			if(success) ret = ntlVec3d( rval );
+		} else if(mValue.size()==3) {
+			char *endptr;
+			const char *str = NULL;
 
-		str = mValue[1].c_str();
-		double rval2 = strtod(str, &endptr);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
+			str = mValue[0].c_str();
+			double rval1 = strtod(str, &endptr);
+			if( (str==endptr) ||
+					((str!=endptr) && (*endptr != '\0')) )success = false;
 
-		str = mValue[2].c_str();
-		double rval3 = strtod(str, &endptr);
-		if( (str==endptr) ||
-				((str!=endptr) && (*endptr != '\0')) )success = false;
+			str = mValue[1].c_str();
+			double rval2 = strtod(str, &endptr);
+			if( (str==endptr) ||
+					((str!=endptr) && (*endptr != '\0')) )success = false;
 
-		if(success) ret = ntlVec3d( rval1, rval2, rval3 );
-	} else {
-		success = false;
+			str = mValue[2].c_str();
+			double rval3 = strtod(str, &endptr);
+			if( (str==endptr) ||
+					((str!=endptr) && (*endptr != '\0')) )success = false;
+
+			if(success) ret = ntlVec3d( rval1, rval2, rval3 );
+		} else {
+			success = false;
+		}
 	}
 
 	if(!success) {
 		errMsg("Attribute::getAsVec3d", "Attribute \"" << mName << "\" used as Vec3d has invalid value '"<< getCompleteString() <<"' ");
 		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsVec3d", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+#if ELBEEM_PLUGIN!=1
+		gElbeemState = -4; // parse error
+#endif
 		return ntlVec3d(0.0);
 	}
 	return ret;
@@ -180,6 +262,9 @@ ntlMat4Gfx Attribute::getAsMat4Gfx()
 		errMsg("Attribute::getAsMat4Gfx", "Attribute \"" << mName << "\" used as Mat4x4 has invalid value '"<< getCompleteString() <<"' ");
 		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 		errMsg("Attribute::getAsMat4Gfx", "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+#if ELBEEM_PLUGIN!=1
+		gElbeemState = -4; // parse error
+#endif
 		return ntlMat4Gfx(0.0);
 	}
 	return ret;
@@ -195,6 +280,68 @@ string Attribute::getCompleteString()
 		if(i<mValue.size()-1) ret += " ";
 	}
 	return ret;
+}
+
+
+/******************************************************************************
+ * channel returns
+ *****************************************************************************/
+
+//! get channel as double value
+AnimChannel<double> Attribute::getChannelFloat() {
+	vector<double> timeVec;
+	vector<double> valVec;
+	
+	if((!initChannel(1)) || (!mIsChannel)) {
+		timeVec.push_back( 0.0 );
+		valVec.push_back( getAsFloat() );
+	} else {
+	for(size_t i=0; i<mChannel.size(); i++) {
+		mValue = mChannel[i];
+		double val = getAsFloat();
+		timeVec.push_back( mTimes[i] );
+		valVec.push_back( val );
+	}}
+
+	return AnimChannel<double>(valVec,timeVec);
+}
+
+//! get channel as integer value
+AnimChannel<int> Attribute::getChannelInt() { 
+	vector<double> timeVec;
+	vector<int> valVec;
+	
+	if((!initChannel(1)) || (!mIsChannel)) {
+		timeVec.push_back( 0.0 );
+		valVec.push_back( getAsInt() );
+	} else {
+	for(size_t i=0; i<mChannel.size(); i++) {
+		mValue = mChannel[i];
+		int val = getAsInt();
+		timeVec.push_back( mTimes[i] );
+		valVec.push_back( val );
+	}}
+
+	return AnimChannel<int>(valVec,timeVec);
+}
+
+//! get channel as integer value
+AnimChannel<ntlVec3d> Attribute::getChannelVec3d() { 
+	vector<double> timeVec;
+	vector<ntlVec3d> valVec;
+	
+	if((!initChannel(3)) || (!mIsChannel)) {
+		timeVec.push_back( 0.0 );
+		valVec.push_back( getAsVec3d() );
+	} else {
+	for(size_t i=0; i<mChannel.size(); i++) {
+		mValue = mChannel[i];
+		ntlVec3d val = getAsVec3d();
+		timeVec.push_back( mTimes[i] );
+		valVec.push_back( val );
+	}}
+
+	return AnimChannel<ntlVec3d>(valVec,timeVec);
 }
 
 
@@ -292,6 +439,20 @@ bool AttributeList::ignoreParameter(string name, string source) {
 	return true;
 }
 		
+// read channels
+AnimChannel<double> AttributeList::readChannelFloat(string name) {
+	if(!exists(name)) { return AnimChannel<double>(0.0); } 
+	return find(name)->getChannelFloat(); 
+}
+AnimChannel<int> AttributeList::readChannelInt(string name) {
+	if(!exists(name)) { return AnimChannel<int>(0); } 
+	return find(name)->getChannelInt(); 
+}
+AnimChannel<ntlVec3d> AttributeList::readChannelVec3d(string name) {
+	if(!exists(name)) { return AnimChannel<ntlVec3d>(0.0); } 
+	return find(name)->getChannelVec3d(); 
+}
+
 /******************************************************************************
  * destructor
  *****************************************************************************/
@@ -314,9 +475,22 @@ AttributeList::~AttributeList() {
 void Attribute::print()
 {
 	std::ostringstream ostr;
-	ostr << "  "<< mName <<"= ";
+	ostr << "ATTR "<< mName <<"= ";
 	for(size_t i=0;i<mValue.size();i++) {
 		ostr <<"'"<< mValue[i]<<"' ";
+	}
+	if(mIsChannel) {
+		ostr << " CHANNEL: ";
+		if(mChannelInited>0) {
+		for(size_t i=0;i<mChannel.size();i++) {
+			for(size_t j=0;j<mChannel[i].size();j++) {
+				ostr <<"'"<< mChannel[i][j]<<"' ";
+			}
+			ostr << "@"<<mTimes[i]<<"; ";
+		}
+		} else {
+			ostr <<" -nyi- ";
+		}			
 	}
 	ostr <<" (at line "<<mLine<<") "; //<< std::endl;
 	debugOut( ostr.str(), 10);

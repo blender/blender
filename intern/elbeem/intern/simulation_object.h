@@ -15,11 +15,11 @@
 #include "ntl_geometryshader.h"
 #include "solver_interface.h"
 #include "parametrizer.h"
-#include "particletracer.h"
 
 class ntlTree;
 class ntlRenderGlobals;
 class ntlRenderGlobals;
+class ParticleTracer;
 
 
 //! type fluid geometry init 
@@ -80,6 +80,9 @@ class SimulationObject :
 		/*! simluation interface: initialize simulation */
 		int initializeLbmSimulation(ntlRenderGlobals *glob);
 
+		/*! set current frame */
+		void setFrameNum(int num);
+
 		/*! Do geo etc. init */
 		virtual int postGeoConstrInit(ntlRenderGlobals *glob) { return initializeLbmSimulation(glob); };
 		virtual int initializeShader() { /* ... */ return true; };
@@ -138,7 +141,7 @@ class SimulationObject :
 		/*! debug info to display */
 		int mDebugType;
 
-		//! dimension of the simulation - now given by LBMDIM define globally
+		//! dimension of the simulation - now given by LBM-DIM define globally
 		//! solver type
 		string mSolverType;
 
@@ -155,7 +158,7 @@ class SimulationObject :
 		Parametrizer *mpParam;
 
 		/*! particle tracing object */
-		ParticleTracer mParts;
+		ParticleTracer *mpParts;
 
 		/*! show parts of the simulation toggles */
 		bool mShowSurface;

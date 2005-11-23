@@ -7,12 +7,10 @@
  *
  *****************************************************************************/
 
-#ifndef __APPLE_CC__
+#if ((!defined(__APPLE_CC__)) && (!defined(__INTEL_COMPILER))) || defined(LBM_FORCEINCLUDE)
 #include "solver_class.h"
-#endif // __APPLE_CC__
 
 
-#if !defined(__APPLE_CC__) || defined(LBM_FORCEINCLUDE)
 /******************************************************************************
  * helper functions
  *****************************************************************************/
@@ -113,42 +111,44 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 	}
 
 	
-	/*
-  for(int k=0;k<mLevel[mMaxRefine].lSizez-1;k++)
-    for(int j=0;j<mLevel[mMaxRefine].lSizey-1;j++) {
-			*D::mpIso->lbmGetData(-1,                           j,ZKOFF) = *D::mpIso->lbmGetData( 1,                         j,ZKOFF);
-			*D::mpIso->lbmGetData( 0,                           j,ZKOFF) = *D::mpIso->lbmGetData( 1,                         j,ZKOFF);
-			*D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-1, j,ZKOFF) = *D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-2, j,ZKOFF);
-			*D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-0, j,ZKOFF) = *D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-2, j,ZKOFF);
-    }
-
-  for(int k=0;k<mLevel[mMaxRefine].lSizez-1;k++)
-    for(int i=-1;i<mLevel[mMaxRefine].lSizex+1;i++) {      
-			*D::mpIso->lbmGetData( i,-1,                           ZKOFF) = *D::mpIso->lbmGetData( i, 1,                         ZKOFF);
-			*D::mpIso->lbmGetData( i, 0,                           ZKOFF) = *D::mpIso->lbmGetData( i, 1,                         ZKOFF);
-			*D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-1, ZKOFF) = *D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-2, ZKOFF);
-			*D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-0, ZKOFF) = *D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-2, ZKOFF);
-    }
-
-	if(D::cDimension == 3) {
-		// only for 3D
-		for(int j=-1;j<mLevel[mMaxRefine].lSizey+1;j++)
-			for(int i=-1;i<mLevel[mMaxRefine].lSizex+1;i++) {      
-				//initEmptyCell(mMaxRefine, i,j,0, domainBoundType, 0.0, BND_FILL); initEmptyCell(mMaxRefine, i,j,mLevel[mMaxRefine].lSizez-1, domainBoundType, 0.0, BND_FILL); 
-				*D::mpIso->lbmGetData( i,j,-1                         ) = *D::mpIso->lbmGetData( i,j,1                        );
-				*D::mpIso->lbmGetData( i,j, 0                         ) = *D::mpIso->lbmGetData( i,j,1                        );
-				*D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-1) = *D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-2);
-				*D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-0) = *D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-2);
+#if ELBEEM_PLUGIN!=1
+	if(mUseTestdata) {
+		int border = 1;
+		for(int k=0;k<mLevel[mMaxRefine].lSizez-1;k++)
+			for(int j=0;j<mLevel[mMaxRefine].lSizey-1;j++) {
+				for(int l=0; l<=border; l++) {
+					*D::mpIso->lbmGetData( l-1,                         j,ZKOFF) = *D::mpIso->lbmGetData( border+1,                         j,ZKOFF);
+					*D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-l, j,ZKOFF) = *D::mpIso->lbmGetData( mLevel[mMaxRefine].lSizex-border-1, j,ZKOFF);
+				}
 			}
-	}
+
+		for(int k=0;k<mLevel[mMaxRefine].lSizez-1;k++)
+			for(int i=-1;i<mLevel[mMaxRefine].lSizex+1;i++) {      
+				for(int l=0; l<=border; l++) {
+					*D::mpIso->lbmGetData( i, l-1,                         ZKOFF) = *D::mpIso->lbmGetData( i, border+1,                         ZKOFF);
+					*D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-l, ZKOFF) = *D::mpIso->lbmGetData( i, mLevel[mMaxRefine].lSizey-border-1, ZKOFF);
+				}
+			}
+
+		if(D::cDimension == 3) {
+			// only for 3D
+			for(int j=-1;j<mLevel[mMaxRefine].lSizey+1;j++)
+				for(int i=-1;i<mLevel[mMaxRefine].lSizex+1;i++) {      
+					for(int l=0; l<=border; l++) {
+						*D::mpIso->lbmGetData( i,j,l-1                        ) = *D::mpIso->lbmGetData( i,j, border+1                         );
+						*D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-l) = *D::mpIso->lbmGetData( i,j,mLevel[mMaxRefine].lSizez-1-border);
+					}
+				}
+		}
+	} // testdata
+#endif // ELBEEM_PLUGIN
 	// */
 
 	// update preview, remove 2d?
-	if(mOutputSurfacePreview) {
-		//int previewSize = mOutputSurfacePreview;
-		int pvsx = (int)(mPreviewFactor*D::mSizex);
-		int pvsy = (int)(mPreviewFactor*D::mSizey);
-		int pvsz = (int)(mPreviewFactor*D::mSizez);
+	if(D::mOutputSurfacePreview) {
+		int pvsx = (int)(D::mPreviewFactor*D::mSizex);
+		int pvsy = (int)(D::mPreviewFactor*D::mSizey);
+		int pvsz = (int)(D::mPreviewFactor*D::mSizez);
 		//float scale = (float)D::mSizex / previewSize;
 		LbmFloat scalex = (LbmFloat)D::mSizex/(LbmFloat)pvsx;
 		LbmFloat scaley = (LbmFloat)D::mSizey/(LbmFloat)pvsy;
@@ -179,6 +179,11 @@ void LbmFsgrSolver<D>::prepareVisualization( void ) {
 		} // borders done...
 	}
 
+#if ELBEEM_PLUGIN!=1
+	if(D::mInitDone) { 
+		if(mpTest->mDebugvalue3<=0.0) handleTestdata();
+	}
+#endif // ELBEEM_PLUGIN!=1
 	// correction
 	return;
 }
@@ -215,12 +220,16 @@ void LbmFsgrSolver<D>::recalculateObjectSpeeds() {
 template<class D>
 vector<ntlGeometryObject*> LbmFsgrSolver<D>::getDebugObjects() { 
 	vector<ntlGeometryObject*> debo; 
-	if(mOutputSurfacePreview) {
+	if(D::mOutputSurfacePreview) {
 		debo.push_back( mpPreviewSurface );
 	}
-#ifndef ELBEEM_BLENDER
-	if(mUseTestdata) debo.push_back( mpTest );
-#endif // ELBEEM_BLENDER
+#if ELBEEM_PLUGIN!=1
+	if(mUseTestdata) {
+		vector<ntlGeometryObject*> tdebo; 
+		tdebo = mpTest->getDebugObjects();
+		for(size_t i=0; i<tdebo.size(); i++) debo.push_back( tdebo[i] );
+	}
+#endif // ELBEEM_PLUGIN
 	return debo; 
 }
 
@@ -231,22 +240,23 @@ vector<ntlGeometryObject*> LbmFsgrSolver<D>::getDebugObjects() {
 /*! init particle positions */
 template<class D>
 int LbmFsgrSolver<D>::initParticles(ParticleTracer *partt) { 
-#ifdef ELBEEM_BLENDER
+#if ELBEEM_PLUGIN==1
 	partt = NULL; // remove warning
-#else // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
   int workSet = mLevel[mMaxRefine].setCurr;
   int tries = 0;
   int num = 0;
+	mpParticles=partt;
 
   //partt->setSimEnd  ( ntlVec3Gfx(D::mSizex-1, D::mSizey-1, getForZMax1()) );
-  partt->setSimEnd  ( ntlVec3Gfx(D::mSizex,   D::mSizey,   D::getForZMaxBnd()) );
+  partt->setSimEnd  ( ntlVec3Gfx(D::mSizex,   D::mSizey,   getForZMaxBnd(mMaxRefine)) );
   partt->setSimStart( ntlVec3Gfx(0.0) );
   
   while( (num<partt->getNumParticles()) && (tries<100*partt->getNumParticles()) ) {
     double x,y,z;
     x = 0.0+(( (float)(D::mSizex-1) )     * (rand()/(RAND_MAX+1.0)) );
     y = 0.0+(( (float)(D::mSizey-1) )     * (rand()/(RAND_MAX+1.0)) );
-    z = 0.0+(( (float) D::getForZMax1()  )* (rand()/(RAND_MAX+1.0)) );
+    z = 0.0+(( (float) getForZMax1(mMaxRefine) )* (rand()/(RAND_MAX+1.0)) );
     int i = (int)(x-0.5);
     int j = (int)(y-0.5);
     int k = (int)(z-0.5);
@@ -263,78 +273,99 @@ int LbmFsgrSolver<D>::initParticles(ParticleTracer *partt) {
     }
     tries++;
   }
-  debMsgStd("LbmTestSolver::initParticles",DM_MSG,"Added "<<num<<" particles ", 10);
+  debMsgStd("LbmFsgrSolver::initParticles",DM_MSG,"Added "<<num<<" particles ", 10);
   if(num != partt->getNumParticles()) return 1;
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 
 	return 0;
 }
 
 template<class D>
-void LbmFsgrSolver<D>::advanceParticles(ParticleTracer *partt ) { 
-#ifdef ELBEEM_BLENDER
+void LbmFsgrSolver<D>::advanceParticles(ParticleTracer *partt) { 
+#if ELBEEM_PLUGIN==1
 	partt = NULL; // remove warning
-#else // ELBEEM_BLENDER
+#else // ELBEEM_PLUGIN
   int workSet = mLevel[mMaxRefine].setCurr;
 	LbmFloat vx=0.0,vy=0.0,vz=0.0;
 	LbmFloat rho, df[27]; //feq[27];
+	if(mpParticles!=partt) { errMsg("LbmFsgrSolver<D>::advanceParticles","Invalid ParticleTracer..."); }
 
-  for(vector<ParticleObject>::iterator p= partt->getParticlesBegin();
-      p!= partt->getParticlesEnd(); p++) {
-    //errorOut(" p "<< (*p).getPos() );
-    if( (*p).getActive()==false ) continue;
+	// TODO use timestep size
+  for(vector<ParticleObject>::iterator pit= partt->getParticlesBegin();
+      pit!= partt->getParticlesEnd(); pit++) {
+    //errorOut(" pit "<< (*pit).getPos() );
+    if( (*pit).getActive()==false ) continue;
     int i,j,k;
+		ParticleObject *p = &(*pit);
 
-    // nearest neighbor, particle positions don't include empty bounds
-    ntlVec3Gfx pos = (*p).getPos();
-    i= (int)(pos[0]+0.5);
-    j= (int)(pos[1]+0.5);
-    k= (int)(pos[2]+0.5);
-    if(D::cDimension==2) {
-      k = 0;
-    }
-
-    if( (i<0)||(i>D::mSizex-1)||
-        (j<0)||(j>D::mSizey-1)||
-        (k<0)||(k>D::mSizez-1) ) {
-      (*p).setActive( false );
-      continue;
-    }
-
-    // no interpol
-    rho = vx = vy = vz = 0.0;
-		FORDF0{
-			LbmFloat cdf = QCELL(mMaxRefine, i,j,k, workSet, l);
-			df[l] = cdf;
-			rho += cdf; 
-			vx  += (D::dfDvecX[l]*cdf); 
-			vy  += (D::dfDvecY[l]*cdf);  
-			vz  += (D::dfDvecZ[l]*cdf);  
+		// nearest neighbor, particle positions don't include empty bounds
+		ntlVec3Gfx pos = p->getPos();
+		i= (int)(pos[0]+0.5);
+		j= (int)(pos[1]+0.5);
+		k= (int)(pos[2]+0.5);
+		if(D::cDimension==2) {
+			k = 0;
 		}
 
-    // remove gravity influence
-		//FORDF0{ feq[l] = D::getCollideEq(l, rho,vx,vy,vz); }
-		//const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feq);
-		//const LbmFloat lesomega = D::getLesOmega(mLevel[mMaxRefine].omega,mLevel[mMaxRefine].lcsmago,Qo);
-		const LbmFloat lesomega = mLevel[mMaxRefine].omega; // no les
-    vx -= mLevel[mMaxRefine].gravity[0] * lesomega*0.5;
-    vy -= mLevel[mMaxRefine].gravity[1] * lesomega*0.5;
-    vz -= mLevel[mMaxRefine].gravity[2] * lesomega*0.5;
+		if( (i<0)||(i>D::mSizex-1)||
+				(j<0)||(j>D::mSizey-1)||
+				(k<0)||(k>D::mSizez-1) ) {
+			p->setActive( false );
+			continue;
+		}
 
-    if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFFluid ) ||
-        TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFInter ) ) {
-      // still ok
-    } else {
-      // out of bounds, deactivate...
-			// FIXME had fsgr treatment
-      (*p).setActive( false );
-      continue;
-      D::mNumParticlesLost++;
-    }
+		if(p->getStatus()==0) {
+			// no interpol
+			rho = vx = vy = vz = 0.0;
+			FORDF0{
+				LbmFloat cdf = QCELL(mMaxRefine, i,j,k, workSet, l);
+				df[l] = cdf;
+				rho += cdf; 
+				vx  += (D::dfDvecX[l]*cdf); 
+				vy  += (D::dfDvecY[l]*cdf);  
+				vz  += (D::dfDvecZ[l]*cdf);  
+			}
 
-    (*p).advance( vx,vy,vz );
+			// remove gravity influence
+			//FORDF0{ feq[l] = D::getCollideEq(l, rho,vx,vy,vz); }
+			//const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feq);
+			//const LbmFloat lesomega = D::getLesOmega(mLevel[mMaxRefine].omega,mLevel[mMaxRefine].lcsmago,Qo);
+			const LbmFloat lesomega = mLevel[mMaxRefine].omega; // no les
+			vx -= mLevel[mMaxRefine].gravity[0] * lesomega*0.5;
+			vy -= mLevel[mMaxRefine].gravity[1] * lesomega*0.5;
+			vz -= mLevel[mMaxRefine].gravity[2] * lesomega*0.5;
+
+			if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFFluid ) ||
+					TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFInter ) ) {
+				// still ok
+			} else {
+				// out of bounds, deactivate...
+				// FIXME make fsgr treatment
+				p->setActive( false );
+				continue;
+				D::mNumParticlesLost++;
+			}
+
+			p->advance( vx,vy,vz );
+		  // fluid particle
+		} else {
+			p->setVel( p->getVel() * 0.999 ); // dampen...
+			p->addToVel( vec2G(mLevel[mMaxRefine].gravity) );
+			p->advanceVel();
+			//errMsg("NNNPART"," at "<<p->getPos()<<" u="<<p->getVel() );
+			if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFEmpty ) ||
+					TESTFLAG( RFLAG(mMaxRefine, i,j,k, workSet), CFInter ) ) {
+				// still ok
+			} else {
+				// out of bounds, deactivate...
+				// FIXME make fsgr treatment
+				p->setActive( false );
+				continue;
+				D::mNumParticlesLost++;
+			}
+		} // air particle
   }
-#endif // ELBEEM_BLENDER
+#endif // ELBEEM_PLUGIN
 }
 
 
@@ -549,11 +580,31 @@ LbmFsgrSolver<D>::getCellDensity  ( CellIdentifierInterface* basecid,int set) {
 	stdCellId *cid = convertBaseCidToStdCid(basecid);
 
 	LbmFloat rho = 0.0;
-	FORDF0 {
-		rho += QCELL(cid->level, cid->x,cid->y,cid->z, set, l);
-	}
-	return ((rho-1.0) * mLevel[cid->level].simCellSize / mLevel[cid->level].stepsize) +1.0; // normal
-	//return ((rho-1.0) * D::mpParam->getCellSize() / D::mpParam->getStepTime()) +1.0;
+	//FORDF0 { rho += QCELL(cid->level, cid->x,cid->y,cid->z, set, l); } // ORG
+	//return ((rho-1.0) * mLevel[cid->level].simCellSize / mLevel[cid->level].stepsize) +1.0; // ORG
+	if(RFLAG(cid->level, cid->x,cid->y,cid->z, set)&CFInter) { // test
+		LbmFloat ux,uy,uz;
+		ux=uy=uz= 0.0;
+		int lev = cid->level;
+		LbmFloat df[27], feqOld[27];
+		FORDF0 {
+			rho += QCELL(lev, cid->x,cid->y,cid->z, set, l);
+			ux += D::dfDvecX[l]* QCELL(lev, cid->x,cid->y,cid->z, set, l);
+			uy += D::dfDvecY[l]* QCELL(lev, cid->x,cid->y,cid->z, set, l);
+			uz += D::dfDvecZ[l]* QCELL(lev, cid->x,cid->y,cid->z, set, l);
+			df[l] = QCELL(lev, cid->x,cid->y,cid->z, set, l);
+		}
+		FORDF0 {
+			feqOld[l] = D::getCollideEq(l, rho,ux,uy,uz); 
+		}
+		const LbmFloat Qo = D::getLesNoneqTensorCoeff(df,feqOld);
+		//const LbmFloat modOmega = D::getLesOmega(mLevel[lev].omega, mLevel[lev].lcsmago,Qo);
+		//rho = (2.0-modOmega) *25.0;
+		rho = Qo*100.0;
+		//if(cid->x==24){ errMsg("MODOMT"," at "<<PRINT_VEC(cid->x,cid->y,cid->z)<<" = "<<rho<<" "<<Qo); }
+		//else{ rho=0.0; }
+	} // test
+	return rho; // test
 }
 
 template<class D>
@@ -754,27 +805,28 @@ void LbmFsgrSolver<D>::debugDisplayNode(fluidDispSettings *dispset, CellIdentifi
 		ntlVec3Gfx e = org+(halfsize * (scale)); \
 		drawCubeWire( s,e ); }
 
+	CellFlagType flag = this->getCellFlag(cell, set );
+	// always check types
+	if(flag& CFInvalid  ) { if(!guiShowInvalid  ) return; }
+	if(flag& CFUnused   ) { if(!guiShowInvalid  ) return; }
+	if(flag& CFEmpty    ) { if(!guiShowEmpty    ) return; }
+	if(flag& CFInter    ) { if(!guiShowInterface) return; }
+	if(flag& CFNoDelete ) { if(!guiShowNoDelete ) return; }
+	if(flag& CFBnd      ) { if(!guiShowBnd      ) return; }
+
+	// only dismiss one of these types 
+	if(flag& CFGrFromCoarse)  { if(!guiShowCoarseInner  ) return; } // inner not really interesting
+	else
+	if(flag& CFGrFromFine) { if(!guiShowCoarseBorder ) return; }
+	else
+	if(flag& CFFluid    )    { if(!guiShowFluid    ) return; }
+
 	switch(dispset->type) {
 		case FLUIDDISPNothing: {
 				showcell = false;
 			} break;
 		case FLUIDDISPCelltypes: {
-				CellFlagType flag = this->getCellFlag(cell, set );
 				cscale = 0.5;
-
-				if(flag& CFInvalid  ) { if(!guiShowInvalid  ) return; }
-				if(flag& CFUnused   ) { if(!guiShowInvalid  ) return; }
-				if(flag& CFEmpty    ) { if(!guiShowEmpty    ) return; }
-				if(flag& CFInter    ) { if(!guiShowInterface) return; }
-				if(flag& CFNoDelete ) { if(!guiShowNoDelete ) return; }
-				if(flag& CFBnd      ) { if(!guiShowBnd      ) return; }
-
-				// only dismiss one of these types 
- 				if(flag& CFGrFromCoarse)  { if(!guiShowCoarseInner  ) return; } // inner not really interesting
-				else
-				if(flag& CFGrFromFine) { if(!guiShowCoarseBorder ) return; }
-				else
-				if(flag& CFFluid    )    { if(!guiShowFluid    ) return; }
 
 				if(flag& CFNoDelete) { // debug, mark nodel cells
 					ntlColor ccol(0.7,0.0,0.0);
@@ -847,9 +899,7 @@ void LbmFsgrSolver<D>::debugDisplayNode(fluidDispSettings *dispset, CellIdentifi
 				showcell = false;
 			} break;
 		case FLUIDDISPCellfills: {
-				CellFlagType flag = this->getCellFlag( cell,set );
 				cscale = 0.5;
-
 				if(flag& CFFluid) {
 					cscale = 0.75;
 					col = ntlColor(0,0,0.5);
@@ -891,6 +941,7 @@ void LbmFsgrSolver<D>::debugDisplayNode(fluidDispSettings *dispset, CellIdentifi
 	}
 
 	if(!showcell) return;
+	if(cscale==0.0) return; // dont draw zero values
 	DRAWDISPCUBE(col, cscale);
 }
 
@@ -1011,9 +1062,7 @@ void LbmFsgrSolver<D>::debugPrintNodeInfo(CellIdentifierInterface* cell, int for
 /******************************************************************************
  * instantiation
  *****************************************************************************/
-
-
-#ifndef __APPLE_CC__
+#if ((!defined(__APPLE_CC__)) && (!defined(__INTEL_COMPILER))) && (!defined(LBM_FORCEINCLUDE))
 
 #if LBMDIM==2
 #define LBM_INSTANTIATE LbmBGK2D
@@ -1024,32 +1073,5 @@ void LbmFsgrSolver<D>::debugPrintNodeInfo(CellIdentifierInterface* cell, int for
 
 template class LbmFsgrSolver< LBM_INSTANTIATE >;
 
-#endif // __APPLE_CC__
-
-// the intel compiler is too smart - so the virtual functions called from other cpp
-// files have to be instantiated explcitly (otherwise this will cause undefined
-// references to "non virtual thunks") ... still not working, though
-//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::prepareVisualization( void );
-//template<class LBM_INSTANTIATE> vector<ntlGeometryObject*> LbmFsgrSolver<LBM_INSTANTIATE>::getDebugObjects();
-//template<class LBM_INSTANTIATE> int  LbmFsgrSolver<LBM_INSTANTIATE>::initParticles(ParticleTracer *partt );
-//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::advanceParticles(ParticleTracer *partt );
-
-// instantiate whole celliterator interface
-//template<class LBM_INSTANTIATE> CellIdentifierInterface* LbmFsgrSolver<LBM_INSTANTIATE>::getFirstCell( );
-//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::advanceCell( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> bool LbmFsgrSolver<LBM_INSTANTIATE>::noEndCell( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::deleteCellIterator( CellIdentifierInterface** );
-//template<class LBM_INSTANTIATE> CellIdentifierInterface* LbmFsgrSolver<LBM_INSTANTIATE>::getCellAt( ntlVec3Gfx pos );
-//template<class LBM_INSTANTIATE> int        LbmFsgrSolver<LBM_INSTANTIATE>::getCellSet      ( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> ntlVec3Gfx LbmFsgrSolver<LBM_INSTANTIATE>::getCellOrigin   ( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> ntlVec3Gfx LbmFsgrSolver<LBM_INSTANTIATE>::getCellSize     ( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> int        LbmFsgrSolver<LBM_INSTANTIATE>::getCellLevel    ( CellIdentifierInterface* );
-//template<class LBM_INSTANTIATE> LbmFloat   LbmFsgrSolver<LBM_INSTANTIATE>::getCellDensity  ( CellIdentifierInterface* ,int set);
-//template<class LBM_INSTANTIATE> LbmVec     LbmFsgrSolver<LBM_INSTANTIATE>::getCellVelocity ( CellIdentifierInterface* ,int set);
-//template<class LBM_INSTANTIATE> LbmFloat   LbmFsgrSolver<LBM_INSTANTIATE>::getCellDf       ( CellIdentifierInterface* ,int set, int dir);
-//template<class LBM_INSTANTIATE> LbmFloat   LbmFsgrSolver<LBM_INSTANTIATE>::getCellMass     ( CellIdentifierInterface* ,int set);
-//template<class LBM_INSTANTIATE> LbmFloat   LbmFsgrSolver<LBM_INSTANTIATE>::getCellFill     ( CellIdentifierInterface* ,int set);
-//template<class LBM_INSTANTIATE> CellFlagType LbmFsgrSolver<LBM_INSTANTIATE>::getCellFlag   ( CellIdentifierInterface* ,int set);
-//template<class LBM_INSTANTIATE> LbmFloat   LbmFsgrSolver<LBM_INSTANTIATE>::getEquilDf      ( int );
-//template<class LBM_INSTANTIATE> int        LbmFsgrSolver<LBM_INSTANTIATE>::getDfNum        ( );
+#endif // __APPLE_CC__ __INTEL_COMPILER
 

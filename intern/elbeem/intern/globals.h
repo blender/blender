@@ -21,12 +21,6 @@ extern ntlWorld *gpWorld;
 // debug output switch
 extern bool myDebugOut;
 
-// global leave program variable
+// global leave program / abort variable
 extern bool gQuit;
-
-//! start simulation?
-extern bool gThreadRunning;
-
-//! short manual
-extern char* usageString;
 

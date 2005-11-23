@@ -10,6 +10,7 @@
 #include "simulation_object.h"
 #include "ntl_bsptree.h"
 #include "ntl_scene.h"
+#include "particletracer.h"
 
 #ifdef _WIN32
 #else
@@ -100,6 +101,7 @@ void SimulationObject::freeGeoTree() {
  *****************************************************************************/
 int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 {
+	if(!SIMWORLD_OK()) return 1;
 	mpGlob = glob;
 	if(!getVisible()) {
 		mpAttrs->setAllUsed();
@@ -126,14 +128,18 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	// for non-param simulations
 	mpLbm->setParametrizer( mpParam );
 	mpParam->setAttrList( getAttributeList() );
-	mpParam->setSize( mpLbm->getSizeX(), mpLbm->getSizeY(), mpLbm->getSizeZ() );
+	// not needed.. done in solver_init: mpParam->setSize ...
 	mpParam->parseAttrList();
 
 	mpLbm->setAttrList( getAttributeList() );
 	mpLbm->parseAttrList();
-	mParts.parseAttrList( getAttributeList() );
-	mParts.setName( getName() + "_part" );
-	mParts.initialize( glob );
+	mpParts = new ParticleTracer();
+	mpParts->parseAttrList( getAttributeList() );
+
+	if(!SIMWORLD_OK()) return 1;
+	mpParts->setName( getName() + "_part" );
+	mpParts->initialize( glob );
+	if(!SIMWORLD_OK()) return 1;
 	
 	// init material settings
 	string matMc("default");
@@ -146,7 +152,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	mpLbm->setGeoEnd( mGeoEnd );
 	mpLbm->setRenderGlobals( mpGlob );
 	mpLbm->setName( getName() + "_lbm" );
-	mpLbm->initialize( NULL, mpGlob->getScene()->getObjects() );
+	mpLbm->initializeSolver();
 
 	// print cell type stats
 	const int jmax = sizeof(CellFlagType)*8;
@@ -185,13 +191,12 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	{
 		std::ostringstream out;
 		out.precision(2); out.width(4);
-		int totNum = flagCount[0]+flagCount[2]+flagCount[10]+flagCount[11];
-		double ebFrac = (double)(flagCount[0]+flagCount[2]) / totNum;
-		double flFrac = (double)(flagCount[10]) / totNum;
-		double ifFrac = (double)(flagCount[11]) / totNum;
-		double eifFrac = (double)(flagCount[11]+flagCount[26]+flagCount[27]) / totNum;
+		int totNum = flagCount[1]+flagCount[2]+flagCount[7]+flagCount[8];
+		double ebFrac = (double)(flagCount[1]+flagCount[2]) / totNum;
+		double flFrac = (double)(flagCount[7]) / totNum;
+		double ifFrac = (double)(flagCount[8]) / totNum;
 		//???
-		out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<" - " << eifFrac <<"] "<< charNl;
+		out<<"\tFractions: [empty/bnd - fluid - interface - ext. if]  =  [" << ebFrac<<" - " << flFrac<<" - " << ifFrac<<"] "<< charNl;
 
 		if(diffInits > 0) {
 			debugOut("SimulationObject::initializeLbmSimulation celltype Warning: Diffinits="<<diffInits<<" !!!!!!!!!" , 5);
@@ -200,7 +205,7 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	}
 #endif // ELBEEM_BLENDER==1
 
-	mpLbm->initParticles( &mParts );
+	mpLbm->initParticles(mpParts);
 
 	// this has to be inited here - before, the values might be unknown
 	ntlGeometryObject *surf = mpLbm->getSurfaceGeoObj();
@@ -213,12 +218,12 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 		if(mShowSurface) mObjects.push_back( surf );
 	}
 	
-	mParts.setStart( mGeoStart );
-	mParts.setEnd( mGeoEnd );
-	mParts.setCastShadows( false );
-	mParts.setReceiveShadows( false );
-	mParts.searchMaterial( glob->getMaterials() );
-	if(mShowParticles) mObjects.push_back( &mParts );
+	mpParts->setStart( mGeoStart );
+	mpParts->setEnd( mGeoEnd );
+	mpParts->setCastShadows( false );
+	mpParts->setReceiveShadows( false );
+	mpParts->searchMaterial( glob->getMaterials() );
+	if(mShowParticles) mObjects.push_back(mpParts);
 
 	// add objects to display for debugging (e.g. levelset particles)
 	vector<ntlGeometryObject *> debugObjs = mpLbm->getDebugObjects();
@@ -231,17 +236,25 @@ int SimulationObject::initializeLbmSimulation(ntlRenderGlobals *glob)
 	return 0;
 }
 
+/*! set current frame */
+void SimulationObject::setFrameNum(int num) {
+	// advance parametrizer
+	mpParam->setFrameNum(num);
+}
 
 /******************************************************************************
  * simluation interface: advance simulation another step (whatever delta time that might be) 
  *****************************************************************************/
 void SimulationObject::step( void )
 {
-	mpLbm->step();
+	if(mpParam->getAniFrameTime()>0.0) {
+		// dont advance for stopped time
+		mpLbm->step();
 
-	mParts.savePreviousPositions();
-	mpLbm->advanceParticles( &mParts );
-	mTime += mpParam->getStepTime();
+		mpParts->savePreviousPositions();
+		mpLbm->advanceParticles(mpParts);
+		mTime += mpParam->getStepTime();
+	}
 	if(mpLbm->getPanic()) mPanic = true;
 
   //debMsgStd("SimulationObject::step",DM_MSG," Sim '"<<mName<<"' stepped to "<<mTime<<" (stept="<<(mpParam->getStepTime())<<", framet="<<getFrameTime()<<") ", 10);

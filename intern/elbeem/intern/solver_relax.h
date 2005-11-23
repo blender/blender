@@ -363,7 +363,7 @@
 
 // careful ux,uy,uz need to be inited before!
 #define DEFAULT_COLLIDE \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago, &mDebugOmegaRet ); \
+			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago, &mDebugOmegaRet, &lcsmqo ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; }   \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -378,7 +378,7 @@
 			}   \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
 			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet  ); \
+			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -740,7 +740,7 @@
 			}   \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
 			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet  ); \
+			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago , &mDebugOmegaRet, &lcsmqo   ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			FORDF0 { RAC(tcel,l) = m[l]; } \
 			usqr = 1.5 * (ux*ux + uy*uy + uz*uz);  \
@@ -758,7 +758,7 @@
 errMsg("T","QSDM at %d,%d,%d  lcsmqo=%25.15f, lcsmomega=%f \n", i,j,k, lcsmqo,lcsmomega ); \
 			rho=m[0]; ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
 			ux = mLevel[lev].gravity[0]; uy = mLevel[lev].gravity[1]; uz = mLevel[lev].gravity[2]; \
-			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago  , &mDebugOmegaRet ); \
+			D::collideArrays( m, rho,ux,uy,uz, OMEGA(lev), mLevel[lev].lcsmago  , &mDebugOmegaRet, &lcsmqo  ); \
 			CSMOMEGA_STATS(lev,mDebugOmegaRet); \
 			*/
 #if USE_LES==1

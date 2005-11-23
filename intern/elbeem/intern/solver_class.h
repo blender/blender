@@ -13,21 +13,6 @@
 #ifndef LBM_SOLVERCLASS_H
 #define LBM_SOLVERCLASS_H
 
-// blender interface
-#if ELBEEM_BLENDER==1
-// warning - for MSVC this has to be included
-// _before_ ntl_vector3dim
-#include "SDL.h"
-#include "SDL_thread.h"
-#include "SDL_mutex.h"
-extern "C" {
-	void simulateThreadIncreaseFrame(void);
-	extern SDL_mutex *globalBakeLock;
-	extern int        globalBakeState;
-	extern int        globalBakeFrame;
-}
-#endif // ELBEEM_BLENDER==1
-
 #include "utilities.h"
 #include "solver_interface.h"
 #include "ntl_scene.h"
@@ -48,6 +33,12 @@ ERROR - define model first!
 
 // general solver setting defines
 
+// default to 3dim
+#ifndef LBMDIM
+#define LBMDIM 3
+#endif // LBMDIM
+
+
 //! debug coordinate accesses and the like? (much slower)
 #define FSGR_STRICT_DEBUG 0
 
@@ -60,9 +51,6 @@ ERROR - define model first!
 //! order of interpolation (0=always current/1=interpolate/2=always other)
 //#define TIMEINTORDER 0
 // TODO remove interpol t param, also interTime
-
-//! refinement border method (1 = small border / 2 = larger)
-#define REFINEMENTBORDER 1
 
 // use optimized 3D code?
 #if LBMDIM==2
@@ -79,16 +67,6 @@ ERROR - define model first!
 #	endif // FSGR_STRICT_DEBUG==1
 #endif
 
-// enable/disable fine grid compression for finest level
-#if LBMDIM==3
-#define COMPRESSGRIDS 1
-#else 
-#define COMPRESSGRIDS 0
-#endif 
-
-//! threshold for level set fluid generation/isosurface
-#define LS_FLUIDTHRESHOLD 0.5
-
 //! invalid mass value for unused mass data
 #define MASS_INVALID -1000.0
 
@@ -102,6 +80,13 @@ ERROR - define model first!
 //! maxmimum no. of grid levels
 #define FSGR_MAXNOOFLEVELS 5
 
+// enable/disable fine grid compression for finest level
+#if LBMDIM==3
+#define COMPRESSGRIDS 1
+#else 
+#define COMPRESSGRIDS 0
+#endif 
+
 // helper for comparing floats with epsilon
 #define GFX_FLOATNEQ(x,y) ( ABS((x)-(y)) > (VECTOR_EPSILON) )
 #define LBM_FLOATNEQ(x,y) ( ABS((x)-(y)) > (10.0*LBM_EPSILON) )
@@ -113,13 +98,6 @@ ERROR - define model first!
 // and with different loop var to prevent shadowing
 #define FORDF0M for(int m= 0; m< LBM_DFNUM; ++m)
 #define FORDF1M for(int m= 1; m< LBM_DFNUM; ++m)
-
-// aux. field indices (same for 2d)
-#define dFfrac 19
-#define dMass 20
-#define dFlux 21
-// max. no. of cell values for 3d
-#define dTotalNum 22
 
 // iso value defines
 // border for marching cubes
@@ -237,13 +215,15 @@ class LbmFsgrSolver :
 		virtual ~LbmFsgrSolver();
 		//! id string of solver
 		virtual string getIdString();
+		//! dimension of solver
+		virtual int getDimension();
 
 		//! initilize variables fom attribute list 
 		virtual void parseAttrList();
 		//! Initialize omegas and forces on all levels (for init/timestep change)
 		void initLevelOmegas();
 		//! finish the init with config file values (allocate arrays...) 
-		virtual bool initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
+		virtual bool initializeSolver(); //( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
 
 #if LBM_USE_GUI==1
 		//! show simulation info (implement LbmSolverInterface pure virtual func)
@@ -290,11 +270,9 @@ class LbmFsgrSolver :
 		void fineAdvance();
 		void coarseAdvance(int lev);
 		void coarseCalculateFluxareas(int lev);
-		// coarsen a given level (returns true if sth. was changed)
-		bool performRefinement(int lev);
-		bool performCoarsening(int lev);
-		//void oarseInterpolateToFineSpaceTime(int lev,LbmFloat t);
-		void interpolateFineFromCoarse(int lev,LbmFloat t);
+		// adaptively coarsen grid
+		bool adaptGrid(int lev);
+		// restrict fine grid DFs to coarse grid
 		void coarseRestrictFromFine(int lev);
 
 		/* simulation object interface, just calls stepMain */
@@ -341,6 +319,7 @@ class LbmFsgrSolver :
 		LBM_INLINED void addToNewInterList( int ni, int nj, int nk );	
 		//! cell is interpolated from coarse level (inited into set, source sets are determined by t)
 		void interpolateCellFromCoarse(int lev, int i, int j,int k, int dstSet, LbmFloat t, CellFlagType flagSet,bool markNbs);
+		void coarseRestrictCell(int lev, int i,int j,int k, int srcSet, int dstSet);
 
 		//! minimal and maximal z-coords (for 2D/3D loops)
 		LBM_INLINED int getForZMinBnd();
@@ -365,8 +344,6 @@ class LbmFsgrSolver :
 
 		//! Mcubes object for surface reconstruction 
 		IsoSurface *mpPreviewSurface;
-		float mSmoothSurface;
-		float mSmoothNormals;
 		
 		//! use time adaptivity? 
 		bool mTimeAdap;
@@ -375,9 +352,6 @@ class LbmFsgrSolver :
 		//! part slip value for domain
 		LbmFloat mDomainPartSlipValue;
 
-		//! output surface preview? if >0 yes, and use as reduzed size 
-		int mOutputSurfacePreview;
-		LbmFloat mPreviewFactor;
 		//! fluid vol height
 		LbmFloat mFVHeight;
 		LbmFloat mFVArea;
@@ -419,11 +393,7 @@ class LbmFsgrSolver :
 		bool checkSymmetry(string idstring);
 		//! kepp track of max/min no. of filled cells
 		int mMaxNoCells, mMinNoCells;
-#ifndef USE_MSVC6FIXES
-		long long int mAvgNumUsedCells;
-#else
-		_int64 mAvgNumUsedCells;
-#endif
+		LONGINT mAvgNumUsedCells;
 
 		//! for interactive - how to drop drops?
 		int mDropMode;
@@ -451,11 +421,16 @@ class LbmFsgrSolver :
 
 		/*! precomputed cell area values */
 		LbmFloat mFsgrCellArea[27];
+		/*! restriction interpolation weights */
+		LbmFloat mGaussw[27];
 
 		/*! LES C_smago paramter for finest grid */
 		float mInitialCsmago;
 		/*! LES stats for non OPT3D */
 		LbmFloat mDebugOmegaRet;
+		/*! remember last init for animated params */
+		LbmFloat mLastOmega;
+		LbmVec   mLastGravity;
 
 		//! fluid stats
 		int mNumInterdCells;
@@ -468,13 +443,15 @@ class LbmFsgrSolver :
 		//! debug function to force tadap syncing
 		int mForceTadapRefine;
 
-#if ELBEEM_BLENDER!=1
+#ifndef ELBEEM_BLENDER
 		// test functions
 		bool mUseTestdata;
 		LbmTestdata *mpTest;
 		void initTestdata();
 		void destroyTestdata();
 		void handleTestdata();
+		void exportTestdata();
+		ParticleTracer *mpParticles;
 #endif // ELBEEM_BLENDER==1
 
 		// strict debug interface

@@ -32,8 +32,16 @@ ntlBlenderDumper::ntlBlenderDumper(string filename, bool commandlineMode) :
 	mpTrafo = new ntlMat4Gfx(0.0);
 	mpTrafo->initId();
 	(*mpTrafo) = pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false ); 
-	
-	//for(int i=0; i<4;i++) { for(int j=0; j<4;j++) { errMsg("T"," "<<i<<","<<j<<" "<<mpTrafo->value[i][j]); } } // DEBUG
+}
+ntlBlenderDumper::ntlBlenderDumper(elbeemSimulationSettings *settings) :
+	ntlWorld(settings), mpTrafo(NULL)
+{
+	// same as normal constructor here
+  ntlRenderGlobals *glob = mpGlob;
+	AttributeList *pAttrs = glob->getBlenderAttributes();
+	mpTrafo = new ntlMat4Gfx(0.0);
+	mpTrafo->initId();
+	(*mpTrafo) = pAttrs->readMat4Gfx("transform" , (*mpTrafo), "ntlBlenderDumper","mpTrafo", false ); 
 }
 
 

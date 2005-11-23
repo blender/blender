@@ -18,19 +18,6 @@
 class ntlRay;
 class ntlGeometryObject;
 
-/*! fluid geometry init types */
-#define FGI_FLAGSTART   16
-#define FGI_FLUID			  (1<<(FGI_FLAGSTART+ 0))
-#define FGI_NO_FLUID	  (1<<(FGI_FLAGSTART+ 1))
-#define FGI_BNDNO			  (1<<(FGI_FLAGSTART+ 2))
-#define FGI_BNDFREE		  (1<<(FGI_FLAGSTART+ 3))
-#define FGI_BNDPART		  (1<<(FGI_FLAGSTART+ 4))
-#define FGI_NO_BND		  (1<<(FGI_FLAGSTART+ 5))
-#define FGI_MBNDINFLOW	(1<<(FGI_FLAGSTART+ 6))
-#define FGI_MBNDOUTFLOW	(1<<(FGI_FLAGSTART+ 7))
-
-#define FGI_ALLBOUNDS ( FGI_BNDNO | FGI_BNDFREE | FGI_BNDPART | FGI_MBNDINFLOW | FGI_MBNDOUTFLOW )
-
 
 //! convenience macro for adding triangles
 #define sceneAddTriangle(p1,p2,p3, pn1,pn2,pn3, trin, smooth)   {\

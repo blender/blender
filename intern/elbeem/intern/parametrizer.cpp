@@ -42,20 +42,24 @@ char *ParamStrings[] = {
  * Default constructor
  *****************************************************************************/
 Parametrizer::Parametrizer( void ) :
-	mSetupType("caro"),
   mRelaxTime( 1.0 ), mReynolds( 0.0 ),
-	mViscosity( 8.94e-7 ), mSoundSpeed( 1500 ),
+	mViscosity( 8.94e-7 ), mcViscosity( 8.94e-7 ), 
+	mSoundSpeed( 1500 ),
 	mDomainSize( 0.1 ), mCellSize( 0.01 ),
-	mGravity(0.0, 0.0, 0.0), mLatticeGravity(0.0, 0.0, 0.0),
-	mStepTime(0.01), mDesiredStepTime(-1.0),
+	mGravity(0.0, 0.0, 0.0), mcGravity( ParamVec(0.0) ),
+	mLatticeGravity(0.0, 0.0, 0.0),
+	mStepTime(0.0001), mDesiredStepTime(-1.0),
+	mMaxStepTime(-1.0),
+	mMinStepTime(-1.0), 
 	mSizex(50), mSizey(50), mSizez(50),
 	mTimeFactor( 1.0 ),
 	//mAniFrames(0), 
-	mAniFrameTime(0.0), mAniStart(0.0),
+	mAniFrameTime(0.0001), mcAniFrameTime(0.0001),
+	mAniStart(0.0),
 	mExtent(1.0, 1.0, 1.0), mSurfaceTension( 0.0 ),
 	mDensity(1000.0), mGStar(0.0001), mFluidVolumeHeight(0.0),
-	mMaxSpeed(0.0), mSimulationMaxSpeed(0.0),
-	mTadapMaxOmega(1.95), mTadapMaxSpeed(0.1), mTadapLevels(1),
+	mSimulationMaxSpeed(0.0),
+	mTadapMaxOmega(2.0), mTadapMaxSpeed(0.1)/*FIXME test 0.16666 */, mTadapLevels(1),
 	mSeenValues( 0 ), mCalculatedValues( 0 )
 	//mActive( false )
 {
@@ -80,8 +84,11 @@ void Parametrizer::parseAttrList()
 		return;
 	}
 
-	//mActive = mpAttrs->readBool("p_active",mActive, "Parametrizer","mActive", false);
+	// unused
+	string  mSetupType = "";
 	mSetupType = mpAttrs->readString("p_setup",mSetupType, "Parametrizer","mSetupType", false); 
+
+	// real params
 	mRelaxTime = mpAttrs->readFloat("p_relaxtime",mRelaxTime, "Parametrizer","mRelaxTime", false); 
 	if(getAttributeList()->exists("p_relaxtime")) seenThis( PARAM_RELAXTIME );
 
@@ -89,6 +96,7 @@ void Parametrizer::parseAttrList()
 	if(getAttributeList()->exists("p_reynolds")) seenThis( PARAM_REYNOLDS );
 
 	mViscosity = mpAttrs->readFloat("p_viscosity",mViscosity, "Parametrizer","mViscosity", false); 
+	mcViscosity = mpAttrs->readChannelFloat("p_viscosity");
 	if(getAttributeList()->exists("p_viscosity")) seenThis( PARAM_VISCOSITY );
 
 	mSoundSpeed = mpAttrs->readFloat("p_soundspeed",mSoundSpeed, "Parametrizer","mSoundSpeed", false); 
@@ -102,6 +110,7 @@ void Parametrizer::parseAttrList()
 	}
 
 	mGravity = mpAttrs->readVec3d("p_gravity",mGravity, "Parametrizer","mGravity", false); 
+	mcGravity = mpAttrs->readChannelVec3d("p_gravity");
 	if(getAttributeList()->exists("p_gravity")) seenThis( PARAM_GRAVITY );
 
 	mStepTime = mpAttrs->readFloat("p_steptime",mStepTime, "Parametrizer","mStepTime", false); 
@@ -111,8 +120,9 @@ void Parametrizer::parseAttrList()
 	if(getAttributeList()->exists("p_timefactor")) seenThis( PARAM_TIMEFACTOR );
 
 	mAniFrameTime = mpAttrs->readFloat("p_aniframetime",mAniFrameTime, "Parametrizer","mAniFrameTime", false); 
-	if(getAttributeList()->exists("p_aniframetime")) seenThis( PARAM_ANIFRAMETIME );
-	if(mAniFrameTime<=0.0) {
+	mcAniFrameTime = mpAttrs->readChannelFloat("p_aniframetime");
+	if(getAttributeList()->exists("p_aniframetime")) { seenThis( PARAM_ANIFRAMETIME ); }
+	if(mAniFrameTime<0.0) {
 		errMsg("Parametrizer::parseAttrList","Invalid frame time:"<<mAniFrameTime<<", resetting to 0.0001");
 		mAniFrameTime = 0.0001;
 	}
@@ -139,11 +149,23 @@ void Parametrizer::parseAttrList()
 	mNormalizedGStar = mpAttrs->readFloat("p_normgstar",mNormalizedGStar, "Parametrizer","mNormalizedGStar", false); 
 	if(getAttributeList()->exists("p_normgstar")) seenThis( PARAM_NORMALIZEDGSTAR );
 
-	mMaxSpeed = mpAttrs->readFloat("p_maxspeed",mMaxSpeed, "Parametrizer","mMaxSpeed", false); 
-	if(getAttributeList()->exists("p_maxspeed")) seenThis( PARAM_MAXSPEED );
-
 	mTadapMaxOmega = mpAttrs->readFloat("p_tadapmaxomega",mTadapMaxOmega, "Parametrizer","mTadapMaxOmega", false); 
 	mTadapMaxSpeed = mpAttrs->readFloat("p_tadapmaxspeed",mTadapMaxSpeed, "Parametrizer","mTadapMaxSpeed", false); 
+}
+
+/******************************************************************************
+ *! advance to next render/output frame 
+ *****************************************************************************/
+void Parametrizer::setFrameNum(int num) {
+	double frametime = (double)num;
+	double oldval = mAniFrameTime;
+	mAniFrameTime = mcAniFrameTime.get(frametime);
+	if(mAniFrameTime<0.0) {
+		errMsg("Parametrizer::setFrameNum","Invalid frame time:"<<mAniFrameTime<<" at frame "<<num<<", resetting to "<<oldval);
+		mAniFrameTime = oldval;
+	}
+	//errMsg("ChannelAnimDebug","anim: anif"<<mAniFrameTime<<" at "<<num<<" ");
+	getAttributeList()->find("p_aniframetime")->print();
 }
 
 /******************************************************************************
@@ -175,8 +197,13 @@ ParamFloat Parametrizer::calculateCellSize(void)
 /*****************************************************************************/
 
 /*! get omega for LBM */
-ParamFloat Parametrizer::calculateOmega( void ) { 
-	//return (mTimeFactor/mRelaxTime); 
+//ParamFloat Parametrizer::calculateOmega( void ) { return (1.0/mRelaxTime); }
+/*! get omega for LBM from channel */
+ParamFloat Parametrizer::calculateOmega( ParamFloat t ) { 
+	mViscosity = mcViscosity.get(t);
+	ParamFloat viscStar = calculateLatticeViscosity();
+	mRelaxTime = (6.0 * viscStar + 1) * 0.5;
+	//errMsg("ChannelAnimDebug","anim: omega"<<(1.0/mRelaxTime)<<" v"<<mViscosity<<" at "<<t<<" ");
 	return (1.0/mRelaxTime); 
 }
 
@@ -187,7 +214,12 @@ int Parametrizer::calculateNoOfSteps( ParamFloat timelen ) {
 }
 
 /*! get external force x component */
-ParamVec Parametrizer::calculateGravity( void ) { 
+//ParamVec Parametrizer::calculateGravity( void ) { return mLatticeGravity; }
+ParamVec Parametrizer::calculateGravity( ParamFloat t ) { 
+	mGravity = mcGravity.get(t);
+	ParamFloat forceFactor = (mStepTime *mStepTime)/mCellSize;
+	mLatticeGravity = mGravity * forceFactor;
+	//errMsg("ChannelAnimDebug","anim: grav"<<mLatticeGravity<<" g"<<mGravity<<" at "<<t<<" ");
 	return mLatticeGravity; 
 }
 
@@ -310,16 +342,19 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 
 			
 	/* Carolin init , see DA for details */
-	//ParamFloat viscMax = 0.7600;    // max lattice viscosity
-	//ParamFloat viscMin = 0.0033;  // min lattice viscosity
 	ParamFloat maxDeltaT = 0.0;
-	ParamFloat maxSpeed = 0.1; // for reynolds approx
+	ParamFloat maxSpeed  = 1.0/6.0; // for rough reynolds approx
 
 	/* normalized gstar init */
 	reqValues = PARAM_NORMALIZEDGSTAR;
 	valuesChecked |= reqValues;
 	if(checkSeenValues( reqValues ) ){
 		//if(checkSeenValues( PARAM_GSTAR ) ){ if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_WARNING," g star value override by normalizedGStar!",1); }
+		const ParamFloat normgstarReset = 0.005;
+		if(mNormalizedGStar<=1e-6) {
+			errMsg("Parametrizer::calculateAllMissingValues","Invalid NormGstar: "<<mNormalizedGStar<<"... resetting to "<<normgstarReset);
+			mNormalizedGStar = normgstarReset;
+		}
 		mGStar = mNormalizedGStar/maxsize;
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," g star set to "<<mGStar<<" from normalizedGStar="<<mNormalizedGStar ,1);
 		seenThis(PARAM_GSTAR);
@@ -330,7 +365,7 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 	valuesChecked |= reqValues;
 	if(checkSeenValues( reqValues ) ){
 		const ParamFloat gstarReset = 0.0005;
-		if(getCurrentGStar()<=0.0) {
+		if(getCurrentGStar()<=1e-6) {
 			errMsg("Parametrizer::calculateAllMissingValues","Invalid Gstar: "<<getCurrentGStar()<<" (set to "<<mGStar<<") ... resetting to "<<gstarReset);
 			mGStar = gstarReset;
 		}
@@ -341,34 +376,17 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 		}
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," g star = "<<gStar, 10);
 
-		if(mSetupType=="caro") {
-			if(!checkSeenValues(PARAM_GRAVITY)) {
-				errMsg("Parametrizer::calculateAllMissingValues","Setup type '"<<mSetupType<<"' requires gravity force!");
-				goto failure;
-			}
-			ParamFloat forceStrength = norm(mGravity);
-			if(forceStrength<=0) {
-				errMsg("Parametrizer::calculateAllMissingValues"," Init failed - forceStrength = "<<forceStrength);
-				goto failure;
-			}
+		//if(!checkSeenValues(PARAM_GRAVITY)) { errMsg("Parametrizer::calculateAllMissingValues","Setup requires gravity force!"); goto failure; }
+		ParamFloat forceStrength = 0.0;
+		if(checkSeenValues(PARAM_GRAVITY)) { forceStrength = norm(mGravity); }
+		//if(forceStrength<=0) { errMsg("Parametrizer::calculateAllMissingValues"," Init failed - forceStrength = "<<forceStrength); goto failure; }
 
-			// determine max. delta density per timestep trough gravity force
+		// determine max. delta density per timestep trough gravity force
+		if(forceStrength>0.0) {
 			maxDeltaT = sqrt( gStar*mCellSize/forceStrength );
-		} else if(mSetupType=="maxspeed") {
-			// determine max. delta t from maximum speed (explicity set)
-			if((!checkSeenValues(PARAM_MAXSPEED))||(mMaxSpeed<=0.0)) {
-				errMsg("Parametrizer::calculateAllMissingValues","Setup type '"<<mSetupType<<"' requires maximum speed ("<<mMaxSpeed<<") !");
-				goto failure;
-			}
-			ParamFloat maxLatticeSpeed = 0.0333333; //?
-			maxDeltaT = ( maxLatticeSpeed * mCellSize) / mMaxSpeed;
-			maxSpeed = mMaxSpeed;
-		} else if(mSetupType=="falling") {
-			// determine max. delta t from maximum speed that can be caused by falling through the domain
-			errMsg("Parametrizer::calculateAllMissingValues"," NYI setup falling");
 		} else {
-			errMsg("Parametrizer::calculateAllMissingValues","Setup type '"<<mSetupType<<"' unknown!");
-			goto failure;
+			// use 1 lbm setp = 1 anim step as max
+			maxDeltaT = mAniFrameTime;
 		}
 
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," targeted step time = "<<maxDeltaT, 10);
@@ -376,21 +394,19 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 		ParamFloat viscStarFac = mViscosity/(mCellSize*mCellSize);
 		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," viscStarFac = "<<viscStarFac, 10);
 
-		// FIXME remove for LES?
-		//if( (viscStarFac*maxDeltaT>=viscMin) && (viscStarFac*maxDeltaT<=viscMax) ) {
-			//if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," delta t: "<<viscMin<<" <? "<<maxDeltaT*viscStarFac<<" <? "<<viscMax, 1);
-		//} else {
-			//if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_WARNING," delta t not in valid range: "<<viscMin<<" <? "<<maxDeltaT*viscStarFac<<" <? "<<viscMax, 1);
-		//}
-
 		// time step adaptivty, only for caro with max sim speed
 		ParamFloat setDeltaT = maxDeltaT;
 		if(mDesiredStepTime>0.0) {
+			// explicitly set step time according to max velocity in sim
 			setDeltaT = mDesiredStepTime;
 			mDesiredStepTime = -1.0;
 			if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," desired step time = "<<setDeltaT, 10);
-		} else if((mSetupType=="caro") && (checkSeenValues( PARAM_SIMMAXSPEED )) ) {
-			// determine minimal delta t by omega max.
+		} else {
+			// just use max delta t as current
+		}
+		
+		// and once for init determine minimal delta t by omega max. 
+		if((mMinStepTime<0.0) || (mMaxStepTime<0.0)) {
 			ParamFloat minDeltaT; 
 			ParamFloat maxOmega = mTadapMaxOmega;
 			ParamFloat minRelaxTime = 1.0/maxOmega;
@@ -410,14 +426,10 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 			if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," min delta t = "<<minDeltaT<<" , range = " << (maxDeltaT/minDeltaT) ,1);
 
 			// sim speed + accel shouldnt exceed 0.1?
-			//if(mSimulationMaxSpeed + norm(mGravity*)) { ParamFloat nextmax = 0.1-mSimulationMaxSpeed }
 			mMaxStepTime = maxDeltaT;
 			mMinStepTime = minDeltaT;
-			// only use once...
-		} else {
-			debMsgStd("Parametrizer::calculateAllMissingValues",DM_WARNING,"Warning - setup type set to '"<<mSetupType<<"' ",1);
-			mMaxStepTime = mMinStepTime = setDeltaT;
-		}
+			// only use once...  
+		} 
 
 		setStepTime( setDeltaT ); // set mStepTime to new value
 
@@ -425,12 +437,11 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 		ParamFloat viscStar = calculateLatticeViscosity();
 		mRelaxTime = (6.0 * viscStar + 1) * 0.5;
 		init = true;	
-
 	}
 
 	// finish init
 	if(init) {
-		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," omega = "<<calculateOmega()<<", relax time = "<<mRelaxTime<<", delt="<<mStepTime,1);
+		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," omega = "<<calculateOmega(0.0)<<", relax time = "<<mRelaxTime<<", delt="<<mStepTime,1);
 		//debMsgStd("Parametrizer::calculateAllMissingValues: lbm steps = "<<calculateNoOfSteps()<<" ",1);
 
 		if(checkSeenValues(PARAM_GRAVITY)) {
@@ -465,16 +476,19 @@ bool Parametrizer::calculateAllMissingValues( bool silent )
 		}
 
 		// calculate reynolds number
-		ParamFloat reynoldsApprox = -1.0;
-		ParamFloat gridSpeed = (maxSpeed*mCellSize/mStepTime);
-		reynoldsApprox = (mDomainSize*gridSpeed) / mViscosity;
-		if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," reynolds number (D="<<mDomainSize<<", assuming V="<<gridSpeed<<")= "<<reynoldsApprox<<" ", 1);
-
+		if(mViscosity>0.0) {
+			ParamFloat reynoldsApprox = -1.0;
+			ParamFloat gridSpeed = (maxSpeed*mCellSize/mStepTime);
+			reynoldsApprox = (mDomainSize*gridSpeed) / mViscosity;
+			if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues",DM_MSG," reynolds number (D="<<mDomainSize<<", assuming V="<<gridSpeed<<")= "<<reynoldsApprox<<" ", 1);
+		}
+			
+		if(!SIMWORLD_OK()) return false;
 		// everything ok
 		return true;
 	}
 
-failure:
+	// init failed ... failure:
 	errMsg("Parametrizer::calculateAllMissingValues "," invalid configuration!");
 	if(!silent) debMsgStd("Parametrizer::calculateAllMissingValues ",DM_WARNING, " values seen:", 1);
 	for(int i=0;i<PARAM_NUMIDS;i++) {

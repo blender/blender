@@ -7,12 +7,12 @@
  *
  *****************************************************************************/
 
-#ifndef __APPLE_CC__
+#if ((!defined(__APPLE_CC__)) && (!defined(__INTEL_COMPILER))) || defined(LBM_FORCEINCLUDE)
 #include "solver_class.h"
 #include "solver_relax.h"
-#endif // __APPLE_CC__
 
-#if !defined(__APPLE_CC__) || defined(LBM_FORCEINCLUDE)
+// for geo init FGI_ defines
+#include "elbeem.h"
 
 /******************************************************************************
  * Lbm Constructor
@@ -24,9 +24,7 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	mNumProblems(0), 
 	mAvgMLSUPS(0.0), mAvgMLSUPSCnt(0.0),
 	mpPreviewSurface(NULL), 
-	mSmoothSurface(0.0), mSmoothNormals(0.0),
-	mTimeAdap(false), mDomainBound("noslip"), mDomainPartSlipValue(0.1),
-	mOutputSurfacePreview(0), mPreviewFactor(0.25),
+	mTimeAdap(true), mDomainBound("noslip"), mDomainPartSlipValue(0.1),
 	mFVHeight(0.0), mFVArea(1.0), mUpdateFVHeight(false),
 	mInitSurfaceSmoothing(0),
 	mTimestepReduceLock(0),
@@ -36,19 +34,21 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 	mMaxNoCells(0), mMinNoCells(0), mAvgNumUsedCells(0),
 	mDropMode(1), mDropSize(0.15), mDropSpeed(0.0),
 	mObjectSpeeds(), mObjectPartslips(),
-	mIsoWeightMethod(2),
+	mIsoWeightMethod(1),
 	mMaxRefine(1), 
 	mDfScaleUp(-1.0), mDfScaleDown(-1.0),
 	mInitialCsmago(0.04), mDebugOmegaRet(0.0),
+	mLastOmega(1e10), mLastGravity(1e10),
 	mNumInvIfTotal(0), mNumFsgrChanges(0),
 	mDisableStandingFluidInit(0),
 	mForceTadapRefine(-1)
 {
   // not much to do here... 
 	D::mpIso = new IsoSurface( D::mIsoValue, false );
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
 	mpTest = new LbmTestdata();
-#endif // ELBEEM_BLENDER!=1
+	mpParticles = NULL;
+#endif // ELBEEM_PLUGIN!=1
 
   // init equilibrium dist. func 
   LbmFloat rho=1.0;
@@ -105,6 +105,26 @@ LbmFsgrSolver<D>::LbmFsgrSolver() :
 			) * -1.0; 
 	}
 
+	// calculate gauss weights for restriction
+	//LbmFloat mGaussw[27];
+	LbmFloat totGaussw = 0.0;
+	const LbmFloat alpha = 1.0;
+	const LbmFloat gw = sqrt(2.0*D::cDimension);
+#if ELBEEM_PLUGIN!=1
+	errMsg("coarseRestrictFromFine", "TCRFF_DFDEBUG2 test df/dir num!");
+#endif
+	for(int n=0;(n<D::cDirNum); n++) { mGaussw[n] = 0.0; }
+	//for(int n=0;(n<D::cDirNum); n++) { 
+	for(int n=0;(n<D::cDfNum); n++) { 
+		const LbmFloat d = norm(LbmVec(D::dfVecX[n], D::dfVecY[n], D::dfVecZ[n]));
+		LbmFloat w = expf( -alpha*d*d ) - expf( -alpha*gw*gw );
+		mGaussw[n] = w;
+		totGaussw += w;
+	}
+	for(int n=0;(n<D::cDirNum); n++) { 
+		mGaussw[n] = mGaussw[n]/totGaussw;
+	}
+
 	//addDrop(false,0,0);
 }
 
@@ -129,10 +149,10 @@ LbmFsgrSolver<D>::~LbmFsgrSolver()
 	delete D::mpIso;
 	if(mpPreviewSurface) delete mpPreviewSurface;
 
-#if ELBEEM_BLENDER!=1
-	if(mUseTestdata) destroyTestdata();
+#if ELBEEM_PLUGIN!=1
+	destroyTestdata();
 	delete mpTest;
-#endif // ELBEEM_BLENDER!=1
+#endif // ELBEEM_PLUGIN!=1
 
 	// always output performance estimate
 	debMsgStd("LbmFsgrSolver::~LbmFsgrSolver",DM_MSG," Avg. MLSUPS:"<<(mAvgMLSUPS/mAvgMLSUPSCnt), 5);
@@ -154,15 +174,15 @@ LbmFsgrSolver<D>::parseAttrList()
 	string matIso("default");
 	matIso = D::mpAttrs->readString("material_surf", matIso, "SimulationLbm","mpIso->material", false );
 	D::mpIso->setMaterialName( matIso );
-	mOutputSurfacePreview = D::mpAttrs->readInt("surfacepreview", mOutputSurfacePreview, "SimulationLbm","mOutputSurfacePreview", false );
+	D::mOutputSurfacePreview = D::mpAttrs->readInt("surfacepreview", D::mOutputSurfacePreview, "SimulationLbm","D::mOutputSurfacePreview", false );
 	mTimeAdap = D::mpAttrs->readBool("timeadap", mTimeAdap, "SimulationLbm","mTimeAdap", false );
 	mDomainBound = D::mpAttrs->readString("domainbound", mDomainBound, "SimulationLbm","mDomainBound", false );
 	mDomainPartSlipValue = D::mpAttrs->readFloat("domainpartslip", mDomainPartSlipValue, "SimulationLbm","mDomainPartSlipValue", false );
 
 	mIsoWeightMethod= D::mpAttrs->readInt("isoweightmethod", mIsoWeightMethod, "SimulationLbm","mIsoWeightMethod", false );
 	mInitSurfaceSmoothing = D::mpAttrs->readInt("initsurfsmooth", mInitSurfaceSmoothing, "SimulationLbm","mInitSurfaceSmoothing", false );
-	mSmoothSurface = D::mpAttrs->readFloat("smoothsurface", mSmoothSurface, "SimulationLbm","mSmoothSurface", false );
-	mSmoothNormals = D::mpAttrs->readFloat("smoothnormals", mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
+	D::mSmoothSurface = D::mpAttrs->readFloat("smoothsurface", D::mSmoothSurface, "SimulationLbm","mSmoothSurface", false );
+	D::mSmoothNormals = D::mpAttrs->readFloat("smoothnormals", D::mSmoothNormals, "SimulationLbm","mSmoothNormals", false );
 
 	mInitialCsmago = D::mpAttrs->readFloat("csmago", mInitialCsmago, "SimulationLbm","mInitialCsmago", false );
 	// deprecated!
@@ -175,7 +195,8 @@ LbmFsgrSolver<D>::parseAttrList()
 #endif // USE_LES==1
 
 	// refinement
-	mMaxRefine  = D::mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", true);
+	mMaxRefine = D::mRefinementDesired;
+	mMaxRefine  = D::mpAttrs->readInt("maxrefine",  mMaxRefine ,"LbmFsgrSolver", "mMaxRefine", false);
 	if(mMaxRefine<0) mMaxRefine=0;
 	if(mMaxRefine>FSGR_MAXNOOFLEVELS) mMaxRefine=FSGR_MAXNOOFLEVELS-1;
 	mDisableStandingFluidInit = D::mpAttrs->readInt("disable_stfluidinit", mDisableStandingFluidInit,"LbmFsgrSolver", "mDisableStandingFluidInit", false);
@@ -186,10 +207,11 @@ LbmFsgrSolver<D>::parseAttrList()
 	// FIXME check needed?
 	mFVArea   = D::mpAttrs->readFloat("fvolarea", mFVArea, "LbmFsgrSolver","mFArea", false );
 
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
+	mUseTestdata = 0;
 	mUseTestdata = D::mpAttrs->readBool("use_testdata", mUseTestdata,"LbmFsgrSolver", "mUseTestdata", false);
 	mpTest->parseTestdataAttrList(D::mpAttrs);
-#endif // ELBEEM_BLENDER!=1
+#endif // ELBEEM_PLUGIN!=1
 }
 
 
@@ -201,9 +223,14 @@ void
 LbmFsgrSolver<D>::initLevelOmegas()
 {
 	// no explicit settings
-	D::mOmega = D::mpParam->calculateOmega();
-	D::mGravity = vec2L( D::mpParam->calculateGravity() );
+	D::mOmega = D::mpParam->calculateOmega(mSimulationTime);
+	D::mGravity = vec2L( D::mpParam->calculateGravity(mSimulationTime) );
 	D::mSurfaceTension = D::mpParam->calculateSurfaceTension(); // unused
+
+	// check if last init was ok
+	LbmFloat gravDelta = norm(D::mGravity-mLastGravity);
+	//errMsg("ChannelAnimDebug","t:"<<mSimulationTime<<" om:"<<D::mOmega<<" - lom:"<<mLastOmega<<" gv:"<<D::mGravity<<" - "<<mLastGravity<<" , "<<gravDelta  );
+	if((D::mOmega == mLastOmega) && (gravDelta<=0.0)) return;
 
 	if(mInitialCsmago<=0.0) {
 		if(OPT3D==1) {
@@ -229,13 +256,6 @@ LbmFsgrSolver<D>::initLevelOmegas()
 		nomega                = 1.0/nomega;
 		mLevel[i].omega       = (LbmFloat)nomega;
 		mLevel[i].stepsize    = 2.0 * mLevel[i+1].stepsize;
-		//mLevel[i].lcsmago     = mLevel[i+1].lcsmago*mCsmagoRefineMultiplier;
-		//if(mLevel[i].lcsmago>1.0) mLevel[i].lcsmago = 1.0;
-		//if(strstr(D::getName().c_str(),"Debug")){ 
-		//mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago; // DEBUG
-		// if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * (LbmFloat)(mMaxRefine-i)*0.5+1.0; 
-		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = mLevel[mMaxRefine].lcsmago * ((LbmFloat)(mMaxRefine-i)*1.0 + 1.0 ); 
-		//if(strstr(D::getName().c_str(),"Debug")) mLevel[i].lcsmago = 0.99;
 		mLevel[i].lcsmago = mInitialCsmago;
 		mLevel[i].lcsmago_sqr = mLevel[i].lcsmago*mLevel[i].lcsmago;
 		mLevel[i].lcnu        = (2.0* (1.0/mLevel[i].omega)-1.0) * (1.0/6.0);
@@ -249,6 +269,8 @@ LbmFsgrSolver<D>::initLevelOmegas()
 		mLevel[i].gravity = (mLevel[i+1].gravity * mLevel[i+1].omega) * 2.0 / mLevel[i].omega;
 	}
 
+	mLastOmega = D::mOmega;
+	mLastGravity = D::mGravity;
 	// debug? invalidate old values...
 	D::mGravity = -100.0;
 	D::mOmega = -100.0;
@@ -278,65 +300,60 @@ LbmFsgrSolver<D>::initLevelOmegas()
  *****************************************************************************/
 template<class D>
 bool 
-LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ )
+//LbmFsgrSolver<D>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ )
+LbmFsgrSolver<D>::initializeSolver()
 {
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Init start... (Layout:"<<ALSTRING<<") ",1);
 
-	// fix size inits to force cubic cells and mult4 level dimensions
-	const int debugGridsizeInit = 1;
-	mPreviewFactor = (LbmFloat)mOutputSurfacePreview / (LbmFloat)D::mSizex;
-	int maxGridSize = D::mSizex; // get max size
-	if(D::mSizey>maxGridSize) maxGridSize = D::mSizey;
-	if(D::mSizez>maxGridSize) maxGridSize = D::mSizez;
-	LbmFloat maxGeoSize = (D::mvGeoEnd[0]-D::mvGeoStart[0]); // get max size
-	if((D::mvGeoEnd[1]-D::mvGeoStart[1])>maxGridSize) maxGeoSize = (D::mvGeoEnd[1]-D::mvGeoStart[1]);
-	if((D::mvGeoEnd[2]-D::mvGeoStart[2])>maxGridSize) maxGeoSize = (D::mvGeoEnd[2]-D::mvGeoStart[2]);
-	// FIXME better divide max geo size by corresponding resolution rather than max? no prob for rx==ry==rz though
-	LbmFloat cellSize = (maxGeoSize / (LbmFloat)maxGridSize);
-  if(debugGridsizeInit) debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Start:"<<D::mvGeoStart<<" End:"<<D::mvGeoEnd<<" maxS:"<<maxGeoSize<<" maxG:"<<maxGridSize<<" cs:"<<cellSize, 10);
-	// force grid sizes according to geom. size, rounded
-	D::mSizex = (int) ((D::mvGeoEnd[0]-D::mvGeoStart[0]) / cellSize +0.5);
-	D::mSizey = (int) ((D::mvGeoEnd[1]-D::mvGeoStart[1]) / cellSize +0.5);
-	D::mSizez = (int) ((D::mvGeoEnd[2]-D::mvGeoStart[2]) / cellSize +0.5);
-	// match refinement sizes, round downwards to multiple of 4
-	int sizeMask = 0;
-	int maskBits = mMaxRefine;
-	if(PARALLEL==1) maskBits+=2;
-	for(int i=0; i<maskBits; i++) { sizeMask |= (1<<i); }
-
-	// at least size 4 on coarsest level
-	int minSize = (int)pow(2.0, maskBits+2.0);
-	if(D::mSizex<minSize) D::mSizex = minSize;
-	if(D::mSizey<minSize) D::mSizey = minSize;
-	if(D::mSizez<minSize) D::mSizez = minSize;
-errMsg("MMS","minSize"<<minSize);
+	// size inits to force cubic cells and mult4 level dimensions
+	// and make sure we dont allocate too much...
+	bool memOk = false;
+	int orgSx = D::mSizex;
+	int orgSy = D::mSizey;
+	int orgSz = D::mSizez;
+	double sizeReduction = 1.0;
+	double memCnt = -1.0;
+	string memreqStr("");	
+	while(!memOk) {
+		initGridSizes( D::mSizex, D::mSizey, D::mSizez,
+				D::mvGeoStart, D::mvGeoEnd, mMaxRefine, PARALLEL);
+		calculateMemreqEstimate( D::mSizex, D::mSizey, D::mSizez, mMaxRefine, &memCnt, &memreqStr );
+		
+		double memLimit;
+		if(sizeof(int)==4) {
+			// 32bit system, limit to 2GB
+			memLimit = 2.0* 1024.0*1024.0*1024.0;
+		} else {
+			// 64bit, just take 16GB as limit for now...
+			memLimit = 16.0* 1024.0*1024.0*1024.0;
+		}
+		if(memCnt>memLimit) {
+			sizeReduction *= 0.9;
+			D::mSizex = (int)(orgSx * sizeReduction);
+			D::mSizey = (int)(orgSy * sizeReduction);
+			D::mSizez = (int)(orgSz * sizeReduction);
+			debMsgStd("LbmFsgrSolver::initialize",DM_WARNING,"initGridSizes: memory limit exceeded "<<memCnt<<"/"<<memLimit<<", retrying: "
+					<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez, 3 );
+		} else {
+			memOk = true;
+		} 
+	}
 	
-	sizeMask = ~sizeMask;
-  if(debugGridsizeInit) debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<" m"<<convertCellFlagType2String(sizeMask) ,10);
-	D::mSizex &= sizeMask;
-	D::mSizey &= sizeMask;
-	D::mSizez &= sizeMask;
-
-	// force geom size to match rounded/modified grid sizes
-	D::mvGeoEnd[0] = D::mvGeoStart[0] + cellSize*(LbmFloat)D::mSizex;
-	D::mvGeoEnd[1] = D::mvGeoStart[1] + cellSize*(LbmFloat)D::mSizey;
-	D::mvGeoEnd[2] = D::mvGeoStart[2] + cellSize*(LbmFloat)D::mSizez;
-
-  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Final domain size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<
-			", Domain: "<<D::mvGeoStart<<":"<<D::mvGeoEnd<<", "<<(D::mvGeoEnd-D::mvGeoStart) ,2);
+	D::mPreviewFactor = (LbmFloat)D::mOutputSurfacePreview / (LbmFloat)D::mSizex;
+  debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"initGridSizes: Final domain size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez<<
+	  ", Domain: "<<D::mvGeoStart<<":"<<D::mvGeoEnd<<", "<<(D::mvGeoEnd-D::mvGeoStart)<<
+	  ", est. Mem.Req.: "<<memreqStr	,2);
   //debMsgStd("LbmFsgrSolver::initialize",DM_MSG, ,2);
 	D::mpParam->setSize(D::mSizex, D::mSizey, D::mSizez);
 
   //debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Size X:"<<D::mSizex<<" Y:"<<D::mSizey<<" Z:"<<D::mSizez ,2);
 
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Definitions: "
 		<<"LBM_EPSILON="<<LBM_EPSILON       <<" "
 		<<"FSGR_STRICT_DEBUG="<<FSGR_STRICT_DEBUG       <<" "
-		<<"REFINEMENTBORDER="<<REFINEMENTBORDER        <<" "
 		<<"OPT3D="<<OPT3D        <<" "
 		<<"COMPRESSGRIDS="<<COMPRESSGRIDS<<" "
-		<<"LS_FLUIDTHRESHOLD="<<LS_FLUIDTHRESHOLD        <<" "
 		<<"MASS_INVALID="<<MASS_INVALID        <<" "
 		<<"FSGR_LISTTRICK="<<FSGR_LISTTRICK            <<" "
 		<<"FSGR_LISTTTHRESHEMPTY="<<FSGR_LISTTTHRESHEMPTY          <<" "
@@ -344,7 +361,7 @@ errMsg("MMS","minSize"<<minSize);
 		<<"FSGR_MAGICNR="<<FSGR_MAGICNR              <<" " 
 		<<"USE_LES="<<USE_LES              <<" " 
 		,10);
-#endif // ELBEEM_BLENDER!=1
+#endif // ELBEEM_PLUGIN!=1
 
 	// perform 2D corrections...
 	if(D::cDimension == 2) D::mSizez = 1;
@@ -362,12 +379,9 @@ errMsg("MMS","minSize"<<minSize);
 		errFatal("LbmFsgrSolver::initialize","Fatal: failed to init parameters! Aborting...",SIMWORLD_INITERROR);
 		return false;
 	}
-	// recalc objects speeds in geo init
-
 
 
 	// init vectors
-	//if(mMaxRefine >= FSGR_MAXNOOFLEVELS) { errFatal("LbmFsgrSolver::initializeLbmGridref"," error: Too many levels!", SIMWORLD_INITERROR); return false; }
 	for(int i=0; i<=mMaxRefine; i++) {
 		mLevel[i].id = i;
 		mLevel[i].nodeSize = 0.0; 
@@ -393,36 +407,6 @@ errMsg("MMS","minSize"<<minSize);
 		mLevel[i].lSizex = mLevel[i+1].lSizex/2;
 		mLevel[i].lSizey = mLevel[i+1].lSizey/2;
 		mLevel[i].lSizez = mLevel[i+1].lSizez/2;
-		/*if( ((mLevel[i].lSizex % 4) != 0) || ((mLevel[i].lSizey % 4) != 0) || ((mLevel[i].lSizez % 4) != 0) ) {
-			errMsg("LbmFsgrSolver","Init: error invalid sizes on level "<<i<<" "<<PRINT_VEC(mLevel[i].lSizex,mLevel[i].lSizey,mLevel[i].lSizez) );
-			xit(1);
-		}// old QUAD handling */
-	}
-
-	// estimate memory usage
-	{
-		unsigned long int memCnt = 0;
-		unsigned long int rcellSize = ((mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez) *dTotalNum);
-		memCnt += sizeof(CellFlagType) * (rcellSize/dTotalNum +4) *2;
-#if COMPRESSGRIDS==0
-		memCnt += sizeof(LbmFloat) * (rcellSize +4) *2;
-#else // COMPRESSGRIDS==0
-		unsigned long int compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
-		memCnt += sizeof(LbmFloat) * (rcellSize+compressOffset +4);
-#endif // COMPRESSGRIDS==0
-		for(int i=mMaxRefine-1; i>=0; i--) {
-			rcellSize = ((mLevel[i].lSizex*mLevel[i].lSizey*mLevel[i].lSizez) *dTotalNum);
-			memCnt += sizeof(CellFlagType) * (rcellSize/dTotalNum +4) *2;
-			memCnt += sizeof(LbmFloat) * (rcellSize +4) *2;
-		}
-		double memd = memCnt;
-		char *sizeStr = "";
-		const double sfac = 1000.0;
-		if(memd>sfac){ memd /= sfac; sizeStr="KB"; }
-		if(memd>sfac){ memd /= sfac; sizeStr="MB"; }
-		if(memd>sfac){ memd /= sfac; sizeStr="GB"; }
-		if(memd>sfac){ memd /= sfac; sizeStr="TB"; }
-		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Required Grid memory: "<< memd <<" "<< sizeStr<<" ",4);
 	}
 
 	// safety check
@@ -431,22 +415,25 @@ errMsg("MMS","minSize"<<minSize);
 		return false;
 	}
 
+	double memCheck = 0.0;
 	mLevel[ mMaxRefine ].nodeSize = ((D::mvGeoEnd[0]-D::mvGeoStart[0]) / (LbmFloat)(D::mSizex));
 	mLevel[ mMaxRefine ].simCellSize = D::mpParam->getCellSize();
 	mLevel[ mMaxRefine ].lcellfactor = 1.0;
-	unsigned long int rcellSize = ((mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez) *dTotalNum);
+	LONGINT rcellSize = ((mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*mLevel[mMaxRefine].lSizez) *dTotalNum);
 	// +4 for safety ?
 	mLevel[ mMaxRefine ].mprsFlags[0] = new CellFlagType[ rcellSize/dTotalNum +4 ];
 	mLevel[ mMaxRefine ].mprsFlags[1] = new CellFlagType[ rcellSize/dTotalNum +4 ];
+	memCheck += 2 * sizeof(CellFlagType) * (rcellSize/dTotalNum +4);
 
 #if COMPRESSGRIDS==0
 	mLevel[ mMaxRefine ].mprsCells[0] = new LbmFloat[ rcellSize +4 ];
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +4 ];
+	memCheck += 2 * sizeof(LbmFloat) * (rcellSize+4);
 #else // COMPRESSGRIDS==0
-	unsigned long int compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
+	LONGINT compressOffset = (mLevel[mMaxRefine].lSizex*mLevel[mMaxRefine].lSizey*dTotalNum*2);
 	mLevel[ mMaxRefine ].mprsCells[1] = new LbmFloat[ rcellSize +compressOffset +4 ];
 	mLevel[ mMaxRefine ].mprsCells[0] = mLevel[ mMaxRefine ].mprsCells[1]+compressOffset;
-	//errMsg("CGD","rcs:"<<rcellSize<<" cpff:"<<compressOffset<< " c0:"<<mLevel[ mMaxRefine ].mprsCells[0]<<" c1:"<<mLevel[ mMaxRefine ].mprsCells[1]<< " c0e:"<<(mLevel[ mMaxRefine ].mprsCells[0]+rcellSize)<<" c1:"<<(mLevel[ mMaxRefine ].mprsCells[1]+rcellSize)); // DEBUG
+	memCheck += sizeof(LbmFloat) * (rcellSize +compressOffset +4);
 #endif // COMPRESSGRIDS==0
 
 	LbmFloat lcfdimFac = 8.0;
@@ -460,10 +447,21 @@ errMsg("MMS","minSize"<<minSize);
 		rcellSize = ((mLevel[i].lSizex*mLevel[i].lSizey*mLevel[i].lSizez) *dTotalNum);
 		mLevel[i].mprsFlags[0] = new CellFlagType[ rcellSize/dTotalNum +4 ];
 		mLevel[i].mprsFlags[1] = new CellFlagType[ rcellSize/dTotalNum +4 ];
+		memCheck += 2 * sizeof(CellFlagType) * (rcellSize/dTotalNum +4);
 		mLevel[i].mprsCells[0] = new LbmFloat[ rcellSize +4 ];
 		mLevel[i].mprsCells[1] = new LbmFloat[ rcellSize +4 ];
+		memCheck += 2 * sizeof(LbmFloat) * (rcellSize+4);
 	}
 
+	// isosurface memory
+	memCheck += (3*sizeof(int)+sizeof(float)) * ((D::mSizex+2)*(D::mSizey+2)*(D::mSizez+2));
+	// sanity check
+#if ELBEEM_PLUGIN!=1
+	if(ABS(1.0-memCheck/memCnt)>0.01) {
+		errMsg("LbmFsgrSolver::initialize","Sanity Error - memory estimate is off: "<<memCheck<<" vs. "<<memCnt );
+	}
+#endif // ELBEEM_PLUGIN!=1
+	
 	// init sizes for _all_ levels
 	for(int i=mMaxRefine; i>=0; i--) {
 		mLevel[i].lOffsx = mLevel[i].lSizex;
@@ -485,8 +483,8 @@ errMsg("MMS","minSize"<<minSize);
 	D::mpIso->setIsolevel( D::mIsoValue );
 	// approximate feature size with mesh resolution
 	float featureSize = mLevel[ mMaxRefine ].nodeSize*0.5;
-	D::mpIso->setSmoothSurface( mSmoothSurface * featureSize );
-	D::mpIso->setSmoothNormals( mSmoothNormals * featureSize );
+	D::mpIso->setSmoothSurface( D::mSmoothSurface * featureSize );
+	D::mpIso->setSmoothNormals( D::mSmoothNormals * featureSize );
 
 	// init iso weight values mIsoWeightMethod
 	int wcnt = 0;
@@ -539,7 +537,11 @@ errMsg("MMS","minSize"<<minSize);
 	for(int lev=0; lev<=mMaxRefine; lev++) {
 		FSGR_FORIJK_BOUNDS(lev) {
 			RFLAG(lev,i,j,k,0) = RFLAG(lev,i,j,k,0) = 0; // reset for changeFlag usage
-			initEmptyCell(lev, i,j,k, CFEmpty, -1.0, -1.0); 
+			if(!D::mAllfluid) {
+				initEmptyCell(lev, i,j,k, CFEmpty, -1.0, -1.0); 
+			} else {
+				initEmptyCell(lev, i,j,k, CFFluid, 1.0, 1.0); 
+			}
 		}
 	}
 
@@ -549,11 +551,8 @@ errMsg("MMS","minSize"<<minSize);
 
   /* init boundaries */
   debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Boundary init...",10);
-
-
-	// use the density init?
 	initGeometryFlags();
-	D::initGenericTestCases();
+	// TODO check for invalid cells? nitGenericTestCases();
 	
 	// new - init noslip 1 everywhere...
 	// half fill boundary cells?
@@ -615,7 +614,7 @@ errMsg("MMS","minSize"<<minSize);
     }
 	// */
 
-	/*for(int ii=0; ii<(int)pow(2.0,mMaxRefine)-1; ii++) {
+	/*for(int ii=0; ii<(int)po w_change?(2.0,mMaxRefine)-1; ii++) {
 		errMsg("BNDTESTSYMM","set "<<mLevel[mMaxRefine].lSizex-2-ii );
 		for(int k=0;k<mLevel[mMaxRefine].lSizez;k++)
 			for(int j=0;j<mLevel[mMaxRefine].lSizey;j++) {
@@ -656,7 +655,7 @@ errMsg("MMS","minSize"<<minSize);
 	mInitialMass = 0.0; // reset, and use actual value after first step
 
 	//mStartSymm = false;
-#if ELBEEM_BLENDER!=1
+#if ELBEEM_PLUGIN!=1
 	if((D::cDimension==2)&&(D::mSizex<200)) {
 		if(!checkSymmetry("init")) {
 			errMsg("LbmFsgrSolver::initialize","Unsymmetric init...");
@@ -664,7 +663,7 @@ errMsg("MMS","minSize"<<minSize);
 			errMsg("LbmFsgrSolver::initialize","Symmetric init!");
 		}
 	}
-#endif // ELBEEM_BLENDER!=1
+#endif // ELBEEM_PLUGIN!=1
 	
 
 	// ----------------------------------------------------------------------
@@ -672,11 +671,9 @@ errMsg("MMS","minSize"<<minSize);
 	myTime_t fsgrtstart = getTime(); 
 	for(int lev=mMaxRefine-1; lev>=0; lev--) {
 		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Coarsening level "<<lev<<".",8);
-		performRefinement(lev);
-		performCoarsening(lev);
+		adaptGrid(lev);
 		coarseRestrictFromFine(lev);
-		performRefinement(lev);
-		performCoarsening(lev);
+		adaptGrid(lev);
 		coarseRestrictFromFine(lev);
 	}
 	D::markedClearList();
@@ -693,34 +690,6 @@ errMsg("MMS","minSize"<<minSize);
 		if(D::dfVecZ[l]!=0) area *= 0.5;
 		mFsgrCellArea[l] = area;
 	} // l
-	/*for(int lev=0; lev<mMaxRefine; lev++) {
-	FSGR_FORIJK_BOUNDS(lev) {
-		if( RFLAG(lev, i,j,k,mLevel[lev].setCurr) & CFFluid) {
-			if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFGrFromCoarse) {
-				LbmFloat totArea = mFsgrCellArea[0]; // for l=0
-				for(int l=1; l<D::cDirNum; l++) { 
-					int ni=(2*i)+D::dfVecX[l], nj=(2*j)+D::dfVecY[l], nk=(2*k)+D::dfVecZ[l];
-					if(RFLAG(lev+1, ni,nj,nk, mLevel[lev+1].setCurr)&
-							(CFGrFromCoarse|CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-							//(CFUnused|CFEmpty) //? (CFBnd|CFEmpty|CFGrFromCoarse|CFUnused)
-							) { 
-						//LbmFloat area = 0.25; if(D::dfVecX[l]!=0) area *= 0.5; if(D::dfVecY[l]!=0) area *= 0.5; if(D::dfVecZ[l]!=0) area *= 0.5;
-						totArea += mFsgrCellArea[l];
-					}
-				} // l
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = totArea;
-			} else if( RFLAG(lev+1, i*2,j*2,k*2,mLevel[lev+1].setCurr) & CFEmpty) {
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = 1.0;
-			} else {
-				QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) = 0.0;
-			}
-			errMsg("DFINI"," at l"<<lev<<" "<<PRINT_IJK<<" v:"<<QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) );
-		}
-	} } // */
-
-	// now really done...
-  debugOut("LbmFsgrSolver::initialize : Init done ...",10);
-	D::mInitDone = 1;
 
 	// make sure both sets are ok
 	// copy from other to curr
@@ -732,13 +701,12 @@ errMsg("MMS","minSize"<<minSize);
 
 	
 	if(D::cDimension==2) {
-		if(mOutputSurfacePreview) {
+		if(D::mOutputSurfacePreview) {
 			errMsg("LbmFsgrSolver::init","No preview in 2D allowed!");
-			mOutputSurfacePreview = 0; }
+			D::mOutputSurfacePreview = 0; }
 	}
-	if(mOutputSurfacePreview) {
+	if(D::mOutputSurfacePreview) {
 
-		//int previewSize = mOutputSurfacePreview;
 		// same as normal one, but use reduced size
 		mpPreviewSurface = new IsoSurface( D::mIsoValue, false );
 		mpPreviewSurface->setMaterialName( mpPreviewSurface->getMaterialName() );
@@ -749,17 +717,20 @@ errMsg("MMS","minSize"<<minSize);
 		mpPreviewSurface->setStart( vec2G(isostart) );
 		mpPreviewSurface->setEnd(   vec2G(isoend) );
 		LbmVec pisodist = isoend-isostart;
-		mpPreviewSurface->initializeIsosurface( (int)(mPreviewFactor*D::mSizex)+2, (int)(mPreviewFactor*D::mSizey)+2, (int)(mPreviewFactor*D::mSizez)+2, vec2G(pisodist) );
+		LbmFloat pfac = D::mPreviewFactor;
+		mpPreviewSurface->initializeIsosurface( (int)(pfac*D::mSizex)+2, (int)(pfac*D::mSizey)+2, (int)(pfac*D::mSizez)+2, vec2G(pisodist) );
 		//mpPreviewSurface->setName( D::getName() + "preview" );
 		mpPreviewSurface->setName( "preview" );
 	
-		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Preview with sizes "<<(mPreviewFactor*D::mSizex)<<","<<(mPreviewFactor*D::mSizey)<<","<<(mPreviewFactor*D::mSizez)<<" enabled",10);
+		debMsgStd("LbmFsgrSolver::initialize",DM_MSG,"Preview with sizes "<<(pfac*D::mSizex)<<","<<(pfac*D::mSizey)<<","<<(pfac*D::mSizez)<<" enabled",10);
 	}
 
-#if ELBEEM_BLENDER==1
+#if ELBEEM_PLUGIN!=1
+	initTestdata();
+#endif // ELBEEM_PLUGIN!=1
+
 	// make sure fill fracs are right for first surface generation
 	stepMain();
-#endif // ELBEEM_BLENDER==1
 
 	// prepare once...
 	prepareVisualization();
@@ -769,16 +740,10 @@ errMsg("MMS","minSize"<<minSize);
 		RFLAG(lev, i,j,k,mLevel[lev].setOther) = RFLAG(lev, i,j,k,mLevel[lev].setCurr);
 	} } // first copy flags */
 
-	/*{ int lev=mMaxRefine;
-		FSGR_FORIJK_BOUNDS(lev) { // COMPRT deb out
-		debMsgDirect("\n x="<<PRINT_IJK);
-		for(int l=0; l<D::cDfNum; l++) {
-			debMsgDirect(" df="<< QCELL(lev, i,j,k,mLevel[lev].setCurr, l) );
-		}
-		debMsgDirect(" m="<< QCELL(lev, i,j,k,mLevel[lev].setCurr, dMass) );
-		debMsgDirect(" f="<< QCELL(lev, i,j,k,mLevel[lev].setCurr, dFfrac) );
-		debMsgDirect(" x="<< QCELL(lev, i,j,k,mLevel[lev].setCurr, dFlux) );
-	} } // COMPRT ON */
+
+	// now really done...
+  debugOut("LbmFsgrSolver::initialize : Init done ...",10);
+	D::mInitDone = 1;
 	return true;
 }
 
@@ -787,6 +752,7 @@ errMsg("MMS","minSize"<<minSize);
 /*****************************************************************************/
 /*! perform geometry init (if switched on) */
 /*****************************************************************************/
+extern int globGeoInitDebug; //solver_interface
 template<class D>
 bool 
 LbmFsgrSolver<D>::initGeometryFlags() {
@@ -802,8 +768,12 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 	dvec = nodesize;
 	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Performing geometry init ("<< D::mGeoInitId <<") v"<<dvec,3);
 
-	/* set interface cells */
+	/* init object velocities, this has always to be called for init */
 	D::initGeoTree(D::mGeoInitId);
+	if(D::mAllfluid) { 
+		D::freeGeoTree();
+		return true; }
+
 	ntlVec3Gfx maxIniVel = vec2G( D::mpParam->calculateLattVelocityFromRw( vec2P(D::getGeoMaxInitialVelocity()) ));
 	D::mpParam->setSimulationMaxSpeed( norm(maxIniVel) + norm(mLevel[level].gravity) );
 	LbmFloat allowMax = D::mpParam->getTadapMaxSpeed();  // maximum allowed velocity
@@ -819,7 +789,9 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"New maximum Velocity from geo init="<< maxIniVel,5);
 	}
 	recalculateObjectSpeeds();
+	// */
 
+	/* set interface cells */
 	ntlVec3Gfx pos,iniPos; // position of current cell
 	LbmFloat rhomass = 0.0;
 	int savedNodes = 0;
@@ -846,6 +818,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		for(int j=1;j<mLevel[level].lSizey-1;j++) {
 			for(int i=1;i<mLevel[level].lSizex-1;i++) {
 				CellFlagType ntype = CFInvalid;
+				
 				if(D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_ALLBOUNDS, OId, distance)) {
 				//if(D::geoInitCheckPointInside( GETPOS(i,j,k) , ntlVec3Gfx(1.0,0.0,0.0), FGI_ALLBOUNDS, OId, distance, dvec[0]*0.5, thinHit, true)) {
 					pObj = (*D::mpGiObjects)[OId];
@@ -889,7 +862,7 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 						}
 					}
 				} 
-				// *
+				// */
 
 			} 
 		} 
@@ -1012,7 +985,24 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 
 				CellFlagType ntype = CFInvalid;
 				int inits = 0;
-				if(D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_FLUID, OId, distance)) {
+				// DEBUG
+				if((j==mLevel[level].lSizey/2)&&(k==getForZMax1(level)*7/10)) globGeoInitDebug=1;
+				else globGeoInitDebug=0;
+				//errMsg("AAA","j"<<j<<"|"<<(mLevel[level].lSizey/2)<<" k"<<k<<"|"<<(getForZMax1(level)*7/10)<<" gd"<<globGeoInitDebug);
+				
+				if((i==1) && (j==31) && (k==48)) globGeoInitDebug=1;
+				else globGeoInitDebug=0;
+				bool inside = D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_FLUID, OId, distance);
+				/*if((i==1) && (j==31) && (inside)) {
+					globGeoInitDebug=1;
+					D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_FLUID, OId, distance);
+					globGeoInitDebug=0;
+					errMsg("III"," i1 at "<<PRINT_IJK);
+				} // DEBUG */
+				if(inside) {
+				// DEBUG
+
+				//if(D::geoInitCheckPointInside( GETPOS(i,j,k) , FGI_FLUID, OId, distance)) {
 					ntype = CFFluid;
 				}
 				if(ntype != CFInvalid) {
@@ -1042,9 +1032,6 @@ LbmFsgrSolver<D>::initGeometryFlags() {
 		} 
 	} // zmax
 
-#if ELBEEM_BLENDER!=1
-	if(mUseTestdata) initTestdata();
-#endif // ELBEEM_BLENDER!=1
 	D::freeGeoTree();
 	myTime_t geotimeend = getTime(); 
 	debMsgStd("LbmFsgrSolver::initGeometryFlags",DM_MSG,"Geometry init done ("<< ((geotimeend-geotimestart)/(double)1000.0)<<"s,"<<savedNodes<<") " , 10 ); 
@@ -1062,21 +1049,6 @@ LbmFsgrSolver<D>::initFreeSurfaces() {
 	// set interface cells 
 	FSGR_FORIJK1(mMaxRefine) {
 
-		/*if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr), CFEmpty )) {
-			int initInter = 0;
-			// check for neighboring fluid cells 
-			FORDF1 {
-				if( TESTFLAG( RFLAG_NBINV(mMaxRefine, i, j, k,  mLevel[mMaxRefine].setCurr,l), CFFluid ) ) {
-					initInter = 1;
-				}
-			}
-
-			if(initInter) {
-				initEmptyCell(mMaxRefine, i,j,k, CFInter, 1.0, interfaceFill);
-			}
-
-		} // empty cells  OLD */
-
 		if( TESTFLAG( RFLAG(mMaxRefine, i,j,k, mLevel[mMaxRefine].setCurr), CFFluid )) {
 			int initInter = 0; // check for neighboring empty cells 
 			FORDF1 {
@@ -1085,9 +1057,7 @@ LbmFsgrSolver<D>::initFreeSurfaces() {
 				}
 			}
 			if(initInter) {
-				QCELL(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr, dMass) = 
-					//QCELL(mMaxRefine,i,j,k,mLevel[mMaxRefine].setOther, dMass) =  // COMPRT OFF
-					interfaceFill;
+				QCELL(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr, dMass) = interfaceFill;
 				RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) = RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setOther) = CFInter;
 			}
 		}
@@ -1190,7 +1160,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 				if( ( (RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) & (CFInter)) ) || \
 						( (RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) & (CFEmpty)) ) ){  \
 					if((iindex)>1) { haveStandingFluid=(iindex); } \
-					j = mLevel[mMaxRefine].lSizey; i=mLevel[mMaxRefine].lSizex; k=D::getForZMaxBnd(); \
+					j = mLevel[mMaxRefine].lSizey; i=mLevel[mMaxRefine].lSizex; k=getForZMaxBnd(); \
 					continue; \
 				} 
 	int gravIndex[3] = {0,0,0};
@@ -1232,15 +1202,11 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 
 	GRAVLOOP {
 		int i = gravIndex[0], j = gravIndex[1], k = gravIndex[2];
-		//if((gravIndex[gravComp1]==gravIMin[gravComp1]) && (gravIndex[gravComp2]==gravIMin[gravComp2])) {debMsgStd("Standing fluid preinit", DM_MSG, "fluidheightinit check "<<PRINT_IJK<<" "<< haveStandingFluid, 1 ); }
-		//STANDFLAGCHECK(gravIndex[maxGravComp]);
 		if( ( (RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) & (CFInter)) ) || 
 				( (RFLAG(mMaxRefine,i,j,k,mLevel[mMaxRefine].setCurr) & (CFEmpty)) ) ){  
 			int fluidHeight = (ABS(gravIndex[maxGravComp] - gravIMin[maxGravComp]));
 			if(debugStandingPreinit) errMsg("Standing fp","fh="<<fluidHeight<<" gmax="<<gravIMax[maxGravComp]<<" gi="<<gravIndex[maxGravComp] );
-			//if(gravIndex[maxGravComp]>1)  
-			if(fluidHeight>1) 
-			{
+			if(fluidHeight>1) {
 				haveStandingFluid = fluidHeight; //gravIndex[maxGravComp]; 
 				gravIMax[maxGravComp] = gravIndex[maxGravComp] + gravDir[maxGravComp];
 			}
@@ -1250,9 +1216,10 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 	// _PRINTGDIRS;
 
 	LbmFloat fluidHeight;
-	//if(gravDir>0) { fluidHeight = (LbmFloat)haveStandingFluid;
-	//} else { fluidHeight = (LbmFloat)haveStandingFluid; }
 	fluidHeight = (LbmFloat)(ABS(gravIMax[maxGravComp]-gravIMin[maxGravComp]));
+#if ELBEEM_PLUGIN!=1
+	mpTest->mFluidHeight = (int)fluidHeight;
+#endif // ELBEEM_PLUGIN!=1
 	if(debugStandingPreinit) debMsgStd("Standing fluid preinit", DM_MSG, "fheight="<<fluidHeight<<" min="<<PRINT_VEC(gravIMin[0],gravIMin[1],	gravIMin[2])<<" max="<<PRINT_VEC(gravIMax[0], gravIMax[1],gravIMax[2])<<
 			" mgc="<<maxGravComp<<" mc1="<<gravComp1<<" mc2="<<gravComp2<<" dir="<<gravDir[maxGravComp]<<" have="<<haveStandingFluid ,10);
 				
@@ -1265,7 +1232,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 	// also important for corasening later on
 	const int lev = mMaxRefine;
 	CellFlagType nbflag[LBM_DFNUM], nbored; 
-	for(int k=D::getForZMinBnd();k<D::getForZMaxBnd();++k) {
+	for(int k=getForZMinBnd();k<getForZMaxBnd(mMaxRefine);++k) {
 		for(int j=0;j<mLevel[lev].lSizey-0;++j) {
 			for(int i=0;i<mLevel[lev].lSizex-0;++i) {
 				if( (RFLAG(lev, i,j,k,SRCS(lev)) & (CFFluid)) ) {
@@ -1286,8 +1253,9 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 	if(haveStandingFluid) {
 		int rhoworkSet = mLevel[lev].setCurr;
 		myTime_t timestart = getTime(); // FIXME use user time here?
+		LbmFloat lcsmqo;
 #if OPT3D==1 
-		LbmFloat lcsmqadd, lcsmqo, lcsmeq[LBM_DFNUM], lcsmomega;
+		LbmFloat lcsmqadd, lcsmeq[LBM_DFNUM], lcsmomega;
 #endif // OPT3D==true 
 
 		GRAVLOOP {
@@ -1315,7 +1283,8 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 			}
 
 		} // GRAVLOOP
-		debMsgStd("Standing fluid preinit", DM_MSG, "Density gradient inited", 8);
+		debMsgStd("Standing fluid preinit", DM_MSG, "Density gradient inited (max-rho:"<<
+			(1.0+ (fluidHeight) * (mLevel[lev].gravity[maxGravComp])* (-3.0/1.0)*(mLevel[lev].omega)) <<", h:"<< fluidHeight<<") ", 8);
 		
 		int preinitSteps = (haveStandingFluid* ((mLevel[lev].lSizey+mLevel[lev].lSizez+mLevel[lev].lSizex)/3) );
 		preinitSteps = (haveStandingFluid>>2); // not much use...?
@@ -1335,7 +1304,7 @@ LbmFsgrSolver<D>::initStandingFluidGradient() {
 		// grav loop not necessary here
 #define NBFLAG(l) (nbflag[(l)])
 		LbmFloat rho, ux,uy,uz, usqr; 
-		int kstart=D::getForZMinBnd(), kend=D::getForZMaxBnd();
+		int kstart=getForZMinBnd(), kend=getForZMaxBnd(mMaxRefine);
 #if COMPRESSGRIDS==0
 		for(int k=kstart;k<kend;++k) {
 #else // COMPRESSGRIDS==0
@@ -1474,7 +1443,7 @@ LbmFsgrSolver<D>::checkSymmetry(string idstring)
  * instantiation
  *****************************************************************************/
 
-#ifndef __APPLE_CC__
+#if ((!defined(__APPLE_CC__)) && (!defined(__INTEL_COMPILER))) && (!defined(LBM_FORCEINCLUDE))
 
 #if LBMDIM==2
 #define LBM_INSTANTIATE LbmBGK2D
@@ -1485,13 +1454,6 @@ LbmFsgrSolver<D>::checkSymmetry(string idstring)
 
 template class LbmFsgrSolver< LBM_INSTANTIATE >;
 
-#endif // __APPLE_CC__
-
-// the intel compiler is too smart - so the virtual functions called from other cpp
-// files have to be instantiated explcitly (otherwise this will cause undefined
-// references to "non virtual thunks") ... still not working, though
-//template<class LBM_INSTANTIATE> LbmFsgrSolver<LBM_INSTANTIATE>::~LbmFsgrSolver();
-//template<class LBM_INSTANTIATE> void LbmFsgrSolver<LBM_INSTANTIATE>::parseAttrList();
-//template<class LBM_INSTANTIATE> bool LbmFsgrSolver<LBM_INSTANTIATE>::initialize( ntlTree* /*tree*/, vector<ntlGeometryObject*>* /*objects*/ );
+#endif // __APPLE_CC__ __INTEL_COMPILER
 
 

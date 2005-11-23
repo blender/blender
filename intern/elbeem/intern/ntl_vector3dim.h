@@ -65,8 +65,7 @@ using std::string;
 
 #else // WIN32
 
-// linux,*bsd etc...
-#include <limits.h>
+// floating point limits for linux,*bsd etc...
 #include <float.h>
 
 #endif // WIN32
@@ -94,6 +93,20 @@ using std::string;
 #ifndef M_PI
 #define M_PI 3.1415926536
 #endif
+
+// make sure elbeem plugin def is valid
+#if ELBEEM_BLENDER==1
+#ifndef ELBEEM_PLUGIN
+#define ELBEEM_PLUGIN 1
+#endif // !ELBEEM_PLUGIN
+#endif // ELBEEM_BLENDER==1
+
+// make sure GUI support is disabled for plugin use
+#if ELBEEM_PLUGIN==1
+#ifndef NOGUI
+#define NOGUI 1
+#endif // !NOGUI
+#endif // ELBEEM_PLUGIN==1
 
 
 // basic inlined vector class
@@ -812,7 +825,7 @@ typedef float gfxReal;
 //#define vecGfx2F(x) (x)
 //#define vecD2Gfx(x) vecD2F(x)
 //#define vecGfx2D(x) vecF2D(x)
-#define VECTOR_EPSILON (1e-5)
+#define VECTOR_EPSILON (1e-5f)
 #else
 typedef double gfxReal;
 #define GFX_REAL_MAX __DBL_MAX__
@@ -832,8 +845,8 @@ typedef ntlVector3Dim<gfxReal>  ntlVec3Gfx;
 template<class T> inline ntlVec3Gfx vec2G(T v) { return ntlVec3Gfx(v[0],v[1],v[2]); }
 
 /* get minimal vector length value that can be discriminated.  */
-//template<class Scalar> inline Scalar getVecEpsilon()
-inline double getVecEpsilon() { return (double)VECTOR_EPSILON; }
+//inline double getVecEpsilon() { return (double)VECTOR_EPSILON; }
+inline gfxReal getVecEpsilon() { return (gfxReal)VECTOR_EPSILON; }
 
 #define HAVE_GFXTYPES
 

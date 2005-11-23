@@ -83,10 +83,11 @@ void IsoSurface::initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx e
   mpEdgeVerticesY = new int[nodes];
   mpEdgeVerticesZ = new int[nodes];
   for(int i=0;i<nodes;i++) { mpEdgeVerticesX[i] = mpEdgeVerticesY[i] = mpEdgeVerticesZ[i] = -1; }
+	// WARNING - make sure this is consistent with calculateMemreqEstimate
   
 	// marching cubes are ready 
 	mInitDone = true;
-	unsigned long int memCnt = (3*sizeof(int)*nodes + sizeof(float)*nodes);
+	/*unsigned long int memCnt = (3*sizeof(int)*nodes + sizeof(float)*nodes);
 	double memd = memCnt;
 	char *sizeStr = "";
 	const double sfac = 1000.0;
@@ -95,7 +96,7 @@ void IsoSurface::initializeIsosurface(int setx, int sety, int setz, ntlVec3Gfx e
 	if(memd>sfac){ memd /= sfac; sizeStr="GB"; }
 	if(memd>sfac){ memd /= sfac; sizeStr="TB"; }
 
-	debMsgStd("IsoSurface::initializeIsosurface",DM_MSG,"Inited "<<PRINT_VEC(setx,sety,setz)<<" alloced:"<< memd<<" "<<sizeStr<<"." ,10);
+	debMsgStd("IsoSurface::initializeIsosurface",DM_MSG,"Inited "<<PRINT_VEC(setx,sety,setz)<<" alloced:"<< memd<<" "<<sizeStr<<"." ,10);*/
 }
 
 
@@ -318,6 +319,7 @@ void IsoSurface::getTriangles( vector<ntlTriangle> *triangles,
 		debugOut("IsoSurface::getTriangles warning: Not initialized! ", 10);
 		return;
 	}
+	//return; // DEBUG
 
   /* triangulate field */
   triangulate();

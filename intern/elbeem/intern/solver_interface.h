@@ -47,11 +47,6 @@
 #endif
 #endif
 
-// default to 3dim
-#ifndef LBMDIM
-#define LBMDIM 3
-#endif // LBMDIM
-
 #if LBM_PRECISION==1
 /* low precision for LBM solver */
 typedef float LbmFloat;
@@ -63,6 +58,14 @@ typedef double LbmFloat;
 typedef ntlVec3d LbmVec;
 #define LBM_EPSILON (1e-10)
 #endif
+
+// long integer, needed e.g. for memory calculations
+#ifndef USE_MSVC6FIXES
+#define LONGINT long long int
+#else
+#define LONGINT _int64
+#endif
+
 
 // conversions (lbm and parametrizer)
 template<class T> inline LbmVec     vec2L(T v) { return LbmVec(v[0],v[1],v[2]); }
@@ -100,6 +103,9 @@ typedef int BubbleId;
 #define CFMbndInflow          (1<<18)
 #define CFMbndOutflow         (1<<19)
 
+// debug/helper type
+#define CFIgnore              (1<<20)
+
 // above 24 is used to encode in/outflow object type
 #define CFPersistMask (0xFF000000 | CFMbndInflow | CFMbndOutflow)
 
@@ -115,6 +121,13 @@ typedef int BubbleId;
 #define CellFlagType cfINT32
 #define CellFlagTypeSize 4
 
+
+// aux. field indices (same for 2d)
+#define dFfrac 19
+#define dMass 20
+#define dFlux 21
+// max. no. of cell values for 3d
+#define dTotalNum 22
 
 
 /*****************************************************************************/
@@ -252,11 +265,11 @@ class LbmSolverInterface
 		virtual ~LbmSolverInterface() { };
 		//! id string of solver
 		virtual string getIdString() = 0;
+		//! dimension of solver
+		virtual int getDimension() = 0;
 
 		/*! finish the init with config file values (allocate arrays...) */
-		virtual bool initialize( ntlTree *tree, vector<ntlGeometryObject*> *objects ) = 0;
-		/*! generic test case setup using iterator interface */
-		bool initGenericTestCases();
+		virtual bool initializeSolver() =0; //( ntlTree *tree, vector<ntlGeometryObject*> *objects ) = 0;
 
 		/*! parse a boundary flag string */
 		CellFlagType readBoundaryFlagInt(string name, int defaultValue, string source,string target, bool needed);
@@ -312,6 +325,9 @@ class LbmSolverInterface
 		void setSizeX( int ns ) { mSizex = ns; }
 		void setSizeY( int ns ) { mSizey = ns; }
 		void setSizeZ( int ns ) { mSizez = ns; }
+		/*! access fluid only simulation flag */
+		void setAllfluid(bool set) { mAllfluid=set; }
+		bool getAllfluid()         { return mAllfluid; }
 
 		/*! set attr list pointer */
 		void setAttrList(AttributeList *set) { mpAttrs = set; }
@@ -334,6 +350,10 @@ class LbmSolverInterface
 		inline void setGeoEnd(ntlVec3Gfx set)	{ mvGeoEnd = set; }
 		inline ntlVec3Gfx getGeoEnd() const	{ return mvGeoEnd; }
 
+		/*! access geo init vars */
+		inline void setGeoInitId(int set)	{ mGeoInitId = set; }
+		inline int getGeoInitId() const	{ return mGeoInitId; }
+
 		/*! access name string */
 		inline void setName(string set)	{ mName = set; }
 		inline string getName() const	{ return mName; }
@@ -346,6 +366,13 @@ class LbmSolverInterface
 
 		//! set silent mode?
 		inline void setSilent(bool set){ mSilent = set; }
+
+		//! set amount of surface/normal smoothing
+		inline void setSmoothing(float setss,float setns){ mSmoothSurface=setss; mSmoothNormals=setns; }
+		//! set desired refinement
+		inline void setPreviewSize(int set){ mOutputSurfacePreview = set; }
+		//! set desired refinement
+		inline void setRefinementDesired(int set){ mRefinementDesired = set; }
 
 
 		// cell iterator interface
@@ -397,23 +424,6 @@ class LbmSolverInterface
 		CellIdentifierInterface* markedAdvanceCell();
 		void markedClearList();
 
-#ifndef LBMDIM
-		LBMDIM has to be defined
-#endif
-#if LBMDIM==2
-		//! minimal and maximal z-coords (for 2D/3D loops) , this is always 0-1 for 2D
-		int getForZMinBnd() { return 0; };
-		int getForZMaxBnd() { return 1; };
-		int getForZMin1()   { return 0; };
-		int getForZMax1()   { return 1; };
-#else // LBMDIM==2
-		//! minimal and maximal z-coords (for 2D/3D loops)
-		int getForZMinBnd() { return            0; };
-		int getForZMaxBnd() { return getSizeZ()-0; };
-		int getForZMin1()   { return            1; };
-		int getForZMax1()   { return getSizeZ()-1; };
-#endif // LBMDIM==2
-
 
 	protected:
 
@@ -423,6 +433,8 @@ class LbmSolverInterface
 
 		/*! Size of the array in x,y,z direction */
 		int mSizex, mSizey, mSizez;
+		/*! only fluid in sim? */
+		bool mAllfluid;
 
 
 		/*! step counter */
@@ -483,8 +495,6 @@ class LbmSolverInterface
 		/*! for display - start and end vectors for geometry */
 		ntlVec3Gfx mvGeoStart, mvGeoEnd;
 
-		/*! perform geometry init? */
-		bool mPerformGeoInit;
 		/*! perform accurate geometry init? */
 		bool mAccurateGeoinit;
 
@@ -512,6 +522,17 @@ class LbmSolverInterface
 		vector<gfxReal> mGiObjSecondDist;
 		/*! remember globals */
 		ntlRenderGlobals *mpGlob;
+		
+		//! use refinement/coarsening?
+		int mRefinementDesired;
+
+		//! output surface preview? if >0 yes, and use as reduzed size 
+		int mOutputSurfacePreview;
+		LbmFloat mPreviewFactor;
+
+		/* enable surface and normals smoothing? */
+		float mSmoothSurface;
+		float mSmoothNormals;
 
 		// list for marked cells
 		vector<CellIdentifierInterface *> mMarkedCells;
@@ -766,41 +787,12 @@ class LbmModelLBGK : public DQ , public LbmSolverInterface {
 			return( DQ::dfLength[l] *( 
 						+ rho - (3.0/2.0*(ux*ux + uy*uy + uz*uz)) 
 						+ 3.0 *tmp 
-						+ 9.0/2.0 *(tmp*tmp) ) 
+						+ 9.0/2.0 *(tmp*tmp) )
 					);
 		};
 
-
-		// input mux etc. as acceleration
-		// outputs rho,ux,uy,uz
-		/*inline void collideArrays_org(LbmFloat df[19], 				
-				LbmFloat &outrho, // out only!
-				// velocity modifiers (returns actual velocity!)
-				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
-				LbmFloat omega
-			) {
-			LbmFloat rho=df[0]; 
-			LbmFloat ux = mux;
-			LbmFloat uy = muy;
-			LbmFloat uz = muz;
-			for(int l=1; l<DQ::cDfNum; l++) { 
-				rho += df[l]; 
-				ux  += (DQ::dfDvecX[l]*df[l]); 
-				uy  += (DQ::dfDvecY[l]*df[l]);  
-				uz  += (DQ::dfDvecZ[l]*df[l]);  
-			}  
-			for(int l=0; l<DQ::cDfNum; l++) { 
-				//LbmFloat tmp = (ux*DQ::dfDvecX[l]+uy*DQ::dfDvecY[l]+uz*DQ::dfDvecZ[l]); 
-				df[l] = (1.0-omega ) * df[l] + omega * ( getCollideEq(l,rho,ux,uy,uz) ); 
-			}  
-
-			mux = ux;
-			muy = uy;
-			muz = uz;
-			outrho = rho;
-		};*/
 		
-		// LES functions
+		/*! relaxation LES functions */
 		inline LbmFloat getLesNoneqTensorCoeff(
 				LbmFloat df[], 				
 				LbmFloat feq[] ) {
@@ -839,7 +831,8 @@ class LbmModelLBGK : public DQ , public LbmSolverInterface {
 				LbmFloat &outrho, // out only!
 				// velocity modifiers (returns actual velocity!)
 				LbmFloat &mux, LbmFloat &muy, LbmFloat &muz, 
-				LbmFloat omega, LbmFloat csmago, LbmFloat *newOmegaRet = NULL
+				LbmFloat omega, LbmFloat csmago, 
+				LbmFloat *newOmegaRet, LbmFloat *newQoRet
 			) {
 			LbmFloat rho=df[0]; 
 			LbmFloat ux = mux;
@@ -857,13 +850,15 @@ class LbmModelLBGK : public DQ , public LbmSolverInterface {
 			}
 
 			LbmFloat omegaNew;
+			LbmFloat Qo = 0.0;
 			if(csmago>0.0) {
-				LbmFloat Qo = getLesNoneqTensorCoeff(df,feq);
+				Qo = getLesNoneqTensorCoeff(df,feq);
 				omegaNew = getLesOmega(omega,csmago,Qo);
 			} else {
 				omegaNew = omega; // smago off...
 			}
-			if(newOmegaRet) *newOmegaRet=omegaNew; // return value for stats
+			if(newOmegaRet) *newOmegaRet = omegaNew; // return value for stats
+			if(newQoRet)    *newQoRet = Qo; // return value of non-eq. stress tensor
 
 			for(int l=0; l<DQ::cDfNum; l++) { 
 				df[l] = (1.0-omegaNew ) * df[l] + omegaNew * feq[l]; 
@@ -887,6 +882,13 @@ ERROR - Dont include several LBM models at once...
 typedef LbmModelLBGK<  LbmD2Q9 > LbmBGK2D;
 typedef LbmModelLBGK< LbmD3Q19 > LbmBGK3D;
 
+
+// helper function to create consistent grid resolutions
+void initGridSizes(int &mSizex, int &mSizey, int &mSizez,
+		ntlVec3Gfx &mvGeoStart, ntlVec3Gfx &mvGeoEnd, 
+		int mMaxRefine, bool parallel);
+void calculateMemreqEstimate(int resx,int resy,int resz, int refine,
+		double *reqret, string *reqstr);
 
 //! helper function to convert flag to string (for debuggin)
 string convertCellFlagType2String( CellFlagType flag );

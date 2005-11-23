@@ -19,6 +19,22 @@
 #include <sys/times.h>
 #endif
 
+// blender interface
+#if ELBEEM_BLENDER==1
+// warning - for MSVC this has to be included
+// _before_ ntl_vector3dim
+#include "SDL.h"
+#include "SDL_thread.h"
+#include "SDL_mutex.h"
+extern "C" {
+	void simulateThreadIncreaseFrame(void);
+}
+extern SDL_mutex *globalBakeLock;
+// global state variables
+extern int globalBakeState;
+extern int globalBakeFrame;
+#endif // ELBEEM_BLENDER==1
+
 #include "utilities.h"
 
 #ifndef NOPNG
@@ -37,9 +53,10 @@ int gDebugLevel = 0;
 #endif // DEBUG 
 
 // global world state
-int gWorldState = SIMWORLD_INVALID;
+int gElbeemState = SIMWORLD_INVALID;
 // last error as string
-char gWorldStringState[256] = {'-','\0' };
+char gElbeemErrorString[256] = {'-','\0' };
+
 
 //! for interval debugging output
 myTime_t globalIntervalTime = 0;
@@ -257,7 +274,7 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 				sout << col_red << " error:" << col_red;
 				break;
 			case DM_FATAL:
-				sout << col_red << " fatal("<<gWorldState<<"):" << col_red;
+				sout << col_red << " fatal("<<gElbeemState<<"):" << col_red;
 				break;
 			default:
 				// this shouldnt happen...
@@ -268,13 +285,12 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval) {
 	}
 
 	if(id==DM_FATAL) {
-		strncpy(gWorldStringState,sout.str().c_str(), 256);
+		strncpy(gElbeemErrorString,sout.str().c_str(), 256);
 		// dont print?
 		if(gDebugLevel==0) return;
 		sout << "\n"; // add newline for output
 	}
 
-//#ifdef ELBEEM_BLENDER
 #ifdef WIN32
 	// debug level is >0 anyway, so write to file...
 	// TODO generate some reasonable path?
@@ -323,5 +339,49 @@ void elbeemSetDebugLevel(int level) {
 	if(level>10) level=10;
 	gDebugLevel=level;
 }
+
+
+/* estimate how much memory a given setup will require */
+#include "solver_interface.h"
+
+extern "C" 
+double elbeemEstimateMemreq(int res, 
+		float sx, float sy, float sz,
+		int refine, char *retstr) {
+	int resx = res, resy = res, resz = res;
+	// dont use real coords, just place from 0.0 to sizeXYZ
+	ntlVec3Gfx vgs(0.0), vge(sx,sy,sz);
+	initGridSizes( resx,resy,resz, vgs,vge, refine, 0);
+
+	double memreq = -1.0;
+	string memreqStr("");	
+	calculateMemreqEstimate(resx,resy,resz, refine, &memreq, &memreqStr );
+
+	if(retstr) { 
+		// copy at max. 32 characters
+		strncpy(retstr, memreqStr.c_str(), 32 );
+		retstr[31] = '\0';
+	}
+	return memreq;
+}
+
+//-----------------------------------------------------------------------------
+// bake state mutex handling
+
+
+#if ELBEEM_BLENDER==1
+void setGlobalBakeState(int set) {
+	SDL_mutexP(globalBakeLock);
+	globalBakeState = set;
+	SDL_mutexV(globalBakeLock);
+}
+int  getGlobalBakeState(void) {
+	SDL_mutexP(globalBakeLock);
+	int ret = globalBakeState;
+	SDL_mutexV(globalBakeLock);
+	return ret;
+}
+#endif // ELBEEM_BLENDER==1
+
 
 

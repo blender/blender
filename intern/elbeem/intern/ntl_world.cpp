@@ -34,15 +34,18 @@ void setPointers( ntlRenderGlobals *setglob);
 /******************************************************************************
  * Constructor
  *****************************************************************************/
-ntlWorld::ntlWorld(string filename, bool commandlineMode) :
+ntlWorld::ntlWorld(string filename, bool commandlineMode) 
+	/*:
 	mpGlob(NULL), 
   mpLightList(NULL), mpPropList(NULL), mpSims(NULL),
 	mpOpenGLRenderer(NULL),
 	mStopRenderVisualization( false ),
 	mThreadRunning( false ), 
 	mSimulationTime(0.0), mFirstSim(-1),
-	mSingleStepDebug( false )
+	mSingleStepDebug( false ),
+	mFrameCnt(0)*/
 {
+#if 0
   /* create scene storage */
   mpGlob = new ntlRenderGlobals();
   mpLightList = new vector<ntlLightObject*>;
@@ -62,10 +65,23 @@ ntlWorld::ntlWorld(string filename, bool commandlineMode) :
 	scene = new ntlScene( mpGlob );
 	mpGlob->setScene( scene );
 
+	// moved TODO test...
+#endif // 0
+
+	initDefaults();
+#ifndef NOGUI
+	// setup opengl display, save first animation step for start time 
+	if(!commandlineMode) {
+		mpOpenGLRenderer = new ntlOpenGLRenderer( mpGlob );
+	}
+#else // NOGUI
+	commandlineMode = true; // remove warning...
+#endif // NOGUI
 	// load config
   setPointers( getRenderGlobals() );
   parseFile( filename.c_str() );
-	if(!SIMWORLD_OK()) return;
+	finishWorldInit();
+	/*if(!SIMWORLD_OK()) return;
 
 	// init the scene for the first time
   long sstartTime = getTime();
@@ -103,7 +119,7 @@ ntlWorld::ntlWorld(string filename, bool commandlineMode) :
 			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime() ,10);
 			while(mSimulationTime < (*mpSims)[mFirstSim]->getStartTime() ) {
 			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime()<<" simtime:"<<mSimulationTime ,10);
-				advanceSims();
+				advanceSims(-1);
 			}
 			long stopTime = getTime();
 
@@ -116,15 +132,128 @@ ntlWorld::ntlWorld(string filename, bool commandlineMode) :
 			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlWorld::ntlWorld",DM_WARNING,"No active simulations!", 1);
 		}
 	}
+*/
+}
 
+ntlWorld::ntlWorld(elbeemSimulationSettings *settings)
+{
+	initDefaults();
+	// todo init settings
+	SimulationObject *sim = new SimulationObject();
+	mpGlob->getSims()->push_back( sim );
+	mpGlob->getScene()->addGeoClass( sim );
+	sim->setGeoStart(ntlVec3Gfx(settings->geoStart[0],settings->geoStart[1],settings->geoStart[2]));
+	sim->setGeoEnd(ntlVec3Gfx(
+			settings->geoStart[0]+settings->geoSize[0],
+			settings->geoStart[1]+settings->geoSize[1],
+			settings->geoStart[2]+settings->geoSize[2] ));
+	sim->getSolver()->setSmoothing(1.0, 0.0);
+	sim->getSolver()->setPreviewSize(settings->previewresxyz);
+	sim->getSolver()->setRefinementDesired(settings->maxRefine);
+
+	Parametrizer *param = sim->getParametrizer();
+	param->setSize( settings->resolutionxyz );
+	param->setDomainSize( settings->realsize );
+	param->setViscosity( settings->viscosity );
+	param->setGravity( ParamVec(settings->gravx, settings->gravy, settings->gravx) );
+	param->setAniStart( settings->animStart );
+	param->setAniFrameTime( settings->aniFrameTime );
+	param->setNormalizedGStar( settings->gstar );
+
+	// dont setup lights, camera, materials...?
+  /*
+	ntlMaterial *fluidmat = new ntlMaterial( );
+	currentMaterial->setAmbientRefl( ntlColor(0.3, 0.5, 0.9) ); 
+	currentMaterial->setDiffuseRefl( ntlColor(0.3, 0.5, 0.9) ); 
+	currentMaterial->setSpecular( 0.2 ); 
+	currentMaterial->setSpecExponent( 10.0 ); 
+	mpGlob->getMaterials()->push_back( fluidmat );
+	// */
+}
+
+void ntlWorld::initDefaults()
+{
+	mStopRenderVisualization = false;
+	mThreadRunning =  false;
+	mSimulationTime = 0.0; 
+	mFirstSim = 1;
+	mSingleStepDebug =  false;
+	mFrameCnt = 0;
+	mpOpenGLRenderer = NULL;
+
+  /* create scene storage */
+  mpGlob = new ntlRenderGlobals();
+  mpLightList = new vector<ntlLightObject*>;
+  mpPropList = new vector<ntlMaterial*>;
+  mpSims = new vector<SimulationObject*>;
+
+  mpGlob->setLightList(mpLightList);
+  mpGlob->setMaterials(mpPropList);
+  mpGlob->setSims(mpSims);
+
+	/* init default material */
+  ntlMaterial *def = GET_GLOBAL_DEFAULT_MATERIAL;
+ 	mpPropList->push_back( def );
+
+	/* init the scene object */
+ 	ntlScene *newscene = new ntlScene( mpGlob );
+	mpGlob->setScene( newscene );
+}
+
+void ntlWorld::finishWorldInit()
+{
+	if(!SIMWORLD_OK()) return;
+
+	// init the scene for the first time
+  long sstartTime = getTime();
+	mpGlob->getScene()->buildScene();
+	long sstopTime = getTime();
+	debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Scene build time: "<< getTimeString(sstopTime-sstartTime) <<" ", 10);
+
+	if(!SIMWORLD_OK()) return;
+	// TODO check simulations, run first steps
+	mFirstSim = -1;
+	if(mpSims->size() > 0) {
+
+		// use values from first simulation as master time scale
+		long startTime = getTime();
+		
+		// remember first active sim
+		for(size_t i=0;i<mpSims->size();i++) {
+			if(!(*mpSims)[i]->getVisible()) continue;
+			if((*mpSims)[i]->getPanic())    continue;
+
+			// check largest timestep
+			if(mFirstSim>=0) {
+				if( (*mpSims)[i]->getStepTime() > (*mpSims)[mFirstSim]->getStepTime() ) {
+					mFirstSim = i;
+					debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim changed: "<<i ,10);
+				}
+			}
+			// check any valid sim
+			if(mFirstSim<0) {
+				mFirstSim = i;
+				debMsgStd("ntlWorld::ntlWorld",DM_MSG,"First Sim: "<<i ,10);
+			}
+		}
+
+		if(mFirstSim>=0) {
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime() ,10);
+			while(mSimulationTime < (*mpSims)[mFirstSim]->getStartTime() ) {
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Anistart Time: "<<(*mpSims)[mFirstSim]->getStartTime()<<" simtime:"<<mSimulationTime ,10);
+				advanceSims(-1);
+			}
+			long stopTime = getTime();
+
+			mSimulationTime += (*mpSims)[mFirstSim]->getStartTime();
+			debMsgStd("ntlWorld::ntlWorld",DM_MSG,"Time for start simulations times "<<": "<< getTimeString(stopTime-startTime) <<"s ", 1);
 #ifndef NOGUI
-	// setup opengl display, save first animation step for start time 
-	if(!commandlineMode) {
-		mpOpenGLRenderer = new ntlOpenGLRenderer( mpGlob, scene );
+			guiResetSimulationTimeRange( mSimulationTime );
+#endif
+		} else {
+			if(!mpGlob->getSingleFrameMode()) debMsgStd("ntlWorld::ntlWorld",DM_WARNING,"No active simulations!", 1);
+		}
 	}
-#else // NOGUI
-	commandlineMode = true; // remove warning...
-#endif // NOGUI
 }
 
 
@@ -154,11 +283,14 @@ void ntlWorld::setSingleFrameOut(string singleframeFilename) {
 /******************************************************************************
  * render a whole animation (command line mode) 
  *****************************************************************************/
+
+// blender interface
 #if ELBEEM_BLENDER==1
 extern "C" {
 	void simulateThreadIncreaseFrame(void);
 }
 #endif // ELBEEM_BLENDER==1
+
 int ntlWorld::renderAnimation( void )
 {
 	// only single pic currently
@@ -175,23 +307,21 @@ int ntlWorld::renderAnimation( void )
 
 	mThreadRunning = true; // not threaded, but still use the same flags
 	renderScene();
-	for(int i=0; ((i<mpGlob->getAniFrames()) && (!getStopRenderVisualization() )); i++) {
-		if(!advanceSims()) {
+	if(mpSims->size() <= 0) {
+		debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No simulations found, stopping...",1);
+		return 1;
+	}
+
+	for(mFrameCnt=0; ((mFrameCnt<mpGlob->getAniFrames()) && (!getStopRenderVisualization() )); mFrameCnt++) {
+		if(!advanceSims(mFrameCnt)) {
 			renderScene();
-		} // else means sim panicked, so dont render...
-
 #if ELBEEM_BLENDER==1
-		// update gui display
-		simulateThreadIncreaseFrame();
+			// update Blender gui display after each frame
+			simulateThreadIncreaseFrame();
 #endif // ELBEEM_BLENDER==1
-
-		if(mpSims->size() <= 0) {
-			debMsgStd("ntlWorld::renderAnimation",DM_NOTIFY,"No simulations found, stopping...",1);
-			return 1;
-		}
+		} // else means sim panicked, so dont render...
 	}
 	mThreadRunning = false;
-	
 	return 0;
 }
 
@@ -216,7 +346,8 @@ int ntlWorld::renderVisualization( bool multiThreaded )
 		// determine stepsize
 		if(!mSingleStepDebug) {
 			long startTime = getTime();
-			advanceSims();
+			advanceSims(mFrameCnt);
+			mFrameCnt++;
 			long stopTime = getTime();
 			debMsgStd("ntlWorld::renderVisualization",DM_MSG,"Time for "<<mSimulationTime<<": "<< getTimeString(stopTime-startTime) <<"s ", 10);
 		} else {
@@ -281,13 +412,31 @@ int ntlWorld::singleStepVisualization( void )
 /******************************************************************************
  * advance simulations by time t 
  *****************************************************************************/
-int ntlWorld::advanceSims()
+int ntlWorld::advanceSims(int framenum)
 {
 	bool done = false;
 	bool allPanic = true;
-	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime();
 	//debMsgStd("ntlWorld::advanceSims",DM_MSG,"Advancing sims to "<<targetTime, 10 ); // timedebug
 
+	for(size_t i=0;i<mpSims->size();i++) { (*mpSims)[i]->setFrameNum(framenum); }
+	double targetTime = mSimulationTime + (*mpSims)[mFirstSim]->getFrameTime();
+//FIXME check blender abort here...
+//FIXME check no ipo export
+
+	// time stopped? nothing else to do...
+	if( (*mpSims)[mFirstSim]->getFrameTime() <= 0.0 ){ 
+		done=true; allPanic=false; 
+	}
+
+#if ELBEEM_BLENDER==1
+	// same as solver_main check, but no mutex check here
+	if(getGlobalBakeState()<0) {
+		// this means abort... cause panic
+		allPanic = true; done = true;
+	}
+#endif // ELBEEM_BLENDER==1
+
+	// step all the sims, and check for panic
 	while(!done) {
 		double nextTargetTime = (*mpSims)[mFirstSim]->getCurrentTime() + (*mpSims)[mFirstSim]->getStepTime();
 		singleStepSims(nextTargetTime);
@@ -309,6 +458,8 @@ int ntlWorld::advanceSims()
 		setStopRenderVisualization( true );
 		return 1;
 	}
+
+	// finish step
 	for(size_t i=0;i<mpSims->size();i++) {
 		SimulationObject *sim = (*mpSims)[i];
 		if(!sim->getVisible()) continue;

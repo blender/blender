@@ -29,10 +29,12 @@ bool checkBoundingBox(ntlVec3Gfx s, ntlVec3Gfx e, string checker);
 /* debugging outputs , debug level 0 (off) to 10 (max) */
 #ifdef ELBEEM_BLENDER
 #define DEBUG 0
+void setGlobalBakeState(int set);
+int  getGlobalBakeState(void);
 #else // ELBEEM_BLENDER
 #define DEBUG 10
 #endif // ELBEEM_BLENDER
-extern "C" int gDebugLevel;
+extern int gDebugLevel;
 
 // state of the simulation world
 // default
@@ -46,11 +48,11 @@ extern "C" int gDebugLevel;
 // general error 
 #define SIMWORLD_GENERICERROR -3
 // global world state
-extern "C" int gWorldState;
+extern int gElbeemState;
 // last error as string
-extern "C" char gWorldStringState[256];
+extern char gElbeemErrorString[];
 // check world status macro
-#define SIMWORLD_OK() (gWorldState>=0)
+#define SIMWORLD_OK()     (gElbeemState>=0)
 
 /* debug output function */
 #define DM_MSG        1
@@ -98,7 +100,7 @@ void messageOutputFunc(string from, int id, string msg, myTime_t interval);
 
 // fatal errors - have to be handled 
 #define errFatal(from,mStr,errCode) { \
-	gWorldState = errCode; \
+	gElbeemState = errCode; \
 	MSGSTREAM; msg << mStr; \
 	messageOutputFunc(from, DM_FATAL, msg.str(), 0); \
 }

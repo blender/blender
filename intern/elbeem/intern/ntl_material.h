@@ -168,7 +168,7 @@ ntlMaterial::ntlMaterial( string name,
 #define GET_GLOBAL_DEFAULT_MATERIAL new ntlMaterial( "default",\
                                         ntlColor( 0.5 ), ntlColor(0.0), \
                                         1.0, 5.0, 0.0,   \
-																				0.0, 1.0, 0.0, \
+																				/*0.0 test:*/ 0.5 , 1.0, 0.0, \
 																				ntlColor( 0.0 ), 0 ); 
 																															
 

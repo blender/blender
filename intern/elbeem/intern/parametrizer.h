@@ -34,7 +34,6 @@ typedef ntlVec3d ParamVec;
 #define PARAM_DENSITY				 	(1<<14)
 #define PARAM_CELLSIZE			 	(1<<15)
 #define PARAM_GSTAR					 	(1<<16)
-#define PARAM_MAXSPEED			 	(1<<17)
 #define PARAM_SIMMAXSPEED			(1<<18)
 #define PARAM_FLUIDVOLHEIGHT  (1<<19)
 #define PARAM_NORMALIZEDGSTAR (1<<20)
@@ -83,6 +82,8 @@ class Parametrizer {
 		void setCalculatedValues(int set) { mCalculatedValues = set; }
 		/*! check if the calculated flags are set in the values int */
 		bool checkCalculatedValues(int check) { /*errorOut( " b"<<((mSeenValues&check)==check) );*/ return ((mCalculatedValues&check)==check); }
+		/*! advance to next render/output frame */
+		void setFrameNum(int num);
 
 		/*! scale a given speed vector in m/s to lattice values 
 		 *  usage string is only needed for debugging */
@@ -90,11 +91,11 @@ class Parametrizer {
 
 		/* simple calulation functions */
 		/*! get omega for LBM */
-		ParamFloat calculateOmega( void );
+		ParamFloat calculateOmega( ParamFloat t );
 		/*! get no. of timesteps for LBM */
 		int calculateNoOfSteps( ParamFloat timelen );
 		/*! get external force x component */
-		ParamVec calculateGravity( void );
+		ParamVec calculateGravity( ParamFloat t );
 		/*! get no of steps for the given length in seconds */
 		int calculateStepsForSecs( ParamFloat s );
 		/*! get start time of animation */
@@ -129,8 +130,11 @@ class Parametrizer {
 		ParamFloat getReynolds( void )   { return mReynolds; }
 
 		/*! set kinematic viscosity */
-		void setViscosity(ParamFloat set) { mViscosity = set; seenThis( PARAM_VISCOSITY ); }
-		/*! get kinematic viscosity */
+		void setViscosity(ParamFloat set) { 
+			mViscosity = set; seenThis( PARAM_VISCOSITY ); 
+			mcViscosity = AnimChannel<ParamFloat>(mViscosity);
+		}
+		/*! get current kinematic viscosity (warning - this might change over time) */
 		ParamFloat getViscosity( void )   { return mViscosity; }
 
 		/*! set speed of sound */
@@ -139,8 +143,14 @@ class Parametrizer {
 		ParamFloat getSoundSpeed( void )   { return mSoundSpeed; }
 
 		/*! set the external force */
-		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { mGravity = ParamVec(setx,sety,setz); seenThis( PARAM_GRAVITY ); }
-		void setGravity(ParamVec set) { mGravity = set; seenThis( PARAM_GRAVITY ); }
+		void setGravity(ParamFloat setx, ParamFloat sety, ParamFloat setz) { 
+			mGravity = ParamVec(setx,sety,setz); seenThis( PARAM_GRAVITY ); 
+			mcGravity = AnimChannel<ParamVec>(mGravity);
+		}
+		void setGravity(ParamVec set) { 
+			mGravity = set; seenThis( PARAM_GRAVITY ); 
+			mcGravity = AnimChannel<ParamVec>(mGravity);
+		}
 
 		/*! set the length of a single time step */
 		void setStepTime(ParamFloat set) { mStepTime = set; seenThis( PARAM_STEPTIME ); }
@@ -217,11 +227,6 @@ class Parametrizer {
 		inline AttributeList *getAttributeList() { return mpAttrs; }
 
 		/*! set maximum allowed speed for maxspeed setup */
-		void setMaxSpeed(ParamFloat set) { mMaxSpeed = set; seenThis( PARAM_MAXSPEED ); }
-		/*! get maximum allowed speed for maxspeed setup */
-		ParamFloat getMaxSpeed( void )   { return mMaxSpeed; }
-
-		/*! set maximum allowed speed for maxspeed setup */
 		void setSimulationMaxSpeed(ParamFloat set) { mSimulationMaxSpeed = set; seenThis( PARAM_SIMMAXSPEED ); }
 		/*! get maximum allowed speed for maxspeed setup */
 		ParamFloat getSimulationMaxSpeed( void )   { return mSimulationMaxSpeed; }
@@ -241,6 +246,8 @@ class Parametrizer {
 		/*! get maximum allowed omega for time adaptivity */
 		int getTadapLevels( void )   { return mTadapLevels; }
 
+		/*! get current gravity value (warning this might change over time!) */
+		ParamVec getGravity( void )   { return mGravity; }
 
 		/*! set */
 		//	void set(ParamFloat set) { m = set; seenThis( PARAM_ ); }
@@ -251,9 +258,6 @@ class Parametrizer {
 
 	private:
 
-		/*! type of parameter setup to use */
-		string mSetupType;
-
 		/*! relaxation time [s] */
 		ParamFloat mRelaxTime;
 
@@ -262,6 +266,8 @@ class Parametrizer {
 
 		/*! kinematic viscosity of the fluid [m^2/s] */
 		ParamFloat mViscosity;
+		/*! animated channel */
+		AnimChannel<ParamFloat> mcViscosity;
 
 		/*! speed of sound of the fluid [m/s] */
 		ParamFloat mSoundSpeed;
@@ -277,6 +283,7 @@ class Parametrizer {
 
 		/*! external force as acceleration [m/s^2] */
 		ParamVec mGravity;
+		AnimChannel<ParamVec> mcGravity;
 		/*! force converted to lattice units (returned by calc gravity) */
 		ParamVec mLatticeGravity;
 
@@ -296,6 +303,8 @@ class Parametrizer {
 
 		/*! for renderer - length of an animation step [s] */
 		ParamFloat mAniFrameTime;
+		/*! animated channel */
+		AnimChannel<ParamFloat> mcAniFrameTime;
 
 		/*! for renderer - start time of the animation [s] */
 		ParamFloat mAniStart;
@@ -315,9 +324,6 @@ class Parametrizer {
 		ParamFloat mNormalizedGStar;
 		/*! fluid volume/height multiplier for GStar */
 		ParamFloat mFluidVolumeHeight;
-
-		/*! max speed (for maxspeed setup) */
-		ParamFloat mMaxSpeed;
 
 		/*! current max speed of the simulation (for adaptive time steps) */
 		ParamFloat mSimulationMaxSpeed;

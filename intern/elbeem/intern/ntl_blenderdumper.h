@@ -17,6 +17,7 @@ class ntlBlenderDumper :
 public:
   /*! Constructor */
   ntlBlenderDumper(string filename, bool commandlineMode);
+  ntlBlenderDumper(elbeemSimulationSettings *);
   /*! Destructor */
   virtual ~ntlBlenderDumper( void );
 
