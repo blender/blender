@@ -232,5 +232,5 @@ struct DispListMesh *NewBooleanMeshDLM(struct Object *ob, struct Object *ob_sele
 
 // bobj read/write debug messages
 void elbeemDebugOut(char *msg) {}
-
+void fluidsimSettingsFree(struct FluidsimSettings* sb) {}
 
