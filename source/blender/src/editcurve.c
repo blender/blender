@@ -2596,8 +2596,6 @@ void addvert_Nurb(int mode)
 	if(G.obedit==0) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-	if(mode=='e' && okee("Extrude")==0) return;
-
 	Mat3CpyMat4(mat, G.obedit->obmat);
 	Mat3Inv(imat,mat);
 
@@ -2741,8 +2739,7 @@ void extrude_nurb()
 		}
 		else {
 
-			if(okee("Extrude")==0) return;
-	
+
 			ok= extrudeflagNurb(1); /* '1'= flag */
 		
 			if(ok) {
