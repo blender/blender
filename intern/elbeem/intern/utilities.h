@@ -34,7 +34,7 @@ int  getGlobalBakeState(void);
 #else // ELBEEM_BLENDER
 #define DEBUG 10
 #endif // ELBEEM_BLENDER
-extern int gDebugLevel;
+extern "C" int gDebugLevel;
 
 // state of the simulation world
 // default
@@ -48,9 +48,9 @@ extern int gDebugLevel;
 // general error 
 #define SIMWORLD_GENERICERROR -3
 // global world state
-extern int gElbeemState;
+extern "C" int gElbeemState;
 // last error as string
-extern char gElbeemErrorString[];
+extern "C" char gElbeemErrorString[];
 // check world status macro
 #define SIMWORLD_OK()     (gElbeemState>=0)
 

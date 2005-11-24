@@ -26,13 +26,11 @@
 #include "SDL.h"
 #include "SDL_thread.h"
 #include "SDL_mutex.h"
-extern "C" {
-	void simulateThreadIncreaseFrame(void);
-}
-extern SDL_mutex *globalBakeLock;
+extern "C" void simulateThreadIncreaseFrame(void);
+extern "C" SDL_mutex *globalBakeLock;
 // global state variables
-extern int globalBakeState;
-extern int globalBakeFrame;
+extern "C" int globalBakeState;
+extern "C" int globalBakeFrame;
 #endif // ELBEEM_BLENDER==1
 
 #include "utilities.h"
