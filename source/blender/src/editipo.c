@@ -3905,8 +3905,13 @@ void transform_ipo(int mode)
 
 			/* update realtime */
 			if(G.sipo->lock) {
-				if(G.sipo->blocktype==ID_MA) {
+				if(G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE) {
+					do_ipo(G.sipo->ipo);
 					force_draw_plus(SPACE_BUTS, 0);
+				}
+				else if(G.sipo->blocktype==ID_CA) {
+					do_ipo(G.sipo->ipo);
+					force_draw_plus(SPACE_VIEW3D, 0);
 				}
 				else if(G.sipo->blocktype==ID_KE) {
 					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
