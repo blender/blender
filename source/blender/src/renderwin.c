@@ -1074,8 +1074,6 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		RE_initrender(ogl_render_view3d);
 	}
 
-	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
-	
 	if (render_win) window_set_cursor(render_win->win, CURSOR_STD);
 
 	free_filesel_spec(G.scene->r.pic);
@@ -1095,7 +1093,10 @@ static void do_render(View3D *ogl_render_view3d, int anim, int force_dispwin)
 		allqueue(REDRAWBUTSSCENE, 0);	// visualize fbuf for example
 	}
 	
-	R.flag= 0;
+	R.flag= 0;	// before scene update!
+	
+	scene_update_for_newframe(G.scene, G.scene->lay);	// no redraw needed, this restores to view as we left it
+	
 	waitcursor(0);	// waitcursor checks rendering R.flag...
 }
 

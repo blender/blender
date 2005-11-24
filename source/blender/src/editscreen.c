@@ -110,6 +110,8 @@
 	 always reset to zero.
  */
 
+/* comment added to test orange branch */
+
 static void testareas(void);
 static void area_autoplayscreen(void);
 static void wait_for_event(void);

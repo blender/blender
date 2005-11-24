@@ -3334,12 +3334,9 @@ void extern_set_butspace(int fkey)
 			else if (sbuts->tab[CONTEXT_SHADING]==TAB_SHADING_WORLD)
 				sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_LAMP;
 		}
-		else if (sbuts->oldkeypress == F6KEY) {
-			sbuts->tab[CONTEXT_SHADING]=TAB_SHADING_MAT;
-		}
-		
-		/* if we're coming in from outside the shading context, just go to the 'default' */
-		else if(OBACT && sbuts->mainb!= CONTEXT_SHADING) {
+		/* if we're coming in from texture buttons, 
+		or from outside the shading context, just go to the 'default' */
+		else if ((OBACT && sbuts->mainb!= CONTEXT_SHADING) || (sbuts->oldkeypress == F6KEY)) {
 			sbuts->mainb= CONTEXT_SHADING;
 			
 			if(OBACT->type==OB_CAMERA) 
