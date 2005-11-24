@@ -248,7 +248,7 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 		out[3]= cbd1->a;
 	}
 	else {
-		if(in < cbd1->pos && coba->ipotype<2) {
+		if(in <= cbd1->pos && coba->ipotype<2) {
 			out[0]= cbd1->r;
 			out[1]= cbd1->g;
 			out[2]= cbd1->b;
@@ -273,7 +273,7 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 			}
 			else cbd2= cbd1-1;
 			
-			if(in > cbd1->pos && coba->ipotype<2) {
+			if(in >= cbd1->pos && coba->ipotype<2) {
 				out[0]= cbd1->r;
 				out[1]= cbd1->g;
 				out[2]= cbd1->b;
@@ -281,7 +281,10 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 			}
 			else {
 		
-				fac= (in-cbd1->pos)/(cbd2->pos-cbd1->pos);
+				if(cbd2->pos!=cbd1->pos)
+					fac= (in-cbd1->pos)/(cbd2->pos-cbd1->pos);
+				else
+					fac= 0.0f;
 				
 				if(coba->ipotype>=2) {
 					/* ipo from right to left: 3 2 1 0 */
