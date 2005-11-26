@@ -646,6 +646,7 @@ void split_mesh(void)
 	adduplicateflag(SELECT);
 	/* old faces have flag 128 set, delete them */
 	delfaceflag(128);
+	recalc_editnormals();
 
 	waitcursor(0);
 

@@ -1958,7 +1958,7 @@ static void object_panel_particles_motion(Object *ob)
 	uiDefBut(block, LABEL, 0, "Texture Emission",			0,30,150,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG3, PAF_TEXTIME, B_CALCEFFECT, "TexEmit",		0,10,75,20, &(paf->flag2), 0, 0, 0, 0, "Use a texture to define emission of particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 8.0, 0, 0, "Specify texture used for the texture emission");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 10.0, 0, 0, "Specify texture used for the texture emission");
 	
 	/* right collumn */
 	uiBlockBeginAlign(block);
