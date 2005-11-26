@@ -979,7 +979,7 @@ static void static_particle_strand(Object *ob, Material *ma, float *orco, float 
 		VECCOPY(v1->co, vec);
 		VecAddf(v1->co, v1->co, cross);
 		VECCOPY(v1->n, nor);
-		v2->orco= orco;
+		v1->orco= orco;
 		v1->accum= -1.0f;	// accum abuse for strand texco
 		
 		VECCOPY(v2->co, vec);
