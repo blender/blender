@@ -41,7 +41,7 @@ The Blender Python API Reference
   - L{Text}
   - L{Text3d}
      - L{Font}
-  - L{Texture}
+  - L{Texture} (*)
   - L{TimeLine}
   - L{Types}
   - L{Window}
