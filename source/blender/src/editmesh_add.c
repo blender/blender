@@ -633,7 +633,7 @@ void addedgeface_mesh(void)
 				/* if 4 edges exist, we just create the face, convex or not */
 				efa= addface_from_edges();
 				if(efa==NULL) {
-					/* the order of vertices can be anything, three cases to check */
+					/* the order of vertices can be anything, 6 cases to check */
 					if( convex(neweve[0]->co, neweve[1]->co, neweve[2]->co, neweve[3]->co) ) {
 						efa= addfacelist(neweve[0], neweve[1], neweve[2], neweve[3], NULL, NULL);
 					}
@@ -642,6 +642,16 @@ void addedgeface_mesh(void)
 					}
 					else if( convex(neweve[0]->co, neweve[2]->co, neweve[1]->co, neweve[3]->co) ) {
 						efa= addfacelist(neweve[0], neweve[2], neweve[1], neweve[3], NULL, NULL);
+					}
+					
+					else if( convex(neweve[1]->co, neweve[2]->co, neweve[3]->co, neweve[0]->co) ) {
+						efa= addfacelist(neweve[1], neweve[2], neweve[3], neweve[0], NULL, NULL);
+					}
+					else if( convex(neweve[1]->co, neweve[3]->co, neweve[0]->co, neweve[2]->co) ) {
+						efa= addfacelist(neweve[1], neweve[3], neweve[0], neweve[2], NULL, NULL);
+					}
+					else if( convex(neweve[1]->co, neweve[3]->co, neweve[2]->co, neweve[0]->co) ) {
+						efa= addfacelist(neweve[1], neweve[3], neweve[2], neweve[0], NULL, NULL);
 					}
 					else error("The selected vertices form a concave quad");
 				}
