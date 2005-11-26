@@ -598,7 +598,7 @@ void sort_faces(void)
 
 #define MOC_RES			8
 #define MOC_NODE_RES	8
-#define MOC_THRESH		0.0001f
+#define MOC_THRESH		0.0002f
 
 typedef struct MocNode {
 	struct MocNode *next;
@@ -735,6 +735,9 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 	static float offs[3], div[3];
 	
 	if(mode=='u') {		/* use table */
+		if(basetable==NULL)
+			mesh_octree_table(ob, NULL, 's');
+	   
 		if(basetable) {
 			Mesh *me= ob->data;
 			bt= basetable + mesh_octree_get_base_offs(co, offs, div);
@@ -751,7 +754,15 @@ int mesh_octree_table(Object *ob, float *co, char mode)
 		
 		/* for quick unit coordinate calculus */
 		VECCOPY(offs, bb->vec[0]);
+		offs[0]+= MOC_THRESH;		/* we offset it 1 threshold unit extra */
+		offs[1]+= MOC_THRESH;
+		offs[2]+= MOC_THRESH;
+			
 		VecSubf(div, bb->vec[6], offs);
+		div[0]+= MOC_THRESH;		/* and divide with 1 threshold unit more extra (try 8x8 unit grid on paint) */
+		div[1]+= MOC_THRESH;
+		div[2]+= MOC_THRESH;
+		
 		VecMulf(div, 1.0f/MOC_RES);
 		if(div[0]==0.0f) div[0]= 1.0f;
 		if(div[1]==0.0f) div[1]= 1.0f;
