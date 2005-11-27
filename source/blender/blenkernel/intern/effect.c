@@ -391,9 +391,11 @@ static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *
 	pEffectorCache *ec;
 	
 	for(ec= lb->first; ec; ec= ec->next) {
+		PartDeflect *pd= ec->ob->pd;
+		
 		ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2]= 0.0f;
 		
-		if(ec->ob->type==OB_CURVE) {
+		if(pd->forcefield==PFIELD_GUIDE && ec->ob->type==OB_CURVE) {
 			float vec[4], dir[3];
 				
 			/* scale corrects speed vector to curve size */
