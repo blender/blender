@@ -67,6 +67,7 @@
 #include "BKE_key.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 #include "BKE_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -1390,9 +1391,13 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 			}
 		}
 		/* even nicer, we can clear recalc flags...  */
-		if((all_layer & layer)==0)
+		if((all_layer & layer)==0) {
+			/* but existing displaylists or derivedmesh should be freed */
+			if(ob->recalc & OB_RECALC_DATA)
+				object_free_display(ob);
+			
 			ob->recalc &= ~OB_RECALC;
-		
+		}
 	}
 	
 	/* check case where child changes and parent forcing obdata to change */
