@@ -760,7 +760,7 @@ static int intersection(Isect *is)
 	float m0, m1, m2, divdet, det1;
 	short ok=0;
 	
-	if(is->vlr->flag & R_STRAND) 
+	if(is->mode==DDA_SHADOW && is->vlr->flag & R_STRAND) 
 		return intersection_strand(is);
 	
 	v1= is->vlr->v1; 
