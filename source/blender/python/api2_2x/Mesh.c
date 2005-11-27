@@ -5528,7 +5528,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Convert selected triangles to quads (experimental)"},
 	{"quadToTriangle", (PyCFunction)Mesh_quad2tri, METH_VARARGS,
 		"Convert selected quads to triangles (experimental)"},
-	{"subdivide", (PyCFunction)Mesh_subdivide, METH_NOARGS,
+	{"subdivide", (PyCFunction)Mesh_subdivide, METH_VARARGS,
 		"Subdivide selected edges in a mesh (experimental)"},
 	{"remDoubles", (PyCFunction)Mesh_removeDoubles, METH_VARARGS,
 		"Removes duplicates from selected vertices (experimental)"},
