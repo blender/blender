@@ -1786,6 +1786,7 @@ static PyObject *internal_makeParent(Object *parent, PyObject *py_child,
 	child->parent = parent;
 	//py_obj_child = (BPy_Object *) py_child;
 	if( noninverse == 1 ) {
+		Mat4One(child->parentinv);
 		/* Parent inverse = unity */
 		child->loc[0] = 0.0;
 		child->loc[1] = 0.0;
