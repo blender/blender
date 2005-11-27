@@ -288,7 +288,8 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 	size= v3d->persmat[0][3]*vec[0]+ v3d->persmat[1][3]*vec[1]+ v3d->persmat[2][3]*vec[2]+ v3d->persmat[3][3];
 	size*= v3d->pixsize*((float)U.obcenter_dia*0.5f);
 
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
+	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
 	glEnable(GL_BLEND);
 	
 	if(special_color) {
@@ -306,7 +307,7 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 	drawcircball(GL_LINE_LOOP, vec, size, v3d->viewinv);
 	
 	glDisable(GL_BLEND);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
 
