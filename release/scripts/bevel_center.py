@@ -123,7 +123,7 @@ def parall_coord(old, dir):
 	return (nco,vec)
 
 def get_vert(old, dir):
-	""" Look in NV if a vertice corresponding to the vertex old and the
+	""" Look in NV if a vertex corresponding to the vertex old and the
 	direction dir already exists, and create one otherwise""" 
 	(nco, vec) = parall_coord(old, dir)
 	v = is_in_NV(old,vec)
@@ -315,7 +315,7 @@ def make_corners():
 			is_in_v = lambda x:x in V
 			eed =  [filter(is_in_v, l) for l in q]
 			#
-			# We will add the edges coming from faces where only one vertice is selected.
+			# We will add the edges coming from faces where only one vertex is selected.
 			# They are stocked in NC.
 			if v in NC.keys():
 				eed = eed+NC[v]

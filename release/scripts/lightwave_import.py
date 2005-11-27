@@ -245,8 +245,8 @@ def read_lwo2(file, filename, typ="LWO2"):
     # init value is: object_list = [[None, {}, [], [], {}, {}, 0, {}, {}]]
     #0 - objname                    #original name
     #1 - obj_dict = {TAG}           #objects created
-    #2 - verts = []                 #object vertexes
-    #3 - faces = []                 #object faces (associations poly -> vertexes)
+    #2 - verts = []                 #object vertices
+    #3 - faces = []                 #object faces (associations poly -> vertices)
     #4 - obj_dim_dict = {TAG}       #tuples size and pos in local object coords - used for NON-UV mappings
     #5 - polytag_dict = {TAG}       #tag to polygon mapping
     #6 - patch_flag                 #0 = surf; 1 = patch (subdivision surface) - it was the image list
@@ -286,7 +286,7 @@ def read_lwo2(file, filename, typ="LWO2"):
                 if object_list[object_index][3] != []:
                     object_list.append([object_list[object_index][0],                  #update name
                                         {},                                            #init
-                                        copy.deepcopy(object_list[object_index][2]),   #same vertexes
+                                        copy.deepcopy(object_list[object_index][2]),   #same vertices
                                         [],                                            #no faces
                                         {},                                            #no need to copy - filled at runtime
                                         {},                                            #polygon tagging will follow
@@ -363,7 +363,7 @@ def read_verts(lwochunk):
             Blender.Window.DrawProgressBar(float(i)/numverts, "Reading Verts")
         x, y, z = struct.unpack(">fff", data.read(12))
         verts[i] = (x, z, y)
-    tobj.pprint("read %d vertexes" % (i+1))
+    tobj.pprint("read %d vertices" % (i+1))
     return verts
 # enddef read_verts
 
@@ -444,7 +444,7 @@ def read_vx(data):
 # ======================
 def read_vmap(uvcoords_dict, facesuv_dict, faces, maxvertnum, lwochunk):
     if maxvertnum == 0:
-        tobj.pprint ("Found VMAP but no vertexes to map!")
+        tobj.pprint ("Found VMAP but no vertices to map!")
         return uvcoords_dict, facesuv_dict
     data = cStringIO.StringIO(lwochunk.read())
     map_type = data.read(4)
@@ -460,7 +460,7 @@ def read_vmap(uvcoords_dict, facesuv_dict, faces, maxvertnum, lwochunk):
         vertnum, vnum_size = read_vx(data)
         u, v = struct.unpack(">ff", data.read(8))
         if vertnum >= maxvertnum:
-            tobj.pprint ("Hem: more uvmap than vertexes? ignoring uv data for vertex %d" % vertnum)
+            tobj.pprint ("Hem: more uvmap than vertices? ignoring uv data for vertex %d" % vertnum)
         else:
             my_uv_list[vertnum] = (u, v)
         i += 8 + vnum_size
@@ -483,7 +483,7 @@ def read_vmap(uvcoords_dict, facesuv_dict, faces, maxvertnum, lwochunk):
 def read_vmad(uvcoords_dict, facesuv_dict, faces, maxvertnum, lwochunk):
     maxfacenum = len(faces)
     if maxvertnum == 0 or maxfacenum == 0:
-        tobj.pprint ("Found VMAD but no vertexes to map!")
+        tobj.pprint ("Found VMAD but no vertices to map!")
         return uvcoords_dict, facesuv_dict
     data = cStringIO.StringIO(lwochunk.read())
     map_type = data.read(4)
@@ -508,19 +508,19 @@ def read_vmad(uvcoords_dict, facesuv_dict, faces, maxvertnum, lwochunk):
         i += vnum_size
         u, v = struct.unpack(">ff", data.read(8))
         if polynum >= maxfacenum or vertnum >= maxvertnum:
-            tobj.pprint ("Hem: more uvmap than vertexes? ignorig uv data for vertex %d" % vertnum)
+            tobj.pprint ("Hem: more uvmap than vertices? ignorig uv data for vertex %d" % vertnum)
         else:
             my_uv_list.append( (u,v) )
             newindex = len(my_uv_list) - 1
             for vi in range(len(my_facesuv_list[polynum])): #polynum starting from 1 or from 0?
                 if my_facesuv_list[polynum][vi] == vertnum:
                     my_facesuv_list[polynum][vi] = newindex
-            #end loop on current face vertexes
+            #end loop on current face vertices
         i += 8
     #end loop on uv pairs
     uvcoords_dict[name] = my_uv_list
     facesuv_dict[name] = my_facesuv_list
-    tobj.pprint ("updated %d vertexes data" % (newindex-lastindex))
+    tobj.pprint ("updated %d vertices data" % (newindex-lastindex))
     return uvcoords_dict, facesuv_dict
 
 
@@ -916,7 +916,7 @@ def dist_vector (head, tail): #vector from head to tail
 # ================
 def find_ear(normal, list_dict, verts, face):
     nv = len(list_dict['MF'])
-    #looping through vertexes trying to find an ear
+    #looping through vertices trying to find an ear
     #most likely in case of panic
     mlc = 0
     mla = 1
@@ -974,10 +974,10 @@ def find_ear(normal, list_dict, verts, face):
                         concave_inside = 1
                         break
                 #endif found a concave vertex
-            #end loop looking for concave vertexes
+            #end loop looking for concave vertices
             if (concave == 0) or (concave_inside == 0):
-                #no concave vertexes in polygon (should not be): return immediately
-                #looped all concave vertexes and no one inside found
+                #no concave vertices in polygon (should not be): return immediately
+                #looped all concave vertices and no one inside found
                 return [c, a, b]
         #no convex vertex, try another one
     #end loop to find a suitable base vertex for ear
@@ -1003,12 +1003,12 @@ def reduce_face(verts, face):
     list_dict['P'] = [None] * nv
     #list of distances
     for mvi in list_dict['MF']:
-        #vector between two vertexes
+        #vector between two vertices
         mvi_hiend = (mvi+1) % nv      #last-to-first
         vi_hiend = face[mvi_hiend] #vertex
         vi = face[mvi]
         list_dict['D'][mvi] = dist_vector(verts[vi_hiend], verts[vi])
-    #list of cross products - normals evaluated into vertexes
+    #list of cross products - normals evaluated into vertices
     for vi in range(nv):
         list_dict['X'][vi] = Blender.Mathutils.CrossVecs(list_dict['D'][vi], list_dict['D'][vi-1])
     my_face_normal = Blender.Mathutils.Vector([list_dict['X'][0][0], list_dict['X'][0][1], list_dict['X'][0][2]])
@@ -1050,8 +1050,8 @@ def reduce_face(verts, face):
             list_dict['P'].pop(ct[1])
             one_concave = reduce(lambda x, y: (x) or (y<0.0), list_dict['P'], 0)
             nv -=1
-        else: #here if no more concave vertexes
-            if nv == 4: break  #quads only if no concave vertexes
+        else: #here if no more concave vertices
+            if nv == 4: break  #quads only if no concave vertices
             decomposition_list.append([list_dict['MF'][0], list_dict['MF'][1], list_dict['MF'][2]])
             #physical removal
             list_dict['MF'].pop(1)
@@ -1152,7 +1152,7 @@ def my_create_mesh(complete_vertlist, complete_facelist, current_facelist, objna
 
     mesh = Blender.NMesh.GetRaw()
 
-    #append vertexes
+    #append vertices
     jj = 0
     for i in range(len(complete_vertlist)):
         if vertex_map[i] == 1:
@@ -1161,7 +1161,7 @@ def my_create_mesh(complete_vertlist, complete_facelist, current_facelist, objna
             mesh.verts.append(Blender.NMesh.Vert(x, y, z))
             vertex_map[i] = jj
             jj += 1
-    #end sweep over vertexes
+    #end sweep over vertices
 
     #append faces
     for i in range(len(cur_ptag_faces)):
@@ -1172,7 +1172,7 @@ def my_create_mesh(complete_vertlist, complete_facelist, current_facelist, objna
         #for vi in cur_ptag_faces[i]:
             index = vertex_map[vi]
             face.v.append(mesh.verts[index])
-        #end sweep over vertexes
+        #end sweep over vertices
         mesh.faces.append(face)
     #end sweep over faces
 
