@@ -1704,7 +1704,7 @@ static void object_panel_fields(Object *ob)
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Fields and Defection", "Physics", 0, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
 
 	/* should become button, option? */
 	if(ob->pd==NULL) {
