@@ -296,14 +296,13 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 		else glColor4ub(0x55, 0xCC, 0xCC, 155);
 	}
 	else {
-		if (selstate == ACTIVE) BIF_ThemeColorShadeAlpha(TH_ACTIVE, 0, -100);
-		else if (selstate == SELECT) BIF_ThemeColorShadeAlpha(TH_SELECT, 0, -100);
-		else if (selstate == DESELECT) BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -100);
+		if (selstate == ACTIVE) BIF_ThemeColorShadeAlpha(TH_ACTIVE, 0, -80);
+		else if (selstate == SELECT) BIF_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
+		else if (selstate == DESELECT) BIF_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
 	drawcircball(GL_POLYGON, vec, size, v3d->viewinv);
 	
-	if (selstate == ACTIVE) glColor4ub(255, 255, 255, 80);
-	else if ((selstate == SELECT) || (selstate == DESELECT)) glColor4ub(0, 0, 0, 80);
+	BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
 	drawcircball(GL_LINE_LOOP, vec, size, v3d->viewinv);
 	
 	glDisable(GL_BLEND);
@@ -552,9 +551,9 @@ static void drawlamp(Object *ob)
 	/* Inner Circle */
 	VECCOPY(vec, ob->obmat[3]);
 	glEnable(GL_BLEND);
-	drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
+	drawcircball(GL_LINE_LOOP, vec, lampsize/2, imat);
 	glDisable(GL_BLEND);
-	drawcircball(GL_POLYGON, vec, lampsize, imat);
+	drawcircball(GL_POLYGON, vec, lampsize/2, imat);
 	
 	/* restore */
 	if(ob->id.us>1)
@@ -3859,14 +3858,12 @@ void draw_object(Base *base)
 	
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
-		if(ob->type!=OB_LAMP) {
 			if((G.scene->basact)==base) 
 				drawcentercircle(ob->obmat[3], ACTIVE, ob->id.lib || ob->id.us>1);
 			else if(base->flag & SELECT) 
 				drawcentercircle(ob->obmat[3], SELECT, ob->id.lib || ob->id.us>1);
 			else if(empty_object || (G.vd->flag & V3D_DRAW_CENTERS)) 
 				drawcentercircle(ob->obmat[3], DESELECT, ob->id.lib || ob->id.us>1);
-		}
 	}
 
 	if((G.f & (G_PICKSEL))==0) {
