@@ -5077,6 +5077,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->strand_sta= ma->strand_end= 1.0f;
 				ma->mode |= MA_TANGENT_STR;
 			}
+			/* remove this test before 2.40 too! pad is set to denote check was done */
+			if(ma->pad==0) {
+				if(ma->mode & MA_TRACEBLE) ma->mode |= MA_SHADBUF;
+				ma->pad= 1;
+			}
 		}
 	}
 	

@@ -155,6 +155,7 @@ typedef struct Material {
 #define MA_RAYBIAS		0x400000
 #define MA_FULL_OSA		0x800000
 #define MA_TANGENT_STR	0x1000000
+#define MA_SHADBUF		0x2000000
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

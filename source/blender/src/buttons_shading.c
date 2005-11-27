@@ -3065,7 +3065,9 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitI(block, TOG, MA_TRACEBLE, 0,	"Traceable",		245,150,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows or being detected by ray tracing");
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, MA_TRACEBLE, 0,"Traceable",		245,160,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to being detected by ray tracing");
+		uiDefButBitI(block, TOG, MA_SHADBUF, 0,	"Shadbuf",			245,142,65,18, &(ma->mode), 0, 0, 0, 0, "Makes material to cast shadows with shadow buffers");
 
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, MA_SHADOW, 0,	"Shadow",			245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");

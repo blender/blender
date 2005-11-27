@@ -2451,7 +2451,7 @@ void zbuffershad(LampRen *lar)
 		if(vlr->mat!= ma) {
 			ma= vlr->mat;
 			ok= 1;
-			if((ma->mode & MA_TRACEBLE)==0) ok= 0;
+			if((ma->mode & MA_SHADBUF)==0) ok= 0;
 		}
 		
 		if(ok && (vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
