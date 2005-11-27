@@ -33,14 +33,14 @@
 #ifndef __GEN_HASHEDPTR
 #define __GEN_HASHEDPTR
 
-unsigned int GEN_Hash(unsigned int inDWord);
+unsigned int GEN_Hash(void * inDWord);
 
 class GEN_HashedPtr
 {
 	void* m_valptr;
 public:
 	GEN_HashedPtr(void* val) : m_valptr(val) {};
-	unsigned int hash() const { return GEN_Hash((unsigned int) m_valptr);};
+	unsigned int hash() const { return GEN_Hash(m_valptr);};
 	inline friend bool operator ==(const GEN_HashedPtr & rhs, const GEN_HashedPtr & lhs) { return rhs.m_valptr == lhs.m_valptr;};
 };
 
