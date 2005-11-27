@@ -391,11 +391,11 @@ static void precalc_effectors(Object *ob, PartEff *paf, Particle *pa, ListBase *
 	pEffectorCache *ec;
 	
 	for(ec= lb->first; ec; ec= ec->next) {
+		ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2]= 0.0f;
+		
 		if(ec->ob->type==OB_CURVE) {
 			float vec[4], dir[3];
 				
-			ec->oldspeed[0]= ec->oldspeed[1]= ec->oldspeed[2]= 0.0f;
-			
 			/* scale corrects speed vector to curve size */
 			if(paf->totkey>1) ec->scale= (paf->totkey-1)/pa->lifetime;
 			else ec->scale= 1.0f;
@@ -1868,7 +1868,7 @@ void build_particle_system(Object *ob)
 		
 		if(folengths)
 			pa->lifetime*= folengths[curface];
-		
+
 		make_particle_keys(rng, ob, 0, a, paf, pa, force, deform, mtexmove, effectorbase);
 	}
 	
