@@ -134,19 +134,44 @@ PyTypeObject BezTriple_Type = {
 
 static PyObject *M_BezTriple_New( PyObject* self, PyObject * args )
 {
+	float numbuf[9];
+	int status, length;
 	PyObject* in_args = NULL;
 
-	if( !PyArg_ParseTuple( args, "|O", &in_args) ) {
-		return( EXPP_ReturnPyObjError
-				( PyExc_AttributeError,
-				  "expected sequence of 3 or 9 floats or nothing"));
-	}
+	if( !PyArg_ParseTuple( args, "|O", &in_args) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected sequence of 3 or 9 floats or nothing" );
 
 	if( !in_args ) {
-		in_args = Py_BuildValue( "(fff)", 0.0, 0.0, 0.0 );
-	}
+		numbuf[0] = 0.0f; numbuf[1] = 0.0f; numbuf[2] = 0.0f;
+		numbuf[3] = 0.0f; numbuf[4] = 0.0f; numbuf[5] = 0.0f;
+		numbuf[6] = 0.0f; numbuf[7] = 0.0f; numbuf[8] = 0.0f;
+	} else {
+		if( !PySequence_Check( in_args ) )
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected sequence of 3 or 9 floats or nothing" );
 		
-	return newBezTriple( in_args );
+		length = PySequence_Length( in_args );
+		if( length == 9 )
+			status = PyArg_ParseTuple( in_args, "fffffffff",
+					&numbuf[0], &numbuf[1], &numbuf[2], 
+					&numbuf[3], &numbuf[4], &numbuf[5],
+					&numbuf[6], &numbuf[7], &numbuf[8]);
+		else if( length == 3 ) {
+			status = PyArg_ParseTuple( in_args, "fff",
+					&numbuf[0], &numbuf[1], &numbuf[2]);     
+			numbuf[3] = numbuf[0]; numbuf[6] = numbuf[0];
+			numbuf[4] = numbuf[1]; numbuf[7] = numbuf[1];
+			numbuf[5] = numbuf[2]; numbuf[8] = numbuf[2];
+		} else
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"wrong number of points" );
+		if( !status )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					"sequence item not number");
+	}
+
+	return newBezTriple( numbuf );
 }
 
 /****************************************************************************
@@ -436,99 +461,35 @@ BezTriple *BezTriple_FromPyObject( PyObject * pyobj )
   input args is a sequence - either 3 or 9 floats
 */
 
-PyObject *newBezTriple( PyObject *args)
+PyObject *newBezTriple( float *numbuf )
 {
-	BPy_BezTriple *pybez = NULL;
-	int length;
-	float numbuf[9];
-	int status;
-/*
-  check input args:
-    sequence of nine floats - x,y,z for h1, pt, h2
-    sequence of 3 floats - x,y,z for pt with zero len handles in AUTO mode
-*/
+	int i, j, num;
+	PyObject *pyobj = NULL;
+	BezTriple *bzt = NULL;
 
-	/* do we have a sequence of the right length? */
+	/* create our own beztriple data */
+	bzt = MEM_callocN( sizeof( BezTriple ), "new bpytriple");
 
-	if( ! PySequence_Check( args )) {
-		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
-						"expected better stuff"));
-	}
-	
-	length = PySequence_Length( args );
-	if( length != 9 && length != 3 )
-		return  EXPP_ReturnPyObjError( PyExc_AttributeError,
-					       "wrong number of points");
-	{
-		if (length == 9)
-			status = PyArg_ParseTuple( args, "fffffffff", 
-						   &numbuf[0], 
-						   &numbuf[1], 
-						   &numbuf[2], 
-						   &numbuf[3], 
-						   &numbuf[4], 
-						   &numbuf[5], 
-						   &numbuf[6], 
-						   &numbuf[7], 
-						   &numbuf[8]);
-
-		else if (length == 3)
-			status = PyArg_ParseTuple( args, "fff",
-						   &numbuf[0], 
-						   &numbuf[1], 
-						   &numbuf[2]);     
-		else
-			return EXPP_ReturnPyObjError
-				( PyExc_AttributeError,
-				  "wrong number of points");
-		if ( !status )
-			return EXPP_ReturnPyObjError
-				( PyExc_AttributeError,
-				  "sequence item not number");
-	}
-
-	/* create our bpy object */
-	pybez = ( BPy_BezTriple* ) PyObject_New( BPy_BezTriple,
-					       &BezTriple_Type );
-	if( ! pybez )
-		return  EXPP_ReturnPyObjError( PyExc_MemoryError,
-					       "PyObject_New failed");
-	pybez->beztriple = MEM_callocN( sizeof( BezTriple ), "new bpytriple");
 	/* check malloc */
+	if( !bzt )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					       "MEM_callocN failed");
 
-	pybez->own_memory = 1;  /* we own it. must free later */
-	
-	switch( length ) {
-	case 9: {
-		int i,j;
-		int num = 0;
-		for( i = 0; i < 3; i++ ){
-			for( j = 0; j < 3; j++){
-				pybez->beztriple->vec[i][j] = numbuf[num ++];
-			}
+	/* copy the data */
+	num = 0;
+	for( i = 0; i < 3; i++ ) {
+		for( j = 0; j < 3; j++) {
+			bzt->vec[i][j] = numbuf[num++];
 		}
 	}
-		break;
-	case 3: {
-		int i;
-		int num = 0;
-		/* set h1, pt, and h2 to the same values. */
-		for( i = 0; i < 3; i++ ) {
-			pybez->beztriple->vec[0][i] = numbuf[num];
-			pybez->beztriple->vec[1][i] = numbuf[num];
-			pybez->beztriple->vec[2][i] = numbuf[num];
-			++num;
-		}
-	}
-		break;
-	default:
-		/* we should not be here! */
-		break;
-	}
+	bzt->h1 = HD_ALIGN;
+	bzt->h2 = HD_ALIGN;
 
+	/* wrap it */
+	pyobj = BezTriple_CreatePyObject( bzt );
 
-	pybez->beztriple->h1 = HD_ALIGN;
-	pybez->beztriple->h2 = HD_ALIGN;
+  	/* we own it. must free later */
+	( ( BPy_BezTriple * )pyobj)->own_memory = 1;
 
-	return ( PyObject* ) pybez;
+	return pyobj;
 }

@@ -9,11 +9,12 @@ This module provides access to B{Key} objects in Blender.
 @var Types: The type of a key, indicating the type of data in the
 data blocks.
     - MESH - the key is a Mesh key; data blocks contain
-    L{NMesh.NMVert} vertices.
-    - CURVE - the key is a Curve key; data blocks contain
-    L{Ipo.BezTriple} points.
+    L{NMVert<NMesh.NMVert>} vertices.
+    - CURVE - the key is a Curve key; data blocks contains either
+    L{BezTriples<Ipo.BezTriple>} or points (represented by a list of
+    3 floating point numbers).
     - LATTICE - the key is a Lattice key; data blocks contain
-    BPoints, each point represented as a list of 4 floating point numbers.
+    BPoints, each point represented by a list of 3 floating point numbers.
 
 """
 
@@ -32,26 +33,25 @@ class Key:
     """
     The Key object
     ==============
-    An object with keyframes (L{Lattice.Lattice}, L{NMesh.NMesh} or
-    L{Curve.Curve}) will contain a Key object representing the
+    An object with keyframes (L{Lattice}, L{NMesh} or
+    L{Curve}) will contain a Key object representing the
     keyframe data.
     
-    @ivar ipo:  Key Ipo.
-    Contains the Ipo if one is assigned to the object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
+    @ivar ipo:  Key Ipo.  Contains the Ipo if one is assigned to the
+    object, B{None} otherwise.  Setting to B{None} clears the current Ipo..
     @type ipo:  Blender Ipo
-    @ivar value: The Value of the Key - Read Only
+    @ivar value: The value of the key. Read-only.
     @type value: float
     @ivar type: An integer from the L{Types} dictionary
-    representing the Key type.
+    representing the Key type.  Read-only.
     @type type: int
-
-    @cvar blocks: A list of KeyBlocks.
-    @cvar ipo: The L{Ipo.Ipo} object associated with this key.
+    @ivar blocks: A list of KeyBlocks for the key.  Read-only.
+    @type blocks: Blender KeyBlock.
     """
 
     def getIpo():
         """
-        Get the L{Ipo.Ipo} object associated with this key.
+        Get the L{Ipo} object associated with this key.
         """
     def getBlocks():
         """
@@ -59,7 +59,6 @@ class Key:
         this Key.
         """
 
-		
 class KeyBlock:
   """	
   The KeyBlock object
@@ -67,34 +66,36 @@ class KeyBlock:
   Each Key object has a list of KeyBlocks attached, each KeyBlock
   representing a keyframe.
 
-  @ivar name: The Name of the Keyblock
-  Truncated to 32 Characters
+  @ivar name: The name of the Keyblock.  Truncated to 32 characters.
   @type name: string
-  @ivar pos: The position of the keyframe
+  @ivar pos: The position of the keyframe.
   @type pos: float
-  @ivar slidermin: The minimum value for the action slider 
+  @ivar slidermin: The minimum value for the action slider.
+  Value is clamped to the range [-10.0,10.0].
   @type slidermin: float
-  @ivar slidermax: The maximum value for the action slider
+  @ivar slidermax: The maximum value for the action slider.
+  Value is clamped to the range [-10.0,10.0].
   @type slidermax: float
-  @ivar vgroup: The assigned VGroup for the Key Block
+  @ivar vgroup: The assigned VGroup for the Key Block.
   @type vgroup: string
-  
-  @cvar data: The data of the KeyBlock (see L{getData}). This
+  @ivar data: The data of the KeyBlock (see L{getData}). This
   attribute is read-only.
+  @type data: varies
   """
+
   def getData():
     """
     Get the data of a KeyBlock, as a list of data items. Each item
     will have a different data type depending on the type of this
     Key.
-    Mesh keys have a list of L{NMesh.NMVert} objects in the data
-    block.
-
-    Lattice keys have a list of BPoints in the data block. These
-    don't have corresponding Python objects yet, so each BPoint is
-    represented using a list of four floating-point numbers.
-
-    Curve keys have a list of L{Ipo.BezTriple} objects in the data
-    block.
+      - Mesh keys have a list of L{NMVert<NMesh.NMVert>} objects in the data
+      block.
+      - Lattice keys have a list of BPoints in the data block. These
+      don't have corresponding Python objects yet, so each BPoint is
+      represented using a list of three floating-point numbers (the
+      coordinate for each lattice vertex).
+      - Curve keys return either a list of L{BezTriple<Ipo.BezTriple>}
+      objects in the data if the curve is a Bezier curve, otherwise it 
+      returns lists of three floats for each NURB or poly coordinate.
     """
 
