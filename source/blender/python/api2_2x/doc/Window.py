@@ -318,8 +318,8 @@ def CameraView (camtov3d = 0):
 def QTest ():
   """
   Check if there are pending events in the event queue.
-  @rtype: bool
-  @return: 1 if there are pending events, 0 otherwise.
+  @rtype: int
+  @return: 0 if there are no pending events, non-zero otherwise.
   """
 
 def QRead ():
