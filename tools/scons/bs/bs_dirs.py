@@ -62,6 +62,7 @@ def preparedist():
 		shutil.copy("../lib/windows/python/lib/python24.dll", "dist/python24.dll")
 		shutil.copy("../lib/windows/sdl/lib/SDL.dll", "dist/SDL.dll")
 		shutil.copy("../lib/windows/gettext/lib/gnu_gettext.dll", "dist/gnu_gettext.dll")
+		shutil.copy("../lib/windows/tiff/lib/libtiff.dll", "dist/libtiff.dll")
 	elif sys.platform in ['linux2', 'linux-i386', 'freebsd4', 'freebsd5']:
 		shutil.copy("blender", "dist/blender")
 		if bs_globals.user_options_dict['BUILD_BLENDER_PLAYER'] == 1:
