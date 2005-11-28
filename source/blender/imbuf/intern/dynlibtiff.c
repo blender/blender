@@ -76,6 +76,9 @@ void libtiff_loadlibtiff(void)
 	char *filename;
 	libtiff = NULL;
 
+#ifndef __APPLE__	/* no standard location of libtiff in MacOS X */
+					/* declare env var if you want to use that */
+
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
 	if (libtiff != NULL)  return;
@@ -91,6 +94,8 @@ void libtiff_loadlibtiff(void)
 	/* For solaris */
 	libtiff = PIL_dynlib_open("/usr/openwin/lib/libtiff.so");
 	if (libtiff != NULL)  return;
+	
+#endif
 
 	filename = getenv("BF_TIFF_LIB");
 	if (filename) libtiff = PIL_dynlib_open(filename);
