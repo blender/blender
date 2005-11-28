@@ -604,12 +604,8 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	int scr_w, scr_h, x, y, div= 0;
 	float ndc_x= 0.0, ndc_y= 0.0;
 
-		/* XXX, we temporarily hack the screen size and position so
-		 * the window is always 60 pixels away from a side, really need
-		 * a GHOST_GetMaxWindowBounds or so - zr
-		 */
 	winlay_get_screensize(&scr_w, &scr_h);
-	
+
 	rendersize_r[0]= (G.scene->r.size*G.scene->r.xsch)/100;
 	rendersize_r[1]= (G.scene->r.size*G.scene->r.ysch)/100;
 	
@@ -623,9 +619,6 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 		rendersize_r[0]*= G.scene->r.xparts;
 		rendersize_r[1]*= G.scene->r.yparts;
 	}
-	/* increased size of clipping for OSX, should become an option instead */
-	rendersize_r[0]= CLAMPIS(rendersize_r[0], 100, scr_w-120);
-	rendersize_r[1]= CLAMPIS(rendersize_r[1], 100, scr_h-120);
 
 	for (y=-1; y<=1; y++) {
 		for (x=-1; x<=1; x++) {
@@ -641,9 +634,14 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 		ndc_x/= div;
 		ndc_y/= div;
 	}
-		
-	renderpos_r[0]= 60 + (scr_w-90-rendersize_r[0])*(ndc_x*0.5 + 0.5);
-	renderpos_r[1]= 30 + (scr_h-90-rendersize_r[1])*(ndc_y*0.5 + 0.5);
+	
+	renderpos_r[0]= (scr_w-rendersize_r[0])*(ndc_x*0.5 + 0.5);
+#ifdef __APPLE__
+	/* 44 pixels is topbar and window header... awaiting better fixes in ghost :) */
+	renderpos_r[1]= -44-RW_HEADERY+(scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
+#else
+	renderpos_r[1]= (scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
+#endif
 }
 	
 /* init renderwin, alloc/open/resize */
