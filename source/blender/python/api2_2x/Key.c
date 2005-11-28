@@ -530,8 +530,9 @@ static PyObject *KeyBlock_getData( PyObject * self )
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	Key *key = kb->key;
 
-	if( !kb->keyblock->data )
+	if( !kb->keyblock->data ) {
 		Py_RETURN_NONE;
+	}
 
 	l = PyList_New( kb->keyblock->totelem );
 	if( !l )

@@ -2760,8 +2760,9 @@ static PyObject *Object_getAttr( BPy_Object * obj, char *name )
 	if( StringEqual( name, "parent" ) ) {
 		if( object->parent )
 			return Object_CreatePyObject( object->parent );
-		else
+		else {
 			Py_RETURN_NONE;
+		}
 	}
 	if( StringEqual( name, "parentbonename" ) ) {
 		if( object->parent && object->parsubstr[0] )
