@@ -998,10 +998,10 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	code= 1;
 	
 	if(G.obedit && G.obedit->type==OB_MBALL) {
-		draw_object(BASACT);
+		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else if ((G.obedit && G.obedit->type==OB_ARMATURE)) {
-		draw_object(BASACT);
+		draw_object(BASACT, DRAW_PICKING|DRAW_CONSTCOLOR);
 	}
 	else {
 		Base *base;
@@ -1011,7 +1011,7 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 			if(base->lay & G.vd->lay) {
 				base->selcol= code;
 				glLoadName(code);
-				draw_object(base);
+				draw_object(base, DRAW_PICKING|DRAW_CONSTCOLOR);
 				code++;
 			}
 		}

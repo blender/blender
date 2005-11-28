@@ -2053,7 +2053,7 @@ void add_view3d_after(View3D *v3d, Base *base, int type)
 }
 
 /* clears zbuffer and draws it over */
-static void view3d_draw_xray(View3D *v3d)
+static void view3d_draw_xray(View3D *v3d, int flag)
 {
 	View3DAfter *v3da, *next;
 	int doit= 0;
@@ -2068,7 +2068,7 @@ static void view3d_draw_xray(View3D *v3d)
 		for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 			next= v3da->next;
 			if(v3da->type==V3D_XRAY) {
-				draw_object(v3da->base);
+				draw_object(v3da->base, flag);
 				BLI_remlink(&v3d->afterdraw, v3da);
 				MEM_freeN(v3da);
 			}
@@ -2078,7 +2078,7 @@ static void view3d_draw_xray(View3D *v3d)
 }
 
 /* disables write in zbuffer and draws it over */
-static void view3d_draw_transp(View3D *v3d)
+static void view3d_draw_transp(View3D *v3d, int flag)
 {
 	View3DAfter *v3da, *next;
 
@@ -2088,7 +2088,7 @@ static void view3d_draw_transp(View3D *v3d)
 	for(v3da= v3d->afterdraw.first; v3da; v3da= next) {
 		next= v3da->next;
 		if(v3da->type==V3D_TRANSP) {
-			draw_object(v3da->base);
+			draw_object(v3da->base, flag);
 			BLI_remlink(&v3d->afterdraw, v3da);
 			MEM_freeN(v3da);
 		}
@@ -2195,14 +2195,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 				object_handle_update(base->object);
 				
-				/* patch: color remains constant, only set it for wire, so transparant works */ 
-				if(v3d->zbuf==0 || base->object->dt<=OB_WIRE)
-					G.f |= G_PICKSEL;
-				else
-					G.f &= ~G_PICKSEL;
-					
 				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-				draw_object(base);
+				draw_object(base, DRAW_CONSTCOLOR);
 
 				if(base->object->transflag & OB_DUPLI) {
 					extern ListBase duplilist;
@@ -2215,7 +2209,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 					ob= duplilist.first;
 					while(ob) {
 						tbase.object= ob;
-						draw_object(&tbase);
+						draw_object(&tbase, DRAW_CONSTCOLOR);
 						ob= ob->id.next;
 					}
 					free_duplilist();
@@ -2224,12 +2218,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 			}
 			base= base->next;
 		}
-		
-		G.f &= ~G_PICKSEL;
 
 		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d);
+		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
+		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
 	}
 	
 	/* update all objects, ipos, matrices, displists, etc. Flags set by depgraph or manual, no layer check here, gets correct flushed */
@@ -2246,8 +2238,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				extern ListBase duplilist;
 				Base tbase;
 
-				/* patch: color remains constant */ 
-				G.f |= G_PICKSEL;
 				BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
 				
 				tbase.flag= OB_FROMDUPLI;
@@ -2256,15 +2246,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				ob= duplilist.first;
 				while(ob) {
 					tbase.object= ob;
-					draw_object(&tbase);
+					draw_object(&tbase, DRAW_CONSTCOLOR);
 					ob= ob->id.next;
 				}
 				free_duplilist();
-				
-				G.f &= ~G_PICKSEL;				
 			}
 			if((base->flag & SELECT)==0) {
-				if(base->object!=G.obedit) draw_object(base);
+				if(base->object!=G.obedit) draw_object(base, 0);
 			}
 		}
 	}
@@ -2272,7 +2260,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(v3d->lay & base->lay) {
 			if (base->object==G.obedit || ( base->flag & SELECT) ) 
-				draw_object(base);
+				draw_object(base, 0);
 		}
 	}
 
@@ -2284,8 +2272,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 	
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d, 0);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -2402,14 +2390,8 @@ void drawview3d_render(struct View3D *v3d)
 				else {
 					where_is_object(base->object);
 	
-					/* patch: color remains constant, only set it for wire, so transparant works */ 
-					if(v3d->zbuf==0 || base->object->dt<=OB_WIRE)
-						G.f |= G_PICKSEL;
-					else
-						G.f &= ~G_PICKSEL;
-					
 					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.6f);
-					draw_object(base);
+					draw_object(base, DRAW_CONSTCOLOR);
 	
 					if(base->object->transflag & OB_DUPLI) {
 						extern ListBase duplilist;
@@ -2420,7 +2402,7 @@ void drawview3d_render(struct View3D *v3d)
 						ob= duplilist.first;
 						while(ob) {
 							tbase.object= ob;
-							draw_object(&tbase);
+							draw_object(&tbase, DRAW_CONSTCOLOR);
 							ob= ob->id.next;
 						}
 						free_duplilist();
@@ -2431,10 +2413,8 @@ void drawview3d_render(struct View3D *v3d)
 		}
 		
 		/* Transp and X-ray afterdraw stuff */
-		view3d_draw_xray(v3d);	// clears zbuffer if it is used!
-		view3d_draw_transp(v3d);
-		
-		G.f &= ~G_PICKSEL;
+		view3d_draw_xray(v3d, DRAW_CONSTCOLOR);	// clears zbuffer if it is used!
+		view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
 	}
 
 	/* first not selected and duplis */
@@ -2449,11 +2429,8 @@ void drawview3d_render(struct View3D *v3d)
 					extern ListBase duplilist;
 					Base tbase;
 					
-					/* always draw original first because of make_displist */
-					draw_object(base);
+					draw_object(base, 0);
 					
-					/* patch: color remains constant */ 
-					G.f |= G_PICKSEL;
 					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5f);
 					
 					tbase.flag= OB_FROMDUPLI;
@@ -2461,15 +2438,13 @@ void drawview3d_render(struct View3D *v3d)
 					ob= duplilist.first;
 					while(ob) {
 						tbase.object= ob;
-						draw_object(&tbase);
+						draw_object(&tbase, DRAW_CONSTCOLOR);
 						ob= ob->id.next;
 					}
 					free_duplilist();
-					
-					G.f &= ~G_PICKSEL;				
 				}
 				else if((base->flag & SELECT)==0) {
-					draw_object(base);
+					draw_object(base, 0);
 				}
 			}
 		}
@@ -2483,7 +2458,7 @@ void drawview3d_render(struct View3D *v3d)
 		
 		if ( ((base)->flag & SELECT) && ((base)->lay & v3d->lay) ) {
 			if ELEM3(base->object->type, OB_LAMP, OB_CAMERA, OB_LATTICE);
-			else draw_object(base);
+			else draw_object(base, 0);
 		}
 		
 		base= base->next;
@@ -2492,8 +2467,8 @@ void drawview3d_render(struct View3D *v3d)
 	if(G.scene->radio) RAD_drawall(v3d->drawtype>=OB_SOLID);
 
 	/* Transp and X-ray afterdraw stuff */
-	view3d_draw_xray(v3d);	// clears zbuffer if it is used!
-	view3d_draw_transp(v3d);
+	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
+	view3d_draw_transp(v3d, 0);
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
