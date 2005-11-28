@@ -38,6 +38,12 @@
 #include <config.h>
 #endif
 
+#if defined(_WIN64)
+typedef unsigned __int64 uint_ptr;
+#else
+typedef unsigned long uint_ptr;
+#endif
+
 bool KX_CameraIpoSGController::Update(double currentTime)
 {
 	if (m_modified)
@@ -92,10 +98,10 @@ SG_Controller*	KX_CameraIpoSGController::GetReplica(class SG_Node* destnode)
 		iporeplica->AddInterpolator(copyipo);
 
 		MT_Scalar* scaal = ((KX_ScalarInterpolator*)*i)->GetTarget();
-		int orgbase = (int)this;
-		int orgloc = (int)scaal;
-		int offset = orgloc-orgbase;
-		int newaddrbase = (int)iporeplica + offset;
+		uint_ptr orgbase = (uint_ptr)this;
+		uint_ptr orgloc = (uint_ptr)scaal;
+		uint_ptr offset = orgloc-orgbase;
+		uint_ptr newaddrbase = (uint_ptr)iporeplica + offset;
 		MT_Scalar* blaptr = (MT_Scalar*) newaddrbase;
 		copyipo->SetNewTarget((MT_Scalar*)blaptr);
 	}

@@ -35,18 +35,23 @@
 #include <config.h>
 #endif
 
-unsigned int KX_Hash(unsigned int inDWord)
+unsigned int KX_Hash(void * inDWord)
 {
-	unsigned int key = inDWord;
+#if defined(_WIN64)
+	unsigned __int64 key = (unsigned __int64)inDWord;
+#else
+	unsigned long key = (unsigned long)inDWord;
+#endif
+
 	key += ~(key << 16);
 	key ^=  (key >>  5);
 	key +=  (key <<  3);
 	key ^=  (key >> 13);
 	key += ~(key <<  9);
 	key ^=  (key >> 17);
-  	return key;
-};
 
+  	return (unsigned int)(key & 0xffffffff);
+}
 
 
 CHashedPtr::CHashedPtr(void* val) : m_valptr(val)
@@ -57,5 +62,5 @@ CHashedPtr::CHashedPtr(void* val) : m_valptr(val)
 
 unsigned int CHashedPtr::hash() const
 {
-	return KX_Hash((unsigned int) m_valptr);
+	return KX_Hash(m_valptr);
 }

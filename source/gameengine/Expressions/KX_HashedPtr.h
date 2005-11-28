@@ -32,7 +32,7 @@
 #ifndef __KX_HASHEDPTR
 #define __KX_HASHEDPTR
 
-unsigned int			KX_Hash(unsigned int inDWord);
+unsigned int			KX_Hash(void * inDWord);
 
 class CHashedPtr
 {
