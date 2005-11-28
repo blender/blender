@@ -245,18 +245,13 @@ int calc_manipulator_stats(ScrArea *sa)
 		else if (G.obedit->type==OB_ARMATURE){
 			EditBone *ebo;
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-				
-				//	If this is a connected child and it's parent is being moved, don't count as selected
-				if ((ebo->flag & BONE_CONNECTED)&& (ebo->flag & BONE_ROOTSEL) && ebo->parent && (ebo->parent->flag & BONE_TIPSEL));
-				else {
-					if (ebo->flag & BONE_TIPSEL) {
-						calc_tw_center(ebo->tail);
-						totsel++;
-					}
-					if (ebo->flag & BONE_ROOTSEL) {
-						calc_tw_center(ebo->head);
-						totsel++;
-					}
+				if (ebo->flag & BONE_TIPSEL) {
+					calc_tw_center(ebo->tail);
+					totsel++;
+				}
+				if (ebo->flag & BONE_ROOTSEL) {
+					calc_tw_center(ebo->head);
+					totsel++;
 				}
 			}
 		}
