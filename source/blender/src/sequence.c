@@ -1486,7 +1486,7 @@ void RVIsolateHighlights (unsigned char* in, unsigned char* out, int width, int 
 			out[index+GlowR]=MIN2(255*clamp, (in[index+GlowR]*boost*intensity)/255);
 			out[index+GlowG]=MIN2(255*clamp, (in[index+GlowG]*boost*intensity)/255);
 			out[index+GlowB]=MIN2(255*clamp, (in[index+GlowB]*boost*intensity)/255);
-			out[index+GlowA]=in[index+GlowA];
+			out[index+GlowA]=MIN2(255*clamp, (in[index+GlowA]*boost*intensity)/255);
 			}
 			else{
 				out[index+GlowR]=0;
