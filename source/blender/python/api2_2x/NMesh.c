@@ -1373,6 +1373,9 @@ static PyObject *NMesh_update( PyObject *self, PyObject *a, PyObject *kwd )
 			}
 			base = base->next;
 		}
+
+		/* recalculate the derived mesh before trying to use it */
+		makeDispListMesh (nmesh->object);
 		make_vertexcol();
 
 		countall();
