@@ -3077,7 +3077,7 @@ static int Object_setAttr( BPy_Object * obj, char *name, PyObject * value )
 			OB_LOCK_ROTX | OB_LOCK_ROTY | OB_LOCK_ROTZ |
 			OB_LOCK_SIZEX | OB_LOCK_SIZEY | OB_LOCK_SIZEZ;
 
-		object->protectflag = flag;
+		object->protectflag = (short)flag;
 		return 0;
 	}
 

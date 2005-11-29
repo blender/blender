@@ -298,7 +298,7 @@ PyObject *M_Particle_New( PyObject * self, PyObject * args )
 				"couldn't create Effect Data in Blender" );
 	}
 
-	pyeffect->effect = bleffect;
+	pyeffect->effect = (PartEff *)bleffect;
 	BLI_addtail( &ob->effect, bleffect );
 
 	return ( PyObject * ) pyeffect;

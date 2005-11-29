@@ -380,7 +380,7 @@ static int MTex_setTexCo( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a member of Texture.TexCo dictionary" );
 
-	self->mtex->texco = texco;
+	self->mtex->texco = (short)texco;
 
 	return 0;
 }
@@ -442,7 +442,7 @@ static int MTex_setMapTo( BPy_MTex *self, PyObject *value, void *closure)
 			"Value must be a sum of values from Texture.MapTo dictionary" );
 	}
 
-	self->mtex->mapto = mapto;
+	self->mtex->mapto = (short)mapto;
 
 	return 0;
 }
@@ -489,7 +489,7 @@ static int MTex_setDVar( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 1)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -524,7 +524,7 @@ static int MTex_setBlendMode( BPy_MTex *self, PyObject *value, void *closure)
 					    "Value must be member of Texture.BlendModes dictionary" );
 	}
 
-	self->mtex->blendtype = n;
+	self->mtex->blendtype = (short)n;
 
 	return 0;
 }
@@ -542,7 +542,7 @@ static int MTex_setColFac( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 1)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -566,7 +566,7 @@ static int MTex_setNorFac( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 25)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -590,7 +590,7 @@ static int MTex_setVarFac( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 1)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -614,7 +614,7 @@ static int MTex_setDispFac( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 1)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -638,7 +638,7 @@ static int MTex_setWarpFac( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected a float" );
 
-	f = PyFloat_AsDouble(value);
+	f = (float)PyFloat_AsDouble(value);
 
 	if (f < 0 || f > 1)
 		return EXPP_ReturnIntError( PyExc_ValueError,
@@ -728,7 +728,7 @@ static int MTex_setMapping( BPy_MTex *self, PyObject *value, void *closure)
 			    "Value must be member of Texture.Mappings dictionary" );
 	}
 
-	self->mtex->mapping = n;
+	self->mtex->mapping = (char)n;
 
 	return 0;
 }
@@ -773,7 +773,7 @@ static int MTex_setProjX( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a member of Texture.Proj dictionary" );
 
-	self->mtex->projx = proj;
+	self->mtex->projx = (char)proj;
 
 	return 0;
 }
@@ -799,7 +799,7 @@ static int MTex_setProjY( BPy_MTex *self, PyObject *value, void *closure )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a member of Texture.Proj dictionary" );
 
-	self->mtex->projy = proj;
+	self->mtex->projy = (char)proj;
 
 	return 0;
 }
@@ -825,7 +825,7 @@ static int MTex_setProjZ( BPy_MTex *self, PyObject *value, void *closure)
 		return EXPP_ReturnIntError( PyExc_ValueError,
 			"Value must be a member of Texture.Proj dictionary" );
 
-	self->mtex->projz = proj;
+	self->mtex->projz = (char)proj;
 
 	return 0;
 }
