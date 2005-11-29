@@ -83,7 +83,8 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 
 	if(ima==NULL || ima->ok== 0) {
-		return 0;
+		if(texres->nor) return 3;
+		else return 1;
 	}
 	
 	if(ima->ibuf==NULL) {
@@ -593,7 +594,8 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 
 	if(ima==NULL || ima->ok== 0) {
-		return 0;
+		if(texres->nor) return 3;
+		else return 1;
 	}
 	
 	if(ima->ibuf==NULL) {
