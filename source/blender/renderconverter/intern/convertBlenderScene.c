@@ -1030,7 +1030,7 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	VlakRen *vlr;
 	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
 	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	float *orco= NULL;
+	float *orco= NULL, loc_tex[3], size_tex[3];
 	int a, mat_nr=1, seed, totvlako, totverto, first;
 
 	pa= paf->keys;
@@ -1060,6 +1060,8 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 		BLI_ghash_insert(g_orco_hash, paf, orco);	/* pointer is particles, otherwise object uses it */
 	}
 	
+	mesh_get_texspace(ob->data, loc_tex, NULL, size_tex);
+	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
 	ctime= bsystem_time(ob, 0, (float)G.scene->r.cfra, ptime);
@@ -1068,9 +1070,11 @@ static void render_static_particle_system(Object *ob, PartEff *paf)
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
 		
 		where_is_particle(paf, pa, pa->time, vec1);
-		if(orco) VECCOPY(orco, vec1);
-		MTC_Mat4MulVecfl(mat, vec1);
-		
+		if(orco) {
+			orco[0] = (vec1[0]-loc_tex[0])/size_tex[0];
+			orco[1] = (vec1[1]-loc_tex[1])/size_tex[1];
+			orco[2] = (vec1[2]-loc_tex[2])/size_tex[2];
+		}
 		mtime= pa->time+pa->lifetime+paf->staticstep-1;
 		
 		first= 1;
