@@ -705,17 +705,21 @@ static int intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, 
 	return 0;
 }
 
+#if 0
 /* ray - line intersection */
+/* disabled until i got real & fast cylinder checking, this code doesnt work proper
+for faster strands */
+
 static int intersection_strand(Isect *is)
 {
-	float *v1, *v2;		/* length of strand */
+	float v1[3], v2[3];		/* length of strand */
 	float axis[3], rc[3], nor[3], radline, dist, len;
 	
 	/* radius strand */
 	radline= 0.5f*VecLenf(is->vlr->v1->co, is->vlr->v2->co);
 	
-	v1= is->vlr->v2->co;
-	v2= is->vlr->v3->co;
+	VecMidf(v1, is->vlr->v1->co, is->vlr->v2->co);
+	VecMidf(v2, is->vlr->v3->co, is->vlr->v4->co);
 	
 	VECSUB(rc, v1, is->start);	/* vector from base ray to base cylinder */
 	VECSUB(axis, v2, v1);		/* cylinder axis */
@@ -745,12 +749,26 @@ static int intersection_strand(Isect *is)
 		
 		labda = (dot1*dot2 - dot3*rlen)/div;
 		
+		radline/= sqrt(alen);
+		
 		/* labda: where on axis do we have closest intersection? */
-		if(labda>=0.0f && labda<=1.0f)
+		if(labda >= -radline && labda <= 1.0f+radline) {
+			VlakRen *vlr= is->vlrorig;
+			VertRen *v1= is->vlr->v1, *v2= is->vlr->v2, *v3= is->vlr->v3, *v4= is->vlr->v4;
+				/* but we dont do shadows from faces sharing edge */
+			
+			if(v1==vlr->v1 || v2==vlr->v1 || v3==vlr->v1 || v4==vlr->v1) return 0;
+			if(v1==vlr->v2 || v2==vlr->v2 || v3==vlr->v2 || v4==vlr->v2) return 0;
+			if(v1==vlr->v3 || v2==vlr->v3 || v3==vlr->v3 || v4==vlr->v3) return 0;
+			if(vlr->v4) {
+				if(v1==vlr->v4 || v2==vlr->v4 || v3==vlr->v4 || v4==vlr->v4) return 0;
+			}
 			return 1;
+		}
 	}
 	return 0;
 }
+#endif
 
 /* ray - triangle or quad intersection */
 static int intersection(Isect *is)
@@ -759,9 +777,11 @@ static int intersection(Isect *is)
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
 	float m0, m1, m2, divdet, det1;
 	short ok=0;
-	
-	if(is->mode==DDA_SHADOW && is->vlr->flag & R_STRAND) 
-		return intersection_strand(is);
+
+	/* disabled until i got real & fast cylinder checking, this code doesnt work proper
+	   for faster strands */
+//	if(is->mode==DDA_SHADOW && is->vlr->flag & R_STRAND) 
+//		return intersection_strand(is);
 	
 	v1= is->vlr->v1; 
 	v2= is->vlr->v2; 
