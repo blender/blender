@@ -59,6 +59,8 @@ BL_SkinDeformer::~BL_SkinDeformer()
 {
 };
 
+/* XXX note, this __NLA_OLDDEFORM define seems to be obsolete */
+
 bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 {
 	size_t			i, j, index;
@@ -113,7 +115,8 @@ bool BL_SkinDeformer::Apply(RAS_IPolyMaterial *mat)
 			co[2]=mvert->co[2];
 
 			//	Do the deformation
-			GB_calc_armature_deform(co, dvert);
+/* XXX note, doesnt exist anymore */
+//			GB_calc_armature_deform(co, dvert);
 			tv->SetXYZ(co);
 #else
 			//	Set the data
@@ -149,27 +152,30 @@ void BL_SkinDeformer::Update(void)
 	if (m_lastUpdate!=m_armobj->GetLastFrame()){	
 		
 		/* Do all of the posing necessary */
-		GB_init_armature_deform (m_defbase, m_premat, m_postmat);
 		m_armobj->ApplyPose();
-//		precalc_armature_posemats (m_armobj->GetArmature());
-//		for (Bone *curBone=(Bone*)m_armobj->GetArmature()->bonebase.first; curBone; curBone=(Bone*)curBone->next)
-//			precalc_bone_defmat(curBone);
-// note: where_is_pose() does it all...
 		
-		VerifyStorage();
-
-		/* Transform the verts & store locally */
+		/* XXX note: where_is_pose() (from BKE_armature.h) calculates all matrices needed to start deforming */
+		/* but it requires the blender object pointer... */
+//		void where_is_pose (Object *ob);
+		
+		/* store verts locally */
 		for (int v =0; v<m_bmesh->totvert; v++){
 			float co[3];
-
-		  	co[0]=m_bmesh->mvert[v].co[0];
-			co[1]=m_bmesh->mvert[v].co[1];
-			co[2]=m_bmesh->mvert[v].co[2];
-			GB_calc_armature_deform(co, &m_bmesh->dvert[v]);
-
-			m_transverts[v]=MT_Point3(co);
+			/* XXX note, dunno about this line */
+			m_transverts[v]=MT_Point3(m_bmesh->mvert[v].co);
 		}
 		
+		/* XXX note: now use this call instead */
+//		void armature_deform_verts(Object *armOb, Object *target, float (*vertexCos)[3], int numVerts, int deformflag) 
+		//		- armOb = armature object
+		//		- target = Mesh
+		//		- vertexCos[3] = array of numVerts float vectors (3 floats)
+		//		- set deformflag to ARM_DEF_VGROUP
+		//		example (after having filled the m_transverts array):
+		//		armature_deform_verts(m_armobj, m_meshobj, m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP);
+		
+		VerifyStorage();
+			
 		RecalcNormals();
 		
 
@@ -178,15 +184,17 @@ void BL_SkinDeformer::Update(void)
 	}
 }
 
+/* XXX note: I propose to drop this function */
+
 void BL_SkinDeformer::SetArmature(BL_ArmatureObject *armobj)
 {
-	m_armobj = armobj;
+//	m_armobj = armobj;
 
-	for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next) {
+//	for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next) {
 
 /*		dg->data no longer exists needs update
 			dg->data = (void*)get_named_bone(m_armobj->GetArmature(), dg->name); */
-	}
+//	}
 		
-		GB_validate_defgroups(m_bmesh, m_defbase);
+//		GB_validate_defgroups(m_bmesh, m_defbase);
 }
