@@ -1293,7 +1293,7 @@ static void softbody_baked_add(Object *ob, float framenr)
 	dfra= (float)sb->interval;
 	
 	if(sb->totkey==0) {
-		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows *
+		if(sb->sfra >= sb->efra) return;		/* safety, UI or py setting allows */
 		if(sb->interval<1) sb->interval= 1;		/* just be sure */
 		
 		sb->totkey= 1 + (int)(ceil( (efra-sfra)/dfra ) );
