@@ -74,7 +74,7 @@ static PyObject *new_const(void)
 			"couldn't create constant object's dictionary"));
 	}
 
-	return EXPP_incr_ret((PyObject *)constant);
+	return (PyObject *)constant;
 }
 //------------------------tp_doc
 //The __doc__ string for this object
@@ -230,7 +230,7 @@ PyObject *PyConstant_New(void)
 //Inserts a key:value pair into the constant and then returns 0/1
 int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value)
 {
-	return PyDict_SetItemString(self->dict, name, value);
+	return EXPP_dict_set_item_str(self->dict, name, value);
 }
 //This is a helper function for generating constants......
 PyObject *PyConstant_NewInt(char *name, int value)

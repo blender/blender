@@ -223,7 +223,7 @@ void init_syspath( int first_time )
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );
-		PyDict_SetItemString( d, "progname", path );
+		EXPP_dict_set_item_str( d, "progname", path );
 		Py_DECREF( mod );
 	} else
 		printf( "Warning: could not set Blender.sys.progname\n" );
@@ -302,7 +302,7 @@ void init_syspath( int first_time )
 
 	if( mod ) {
 		d = PyModule_GetDict( mod );	/* borrowed ref */
-		PyDict_SetItemString( d, "executable",
+		EXPP_dict_set_item_str( d, "executable",
 				      Py_BuildValue( "s", bprogname ) );
 		Py_DECREF( mod );
 	}
@@ -545,7 +545,7 @@ int BPY_txt_do_python_Text( struct Text *text )
 				 PyString_FromString( script->id.name + 2 ) );
 		Py_INCREF( Py_None );
 		PyConstant_Insert( info, "arg", Py_None );
-		PyDict_SetItemString( py_dict, "__script__",
+		EXPP_dict_set_item_str( py_dict, "__script__",
 				      ( PyObject * ) info );
 	}
 
@@ -787,7 +787,7 @@ int BPY_menu_do_python( short menutype, int event )
 		PyConstant_Insert( info, "name",
 				 PyString_FromString( script->id.name + 2 ) );
 		PyConstant_Insert( info, "arg", pyarg );
-		PyDict_SetItemString( py_dict, "__script__",
+		EXPP_dict_set_item_str( py_dict, "__script__",
 				      ( PyObject * ) info );
 	}
 
@@ -1081,10 +1081,10 @@ void BPY_do_pyscript( ID * id, short event )
 		disable_where_scriptlink( (short)during_slink );
 
 		/* set globals in Blender module to identify scriptlink */
-		PyDict_SetItemString( g_blenderdict, "bylink", EXPP_incr_ret_True() );
-		PyDict_SetItemString( g_blenderdict, "link",
+		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_True() );
+		EXPP_dict_set_item_str( g_blenderdict, "link",
 				      ID_asPyObject( id ) );
-		PyDict_SetItemString( g_blenderdict, "event",
+		EXPP_dict_set_item_str( g_blenderdict, "event",
 				      PyString_FromString( event_to_name
 							   ( event ) ) );
 
@@ -1123,10 +1123,9 @@ void BPY_do_pyscript( ID * id, short event )
 		/* cleanup bylink flag and clear link so PyObject
 		 * can be released 
 		 */
-		PyDict_SetItemString( g_blenderdict, "bylink", EXPP_incr_ret_False() );
-		Py_INCREF( Py_None );
+		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_False() );
 		PyDict_SetItemString( g_blenderdict, "link", Py_None );
-		PyDict_SetItemString( g_blenderdict, "event",
+		EXPP_dict_set_item_str( g_blenderdict, "event",
 				      PyString_FromString( "" ) );
 	}
 }
@@ -1302,11 +1301,11 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		}
 
 		/* set globals in Blender module to identify space handler scriptlink */
-		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_True());
+		EXPP_dict_set_item_str(g_blenderdict, "bylink", EXPP_incr_ret_True());
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
-		PyDict_SetItemString(g_blenderdict, "link", PyInt_FromLong(space_event));
+		EXPP_dict_set_item_str(g_blenderdict, "link", PyInt_FromLong(space_event));
 		/* note: DRAW space_events set event to 0 */
-		PyDict_SetItemString(g_blenderdict, "event", PyInt_FromLong(event));
+		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
 
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
@@ -1362,9 +1361,9 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 
 		}
 
-		PyDict_SetItemString(g_blenderdict, "bylink", EXPP_incr_ret_False());
-		PyDict_SetItemString(g_blenderdict, "link", EXPP_incr_ret(Py_None));
-		PyDict_SetItemString(g_blenderdict, "event", PyString_FromString(""));
+		EXPP_dict_set_item_str(g_blenderdict, "bylink", EXPP_incr_ret_False());
+		PyDict_SetItemString(g_blenderdict, "link", Py_None );
+		EXPP_dict_set_item_str(g_blenderdict, "event", PyString_FromString(""));
 	}
 	
 	/* retval:
@@ -1548,7 +1547,7 @@ PyObject *CreateGlobalDictionary( void )
 	PyObject *dict = PyDict_New(  );
 
 	PyDict_SetItemString( dict, "__builtins__", PyEval_GetBuiltins(  ) );
-	PyDict_SetItemString( dict, "__name__",
+	EXPP_dict_set_item_str( dict, "__name__",
 			      PyString_FromString( "__main__" ) );
 
 	return dict;
@@ -1672,7 +1671,7 @@ void init_ourImport( void )
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
-	PyDict_SetItemString( d, "__import__", import );
+	EXPP_dict_set_item_str( d, "__import__", import );
 }
 
 /*
@@ -1772,5 +1771,5 @@ void init_ourReload( void )
 
 	m = PyImport_AddModule( "__builtin__" );
 	d = PyModule_GetDict( m );
-	PyDict_SetItemString( d, "reload", reload );
+	EXPP_dict_set_item_str( d, "reload", reload );
 }

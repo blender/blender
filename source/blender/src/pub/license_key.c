@@ -234,8 +234,7 @@ static void insertname(PyObject *m,PyObject *p, char *name)
 {
 	PyObject *d = PyModule_GetDict(m);
 
-	PyDict_SetItemString(d, name, p);
-	Py_DECREF(p);
+	EXPP_dict_set_item_str(d, name, p);
 }
 
 /* initialisation */
@@ -243,8 +242,6 @@ static void initprot()
 {
 	PyObject *m, *d;
 	PyObject *capi1;
-	PyObject *ErrorObject;
-
 	init_ftable(); 
 
 	g_main = PyImport_AddModule("__main__");
@@ -254,8 +251,7 @@ static void initprot()
 		(PyObject*)NULL,PYTHON_API_VERSION);
 	g_module_self = m;	
 	d = PyModule_GetDict(m);
-	ErrorObject = PyString_FromString("prot.error");
-	PyDict_SetItemString(d, "error", ErrorObject);
+	EXPP_dict_set_item_str(d, "error", PyString_FromString("prot.error");
 
 	/* add global object */
 

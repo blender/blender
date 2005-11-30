@@ -1044,7 +1044,7 @@ static PyObject *M_Texture_STypesDict( void )
 					PyInt_FromLong(TEX_BLENDER));
 		PyConstant_Insert(d, "DN_PERLIN",
 					PyInt_FromLong(TEX_STDPERLIN));
-		PyConstant_Insert(d, "DN_IMPROVEPERLIN",
+		PyConstant_Insert(d, "DN_IMPROVEDPERLIN",
 					PyInt_FromLong(TEX_NEWPERLIN));
 		PyConstant_Insert(d, "DN_VORONOIF1",
 					PyInt_FromLong(TEX_VORONOI_F1));
@@ -1123,6 +1123,7 @@ static PyObject *M_Texture_MapToDict( void )
 		PyConstant_Insert(d, "AMB", PyInt_FromLong(MAP_AMB));
 		PyConstant_Insert(d, "TRANSLU", PyInt_FromLong(MAP_TRANSLU));
 		PyConstant_Insert(d, "DISP", PyInt_FromLong(MAP_DISPLACE));
+		PyConstant_Insert(d, "WARP", PyInt_FromLong(MAP_WARP));
 	}
 	return MapTo;
 }
@@ -1183,7 +1184,7 @@ static PyObject *M_Texture_NoiseDict( void )
 		PyConstant_Insert(d, "TRI", PyInt_FromLong(EXPP_TEX_NOISE_TRI));
 		PyConstant_Insert(d, "BLENDER", PyInt_FromLong(TEX_BLENDER));
 		PyConstant_Insert(d, "PERLIN", PyInt_FromLong(TEX_STDPERLIN));
-		PyConstant_Insert(d, "IMPROVEPERLIN", PyInt_FromLong(TEX_NEWPERLIN));
+		PyConstant_Insert(d, "IMPROVEDPERLIN", PyInt_FromLong(TEX_NEWPERLIN));
 		PyConstant_Insert(d, "VORONOIF1", PyInt_FromLong(TEX_VORONOI_F1));
 		PyConstant_Insert(d, "VORONOIF2", PyInt_FromLong(TEX_VORONOI_F2));
 		PyConstant_Insert(d, "VORONOIF3", PyInt_FromLong(TEX_VORONOI_F3));
@@ -1194,6 +1195,50 @@ static PyObject *M_Texture_NoiseDict( void )
 		PyConstant_Insert(d, "CELLNOISE", PyInt_FromLong(TEX_CELLNOISE));
 	}
 	return Noise;
+}
+
+static PyObject *M_Texture_BlendModesDict( void )
+{
+	PyObject *BlendModes = PyConstant_New(  );
+	if( BlendModes ) {
+		BPy_constant *d = ( BPy_constant * ) BlendModes;
+		PyConstant_Insert(d, "MIX", PyInt_FromLong(MTEX_BLEND));
+		PyConstant_Insert(d, "MULTIPLY", PyInt_FromLong(MTEX_MUL));
+		PyConstant_Insert(d, "ADD", PyInt_FromLong(MTEX_ADD));
+		PyConstant_Insert(d, "SUBTRACT", PyInt_FromLong(MTEX_SUB));
+		PyConstant_Insert(d, "DIVIDE", PyInt_FromLong(MTEX_DIV));
+		PyConstant_Insert(d, "DARKEN", PyInt_FromLong(MTEX_DARK));
+		PyConstant_Insert(d, "DIFFERENCE", PyInt_FromLong(MTEX_DIFF));
+		PyConstant_Insert(d, "LIGHTEN", PyInt_FromLong(MTEX_LIGHT));
+		PyConstant_Insert(d, "SCREEN", PyInt_FromLong(MTEX_SCREEN));
+	}
+	return BlendModes;
+}
+
+static PyObject *M_Texture_MappingsDict( void )
+{
+	PyObject *Mappings = PyConstant_New(  );
+	if( Mappings ) {
+		BPy_constant *d = ( BPy_constant * ) Mappings;
+		PyConstant_Insert(d, "FLAT", PyInt_FromLong(MTEX_FLAT));
+		PyConstant_Insert(d, "CUBE", PyInt_FromLong(MTEX_CUBE));
+		PyConstant_Insert(d, "TUBE", PyInt_FromLong(MTEX_TUBE));
+		PyConstant_Insert(d, "SPHERE", PyInt_FromLong(MTEX_SPHERE));
+	}
+	return Mappings;
+}
+
+static PyObject *M_Texture_ProjDict( void )
+{
+	PyObject *Proj = PyConstant_New(  );
+	if( Proj ) {
+		BPy_constant *d = ( BPy_constant * ) Proj;
+		PyConstant_Insert(d, "NONE", PyInt_FromLong(PROJ_N));
+		PyConstant_Insert(d, "X", PyInt_FromLong(PROJ_X));
+		PyConstant_Insert(d, "Y", PyInt_FromLong(PROJ_Y));
+		PyConstant_Insert(d, "Z", PyInt_FromLong(PROJ_Z));
+	}
+	return Proj;
 }
 
 PyObject *Texture_Init( void )
@@ -1210,6 +1255,9 @@ PyObject *Texture_Init( void )
 	PyObject *ExtendModes = M_Texture_ExtendModesDict(  );
 	PyObject *ImageFlags = M_Texture_ImageFlagsDict(  );
 	PyObject *Noise = M_Texture_NoiseDict(  );
+	PyObject *BlendModes = M_Texture_BlendModesDict(  );
+	PyObject *Mappings = M_Texture_MappingsDict(  );
+	PyObject *Proj = M_Texture_ProjDict(  );
 
 	if( PyType_Ready( &Texture_Type ) < 0)
 		return NULL;
@@ -1233,6 +1281,12 @@ PyObject *Texture_Init( void )
 		PyModule_AddObject( submodule, "ImageFlags", ImageFlags );
 	if( Noise )
 		PyModule_AddObject( submodule, "Noise", Noise );
+	if ( BlendModes )
+		PyModule_AddObject( submodule, "BlendModes", BlendModes );
+	if ( Mappings )
+		PyModule_AddObject( submodule, "Mappings", Mappings );
+	if ( Proj )
+		PyModule_AddObject( submodule, "Proj", Proj );
 
 	/* Add the MTex submodule to this module */
 	dict = PyModule_GetDict( submodule );

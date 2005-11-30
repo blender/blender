@@ -359,6 +359,8 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 			
 			win->lmouse[0]= win->size[0]/2;
 			win->lmouse[1]= win->size[1]/2;
+			
+			
 		} else {
 			GHOST_DisposeWindow(g_system, ghostwin);
 		}

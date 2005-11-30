@@ -161,14 +161,29 @@ void object_free_modifiers(Object *ob)
 	}
 }
 
+/* here we will collect all local displist stuff */
+/* also (ab)used in depsgraph */
+void object_free_display(Object *ob)
+{
+	if(ob->derivedDeform) {
+		ob->derivedDeform->release(ob->derivedDeform);
+		ob->derivedDeform= NULL;
+	}
+	if(ob->derivedFinal) {
+		ob->derivedFinal->release(ob->derivedFinal);
+		ob->derivedFinal= NULL;
+	}
+	
+	freedisplist(&ob->disp);
+}
+
 /* do not free object itself */
 void free_object(Object *ob)
 {
 	int a;
 	
-	if(ob->derivedDeform) ob->derivedDeform->release(ob->derivedDeform);
-	if(ob->derivedFinal) ob->derivedFinal->release(ob->derivedFinal);
-
+	object_free_display(ob);
+	
 	/* disconnect specific data */
 	if(ob->data) {
 		ID *id= ob->data;
@@ -210,8 +225,6 @@ void free_object(Object *ob)
 	free_constraints(&ob->constraints);
 	free_constraint_channels(&ob->constraintChannels);
 	free_nlastrips(&ob->nlastrips);
-	
-	freedisplist(&ob->disp);
 	
 	BPY_free_scriptlink(&ob->scriptlink);
 	

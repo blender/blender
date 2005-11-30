@@ -49,9 +49,6 @@ struct BezTriple;
 struct EditVert;
 struct EditFace;
 
-void drawaxes(float size);
-void drawcamera(struct Object *ob);
-
 void mesh_foreachScreenVert(void (*func)(void *userData, struct EditVert *eve, int x, int y, int index), void *userData, int clipVerts);
 void mesh_foreachScreenEdge(void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
 void mesh_foreachScreenFace(void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
@@ -61,7 +58,13 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, struct Nurb *nu, struc
 
 void drawcircball(int mode, float *cent, float rad, float tmat[][4]);
 void get_local_bounds(struct Object *ob, float *centre, float *size);
-void draw_object(struct Base *base);
+
+/* drawing flags: */
+#define DRAW_PICKING	1
+#define DRAW_CONSTCOLOR	2
+void draw_object(struct Base *base, int flag);
+void drawaxes(float size, int flag);
+
 void draw_object_ext(struct Base *base);
 void drawsolidcube(float size);
 extern void draw_object_backbufsel(struct Object *ob);

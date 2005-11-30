@@ -416,13 +416,13 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 	else if( StringEqual( str, "vrmloptions" ) ) {
 		ret = PyDict_New(  );
 
-		PyDict_SetItemString( dict, "twoside",
+		EXPP_dict_set_item_str( ret, "twoside",
 			PyInt_FromLong( U.vrmlflag & USER_VRML_TWOSIDED ) );
 
-		PyDict_SetItemString( dict, "layers",
+		EXPP_dict_set_item_str( ret, "layers",
 			PyInt_FromLong( U.vrmlflag & USER_VRML_LAYERS ) );
 
-		PyDict_SetItemString( dict, "autoscale",
+		EXPP_dict_set_item_str( ret, "autoscale",
 			PyInt_FromLong( U.vrmlflag & USER_VRML_AUTOSCALE ) );
 
 	} /* End 'quick hack' part. */
@@ -678,8 +678,8 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
 		return EXPP_ReturnPyObjError(PyExc_MemoryError,
 			"can't create py dictionary!");
 
-	PyDict_SetItemString(rkeyd, "script", script);
-	PyDict_SetItemString(bpy_registryDict, "__help_browser", rkeyd);
+	EXPP_dict_set_item_str(rkeyd, "script", script);
+	EXPP_dict_set_item_str(bpy_registryDict, "__help_browser", rkeyd);
 
 	arglist = Py_BuildValue("(s)", hspath);
 	Blender_Run(self, arglist);
@@ -798,10 +798,10 @@ void M_Blender_Init(void)
 	PyModule_AddIntConstant(module, "TRUE", 1);
 	PyModule_AddIntConstant( module, "FALSE", 0 );
 
-	PyDict_SetItemString(dict, "bylink", EXPP_incr_ret_False());
-	PyDict_SetItemString(dict, "link", EXPP_incr_ret (Py_None));
-	PyDict_SetItemString(dict, "event", PyString_FromString(""));
-	PyDict_SetItemString(dict, "mode", smode);
+	EXPP_dict_set_item_str(dict, "bylink", EXPP_incr_ret_False());
+	PyDict_SetItemString(dict, "link", Py_None);
+	EXPP_dict_set_item_str(dict, "event", PyString_FromString(""));
+	EXPP_dict_set_item_str(dict, "mode", smode);
 
 	PyDict_SetItemString(dict, "Armature", Armature_Init());
 	PyDict_SetItemString(dict, "BezTriple", BezTriple_Init());

@@ -158,8 +158,8 @@ PyObject *sys_Init( void )
 
 	if( sep ) {
 		Py_INCREF( sep );
-		PyDict_SetItemString( dict, "dirsep", sep );
-		PyDict_SetItemString( dict, "sep", sep );
+		EXPP_dict_set_item_str( dict, "dirsep", sep );
+		EXPP_dict_set_item_str( dict, "sep", sep );
 	}
 
 	return submodule;

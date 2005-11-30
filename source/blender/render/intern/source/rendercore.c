@@ -665,7 +665,6 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
 }
 
-
 float spec(float inp, int hard)	
 {
 	float b1;
@@ -717,7 +716,7 @@ float Phong_Spec( float *n, float *l, float *v, int hard, int tangent )
 	Normalise(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
-	if(tangent) rslt= sqrt(1.0 - rslt*rslt);
+	if(tangent) rslt= sasqrt(1.0 - rslt*rslt);
 		
 	if( rslt > 0.0 ) rslt= spec(rslt, hard);
 	else rslt = 0.0;
@@ -737,11 +736,11 @@ float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent)
 	Normalise(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2];
-	if(tangent) nh= sqrt(1.0 - nh*nh);
+	if(tangent) nh= sasqrt(1.0 - nh*nh);
 	else if(nh<0.0) return 0.0;
 	
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2];
-	if(tangent) nv= sqrt(1.0 - nv*nv);
+	if(tangent) nv= sasqrt(1.0 - nv*nv);
 	else if(nv<0.0) nv= 0.0;
 
 	i= spec(nh, hard);
@@ -770,15 +769,15 @@ float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, i
 	Normalise(h);
 
 	nh= n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
-	if(tangent) nh= sqrt(1.0f - nh*nh);
+	if(tangent) nh= sasqrt(1.0f - nh*nh);
 	else if(nh<0.0) return 0.0;
 
 	nv= n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
-	if(tangent) nv= sqrt(1.0f - nv*nv);
+	if(tangent) nv= sasqrt(1.0f - nv*nv);
 	if(nv<=0.0) nv= 0.01;				/* hrms... */
 
 	nl= n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
-	if(tangent) nl= sqrt(1.0f - nl*nl);
+	if(tangent) nl= sasqrt(1.0f - nl*nl);
 	if(nl<=0.0) {
 		return 0.0;
 	}
@@ -817,7 +816,7 @@ float Toon_Spec( float *n, float *l, float *v, float size, float smooth, int tan
 	Normalise(h);
 	
 	rslt = h[0]*n[0] + h[1]*n[1] + h[2]*n[2];
-	if(tangent) rslt = sqrt(1.0f - rslt*rslt);
+	if(tangent) rslt = sasqrt(1.0f - rslt*rslt);
 	
 	ang = saacos( rslt ); 
 	
@@ -841,15 +840,15 @@ float WardIso_Spec( float *n, float *l, float *v, float rms, int tangent)
 	Normalise(h);
 
 	nh = n[0]*h[0]+n[1]*h[1]+n[2]*h[2]; /* Dot product between surface normal and half-way vector */
-	if(tangent) nh = sqrt(1.0f - nh*nh);
+	if(tangent) nh = sasqrt(1.0f - nh*nh);
 	if(nh<=0.0) nh = 0.001f;
 	
 	nv = n[0]*v[0]+n[1]*v[1]+n[2]*v[2]; /* Dot product between surface normal and view vector */
-	if(tangent) nv = sqrt(1.0f - nv*nv);
+	if(tangent) nv = sasqrt(1.0f - nv*nv);
 	if(nv<=0.0) nv = 0.001f;
 
 	nl = n[0]*l[0]+n[1]*l[1]+n[2]*l[2]; /* Dot product between surface normal and light vector */
-	if(tangent) nl = sqrt(1.0f - nl*nl);
+	if(tangent) nl = sasqrt(1.0f - nl*nl);
 	if(nl<=0.0) nl = 0.001;
 
 	angle = tan(saacos(nh));
@@ -1506,7 +1505,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					x= MAX2(fabs(lvrot[0]/lvrot[2]) , fabs(lvrot[1]/lvrot[2]));
 					/* 1.0/(sqrt(1+x*x)) is equivalent to cos(atan(x)) */
 
-					inpr= 1.0/(sqrt(1+x*x));
+					inpr= 1.0f/(sqrt(1.0f+x*x));
 				}
 				else inpr= 0.0;
 			}
@@ -2007,7 +2006,20 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 					shi->dyuv[0]= 2.0*(dl*uv3[0]-duv[0]*uv1[0]-duv[1]*uv2[0]);
 					shi->dyuv[1]= 2.0*(dl*uv3[1]-duv[0]*uv1[1]-duv[1]*uv2[1]);
 				}
-				
+#if 0
+				{	/* tangent derived from UV, comes back later! (ton) */
+					//float s1= uv2[0] - uv1[0];
+					//float s2= uv3[0] - uv1[0];
+					float t1= uv2[1] - uv1[1];
+					float t2= uv3[1] - uv1[1];
+					
+					shi->vn[0]= (t2 * (v2->co[0]-v1->co[0]) - t1 * (v3->co[0]-v1->co[0])); 
+					shi->vn[1]= (t2 * (v2->co[1]-v1->co[1]) - t1 * (v3->co[1]-v1->co[1]));
+					shi->vn[2]= (t2 * (v2->co[2]-v1->co[2]) - t1 * (v3->co[2]-v1->co[2]));
+					Normalise(shi->vn);
+					vlr->flag |= R_TANGENT;
+				}					
+#endif
 				if(mode & MA_FACETEXTURE) {
 					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
 						shi->vcol[0]= 1.0;

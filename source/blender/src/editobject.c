@@ -120,14 +120,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 
-#include "BIF_gl.h"
-#include "BIF_graphics.h"
-#include "BIF_interface.h"
-#include "BIF_mywindow.h"
-#include "BIF_toolbox.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_toets.h"
 #include "BIF_butspace.h"
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
@@ -137,7 +129,16 @@
 #include "BIF_editoops.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
+#include "BIF_gl.h"
+#include "BIF_graphics.h"
+#include "BIF_interface.h"
+#include "BIF_meshtools.h"
+#include "BIF_mywindow.h"
 #include "BIF_resources.h"
+#include "BIF_screen.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
+#include "BIF_toets.h"
 
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
@@ -1504,6 +1505,8 @@ void exit_editmode(int freedata)	/* freedata==0 at render, 1= freedata, 2= do un
 			set_seamtface();
 			allqueue(REDRAWIMAGE, 0);
 		}
+		if(G.f & G_WEIGHTPAINT)
+			mesh_octree_table(G.obedit, NULL, 'e');
 	}
 	else if (G.obedit->type==OB_ARMATURE){	
 		load_editArmature();

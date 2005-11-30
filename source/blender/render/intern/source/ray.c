@@ -632,7 +632,7 @@ void makeoctree(void)
 /* ************ raytracer **************** */
 
 /* only for self-intersecting test with current render face (where ray left) */
-static short intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, float ry1, float rz1)
+static int intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1, float ry1, float rz1)
 {
 	VertRen *v1,*v2,*v3,*v4=NULL;
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22;
@@ -705,12 +705,83 @@ static short intersection2(VlakRen *vlr, float r0, float r1, float r2, float rx1
 	return 0;
 }
 
-static short intersection(Isect *is)
+#if 0
+/* ray - line intersection */
+/* disabled until i got real & fast cylinder checking, this code doesnt work proper
+for faster strands */
+
+static int intersection_strand(Isect *is)
+{
+	float v1[3], v2[3];		/* length of strand */
+	float axis[3], rc[3], nor[3], radline, dist, len;
+	
+	/* radius strand */
+	radline= 0.5f*VecLenf(is->vlr->v1->co, is->vlr->v2->co);
+	
+	VecMidf(v1, is->vlr->v1->co, is->vlr->v2->co);
+	VecMidf(v2, is->vlr->v3->co, is->vlr->v4->co);
+	
+	VECSUB(rc, v1, is->start);	/* vector from base ray to base cylinder */
+	VECSUB(axis, v2, v1);		/* cylinder axis */
+	
+	CROSS(nor, is->vec, axis);
+	len= VecLength(nor);
+	
+	if(len<FLT_EPSILON)
+		return 0;
+
+	dist= INPR(rc, nor)/len;	/* distance between ray and axis cylinder */
+	
+	if(dist<radline && dist>-radline) {
+		float dot1, dot2, dot3, rlen, alen, div;
+		float labda;
+		
+		/* calculating the intersection point of shortest distance */
+		dot1 = INPR(rc, is->vec);
+		dot2 = INPR(is->vec, axis);
+		dot3 = INPR(rc, axis);
+		rlen = INPR(is->vec, is->vec);
+		alen = INPR(axis, axis);
+		
+		div = alen * rlen - dot2 * dot2;
+		if (ABS(div) < FLT_EPSILON)
+			return 0;
+		
+		labda = (dot1*dot2 - dot3*rlen)/div;
+		
+		radline/= sqrt(alen);
+		
+		/* labda: where on axis do we have closest intersection? */
+		if(labda >= -radline && labda <= 1.0f+radline) {
+			VlakRen *vlr= is->vlrorig;
+			VertRen *v1= is->vlr->v1, *v2= is->vlr->v2, *v3= is->vlr->v3, *v4= is->vlr->v4;
+				/* but we dont do shadows from faces sharing edge */
+			
+			if(v1==vlr->v1 || v2==vlr->v1 || v3==vlr->v1 || v4==vlr->v1) return 0;
+			if(v1==vlr->v2 || v2==vlr->v2 || v3==vlr->v2 || v4==vlr->v2) return 0;
+			if(v1==vlr->v3 || v2==vlr->v3 || v3==vlr->v3 || v4==vlr->v3) return 0;
+			if(vlr->v4) {
+				if(v1==vlr->v4 || v2==vlr->v4 || v3==vlr->v4 || v4==vlr->v4) return 0;
+			}
+			return 1;
+		}
+	}
+	return 0;
+}
+#endif
+
+/* ray - triangle or quad intersection */
+static int intersection(Isect *is)
 {
 	VertRen *v1,*v2,*v3,*v4=NULL;
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
 	float m0, m1, m2, divdet, det1;
 	short ok=0;
+
+	/* disabled until i got real & fast cylinder checking, this code doesnt work proper
+	   for faster strands */
+//	if(is->mode==DDA_SHADOW && is->vlr->flag & R_STRAND) 
+//		return intersection_strand(is);
 	
 	v1= is->vlr->v1; 
 	v2= is->vlr->v2; 
@@ -986,7 +1057,7 @@ static Node *ocread(int x, int y, int z)
 	return NULL;
 }
 
-static short cliptest(float p, float q, float *u1, float *u2)
+static int cliptest(float p, float q, float *u1, float *u2)
 {
 	float r;
 
@@ -1017,7 +1088,7 @@ static short cliptest(float p, float q, float *u1, float *u2)
  
 /*
 
-in top: static short coh_nodes[16*16*16][6];
+in top: static int coh_nodes[16*16*16][6];
 in makeoctree: memset(coh_nodes, 0, sizeof(coh_nodes));
  
 static void add_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, int ocz2)

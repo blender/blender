@@ -838,6 +838,7 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 {
 	PyObject *liste = PyList_New( 0 );	/* return values */
+	PyObject *item;
 
 	Nurb *ptrnurb;
 	int i, j;
@@ -870,22 +871,18 @@ static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 						"point index out of range" ) );
 
 	if( ptrnurb->bp ) {	/* if we are a nurb curve, you get 4 values */
-		for( i = 0; i < 4; i++ )
-			PyList_Append( liste,
-				       PyFloat_FromDouble( ptrnurb->
-							   bp[numpoint].
-							   vec[i] ) );
-	}
-
-	if( ptrnurb->bezt ) {	/* if we are a bezier, you get 9 values */
+		for( i = 0; i < 4; i++ ) {
+			item = PyFloat_FromDouble( ptrnurb->bp[numpoint].vec[i] );
+			PyList_Append( liste, item );
+			Py_DECREF(item);
+		}
+	} else if( ptrnurb->bezt ) {	/* if we are a bezier, you get 9 values */
 		for( i = 0; i < 3; i++ )
-			for( j = 0; j < 3; j++ )
-				PyList_Append( liste,
-					       PyFloat_FromDouble( ptrnurb->
-								   bezt
-								   [numpoint].
-								   vec[i]
-								   [j] ) );
+			for( j = 0; j < 3; j++ ) {
+				item = PyFloat_FromDouble( ptrnurb->bezt[numpoint].vec[i][j] );
+				PyList_Append( liste, item );
+				Py_DECREF(item);
+			}
 	}
 
 	return liste;

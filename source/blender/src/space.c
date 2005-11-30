@@ -3297,6 +3297,7 @@ void extern_set_butspace(int fkey)
 {
 	ScrArea *sa;
 	SpaceButs *sbuts;
+	Object *ob= OBACT;
 	
 	/* when a f-key pressed: 'closest' button window is initialized */
 	if(curarea->spacetype==SPACE_BUTS) sa= curarea;
@@ -3336,12 +3337,12 @@ void extern_set_butspace(int fkey)
 		}
 		/* if we're coming in from texture buttons, 
 		or from outside the shading context, just go to the 'default' */
-		else if ((OBACT && sbuts->mainb!= CONTEXT_SHADING) || (sbuts->oldkeypress == F6KEY)) {
+		else if (ob && ((sbuts->mainb!= CONTEXT_SHADING) || (sbuts->oldkeypress == F6KEY)) ) {
 			sbuts->mainb= CONTEXT_SHADING;
 			
-			if(OBACT->type==OB_CAMERA) 
+			if(ob->type==OB_CAMERA) 
 				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_WORLD;
-			else if(OBACT->type==OB_LAMP) 
+			else if(ob->type==OB_LAMP) 
 				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
 			else  
 				sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;

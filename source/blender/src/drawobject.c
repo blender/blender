@@ -238,7 +238,8 @@ static float cube[8][3] = {
 	{ 1.0,  1.0, -1.0},
 };
 
-void drawaxes(float size)
+/* flag is same as for draw_object */
+void drawaxes(float size, int flag)
 {
 	int axis;
 
@@ -268,7 +269,7 @@ void drawaxes(float size)
 		glRasterPos3fv(v2);
 		
 		// patch for 3d cards crashing on glSelect for text drawing (IBM)
-		if((G.f & G_PICKSEL) == 0) {
+		if((flag & DRAW_PICKING) == 0) {
 			if (axis==0)
 				BMF_DrawString(G.font, "x");
 			else if (axis==1)
@@ -288,7 +289,8 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 	size= v3d->persmat[0][3]*vec[0]+ v3d->persmat[1][3]*vec[1]+ v3d->persmat[2][3]*vec[2]+ v3d->persmat[3][3];
 	size*= v3d->pixsize*((float)U.obcenter_dia*0.5f);
 
-	if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
+	/* using gldepthfunc guarantees that it does write z values, but not checks for it, so centers remain visible independt order of drawing */
+	if(v3d->zbuf)  glDepthFunc(GL_ALWAYS);
 	glEnable(GL_BLEND);
 	
 	if(special_color) {
@@ -296,18 +298,17 @@ static void drawcentercircle(float *vec, int selstate, int special_color)
 		else glColor4ub(0x55, 0xCC, 0xCC, 155);
 	}
 	else {
-		if (selstate == ACTIVE) BIF_ThemeColorShadeAlpha(TH_ACTIVE, 0, -100);
-		else if (selstate == SELECT) BIF_ThemeColorShadeAlpha(TH_SELECT, 0, -100);
-		else if (selstate == DESELECT) BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -100);
+		if (selstate == ACTIVE) BIF_ThemeColorShadeAlpha(TH_ACTIVE, 0, -80);
+		else if (selstate == SELECT) BIF_ThemeColorShadeAlpha(TH_SELECT, 0, -80);
+		else if (selstate == DESELECT) BIF_ThemeColorShadeAlpha(TH_TRANSFORM, 0, -80);
 	}
 	drawcircball(GL_POLYGON, vec, size, v3d->viewinv);
 	
-	if (selstate == ACTIVE) glColor4ub(255, 255, 255, 80);
-	else if ((selstate == SELECT) || (selstate == DESELECT)) glColor4ub(0, 0, 0, 80);
+	BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -30);
 	drawcircball(GL_LINE_LOOP, vec, size, v3d->viewinv);
 	
 	glDisable(GL_BLEND);
-	if(v3d->zbuf) glEnable(GL_DEPTH_TEST);
+	if(v3d->zbuf)  glDepthFunc(GL_LEQUAL);
 }
 
 
@@ -552,9 +553,9 @@ static void drawlamp(Object *ob)
 	/* Inner Circle */
 	VECCOPY(vec, ob->obmat[3]);
 	glEnable(GL_BLEND);
-	drawcircball(GL_LINE_LOOP, vec, lampsize, imat);
+	drawcircball(GL_LINE_LOOP, vec, lampsize/2, imat);
 	glDisable(GL_BLEND);
-	drawcircball(GL_POLYGON, vec, lampsize, imat);
+	drawcircball(GL_POLYGON, vec, lampsize/2, imat);
 	
 	/* restore */
 	if(ob->id.us>1)
@@ -800,7 +801,8 @@ static void draw_focus_cross(float dist, float size)
 	glEnd();
 }
 
-void drawcamera(Object *ob)
+/* flag similar to draw_object() */
+static void drawcamera(Object *ob, int flag)
 {
 	/* a standing up pyramid with (0,0,0) as top */
 	Camera *cam;
@@ -880,26 +882,28 @@ void drawcamera(Object *ob)
 		glEnd();
 	}
 
-	if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
-		myloadmatrix(G.vd->viewmat);
-		Mat4CpyMat4(vec, ob->obmat);
-		Mat4Ortho(vec);
-		mymultmatrix(vec);
+	if(flag==0) {
+		if(cam->flag & (CAM_SHOWLIMITS+CAM_SHOWMIST)) {
+			myloadmatrix(G.vd->viewmat);
+			Mat4CpyMat4(vec, ob->obmat);
+			Mat4Ortho(vec);
+			mymultmatrix(vec);
 
-		MTC_Mat4SwapMat4(G.vd->persmat, tmat);
-		mygetsingmatrix(G.vd->persmat);
+			MTC_Mat4SwapMat4(G.vd->persmat, tmat);
+			mygetsingmatrix(G.vd->persmat);
 
-		if(cam->flag & CAM_SHOWLIMITS) {
-			draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
-			/* yafray: dof focus point */
-			if (G.scene->r.renderer==R_YAFRAY) draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+			if(cam->flag & CAM_SHOWLIMITS) {
+				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
+				/* yafray: dof focus point */
+				if (G.scene->r.renderer==R_YAFRAY) draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+			}
+
+			wrld= G.scene->world;
+			if(cam->flag & CAM_SHOWMIST) 
+				if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
+				
+			MTC_Mat4SwapMat4(G.vd->persmat, tmat);
 		}
-
-		wrld= G.scene->world;
-		if(cam->flag & CAM_SHOWMIST) 
-			if(wrld) draw_limit_line(wrld->miststa, wrld->miststa+wrld->mistdist, 0xFFFFFF);
-			
-		MTC_Mat4SwapMat4(G.vd->persmat, tmat);
 	}
 }
 
@@ -3472,7 +3476,8 @@ static void draw_hooks(Object *ob)
 	}
 }
 
-void draw_object(Base *base)
+/* flag can be DRAW_PICKING	and/or DRAW_CONSTCOLOR */
+void draw_object(Base *base, int flag)
 {
 	static int warning_recursive= 0;
 	Object *ob;
@@ -3490,7 +3495,8 @@ void draw_object(Base *base)
 	ob= base->object;
 
 	/* xray delay? */
-	if(!(G.f & G_PICKSEL)) {
+	if((flag & DRAW_PICKING)==0) {
+		/* xray and transp are set when it is drawing the 2nd/3rd pass */
 		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
 			add_view3d_after(G.vd, base, V3D_XRAY);
 			return;
@@ -3499,7 +3505,7 @@ void draw_object(Base *base)
 	
 	/* draw keys? */
 	if(base==(G.scene->basact) || (base->flag & (SELECT+BA_WAS_SEL))) {
-		if(warning_recursive==0 && ob!=G.obedit) {
+		if(flag==0 && warning_recursive==0 && ob!=G.obedit) {
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				ListBase elems;
 				CfraElem *ce;
@@ -3531,7 +3537,7 @@ void draw_object(Base *base)
 							base->flag= 0;
 						
 							where_is_object_time(ob, (G.scene->r.cfra));
-							draw_object(base);
+							draw_object(base, 0);
 						}
 						ce= ce->next;
 					}
@@ -3545,7 +3551,7 @@ void draw_object(Base *base)
 						base->flag= SELECT;
 						
 						where_is_object_time(ob, (G.scene->r.cfra));
-						draw_object(base);
+						draw_object(base, 0);
 					}
 					ce= ce->next;
 				}
@@ -3576,7 +3582,7 @@ void draw_object(Base *base)
 	mymultmatrix(ob->obmat);
 
 	/* which wire color */
-	if((G.f & G_PICKSEL) == 0) {
+	if((flag & DRAW_CONSTCOLOR) == 0) {
 		project_short(ob->obmat[3], &base->sx);
 		
 		if((G.moving & G_TRANSFORM_OBJ) && (base->flag & (SELECT+BA_WAS_SEL))) BIF_ThemeColor(TH_TRANSFORM);
@@ -3653,7 +3659,7 @@ void draw_object(Base *base)
 		/* draw outline for selected solid objects, mesh does itself */
 	if((G.vd->flag & V3D_SELECT_OUTLINE) && ob->type!=OB_MESH) {
 		if(dt>OB_WIRE && dt<OB_TEXTURE && ob!=G.obedit) {
-			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(G.f&G_PICKSEL)) {
+			if (!(ob->dtx&OB_DRAWWIRE) && (ob->flag&SELECT) && !(flag&DRAW_PICKING)) {
 				drawSolidSelect(base);
 			}
 		}
@@ -3671,7 +3677,7 @@ void draw_object(Base *base)
 				if(paf) {
 					if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 					if(paf->flag & PAF_STATIC) draw_static_particle_system(ob, paf, dt);
-					else if((G.f & G_PICKSEL) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
+					else if((flag & DRAW_PICKING) == 0) draw_particle_system(ob, paf);	// selection errors happen to easy
 					if(col) cpack(col);
 				}
 			}
@@ -3792,14 +3798,14 @@ void draw_object(Base *base)
 			empty_object= drawmball(ob, dt);
 		break;
 	case OB_EMPTY:
-		drawaxes(1.0);
+		drawaxes(1.0, flag);
 		break;
 	case OB_LAMP:
 		drawlamp(ob);
 		if(dtx || (base->flag & SELECT)) mymultmatrix(ob->obmat);
 		break;
 	case OB_CAMERA:
-		drawcamera(ob);
+		drawcamera(ob, flag);
 		break;
 	case OB_LATTICE:
 		drawlattice(ob);
@@ -3809,7 +3815,7 @@ void draw_object(Base *base)
 		empty_object= draw_armature(base, dt);
 		break;
 	default:
-		drawaxes(1.0);
+		drawaxes(1.0, flag);
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
@@ -3818,13 +3824,14 @@ void draw_object(Base *base)
 	if(dtx) {
 		if(G.f & G_SIMULATION);
 		else if(dtx & OB_AXIS) {
-			drawaxes(1.0f);
+			drawaxes(1.0f, flag);
 		}
 		if(dtx & OB_BOUNDBOX) draw_bounding_volume(ob);
 		if(dtx & OB_TEXSPACE) drawtexspace(ob);
 		if(dtx & OB_DRAWNAME) {
-			// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
-			if((G.f & G_PICKSEL) == 0) {
+			/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+			/* but, we also dont draw names for sets or duplicators */
+			if(flag == 0) {
 				glRasterPos3f(0.0,  0.0,  0.0);
 				
 				BMF_DrawString(G.font, " ");
@@ -3859,7 +3866,8 @@ void draw_object(Base *base)
 	
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
 	if((G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
-		if(ob->type!=OB_LAMP) {
+		/* we don't draw centers for duplicators and sets */
+		if((flag & DRAW_CONSTCOLOR)==0) {
 			if((G.scene->basact)==base) 
 				drawcentercircle(ob->obmat[3], ACTIVE, ob->id.lib || ob->id.us>1);
 			else if(base->flag & SELECT) 
@@ -3869,7 +3877,8 @@ void draw_object(Base *base)
 		}
 	}
 
-	if((G.f & (G_PICKSEL))==0) {
+	/* not for sets, duplicators or picking */
+	if(flag==0) {
 		ListBase *list;
 
 		/* draw hook center and offset line */
@@ -3934,7 +3943,7 @@ void draw_object_ext(Base *base)
 	if(G.vd->flag & V3D_CLIPPING)
 		view3d_set_clipping(G.vd);
 	
-	draw_object(base);
+	draw_object(base, 0);
 
 	if(G.vd->flag & V3D_CLIPPING)
 		view3d_clr_clipping();

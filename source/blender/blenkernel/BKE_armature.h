@@ -95,18 +95,10 @@ void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[]
 void vec_roll_to_mat3(float *vec, float roll, float mat[][3]);
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 
-
 /*	Animation functions */
-
 struct PoseTree *ik_tree_to_posetree(struct Object *ob, struct Bone *bone);
 void solve_posetree(PoseTree *tree);
 void free_posetree(PoseTree *tree);
-
-/*	Gameblender hacks */
-void GB_init_armature_deform(struct ListBase *defbase, float premat[][4], float postmat[][4]);
-void GB_calc_armature_deform (float *co, struct MDeformVert *dvert);
-void GB_build_mats (float parmat[][4], float obmat[][4], float premat[][4], float postmat[][4]);
-void GB_validate_defgroups (struct Mesh *mesh, struct ListBase *defbase);
 
 /* B-Bone support */
 typedef struct Mat4 {
@@ -114,7 +106,6 @@ typedef struct Mat4 {
 } Mat4;
 
 Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan);
-
 
 #ifdef __cplusplus
 }

@@ -1486,7 +1486,7 @@ static void draw_pose_channels(Base *base, int dt)
 						glPushMatrix();
 						glMultMatrixf(pchan->pose_mat);
 						glTranslatef(0.0f, pchan->bone->length, 0.0f);
-						drawaxes(0.25f*pchan->bone->length);
+						drawaxes(0.25f*pchan->bone->length, 0);
 						glPopMatrix();
 					}
 				}
@@ -1663,7 +1663,7 @@ static void draw_ebones(Object *ob, int dt)
 						glPushMatrix();
 						set_matrix_editbone(eBone);
 						glTranslatef(0.0f, eBone->length, 0.0f);
-						drawaxes(eBone->length*0.25f);
+						drawaxes(eBone->length*0.25f, 0);
 						glPopMatrix();
 					}
 					

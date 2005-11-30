@@ -969,13 +969,15 @@ static void do_weight_paint_vertex(Object *ob, int index, int alpha, float paint
 	wpaint_blend(dw, uw, (float)alpha/255.0, paintweight);
 	
 	if(Gwp.flag & VP_MIRROR_X) {	/* x mirror painting */
-		if(vgroup_mirror != -1) {
-			int j= mesh_get_x_mirror_vert(ob, index);
-			if(j>=0) {
-				/* copy, not paint again */
+		int j= mesh_get_x_mirror_vert(ob, index);
+		if(j>=0) {
+			/* copy, not paint again */
+			if(vgroup_mirror != -1)
 				uw= verify_defweight(me->dvert+j, vgroup_mirror);
-				uw->weight= dw->weight;
-			}
+			else
+				uw= verify_defweight(me->dvert+j, vgroup);
+				
+			uw->weight= dw->weight;
 		}
 	}
 }
@@ -1020,7 +1022,7 @@ void weight_paint(void)
 	vertexcosnos= mesh_get_mapped_verts_nors(ob);
 	
 	/* this happens on a Bone select, when no vgroup existed yet */
-	if(ob->actdef==0) {
+	if(ob->actdef<=0) {
 		Object *modob;
 		if((modob = modifiers_isDeformedByArmature(ob))) {
 			bPoseChannel *pchan;
@@ -1075,14 +1077,19 @@ void weight_paint(void)
 			bDeformGroup *curdef;
 			int actdef= 0;
 			char name[32];
-			
+
 			BLI_strncpy(name, defgroup->name, 32);
 			bone_flip_name(name, 0);		// 0 = don't strip off number extensions
 			
 			for (curdef = ob->defbase.first; curdef; curdef=curdef->next, actdef++)
 				if (!strcmp(curdef->name, name))
 					break;
-
+			if(curdef==NULL) {
+				int olddef= ob->actdef;	/* tsk, add_defgroup sets the active defgroup */
+				curdef= add_defgroup_name (ob, name);
+				ob->actdef= olddef;
+			}
+			
 			if(curdef && curdef!=defgroup)
 				vgroup_mirror= actdef;
 		}

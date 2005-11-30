@@ -123,8 +123,7 @@ static void draw_cfra_time(SpaceTime *stime)
 
 static void draw_marker(TimeMarker *marker)
 {
-	float xpos, col[3];
-	float xspace, yspace, xpixels, ypixels;
+	float xpos, xspace, yspace, xpixels, ypixels;
 
 	xpos = marker->frame;
 	/* no time correction for framelen! space is drawn with old values */
@@ -134,16 +133,14 @@ static void draw_marker(TimeMarker *marker)
 	xpixels= G.v2d->mask.xmax-G.v2d->mask.xmin;
 	ypixels= G.v2d->mask.ymax-G.v2d->mask.ymin;
 
-	BIF_GetThemeColor3fv(TH_BACK, col);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
-		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT, (int)col, 0);
+		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT, TH_BACK, 0);
 	else
-		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER, (int)col, 0);
+		BIF_draw_icon_blended(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER, TH_BACK, 0);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);		
@@ -167,7 +164,7 @@ static void draw_marker(TimeMarker *marker)
 	}
 }
 
-static void draw_markers_time(SpaceTime *stime)
+static void draw_markers_time( void )
 {
 	TimeMarker *marker;
 
@@ -308,7 +305,7 @@ void drawtimespace(ScrArea *sa, void *spacedata)
 
 	draw_cfra_time(spacedata);
 	draw_ob_keys();
-	draw_markers_time(spacedata);
+	draw_markers_time();
 
 	/* restore viewport */
 	mywinset(curarea->win);

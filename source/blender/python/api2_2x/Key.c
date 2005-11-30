@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Pontus Lidman, Johnny Matthews
+ * Contributor(s): Pontus Lidman, Johnny Matthews, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -35,6 +35,7 @@
 #include <BLI_blenlib.h>
 #include <BKE_global.h>
 #include <BKE_main.h>
+#include <BKE_curve.h>
 
 #include "Ipocurve.h"
 #include "Key.h"
@@ -79,6 +80,8 @@ static PyGetSetDef BPy_Key_getsetters[] = {
 		 "Key value",NULL},
 		{"ipo",(getter)Key_getIpo, (setter)Key_setIpo,
 		 "ipo linked to key",NULL},
+		{"blocks",(getter)Key_getBlocks, (setter)NULL,
+		 "blocks linked to the key",NULL},
 		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 	};
 
@@ -97,12 +100,9 @@ static int KeyBlock_setVgroup( BPy_KeyBlock *, PyObject * args  );
 static int KeyBlock_setSlidermin( BPy_KeyBlock *, PyObject * args  );
 static int KeyBlock_setSlidermax( BPy_KeyBlock *, PyObject * args  );
 
-
-
 static struct PyMethodDef KeyBlock_methods[] = {
 	{ "getData", (PyCFunction) KeyBlock_getData, METH_NOARGS,
 		"Get keyblock data" },
-
 	{ 0, 0, 0, 0 }
 };
 
@@ -117,8 +117,10 @@ static PyGetSetDef BPy_KeyBlock_getsetters[] = {
 		 "Keyblock Slider Maximum",NULL},
 		{"vgroup",(getter)KeyBlock_getVgroup, (setter)KeyBlock_setVgroup,
 		 "Keyblock VGroup",NULL},
+		{"data",(getter)KeyBlock_getData, (setter)NULL,
+		 "Keyblock VGroup",NULL},
 		{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
-	};
+};
 
 PyTypeObject Key_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/*ob_size */
@@ -197,9 +199,6 @@ PyTypeObject Key_Type = {
 	NULL
 };
 
-
-
-
 PyTypeObject KeyBlock_Type = {
 	PyObject_HEAD_INIT( NULL ) 0,	/*ob_size */
 	"Blender KeyBlock",	/*tp_name */
@@ -276,8 +275,6 @@ PyTypeObject KeyBlock_Type = {
 	NULL,                       /* PyObject *tp_weaklist; */
 	NULL
 };
-
-
 
 static void Key_dealloc( PyObject * self )
 {
@@ -365,7 +362,6 @@ static int Key_setIpo( PyObject * self, PyObject * value )
 	return 0;
 }
 
-
 static PyObject *Key_getType( PyObject * self )
 {
 	BPy_Key *k = ( BPy_Key * ) self;
@@ -406,7 +402,6 @@ static PyObject *Key_getBlocks( PyObject * self )
 	return l;
 }
 
-
 static PyObject *Key_getValue( PyObject * self )
 {
 	BPy_Key *k = ( BPy_Key * ) self;
@@ -414,10 +409,7 @@ static PyObject *Key_getValue( PyObject * self )
 	return PyFloat_FromDouble( k->key->curval );
 }
 
-
-
-
-// ------------ Key Block Functions --------------//
+/* ------------ Key Block Functions -------------- */
 
 static void KeyBlock_dealloc( PyObject * self )
 {
@@ -445,32 +437,32 @@ PyObject *KeyBlock_CreatePyObject( KeyBlock * kb, Key *parentKey )
 	return ( PyObject * ) keyBlock;
 }
 
-
 static PyObject *KeyBlock_getName( BPy_KeyBlock * self ) {
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	PyObject *name = Py_BuildValue( "s", kb->keyblock->name);
 	return name;
 }
+
 static PyObject *KeyBlock_getPos( BPy_KeyBlock * self ){
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	return PyFloat_FromDouble( kb->keyblock->pos );			
 }
+
 static PyObject *KeyBlock_getSlidermin( BPy_KeyBlock * self ){
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	return PyFloat_FromDouble( kb->keyblock->slidermin );	
 }
+
 static PyObject *KeyBlock_getSlidermax( BPy_KeyBlock * self ){
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	return PyFloat_FromDouble( kb->keyblock->slidermax );
 }
+
 static PyObject *KeyBlock_getVgroup( BPy_KeyBlock * self ){
 	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
 	PyObject *name = Py_BuildValue( "s", kb->keyblock->vgroup);
 	return name;	
 }
-
-
-
 
 static int KeyBlock_setName( BPy_KeyBlock * self, PyObject * args ){
 	char* text = NULL;
@@ -508,37 +500,49 @@ static int KeyBlock_setSlidermax( BPy_KeyBlock * self, PyObject * args  ){
 								10.0f );
 }
 
+static Curve *find_curve( Key *key )
+{
+	Curve *cu;
 
+	if( !key )
+		return NULL;
 
-
-
-
+	for( cu = G.main->curve.first; cu; cu = cu->id.next ) {
+		if( cu->key == key )
+			break;
+	}
+	return cu;
+}
 
 static PyObject *KeyBlock_getData( PyObject * self )
 {
-	/* If this is a mesh key, data is an array of MVert.
-	   If lattice, data is an array of BPoint
-	   If curve, data is an array of BezTriple */
+	/* If this is a mesh key, data is an array of MVert coords.
+	   If lattice, data is an array of BPoint coords
+	   If curve, data is an array of BezTriple or BPoint */
 
-	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
-	Key *key = kb->key;
 	char *datap;
 	int datasize;
 	int idcode;
 	int i;
+	Curve *cu;
+	Nurb* nu;
+	PyObject *l;
+	BPy_KeyBlock *kb = ( BPy_KeyBlock * ) self;
+	Key *key = kb->key;
 
-	PyObject *l = PyList_New( kb->keyblock->totelem );
+	if( !kb->keyblock->data ) {
+		Py_RETURN_NONE;
+	}
+
+	l = PyList_New( kb->keyblock->totelem );
+	if( !l )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+				"PyList_New() failed" );							
 
 	idcode = GS( key->from->name );
 
-	if (!kb->keyblock->data) {
-		return EXPP_incr_ret( Py_None );
-	}
-
 	switch(idcode) {
 	case ID_ME:
-
-		datasize = sizeof(MVert);
 
 		for (i=0, datap = kb->keyblock->data; i<kb->keyblock->totelem; i++) {
 
@@ -548,9 +552,9 @@ static PyObject *KeyBlock_getData( PyObject * self )
 			mv->co[0]=vert->co[0];
 			mv->co[1]=vert->co[1];
 			mv->co[2]=vert->co[2];
-			mv->no[0] = (float)(vert->no[0] / 32767.0);
-			mv->no[1] = (float)(vert->no[1] / 32767.0);
-			mv->no[2] = (float)(vert->no[2] / 32767.0);
+			mv->no[0] = 0.0;
+			mv->no[1] = 0.0;
+			mv->no[2] = 0.0;
 
 			mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
 			mv->index = i;
@@ -558,42 +562,60 @@ static PyObject *KeyBlock_getData( PyObject * self )
 
 			PyList_SetItem(l, i, ( PyObject * ) mv);
 
-			datap += datasize;
+			datap += kb->key->elemsize;
 		}
 		break;
 
 	case ID_CU:
-
-		datasize = sizeof(BezTriple);
-
-		for (i=0, datap = kb->keyblock->data; i<kb->keyblock->totelem; i++) {
-
-			BezTriple *bt = (BezTriple *) datap;
-			PyObject *pybt = BezTriple_CreatePyObject( bt );
-
-			PyList_SetItem( l, i, pybt );
-
-			datap += datasize;
+		cu = find_curve ( key );
+		if( !cu )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "key is no linked to any curve!" );							
+		datasize = count_curveverts(&cu->nurb);
+		nu = cu->nurb.first;
+		if( nu->bezt ) {
+			datasize /= 3;
+			Py_DECREF (l);	
+			l = PyList_New( datasize );
+			for( i = 0, datap = kb->keyblock->data; i < datasize;
+					i++, datap += sizeof(float)*12 ) {
+				/* 
+				 * since the key only stores the control point and not the
+				 * other BezTriple attributes, build a Py_NEW BezTriple
+				 */
+				PyObject *pybt = newBezTriple( (float *)datap );
+				PyList_SetItem( l, i, pybt );
+			}
+		} else {
+			for( i = 0, datap = kb->keyblock->data; i < datasize;
+					i++, datap += kb->key->elemsize ) {
+				PyObject *pybt;
+				float *fp = (float *)datap;
+				pybt = Py_BuildValue( "[f,f,f]", fp[0],fp[1],fp[2]);
+				if( !pybt ) {
+					Py_DECREF( l );
+					return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "Py_BuildValue() failed" );							
+				}
+				PyList_SetItem( l, i, pybt );
+			}
 		}
 		break;
 
 	case ID_LT:
 
-		datasize = sizeof(BPoint);
-
-		for (i=0, datap = kb->keyblock->data; i<kb->keyblock->totelem; i++) {
-			/* Lacking a python class for BPoint, use a list of four floats */
-			BPoint *bp = (BPoint *) datap;
-			PyObject *bpoint = PyList_New( 4 );
-
-			PyList_SetItem( bpoint, 0, PyFloat_FromDouble( bp->vec[0] ) );
-			PyList_SetItem( bpoint, 1, PyFloat_FromDouble( bp->vec[1] ) );
-			PyList_SetItem( bpoint, 2, PyFloat_FromDouble( bp->vec[2] ) );
-			PyList_SetItem( bpoint, 3, PyFloat_FromDouble( bp->vec[3] ) );
-
-			PyList_SetItem( l, i, bpoint );
-
-			datap += datasize;
+		for( i = 0, datap = kb->keyblock->data; i < kb->keyblock->totelem;
+				i++, datap += kb->key->elemsize ) {
+			/* Lacking a python class for BPoint, use a list of three floats */
+			PyObject *pybt;
+			float *fp = (float *)datap;
+			pybt = Py_BuildValue( "[f,f,f]", fp[0],fp[1],fp[2]);
+			if( !pybt ) {
+				Py_DECREF( l );
+				return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Py_BuildValue() failed" );							
+			}
+			PyList_SetItem( l, i, pybt );
 		}
 		break;
 	}
@@ -638,7 +660,6 @@ static PyObject *M_Key_Get( PyObject * self, PyObject * args )
 	}
 }
 
-
 struct PyMethodDef M_Key_methods[] = {
 	{"Get", M_Key_Get, METH_VARARGS, "Get a key or all key names"},
 	{NULL, NULL, 0, NULL}
@@ -652,10 +673,8 @@ PyObject *Key_Init( void )
 		return NULL;
 
 	Key_Type.ob_type = &PyType_Type;
-	//KeyBlock_Type.ob_type = &PyType_Type;
 	PyType_Ready( &KeyBlock_Type );
 
-	
 	submodule =
 		Py_InitModule3( "Blender.Key", M_Key_methods, "Key module" );
 

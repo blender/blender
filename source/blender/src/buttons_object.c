@@ -1704,7 +1704,7 @@ static void object_panel_fields(Object *ob)
 	uiBlock *block;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Fields and Defection", "Physics", 0, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
 
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -1958,7 +1958,7 @@ static void object_panel_particles_motion(Object *ob)
 	uiDefBut(block, LABEL, 0, "Texture Emission",			0,30,150,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG3, PAF_TEXTIME, B_CALCEFFECT, "TexEmit",		0,10,75,20, &(paf->flag2), 0, 0, 0, 0, "Use a texture to define emission of particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 8.0, 0, 0, "Specify texture used for the texture emission");
+	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 10.0, 0, 0, "Specify texture used for the texture emission");
 	
 	/* right collumn */
 	uiBlockBeginAlign(block);

@@ -2451,7 +2451,7 @@ void zbuffershad(LampRen *lar)
 		if(vlr->mat!= ma) {
 			ma= vlr->mat;
 			ok= 1;
-			if((ma->mode & MA_TRACEBLE)==0) ok= 0;
+			if((ma->mode & MA_SHADBUF)==0) ok= 0;
 		}
 		
 		if(ok && (vlr->flag & R_VISIBLE) && (vlr->lay & lay)) {
@@ -2752,13 +2752,14 @@ static int addtosampcol(float *sampcol, float *fcol, int mask)
  * renders when needed the Abuffer with faces stored in pixels, returns 1 scanline rendered
  */
 
+#define MAX_ZROW	1000
 void abufsetrow(float *acolrow, int y)
 {
 	extern SDL_mutex *render_abuf_lock; // initrender.c
 	APixstr *ap, *apn;
 	float *col, fcol[4], tempcol[4], sampcol[16*4], *scol, accumcol[4];
 	float ys, fac, alpha[32];
-	int x, part, a, zrow[200][3], totface, nr;
+	int x, part, a, zrow[MAX_ZROW][3], totface, nr;
 	int sval;
 	
 	if(y<0) return;
@@ -2814,7 +2815,7 @@ void abufsetrow(float *acolrow, int y)
 						zrow[totface][1]= apn->p[a];
 						zrow[totface][2]= apn->mask[a];
 						totface++;
-						if(totface>199) totface= 199;
+						if(totface>=MAX_ZROW) totface= MAX_ZROW-1;
 					}
 					else break;
 				}

@@ -525,17 +525,18 @@ void paste_posebuf (int flip)
 
 				if (G.flags & G_RECORDKEYS){
 					ID *id= &ob->id;
+
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
-						insertkey(id, ID_PO, chan->name, NULL, AC_QUAT_X);
-						insertkey(id, ID_PO, chan->name, NULL, AC_QUAT_Y);
-						insertkey(id, ID_PO, chan->name, NULL, AC_QUAT_Z);
-						insertkey(id, ID_PO, chan->name, NULL, AC_QUAT_W);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
 					}
 					if (chan->flag & POSE_SIZE){
-						insertkey(id, ID_PO, chan->name, NULL, AC_SIZE_X);
-						insertkey(id, ID_PO, chan->name, NULL, AC_SIZE_Y);
-						insertkey(id, ID_PO, chan->name, NULL, AC_SIZE_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 					if (chan->flag & POSE_LOC){
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);

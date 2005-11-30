@@ -260,7 +260,7 @@ int displist_has_faces(ListBase *lb)
 	
 	dl= lb->first;
 	while(dl) {
-		if ELEM4(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF, DL_POLY)
+		if ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)
 			return 1;
 		dl= dl->next;
 	}

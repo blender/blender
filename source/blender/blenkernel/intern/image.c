@@ -54,6 +54,7 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_packedFile.h"
@@ -148,7 +149,7 @@ Image *add_image(char *name)
 	return ima;
 }
 
-Image *new_image(int width, int height, char *name)
+Image *new_image(int width, int height, char *name, short uvtestgrid)
 {
 	Image *ima;
 			
@@ -159,6 +160,7 @@ Image *new_image(int width, int height, char *name)
 		ImBuf *ibuf;
 		unsigned char *rect;
 		int x, y;
+		float h=0.0, hoffs=0.0, s=0.9, v=0.6, r, g, b;
 
 		strcpy(ima->name, "Untitled");
 
@@ -167,10 +169,30 @@ Image *new_image(int width, int height, char *name)
 		ima->ibuf= ibuf;
 
 		rect= (unsigned char*)ibuf->rect;
-		for(y=0; y<ibuf->y; y++) {
-			for(x=0; x<ibuf->x; x++, rect+=4) {
-				rect[0]= rect[1]= rect[2]= 0;
-				rect[3]= 255;
+		
+		if (uvtestgrid) {
+			for(y=0; y<ibuf->y; y++) {
+				if (y % 20 == 0) hoffs += 0.125;
+				if (y % 160 == 0) hoffs = 0.0;
+				
+				for(x=0; x<ibuf->x; x++, rect+=4) {
+					if (x % 20 == 0) h += 0.125;
+					if (x % 160 == 0) h = 0.0;
+								
+					hsv_to_rgb(fabs(h-hoffs), s, v, &r, &g, &b);
+					
+					rect[0]= (char)(r * 255.0);
+					rect[1]= (char)(g * 255.0);
+					rect[2]= (char)(b * 255.0);
+					rect[3]= 255;
+				}
+			}
+		} else {	/* blank image */
+			for(y=0; y<ibuf->y; y++) {
+				for(x=0; x<ibuf->x; x++, rect+=4) {
+					rect[0]= rect[1]= rect[2]= 0;
+					rect[3]= 255;
+				}
 			}
 		}
 

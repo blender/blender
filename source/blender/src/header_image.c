@@ -731,6 +731,7 @@ static void do_image_imagemenu(void *arg, int event)
 	case 7: /* New Image */
 		{
 			static int width= 256, height= 256;
+			static short uvtestgrid=0;
 			char name[256];
 
 			strcpy(name, "Image");
@@ -738,10 +739,11 @@ static void do_image_imagemenu(void *arg, int event)
 			add_numbut(0, TEX, "Name:", 0, 255, name, NULL);
 			add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
 			add_numbut(2, NUM|INT, "Height:", 1, 5000, &height, NULL);
-			if (!do_clever_numbuts("New Image", 3, REDRAW))
+			add_numbut(3, TOG|SHO, "UV Test Grid", 0, 0, &uvtestgrid, NULL);
+			if (!do_clever_numbuts("New Image", 4, REDRAW))
 				return;
 
-			G.sima->image= new_image(width, height, name);
+			G.sima->image= new_image(width, height, name, uvtestgrid);
 			image_changed(G.sima, 0);
 
 			allqueue(REDRAWIMAGE, 0);

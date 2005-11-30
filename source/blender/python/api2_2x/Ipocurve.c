@@ -83,7 +83,6 @@ static PyObject *IpoCurve_setExtrapolation( C_IpoCurve * self,
 					    PyObject * args );
 static PyObject *IpoCurve_getExtrapolation( C_IpoCurve * self );
 static PyObject *IpoCurve_getPoints( C_IpoCurve * self );
-static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value ); 
 static PyObject *IpoCurve_evaluate( C_IpoCurve * self, PyObject * args );
 
 static PyObject *IpoCurve_getDriver( C_IpoCurve * self );
@@ -565,20 +564,6 @@ static PyObject *IpoCurve_getPoints( C_IpoCurve * self )
 	return list;
 }
 
-
-static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value )
-{
-	struct BezTriple *bezt;
-	PyObject *l = PyList_New( 0 );
-	int i;
-	for( i = 0; i < self->ipocurve->totvert; i++ ) {
-		bezt = self->ipocurve->bezt + i;
-		PyList_Append( l, BezTriple_CreatePyObject( bezt ) );
-	}
-	return 0;
-}
-
-
 /*****************************************************************************/
 /* Function:    IpoCurveRepr                                             */
 /* Description: This is a callback function for the C_IpoCurve type. It      */
@@ -587,7 +572,7 @@ static int IpoCurve_setPoints( C_IpoCurve * self, PyObject * value )
 static PyObject *IpoCurveRepr( C_IpoCurve * self )
 {
 	char s[100];
-	sprintf( s, "[IpoCurve \"%s\"]\n", getIpoCurveName( self->ipocurve ) );
+	sprintf( s, "[IpoCurve \"%s\"]", getIpoCurveName( self->ipocurve ) );
 	return PyString_FromString( s );
 }
 

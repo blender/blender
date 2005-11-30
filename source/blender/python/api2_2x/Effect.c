@@ -734,7 +734,7 @@ PyObject *Effect_Init( void )
 
 	dict = PyModule_GetDict( submodule );
 
-	PyDict_SetItemString( dict, "Particle", particle );
+	EXPP_dict_set_item_str( dict, "Particle", particle );
 	return ( submodule );
 }
 
@@ -1339,7 +1339,7 @@ static int Effect_setVertGroup( BPy_Effect * self, PyObject * value )
 
 	dg = get_named_vertexgroup( self->object, self->effect->vgroupname );
 	if( dg )
-		self->effect->vertgroup = get_defgroup_num( self->object, dg )+1;
+		self->effect->vertgroup = (short)get_defgroup_num( self->object, dg )+1;
 	else
 		self->effect->vertgroup = 0;
 
@@ -1372,7 +1372,7 @@ static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
 
 	dg = get_named_vertexgroup( self->object, self->effect->vgroupname_v );
 	if( dg )
-		self->effect->vertgroup_v = get_defgroup_num( self->object, dg )+1;
+		self->effect->vertgroup_v = (short)get_defgroup_num( self->object, dg )+1;
 	else
 		self->effect->vertgroup_v = 0;
 

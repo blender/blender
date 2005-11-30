@@ -1488,24 +1488,13 @@ void setprefsize(int stax, int stay, int sizx, int sizy)
 	
 	winlay_get_screensize(&scrwidth, &scrheight);
 		
-//	if(stax<0) stax= 0;
-//	if(stay<0) stay= 0;
 	if(sizx<320) sizx= 320;
 	if(sizy<256) sizy= 256;
-
-//	if(stax+sizx>scrwidth) {
-//		fprintf(stderr," width prob \n");
-//		sizx= scrwidth-stax;
-//		}
 
 	if(stay+sizy>scrheight) {
 		fprintf(stderr," height prob \n");
 		sizy= scrheight-stay;
-		}
-
-/* #ifdef __APPLE__ */
-/*	if(stay+sizy>scrheight-22) sizy= scrheight-22-stay;	// 22 = topbar  */
-/* #endif*/
+	}
 
 	if(sizx<320 || sizy<256) {
 		printf("ERROR: illegal prefsize\n");

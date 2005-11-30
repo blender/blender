@@ -7,6 +7,10 @@
 """
 The Blender.Texture submodule.
 
+B{New}:
+  - many new attributes in L{MTex} submodule
+  - new dictionaries (L{Texture.BlendModes}, L{Texture.Mappings}, L{Texture.Proj}) to use for the values of some of the new L{MTex} attributes.
+
 Texture
 =======
 
@@ -88,7 +92,7 @@ Example::
         - TRI - Produce bands using triangle wave (marble, wood textures)
         - BLENDER - Original Blender algorithm
         - PERLIN - Ken Perlin's original (1985) algorithm
-        - IMPROVEPERLIN - Ken Perlin's newer (2002) algorithm
+        - IMPROVEDPERLIN - Ken Perlin's newer (2002) algorithm
         - VORONOIF1 - none
         - VORONOIF2 - none
         - VORONOIF3 - none
@@ -96,6 +100,32 @@ Example::
         - VORONOIF2F1 - none
         - VORONOICRACKLE - none
         - CELLNOISE - Steven Worley's cellular basis algorithm (1996)
+
+@type BlendModes: readonly dictionary
+@var BlendModes: The available texture blending modes:
+    - MIX - mix texture with value
+    - MULTIPLY - multiply texture with value
+    - ADD - add texture to value
+    - SUBTRACT - subtract texture from value
+    - DIVIDE - divide value by texture
+    - DARKEN - replace value with texture if texture is darker
+    - DIFFERENCE - difference of texture from value
+    - LIGHTEN - replace value with texture if texture is lighter
+    - SCREEN - 'screen' mode
+
+@type Mappings: readonly dictionary
+@var Mappings: The available 2D texture coordinate mappings for images:
+    - FLAT - flat projection
+    - CUBE - cube projection
+    - TUBE - cylindrical projection
+    - SPHERE - spherical projection
+
+@type Proj: readonly dictionary
+@var Proj: The available projections per axis:
+    - NONE - axis isn't used
+    - X - axis is used as final x axis
+    - Y - axis is used as final y axis
+    - Z - axis is used as final z axis
 
 @type STypes: readonly dictionary
 @var STypes: Texture-type specific data. Depending on the value of
@@ -151,7 +181,7 @@ Example::
         13. Distorted noise type
             - DN_BLENDER - Original Blender algorithm
             - DN_PERLIN - Ken Perlin's original (1985) algorithm
-            - DN_IMPROVEPERLIN - Ken Perlin's newer (2002) algorithm
+            - DN_IMPROVEDPERLIN - Ken Perlin's newer (2002) algorithm
             - DN_VORONOIF1 - none
             - DN_VORONOIF2 - none
             - DN_VORONOIF3 - none
@@ -177,11 +207,16 @@ Example::
     - NOR - Make the texture affect the rendered normal
     - CSP - Make the texture affect the specularity colour
     - CMIR - Make the texture affect the mirror colour
-    - REF - Make the texture affect the value of the material's reflectivity
-    - SPEC - Make the texture affect the value of specularity
+    - REF - Make the texture affect the diffuse reflectivity value
+    - SPEC - Make the texture affect the specularity value
     - HARD - Make the texture affect the hardness value
     - ALPHA - Make the texture affect the alpha value
-    - EMIT - Make the texture affext the emit value
+    - EMIT - Make the texture affect the emit value
+    - RAYMIR - Make the texture affect the mirror reflectivity value
+    - DISP - Make the texture displace the mesh
+    - TRANSLU - Make the texture affect the translucency value
+    - AMB - Make the texture affect the ambient value
+    - WARP - Make the texture affect texture coordinates for the following textures
 @type MapTo: readonly dictionary
 
 """
@@ -449,6 +484,40 @@ class MTex:
     @type tex: Blender Texture
     @ivar texco: Texture coordinates ("Map input"). See L{TexCo}
     @ivar mapto: "Map to" field of texture. OR'd values of L{MapTo}
+    @ivar object: Object whose space to use when texco is Object
+    @type object: Blender Object
+    @ivar col: Color that the texture blends with
+    @ivar dvar: Value that the texture blends with when not blending colors
+    @ivar blendmode: Texture blending mode. L{BlendModes}
+    @ivar colfac: Factor by which texture affects color
+    @ivar norfac: Factor by which texture affects normal
+    @ivar varfac: Factor by which texture affects most variables
+    @ivar dispfac: Factor by which texture affects displacement
+    @ivar warpfac: Factor by which texture affects warp
+    @ivar ofs: Offset to adjust texture space
+    @ivar size: Size to scale texture space
+    @ivar mapping: Mapping of texture coordinates (flat, cube, etc.). L{Mappings}
+    @ivar stencil: Stencil mode
+    @ivar neg: Negate texture values mode
+    @ivar noRGB: Convert texture RGB values to intensity values
+    @ivar correctNor: Correct normal mapping for Texture space and Object space
+    @ivar xproj: Projection of X axis to Texture space. L{Proj}
+    @ivar yproj: Projection of Y axis to Texture space. L{Proj}
+    @ivar zproj: Projection of Z axis to Texture space. L{Proj}
+    @ivar mtCol: How texture maps to color
+    @ivar mtNor: How texture maps to normals
+    @ivar mtCsp: How texture maps to specularity color
+    @ivar mtCmir: How texture maps to mirror color
+    @ivar mtRef: How texture maps to reflectivity
+    @ivar mtSpec: How texture maps to specularity
+    @ivar mtEmit: How texture maps to emit value
+    @ivar mtAlpha: How texture maps to alpha value
+    @ivar mtHard: How texture maps to hardness
+    @ivar mtRayMir: How texture maps to RayMir value
+    @ivar mtTranslu: How texture maps to translucency
+    @ivar mtAmb: How texture maps to ambient value
+    @ivar mtDisp: How texture maps to displacement
+    @ivar mtWarp: How texture maps to warp
     """
 
     def getIpo():

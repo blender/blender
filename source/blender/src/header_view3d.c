@@ -3881,7 +3881,11 @@ void do_view3d_buttons(short event)
 		
 	case B_LOCALVIEW:
 		if(G.vd->localview) initlocalview();
-		else endlocalview(curarea);
+		else {
+			endlocalview(curarea);
+			/* new layers might need unflushed events events */
+			DAG_scene_update_flags(G.scene, G.vd->lay);	// tags all that moves and flushes
+		}
 		scrarea_queue_headredraw(curarea);
 		break;
 		

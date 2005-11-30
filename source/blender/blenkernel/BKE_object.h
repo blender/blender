@@ -50,8 +50,11 @@ void copy_baseflags(void);
 void copy_objectflags(void);
 struct SoftBody *copy_softbody(struct SoftBody *sb);
 void update_base_layer(struct Object *ob);
+
 void free_object(struct Object *ob);
+void object_free_display(struct Object *ob);
 void object_free_modifiers(struct Object *ob);
+
 void unlink_object(struct Object *ob);
 int exist_object(struct Object *obtest);
 void *add_camera(void);

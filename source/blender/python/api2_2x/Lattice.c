@@ -369,12 +369,12 @@ PyObject *Lattice_Init( void )
 	Lattice_Type.ob_type = &PyType_Type;
 
 	//Module dictionary
-#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(LT_##x))
+#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(LT_##x))
 	EXPP_ADDCONST( GRID );
 	EXPP_ADDCONST( OUTSIDE );
 
 #undef EXPP_ADDCONST
-#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(KEY_##x))
+#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(KEY_##x))
 	EXPP_ADDCONST( LINEAR );
 	EXPP_ADDCONST( CARDINAL );
 	EXPP_ADDCONST( BSPLINE );

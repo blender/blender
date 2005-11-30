@@ -83,7 +83,8 @@ int imagewrap(Tex *tex, Image *ima, float *texvec, TexResult *texres)
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 
 	if(ima==NULL || ima->ok== 0) {
-		return 0;
+		if(texres->nor) return 3;
+		else return 1;
 	}
 	
 	if(ima->ibuf==NULL) {
@@ -483,6 +484,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
      * If global variable 'imaprepeat' has been set, the
      *  clipped-away parts are sampled as well.
      */
+	/* note: actually minx etc isnt in the proper range... this due to filter size and offset vectors for bump */
 	TexResult texr;
 	rctf *rf, stack[8];
 	float opp, tot, alphaclip= 1.0;
@@ -494,7 +496,10 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 	rf->ymin= miny*(ibuf->y);
 	rf->ymax= maxy*(ibuf->y);
 
-	if(imapextend);
+	if(imapextend) {
+		CLAMP(rf->xmin, 0.0f, ibuf->x-1);
+		CLAMP(rf->xmax, 0.0f, ibuf->x-1);
+	}
 	else if(imaprepeat) clipx_rctf_swap(stack, &count, 0.0, (float)(ibuf->x));
 	else {
 		alphaclip= clipx_rctf(rf, 0.0, (float)(ibuf->x));
@@ -505,7 +510,10 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 		}
 	}
 
-	if(imapextend);
+	if(imapextend) {
+		CLAMP(rf->ymin, 0.0f, ibuf->y-1);
+		CLAMP(rf->ymax, 0.0f, ibuf->y-1);
+	}
 	else if(imaprepeat) clipy_rctf_swap(stack, &count, 0.0, (float)(ibuf->y));
 	else {
 		alphaclip*= clipy_rctf(rf, 0.0, (float)(ibuf->y));
@@ -586,7 +594,8 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 	texres->tin= texres->ta= texres->tr= texres->tg= texres->tb= 0.0;
 
 	if(ima==NULL || ima->ok== 0) {
-		return 0;
+		if(texres->nor) return 3;
+		else return 1;
 	}
 	
 	if(ima->ibuf==NULL) {
@@ -871,7 +880,6 @@ int imagewraposa(Tex *tex, Image *ima, float *texvec, float *dxt, float *dyt, Te
 				val2= texr.tr + texr.tg + texr.tb;
 				boxsample(ibuf, fx-minx+dyt[0], fy-miny+dyt[1], fx+minx+dyt[0], fy+miny+dyt[1], &texr);
 				val3= texr.tr + texr.tg + texr.tb;
-
 				/* don't switch x or y! */
 				texres->nor[0]= (val1-val2);
 				texres->nor[1]= (val1-val3);

@@ -117,7 +117,7 @@ void init_material(Material *ma)
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3; // two lamps, is bits
 	
-	ma->mode= MA_TRACEBLE|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
 }
 
 Material *add_material(char *name)

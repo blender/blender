@@ -904,3 +904,16 @@ PyObject *EXPP_setterWrapperTuple ( PyObject * self, PyObject * args,
 		return NULL;
 }
 
+/*
+ * Helper to keep dictionaries from causing memory leaks.  When some object
+ * is just created to be added to the dictionary, its reference count needs
+ * to be decremented so it can be reclaimed.
+ */
+
+int EXPP_dict_set_item_str( PyObject *dict, char *key, PyObject *value)
+{
+   	/* add value to dictionary */
+	int ret = PyDict_SetItemString(dict, key, value);
+	Py_DECREF( value ); /* delete original */
+	return ret;
+}
