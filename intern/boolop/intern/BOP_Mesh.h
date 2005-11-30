@@ -82,6 +82,7 @@ public:
 	unsigned int getNumVertexs(BOP_TAG tag);
 	unsigned int getNumFaces(BOP_TAG tag);
 	BOP_Index replaceVertexIndex(BOP_Index oldIndex, BOP_Index newIndex);
+	bool isClosedMesh();
 	
 	// Debug functions
 	void print();

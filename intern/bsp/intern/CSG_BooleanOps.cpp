@@ -103,15 +103,15 @@ CSG_DescibeOperands(
 /**
  * Compute the boolean operation, UNION, INTERSECION or DIFFERENCE
  */
-	int
+int
 CSG_PerformBooleanOperation(
-	CSG_BooleanOperation                 *operation,
-	CSG_OperationType                     op_type,
-	CSG_FaceIteratorDescriptor            obAFaces,
-	CSG_VertexIteratorDescriptor          obAVertices,
-	CSG_FaceIteratorDescriptor            obBFaces,
-	CSG_VertexIteratorDescriptor          obBVertices,
-	CSG_InterpolateUserFaceVertexDataFunc interp_func
+							CSG_BooleanOperation                 *operation,
+							CSG_OperationType                     op_type,
+							CSG_FaceIteratorDescriptor            obAFaces,
+							CSG_VertexIteratorDescriptor          obAVertices,
+							CSG_FaceIteratorDescriptor            obBFaces,
+							CSG_VertexIteratorDescriptor          obBVertices,
+							CSG_InterpolateUserFaceVertexDataFunc interp_func
 ){
 	if (operation == NULL) return 0;
 	BSP_MeshInfo * mesh_info = static_cast<BSP_MeshInfo *>(operation->CSG_info);
@@ -128,33 +128,39 @@ CSG_PerformBooleanOperation(
 	
 	switch( op_type ) {
 	case e_csg_union:
-	  boolType = BOP_UNION;
-	  break;
+		boolType = BOP_UNION;
+		break;
 	case e_csg_difference:
-	  boolType = BOP_DIFFERENCE;
-	  break;
+		boolType = BOP_DIFFERENCE;
+		break;
 	default:
-	  boolType = BOP_INTERSECTION;
-	  break;
+		boolType = BOP_INTERSECTION;
+		break;
 	}
 
+	BoolOpState boolOpResult;
 	try {
-	BOP_performBooleanOperation( boolType,
-				     mesh_info->output_descriptor,
-				     (BSP_CSGMesh**) &(mesh_info->output_mesh),
-					 mesh_info->obB_descriptor,
-					 obBFaces,
-					 obBVertices,
-					 mesh_info->obA_descriptor,
-				     obAFaces,
-				     obAVertices,
-				     interp_func );
+		boolOpResult= BOP_performBooleanOperation( boolType,
+												   mesh_info->output_descriptor,
+												   (BSP_CSGMesh**) &(mesh_info->output_mesh),
+												   mesh_info->obB_descriptor,
+												   obBFaces,
+												   obBVertices,
+												   mesh_info->obA_descriptor,
+												   obAFaces,
+												   obAVertices,
+												   interp_func );
 	}
 	catch(...) {
 		return 0;
 	}
 
-	return success;
+	switch (boolOpResult) {
+	case BOP_OK: return 1;
+	case BOP_NO_SOLID: return -2;
+	case BOP_ERROR: return 0;
+	default: return 1;
+	}
 }
 
 	int

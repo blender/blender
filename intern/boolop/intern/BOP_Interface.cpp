@@ -92,9 +92,9 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 										CSG_VertexIteratorDescriptor  obBVertices,
 										CSG_InterpolateUserFaceVertexDataFunc interpFunc)
 {
-	#ifdef DEBUG
+#ifdef DEBUG
 	cout << "BEGIN BOP_performBooleanOperation" << endl;
-	#endif
+#endif
 
 	// Set invert flags depending on boolean operation type:
 	// INTERSECTION: A^B = and(A,B)
@@ -121,6 +121,9 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	// Add B-mesh into C-mesh
 	BOP_addMesh(&meshC, &meshBFacesId, &materials, obBProps, obBFaces, obBVertices, invertMeshB);
 
+	if (!meshC.isClosedMesh())
+		return BOP_NO_SOLID;
+
 	// Perform the intersection boolean operation.
 	BoolOpState result = BOP_intersectionBoolOp(&meshC, &meshAFacesId, &meshBFacesId, 
 												invertMeshA, invertMeshB);
@@ -128,9 +131,9 @@ BoolOpState BOP_performBooleanOperation(BoolOpType                    opType,
 	// Invert the output mesh if is required
 	*outputMesh = BOP_exportMesh(&meshC, &materials, outputProps, invertMeshC);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	cout << "END BOP_performBooleanOperation" << endl;
-	#endif
+#endif
 	
 	return result;
 }
@@ -151,13 +154,13 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 								   bool       invertMeshA,
 								   bool       invertMeshB)
 {
-	#ifdef DEBUG
+#ifdef DEBUG
 	BOP_Chrono chrono;
 	float t = 0.0f;
 	float c = 0.0f;
 	chrono.start();  
 	cout << "---" << endl;
-	#endif
+#endif
 
 	// Create BSPs trees for mesh A & B
 	BOP_BSPTree bspA;
@@ -168,10 +171,10 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	bspB.addMesh(meshC, *facesB);
 	bspB.computeBox();
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Create BSP     " << c << endl;	
-	#endif
+#endif
 
 	unsigned int numVertices = meshC->getNumVertexs();
 	
@@ -184,54 +187,54 @@ BoolOpState BOP_intersectionBoolOp(BOP_Mesh*  meshC,
 	if ((0.25*facesB->size()) > bspA.getDeep())
 	  BOP_meshFilter(meshC, facesB, &bspA);
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "mesh Filter    " << c << endl;	
-	#endif
+#endif
 
 	// Face 2 Face
 	BOP_Face2Face(meshC,facesA,facesB);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Face2Face      " << c << endl;
-	#endif
+#endif
 
 	// BSP classification
 	BOP_meshClassify(meshC,facesA,&bspB);
 	BOP_meshClassify(meshC,facesB,&bspA);
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Classification " << c << endl;
-	#endif
+#endif
 	
 	// Process overlapped faces
 	BOP_removeOverlappedFaces(meshC,facesA,facesB);
 	
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Remove overlap " << c << endl;
-	#endif
+#endif
 
 	// Sew two meshes
 	BOP_sew(meshC,facesA,facesB);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Sew            " << c << endl;
-	#endif
+#endif
 
 	// Merge faces
 	BOP_Merge::getInstance().mergeFaces(meshC,numVertices);
 
-	#ifdef DEBUG
+#ifdef DEBUG
 	c = chrono.stamp(); t += c;
 	cout << "Merge faces    " << c << endl;
 	cout << "Total          " << t << endl;
 	// Test integrity
 	meshC->testMesh();
-	#endif
+#endif
 	
 	return BOP_OK;
 }
