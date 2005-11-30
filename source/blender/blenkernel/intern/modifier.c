@@ -1586,12 +1586,15 @@ int modifiers_isDeformed(Object *ob)
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
-		if (md->type==eModifierType_Armature)
-			return 1;
-		if (md->type==eModifierType_Curve)
-			return 1;
-		if (md->type==eModifierType_Lattice)
-			return 1;
+		if(ob==G.obedit && (md->mode & eModifierMode_Editmode)==0);
+		else {
+			if (md->type==eModifierType_Armature)
+				return 1;
+			if (md->type==eModifierType_Curve)
+				return 1;
+			if (md->type==eModifierType_Lattice)
+				return 1;
+		}
 	}
 	return 0;
 }
