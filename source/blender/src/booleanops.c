@@ -694,7 +694,7 @@ NewBooleanMesh(
 			);
 		}
 		
-		if (success) {
+		if (success==1) {
 			// descriptions of the output;
 			CSG_VertexIteratorDescriptor vd_o;
 			CSG_FaceIteratorDescriptor fd_o;
