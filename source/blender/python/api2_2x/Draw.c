@@ -534,12 +534,14 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 		int pass_ascii = 0;
 		if (ascii > 31 && ascii != 127) {
 			pass_ascii = 1;
-			PyDict_SetItemString(g_blenderdict, "event", PyInt_FromLong((long)ascii));
+			EXPP_dict_set_item_str(g_blenderdict, "event",
+					PyInt_FromLong((long)ascii));
 		}
 		exec_callback( sc, sc->script->py_event,
 			Py_BuildValue( "(ii)", event, val ) );
 		if (pass_ascii)
-			PyDict_SetItemString(g_blenderdict, "event", PyString_FromString(""));
+			EXPP_dict_set_item_str(g_blenderdict, "event",
+					PyString_FromString(""));
 	}
 }
 
@@ -1392,11 +1394,11 @@ PyObject *Draw_Init( void )
 	dict = PyModule_GetDict( submodule );
 
 #define EXPP_ADDCONST(x) \
-	PyDict_SetItemString(dict, #x, PyInt_FromLong(x))
+	EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
 
 	/* So, for example:
 	 * EXPP_ADDCONST(LEFTMOUSE) becomes
-	 * PyDict_SetItemString(dict, "LEFTMOUSE", PyInt_FromLong(LEFTMOUSE)) 
+	 * EXPP_dict_set_item_str(dict, "LEFTMOUSE", PyInt_FromLong(LEFTMOUSE)) 
 	 */
 
 	EXPP_ADDCONST( LEFTMOUSE );

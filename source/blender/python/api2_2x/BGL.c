@@ -1096,11 +1096,11 @@ PyObject *BGL_Init(void)
 
 	buffer_Type.ob_type = &PyType_Type;
 
-#define EXPP_ADDCONST(x) PyDict_SetItemString(dict, #x, PyInt_FromLong(x))
+#define EXPP_ADDCONST(x) EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
 
 /* So, for example:
  * EXPP_ADDCONST(GL_CURRENT_BIT) becomes
- * PyDict_SetItemString(dict, "GL_CURRENT_BIT", PyInt_FromLong(GL_CURRENT_BIT)) */
+ * EXPP_dict_set_item_str(dict, "GL_CURRENT_BIT", PyInt_FromLong(GL_CURRENT_BIT)) */
 
 	EXPP_ADDCONST(GL_CURRENT_BIT);
 	EXPP_ADDCONST(GL_POINT_BIT);

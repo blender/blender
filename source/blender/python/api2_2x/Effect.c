@@ -734,7 +734,7 @@ PyObject *Effect_Init( void )
 
 	dict = PyModule_GetDict( submodule );
 
-	PyDict_SetItemString( dict, "Particle", particle );
+	EXPP_dict_set_item_str( dict, "Particle", particle );
 	return ( submodule );
 }
 
