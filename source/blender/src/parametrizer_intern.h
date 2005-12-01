@@ -180,6 +180,7 @@ typedef struct PHandle {
 	MemArena *arena;
 	PBool implicit;
 	RNG *rng;
+	float blend;
 } PHandle;
 
 #endif /*__PARAMETRIZER_INTERN_H__*/

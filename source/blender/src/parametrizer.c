@@ -1135,6 +1135,19 @@ static void p_flush_uvs(PChart *chart)
 	}
 }
 
+static void p_flush_uvs_blend(PChart *chart, float blend)
+{
+	PEdge *e;
+	float invblend = 1.0f - blend;
+
+	for (e=(PEdge*)chart->edges->first; e; e=e->link.next) {
+		if (e->orig_uv) {
+			e->orig_uv[0] = blend*e->old_uv[0] + invblend*e->vert->uv[0];
+			e->orig_uv[1] = blend*e->old_uv[1] + invblend*e->vert->uv[1];
+		}
+	}
+}
+
 /* Exported */
 
 ParamHandle *param_construct_begin()
@@ -1620,6 +1633,7 @@ void param_stretch_begin(ParamHandle *handle)
 	phandle->state = PHANDLE_STATE_STRETCH;
 
 	phandle->rng = rng_new(31415926);
+	phandle->blend = 0.0f;
 
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
@@ -1636,6 +1650,28 @@ void param_stretch_begin(ParamHandle *handle)
 	}
 }
 
+void param_stretch_blend(ParamHandle *handle, float blend)
+{
+	PHandle *phandle = (PHandle*)handle;
+	PChart *chart;
+	int i;
+
+	param_assert(phandle->state == PHANDLE_STATE_STRETCH);
+
+	if (phandle->blend != blend) {
+		phandle->blend = blend;
+
+		for (i = 0; i < phandle->ncharts; i++) {
+			chart = phandle->charts[i];
+
+			if (blend == 0.0f)
+				p_flush_uvs(chart);
+			else
+				p_flush_uvs_blend(chart, blend);
+		}
+	}
+}
+
 void param_stretch_iter(ParamHandle *handle)
 {
 	PHandle *phandle = (PHandle*)handle;
@@ -1648,7 +1684,11 @@ void param_stretch_iter(ParamHandle *handle)
 		chart = phandle->charts[i];
 
 		p_chart_stretch_minimize(chart, phandle->rng);
-		p_flush_uvs(chart);
+
+		if (phandle->blend == 0.0f)
+			p_flush_uvs(chart);
+		else
+			p_flush_uvs_blend(chart, phandle->blend);
 	}
 }
 

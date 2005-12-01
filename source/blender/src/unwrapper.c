@@ -1457,7 +1457,7 @@ void minimize_stretch_tface_uv(void)
 	Mesh *me;
 	ParamHandle *handle;
 	double lasttime;
-	short doit = 1, val;
+	short doit = 1, escape = 0, val, blend = 0;
 	unsigned short event = 0;
 	
 	me = get_mesh(OBACT);
@@ -1474,15 +1474,47 @@ void minimize_stretch_tface_uv(void)
 
 		while (qtest()) {
 			event= extern_qread(&val);
-			if (val && (event==ESCKEY || event==RETKEY || event==PADENTER))
-				doit = 0;
+
+			if (val) {
+				switch (event) {
+					case ESCKEY:
+						escape = 1;
+					case RETKEY:
+					case PADENTER:
+						doit = 0;
+						break;
+					case PADPLUSKEY:
+					case WHEELUPMOUSE:
+						if (blend < 10) {
+							blend++;
+							param_stretch_blend(handle, blend*0.1f);
+							lasttime = 0.0f;
+						}
+						break;
+					case PADMINUS:
+					case WHEELDOWNMOUSE:
+						if (blend > 0) {
+							blend--;
+							param_stretch_blend(handle, blend*0.1f);
+							lasttime = 0.0f;
+						}
+						break;
+				}
+			}
+			else if ((event == LEFTMOUSE) || (event == RIGHTMOUSE)) {
+					escape = (event == RIGHTMOUSE);
+					doit = 0;
+			}
 		}
 		
 		if (!doit)
 			break;
 
 		if (PIL_check_seconds_timer() - lasttime > 0.5) {
-			headerprint("Enter to finish. Escape to cancel.");
+			char str[100];
+
+			sprintf(str, "Stretch minimize. Blend %.2f.", blend*0.1f);
+			headerprint(str);
 
 			lasttime = PIL_check_seconds_timer();
 			if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
@@ -1490,7 +1522,7 @@ void minimize_stretch_tface_uv(void)
 		}
 	}
 
-	param_stretch_end(handle, event==ESCKEY);
+	param_stretch_end(handle, escape);
 
 	param_delete(handle);
 

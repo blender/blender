@@ -59,6 +59,7 @@ void param_lscm_end(ParamHandle *handle);
 /* Stretch */
 
 void param_stretch_begin(ParamHandle *handle);
+void param_stretch_blend(ParamHandle *handle, float blend);
 void param_stretch_iter(ParamHandle *handle);
 void param_stretch_end(ParamHandle *handle, ParamBool restore);
 
