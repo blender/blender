@@ -127,10 +127,11 @@ static void *renderHaloPixel(RE_COLBUFTYPE *collector, float x, float y, int hal
 
 void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int mask)
 {
-    void* data = NULL;
+    void *data = NULL;
+	float rco[3];	/* not used (yet?) */
     
     if (obdata[3] & RE_POLY) {
-		data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
+		data = shadepixel(x, y, obdata[0], obdata[1], mask, collector, rco);
     }
     else if (obdata[3] & RE_HALO) {
         data = renderHaloPixel(collector, x, y, obdata[1]);
@@ -138,7 +139,7 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
 	else if( obdata[1] == 0 ) {	
 		/* for lamphalo, but doesn't seem to be called? Actually it is, and  */
 		/* it returns NULL pointers. */
-        data = shadepixel(x, y, obdata[0], obdata[1], mask, collector);
+        data = shadepixel(x, y, obdata[0], obdata[1], mask, collector, rco);
  	}
     return data;
    
@@ -148,7 +149,8 @@ void *renderPixel(RE_COLBUFTYPE *collector, float x, float y, int *obdata, int m
 
 void renderSpotHaloPixel(float x, float y, float* fcol)
 {
-	shadepixel(x, y, 0, 0, 0, fcol);	
+	float rco[3];	/* unused */
+	shadepixel(x, y, 0, 0, 0, fcol, rco);
 }
 
 
@@ -551,7 +553,7 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode() {
 }
 
 /* This one renders into collector, as always.                               */
-void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
+void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y, float *rco)
 {
 
 	switch (keyingType) {
@@ -566,7 +568,7 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 		break;
 	case RE_ALPHA_SKY:
 		/* Fill in the sky as if it were a normal face. */
-		shadeSkyPixel(collector, x, y);
+		shadeSkyPixel(collector, x, y, rco);
 		collector[3]= 0.0;
 		break;
 	default:
@@ -579,7 +581,7 @@ void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y)
 /*
   Stuff the sky colour into the collector.
  */
-void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy) 
+void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy, float *rco) 
 {
 	float view[3], dxyview[2];
 	
@@ -655,13 +657,13 @@ void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy)
 		}
 	
 		/* get sky colour in the collector */
-		shadeSkyPixelFloat(collector, view, dxyview);
+		shadeSkyPixelFloat(collector, rco, view, dxyview);
 		collector[3] = 1.0f;
 	}
 }
 
 /* Only view vector is important here. Result goes to colf[3] */
-void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
+void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview)
 {
 	float lo[3], zen[3], hor[3], blend, blendm;
 	
@@ -698,7 +700,7 @@ void shadeSkyPixelFloat(float *colf, float *view, float *dxyview)
 			SWAP(float, lo[1],  lo[2]);
 			
 		}
-		do_sky_tex(lo, dxyview, hor, zen, &blend);
+		do_sky_tex(rco, lo, dxyview, hor, zen, &blend);
 	}
 
 	if(blend>1.0) blend= 1.0;

@@ -158,7 +158,7 @@ void RE_sky_char(float *view, char *col)
 
 	dither_value = ( (BLI_frand()-0.5)*R.r.dither_intensity)/256.0; 
 	
-	shadeSkyPixelFloat(colf, view, NULL);
+	shadeSkyPixelFloat(colf, view, view, NULL);
 	
 	f= 255.0*(colf[0]+dither_value);
 	if(f<=0.0) col[0]= 0; else if(f>255.0) col[0]= 255;
@@ -2096,7 +2096,7 @@ static float isec_view_line(float *view, float *v3, float *v4)
   
 /* x,y: window coordinate from 0 to rectx,y */
 /* return pointer to rendered face */
-void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
+void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, float *rco)
 {
 	ShadeResult shr;
 	ShadeInput shi;
@@ -2115,6 +2115,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 	
 	if(facenr==0) {	/* sky */
 		col[0]= 0.0; col[1]= 0.0; col[2]= 0.0; col[3]= 0.0;
+		VECCOPY(rco, col);
 	}
 	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1, *v2, *v3;
@@ -2210,6 +2211,8 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 				}
 			}
 		}
+		/* rco might be used for sky texture */
+		VECCOPY(rco, shi.co);
 		
 		/* cannot normalise earlier, code above needs it at pixel level */
 		fac= Normalise(shi.view);
@@ -2382,15 +2385,15 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col)
 static void shadepixel_sky(float x, float y, int z, int facenr, int mask, float *colf)
 {
 	VlakRen *vlr;
-	float collector[4];
+	float collector[4], rco[3];
 	
-	vlr= shadepixel(x, y, z, facenr, mask, colf);
+	vlr= shadepixel(x, y, z, facenr, mask, colf, rco);
 	if(colf[3] != 1.0) {
 		/* bail out when raytrace transparency (sky included already) */
 		if(vlr && (R.r.mode & R_RAYTRACE))
 			if(vlr->mat->mode & MA_RAYTRANSP) return;
-
-		renderSkyPixelFloat(collector, x, y);
+		
+		renderSkyPixelFloat(collector, x, y, vlr?rco:NULL);
 		addAlphaOverFloat(collector, colf);
 		QUATCOPY(colf, collector);
 	}

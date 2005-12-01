@@ -1965,7 +1965,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 /* ------------------------------------------------------------------------- */
 
 /* hor and zen are RGB vectors, blend is 1 float, should all be initialized */
-void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend)
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend)
 {
 	MTex *mtex;
 	TexResult texres;
@@ -2033,6 +2033,22 @@ void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend)
 					MTC_Mat4MulVecfl(mtex->object->imat, tempvec);
 					co= tempvec;
 				}
+				break;
+				
+			case TEXCO_GLOB:
+				if(rco) {
+					VECCOPY(tempvec, rco);
+					MTC_Mat4MulVecfl(R.viewinv, tempvec);
+					co= tempvec;
+				}
+				else
+					co= lo;
+				
+//				VECCOPY(shi->dxgl, shi->dxco);
+//				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+//				VECCOPY(shi->dygl, shi->dyco);
+//				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+				break;
 			}
 			
 			/* placement */			

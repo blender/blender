@@ -152,12 +152,13 @@ typedef struct World {
 #define WOMAP_HORIZ		2
 #define WOMAP_ZENUP		4
 #define WOMAP_ZENDOWN	8
+#define WOMAP_MIST		16
 
 /* physicsEngine */
 #define WOPHY_NONE		0
 #define WOPHY_ENJI		1
 #define WOPHY_SUMO		2
-#define WOPHY_DYNAMO		3
+#define WOPHY_DYNAMO	3
 #define WOPHY_ODE		4
 #define WOPHY_BULLET	5
 

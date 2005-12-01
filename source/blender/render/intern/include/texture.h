@@ -55,7 +55,7 @@ struct Image;
 /* texture.h */
 
 void do_halo_tex(struct HaloRen *har, float xn, float yn, float *colf);
-void do_sky_tex(float *lo, float *dxyview, float *hor, float *zen, float *blend);
+void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, float *blend);
 void render_realtime_texture(struct ShadeInput *shi);           
 
 /* imagetexture.h */

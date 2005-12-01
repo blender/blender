@@ -103,7 +103,7 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 /**
  * Also called in: zbuf.c
  */
-void *shadepixel(float x, float y, int z, int facenr, int mask, float *col);
+void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, float *rco);
 
 /**
  * A cryptic but very efficient way of counting the number of bits that 

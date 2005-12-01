@@ -1781,10 +1781,10 @@ static void world_panel_mapto(World *wrld)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, WOMAP_BLEND, B_MATPRV, "Blend",		10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
+	uiDefButBitS(block, TOG, WOMAP_BLEND, B_MATPRV, "Blend",	10,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour progression of the background");
 	uiDefButBitS(block, TOG, WOMAP_HORIZ, B_MATPRV, "Hori",		85,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the horizon");
-	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_MATPRV, "ZenUp",		160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
-	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_MATPRV, "ZenDo",		235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
+	uiDefButBitS(block, TOG, WOMAP_ZENUP, B_MATPRV, "ZenUp",	160,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith above");
+	uiDefButBitS(block, TOG, WOMAP_ZENDOWN, B_MATPRV, "ZenDo",	235,180,75,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the colour of the zenith below");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1857,21 +1857,24 @@ static void world_panel_texture(World *wrld)
 
 	/* TEXCO */
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_MATPRV, "View",			100,110,45,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses global coordinates for the texture coordinates");
-	uiDefButS(block, ROW, B_MATPRV, "AngMap",		145,110,55,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
-	uiDefButS(block, ROW, B_MATPRV, "Sphere",		200,110,55,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
-	uiDefButS(block, ROW, B_MATPRV, "Tube",			255,110,45,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
-	uiDefButS(block, ROW, B_MATPRV, "Object",		100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 170,90,130,20, &(mtex->object), "");
+	uiDefButS(block, ROW, B_MATPRV, "View",		100,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view vector for the texture coordinates");
+	uiDefButS(block, ROW, B_MATPRV, "Global",	200,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates (interior mist)");
+	
+	uiDefButS(block, ROW, B_MATPRV, "AngMap",	100,90,70,20, &(mtex->texco), 4.0, (float)TEXCO_ANGMAP, 0, 0, "Uses 360 degree angular coordinates, e.g. for spherical light probes");
+	uiDefButS(block, ROW, B_MATPRV, "Sphere",	170,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_SPHEREMAP, 0, 0, "For 360 degree panorama sky, spherical mapped, only top half");
+	uiDefButS(block, ROW, B_MATPRV, "Tube",		235,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
+	
+	uiDefButS(block, ROW, B_MATPRV, "Object",	100,70,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "", 170,70,130,20, &(mtex->object), "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "dX",		100,50,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dY",		100,30,100,19, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
-	uiDefButF(block, NUM, B_MATPRV, "dZ",		100,10,100,19, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "dX",		100,40,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "dY",		100,20,100,19, mtex->ofs+1, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Y coordinate");
+	uiDefButF(block, NUM, B_MATPRV, "dZ",		100, 0,100,19, mtex->ofs+2, -20.0, 20.0, 10, 0, "Fine tunes texture mapping Z coordinate");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "sizeX",	200,50,100,19, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeY",	200,30,100,19, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
-	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200,10,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeX",	200,40,100,19, mtex->size, -10.0, 10.0, 10, 0, "Sets scaling for the texture's X size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeY",	200,20,100,19, mtex->size+1, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Y size");
+	uiDefButF(block, NUM, B_MATPRV, "sizeZ",	200, 0,100,19, mtex->size+2, -10.0, 10.0, 10, 0, "Sets scaling for the texture's Z size");
 	
 }
 

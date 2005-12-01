@@ -2695,6 +2695,7 @@ int vergzvlak(const void *a1, const void *a2)
  */
 static void shadetrapixel(float x, float y, int z, int facenr, int mask, float *fcol)
 {
+	float rco[3];
 	
 	if( (facenr & 0x7FFFFF) > R.totvlak) {
 		printf("error in shadetrapixel nr: %d\n", (facenr & 0x7FFFFF));
@@ -2708,7 +2709,7 @@ static void shadetrapixel(float x, float y, int z, int facenr, int mask, float *
 		if(vlr->flag & R_FULL_OSA) {
 			for(a=0; a<R.osa; a++) {
 				if(mask & (1<<a)) {
-					shadepixel(x+jit[a][0], y+jit[a][1], z, facenr, 1<<a, fcol);
+					shadepixel(x+jit[a][0], y+jit[a][1], z, facenr, 1<<a, fcol, rco);
 					accumcol[0]+= fcol[0];
 					accumcol[1]+= fcol[1];
 					accumcol[2]+= fcol[2];
@@ -2729,11 +2730,11 @@ static void shadetrapixel(float x, float y, int z, int facenr, int mask, float *
 			int b= centmask[mask];
 			x= x+centLut[b & 15];
 			y= y+centLut[b>>4];
-			shadepixel(x, y, z, facenr, mask, fcol);
+			shadepixel(x, y, z, facenr, mask, fcol, rco);
 	
 		}
 	}
-	else shadepixel(x, y, z, facenr, mask, fcol);
+	else shadepixel(x, y, z, facenr, mask, fcol, rco);
 }
 
 static int addtosampcol(float *sampcol, float *fcol, int mask)

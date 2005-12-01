@@ -1623,7 +1623,7 @@ static void traceray(short depth, float *start, float *vec, float *col, VlakRen 
 		VECCOPY(shi.view, vec);
 		Normalise(shi.view);
 		
-		shadeSkyPixelFloat(col, shi.view, NULL);
+		shadeSkyPixelFloat(col, shi.view, NULL, isec.start);
 	}
 }
 
@@ -2118,7 +2118,7 @@ void ray_ao(ShadeInput *shi, World *wrld, float *shadfac)
 					shadfac[2]+= (1.0-fac)*R.wrld.horb + fac*R.wrld.zenb;
 				}
 				else {
-					shadeSkyPixelFloat(skycol, view, NULL);
+					shadeSkyPixelFloat(skycol, view, NULL, isec.start);
 					shadfac[0]+= skycol[0];
 					shadfac[1]+= skycol[1];
 					shadfac[2]+= skycol[2];

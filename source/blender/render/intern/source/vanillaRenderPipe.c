@@ -594,7 +594,6 @@ static int composeStack(int zrow[][RE_PIXELFIELDSIZE], RE_COLBUFTYPE *collector,
 	VlakRen *vlr= NULL;
     float  xs = 0.0;
     float  ys = 0.0;  /* coordinates for the render-spot              */
-
     float  alphathreshold[RE_MAX_OSA_COUNT];
 	float colbuf[4];
     int    inconflict          = 0;
@@ -714,7 +713,7 @@ static int composeStack(int zrow[][RE_PIXELFIELDSIZE], RE_COLBUFTYPE *collector,
 	ys= (float)y;
 
 	/* code identical for rendering empty sky pixel */
-	renderSkyPixelFloat(collector, xs, ys);
+	renderSkyPixelFloat(collector, xs, ys, NULL);
 	cpFloatColV(collector, colbuf);
 
 	if(R.flag & R_LAMPHALO) {
@@ -1011,7 +1010,7 @@ static zbufline zb1, zb2;
 
 static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2, RE_COLBUFTYPE *colbuf3) 
 {
-     RE_APixstrExt *ap;       /* iterator for the face-lists                  */
+	RE_APixstrExt *ap;       /* iterator for the face-lists                  */
 	RE_COLBUFTYPE  collector[4];
 	RE_COLBUFTYPE  sampcol[RE_MAX_OSA_COUNT * 4];
     RE_COLBUFTYPE *j = NULL; /* generic pixel pointer                        */
@@ -1057,7 +1056,7 @@ static void renderZBufLine(int y, RE_COLBUFTYPE *colbuf1, RE_COLBUFTYPE *colbuf2
 			
 			/* This is a bit dirty. Depending on sky-mode, the pixel is      */
 			/* blended in differently.                                       */
-			renderSkyPixelFloat(collector, x, y);
+			renderSkyPixelFloat(collector, x, y, NULL);
 			
 			j = sampcol;
 			for(i = 0; i < osaNr; i++, j+=4) { 

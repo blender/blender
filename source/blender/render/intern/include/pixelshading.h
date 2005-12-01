@@ -68,12 +68,11 @@ enum RE_SkyAlphaBlendingType getSkyBlendingMode(void);
 /**
  * Render the sky at pixel (x, y).
  */
-void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y);
+void renderSkyPixelFloat(RE_COLBUFTYPE *collector, float x, float y, float *rco);
+void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy, float *rco);
+void shadeSkyPixelFloat(float *colf, float *rco, float *view, float *dxyview);
 
-/* used by shadeSkyPixel: */
-void shadeSkyPixelFloat(float *colf, float *view, float *dxyview);
 void renderSpotHaloPixel(float x, float y, float *target);
-void shadeSkyPixel(RE_COLBUFTYPE *collector, float fx, float fy);
 void fillBackgroundImage(RE_COLBUFTYPE *collector, float x, float y);
 void fillBackgroundImageChar(char *col, float x, float y);
 
