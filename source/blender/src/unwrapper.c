@@ -43,6 +43,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_global.h"
 #include "BKE_mesh.h"
@@ -53,12 +55,17 @@
 
 #include "BIF_editsima.h"
 #include "BIF_space.h"
+#include "BIF_screen.h"
 
 #include "blendef.h"
 #include "mydevice.h"
 
 #include "ONL_opennl.h"
 #include "BDR_unwrapper.h"
+
+#include "PIL_time.h"
+
+#include "parametrizer.h"
 
 /* Implementation Least Squares Conformal Maps parameterization, based on
  * chapter 2 of:
@@ -903,9 +910,9 @@ static int unwrap_lscm_face_group(Mesh *me, int *groups, int gid)
 		lscm_build_matrix(me, lscmvert, groups, gid, center, radius);
 		
 		nlEnd(NL_SYSTEM);
-		
+
 		/* LSCM solver magic! */
-		nlSolve();
+		nlSolve(NULL, NL_FALSE);
 		
 		/* load new uv's: will be projected uv's if solving failed  */
 		lscm_load_solution(me, lscmvert, groups, gid);
@@ -1334,5 +1341,164 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	
 	BIF_undo_push("Select linked UV face");
 	object_tface_flags_changed(OBACT, 0);
+}
+
+/* Parametrizer */
+
+ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill)
+{
+	int a;
+	TFace *tf;
+	MFace *mf;
+	MVert *mv;
+	MEdge *medge;
+	ParamHandle *handle;
+	
+	handle = param_construct_begin();
+	
+	mv= me->mvert;
+	mf= me->mface;
+	tf= me->tface;
+	for (a=0; a<me->totface; a++, mf++, tf++) {
+		ParamKey key, vkeys[4];
+		ParamBool pin[4], select[4];
+		float *co[4];
+		float *uv[4];
+		int nverts;
+
+		if ((tf->flag & TF_HIDE) || !(tf->flag & TF_SELECT))
+			continue;
+
+		if (implicit && !(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+			continue;
+
+		key = (ParamKey)mf;
+		vkeys[0] = (ParamKey)mf->v1;
+		vkeys[1] = (ParamKey)mf->v2;
+		vkeys[2] = (ParamKey)mf->v3;
+
+		co[0] = (mv+mf->v1)->co;
+		co[1] = (mv+mf->v2)->co;
+		co[2] = (mv+mf->v3)->co;
+
+		uv[0] = tf->uv[0];
+		uv[1] = tf->uv[1];
+		uv[2] = tf->uv[2];
+
+		pin[0] = ((tf->flag & TF_PIN1) != 0);
+		pin[1] = ((tf->flag & TF_PIN2) != 0);
+		pin[2] = ((tf->flag & TF_PIN3) != 0);
+
+		select[0] = ((tf->flag & TF_SEL1) != 0);
+		select[1] = ((tf->flag & TF_SEL2) != 0);
+		select[2] = ((tf->flag & TF_SEL3) != 0);
+
+		if (mf->v4) {
+			vkeys[3] = (ParamKey)mf->v4;
+			co[3] = (mv+mf->v4)->co;
+			uv[3] = tf->uv[3];
+			pin[3] = ((tf->flag & TF_PIN4) != 0);
+			select[3] = ((tf->flag & TF_SEL4) != 0);
+			nverts = 4;
+		}
+		else
+			nverts = 3;
+
+		param_face_add(handle, key, nverts, vkeys, co, uv, pin, select);
+	}
+
+	if (!implicit) {
+		for(medge=me->medge, a=me->totedge; a>0; a--, medge++) {
+			if(medge->flag & ME_SEAM) {
+				ParamKey vkeys[2];
+
+				vkeys[0] = (ParamKey)medge->v1;
+				vkeys[1] = (ParamKey)medge->v2;
+				param_edge_set_seam(handle, vkeys);
+			}
+		}
+	}
+
+	param_construct_end(handle, fill, implicit);
+
+	return handle;
+}
+
+#if 0
+void unwrap_lscm(void)
+{
+	Mesh *me;
+	ParamHandle *handle;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+
+	handle = construct_param_handle(me, 0, 1);
+
+	param_lscm_begin(handle);
+	param_lscm_solve(handle);
+	param_lscm_end(handle);
+
+	param_pack(handle);
+
+	param_delete(handle);
+
+	BIF_undo_push("UV lscm unwrap");
+
+	object_uvs_changed(OBACT);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+#endif
+
+void minimize_stretch_tface_uv(void)
+{
+	Mesh *me;
+	ParamHandle *handle;
+	double lasttime;
+	short doit = 1, val;
+	unsigned short event = 0;
+	
+	me = get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+
+	handle = construct_param_handle(me, 1, 0);
+
+	lasttime = PIL_check_seconds_timer();
+
+	param_stretch_begin(handle);
+
+	while (doit) {
+		param_stretch_iter(handle);
+
+		while (qtest()) {
+			event= extern_qread(&val);
+			if (val && (event==ESCKEY || event==RETKEY || event==PADENTER))
+				doit = 0;
+		}
+		
+		if (!doit)
+			break;
+
+		if (PIL_check_seconds_timer() - lasttime > 0.5) {
+			headerprint("Enter to finish. Escape to cancel.");
+
+			lasttime = PIL_check_seconds_timer();
+			if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
+			else force_draw(0);
+		}
+	}
+
+	param_stretch_end(handle, event==ESCKEY);
+
+	param_delete(handle);
+
+	BIF_undo_push("UV stretch minimize");
+
+	object_uvs_changed(OBACT);
+
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 

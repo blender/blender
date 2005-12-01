@@ -3867,8 +3867,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					sample_vpaint();
 				break;
 			case AKEY:
-				if((G.qual==0))
-					select_swap_tface_uv();
+				select_swap_tface_uv();
 				break;
 			case BKEY:
 				if(G.qual==LR_SHIFTKEY)
@@ -3956,6 +3955,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					stitch_uv_tface(0);
 				else if(G.qual==LR_SHIFTKEY)
 					stitch_uv_tface(1);
+				else if(G.qual==LR_CTRLKEY)
+					minimize_stretch_tface_uv();
 				break;
 			case WKEY:
 				weld_align_menu_tface_uv();
