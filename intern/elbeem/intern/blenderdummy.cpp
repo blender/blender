@@ -10,10 +10,25 @@
  *****************************************************************************/
  
 #include <stdlib.h>
+#include "ntl_vector3dim.h"
 
 extern "C" 
 int performElbeemSimulation(char *cfgfilename) {
-	return 1;
+	return 1; // dummy
 };
 
+// dummies from intern/elbeem/intern/solver_interface.cpp
+// for utilities.cpp
+
+void initGridSizes(int &sizex, int &sizey, int &sizez,
+		ntlVec3Gfx &geoStart, ntlVec3Gfx &geoEnd, 
+		int mMaxRefine, bool parallel) 
+{
+	// dummy
+}
+
+void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
+		double *reqret, string *reqstr) {
+	*reqret =  0.0; // dummy
+}
 
