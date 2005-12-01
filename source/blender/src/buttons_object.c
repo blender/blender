@@ -1896,7 +1896,7 @@ static void object_softbodies(Object *ob)
 					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 			}
 			else {
-				uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,100,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use Lattice weight values");
+				uiDefButS(block, TOG, B_SOFTBODY_CHANGE, "W",			140,100,20,20, &sb->vertgroup, 0, 1, 0, 0, "Use control point weight values");
 				uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Goal:",	160,100,150,20, &sb->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
 			}
 
