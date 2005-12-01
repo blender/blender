@@ -39,6 +39,7 @@
 #include "DNA_object_types.h"
 #include "BKE_library.h"	/* for all_local */
 #include "BKE_font.h"		/* for text_to_curve */
+#include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BLO_readfile.h"
@@ -137,6 +138,8 @@ struct PyMethodDef M_Library_methods[] = {
 PyObject *M_Library_Open( PyObject * self, PyObject * args )
 {
 	char *fname = NULL;
+	char filename[FILE_MAXDIR+FILE_MAXFILE];
+
 	int len = 0;
 
 	if( !PyArg_ParseTuple( args, "s", &fname ) ) {
@@ -149,7 +152,10 @@ PyObject *M_Library_Open( PyObject * self, PyObject * args )
 		Py_DECREF( Py_None );	/* incref'ed by above function */
 	}
 
+   	/* G.sce = last file loaded, save for UI and restore after opening file */
+	BLI_strncpy(filename, G.sce, sizeof(filename));
 	bpy_openlib = BLO_blendhandle_from_file( fname );
+	BLI_strncpy(G.sce, filename, sizeof(filename)); 
 
 	if( !bpy_openlib )
 		return Py_BuildValue( "i", 0 );
