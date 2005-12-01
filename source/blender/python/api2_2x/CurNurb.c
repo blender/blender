@@ -638,7 +638,8 @@ static PyObject *CurNurb_getFlagU( BPy_CurNurb * self )
  *
  *  set curve's flagu and recalculate the knots
  *
- *  Possible values: 0 - uniform, 1 - endpoints, 2 - bezier
+ *  Possible values: 0 - uniform, 2 - endpoints, 4 - bezier
+ *    bit 0 controls CU_CYCLIC
  */
 
 static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
@@ -646,9 +647,12 @@ static PyObject *CurNurb_setFlagU( BPy_CurNurb * self, PyObject * args )
 	int flagu;
 
 	if( !PyArg_ParseTuple( args, "i", &( flagu ) ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected integer argument" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected integer argument in range [0,5]" );
+
+	if( flagu < 0 || flagu > 5 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected integer argument in range [0,5]" );
 
 	if( self->nurb->flagu != flagu ) {
 		self->nurb->flagu = (short)flagu;
@@ -689,9 +693,12 @@ static PyObject *CurNurb_setFlagV( BPy_CurNurb * self, PyObject * args )
 	int flagv;
 
 	if( !PyArg_ParseTuple( args, "i", &( flagv ) ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_AttributeError,
-			   "expected integer argument" ) );
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected integer argument in range [0,5]" );
+
+	if( flagv < 0 || flagv > 5 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected integer argument in range [0,5]" );
 
 	if( self->nurb->flagv != flagv ) {
 		self->nurb->flagv = (short)flagv;
