@@ -388,7 +388,7 @@
 #define B_AUTOFGON		32
 #define B_KNIFE			0x80
 #define B_PERCENTSUBD	0x40
-
+#define B_MESH_X_MIRROR	0x100
 
 /* DISPLAYMODE */
 #define R_DISPLAYVIEW	0

@@ -57,6 +57,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
 #include "BIF_editsima.h"
+#include "BIF_meshtools.h"
 
 #include "BKE_action.h"
 #include "BKE_anim.h"
@@ -78,6 +79,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "blendef.h"
 
@@ -174,6 +176,28 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 	}
 }
 
+/* assumes G.obedit set to mesh object */
+static void editmesh_apply_to_mirror(TransInfo *t)
+{
+	TransData *td = t->data;
+	EditVert *eve;
+	int i;
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+		if (td->loc==NULL)
+			break;
+		
+		eve= td->tdmir;
+		if(eve) {
+			eve->co[0]= -td->loc[0];
+			eve->co[1]= td->loc[1];
+			eve->co[2]= td->loc[2];
+		}		
+	}		
+}
+
 /* called for updating while transform acts, once per redraw */
 void recalcData(TransInfo *t)
 {
@@ -185,6 +209,9 @@ void recalcData(TransInfo *t)
 			/* mirror modifier clipping? */
 			if(t->state != TRANS_CANCEL)
 				clipMirrorModifier(t, G.obedit);
+			
+			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
+				editmesh_apply_to_mirror(t);
 			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			

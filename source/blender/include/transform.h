@@ -125,6 +125,7 @@ typedef struct TransData {
 	struct Object *ob;
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
+	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */
     short  flag;         /* Various flags */
 	short  protectflag;	 /* If set, copy of Object or PoseChannel protection */
 } TransData;

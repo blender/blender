@@ -103,16 +103,6 @@ editmesh_mods.c, UI level access, no geometry changes
 
 /* ****************************** MIRROR **************** */
 
-static EditVert *get_x_mirror_vert(EditVert *eve)
-{
-	int index;
-	
-	index= mesh_get_x_mirror_vert(G.obedit, POINTER_TO_INT(eve));
-	if(index != -1)
-		return INT_TO_POINTER(index);
-	return NULL;
-}
-
 void EM_select_mirrored(void)
 {
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
@@ -121,7 +111,7 @@ void EM_select_mirrored(void)
 		
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->f & SELECT) {
-				v1= get_x_mirror_vert(eve);
+				v1= editmesh_get_x_mirror_vert(G.obedit, eve->co);
 				if(v1) {
 					eve->f &= ~SELECT;
 					v1->f |= SELECT;

@@ -100,6 +100,7 @@
 #include "BIF_editsima.h"
 #include "BIF_gl.h"
 #include "BIF_poseobject.h"
+#include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -1409,6 +1410,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->ext = NULL;
 	td->tdi = NULL;
 	td->val = NULL;
+	td->tdmir= NULL;
 }
 
 static void make_vertexcos__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
@@ -1503,7 +1505,8 @@ static void createTransEditVerts(TransInfo *t)
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
-		
+	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
+
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
@@ -1570,6 +1573,17 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
+	/* find out which half we do */
+	if(mirror) {
+		for (eve=em->verts.first; eve; eve=eve->next) {
+			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
+				if(eve->co[0]<0.0f)
+					mirror = -1;
+				break;
+			}
+		}
+	}
+	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
@@ -1603,6 +1617,12 @@ static void createTransEditVerts(TransInfo *t)
 				else {
 					Mat3CpyMat3(tob->smtx, smtx);
 					Mat3CpyMat3(tob->mtx, mtx);
+				}
+				
+				/* Mirror? */
+				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
+					if(vmir!=eve) tob->tdmir= vmir;
 				}
 				tob++;
 			}
@@ -2025,6 +2045,9 @@ void special_aftertrans_update(TransInfo *t)
 	if(G.obedit) {
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
+		
+		/* table needs to be created for each edit command, since vertices can move etc */
+		mesh_octree_table(G.obedit, NULL, 'e');
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		bArmature *arm;

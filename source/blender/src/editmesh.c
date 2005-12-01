@@ -78,6 +78,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_interface.h"
+#include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
@@ -536,6 +537,8 @@ void free_editMesh(EditMesh *em)
 	em->allverts= em->curvert= NULL;
 	em->alledges= em->curedge= NULL;
 	em->allfaces= em->curface= NULL;
+	
+	mesh_octree_table(NULL, NULL, 'e');
 	
 	G.totvert= G.totface= 0;
 }

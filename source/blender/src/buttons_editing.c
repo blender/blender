@@ -3262,6 +3262,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiDefButBitI(block, TOG, G_DRAW_FACEAREA, REDRAWVIEW3D, "Face Area",	1125,44,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 	uiBlockEndAlign(block);
 
+	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
 }
 
 char *get_vertexgroup_menustr(Object *ob)
