@@ -68,15 +68,16 @@ void BL_ArmatureObject::ProcessReplica(BL_ArmatureObject *replica)
 BL_ArmatureObject::~BL_ArmatureObject()
 {
 	if (m_mrdPose){
-//		clear_pose(m_mrdPose);
+		free_pose_channels(m_mrdPose);
 		MEM_freeN(m_mrdPose);
 	}
 }
 
+/* note, you can only call this for exisiting Armature objects, and not mix it with other Armatures */
+/* there is only 1 unique Pose per Armature */
 void BL_ArmatureObject::ApplyPose()
 {
 	if (m_pose){
-//		apply_pose_armature(GetArmature(), m_pose, 1);
 		if (!m_mrdPose)
 			copy_pose (&m_mrdPose, m_pose, 0);
 		else
@@ -160,18 +161,16 @@ bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
 {
 	// ton hack
 	bPoseChannel *pchan= get_pose_channel(m_pose, bone->name);
-	
-//	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
-	
-	matrix.setValue(&pchan->pose_mat[0][0]);
-	
-	return true;
+
+	if(pchan) {
+		matrix.setValue(&pchan->pose_mat[0][0]);
+		return true;
+	}
+	return false;
 }
 
 float BL_ArmatureObject::GetBoneLength(Bone* bone) const
 {
-//	MT_assert(verify_boneptr((bArmature*) GetArmature(), bone) && "Bone is not part of this armature.");
-	
 	return (MT_Point3(bone->head) - MT_Point3(bone->tail)).length();
 }
 

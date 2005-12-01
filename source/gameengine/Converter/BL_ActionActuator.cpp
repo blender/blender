@@ -59,18 +59,18 @@
 BL_ActionActuator::~BL_ActionActuator()
 {
 	if (m_pose) {
-//		clear_pose(m_pose);
+		free_pose_channels(m_pose);
 		MEM_freeN(m_pose);
 		m_pose = NULL;
 	};
 	
 	if (m_userpose){
-//		clear_pose(m_userpose);
+		free_pose_channels(m_userpose);
 		MEM_freeN(m_userpose);
 		m_userpose=NULL;
 	}
 	if (m_blendpose) {
-//		clear_pose(m_blendpose);
+		free_pose_channels(m_blendpose);
 		MEM_freeN(m_blendpose);
 		m_blendpose = NULL;
 	};

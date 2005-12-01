@@ -71,9 +71,9 @@ public:
 						m_defbase(&bmeshobj->defbase)
 	{
 		/* Build all precalculatable matrices for bones */
-
-		GB_build_mats(bmeshobj->parent->obmat, bmeshobj->obmat, m_premat, m_postmat);
-		GB_validate_defgroups((Mesh*)bmeshobj->data, m_defbase);
+/* XXX note: obsolete */
+//		GB_build_mats(bmeshobj->parent->obmat, bmeshobj->obmat, m_premat, m_postmat);
+//		GB_validate_defgroups((Mesh*)bmeshobj->data, m_defbase);
 		// Validate bone data in bDeformGroups
 /*
 		for (bDeformGroup *dg=(bDeformGroup*)m_defbase->first; dg; dg=(bDeformGroup*)dg->next)
@@ -91,8 +91,9 @@ public:
 						m_lastUpdate(-1),
 						m_defbase(&bmeshobj_old->defbase)
 	{
-		GB_build_mats(bmeshobj_new->parent->obmat, bmeshobj_new->obmat, m_premat, m_postmat);
-		GB_validate_defgroups((Mesh*)bmeshobj_old->data, m_defbase);
+/* XXX note: obsolete */
+//		GB_build_mats(bmeshobj_new->parent->obmat, bmeshobj_new->obmat, m_premat, m_postmat);
+//		GB_validate_defgroups((Mesh*)bmeshobj_old->data, m_defbase);
 	};
 
 	virtual void ProcessReplica();
@@ -103,8 +104,9 @@ public:
 
 protected:
 	BL_ArmatureObject		*m_armobj;			//	Our parent object
-	float					m_premat[4][4];
-	float					m_postmat[4][4];
+/* XXX note obsolete */
+//	float					m_premat[4][4];
+//	float					m_postmat[4][4];
 	float					m_time;
 	double					m_lastUpdate;
 	ListBase				*m_defbase;
