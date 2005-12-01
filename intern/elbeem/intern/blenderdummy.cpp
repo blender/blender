@@ -9,6 +9,8 @@
  *
  *****************************************************************************/
  
+#ifdef ELBEEM_DUMMIES
+
 #include <stdlib.h>
 #include "ntl_vector3dim.h"
 
@@ -31,4 +33,6 @@ void calculateMemreqEstimate( int resx,int resy,int resz, int refine,
 		double *reqret, string *reqstr) {
 	*reqret =  0.0; // dummy
 }
+
+#endif // ELBEEM_DUMMIES
 
