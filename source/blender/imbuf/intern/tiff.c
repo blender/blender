@@ -49,6 +49,8 @@
 #include "imbuf.h"
 #include "imbuf_patch.h"
 
+#include "BKE_global.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -392,6 +394,8 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 
 	/* close the client layer interface to the in-memory file */
 	libtiff_TIFFClose(image);
+
+	if (G.order == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
 
 	/* return successfully */
 	return (ibuf);

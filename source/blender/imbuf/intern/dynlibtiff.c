@@ -76,7 +76,9 @@ void libtiff_loadlibtiff(void)
 	char *filename;
 	libtiff = NULL;
 
-#ifndef __APPLE__       /* no standard location of libtiff in MacOS X */
+	filename = getenv("BF_TIFF_LIB");
+	if (filename) libtiff = PIL_dynlib_open(filename);
+	if (libtiff != NULL)  return;
 
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
@@ -92,12 +94,7 @@ void libtiff_loadlibtiff(void)
 	if (libtiff != NULL)  return;
 	/* For solaris */
 	libtiff = PIL_dynlib_open("/usr/openwin/lib/libtiff.so");
-	if (libtiff != NULL)  return;
 
-#endif
-
-	filename = getenv("BF_TIFF_LIB");
-	if (filename) libtiff = PIL_dynlib_open(filename);
 }
 
 void *libtiff_findsymbol(char *name)
