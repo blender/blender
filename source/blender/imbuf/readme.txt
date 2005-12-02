@@ -30,7 +30,10 @@ source/blender/src/toets.c
 source/blender/src/writeimage.c
 
 Step 5:
-edit blender/source/blender/imbuf/intern/util.c
+edit the following files:
+blender/source/blender/imbuf/intern/util.c
+blender/source/blender/src/filesel.c
+blender/source/blender/src/screendump.c
 and add your extension so that your format gets recognized in the thumbnails.
 
 Step 6: 
