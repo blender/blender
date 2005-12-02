@@ -196,8 +196,8 @@ void initglobals(void)
 {
 	memset(&G, 0, sizeof(Global));
 	
+	memset(&theEditMesh, 0, sizeof(theEditMesh));
 	G.editMesh = &theEditMesh;
-	memset(G.editMesh, 0, sizeof(G.editMesh));
 
 	U.savetime= 1;
 
