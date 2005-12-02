@@ -418,8 +418,8 @@ class CurNurb:
 
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
 
-    @ivar flagU: The CurNurb knot flag U.  See L{setFlagU} for bit definitions.
-    @ivar flagV: The CurNurb knot flag V (0: uniform, 1: endpoints, 2: bezier)
+    @ivar flagU: The CurNurb knot flag U.  See L{setFlagU} for description.
+    @ivar flagV: The CurNurb knot flag V.  See L{setFlagU} for description.
     @ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
     """
 	
@@ -484,35 +484,37 @@ class CurNurb:
 
     def getFlagU():
       """
-      Get the CurNurb knot flag U.  This flag is a bitfield.  See L{setFlagU} for bit definitions.
+      Get the CurNurb knot flag U.  
       @rtype: integer
-      @return: 0 - uniform, 2 - endpoints, 4 - bezier
+      @return: See L{setFlagU} for description of return value.
       """
 
-    def setFlagU( value ):
+    def setFlagU( flag ):
       """
-      Set the entire CurNurb knot flag U (knots are recalculated automatically).  Another of Blender's bitfields.
-        - bit 0:  continuous.
-        - bit 1:  endpoints.
-        - bit 2:  bezier.
-      @type value: integer
-      @param value: CurNurb knot flag (0 - uniform, 2 - endpoints, 4 - bezier)
+      Set the entire CurNurb knot flag U (knots are recalculated automatically).
+      The flag can be one of six values:
+           - 0 or 1: uniform knots
+           - 2 or 3: endpoints knots
+           - 4 or 5: bezier knots
+      Bit 0 controls whether or not the curve is cyclic (1 = cyclic).
+      @type flag: integer
+      @param flag: CurNurb knot flag
       @rtype: PyNone
       @return: PyNone
       """
 
     def getFlagV():
       """
-      Get the CurNurb knot flag V 
+      Get the CurNurb knot flag V.
       @rtype: integer
-      @return: 0 - uniform, 1 - endpoints, 2 - bezier
+      @return: See L{setFlagU} for description of return value.
       """
 
     def setFlagV( value ):
       """
-      Set the CurNurb knot flag V (knots are recalculated automatically)
+      Set the CurNurb knot flag V (knots are recalculated automatically).
       @type value: integer
-      @param value: CurNurb knot flag (0 - uniform, 1 - endpoints, 2 - bezier)
+      @param value: See L{setFlagU} for description of return.
       @rtype: PyNone
       @return: PyNone
       """

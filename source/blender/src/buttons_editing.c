@@ -511,6 +511,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
+		countall();
 		break;
 	case B_HIDE:
 		if(G.obedit) {
@@ -3028,11 +3029,13 @@ void do_meshbuts(unsigned short event)
 			sel_verts_defgroup(1);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
+			countall();
 			break;
 		case B_DESELVGROUP:
 			sel_verts_defgroup(0);
 			allqueue (REDRAWVIEW3D, 1);
 			allqueue(REDRAWOOPS, 0);
+			countall();
 			break;
 		case B_LINKEDVGROUP:
 			copy_linked_vgroup_channels(ob);
@@ -3091,7 +3094,6 @@ void do_meshbuts(unsigned short event)
 			break;
 		}
 	}
-
 	if(G.obedit==0 || (G.obedit->type!=OB_MESH)) return;
 
 	switch(event) {
@@ -3168,6 +3170,7 @@ void do_meshbuts(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	}
+
 	/* WATCH IT: previous events only in editmode! */
 }
 

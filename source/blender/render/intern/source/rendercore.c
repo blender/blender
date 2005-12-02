@@ -113,6 +113,48 @@ void calc_view_vector(float *view, float x, float y)
 	}
 }
 
+static void fogcolor(float *colf, float *rco, float *view)
+{
+	float alpha, stepsize, dist, hor[3], zen[3], vec[3], dview[3];
+	float accum[4]={0.0f, 0.0f, 0.0f, 0.0f}, div=0.0f;
+	
+	hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
+	zen[0]= R.wrld.zenr; zen[1]= R.wrld.zeng; zen[2]= R.wrld.zenb;
+	
+	VECCOPY(vec, rco);
+	
+	/* we loop from cur coord to mist start in steps */
+	stepsize= 1.0f;
+	
+	div= ABS(view[2]);
+	dview[0]= view[0]/(stepsize*div);
+	dview[1]= view[1]/(stepsize*div);
+	dview[2]= -stepsize;
+	
+if(G.rt)		printf("\n");
+	for(dist= -rco[2]; dist>R.wrld.miststa; dist-= stepsize) {
+		
+		hor[0]= R.wrld.horr; hor[1]= R.wrld.horg; hor[2]= R.wrld.horb;
+		alpha= 1.0f;
+		do_sky_tex(vec, vec, NULL, hor, zen, &alpha);
+if(G.rt)		printf("dist %f ", dist);
+if(G.rt)		printvecf("vec", vec);
+		
+		accum[3]= (dist-R.wrld.miststa)/R.wrld.mistdist;
+if(G.rt)		printf("accum %f\n", accum[3]);
+		accum[3]= hor[0]*accum[3];
+		
+		/* premul! */
+		accum[0]= hor[0]*accum[3];
+		accum[1]= hor[1]*accum[3];
+		accum[2]= hor[2]*accum[3];
+		addAlphaOverFloat(colf, accum);
+		
+		VECSUB(vec, vec, dview);
+	}
+	
+}
+
 float mistfactor(float zcor, float *co)	/* dist en height, return alpha */
 {
 	float fac, hi;
@@ -2333,8 +2375,13 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 			}
 		}
 		
+		/* FOG */
+		if(0) {//(R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ) {
+			fogcolor(col, shi.co, shi.view);
+		}
+		
 		/* MIST */
-		if( (R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ) {
+		if((R.wrld.mode & WO_MIST) && (shi.mat->mode & MA_NOMIST)==0 ) {
 			if(R.r.mode & R_ORTHO)
 				alpha= mistfactor(-shi.co[2], shi.co);
 			else

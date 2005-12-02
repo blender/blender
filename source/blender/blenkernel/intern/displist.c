@@ -1104,8 +1104,7 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase)
 						v2= bezt->vec[0];
 						forward_diff_bezier(v1[0], v1[3], v2[0], v2[3], data, nu->resolu, 3);
 						forward_diff_bezier(v1[1], v1[4], v2[1], v2[4], data+1, nu->resolu, 3);
-						if((nu->type & 8)==0)
-							forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
+						forward_diff_bezier(v1[2], v1[5], v2[2], v2[5], data+2, nu->resolu, 3);
 						data+= 3*nu->resolu;
 					}
 					

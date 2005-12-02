@@ -2022,9 +2022,11 @@ void special_editmenu(void)
 								waitcursor(1);
 								ret = NewBooleanMesh(BASACT,base_select,nr);
 								if (ret==0) {
-									error("An internal error occurred -- sorry!");
+									error("An internal error occurred");
 								} else if(ret==-1) {
 									error("Selected meshes must have faces to perform boolean operations");
+								} else if (ret==-2) {
+									error("Both meshes must be a closed mesh");
 								}
 								else BIF_undo_push("Boolean");
 								waitcursor(0);
