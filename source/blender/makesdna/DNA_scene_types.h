@@ -407,33 +407,6 @@ typedef struct Scene {
 #define R_RADHDR	21
 #define R_TIFF		22
 
-/* **************** RENDER ********************* */
-/* mode flag is same as for renderdata */
-/* flag */
-#define R_ZTRA			1
-#define R_HALO			2
-#define R_SEC_FIELD		4
-#define R_LAMPHALO		8
-#define R_RENDERING		16
-#define R_ANIMRENDER	32
-#define R_REDRAW_PRV	64
-
-/* vlakren->flag (vlak = face in dutch) char!!! */
-#define R_SMOOTH		1
-#define R_VISIBLE		2
-	/* strand flag, means special handling */
-#define R_STRAND		4
-#define R_NOPUNOFLIP	8
-#define R_FULL_OSA		16
-#define R_FACE_SPLIT	32
-	/* Tells render to divide face other way. */
-#define R_DIVIDE_24		64	
-	/* vertex normals are tangent or view-corrected vector, for hair strands */
-#define R_TANGENT		128		
-
-/* vertren->texofs (texcoordinate offset relative to vertren->orco */
-#define R_UVOFS3	1
-
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2

@@ -111,11 +111,8 @@ int vergcband(const void *, const void *);
 void save_env(char *);
 void drawcolorband(ColorBand *, float , float , float , float );
 
-
-static MTex mtexcopybuf;
 static MTex emptytex;
 static int packdummy = 0;
-
 
 static char *mapto_blendtype_pup(void)
 {
@@ -1726,6 +1723,8 @@ static void radio_panel_render(Radio *rad)
 
 void do_worldbuts(unsigned short event)
 {
+	static short mtexcopied=0;
+	static MTex mtexcopybuf;
 	World *wrld;
 	MTex *mtex;
 	
@@ -1741,6 +1740,35 @@ void do_worldbuts(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 			BIF_undo_push("Unlink world texture");
 			BIF_preview_changed(G.buts);
+		}
+		break;
+	case B_WMTEXCOPY:
+		wrld= G.buts->lockpoin;
+		if(wrld && wrld->mtex[(int)wrld->texact] ) {
+			mtex= wrld->mtex[(int)wrld->texact];
+			if(mtex->tex==0) {
+				error("No texture available");
+			}
+			else {
+				memcpy(&mtexcopybuf, wrld->mtex[(int)wrld->texact], sizeof(MTex));
+				mtexcopied= 1;
+			}
+		}
+		break;
+	case B_WMTEXPASTE:
+		wrld= G.buts->lockpoin;
+		if(wrld && mtexcopied && mtexcopybuf.tex) {
+			if(wrld->mtex[(int)wrld->texact]==0 ) 
+				wrld->mtex[(int)wrld->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
+			else if(wrld->mtex[(int)wrld->texact]->tex)
+				wrld->mtex[(int)wrld->texact]->tex->id.us--;
+			
+			memcpy(wrld->mtex[(int)wrld->texact], &mtexcopybuf, sizeof(MTex));
+			
+			id_us_plus((ID *)mtexcopybuf.tex);
+			BIF_undo_push("Paste mapping settings");
+			BIF_preview_changed(G.buts);
+			scrarea_queue_winredraw(curarea);
 		}
 		break;
 	}
@@ -1841,7 +1869,7 @@ static void world_panel_texture(World *wrld)
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
 		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 279,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 220,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(wrld->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
@@ -1854,7 +1882,11 @@ static void world_panel_texture(World *wrld)
 
 	uiBlockSetCol(block, TH_AUTO);
 	
-
+	/* copy/paste */
+	uiBlockBeginAlign(block);
+	uiDefIconBut(block, BUT, B_WMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_WMTEXPASTE, ICON_PASTEUP,275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+		
 	/* TEXCO */
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "View",		100,110,100,20, &(mtex->texco), 4.0, (float)TEXCO_VIEW, 0, 0, "Uses view vector for the texture coordinates");
@@ -2051,6 +2083,8 @@ static void world_panel_preview(World *wrld)
 
 void do_lampbuts(unsigned short event)
 {
+	static short mtexcopied=0;
+	static MTex mtexcopybuf;
 	Lamp *la;
 	MTex *mtex;
 
@@ -2094,6 +2128,36 @@ void do_lampbuts(unsigned short event)
 		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWVIEW3D, 0); 	
 		break;
+	case B_LMTEXCOPY:
+		la= G.buts->lockpoin;
+		if(la && la->mtex[(int)la->texact] ) {
+			mtex= la->mtex[(int)la->texact];
+			if(mtex->tex==0) {
+				error("No texture available");
+			}
+			else {
+				memcpy(&mtexcopybuf, la->mtex[(int)la->texact], sizeof(MTex));
+				mtexcopied= 1;
+			}
+		}
+		break;
+	case B_LMTEXPASTE:
+		la= G.buts->lockpoin;
+		if(la && mtexcopied && mtexcopybuf.tex) {
+			if(la->mtex[(int)la->texact]==0 ) 
+				la->mtex[(int)la->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
+			else if(la->mtex[(int)la->texact]->tex)
+				la->mtex[(int)la->texact]->tex->id.us--;
+
+			memcpy(la->mtex[(int)la->texact], &mtexcopybuf, sizeof(MTex));
+			
+			id_us_plus((ID *)mtexcopybuf.tex);
+			BIF_undo_push("Paste mapping settings");
+			BIF_preview_changed(G.buts);
+			scrarea_queue_winredraw(curarea);
+		}
+		break;
+		
 	}
 	
 	if(event) freefastshade();
@@ -2190,7 +2254,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 		uiDefBut(block, TEX, B_IDNAME, "TE:",	100,160,200,19, id->name+2, 0.0, 18.0, 0, 0, "Displays name of the texture block: click to change");
 		sprintf(str, "%d", id->us);
 		uiDefBut(block, BUT, 0, str,			196,140,21,19, 0, 0, 0, 0, 0, "Displays number of users of texture: click to make single user");
-		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 241,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
+		uiDefIconBut(block, BUT, B_AUTOTEXNAME, ICON_AUTO, 221,140,21,19, 0, 0, 0, 0, 0, "Auto-assigns name to texture");
 		if(id->lib) {
 			if(la->id.lib) uiDefIconBut(block, BUT, 0, ICON_DATALIB,	219,140,21,19, 0, 0, 0, 0, 0, "");
 			else uiDefIconBut(block, BUT, 0, ICON_PARLIB,	219,140,21,19, 0, 0, 0, 0, 0, "");	
@@ -2201,6 +2265,11 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	else 
 		uiDefButS(block, TOG, B_LTEXBROWSE, "Add New" ,100, 160, 200, 19, &(G.buts->texnr), -1.0, 32767.0, 0, 0, "Adds a new texture datablock");
 
+	/* copy/paste */
+	uiBlockBeginAlign(block);
+	uiDefIconBut(block, BUT, B_LMTEXCOPY, ICON_COPYUP,	250,140,25,19, 0, 0, 0, 0, 0, "Copies the mapping settings to the buffer");
+	uiDefIconBut(block, BUT, B_LMTEXPASTE, ICON_PASTEUP,	275,140,25,19, 0, 0, 0, 0, 0, "Pastes the mapping settings from the buffer");
+	
 	/* TEXCO */
 	uiBlockSetCol(block, TH_AUTO);
 	uiBlockBeginAlign(block);
@@ -2490,6 +2559,7 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 void do_matbuts(unsigned short event)
 {
 	static short mtexcopied=0;
+	static MTex mtexcopybuf;
 	Material *ma;
 	MTex *mtex;
 
@@ -2612,7 +2682,11 @@ void do_matbuts(unsigned short event)
 	case B_MTEXPASTE:
 		ma= G.buts->lockpoin;
 		if(ma && mtexcopied && mtexcopybuf.tex) {
-			if(ma->mtex[(int)ma->texact]==0 ) ma->mtex[(int)ma->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
+			if(ma->mtex[(int)ma->texact]==0 ) 
+				ma->mtex[(int)ma->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
+			else if(ma->mtex[(int)ma->texact]->tex)
+				ma->mtex[(int)ma->texact]->tex->id.us--;
+
 			memcpy(ma->mtex[(int)ma->texact], &mtexcopybuf, sizeof(MTex));
 			
 			id_us_plus((ID *)mtexcopybuf.tex);

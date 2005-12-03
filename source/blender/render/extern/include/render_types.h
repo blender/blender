@@ -194,9 +194,9 @@ typedef struct VertRen
 	float *orco;
 	float *sticky;
 	void *svert;			/* smooth vert, only used during initrender */
-	short clip, texofs;		/* texofs= flag */
-	float accum;			/* accum for radio weighting, and for strand texco static particles */
+	short clip;	
 	short flag;				/* in use for clipping ztra parts */
+	float accum;			/* accum for radio weighting, and for strand texco static particles */
 } VertRen;
 
 /* ------------------------------------------------------------------------- */
@@ -312,6 +312,34 @@ typedef struct LampRen
 	
 	struct MTex *mtex[MAX_MTEX];
 } LampRen;
+
+/* **************** defines ********************* */
+
+/* mode flag is same as for renderdata */
+/* flag */
+#define R_ZTRA			1
+#define R_HALO			2
+#define R_SEC_FIELD		4
+#define R_LAMPHALO		8
+#define R_RENDERING		16
+#define R_ANIMRENDER	32
+#define R_REDRAW_PRV	64
+
+/* vlakren->flag (vlak = face in dutch) char!!! */
+#define R_SMOOTH		1
+#define R_VISIBLE		2
+/* strand flag, means special handling */
+#define R_STRAND		4
+#define R_NOPUNOFLIP	8
+#define R_FULL_OSA		16
+#define R_FACE_SPLIT	32
+/* Tells render to divide face other way. */
+#define R_DIVIDE_24		64	
+/* vertex normals are tangent or view-corrected vector, for hair strands */
+#define R_TANGENT		128		
+
+
+
 
 
 #endif /* RENDER_TYPES_H */

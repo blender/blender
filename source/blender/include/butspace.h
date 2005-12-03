@@ -155,6 +155,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_SBUFF			1104
 #define B_SHADBUF		1105
 #define B_SHADRAY		1106
+#define B_LMTEXPASTE	1107
+#define B_LMTEXCOPY		1108
 
 /* *********************** */
 #define B_MATBUTS		1300
@@ -177,6 +179,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_MATCOLORBAND	1216
 /* yafray: material preset menu event */
 #define B_MAT_YF_PRESET	1217
+
 
 /* *********************** */
 #define B_TEXBUTS		1400
@@ -249,6 +252,8 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_TEXCLEARWORLD	1501
 #define B_COLHOR		1502
 #define B_COLZEN		1503
+#define B_WMTEXPASTE	1504
+#define B_WMTEXCOPY		1505
 
 
 /* *********************** */

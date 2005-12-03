@@ -74,6 +74,35 @@
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
+/* proposal for more dynamic allocation of options for render vertices, so we dont
+   have to reserve this space inside vertices */
+typedef struct VertTableNode {
+	VertRen *vert;
+	float *rad;
+	float *sticky;
+	float *strand;
+	float *tangent;
+	float *stress;
+} VertTableNode;
+
+#define RE_STICKY_ELEMS	3
+float *RE_vertren_get_sticky(VertRen *ver, int verify)
+{
+	float *sticky;
+	int a= ver->index>>8;
+	
+	sticky= R.blove[a].sticky;
+	if(sticky==NULL) {
+		if(verify) 
+			sticky= R.blove[a].sticky= MEM_mallocN(RE_STICKY_ELEMS*sizeof(float), "sticky table");
+		else
+			return NULL;
+	}
+	sticky+= (nr & 255)*RE_STICKY_ELEMS;
+}
+#endif
+
 VertRen *RE_findOrAddVert(int nr)
 {
 	VertRen *v, **temp;
