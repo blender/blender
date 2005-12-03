@@ -1511,7 +1511,14 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3], DerivedM
 			 */
 		if (deform_r) *deform_r = getMeshDerivedMesh(me, ob, deformedVerts);
 	} else {
-		deformedVerts = inputVertexCos;
+		if(!fluidsimMeshUsed) {
+			// default behaviour for meshes
+			deformedVerts = inputVertexCos;
+		} else {
+			// the fluid sim mesh might have more vertices than the original 
+			// one, so inputVertexCos shouldnt be used
+			deformedVerts = mesh_getVertexCos(me, &numVerts);
+		}
 	}
 
 
