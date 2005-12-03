@@ -808,7 +808,7 @@ static void __nlBeginMatrix() {
 	}
 	else {
 		/* need to recompute b only, A is not constructed anymore */
-		__NL_CLEAR_ARRAY(NLfloat, __nlCurrentContext->b, n);
+		__NL_CLEAR_ARRAY(NLfloat, __nlCurrentContext->b, __nlCurrentContext->n);
 	}
 
 	__nlVariablesToVector();
@@ -871,12 +871,11 @@ static void __nlEndRow() {
 		}
 
 		S = -__nlCurrentContext->right_hand_side;
-		for(j=0; j<nl; j++) {
+		for(j=0; j<nl; j++)
 			S += al->coeff[j].value;
-		}
-		for(i=0; i<nf; i++) {
+
+		for(i=0; i<nf; i++)
 			b[ af->coeff[i].index ] -= af->coeff[i].value * S;
-		}
 	} else {
 		if (!__nlCurrentContext->solve_again) {
 			for(i=0; i<nf; i++) {
@@ -1110,12 +1109,13 @@ static void __nlFree_SUPERLU(__NLContext *context) {
 
 void nlPrintMatrix(void) {
 	__NLSparseMatrix* M  = &(__nlCurrentContext->M);
+	float *b = __nlCurrentContext->b;
 	NLuint i, jj, k;
 	NLuint n = __nlCurrentContext->n;
 	__NLRowColumn* Ri = NULL;
 	float *value = malloc(sizeof(*value)*n);
 
-	printf("M:\n");
+	printf("A:\n");
 	for(i=0; i<n; i++) {
 		Ri = &(M->row[i]);
 
@@ -1127,6 +1127,13 @@ void nlPrintMatrix(void) {
 			printf("%.3f ", value[k]);
 		printf("\n");
 	}
+
+	printf("b:\n");
+	for(i=0; i<n; i++)
+		printf("%f ", b[i]);
+	printf("\n");
+
+	free(value);
 }
 
 /************************************************************************/

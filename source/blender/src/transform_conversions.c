@@ -1733,6 +1733,9 @@ static void createTransUVs(TransInfo *t)
 				UVsToTransData(td++, td2d++, tf->uv[3], (tf->flag & TF_SEL4));
 		}
 	}
+
+	if (G.sima->flag & SI_LSCM_LIVE)
+		unwrap_lscm_live_begin();
 }
 
 void flushTransUVs(TransInfo *t)

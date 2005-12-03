@@ -1103,6 +1103,7 @@ void image_buttons(void)
 	char naam[256];
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
+	extern short CurrentUnwrapper;
 
 	headerbuttons_packdummy = 0;
 		
@@ -1180,6 +1181,9 @@ void image_buttons(void)
 
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
+
+	xco += 2*XIC;
+	uiDefButS(block, MENU, B_NOP, "Unwrapper%t|Old LSCM%x0|New LSCM%x1",xco,0,85,YIC, &CurrentUnwrapper, 0, 0, 0, 0, "Unwrapper");
 	
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;

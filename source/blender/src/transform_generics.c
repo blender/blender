@@ -300,7 +300,8 @@ void recalcData(TransInfo *t)
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		flushTransUVs(t);
-		if (G.sima->flag & SI_LSCM_LIVE) unwrap_lscm_live();
+		if (G.sima->flag & SI_LSCM_LIVE)
+			unwrap_lscm_live_re_solve();
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {
@@ -481,6 +482,9 @@ void postTrans (TransInfo *t)
 		MEM_freeN(t->data2d);
 		t->data2d= NULL;
 	}
+
+	if (G.sima->flag & SI_LSCM_LIVE)
+		unwrap_lscm_live_end();
 }
 
 static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, float fac2, float fac3)

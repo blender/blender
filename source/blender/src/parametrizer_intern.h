@@ -39,7 +39,7 @@ PHashLink *phash_next(PHash *ph, PHashKey key, PHashLink *link);
 		if (!(condition)) \
 			{ printf("Assertion %s:%d\n", __FILE__, __LINE__); abort(); }
 	#define param_warning(message) \
-		{ printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);
+		{ printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message); }
 #endif
 
 typedef enum PBool {
@@ -153,17 +153,21 @@ typedef struct PChart {
 		struct PChartLscm {
 			NLContext context;
 			float *abf_alpha;
-			PVert *singlepin;
 			PVert *pin1, *pin2;
 		} lscm;
 		struct PChartPack {
-			float rescale;
+			float rescale, area;
 			float size[2], trans[2];
 		} pack;
 	} u;
 
+	int flag;
 	struct PHandle *handle;
 } PChart;
+
+enum PChartFlag {
+	PCHART_NOPACK = 1
+};
 
 enum PHandleState {
 	PHANDLE_STATE_ALLOCATED,

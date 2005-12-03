@@ -67,6 +67,8 @@
 
 #include "parametrizer.h"
 
+short CurrentUnwrapper = 0;
+
 /* Implementation Least Squares Conformal Maps parameterization, based on
  * chapter 2 of:
  * Bruno Levy, Sylvain Petitjean, Nicolas Ray, Jerome Maillot. Least Squares
@@ -1140,6 +1142,11 @@ void unwrap_lscm(void)
 	int res;
 	Mesh *me;
 	int totgroup, *groups=NULL, a;
+
+	if (CurrentUnwrapper == 1) {
+		unwrap_lscm_new();
+		return;
+	}
 	
 	me= get_mesh(OBACT);
 	if(me==0 || me->tface==0) return;
@@ -1385,9 +1392,9 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill)
 		uv[1] = tf->uv[1];
 		uv[2] = tf->uv[2];
 
-		pin[0] = ((tf->flag & TF_PIN1) != 0);
-		pin[1] = ((tf->flag & TF_PIN2) != 0);
-		pin[2] = ((tf->flag & TF_PIN3) != 0);
+		pin[0] = ((tf->unwrap & TF_PIN1) != 0);
+		pin[1] = ((tf->unwrap & TF_PIN2) != 0);
+		pin[2] = ((tf->unwrap & TF_PIN3) != 0);
 
 		select[0] = ((tf->flag & TF_SEL1) != 0);
 		select[1] = ((tf->flag & TF_SEL2) != 0);
@@ -1397,7 +1404,7 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill)
 			vkeys[3] = (ParamKey)mf->v4;
 			co[3] = (mv+mf->v4)->co;
 			uv[3] = tf->uv[3];
-			pin[3] = ((tf->flag & TF_PIN4) != 0);
+			pin[3] = ((tf->unwrap & TF_PIN4) != 0);
 			select[3] = ((tf->flag & TF_SEL4) != 0);
 			nverts = 4;
 		}
@@ -1424,8 +1431,7 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill)
 	return handle;
 }
 
-#if 0
-void unwrap_lscm(void)
+void unwrap_lscm_new(void)
 {
 	Mesh *me;
 	ParamHandle *handle;
@@ -1435,11 +1441,12 @@ void unwrap_lscm(void)
 
 	handle = construct_param_handle(me, 0, 1);
 
-	param_lscm_begin(handle);
+	param_lscm_begin(handle, PARAM_FALSE);
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
 	param_pack(handle);
+	param_flush(handle);
 
 	param_delete(handle);
 
@@ -1450,7 +1457,6 @@ void unwrap_lscm(void)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 }
-#endif
 
 void minimize_stretch_tface_uv(void)
 {
@@ -1488,6 +1494,7 @@ void minimize_stretch_tface_uv(void)
 						if (blend < 10) {
 							blend++;
 							param_stretch_blend(handle, blend*0.1f);
+							param_flush(handle);
 							lasttime = 0.0f;
 						}
 						break;
@@ -1496,6 +1503,7 @@ void minimize_stretch_tface_uv(void)
 						if (blend > 0) {
 							blend--;
 							param_stretch_blend(handle, blend*0.1f);
+							param_flush(handle);
 							lasttime = 0.0f;
 						}
 						break;
@@ -1513,6 +1521,8 @@ void minimize_stretch_tface_uv(void)
 		if (PIL_check_seconds_timer() - lasttime > 0.5) {
 			char str[100];
 
+			param_flush(handle);
+
 			sprintf(str, "Stretch minimize. Blend %.2f.", blend*0.1f);
 			headerprint(str);
 
@@ -1522,7 +1532,12 @@ void minimize_stretch_tface_uv(void)
 		}
 	}
 
-	param_stretch_end(handle, escape);
+	if (escape)
+		param_flush_restore(handle);
+	else
+		param_flush(handle);
+
+	param_stretch_end(handle);
 
 	param_delete(handle);
 
@@ -1532,5 +1547,49 @@ void minimize_stretch_tface_uv(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
+}
+
+/* LSCM live mode */
+
+static ParamHandle *liveHandle = NULL;
+
+void unwrap_lscm_live_begin(void)
+{
+	Mesh *me;
+
+	if (CurrentUnwrapper == 0)
+		return;
+	
+	me= get_mesh(OBACT);
+	if(me==0 || me->tface==0) return;
+
+	liveHandle = construct_param_handle(me, 0, 0);
+
+	param_lscm_begin(liveHandle, PARAM_TRUE);
+}
+
+void unwrap_lscm_live_re_solve(void)
+{
+	if (CurrentUnwrapper == 0) {
+		unwrap_lscm();
+		return;
+	}
+
+	if (liveHandle) {
+		param_lscm_solve(liveHandle);
+		param_flush(liveHandle);
+	}
+}
+	
+void unwrap_lscm_live_end(void)
+{
+	if (CurrentUnwrapper == 0)
+		return;
+
+	if (liveHandle) {
+		param_lscm_end(liveHandle);
+		param_delete(liveHandle);
+		liveHandle = NULL;
+	}
 }
 

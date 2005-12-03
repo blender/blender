@@ -359,7 +359,7 @@ static void p_face_flip(PFace *f)
 	e3->flag = (f3 & ~PEDGE_VERTEX_FLAGS) | (f1 & PEDGE_VERTEX_FLAGS);
 }
 
-static void p_vert_load_pin_uvs(PVert *v)
+static void p_vert_load_pin_select_uvs(PVert *v)
 {
 	PEdge *e;
 	int nedges = 0;
@@ -369,6 +369,9 @@ static void p_vert_load_pin_uvs(PVert *v)
 	e = v->edge;
 	do {
 		if (e->orig_uv && (e->flag & PEDGE_PIN)) {
+			if (e->flag & PEDGE_SELECT)
+				v->flag |= PVERT_SELECT;
+
 			v->flag |= PVERT_PIN;
 			v->uv[0] += e->orig_uv[0];
 			v->uv[1] += e->orig_uv[1];
@@ -451,10 +454,20 @@ static void p_extrema_verts(PChart *chart, PVert **v1, PVert **v2)
 		PFace *f = (PFace*)chart->faces->first;
 		*v1 = f->edge->vert;
 		*v2 = f->edge->next->vert;
+
+		(*v1)->uv[0] = 0.0f;
+		(*v1)->uv[1] = 0.5f;
+		(*v2)->uv[0] = 1.0f;
+		(*v2)->uv[1] = 0.5f;
 	}
 	else {
 		*v1 = minvert[dir];
 		*v2 = maxvert[dir];
+
+		(*v1)->uv[0] = (*v1)->co[dir];
+		(*v1)->uv[1] = (*v1)->co[(dir+1)%3];
+		(*v2)->uv[0] = (*v2)->co[dir];
+		(*v2)->uv[1] = (*v2)->co[(dir+1)%3];
 	}
 }
 
@@ -1193,7 +1206,7 @@ void param_face_add(ParamHandle *handle, ParamKey key, int nverts,
 	param_assert((nverts == 3) || (nverts == 4));
 
 	if (nverts == 4) {
-		if (p_quad_split_direction(co)) {
+		if (!p_quad_split_direction(co)) {
 			p_face_add(chart, key, vkeys, co, uv, 0, 1, 2, pin, select);
 			p_face_add(chart, key, vkeys, co, uv, 0, 2, 3, pin, select);
 		}
@@ -1237,15 +1250,18 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 	for (i = j = 0; i < phandle->ncharts; i++) {
 		p_chart_boundaries(phandle->charts[i], &nboundaries, &outer);
 
-		if (nboundaries > 0) {
-			phandle->charts[j] = phandle->charts[i];
-			j++;
-
-			if (fill && (nboundaries > 1))
-				p_chart_fill_boundaries(phandle->charts[i], outer);
-		}
-		else
+		if (nboundaries == 0) {
 			p_chart_delete(phandle->charts[i]);
+			continue;
+		}
+
+		phandle->charts[j] = phandle->charts[i];
+		j++;
+
+#if 0
+		if (fill && (nboundaries > 1))
+			p_chart_fill_boundaries(phandle->charts[i], outer);
+#endif
 	}
 
 	phandle->ncharts = j;
@@ -1257,54 +1273,54 @@ void param_construct_end(ParamHandle *handle, ParamBool fill, ParamBool impl)
 
 static void p_chart_lscm_load_solution(PChart *chart)
 {
-	PVert *pin = chart->u.lscm.singlepin, *v;
-	float translation[2];
-
-	if (pin) {
-		translation[0] = pin->uv[0] - nlGetVariable(2*pin->u.index);
-		translation[1] = pin->uv[1] - nlGetVariable(2*pin->u.index + 1);
-	}
-	else
-		translation[0] = translation[1] = 0.0f;
+	PVert *v;
 
 	for (v=(PVert*)chart->verts->first; v; v=v->link.next) {
-		v->uv[0] = nlGetVariable(2*v->u.index) + translation[0];
-		v->uv[1] = nlGetVariable(2*v->u.index + 1) + translation[1];
+		v->uv[0] = nlGetVariable(2*v->u.index);
+		v->uv[1] = nlGetVariable(2*v->u.index + 1);
 	}
 }
 
-static void p_chart_lscm_begin(PChart *chart)
+static void p_chart_lscm_begin(PChart *chart, PBool live)
 {
 	PVert *v, *pin1, *pin2;
+	PBool select = P_FALSE;
 	int npins = 0, id = 0;
-
-	nlNewContext();
-	nlSolverParameteri(NL_NB_VARIABLES, 2*phash_size(chart->verts));
-	nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
 
 	/* give vertices matrix indices and count pins */
 	for (v=(PVert*)chart->verts->first; v; v=v->link.next) {
-		p_vert_load_pin_uvs(v);
+		p_vert_load_pin_select_uvs(v);
 
-		if (v->flag & PVERT_PIN) {
+		if (v->flag & PVERT_PIN)
 			npins++;
-			chart->u.lscm.singlepin = v;
-		}
+
+		if (v->flag & PVERT_SELECT)
+			select = P_TRUE;
 
 		v->u.index = id++;
 	}
 
-	if (npins <= 1) {
-		/* not enough pins, lets find some ourself */
-		p_extrema_verts(chart, &pin1, &pin2);
-
-		chart->u.lscm.pin1 = pin1;
-		chart->u.lscm.pin2 = pin2;
+	if ((live && !select) || (npins == 1)) {
+		chart->u.lscm.context = NULL;
 	}
-	else
-		chart->u.lscm.singlepin = NULL;
+	else {
+		if (npins <= 1) {
+			/* not enough pins, lets find some ourself */
+			p_extrema_verts(chart, &pin1, &pin2);
 
-	chart->u.lscm.context = nlGetCurrent();
+			chart->u.lscm.pin1 = pin1;
+			chart->u.lscm.pin2 = pin2;
+		}
+		else {
+			chart->flag |= PCHART_NOPACK;
+		}
+
+		nlNewContext();
+		nlSolverParameteri(NL_NB_VARIABLES, 2*phash_size(chart->verts));
+		nlSolverParameteri(NL_LEAST_SQUARES, NL_TRUE);
+
+		chart->u.lscm.context = nlGetCurrent();
+	}
 }
 
 static PBool p_chart_lscm_solve(PChart *chart)
@@ -1316,16 +1332,20 @@ static PBool p_chart_lscm_solve(PChart *chart)
 
 	nlBegin(NL_SYSTEM);
 
+	for (v=(PVert*)chart->verts->first; v; v=v->link.next)
+		if (v->flag & PVERT_PIN)
+			p_vert_load_pin_select_uvs(v);
+
 	if (chart->u.lscm.pin1) {
 		nlLockVariable(2*pin1->u.index);
 		nlLockVariable(2*pin1->u.index + 1);
 		nlLockVariable(2*pin2->u.index);
 		nlLockVariable(2*pin2->u.index + 1);
 	
-		nlSetVariable(2*pin1->u.index, 0.0f);
-		nlSetVariable(2*pin1->u.index + 1, 0.5f);
-		nlSetVariable(2*pin2->u.index, 1.0f);
-		nlSetVariable(2*pin2->u.index + 1, 0.5f);
+		nlSetVariable(2*pin1->u.index, pin1->uv[0]);
+		nlSetVariable(2*pin1->u.index + 1, pin1->uv[1]);
+		nlSetVariable(2*pin2->u.index, pin2->uv[0]);
+		nlSetVariable(2*pin2->u.index + 1, pin2->uv[1]);
 	}
 	else {
 		/* set and lock the pins */
@@ -1382,7 +1402,7 @@ static PBool p_chart_lscm_solve(PChart *chart)
 		}
 
 		/* angle based lscm formulation */
-		ratio = sina2/sina3;
+		ratio = (sina3 == 0.0f)? 0.0f: sina2/sina3;
 		cosine = cos(a1)*ratio;
 		sine = sina1*ratio;
 
@@ -1409,8 +1429,6 @@ static PBool p_chart_lscm_solve(PChart *chart)
 
 	if (nlSolveAdvanced(NULL, NL_TRUE)) {
 		p_chart_lscm_load_solution(chart);
-		p_flush_uvs(chart);
-
 		return P_TRUE;
 	}
 
@@ -1423,12 +1441,11 @@ static void p_chart_lscm_end(PChart *chart)
 		nlDeleteContext(chart->u.lscm.context);
 
 	chart->u.lscm.context = NULL;
-	chart->u.lscm.singlepin = NULL;
 	chart->u.lscm.pin1 = NULL;
 	chart->u.lscm.pin2 = NULL;
 }
 
-void param_lscm_begin(ParamHandle *handle)
+void param_lscm_begin(ParamHandle *handle, ParamBool live)
 {
 	PHandle *phandle = (PHandle*)handle;
 	int i;
@@ -1437,7 +1454,7 @@ void param_lscm_begin(ParamHandle *handle)
 	phandle->state = PHANDLE_STATE_LSCM;
 
 	for (i = 0; i < phandle->ncharts; i++)
-		p_chart_lscm_begin(phandle->charts[i]);
+		p_chart_lscm_begin(phandle->charts[i], live);
 }
 
 void param_lscm_solve(ParamHandle *handle)
@@ -1653,23 +1670,9 @@ void param_stretch_begin(ParamHandle *handle)
 void param_stretch_blend(ParamHandle *handle, float blend)
 {
 	PHandle *phandle = (PHandle*)handle;
-	PChart *chart;
-	int i;
 
 	param_assert(phandle->state == PHANDLE_STATE_STRETCH);
-
-	if (phandle->blend != blend) {
-		phandle->blend = blend;
-
-		for (i = 0; i < phandle->ncharts; i++) {
-			chart = phandle->charts[i];
-
-			if (blend == 0.0f)
-				p_flush_uvs(chart);
-			else
-				p_flush_uvs_blend(chart, blend);
-		}
-	}
+	phandle->blend = blend;
 }
 
 void param_stretch_iter(ParamHandle *handle)
@@ -1682,8 +1685,34 @@ void param_stretch_iter(ParamHandle *handle)
 
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
-
 		p_chart_stretch_minimize(chart, phandle->rng);
+	}
+}
+
+void param_stretch_end(ParamHandle *handle)
+{
+	PHandle *phandle = (PHandle*)handle;
+
+	param_assert(phandle->state == PHANDLE_STATE_STRETCH);
+	phandle->state = PHANDLE_STATE_CONSTRUCTED;
+
+	rng_free(phandle->rng);
+	phandle->rng = NULL;
+}
+
+/* Flushing */
+
+void param_flush(ParamHandle *handle)
+{
+	PHandle *phandle = (PHandle*)handle;
+	PChart *chart;
+	int i;
+
+	for (i = 0; i < phandle->ncharts; i++) {
+		chart = phandle->charts[i];
+
+		if ((phandle->state == PHANDLE_STATE_LSCM) && !chart->u.lscm.context)
+			continue;
 
 		if (phandle->blend == 0.0f)
 			p_flush_uvs(chart);
@@ -1692,30 +1721,35 @@ void param_stretch_iter(ParamHandle *handle)
 	}
 }
 
-void param_stretch_end(ParamHandle *handle, ParamBool restore)
+void param_flush_restore(ParamHandle *handle)
 {
 	PHandle *phandle = (PHandle*)handle;
 	PChart *chart;
 	PFace *f;
 	int i;
 
-	param_assert(phandle->state == PHANDLE_STATE_STRETCH);
-	phandle->state = PHANDLE_STATE_CONSTRUCTED;
+	for (i = 0; i < phandle->ncharts; i++) {
+		chart = phandle->charts[i];
 
-	rng_free(phandle->rng);
-	phandle->rng = NULL;
-
-	if (restore) {
-		for (i = 0; i < phandle->ncharts; i++) {
-			chart = phandle->charts[i];
-
-			for (f=(PFace*)chart->faces->first; f; f=f->link.next)
-				p_face_restore_uvs(f);
-		}
+		for (f=(PFace*)chart->faces->first; f; f=f->link.next)
+			p_face_restore_uvs(f);
 	}
 }
 
 /* Packing */
+
+static int compare_chart_area(const void *a, const void *b)
+{
+	PChart *ca = *((PChart**)a);
+	PChart *cb = *((PChart**)b);
+
+    if (ca->u.pack.area > cb->u.pack.area)
+		return -1;
+	else if (ca->u.pack.area == cb->u.pack.area)
+		return 0;
+	else
+		return 1;
+}
 
 static PBool p_pack_try(PHandle *handle, float side)
 {
@@ -1729,10 +1763,14 @@ static PBool p_pack_try(PHandle *handle, float side)
 
 	for (i = 0; i < handle->ncharts; i++) {
 		chart = handle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK)
+			continue;
+
 		w = chart->u.pack.size[0];
 		h = chart->u.pack.size[1];
 
-		if(w <= (1.0-packx)) {
+		if(w <= (side-packx)) {
 			chart->u.pack.trans[0] = packx;
 			chart->u.pack.trans[1] = packy;
 
@@ -1748,14 +1786,14 @@ static PBool p_pack_try(PHandle *handle, float side)
 			chart->u.pack.trans[1] = packy;
 		}
 
-		if (rowh > side)
+		if (packy+rowh > side)
 			return P_FALSE;
 	}
 
 	return P_TRUE;
 }
 
-#define PACK_SEARCH_DEPTH 7
+#define PACK_SEARCH_DEPTH 15
 
 void param_pack(ParamHandle *handle)
 {
@@ -1775,48 +1813,62 @@ void param_pack(ParamHandle *handle)
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
 
-		p_chart_area(chart, &uv_area, &area);
-		chart->u.pack.rescale = (uv_area > 0.0f)? area/uv_area: 0.0f;
-		totarea += uv_area*chart->u.pack.rescale;
+		if (chart->flag & PCHART_NOPACK) {
+			chart->u.pack.area = 0.0f;
+			continue;
+		}
 
+		p_chart_area(chart, &uv_area, &area);
 		p_chart_uv_bbox(chart, trans, chart->u.pack.size);
+
+		/* translate to origin and make area equal to 3d area */
+		chart->u.pack.rescale = (uv_area > 0.0f)? sqrt(area)/sqrt(uv_area): 0.0f;
+		chart->u.pack.area = area;
+		totarea += area;
+
 		trans[0] = -trans[0];
 		trans[1] = -trans[1];
 		p_chart_uv_translate(chart, trans);
 		p_chart_uv_scale(chart, chart->u.pack.rescale);
 
-		chart->u.pack.size[0] -= trans[0];
-		chart->u.pack.size[1] -= trans[1];
+		/* compute new dimensions for packing */
+		chart->u.pack.size[0] += trans[0];
+		chart->u.pack.size[1] += trans[1];
 		chart->u.pack.size[0] *= chart->u.pack.rescale;
 		chart->u.pack.size[1] *= chart->u.pack.rescale;
 
 		maxside = MAX3(maxside, chart->u.pack.size[0], chart->u.pack.size[1]);
 	}
 
-	return;
-
-	printf("%f\n", maxside);
+	/* sort by chart area, largest first */
+	qsort(phandle->charts, phandle->ncharts, sizeof(PChart*), compare_chart_area);
 
 	/* binary search over pack region size */
-	minside = sqrt(totarea);
+	minside = MAX2(sqrt(totarea), maxside);
 	maxside = (((int)sqrt(phandle->ncharts-1))+1)*maxside;
 
-	for (i = 0; i < PACK_SEARCH_DEPTH; i++) {
-		printf("%f %f\n", minside, maxside);
-		if (p_pack_try(phandle, (minside+maxside)*0.5f))
-			minside = (minside+maxside)*0.5f;
-		else
-			maxside = (minside+maxside)*0.5f;
+	if (minside < maxside) { /* should always be true */
+
+		for (i = 0; i < PACK_SEARCH_DEPTH; i++) {
+			if (p_pack_try(phandle, (minside+maxside)*0.5f + 1e-5))
+				maxside = (minside+maxside)*0.5f;
+			else
+				minside = (minside+maxside)*0.5f;
+		}
 	}
 
-	side = maxside + 1e-5; /* prevent floating point errors */
+	/* do the actual packing */
+	side = maxside + 1e-5;
 	if (!p_pack_try(phandle, side))
-		printf("impossible\n");
+		param_warning("packing failed.\n");
 
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
 
-		p_chart_uv_scale(chart, chart->u.pack.rescale/side);
+		if (chart->flag & PCHART_NOPACK)
+			continue;
+
+		p_chart_uv_scale(chart, 1.0f/side);
 		trans[0] = chart->u.pack.trans[0]/side;
 		trans[1] = chart->u.pack.trans[1]/side;
 		p_chart_uv_translate(chart, trans);
