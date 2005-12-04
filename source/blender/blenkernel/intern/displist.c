@@ -537,6 +537,7 @@ static void fastshade(float *co, float *nor, float *orco, Material *ma, char *co
 			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(nor, lv, shi.view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(nor, lv, shi.view, ma->param[0], ma->param[1]);
 			else if(ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, nor, shi.view, ma->darkness);
+			else if(ma->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(nor, lv, shi.view, ma->param[0], ma->param[1]);
 		}
 		
 		back= 0;

@@ -649,6 +649,23 @@ static double Normalise_d(double *n)
 	return d;
 }
 
+/* mix of 'real' fresnel and allowing control. grad defines blending gradient */
+float fresnel_fac(float *view, float *vn, float grad, float fac)
+{
+	float t1, t2;
+	
+	if(fac==0.0) return 1.0;
+	
+	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
+	if(t1>0.0)  t2= 1.0+t1;
+	else t2= 1.0-t1;
+	
+	t2= grad + (1.0-grad)*pow(t2, fac);
+	
+	if(t2<0.0) return 0.0;
+	else if(t2>1.0) return 1.0;
+	return t2;
+}
 
 static double saacos_d(double fac)
 {
@@ -1010,6 +1027,11 @@ float Minnaert_Diff(float nl, float *n, float *v, float darkness)
 	return i;
 }
 
+float Fresnel_Diff(float *vn, float *lv, float *view, float fac_i, float fac)
+{
+	return fresnel_fac(lv, vn, fac_i, fac);
+}
+
 /* --------------------------------------------- */
 /* also called from texture.c */
 void calc_R_ref(ShadeInput *shi)
@@ -1057,24 +1079,6 @@ void calc_R_ref(ShadeInput *shi)
 		}
 	}
 
-}
-
-/* mix of 'real' fresnel and allowing control. grad defines blending gradient */
-float fresnel_fac(float *view, float *vn, float grad, float fac)
-{
-	float t1, t2;
-	
-	if(fac==0.0) return 1.0;
-	
-	t1= (view[0]*vn[0] + view[1]*vn[1] + view[2]*vn[2]);
-	if(t1>0.0)  t2= 1.0+t1;
-	else t2= 1.0-t1;
-	
-	t2= grad + (1.0-grad)*pow(t2, fac);
-
-	if(t2<0.0) return 0.0;
-	else if(t2>1.0) return 1.0;
-	return t2;
 }
 
 void shade_color(ShadeInput *shi, ShadeResult *shr)
@@ -1657,6 +1661,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff_i(inp, vn, lv, view, ma->roughness);
 			else if(ma->diff_shader==MA_DIFF_TOON) is= Toon_Diff(vn, lv, view, ma->param[0], ma->param[1]);
 			else if(ma->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(inp, vn, view, ma->darkness);
+			else if(ma->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(vn, lv, view, ma->param[0], ma->param[1]);
 			else is= inp;	// Lambert
 		}
 		

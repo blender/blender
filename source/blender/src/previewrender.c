@@ -818,6 +818,7 @@ static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_la
 			if(mat->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(shi->vn, lv, shi->view, mat->roughness);
 			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
 			else if(mat->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, shi->vn, shi->view, mat->darkness);
+			else if(mat->diff_shader==MA_DIFF_FRESNEL) is= Fresnel_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
 			// else Lambert
 			
 			inp= (shi->refl*is + shi->emit);

@@ -88,6 +88,7 @@ float WardIso_Spec(float *n, float *l, float *v, float a, int);
 float Toon_Diff(float *n, float *l, float *v, float a, float b);
 float OrenNayar_Diff(float *n, float *l, float *v, float rough);
 float Minnaert_Diff(float nl, float *n, float *v, float a);
+float Fresnel_Diff(float *vn, float *lv, float *view, float ior, float fac);
 
 void add_to_diffuse(float *, ShadeInput *, float, float, float, float);
 void ramp_diffuse_result(float *diff, ShadeInput *shi);

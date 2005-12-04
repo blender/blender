@@ -124,7 +124,7 @@ void init_material(Material *ma)
 	ma->pr_lamp= 3;			/* two lamps, is bits */
 	ma->ml_flag= ML_RENDER;	/* default render base material for layers */
 
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 }
 
 Material *add_material(char *name)

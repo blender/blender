@@ -173,6 +173,7 @@ typedef struct Material {
 #define MA_DIFF_ORENNAYAR	1
 #define MA_DIFF_TOON		2
 #define MA_DIFF_MINNAERT    3
+#define MA_DIFF_FRESNEL     4
 
 /* spec_shader */
 #define MA_SPEC_COOKTORR	0

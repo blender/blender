@@ -3125,7 +3125,7 @@ static void material_panel_shading(Material *ma)
 		uiBlockEndAlign(block);
 	}
 	else {
-		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2|Minnaert %x3";
+		char *str1= "Diffuse Shader%t|Lambert %x0|Oren-Nayar %x1|Toon %x2|Minnaert %x3|Fresnel %x4";
 		char *str2= "Specular Shader%t|CookTorr %x0|Phong %x1|Blinn %x2|Toon %x3|WardIso %x4";
 		
 		/* diff shader buttons */
@@ -3141,6 +3141,10 @@ static void material_panel_shading(Material *ma)
 		}
 		else if(ma->diff_shader==MA_DIFF_MINNAERT) 
 			uiDefButF(block, NUMSLI, B_MATPRV, "Dark:",90,160, 150,19, &(ma->darkness), 0.0, 2.0, 0, 0, "Sets Minnaert darkness");
+		else if(ma->diff_shader==MA_DIFF_FRESNEL) {
+			uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel:",	90, 160,150,19, &(ma->param[1]), 0.0, 5.0, 0, 0, "Power of Fresnel");
+			uiDefButF(block, NUMSLI, B_MATPRV, "Fac:",90,140,150,19, &(ma->param[0]), 1.0, 5.0, 0, 0, "Blending factor");
+		}
 		uiBlockEndAlign(block);
 		
 		/* spec shader buttons */
