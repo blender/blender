@@ -3248,6 +3248,18 @@ static void matlayer_active(void *ma_v, void *ml_v)
 	BIF_undo_push("Activate Material Layer");
 }
 
+static void matlayer_alone(void *ml_v, void *unused)
+{
+	MaterialLayer *ml= ml_v;
+	
+	ml->mat= copy_material(ml->mat);
+
+	BIF_undo_push("Single user material");
+	allqueue(REDRAWBUTSSHADING, 0);
+	allqueue(REDRAWOOPS, 0);
+}
+
+
 static void material_panel_layers(Material *ma)
 {
 	uiBlock *block;
@@ -3311,16 +3323,27 @@ static void material_panel_layers(Material *ma)
 		uiDefButS(block, MENU, B_MAT_LAYERBROWSE, strp, 60,yco,20,20, &ml->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
 		if(strp) MEM_freeN(strp);
 			
-		/* name */
+		/* name and users */
 		if(ml->mat) {
-			but= uiDefBut(block, TEX, B_IDNAME, "MA:",80, yco, 120, 20, ml->mat->id.name+2, 0.0, 19.0, 0, 0, "Rename Material");
+			int width;
+			
+			if(ml->mat->id.us>1) width= 120;
+			else width= 140;
+			but= uiDefBut(block, TEX, B_IDNAME, "MA:",80, yco, width, 20, ml->mat->id.name+2, 0.0, 19.0, 0, 0, "Rename Material");
 			uiButSetFunc(but, test_idbutton_cb, ml->mat->id.name, NULL);
+			
+			if(ml->mat->id.us>1) {
+				char str1[32];
+				sprintf(str1, "%d", ml->mat->id.us);
+				but= uiDefBut(block, BUT, B_NOP, str1, 200,yco,20,20, 0, 0, 0, 0, 0, "Displays number of users of this data. Click to make a single-user copy.");
+				uiButSetFunc(but, matlayer_alone, ml, NULL);
+			}
 		}
 		else
-			uiDefBut(block, LABEL, B_NOP, "No Material",80, yco, 120, 20, NULL, 0.0, 0.0, 0, 0, "");
+			uiDefBut(block, LABEL, B_NOP, "No Material",80, yco, 140, 20, NULL, 0.0, 0.0, 0, 0, "");
 			
 		/* add new */
-		but= uiDefBut(block, BUT, B_NOP, "Add", 200, yco,50,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
+		but= uiDefBut(block, BUT, B_NOP, "Add", 220, yco,30,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
 		uiButSetFunc(but, matlayer_add, ma, ml);
 		
 		/* move up/down/delete */

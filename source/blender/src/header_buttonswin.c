@@ -281,6 +281,7 @@ void buttons_active_id(ID **id, ID **idfrom)
 			if(G.buts->texfrom==0) {
 				if(ob && ob->type<OB_LAMP && ob->type) {
 					ma= give_current_material(ob, ob->actcol);
+					ma= get_active_matlayer(ma);
 					*idfrom= (ID *)ma;
 					if(ma) {
 						mtex= ma->mtex[ ma->texact ];
