@@ -218,27 +218,6 @@ void init_render_textures()
 
 /* ------------------------------------------------------------------------- */
 
-void end_render_texture(Tex *tex)
-{
-
-
-}
-
-/* ------------------------------------------------------------------------- */
-
-void end_render_textures()
-{
-	Tex *tex;
-
-	tex= G.main->tex.first;
-	while(tex) {
-		if(tex->id.us) end_render_texture(tex);
-		tex= tex->id.next;
-	}
-
-}
-
-/* ------------------------------------------------------------------------- */
 
 /* this allows colorbanded textures to control normals as well */
 static void tex_normal_derivate(Tex *tex, TexResult *texres)
@@ -1292,9 +1271,9 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 	case MTEX_SCREEN:
 		fact*= facg;
 		facm= 1.0-facg;
-		in[0]= 1.0-(facm+fact*(1.0-tex[0]))*(1.0-out[0]);
-		in[1]= 1.0-(facm+fact*(1.0-tex[1]))*(1.0-out[1]);
-		in[2]= 1.0-(facm+fact*(1.0-tex[2]))*(1.0-out[2]);
+		in[0]= 1.0 - (facm+fact*(1.0-tex[0])) * (1.0-out[0]);
+		in[1]= 1.0 - (facm+fact*(1.0-tex[1])) * (1.0-out[1]);
+		in[2]= 1.0 - (facm+fact*(1.0-tex[2])) * (1.0-out[2]);
 		break;
 
 	case MTEX_SUB:
@@ -1824,6 +1803,13 @@ void do_material_tex(ShadeInput *shi)
 					shi->translucency= texture_value_blend(mtex->def_var, shi->translucency, texres.tin, varfac, mtex->blendtype, flip);
 					if(shi->translucency<0.0) shi->translucency= 0.0;
 					else if(shi->translucency>1.0) shi->translucency= 1.0;
+				}
+				if(mtex->mapto & MAP_LAYER) {
+					int flip= mtex->maptoneg & MAP_LAYER;
+					
+					shi->layerfac= texture_value_blend(mtex->def_var, shi->layerfac, texres.tin, varfac, mtex->blendtype, flip);
+					if(shi->layerfac<0.0) shi->layerfac= 0.0;
+					else if(shi->layerfac>1.0) shi->layerfac= 1.0;
 				}
 				if(mtex->mapto & MAP_AMB) {
 					int flip= mtex->maptoneg & MAP_AMB;

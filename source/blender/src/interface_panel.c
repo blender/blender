@@ -652,7 +652,7 @@ void uiSetPanel_view2d(ScrArea *sa)
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->active) {
+		if(pa->active && pa->paneltab==NULL) {
 			done= 1;
 			if(pa->ofsx < minx) minx= pa->ofsx;
 			if(pa->ofsx+pa->sizex > maxx) maxx= pa->ofsx+pa->sizex;
@@ -696,7 +696,7 @@ void uiMatchPanel_view2d(ScrArea *sa)
 	
 	pa= sa->panels.first;
 	while(pa) {
-		if(pa->active) {
+		if(pa->active && pa->paneltab==NULL) {
 			done= 1;
 			if(pa->ofsx < G.v2d->tot.xmin) G.v2d->tot.xmin= pa->ofsx;
 			if(pa->ofsx+pa->sizex > G.v2d->tot.xmax) 

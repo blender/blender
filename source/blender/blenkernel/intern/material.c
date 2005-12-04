@@ -36,33 +36,34 @@
 #include <string.h>
 #include "MEM_guardedalloc.h"
 
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_object_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
 
 #include "BKE_bad_level_calls.h"
-#include "BKE_utildefines.h"
-
-#include "BKE_global.h"
-#include "BKE_main.h"
-
-#include "BKE_mesh.h"
-#include "BKE_library.h"
+#include "BKE_blender.h"
 #include "BKE_displist.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
+#include "BKE_utildefines.h"
 
 #include "BPY_extern.h"
 
+/* not material itself */
 void free_material(Material *ma)
 {
-	int a;
+	MaterialLayer *ml;
 	MTex *mtex;
+	int a;
 
 	BPY_free_scriptlink(&ma->scriptlink);
 	
@@ -74,6 +75,11 @@ void free_material(Material *ma)
 	
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
+	
+	for(ml= ma->layers.first; ml; ml= ml->next)
+		if(ml->mat) ml->mat->id.us--;
+	
+	BLI_freelistN(&ma->layers);
 }
 
 void init_material(Material *ma)
@@ -115,8 +121,9 @@ void init_material(Material *ma)
 	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
-	ma->pr_lamp= 3; // two lamps, is bits
-	
+	ma->pr_lamp= 3;			/* two lamps, is bits */
+	ma->ml_flag= ML_RENDER;	/* default render base material for layers */
+
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_TANGENT_STR;
 }
 
@@ -134,6 +141,7 @@ Material *add_material(char *name)
 Material *copy_material(Material *ma)
 {
 	Material *man;
+	MaterialLayer *ml;
 	int a;
 	
 	man= copy_libblock(ma);
@@ -149,9 +157,14 @@ Material *copy_material(Material *ma)
 	}
 	
 	BPY_copy_scriptlink(&ma->scriptlink);
+	
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
+	duplicatelist(&man->layers, &ma->layers);
+	for(ml= man->layers.first; ml; ml= ml->next)
+		id_us_plus((ID *)ml->mat);
+
 	return man;
 }
 
@@ -245,8 +258,24 @@ void make_local_material(Material *ma)
 		new_id(0, (ID *)ma, 0);
 	}
 	else if(local && lib) {
+		Material *mat;
+		MaterialLayer *ml;
+		
 		man= copy_material(ma);
 		man->id.us= 0;
+		
+		/* do material layers */
+		for(mat= G.main->mat.first; mat; mat= mat->id.next) {
+			if(mat->id.lib==NULL) {
+				for(ml= mat->layers.first; ml; ml= ml->next) {
+					if(ml->mat==ma) {
+						ml->mat= man;
+						man->id.us++;
+						ma->id.us--;
+					}
+				}
+			}
+		}
 		
 		/* do objects */
 		ob= G.main->object.first;
@@ -534,6 +563,18 @@ void new_material_to_objectdata(Object *ob)
 	ob->actcol= ob->totcol;
 }
 
+Material *get_active_matlayer(Material *ma)
+{
+	MaterialLayer *ml;
+	
+	if(ma==NULL) return NULL;
+	
+	for(ml= ma->layers.first; ml; ml= ml->next)
+		if(ml->flag & ML_ACTIVE) break;
+	if(ml)
+		return ml->mat;
+	return ma;
+}
 
 void init_render_material(Material *ma)
 {
@@ -586,42 +627,29 @@ void init_render_material(Material *ma)
 	ma->ambg= ma->amb*R.wrld.ambg;
 	ma->ambb= ma->amb*R.wrld.ambb;
 	
+	/* will become or-ed result of all layer modes */
+	ma->mode_l= ma->mode;
 }
 
 void init_render_materials()
 {
 	Material *ma;
+	MaterialLayer *ml;
 	
-	ma= G.main->mat.first;
-	while(ma) {
+	/* two steps, first initialize, then or the flags for layers */
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
 		if(ma->id.us) init_render_material(ma);
-		ma= ma->id.next;
 	}
 	
-}
-
-void end_render_material(Material *ma)
-{
-	/* XXXX obsolete? check! */
-	if(ma->mode & (MA_VERTEXCOLP|MA_FACETEXTURE)) {
-		if( !(ma->mode & MA_HALO) ) {
-			ma->r= ma->g= ma->b= 1.0;
+	for(ma= G.main->mat.first; ma; ma= ma->id.next) {
+		for(ml= ma->layers.first; ml; ml= ml->next) {
+			if(ml->mat) {
+				ma->texco |= ml->mat->texco;
+				ma->mode_l |= ml->mat->mode;
+			}
 		}
-	}
+	}	
 }
-
-void end_render_materials()
-{
-	Material *ma;
-	
-	ma= G.main->mat.first;
-	while(ma) {
-		if(ma->id.us) end_render_material(ma);
-		ma= ma->id.next;
-	}
-	
-}
-
 
 /* ****************** */
 

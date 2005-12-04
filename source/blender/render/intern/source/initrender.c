@@ -536,7 +536,6 @@ void RE_free_render_data()
 	R.rectz= NULL;
 	R.rectspare= NULL;
 	
-	end_render_material(&defmaterial);
 	free_filt_mask();
 }
 

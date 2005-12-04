@@ -1,15 +1,12 @@
 /**
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 #ifndef RENDER_TYPES_H
@@ -58,6 +55,15 @@ typedef struct TexResult {
 	float *nor;
 } TexResult;
 
+/* localized shade result data */
+typedef struct ShadeResult 
+{
+	float diff[3];
+	float spec[3];
+	float alpha;
+	
+} ShadeResult;
+
 /* localized renderloop data */
 typedef struct ShadeInput
 {
@@ -79,10 +85,11 @@ typedef struct ShadeInput
 	
 	/* individual copies: */
 	int har;
+	float layerfac;
 	
 	/* texture coordinates */
 	float lo[3], gl[3], uv[3], ref[3], orn[3], winco[3], sticky[3], vcol[3], rad[3];
-	float vn[3], facenor[3], view[3], refcol[4], displace[3], strand, tang[3];
+	float vn[3], vno[3], facenor[3], view[3], refcol[4], displace[3], strand, tang[3];
 	
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];

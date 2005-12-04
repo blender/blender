@@ -726,15 +726,6 @@ static void init_fastshade_for_ob(Object *ob, int *need_orco_r, float mat[4][4],
 		}
 	}
 }
-static void end_fastshade_for_ob(Object *ob)
-{
-	int a;
-
-	for(a=0; a<ob->totcol; a++) {
-		Material *ma= give_current_material(ob, a+1);
-		if(ma) end_render_material(ma);
-	}
-}
 
 void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r, unsigned int **col2_r)
 {
@@ -846,7 +837,6 @@ void mesh_create_shadedColors(Object *ob, int onlyForMesh, unsigned int **col1_r
 
 	if (dmNeedsFree) dm->release(dm);
 
-	end_fastshade_for_ob(ob);
 }
 
 void shadeDispList(Object *ob)
@@ -986,8 +976,6 @@ void shadeDispList(Object *ob)
 			dl= dl->next;
 		}
 	}
-	
-	end_fastshade_for_ob(ob);
 }
 
 void reshadeall_displist(void)
@@ -1998,8 +1986,6 @@ void imagestodisplist(void)
 		}
 		base= base->next;
 	}
-	
-	end_render_textures();
 	
 	allqueue(REDRAWVIEW3D, 0);
 }

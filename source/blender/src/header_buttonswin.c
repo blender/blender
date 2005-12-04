@@ -62,6 +62,7 @@
 #include "BIF_butspace.h"
 
 #include "BKE_armature.h"
+#include "BKE_blender.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -72,6 +73,7 @@
 #include "BSE_headerbuttons.h"
 
 #include "MEM_guardedalloc.h"
+#include "BLI_blenlib.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -98,8 +100,11 @@ void free_matcopybuf(void)
  
 	if(matcopybuf.ramp_col) MEM_freeN(matcopybuf.ramp_col);
 	if(matcopybuf.ramp_spec) MEM_freeN(matcopybuf.ramp_spec);
+	
 	matcopybuf.ramp_col= NULL;
 	matcopybuf.ramp_spec= NULL;
+	
+	BLI_freelistN(&matcopybuf.layers);
 	
 	default_mtex(&mtexcopybuf);
 }
@@ -109,6 +114,7 @@ void do_buts_buttons(short event)
 	static short matcopied=0;
 	MTex *mtex;
 	Material *ma;
+	MaterialLayer *ml;
 	ID id;
 	int a;
 	float dx, dy;
@@ -143,9 +149,10 @@ void do_buts_buttons(short event)
 		break;
 	case B_MATCOPY:
 		if(G.buts->lockpoin) {
+			ma= G.buts->lockpoin;
 			if(matcopied) free_matcopybuf();
 
-			memcpy(&matcopybuf, G.buts->lockpoin, sizeof(Material));
+			memcpy(&matcopybuf, ma, sizeof(Material));
 			if(matcopybuf.ramp_col) matcopybuf.ramp_col= MEM_dupallocN(matcopybuf.ramp_col);
 			if(matcopybuf.ramp_spec) matcopybuf.ramp_spec= MEM_dupallocN(matcopybuf.ramp_spec);
 
@@ -155,12 +162,15 @@ void do_buts_buttons(short event)
 					matcopybuf.mtex[a]= MEM_dupallocN(mtex);
 				}
 			}
+			duplicatelist(&matcopybuf.layers, &ma->layers);
+			
 			matcopied= 1;
 		}
 		break;
 	case B_MATPASTE:
 		if(matcopied && G.buts->lockpoin) {
 			ma= G.buts->lockpoin;
+			
 			/* free current mat */
 			if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 			if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
@@ -169,6 +179,10 @@ void do_buts_buttons(short event)
 				if(mtex && mtex->tex) mtex->tex->id.us--;
 				if(mtex) MEM_freeN(mtex);
 			}
+			for(ml= ma->layers.first; ml; ml= ml->next)
+				if(ml->mat) ml->mat->id.us--;
+
+			BLI_freelistN(&ma->layers);
 			
 			id= (ma->id);
 			memcpy(G.buts->lockpoin, &matcopybuf, sizeof(Material));
@@ -184,6 +198,11 @@ void do_buts_buttons(short event)
 					if(mtex->tex) id_us_plus((ID *)mtex->tex);
 				}
 			}
+			duplicatelist(&ma->layers, &matcopybuf.layers);
+
+			for(ml= ma->layers.first; ml; ml= ml->next)
+				if(ml->mat) ml->mat->id.us++;
+			
 			BIF_preview_changed(G.buts);
 			BIF_undo_push("Paste material settings");
 			scrarea_queue_winredraw(curarea);

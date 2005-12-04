@@ -158,7 +158,6 @@ void do_material_tex(ShadeInput *shi);
 void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, 
 	float *tg, float *tb, float *ta);
 void init_render_textures(void);
-void end_render_textures(void);
 
 void RE_free_envmap(struct EnvMap *env);      
 void RE_free_envmapdata(struct EnvMap *env);

@@ -2424,8 +2424,6 @@ void RE_freeRotateBlenderScene(void)
 
 	free_mesh_orco_hash();
 
-	end_render_textures();
-	end_render_materials();
 	end_radio_render();
 	if(R.wrld.aosphere) {
 		MEM_freeN(R.wrld.aosphere);

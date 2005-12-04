@@ -809,6 +809,7 @@ void do_global_buttons(unsigned short event)
 		else {
 			if(G.buts->texfrom==0) {	/* from mat */
 				ma= give_current_material(ob, ob->actcol);
+				ma= get_active_matlayer(ma);
 				if(ma) {
 					mtex= ma->mtex[ ma->texact ];
 					if(mtex) {
@@ -861,6 +862,7 @@ void do_global_buttons(unsigned short event)
 			if(event==B_EXTEXBROWSE) {
 				id= NULL;
 				ma= give_current_material(ob, ob->actcol);
+				ma= get_active_matlayer(ma);
 				if(ma) {
 					mtex= ma->mtex[ ma->texact ];
 					if(mtex) id= (ID *)mtex->tex;
@@ -879,6 +881,7 @@ void do_global_buttons(unsigned short event)
 			id= NULL;
 			
 			ma= give_current_material(ob, ob->actcol);
+			ma= get_active_matlayer(ma);
 			if(ma) {
 				mtex= ma->mtex[ ma->texact ];
 				if(mtex) id= (ID *)mtex->tex;
@@ -1717,7 +1720,13 @@ void do_global_buttons2(short event)
 			ma= give_current_material(ob, ob->actcol);
 			if(ma && ma->id.lib) {
 				if(okee("Make local")) {
+					MaterialLayer *ml;
+					
 					make_local_material(ma);
+					for(ml= ma->layers.first; ml; ml= ml->next) {
+						if(ml->mat)
+							make_local_material(ml->mat);
+					}
 				}
 			}
 		}
@@ -1790,6 +1799,7 @@ void do_global_buttons2(short event)
 		if(G.buts->texfrom==0) {	/* from mat */
 			if(ob==0) return;
 			ma= give_current_material(ob, ob->actcol);
+			ma= get_active_matlayer(ma);
 			if(ma && ma->id.lib==0) {
 				mtex= ma->mtex[ ma->texact ];
 				if(mtex->tex && mtex->tex->id.us>1) {
@@ -1830,6 +1840,7 @@ void do_global_buttons2(short event)
 		if(G.buts->texfrom==0) {	/* from mat */
 			if(ob==0) return;
 			ma= give_current_material(ob, ob->actcol);
+			ma= get_active_matlayer(ma);
 			if(ma && ma->id.lib==0) {
 				mtex= ma->mtex[ ma->texact ];
 				if(mtex->tex && mtex->tex->id.lib) {

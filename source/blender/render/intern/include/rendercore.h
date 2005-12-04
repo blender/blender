@@ -46,14 +46,6 @@
 struct HaloRen;
 struct ShadeInput;
 
-typedef struct ShadeResult 
-{
-	float diff[3];
-	float spec[3];
-	float alpha;
-
-} ShadeResult;
-
 typedef struct PixStr
 {
 	struct PixStr *next;

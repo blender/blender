@@ -1,7 +1,4 @@
-/* previewrender.c  		GRAPHICS
- * 
- * maart 95
- * 
+/* 
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -130,26 +127,26 @@ static short snijpunt(float *v1,   float *v2,  float *v3,  float *rtlabda, float
 	x2= t10*t21-t11*t20;
 
 	deeldet= t00*x0+t01*x1+t02*x2;
-	if(deeldet!=0.0) {
+	if(deeldet!=0.0f) {
 		m0= ray1[0]-v3[0];
 		m1= ray1[1]-v3[1];
 		m2= ray1[2]-v3[2];
 		det1= m0*x0+m1*x1+m2*x2;
 		rtu= det1/deeldet;
-		if(rtu<=0.0) {
+		if(rtu<=0.0f) {
 			det2= t00*(m1*t22-m2*t21);
 			det2+= t01*(m2*t20-m0*t22);
 			det2+= t02*(m0*t21-m1*t20);
 			rtv= det2/deeldet;
-			if(rtv<=0.0) {
-				if(rtu+rtv>= -1.0) {
+			if(rtv<=0.0f) {
+				if(rtu+rtv>= -1.0f) {
 					
 					det3=  m0*(t12*t01-t11*t02);
 					det3+= m1*(t10*t02-t12*t00);
 					det3+= m2*(t11*t00-t10*t01);
 					*rtlabda= det3/deeldet;
 					
-					if(*rtlabda>=0.0 && *rtlabda<=1.0) {
+					if(*rtlabda>=0.0f && *rtlabda<=1.0f) {
 						return 1;
 					}
 				}
@@ -176,7 +173,7 @@ static int rcubi[3][4]= {
 
 static int ray_previewrender(int x,  int y,  float *vec, float *vn)
 {
-	float scalef= 10.0/100.0;
+	float scalef= 10.0f/100.0f;
 	float ray1[3], ray2[3];
 	float minlabda, labda;
 	int totface= 3, hitface= -1;
@@ -184,10 +181,10 @@ static int ray_previewrender(int x,  int y,  float *vec, float *vn)
 
 	ray1[0]= ray2[0]= x*scalef;
 	ray1[1]= ray2[1]= y*scalef;
-	ray1[2]= -10.0;
-	ray2[2]= 10.0;
+	ray1[2]= -10.0f;
+	ray2[2]= 10.0f;
 	
-	minlabda= 1.0;
+	minlabda= 1.0f;
 	for(a=0; a<totface; a++) {
 		if(snijpunt( rcubev[rcubi[a][0]], rcubev[rcubi[a][1]], rcubev[rcubi[a][2]], &labda, ray1, ray2)) {
 			if( labda < minlabda) {
@@ -252,8 +249,8 @@ static void set_previewrect(int win, int xmin, int ymin, int xmax, int ymax)
 	pr_sizex= (prerect.xmax-prerect.xmin);
 	pr_sizey= (prerect.ymax-prerect.ymin);
 
-	pr_facx= ( pr_sizex-1.0)/PR_RECTX;
-	pr_facy= ( pr_sizey-1.0)/PR_RECTY;
+	pr_facx= ( pr_sizex-1.0f)/PR_RECTX;
+	pr_facy= ( pr_sizey-1.0f)/PR_RECTY;
 
 	/* correction for gla draw */
 	prerect.xmin-= curarea->winrct.xmin;
@@ -277,7 +274,7 @@ static void end_previewrect(void)
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	
-	glPixelZoom(1.0, 1.0);
+	glPixelZoom(1.0f, 1.0f);
 	
 	// restore viewport / scissor which was set by glaDefine2DArea
 	glViewport(curarea->winrct.xmin, curarea->winrct.ymin, curarea->winx, curarea->winy);
@@ -309,10 +306,10 @@ static void draw_tex_crop(Tex *tex)
 	if(tex==0) return;
 	
 	if(tex->type==TEX_IMAGE) {
-		if(tex->cropxmin==0.0) ret++;
-		if(tex->cropymin==0.0) ret++;
-		if(tex->cropxmax==1.0) ret++;
-		if(tex->cropymax==1.0) ret++;
+		if(tex->cropxmin==0.0f) ret++;
+		if(tex->cropymin==0.0f) ret++;
+		if(tex->cropxmax==1.0f) ret++;
+		if(tex->cropymax==1.0f) ret++;
 		if(ret==4) return;
 		
 		rct.xmin= PR_XMIN+2+tex->cropxmin*(PR_XMAX-PR_XMIN-4);
@@ -405,7 +402,7 @@ static void sky_preview_pixel(float lens, int x, int y, char *rect)
 	if(R.wrld.skytype & WO_SKYPAPER) {
 		view[0]= (2*x)/(float)PR_RECTX;
 		view[1]= (2*y)/(float)PR_RECTY;
-		view[2]= 0.0;
+		view[2]= 0.0f;
 	}
 	else {
 		view[0]= x;
@@ -425,9 +422,9 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 	shi->co[1]= (float)y/(PR_RECTX/4);
 	shi->co[2]= 0;
 	
-	vec[0]= 0.02*x;
-	vec[1]= 0.02*y;
-	vec[2]= 0.005*PR_RECTX;
+	vec[0]= 0.02f*x;
+	vec[1]= 0.02f*y;
+	vec[2]= 0.005f*PR_RECTX;
 	VECCOPY(shi->view, vec);
 	dist= Normalise(shi->view);
 
@@ -438,16 +435,16 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 	if(la->mode & LA_TEXTURE) do_lamp_tex(la, vec, shi, lacol);
 
 	if(la->type==LA_SUN || la->type==LA_HEMI) {
-		dist= 1.0;
+		dist= 1.0f;
 	}
 	else {
 		
 		if(la->mode & LA_QUAD) {
 			
-			t= 1.0;
-			if(la->ld1>0.0)
+			t= 1.0f;
+			if(la->ld1>0.0f)
 				t= la->dist/(la->dist+la->ld1*dist);
-			if(la->ld2>0.0) {
+			if(la->ld2>0.0f) {
 				distkw= la->dist*la->dist;
 				t= t*distkw/(t*distkw+la->ld2*dist*dist);
 			}
@@ -471,10 +468,10 @@ static void lamp_preview_pixel(ShadeInput *shi, LampRen *la, int x, int y, char 
 		}
 		
 		t= la->spotsi;
-		if(inpr<t) dist= 0.0;
+		if(inpr<t) dist= 0.0f;
 		else {
 			t= inpr-t;
-			if(t<la->spotbl && la->spotbl!=0.0) {
+			if(t<la->spotbl && la->spotbl!=0.0f) {
 				/* soft area */
 				i= t/la->spotbl;
 				t= i*i;
@@ -577,9 +574,9 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 	afmy= R.afmy;
 	rectot= R.rectot;
 
-	R.r.postmul= R.r.postgamma= R.r.postsat= 1.0;
-	R.r.posthue= R.r.postadd= 0.0;
-	R.ycor= 1.0;
+	R.r.postmul= R.r.postgamma= R.r.postsat= 1.0f;
+	R.r.posthue= R.r.postadd= 0.0f;
+	R.ycor= 1.0f;
 	R.rectx= PR_RECTX;	
 	R.recty= PR_RECTY;
 	R.afmx= PR_RECTX/2;
@@ -609,11 +606,11 @@ static void previewflare(SpaceButs *sbuts, HaloRen *har, unsigned int *rect)
 static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 {
 	float i, v1, xsq, ysq, texvec[3];
-	float tin=1.0, tr, tg, tb, ta;
+	float tin=1.0f, tr, tg, tb, ta;
 	int rgbnor, tracol, skip=0;
 	
 	if(tex->type==TEX_IMAGE) {
-		v1= 1.0/PR_RECTX;
+		v1= 1.0f/PR_RECTX;
 		
 		texvec[0]= 0.5+v1*x;
 		texvec[1]= 0.5+v1*y;
@@ -622,11 +619,11 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		if(tex->extend==TEX_REPEAT) {
 			if(tex->xrepeat>1) {
 				texvec[0] *= tex->xrepeat;
-				if(texvec[0]>1.0) texvec[0] -= (int)(texvec[0]);
+				if(texvec[0]>1.0f) texvec[0] -= (int)(texvec[0]);
 			}
 			if(tex->yrepeat>1) {
 				texvec[1] *= tex->yrepeat;
-				if(texvec[1]>1.0) texvec[1] -= (int)(texvec[1]);
+				if(texvec[1]>1.0f) texvec[1] -= (int)(texvec[1]);
 			}
 		}
 		else if(tex->extend==TEX_CHECKER) {
@@ -647,17 +644,17 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 				i= 2.0*(texvec[2]);
 				texvec[0]= (i*texvec[0]);
 				texvec[1]= (i*texvec[1]);
-				texvec[2]= (-1.0+i*texvec[2]);
+				texvec[2]= (-1.0f+i*texvec[2]);
 
 			}
 			else {
 				skip= 1;
-				tr= tg= tb= ta= 0.0;
+				tr= tg= tb= ta= 0.0f;
 			}
 		}
 		else {
 			skip= 1;
-			tr= tg= tb= ta= 0.0;
+			tr= tg= tb= ta= 0.0f;
 		}
 	}
 	else {
@@ -665,7 +662,7 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 	
 		texvec[0]= v1*x;
 		texvec[1]= v1*y;
-		texvec[2]= 0.0;
+		texvec[2]= 0.0f;
 	}
 	
 	if(skip==0) rgbnor= multitex_ext(tex, texvec, &tin, &tr, &tg, &tb, &ta);
@@ -680,9 +677,9 @@ static void texture_preview_pixel(Tex *tex, int x, int y, char *rect)
 		v1= 255.0*tb;
 		rect[2]= CLAMPIS(v1, 0, 255);
 		
-		if(ta!=1.0) {
+		if(ta!=1.0f) {
 			tracol=  64+100*(abs(x)>abs(y));
-			tracol= (1.0-ta)*tracol;
+			tracol= (1.0f-ta)*tracol;
 			
 			rect[0]= tracol+ (rect[0]*ta) ;
 			rect[1]= tracol+ (rect[1]*ta) ;
@@ -706,24 +703,24 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 {
 	float dot, fac, view[3], len;
 
-	index= 1.0/index;
+	index= 1.0f/index;
 	
 	view[0]= index*(float)*x;
 	view[1]= ((float)*y)/index;
-	view[2]= 20.0;
+	view[2]= 20.0f;
 	len= Normalise(view);
 	
 	dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
-	if(dot>0.0) {
-		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return;
+	if(dot>0.0f) {
+		fac= 1.0f - (1.0f - dot*dot)*index*index;
+		if(fac<= 0.0f) return;
 		fac= -dot*index + sqrt(fac);
 	}
 	else {
-		index = 1.0/index;
-		fac= 1.0 - (1.0 - dot*dot)*index*index;
-		if(fac<= 0.0) return;
+		index = 1.0f/index;
+		fac= 1.0f - (1.0f - dot*dot)*index*index;
+		if(fac<= 0.0f) return;
 		fac= -dot*index - sqrt(fac);
 	}
 
@@ -731,37 +728,192 @@ static void refraction_prv(int *x, int *y, float *n, float index)
 	*y= (int)(len*(index*view[1] + fac*n[1]));
 }
 
-
-static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *rect, int smooth)
+static void shade_lamp_loop_preview(ShadeInput *shi, ShadeResult *shr, int pr_lamp)
 {
 	extern float fresnel_fac(float *view, float *vn, float ior, float fac);
-	Material *mat;
-	float v1,inp, is, inprspec=0, isr=0.0, isb=0.0, isg=0.0;
-	float diff[3]={0.0, 0.0, 0.0};
-	float lv[3], *la, alpha;
-	float eul[3], tmat[3][3], imat[3][3];
-	int temp, a;
-	char tracol;
-		
-	mat= shi->mat;
-
+	Material *mat= shi->mat;
+	float inp, is, inprspec=0;
+	float lv[3], *la;
+	int a;
+	
 	// copy all relevant material vars, note, keep this synced with render_types.h
 	memcpy(&shi->r, &mat->r, 23*sizeof(float));
 	// set special cases:
 	shi->har= mat->har;
-	if((mat->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0;
 	
+	if((mat->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0f;
+	memset(shr, 0, sizeof(ShadeResult));
+	
+	/* normals flipped in render for smooth... */
+	if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0f);
+	
+	do_material_tex(shi);
+	
+	/* normals flipped in render... */
+	if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0f);	
+	
+	shr->alpha= shi->alpha;
+	
+	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
+		if(mat->fresnel_tra!=0.0f) 
+			shr->alpha*= fresnel_fac(shi->view, shi->vn, mat->fresnel_tra_i, mat->fresnel_tra);
+	
+	if(mat->mode & MA_SHLESS) {
+		shr->diff[0]= shi->r;
+		shr->diff[1]= shi->g;
+		shr->diff[2]= shi->b;
+		
+	}
+	else {
+		
+		for(a=0; a<2; a++) {
+			
+			if((pr_lamp & (1<<a))==0) continue;
+			
+			if(a==0) la= pr1_lamp;
+			else la= pr2_lamp;
+			
+			lv[0]= shi->co[0]-la[0];
+			lv[1]= shi->co[1]-la[1];
+			lv[2]= shi->co[2]-la[2];
+			Normalise(lv);
+			
+			is= shi->vn[0]*lv[0]+shi->vn[1]*lv[1]+shi->vn[2]*lv[2];
+			if(is<0.0f) is= 0.0f;
+			
+			if(shi->spec>0.0f)  {
+				
+				if(is>0.0f) {
+					/* specular shaders */
+					float specfac;
+					
+					if(mat->spec_shader==MA_SPEC_PHONG) 
+						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har, 0);
+					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
+						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har, 0);
+					else if(mat->spec_shader==MA_SPEC_BLINN) 
+						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har, 0);
+					else if(mat->spec_shader==MA_SPEC_WARDISO)
+						specfac= WardIso_Spec(shi->vn, lv, shi->view, mat->rms, 0);
+					else 
+						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3], 0);
+					
+					inprspec= specfac*shi->spec;
+					
+					if(mat->mode & MA_RAMP_SPEC) {
+						float spec[3];
+						do_specular_ramp(shi, specfac, inprspec, spec);
+						shr->spec[0]+= inprspec*spec[0];
+						shr->spec[1]+= inprspec*spec[1];
+						shr->spec[2]+= inprspec*spec[2];
+					}
+					else {	
+						shr->spec[0]+= inprspec*shi->specr;
+						shr->spec[1]+= inprspec*shi->specg;
+						shr->spec[2]+= inprspec*shi->specb;
+					}
+				}
+			}
+			/* diffuse shaders */
+			if(mat->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(shi->vn, lv, shi->view, mat->roughness);
+			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
+			else if(mat->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, shi->vn, shi->view, mat->darkness);
+			// else Lambert
+			
+			inp= (shi->refl*is + shi->emit);
+			
+			if(a==0) la= pr1_col;
+			else la= pr2_col;
+			
+			add_to_diffuse(shr->diff, shi, is, inp*la[0], inp*la[1], inp*la[2]);
+		}
+		/* end lamp loop */
+		
+		/* drawing checkerboard and sky */
+		if(mat->mode & MA_RAYMIRROR) {
+			float col, div, y, z;
+			int fac;
+			
+			/* rotate a bit in x */
+			y= shi->ref[1]; z= shi->ref[2];
+			shi->ref[1]= 0.98*y - 0.17*z;
+			shi->ref[2]= 0.17*y + 0.98*z;
+			
+			/* scale */
+			div= (0.85f*shi->ref[1]);
+			
+			shi->refcol[0]= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, mat->fresnel_mir_i, mat->fresnel_mir);
+			/* not real 'alpha', but mirror overriding transparency */
+			if(mat->mode & MA_RAYTRANSP) {
+				float fac= sqrt(shi->refcol[0]);
+				shr->alpha= shr->alpha*(1.0f-fac) + fac;
+			}
+			else shr->alpha= shr->alpha*(1.0f-shi->refcol[0]) + shi->refcol[0];
+			
+			if(div<0.0f) {
+				/* minus 0.5 prevents too many small tiles in distance */
+				fac= (int)(shi->ref[0]/(div-0.1f) ) + (int)(shi->ref[2]/(div-0.1f) );
+				if(fac & 1) col= 0.8f;
+				else col= 0.3f;
+				
+				shi->refcol[1]= shi->refcol[0]*col;
+				shi->refcol[2]= shi->refcol[1];
+				shi->refcol[3]= shi->refcol[2];
+			}
+			else {
+				shi->refcol[1]= 0.0f;
+				shi->refcol[2]= shi->refcol[0]*0.3f*div;
+				shi->refcol[3]= shi->refcol[0]*0.8f*div;
+			}
+		}
+		
+		shr->diff[0]+= shi->ambr;
+		shr->diff[1]+= shi->ambg;
+		shr->diff[2]+= shi->ambb;
+		
+		if(mat->mode & MA_RAMP_COL) ramp_diffuse_result(shr->diff, shi);
+		if(mat->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
+		
+		/* refcol */
+		if(shi->refcol[0]!=0.0f) {
+			shr->diff[0]= shi->mirr*shi->refcol[1] + (1.0f - shi->mirr*shi->refcol[0])*shr->diff[0];
+			shr->diff[1]= shi->mirg*shi->refcol[2] + (1.0f - shi->mirg*shi->refcol[0])*shr->diff[1];
+			shr->diff[2]= shi->mirb*shi->refcol[3] + (1.0f - shi->mirb*shi->refcol[0])*shr->diff[2];
+		}
+	
+		/* ztra shade */
+		if(shi->spectra!=0.0f) {
+			inp = MAX3(shr->spec[0], shr->spec[1], shr->spec[2]);
+			inp *= shi->spectra;
+			if(inp>1.0f) inp= 1.0f;
+			shr->alpha= (1.0f-inp)*shr->alpha+inp;
+		}
+	}	
+}
+
+static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y, char *rect, int smooth)
+{
+	Material *mat;
+	MaterialLayer *ml;
+	ShadeResult shr;
+	float v1, inp;
+	float eul[3], tmat[3][3], imat[3][3], col[3];
+	char tracol;
+		
+	mat= shi->mat;
+
 	v1= 1.0/PR_RECTX;
 	shi->view[0]= v1*x;
 	shi->view[1]= v1*y;
-	shi->view[2]= 1.0;
+	shi->view[2]= 1.0f;
 	Normalise(shi->view);
 	
 	shi->xs= (float)x;
 	shi->ys= (float)y;
 	
-	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0;
-
+	shi->refcol[0]= shi->refcol[1]= shi->refcol[2]= shi->refcol[3]= 0.0f;
+	VECCOPY(shi->co, vec);
+	
 	/* texture handling */
 	if(mat->texco) {
 		
@@ -799,7 +951,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 			shi->strand= shi->lo[0];
 		}
 		if(mat->texco & TEXCO_OBJECT) {
-			VECCOPY(shi->co, shi->lo);
+			/* nothing */
 		}
 		if(mat->texco & (TEXCO_NORM)) {
 			shi->orn[0]= shi->vn[0];
@@ -816,15 +968,7 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 
 		/* Clear displase vec for preview */
 		shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
-		
-		/* normals flipped in render for smooth... */
-		if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
-		
-		do_material_tex(shi);
-
-		/* normals flipped in render... */
-		if( (mat->mapto & MAP_NORM)) VecMulf(shi->vn, -1.0);
-	
+			
 		if(mat->texco & TEXCO_REFL) {
 			/* normals in render are pointing different... rhm */
 			if(smooth) shi->ref[1]= -shi->ref[1];
@@ -838,195 +982,98 @@ static void shade_preview_pixel(ShadeInput *shi, float *vec, int x, int y,char *
 		}
 		
 	}
-	/* set it here, because ray_mirror will affect it */
-	alpha= shi->alpha;
 
 	if(mat->mapto & MAP_DISPLACE) { /* Quick hack of fake displacement preview */
-		shi->vn[0]-=2.0*shi->displace[2];
-		shi->vn[1]-=2.0*shi->displace[0];
-		shi->vn[2]+=2.0*shi->displace[1];
-		Normalise(shi->vn);
+//		shi->vn[0]-=2.0*shi->displace[2];
+//		shi->vn[1]-=2.0*shi->displace[0];
+//		shi->vn[2]+=2.0*shi->displace[1];
+//		Normalise(shi->vn);
 	}
-		
-	if(mat->mode & (MA_ZTRA|MA_RAYTRANSP)) 
-		if(mat->fresnel_tra!=0.0) 
-			alpha*= fresnel_fac(shi->view, shi->vn, mat->fresnel_tra_i, mat->fresnel_tra);
 
-	if(mat->mode & MA_SHLESS) {
-		temp= 255.0*(shi->r);
-		if(temp>255) rect[0]= 255; else if(temp<0) rect[0]= 0; else rect[0]= temp;
-
-		temp= 255.0*(shi->g);
-		if(temp>255) rect[1]= 255; else if(temp<0) rect[1]= 0; else rect[1]= temp;
-
-		temp= 255.0*(shi->b);
-		if(temp>255) rect[2]= 255; else if(temp<0) rect[2]= 0; else rect[2]= temp;
-	}
+	/* ------  main shading loop with material layers */
+	VECCOPY(shi->vno, shi->vn);
+	if(mat->ml_flag & ML_RENDER) 
+		shade_lamp_loop_preview(shi, &shr, mat->pr_lamp);
 	else {
-		
-		for(a=0; a<2; a++) {
-			
-			if((mat->pr_lamp & (1<<a))==0) continue;
-			
-			if(a==0) la= pr1_lamp;
-			else la= pr2_lamp;
-			
-			lv[0]= vec[0]-la[0];
-			lv[1]= vec[1]-la[1];
-			lv[2]= vec[2]-la[2];
-			Normalise(lv);
-			
-			is= shi->vn[0]*lv[0]+shi->vn[1]*lv[1]+shi->vn[2]*lv[2];
-			if(is<0.0) is= 0.0;
-			
-			if(shi->spec>0.0)  {
-				
-				if(is>0.0) {
-					/* specular shaders */
-					float specfac;
-					
-					if(mat->spec_shader==MA_SPEC_PHONG) 
-						specfac= Phong_Spec(shi->vn, lv, shi->view, shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_COOKTORR) 
-						specfac= CookTorr_Spec(shi->vn, lv, shi->view, shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_BLINN) 
-						specfac= Blinn_Spec(shi->vn, lv, shi->view, mat->refrac, (float)shi->har, 0);
-					else if(mat->spec_shader==MA_SPEC_WARDISO)
-						specfac= WardIso_Spec(shi->vn, lv, shi->view, mat->rms, 0);
-					else 
-						specfac= Toon_Spec(shi->vn, lv, shi->view, mat->param[2], mat->param[3], 0);
-				
-					inprspec= specfac*shi->spec;
-					
-					if(mat->mode & MA_RAMP_SPEC) {
-						float spec[3];
-						do_specular_ramp(shi, specfac, inprspec, spec);
-						isr+= inprspec*spec[0];
-						isg+= inprspec*spec[1];
-						isb+= inprspec*spec[2];
-					}
-					else {	
-						isr+= inprspec*shi->specr;
-						isg+= inprspec*shi->specg;
-						isb+= inprspec*shi->specb;
-					}
-				}
-			}
-			/* diffuse shaders */
-			if(mat->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(shi->vn, lv, shi->view, mat->roughness);
-			else if(mat->diff_shader==MA_DIFF_TOON) is= Toon_Diff(shi->vn, lv, shi->view, mat->param[0], mat->param[1]);
-			else if(mat->diff_shader==MA_DIFF_MINNAERT) is= Minnaert_Diff(is, shi->vn, shi->view, mat->darkness);
-			// else Lambert
-			
-			inp= (shi->refl*is + shi->emit);
-			
-			if(a==0) la= pr1_col;
-			else la= pr2_col;
+		memset(&shr, 0, sizeof(ShadeResult));
+		shr.alpha= 1.0f;
+	}
 
-			add_to_diffuse(diff, shi, is, inp*la[0], inp*la[1], inp*la[2]);
-			//ir+= inp*la[0];
-			//ig+= inp*la[1];
-			//ib+= inp*la[2];
-		}
-		
-		/* drawing checkerboard and sky */
-		if(mat->mode & MA_RAYMIRROR) {
-			float col, div, y, z;
-			int fac;
+	for(ml= mat->layers.first; ml; ml= ml->next) {
+		if(ml->mat && (ml->flag & ML_RENDER)) {
+			ShadeResult shrlay;
 			
-			/* rotate a bit in x */
-			y= shi->ref[1]; z= shi->ref[2];
-			shi->ref[1]= 0.98*y - 0.17*z;
-			shi->ref[2]= 0.17*y + 0.98*z;
-			
-			/* scale */
-			div= (0.85*shi->ref[1]);
-			
-			shi->refcol[0]= shi->ray_mirror*fresnel_fac(shi->view, shi->vn, mat->fresnel_mir_i, mat->fresnel_mir);
-			/* not real 'alpha', but mirror overriding transparency */
-			if(mat->mode & MA_RAYTRANSP) {
-				float fac= sqrt(shi->refcol[0]);
-				alpha= alpha*(1.0-fac) + fac;
-			}
-			else alpha= alpha*(1.0-shi->refcol[0]) + shi->refcol[0];
-			
-			if(div<0.0) {
-				/* minus 0.5 prevents too many small tiles in distance */
-				fac= (int)(shi->ref[0]/(div-0.1) ) + (int)(shi->ref[2]/(div-0.1) );
-				if(fac & 1) col= 0.8;
-				else col= 0.3;
+			shi->mat= ml->mat;
+			shi->layerfac= ml->blendfac;
+			VECCOPY(shi->vn, shi->vno);
+			if(ml->flag & ML_NEG_NORMAL)
+				VecMulf(shi->vn, -1.0);
 
-				shi->refcol[1]= shi->refcol[0]*col;
-				shi->refcol[2]= shi->refcol[1];
-				shi->refcol[3]= shi->refcol[2];
-			}
-			else {
-				shi->refcol[1]= 0.0;
-				shi->refcol[2]= shi->refcol[0]*0.3*div;
-				shi->refcol[3]= shi->refcol[0]*0.8*div;
-			}
-		}
-		
-		if(mat->mode & MA_RAMP_COL) ramp_diffuse_result(diff, shi);
-		if(mat->mode & MA_RAMP_SPEC) ramp_spec_result(&isr, &isg, &isb, shi);
-		
-		if(shi->refcol[0]==0.0) {
-			a= 255.0*(diff[0] +shi->ambr +isr);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[0]= a;
-			a= 255.0*(diff[1] +shi->ambg +isg);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[1]= a;
-			a= 255*(diff[2] +shi->ambb +isb);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[2]= a;
-		}
-		else {
-			a= 255.0*( shi->mirr*shi->refcol[1] + (1.0 - shi->mirr*shi->refcol[0])*(diff[0] +shi->ambr) +isr);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[0]= a;
-			a= 255.0*( shi->mirg*shi->refcol[2] + (1.0 - shi->mirg*shi->refcol[0])*(diff[1] +shi->ambg) +isg);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[1]= a;
-			a= 255.0*( shi->mirb*shi->refcol[3] + (1.0 - shi->mirb*shi->refcol[0])*(diff[2] +shi->ambb) +isb);
-			if(a>255) a=255; else if(a<0) a= 0;
-			rect[2]= a;
+			shade_lamp_loop_preview(shi, &shrlay, mat->pr_lamp);
+			matlayer_blend(ml, shi->layerfac, &shr, &shrlay);
 		}
 	}
 
-		/* ztra shade */
-	if(shi->spectra!=0.0) {
-		inp = MAX3(isr, isg, isb);
-		inp *= shi->spectra;
-		if(inp>1.0) inp= 1.0;
-		alpha= (1.0-inp)*alpha+inp;
-	}
+	shi->mat= mat;	/* restore, shade input is re-used! */
 
-	if(alpha!=1.0) {
+	/* after shading and composit layers */
+	if(shr.spec[0]<0.0f) shr.spec[0]= 0.0f;
+	if(shr.spec[1]<0.0f) shr.spec[1]= 0.0f;
+	if(shr.spec[2]<0.0f) shr.spec[2]= 0.0f;
+
+	if(shr.diff[0]<0.0f) shr.diff[0]= 0.0f;
+	if(shr.diff[1]<0.0f) shr.diff[1]= 0.0f;
+	if(shr.diff[2]<0.0f) shr.diff[2]= 0.0f;
+
+	VECADD(col, shr.diff, shr.spec);
+	if(col[0]<=0.0f) rect[0]= 0; else if(col[0]>=1.0f) rect[0]= 255; else rect[0]= (char)(255.0*col[0]);
+	if(col[1]<=0.0f) rect[1]= 0; else if(col[1]>=1.0f) rect[1]= 255; else rect[1]= (char)(255.0*col[1]);
+	if(col[2]<=0.0f) rect[2]= 0; else if(col[2]>=1.0f) rect[2]= 255; else rect[2]= (char)(255.0*col[2]);
+
+	if(shr.alpha!=1.0f) {
 		if(mat->mode & MA_RAYTRANSP) {
 			refraction_prv(&x, &y, shi->vn, shi->ang);
 		}
 		
 		tracol=  previewback(mat->pr_back, x, y) & 255;
 		
-		tracol= (1.0-alpha)*tracol;
+		tracol= (1.0f-shr.alpha)*tracol;
 		
 		if((mat->mode & MA_RAYTRANSP) && mat->filter!=0.0) {
-			float fr= 1.0+ mat->filter*(shi->r-1.0);
-			rect[0]= fr*tracol+ (rect[0]*alpha) ;
-			fr= 1.0+ mat->filter*(shi->g-1.0);
-			rect[1]= fr*tracol+ (rect[1]*alpha) ;
-			fr= 1.0+ mat->filter*(shi->b-1.0);
-			rect[2]= fr*tracol+ (rect[2]*alpha) ;
+			float fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
+			rect[0]= fr*tracol+ (rect[0]*shr.alpha) ;
+			fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
+			rect[1]= fr*tracol+ (rect[1]*shr.alpha) ;
+			fr= 1.0f+ mat->filter*(shr.diff[0]-1.0f);
+			rect[2]= fr*tracol+ (rect[2]*shr.alpha) ;
 		}
 		else {
-			rect[0]= tracol+ (rect[0]*alpha) ;
-			rect[1]= tracol+ (rect[1]*alpha) ;
-			rect[2]= tracol+ (rect[2]*alpha) ;
+			rect[0]= tracol+ (rect[0]*shr.alpha) ;
+			rect[1]= tracol+ (rect[1]*shr.alpha) ;
+			rect[2]= tracol+ (rect[2]*shr.alpha) ;
 		}
 	}
 }
 
+static void preview_init_render_textures(MTex **mtex)
+{
+	int x;
+	
+	for(x=0; x<MAX_MTEX; x++) {
+		if(mtex[x]) {
+			if(mtex[x]->tex) {
+				init_render_texture(mtex[x]->tex);
+				
+				if(mtex[x]->tex->env && mtex[x]->tex->env->object) 
+					MTC_Mat4One(mtex[x]->tex->env->object->imat);
+				
+			}
+			if(mtex[x]->object) MTC_Mat4One(mtex[x]->object->imat);
+			if(mtex[x]->object) MTC_Mat4One(mtex[x]->object->imat);
+		}
+	}
+	
+}
 
 void BIF_previewrender(SpaceButs *sbuts)
 {
@@ -1100,27 +1147,23 @@ void BIF_previewrender(SpaceButs *sbuts)
 	shi.osatex= 0;
 	
 	if(mat) {
+		MaterialLayer *ml;
+		
 		/* rendervars */
 		init_render_world();
 		init_render_material(mat);
+		/* also clears imats */
+		preview_init_render_textures(mat->mtex);
 		
-		/* clear imats, flip normal... (hack because everything is inverted here) */
-		for(x=0; x<MAX_MTEX; x++) {
-			if(mat->mtex[x]) {
-				if(mat->mtex[x]->tex) {
-					init_render_texture(mat->mtex[x]->tex);
-					
-					if(mat->mtex[x]->tex->env && mat->mtex[x]->tex->env->object) 
-						MTC_Mat4One(mat->mtex[x]->tex->env->object->imat);
-					
-					mat->mtex[x]->maptoneg ^= MAP_NORM;
-				}
-				if(mat->mtex[x]->object) MTC_Mat4One(mat->mtex[x]->object->imat);
-				if(mat->mtex[x]->object) MTC_Mat4One(mat->mtex[x]->object->imat);
+		for(ml= mat->layers.first; ml; ml= ml->next) {
+			if(ml->mat && (ml->flag & ML_RENDER)) {
+				init_render_material(ml->mat);
+				preview_init_render_textures(ml->mat->mtex);
+				mat->texco |= ml->mat->texco;
 			}
 		}
-		shi.vlr= 0;
 		
+		shi.vlr= NULL;		
 		shi.mat= mat;
 		
 		if(mat->mode & MA_HALO) init_previewhalo(&har, mat);
@@ -1141,15 +1184,15 @@ void BIF_previewrender(SpaceButs *sbuts)
 	else if(la) {
 
 		init_render_world();
-		init_render_textures();	/* do not do it twice!! (brightness) */
+		preview_init_render_textures(la->mtex);
 		R.totlamp= 0;
 		RE_add_render_lamp(ob, 0);	/* 0=no shadbuf or tables */
 		lar= R.la[0];
 		
 		/* exceptions: */
-		lar->spottexfac= 1.0;
-		lar->spotsi= cos( M_PI/3.0 );
-		lar->spotbl= (1.0-lar->spotsi)*la->spotblend;
+		lar->spottexfac= 1.0f;
+		lar->spotsi= cos( M_PI/3.0f );
+		lar->spotbl= (1.0f-lar->spotsi)*la->spotblend;
 		
 		MTC_Mat3One(lar->imat);
 	}
@@ -1165,7 +1208,7 @@ void BIF_previewrender(SpaceButs *sbuts)
 			MTC_Mat4Invert(R.viewmat, R.viewinv);
 		}
 		init_render_world();
-		init_render_textures();	/* dont do it twice!! (brightness) */
+		preview_init_render_textures(wrld->mtex);	
 	}
 
 	uiPanelPush(block);	// sets UImat
@@ -1258,12 +1301,12 @@ void BIF_previewrender(SpaceButs *sbuts)
 						}
 					}
 					else {
-						vec[0]= x*(2.0/PR_RECTX);
-						vec[1]= y*(2.0/PR_RECTX);
+						vec[0]= x*(2.0f/PR_RECTX);
+						vec[1]= y*(2.0f/PR_RECTX);
 						vec[2]= 0.0;
 						
-						shi.vn[0]= shi.vn[1]= 0.0;
-						shi.vn[2]= 1.0;
+						shi.vn[0]= shi.vn[1]= 0.0f;
+						shi.vn[2]= 1.0f;
 						
 						shade_preview_pixel(&shi, vec, x, y, (char *)rect, 0);
 					}
@@ -1317,27 +1360,11 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	uiPanelPop(block);
 	
-	if(mat) {
-		end_render_material(mat);
-		for(x=0; x<MAX_MTEX; x++) {
-			if(mat->mtex[x] && mat->mtex[x]->tex) {
-				end_render_texture(mat->mtex[x]->tex);
-				mat->mtex[x]->maptoneg ^= MAP_NORM;
-			}	
-		}
-	}
-	else if(tex) {
-		end_render_texture(tex);
-	}
-	else if(la) {
+	if(la) {
 		if(R.totlamp) {
 			MEM_freeN(R.la[0]);
 		}
 		R.totlamp= 0;
-		end_render_textures();
-	}
-	else if(wrld) {
-		end_render_textures();
 	}
 }
 

@@ -1107,65 +1107,84 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= shi->alpha;
 }
 
-/* r g b = 1 value, col = vector */
-static void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
+/* r g b = current value, col = new value, fac==0 is no change */
+/* if g==NULL, it only does r channel */
+void ramp_blend(int type, float *r, float *g, float *b, float fac, float *col)
 {
 	float tmp, facm= 1.0-fac;
 	
 	switch (type) {
 	case MA_RAMP_BLEND:
 		*r = facm*(*r) + fac*col[0];
-		*g = facm*(*g) + fac*col[1];
-		*b = facm*(*b) + fac*col[2];
+		if(g) {
+			*g = facm*(*g) + fac*col[1];
+			*b = facm*(*b) + fac*col[2];
+		}
 		break;
 	case MA_RAMP_ADD:
 		*r += fac*col[0];
-		*g += fac*col[1];
-		*b += fac*col[2];
+		if(g) {
+			*g += fac*col[1];
+			*b += fac*col[2];
+		}
 		break;
 	case MA_RAMP_MULT:
 		*r *= (facm + fac*col[0]);
-		*g *= (facm + fac*col[1]);
-		*b *= (facm + fac*col[2]);
+		if(g) {
+			*g *= (facm + fac*col[1]);
+			*b *= (facm + fac*col[2]);
+		}
 		break;
 	case MA_RAMP_SCREEN:
-		*r = 1.0-(facm + (1.0 - col[0]))*(1.0 - *r);
-		*g = 1.0-(facm + (1.0 - col[1]))*(1.0 - *g);
-		*b = 1.0-(facm + (1.0 - col[2]))*(1.0 - *b);
+		*r = 1.0 - (facm + fac*(1.0 - col[0])) * (1.0 - *r);
+		if(g) {
+			*g = 1.0 - (facm + fac*(1.0 - col[1])) * (1.0 - *g);
+			*b = 1.0 - (facm + fac*(1.0 - col[2])) * (1.0 - *b);
+		}
 		break;
 	case MA_RAMP_SUB:
 		*r -= fac*col[0];
-		*g -= fac*col[1];
-		*b -= fac*col[2];
+		if(g) {
+			*g -= fac*col[1];
+			*b -= fac*col[2];
+		}
 		break;
 	case MA_RAMP_DIV:
 		if(col[0]!=0.0)
 			*r = facm*(*r) + fac*(*r)/col[0];
-		if(col[1]!=0.0)
-			*g = facm*(*g) + fac*(*g)/col[1];
-		if(col[2]!=0.0)
-			*b = facm*(*b) + fac*(*b)/col[2];
+		if(g) {
+			if(col[1]!=0.0)
+				*g = facm*(*g) + fac*(*g)/col[1];
+			if(col[2]!=0.0)
+				*b = facm*(*b) + fac*(*b)/col[2];
+		}
 		break;
 	case MA_RAMP_DIFF:
 		*r = facm*(*r) + fac*fabs(*r-col[0]);
-		*g = facm*(*g) + fac*fabs(*g-col[1]);
-		*b = facm*(*b) + fac*fabs(*b-col[2]);
+		if(g) {
+			*g = facm*(*g) + fac*fabs(*g-col[1]);
+			*b = facm*(*b) + fac*fabs(*b-col[2]);
+		}
 		break;
 	case MA_RAMP_DARK:
 		tmp= fac*col[0];
 		if(tmp < *r) *r= tmp; 
-		tmp= fac*col[1];
-		if(tmp < *g) *g= tmp; 
-		tmp= fac*col[2];
-		if(tmp < *b) *b= tmp; 
+		if(g) {
+			tmp= fac*col[1];
+			if(tmp < *g) *g= tmp; 
+			tmp= fac*col[2];
+			if(tmp < *b) *b= tmp; 
+			}
 		break;
 	case MA_RAMP_LIGHT:
 		tmp= fac*col[0];
 		if(tmp > *r) *r= tmp; 
-		tmp= fac*col[1];
-		if(tmp > *g) *g= tmp; 
-		tmp= fac*col[2];
-		if(tmp > *b) *b= tmp; 
+		if(g) {
+			tmp= fac*col[1];
+			if(tmp > *g) *g= tmp; 
+			tmp= fac*col[2];
+			if(tmp > *b) *b= tmp; 
+		}
 		break;
 	}
 
@@ -1341,6 +1360,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	view= shi->view;
 	
 	memset(shr, 0, sizeof(ShadeResult));
+	
+	/* copy all relevant material vars, note, keep this synced with render_types.h */
+	memcpy(&shi->r, &ma->r, 23*sizeof(float));
+	/* set special cases */
+	shi->har= ma->har;
+	if((ma->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0;
 	
 	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
@@ -1760,21 +1785,14 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 	shr->alpha= shi->alpha;
 
-	if(shr->spec[0]<0.0) shr->spec[0]= 0.0;
-	if(shr->spec[1]<0.0) shr->spec[1]= 0.0;
-	if(shr->spec[2]<0.0) shr->spec[2]= 0.0;
-
 	shr->diff[0]+= shi->r*shi->amb*shi->rad[0];
 	shr->diff[0]+= shi->ambr;
-	if(shr->diff[0]<0.0) shr->diff[0]= 0.0;
 	
 	shr->diff[1]+= shi->g*shi->amb*shi->rad[1];
 	shr->diff[1]+= shi->ambg;
-	if(shr->diff[1]<0.0) shr->diff[1]= 0.0;
 	
 	shr->diff[2]+= shi->b*shi->amb*shi->rad[2];
 	shr->diff[2]+= shi->ambb;
-	if(shr->diff[2]<0.0) shr->diff[2]= 0.0;
 	
 	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->diff, shi);
 	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
@@ -1796,7 +1814,7 @@ void shade_input_set_coords(ShadeInput *shi, float u, float v, int i1, int i2, i
 	VlakRen *vlr= shi->vlr;
 	float l, dl;
 	short texco= shi->mat->texco;
-	int mode= shi->mat->mode;
+	int mode= shi->mat->mode_l;		/* or-ed result for all layers */
 	char p1, p2, p3;
 	
 	/* for rendering of quads, the following values are used to denote vertices:
@@ -2135,7 +2153,20 @@ static float isec_view_line(float *view, float *v3, float *v4)
 }
 #endif
 
-  
+void matlayer_blend(MaterialLayer *ml, float blendfac, ShadeResult *target, ShadeResult *src)
+{
+	
+	if(ml->flag & ML_DIFFUSE)
+		ramp_blend(ml->blendmethod, target->diff, target->diff+1, target->diff+2, blendfac*src->alpha, src->diff);
+	
+	if(ml->flag & ML_SPECULAR)
+		ramp_blend(ml->blendmethod, target->spec, target->spec+1, target->spec+2, blendfac*src->alpha, src->spec);
+	
+	if(ml->flag & ML_ALPHA)
+		ramp_blend(ml->blendmethod, &target->alpha, NULL, NULL, blendfac, &src->alpha);
+}
+
+
 /* x,y: window coordinate from 0 to rectx,y */
 /* return pointer to rendered face */
 void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, float *rco)
@@ -2161,18 +2192,15 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 	}
 	else if( (facenr & 0x7FFFFF) <= R.totvlak) {
 		VertRen *v1, *v2, *v3;
+		Material *mat;
+		MaterialLayer *ml;
 		float alpha, fac, zcor;
 		
 		vlr= RE_findOrAddVlak( (facenr-1) & 0x7FFFFF);
 		
 		shi.vlr= vlr;
-		shi.mat= vlr->mat;
+		mat= shi.mat= vlr->mat;
 		
-		// copy all relevant material vars, note, keep this synced with render_types.h
-		memcpy(&shi.r, &shi.mat->r, 23*sizeof(float));
-		// set special cases:
-		shi.har= shi.mat->har;
-		if((shi.mat->mode & MA_RAYMIRROR)==0) shi.ray_mirror= 0.0;
 		shi.osatex= (shi.mat->texco & TEXCO_OSA);
 		
 		/* copy the face normal (needed because it gets flipped for tracing */
@@ -2338,31 +2366,77 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 			}
 		}
 		
-		/* ------  main shading loop */
-		shade_lamp_loop(&shi, &shr);
-
-		if(shi.translucency!=0.0) {
-			ShadeResult shr_t;
-			
-			VecMulf(shi.vn, -1.0);
-			VecMulf(shi.facenor, -1.0);
-			shade_lamp_loop(&shi, &shr_t);
-			shr.diff[0]+= shi.translucency*shr_t.diff[0];
-			shr.diff[1]+= shi.translucency*shr_t.diff[1];
-			shr.diff[2]+= shi.translucency*shr_t.diff[2];
-			VecMulf(shi.vn, -1.0);
-			VecMulf(shi.facenor, -1.0);
-		}
+		/* ------  main shading loop -------- */
+		VECCOPY(shi.vno, shi.vn);
 		
-		if(R.r.mode & R_RAYTRACE) {
-			if(shi.ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
-				ray_trace(&shi, &shr);
+		if(shi.mat->ml_flag & ML_RENDER) {
+
+			shade_lamp_loop(&shi, &shr);	/* clears shr */
+
+			if(shi.translucency!=0.0) {
+				ShadeResult shr_t;
+				
+				VECCOPY(shi.vn, shi.vno);
+				VecMulf(shi.vn, -1.0);
+				VecMulf(shi.facenor, -1.0);
+				shade_lamp_loop(&shi, &shr_t);
+				shr.diff[0]+= shi.translucency*shr_t.diff[0];
+				shr.diff[1]+= shi.translucency*shr_t.diff[1];
+				shr.diff[2]+= shi.translucency*shr_t.diff[2];
+				VecMulf(shi.vn, -1.0);
+				VecMulf(shi.facenor, -1.0);
+			}
+			
+			if(R.r.mode & R_RAYTRACE) {
+				if(shi.ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
+					ray_trace(&shi, &shr);
+				}
+			}
+			else {
+				/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
+				if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
 			}
 		}
 		else {
-			// doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this
-			if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
+			memset(&shr, 0, sizeof(ShadeResult));
+			shr.alpha= 1.0f;
 		}
+		
+		for(ml= shi.mat->layers.first; ml; ml= ml->next) {
+			if(ml->mat && (ml->flag & ML_RENDER)) {
+				ShadeResult shrlay;
+				
+				shi.mat= ml->mat;
+				shi.layerfac= ml->blendfac;
+				VECCOPY(shi.vn, shi.vno);
+				if(ml->flag & ML_NEG_NORMAL)
+					VecMulf(shi.vn, -1.0);
+				
+				shade_lamp_loop(&shi, &shrlay);	/* clears shrlay */
+				
+				if(R.r.mode & R_RAYTRACE) {
+					if(shi.ray_mirror!=0.0 || ((shi.mat->mode & MA_RAYTRANSP) && shr.alpha!=1.0)) {
+						ray_trace(&shi, &shr);
+					}
+				}
+				else {
+					/* doesnt look 'correct', but is better for preview, plus envmaps dont raytrace this */
+					if(shi.mat->mode & MA_RAYTRANSP) shr.alpha= 1.0;
+				}
+				
+				matlayer_blend(ml, shi.layerfac, &shr, &shrlay);
+			}
+		}
+		shi.mat= mat;
+		
+		/* after shading and composit layers */
+		if(shr.spec[0]<0.0f) shr.spec[0]= 0.0f;
+		if(shr.spec[1]<0.0f) shr.spec[1]= 0.0f;
+		if(shr.spec[2]<0.0f) shr.spec[2]= 0.0f;
+		
+		if(shr.diff[0]<0.0f) shr.diff[0]= 0.0f;
+		if(shr.diff[1]<0.0f) shr.diff[1]= 0.0f;
+		if(shr.diff[2]<0.0f) shr.diff[2]= 0.0f;
 		
 		VECADD(col, shr.diff, shr.spec);
 		

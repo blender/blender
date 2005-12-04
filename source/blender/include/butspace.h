@@ -180,6 +180,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 /* yafray: material preset menu event */
 #define B_MAT_YF_PRESET	1217
 
+#define B_MAT_LAYERBROWSE	1218
 
 /* *********************** */
 #define B_TEXBUTS		1400

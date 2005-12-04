@@ -3994,6 +3994,40 @@ void single_user(void)
 
 /* ************************************************************* */
 
+/* helper for below, ma was checked to be not NULL */
+static void make_local_makelocalmaterial(Material *ma)
+{
+	MaterialLayer *ml;
+	ID *id;
+	int b;
+	
+	make_local_material(ma);
+	
+	for(b=0; b<MAX_MTEX; b++) {
+		if(ma->mtex[b] && ma->mtex[b]->tex) {
+			make_local_texture(ma->mtex[b]->tex);
+		}
+	}
+	
+	id= (ID *)ma->ipo;
+	if(id && id->lib) make_local_ipo(ma->ipo);	
+	
+	for(ml=ma->layers.first; ml; ml= ml->next) {
+		if(ml->mat) {
+			make_local_material(ml->mat);
+			
+			for(b=0; b<MAX_MTEX; b++) {
+				if(ml->mat->mtex[b] && ml->mat->mtex[b]->tex) {
+					make_local_texture(ml->mat->mtex[b]->tex);
+				}
+			}
+			
+			id= (ID *)ml->mat->ipo;
+			if(id && id->lib) make_local_ipo(ml->mat->ipo);	
+		}
+		
+	}
+}
 
 void make_local(void)
 {
@@ -4116,34 +4150,16 @@ void make_local(void)
 				
 				for(a=0; a<ob->totcol; a++) {
 					ma= ob->mat[a];
-					if(ma) {
-						make_local_material(ma);
-					
-						for(b=0; b<MAX_MTEX; b++) {
-							if(ma->mtex[b] && ma->mtex[b]->tex) {
-								make_local_texture(ma->mtex[b]->tex);
-							}
-						}
-						id= (ID *)ma->ipo;
-						if(id && id->lib) make_local_ipo(ma->ipo);	
-					}
+					if(ma)
+						make_local_makelocalmaterial(ma);
 				}
 				
 				matarar= (Material ***)give_matarar(ob);
 				
 				for(a=0; a<ob->totcol; a++) {
 					ma= (*matarar)[a];
-					if(ma) {
-						make_local_material(ma);
-					
-						for(b=0; b<MAX_MTEX; b++) {
-							if(ma->mtex[b] && ma->mtex[b]->tex) {
-								make_local_texture(ma->mtex[b]->tex);
-							}
-						}
-						id= (ID *)ma->ipo;
-						if(id && id->lib) make_local_ipo(ma->ipo);	
-					}
+					if(ma)
+						make_local_makelocalmaterial(ma);
 				}
 			}
 		}

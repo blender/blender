@@ -148,9 +148,7 @@ struct MTex;
 struct Tex;
 
 void init_render_textures(void);
-void end_render_textures(void);
 void init_render_texture(struct Tex *tex);
-void end_render_texture(struct Tex *tex);
 
 void do_material_tex(ShadeInput *shi);
 void do_lamp_tex(struct LampRen *la, float *lavec, ShadeInput *shi, float *fcol);
@@ -162,7 +160,6 @@ void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, 
 /* envmap (4)                                                                   */
 /* ------------------------------------------------------------------------- */
 struct EnvMap;
-struct Tex;
 
 void    RE_free_envmapdata(struct EnvMap *env);
 void    RE_free_envmap(struct EnvMap *env);
@@ -173,6 +170,9 @@ struct EnvMap *RE_copy_envmap(struct EnvMap *env);
 /* --------------------------------------------------------------------- */
 /* rendercore (12)                                                        */
 /* --------------------------------------------------------------------- */
+struct MaterialLayer;
+struct ShadeResult;
+
 float Phong_Spec(float *n, float *l, float *v, int hard, int tangent);
 float CookTorr_Spec(float *n, float *l, float *v, int hard, int tangent);
 float Blinn_Spec(float *n, float *l, float *v, float refrac, float spec_power, int tangent);
@@ -188,6 +188,7 @@ void ramp_diffuse_result(float *diff, ShadeInput *shi);
 void do_specular_ramp(ShadeInput *shi, float is, float t, float *spec);
 void ramp_spec_result(float *specr, float *specg, float *specb, ShadeInput *shi);
 
+void matlayer_blend(struct MaterialLayer *ml, float blendfac, struct ShadeResult *target, struct ShadeResult *src);
 
 /* --------------------------------------------------------------------- */
 /* ray.c (2)                                                        */

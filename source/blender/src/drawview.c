@@ -343,7 +343,6 @@ static void draw_bgpic(void)
 		init_render_texture(bgpic->tex);
 		free_unused_animimages();
 		ima= bgpic->tex->ima;
-		end_render_texture(bgpic->tex);
 	}
 	else {
 		ima= bgpic->ima;

@@ -48,16 +48,18 @@ void init_material(struct Material *ma);
 struct Material *add_material(char *name);
 struct Material *copy_material(struct Material *ma);
 void make_local_material(struct Material *ma);
+
 struct Material ***give_matarar(struct Object *ob);
 short *give_totcolp(struct Object *ob);
 struct Material *give_current_material(struct Object *ob, int act);
 ID *material_from(struct Object *ob, int act);
 void assign_material(struct Object *ob, struct Material *ma, int act);
 void new_material_to_objectdata(struct Object *ob);
+
+struct Material *get_active_matlayer(struct Material *ma);
 void init_render_material(struct Material *ma);
 void init_render_materials(void);
-void end_render_material(struct Material *ma);
-void end_render_materials(void);
+
 void automatname(struct Material *ma);
 void delete_material_index(void);            
 

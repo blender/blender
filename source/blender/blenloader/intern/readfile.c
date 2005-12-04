@@ -1,19 +1,12 @@
 /*
- * readfile.c
- *
- * .blend file reading
- *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +24,7 @@
  *
  * Contributor(s): none yet.
  *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  *
  */
 
@@ -1983,6 +1976,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 static void lib_link_material(FileData *fd, Main *main)
 {
 	Material *ma;
+	MaterialLayer *ml;
 	MTex *mtex;
 	int a;
 
@@ -2000,6 +1994,10 @@ static void lib_link_material(FileData *fd, Main *main)
 				}
 			}
 			lib_link_scriptlink(fd, &ma->id, &ma->scriptlink);
+			
+			for (ml=ma->layers.first; ml; ml=ml->next)
+				ml->mat= newlibadr_us(fd, ma->id.lib, ml->mat);
+				
 			ma->id.flag -= LIB_NEEDLINK;
 		}
 		ma= ma->id.next;
@@ -2010,8 +2008,6 @@ static void direct_link_material(FileData *fd, Material *ma)
 {
 	int a;
 
-	direct_link_scriptlink(fd, &ma->scriptlink);
-
 	for(a=0; a<MAX_MTEX; a++) {
 		ma->mtex[a]= newdataadr(fd, ma->mtex[a]);
 	}
@@ -2019,6 +2015,10 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->ramp_col= newdataadr(fd, ma->ramp_col);
 	ma->ramp_spec= newdataadr(fd, ma->ramp_spec);
 	
+	direct_link_scriptlink(fd, &ma->scriptlink);
+	
+	link_list(fd, &ma->layers);
+
 }
 
 /* ************ READ MESH ***************** */
@@ -5082,6 +5082,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if(ma->mode & MA_TRACEBLE) ma->mode |= MA_SHADBUF;
 				ma->pad= 1;
 			}
+			/* orange stuff, so should be done for 2.40 too */
+			if(ma->layers.first==NULL) {
+				ma->ml_flag= ML_RENDER;
+			}
 		}
 	}
 	
@@ -5301,6 +5305,7 @@ static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
 
 static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 {
+	MaterialLayer *ml;
 	int a;
 
 	for(a=0; a<MAX_MTEX; a++) {
@@ -5309,7 +5314,13 @@ static void expand_material(FileData *fd, Main *mainvar, Material *ma)
 			expand_doit(fd, mainvar, ma->mtex[a]->object);
 		}
 	}
+	
 	expand_doit(fd, mainvar, ma->ipo);
+	
+	for (ml=ma->layers.first; ml; ml=ml->next) {
+		if(ml->mat)
+			expand_doit(fd, mainvar, ml->mat);
+	}
 }
 
 static void expand_lamp(FileData *fd, Main *mainvar, Lamp *la)

@@ -376,17 +376,20 @@ static void drawcolorband_cb(void)
 {
 	ID *id, *idfrom;
 	
-	buttons_active_id(&id, &idfrom);
+	buttons_active_id(&id, &idfrom);	/* base material, not the matlayer! */
 	if( GS(id->name)==ID_TE) {
 		Tex *tex= (Tex *)id;
 		drawcolorband(tex->coba, 10,145,300,30);
 	}
 	else if( GS(id->name)==ID_MA) {
 		Material *ma= (Material *)id;
-		if(ma->ramp_show==0)
-			drawcolorband(ma->ramp_col, 10,110,300,30);
-		else
-			drawcolorband(ma->ramp_spec, 10,110,300,30);
+		ma= get_active_matlayer(ma);
+		if(ma) {
+			if(ma->ramp_show==0)
+				drawcolorband(ma->ramp_col, 10,110,300,30);
+			else
+				drawcolorband(ma->ramp_spec, 10,110,300,30);
+		}
 	}
 }
 
@@ -756,7 +759,7 @@ void do_texbuts(unsigned short event)
 				do_colorbandbuts(tex->coba, event);
 			}
 			else {
-				ma= (Material *)id;
+				ma= get_active_matlayer((Material *)id);
 				if(ma->ramp_show==0) do_colorbandbuts(ma->ramp_col, event);
 				else do_colorbandbuts(ma->ramp_spec, event);
 			}
@@ -1422,7 +1425,10 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	if(uiNewPanel(curarea, block, "Texture", "Texture", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
-	buttons_active_id(&id, &idfrom);
+	id= (ID *)mtex->tex;
+	if(ma) idfrom= &ma->id;
+	else if(wrld) idfrom= &wrld->id;
+	else idfrom= &la->id;
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	if(ma) {
@@ -2012,16 +2018,12 @@ static void world_panel_amb_occ(World *wrld)
 static void world_panel_world(World *wrld)
 {
 	uiBlock *block;
-	ID *id, *idfrom;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_world", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "World", "World", 320, 0, 318, 204)==0) return;
 
-	/* first do the browse but */
-	buttons_active_id(&id, &idfrom);
-
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, id, idfrom, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
+	std_libbuttons(block, 10, 180, 0, NULL, B_WORLDBROWSE, (ID *)wrld, (ID *)G.scene, &(G.buts->menunr), B_WORLDALONE, B_WORLDLOCAL, B_WORLDDELETE, 0, B_KEEPDATA);
 
 	if(wrld==NULL) return;
 	
@@ -2455,7 +2457,6 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 static void lamp_panel_lamp(Object *ob, Lamp *la)
 {
 	uiBlock *block;
-	ID *id, *idfrom;
 	float grid= 0.0;
 	short xco;
 	
@@ -2467,11 +2468,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 
 	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 
-	/* first do the browse but */
-	buttons_active_id(&id, &idfrom);
-
 	uiBlockSetCol(block, TH_BUT_SETTING2);
-	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, id, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
+	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, (ID *)la, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
 
 	uiBlockSetCol(block, TH_AUTO);
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
@@ -2563,9 +2561,11 @@ void do_matbuts(unsigned short event)
 	Material *ma;
 	MTex *mtex;
 
+	/* all operations default on active material layer here */
+	ma = get_active_matlayer(G.buts->lockpoin);
+	
 	switch(event) {
 	case B_MAT_YF_PRESET: {
-		ma = G.buts->lockpoin;
 		switch (ma->YF_preset) {
 			case 0:
 				/* normal mode, no reflection/refraction */
@@ -2645,7 +2645,6 @@ void do_matbuts(unsigned short event)
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */
 		/* same for 'xtreme alpha' which is 'only shadow' */
-		ma= G.buts->lockpoin;
 		if((ma->mode & MA_HALO)==0) {
 			ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV);
 		}
@@ -2654,7 +2653,6 @@ void do_matbuts(unsigned short event)
 		shade_buttons_change_3d();
 		break;
 	case B_TEXCLEAR:
-		ma= G.buts->lockpoin;
 		mtex= ma->mtex[(int) ma->texact ];
 		if(mtex) {
 			if(mtex->tex) mtex->tex->id.us--;
@@ -2667,7 +2665,6 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 	case B_MTEXCOPY:
-		ma= G.buts->lockpoin;
 		if(ma && ma->mtex[(int)ma->texact] ) {
 			mtex= ma->mtex[(int)ma->texact];
 			if(mtex->tex==0) {
@@ -2680,7 +2677,6 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 	case B_MTEXPASTE:
-		ma= G.buts->lockpoin;
 		if(ma && mtexcopied && mtexcopybuf.tex) {
 			if(ma->mtex[(int)ma->texact]==0 ) 
 				ma->mtex[(int)ma->texact]= MEM_mallocN(sizeof(MTex), "mtex"); 
@@ -2696,14 +2692,12 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 	case B_MATLAY:
-		ma= G.buts->lockpoin;
 		if(ma && ma->lay==0) {
 			ma->lay= 1;
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
 	case B_MATZTRANSP:
-		ma= G.buts->lockpoin;
 		if(ma) {
 			ma->mode &= ~MA_RAYTRANSP;
 			allqueue(REDRAWBUTSSHADING, 0);
@@ -2711,7 +2705,6 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 	case B_MATRAYTRANSP:
-		ma= G.buts->lockpoin;
 		if(ma) {
 			ma->mode &= ~MA_ZTRA;
 			allqueue(REDRAWBUTSSHADING, 0);
@@ -2719,7 +2712,6 @@ void do_matbuts(unsigned short event)
 		}
 		break;
 	case B_MATCOLORBAND:
-		ma= G.buts->lockpoin;
 		if(ma) {
 			if(ma->mode & MA_RAMP_COL)
 				if(ma->ramp_col==NULL) ma->ramp_col= add_colorband();
@@ -2731,7 +2723,33 @@ void do_matbuts(unsigned short event)
 			shade_buttons_change_3d();
 		}
 		break;
-
+	case B_MAT_LAYERBROWSE:
+		ma= G.buts->lockpoin;	/* use base material instead */
+		if(ma) {
+			MaterialLayer *ml;
+			
+			/* the one with a menu set is the browser */
+			for(ml= ma->layers.first; ml; ml= ml->next) {
+				if(ml->menunr) {
+					if(ml->menunr==32767) {
+						if(ml->mat) {
+							ml->mat->id.us--;
+							ml->mat= copy_material(ml->mat);
+						}
+						else ml->mat= add_material("Layer");
+					}
+					else {
+						ml->mat= BLI_findlink(&G.main->mat, ml->menunr-1);
+						ml->mat->id.us++;
+					}
+					allqueue(REDRAWBUTSSHADING, 0);
+					BIF_all_preview_changed();
+					
+					break;
+				}
+			}
+		}
+		break;
 	}
 }
 
@@ -2792,7 +2810,7 @@ static void material_panel_map_to(Material *ma)
 	uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
 	uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
 	uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-	uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "Translu",	205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the translucency value");
+	uiDefButBitS(block, TOG3, MAP_LAYER, B_MATPRV, "Layer",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
 	uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
 	uiBlockEndAlign(block);
 	
@@ -3155,8 +3173,187 @@ static void material_panel_shading(Material *ma)
 		uiDefButBitI(block, TOG, MA_RADIO, 0,	"Radio",			245,55,65,19, &(ma->mode), 0, 0, 0, 0, "Enables material for radiosity rendering");
 
 	}
+}
+
+static void matlayer_add(void *ma_v, void *ml_v)
+{
+	Material *ma= ma_v;
+	MaterialLayer *ml= ml_v, *mlnew;
+	
+	mlnew= MEM_callocN(sizeof(MaterialLayer), "mat layer");
+	
+	if(ml==NULL) 
+		BLI_addhead(&ma->layers, mlnew);
+	else
+		BLI_insertlink(&ma->layers, ml, mlnew);
+	
+	mlnew->blendfac= 0.5f;
+	mlnew->flag= ML_RENDER|ML_DIFFUSE|ML_SPECULAR;
+	
+	BIF_undo_push("Add Material Layer");
+	allqueue(REDRAWBUTSSHADING, 0);
+}
+
+static void matlayer_moveUp(void *ma_v, void *ml_v)
+{
+	Material *ma= ma_v;
+	MaterialLayer *ml= ml_v;
+
+	if (ml->prev) {
+		BLI_remlink(&ma->layers, ml);
+		BLI_insertlink(&ma->layers, ml->prev->prev, ml);
+	}
+	
+	BIF_undo_push("Move Material Layer");
+}
+
+static void matlayer_moveDown(void *ma_v, void *ml_v)
+{
+	Material *ma= ma_v;
+	MaterialLayer *ml= ml_v;
+	
+	if (ml->next) {
+		BLI_remlink(&ma->layers, ml);
+		BLI_insertlink(&ma->layers, ml->next, ml);
+	}
+	
+	BIF_undo_push("Move Material Layer");
+}
+
+static void matlayer_del(void *ma_v, void *ml_v)
+{
+	Material *ma= ma_v;
+	MaterialLayer *ml= ml_v;
+	
+	BLI_remlink(&ma->layers, ml);
+	if(ml->mat) ml->mat->id.us--;
+	MEM_freeN(ml);
+
+	BIF_undo_push("Delete Material Layer");
+}
+
+static void matlayer_active(void *ma_v, void *ml_v)
+{
+	Material *ma= ma_v;
+	MaterialLayer *ml;
+	
+	for(ml= ma->layers.first; ml; ml= ml->next) {
+		if(ml==ml_v)
+			ml->flag |= ML_ACTIVE;
+		else
+			ml->flag &= ~ML_ACTIVE;
+	}
+	BIF_undo_push("Activate Material Layer");
+}
+
+static void material_panel_layers(Material *ma)
+{
+	uiBlock *block;
+	uiBut *but;
+	MaterialLayer *ml;
+	int yco= 155, rb_col;
+	char *strp;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_layers", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Preview", "Material");
+	if(uiNewPanel(curarea, block, "Layers", "Material", 0, 0, 318, 204)==0) return;
+	
+	uiNewPanelHeight(block, 204);
+	
+	/* Active button for current material */
+	uiBlockBeginAlign(block);
+	for(ml= ma->layers.first; ml; ml= ml->next)
+		if(ml->flag & ML_ACTIVE) break;
+	
+	if(ml==NULL)
+		but=uiDefIconBut(block, BUT, B_MATPRV_DRAW, ICON_MATERIAL,	10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
+	else but=uiDefBut(block, BUT, B_MATPRV_DRAW, " ",		10, 180, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate base Material");
+	uiButSetFunc(but, matlayer_active, ma, NULL);
+	
+	/* Enable/disable for current material */
+	if(ma->ml_flag & ML_RENDER)
+		uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
+	else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, 180, 20, 20, &ma->ml_flag, 0.0, 0.0, 0, 0, "Enable or disable base Material");
+	
+	uiBlockEndAlign(block);
+	/* label */
+	uiDefBut(block, LABEL, B_NOP, ma->id.name+2,			60, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
+	/* add layer */
+	but= uiDefBut(block, BUT, B_NOP, "Add Layer", 200, 180,110,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
+	uiButSetFunc(but, matlayer_add, ma, NULL);
+
+	
+	for(ml= ma->layers.first; ml; ml= ml->next) {
+		
+		/* rounded header */
+		rb_col= (ml->flag & ML_ACTIVE)?40:20;
+		uiDefBut(block, ROUNDBOX, B_DIFF, "", 8, yco-48, 304, 71, NULL, 5.0, 0.0, 3 , rb_col-20, ""); 
+		
+		/* Active button */
+		uiBlockBeginAlign(block);
+		if(ml->flag & ML_ACTIVE)
+			but=uiDefIconBut(block, BUT, B_MATPRV_DRAW, ICON_MATERIAL,	10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
+		else but=uiDefBut(block, BUT, B_MATPRV_DRAW, " ",		10, yco, 20, 20, NULL, 0.0, 0.0, 0, 0, "Activate this layer");
+		uiButSetFunc(but, matlayer_active, ma, ml);
+		
+		/* enable/disable button */
+		if(ml->flag & ML_RENDER)
+			uiDefIconButBitS(block, TOG, ML_RENDER, B_MATPRV_DRAW, ICON_CHECKBOX_HLT,	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
+		else uiDefButBitS(block, TOG, ML_RENDER, B_MATPRV, " ",	30, yco, 20, 20, &ml->flag, 0.0, 0.0, 0, 0, "Enable or disable this layer");
+		
+		uiBlockBeginAlign(block);
+		
+		/* browse button */
+		IDnames_to_pupstring(&strp, NULL, "ADD NEW %x32767", &(G.main->mat), (ID *)ma, NULL);
+		ml->menunr= 0;
+		uiDefButS(block, MENU, B_MAT_LAYERBROWSE, strp, 60,yco,20,20, &ml->menunr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+		if(strp) MEM_freeN(strp);
+			
+		/* name */
+		if(ml->mat) {
+			but= uiDefBut(block, TEX, B_IDNAME, "MA:",80, yco, 120, 20, ml->mat->id.name+2, 0.0, 19.0, 0, 0, "Rename Material");
+			uiButSetFunc(but, test_idbutton_cb, ml->mat->id.name, NULL);
+		}
+		else
+			uiDefBut(block, LABEL, B_NOP, "No Material",80, yco, 120, 20, NULL, 0.0, 0.0, 0, 0, "");
+			
+		/* add new */
+		but= uiDefBut(block, BUT, B_NOP, "Add", 200, yco,50,20, NULL, 0, 0, 0, 0, "Add a new Material Layer");
+		uiButSetFunc(but, matlayer_add, ma, ml);
+		
+		/* move up/down/delete */
+		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_MOVE_UP, 250, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer up");
+		uiButSetFunc(but, matlayer_moveUp, ma, ml);
+		
+		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_MOVE_DOWN, 270, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move layer down");
+		uiButSetFunc(but, matlayer_moveDown, ma, ml);
+		
+		but = uiDefIconBut(block, BUT, B_MATPRV_DRAW, VICON_X, 290, yco, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Delete material layer");
+		uiButSetFunc(but, matlayer_del, ma, ml);
+		
+		/* blend slider and operation */
+		uiBlockBeginAlign(block);
+		yco-= 25;
+		uiDefButS(block, MENU, B_MATPRV, "Mix %x0|Add %x1|Subtract %x3|Multiply %x2|Screen %x4|Divide %x5|Difference %x6|Darken %x7|Lighten %x8",
+													35,yco,100,20, &ml->blendmethod, 0, 0, 0, 0, "Blending method for Ramp (uses alpha in Colorband)");
+		uiDefButF(block, NUMSLI, B_MATPRV, "Blend:",135,yco,175,20, &ml->blendfac, 0.0, 1.0, 100, 0, "Blending factor");
+		
+		/* output */
+		yco-=20;
+		uiDefButBitS(block, TOG, ML_DIFFUSE, B_MATPRV,	"Diff",		35,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Diffuse");
+		uiDefButBitS(block, TOG, ML_SPECULAR, B_MATPRV, "Spec",	85,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Specular");
+		uiDefButBitS(block, TOG, ML_ALPHA, B_MATPRV, "Alpha",		135,yco,50,20, &ml->flag, 0, 0, 0, 0, "This Layer affects Alpha");
+		uiDefButBitS(block, TOG, ML_NEG_NORMAL, B_MATPRV, "Negate Normal",	185,yco,125,20, &ml->flag, 0, 0, 0, 0, "Negate normal for this layer");
+		
+		yco-= 30;
+		
+		uiBlockEndAlign(block);
+	}
+	
+	if(yco < 0) uiNewPanelHeight(block, 204-yco);
 
 }
+
 
 static void material_panel_ramps(Material *ma)
 {
@@ -3240,7 +3437,7 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
-	buttons_active_id(&id, &idfrom);
+	buttons_active_id(&id, &idfrom);	/* base material, not the matlayer! */
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	std_libbuttons(block, 8, 200, 0, NULL, B_MATBROWSE, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
@@ -3281,8 +3478,8 @@ static void material_panel_material(Object *ob, Material *ma)
 	if(ob->totcol==0) return;
 	uiSetButLock(id->lib!=0, "Can't edit library data");
 
-	ma= give_current_material(ob, ob->actcol);	
-	if(ma==0) return;	
+	ma= get_active_matlayer(ma);
+	if(ma==NULL) return;	
 	
 	if(ma->dynamode & MA_DRAW_DYNABUTS) {
 		uiBlockBeginAlign(block);
@@ -3401,23 +3598,30 @@ void material_panels()
 		material_panel_material(ob, ma);
 		
 		if(ma) {
-			material_panel_ramps(ma);
-			material_panel_shading(ma);
-			if (G.scene->r.renderer==R_INTERN)
-				material_panel_tramir(ma);
-			else {
-				if (ma->YF_ar==0.f) {
-					ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
-					ma->YF_dscale = 1;
-				}
-				material_panel_tramir_yafray(ma);
-			}
-			material_panel_texture(ma);
+			material_panel_layers(ma);
 			
-			mtex= ma->mtex[ ma->texact ];
-			if(mtex && mtex->tex) {
-				material_panel_map_input(ob, ma);
-				material_panel_map_to(ma);
+			ma= get_active_matlayer(ma);
+			if(ma) {
+				material_panel_ramps(ma);
+				material_panel_shading(ma);
+				
+				if (G.scene->r.renderer==R_INTERN)
+					material_panel_tramir(ma);
+				else {
+					if(ma->YF_ar==0.f) {
+						ma->YF_ar = ma->YF_ag = ma->YF_ab = 1;
+						ma->YF_dscale = 1;
+					}
+					material_panel_tramir_yafray(ma);
+				}
+				
+				material_panel_texture(ma);
+				
+				mtex= ma->mtex[ ma->texact ];
+				if(mtex && mtex->tex) {
+					material_panel_map_input(ob, ma);
+					material_panel_map_to(ma);
+				}
 			}
 		}
 	}
@@ -3478,6 +3682,7 @@ void texture_panels()
 	if(G.buts->texfrom==0) {
 		if(ob) {
 			ma= give_current_material(ob, ob->actcol);
+			ma= get_active_matlayer(ma);
 			if(ma) mtex= ma->mtex[ ma->texact ];
 		}
 	}
@@ -3601,8 +3806,8 @@ void clever_numbuts_buts()
 		break;
 	case TAB_SHADING_MAT:
 
-		ma= G.buts->lockpoin;
-
+		ma= get_active_matlayer(G.buts->lockpoin);
+		
 		/* Build a hex value */
 		if (ma){
 			sprintf(hexrgb, "%02X%02X%02X", (int)(ma->r*255), (int)(ma->g*255), (int)(ma->b*255));

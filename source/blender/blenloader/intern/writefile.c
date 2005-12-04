@@ -994,6 +994,7 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 static void write_materials(WriteData *wd, ListBase *idbase)
 {
 	Material *ma;
+	MaterialLayer *ml;
 	int a;
 
 	ma= idbase->first;
@@ -1010,6 +1011,10 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 			if(ma->ramp_spec) writestruct(wd, DATA, "ColorBand", 1, ma->ramp_spec);
 			
 			write_scriptlink(wd, &ma->scriptlink);
+			
+			for (ml=ma->layers.first; ml; ml=ml->next)
+				writestruct(wd, DATA, "MaterialLayer", 1, ml);
+
 		}
 		ma= ma->id.next;
 	}
