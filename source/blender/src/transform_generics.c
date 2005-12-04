@@ -483,8 +483,10 @@ void postTrans (TransInfo *t)
 		t->data2d= NULL;
 	}
 
-	if (G.sima->flag & SI_LSCM_LIVE)
-		unwrap_lscm_live_end();
+	if(t->spacetype==SPACE_IMAGE) {
+		if (G.sima->flag & SI_LSCM_LIVE)
+			unwrap_lscm_live_end();
+	}
 }
 
 static void apply_grid3(TransInfo *t, float *val, int max_index, float fac1, float fac2, float fac3)
