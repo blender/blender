@@ -2564,7 +2564,12 @@ void do_matbuts(unsigned short event)
 	MTex *mtex;
 
 	/* all operations default on active material layer here */
-	ma = get_active_matlayer(G.buts->lockpoin);
+	/* but this also gets called for lamp and world... */
+	ma= G.buts->lockpoin;
+	if(ma && GS(ma->id.name)==ID_MA)
+		ma = get_active_matlayer(ma);
+	else
+		ma= NULL;
 	
 	switch(event) {
 	case B_MAT_YF_PRESET: {
