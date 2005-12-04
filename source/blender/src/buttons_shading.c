@@ -1416,7 +1416,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 {
 	MTex *mt=NULL;
 	uiBlock *block;
-	ID *id, *idfrom;
+	ID *id=NULL, *idfrom;
 	int a, yco, loos;
 	char str[32];
 	
@@ -1425,7 +1425,9 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 	if(uiNewPanel(curarea, block, "Texture", "Texture", 320, 0, 318, 204)==0) return;
 
 	/* first do the browse but */
-	id= (ID *)mtex->tex;
+	if(mtex)
+		id= (ID *)mtex->tex;
+	
 	if(ma) idfrom= &ma->id;
 	else if(wrld) idfrom= &wrld->id;
 	else idfrom= &la->id;
