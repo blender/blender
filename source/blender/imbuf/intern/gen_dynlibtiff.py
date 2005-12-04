@@ -104,19 +104,23 @@ C_EXTRA = \
  * LOCAL DEFINITIONS *
  *********************/
 PILdynlib *libtiff = NULL;
-void  libtiff_loadlibtiff();
+void  libtiff_loadlibtiff(void);
 void* libtiff_findsymbol(char*);
-int   libtiff_load_symbols();
+int   libtiff_load_symbols(void);
 
 
 /**************************
  * LIBRARY INITIALIZATION *
  **************************/
 
-void libtiff_loadlibtiff()
+void libtiff_loadlibtiff(void)
 {
 	char *filename;
 	libtiff = NULL;
+
+	filename = getenv("BF_TIFF_LIB");
+	if (filename) libtiff = PIL_dynlib_open(filename);
+	if (libtiff != NULL)  return;
 
 	/* Try to find libtiff in a couple of standard places */
 	libtiff = PIL_dynlib_open("libtiff.so");
@@ -132,10 +136,7 @@ void libtiff_loadlibtiff()
 	if (libtiff != NULL)  return;
 	/* For solaris */
 	libtiff = PIL_dynlib_open("/usr/openwin/lib/libtiff.so");
-	if (libtiff != NULL)  return;
 
-	filename = getenv("BF_TIFF_LIB");
-	if (filename) libtiff = PIL_dynlib_open(filename);
 }
 
 void *libtiff_findsymbol(char *name)
@@ -153,7 +154,7 @@ void *libtiff_findsymbol(char *name)
 	return symbol;
 }
 
-void libtiff_init()
+void libtiff_init(void)
 {
 	if (libtiff != NULL) {
 		printf("libtiff_init: Attempted to load libtiff twice!\\n");
@@ -163,7 +164,7 @@ void libtiff_init()
 	G.have_libtiff = ((libtiff != NULL) && (libtiff_load_symbols()));
 }
 
-void libtiff_exit()
+void libtiff_exit(void)
 {
 	if (libtiff != NULL) {
 		PIL_dynlib_close(libtiff);
@@ -220,7 +221,7 @@ def outputDynCFile(outfile, header_file_name):
 	outfile.write(COMMENT)
 	outfile.write('#include "%s"\n' % header_file_name)
 	outfile.write(C_EXTRA)
-	outfile.write('int libtiff_load_symbols()\n')
+	outfile.write('int libtiff_load_symbols(void)\n')
 	outfile.write('{\n')
 	for function in tiff_functions:
 		outfile.write(function.getLoadSymbol())

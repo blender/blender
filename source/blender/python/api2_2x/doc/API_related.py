@@ -228,9 +228,9 @@ Introduction:
   evt = Blender.event
   return_it = False
 
-  if evt == DRAW.LEFTMOUSE:
+  if evt == Draw.LEFTMOUSE:
     print "Swallowing the left mouse button press"
-  elif evt == DRAW.AKEY:
+  elif evt == Draw.AKEY:
     print "Swallowing an 'a' character"
   else:
     print "Let the 3D View itself process this event:", evt

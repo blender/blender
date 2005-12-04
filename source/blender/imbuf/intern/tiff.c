@@ -49,6 +49,8 @@
 #include "imbuf.h"
 #include "imbuf_patch.h"
 
+#include "BKE_global.h"
+
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
@@ -69,6 +71,10 @@ tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n);
 toff_t  imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence);
 int     imb_tiff_CloseProc(thandle_t handle);
 toff_t  imb_tiff_SizeProc(thandle_t handle);
+int     imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize);
+void    imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size);
+
+
 /* Structure for in-memory TIFF file. */
 struct ImbTIFFMemFile {
 	unsigned char *mem;	/* Location of first byte of TIFF file. */
@@ -84,6 +90,14 @@ struct ImbTIFFMemFile {
  *****************************/
 
 
+void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)
+{
+}
+
+int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize) 
+{
+            return (0);
+}
 
 /**
  * Reads data from an in-memory TIFF file.
@@ -308,8 +322,7 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 		"r", (thandle_t)(&memFile),
 		imb_tiff_ReadProc, imb_tiff_WriteProc,
 		imb_tiff_SeekProc, imb_tiff_CloseProc,
-		imb_tiff_SizeProc, (TIFFMapFileProc)NULL,
-		(TIFFUnmapFileProc)NULL);
+		imb_tiff_SizeProc, imb_tiff_DummyMapProc, imb_tiff_DummyUnmapProc);
 	if (image == NULL) {
 		printf("imb_loadtiff: could not open TIFF IO layer.\n");
 		return NULL;
@@ -381,6 +394,8 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 
 	/* close the client layer interface to the in-memory file */
 	libtiff_TIFFClose(image);
+
+	if (G.order == B_ENDIAN) IMB_convert_rgba_to_abgr(ibuf->x*ibuf->y, ibuf->rect);
 
 	/* return successfully */
 	return (ibuf);

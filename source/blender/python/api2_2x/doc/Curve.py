@@ -12,7 +12,9 @@ A Blender Curve can consist of multiple curves. Try converting a Text object to 
 type Bezier or Nurb.  The underlying curves can be accessed with
 the [] operator.  Operator [] returns an object of type CurNurb.
 
-The Curve module also supports the Python iterator interface.  This means you can access the curves in a Curve or the control points in a CurNurb using a python for statement.
+The Curve module also supports the Python iterator interface.  This means you
+can access the curves in a Curve and the control points in a CurNurb using a
+Python B{for} statement.
 
 
 Add a Curve to a Scene Example::
@@ -61,20 +63,34 @@ class Curve:
   This object gives access to Curve-specific data in Blender.
   
   @ivar name: The Curve Data name.
+  @type name: string
   @ivar pathlen: The Curve Data path length.
+  @type pathlen: int
   @ivar totcol: The Curve Data maximal number of linked materials.
-  @ivar flag: The Curve Data flag value; see function getFlag for the semantics.
+  @type totcol: int
+  @ivar flag: The Curve Data flag value; see L{getFlag()} for the semantics.
   @ivar bevresol: The Curve Data bevel resolution.
+  @type bevresol: float
   @ivar resolu: The Curve Data U-resolution.
+  @type resolu: float
   @ivar resolv: The Curve Data V-resolution.
+  @type resolv: float
   @ivar width: The Curve Data width.
+  @type width: float
   @ivar ext1: The Curve Data extent 1(for bevels).
+  @type ext1: float
   @ivar ext2: The Curve Data extent2 (for bevels).
+  @type ext2: float
   @ivar loc: The Curve Data location(from the center).
+  @type loc: list of 3 floats
   @ivar rot: The Curve Data rotation(from the center).
+  @type rot: list of 3 floats
   @ivar size: The Curve Data size(from the center).
+  @type size: list of 3 floats
   @ivar bevob: The Curve Bevel Object
-  @cvar key: The L{Key.Key} object associated with this Curve, if any.
+  @type bevob: Blender L{Object<Object.Object>} or PyNone
+  @ivar key: The Key object associated with this Curve, if any.
+  @type key: Blender L{Key<Key.Key>}
   """
 
   def getName():
@@ -228,13 +244,22 @@ class Curve:
 
   def getControlPoint(numcurve,numpoint):
     """
-    Get the curve's control point value. The numpoint arg is an index into the list of points and starts with 0.
+    Get the curve's control point value (B{deprecated}).  The numpoint arg
+    is an index into the list of points and starts with 0.  B{Note}: new
+    scripts should use the [] operator on Curves and CurNurbs.  Example::
+      curve = Blender.Curve.Get('Curve')
+      p0 = curve[0][0]    # get first point from first nurb
+             # -- OR --
+      nurb = curve[0]     # get first nurb
+      p0 = nurb[0]        # get nurb's first point
+
     @type numcurve: int
     @type numpoint: int
     @rtype: list of floats
     @return: depends upon the curve's type.
       - type Bezier : a list of nine floats.  Values are x, y, z for handle-1, vertex and handle-2 
       - type Nurb : a list of 4 floats.  Values are x, y, z, w.
+
     """
 
   def setControlPoint( numcurve, numpoint, controlpoint):
@@ -252,14 +277,15 @@ class Curve:
 
   def appendPoint( numcurve, new_control_point ):
     """
-      add a new control point to the indicated curve.
+      Add a new control point to the indicated curve (B{deprecated}).
+      New scripts should use L{CurNurb.append()}.
       @rtype: PyNone
       @type numcurve: int
-      @type new_control_point: list xyzw or BezTriple
+      @type new_control_point: list of floats or BezTriple
       @param numcurve:  index for spline in Curve, starting from 0
       @param new_control_point: depends on curve's type.
         - type Bezier: a BezTriple 
-	- type Nurb: a list of four floats for the xyzw values
+        - type Nurb: a list of four or five floats for the xyzwt values
       @raise AttributeError:  throws exception if numcurve is out of range.
     """
 
@@ -359,7 +385,6 @@ class Curve:
     """
     Updates display list for a Curve.
     Used after making changes to control points.
-    
     You B{must} use this if you want to see your changes!
     @rtype: PyNone
     @return: PyNone
@@ -367,9 +392,11 @@ class Curve:
 
   def isNurb( curve_num ):
       """
-      method used to determine whether a CurNurb is of type Bezier or of type Nurb.
+      Tells type of a CurNurb (B{deprecated}).
+      New scripts should use L{CurNurb.isNurb()}.
+
       @rtype: integer
-      @return:  Zero if curve is type Bezier, One if curve is of type Nurb.
+      @return:  Zero if curve is type Bezier, one if curve is of type Nurb.
       @type curve_num: integer
       @param curve_num: zero-based index into list of curves in this Curve.
       @raise AttributeError:  throws exception if curve_num is out of range.
@@ -377,7 +404,8 @@ class Curve:
 
   def isCyclic( curve_num ):
       """
-      Boolean method checks whether the curve is cyclic (closed) or not.
+      Tells whether or not a CurNurb is cyclic (closed) (B{deprecated}).
+      New scripts should use L{CurNurb.isCyclic()}.
 
       @rtype: boolean
       @return: True if is cyclic, False if not
@@ -394,7 +422,8 @@ class Curve:
 
   def getNumPoints( curve_num ):
       """
-      Get the number of control points in the curve.
+      Get the number of control points in the curve (B{deprecated}).
+      New scripts should use the len operator (I{len(curve)}).
       @type curve_num: integer
       @param curve_num: zero-based index into list of curves in this Curve
       @rtype: integer
@@ -402,9 +431,9 @@ class Curve:
 
   def getKey():
       """
-      Return the L{Key.Key} object containing the keyframes for this
+      Return the L{Key<Key.Key>} object containing the keyframes for this
       curve, if any.
-      @rtype: L{Key.Key} object or None
+      @rtype: L{Key<Key.Key>} object or None
       """
 
 
@@ -419,8 +448,11 @@ class CurNurb:
     The CurNurb also supports the sequence protocol which means you can access the control points of a CurNurb using the [] operator.
 
     @ivar flagU: The CurNurb knot flag U.  See L{setFlagU} for description.
+    @type flagU: int
     @ivar flagV: The CurNurb knot flag V.  See L{setFlagU} for description.
+    @type flagV: int
     @ivar type: The type of the curve (Poly: 0, Bezier: 1, NURBS: 4)
+    @type type: int
     """
 	
     def __setitem__( n, point ):
@@ -521,7 +553,7 @@ class CurNurb:
 
     def getType():
       """
-      Get the type of the curve 
+      Get the type of the curve.
       @rtype: integer
       @return:  0 - Poly, 1 - Bezier, 4 - NURBS
       """

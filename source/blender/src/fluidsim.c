@@ -343,9 +343,13 @@ void fluidsimBake(struct Object *ob)
 
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
+	// make sure all directories exist
+	// as the bobjs use the same dir, this only needs to be checked
+	// for the cfg output
+	RE_make_existing_file(targetFile);
+
 	// check selected directory
 	// simply try to open cfg file for writing to test validity of settings
-	ADD_CREATEDFILE(targetFile);
 	fileCfg = fopen(targetFile, "w");
 	if(fileCfg) { dirExist = 1; fclose(fileCfg); }
 
@@ -362,7 +366,7 @@ void fluidsimBake(struct Object *ob)
 			}
 		}
 		// todo... strip .blend ?
-		snprintf(newSurfdataPath,FILE_MAXFILE+FILE_MAXDIR,"//%s_%s_", blendFile, fsDomain->id.name);
+		snprintf(newSurfdataPath,FILE_MAXFILE+FILE_MAXDIR,"//fluidsimdata/%s_%s_", blendFile, fsDomain->id.name);
 
 		snprintf(debugStrBuffer,256,"fluidsimBake::error - warning resetting output dir to '%s'\n", newSurfdataPath);
 		elbeemDebugOut(debugStrBuffer);
@@ -391,6 +395,10 @@ void fluidsimBake(struct Object *ob)
 	// start writing
 	strcpy(targetFile, targetDir);
 	strcat(targetFile, suffixConfig);
+	// make sure these directories exist as well
+	if(outStringsChanged) {
+		RE_make_existing_file(targetFile);
+	}
 	fileCfg = fopen(targetFile, "w");
 	if(!fileCfg) {
 		snprintf(debugStrBuffer,256,"fluidsimBake::error - Unable to open file for writing '%s'\n", targetFile); 
@@ -399,6 +407,7 @@ void fluidsimBake(struct Object *ob)
 		pupmenu("Fluidsim Bake Error%t|Unable to output files... Aborted%x0");
 		return;
 	}
+	ADD_CREATEDFILE(targetFile);
 
 	fprintf(fileCfg, "# Blender ElBeem File , Source %s , Frame %d, to %s \n\n\n", G.sce, -1, targetFile );
 	// file open -> valid settings -> store
