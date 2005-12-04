@@ -620,7 +620,10 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 		rendersize_r[1]*= G.scene->r.yparts;
 	}
 
-	for (y=-1; y<=1; y++) {
+	rendersize_r[0]= CLAMPIS(rendersize_r[0], 0, scr_w);	 
+	rendersize_r[1]= CLAMPIS(rendersize_r[1], 0, scr_h-RW_HEADERY);	 
+	
+ 	for (y=-1; y<=1; y++) {
 		for (x=-1; x<=1; x++) {
 			if (posmask & (1<<((y+1)*3 + (x+1)))) {
 				ndc_x+= x;
@@ -638,6 +641,7 @@ void calc_renderwin_rectangle(int posmask, int renderpos_r[2], int rendersize_r[
 	renderpos_r[0]= (scr_w-rendersize_r[0])*(ndc_x*0.5 + 0.5);
 #ifdef __APPLE__
 	/* 44 pixels is topbar and window header... awaiting better fixes in ghost :) */
+	rendersize_r[1]= CLAMPIS(rendersize_r[1], 0, scr_h-44-RW_HEADERY);	 
 	renderpos_r[1]= -44-RW_HEADERY+(scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
 #else
 	renderpos_r[1]= (scr_h-rendersize_r[1])*(ndc_y*0.5 + 0.5);
