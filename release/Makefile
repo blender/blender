@@ -55,14 +55,7 @@ all:
       ifeq ($(CPU),alpha)
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
 	    COMPRESS="gzip -f --best" EXT2=".gz"
-      endif
-      ifeq ($(CPU),i386)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
-	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="gzip -f --best" EXT2=".gz"
-      endif
-      ifeq ($(CPU),powerpc)
+      else
 	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
 	    COMPRESS="gzip -f --best" EXT2=".gz"
 	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
