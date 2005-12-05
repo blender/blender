@@ -232,7 +232,8 @@ class Ipo:
     
   def getCurveCurval(curvepos):
     """
-    Gets the current value of a curve of the Ipo.
+    Gets the current value of a curve of the Ipo (B{deprecated}). B{Note}:
+    new scripts should use L{IpoCurve.evaluate()}.
     @type curvepos: int or string
     @param curvepos: the position of the curve in the ipo or the name of the
         curve
@@ -242,11 +243,12 @@ class Ipo:
 
   def EvaluateCurveOn(curvepos,time):
     """
-    Gets the current value of a curve of the Ipo.
+    Gets the value at a specific time of a curve of the Ipo (B{deprecated}).
+    B{Note}: new scripts should use L{IpoCurve.evaluate()}.
     @type curvepos: int
-    @param curvepos: the position of the curve in the ipo
+    @param curvepos: the position of the curve in the Ipo.
     @type time: float
-    @param time: the position of the curve in the ipo
+    @param time: the desired time.
     @rtype: float
     @return: the current value of the selected curve of the Ipo at the given
         time.
@@ -261,27 +263,19 @@ class IpoCurve:
   Important Notes for Rotation Curves:\n
   For the rotation IpoCurves, the y values for points are in units of 10 degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
   
-  @ivar driver:  Status of Driver
-  1: on
-  0: off
-  @type driver:  int  
-  @ivar driverObject:  Object Used to Drive the IpoCurve
-  @type driverObject:  Object    
-  @ivar driverChannel:  Object Channel Used to Drive the IpoCurve
-  Use module constants 
-  IpoCurve.LOC_X
-  IpoCurve.LOC_Y
-  IpoCurve.LOC_Z
-  IpoCurve.ROT_X  
-  IpoCurve.ROT_Y
-  IpoCurve.ROT_Z
-  IpoCurve.SIZE_X
-  IpoCurve.SIZE_Y
-  IpoCurve.SIZE_Z
+  @ivar driver:  Status of Driver.  1= on, 0= off.
+  @type driver:  int
+  @ivar driverObject:  Object used to frive the IpoCurve.
+  @type driverObject:  Object
+  @ivar driverChannel:  Object Channel Used to Drive the IpoCurve.
+  Use module constants: IpoCurve.LOC_X, IpoCurve.LOC_Y, IpoCurve.LOC_Z,
+  IpoCurve.ROT_X, IpoCurve.ROT_Y, IpoCurve.ROT_Z, IpoCurve.SIZE_X,
+  IpoCurve.SIZE_Y, IpoCurve.SIZE_Z
   @type driverChannel:  int 
-  
   @ivar name: The Curve Data name.
+  @type name: string
   @ivar bezierPoints : The list of the Bezier points.
+  @type bezierPoints : list
   """
 
   def setExtrapolation(extendmode):
