@@ -527,7 +527,8 @@ void BKE_write_undo(char *name)
 	UndoElem *uel;
 	
 	if( (U.uiflag & USER_GLOBALUNDO)==0) return;
-
+	if( U.undosteps==0) return;
+	
 	/* remove all undos after (also when curundo==NULL) */
 	while(undobase.last != curundo) {
 		uel= undobase.last;
