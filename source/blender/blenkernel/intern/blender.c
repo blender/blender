@@ -495,7 +495,6 @@ typedef struct UndoElem {
 	MemFile memfile;
 } UndoElem;
 
-#define MAXUNDO	 32
 static ListBase undobase={NULL, NULL};
 static UndoElem *curundo= NULL;
 
@@ -547,7 +546,7 @@ void BKE_write_undo(char *name)
 	uel= undobase.last;
 	while(uel) {
 		nr++;
-		if(nr==MAXUNDO) break;
+		if(nr==U.undosteps) break;
 		uel= uel->prev;
 	}
 	if(uel) {
@@ -569,7 +568,7 @@ void BKE_write_undo(char *name)
 		
 		/* calculate current filename */
 		counter++;
-		counter= counter % MAXUNDO;	
+		counter= counter % U.undosteps;	
 	
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, U.tempdir, numstr);
