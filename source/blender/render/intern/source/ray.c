@@ -2272,3 +2272,44 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 
 }
 
+/* only when face points away from lamp, in direction of lamp, trace ray and find first exit point */
+void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
+{
+	Isect isec;
+	float lampco[3];
+	
+	/* setup isec */
+	isec.mode= DDA_SHADOW_TRA;
+	
+	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
+	
+	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
+		lampco[0]= shi->co[0] - g_oc.ocsize*lar->vec[0];
+		lampco[1]= shi->co[1] - g_oc.ocsize*lar->vec[1];
+		lampco[2]= shi->co[2] - g_oc.ocsize*lar->vec[2];
+	}
+	else {
+		VECCOPY(lampco, lar->co);
+	}
+	
+	isec.vlrorig= shi->vlr;
+	
+	/* set up isec vec */
+	VECCOPY(isec.start, shi->co);
+	VECCOPY(isec.end, lampco);
+	
+	if( d3dda(&isec)) {
+		/* we got a face */
+		
+		/* render co */
+		co[0]= isec.start[0]+isec.labda*(isec.vec[0]);
+		co[1]= isec.start[1]+isec.labda*(isec.vec[1]);
+		co[2]= isec.start[2]+isec.labda*(isec.vec[2]);
+		
+		*distfac= VecLength(isec.vec);
+	}
+	else
+		*distfac= 0.0f;
+}
+
+

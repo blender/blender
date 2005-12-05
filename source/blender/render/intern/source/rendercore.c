@@ -1704,6 +1704,22 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 					}
 				}
 			}
+			
+			if(R.r.mode & R_RAYTRACE) {
+				extern void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co);
+				float co[3], distfac;
+				
+				ray_translucent(shi, lar, &distfac, co);
+				
+				if(distfac<0.01f*G.rt) {
+				//	printf("distfac %f\n", distfac);
+					distfac= 1.0f - distfac/(0.01f*G.rt);
+					shr->diff[0]+= distfac;
+					shr->diff[1]+= distfac;
+					shr->diff[2]+= distfac;
+				}
+			}
+			
 		
 			/* specularity */
 			if(shadfac[3]>0.0 && shi->spec!=0.0 && !(lar->mode & LA_NO_SPEC)) {
@@ -2385,6 +2401,7 @@ void *shadepixel(float x, float y, int z, int facenr, int mask, float *col, floa
 				VecMulf(shi.vn, -1.0);
 				VecMulf(shi.facenor, -1.0);
 				shade_lamp_loop(&shi, &shr_t);
+				
 				shr.diff[0]+= shi.translucency*shr_t.diff[0];
 				shr.diff[1]+= shi.translucency*shr_t.diff[1];
 				shr.diff[2]+= shi.translucency*shr_t.diff[2];

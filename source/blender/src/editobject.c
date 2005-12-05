@@ -71,6 +71,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -4033,6 +4034,7 @@ void make_local(void)
 {
 	Base *base;
 	Object *ob;
+	bActionStrip *strip;
 	Material *ma, ***matarar;
 	Lamp *la;
 	Curve *cu;
@@ -4043,14 +4045,14 @@ void make_local(void)
 	
 	if(G.scene->id.lib) return;
 	
-	mode= pupmenu("Make Local%t|Selected %x1|All %x2");
+	mode= pupmenu("Make Local%t|Selected Objects %x1|Selected Objects and Data %x2|All %x3");
 	
-	if(mode==2) {
+	if(mode==3) {
 		all_local(NULL);	// NULL is all libs
 		allqueue(REDRAWALL, 0);
 		return;
 	}
-	else if(mode!=1) return;
+	else if(mode<1) return;
 
 	clear_id_newpoins();
 	
@@ -4085,7 +4087,7 @@ void make_local(void)
 	
 			id= ob->data;
 			
-			if(id) {
+			if(id && mode>1) {
 				
 				switch(ob->type) {
 				case OB_LAMP:
@@ -4129,43 +4131,50 @@ void make_local(void)
 
 			id= (ID *)ob->action;
 			if(id && id->lib) make_local_action(ob->action);
+			
+			for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+				if(strip->act && strip->act->id.lib)
+					make_local_action(strip->act);
+			}
+			
 		}
 		base= base->next;		
 	}
 
-	base= FIRSTBASE;
-	while(base) {
-		ob= base->object;
-		if(base->flag & SELECT ) {
-			
-			if(ob->type==OB_LAMP) {
-				la= ob->data;
-				for(b=0; b<MAX_MTEX; b++) {
-					if(la->mtex[b] && la->mtex[b]->tex) {
-						make_local_texture(la->mtex[b]->tex);
+	if(mode>1) {
+		base= FIRSTBASE;
+		while(base) {
+			ob= base->object;
+			if(base->flag & SELECT ) {
+				
+				if(ob->type==OB_LAMP) {
+					la= ob->data;
+					for(b=0; b<MAX_MTEX; b++) {
+						if(la->mtex[b] && la->mtex[b]->tex) {
+							make_local_texture(la->mtex[b]->tex);
+						}
+					}
+				}
+				else {
+					
+					for(a=0; a<ob->totcol; a++) {
+						ma= ob->mat[a];
+						if(ma)
+							make_local_makelocalmaterial(ma);
+					}
+					
+					matarar= (Material ***)give_matarar(ob);
+					
+					for(a=0; a<ob->totcol; a++) {
+						ma= (*matarar)[a];
+						if(ma)
+							make_local_makelocalmaterial(ma);
 					}
 				}
 			}
-			else {
-				
-				for(a=0; a<ob->totcol; a++) {
-					ma= ob->mat[a];
-					if(ma)
-						make_local_makelocalmaterial(ma);
-				}
-				
-				matarar= (Material ***)give_matarar(ob);
-				
-				for(a=0; a<ob->totcol; a++) {
-					ma= (*matarar)[a];
-					if(ma)
-						make_local_makelocalmaterial(ma);
-				}
-			}
+			base= base->next;
 		}
-		base= base->next;
 	}
-
 
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Make local");

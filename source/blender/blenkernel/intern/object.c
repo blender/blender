@@ -55,6 +55,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
@@ -888,6 +889,7 @@ Object *copy_object(Object *ob)
 
 void expand_local_object(Object *ob)
 {
+	bActionStrip *strip;
 	int a;
 	
 	id_lib_extern((ID *)ob->action);
@@ -897,6 +899,10 @@ void expand_local_object(Object *ob)
 	for(a=0; a<ob->totcol; a++) {
 		id_lib_extern((ID *)ob->mat[a]);
 	}
+	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+		id_lib_extern((ID *)strip->act);
+	}
+
 }
 
 void make_local_object(Object *ob)
