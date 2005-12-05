@@ -1513,16 +1513,15 @@ typedef struct pMatrixCache {
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
-	Object *par;
-	float framelenold, sfrao;
-	int cfrao;
+	Object *par, ob_store;
+	float framelenold, cfrao;
 	
 	mcache= mc= MEM_mallocN( (end-start+1)*sizeof(pMatrixCache), "ob matrix cache");
 	
 	framelenold= G.scene->r.framelen;
 	G.scene->r.framelen= 1.0f;
 	cfrao= G.scene->r.cfra;
-	sfrao= ob->sf;
+	ob_store= *ob;	/* quick copy of all settings */
 	ob->sf= 0.0f;
 	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
@@ -1549,13 +1548,12 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	/* restore */
 	G.scene->r.cfra= cfrao;
 	G.scene->r.framelen= framelenold;
-	ob->sf= sfrao;
+	*ob= ob_store;
 	
-	/* restore hierarchy */
+	/* restore hierarchy, weak code destroying potential depgraph stuff... */
 	par= ob;
 	while(par) {
 		/* do not do ob->ipo: keep insertkey */
-		par->ctime= -1234567.0;		/* hrms? */
 		do_ob_key(par);
 		
 		if(par->type==OB_ARMATURE) {
@@ -1564,8 +1562,6 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 		}
 		par= par->parent;
 	}
-	
-	where_is_object(ob);
 	
 	return mcache;
 }
