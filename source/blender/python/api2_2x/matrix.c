@@ -228,7 +228,8 @@ PyObject *Matrix_Invert(MatrixObject * self)
 		//transpose
 		//Matrix_Transpose(self);
 	} else {
-		printf("Matrix.invert: matrix does not have an inverse\n");
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+				"matrix does not have an inverse");
 	}
 	return EXPP_incr_ret((PyObject*)self);
 }
