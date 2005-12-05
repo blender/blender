@@ -416,23 +416,19 @@ static PyObject *Point_neg(PointObject *self)
  then call vector.multiply(vector, scalar_cast_as_vector)*/
 static int Point_coerce(PyObject ** p1, PyObject ** p2)
 {
-	PyObject *coerced = NULL;
-
-	if(!PointObject_Check(*p2)) {
-		if(VectorObject_Check(*p2) || PyFloat_Check(*p2) || PyInt_Check(*p2) ||
+	if(VectorObject_Check(*p2) || PyFloat_Check(*p2) || PyInt_Check(*p2) ||
 			MatrixObject_Check(*p2) || QuaternionObject_Check(*p2)) {
-			coerced = EXPP_incr_ret(*p2);
-			*p2 = newPointObject(NULL,3,Py_NEW);
-			((PointObject*)*p2)->coerced_object = coerced;
-		}else{
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"point.coerce(): unknown operand - can't coerce for numeric protocols\n");
-		}
+		PyObject *coerced = EXPP_incr_ret(*p2);
+		*p2 = newPointObject(NULL,3,Py_NEW);
+		((PointObject*)*p2)->coerced_object = coerced;
+		Py_INCREF (*p1);
+		return 0;
 	}
-	EXPP_incr2(*p1, *p2);
-	return 0;
+
+	return EXPP_ReturnIntError(PyExc_TypeError, 
+		"point.coerce(): unknown operand - can't coerce for numeric protocols");
 }
-//-----------------PROTCOL DECLARATIONS--------------------------
+//-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Point_SeqMethods = {
 	(inquiry) Point_len,						/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */

@@ -733,22 +733,19 @@ PyObject* Matrix_inv(MatrixObject *self)
  then call vector.multiply(vector, scalar_cast_as_vector)*/
 static int Matrix_coerce(PyObject ** m1, PyObject ** m2)
 {
-	PyObject *coerced = NULL;
-	if(!MatrixObject_Check(*m2)) {
-		if(VectorObject_Check(*m2) || PyFloat_Check(*m2) || PyInt_Check(*m2) ||
+	if(VectorObject_Check(*m2) || PyFloat_Check(*m2) || PyInt_Check(*m2) ||
 			PointObject_Check(*m2)) {
-			coerced = EXPP_incr_ret(*m2);
-			*m2 = newMatrixObject(NULL,3,3,Py_NEW);
-			((MatrixObject*)*m2)->coerced_object = coerced;
-		}else{
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"matrix.coerce(): unknown operand - can't coerce for numeric protocols\n");
-		}
+		PyObject *coerced = EXPP_incr_ret(*m2);
+		*m2 = newMatrixObject(NULL,3,3,Py_NEW);
+		((MatrixObject*)*m2)->coerced_object = coerced;
+		Py_INCREF (*m1);
+		return 0;
 	}
-	EXPP_incr2(*m1, *m2);
-	return 0;
+
+	return EXPP_ReturnIntError(PyExc_TypeError, 
+		"matrix.coerce(): unknown operand - can't coerce for numeric protocols");
 }
-//-----------------PROTCOL DECLARATIONS--------------------------
+//-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Matrix_SeqMethods = {
 	(inquiry) Matrix_len,					/* sq_length */
 	(binaryfunc) 0,							/* sq_concat */
@@ -908,6 +905,7 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 			}
 		} else { //or if no arguments are passed return identity matrix
 			Matrix_Identity(self);
+			Py_DECREF(self);
 		}
 		self->wrapped = Py_NEW;
 	}else{ //bad type

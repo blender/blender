@@ -658,21 +658,17 @@ static PyObject *Vector_neg(VectorObject *self)
  then call vector.multiply(vector, scalar_cast_as_vector)*/
 static int Vector_coerce(PyObject ** v1, PyObject ** v2)
 {
-	PyObject *coerced = NULL;
-
-	if(!VectorObject_Check(*v2)) {
-		if(MatrixObject_Check(*v2) || PyFloat_Check(*v2) || PyInt_Check(*v2) || 
+	if(MatrixObject_Check(*v2) || PyFloat_Check(*v2) || PyInt_Check(*v2) || 
 			QuaternionObject_Check(*v2) || PointObject_Check(*v2)) {
-			coerced = EXPP_incr_ret(*v2);
-			*v2 = newVectorObject(NULL,3,Py_NEW);
-			((VectorObject*)*v2)->coerced_object = coerced;
-		}else{
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"vector.coerce(): unknown operand - can't coerce for numeric protocols\n");
-		}
+		PyObject *coerced = EXPP_incr_ret(*v2);
+		*v2 = newVectorObject(NULL,3,Py_NEW);
+		((VectorObject*)*v2)->coerced_object = coerced;
+		Py_INCREF (*v1);
+		return 0;
 	}
-	EXPP_incr2(*v1, *v2);
-	return 0;
+
+	return EXPP_ReturnIntError(PyExc_TypeError, 
+		"vector.coerce(): unknown operand - can't coerce for numeric protocols");
 }
 //------------------------tp_doc
 static char VectorObject_doc[] = "This is a wrapper for vector objects.";
