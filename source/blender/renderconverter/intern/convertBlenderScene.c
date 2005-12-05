@@ -1380,13 +1380,13 @@ static void init_render_mesh(Object *ob)
 	Material *ma;
 	MSticky *ms = NULL;
 	PartEff *paf;
+	DispListMesh *dlm = NULL;
+	DerivedMesh *dm;
 	unsigned int *vertcol;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
 	int a, a1, ok, need_orco=0, totvlako, totverto, vertofs;
-	int end, do_autosmooth=0, totvert = 0;
-	DispListMesh *dlm = NULL;
-	DerivedMesh *dm;
+	int end, do_autosmooth=0, totvert = 0, dm_needsfree;
 	
 	me= ob->data;
 
@@ -1422,7 +1422,18 @@ static void init_render_mesh(Object *ob)
 	
 	if(need_orco) orco = get_object_orco(ob);
 	
-	dm = mesh_create_derived_render(ob);
+	/* duplicators don't call modifier stack */
+	if(ob->flag&OB_FROMDUPLI) {
+		dm= ob->derivedFinal;
+		dm_needsfree= 0;
+	}
+	else {
+		dm = mesh_create_derived_render(ob);
+		dm_needsfree= 1;
+	}
+	
+	if(dm==NULL) return;	/* in case duplicated object fails? */
+	
 	dlm = dm->convertToDispListMesh(dm, 1);
 
 	mvert= dlm->mvert;
@@ -1622,7 +1633,7 @@ static void init_render_mesh(Object *ob)
 	calc_vertexnormals(totverto, totvlako);
 
 	if(dlm) displistmesh_free(dlm);
-	dm->release(dm);
+	if(dm_needsfree) dm->release(dm);
 }
 
 /* ------------------------------------------------------------------------- */
