@@ -2209,6 +2209,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 					ob= duplilist.first;
 					while(ob) {
 						tbase.object= ob;
+						BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.4f);
 						draw_object(&tbase, DRAW_CONSTCOLOR);
 						ob= ob->id.next;
 					}
@@ -2238,14 +2239,13 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				extern ListBase duplilist;
 				Base tbase;
 
-				BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
-				
 				tbase.flag= OB_FROMDUPLI;
 				make_duplilist(G.scene, base->object);
 
 				ob= duplilist.first;
 				while(ob) {
 					tbase.object= ob;
+					BIF_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5);
 					draw_object(&tbase, DRAW_CONSTCOLOR);
 					ob= ob->id.next;
 				}

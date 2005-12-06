@@ -316,18 +316,6 @@ static void particle_tex(MTex *mtex, PartEff *paf, float *co, float *no)
 
 /* -------------------------- Effectors ------------------ */
 
-typedef struct pEffectorCache {
-	struct pEffectorCache *next, *prev;
-	struct Object *ob;
-	
-	/* precalculated variables */
-	float oldloc[3], oldspeed[3];
-	float scale, time_scale;
-	float guide_dist;
-	
-	Object obcopy;	/* for restoring transformation data */
-} pEffectorCache;
-
 static void add_to_effectorcache(ListBase *lb, Object *ob, Object *obsrc)
 {
 	pEffectorCache *ec;

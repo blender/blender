@@ -34,12 +34,26 @@
 #ifndef BKE_EFFECT_H
 #define BKE_EFFECT_H
 
+#include "DNA_object_types.h"
+
 struct Effect;
 struct ListBase;
-struct Object;
 struct PartEff;
 struct Particle;
 struct Group;
+
+typedef struct pEffectorCache {
+	struct pEffectorCache *next, *prev;
+	Object *ob;
+	
+	/* precalculated variables */
+	float oldloc[3], oldspeed[3];
+	float scale, time_scale;
+	float guide_dist;
+	
+	Object obcopy;	/* for restoring transformation data */
+} pEffectorCache;
+
 
 struct Effect *add_effect(int type);
 void free_effect(struct Effect *eff);
