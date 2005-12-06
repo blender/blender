@@ -1985,6 +1985,7 @@ static void lib_link_material(FileData *fd, Main *main)
 		if(ma->id.flag & LIB_NEEDLINK) {
 
 			ma->ipo= newlibadr_us(fd, ma->id.lib, ma->ipo);
+			ma->group= newlibadr_us(fd, ma->id.lib, ma->group);
 
 			for(a=0; a<MAX_MTEX; a++) {
 				mtex= ma->mtex[a];
