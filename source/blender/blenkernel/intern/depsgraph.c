@@ -46,6 +46,7 @@
 #include "DNA_curve_types.h"
 #include "DNA_ID.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
@@ -439,6 +440,18 @@ struct DagForest *build_dag(struct Scene *sce, short mask)
 			node2 = dag_get_node(dag,ob->track);
 			dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
 			addtoroot = 0;
+		}
+		
+		if (ob->transflag & OB_DUPLI) {
+			if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+				GroupObject *go;
+				for(go= ob->dup_group->gobject.first; go; go= go->next) {
+					if(go->ob) {
+						node2 = dag_get_node(dag, go->ob);
+						dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
+					}
+				}
+			}
 		}
 		
 		if (ob->type==OB_MBALL) {
@@ -1314,10 +1327,12 @@ void DAG_scene_sort(struct Scene *sce)
 				
 				time++;
 				base = sce->base.first;
-				while (base->object != node->ob)
+				while (base && base->object != node->ob)
 					base = base->next;
-				BLI_remlink(&sce->base,base);
-				BLI_addhead(&tempbase,base);
+				if(base) {
+					BLI_remlink(&sce->base,base);
+					BLI_addhead(&tempbase,base);
+				}
 			}	
 		}
 	}

@@ -65,6 +65,7 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -275,7 +276,9 @@ void set_scene_bg(Scene *sce)
 		base->flag |= flag;
 		
 		ob->flag= base->flag;
+		
 		ob->recalc= OB_RECALC;
+		if(ob->dup_group) group_tag_recalc(ob->dup_group);	/* for lib-linked stuff */
 		
 		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 		base= base->next;

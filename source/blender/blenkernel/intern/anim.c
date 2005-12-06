@@ -303,9 +303,15 @@ static void group_duplilist(Object *ob)
 	if(ob->dup_group==NULL) return;
 	
 	for(go= ob->dup_group->gobject.first; go; go= go->next) {
-		newob= new_dupli_object(&duplilist, go->ob, ob, 0);
-		Mat4CpyMat4(mat, newob->obmat);
-		Mat4MulMat4(newob->obmat, mat, ob->obmat);
+		if(go->ob!=ob) {
+			/* we need to check update for objects that are not in scene... */
+			if(go->ob->recalc)
+				object_handle_update(go->ob);   // bke_object.h
+			
+			newob= new_dupli_object(&duplilist, go->ob, ob, 0);
+			Mat4CpyMat4(mat, newob->obmat);
+			Mat4MulMat4(newob->obmat, mat, ob->obmat);
+		}
 	}
 }
 

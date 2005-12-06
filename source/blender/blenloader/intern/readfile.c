@@ -3162,9 +3162,13 @@ static void lib_link_group(FileData *fd, Main *main)
 			go= group->gobject.first;
 			while(go) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
-				/* groups have inverse users... */
-				if(go->ob && group->id.us==0)
-					group->id.us= 1;
+				if(go->ob) {
+					/* groups have inverse users... */
+					if(group->id.us==0)
+						group->id.us= 1;
+					if(go->ob->id.us==0) 
+						go->ob->id.us= 1;
+				}
 				go= go->next;
 			}
 			rem_from_group(group, NULL);	/* removes NULL entries */

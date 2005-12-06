@@ -2251,7 +2251,7 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		if(active) {
 			uiSetRoundBox(15);
 			uiRoundBox( (float)startx+OL_H-1.5, (float)*starty+2.0, (float)startx+2*OL_H-4.0, (float)*starty+OL_H-1.0, OL_H/2.0-2.0);
-			glEnable(GL_BLEND);
+			glEnable(GL_BLEND);	/* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
 		}
@@ -2280,8 +2280,14 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 		glDisable(GL_BLEND);
 
 		/* name */
-		if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
-		else BIF_ThemeColor(TH_TEXT);
+		if(tselem->id->lib) {
+			if(active==1) glColor3ub(0xBB, 0xFF, 0xFF);
+			else glColor3ub(0, 0x30, 0x30);
+		}
+		else {
+			if(active==1) BIF_ThemeColor(TH_TEXT_HI); 
+			else BIF_ThemeColor(TH_TEXT);
+		}		
 		glRasterPos2i(startx+offsx, *starty+5);
 		BIF_RasterPos(startx+offsx, *starty+5);
 		BIF_DrawString(G.font, te->name, 0);

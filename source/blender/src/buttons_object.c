@@ -1387,13 +1387,17 @@ static uiBlock *add_groupmenu(void *arg_unused)
 	uiBlock *block;
 	Group *group;
 	short yco= 0;
+	char str[32];
 	
 	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
 	uiBlockSetButmFunc(block, do_add_groupmenu, NULL);
 
 	uiDefBut(block, BUTM, B_NOP, "ADD NEW",		0, 20, 160, 19, NULL, 0.0, 0.0, 1, -1, "");
 	for(group= G.main->group.first; group; group= group->id.next, yco++) {
-		uiDefBut(block, BUTM, B_NOP, group->id.name+2,		0, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, yco, "");
+		if(group->id.lib) strcpy(str, "L  ");
+		else strcpy(str, "   ");
+		strcat(str, group->id.name+2);
+		uiDefBut(block, BUTM, B_NOP, str,	0, -20*yco, 160, 19, NULL, 0.0, 0.0, 1, yco, "");
 	}
 	
 	uiTextBoundsBlock(block, 50);
@@ -1416,6 +1420,17 @@ static void group_ob_rem(void *gr_v, void *ob_v)
 
 }
 
+static void group_local(void *gr_v, void *unused)
+{
+	Group *group= gr_v;
+	
+	group->id.lib= NULL;
+	
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
+
 static void object_panel_object(Object *ob)
 {
 	uiBlock *block;
@@ -1425,6 +1440,8 @@ static void object_panel_object(Object *ob)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -1440,10 +1457,17 @@ static void object_panel_object(Object *ob)
 	uiBlockBeginAlign(block);
 	for(group= G.main->group.first; group; group= group->id.next) {
 		if(object_in_group(ob, group)) {
+			xco= 160;
+			
 			but = uiDefBut(block, TEX, B_IDNAME, "GR:",	10, 120-a, 150, 20, group->id.name+2, 0.0, 19.0, 0, 0, "Displays Group name. Click to change.");
 			uiButSetFunc(but, test_idbutton_cb, group->id.name, NULL);
 			
-			but = uiDefIconBut(block, BUT, B_NOP, VICON_X, 160, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
+			if(group->id.lib) {
+				but= uiDefIconBut(block, BUT, B_NOP, ICON_PARLIB, 160, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Make Group local");
+				uiButSetFunc(but, group_local, group, NULL);
+				xco= 180;
+			}
+			but = uiDefIconBut(block, BUT, B_NOP, VICON_X, xco, 120-a, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove Group membership");
 			uiButSetFunc(but, group_ob_rem, group, ob);
 			
 			a+= 20;
@@ -1458,6 +1482,8 @@ static void object_panel_anim(Object *ob)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 320, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,180,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
@@ -1514,6 +1540,8 @@ static void object_panel_draw(Object *ob)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Draw", "Object", 640, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	/* LAYERS */
 	xco= 120;
@@ -1575,6 +1603,8 @@ void object_panel_constraint(char *context)
 	
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Constraints", context, 960, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 	
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
 	/* so first we make it default height */
@@ -1802,6 +1832,8 @@ static void object_panel_fields(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* should become button, option? */
 	if(ob->pd==NULL) {
 		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
@@ -1911,6 +1943,8 @@ static void object_softbodies(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* do not allow to combine with force fields */
 	/* if(ob->pd && ob->pd->deflect) { */
 	/* no reason for that any more BM */
@@ -2029,6 +2063,8 @@ static void object_panel_particles_motion(Object *ob)
 	uiNewPanelTabbed("Particles ", "Physics");
 	if(uiNewPanel(curarea, block, "Particle Motion", "Physics", 320, 0, 318, 204)==0) return;
 	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	/* top row */
 	uiBlockBeginAlign(block);
 	uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",	0,180,75,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
@@ -2090,6 +2126,8 @@ static void object_panel_particles(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	if (ob->type == OB_MESH) {
 		uiBlockBeginAlign(block);
 		if(paf==NULL)
@@ -2176,6 +2214,8 @@ static void object_panel_fluidsim(Object *ob)
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
 	uiDefButBitS(block, TOG, OB_FLUIDSIM_ENABLE, REDRAWBUTSOBJECT, "Enable",	 0,yline, 75,objHeight, 
 			&ob->fluidsimFlag, 0, 0, 0, 0, "Sets object to participate in fluid simulation");
 
@@ -2331,8 +2371,6 @@ void object_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
-		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-
 		object_panel_object(ob);
 		object_panel_anim(ob);
 		object_panel_draw(ob);
@@ -2349,7 +2387,6 @@ void physics_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
-		if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
 		object_panel_fields(ob);
 		object_panel_particles(ob);
 		object_panel_particles_motion(ob);

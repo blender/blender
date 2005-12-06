@@ -95,11 +95,12 @@ void add_to_group(Group *group, Object *ob)
 	
 }
 
+/* also used for ob==NULL */
 void rem_from_group(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;
 	
-	if(group==NULL || ob==NULL) return;
+	if(group==NULL) return;
 	
 	go= group->gobject.first;
 	while(go) {
@@ -136,3 +137,16 @@ Group *find_group(Object *ob)
 	}
 	return NULL;
 }
+
+void group_tag_recalc(Group *group)
+{
+	GroupObject *go;
+	
+	if(group==NULL) return;
+	
+	for(go= group->gobject.first; go; go= go->next) {
+		if(go->ob) 
+			go->ob->recalc= OB_RECALC;
+	}
+}
+
