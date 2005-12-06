@@ -1702,6 +1702,7 @@ void do_viewbuts(unsigned short event)
 				DAG_scene_sort(G.scene);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 				allqueue(REDRAWVIEW3D, 1);
+				allqueue(REDRAWBUTSOBJECT, 0);
 			}
 		}
 		break;

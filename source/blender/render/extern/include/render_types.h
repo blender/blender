@@ -146,6 +146,7 @@ typedef struct RE_Render
 	int totvlak, totvert, tothalo, totlamp;
 
 	/* internal, fortunately */
+	ListBase lights;
 	struct LampRen **la;
 	struct VlakRen **blovl;
 	struct VertRen **blove;

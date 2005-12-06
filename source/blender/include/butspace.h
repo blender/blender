@@ -121,6 +121,8 @@ void test_scenepoin_but(char *name, struct ID **idpp);
 void test_matpoin_but(char *name, struct ID **idpp);
 void test_scriptpoin_but(char *name, struct ID **idpp);
 void test_actionpoin_but(char *name, ID **idpp);
+void test_grouppoin_but(char *name, ID **idpp);
+
 void test_idbutton_cb(void *namev, void *arg2_unused);
 
 /* -------------- internal event defines ------------ */
@@ -222,7 +224,7 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_ENV_FREE_ALL		1357
 #define B_UNLINKIMA		1358
 
-/* *********************** */
+/* **************** animbuts = object buttons ******* */
 #define B_ANIMBUTS		1500
 
 #define B_RECALCPATH	1401
@@ -238,14 +240,13 @@ void test_idbutton_cb(void *namev, void *arg2_unused);
 #define B_SOFTBODY_BAKE			1422
 #define B_SOFTBODY_BAKE_FREE	1423
 
-	/* this has MAX_EFFECT settings! Next free define is 1450... */
-#define B_SELEFFECT	1430	
+/* this has MAX_EFFECT settings! Next free define is 1450... */
+#define B_SELEFFECT	1430
 
 /* Fluidsim button defines */
 #define B_FLUIDSIM_BAKE	        1450
-#define B_FLUIDSIM_SELDIR	      1451
+#define B_FLUIDSIM_SELDIR	    1451
 #define B_FLUIDSIM_FORCEREDRAW	1452
-
 
 /* *********************** */
 #define B_WORLDBUTS		1600

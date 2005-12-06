@@ -1492,9 +1492,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 static void write_groups(WriteData *wd, ListBase *idbase)
 {
 	Group *group;
-	GroupKey *gk;
 	GroupObject *go;
-	ObjectKey *ok;
 
 	group= idbase->first;
 	while(group) {
@@ -1502,27 +1500,11 @@ static void write_groups(WriteData *wd, ListBase *idbase)
 			/* write LibData */
 			writestruct(wd, ID_GR, "Group", 1, group);
 
-			gk= group->gkey.first;
-			while(gk) {
-				writestruct(wd, DATA, "GroupKey", 1, gk);
-				gk= gk->next;
-			}
-
 			go= group->gobject.first;
 			while(go) {
 				writestruct(wd, DATA, "GroupObject", 1, go);
 				go= go->next;
 			}
-			go= group->gobject.first;
-			while(go) {
-				ok= go->okey.first;
-				while(ok) {
-					writestruct(wd, DATA, "ObjectKey", 1, ok);
-					ok= ok->next;
-				}
-				go= go->next;
-			}
-
 		}
 		group= group->id.next;
 	}

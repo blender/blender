@@ -220,16 +220,16 @@ Scene *add_scene(char *name)
 	return sce;
 }
 
-int object_in_scene(Object *ob, Scene *sce)
+Base *object_in_scene(Object *ob, Scene *sce)
 {
 	Base *base;
 	
 	base= sce->base.first;
 	while(base) {
-		if(base->object == ob) return 1;
+		if(base->object == ob) return base;
 		base= base->next;
 	}
-	return 0;
+	return NULL;
 }
 
 void set_scene_bg(Scene *sce)

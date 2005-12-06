@@ -38,50 +38,11 @@
 #include "DNA_ID.h"
 
 struct Object;
-struct Ipo;
-
-typedef struct GroupKey {
-	struct GroupKey *next, *prev;
-	short sfra, efra;
-	float cfra;
-	char name[32];
-} GroupKey;
-
-typedef struct ObjectKey {
-	struct ObjectKey *next, *prev;
-	GroupKey *gkey;		/* for reference */
-
-	/* copy of relevant data */
-	short partype, pad;
-	int par1, par2, par3;
-	
-	struct Object *parent, *track;
-	struct Ipo *ipo;
-
-	/* this block identical to object */	
-	float loc[3], dloc[3], orig[3];
-	float size[3], dsize[3];
-	float rot[3], drot[3];
-	float quat[4], dquat[4];
-	float obmat[4][4];
-	float parentinv[4][4];
-	float imat[4][4];	/* voor bij render, tijdens simulate, tijdelijk: ipokeys van transform  */
-	
-	unsigned int lay;				/* kopie van Base */
-	
-	char transflag, ipoflag;
-	char trackflag, upflag;
-	
-	float sf, ctime, padf;
-		
-
-} ObjectKey;
 
 typedef struct GroupObject {
 	struct GroupObject *next, *prev;
 	struct Object *ob;
-	ListBase okey;		/* ObjectKey */
-	
+	void *lampren;		/* used while render */
 } GroupObject;
 
 
@@ -89,11 +50,9 @@ typedef struct Group {
 	ID id;
 	
 	ListBase gobject;	/* GroupObject */
-	ListBase gkey;		/* GroupKey */
-	
-	GroupKey *active;
 	
 } Group;
+
 
 #endif
 

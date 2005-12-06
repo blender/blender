@@ -34,6 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_group_types.h"
+
 #include "render.h"
 #include "renderPreAndPost.h"
 #include "RE_callbacks.h"
@@ -52,15 +54,16 @@
  */
 void prepareScene()
 {
-	int a;
+	GroupObject *go;
 	extern void makeoctree(void);
 	
 	RE_local_get_renderdata();
 
 	/* SHADOW BUFFER */
-	for(a=0; a<R.totlamp; a++) {
+	for(go=R.lights.first; go; go= go->next) {
+		LampRen *lar= go->lampren;
+		if(lar->shb) makeshadowbuf(lar);
 		if(RE_local_test_break()) break;
-		if(R.la[a]->shb) makeshadowbuf(R.la[a]);
 	}
 
 	/* yafray: 'direct' radiosity, environment maps and octree init not needed for yafray render */

@@ -42,12 +42,13 @@
 
 #include "BKE_utildefines.h"
 
+#include "DNA_camera_types.h"
+#include "DNA_group_types.h"
+#include "DNA_image_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_image_types.h"
 #include "DNA_object_types.h"
-#include "DNA_camera_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_texture_types.h"
 
 #include "BKE_global.h"
@@ -406,14 +407,15 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 static void renderspothalo(ShadeInput *shi, float *col, float alpha)
 {
+	GroupObject *go;
 	LampRen *lar;
 	float i;
-	int a;
 	
 	if(alpha==0.0f) return;
 
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
+		
 		if(lar->type==LA_SPOT && (lar->mode & LA_HALO) && lar->haint>0) {
 	
 			spothalo(lar, shi, &i);
@@ -1354,11 +1356,12 @@ static void ambient_occlusion(World *wrld, ShadeInput *shi, ShadeResult *shr)
 void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 {
 	LampRen *lar;
+	GroupObject *go;
 	Material *ma= shi->mat;
 	VlakRen *vlr= shi->vlr;
+	ListBase *lights;
 	float i, inp, inpr, is, t, lv[3], vnor[3], lacol[3], lampdist, ld = 0;
 	float lvrot[3], *vn, *view, shadfac[4], soft, phongcorr;	// shadfac = rgba
-	int a;
 
 	vn= shi->vn;
 	view= shi->view;
@@ -1371,6 +1374,12 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shi->har= ma->har;
 	if((ma->mode & MA_RAYMIRROR)==0) shi->ray_mirror= 0.0;
 	
+	/* lights */
+	if(ma->group)
+		lights= &ma->group->gobject;
+	else
+		lights= &R.lights;
+	
 	/* separate loop */
 	if(ma->mode & MA_ONLYSHADOW) {
 		float ir;
@@ -1378,8 +1387,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 		if(R.r.mode & R_SHADOW) {
 			
 			shadfac[3]= ir= 0.0;
-			for(a=0; a<R.totlamp; a++) {
-				lar= R.la[a];
+			for(go=lights->first; go; go= go->next) {
+				lar= go->lampren;
+				if(lar==NULL) continue;
+				
 				/* yafray: ignore shading by photonlights, not used in Blender */
 				if (lar->type==LA_YF_PHOTON) continue;
 				
@@ -1505,8 +1516,10 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	
 	ambient_occlusion(&R.wrld, shi, shr);
 
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=lights->first; go; go= go->next) {
+		lar= go->lampren;
+		if(lar==NULL) continue;
+		
 		/* yafray: ignore shading by photonlights, not used in Blender */
 		if (lar->type==LA_YF_PHOTON) continue;
 

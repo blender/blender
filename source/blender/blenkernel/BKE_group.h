@@ -35,26 +35,16 @@
 #define BKE_GROUP_H
 
 struct Group;
-struct GroupKey;
 struct GroupObject;
-struct ObjectKey;
 struct Object;
 
-void free_object_key(struct ObjectKey *ok);
 void free_group_object(struct GroupObject *go);
 void free_group(struct Group *group);
 struct Group *add_group(void);
-void object_to_obkey(struct Object *ob, struct ObjectKey *ok);
-void obkey_to_object(struct ObjectKey *ok, struct Object *ob);
-void add_object_key(struct GroupObject *go, struct GroupKey *gk);
 void add_to_group(struct Group *group, struct Object *ob);
 void rem_from_group(struct Group *group, struct Object *ob);
-void add_group_key(struct Group *group);
-void set_object_key(struct Object *ob, struct ObjectKey *ok);
-void set_group_key(struct Group *group);
 struct Group *find_group(struct Object *ob);
-void set_group_key_name(struct Group *group, char *name);
-void set_group_key_frame(struct Group *group, float frame);
+int object_in_group(struct Object *ob, struct Group *group);
 
 #endif
 

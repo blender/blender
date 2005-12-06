@@ -53,6 +53,7 @@
 #include "DNA_material_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
@@ -74,6 +75,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -1658,23 +1660,10 @@ static void area_lamp_vectors(LampRen *lar)
 void RE_add_render_lamp(Object *ob, int actual_render)
 {
 	Lamp *la;
-	LampRen *lar, **temp;
+	LampRen *lar;
+	GroupObject *go;
 	float mat[4][4], hoek, xn, yn;
 	int c;
-	static int rlalen=LAMPINITSIZE; /*number of currently allocated lampren pointers*/
-	
-	if(R.totlamp>=rlalen) { /* Need more Lamp pointers....*/
-		printf("Alocating %i more lamp groups, %i total.\n", 
-			LAMPINITSIZE, rlalen+LAMPINITSIZE);
-		temp=R.la;
-		R.la=(LampRen**)MEM_callocN(sizeof(void*)*(rlalen+LAMPINITSIZE) , "renderlamparray");
-		memcpy(R.la, temp, rlalen*sizeof(void*));
-		memset(&(R.la[R.totlamp]), 0, LAMPINITSIZE*sizeof(void*));
-		rlalen+=LAMPINITSIZE;  
-		MEM_freeN(temp);	
-	}
-	
-	la= ob->data;
 
 	/* prevent only shadow from rendering light, but only return on render, not preview */
 	if(actual_render) {
@@ -1682,9 +1671,13 @@ void RE_add_render_lamp(Object *ob, int actual_render)
 			if((R.r.mode & R_SHADOW)==0)
 				return;
 	}
-
+	
+	go= MEM_callocN(sizeof(GroupObject), "groupobject");
+	BLI_addtail(&R.lights, go);
+	R.totlamp++;
 	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
-	R.la[R.totlamp++]= lar;
+	go->lampren= lar;
+	go->ob= ob;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, R.viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
@@ -1692,6 +1685,8 @@ void RE_add_render_lamp(Object *ob, int actual_render)
 	MTC_Mat3CpyMat4(lar->mat, mat);
 	MTC_Mat3CpyMat4(lar->imat, ob->imat);
 
+	la= ob->data;
+	
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
 	lar->soft = la->soft;
@@ -2360,6 +2355,7 @@ void RE_freeRotateBlenderScene(void)
 {
 	ShadBuf *shb;
 	Object *ob = NULL;
+	GroupObject *go;
 	unsigned long *ztile;
 	int a, b, v;
 	char *ctile;
@@ -2368,10 +2364,11 @@ void RE_freeRotateBlenderScene(void)
 	
 	BLI_memarena_free(R.memArena);
 	R.memArena = NULL;
-
-	for(a=0; a<R.totlamp; a++) {
-		if(R.la[a]->shb) {
-			shb= R.la[a]->shb;
+	
+	for(go= R.lights.first; go; go= go->next) {
+		struct LampRen *lar= go->lampren;
+		if(lar->shb) {
+			shb= lar->shb;
 			v= (shb->size*shb->size)/256;
 			ztile= shb->zbuf;
 			ctile= shb->cbuf;
@@ -2381,11 +2378,13 @@ void RE_freeRotateBlenderScene(void)
 			
 			MEM_freeN(shb->zbuf);
 			MEM_freeN(shb->cbuf);
-			MEM_freeN(R.la[a]->shb);
+			MEM_freeN(lar->shb);
 		}
-		if(R.la[a]->jitter) MEM_freeN(R.la[a]->jitter);
-		MEM_freeN(R.la[a]);
+		if(lar->jitter) MEM_freeN(lar->jitter);
+		MEM_freeN(lar);
 	}
+	
+	BLI_freelistN(&R.lights);
 
 	/* note; these pointer arrays were allocated, with last element NULL to stop loop */
 	a=0;
@@ -2573,7 +2572,25 @@ static void check_non_flat_quads(void)
 	}
 }
 
-
+static void set_material_lightgroups(void)
+{
+	GroupObject *go, *gol;
+	Material *ma;
+	
+	/* it's a bit too many loops in loops... but will survive */
+	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
+		if(ma->group) {
+			for(go= ma->group->gobject.first; go; go= go->next) {
+				for(gol= R.lights.first; gol; gol= gol->next) {
+					if(gol->ob==go->ob) {
+						go->lampren= gol->lampren;
+						break;
+					}
+				}
+			}
+		}
+	}
+}
 
 extern int slurph_opt;	/* key.c */
 extern ListBase duplilist;
@@ -2585,13 +2602,12 @@ void RE_rotateBlenderScene(void)
 	unsigned int lay;
 	float mat[4][4];
 
-	if(G.scene->camera==0) return;
+	if(G.scene->camera==NULL) return;
 
 	R.memArena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
-
-	slurph_opt= 0;
-
 	R.totvlak=R.totvert=R.totlamp=R.tothalo= 0;
+	
+	slurph_opt= 0;
 
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if(G.scene->lay & 0xFF000000) lay= G.scene->lay & 0xFF000000;
@@ -2772,7 +2788,9 @@ void RE_rotateBlenderScene(void)
 	}
 
 	sort_halos();
-
+	
+	set_material_lightgroups();
+	
 	if(R.wrld.mode & WO_STARS) RE_make_stars(NULL, NULL, NULL);
 
 	slurph_opt= 1;

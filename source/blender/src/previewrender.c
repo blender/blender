@@ -54,6 +54,7 @@
 #include "render.h"
 #include "mydevice.h"
 
+#include "DNA_group_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
@@ -1186,9 +1187,9 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 		init_render_world();
 		preview_init_render_textures(la->mtex);
-		R.totlamp= 0;
+		
 		RE_add_render_lamp(ob, 0);	/* 0=no shadbuf or tables */
-		lar= R.la[0];
+		lar= ((GroupObject *)R.lights.first)->lampren;
 		
 		/* exceptions: */
 		lar->spottexfac= 1.0f;
@@ -1361,11 +1362,10 @@ void BIF_previewrender(SpaceButs *sbuts)
 
 	uiPanelPop(block);
 	
-	if(la) {
-		if(R.totlamp) {
-			MEM_freeN(R.la[0]);
-		}
-		R.totlamp= 0;
+	if(lar) {
+		MEM_freeN(lar);
+		MEM_freeN(R.lights.first);
+		R.lights.first= R.lights.last= NULL;
 	}
 }
 

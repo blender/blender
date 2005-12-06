@@ -39,6 +39,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -65,6 +66,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_butspace.h"
@@ -767,6 +769,23 @@ static void outliner_build_tree(SpaceOops *soops)
 				outliner_add_element(soops, &soops->tree, base->object, NULL, 0, 0);
 		}
 		outliner_make_hierarchy(soops, &soops->tree);
+	}
+	else if(soops->outlinevis == SO_GROUPS) {
+		Group *group;
+		GroupObject *go;
+		
+		for(group= G.main->group.first; group; group= group->id.next) {
+			te= outliner_add_element(soops, &soops->tree, group, NULL, 0, 0);
+			tselem= TREESTORE(te);
+			
+			for(go= group->gobject.first; go; go= go->next) {
+				ten= outliner_add_element(soops, &te->subtree, go->ob, te, 0, 0);
+				ten->directdata= NULL;
+			}
+			outliner_make_hierarchy(soops, &te->subtree);
+			/* clear id.newid, to prevent objects be inserted in wrong scenes (parent in other scene) */
+			for(go= group->gobject.first; go; go= go->next) go->ob->id.newid= NULL;
+		}
 	}
 	else if(soops->outlinevis == SO_SAME_TYPE) {
 		Object *ob= OBACT;
@@ -1794,22 +1813,29 @@ static void object_select_cb(TreeElement *te, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
-	base->flag |= SELECT;
-	base->object->flag |= SELECT;
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->flag |= SELECT;
+		base->object->flag |= SELECT;
+	}
 }
 
 static void object_deselect_cb(TreeElement *te, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
-	base->flag &= ~SELECT;
-	base->object->flag &= ~SELECT;
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
+	if(base) {
+		base->flag &= ~SELECT;
+		base->object->flag &= ~SELECT;
+	}
 }
 
 static void object_delete_cb(TreeElement *te, TreeStoreElem *tselem)
 {
 	Base *base= (Base *)te->directdata;
 	
+	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
 	if(base) {
 		// check also library later
 		if(G.obedit==base->object) exit_editmode(2);
@@ -2121,6 +2147,8 @@ static void tselem_draw_icon(float x, float y, TreeStoreElem *tselem, TreeElemen
 				BIF_draw_icon(x, y, ICON_NLA); break;
 			case ID_TXT:
 				BIF_draw_icon(x, y, ICON_SCRIPT); break;
+			case ID_GR:
+				BIF_draw_icon(x, y, ICON_CIRCLE_DEHLT); break;
 		}
 	}
 }

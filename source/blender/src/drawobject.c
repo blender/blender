@@ -222,7 +222,7 @@ static unsigned int colortab[24]=
 	{0x0,		0xFF88FF, 0xFFBBFF, 
 	 0x403000,	0xFFFF88, 0xFFFFBB, 
 	 0x104040,	0x66CCCC, 0x77CCCC, 
-	 0x101040,	0x5588FF, 0x88BBFF, 
+	 0x104010,	0x55BB55, 0x66FF66, 
 	 0xFFFFFF
 };
 
@@ -3604,8 +3604,18 @@ void draw_object(Base *base, int flag)
 				else colindex = 3;
 			}
 			else if(warning_recursive==1) {
-				if(base->flag & (SELECT+BA_WAS_SEL)) colindex = 7;
+				if(base->flag & (SELECT+BA_WAS_SEL)) {
+					if(G.scene->basact==base) colindex = 8;
+					else colindex= 7;
+				}
 				else colindex = 6;
+			}
+			else if(ob->flag & OB_FROMGROUP) {
+				if(base->flag & (SELECT+BA_WAS_SEL)) {
+					if(G.scene->basact==base) colindex = 11;
+					else colindex= 10;
+				}
+				else colindex = 9;
 			}
 
 		}	

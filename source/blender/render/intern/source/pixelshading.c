@@ -45,6 +45,7 @@
 #include "MTC_vectorops.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_image_types.h"
@@ -160,10 +161,10 @@ extern float hashvectf[];
 
 static void render_lighting_halo(HaloRen *har, float *colf)
 {
+	GroupObject *go;
 	LampRen *lar;
 	float i, inp, inpr, rco[3], dco[3], lv[3], lampdist, ld, t, *vn;
 	float ir, ig, ib, shadfac, soft, lacol[3];
-	int a;
 	
 	ir= ig= ib= 0.0;
 	
@@ -172,8 +173,8 @@ static void render_lighting_halo(HaloRen *har, float *colf)
 	
 	vn= har->no;
 	
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
 		
 		/* test for lamplayer */
 		if(lar->mode & LA_LAYER) if((lar->lay & har->lay)==0) continue;
@@ -496,7 +497,7 @@ void shadeHaloFloat(HaloRen *har,  float *col, int zz,
 	if(har->mat) {
 		if(har->mat->mode & MA_HALO_SHADE) {
 			/* we test for lights because of preview... */
-			if(R.totlamp) render_lighting_halo(har, col);
+			if(R.lights.first) render_lighting_halo(har, col);
 		}
 
 		/* Next, we do the line and ring factor modifications. */

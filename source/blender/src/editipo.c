@@ -2352,7 +2352,6 @@ void common_insertkey(void)
 			else if(ob->type==OB_LATTICE) strcat(menustr, "| %x6|Lattice%x7");
 			else if(ob->type==OB_CURVE) strcat(menustr, "| %x6|Curve%x7");
 			else if(ob->type==OB_SURF) strcat(menustr, "| %x6|Surface%x7");
-			if(ob->flag & OB_FROMGROUP)	strcat(menustr, "| %x6|Entire Group%x10");
 		}
 		
 		event= pupmenu(menustr);
@@ -2361,14 +2360,6 @@ void common_insertkey(void)
 		if(event==7) { // ob != NULL
 			insert_shapekey(ob);
 			return;
-		}
-		
-		if(event==10) {
-			Group *group= find_group(ob);
-			if(group) {
-				add_group_key(group);
-				allqueue(REDRAWBUTSOBJECT, 0);
-			}
 		}
 		
 		if (ob && (ob->flag & OB_POSEMODE)){

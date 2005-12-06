@@ -2129,6 +2129,7 @@ static void lib_link_modifiers(FileData *fd, Object *ob)
 static void lib_link_object(FileData *fd, Main *main)
 {
 	Object *ob;
+	PartEff *paf;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -2143,7 +2144,8 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->track= newlibadr(fd, ob->id.lib, ob->track);
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
-
+			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
+			
 			poin= ob->data;
 			ob->data= newlibadr_us(fd, ob->id.lib, ob->data);
 
@@ -2164,6 +2166,11 @@ static void lib_link_object(FileData *fd, Main *main)
 			lib_link_nlastrips(fd, &ob->id, &ob->nlastrips);
 			lib_link_constraint_channels(fd, &ob->id, &ob->constraintChannels);
 
+			for(paf= ob->effect.first; paf; paf= paf->next) {
+				if(paf->type==EFF_PARTICLE) {
+					paf->group= newlibadr_us(fd, ob->id.lib, paf->group);
+				}
+			}				
 
 			sens= ob->sensors.first;
 			while(sens) {
@@ -2337,7 +2344,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	paf= ob->effect.first;
 	while(paf) {
 		if(paf->type==EFF_PARTICLE) {
-			paf->keys= 0;
+			paf->keys= NULL;
 		}
 		if(paf->type==EFF_WAVE) {
 			WaveEff *wav = (WaveEff*) paf;
@@ -2496,7 +2503,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			sce->world= newlibadr_us(fd, sce->id.lib, sce->world);
 			sce->set= newlibadr(fd, sce->id.lib, sce->set);
 			sce->ima= newlibadr_us(fd, sce->id.lib, sce->ima);
-			sce->group= newlibadr_us(fd, sce->id.lib, sce->group);
 
 			base= sce->base.first;
 			while(base) {
@@ -3140,30 +3146,13 @@ static void lib_link_sound(FileData *fd, Main *main)
 
 static void direct_link_group(FileData *fd, Group *group)
 {
-	GroupObject *go;
-	ObjectKey *ok;
-
 	link_list(fd, &group->gobject);
-	link_list(fd, &group->gkey);
-	group->active= newdataadr(fd, group->active);
-
-	go= group->gobject.first;
-	while(go) {
-		link_list(fd, &go->okey);
-		ok= go->okey.first;
-		while(ok) {
-			ok->gkey= newdataadr(fd, ok->gkey);
-			ok= ok->next;
-		}
-		go= go->next;
-	}
 }
 
 static void lib_link_group(FileData *fd, Main *main)
 {
 	Group *group= main->group.first;
 	GroupObject *go;
-	ObjectKey *ok;
 
 	while(group) {
 		if(group->id.flag & LIB_NEEDLINK) {
@@ -3172,15 +3161,12 @@ static void lib_link_group(FileData *fd, Main *main)
 			go= group->gobject.first;
 			while(go) {
 				go->ob= newlibadr(fd, group->id.lib, go->ob);
-				ok= go->okey.first;
-				while(ok) {
-					ok->parent= newlibadr(fd, group->id.lib, ok->parent);
-					ok->track= newlibadr(fd, group->id.lib, ok->track);
-					ok->ipo= newlibadr_us(fd, group->id.lib, ok->ipo);
-					ok= ok->next;
-				}
+				/* groups have inverse users... */
+				if(go->ob && group->id.us==0)
+					group->id.us= 1;
 				go= go->next;
 			}
+			rem_from_group(group, NULL);	/* removes NULL entries */
 		}
 		group= group->id.next;
 	}
@@ -5291,6 +5277,15 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 	}
 }
 
+static void expand_group(FileData *fd, Main *mainvar, Group *group)
+{
+	GroupObject *go;
+	
+	for(go= group->gobject.first; go; go= go->next) {
+		expand_doit(fd, mainvar, go->ob);
+	}
+}
+
 static void expand_key(FileData *fd, Main *mainvar, Key *key)
 {
 	expand_doit(fd, mainvar, key->ipo);
@@ -5729,6 +5724,9 @@ static void expand_main(FileData *fd, Main *mainvar)
 					case ID_AC:
 						expand_action(fd, mainvar, (bAction *)id);
 						break;
+					case ID_GR:
+						expand_group(fd, mainvar, (Group *)id);
+						break;
 					}
 
 					doit= 1;
@@ -5758,8 +5756,9 @@ static void give_base_to_objects(Scene *sce, ListBase *lb)
 				BLI_addtail(&(sce->base), base);
 				base->lay= ob->lay;
 				base->object= ob;
+				base->flag= ob->flag;
 				ob->id.us= 1;
-
+				
 				ob->id.flag -= LIB_INDIRECT;
 				ob->id.flag |= LIB_EXTERN;
 

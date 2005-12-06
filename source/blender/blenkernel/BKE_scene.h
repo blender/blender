@@ -60,7 +60,7 @@ void free_qtcodecdata(struct QuicktimeCodecData *acd);
 
 void free_scene(struct Scene *me);
 struct Scene *add_scene(char *name);
-int object_in_scene(struct Object *ob, struct Scene *sce);
+struct Base *object_in_scene(struct Object *ob, struct Scene *sce);
 
 void set_scene_bg(struct Scene *sce);
 void set_scene_name(char *name);

@@ -40,14 +40,15 @@
 #include "BLI_arithb.h"
 #include "DNA_listBase.h"
 
-#include "DNA_object_types.h"
 #include "DNA_curve_types.h"
-#include "DNA_key_types.h"
-#include "DNA_view3d_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
+#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -271,7 +272,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	return 1;
 }
 
-static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
+static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par, int clearpar)
 {
 	Object *newob;
 	
@@ -284,7 +285,7 @@ static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
 	/* only basis-ball gets displist */
 	if(newob->type==OB_MBALL) newob->disp.first= newob->disp.last= NULL;
 
-	if(ob!=par) {	// dupliverts, particle
+	if(clearpar) {	// dupliverts, particle
 		newob->parent= NULL;
 		newob->track= NULL;
 	}	
@@ -293,7 +294,22 @@ static Object *new_dupli_object(ListBase *lb, Object *ob, Object *par)
 	return newob;
 }
 
-void frames_duplilist(Object *ob)
+static void group_duplilist(Object *ob)
+{
+	Object *newob;
+	GroupObject *go;
+	float mat[4][4];
+	
+	if(ob->dup_group==NULL) return;
+	
+	for(go= ob->dup_group->gobject.first; go; go= go->next) {
+		newob= new_dupli_object(&duplilist, go->ob, ob, 0);
+		Mat4CpyMat4(mat, newob->obmat);
+		Mat4MulMat4(newob->obmat, mat, ob->obmat);
+	}
+}
+
+static void frames_duplilist(Object *ob)
 {
 	extern int enable_cu_speed;	/* object.c */
 	Object *newob, copyob;
@@ -315,7 +331,7 @@ void frames_duplilist(Object *ob)
 			else ok= 0;
 		}
 		if(ok) {
-			newob= new_dupli_object(&duplilist, ob, ob);
+			newob= new_dupli_object(&duplilist, ob, ob, 0);
 
 			do_ob_ipo(newob);
 			where_is_object_time(newob, (float)G.scene->r.cfra);
@@ -343,7 +359,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	VecSubf(vec, vec, vdd->pmat[3]);
 	VecAddf(vec, vec, vdd->ob->obmat[3]);
 	
-	newob= new_dupli_object(&duplilist, vdd->ob, vdd->par);
+	newob= new_dupli_object(&duplilist, vdd->ob, vdd->par, 1);
 	VECCOPY(newob->obmat[3], vec);
 	
 	if(vdd->par->transflag & OB_DUPLIROT) {
@@ -359,7 +375,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	
 }
 
-void vertex_duplilist(Scene *sce, Object *par)
+static void vertex_duplilist(Scene *sce, Object *par)
 {
 	Object *ob;
 	Base *base;
@@ -420,8 +436,7 @@ void vertex_duplilist(Scene *sce, Object *par)
 		dm->release(dm);
 }
 
-
-void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
+static void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 {
 	Object *ob, *newob;
 	Base *base;
@@ -462,7 +477,7 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 							mtime= pa->time+pa->lifetime;
 							
 							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
-								newob= new_dupli_object(&duplilist, ob, par);
+								newob= new_dupli_object(&duplilist, ob, par, 1);
 								
 								/* make sure hair grows until the end.. */ 
 								if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
@@ -494,7 +509,7 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 							if((paf->flag & PAF_DIED)==0 && ctime > pa->time+pa->lifetime) continue;
 
 							//if(ctime < pa->time+pa->lifetime) {
-							newob= new_dupli_object(&duplilist, ob, par);
+							newob= new_dupli_object(&duplilist, ob, par, 1);
 
 							/* to give ipos in object correct offset */
 							where_is_object_time(newob, ctime-pa->time);
@@ -523,7 +538,6 @@ void particle_duplilist(Scene *sce, Object *par, PartEff *paf)
 	}
 }
 
-
 void free_duplilist()
 {
 	Object *ob;
@@ -551,7 +565,10 @@ void make_duplilist(Scene *sce, Object *ob)
 				font_duplilist(ob);
 			}
 		}
-		else if(ob->transflag & OB_DUPLIFRAMES) frames_duplilist(ob);
+		else if(ob->transflag & OB_DUPLIFRAMES) 
+			frames_duplilist(ob);
+		else if(ob->transflag & OB_DUPLIGROUP)
+			group_duplilist(ob);
 	}
 }
 

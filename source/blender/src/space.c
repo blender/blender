@@ -577,31 +577,10 @@ static void select_parent(void)	/* Makes parent active and de-selected OBACT */
 	}
 }
 
-
-void select_group_menu(void)
-{
-	char *str;
-	short nr;
-
-	/* make menu string */
-	
-	str= MEM_mallocN(160, "groupmenu");
-	strcpy(str, "Select Grouped%t|Children%x1|"
-	            "Immediate Children%x2|Parent%x3|"
-	            "Objects on Shared Layers%x4");
-
-	/* here we go */
-	
-	nr= pupmenu(str);
-	MEM_freeN(str);
-	
-	select_group(nr);
-}
-
-void select_group(short nr)
+void select_grouped(short nr)
 {
 	Base *base;
-
+	
 	if(nr==4) {
 		base= FIRSTBASE;
 		while(base) {
@@ -622,6 +601,27 @@ void select_group(short nr)
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 }
+
+static void select_grouped_menu(void)
+{
+	char *str;
+	short nr;
+
+	/* make menu string */
+	
+	str= MEM_mallocN(160, "groupmenu");
+	strcpy(str, "Select Grouped%t|Children%x1|"
+	            "Immediate Children%x2|Parent%x3|"
+	            "Objects on Shared Layers%x4");
+
+	/* here we go */
+	
+	nr= pupmenu(str);
+	MEM_freeN(str);
+	
+	select_grouped(nr);
+}
+
 
 static unsigned short convert_for_nonumpad(unsigned short event)
 {
@@ -1262,10 +1262,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case GKEY:
-				/* RMGRP if(G.qual & LR_CTRLKEY) add_selected_to_group();
-				else if(G.qual & LR_ALTKEY) rem_selected_from_group(); */
-				if((G.qual==LR_SHIFTKEY))
-					select_group_menu();
+				if(G.qual & LR_CTRLKEY) group_operation_with_menu();
+				else if((G.qual==LR_SHIFTKEY))
+					select_grouped_menu();
 				else if(G.qual==LR_ALTKEY) {
 					if(okee("Clear location")) {
 						clear_object('g');

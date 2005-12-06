@@ -46,6 +46,7 @@ struct MTex;
 struct Ipo;
 struct Material;
 struct ColorBand;
+struct Group;
 
 typedef struct MaterialLayer {
 	struct MaterialLayer *next, *prev;
@@ -109,6 +110,7 @@ typedef struct Material {
 	struct MTex *mtex[10];
 	ListBase layers;
 	struct Ipo *ipo;
+	struct Group *group;
 	
 	/* dynamic properties */
 	float friction, fh, reflect;

@@ -466,32 +466,7 @@ static void free_filt_mask()
 	MEM_freeN(centmask);
 }
 
-/* unused */
-
-#if 0
-void defaultlamp()
-{
-	LampRen *lar;
-
-	lar= (LampRen *)MEM_callocN(sizeof(LampRen),"lampren");
-	R.la[R.totlamp++]=lar;
-
-	lar->type= LA_SUN;
-	lar->vec[0]= -R.viewmat[2][0];
-	lar->vec[1]= -R.viewmat[2][1];
-	lar->vec[2]= -R.viewmat[2][2];
-	Normalise(lar->vec);
-	lar->r= 1.0;
-	lar->g= 1.0;
-	lar->b= 1.0;
-	lar->lay= 65535;
-}
-#endif
-
-
-
 /* ********************* init calls *********************** */
-
 
 static void init_def_material(void)
 {
@@ -511,7 +486,6 @@ void RE_init_render_data(void)
 	R.blove= (VertRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blove");
 	R.blovl= (VlakRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Blovl");
 	R.bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(TABLEINITSIZE),"Bloha");
-	R.la= (LampRen **)MEM_mallocN(LAMPINITSIZE*sizeof(void *),"renderlamparray");
 	
 	init_def_material();
 	init_filt_mask();
@@ -525,8 +499,7 @@ void RE_free_render_data()
 	R.blovl= NULL;
 	MEM_freeN(R.bloha);
 	R.bloha= NULL;
-	MEM_freeN(R.la);
-	R.la= NULL;
+
 	if(R.rectot) MEM_freeN(R.rectot);
 	if(R.rectftot) MEM_freeN(R.rectftot);
 	if(R.rectz) MEM_freeN(R.rectz);

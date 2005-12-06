@@ -50,7 +50,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"        /* for rectcpy */
 
-#include "DNA_texture_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -271,6 +271,7 @@ static void envmap_transmatrix(float mat[][4], int part)
 
 static void env_rotate_scene(float mat[][4], int mode)
 {
+	GroupObject *go;
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
 	LampRen *lar = NULL;
@@ -326,8 +327,8 @@ static void env_rotate_scene(float mat[][4], int mode)
 	
 	set_normalflags();
 	
-	for(a=0; a<R.totlamp; a++) {
-		lar= R.la[a];
+	for(go=R.lights.first; go; go= go->next) {
+		lar= go->lampren;
 		
 		/* removed here some horrible code of someone in NaN who tried to fix
 		   prototypes... just solved by introducing a correct cmat[3][3] instead

@@ -211,6 +211,7 @@ void externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, 
 void    RE_free_envmap(struct EnvMap *env){}      
 struct EnvMap *RE_copy_envmap(struct EnvMap *env){ return env;}
 void    RE_free_envmapdata(struct EnvMap *env){}
+void init_render_textures(void){}
 
 int     RE_envmaptex(struct Tex *tex, float *texvec, float *dxt, float *dyt){
    return 0;

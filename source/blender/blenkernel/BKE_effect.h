@@ -38,10 +38,8 @@ struct Effect;
 struct ListBase;
 struct Object;
 struct PartEff;
-struct MTex;
-struct Mesh;
-struct WaveEff;
 struct Particle;
+struct Group;
 
 struct Effect *add_effect(int type);
 void free_effect(struct Effect *eff);
@@ -57,7 +55,7 @@ void build_particle_system(struct Object *ob);
 /* particle deflector */
 #define PE_WIND_AS_SPEED 0x00000001
 
-struct ListBase *pdInitEffectors(struct Object *ob);
+struct ListBase *pdInitEffectors(struct Object *obsrc, struct Group *group);
 void			pdEndEffectors(struct ListBase *lb);
 void			pdDoEffectors(struct ListBase *lb, float *opco, float *force, float *speed, float cur_time, float loc_time, unsigned int flags);
 

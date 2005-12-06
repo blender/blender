@@ -62,6 +62,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
+#include "DNA_group_types.h"
 #include "DNA_image_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_key_types.h"
@@ -102,6 +103,7 @@
 #include "BKE_effect.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
+#include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
@@ -4184,6 +4186,7 @@ static void adduplicate__forwardModifierLinks(void *userData, Object *ob, Object
 {
 	ID_NEW(*obpoin);
 }
+
 void adduplicate(int noTrans)
 /* dtrans is 3 x 3xfloat dloc, drot en dsize */
 {
@@ -4219,7 +4222,14 @@ void adduplicate(int noTrans)
 				BLI_addhead(&G.scene->base, basen);	/* addhead: prevent eternal loop */
 				basen->object= obn;
 				base->flag &= ~SELECT;
-				basen->flag &= ~OB_FROMGROUP;
+				
+				if(basen->flag & OB_FROMGROUP) {
+					Group *group;
+					for(group= G.main->group.first; group; group= group->id.next) {
+						if(object_in_group(ob, group))
+							add_to_group(group, obn);
+					}
+				}
 				
 				if(BASACT==base) BASACT= basen;
 

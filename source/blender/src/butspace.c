@@ -107,7 +107,7 @@ void test_scriptpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_actionpoin_but(char *name, ID **idpp)
@@ -122,7 +122,7 @@ void test_actionpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 
@@ -144,7 +144,7 @@ void test_obpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_meshpoin_but(char *name, ID **idpp)
@@ -162,7 +162,7 @@ void test_meshpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_matpoin_but(char *name, ID **idpp)
@@ -180,7 +180,7 @@ void test_matpoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
 }
 
 void test_scenepoin_but(char *name, ID **idpp)
@@ -198,7 +198,25 @@ void test_scenepoin_but(char *name, ID **idpp)
 		}
 		id= id->next;
 	}
-	*idpp= 0;
+	*idpp= NULL;
+}
+
+void test_grouppoin_but(char *name, ID **idpp)
+{
+	ID *id;
+	
+	if( *idpp ) (*idpp)->us--;
+	
+	id= G.main->group.first;
+	while(id) {
+		if( strcmp(name, id->name+2)==0 ) {
+			*idpp= id;
+			id_us_plus(id);
+			return;
+		}
+		id= id->next;
+	}
+	*idpp= NULL;
 }
 
 

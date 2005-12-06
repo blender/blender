@@ -188,10 +188,7 @@ typedef struct Object {
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
-	struct Life *life;
-
-	LBuf lbuf;
-	LBuf port;
+	struct Group *dup_group;	/* object duplicator for group */
 	
 	short fluidsimFlag;			/* NT toggle fluidsim participation on/off */
 	char shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
@@ -262,13 +259,13 @@ extern Object workob;
 #define OB_OFFS_LOCAL	1
 #define OB_QUAT			2
 #define OB_NEG_SCALE	4
-#define OB_DUPLI		(8+16)
+#define OB_DUPLI		(8+16+256)
 #define OB_DUPLIFRAMES	8
 #define OB_DUPLIVERTS	16
 #define OB_DUPLIROT		32
 #define OB_DUPLINOSPEED	64
-
 #define OB_POWERTRACK	128
+#define OB_DUPLIGROUP	256
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1

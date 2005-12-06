@@ -289,7 +289,6 @@ typedef struct Scene {
 	
 	ListBase base;
 	struct Base *basact;
-	struct Group *group;
 	
 	float cursor[3];
 	float twcent[3];			/* center for transform widget */
