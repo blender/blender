@@ -677,53 +677,56 @@ char *getIpoCurveName( IpoCurve * icu )
 }
 
 
-static PyObject *IpoCurve_getDriver( C_IpoCurve * self ){
-	IpoCurve *ipo = self->ipocurve;
-	if(ipo->driver == NULL){
+static PyObject *IpoCurve_getDriver( C_IpoCurve * self )
+{
+	if( self->ipocurve->driver == NULL ) {
 		return PyInt_FromLong( 0 );	
 	} else {
 		return PyInt_FromLong( 1 );	
 	}
 }
 
-static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args ){
+static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args )
+{
 	IpoCurve *ipo = self->ipocurve;
 	short mode;
 
-    mode = (short)PyInt_AS_LONG ( args );
+	if( !PyInt_CheckExact( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument 0 or 1" );
+
+	mode = (short)PyInt_AS_LONG ( args );
 
 	if(mode == 1){
 		if(ipo->driver == NULL){
 			ipo->driver				= MEM_callocN(sizeof(IpoDriver), "ipo driver");
 			ipo->driver->blocktype	= ID_OB;
 			ipo->driver->adrcode	= OB_LOC_X;
-		}	 
-		return 0;
+		}
 	} else if(mode == 0){
 		if(ipo->driver != NULL){
 			MEM_freeN(ipo->driver);
 			ipo->driver= NULL;			
 		}
-		return 0;
-	}
-	return EXPP_ReturnIntError( PyExc_RuntimeError,
-					      	"expected int argument: 1 or 0 " );
+	} else
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"expected int argument: 0 or 1" );
+
+	return 0;
 }
 
-
-static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self ){
-	BPy_Object *blen_object;
+static PyObject *IpoCurve_getDriverObject( C_IpoCurve * self )
+{
 	IpoCurve *ipo = self->ipocurve;
 	
-	if(ipo->driver == NULL)
-			return Py_None;
-	
-	blen_object = ( BPy_Object * ) PyObject_NEW( BPy_Object,&Object_Type );
-	blen_object->object = ipo->driver->ob;
-	return ( ( PyObject * ) blen_object );
+	if( ipo->driver )
+		return Object_CreatePyObject( ipo->driver->ob );
+
+	Py_RETURN_NONE;
 }
 
-static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * arg ){
+static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * arg )
+{
 	IpoCurve *ipo = self->ipocurve;
 
 	if(ipo->driver == NULL)
@@ -731,28 +734,37 @@ static int IpoCurve_setDriverObject( C_IpoCurve * self, PyObject * arg ){
 					      "This IpoCurve does not have an active driver" );
 
 	if(!BPy_Object_Check(arg) )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
+		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected an object argument" );
-	ipo->driver->ob = ((BPy_Object *)arg)->object;
 
+	ipo->driver->ob = ((BPy_Object *)arg)->object;
 	DAG_scene_sort(G.scene);	
 	
 	return 0;
 }
-static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self ){
+
+static PyObject *IpoCurve_getDriverChannel( C_IpoCurve * self )
+{
+	if( self->ipocurve->driver == NULL)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "This IpoCurve does not have an active driver" );
+
 	return PyInt_FromLong( self->ipocurve->driver->adrcode );	
 }
-static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args ){
-	int code;
+
+static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args )
+{
 	IpoCurve *ipo = self->ipocurve;
 
 	if(ipo->driver == NULL)
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 					      "This IpoCurve does not have an active driver" );
 
-    code = (short)PyInt_AS_LONG ( args );
-	ipo->driver->adrcode = (short)code;
+	if( !PyInt_CheckExact( args ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected int argument 0 or 1" );
+
+	ipo->driver->adrcode = (short)PyInt_AS_LONG( args );
 
 	return 0;
-	
 }
