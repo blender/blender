@@ -841,7 +841,7 @@ static void *decimateModifier_applyModifier(ModifierData *md, Object *ob, void *
 					mf->v1 = tri[0];
 					mf->v2 = tri[1];
 					mf->v3 = tri[2];
-					test_index_face(mface, NULL, NULL, 3);
+					test_index_face(mf, NULL, NULL, 3);
 				}
 				displistmesh_add_edges(ndlm);
 			}
