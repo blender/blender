@@ -518,23 +518,19 @@ static PyObject *Quaternion_mul(PyObject * q1, PyObject * q2)
  then call vector.multiply(vector, scalar_cast_as_vector)*/
 static int Quaternion_coerce(PyObject ** q1, PyObject ** q2)
 {
-	PyObject *coerced = NULL;
-
-	if(!QuaternionObject_Check(*q2)) {
-		if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2) ||
+	if(VectorObject_Check(*q2) || PyFloat_Check(*q2) || PyInt_Check(*q2) ||
 			PointObject_Check(*q2)) {
-			coerced = EXPP_incr_ret(*q2);
-			*q2 = newQuaternionObject(NULL,Py_NEW);
-			((QuaternionObject*)*q2)->coerced_object = coerced;
-		}else{
-			return EXPP_ReturnIntError(PyExc_TypeError, 
-				"quaternion.coerce(): unknown operand - can't coerce for numeric protocols\n");
-		}
+		PyObject *coerced = EXPP_incr_ret(*q2);
+		*q2 = newQuaternionObject(NULL,Py_NEW);
+		((QuaternionObject*)*q2)->coerced_object = coerced;
+		Py_INCREF (*q1);
+		return 0;
 	}
-	EXPP_incr2(*q1, *q2);
-	return 0;
+
+	return EXPP_ReturnIntError(PyExc_TypeError, 
+		"quaternion.coerce(): unknown operand - can't coerce for numeric protocols");
 }
-//-----------------PROTCOL DECLARATIONS--------------------------
+//-----------------PROTOCOL DECLARATIONS--------------------------
 static PySequenceMethods Quaternion_SeqMethods = {
 	(inquiry) Quaternion_len,					/* sq_length */
 	(binaryfunc) 0,								/* sq_concat */
@@ -646,6 +642,7 @@ PyObject *newQuaternionObject(float *quat, int type)
 		self->quat = self->data.py_data;
 		if(!quat) { //new empty
 			Quaternion_Identity(self);
+			Py_DECREF(self);
 		}else{
 			for(x = 0; x < 4; x++){
 				self->quat[x] = quat[x];

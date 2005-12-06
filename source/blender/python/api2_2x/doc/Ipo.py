@@ -3,7 +3,9 @@
 """
 The Blender.Ipo submodule
 
-B{New}: Ipo updates to both the program and bpython access.
+B{New}: 
+  -  Ipo updates to both the program and Bpython access.
+  -  access to Blender's new Ipo driver capabilities .
 
 This module provides access to the Ipo Data in Blender. An Ipo is composed of
 several IpoCurves.
@@ -14,7 +16,7 @@ are given below.
 
 Example::
   import Blender
-  ob = Blender.Ipo.Get('ipo')    # retrieves an ipo object
+  ob = Blender.Ipo.Get('ipo')    # retrieves an Ipo object
   ob.setName('ipo1')
   print ob.name
   print ipo.getRctf()
@@ -27,7 +29,7 @@ def New (type, name):
   Creates a new Ipo.
   @type type: string
   @type name: string
-  @param type: The Ipo's blocktype. Depends on the object the ipo will be
+  @param type: The Ipo's blocktype. Depends on the object the Ipo will be
       linked to. Currently supported types are Object, Camera, World,
       Material, Texture, Lamp, Action, Constraint, Sequence, Curve, Key.
   @param name: The name for this Ipo.
@@ -68,10 +70,12 @@ class Ipo:
     @return: A list (possibly void) containing all the IpoCurves associated to the Ipo object.
     """
 
-  def getCurve(curvename):
+  def getCurve(curve):
     """
-    Return the IpoCurve with the given name. The possible values for
-    'curvename' are:
+    Return the specified IpoCurve.  If the curve does not exist in the Ipo,
+    None is returned.  I{curve} can be either a string or an integer,
+    denoting either the name of the Ipo curve or its internal adrcode.
+    The possible Ipo curve names are:
     
       1. Camera Ipo:  Lens, ClSta, ClEnd, Apert, FDist.
       2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
@@ -94,21 +98,24 @@ class Ipo:
       MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
       MgOff, MgGain, NBase1, NBase2.
       7. Curve Ipo: Speed.
-      8. Key Ipo: Speed, 'Key 1' - 'Key 63'.
-      9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
+      8. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
       QuatZ, QuatW.
-      10. Sequence Ipo: Fac.
-      11. Constraint Ipo: Inf.
+      9. Sequence Ipo: Fac.
+      10. Constraint Ipo: Inf.
 
-    @type curvename : string
+    The adrcode for the Ipo curve can also be given; currently this is the
+    only way to access curves for Key Ipos.  The adrcodes for Key Ipo are
+    numbered consecutively starting at 0.
+    @type curve : string or int
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
+    @raise ValueError: I{curve} is not a valid name or adrcode for this Ipo
+    type.
     """
 
   def addCurve(curvename):
     """
-    Add a new curve to the IPO object.   Throws an exception if the curve
-    already exists in the IPO.  The possible values for 'curvename' are:
+    Add a new curve to the Ipo object. The possible values for I{curvename} are:
       1. Camera Ipo:  Lens, ClSta, ClEnd, Apert, FDist.
       2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
       Alpha, Emit, Amb, Spec, Hard, SpTra, Ior, Mode, HaSize, Translu,
@@ -130,20 +137,20 @@ class Ipo:
       MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
       MgOff, MgGain, NBase1, NBase2.
       7. Curve Ipo: Speed.
-      8. Key Ipo: Speed, 'Key 1' - 'Key 63'.
-      9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
+      8. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
       QuatZ, QuatW.
-      10. Sequence Ipo: Fac.
-      11. Constraint Ipo: Inf.
+      9. Sequence Ipo: Fac.
+      10. Constraint Ipo: Inf.
 
     @type curvename : string
     @rtype: IpoCurve object
     @return: the corresponding IpoCurve, or None.
+    @raise ValueError: I{curvename} is not valid or already exists
     """
 
   def delCurve(curvename):
     """
-    Delete an existing curve from the IPO object. See addCurve() for possible values for curvename.
+    Delete an existing curve from the Ipo object. See addCurve() for possible values for curvename.
     @type curvename : string
     @rtype: None
     @return: None.
@@ -210,7 +217,7 @@ class Ipo:
     """
     Gets a beztriple of the Ipo.
     @type curvepos: int
-    @param curvepos: the position of the curve in the ipo
+    @param curvepos: the position of the curve in the Ipo.
     @type pointpos: int
     @param pointpos: the position of the point in the curve.
     @rtype: list of 9 floats
@@ -221,7 +228,7 @@ class Ipo:
     """
     Sets the beztriple of the Ipo.
     @type curvepos: int
-    @param curvepos: the position of the curve in the ipo
+    @param curvepos: the position of the curve in the Ipo.
     @type pointpos: int
     @param pointpos: the position of the point in the curve.
     @type newbeztriple: list of 9 floats
@@ -232,9 +239,10 @@ class Ipo:
     
   def getCurveCurval(curvepos):
     """
-    Gets the current value of a curve of the Ipo.
+    Gets the current value of a curve of the Ipo (B{deprecated}). B{Note}:
+    new scripts should use L{IpoCurve.evaluate()}.
     @type curvepos: int or string
-    @param curvepos: the position of the curve in the ipo or the name of the
+    @param curvepos: the position of the curve in the Ipo or the name of the
         curve
     @rtype: float
     @return: the current value of the selected curve of the Ipo.
@@ -242,11 +250,12 @@ class Ipo:
 
   def EvaluateCurveOn(curvepos,time):
     """
-    Gets the current value of a curve of the Ipo.
+    Gets the value at a specific time of a curve of the Ipo (B{deprecated}).
+    B{Note}: new scripts should use L{IpoCurve.evaluate()}.
     @type curvepos: int
-    @param curvepos: the position of the curve in the ipo
+    @param curvepos: the position of the curve in the Ipo.
     @type time: float
-    @param time: the position of the curve in the ipo
+    @param time: the desired time.
     @rtype: float
     @return: the current value of the selected curve of the Ipo at the given
         time.
@@ -256,32 +265,28 @@ class IpoCurve:
   """
   The IpoCurve object
   ===================
-  This object gives access to generic data from all ipocurves objects in Blender.
+  This object gives access to generic data from all Ipo curves objects in Blender.
 
-  Important Notes for Rotation Curves:\n
-  For the rotation IpoCurves, the y values for points are in units of 10 degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the same numbers you see in the Transform Properties pupmenu ( NKey ) in the IPO Curve Editor window.  Positive rotations are in a counter-clockwise direction, just like in math class.
+  Important Notes for Rotation Ipo Curves:\n
+  For the rotation Ipo curves, the y values for points are in units of 10
+  degrees.  For example, 45.0 degrees is stored as 4.50 degrees.  These are the
+  same numbers you see in the Transform Properties pop-up menu ( NKey ) in
+  the IPO Curve Editor window.  Positive rotations are in a counter-clockwise
+  direction, following the standard convention.
   
-  @ivar driver:  Status of Driver
-  1: on
-  0: off
-  @type driver:  int  
-  @ivar driverObject:  Object Used to Drive the IpoCurve
-  @type driverObject:  Object    
-  @ivar driverChannel:  Object Channel Used to Drive the IpoCurve
-  Use module constants 
-  IpoCurve.LOC_X
-  IpoCurve.LOC_Y
-  IpoCurve.LOC_Z
-  IpoCurve.ROT_X  
-  IpoCurve.ROT_Y
-  IpoCurve.ROT_Z
-  IpoCurve.SIZE_X
-  IpoCurve.SIZE_Y
-  IpoCurve.SIZE_Z
+  @ivar driver:  Status of the driver.  1= on, 0= off.
+  @type driver:  int
+  @ivar driverObject:  Object used to drive the Ipo curve.
+  @type driverObject:  Blender Object or None
+  @ivar driverChannel:  Object channel used to drive the Ipo curve.
+  Use module constants: IpoCurve.LOC_X, IpoCurve.LOC_Y, IpoCurve.LOC_Z,
+  IpoCurve.ROT_X, IpoCurve.ROT_Y, IpoCurve.ROT_Z, IpoCurve.SIZE_X,
+  IpoCurve.SIZE_Y, IpoCurve.SIZE_Z
   @type driverChannel:  int 
-  
-  @ivar name: The Curve Data name.
-  @ivar bezierPoints : The list of the Bezier points.
+  @ivar name: The IpoCurve data name.
+  @type name: string
+  @ivar bezierPoints : The list of the curve's bezier points.
+  @type bezierPoints : list
   """
 
   def setExtrapolation(extendmode):
@@ -344,7 +349,7 @@ class IpoCurve:
 
   def getName():
     """
-    Returns the name of the ipo curve. This name can be:
+    Returns the name of the Ipo curve. This name can be:
       1. Camera Ipo:  Lens, ClSta, ClEnd, Apert, FDist.
       2. Material Ipo: R, G, B, SpecR, SpecG, SpecB, MirR, MirG, MirB, Ref,
       Alpha, Emit, Amb, Spec, Hard, SpTra, Ior, Mode, HaSize, Translu,
@@ -366,26 +371,25 @@ class IpoCurve:
       MinkMExp, DistM, ColT, iScale, DistA, MgType, MgH, Lacu, Oct,
       MgOff, MgGain, NBase1, NBase2.
       7. Curve Ipo: Speed.
-      8. Key Ipo: Speed, 'Key 1' - 'Key 63'.
-      9. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
+      8. Action Ipo: LocX, LocY, LocZ, SizeX, SizeY, SizeZ, QuatX, QuatY,
       QuatZ, QuatW.
-      10. Sequence Ipo: Fac.
-      11. Constraint Ipo: Inf.
+      9. Sequence Ipo: Fac.
+      10. Constraint Ipo: Inf.
 
     @rtype: string
-    @return: the name of the ipo curve.
+    @return: the name of the Ipo curve.
     """
 
   def getPoints():
     """
-    Returns all the points of the ipo curve.
+    Returns all the points of the Ipo curve.
     @rtype: list of BezTriples
-    @return: the points of the ipo curve.
+    @return: the points of the Ipo curve.
     """
 
   def evaluate( time ):
     """
-    Compute the value of the IpoCurve at a particular time.
+    Compute the value of the Ipo curve at a particular time.
     @type time: float
     @param time: value along the X axis
     @rtype: float
@@ -412,8 +416,8 @@ class BezTriple:
   def setPoints(newval):
     """
     Sets the point xy coordinates of the Bezier knot point.  After changing
-    coordinates, it is advisable to call L{IpoCurve.recalc()} to update the IPO
-    curves.
+    coordinates, it is advisable to call L{IpoCurve.recalc()} to update the
+    Ipo curves.
     @type newval: tuple of 2 floats
     @param newval: the x and y coordinates of the new Bezier point.
     @rtype: None

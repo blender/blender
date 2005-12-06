@@ -89,6 +89,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editconstraint.h"
 #include "BIF_editfont.h"
+#include "BIF_editgroup.h"
 #include "BIF_editkey.h"
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
@@ -2656,17 +2657,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 
-		uiDefBut(block, LABEL,0,"Editmode undo:",
+		uiDefBut(block, LABEL,0,"Undo:",
 			(xpos+(2*edgsp)+mpref),y3label, mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButS(block, NUMSLI, B_DRAWINFO, "Steps:",
 			(xpos+edgsp+mpref+midsp),y2,mpref,buth,
-			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available in Edit Mode (smaller values conserve memory)");
+			&(U.undosteps), 0, 64, 0, 0, "Number of undo steps available (smaller values conserve memory)");
 
 		uiDefButBitI(block, TOG, USER_GLOBALUNDO, B_DRAWINFO, "Global undo",
 			(xpos+edgsp+mpref+midsp),y1,mpref,buth,
-			&(U.uiflag), 2, 64, 0, 0, "");
+			&(U.uiflag), 2, 64, 0, 0, "Global undo works by keeping a full copy of the file itself in memory, so takes extra memory");
 		uiBlockEndAlign(block);
 
 

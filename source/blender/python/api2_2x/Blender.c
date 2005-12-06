@@ -234,7 +234,7 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *Blender_Get( PyObject * self, PyObject * args )
 {
-	PyObject *ret = NULL, *dict = NULL;
+	PyObject *ret = NULL;
 	char *str = NULL;
 
 	if( !PyArg_ParseTuple( args, "s", &str ) )

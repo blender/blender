@@ -1130,7 +1130,7 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 			goto RuntimeError;
 		}
 		if(size == 0){	//GET ALL ARMATURES
-			data = &(G.main->armature).first; //get the first data ID from the armature library
+			data = G.main->armature.first; //get the first data ID from the armature library
 			while (data){
 				py_armature = PyArmature_FromArmature(data); //*new*
 				sprintf(buffer, "%s", ((bArmature*)data)->id.name +2);

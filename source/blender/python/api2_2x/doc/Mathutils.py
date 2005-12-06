@@ -653,19 +653,19 @@ class Quaternion:
 
   def negate():
     """
-    Set the quaternion to it's negative.
+    Set the quaternion to its negative.
     @return: a copy of itself
     """
 
   def conjugate():
     """
-    Set the quaternion to it's conjugate.
+    Set the quaternion to its conjugate.
     @return: a copy of itself
     """
 
   def inverse():
     """
-    Set the quaternion to it's inverse
+    Set the quaternion to its inverse
     @return: a copy of itself
     """
 
@@ -762,7 +762,7 @@ class Matrix:
 
   def transpose():
     """
-    Set the matrix to it's transpose.
+    Set the matrix to its transpose.
     @return: a copy of itself
     """
 
@@ -775,8 +775,9 @@ class Matrix:
 
   def invert():
     """
-    Set the matrix to it's inverse.
+    Set the matrix to its inverse.
     @return: a copy of itself
+    @raise ValueError: When matrix is singular.
     """
 
   def rotationPart():

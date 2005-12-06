@@ -110,39 +110,37 @@ static PyMethodDef BPy_Ipo_methods[] = {
 	{"setName", ( PyCFunction ) Ipo_setName, METH_VARARGS,
 	 "(str) - Change Ipo Data name"},
 	{"getBlocktype", ( PyCFunction ) Ipo_getBlocktype, METH_NOARGS,
-	 "() - Return Ipo blocktype -"},
+	 "() - Return Ipo blocktype"},
 	{"setBlocktype", ( PyCFunction ) Ipo_setBlocktype, METH_VARARGS,
 	 "(str) - Change Ipo blocktype"},
 	{"getRctf", ( PyCFunction ) Ipo_getRctf, METH_NOARGS,
-	 "() - Return Ipo rctf - "},
+	 "() - Return Ipo rctf"},
 	{"setRctf", ( PyCFunction ) Ipo_setRctf, METH_VARARGS,
-	 "(str) - Change Ipo rctf"},
+	 "(flt,flt,flt,flt) - Change Ipo rctf"},
 	{"addCurve", ( PyCFunction ) Ipo_addCurve, METH_VARARGS,
-	 "() - Return Ipo ncurves"},
+	 "() - Add a curve to Ipo"},
 	{"delCurve", ( PyCFunction ) Ipo_delCurve, METH_VARARGS,
-	 "() - Delete Ipo curves"},
+	 "(str) - Delete curve from Ipo"},
 	{"getNcurves", ( PyCFunction ) Ipo_getNcurves, METH_NOARGS,
-	 "() - Return Ipo ncurves"},
+	 "() - Return number of Ipo curves"},
 	{"getNBezPoints", ( PyCFunction ) Ipo_getNBezPoints, METH_VARARGS,
-	 "() - Return curve number of Bez points"},
+	 "(int) - Return number of Bez points on an Ipo curve"},
 	{"delBezPoint", ( PyCFunction ) Ipo_DeleteBezPoints, METH_VARARGS,
-	 "() - Return curve number of Bez points"},
+	 "(int) - deprecated: use ipocurve.delBezier()"},
 	{"getCurveBP", ( PyCFunction ) Ipo_getCurveBP, METH_VARARGS,
-	 "() - Return Ipo ncurves"},
+	 "() - unsupported"},
 	{"EvaluateCurveOn", ( PyCFunction ) Ipo_EvaluateCurveOn, METH_VARARGS,
-	 "() - Return curve value at given time"},
+	 "(int,flt) - deprecated: see ipocurve.evaluate()"},
 	{"getCurveCurval", ( PyCFunction ) Ipo_getCurvecurval, METH_VARARGS,
-	 "() - Return curval"},
-	{"getCurveBeztriple", ( PyCFunction ) Ipo_getCurveBeztriple,
-	 METH_VARARGS,
-	 "() - Return Ipo ncurves"},
-	{"setCurveBeztriple", ( PyCFunction ) Ipo_setCurveBeztriple,
-	 METH_VARARGS,
-	 "() - Return curval"},
+	 "(int) - deprecated: see ipocurve.evaluate()"},
+	{"getCurveBeztriple", ( PyCFunction ) Ipo_getCurveBeztriple, METH_VARARGS,
+	 "(int,int) - deprecated: see ipocurve.bezierPoints[]"},
+	{"setCurveBeztriple", ( PyCFunction ) Ipo_setCurveBeztriple, METH_VARARGS,
+	 "(int,int,list) - set a BezTriple"},
 	{"getCurves", ( PyCFunction ) Ipo_getCurves, METH_NOARGS,
-	 "() - Return curval"},
+	 "() - Return list of all defined Ipo curves"},
 	{"getCurve", ( PyCFunction ) Ipo_getCurve, METH_VARARGS,
-	 "() - Return curval"},
+	 "(str|int) - Returns specified Ipo curve"},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -321,13 +319,14 @@ static PyObject *M_Ipo_Get( PyObject * self, PyObject * args )
 
 static PyObject *M_Ipo_Recalc( PyObject * self, PyObject * args )
 {
-	void testhandles_ipocurve( IpoCurve * icu );
-	PyObject *a;
+	PyObject *obj;
 	IpoCurve *icu;
-	if( !PyArg_ParseTuple( args, "O", &a ) )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_TypeError, "expected ipo argument)" ) );
-	icu = IpoCurve_FromPyObject( a );
+
+	if( !PyArg_ParseTuple( args, "O!", &IpoCurve_Type, &obj ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected Ipo curve argument" );
+
+	icu = IpoCurve_FromPyObject( obj );
 	testhandles_ipocurve( icu );
 
 	Py_INCREF( Py_None );
