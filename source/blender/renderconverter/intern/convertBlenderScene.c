@@ -1670,7 +1670,7 @@ static void area_lamp_vectors(LampRen *lar)
 /* If lar takes more lamp data, the decoupling will be better. */
 void RE_add_render_lamp(Object *ob, int actual_render)
 {
-	Lamp *la;
+	Lamp *la= ob->data;
 	LampRen *lar;
 	GroupObject *go;
 	float mat[4][4], hoek, xn, yn;
@@ -1696,8 +1696,6 @@ void RE_add_render_lamp(Object *ob, int actual_render)
 	MTC_Mat3CpyMat4(lar->mat, mat);
 	MTC_Mat3CpyMat4(lar->imat, ob->imat);
 
-	la= ob->data;
-	
 	lar->bufsize = la->bufsize;
 	lar->samp = la->samp;
 	lar->soft = la->soft;
