@@ -293,6 +293,7 @@ static PVert *p_vert_add(PChart *chart, PHashKey key, float *co, PEdge *e)
 	v->co = co;
 	v->link.key = key;
 	v->edge = e;
+	v->flag = 0;
 
 	phash_insert(chart->verts, (PHashLink*)v);
 
@@ -317,6 +318,7 @@ static PVert *p_vert_copy(PChart *chart, PVert *v)
 	nv->uv[1] = v->uv[1];
 	nv->link.key = v->link.key;
 	nv->edge = v->edge;
+	nv->flag = v->flag;
 
 	phash_insert(chart->verts, (PHashLink*)nv);
 
@@ -666,7 +668,7 @@ static PBool p_edge_has_pair(PChart *chart, PEdge *e, PEdge **pair, PBool impl)
 
 static PBool p_edge_connect_pair(PChart *chart, PEdge *e, PEdge ***stack, PBool impl)
 {
-	PEdge *pair;
+	PEdge *pair = NULL;
 
 	if(!e->pair && p_edge_has_pair(chart, e, &pair, impl)) {
 		if (e->vert == pair->vert)
@@ -833,10 +835,14 @@ static PFace *p_face_add(PChart *chart, ParamKey key, ParamKey *vkeys,
 
 	/* allocate */
 	f = (PFace*)BLI_memarena_alloc(chart->handle->arena, sizeof *f);
+	f->flag=0; // init !
 
 	e1 = (PEdge*)BLI_memarena_alloc(chart->handle->arena, sizeof *e1);
 	e2 = (PEdge*)BLI_memarena_alloc(chart->handle->arena, sizeof *e2);
 	e3 = (PEdge*)BLI_memarena_alloc(chart->handle->arena, sizeof *e3);
+
+	
+
 
 	/* set up edges */
 	f->edge = e1;
@@ -846,6 +852,15 @@ static PFace *p_face_add(PChart *chart, ParamKey key, ParamKey *vkeys,
 	e2->next = e3;
 	e3->next = e1;
 
+	e1->pair = NULL;
+	e2->pair = NULL;
+	e3->pair = NULL;
+   
+	e1->flag =0;
+	e2->flag =0;
+	e3->flag =0;
+
+
 	if (co && uv) {
 		e1->vert = p_vert_lookup(chart, vkeys[i1], co[i1], e1);
 		e2->vert = p_vert_lookup(chart, vkeys[i2], co[i2], e2);
@@ -854,6 +869,7 @@ static PFace *p_face_add(PChart *chart, ParamKey key, ParamKey *vkeys,
 		e1->orig_uv = uv[i1];
 		e2->orig_uv = uv[i2];
 		e3->orig_uv = uv[i3];
+
 	}
 	else {
 		/* internal call to add face */
