@@ -1122,6 +1122,11 @@ static PyObject *MVert_repr( BPy_MVert * self )
 	return PyString_FromString( format );
 }
 
+static long MVert_hash( BPy_MVert *self )
+{
+	return (long)self->index;
+}
+
 /************************************************************************
  *
  * Python MVert_Type structure definition
@@ -1153,7 +1158,7 @@ PyTypeObject MVert_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	( hashfunc ) MVert_hash,    /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
@@ -1252,7 +1257,7 @@ PyTypeObject PVert_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	( hashfunc ) MVert_hash,    /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
@@ -2207,6 +2212,11 @@ static PyObject *MEdge_repr( BPy_MEdge * self )
 			(int)self->index );
 }
 
+static long MEdge_hash( BPy_MEdge *self )
+{
+	return (long)self->index;
+}
+
 /************************************************************************
  *
  * Python MEdge_Type structure definition
@@ -2238,7 +2248,7 @@ PyTypeObject MEdge_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	( hashfunc ) MEdge_hash,    /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
@@ -3665,6 +3675,11 @@ static PyObject *MFace_repr( BPy_MFace* self )
 				(int)face->v3, (int)self->index ); 
 }
 
+static long MFace_hash( BPy_MFace *self )
+{
+	return (long)self->index;
+}
+
 /************************************************************************
  *
  * Python MFace_Type structure definition
@@ -3696,7 +3711,7 @@ PyTypeObject MFace_Type = {
 
 	/* More standard operations (here for binary compatibility) */
 
-	NULL,                       /* hashfunc tp_hash; */
+	( hashfunc ) MFace_hash,    /* hashfunc tp_hash; */
 	NULL,                       /* ternaryfunc tp_call; */
 	NULL,                       /* reprfunc tp_str; */
 	NULL,                       /* getattrofunc tp_getattro; */
