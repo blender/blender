@@ -471,21 +471,22 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 				dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
 			
 			listb= pdInitEffectors(ob, paf->group);		/* note, makes copy... */
-			
-			for(ec= listb->first; ec; ec= ec->next) {
-				Object *ob1= ec->ob;
-				PartDeflect *pd= ob1->pd;
-					
-				if(pd->forcefield) {
-					node2 = dag_get_node(dag, ob1);
-					if(pd->forcefield==PFIELD_GUIDE)
-						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-					else
-						dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+			if(listb) {
+				for(ec= listb->first; ec; ec= ec->next) {
+					Object *ob1= ec->ob;
+					PartDeflect *pd= ob1->pd;
+						
+					if(pd->forcefield) {
+						node2 = dag_get_node(dag, ob1);
+						if(pd->forcefield==PFIELD_GUIDE)
+							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+						else
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+					}
 				}
+				
+				pdEndEffectors(listb);	/* restores copy... */
 			}
-			
-			pdEndEffectors(listb);	/* restores copy... */
 		}
 	}
 	
