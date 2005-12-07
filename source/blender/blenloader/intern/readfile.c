@@ -1379,6 +1379,7 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		lib_link_constraints(fd, (ID *)ob, &pchan->constraints);
 		// hurms... loop in a loop, but yah... later... (ton)
 		pchan->bone= get_named_bone(arm, pchan->name);
+		pchan->custom= newlibadr(fd, arm->id.lib, pchan->custom);
 	}
 }
 

@@ -4132,7 +4132,7 @@ void draw_object_backbufsel(Object *ob)
 /* ************* draw object instances for bones, for example ****************** */
 /*               assumes all matrices/etc set OK */
 
-void draw_object_instance(Object *ob, int dt)
+void draw_object_instance(Object *ob, int dt, int outline)
 {
 	DerivedMesh *dm=NULL, *edm=NULL;
 	int needsfree= 1;
@@ -4143,7 +4143,7 @@ void draw_object_instance(Object *ob, int dt)
 		edm= editmesh_get_derived_base();
 	else 
 		dm = mesh_get_derived_final(ob, &needsfree);
-		
+
 	if(dt<=OB_WIRE) {
 		if(dm)
 			dm->drawEdges(dm, 1);
@@ -4151,6 +4151,9 @@ void draw_object_instance(Object *ob, int dt)
 			edm->drawEdges(edm, 1);	
 	}
 	else {
+		if(outline)
+			draw_mesh_object_outline(ob, dm?dm:edm);
+
 		if(dm)
 			init_gl_materials(ob);
 		else {

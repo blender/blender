@@ -970,26 +970,29 @@ void deselectall_armature(int toggle)
 		/*	Determine if there are any selected bones
 			And therefore whether we are selecting or deselecting */
 		for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-			if(arm->layer & eBone->layer) {
+//			if(arm->layer & eBone->layer) {
 				if (eBone->flag & (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL)){
 					sel=0;
 					break;
 				}
 			}
-		}
+//		}
 	}
 	else sel= toggle;
 	
 	/*	Set the flags */
 	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
-		if(arm->layer & eBone->layer) {
-			if (sel==1)
+		if (sel==1) {
+			if(arm->layer & eBone->layer) {
 				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			else if (sel==2)
-				eBone->flag &= ~(BONE_ACTIVE);
-			else
-				eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
+				if(eBone->parent)
+					eBone->parent->flag |= (BONE_TIPSEL);
+			}
 		}
+		else if (sel==2)
+			eBone->flag &= ~(BONE_ACTIVE);
+		else
+			eBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL | BONE_ACTIVE);
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);

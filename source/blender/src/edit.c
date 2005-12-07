@@ -886,28 +886,31 @@ static void make_trans_verts(float *min, float *max, int mode)
 		}
 	}
 	else if (G.obedit->type==OB_ARMATURE){
+		bArmature *arm= G.obedit->data;
+		
 		for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-			if (ebo->flag & BONE_TIPSEL){
-				VECCOPY (tv->oldloc, ebo->tail);
-				tv->loc= ebo->tail;
-				tv->nor= NULL;
-				tv->flag= 1;
-				tv++;
-				tottrans++;
-			}
-
-			/*  Only add the root if there is no connection */
-			if (ebo->flag & BONE_ROOTSEL){
-				if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
-					VECCOPY (tv->oldloc, ebo->head);
-					tv->loc= ebo->head;
+			if(ebo->layer & arm->layer) {
+				if (ebo->flag & BONE_TIPSEL){
+					VECCOPY (tv->oldloc, ebo->tail);
+					tv->loc= ebo->tail;
 					tv->nor= NULL;
 					tv->flag= 1;
 					tv++;
 					tottrans++;
-				}		
-			}
-			
+				}
+
+				/*  Only add the root if there is no connection */
+				if (ebo->flag & BONE_ROOTSEL){
+					if (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL)){
+						VECCOPY (tv->oldloc, ebo->head);
+						tv->loc= ebo->head;
+						tv->nor= NULL;
+						tv->flag= 1;
+						tv++;
+						tottrans++;
+					}		
+				}
+			}			
 		}
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {

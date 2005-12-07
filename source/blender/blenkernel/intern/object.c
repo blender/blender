@@ -302,6 +302,8 @@ void unlink_object(Object *ob)
 							obt->recalc |= OB_RECALC_DATA;
 						}
 					}
+					if(pchan->custom==ob)
+						pchan->custom= NULL;
 				}
 			}
 			

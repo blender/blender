@@ -1072,24 +1072,23 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 
 static void draw_custom_bone(Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
 {
+	
 	if(ob==NULL || ob->type!=OB_MESH) return;
 	
 	glScalef(length, length, length);
 	
 	/* colors for posemode */
 	if (armflag & ARM_POSEMODE) {
-		if(dt==OB_WIRE) {
-			if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
-			else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
-			else BIF_ThemeColor(TH_WIRE);
-		}
+		if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
+		else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
+		else BIF_ThemeColor(TH_WIRE);
 	}
 	
 	if (id != -1) {
 		glLoadName ((GLuint) id|BONESEL_BONE);
 	}
 	
-	draw_object_instance(ob, dt);
+	draw_object_instance(ob, dt, armflag & ARM_POSEMODE);
 }
 
 
@@ -1378,7 +1377,9 @@ static void draw_pose_channels(Base *base, int dt)
 					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
 						flag &= ~BONE_CONNECTED;
 					
-					if(arm->drawtype==ARM_ENVELOPE)
+					if(pchan->custom)
+						draw_custom_bone(pchan->custom, OB_SOLID, arm->flag, flag, index, bone->length);
+					else if(arm->drawtype==ARM_ENVELOPE)
 						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
 					else if(arm->drawtype==ARM_B_BONE)
 						draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
@@ -1458,7 +1459,11 @@ static void draw_pose_channels(Base *base, int dt)
 					if(pchan->flag & POSE_STRIDE)
 						constflag |= PCHAN_HAS_STRIDE;
 
-					if(arm->drawtype==ARM_ENVELOPE) {
+					if(pchan->custom) {
+						if(dt<OB_SOLID)
+							draw_custom_bone(pchan->custom, OB_WIRE, arm->flag, flag, index, bone->length);
+					}
+					else if(arm->drawtype==ARM_ENVELOPE) {
 						if(dt<OB_SOLID)
 							draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
 					}
@@ -1597,7 +1602,7 @@ static void draw_ebones(Object *ob, int dt)
 					
 					/* catch exception for bone with hidden parent */
 					flag= eBone->flag;
-					if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
+					if(eBone->parent && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 						flag &= ~BONE_CONNECTED;
 					
 					if(arm->drawtype==ARM_ENVELOPE)
@@ -1632,7 +1637,7 @@ static void draw_ebones(Object *ob, int dt)
 				
 				/* catch exception for bone with hidden parent */
 				flag= eBone->flag;
-				if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
+				if(eBone->parent && ((eBone->parent->flag & BONE_HIDDEN_A) || (eBone->parent->layer & arm->layer)==0) )
 					flag &= ~BONE_CONNECTED;
 				
 				if(arm->drawtype==ARM_ENVELOPE) {
