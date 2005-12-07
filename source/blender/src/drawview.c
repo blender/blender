@@ -1079,12 +1079,13 @@ static void draw_selected_name(Object *ob)
 	char info[128];
 
 	if(ob->type==OB_ARMATURE) {
+		bArmature *arm= ob->data;
 		char *name= NULL;
 		
 		if(ob==G.obedit) {
 			EditBone *ebo;
 			for (ebo=G.edbo.first; ebo; ebo=ebo->next){
-				if (ebo->flag & BONE_ACTIVE) {
+				if ((ebo->flag & BONE_ACTIVE) && (ebo->layer & arm->layer)) {
 					name= ebo->name;
 					break;
 				}
@@ -1093,7 +1094,7 @@ static void draw_selected_name(Object *ob)
 		else if(ob->pose && (ob->flag & OB_POSEMODE)) {
 			bPoseChannel *pchan;
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if(pchan->bone->flag & BONE_ACTIVE) {
+				if((pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer)) {
 					name= pchan->name;
 					break;
 				}
@@ -1517,7 +1518,8 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone = pchan->bone;
-		if(bone && (bone->flag & BONE_ACTIVE)) break;
+		if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
+			break;
 	}
 	if (!pchan) return;
 	
@@ -1557,13 +1559,14 @@ static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 
 static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 {
+	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
 	uiBut *but;
 	
 	ebone= G.edbo.first;
 
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-		if (ebone->flag & BONE_ACTIVE)
+		if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
 			break;
 	}
 
@@ -1712,9 +1715,9 @@ void do_viewbuts(unsigned short event)
 			bArmature *arm= G.obedit->data;
 			EditBone *ebone, *child;
 			
-			ebone= G.edbo.first;
 			for (ebone = G.edbo.first; ebone; ebone=ebone->next){
-				if (ebone->flag & BONE_ACTIVE) break;
+				if ((ebone->flag & BONE_ACTIVE) && (ebone->layer & arm->layer))
+					break;
 			}
 			if (ebone) {
 				ebone->roll= M_PI*ob_eul[0]/180.0;
@@ -1765,7 +1768,8 @@ void do_viewbuts(unsigned short event)
 				
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone = pchan->bone;
-				if(bone && (bone->flag & BONE_ACTIVE)) break;
+				if(bone && (bone->flag & BONE_ACTIVE) && (bone->layer & arm->layer))
+					break;
 			}
 			if (!pchan) return;
 			
