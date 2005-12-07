@@ -113,7 +113,7 @@ void group_operation_with_menu(void)
 		mode= pupmenu("Groups %t|Add to New Group %x1|Remove from all Groups %x2");
 	
 	if(mode>0) {
-		if(group==NULL) group= add_group();
+		if(group==NULL || mode==1) group= add_group();
 		
 		if(mode==1 || mode==3) add_selected_to_group(group);
 		else if(mode==2) rem_selected_from_group();
