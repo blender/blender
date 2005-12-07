@@ -42,14 +42,15 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_depsgraph.h"
 #include "BKE_group.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_space.h"
 #include "BIF_interface.h"
-#include "BIF_toolbox.h"
 #include "BIF_editgroup.h"
+#include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "blendef.h"
 #include "mydevice.h"
@@ -72,6 +73,8 @@ void add_selected_to_group(Group *group)
 	
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	DAG_scene_sort(G.scene);
+	BIF_undo_push("Add to Group");
 }
 
 void rem_selected_from_group(void)
@@ -90,8 +93,10 @@ void rem_selected_from_group(void)
 		}
 	}
 	
+	DAG_scene_sort(G.scene);
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
+	BIF_undo_push("Remove from Group");
 }
 
 void group_operation_with_menu(void)

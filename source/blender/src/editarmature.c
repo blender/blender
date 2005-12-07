@@ -137,6 +137,8 @@ static void make_boneList(ListBase* list, ListBase *bones, EditBone *parent)
 			else 
 				eBone->flag |= BONE_ROOTSEL;
 		}
+		else 
+			eBone->flag &= ~BONE_ROOTSEL;
 		
 		VECCOPY(eBone->head, curBone->arm_head);
 		VECCOPY(eBone->tail, curBone->arm_tail);		
@@ -1903,7 +1905,7 @@ void deselectall_posearmature (Object *ob, int test)
 	/*	Set the flags accordingly	*/
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone->layer & arm->layer) {
-			if(selectmode==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
+			if(selectmode==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			else if(selectmode==1) pchan->bone->flag |= BONE_SELECTED;
 			else pchan->bone->flag &= ~BONE_ACTIVE;
 		}

@@ -1475,6 +1475,8 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 			if(G.qual & LR_CTRLKEY) {
 				if(ELEM5(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE)) 
 					error("Cannot edit builtin name");
+				else if(tselem->id->lib)
+					error("Cannot edit Library Data");
 				else {
 					tselem->flag |= TSE_TEXTBUT;
 				}
