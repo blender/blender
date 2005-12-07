@@ -1575,9 +1575,9 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 {
 	Curve *cu = ob->data;
 	ListBase *dispbase;
-
-	if((ob->flag&OB_FROMDUPLI) || !ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
-	if(ob->flag & OB_FROMDUPLI) return;
+	
+	/* we do allow duplis... this is only displist on curve level */
+	if(!ELEM3(ob->type, OB_SURF, OB_CURVE, OB_FONT)) return;
 
 	freedisplist(&(ob->disp));
 	dispbase= &(cu->disp);

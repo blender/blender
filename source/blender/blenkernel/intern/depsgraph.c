@@ -429,6 +429,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			for(go= ob->dup_group->gobject.first; go; go= go->next) {
 				if(go->ob) {
 					node2 = dag_get_node(dag, go->ob);
+					/* node2 changes node1, this keeps animations updated in groups?? not logical? */
 					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
 				}
 			}
