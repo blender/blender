@@ -68,6 +68,7 @@ void drawaxes(float size, int flag);
 void draw_object_ext(struct Base *base);
 void drawsolidcube(float size);
 extern void draw_object_backbufsel(struct Object *ob);
+void draw_object_instance(struct Object *ob, int dt);
 
 #ifdef __cplusplus
 }

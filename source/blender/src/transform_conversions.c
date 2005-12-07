@@ -113,6 +113,7 @@
 #include "BSE_editipo_types.h"
 
 #include "BDR_editobject.h"		// reset_slowparents()
+#include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -372,31 +373,6 @@ static void createTransEdge(TransInfo *t) {
 
 /* ********************* pose mode ************* */
 
-/* recursive, make sure it's identical structured as next one */
-/* only counts the parent selection, and tags transform flag */
-/* exported for manipulator */
-void count_bone_select(TransInfo *t, ListBase *lb, int do_it) 
-{
-	Bone *bone;
-	int do_next;
-	
-	for(bone= lb->first; bone; bone= bone->next) {
-		bone->flag &= ~BONE_TRANSFORM;
-		do_next= do_it;
-		if(do_it) {
-			if (bone->flag & BONE_SELECTED) {
-				/* We don't let connected children get "grabbed" */
-				if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
-					bone->flag |= BONE_TRANSFORM;
-					t->total++;
-					do_next= 0;	// no transform on children if one parent bone is selected
-				}
-			}
-		}
-		count_bone_select(t, &bone->childbase, do_next);
-	}
-}
-
 static bKinematicConstraint *has_targetless_ik(bPoseChannel *pchan)
 {
 	bConstraint *con= pchan->constraints.first;
@@ -616,6 +592,7 @@ static void bone_children_clear_transflag(ListBase *lb)
 /* sets transform flags in the bones, returns total */
 static void set_pose_transflags(TransInfo *t, Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
 	
@@ -623,10 +600,12 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
-		if(bone->flag & BONE_SELECTED)
-			bone->flag |= BONE_TRANSFORM;
-		else
-			bone->flag &= ~BONE_TRANSFORM;
+		if(bone->layer & arm->layer) {
+			if(bone->flag & BONE_SELECTED)
+				bone->flag |= BONE_TRANSFORM;
+			else
+				bone->flag &= ~BONE_TRANSFORM;
+		}
 	}
 	
 	/* make sure no bone can be transformed when a parent is transformed */
@@ -735,6 +714,7 @@ static void pose_grab_with_ik_children(bPose *pose, Bone *bone)
 /* main call which adds temporal IK chains */
 static void pose_grab_with_ik(Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan, *pchansel= NULL;
 	
 	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
@@ -742,10 +722,12 @@ static void pose_grab_with_ik(Object *ob)
 	
 	/* rule: only one Bone */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->flag & BONE_SELECTED) {
-			if(pchansel)
-				break;
-			pchansel= pchan;
+		if(pchan->bone->layer & arm->layer) {
+			if(pchan->bone->flag & BONE_SELECTED) {
+				if(pchansel)
+					break;
+				pchansel= pchan;
+			}
 		}
 	}
 	if(pchan || pchansel==NULL) return;
@@ -835,15 +817,17 @@ static void createTransArmatureVerts(TransInfo *t)
 
 	t->total = 0;
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next) {
-		if (t->mode==TFM_BONESIZE) {
-			if (ebo->flag & BONE_SELECTED)
-				t->total++;
-		}
-		else {
-			if (ebo->flag & BONE_TIPSEL)
-				t->total++;
-			if (ebo->flag & BONE_ROOTSEL)
-				t->total++;
+		if(ebo->layer & arm->layer) {
+			if (t->mode==TFM_BONESIZE) {
+				if (ebo->flag & BONE_SELECTED)
+					t->total++;
+			}
+			else {
+				if (ebo->flag & BONE_TIPSEL)
+					t->total++;
+				if (ebo->flag & BONE_ROOTSEL)
+					t->total++;
+			}
 		}
 	}
 
@@ -855,105 +839,106 @@ static void createTransArmatureVerts(TransInfo *t)
     td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransEditBone");
 	
 	for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-		
 		ebo->oldlength= ebo->length;	// length==0.0 on extrude, used for scaling radius of bone points
 		
-		if (t->mode==TFM_BONE_ENVELOPE) {
-			
-			if (ebo->flag & BONE_ROOTSEL){
-				td->val= &ebo->rad_head;
-				td->ival= *td->val;
+		if(ebo->layer & arm->layer) {
+			if (t->mode==TFM_BONE_ENVELOPE) {
 				
-				VECCOPY (td->center, ebo->head);
-				td->flag= TD_SELECTED;
-				
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-				
-				td->loc = NULL;
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
-			}
-			if (ebo->flag & BONE_TIPSEL){
-				td->val= &ebo->rad_tail;
-				td->ival= *td->val;
-				VECCOPY (td->center, ebo->tail);
-				td->flag= TD_SELECTED;
-				
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-				
-				td->loc = NULL;
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
-			}
-			
-		}
-		else if (t->mode==TFM_BONESIZE) {
-			if (ebo->flag & BONE_SELECTED) {
-				if(arm->drawtype==ARM_ENVELOPE) {
-					td->loc= NULL;
-					td->val= &ebo->dist;
-					td->ival= ebo->dist;
+				if (ebo->flag & BONE_ROOTSEL){
+					td->val= &ebo->rad_head;
+					td->ival= *td->val;
+					
+					VECCOPY (td->center, ebo->head);
+					td->flag= TD_SELECTED;
+					
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+					
+					td->loc = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
 				}
-				else {
-					// abusive storage of scale in the loc pointer :)
-					td->loc= &ebo->xwidth;
-					VECCOPY (td->iloc, td->loc);
-					td->val= NULL;
+				if (ebo->flag & BONE_TIPSEL){
+					td->val= &ebo->rad_tail;
+					td->ival= *td->val;
+					VECCOPY (td->center, ebo->tail);
+					td->flag= TD_SELECTED;
+					
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+					
+					td->loc = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
 				}
-				VECCOPY (td->center, ebo->head);
-				td->flag= TD_SELECTED;
 				
-				/* use local bone matrix */
-				VecSubf(delta, ebo->tail, ebo->head);	
-				vec_roll_to_mat3(delta, ebo->roll, bonemat);
-				Mat3MulMat3(td->mtx, mtx, bonemat);
-				Mat3Inv(td->smtx, td->mtx);
-				
-				Mat3CpyMat3(td->axismtx, td->mtx);
-				Mat3Ortho(td->axismtx);
-
-				td->ext = NULL;
-				td->tdi = NULL;
-				
-				td++;
 			}
-		}
-		else {
-			if (ebo->flag & BONE_TIPSEL){
-				VECCOPY (td->iloc, ebo->tail);
-				VECCOPY (td->center, td->iloc);
-				td->loc= ebo->tail;
-				td->flag= TD_SELECTED;
+			else if (t->mode==TFM_BONESIZE) {
+				if (ebo->flag & BONE_SELECTED) {
+					if(arm->drawtype==ARM_ENVELOPE) {
+						td->loc= NULL;
+						td->val= &ebo->dist;
+						td->ival= ebo->dist;
+					}
+					else {
+						// abusive storage of scale in the loc pointer :)
+						td->loc= &ebo->xwidth;
+						VECCOPY (td->iloc, td->loc);
+						td->val= NULL;
+					}
+					VECCOPY (td->center, ebo->head);
+					td->flag= TD_SELECTED;
+					
+					/* use local bone matrix */
+					VecSubf(delta, ebo->tail, ebo->head);	
+					vec_roll_to_mat3(delta, ebo->roll, bonemat);
+					Mat3MulMat3(td->mtx, mtx, bonemat);
+					Mat3Inv(td->smtx, td->mtx);
+					
+					Mat3CpyMat3(td->axismtx, td->mtx);
+					Mat3Ortho(td->axismtx);
 
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
-
-				td->ext = NULL;
-				td->tdi = NULL;
-				td->val = NULL;
-
-				td++;
+					td->ext = NULL;
+					td->tdi = NULL;
+					
+					td++;
+				}
 			}
-			if (ebo->flag & BONE_ROOTSEL){
-				VECCOPY (td->iloc, ebo->head);
-				VECCOPY (td->center, td->iloc);
-				td->loc= ebo->head;
-				td->flag= TD_SELECTED;
+			else {
+				if (ebo->flag & BONE_TIPSEL){
+					VECCOPY (td->iloc, ebo->tail);
+					VECCOPY (td->center, td->iloc);
+					td->loc= ebo->tail;
+					td->flag= TD_SELECTED;
 
-				Mat3CpyMat3(td->smtx, smtx);
-				Mat3CpyMat3(td->mtx, mtx);
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
 
-				td->ext = NULL;
-				td->tdi = NULL;
-				td->val = NULL;
+					td->ext = NULL;
+					td->tdi = NULL;
+					td->val = NULL;
 
-				td++;
+					td++;
+				}
+				if (ebo->flag & BONE_ROOTSEL){
+					VECCOPY (td->iloc, ebo->head);
+					VECCOPY (td->center, td->iloc);
+					td->loc= ebo->head;
+					td->flag= TD_SELECTED;
+
+					Mat3CpyMat3(td->smtx, smtx);
+					Mat3CpyMat3(td->mtx, mtx);
+
+					td->ext = NULL;
+					td->tdi = NULL;
+					td->val = NULL;
+
+					td++;
+				}
 			}
 		}
 	}

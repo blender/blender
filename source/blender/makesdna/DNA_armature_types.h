@@ -66,7 +66,7 @@ typedef struct Bone {
 	float			rad_head, rad_tail;	/* radius for head/tail sphere, defining deform as well */
 	
 	float			size[3];		/*  patch for upward compat, UNUSED! */
-	short			boneclass;
+	short			layer;
 	short			segments;		/*  for B-bones */
 }Bone;
 
@@ -76,7 +76,7 @@ typedef struct bArmature {
 	ListBase	chainbase;
 	int			flag;
 	int			drawtype;			
-	int			deformflag;
+	short		deformflag, layer;
 	short		ghostep, ghostsize;
 }bArmature;
 

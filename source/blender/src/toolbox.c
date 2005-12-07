@@ -1274,6 +1274,55 @@ int movetolayer_buts(unsigned int *lay)
 	return 0;
 }
 
+int movetolayer_short_buts(short *lay)
+{
+	uiBlock *block;
+	ListBase listb={0, 0};
+	int dx, dy, a, x1, y1, sizex=120, sizey=30;
+	short pivot[2], mval[2], ret=0;
+	
+	getmouseco_sc(mval);
+	
+	pivot[0]= CLAMPIS(mval[0], (sizex+10), G.curscreen->sizex-30);
+	pivot[1]= CLAMPIS(mval[1], (sizey/2)+10, G.curscreen->sizey-(sizey/2)-10);
+	
+	if (pivot[0]!=mval[0] || pivot[1]!=mval[1])
+		warp_pointer(pivot[0], pivot[1]);
+	
+	mywinset(G.curscreen->mainwin);
+	
+	x1= pivot[0]-sizex+10; 
+	y1= pivot[1]-sizey/2; 
+	
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
+	
+	dx= (sizex-5)/10;
+	dy= sizey/2;
+	
+	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
+	
+	uiBlockBeginAlign(block);
+	for(a=0; a<8; a++) 
+		uiDefButBitS(block, TOGR, 1<<a, 0, "",(short)(x1+a*dx),(short)(y1+dy),(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	for(a=0; a<8; a++) 
+		uiDefButBitS(block, TOGR, 1<<(a+8), 0, "",(short)(x1+a*dx),(short)y1,(short)dx,(short)dy, lay, 0, 0, 0, 0, "");
+	
+	uiBlockEndAlign(block);
+	
+	x1-= 5;
+	uiDefBut(block, BUT, 1, "OK", (short)(x1+8*dx+10), (short)y1, (short)(3*dx), (short)(2*dy), NULL, 0, 0, 0, 0, "");
+	
+	uiBoundsBlock(block, 2);
+	
+	ret= uiDoBlocks(&listb, 0);
+	
+	if(ret==UI_RETURN_OK) return 1;
+	return 0;
+}
+
+
+
 /* ********************** CLEVER_NUMBUTS ******************** */
 
 #define MAXNUMBUTS	24

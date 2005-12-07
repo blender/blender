@@ -57,6 +57,7 @@
 #include "BKE_armature.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -1069,6 +1070,29 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 	}
 }
 
+static void draw_custom_bone(Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
+{
+	if(ob==NULL || ob->type!=OB_MESH) return;
+	
+	glScalef(length, length, length);
+	
+	/* colors for posemode */
+	if (armflag & ARM_POSEMODE) {
+		if(dt==OB_WIRE) {
+			if (boneflag & BONE_ACTIVE) BIF_ThemeColorShade(TH_BONE_POSE, 40);
+			else if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_BONE_POSE);
+			else BIF_ThemeColor(TH_WIRE);
+		}
+	}
+	
+	if (id != -1) {
+		glLoadName ((GLuint) id|BONESEL_BONE);
+	}
+	
+	draw_object_instance(ob, dt);
+}
+
+
 static void pchan_draw_IK_root_lines(bPoseChannel *pchan)
 {
 	bConstraint *con;
@@ -1181,103 +1205,106 @@ static void draw_dof_ellipse(float ax, float az)
 
 static void draw_pose_dofs(Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_ZLIMIT)) {
-			bone= pchan->bone;
-			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
-				if(bone->flag & BONE_SELECTED) {
-					if(pose_channel_in_IK_chain(ob, pchan)) {
-						float corner[4][3], posetrans[3], mat[4][4];
-						float phi=0.0f, theta=0.0f, scale;
-						int a, i;
+		bone= pchan->bone;
+		if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+			if(bone->flag & BONE_SELECTED) {
+				if(bone->layer & arm->layer) {
+					if(pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_ZLIMIT)) {
+						if(pose_channel_in_IK_chain(ob, pchan)) {
+							float corner[4][3], posetrans[3], mat[4][4];
+							float phi=0.0f, theta=0.0f, scale;
+							int a, i;
 
-						/* in parent-bone pose, but own restspace */
-						glPushMatrix();
+							/* in parent-bone pose, but own restspace */
+							glPushMatrix();
 
-						VECCOPY(posetrans, pchan->pose_mat[3]);
-						glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
+							VECCOPY(posetrans, pchan->pose_mat[3]);
+							glTranslatef(posetrans[0], posetrans[1], posetrans[2]);
 
-						if(pchan->parent) {
-							Mat4CpyMat4(mat, pchan->parent->pose_mat);
-							mat[3][0]= mat[3][1]= mat[3][2]= 0.0f;
+							if(pchan->parent) {
+								Mat4CpyMat4(mat, pchan->parent->pose_mat);
+								mat[3][0]= mat[3][1]= mat[3][2]= 0.0f;
+								glMultMatrixf(mat);
+							}
+
+							Mat4CpyMat3(mat, pchan->bone->bone_mat);
 							glMultMatrixf(mat);
-						}
 
-						Mat4CpyMat3(mat, pchan->bone->bone_mat);
-						glMultMatrixf(mat);
+							scale= bone->length*pchan->size[1];
+							glScalef(scale, scale, scale);
 
-						scale= bone->length*pchan->size[1];
-						glScalef(scale, scale, scale);
+							if(pchan->ikflag & BONE_IK_XLIMIT) {
+								if(pchan->ikflag & BONE_IK_ZLIMIT) {
+									float amin[3], amax[3];
 
-						if(pchan->ikflag & BONE_IK_XLIMIT) {
-							if(pchan->ikflag & BONE_IK_ZLIMIT) {
-								float amin[3], amax[3];
-
-								for(i=0; i<3; i++) {
-									amin[i]= sin(pchan->limitmin[i]*M_PI/360.0);
-									amax[i]= sin(pchan->limitmax[i]*M_PI/360.0);
+									for(i=0; i<3; i++) {
+										amin[i]= sin(pchan->limitmin[i]*M_PI/360.0);
+										amax[i]= sin(pchan->limitmax[i]*M_PI/360.0);
+									}
+									
+									glScalef(1.0, -1.0, 1.0);
+									if (amin[0] != 0.0 && amin[2] != 0.0)
+										draw_dof_ellipse(amin[0], amin[2]);
+									if (amin[0] != 0.0 && amax[2] != 0.0)
+										draw_dof_ellipse(amin[0], amax[2]);
+									if (amax[0] != 0.0 && amin[2] != 0.0)
+										draw_dof_ellipse(amax[0], amin[2]);
+									if (amax[0] != 0.0 && amax[2] != 0.0)
+										draw_dof_ellipse(amax[0], amax[2]);
+									glScalef(1.0, -1.0, 1.0);
 								}
-								
-								glScalef(1.0, -1.0, 1.0);
-								if (amin[0] != 0.0 && amin[2] != 0.0)
-									draw_dof_ellipse(amin[0], amin[2]);
-								if (amin[0] != 0.0 && amax[2] != 0.0)
-									draw_dof_ellipse(amin[0], amax[2]);
-								if (amax[0] != 0.0 && amin[2] != 0.0)
-									draw_dof_ellipse(amax[0], amin[2]);
-								if (amax[0] != 0.0 && amax[2] != 0.0)
-									draw_dof_ellipse(amax[0], amax[2]);
-								glScalef(1.0, -1.0, 1.0);
 							}
+							
+							/* arcs */
+							if(pchan->ikflag & BONE_IK_ZLIMIT) {
+								theta= 0.5*(pchan->limitmin[2]+pchan->limitmax[2]);
+								glRotatef(theta, 0.0f, 0.0f, 1.0f);
+
+								glColor3ub(50, 50, 255);	// blue, Z axis limit
+								glBegin(GL_LINE_STRIP);
+								for(a=-16; a<=16; a++) {
+									float fac= ((float)a)/16.0f;
+									phi= fac*(M_PI/360.0f)*(pchan->limitmax[2]-pchan->limitmin[2]);
+									
+									if(a==-16) i= 0; else i= 1;
+									corner[i][0]= sin(phi);
+									corner[i][1]= cos(phi);
+									corner[i][2]= 0.0f;
+									glVertex3fv(corner[i]);
+								}
+								glEnd();
+
+								glRotatef(-theta, 0.0f, 0.0f, 1.0f);
+							}					
+
+							if(pchan->ikflag & BONE_IK_XLIMIT) {
+								theta=  0.5*( pchan->limitmin[0]+pchan->limitmax[0]);
+								glRotatef(theta, 1.0f, 0.0f, 0.0f);
+
+								glColor3ub(255, 50, 50);	// Red, X axis limit
+								glBegin(GL_LINE_STRIP);
+								for(a=-16; a<=16; a++) {
+									float fac= ((float)a)/16.0f;
+									phi= 0.5f*M_PI + fac*(M_PI/360.0f)*(pchan->limitmax[0]-pchan->limitmin[0]);
+
+									if(a==-16) i= 2; else i= 3;
+									corner[i][0]= 0.0f;
+									corner[i][1]= sin(phi);
+									corner[i][2]= cos(phi);
+									glVertex3fv(corner[i]);
+								}
+								glEnd();
+
+								glRotatef(-theta, 1.0f, 0.0f, 0.0f);
+							}
+
+							glPopMatrix(); // out of cone, out of bone
 						}
-						
-						/* arcs */
-						if(pchan->ikflag & BONE_IK_ZLIMIT) {
-							theta= 0.5*(pchan->limitmin[2]+pchan->limitmax[2]);
-							glRotatef(theta, 0.0f, 0.0f, 1.0f);
-
-							glColor3ub(50, 50, 255);	// blue, Z axis limit
-							glBegin(GL_LINE_STRIP);
-							for(a=-16; a<=16; a++) {
-								float fac= ((float)a)/16.0f;
-								phi= fac*(M_PI/360.0f)*(pchan->limitmax[2]-pchan->limitmin[2]);
-								
-								if(a==-16) i= 0; else i= 1;
-								corner[i][0]= sin(phi);
-								corner[i][1]= cos(phi);
-								corner[i][2]= 0.0f;
-								glVertex3fv(corner[i]);
-							}
-							glEnd();
-
-							glRotatef(-theta, 0.0f, 0.0f, 1.0f);
-						}					
-
-						if(pchan->ikflag & BONE_IK_XLIMIT) {
-							theta=  0.5*( pchan->limitmin[0]+pchan->limitmax[0]);
-							glRotatef(theta, 1.0f, 0.0f, 0.0f);
-
-							glColor3ub(255, 50, 50);	// Red, X axis limit
-							glBegin(GL_LINE_STRIP);
-							for(a=-16; a<=16; a++) {
-								float fac= ((float)a)/16.0f;
-								phi= 0.5f*M_PI + fac*(M_PI/360.0f)*(pchan->limitmax[0]-pchan->limitmin[0]);
-
-								if(a==-16) i= 2; else i= 3;
-								corner[i][0]= 0.0f;
-								corner[i][1]= sin(phi);
-								corner[i][2]= cos(phi);
-								glVertex3fv(corner[i]);
-							}
-							glEnd();
-
-							glRotatef(-theta, 1.0f, 0.0f, 0.0f);
-						}
-
-						glPopMatrix(); // out of cone, out of bone
 					}
 				}
 			}
@@ -1320,7 +1347,8 @@ static void draw_pose_channels(Base *base, int dt)
 				bone= pchan->bone;
 				if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM))) {
 					if(bone->flag & (BONE_SELECTED))
-						draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
+						if(bone->layer & arm->layer)
+							draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
 				}
 			}
 			
@@ -1341,22 +1369,24 @@ static void draw_pose_channels(Base *base, int dt)
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
-				glPushMatrix();
-				glMultMatrixf(pchan->pose_mat);
-				
-				/* catch exception for bone with hidden parent */
-				flag= bone->flag;
-				if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
-					flag &= ~BONE_CONNECTED;
-				
-				if(arm->drawtype==ARM_ENVELOPE)
-					draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
-				else if(arm->drawtype==ARM_B_BONE)
-					draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
-				else {
-					draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->length);
+				if(bone->layer & arm->layer) {
+					glPushMatrix();
+					glMultMatrixf(pchan->pose_mat);
+					
+					/* catch exception for bone with hidden parent */
+					flag= bone->flag;
+					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+						flag &= ~BONE_CONNECTED;
+					
+					if(arm->drawtype==ARM_ENVELOPE)
+						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
+					else if(arm->drawtype==ARM_B_BONE)
+						draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, pchan, NULL);
+					else {
+						draw_bone(OB_SOLID, arm->flag, flag, 0, index, bone->length);
+					}
+					glPopMatrix();
 				}
-				glPopMatrix();
 			}
 			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
@@ -1381,67 +1411,68 @@ static void draw_pose_channels(Base *base, int dt)
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
 			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
-	
-				if (do_dashed && bone->parent) {
-					//	Draw a line from our root to the parent's tip
-					if(!(bone->flag & BONE_CONNECTED) ){
-						if (arm->flag & ARM_POSEMODE) {
-							glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
-							BIF_ThemeColor(TH_WIRE);
+				if(bone->layer & arm->layer) {
+					if (do_dashed && bone->parent) {
+						//	Draw a line from our root to the parent's tip
+						if(!(bone->flag & BONE_CONNECTED) ){
+							if (arm->flag & ARM_POSEMODE) {
+								glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
+								BIF_ThemeColor(TH_WIRE);
+							}
+							setlinestyle(3);
+							glBegin(GL_LINES);
+							glVertex3fv(pchan->pose_head);
+							glVertex3fv(pchan->parent->pose_tail);
+							glEnd();
+							setlinestyle(0);
 						}
-						setlinestyle(3);
-						glBegin(GL_LINES);
-						glVertex3fv(pchan->pose_head);
-						glVertex3fv(pchan->parent->pose_tail);
-						glEnd();
-						setlinestyle(0);
-					}
-					//	Draw a line to IK root bone
-					if(arm->flag & ARM_POSEMODE) {
-						if(pchan->constflag & PCHAN_HAS_IK) {
-							if(bone->flag & BONE_SELECTED) {
-								
-								if(pchan->constflag & PCHAN_HAS_TARGET) glColor3ub(200, 120, 0);
-								else glColor3ub(200, 200, 50);	// add theme!
+						//	Draw a line to IK root bone
+						if(arm->flag & ARM_POSEMODE) {
+							if(pchan->constflag & PCHAN_HAS_IK) {
+								if(bone->flag & BONE_SELECTED) {
+									
+									if(pchan->constflag & PCHAN_HAS_TARGET) glColor3ub(200, 120, 0);
+									else glColor3ub(200, 200, 50);	// add theme!
 
-								glLoadName (index & 0xFFFF);
-								pchan_draw_IK_root_lines(pchan);
+									glLoadName (index & 0xFFFF);
+									pchan_draw_IK_root_lines(pchan);
+								}
 							}
 						}
 					}
-				}
-				
-				if(arm->drawtype!=ARM_ENVELOPE) {
-					glPushMatrix();
-					glMultMatrixf(pchan->pose_mat);
-				}
-				
-				/* catch exception for bone with hidden parent */
-				flag= bone->flag;
-				if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
-					flag &= ~BONE_CONNECTED;
-				
-				/* extra draw service for pose mode */
-				constflag= pchan->constflag;
-				if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
-					constflag |= PCHAN_HAS_ACTION;
-				if(pchan->flag & POSE_STRIDE)
-					constflag |= PCHAN_HAS_STRIDE;
+					
+					if(arm->drawtype!=ARM_ENVELOPE) {
+						glPushMatrix();
+						glMultMatrixf(pchan->pose_mat);
+					}
+					
+					/* catch exception for bone with hidden parent */
+					flag= bone->flag;
+					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+						flag &= ~BONE_CONNECTED;
+					
+					/* extra draw service for pose mode */
+					constflag= pchan->constflag;
+					if(pchan->flag & (POSE_ROT|POSE_LOC|POSE_SIZE))
+						constflag |= PCHAN_HAS_ACTION;
+					if(pchan->flag & POSE_STRIDE)
+						constflag |= PCHAN_HAS_STRIDE;
 
-				if(arm->drawtype==ARM_ENVELOPE) {
-					if(dt<OB_SOLID)
-						draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
+					if(arm->drawtype==ARM_ENVELOPE) {
+						if(dt<OB_SOLID)
+							draw_sphere_bone_wire(smat, imat, arm->flag, flag, constflag, index, pchan, NULL);
+					}
+					else if(arm->drawtype==ARM_LINE)
+						draw_line_bone(arm->flag, flag, constflag, index, pchan, NULL);
+					else if(arm->drawtype==ARM_B_BONE)
+						draw_b_bone(OB_WIRE, arm->flag, flag, constflag, index, pchan, NULL);
+					else {
+						draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->length);
+					}
+					
+					if(arm->drawtype!=ARM_ENVELOPE)
+						glPopMatrix();
 				}
-				else if(arm->drawtype==ARM_LINE)
-					draw_line_bone(arm->flag, flag, constflag, index, pchan, NULL);
-				else if(arm->drawtype==ARM_B_BONE)
-					draw_b_bone(OB_WIRE, arm->flag, flag, constflag, index, pchan, NULL);
-				else {
-					draw_bone(OB_WIRE, arm->flag, flag, constflag, index, bone->length);
-				}
-				
-				if(arm->drawtype!=ARM_ENVELOPE)
-					glPopMatrix();
 			}
 			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
@@ -1468,26 +1499,28 @@ static void draw_pose_channels(Base *base, int dt)
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if((pchan->bone->flag & BONE_HIDDEN_P)==0) {
-					if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
-						bone= pchan->bone;
-						if(bone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
-						else BIF_ThemeColor(TH_TEXT);
-					}
-					else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
-					
-					if (arm->flag & ARM_DRAWNAMES){
-						VecMidf(vec, pchan->pose_head, pchan->pose_tail);
-						glRasterPos3fv(vec);
-						BMF_DrawString(G.font, " ");
-						BMF_DrawString(G.font, pchan->name);
-					}				
-					/*	Draw additional axes */
-					if( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ){
-						glPushMatrix();
-						glMultMatrixf(pchan->pose_mat);
-						glTranslatef(0.0f, pchan->bone->length, 0.0f);
-						drawaxes(0.25f*pchan->bone->length, 0);
-						glPopMatrix();
+					if(pchan->bone->layer & arm->layer) {
+						if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
+							bone= pchan->bone;
+							if(bone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+							else BIF_ThemeColor(TH_TEXT);
+						}
+						else if(dt > OB_WIRE) BIF_ThemeColor(TH_TEXT);
+						
+						if (arm->flag & ARM_DRAWNAMES){
+							VecMidf(vec, pchan->pose_head, pchan->pose_tail);
+							glRasterPos3fv(vec);
+							BMF_DrawString(G.font, " ");
+							BMF_DrawString(G.font, pchan->name);
+						}				
+						/*	Draw additional axes */
+						if( (arm->flag & ARM_DRAWAXES) && (arm->flag & ARM_POSEMODE) ){
+							glPushMatrix();
+							glMultMatrixf(pchan->pose_mat);
+							glTranslatef(0.0f, pchan->bone->length, 0.0f);
+							drawaxes(0.25f*pchan->bone->length, 0);
+							glPopMatrix();
+						}
 					}
 				}
 			}
@@ -1542,9 +1575,10 @@ static void draw_ebones(Object *ob, int dt)
 		if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-			if(!(eBone->flag & (BONE_HIDDEN_A|BONE_NO_DEFORM)))
-				if(eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
-					draw_sphere_bone_dist(smat, imat, eBone->flag, NULL, eBone);
+			if(eBone->layer & arm->layer)
+				if(!(eBone->flag & (BONE_HIDDEN_A|BONE_NO_DEFORM)))
+					if(eBone->flag & (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL))
+						draw_sphere_bone_dist(smat, imat, eBone->flag, NULL, eBone);
 		}
 		
 		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
@@ -1556,24 +1590,26 @@ static void draw_ebones(Object *ob, int dt)
 	if(dt>OB_WIRE && arm->drawtype!=ARM_LINE) {
 		index= 0;
 		for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-			if(!(eBone->flag & BONE_HIDDEN_A)) {
-				glPushMatrix();
-				set_matrix_editbone(eBone);
-				
-				/* catch exception for bone with hidden parent */
-				flag= eBone->flag;
-				if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
-					flag &= ~BONE_CONNECTED;
-				
-				if(arm->drawtype==ARM_ENVELOPE)
-					draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
-				else if(arm->drawtype==ARM_B_BONE)
-					draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
-				else {
-					draw_bone(OB_SOLID, arm->flag, flag, 0, index, eBone->length);
+			if(eBone->layer & arm->layer) {
+				if(!(eBone->flag & BONE_HIDDEN_A)) {
+					glPushMatrix();
+					set_matrix_editbone(eBone);
+					
+					/* catch exception for bone with hidden parent */
+					flag= eBone->flag;
+					if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
+						flag &= ~BONE_CONNECTED;
+					
+					if(arm->drawtype==ARM_ENVELOPE)
+						draw_sphere_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
+					else if(arm->drawtype==ARM_B_BONE)
+						draw_b_bone(OB_SOLID, arm->flag, flag, 0, index, NULL, eBone);
+					else {
+						draw_bone(OB_SOLID, arm->flag, flag, 0, index, eBone->length);
+					}
+					
+					glPopMatrix();
 				}
-				
-				glPopMatrix();
 			}
 		}
 	}
@@ -1591,43 +1627,45 @@ static void draw_ebones(Object *ob, int dt)
 		index= 0;	// do selection codes
 	
 	for (eBone=G.edbo.first; eBone; eBone=eBone->next){
-		if(!(eBone->flag & BONE_HIDDEN_A)) {
-			
-			/* catch exception for bone with hidden parent */
-			flag= eBone->flag;
-			if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
-				flag &= ~BONE_CONNECTED;
-			
-			if(arm->drawtype==ARM_ENVELOPE) {
-				if(dt<OB_SOLID)
-					draw_sphere_bone_wire(smat, imat, arm->flag, flag, 0, index, NULL, eBone);
-			}
-			else {
-				glPushMatrix();
-				set_matrix_editbone(eBone);
+		if(eBone->layer & arm->layer) {
+			if(!(eBone->flag & BONE_HIDDEN_A)) {
 				
-				if(arm->drawtype==ARM_LINE) 
-					draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
-				else if(arm->drawtype==ARM_B_BONE)
-					draw_b_bone(OB_WIRE, arm->flag, flag, 0, index, NULL, eBone);
-				else
-					draw_bone(OB_WIRE, arm->flag, flag, 0, index, eBone->length);
+				/* catch exception for bone with hidden parent */
+				flag= eBone->flag;
+				if(eBone->parent && (eBone->parent->flag & BONE_HIDDEN_A))
+					flag &= ~BONE_CONNECTED;
+				
+				if(arm->drawtype==ARM_ENVELOPE) {
+					if(dt<OB_SOLID)
+						draw_sphere_bone_wire(smat, imat, arm->flag, flag, 0, index, NULL, eBone);
+				}
+				else {
+					glPushMatrix();
+					set_matrix_editbone(eBone);
+					
+					if(arm->drawtype==ARM_LINE) 
+						draw_line_bone(arm->flag, flag, 0, index, NULL, eBone);
+					else if(arm->drawtype==ARM_B_BONE)
+						draw_b_bone(OB_WIRE, arm->flag, flag, 0, index, NULL, eBone);
+					else
+						draw_bone(OB_WIRE, arm->flag, flag, 0, index, eBone->length);
 
-				glPopMatrix();
-			}
-		
-			/* offset to parent */
-			if (eBone->parent) {
-				BIF_ThemeColor(TH_WIRE);
-				glLoadName (-1);		// -1 here is OK!
-				setlinestyle(3);
-				
-				glBegin(GL_LINES);
-				glVertex3fv(eBone->parent->tail);
-				glVertex3fv(eBone->head);
-				glEnd();
-				
-				setlinestyle(0);
+					glPopMatrix();
+				}
+			
+				/* offset to parent */
+				if (eBone->parent) {
+					BIF_ThemeColor(TH_WIRE);
+					glLoadName (-1);		// -1 here is OK!
+					setlinestyle(3);
+					
+					glBegin(GL_LINES);
+					glVertex3fv(eBone->parent->tail);
+					glVertex3fv(eBone->head);
+					glEnd();
+					
+					setlinestyle(0);
+				}
 			}
 		}
 		if(index!=-1) index++;
@@ -1646,27 +1684,29 @@ static void draw_ebones(Object *ob, int dt)
 			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 			
 			for (eBone=G.edbo.first, index=0; eBone; eBone=eBone->next, index++){
-				if(!(eBone->flag & BONE_HIDDEN_A)) {
-					
-					if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
-					else BIF_ThemeColor(TH_TEXT);
-					
-					/*	Draw name */
-					if(arm->flag & ARM_DRAWNAMES){
-						VecMidf(vec, eBone->head, eBone->tail);
-						glRasterPos3fv(vec);
-						BMF_DrawString(G.font, " ");
-						BMF_DrawString(G.font, eBone->name);
-					}					
-					/*	Draw additional axes */
-					if(arm->flag & ARM_DRAWAXES){
-						glPushMatrix();
-						set_matrix_editbone(eBone);
-						glTranslatef(0.0f, eBone->length, 0.0f);
-						drawaxes(eBone->length*0.25f, 0);
-						glPopMatrix();
+				if(eBone->layer & arm->layer) {
+					if(!(eBone->flag & BONE_HIDDEN_A)) {
+						
+						if(eBone->flag & BONE_SELECTED) BIF_ThemeColor(TH_TEXT_HI);
+						else BIF_ThemeColor(TH_TEXT);
+						
+						/*	Draw name */
+						if(arm->flag & ARM_DRAWNAMES){
+							VecMidf(vec, eBone->head, eBone->tail);
+							glRasterPos3fv(vec);
+							BMF_DrawString(G.font, " ");
+							BMF_DrawString(G.font, eBone->name);
+						}					
+						/*	Draw additional axes */
+						if(arm->flag & ARM_DRAWAXES){
+							glPushMatrix();
+							set_matrix_editbone(eBone);
+							glTranslatef(0.0f, eBone->length, 0.0f);
+							drawaxes(eBone->length*0.25f, 0);
+							glPopMatrix();
+						}
+						
 					}
-					
 				}
 			}
 			
@@ -1678,6 +1718,7 @@ static void draw_ebones(Object *ob, int dt)
 /* in view space */
 static void draw_pose_paths(Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	float *fp;
 	int a;
@@ -1688,26 +1729,28 @@ static void draw_pose_paths(Object *ob)
 	glLoadMatrixf(G.vd->viewmat);
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->path) {
-			
-			BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-			glBegin(GL_LINE_STRIP);
-			for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
-				glVertex3fv(fp);
-			glEnd();
-			
-			glPointSize(1.0);
-			BIF_ThemeColor(TH_WIRE);
-			glBegin(GL_POINTS);
-			for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
-				glVertex3fv(fp);
-			glEnd();
-			
-			BIF_ThemeColor(TH_TEXT_HI);
-			glBegin(GL_POINTS);
-			for(a=0, fp= pchan->path; a<pchan->pathlen; a+=10, fp+=30)
-				glVertex3fv(fp);
-			glEnd();
+		if(pchan->bone->layer & arm->layer) {
+			if(pchan->path) {
+				
+				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+				glBegin(GL_LINE_STRIP);
+				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+					glVertex3fv(fp);
+				glEnd();
+				
+				glPointSize(1.0);
+				BIF_ThemeColor(TH_WIRE);
+				glBegin(GL_POINTS);
+				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+					glVertex3fv(fp);
+				glEnd();
+				
+				BIF_ThemeColor(TH_TEXT_HI);
+				glBegin(GL_POINTS);
+				for(a=0, fp= pchan->path; a<pchan->pathlen; a+=10, fp+=30)
+					glVertex3fv(fp);
+				glEnd();
+			}
 		}
 	}
 	

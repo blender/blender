@@ -3412,6 +3412,17 @@ static void bone_version_238(ListBase *lb)
 	}
 }
 
+static void bone_version_239(ListBase *lb)
+{
+	Bone *bone;
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		if(bone->layer==0) 
+			bone->layer= 1;
+		bone_version_239(&bone->childbase);
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -5030,6 +5041,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		/* updating stepsize for ghost drawing */
 		for(arm= main->armature.first; arm; arm= arm->id.next) {
 			if (arm->ghostsize==0) arm->ghostsize=1;
+			bone_version_239(&arm->bonebase);
+			if(arm->layer==0) arm->layer= 1;
 		}
 		
 		for(;sce;sce= sce->id.next) {

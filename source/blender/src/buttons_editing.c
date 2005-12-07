@@ -2739,21 +2739,47 @@ static void validate_posebonebutton_cb(void *bonev, void *namev)
 	allqueue(REDRAWALL, 0);
 }
 
+static void armature_layer_cb(void *lay_v, void *value_v)
+{
+	short *layer= lay_v;
+	int value= (int)value_v;
+	
+	if(*layer==0 || G.qual==0) *layer= value;
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 static void editing_panel_armature_type(Object *ob, bArmature *arm)
 {
-	uiBlock		*block;
-
+	uiBlock	*block;
+	uiBut *but;
+	int a;
+	
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_armature_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Armature", "Editing", 320, 0, 318, 204)==0) return;
 
 	uiDefBut(block, LABEL, 0, "Editing Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror Edit", 10, 160,150,20, &arm->flag, 0, 0, 0, 0, "Enable X-axis mirrored editing");
-	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",				160,160,150,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
-	uiDefButBitI(block, TOG, ARM_AUTO_IK, B_DIFF, "Automatic IK",			10, 140,300,20, &arm->flag, 0, 0, 0, 0, "Adds temporal IK chains while grabbing Bones");
+	uiDefButBitI(block, TOG, ARM_MIRROR_EDIT, B_DIFF, "X-Axis Mirror",  10, 160,100,20, &arm->flag, 0, 0, 0, 0, "Enable X-axis mirrored editing");
+	uiDefButBitC(block, TOG, OB_DRAWXRAY,REDRAWVIEW3D, "X-Ray",			110,160,100,20, &ob->dtx, 0, 0, 0, 0, "Draw armature in front of solid objects");
+	uiDefButBitI(block, TOG, ARM_AUTO_IK, B_DIFF, "Auto IK",			210,160,100,20, &arm->flag, 0, 0, 0, 0, "Adds temporal IK chains while grabbing Bones");
 	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Display Options", 10,120,150,20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Display Options", 10,141,150,19, 0, 0, 0, 0, 0, "");
+	
+	/* layers */
+	uiBlockBeginAlign(block);
+	for(a=0; a<8; a++) {
+		short dx= 18;
+		but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", 10+a*dx, 123, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+	}
+	uiBlockBeginAlign(block);
+	for(a=8; a<16; a++) {
+		short dx= 18;
+		but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", 18+a*dx, 123, dx, 15, &arm->layer, 0, 0, 0, 0, "");
+		uiButSetFunc(but, armature_layer_cb, &arm->layer, (void *)(1<<a));
+	}
+	
 	uiBlockBeginAlign(block);
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Octahedron", 10, 100,90,20, &arm->drawtype, 0, ARM_OCTA, 0, 0, "Draw bones as octahedra");
 	uiDefButI(block, ROW, REDRAWVIEW3D, "Stick",	100, 100,55,20, &arm->drawtype, 0, ARM_LINE, 0, 0, "Draw bones as simple 2d lines with dots");
@@ -2768,13 +2794,12 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	
 	uiDefBut(block, LABEL, 0, "Deform Options", 10,60,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
-	uiDefButBitI(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
+	uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
+	uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,40,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
 	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,20,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
 	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,20,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	
 }
-
 
 static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 {
@@ -2783,7 +2808,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 	EditBone	*curBone;
 	char		*boneString=NULL;
 	int			bx=148, by=180;
-	int			index;
+	int			index, a;
 
 	/* Draw the bone name block */
 
@@ -2798,7 +2823,7 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 	uiDefBut(block, LABEL, 0, "Selected Bones", bx,by,158,18, 0, 0, 0, 0, 0, "Only show in Armature Editmode");
 	by-=20;
 	for (curBone=G.edbo.first, index=0; curBone; curBone=curBone->next, index++){
-		if (curBone->flag & (BONE_SELECTED)) {
+		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
 
 			/*	Bone naming button */
 			but=uiDefBut(block, TEX, REDRAWVIEW3D, "BO:", bx-10,by,117,18, &curBone->name, 0, 24, 0, 0, "Change the bone name");
@@ -2835,8 +2860,22 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", bx+160,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	bx+245,by-38,88,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
 			
+			/* layers */
+			uiBlockBeginAlign(block);
+			for(a=0; a<8; a++) {
+				short dx= 21;
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", bx-10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+			}
+			uiBlockBeginAlign(block);
+			for(a=8; a<16; a++) {
+				short dx= 21;
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", 7+bx-10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+			}
+			
 			uiBlockEndAlign(block);
-			by-=60;
+			by-=80;
 			
 			if(by < -200) break;	// for time being... extreme long panels are very slow
 		}
@@ -2854,7 +2893,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	uiBut		*but;
 	bPoseChannel *pchan;
 	Bone		*curBone;
-	int			bx=148, by=180;
+	int			bx=148, by=180, a;
 	int			index, zerodof, zerolimit;
 	
 	/* Draw the bone name block */
@@ -2870,7 +2909,7 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 	by-=20;
 	for (pchan=ob->pose->chanbase.first, index=0; pchan; pchan=pchan->next, index++){
 		curBone= pchan->bone;
-		if (curBone->flag & (BONE_SELECTED)) {
+		if ((curBone->flag & BONE_SELECTED) && (curBone->layer & arm->layer)) {
 
 			/*	Bone naming button */
 			uiBlockBeginAlign(block);
@@ -2886,14 +2925,30 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			uiDefButS(block, NUM, B_ARM_RECALCDATA, "Segm: ",  bx-10,by-19,117,19, &curBone->segments, 1.0, 32.0, 0.0, 0.0, "Subdivisions for B-bones");
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "In:",  bx+107, by-19,105, 19, &curBone->ease1, 0.0, 2.0, 10.0, 0.0, "First length of Bezier handle");
-			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Out:",  bx+220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
+			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Out:",  bx+220, by-19, 111, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
 			
 			/* bone types */
 			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", bx-10,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
 			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	bx+75, by-38, 85, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
 			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", bx+160,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			uiDefButBitI(block, TOG, BONE_HIDDEN_P, REDRAWVIEW3D, "Hide",	bx+245,by-38,88,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Pose Mode");
+			
+			/* layers */
+			uiBlockBeginAlign(block);
+			for(a=0; a<8; a++) {
+				short dx= 21;
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", bx-10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+			}
+			uiBlockBeginAlign(block);
+			for(a=8; a<16; a++) {
+				short dx= 21;
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", 7+bx-10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
+			}
 			uiBlockEndAlign(block);
+			
+			by-= 20;
 			
 			/* DOFs only for IK chains */
 			zerodof = 1;

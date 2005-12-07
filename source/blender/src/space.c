@@ -1462,7 +1462,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mirrormenu();
 				}
 				else if(G.qual==0) {
-				     movetolayer();
+					if(ob && (ob->flag & OB_POSEMODE))
+						pose_movetolayer();
+					else
+						movetolayer();
 				}
  				break;
 			case NKEY:

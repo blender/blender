@@ -172,6 +172,32 @@ static void stats_pose(View3D *v3d, bPoseChannel *pchan, float *normal, float *p
 	}
 }
 
+/* only counts the parent selection, and tags transform flag */
+/* bad call... should re-use method from transform_conversion once */
+static void count_bone_select(TransInfo *t, bArmature *arm, ListBase *lb, int do_it) 
+{
+	Bone *bone;
+	int do_next;
+	
+	for(bone= lb->first; bone; bone= bone->next) {
+		bone->flag &= ~BONE_TRANSFORM;
+		do_next= do_it;
+		if(do_it) {
+			if(bone->layer & arm->layer) {
+				if (bone->flag & BONE_SELECTED) {
+					/* We don't let connected children get "grabbed" */
+					if ( (t->mode!=TFM_TRANSLATION) || (bone->flag & BONE_CONNECTED)==0 ) {
+						bone->flag |= BONE_TRANSFORM;
+						t->total++;
+						do_next= 0;	// no transform on children if one parent bone is selected
+					}
+				}
+			}
+		}
+		count_bone_select(t, arm, &bone->childbase, do_next);
+	}
+}
+
 /* centroid, boundbox, of selection */
 /* returns total items selected */
 int calc_manipulator_stats(ScrArea *sa)
@@ -243,15 +269,18 @@ int calc_manipulator_stats(ScrArea *sa)
 			}
 		}
 		else if (G.obedit->type==OB_ARMATURE){
+			bArmature *arm= G.obedit->data;
 			EditBone *ebo;
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
-				if (ebo->flag & BONE_TIPSEL) {
-					calc_tw_center(ebo->tail);
-					totsel++;
-				}
-				if (ebo->flag & BONE_ROOTSEL) {
-					calc_tw_center(ebo->head);
-					totsel++;
+				if(ebo->layer & arm->layer) {
+					if (ebo->flag & BONE_TIPSEL) {
+						calc_tw_center(ebo->tail);
+						totsel++;
+					}
+					if (ebo->flag & BONE_ROOTSEL) {
+						calc_tw_center(ebo->head);
+						totsel++;
+					}
 				}
 			}
 		}
@@ -359,7 +388,7 @@ int calc_manipulator_stats(ScrArea *sa)
 		
 		/* count total, we use same method as transform will do */
 		Trans.total= 0;
-		count_bone_select(&Trans, &arm->bonebase, 1);
+		count_bone_select(&Trans, arm, &arm->bonebase, 1);
 		totsel= Trans.total;
 		if(totsel) {
 			/* use channels to get stats */

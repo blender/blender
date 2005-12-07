@@ -1195,17 +1195,21 @@ void centreview()	/* like a localview without local! */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
+			bArmature *arm= ob->data;
 			bPoseChannel *pchan;
 			float vec[3];
+			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				if(pchan->bone->flag & BONE_SELECTED) {
-					ok= 1;
-					VECCOPY(vec, pchan->pose_head);
-					Mat4MulVecfl(ob->obmat, vec);
-					DO_MINMAX(vec, min, max);
-					VECCOPY(vec, pchan->pose_tail);
-					Mat4MulVecfl(ob->obmat, vec);
-					DO_MINMAX(vec, min, max);
+					if(pchan->bone->layer & arm->layer) {
+						ok= 1;
+						VECCOPY(vec, pchan->pose_head);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+						VECCOPY(vec, pchan->pose_tail);
+						Mat4MulVecfl(ob->obmat, vec);
+						DO_MINMAX(vec, min, max);
+					}
 				}
 			}
 		}

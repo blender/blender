@@ -109,12 +109,11 @@ typedef struct {
 	PyObject_HEAD
 		//reference to data if bone is linked to an armature
 	Bone * bone;
-	//list of vars that define the boneclass
+	//list of vars that define the bone
 	char *name;
 	char *parent;
 	float roll;
 	int flag;
-	int boneclass;
 	float dist;
 	float weight;
 	VectorObject *head;

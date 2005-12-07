@@ -284,7 +284,6 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
-void count_bone_select(TransInfo *t, struct ListBase *lb, int do_it);
 void flushTransUVs(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 

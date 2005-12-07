@@ -4126,5 +4126,52 @@ void draw_object_backbufsel(Object *ob)
 	}
 
 	myloadmatrix(G.vd->viewmat);
-
 }
+
+
+/* ************* draw object instances for bones, for example ****************** */
+/*               assumes all matrices/etc set OK */
+
+void draw_object_instance(Object *ob, int dt)
+{
+	DerivedMesh *dm=NULL, *edm=NULL;
+	int needsfree= 1;
+	
+	if(ob==NULL || ob->type!=OB_MESH) return;
+	
+	if(G.obedit && ob->data==G.obedit->data)
+		edm= editmesh_get_derived_base();
+	else 
+		dm = mesh_get_derived_final(ob, &needsfree);
+		
+	if(dt<=OB_WIRE) {
+		if(dm)
+			dm->drawEdges(dm, 1);
+		else if(edm)
+			edm->drawEdges(edm, 1);	
+	}
+	else {
+		if(dm)
+			init_gl_materials(ob);
+		else {
+			glEnable(GL_COLOR_MATERIAL);
+			BIF_ThemeColor(TH_BONE_SOLID);
+			glDisable(GL_COLOR_MATERIAL);
+		}
+		
+		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 0);
+		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+		glEnable(GL_LIGHTING);
+		
+		if(dm)
+			dm->drawFacesSolid(dm, set_gl_material);
+		else if(edm)
+			edm->drawMappedFaces(edm, NULL, NULL, 0);
+		
+		glDisable(GL_LIGHTING);
+	}
+
+	if(edm) edm->release(edm);
+	if(dm && needsfree) dm->release(dm);
+}
+

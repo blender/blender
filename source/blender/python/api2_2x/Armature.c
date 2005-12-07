@@ -453,7 +453,6 @@ static PyObject *Armature_saveChanges(BPy_Armature *self)
 		bone->rad_head= editbone->rad_head;
 		bone->rad_tail= editbone->rad_tail;
 		bone->segments= editbone->segments;
-		bone->boneclass = 0;
 	}
 
 	pos = 0;
