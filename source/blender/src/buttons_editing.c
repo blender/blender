@@ -2746,6 +2746,7 @@ static void armature_layer_cb(void *lay_v, void *value_v)
 	
 	if(*layer==0 || G.qual==0) *layer= value;
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 static void editing_panel_armature_type(Object *ob, bArmature *arm)

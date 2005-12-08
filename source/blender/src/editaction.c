@@ -330,9 +330,11 @@ void duplicate_actionchannel_keys(void)
 
 	/* Find selected items */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		duplicate_ipo_keys(chan->ipo);
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-			duplicate_ipo_keys(conchan->ipo);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			duplicate_ipo_keys(chan->ipo);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				duplicate_ipo_keys(conchan->ipo);
+		}
 	}
 
 	transform_actionchannel_keys ('g', 0);
@@ -380,46 +382,16 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 	*sel=0;
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
 
-		/* Check action channel */
-		ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
-		if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && chan->ipo){
-			for (icu=chan->ipo->curve.first; icu; icu=icu->next){
-				for (i=0; i<icu->totvert; i++){
-					if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
-						if (!firstchan){
-							firstchan=chan;
-							firstvert=icu->bezt[i].vec[1][0];
-							*sel = icu->bezt[i].f2 & 1;	
-						}
-						
-						if (icu->bezt[i].f2 & 1){ 
-							if (!foundsel){
-								foundsel=1;
-								foundx = icu->bezt[i].vec[1][0];
-							}
-						}
-						else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
-							*index=icu->bezt[i].vec[1][0];
-							*sel = 0;
-							return chan;
-						}
-					}
-				}
-			}
-		}
-		ymax=ymin;
-		
-		/* Check constraint channels */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo) {
-				for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
+			/* Check action channel */
+			ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
+			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && chan->ipo){
+				for (icu=chan->ipo->curve.first; icu; icu=icu->next){
 					for (i=0; i<icu->totvert; i++){
 						if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
 							if (!firstchan){
 								firstchan=chan;
-								firstconchan=conchan;
 								firstvert=icu->bezt[i].vec[1][0];
 								*sel = icu->bezt[i].f2 & 1;	
 							}
@@ -433,7 +405,6 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 							else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
 								*index=icu->bezt[i].vec[1][0];
 								*sel = 0;
-								*rchan = conchan;
 								return chan;
 							}
 						}
@@ -441,6 +412,39 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 				}
 			}
 			ymax=ymin;
+			
+			/* Check constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+				ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo) {
+					for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
+						for (i=0; i<icu->totvert; i++){
+							if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ){
+								if (!firstchan){
+									firstchan=chan;
+									firstconchan=conchan;
+									firstvert=icu->bezt[i].vec[1][0];
+									*sel = icu->bezt[i].f2 & 1;	
+								}
+								
+								if (icu->bezt[i].f2 & 1){ 
+									if (!foundsel){
+										foundsel=1;
+										foundx = icu->bezt[i].vec[1][0];
+									}
+								}
+								else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
+									*index=icu->bezt[i].vec[1][0];
+									*sel = 0;
+									*rchan = conchan;
+									return chan;
+								}
+							}
+						}
+					}
+				}
+				ymax=ymin;
+			}
 		}
 	}	
 	
@@ -700,23 +704,25 @@ void borderselect_action(void)
 		ymax += CHANNELHEIGHT/2;
 		
 		for (chan=act->chanbase.first; chan; chan=chan->next){
-			
-			/* Check action */
-			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-				borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
-                               selectmode);
-
-			ymax=ymin;
-
-			/* Check constraints */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+			if((chan->flag & ACHAN_HIDDEN)==0) {
+				
+				/* Check action */
 				ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-					borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
-                               selectmode);
-				
+					borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
+								   selectmode);
+
 				ymax=ymin;
+
+				/* Check constraints */
+				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+					ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
+					if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+						borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+								   selectmode);
+					
+					ymax=ymin;
+				}
 			}
 		}	
 		BIF_undo_push("Border Select Action");
@@ -808,8 +814,9 @@ bActionChannel* get_hilighted_action_channel(bAction* action)
 		return NULL;
 
 	for (chan=action->chanbase.first; chan; chan=chan->next){
-		if (chan->flag & ACHAN_SELECTED && chan->flag & ACHAN_HILIGHTED)
-			return chan;
+		if((chan->flag & ACHAN_HIDDEN)==0)
+			if (chan->flag & ACHAN_SELECTED && chan->flag & ACHAN_HILIGHTED)
+				return chan;
 	}
 
 	return NULL;
@@ -862,10 +869,12 @@ void transform_actionchannel_keys(int mode, int dummy)
 
 	/* Ensure that partial selections result in beztriple selections */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		tvtot+=fullselect_ipo_keys(chan->ipo);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			tvtot+=fullselect_ipo_keys(chan->ipo);
 
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-			tvtot+=fullselect_ipo_keys(conchan->ipo);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				tvtot+=fullselect_ipo_keys(conchan->ipo);
+		}
 	}
 	
 	/* If nothing is selected, bail out */
@@ -878,10 +887,12 @@ void transform_actionchannel_keys(int mode, int dummy)
 	
 	tvtot=0;
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		/* Add the actionchannel */
-		tvtot = add_trans_ipo_keys(chan->ipo, tv, tvtot);
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-			tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			/* Add the actionchannel */
+			tvtot = add_trans_ipo_keys(chan->ipo, tv, tvtot);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
+		}
 	}
 	
 	/* min max, only every other three */
@@ -1277,22 +1288,24 @@ void deselect_actionchannel_keys (bAction *act, int test)
 	
 	if (test){
 		for (chan=act->chanbase.first; chan; chan=chan->next){
-			/* Test the channel ipos */
-			if (is_ipo_key_selected(chan->ipo)){
-				sel = 0;
-				break;
-			}
-
-			/* Test the constraint ipos */
-			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-				if (is_ipo_key_selected(conchan->ipo)){
+			if((chan->flag & ACHAN_HIDDEN)==0) {
+				/* Test the channel ipos */
+				if (is_ipo_key_selected(chan->ipo)){
 					sel = 0;
 					break;
 				}
-			}
 
-			if (sel == 0)
-				break;
+				/* Test the constraint ipos */
+				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+					if (is_ipo_key_selected(conchan->ipo)){
+						sel = 0;
+						break;
+					}
+				}
+
+				if (sel == 0)
+					break;
+			}
 		}
 	}
 	else
@@ -1300,9 +1313,11 @@ void deselect_actionchannel_keys (bAction *act, int test)
 	
 	/* Set the flags */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		set_ipo_key_selection(chan->ipo, sel);
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-			set_ipo_key_selection(conchan->ipo, sel);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			set_ipo_key_selection(chan->ipo, sel);
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				set_ipo_key_selection(conchan->ipo, sel);
+		}
 	}
 }
 
@@ -1339,18 +1354,20 @@ void deselect_actionchannels (bAction *act, int test)
 	/* See if we should be selecting or deselecting */
 	if (test){
 		for (chan=act->chanbase.first; chan; chan=chan->next){
-			if (!sel)
-				break;
+			if((chan->flag & ACHAN_HIDDEN)==0) {
+				if (!sel)
+					break;
 
-			if (chan->flag & ACHAN_SELECTED){
-				sel=0;
-				break;
-			}
-			if (sel){
-				for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-					if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-						sel=0;
-						break;
+				if (chan->flag & ACHAN_SELECTED){
+					sel=0;
+					break;
+				}
+				if (sel){
+					for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+						if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
+							sel=0;
+							break;
+						}
 					}
 				}
 			}
@@ -1361,18 +1378,20 @@ void deselect_actionchannels (bAction *act, int test)
 
 	/* Now set the flags */
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		select_poseelement_by_name(chan->name, sel);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			select_poseelement_by_name(chan->name, sel);
 
-		if (sel)
-			chan->flag |= ACHAN_SELECTED;
-		else
-			chan->flag &= ~ACHAN_SELECTED;
-
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
 			if (sel)
-				conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+				chan->flag |= ACHAN_SELECTED;
 			else
-				conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+				chan->flag &= ~ACHAN_SELECTED;
+
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+				if (sel)
+					conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+				else
+					conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+			}
 		}
 	}
 
@@ -1518,31 +1537,33 @@ static void mouse_actionchannels(bAction *act, short *mval,
 	 */
 
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if (clickmax < 0) break;
-
-		if ( clickmin <= 0) {
-			/* Select the channel with the given mode. If the
-			 * channel is freshly selected then set it to the
-			 * active channel for the action
-			 */
-			sel = (chan->flag & ACHAN_SELECTED);
-			select_channel(act, chan, selectmode);
-			/* messy... */
-			select_poseelement_by_name(chan->name, 2);
-			
-		}
-		--clickmin;
-		--clickmax;
-
-		/* Check for click in a constraint */
-		for (conchan=chan->constraintChannels.first; 
-			 conchan; conchan=conchan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
 			if (clickmax < 0) break;
+
 			if ( clickmin <= 0) {
-				select_constraint_channel(act, conchan, selectmode);
+				/* Select the channel with the given mode. If the
+				 * channel is freshly selected then set it to the
+				 * active channel for the action
+				 */
+				sel = (chan->flag & ACHAN_SELECTED);
+				select_channel(act, chan, selectmode);
+				/* messy... */
+				select_poseelement_by_name(chan->name, 2);
+				
 			}
 			--clickmin;
 			--clickmax;
+
+			/* Check for click in a constraint */
+			for (conchan=chan->constraintChannels.first; 
+				 conchan; conchan=conchan->next){
+				if (clickmax < 0) break;
+				if ( clickmin <= 0) {
+					select_constraint_channel(act, conchan, selectmode);
+				}
+				--clickmin;
+				--clickmax;
+			}
 		}
 	}
 
@@ -1579,13 +1600,15 @@ void delete_actionchannel_keys(void)
 		return;
 
 	for (chan = act->chanbase.first; chan; chan=chan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
 
-		/* Check action channel keys*/
-		delete_ipo_keys(chan->ipo);
+			/* Check action channel keys*/
+			delete_ipo_keys(chan->ipo);
 
-		/* Delete constraint channel keys */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-			delete_ipo_keys(conchan->ipo);
+			/* Delete constraint channel keys */
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+				delete_ipo_keys(conchan->ipo);
+		}
 	}
 
 	remake_action_ipos (act);
@@ -1610,13 +1633,15 @@ static void delete_actionchannels (void)
 		return;
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if (chan->flag & ACHAN_SELECTED)
-			break;
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
-		{
-			if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-				chan=act->chanbase.last;
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->flag & ACHAN_SELECTED)
 				break;
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next)
+			{
+				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT){
+					chan=act->chanbase.last;
+					break;
+				}
 			}
 		}
 	}
@@ -1630,27 +1655,28 @@ static void delete_actionchannels (void)
 	for (chan=act->chanbase.first; chan; chan=next){
 		freechan = 0;
 		next=chan->next;
-		
-		/* Remove action channels */
-		if (chan->flag & ACHAN_SELECTED){
-			if (chan->ipo)
-				chan->ipo->id.us--;	/* Release the ipo */
-			freechan = 1;
-		}
-		
-		/* Remove constraint channels */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=nextconchan){
-			nextconchan=conchan->next;
-			if (freechan || conchan->flag & CONSTRAINT_CHANNEL_SELECT){
-				if (conchan->ipo)
-					conchan->ipo->id.us--;
-				BLI_freelinkN(&chan->constraintChannels, conchan);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			
+			/* Remove action channels */
+			if (chan->flag & ACHAN_SELECTED){
+				if (chan->ipo)
+					chan->ipo->id.us--;	/* Release the ipo */
+				freechan = 1;
 			}
+			
+			/* Remove constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan=nextconchan){
+				nextconchan=conchan->next;
+				if (freechan || conchan->flag & CONSTRAINT_CHANNEL_SELECT){
+					if (conchan->ipo)
+						conchan->ipo->id.us--;
+					BLI_freelinkN(&chan->constraintChannels, conchan);
+				}
+			}
+			
+			if (freechan)
+				BLI_freelinkN (&act->chanbase, chan);
 		}
-		
-		if (freechan)
-			BLI_freelinkN (&act->chanbase, chan);
-
 	}
 
 	BIF_undo_push("Delete Action channels");
@@ -1683,7 +1709,8 @@ void sethandles_actionchannel_keys(int code)
 	 * of the selected keys based on the integer code
 	 */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		sethandles_ipo_keys(chan->ipo, code);
+		if((chan->flag & ACHAN_HIDDEN)==0)
+			sethandles_ipo_keys(chan->ipo, code);
 	}
 
 	/* Clean up and redraw stuff
@@ -1727,9 +1754,11 @@ void set_ipotype_actionchannels(int ipotype)
 	 * the value from the popup).
 	 */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if (chan->flag & ACHAN_SELECTED){
-			if (chan->ipo)
-				setipotype_ipo(chan->ipo, ipotype);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->flag & ACHAN_SELECTED){
+				if (chan->ipo)
+					setipotype_ipo(chan->ipo, ipotype);
+			}
 		}
 	}
 
@@ -1774,21 +1803,23 @@ void set_extendtype_actionchannels(int extendtype)
 	 * the value from the popup).
 	 */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if (chan->flag & ACHAN_SELECTED) {
-			if (chan->ipo) {
-				switch (extendtype) {
-				case SET_EXTEND_CONSTANT:
-					setexprap_ipoloop(chan->ipo, IPO_HORIZ);
-					break;
-				case SET_EXTEND_EXTRAPOLATION:
-					setexprap_ipoloop(chan->ipo, IPO_DIR);
-					break;
-				case SET_EXTEND_CYCLIC:
-					setexprap_ipoloop(chan->ipo, IPO_CYCL);
-					break;
-				case SET_EXTEND_CYCLICEXTRAPOLATION:
-					setexprap_ipoloop(chan->ipo, IPO_CYCLX);
-					break;
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->flag & ACHAN_SELECTED) {
+				if (chan->ipo) {
+					switch (extendtype) {
+					case SET_EXTEND_CONSTANT:
+						setexprap_ipoloop(chan->ipo, IPO_HORIZ);
+						break;
+					case SET_EXTEND_EXTRAPOLATION:
+						setexprap_ipoloop(chan->ipo, IPO_DIR);
+						break;
+					case SET_EXTEND_CYCLIC:
+						setexprap_ipoloop(chan->ipo, IPO_CYCL);
+						break;
+					case SET_EXTEND_CYCLICEXTRAPOLATION:
+						setexprap_ipoloop(chan->ipo, IPO_CYCLX);
+						break;
+					}
 				}
 			}
 		}
@@ -1818,8 +1849,10 @@ void set_snap_actionchannels(void)
 	
 	/* Loop through the channels */
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if (chan->ipo) {
-			snap_ipo_keys(chan->ipo);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if (chan->ipo) {
+				snap_ipo_keys(chan->ipo);
+			}
 		}
 	}
 	
@@ -1894,12 +1927,14 @@ static void select_all_keys_frames(bAction *act, short *mval,
 	}
     
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
-							 selectmode);
-		for (conchan=chan->constraintChannels.first; conchan; 
-			 conchan=conchan->next){
-			borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			borderselect_ipo_key(chan->ipo, rectf.xmin, rectf.xmax,
 								 selectmode);
+			for (conchan=chan->constraintChannels.first; conchan; 
+				 conchan=conchan->next){
+				borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax,
+									 selectmode);
+			}
 		}
 	}	
 
@@ -1971,27 +2006,29 @@ static void select_all_keys_channels(bAction *act, short *mval,
 	}
 
 	for (chan = act->chanbase.first; chan; chan=chan->next){
-		if (clickmax < 0) break;
-
-		if ( clickmin <= 0) {
-			/* Select the channel with the given mode. If the
-			 * channel is freshly selected then set it to the
-			 * active channel for the action
-			 */
-			select_ipo_bezier_keys(chan->ipo, selectmode);
-		}
-		--clickmin;
-		--clickmax;
-
-		/* Check for click in a constraint */
-		for (conchan=chan->constraintChannels.first; 
-			 conchan; conchan=conchan->next){
+		if((chan->flag & ACHAN_HIDDEN)==0) {
 			if (clickmax < 0) break;
+
 			if ( clickmin <= 0) {
+				/* Select the channel with the given mode. If the
+				 * channel is freshly selected then set it to the
+				 * active channel for the action
+				 */
 				select_ipo_bezier_keys(chan->ipo, selectmode);
 			}
 			--clickmin;
 			--clickmax;
+
+			/* Check for click in a constraint */
+			for (conchan=chan->constraintChannels.first; 
+				 conchan; conchan=conchan->next){
+				if (clickmax < 0) break;
+				if ( clickmin <= 0) {
+					select_ipo_bezier_keys(chan->ipo, selectmode);
+				}
+				--clickmin;
+				--clickmax;
+			}
 		}
 	}
   
@@ -2547,14 +2584,16 @@ void top_sel_action()
 	if (!act) return;
 	
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
-			/* take it out off the chain keep data */
-			BLI_remlink (&act->chanbase, chan);
-			/* make it first element */
-			BLI_insertlinkbefore(&act->chanbase,act->chanbase.first, chan);
-			chan->flag |= ACHAN_MOVED;
-			/* restart with rest of list */
-			chan=chan->next;
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+				/* take it out off the chain keep data */
+				BLI_remlink (&act->chanbase, chan);
+				/* make it first element */
+				BLI_insertlinkbefore(&act->chanbase,act->chanbase.first, chan);
+				chan->flag |= ACHAN_MOVED;
+				/* restart with rest of list */
+				chan=chan->next;
+			}
 		}
 	}
     /* clear temp flags */
@@ -2582,16 +2621,18 @@ void up_sel_action()
 	if (!act) return;
 	
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
-			prev = chan->prev;
-			if (prev){
-				/* take it out off the chain keep data */
-				BLI_remlink (&act->chanbase, chan);
-				/* push it up */
-				BLI_insertlinkbefore(&act->chanbase,prev, chan);
-				chan->flag |= ACHAN_MOVED;
-				/* restart with rest of list */
-				chan=chan->next;
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+				prev = chan->prev;
+				if (prev){
+					/* take it out off the chain keep data */
+					BLI_remlink (&act->chanbase, chan);
+					/* push it up */
+					BLI_insertlinkbefore(&act->chanbase,prev, chan);
+					chan->flag |= ACHAN_MOVED;
+					/* restart with rest of list */
+					chan=chan->next;
+				}
 			}
 		}
 	}
@@ -2621,24 +2662,25 @@ void down_sel_action()
 	if (!act) return;
 	
 	for (chan=act->chanbase.last; chan; chan=chan->prev){
-		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
-			next = chan->next;
-			if (next) next = next->next;
-			if (next){
-				/* take it out off the chain keep data */
-				BLI_remlink (&act->chanbase, chan);
-				/* move it down */
-				BLI_insertlinkbefore(&act->chanbase,next, chan);
-				chan->flag |= ACHAN_MOVED;
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)){
+				next = chan->next;
+				if (next) next = next->next;
+				if (next){
+					/* take it out off the chain keep data */
+					BLI_remlink (&act->chanbase, chan);
+					/* move it down */
+					BLI_insertlinkbefore(&act->chanbase,next, chan);
+					chan->flag |= ACHAN_MOVED;
+				}
+				else {
+					/* take it out off the chain keep data */
+					BLI_remlink (&act->chanbase, chan);
+					/* add at end */
+					BLI_addtail(&act->chanbase,chan);
+					chan->flag |= ACHAN_MOVED;
+				}
 			}
-			else {
-				/* take it out off the chain keep data */
-				BLI_remlink (&act->chanbase, chan);
-				/* add at end */
-				BLI_addtail(&act->chanbase,chan);
-				chan->flag |= ACHAN_MOVED;
-			}
-
 		}
 	}
 	/* clear temp flags */
@@ -2666,14 +2708,15 @@ void bottom_sel_action()
 	if (!act) return;
 	
 	for (chan=act->chanbase.last; chan; chan=chan->prev){
-		if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)) {
-			/* take it out off the chain keep data */
-			BLI_remlink (&act->chanbase, chan);
-			/* add at end */
-			BLI_addtail(&act->chanbase,chan);
-			chan->flag |= ACHAN_MOVED;
-		}
-		
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			if ((chan->flag & ACHAN_SELECTED) && !(chan->flag & ACHAN_MOVED)) {
+				/* take it out off the chain keep data */
+				BLI_remlink (&act->chanbase, chan);
+				/* add at end */
+				BLI_addtail(&act->chanbase,chan);
+				chan->flag |= ACHAN_MOVED;
+			}
+		}		
 	}
 	/* clear temp flags */
 	for (chan=act->chanbase.first; chan; chan=chan->next){

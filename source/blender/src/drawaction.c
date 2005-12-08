@@ -49,6 +49,7 @@
 
 /* Types --------------------------------------------------------------- */
 #include "DNA_action_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_object_types.h"
@@ -211,7 +212,7 @@ void draw_cfra_action(void)
 	glLineWidth(1.0);
 }
 
-
+/* left hand */
 static void draw_action_channel_names(bAction	*act) 
 {
     bActionChannel *chan;
@@ -222,28 +223,30 @@ static void draw_action_channel_names(bAction	*act)
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		BIF_ThemeColorShade(TH_HEADER, 20);
-		glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-	
-		if (chan->flag & ACHAN_SELECTED)
-			BIF_ThemeColor(TH_TEXT_HI);
-		else
-			BIF_ThemeColor(TH_TEXT);
-		glRasterPos2f(x+8,  y-4);
-		BMF_DrawString(G.font, chan->name);
-		y-=CHANNELHEIGHT+CHANNELSKIP;
-	
-		/* Draw constraint channels */
-		for (conchan=chan->constraintChannels.first; 
-				conchan; conchan=conchan->next){
-			if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			BIF_ThemeColorShade(TH_HEADER, 20);
+			glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+		
+			if (chan->flag & ACHAN_SELECTED)
 				BIF_ThemeColor(TH_TEXT_HI);
 			else
 				BIF_ThemeColor(TH_TEXT);
-				
-			glRasterPos2f(x+32,  y-4);
-			BMF_DrawString(G.font, conchan->name);
+			glRasterPos2f(x+8,  y-4);
+			BMF_DrawString(G.font, chan->name);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
+		
+			/* Draw constraint channels */
+			for (conchan=chan->constraintChannels.first; 
+					conchan; conchan=conchan->next){
+				if (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
+					BIF_ThemeColor(TH_TEXT_HI);
+				else
+					BIF_ThemeColor(TH_TEXT);
+					
+				glRasterPos2f(x+32,  y-4);
+				BMF_DrawString(G.font, conchan->name);
+				y-=CHANNELHEIGHT+CHANNELSKIP;
+			}
 		}
 	}
 }
@@ -292,6 +295,7 @@ static void draw_action_mesh_names(Key *key)
 	}
 }
 
+/* left hand part */
 static void draw_channel_names(void) 
 {
 	short ofsx, ofsy = 0; 
@@ -352,6 +356,30 @@ int count_action_levels(bAction *act)
 	return y;
 }
 
+/* sets or clears hidden flags */
+void check_action_context(SpaceAction *saction)
+{
+	bActionChannel *achan;
+	
+	if(saction->action==NULL) return;
+	
+	for (achan=saction->action->chanbase.first; achan; achan=achan->next)
+		achan->flag &= ~ACHAN_HIDDEN;
+	
+	if (G.saction->pin==0 && OBACT) {
+		Object *ob= OBACT;
+		bPoseChannel *pchan;
+		bArmature *arm= ob->data;
+		
+		for (achan=saction->action->chanbase.first; achan; achan=achan->next) {
+			pchan= get_pose_channel(ob->pose, achan->name);
+			if(pchan)
+				if((pchan->bone->layer & arm->layer)==0)
+					achan->flag |= ACHAN_HIDDEN;
+		}
+	}
+}
+
 static void draw_channel_strips(SpaceAction *saction)
 {
 	rcti scr_rct;
@@ -392,34 +420,36 @@ static void draw_channel_strips(SpaceAction *saction)
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 	glEnable(GL_BLEND);
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		int frame1_x, channel_y;
-		
-		gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
-		
-		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-		glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
-		
-		if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-		else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-		glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
-		
-		/*	Increment the step */
-		y-=CHANNELHEIGHT+CHANNELSKIP;
-		
-		/* Draw constraint channels */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-			gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			int frame1_x, channel_y;
 			
-			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
+			
+			if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 			
-			if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+			if (chan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
 			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
+			glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
 			
+			/*	Increment the step */
 			y-=CHANNELHEIGHT+CHANNELSKIP;
+			
+			/* Draw constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+				gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+				
+				if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+				
+				if (conchan->flag & ACHAN_SELECTED) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
+				
+				y-=CHANNELHEIGHT+CHANNELSKIP;
+			}
 		}
 	}		
 	glDisable(GL_BLEND);
@@ -430,13 +460,16 @@ static void draw_channel_strips(SpaceAction *saction)
 	/* dot thingies */
 	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
 	for (chan=act->chanbase.first; chan; chan=chan->next){
-		draw_ipo_channel(di, chan->ipo, 0, y);
-		y-=CHANNELHEIGHT+CHANNELSKIP;
-
-		/* Draw constraint channels */
-		for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
-			draw_ipo_channel(di, conchan->ipo, 0, y);
+		if((chan->flag & ACHAN_HIDDEN)==0) {
+			
+			draw_ipo_channel(di, chan->ipo, 0, y);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
+
+			/* Draw constraint channels */
+			for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next){
+				draw_ipo_channel(di, conchan->ipo, 0, y);
+				y-=CHANNELHEIGHT+CHANNELSKIP;
+			}
 		}
 	}
 
@@ -633,6 +666,8 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	calc_ipogrid();	
 	draw_ipogrid();
 
+	check_action_context(G.saction);
+	
 	/* Draw channel strips */
 	draw_channel_strips(G.saction);
 
@@ -932,17 +967,18 @@ static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
 	if (act){
 		/* Count required keys */
 		for (achan=act->chanbase.first; achan; achan=achan->next){
-			/* Count transformation keys */
-			if(achan->ipo) {
-				for (icu=achan->ipo->curve.first; icu; icu=icu->next)
-					count+=icu->totvert;
-			}
-			/* Count constraint keys */
-			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
-				if(conchan->ipo) 
-					for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+			if((achan->flag & ACHAN_HIDDEN)==0) {
+				/* Count transformation keys */
+				if(achan->ipo) {
+					for (icu=achan->ipo->curve.first; icu; icu=icu->next)
 						count+=icu->totvert;
-				
+				}
+				/* Count constraint keys */
+				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
+					if(conchan->ipo) 
+						for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+							count+=icu->totvert;
+			}				
 		}
 		
 		/* Build the list */
@@ -951,21 +987,22 @@ static BezTriple **action_to_keylist(bAction *act, int flags, int *totvert)
 			count=0;
 			
 			for (achan=act->chanbase.first; achan; achan=achan->next){
-				if(achan->ipo) {
-					/* Add transformation keys */
-					for (icu=achan->ipo->curve.first; icu; icu=icu->next){
-						for (v=0; v<icu->totvert; v++)
-							list[count++]=&icu->bezt[v];
-					}
-				}					
-					/* Add constraint keys */
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
-					if(conchan->ipo)
-						for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+				if((achan->flag & ACHAN_HIDDEN)==0) {
+					if(achan->ipo) {
+						/* Add transformation keys */
+						for (icu=achan->ipo->curve.first; icu; icu=icu->next){
 							for (v=0; v<icu->totvert; v++)
 								list[count++]=&icu->bezt[v];
-				}
-							
+						}
+					}					
+						/* Add constraint keys */
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
+						if(conchan->ipo)
+							for (icu=conchan->ipo->curve.first; icu; icu=icu->next)
+								for (v=0; v<icu->totvert; v++)
+									list[count++]=&icu->bezt[v];
+					}
+				}							
 			}		
 			qsort(list, count, sizeof(BezTriple*), bezt_compare);
 			
