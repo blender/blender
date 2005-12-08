@@ -1911,6 +1911,11 @@ void deselectall_posearmature (Object *ob, int test)
 		}
 	}
 	
+	/* action editor */
+	deselect_actionchannels(ob->action, 0);	/* deselects for sure */
+	if(selectmode==1)
+		deselect_actionchannels(ob->action, 1);	/* swaps */
+	
 	allqueue(REDRAWBUTSEDIT, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
 	allqueue(REDRAWVIEW3D, 0);
