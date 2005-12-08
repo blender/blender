@@ -2217,6 +2217,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 						draw_object(&tbase, DRAW_CONSTCOLOR);
 						ob= ob->id.next;
 					}
+					
+					/* Transp afterdraw */
+					view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+					
 					free_duplilist();
 					
 				}
@@ -2253,6 +2257,9 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 					draw_object(&tbase, DRAW_CONSTCOLOR);
 					ob= ob->id.next;
 				}
+				/* Transp afterdraw stuff */
+				view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+				
 				free_duplilist();
 			}
 			if((base->flag & SELECT)==0) {
@@ -2409,6 +2416,9 @@ void drawview3d_render(struct View3D *v3d)
 							draw_object(&tbase, DRAW_CONSTCOLOR);
 							ob= ob->id.next;
 						}
+						/* Transp afterdraw stuff */
+						view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+						
 						free_duplilist();
 					}
 				}
@@ -2445,6 +2455,10 @@ void drawview3d_render(struct View3D *v3d)
 						draw_object(&tbase, DRAW_CONSTCOLOR);
 						ob= ob->id.next;
 					}
+					
+					/* Transp afterdraw stuff */
+					view3d_draw_transp(v3d, DRAW_CONSTCOLOR);
+					
 					free_duplilist();
 				}
 				else if((base->flag & SELECT)==0) {

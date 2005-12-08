@@ -3495,7 +3495,7 @@ void draw_object(Base *base, int flag)
 	ob= base->object;
 
 	/* xray delay? */
-	if((flag & DRAW_PICKING)==0) {
+	if((flag & DRAW_PICKING)==0 && (ob->flag & OB_FROMDUPLI)==0) {
 		/* xray and transp are set when it is drawing the 2nd/3rd pass */
 		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
 			add_view3d_after(G.vd, base, V3D_XRAY);
