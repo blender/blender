@@ -587,18 +587,20 @@ void add_constraint(int only_IK)
 	
 	/* paranoia checks */
 	if(ob==NULL || ob==G.obedit) return;
-	
+
 	if(ob->pose && (ob->flag & OB_POSEMODE)) {
-	
+		bArmature *arm= ob->data;
+		
 		/* find active channel */
-		for(pchanact= ob->pose->chanbase.first; pchanact; pchanact= pchanact->next)
-			if(pchanact->bone->flag & BONE_ACTIVE) break;
+		pchanact= get_active_posechannel(ob);
 		if(pchanact==NULL) return;
 	
 		/* find selected bone */
 		for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
 			if(pchansel!=pchanact)
-				if(pchansel->bone->flag & BONE_SELECTED) break;
+				if(pchansel->bone->flag & BONE_SELECTED) 
+					if(pchansel->bone->layer & arm->layer)
+						break;
 		}
 	}
 	

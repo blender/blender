@@ -158,11 +158,12 @@ void exit_posemode(void)
 /* called by buttons to find a bone to display/edit values for */
 bPoseChannel *get_active_posechannel (Object *ob)
 {
+	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	
 	/* find active */
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE))
+		if(pchan->bone && (pchan->bone->flag & BONE_ACTIVE) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
 	
